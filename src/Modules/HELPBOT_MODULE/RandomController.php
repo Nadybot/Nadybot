@@ -144,11 +144,8 @@ class RandomController {
 		));
 	}
 
-	/**
-	 * @Mask $amount ((?:\d+)[x*])
-	 */
 	#[NCA\HandlesCommand("roll")]
-	public function rollMultipleNamesCommand(CmdContext $context, string $amount, string $names): void {
+	public function rollMultipleNamesCommand(CmdContext $context, #[NCA\Regexp("(?:\d+)[x*]")] string $amount, string $names): void {
 		$amount = (int)$amount;
 		$timeBetweenRolls = $this->settingManager->getInt('time_between_rolls')??30;
 		if (!$this->canRoll($context->char->name, $timeBetweenRolls)) {

@@ -175,13 +175,10 @@ class LogsController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @Mask $action reset
-	 */
 	#[NCA\HandlesCommand("loglevel")]
 	public function loglevelResetCommand(
 		CmdContext $context,
-		string $action
+		#[NCA\Str("reset")] string $action
 	): void {
 		$loggers = LegacyLogger::getLoggers();
 		LegacyLogger::getConfig(true);
@@ -212,13 +209,11 @@ class LogsController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @Mask $loglevel (debug|info|notice|warning|error|emergency|alert)
-	 */
 	#[NCA\HandlesCommand("loglevel")]
 	public function loglevelFileCommand(
 		CmdContext $context,
 		PWord $mask,
+		#[NCA\Regexp("debug|info|notice|warning|error|emergency|alert")]
 		string $logLevel
 	): void {
 		$logLevel = strtoupper($logLevel);

@@ -47,10 +47,9 @@ class StopwatchController {
 
 	/**
 	 * Start a new stopwatch
-	 * @Mask $action start
 	 */
 	#[NCA\HandlesCommand("stopwatch")]
-	public function startStopwatchCommand(CmdContext $context, string $action): void {
+	public function startStopwatchCommand(CmdContext $context, #[NCA\Str("start")] string $action): void {
 		if (array_key_exists($context->char->name, $this->stopwatches)) {
 			$msg = "You already have a stopwatch running. ".
 				"Use <highlight><symbol>stopwatch stop<end> to stop it.";
@@ -64,10 +63,9 @@ class StopwatchController {
 
 	/**
 	 * Stop a user's stopwatch
-	 * @Mask $action stop
 	 */
 	#[NCA\HandlesCommand("stopwatch")]
-	public function stopStopwatchCommand(CmdContext $context, string $action): void {
+	public function stopStopwatchCommand(CmdContext $context, #[NCA\Str("stop")] string $action): void {
 		if (!array_key_exists($context->char->name, $this->stopwatches)) {
 			$msg = "You don't have a stopwatch running.";
 			$context->reply($msg);
@@ -82,10 +80,9 @@ class StopwatchController {
 
 	/**
 	 * Command to add a lap to the stopwatch
-	 * @Mask $action lap
 	 */
 	#[NCA\HandlesCommand("stopwatch")]
-	public function stopwatchLapCommand(CmdContext $context, string $action, ?string $lapName): void {
+	public function stopwatchLapCommand(CmdContext $context, #[NCA\Str("lap")] string $action, ?string $lapName): void {
 		if (!array_key_exists($context->char->name, $this->stopwatches)) {
 			$msg = "You don't have a stopwatch running.";
 			$context->reply($msg);
@@ -102,10 +99,9 @@ class StopwatchController {
 
 	/**
 	 * Show a user's stopwatch
-	 * @Mask $action (view|show)
 	 */
 	#[NCA\HandlesCommand("stopwatch")]
-	public function showStopwatchCommand(CmdContext $context, string $action): void {
+	public function showStopwatchCommand(CmdContext $context, #[NCA\Regexp("view|show")] string $action): void {
 		if (!array_key_exists($context->char->name, $this->stopwatches)) {
 			$msg = "You don't have a stopwatch running.";
 			$context->reply($msg);

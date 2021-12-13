@@ -57,11 +57,8 @@ class QuoteController {
 		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations");
 	}
 
-	/**
-	 * @Mask $action add
-	 */
 	#[NCA\HandlesCommand("quote")]
-	public function quoteAddCommand(CmdContext $context, string $action, string $quote): void {
+	public function quoteAddCommand(CmdContext $context, #[NCA\Str("add")] string $action, string $quote): void {
 		$quoteMsg = trim($quote);
 		$row = $this->db->table("quote")
 			->whereIlike("msg", $quoteMsg)
@@ -114,11 +111,8 @@ class QuoteController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @Mask $action search
-	 */
 	#[NCA\HandlesCommand("quote")]
-	public function quoteSearchCommand(CmdContext $context, string $action, string $search): void {
+	public function quoteSearchCommand(CmdContext $context, #[NCA\Str("search")] string $action, string $search): void {
 		$searchParam = "%{$search}%";
 		$msg = "";
 
@@ -160,11 +154,8 @@ class QuoteController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @Mask $channel (org|priv)
-	 */
 	#[NCA\HandlesCommand("quote")]
-	public function quoteShowCommand(CmdContext $context, ?string $channel, int $id): void {
+	public function quoteShowCommand(CmdContext $context, #[NCA\Regexp("org|priv")] ?string $channel, int $id): void {
 		$result = $this->getQuoteInfo($id);
 
 		if ($result === null) {

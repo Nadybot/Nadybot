@@ -151,11 +151,8 @@ class CloakController implements MessageEmitter {
 		$context->reply($blob);
 	}
 
-	/**
-	 * @Mask $action (raise|on)
-	 */
 	#[NCA\HandlesCommand("cloak")]
-	public function cloakRaiseCommand(CmdContext $context, string $action): void {
+	public function cloakRaiseCommand(CmdContext $context, #[NCA\Regexp("raise|on")] string $action): void {
 		/** @var ?OrgCity */
 		$row = $this->getLastOrgEntry(true);
 

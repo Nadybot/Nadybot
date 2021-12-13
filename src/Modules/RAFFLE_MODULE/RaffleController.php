@@ -214,11 +214,8 @@ class RaffleController {
 		return $blob;
 	}
 
-	/**
-	 * @Mask $action start
-	 */
 	#[NCA\HandlesCommand("raffleadmin")]
-	public function raffleStartCommand(CmdContext $context, string $action, string $raffleString): void {
+	public function raffleStartCommand(CmdContext $context, #[NCA\Str("start")] string $action, string $raffleString): void {
 		if (isset($this->raffle)) {
 			$msg = "There is already a raffle in progress.";
 			$context->reply($msg);
@@ -318,11 +315,8 @@ class RaffleController {
 		$this->raffle->sendto->reply($msg);
 	}
 
-	/**
-	 * @Mask $action cancel
-	 */
 	#[NCA\HandlesCommand("raffleadmin")]
-	public function raffleCancelCommand(CmdContext $context, string $action): void {
+	public function raffleCancelCommand(CmdContext $context, #[NCA\Str("cancel")] string $action): void {
 		if (!isset($this->raffle)) {
 			$context->reply(static::NO_RAFFLE_ERROR);
 			return;
@@ -344,11 +338,8 @@ class RaffleController {
 		$this->raffle = null;
 	}
 
-	/**
-	 * @Mask $action end
-	 */
 	#[NCA\HandlesCommand("raffleadmin")]
-	public function raffleEndCommand(CmdContext $context, string $action): void {
+	public function raffleEndCommand(CmdContext $context, #[NCA\Str("end")] string $action): void {
 		if (!isset($this->raffle)) {
 			$context->reply(static::NO_RAFFLE_ERROR);
 			return;
@@ -363,11 +354,8 @@ class RaffleController {
 		$this->endRaffle();
 	}
 
-	/**
-	 * @Mask $action timer
-	 */
 	#[NCA\HandlesCommand("raffleadmin")]
-	public function raffleTimerCommand(CmdContext $context, string $action, PDuration $duration): void {
+	public function raffleTimerCommand(CmdContext $context, #[NCA\Str("timer")] string $action, PDuration $duration): void {
 		if (!isset($this->raffle)) {
 			$context->reply(static::NO_RAFFLE_ERROR);
 			return;
@@ -392,11 +380,8 @@ class RaffleController {
 		$this->announceRaffle();
 	}
 
-	/**
-	 * @Mask $action announce
-	 */
 	#[NCA\HandlesCommand("raffleadmin")]
-	public function raffleAnnounceCommand(CmdContext $context, string $action, ?string $message): void {
+	public function raffleAnnounceCommand(CmdContext $context, #[NCA\Str("announce")] string $action, ?string $message): void {
 		if (!isset($this->raffle)) {
 			$context->reply(static::NO_RAFFLE_ERROR);
 			return;
@@ -410,11 +395,8 @@ class RaffleController {
 		$this->announceRaffle($message);
 	}
 
-	/**
-	 * @Mask $action (join|enter)
-	 */
 	#[NCA\HandlesCommand("raffle")]
-	public function raffleJoinCommand(CmdContext $context, string $action, ?int $slot): void {
+	public function raffleJoinCommand(CmdContext $context, #[NCA\Regexp("join|enter")] string $action, ?int $slot): void {
 		if (!isset($this->raffle)) {
 			$context->reply(static::NO_RAFFLE_ERROR);
 			return;
@@ -473,11 +455,8 @@ class RaffleController {
 		);
 	}
 
-	/**
-	 * @Mask $action leave
-	 */
 	#[NCA\HandlesCommand("raffle")]
-	public function raffleLeaveCommand(CmdContext $context, string $action, ?int $slot): void {
+	public function raffleLeaveCommand(CmdContext $context, #[NCA\Str("leave")] string $action, ?int $slot): void {
 		if (!isset($this->raffle)) {
 			$context->reply(static::NO_RAFFLE_ERROR);
 			return;

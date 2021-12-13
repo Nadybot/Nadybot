@@ -44,11 +44,8 @@ class DingController {
 		$context->reply($this->util->randomArrayValue($dingText));
 	}
 
-	/**
-	 * @Mask $action dong
-	 */
 	#[NCA\HandlesCommand("ding")]
-	public function dingDongCommand(CmdContext $context, string $action): void {
+	public function dingDongCommand(CmdContext $context, #[NCA\Str("dong")] string $action): void {
 		$msg =	"Ditch, Bitch!";
 		$context->reply($msg);
 	}

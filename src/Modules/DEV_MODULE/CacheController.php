@@ -55,12 +55,8 @@ class CacheController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @Mask $action browse
-	 * @Mask $group ([a-z0-9_-]+)
-	 */
 	#[NCA\HandlesCommand("cache")]
-	public function cacheBrowseCommand(CmdContext $context, string $action, string $group): void {
+	public function cacheBrowseCommand(CmdContext $context, #[NCA\Str("browse")] string $action, #[NCA\Regexp("[a-z0-9_-]+")] string $group): void {
 		$path = $this->chatBot->vars['cachefolder'] . $group;
 
 		$blob = '';
@@ -74,11 +70,8 @@ class CacheController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @Mask $group ([a-z0-9_-]+)
-	 */
 	#[NCA\HandlesCommand("cache")]
-	public function cacheRemCommand(CmdContext $context, PRemove $action, string $group, PFilename $file): void {
+	public function cacheRemCommand(CmdContext $context, PRemove $action, #[NCA\Regexp("[a-z0-9_-]+")] string $group, PFilename $file): void {
 		$file = $file();
 
 		if ($this->cacheManager->cacheExists($group, $file)) {
@@ -90,12 +83,8 @@ class CacheController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @Mask $action view
-	 * @Mask $group ([a-z0-9_-]+)
-	 */
 	#[NCA\HandlesCommand("cache")]
-	public function cacheViewCommand(CmdContext $context, string $action, string $group, PFilename $file): void {
+	public function cacheViewCommand(CmdContext $context, #[NCA\Str("view")] string $action, #[NCA\Regexp("[a-z0-9_-]+")] string $group, PFilename $file): void {
 		$file = $file();
 
 		if ($this->cacheManager->cacheExists($group, $file)) {

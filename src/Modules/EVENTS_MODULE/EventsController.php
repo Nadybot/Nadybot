@@ -117,11 +117,8 @@ class EventsController {
 			->first();
 	}
 
-	/**
-	 * @Mask $action join
-	 */
 	#[NCA\HandlesCommand("events")]
-	public function eventsJoinCommand(CmdContext $context, string $action, int $id): void {
+	public function eventsJoinCommand(CmdContext $context, #[NCA\Str("join")] string $action, int $id): void {
 		$row = $this->getEvent($id);
 		if ($row === null) {
 			$msg = "There is no event with id <highlight>$id<end>.";
@@ -148,11 +145,8 @@ class EventsController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @Mask $action leave
-	 */
 	#[NCA\HandlesCommand("events")]
-	public function eventsLeaveCommand(CmdContext $context, string $action, int $id): void {
+	public function eventsLeaveCommand(CmdContext $context, #[NCA\Str("leave")] string $action, int $id): void {
 		$row = $this->getEvent($id);
 		if ($row === null) {
 			$msg = "There is no event with id <highlight>{$id}<end>.";
@@ -178,11 +172,8 @@ class EventsController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @Mask $action list
-	 */
 	#[NCA\HandlesCommand("events")]
-	public function eventsListCommand(CmdContext $context, string $action, int $id): void {
+	public function eventsListCommand(CmdContext $context, #[NCA\Str("list")] string $action, int $id): void {
 		$row = $this->getEvent($id);
 		if ($row === null) {
 			$msg = "Could not find event with id <highlight>$id<end>.";
@@ -225,11 +216,8 @@ class EventsController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @Mask $action add
-	 */
 	#[NCA\HandlesCommand("events add .+")]
-	public function eventsAddCommand(CmdContext $context, string $action, string $eventName): void {
+	public function eventsAddCommand(CmdContext $context, #[NCA\Str("add")] string $action, string $eventName): void {
 		$eventId = $this->db->table("events")
 			->insertGetId([
 				"time_submitted" => time(),
@@ -253,11 +241,8 @@ class EventsController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @Mask $action setdesc
-	 */
 	#[NCA\HandlesCommand("events setdesc .+")]
-	public function eventsSetDescCommand(CmdContext $context, string $action, int $id, string $description): void {
+	public function eventsSetDescCommand(CmdContext $context, #[NCA\Str("setdesc")] string $action, int $id, string $description): void {
 		$row = $this->getEvent($id);
 		if ($row === null) {
 			$msg = "Could not find an event with id $id.";
@@ -270,16 +255,12 @@ class EventsController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @Mask $action setdate
-	 * @Mask $date (\d{4}-(?:0?[1-9]|1[012])-(?:0?[1-9]|[12]\d|3[01])\s+(?:[0-1]?\d|[2][0-3]):(?:[0-5]\d)(?::([0-5]\d))?)
-	 */
 	#[NCA\HandlesCommand("events setdate .+")]
 	public function eventsSetDateCommand(
 		CmdContext $context,
-		string $action,
+		#[NCA\Str("setdate")] string $action,
 		int $id,
-		string $date
+		#[NCA\Regexp("\d{4}-(?:0?[1-9]|1[012])-(?:0?[1-9]|[12]\d|3[01])\s+(?:[0-1]?\d|[2][0-3]):(?:[0-5]\d)(?::([0-5]\d))?")] string $date
 	): void {
 		$row = $this->getEvent($id);
 		if ($row === null) {

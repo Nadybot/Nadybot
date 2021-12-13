@@ -378,10 +378,9 @@ class StartpageController {
 
 	/**
 	 * This command handler lets you pick an unused tile for a specific position
-	 * @Mask $action pick
 	 */
 	#[NCA\HandlesCommand("startpage")]
-	public function startpagePickCommand(CmdContext $context, string $action, int $pos): void {
+	public function startpagePickCommand(CmdContext $context, #[NCA\Str("pick")] string $action, int $pos): void {
 		$tiles = $this->getActiveLayout();
 		$unusedTiles = $this->getTiles();
 		foreach ($tiles as $name => $tile) {
@@ -409,10 +408,9 @@ class StartpageController {
 
 	/**
 	 * This command handler shows the description of a tile
-	 * @Mask $action describe
 	 */
 	#[NCA\HandlesCommand("startpage")]
-	public function startpageDescribeTileCommand(CmdContext $context, string $action, string $tileName): void {
+	public function startpageDescribeTileCommand(CmdContext $context, #[NCA\Str("describe")] string $action, string $tileName): void {
 		$allTiles = $this->getTiles();
 		$tile = $allTiles[$tileName] ?? null;
 		if (!isset($tile)) {
@@ -425,12 +423,11 @@ class StartpageController {
 
 	/**
 	 * This command handler assigns an unused tile to a position
-	 * @Mask $action pick
 	 */
 	#[NCA\HandlesCommand("startpage")]
 	public function startpagePickTileCommand(
 		CmdContext $context,
-		string $action,
+		#[NCA\Str("pick")] string $action,
 		int $pos,
 		string $tileName
 	): void {
@@ -452,14 +449,13 @@ class StartpageController {
 
 	/**
 	 * This command handler moves around tiles
-	 * @Mask $action move
-	 * @mask $direction (up|down)
 	 */
 	#[NCA\HandlesCommand("startpage")]
 	public function startpageMoveTileCommand(
 		CmdContext $context,
-		string $action,
+		#[NCA\Str("move")] string $action,
 		string $tileName,
+		#[NCA\Regexp("up|down")]
 		string $direction
 	): void {
 		$currentTiles = $this->getActiveLayout();

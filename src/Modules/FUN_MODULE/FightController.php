@@ -36,11 +36,8 @@ class FightController {
 	#[NCA\Inject]
 	public Util $util;
 
-	/**
-	 * @Mask $vs vs
-	 */
 	#[NCA\HandlesCommand("fight")]
-	public function fightCommand(CmdContext $context, PCharacter $player1, ?string $vs, PCharacter $player2): void {
+	public function fightCommand(CmdContext $context, PCharacter $player1, #[NCA\Str("vs")] ?string $vs, PCharacter $player2): void {
 		$player1 = $player1();
 		$player2 = $player2();
 

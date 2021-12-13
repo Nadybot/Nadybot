@@ -158,14 +158,13 @@ class BanController {
 
 	/**
 	 * This command handler bans a player from this bot.
-	 * @Mask $for (for|reason)
 	 */
 	#[NCA\HandlesCommand("ban")]
 	public function banPlayerWithTimeAndReasonCommand(
 		CmdContext $context,
 		PCharacter $who,
 		PDuration $duration,
-		string $for,
+		#[NCA\Regexp("for|reason")] string $for,
 		string $reason
 	): void {
 		$who = $who();
@@ -212,13 +211,12 @@ class BanController {
 
 	/**
 	 * This command handler permanently bans a player from this bot.
-	 * @Mask $for (for|reason)
 	 */
 	#[NCA\HandlesCommand("ban")]
 	public function banPlayerWithReasonCommand(
 		CmdContext $context,
 		PCharacter $who,
-		string $for,
+		#[NCA\Regexp("for|reason")] string $for,
 		string $reason
 	): void {
 		$who = $who();
@@ -298,10 +296,9 @@ class BanController {
 	 * This command handler unbans a player and all their alts from this bot.
 	 * Command parameter is:
 	 *  - name of one of the player's characters
-	 * @Mask $all all
 	 */
 	#[NCA\HandlesCommand("unban")]
-	public function unbanAllCommand(CmdContext $context, string $all, PCharacter $who): void {
+	public function unbanAllCommand(CmdContext $context, #[NCA\Str("all")] string $all, PCharacter $who): void {
 		$who = $who();
 
 		$charId = $this->chatBot->get_uid($who);
@@ -635,17 +632,13 @@ class BanController {
 		return $blob;
 	}
 
-	/**
-	 * @Mask $add add
-	 * @Mask $for (for|reason|because)
-	 */
 	#[NCA\HandlesCommand("orgban")]
 	public function orgbanAddByIdCommand(
 		CmdContext $context,
-		string $add,
+		#[NCA\Str("add")] string $add,
 		int $orgId,
 		?PDuration $duration,
-		string $for,
+		#[NCA\Regexp("for|reason|because")] string $for,
 		string $reason
 	): void {
 		$this->banOrg($orgId, $duration ? $duration() : null, $context->char->name, $reason, $context);

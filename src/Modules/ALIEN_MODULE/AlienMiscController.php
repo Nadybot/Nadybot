@@ -365,10 +365,9 @@ class AlienMiscController {
 
 	/**
 	 * This command handler shows info about Alien City Generals.
-	 * @Mask $general (ankari|ilari|rimah|jaax|xoch|cha)
 	 */
 	#[NCA\HandlesCommand("aigen")]
-	public function aigenCommand(CmdContext $context, string $general): void {
+	public function aigenCommand(CmdContext $context, #[NCA\Regexp("ankari|ilari|rimah|jaax|xoch|cha")] string $general): void {
 		$gen = ucfirst(strtolower($general));
 
 		$blob = '';

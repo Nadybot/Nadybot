@@ -284,22 +284,16 @@ class NotesController {
 		return $this->db->insert("notes", $note);
 	}
 
-	/**
-	 * @Mask $action add
-	 */
 	#[NCA\HandlesCommand("notes")]
-	public function notesAddCommand(CmdContext $context, string $action, string $note): void {
+	public function notesAddCommand(CmdContext $context, #[NCA\Str("add")] string $action, string $note): void {
 		$this->saveNote($note, $context->char->name);
 		$msg = "Note added successfully.";
 
 		$context->reply($msg);
 	}
 
-	/**
-	 * @Mask $action (add|addall|addself)
-	 */
 	#[NCA\HandlesCommand("reminders")]
-	public function reminderAddCommand(CmdContext $context, string $action, string $note): void {
+	public function reminderAddCommand(CmdContext $context, #[NCA\Regexp("add|addall|addself")] string $action, string $note): void {
 		$reminder = Note::REMIND_ALL;
 		if ($action === "addself") {
 			$reminder = Note::REMIND_SELF;
@@ -328,12 +322,8 @@ class NotesController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @Mask $action set
-	 * @Mask $type (all|self|off)
-	 */
 	#[NCA\HandlesCommand("reminders")]
-	public function reminderSetCommand(CmdContext $context, string $action, string $type, int $id): void {
+	public function reminderSetCommand(CmdContext $context, #[NCA\Str("set")] string $action, #[NCA\Regexp("all|self|off")] string $type, int $id): void {
 		$reminder = Note::REMIND_ALL;
 		if ($type === "self") {
 			$reminder = Note::REMIND_SELF;

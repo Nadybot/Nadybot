@@ -248,11 +248,8 @@ class OnlineController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @Mask $action all
-	 */
 	#[NCA\HandlesCommand("online")]
-	public function onlineAllCommand(CmdContext $context, string $action): void {
+	public function onlineAllCommand(CmdContext $context, #[NCA\Str("all")] string $action): void {
 		$msg = $this->getOnlineList(1);
 		$context->reply($msg);
 	}

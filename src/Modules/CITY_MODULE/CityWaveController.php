@@ -122,11 +122,8 @@ class CityWaveController implements MessageEmitter {
 		}
 	}
 
-	/**
-	 * @Mask $action start
-	 */
 	#[NCA\HandlesCommand("citywave")]
-	public function citywaveStartCommand(CmdContext $context, string $action): void {
+	public function citywaveStartCommand(CmdContext $context, #[NCA\Str("start")] string $action): void {
 		$wave = $this->getWave();
 		if ($wave !== null) {
 			$context->reply("A raid is already in progress.");
@@ -135,11 +132,8 @@ class CityWaveController implements MessageEmitter {
 		}
 	}
 
-	/**
-	 * @Mask $action stop
-	 */
 	#[NCA\HandlesCommand("citywave")]
-	public function citywaveStopCommand(CmdContext $context, string $action): void {
+	public function citywaveStopCommand(CmdContext $context, #[NCA\Str("stop")] string $action): void {
 		$wave = $this->getWave();
 		if ($wave === null) {
 			$msg = "There is no raid in progress at this time.";

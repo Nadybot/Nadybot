@@ -144,11 +144,8 @@ class ProfileController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @Mask $action view
-	 */
 	#[NCA\HandlesCommand("profile")]
-	public function profileViewCommand(CmdContext $context, string $action, PFilename $profileName): void {
+	public function profileViewCommand(CmdContext $context, #[NCA\Str("view")] string $action, PFilename $profileName): void {
 		$profileName = $profileName();
 		$filename = $this->getFilename($profileName);
 		if (!@file_exists($filename)) {
@@ -163,11 +160,8 @@ class ProfileController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @Mask $action save
-	 */
 	#[NCA\HandlesCommand("profile")]
-	public function profileSaveCommand(CmdContext $context, string $action, PFilename $fileName): void {
+	public function profileSaveCommand(CmdContext $context, #[NCA\Str("save")] string $action, PFilename $fileName): void {
 		$fileName = $fileName();
 		try {
 			$this->saveProfile($fileName);
@@ -279,11 +273,8 @@ class ProfileController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @Mask $action load
-	 */
 	#[NCA\HandlesCommand("profile")]
-	public function profileLoadCommand(CmdContext $context, string $action, PFilename $fileName): void {
+	public function profileLoadCommand(CmdContext $context, #[NCA\Str("load")] string $action, PFilename $fileName): void {
 		$profileName = $fileName();
 		$filename = $this->getFilename($profileName);
 

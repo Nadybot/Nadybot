@@ -526,16 +526,13 @@ class WorldBossController {
 		$context->reply($this->getWorldBossMessage($this->getMobFromContext($context)));
 	}
 
-	/**
-	 * @Mask $action kill
-	 */
 	#[
 		NCA\HandlesCommand("tara .+"),
 		NCA\HandlesCommand("loren .+"),
 		NCA\HandlesCommand("reaper .+"),
 		NCA\HandlesCommand("gauntlet .+")
 	]
-	public function bossKillCommand(CmdContext $context, string $action): void {
+	public function bossKillCommand(CmdContext $context, #[NCA\Str("kill")] string $action): void {
 		$boss = $this->getMobFromContext($context);
 		$this->worldBossUpdate($context->char, $boss, 0);
 		$msg = "The timer for <highlight>{$boss}<end> has been updated.";
@@ -545,16 +542,13 @@ class WorldBossController {
 		$this->sendSyncEvent($context->char->name, $boss, 0, $context->forceSync);
 	}
 
-	/**
-	 * @Mask $action update
-	 */
 	#[
 		NCA\HandlesCommand("tara .+"),
 		NCA\HandlesCommand("loren .+"),
 		NCA\HandlesCommand("reaper .+"),
 		NCA\HandlesCommand("gauntlet .+")
 	]
-	public function bossUpdateCommand(CmdContext $context, string $action, PDuration $duration): void {
+	public function bossUpdateCommand(CmdContext $context, #[NCA\Str("update")] string $action, PDuration $duration): void {
 		$boss = $this->getMobFromContext($context);
 		$this->worldBossUpdate($context->char, $boss, $duration->toSecs());
 		$msg = "The timer for <highlight>{$boss}<end> has been updated.";

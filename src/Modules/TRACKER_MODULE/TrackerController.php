@@ -565,11 +565,8 @@ class TrackerController implements MessageEmitter {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @Mask $action add
-	 */
 	#[NCA\HandlesCommand("track")]
-	public function trackAddCommand(CmdContext $context, string $action, PCharacter $char): void {
+	public function trackAddCommand(CmdContext $context, #[NCA\Str("add")] string $action, PCharacter $char): void {
 		$this->chatBot->getUid($char(), function(?int $uid) use ($context, $char): void {
 			if (!isset($uid)) {
 				$msg = "Character <highlight>{$char}<end> does not exist.";
@@ -587,11 +584,8 @@ class TrackerController implements MessageEmitter {
 		});
 	}
 
-	/**
-	 * @Mask $action addorg
-	 */
 	#[NCA\HandlesCommand("track")]
-	public function trackAddOrgIdCommand(CmdContext $context, string $action, int $orgId): void {
+	public function trackAddOrgIdCommand(CmdContext $context, #[NCA\Str("addorg")] string $action, int $orgId): void {
 		if (!$this->findOrgController->isReady()) {
 			$this->findOrgController->sendNotReadyError($context);
 			return;
@@ -622,11 +616,8 @@ class TrackerController implements MessageEmitter {
 		);
 	}
 
-	/**
-	 * @Mask $action addorg
-	 */
 	#[NCA\HandlesCommand("track")]
-	public function trackAddOrgNameCommand(CmdContext $context, string $action, PNonNumber $orgName): void {
+	public function trackAddOrgNameCommand(CmdContext $context, #[NCA\Str("addorg")] string $action, PNonNumber $orgName): void {
 		if (!$this->findOrgController->isReady()) {
 			$this->findOrgController->sendNotReadyError($context);
 			return;
@@ -657,11 +648,8 @@ class TrackerController implements MessageEmitter {
 		return $blob;
 	}
 
-	/**
-	 * @Mask $action ((?:rem|del)org)
-	 */
 	#[NCA\HandlesCommand("track")]
-	public function trackRemOrgCommand(CmdContext $context, string $action, int $orgId): void {
+	public function trackRemOrgCommand(CmdContext $context, #[NCA\Regexp("(?:rem|del)org")] string $action, int $orgId): void {
 		if (!$this->findOrgController->isReady()) {
 			$this->findOrgController->sendNotReadyError($context);
 			return;
@@ -695,12 +683,8 @@ class TrackerController implements MessageEmitter {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @Mask $action (orgs?)
-	 * @Mask $subAction list
-	 */
 	#[NCA\HandlesCommand("track")]
-	public function trackListOrgsCommand(CmdContext $context, string $action, ?string $subAction): void {
+	public function trackListOrgsCommand(CmdContext $context, #[NCA\Regexp("orgs?")] string $action, #[NCA\Str("list")] ?string $subAction): void {
 		$orgs = $this->db->table(static::DB_ORG, "to")
 			->join("organizations AS o", "o.id", "to.org_id")
 			->orderBy("name")
@@ -814,13 +798,8 @@ class TrackerController implements MessageEmitter {
 		return true;
 	}
 
-	/**
-	 * @Mask $action online
-	 * @Mask $all all
-	 * @Mask $edit --edit
-	 */
 	#[NCA\HandlesCommand("track")]
-	public function trackOnlineCommand(CmdContext $context, string $action, ?string $all, ?string $edit): void {
+	public function trackOnlineCommand(CmdContext $context, #[NCA\Str("online")] string $action, #[NCA\Str("all")] ?string $all, #[NCA\Str("--edit")] ?string $edit): void {
 		$data2 = $this->db->table(self::DB_ORG_MEMBER, "tu")
 			->join("players AS p", "tu.name", "p.name")
 			->where("p.dimension", $this->db->getDim())
@@ -983,21 +962,15 @@ class TrackerController implements MessageEmitter {
 		return $blob;
 	}
 
-	/**
-	 * @Mask $action hide
-	 */
 	#[NCA\HandlesCommand("track")]
-	public function trackHideUidCommand(CmdContext $context, string $action, int $uid): void {
+	public function trackHideUidCommand(CmdContext $context, #[NCA\Str("hide")] string $action, int $uid): void {
 		$this->chatBot->getName($uid, function(?string $name) use ($context, $uid): void {
 			$this->trackHideCommand($context, $name ?? "UID {$uid}", $uid);
 		});
 	}
 
-	/**
-	 * @Mask $action hide
-	 */
 	#[NCA\HandlesCommand("track")]
-	public function trackHideNameCommand(CmdContext $context, string $action, PCharacter $char): void {
+	public function trackHideNameCommand(CmdContext $context, #[NCA\Str("hide")] string $action, PCharacter $char): void {
 		$this->chatBot->getUid($char(), function(?int $uid) use ($context, $char): void {
 			if (!isset($uid)) {
 				$msg = "Character <highlight>{$char}<end> does not exist.";
@@ -1024,21 +997,15 @@ class TrackerController implements MessageEmitter {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @Mask $action unhide
-	 */
 	#[NCA\HandlesCommand("track")]
-	public function trackUnhideUidCommand(CmdContext $context, string $action, int $uid): void {
+	public function trackUnhideUidCommand(CmdContext $context, #[NCA\Str("unhide")] string $action, int $uid): void {
 		$this->chatBot->getName($uid, function(?string $name) use ($context, $uid): void {
 			$this->trackUnhideCommand($context, $name ?? "UID {$uid}", $uid);
 		});
 	}
 
-	/**
-	 * @Mask $action unhide
-	 */
 	#[NCA\HandlesCommand("track")]
-	public function trackUnhideNameCommand(CmdContext $context, string $action, PCharacter $char): void {
+	public function trackUnhideNameCommand(CmdContext $context, #[NCA\Str("unhide")] string $action, PCharacter $char): void {
 		$this->chatBot->getUid($char(), function(?int $uid) use ($context, $char): void {
 			if (!isset($uid)) {
 				$msg = "Character <highlight>{$char}<end> does not exist.";
@@ -1066,11 +1033,8 @@ class TrackerController implements MessageEmitter {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @Mask $action (show|view)
-	 */
 	#[NCA\HandlesCommand("track")]
-	public function trackShowCommand(CmdContext $context, string $action, PCharacter $char): void {
+	public function trackShowCommand(CmdContext $context, #[NCA\Regexp("show|view")] string $action, PCharacter $char): void {
 		$this->chatBot->getUid($char(), function(?int $uid) use ($context, $char): void {
 			if (!isset($uid)) {
 				$msg = "<highlight>{$char}<end> does not exist.";

@@ -164,10 +164,13 @@ class AltsController {
 
 	/**
 	 * This command handler adds alt characters.
-	 * @Mask $action add
 	 */
 	#[NCA\HandlesCommand("alts")]
-	public function addAltCommand(CmdContext $context, string $action, PCharacterList $names): void {
+	public function addAltCommand(
+		CmdContext $context,
+		#[NCA\Str("add")] string $action,
+		PCharacterList $names
+	): void {
 		$senderAltInfo = $this->getAltInfo($context->char->name, true);
 		if (!$senderAltInfo->isValidated($context->char->name)) {
 			$context->reply("You can only add alts from a main or validated alt.");
@@ -256,10 +259,13 @@ class AltsController {
 
 	/**
 	 * This command handler adds alts to another main character.
-	 * @Mask $action main
 	 */
 	#[NCA\HandlesCommand("alts")]
-	public function addMainCommand(CmdContext $context, string $action, PCharacter $main): void {
+	public function addMainCommand(
+		CmdContext $context,
+		#[NCA\Str("main")] string $action,
+		PCharacter $main
+	): void {
 		$newMain = $main();
 
 		if ($newMain === $context->char->name) {
@@ -366,10 +372,9 @@ class AltsController {
 
 	/**
 	 * This command handler sets main character.
-	 * @Mask $action setmain
 	 */
 	#[NCA\HandlesCommand("alts")]
-	public function setMainCommand(CmdContext $context, string $action): void {
+	public function setMainCommand(CmdContext $context, #[NCA\Str("setmain")] string $action): void {
 		$newMain = $context->char->name;
 		$altInfo = $this->getAltInfo($newMain);
 

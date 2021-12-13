@@ -148,11 +148,8 @@ class ImplantDesignerController {
 		return (int)$modAmount;
 	}
 
-	/**
-	 * @Mask $action clear
-	 */
 	#[NCA\HandlesCommand("implantdesigner")]
-	public function implantdesignerClearCommand(CmdContext $context, string $action): void {
+	public function implantdesignerClearCommand(CmdContext $context, #[NCA\Str("clear")] string $action): void {
 		$this->saveDesign($context->char->name, '@', new stdClass());
 		$msg = "Implant Designer has been cleared.";
 		$context->reply($msg);
@@ -345,14 +342,11 @@ class ImplantDesignerController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @Mask $action clear
-	 */
 	#[NCA\HandlesCommand("implantdesigner")]
 	public function implantdesignerSlotClearCommand(
 		CmdContext $context,
 		PImplantSlot $slot,
-		string $action
+		#[NCA\Str("clear")] string $action
 	): void {
 		$slot = $slot();
 
@@ -370,14 +364,11 @@ class ImplantDesignerController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @Mask $action require
-	 */
 	#[NCA\HandlesCommand("implantdesigner")]
 	public function implantdesignerSlotRequireCommand(
 		CmdContext $context,
 		PImplantSlot $slot,
-		string $action
+		#[NCA\Str("require")] string $action
 	): void {
 		$slot = $slot();
 
@@ -410,14 +401,11 @@ class ImplantDesignerController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @Mask $action require
-	 */
 	#[NCA\HandlesCommand("implantdesigner")]
 	public function implantdesignerSlotRequireAbilityCommand(
 		CmdContext $context,
 		PImplantSlot $slot,
-		string $action,
+		#[NCA\Str("require")] string $action,
 		PAttribute $ability
 	): void {
 		$slot = $slot();
@@ -499,11 +487,8 @@ class ImplantDesignerController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @Mask $action (result|results)
-	 */
 	#[NCA\HandlesCommand("implantdesigner")]
-	public function implantdesignerResultCommand(CmdContext $context, string $action): void {
+	public function implantdesignerResultCommand(CmdContext $context, #[NCA\Regexp("result|results")] string $action): void {
 		$blob = $this->getImplantDesignerResults($context->char->name);
 
 		$msg = $this->text->makeBlob("Implant Designer Results", $blob);

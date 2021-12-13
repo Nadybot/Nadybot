@@ -37,29 +37,18 @@ class AliasController {
 	#[NCA\Inject]
 	public Text $text;
 
-	/**
-	 * @Mask $action add
-	 * @Mask $alias ("[a-z 0-9]+")
-	 */
 	#[NCA\HandlesCommand("alias")]
-	public function aliasAddCommand1(CmdContext $context, string $action, string $alias, string $command): void {
+	public function aliasAddCommand1(CmdContext $context, #[NCA\Str("add")] string $action, #[NCA\Regexp("\"[a-z 0-9]+\"")] string $alias, string $command): void {
 		$this->aliasAddCommand($context, substr($alias, 1, -1), $command);
 	}
 
-	/**
-	 * @Mask $action add
-	 * @Mask $alias ('[a-z 0-9]+')
-	 */
 	#[NCA\HandlesCommand("alias")]
-	public function aliasAddCommand2(CmdContext $context, string $action, string $alias, string $command): void {
+	public function aliasAddCommand2(CmdContext $context, #[NCA\Str("add")] string $action, #[NCA\Regexp("'[a-z 0-9]+'")] string $alias, string $command): void {
 		$this->aliasAddCommand($context, substr($alias, 1, -1), $command);
 	}
 
-	/**
-	 * @Mask $action add
-	 */
 	#[NCA\HandlesCommand("alias")]
-	public function aliasAddCommand3(CmdContext $context, string $action, PWord $alias, string $command): void {
+	public function aliasAddCommand3(CmdContext $context, #[NCA\Str("add")] string $action, PWord $alias, string $command): void {
 		$this->aliasAddCommand($context, $alias(), $command);
 	}
 
@@ -101,10 +90,9 @@ class AliasController {
 
 	/**
 	 * This command handler list all aliases.
-	 * @Mask $action list
 	 */
 	#[NCA\HandlesCommand("alias")]
-	public function aliasListCommand(CmdContext $context, string $action): void {
+	public function aliasListCommand(CmdContext $context, #[NCA\Str("list")] string $action): void {
 		$blob = "";
 		/** @var array<string,CmdAlias[]> */
 		$grouped = [];

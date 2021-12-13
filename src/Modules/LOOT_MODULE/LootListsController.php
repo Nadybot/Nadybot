@@ -319,11 +319,8 @@ class LootListsController {
 		$this->chatBot->sendPrivate($msg);
 	}
 
-	/**
-	 * @Mask $sector 7
-	 */
 	#[NCA\HandlesCommand("apf")]
-	public function apfSevenCommand(CmdContext $context, string $sector): void {
+	public function apfSevenCommand(CmdContext $context, #[NCA\Str("7")] string $sector): void {
 		$this->apf7Command($context);
 	}
 
@@ -371,11 +368,8 @@ class LootListsController {
 		return $itemlink;
 	}
 
-	/**
-	 * @Mask $sector 13
-	 */
 	#[NCA\HandlesCommand("apf")]
-	public function apfThirteenCommand(CmdContext $context, string $sector): void {
+	public function apfThirteenCommand(CmdContext $context, #[NCA\Str("13")] string $sector): void {
 		$itemlink = $this->getApfItems();
 		$list = '';
 		//CRU
@@ -432,11 +426,8 @@ class LootListsController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @Mask $sector 28
-	 */
 	#[NCA\HandlesCommand("apf")]
-	public function apfTwentyEightCommand(CmdContext $context, string $sector): void {
+	public function apfTwentyEightCommand(CmdContext $context, #[NCA\Str("28")] string $sector): void {
 		$itemlink = $this->getApfItems();
 		$list = '';
 		//CRU
@@ -486,11 +477,8 @@ class LootListsController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @Mask $sector 35
-	 */
 	#[NCA\HandlesCommand("apf")]
-	public function apfThirtyFiveCommand(CmdContext $context, string $sector): void {
+	public function apfThirtyFiveCommand(CmdContext $context, #[NCA\Str("35")] string $sector): void {
 		$itemlink = $this->getApfItems();
 		$list = '';
 

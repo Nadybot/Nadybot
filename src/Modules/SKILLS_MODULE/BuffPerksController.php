@@ -553,11 +553,8 @@ class BuffPerksController {
 		return $perks;
 	}
 
-	/**
-	 * @Mask $action show
-	 */
 	#[NCA\HandlesCommand("perks")]
-	public function showPerkCommand(CmdContext $context, string $action, string $perkName): void {
+	public function showPerkCommand(CmdContext $context, #[NCA\Str("show")] string $action, string $perkName): void {
 		$perk = $this->readPerk($perkName);
 		if (!isset($perk)) {
 			$msg = "Could not find any perk '<highlight>{$perkName}<end>'.";

@@ -85,10 +85,9 @@ class ChatRallyController {
 
 	/**
 	 * This command handler clears the current rally location
-	 * @Mask $action clear
 	 */
 	#[NCA\HandlesCommand("rally .+")]
-	public function rallyClearCommand(CmdContext $context, string $action): void {
+	public function rallyClearCommand(CmdContext $context, #[NCA\Str("clear")] string $action): void {
 		if (!$this->chatLeaderController->checkLeaderAccess($context->char->name)) {
 			$context->reply("You must be Raid Leader to use this command.");
 			return;
@@ -109,11 +108,9 @@ class ChatRallyController {
 	 *  - rally 10.9 . 30 . <playfield id/name>
 	 *  - rally 10.9, 30, <playfield id/name>
 	 *  - etc...
-	 * @Mask $x ([0-9.]+\s*(?:[x,.]*))
-	 * @Mask $y ([0-9.]+\s*(?:[x,.]*))
 	 */
 	#[NCA\HandlesCommand("rally .+")]
-	public function rallySet2Command(CmdContext $context, string $x, string $y, PWord $pf): void {
+	public function rallySet2Command(CmdContext $context, #[NCA\Regexp("[0-9.]+\s*(?:[x,.]*)")] string $x, #[NCA\Regexp("[0-9.]+\s*(?:[x,.]*)")] string $y, PWord $pf): void {
 		if (!$this->chatLeaderController->checkLeaderAccess($context->char->name)) {
 			$context->reply("You must be Raid Leader to use this command.");
 			return;

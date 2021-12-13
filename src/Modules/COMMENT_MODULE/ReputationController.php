@@ -123,14 +123,11 @@ class ReputationController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @Mask $action (\+1|\-1)
-	 */
 	#[NCA\HandlesCommand("reputation")]
 	public function reputationAddCommand(
 		CmdContext $context,
 		PCharacter $char,
-		string $action,
+		#[NCA\Regexp("\+1|\-1")] string $action,
 		string $comment
 	): void {
 		$this->commentController->addCommentCommand(
@@ -142,11 +139,13 @@ class ReputationController {
 		);
 	}
 
-	/**
-	 * @Mask $action all
-	 */
 	#[NCA\HandlesCommand("reputation")]
-	public function reputationViewCommand(CmdContext $context, PCharacter $char, ?string $all): void {
+	public function reputationViewCommand(
+		CmdContext $context,
+		PCharacter $char,
+		#[NCA\Str("all")]
+		?string $all
+	): void {
 		$name = $char();
 		$comments = $this->commentController->getComments($this->getReputationCategory(), $name);
 		$numComments = count($comments);

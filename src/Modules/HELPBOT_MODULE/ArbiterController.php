@@ -128,12 +128,8 @@ class ArbiterController {
 		return $this->util->unixtimeToReadable($time - ($time % 60));
 	}
 
-	/**
-	 * @Mask $action set
-	 * @Mask $ends ends
-	 */
 	#[NCA\HandlesCommand("arbiter")]
-	public function arbiterSetCommand(CmdContext $context, string $action, ?PWord $setWeek, ?string $ends): void {
+	public function arbiterSetCommand(CmdContext $context, #[NCA\Str("set")] string $action, ?PWord $setWeek, #[NCA\Str("ends")] ?string $ends): void {
 		if (isset($setWeek)) {
 			$setWeek = strtolower($setWeek());
 		}

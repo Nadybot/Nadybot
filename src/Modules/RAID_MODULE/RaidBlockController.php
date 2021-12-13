@@ -125,13 +125,10 @@ class RaidBlockController {
 		return $mapping[$block] ?? "an unknown activity";
 	}
 
-	/**
-	 * @Mask $blockFrom (points|join|bid)
-	 */
 	#[NCA\HandlesCommand("raidblock .+")]
 	public function raidBlockAddCommand(
 		CmdContext $context,
-		string $blockFrom,
+		#[NCA\Regexp("points|join|bid")] string $blockFrom,
 		PCharacter $player,
 		?PDuration $duration,
 		string $reason
@@ -214,15 +211,12 @@ class RaidBlockController {
 		$context->reply($this->text->makeBlob($msg, $blob));
 	}
 
-	/**
-	 * @Mask $blockFrom (points|join|bid)
-	 */
 	#[NCA\HandlesCommand("raidblock .+")]
 	public function raidBlockLiftCommand(
 		CmdContext $context,
 		PRemove $action,
 		PCharacter $char,
-		?string $blockFrom
+		#[NCA\Regexp("points|join|bid")] ?string $blockFrom
 	): void {
 		$player = $char();
 		$player = $this->altsController->getAltInfo($player)->main;

@@ -178,11 +178,8 @@ class ArulSabaController {
 		return $this->enrichIngredient($ing, $amount, $ql, $qlCanBeHigher);
 	}
 
-	/**
-	 * @Mask $side (left|right)
-	 */
 	#[NCA\HandlesCommand("arulsaba")]
-	public function arulSabaRecipeCommand(CmdContext $context, PWord $type, int $numGems, string $side): void {
+	public function arulSabaRecipeCommand(CmdContext $context, PWord $type, int $numGems, #[NCA\Regexp("left|right")] string $side): void {
 		$type = ucfirst(strtolower($type()));
 		$reqGems = max(1, $numGems);
 		$side = strtolower($side);

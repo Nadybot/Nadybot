@@ -52,10 +52,9 @@ class TrickleController {
 
 	/**
 	 * View trickle skills
-	 * @Mask $pairs (\w+\s+\d+(\s+\w+\s+\d+){0,5})
 	 */
 	#[NCA\HandlesCommand("trickle")]
-	public function trickle1Command(CmdContext $context, string $pairs): void {
+	public function trickle1Command(CmdContext $context, #[NCA\Regexp("\w+\s+\d+(\s+\w+\s+\d+){0,5}")] string $pairs): void {
 		$abilities = new AbilityConfig();
 
 		$array = preg_split("/\s+/", $pairs);
@@ -76,10 +75,9 @@ class TrickleController {
 
 	/**
 	 * View trickle skills
-	 * @Mask $pairs (\d+\s+\w+(\s+\d+\s+\w+){0,5})
 	 */
 	#[NCA\HandlesCommand("trickle")]
-	public function trickle2Command(CmdContext $context, string $pairs): void {
+	public function trickle2Command(CmdContext $context, #[NCA\Regexp("\d+\s+\w+(\s+\d+\s+\w+){0,5}")] string $pairs): void {
 		$abilities = new AbilityConfig();
 
 		$array = preg_split("/\s+/", $pairs);

@@ -70,11 +70,8 @@ class RateIgnoreController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @Mask $action add
-	 */
 	#[NCA\HandlesCommand("rateignore")]
-	public function rateignoreAddCommand(CmdContext $context, string $action, PCharacter $who): void {
+	public function rateignoreAddCommand(CmdContext $context, #[NCA\Str("add")] string $action, PCharacter $who): void {
 		$context->reply($this->add($who(), $context->char->name));
 	}
 

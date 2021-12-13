@@ -385,11 +385,8 @@ class RaidRankController {
 		return true;
 	}
 
-	/**
-	 * @Mask $action (add|promote)
-	 */
 	#[NCA\HandlesCommand("raidadmin")]
-	public function raidAdminAddCommand(CmdContext $context, string $action, PCharacter $char, ?int $rank): void {
+	public function raidAdminAddCommand(CmdContext $context, #[NCA\Regexp("add|promote")] string $action, PCharacter $char, ?int $rank): void {
 		$rank ??= 1;
 		if ($rank < 1 || $rank > 3) {
 			$context->reply("The admin rank must be a number between 1 and 3");
@@ -400,21 +397,15 @@ class RaidRankController {
 		$this->add($char(), $context->char->name, $context, $rank+6, $rankName, "raid_admin_$rank");
 	}
 
-	/**
-	 * @Mask $action (remove|rem|del|rm|demote)
-	 */
 	#[NCA\HandlesCommand("raidadmin")]
-	public function raidAdminRemoveCommand(CmdContext $context, string $action, PCharacter $char): void {
+	public function raidAdminRemoveCommand(CmdContext $context, #[NCA\Regexp("remove|rem|del|rm|demote")] string $action, PCharacter $char): void {
 		$rank = 'a raid admin';
 
 		$this->remove($char(), $context->char->name, $context, [7, 8, 9], $rank);
 	}
 
-	/**
-	 * @Mask $action (add|promote)
-	 */
 	#[NCA\HandlesCommand("raidleader")]
-	public function raidLeaderAddCommand(CmdContext $context, string $action, PCharacter $char, ?int $rank): void {
+	public function raidLeaderAddCommand(CmdContext $context, #[NCA\Regexp("add|promote")] string $action, PCharacter $char, ?int $rank): void {
 		$rank ??= 1;
 		if ($rank < 1 || $rank > 3) {
 			$context->reply("The leader rank must be a number between 1 and 3");
@@ -425,11 +416,8 @@ class RaidRankController {
 		$this->add($char(), $context->char->name, $context, $rank+3, $rankName, "raid_leader_$rank");
 	}
 
-	/**
-	 * @Mask $action (rem|del|rm|demote)
-	 */
 	#[NCA\HandlesCommand("raidleader")]
-	public function raidLeaderRemoveCommand(CmdContext $context, string $action, PCharacter $char): void {
+	public function raidLeaderRemoveCommand(CmdContext $context, #[NCA\Regexp("rem|del|rm|demote")] string $action, PCharacter $char): void {
 		$rank = 'a raid leader';
 
 		$this->remove($char(), $context->char->name, $context, [4, 5, 6], $rank);
@@ -476,11 +464,8 @@ class RaidRankController {
 		return join("", $output) . "\n";
 	}
 
-	/**
-	 * @Mask $all all
-	 */
 	#[NCA\HandlesCommand("leaderlist")]
-	public function leaderlistCommand(CmdContext $context, ?string $all): void {
+	public function leaderlistCommand(CmdContext $context, #[NCA\Str("all")] ?string $all): void {
 		$showOfflineAlts = isset($all);
 
 		$blob = "";

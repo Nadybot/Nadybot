@@ -257,11 +257,8 @@ class RaidMemberController {
 		return null;
 	}
 
-	/**
-	 * @Mask $action join
-	 */
 	#[NCA\HandlesCommand("raid (join|leave)")]
-	public function raidJoinCommand(CmdContext $context, string $action): void {
+	public function raidJoinCommand(CmdContext $context, #[NCA\Str("join")] string $action): void {
 		$reply = $this->joinRaid($context->char->name, $context->char->name, $context->channel, false);
 		if ($reply !== null) {
 			if ($context->isDM()) {
@@ -272,11 +269,8 @@ class RaidMemberController {
 		}
 	}
 
-	/**
-	 * @Mask $action leave
-	 */
 	#[NCA\HandlesCommand("raid (join|leave)")]
-	public function raidLeaveCommand(CmdContext $context, string $action): void {
+	public function raidLeaveCommand(CmdContext $context, #[NCA\Str("leave")] string $action): void {
 		$reply = $this->leaveRaid($context->char->name, $context->char->name);
 		if ($reply !== null) {
 			if ($context->isDM()) {
@@ -287,22 +281,16 @@ class RaidMemberController {
 		}
 	}
 
-	/**
-	 * @Mask $action add
-	 */
 	#[NCA\HandlesCommand("raidmember")]
-	public function raidAddCommand(CmdContext $context, string $action, PCharacter $char): void {
+	public function raidAddCommand(CmdContext $context, #[NCA\Str("add")] string $action, PCharacter $char): void {
 		$reply = $this->joinRaid($context->char->name, $char(), $context->channel, true);
 		if ($reply !== null) {
 			$context->reply($reply);
 		}
 	}
 
-	/**
-	 * @Mask $action (rem|del|kick)
-	 */
 	#[NCA\HandlesCommand("raidmember")]
-	public function raidKickCommand(CmdContext $context, string $action, PCharacter $char): void {
+	public function raidKickCommand(CmdContext $context, #[NCA\Regexp("rem|del|kick")] string $action, PCharacter $char): void {
 		$reply = $this->leaveRaid($context->char->name, $char());
 		if ($reply !== null) {
 			$context->reply($reply);

@@ -61,11 +61,8 @@ class BestQLController {
 		return null;
 	}
 
-	/**
-	 * @Mask $specs ([0-9 ]+)
-	 */
 	#[NCA\HandlesCommand("bestql")]
-	public function bestqlCommand(CmdContext $context, string $specs, ?PItem $item): void {
+	public function bestqlCommand(CmdContext $context, #[NCA\Regexp("[0-9 ]+")] string $specs, ?PItem $item): void {
 		/** @var array<int,int> */
 		$itemSpecs = [];
 		$specPairs = preg_split('/\s+/', $specs);

@@ -43,11 +43,8 @@ class BuddylistController {
 	#[NCA\Inject]
 	public Text $text;
 
-	/**
-	 * @Mask $action (clear|clean)
-	 */
 	#[NCA\HandlesCommand("buddylist")]
-	public function buddylistShowCommand(CmdContext $context, ?string $action): void {
+	public function buddylistShowCommand(CmdContext $context, #[NCA\Regexp("clear|clean")] ?string $action): void {
 		$cleanup = isset($action);
 
 		$orphanCount = 0;
@@ -95,11 +92,8 @@ class BuddylistController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @Mask $action add
-	 */
 	#[NCA\HandlesCommand("buddylist")]
-	public function buddylistAddCommand(CmdContext $context, string $action, PCharacter $who, PWord $type): void {
+	public function buddylistAddCommand(CmdContext $context, #[NCA\Str("add")] string $action, PCharacter $who, PWord $type): void {
 		$name = $who();
 
 		if ($this->buddylistManager->add($name, $type())) {
@@ -111,11 +105,8 @@ class BuddylistController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @Mask $all all
-	 */
 	#[NCA\HandlesCommand("buddylist")]
-	public function buddylistRemAllCommand(CmdContext $context, PRemove $rem, string $all): void {
+	public function buddylistRemAllCommand(CmdContext $context, PRemove $rem, #[NCA\Str("all")] string $all): void {
 		foreach ($this->buddylistManager->buddyList as $uid => $buddy) {
 			$this->chatBot->buddy_remove($uid);
 		}
@@ -148,11 +139,8 @@ class BuddylistController {
 		return "{$blob}\n";
 	}
 
-	/**
-	 * @Mask $action search
-	 */
 	#[NCA\HandlesCommand("buddylist")]
-	public function buddylistSearchCommand(CmdContext $context, string $action, string $search): void {
+	public function buddylistSearchCommand(CmdContext $context, #[NCA\Str("search")] string $action, string $search): void {
 		if (count($this->buddylistManager->buddyList) === 0) {
 			$msg = "There are no characters on the buddy list.";
 			$context->reply($msg);

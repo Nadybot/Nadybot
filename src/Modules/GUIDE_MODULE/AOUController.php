@@ -129,10 +129,9 @@ class AOUController {
 
 	/**
 	 * Search for an AO-U guide and include guides that have the search terms in the guide text.
-	 * @Mask $action all
 	 */
 	#[NCA\HandlesCommand("aou")]
-	public function aouAllSearch(CmdContext $context, string $action, string $search): void {
+	public function aouAllSearch(CmdContext $context, #[NCA\Str("all")] string $action, string $search): void {
 		$this->searchAndShowAOUGuide($search, true, $context);
 	}
 

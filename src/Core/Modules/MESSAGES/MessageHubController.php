@@ -115,15 +115,11 @@ class MessageHubController {
 		return $name;
 	}
 
-	/**
-	 * @Mask $action (add|addforce)
-	 * @Mask $fromConst from
-	 */
 	#[NCA\HandlesCommand("route")]
 	public function routeAddCommand(
 		CmdContext $context,
-		string $action,
-		?string $fromConst,
+		#[NCA\Regexp("add|addforce")] string $action,
+		#[NCA\Str("from")] ?string $fromConst,
 		PSource $from,
 		PDirection $direction,
 		PSource $to,
@@ -230,12 +226,8 @@ class MessageHubController {
 		);
 	}
 
-	/**
-	 * @Mask $action list
-	 * @Mask $subAction (from|sources?|src)
-	 */
 	#[NCA\HandlesCommand("route")]
-	public function routeListFromCommand(CmdContext $context, string $action, string $subAction): void {
+	public function routeListFromCommand(CmdContext $context, #[NCA\Str("list")] string $action, #[NCA\Regexp("from|sources?|src")] string $subAction): void {
 		$emitters = $this->messageHub->getEmitters();
 		$count = count($emitters);
 		ksort($emitters);
@@ -247,12 +239,8 @@ class MessageHubController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @Mask $action list
-	 * @Mask $subAction (to|dsts?|dests?|destinations?)
-	 */
 	#[NCA\HandlesCommand("route")]
-	public function routeListToCommand(CmdContext $context, string $action, string $subAction): void {
+	public function routeListToCommand(CmdContext $context, #[NCA\Str("list")] string $action, #[NCA\Regexp("to|dsts?|dests?|destinations?")] string $subAction): void {
 		$receivers = $this->messageHub->getReceivers();
 		$count = count($receivers);
 		ksort($receivers);
@@ -264,12 +252,8 @@ class MessageHubController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @Mask $action list
-	 * @Mask $subAction (mods?|modifiers?)
-	 */
 	#[NCA\HandlesCommand("route")]
-	public function routeListModifiersCommand(CmdContext $context, string $action, string $subAction): void {
+	public function routeListModifiersCommand(CmdContext $context, #[NCA\Str("list")] string $action, #[NCA\Regexp("mods?|modifiers?")] string $subAction): void {
 		$mods = $this->messageHub->modifiers;
 		$count = count($mods);
 		if (!$count) {
@@ -291,15 +275,11 @@ class MessageHubController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @Mask $action list
-	 * @Mask $subAction (mods?|modifiers?)
-	 */
 	#[NCA\HandlesCommand("route")]
 	public function routeListModifierCommand(
 		CmdContext $context,
-		string $action,
-		string $subAction,
+		#[NCA\Str("list")] string $action,
+		#[NCA\Regexp("mods?|modifiers?")] string $subAction,
 		string $modifier
 	): void {
 		$mod = $this->messageHub->modifiers[$modifier]??null;
@@ -391,11 +371,8 @@ class MessageHubController {
 		}
 	}
 
-	/**
-	 * @Mask $action list
-	 */
 	#[NCA\HandlesCommand("route")]
-	public function routeList(CmdContext $context, string $action): void {
+	public function routeList(CmdContext $context, #[NCA\Str("list")] string $action): void {
 		$routes = $this->messageHub->getRoutes();
 		if (empty($routes)) {
 			$context->reply("There are no routes defined.");
@@ -415,12 +392,8 @@ class MessageHubController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @Mask $tree tree
-	 * @Mask $all all
-	 */
 	#[NCA\HandlesCommand("route")]
-	public function routeTree(CmdContext $context, ?string $tree, ?string $all): void {
+	public function routeTree(CmdContext $context, #[NCA\Str("tree")] ?string $tree, #[NCA\Str("all")] ?string $all): void {
 		$routes = $this->messageHub->getRoutes();
 		if (empty($routes)) {
 			$context->reply("There are no routes defined.");
@@ -497,11 +470,8 @@ class MessageHubController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @Mask $action color
-	 */
 	#[NCA\HandlesCommand("route")]
-	public function routeListColorConfigCommand(CmdContext $context, string $action): void {
+	public function routeListColorConfigCommand(CmdContext $context, #[NCA\Str("color")] string $action): void {
 		$colors = $this->messageHub::$colors;
 		if ($colors->isEmpty()) {
 			$context->reply("No colors have been defined yet.");
@@ -572,15 +542,11 @@ class MessageHubController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @Mask $action color
-	 * @Mask $type (tag|text)
-	 */
 	#[NCA\HandlesCommand("route")]
 	public function routeTagColorRemCommand(
 		CmdContext $context,
-		string $action,
-		string $type,
+		#[NCA\Str("color")] string $action,
+		#[NCA\Regexp("tag|text")] string $type,
 		PRemove $subAction,
 		PSource $tag,
 		?PWhere $where,
@@ -625,29 +591,20 @@ class MessageHubController {
 		$context->reply("Color definition for <highlight>{$name}<end> deleted.");
 	}
 
-	/**
-	 * @Mask $action color
-	 * @Mask $subAction remall
-	 */
 	#[NCA\HandlesCommand("route")]
-	public function routeTagColorRemAllCommand(CmdContext $context, string $action, string $subAction): void {
+	public function routeTagColorRemAllCommand(CmdContext $context, #[NCA\Str("color")] string $action, #[NCA\Str("remall")] string $subAction): void {
 		$this->db->table($this->messageHub::DB_TABLE_COLORS)
 			->truncate();
 		$this->messageHub->loadTagColor();
 		$context->reply("All route color definitions deleted.");
 	}
 
-	/**
-	 * @Mask $action color
-	 * @Mask $type (tag|text)
-	 * @Mask $subAction set
-	 */
 	#[NCA\HandlesCommand("route")]
 	public function routeSetColorCommand(
 		CmdContext $context,
-		string $action,
-		string $type,
-		string $subAction,
+		#[NCA\Str("color")] string $action,
+		#[NCA\Regexp("tag|text")] string $type,
+		#[NCA\Str("set")] string $subAction,
 		PSource $tag,
 		?PWhere $where,
 		?PVia $via,
@@ -707,17 +664,12 @@ class MessageHubController {
 		);
 	}
 
-	/**
-	 * @Mask $action color
-	 * @Mask $type (tag|text)
-	 * @Mask $subAction pick
-	 */
 	#[NCA\HandlesCommand("route")]
 	public function routePickColorCommand(
 		CmdContext $context,
-		string $action,
-		string $type,
-		string $subAction,
+		#[NCA\Str("color")] string $action,
+		#[NCA\Regexp("tag|text")] string $type,
+		#[NCA\Str("pick")] string $subAction,
 		PSource $tag,
 		?PWhere $where,
 		?PVia $via
@@ -767,11 +719,8 @@ class MessageHubController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @Mask $action format
-	 */
 	#[NCA\HandlesCommand("route")]
-	public function routeListFormatCommand(CmdContext $context, string $action): void {
+	public function routeListFormatCommand(CmdContext $context, #[NCA\Str("format")] string $action): void {
 		$formats = Source::$format;
 		if ($formats->isEmpty()) {
 			$context->reply("No formats have been defined yet.");
@@ -818,13 +767,10 @@ class MessageHubController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @Mask $action format
-	 */
 	#[NCA\HandlesCommand("route")]
 	public function routeFormatClearCommand(
 		CmdContext $context,
-		string $action,
+		#[NCA\Str("format")] string $action,
 		PRemove $subAction,
 		PSource $hop
 	): void {
@@ -836,26 +782,18 @@ class MessageHubController {
 		$context->reply("Format cleared for <highlight>{$hop}<end>.");
 	}
 
-	/**
-	 * @Mask $action format
-	 * @Mask $subAction remall
-	 */
 	#[NCA\HandlesCommand("route")]
-	public function routeFormatRemAllCommand(CmdContext $context, string $action, string $subAction): void {
+	public function routeFormatRemAllCommand(CmdContext $context, #[NCA\Str("format")] string $action, #[NCA\Str("remall")] string $subAction): void {
 		$this->db->table(Source::DB_TABLE)->truncate();
 		$this->messageHub->loadTagFormat();
 		$context->reply("All route format definitions deleted.");
 	}
 
-	/**
-	 * @Mask $action format
-	 * @Mask $subAction render
-	 */
 	#[NCA\HandlesCommand("route")]
 	public function routeFormatChangeRenderCommand(
 		CmdContext $context,
-		string $action,
-		string $subAction,
+		#[NCA\Str("format")] string $action,
+		#[NCA\Str("render")] string $subAction,
 		PSource $hop,
 		bool $render
 	): void {
@@ -868,15 +806,11 @@ class MessageHubController {
 		$context->reply("Format saved.");
 	}
 
-	/**
-	 * @Mask $action format
-	 * @Mask $subAction display
-	 */
 	#[NCA\HandlesCommand("route")]
 	public function routeFormatChangeDisplayCommand(
 		CmdContext $context,
-		string $action,
-		string $subAction,
+		#[NCA\Str("format")] string $action,
+		#[NCA\Str("display")] string $subAction,
 		PSource $hop,
 		string $format
 	): void {
@@ -898,11 +832,8 @@ class MessageHubController {
 		$context->reply("Display format saved.");
 	}
 
-	/**
-	 * @Mask $action remall
-	 */
 	#[NCA\HandlesCommand("route")]
-	public function routeRemAllCommand(CmdContext $context, string $action): void {
+	public function routeRemAllCommand(CmdContext $context, #[NCA\Str("remall")] string $action): void {
 		try {
 			$numDeleted = $this->messageHub->deleteAllRoutes();
 		} catch (Exception $e) {

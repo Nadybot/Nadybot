@@ -82,11 +82,8 @@ class OrglistController {
 		return $this->orgrankmap[ucfirst(strtolower($governingForm))] ?? [];
 	}
 
-	/**
-	 * @Mask $action end
-	 */
 	#[NCA\HandlesCommand("orglist")]
-	public function orglistEndCommand(CmdContext $context, string $action): void {
+	public function orglistEndCommand(CmdContext $context, #[NCA\Str("end")] string $action): void {
 		if (isset($this->orglist)) {
 			$this->orglistEnd();
 		} else {

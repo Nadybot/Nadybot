@@ -100,11 +100,8 @@ class PlayfieldController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @Mask $action Pos:
-	 */
 	#[NCA\HandlesCommand("waypoint")]
-	public function waypoint1Command(CmdContext $context, string $action, string $pos): void {
+	public function waypoint1Command(CmdContext $context, #[NCA\Str("Pos:")] string $action, string $pos): void {
 		if (!preg_match("/^([0-9\\.]+), ([0-9\\.]+), ([0-9\\.]+), Area: ([a-zA-Z ]+)$/i", $pos, $args)) {
 			$context->reply("Wrong waypoint format.");
 			return;

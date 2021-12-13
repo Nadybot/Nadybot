@@ -175,10 +175,9 @@ class DiscordRelayController {
 
 	/**
 	 * List the discord channels of all guilds
-	 * @Mask $action channels
 	 */
 	#[NCA\HandlesCommand("discord")]
-	public function discordChannelsCommand(CmdContext $context, string $action): void {
+	public function discordChannelsCommand(CmdContext $context, #[NCA\Str("channels")] string $action): void {
 		[$success, $blob] = $this->getChannelTree();
 		if (!$success) {
 			$context->reply($blob);
@@ -190,10 +189,9 @@ class DiscordRelayController {
 
 	/**
 	 * List the discord channels of all guilds and allow to pick one for notifications
-	 * @Mask $action notify
 	 */
 	#[NCA\HandlesCommand("discord")]
-	public function discordNotifyCommand(CmdContext $context, string $action): void {
+	public function discordNotifyCommand(CmdContext $context, #[NCA\Str("notify")] string $action): void {
 		[$success, $blob] = $this->getChannelTree([$this, "channelNotifyPicker"]);
 		if (!$success) {
 			$context->reply($blob);
@@ -221,10 +219,9 @@ class DiscordRelayController {
 
 	/**
 	 * Pick a discord channel for notifications
-	 * @Mask $action notify
 	 */
 	#[NCA\HandlesCommand("discord")]
-	public function discordNotifyChannelCommand(CmdContext $context, string $action, string $channelId): void {
+	public function discordNotifyChannelCommand(CmdContext $context, #[NCA\Str("notify")] string $action, string $channelId): void {
 		if ($channelId === 'off') {
 			$this->settingManager->save('discord_notify_channel', 'off');
 			$msg = "Discord notifications turned off.";

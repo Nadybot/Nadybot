@@ -351,10 +351,9 @@ class TowerController {
 	/**
 	 * This command handler shows the last tower attack messages where given
 	 * org has been an attacker or defender.
-	 * @Mask $action org
 	 */
 	#[NCA\HandlesCommand("attacks")]
-	public function attacksOrgCommand(CmdContext $context, string $action, PNonGreedy $orgName, ?int $page): void {
+	public function attacksOrgCommand(CmdContext $context, #[NCA\Str("org")] string $action, PNonGreedy $orgName, ?int $page): void {
 		$cmd = "org $orgName ";
 		$search = function (QueryBuilder $query) use ($orgName): void {
 			$query->whereIlike("a.att_guild_name", $orgName())
@@ -366,10 +365,9 @@ class TowerController {
 	/**
 	 * This command handler shows the last tower attack messages where given
 	 * player has been as attacker.
-	 * @Mask $action player
 	 */
 	#[NCA\HandlesCommand("attacks")]
-	public function attacksPlayerCommand(CmdContext $context, string $action, PCharacter $player, ?int $page): void {
+	public function attacksPlayerCommand(CmdContext $context, #[NCA\Str("player")] string $action, PCharacter $player, ?int $page): void {
 		$cmd = "player {$player} ";
 		$search = function (QueryBuilder $query) use ($player): void {
 			$query->whereIlike("a.att_player", $player());
@@ -1333,10 +1331,9 @@ class TowerController {
 
 	/**
 	 * This command handler shows the last tower battle results.
-	 * @Mask $action org
 	 */
 	#[NCA\HandlesCommand("victory")]
-	public function victoryOrgCommand(CmdContext $context, string $action, PNonGreedy $orgName, ?int $page): void {
+	public function victoryOrgCommand(CmdContext $context, #[NCA\Str("org")] string $action, PNonGreedy $orgName, ?int $page): void {
 		$cmd = "org {$orgName} ";
 		$search = function (QueryBuilder $query) use ($orgName): void {
 			$query->whereIlike("v.win_guild_name", $orgName())
@@ -1347,10 +1344,9 @@ class TowerController {
 
 	/**
 	 * This command handler shows the last tower battle results.
-	 * @Mask $action player
 	 */
 	#[NCA\HandlesCommand("victory")]
-	public function victoryPlayerCommand(CmdContext $context, string $action, PCharacter $player, ?int $page): void {
+	public function victoryPlayerCommand(CmdContext $context, #[NCA\Str("player")] string $action, PCharacter $player, ?int $page): void {
 		$cmd = "player {$player} ";
 		$search = function (QueryBuilder $query) use ($player): void {
 			$query->whereIlike("a.att_player", $player());

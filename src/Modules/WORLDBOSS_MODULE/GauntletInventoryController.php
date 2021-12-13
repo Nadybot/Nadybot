@@ -136,11 +136,8 @@ class GauntletInventoryController {
 		return true;
 	}
 
-	/**
-	 * @Mask $action add
-	 */
 	#[NCA\HandlesCommand("gaulist")]
-	public function gaulistAddCommand(CmdContext $context, string $action, PCharacter $name, int $pos): void {
+	public function gaulistAddCommand(CmdContext $context, #[NCA\Str("add")] string $action, PCharacter $name, int $pos): void {
 		$name = $name();
 		// Check and increase item
 		if ($this->altCheck($context, $context->char->name, $name) === false) {

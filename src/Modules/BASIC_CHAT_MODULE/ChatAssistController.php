@@ -220,12 +220,8 @@ class ChatAssistController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @Mask $action clear
-	 * @Mask $groupKey (.*)
-	 */
 	#[NCA\HandlesCommand("assist .+")]
-	public function assistClearListCommand(CmdContext $context, string $action, string $groupKey): void {
+	public function assistClearListCommand(CmdContext $context, #[NCA\Str("clear")] string $action, #[NCA\Regexp(".*")] string $groupKey): void {
 		if (!$this->chatLeaderController->checkLeaderAccess($context->char->name)) {
 			$context->reply("You must be Raid Leader to use this command.");
 			return;
@@ -277,11 +273,8 @@ class ChatAssistController {
 		$this->eventManager->fireEvent($event);
 	}
 
-	/**
-	 * @Mask $action clear
-	 */
 	#[NCA\HandlesCommand("assist .+")]
-	public function assistClearCommand(CmdContext $context, string $action): void {
+	public function assistClearCommand(CmdContext $context, #[NCA\Str("clear")] string $action): void {
 		if (!$this->chatLeaderController->checkLeaderAccess($context->char->name)) {
 			$context->reply("You must be Raid Leader to use this command.");
 			return;
@@ -305,11 +298,8 @@ class ChatAssistController {
 		$this->eventManager->fireEvent($event);
 	}
 
-	/**
-	 * @Mask $action set
-	 */
 	#[NCA\HandlesCommand("assist .+")]
-	public function assistSetCommand(CmdContext $context, string $action, PWord ...$callers): void {
+	public function assistSetCommand(CmdContext $context, #[NCA\Str("set")] string $action, PWord ...$callers): void {
 		if (!$this->chatLeaderController->checkLeaderAccess($context->char->name)) {
 			$context->reply("You must be Raid Leader to use this command.");
 			return;
@@ -367,11 +357,8 @@ class ChatAssistController {
 		$this->eventManager->fireEvent($event);
 	}
 
-	/**
-	 * @Mask $action add
-	 */
 	#[NCA\HandlesCommand("assist .+")]
-	public function assistAddCommand(CmdContext $context, string $action, ?PWord $groupName, PCharacter $caller): void {
+	public function assistAddCommand(CmdContext $context, #[NCA\Str("add")] string $action, ?PWord $groupName, PCharacter $caller): void {
 		if (!$this->chatLeaderController->checkLeaderAccess($context->char->name)) {
 			$context->reply("You must be Raid Leader to use this command.");
 			return;
@@ -425,11 +412,8 @@ class ChatAssistController {
 		$this->eventManager->fireEvent($event);
 	}
 
-	/**
-	 * @Mask $action undo
-	 */
 	#[NCA\HandlesCommand("assist .+")]
-	public function assistUndoCommand(CmdContext $context, string $action, ?int $steps): void {
+	public function assistUndoCommand(CmdContext $context, #[NCA\Str("undo")] string $action, ?int $steps): void {
 		if (!$this->chatLeaderController->checkLeaderAccess($context->char->name)) {
 			$context->reply("You must be Raid Leader to use this command.");
 			return;
@@ -456,11 +440,8 @@ class ChatAssistController {
 		$this->eventManager->fireEvent($event);
 	}
 
-	/**
-	 * @Mask $action history
-	 */
 	#[NCA\HandlesCommand("assist .+")]
-	public function assistHistoryCommand(CmdContext $context, string $action): void {
+	public function assistHistoryCommand(CmdContext $context, #[NCA\Str("history")] string $action): void {
 		if (!$this->chatLeaderController->checkLeaderAccess($context->char->name)) {
 			$context->reply("You must be Raid Leader to use this command.");
 			return;

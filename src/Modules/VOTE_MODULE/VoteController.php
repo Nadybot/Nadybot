@@ -320,10 +320,9 @@ class VoteController implements MessageEmitter {
 
 	/**
 	 * This command handler ends a running vote.
-	 * @Mask $action end
 	 */
 	#[NCA\HandlesCommand("poll")]
-	public function pollEndCommand(CmdContext $context, string $action, int $pollId): void {
+	public function pollEndCommand(CmdContext $context, #[NCA\Str("end")] string $action, int $pollId): void {
 		$topic = $this->getPoll($pollId);
 
 		if ($topic === null) {
@@ -348,11 +347,8 @@ class VoteController implements MessageEmitter {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @Mask $action (show|view)
-	 */
 	#[NCA\HandlesCommand("poll")]
-	public function voteShowCommand(CmdContext $context, ?string $action, int $id): void {
+	public function voteShowCommand(CmdContext $context, #[NCA\Regexp("show|view")] ?string $action, int $id): void {
 		$topic = $this->getPoll($id);
 		if ($topic === null) {
 			$context->reply("There is no poll Nr. <highlight>{$id}<end>.");
@@ -434,13 +430,10 @@ class VoteController implements MessageEmitter {
 		$this->eventManager->fireEvent($event);
 	}
 
-	/**
-	 * @Mask $action (add|create|new)
-	 */
 	#[NCA\HandlesCommand("poll")]
 	public function pollCreateCommand(
 		CmdContext $context,
-		string $action,
+		#[NCA\Regexp("add|create|new")] string $action,
 		PDuration $duration,
 		string $definition
 	): void {

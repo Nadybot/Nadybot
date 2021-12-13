@@ -315,12 +315,11 @@ class CommentController {
 
 	/**
 	 * Command to add a new category
-	 * @Mask $action (add|create|new|edit|change)
 	 */
 	#[NCA\HandlesCommand("commentcategories")]
 	public function addCategoryCommand(
 		CmdContext $context,
-		string $action,
+		#[NCA\Regexp("add|create|new|edit|change")] string $action,
 		PWord $category,
 		PWord $alForReading,
 		?PWord $alForWriting
@@ -361,12 +360,11 @@ class CommentController {
 
 	/**
 	 * Command to add a new comment
-	 * @Mask $action (add|create|new)
 	 */
 	#[NCA\HandlesCommand("comment")]
 	public function addCommentCommand(
 		CmdContext $context,
-		string $action,
+		#[NCA\Regexp("add|create|new")] string $action,
 		PCharacter $char,
 		PWord $category,
 		string $commentText
@@ -458,12 +456,11 @@ class CommentController {
 
 	/**
 	 * Command to read comments about a player
-	 * @Mask $action (get|search|find)
 	 */
 	#[NCA\HandlesCommand("comment")]
 	public function searchCommentCommand(
 		CmdContext $context,
-		string $action,
+		#[NCA\Regexp("get|search|find")] string $action,
 		PCharacter $char,
 		?PWord $category
 	): void {
@@ -507,10 +504,9 @@ class CommentController {
 
 	/**
 	 * Command to read comments about a player
-	 * @Mask $action list
 	 */
 	#[NCA\HandlesCommand("comment")]
-	public function listCommentsCommand(CmdContext $context, string $action, PWord $categoryName): void {
+	public function listCommentsCommand(CmdContext $context, #[NCA\Str("list")] string $action, PWord $categoryName): void {
 		$category = $this->getCategory($categoryName());
 		if ($category === null) {
 			$context->reply("The category <highlight>{$categoryName}<end> does not exist.");

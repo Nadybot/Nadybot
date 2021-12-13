@@ -339,15 +339,11 @@ class RelayController {
 		);
 	}
 
-	/**
-	 * @Mask $action list
-	 * @Mask $subAction protocol
-	 */
 	#[NCA\HandlesCommand("relay")]
 	public function relayListProtocolDetailCommand(
 		CmdContext $context,
-		string $action,
-		string $subAction,
+		#[NCA\Str("list")] string $action,
+		#[NCA\Str("protocol")] string $subAction,
 		string $protocol
 	): void {
 		$context->reply(
@@ -374,15 +370,11 @@ class RelayController {
 		);
 	}
 
-	/**
-	 * @Mask $action list
-	 * @Mask $subAction transport
-	 */
 	#[NCA\HandlesCommand("relay")]
 	public function relayListTransportDetailCommand(
 		CmdContext $context,
-		string $action,
-		string $subAction,
+		#[NCA\Str("list")] string $action,
+		#[NCA\Str("transport")] string $subAction,
 		string $transport
 	): void {
 		$context->reply(
@@ -409,15 +401,11 @@ class RelayController {
 		);
 	}
 
-	/**
-	 * @Mask $action list
-	 * @Mask $subAction layer
-	 */
 	#[NCA\HandlesCommand("relay")]
 	public function relayListStackDetailCommand(
 		CmdContext $context,
-		string $action,
-		string $subAction,
+		#[NCA\Str("list")] string $action,
+		#[NCA\Str("layer")] string $subAction,
 		string $layer
 	): void {
 		$context->reply(
@@ -429,13 +417,10 @@ class RelayController {
 		);
 	}
 
-	/**
-	 * @Mask $action add
-	 */
 	#[NCA\HandlesCommand("relay")]
 	public function relayAddCommand(
 		CmdContext $context,
-		string $action,
+		#[NCA\Str("add")] string $action,
 		PWord $name,
 		string $spec
 	): void {
@@ -613,25 +598,19 @@ class RelayController {
 		}, $relays);
 	}
 
-	/**
-	 * @Mask $action describe
-	 */
 	#[NCA\HandlesCommand("relay")]
 	public function relayDescribeIdCommand(
 		CmdContext $context,
-		string $action,
+		#[NCA\Str("describe")] string $action,
 		int $id
 	): void {
 		$this->relayDescribeCommand($context, $id, null);
 	}
 
-	/**
-	 * @Mask $action describe
-	 */
 	#[NCA\HandlesCommand("relay")]
 	public function relayDescribeNameCommand(
 		CmdContext $context,
-		string $action,
+		#[NCA\Str("describe")] string $action,
 		PNonNumber $name
 	): void {
 		$this->relayDescribeCommand($context, null, $name());
@@ -664,11 +643,8 @@ class RelayController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @Mask $action list
-	 */
 	#[NCA\HandlesCommand("relay")]
-	public function relayListCommand(CmdContext $context, ?string $action): void {
+	public function relayListCommand(CmdContext $context, #[NCA\Str("list")] ?string $action): void {
 		$relays = $this->getRelays();
 		if (empty($relays)) {
 			$context->reply("There are no relays defined.");
@@ -754,28 +730,19 @@ class RelayController {
 		);
 	}
 
-	/**
-	 * @Mask $action (remall|delall)
-	 */
 	#[NCA\HandlesCommand("relay")]
-	public function relayRemAllCommand(CmdContext $context, string $action): void {
+	public function relayRemAllCommand(CmdContext $context, #[NCA\Regexp("remall|delall")] string $action): void {
 		$numDeleted = $this->deleteAllRelays();
 		$context->reply("<highlight>{$numDeleted}<end> relays deleted.");
 	}
 
-	/**
-	 * @Mask $action config
-	 */
 	#[NCA\HandlesCommand("relay")]
-	public function relayConfigIdCommand(CmdContext $context, string $action, int $id): void {
+	public function relayConfigIdCommand(CmdContext $context, #[NCA\Str("config")] string $action, int $id): void {
 		$this->relayConfigCommand($context, $id, null);
 	}
 
-	/**
-	 * @Mask $action config
-	 */
 	#[NCA\HandlesCommand("relay")]
-	public function relayConfigNameCommand(CmdContext $context, string $action, PNonNumberWord $name): void {
+	public function relayConfigNameCommand(CmdContext $context, #[NCA\Str("config")] string $action, PNonNumberWord $name): void {
 		$this->relayConfigCommand($context, null, $name());
 	}
 
@@ -835,20 +802,15 @@ class RelayController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @Mask $action config
-	 * @Mask $subAction eventmod
-	 * @Mask $direction (incoming|outgoing)
-	 */
 	#[NCA\HandlesCommand("relay")]
 	public function relayConfigEventmodCommand(
 		CmdContext $context,
-		string $action,
+		#[NCA\Str("config")] string $action,
 		PWord $name,
-		string $subAction,
+		#[NCA\Str("eventmod")] string $subAction,
 		PWord $event,
 		bool $enable,
-		string $direction
+		#[NCA\Regexp("incoming|outgoing")] string $direction
 	): void {
 		$name = $name();
 		$relay = $this->getRelayByName($name);
@@ -907,18 +869,13 @@ class RelayController {
 		return true;
 	}
 
-	/**
-	 * @Mask $action config
-	 * @Mask $subAction eventset
-	 * @Mask $events ([a-z()_-]+\s+(?:IO|O|I))
-	 */
 	#[NCA\HandlesCommand("relay")]
 	public function relayConfigEventsetCommand(
 		CmdContext $context,
-		string $action,
+		#[NCA\Str("config")] string $action,
 		PWord $name,
-		string $subAction,
-		?string ...$events
+		#[NCA\Str("eventset")] string $subAction,
+		#[NCA\Regexp("[a-z()_-]+\s+(?:IO|O|I)")] ?string ...$events
 	): void {
 		$name = $name();
 		$relay = $this->getRelayByName($name);

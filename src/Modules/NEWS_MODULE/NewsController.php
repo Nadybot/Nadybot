@@ -261,10 +261,9 @@ class NewsController {
 
 	/**
 	 * This command handler confirms a news entry.
-	 * @Mask $action confirm
 	 */
 	#[NCA\HandlesCommand("news confirm .+")]
-	public function newsconfirmCommand(CmdContext $context, string $action, int $id): void {
+	public function newsconfirmCommand(CmdContext $context, #[NCA\Str("confirm")] string $action, int $id): void {
 		$row = $this->getNewsItem($id);
 		if ($row === null) {
 			$msg = "No news entry found with the ID <highlight>{$id}<end>.";
@@ -296,10 +295,9 @@ class NewsController {
 
 	/**
 	 * This command handler adds a news entry.
-	 * @Mask $action add
 	 */
 	#[NCA\HandlesCommand("news .+")]
-	public function newsAddCommand(CmdContext $context, string $action, string $news): void {
+	public function newsAddCommand(CmdContext $context, #[NCA\Str("add")] string $action, string $news): void {
 		$this->db->table("news")
 			->insert([
 				"time" => time(),
@@ -333,10 +331,9 @@ class NewsController {
 
 	/**
 	 * This command handler pins a news entry.
-	 * @Mask $action pin
 	 */
 	#[NCA\HandlesCommand("news .+")]
-	public function newsPinCommand(CmdContext $context, string $action, int $id): void {
+	public function newsPinCommand(CmdContext $context, #[NCA\Str("pin")] string $action, int $id): void {
 		$row = $this->getNewsItem($id);
 
 		if (!isset($row)) {
@@ -354,10 +351,9 @@ class NewsController {
 
 	/**
 	 * This command handler unpins a news entry.
-	 * @Mask $action unpin
 	 */
 	#[NCA\HandlesCommand("news .+")]
-	public function newsUnpinCommand(CmdContext $context, string $action, int $id): void {
+	public function newsUnpinCommand(CmdContext $context, #[NCA\Str("unpin")] string $action, int $id): void {
 		$row = $this->getNewsItem($id);
 
 		if (!isset($row)) {

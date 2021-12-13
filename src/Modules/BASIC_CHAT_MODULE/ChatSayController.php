@@ -51,10 +51,9 @@ class ChatSayController {
 
 	/**
 	 * This command handler sends message to org chat.
-	 * @Mask $channel org
 	 */
 	#[NCA\HandlesCommand("say")]
-	public function sayOrgCommand(CmdContext $context, string $channel, string $message): void {
+	public function sayOrgCommand(CmdContext $context, #[NCA\Str("org")] string $channel, string $message): void {
 		if (!$this->chatLeaderController->checkLeaderAccess($context->char->name)) {
 			$context->reply("You must be Raid Leader to use this command.");
 			return;
@@ -69,10 +68,9 @@ class ChatSayController {
 
 	/**
 	 * This command handler sends message to private channel.
-	 * @Mask $channel priv
 	 */
 	#[NCA\HandlesCommand("say")]
-	public function sayPrivCommand(CmdContext $context, string $channel, string $message): void {
+	public function sayPrivCommand(CmdContext $context, #[NCA\Str("priv")] string $channel, string $message): void {
 		if (!$this->chatLeaderController->checkLeaderAccess($context->char->name)) {
 			$context->reply("You must be Raid Leader to use this command.");
 			return;

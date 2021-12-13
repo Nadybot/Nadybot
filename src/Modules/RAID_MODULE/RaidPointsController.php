@@ -338,11 +338,8 @@ class RaidPointsController {
 		return (int)$row->points;
 	}
 
-	/**
-	 * @Mask $action reward
-	 */
 	#[NCA\HandlesCommand("raidpoints")]
-	public function raidRewardPredefCommand(CmdContext $context, string $action, PNonNumber $mob): void {
+	public function raidRewardPredefCommand(CmdContext $context, #[NCA\Str("reward")] string $action, PNonNumber $mob): void {
 		$reward = $this->getRaidReward($mob());
 		if (!isset($reward)) {
 			$context->reply("No predefined reward named <highlight>{$mob}<end> found.");
@@ -351,11 +348,8 @@ class RaidPointsController {
 		$this->raidRewardCommand($context, $action, $reward->points, $reward->reason);
 	}
 
-	/**
-	 * @Mask $action reward
-	 */
 	#[NCA\HandlesCommand("raidpoints")]
-	public function raidRewardCommand(CmdContext $context, string $action, int $points, ?string $reason): void {
+	public function raidRewardCommand(CmdContext $context, #[NCA\Str("reward")] string $action, int $points, ?string $reason): void {
 		if (!isset($this->raidController->raid)) {
 			$context->reply(RaidController::ERR_NO_RAID);
 			return;
@@ -374,11 +368,8 @@ class RaidPointsController {
 		$this->chatBot->sendPrivate($msgs);
 	}
 
-	/**
-	 * @Mask $action punish
-	 */
 	#[NCA\HandlesCommand("raidpoints")]
-	public function raidPunishCommand(CmdContext $context, string $action, int $points, ?string $reason): void {
+	public function raidPunishCommand(CmdContext $context, #[NCA\Str("punish")] string $action, int $points, ?string $reason): void {
 		if (!isset($this->raidController->raid)) {
 			$context->reply(RaidController::ERR_NO_RAID);
 			return;
@@ -407,11 +398,8 @@ class RaidPointsController {
 		$context->reply("You have <highlight>{$points}<end> raid points.");
 	}
 
-	/**
-	 * @Mask $action top
-	 */
 	#[NCA\HandlesCommand("points top")]
-	public function pointsTopCommand(CmdContext $context, string $action): void {
+	public function pointsTopCommand(CmdContext $context, #[NCA\Str("top")] string $action): void {
 		/** @var RaidPoints[] */
 		$topRaiders = $this->db->table(self::DB_TABLE)
 			->orderByDesc("points")
@@ -432,20 +420,13 @@ class RaidPointsController {
 		);
 	}
 
-	/**
-	 * @Mask $action log
-	 */
 	#[NCA\HandlesCommand("points log")]
-	public function pointsLogCommand(CmdContext $context, string $action): void {
+	public function pointsLogCommand(CmdContext $context, #[NCA\Str("log")] string $action): void {
 		$this->showraidPoints($context, false, ...$this->getRaidpointLogsForChar($context->char->name));
 	}
 
-	/**
-	 * @Mask $action log
-	 * @Mask $all all
-	 */
 	#[NCA\HandlesCommand("points log all")]
-	public function pointsLogAllCommand(CmdContext $context, string $action, string $all): void {
+	public function pointsLogAllCommand(CmdContext $context, #[NCA\Str("log")] string $action, #[NCA\Str("all")] string $all): void {
 		$this->showraidPoints($context, true, ...$this->getRaidpointLogsForChar($context->char->name));
 	}
 
@@ -505,21 +486,13 @@ class RaidPointsController {
 			->toArray();
 	}
 
-	/**
-	 * @Mask $action log
-	 * @Mask $all all
-	 */
 	#[NCA\HandlesCommand("points .+")]
-	public function pointsOtherLogCommand(CmdContext $context, PCharacter $char, string $action, ?string $all): void {
+	public function pointsOtherLogCommand(CmdContext $context, PCharacter $char, #[NCA\Str("log")] string $action, #[NCA\Str("all")] ?string $all): void {
 		$this->pointsLogOtherCommand($context, $action, $char, $all);
 	}
 
-	/**
-	 * @Mask $action log
-	 * @Mask $all all
-	 */
 	#[NCA\HandlesCommand("points .+")]
-	public function pointsLogOtherCommand(CmdContext $context, string $action, PCharacter $char, ?string $all): void {
+	public function pointsLogOtherCommand(CmdContext $context, #[NCA\Str("log")] string $action, PCharacter $char, #[NCA\Str("all")] ?string $all): void {
 		if (!$context->isDM()) {
 			$context->reply("<red>The <symbol>points log command only works in tells<end>.");
 			return;
@@ -585,19 +558,13 @@ class RaidPointsController {
 		}
 		$context->reply("<highlight>{$char}<end> has <highlight>{$points}<end> raid points.");
 	}
-	/**
-	 * @Mask $action add
-	 */
 	#[NCA\HandlesCommand("pointsmod")]
-	public function pointsAdd2Command(CmdContext $context, string $action, int $points, PCharacter $char, string $reason): void {
+	public function pointsAdd2Command(CmdContext $context, #[NCA\Str("add")] string $action, int $points, PCharacter $char, string $reason): void {
 		$this->pointsAddCommand($context, $action, $char, $points, $reason);
 	}
 
-	/**
-	 * @Mask $action add
-	 */
 	#[NCA\HandlesCommand("pointsmod")]
-	public function pointsAddCommand(CmdContext $context, string $action, PCharacter $char, int $points, string $reason): void {
+	public function pointsAddCommand(CmdContext $context, #[NCA\Str("add")] string $action, PCharacter $char, int $points, string $reason): void {
 		$receiver = $char();
 		$uid = $this->chatBot->get_uid($receiver);
 		if ($uid === false) {
@@ -731,13 +698,10 @@ class RaidPointsController {
 			->asObj(RaidReward::class)->first();
 	}
 
-	/**
-	 * @Mask $action add
-	 */
 	#[NCA\HandlesCommand("reward .+")]
 	public function rewardAddCommand(
 		CmdContext $context,
-		string $action,
+		#[NCA\Str("add")] string $action,
 		PWord $name,
 		int $points,
 		string $reason
@@ -782,13 +746,10 @@ class RaidPointsController {
 		}
 	}
 
-	/**
-	 * @Mask $action (change|edit|alter|mod|modify)
-	 */
 	#[NCA\HandlesCommand("reward .+")]
 	public function rewardChangeCommand(
 		CmdContext $context,
-		string $action,
+		#[NCA\Regexp("change|edit|alter|mod|modify")] string $action,
 		PWord $name,
 		int $points,
 		?string $reason

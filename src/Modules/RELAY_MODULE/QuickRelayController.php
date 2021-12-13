@@ -91,11 +91,8 @@ class QuickRelayController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @Mask $type tyr
-	 */
 	#[NCA\HandlesCommand("quickrelay")]
-	public function quickrelayTyrCommand(CmdContext $context, string $type): void {
+	public function quickrelayTyrCommand(CmdContext $context, #[NCA\Str("tyr")] string $type): void {
 		$password = $this->util->getPassword(16);
 		$blob = "First, you have to run a local installation of <a href='chatcmd:///start https://github.com/Budabot/Tyrbot/wiki/Websocket-Relay'>".
 			"Tyrence's Websocket relay</a>.\n".
@@ -112,11 +109,8 @@ class QuickRelayController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @Mask $type nady
-	 */
 	#[NCA\HandlesCommand("quickrelay")]
-	public function quickrelayNadyCommand(CmdContext $context, string $type): void {
+	public function quickrelayNadyCommand(CmdContext $context, #[NCA\Str("nady")] string $type): void {
 		$password = $this->util->getPassword(16);
 		$room = $this->util->createUUID();
 		$blob = "To setup a relay called \"nady\" between multiple Nadybots, run this on all bots:\n".
@@ -131,11 +125,8 @@ class QuickRelayController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @Mask $type (alliance|agcr)
-	 */
 	#[NCA\HandlesCommand("quickrelay")]
-	public function quickrelayAllianceCommand(CmdContext $context, string $type): void {
+	public function quickrelayAllianceCommand(CmdContext $context, #[NCA\Regexp("alliance|agcr")] string $type): void {
 		$blob = "To setup a relay called \"alliance\" between multiple bots that use the agcr-protocol\n".
 			"and relay via a private-channel called \"Privchannel\", run this on all bots:\n".
 			"<tab><highlight><symbol>relay add alliance private-channel(channel=\"Privchannel\") ".
@@ -150,11 +141,8 @@ class QuickRelayController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @Mask $type (old|grc)
-	 */
 	#[NCA\HandlesCommand("quickrelay")]
-	public function quickrelayOldCommand(CmdContext $context, string $type): void {
+	public function quickrelayOldCommand(CmdContext $context, #[NCA\Regexp("old|grc")] string $type): void {
 		$blob = "To setup a relay called \"compat\" between multiple bots that use the grc-protocol\n".
 			"and relay via a private-channel called \"Privchannel\", run this on all bots:\n".
 			"<tab><highlight><symbol>relay add compat private-channel(channel=\"Privchannel\") ".

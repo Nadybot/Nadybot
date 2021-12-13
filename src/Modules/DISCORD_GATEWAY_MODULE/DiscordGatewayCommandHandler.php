@@ -106,11 +106,8 @@ class DiscordGatewayCommandHandler {
 		return $data ? $data->name : null;
 	}
 
-	/**
-	 * @Mask $action accept
-	 */
 	#[NCA\HandlesCommand("extauth")]
-	public function extAuthAccept(CmdContext $context, string $action, string $uid): void {
+	public function extAuthAccept(CmdContext $context, #[NCA\Str("accept")] string $action, string $uid): void {
 		if (!$context->isDM()) {
 			return;
 		}
@@ -147,11 +144,8 @@ class DiscordGatewayCommandHandler {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @Mask $action reject
-	 */
 	#[NCA\HandlesCommand("extauth")]
-	public function extAuthRejectCommand(CmdContext $context, string $action, string $uid): void {
+	public function extAuthRejectCommand(CmdContext $context, #[NCA\Str("reject")] string $action, string $uid): void {
 		if (!$context->isDM()) {
 			return;
 		}
@@ -164,11 +158,8 @@ class DiscordGatewayCommandHandler {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @Mask $action request
-	 */
 	#[NCA\HandlesCommand("extauth")]
-	public function extAuthCommand(CmdContext $context, string $action, PCharacter $char): void {
+	public function extAuthCommand(CmdContext $context, #[NCA\Str("request")] string $action, PCharacter $char): void {
 		$discordUserId = $context->char->name;
 		if (($authedAs = $this->getNameForDiscordId($discordUserId)) !== null) {
 			$msg = "You are already linked to <highlight>$authedAs<end>.";

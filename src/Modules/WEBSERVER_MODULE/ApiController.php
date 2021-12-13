@@ -100,11 +100,8 @@ class ApiController {
 		$this->scanApiAttributes();
 	}
 
-	/**
-	 * @Mask $action list
-	 */
 	#[NCA\HandlesCommand("apiauth")]
-	public function apiauthListCommand(CmdContext $context, ?string $action): void {
+	public function apiauthListCommand(CmdContext $context, #[NCA\Str("list")] ?string $action): void {
 		$keys = $this->db->table(static::DB_TABLE)
 			->orderBy("created")
 			->asObj(ApiKey::class);
@@ -136,11 +133,8 @@ class ApiController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @Mask $action (create|new)
-	 */
 	#[NCA\HandlesCommand("apiauth")]
-	public function apiauthCreateCommand(CmdContext $context, string $action): void {
+	public function apiauthCreateCommand(CmdContext $context, #[NCA\Regexp("create|new")] string $action): void {
 		$key = openssl_pkey_new(["private_key_type" => OPENSSL_KEYTYPE_EC, "curve_name" => "prime256v1"]);
 		if ($key === false) {
 			$context->reply("Your PHP installation doesn't support the required cryptographic algorithms.");
@@ -209,11 +203,8 @@ class ApiController {
 		$context->reply("API token <highlight>{$token}<end> deleted.");
 	}
 
-	/**
-	 * @Mask $action reset
-	 */
 	#[NCA\HandlesCommand("apiauth")]
-	public function apiauthResetCommand(CmdContext $context, string $action, string $token): void {
+	public function apiauthResetCommand(CmdContext $context, #[NCA\Str("reset")] string $action, string $token): void {
 		/** @var ?ApiKey */
 		$key = $this->db->table(static::DB_TABLE)
 			->where("token", $token)

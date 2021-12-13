@@ -321,20 +321,14 @@ class WebUiController implements MessageEmitter {
 		}
 	}
 
-	/**
-	 * @Mask $action install
-	 */
 	#[NCA\HandlesCommand("webui")]
-	public function webUiInstallCommand(CmdContext $context, string $action, string $channel): void {
+	public function webUiInstallCommand(CmdContext $context, #[NCA\Str("install")] string $action, string $channel): void {
 		$this->processNadyUIRelease($channel, $context, function() {
 		});
 	}
 
-	/**
-	 * @Mask $action uninstall
-	 */
 	#[NCA\HandlesCommand("webui")]
-	public function webUiUninstallCommand(CmdContext $context, string $action): void {
+	public function webUiUninstallCommand(CmdContext $context, #[NCA\Str("uninstall")] string $action): void {
 		$msg = "There was an error removig the old files from NadyUI, please clean up manually.";
 		if ($this->uninstallNadyUi(true)) {
 			$msg = "NadyUI successfully uninstalled.";

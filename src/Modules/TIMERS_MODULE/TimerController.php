@@ -281,12 +281,11 @@ class TimerController implements MessageEmitter {
 
 	/**
 	 * This command handler adds a repeating timer.
-	 * @Mask $action add
 	 */
 	#[NCA\HandlesCommand("rtimer")]
 	public function rtimerCommand(
 		CmdContext $context,
-		?string $action,
+		#[NCA\Str("add")] ?string $action,
 		PDuration $initial,
 		PDuration $interval,
 		string $name
@@ -339,11 +338,8 @@ class TimerController implements MessageEmitter {
 		$this->eventManager->fireEvent($sTimer);
 	}
 
-	/**
-	 * @Mask $action view
-	 */
 	#[NCA\HandlesCommand("timers")]
-	public function timersViewCommand(CmdContext $context, string $action, string $id): void {
+	public function timersViewCommand(CmdContext $context, #[NCA\Str("view")] string $action, string $id): void {
 		$timer = $this->get($id);
 		if ($timer === null) {
 			if (preg_match("/^\d+$/", $id)) {
@@ -390,13 +386,10 @@ class TimerController implements MessageEmitter {
 		return "";
 	}
 
-	/**
-	 * @Mask $action add
-	 */
 	#[NCA\HandlesCommand("timers")]
 	public function timersAddCommand(
 		CmdContext $context,
-		?string $action,
+		#[NCA\Str("add")] ?string $action,
 		PDuration $duration,
 		?string $name
 	): void {

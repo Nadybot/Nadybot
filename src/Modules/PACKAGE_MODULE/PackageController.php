@@ -229,11 +229,8 @@ class PackageController {
 		$callback($packages, ...$args);
 	}
 
-	/**
-	 * @Mask $action list
-	 */
 	#[NCA\HandlesCommand("package")]
-	public function listPackagesCommand(CmdContext $context, string $action): void {
+	public function listPackagesCommand(CmdContext $context, #[NCA\Str("list")] string $action): void {
 		$this->getPackages([$this, "displayPackages"], $context);
 	}
 
@@ -327,11 +324,8 @@ class PackageController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @Mask $action info
-	 */
 	#[NCA\HandlesCommand("package")]
-	public function packageInfoCommand(CmdContext $context, string $action, string $package): void {
+	public function packageInfoCommand(CmdContext $context, #[NCA\Str("info")] string $action, string $package): void {
 		$this->getPackage($package, [$this, "displayPackageDetail"], $package, $context);
 	}
 
@@ -478,13 +472,10 @@ class PackageController {
 		return true;
 	}
 
-	/**
-	 * @Mask $action install
-	 */
 	#[NCA\HandlesCommand("package")]
 	public function packageInstallCommand(
 		CmdContext $context,
-		string $action,
+		#[NCA\Str("install")] string $action,
 		PWord $package,
 		?string $version
 	): void {
@@ -503,13 +494,10 @@ class PackageController {
 		$this->getPackage($package(), [$this, "checkAndInstall"], $cmd);
 	}
 
-	/**
-	 * @Mask $action update
-	 */
 	#[NCA\HandlesCommand("package")]
 	public function packageUpdateCommand(
 		CmdContext $context,
-		string $action,
+		#[NCA\Str("update")] string $action,
 		PWord $package,
 		?string $version
 	): void {
@@ -528,13 +516,10 @@ class PackageController {
 		$this->getPackage($package(), [$this, "checkAndInstall"], $cmd);
 	}
 
-	/**
-	 * @Mask $action (uninstall|delete|remove|erase|del|rm)
-	 */
 	#[NCA\HandlesCommand("package")]
 	public function packageUninstallCommand(
 		CmdContext $context,
-		string $action,
+		#[NCA\Regexp("uninstall|delete|remove|erase|del|rm")] string $action,
 		string $package
 	): void {
 		if (($this->chatBot->vars['enable_package_module']??0) != 1) {

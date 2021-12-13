@@ -251,11 +251,8 @@ class TestController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @Mask $action all
-	 */
 	#[NCA\HandlesCommand("test")]
-	public function testAllCommand(CmdContext $context, string $action): void {
+	public function testAllCommand(CmdContext $context, #[NCA\Str("all")] string $action): void {
 		$testContext = clone $context;
 		$testContext->channel = "msg";
 		$testContext->sendto = new MockCommandReply("buddylist clear");

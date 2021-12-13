@@ -126,11 +126,8 @@ class ImportController {
 		return $import;
 	}
 
-	/**
-	 * @Mask $mappings (\w+=\w+)
-	 */
 	#[NCA\HandlesCommand("import")]
-	public function importCommand(CmdContext $context, PFilename $file, ?string ...$mappings): void {
+	public function importCommand(CmdContext $context, PFilename $file, #[NCA\Regexp("\w+=\w+")] ?string ...$mappings): void {
 		$dataPath = $this->chatBot->vars["datafolder"] ?? "./data";
 		$fileName = "{$dataPath}/export/" . basename($file());
 		if ((pathinfo($fileName)["extension"] ?? "") !== "json") {

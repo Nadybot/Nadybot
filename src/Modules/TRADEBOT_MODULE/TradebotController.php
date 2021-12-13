@@ -459,11 +459,8 @@ class TradebotController {
 		$context->reply("Tradebot color <highlight>#{$id}<end> deleted.");
 	}
 
-	/**
-	 * @Mask $action (add|set)
-	 */
 	#[NCA\HandlesCommand("tradecolor")]
-	public function addTradecolorCommand(CmdContext $context, string $action, PCharacter $tradeBot, string $tag, PColor $color): void {
+	public function addTradecolorCommand(CmdContext $context, #[NCA\Regexp("add|set")] string $action, PCharacter $tradeBot, string $tag, PColor $color): void {
 		$tag = strtolower($tag);
 		$color = $color->getCode();
 		if (!array_key_exists($tradeBot(), self::BOT_DATA)) {
@@ -491,11 +488,8 @@ class TradebotController {
 		);
 	}
 
-	/**
-	 * @Mask $action pick
-	 */
 	#[NCA\HandlesCommand("tradecolor")]
-	public function pickTradecolorCommand(CmdContext $context, string $action, PCharacter $tradeBot, string $tag): void {
+	public function pickTradecolorCommand(CmdContext $context, #[NCA\Str("pick")] string $action, PCharacter $tradeBot, string $tag): void {
 		$tag = strtolower($tag);
 		if (!array_key_exists($tradeBot(), self::BOT_DATA)) {
 			$context->reply("{$tradeBot} is not a supported tradebot.");

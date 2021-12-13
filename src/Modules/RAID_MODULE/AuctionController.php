@@ -214,11 +214,8 @@ class AuctionController {
 		$this->commandAlias->register($this->moduleName, "auction reimburse", "bid refund");
 	}
 
-	/**
-	 * @Mask $action start
-	 */
 	#[NCA\HandlesCommand("auction")]
-	public function bidStartCommand(CmdContext $context, string $action, string $item): void {
+	public function bidStartCommand(CmdContext $context, #[NCA\Str("start")] string $action, string $item): void {
 		if ($this->settingManager->getBool('auctions_only_for_raid') && !isset($this->raidController->raid)) {
 			$context->reply(RaidController::ERR_NO_RAID);
 			return;
@@ -235,11 +232,8 @@ class AuctionController {
 		$this->startAuction($auction);
 	}
 
-	/**
-	 * @Mask $action cancel
-	 */
 	#[NCA\HandlesCommand("auction")]
-	public function bidCancelCommand(CmdContext $context, string $action): void {
+	public function bidCancelCommand(CmdContext $context, #[NCA\Str("cancel")] string $action): void {
 		if (!isset($this->auction)) {
 			$context->reply(static::ERR_NO_AUCTION);
 			return;
@@ -255,11 +249,8 @@ class AuctionController {
 		$this->eventManager->fireEvent($event);
 	}
 
-	/**
-	 * @Mask $action end
-	 */
 	#[NCA\HandlesCommand("auction")]
-	public function bidEndCommand(CmdContext $context, string $action): void {
+	public function bidEndCommand(CmdContext $context, #[NCA\Str("end")] string $action): void {
 		if (!isset($this->auction)) {
 			$context->reply(static::ERR_NO_AUCTION);
 			return;
@@ -267,11 +258,8 @@ class AuctionController {
 		$this->endAuction($context->char->name);
 	}
 
-	/**
-	 * @Mask $action (reimburse|payback|refund)
-	 */
 	#[NCA\HandlesCommand("auction reimburse .+")]
-	public function bidReimburseCommand(CmdContext $context, string $action, PCharacter $winner): void {
+	public function bidReimburseCommand(CmdContext $context, #[NCA\Regexp("reimburse|payback|refund")] string $action, PCharacter $winner): void {
 		$winner = $winner();
 		/** @var ?DBAuction */
 		$lastAuction = $this->db->table(self::DB_TABLE)
@@ -409,11 +397,8 @@ class AuctionController {
 		$this->bid($context->char->name, $bid, $context);
 	}
 
-	/**
-	 * @Mask $action history
-	 */
 	#[NCA\HandlesCommand("bid")]
-	public function bidHistoryCommand(CmdContext $context, string $action): void {
+	public function bidHistoryCommand(CmdContext $context, #[NCA\Str("history")] string $action): void {
 		/** @var DBAuction[] */
 		$items = $this->db->table(self::DB_TABLE)
 			->orderByDesc("id")
@@ -432,11 +417,8 @@ class AuctionController {
 		);
 	}
 
-	/**
-	 * @Mask $action history
-	 */
 	#[NCA\HandlesCommand("bid")]
-	public function bidHistorySearchCommand(CmdContext $context, string $action, string $search): void {
+	public function bidHistorySearchCommand(CmdContext $context, #[NCA\Str("history")] string $action, string $search): void {
 		$shortcuts = [
 			"boc"  => ["%Burden of Competence%"],
 			"acdc" => ["%Alien Combat Directive Controller%", "%acdc%", "%Invasion Plan%"],

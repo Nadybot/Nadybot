@@ -179,10 +179,9 @@ class LootController {
 
 	/**
 	 * Clear the current loot list
-	 * @Mask $action clear
 	 */
 	#[NCA\HandlesCommand("loot .+")]
-	public function lootClearCommand(CmdContext $context, string $action): void {
+	public function lootClearCommand(CmdContext $context, #[NCA\Str("clear")] string $action): void {
 		if (!$this->chatLeaderController->checkLeaderAccess($context->char->name)) {
 			$context->reply("You must be Raid Leader to use this command.");
 			return;
@@ -219,10 +218,9 @@ class LootController {
 
 	/**
 	 * Add an item from the raid_loot to the loot roll
-	 * @Mask $action add
 	 */
 	#[NCA\HandlesCommand("loot .+")]
-	public function lootAddByIdCommand(CmdContext $context, string $action, int $id): void {
+	public function lootAddByIdCommand(CmdContext $context, #[NCA\Str("add")] string $action, int $id): void {
 		if (!$this->chatLeaderController->checkLeaderAccess($context->char->name)) {
 			$context->reply("You must be Raid Leader to use this command.");
 			return;
@@ -268,10 +266,9 @@ class LootController {
 
 	/**
 	 * Add an item from the raid_loot to the loot roll
-	 * @Mask $action auction
 	 */
 	#[NCA\HandlesCommand("loot .+")]
-	public function lootAuctionByIdCommand(CmdContext $context, string $action, int $id): void {
+	public function lootAuctionByIdCommand(CmdContext $context, #[NCA\Str("auction")] string $action, int $id): void {
 		$row = $this->getLootEntryID($id);
 
 		if ($row === null) {
@@ -291,10 +288,9 @@ class LootController {
 
 	/**
 	 * Add an item to the loot roll
-	 * @Mask $action add
 	 */
 	#[NCA\HandlesCommand("loot .+")]
-	public function lootAddCommand(CmdContext $context, string $action, string $item): void {
+	public function lootAddCommand(CmdContext $context, #[NCA\Str("add")] string $action, string $item): void {
 		if (!$this->chatLeaderController->checkLeaderAccess($context->char->name)) {
 			$context->reply("You must be Raid Leader to use this command.");
 			return;
@@ -305,12 +301,11 @@ class LootController {
 
 	/**
 	 * Add multiple items to the loot roll
-	 * @Mask $action (addmulti|multiadd)
 	 */
 	#[NCA\HandlesCommand("loot .+")]
 	public function multilootCommand(
 		CmdContext $context,
-		string $action,
+		#[NCA\Regexp("addmulti|multiadd")] string $action,
 		PQuantity $amount,
 		string $items
 	): void {

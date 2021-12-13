@@ -94,13 +94,10 @@ class UsageController {
 		);
 	}
 
-	/**
-	 * @Mask $action player
-	 */
 	#[NCA\HandlesCommand("usage")]
 	public function usagePlayerCommand(
 		CmdContext $context,
-		string $action,
+		#[NCA\Str("player")] string $action,
 		PCharacter $player,
 		?PDuration $duration
 	): void {
@@ -140,13 +137,10 @@ class UsageController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @Mask $action cmd
-	 */
 	#[NCA\HandlesCommand("usage")]
 	public function usageCmdCommand(
 		CmdContext $context,
-		string $action,
+		#[NCA\Str("cmd")] string $action,
 		PWord $cmd,
 		?PDuration $duration
 	): void {
@@ -187,11 +181,8 @@ class UsageController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @Mask $action info
-	 */
 	#[NCA\HandlesCommand("usage")]
-	public function usageInfoCommand(CmdContext $context, string $action): void {
+	public function usageInfoCommand(CmdContext $context, #[NCA\Str("info")] string $action): void {
 		$info = $this->getUsageInfo(time() - 7*24*3600, time());
 		$blob = json_encode(
 			$info,

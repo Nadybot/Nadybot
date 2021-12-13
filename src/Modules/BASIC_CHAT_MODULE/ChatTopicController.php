@@ -106,10 +106,9 @@ class ChatTopicController {
 
 	/**
 	 * This command handler clears topic.
-	 * @Mask $action clear
 	 */
 	#[NCA\HandlesCommand("topic .+")]
-	public function topicClearCommand(CmdContext $context, string $action): void {
+	public function topicClearCommand(CmdContext $context, #[NCA\Str("clear")] string $action): void {
 		if (!$this->chatLeaderController->checkLeaderAccess($context->char->name)) {
 			$context->reply("You must be Raid Leader to use this command.");
 			return;

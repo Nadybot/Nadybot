@@ -78,11 +78,8 @@ class BankController {
 		);
 	}
 
-	/**
-	 * @Mask $action browse
-	 */
 	#[NCA\HandlesCommand("bank")]
-	public function bankBrowseCommand(CmdContext $context, string $action): void {
+	public function bankBrowseCommand(CmdContext $context, #[NCA\Str("browse")] string $action): void {
 		$characters = $this->db->table("bank")
 			->orderBy("player")
 			->select("player")->distinct()
@@ -101,11 +98,8 @@ class BankController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @Mask $action browse
-	 */
 	#[NCA\HandlesCommand("bank")]
-	public function bankBrowsePlayerCommand(CmdContext $context, string $action, PCharacter $char): void {
+	public function bankBrowsePlayerCommand(CmdContext $context, #[NCA\Str("browse")] string $action, PCharacter $char): void {
 		$name = $char();
 
 		$data = $this->db->table("bank")
@@ -128,11 +122,8 @@ class BankController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @Mask $action browse
-	 */
 	#[NCA\HandlesCommand("bank")]
-	public function bankBrowseContainerCommand(CmdContext $context, string $action, PCharacter $char, int $containerId): void {
+	public function bankBrowseContainerCommand(CmdContext $context, #[NCA\Str("browse")] string $action, PCharacter $char, int $containerId): void {
 		$name = $char();
 		$limit = $this->settingManager->getInt('max_bank_items') ?? 50;
 
@@ -159,11 +150,8 @@ class BankController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @Mask $action search
-	 */
 	#[NCA\HandlesCommand("bank")]
-	public function bankSearchCommand(CmdContext $context, string $action, string $search): void {
+	public function bankSearchCommand(CmdContext $context, #[NCA\Str("search")] string $action, string $search): void {
 		$search = htmlspecialchars_decode($search);
 		$words = explode(' ', $search);
 		$limit = $this->settingManager->getInt('max_bank_items') ?? 50;
@@ -191,11 +179,8 @@ class BankController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @Mask $action update
-	 */
 	#[NCA\HandlesCommand("bank update")]
-	public function bankUpdateCommand(CmdContext $context, string $action): void {
+	public function bankUpdateCommand(CmdContext $context, #[NCA\Str("update")] string $action): void {
 		$lines = @file($this->settingManager->getString('bank_file_location')??"");
 
 		if ($lines === false) {

@@ -342,11 +342,8 @@ class PrivateChannelController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @Mask $action add
-	 */
 	#[NCA\HandlesCommand("member")]
-	public function addUserCommand(CmdContext $context, string $action, PCharacter $member): void {
+	public function addUserCommand(CmdContext $context, #[NCA\Str("add")] string $action, PCharacter $member): void {
 		$msg = $this->addUser($member(), $context->char->name);
 
 		$context->reply($msg);
@@ -474,11 +471,8 @@ class PrivateChannelController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @Mask $action (levels?|lvls?)
-	 */
 	#[NCA\HandlesCommand("count")]
-	public function countLevelCommand(CmdContext $context, string $action): void {
+	public function countLevelCommand(CmdContext $context, #[NCA\Regexp("levels?|lvls?")] string $action): void {
 		$tl1 = 0;
 		$tl2 = 0;
 		$tl3 = 0;
@@ -523,11 +517,8 @@ class PrivateChannelController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @Mask $action (all|profs?)
-	 */
 	#[NCA\HandlesCommand("count")]
-	public function countProfessionCommand(CmdContext $context, string $action): void {
+	public function countProfessionCommand(CmdContext $context, #[NCA\Regexp("all|profs?")] string $action): void {
 		$online = [
 			"Adventurer" => 0,
 			"Agent" => 0,
@@ -579,11 +570,8 @@ class PrivateChannelController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @Mask $action (orgs?)
-	 */
 	#[NCA\HandlesCommand("count")]
-	public function countOrganizationCommand(CmdContext $context, string $action): void {
+	public function countOrganizationCommand(CmdContext $context, #[NCA\Regexp("orgs?")] string $action): void {
 		$numOnline = $this->db->table("online")
 			->where("added_by", $this->db->getBotname())
 			->where("channel_type", "priv")->count();
@@ -660,11 +648,8 @@ class PrivateChannelController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @Mask $action now
-	 */
 	#[NCA\HandlesCommand("kickall")]
-	public function kickallNowCommand(CmdContext $context, string $action): void {
+	public function kickallNowCommand(CmdContext $context, #[NCA\Str("now")] string $action): void {
 		$this->chatBot->privategroup_kick_all();
 	}
 

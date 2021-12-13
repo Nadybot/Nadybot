@@ -639,34 +639,33 @@ class CommandManager implements MessageEmitter {
 		}
 		$varName = $param->getName();
 		if ($type->isBuiltin()) {
+			$mask = null;
+			$constAttrs = $param->getAttributes(NCA\Str::class);
+			$regexpAttrs = $param->getAttributes(NCA\Regexp::class);
+			if (!empty($constAttrs)) {
+				/** @var NCA\Str */
+				$constObj = $constAttrs[0]->newInstance();
+				$mask = preg_quote($constObj->value);
+			} elseif (!empty($regexpAttrs)) {
+				/** @var NCA\Regexp */
+				$regexpObj = $regexpAttrs[0]->newInstance();
+				$mask = $regexpObj->value;
+			}
 			switch ($type->getName()) {
 				case "string":
-					$new = "(?<{$varName}>.+)";
-					if (preg_match('/@Mask\s+\$\Q' . $varName . '\E\s+(.+?)(?:\s+\*\/)?$/m', $comment, $masks)) {
-						$default = $masks[1];
-					} elseif ($param->isDefaultValueAvailable()) {
-						$default = $param->getDefaultValue();
-					} else {
-						break;
-					}
-					if (substr($default, 0, 1) === "(" && substr($default, -1) === ")") {
-						$new = "(?<{$varName}>" . substr($default, 1);
-					} else {
-						$new = "(?<{$varName}>" . preg_quote($default) . ")";
-					}
+					$mask ??= ".+";
+					$new = "(?<{$varName}>{$mask})";
 					break;
 				case "int":
-					$mask = '\d+';
-					if (preg_match('/@Mask\s+\$\Q' . $varName . '\E\s+(.+?)(?:\s+\*\/)?$/m', $comment, $masks)) {
-						$mask = $masks[1];
-					}
+					$mask ??= '\d+';
 					$new = "(?<{$varName}>{$mask})";
 					break;
 				case "bool":
 					$new = "(?<{$varName}>true|false|yes|no|on|off|enabled?|disabled?)";
 					break;
 				case "float":
-					$new  = "(?<{$varName}>\d*\.?\d+)";
+					$mask ??= '\d*\.?\d+';
+					$new  = "(?<{$varName}>{$mask})";
 					break;
 			}
 		} else {

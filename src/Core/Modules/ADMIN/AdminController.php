@@ -101,22 +101,24 @@ class AdminController {
 		$this->commandAlias->register($this->moduleName, "mod rem", "remmod");
 	}
 
-	/**
-	 * @Mask $action add
-	 */
 	#[NCA\HandlesCommand("admin")]
-	public function adminAddCommand(CmdContext $context, string $action, PCharacter $who): void {
+	public function adminAddCommand(
+		CmdContext $context,
+		#[NCA\Str("add")] string $action,
+		PCharacter $who
+	): void {
 		$intlevel = 4;
 		$rank = 'an administrator';
 
 		$this->add($who(), $context->char->name, $context, $intlevel, $rank);
 	}
 
-	/**
-	 * @Mask $action add
-	 */
 	#[NCA\HandlesCommand("mod")]
-	public function modAddCommand(CmdContext $context, string $action, PCharacter $who): void {
+	public function modAddCommand(
+		CmdContext $context,
+		#[NCA\Str("add")] string $action,
+		PCharacter $who
+	): void {
 		$intlevel = 3;
 		$rank = 'a moderator';
 
@@ -139,11 +141,8 @@ class AdminController {
 		$this->remove($who(), $context->char->name, $context, $intlevel, $rank);
 	}
 
-	/**
-	 * @Mask $all all
-	 */
 	#[NCA\HandlesCommand("adminlist")]
-	public function adminlistCommand(CmdContext $context, ?string $all): void {
+	public function adminlistCommand(CmdContext $context, #[NCA\Str("all")] ?string $all): void {
 		$showOfflineAlts = isset($all);
 		$blob = "<header2>Administrators<end>\n";
 		foreach ($this->adminManager->admins as $who => $data) {

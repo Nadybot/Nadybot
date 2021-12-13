@@ -51,11 +51,8 @@ class TimezoneController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @Mask $action set
-	 */
 	#[NCA\HandlesCommand("timezone")]
-	public function timezoneSetCommand(CmdContext $context, string $action, PWord $timezone): void {
+	public function timezoneSetCommand(CmdContext $context, #[NCA\Str("set")] string $action, PWord $timezone): void {
 		$result = date_default_timezone_set($timezone());
 
 		if ($result === false) {

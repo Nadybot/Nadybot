@@ -371,11 +371,8 @@ class GuildController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @Mask $action (on|add)
-	 */
 	#[NCA\HandlesCommand("notify")]
-	public function notifyAddCommand(CmdContext $context, string $action, PCharacter $who): void {
+	public function notifyAddCommand(CmdContext $context, #[NCA\Regexp("on|add")] string $action, PCharacter $who): void {
 		$name = $who();
 		$uid = $this->chatBot->get_uid($name);
 

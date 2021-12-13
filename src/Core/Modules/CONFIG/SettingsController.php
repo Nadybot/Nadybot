@@ -100,11 +100,8 @@ class SettingsController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @Mask $action change
-	 */
 	#[NCA\HandlesCommand("settings")]
-	public function changeCommand(CmdContext $context, string $action, PWord $setting): void {
+	public function changeCommand(CmdContext $context, #[NCA\Str("change")] string $action, PWord $setting): void {
 		$settingName = strtolower($setting());
 		/** @var ?Setting $row */
 		$row = $this->db->table(SettingManager::DB_TABLE)
@@ -140,11 +137,8 @@ class SettingsController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @Mask $action save
-	 */
 	#[NCA\HandlesCommand("settings")]
-	public function saveCommand(CmdContext $context, string $action, PWord $setting, string $newValue): void {
+	public function saveCommand(CmdContext $context, #[NCA\Str("save")] string $action, PWord $setting, string $newValue): void {
 		$name = strtolower($setting());
 		/** @var ?Setting */
 		$setting = $this->db->table(SettingManager::DB_TABLE)

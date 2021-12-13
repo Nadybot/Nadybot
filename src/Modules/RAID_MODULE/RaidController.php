@@ -361,11 +361,8 @@ class RaidController {
 		$this->raidMemberController->resumeRaid($lastRaid);
 	}
 
-	/**
-	 * @Mask $action (start|run|create)
-	 */
 	#[NCA\HandlesCommand("raid .+")]
-	public function raidStartCommand(CmdContext $context, string $action, string $description): void {
+	public function raidStartCommand(CmdContext $context, #[NCA\Regexp("start|run|create")] string $action, string $description): void {
 		if (isset($this->raid)) {
 			$context->reply("There's already a raid running.");
 			return;
@@ -389,11 +386,8 @@ class RaidController {
 		);
 	}
 
-	/**
-	 * @Mask $action (stop|end)
-	 */
 	#[NCA\HandlesCommand("raid .+")]
-	public function raidStopCommand(CmdContext $context, string $action): void {
+	public function raidStopCommand(CmdContext $context, #[NCA\Regexp("stop|end")] string $action): void {
 		if (!isset($this->raid)) {
 			$context->reply(static::ERR_NO_RAID);
 			return;
@@ -401,11 +395,8 @@ class RaidController {
 		$this->stopRaid($context->char->name);
 	}
 
-	/**
-	 * @Mask $action (description|descr?)
-	 */
 	#[NCA\HandlesCommand("raid .+")]
-	public function raidChangeDescCommand(CmdContext $context, string $action, string $description): void {
+	public function raidChangeDescCommand(CmdContext $context, #[NCA\Regexp("description|descr?")] string $action, string $description): void {
 		if (!isset($this->raid)) {
 			$context->reply(static::ERR_NO_RAID);
 			return;
@@ -419,11 +410,8 @@ class RaidController {
 		$this->eventManager->fireEvent($event);
 	}
 
-	/**
-	 * @Mask $action spp
-	 */
 	#[NCA\HandlesCommand("raid spp .+")]
-	public function raidChangeSppCommand(CmdContext $context, string $action, int $spp): void {
+	public function raidChangeSppCommand(CmdContext $context, #[NCA\Str("spp")] string $action, int $spp): void {
 		if (!isset($this->raid)) {
 			$context->reply(static::ERR_NO_RAID);
 			return;
@@ -437,11 +425,8 @@ class RaidController {
 		$this->eventManager->fireEvent($event);
 	}
 
-	/**
-	 * @Mask $action (announce|announcement)
-	 */
 	#[NCA\HandlesCommand("raid .+")]
-	public function raidChangeAnnounceCommand(CmdContext $context, string $action, string $interval): void {
+	public function raidChangeAnnounceCommand(CmdContext $context, #[NCA\Regexp("announce|announcement")] string $action, string $interval): void {
 		if (!isset($this->raid)) {
 			$context->reply(static::ERR_NO_RAID);
 			return;
@@ -466,11 +451,8 @@ class RaidController {
 		$this->eventManager->fireEvent($event);
 	}
 
-	/**
-	 * @Mask $action lock
-	 */
 	#[NCA\HandlesCommand("raid .+")]
-	public function raidLockCommand(CmdContext $context, string $action): void {
+	public function raidLockCommand(CmdContext $context, #[NCA\Str("lock")] string $action): void {
 		if (!isset($this->raid)) {
 			$context->reply(static::ERR_NO_RAID);
 			return;
@@ -492,11 +474,8 @@ class RaidController {
 		}
 	}
 
-	/**
-	 * @Mask $action unlock
-	 */
 	#[NCA\HandlesCommand("raid .+")]
-	public function raidUnlockCommand(CmdContext $context, string $action): void {
+	public function raidUnlockCommand(CmdContext $context, #[NCA\Str("unlock")] string $action): void {
 		if (!isset($this->raid)) {
 			$context->reply(static::ERR_NO_RAID);
 			return;
@@ -514,11 +493,8 @@ class RaidController {
 		$this->eventManager->fireEvent($event);
 	}
 
-	/**
-	 * @Mask $action check
-	 */
 	#[NCA\HandlesCommand("raid .+")]
-	public function raidCheckCommand(CmdContext $context, string $action): void {
+	public function raidCheckCommand(CmdContext $context, #[NCA\Str("check")] string $action): void {
 		if (!isset($this->raid)) {
 			$context->reply(static::ERR_NO_RAID);
 			return;
@@ -526,11 +502,8 @@ class RaidController {
 		$this->raidMemberController->sendRaidCheckBlob($this->raid, $context);
 	}
 
-	/**
-	 * @Mask $action list
-	 */
 	#[NCA\HandlesCommand("raid .+")]
-	public function raidListCommand(CmdContext $context, string $action): void {
+	public function raidListCommand(CmdContext $context, #[NCA\Str("list")] string $action): void {
 		if (!isset($this->raid)) {
 			$context->reply(static::ERR_NO_RAID);
 			return;
@@ -538,12 +511,8 @@ class RaidController {
 		$context->reply($this->raidMemberController->getRaidListBlob($this->raid));
 	}
 
-	/**
-	 * @Mask $action notinkick
-	 * @Mask $all all
-	 */
 	#[NCA\HandlesCommand("raid .+")]
-	public function raidNotinKickCommand(CmdContext $context, string $action, ?string $all): void {
+	public function raidNotinKickCommand(CmdContext $context, #[NCA\Str("notinkick")] string $action, #[NCA\Str("all")] ?string $all): void {
 		if (!isset($this->raid)) {
 			$context->reply(static::ERR_NO_RAID);
 			return;
@@ -560,11 +529,8 @@ class RaidController {
 		);
 	}
 
-	/**
-	 * @Mask $action notin
-	 */
 	#[NCA\HandlesCommand("raid .+")]
-	public function raidNotinCommand(CmdContext $context, string $action): void {
+	public function raidNotinCommand(CmdContext $context, #[NCA\Str("notin")] string $action): void {
 		if (!isset($this->raid)) {
 			$context->reply(static::ERR_NO_RAID);
 			return;
@@ -602,11 +568,8 @@ class RaidController {
 		$sendto->reply($msgs);
 	}
 
-	/**
-	 * @Mask $action history
-	 */
 	#[NCA\HandlesCommand("raid .+")]
-	public function raidHistoryCommand(CmdContext $context, string $action): void {
+	public function raidHistoryCommand(CmdContext $context, #[NCA\Str("history")] string $action): void {
 		$query = $this->db->table(self::DB_TABLE, "r")
 			->join(RaidPointsController::DB_TABLE_LOG . ' AS p', "r.raid_id", "p.raid_id")
 			->where("p.individual", false)
@@ -666,11 +629,8 @@ class RaidController {
 		return $blob;
 	}
 
-	/**
-	 * @Mask $action history
-	 */
 	#[NCA\HandlesCommand("raid .+")]
-	public function raidHistoryDetailCommand(CmdContext $context, string $action, int $raidId): void {
+	public function raidHistoryDetailCommand(CmdContext $context, #[NCA\Str("history")] string $action, int $raidId): void {
 		/** @var ?Raid */
 		$raid = $this->db->table(self::DB_TABLE)
 			->where("raid_id", $raidId)
@@ -721,13 +681,10 @@ class RaidController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @Mask $action history
-	 */
 	#[NCA\HandlesCommand("raid .+")]
 	public function raidHistoryDetailRaiderCommand(
 		CmdContext $context,
-		string $action,
+		#[NCA\Str("history")] string $action,
 		int $raidId,
 		PCharacter $char
 	): void {
@@ -797,11 +754,8 @@ class RaidController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @Mask $action dual
-	 */
 	#[NCA\HandlesCommand("raid .+")]
-	public function raidDualCommand(CmdContext $context, string $action): void {
+	public function raidDualCommand(CmdContext $context, #[NCA\Str("dual")] string $action): void {
 		if (!isset($this->raid)) {
 			$context->reply(static::ERR_NO_RAID);
 			return;
@@ -1003,11 +957,8 @@ class RaidController {
 		$this->eventManager->fireEvent($event);
 	}
 
-	/**
-	 * @Mask $action (notes?|comments?)
-	 */
 	#[NCA\HandlesCommand("raid .+")]
-	public function raidCommentsCommand(CmdContext $context, string $action): void {
+	public function raidCommentsCommand(CmdContext $context, #[NCA\Regexp("notes?|comments?")] string $action): void {
 		if (!$context->isDM()) {
 			$context->reply("<red>The '<symbol>raid {$action}' command only works in tells<end>.");
 			return;
@@ -1030,15 +981,11 @@ class RaidController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @Mask $action (notes?|comments?)
-	 * @Mask $subAction (add|create|new)
-	 */
 	#[NCA\HandlesCommand("raid .+")]
 	public function raidCommentAddCommand(
 		CmdContext $context,
-		string $action,
-		string $subAction,
+		#[NCA\Regexp("notes?|comments?")] string $action,
+		#[NCA\Regexp("add|create|new")] string $subAction,
 		PCharacter $char,
 		string $comment
 	): void {
@@ -1051,15 +998,11 @@ class RaidController {
 		);
 	}
 
-	/**
-	 * @Mask $action (notes?|comments?)
-	 * @Mask $subAction (get|read|search|find)
-	 */
 	#[NCA\HandlesCommand("raid .+")]
 	public function raidCommentSearchCommand(
 		CmdContext $context,
-		string $action,
-		string $subAction,
+		#[NCA\Regexp("notes?|comments?")] string $action,
+		#[NCA\Regexp("get|read|search|find")] string $subAction,
 		PCharacter $char
 	): void {
 		$this->commentController->searchCommentCommand(

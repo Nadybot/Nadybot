@@ -202,19 +202,17 @@ class AlienArmorController {
 
 	/**
 	 * This command handler shows tradeskill process for combined Alien Armor.
-	 * @Mask $type (cc|cm|co|cp|cs|css|ss)
 	 */
 	#[NCA\HandlesCommand("aiarmor")]
-	public function aiarmorCombinedCommand2(CmdContext $context, string $type, int $ql): void {
+	public function aiarmorCombinedCommand2(CmdContext $context, #[NCA\Regexp("cc|cm|co|cp|cs|css|ss")] string $type, int $ql): void {
 		$this->aiarmorCombinedCommand($context, $ql, $type);
 	}
 
 	/**
 	 * This command handler shows tradeskill process for combined Alien Armor.
-	 * @Mask $type (cc|cm|co|cp|cs|css|ss)
 	 */
 	#[NCA\HandlesCommand("aiarmor")]
-	public function aiarmorCombinedCommand(CmdContext $context, ?int $ql, string $type): void {
+	public function aiarmorCombinedCommand(CmdContext $context, ?int $ql, #[NCA\Regexp("cc|cm|co|cp|cs|css|ss")] string $type): void {
 		$ql ??= 300;
 		$armortype = strtolower($type);
 		$targetQL = $ql;

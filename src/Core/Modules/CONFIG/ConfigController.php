@@ -156,15 +156,13 @@ class ConfigController {
 
 	/**
 	 * This command handler turns a channel of all modules on or off.
-	 * @Mask $cmd cmd
-	 * @Mask $channel (all|guild|priv|msg)
 	 */
 	#[NCA\HandlesCommand("config")]
 	public function toggleChannelOfAllModulesCommand(
 		CmdContext $context,
-		string $cmd,
+		#[NCA\Str("cmd")] string $cmd,
 		bool $status,
-		string $channel
+		#[NCA\Regexp("all|guild|priv|msg")] string $channel
 	): void {
 		$updQuery = $this->db->table(CommandManager::DB_TABLE)
 			->whereIn("cmdevent", ["cmd", "subcmd"])
@@ -203,16 +201,14 @@ class ConfigController {
 
 	/**
 	 * This command handler turns one or all channels of a single module on or off
-	 * @Mask $action mod
-	 * @Mask $channel (priv|msg|guild|all)
 	 */
 	#[NCA\HandlesCommand("config")]
 	public function toggleModuleChannelCommand(
 		CmdContext $context,
-		string $action,
+		#[NCA\Str("mod")] string $action,
 		string $module,
 		bool $enable,
-		string $channel
+		#[NCA\Regexp("priv|msg|guild|all")] string $channel
 	): void {
 		$channel = strtolower($channel);
 		if (!$this->toggleModule($module, $channel, $enable)) {
@@ -236,16 +232,14 @@ class ConfigController {
 
 	/**
 	 * This command handler turns one or all channels of a single command on or off
-	 * @Mask $type (cmd|subcmd)
-	 * @Mask $channel (priv|msg|guild|all)
 	 */
 	#[NCA\HandlesCommand("config")]
 	public function toggleCommandChannelCommand(
 		CmdContext $context,
-		string $type,
+		#[NCA\Regexp("cmd|subcmd")] string $type,
 		string $cmd,
 		bool $enable,
-		string $channel
+		#[NCA\Regexp("priv|msg|guild|all")] string $channel
 	): void {
 		$type = strtolower($type);
 		$channel = strtolower($channel);
@@ -286,16 +280,14 @@ class ConfigController {
 
 	/**
 	 * This command handler turns one or all channels of a single event on or off
-	 * @Mask $type event
-	 * @Mask $channel (priv|msg|guild|all)
 	 */
 	#[NCA\HandlesCommand("config")]
 	public function toggleEventCommand(
 		CmdContext $context,
-		string $type,
+		#[NCA\Str("event")] string $type,
 		string $event,
 		bool $enable,
-		string $channel
+		#[NCA\Regexp("priv|msg|guild|all")] string $channel
 	): void {
 		$channel = strtolower($channel);
 		$temp = explode(" ", $event);
@@ -446,17 +438,14 @@ class ConfigController {
 	/**
 	 * This command handler sets command's access level on a particular channel.
 	 * Note: This handler has not been not registered, only activated.
-	 * @Mask $category (subcmd|cmd)
-	 * @Mask $admin admin
-	 * @Mask $channel (msg|priv|guild|all)
 	 */
 	#[NCA\HandlesCommand("config")]
 	public function setAccessLevelOfChannelCommand(
 		CmdContext $context,
-		string $category,
+		#[NCA\Regexp("subcmd|cmd")] string $category,
 		string $cmd,
-		string $admin,
-		string $channel,
+		#[NCA\Str("admin")] string $admin,
+		#[NCA\Regexp("msg|priv|guild|all")] string $channel,
 		string $accessLevel
 	): void {
 		$category = strtolower($category);
@@ -563,10 +552,9 @@ class ConfigController {
 	/**
 	 * This command handler shows information and controls of a command in
 	 * each channel.
-	 * @Mask $action cmd
 	 */
 	#[NCA\HandlesCommand("config")]
-	public function configCommandCommand(CmdContext $context, string $action, PWord $cmd): void {
+	public function configCommandCommand(CmdContext $context, #[NCA\Str("cmd")] string $action, PWord $cmd): void {
 		$cmd = strtolower($cmd());
 
 		$aliasCmd = $this->commandAlias->getBaseCommandForAlias($cmd);
