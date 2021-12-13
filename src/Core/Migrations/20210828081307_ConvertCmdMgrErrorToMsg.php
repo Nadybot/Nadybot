@@ -2,6 +2,7 @@
 
 namespace Nadybot\Core\Migrations;
 
+use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\DB;
 use Nadybot\Core\DBSchema\Route;
 use Nadybot\Core\DBSchema\Setting;
@@ -12,7 +13,7 @@ use Nadybot\Core\SchemaMigration;
 use Nadybot\Core\SettingManager;
 
 class ConvertCmdMgrErrorToMsg implements SchemaMigration {
-	/** @Inject */
+	#[NCA\Inject]
 	public MessageHub $messageHub;
 
 	protected function getSetting(DB $db, string $name): ?Setting {

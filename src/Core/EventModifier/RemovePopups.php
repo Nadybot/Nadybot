@@ -2,23 +2,24 @@
 
 namespace Nadybot\Core\EventModifier;
 
+use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\EventModifier;
 use Nadybot\Core\Routing\RoutableEvent;
 use Nadybot\Core\Text;
 
-/**
- * @EventModifier("remove-popups")
- * @Description("This modifier will remove all popups and only
- *	leave the link name.")
- * @Param(
- *	name='remove-links',
- *	type='bool',
- *	description='Also try to remove the text of the link to the popup',
- *	required=false
- * )
- */
+#[
+	NCA\EventModifier("remove-popups"),
+	NCA\Description("This modifier will remove all popups and only\n".
+		"leave the link name."),
+	NCA\Param(
+		name: "remove-links",
+		type: "bool",
+		description: "Also try to remove the text of the link to the popup",
+		required: false
+	)
+]
 class RemovePopups implements EventModifier {
-	/** @Inject */
+	#[NCA\Inject]
 	public Text $text;
 
 	protected bool $removeLinks = false;

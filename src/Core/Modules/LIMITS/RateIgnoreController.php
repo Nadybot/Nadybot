@@ -2,6 +2,7 @@
 
 namespace Nadybot\Core\Modules\LIMITS;
 
+use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{
 	CmdContext,
 	DB,
@@ -16,18 +17,18 @@ use Nadybot\Core\ParamClass\PRemove;
 
 /**
  * @author Tyrence (RK2)
- *
- * @Instance
- *
  * Commands this class contains:
- *	@DefineCommand(
- *		command       = 'rateignore',
- *		accessLevel   = 'all',
- *		description   = 'Add players to the rate limit ignore list to bypass limits check',
- *		help          = 'rateignore.txt',
- *		defaultStatus = '1'
- *	)
  */
+#[
+	NCA\Instance,
+	NCA\DefineCommand(
+		command: "rateignore",
+		accessLevel: "all",
+		description: "Add players to the rate limit ignore list to bypass limits check",
+		help: "rateignore.txt",
+		defaultStatus: 1
+	)
+]
 class RateIgnoreController {
 	/**
 	 * Name of the module.
@@ -35,28 +36,24 @@ class RateIgnoreController {
 	 */
 	public string $moduleName;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public DB $db;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Text $text;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Util $util;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Nadybot $chatBot;
 
-	/**
-	 * @Setup
-	 */
+	#[NCA\Setup]
 	public function setup(): void {
 		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations");
 	}
 
-	/**
-	 * @HandlesCommand("rateignore")
-	 */
+	#[NCA\HandlesCommand("rateignore")]
 	public function rateignoreCommand(CmdContext $context): void {
 		$list = $this->all();
 		if (count($list) === 0) {
@@ -74,23 +71,20 @@ class RateIgnoreController {
 	}
 
 	/**
-	 * @HandlesCommand("rateignore")
 	 * @Mask $action add
 	 */
+	#[NCA\HandlesCommand("rateignore")]
 	public function rateignoreAddCommand(CmdContext $context, string $action, PCharacter $who): void {
 		$context->reply($this->add($who(), $context->char->name));
 	}
 
-	/**
-	 * @HandlesCommand("rateignore")
-	 */
+	#[NCA\HandlesCommand("rateignore")]
 	public function rateignoreRemoveCommand(CmdContext $context, PRemove $rem, PCharacter $who): void {
 		$context->reply($this->remove($who()));
 	}
 
 	/**
 	 * Add someone to the RateIgnoreList
-	 *
 	 * @param string $user Person to add
 	 * @param string $sender Name of the person that adds
 	 * @return string Message of success or failure
@@ -118,7 +112,6 @@ class RateIgnoreController {
 
 	/**
 	 * Remove someone from the rate-limit ignore list
-	 *
 	 * @param string $user Who to remove
 	 * @return string Message with success or failure
 	 * @throws SQLException
@@ -145,7 +138,6 @@ class RateIgnoreController {
 
 	/**
 	 * Get all rateignorelist entries
-	 *
 	 * @return RateIgnoreList[]
 	 * @throws SQLException
 	 */

@@ -2,52 +2,53 @@
 
 namespace Nadybot\Core\EventModifier;
 
+use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\EventModifier;
 use Nadybot\Core\Routing\RoutableEvent;
 use Nadybot\Core\Routing\Source;
 
-/**
- * @EventModifier("if-has-prefix")
- * @Description("This modifier will only route messages if they start
- *	with a certain prefix. By default, this prefix will then be removed
- *	if it has been found.
- *	This allows you to only route messages that start with a dash or an
- *	asterisk from one channel to another.")
- * @Param(
- *	name='prefix',
- *	type='string',
- *	description='The prefix string. If the message starts with this, it will be routed.',
- *	required=true
- * )
- * @Param(
- *	name='for-relays',
- *	type='bool',
- *	description='If set to true, also require messages from the relay to have this prefix',
- *	required=false
- * )
- * @Param(
- *	name='for-events',
- *	type='bool',
- *	description='Determines if the optional message that an event can have is cleared unless
- *	it starts with the prefix. This does not alter the event itself, it will still
- *	be routed, but it will not generate a message.
- *	Common use case is not routing the online/offline messages via relays, but
- *	keeping the event itself to share online lists.',
- *	required=false
- * )
- * @Param(
- *	name='trim',
- *	type='bool',
- *	description='Shall we trim the prefix? By default we do.',
- *	required=false
- * )
- * @Param(
- *	name='inverse',
- *	type='bool',
- *	description='If set, filter out all messages starting with the prefix',
- *	required=false
- * )
- */
+#[
+	NCA\EventModifier("if-has-prefix"),
+	NCA\Description("This modifier will only route messages if they start\n".
+		"with a certain prefix. By default, this prefix will then be removed\n".
+		"if it has been found.\n".
+		"This allows you to only route messages that start with a dash or an\n".
+		"asterisk from one channel to another."),
+	NCA\Param(
+		name: "prefix",
+		type: "string",
+		description: "The prefix string. If the message starts with this, it will be routed.",
+		required: true
+	),
+	NCA\Param(
+		name: "for-relays",
+		type: "bool",
+		description: "If set to true, also require messages from the relay to have this prefix",
+		required: false
+	),
+	NCA\Param(
+		name: "for-events",
+		type: "bool",
+		description: "Determines if the optional message that an event can have is cleared unless\n".
+			"it starts with the prefix. This does not alter the event itself, it will still\n".
+			"be routed, but it will not generate a message.\n".
+			"Common use case is not routing the online/offline messages via relays, but\n".
+			"keeping the event itself to share online lists.",
+		required: false
+	),
+	NCA\Param(
+		name: "trim",
+		type: "bool",
+		description: "Shall we trim the prefix? By default we do.",
+		required: false
+	),
+	NCA\Param(
+		name: "inverse",
+		type: "bool",
+		description: "If set, filter out all messages starting with the prefix",
+		required: false
+	)
+]
 class IfHasPrefix implements EventModifier {
 	protected string $prefix = "-";
 	protected bool $trim = true;

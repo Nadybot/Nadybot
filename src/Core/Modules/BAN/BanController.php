@@ -2,6 +2,7 @@
 
 namespace Nadybot\Core\Modules\BAN;
 
+use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{
 	Event,
 	AccessManager,
@@ -26,38 +27,39 @@ use Nadybot\Core\ParamClass\PDuration;
 use Nadybot\Core\ParamClass\PRemove;
 
 /**
- * @Instance
- *
  * Commands this controller contains:
- *	@DefineCommand(
- *		command       = 'ban',
- *		accessLevel   = 'mod',
- *		description   = 'Ban a character from this bot',
- *		help          = 'ban.txt',
- *		defaultStatus = '1'
- *	)
- *	@DefineCommand(
- *		command       = 'banlist',
- *		accessLevel   = 'mod',
- *		description   = 'Shows who is on the banlist',
- *		help          = 'ban.txt',
- *		defaultStatus = '1'
- *	)
- *	@DefineCommand(
- *		command       = 'unban',
- *		accessLevel   = 'mod',
- *		description   = 'Unban a character from this bot',
- *		help          = 'ban.txt',
- *		defaultStatus = '1'
- *	)
- *	@DefineCommand(
- *		command     = 'orgban',
- *		alias       = 'orgbans',
- *		accessLevel = 'mod',
- *		description = "Ban or unban a whole org",
- *		help        = 'orgban.txt'
- *	)
  */
+#[
+	NCA\Instance,
+	NCA\DefineCommand(
+		command: "ban",
+		accessLevel: "mod",
+		description: "Ban a character from this bot",
+		help: "ban.txt",
+		defaultStatus: 1
+	),
+	NCA\DefineCommand(
+		command: "banlist",
+		accessLevel: "mod",
+		description: "Shows who is on the banlist",
+		help: "ban.txt",
+		defaultStatus: 1
+	),
+	NCA\DefineCommand(
+		command: "unban",
+		accessLevel: "mod",
+		description: "Unban a character from this bot",
+		help: "ban.txt",
+		defaultStatus: 1
+	),
+	NCA\DefineCommand(
+		command: "orgban",
+		accessLevel: "mod",
+		description: "Ban or unban a whole org",
+		help: "orgban.txt",
+		alias: "orgbans"
+	)
+]
 class BanController {
 	public const DB_TABLE = "banlist_<myname>";
 	public const DB_TABLE_BANNED_ORGS = "banned_orgs_<myname>";
@@ -68,51 +70,49 @@ class BanController {
 	 */
 	public string $moduleName;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public AccessManager $accessManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public AltsController $altsController;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public PlayerManager $playerManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public GuildManager $guildManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Util $util;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Nadybot $chatBot;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public SettingManager $settingManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Text $text;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public DB $db;
 
 	/**
 	 * List of all banned players, indexed by UID
-	 *
 	 * @var array<int,BanEntry>
 	 */
 	private $banlist = [];
 
 	/**
 	 * List of all banned orgs, indexed by guild_id
-	 *
 	 * @var array<int,BannedOrg>
 	 */
 	private $orgbanlist = [];
 
 	/**
-	 * @Setup
 	 * This handler is called on bot startup.
 	 */
+	#[NCA\Setup]
 	public function setup(): void {
 		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations");
 		if ($this->db->schema()->hasTable("players")) {
@@ -146,11 +146,11 @@ class BanController {
 		$this->uploadOrgBanlist();
 	}
 
-	/**
-	 * @Event(name="connect",
-	 * 	description="Upload banlist into memory",
-	 * 	defaultStatus="1")
-	 */
+	#[NCA\Event(
+		name: "connect",
+		description: "Upload banlist into memory",
+		defaultStatus: 1
+	)]
 	public function initializeBanList(Event $eventObj): void {
 		$this->uploadBanlist();
 		$this->uploadOrgBanlist();
@@ -158,10 +158,9 @@ class BanController {
 
 	/**
 	 * This command handler bans a player from this bot.
-	 *
-	 * @HandlesCommand("ban")
 	 * @Mask $for (for|reason)
 	 */
+	#[NCA\HandlesCommand("ban")]
 	public function banPlayerWithTimeAndReasonCommand(
 		CmdContext $context,
 		PCharacter $who,
@@ -190,9 +189,8 @@ class BanController {
 
 	/**
 	 * This command handler bans a player from this bot without reason.
-	 *
-	 * @HandlesCommand("ban")
 	 */
+	#[NCA\HandlesCommand("ban")]
 	public function banPlayerWithTimeCommand(CmdContext $context, PCharacter $who, PDuration $duration): void {
 		$who = $who();
 		$length = $duration->toSecs();
@@ -214,10 +212,9 @@ class BanController {
 
 	/**
 	 * This command handler permanently bans a player from this bot.
-	 *
-	 * @HandlesCommand("ban")
 	 * @Mask $for (for|reason)
 	 */
+	#[NCA\HandlesCommand("ban")]
 	public function banPlayerWithReasonCommand(
 		CmdContext $context,
 		PCharacter $who,
@@ -243,9 +240,8 @@ class BanController {
 
 	/**
 	 * This command handler permanently bans a player from this bot without reason.
-	 *
-	 * @HandlesCommand("ban")
 	 */
+	#[NCA\HandlesCommand("ban")]
 	public function banPlayerCommand(CmdContext $context, PCharacter $who): void {
 		$who = $who();
 
@@ -265,9 +261,8 @@ class BanController {
 
 	/**
 	 * This command handler shows who is on the banlist.
-	 *
-	 * @HandlesCommand("banlist")
 	 */
+	#[NCA\HandlesCommand("banlist")]
 	public function banlistCommand(CmdContext $context): void {
 		$banlist = $this->getBanlist();
 		$count = count($banlist);
@@ -301,13 +296,11 @@ class BanController {
 
 	/**
 	 * This command handler unbans a player and all their alts from this bot.
-	 *
 	 * Command parameter is:
 	 *  - name of one of the player's characters
-	 *
-	 * @HandlesCommand("unban")
 	 * @Mask $all all
 	 */
+	#[NCA\HandlesCommand("unban")]
 	public function unbanAllCommand(CmdContext $context, string $all, PCharacter $who): void {
 		$who = $who();
 
@@ -339,12 +332,10 @@ class BanController {
 
 	/**
 	 * This command handler unbans a player from this bot.
-	 *
 	 * Command parameter is:
 	 *  - name of the player
-	 *
-	 * @HandlesCommand("unban")
 	 */
+	#[NCA\HandlesCommand("unban")]
 	public function unbanCommand(CmdContext $context, PCharacter $who): void {
 		$who = $who();
 
@@ -366,11 +357,11 @@ class BanController {
 		}
 	}
 
-	/**
-	 * @Event(name="timer(1min)",
-	 * 	description="Check temp bans to see if they have expired",
-	 * 	defaultStatus="1")
-	 */
+	#[NCA\Event(
+		name: "timer(1min)",
+		description: "Check temp bans to see if they have expired",
+		defaultStatus: 1
+	)]
 	public function checkTempBan(Event $eventObj): void {
 		$numRows = $this->db->table(self::DB_TABLE)
 			->whereNotNull("banend")
@@ -455,7 +446,6 @@ class BanController {
 
 	/**
 	 * Actually add $charId to the banlist with optional duration and reason
-	 *
 	 * @param int $charId The UID of the player to ban
 	 * @param string $sender The name of the player banning them
 	 * @param null|int $length length of the ban in s, or null/0 for unlimited
@@ -615,9 +605,7 @@ class BanController {
 		return $this->banlist;
 	}
 
-	/**
-	 * @HandlesCommand("orgban")
-	 */
+	#[NCA\HandlesCommand("orgban")]
 	public function orgbanListCommand(CmdContext $context): void {
 		$blocks = [];
 		foreach ($this->orgbanlist as $orgIf => $ban) {
@@ -648,10 +636,10 @@ class BanController {
 	}
 
 	/**
-	 * @HandlesCommand("orgban")
 	 * @Mask $add add
 	 * @Mask $for (for|reason|because)
 	 */
+	#[NCA\HandlesCommand("orgban")]
 	public function orgbanAddByIdCommand(
 		CmdContext $context,
 		string $add,
@@ -710,9 +698,7 @@ class BanController {
 		return true;
 	}
 
-	/**
-	 * @HandlesCommand("orgban")
-	 */
+	#[NCA\HandlesCommand("orgban")]
 	public function orgbanRemCommand(CmdContext $context, PRemove $rem, int $orgId): void {
 		if (!$this->orgIsBanned($orgId)) {
 			$this->guildManager->getByIdAsync(

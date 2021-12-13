@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\RELAY_MODULE;
 
+use Nadybot\Core\Attributes as NCA;
 use Exception;
 use Illuminate\Support\Collection;
 use JsonException;
@@ -49,24 +50,24 @@ use Nadybot\Modules\RELAY_MODULE\RelayProtocol\RelayProtocolInterface;
 /**
  * @author Tyrence
  * @author Nadyita
- *
- * @Instance
- *
  * Commands this controller contains:
- *  @DefineCommand(
- *		command     = 'relay',
- *		accessLevel = 'mod',
- *		description = 'Setup and modify relays between bots',
- *		help        = 'relay.txt'
- *	)
- *  @DefineCommand(
- *		command     = 'sync',
- *		accessLevel = 'member',
- *		description = 'Force syncing of next command if relay sync exists',
- *		help        = 'sync.txt'
- *	)
- *  @ProvidesEvent("routable(message)")
  */
+#[
+	NCA\Instance,
+	NCA\DefineCommand(
+		command: "relay",
+		accessLevel: "mod",
+		description: "Setup and modify relays between bots",
+		help: "relay.txt"
+	),
+	NCA\DefineCommand(
+		command: "sync",
+		accessLevel: "member",
+		description: "Force syncing of next command if relay sync exists",
+		help: "sync.txt"
+	),
+	NCA\ProvidesEvent("routable(message)")
+]
 class RelayController {
 	public const DB_TABLE = 'relay_<myname>';
 	public const DB_TABLE_LAYER = 'relay_layer_<myname>';
@@ -91,58 +92,58 @@ class RelayController {
 	 */
 	public string $moduleName;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public DB $db;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Nadybot $chatBot;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public SettingManager $settingManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public QuickRelayController $quickRelayController;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public MessageHub $messageHub;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Text $text;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Util $util;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public AltsController $altsController;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Preferences $preferences;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public PlayerManager $playerManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public CommandAlias $commandAlias;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public CommandManager $commandManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public GuildController $guildController;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Websocket $websocket;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public EventManager $eventManager;
 
-	/** @Logger */
+	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
-	/**
-	 * @Event(name="connect",
-	 * 	description="Load relays from database")
-	 */
+	#[NCA\Event(
+		name: "connect",
+		description: "Load relays from database"
+	)]
 	public function loadRelays(): void {
 		$relays = $this->getRelays();
 		foreach ($relays as $relayConf) {
@@ -158,7 +159,7 @@ class RelayController {
 		}
 	}
 
-	/** @Setup */
+	#[NCA\Setup]
 	public function setup(): void {
 		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations");
 		$this->settingManager->add(
@@ -323,9 +324,7 @@ class RelayController {
 		);
 	}
 
-	/**
-	 * @HandlesCommand("relay")
-	 */
+	#[NCA\HandlesCommand("relay")]
 	public function relayListProtocolsCommand(
 		CmdContext $context,
 		string $action="list",
@@ -341,10 +340,10 @@ class RelayController {
 	}
 
 	/**
-	 * @HandlesCommand("relay")
 	 * @Mask $action list
 	 * @Mask $subAction protocol
 	 */
+	#[NCA\HandlesCommand("relay")]
 	public function relayListProtocolDetailCommand(
 		CmdContext $context,
 		string $action,
@@ -360,9 +359,7 @@ class RelayController {
 		);
 	}
 
-	/**
-	 * @HandlesCommand("relay")
-	 */
+	#[NCA\HandlesCommand("relay")]
 	public function relayListTransportsCommand(
 		CmdContext $context,
 		string $action="list",
@@ -378,10 +375,10 @@ class RelayController {
 	}
 
 	/**
-	 * @HandlesCommand("relay")
 	 * @Mask $action list
 	 * @Mask $subAction transport
 	 */
+	#[NCA\HandlesCommand("relay")]
 	public function relayListTransportDetailCommand(
 		CmdContext $context,
 		string $action,
@@ -397,9 +394,7 @@ class RelayController {
 		);
 	}
 
-	/**
-	 * @HandlesCommand("relay")
-	 */
+	#[NCA\HandlesCommand("relay")]
 	public function relayListStacksCommand(
 		CmdContext $context,
 		string $action="list",
@@ -415,10 +410,10 @@ class RelayController {
 	}
 
 	/**
-	 * @HandlesCommand("relay")
 	 * @Mask $action list
 	 * @Mask $subAction layer
 	 */
+	#[NCA\HandlesCommand("relay")]
 	public function relayListStackDetailCommand(
 		CmdContext $context,
 		string $action,
@@ -435,9 +430,9 @@ class RelayController {
 	}
 
 	/**
-	 * @HandlesCommand("relay")
 	 * @Mask $action add
 	 */
+	#[NCA\HandlesCommand("relay")]
 	public function relayAddCommand(
 		CmdContext $context,
 		string $action,
@@ -619,9 +614,9 @@ class RelayController {
 	}
 
 	/**
-	 * @HandlesCommand("relay")
 	 * @Mask $action describe
 	 */
+	#[NCA\HandlesCommand("relay")]
 	public function relayDescribeIdCommand(
 		CmdContext $context,
 		string $action,
@@ -631,9 +626,9 @@ class RelayController {
 	}
 
 	/**
-	 * @HandlesCommand("relay")
 	 * @Mask $action describe
 	 */
+	#[NCA\HandlesCommand("relay")]
 	public function relayDescribeNameCommand(
 		CmdContext $context,
 		string $action,
@@ -670,9 +665,9 @@ class RelayController {
 	}
 
 	/**
-	 * @HandlesCommand("relay")
 	 * @Mask $action list
 	 */
+	#[NCA\HandlesCommand("relay")]
 	public function relayListCommand(CmdContext $context, ?string $action): void {
 		$relays = $this->getRelays();
 		if (empty($relays)) {
@@ -726,16 +721,12 @@ class RelayController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @HandlesCommand("relay")
-	 */
+	#[NCA\HandlesCommand("relay")]
 	public function relayRemIdCommand(CmdContext $context, PRemove $action, int $id): void {
 		$this->relayRemCommand($context, $id, null);
 	}
 
-	/**
-	 * @HandlesCommand("relay")
-	 */
+	#[NCA\HandlesCommand("relay")]
 	public function relayRemNameCommand(CmdContext $context, PRemove $action, PNonNumber $name): void {
 		$this->relayRemCommand($context, null, $name());
 	}
@@ -764,26 +755,26 @@ class RelayController {
 	}
 
 	/**
-	 * @HandlesCommand("relay")
 	 * @Mask $action (remall|delall)
 	 */
+	#[NCA\HandlesCommand("relay")]
 	public function relayRemAllCommand(CmdContext $context, string $action): void {
 		$numDeleted = $this->deleteAllRelays();
 		$context->reply("<highlight>{$numDeleted}<end> relays deleted.");
 	}
 
 	/**
-	 * @HandlesCommand("relay")
 	 * @Mask $action config
 	 */
+	#[NCA\HandlesCommand("relay")]
 	public function relayConfigIdCommand(CmdContext $context, string $action, int $id): void {
 		$this->relayConfigCommand($context, $id, null);
 	}
 
 	/**
-	 * @HandlesCommand("relay")
 	 * @Mask $action config
 	 */
+	#[NCA\HandlesCommand("relay")]
 	public function relayConfigNameCommand(CmdContext $context, string $action, PNonNumberWord $name): void {
 		$this->relayConfigCommand($context, null, $name());
 	}
@@ -845,11 +836,11 @@ class RelayController {
 	}
 
 	/**
-	 * @HandlesCommand("relay")
 	 * @Mask $action config
 	 * @Mask $subAction eventmod
 	 * @Mask $direction (incoming|outgoing)
 	 */
+	#[NCA\HandlesCommand("relay")]
 	public function relayConfigEventmodCommand(
 		CmdContext $context,
 		string $action,
@@ -917,11 +908,11 @@ class RelayController {
 	}
 
 	/**
-	 * @HandlesCommand("relay")
 	 * @Mask $action config
 	 * @Mask $subAction eventset
 	 * @Mask $events ([a-z()_-]+\s+(?:IO|O|I))
 	 */
+	#[NCA\HandlesCommand("relay")]
 	public function relayConfigEventsetCommand(
 		CmdContext $context,
 		string $action,
@@ -965,9 +956,7 @@ class RelayController {
 		$context->reply("Relay events set for <highlight>{$relay->name}<end>.");
 	}
 
-	/**
-	 * @HandlesCommand("sync")
-	 */
+	#[NCA\HandlesCommand("sync")]
 	public function syncCommand(CmdContext $context, string $command): void {
 		$context->message = $command;
 		$context->forceSync = true;
@@ -1228,56 +1217,66 @@ class RelayController {
 
 	/**
 	 * List all relay transports
-	 * @Api("/relay-component/transport")
-	 * @GET
-	 * @AccessLevel("all")
-	 * @ApiResult(code=200, class='ClassSpec[]', desc='The available relay transport layers')
 	 */
+	#[
+		NCA\Api("/relay-component/transport"),
+		NCA\GET,
+		NCA\AccessLevel("all"),
+		NCA\ApiResult(code: 200, class: "ClassSpec[]", desc: "The available relay transport layers")
+	]
 	public function apiGetTransportsEndpoint(Request $request, HttpProtocolWrapper $server): Response {
 		return new ApiResponse(array_values($this->transports));
 	}
 
 	/**
 	 * List all relay layers
-	 * @Api("/relay-component/layer")
-	 * @GET
-	 * @AccessLevel("all")
-	 * @ApiResult(code=200, class='ClassSpec[]', desc='The available generic relay layers')
 	 */
+	#[
+		NCA\Api("/relay-component/layer"),
+		NCA\GET,
+		NCA\AccessLevel("all"),
+		NCA\ApiResult(code: 200, class: "ClassSpec[]", desc: "The available generic relay layers")
+	]
 	public function apiGetLayersEndpoint(Request $request, HttpProtocolWrapper $server): Response {
 		return new ApiResponse(array_values($this->stackElements));
 	}
 
 	/**
 	 * List all relay protocols
-	 * @Api("/relay-component/protocol")
-	 * @GET
-	 * @AccessLevel("all")
-	 * @ApiResult(code=200, class='ClassSpec[]', desc='The available relay protocols')
 	 */
+	#[
+		NCA\Api("/relay-component/protocol"),
+		NCA\GET,
+		NCA\AccessLevel("all"),
+		NCA\ApiResult(code: 200, class: "ClassSpec[]", desc: "The available relay protocols")
+	]
 	public function apiGetProtocolsEndpoint(Request $request, HttpProtocolWrapper $server): Response {
 		return new ApiResponse(array_values($this->relayProtocols));
 	}
 
 	/**
 	 * List all relays
-	 * @Api("/relay")
-	 * @GET
-	 * @AccessLevelFrom("relay")
-	 * @ApiResult(code=200, class='RelayConfig[]', desc='The configured relays')
 	 */
+	#[
+		NCA\Api("/relay"),
+		NCA\GET,
+		NCA\AccessLevelFrom("relay"),
+		NCA\ApiResult(code: 200, class: "RelayConfig[]", desc: "The configured relays")
+	]
 	public function apiGetRelaysEndpoint(Request $request, HttpProtocolWrapper $server): Response {
 		return new ApiResponse(array_values($this->getRelays()));
 	}
 
 	/**
 	 * Get a single relay
-	 * @Api("/relay/%s")
-	 * @GET
-	 * @AccessLevelFrom("relay")
-	 * @ApiResult(code=200, class='RelayConfig', desc='The configured relay')
-	 * @ApiResult(code=404, desc='Relay not found')
 	 */
+	#[
+		NCA\Api("/relay/%s"),
+		NCA\GET,
+		NCA\AccessLevelFrom("relay"),
+		NCA\ApiResult(code: 200, class: "RelayConfig", desc: "The configured relay"),
+		NCA\ApiResult(code: 404, desc: "Relay not found")
+	]
 	public function apiGetRelayByNameEndpoint(Request $request, HttpProtocolWrapper $server, string $relay): Response {
 		$relay = $this->getRelayByName($relay);
 		if (!isset($relay)) {
@@ -1288,12 +1287,14 @@ class RelayController {
 
 	/**
 	 * Get a single relay's event config
-	 * @Api("/relay/%s/events")
-	 * @GET
-	 * @AccessLevelFrom("relay")
-	 * @ApiResult(code=200, class='RelayEvent[]', desc='The configured relay events')
-	 * @ApiResult(code=404, desc='Relay not found')
 	 */
+	#[
+		NCA\Api("/relay/%s/events"),
+		NCA\GET,
+		NCA\AccessLevelFrom("relay"),
+		NCA\ApiResult(code: 200, class: "RelayEvent[]", desc: "The configured relay events"),
+		NCA\ApiResult(code: 404, desc: "Relay not found")
+	]
 	public function apiGetRelayEventsByNameEndpoint(Request $request, HttpProtocolWrapper $server, string $relay): Response {
 		$relay = $this->getRelayByName($relay);
 		if (!isset($relay)) {
@@ -1304,13 +1305,15 @@ class RelayController {
 
 	/**
 	 * Get a single relay's event config
-	 * @Api("/relay/%s/events")
-	 * @PUT
-	 * @AccessLevelFrom("relay")
-	 * @RequestBody(class="RelayEvent[]", desc="The event configuration", required=true)
-	 * @ApiResult(code=204, desc='The event configuration was set')
-	 * @ApiResult(code=404, desc='Relay not found')
 	 */
+	#[
+		NCA\Api("/relay/%s/events"),
+		NCA\PUT,
+		NCA\AccessLevelFrom("relay"),
+		NCA\RequestBody(class: "RelayEvent[]", desc: "The event configuration", required: true),
+		NCA\ApiResult(code: 204, desc: "The event configuration was set"),
+		NCA\ApiResult(code: 404, desc: "Relay not found")
+	]
 	public function apiPutRelayEventsByNameEndpoint(Request $request, HttpProtocolWrapper $server, string $relay): Response {
 		$relay = $this->getRelayByName($relay);
 		if (!isset($relay)) {
@@ -1356,13 +1359,15 @@ class RelayController {
 
 	/**
 	 * Get a single relay's event config
-	 * @Api("/relay/%s/events")
-	 * @PATCH
-	 * @AccessLevelFrom("relay")
-	 * @RequestBody(class="RelayEvent", desc="The changed event configuration for one event", required=true)
-	 * @ApiResult(code=204, desc='The event configuration was set')
-	 * @ApiResult(code=404, desc='Relay not found')
 	 */
+	#[
+		NCA\Api("/relay/%s/events"),
+		NCA\PATCH,
+		NCA\AccessLevelFrom("relay"),
+		NCA\RequestBody(class: "RelayEvent", desc: "The changed event configuration for one event", required: true),
+		NCA\ApiResult(code: 204, desc: "The event configuration was set"),
+		NCA\ApiResult(code: 404, desc: "Relay not found")
+	]
 	public function apiPatchRelayEventsByNameEndpoint(Request $request, HttpProtocolWrapper $server, string $relay): Response {
 		$relay = $this->getRelayByName($relay);
 		if (!isset($relay)) {
@@ -1396,12 +1401,14 @@ class RelayController {
 
 	/**
 	 * Delete a relay
-	 * @Api("/relay/%s")
-	 * @DELETE
-	 * @AccessLevelFrom("relay")
-	 * @ApiResult(code=204, desc='The relay was deleted')
-	 * @ApiResult(code=404, desc='Relay not found')
 	 */
+	#[
+		NCA\Api("/relay/%s"),
+		NCA\DELETE,
+		NCA\AccessLevelFrom("relay"),
+		NCA\ApiResult(code: 204, desc: "The relay was deleted"),
+		NCA\ApiResult(code: 404, desc: "Relay not found")
+	]
 	public function apiDelRelayByNameEndpoint(Request $request, HttpProtocolWrapper $server, string $relay): Response {
 		$relay = $this->getRelayByName($relay);
 		if (!isset($relay)) {
@@ -1417,12 +1424,14 @@ class RelayController {
 
 	/**
 	 * Get a relay's status
-	 * @Api("/relay/%s/status")
-	 * @GET
-	 * @AccessLevelFrom("relay")
-	 * @ApiResult(code=200, class='RelayStatus', desc='The status message of the relay')
-	 * @ApiResult(code=404, desc='Relay not found')
 	 */
+	#[
+		NCA\Api("/relay/%s/status"),
+		NCA\GET,
+		NCA\AccessLevelFrom("relay"),
+		NCA\ApiResult(code: 200, class: "RelayStatus", desc: "The status message of the relay"),
+		NCA\ApiResult(code: 404, desc: "Relay not found")
+	]
 	public function apiGetRelayStatusByNameEndpoint(Request $request, HttpProtocolWrapper $server, string $relay): Response {
 		if (!isset($this->relays[$relay])) {
 			return new Response(Response::NOT_FOUND);
@@ -1432,11 +1441,13 @@ class RelayController {
 
 	/**
 	 * Create a new relay
-	 * @Api("/relay")
-	 * @POST
-	 * @AccessLevelFrom("relay")
-	 * @ApiResult(code=204, desc='Relay created successfully')
 	 */
+	#[
+		NCA\Api("/relay"),
+		NCA\POST,
+		NCA\AccessLevelFrom("relay"),
+		NCA\ApiResult(code: 204, desc: "Relay created successfully")
+	]
 	public function apiCreateRelay(Request $request, HttpProtocolWrapper $server): Response {
 		$relay = $request->decodedBody;
 		if (!is_object($relay)) {
@@ -1474,11 +1485,13 @@ class RelayController {
 
 	/**
 	 * List all relay layers
-	 * @Api("/relay-component/event")
-	 * @GET
-	 * @AccessLevel("all")
-	 * @ApiResult(code=200, class='EventType[]', desc='The available non-routable relay events')
 	 */
+	#[
+		NCA\Api("/relay-component/event"),
+		NCA\GET,
+		NCA\AccessLevel("all"),
+		NCA\ApiResult(code: 200, class: "EventType[]", desc: "The available non-routable relay events")
+	]
 	public function apiGetEventsEndpoint(Request $request, HttpProtocolWrapper $server): Response {
 		return new ApiResponse($this->getRegisteredSyncEvents());
 	}

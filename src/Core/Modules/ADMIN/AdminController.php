@@ -2,6 +2,7 @@
 
 namespace Nadybot\Core\Modules\ADMIN;
 
+use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{
 	AccessManager,
 	AdminManager,
@@ -23,32 +24,33 @@ use Nadybot\Core\ParamClass\PCharacter;
 use Nadybot\Core\ParamClass\PRemove;
 
 /**
- * @Instance
- *
  * Commands this controller contains:
- *	@DefineCommand(
- *		command       = 'adminlist',
- *		accessLevel   = 'all',
- *		description   = 'Shows the list of administrators and moderators',
- *		help          = 'adminlist.txt',
- *		alias         = 'admins',
- *		defaultStatus = '1'
- *	)
- *	@DefineCommand(
- *		command       = 'admin',
- *		accessLevel   = 'superadmin',
- *		description   = 'Add or remove an administrator',
- *		help          = 'admin.txt',
- *		defaultStatus = '1'
- *	)
- *	@DefineCommand(
- *		command       = 'mod',
- *		accessLevel   = 'admin',
- *		description   = 'Add or remove a moderator',
- *		help          = 'mod.txt',
- *		defaultStatus = '1'
- *	)
  */
+#[
+	NCA\Instance,
+	NCA\DefineCommand(
+		command: "adminlist",
+		accessLevel: "all",
+		description: "Shows the list of administrators and moderators",
+		help: "adminlist.txt",
+		defaultStatus: 1,
+		alias: "admins"
+	),
+	NCA\DefineCommand(
+		command: "admin",
+		accessLevel: "superadmin",
+		description: "Add or remove an administrator",
+		help: "admin.txt",
+		defaultStatus: 1
+	),
+	NCA\DefineCommand(
+		command: "mod",
+		accessLevel: "admin",
+		description: "Add or remove a moderator",
+		help: "mod.txt",
+		defaultStatus: 1
+	)
+]
 class AdminController {
 
 	/**
@@ -56,40 +58,40 @@ class AdminController {
 	 */
 	public string $moduleName;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public AdminManager $adminManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Nadybot $chatBot;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public BuddylistManager $buddylistManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public AccessManager $accessManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public CommandAlias $commandAlias;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Text $text;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public DB $db;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public SettingManager $settingManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public AltsController $altsController;
 
-	/** @Logger */
+	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
 	/**
-	 * @Setup
 	 * This handler is called on bot startup.
 	 */
+	#[NCA\Setup]
 	public function setup(): void {
 		$this->adminManager->uploadAdmins();
 
@@ -100,9 +102,9 @@ class AdminController {
 	}
 
 	/**
-	 * @HandlesCommand("admin")
 	 * @Mask $action add
 	 */
+	#[NCA\HandlesCommand("admin")]
 	public function adminAddCommand(CmdContext $context, string $action, PCharacter $who): void {
 		$intlevel = 4;
 		$rank = 'an administrator';
@@ -111,9 +113,9 @@ class AdminController {
 	}
 
 	/**
-	 * @HandlesCommand("mod")
 	 * @Mask $action add
 	 */
+	#[NCA\HandlesCommand("mod")]
 	public function modAddCommand(CmdContext $context, string $action, PCharacter $who): void {
 		$intlevel = 3;
 		$rank = 'a moderator';
@@ -121,9 +123,7 @@ class AdminController {
 		$this->add($who(), $context->char->name, $context, $intlevel, $rank);
 	}
 
-	/**
-	 * @HandlesCommand("admin")
-	 */
+	#[NCA\HandlesCommand("admin")]
 	public function adminRemoveCommand(CmdContext $context, PRemove $rem, PCharacter $who): void {
 		$intlevel = 4;
 		$rank = 'an administrator';
@@ -131,9 +131,7 @@ class AdminController {
 		$this->remove($who(), $context->char->name, $context, $intlevel, $rank);
 	}
 
-	/**
-	 * @HandlesCommand("mod")
-	 */
+	#[NCA\HandlesCommand("mod")]
 	public function modRemoveCommand(CmdContext $context, PRemove $rem, PCharacter $who): void {
 		$intlevel = 3;
 		$rank = 'a moderator';
@@ -142,9 +140,9 @@ class AdminController {
 	}
 
 	/**
-	 * @HandlesCommand("adminlist")
 	 * @Mask $all all
 	 */
+	#[NCA\HandlesCommand("adminlist")]
 	public function adminlistCommand(CmdContext $context, ?string $all): void {
 		$showOfflineAlts = isset($all);
 		$blob = "<header2>Administrators<end>\n";
@@ -173,11 +171,11 @@ class AdminController {
 		$context->reply($link);
 	}
 
-	/**
-	 * @Event(name="connect",
-	 * 	description="Add administrators and moderators to the buddy list",
-	 * 	defaultStatus="1")
-	 */
+	#[NCA\Event(
+		name: "connect",
+		description: "Add administrators and moderators to the buddy list",
+		defaultStatus: 1
+	)]
 	public function checkAdminsEvent(Event $eventObj): void {
 		$this->db->table(AdminManager::DB_TABLE)->asObj(Admin::class)
 			->each(function (Admin $row) {
@@ -276,10 +274,10 @@ class AdminController {
 		return $this->accessManager->compareAccessLevels($whoAccessLevel, $senderAccessLevel) < 0;
 	}
 
-	/**
-	 * @Event(name="alt(newmain)",
-	 * 	description="Move admin rank to new main")
-	 */
+	#[NCA\Event(
+		name: "alt(newmain)",
+		description: "Move admin rank to new main"
+	)]
 	public function moveAdminrank(AltEvent $event): void {
 		$oldRank = $this->adminManager->admins[$event->alt]??null;
 		if (!isset($oldRank)) {

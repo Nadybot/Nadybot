@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\DISCORD_GATEWAY_MODULE;
 
+use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{
 	CmdContext,
 	CommandManager,
@@ -18,50 +19,50 @@ use Nadybot\Core\ParamClass\PCharacter;
 
 /**
  * @author Nadyita (RK5)
- *
- * @Instance
- *
  * Commands this controller contains:
- *	@DefineCommand(
- *		command       = 'extauth',
- *		accessLevel   = 'all',
- *		description   = 'Link an AO account with a Discord user',
- *		help          = 'extauth.txt'
- *	)
  */
+#[
+	NCA\Instance,
+	NCA\DefineCommand(
+		command: "extauth",
+		accessLevel: "all",
+		description: "Link an AO account with a Discord user",
+		help: "extauth.txt"
+	)
+]
 class DiscordGatewayCommandHandler {
 	public const DB_TABLE = "discord_mapping_<myname>";
 
 	public string $moduleName;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public DB $db;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Nadybot $chatBot;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Text $text;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public SettingManager $settingManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public CommandManager $commandManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public DiscordAPIClient $discordAPIClient;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public DiscordGatewayController $discordGatewayController;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public DiscordRelayController $discordRelayController;
 
-	/** @Logger */
+	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
-	/** @Setup */
+	#[NCA\Setup]
 	public function setup(): void {
 		$this->settingManager->add(
 			$this->moduleName,
@@ -106,9 +107,9 @@ class DiscordGatewayCommandHandler {
 	}
 
 	/**
-	 * @HandlesCommand("extauth")
 	 * @Mask $action accept
 	 */
+	#[NCA\HandlesCommand("extauth")]
 	public function extAuthAccept(CmdContext $context, string $action, string $uid): void {
 		if (!$context->isDM()) {
 			return;
@@ -147,9 +148,9 @@ class DiscordGatewayCommandHandler {
 	}
 
 	/**
-	 * @HandlesCommand("extauth")
 	 * @Mask $action reject
 	 */
+	#[NCA\HandlesCommand("extauth")]
 	public function extAuthRejectCommand(CmdContext $context, string $action, string $uid): void {
 		if (!$context->isDM()) {
 			return;
@@ -164,9 +165,9 @@ class DiscordGatewayCommandHandler {
 	}
 
 	/**
-	 * @HandlesCommand("extauth")
 	 * @Mask $action request
 	 */
+	#[NCA\HandlesCommand("extauth")]
 	public function extAuthCommand(CmdContext $context, string $action, PCharacter $char): void {
 		$discordUserId = $context->char->name;
 		if (($authedAs = $this->getNameForDiscordId($discordUserId)) !== null) {
@@ -241,10 +242,11 @@ class DiscordGatewayCommandHandler {
 
 	/**
 	 * Handle an incoming discord private message
-	 *
-	 * @Event(name="discordmsg",
-	 * 	description="Handle commands from Discord private messages")
 	 */
+	#[NCA\Event(
+		name: "discordmsg",
+		description: "Handle commands from Discord private messages"
+	)]
 	public function processDiscordDirectMessage(DiscordMessageEvent $event): void {
 		$isCommand = substr($event->message??"", 0, 1) === $this->settingManager->get("discord_symbol");
 		if ( $isCommand ) {
@@ -279,10 +281,11 @@ class DiscordGatewayCommandHandler {
 
 	/**
 	 * Handle an incoming discord channel message
-	 *
-	 * @Event(name="discordpriv",
-	 * 	description="Handle commands from Discord channel messages")
 	 */
+	#[NCA\Event(
+		name: "discordpriv",
+		description: "Handle commands from Discord channel messages"
+	)]
 	public function processDiscordChannelMessage(DiscordMessageEvent $event): void {
 		$discordUserId = $event->discord_message->author->id ?? (string)$event->sender;
 		$isCommand = substr($event->message, 0, 1) === $this->settingManager->getString("discord_symbol");

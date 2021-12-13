@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\DEV_MODULE;
 
+use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{
 	CacheManager,
 	CmdContext,
@@ -14,17 +15,17 @@ use Nadybot\Core\{
 
 /**
  * @author Tyrence (RK2)
- *
- * @Instance
- *
  * Commands this controller contains:
- *	@DefineCommand(
- *		command     = 'cache',
- *		accessLevel = 'superadmin',
- *		description = "Manage cached files",
- *		help        = 'cache.txt'
- *	)
  */
+#[
+	NCA\Instance,
+	NCA\DefineCommand(
+		command: "cache",
+		accessLevel: "superadmin",
+		description: "Manage cached files",
+		help: "cache.txt"
+	)
+]
 class CacheController {
 	/**
 	 * Name of the module.
@@ -32,21 +33,19 @@ class CacheController {
 	 */
 	public string $moduleName;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public CacheManager $cacheManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Text $text;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Util $util;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Nadybot $chatBot;
 
-	/**
-	 * @HandlesCommand("cache")
-	 */
+	#[NCA\HandlesCommand("cache")]
 	public function cacheCommand(CmdContext $context): void {
 		$blob = '';
 		foreach ($this->cacheManager->getGroups() as $group) {
@@ -57,10 +56,10 @@ class CacheController {
 	}
 
 	/**
-	 * @HandlesCommand("cache")
 	 * @Mask $action browse
 	 * @Mask $group ([a-z0-9_-]+)
 	 */
+	#[NCA\HandlesCommand("cache")]
 	public function cacheBrowseCommand(CmdContext $context, string $action, string $group): void {
 		$path = $this->chatBot->vars['cachefolder'] . $group;
 
@@ -76,9 +75,9 @@ class CacheController {
 	}
 
 	/**
-	 * @HandlesCommand("cache")
 	 * @Mask $group ([a-z0-9_-]+)
 	 */
+	#[NCA\HandlesCommand("cache")]
 	public function cacheRemCommand(CmdContext $context, PRemove $action, string $group, PFilename $file): void {
 		$file = $file();
 
@@ -92,10 +91,10 @@ class CacheController {
 	}
 
 	/**
-	 * @HandlesCommand("cache")
 	 * @Mask $action view
 	 * @Mask $group ([a-z0-9_-]+)
 	 */
+	#[NCA\HandlesCommand("cache")]
 	public function cacheViewCommand(CmdContext $context, string $action, string $group, PFilename $file): void {
 		$file = $file();
 

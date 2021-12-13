@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\RAFFLE_MODULE;
 
+use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{
 	AccessManager,
 	CmdContext,
@@ -22,28 +23,28 @@ use Nadybot\Modules\RAID_MODULE\RaidController;
 
 /**
  * @author Nadyita (RK5)
- *
- * @Instance
- *
  * Commands this class contains:
- *	@DefineCommand(
- *		command     = 'raffle',
- *		accessLevel = 'all',
- *		description = 'Join or leave raffles',
- *		help        = 'raffle.txt'
- *	)
- *	@DefineCommand(
- *		command     = 'raffleadmin',
- *		accessLevel = 'all',
- *		description = 'Raffle off items to players',
- *		help        = 'raffle.txt'
- *	)
- * @ProvidesEvent("raffle(start)")
- * @ProvidesEvent("raffle(cancel)")
- * @ProvidesEvent("raffle(end)")
- * @ProvidesEvent("raffle(join)")
- * @ProvidesEvent("raffle(leave)")
  */
+#[
+	NCA\Instance,
+	NCA\DefineCommand(
+		command: "raffle",
+		accessLevel: "all",
+		description: "Join or leave raffles",
+		help: "raffle.txt"
+	),
+	NCA\DefineCommand(
+		command: "raffleadmin",
+		accessLevel: "all",
+		description: "Raffle off items to players",
+		help: "raffle.txt"
+	),
+	NCA\ProvidesEvent("raffle(start)"),
+	NCA\ProvidesEvent("raffle(cancel)"),
+	NCA\ProvidesEvent("raffle(end)"),
+	NCA\ProvidesEvent("raffle(join)"),
+	NCA\ProvidesEvent("raffle(leave)")
+]
 class RaffleController {
 	public const DB_TABLE = "raffle_bonus_<myname>";
 	public const NO_RAFFLE_ERROR = "There is no active raffle.";
@@ -54,39 +55,39 @@ class RaffleController {
 	 */
 	public string $moduleName;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public SettingManager $settingManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public AccessManager $accessManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public EventManager $eventManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public AltsController $altsController;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public RaidController $raidController;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public CommandAlias $commandAlias;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Nadybot $chatBot;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Text $text;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public DB $db;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Util $util;
 
 	public ?Raffle $raffle = null;
 
-	/** @Setup */
+	#[NCA\Setup]
 	public function setup(): void {
 		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations");
 		$this->settingManager->add(
@@ -214,9 +215,9 @@ class RaffleController {
 	}
 
 	/**
-	 * @HandlesCommand("raffleadmin")
 	 * @Mask $action start
 	 */
+	#[NCA\HandlesCommand("raffleadmin")]
 	public function raffleStartCommand(CmdContext $context, string $action, string $raffleString): void {
 		if (isset($this->raffle)) {
 			$msg = "There is already a raffle in progress.";
@@ -318,9 +319,9 @@ class RaffleController {
 	}
 
 	/**
-	 * @HandlesCommand("raffleadmin")
 	 * @Mask $action cancel
 	 */
+	#[NCA\HandlesCommand("raffleadmin")]
 	public function raffleCancelCommand(CmdContext $context, string $action): void {
 		if (!isset($this->raffle)) {
 			$context->reply(static::NO_RAFFLE_ERROR);
@@ -344,9 +345,9 @@ class RaffleController {
 	}
 
 	/**
-	 * @HandlesCommand("raffleadmin")
 	 * @Mask $action end
 	 */
+	#[NCA\HandlesCommand("raffleadmin")]
 	public function raffleEndCommand(CmdContext $context, string $action): void {
 		if (!isset($this->raffle)) {
 			$context->reply(static::NO_RAFFLE_ERROR);
@@ -363,9 +364,9 @@ class RaffleController {
 	}
 
 	/**
-	 * @HandlesCommand("raffleadmin")
 	 * @Mask $action timer
 	 */
+	#[NCA\HandlesCommand("raffleadmin")]
 	public function raffleTimerCommand(CmdContext $context, string $action, PDuration $duration): void {
 		if (!isset($this->raffle)) {
 			$context->reply(static::NO_RAFFLE_ERROR);
@@ -392,9 +393,9 @@ class RaffleController {
 	}
 
 	/**
-	 * @HandlesCommand("raffleadmin")
 	 * @Mask $action announce
 	 */
+	#[NCA\HandlesCommand("raffleadmin")]
 	public function raffleAnnounceCommand(CmdContext $context, string $action, ?string $message): void {
 		if (!isset($this->raffle)) {
 			$context->reply(static::NO_RAFFLE_ERROR);
@@ -410,9 +411,9 @@ class RaffleController {
 	}
 
 	/**
-	 * @HandlesCommand("raffle")
 	 * @Mask $action (join|enter)
 	 */
+	#[NCA\HandlesCommand("raffle")]
 	public function raffleJoinCommand(CmdContext $context, string $action, ?int $slot): void {
 		if (!isset($this->raffle)) {
 			$context->reply(static::NO_RAFFLE_ERROR);
@@ -473,9 +474,9 @@ class RaffleController {
 	}
 
 	/**
-	 * @HandlesCommand("raffle")
 	 * @Mask $action leave
 	 */
+	#[NCA\HandlesCommand("raffle")]
 	public function raffleLeaveCommand(CmdContext $context, string $action, ?int $slot): void {
 		if (!isset($this->raffle)) {
 			$context->reply(static::NO_RAFFLE_ERROR);
@@ -541,10 +542,10 @@ class RaffleController {
 		);
 	}
 
-	/**
-	 * @Event(name="timer(1sec)",
-	 * 	description="Announce and/or end raffle")
-	 */
+	#[NCA\Event(
+		name: "timer(1sec)",
+		description: "Announce and/or end raffle"
+	)]
 	public function checkRaffleEvent(Event $eventObj): void {
 		if (!isset($this->raffle)) {
 			return;

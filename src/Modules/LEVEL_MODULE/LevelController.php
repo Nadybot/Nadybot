@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\LEVEL_MODULE;
 
+use Nadybot\Core\Attributes as NCA;
 use Illuminate\Support\Collection;
 use Nadybot\Core\CmdContext;
 use Nadybot\Core\CommandAlias;
@@ -11,31 +12,31 @@ use Nadybot\Core\DB;
  * @author Tyrence (RK2)
  * @author Derroylo (RK2)
  * @author Legendadv (RK2)
- *
- * @Instance
- *
  * Commands this controller contains:
- *	@DefineCommand(
- *		command     = 'level',
- *		accessLevel = 'all',
- *		description = 'Show level ranges',
- *		help        = 'level.txt'
- *	)
- *	@DefineCommand(
- *		command     = 'missions',
- *		accessLevel = 'all',
- *		description = 'Shows what ql missions a character can roll',
- *		help        = 'missions.txt',
- *		alias       = 'mission'
- *	)
- *	@DefineCommand(
- *		command     = 'xp',
- *		accessLevel = 'all',
- *		description = 'Show xp/sk needed for specified level(s)',
- *		help        = 'xp.txt',
- *		alias       = 'sk'
- *	)
  */
+#[
+	NCA\Instance,
+	NCA\DefineCommand(
+		command: "level",
+		accessLevel: "all",
+		description: "Show level ranges",
+		help: "level.txt"
+	),
+	NCA\DefineCommand(
+		command: "missions",
+		accessLevel: "all",
+		description: "Shows what ql missions a character can roll",
+		help: "missions.txt",
+		alias: "mission"
+	),
+	NCA\DefineCommand(
+		command: "xp",
+		accessLevel: "all",
+		description: "Show xp/sk needed for specified level(s)",
+		help: "xp.txt",
+		alias: "sk"
+	)
+]
 class LevelController {
 	/**
 	 * Name of the module.
@@ -43,16 +44,16 @@ class LevelController {
 	 */
 	public string $moduleName;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public DB $db;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public CommandAlias $commandAlias;
 
 	/**
 	 * This handler is called on bot startup.
-	 * @Setup
 	 */
+	#[NCA\Setup]
 	public function setup(): void {
 		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations");
 		$this->db->loadCSVFile($this->moduleName, __DIR__ . "/levels.csv");
@@ -61,7 +62,7 @@ class LevelController {
 		$this->commandAlias->register($this->moduleName, "level", "lvl");
 	}
 
-	/** @HandlesCommand("level") */
+	#[NCA\HandlesCommand("level")]
 	public function levelCommand(CmdContext $context, int $level): void {
 		if (($row = $this->getLevelInfo($level)) === null) {
 			$msg = "Level must be between <highlight>1<end> and <highlight>220<end>.";
@@ -79,7 +80,7 @@ class LevelController {
 		$context->reply($msg);
 	}
 
-	/** @HandlesCommand("missions") */
+	#[NCA\HandlesCommand("missions")]
 	public function missionsCommand(CmdContext $context, int $missionQL): void {
 		if ($missionQL <= 0 || $missionQL > 250) {
 			$msg = "Missions are only available between QL1 and QL250.";
@@ -97,7 +98,7 @@ class LevelController {
 		$context->reply($msg);
 	}
 
-	/** @HandlesCommand("xp") */
+	#[NCA\HandlesCommand("xp")]
 	public function xpSingleCommand(CmdContext $context, int $level): void {
 		if (($row = $this->getLevelInfo($level)) === null) {
 			$msg = "Level must be between 1 and 219.";
@@ -112,7 +113,7 @@ class LevelController {
 		$context->reply($msg);
 	}
 
-	/** @HandlesCommand("xp") */
+	#[NCA\HandlesCommand("xp")]
 	public function xpDoubleCommand(CmdContext $context, int $minLevel, int $maxLevel): void {
 		if ($minLevel < 1 || $minLevel > 220 || $maxLevel < 1 || $maxLevel > 220) {
 			$msg = "Level must be between 1 and 220.";

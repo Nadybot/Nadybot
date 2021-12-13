@@ -24,15 +24,16 @@ use ReflectionAttribute;
 
 /**
  * Commands this controller contains:
- *	@DefineCommand(
- *		command     = 'webauth',
- *		accessLevel = 'mod',
- *		description = 'Pre-authorize Websocket connections',
- *		help        = 'webauth.txt'
- *	)
- *
- * @Instance
  */
+#[
+	NCA\DefineCommand(
+		command: "webauth",
+		accessLevel: "mod",
+		description: "Pre-authorize Websocket connections",
+		help: "webauth.txt"
+	),
+	NCA\Instance
+]
 class WebserverController {
 	public const AUTH_AOAUTH = "aoauth";
 	public const AUTH_BASIC = "webauth";
@@ -46,25 +47,25 @@ class WebserverController {
 	 */
 	protected $serverSocket = null;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public SettingManager $settingManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Socket $socket;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Nadybot $chatBot;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Timer $timer;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Http $http;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public DB $db;
 
-	/** @Logger */
+	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
 	protected array $routes = ['get' => [], 'post' => [], 'put' => [], 'delete' => []];
@@ -77,10 +78,10 @@ class WebserverController {
 	protected ?string $aoAuthPubKey = null;
 	protected AsyncHttp $aoAuthPubKeyRequest;
 
-	/**
-	 * @Event(name="connect",
-	 * 	description="Download aoauth public key")
-	 */
+	#[NCA\Event(
+		name: "connect",
+		description: "Download aoauth public key"
+	)]
 	public function downloadPublicKey(): void {
 		if ($this->settingManager->getString('webserver_auth') !== static::AUTH_AOAUTH) {
 			return;
@@ -115,7 +116,7 @@ class WebserverController {
 		$this->aoAuthPubKey = $response->body;
 	}
 
-	/** @Setup */
+	#[NCA\Setup]
 	public function setup(): void {
 		$this->settingManager->add(
 			$this->moduleName,
@@ -272,9 +273,7 @@ class WebserverController {
 		return $uuid;
 	}
 
-	/**
-	 * @HandlesCommand("webauth")
-	 */
+	#[NCA\HandlesCommand("webauth")]
 	public function webauthCommand(CmdContext $context): void {
 		$uuid = $this->authenticate($context->char->name, 3600);
 		$msg = "You can now authenticate to the Webserver for 1h with the ".
@@ -496,16 +495,20 @@ class WebserverController {
 		return $result;
 	}
 
-	/**
-	 * @Event("http(get)")
-	 * @Event("http(head)")
-	 * @Event("http(post)")
-	 * @Event("http(put)")
-	 * @Event("http(delete)")
-	 * @Event(name="http(patch)",
-	 * 	description="Call handlers for HTTP GET requests",
-	 * 	defaultStatus="1")
-	 */
+	#[
+		NCA\Event(
+			name: [
+				"http(get)",
+				"http(head)",
+				"http(post)",
+				"http(put)",
+				"http(delete)",
+				"http(patch)",
+			],
+			description: "Call handlers for HTTP GET requests",
+			defaultStatus: 1
+		)
+	]
 	public function getRequest(HttpEvent $event, HttpProtocolWrapper $server): void {
 		if (!isset($event->request->authenticatedAs)) {
 			$authType = $this->settingManager->getString('webserver_auth');
@@ -732,11 +735,11 @@ class WebserverController {
 		return $payload->sub->name??null;
 	}
 
-	/**
-	 * @Event(name="timer(10min)",
-	 * 	description="Remove expired authentications",
-	 * 	defaultStatus="1")
-	 */
+	#[NCA\Event(
+		name: "timer(10min)",
+		description: "Remove expired authentications",
+		defaultStatus: 1
+	)]
 	public function clearExpiredAuthentications(): void {
 		foreach ($this->authentications as $user => $data) {
 			if ($data[1] < time()) {

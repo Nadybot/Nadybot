@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\RELAY_MODULE\Transport;
 
+use Nadybot\Core\Attributes as NCA;
 use Exception;
 use Nadybot\Core\AOChatEvent;
 use Nadybot\Core\EventManager;
@@ -13,21 +14,26 @@ use Nadybot\Modules\RELAY_MODULE\RelayMessage;
 use Nadybot\Modules\RELAY_MODULE\RelayStatus;
 use Nadybot\Modules\RELAY_MODULE\StatusProvider;
 
-/**
- * @RelayTransport("private-channel")
- * @Description("This is the Anarchy Online private channel transport.
- * 	You can use this to relay messages internally inside Anarchy Online.
- * 	Be aware though, that the delay is based on the size of the message
- * 	being sent.
- * 	The bot must be invited into the private channel before it can
- * 	relay anything.")
- * @Param(name='channel', description='The private channel to join', type='string', required=true)
- */
+#[
+	NCA\RelayTransport("private-channel"),
+	NCA\Description("This is the Anarchy Online private channel transport.\n".
+		"You can use this to relay messages internally inside Anarchy Online.\n".
+		"Be aware though, that the delay is based on the size of the message\n".
+		"being sent.\n".
+		"The bot must be invited into the private channel before it can\n".
+		"relay anything."),
+	NCA\Param(
+		name: "channel",
+		type: "string",
+		description: "The private channel to join",
+		required: true
+	)
+]
 class PrivateChannel implements TransportInterface, StatusProvider {
-	/** @Inject */
+	#[NCA\Inject]
 	public Nadybot $chatBot;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public EventManager $eventManager;
 
 	protected Relay $relay;

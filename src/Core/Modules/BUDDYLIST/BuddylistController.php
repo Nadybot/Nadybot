@@ -2,6 +2,7 @@
 
 namespace Nadybot\Core\Modules\BUDDYLIST;
 
+use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\BuddylistEntry;
 use Nadybot\Core\Nadybot;
 use Nadybot\Core\BuddylistManager;
@@ -13,18 +14,18 @@ use Nadybot\Core\ParamClass\PWord;
 
 /**
  * @author Tyrence (RK2)
- *
- * @Instance
- *
  * Commands this controller contains:
-*	@DefineCommand(
- *		command     = 'buddylist',
- *		accessLevel = 'admin',
- *		description = 'Shows and manages buddies on the buddylist',
- *		help        = 'buddylist.txt',
- *		alias		= 'friendlist'
- *	)
  */
+#[
+	NCA\Instance,
+	NCA\DefineCommand(
+		command: "buddylist",
+		accessLevel: "admin",
+		description: "Shows and manages buddies on the buddylist",
+		help: "buddylist.txt",
+		alias: "friendlist"
+	)
+]
 class BuddylistController {
 
 	/**
@@ -33,19 +34,19 @@ class BuddylistController {
 	 */
 	public string $moduleName;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Nadybot $chatBot;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public BuddylistManager $buddylistManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Text $text;
 
 	/**
-	 * @HandlesCommand("buddylist")
 	 * @Mask $action (clear|clean)
 	 */
+	#[NCA\HandlesCommand("buddylist")]
 	public function buddylistShowCommand(CmdContext $context, ?string $action): void {
 		$cleanup = isset($action);
 
@@ -95,9 +96,9 @@ class BuddylistController {
 	}
 
 	/**
-	 * @HandlesCommand("buddylist")
 	 * @Mask $action add
 	 */
+	#[NCA\HandlesCommand("buddylist")]
 	public function buddylistAddCommand(CmdContext $context, string $action, PCharacter $who, PWord $type): void {
 		$name = $who();
 
@@ -111,9 +112,9 @@ class BuddylistController {
 	}
 
 	/**
-	 * @HandlesCommand("buddylist")
 	 * @Mask $all all
 	 */
+	#[NCA\HandlesCommand("buddylist")]
 	public function buddylistRemAllCommand(CmdContext $context, PRemove $rem, string $all): void {
 		foreach ($this->buddylistManager->buddyList as $uid => $buddy) {
 			$this->chatBot->buddy_remove($uid);
@@ -123,9 +124,7 @@ class BuddylistController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @HandlesCommand("buddylist")
-	 */
+	#[NCA\HandlesCommand("buddylist")]
 	public function buddylistRemCommand(CmdContext $context, PRemove $rem, PCharacter $who, PWord $type): void {
 		$name = $who();
 
@@ -150,9 +149,9 @@ class BuddylistController {
 	}
 
 	/**
-	 * @HandlesCommand("buddylist")
 	 * @Mask $action search
 	 */
+	#[NCA\HandlesCommand("buddylist")]
 	public function buddylistSearchCommand(CmdContext $context, string $action, string $search): void {
 		if (count($this->buddylistManager->buddyList) === 0) {
 			$msg = "There are no characters on the buddy list.";

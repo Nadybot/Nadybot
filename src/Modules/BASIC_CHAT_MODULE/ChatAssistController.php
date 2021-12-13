@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\BASIC_CHAT_MODULE;
 
+use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{
 	CmdContext,
 	EventManager,
@@ -15,27 +16,27 @@ use Nadybot\Core\{
 };
 
 /**
- * @Instance
- *
  * Commands this controller contains:
- *	@DefineCommand(
- *		command     = 'assist',
- *		accessLevel = 'all',
- *		description = 'Shows the assist macro',
- *		help        = 'assist.txt',
- *		alias       = 'callers'
- *	)
- *	@DefineCommand(
- *		command     = 'assist .+',
- *		accessLevel = 'rl',
- *		description = 'Set, add or clear assists',
- *		help        = 'assist.txt'
- *	)
- *
- *	@ProvidesEvent("assist(clear)")
- *	@ProvidesEvent("assist(set)")
- *	@ProvidesEvent("assist(add)")
  */
+#[
+	NCA\Instance,
+	NCA\DefineCommand(
+		command: "assist",
+		accessLevel: "all",
+		description: "Shows the assist macro",
+		help: "assist.txt",
+		alias: "callers"
+	),
+	NCA\DefineCommand(
+		command: "assist .+",
+		accessLevel: "rl",
+		description: "Set, add or clear assists",
+		help: "assist.txt"
+	),
+	NCA\ProvidesEvent("assist(clear)"),
+	NCA\ProvidesEvent("assist(set)"),
+	NCA\ProvidesEvent("assist(add)")
+]
 class ChatAssistController {
 
 	/**
@@ -44,22 +45,22 @@ class ChatAssistController {
 	 */
 	public string $moduleName;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Nadybot $chatBot;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Text $text;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Util $util;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public ChatLeaderController $chatLeaderController;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public SettingManager $settingManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public EventManager $eventManager;
 
 	/**
@@ -74,7 +75,7 @@ class ChatAssistController {
 	 */
 	protected array $lastCallers = [];
 
-	/** @Setup */
+	#[NCA\Setup]
 	public function setup(): void {
 		$this->settingManager->add(
 			$this->moduleName,
@@ -169,9 +170,7 @@ class ChatAssistController {
 		return $blob;
 	}
 
-	/**
-	 * @HandlesCommand("assist")
-	 */
+	#[NCA\HandlesCommand("assist")]
 	public function assistCommand(CmdContext $context): void {
 		if (empty($this->callers)) {
 			$msg = "No callers have been set yet.";
@@ -181,9 +180,7 @@ class ChatAssistController {
 		$context->reply($this->text->makeBlob("Current callers", $this->getAssistMessage()));
 	}
 
-	/**
-	 * @HandlesCommand("assist .+")
-	 */
+	#[NCA\HandlesCommand("assist .+")]
 	public function assistRemCommand(CmdContext $context, PRemove $action, string $toRemove): void {
 		if (!$this->chatLeaderController->checkLeaderAccess($context->char->name)) {
 			$context->reply("You must be Raid Leader to use this command.");
@@ -224,10 +221,10 @@ class ChatAssistController {
 	}
 
 	/**
-	 * @HandlesCommand("assist .+")
 	 * @Mask $action clear
 	 * @Mask $groupKey (.*)
 	 */
+	#[NCA\HandlesCommand("assist .+")]
 	public function assistClearListCommand(CmdContext $context, string $action, string $groupKey): void {
 		if (!$this->chatLeaderController->checkLeaderAccess($context->char->name)) {
 			$context->reply("You must be Raid Leader to use this command.");
@@ -281,9 +278,9 @@ class ChatAssistController {
 	}
 
 	/**
-	 * @HandlesCommand("assist .+")
 	 * @Mask $action clear
 	 */
+	#[NCA\HandlesCommand("assist .+")]
 	public function assistClearCommand(CmdContext $context, string $action): void {
 		if (!$this->chatLeaderController->checkLeaderAccess($context->char->name)) {
 			$context->reply("You must be Raid Leader to use this command.");
@@ -295,7 +292,6 @@ class ChatAssistController {
 
 	/**
 	 * Clear the list of callers
-	 *
 	 * @param string $sender The person who clears the callers
 	 * @param string $command The command to log in the caller history
 	 */
@@ -310,9 +306,9 @@ class ChatAssistController {
 	}
 
 	/**
-	 * @HandlesCommand("assist .+")
 	 * @Mask $action set
 	 */
+	#[NCA\HandlesCommand("assist .+")]
 	public function assistSetCommand(CmdContext $context, string $action, PWord ...$callers): void {
 		if (!$this->chatLeaderController->checkLeaderAccess($context->char->name)) {
 			$context->reply("You must be Raid Leader to use this command.");
@@ -372,9 +368,9 @@ class ChatAssistController {
 	}
 
 	/**
-	 * @HandlesCommand("assist .+")
 	 * @Mask $action add
 	 */
+	#[NCA\HandlesCommand("assist .+")]
 	public function assistAddCommand(CmdContext $context, string $action, ?PWord $groupName, PCharacter $caller): void {
 		if (!$this->chatLeaderController->checkLeaderAccess($context->char->name)) {
 			$context->reply("You must be Raid Leader to use this command.");
@@ -430,9 +426,9 @@ class ChatAssistController {
 	}
 
 	/**
-	 * @HandlesCommand("assist .+")
 	 * @Mask $action undo
 	 */
+	#[NCA\HandlesCommand("assist .+")]
 	public function assistUndoCommand(CmdContext $context, string $action, ?int $steps): void {
 		if (!$this->chatLeaderController->checkLeaderAccess($context->char->name)) {
 			$context->reply("You must be Raid Leader to use this command.");
@@ -461,9 +457,9 @@ class ChatAssistController {
 	}
 
 	/**
-	 * @HandlesCommand("assist .+")
 	 * @Mask $action history
 	 */
+	#[NCA\HandlesCommand("assist .+")]
 	public function assistHistoryCommand(CmdContext $context, string $action): void {
 		if (!$this->chatLeaderController->checkLeaderAccess($context->char->name)) {
 			$context->reply("You must be Raid Leader to use this command.");
@@ -490,9 +486,7 @@ class ChatAssistController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @HandlesCommand("assist .+")
-	 */
+	#[NCA\HandlesCommand("assist .+")]
 	public function assistOnceCommand(CmdContext $context, PCharacter $char): void {
 		$name = $char();
 		if (!$this->chatBot->get_uid($name)) {

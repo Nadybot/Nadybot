@@ -2,6 +2,7 @@
 
 namespace Nadybot\Core\Modules\LIMITS;
 
+use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{
 	AccessManager,
 	CmdEvent,
@@ -28,9 +29,8 @@ use Nadybot\Core\Routing\Source;
 
 /**
  * @author Tyrence (RK2)
- *
- * @Instance
  */
+#[NCA\Instance]
 class LimitsController {
 	public const ALL = 3;
 	public const FAILURE = 2;
@@ -41,40 +41,40 @@ class LimitsController {
 	 */
 	public string $moduleName;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public SettingManager $settingManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Nadybot $chatBot;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public AccessManager $accessManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public MessageHub $messageHub;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public PlayerManager $playerManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public PlayerHistoryManager $playerHistoryManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Util $util;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Timer $timer;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public RateIgnoreController $rateIgnoreController;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public ConfigController $configController;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public BanController $banController;
 
-	/** @Logger */
+	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
 	/** @var array<string,int[]> */
@@ -83,9 +83,7 @@ class LimitsController {
 	/** @var array<string,int> */
 	public array $ignoreList = [];
 
-	/**
-	 * @Setup
-	 */
+	#[NCA\Setup]
 	public function setup(): void {
 		$this->settingManager->add(
 			$this->moduleName,
@@ -190,7 +188,6 @@ class LimitsController {
 	 * Check if this is a command that doesn't fall under any limits
 	 * Reason is that some command should always be allowed to be
 	 * executed, regardless of your access rights or faction/level
-	 *
 	 * @param string $message The command including parameters
 	 * @return bool true if limits are ignored, erlse false
 	 */
@@ -343,10 +340,10 @@ class LimitsController {
 		$successHandler(...$args);
 	}
 
-	/**
-	 * @Event(name="command(*)",
-	 * 	description="Enforce rate limits")
-	 */
+	#[NCA\Event(
+		name: "command(*)",
+		description: "Enforce rate limits"
+	)]
 	public function accountCommandExecution(CmdEvent $event): void {
 		if ($event->cmdHandler && !$this->commandHandlerCounts($event->cmdHandler)) {
 			return;
@@ -456,11 +453,11 @@ class LimitsController {
 		return $ignoredUntil !== null && $ignoredUntil >= time();
 	}
 
-	/**
-	 * @Event(name="timer(1min)",
-	 * 	description="Check ignores to see if they have expired",
-	 * 	defaultStatus="1")
-	 */
+	#[NCA\Event(
+		name: "timer(1min)",
+		description: "Check ignores to see if they have expired",
+		defaultStatus: 1
+	)]
 	public function expireIgnores(): void {
 		$now = time();
 		foreach ($this->ignoreList as $name => $expires) {
@@ -471,11 +468,11 @@ class LimitsController {
 		}
 	}
 
-	/**
-	 * @Event(name="timer(10min)",
-	 * 	description="Cleanup expired command counts",
-	 * 	defaultStatus="1")
-	 */
+	#[NCA\Event(
+		name: "timer(10min)",
+		description: "Cleanup expired command counts",
+		defaultStatus: 1
+	)]
 	public function expireBuckets(): void {
 		$now = time();
 		$timeWindow = $this->settingManager->getInt('limits_window')??5;

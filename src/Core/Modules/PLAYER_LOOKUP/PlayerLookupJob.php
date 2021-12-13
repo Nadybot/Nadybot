@@ -2,6 +2,7 @@
 
 namespace Nadybot\Core\Modules\PLAYER_LOOKUP;
 
+use Nadybot\Core\Attributes as NCA;
 use Illuminate\Support\Collection;
 use Nadybot\Core\DB;
 use Nadybot\Core\DBSchema\Player;
@@ -12,22 +13,22 @@ use Nadybot\Core\SettingManager;
 use Nadybot\Core\Timer;
 
 class PlayerLookupJob {
-	/** @Inject */
+	#[NCA\Inject]
 	public DB $db;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Nadybot $chatBot;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public PlayerManager $playerManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public SettingManager $settingManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Timer $timer;
 
-	/** @Logger */
+	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
 	/** @var Collection<Player> */

@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\NOTES_MODULE;
 
+use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{
 	AOChatEvent,
 	AccessManager,
@@ -25,31 +26,31 @@ use Nadybot\Core\ParamClass\PRemove;
 /**
  * @author Tyrence (RK2)
  * @author Nadyita (RK5)
- *
- * @Instance
- *
  * Commands this class contains:
- *	@DefineCommand(
- *		command     = 'notes',
- *		accessLevel = 'guild',
- *		description = 'Displays, adds, or removes a note from your list',
- *		help        = 'notes.txt',
- *		alias       = 'note'
- *	)
- *	@DefineCommand(
- *		command     = 'reminders',
- *		accessLevel = 'guild',
- *		description = 'Displays, adds, or removes a reminder from your list',
- *		help        = 'notes.txt',
- *		alias       = 'reminder'
- *	)
- *	@DefineCommand(
- *		command     = 'reminderformat',
- *		accessLevel = 'guild',
- *		description = 'Displays or changes the reminder format for oneself',
- *		help        = 'notes.txt'
- *	)
  */
+#[
+	NCA\Instance,
+	NCA\DefineCommand(
+		command: "notes",
+		accessLevel: "guild",
+		description: "Displays, adds, or removes a note from your list",
+		help: "notes.txt",
+		alias: "note"
+	),
+	NCA\DefineCommand(
+		command: "reminders",
+		accessLevel: "guild",
+		description: "Displays, adds, or removes a reminder from your list",
+		help: "notes.txt",
+		alias: "reminder"
+	),
+	NCA\DefineCommand(
+		command: "reminderformat",
+		accessLevel: "guild",
+		description: "Displays or changes the reminder format for oneself",
+		help: "notes.txt"
+	)
+]
 class NotesController {
 	public const FORMAT_GROUPED = 'grouped';
 	public const FORMAT_INDIVIDUAL = 'individual';
@@ -69,40 +70,40 @@ class NotesController {
 	 */
 	public string $moduleName;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public DB $db;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Text $text;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Nadybot $chatBot;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public CommandAlias $commandAlias;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public AltsController $altsController;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public AccessManager $accessManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public CommandManager $commandManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public SettingManager $settingManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public BuddylistManager $buddylistManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Preferences $preferences;
 
-	/** @Logger */
+	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
-	/** @Setup */
+	#[NCA\Setup]
 	public function setup(): void {
 		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations/Notes");
 		$this->commandAlias->register($this->moduleName, "notes rem", "reminders rem");
@@ -119,9 +120,7 @@ class NotesController {
 		);
 	}
 
-	/**
-	 * @HandlesCommand("notes")
-	 */
+	#[NCA\HandlesCommand("notes")]
 	public function notesListCommand(CmdContext $context): void {
 		$altInfo = $this->altsController->getAltInfo($context->char->name);
 		$main = $altInfo->getValidatedMain($context->char->name);
@@ -141,9 +140,7 @@ class NotesController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @HandlesCommand("reminders")
-	 */
+	#[NCA\HandlesCommand("reminders")]
 	public function remindersListCommand(CmdContext $context): void {
 		$altInfo = $this->altsController->getAltInfo($context->char->name);
 		$main = $altInfo->getValidatedMain($context->char->name);
@@ -184,7 +181,6 @@ class NotesController {
 
 	/**
 	 * Read all notes or reminders for player $main
-	 *
 	 * @return Note[]
 	 */
 	protected function readNotes(string $main, bool $remindersOnly=false): array {
@@ -198,7 +194,6 @@ class NotesController {
 
 	/**
 	 * Render an array of Notes into a blob
-	 *
 	 * @param Note[] $notes
 	 */
 	protected function renderNotes(array $notes, string $sender): string {
@@ -291,9 +286,9 @@ class NotesController {
 	}
 
 	/**
-	 * @HandlesCommand("notes")
 	 * @Mask $action add
 	 */
+	#[NCA\HandlesCommand("notes")]
 	public function notesAddCommand(CmdContext $context, string $action, string $note): void {
 		$this->saveNote($note, $context->char->name);
 		$msg = "Note added successfully.";
@@ -302,9 +297,9 @@ class NotesController {
 	}
 
 	/**
-	 * @HandlesCommand("reminders")
 	 * @Mask $action (add|addall|addself)
 	 */
+	#[NCA\HandlesCommand("reminders")]
 	public function reminderAddCommand(CmdContext $context, string $action, string $note): void {
 		$reminder = Note::REMIND_ALL;
 		if ($action === "addself") {
@@ -316,9 +311,7 @@ class NotesController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @HandlesCommand("notes")
-	 */
+	#[NCA\HandlesCommand("notes")]
 	public function notesRemoveCommand(CmdContext $context, PRemove $action, int $id): void {
 		$altInfo = $this->altsController->getAltInfo($context->char->name);
 		$main = $altInfo->getValidatedMain($context->char->name);
@@ -337,10 +330,10 @@ class NotesController {
 	}
 
 	/**
-	 * @HandlesCommand("reminders")
 	 * @Mask $action set
 	 * @Mask $type (all|self|off)
 	 */
+	#[NCA\HandlesCommand("reminders")]
 	public function reminderSetCommand(CmdContext $context, string $action, string $type, int $id): void {
 		$reminder = Note::REMIND_ALL;
 		if ($type === "self") {
@@ -362,10 +355,10 @@ class NotesController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @Event(name="logOn",
-	 * 	description="Sends a tell to players on logon showing their reminders")
-	 */
+	#[NCA\Event(
+		name: "logOn",
+		description: "Sends a tell to players on logon showing their reminders"
+	)]
 	public function showRemindersOnLogonEvent(UserStateEvent $eventObj): void {
 		$sender = $eventObj->sender;
 		if (!is_string($sender) || isset($this->chatBot->chatlist[$sender])) {
@@ -374,10 +367,10 @@ class NotesController {
 		$this->showReminders($sender);
 	}
 
-	/**
-	 * @Event(name="joinPriv",
-	 * 	description="Show reminders when joining the private channel")
-	 */
+	#[NCA\Event(
+		name: "joinPriv",
+		description: "Show reminders when joining the private channel"
+	)]
 	public function showRemindersOnPrivJoinEvent(AOChatEvent $eventObj): void {
 		$sender = $eventObj->sender;
 		if (!is_string($sender) || $this->buddylistManager->isOnline($sender)) {
@@ -417,10 +410,10 @@ class NotesController {
 		return $reminderFormat;
 	}
 
-	/**
-	 * @Event(name="alt(newmain)",
-	 * 	description="Move reminder format to new main")
-	 */
+	#[NCA\Event(
+		name: "alt(newmain)",
+		description: "Move reminder format to new main"
+	)]
 	public function moveReminderFormat(AltEvent $event): void {
 		$reminderFormat = $this->preferences->get($event->alt, 'reminder_format');
 		if ($reminderFormat === null || $reminderFormat === '') {
@@ -463,9 +456,7 @@ class NotesController {
 		return  $msg;
 	}
 
-	/**
-	 * @HandlesCommand("reminderformat")
-	 */
+	#[NCA\HandlesCommand("reminderformat")]
 	public function reminderformatShowCommand(CmdContext $context): void {
 		$reminderFormat = $this->getReminderFormat($context->char->name);
 		$exampleNote1 = new Note();
@@ -503,9 +494,7 @@ class NotesController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @HandlesCommand("reminderformat")
-	 */
+	#[NCA\HandlesCommand("reminderformat")]
 	public function reminderformatChangeCommand(CmdContext $context, string $format): void {
 		$format = strtolower($format);
 		$formats = static::VALID_FORMATS;
@@ -521,13 +510,13 @@ class NotesController {
 		$context->reply("Your reminder format has been set to <highlight>{$format}<end>.");
 	}
 
-	/**
-	 * @NewsTile("notes")
-	 * @Description("Shows you how many notes you have for this character
-	 * as well with a link to show them")
-	 * @Example("<header2>Notes<end>
-	 * <tab>You have <highlight>2 notes<end> [<u>show</u>]")
-	 */
+	#[
+		NCA\NewsTile("notes"),
+		NCA\Description("Shows you how many notes you have for this character\n".
+			"as well with a link to show them"),
+		NCA\Example("<header2>Notes<end>\n".
+			"<tab>You have <highlight>2 notes<end> [<u>show</u>]")
+	]
 	public function notesNewsTile(string $sender, callable $callback): void {
 		$altInfo = $this->altsController->getAltInfo($sender);
 		$main = $altInfo->getValidatedMain($sender);

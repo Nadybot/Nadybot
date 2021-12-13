@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\SKILLS_MODULE;
 
+use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{
 	CmdContext,
 	CommandReply,
@@ -25,17 +26,17 @@ use Throwable;
 /**
  * @author Tyrence (RK2)
  * @author Nadyita (RK5)
- *
- * @Instance
- *
  * Commands this controller contains:
- *	@DefineCommand(
- *		command     = 'perks',
- *		accessLevel = 'all',
- *		description = 'Show buff perks',
- *		help        = 'perks.txt'
- *	)
  */
+#[
+	NCA\Instance,
+	NCA\DefineCommand(
+		command: "perks",
+		accessLevel: "all",
+		description: "Show buff perks",
+		help: "perks.txt"
+	)
+]
 class BuffPerksController {
 	public const ALIEN_INVASION = "ai";
 	public const SHADOWLANDS = "sl";
@@ -46,31 +47,31 @@ class BuffPerksController {
 	 */
 	public string $moduleName;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Text $text;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Util $util;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public DB $db;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public WhatBuffsController $whatBuffsController;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public PlayerManager $playerManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public SettingManager $settingManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Timer $timer;
 
-	/** @Logger */
+	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
-	/** @Setup */
+	#[NCA\Setup]
 	public function setup(): void {
 		$applied = $this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations/Perks");
 		$this->settingManager->add($this->moduleName, "perks_db_version", "perks_db_version", 'noedit', 'text', "0");
@@ -155,7 +156,7 @@ class BuffPerksController {
 		$this->db->commit();
 	}
 
-	/** @HandlesCommand("perks") */
+	#[NCA\HandlesCommand("perks")]
 	public function buffPerksNoArgsCommand(CmdContext $context): void {
 		$this->playerManager->getByNameAsync(
 			function(?Player $whois) use ($context): void {
@@ -170,12 +171,12 @@ class BuffPerksController {
 		);
 	}
 
-	/** @HandlesCommand("perks") */
+	#[NCA\HandlesCommand("perks")]
 	public function buffPerksLevelFirstCommand(CmdContext $context, int $level, PNonNumberWord $prof, ?string $search): void {
 		$this->buffPerksProfFirstCommand($context, $prof, $level, $search);
 	}
 
-	/** @HandlesCommand("perks") */
+	#[NCA\HandlesCommand("perks")]
 	public function buffPerksProfFirstCommand(CmdContext $context, PNonNumberWord $prof, int $level, ?string $search): void {
 		$profession = $this->util->getProfessionName($prof());
 		if ($profession === "") {
@@ -188,7 +189,6 @@ class BuffPerksController {
 
 	/**
 	 * Filter a perk list $perks to only show breed-specific perks for $breed
-	 *
 	 * @param Perk[] $perks
 	 * @param string $breed
 	 * @return Perk[]
@@ -209,7 +209,6 @@ class BuffPerksController {
 
 	/**
 	 * Filter a perk list $perks to only show those buffing $skill
-	 *
 	 * @param Perk[] $perks
 	 * @param Skill $skill
 	 * @return Perk[]
@@ -248,7 +247,6 @@ class BuffPerksController {
 	/**
 	 * Show all perks for $profession at $level, optionally only searching for
 	 * a specific buff to the skill $search
-	 *
 	 * @param string $profession Name of the profession
 	 * @param int $level Level of the character
 	 * @param string|null $search Name of the skill to search for
@@ -336,7 +334,6 @@ class BuffPerksController {
 
 	/**
 	 * Render a group of PerkAggregates
-	 *
 	 * @param string $name
 	 * @param PerkAggregate[] $perks
 	 * @return string
@@ -408,7 +405,6 @@ class BuffPerksController {
 	/**
 	 * Expand a skill name into a list of skills,
 	 * supporting aliases like AC, Reflect, etc.
-	 *
 	 * @return string[]
 	 */
 	protected function expandSkill(string $skill): array {
@@ -558,9 +554,9 @@ class BuffPerksController {
 	}
 
 	/**
-	 * @HandlesCommand("perks")
 	 * @Mask $action show
 	 */
+	#[NCA\HandlesCommand("perks")]
 	public function showPerkCommand(CmdContext $context, string $action, string $perkName): void {
 		$perk = $this->readPerk($perkName);
 		if (!isset($perk)) {
@@ -688,7 +684,6 @@ class BuffPerksController {
 
 	/**
 	 * Read all information about a single perk into an object
-	 *
 	 * @param string $name Name of the perk
 	 * @return null|Perk The perk information
 	 */
@@ -758,7 +753,6 @@ class BuffPerksController {
 
 	/**
 	 * Read all information about all perks a $profession at $level could perk
-	 *
 	 * @param string $profession Name of the profession
 	 * @param int $level Level at which to check
 	 * @return Perk[] The perk information

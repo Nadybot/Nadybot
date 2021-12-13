@@ -2,16 +2,17 @@
 
 namespace Nadybot\Core\Channels;
 
+use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\MessageHub;
 use Nadybot\Core\Nadybot;
 use Nadybot\Core\Routing\RoutableEvent;
 use Nadybot\Core\Routing\Source;
 
 class PrivateChannel extends Base {
-	/** @Inject */
+	#[NCA\Inject]
 	public Nadybot $chatBot;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public MessageHub $messageHub;
 
 	protected string $channel;

@@ -2,6 +2,7 @@
 
 namespace Nadybot\Core\Modules\CONFIG;
 
+use Nadybot\Core\Attributes as NCA;
 use Exception;
 use ReflectionClass;
 use Nadybot\Core\{
@@ -29,16 +30,16 @@ use Nadybot\Core\DBSchema\{
 };
 use Nadybot\Core\ParamClass\PWord;
 
-/**
- *	@DefineCommand(
- *		command       = 'config',
- *		accessLevel   = 'mod',
- *		description   = 'Configure bot settings',
- *		help          = 'config.txt',
- *		defaultStatus = '1'
- *	)
- * @Instance
- */
+#[
+	NCA\DefineCommand(
+		command: "config",
+		accessLevel: "mod",
+		description: "Configure bot settings",
+		help: "config.txt",
+		defaultStatus: 1
+	),
+	NCA\Instance
+]
 class ConfigController {
 
 	/**
@@ -47,43 +48,43 @@ class ConfigController {
 	 */
 	public string $moduleName;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Text $text;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public DB $db;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public CommandManager $commandManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public EventManager $eventManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public SubcommandManager $subcommandManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public CommandAlias $commandAlias;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public HelpManager $helpManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public SettingManager $settingManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public AccessManager $accessManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Nadybot $chatBot;
 
-	/** @Logger */
+	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
 	/**
-	 * @Setup
 	 * This handler is called on bot startup.
 	 */
+	#[NCA\Setup]
 	public function setup(): void {
 
 		// construct list of command handlers
@@ -106,9 +107,8 @@ class ConfigController {
 
 	/**
 	 * This command handler lists list of modules which can be configured.
-	 *
-	 * @HandlesCommand("config")
 	 */
+	#[NCA\HandlesCommand("config")]
 	public function configCommand(CmdContext $context): void {
 		$blob = "<header2>Quick config<end>\n".
 			"<tab>Org Commands [" .
@@ -156,11 +156,10 @@ class ConfigController {
 
 	/**
 	 * This command handler turns a channel of all modules on or off.
-	 *
-	 * @HandlesCommand("config")
 	 * @Mask $cmd cmd
 	 * @Mask $channel (all|guild|priv|msg)
 	 */
+	#[NCA\HandlesCommand("config")]
 	public function toggleChannelOfAllModulesCommand(
 		CmdContext $context,
 		string $cmd,
@@ -204,11 +203,10 @@ class ConfigController {
 
 	/**
 	 * This command handler turns one or all channels of a single module on or off
-	 *
-	 * @HandlesCommand("config")
 	 * @Mask $action mod
 	 * @Mask $channel (priv|msg|guild|all)
 	 */
+	#[NCA\HandlesCommand("config")]
 	public function toggleModuleChannelCommand(
 		CmdContext $context,
 		string $action,
@@ -238,11 +236,10 @@ class ConfigController {
 
 	/**
 	 * This command handler turns one or all channels of a single command on or off
-	 *
-	 * @HandlesCommand("config")
 	 * @Mask $type (cmd|subcmd)
 	 * @Mask $channel (priv|msg|guild|all)
 	 */
+	#[NCA\HandlesCommand("config")]
 	public function toggleCommandChannelCommand(
 		CmdContext $context,
 		string $type,
@@ -289,11 +286,10 @@ class ConfigController {
 
 	/**
 	 * This command handler turns one or all channels of a single event on or off
-	 *
-	 * @HandlesCommand("config")
 	 * @Mask $type event
 	 * @Mask $channel (priv|msg|guild|all)
 	 */
+	#[NCA\HandlesCommand("config")]
 	public function toggleEventCommand(
 		CmdContext $context,
 		string $type,
@@ -450,12 +446,11 @@ class ConfigController {
 	/**
 	 * This command handler sets command's access level on a particular channel.
 	 * Note: This handler has not been not registered, only activated.
-	 *
-	 * @HandlesCommand("config")
 	 * @Mask $category (subcmd|cmd)
 	 * @Mask $admin admin
 	 * @Mask $channel (msg|priv|guild|all)
 	 */
+	#[NCA\HandlesCommand("config")]
 	public function setAccessLevelOfChannelCommand(
 		CmdContext $context,
 		string $category,
@@ -552,7 +547,6 @@ class ConfigController {
 
 	/**
 	 * Check if sender has access to all commands in $data
-	 *
 	 * @param CmdCfg[] $data
 	 * @param string $sender
 	 * @return bool
@@ -569,10 +563,9 @@ class ConfigController {
 	/**
 	 * This command handler shows information and controls of a command in
 	 * each channel.
-	 *
-	 * @HandlesCommand("config")
 	 * @Mask $action cmd
 	 */
+	#[NCA\HandlesCommand("config")]
 	public function configCommandCommand(CmdContext $context, string $action, PWord $cmd): void {
 		$cmd = strtolower($cmd());
 
@@ -676,9 +669,8 @@ class ConfigController {
 
 	/**
 	 * This command handler shows configuration and controls for a single module.
-	 *
-	 * @HandlesCommand("config")
 	 */
+	#[NCA\HandlesCommand("config")]
 	public function configModuleCommand(CmdContext $context, PWord $module): void {
 		$module = strtoupper($module());
 		$found = false;

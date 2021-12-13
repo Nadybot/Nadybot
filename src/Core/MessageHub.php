@@ -2,6 +2,7 @@
 
 namespace Nadybot\Core;
 
+use Nadybot\Core\Attributes as NCA;
 use Exception;
 use Illuminate\Support\Collection;
 use JsonException;
@@ -14,9 +15,7 @@ use ReflectionException;
 use ReflectionMethod;
 use Throwable;
 
-/**
- * @Instance
- */
+#[NCA\Instance]
 class MessageHub {
 	public const EVENT_NOT_ROUTED = 0;
 	public const EVENT_DISCARDED = 1;
@@ -39,31 +38,31 @@ class MessageHub {
 	/** @var array<string,ClassSpec> */
 	public array $modifiers = [];
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Text $text;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public BuddylistManager $buddyListManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public SettingManager $settingManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Util $util;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Nadybot $chatBot;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public DB $db;
 
-	/** @Logger */
+	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
 	/** @var Collection<RouteHopColor> */
 	public static Collection $colors;
 
-	/** @Setup */
+	#[NCA\Setup]
 	public function setup(): void {
 		$modifierFiles = glob(__DIR__ . "/EventModifier/*.php");
 		foreach ($modifierFiles as $file) {

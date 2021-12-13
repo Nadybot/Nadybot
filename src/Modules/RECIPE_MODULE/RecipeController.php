@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\RECIPE_MODULE;
 
+use Nadybot\Core\Attributes as NCA;
 use Exception;
 use JsonException;
 use Nadybot\Core\CmdContext;
@@ -14,19 +15,18 @@ use Nadybot\Modules\ITEMS_MODULE\AODBEntry;
 
 /**
  * @author Tyrence
- *
  * Based on a module written by Captainzero (RK1) of the same name for an earlier version of Budabot
- *
- * @Instance
- *
  * Commands this controller contains:
- *	@DefineCommand(
- *		command     = 'recipe',
- *		accessLevel = 'all',
- *		description = 'Search for a recipe',
- *		help        = 'recipe.txt'
- *	)
  */
+#[
+	NCA\Instance,
+	NCA\DefineCommand(
+		command: "recipe",
+		accessLevel: "all",
+		description: "Search for a recipe",
+		help: "recipe.txt"
+	)
+]
 class RecipeController {
 
 	/**
@@ -35,16 +35,16 @@ class RecipeController {
 	 */
 	public string $moduleName;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public DB $db;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Util $util;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Text $text;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public ItemsController $itemsController;
 
 	private string $path;
@@ -130,18 +130,19 @@ class RecipeController {
 		return $recipe;
 	}
 
-	/** @Setup */
+	#[NCA\Setup]
 	public function setup(): void {
 		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations/Recipes");
 	}
 
 	/**
-	 * @Event(name="connect",
-	 * 	description="Initializes the recipe database",
-	 * 	defaultStatus="1")
-	 *
 	 * This is an Event("connect") instead of Setup since it depends on the items db being loaded
 	 */
+	#[NCA\Event(
+		name: "connect",
+		description: "Initializes the recipe database",
+		defaultStatus: 1
+	)]
 	public function connectEvent(): void {
 		$this->path = __DIR__ . "/recipes/";
 		if (($handle = opendir($this->path)) === false) {
@@ -176,9 +177,7 @@ class RecipeController {
 		closedir($handle);
 	}
 
-	/**
-	 * @HandlesCommand("recipe")
-	 */
+	#[NCA\HandlesCommand("recipe")]
 	public function recipeShowCommand(CmdContext $context, int $id): void {
 		/** @var ?Recipe */
 		$row = $this->db->table("recipes")->where("id", $id)->asObj(Recipe::class)->first();
@@ -191,9 +190,7 @@ class RecipeController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @HandlesCommand("recipe")
-	 */
+	#[NCA\HandlesCommand("recipe")]
 	public function recipeSearchCommand(CmdContext $context, string $search): void {
 		$query = $this->db->table("recipes")
 			->orderBy("name");

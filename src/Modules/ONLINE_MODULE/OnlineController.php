@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\ONLINE_MODULE;
 
+use Nadybot\Core\Attributes as NCA;
 use Illuminate\Database\Query\JoinClause;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
@@ -37,19 +38,19 @@ use Nadybot\Modules\{
  * @author Tyrence (RK2)
  * @author Mindrila (RK1)
  * @author Naturarum (Paradise, RK2)
- *
- * @Instance
- *
  * Commands this class contains:
- *	@DefineCommand(
- *		command     = 'online',
- *		accessLevel = 'member',
- *		description = 'Shows who is online',
- *		help        = 'online.txt'
- *	)
- * @ProvidesEvent("online(org)")
- * @ProvidesEvent("offline(org)")
  */
+#[
+	NCA\Instance,
+	NCA\DefineCommand(
+		command: "online",
+		accessLevel: "member",
+		description: "Shows who is online",
+		help: "online.txt"
+	),
+	NCA\ProvidesEvent("online(org)"),
+	NCA\ProvidesEvent("offline(org)")
+]
 class OnlineController {
 	protected const GROUP_OFF = 0;
 	protected const GROUP_BY_MAIN = 1;
@@ -72,46 +73,46 @@ class OnlineController {
 	 */
 	public string $moduleName;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public DB $db;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Nadybot $chatBot;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public SettingManager $settingManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public EventManager $eventManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public AccessManager $accessManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public BuddylistManager $buddylistManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public DiscordGatewayController $discordGatewayController;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public RaidController $raidController;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public RelayController $relayController;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Text $text;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Util $util;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public CommandAlias $commandAlias;
 
-	/** @Logger */
+	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
-	/** @Setup */
+	#[NCA\Setup]
 	public function setup(): void {
 		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations");
 		$this->db->table("online")
@@ -241,26 +242,22 @@ class OnlineController {
 			->where("added_by", $this->db->getBotname());
 	}
 
-	/**
-	 * @HandlesCommand("online")
-	 */
+	#[NCA\HandlesCommand("online")]
 	public function onlineCommand(CmdContext $context): void {
 		$msg = $this->getOnlineList();
 		$context->reply($msg);
 	}
 
 	/**
-	 * @HandlesCommand("online")
 	 * @Mask $action all
 	 */
+	#[NCA\HandlesCommand("online")]
 	public function onlineAllCommand(CmdContext $context, string $action): void {
 		$msg = $this->getOnlineList(1);
 		$context->reply($msg);
 	}
 
-	/**
-	 * @HandlesCommand("online")
-	 */
+	#[NCA\HandlesCommand("online")]
 	public function onlineProfCommand(CmdContext $context, string $profName): void {
 		$profession = $this->util->getProfessionName($profName);
 		if (empty($profession)) {
@@ -330,10 +327,10 @@ class OnlineController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @Event(name="logOn",
-	 * 	description="Records an org member login in db")
-	 */
+	#[NCA\Event(
+		name: "logOn",
+		description: "Records an org member login in db"
+	)]
 	public function recordLogonEvent(UserStateEvent $eventObj): void {
 		$sender = $eventObj->sender;
 		if (!isset($this->chatBot->guildmembers[$sender]) || !is_string($sender)) {
@@ -350,10 +347,10 @@ class OnlineController {
 		$this->eventManager->fireEvent($event);
 	}
 
-	/**
-	 * @Event(name="logOff",
-	 * 	description="Records an org member logoff in db")
-	 */
+	#[NCA\Event(
+		name: "logOff",
+		description: "Records an org member logoff in db"
+	)]
 	public function recordLogoffEvent(UserStateEvent $eventObj): void {
 		$sender = $eventObj->sender;
 		if (!isset($this->chatBot->guildmembers[$sender]) || !is_string($sender)) {
@@ -367,10 +364,10 @@ class OnlineController {
 		$this->eventManager->fireEvent($event);
 	}
 
-	/**
-	 * @Event(name="logOn",
-	 * 	description="Sends a tell to players on logon showing who is online in org")
-	 */
+	#[NCA\Event(
+		name: "logOn",
+		description: "Sends a tell to players on logon showing who is online in org"
+	)]
 	public function showOnlineOnLogonEvent(UserStateEvent $eventObj): void {
 		$sender = $eventObj->sender;
 		if (!isset($this->chatBot->guildmembers[$sender])
@@ -383,10 +380,10 @@ class OnlineController {
 		$this->chatBot->sendMassTell($msg, $sender);
 	}
 
-	/**
-	 * @Event(name="timer(10mins)",
-	 * 	description="Online check")
-	 */
+	#[NCA\Event(
+		name: "timer(10mins)",
+		description: "Online check"
+	)]
 	public function onlineCheckEvent(Event $eventObj): void {
 		if (!$this->chatBot->isReady()) {
 			return;
@@ -455,29 +452,35 @@ class OnlineController {
 			->delete();
 	}
 
-	/**
-	 * @Event(name="priv",
-	 * 	description="Afk check")
-	 * @Help("afk")
-	 */
+	#[
+		NCA\Event(
+			name: "priv",
+			description: "Afk check"
+		),
+		NCA\Help("afk")
+	]
 	public function afkCheckPrivateChannelEvent(AOChatEvent $eventObj): void {
 		$this->afkCheck($eventObj->sender, $eventObj->message, $eventObj->type);
 	}
 
-	/**
-	 * @Event(name="guild",
-	 * 	description="Afk check")
-	 * @Help("afk")
-	 */
+	#[
+		NCA\Event(
+			name: "guild",
+			description: "Afk check"
+		),
+		NCA\Help("afk")
+	]
 	public function afkCheckGuildChannelEvent(AOChatEvent $eventObj): void {
 		$this->afkCheck($eventObj->sender, $eventObj->message, $eventObj->type);
 	}
 
-	/**
-	 * @Event(name="priv",
-	 * 	description="Sets a member afk")
-	 * @Help("afk")
-	 */
+	#[
+		NCA\Event(
+			name: "priv",
+			description: "Sets a member afk"
+		),
+		NCA\Help("afk")
+	]
 	public function afkPrivateChannelEvent(AOChatEvent $eventObj): void {
 		if (!is_string($eventObj->sender)) {
 			return;
@@ -485,11 +488,13 @@ class OnlineController {
 		$this->afk($eventObj->sender, $eventObj->message, $eventObj->type);
 	}
 
-	/**
-	 * @Event(name="guild",
-	 * 	description="Sets a member afk")
-	 * @Help("afk")
-	 */
+	#[
+		NCA\Event(
+			name: "guild",
+			description: "Sets a member afk"
+		),
+		NCA\Help("afk")
+	]
 	public function afkGuildChannelEvent(AOChatEvent $eventObj): void {
 		if (!is_string($eventObj->sender)) {
 			return;
@@ -601,7 +606,6 @@ class OnlineController {
 
 	/**
 	 * Group the relay online list as configured
-	 *
 	 * @param array<string,Relay> $relays
 	 * @return array<string,OnlinePlayer[]>
 	 */
@@ -959,11 +963,13 @@ class OnlineController {
 
 	/**
 	 * Get a list of all people online in all linked channels
-	 * @Api("/online")
-	 * @GET
-	 * @AccessLevelFrom("online")
-	 * @ApiResult(code=200, class='OnlinePlayers', desc='A list of online players')
 	 */
+	#[
+		NCA\Api("/online"),
+		NCA\GET,
+		NCA\AccessLevelFrom("online"),
+		NCA\ApiResult(code: 200, class: "OnlinePlayers", desc: "A list of online players")
+	]
 	public function apiOnlineEndpoint(Request $request, HttpProtocolWrapper $server): Response {
 		$result = new OnlinePlayers();
 		$result->org = $this->getPlayers('guild');

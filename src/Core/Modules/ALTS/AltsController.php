@@ -2,6 +2,7 @@
 
 namespace Nadybot\Core\Modules\ALTS;
 
+use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{
 	AccessManager,
 	BuddylistManager,
@@ -28,34 +29,34 @@ use Nadybot\Core\ParamClass\PRemove;
 
 /**
  * @author Tyrence (RK2)
- *
- * @Instance
- *
  * Commands this controller contains:
- *	@DefineCommand(
- *		command       = 'alts',
- *		accessLevel   = 'member',
- *		description   = 'Alt character handling',
- *		help          = 'alts.txt'
- *	)
- *	@DefineCommand(
- *		command       = 'altvalidate',
- *		accessLevel   = 'all',
- *		description   = 'Validate alts for admin privileges',
- *		help          = 'alts.txt'
- *	)
- *	@DefineCommand(
- *		command       = 'altdecline',
- *		accessLevel   = 'all',
- *		description   = 'Declines being the alt of someone else',
- *		help          = 'alts.txt'
- *	)
- * @ProvidesEvent("alt(add)")
- * @ProvidesEvent("alt(del)")
- * @ProvidesEvent("alt(validate)")
- * @ProvidesEvent("alt(decline)")
- * @ProvidesEvent("alt(newmain)")
  */
+#[
+	NCA\Instance,
+	NCA\DefineCommand(
+		command: "alts",
+		accessLevel: "member",
+		description: "Alt character handling",
+		help: "alts.txt"
+	),
+	NCA\DefineCommand(
+		command: "altvalidate",
+		accessLevel: "all",
+		description: "Validate alts for admin privileges",
+		help: "alts.txt"
+	),
+	NCA\DefineCommand(
+		command: "altdecline",
+		accessLevel: "all",
+		description: "Declines being the alt of someone else",
+		help: "alts.txt"
+	),
+	NCA\ProvidesEvent("alt(add)"),
+	NCA\ProvidesEvent("alt(del)"),
+	NCA\ProvidesEvent("alt(validate)"),
+	NCA\ProvidesEvent("alt(decline)"),
+	NCA\ProvidesEvent("alt(newmain)")
+]
 class AltsController {
 
 	public const ALT_VALIDATE = "altvalidate";
@@ -67,34 +68,34 @@ class AltsController {
 	 */
 	public string $moduleName;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Nadybot $chatBot;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public SettingManager $settingManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public PlayerManager $playerManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public BuddylistManager $buddylistManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public AccessManager $accessManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public EventManager $eventManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public DB $db;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Text $text;
 
 	/**
-	 * @Setup
 	 * This handler is called on bot startup.
 	 */
+	#[NCA\Setup]
 	public function setup(): void {
 		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations");
 
@@ -144,10 +145,10 @@ class AltsController {
 		);
 	}
 
-	/**
-	 * @Event(name="connect",
-	 * 	description="Add unvalidated alts/mains to friendlist")
-	 */
+	#[NCA\Event(
+		name: "connect",
+		description: "Add unvalidated alts/mains to friendlist"
+	)]
 	public function addNonValidatedAsBuddies(): void {
 		$myName = ucfirst(strtolower($this->chatBot->vars["name"]));
 		$this->db->table("alts")->where("validated_by_alt", false)->where("added_via", $myName)
@@ -163,10 +164,9 @@ class AltsController {
 
 	/**
 	 * This command handler adds alt characters.
-	 *
-	 * @HandlesCommand("alts")
 	 * @Mask $action add
 	 */
+	#[NCA\HandlesCommand("alts")]
 	public function addAltCommand(CmdContext $context, string $action, PCharacterList $names): void {
 		$senderAltInfo = $this->getAltInfo($context->char->name, true);
 		if (!$senderAltInfo->isValidated($context->char->name)) {
@@ -256,10 +256,9 @@ class AltsController {
 
 	/**
 	 * This command handler adds alts to another main character.
-	 *
-	 * @HandlesCommand("alts")
 	 * @Mask $action main
 	 */
+	#[NCA\HandlesCommand("alts")]
 	public function addMainCommand(CmdContext $context, string $action, PCharacter $main): void {
 		$newMain = $main();
 
@@ -337,9 +336,8 @@ class AltsController {
 
 	/**
 	 * This command handler removes an alt character.
-	 *
-	 * @HandlesCommand("alts")
 	 */
+	#[NCA\HandlesCommand("alts")]
 	public function removeAltCommand(CmdContext $context, PRemove $rem, PCharacter $name): void {
 		$name = $name();
 
@@ -368,10 +366,9 @@ class AltsController {
 
 	/**
 	 * This command handler sets main character.
-	 *
-	 * @HandlesCommand("alts")
 	 * @Mask $action setmain
 	 */
+	#[NCA\HandlesCommand("alts")]
 	public function setMainCommand(CmdContext $context, string $action): void {
 		$newMain = $context->char->name;
 		$altInfo = $this->getAltInfo($newMain);
@@ -427,9 +424,8 @@ class AltsController {
 
 	/**
 	 * This command handler lists alt characters.
-	 *
-	 * @HandlesCommand("alts")
 	 */
+	#[NCA\HandlesCommand("alts")]
 	public function altsCommand(CmdContext $context, ?PCharacter $name): void {
 		$name = isset($name) ? $name() : $context->char->name;
 
@@ -444,9 +440,8 @@ class AltsController {
 
 	/**
 	 * This command handler validates alts or mains for admin privileges.
-	 *
-	 * @HandlesCommand("altvalidate")
 	 */
+	#[NCA\HandlesCommand("altvalidate")]
 	public function altvalidateCommand(CmdContext $context, PCharacter $name): void {
 		$altInfo = $this->getAltInfo($context->char->name, true);
 		$toValidate = $name();
@@ -518,9 +513,8 @@ class AltsController {
 
 	/**
 	 * This command handler declines alt or main requests
-	 *
-	 * @HandlesCommand("altdecline")
 	 */
+	#[NCA\HandlesCommand("altdecline")]
 	public function altDeclineCommand(CmdContext $context, PCharacter $name): void {
 		$altInfo = $this->getAltInfo($context->char->name, true);
 		$toDecline = $name();
@@ -592,10 +586,10 @@ class AltsController {
 		$this->buddylistManager->remove($main, static::MAIN_VALIDATE);
 	}
 
-	/**
-	 * @Event(name="logOn",
-	 * 	description="Reminds unvalidates alts/mains to accept or deny")
-	 */
+	#[NCA\Event(
+		name: "logOn",
+		description: "Reminds unvalidates alts/mains to accept or deny"
+	)]
 	public function checkUnvalidatedAltsEvent(UserStateEvent $eventObj): void {
 		if (!$this->chatBot->isReady() || !is_string($eventObj->sender)) {
 			return;
@@ -761,13 +755,13 @@ class AltsController {
 		return $deleted;
 	}
 
-	/**
-	 * @NewsTile("alts-info")
-	 * @Description("Displays basic information about your alts")
-	 * @Example("<header2>Account<end>
-	 * <tab>Your main is <highlight>Nady<end>
-	 * <tab>You have <u>15 alts</u>.")
-	 */
+	#[
+		NCA\NewsTile("alts-info"),
+		NCA\Description("Displays basic information about your alts"),
+		NCA\Example("<header2>Account<end>\n".
+			"<tab>Your main is <highlight>Nady<end>\n".
+			"<tab>You have <u>15 alts</u>.")
+	]
 	public function altsTile(string $sender, callable $callback): void {
 		$altInfo = $this->getAltInfo($sender, true);
 		$altsCmdText = "no alts";
@@ -799,13 +793,13 @@ class AltsController {
 		$callback($blob);
 	}
 
-	/**
-	 * @NewsTile("alts-unvalidated")
-	 * @Description("Show a notice if char has any unvalidated alts")
-	 * @Example("<header2>Unvalidated Alts [<u>see more</u>]<end>
-	 * <tab>- Char1
-	 * <tab>- Char2")
-	 */
+	#[
+		NCA\NewsTile("alts-unvalidated"),
+		NCA\Description("Show a notice if char has any unvalidated alts"),
+		NCA\Example("<header2>Unvalidated Alts [<u>see more</u>]<end>\n".
+			"<tab>- Char1\n".
+			"<tab>- Char2")
+	]
 	public function unvalidatedAltsTile(string $sender, callable $callback): void {
 		$altInfo = $this->getAltInfo($sender, true);
 		if (!$altInfo->hasUnvalidatedAlts()) {

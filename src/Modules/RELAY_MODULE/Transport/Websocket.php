@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\RELAY_MODULE\Transport;
 
+use Nadybot\Core\Attributes as NCA;
 use Exception;
 use Nadybot\Core\LoggerWrapper;
 use Nadybot\Core\Nadybot;
@@ -15,29 +16,39 @@ use Nadybot\Modules\RELAY_MODULE\RelayMessage;
 use Nadybot\Modules\RELAY_MODULE\RelayStatus;
 use Nadybot\Modules\RELAY_MODULE\StatusProvider;
 
-/**
- * @RelayTransport("websocket")
- * @Description("You can use websockets as a relay transport.
- * 	Websockets provide near-realtime communication, but since they
- * 	are not part of Anarchy Online, if they are down, you might have
- * 	a hard time debugging this.
- * 	Websockets require a transport protocol in order to work properly
- * 	and if they are public, you might also want to add an encryption
- * 	layer on top of that.")
- * @Param(name='server', description='The URI of the websocket to connect to', type='string', required=true)
- * @Param(name='authorization', description='If set, authorize against the Websocket server with a password', type='secret', required=false)
- */
+#[
+	NCA\RelayTransport("websocket"),
+	NCA\Description("You can use websockets as a relay transport.\n".
+		"Websockets provide near-realtime communication, but since they\n".
+		"are not part of Anarchy Online, if they are down, you might have\n".
+		"a hard time debugging this.\n".
+		"Websockets require a transport protocol in order to work properly\n".
+		"and if they are public, you might also want to add an encryption\n".
+		"layer on top of that."),
+	NCA\Param(
+		name: "server",
+		type: "string",
+		description: "The URI of the websocket to connect to",
+		required: true
+	),
+	NCA\Param(
+		name: "authorization",
+		type: "secret",
+		description: "If set, authorize against the Websocket server with a password",
+		required: false
+	)
+]
 class Websocket implements TransportInterface, StatusProvider {
-	/** @Inject */
+	#[NCA\Inject]
 	public Nadybot $chatBot;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public CoreWebsocket $websocket;
 
-	/** @Logger */
+	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Timer $timer;
 
 	protected Relay $relay;

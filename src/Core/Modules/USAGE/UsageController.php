@@ -2,6 +2,7 @@
 
 namespace Nadybot\Core\Modules\USAGE;
 
+use Nadybot\Core\Attributes as NCA;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	BotRunner,
@@ -23,18 +24,18 @@ use stdClass;
 
 /**
  * @author Tyrence (RK2)
- *
- * @Instance
- *
  * Commands this class contains:
- *	@DefineCommand(
- *		command       = 'usage',
- *		accessLevel   = 'guild',
- *		description   = 'Shows usage stats',
- *		help          = 'usage.txt',
- *		defaultStatus = '1'
- *	)
  */
+#[
+	NCA\Instance,
+	NCA\DefineCommand(
+		command: "usage",
+		accessLevel: "guild",
+		description: "Shows usage stats",
+		help: "usage.txt",
+		defaultStatus: 1
+	)
+]
 class UsageController {
 	public const DB_TABLE = "usage_<myname>";
 	/**
@@ -43,27 +44,25 @@ class UsageController {
 	 */
 	public string $moduleName;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public DB $db;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public SettingManager $settingManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public EventManager $eventManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Util $util;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Text $text;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Nadybot $chatBot;
 
-	/**
-	 * @Setup
-	 */
+	#[NCA\Setup]
 	public function setup(): void {
 		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations");
 
@@ -96,9 +95,9 @@ class UsageController {
 	}
 
 	/**
-	 * @HandlesCommand("usage")
 	 * @Mask $action player
 	 */
+	#[NCA\HandlesCommand("usage")]
 	public function usagePlayerCommand(
 		CmdContext $context,
 		string $action,
@@ -142,9 +141,9 @@ class UsageController {
 	}
 
 	/**
-	 * @HandlesCommand("usage")
 	 * @Mask $action cmd
 	 */
+	#[NCA\HandlesCommand("usage")]
 	public function usageCmdCommand(
 		CmdContext $context,
 		string $action,
@@ -189,9 +188,9 @@ class UsageController {
 	}
 
 	/**
-	 * @HandlesCommand("usage")
 	 * @Mask $action info
 	 */
+	#[NCA\HandlesCommand("usage")]
 	public function usageInfoCommand(CmdContext $context, string $action): void {
 		$info = $this->getUsageInfo(time() - 7*24*3600, time());
 		$blob = json_encode(
@@ -202,9 +201,7 @@ class UsageController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @HandlesCommand("usage")
-	 */
+	#[NCA\HandlesCommand("usage")]
 	public function usageCommand(CmdContext $context, ?PDuration $duration): void {
 		$time = 604800;
 		if (isset($duration)) {
@@ -376,15 +373,15 @@ class UsageController {
 		return $guildClass;
 	}
 
-	/**
-	 * @NewsTile("popular-commands")
-	 * @Description("A player's 4 most used commands in the last 7 days")
-	 * @Example("<header2>Popular commands<end>
-	 * <tab>hot
-	 * <tab>startpage
-	 * <tab>config
-	 * <tab>time")
-	 */
+	#[
+		NCA\NewsTile("popular-commands"),
+		NCA\Description("A player's 4 most used commands in the last 7 days"),
+		NCA\Example("<header2>Popular commands<end>\n".
+			"<tab>hot\n".
+			"<tab>startpage\n".
+			"<tab>config\n".
+			"<tab>time")
+	]
 	public function usageNewsTile(string $sender, callable $callback): void {
 		$data = $this->db->table(self::DB_TABLE)
 			->where("sender", $sender)

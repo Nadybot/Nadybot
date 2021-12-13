@@ -6,15 +6,13 @@ use ReflectionClass;
 use Exception;
 use Nadybot\Core\Attributes as NCA;
 
-/**
- * @Instance
- */
+#[NCA\Instance]
 class Util {
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Nadybot $chatBot;
 
-	/** @Logger */
+	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
 	/** @var string */

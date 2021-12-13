@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\GSP_MODULE;
 
+use Nadybot\Core\Attributes as NCA;
 use DateTime;
 use DateTimeZone;
 use JsonException;
@@ -25,20 +26,20 @@ use Nadybot\Core\Routing\Source;
 
 /**
  * @author Nadyita (RK5) <nadyita@hodorraid.org>
- *
- * @Instance
- *
  * Commands this controller contains:
- *	@DefineCommand(
- *		command     = 'radio',
- *		accessLevel = 'all',
- *		description = 'List what is currently playing on GridStream',
- *		alias       = 'gsp',
- *		help        = 'radio.txt'
- *	)
- * @ProvidesEvent("gsp(show_start)")
- * @ProvidesEvent("gsp(show_end)")
  */
+#[
+	NCA\Instance,
+	NCA\DefineCommand(
+		command: "radio",
+		accessLevel: "all",
+		description: "List what is currently playing on GridStream",
+		help: "radio.txt",
+		alias: "gsp"
+	),
+	NCA\ProvidesEvent("gsp(show_start)"),
+	NCA\ProvidesEvent("gsp(show_end)")
+]
 class GSPController implements MessageEmitter {
 
 	/**
@@ -47,28 +48,28 @@ class GSPController implements MessageEmitter {
 	 */
 	public string $moduleName;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Nadybot $chatBot;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public MessageHub $messageHub;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Text $text;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Http $http;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public DB $db;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public DiscordController $discordController;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public EventManager $eventManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public SettingManager $settingManager;
 
 	/**
@@ -93,9 +94,9 @@ class GSPController implements MessageEmitter {
 	}
 
 	/**
-	 * @Setup
 	 * This handler is called on bot startup.
 	 */
+	#[NCA\Setup]
 	public function setup(): void {
 		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations");
 		$this->settingManager->add(
@@ -111,10 +112,10 @@ class GSPController implements MessageEmitter {
 		$this->messageHub->registerMessageEmitter($this);
 	}
 
-	/**
-	 * @Event(name="timer(1min)",
-	 * 	description="Check if a GSP show is running")
-	 */
+	#[NCA\Event(
+		name: "timer(1min)",
+		description: "Check if a GSP show is running"
+	)]
 	public function announceIfShowRunning(): void {
 		$this->http
 				->get(static::GSP_URL)
@@ -199,10 +200,10 @@ class GSPController implements MessageEmitter {
 		$this->messageHub->handle($r);
 	}
 
-	/**
-	 * @Event(name="logOn",
-	 * 	description="Announce running shows on logon")
-	 */
+	#[NCA\Event(
+		name: "logOn",
+		description: "Announce running shows on logon"
+	)]
 	public function gspShowLogonEvent(UserStateEvent $eventObj): void {
 		$sender = $eventObj->sender;
 		if (
@@ -218,9 +219,7 @@ class GSPController implements MessageEmitter {
 		$this->chatBot->sendMassTell($msg, $sender);
 	}
 
-	/**
-	 * @HandlesCommand("radio")
-	 */
+	#[NCA\HandlesCommand("radio")]
 	public function radioCommand(CmdContext $context): void {
 		$this->http
 				->get(static::GSP_URL)
@@ -233,7 +232,6 @@ class GSPController implements MessageEmitter {
 
 	/**
 	 * Convert GSP milliseconds into a human readable time like 6:53
-	 *
 	 * @param int $milliSecs The duration in milliseconds
 	 * @return string The time in a format 6:53 or 0:05
 	 */
@@ -266,7 +264,6 @@ class GSPController implements MessageEmitter {
 
 	/**
 	 * Get an array of song descriptions
-	 *
 	 * @param Song[] $history The history (playlist) as an array of songs
 	 * @return string[] Rendered song information about the playlist
 	 */
@@ -352,12 +349,12 @@ class GSPController implements MessageEmitter {
 		return $msg;
 	}
 
-	/**
-	 * @NewsTile("gsp-show")
-	 * @Description("Show the currently running GSP show and location - if any")
-	 * @Example("<header2>GSP<end>
-	 * <tab>GSP is now running <highlight>Shigy's odd end<end>. Location: <highlight>Borealis at the whompahs<end>.")
-	 */
+	#[
+		NCA\NewsTile("gsp-show"),
+		NCA\Description("Show the currently running GSP show and location - if any"),
+		NCA\Example("<header2>GSP<end>\n".
+			"<tab>GSP is now running <highlight>Shigy's odd end<end>. Location: <highlight>Borealis at the whompahs<end>.")
+	]
 	public function gspShowTile(string $sender, callable $callback): void {
 		if (!$this->showRunning) {
 			$callback(null);
@@ -368,15 +365,15 @@ class GSPController implements MessageEmitter {
 		$callback($msg);
 	}
 
-	/**
-	 * @NewsTile("gsp")
-	 * @Description("Show what's currently playing on GSP.
-	 * If there's a show, it also shows which one and its location.")
-	 * @Example("<header2>GSP<end>
-	 * <tab>Currently playing on <yellow>The Odd End /w DJ Shigy<end>: <highlight>Molly Hatchet<end> - <highlight>Whiskey Man<end> [2:50/3:41]
-	 * <tab>Current show: <highlight>The Odd End /w DJ Shigy<end>
-	 * <tab>Location: <highlight>Borealis west of the wompahs (AO)<end>")
-	 */
+	#[
+		NCA\NewsTile("gsp"),
+		NCA\Description("Show what's currently playing on GSP.\n".
+			"If there's a show, it also shows which one and its location."),
+		NCA\Example("<header2>GSP<end>\n".
+			"<tab>Currently playing on <yellow>The Odd End /w DJ Shigy<end>: <highlight>Molly Hatchet<end> - <highlight>Whiskey Man<end> [2:50/3:41]\n".
+			"<tab>Current show: <highlight>The Odd End /w DJ Shigy<end>\n".
+			"<tab>Location: <highlight>Borealis west of the wompahs (AO)<end>")
+	]
 	public function gspTile(string $sender, callable $callback): void {
 		$this->http
 				->get(static::GSP_URL)

@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\TRACKER_MODULE;
 
+use Nadybot\Core\Attributes as NCA;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	AdminManager,
@@ -41,19 +42,19 @@ use Throwable;
 
 /**
  * @author Tyrence (RK2)
- *
- * @Instance
- *
  * Commands this controller contains:
- *	@DefineCommand(
- *		command     = 'track',
- *		accessLevel = 'all',
- *		description = 'Show and manage tracked players',
- *		help        = 'track.txt'
- *	)
- *	@ProvidesEvent("tracker(logon)")
- *	@ProvidesEvent("tracker(logoff)")
  */
+#[
+	NCA\Instance,
+	NCA\DefineCommand(
+		command: "track",
+		accessLevel: "all",
+		description: "Show and manage tracked players",
+		help: "track.txt"
+	),
+	NCA\ProvidesEvent("tracker(logon)"),
+	NCA\ProvidesEvent("tracker(logoff)")
+]
 class TrackerController implements MessageEmitter {
 	public const DB_TABLE = "tracked_users_<myname>";
 	public const DB_TRACKING = "tracking_<myname>";
@@ -83,51 +84,49 @@ class TrackerController implements MessageEmitter {
 	 */
 	public string $moduleName;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Text $text;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Util $util;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public DB $db;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Nadybot $chatBot;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public SettingManager $settingManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public EventManager $eventManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public GuildManager $guildManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public DiscordController $discordController;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public BuddylistManager $buddylistManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public MessageHub $messageHub;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public PlayerManager $playerManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public OnlineController $onlineController;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public FindOrgController $findOrgController;
 
-	/** @Logger */
+	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
-	/**
-	 * @Setup
-	 */
+	#[NCA\Setup]
 	public function setup(): void {
 		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations");
 
@@ -218,10 +217,10 @@ class TrackerController implements MessageEmitter {
 		$this->messageHub->registerMessageEmitter($this);
 	}
 
-	/**
-	 * @Event(name="connect",
-	 * 	description="Adds all players on the track list to the buddy list")
-	 */
+	#[NCA\Event(
+		name: "connect",
+		description: "Adds all players on the track list to the buddy list"
+	)]
 	public function trackedUsersConnectEvent(Event $eventObj): void {
 		$this->db->table(self::DB_TABLE)
 			->asObj(TrackedUser::class)
@@ -239,10 +238,10 @@ class TrackerController implements MessageEmitter {
 		return Source::SYSTEM . "(tracker)";
 	}
 
-	/**
-	 * @Event(name="timer(24hrs)",
-	 * 	description="Download all tracked orgs' information")
-	 */
+	#[NCA\Event(
+		name: "timer(24hrs)",
+		description: "Download all tracked orgs' information"
+	)]
 	public function downloadOrgRostersEvent(Event $eventObj): void {
 		$this->logger->notice("Starting Tracker Roster update");
 		/** @var Collection<TrackingOrg> */
@@ -266,10 +265,10 @@ class TrackerController implements MessageEmitter {
 		}
 	}
 
-	/**
-	 * @Event(name="tower(attack)",
-	 * 	description="Automatically track tower field attackers")
-	 */
+	#[NCA\Event(
+		name: "tower(attack)",
+		description: "Automatically track tower field attackers"
+	)]
 	public function trackTowerAttacks(TowerAttackEvent $eventObj): void {
 		$attacker = $eventObj->attacker;
 		$defGuild = $eventObj->defender->org ?? null;
@@ -314,10 +313,10 @@ class TrackerController implements MessageEmitter {
 		$this->trackUid($attacker->charid, $attacker->name);
 	}
 
-	/**
-	 * @Event(name="logOn",
-	 * 	description="Records a tracked user logging on")
-	 */
+	#[NCA\Event(
+		name: "logOn",
+		description: "Records a tracked user logging on"
+	)]
 	public function trackLogonEvent(UserStateEvent $eventObj): void {
 		if (!$this->chatBot->isReady() || !is_string($eventObj->sender)) {
 			return;
@@ -401,10 +400,10 @@ class TrackerController implements MessageEmitter {
 		return sprintf($format, $info);
 	}
 
-	/**
-	 * @Event(name="logOff",
-	 * 	description="Records a tracked user logging off")
-	 */
+	#[NCA\Event(
+		name: "logOff",
+		description: "Records a tracked user logging off"
+	)]
 	public function trackLogoffEvent(UserStateEvent $eventObj): void {
 		if (!$this->chatBot->isReady() || !is_string($eventObj->sender)) {
 			return;
@@ -464,9 +463,7 @@ class TrackerController implements MessageEmitter {
 		return sprintf($format, $info);
 	}
 
-	/**
-	 * @HandlesCommand("track")
-	 */
+	#[NCA\HandlesCommand("track")]
 	public function trackListCommand(CmdContext $context): void {
 		/** @var Collection<TrackedUser> */
 		$users = $this->db->table(self::DB_TABLE)
@@ -512,9 +509,7 @@ class TrackerController implements MessageEmitter {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @HandlesCommand("track")
-	 */
+	#[NCA\HandlesCommand("track")]
 	public function trackRemoveNameCommand(CmdContext $context, PRemove $action, PCharacter $char): void {
 		$this->chatBot->getUid(
 			$char(),
@@ -530,9 +525,7 @@ class TrackerController implements MessageEmitter {
 		);
 	}
 
-	/**
-	 * @HandlesCommand("track")
-	 */
+	#[NCA\HandlesCommand("track")]
 	public function trackRemoveUidCommand(CmdContext $context, PRemove $action, int $uid): void {
 		$this->chatBot->getName($uid, function(?string $char) use ($uid, $context): void {
 			$this->trackRemoveCommand($context, $char ?? "UID {$uid}", $uid);
@@ -573,9 +566,9 @@ class TrackerController implements MessageEmitter {
 	}
 
 	/**
-	 * @HandlesCommand("track")
 	 * @Mask $action add
 	 */
+	#[NCA\HandlesCommand("track")]
 	public function trackAddCommand(CmdContext $context, string $action, PCharacter $char): void {
 		$this->chatBot->getUid($char(), function(?int $uid) use ($context, $char): void {
 			if (!isset($uid)) {
@@ -595,9 +588,9 @@ class TrackerController implements MessageEmitter {
 	}
 
 	/**
-	 * @HandlesCommand("track")
 	 * @Mask $action addorg
 	 */
+	#[NCA\HandlesCommand("track")]
 	public function trackAddOrgIdCommand(CmdContext $context, string $action, int $orgId): void {
 		if (!$this->findOrgController->isReady()) {
 			$this->findOrgController->sendNotReadyError($context);
@@ -630,9 +623,9 @@ class TrackerController implements MessageEmitter {
 	}
 
 	/**
-	 * @HandlesCommand("track")
 	 * @Mask $action addorg
 	 */
+	#[NCA\HandlesCommand("track")]
 	public function trackAddOrgNameCommand(CmdContext $context, string $action, PNonNumber $orgName): void {
 		if (!$this->findOrgController->isReady()) {
 			$this->findOrgController->sendNotReadyError($context);
@@ -665,9 +658,9 @@ class TrackerController implements MessageEmitter {
 	}
 
 	/**
-	 * @HandlesCommand("track")
 	 * @Mask $action ((?:rem|del)org)
 	 */
+	#[NCA\HandlesCommand("track")]
 	public function trackRemOrgCommand(CmdContext $context, string $action, int $orgId): void {
 		if (!$this->findOrgController->isReady()) {
 			$this->findOrgController->sendNotReadyError($context);
@@ -703,10 +696,10 @@ class TrackerController implements MessageEmitter {
 	}
 
 	/**
-	 * @HandlesCommand("track")
 	 * @Mask $action (orgs?)
 	 * @Mask $subAction list
 	 */
+	#[NCA\HandlesCommand("track")]
 	public function trackListOrgsCommand(CmdContext $context, string $action, ?string $subAction): void {
 		$orgs = $this->db->table(static::DB_ORG, "to")
 			->join("organizations AS o", "o.id", "to.org_id")
@@ -822,11 +815,11 @@ class TrackerController implements MessageEmitter {
 	}
 
 	/**
-	 * @HandlesCommand("track")
 	 * @Mask $action online
 	 * @Mask $all all
 	 * @Mask $edit --edit
 	 */
+	#[NCA\HandlesCommand("track")]
 	public function trackOnlineCommand(CmdContext $context, string $action, ?string $all, ?string $edit): void {
 		$data2 = $this->db->table(self::DB_ORG_MEMBER, "tu")
 			->join("players AS p", "tu.name", "p.name")
@@ -991,9 +984,9 @@ class TrackerController implements MessageEmitter {
 	}
 
 	/**
-	 * @HandlesCommand("track")
 	 * @Mask $action hide
 	 */
+	#[NCA\HandlesCommand("track")]
 	public function trackHideUidCommand(CmdContext $context, string $action, int $uid): void {
 		$this->chatBot->getName($uid, function(?string $name) use ($context, $uid): void {
 			$this->trackHideCommand($context, $name ?? "UID {$uid}", $uid);
@@ -1001,9 +994,9 @@ class TrackerController implements MessageEmitter {
 	}
 
 	/**
-	 * @HandlesCommand("track")
 	 * @Mask $action hide
 	 */
+	#[NCA\HandlesCommand("track")]
 	public function trackHideNameCommand(CmdContext $context, string $action, PCharacter $char): void {
 		$this->chatBot->getUid($char(), function(?int $uid) use ($context, $char): void {
 			if (!isset($uid)) {
@@ -1032,9 +1025,9 @@ class TrackerController implements MessageEmitter {
 	}
 
 	/**
-	 * @HandlesCommand("track")
 	 * @Mask $action unhide
 	 */
+	#[NCA\HandlesCommand("track")]
 	public function trackUnhideUidCommand(CmdContext $context, string $action, int $uid): void {
 		$this->chatBot->getName($uid, function(?string $name) use ($context, $uid): void {
 			$this->trackUnhideCommand($context, $name ?? "UID {$uid}", $uid);
@@ -1042,9 +1035,9 @@ class TrackerController implements MessageEmitter {
 	}
 
 	/**
-	 * @HandlesCommand("track")
 	 * @Mask $action unhide
 	 */
+	#[NCA\HandlesCommand("track")]
 	public function trackUnhideNameCommand(CmdContext $context, string $action, PCharacter $char): void {
 		$this->chatBot->getUid($char(), function(?int $uid) use ($context, $char): void {
 			if (!isset($uid)) {
@@ -1074,9 +1067,9 @@ class TrackerController implements MessageEmitter {
 	}
 
 	/**
-	 * @HandlesCommand("track")
 	 * @Mask $action (show|view)
 	 */
+	#[NCA\HandlesCommand("track")]
 	public function trackShowCommand(CmdContext $context, string $action, PCharacter $char): void {
 		$this->chatBot->getUid($char(), function(?int $uid) use ($context, $char): void {
 			if (!isset($uid)) {

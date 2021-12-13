@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\DEV_MODULE;
 
+use Nadybot\Core\Attributes as NCA;
 use Exception;
 use Nadybot\Core\{
 	AOChatEvent,
@@ -30,143 +31,143 @@ use Nadybot\Modules\TOWER_MODULE\TowerController;
 
 /**
  * @author Tyrence (RK2)
- *
- * @Instance
- *
  * Commands this controller contains:
- *	@DefineCommand(
- *		command     = 'test',
- *		accessLevel = 'admin',
- *		description = "Test the bot commands",
- *		help        = 'test.txt'
- *	)
- *	@DefineCommand(
- *		command     = 'testorgjoin',
- *		accessLevel = 'admin',
- *		description = "Test the bot commands",
- *		help        = 'test.txt'
- *	)
- *	@DefineCommand(
- *		command     = 'testorgkick',
- *		accessLevel = 'admin',
- *		description = "Test the bot commands",
- *		help        = 'test.txt'
- *	)
- *	@DefineCommand(
- *		command     = 'testorgleave',
- *		accessLevel = 'admin',
- *		description = "Test the bot commands",
- *		help        = 'test.txt'
- *	)
- *	@DefineCommand(
- *		command     = 'testtowerattack',
- *		accessLevel = 'admin',
- *		description = "Test the bot commands",
- *		help        = 'test.txt'
- *	)
- *	@DefineCommand(
- *		command     = 'testtowerattackorgless',
- *		accessLevel = 'admin',
- *		description = "Test the bot commands",
- *		help        = 'test.txt'
- *	)
- *	@DefineCommand(
- *		command     = 'testtowervictory',
- *		accessLevel = 'admin',
- *		description = "Test the bot commands",
- *		help        = 'test.txt'
- *	)
- *	@DefineCommand(
- *		command     = 'testtowerabandon',
- *		accessLevel = 'admin',
- *		description = "Test the bot commands",
- *		help        = 'test.txt'
- *	)
- *	@DefineCommand(
- *		command     = 'testorgattack',
- *		accessLevel = 'admin',
- *		description = "Test the bot commands",
- *		help        = 'test.txt'
- *	)
- *	@DefineCommand(
- *		command     = 'testorgattackprep',
- *		accessLevel = 'admin',
- *		description = "Test the bot commands",
- *		help        = 'test.txt'
- *	)
- *	@DefineCommand(
- *		command     = 'testos',
- *		accessLevel = 'admin',
- *		description = "Test the bot commands",
- *		help        = 'test.txt'
- *	)
- *	@DefineCommand(
- *		command     = 'testevent',
- *		accessLevel = 'admin',
- *		description = "Test the bot commands",
- *		help        = 'testevent.txt'
- *	)
- *	@DefineCommand(
- *		command     = 'testcloaklower',
- *		accessLevel = 'admin',
- *		description = "Test the bot commands",
- *		help        = 'test.txt'
- *	)
- *	@DefineCommand(
- *		command     = 'testcloakraise',
- *		accessLevel = 'admin',
- *		description = "Test the bot commands",
- *		help        = 'test.txt'
- *	)
- *	@DefineCommand(
- *		command     = 'msginfo',
- *		accessLevel = 'all',
- *		description = "Show number of characters in response and the time it took to process",
- *		help        = 'msginfo.txt'
- *	)
- *	@DefineCommand(
- *		command     = 'testtradebotmsg',
- *		accessLevel = 'admin',
- *		description = "Test a tradebot message",
- *		help        = 'test.txt'
- *	)
- *	@DefineCommand(
- *		command     = 'testdiscordpriv',
- *		accessLevel = 'admin',
- *		description = "Test a discord channel message",
- *		help        = 'test.txt'
- *	)
- *	@DefineCommand(
- *		command     = 'testlogon',
- *		accessLevel = 'admin',
- *		description = "Test a logon event",
- *		help        = 'test.txt'
- *	)
- *	@DefineCommand(
- *		command     = 'testlogoff',
- *		accessLevel = 'admin',
- *		description = "Test a logoff event",
- *		help        = 'test.txt'
- *	)
- *	@DefineCommand(
- *		command     = 'testjoin',
- *		accessLevel = 'admin',
- *		description = "Test a priv channel join event",
- *		help        = 'test.txt'
- *	)
- *	@DefineCommand(
- *		command     = 'testleave',
- *		accessLevel = 'admin',
- *		description = "Test a priv channel leave event",
- *		help        = 'test.txt'
- *	)
- *	@DefineCommand(
- *		command     = 'testsleep',
- *		accessLevel = 'admin',
- *		description = "Sleep for a give time in seconds",
- *		help        = 'test.txt'
- *	)
  */
+#[
+	NCA\Instance,
+	NCA\DefineCommand(
+		command: "test",
+		accessLevel: "admin",
+		description: "Test the bot commands",
+		help: "test.txt"
+	),
+	NCA\DefineCommand(
+		command: "testorgjoin",
+		accessLevel: "admin",
+		description: "Test the bot commands",
+		help: "test.txt"
+	),
+	NCA\DefineCommand(
+		command: "testorgkick",
+		accessLevel: "admin",
+		description: "Test the bot commands",
+		help: "test.txt"
+	),
+	NCA\DefineCommand(
+		command: "testorgleave",
+		accessLevel: "admin",
+		description: "Test the bot commands",
+		help: "test.txt"
+	),
+	NCA\DefineCommand(
+		command: "testtowerattack",
+		accessLevel: "admin",
+		description: "Test the bot commands",
+		help: "test.txt"
+	),
+	NCA\DefineCommand(
+		command: "testtowerattackorgless",
+		accessLevel: "admin",
+		description: "Test the bot commands",
+		help: "test.txt"
+	),
+	NCA\DefineCommand(
+		command: "testtowervictory",
+		accessLevel: "admin",
+		description: "Test the bot commands",
+		help: "test.txt"
+	),
+	NCA\DefineCommand(
+		command: "testtowerabandon",
+		accessLevel: "admin",
+		description: "Test the bot commands",
+		help: "test.txt"
+	),
+	NCA\DefineCommand(
+		command: "testorgattack",
+		accessLevel: "admin",
+		description: "Test the bot commands",
+		help: "test.txt"
+	),
+	NCA\DefineCommand(
+		command: "testorgattackprep",
+		accessLevel: "admin",
+		description: "Test the bot commands",
+		help: "test.txt"
+	),
+	NCA\DefineCommand(
+		command: "testos",
+		accessLevel: "admin",
+		description: "Test the bot commands",
+		help: "test.txt"
+	),
+	NCA\DefineCommand(
+		command: "testevent",
+		accessLevel: "admin",
+		description: "Test the bot commands",
+		help: "testevent.txt"
+	),
+	NCA\DefineCommand(
+		command: "testcloaklower",
+		accessLevel: "admin",
+		description: "Test the bot commands",
+		help: "test.txt"
+	),
+	NCA\DefineCommand(
+		command: "testcloakraise",
+		accessLevel: "admin",
+		description: "Test the bot commands",
+		help: "test.txt"
+	),
+	NCA\DefineCommand(
+		command: "msginfo",
+		accessLevel: "all",
+		description: "Show number of characters in response and the time it took to process",
+		help: "msginfo.txt"
+	),
+	NCA\DefineCommand(
+		command: "testtradebotmsg",
+		accessLevel: "admin",
+		description: "Test a tradebot message",
+		help: "test.txt"
+	),
+	NCA\DefineCommand(
+		command: "testdiscordpriv",
+		accessLevel: "admin",
+		description: "Test a discord channel message",
+		help: "test.txt"
+	),
+	NCA\DefineCommand(
+		command: "testlogon",
+		accessLevel: "admin",
+		description: "Test a logon event",
+		help: "test.txt"
+	),
+	NCA\DefineCommand(
+		command: "testlogoff",
+		accessLevel: "admin",
+		description: "Test a logoff event",
+		help: "test.txt"
+	),
+	NCA\DefineCommand(
+		command: "testjoin",
+		accessLevel: "admin",
+		description: "Test a priv channel join event",
+		help: "test.txt"
+	),
+	NCA\DefineCommand(
+		command: "testleave",
+		accessLevel: "admin",
+		description: "Test a priv channel leave event",
+		help: "test.txt"
+	),
+	NCA\DefineCommand(
+		command: "testsleep",
+		accessLevel: "admin",
+		description: "Sleep for a give time in seconds",
+		help: "test.txt"
+	)
+]
 class TestController {
 
 	/**
@@ -175,44 +176,42 @@ class TestController {
 	 */
 	public string $moduleName;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public SettingManager $settingManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Util $util;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Text $text;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Nadybot $chatBot;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Timer $timer;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public CommandManager $commandManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public BuddylistController $buddylistController;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public PlayfieldController $playfieldController;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public TowerController $towerController;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public EventManager $eventManager;
 
-	/** @Logger */
+	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
 	public string $path;
 
-	/**
-	 * @Setup
-	 */
+	#[NCA\Setup]
 	public function setup(): void {
 		$this->path = __DIR__ . "/tests/";
 
@@ -238,9 +237,7 @@ class TestController {
 		);
 	}
 
-	/**
-	 * @HandlesCommand("test")
-	 */
+	#[NCA\HandlesCommand("test")]
 	public function testListCommand(CmdContext $context): void {
 		$files = $this->util->getFilesInDirectory($this->path);
 		$count = count($files);
@@ -255,9 +252,9 @@ class TestController {
 	}
 
 	/**
-	 * @HandlesCommand("test")
 	 * @Mask $action all
 	 */
+	#[NCA\HandlesCommand("test")]
 	public function testAllCommand(CmdContext $context, string $action): void {
 		$testContext = clone $context;
 		$testContext->channel = "msg";
@@ -277,9 +274,7 @@ class TestController {
 		$context->reply("Tests queued.");
 	}
 
-	/**
-	 * @HandlesCommand("test")
-	 */
+	#[NCA\HandlesCommand("test")]
 	public function testModuleCommand(CmdContext $context, string $file): void {
 		$file = "{$file}.txt";
 
@@ -335,27 +330,21 @@ class TestController {
 		$this->chatBot->process_packet($packet);
 	}
 
-	/**
-	 * @HandlesCommand("testorgjoin")
-	 */
+	#[NCA\HandlesCommand("testorgjoin")]
 	public function testOrgJoinCommand(CmdContext $context, PCharacter $char): void {
 		$this->sendOrgMsg(
 			"{$context->char->name} invited {$char} to your organization."
 		);
 	}
 
-	/**
-	 * @HandlesCommand("testorgkick")
-	 */
+	#[NCA\HandlesCommand("testorgkick")]
 	public function testOrgKickCommand(CmdContext $context, PCharacter $char): void {
 		$this->sendOrgMsg(
 			"{$context->char->name} kicked {$char} from your organization."
 		);
 	}
 
-	/**
-	 * @HandlesCommand("testorgleave")
-	 */
+	#[NCA\HandlesCommand("testorgleave")]
 	public function testOrgLeaveCommand(CmdContext $context, PCharacter $char): void {
 		$this->sendOrgMsg("{$char} just left your organization.");
 	}
@@ -387,9 +376,7 @@ class TestController {
 		$this->chatBot->process_packet($packet);
 	}
 
-	/**
-	 * @HandlesCommand("testtowerattack")
-	 */
+	#[NCA\HandlesCommand("testtowerattack")]
 	public function testTowerAttackCommand(
 		CmdContext $context,
 		PFaction $attFaction,
@@ -411,9 +398,7 @@ class TestController {
 		);
 	}
 
-	/**
-	 * @HandlesCommand("testtowerattackorgless")
-	 */
+	#[NCA\HandlesCommand("testtowerattackorgless")]
 	public function testTowerAttackOrglessCommand(
 		CmdContext $context,
 		PCharacter $attChar,
@@ -432,9 +417,7 @@ class TestController {
 		);
 	}
 
-	/**
-	 * @HandlesCommand("testtowerabandon")
-	 */
+	#[NCA\HandlesCommand("testtowerabandon")]
 	public function testTowerAbandonCommand(
 		CmdContext $context,
 		PFaction $faction,
@@ -452,9 +435,7 @@ class TestController {
 		);
 	}
 
-	/**
-	 * @HandlesCommand("testorgattack")
-	 */
+	#[NCA\HandlesCommand("testorgattack")]
 	public function testOrgAttackCommand(CmdContext $context, PCharacter $attName, string $orgName): void {
 		$this->sendOrgMsg(
 			"The tower Control Tower - Neutral in Broken Shores was just ".
@@ -463,9 +444,7 @@ class TestController {
 		);
 	}
 
-	/**
-	 * @HandlesCommand("testorgattackprep")
-	 */
+	#[NCA\HandlesCommand("testorgattackprep")]
 	public function testOrgAttackPrepCommand(CmdContext $context, PCharacter $attName, string $orgName): void {
 		$this->sendOrgMsg(
 			"Your controller tower in Southern Forest of Xzawkaz in ".
@@ -475,9 +454,7 @@ class TestController {
 		);
 	}
 
-	/**
-	 * @HandlesCommand("testtowervictory")
-	 */
+	#[NCA\HandlesCommand("testtowervictory")]
 	public function testTowerVictoryCommand(
 		CmdContext $context,
 		PFaction $attFaction,
@@ -498,18 +475,14 @@ class TestController {
 		);
 	}
 
-	/**
-	 * @HandlesCommand("testos")
-	 */
+	#[NCA\HandlesCommand("testos")]
 	public function testOSCommand(CmdContext $context, PCharacter $launcher): void {
 		$this->sendOrgMsg(
 			"Blammo! {$launcher} has launched an orbital attack!"
 		);
 	}
 
-	/**
-	 * @HandlesCommand("testevent")
-	 */
+	#[NCA\HandlesCommand("testevent")]
 	public function testEventCommand(CmdContext $context, string $event): void {
 		[$instanceName, $methodName] = explode(".", $event);
 		$instance = Registry::getInstance($instanceName);
@@ -525,9 +498,7 @@ class TestController {
 		}
 	}
 
-	/**
-	 * @HandlesCommand("testcloaklower")
-	 */
+	#[NCA\HandlesCommand("testcloaklower")]
 	public function testCloakLowerCommand(CmdContext $context): void {
 		foreach ($this->chatBot->grp as $gid => $status) {
 			if (ord(substr((string)$gid, 0, 1)) === 3) {
@@ -550,9 +521,7 @@ class TestController {
 		$this->chatBot->process_packet($packet);
 	}
 
-	/**
-	 * @HandlesCommand("testcloakraise")
-	 */
+	#[NCA\HandlesCommand("testcloakraise")]
 	public function testCloakRaiseCommand(CmdContext $context): void {
 		foreach ($this->chatBot->grp as $gid => $status) {
 			if (ord(substr((string)$gid, 0, 1)) === 3) {
@@ -575,18 +544,14 @@ class TestController {
 		$this->chatBot->process_packet($packet);
 	}
 
-	/**
-	 * @HandlesCommand("msginfo")
-	 */
+	#[NCA\HandlesCommand("msginfo")]
 	public function msgInfoCommand(CmdContext $context, string $cmd): void {
 		$context->message = $cmd;
 		$context->sendto = new MessageInfoCommandReply($context);
 		$this->commandManager->processCmd($context);
 	}
 
-	/**
-	 * @HandlesCommand("testtradebotmsg")
-	 */
+	#[NCA\HandlesCommand("testtradebotmsg")]
 	public function testTradebotMessageCommand(CmdContext $context): void {
 		$eventObj = new AOChatEvent();
 		$tradebot = $this->settingManager->getString('tradebot') ?? "Darknet";
@@ -634,9 +599,7 @@ class TestController {
 		}
 	}
 
-	/**
-	 * @HandlesCommand("testdiscordpriv")
-	 */
+	#[NCA\HandlesCommand("testdiscordpriv")]
 	public function testDiscordMessageCommand(CmdContext $context, PCharacter $nick, string $content): void {
 		$event = new DiscordMessageEvent();
 		$message = new DiscordMessageIn();
@@ -687,9 +650,7 @@ class TestController {
 		$this->eventManager->fireEvent($event);
 	}
 
-	/**
-	 * @HandlesCommand("testlogon")
-	 */
+	#[NCA\HandlesCommand("testlogon")]
 	public function testLogonCommand(CmdContext $context, PCharacter $who): void {
 		$uid = $this->chatBot->get_uid($who());
 		if ($uid === false) {
@@ -701,9 +662,7 @@ class TestController {
 		$this->chatBot->process_packet($packet);
 	}
 
-	/**
-	 * @HandlesCommand("testlogoff")
-	 */
+	#[NCA\HandlesCommand("testlogoff")]
 	public function testLogoffCommand(CmdContext $context, PCharacter $who): void {
 		$uid = $this->chatBot->get_uid($who());
 		if ($uid === false) {
@@ -715,9 +674,7 @@ class TestController {
 		$this->chatBot->process_packet($packet);
 	}
 
-	/**
-	 * @HandlesCommand("testjoin")
-	 */
+	#[NCA\HandlesCommand("testjoin")]
 	public function testJoinCommand(CmdContext $context, PCharacter $who): void {
 		$uid = $this->chatBot->get_uid($who());
 		if ($uid === false) {
@@ -735,9 +692,7 @@ class TestController {
 		$this->chatBot->process_packet($packet);
 	}
 
-	/**
-	 * @HandlesCommand("testleave")
-	 */
+	#[NCA\HandlesCommand("testleave")]
 	public function testLeaveCommand(CmdContext $context, PCharacter $who): void {
 		$uid = $this->chatBot->get_uid($who());
 		if ($uid === false) {
@@ -755,9 +710,7 @@ class TestController {
 		$this->chatBot->process_packet($packet);
 	}
 
-	/**
-	 * @HandlesCommand("testsleep")
-	 */
+	#[NCA\HandlesCommand("testsleep")]
 	public function testSleepCommand(CmdContext $context, int $duration): void {
 		sleep($duration);
 	}

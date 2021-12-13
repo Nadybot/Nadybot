@@ -2,6 +2,7 @@
 
 namespace Nadybot\Core;
 
+use Nadybot\Core\Attributes as NCA;
 use Exception;
 use Nadybot\Core\DBSchema\Audit;
 use Nadybot\Modules\BASIC_CHAT_MODULE\ChatLeaderController;
@@ -13,8 +14,8 @@ use Nadybot\Modules\PRIVATE_CHANNEL_MODULE\PrivateChannelController;
 /**
  * The AccessLevel class provides functionality for checking a player's access level.
  *
- * @Instance
  */
+#[NCA\Instance]
 class AccessManager {
 	public const DB_TABLE = "audit_<myname>";
 	public const ADD_RANK = "add-rank";
@@ -54,34 +55,34 @@ class AccessManager {
 		'all'           => 16,
 	];
 
-	/** @Inject */
+	#[NCA\Inject]
 	public DB $db;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public SettingObject $setting;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Nadybot $chatBot;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public AdminManager $adminManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public SettingManager $settingManager;
 
-	/** @Logger */
+	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public AltsController $altsController;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public ChatLeaderController $chatLeaderController;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public GuildRankController $guildRankController;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public RaidRankController $raidRankController;
 
 	/**

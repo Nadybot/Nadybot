@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\TIMERS_MODULE\Migrations;
 
+use Nadybot\Core\Attributes as NCA;
 use Illuminate\Database\Schema\Blueprint;
 use Nadybot\Core\DB;
 use Nadybot\Core\DBSchema\Route;
@@ -17,10 +18,10 @@ use Nadybot\Modules\TIMERS_MODULE\TimerController;
 use Throwable;
 
 class MigrateToRoutes implements SchemaMigration {
-	/** @Inject */
+	#[NCA\Inject]
 	public DiscordAPIClient $discordAPIClient;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public MessageHub $messageHub;
 
 	protected function getSetting(DB $db, string $name): ?Setting {

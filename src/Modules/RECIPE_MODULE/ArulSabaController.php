@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\RECIPE_MODULE;
 
+use Nadybot\Core\Attributes as NCA;
 use Exception;
 use Illuminate\Support\Collection;
 use Nadybot\Core\CmdContext;
@@ -17,17 +18,18 @@ use Nadybot\Modules\ITEMS_MODULE\Skill;
 
 /**
  * @author Nadyita
- * @Instance
- *
  * Commands this controller contains:
- *	@DefineCommand(
- *		command     = 'arulsaba',
- *		accessLevel = 'all',
- *		description = 'Get recipe for Arul Saba bracers',
- *		help        = 'arulsaba.txt',
- *		alias       = 'aruls'
- *	)
  */
+#[
+	NCA\Instance,
+	NCA\DefineCommand(
+		command: "arulsaba",
+		accessLevel: "all",
+		description: "Get recipe for Arul Saba bracers",
+		help: "arulsaba.txt",
+		alias: "aruls"
+	)
+]
 class ArulSabaController {
 	public const ME = 125;
 	public const EE = 126;
@@ -39,22 +41,22 @@ class ArulSabaController {
 	 */
 	public string $moduleName;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public DB $db;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Util $util;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Text $text;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public ItemsController $itemsController;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public SettingManager $settingManager;
 
-	/** @Setup */
+	#[NCA\Setup]
 	public function setup(): void {
 		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations/ArulSaba");
 		$this->db->loadCSVFile($this->moduleName, __DIR__ . "/arulsaba.csv");
@@ -72,9 +74,7 @@ class ArulSabaController {
 		);
 	}
 
-	/**
-	 * @HandlesCommand("arulsaba")
-	 */
+	#[NCA\HandlesCommand("arulsaba")]
 	public function arulSabaListCommand(CmdContext $context): void {
 		$blob = "<header2>Choose the type of bracer<end>\n";
 		$blob = $this->db->table("arulsaba")
@@ -92,9 +92,7 @@ class ArulSabaController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @HandlesCommand("arulsaba")
-	 */
+	#[NCA\HandlesCommand("arulsaba")]
 	public function arulSabaChooseQLCommand(CmdContext $context, PWord $name): void {
 		/** @var Collection<ArulSabaBuffs> */
 		$aruls = $this->db->table("arulsaba_buffs")
@@ -181,9 +179,9 @@ class ArulSabaController {
 	}
 
 	/**
-	 * @HandlesCommand("arulsaba")
 	 * @Mask $side (left|right)
 	 */
+	#[NCA\HandlesCommand("arulsaba")]
 	public function arulSabaRecipeCommand(CmdContext $context, PWord $type, int $numGems, string $side): void {
 		$type = ucfirst(strtolower($type()));
 		$reqGems = max(1, $numGems);

@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\WEBSERVER_MODULE;
 
+use Nadybot\Core\Attributes as NCA;
 use Addendum\ReflectionAnnotatedClass;
 use Addendum\ReflectionAnnotatedMethod;
 use Closure;
@@ -37,61 +38,61 @@ use ReflectionNamedType;
 use ReflectionProperty;
 use Throwable;
 
-/**
- * @Instance
- *	@DefineCommand(
- *		command     = 'apiauth',
- *		accessLevel = 'mod',
- *		description = 'Create public/private key pairs for auth against the API',
- *		help        = 'apiauth.txt'
- *	)
- * @ProvidesEvent("cmdreply")
- */
+#[
+	NCA\Instance,
+	NCA\DefineCommand(
+		command: "apiauth",
+		accessLevel: "mod",
+		description: "Create public/private key pairs for auth against the API",
+		help: "apiauth.txt"
+	),
+	NCA\ProvidesEvent("cmdreply")
+]
 class ApiController {
 	public const DB_TABLE = "api_key_<myname>";
 
 	public string $moduleName;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public WebserverController $webserverController;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public SettingManager $settingManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public CommandManager $commandManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public SubcommandManager $subcommandManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public AccessManager $accessManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public EventManager $eventManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public WebsocketController $websocketController;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Util $util;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Text $text;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public DB $db;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Nadybot $chatBot;
 
-	/** @Logger */
+	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
 	/** @var array<array<string,ApiHandler>> */
 	protected array $routes = [];
 
-	/** @Setup */
+	#[NCA\Setup]
 	public function setup(): void {
 		$this->settingManager->add(
 			$this->moduleName,
@@ -108,9 +109,9 @@ class ApiController {
 	}
 
 	/**
-	 * @HandlesCommand("apiauth")
 	 * @Mask $action list
 	 */
+	#[NCA\HandlesCommand("apiauth")]
 	public function apiauthListCommand(CmdContext $context, ?string $action): void {
 		$keys = $this->db->table(static::DB_TABLE)
 			->orderBy("created")
@@ -144,9 +145,9 @@ class ApiController {
 	}
 
 	/**
-	 * @HandlesCommand("apiauth")
 	 * @Mask $action (create|new)
 	 */
+	#[NCA\HandlesCommand("apiauth")]
 	public function apiauthCreateCommand(CmdContext $context, string $action): void {
 		$key = openssl_pkey_new(["private_key_type" => OPENSSL_KEYTYPE_EC, "curve_name" => "prime256v1"]);
 		if ($key === false) {
@@ -193,9 +194,7 @@ class ApiController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @HandlesCommand("apiauth")
-	 */
+	#[NCA\HandlesCommand("apiauth")]
 	public function apiauthDeleteCommand(CmdContext $context, PRemove $action, string $token): void {
 		/** @var ?ApiKey */
 		$key = $this->db->table(static::DB_TABLE)
@@ -219,9 +218,9 @@ class ApiController {
 	}
 
 	/**
-	 * @HandlesCommand("apiauth")
 	 * @Mask $action reset
 	 */
+	#[NCA\HandlesCommand("apiauth")]
 	public function apiauthResetCommand(CmdContext $context, string $action, string $token): void {
 		/** @var ?ApiKey */
 		$key = $this->db->table(static::DB_TABLE)
@@ -427,14 +426,14 @@ class ApiController {
 		return true;
 	}
 
-	/**
-	 * @HttpGet("/api/%s")
-	 * @HttpPost("/api/%s")
-	 * @HttpPut("/api/%s")
-	 * @HttpDelete("/api/%s")
-	 * @HttpPatch("/api/%s")
-	 * @Description("Handle API requests")
-	 */
+	#[
+		NCA\HttpGet("/api/%s"),
+		NCA\HttpPost("/api/%s"),
+		NCA\HttpPut("/api/%s"),
+		NCA\HttpDelete("/api/%s"),
+		NCA\HttpPatch("/api/%s"),
+		NCA\Description("Handle API requests")
+	]
 	public function apiRequest(Request $request, HttpProtocolWrapper $server, string $path): void {
 		if (!$this->settingManager->getBool('api')) {
 			return;
@@ -496,14 +495,16 @@ class ApiController {
 
 	/**
 	 * Execute a command, result is sent via websocket
-	 * @Api("/execute/%s")
-	 * @POST
-	 * @AccessLevel("member")
-	 * @RequestBody(class='string', desc='The command to execute as typed in', required=true)
-	 * @ApiResult(code=204, desc='operation applied successfully')
-	 * @ApiResult(code=404, desc='Invalid UUID provided')
-	 * @ApiResult(code=422, desc='Unparseable data received')
 	 */
+	#[
+		NCA\Api("/execute/%s"),
+		NCA\POST,
+		NCA\AccessLevel("member"),
+		NCA\RequestBody(class: "string", desc: "The command to execute as typed in", required: true),
+		NCA\ApiResult(code: 204, desc: "operation applied successfully"),
+		NCA\ApiResult(code: 404, desc: "Invalid UUID provided"),
+		NCA\ApiResult(code: 422, desc: "Unparsable data received")
+	]
 	public function apiExecuteCommand(Request $request, HttpProtocolWrapper $server, string $uuid): Response {
 		if (!is_string($request->decodedBody)) {
 			return new Response(Response::UNPROCESSABLE_ENTITY);

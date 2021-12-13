@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\PACKAGE_MODULE;
 
+use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{
 	BotRunner,
 	CacheManager,
@@ -27,17 +28,17 @@ use ZipArchive;
 
 /**
  * @author Nadyita (RK5)
- *
- * @Instance
- *
  * Commands this controller contains:
- *	@DefineCommand(
- *		command     = 'package',
- *		accessLevel = 'admin',
- *		description = 'Install or update external packages',
- *		help        = 'package.txt'
- *	)
  */
+#[
+	NCA\Instance,
+	NCA\DefineCommand(
+		command: "package",
+		accessLevel: "admin",
+		description: "Install or update external packages",
+		help: "package.txt"
+	)
+]
 class PackageController {
 	public const DB_TABLE = "package_files_<myname>";
 	public const EXTRA = 2;
@@ -51,28 +52,28 @@ class PackageController {
 	 */
 	public string $moduleName;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public DB $db;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Nadybot $chatBot;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Text $text;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Http $http;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public CommandAlias $commandAlias;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public CacheManager $cacheManager;
 
-	/** @Logger */
+	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
-	/** @Setup */
+	#[NCA\Setup]
 	public function setup(): void {
 		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations");
 		$this->scanForUnregisteredExtraModules();
@@ -229,9 +230,9 @@ class PackageController {
 	}
 
 	/**
-	 * @HandlesCommand("package")
 	 * @Mask $action list
 	 */
+	#[NCA\HandlesCommand("package")]
 	public function listPackagesCommand(CmdContext $context, string $action): void {
 		$this->getPackages([$this, "displayPackages"], $context);
 	}
@@ -327,9 +328,9 @@ class PackageController {
 	}
 
 	/**
-	 * @HandlesCommand("package")
 	 * @Mask $action info
 	 */
+	#[NCA\HandlesCommand("package")]
 	public function packageInfoCommand(CmdContext $context, string $action, string $package): void {
 		$this->getPackage($package, [$this, "displayPackageDetail"], $package, $context);
 	}
@@ -478,9 +479,9 @@ class PackageController {
 	}
 
 	/**
-	 * @HandlesCommand("package")
 	 * @Mask $action install
 	 */
+	#[NCA\HandlesCommand("package")]
 	public function packageInstallCommand(
 		CmdContext $context,
 		string $action,
@@ -503,9 +504,9 @@ class PackageController {
 	}
 
 	/**
-	 * @HandlesCommand("package")
 	 * @Mask $action update
 	 */
+	#[NCA\HandlesCommand("package")]
 	public function packageUpdateCommand(
 		CmdContext $context,
 		string $action,
@@ -528,9 +529,9 @@ class PackageController {
 	}
 
 	/**
-	 * @HandlesCommand("package")
 	 * @Mask $action (uninstall|delete|remove|erase|del|rm)
 	 */
+	#[NCA\HandlesCommand("package")]
 	public function packageUninstallCommand(
 		CmdContext $context,
 		string $action,
@@ -634,7 +635,6 @@ class PackageController {
 
 	/**
 	 * Check if the package is compatible with Bot type and version and install/update if so
-	 *
 	 * @param Package[]|null $packages
 	 */
 	public function checkAndInstall(?array $packages, PackageAction $cmd): void {
@@ -723,7 +723,6 @@ class PackageController {
 
 	/**
 	 * Get the latest installed version of $package
-	 *
 	 * @return string null if uninstalled, "" if unknown version, "x.y.z" otherwise
 	 */
 	public function getInstalledVersion(string $package, ?string $moduleDir): ?string {

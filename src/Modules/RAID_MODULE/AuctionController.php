@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\RAID_MODULE;
 
+use Nadybot\Core\Attributes as NCA;
 use DateTime;
 use Exception;
 use Nadybot\Core\{
@@ -23,85 +24,84 @@ use Nadybot\Modules\RAFFLE_MODULE\RaffleItem;
 
 /**
  * This class contains all functions necessary to deal with points in a raid
- *
- * @Instance
  * @package Nadybot\Modules\RAID_MODULE
  *
- * @DefineCommand(
- *     command       = 'bid',
- *     accessLevel   = 'member',
- *     description   = 'Bid points for an auctioned item',
- *     help          = 'auctions.txt'
- * )
- *
- * @DefineCommand(
- *     command       = 'auction',
- *     accessLevel   = 'raid_leader_1',
- *     description   = 'Manage auctions',
- *     help          = 'auctions.txt'
- * )
 
- * @DefineCommand(
- *     command       = 'auction reimburse .+',
- *     accessLevel   = 'raid_leader_1',
- *     description   = 'Give back points for an auction',
- *     help          = 'auctions.txt'
- * )
- *
- * @ProvidesEvent("auction(start)")
- * @ProvidesEvent("auction(end)")
- * @ProvidesEvent("auction(cancel)")
- * @ProvidesEvent("auction(bid)")
  */
+#[
+	NCA\Instance,
+	NCA\DefineCommand(
+		command: "bid",
+		accessLevel: "member",
+		description: "Bid points for an auctioned item",
+		help: "auctions.txt"
+	),
+	NCA\DefineCommand(
+		command: "auction",
+		accessLevel: "raid_leader_1",
+		description: "Manage auctions",
+		help: "auctions.txt"
+	),
+	NCA\DefineCommand(
+		command: "auction reimburse .+",
+		accessLevel: "raid_leader_1",
+		description: "Give back points for an auction",
+		help: "auctions.txt"
+	),
+	NCA\ProvidesEvent("auction(start)"),
+	NCA\ProvidesEvent("auction(end)"),
+	NCA\ProvidesEvent("auction(cancel)"),
+	NCA\ProvidesEvent("auction(bid)")
+]
 class AuctionController {
 	public const DB_TABLE = "auction_<myname>";
 	public const ERR_NO_AUCTION = "There's currently nothing being auctioned.";
 
 	public string $moduleName;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public DB $db;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public RaidController $raidController;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public RaidMemberController $raidMemberController;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public RaidPointsController $raidPointsController;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public RaidBlockController $raidBlockController;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public EventManager $eventManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public CommandAlias $commandAlias;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public SettingManager $settingManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Text $text;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Util $util;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Timer $timer;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Nadybot $chatBot;
 
-	/** @Logger */
+	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
 	public ?Auction $auction = null;
 	protected ?TimerEvent $auctionTimer = null;
 
-	/** @Setup */
+	#[NCA\Setup]
 	public function setup(): void {
 		$this->settingManager->add(
 			$this->moduleName,
@@ -215,9 +215,9 @@ class AuctionController {
 	}
 
 	/**
-	 * @HandlesCommand("auction")
 	 * @Mask $action start
 	 */
+	#[NCA\HandlesCommand("auction")]
 	public function bidStartCommand(CmdContext $context, string $action, string $item): void {
 		if ($this->settingManager->getBool('auctions_only_for_raid') && !isset($this->raidController->raid)) {
 			$context->reply(RaidController::ERR_NO_RAID);
@@ -236,9 +236,9 @@ class AuctionController {
 	}
 
 	/**
-	 * @HandlesCommand("auction")
 	 * @Mask $action cancel
 	 */
+	#[NCA\HandlesCommand("auction")]
 	public function bidCancelCommand(CmdContext $context, string $action): void {
 		if (!isset($this->auction)) {
 			$context->reply(static::ERR_NO_AUCTION);
@@ -256,9 +256,9 @@ class AuctionController {
 	}
 
 	/**
-	 * @HandlesCommand("auction")
 	 * @Mask $action end
 	 */
+	#[NCA\HandlesCommand("auction")]
 	public function bidEndCommand(CmdContext $context, string $action): void {
 		if (!isset($this->auction)) {
 			$context->reply(static::ERR_NO_AUCTION);
@@ -268,9 +268,9 @@ class AuctionController {
 	}
 
 	/**
-	 * @HandlesCommand("auction reimburse .+")
 	 * @Mask $action (reimburse|payback|refund)
 	 */
+	#[NCA\HandlesCommand("auction reimburse .+")]
 	public function bidReimburseCommand(CmdContext $context, string $action, PCharacter $winner): void {
 		$winner = $winner();
 		/** @var ?DBAuction */
@@ -369,9 +369,7 @@ class AuctionController {
 		}
 	}
 
-	/**
-	 * @HandlesCommand("bid")
-	 */
+	#[NCA\HandlesCommand("bid")]
 	public function bidCommand(CmdContext $context, int $bid): void {
 		if (!$context->isDM()) {
 			$context->reply("<red>The <symbol>bid command only works in tells<end>.");
@@ -412,9 +410,9 @@ class AuctionController {
 	}
 
 	/**
-	 * @HandlesCommand("bid")
 	 * @Mask $action history
 	 */
+	#[NCA\HandlesCommand("bid")]
 	public function bidHistoryCommand(CmdContext $context, string $action): void {
 		/** @var DBAuction[] */
 		$items = $this->db->table(self::DB_TABLE)
@@ -435,9 +433,9 @@ class AuctionController {
 	}
 
 	/**
-	 * @HandlesCommand("bid")
 	 * @Mask $action history
 	 */
+	#[NCA\HandlesCommand("bid")]
 	public function bidHistorySearchCommand(CmdContext $context, string $action, string $search): void {
 		$shortcuts = [
 			"boc"  => ["%Burden of Competence%"],
@@ -714,18 +712,18 @@ class AuctionController {
 		return $msg;
 	}
 
-	/**
-	 * @Event(name="auction(start)",
-	 * 	description="Announce a new auction")
-	 */
+	#[NCA\Event(
+		name: "auction(start)",
+		description: "Announce a new auction"
+	)]
 	public function announceAuction(AuctionEvent $event): void {
 		$this->chatBot->sendPrivate($this->getAuctionAnnouncement($event->auction));
 	}
 
-	/**
-	 * @Event(name="auction(end)",
-	 * 	description="Announce the winner of an auction")
-	 */
+	#[NCA\Event(
+		name: "auction(end)",
+		description: "Announce the winner of an auction"
+	)]
 	public function announceAuctionWinner(AuctionEvent $event): void {
 		if ($event->auction->top_bidder === null) {
 			$this->chatBot->sendPrivate("Auction is over. No one placed any bids. Do not loot it.");
@@ -791,10 +789,10 @@ class AuctionController {
 		return "Someone won something. And some admin misconfigured something.";
 	}
 
-	/**
-	 * @Event(name="auction(cancel)",
-	 * 	description="Announce the cancellation of an auction")
-	 */
+	#[NCA\Event(
+		name: "auction(cancel)",
+		description: "Announce the cancellation of an auction"
+	)]
 	public function announceAuctionCancellation(AuctionEvent $event): void {
 		$this->chatBot->sendPrivate("The auction was cancelled.");
 	}
@@ -810,10 +808,10 @@ class AuctionController {
 		return $msg;
 	}
 
-	/**
-	 * @Event(name="auction(bid)",
-	 * 	description="Announce a new bid")
-	 */
+	#[NCA\Event(
+		name: "auction(bid)",
+		description: "Announce a new bid"
+	)]
 	public function announceAuctionBid(AuctionEvent $event): void {
 		$this->chatBot->sendPrivate($this->getRunningAuctionInfo($event->auction));
 	}

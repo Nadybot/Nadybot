@@ -34,62 +34,60 @@ use Throwable;
  * phpcs:disable PSR1.Methods.CamelCapsMethodName.NotCamelCaps
  */
 
-/**
- * @Instance("chatBot")
- */
+#[NCA\Instance("chatBot")]
 class Nadybot extends AOChat {
 
 	public const PING_IDENTIFIER = "Nadybot";
 
-	/** @Inject */
+	#[NCA\Inject]
 	public DB $db;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public CommandManager $commandManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public SubcommandManager $subcommandManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public CommandAlias $commandAlias;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public AccessManager $accessManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public EventManager $eventManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public HelpManager $helpManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public SettingManager $settingManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public BanController $banController;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Text $text;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Util $util;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public LimitsController $limitsController;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public BuddylistManager $buddylistManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public RelayController $relayController;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public SettingObject $setting;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public MessageHub $messageHub;
 
-	/** @Logger */
+	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
 	public BotRunner $runner;
@@ -1328,29 +1326,22 @@ class Nadybot extends AOChat {
 				} elseif (isset($subcommands[$commandName])) {
 					$subcommands[$commandName]['handlers'][] = $handlerName;
 				} else {
-					$this->logger->warning("Cannot handle command '$commandName' as it is not defined with @DefineCommand in '$name'.");
+					$this->logger->warning("Cannot handle command '$commandName' as it is not defined with #[DefineCommand] in '$name'.");
 				}
 			}
 			foreach ($method->getAttributes(NCA\Event::class) as $eventAnnotation) {
 				/** @var NCA\Event */
 				$event = $eventAnnotation->newInstance();
-				if (count($defStatusAttrs = $method->getAttributes(NCA\DefaultStatus::class))) {
-					$defaultStatus = $defStatusAttrs[0]->newInstance()->value;
+				foreach ((array)$event->name as $eventName) {
+					$this->eventManager->register(
+						$moduleName,
+						$eventName,
+						$name . '.' . $method->name,
+						$event->description,
+						$event->help,
+						$event->defaultStatus
+					);
 				}
-				if (count($descrAttrs = $method->getAttributes(NCA\Description::class))) {
-					$description = $descrAttrs[0]->newInstance()->value;
-				}
-				if (count($helpAttrs = $method->getAttributes(NCA\Help::class))) {
-					$help = $helpAttrs[0]->newInstance()->value;
-				}
-				$this->eventManager->register(
-					$moduleName,
-					$event->value,
-					$name . '.' . $method->name,
-					isset($description) ? $description : "none",
-					isset($help) ? $help : null,
-					isset($defaultStatus) ? (int)$defaultStatus : null
-				);
 			}
 		}
 
@@ -1396,10 +1387,11 @@ class Nadybot extends AOChat {
 	public function callSetupMethod(string $name, object $obj): void {
 		$reflection = new ReflectionClass($obj);
 		foreach ($reflection->getMethods() as $method) {
-			if (count($method->getAttributes(NCA\Setup::class))) {
-				if (call_user_func([$obj, $method->name]) === false) {
-					$this->logger->error("Failed to call setup handler for '$name'");
-				}
+			if (empty($method->getAttributes(NCA\Setup::class))) {
+				continue;
+			}
+			if (call_user_func([$obj, $method->name]) === false) {
+				$this->logger->error("Failed to call setup handler for '$name'");
 			}
 		}
 	}

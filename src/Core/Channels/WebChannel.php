@@ -2,6 +2,7 @@
 
 namespace Nadybot\Core\Channels;
 
+use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\AOChatEvent;
 use Nadybot\Core\EventManager;
 use Nadybot\Core\MessageHub;
@@ -13,19 +14,19 @@ use Nadybot\Modules\WEBSERVER_MODULE\WebChatConverter;
 use Nadybot\Modules\WEBSOCKET_MODULE\WebsocketController;
 
 class WebChannel implements MessageReceiver {
-	/** @Inject */
+	#[NCA\Inject]
 	public Nadybot $chatBot;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public WebChatConverter $webChatConverter;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public EventManager $eventManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public WebsocketController $websocketController;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public MessageHub $messageHub;
 
 	public function getChannelName(): string {

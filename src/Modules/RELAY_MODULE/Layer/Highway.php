@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\RELAY_MODULE\Layer;
 
+use Nadybot\Core\Attributes as NCA;
 use Exception;
 use JsonException;
 use Nadybot\Core\LoggerWrapper;
@@ -11,22 +12,22 @@ use Nadybot\Modules\RELAY_MODULE\RelayMessage;
 use Nadybot\Modules\RELAY_MODULE\RelayStatus;
 use Nadybot\Modules\RELAY_MODULE\StatusProvider;
 
-/**
- * @RelayStackMember("highway")
- * @Description("This is the highway protocol, spoken by the highway websocket-server.
- * 	It will broadcast incoming messages to all clients in the same room.
- * 	Room names can be picked freely as long as they are at least 32 characters
- * 	long. They should be as random as possible to prevent unauthorized
- *	access to messages.
- *	Shorter room names are system rooms and by definition read-only.
- *	For further security, using an encryption layer is recommended.")
- * @Param(
- * 	name='room',
- * 	description='The room(s) to join. Must be at least 32 characters long if you want to be able to send.',
- * 	type='string[]',
- * 	required=true
- * )
- */
+#[
+	NCA\RelayStackMember("highway"),
+	NCA\Description("This is the highway protocol, spoken by the highway websocket-server.\n".
+		"It will broadcast incoming messages to all clients in the same room.\n".
+		"Room names can be picked freely as long as they are at least 32 characters\n".
+		"long. They should be as random as possible to prevent unauthorized\n".
+		"access to messages.\n".
+		"Shorter room names are system rooms and by definition read-only.\n".
+		"For further security, using an encryption layer is recommended."),
+	NCA\Param(
+		name: "room",
+		type: "string[]",
+		description: "The room(s) to join. Must be at least 32 characters long if you want to be able to send.",
+		required: true
+	)
+]
 class Highway implements RelayLayerInterface, StatusProvider {
 	public const TYPE_MESSAGE = "message";
 	public const TYPE_JOIN = "join";
@@ -43,7 +44,7 @@ class Highway implements RelayLayerInterface, StatusProvider {
 
 	protected ?RelayStatus $status = null;
 
-	/** @Logger */
+	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
 	/** @var ?callable */

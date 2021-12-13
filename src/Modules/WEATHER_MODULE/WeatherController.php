@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\WEATHER_MODULE;
 
+use Nadybot\Core\Attributes as NCA;
 use JsonException;
 use Nadybot\Core\{
 	CmdContext,
@@ -12,17 +13,17 @@ use Nadybot\Core\{
 
 /**
  * @author Nadyita (RK5)
- *
- * @Instance
- *
  * Commands this controller contains:
- *	@DefineCommand(
- *		command     = 'weather',
- *		accessLevel = 'all',
- *		description = 'View Weather',
- *		help        = 'weather.txt'
- *	)
  */
+#[
+	NCA\Instance,
+	NCA\DefineCommand(
+		command: "weather",
+		accessLevel: "all",
+		description: "View Weather",
+		help: "weather.txt"
+	)
+]
 class WeatherController {
 
 	/**
@@ -31,15 +32,13 @@ class WeatherController {
 	 */
 	public string $moduleName;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Text $text;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Http $http;
 
-	/**
-	 * @HandlesCommand("weather")
-	 */
+	#[NCA\HandlesCommand("weather")]
 	public function weatherCommand(CmdContext $context, string $location): void {
 		$this->lookupLocation($location, [$this, "getWeatherForLocationResponse"], $context);
 	}
@@ -237,7 +236,6 @@ class WeatherController {
 
 	/**
 	 * Return a link to OpenStreetMap at the given coordinates
-	 *
 	 * @param \Nadybot\Modules\WEATHER_MODULE\Nominatim $nominatim The location object
 	 * @return string The URL to OSM
 	 */
@@ -251,7 +249,6 @@ class WeatherController {
 
 	/**
 	 * Convert the written temperature unit to short
-	 *
 	 * @param string $name Name of the unit ("celsius", "fahrenheit")
 	 * @return string
 	 */
@@ -264,7 +261,6 @@ class WeatherController {
 
 	/**
 	 * Convert a forecast icon (e.g. "heavysnowshowersandthunder") into a sentence
-	 *
 	 * @param string $icon The icon name
 	 * @return string A forecast summary
 	 */

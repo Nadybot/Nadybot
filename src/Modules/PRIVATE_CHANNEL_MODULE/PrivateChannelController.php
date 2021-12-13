@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\PRIVATE_CHANNEL_MODULE;
 
+use Nadybot\Core\Attributes as NCA;
 use Exception;
 use Illuminate\Database\Query\JoinClause;
 use Illuminate\Support\Collection;
@@ -47,83 +48,83 @@ use Nadybot\Modules\{
  * @author Tyrence (RK2)
  * @author Mindrila (RK1)
  * @author Nadyita (RK5)
- *
- * @Instance
- *
  * Commands this controller contains:
- *	@DefineCommand(
- *		command     = 'members',
- *		accessLevel = 'all',
- *		description = "Member list",
- *		help        = 'private_channel.txt'
- *	)
- *	@DefineCommand(
- *		command     = 'member',
- *		accessLevel = 'guild',
- *		description = "Adds or removes a player to/from the members list",
- *		help        = 'private_channel.txt'
- *	)
- *	@DefineCommand(
- *		command     = 'invite',
- *		accessLevel = 'guild',
- *		description = "Invite players to the private channel",
- *		help        = 'private_channel.txt',
- *		alias       = 'inviteuser'
- *	)
- *	@DefineCommand(
- *		command     = 'kick',
- *		accessLevel = 'guild',
- *		description = "Kick players from the private channel",
- *		help        = 'private_channel.txt',
- *		alias       = 'kickuser'
- *	)
- *	@DefineCommand(
- *		command     = 'autoinvite',
- *		accessLevel = 'member',
- *		description = "Enable or disable autoinvite",
- *		help        = 'autoinvite.txt'
- *	)
- *	@DefineCommand(
- *		command     = 'count',
- *		accessLevel = 'all',
- *		description = "Shows how many characters are in the private channel",
- *		help        = 'count.txt'
- *	)
- *	@DefineCommand(
- *		command     = 'kickall',
- *		accessLevel = 'guild',
- *		description = "Kicks all from the private channel",
- *		help        = 'kickall.txt'
- *	)
- *	@DefineCommand(
- *		command     = 'join',
- *		accessLevel = 'member',
- *		description = "Join command for characters who want to join the private channel",
- *		help        = 'private_channel.txt'
- *	)
- *	@DefineCommand(
- *		command     = 'leave',
- *		accessLevel = 'all',
- *		description = "Leave command for characters in private channel",
- *		help        = 'private_channel.txt'
- *	)
- *	@DefineCommand(
- *		command     = 'lock',
- *		accessLevel = 'superadmin',
- *		description = "Kick everyone and lock the private channel",
- *		help        = 'lock.txt'
- *	)
- *	@DefineCommand(
- *		command     = 'unlock',
- *		accessLevel = 'superadmin',
- *		description = "Allow people to join the private channel again",
- *		help        = 'lock.txt'
- *	)
- *	@ProvidesEvent("online(priv)")
- *	@ProvidesEvent("offline(priv)")
- *	@ProvidesEvent("member(add)")
- *	@ProvidesEvent("member(rem)")
  */
+#[
+	NCA\Instance,
+	NCA\DefineCommand(
+		command: "members",
+		accessLevel: "all",
+		description: "Member list",
+		help: "private_channel.txt"
+	),
+	NCA\DefineCommand(
+		command: "member",
+		accessLevel: "guild",
+		description: "Adds or removes a player to/from the members list",
+		help: "private_channel.txt"
+	),
+	NCA\DefineCommand(
+		command: "invite",
+		accessLevel: "guild",
+		description: "Invite players to the private channel",
+		help: "private_channel.txt",
+		alias: "inviteuser"
+	),
+	NCA\DefineCommand(
+		command: "kick",
+		accessLevel: "guild",
+		description: "Kick players from the private channel",
+		help: "private_channel.txt",
+		alias: "kickuser"
+	),
+	NCA\DefineCommand(
+		command: "autoinvite",
+		accessLevel: "member",
+		description: "Enable or disable autoinvite",
+		help: "autoinvite.txt"
+	),
+	NCA\DefineCommand(
+		command: "count",
+		accessLevel: "all",
+		description: "Shows how many characters are in the private channel",
+		help: "count.txt"
+	),
+	NCA\DefineCommand(
+		command: "kickall",
+		accessLevel: "guild",
+		description: "Kicks all from the private channel",
+		help: "kickall.txt"
+	),
+	NCA\DefineCommand(
+		command: "join",
+		accessLevel: "member",
+		description: "Join command for characters who want to join the private channel",
+		help: "private_channel.txt"
+	),
+	NCA\DefineCommand(
+		command: "leave",
+		accessLevel: "all",
+		description: "Leave command for characters in private channel",
+		help: "private_channel.txt"
+	),
+	NCA\DefineCommand(
+		command: "lock",
+		accessLevel: "superadmin",
+		description: "Kick everyone and lock the private channel",
+		help: "lock.txt"
+	),
+	NCA\DefineCommand(
+		command: "unlock",
+		accessLevel: "superadmin",
+		description: "Allow people to join the private channel again",
+		help: "lock.txt"
+	),
+	NCA\ProvidesEvent("online(priv)"),
+	NCA\ProvidesEvent("offline(priv)"),
+	NCA\ProvidesEvent("member(add)"),
+	NCA\ProvidesEvent("member(rem)")
+]
 class PrivateChannelController {
 	public const DB_TABLE = "members_<myname>";
 
@@ -133,58 +134,58 @@ class PrivateChannelController {
 	 */
 	public string $moduleName;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public DB $db;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Nadybot $chatBot;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public EventManager $eventManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public SettingManager $settingManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public BuddylistManager $buddylistManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public MessageHub $messageHub;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Text $text;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Util $util;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public AltsController $altsController;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public AccessManager $accessManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public BanController $banController;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public OnlineController $onlineController;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Timer $timer;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public PlayerManager $playerManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public CommandAlias $commandAlias;
 
-	/** @Logger */
+	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
 	/** If set, the private channel is currently locked for a reason */
 	protected ?string $lockReason = null;
 
-	/** @Setup */
+	#[NCA\Setup]
 	public function setup(): void {
 		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations");
 
@@ -310,9 +311,7 @@ class PrivateChannelController {
 		}
 	}
 
-	/**
-	 * @HandlesCommand("members")
-	 */
+	#[NCA\HandlesCommand("members")]
 	public function membersCommand(CmdContext $context): void {
 		/** @var Collection<Member> */
 		$members = $this->db->table(self::DB_TABLE)
@@ -344,27 +343,23 @@ class PrivateChannelController {
 	}
 
 	/**
-	 * @HandlesCommand("member")
 	 * @Mask $action add
 	 */
+	#[NCA\HandlesCommand("member")]
 	public function addUserCommand(CmdContext $context, string $action, PCharacter $member): void {
 		$msg = $this->addUser($member(), $context->char->name);
 
 		$context->reply($msg);
 	}
 
-	/**
-	 * @HandlesCommand("member")
-	 */
+	#[NCA\HandlesCommand("member")]
 	public function remUserCommand(CmdContext $context, PRemove $action, PCharacter $member): void {
 		$msg = $this->removeUser($member(), $context->char->name);
 
 		$context->reply($msg);
 	}
 
-	/**
-	 * @HandlesCommand("invite")
-	 */
+	#[NCA\HandlesCommand("invite")]
 	public function inviteCommand(CmdContext $context, PCharacter $char): void {
 		$name = $char();
 		$uid = $this->chatBot->get_uid($name);
@@ -414,9 +409,7 @@ class PrivateChannelController {
 		);
 	}
 
-	/**
-	 * @HandlesCommand("kick")
-	 */
+	#[NCA\HandlesCommand("kick")]
 	public function kickCommand(CmdContext $context, PCharacter $char, ?string $reason): void {
 		$name = $char();
 		$uid = $this->chatBot->get_uid($name);
@@ -449,9 +442,7 @@ class PrivateChannelController {
 		}
 	}
 
-	/**
-	 * @HandlesCommand("autoinvite")
-	 */
+	#[NCA\HandlesCommand("autoinvite")]
 	public function autoInviteCommand(CmdContext $context, bool $status): void {
 		if ($status) {
 			$onOrOff = 1;
@@ -484,9 +475,9 @@ class PrivateChannelController {
 	}
 
 	/**
-	 * @HandlesCommand("count")
 	 * @Mask $action (levels?|lvls?)
 	 */
+	#[NCA\HandlesCommand("count")]
 	public function countLevelCommand(CmdContext $context, string $action): void {
 		$tl1 = 0;
 		$tl2 = 0;
@@ -533,9 +524,9 @@ class PrivateChannelController {
 	}
 
 	/**
-	 * @HandlesCommand("count")
 	 * @Mask $action (all|profs?)
 	 */
+	#[NCA\HandlesCommand("count")]
 	public function countProfessionCommand(CmdContext $context, string $action): void {
 		$online = [
 			"Adventurer" => 0,
@@ -589,9 +580,9 @@ class PrivateChannelController {
 	}
 
 	/**
-	 * @HandlesCommand("count")
 	 * @Mask $action (orgs?)
 	 */
+	#[NCA\HandlesCommand("count")]
 	public function countOrganizationCommand(CmdContext $context, string $action): void {
 		$numOnline = $this->db->table("online")
 			->where("added_by", $this->db->getBotname())
@@ -634,9 +625,7 @@ class PrivateChannelController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @HandlesCommand("count")
-	 */
+	#[NCA\HandlesCommand("count")]
 	public function countCommand(CmdContext $context, string $profession): void {
 		$prof = $this->util->getProfessionName($profession);
 		if ($prof === '') {
@@ -672,25 +661,21 @@ class PrivateChannelController {
 	}
 
 	/**
-	 * @HandlesCommand("kickall")
 	 * @Mask $action now
 	 */
+	#[NCA\HandlesCommand("kickall")]
 	public function kickallNowCommand(CmdContext $context, string $action): void {
 		$this->chatBot->privategroup_kick_all();
 	}
 
-	/**
-	 * @HandlesCommand("kickall")
-	 */
+	#[NCA\HandlesCommand("kickall")]
 	public function kickallCommand(CmdContext $context): void {
 		$msg = "Everyone will be kicked from this channel in 10 seconds. [by <highlight>{$context->char->name}<end>]";
 		$this->chatBot->sendPrivate($msg);
 		$this->timer->callLater(10, [$this->chatBot, 'privategroup_kick_all']);
 	}
 
-	/**
-	 * @HandlesCommand("join")
-	 */
+	#[NCA\HandlesCommand("join")]
 	public function joinCommand(CmdContext $context): void {
 		if ($this->isLockedFor($context->char->name)) {
 			$context->reply("The private channel is currently <red>locked<end>: {$this->lockReason}");
@@ -724,16 +709,12 @@ class PrivateChannelController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @HandlesCommand("leave")
-	 */
+	#[NCA\HandlesCommand("leave")]
 	public function leaveCommand(CmdContext $context): void {
 		$this->chatBot->privategroup_kick($context->char->name);
 	}
 
-	/**
-	 * @HandlesCommand("lock")
-	 */
+	#[NCA\HandlesCommand("lock")]
 	public function lockCommand(CmdContext $context, string $reason): void {
 		if (isset($this->lockReason)) {
 			$this->lockReason = trim($reason);
@@ -757,9 +738,7 @@ class PrivateChannelController {
 		$this->accessManager->addAudit($audit);
 	}
 
-	/**
-	 * @HandlesCommand("unlock")
-	 */
+	#[NCA\HandlesCommand("unlock")]
 	public function unlockCommand(CmdContext $context): void {
 		if (!isset($this->lockReason)) {
 			$context->reply("The private channel is currently not locked.");
@@ -774,10 +753,10 @@ class PrivateChannelController {
 		$this->accessManager->addAudit($audit);
 	}
 
-	/**
-	 * @Event(name="timer(5m)",
-	 * 	description="Send reminder if the private channel is locked")
-	 */
+	#[NCA\Event(
+		name: "timer(5m)",
+		description: "Send reminder if the private channel is locked"
+	)]
 	public function remindOfLock(): void {
 		if (!isset($this->lockReason)) {
 			return;
@@ -787,10 +766,10 @@ class PrivateChannelController {
 		$this->chatBot->sendPrivate($msg, true);
 	}
 
-	/**
-	 * @Event(name="connect",
-	 * 	description="Adds all members as buddies")
-	 */
+	#[NCA\Event(
+		name: "connect",
+		description: "Adds all members as buddies"
+	)]
 	public function connectEvent(Event $eventObj): void {
 		$this->db->table(self::DB_TABLE)
 			->asObj(Member::class)
@@ -799,10 +778,10 @@ class PrivateChannelController {
 			});
 	}
 
-	/**
-	 * @Event(name="logOn",
-	 * 	description="Auto-invite members on logon")
-	 */
+	#[NCA\Event(
+		name: "logOn",
+		description: "Auto-invite members on logon"
+	)]
 	public function logonAutoinviteEvent(UserStateEvent $eventObj): void {
 		$sender = $eventObj->sender;
 		if (!is_string($sender)) {
@@ -900,10 +879,10 @@ class PrivateChannelController {
 		$this->messageHub->handle($re);
 	}
 
-	/**
-	 * @Event(name="joinPriv",
-	 * 	description="Displays a message when a character joins the private channel")
-	 */
+	#[NCA\Event(
+		name: "joinPriv",
+		description: "Displays a message when a character joins the private channel"
+	)]
 	public function joinPrivateChannelMessageEvent(AOChatEvent $eventObj): void {
 		if (!is_string($eventObj->sender)) {
 			return;
@@ -947,10 +926,10 @@ class PrivateChannelController {
 		);
 	}
 
-	/**
-	 * @Event(name="joinPriv",
-	 * 	description="Autoban players of unwanted factions when they join the bot")
-	 */
+	#[NCA\Event(
+		name: "joinPriv",
+		description: "Autoban players of unwanted factions when they join the bot"
+	)]
 	public function autobanOnJoin(AOChatEvent $eventObj): void {
 		$reqFaction = $this->settingManager->getString('only_allow_faction') ?? "all";
 		if ($reqFaction === 'all' || !is_String($eventObj->sender)) {
@@ -1025,10 +1004,10 @@ class PrivateChannelController {
 		return $msg;
 	}
 
-	/**
-	 * @Event(name="leavePriv",
-	 * 	description="Displays a message when a character leaves the private channel")
-	 */
+	#[NCA\Event(
+		name: "leavePriv",
+		description: "Displays a message when a character leaves the private channel"
+	)]
 	public function leavePrivateChannelMessageEvent(AOChatEvent $eventObj): void {
 		$sender = $eventObj->sender;
 		if (!is_string($sender)) {
@@ -1058,10 +1037,10 @@ class PrivateChannelController {
 		$this->eventManager->fireEvent($event);
 	}
 
-	/**
-	 * @Event(name="joinPriv",
-	 * 	description="Updates the database when a character joins the private channel")
-	 */
+	#[NCA\Event(
+		name: "joinPriv",
+		description: "Updates the database when a character joins the private channel"
+	)]
 	public function joinPrivateChannelRecordEvent(AOChatEvent $eventObj): void {
 		$sender = $eventObj->sender;
 		if (!is_string($sender)) {
@@ -1074,10 +1053,10 @@ class PrivateChannelController {
 		);
 	}
 
-	/**
-	 * @Event(name="leavePriv",
-	 * 	description="Updates the database when a character leaves the private channel")
-	 */
+	#[NCA\Event(
+		name: "leavePriv",
+		description: "Updates the database when a character leaves the private channel"
+	)]
 	public function leavePrivateChannelRecordEvent(AOChatEvent $eventObj): void {
 		$sender = $eventObj->sender;
 		if (!is_string($sender)) {
@@ -1086,10 +1065,10 @@ class PrivateChannelController {
 		$this->onlineController->removePlayerFromOnlineList($sender, 'priv');
 	}
 
-	/**
-	 * @Event(name="joinPriv",
-	 * 	description="Sends the online list to people as they join the private channel")
-	 */
+	#[NCA\Event(
+		name: "joinPriv",
+		description: "Sends the online list to people as they join the private channel"
+	)]
 	public function joinPrivateChannelShowOnlineEvent(AOChatEvent $eventObj): void {
 		$sender = $eventObj->sender;
 		if (!is_string($sender)) {
@@ -1131,10 +1110,10 @@ class PrivateChannelController {
 		return "<highlight>$name<end> has been added as a member of this bot.";
 	}
 
-	/**
-	 * @Event(name="member(add)",
-	 * 	description="Send welcome message data/welcome.txt to new members")
-	 */
+	#[NCA\Event(
+		name: "member(add)",
+		description: "Send welcome message data/welcome.txt to new members"
+	)]
 	public function sendWelcomeMessage(MemberEvent $event): void {
 		$dataPath = $this->chatBot->vars["datafolder"] ?? "./data";
 		if (!@file_exists("{$dataPath}/welcome.txt")) {

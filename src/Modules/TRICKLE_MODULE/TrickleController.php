@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\TRICKLE_MODULE;
 
+use Nadybot\Core\Attributes as NCA;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	CmdContext,
@@ -12,17 +13,17 @@ use Nadybot\Core\{
 
 /**
  * @author Tyrence (RK2)
- *
- * @Instance
- *
  * Commands this controller contains:
- *	@DefineCommand(
- *		command     = 'trickle',
- *		accessLevel = 'all',
- *		description = 'Shows how much skills you will gain by increasing an ability',
- *		help        = 'trickle.txt'
- *	)
  */
+#[
+	NCA\Instance,
+	NCA\DefineCommand(
+		command: "trickle",
+		accessLevel: "all",
+		description: "Shows how much skills you will gain by increasing an ability",
+		help: "trickle.txt"
+	)
+]
 class TrickleController {
 
 	/**
@@ -31,19 +32,19 @@ class TrickleController {
 	 */
 	public string $moduleName;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Text $text;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Util $util;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public DB $db;
 
 	/**
 	 * This handler is called on bot startup.
-	 * @Setup
 	 */
+	#[NCA\Setup]
 	public function setup(): void {
 		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations");
 		$this->db->loadCSVFile($this->moduleName, __DIR__ . "/trickle.csv");
@@ -51,10 +52,9 @@ class TrickleController {
 
 	/**
 	 * View trickle skills
-	 *
-	 * @HandlesCommand("trickle")
 	 * @Mask $pairs (\w+\s+\d+(\s+\w+\s+\d+){0,5})
 	 */
+	#[NCA\HandlesCommand("trickle")]
 	public function trickle1Command(CmdContext $context, string $pairs): void {
 		$abilities = new AbilityConfig();
 
@@ -76,10 +76,9 @@ class TrickleController {
 
 	/**
 	 * View trickle skills
-	 *
-	 * @HandlesCommand("trickle")
 	 * @Mask $pairs (\d+\s+\w+(\s+\d+\s+\w+){0,5})
 	 */
+	#[NCA\HandlesCommand("trickle")]
 	public function trickle2Command(CmdContext $context, string $pairs): void {
 		$abilities = new AbilityConfig();
 
@@ -100,9 +99,7 @@ class TrickleController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @HandlesCommand("trickle")
-	 */
+	#[NCA\HandlesCommand("trickle")]
 	public function trickleSkillCommand(CmdContext $context, string $search): void {
 		/** @var Collection<Trickle> */
 		$data = $this->db->table("trickle")

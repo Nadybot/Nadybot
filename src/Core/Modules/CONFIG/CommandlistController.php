@@ -2,6 +2,7 @@
 
 namespace Nadybot\Core\Modules\CONFIG;
 
+use Nadybot\Core\Attributes as NCA;
 use Exception;
 use Nadybot\Core\{
 	AccessManager,
@@ -13,33 +14,30 @@ use Nadybot\Core\{
 use Nadybot\Core\DBSchema\CommandListEntry;
 
 /**
- * @Instance
- *
  * Commands this controller contains:
- *	@DefineCommand(
- *		command       = 'cmdlist',
- *		accessLevel   = 'guild',
- *		description   = 'Shows a list of all commands on the bot',
- *		help          = 'cmdlist.txt',
- *		defaultStatus = '1'
- *	)
  */
+#[
+	NCA\Instance,
+	NCA\DefineCommand(
+		command: "cmdlist",
+		accessLevel: "guild",
+		description: "Shows a list of all commands on the bot",
+		help: "cmdlist.txt",
+		defaultStatus: 1
+	)
+]
 class CommandlistController {
 
-	/** @Inject */
+	#[NCA\Inject]
 	public AccessManager $accessManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Text $text;
 
-	/**
-	 * @Inject
-	 */
+	#[NCA\Inject]
 	public DB $db;
 
-	/**
-	 * @HandlesCommand("cmdlist")
-	 */
+	#[NCA\HandlesCommand("cmdlist")]
 	public function cmdlistCommand(CmdContext $context, ?string $al): void {
 		$query = $this->db->table(CommandManager::DB_TABLE, "c")
 			->whereIn("c.cmdevent", ["cmd", "subcmd"])

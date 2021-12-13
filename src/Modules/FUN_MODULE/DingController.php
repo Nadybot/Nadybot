@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\FUN_MODULE;
 
+use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\CmdContext;
 use Nadybot\Core\Util;
 
@@ -9,17 +10,17 @@ use Nadybot\Core\Util;
  * @author Neksus (RK2)
  * @author Mdkdoc420 (RK2)
  * @author Tyrence (RK2)
- *
- * @Instance
- *
  * Commands this controller contains:
- *	@DefineCommand(
- *		command     = 'ding',
- *		accessLevel = 'all',
- *		description = 'Shows a random ding gratz message',
- *		help        = 'fun_module.txt'
- *	)
  */
+#[
+	NCA\Instance,
+	NCA\DefineCommand(
+		command: "ding",
+		accessLevel: "all",
+		description: "Shows a random ding gratz message",
+		help: "fun_module.txt"
+	)
+]
 class DingController {
 
 	/**
@@ -28,12 +29,10 @@ class DingController {
 	 */
 	public string $moduleName;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Util $util;
 
-	/**
-	 * @HandlesCommand("ding")
-	 */
+	#[NCA\HandlesCommand("ding")]
 	public function ding1Command(CmdContext $context): void {
 		$dingText = [
 			"Yeah yeah gratz, I would give you a better response but you didn't say what level you dinged.",
@@ -46,17 +45,15 @@ class DingController {
 	}
 
 	/**
-	 * @HandlesCommand("ding")
 	 * @Mask $action dong
 	 */
+	#[NCA\HandlesCommand("ding")]
 	public function dingDongCommand(CmdContext $context, string $action): void {
 		$msg =	"Ditch, Bitch!";
 		$context->reply($msg);
 	}
 
-	/**
-	 * @HandlesCommand("ding")
-	 */
+	#[NCA\HandlesCommand("ding")]
 	public function ding3Command(CmdContext $context, int $level, ?string $ignore): void {
 		if ($level <= 0) {
 			$lvl = (int)round(220 - $level);

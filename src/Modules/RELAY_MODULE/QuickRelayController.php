@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\RELAY_MODULE;
 
+use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{
 	CmdContext,
 	CommandReply,
@@ -13,17 +14,17 @@ use Nadybot\Core\Routing\Source;
 /**
  * @author Tyrence
  * @author Nadyita
- *
- * @Instance
- *
  * Commands this controller contains:
- *  @DefineCommand(
- *		command     = 'quickrelay',
- *		accessLevel = 'member',
- *		description = 'Print commands to easily setup relays',
- *		help        = 'quickrelay.txt'
- *	)
  */
+#[
+	NCA\Instance,
+	NCA\DefineCommand(
+		command: "quickrelay",
+		accessLevel: "member",
+		description: "Print commands to easily setup relays",
+		help: "quickrelay.txt"
+	)
+]
 class QuickRelayController {
 	/**
 	 * Name of the module.
@@ -31,15 +32,13 @@ class QuickRelayController {
 	 */
 	public string $moduleName;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Text $text;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Util $util;
 
-	/**
-	 * @HandlesCommand("quickrelay")
-	 */
+	#[NCA\HandlesCommand("quickrelay")]
 	public function quickrelayListCommand(CmdContext $context): void {
 		$types = [
 			"nady" => "Use this to setup relaying between two or more ".
@@ -93,9 +92,9 @@ class QuickRelayController {
 	}
 
 	/**
-	 * @HandlesCommand("quickrelay")
 	 * @Mask $type tyr
 	 */
+	#[NCA\HandlesCommand("quickrelay")]
 	public function quickrelayTyrCommand(CmdContext $context, string $type): void {
 		$password = $this->util->getPassword(16);
 		$blob = "First, you have to run a local installation of <a href='chatcmd:///start https://github.com/Budabot/Tyrbot/wiki/Websocket-Relay'>".
@@ -114,9 +113,9 @@ class QuickRelayController {
 	}
 
 	/**
-	 * @HandlesCommand("quickrelay")
 	 * @Mask $type nady
 	 */
+	#[NCA\HandlesCommand("quickrelay")]
 	public function quickrelayNadyCommand(CmdContext $context, string $type): void {
 		$password = $this->util->getPassword(16);
 		$room = $this->util->createUUID();
@@ -133,9 +132,9 @@ class QuickRelayController {
 	}
 
 	/**
-	 * @HandlesCommand("quickrelay")
 	 * @Mask $type (alliance|agcr)
 	 */
+	#[NCA\HandlesCommand("quickrelay")]
 	public function quickrelayAllianceCommand(CmdContext $context, string $type): void {
 		$blob = "To setup a relay called \"alliance\" between multiple bots that use the agcr-protocol\n".
 			"and relay via a private-channel called \"Privchannel\", run this on all bots:\n".
@@ -152,9 +151,9 @@ class QuickRelayController {
 	}
 
 	/**
-	 * @HandlesCommand("quickrelay")
 	 * @Mask $type (old|grc)
 	 */
+	#[NCA\HandlesCommand("quickrelay")]
 	public function quickrelayOldCommand(CmdContext $context, string $type): void {
 		$blob = "To setup a relay called \"compat\" between multiple bots that use the grc-protocol\n".
 			"and relay via a private-channel called \"Privchannel\", run this on all bots:\n".

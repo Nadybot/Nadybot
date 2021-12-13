@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\TRADEBOT_MODULE;
 
+use Nadybot\Core\Attributes as NCA;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	AOChatEvent,
@@ -28,17 +29,17 @@ use Nadybot\Modules\COMMENT_MODULE\CommentController;
 
 /**
  * @author Nadyita (RK5) <nadyita@hodorraid.org>
- *
- * @Instance
- *
  * Commands this controller contains:
- *	@DefineCommand(
- *		command     = 'tradecolor',
- *		accessLevel = 'mod',
- *		description = 'Define colors for tradebot tags',
- *		help        = 'tradecolor.txt'
- *	)
  */
+#[
+	NCA\Instance,
+	NCA\DefineCommand(
+		command: "tradecolor",
+		accessLevel: "mod",
+		description: "Define colors for tradebot tags",
+		help: "tradecolor.txt"
+	)
+]
 class TradebotController {
 	public const NONE = 'None';
 	public const DB_TABLE = "tradebot_colors_<myname>";
@@ -49,31 +50,31 @@ class TradebotController {
 	 */
 	public string $moduleName;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public CommandAlias $commandAlias;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Nadybot $chatBot;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public BuddylistManager $buddylistManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public SettingManager $settingManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public MessageHub $messageHub;
 
-	/** @Logger */
+	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public CommentController $commentController;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Text $text;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public DB $db;
 
 	/** @var array<string,array<string,mixed>> */
@@ -92,7 +93,7 @@ class TradebotController {
 		]
 	];
 
-	/** @Setup */
+	#[NCA\Setup]
 	public function setup(): void {
 		$this->commandAlias->register($this->moduleName, "tradecolor", "tradecolors");
 		$this->settingManager->add(
@@ -158,10 +159,10 @@ class TradebotController {
 		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations");
 	}
 
-	/**
-	 * @Event(name="Connect",
-	 * 	description="Add active tradebots to buddylist")
-	 */
+	#[NCA\Event(
+		name: "Connect",
+		description: "Add active tradebots to buddylist"
+	)]
 	public function addTradebotsAsBuddies(): void {
 		$activeBots = $this->normalizeBotNames($this->settingManager->getString('tradebot')??static::NONE);
 		foreach ($activeBots as $botName) {
@@ -171,7 +172,6 @@ class TradebotController {
 
 	/**
 	 * Convert the colon-separated list of botnames into a proper array
-	 *
 	 * @param string $botNames Colon-separated list of botnames
 	 * @return string[]
 	 */
@@ -190,7 +190,6 @@ class TradebotController {
 
 	/**
 	 * (un)subscribe from tradebot(s) when they get activated or deactivated
-	 *
 	 * @param string $setting Name of the setting that gets changed
 	 * @param string $oldValue Old value of that setting
 	 * @param string $newValue New value of that setting
@@ -241,10 +240,10 @@ class TradebotController {
 		}
 	}
 
-	/**
-	 * @Event(name="logOn",
-	 * 	description="Join tradebot private channels")
-	 */
+	#[NCA\Event(
+		name: "logOn",
+		description: "Join tradebot private channels"
+	)]
 	public function tradebotOnlineEvent(UserStateEvent $eventObj): void {
 		if (is_string($eventObj->sender) && $this->isTradebot($eventObj->sender)) {
 			$this->joinPrivateChannel($eventObj->sender);
@@ -272,11 +271,12 @@ class TradebotController {
 	}
 
 	/**
-	 * @Event(name="extPriv",
-	 * 	description="Relay messages from the tradebot to org/private channel")
-	 *
 	 * @throws StopExecutionException
 	 */
+	#[NCA\Event(
+		name: "extPriv",
+		description: "Relay messages from the tradebot to org/private channel"
+	)]
 	public function receiveRelayMessageExtPrivEvent(AOChatEvent $eventObj): void {
 		if (!$this->isTradebot($eventObj->channel)
 			|| !is_string($eventObj->sender)
@@ -287,10 +287,10 @@ class TradebotController {
 		throw new StopExecutionException();
 	}
 
-	/**
-	 * @Event(name="msg",
-	 * 	description="Relay incoming tells from the tradebots to org/private channel")
-	 */
+	#[NCA\Event(
+		name: "msg",
+		description: "Relay incoming tells from the tradebots to org/private channel"
+	)]
 	public function receiveMessageEvent(AOChatEvent $eventObj): void {
 		if (!is_string($eventObj->sender) || !$this->isTradebot($eventObj->sender)) {
 			return;
@@ -395,10 +395,10 @@ class TradebotController {
 		return false;
 	}
 
-	/**
-	 * @Event(name="extJoinPrivRequest",
-	 * 	description="Accept private channel join invitation from the trade bots")
-	 */
+	#[NCA\Event(
+		name: "extJoinPrivRequest",
+		description: "Accept private channel join invitation from the trade bots"
+	)]
 	public function acceptPrivJoinEvent(AOChatEvent $eventObj): void {
 		$sender = $eventObj->sender;
 		if (!is_string($sender) || !$this->isTradebot($sender)) {
@@ -412,9 +412,7 @@ class TradebotController {
 		}
 	}
 
-	/**
-	 * @HandlesCommand("tradecolor")
-	 */
+	#[NCA\HandlesCommand("tradecolor")]
 	public function listTradecolorsCommand(CmdContext $context): void {
 		/** @var Collection<TradebotColors> */
 		$colors = $this->db->table(self::DB_TABLE)
@@ -451,9 +449,7 @@ class TradebotController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @HandlesCommand("tradecolor")
-	 */
+	#[NCA\HandlesCommand("tradecolor")]
 	public function remTradecolorCommand(CmdContext $context, PRemove $action, int $id): void {
 		if (!$this->db->table(self::DB_TABLE)->delete($id)) {
 			$context->reply("Tradebot color <highlight>#{$id}<end> doesn't exist.");
@@ -463,9 +459,9 @@ class TradebotController {
 	}
 
 	/**
-	 * @HandlesCommand("tradecolor")
 	 * @Mask $action (add|set)
 	 */
+	#[NCA\HandlesCommand("tradecolor")]
 	public function addTradecolorCommand(CmdContext $context, string $action, PCharacter $tradeBot, string $tag, PColor $color): void {
 		$tag = strtolower($tag);
 		$color = $color->getCode();
@@ -495,9 +491,9 @@ class TradebotController {
 	}
 
 	/**
-	 * @HandlesCommand("tradecolor")
 	 * @Mask $action pick
 	 */
+	#[NCA\HandlesCommand("tradecolor")]
 	public function pickTradecolorCommand(CmdContext $context, string $action, PCharacter $tradeBot, string $tag): void {
 		$tag = strtolower($tag);
 		if (!array_key_exists($tradeBot(), self::BOT_DATA)) {

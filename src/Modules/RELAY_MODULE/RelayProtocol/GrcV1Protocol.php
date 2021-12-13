@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\RELAY_MODULE\RelayProtocol;
 
+use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\MessageHub;
 use Nadybot\Core\Routing\Character;
 use Nadybot\Core\Routing\RoutableEvent;
@@ -12,26 +13,36 @@ use Nadybot\Core\Util;
 use Nadybot\Modules\RELAY_MODULE\Relay;
 use Nadybot\Modules\RELAY_MODULE\RelayMessage;
 
-/**
- * @RelayProtocol("grc")
- * @Description("This is the old BudaBot protocol.
- * 	It only supports relaying messages - no sharing of online lists
- * 	or any form of colorization beyond org or guest chat.")
- * @Param(name='command', description='The command we send with each packet', type='string', required=false)
- * @Param(name='prefix', description='The prefix we send with each packet, e.g. "!" or ""', type='string', required=false)
- */
+#[
+	NCA\RelayProtocol("grc"),
+	NCA\Description("This is the old BudaBot protocol.\n".
+		"It only supports relaying messages - no sharing of online lists\n".
+		"or any form of colorization beyond org or guest chat."),
+	NCA\Param(
+		name: "command",
+		type: "string",
+		description: "The command we send with each packet",
+		required: false
+	),
+	NCA\Param(
+		name: "prefix",
+		type: "string",
+		description: "The prefix we send with each packet, e.g. \"!\" or \"\"",
+		required: false
+	)
+]
 class GrcV1Protocol implements RelayProtocolInterface {
 	protected static int $supportedFeatures = self::F_NONE;
 
 	protected Relay $relay;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Util $util;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Text $text;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public MessageHub $messageHub;
 
 	protected string $command = "grc";

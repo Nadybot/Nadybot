@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\ALIEN_MODULE;
 
+use Nadybot\Core\Attributes as NCA;
 use Exception;
 use Nadybot\Core\{
 	CmdContext,
@@ -19,24 +20,24 @@ use Nadybot\Modules\ITEMS_MODULE\ItemsController;
  * @author Wolfbiter (RK1)
  * @author Gatester (RK2)
  * @author Marebone (RK2)
- *
- * @Instance
- *
  * Commands this controller contains:
- *	@DefineCommand(
- *		command     = 'bio',
- *		accessLevel = 'all',
- *		description = "Identifies Solid Clump of Kyr'Ozch Bio-Material",
- *		help        = 'bio.txt'
- *	)
- *	@DefineCommand(
- *		command     = 'bioinfo',
- *      alias       = 'biotype',
- *		accessLevel = 'all',
- *		description = 'Shows info about a particular bio type',
- *		help        = 'bioinfo.txt'
- *	)
  */
+#[
+	NCA\Instance,
+	NCA\DefineCommand(
+		command: "bio",
+		accessLevel: "all",
+		description: "Identifies Solid Clump of Kyr'Ozch Bio-Material",
+		help: "bio.txt"
+	),
+	NCA\DefineCommand(
+		command: "bioinfo",
+		accessLevel: "all",
+		description: "Shows info about a particular bio type",
+		help: "bioinfo.txt",
+		alias: "biotype"
+	)
+]
 class AlienBioController {
 
 	/**
@@ -45,16 +46,16 @@ class AlienBioController {
 	 */
 	public string $moduleName;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public DB $db;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Text $text;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public ItemsController $itemsController;
 
-	/** @Logger */
+	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
 	private const LE_ARMOR_TYPES  = [64, 295, 468, 935];
@@ -64,8 +65,8 @@ class AlienBioController {
 
 	/**
 	 * This handler is called on bot startup.
-	 * @Setup
 	 */
+	#[NCA\Setup]
 	public function setup(): void {
 		// load database tables from .sql-files
 		$this->db->loadMigrations($this->moduleName, __DIR__ . '/Migrations/Weapons');
@@ -75,10 +76,9 @@ class AlienBioController {
 
 	/**
 	 * This command handler identifies Solid Clump of Kyr'Ozch Bio-Material.
-	 *
-	 * @HandlesCommand("bio")
 	 * @SpaceOptional $clumps
 	 */
+	#[NCA\HandlesCommand("bio")]
 	public function bioCommand(CmdContext $context, PItem ...$clumps): void {
 		$blob = '';
 		$bioinfo = "";
@@ -197,9 +197,7 @@ class AlienBioController {
 		}
 	}
 
-	/**
-	 * @HandlesCommand("bioinfo")
-	 */
+	#[NCA\HandlesCommand("bioinfo")]
 	public function bioinfoListCommand(CmdContext $context): void {
 		$blob  = "<header2>OFAB Armor Types<end>\n";
 		$blob .= $this->getTypeBlob(self::LE_ARMOR_TYPES);
@@ -230,8 +228,8 @@ class AlienBioController {
 
 	/**
 	 * This command handler shows info about a particular bio type.
-	 * @HandlesCommand("bioinfo")
 	 */
+	#[NCA\HandlesCommand("bioinfo")]
 	public function bioinfoIDCommand(CmdContext $context, int $bio, ?int $ql): void {
 		$ql ??= 300;
 		$ql = min(300, max(1, $ql));
@@ -250,8 +248,8 @@ class AlienBioController {
 
 	/**
 	 * This command handler shows info about a particular bio type.
-	 * @HandlesCommand("bioinfo")
 	 */
+	#[NCA\HandlesCommand("bioinfo")]
 	public function bioinfoCommand(CmdContext $context, PWord $bio, ?int $ql): void {
 		$bio = strtolower($bio());
 		$ql ??= 300;

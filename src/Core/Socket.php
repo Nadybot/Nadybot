@@ -2,12 +2,13 @@
 
 namespace Nadybot\Core;
 
+use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\Socket\AsyncSocket;
 
 /**
  * A factory to Nadybot\Core\Socket\AsyncSocket
- * @Instance
  */
+#[NCA\Instance]
 class Socket {
 	/**
 	 * Wrap a socket resource into a class for easy async operations

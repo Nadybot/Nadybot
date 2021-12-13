@@ -2,6 +2,7 @@
 
 namespace Nadybot\Core\Modules\CONSOLE;
 
+use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{
 	BotRunner,
 	CmdContext,
@@ -17,9 +18,7 @@ use Nadybot\Core\{
 };
 use Nadybot\Core\Channels\ConsoleChannel;
 
-/**
- * @Instance
- */
+#[NCA\Instance]
 class ConsoleController {
 	/**
 	 * Name of the module.
@@ -27,25 +26,25 @@ class ConsoleController {
 	 */
 	public string $moduleName;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public SocketManager $socketManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public CommandManager $commandManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public SettingManager $settingManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Nadybot $chatBot;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Timer $timer;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public MessageHub $messageHub;
 
-	/** @Logger */
+	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
 	public SocketNotifier $notifier;
@@ -58,7 +57,7 @@ class ConsoleController {
 
 	public bool $useReadline = false;
 
-	/** @Setup */
+	#[NCA\Setup]
 	public function setup(): void {
 		$this->settingManager->add(
 			$this->moduleName,
@@ -117,13 +116,14 @@ class ConsoleController {
 	}
 
 	/**
-	 * @Event(name="connect",
-	 * 	description="Initializes the console",
-	 * 	defaultStatus="1")
-	 *
 	 * This is an Event("connect") instead of Setup since you cannot use the console
 	 * before the bot is fully ready anyway
 	 */
+	#[NCA\Event(
+		name: "connect",
+		description: "Initializes the console",
+		defaultStatus: 1
+	)]
 	public function setupConsole(): void {
 		if (!$this->chatBot->vars["enable_console_client"]) {
 			return;

@@ -2,6 +2,7 @@
 
 namespace Nadybot\Core\Modules\SYSTEM;
 
+use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{
 	CmdContext,
 	LoggerWrapper,
@@ -12,17 +13,17 @@ use Nadybot\Core\ParamClass\PCharacter;
 
 /**
  * @author Tyrence (RK2)
- *
- * @Instance
- *
  * Commands this controller contains:
- *	@DefineCommand(
- *		command     = 'sendtell',
- *		accessLevel = 'superadmin',
- *		description = 'Send a tell to another character from the bot',
- *		help        = 'sendtell.txt'
- *	)
  */
+#[
+	NCA\Instance,
+	NCA\DefineCommand(
+		command: "sendtell",
+		accessLevel: "superadmin",
+		description: "Send a tell to another character from the bot",
+		help: "sendtell.txt"
+	)
+]
 class SendTellController {
 
 	/**
@@ -31,15 +32,13 @@ class SendTellController {
 	 */
 	public string $moduleName;
 
-	/** @Logger */
+	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Nadybot $chatBot;
 
-	/**
-	 * @HandlesCommand("sendtell")
-	 */
+	#[NCA\HandlesCommand("sendtell")]
 	public function sendtellCommand(CmdContext $context, PCharacter $name, string $message): void {
 		$this->chatBot->getUid(
 			$name(),

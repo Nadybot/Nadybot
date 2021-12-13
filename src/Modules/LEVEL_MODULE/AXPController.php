@@ -2,22 +2,23 @@
 
 namespace Nadybot\Modules\LEVEL_MODULE;
 
+use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\CmdContext;
 use Nadybot\Core\Text;
 
 /**
  * @author Tyrence (RK2)
- *
- * @Instance
- *
  * Commands this controller contains:
- *	@DefineCommand(
- *		command     = 'axp',
- *		accessLevel = 'all',
- *		description = 'Show axp needed for specified level(s)',
- *		help        = 'xp.txt'
- *	)
  */
+#[
+	NCA\Instance,
+	NCA\DefineCommand(
+		command: "axp",
+		accessLevel: "all",
+		description: "Show axp needed for specified level(s)",
+		help: "xp.txt"
+	)
+]
 class AXPController {
 	/**
 	 * Name of the module.
@@ -25,7 +26,7 @@ class AXPController {
 	 */
 	public string $moduleName;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Text $text;
 
 	/** @var array<array> */
@@ -62,9 +63,7 @@ class AXPController {
 		[5_968_409, 200, "Vindicator"],
 	];
 
-	/**
-	 * @HandlesCommand("axp")
-	 */
+	#[NCA\HandlesCommand("axp")]
 	public function axpListCommand(CmdContext $context): void {
 		$blob = "<u>AI Lvl | Lvl Req |          AXP  |  Rank         </u>\n";
 		for ($aiRank = 0; $aiRank < count($this->aiRanks); $aiRank++) {
@@ -80,9 +79,7 @@ class AXPController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @HandlesCommand("axp")
-	 */
+	#[NCA\HandlesCommand("axp")]
 	public function axpSingleCommand(CmdContext $context, int $level): void {
 		if ($level > 30) {
 			$msg = "AI level must be between 0 and 30.";
@@ -94,9 +91,7 @@ class AXPController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @HandlesCommand("axp")
-	 */
+	#[NCA\HandlesCommand("axp")]
 	public function axpDoubleCommand(CmdContext $context, int $startLevel, int $endLevel): void {
 		if ($startLevel > 30 || $endLevel > 30) {
 			$msg = "AI level must be between 0 and 30.";

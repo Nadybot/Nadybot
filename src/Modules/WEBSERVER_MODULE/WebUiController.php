@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\WEBSERVER_MODULE;
 
+use Nadybot\Core\Attributes as NCA;
 use DateTime;
 use Exception;
 use Nadybot\Core\BotRunner;
@@ -23,46 +24,47 @@ use ZipArchive;
 
 /**
  * Commands this controller contains:
- *	@DefineCommand(
- *		command     = 'webui',
- *		accessLevel = 'mod',
- *		description = 'Install or upgrade the NadyUI',
- *		help        = 'webui.txt'
- *	)
- *
- * @Instance
  */
+#[
+	NCA\DefineCommand(
+		command: "webui",
+		accessLevel: "mod",
+		description: "Install or upgrade the NadyUI",
+		help: "webui.txt"
+	),
+	NCA\Instance
+]
 class WebUiController implements MessageEmitter {
 	public string $moduleName;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Http $http;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public SettingManager $settingManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public EventManager $eventManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public WebserverController $webserverController;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public MessageHub $messageHub;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Nadybot $chatBot;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public DB $db;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Timer $timer;
 
-	/** @Logger */
+	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
-	/** @Setup */
+	#[NCA\Setup]
 	public function setup(): void {
 		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations");
 		$uiBranches = ["off", "stable", "unstable"];
@@ -98,11 +100,11 @@ class WebUiController implements MessageEmitter {
 		$this->timer->callLater(0, [$this, "updateWebUI"]);
 	}
 
-	/**
-	 * @Event(name="timer(24hrs)",
-	 * 	description="Automatically upgrade NadyUI",
-	 * 	defaultStatus="1")
-	 */
+	#[NCA\Event(
+		name: "timer(24hrs)",
+		description: "Automatically upgrade NadyUI",
+		defaultStatus: 1
+	)]
 	public function updateWebUI(): void {
 		$channel = $this->settingManager->getString('nadyui_channel');
 		if (empty($channel) || $channel === 'off') {
@@ -320,18 +322,18 @@ class WebUiController implements MessageEmitter {
 	}
 
 	/**
-	 * @HandlesCommand("webui")
 	 * @Mask $action install
 	 */
+	#[NCA\HandlesCommand("webui")]
 	public function webUiInstallCommand(CmdContext $context, string $action, string $channel): void {
 		$this->processNadyUIRelease($channel, $context, function() {
 		});
 	}
 
 	/**
-	 * @HandlesCommand("webui")
 	 * @Mask $action uninstall
 	 */
+	#[NCA\HandlesCommand("webui")]
 	public function webUiUninstallCommand(CmdContext $context, string $action): void {
 		$msg = "There was an error removig the old files from NadyUI, please clean up manually.";
 		if ($this->uninstallNadyUi(true)) {

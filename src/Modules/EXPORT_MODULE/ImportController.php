@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\EXPORT_MODULE;
 
+use Nadybot\Core\Attributes as NCA;
 use Swaggest\JsonSchema\Schema;
 
 use Nadybot\Core\{
@@ -47,17 +48,17 @@ use Throwable;
 
 /**
  * @author Nadyita (RK5) <nadyita@hodorraid.org>
- *
- * @Instance
- *
  * Commands this controller contains:
- *	@DefineCommand(
- *		command     = 'import',
- *		accessLevel = 'superadmin',
- *		description = 'Import bot data and replace the current one',
- *		help        = 'export.txt'
- *	)
  */
+#[
+	NCA\Instance,
+	NCA\DefineCommand(
+		command: "import",
+		accessLevel: "superadmin",
+		description: "Import bot data and replace the current one",
+		help: "export.txt"
+	)
+]
 class ImportController {
 	/**
 	 * Name of the module.
@@ -66,34 +67,34 @@ class ImportController {
 	 */
 	public string $moduleName;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Nadybot $chatBot;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public DB $db;
 
-	/** @Logger */
+	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Preferences $preferences;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public AdminManager $adminManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public AccessManager $accessManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public BanController $banController;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public SettingManager $settingManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public CommentController $commentController;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public RaidRankController $raidRankController;
 
 	protected function loadAndParseExportFile(string $fileName, CmdContext $sendto): ?object {
@@ -126,9 +127,9 @@ class ImportController {
 	}
 
 	/**
-	 * @HandlesCommand("import")
 	 * @Mask $mappings (\w+=\w+)
 	 */
+	#[NCA\HandlesCommand("import")]
 	public function importCommand(CmdContext $context, PFilename $file, ?string ...$mappings): void {
 		$dataPath = $this->chatBot->vars["datafolder"] ?? "./data";
 		$fileName = "{$dataPath}/export/" . basename($file());

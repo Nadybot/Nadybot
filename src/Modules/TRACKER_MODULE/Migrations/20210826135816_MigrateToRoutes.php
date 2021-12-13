@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\TRACKER_MODULE\Migrations;
 
+use Nadybot\Core\Attributes as NCA;
 use Exception;
 use Nadybot\Core\Annotations\Setting;
 use Nadybot\Core\Modules\DISCORD\DiscordChannel;
@@ -17,16 +18,16 @@ use Nadybot\Core\SettingManager;
 use Nadybot\Modules\TRACKER_MODULE\TrackerController;
 
 class MigrateToRoutes implements SchemaMigration {
-	/** @Inject */
+	#[NCA\Inject]
 	public Nadybot $chatBot;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public DiscordAPIClient $discordAPIClient;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public TrackerController $trackerController;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public MessageHub $messageHub;
 
 	protected function getSetting(DB $db, string $name): ?Setting {

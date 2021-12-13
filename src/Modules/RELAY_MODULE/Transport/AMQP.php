@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\RELAY_MODULE\Transport;
 
+use Nadybot\Core\Attributes as NCA;
 use ErrorException;
 use Exception;
 use Nadybot\Core\EventLoop;
@@ -23,75 +24,75 @@ use PhpAmqpLib\Exchange\AMQPExchangeType;
 use PhpAmqpLib\Message\AMQPMessage;
 use Throwable;
 
-/**
- * @RelayTransport("amqp")
- * @Description("AMQP is a transport layer provided by software like RabbitMQ.
- * 	It allows near-realtime communication, but because the server is not part
- * 	of Anarchy Online, you might have a hard time debugging errors.
- * 	AMQP has a built-in transport protocol: Every client can subscribe
- * 	to one or more exchanges and sending a message to an exchange will
- * 	automatically send it to everyone else that's subscribed to it.
- * 	AMQP does not support proper sharing of online lists. Because
- * 	we are never informed when a bot leaves the relay, we will show
- * 	the bot's users as online forever.
- * 	This transport was introduced in Nadybot 5.0.")
- * @Param(
- * 	name='exchange',
- * 	description='The name of the exchange to subscribe to. Use a,b,c to subscribe to more than one.',
- * 	type='string',
- * 	required=true
- * )
- * @Param(
- * 	name='user',
- * 	description='The username to connect with.',
- * 	type='string',
- * 	required=true
- * )
- * @Param(
- * 	name='password',
- * 	description='The password to connect with.',
- * 	type='secret',
- * 	required=true
- * )
- * @Param(
- * 	name='server',
- * 	description='Hostname or IP address of the AMQP server.',
- * 	type='string',
- * 	required=true
- * )
- * @Param(
- * 	name='port',
- * 	description='The port of the AMQP server.',
- * 	type='int',
- * 	required=false
- * )
- * @Param(
- * 	name='vhost',
- * 	description='If your AMQP server is setup to use virtual hosts, set yours here.',
- * 	type='string',
- * 	required=false
- * )
- * @Param(
- * 	name='queue',
- * 	description='The name of the queue we will use internally. Set this if you have multiple relays to the same AMQP server.',
- * 	type='string',
- * 	required=false
- * )
- * @Param(
- * 	name='reconnect-interval',
- * 	description='Seconds to wait between reconnects.',
- * 	type='int',
- * 	required=false
- * )
- */
+#[
+	NCA\RelayTransport("amqp"),
+	NCA\Description("AMQP is a transport layer provided by software like RabbitMQ.\n".
+		"It allows near-realtime communication, but because the server is not part\n".
+		"of Anarchy Online, you might have a hard time debugging errors.\n".
+		"AMQP has a built-in transport protocol: Every client can subscribe\n".
+		"to one or more exchanges and sending a message to an exchange will\n".
+		"automatically send it to everyone else that's subscribed to it.\n".
+		"AMQP does not support proper sharing of online lists. Because\n".
+		"we are never informed when a bot leaves the relay, we will show\n".
+		"the bot's users as online forever.\n".
+		"This transport was introduced in Nadybot 5.0."),
+	NCA\Param(
+		name: "exchange",
+		type: "string",
+		description: "The name of the exchange to subscribe to. Use a,b,c to subscribe to more than one.",
+		required: true
+	),
+	NCA\Param(
+		name: "user",
+		type: "string",
+		description: "The username to connect with.",
+		required: true
+	),
+	NCA\Param(
+		name: "password",
+		type: "secret",
+		description: "The password to connect with.",
+		required: true
+	),
+	NCA\Param(
+		name: "server",
+		type: "string",
+		description: "Hostname or IP address of the AMQP server.",
+		required: true
+	),
+	NCA\Param(
+		name: "port",
+		type: "int",
+		description: "The port of the AMQP server.",
+		required: false
+	),
+	NCA\Param(
+		name: "vhost",
+		type: "string",
+		description: "If your AMQP server is setup to use virtual hosts, set yours here.",
+		required: false
+	),
+	NCA\Param(
+		name: "queue",
+		type: "string",
+		description: "The name of the queue we will use internally. Set this if you have multiple relays to the same AMQP server.",
+		required: false
+	),
+	NCA\Param(
+		name: "reconnect-interval",
+		type: "int",
+		description: "Seconds to wait between reconnects.",
+		required: false
+	)
+]
 class AMQP implements TransportInterface, StatusProvider {
-	/** @Inject */
+	#[NCA\Inject]
 	public Nadybot $chatBot;
 
-	/** @Logger */
+	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public EventManager $eventManager;
 
 	protected static int $instance=0;

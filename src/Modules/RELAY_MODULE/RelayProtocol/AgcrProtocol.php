@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\RELAY_MODULE\RelayProtocol;
 
+use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\LoggerWrapper;
 use Nadybot\Core\MessageHub;
 use Nadybot\Core\Routing\Character;
@@ -13,34 +14,54 @@ use Nadybot\Core\Util;
 use Nadybot\Modules\RELAY_MODULE\Relay;
 use Nadybot\Modules\RELAY_MODULE\RelayMessage;
 
-/**
- * @RelayProtocol("agcr")
- * @Description("This is the protocol that is used by the alliance of Rimor.
- * 	It does not supports sharing online lists and can only colorize
- * 	org and guest chat properly.")
- * @Param(name='command', description='The command we send with each packet', type='string', required=false)
- * @Param(name='prefix', description='The prefix we send with each packet, e.g. "!" or ""', type='string', required=false)
- * @Param(name='force-single-hop', description='Instead of sending "[Org] [Guest]", force sending "[Org Guest]".
- *	This might be needed when old bots have problems parsing your sent messages,
- *	because they do not support guest chats.', type='boolean', required=false)
- * @Param(name='send-user-links', description='Send a clickable username for the sender.
- *	Disable when other bots cannot parse this and will render your messages wrong.', type='boolean', required=false)
- */
+#[
+	NCA\RelayProtocol("agcr"),
+	NCA\Description("This is the protocol that is used by the alliance of Rimor.\n".
+		"It does not supports sharing online lists and can only colorize\n".
+		"org and guest chat properly."),
+	NCA\Param(
+		name: "command",
+		type: "string",
+		description: "The command we send with each packet",
+		required: false
+	),
+	NCA\Param(
+		name: "prefix",
+		type: "string",
+		description: "The prefix we send with each packet, e.g. \"!\" or \"\"",
+		required: false
+	),
+	NCA\Param(
+		name: "force-single-hop",
+		type: "boolean",
+		description: "Instead of sending \"[Org] [Guest]\", force sending \"[Org Guest]\".\n".
+			"This might be needed when old bots have problems parsing your sent messages,\n".
+			"because they do not support guest chats.",
+		required: false
+	),
+	NCA\Param(
+		name: "send-user-links",
+		type: "boolean",
+		description: "Send a clickable username for the sender.\n".
+			"Disable when other bots cannot parse this and will render your messages wrong.",
+		required: false
+	)
+]
 class AgcrProtocol implements RelayProtocolInterface {
 	protected static int $supportedFeatures = self::F_NONE;
 
 	protected Relay $relay;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Util $util;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public MessageHub $messageHub;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Text $text;
 
-	/** @Logger */
+	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
 	protected string $command = "agcr";

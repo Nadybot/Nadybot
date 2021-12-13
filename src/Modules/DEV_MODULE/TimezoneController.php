@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\DEV_MODULE;
 
+use Nadybot\Core\Attributes as NCA;
 use DateTimeZone;
 use Nadybot\Core\{
 	CmdContext,
@@ -12,18 +13,18 @@ use Nadybot\Core\ParamClass\PWord;
 
 /**
  * @author Tyrence (RK2)
- *
- * @Instance
- *
  * Commands this controller contains:
- *	@DefineCommand(
- *		command     = 'timezone',
- *		accessLevel = 'superadmin',
- *		description = "Set the timezone",
- *		help        = 'timezone.txt',
- *		alias		= 'timezones'
- *	)
  */
+#[
+	NCA\Instance,
+	NCA\DefineCommand(
+		command: "timezone",
+		accessLevel: "superadmin",
+		description: "Set the timezone",
+		help: "timezone.txt",
+		alias: "timezones"
+	)
+]
 class TimezoneController {
 
 	/**
@@ -32,15 +33,13 @@ class TimezoneController {
 	 */
 	public string $moduleName;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Text $text;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Nadybot $chatBot;
 
-	/**
-	 * @HandlesCommand("timezone")
-	 */
+	#[NCA\HandlesCommand("timezone")]
 	public function timezoneCommand(CmdContext $context): void {
 		$timezoneAreas = $this->getTimezoneAreas();
 
@@ -53,9 +52,9 @@ class TimezoneController {
 	}
 
 	/**
-	 * @HandlesCommand("timezone")
 	 * @Mask $action set
 	 */
+	#[NCA\HandlesCommand("timezone")]
 	public function timezoneSetCommand(CmdContext $context, string $action, PWord $timezone): void {
 		$result = date_default_timezone_set($timezone());
 
@@ -72,9 +71,7 @@ class TimezoneController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @HandlesCommand("timezone")
-	 */
+	#[NCA\HandlesCommand("timezone")]
 	public function timezoneAreaCommand(CmdContext $context, PWord $area): void {
 		$area = $area();
 

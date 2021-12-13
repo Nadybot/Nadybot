@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\GUILD_MODULE;
 
+use Nadybot\Core\Attributes as NCA;
 use Exception;
 use Nadybot\Core\{
 	AccessManager,
@@ -20,23 +21,23 @@ use Nadybot\Modules\ORGLIST_MODULE\OrglistController;
 
 /**
  * @author Nadyita (RK5)
- *
- * @Instance
- *
  * Commands this controller contains:
- *	@DefineCommand(
- *		command     = "ranks",
- *		accessLevel = "all",
- *		description = "Show a list of all available org ranks",
- *		help        = "ranks.txt"
- *	)
- *	@DefineCommand(
- *		command     = "maprank",
- *		accessLevel = "admin",
- *		description = "Define how org ranks map to bot ranks",
- *		help        = "maprank.txt"
- *	)
  */
+#[
+	NCA\Instance,
+	NCA\DefineCommand(
+		command: "ranks",
+		accessLevel: "all",
+		description: "Show a list of all available org ranks",
+		help: "ranks.txt"
+	),
+	NCA\DefineCommand(
+		command: "maprank",
+		accessLevel: "admin",
+		description: "Define how org ranks map to bot ranks",
+		help: "maprank.txt"
+	)
+]
 class GuildRankController {
 
 	public const DB_TABLE = "org_rank_mapping_<myname>";
@@ -47,31 +48,31 @@ class GuildRankController {
 	 */
 	public string $moduleName;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public DB $db;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Nadybot $chatBot;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public AccessManager $accessManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public SettingManager $settingManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public GuildManager $guildManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public GuildController $guildController;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public OrglistController $orglistController;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Text $text;
 
-	/** @Setup */
+	#[NCA\Setup]
 	public function setup(): void {
 		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations/RankMapping");
 
@@ -109,9 +110,7 @@ class GuildRankController {
 		return $rank ? $rank->access_level : "guild";
 	}
 
-	/**
-	 * @HandlesCommand("maprank")
-	 */
+	#[NCA\HandlesCommand("maprank")]
 	public function maprankListCommand(CmdContext $context): void {
 		if (!$this->guildController->isGuildBot()) {
 			$context->reply("The bot must be in an org.");
@@ -163,9 +162,9 @@ class GuildRankController {
 	}
 
 	/**
-	 * @HandlesCommand("maprank")
 	 * @Mask $to to
 	 */
+	#[NCA\HandlesCommand("maprank")]
 	public function maprankCommand(CmdContext $context, int $rank, ?string $to, PWord $accessLevel): void {
 		if (!$this->guildController->isGuildBot()) {
 			$context->reply("The bot must be in an org.");
@@ -247,9 +246,7 @@ class GuildRankController {
 		$sendto->reply("Every <highlight>{$rankName}<end> or higher will now be mapped to <highlight>{$alName}<end>.");
 	}
 
-	/**
-	 * @HandlesCommand("maprank")
-	 */
+	#[NCA\HandlesCommand("maprank")]
 	public function maprankDelCommand(CmdContext $context, PRemove $action, int $rankId): void {
 		if (!$this->guildController->isGuildBot()) {
 			$context->reply("The bot must be in an org.");
@@ -301,9 +298,7 @@ class GuildRankController {
 		);
 	}
 
-	/**
-	 * @HandlesCommand("ranks")
-	 */
+	#[NCA\HandlesCommand("ranks")]
 	public function ranksCommand(CmdContext $context): void {
 		if (!$this->guildController->isGuildBot()) {
 			$context->reply("The bot must be in an org.");

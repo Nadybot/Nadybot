@@ -2,11 +2,10 @@
 
 namespace Nadybot\Core\Modules\COLORS;
 
+use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\SettingManager;
 
-/**
- * @Instance
- */
+#[NCA\Instance]
 class ColorsController {
 	/**
 	 * Name of the module.
@@ -14,10 +13,10 @@ class ColorsController {
 	 */
 	public string $moduleName;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public SettingManager $settingManager;
 
-	/** @Setup */
+	#[NCA\Setup]
 	public function setup(): void {
 		$this->settingManager->add(
 			module: $this->moduleName,

@@ -6,7 +6,7 @@ use Nadybot\Core\Attributes as NCA;
 use ReflectionClass;
 
 class ClassLoader {
-	/** @Logger */
+	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
 	/**

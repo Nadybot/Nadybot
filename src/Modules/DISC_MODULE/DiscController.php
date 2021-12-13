@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\DISC_MODULE;
 
+use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{
 	CmdContext,
 	DB,
@@ -14,17 +15,17 @@ use Nadybot\Core\ParamClass\PItem;
 
 /**
  * @author Nadyita (RK5) <nadyita@hodorraid.org>
- *
- * @Instance
- *
  * Commands this controller contains:
- *	@DefineCommand(
- *		command     = 'disc',
- *		accessLevel = 'all',
- *		description = 'Show which nano a disc will turn into',
- *		help        = 'disc.txt'
- *	)
  */
+#[
+	NCA\Instance,
+	NCA\DefineCommand(
+		command: "disc",
+		accessLevel: "all",
+		description: "Show which nano a disc will turn into",
+		help: "disc.txt"
+	)
+]
 class DiscController {
 
 	/**
@@ -34,20 +35,21 @@ class DiscController {
 	 */
 	public string $moduleName;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Nadybot $chatBot;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Util $util;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Text $text;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public DB $db;
 
 	/** @Setup This handler is called on bot startup.
 	 */
+	#[NCA\Setup]
 	public function setup(): void {
 		// load database tables from .sql-files
 		$this->db->loadMigrations($this->moduleName, __DIR__ . '/Migrations');
@@ -56,7 +58,6 @@ class DiscController {
 
 	/**
 	 * Get the instruction disc from its name and return an array with results
-	 *
 	 * @return Disc[] An array of database entries that matched
 	 */
 	public function getDiscsByName(string $discName): array {
@@ -77,9 +78,8 @@ class DiscController {
 
 	/**
 	 * Command to show what nano a disc will turn into
-	 *
-	 * @HandlesCommand("disc")
 	 */
+	#[NCA\HandlesCommand("disc")]
 	public function discByItemCommand(CmdContext $context, PItem $item): void {
 		$disc = $this->getDiscById($item->lowID);
 		if (!isset($disc)) {
@@ -93,9 +93,8 @@ class DiscController {
 
 	/**
 	 * Command to show what nano a disc will turn into
-	 *
-	 * @HandlesCommand("disc")
 	 */
+	#[NCA\HandlesCommand("disc")]
 	public function discByNameCommand(CmdContext $context, string $item): void {
 		// If only a name was given, lookup the disc's ID
 		$discs = $this->getDiscsByName($item);
@@ -150,7 +149,6 @@ class DiscController {
 
 	/**
 	 * Generate a choice dialogue if multiple discs match the search criteria
-	 *
 	 * @param Disc[] $discs The discs that matched the search
 	 */
 	public function getDiscChoiceDialogue(array $discs): array {

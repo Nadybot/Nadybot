@@ -2,43 +2,44 @@
 
 namespace Nadybot\Core\EventModifier;
 
+use Nadybot\Core\Attributes as NCA;
 use Exception;
 use Nadybot\Core\EventModifier;
 use Nadybot\Core\Routing\RoutableEvent;
 use Nadybot\Core\Text;
 
-/**
- * @EventModifier("change-message")
- * @Description("This modifier allows you to modify the message of an
- *  event by replacing text, or adding a prefix.")
- * @Param(
- *	name='add-prefix',
- *	type='string',
- *	description='If set, prefix the message with the given string. Note that it will
- *	not automatically add a space between prefix and message.',
- *	required=false
- * )
- * @Param(
- *	name='search',
- *	type='string',
- *	description='If set, search for the given string and replace it with the "replace" parameter',
- *	required=false
- * )
- * @Param(
- *	name='replace',
- *	type='string',
- *	description='If search is set, this is the text to replace with',
- *	required=false
- * )
- * @Param(
- *	name='regexp',
- *	type='bool',
- *	description='If set to true, do a regular expression search and replace',
- *	required=false
- * )
- */
+#[
+	NCA\EventModifier("change-message"),
+	NCA\Description("This modifier allows you to modify the message of an\n".
+		"event by replacing text, or adding a prefix."),
+	NCA\Param(
+		name: "add-prefix",
+		type: "string",
+		description: "If set, prefix the message with the given string. Note that it will\n".
+			"not automatically add a space between prefix and message.",
+		required: false
+	),
+	NCA\Param(
+		name: "search",
+		type: "string",
+		description: "If set, search for the given string and replace it with the \"replace\" parameter",
+		required: false
+	),
+	NCA\Param(
+		name: "replace",
+		type: "string",
+		description: "If search is set, this is the text to replace with",
+		required: false
+	),
+	NCA\Param(
+		name: "regexp",
+		type: "bool",
+		description: "If set to true, do a regular expression search and replace",
+		required: false
+	)
+]
 class ChangeMessage implements EventModifier {
-	/** @Inject */
+	#[NCA\Inject]
 	public Text $text;
 
 	protected ?string $addPrefix = null;

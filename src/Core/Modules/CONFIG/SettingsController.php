@@ -2,6 +2,7 @@
 
 namespace Nadybot\Core\Modules\CONFIG;
 
+use Nadybot\Core\Attributes as NCA;
 use Exception;
 use Nadybot\Core\{
 	AccessManager,
@@ -18,17 +19,18 @@ use Nadybot\Core\DBSchema\Setting;
 use Nadybot\Core\ParamClass\PWord;
 
 /**
- * @Instance
- *
  * Commands this controller contains:
- *	@DefineCommand(
- *		command     = 'settings',
- *		accessLevel = 'mod',
- *		description = 'Change settings on the bot',
- *		help        = 'settings.txt',
- *		defaultStatus = '1'
- *	)
  */
+#[
+	NCA\Instance,
+	NCA\DefineCommand(
+		command: "settings",
+		accessLevel: "mod",
+		description: "Change settings on the bot",
+		help: "settings.txt",
+		defaultStatus: 1
+	)
+]
 class SettingsController {
 
 	/**
@@ -37,38 +39,36 @@ class SettingsController {
 	 */
 	public string $moduleName;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Text $text;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public DB $db;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public SettingManager $settingManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public HelpManager $helpManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Util $util;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public CommandManager $commandManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public AccessManager $accessManager;
 
 	/**
-	 * @Setup
 	 * This handler is called on bot startup.
 	 */
+	#[NCA\Setup]
 	public function setup(): void {
 		$this->settingManager->upload();
 	}
 
-	/**
-	 * @HandlesCommand("settings")
-	 */
+	#[NCA\HandlesCommand("settings")]
 	public function settingsCommand(CmdContext $context): void {
 		$blob = "Changing any of these settings will take effect immediately. Please note that some of these settings are read-only and cannot be changed.\n\n";
 		/** @var Setting[] $data */
@@ -101,9 +101,9 @@ class SettingsController {
 	}
 
 	/**
-	 * @HandlesCommand("settings")
 	 * @Mask $action change
 	 */
+	#[NCA\HandlesCommand("settings")]
 	public function changeCommand(CmdContext $context, string $action, PWord $setting): void {
 		$settingName = strtolower($setting());
 		/** @var ?Setting $row */
@@ -141,9 +141,9 @@ class SettingsController {
 	}
 
 	/**
-	 * @HandlesCommand("settings")
 	 * @Mask $action save
 	 */
+	#[NCA\HandlesCommand("settings")]
 	public function saveCommand(CmdContext $context, string $action, PWord $setting, string $newValue): void {
 		$name = strtolower($setting());
 		/** @var ?Setting */

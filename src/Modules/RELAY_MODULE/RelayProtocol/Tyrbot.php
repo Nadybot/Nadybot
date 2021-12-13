@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\RELAY_MODULE\RelayProtocol;
 
+use Nadybot\Core\Attributes as NCA;
 use JsonException;
 use Nadybot\Core\{
 	LoggerWrapper,
@@ -25,14 +26,19 @@ use Nadybot\Modules\RELAY_MODULE\RelayProtocol\Tyrbot\{
 };
 use Throwable;
 
-/**
- * @RelayProtocol("tyrbot")
- * @Description("This is the enhanced protocol of Tyrbot. If your
- * 	relay consists only of Nadybots and Tyrbots, use this one.
- * 	It allows sharing of online users as well as fully customized
- * 	colors.")
- * @Param(name='sync-online', description='Sync the online list with the other bots of this relay', type='bool', required=false)
- */
+#[
+	NCA\RelayProtocol("tyrbot"),
+	NCA\Description("This is the enhanced protocol of Tyrbot. If your\n".
+		"relay consists only of Nadybots and Tyrbots, use this one.\n".
+		"It allows sharing of online users as well as fully customized\n".
+		"colors."),
+	NCA\Param(
+		name: "sync-online",
+		type: "bool",
+		description: "Sync the online list with the other bots of this relay",
+		required: false
+	)
+]
 class Tyrbot implements RelayProtocolInterface {
 	protected static int $supportedFeatures = self::F_ONLINE_SYNC;
 
@@ -41,16 +47,16 @@ class Tyrbot implements RelayProtocolInterface {
 	/** Do we want to sync online users? */
 	protected bool $syncOnline = true;
 
-	/** @Logger */
+	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Nadybot $chatBot;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public OnlineController $onlineController;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public SettingManager $settingManager;
 
 	public function __construct(bool $syncOnline=true) {

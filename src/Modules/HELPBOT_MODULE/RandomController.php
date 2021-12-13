@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\HELPBOT_MODULE;
 
+use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{
 	CmdContext,
 	CommandAlias,
@@ -14,29 +15,29 @@ use Nadybot\Core\{
 
 /**
  * @author Tyrence (RK2)
- *
- * @Instance
- *
  * Commands this controller contains:
- *	@DefineCommand(
- *		command     = 'random',
- *		accessLevel = 'all',
- *		description = 'Randomize a list of names/items',
- *		help        = 'random.txt'
- *	)
- *	@DefineCommand(
- *		command     = 'roll',
- *		accessLevel = 'all',
- *		description = 'Roll a random number',
- *		help        = 'roll.txt'
- *	)
- *	@DefineCommand(
- *		command     = 'verify',
- *		accessLevel = 'all',
- *		description = 'Verifies a roll',
- *		help        = 'roll.txt'
- *	)
  */
+#[
+	NCA\Instance,
+	NCA\DefineCommand(
+		command: "random",
+		accessLevel: "all",
+		description: "Randomize a list of names/items",
+		help: "random.txt"
+	),
+	NCA\DefineCommand(
+		command: "roll",
+		accessLevel: "all",
+		description: "Roll a random number",
+		help: "roll.txt"
+	),
+	NCA\DefineCommand(
+		command: "verify",
+		accessLevel: "all",
+		description: "Verifies a roll",
+		help: "roll.txt"
+	)
+]
 class RandomController {
 
 	/**
@@ -45,25 +46,25 @@ class RandomController {
 	 */
 	public string $moduleName;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public DB $db;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Text $text;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Util $util;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public SettingManager $settingManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public CommandAlias $commandAlias;
 
 	/**
 	 * This handler is called on bot startup.
-	 * @Setup
 	 */
+	#[NCA\Setup]
 	public function setup(): void {
 		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations/Roll");
 
@@ -87,9 +88,7 @@ class RandomController {
 			->exists() === false;
 	}
 
-	/**
-	 * @HandlesCommand("random")
-	 */
+	#[NCA\HandlesCommand("random")]
 	public function randomCommand(CmdContext $context, string $string): void {
 		$items = preg_split("/(,\s+|\s+|,)/", trim($string));
 		$list = [];
@@ -108,9 +107,7 @@ class RandomController {
 		));
 	}
 
-	/**
-	 * @HandlesCommand("roll")
-	 */
+	#[NCA\HandlesCommand("roll")]
 	public function rollNumericCommand(CmdContext $context, int $num1, ?int $num2): void {
 		if (isset($num2)) {
 			$min = $num1;
@@ -148,9 +145,9 @@ class RandomController {
 	}
 
 	/**
-	 * @HandlesCommand("roll")
 	 * @Mask $amount ((?:\d+)[x*])
 	 */
+	#[NCA\HandlesCommand("roll")]
 	public function rollMultipleNamesCommand(CmdContext $context, string $amount, string $names): void {
 		$amount = (int)$amount;
 		$timeBetweenRolls = $this->settingManager->getInt('time_between_rolls')??30;
@@ -184,9 +181,7 @@ class RandomController {
 		));
 	}
 
-	/**
-	 * @HandlesCommand("roll")
-	 */
+	#[NCA\HandlesCommand("roll")]
 	public function rollNamesCommand(CmdContext $context, string $names): void {
 		$timeBetweenRolls = $this->settingManager->getInt('time_between_rolls')??30;
 		if (!$this->canRoll($context->char->name, $timeBetweenRolls)) {
@@ -228,9 +223,7 @@ class RandomController {
 		return "{$startTag}" . join("{$endTag} and {$startTag}", [...$options, $lastOption]) . "{$endTag}";
 	}
 
-	/**
-	 * @HandlesCommand("verify")
-	 */
+	#[NCA\HandlesCommand("verify")]
 	public function verifyCommand(CmdContext $context, int $id): void {
 		/** @var ?Roll */
 		$row = $this->db->table("roll")

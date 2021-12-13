@@ -2,6 +2,7 @@
 
 namespace Nadybot\Core\Modules\CONFIG;
 
+use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{
 	CmdContext,
 	CommandAlias,
@@ -13,50 +14,51 @@ use Nadybot\Core\ParamClass\PRemove;
 use Nadybot\Core\ParamClass\PWord;
 
 /**
- * @Instance
- *
  * Commands this controller contains:
- *	@DefineCommand(
- *		command       = 'alias',
- *		accessLevel   = 'mod',
- *		description   = 'Manage command aliases',
- *		help          = 'alias.txt',
- *		defaultStatus = '1'
- *	)
  */
+#[
+	NCA\Instance,
+	NCA\DefineCommand(
+		command: "alias",
+		accessLevel: "mod",
+		description: "Manage command aliases",
+		help: "alias.txt",
+		defaultStatus: 1
+	)
+]
 class AliasController {
 
-	/** @Inject */
+	#[NCA\Inject]
 	public CommandAlias $commandAlias;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public CommandManager $commandManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Text $text;
 
 	/**
-	 * @HandlesCommand("alias")
 	 * @Mask $action add
 	 * @Mask $alias ("[a-z 0-9]+")
 	 */
+	#[NCA\HandlesCommand("alias")]
 	public function aliasAddCommand1(CmdContext $context, string $action, string $alias, string $command): void {
 		$this->aliasAddCommand($context, substr($alias, 1, -1), $command);
 	}
 
 	/**
-	 * @HandlesCommand("alias")
 	 * @Mask $action add
 	 * @Mask $alias ('[a-z 0-9]+')
 	 */
+	#[NCA\HandlesCommand("alias")]
 	public function aliasAddCommand2(CmdContext $context, string $action, string $alias, string $command): void {
 		$this->aliasAddCommand($context, substr($alias, 1, -1), $command);
 	}
 
 	/**
-	 * @HandlesCommand("alias")
 	 * @Mask $action add
 	 */
+	#[NCA\HandlesCommand("alias")]
 	public function aliasAddCommand3(CmdContext $context, string $action, PWord $alias, string $command): void {
 		$this->aliasAddCommand($context, $alias(), $command);
 	}
@@ -99,10 +101,9 @@ class AliasController {
 
 	/**
 	 * This command handler list all aliases.
-	 *
-	 * @HandlesCommand("alias")
 	 * @Mask $action list
 	 */
+	#[NCA\HandlesCommand("alias")]
 	public function aliasListCommand(CmdContext $context, string $action): void {
 		$blob = "";
 		/** @var array<string,CmdAlias[]> */
@@ -134,9 +135,8 @@ class AliasController {
 
 	/**
 	 * This command handler remove a command alias.
-	 *
-	 * @HandlesCommand("alias")
 	 */
+	#[NCA\HandlesCommand("alias")]
 	public function aliasRemCommand(CmdContext $context, PRemove $rem, string $alias): void {
 		$alias = strtolower($alias);
 

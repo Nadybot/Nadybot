@@ -2,6 +2,7 @@
 
 namespace Nadybot\Core\Modules\SYSTEM;
 
+use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{
 	AccessManager,
 	AdminManager,
@@ -35,55 +36,55 @@ use Nadybot\Modules\WEBSERVER_MODULE\Response;
 /**
  * @author Sebuda (RK2)
  * @author Tyrence (RK2)
- *
- * @Instance
- *
  * Commands this controller contains:
- *	@DefineCommand(
- *		command       = 'checkaccess',
- *		accessLevel   = 'all',
- *		description   = 'Check effective access level of a character',
- *		help          = 'checkaccess.txt'
- *	)
- *	@DefineCommand(
- *		command       = 'clearqueue',
- *		accessLevel   = 'mod',
- *		description   = 'Clear outgoing chatqueue from all pending messages',
- *		help          = 'clearqueue.txt'
- *	)
- *	@DefineCommand(
- *		command       = 'macro',
- *		accessLevel   = 'all',
- *		description   = 'Execute multiple commands at once',
- *		help          = 'macro.txt'
- *	)
- *	@DefineCommand(
- *		command       = 'showcommand',
- *		accessLevel   = 'mod',
- *		description   = 'Execute a command and have output sent to another player',
- *		help          = 'showcommand.txt'
- *	)
- *	@DefineCommand(
- *		command       = 'system',
- *		accessLevel   = 'mod',
- *		description   = 'Show detailed information about the bot',
- *		help          = 'system.txt'
- *	)
- *	@DefineCommand(
- *		command       = 'restart',
- *		accessLevel   = 'admin',
- *		description   = 'Restart the bot',
- *		help          = 'system.txt',
- *		defaultStatus = '1'
- *	)
- *	@DefineCommand(
- *		command       = 'shutdown',
- *		accessLevel   = 'admin',
- *		description   = 'Shutdown the bot',
- *		help          = 'system.txt',
- *		defaultStatus = '1'
- *	)
  */
+#[
+	NCA\Instance,
+	NCA\DefineCommand(
+		command: "checkaccess",
+		accessLevel: "all",
+		description: "Check effective access level of a character",
+		help: "checkaccess.txt"
+	),
+	NCA\DefineCommand(
+		command: "clearqueue",
+		accessLevel: "mod",
+		description: "Clear outgoing chatqueue from all pending messages",
+		help: "clearqueue.txt"
+	),
+	NCA\DefineCommand(
+		command: "macro",
+		accessLevel: "all",
+		description: "Execute multiple commands at once",
+		help: "macro.txt"
+	),
+	NCA\DefineCommand(
+		command: "showcommand",
+		accessLevel: "mod",
+		description: "Execute a command and have output sent to another player",
+		help: "showcommand.txt"
+	),
+	NCA\DefineCommand(
+		command: "system",
+		accessLevel: "mod",
+		description: "Show detailed information about the bot",
+		help: "system.txt"
+	),
+	NCA\DefineCommand(
+		command: "restart",
+		accessLevel: "admin",
+		description: "Restart the bot",
+		help: "system.txt",
+		defaultStatus: 1
+	),
+	NCA\DefineCommand(
+		command: "shutdown",
+		accessLevel: "admin",
+		description: "Shutdown the bot",
+		help: "system.txt",
+		defaultStatus: 1
+	)
+]
 class SystemController implements MessageEmitter {
 
 	/**
@@ -92,55 +93,55 @@ class SystemController implements MessageEmitter {
 	 */
 	public string $moduleName;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public AccessManager $accessManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public AdminManager $adminManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Nadybot $chatBot;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public DB $db;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public CommandManager $commandManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public EventManager $eventManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public CommandAlias $commandAlias;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public SubcommandManager $subcommandManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public HelpManager $helpManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public BuddylistManager $buddylistManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public SettingManager $settingManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Text $text;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Util $util;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public MessageHub $messageHub;
 
-	/** @Logger */
+	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
 	/**
-	 * @Setup
 	 * This handler is called on bot startup.
 	 */
+	#[NCA\Setup]
 	public function setup(): void {
 		$this->settingManager->save('version', $this->chatBot->runner::getVersion());
 
@@ -292,9 +293,7 @@ class SystemController implements MessageEmitter {
 		return Source::SYSTEM . "(status)";
 	}
 
-	/**
-	 * @HandlesCommand("restart")
-	 */
+	#[NCA\HandlesCommand("restart")]
 	public function restartCommand(CmdContext $context): void {
 		$msg = "Bot is restarting.";
 		$this->chatBot->sendTell($msg, $context->char->name);
@@ -307,9 +306,7 @@ class SystemController implements MessageEmitter {
 		exit(-1);
 	}
 
-	/**
-	 * @HandlesCommand("shutdown")
-	 */
+	#[NCA\HandlesCommand("shutdown")]
 	public function shutdownCommand(CmdContext $context): void {
 		$msg = "The Bot is shutting down.";
 		$this->chatBot->sendTell($msg, $context->char->name);
@@ -392,9 +389,7 @@ class SystemController implements MessageEmitter {
 		return $info;
 	}
 
-	/**
-	 * @HandlesCommand("system")
-	 */
+	#[NCA\HandlesCommand("system")]
 	public function systemCommand(CmdContext $context): void {
 		$info = $this->getSystemInfo();
 
@@ -477,9 +472,7 @@ class SystemController implements MessageEmitter {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @HandlesCommand("checkaccess")
-	 */
+	#[NCA\HandlesCommand("checkaccess")]
 	public function checkaccessSelfCommand(CmdContext $context): void {
 		$accessLevel = $this->accessManager->getDisplayName($this->accessManager->getAccessLevelForCharacter($context->char->name));
 
@@ -489,9 +482,7 @@ class SystemController implements MessageEmitter {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @HandlesCommand("checkaccess")
-	 */
+	#[NCA\HandlesCommand("checkaccess")]
 	public function checkaccessOtherCommand(CmdContext $context, PCharacter $name): void {
 		$this->chatBot->getUid(
 			$name(),
@@ -513,9 +504,8 @@ class SystemController implements MessageEmitter {
 
 	/**
 	 * This command handler clears outgoing chatqueue from all pending messages.
-	 *
-	 * @HandlesCommand("clearqueue")
 	 */
+	#[NCA\HandlesCommand("clearqueue")]
 	public function clearqueueCommand(CmdContext $context): void {
 		if (!isset($this->chatBot->chatqueue)) {
 			$context->reply("There is currently no Chat queue set up.");
@@ -532,9 +522,8 @@ class SystemController implements MessageEmitter {
 
 	/**
 	 * This command handler execute multiple commands at once, separated by pipes.
-	 *
-	 * @HandlesCommand("macro")
 	 */
+	#[NCA\HandlesCommand("macro")]
 	public function macroCommand(CmdContext $context, string $command): void {
 		$commands = explode("|", $command);
 		foreach ($commands as $commandString) {
@@ -543,11 +532,11 @@ class SystemController implements MessageEmitter {
 		}
 	}
 
-	/**
-	 * @Event(name="timer(1hr)",
-	 * 	description="This event handler is called every hour to keep MySQL connection active",
-	 * 	defaultStatus="1")
-	 */
+	#[NCA\Event(
+		name: "timer(1hr)",
+		description: "This event handler is called every hour to keep MySQL connection active",
+		defaultStatus: 1
+	)]
 	public function refreshMySQLConnectionEvent(Event $eventObj): void {
 		// if the bot doesn't query the mysql database for 8 hours the db connection is closed
 		$this->logger->info("Pinging database");
@@ -557,11 +546,11 @@ class SystemController implements MessageEmitter {
 			->first();
 	}
 
-	/**
-	 * @Event(name="connect",
-	 * 	description="Notify private channel, guild channel, and admins that bot is online",
-	 * 	defaultStatus="1")
-	 */
+	#[NCA\Event(
+		name: "connect",
+		description: "Notify private channel, guild channel, and admins that bot is online",
+		defaultStatus: 1
+	)]
 	public function onConnectEvent(Event $eventObj): void {
 		// send Admin(s) a tell that the bot is online
 		foreach ($this->adminManager->admins as $name => $info) {
@@ -579,9 +568,7 @@ class SystemController implements MessageEmitter {
 		$this->messageHub->handle($rMsg);
 	}
 
-	/**
-	 * @HandlesCommand("showcommand")
-	 */
+	#[NCA\HandlesCommand("showcommand")]
 	public function showCommandCommand(CmdContext $context, PCharacter $name, string $cmd): void {
 		$this->chatBot->getUid($name(), [$this, "showCommandUid"], $context, $name(), $cmd);
 	}
@@ -605,11 +592,13 @@ class SystemController implements MessageEmitter {
 
 	/**
 	 * Get system information
-	 * @Api("/sysinfo")
-	 * @GET
-	 * @AccessLevel("all")
-	 * @ApiResult(code=200, class='SystemInformation', desc='Some basic system information')
 	 */
+	#[
+		NCA\Api("/sysinfo"),
+		NCA\GET,
+		NCA\AccessLevel("all"),
+		NCA\ApiResult(code: 200, class: "SystemInformation", desc: "Some basic system information")
+	]
 	public function apiSysinfoGetEndpoint(Request $request, HttpProtocolWrapper $server): Response {
 		return new ApiResponse($this->getSystemInfo());
 	}

@@ -36,50 +36,51 @@ use Nadybot\Modules\WEBSERVER_MODULE\WebChatConverter;
 use Throwable;
 
 /**
- * @Instance
- *
  * Commands this class contains:
- *	@DefineCommand(
- *		command     = 'startpage',
- *		accessLevel = 'mod',
- *		description = 'configures the personal startpage',
- *		help        = 'startpage.txt'
- *	)
- *	@DefineCommand(
- *		command     = 'start',
- *		accessLevel = 'member',
- *		description = 'Shows your personal startpage',
- *		help        = 'startpage.txt'
- *	)
  */
+#[
+	NCA\Instance,
+	NCA\DefineCommand(
+		command: "startpage",
+		accessLevel: "mod",
+		description: "configures the personal startpage",
+		help: "startpage.txt"
+	),
+	NCA\DefineCommand(
+		command: "start",
+		accessLevel: "member",
+		description: "Shows your personal startpage",
+		help: "startpage.txt"
+	)
+]
 class StartpageController {
 	public string $moduleName;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public DB $db;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Text $text;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Util $util;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Nadybot $chatBot;
 
-	/** @Logger */
+	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public AccessManager $accessManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public BanController $banController;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public SettingManager $settingManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public WebChatConverter $webChatConverter;
 
 	/** @var array<string,NewsTile> */
@@ -87,7 +88,6 @@ class StartpageController {
 
 	/**
 	 * Parse a method for NewsTile annotations and add the tiles
-	 *
 	 * @param object $instance The object instance we're processing
 	 * @param ReflectionMethod $method The method we're scanning
 	 */
@@ -127,9 +127,7 @@ class StartpageController {
 		$this->registerNewsTile($tile);
 	}
 
-	/**
-	 * @Setup
-	 */
+	#[NCA\Setup]
 	public function setup(): void {
 		$instances = Registry::getAllInstances();
 		foreach ($instances as $instance) {
@@ -187,10 +185,10 @@ class StartpageController {
 		return $sendto;
 	}
 
-	/**
-	 * @Event(name="logOn",
-	 * 	description="Show startpage to (org) members logging in")
-	 */
+	#[NCA\Event(
+		name: "logOn",
+		description: "Show startpage to (org) members logging in"
+	)]
 	public function logonEvent(UserStateEvent $eventObj): void {
 		$sender = $eventObj->sender;
 		if (!$this->chatBot->isReady() || !is_string($sender)) {
@@ -220,10 +218,10 @@ class StartpageController {
 		);
 	}
 
-	/**
-	 * @Event(name="joinPriv",
-	 * 	description="Show startpage to players joining private channel")
-	 */
+	#[NCA\Event(
+		name: "joinPriv",
+		description: "Show startpage to players joining private channel"
+	)]
 	public function privateChannelJoinEvent(AOChatEvent $eventObj): void {
 		$sender = $eventObj->sender;
 		if (!$this->chatBot->isReady() || !is_string($sender) || isset($this->chatBot->guildmembers[$sender])) {
@@ -235,12 +233,12 @@ class StartpageController {
 		$this->showStartpage($sender, $this->getMassTell($sender));
 	}
 
-	/**
-	 * @NewsTile("time")
-	 * @Description("Shows the current date and time in UTC and game")
-	 * @Example("<header2>Time<end>
-	 * <tab>Current time: <highlight>Mon, 18-Oct-2021 14:15:16<end> (RK year 29495)")
-	 */
+	#[
+		NCA\NewsTile("time"),
+		NCA\Description("Shows the current date and time in UTC and game"),
+		NCA\Example("<header2>Time<end>\n".
+			"<tab>Current time: <highlight>Mon, 18-Oct-2021 14:15:16<end> (RK year 29495)")
+	]
 	public function timeTile(string $sender, callable $callback): void {
 		$seeMoreLink = $this->text->makeChatcmd("see more", "/tell <myname> time");
 		$time = new DateTime('now', new DateTimeZone("UTC"));
@@ -275,7 +273,6 @@ class StartpageController {
 
 	/**
 	 * Get a list of all registered tiles
-	 *
 	 * @return array<string,NewsTile>
 	 */
 	public function getTiles(): array {
@@ -284,7 +281,6 @@ class StartpageController {
 
 	/**
 	 * Get a list of all active tiles that are valid
-	 *
 	 * @return array<string,NewsTile>
 	 */
 	public function getActiveLayout(): array {
@@ -362,18 +358,16 @@ class StartpageController {
 
 	/**
 	 * This command handler shows one's personal startpage
-	 *
-	 * @HandlesCommand("start")
 	 */
+	#[NCA\HandlesCommand("start")]
 	public function startCommand(CmdContext $context): void {
 		$this->showStartpage($context->char->name, $context, true);
 	}
 
 	/**
 	 * This command handler shows one's personal startpage
-	 *
-	 * @HandlesCommand("startpage")
 	 */
+	#[NCA\HandlesCommand("startpage")]
 	public function startpageCommand(CmdContext $context): void {
 		$this->showStartpageLayout($context, false);
 	}
@@ -395,10 +389,9 @@ class StartpageController {
 
 	/**
 	 * This command handler lets you pick an unused tile for a specific position
-	 *
-	 * @HandlesCommand("startpage")
 	 * @Mask $action pick
 	 */
+	#[NCA\HandlesCommand("startpage")]
 	public function startpagePickCommand(CmdContext $context, string $action, int $pos): void {
 		$tiles = $this->getActiveLayout();
 		$unusedTiles = $this->getTiles();
@@ -427,10 +420,9 @@ class StartpageController {
 
 	/**
 	 * This command handler shows the description of a tile
-	 *
-	 * @HandlesCommand("startpage")
 	 * @Mask $action describe
 	 */
+	#[NCA\HandlesCommand("startpage")]
 	public function startpageDescribeTileCommand(CmdContext $context, string $action, string $tileName): void {
 		$allTiles = $this->getTiles();
 		$tile = $allTiles[$tileName] ?? null;
@@ -444,10 +436,9 @@ class StartpageController {
 
 	/**
 	 * This command handler assigns an unused tile to a position
-	 *
-	 * @HandlesCommand("startpage")
 	 * @Mask $action pick
 	 */
+	#[NCA\HandlesCommand("startpage")]
 	public function startpagePickTileCommand(
 		CmdContext $context,
 		string $action,
@@ -472,11 +463,10 @@ class StartpageController {
 
 	/**
 	 * This command handler moves around tiles
-	 *
-	 * @HandlesCommand("startpage")
 	 * @Mask $action move
 	 * @mask $direction (up|down)
 	 */
+	#[NCA\HandlesCommand("startpage")]
 	public function startpageMoveTileCommand(
 		CmdContext $context,
 		string $action,
@@ -510,9 +500,8 @@ class StartpageController {
 
 	/**
 	 * This command handler removes a tile from the startpage
-	 *
-	 * @HandlesCommand("startpage")
 	 */
+	#[NCA\HandlesCommand("startpage")]
 	public function startpageRemTileCommand(CmdContext $context, PRemove $action, string $tileName): void {
 		$currentTiles = $this->getActiveLayout();
 		if (!isset($currentTiles[$tileName])) {
@@ -565,11 +554,13 @@ class StartpageController {
 
 	/**
 	 * List all news tiles
-	 * @Api("/startpage/tiles")
-	 * @GET
-	 * @AccessLevelFrom("startpage")
-	 * @ApiResult(code=200, class='NewsTile[]', desc='List of all news items')
 	 */
+	#[
+		NCA\Api("/startpage/tiles"),
+		NCA\GET,
+		NCA\AccessLevelFrom("startpage"),
+		NCA\ApiResult(code: 200, class: "NewsTile[]", desc: "List of all news items")
+	]
 	public function apiListTilesEndpoint(Request $request, HttpProtocolWrapper $server): Response {
 		$tiles = array_values($this->getTiles());
 		$result = [];
@@ -585,23 +576,27 @@ class StartpageController {
 
 	/**
 	 * Get the currently configured startpage layout
-	 * @Api("/startpage/layout")
-	 * @GET
-	 * @AccessLevelFrom("startpage")
-	 * @ApiResult(code=200, class='string[]', desc='The order of the tiles')
 	 */
+	#[
+		NCA\Api("/startpage/layout"),
+		NCA\GET,
+		NCA\AccessLevelFrom("startpage"),
+		NCA\ApiResult(code: 200, class: "string[]", desc: "The order of the tiles")
+	]
 	public function apiGetStartpageLayoutEndpoint(Request $request, HttpProtocolWrapper $server): Response {
 		return new ApiResponse(array_keys($this->getActiveLayout()));
 	}
 
 	/**
 	 * List all news tiles
-	 * @Api("/startpage/layout")
-	 * @PUT
-	 * @AccessLevelFrom("startpage")
-	 * @RequestBody(class='string[]', desc='The new order for the tiles', required=true)
-	 * @ApiResult(code=204, desc='New layout saved')
 	 */
+	#[
+		NCA\Api("/startpage/layout"),
+		NCA\PUT,
+		NCA\AccessLevelFrom("startpage"),
+		NCA\RequestBody(class: "string[]", desc: "The new order for the tiles", required: true),
+		NCA\ApiResult(code: 204, desc: "New layout saved")
+	]
 	public function apiSetStartpageLayoutEndpoint(Request $request, HttpProtocolWrapper $server): Response {
 		$tiles = $request->decodedBody;
 		if (!is_array($tiles)) {

@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\RAID_MODULE;
 
+use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{
 	CmdContext,
 	CommandReply,
@@ -17,24 +18,23 @@ use Nadybot\Core\ParamClass\PRemove;
 
 /**
  * This class contains all functions necessary to deal with temporary raid blocks
- *
- * @Instance
  * @package Nadybot\Modules\RAID_MODULE
- *
- * @DefineCommand(
- *     command       = 'raidblock',
- *     accessLevel   = 'member',
- *     description   = 'Check your raid blocks',
- *     help          = 'raidblock.txt'
- * )
- *
- * @DefineCommand(
- *     command       = 'raidblock .+',
- *     accessLevel   = 'raid_leader_1',
- *     description   = 'Temporarily block raiders',
- *     help          = 'raidblock.txt'
- * )
  */
+#[
+	NCA\Instance,
+	NCA\DefineCommand(
+		command: "raidblock",
+		accessLevel: "member",
+		description: "Check your raid blocks",
+		help: "raidblock.txt"
+	),
+	NCA\DefineCommand(
+		command: "raidblock .+",
+		accessLevel: "raid_leader_1",
+		description: "Temporarily block raiders",
+		help: "raidblock.txt"
+	)
+]
 class RaidBlockController {
 	public const DB_TABLE = "raid_block_<myname>";
 	public const POINTS_GAIN = "points";
@@ -48,22 +48,22 @@ class RaidBlockController {
 	/** @var array<string,array<string,RaidBlock>> */
 	public array $blocks = [];
 
-	/** @Inject */
+	#[NCA\Inject]
 	public DB $db;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Nadybot $chatBot;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public AltsController $altsController;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Util $util;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Text $text;
 
-	/** @Setup */
+	#[NCA\Setup]
 	public function setup(): void {
 		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations/Block");
 		$this->loadBlocks();
@@ -126,9 +126,9 @@ class RaidBlockController {
 	}
 
 	/**
-	 * @HandlesCommand("raidblock .+")
 	 * @Mask $blockFrom (points|join|bid)
 	 */
+	#[NCA\HandlesCommand("raidblock .+")]
 	public function raidBlockAddCommand(
 		CmdContext $context,
 		string $blockFrom,
@@ -169,9 +169,7 @@ class RaidBlockController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @HandlesCommand("raidblock")
-	 */
+	#[NCA\HandlesCommand("raidblock")]
 	public function raidBlockCommand(CmdContext $context): void {
 		$this->expireBans();
 		$player = $this->altsController->getAltInfo($context->char->name)->main;
@@ -192,9 +190,7 @@ class RaidBlockController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @HandlesCommand("raidblock .+")
-	 */
+	#[NCA\HandlesCommand("raidblock .+")]
 	public function raidBlockShowCommand(CmdContext $context, PCharacter $char): void {
 		$player = $char();
 		$player = $this->altsController->getAltInfo($player)->main;
@@ -219,9 +215,9 @@ class RaidBlockController {
 	}
 
 	/**
-	 * @HandlesCommand("raidblock .+")
 	 * @Mask $blockFrom (points|join|bid)
 	 */
+	#[NCA\HandlesCommand("raidblock .+")]
 	public function raidBlockLiftCommand(
 		CmdContext $context,
 		PRemove $action,

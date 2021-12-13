@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\ORGLIST_MODULE;
 
+use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{
 	BuddylistManager,
 	CmdContext,
@@ -21,17 +22,17 @@ use Nadybot\Core\Modules\PLAYER_LOOKUP\Guild;
 /**
  * @author Tyrence (RK2)
  * @author Lucier (RK1)
- *
- * @Instance
- *
  * Commands this controller contains:
- *	@DefineCommand(
- *		command     = 'orglist',
- *		accessLevel = 'guild',
- *		description = 'Check an org roster',
- *		help        = 'orglist.txt'
- *	)
  */
+#[
+	NCA\Instance,
+	NCA\DefineCommand(
+		command: "orglist",
+		accessLevel: "guild",
+		description: "Check an org roster",
+		help: "orglist.txt"
+	)
+]
 class OrglistController {
 
 	/**
@@ -40,28 +41,28 @@ class OrglistController {
 	 */
 	public string $moduleName;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public DB $db;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Nadybot $chatBot;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public BuddylistManager $buddylistManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public GuildManager $guildManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Text $text;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Util $util;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public PlayerManager $playerManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public FindOrgController $findOrgController;
 
 	protected ?Orglist $orglist = null;
@@ -82,9 +83,9 @@ class OrglistController {
 	}
 
 	/**
-	 * @HandlesCommand("orglist")
 	 * @Mask $action end
 	 */
+	#[NCA\HandlesCommand("orglist")]
 	public function orglistEndCommand(CmdContext $context, string $action): void {
 		if (isset($this->orglist)) {
 			$this->orglistEnd();
@@ -93,9 +94,7 @@ class OrglistController {
 		}
 	}
 
-	/**
-	 * @HandlesCommand("orglist")
-	 */
+	#[NCA\HandlesCommand("orglist")]
 	public function orglistCommand(CmdContext $context, string $search): void {
 		if (preg_match("/^\d+$/", $search)) {
 			$this->checkOrglist((int)$search, $context);
@@ -398,11 +397,12 @@ class OrglistController {
 		return (array)$this->text->makeBlob("Orglist for '{$memberlist->org}' ($totalonline / $totalcount)", $blob);
 	}
 
-	/**
-	 * @Event("logOn")
-	 * @Event(name="logOff",
-	 * 	description="Records online status of org members")
-	 */
+	#[
+		NCA\Event(
+			name: ["logOn", "logOff"],
+			description: "Records online status of org members"
+		)
+	]
 	public function orgMemberLogonEvent(UserStateEvent $eventObj): void {
 		if (!is_string($eventObj->sender)) {
 			return;
@@ -410,10 +410,10 @@ class OrglistController {
 		$this->updateOrglist($eventObj->sender, $eventObj->type);
 	}
 
-	/**
-	 * @Event(name="packet(41)",
-	 * 	description="Records online status of org members")
-	 */
+	#[NCA\Event(
+		name: "packet(41)",
+		description: "Records online status of org members"
+	)]
 	public function buddyRemovedEvent(Event $eventObj): void {
 		if (isset($this->orglist)) {
 			$this->addOrgMembersToBuddylist();

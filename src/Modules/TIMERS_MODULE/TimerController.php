@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\TIMERS_MODULE;
 
+use Nadybot\Core\Attributes as NCA;
 use Exception;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
@@ -28,28 +29,31 @@ use Nadybot\Core\ParamClass\PRemove;
 
 /**
  * @author Tyrence (RK2)
- *
- * @Instance
- *
  * Commands this class contains:
- *	@DefineCommand(
- *		command     = 'rtimer',
- *		accessLevel = 'guild',
- *		description = 'Adds a repeating timer',
- *		help        = 'timers.txt'
- *	)
- *	@DefineCommand(
- *		command     = 'timers',
- *		accessLevel = 'guild',
- *		description = 'Sets and shows timers',
- *		help        = 'timers.txt',
- *		alias       = 'timer'
- *	)
- * @ProvidesEvent("timer(start)")
- * @ProvidesEvent("timer(end)")
- * @ProvidesEvent("timer(del)")
- * @ProvidesEvent(value="sync(timer)", desc="Triggered when a new timer is created with the timer command")
  */
+#[
+	NCA\Instance,
+	NCA\DefineCommand(
+		command: "rtimer",
+		accessLevel: "guild",
+		description: "Adds a repeating timer",
+		help: "timers.txt"
+	),
+	NCA\DefineCommand(
+		command: "timers",
+		accessLevel: "guild",
+		description: "Sets and shows timers",
+		help: "timers.txt",
+		alias: "timer"
+	),
+	NCA\ProvidesEvent("timer(start)"),
+	NCA\ProvidesEvent("timer(end)"),
+	NCA\ProvidesEvent("timer(del)"),
+	NCA\ProvidesEvent(
+		desc: "Triggered when a new timer is created with the timer command",
+		value: "sync(timer)"
+	)
+]
 class TimerController implements MessageEmitter {
 
 	public const DB_TABLE = "timers_<myname>";
@@ -60,37 +64,37 @@ class TimerController implements MessageEmitter {
 	 */
 	public string $moduleName;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public DB $db;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Nadybot $chatBot;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public AccessManager $accessManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public MessageHub $messageHub;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Text $text;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Util $util;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public DiscordController $discordController;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public SettingManager $settingManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public SettingObject $setting;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public EventManager $eventManager;
 
-	/** @Logger */
+	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
 	/** @var Timer[] */
@@ -100,9 +104,7 @@ class TimerController implements MessageEmitter {
 		return Source::SYSTEM . "(timers)";
 	}
 
-	/**
-	 * @Setup
-	 */
+	#[NCA\Setup]
 	public function setup(): void {
 		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations");
 
@@ -174,10 +176,10 @@ class TimerController implements MessageEmitter {
 		}
 	}
 
-	/**
-	 * @Event(name="timer(1sec)",
-	 * 	description="Checks timers and periodically updates chat with time left")
-	 */
+	#[NCA\Event(
+		name: "timer(1sec)",
+		description: "Checks timers and periodically updates chat with time left"
+	)]
 	public function checkTimers(): void {
 		$time = time();
 
@@ -279,10 +281,9 @@ class TimerController implements MessageEmitter {
 
 	/**
 	 * This command handler adds a repeating timer.
-	 *
-	 * @HandlesCommand("rtimer")
 	 * @Mask $action add
 	 */
+	#[NCA\HandlesCommand("rtimer")]
 	public function rtimerCommand(
 		CmdContext $context,
 		?string $action,
@@ -339,9 +340,9 @@ class TimerController implements MessageEmitter {
 	}
 
 	/**
-	 * @HandlesCommand("timers")
 	 * @Mask $action view
 	 */
+	#[NCA\HandlesCommand("timers")]
 	public function timersViewCommand(CmdContext $context, string $action, string $id): void {
 		$timer = $this->get($id);
 		if ($timer === null) {
@@ -363,9 +364,7 @@ class TimerController implements MessageEmitter {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @HandlesCommand("timers")
-	 */
+	#[NCA\HandlesCommand("timers")]
 	public function timersRemoveCommand(CmdContext $context, PRemove $action, int $id): void {
 		$timer = $this->get($id);
 		if ($timer === null) {
@@ -392,9 +391,9 @@ class TimerController implements MessageEmitter {
 	}
 
 	/**
-	 * @HandlesCommand("timers")
 	 * @Mask $action add
 	 */
+	#[NCA\HandlesCommand("timers")]
 	public function timersAddCommand(
 		CmdContext $context,
 		?string $action,
@@ -422,9 +421,7 @@ class TimerController implements MessageEmitter {
 		}
 	}
 
-	/**
-	 * @HandlesCommand("timers")
-	 */
+	#[NCA\HandlesCommand("timers")]
 	public function timersListCommand(CmdContext $context): void {
 		$timers = $this->getAllTimers();
 		$count = count($timers);
@@ -464,7 +461,6 @@ class TimerController implements MessageEmitter {
 
 	/**
 	 * Generate alerts out of an alert specification
-	 *
 	 * @param string $sender Name of the player
 	 * @param string $name Name of the alert
 	 * @param int $endTime When to trigger the timer
@@ -501,7 +497,6 @@ class TimerController implements MessageEmitter {
 
 	/**
 	 * Add a timer
-	 *
 	 * @param string $sender Name of the creator
 	 * @param string $name Name of the timer
 	 * @param int $runTime When to trigger
@@ -620,10 +615,10 @@ class TimerController implements MessageEmitter {
 		return $this->timers;
 	}
 
-	/**
-	 * @Event(name="sync(timer)",
-	 * 	description="Sync external timers to local timers")
-	 */
+	#[NCA\Event(
+		name: "sync(timer)",
+		description: "Sync external timers to local timers"
+	)]
 	public function syncExtTimers(SyncTimerEvent $event): void {
 		if ($event->isLocal()) {
 			return;

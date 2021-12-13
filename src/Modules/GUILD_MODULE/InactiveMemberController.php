@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\GUILD_MODULE;
 
+use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{
 	CmdContext,
 	DB,
@@ -13,17 +14,17 @@ use Nadybot\Core\ParamClass\PDuration;
 /**
  * @author Tyrence (RK2)
  * @author Mindrila (RK1)
- *
- * @Instance
- *
  * Commands this controller contains:
- *	@DefineCommand(
- *		command     = "inactivemem",
- *		accessLevel = "guild",
- *		description = "Check for inactive members",
- *		help        = "inactivemem.txt"
- *	)
  */
+#[
+	NCA\Instance,
+	NCA\DefineCommand(
+		command: "inactivemem",
+		accessLevel: "guild",
+		description: "Check for inactive members",
+		help: "inactivemem.txt"
+	)
+]
 class InactiveMemberController {
 
 	/**
@@ -32,18 +33,16 @@ class InactiveMemberController {
 	 */
 	public string $moduleName;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public DB $db;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Text $text;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Util $util;
 
-	/**
-	 * @HandlesCommand("inactivemem")
-	 */
+	#[NCA\HandlesCommand("inactivemem")]
 	public function inactivememCommand(CmdContext $context, PDuration $duration): void {
 		$time = $duration->toSecs();
 		if ($time < 1) {

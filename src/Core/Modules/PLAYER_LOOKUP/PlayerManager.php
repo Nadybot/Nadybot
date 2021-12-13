@@ -2,6 +2,7 @@
 
 namespace Nadybot\Core\Modules\PLAYER_LOOKUP;
 
+use Nadybot\Core\Attributes as NCA;
 use DateTime;
 use DateTimeZone;
 use Nadybot\Core\{
@@ -19,35 +20,34 @@ use Nadybot\Core\DBSchema\Player;
 
 /**
  * @author Tyrence (RK2)
- *
- * @Instance
  */
+#[NCA\Instance]
 class PlayerManager {
 	public const CACHE_GRACE_TIME = 87000;
 
 	public string $moduleName;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public DB $db;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Util $util;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Nadybot $chatBot;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public SettingManager $settingManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Http $http;
 
-	/** @Logger */
+	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
 	public ?PlayerLookupJob $playerLookupJob = null;
 
-	/** @Setup */
+	#[NCA\Setup]
 	public function setup(): void {
 		$this->settingManager->add(
 			$this->moduleName,
@@ -61,11 +61,11 @@ class PlayerManager {
 		);
 	}
 
-	/**
-	 * @Event(name="timer(1h)",
-	 * 	description="Periodically lookup missing or outdated player data",
-	 * 	defaultStatus="1")
-	 */
+	#[NCA\Event(
+		name: "timer(1h)",
+		description: "Periodically lookup missing or outdated player data",
+		defaultStatus: 1
+	)]
 	public function lookupMissingCharacterData(): void {
 		if ($this->settingManager->getInt('lookup_jobs') === 0) {
 			return;
@@ -362,7 +362,6 @@ class PlayerManager {
 
 	/**
 	 * Search for players in the database
-	 *
 	 * @param string $search Search term
 	 * @param int|null $dimension Dimension to limit search to
 	 * @return array Player[]

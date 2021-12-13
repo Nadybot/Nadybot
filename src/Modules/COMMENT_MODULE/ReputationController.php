@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\COMMENT_MODULE;
 
+use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{
 	CmdContext,
 	DB,
@@ -18,17 +19,17 @@ use Nadybot\Core\ParamClass\PWord;
 /**
  * @author Tyrence (RK2)
  * @author Nadyita (RK5)
- *
- * @Instance
- *
  * Commands this controller contains:
- *	@DefineCommand(
- *		command     = 'reputation',
- *		accessLevel = 'guild',
- *		description = 'Allows people to see and add reputation of other players',
- *		help        = 'reputation.txt'
- *	)
  */
+#[
+	NCA\Instance,
+	NCA\DefineCommand(
+		command: "reputation",
+		accessLevel: "guild",
+		description: "Allows people to see and add reputation of other players",
+		help: "reputation.txt"
+	)
+]
 class ReputationController {
 	public const CAT_REPUTATION = "reputation";
 
@@ -38,28 +39,28 @@ class ReputationController {
 	 */
 	public string $moduleName;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public DB $db;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Nadybot $chatBot;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Text $text;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Util $util;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public SettingManager $settingManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public CommentController $commentController;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Timer $timer;
 
-	/** @Logger */
+	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
 	public function getReputationCategory(): CommentCategory {
@@ -77,9 +78,7 @@ class ReputationController {
 		return $repCat;
 	}
 
-	/**
-	 * @HandlesCommand("reputation")
-	 */
+	#[NCA\HandlesCommand("reputation")]
 	public function reputationListCommand(CmdContext $context): void {
 		$cat = $this->getReputationCategory();
 		$comments = $this->commentController->readCategoryComments($cat);
@@ -125,9 +124,9 @@ class ReputationController {
 	}
 
 	/**
-	 * @HandlesCommand("reputation")
 	 * @Mask $action (\+1|\-1)
 	 */
+	#[NCA\HandlesCommand("reputation")]
 	public function reputationAddCommand(
 		CmdContext $context,
 		PCharacter $char,
@@ -144,9 +143,9 @@ class ReputationController {
 	}
 
 	/**
-	 * @HandlesCommand("reputation")
 	 * @Mask $action all
 	 */
+	#[NCA\HandlesCommand("reputation")]
 	public function reputationViewCommand(CmdContext $context, PCharacter $char, ?string $all): void {
 		$name = $char();
 		$comments = $this->commentController->getComments($this->getReputationCategory(), $name);
