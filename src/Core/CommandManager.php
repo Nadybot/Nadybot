@@ -471,6 +471,7 @@ class CommandManager implements MessageEmitter {
 								$args []= null;
 								continue;
 							}
+							/** @var ReflectionNamedType $type */
 							if (is_array($context->args[$var]) && !$params[$i]->isVariadic()) {
 								$context->args[$var] = $context->args[$var][0];
 							}
@@ -675,7 +676,7 @@ class CommandManager implements MessageEmitter {
 		if (!isset($new)) {
 			return null;
 		}
-		if (preg_match('/@SpaceOptional\s+\$\Q' . $varName . '\E(?:\s+\*\/)?$/m', $comment)) {
+		if (count($param->getAttributes(NCA\SpaceOptional::class))) {
 			$regexp = new CommandRegexp("\\s*{$new}");
 		} else {
 			$regexp = new CommandRegexp("\\s+{$new}");

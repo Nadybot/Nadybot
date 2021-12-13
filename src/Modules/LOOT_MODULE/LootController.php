@@ -732,10 +732,9 @@ class LootController {
 
 	/**
 	 * Add an item to the loot roll
-	 * @SpaceOptional $loot
 	 */
 	#[NCA\HandlesCommand("mloot")]
-	public function mlootCommand(CmdContext $context, PItem ...$loot): void {
+	public function mlootCommand(CmdContext $context, #[NCA\SpaceOptional] PItem ...$loot): void {
 		if (!$this->chatLeaderController->checkLeaderAccess($context->char->name)) {
 			$context->reply("You must be Raid Leader to use this command.");
 			return;

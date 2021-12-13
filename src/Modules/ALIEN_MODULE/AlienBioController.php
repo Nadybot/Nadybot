@@ -76,10 +76,9 @@ class AlienBioController {
 
 	/**
 	 * This command handler identifies Solid Clump of Kyr'Ozch Bio-Material.
-	 * @SpaceOptional $clumps
 	 */
 	#[NCA\HandlesCommand("bio")]
-	public function bioCommand(CmdContext $context, PItem ...$clumps): void {
+	public function bioCommand(CmdContext $context, #[NCA\SpaceOptional] PItem ...$clumps): void {
 		$blob = '';
 		$bioinfo = "";
 		$name = "Unknown Bio-Material";

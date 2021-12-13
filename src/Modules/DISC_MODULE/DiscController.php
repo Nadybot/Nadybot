@@ -31,7 +31,6 @@ class DiscController {
 	/**
 	 * Name of the module.
 	 * Set automatically by module loader.
-	 * @var string $moduleName
 	 */
 	public string $moduleName;
 
@@ -47,8 +46,6 @@ class DiscController {
 	#[NCA\Inject]
 	public DB $db;
 
-	/** @Setup This handler is called on bot startup.
-	 */
 	#[NCA\Setup]
 	public function setup(): void {
 		// load database tables from .sql-files
