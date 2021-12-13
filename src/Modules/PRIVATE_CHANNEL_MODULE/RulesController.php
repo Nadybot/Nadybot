@@ -56,8 +56,8 @@ class RulesController {
 	}
 
 	/**
-	 * @Event("joinPriv")
-	 * @Description("If you defined rules, send them to people joining the private channel")
+	 * @Event(name="joinPriv",
+	 * 	description="If you defined rules, send them to people joining the private channel")
 	 */
 	public function joinPrivateChannelShowRulesEvent(AOChatEvent $eventObj): void {
 		$dataPath = $this->chatBot->vars["datafolder"] ?? "./data";

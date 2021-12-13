@@ -84,8 +84,8 @@ class TowerApiController {
 	}
 
 	/**
-	 * @Event("timer(5m)")
-	 * @Description("Clean API Cache")
+	 * @Event(name="timer(5m)",
+	 * 	description="Clean API Cache")
 	 */
 	public function cleanApiCache(): void {
 		$keys = array_keys($this->cache);

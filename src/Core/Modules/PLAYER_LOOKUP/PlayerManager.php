@@ -62,9 +62,9 @@ class PlayerManager {
 	}
 
 	/**
-	 * @Event("timer(1h)")
-	 * @Description("Periodically lookup missing or outdated player data")
-	 * @DefaultStatus("1")
+	 * @Event(name="timer(1h)",
+	 * 	description="Periodically lookup missing or outdated player data",
+	 * 	defaultStatus="1")
 	 */
 	public function lookupMissingCharacterData(): void {
 		if ($this->settingManager->getInt('lookup_jobs') === 0) {

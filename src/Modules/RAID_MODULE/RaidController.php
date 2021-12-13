@@ -913,8 +913,8 @@ class RaidController {
 
 	/**
 	 * Announce when a raid was started
-	 * @Event("timer(30s)")
-	 * @Description("Announce the running raid")
+	 * @Event(name="timer(30s)",
+	 * 	description="Announce the running raid")
 	 */
 	public function announceRaidRunning(): void {
 		if (!isset($this->raid) || $this->raid->announce_interval === 0) {
@@ -941,8 +941,8 @@ class RaidController {
 
 	/**
 	 * Announce when a raid was started
-	 * @Event("raid(start)")
-	 * @Description("Announce when a raid was started")
+	 * @Event(name="raid(start)",
+	 * 	description="Announce when a raid was started")
 	 */
 	public function announceRaidStart(RaidEvent $event): void {
 		$this->chatBot->sendPrivate(
@@ -958,8 +958,8 @@ class RaidController {
 
 	/**
 	 * Announce when a raid was stopped.
-	 * @Event("raid(stop)")
-	 * @Description("Announce when a raid is stopped")
+	 * @Event(name="raid(stop)",
+	 * 	description="Announce when a raid is stopped")
 	 */
 	public function announceRaidStop(RaidEvent $event): void {
 		$this->chatBot->sendPrivate("<highlight>{$event->player}<end> has stopped the raid.");

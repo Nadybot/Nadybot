@@ -331,8 +331,8 @@ class OnlineController {
 	}
 
 	/**
-	 * @Event("logOn")
-	 * @Description("Records an org member login in db")
+	 * @Event(name="logOn",
+	 * 	description="Records an org member login in db")
 	 */
 	public function recordLogonEvent(UserStateEvent $eventObj): void {
 		$sender = $eventObj->sender;
@@ -351,8 +351,8 @@ class OnlineController {
 	}
 
 	/**
-	 * @Event("logOff")
-	 * @Description("Records an org member logoff in db")
+	 * @Event(name="logOff",
+	 * 	description="Records an org member logoff in db")
 	 */
 	public function recordLogoffEvent(UserStateEvent $eventObj): void {
 		$sender = $eventObj->sender;
@@ -368,8 +368,8 @@ class OnlineController {
 	}
 
 	/**
-	 * @Event("logOn")
-	 * @Description("Sends a tell to players on logon showing who is online in org")
+	 * @Event(name="logOn",
+	 * 	description="Sends a tell to players on logon showing who is online in org")
 	 */
 	public function showOnlineOnLogonEvent(UserStateEvent $eventObj): void {
 		$sender = $eventObj->sender;
@@ -384,8 +384,8 @@ class OnlineController {
 	}
 
 	/**
-	 * @Event("timer(10mins)")
-	 * @Description("Online check")
+	 * @Event(name="timer(10mins)",
+	 * 	description="Online check")
 	 */
 	public function onlineCheckEvent(Event $eventObj): void {
 		if (!$this->chatBot->isReady()) {
@@ -456,8 +456,8 @@ class OnlineController {
 	}
 
 	/**
-	 * @Event("priv")
-	 * @Description("Afk check")
+	 * @Event(name="priv",
+	 * 	description="Afk check")
 	 * @Help("afk")
 	 */
 	public function afkCheckPrivateChannelEvent(AOChatEvent $eventObj): void {
@@ -465,8 +465,8 @@ class OnlineController {
 	}
 
 	/**
-	 * @Event("guild")
-	 * @Description("Afk check")
+	 * @Event(name="guild",
+	 * 	description="Afk check")
 	 * @Help("afk")
 	 */
 	public function afkCheckGuildChannelEvent(AOChatEvent $eventObj): void {
@@ -474,8 +474,8 @@ class OnlineController {
 	}
 
 	/**
-	 * @Event("priv")
-	 * @Description("Sets a member afk")
+	 * @Event(name="priv",
+	 * 	description="Sets a member afk")
 	 * @Help("afk")
 	 */
 	public function afkPrivateChannelEvent(AOChatEvent $eventObj): void {
@@ -486,8 +486,8 @@ class OnlineController {
 	}
 
 	/**
-	 * @Event("guild")
-	 * @Description("Sets a member afk")
+	 * @Event(name="guild",
+	 * 	description="Sets a member afk")
 	 * @Help("afk")
 	 */
 	public function afkGuildChannelEvent(AOChatEvent $eventObj): void {

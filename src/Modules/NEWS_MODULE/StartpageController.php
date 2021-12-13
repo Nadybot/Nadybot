@@ -188,8 +188,8 @@ class StartpageController {
 	}
 
 	/**
-	 * @Event("logOn")
-	 * @Description("Show startpage to (org) members logging in")
+	 * @Event(name="logOn",
+	 * 	description="Show startpage to (org) members logging in")
 	 */
 	public function logonEvent(UserStateEvent $eventObj): void {
 		$sender = $eventObj->sender;
@@ -221,8 +221,8 @@ class StartpageController {
 	}
 
 	/**
-	 * @Event("joinPriv")
-	 * @Description("Show startpage to players joining private channel")
+	 * @Event(name="joinPriv",
+	 * 	description="Show startpage to players joining private channel")
 	 */
 	public function privateChannelJoinEvent(AOChatEvent $eventObj): void {
 		$sender = $eventObj->sender;

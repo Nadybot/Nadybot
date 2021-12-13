@@ -159,8 +159,8 @@ class TradebotController {
 	}
 
 	/**
-	 * @Event("Connect")
-	 * @Description("Add active tradebots to buddylist")
+	 * @Event(name="Connect",
+	 * 	description="Add active tradebots to buddylist")
 	 */
 	public function addTradebotsAsBuddies(): void {
 		$activeBots = $this->normalizeBotNames($this->settingManager->getString('tradebot')??static::NONE);
@@ -242,8 +242,8 @@ class TradebotController {
 	}
 
 	/**
-	 * @Event("logOn")
-	 * @Description("Join tradebot private channels")
+	 * @Event(name="logOn",
+	 * 	description="Join tradebot private channels")
 	 */
 	public function tradebotOnlineEvent(UserStateEvent $eventObj): void {
 		if (is_string($eventObj->sender) && $this->isTradebot($eventObj->sender)) {
@@ -272,8 +272,8 @@ class TradebotController {
 	}
 
 	/**
-	 * @Event("extPriv")
-	 * @Description("Relay messages from the tradebot to org/private channel")
+	 * @Event(name="extPriv",
+	 * 	description="Relay messages from the tradebot to org/private channel")
 	 *
 	 * @throws StopExecutionException
 	 */
@@ -288,8 +288,8 @@ class TradebotController {
 	}
 
 	/**
-	 * @Event("msg")
-	 * @Description("Relay incoming tells from the tradebots to org/private channel")
+	 * @Event(name="msg",
+	 * 	description="Relay incoming tells from the tradebots to org/private channel")
 	 */
 	public function receiveMessageEvent(AOChatEvent $eventObj): void {
 		if (!is_string($eventObj->sender) || !$this->isTradebot($eventObj->sender)) {
@@ -396,8 +396,8 @@ class TradebotController {
 	}
 
 	/**
-	 * @Event("extJoinPrivRequest")
-	 * @Description("Accept private channel join invitation from the trade bots")
+	 * @Event(name="extJoinPrivRequest",
+	 * 	description="Accept private channel join invitation from the trade bots")
 	 */
 	public function acceptPrivJoinEvent(AOChatEvent $eventObj): void {
 		$sender = $eventObj->sender;

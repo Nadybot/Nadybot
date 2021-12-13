@@ -715,16 +715,16 @@ class AuctionController {
 	}
 
 	/**
-	 * @Event("auction(start)")
-	 * @Description("Announce a new auction")
+	 * @Event(name="auction(start)",
+	 * 	description="Announce a new auction")
 	 */
 	public function announceAuction(AuctionEvent $event): void {
 		$this->chatBot->sendPrivate($this->getAuctionAnnouncement($event->auction));
 	}
 
 	/**
-	 * @Event("auction(end)")
-	 * @Description("Announce the winner of an auction")
+	 * @Event(name="auction(end)",
+	 * 	description="Announce the winner of an auction")
 	 */
 	public function announceAuctionWinner(AuctionEvent $event): void {
 		if ($event->auction->top_bidder === null) {
@@ -792,8 +792,8 @@ class AuctionController {
 	}
 
 	/**
-	 * @Event("auction(cancel)")
-	 * @Description("Announce the cancellation of an auction")
+	 * @Event(name="auction(cancel)",
+	 * 	description="Announce the cancellation of an auction")
 	 */
 	public function announceAuctionCancellation(AuctionEvent $event): void {
 		$this->chatBot->sendPrivate("The auction was cancelled.");
@@ -811,8 +811,8 @@ class AuctionController {
 	}
 
 	/**
-	 * @Event("auction(bid)")
-	 * @Description("Announce a new bid")
+	 * @Event(name="auction(bid)",
+	 * 	description="Announce a new bid")
 	 */
 	public function announceAuctionBid(AuctionEvent $event): void {
 		$this->chatBot->sendPrivate($this->getRunningAuctionInfo($event->auction));

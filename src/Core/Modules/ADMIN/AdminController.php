@@ -174,9 +174,9 @@ class AdminController {
 	}
 
 	/**
-	 * @Event("connect")
-	 * @Description("Add administrators and moderators to the buddy list")
-	 * @DefaultStatus("1")
+	 * @Event(name="connect",
+	 * 	description="Add administrators and moderators to the buddy list",
+	 * 	defaultStatus="1")
 	 */
 	public function checkAdminsEvent(Event $eventObj): void {
 		$this->db->table(AdminManager::DB_TABLE)->asObj(Admin::class)
@@ -277,8 +277,8 @@ class AdminController {
 	}
 
 	/**
-	 * @Event("alt(newmain)")
-	 * @Description("Move admin rank to new main")
+	 * @Event(name="alt(newmain)",
+	 * 	description="Move admin rank to new main")
 	 */
 	public function moveAdminrank(AltEvent $event): void {
 		$oldRank = $this->adminManager->admins[$event->alt]??null;

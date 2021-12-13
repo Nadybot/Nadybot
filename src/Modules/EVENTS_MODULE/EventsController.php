@@ -361,8 +361,8 @@ class EventsController {
 	}
 
 	/**
-	 * @Event("logOn")
-	 * @Description("Show events to org members logging on")
+	 * @Event(name="logOn",
+	 * 	description="Show events to org members logging on")
 	 */
 	public function logonEvent(UserStateEvent $eventObj): void {
 		$sender = $eventObj->sender;
@@ -380,8 +380,8 @@ class EventsController {
 	}
 
 	/**
-	 * @Event("joinPriv")
-	 * @Description("Show events to characters joining the private channel")
+	 * @Event(name="joinPriv",
+	 * 	description="Show events to characters joining the private channel")
 	 */
 	public function joinPrivEvent(AOChatEvent $eventObj): void {
 		$sender = $eventObj->sender;

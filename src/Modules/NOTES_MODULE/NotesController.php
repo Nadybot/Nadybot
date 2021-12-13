@@ -363,8 +363,8 @@ class NotesController {
 	}
 
 	/**
-	 * @Event("logOn")
-	 * @Description("Sends a tell to players on logon showing their reminders")
+	 * @Event(name="logOn",
+	 * 	description="Sends a tell to players on logon showing their reminders")
 	 */
 	public function showRemindersOnLogonEvent(UserStateEvent $eventObj): void {
 		$sender = $eventObj->sender;
@@ -375,8 +375,8 @@ class NotesController {
 	}
 
 	/**
-	 * @Event("joinPriv")
-	 * @Description("Show reminders when joining the private channel")
+	 * @Event(name="joinPriv",
+	 * 	description="Show reminders when joining the private channel")
 	 */
 	public function showRemindersOnPrivJoinEvent(AOChatEvent $eventObj): void {
 		$sender = $eventObj->sender;
@@ -418,8 +418,8 @@ class NotesController {
 	}
 
 	/**
-	 * @Event("alt(newmain)")
-	 * @Description("Move reminder format to new main")
+	 * @Event(name="alt(newmain)",
+	 * 	description="Move reminder format to new main")
 	 */
 	public function moveReminderFormat(AltEvent $event): void {
 		$reminderFormat = $this->preferences->get($event->alt, 'reminder_format');

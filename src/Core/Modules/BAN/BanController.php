@@ -147,9 +147,9 @@ class BanController {
 	}
 
 	/**
-	 * @Event("connect")
-	 * @Description("Upload banlist into memory")
-	 * @DefaultStatus("1")
+	 * @Event(name="connect",
+	 * 	description="Upload banlist into memory",
+	 * 	defaultStatus="1")
 	 */
 	public function initializeBanList(Event $eventObj): void {
 		$this->uploadBanlist();
@@ -367,9 +367,9 @@ class BanController {
 	}
 
 	/**
-	 * @Event("timer(1min)")
-	 * @Description("Check temp bans to see if they have expired")
-	 * @DefaultStatus("1")
+	 * @Event(name="timer(1min)",
+	 * 	description="Check temp bans to see if they have expired",
+	 * 	defaultStatus="1")
 	 */
 	public function checkTempBan(Event $eventObj): void {
 		$numRows = $this->db->table(self::DB_TABLE)

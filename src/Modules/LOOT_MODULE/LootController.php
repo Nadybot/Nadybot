@@ -155,8 +155,8 @@ class LootController {
 	}
 
 	/**
-	 * @Event("timer(30sec)")
-	 * @Description("Periodically announce running loot rolls")
+	 * @Event(name="timer(30sec)",
+	 * 	description="Periodically announce running loot rolls")
 	 */
 	public function announceLootList(): void {
 		if (empty($this->loot)) {

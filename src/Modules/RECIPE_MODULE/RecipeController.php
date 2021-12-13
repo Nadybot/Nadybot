@@ -136,9 +136,9 @@ class RecipeController {
 	}
 
 	/**
-	 * @Event("connect")
-	 * @Description("Initializes the recipe database")
-	 * @DefaultStatus("1")
+	 * @Event(name="connect",
+	 * 	description="Initializes the recipe database",
+	 * 	defaultStatus="1")
 	 *
 	 * This is an Event("connect") instead of Setup since it depends on the items db being loaded
 	 */

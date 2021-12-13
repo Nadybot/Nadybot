@@ -145,8 +145,8 @@ class AltsController {
 	}
 
 	/**
-	 * @Event("connect")
-	 * @Description("Add unvalidated alts/mains to friendlist")
+	 * @Event(name="connect",
+	 * 	description="Add unvalidated alts/mains to friendlist")
 	 */
 	public function addNonValidatedAsBuddies(): void {
 		$myName = ucfirst(strtolower($this->chatBot->vars["name"]));
@@ -593,8 +593,8 @@ class AltsController {
 	}
 
 	/**
-	 * @Event("logOn")
-	 * @Description("Reminds unvalidates alts/mains to accept or deny")
+	 * @Event(name="logOn",
+	 * 	description="Reminds unvalidates alts/mains to accept or deny")
 	 */
 	public function checkUnvalidatedAltsEvent(UserStateEvent $eventObj): void {
 		if (!$this->chatBot->isReady() || !is_string($eventObj->sender)) {

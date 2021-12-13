@@ -41,9 +41,9 @@ class SystemdController {
 	}
 
 	/**
-	 * @Event("timer(1sec)")
-	 * @Description("Handle SystemD watchdog")
-	 * @DefaultStatus("0")
+	 * @Event(name="timer(1sec)",
+	 * 	description="Handle SystemD watchdog",
+	 * 	defaultStatus="0")
 	 */
 	public function watchdogPing(Event $event): void {
 		if (!$this->enabled || $this->lastPing + $this->watchdogInterval > time()) {

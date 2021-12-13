@@ -167,8 +167,8 @@ class CityWaveController implements MessageEmitter {
 	}
 
 	/**
-	 * @Event("guild")
-	 * @Description("Starts a wave counter when cloak is lowered")
+	 * @Event(name="guild",
+	 * 	description="Starts a wave counter when cloak is lowered")
 	 */
 	public function autoStartWaveCounterEvent(AOChatEvent $eventObj): void {
 		if (preg_match("/^Your city in (.+) has been targeted by hostile forces.$/i", $eventObj->message)) {

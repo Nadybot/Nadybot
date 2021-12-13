@@ -108,8 +108,8 @@ class WhoisController {
 	}
 
 	/**
-	 * @Event("timer(1min)")
-	 * @Description("Save cache of names and charIds to database")
+	 * @Event(name="timer(1min)",
+	 * 	description="Save cache of names and charIds to database")
 	 */
 	public function saveCharIds(Event $eventObj): void {
 		if (empty($this->nameHistoryCache) || $this->db->inTransaction()) {
@@ -150,8 +150,8 @@ class WhoisController {
 
 	/**
 	 * @Event("packet(20)")
-	 * @Event("packet(21)")
-	 * @Description("Records names and charIds")
+	 * @Event(name="packet(21)",
+	 * 	description="Records names and charIds")
 	 */
 	public function recordCharIds(PacketEvent $eventObj): void {
 		$packet = $eventObj->packet;
@@ -405,8 +405,8 @@ class WhoisController {
 	}
 
 	/**
-	 * @Event("logOn")
-	 * @Description("Gets online status of character")
+	 * @Event(name="logOn",
+	 * 	description="Gets online status of character")
 	 */
 	public function logonEvent(UserStateEvent $eventObj): void {
 		$name = (string)$eventObj->sender;
@@ -426,8 +426,8 @@ class WhoisController {
 	}
 
 	/**
-	 * @Event("logOff")
-	 * @Description("Gets offline status of character")
+	 * @Event(name="logOff",
+	 * 	description="Gets offline status of character")
 	 */
 	public function logoffEvent(UserStateEvent $eventObj): void {
 		$name = (string)$eventObj->sender;

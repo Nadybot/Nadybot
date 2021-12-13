@@ -140,8 +140,8 @@ class RelayController {
 	public LoggerWrapper $logger;
 
 	/**
-	 * @Event("connect")
-	 * @Description("Load relays from database")
+	 * @Event(name="connect",
+	 * 	description="Load relays from database")
 	 */
 	public function loadRelays(): void {
 		$relays = $this->getRelays();

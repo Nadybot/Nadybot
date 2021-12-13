@@ -130,8 +130,8 @@ class GauntletBuffController implements MessageEmitter {
 	}
 
 	/**
-	 * @Event("connect")
-	 * @Description("Get active Gauntlet buffs from API")
+	 * @Event(name="connect",
+	 * 	description="Get active Gauntlet buffs from API")
 	 */
 	public function loadGauntletBuffsFromAPI(): void {
 		$this->http->get(static::GAUNTLET_API)
@@ -284,8 +284,8 @@ class GauntletBuffController implements MessageEmitter {
 	}
 
 	/**
-	 * @Event("logOn")
-	 * @Description("Sends gaubuff message on logon")
+	 * @Event(name="logOn",
+	 * 	description="Sends gaubuff message on logon")
 	 */
 	public function gaubufflogonEvent(UserStateEvent $eventObj): void {
 		$sender = $eventObj->sender;
@@ -299,8 +299,8 @@ class GauntletBuffController implements MessageEmitter {
 	}
 
 	/**
-	 * @Event("joinPriv")
-	 * @Description("Sends gaubuff message on join")
+	 * @Event(name="joinPriv",
+	 * 	description="Sends gaubuff message on join")
 	 */
 	public function privateChannelJoinEvent(AOChatEvent $eventObj): void {
 		$sender = $eventObj->sender;
@@ -370,8 +370,8 @@ class GauntletBuffController implements MessageEmitter {
 	}
 
 	/**
-	 * @Event("sync(gaubuff)")
-	 * @Description("Sync external gauntlet buff events")
+	 * @Event(name="sync(gaubuff)",
+	 * 	description="Sync external gauntlet buff events")
 	 */
 	public function syncExtGaubuff(SyncGaubuffEvent $event): void {
 		if ($event->isLocal()) {

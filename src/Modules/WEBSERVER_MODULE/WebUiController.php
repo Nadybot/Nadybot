@@ -99,9 +99,9 @@ class WebUiController implements MessageEmitter {
 	}
 
 	/**
-	 * @Event("timer(24hrs)")
-	 * @Description("Automatically upgrade NadyUI")
-	 * @DefaultStatus("1")
+	 * @Event(name="timer(24hrs)",
+	 * 	description="Automatically upgrade NadyUI",
+	 * 	defaultStatus="1")
 	 */
 	public function updateWebUI(): void {
 		$channel = $this->settingManager->getString('nadyui_channel');

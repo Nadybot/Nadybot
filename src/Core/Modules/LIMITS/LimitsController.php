@@ -344,8 +344,8 @@ class LimitsController {
 	}
 
 	/**
-	 * @Event("command(*)")
-	 * @Description("Enforce rate limits")
+	 * @Event(name="command(*)",
+	 * 	description="Enforce rate limits")
 	 */
 	public function accountCommandExecution(CmdEvent $event): void {
 		if ($event->cmdHandler && !$this->commandHandlerCounts($event->cmdHandler)) {
@@ -457,9 +457,9 @@ class LimitsController {
 	}
 
 	/**
-	 * @Event("timer(1min)")
-	 * @Description("Check ignores to see if they have expired")
-	 * @DefaultStatus("1")
+	 * @Event(name="timer(1min)",
+	 * 	description="Check ignores to see if they have expired",
+	 * 	defaultStatus="1")
 	 */
 	public function expireIgnores(): void {
 		$now = time();
@@ -472,9 +472,9 @@ class LimitsController {
 	}
 
 	/**
-	 * @Event("timer(10min)")
-	 * @Description("Cleanup expired command counts")
-	 * @DefaultStatus("1")
+	 * @Event(name="timer(10min)",
+	 * 	description="Cleanup expired command counts",
+	 * 	defaultStatus="1")
 	 */
 	public function expireBuckets(): void {
 		$now = time();

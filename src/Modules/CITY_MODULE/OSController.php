@@ -25,8 +25,8 @@ class OSController {
 	public TimerController $timerController;
 
 	/**
-	 * @Event("orgmsg")
-	 * @Description("Sets a timer when an OS/AS is launched")
+	 * @Event(name="orgmsg",
+	 * 	description="Sets a timer when an OS/AS is launched")
 	 */
 	public function osTimerEvent(AOChatEvent $eventObj): void {
 		// create a timer for 15m when an OS/AS is launched (so org knows when they can launch again)

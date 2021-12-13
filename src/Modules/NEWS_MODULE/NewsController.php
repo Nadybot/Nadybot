@@ -204,8 +204,8 @@ class NewsController {
 	}
 
 	/**
-	 * @Event("logOn")
-	 * @Description("Sends news to org members logging in")
+	 * @Event(name="logOn",
+	 * 	description="Sends news to org members logging in")
 	 */
 	public function logonEvent(UserStateEvent $eventObj): void {
 		$sender = $eventObj->sender;
@@ -224,8 +224,8 @@ class NewsController {
 	}
 
 	/**
-	 * @Event("joinPriv")
-	 * @Description("Sends news to players joining private channel")
+	 * @Event(name="joinPriv",
+	 * 	description="Sends news to players joining private channel")
 	 */
 	public function privateChannelJoinEvent(AOChatEvent $eventObj): void {
 		if (!is_string($eventObj->sender)

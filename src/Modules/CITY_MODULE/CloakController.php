@@ -182,8 +182,8 @@ class CloakController implements MessageEmitter {
 	}
 
 	/**
-	 * @Event("guild")
-	 * @Description("Records when the cloak is raised or lowered")
+	 * @Event(name="guild",
+	 * 	description="Records when the cloak is raised or lowered")
 	 */
 	public function recordCloakChangesEvent(AOChatEvent $eventObj): void {
 		if ($this->util->isValidSender($eventObj->sender)
@@ -223,8 +223,8 @@ class CloakController implements MessageEmitter {
 	}
 
 	/**
-	 * @Event("timer(1min)")
-	 * @Description("Checks timer to see if cloak can be raised or lowered")
+	 * @Event(name="timer(1min)",
+	 * 	description="Checks timer to see if cloak can be raised or lowered")
 	 */
 	public function checkTimerEvent(Event $eventObj): void {
 		$row = $this->getLastOrgEntry();
@@ -248,8 +248,8 @@ class CloakController implements MessageEmitter {
 	}
 
 	/**
-	 * @Event("timer(1min)")
-	 * @Description("Reminds the player who lowered cloak to raise it")
+	 * @Event(name="timer(1min)",
+	 * 	description="Reminds the player who lowered cloak to raise it")
 	 */
 	public function cloakReminderEvent(Event $eventObj): void {
 		$row = $this->getLastOrgEntry(true);
@@ -283,8 +283,8 @@ class CloakController implements MessageEmitter {
 	}
 
 	/**
-	 * @Event("logOn")
-	 * @Description("Show cloak status to guild members logging in")
+	 * @Event(name="logOn",
+	 * 	description="Show cloak status to guild members logging in")
 	 */
 	public function cityGuildLogonEvent(UserStateEvent $eventObj): void {
 		if (!$this->chatBot->isReady()

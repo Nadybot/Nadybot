@@ -78,8 +78,8 @@ class WebserverController {
 	protected AsyncHttp $aoAuthPubKeyRequest;
 
 	/**
-	 * @Event("connect")
-	 * @Description("Download aoauth public key")
+	 * @Event(name="connect",
+	 * 	description="Download aoauth public key")
 	 */
 	public function downloadPublicKey(): void {
 		if ($this->settingManager->getString('webserver_auth') !== static::AUTH_AOAUTH) {
@@ -502,9 +502,9 @@ class WebserverController {
 	 * @Event("http(post)")
 	 * @Event("http(put)")
 	 * @Event("http(delete)")
-	 * @Event("http(patch)")
-	 * @Description("Call handlers for HTTP GET requests")
-	 * @DefaultStatus("1")
+	 * @Event(name="http(patch)",
+	 * 	description="Call handlers for HTTP GET requests",
+	 * 	defaultStatus="1")
 	 */
 	public function getRequest(HttpEvent $event, HttpProtocolWrapper $server): void {
 		if (!isset($event->request->authenticatedAs)) {
@@ -733,9 +733,9 @@ class WebserverController {
 	}
 
 	/**
-	 * @Event("timer(10min)")
-	 * @Description("Remove expired authentications")
-	 * @DefaultStatus("1")
+	 * @Event(name="timer(10min)",
+	 * 	description="Remove expired authentications",
+	 * 	defaultStatus="1")
 	 */
 	public function clearExpiredAuthentications(): void {
 		foreach ($this->authentications as $user => $data) {

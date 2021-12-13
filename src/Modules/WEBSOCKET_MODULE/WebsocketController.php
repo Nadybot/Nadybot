@@ -236,9 +236,9 @@ class WebsocketController {
 	}
 
 	/**
-	 * @Event("websocket(subscribe)")
-	 * @Description("Handle Websocket event subscriptions")
-	 * @DefaultStatus("1")
+	 * @Event(name="websocket(subscribe)",
+	 * 	description="Handle Websocket event subscriptions",
+	 * 	defaultStatus="1")
 	 */
 	public function handleSubscriptions(WebsocketSubscribeEvent $event, WebsocketServer $server): void {
 		try {
@@ -252,17 +252,17 @@ class WebsocketController {
 	}
 
 	/**
-	 * @Event("websocket(request)")
-	 * @Description("Handle API requests")
+	 * @Event(name="websocket(request)",
+	 * 	description="Handle API requests")
 	 */
 	public function handleRequests(WebsocketRequestEvent $event, WebsocketServer $server): void {
 		// Not implemented yet
 	}
 
 	/**
-	 * @Event("*")
-	 * @Description("Distribute events to Websocket clients")
-	 * @DefaultStatus("1")
+	 * @Event(name="*",
+	 * 	description="Distribute events to Websocket clients",
+	 * 	defaultStatus="1")
 	 */
 	public function displayEvent(Event $event): void {
 		$isPrivatPacket = $event->type === 'msg'

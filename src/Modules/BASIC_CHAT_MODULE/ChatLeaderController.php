@@ -161,8 +161,8 @@ class ChatLeaderController {
 	}
 
 	/**
-	 * @Event("priv")
-	 * @Description("Repeats what the leader says in the color of leaderecho_color setting")
+	 * @Event(name="priv",
+	 * 	description="Repeats what the leader says in the color of leaderecho_color setting")
 	 */
 	public function privEvent(AOChatEvent $eventObj): void {
 		if (!$this->settingManager->getBool("leaderecho")
@@ -175,8 +175,8 @@ class ChatLeaderController {
 	}
 
 	/**
-	 * @Event("leavePriv")
-	 * @Description("Removes leader when the leader leaves the channel")
+	 * @Event(name="leavePriv",
+	 * 	description="Removes leader when the leader leaves the channel")
 	 */
 	public function leavePrivEvent(AOChatEvent $eventObj): void {
 		if ($this->leader !== $eventObj->sender) {

@@ -542,8 +542,8 @@ class RaffleController {
 	}
 
 	/**
-	 * @Event("timer(1sec)")
-	 * @Description("Announce and/or end raffle")
+	 * @Event(name="timer(1sec)",
+	 * 	description="Announce and/or end raffle")
 	 */
 	public function checkRaffleEvent(Event $eventObj): void {
 		if (!isset($this->raffle)) {

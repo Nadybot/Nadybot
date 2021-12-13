@@ -34,8 +34,8 @@ class GlobalEventsController {
 	public Relay $relay;
 
 	/**
-	 * @Event("connect")
-	 * @Description("Connect to the global event feed")
+	 * @Event(name="connect",
+	 * 	description="Connect to the global event feed")
 	 */
 	public function connectToHighway(): void {
 		$relay = new Relay("global_events");

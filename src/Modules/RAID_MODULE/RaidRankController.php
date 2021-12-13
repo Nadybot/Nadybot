@@ -187,9 +187,9 @@ class RaidRankController {
 	}
 
 	/**
-	 * @Event("connect")
-	 * @Description("Add raid leader and admins to the buddy list")
-	 * @DefaultStatus("1")
+	 * @Event(name="connect",
+	 * 	description="Add raid leader and admins to the buddy list",
+	 * 	defaultStatus="1")
 	 */
 	public function checkRaidRanksEvent(): void {
 		$this->db->table(self::DB_TABLE)
@@ -556,8 +556,8 @@ class RaidRankController {
 	}
 
 	/**
-	 * @Event("alt(newmain)")
-	 * @Description("Move raid rank to new main")
+	 * @Event(name="alt(newmain)",
+	 * 	description="Move raid rank to new main")
 	 */
 	public function moveRaidRanks(AltEvent $event): void {
 		$oldRank = $this->ranks[$event->alt] ?? null;

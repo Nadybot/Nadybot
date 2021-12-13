@@ -164,8 +164,8 @@ class SilenceController {
 	}
 
 	/**
-	 * @Event("connect")
-	 * @Description("Overwrite command handlers for silenced commands")
+	 * @Event(name="connect",
+	 * 	description="Overwrite command handlers for silenced commands")
 	 */
 	public function overwriteCommandHandlersEvent(Event $eventObj): void {
 		$this->db->table(self::DB_TABLE)

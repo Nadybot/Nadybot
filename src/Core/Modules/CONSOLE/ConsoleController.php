@@ -117,9 +117,9 @@ class ConsoleController {
 	}
 
 	/**
-	 * @Event("connect")
-	 * @Description("Initializes the console")
-	 * @DefaultStatus("1")
+	 * @Event(name="connect",
+	 * 	description="Initializes the console",
+	 * 	defaultStatus="1")
 	 *
 	 * This is an Event("connect") instead of Setup since you cannot use the console
 	 * before the bot is fully ready anyway

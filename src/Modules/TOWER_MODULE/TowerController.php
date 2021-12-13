@@ -285,8 +285,8 @@ class TowerController {
 	}
 
 	/**
-	 * @Event("timer(24h)")
-	 * @Description("Clean list of outdated hot sites")
+	 * @Event(name="timer(24h)",
+	 * 	description="Clean list of outdated hot sites")
 	 */
 	public function cleanHotSites(): void {
 		$this->db->table(static::DB_HOT)
@@ -1373,8 +1373,8 @@ class TowerController {
 	}
 
 	/**
-	 * @Event("orgmsg")
-	 * @Description("Notify if org's towers are attacked")
+	 * @Event(name="orgmsg",
+	 * 	description="Notify if org's towers are attacked")
 	 */
 	public function attackOwnOrgMessageEvent(AOChatEvent $eventObj): void {
 		if ($this->util->isValidSender($eventObj->sender)) {
@@ -1445,8 +1445,8 @@ class TowerController {
 	/**
 	 * This event handler record attack messages.
 	 *
-	 * @Event("towers")
-	 * @Description("Record attack messages")
+	 * @Event(name="towers",
+	 * 	description="Record attack messages")
 	 */
 	public function attackMessagesEvent(AOChatEvent $eventObj): void {
 		$attack = new Attack();
@@ -1680,8 +1680,8 @@ class TowerController {
 	/**
 	 * This event handler record victory messages.
 	 *
-	 * @Event("towers")
-	 * @Description("Record victory messages")
+	 * @Event(name="towers",
+	 * 	description="Record victory messages")
 	 */
 	public function victoryMessagesEvent(AOChatEvent $eventObj): void {
 		if (preg_match("/^The (Clan|Neutral|Omni) organization (.+) attacked the (Clan|Neutral|Omni) (.+) at their base in (.+). The attackers won!!$/i", $eventObj->message, $arr)) {
@@ -2061,8 +2061,8 @@ class TowerController {
 	}
 
 	/**
-	 * @Event("sync(scout)")
-	 * @Description("Sync external scout information")
+	 * @Event(name="sync(scout)",
+	 * 	description="Sync external scout information")
 	 */
 	public function processScoutSyncEvent(SyncScoutEvent $event): void {
 		if (!$event->isLocal()) {
@@ -2071,8 +2071,8 @@ class TowerController {
 	}
 
 	/**
-	 * @Event("sync(remscout)")
-	 * @Description("Sync external scout information")
+	 * @Event(name="sync(remscout)",
+	 * 	description="Sync external scout information")
 	 */
 	public function processRemscoutSyncEvent(SyncRemscoutEvent $event): void {
 		if (!$event->isLocal()) {

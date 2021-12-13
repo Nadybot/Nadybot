@@ -184,8 +184,8 @@ class ChatRallyController {
 	}
 
 	/**
-	 * @Event("sync(rally-set)")
-	 * @Description("Handle synced rally sets")
+	 * @Event(name="sync(rally-set)",
+	 * 	description="Handle synced rally sets")
 	 */
 	public function handleExtRallySet(SyncRallySetEvent $event): void {
 		if ($event->isLocal()) {
@@ -195,8 +195,8 @@ class ChatRallyController {
 	}
 
 	/**
-	 * @Event("sync(rally-clear)")
-	 * @Description("Handle synced rally clears")
+	 * @Event(name="sync(rally-clear)",
+	 * 	description="Handle synced rally clears")
 	 */
 	public function handleExtRallyClear(SyncRallyClearEvent $event): void {
 		if ($event->isLocal()) {
@@ -206,8 +206,8 @@ class ChatRallyController {
 	}
 
 	/**
-	 * @Event("joinpriv")
-	 * @Description("Sends rally to players joining the private channel")
+	 * @Event(name="joinpriv",
+	 * 	description="Sends rally to players joining the private channel")
 	 */
 	public function sendRally(AOChatEvent $eventObj): void {
 		$sender = $eventObj->sender;

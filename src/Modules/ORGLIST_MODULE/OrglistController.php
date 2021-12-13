@@ -400,8 +400,8 @@ class OrglistController {
 
 	/**
 	 * @Event("logOn")
-	 * @Event("logOff")
-	 * @Description("Records online status of org members")
+	 * @Event(name="logOff",
+	 * 	description="Records online status of org members")
 	 */
 	public function orgMemberLogonEvent(UserStateEvent $eventObj): void {
 		if (!is_string($eventObj->sender)) {
@@ -411,8 +411,8 @@ class OrglistController {
 	}
 
 	/**
-	 * @Event("packet(41)")
-	 * @Description("Records online status of org members")
+	 * @Event(name="packet(41)",
+	 * 	description="Records online status of org members")
 	 */
 	public function buddyRemovedEvent(Event $eventObj): void {
 		if (isset($this->orglist)) {

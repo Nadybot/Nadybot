@@ -149,8 +149,8 @@ class VoteController implements MessageEmitter {
 	/**
 	 * This event handler checks for polls ending.
 	 *
-	 * @Event("timer(2sec)")
-	 * @Description("Checks polls and periodically updates chat with time left")
+	 * @Event(name="timer(2sec)",
+	 * 	description="Checks polls and periodically updates chat with time left")
 	 */
 	public function checkVote(Event $eventObj): void {
 		if (count($this->polls) === 0) {

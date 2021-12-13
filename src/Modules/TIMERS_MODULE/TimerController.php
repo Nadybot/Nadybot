@@ -175,8 +175,8 @@ class TimerController implements MessageEmitter {
 	}
 
 	/**
-	 * @Event("timer(1sec)")
-	 * @Description("Checks timers and periodically updates chat with time left")
+	 * @Event(name="timer(1sec)",
+	 * 	description="Checks timers and periodically updates chat with time left")
 	 */
 	public function checkTimers(): void {
 		$time = time();
@@ -621,8 +621,8 @@ class TimerController implements MessageEmitter {
 	}
 
 	/**
-	 * @Event("sync(timer)")
-	 * @Description("Sync external timers to local timers")
+	 * @Event(name="sync(timer)",
+	 * 	description="Sync external timers to local timers")
 	 */
 	public function syncExtTimers(SyncTimerEvent $event): void {
 		if ($event->isLocal()) {

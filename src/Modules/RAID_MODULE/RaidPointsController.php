@@ -174,8 +174,8 @@ class RaidPointsController {
 
 	/**
 	 * Give points when the ticker is enabled
-	 * @Event("timer(1s)")
-	 * @Description("Award points for raid participation")
+	 * @Event(name="timer(1s)",
+	 * 	description="Award points for raid participation")
 	 */
 	public function awardParticipationPoints(): void {
 		$raid = $this->raidController->raid ?? null;
@@ -665,8 +665,8 @@ class RaidPointsController {
 	/**
 	 * Give points when the ticker is enabled
 	 * @Event("alt(add)")
-	 * @Event("alt(validate)")
-	 * @Description("Merge raid points when alts merge")
+	 * @Event(name="alt(validate)",
+	 * 	description="Merge raid points when alts merge")
 	 */
 	public function mergeRaidPoints(AltEvent $event): void {
 		if ($event->validated === false) {
@@ -834,8 +834,8 @@ class RaidPointsController {
 	}
 
 	/**
-	 * @Event("alt(newmain)")
-	 * @Description("Move raid points to new main")
+	 * @Event(name="alt(newmain)",
+	 * 	description="Move raid points to new main")
 	 */
 	public function moveRaidPoints(AltEvent $event): void {
 		$sharePoints = $this->settingManager->getBool('raid_share_points');

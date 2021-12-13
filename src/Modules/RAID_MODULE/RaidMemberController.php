@@ -491,8 +491,8 @@ class RaidMemberController {
 	}
 
 	/**
-	 * @Event("leavePriv")
-	 * @Description("Remove players from the raid when they leave the channel")
+	 * @Event(name="leavePriv",
+	 * 	description="Remove players from the raid when they leave the channel")
 	 */
 	public function leavePrivateChannelMessageEvent(AOChatEvent $eventObj): void {
 		if (!is_string($eventObj->sender)) {

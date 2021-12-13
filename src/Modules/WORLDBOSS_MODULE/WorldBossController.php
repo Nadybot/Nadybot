@@ -222,8 +222,8 @@ class WorldBossController {
 	}
 
 	/**
-	 * @Event("connect")
-	 * @Description("Get boss timers from timer API")
+	 * @Event(name="connect",
+	 * 	description="Get boss timers from timer API")
 	 */
 	public function loadTimersFromAPI(): void {
 		$this->http->get(static::WORLDBOSS_API)
@@ -595,8 +595,8 @@ class WorldBossController {
 	}
 
 	/**
-	 * @Event("timer(1sec)")
-	 * @Description("Check timer to announce big boss events")
+	 * @Event(name="timer(1sec)",
+	 * 	description="Check timer to announce big boss events")
 	 */
 	public function checkTimerEvent(Event $eventObj, int $interval, bool $manual=false): void {
 		$timers = $this->getWorldBossTimers();
@@ -657,8 +657,8 @@ class WorldBossController {
 	}
 
 	/**
-	 * @Event("sync(worldboss)")
-	 * @Description("Sync external worldboss timers")
+	 * @Event(name="sync(worldboss)",
+	 * 	description="Sync external worldboss timers")
 	 */
 	public function syncExtWorldbossTimers(SyncWorldbossEvent $event): void {
 		if ($event->isLocal()) {
@@ -681,8 +681,8 @@ class WorldBossController {
 	}
 
 	/**
-	 * @Event("sync(worldboss-delete)")
-	 * @Description("Sync external worldboss timer deletes")
+	 * @Event(name="sync(worldboss-delete)",
+	 * 	description="Sync external worldboss timer deletes")
 	 */
 	public function syncExtWorldbossDeletes(SyncWorldbossDeleteEvent $event): void {
 		if ($event->isLocal()) {

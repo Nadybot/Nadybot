@@ -222,8 +222,8 @@ class FindOrgController {
 	}
 
 	/**
-	 * @Event("timer(24hrs)")
-	 * @Description("Parses all orgs from People of Rubi Ka")
+	 * @Event(name="timer(24hrs)",
+	 * 	description="Parses all orgs from People of Rubi Ka")
 	 */
 	public function parseAllOrgsEvent(Event $eventObj): void {
 		$this->downloadOrglist();

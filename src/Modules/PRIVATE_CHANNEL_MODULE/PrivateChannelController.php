@@ -775,8 +775,8 @@ class PrivateChannelController {
 	}
 
 	/**
-	 * @Event("timer(5m)")
-	 * @Description("Send reminder if the private channel is locked")
+	 * @Event(name="timer(5m)",
+	 * 	description="Send reminder if the private channel is locked")
 	 */
 	public function remindOfLock(): void {
 		if (!isset($this->lockReason)) {
@@ -788,8 +788,8 @@ class PrivateChannelController {
 	}
 
 	/**
-	 * @Event("connect")
-	 * @Description("Adds all members as buddies")
+	 * @Event(name="connect",
+	 * 	description="Adds all members as buddies")
 	 */
 	public function connectEvent(Event $eventObj): void {
 		$this->db->table(self::DB_TABLE)
@@ -800,8 +800,8 @@ class PrivateChannelController {
 	}
 
 	/**
-	 * @Event("logOn")
-	 * @Description("Auto-invite members on logon")
+	 * @Event(name="logOn",
+	 * 	description="Auto-invite members on logon")
 	 */
 	public function logonAutoinviteEvent(UserStateEvent $eventObj): void {
 		$sender = $eventObj->sender;
@@ -901,8 +901,8 @@ class PrivateChannelController {
 	}
 
 	/**
-	 * @Event("joinPriv")
-	 * @Description("Displays a message when a character joins the private channel")
+	 * @Event(name="joinPriv",
+	 * 	description="Displays a message when a character joins the private channel")
 	 */
 	public function joinPrivateChannelMessageEvent(AOChatEvent $eventObj): void {
 		if (!is_string($eventObj->sender)) {
@@ -948,8 +948,8 @@ class PrivateChannelController {
 	}
 
 	/**
-	 * @Event("joinPriv")
-	 * @Description("Autoban players of unwanted factions when they join the bot")
+	 * @Event(name="joinPriv",
+	 * 	description="Autoban players of unwanted factions when they join the bot")
 	 */
 	public function autobanOnJoin(AOChatEvent $eventObj): void {
 		$reqFaction = $this->settingManager->getString('only_allow_faction') ?? "all";
@@ -1026,8 +1026,8 @@ class PrivateChannelController {
 	}
 
 	/**
-	 * @Event("leavePriv")
-	 * @Description("Displays a message when a character leaves the private channel")
+	 * @Event(name="leavePriv",
+	 * 	description="Displays a message when a character leaves the private channel")
 	 */
 	public function leavePrivateChannelMessageEvent(AOChatEvent $eventObj): void {
 		$sender = $eventObj->sender;
@@ -1059,8 +1059,8 @@ class PrivateChannelController {
 	}
 
 	/**
-	 * @Event("joinPriv")
-	 * @Description("Updates the database when a character joins the private channel")
+	 * @Event(name="joinPriv",
+	 * 	description="Updates the database when a character joins the private channel")
 	 */
 	public function joinPrivateChannelRecordEvent(AOChatEvent $eventObj): void {
 		$sender = $eventObj->sender;
@@ -1075,8 +1075,8 @@ class PrivateChannelController {
 	}
 
 	/**
-	 * @Event("leavePriv")
-	 * @Description("Updates the database when a character leaves the private channel")
+	 * @Event(name="leavePriv",
+	 * 	description="Updates the database when a character leaves the private channel")
 	 */
 	public function leavePrivateChannelRecordEvent(AOChatEvent $eventObj): void {
 		$sender = $eventObj->sender;
@@ -1087,8 +1087,8 @@ class PrivateChannelController {
 	}
 
 	/**
-	 * @Event("joinPriv")
-	 * @Description("Sends the online list to people as they join the private channel")
+	 * @Event(name="joinPriv",
+	 * 	description="Sends the online list to people as they join the private channel")
 	 */
 	public function joinPrivateChannelShowOnlineEvent(AOChatEvent $eventObj): void {
 		$sender = $eventObj->sender;
@@ -1132,8 +1132,8 @@ class PrivateChannelController {
 	}
 
 	/**
-	 * @Event("member(add)")
-	 * @Description("Send welcome message data/welcome.txt to new members")
+	 * @Event(name="member(add)",
+	 * 	description="Send welcome message data/welcome.txt to new members")
 	 */
 	public function sendWelcomeMessage(MemberEvent $event): void {
 		$dataPath = $this->chatBot->vars["datafolder"] ?? "./data";

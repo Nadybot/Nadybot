@@ -143,8 +143,8 @@ class ChatTopicController {
 	}
 
 	/**
-	 * @Event("logOn")
-	 * @Description("Shows topic on logon of members")
+	 * @Event(name="logOn",
+	 * 	description="Shows topic on logon of members")
 	 */
 	public function logonEvent(UserStateEvent $eventObj): void {
 		if ($this->settingManager->getString('topic') === ''
@@ -159,8 +159,8 @@ class ChatTopicController {
 	}
 
 	/**
-	 * @Event("joinPriv")
-	 * @Description("Shows topic when someone joins the private channel")
+	 * @Event(name="joinPriv",
+	 * 	description="Shows topic when someone joins the private channel")
 	 */
 	public function joinPrivEvent(AOChatEvent $eventObj): void {
 		if ($this->settingManager->getString('topic') === '' || !is_string($eventObj->sender)) {

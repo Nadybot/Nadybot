@@ -131,8 +131,8 @@ class OrgHistoryController {
 	}
 
 	/**
-	 * @Event("orgmsg")
-	 * @Description("Capture Org Invite/Kick/Leave messages for orghistory")
+	 * @Event(name="orgmsg",
+	 * 	description="Capture Org Invite/Kick/Leave messages for orghistory")
 	 */
 	public function captureOrgMessagesEvent(AOChatEvent $eventObj): void {
 		$message = $eventObj->message;

@@ -544,9 +544,9 @@ class SystemController implements MessageEmitter {
 	}
 
 	/**
-	 * @Event("timer(1hr)")
-	 * @Description("This event handler is called every hour to keep MySQL connection active")
-	 * @DefaultStatus("1")
+	 * @Event(name="timer(1hr)",
+	 * 	description="This event handler is called every hour to keep MySQL connection active",
+	 * 	defaultStatus="1")
 	 */
 	public function refreshMySQLConnectionEvent(Event $eventObj): void {
 		// if the bot doesn't query the mysql database for 8 hours the db connection is closed
@@ -558,9 +558,9 @@ class SystemController implements MessageEmitter {
 	}
 
 	/**
-	 * @Event("connect")
-	 * @Description("Notify private channel, guild channel, and admins that bot is online")
-	 * @DefaultStatus("1")
+	 * @Event(name="connect",
+	 * 	description="Notify private channel, guild channel, and admins that bot is online",
+	 * 	defaultStatus="1")
 	 */
 	public function onConnectEvent(Event $eventObj): void {
 		// send Admin(s) a tell that the bot is online

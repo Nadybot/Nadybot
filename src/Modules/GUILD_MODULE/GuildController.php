@@ -598,16 +598,16 @@ class GuildController {
 	}
 
 	/**
-	 * @Event("timer(24hrs)")
-	 * @Description("Download guild roster xml and update guild members")
+	 * @Event(name="timer(24hrs)",
+	 * 	description="Download guild roster xml and update guild members")
 	 */
 	public function downloadOrgRosterEvent(Event $eventObj): void {
 		$this->updateOrgRoster();
 	}
 
 	/**
-	 * @Event("orgmsg")
-	 * @Description("Automatically update guild roster as characters join and leave the guild")
+	 * @Event(name="orgmsg",
+	 * 	description="Automatically update guild roster as characters join and leave the guild")
 	 */
 	public function autoNotifyOrgMembersEvent(AOChatEvent $eventObj): void {
 		$message = $eventObj->message;
@@ -714,8 +714,8 @@ class GuildController {
 	}
 
 	/**
-	 * @Event("logOn")
-	 * @Description("Shows an org member logon in chat")
+	 * @Event(name="logOn",
+	 * 	description="Shows an org member logon in chat")
 	 */
 	public function orgMemberLogonMessageEvent(UserStateEvent $eventObj): void {
 		$sender = $eventObj->sender;
@@ -755,8 +755,8 @@ class GuildController {
 	}
 
 	/**
-	 * @Event("logOff")
-	 * @Description("Shows an org member logoff in chat")
+	 * @Event(name="logOff",
+	 * 	description="Shows an org member logoff in chat")
 	 */
 	public function orgMemberLogoffMessageEvent(UserStateEvent $eventObj): void {
 		$sender = $eventObj->sender;
@@ -782,8 +782,8 @@ class GuildController {
 	}
 
 	/**
-	 * @Event("logOff")
-	 * @Description("Record org member logoff for lastseen command")
+	 * @Event(name="logOff",
+	 * 	description="Record org member logoff for lastseen command")
 	 */
 	public function orgMemberLogoffRecordEvent(UserStateEvent $eventObj): void {
 		$sender = $eventObj->sender;
@@ -804,8 +804,8 @@ class GuildController {
 	}
 
 	/**
-	 * @Event("connect")
-	 * @Description("Verifies that org name is correct")
+	 * @Event(name="connect",
+	 * 	description="Verifies that org name is correct")
 	 */
 	public function verifyOrgNameEvent(Event $eventObj): void {
 		if (empty($this->chatBot->vars["my_guild"])) {

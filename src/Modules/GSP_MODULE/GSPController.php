@@ -112,8 +112,8 @@ class GSPController implements MessageEmitter {
 	}
 
 	/**
-	 * @Event("timer(1min)")
-	 * @Description("Check if a GSP show is running")
+	 * @Event(name="timer(1min)",
+	 * 	description="Check if a GSP show is running")
 	 */
 	public function announceIfShowRunning(): void {
 		$this->http
@@ -200,8 +200,8 @@ class GSPController implements MessageEmitter {
 	}
 
 	/**
-	 * @Event("logOn")
-	 * @Description("Announce running shows on logon")
+	 * @Event(name="logOn",
+	 * 	description="Announce running shows on logon")
 	 */
 	public function gspShowLogonEvent(UserStateEvent $eventObj): void {
 		$sender = $eventObj->sender;

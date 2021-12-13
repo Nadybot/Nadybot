@@ -219,8 +219,8 @@ class TrackerController implements MessageEmitter {
 	}
 
 	/**
-	 * @Event("connect")
-	 * @Description("Adds all players on the track list to the buddy list")
+	 * @Event(name="connect",
+	 * 	description="Adds all players on the track list to the buddy list")
 	 */
 	public function trackedUsersConnectEvent(Event $eventObj): void {
 		$this->db->table(self::DB_TABLE)
@@ -240,8 +240,8 @@ class TrackerController implements MessageEmitter {
 	}
 
 	/**
-	 * @Event("timer(24hrs)")
-	 * @Description("Download all tracked orgs' information")
+	 * @Event(name="timer(24hrs)",
+	 * 	description="Download all tracked orgs' information")
 	 */
 	public function downloadOrgRostersEvent(Event $eventObj): void {
 		$this->logger->notice("Starting Tracker Roster update");
@@ -267,8 +267,8 @@ class TrackerController implements MessageEmitter {
 	}
 
 	/**
-	 * @Event("tower(attack)")
-	 * @Description("Automatically track tower field attackers")
+	 * @Event(name="tower(attack)",
+	 * 	description="Automatically track tower field attackers")
 	 */
 	public function trackTowerAttacks(TowerAttackEvent $eventObj): void {
 		$attacker = $eventObj->attacker;
@@ -315,8 +315,8 @@ class TrackerController implements MessageEmitter {
 	}
 
 	/**
-	 * @Event("logOn")
-	 * @Description("Records a tracked user logging on")
+	 * @Event(name="logOn",
+	 * 	description="Records a tracked user logging on")
 	 */
 	public function trackLogonEvent(UserStateEvent $eventObj): void {
 		if (!$this->chatBot->isReady() || !is_string($eventObj->sender)) {
@@ -402,8 +402,8 @@ class TrackerController implements MessageEmitter {
 	}
 
 	/**
-	 * @Event("logOff")
-	 * @Description("Records a tracked user logging off")
+	 * @Event(name="logOff",
+	 * 	description="Records a tracked user logging off")
 	 */
 	public function trackLogoffEvent(UserStateEvent $eventObj): void {
 		if (!$this->chatBot->isReady() || !is_string($eventObj->sender)) {

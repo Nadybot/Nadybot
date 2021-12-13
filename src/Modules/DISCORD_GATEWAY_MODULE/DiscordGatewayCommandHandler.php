@@ -242,8 +242,8 @@ class DiscordGatewayCommandHandler {
 	/**
 	 * Handle an incoming discord private message
 	 *
-	 * @Event("discordmsg")
-	 * @Description("Handle commands from Discord private messages")
+	 * @Event(name="discordmsg",
+	 * 	description="Handle commands from Discord private messages")
 	 */
 	public function processDiscordDirectMessage(DiscordMessageEvent $event): void {
 		$isCommand = substr($event->message??"", 0, 1) === $this->settingManager->get("discord_symbol");
@@ -280,8 +280,8 @@ class DiscordGatewayCommandHandler {
 	/**
 	 * Handle an incoming discord channel message
 	 *
-	 * @Event("discordpriv")
-	 * @Description("Handle commands from Discord channel messages")
+	 * @Event(name="discordpriv",
+	 * 	description="Handle commands from Discord channel messages")
 	 */
 	public function processDiscordChannelMessage(DiscordMessageEvent $event): void {
 		$discordUserId = $event->discord_message->author->id ?? (string)$event->sender;

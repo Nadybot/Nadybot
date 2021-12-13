@@ -147,8 +147,8 @@ class CountdownController {
 	}
 
 	/**
-	 * @Event("sync(cd)")
-	 * @Description("Process externally started countdowns")
+	 * @Event(name="sync(cd)",
+	 * 	description="Process externally started countdowns")
 	 */
 	public function syncCountdown(SyncCdEvent $event): void {
 		if (time() - $this->lastCountdown < 7) {
