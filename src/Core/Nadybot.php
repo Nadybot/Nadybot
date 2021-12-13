@@ -265,7 +265,12 @@ class Nadybot extends AOChat {
 		}
 
 		$this->buddyListSize += 1000;
-		$this->logger->notice("All Systems ready!");
+		$this->logger->notice("Successfully logged in", [
+			"name" => $this->vars["name"],
+			"login" => $login,
+			"server" => $server,
+			"port" => $port,
+		]);
 		$pc = new PrivateChannel($this->vars["name"]);
 		Registry::injectDependencies($pc);
 		$this->messageHub
