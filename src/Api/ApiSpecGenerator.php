@@ -15,9 +15,6 @@ use ReflectionProperty;
 
 class ApiSpecGenerator {
 	public function loadClasses(): void {
-		foreach (glob(__DIR__ . "/../Core/Annotations/*.php") as $file) {
-			require_once $file;
-		}
 		foreach (glob(__DIR__ . "/../Core/DBSchema/*.php") as $file) {
 			require_once $file;
 		}
@@ -92,9 +89,6 @@ class ApiSpecGenerator {
 	public function getFullClass(string $className): ?string {
 		$classes = get_declared_classes();
 		foreach ($classes as $class) {
-			if (is_subclass_of($class, \Addendum\Annotation::class)) {
-				continue;
-			}
 			if (is_subclass_of($class, \Attribute::class)) {
 				continue;
 			}

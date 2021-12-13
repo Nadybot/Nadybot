@@ -97,7 +97,7 @@ class ApiController {
 			'1;0'
 		);
 
-		$this->scanApiAnnotations();
+		$this->scanApiAttributes();
 	}
 
 	/**
@@ -239,7 +239,7 @@ class ApiController {
 	/**
 	 * Scan all Instances for #[HttpGet] or #[HttpPost] attributes and register them
 	 */
-	public function scanApiAnnotations(): void {
+	public function scanApiAttributes(): void {
 		$instances = Registry::getAllInstances();
 		foreach ($instances as $instance) {
 			$reflection = new ReflectionClass($instance);

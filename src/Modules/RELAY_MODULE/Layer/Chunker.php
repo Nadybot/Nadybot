@@ -14,11 +14,14 @@ use Nadybot\Modules\RELAY_MODULE\RelayMessage;
 use Throwable;
 
 #[
-	NCA\RelayStackMember("chunker"),
-	NCA\Description("This adds the ability to chunk and re-assemble\n".
-		"long messages on the fly, so we can send large payloads\n".
-		"over a medium that only has a limited package size.\n".
-		"Of course this only works if all Bots use this chunker."),
+	NCA\RelayStackMember(
+		name: "chunker",
+		description:
+			"This adds the ability to chunk and re-assemble\n".
+			"long messages on the fly, so we can send large payloads\n".
+			"over a medium that only has a limited package size.\n".
+			"Of course this only works if all Bots use this chunker."
+	),
 	NCA\Param(
 		name: "length",
 		type: "int",

@@ -4,10 +4,10 @@ namespace Nadybot\Modules\TRACKER_MODULE\Migrations;
 
 use Nadybot\Core\Attributes as NCA;
 use Exception;
-use Nadybot\Core\Annotations\Setting;
 use Nadybot\Core\Modules\DISCORD\DiscordChannel;
 use Nadybot\Core\DB;
 use Nadybot\Core\DBSchema\Route;
+use Nadybot\Core\DBSchema\Setting;
 use Nadybot\Core\LoggerWrapper;
 use Nadybot\Core\MessageHub;
 use Nadybot\Core\Modules\DISCORD\DiscordAPIClient;
@@ -41,6 +41,7 @@ class MigrateToRoutes implements SchemaMigration {
 		$table = MessageHub::DB_TABLE_ROUTES;
 		$showWhere = $this->getSetting($db, "show_tracker_events");
 		if (!isset($showWhere)) {
+			/** @psalm-suppress DocblockTypeContradiction */
 			if (strlen($this->chatBot->vars['my_guild']??"")) {
 				$showWhere = 2;
 			} else {
@@ -62,7 +63,7 @@ class MigrateToRoutes implements SchemaMigration {
 			}
 		}
 		$notifyChannel = $this->getSetting($db, "discord_notify_channel");
-		if (!isset($notifyChannel) || $notifyChannel->value === "off") {
+		if (!isset($notifyChannel) || !isset($notifyChannel->value) || $notifyChannel->value === "off") {
 			return;
 		}
 		if ($showWhere & 4) {

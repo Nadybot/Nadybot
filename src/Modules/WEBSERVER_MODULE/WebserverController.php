@@ -218,7 +218,7 @@ class WebserverController {
 			"superadmin"
 		);
 
-		$this->scanRouteAnnotations();
+		$this->scanRouteAttributes();
 		if ($this->settingManager->getBool('webserver')) {
 			$this->listen();
 		}
@@ -285,7 +285,7 @@ class WebserverController {
 	 * Scan all Instances for @HttpHet or @HttpPost annotations and register them
 	 * @return void
 	 */
-	public function scanRouteAnnotations(): void {
+	public function scanRouteAttributes(): void {
 		$instances = Registry::getAllInstances();
 		foreach ($instances as $instance) {
 			$reflection = new ReflectionClass($instance);

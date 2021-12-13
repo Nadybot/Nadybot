@@ -14,10 +14,13 @@ use Nadybot\Modules\RELAY_MODULE\Relay;
 use Nadybot\Modules\RELAY_MODULE\RelayMessage;
 
 #[
-	NCA\RelayProtocol("grc"),
-	NCA\Description("This is the old BudaBot protocol.\n".
-		"It only supports relaying messages - no sharing of online lists\n".
-		"or any form of colorization beyond org or guest chat."),
+	NCA\RelayProtocol(
+		name: "grc",
+		description:
+			"This is the old BudaBot protocol.\n".
+			"It only supports relaying messages - no sharing of online lists\n".
+			"or any form of colorization beyond org or guest chat."
+	),
 	NCA\Param(
 		name: "command",
 		type: "string",

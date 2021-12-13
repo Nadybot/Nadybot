@@ -8,9 +8,12 @@ use Nadybot\Core\EventModifier;
 use Nadybot\Core\Routing\RoutableEvent;
 
 #[
-	NCA\EventModifier("if-matches"),
-	NCA\Description("This modifier will only route messages if they contain\n".
-		"a certain text."),
+	NCA\EventModifier(
+		name: "if-matches",
+		description:
+			"This modifier will only route messages if they contain\n".
+			"a certain text."
+	),
 	NCA\Param(
 		name: "text",
 		type: "string[]",

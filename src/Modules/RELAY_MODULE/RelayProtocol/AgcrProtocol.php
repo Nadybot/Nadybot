@@ -15,10 +15,13 @@ use Nadybot\Modules\RELAY_MODULE\Relay;
 use Nadybot\Modules\RELAY_MODULE\RelayMessage;
 
 #[
-	NCA\RelayProtocol("agcr"),
-	NCA\Description("This is the protocol that is used by the alliance of Rimor.\n".
-		"It does not supports sharing online lists and can only colorize\n".
-		"org and guest chat properly."),
+	NCA\RelayProtocol(
+		name: "agcr",
+		description:
+			"This is the protocol that is used by the alliance of Rimor.\n".
+			"It does not supports sharing online lists and can only colorize\n".
+			"org and guest chat properly."
+	),
 	NCA\Param(
 		name: "command",
 		type: "string",

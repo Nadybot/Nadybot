@@ -4,12 +4,12 @@ namespace Nadybot\Modules\TOWER_MODULE\Migrations;
 
 use Nadybot\Core\Attributes as NCA;
 use Exception;
-use Nadybot\Core\Annotations\Setting;
 use Nadybot\Core\Modules\DISCORD\DiscordChannel;
 use Nadybot\Core\DB;
 use Nadybot\Core\DBSchema\Route;
 use Nadybot\Core\DBSchema\RouteHopColor;
 use Nadybot\Core\DBSchema\RouteHopFormat;
+use Nadybot\Core\DBSchema\Setting;
 use Nadybot\Core\LoggerWrapper;
 use Nadybot\Core\MessageHub;
 use Nadybot\Core\Modules\DISCORD\DiscordAPIClient;
@@ -42,7 +42,7 @@ class MigrateToRoutes implements SchemaMigration {
 	public function migrate(LoggerWrapper $logger, DB $db): void {
 		$towerColor = $this->getSetting($db, "tower_spam_color");
 		if (isset($towerColor)
-			&& preg_match("/#([0-9A-F]{6})/", $towerColor->value, $matches)
+			&& preg_match("/#([0-9A-F]{6})/", $towerColor->value??"", $matches)
 		) {
 			$towerColor = $matches[1];
 		} else {
@@ -66,6 +66,7 @@ class MigrateToRoutes implements SchemaMigration {
 		$table = MessageHub::DB_TABLE_ROUTES;
 		$showWhere = $this->getSetting($db, "tower_spam_target");
 		if (!isset($showWhere)) {
+			/** @psalm-suppress DocblockTypeContradiction */
 			if (strlen($this->chatBot->vars['my_guild']??"")) {
 				$showWhere = 2;
 			} else {
@@ -90,7 +91,7 @@ class MigrateToRoutes implements SchemaMigration {
 			}
 		}
 		$notifyChannel = $this->getSetting($db, "discord_notify_channel");
-		if (!isset($notifyChannel) || $notifyChannel->value === "off") {
+		if (!isset($notifyChannel) || !isset($notifyChannel->value) || $notifyChannel->value === "off") {
 			return;
 		}
 		$this->discordAPIClient->getChannel(

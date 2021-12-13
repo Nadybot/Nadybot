@@ -4,6 +4,7 @@ namespace Nadybot\Core;
 
 use ReflectionClass;
 use Exception;
+use InvalidArgumentException;
 use Nadybot\Core\Attributes as NCA;
 
 #[NCA\Instance]
@@ -611,17 +612,17 @@ class Util {
 	}
 
 	public function getClassSpecFromClass(string $class, string $attrName): ?ClassSpec {
+		if (!is_subclass_of($attrName, NCA\ClassSpec::class)) {
+			throw new InvalidArgumentException("{$attrName} is not a class spec");
+		}
 		$reflection = new ReflectionClass($class);
-		$attrs = $reflection->getAttributes("NCA\\$attrName");
+		$attrs = $reflection->getAttributes($attrName);
 		if (empty($attrs)) {
 			return null;
 		}
+		/** @var NCA\ClassSpec */
 		$attrObj = $attrs[0]->newInstance();
-		$name = $attrObj->value;
-		$descriptionAttr = $reflection->getAttributes(NCA\Description::class);
-		if (!empty($descriptionAttr)) {
-			$description = $descriptionAttr[0]->newInstance()->value;
-		}
+		$name = $attrObj->name;
 		/** @var FunctionParameter[] */
 		$params = [];
 		$i = 1;
@@ -654,7 +655,7 @@ class Util {
 		}
 		$spec = new ClassSpec($name, $class);
 		$spec->setParameters(...$params);
-		$spec->setDescription($description??null);
+		$spec->setDescription($attrObj->description);
 		return $spec;
 	}
 

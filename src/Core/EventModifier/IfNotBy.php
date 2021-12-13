@@ -7,9 +7,12 @@ use Nadybot\Core\EventModifier;
 use Nadybot\Core\Routing\RoutableEvent;
 
 #[
-	NCA\EventModifier("if-not-by"),
-	NCA\Description("This modifier will only route messages that are\n".
-		"not sent by a given person or group of people."),
+	NCA\EventModifier(
+		name: "if-not-by",
+		description:
+			"This modifier will only route messages that are\n".
+			"not sent by a given person or group of people."
+	),
 	NCA\Param(
 		name: "sender",
 		type: "string[]",

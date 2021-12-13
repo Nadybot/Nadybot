@@ -25,10 +25,13 @@ use Nadybot\Modules\{
 use Throwable;
 
 #[
-	NCA\RelayProtocol("nadynative"),
-	NCA\Description("This is the native protocol if your relay consists\n".
-		"only of Nadybots 5.2 or newer. It supports message-passing,\n".
-		"proper colorization and event-passing."),
+	NCA\RelayProtocol(
+		name: "nadynative",
+		description:
+			"This is the native protocol if your relay consists\n".
+			"only of Nadybots 5.2 or newer. It supports message-passing,\n".
+			"proper colorization and event-passing."
+	),
 	NCA\Param(
 		name: "sync-online",
 		type: "bool",
@@ -261,6 +264,7 @@ class NadyNative implements RelayProtocolInterface {
 		$onlineList = new OnlineList();
 		$onlineOrg = $this->onlineController->getPlayers('guild', $this->chatBot->char->name);
 		$isOrg = strlen($this->chatBot->vars["my_guild"] ?? "") ;
+		/** @psalm-suppress DocblockTypeContradiction */
 		if ($isOrg) {
 			$block = new OnlineBlock();
 			$orgLabel = $this->settingManager->getString("relay_guild_abbreviation");

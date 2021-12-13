@@ -25,17 +25,20 @@ use PhpAmqpLib\Message\AMQPMessage;
 use Throwable;
 
 #[
-	NCA\RelayTransport("amqp"),
-	NCA\Description("AMQP is a transport layer provided by software like RabbitMQ.\n".
-		"It allows near-realtime communication, but because the server is not part\n".
-		"of Anarchy Online, you might have a hard time debugging errors.\n".
-		"AMQP has a built-in transport protocol: Every client can subscribe\n".
-		"to one or more exchanges and sending a message to an exchange will\n".
-		"automatically send it to everyone else that's subscribed to it.\n".
-		"AMQP does not support proper sharing of online lists. Because\n".
-		"we are never informed when a bot leaves the relay, we will show\n".
-		"the bot's users as online forever.\n".
-		"This transport was introduced in Nadybot 5.0."),
+	NCA\RelayTransport(
+		name: "amqp",
+		description:
+			"AMQP is a transport layer provided by software like RabbitMQ.\n".
+			"It allows near-realtime communication, but because the server is not part\n".
+			"of Anarchy Online, you might have a hard time debugging errors.\n".
+			"AMQP has a built-in transport protocol: Every client can subscribe\n".
+			"to one or more exchanges and sending a message to an exchange will\n".
+			"automatically send it to everyone else that's subscribed to it.\n".
+			"AMQP does not support proper sharing of online lists. Because\n".
+			"we are never informed when a bot leaves the relay, we will show\n".
+			"the bot's users as online forever.\n".
+			"This transport was introduced in Nadybot 5.0."
+	),
 	NCA\Param(
 		name: "exchange",
 		type: "string",

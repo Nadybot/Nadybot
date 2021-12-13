@@ -7,12 +7,15 @@ use Nadybot\Core\EventModifier;
 use Nadybot\Core\Routing\RoutableEvent;
 
 #[
-	NCA\EventModifier("remove-event"),
-	NCA\Description("This modifier removes events of one or more types\n".
-		"from being routed. A typical event is \"online\" which is triggered\n".
-		"whenever a character goes online or offline.\n".
-		"To stop displaying logon/logoff messages from your relay, add\n".
-		"remove-event(type=online from=\"relay(*)\") to your stack."),
+	NCA\EventModifier(
+		name: "remove-event",
+		description:
+			"This modifier removes events of one or more types\n".
+			"from being routed. A typical event is \"online\" which is triggered\n".
+			"whenever a character goes online or offline.\n".
+			"To stop displaying logon/logoff messages from your relay, add\n".
+			"remove-event(type=online from=\"relay(*)\") to your stack."
+	),
 	NCA\Param(
 		name: "type",
 		type: "string[]",

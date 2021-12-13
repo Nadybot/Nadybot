@@ -17,14 +17,17 @@ use Nadybot\Modules\RELAY_MODULE\RelayStatus;
 use Nadybot\Modules\RELAY_MODULE\StatusProvider;
 
 #[
-	NCA\RelayTransport("websocket"),
-	NCA\Description("You can use websockets as a relay transport.\n".
-		"Websockets provide near-realtime communication, but since they\n".
-		"are not part of Anarchy Online, if they are down, you might have\n".
-		"a hard time debugging this.\n".
-		"Websockets require a transport protocol in order to work properly\n".
-		"and if they are public, you might also want to add an encryption\n".
-		"layer on top of that."),
+	NCA\RelayTransport(
+		name: "websocket",
+		description:
+			"You can use websockets as a relay transport.\n".
+			"Websockets provide near-realtime communication, but since they\n".
+			"are not part of Anarchy Online, if they are down, you might have\n".
+			"a hard time debugging this.\n".
+			"Websockets require a transport protocol in order to work properly\n".
+			"and if they are public, you might also want to add an encryption\n".
+			"layer on top of that."
+	),
 	NCA\Param(
 		name: "server",
 		type: "string",

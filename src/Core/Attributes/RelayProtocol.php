@@ -5,7 +5,5 @@ namespace Nadybot\Core\Attributes;
 use Attribute;
 
 #[Attribute(Attribute::TARGET_CLASS)]
-class RelayProtocol {
-	public function __construct(public string $value) {
-	}
+class RelayProtocol extends ClassSpec {
 }

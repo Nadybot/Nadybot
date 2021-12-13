@@ -9,9 +9,12 @@ use Nadybot\Core\Routing\RoutableEvent;
 use Nadybot\Core\Text;
 
 #[
-	NCA\EventModifier("change-message"),
-	NCA\Description("This modifier allows you to modify the message of an\n".
-		"event by replacing text, or adding a prefix."),
+	NCA\EventModifier(
+		name: "change-message",
+		description:
+			"This modifier allows you to modify the message of an\n".
+			"event by replacing text, or adding a prefix."
+	),
 	NCA\Param(
 		name: "add-prefix",
 		type: "string",

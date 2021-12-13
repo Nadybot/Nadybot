@@ -13,11 +13,14 @@ use Nadybot\Modules\RELAY_MODULE\RelayMessage;
  * @package Nadybot\Modules\RELAY_MODULE\Encryption
  */
 #[
-	NCA\RelayStackMember("fernet-encryption"),
-	NCA\Description("This adds fernet-based 128 bit AES encryption to the relay-stack.\n".
-		"You can configure all parameters of the encryption key generation via options.\n".
-		"Encryption layers only work if all relay-parties use the same encryption parameters!\n".
-		"Fernet guarantees that the data you send is unaltered"),
+	NCA\RelayStackMember(
+		name: "fernet-encryption",
+		description:
+			"This adds fernet-based 128 bit AES encryption to the relay-stack.\n".
+			"You can configure all parameters of the encryption key generation via options.\n".
+			"Encryption layers only work if all relay-parties use the same encryption parameters!\n".
+			"Fernet guarantees that the data you send is unaltered"
+	),
 	NCA\Param(
 		name: "password",
 		type: "secret",

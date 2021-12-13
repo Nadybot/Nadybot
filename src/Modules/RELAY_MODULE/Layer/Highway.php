@@ -13,14 +13,17 @@ use Nadybot\Modules\RELAY_MODULE\RelayStatus;
 use Nadybot\Modules\RELAY_MODULE\StatusProvider;
 
 #[
-	NCA\RelayStackMember("highway"),
-	NCA\Description("This is the highway protocol, spoken by the highway websocket-server.\n".
-		"It will broadcast incoming messages to all clients in the same room.\n".
-		"Room names can be picked freely as long as they are at least 32 characters\n".
-		"long. They should be as random as possible to prevent unauthorized\n".
-		"access to messages.\n".
-		"Shorter room names are system rooms and by definition read-only.\n".
-		"For further security, using an encryption layer is recommended."),
+	NCA\RelayStackMember(
+		name: "highway",
+		description:
+			"This is the highway protocol, spoken by the highway websocket-server.\n".
+			"It will broadcast incoming messages to all clients in the same room.\n".
+			"Room names can be picked freely as long as they are at least 32 characters\n".
+			"long. They should be as random as possible to prevent unauthorized\n".
+			"access to messages.\n".
+			"Shorter room names are system rooms and by definition read-only.\n".
+			"For further security, using an encryption layer is recommended."
+	),
 	NCA\Param(
 		name: "room",
 		type: "string[]",

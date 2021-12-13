@@ -177,15 +177,15 @@ class RelayController {
 	public function loadStackComponents(): void {
 		$types = [
 			"RelayProtocol" => [
-				"RelayProtocol",
+				NCA\RelayProtocol::class,
 				[$this, "registerRelayProtocol"],
 			],
 			"Layer" => [
-				"RelayStackMember",
+				NCA\RelayStackMember::class,
 				[$this, "registerStackElement"],
 			],
 			"Transport" => [
-				"RelayTransport",
+				NCA\RelayTransport::class,
 				[$this, "registerTransport"],
 			]
 		];

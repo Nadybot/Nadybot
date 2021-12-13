@@ -42,6 +42,7 @@ class MoveSettingsToHopColors implements SchemaMigration {
 		$hop->hop = Source::PRIV . "(" . $this->chatBot->vars["name"] . ")";
 		$hop->id = $db->insert(MessageHub::DB_TABLE_COLORS, $hop);
 
+		/** @psalm-suppress DocblockTypeContradiction */
 		if (strlen($this->chatBot->vars["my_guild"] ?? "")) {
 			$hop = new RouteHopColor();
 			$hop->tag_color = $this->getSettingColor($db, "guest_color_channel") ?? "C3C3C3";

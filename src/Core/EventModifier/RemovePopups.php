@@ -8,9 +8,12 @@ use Nadybot\Core\Routing\RoutableEvent;
 use Nadybot\Core\Text;
 
 #[
-	NCA\EventModifier("remove-popups"),
-	NCA\Description("This modifier will remove all popups and only\n".
-		"leave the link name."),
+	NCA\EventModifier(
+		name: "remove-popups",
+		description:
+			"This modifier will remove all popups and only\n".
+			"leave the link name."
+	),
 	NCA\Param(
 		name: "remove-links",
 		type: "bool",

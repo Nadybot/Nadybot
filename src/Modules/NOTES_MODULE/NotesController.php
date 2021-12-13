@@ -18,7 +18,6 @@ use Nadybot\Core\{
 	Text,
 	UserStateEvent,
 };
-use Nadybot\Core\Annotations\Logger;
 use Nadybot\Core\Modules\ALTS\AltEvent;
 use Nadybot\Core\Modules\PREFERENCES\Preferences;
 use Nadybot\Core\ParamClass\PRemove;

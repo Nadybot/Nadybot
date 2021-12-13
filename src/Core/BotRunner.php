@@ -190,6 +190,7 @@ class BotRunner {
 			"sockets",
 		];
 		$configFile = $this->getConfigFile();
+		/** @psalm-suppress DocblockTypeContradiction */
 		if (strlen($configFile->getVar('amqp_server')??"")
 			&& strlen($configFile->getVar('amqp_user')??"")
 			&& strlen($configFile->getVar('amqp_password')??"")
@@ -398,9 +399,6 @@ class BotRunner {
 	 * Load external classes that we need
 	 */
 	private function loadPhpLibraries(): void {
-		foreach (glob(__DIR__ . "/Annotations/*.php") as $file) {
-			require_once $file;
-		}
 	}
 
 	/**

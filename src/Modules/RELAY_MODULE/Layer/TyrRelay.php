@@ -12,8 +12,10 @@ use Nadybot\Modules\RELAY_MODULE\RelayStatus;
 use Nadybot\Modules\RELAY_MODULE\StatusProvider;
 
 #[
-	NCA\RelayStackMember("tyr-relay"),
-	NCA\Description("This is the protocol spoken by Tyrence's websocket-server")
+	NCA\RelayStackMember(
+		name: "tyr-relay",
+		description: "This is the protocol spoken by Tyrence's websocket-server"
+	)
 ]
 class TyrRelay implements RelayLayerInterface, StatusProvider {
 	protected Relay $relay;

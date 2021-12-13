@@ -69,7 +69,7 @@ class MessageHub {
 			require_once $file;
 			$className = basename($file, '.php');
 			$fullClass = __NAMESPACE__ . "\\EventModifier\\{$className}";
-			$spec = $this->util->getClassSpecFromClass($fullClass, 'EventModifier');
+			$spec = $this->util->getClassSpecFromClass($fullClass, NCA\EventModifier::class);
 			if (isset($spec)) {
 				$this->registerEventModifier($spec);
 			}

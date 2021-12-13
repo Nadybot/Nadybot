@@ -35,7 +35,6 @@
 		"ext-reflection": "*",
 		"ext-dom": "*",
 		"php-amqplib/php-amqplib": "^3.1.0",
-		"niktux/addendum": "0.4.4",
 		"swaggest/json-schema": "^0.12.31",
 		"illuminate/database": "^8.64",
 		"doctrine/dbal": "^3.0",

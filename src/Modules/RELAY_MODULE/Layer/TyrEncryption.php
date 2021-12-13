@@ -6,8 +6,10 @@ use Nadybot\Core\Attributes as NCA;
 
 
 #[
-	NCA\RelayStackMember("tyr-encryption"),
-	NCA\Description("This adds tyrbot-compatible encryption to the relay-stack."),
+	NCA\RelayStackMember(
+		name: "tyr-encryption",
+		description: "This adds tyrbot-compatible encryption to the relay-stack."
+	),
 	NCA\Param(
 		name: "password",
 		type: "secret",

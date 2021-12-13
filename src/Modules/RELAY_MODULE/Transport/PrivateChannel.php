@@ -15,13 +15,16 @@ use Nadybot\Modules\RELAY_MODULE\RelayStatus;
 use Nadybot\Modules\RELAY_MODULE\StatusProvider;
 
 #[
-	NCA\RelayTransport("private-channel"),
-	NCA\Description("This is the Anarchy Online private channel transport.\n".
-		"You can use this to relay messages internally inside Anarchy Online.\n".
-		"Be aware though, that the delay is based on the size of the message\n".
-		"being sent.\n".
-		"The bot must be invited into the private channel before it can\n".
-		"relay anything."),
+	NCA\RelayTransport(
+		name: "private-channel",
+		description:
+			"This is the Anarchy Online private channel transport.\n".
+			"You can use this to relay messages internally inside Anarchy Online.\n".
+			"Be aware though, that the delay is based on the size of the message\n".
+			"being sent.\n".
+			"The bot must be invited into the private channel before it can\n".
+			"relay anything."
+	),
 	NCA\Param(
 		name: "channel",
 		type: "string",

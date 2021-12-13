@@ -9,9 +9,12 @@ use Nadybot\Core\Routing\RoutableEvent;
 use Nadybot\Core\SettingManager;
 
 #[
-	NCA\EventModifier("if-not-command"),
-	NCA\Description("This modifier will only route messages that are\n".
-		"not a command or a reply to a command.")
+	NCA\EventModifier(
+		name: "if-not-command",
+		description:
+			"This modifier will only route messages that are\n".
+			"not a command or a reply to a command."
+	)
 ]
 class IfNotCommand implements EventModifier {
 	#[NCA\Inject]

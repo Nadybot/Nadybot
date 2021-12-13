@@ -22,6 +22,7 @@ class MigrateUIToRoute implements SchemaMigration {
 		$table = $this->messageHub::DB_TABLE_ROUTES;
 		$route = new Route();
 		$route->source = Source::SYSTEM . "(webui)";
+		/** @psalm-suppress DocblockTypeContradiction */
 		if (strlen($this->chatBot->vars["my_guild"]??"")) {
 			$route->destination = Source::ORG;
 		} else {

@@ -13,12 +13,14 @@ use Nadybot\Modules\RELAY_MODULE\Relay;
 use Nadybot\Modules\RELAY_MODULE\RelayMessage;
 
 #[
-	NCA\RelayProtocol("grcv2"),
-	NCA\Description("This is the old Nadybot protocol.\n".
-		"It enhances the old grc protocol by adding descriptions\n".
-		"in front of the tags and messages, so the client-side\n".
-		"can decide how to colorize them. However, it only supports\n".
-		"org, guest and raidbot chat."),
+	NCA\RelayProtocol(
+		name: "grcv2",
+		description: "This is the old Nadybot protocol.\n".
+			"It enhances the old grc protocol by adding descriptions\n".
+			"in front of the tags and messages, so the client-side\n".
+			"can decide how to colorize them. However, it only supports\n".
+			"org, guest and raidbot chat."
+	),
 	NCA\Param(
 		name: "command",
 		type: "string",

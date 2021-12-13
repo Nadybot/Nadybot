@@ -20,11 +20,14 @@ use Nadybot\Modules\RELAY_MODULE\Relay;
 use Nadybot\Modules\RELAY_MODULE\RelayMessage;
 
 #[
-	NCA\RelayProtocol("gcr"),
-	NCA\Description("This is the protocol that BeBot speaks natively.\n".
-		"It supports sharing online lists and basic colorization.\n".
-		"Nadybot only support colorization of messages from the\n".
-		"org and guest chat and not the BeBot native encryption."),
+	NCA\RelayProtocol(
+		name: "gcr",
+		description:
+			"This is the protocol that BeBot speaks natively.\n".
+			"It supports sharing online lists and basic colorization.\n".
+			"Nadybot only support colorization of messages from the\n".
+			"org and guest chat and not the BeBot native encryption."
+	),
 	NCA\Param(
 		name: "command",
 		type: "string",

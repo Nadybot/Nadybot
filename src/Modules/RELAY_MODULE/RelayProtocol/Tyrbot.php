@@ -27,11 +27,14 @@ use Nadybot\Modules\RELAY_MODULE\RelayProtocol\Tyrbot\{
 use Throwable;
 
 #[
-	NCA\RelayProtocol("tyrbot"),
-	NCA\Description("This is the enhanced protocol of Tyrbot. If your\n".
-		"relay consists only of Nadybots and Tyrbots, use this one.\n".
-		"It allows sharing of online users as well as fully customized\n".
-		"colors."),
+	NCA\RelayProtocol(
+		name: "tyrbot",
+		description:
+			"This is the enhanced protocol of Tyrbot. If your\n".
+			"relay consists only of Nadybots and Tyrbots, use this one.\n".
+			"It allows sharing of online users as well as fully customized\n".
+			"colors."
+	),
 	NCA\Param(
 		name: "sync-online",
 		type: "bool",
@@ -269,6 +272,7 @@ class Tyrbot implements RelayProtocolInterface {
 			"online" => []
 		];
 		$onlineOrg = $this->onlineController->getPlayers('guild', $this->chatBot->char->name);
+		/** @psalm-suppress DocblockTypeContradiction */
 		if (strlen($this->chatBot->vars["my_guild"]??"")) {
 			$orgSource = [
 				"name" => $this->chatBot->vars["my_guild"],
@@ -297,6 +301,7 @@ class Tyrbot implements RelayProtocolInterface {
 			"name" => $this->chatBot->char->name,
 			"server" => (int)$this->chatBot->vars["dimension"],
 		];
+		/** @psalm-suppress DocblockTypeContradiction */
 		if (strlen($this->chatBot->vars["my_guild"]??"")) {
 			if (isset($orgLabel) && $orgLabel !== "none") {
 				$privSource['label'] = $orgLabel;
