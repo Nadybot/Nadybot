@@ -15,7 +15,7 @@ use Exception;
 class AsyncHttp {
 
 	#[NCA\Inject]
-	public SettingObject $setting;
+	public SettingManager $settingManager;
 
 	#[NCA\Inject]
 	public SocketManager $socketManager;
@@ -279,7 +279,7 @@ class AsyncHttp {
 	 */
 	private function initTimeout(): void {
 		if ($this->timeout === null) {
-			$this->timeout = (int)$this->setting->http_timeout;
+			$this->timeout = $this->settingManager->getInt("http_timeout") ?? 10;
 		}
 
 		$this->timeoutEvent = $this->timer->callLater(

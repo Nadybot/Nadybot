@@ -51,7 +51,7 @@ class PrivateChannel implements TransportInterface, StatusProvider {
 	public function __construct(string $channel) {
 		$this->channel = ucfirst(strtolower($channel));
 		/** @var Nadybot */
-		$chatBot = Registry::getInstance("chatBot");
+		$chatBot = Registry::getInstance(Nadybot::class);
 		if ($chatBot->get_uid($this->channel) === false) {
 			throw new Exception("Unknown user <highlight>{$this->channel}<end>.");
 		}

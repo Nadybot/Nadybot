@@ -30,7 +30,7 @@ class ScoutInfo extends DBRow {
 		}
 		$scout->scouted_on = $data->created_at ?? time();
 		/** @var Nadybot */
-		$chatBot = Registry::getInstance("chatBot");
+		$chatBot = Registry::getInstance(Nadybot::class);
 		$scout->scouted_by = $chatBot->char->name;
 		return $scout;
 	}

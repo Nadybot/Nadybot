@@ -23,7 +23,7 @@ class SyncEvent extends Event {
 			return true;
 		}
 		/** @var Nadybot */
-		$chatBot = Registry::getInstance("chatBot");
+		$chatBot = Registry::getInstance(Nadybot::class);
 		$myName = $chatBot->char->name;
 		$myDim = (int)$chatBot->vars['dimension'];
 		return $this->sourceBot === $myName
