@@ -34,7 +34,7 @@ use Throwable;
  * phpcs:disable PSR1.Methods.CamelCapsMethodName.NotCamelCaps
  */
 
-#[NCA\Instance("chatBot")]
+#[NCA\Instance]
 class Nadybot extends AOChat {
 
 	public const PING_IDENTIFIER = "Nadybot";
@@ -80,9 +80,6 @@ class Nadybot extends AOChat {
 
 	#[NCA\Inject]
 	public RelayController $relayController;
-
-	#[NCA\Inject]
-	public SettingObject $setting;
 
 	#[NCA\Inject]
 	public MessageHub $messageHub;
@@ -362,7 +359,7 @@ class Nadybot extends AOChat {
 		}
 
 		if ($group === null) {
-			$group = $this->setting->default_private_channel;
+			$group = $this->settingManager->getString("default_private_channel") ?? $this->char->name;
 		}
 
 		$message = $this->text->formatMessage($origMsg = $message);
@@ -1430,7 +1427,7 @@ class Nadybot extends AOChat {
 	 * Check if a private channel is this bot's private channel
 	 */
 	public function isDefaultPrivateChannel(string $channel): bool {
-		return $channel == $this->setting->default_private_channel;
+		return $channel === ($this->settingManager->getString("default_private_channel") ?? $this->char->name);
 	}
 
 	public function getUptime(): int {
