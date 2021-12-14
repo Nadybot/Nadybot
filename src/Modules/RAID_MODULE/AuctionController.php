@@ -104,105 +104,105 @@ class AuctionController {
 	#[NCA\Setup]
 	public function setup(): void {
 		$this->settingManager->add(
-			$this->moduleName,
-			'auctions_only_for_raid',
-			'Allow auctions only for people in the raid',
-			'edit',
-			'options',
-			'0',
-			'true;false',
-			'1;0',
-			'raid_admin_2'
+			module: $this->moduleName,
+			name: 'auctions_only_for_raid',
+			description: 'Allow auctions only for people in the raid',
+			mode: 'edit',
+			type: 'options',
+			value: '0',
+			options: 'true;false',
+			intoptions: '1;0',
+			accessLevel: 'raid_admin_2'
 		);
 		$this->settingManager->add(
-			$this->moduleName,
-			'auctions_show_max_bidder',
-			'Show the name of the top bidder during the auction',
-			'edit',
-			'options',
-			'1',
-			'true;false',
-			'1;0',
-			'raid_admin_2'
+			module: $this->moduleName,
+			name: 'auctions_show_max_bidder',
+			description: 'Show the name of the top bidder during the auction',
+			mode: 'edit',
+			type: 'options',
+			value: '1',
+			options: 'true;false',
+			intoptions: '1;0',
+			accessLevel: 'raid_admin_2'
 		);
 		$this->settingManager->add(
-			$this->moduleName,
-			'auctions_show_rival_bidders',
-			'Show the names of the rival bidders',
-			'edit',
-			'options',
-			'0',
-			'true;false',
-			'1;0',
-			'raid_admin_2'
+			module: $this->moduleName,
+			name: 'auctions_show_rival_bidders',
+			description: 'Show the names of the rival bidders',
+			mode: 'edit',
+			type: 'options',
+			value: '0',
+			options: 'true;false',
+			intoptions: '1;0',
+			accessLevel: 'raid_admin_2'
 		);
 		$this->settingManager->add(
-			$this->moduleName,
-			'auction_duration',
-			'Duration for auctions',
-			'edit',
-			'time',
-			'50s',
+			module: $this->moduleName,
+			name: 'auction_duration',
+			description: 'Duration for auctions',
+			mode: 'edit',
+			type: 'time',
+			value: '50s',
 		);
 		$this->settingManager->add(
-			$this->moduleName,
-			'auction_min_time_after_bid',
-			'Bidding grace period',
-			'edit',
-			'time',
-			'5s',
+			module: $this->moduleName,
+			name: 'auction_min_time_after_bid',
+			description: 'Bidding grace period',
+			mode: 'edit',
+			type: 'time',
+			value: '5s',
 		);
 		$this->settingManager->add(
-			$this->moduleName,
-			'auction_refund_tax',
-			'Refund tax in percent',
-			'edit',
-			'number',
-			'10',
+			module: $this->moduleName,
+			name: 'auction_refund_tax',
+			description: 'Refund tax in percent',
+			mode: 'edit',
+			type: 'number',
+			value: '10',
 		);
 		$this->settingManager->add(
-			$this->moduleName,
-			'auction_refund_min_tax',
-			'Refund minimum tax in points',
-			'edit',
-			'number',
-			'0',
+			module: $this->moduleName,
+			name: 'auction_refund_min_tax',
+			description: 'Refund minimum tax in points',
+			mode: 'edit',
+			type: 'number',
+			value: '0',
 		);
 		$this->settingManager->add(
-			$this->moduleName,
-			'auction_refund_max_tax',
-			'Refund maximum tax in points',
-			'edit',
-			'number',
-			'0',
+			module: $this->moduleName,
+			name: 'auction_refund_max_tax',
+			description: 'Refund maximum tax in points',
+			mode: 'edit',
+			type: 'number',
+			value: '0',
 		);
 		$this->settingManager->add(
-			$this->moduleName,
-			'auction_refund_max_time',
-			'Refund maximum age of auction',
-			'edit',
-			'time',
-			'1h',
+			module: $this->moduleName,
+			name: 'auction_refund_max_time',
+			description: 'Refund maximum age of auction',
+			mode: 'edit',
+			type: 'time',
+			value: '1h',
 		);
 		$this->settingManager->add(
-			$this->moduleName,
-			'auction_announcement_layout',
-			'Layout of the auction announcement',
-			'edit',
-			'options',
-			'2',
-			'Simple;Yellow border;Yellow header;Pink border;Rainbow border',
-			'1;2;3;4;5'
+			module: $this->moduleName,
+			name: 'auction_announcement_layout',
+			description: 'Layout of the auction announcement',
+			mode: 'edit',
+			type: 'options',
+			value: '2',
+			options: 'Simple;Yellow border;Yellow header;Pink border;Rainbow border',
+			intoptions: '1;2;3;4;5'
 		);
 		$this->settingManager->add(
-			$this->moduleName,
-			'auction_winner_announcement',
-			'Layout of the winner announcement',
-			'edit',
-			'options',
-			'1',
-			'Simple;Yellow border;Yellow header;Pink border;Rainbow border;Gratulations',
-			'1;2;3;4;5;6'
+			module: $this->moduleName,
+			name: 'auction_winner_announcement',
+			description: 'Layout of the winner announcement',
+			mode: 'edit',
+			type: 'options',
+			value: '1',
+			options: 'Simple;Yellow border;Yellow header;Pink border;Rainbow border;Gratulations',
+			intoptions: '1;2;3;4;5;6'
 		);
 		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations/Auctions");
 		$this->commandAlias->register($this->moduleName, "bid history", "bh");

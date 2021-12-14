@@ -60,24 +60,24 @@ class ConsoleController {
 	#[NCA\Setup]
 	public function setup(): void {
 		$this->settingManager->add(
-			$this->moduleName,
-			"console_color",
-			"Use ANSI colors",
-			"edit",
-			"options",
-			"0",
-			"true;false",
-			"1;0"
+			module: $this->moduleName,
+			name: "console_color",
+			description: "Use ANSI colors",
+			mode: "edit",
+			type: "options",
+			value: "0",
+			options: "true;false",
+			intoptions: "1;0"
 		);
 		$this->settingManager->add(
-			$this->moduleName,
-			"console_bg_color",
-			"Set background color",
-			"edit",
-			"options",
-			"0",
-			"true;false",
-			"1;0"
+			module: $this->moduleName,
+			name: "console_bg_color",
+			description: "Set background color",
+			mode: "edit",
+			type: "options",
+			value: "0",
+			options: "true;false",
+			intoptions: "1;0"
 		);
 		if ($this->chatBot->vars["enable_console_client"] &&!BotRunner::isWindows()) {
 			$handler = new ConsoleCommandReply($this->chatBot);

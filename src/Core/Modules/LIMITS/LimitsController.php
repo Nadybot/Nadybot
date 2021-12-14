@@ -86,101 +86,101 @@ class LimitsController {
 	#[NCA\Setup]
 	public function setup(): void {
 		$this->settingManager->add(
-			$this->moduleName,
-			"tell_req_lvl",
-			"Minimum level required to send tell to bot",
-			"edit",
-			"number",
-			"0",
-			"0;10;50;100;150;190;205;215"
+			module: $this->moduleName,
+			name: "tell_req_lvl",
+			description: "Minimum level required to send tell to bot",
+			mode: "edit",
+			type: "number",
+			value: "0",
+			options: "0;10;50;100;150;190;205;215"
 		);
 		$this->settingManager->add(
-			$this->moduleName,
-			"tell_req_faction",
-			"Faction required to send tell to bot",
-			"edit",
-			"options",
-			"all",
-			"all;Omni;Neutral;Clan;not Omni;not Neutral;not Clan"
+			module: $this->moduleName,
+			name: "tell_req_faction",
+			description: "Faction required to send tell to bot",
+			mode: "edit",
+			type: "options",
+			value: "all",
+			options: "all;Omni;Neutral;Clan;not Omni;not Neutral;not Clan"
 		);
 		$this->settingManager->add(
-			$this->moduleName,
-			"tell_min_player_age",
-			"Minimum age of player to send tell to bot",
-			"edit",
-			"time",
-			"1s",
-			"1s;7days;14days;1month;2months;6months;1year;2years",
-			'',
-			'mod',
-			'limits.txt'
+			module: $this->moduleName,
+			name: "tell_min_player_age",
+			description: "Minimum age of player to send tell to bot",
+			mode: "edit",
+			type: "time",
+			value: "1s",
+			options: "1s;7days;14days;1month;2months;6months;1year;2years",
+			intoptions: '',
+			accessLevel: 'mod',
+			help: 'limits.txt'
 		);
 		$this->settingManager->add(
-			$this->moduleName,
-			"tell_error_msg_type",
-			"How to show error messages when limit requirements are not met?",
-			"edit",
-			"options",
-			"2",
-			"Specific;Generic;None",
-			"2;1;0"
+			module: $this->moduleName,
+			name: "tell_error_msg_type",
+			description: "How to show error messages when limit requirements are not met?",
+			mode: "edit",
+			type: "options",
+			value: "2",
+			options: "Specific;Generic;None",
+			intoptions: "2;1;0"
 		);
 		$this->settingManager->add(
-			$this->moduleName,
-			"limits_cmd_type",
-			"Ratelimit: Which commands to account for?",
-			"edit",
-			"options",
-			"0",
-			"All;Only errors/denied;Only successes;None",
-			"3;2;1;0"
+			module: $this->moduleName,
+			name: "limits_cmd_type",
+			description: "Ratelimit: Which commands to account for?",
+			mode: "edit",
+			type: "options",
+			value: "0",
+			options: "All;Only errors/denied;Only successes;None",
+			intoptions: "3;2;1;0"
 		);
 		$this->settingManager->add(
-			$this->moduleName,
-			"limits_window",
-			"Ratelimit: Which time window to check?",
-			"edit",
-			"options",
-			"5",
-			"5s;10s;30s;1m",
-			"5;10;30;60"
+			module: $this->moduleName,
+			name: "limits_window",
+			description: "Ratelimit: Which time window to check?",
+			mode: "edit",
+			type: "options",
+			value: "5",
+			options: "5s;10s;30s;1m",
+			intoptions: "5;10;30;60"
 		);
 		$this->settingManager->add(
-			$this->moduleName,
-			"limits_threshold",
-			"Ratelimit: How many commands per time window trigger actions?",
-			"edit",
-			"number",
-			"5",
-			"off;2;3;4;5;6;7;8;9;10",
-			"0;2;3;4;5;6;7;8;9;10"
+			module: $this->moduleName,
+			name: "limits_threshold",
+			description: "Ratelimit: How many commands per time window trigger actions?",
+			mode: "edit",
+			type: "number",
+			value: "5",
+			options: "off;2;3;4;5;6;7;8;9;10",
+			intoptions: "0;2;3;4;5;6;7;8;9;10"
 		);
 		$this->settingManager->add(
-			$this->moduleName,
-			"limits_overrate_action",
-			"Ratelimit: Action when players exceed the allowed command rate",
-			"edit",
-			"options",
-			"4",
-			"Kick;Temp. ban;Kick+Temp. ban;Temp. ignore;Kick+Temp. ignore",
-			"1;2;3;4;5"
+			module: $this->moduleName,
+			name: "limits_overrate_action",
+			description: "Ratelimit: Action when players exceed the allowed command rate",
+			mode: "edit",
+			type: "options",
+			value: "4",
+			options: "Kick;Temp. ban;Kick+Temp. ban;Temp. ignore;Kick+Temp. ignore",
+			intoptions: "1;2;3;4;5"
 		);
 		$this->settingManager->add(
-			$this->moduleName,
-			"limits_ignore_duration",
-			"Ratelimit: How long to temporarily ban or ignore?",
-			"edit",
-			"time",
-			"5m",
-			"1m;2m;5m;10m;30m;1h;6h",
+			module: $this->moduleName,
+			name: "limits_ignore_duration",
+			description: "Ratelimit: How long to temporarily ban or ignore?",
+			mode: "edit",
+			type: "time",
+			value: "5m",
+			options: "1m;2m;5m;10m;30m;1h;6h",
 		);
 		$this->settingManager->add(
-			$this->moduleName,
-			"limits_exempt_rank",
-			"Ratelimit: Ignore ratelimit for everyone of this rank or higher",
-			"edit",
-			"rank",
-			"mod"
+			module: $this->moduleName,
+			name: "limits_exempt_rank",
+			description: "Ratelimit: Ignore ratelimit for everyone of this rank or higher",
+			mode: "edit",
+			type: "rank",
+			value: "mod"
 		);
 	}
 

@@ -65,33 +65,33 @@ class DiscordGatewayCommandHandler {
 	#[NCA\Setup]
 	public function setup(): void {
 		$this->settingManager->add(
-			$this->moduleName,
-			"discord_process_commands",
-			"Process commands sent on Discord",
-			"edit",
-			"options",
-			"0",
-			"true;false",
-			"1;0"
+			module: $this->moduleName,
+			name: "discord_process_commands",
+			description: "Process commands sent on Discord",
+			mode: "edit",
+			type: "options",
+			value: "0",
+			options: "true;false",
+			intoptions: "1;0"
 		);
 		$this->settingManager->add(
-			$this->moduleName,
-			"discord_unknown_cmd_errors",
-			"Show a message for unknown commands on Discord",
-			"edit",
-			"options",
-			"1",
-			"true;false",
-			"1;0"
+			module: $this->moduleName,
+			name: "discord_unknown_cmd_errors",
+			description: "Show a message for unknown commands on Discord",
+			mode: "edit",
+			type: "options",
+			value: "1",
+			options: "true;false",
+			intoptions: "1;0"
 		);
 		$this->settingManager->add(
-			$this->moduleName,
-			"discord_symbol",
-			"Discord command prefix symbol",
-			"edit",
-			"text",
-			"!",
-			"!;#;*;@;$;+;-",
+			module: $this->moduleName,
+			name: "discord_symbol",
+			description: "Discord command prefix symbol",
+			mode: "edit",
+			type: "text",
+			value: "!",
+			options: "!;#;*;@;$;+;-",
 		);
 		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations");
 	}

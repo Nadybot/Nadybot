@@ -55,15 +55,15 @@ class AuditController {
 	#[NCA\Setup]
 	public function setup(): void {
 		$this->settingManager->add(
-			$this->moduleName,
-			"audit_enabled",
-			"Log all security-relevant data",
-			"edit",
-			"options",
-			"0",
-			"true;false",
-			"1;0",
-			"superadmin"
+			module: $this->moduleName,
+			name: "audit_enabled",
+			description: "Log all security-relevant data",
+			mode: "edit",
+			type: "options",
+			value: "0",
+			options: "true;false",
+			intoptions: "1;0",
+			accessLevel: "superadmin"
 		);
 	}
 

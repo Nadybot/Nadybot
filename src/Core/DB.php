@@ -720,7 +720,14 @@ class DB {
 		}
 
 		// make sure setting is verified so it doesn't get deleted
-		$this->settingManager->add($module, $settingName, $settingName, 'noedit', 'text', "0");
+		$this->settingManager->add(
+			module: $module,
+			name: $settingName,
+			description: $settingName,
+			mode: 'noedit',
+			type: 'text',
+			value: "0"
+		);
 
 		if (!$forceUpdate && $this->util->compareVersionNumbers((string)$maxFileVersion, (string)$currentVersion) <= 0) {
 			$msg = "'$name' database already up to date! version: '$currentVersion'";
@@ -1082,7 +1089,14 @@ class DB {
 			$currentVersion = 0;
 		}
 		// make sure setting is verified so it doesn't get deleted
-		$this->settingManager->add($module, $settingName, $settingName, 'noedit', 'text', "0");
+		$this->settingManager->add(
+			module: $module,
+			name: $settingName,
+			description: $settingName,
+			mode: 'noedit',
+			type: 'text',
+			value: "0"
+		);
 
 		if ($this->table($table)->exists() && $this->util->compareVersionNumbers((string)$version, (string)$currentVersion) <= 0) {
 			$msg = "'{$table}' database already up to date! version: '$currentVersion'";

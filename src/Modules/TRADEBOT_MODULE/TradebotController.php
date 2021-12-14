@@ -97,58 +97,58 @@ class TradebotController {
 	public function setup(): void {
 		$this->commandAlias->register($this->moduleName, "tradecolor", "tradecolors");
 		$this->settingManager->add(
-			$this->moduleName,
-			'tradebot',
-			"Name of the bot whose channel to join",
-			"edit",
-			"text",
-			static::NONE,
-			static::NONE . ";" . implode(';', array_keys(self::BOT_DATA)),
-			'',
-			"mod",
-			"tradebot.txt"
+			module: $this->moduleName,
+			name: 'tradebot',
+			description: "Name of the bot whose channel to join",
+			mode: "edit",
+			type: "text",
+			value: static::NONE,
+			options: static::NONE . ";" . implode(';', array_keys(self::BOT_DATA)),
+			intoptions: '',
+			accessLevel: "mod",
+			help: "tradebot.txt"
 		);
 		$this->settingManager->add(
-			$this->moduleName,
-			"tradebot_channels",
-			"Show only the following channels (comma-separated)",
-			"edit",
-			"text",
-			"*",
-			"None;*"
-		);
-
-		$this->settingManager->add(
-			$this->moduleName,
-			'tradebot_add_comments',
-			'Add link to comments if found',
-			'edit',
-			'options',
-			'1',
-			'true;false',
-			'1;0',
-			'mod'
+			module: $this->moduleName,
+			name: "tradebot_channels",
+			description: "Show only the following channels (comma-separated)",
+			mode: "edit",
+			type: "text",
+			value: "*",
+			options: "None;*"
 		);
 
 		$this->settingManager->add(
-			$this->moduleName,
-			'tradebot_custom_colors',
-			'Use custom colors for tradebots',
-			'edit',
-			'options',
-			'0',
-			'true;false',
-			'1;0',
-			'mod'
+			module: $this->moduleName,
+			name: 'tradebot_add_comments',
+			description: 'Add link to comments if found',
+			mode: 'edit',
+			type: 'options',
+			value: '1',
+			options: 'true;false',
+			intoptions: '1;0',
+			accessLevel: 'mod'
 		);
 
 		$this->settingManager->add(
-			$this->moduleName,
-			'tradebot_text_color',
-			'Custom color for tradebot message body',
-			'edit',
-			'color',
-			"<font color='#89D2E8'>"
+			module: $this->moduleName,
+			name: 'tradebot_custom_colors',
+			description: 'Use custom colors for tradebots',
+			mode: 'edit',
+			type: 'options',
+			value: '0',
+			options: 'true;false',
+			intoptions: '1;0',
+			accessLevel: 'mod'
+		);
+
+		$this->settingManager->add(
+			module: $this->moduleName,
+			name: 'tradebot_text_color',
+			description: 'Custom color for tradebot message body',
+			mode: 'edit',
+			type: 'color',
+			value: "<font color='#89D2E8'>"
 		);
 
 		$this->settingManager->registerChangeListener(

@@ -182,22 +182,22 @@ class DiscordGatewayController {
 	#[NCA\Setup]
 	public function setup(): void {
 		$this->settingManager->add(
-			$this->moduleName,
-			"discord_activity_name",
-			"Game the bot is shown to play on Discord",
-			"edit",
-			"text",
-			"Anarchy Online",
+			module: $this->moduleName,
+			name: "discord_activity_name",
+			description: "Game the bot is shown to play on Discord",
+			mode: "edit",
+			type: "text",
+			value: "Anarchy Online",
 		);
 		$this->settingManager->add(
-			$this->moduleName,
-			"discord_notify_voice_changes",
-			"Show people joining or leaving voice channels",
-			"edit",
-			"options",
-			"0",
-			"off;priv;org;priv+org",
-			"0;1;2;3"
+			module: $this->moduleName,
+			name: "discord_notify_voice_changes",
+			description: "Show people joining or leaving voice channels",
+			mode: "edit",
+			type: "options",
+			value: "0",
+			options: "off;priv;org;priv+org",
+			intoptions: "0;1;2;3"
 		);
 		$this->settingManager->registerChangeListener('discord_bot_token', [$this, "tokenChanged"]);
 		$this->settingManager->registerChangeListener('discord_activity_name', [$this, "updatePresence"]);

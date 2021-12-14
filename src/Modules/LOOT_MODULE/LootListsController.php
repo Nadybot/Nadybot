@@ -188,14 +188,14 @@ class LootListsController {
 		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations");
 		$this->db->loadCSVFile($this->moduleName, __DIR__ . "/raid_loot.csv");
 		$this->settingManager->add(
-			$this->moduleName,
-			'show_raid_loot_pics',
-			'Show pictures in loot lists',
-			'edit',
-			'options',
-			'0',
-			'true;false',
-			'1;0'
+			module: $this->moduleName,
+			name: 'show_raid_loot_pics',
+			description: 'Show pictures in loot lists',
+			mode: 'edit',
+			type: 'options',
+			value: '0',
+			options: 'true;false',
+			intoptions: '1;0'
 		);
 		$this->commandAlias->register($this->moduleName, "12m", '12man');
 		$this->commandAlias->register($this->moduleName, "12m", '12-man');

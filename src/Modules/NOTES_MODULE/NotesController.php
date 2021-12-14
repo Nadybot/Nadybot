@@ -107,15 +107,15 @@ class NotesController {
 		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations/Notes");
 		$this->commandAlias->register($this->moduleName, "notes rem", "reminders rem");
 		$this->settingManager->add(
-			$this->moduleName,
-			"reminder_format",
-			"How to display reminder-links in notes",
-			"edit",
-			"options",
-			"2",
-			"off;compact;verbose",
-			'0;1;2',
-			"mod"
+			module: $this->moduleName,
+			name: "reminder_format",
+			description: "How to display reminder-links in notes",
+			mode: "edit",
+			type: "options",
+			value: "2",
+			options: "off;compact;verbose",
+			intoptions: '0;1;2',
+			accessLevel: "mod"
 		);
 	}
 

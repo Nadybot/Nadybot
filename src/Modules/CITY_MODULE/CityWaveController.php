@@ -77,16 +77,16 @@ class CityWaveController implements MessageEmitter {
 		$this->commandAlias->register($this->moduleName, "citywave stop", "stopwave");
 
 		$this->settingManager->add(
-			$this->moduleName,
-			'city_wave_times',
-			'Times to display timer alerts',
-			'edit',
-			'text',
-			'105s 150s 90s 120s 120s 120s 120s 120s 120s',
-			'105s 150s 90s 120s 120s 120s 120s 120s 120s',
-			'',
-			'mod',
-			'city_wave_times.txt'
+			module: $this->moduleName,
+			name: 'city_wave_times',
+			description: 'Times to display timer alerts',
+			mode: 'edit',
+			type: 'text',
+			value: '105s 150s 90s 120s 120s 120s 120s 120s 120s',
+			options: '105s 150s 90s 120s 120s 120s 120s 120s 120s',
+			intoptions: '',
+			accessLevel: 'mod',
+			help: 'city_wave_times.txt'
 		);
 		$this->settingManager->registerChangeListener(
 			'city_wave_times',

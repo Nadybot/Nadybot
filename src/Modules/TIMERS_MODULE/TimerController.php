@@ -118,16 +118,16 @@ class TimerController implements MessageEmitter {
 		});
 
 		$this->settingManager->add(
-			$this->moduleName,
-			'timer_alert_times',
-			'Times to display timer alerts',
-			'edit',
-			'text',
-			'1h 15m 1m',
-			'1h 15m 1m',
-			'',
-			'mod',
-			'timer_alert_times.txt'
+			module: $this->moduleName,
+			name: 'timer_alert_times',
+			description: 'Times to display timer alerts',
+			mode: 'edit',
+			type: 'text',
+			value: '1h 15m 1m',
+			options: '1h 15m 1m',
+			intoptions: '',
+			accessLevel: 'mod',
+			help: 'timer_alert_times.txt'
 		);
 		$this->settingManager->registerChangeListener(
 			'timer_alert_times',

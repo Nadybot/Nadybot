@@ -131,56 +131,56 @@ class GuildController {
 		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations/Base");
 
 		$this->settingManager->add(
-			$this->moduleName,
-			"max_logon_msg_size",
-			"Maximum characters a logon message can have",
-			"edit",
-			"number",
-			"200",
-			"100;200;300;400",
-			'',
-			"mod"
+			module: $this->moduleName,
+			name: "max_logon_msg_size",
+			description: "Maximum characters a logon message can have",
+			mode: "edit",
+			type: "number",
+			value: "200",
+			options: "100;200;300;400",
+			intoptions: '',
+			accessLevel: "mod"
 		);
 		$this->settingManager->add(
-			$this->moduleName,
-			"max_logoff_msg_size",
-			"Maximum characters a logoff message can have",
-			"edit",
-			"number",
-			"200",
-			"100;200;300;400",
-			'',
-			"mod"
+			module: $this->moduleName,
+			name: "max_logoff_msg_size",
+			description: "Maximum characters a logoff message can have",
+			mode: "edit",
+			type: "number",
+			value: "200",
+			options: "100;200;300;400",
+			intoptions: '',
+			accessLevel: "mod"
 		);
 		$this->settingManager->add(
-			$this->moduleName,
-			"first_and_last_alt_only",
-			"Show logon/logoff for first/last alt only",
-			"edit",
-			"options",
-			"0",
-			"true;false",
-			"1;0"
+			module: $this->moduleName,
+			name: "first_and_last_alt_only",
+			description: "Show logon/logoff for first/last alt only",
+			mode: "edit",
+			type: "options",
+			value: "0",
+			options: "true;false",
+			intoptions: "1;0"
 		);
 		$this->settingManager->add(
-			$this->moduleName,
-			"map_org_ranks_to_bot_ranks",
-			"Map org ranks to bot ranks",
-			"edit",
-			"options",
-			"0",
-			"true;false",
-			"1;0"
+			module: $this->moduleName,
+			name: "map_org_ranks_to_bot_ranks",
+			description: "Map org ranks to bot ranks",
+			mode: "edit",
+			type: "options",
+			value: "0",
+			options: "true;false",
+			intoptions: "1;0"
 		);
 		$this->settingManager->add(
-			$this->moduleName,
-			"org_suppress_alt_list",
-			"Do not show the altlist on logon, just the name of the main",
-			"edit",
-			"options",
-			"0",
-			"true;false",
-			"1;0"
+			module: $this->moduleName,
+			name: "org_suppress_alt_list",
+			description: "Do not show the altlist on logon, just the name of the main",
+			mode: "edit",
+			type: "options",
+			value: "0",
+			options: "true;false",
+			intoptions: "1;0"
 		);
 		$this->loadGuildMembers();
 	}

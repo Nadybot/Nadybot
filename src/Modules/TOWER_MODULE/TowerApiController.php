@@ -38,23 +38,23 @@ class TowerApiController {
 	#[NCA\Setup]
 	public function setup(): void {
 		$this->settingManager->add(
-			$this->moduleName,
-			static::TOWER_API,
-			"Which API to use for querying tower infos",
-			"edit",
-			"text",
-			static::API_TYRENCE,
-			static::API_NONE . ";" . static::API_TYRENCE
+			module: $this->moduleName,
+			name: static::TOWER_API,
+			description: "Which API to use for querying tower infos",
+			mode: "edit",
+			type: "text",
+			value: static::API_TYRENCE,
+			options: static::API_NONE . ";" . static::API_TYRENCE
 		);
 		$this->settingManager->add(
-			$this->moduleName,
-			"tower_cache_duration",
-			"How long to cache data from the Tower API",
-			"edit",
-			"options",
-			"600",
-			"1 min;5 min;10 min;15 min;30 min;1 hour;2 hours",
-			"60;300;600;900;1800;3600;7200"
+			module: $this->moduleName,
+			name: "tower_cache_duration",
+			description: "How long to cache data from the Tower API",
+			mode: "edit",
+			type: "options",
+			value: "600",
+			options: "1 min;5 min;10 min;15 min;30 min;1 hour;2 hours",
+			intoptions: "60;300;600;900;1800;3600;7200"
 		);
 		$this->settingManager->registerChangeListener(
 			static::TOWER_API,

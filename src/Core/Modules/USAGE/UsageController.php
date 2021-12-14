@@ -67,30 +67,30 @@ class UsageController {
 		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations");
 
 		$this->settingManager->add(
-			$this->moduleName,
-			"record_usage_stats",
-			"Record usage stats",
-			"edit",
-			"options",
-			"1",
-			"true;false",
-			"1;0"
+			module: $this->moduleName,
+			name: "record_usage_stats",
+			description: "Record usage stats",
+			mode: "edit",
+			type: "options",
+			value: "1",
+			options: "true;false",
+			intoptions: "1;0"
 		);
 		$this->settingManager->add(
-			$this->moduleName,
-			'botid',
-			'Botid',
-			'noedit',
-			'text',
-			''
+			module: $this->moduleName,
+			name: 'botid',
+			description: 'Botid',
+			mode: 'noedit',
+			type: 'text',
+			value: ''
 		);
 		$this->settingManager->add(
-			$this->moduleName,
-			'last_submitted_stats',
-			'last_submitted_stats',
-			'noedit',
-			'text',
-			'0'
+			module: $this->moduleName,
+			name: 'last_submitted_stats',
+			description: 'last_submitted_stats',
+			mode: 'noedit',
+			type: 'text',
+			value: '0'
 		);
 	}
 

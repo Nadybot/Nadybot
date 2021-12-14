@@ -241,58 +241,58 @@ class TowerController {
 		$this->db->loadCSVFile($this->moduleName, __DIR__ . '/tower_site_bounds.csv');
 
 		$this->settingManager->add(
-			$this->moduleName,
-			"tower_attack_spam",
-			"Layout types when displaying tower attacks",
-			"edit",
-			"options",
-			"2",
-			"off;compact;normal",
-			"0;1;2",
+			module: $this->moduleName,
+			name: "tower_attack_spam",
+			description: "Layout types when displaying tower attacks",
+			mode: "edit",
+			type: "options",
+			value: "2",
+			options: "off;compact;normal",
+			intoptions: "0;1;2",
 		);
 
 		$this->settingManager->add(
-			$this->moduleName,
-			"tower_page_size",
-			"Number of results to display for victory/attacks",
-			"edit",
-			"options",
-			"15",
-			"5;10;15;20;25",
-			"5;10;15;20;25",
+			module: $this->moduleName,
+			name: "tower_page_size",
+			description: "Number of results to display for victory/attacks",
+			mode: "edit",
+			type: "options",
+			value: "15",
+			options: "5;10;15;20;25",
+			intoptions: "5;10;15;20;25",
 		);
 
 		$this->settingManager->add(
-			$this->moduleName,
-			"tower_plant_timer",
-			"Start a timer for planting whenever a tower site goes down",
-			"edit",
-			"options",
-			"0",
-			"off;priv;org",
-			"0;1;2",
+			module: $this->moduleName,
+			name: "tower_plant_timer",
+			description: "Start a timer for planting whenever a tower site goes down",
+			mode: "edit",
+			type: "options",
+			value: "0",
+			options: "off;priv;org",
+			intoptions: "0;1;2",
 		);
 
 		$this->settingManager->add(
-			$this->moduleName,
-			"tower_hot_group",
-			"By what to group hot/penaltized sites",
-			"edit",
-			"options",
-			"1",
-			"Playfield;Title level;Org",
-			"1;2;3",
-			"mod",
+			module: $this->moduleName,
+			name: "tower_hot_group",
+			description: "By what to group hot/penaltized sites",
+			mode: "edit",
+			type: "options",
+			value: "1",
+			options: "Playfield;Title level;Org",
+			intoptions: "1;2;3",
+			accessLevel: "mod",
 		);
 
 		$this->settingManager->add(
-			$this->moduleName,
-			"discord_notify_org_attacks",
-			"Message for system(tower-attack-own) when the own field is being attacked",
-			"edit",
-			"text",
-			"@here Our field in {location} is being attacked by {player}",
-			"off;@here Our field in {location} is being attacked by {player}",
+			module: $this->moduleName,
+			name: "discord_notify_org_attacks",
+			description: "Message for system(tower-attack-own) when the own field is being attacked",
+			mode: "edit",
+			type: "text",
+			value: "@here Our field in {location} is being attacked by {player}",
+			options: "off;@here Our field in {location} is being attacked by {player}",
 		);
 
 		$attack = new class implements MessageEmitter {

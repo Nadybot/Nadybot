@@ -122,25 +122,25 @@ class LootController {
 	#[NCA\Setup]
 	public function setup(): void {
 		$this->settingManager->add(
-			$this->moduleName,
-			"add_on_loot",
-			"Confirmation messages for adding to loot",
-			"edit",
-			"options",
-			"2",
-			"tells;privatechat;privatechat and tells",
-			'1;2;3',
-			"mod"
+			module: $this->moduleName,
+			name: "add_on_loot",
+			description: "Confirmation messages for adding to loot",
+			mode: "edit",
+			type: "options",
+			value: "2",
+			options: "tells;privatechat;privatechat and tells",
+			intoptions: '1;2;3',
+			accessLevel: "mod"
 		);
 		$this->settingManager->add(
-			$this->moduleName,
-			'show_loot_pics',
-			'Show pictures in loot-command',
-			'edit',
-			'options',
-			'1',
-			'true;false',
-			'1;0'
+			module: $this->moduleName,
+			name: 'show_loot_pics',
+			description: 'Show pictures in loot-command',
+			mode: 'edit',
+			type: 'options',
+			value: '1',
+			options: 'true;false',
+			intoptions: '1;0'
 		);
 
 		$this->commandAlias->register($this->moduleName, "flatroll", "rollloot");

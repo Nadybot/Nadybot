@@ -67,14 +67,14 @@ class WebsocketController {
 	#[NCA\Setup]
 	public function setup(): void {
 		$this->settingManager->add(
-			$this->moduleName,
-			'websocket',
-			'Enable the websocket handler',
-			'edit',
-			'options',
-			'1',
-			'true;false',
-			'1;0'
+			module: $this->moduleName,
+			name: 'websocket',
+			description: 'Enable the websocket handler',
+			mode: 'edit',
+			type: 'options',
+			value: '1',
+			options: 'true;false',
+			intoptions: '1;0'
 		);
 		$this->settingManager->registerChangeListener("websocket", [$this, "changeWebsocketStatus"]);
 		if ($this->settingManager->getBool("websocket")) {

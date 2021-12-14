@@ -100,48 +100,48 @@ class AltsController {
 		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations");
 
 		$this->settingManager->add(
-			$this->moduleName,
-			'alts_require_confirmation',
-			'Adding alt requires confirmation from alt',
-			'edit',
-			'options',
-			'1',
-			'true;false',
-			'1;0',
-			'mod'
+			module: $this->moduleName,
+			name: 'alts_require_confirmation',
+			description: 'Adding alt requires confirmation from alt',
+			mode: 'edit',
+			type: 'options',
+			value: '1',
+			options: 'true;false',
+			intoptions: '1;0',
+			accessLevel: 'mod'
 		);
 		$this->settingManager->add(
-			$this->moduleName,
-			'alts_show_org',
-			'Show the org in the altlist',
-			'edit',
-			'options',
-			'1',
-			'true;false',
-			'1;0',
-			'mod'
+			module: $this->moduleName,
+			name: 'alts_show_org',
+			description: 'Show the org in the altlist',
+			mode: 'edit',
+			type: 'options',
+			value: '1',
+			options: 'true;false',
+			intoptions: '1;0',
+			accessLevel: 'mod'
 		);
 		$this->settingManager->add(
-			$this->moduleName,
-			'alts_profession_display',
-			'How to show profession in alts list',
-			'edit',
-			'options',
-			'1',
-			'off;icon;short;full;icon+short;icon+full',
-			'0;1;2;4;3;5',
-			'mod'
+			module: $this->moduleName,
+			name: 'alts_profession_display',
+			description: 'How to show profession in alts list',
+			mode: 'edit',
+			type: 'options',
+			value: '1',
+			options: 'off;icon;short;full;icon+short;icon+full',
+			intoptions: '0;1;2;4;3;5',
+			accessLevel: 'mod'
 		);
 		$this->settingManager->add(
-			$this->moduleName,
-			'alts_sort',
-			'By what to sort the alts list',
-			'edit',
-			'options',
-			'level',
-			'level;name',
-			'',
-			'mod'
+			module: $this->moduleName,
+			name: 'alts_sort',
+			description: 'By what to sort the alts list',
+			mode: 'edit',
+			type: 'options',
+			value: 'level',
+			options: 'level;name',
+			intoptions: '',
+			accessLevel: 'mod'
 		);
 	}
 

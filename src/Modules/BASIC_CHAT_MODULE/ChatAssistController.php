@@ -78,12 +78,12 @@ class ChatAssistController {
 	#[NCA\Setup]
 	public function setup(): void {
 		$this->settingManager->add(
-			$this->moduleName,
-			"callers_undo_steps",
-			"Max stored undo steps",
-			"edit",
-			"number",
-			"5"
+			module: $this->moduleName,
+			name: "callers_undo_steps",
+			description: "Max stored undo steps",
+			mode: "edit",
+			type: "number",
+			value: "5"
 		);
 	}
 

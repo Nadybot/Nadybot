@@ -43,26 +43,26 @@ class DiscordController {
 	#[NCA\Setup]
 	public function setup(): void {
 		$this->settingManager->add(
-			$this->moduleName,
-			'discord_bot_token',
-			'The Discord bot token to send messages with',
-			'edit',
-			'discord_bot_token',
-			'off',
-			'off',
-			'',
-			'superadmin'
+			module: $this->moduleName,
+			name: 'discord_bot_token',
+			description: 'The Discord bot token to send messages with',
+			mode: 'edit',
+			type: 'discord_bot_token',
+			value: 'off',
+			options: 'off',
+			intoptions: '',
+			accessLevel: 'superadmin'
 		);
 		$this->settingManager->add(
-			$this->moduleName,
-			"discord_notify_channel",
-			"Discord channel to send notifications to",
-			"edit",
-			"discord_channel",
-			"off",
-			"",
-			"",
-			"admin"
+			module: $this->moduleName,
+			name: "discord_notify_channel",
+			description: "Discord channel to send notifications to",
+			mode: "edit",
+			type: "discord_channel",
+			value: "off",
+			options: "",
+			intoptions: "",
+			accessLevel: "admin"
 		);
 	}
 

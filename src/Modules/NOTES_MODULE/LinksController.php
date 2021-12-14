@@ -51,14 +51,14 @@ class LinksController {
 	public function setup(): void {
 		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations/Links");
 		$this->settingManager->add(
-			$this->moduleName,
-			'showfullurls',
-			'Enable full urls in the link list output',
-			'edit',
-			"options",
-			"0",
-			"true;false",
-			"1;0"
+			module: $this->moduleName,
+			name: 'showfullurls',
+			description: 'Enable full urls in the link list output',
+			mode: 'edit',
+			type: "options",
+			value: "0",
+			options: "true;false",
+			intoptions: "1;0"
 		);
 	}
 
