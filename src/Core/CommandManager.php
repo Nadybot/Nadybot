@@ -714,7 +714,9 @@ class CommandManager implements MessageEmitter {
 		if (count($cmds)) {
 			$commands = [];
 			foreach ($cmds as $command) {
-				$commands []= explode(" ", $command->newInstance()->value)[0];
+				/** @var NCA\HandlesCommand */
+				$cmdObj = $command->newInstance();
+				$commands []= explode(" ", $cmdObj->command)[0];
 			}
 			if (count($commands) === 1) {
 				$regexp = $commands;

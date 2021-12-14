@@ -1291,7 +1291,7 @@ class Nadybot extends AOChat {
 		$commands = [];
 		$subcommands = [];
 		foreach ($reflection->getAttributes(NCA\DefineCommand::class) as $attribute) {
-			/** @var AttributesDefineCommand */
+			/** @var NCA\DefineCommand */
 			$attribute = $attribute->newInstance();
 			$command = $attribute->command;
 			$definition = [

@@ -390,10 +390,13 @@ class ApiSpecGenerator {
 				/** @var NCA\ApiResult $attr */
 				$doc->responses[$attr->code] = $attr;
 			} elseif ($attr instanceof NCA\ApiTag) {
+				/** @var NCA\ApiTag $attr */
 				$doc->tags []= $attr->tag;
 			} elseif ($attr instanceof NCA\RequestBody) {
+				/** @var NCA\RequestBody $attr */
 				$doc->requestBody = $attr;
 			} elseif ($attr instanceof NCA\VERB) {
+				/** @var NCA\VERB $attr */
 				$doc->methods []= strtolower(class_basename($attr));
 			}
 		}

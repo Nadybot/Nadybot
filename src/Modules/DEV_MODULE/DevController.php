@@ -136,7 +136,9 @@ class DevController {
 				if (empty($commands)) {
 					continue;
 				}
-				$command = $commands[0]->newInstance()->value;
+				/** @var NCA\HandlesCommand */
+				$commandObj = $commands[0]->newInstance();
+				$command = $commandObj->command;
 				$command = explode(" ", $command)[0];
 				$regexes[$command] ??= [];
 				$regexes[$command] = array_merge($regexes[$command], $this->commandManager->retrieveRegexes($reflectedMethod));
