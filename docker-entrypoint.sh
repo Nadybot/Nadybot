@@ -58,7 +58,7 @@ DONE
 
 sed -i -e "s/\"\*\": \"notice\"/\"*\": \"${CONFIG_LOG_LEVEL:-notice}\"/" conf/logging.json
 
-PHP=$(which php8 php7 php | head -n 1)
+PHP=$(which php81 php8 php7 php | head -n 1)
 PARAMS=""
 if [ -n "$CONFIG_JIT_BUFFER_SIZE" ]; then
 	PARAMS="-dopcache.enable_cli=1 -dopcache.jit_buffer_size=${JIT_BUFFER_SIZE} -dopcache.jit=1235"
