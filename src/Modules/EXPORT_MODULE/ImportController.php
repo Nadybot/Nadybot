@@ -44,6 +44,7 @@ use Nadybot\Modules\{
 };
 use Exception;
 use Nadybot\Core\ParamClass\PFilename;
+use Nadybot\Modules\TIMERS_MODULE\TimerController;
 use Throwable;
 
 /**
@@ -828,7 +829,7 @@ class ImportController {
 	}
 
 	public function importTimers(array $timers): void {
-		$table = Registry::getInstance("timercontroller")::DB_TABLE;
+		$table = Registry::getInstance(TimerController::class)::DB_TABLE;
 		$this->logger->notice("Importing " . count($timers) . " timers");
 		$this->db->beginTransaction();
 		try {

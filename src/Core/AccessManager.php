@@ -59,9 +59,6 @@ class AccessManager {
 	public DB $db;
 
 	#[NCA\Inject]
-	public SettingObject $setting;
-
-	#[NCA\Inject]
 	public Nadybot $chatBot;
 
 	#[NCA\Inject]
