@@ -327,8 +327,10 @@ class RelayController {
 	#[NCA\HandlesCommand("relay")]
 	public function relayListProtocolsCommand(
 		CmdContext $context,
-		string $action="list",
-		string $subAction="(protocols?)"
+		#[NCA\Str("list")]
+		string $action,
+		#[NCA\Regexp("protocols?")]
+		string $subAction
 	): void {
 		$context->reply(
 			$this->renderClassSpecOverview(
@@ -358,8 +360,8 @@ class RelayController {
 	#[NCA\HandlesCommand("relay")]
 	public function relayListTransportsCommand(
 		CmdContext $context,
-		string $action="list",
-		string $subAction="(transports?)"
+		#[NCA\Str("list")] string $action,
+		#[NCA\Regexp("transports?")] string $subAction
 	): void {
 		$context->reply(
 			$this->renderClassSpecOverview(
@@ -389,8 +391,8 @@ class RelayController {
 	#[NCA\HandlesCommand("relay")]
 	public function relayListStacksCommand(
 		CmdContext $context,
-		string $action="list",
-		string $subAction="(layers?)"
+		#[NCA\Str("list")] string $action,
+		#[NCA\Regexp("layers?")] string $subAction
 	): void {
 		$context->reply(
 			$this->renderClassSpecOverview(
