@@ -5,6 +5,7 @@ namespace Nadybot\Core\Routing;
 use Illuminate\Support\Collection;
 use Nadybot\Core\Registry;
 use Nadybot\Core\DBSchema\RouteHopFormat;
+use Nadybot\Core\Nadybot;
 
 class Source {
 	public const DB_TABLE = "route_hop_format_<myname>";
@@ -36,7 +37,7 @@ class Source {
 		$this->label = $label;
 		if (!isset($dimension)) {
 			/** @var Nadybot */
-			$chatBot = Registry::getInstance("chatBot");
+			$chatBot = Registry::getInstance(Nadybot::class);
 			$this->server = (int)$chatBot->vars["dimension"];
 		} else {
 			$this->server = $dimension;

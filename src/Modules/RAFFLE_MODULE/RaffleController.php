@@ -240,7 +240,7 @@ class RaffleController {
 		if ($context->isDM()) {
 			$this->raffle->sendto = new PrivateChannelCommandReply(
 				$this->chatBot,
-				$this->chatBot->setting->default_private_channel
+				$this->settingManager->getString("default_private_channel") ?? $this->chatBot->char->name
 			);
 		}
 		$event = new RaffleEvent();

@@ -301,7 +301,7 @@ class BotRunner {
 		[$server, $port] = $this->getServerAndPort($vars);
 
 		/** @var Nadybot */
-		$chatBot = Registry::getInstance('chatBot');
+		$chatBot = Registry::getInstance(Nadybot::class);
 
 		// startup core systems and load modules
 		$chatBot->init($this, $vars);
@@ -448,7 +448,7 @@ class BotRunner {
 	 */
 	private function connectToDatabase(): void {
 		global $vars;
-		$db = Registry::getInstance('db');
+		$db = Registry::getInstance(DB::class);
 		if (!isset($db)) {
 			throw new Exception("Cannot find DB instance.");
 		}
@@ -470,7 +470,7 @@ class BotRunner {
 	/** Run migration scripts to keep the SQL schema up-to-date */
 	private function runUpgradeScripts(): void {
 		/** @var DB */
-		$db = Registry::getInstance('db');
+		$db = Registry::getInstance(DB::class);
 		$db->loadMigrations("Core", __DIR__ . "/Migrations");
 	}
 

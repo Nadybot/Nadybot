@@ -19,7 +19,6 @@ use Nadybot\Core\{
 	Routing\RoutableMessage,
 	Routing\Source,
 	SettingManager,
-	SettingObject,
 	SQLException,
 	Text,
 	Util,
@@ -87,9 +86,6 @@ class TimerController implements MessageEmitter {
 
 	#[NCA\Inject]
 	public SettingManager $settingManager;
-
-	#[NCA\Inject]
-	public SettingObject $setting;
 
 	#[NCA\Inject]
 	public EventManager $eventManager;
@@ -228,7 +224,7 @@ class TimerController implements MessageEmitter {
 			return;
 		}
 		$endTime = (int)$timer->data + $alert->time;
-		$alerts = $this->generateAlerts($timer->owner, $timer->name, $endTime, explode(' ', $this->setting->timer_alert_times));
+		$alerts = $this->generateAlerts($timer->owner, $timer->name, $endTime, explode(' ', $this->settingManager->getString("timer_alert_times")??""));
 		$this->remove($timer->id);
 		$this->add($timer->name, $timer->owner, $timer->mode, $alerts, $timer->callback, $timer->data, $timer->origin);
 	}
@@ -316,7 +312,7 @@ class TimerController implements MessageEmitter {
 
 		$endTime = time() + $initialRunTime;
 
-		$alerts = $this->generateAlerts($context->char->name, $name, $endTime, explode(' ', $this->setting->timer_alert_times));
+		$alerts = $this->generateAlerts($context->char->name, $name, $endTime, explode(' ', $this->settingManager->getString("timer_alert_times")??""));
 
 		$sendto = $context->sendto;
 		$origin = ($sendto instanceof MessageEmitter) ? $sendto->getChannelName() : null;
@@ -518,7 +514,7 @@ class TimerController implements MessageEmitter {
 		$endTime = time() + $runTime;
 
 		if ($alerts === null) {
-			$alerts = $this->generateAlerts($sender, $name, $endTime, explode(' ', $this->setting->timer_alert_times));
+			$alerts = $this->generateAlerts($sender, $name, $endTime, explode(' ', $this->settingManager->getString("timer_alert_times")??""));
 		}
 
 		$this->add($name, $sender, $channel, $alerts, 'timercontroller.timerCallback', null, $origin);
@@ -623,7 +619,7 @@ class TimerController implements MessageEmitter {
 		}
 		$event->name = $timerName;
 
-		$alerts = $this->generateAlerts($event->owner, $event->name, $event->endtime, explode(' ', $this->setting->timer_alert_times));
+		$alerts = $this->generateAlerts($event->owner, $event->name, $event->endtime, explode(' ', $this->settingManager->getString("timer_alert_times")??""));
 		if (isset($event->interval)) {
 			$this->add($event->name, $event->owner, null, $alerts, "timercontroller.repeatingTimerCallback", (string)$event->interval);
 		} else {
