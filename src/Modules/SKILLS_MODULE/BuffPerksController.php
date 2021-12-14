@@ -74,7 +74,14 @@ class BuffPerksController {
 	#[NCA\Setup]
 	public function setup(): void {
 		$applied = $this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations/Perks");
-		$this->settingManager->add($this->moduleName, "perks_db_version", "perks_db_version", 'noedit', 'text', "0");
+		$this->settingManager->add(
+			module: $this->moduleName,
+			name: "perks_db_version",
+			description: "perks_db_version",
+			mode: 'noedit',
+			type: 'text',
+			value: "0"
+		);
 		$this->timer->callLater(0, [$this, "initPerksDatabase"], $applied);
 	}
 

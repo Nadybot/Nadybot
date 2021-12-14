@@ -209,17 +209,18 @@ class WorldBossController {
 	public function setup(): void {
 		$this->db->loadMigrations($this->moduleName, __DIR__ . '/Migrations');
 		$this->settingManager->add(
-			$this->moduleName,
-			"worldboss_show_spawn",
-			"How to show spawn and vulnerability events",
-			"edit",
-			"options",
-			"1",
-			"Show as if the worldboss had actually spawned.".
+			module: $this->moduleName,
+			name: "worldboss_show_spawn",
+			description: "How to show spawn and vulnerability events",
+			mode: "edit",
+			type: "options",
+			value: "1",
+			options:
+				"Show as if the worldboss had actually spawned.".
 				";Show 'should have' messages.".
 				";Only show spawn and vulnerability events if set by global events. Don't repeat the timer unless set by a global event.",
-			"1;2;3",
-			"mod"
+			intoptions: "1;2;3",
+			accessLevel: "mod"
 		);
 		$this->commandAlias->register(
 			$this->moduleName,

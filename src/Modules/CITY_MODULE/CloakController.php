@@ -79,23 +79,23 @@ class CloakController implements MessageEmitter {
 		$this->db->loadMigrations($this->moduleName, __DIR__ . '/Migrations');
 
 		$this->settingManager->add(
-			$this->moduleName,
-			"showcloakstatus",
-			"Show cloak status to players at logon",
-			"edit",
-			"options",
-			"1",
-			"Never;When cloak is down;Always",
-			"0;1;2"
+			module: $this->moduleName,
+			name: "showcloakstatus",
+			description: "Show cloak status to players at logon",
+			mode: "edit",
+			type: "options",
+			value: "1",
+			options: "Never;When cloak is down;Always",
+			intoptions: "0;1;2"
 		);
 		$this->settingManager->add(
-			$this->moduleName,
-			"cloak_reminder_interval",
-			"How often to spam guild channel when cloak is down",
-			"edit",
-			"time",
-			"5m",
-			"2m;5m;10m;15m;20m"
+			module: $this->moduleName,
+			name: "cloak_reminder_interval",
+			description: "How often to spam guild channel when cloak is down",
+			mode: "edit",
+			type: "time",
+			value: "5m",
+			options: "2m;5m;10m;15m;20m"
 		);
 
 		$this->messageHub->registerMessageEmitter($this);

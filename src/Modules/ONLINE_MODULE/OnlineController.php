@@ -120,115 +120,115 @@ class OnlineController {
 			->delete();
 
 		$this->settingManager->add(
-			$this->moduleName,
-			"online_expire",
-			"How long to wait before clearing online list",
-			"edit",
-			"time",
-			"15m",
-			"2m;5m;10m;15m;20m",
-			'',
-			"mod"
+			module: $this->moduleName,
+			name: "online_expire",
+			description: "How long to wait before clearing online list",
+			mode: "edit",
+			type: "time",
+			value: "15m",
+			options: "2m;5m;10m;15m;20m",
+			intoptions: '',
+			accessLevel: "mod"
 		);
 		$this->settingManager->add(
-			$this->moduleName,
-			"online_show_relay",
-			"Include players from your relay(s) by default",
-			"edit",
-			"options",
-			"0",
-			"No;Always;In a separate message",
-			"0;1;2"
+			module: $this->moduleName,
+			name: "online_show_relay",
+			description: "Include players from your relay(s) by default",
+			mode: "edit",
+			type: "options",
+			value: "0",
+			options: "No;Always;In a separate message",
+			intoptions: "0;1;2"
 		);
 		$this->settingManager->add(
-			$this->moduleName,
-			"online_show_org_guild",
-			"Show org/rank for players in guild channel",
-			"edit",
-			"options",
-			"1",
-			"Show org and rank;Show rank only;Show org only;Show no org info",
-			"2;1;3;0"
+			module: $this->moduleName,
+			name: "online_show_org_guild",
+			description: "Show org/rank for players in guild channel",
+			mode: "edit",
+			type: "options",
+			value: "1",
+			options: "Show org and rank;Show rank only;Show org only;Show no org info",
+			intoptions: "2;1;3;0"
 		);
 		$this->settingManager->add(
-			$this->moduleName,
-			"online_show_org_guild_relay",
-			"Show org/rank for players in your relays",
-			"edit",
-			"options",
-			"0",
-			"Show org and rank;Show rank only;Show org only;Show no org info",
-			"2;1;3;0"
+			module: $this->moduleName,
+			name: "online_show_org_guild_relay",
+			description: "Show org/rank for players in your relays",
+			mode: "edit",
+			type: "options",
+			value: "0",
+			options: "Show org and rank;Show rank only;Show org only;Show no org info",
+			intoptions: "2;1;3;0"
 		);
 		$this->settingManager->add(
-			$this->moduleName,
-			"online_show_org_priv",
-			"Show org/rank for players in private channel",
-			"edit",
-			"options",
-			"2",
-			"Show org and rank;Show rank only;Show org only;Show no org info",
-			"2;1;3;0"
+			module: $this->moduleName,
+			name: "online_show_org_priv",
+			description: "Show org/rank for players in private channel",
+			mode: "edit",
+			type: "options",
+			value: "2",
+			options: "Show org and rank;Show rank only;Show org only;Show no org info",
+			intoptions: "2;1;3;0"
 		);
 		$this->settingManager->add(
-			$this->moduleName,
-			"online_admin",
-			"Show admin levels in online list",
-			"edit",
-			"options",
-			"0",
-			"true;false",
-			"1;0"
+			module: $this->moduleName,
+			name: "online_admin",
+			description: "Show admin levels in online list",
+			mode: "edit",
+			type: "options",
+			value: "0",
+			options: "true;false",
+			intoptions: "1;0"
 		);
 		$this->settingManager->add(
-			$this->moduleName,
-			"online_raid",
-			"Show raid participation in online list",
-			"edit",
-			"options",
-			"0",
-			"off;in raid;not in raid;both;both, but compact",
-			"0;1;2;3;7"
+			module: $this->moduleName,
+			name: "online_raid",
+			description: "Show raid participation in online list",
+			mode: "edit",
+			type: "options",
+			value: "0",
+			options: "off;in raid;not in raid;both;both, but compact",
+			intoptions: "0;1;2;3;7"
 		);
 		$this->settingManager->add(
-			$this->moduleName,
-			"online_group_by",
-			"Group online list by",
-			"edit",
-			"options",
-			"1",
-			"do not group;player;profession;faction",
-			"0;1;2;3"
+			module: $this->moduleName,
+			name: "online_group_by",
+			description: "Group online list by",
+			mode: "edit",
+			type: "options",
+			value: "1",
+			options: "do not group;player;profession;faction",
+			intoptions: "0;1;2;3"
 		);
 		$this->settingManager->add(
-			$this->moduleName,
-			"online_relay_group_by",
-			"Group relay online list by",
-			"edit",
-			"options",
-			"1",
-			"do not group;org;profession",
-			"0;1;2"
+			module: $this->moduleName,
+			name: "online_relay_group_by",
+			description: "Group relay online list by",
+			mode: "edit",
+			type: "options",
+			value: "1",
+			options: "do not group;org;profession",
+			intoptions: "0;1;2"
 		);
 		$this->settingManager->add(
-			$this->moduleName,
-			"online_show_discord",
-			"Show players in discord voice channels",
-			"edit",
-			"options",
-			"0",
-			"true;false",
-			"1;0"
+			module: $this->moduleName,
+			name: "online_show_discord",
+			description: "Show players in discord voice channels",
+			mode: "edit",
+			type: "options",
+			value: "0",
+			options: "true;false",
+			intoptions: "1;0"
 		);
 		$this->settingManager->add(
-			$this->moduleName,
-			"afk_brb_without_symbol",
-			"React to afk and brb even without command prefix",
-			"edit",
-			"options",
-			"1",
-			"true;false",
-			"1;0"
+			module: $this->moduleName,
+			name: "afk_brb_without_symbol",
+			description: "React to afk and brb even without command prefix",
+			mode: "edit",
+			type: "options",
+			value: "1",
+			options: "true;false",
+			intoptions: "1;0"
 		);
 
 		$this->commandAlias->register($this->moduleName, "online", "o");

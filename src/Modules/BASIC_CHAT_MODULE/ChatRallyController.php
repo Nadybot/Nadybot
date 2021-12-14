@@ -66,12 +66,12 @@ class ChatRallyController {
 	#[NCA\Setup]
 	public function setup(): void {
 		$this->settingManager->add(
-			$this->moduleName,
-			"rally",
-			"Rally waypoint for topic",
-			"noedit",
-			"text",
-			""
+			module: $this->moduleName,
+			name: "rally",
+			description: "Rally waypoint for topic",
+			mode: "noedit",
+			type: "text",
+			value: ""
 		);
 	}
 

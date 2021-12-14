@@ -78,25 +78,25 @@ class NanoController {
 		$this->db->loadCSVFile($this->moduleName, __DIR__ . "/nano_lines.csv");
 
 		$this->settingManager->add(
-			$this->moduleName,
-			'maxnano',
-			'Number of Nanos shown on the list',
-			'edit',
-			"number",
-			'40',
-			'30;40;50;60',
-			"",
-			"mod"
+			module: $this->moduleName,
+			name: 'maxnano',
+			description: 'Number of Nanos shown on the list',
+			mode: 'edit',
+			type: "number",
+			value: '40',
+			options: '30;40;50;60',
+			intoptions: "",
+			accessLevel: "mod"
 		);
 		$this->settingManager->add(
-			$this->moduleName,
-			"shownanolineicons",
-			"Show icons for the nanolines",
-			"edit",
-			"options",
-			"0",
-			"true;false",
-			"1;0"
+			module: $this->moduleName,
+			name: "shownanolineicons",
+			description: "Show icons for the nanolines",
+			mode: "edit",
+			type: "options",
+			value: "0",
+			options: "true;false",
+			intoptions: "1;0"
 		);
 	}
 

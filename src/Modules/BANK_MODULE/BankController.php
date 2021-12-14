@@ -60,21 +60,21 @@ class BankController {
 		$this->db->loadMigrations($this->moduleName, __DIR__ . '/Migrations');
 
 		$this->settingManager->add(
-			$this->moduleName,
-			'bank_file_location',
-			'Location of the AO Items Assistant csv dump file',
-			'edit',
-			'text',
-			'./src/Modules/BANK_MODULE/import.csv'
+			module: $this->moduleName,
+			name: 'bank_file_location',
+			description: 'Location of the AO Items Assistant csv dump file',
+			mode: 'edit',
+			type: 'text',
+			value: './src/Modules/BANK_MODULE/import.csv'
 		);
 		$this->settingManager->add(
-			$this->moduleName,
-			'max_bank_items',
-			'Number of items shown in search results',
-			'edit',
-			'number',
-			'50',
-			'20;50;100'
+			module: $this->moduleName,
+			name: 'max_bank_items',
+			description: 'Number of items shown in search results',
+			mode: 'edit',
+			type: 'number',
+			value: '50',
+			options: '20;50;100'
 		);
 	}
 

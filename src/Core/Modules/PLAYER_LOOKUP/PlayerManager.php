@@ -50,14 +50,14 @@ class PlayerManager {
 	#[NCA\Setup]
 	public function setup(): void {
 		$this->settingManager->add(
-			$this->moduleName,
-			"lookup_jobs",
-			"How many jobs in parallel to run to lookup missing character data",
-			"edit",
-			"options",
-			"0",
-			"Off;1;2;3;4;5;10",
-			"0;1;2;3;4;5;10"
+			module: $this->moduleName,
+			name: "lookup_jobs",
+			description: "How many jobs in parallel to run to lookup missing character data",
+			mode: "edit",
+			type: "options",
+			value: "0",
+			options: "Off;1;2;3;4;5;10",
+			intoptions: "0;1;2;3;4;5;10"
 		);
 	}
 

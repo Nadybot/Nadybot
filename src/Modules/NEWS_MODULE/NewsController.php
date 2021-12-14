@@ -89,33 +89,33 @@ class NewsController {
 		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations");
 
 		$this->settingManager->add(
-			$this->moduleName,
-			"num_news_shown",
-			"Maximum number of news items shown",
-			"edit",
-			"number",
-			"10",
-			"5;10;15;20"
+			module: $this->moduleName,
+			name: "num_news_shown",
+			description: "Maximum number of news items shown",
+			mode: "edit",
+			type: "number",
+			value: "10",
+			options: "5;10;15;20"
 		);
 		$this->settingManager->add(
-			$this->moduleName,
-			"news_announcement_layout",
-			"Layout of the news announcement",
-			"edit",
-			"options",
-			"1",
-			"Last date;Latest news",
-			"1;2"
+			module: $this->moduleName,
+			name: "news_announcement_layout",
+			description: "Layout of the news announcement",
+			mode: "edit",
+			type: "options",
+			value: "1",
+			options: "Last date;Latest news",
+			intoptions: "1;2"
 		);
 		$this->settingManager->add(
-			$this->moduleName,
-			"news_confirmed_for_all_alts",
-			"Confirmed news count for all alts",
-			"edit",
-			"options",
-			"1",
-			"true;false",
-			"1;0"
+			module: $this->moduleName,
+			name: "news_confirmed_for_all_alts",
+			description: "Confirmed news count for all alts",
+			mode: "edit",
+			type: "options",
+			value: "1",
+			options: "true;false",
+			intoptions: "1;0"
 		);
 	}
 
