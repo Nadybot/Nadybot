@@ -96,12 +96,12 @@ class DiscordRelayController {
 	#[NCA\Setup]
 	public function setup(): void {
 		$this->settingManager->add(
-			$this->moduleName,
-			"discord_relay_mention_rank",
-			"Minimum ranks allowed to use @here and @everyone",
-			"edit",
-			"rank",
-			"mod"
+			module: $this->moduleName,
+			name: "discord_relay_mention_rank",
+			description: "Minimum ranks allowed to use @here and @everyone",
+			mode: "edit",
+			type: "rank",
+			value: "mod"
 		);
 	}
 

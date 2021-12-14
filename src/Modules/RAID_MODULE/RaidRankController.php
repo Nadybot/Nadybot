@@ -93,97 +93,97 @@ class RaidRankController {
 	public function setup(): void {
 		/**
 		$this->settingManager->add(
-			$this->moduleName,
-			'name_raid_level_1',
-			'Name of the raid points rank 1',
-			'edit',
-			'text',
-			'Experienced Raider'
+			module: $this->moduleName,
+			name: 'name_raid_level_1',
+			description: 'Name of the raid points rank 1',
+			mode: 'edit',
+			type: 'text',
+			value: 'Experienced Raider'
 		);
 		$this->settingManager->add(
-			$this->moduleName,
-			'name_raid_level_2',
-			'Name of the raid points rank 2',
-			'edit',
-			'text',
-			'Veteran Raider'
+			module: $this->moduleName,
+			name: 'name_raid_level_2',
+			description: 'Name of the raid points rank 2',
+			mode: 'edit',
+			type: 'text',
+			value: 'Veteran Raider'
 		);
 		$this->settingManager->add(
-			$this->moduleName,
-			'name_raid_level_3',
-			'Name of the raid points rank 3',
-			'edit',
-			'text',
-			'Elite Raider'
+			module: $this->moduleName,
+			name: 'name_raid_level_3',
+			description: 'Name of the raid points rank 3',
+			mode: 'edit',
+			type: 'text',
+			value: 'Elite Raider'
 		);
 		*/
 
 		$this->settingManager->add(
-			$this->moduleName,
-			'raid_rank_promotion_distance',
-			'Number of raid ranks below your own you can manage',
-			'edit',
-			'number',
-			'1'
+			module: $this->moduleName,
+			name: 'raid_rank_promotion_distance',
+			description: 'Number of raid ranks below your own you can manage',
+			mode: 'edit',
+			type: 'number',
+			value: '1'
 		);
 		$this->settingManager->add(
-			$this->moduleName,
-			'name_raid_leader_1',
-			'Name of the raid leader rank 1',
-			'edit',
-			'text',
-			'Apprentice Leader'
+			module: $this->moduleName,
+			name: 'name_raid_leader_1',
+			description: 'Name of the raid leader rank 1',
+			mode: 'edit',
+			type: 'text',
+			value: 'Apprentice Leader'
 		);
 		$this->settingManager->add(
-			$this->moduleName,
-			'name_raid_leader_2',
-			'Name of the raid leader rank 2',
-			'edit',
-			'text',
-			'Leader'
+			module: $this->moduleName,
+			name: 'name_raid_leader_2',
+			description: 'Name of the raid leader rank 2',
+			mode: 'edit',
+			type: 'text',
+			value: 'Leader'
 		);
 		$this->settingManager->add(
-			$this->moduleName,
-			'name_raid_leader_3',
-			'Name of the raid leader rank 3',
-			'edit',
-			'text',
-			'Veteran Leader'
+			module: $this->moduleName,
+			name: 'name_raid_leader_3',
+			description: 'Name of the raid leader rank 3',
+			mode: 'edit',
+			type: 'text',
+			value: 'Veteran Leader'
 		);
 
 		$this->settingManager->add(
-			$this->moduleName,
-			'name_raid_admin_1',
-			'Name of the raid admin rank 1',
-			'edit',
-			'text',
-			'Apprentice Raid Admin'
+			module: $this->moduleName,
+			name: 'name_raid_admin_1',
+			description: 'Name of the raid admin rank 1',
+			mode: 'edit',
+			type: 'text',
+			value: 'Apprentice Raid Admin'
 		);
 		$this->settingManager->add(
-			$this->moduleName,
-			'name_raid_admin_2',
-			'Name of the raid admin rank 2',
-			'edit',
-			'text',
-			'Raid Admin'
+			module: $this->moduleName,
+			name: 'name_raid_admin_2',
+			description: 'Name of the raid admin rank 2',
+			mode: 'edit',
+			type: 'text',
+			value: 'Raid Admin'
 		);
 		$this->settingManager->add(
-			$this->moduleName,
-			'name_raid_admin_3',
-			'Name of the raid admin rank 3',
-			'edit',
-			'text',
-			'Veteran Raid Admin'
+			module: $this->moduleName,
+			name: 'name_raid_admin_3',
+			description: 'Name of the raid admin rank 3',
+			mode: 'edit',
+			type: 'text',
+			value: 'Veteran Raid Admin'
 		);
 		$this->settingManager->add(
-			$this->moduleName,
-			'raid_duration_recently',
-			'Duration considered "recent" in raid stats for leaders command',
-			'edit',
-			'options',
-			'2592000',
-			'Off;1 Month;3 Months;6 Months;1 Year',
-			'0;2592000;7776000;15552000;31536000'
+			module: $this->moduleName,
+			name: 'raid_duration_recently',
+			description: 'Duration considered "recent" in raid stats for leaders command',
+			mode: 'edit',
+			type: 'options',
+			value: '2592000',
+			options: 'Off;1 Month;3 Months;6 Months;1 Year',
+			intoptions: '0;2592000;7776000;15552000;31536000'
 		);
 		$this->commandAlias->register($this->moduleName, "raidadmin", "raid admin");
 		$this->commandAlias->register($this->moduleName, "raidleader", "raid leader");

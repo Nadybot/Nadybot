@@ -91,13 +91,13 @@ class EventsController {
 		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations");
 
 		$this->settingManager->add(
-			$this->moduleName,
-			"num_events_shown",
-			"Maximum number of events shown",
-			"edit",
-			"number",
-			"5",
-			"5;10;15;20"
+			module: $this->moduleName,
+			name: "num_events_shown",
+			description: "Maximum number of events shown",
+			mode: "edit",
+			type: "number",
+			value: "5",
+			options: "5;10;15;20"
 		);
 	}
 

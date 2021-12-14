@@ -190,76 +190,76 @@ class PrivateChannelController {
 		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations");
 
 		$this->settingManager->add(
-			$this->moduleName,
-			"add_member_on_join",
-			"Automatically add player as member when they join",
-			"edit",
-			"options",
-			"0",
-			"true;false",
-			"1;0"
+			module: $this->moduleName,
+			name: "add_member_on_join",
+			description: "Automatically add player as member when they join",
+			mode: "edit",
+			type: "options",
+			value: "0",
+			options: "true;false",
+			intoptions: "1;0"
 		);
 		$this->settingManager->add(
-			$this->moduleName,
-			"autoinvite_default",
-			"Enable autoinvite for new members by default",
-			"edit",
-			"options",
-			"1",
-			"true;false",
-			"1;0"
+			module: $this->moduleName,
+			name: "autoinvite_default",
+			description: "Enable autoinvite for new members by default",
+			mode: "edit",
+			type: "options",
+			value: "1",
+			options: "true;false",
+			intoptions: "1;0"
 		);
 		$this->settingManager->add(
-			$this->moduleName,
-			"only_allow_faction",
-			"Faction allowed on the bot - autoban everything else",
-			"edit",
-			"options",
-			"all",
-			"all;Omni;Neutral;Clan;not Omni;not Neutral;not Clan"
+			module: $this->moduleName,
+			name: "only_allow_faction",
+			description: "Faction allowed on the bot - autoban everything else",
+			mode: "edit",
+			type: "options",
+			value: "all",
+			options: "all;Omni;Neutral;Clan;not Omni;not Neutral;not Clan"
 		);
 		$this->settingManager->add(
-			$this->moduleName,
-			"priv_suppress_alt_list",
-			"Do not show the altlist on join, just the name of the main",
-			"edit",
-			"options",
-			"0",
-			"true;false",
-			"1;0"
+			module: $this->moduleName,
+			name: "priv_suppress_alt_list",
+			description: "Do not show the altlist on join, just the name of the main",
+			mode: "edit",
+			type: "options",
+			value: "0",
+			options: "true;false",
+			intoptions: "1;0"
 		);
 		$this->settingManager->add(
-			$this->moduleName,
-			"invite_banned_chars",
-			"Should the bot allow inviting banned characters?",
-			"edit",
-			"options",
-			"0",
-			"true;false",
-			"1;0"
+			module: $this->moduleName,
+			name: "invite_banned_chars",
+			description: "Should the bot allow inviting banned characters?",
+			mode: "edit",
+			type: "options",
+			value: "0",
+			options: "true;false",
+			intoptions: "1;0"
 		);
 		$this->settingManager->add(
-			$this->moduleName,
-			"welcome_msg_string",
-			"Message to send when welcoming new members",
-			"edit",
-			"text",
-			"<link>Welcome to <myname></link>!",
-			"<link>Welcome to <myname></link>!;Welcome to <myname>! Here is some <link>information to get you started</link>.",
-			"",
-			"mod",
-			"welcome_msg.txt"
+			module: $this->moduleName,
+			name: "welcome_msg_string",
+			description: "Message to send when welcoming new members",
+			mode: "edit",
+			type: "text",
+			value: "<link>Welcome to <myname></link>!",
+			options: "<link>Welcome to <myname></link>!;Welcome to <myname>! Here is some <link>information to get you started</link>.",
+			intoptions: "",
+			accessLevel: "mod",
+			help: "welcome_msg.txt"
 		);
 		$this->settingManager->add(
-			$this->moduleName,
-			"lock_minrank",
-			"Minimum rank allowed to join private channel during a lock",
-			"edit",
-			"rank",
-			"superadmin",
-			"",
-			"",
-			"superadmin"
+			module: $this->moduleName,
+			name: "lock_minrank",
+			description: "Minimum rank allowed to join private channel during a lock",
+			mode: "edit",
+			type: "rank",
+			value: "superadmin",
+			options: "",
+			intoptions: "",
+			accessLevel: "superadmin"
 		);
 		$this->commandAlias->register(
 			$this->moduleName,

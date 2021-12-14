@@ -66,28 +66,28 @@ class ChatTopicController {
 	#[NCA\Setup]
 	public function setup(): void {
 		$this->settingManager->add(
-			$this->moduleName,
-			"topic",
-			"Topic for Private Channel",
-			"noedit",
-			"text",
-			""
+			module: $this->moduleName,
+			name: "topic",
+			description: "Topic for Private Channel",
+			mode: "noedit",
+			type: "text",
+			value: ""
 		);
 		$this->settingManager->add(
-			$this->moduleName,
-			"topic_setby",
-			"Character who set the topic",
-			"noedit",
-			"text",
-			""
+			module: $this->moduleName,
+			name: "topic_setby",
+			description: "Character who set the topic",
+			mode: "noedit",
+			type: "text",
+			value: ""
 		);
 		$this->settingManager->add(
-			$this->moduleName,
-			"topic_time",
-			"Time the topic was set",
-			"noedit",
-			"number",
-			"0"
+			module: $this->moduleName,
+			name: "topic_time",
+			description: "Time the topic was set",
+			mode: "noedit",
+			type: "number",
+			value: "0"
 		);
 	}
 	/**

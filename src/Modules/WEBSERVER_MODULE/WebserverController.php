@@ -119,103 +119,103 @@ class WebserverController {
 	#[NCA\Setup]
 	public function setup(): void {
 		$this->settingManager->add(
-			$this->moduleName,
-			'webserver',
-			'Enable webserver',
-			'edit',
-			'options',
-			'1',
-			'true;false',
-			'1;0',
-			'superadmin'
+			module: $this->moduleName,
+			name: 'webserver',
+			description: 'Enable webserver',
+			mode: 'edit',
+			type: 'options',
+			value: '1',
+			options: 'true;false',
+			intoptions: '1;0',
+			accessLevel: 'superadmin'
 		);
 
 /*
 		$this->settingManager->add(
-			$this->moduleName,
-			'webserver_certificate',
-			'Path to the SSL/TLS certificate',
-			'edit',
-			'text',
-			'',
-			'',
-			'',
-			'superadmin'
+			module: $this->moduleName,
+			name: 'webserver_certificate',
+			description: 'Path to the SSL/TLS certificate',
+			mode: 'edit',
+			type: 'text',
+			value: '',
+			options: '',
+			intoptions: '',
+			accessLevel: 'superadmin'
 		);
 */
 
 		$this->settingManager->add(
-			$this->moduleName,
-			'webserver_port',
-			'On which port does the HTTP server listen',
-			'edit',
-			'number',
-			'8080',
-			'',
-			'',
-			'superadmin'
+			module: $this->moduleName,
+			name: 'webserver_port',
+			description: 'On which port does the HTTP server listen',
+			mode: 'edit',
+			type: 'number',
+			value: '8080',
+			options: '',
+			intoptions: '',
+			accessLevel: 'superadmin'
 		);
 		$this->settingManager->add(
-			$this->moduleName,
-			'webserver_addr',
-			'Where to listen for HTTP requests',
-			'edit',
-			'text',
-			'127.0.0.1',
-			'127.0.0.1;0.0.0.0',
-			'',
-			'superadmin'
+			module: $this->moduleName,
+			name: 'webserver_addr',
+			description: 'Where to listen for HTTP requests',
+			mode: 'edit',
+			type: 'text',
+			value: '127.0.0.1',
+			options: '127.0.0.1;0.0.0.0',
+			intoptions: '',
+			accessLevel: 'superadmin'
 		);
 
 /*
 		$this->settingManager->add(
-			$this->moduleName,
-			'webserver_tls',
-			'Use SSL/TLS for the webserver',
-			'edit',
-			'options',
-			'0',
-			'true;false',
-			'1;0',
-			'superadmin'
+			module: $this->moduleName,
+			name: 'webserver_tls',
+			description: 'Use SSL/TLS for the webserver',
+			mode: 'edit',
+			type: 'options',
+			value: '0',
+			options: 'true;false',
+			intoptions: '1;0',
+			accessLevel: 'superadmin'
 		);
 */
 
 		$this->settingManager->add(
-			$this->moduleName,
-			'webserver_auth',
-			'How to authenticate against the webserver',
-			'edit',
-			'options',
-			static::AUTH_BASIC,
-			join(";", [static::AUTH_BASIC, static::AUTH_AOAUTH]),
-			"",
-			"superadmin"
+			module: $this->moduleName,
+			name: 'webserver_auth',
+			description: 'How to authenticate against the webserver',
+			mode: 'edit',
+			type: 'options',
+			value: static::AUTH_BASIC,
+			options: join(";", [static::AUTH_BASIC, static::AUTH_AOAUTH]),
+			intoptions: "",
+			accessLevel: "superadmin"
 		);
 
 		$this->settingManager->add(
-			$this->moduleName,
-			'webserver_base_url',
-			'Which is the base URL for the webserver? This is where aoauth redirects to',
-			'edit',
-			'text',
-			'default',
-			'default',
-			'',
-			'admin',
-			'webserver_base_url.txt'
+			module: $this->moduleName,
+			name: 'webserver_base_url',
+			description: 'Which is the base URL for the webserver? This is where aoauth redirects to',
+			mode: 'edit',
+			type: 'text',
+			value: 'default',
+			options: 'default',
+			intoptions: '',
+			accessLevel: 'admin',
+			help: 'webserver_base_url.txt'
 		);
 
 		$this->settingManager->add(
-			$this->moduleName,
-			'webserver_aoauth_url',
-			'If you are using aoauth to authenticate: URL of the server',
-			'edit',
-			'text',
-			'https://aoauth.org',
-			'https://aoauth.org',
-			"",
-			"superadmin"
+			module: $this->moduleName,
+			name: 'webserver_aoauth_url',
+			description: 'If you are using aoauth to authenticate: URL of the server',
+			mode: 'edit',
+			type: 'text',
+			value: 'https://aoauth.org',
+			options: 'https://aoauth.org',
+			intoptions: "",
+			accessLevel: "superadmin"
 		);
 
 		$this->scanRouteAttributes();

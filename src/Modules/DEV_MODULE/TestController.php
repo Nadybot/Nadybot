@@ -216,24 +216,24 @@ class TestController {
 		$this->path = __DIR__ . "/tests/";
 
 		$this->settingManager->add(
-			$this->moduleName,
-			"show_test_commands",
-			"Show test commands as they are executed",
-			"edit",
-			"options",
-			"0",
-			"true;false",
-			"1;0"
+			module: $this->moduleName,
+			name: "show_test_commands",
+			description: "Show test commands as they are executed",
+			mode: "edit",
+			type: "options",
+			value: "0",
+			options: "true;false",
+			intoptions: "1;0"
 		);
 		$this->settingManager->add(
-			$this->moduleName,
-			"show_test_results",
-			"Show test results from test commands",
-			"edit",
-			"options",
-			"0",
-			"true;false",
-			"1;0"
+			module: $this->moduleName,
+			name: "show_test_results",
+			description: "Show test results from test commands",
+			mode: "edit",
+			type: "options",
+			value: "0",
+			options: "true;false",
+			intoptions: "1;0"
 		);
 	}
 

@@ -62,33 +62,33 @@ class CountdownController {
 	#[NCA\Setup]
 	public function setup(): void {
 		$this->settingManager->add(
-			$this->moduleName,
-			self::CONF_CD_TELL_LOCATION,
-			'Where to display countdowns received via tells',
-			'edit',
-			"options",
-			"1",
-			"Priv;Guild;Priv+Guild",
-			"1;2;3"
+			module: $this->moduleName,
+			name: self::CONF_CD_TELL_LOCATION,
+			description: 'Where to display countdowns received via tells',
+			mode: 'edit',
+			type: "options",
+			value: "1",
+			options: "Priv;Guild;Priv+Guild",
+			intoptions: "1;2;3"
 		);
 		$this->settingManager->add(
-			$this->moduleName,
-			self::CONF_CD_DEFAULT_TEXT,
-			'Default text to say at the end of a countdown',
-			'edit',
-			"text",
-			"GO",
+			module: $this->moduleName,
+			name: self::CONF_CD_DEFAULT_TEXT,
+			description: 'Default text to say at the end of a countdown',
+			mode: 'edit',
+			type: "text",
+			value: "GO",
 		);
 		$this->settingManager->add(
-			$this->moduleName,
-			self::CONF_CD_COOLDOWN,
-			"How long is the cooldown between starting 2 countdowns",
-			"edit",
-			"time",
-			"30s",
-			"6s;15s;30s;1m;5m",
-			'',
-			"mod"
+			module: $this->moduleName,
+			name: self::CONF_CD_COOLDOWN,
+			description: "How long is the cooldown between starting 2 countdowns",
+			mode: "edit",
+			type: "time",
+			value: "30s",
+			options: "6s;15s;30s;1m;5m",
+			intoptions: '',
+			accessLevel: "mod"
 		);
 	}
 
