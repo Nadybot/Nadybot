@@ -2,11 +2,11 @@
 
 namespace Nadybot\Core;
 
-/**
- * @Instance("setting")
- */
+use Nadybot\Core\Attributes as NCA;
+
+#[NCA\Instance("setting")]
 class SettingObject {
-	/** @Inject */
+	#[NCA\Inject]
 	public SettingManager $settingManager;
 
 	public function __set(string $name, $value): void {

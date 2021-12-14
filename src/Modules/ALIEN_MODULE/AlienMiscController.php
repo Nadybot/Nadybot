@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\ALIEN_MODULE;
 
+use Nadybot\Core\Attributes as NCA;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	CmdContext,
@@ -20,36 +21,36 @@ use Nadybot\Modules\ITEMS_MODULE\ItemsController;
  * @author Wolfbiter (RK1)
  * @author Gatester (RK2)
  * @author Marebone (RK2)
- *
- * @Instance
- *
  * Commands this controller contains:
- *	@DefineCommand(
- *		command     = 'leprocs',
- *		accessLevel = 'all',
- *		description = "Shows each profession's LE procs",
- *		help        = 'leprocs.txt',
- *		alias       = 'leproc'
- *	)
- *	@DefineCommand(
- *		command     = 'ofabarmor',
- *		accessLevel = 'all',
- *		description = 'Shows ofab armors available to a given profession and their VP cost',
- *		help        = 'ofabarmor.txt'
- *	)
- *	@DefineCommand(
- *		command     = 'ofabweapons',
- *		accessLevel = 'all',
- *		description = 'Shows Ofab weapons, their marks, and VP cost',
- *		help        = 'ofabweapons.txt'
- *	)
- *	@DefineCommand(
- *		command     = 'aigen',
- *		accessLevel = 'all',
- *		description = 'Shows info about Alien City Generals',
- *		help        = 'aigen.txt'
- *	)
  */
+#[
+	NCA\Instance,
+	NCA\DefineCommand(
+		command: "leprocs",
+		accessLevel: "all",
+		description: "Shows each profession's LE procs",
+		help: "leprocs.txt",
+		alias: "leproc"
+	),
+	NCA\DefineCommand(
+		command: "ofabarmor",
+		accessLevel: "all",
+		description: "Shows ofab armors available to a given profession and their VP cost",
+		help: "ofabarmor.txt"
+	),
+	NCA\DefineCommand(
+		command: "ofabweapons",
+		accessLevel: "all",
+		description: "Shows Ofab weapons, their marks, and VP cost",
+		help: "ofabweapons.txt"
+	),
+	NCA\DefineCommand(
+		command: "aigen",
+		accessLevel: "all",
+		description: "Shows info about Alien City Generals",
+		help: "aigen.txt"
+	)
+]
 class AlienMiscController {
 	/**
 	 * Name of the module.
@@ -57,24 +58,22 @@ class AlienMiscController {
 	 */
 	public string $moduleName;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public DB $db;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Text $text;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Util $util;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public ItemsController $itemsController;
 
-	/** @Logger */
+	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
-	/**
-	 * @Setup
-	 */
+	#[NCA\Setup]
 	public function setup(): void {
 		// load database tables from .sql-files
 		$this->db->loadMigrations($this->moduleName, __DIR__ . '/Migrations/Misc');
@@ -88,9 +87,8 @@ class AlienMiscController {
 
 	/**
 	 * This command handler shows menu of each profession's LE procs.
-	 *
-	 * @HandlesCommand("leprocs")
 	 */
+	#[NCA\HandlesCommand("leprocs")]
 	public function leprocsCommand(CmdContext $context): void {
 		$blob = "<header2>Choose a profession<end>\n";
 		$blob = $this->db->table("leprocs")
@@ -112,9 +110,8 @@ class AlienMiscController {
 
 	/**
 	 * This command handler shows the LE procs for a particular profession.
-	 *
-	 * @HandlesCommand("leprocs")
 	 */
+	#[NCA\HandlesCommand("leprocs")]
 	public function leprocsInfoCommand(CmdContext $context, string $prof): void {
 		$profession = $this->util->getProfessionName($prof);
 		if (empty($profession)) {
@@ -157,9 +154,8 @@ class AlienMiscController {
 
 	/**
 	 * This command handler shows Ofab armors and VP cost.
-	 *
-	 * @HandlesCommand("ofabarmor")
 	 */
+	#[NCA\HandlesCommand("ofabarmor")]
 	public function ofabarmorCommand(CmdContext $context): void {
 		/** @var int[] */
 		$qls = $this->db->table("ofabarmorcost")
@@ -188,18 +184,16 @@ class AlienMiscController {
 
 	/**
 	 * This command handler shows list of ofab armors available to a given profession.
-	 *
-	 * @HandlesCommand("ofabarmor")
 	 */
+	#[NCA\HandlesCommand("ofabarmor")]
 	public function ofabarmorInfoCommand2(CmdContext $context, string $prof, int $ql): void {
 		$this->ofabarmorInfoCommand($context, $ql, $prof);
 	}
 
 	/**
 	 * This command handler shows list of ofab armors available to a given profession.
-	 *
-	 * @HandlesCommand("ofabarmor")
 	 */
+	#[NCA\HandlesCommand("ofabarmor")]
 	public function ofabarmorInfoCommand(CmdContext $context, ?int $ql, string $prof): void {
 		$ql ??= 300;
 
@@ -280,9 +274,8 @@ class AlienMiscController {
 
 	/**
 	 * This command handler shows Ofab weapons and VP cost.
-	 *
-	 * @HandlesCommand("ofabweapons")
 	 */
+	#[NCA\HandlesCommand("ofabweapons")]
 	public function ofabweaponsCommand(CmdContext $context): void {
 		/** @var int[] */
 		$qls = $this->db->table("ofabweaponscost")
@@ -313,9 +306,8 @@ class AlienMiscController {
 
 	/**
 	 * This command handler shows all six marks of the Ofab weapon.
-	 *
-	 * @HandlesCommand("ofabweapons")
 	 */
+	#[NCA\HandlesCommand("ofabweapons")]
 	public function ofabweaponsInfoCommand(CmdContext $context, PWord $weapon, ?int $searchQL): void {
 		$weapon = ucfirst($weapon());
 		$searchQL ??= 300;
@@ -373,11 +365,9 @@ class AlienMiscController {
 
 	/**
 	 * This command handler shows info about Alien City Generals.
-	 *
-	 * @HandlesCommand("aigen")
-	 * @Mask $general (ankari|ilari|rimah|jaax|xoch|cha)
 	 */
-	public function aigenCommand(CmdContext $context, string $general): void {
+	#[NCA\HandlesCommand("aigen")]
+	public function aigenCommand(CmdContext $context, #[NCA\Regexp("ankari|ilari|rimah|jaax|xoch|cha")] string $general): void {
 		$gen = ucfirst(strtolower($general));
 
 		$blob = '';

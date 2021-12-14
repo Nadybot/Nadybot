@@ -2,14 +2,15 @@
 
 namespace Nadybot\Core;
 
+use Nadybot\Core\Attributes as NCA;
 use Exception;
 
 /**
  * Class to represent a time setting for NadyBot
- * @SettingHandler("time")
  */
+#[NCA\SettingHandler("time")]
 class TimeSettingHandler extends SettingHandler {
-	/** @Inject */
+	#[NCA\Inject]
 	public Util $util;
 
 	/**

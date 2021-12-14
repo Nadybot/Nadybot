@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\TOWER_MODULE;
 
+use Nadybot\Core\Attributes as NCA;
 use Closure;
 use DateTime;
 use Exception;
@@ -46,77 +47,84 @@ use Nadybot\Modules\{
 };
 
 /**
- * @Instance
- *
  * Commands this controller contains:
- *	@DefineCommand(
- *		command     = 'towerstats',
- *		accessLevel = 'member',
- *		description = 'Show how many towers each faction has lost',
- *		help        = 'towerstats.txt'
- *	)
- *	@DefineCommand(
- *		command     = 'attacks',
- *      alias       = 'battles',
- *		accessLevel = 'member',
- *		description = 'Show the last Tower Attack messages',
- *		help        = 'attacks.txt'
- *	)
- *	@DefineCommand(
- *		command     = 'lc',
- *		accessLevel = 'member',
- *		description = 'Show status of towers',
- *		help        = 'lc.txt'
- *	)
- *	@DefineCommand(
- *		command     = 'sites',
- *		accessLevel = 'member',
- *		description = 'Show sites of an org',
- *		help        = 'sites.txt'
- *	)
-*	@DefineCommand(
- *		command     = 'penalty',
- *		accessLevel = 'member',
- *		description = 'Show orgs in penalty',
- *		help        = 'penalty.txt'
- *	)
- *	@DefineCommand(
- *		command     = 'remscout',
- *		accessLevel = 'guild',
- *		description = 'Remove tower info from watch list',
- *		help        = 'scout.txt'
- *	)
- *	@DefineCommand(
- *		command     = 'scout',
- *		accessLevel = 'guild',
- *		description = 'Add tower info to watch list',
- *		help        = 'scout.txt'
- *	)
- *	@DefineCommand(
- *		command     = 'needsscout',
- *		alias       = 'needscout',
- *		accessLevel = 'guild',
- *		description = 'Check which tower sites need scouting',
- *		help        = 'scout.txt'
- *	)
- *	@DefineCommand(
- *		command     = 'hot',
- *		accessLevel = 'member',
- *		description = 'Check which sites are or will be attackable soon',
- *		help        = 'hot.txt'
- *	)
- *	@DefineCommand(
- *		command     = 'victory',
- *		accessLevel = 'member',
- *		description = 'Show the last Tower Battle results',
- *		help        = 'victory.txt',
- *		alias       = 'victories'
- *	)
- *  @ProvidesEvent("tower(attack)")
- *  @ProvidesEvent("tower(win)")
- *  @ProvidesEvent(value="sync(scout)", desc="Triggered whenever someone manually scouts a site")
- *  @ProvidesEvent(value="sync(remscout)", desc="Triggered when marking a site as in need of scouting")
  */
+#[
+	NCA\Instance,
+	NCA\DefineCommand(
+		command: "towerstats",
+		accessLevel: "member",
+		description: "Show how many towers each faction has lost",
+		help: "towerstats.txt"
+	),
+	NCA\DefineCommand(
+		command: "attacks",
+		accessLevel: "member",
+		description: "Show the last Tower Attack messages",
+		help: "attacks.txt",
+		alias: "battles"
+	),
+	NCA\DefineCommand(
+		command: "lc",
+		accessLevel: "member",
+		description: "Show status of towers",
+		help: "lc.txt"
+	),
+	NCA\DefineCommand(
+		command: "sites",
+		accessLevel: "member",
+		description: "Show sites of an org",
+		help: "sites.txt"
+	),
+	NCA\DefineCommand(
+		command: "penalty",
+		accessLevel: "member",
+		description: "Show orgs in penalty",
+		help: "penalty.txt"
+	),
+	NCA\DefineCommand(
+		command: "remscout",
+		accessLevel: "guild",
+		description: "Remove tower info from watch list",
+		help: "scout.txt"
+	),
+	NCA\DefineCommand(
+		command: "scout",
+		accessLevel: "guild",
+		description: "Add tower info to watch list",
+		help: "scout.txt"
+	),
+	NCA\DefineCommand(
+		command: "needsscout",
+		accessLevel: "guild",
+		description: "Check which tower sites need scouting",
+		help: "scout.txt",
+		alias: "needscout"
+	),
+	NCA\DefineCommand(
+		command: "hot",
+		accessLevel: "member",
+		description: "Check which sites are or will be attackable soon",
+		help: "hot.txt"
+	),
+	NCA\DefineCommand(
+		command: "victory",
+		accessLevel: "member",
+		description: "Show the last Tower Battle results",
+		help: "victory.txt",
+		alias: "victories"
+	),
+	NCA\ProvidesEvent("tower(attack)"),
+	NCA\ProvidesEvent("tower(win)"),
+	NCA\ProvidesEvent(
+		event: "sync(scout)",
+		desc: "Triggered whenever someone manually scouts a site",
+	),
+	NCA\ProvidesEvent(
+		event: "sync(remscout)",
+		desc: "Triggered when marking a site as in need of scouting",
+	)
+]
 class TowerController {
 
 	public const DB_HOT = "tower_site_hot_<myname>";
@@ -135,52 +143,52 @@ class TowerController {
 	 */
 	public string $moduleName;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public PlayfieldController $playfieldController;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public PlayerManager $playerManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public MessageHub $messageHub;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Text $text;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public SettingManager $settingManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Nadybot $chatBot;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public EventManager $eventManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public TowerApiController $towerApiController;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Http $http;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public DB $db;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Util $util;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public LevelController $levelController;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public FindOrgController $findOrgController;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public OrglistController $orglistController;
 
-	/** @Logger */
+	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public TimerController $timerController;
 
 	/** @var AttackListener[] */
@@ -201,9 +209,9 @@ class TowerController {
 	}
 
 	/**
-	 * @Setup
 	 * This handler is called on bot startup.
 	 */
+	#[NCA\Setup]
 	public function setup(): void {
 		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations");
 		$this->db->loadCSVFile($this->moduleName, __DIR__ . '/tower_site.csv');
@@ -284,10 +292,10 @@ class TowerController {
 			->registerMessageEmitter($victory);
 	}
 
-	/**
-	 * @Event("timer(24h)")
-	 * @Description("Clean list of outdated hot sites")
-	 */
+	#[NCA\Event(
+		name: "timer(24h)",
+		description: "Clean list of outdated hot sites"
+	)]
 	public function cleanHotSites(): void {
 		$this->db->table(static::DB_HOT)
 			->where("close_time_override", "<", time() - 3600)
@@ -306,9 +314,8 @@ class TowerController {
 
 	/**
 	 * This command handler shows the last tower attack messages.
-	 *
-	 * @HandlesCommand("attacks")
 	 */
+	#[NCA\HandlesCommand("attacks")]
 	public function attacksCommand(CmdContext $context, ?int $page): void {
 		$this->attacksCommandHandler($page??1, null, '', $context);
 	}
@@ -316,9 +323,8 @@ class TowerController {
 	/**
 	 * This command handler shows the last tower attack messages by site number
 	 * and optionally by page.
-	 *
-	 * @HandlesCommand("attacks")
 	 */
+	#[NCA\HandlesCommand("attacks")]
 	public function attacks2Command(CmdContext $context, PTowerSite $site, ?int $page): void {
 		$playfield = $this->playfieldController->getPlayfieldByName($site->pf);
 		if ($playfield === null) {
@@ -345,11 +351,9 @@ class TowerController {
 	/**
 	 * This command handler shows the last tower attack messages where given
 	 * org has been an attacker or defender.
-	 *
-	 * @HandlesCommand("attacks")
-	 * @Mask $action org
 	 */
-	public function attacksOrgCommand(CmdContext $context, string $action, PNonGreedy $orgName, ?int $page): void {
+	#[NCA\HandlesCommand("attacks")]
+	public function attacksOrgCommand(CmdContext $context, #[NCA\Str("org")] string $action, PNonGreedy $orgName, ?int $page): void {
 		$cmd = "org $orgName ";
 		$search = function (QueryBuilder $query) use ($orgName): void {
 			$query->whereIlike("a.att_guild_name", $orgName())
@@ -361,11 +365,9 @@ class TowerController {
 	/**
 	 * This command handler shows the last tower attack messages where given
 	 * player has been as attacker.
-	 *
-	 * @HandlesCommand("attacks")
-	 * @Mask $action player
 	 */
-	public function attacksPlayerCommand(CmdContext $context, string $action, PCharacter $player, ?int $page): void {
+	#[NCA\HandlesCommand("attacks")]
+	public function attacksPlayerCommand(CmdContext $context, #[NCA\Str("player")] string $action, PCharacter $player, ?int $page): void {
 		$cmd = "player {$player} ";
 		$search = function (QueryBuilder $query) use ($player): void {
 			$query->whereIlike("a.att_player", $player());
@@ -375,9 +377,8 @@ class TowerController {
 
 	/**
 	 * This command handler shows all unplanted towerfields
-	 *
-	 * @HandlesCommand("sites")
 	 */
+	#[NCA\HandlesCommand("sites")]
 	public function unplantedSitesCommand(CmdContext $context): void {
 		if ($this->towerApiController->isActive()) {
 			$params = ["enabled" => "1", "planted" => "false"];
@@ -431,9 +432,8 @@ class TowerController {
 
 	/**
 	 * This command handler shows all towerfields of a single org
-	 *
-	 * @HandlesCommand("sites")
 	 */
+	#[NCA\HandlesCommand("sites")]
 	public function sitesByNameCommand(CmdContext $context, string $search): void {
 		if (!$this->findOrgController->isReady()) {
 			$this->findOrgController->sendNotReadyError($context);
@@ -531,9 +531,8 @@ class TowerController {
 
 	/**
 	 * This command handler shows status of towers.
-	 *
-	 * @HandlesCommand("lc")
 	 */
+	#[NCA\HandlesCommand("lc")]
 	public function lcCommand(CmdContext $context): void {
 		/** @var Collection<Playfield> */
 		$playfields = $this->db->table("tower_site AS t")
@@ -553,9 +552,8 @@ class TowerController {
 
 	/**
 	 * This command handler shows status of all tower sites in a zone.
-	 *
-	 * @HandlesCommand("lc")
 	 */
+	#[NCA\HandlesCommand("lc")]
 	public function lc2Command(CmdContext $context, PPlayfield $pf): void {
 		$playfieldName = $pf();
 		$playfield = $this->playfieldController->getPlayfieldByName($playfieldName);
@@ -694,9 +692,8 @@ class TowerController {
 
 	/**
 	 * This command handler shows status of towers.
-	 *
-	 * @HandlesCommand("lc")
 	 */
+	#[NCA\HandlesCommand("lc")]
 	public function lc3Command(CmdContext $context, PTowerSite $site): void {
 		$playfieldName = $site->pf;
 		$playfield = $this->playfieldController->getPlayfieldByName($playfieldName);
@@ -790,9 +787,7 @@ class TowerController {
 		$sendto->reply($msg);
 	}
 
-	/**
-	 * @HandlesCommand("penalty")
-	 */
+	#[NCA\HandlesCommand("penalty")]
 	public function penaltySitesApiCommand(CmdContext $context, ?string $orgName): void {
 		$sites = $this->getScoutPlusQuery()
 			->where("s.penalty_until", ">=", time())
@@ -853,9 +848,7 @@ class TowerController {
 		);
 	}
 
-	/**
-	 * @HandlesCommand("needsscout")
-	 */
+	#[NCA\HandlesCommand("needsscout")]
 	public function needsScoutCommand(CmdContext $context, ?PPlayfield $playfield): void {
 		$query = $this->db->table("tower_site AS t")
 			->leftJoin("scout_info AS s", function (JoinClause $join) {
@@ -922,9 +915,7 @@ class TowerController {
 			"<tab>{$siteLinks}";
 	}
 
-	/**
-	 * @HandlesCommand("hot")
-	 */
+	#[NCA\HandlesCommand("hot")]
 	public function hotSitesCommand(CmdContext $context, ?string $search): void {
 		$search ??= "";
 		if (substr($search, 0, 1) !== " ") {
@@ -1069,7 +1060,6 @@ class TowerController {
 
 	/**
 	 * Convert the locally scouted data into an API result
-	 *
 	 * @param \Illuminate\Support\Collection<ScoutInfoPlus> $scoutInfos
 	 * @return ApiResult
 	 */
@@ -1256,9 +1246,7 @@ class TowerController {
 		return $blob;
 	}
 
-	/**
-	 * @HandlesCommand("towerstats")
-	 */
+	#[NCA\HandlesCommand("towerstats")]
 	public function towerStatsCommand(CmdContext $context, ?PDuration $time): void {
 		$time = isset($time) ? $time->toSecs() : 86400;
 		if ($time < 1) {
@@ -1308,18 +1296,16 @@ class TowerController {
 
 	/**
 	 * This command handler shows the last tower battle results.
-	 *
-	 * @HandlesCommand("victory")
 	 */
+	#[NCA\HandlesCommand("victory")]
 	public function victoryCommand(CmdContext $context, ?int $page): void {
 		$this->victoryCommandHandler($page??1, null, "", $context);
 	}
 
 	/**
 	 * This command handler shows the last tower battle results.
-	 *
-	 * @HandlesCommand("victory")
 	 */
+	#[NCA\HandlesCommand("victory")]
 	public function victory2Command(CmdContext $context, PTowerSite $site, ?int $page): void {
 		$playfield = $this->playfieldController->getPlayfieldByName($site->pf);
 		if ($playfield === null) {
@@ -1345,11 +1331,9 @@ class TowerController {
 
 	/**
 	 * This command handler shows the last tower battle results.
-	 *
-	 * @HandlesCommand("victory")
-	 * @Mask $action org
 	 */
-	public function victoryOrgCommand(CmdContext $context, string $action, PNonGreedy $orgName, ?int $page): void {
+	#[NCA\HandlesCommand("victory")]
+	public function victoryOrgCommand(CmdContext $context, #[NCA\Str("org")] string $action, PNonGreedy $orgName, ?int $page): void {
 		$cmd = "org {$orgName} ";
 		$search = function (QueryBuilder $query) use ($orgName): void {
 			$query->whereIlike("v.win_guild_name", $orgName())
@@ -1360,11 +1344,9 @@ class TowerController {
 
 	/**
 	 * This command handler shows the last tower battle results.
-	 *
-	 * @HandlesCommand("victory")
-	 * @Mask $action player
 	 */
-	public function victoryPlayerCommand(CmdContext $context, string $action, PCharacter $player, ?int $page): void {
+	#[NCA\HandlesCommand("victory")]
+	public function victoryPlayerCommand(CmdContext $context, #[NCA\Str("player")] string $action, PCharacter $player, ?int $page): void {
 		$cmd = "player {$player} ";
 		$search = function (QueryBuilder $query) use ($player): void {
 			$query->whereIlike("a.att_player", $player());
@@ -1372,10 +1354,10 @@ class TowerController {
 		$this->victoryCommandHandler($page??1, $search, $cmd, $context);
 	}
 
-	/**
-	 * @Event("orgmsg")
-	 * @Description("Notify if org's towers are attacked")
-	 */
+	#[NCA\Event(
+		name: "orgmsg",
+		description: "Notify if org's towers are attacked"
+	)]
 	public function attackOwnOrgMessageEvent(AOChatEvent $eventObj): void {
 		if ($this->util->isValidSender($eventObj->sender)) {
 			return;
@@ -1444,10 +1426,11 @@ class TowerController {
 
 	/**
 	 * This event handler record attack messages.
-	 *
-	 * @Event("towers")
-	 * @Description("Record attack messages")
 	 */
+	#[NCA\Event(
+		name: "towers",
+		description: "Record attack messages"
+	)]
 	public function attackMessagesEvent(AOChatEvent $eventObj): void {
 		$attack = new Attack();
 		if (preg_match(
@@ -1679,10 +1662,11 @@ class TowerController {
 
 	/**
 	 * This event handler record victory messages.
-	 *
-	 * @Event("towers")
-	 * @Description("Record victory messages")
 	 */
+	#[NCA\Event(
+		name: "towers",
+		description: "Record victory messages"
+	)]
 	public function victoryMessagesEvent(AOChatEvent $eventObj): void {
 		if (preg_match("/^The (Clan|Neutral|Omni) organization (.+) attacked the (Clan|Neutral|Omni) (.+) at their base in (.+). The attackers won!!$/i", $eventObj->message, $arr)) {
 			$winnerFaction = $arr[1];
@@ -2060,20 +2044,20 @@ class TowerController {
 		return $this->db->insert("scout_info", $scoutInfo, null) > 0;
 	}
 
-	/**
-	 * @Event("sync(scout)")
-	 * @Description("Sync external scout information")
-	 */
+	#[NCA\Event(
+		name: "sync(scout)",
+		description: "Sync external scout information"
+	)]
 	public function processScoutSyncEvent(SyncScoutEvent $event): void {
 		if (!$event->isLocal()) {
 			$this->addScoutSite($event->toScoutInfo());
 		}
 	}
 
-	/**
-	 * @Event("sync(remscout)")
-	 * @Description("Sync external scout information")
-	 */
+	#[NCA\Event(
+		name: "sync(remscout)",
+		description: "Sync external scout information"
+	)]
 	public function processRemscoutSyncEvent(SyncRemscoutEvent $event): void {
 		if (!$event->isLocal()) {
 			$this->remScoutSite($event->playfield_id, $event->site_number);
@@ -2232,9 +2216,8 @@ class TowerController {
 
 	/**
 	 * This command handler removes tower info to watch list.
-	 *
-	 * @HandlesCommand("remscout")
 	 */
+	#[NCA\HandlesCommand("remscout")]
 	public function remscoutCommand(CmdContext $context, PTowerSite $site): void {
 		$playfield = $this->playfieldController->getPlayfieldByName($site->pf);
 		if ($playfield === null) {
@@ -2337,20 +2320,22 @@ class TowerController {
 		$context->reply("There was an unknown error recording this scout information, please check the logs.");
 	}
 
-	/**
-	 * @HandlesCommand("scout")
-	 */
+	#[NCA\HandlesCommand("scout")]
 	public function scoutCommand(CmdContext $context, PTowerSite $site, string $text): void {
 		$this->scoutInputHandler($context, $site->pf, $site->site, $text);
 	}
 
-	/**
-	 * @NewsTile("tower-own")
-	 * @Description("Show the last 5 attacks on your org's towers from the last 3
-	 * days - or nothing, if no attacks occurred.")
-	 * @Example("<header2>Notum Wars [<u>see more</u>]<end>
-	 * <tab>22-Oct-2021 18:20 UTC - Nady (<clan>Team Rainbow<end>) attacked <u>CLON 6</u> (QL 35-50):")
-	 */
+	#[
+		NCA\NewsTile(
+			name: "tower-own",
+			description:
+				"Show the last 5 attacks on your org's towers from the last 3\n".
+				"days - or nothing, if no attacks occurred.",
+			example:
+				"<header2>Notum Wars [<u>see more</u>]<end>\n".
+				"<tab>22-Oct-2021 18:20 UTC - Nady (<clan>Team Rainbow<end>) attacked <u>CLON 6</u> (QL 35-50):"
+		)
+	]
 	public function towerOwnTile(string $sender, callable $callback): void {
 		$this->playerManager->getByNameAsync(
 			function(?Player $whois) use ($callback): void {

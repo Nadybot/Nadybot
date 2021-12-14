@@ -2,26 +2,27 @@
 
 namespace Nadybot\Core;
 
+use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\DBSchema\Admin;
 use Nadybot\Core\DBSchema\Audit;
 
 /**
- * @Instance
  * Manage the bot admins
  */
+#[NCA\Instance]
 class AdminManager {
 	public const DB_TABLE = "admin_<myname>";
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Nadybot $chatBot;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public DB $db;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public BuddylistManager $buddylistManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public AccessManager $accessManager;
 
 	/**

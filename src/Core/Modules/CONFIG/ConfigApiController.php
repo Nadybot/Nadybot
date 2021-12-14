@@ -2,6 +2,7 @@
 
 namespace Nadybot\Core\Modules\CONFIG;
 
+use Nadybot\Core\Attributes as NCA;
 use Exception;
 use Nadybot\Core\{
 	DB,
@@ -23,9 +24,9 @@ use Nadybot\Modules\{
 use Nadybot\Modules\WEBSERVER_MODULE\WebChatConverter;
 
 /**
- * @Instance
  * @package Nadybot\Core\Modules\CONFIG
  */
+#[NCA\Instance]
 class ConfigApiController {
 	/**
 	 * Name of the module.
@@ -33,46 +34,50 @@ class ConfigApiController {
 	 */
 	public string $moduleName;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public DiscordRelayController $discordRelayController;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public ConfigController $configController;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public SettingManager $settingManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public HelpManager $helpManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public WebChatConverter $webChatConverter;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public DB $db;
 
 	/**
 	 * Get a list of available modules to configure
-	 * @Api("/module")
-	 * @GET
-	 * @AccessLevel("mod")
-	 * @ApiResult(code=200, class='ConfigModule[]', desc='A list of modules to configure')
 	 */
+	#[
+		NCA\Api("/module"),
+		NCA\GET,
+		NCA\AccessLevel("mod"),
+		NCA\ApiResult(code: 200, class: "ConfigModule[]", desc: "A list of modules to configure")
+	]
 	public function moduleGetEndpoint(Request $request, HttpProtocolWrapper $server): Response {
 		return new ApiResponse($this->configController->getModules());
 	}
 
 	/**
 	 * Activate or deactivate an event
-	 * @Api("/module/%s/events/%s/%s")
-	 * @PATCH
-	 * @PUT
-	 * @AccessLevel("mod")
-	 * @RequestBody(class='Operation', desc='Either "enable" or "disable"', required=true)
-	 * @ApiResult(code=204, desc='operation applied successfully')
-	 * @ApiResult(code=402, desc='Wrong or no operation given')
-	 * @ApiResult(code=404, desc='Module or Event not found')
 	 */
+	#[
+		NCA\Api("/module/%s/events/%s/%s"),
+		NCA\PATCH,
+		NCA\PUT,
+		NCA\AccessLevel("mod"),
+		NCA\RequestBody(class: "Operation", desc: "Either \"enable\" or \"disable\"", required: true),
+		NCA\ApiResult(code: 204, desc: "operation applied successfully"),
+		NCA\ApiResult(code: 402, desc: "Wrong or no operation given"),
+		NCA\ApiResult(code: 404, desc: "Module or Event not found")
+	]
 	public function toggleEventStatusEndpoint(Request $request, HttpProtocolWrapper $server, string $module, string $event, string $handler): Response {
 		$op = null;
 		if (is_object($request->decodedBody)) {
@@ -102,15 +107,17 @@ class ConfigApiController {
 
 	/**
 	 * Change a setting's value
-	 * @Api("/module/%s/settings/%s")
-	 * @PATCH
-	 * @PUT
-	 * @AccessLevel("mod")
-	 * @RequestBody(class='string|bool|int', desc='New value for the setting', required=true)
-	 * @ApiResult(code=204, desc='operation applied successfully')
-	 * @ApiResult(code=404, desc='Wrong module or setting')
-	 * @ApiResult(code=422, desc='Invalid value given')
 	 */
+	#[
+		NCA\Api("/module/%s/settings/%s"),
+		NCA\PATCH,
+		NCA\PUT,
+		NCA\AccessLevel("mod"),
+		NCA\RequestBody(class: "string|bool|int", desc: "New value for the setting", required: true),
+		NCA\ApiResult(code: 204, desc: "operation applied successfully"),
+		NCA\ApiResult(code: 404, desc: "Wrong module or setting"),
+		NCA\ApiResult(code: 422, desc: "Invalid value given")
+	]
 	public function changeModuleSettingEndpoint(Request $request, HttpProtocolWrapper $server, string $module, string $setting): Response {
 		/** @var Setting|null */
 		$oldSetting = $this->db->table(SettingManager::DB_TABLE)
@@ -183,14 +190,16 @@ class ConfigApiController {
 
 	/**
 	 * Activate or deactivate a Command
-	 * @Api("/module/%s/commands/%s/%s")
-	 * @PATCH
-	 * @PUT
-	 * @AccessLevel("mod")
-	 * @RequestBody(class='ModuleSubcommandChannel', desc='Parameters to change', required=true)
-	 * @ApiResult(code=200, class='ModuleCommand', desc='operation applied successfully')
-	 * @ApiResult(code=422, desc='Wrong or no operation given')
 	 */
+	#[
+		NCA\Api("/module/%s/commands/%s/%s"),
+		NCA\PATCH,
+		NCA\PUT,
+		NCA\AccessLevel("mod"),
+		NCA\RequestBody(class: "ModuleSubcommandChannel", desc: "Parameters to change", required: true),
+		NCA\ApiResult(code: 200, class: "ModuleCommand", desc: "operation applied successfully"),
+		NCA\ApiResult(code: 422, desc: "Wrong or no operation given")
+	]
 	public function toggleCommandChannelSettingsEndpoint(Request $request, HttpProtocolWrapper $server, string $module, string $command, string $channel): Response {
 		/** @var ModuleSubcommandChannel */
 		$body = $request->decodedBody ?? [];
@@ -247,14 +256,16 @@ class ConfigApiController {
 
 	/**
 	 * Activate or deactivate a command
-	 * @Api("/module/%s/commands/%s")
-	 * @PATCH
-	 * @PUT
-	 * @AccessLevel("mod")
-	 * @RequestBody(class='Operation', desc='Either "enable" or "disable"', required=true)
-	 * @ApiResult(code=200, desc='operation applied successfully')
-	 * @ApiResult(code=402, desc='Wrong or no operation given')
 	 */
+	#[
+		NCA\Api("/module/%s/commands/%s"),
+		NCA\PATCH,
+		NCA\PUT,
+		NCA\AccessLevel("mod"),
+		NCA\RequestBody(class: "Operation", desc: "Either \"enable\" or \"disable\"", required: true),
+		NCA\ApiResult(code: 200, desc: "operation applied successfully"),
+		NCA\ApiResult(code: 402, desc: "Wrong or no operation given")
+	]
 	public function toggleCommandStatusEndpoint(Request $request, HttpProtocolWrapper $server, string $module, string $command): Response {
 		$op = null;
 		if (is_object($request->decodedBody)) {
@@ -282,15 +293,17 @@ class ConfigApiController {
 
 	/**
 	 * Activate or deactivate a module
-	 * @Api("/module/%s")
-	 * @PATCH
-	 * @PUT
-	 * @AccessLevel("mod")
-	 * @RequestBody(class='Operation', desc='Either "enable" or "disable"', required=true)
-	 * @QueryParam(name='channel', type='string', desc='Either "msg", "priv", "guild" or "all"', required=false)
-	 * @ApiResult(code=204, desc='operation applied successfully')
-	 * @ApiResult(code=402, desc='Wrong or no operation given')
 	 */
+	#[
+		NCA\Api("/module/%s"),
+		NCA\PATCH,
+		NCA\PUT,
+		NCA\AccessLevel("mod"),
+		NCA\RequestBody(class: "Operation", desc: "Either \"enable\" or \"disable\"", required: true),
+		NCA\QueryParam(name: "channel", desc: "Either \"msg\", \"priv\", \"guild\" or \"all\""),
+		NCA\ApiResult(code: 204, desc: "operation applied successfully"),
+		NCA\ApiResult(code: 402, desc: "Wrong or no operation given")
+	]
 	public function toggleModuleStatusEndpoint(Request $request, HttpProtocolWrapper $server, string $module): Response {
 		$op = null;
 		if (is_object($request->decodedBody)) {
@@ -311,12 +324,14 @@ class ConfigApiController {
 
 	/**
 	 * Get the description of a module
-	 * @Api("/module/%s/description")
-	 * @GET
-	 * @AccessLevel("all")
-	 * @ApiResult(code=200, class='string', desc='A description of the module')
-	 * @ApiResult(code=204, desc='No description set')
 	 */
+	#[
+		NCA\Api("/module/%s/description"),
+		NCA\GET,
+		NCA\AccessLevel("all"),
+		NCA\ApiResult(code: 200, class: "string", desc: "A description of the module"),
+		NCA\ApiResult(code: 204, desc: "No description set")
+	]
 	public function apiModuleDescriptionGetEndpoint(Request $request, HttpProtocolWrapper $server, string $module): Response {
 		$description = $this->configController->getModuleDescription($module);
 		if (!isset($description)) {
@@ -327,11 +342,13 @@ class ConfigApiController {
 
 	/**
 	 * Get a list of available settings for a module
-	 * @Api("/module/%s/settings")
-	 * @GET
-	 * @AccessLevel("mod")
-	 * @ApiResult(code=200, class='ModuleSetting[]', desc='A list of all settings for this module')
 	 */
+	#[
+		NCA\Api("/module/%s/settings"),
+		NCA\GET,
+		NCA\AccessLevel("mod"),
+		NCA\ApiResult(code: 200, class: "ModuleSetting[]", desc: "A list of all settings for this module")
+	]
 	public function apiConfigSettingsGetEndpoint(Request $request, HttpProtocolWrapper $server, string $module): Response {
 		$settings = $this->configController->getModuleSettings($module);
 		$result = [];
@@ -357,11 +374,13 @@ class ConfigApiController {
 
 	/**
 	 * Get a list of available events for a module
-	 * @Api("/module/%s/events")
-	 * @GET
-	 * @AccessLevel("mod")
-	 * @ApiResult(code=200, class='ModuleEventConfig[]', desc='A list of all events and their status for this module')
 	 */
+	#[
+		NCA\Api("/module/%s/events"),
+		NCA\GET,
+		NCA\AccessLevel("mod"),
+		NCA\ApiResult(code: 200, class: "ModuleEventConfig[]", desc: "A list of all events and their status for this module")
+	]
 	public function apiConfigEventsGetEndpoint(Request $request, HttpProtocolWrapper $server, string $module): Response {
 		$events = $this->db->table(EventManager::DB_TABLE)
 			->where("type", "!=", "setup")
@@ -375,11 +394,13 @@ class ConfigApiController {
 
 	/**
 	 * Get a list of available commands for a module
-	 * @Api("/module/%s/commands")
-	 * @GET
-	 * @AccessLevel("mod")
-	 * @ApiResult(code=200, class='ModuleCommand[]', desc='A list of all command and possible subcommands this module provides')
 	 */
+	#[
+		NCA\Api("/module/%s/commands"),
+		NCA\GET,
+		NCA\AccessLevel("mod"),
+		NCA\ApiResult(code: 200, class: "ModuleCommand[]", desc: "A list of all command and possible subcommands this module provides")
+	]
 	public function apiConfigCommandsGetEndpoint(Request $request, HttpProtocolWrapper $server, string $module): Response {
 		$cmds = $this->configController->getAllRegisteredCommands($module);
 		/** @var array<string,ModuleSubcommand> */
@@ -397,11 +418,13 @@ class ConfigApiController {
 
 	/**
 	 * Get a list of available events for a module
-	 * @Api("/access_levels")
-	 * @GET
-	 * @AccessLevel("all")
-	 * @ApiResult(code=200, class='ModuleAccessLevel[]', desc='A list of all access levels')
 	 */
+	#[
+		NCA\Api("/access_levels"),
+		NCA\GET,
+		NCA\AccessLevel("all"),
+		NCA\ApiResult(code: 200, class: "ModuleAccessLevel[]", desc: "A list of all access levels")
+	]
 	public function apiConfigAccessLevelsGetEndpoint(Request $request, HttpProtocolWrapper $server): Response {
 		return new ApiResponse($this->configController->getValidAccessLevels());
 	}

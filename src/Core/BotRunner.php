@@ -171,26 +171,6 @@ class BotRunner {
 			sleep(5);
 			exit(1);
 		}
-		$racFile = dirname(dirname(__DIR__)) . "/vendor/niktux/addendum/lib/Addendum/ReflectionAnnotatedClass.php";
-		if (version_compare(PHP_VERSION, '8.1.0') >= 0 && @file_exists($racFile)) {
-			$racContent = file_get_contents($racFile);
-			if ($racContent !== false && strpos($racContent, "ReturnTypeWillChange") === false) {
-				fwrite(
-					STDERR,
-					"Nadybot cannot find properly patched versions of the modules\n".
-					"it requires in 'vendor'.\n".
-					"Please run 'composer reinstall niktux/addendum'\n".
-					"to apply all required patches or download one of the Nadybot\n".
-					"bundles and copy the 'vendor' directory from the zip-file into\n".
-					"the Nadybot main directory.\n".
-					"\n".
-					"See https://github.com/Nadybot/Nadybot/wiki/Running#cloning-the-repository\n".
-					"for more information.\n"
-				);
-				sleep(5);
-				exit(1);
-			}
-		}
 	}
 
 	public function checkRequiredModules(): void {
@@ -210,6 +190,7 @@ class BotRunner {
 			"sockets",
 		];
 		$configFile = $this->getConfigFile();
+		/** @psalm-suppress DocblockTypeContradiction */
 		if (strlen($configFile->getVar('amqp_server')??"")
 			&& strlen($configFile->getVar('amqp_user')??"")
 			&& strlen($configFile->getVar('amqp_password')??"")
@@ -418,9 +399,6 @@ class BotRunner {
 	 * Load external classes that we need
 	 */
 	private function loadPhpLibraries(): void {
-		foreach (glob(__DIR__ . "/Annotations/*.php") as $file) {
-			require_once $file;
-		}
 	}
 
 	/**

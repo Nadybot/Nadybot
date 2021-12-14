@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\VOTE_MODULE\Migrations;
 
+use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\DB;
 use Nadybot\Core\DBSchema\Route;
 use Nadybot\Core\DBSchema\Setting;
@@ -14,10 +15,10 @@ use Nadybot\Core\SettingManager;
 use Nadybot\Modules\VOTE_MODULE\VoteController;
 
 class MigrateToRoutes implements SchemaMigration {
-	/** @Inject */
+	#[NCA\Inject]
 	public VoteController $voteController;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Nadybot $chatBot;
 
 	protected function getSetting(DB $db, string $name): ?Setting {
@@ -31,6 +32,7 @@ class MigrateToRoutes implements SchemaMigration {
 		$table = MessageHub::DB_TABLE_ROUTES;
 		$showWhere = $this->getSetting($db, "vote_channel_spam");
 		if (!isset($showWhere)) {
+			/** @psalm-suppress DocblockTypeContradiction */
 			if (strlen($this->chatBot->vars['my_guild']??"")) {
 				$showWhere = 2;
 			} else {

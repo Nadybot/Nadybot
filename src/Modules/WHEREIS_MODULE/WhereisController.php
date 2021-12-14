@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\WHEREIS_MODULE;
 
+use Nadybot\Core\Attributes as NCA;
 use Illuminate\Support\Collection;
 use Nadybot\Core\CmdContext;
 use Nadybot\Core\DB;
@@ -11,17 +12,17 @@ use Nadybot\Core\Util;
 /**
  * @author Jaqueme
  *  Database adapted from one originally compiled by Malosar for BeBot
- *
- * @Instance
- *
  * Commands this controller contains:
- *	@DefineCommand(
- *		command     = 'whereis',
- *		accessLevel = 'all',
- *		description = 'Shows where places and NPCs are',
- *		help        = 'whereis.txt'
- *	)
  */
+#[
+	NCA\Instance,
+	NCA\DefineCommand(
+		command: "whereis",
+		accessLevel: "all",
+		description: "Shows where places and NPCs are",
+		help: "whereis.txt"
+	)
+]
 class WhereisController {
 
 	/**
@@ -30,27 +31,25 @@ class WhereisController {
 	 */
 	public string $moduleName;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Text $text;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Util $util;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public DB $db;
 
 	/**
 	 * This handler is called on bot startup.
-	 * @Setup
 	 */
+	#[NCA\Setup]
 	public function setup(): void {
 		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations");
 		$this->db->loadCSVFile($this->moduleName, __DIR__ . "/whereis.csv");
 	}
 
-	/**
-	 * @HandlesCommand("whereis")
-	 */
+	#[NCA\HandlesCommand("whereis")]
 	public function whereisCommand(CmdContext $context, string $search): void {
 		$search = strtolower($search);
 		$words = explode(' ', $search);

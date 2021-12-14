@@ -2,15 +2,15 @@
 
 namespace Nadybot\Modules\CITY_MODULE;
 
+use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\AOChatEvent;
 use Nadybot\Core\Nadybot;
 use Nadybot\Modules\TIMERS_MODULE\TimerController;
 
 /**
  * @author Tyrence (RK2)
- *
- * @Instance
  */
+#[NCA\Instance]
 class OSController {
 	/**
 	 * Name of the module.
@@ -18,16 +18,16 @@ class OSController {
 	 */
 	public string $moduleName;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Nadybot $chatBot;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public TimerController $timerController;
 
-	/**
-	 * @Event("orgmsg")
-	 * @Description("Sets a timer when an OS/AS is launched")
-	 */
+	#[NCA\Event(
+		name: "orgmsg",
+		description: "Sets a timer when an OS/AS is launched"
+	)]
 	public function osTimerEvent(AOChatEvent $eventObj): void {
 		// create a timer for 15m when an OS/AS is launched (so org knows when they can launch again)
 		// [Org Msg] Blammo! Player has launched an orbital attack!

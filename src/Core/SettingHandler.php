@@ -2,10 +2,11 @@
 
 namespace Nadybot\Core;
 
+use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\DBSchema\Setting;
 
 abstract class SettingHandler {
-	/** @Inject */
+	#[NCA\Inject]
 	public Text $text;
 
 	protected Setting $row;

@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\TIMERS_MODULE;
 
+use Nadybot\Core\Attributes as NCA;
 use Closure;
 use Nadybot\Core\{
 	CmdContext,
@@ -13,19 +14,22 @@ use Nadybot\Core\{
 
 /**
  * @author Tyrence (RK2)
- *
- * @Instance
- *
  * Commands this class contains:
- *	@DefineCommand(
- *		command     = 'countdown',
- *		accessLevel = 'rl',
- *		description = 'Start a 5-second countdown',
- *		help        = 'countdown.txt',
- *		alias		= 'cd'
- *	)
- *	@ProvidesEvent(value="sync(cd)", desc="Triggered when someone starts a countdown")
  */
+#[
+	NCA\Instance,
+	NCA\DefineCommand(
+		command: "countdown",
+		accessLevel: "rl",
+		description: "Start a 5-second countdown",
+		help: "countdown.txt",
+		alias: "cd"
+	),
+	NCA\ProvidesEvent(
+		event: "sync(cd)",
+		desc: "Triggered when someone starts a countdown",
+	)
+]
 class CountdownController {
 
 	public const CONF_CD_TELL_LOCATION = 'cd_tell_location';
@@ -41,23 +45,21 @@ class CountdownController {
 	 */
 	public string $moduleName;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public SettingManager $settingManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Nadybot $chatBot;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public EventManager $eventManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Timer $timer;
 
 	private int $lastCountdown = 0;
 
-	/**
-	 * @Setup
-	 */
+	#[NCA\Setup]
 	public function setup(): void {
 		$this->settingManager->add(
 			$this->moduleName,
@@ -90,9 +92,7 @@ class CountdownController {
 		);
 	}
 
-	/**
-	 * @HandlesCommand("countdown")
-	 */
+	#[NCA\HandlesCommand("countdown")]
 	public function countdownCommand(CmdContext $context, ?string $message): void {
 		$message ??= $this->settingManager->getString(self::CONF_CD_DEFAULT_TEXT)??"GO";
 		$cooldown = $this->settingManager->getInt(self::CONF_CD_COOLDOWN)??30;
@@ -146,10 +146,10 @@ class CountdownController {
 		$this->timer->callLater(6, $callback, $msg);
 	}
 
-	/**
-	 * @Event("sync(cd)")
-	 * @Description("Process externally started countdowns")
-	 */
+	#[NCA\Event(
+		name: "sync(cd)",
+		description: "Process externally started countdowns"
+	)]
 	public function syncCountdown(SyncCdEvent $event): void {
 		if (time() - $this->lastCountdown < 7) {
 			return;

@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\DEV_MODULE;
 
+use Nadybot\Core\Attributes as NCA;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	CmdContext,
@@ -17,23 +18,23 @@ use Nadybot\Core\ParamClass\PWord;
 
 /**
  * @author Tyrence (RK2)
- *
- * @Instance
- *
  * Commands this controller contains:
- *	@DefineCommand(
- *		command     = 'silence',
- *		accessLevel = 'mod',
- *		description = 'Silence commands in a particular channel',
- *		help        = 'silence.txt'
- *	)
- *	@DefineCommand(
- *		command     = 'unsilence',
- *		accessLevel = 'mod',
- *		description = 'Unsilence commands in a particular channel',
- *		help        = 'silence.txt'
- *	)
  */
+#[
+	NCA\Instance,
+	NCA\DefineCommand(
+		command: "silence",
+		accessLevel: "mod",
+		description: "Silence commands in a particular channel",
+		help: "silence.txt"
+	),
+	NCA\DefineCommand(
+		command: "unsilence",
+		accessLevel: "mod",
+		description: "Unsilence commands in a particular channel",
+		help: "silence.txt"
+	)
+]
 class SilenceController {
 
 	public const DB_TABLE = "silence_cmd_<myname>";
@@ -44,30 +45,26 @@ class SilenceController {
 	 */
 	public string $moduleName;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public DB $db;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Text $text;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public CommandManager $commandManager;
 
-	/** @Logger */
+	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
 	public const NULL_COMMAND_HANDLER = "SilenceController.nullCommand";
 
-	/**
-	 * @Setup
-	 */
+	#[NCA\Setup]
 	public function setup(): void {
 		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations");
 	}
 
-	/**
-	 * @HandlesCommand("silence")
-	 */
+	#[NCA\HandlesCommand("silence")]
 	public function silenceCommand(CmdContext $context): void {
 		/** @var Collection<SilenceCmd> */
 		$data = $this->db->table(self::DB_TABLE)
@@ -87,9 +84,7 @@ class SilenceController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @HandlesCommand("silence")
-	 */
+	#[NCA\HandlesCommand("silence")]
 	public function silenceAddCommand(CmdContext $context, string $command, PWord $channel): void {
 		$command = strtolower($command);
 		$channel = strtolower($channel());
@@ -111,9 +106,7 @@ class SilenceController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @HandlesCommand("unsilence")
-	 */
+	#[NCA\HandlesCommand("unsilence")]
 	public function unsilenceAddCommand(CmdContext $context, string $command, PWord $channel): void {
 		$command = strtolower($command);
 		$channel = strtolower($channel());
@@ -163,10 +156,10 @@ class SilenceController {
 			->delete();
 	}
 
-	/**
-	 * @Event("connect")
-	 * @Description("Overwrite command handlers for silenced commands")
-	 */
+	#[NCA\Event(
+		name: "connect",
+		description: "Overwrite command handlers for silenced commands"
+	)]
 	public function overwriteCommandHandlersEvent(Event $eventObj): void {
 		$this->db->table(self::DB_TABLE)
 			->asObj(SilenceCmd::class)

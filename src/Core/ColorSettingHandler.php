@@ -2,12 +2,13 @@
 
 namespace Nadybot\Core;
 
+use Nadybot\Core\Attributes as NCA;
 use Exception;
 
 /**
  * Class to represent a setting with a color value for NadyBot
- * @SettingHandler("color")
  */
+#[NCA\SettingHandler("color")]
 class ColorSettingHandler extends SettingHandler {
 
 	/**

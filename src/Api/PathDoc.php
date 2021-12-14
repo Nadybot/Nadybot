@@ -2,9 +2,8 @@
 
 namespace Nadybot\Api;
 
-use Addendum\ReflectionAnnotatedMethod;
-use Nadybot\Core\Annotations\ApiResult;
-use Nadybot\Core\Annotations\RequestBody;
+use Nadybot\Core\Attributes as NCA;
+use ReflectionMethod;
 
 class PathDoc {
 	public string $description;
@@ -12,8 +11,8 @@ class PathDoc {
 	public array $tags = [];
 	/** @var string[] */
 	public array $methods = [];
-	/** @var ApiResult[] */
+	/** @var array<int,NCA\ApiResult> */
 	public array $responses = [];
-	public ?RequestBody $requestBody = null;
-	public ReflectionAnnotatedMethod $phpMethod;
+	public ?NCA\RequestBody $requestBody = null;
+	public ReflectionMethod $phpMethod;
 }

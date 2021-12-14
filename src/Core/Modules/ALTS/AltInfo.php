@@ -2,6 +2,7 @@
 
 namespace Nadybot\Core\Modules\ALTS;
 
+use Nadybot\Core\Attributes as NCA;
 use Illuminate\Database\Query\JoinClause;
 use Nadybot\Core\BuddylistManager;
 use Nadybot\Core\DB;
@@ -15,28 +16,28 @@ use Nadybot\Core\Util;
 use Nadybot\Modules\ONLINE_MODULE\OnlineController;
 
 class AltInfo {
-	/** @Inject */
+	#[NCA\Inject]
 	public OnlineController $onlineController;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Nadybot $chatBot;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public PlayerManager $playerManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public BuddylistManager $buddylistManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public SettingManager $settingManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public DB $db;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Text $text;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Util $util;
 
 	/** The main char of this character */

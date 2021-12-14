@@ -2,16 +2,16 @@
 
 namespace Nadybot\Modules\WATCHDOG_MODULE;
 
+use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\Event;
 use Nadybot\Core\EventManager;
 
 /**
  * Authors:
  *  - Nadyita (RK5)
- *
- * @Instance
  */
 
+#[NCA\Instance]
 class SystemdController {
 	/**
 	 * Name of the module.
@@ -19,7 +19,7 @@ class SystemdController {
 	 */
 	public string $moduleName;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public EventManager $eventManager;
 
 	public const EINVAL = 22;
@@ -28,7 +28,7 @@ class SystemdController {
 	protected int $watchdogInterval = 0;
 	protected int $lastPing = 0;
 
-	/** @Setup */
+	#[NCA\Setup]
 	public function setup(): void {
 		$usec = 0;
 		$this->enabled = $this->isSystemdWatchdogEnabled(false, $usec) === 1;
@@ -40,11 +40,11 @@ class SystemdController {
 		}
 	}
 
-	/**
-	 * @Event("timer(1sec)")
-	 * @Description("Handle SystemD watchdog")
-	 * @DefaultStatus("0")
-	 */
+	#[NCA\Event(
+		name: "timer(1sec)",
+		description: "Handle SystemD watchdog",
+		defaultStatus: 0
+	)]
 	public function watchdogPing(Event $event): void {
 		if (!$this->enabled || $this->lastPing + $this->watchdogInterval > time()) {
 			return;
@@ -55,7 +55,6 @@ class SystemdController {
 
 	/**
 	 * sd_notify PHP implementation
-	 *
 	 * @link https://www.freedesktop.org/software/systemd/man/sd_notify.html
 	 */
 	public function notify(bool $unsetEnvironment, string $state): int {
@@ -64,7 +63,6 @@ class SystemdController {
 
 	/**
 	 * sd_pid_notify_with_fds PHP implementation
-	 *
 	 * @link https://github.com/systemd/systemd/blob/master/src/libsystemd/sd-daemon/sd-daemon.c
 	 */
 	public function notifyWithFDs(int $pid, bool $unsetEnvironment, string $state, array $fds): int {
@@ -164,7 +162,6 @@ class SystemdController {
 
 	/**
 	 * sd_watchdog_enabled PHP implementation
-	 *
 	 * @link https://github.com/systemd/systemd/blob/master/src/libsystemd/sd-daemon/sd-daemon.c
 	 */
 	public function isSystemdWatchdogEnabled(bool $unsetEnvironment, int &$usec): int {

@@ -2,6 +2,7 @@
 
 namespace Nadybot\Core\Modules\BUDDYLIST;
 
+use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\BuddylistEntry;
 use Nadybot\Core\Nadybot;
 use Nadybot\Core\BuddylistManager;
@@ -13,18 +14,18 @@ use Nadybot\Core\ParamClass\PWord;
 
 /**
  * @author Tyrence (RK2)
- *
- * @Instance
- *
  * Commands this controller contains:
-*	@DefineCommand(
- *		command     = 'buddylist',
- *		accessLevel = 'admin',
- *		description = 'Shows and manages buddies on the buddylist',
- *		help        = 'buddylist.txt',
- *		alias		= 'friendlist'
- *	)
  */
+#[
+	NCA\Instance,
+	NCA\DefineCommand(
+		command: "buddylist",
+		accessLevel: "admin",
+		description: "Shows and manages buddies on the buddylist",
+		help: "buddylist.txt",
+		alias: "friendlist"
+	)
+]
 class BuddylistController {
 
 	/**
@@ -33,20 +34,17 @@ class BuddylistController {
 	 */
 	public string $moduleName;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Nadybot $chatBot;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public BuddylistManager $buddylistManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Text $text;
 
-	/**
-	 * @HandlesCommand("buddylist")
-	 * @Mask $action (clear|clean)
-	 */
-	public function buddylistShowCommand(CmdContext $context, ?string $action): void {
+	#[NCA\HandlesCommand("buddylist")]
+	public function buddylistShowCommand(CmdContext $context, #[NCA\Regexp("clear|clean")] ?string $action): void {
 		$cleanup = isset($action);
 
 		$orphanCount = 0;
@@ -94,11 +92,8 @@ class BuddylistController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @HandlesCommand("buddylist")
-	 * @Mask $action add
-	 */
-	public function buddylistAddCommand(CmdContext $context, string $action, PCharacter $who, PWord $type): void {
+	#[NCA\HandlesCommand("buddylist")]
+	public function buddylistAddCommand(CmdContext $context, #[NCA\Str("add")] string $action, PCharacter $who, PWord $type): void {
 		$name = $who();
 
 		if ($this->buddylistManager->add($name, $type())) {
@@ -110,11 +105,8 @@ class BuddylistController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @HandlesCommand("buddylist")
-	 * @Mask $all all
-	 */
-	public function buddylistRemAllCommand(CmdContext $context, PRemove $rem, string $all): void {
+	#[NCA\HandlesCommand("buddylist")]
+	public function buddylistRemAllCommand(CmdContext $context, PRemove $rem, #[NCA\Str("all")] string $all): void {
 		foreach ($this->buddylistManager->buddyList as $uid => $buddy) {
 			$this->chatBot->buddy_remove($uid);
 		}
@@ -123,9 +115,7 @@ class BuddylistController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @HandlesCommand("buddylist")
-	 */
+	#[NCA\HandlesCommand("buddylist")]
 	public function buddylistRemCommand(CmdContext $context, PRemove $rem, PCharacter $who, PWord $type): void {
 		$name = $who();
 
@@ -149,11 +139,8 @@ class BuddylistController {
 		return "{$blob}\n";
 	}
 
-	/**
-	 * @HandlesCommand("buddylist")
-	 * @Mask $action search
-	 */
-	public function buddylistSearchCommand(CmdContext $context, string $action, string $search): void {
+	#[NCA\HandlesCommand("buddylist")]
+	public function buddylistSearchCommand(CmdContext $context, #[NCA\Str("search")] string $action, string $search): void {
 		if (count($this->buddylistManager->buddyList) === 0) {
 			$msg = "There are no characters on the buddy list.";
 			$context->reply($msg);

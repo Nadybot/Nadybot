@@ -2,71 +2,71 @@
 
 namespace Nadybot\Modules\DEV_MODULE;
 
-use Addendum\ReflectionAnnotatedMethod;
+use ReflectionMethod;
 use Nadybot\Core\{
 	AccessManager,
 	CmdContext,
 	CommandAlias,
 	CommandHandler,
 	CommandManager,
-	CommandReply,
 	DB,
 	Registry,
 	SubcommandManager,
 	Text,
 	Util,
 };
+use Nadybot\Core\Attributes as NCA;
 use ReflectionException;
 
 /**
  * @author Tyrence (RK2)
- *
- * @Instance
- *
  * Commands this controller contains:
- *	@DefineCommand(
- *		command     = 'showcmdregex',
- *		accessLevel = 'admin',
- *		description = "Test the bot commands",
- *		help        = 'test.txt'
- *	)
- *	@DefineCommand(
- *		command     = 'intransaction',
- *		accessLevel = 'admin',
- *		description = "Test the bot commands",
- *		help        = 'test.txt'
- *	)
- *	@DefineCommand(
- *		command     = 'rollbacktransaction',
- *		accessLevel = 'admin',
- *		description = "Test the bot commands",
- *		help        = 'test.txt'
- *	)
- *	@DefineCommand(
- *		command     = 'stacktrace',
- *		accessLevel = 'admin',
- *		description = "Test the bot commands",
- *		help        = 'test.txt'
- *	)
- *	@DefineCommand(
- *		command     = 'cmdhandlers',
- *		accessLevel = 'admin',
- *		description = "Show command handlers for a command",
- *		help        = 'cmdhandlers.txt'
- *	)
- *	@DefineCommand(
- *		command     = 'createblob',
- *		accessLevel = 'admin',
- *		description = "Creates a blob of random characters",
- *		help        = 'createblob.txt'
- *	)
- *	@DefineCommand(
- *		command     = 'makeitem',
- *		accessLevel = 'admin',
- *		description = "Creates an item link",
- *		help        = 'makeitem.txt'
- *	)
  */
+#[
+	NCA\Instance,
+	NCA\DefineCommand(
+		command: "showcmdregex",
+		accessLevel: "admin",
+		description: "Test the bot commands",
+		help: "test.txt"
+	),
+	NCA\DefineCommand(
+		command: "intransaction",
+		accessLevel: "admin",
+		description: "Test the bot commands",
+		help: "test.txt"
+	),
+	NCA\DefineCommand(
+		command: "rollbacktransaction",
+		accessLevel: "admin",
+		description: "Test the bot commands",
+		help: "test.txt"
+	),
+	NCA\DefineCommand(
+		command: "stacktrace",
+		accessLevel: "admin",
+		description: "Test the bot commands",
+		help: "test.txt"
+	),
+	NCA\DefineCommand(
+		command: "cmdhandlers",
+		accessLevel: "admin",
+		description: "Show command handlers for a command",
+		help: "cmdhandlers.txt"
+	),
+	NCA\DefineCommand(
+		command: "createblob",
+		accessLevel: "admin",
+		description: "Creates a blob of random characters",
+		help: "createblob.txt"
+	),
+	NCA\DefineCommand(
+		command: "makeitem",
+		accessLevel: "admin",
+		description: "Creates an item link",
+		help: "makeitem.txt"
+	)
+]
 class DevController {
 
 	/**
@@ -75,37 +75,33 @@ class DevController {
 	 */
 	public string $moduleName;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public AccessManager $accessManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public CommandManager $commandManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public CommandAlias $commandAlias;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public SubcommandManager $subcommandManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public DB $db;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Util $util;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Text $text;
 
-	/**
-	 * @Setup
-	 */
+	#[NCA\Setup]
 	public function setup(): void {
 		$this->commandAlias->register($this->moduleName, "querysql select", "select");
 	}
 
-	/**
-	 * @HandlesCommand("showcmdregex")
-	 */
+	#[NCA\HandlesCommand("showcmdregex")]
 	public function showcmdregexCommand(CmdContext $context, ?string $cmd): void {
 		// get all command handlers
 		$handlers = $this->getAllCommandHandlers($cmd, $context->channel);
@@ -131,12 +127,18 @@ class DevController {
 		foreach ($calls as $call) {
 			[$name, $method] = explode(".", $call);
 			$instance = Registry::getInstance($name);
+			if (!isset($instance)) {
+				continue;
+			}
 			try {
-				$reflectedMethod = new ReflectionAnnotatedMethod($instance, $method);
-				$command = $reflectedMethod->getAnnotation("HandlesCommand")->value;
-				if (!isset($command)) {
+				$reflectedMethod = new ReflectionMethod($instance, $method);
+				$commands = $reflectedMethod->getAttributes(NCA\HandlesCommand::class);
+				if (empty($commands)) {
 					continue;
 				}
+				/** @var NCA\HandlesCommand */
+				$commandObj = $commands[0]->newInstance();
+				$command = $commandObj->command;
 				$command = explode(" ", $command)[0];
 				$regexes[$command] ??= [];
 				$regexes[$command] = array_merge($regexes[$command], $this->commandManager->retrieveRegexes($reflectedMethod));
@@ -197,9 +199,7 @@ class DevController {
 		return $handlers;
 	}
 
-	/**
-	 * @HandlesCommand("intransaction")
-	 */
+	#[NCA\HandlesCommand("intransaction")]
 	public function inTransactionCommand(CmdContext $context): void {
 		if ($this->db->inTransaction()) {
 			$msg = "There is an active transaction.";
@@ -209,9 +209,7 @@ class DevController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @HandlesCommand("rollbacktransaction")
-	 */
+	#[NCA\HandlesCommand("rollbacktransaction")]
 	public function rollbackTransactionCommand(CmdContext $context): void {
 		$this->db->rollback();
 
@@ -219,9 +217,7 @@ class DevController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @HandlesCommand("stacktrace")
-	 */
+	#[NCA\HandlesCommand("stacktrace")]
 	public function stacktraceCommand(CmdContext $context): void {
 		$stacktrace = trim($this->util->getStackTrace());
 		$lines = explode("\n", $stacktrace);
@@ -235,9 +231,7 @@ class DevController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @HandlesCommand("cmdhandlers")
-	 */
+	#[NCA\HandlesCommand("cmdhandlers")]
 	public function cmdhandlersCommand(CmdContext $context, string $command): void {
 		$cmdArray = explode(" ", $command, 2);
 		$cmd = $cmdArray[0];
@@ -263,16 +257,12 @@ class DevController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @HandlesCommand("makeitem")
-	 */
+	#[NCA\HandlesCommand("makeitem")]
 	public function makeItemCommand(CmdContext $context, int $lowId, int $highId, int $ql, string $name): void {
 		$context->reply($this->text->makeItem($lowId, $highId, $ql, $name));
 	}
 
-	/**
-	 * @HandlesCommand("createblob")
-	 */
+	#[NCA\HandlesCommand("createblob")]
 	public function createBlobCommand(CmdContext $context, int $length, ?int $numBlobs): void {
 		$numBlobs ??= 1;
 

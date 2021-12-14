@@ -2,13 +2,14 @@
 
 namespace Nadybot\Core\Channels;
 
+use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\MessageHub;
 use Nadybot\Core\Modules\CONSOLE\ConsoleCommandReply;
 use Nadybot\Core\Routing\RoutableEvent;
 use Nadybot\Core\Routing\Source;
 
 class ConsoleChannel extends Base {
-	/** @Inject */
+	#[NCA\Inject]
 	public MessageHub $messageHub;
 
 	protected ConsoleCommandReply $sendto;

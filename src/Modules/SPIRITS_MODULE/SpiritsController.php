@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\SPIRITS_MODULE;
 
+use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{
 	CmdContext,
 	DB,
@@ -14,20 +15,19 @@ use Nadybot\Modules\ITEMS_MODULE\AODBEntry;
 
 /**
  * @author Tyrence (RK2)
- *
  * Originally Written for Budabot By Jaqueme
  * Database Adapted From One Originally Compiled by Wolfbiter For BeBot
- *
- * @Instance
- *
  * Commands this controller contains:
- *	@DefineCommand(
- *		command     = 'spirits',
- *		accessLevel = 'all',
- *		description = 'Search for spirits',
- *		help        = 'spirits.txt'
- *	)
  */
+#[
+	NCA\Instance,
+	NCA\DefineCommand(
+		command: "spirits",
+		accessLevel: "all",
+		description: "Search for spirits",
+		help: "spirits.txt"
+	)
+]
 class SpiritsController {
 	/**
 	 * Name of the module.
@@ -35,30 +35,24 @@ class SpiritsController {
 	 */
 	public string $moduleName;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public DB $db;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Text $text;
 
-	/**
-	 * @Setup
-	 */
+	#[NCA\Setup]
 	public function setup(): void {
 		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations");
 		$this->db->loadCSVFile($this->moduleName, __DIR__ . '/spiritsdb.csv');
 	}
 
-	/**
-	 * @HandlesCommand("spirits")
-	 */
+	#[NCA\HandlesCommand("spirits")]
 	public function spiritsSlotAndRangeCommand(CmdContext $context, PImplantSlot $slot, PNumRange $qlRange): void {
 		$this->spiritsRangeAndSlotCommand($context, $qlRange, $slot);
 	}
 
-	/**
-	 * @HandlesCommand("spirits")
-	 */
+	#[NCA\HandlesCommand("spirits")]
 	public function spiritsRangeAndSlotCommand(CmdContext $context, PNumRange $qlRange, PImplantSlot $slot): void {
 		$lowQL = $qlRange->low;
 		$highQL = $qlRange->high;
@@ -86,16 +80,12 @@ class SpiritsController {
 		$context->reply($spirits);
 	}
 
-	/**
-	 * @HandlesCommand("spirits")
-	 */
+	#[NCA\HandlesCommand("spirits")]
 	public function spiritsCommandTypeAndSlot(CmdContext $context, PNonNumber $name, PImplantSlot $slot): void {
 		$this->spiritsCommandSlotAndType($context, $slot, $name);
 	}
 
-	/**
-	 * @HandlesCommand("spirits")
-	 */
+	#[NCA\HandlesCommand("spirits")]
 	public function spiritsCommandSlotAndType(CmdContext $context, PImplantSlot $slot, PNonNumber $name): void {
 		$name = ucwords(strtolower($name()));
 		$slot = ucfirst($slot());
@@ -116,9 +106,7 @@ class SpiritsController {
 		$context->reply($spirits);
 	}
 
-	/**
-	 * @HandlesCommand("spirits")
-	 */
+	#[NCA\HandlesCommand("spirits")]
 	public function spiritsQLCommand(CmdContext $context, int $ql): void {
 		if ($ql < 1 or $ql > 300) {
 			$msg = "Invalid QL specified.";
@@ -140,9 +128,7 @@ class SpiritsController {
 		$context->reply($spirits);
 	}
 
-	/**
-	 * @HandlesCommand("spirits")
-	 */
+	#[NCA\HandlesCommand("spirits")]
 	public function spiritsCommandQLRange(CmdContext $context, PNumRange $qlRange): void {
 		$spirits = "";
 		$lowQL = $qlRange->low;
@@ -169,16 +155,12 @@ class SpiritsController {
 		$context->reply($spirits);
 	}
 
-	/**
-	 * @HandlesCommand("spirits")
-	 */
+	#[NCA\HandlesCommand("spirits")]
 	public function spiritsTypeAndQlCommand(CmdContext $context, PImplantSlot $slot, int $ql): void {
 		$this->spiritsQlAndTypeCommand($context, $ql, $slot);
 	}
 
-	/**
-	 * @HandlesCommand("spirits")
-	 */
+	#[NCA\HandlesCommand("spirits")]
 	public function spiritsQlAndTypeCommand(CmdContext $context, int $ql, PImplantSlot $slot): void {
 		$slot = ucfirst($slot());
 		$title = "$slot Spirits QL $ql";
@@ -202,9 +184,7 @@ class SpiritsController {
 		$context->reply($spirits);
 	}
 
-	/**
-	 * @HandlesCommand("spirits")
-	 */
+	#[NCA\HandlesCommand("spirits")]
 	public function spiritsCommandSearch(CmdContext $context, PNonNumber $search): void {
 		$name = ucwords(strtolower($search()));
 		$title = "Spirits Database for $name";

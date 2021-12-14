@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\BASIC_CHAT_MODULE;
 
+use Nadybot\Core\Attributes as NCA;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	CmdContext,
@@ -10,30 +11,31 @@ use Nadybot\Core\{
 };
 
 /**
- * @Instance
- *
  * Commands this class contains:
- *	@DefineCommand(
- *		command     = 'check',
- *		accessLevel = 'all',
- *		description = 'Checks who of the raidgroup is in the area',
- *      help        = 'check.txt'
- *	)
  */
+#[
+	NCA\Instance,
+	NCA\DefineCommand(
+		command: "check",
+		accessLevel: "all",
+		description: "Checks who of the raidgroup is in the area",
+		help: "check.txt"
+	)
+]
 class ChatCheckController {
 
-	/** @Inject */
+	#[NCA\Inject]
 	public DB $db;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Text $text;
 
 	public const CHANNEL_TYPE = "priv";
 
 	/**
 	 * This command handler checks who of the raidgroup is in the area.
-	 * @HandlesCommand("check")
 	 */
+	#[NCA\HandlesCommand("check")]
 	public function checkAllCommand(CmdContext $context): void {
 		/** @var Collection<string> */
 		$data = $this->db->table("online")

@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\IMPLANT_MODULE;
 
+use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{
 	CmdContext,
 	DB,
@@ -14,18 +15,18 @@ use stdClass;
 
 /**
  * @author Tyrence (RK2)
- *
- * @Instance
- *
  * Commands this class contains:
- *	@DefineCommand(
- *		command     = 'implantdesigner',
- *		accessLevel = 'all',
- *		description = 'Implant Designer',
- *		help        = 'implantdesigner.txt',
- *		alias       = 'impdesign'
- *	)
  */
+#[
+	NCA\Instance,
+	NCA\DefineCommand(
+		command: "implantdesigner",
+		accessLevel: "all",
+		description: "Implant Designer",
+		help: "implantdesigner.txt",
+		alias: "impdesign"
+	)
+]
 class ImplantDesignerController {
 	/**
 	 * Name of the module.
@@ -33,22 +34,22 @@ class ImplantDesignerController {
 	 */
 	public string $moduleName;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public DB $db;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Text $text;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Util $util;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public ImplantController $implantController;
 
 	private array $slots = ['head', 'eye', 'ear', 'rarm', 'chest', 'larm', 'rwrist', 'waist', 'lwrist', 'rhand', 'legs', 'lhand', 'feet'];
 	private array $grades = ['shiny', 'bright', 'faded'];
 
-	/** @Setup */
+	#[NCA\Setup]
 	public function setup(): void {
 		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations/Designer");
 		$this->db->loadCSVFile($this->moduleName, __DIR__ . "/Ability.csv");
@@ -66,9 +67,7 @@ class ImplantDesignerController {
 		$this->db->loadCSVFile($this->moduleName, __DIR__ . "/SymbiantProfessionMatrix.csv");
 	}
 
-	/**
-	 * @HandlesCommand("implantdesigner")
-	 */
+	#[NCA\HandlesCommand("implantdesigner")]
 	public function implantdesignerCommand(CmdContext $context): void {
 		$blob = $this->getImplantDesignerBuild($context->char->name);
 		$msg = $this->text->makeBlob("Implant Designer", $blob);
@@ -149,11 +148,8 @@ class ImplantDesignerController {
 		return (int)$modAmount;
 	}
 
-	/**
-	 * @HandlesCommand("implantdesigner")
-	 * @Mask $action clear
-	 */
-	public function implantdesignerClearCommand(CmdContext $context, string $action): void {
+	#[NCA\HandlesCommand("implantdesigner")]
+	public function implantdesignerClearCommand(CmdContext $context, #[NCA\Str("clear")] string $action): void {
 		$this->saveDesign($context->char->name, '@', new stdClass());
 		$msg = "Implant Designer has been cleared.";
 		$context->reply($msg);
@@ -164,9 +160,7 @@ class ImplantDesignerController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @HandlesCommand("implantdesigner")
-	 */
+	#[NCA\HandlesCommand("implantdesigner")]
 	public function implantdesignerSlotCommand(CmdContext $context, PImplantSlot $slot): void {
 		$slot = $slot();
 
@@ -248,9 +242,7 @@ class ImplantDesignerController {
 		return $msg;
 	}
 
-	/**
-	 * @HandlesCommand("implantdesigner")
-	 */
+	#[NCA\HandlesCommand("implantdesigner")]
 	public function implantdesignerSlotAddClusterCommand(
 		CmdContext $context,
 		PImplantSlot $slot,
@@ -326,9 +318,7 @@ class ImplantDesignerController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @HandlesCommand("implantdesigner")
-	 */
+	#[NCA\HandlesCommand("implantdesigner")]
 	public function implantdesignerSlotQLCommand(
 		CmdContext $context,
 		PImplantSlot $slot,
@@ -352,14 +342,11 @@ class ImplantDesignerController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @HandlesCommand("implantdesigner")
-	 * @Mask $action clear
-	 */
+	#[NCA\HandlesCommand("implantdesigner")]
 	public function implantdesignerSlotClearCommand(
 		CmdContext $context,
 		PImplantSlot $slot,
-		string $action
+		#[NCA\Str("clear")] string $action
 	): void {
 		$slot = $slot();
 
@@ -377,14 +364,11 @@ class ImplantDesignerController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @HandlesCommand("implantdesigner")
-	 * @Mask $action require
-	 */
+	#[NCA\HandlesCommand("implantdesigner")]
 	public function implantdesignerSlotRequireCommand(
 		CmdContext $context,
 		PImplantSlot $slot,
-		string $action
+		#[NCA\Str("require")] string $action
 	): void {
 		$slot = $slot();
 
@@ -417,14 +401,11 @@ class ImplantDesignerController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @HandlesCommand("implantdesigner")
-	 * @Mask $action require
-	 */
+	#[NCA\HandlesCommand("implantdesigner")]
 	public function implantdesignerSlotRequireAbilityCommand(
 		CmdContext $context,
 		PImplantSlot $slot,
-		string $action,
+		#[NCA\Str("require")] string $action,
 		PAttribute $ability
 	): void {
 		$slot = $slot();
@@ -506,11 +487,8 @@ class ImplantDesignerController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @HandlesCommand("implantdesigner")
-	 * @Mask $action (result|results)
-	 */
-	public function implantdesignerResultCommand(CmdContext $context, string $action): void {
+	#[NCA\HandlesCommand("implantdesigner")]
+	public function implantdesignerResultCommand(CmdContext $context, #[NCA\Regexp("result|results")] string $action): void {
 		$blob = $this->getImplantDesignerResults($context->char->name);
 
 		$msg = $this->text->makeBlob("Implant Designer Results", $blob);

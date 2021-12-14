@@ -3,9 +3,9 @@
 namespace Nadybot\Core;
 
 use Exception;
+use Nadybot\Core\Attributes as NCA;
 use Throwable;
 use ReflectionException;
-use Addendum\ReflectionAnnotatedMethod;
 use Nadybot\Core\DBSchema\CmdCfg;
 use Nadybot\Core\Modules\CONFIG\CommandSearchController;
 use Nadybot\Core\Modules\LIMITS\LimitsController;
@@ -14,60 +14,61 @@ use Nadybot\Core\ParamClass\Base;
 use Nadybot\Core\Routing\RoutableMessage;
 use Nadybot\Core\Routing\Source;
 use ReflectionClass;
+use ReflectionMethod;
 use ReflectionNamedType;
 use ReflectionParameter;
 
-/**
- * @Instance
- * @ProvidesEvent("command(forbidden)")
- * @ProvidesEvent("command(success)")
- * @ProvidesEvent("command(unknown)")
- * @ProvidesEvent("command(help)")
- * @ProvidesEvent("command(error)")
- */
+#[
+	NCA\Instance,
+	NCA\ProvidesEvent("command(forbidden)"),
+	NCA\ProvidesEvent("command(success)"),
+	NCA\ProvidesEvent("command(unknown)"),
+	NCA\ProvidesEvent("command(help)"),
+	NCA\ProvidesEvent("command(error)")
+]
 class CommandManager implements MessageEmitter {
 	public const DB_TABLE = "cmdcfg_<myname>";
 
-	/** @Inject */
+	#[NCA\Inject]
 	public DB $db;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Nadybot $chatBot;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public SettingManager $settingManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public AccessManager $accessManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public MessageHub $messageHub;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public EventManager $eventManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public HelpManager $helpManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Text $text;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Util $util;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public SubcommandManager $subcommandManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public CommandSearchController $commandSearchController;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public UsageController $usageController;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public LimitsController $limitsController;
 
-	/** @Logger */
+	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
 	/** @var array<string,array<string,CommandHandler>> $commands */
@@ -75,7 +76,7 @@ class CommandManager implements MessageEmitter {
 
 	protected array $matchClasses = [];
 
-	/** @Setup */
+	#[NCA\Setup]
 	public function setup(): void {
 		$this->messageHub->registerMessageEmitter($this);
 		$this->matchClasses['CHARACTER'] = "[a-zA-Z][a-zA-Z0-9-]{3,11}";
@@ -89,7 +90,6 @@ class CommandManager implements MessageEmitter {
 
 	/**
 	 * Registers a command
-	 *
 	 * @param string   $module        The module that wants to register a new command
 	 * @param null|string $channelName The communication channels for which this command is available.
 	 *                                Any combination of "msg", "priv" or "guild" can be chosen.
@@ -170,7 +170,6 @@ class CommandManager implements MessageEmitter {
 
 	/**
 	 * Activates a command
-	 *
 	 * @param string $channel     The name of the channel  where this command should be activated:
 	 *                            "msg", "priv" or "guild"
 	 * @param string $filename    A comma-separated list of class.method which will handle the command
@@ -202,7 +201,6 @@ class CommandManager implements MessageEmitter {
 
 	/**
 	 * Deactivates a command
-	 *
 	 * @param string $channel  The name of the channel  where this command should be deactivated:
 	 *                         "msg", "priv" or "guild"
 	 * @param string $filename A comma-separated list of class.method which will handle the command
@@ -220,7 +218,6 @@ class CommandManager implements MessageEmitter {
 
 	/**
 	 * update the active/inactive status of a command
-	 *
 	 * @param string      $channel The name of the channel  where this command's status should be changed:
 	 *                             "msg", "priv" or "guild"
 	 * @param string      $cmd     The name of the command
@@ -282,7 +279,6 @@ class CommandManager implements MessageEmitter {
 
 	/**
 	 * Get all command handlers for a command on a specific channel
-	 *
 	 * @return CmdCfg[]
 	 */
 	public function get(string $command, ?string $channel=null): array {
@@ -305,7 +301,6 @@ class CommandManager implements MessageEmitter {
 
 	/**
 	 * Handle an incoming command
-	 *
 	 * @deprecated Please use processCmd() instead
 	 * @throws \Nadybot\Core\StopExecutionException
 	 * @throws \Nadybot\Core\SQLException For SQL errors during command execution
@@ -400,7 +395,6 @@ class CommandManager implements MessageEmitter {
 
 	/**
 	 * Check if the person sending a command has the right to
-	 *
 	 * @param string                $channel        The name of the channel where this command was received:
 	 *                                              "msg", "priv" or "guild"
 	 * @param string                $message        The exact message that was received
@@ -477,6 +471,7 @@ class CommandManager implements MessageEmitter {
 								$args []= null;
 								continue;
 							}
+							/** @var ReflectionNamedType $type */
 							if (is_array($context->args[$var]) && !$params[$i]->isVariadic()) {
 								$context->args[$var] = $context->args[$var][0];
 							}
@@ -571,7 +566,6 @@ class CommandManager implements MessageEmitter {
 
 	/**
 	 * Get the help text for a command
-	 *
 	 * @return string|string[] The help text as one or more pages
 	 */
 	public function getHelpForCommand(string $cmd, string $channel, string $sender) {
@@ -593,12 +587,11 @@ class CommandManager implements MessageEmitter {
 
 	/**
 	 * Check if a received message matches the stored Regexp handler of a method
-	 *
 	 * @return string[]|bool|array<string,string[]> true if there is no regexp defined, false if it didn't match, otherwise an array with the matched results
 	 */
 	public function checkMatches(object $instance, string $method, string $message) {
 		try {
-			$reflectedMethod = new ReflectionAnnotatedMethod($instance, $method);
+			$reflectedMethod = new ReflectionMethod($instance, $method);
 		} catch (ReflectionException $e) {
 			// method doesn't exist (probably handled dynamically)
 			return true;
@@ -624,22 +617,11 @@ class CommandManager implements MessageEmitter {
 
 	/**
 	 * Get all stored regular expression Matches for a function
-	 *
 	 * @return CommandRegexp[]
 	 */
-	public function retrieveRegexes(ReflectionAnnotatedMethod $reflectedMethod): array {
+	public function retrieveRegexes(ReflectionMethod $reflectedMethod): array {
 		$regexes = [];
-		if ($reflectedMethod->hasAnnotation('Matches')) {
-			foreach ($reflectedMethod->getAllAnnotations('Matches') as $annotation) {
-				$regexes []= new CommandRegexp(preg_replace_callback(
-					"/:([A-Z]+)/",
-					function (array $matches): string {
-						return $this->matchClasses[$matches[1]] ?? ":{$matches[1]}";
-					},
-					$annotation->value
-				));
-			}
-		} elseif ($reflectedMethod->hasAnnotation('HandlesCommand')) {
+		if (count($reflectedMethod->getAttributes(NCA\HandlesCommand::class))) {
 			$regexes = $this->getRegexpFromCharClass($reflectedMethod);
 		}
 		return $regexes;
@@ -658,34 +640,33 @@ class CommandManager implements MessageEmitter {
 		}
 		$varName = $param->getName();
 		if ($type->isBuiltin()) {
+			$mask = null;
+			$constAttrs = $param->getAttributes(NCA\Str::class);
+			$regexpAttrs = $param->getAttributes(NCA\Regexp::class);
+			if (!empty($constAttrs)) {
+				/** @var NCA\Str */
+				$constObj = $constAttrs[0]->newInstance();
+				$mask = preg_quote($constObj->value);
+			} elseif (!empty($regexpAttrs)) {
+				/** @var NCA\Regexp */
+				$regexpObj = $regexpAttrs[0]->newInstance();
+				$mask = $regexpObj->value;
+			}
 			switch ($type->getName()) {
 				case "string":
-					$new = "(?<{$varName}>.+)";
-					if (preg_match('/@Mask\s+\$\Q' . $varName . '\E\s+(.+?)(?:\s+\*\/)?$/m', $comment, $masks)) {
-						$default = $masks[1];
-					} elseif ($param->isDefaultValueAvailable()) {
-						$default = $param->getDefaultValue();
-					} else {
-						break;
-					}
-					if (substr($default, 0, 1) === "(" && substr($default, -1) === ")") {
-						$new = "(?<{$varName}>" . substr($default, 1);
-					} else {
-						$new = "(?<{$varName}>" . preg_quote($default) . ")";
-					}
+					$mask ??= ".+";
+					$new = "(?<{$varName}>{$mask})";
 					break;
 				case "int":
-					$mask = '\d+';
-					if (preg_match('/@Mask\s+\$\Q' . $varName . '\E\s+(.+?)(?:\s+\*\/)?$/m', $comment, $masks)) {
-						$mask = $masks[1];
-					}
+					$mask ??= '\d+';
 					$new = "(?<{$varName}>{$mask})";
 					break;
 				case "bool":
 					$new = "(?<{$varName}>true|false|yes|no|on|off|enabled?|disabled?)";
 					break;
 				case "float":
-					$new  = "(?<{$varName}>\d*\.?\d+)";
+					$mask ??= '\d*\.?\d+';
+					$new  = "(?<{$varName}>{$mask})";
 					break;
 			}
 		} else {
@@ -695,7 +676,7 @@ class CommandManager implements MessageEmitter {
 		if (!isset($new)) {
 			return null;
 		}
-		if (preg_match('/@SpaceOptional\s+\$\Q' . $varName . '\E(?:\s+\*\/)?$/m', $comment)) {
+		if (count($param->getAttributes(NCA\SpaceOptional::class))) {
 			$regexp = new CommandRegexp("\\s*{$new}");
 		} else {
 			$regexp = new CommandRegexp("\\s+{$new}");
@@ -717,7 +698,7 @@ class CommandManager implements MessageEmitter {
 	/**
 	 * @return CommandRegexp[]
 	 */
-	public function getRegexpFromCharClass(ReflectionAnnotatedMethod $method): array {
+	public function getRegexpFromCharClass(ReflectionMethod $method): array {
 		$params = $method->getParameters();
 		if (count($params) === 0
 			|| !$params[0]->hasType() ) {
@@ -729,10 +710,13 @@ class CommandManager implements MessageEmitter {
 			return [];
 		}
 		$regexp = [];
-		if ($method->hasAnnotation('HandlesCommand')) {
+		$cmds = $method->getAttributes(NCA\HandlesCommand::class);
+		if (count($cmds)) {
 			$commands = [];
-			foreach ($method->getAllAnnotations("HandlesCommand") as $command) {
-				$commands []= explode(" ", $command->value)[0];
+			foreach ($cmds as $command) {
+				/** @var NCA\HandlesCommand */
+				$cmdObj = $command->newInstance();
+				$commands []= explode(" ", $cmdObj->command)[0];
 			}
 			if (count($commands) === 1) {
 				$regexp = $commands;
@@ -741,6 +725,9 @@ class CommandManager implements MessageEmitter {
 			}
 		}
 		$comment = $method->getDocComment();
+		if ($comment === false) {
+			$comment = "";
+		}
 		$variadic = null;
 		for ($i = 1; $i < count($params); $i++) {
 			$regex = $this->getParamRegexp($params[$i], $comment);

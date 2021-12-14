@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\FUN_MODULE;
 
+use Nadybot\Core\Attributes as NCA;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	CmdContext,
@@ -11,66 +12,66 @@ use Nadybot\Core\{
 
 /**
  * @author Tyrence (RK2)
- *
- * @Instance
- *
  * Commands this controller contains:
- *	@DefineCommand(
- *		command     = 'beer',
- *		accessLevel = 'all',
- *		description = 'Shows a random beer message',
- *		help        = 'fun_module.txt'
- *	)
- *	@DefineCommand(
- *		command     = 'brain',
- *		accessLevel = 'all',
- *		description = 'Shows a random pinky and the brain quote',
- *		help        = 'fun_module.txt',
- *		alias       = 'pinky'
- *	)
- *	@DefineCommand(
- *		command     = 'chuck',
- *		accessLevel = 'all',
- *		description = 'Shows a random Chuck Norris joke',
- *		help        = 'fun_module.txt'
- *	)
- *	@DefineCommand(
- *		command     = 'cybor',
- *		accessLevel = 'all',
- *		description = 'Shows a random cybor message',
- *		help        = 'fun_module.txt'
- *	)
- *	@DefineCommand(
- *		command     = 'dwight',
- *		accessLevel = 'all',
- *		description = 'Shows a random Dwight quote',
- *		help        = 'fun_module.txt'
- *	)
- *	@DefineCommand(
- *		command     = 'fc',
- *		accessLevel = 'all',
- *		description = 'Shows a random FC quote',
- *		help        = 'fun_module.txt'
- *	)
- *	@DefineCommand(
- *		command     = 'homer',
- *		accessLevel = 'all',
- *		description = 'Shows a random homer quote',
- *		help        = 'fun_module.txt'
- *	)
- *	@DefineCommand(
- *		command     = 'pirates',
- *		accessLevel = 'all',
- *		description = 'Shows a random Pirates of the Caribbean quote',
- *		help        = 'fun_module.txt'
- *	)
- *	@DefineCommand(
- *		command     = 'compliment',
- *		accessLevel = 'all',
- *		description = 'Shows a random compliment',
- *		help        = 'fun_module.txt'
- *	)
  */
+#[
+	NCA\Instance,
+	NCA\DefineCommand(
+		command: "beer",
+		accessLevel: "all",
+		description: "Shows a random beer message",
+		help: "fun_module.txt"
+	),
+	NCA\DefineCommand(
+		command: "brain",
+		accessLevel: "all",
+		description: "Shows a random pinky and the brain quote",
+		help: "fun_module.txt",
+		alias: "pinky"
+	),
+	NCA\DefineCommand(
+		command: "chuck",
+		accessLevel: "all",
+		description: "Shows a random Chuck Norris joke",
+		help: "fun_module.txt"
+	),
+	NCA\DefineCommand(
+		command: "cybor",
+		accessLevel: "all",
+		description: "Shows a random cybor message",
+		help: "fun_module.txt"
+	),
+	NCA\DefineCommand(
+		command: "dwight",
+		accessLevel: "all",
+		description: "Shows a random Dwight quote",
+		help: "fun_module.txt"
+	),
+	NCA\DefineCommand(
+		command: "fc",
+		accessLevel: "all",
+		description: "Shows a random FC quote",
+		help: "fun_module.txt"
+	),
+	NCA\DefineCommand(
+		command: "homer",
+		accessLevel: "all",
+		description: "Shows a random homer quote",
+		help: "fun_module.txt"
+	),
+	NCA\DefineCommand(
+		command: "pirates",
+		accessLevel: "all",
+		description: "Shows a random Pirates of the Caribbean quote",
+		help: "fun_module.txt"
+	),
+	NCA\DefineCommand(
+		command: "compliment",
+		accessLevel: "all",
+		description: "Shows a random compliment",
+		help: "fun_module.txt"
+	)
+]
 class FunController {
 
 	/**
@@ -79,15 +80,13 @@ class FunController {
 	 */
 	public string $moduleName;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public DB $db;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Util $util;
 
-	/**
-	 * @Setup
-	 */
+	#[NCA\Setup]
 	public function setup(): void {
 		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations");
 		$this->db->loadCSVFile($this->moduleName, __DIR__ . "/beer.csv");
@@ -127,17 +126,17 @@ class FunController {
 		return $msg;
 	}
 
-	/**
-	 * @HandlesCommand("beer")
-	 * @HandlesCommand("brain")
-	 * @HandlesCommand("chuck")
-	 * @HandlesCommand("cybor")
-	 * @HandlesCommand("dwight")
-	 * @HandlesCommand("fc")
-	 * @HandlesCommand("homer")
-	 * @HandlesCommand("pirates")
-	 * @HandlesCommand("compliment")
-	 */
+	#[
+		NCA\HandlesCommand("beer"),
+		NCA\HandlesCommand("brain"),
+		NCA\HandlesCommand("chuck"),
+		NCA\HandlesCommand("cybor"),
+		NCA\HandlesCommand("dwight"),
+		NCA\HandlesCommand("fc"),
+		NCA\HandlesCommand("homer"),
+		NCA\HandlesCommand("pirates"),
+		NCA\HandlesCommand("compliment")
+	]
 	public function funCommand(CmdContext $context, ?int $num): void {
 		$msg = $this->getFunItem(
 			explode(" ", $context->message)[0],
@@ -147,11 +146,13 @@ class FunController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @NewsTile("fun-compliment")
-	 * @Description("Gives a random motivational compliment")
-	 * @Example("» You inspire be to do good things.")
-	 */
+	#[
+		NCA\NewsTile(
+			name: "fun-compliment",
+			description: "Gives a random motivational compliment",
+			example: "» You inspire be to do good things."
+		)
+	]
 	public function complimentTile(string $sender, callable $callback): void {
 		$msg = "» " . $this->getFunItem('compliment', $sender, null);
 		$callback($msg);

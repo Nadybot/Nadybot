@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\RELAY_MODULE\Layer;
 
+use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\LoggerWrapper;
 use Nadybot\Core\Timer;
 use Nadybot\Core\TimerEvent;
@@ -12,15 +13,28 @@ use Nadybot\Modules\RELAY_MODULE\RelayLayerInterface;
 use Nadybot\Modules\RELAY_MODULE\RelayMessage;
 use Throwable;
 
-/**
- * @RelayStackMember("chunker")
- * @Description("This adds the ability to chunk and re-assemble
- * 	long messages on the fly, so we can send large payloads
- * 	over a medium that only has a limited package size.
- * 	Of course this only works if all Bots use this chunker.")
- * @Param(name='length', description='The maximum supported chunk size', type='int', required=true)
- * @Param(name='timeout', description='How many seconds to wait for all packets to arrive', type='int', required=false)
- */
+#[
+	NCA\RelayStackMember(
+		name: "chunker",
+		description:
+			"This adds the ability to chunk and re-assemble\n".
+			"long messages on the fly, so we can send large payloads\n".
+			"over a medium that only has a limited package size.\n".
+			"Of course this only works if all Bots use this chunker."
+	),
+	NCA\Param(
+		name: "length",
+		type: "int",
+		description: "The maximum supported chunk size",
+		required: true
+	),
+	NCA\Param(
+		name: "timeout",
+		type: "int",
+		description: "How many seconds to wait for all packets to arrive",
+		required: false
+	)
+]
 class Chunker implements RelayLayerInterface {
 	protected int $chunkSize = 50000;
 	protected int $timeout = 60;
@@ -30,15 +44,15 @@ class Chunker implements RelayLayerInterface {
 	/** @var array<string,array<int,Chunk>> */
 	protected $queue = [];
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Timer $timer;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Util $util;
 
 	protected TimerEvent $timerEvent;
 
-	/** @Logger */
+	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
 	public function __construct(int $chunkSize, int $timeout=60) {

@@ -2,18 +2,18 @@
 
 namespace Nadybot\Core;
 
-use Addendum\ReflectionAnnotatedClass;
+use ReflectionClass;
 use Exception;
+use InvalidArgumentException;
+use Nadybot\Core\Attributes as NCA;
 
-/**
- * @Instance
- */
+#[NCA\Instance]
 class Util {
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Nadybot $chatBot;
 
-	/** @Logger */
+	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
 	/** @var string */
@@ -611,35 +611,35 @@ class Util {
 		return 7;
 	}
 
-	public function getClassSpecFromClass(string $class, string $annotation): ?ClassSpec {
-		$reflection = new ReflectionAnnotatedClass($class);
-		if (!$reflection->hasAnnotation($annotation)) {
+	public function getClassSpecFromClass(string $class, string $attrName): ?ClassSpec {
+		if (!is_subclass_of($attrName, NCA\ClassSpec::class)) {
+			throw new InvalidArgumentException("{$attrName} is not a class spec");
+		}
+		$reflection = new ReflectionClass($class);
+		$attrs = $reflection->getAttributes($attrName);
+		if (empty($attrs)) {
 			return null;
 		}
-		$name = $reflection->getAnnotation($annotation)->value;
-		$descriptionAnno = $reflection->getAnnotation('Description');
-		if (isset($descriptionAnno)) {
-			$description = $descriptionAnno->value;
-		}
+		/** @var NCA\ClassSpec */
+		$attrObj = $attrs[0]->newInstance();
+		$name = $attrObj->name;
 		/** @var FunctionParameter[] */
 		$params = [];
 		$i = 1;
-		foreach ($reflection->getAllAnnotations('Param') as $paramAnnotation) {
-			/** @var Param $paramAnnotation */
+		foreach ($reflection->getAttributes(NCA\Param::class) as $paramAttr) {
+			/** @var NCA\Param */
+			$paramObj = $paramAttr->newInstance();
 			$param = new FunctionParameter();
-			if (!isset($paramAnnotation->name)) {
-				throw new Exception("Missing \"name\" for {$class} @Param #{$i}.");
-			}
-			$param->name = $paramAnnotation->name;
-			$param->description = $paramAnnotation->description??null;
-			$param->required = $paramAnnotation->required ?: false;
-			switch ($paramAnnotation->type) {
+			$param->name = $paramObj->name;
+			$param->description = $paramObj->description??null;
+			$param->required = $paramObj->required ?: false;
+			switch ($paramObj->type) {
 				case $param::TYPE_BOOL:
 				case $param::TYPE_SECRET:
 				case $param::TYPE_STRING:
 				case $param::TYPE_INT:
 				case $param::TYPE_STRING_ARRAY:
-					$param->type = $paramAnnotation->type;
+					$param->type = $paramObj->type;
 					break;
 				case "integer":
 					$param->type = $param::TYPE_INT;
@@ -648,14 +648,14 @@ class Util {
 					$param->type = $param::TYPE_BOOL;
 					break;
 				default:
-					throw new Exception("Unknown parameter type {$paramAnnotation->type} in {$class}");
+					throw new Exception("Unknown parameter type {$paramObj->type} in {$class}");
 			}
 			$params []= $param;
 			$i++;
 		}
 		$spec = new ClassSpec($name, $class);
 		$spec->setParameters(...$params);
-		$spec->setDescription($description??null);
+		$spec->setDescription($attrObj->description);
 		return $spec;
 	}
 

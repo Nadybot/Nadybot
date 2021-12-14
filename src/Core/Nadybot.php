@@ -2,8 +2,7 @@
 
 namespace Nadybot\Core;
 
-use Addendum\ReflectionAnnotatedClass;
-use Nadybot\Core\Annotations\DefineCommand;
+use ReflectionClass;
 use Nadybot\Core\Modules\BAN\BanController;
 use Nadybot\Core\Modules\LIMITS\LimitsController;
 use Nadybot\Modules\RELAY_MODULE\RelayController;
@@ -17,6 +16,7 @@ use Nadybot\Core\DBSchema\{
 use Nadybot\Modules\WEBSERVER_MODULE\JsonImporter;
 use Exception;
 use InvalidArgumentException;
+use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\Channels\OrgChannel;
 use Nadybot\Core\Channels\PrivateChannel;
 use Nadybot\Core\Channels\PublicChannel;
@@ -24,6 +24,7 @@ use Nadybot\Core\Channels\PrivateMessage;
 use Nadybot\Core\Routing\Character;
 use Nadybot\Core\Routing\RoutableMessage;
 use Nadybot\Core\Routing\Source;
+use Nadybot\Core\SettingHandler as CoreSettingHandler;
 use Throwable;
 
 /**
@@ -33,62 +34,60 @@ use Throwable;
  * phpcs:disable PSR1.Methods.CamelCapsMethodName.NotCamelCaps
  */
 
-/**
- * @Instance("chatBot")
- */
+#[NCA\Instance("chatBot")]
 class Nadybot extends AOChat {
 
 	public const PING_IDENTIFIER = "Nadybot";
 
-	/** @Inject */
+	#[NCA\Inject]
 	public DB $db;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public CommandManager $commandManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public SubcommandManager $subcommandManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public CommandAlias $commandAlias;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public AccessManager $accessManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public EventManager $eventManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public HelpManager $helpManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public SettingManager $settingManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public BanController $banController;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Text $text;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Util $util;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public LimitsController $limitsController;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public BuddylistManager $buddylistManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public RelayController $relayController;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public SettingObject $setting;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public MessageHub $messageHub;
 
-	/** @Logger */
+	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
 	public BotRunner $runner;
@@ -266,7 +265,12 @@ class Nadybot extends AOChat {
 		}
 
 		$this->buddyListSize += 1000;
-		$this->logger->notice("All Systems ready!");
+		$this->logger->notice("Successfully logged in", [
+			"name" => $this->vars["name"],
+			"login" => $login,
+			"server" => $server,
+			"port" => $port,
+		]);
 		$pc = new PrivateChannel($this->vars["name"]);
 		Registry::injectDependencies($pc);
 		$this->messageHub
@@ -1248,27 +1252,25 @@ class Nadybot extends AOChat {
 	}
 
 	public function registerEvents(string $class): void {
-		$reflection = new ReflectionAnnotatedClass($class);
+		$reflection = new ReflectionClass($class);
 
-		if (!$reflection->hasAnnotation('ProvidesEvent')) {
-			return;
-		}
-		foreach ($reflection->getAllAnnotations('ProvidesEvent') as $eventAnnotation) {
-			$this->eventManager->addEventType($eventAnnotation->value, $eventAnnotation->desc??null);
+		foreach ($reflection->getAttributes(NCA\ProvidesEvent::class) as $eventAttr) {
+			/** @var NCA\ProvidesEvent */
+			$eventObj = $eventAttr->newInstance();
+			$this->eventManager->addEventType($eventObj->event, $eventObj->desc);
 		}
 	}
 
 	public function registerSettingHandlers(string $class): void {
-		if (!is_subclass_of($class, SettingHandler::class)) {
+		if (!is_subclass_of($class, CoreSettingHandler::class)) {
 			return;
 		}
-		$reflection = new ReflectionAnnotatedClass($class);
+		$reflection = new ReflectionClass($class);
 
-		if (!$reflection->hasAnnotation('SettingHandler')) {
-			return;
-		}
-		foreach ($reflection->getAllAnnotations('SettingHandler') as $settingAnnotation) {
-			$this->settingManager->registerSettingHandler($settingAnnotation->value, $class);
+		foreach ($reflection->getAttributes(NCA\SettingHandler::class) as $settingAttr) {
+			/** @var NCA\SettingHandler */
+			$AttrObj = $settingAttr->newInstance();
+			$this->settingManager->registerSettingHandler($AttrObj->name, $class);
 		}
 	}
 
@@ -1283,85 +1285,66 @@ class Nadybot extends AOChat {
 		$moduleName = $obj->moduleName;
 
 		// register settings annotated on the class
-		$reflection = new ReflectionAnnotatedClass($obj);
-		foreach ($reflection->getProperties() as $property) {
-			/** @var \Addendum\ReflectionAnnotatedProperty $property */
-			if ($property->hasAnnotation('Setting')) {
-				$this->settingManager->add(
-					$moduleName,
-					$property->getAnnotation('Setting')->value,
-					$property->getAnnotation('Description')->value,
-					$property->getAnnotation('Visibility')->value,
-					$property->getAnnotation('Type')->value,
-					$obj->{$property->name},
-					@$property->getAnnotation('Options')->value,
-					@$property->getAnnotation('Intoptions')->value,
-					@$property->getAnnotation('AccessLevel')->value,
-					@$property->getAnnotation('Help')->value
-				);
-			}
-		}
+		$reflection = new ReflectionClass($obj);
 
 		// register commands, subcommands, and events annotated on the class
 		$commands = [];
 		$subcommands = [];
-		foreach ($reflection->getAllAnnotations() as $annotation) {
-			if ($annotation instanceof DefineCommand) {
-				if (!isset($annotation->command)) {
-					$this->logger->warning("Cannot parse @DefineCommand annotation in '$name'.");
-					continue;
-				}
-				$command = $annotation->command;
-				$definition = [
-					'channels'      => $annotation->channels,
-					'defaultStatus' => $annotation->defaultStatus,
-					'accessLevel'   => $annotation->accessLevel??"mod",
-					'description'   => $annotation->description,
-					'help'          => $annotation->help,
-					'handlers'      => []
-				];
-				[$parentCommand, $subCommand] = explode(" ", $command . " ", 2);
-				if ($subCommand !== "") {
-					$definition['parentCommand'] = $parentCommand;
-					$subcommands[$command] = $definition;
-				} else {
-					$commands[$command] = $definition;
-				}
-				// register command alias if defined
-				if ($annotation->alias) {
-					$this->commandAlias->register($moduleName, $command, $annotation->alias);
-				}
+		foreach ($reflection->getAttributes(NCA\DefineCommand::class) as $attribute) {
+			/** @var NCA\DefineCommand */
+			$attribute = $attribute->newInstance();
+			$command = $attribute->command;
+			$definition = [
+				'channels'      => $attribute->channels,
+				'defaultStatus' => $attribute->defaultStatus,
+				'accessLevel'   => $attribute->accessLevel??"mod",
+				'description'   => $attribute->description,
+				'help'          => $attribute->help,
+				'handlers'      => []
+			];
+			[$parentCommand, $subCommand] = explode(" ", $command . " ", 2);
+			if ($subCommand !== "") {
+				$definition['parentCommand'] = $parentCommand;
+				$subcommands[$command] = $definition;
+			} else {
+				$commands[$command] = $definition;
+			}
+			// register command alias if defined
+			if ($attribute->alias) {
+				$this->commandAlias->register($moduleName, $command, $attribute->alias);
 			}
 		}
 
 		foreach ($reflection->getMethods() as $method) {
-			/** @var \Addendum\ReflectionAnnotatedMethod $method */
-			if ($method->hasAnnotation('Setup')) {
+			if (count($method->getAttributes(NCA\Setup::class))) {
 				if (call_user_func([$obj, $method->name]) === false) {
 					$this->logger->error("Failed to call setup handler for '$name'");
 				}
-			} elseif ($method->hasAnnotation('HandlesCommand')) {
-				foreach ($method->getAllAnnotations('HandlesCommand') as $command) {
-					$commandName = $command->value;
-					$handlerName = "{$name}.{$method->name}";
-					if (isset($commands[$commandName])) {
-						$commands[$commandName]['handlers'][] = $handlerName;
-					} elseif (isset($subcommands[$commandName])) {
-						$subcommands[$commandName]['handlers'][] = $handlerName;
-					} else {
-						$this->logger->warning("Cannot handle command '$commandName' as it is not defined with @DefineCommand in '$name'.");
-					}
+			}
+			foreach ($method->getAttributes(NCA\HandlesCommand::class) as $command) {
+				/** @var NCA\HandlesCommand */
+				$command = $command->newInstance();
+				$commandName = $command->command;
+				$handlerName = "{$name}.{$method->name}";
+				if (isset($commands[$commandName])) {
+					$commands[$commandName]['handlers'][] = $handlerName;
+				} elseif (isset($subcommands[$commandName])) {
+					$subcommands[$commandName]['handlers'][] = $handlerName;
+				} else {
+					$this->logger->warning("Cannot handle command '$commandName' as it is not defined with #[DefineCommand] in '$name'.");
 				}
-			} elseif ($method->hasAnnotation('Event')) {
-				foreach ($method->getAllAnnotations('Event') as $eventAnnotation) {
-					$defaultStatus = @$method->getAnnotation('DefaultStatus')->value;
+			}
+			foreach ($method->getAttributes(NCA\Event::class) as $eventAnnotation) {
+				/** @var NCA\Event */
+				$event = $eventAnnotation->newInstance();
+				foreach ((array)$event->name as $eventName) {
 					$this->eventManager->register(
 						$moduleName,
-						$eventAnnotation->value,
+						$eventName,
 						$name . '.' . $method->name,
-						@$method->getAnnotation('Description')->value ?? "none",
-						@$method->getAnnotation('Help')->value,
-						isset($defaultStatus) ? (int)$defaultStatus : null
+						$event->description,
+						$event->help,
+						$event->defaultStatus
 					);
 				}
 			}
@@ -1407,13 +1390,13 @@ class Nadybot extends AOChat {
 	 * Call the setup method for an object
 	 */
 	public function callSetupMethod(string $name, object $obj): void {
-		$reflection = new ReflectionAnnotatedClass($obj);
+		$reflection = new ReflectionClass($obj);
 		foreach ($reflection->getMethods() as $method) {
-			/** @var \Addendum\ReflectionAnnotatedMethod $method */
-			if ($method->hasAnnotation('Setup')) {
-				if (call_user_func([$obj, $method->name]) === false) {
-					$this->logger->error("Failed to call setup handler for '$name'");
-				}
+			if (empty($method->getAttributes(NCA\Setup::class))) {
+				continue;
+			}
+			if (call_user_func([$obj, $method->name]) === false) {
+				$this->logger->error("Failed to call setup handler for '$name'");
 			}
 		}
 	}
