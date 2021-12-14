@@ -34,12 +34,12 @@ use Nadybot\Modules\HELPBOT_MODULE\PlayfieldController;
 		help: "rally.txt"
 	),
 	NCA\ProvidesEvent(
+		event: "sync(rally-set)",
 		desc: "Triggered when a rally point is set",
-		value: "sync(rally-set)"
 	),
 	NCA\ProvidesEvent(
+		event: "sync(rally-clear)",
 		desc: "Triggered when someone clears the rally point",
-		value: "sync(rally-clear)"
 	)
 ]
 class ChatRallyController {

@@ -86,12 +86,12 @@ use Nadybot\Core\{
 		help: "gauntlet.txt"
 	),
 	NCA\ProvidesEvent(
+		event: "sync(worldboss)",
 		desc: "Triggered when the spawntime of a worldboss is set manually",
-		value: "sync(worldboss)"
 	),
 	NCA\ProvidesEvent(
+		event: "sync(worldboss-delete)",
 		desc: "Triggered when the timer for a worldboss is deleted",
-		value: "sync(worldboss-delete)"
 	)
 ]
 class WorldBossController {

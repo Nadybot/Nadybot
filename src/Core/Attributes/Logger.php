@@ -6,6 +6,6 @@ use Attribute;
 
 #[Attribute(Attribute::TARGET_PROPERTY)]
 class Logger {
-	public function __construct(public ?string $value=null) {
+	public function __construct(public ?string $tag=null) {
 	}
 }

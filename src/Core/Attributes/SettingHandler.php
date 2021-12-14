@@ -6,6 +6,6 @@ use Attribute;
 
 #[Attribute(Attribute::TARGET_CLASS)]
 class SettingHandler {
-	public function __construct(public string $value) {
+	public function __construct(public string $name) {
 	}
 }

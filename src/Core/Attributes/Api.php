@@ -6,6 +6,6 @@ use Attribute;
 
 #[Attribute(Attribute::TARGET_METHOD)]
 class Api {
-	public function __construct(public string $value) {
+	public function __construct(public string $path) {
 	}
 }

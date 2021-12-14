@@ -50,8 +50,8 @@ use Nadybot\Core\ParamClass\PRemove;
 	NCA\ProvidesEvent("timer(end)"),
 	NCA\ProvidesEvent("timer(del)"),
 	NCA\ProvidesEvent(
+		event: "sync(timer)",
 		desc: "Triggered when a new timer is created with the timer command",
-		value: "sync(timer)"
 	)
 ]
 class TimerController implements MessageEmitter {

@@ -71,7 +71,7 @@ class ApiSpecGenerator {
 						$param = array_shift($params);
 						return '{' . $param->getName() . '}';
 					},
-					$apiAttr->value
+					$apiAttr->path
 				);
 				$paths[$path] ??= [];
 				$paths[$path] []= $method;

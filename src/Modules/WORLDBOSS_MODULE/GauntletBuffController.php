@@ -43,8 +43,8 @@ use Nadybot\Modules\TIMERS_MODULE\TimerController;
 		help: "gaubuff.txt"
 	),
 	NCA\ProvidesEvent(
+		event: "sync(gaubuff)",
 		desc: "Triggered when someone sets the gauntlet buff for either side",
-		value: "sync(gaubuff)"
 	)
 ]
 class GauntletBuffController implements MessageEmitter {

@@ -65,7 +65,7 @@ class Registry {
 			if (count($injectAttrs)) {
 				/** @var NCA\Inject */
 				$injectAttr = $injectAttrs[0]->newInstance();
-				$dependencyName = $injectAttr->value ?? $property->name;
+				$dependencyName = $injectAttr->instance ?? $property->name;
 				$dependency = Registry::getInstance($dependencyName);
 				if ($dependency === null) {
 					static::getLogger()->warning("Could not resolve dependency '$dependencyName' in '" . get_class($instance) ."'");
@@ -79,8 +79,8 @@ class Registry {
 			if (count($loggerAttrs)) {
 				/** @var NCA\Logger */
 				$loggerAttr = $loggerAttrs[0]->newInstance();
-				if (isset($loggerAttr->value)) {
-					$tag = $loggerAttr->value;
+				if (isset($loggerAttr->tag)) {
+					$tag = $loggerAttr->tag;
 				} else {
 					$array = explode("\\", $reflection->name);
 					if (preg_match("/^Nadybot\\\\Modules\\\\/", $reflection->name)) {

@@ -117,12 +117,12 @@ use Nadybot\Modules\{
 	NCA\ProvidesEvent("tower(attack)"),
 	NCA\ProvidesEvent("tower(win)"),
 	NCA\ProvidesEvent(
+		event: "sync(scout)",
 		desc: "Triggered whenever someone manually scouts a site",
-		value: "sync(scout)"
 	),
 	NCA\ProvidesEvent(
+		event: "sync(remscout)",
 		desc: "Triggered when marking a site as in need of scouting",
-		value: "sync(remscout)"
 	)
 ]
 class TowerController {

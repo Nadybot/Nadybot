@@ -1257,7 +1257,7 @@ class Nadybot extends AOChat {
 		foreach ($reflection->getAttributes(NCA\ProvidesEvent::class) as $eventAttr) {
 			/** @var NCA\ProvidesEvent */
 			$eventObj = $eventAttr->newInstance();
-			$this->eventManager->addEventType($eventObj->value, $eventObj->desc);
+			$this->eventManager->addEventType($eventObj->event, $eventObj->desc);
 		}
 	}
 
@@ -1270,7 +1270,7 @@ class Nadybot extends AOChat {
 		foreach ($reflection->getAttributes(NCA\SettingHandler::class) as $settingAttr) {
 			/** @var NCA\SettingHandler */
 			$AttrObj = $settingAttr->newInstance();
-			$this->settingManager->registerSettingHandler($AttrObj->value, $class);
+			$this->settingManager->registerSettingHandler($AttrObj->name, $class);
 		}
 	}
 
@@ -1324,7 +1324,7 @@ class Nadybot extends AOChat {
 			foreach ($method->getAttributes(NCA\HandlesCommand::class) as $command) {
 				/** @var NCA\HandlesCommand */
 				$command = $command->newInstance();
-				$commandName = $command->value;
+				$commandName = $command->command;
 				$handlerName = "{$name}.{$method->name}";
 				if (isset($commands[$commandName])) {
 					$commands[$commandName]['handlers'][] = $handlerName;

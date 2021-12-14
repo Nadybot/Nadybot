@@ -241,9 +241,10 @@ class ApiController {
 				}
 				$routes = [];
 				foreach ($apiAttrs as $apiAttr) {
+					/** @var NCA\Api */
 					$apiObj = $apiAttr->newInstance();
-					if (isset($apiObj->value)) {
-						$routes []= $apiObj->value;
+					if (isset($apiObj->path)) {
+						$routes []= $apiObj->path;
 					}
 				}
 				$accessLevelFrom = null;
@@ -251,9 +252,13 @@ class ApiController {
 				$alFromAttribs = $method->getAttributes(NCA\AccessLevelFrom::class);
 				$alAttribs = $method->getAttributes(NCA\AccessLevel::class);
 				if (count($alFromAttribs)) {
-					$accessLevelFrom = $alFromAttribs[0]->newInstance()->value;
+					/** @var NCA\AccessLevelFrom */
+					$alFromObj = $alFromAttribs[0]->newInstance();
+					$accessLevelFrom = $alFromObj->value;
 				} elseif (count($alAttribs)) {
-					$accessLevel = $alAttribs[0]->newInstance()->value;
+					/** @var NCA\AccessLevel */
+					$alObj = $alAttribs[0]->newInstance();
+					$accessLevel = $alObj->value;
 				}
 				$verbAttrs = $method->getAttributes(NCA\VERB::class, ReflectionAttribute::IS_INSTANCEOF);
 				if (empty($verbAttrs)) {

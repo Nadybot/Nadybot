@@ -26,8 +26,8 @@ use Nadybot\Core\{
 		alias: "cd"
 	),
 	NCA\ProvidesEvent(
+		event: "sync(cd)",
 		desc: "Triggered when someone starts a countdown",
-		value: "sync(cd)"
 	)
 ]
 class CountdownController {
