@@ -163,13 +163,13 @@ class RelayController {
 	public function setup(): void {
 		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations");
 		$this->settingManager->add(
-			$this->moduleName,
-			'relay_guild_abbreviation',
-			'Abbreviation to use for org name',
-			'edit',
-			'text',
-			'none',
-			'none'
+			module: $this->moduleName,
+			name: 'relay_guild_abbreviation',
+			description: 'Abbreviation to use for org name',
+			mode: 'edit',
+			type: 'text',
+			value: 'none',
+			options: 'none'
 		);
 		$this->loadStackComponents();
 	}

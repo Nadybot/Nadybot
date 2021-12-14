@@ -131,78 +131,79 @@ class TrackerController implements MessageEmitter {
 		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations");
 
 		$this->settingManager->add(
-			$this->moduleName,
-			'tracker_layout',
-			'How to show if a tracked person logs on/off',
-			'edit',
-			'options',
-			'0',
-			'TRACK: "info" logged on/off.;+/- "info"',
-			'0;1',
-			'mod',
+			module: $this->moduleName,
+			name: 'tracker_layout',
+			description: 'How to show if a tracked person logs on/off',
+			mode: 'edit',
+			type: 'options',
+			value: '0',
+			options: 'TRACK: "info" logged on/off.;+/- "info"',
+			intoptions: '0;1',
+			accessLevel: 'mod',
 		);
 		$this->settingManager->add(
-			$this->moduleName,
-			'tracker_use_faction_color',
-			"Use faction color for the name of the tracked person",
-			'edit',
-			'options',
-			'0',
-			'true;false',
-			'1;0',
-			'mod',
+			module: $this->moduleName,
+			name: 'tracker_use_faction_color',
+			description: "Use faction color for the name of the tracked person",
+			mode: 'edit',
+			type: 'options',
+			value: '0',
+			options: 'true;false',
+			intoptions: '1;0',
+			accessLevel: 'mod',
 		);
 		$this->settingManager->add(
-			$this->moduleName,
-			'tracker_show_level',
-			"Show the tracked person's level",
-			'edit',
-			'options',
-			'0',
-			'true;false',
-			'1;0',
-			'mod',
+			module: $this->moduleName,
+			name: 'tracker_show_level',
+			description: "Show the tracked person's level",
+			mode: 'edit',
+			type: 'options',
+			value: '0',
+			options: 'true;false',
+			intoptions: '1;0',
+			accessLevel: 'mod',
 		);
 		$this->settingManager->add(
-			$this->moduleName,
-			'tracker_show_prof',
-			"Show the tracked person's profession",
-			'edit',
-			'options',
-			'0',
-			'true;false',
-			'1;0',
-			'mod',
+			module: $this->moduleName,
+			name: 'tracker_show_prof',
+			description: "Show the tracked person's profession",
+			mode: 'edit',
+			type: 'options',
+			value: '0',
+			options: 'true;false',
+			intoptions: '1;0',
+			accessLevel: 'mod',
 		);
 		$this->settingManager->add(
-			$this->moduleName,
-			'tracker_show_org',
-			"Show the tracked person's org",
-			'edit',
-			'options',
-			'0',
-			'true;false',
-			'1;0',
-			'mod',
+			module: $this->moduleName,
+			name: 'tracker_show_org',
+			description: "Show the tracked person's org",
+			mode: 'edit',
+			type: 'options',
+			value: '0',
+			options: 'true;false',
+			intoptions: '1;0',
+			accessLevel: 'mod',
 		);
 		$this->settingManager->add(
-			$this->moduleName,
-			"tracker_group_by",
-			"Group online list by",
-			"edit",
-			"options",
-			"1",
-			"do not group;title level;profession",
-			"0;1;2"
+			module: $this->moduleName,
+			name: "tracker_group_by",
+			description: "Group online list by",
+			mode: "edit",
+			type: "options",
+			value: "1",
+			options: "do not group;title level;profession",
+			intoptions: "0;1;2"
 		);
 		$this->settingManager->add(
-			$this->moduleName,
-			"tracker_add_attackers",
-			"Automatically track tower field attackers",
-			"edit",
-			"options",
-			"0",
-			"Off".
+			module: $this->moduleName,
+			name: "tracker_add_attackers",
+			description: "Automatically track tower field attackers",
+			mode: "edit",
+			type: "options",
+			value: "0",
+			options:
+				"Off".
 				";Attacking my own org's tower fields".
 				";Attacking tower fields of bot members".
 				";Attacking Clan fields".
@@ -212,7 +213,7 @@ class TrackerController implements MessageEmitter {
 				";Attacking Non-Omni fields".
 				";Attacking Non-Neutral fields".
 				";All",
-			"0;1;2;4;8;16;24;20;12;28"
+			intoptions: "0;1;2;4;8;16;24;20;12;28"
 		);
 		$this->messageHub->registerMessageEmitter($this);
 	}

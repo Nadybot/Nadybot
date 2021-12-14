@@ -91,95 +91,95 @@ class RaffleController {
 	public function setup(): void {
 		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations");
 		$this->settingManager->add(
-			$this->moduleName,
-			"defaultraffletime",
-			"Time after which a raffle ends automatically (if enabled)",
-			"edit",
-			"time",
-			'3m',
-			'1m;2m;3m;4m;5m',
-			'',
-			'mod',
-			"raffle.txt"
+			module: $this->moduleName,
+			name: "defaultraffletime",
+			description: "Time after which a raffle ends automatically (if enabled)",
+			mode: "edit",
+			type: "time",
+			value: '3m',
+			options: '1m;2m;3m;4m;5m',
+			intoptions: '',
+			accessLevel: 'mod',
+			help: "raffle.txt"
 		);
 		$this->settingManager->add(
-			$this->moduleName,
-			"raffle_ends_automatically",
-			"Should raffles end automatically after some time?",
-			"edit",
-			"options",
-			'1',
-			'true;false',
-			'1;0',
-			'mod',
-			"raffle.txt"
+			module: $this->moduleName,
+			name: "raffle_ends_automatically",
+			description: "Should raffles end automatically after some time?",
+			mode: "edit",
+			type: "options",
+			value: '1',
+			options: 'true;false',
+			intoptions: '1;0',
+			accessLevel: 'mod',
+			help: "raffle.txt"
 		);
 		$this->settingManager->add(
-			$this->moduleName,
-			"raffle_announce_frequency",
-			"How much time between each raffle announcement",
-			"edit",
-			"time",
-			'30s',
-			'10s;20s;30s;45s;1m;2m;3m;4m;5m;10m',
-			'',
-			'mod',
-			"raffle.txt"
+			module: $this->moduleName,
+			name: "raffle_announce_frequency",
+			description: "How much time between each raffle announcement",
+			mode: "edit",
+			type: "time",
+			value: '30s',
+			options: '10s;20s;30s;45s;1m;2m;3m;4m;5m;10m',
+			intoptions: '',
+			accessLevel: 'mod',
+			help: "raffle.txt"
 		);
 		$this->settingManager->add(
-			$this->moduleName,
-			"raffle_announce_participants",
-			"Announce whenever someone joins or leaves the raffle",
-			"edit",
-			"options",
-			'1',
-			"true;false",
-			"1;0",
-			'mod',
-			"raffle.txt"
+			module: $this->moduleName,
+			name: "raffle_announce_participants",
+			description: "Announce whenever someone joins or leaves the raffle",
+			mode: "edit",
+			type: "options",
+			value: '1',
+			options: "true;false",
+			intoptions: "1;0",
+			accessLevel: 'mod',
+			help: "raffle.txt"
 		);
 		$this->settingManager->add(
-			$this->moduleName,
-			"raffle_bonus_per_loss",
-			"Bonus to next roll for a lost raffle",
-			"edit",
-			"options",
-			'0',
-			"0;1;2;5;10",
-			"0;1;2;5;10",
-			'mod',
-			"raffle.txt"
+			module: $this->moduleName,
+			name: "raffle_bonus_per_loss",
+			description: "Bonus to next roll for a lost raffle",
+			mode: "edit",
+			type: "options",
+			value: '0',
+			options: "0;1;2;5;10",
+			intoptions: "0;1;2;5;10",
+			accessLevel: 'mod',
+			help: "raffle.txt"
 		);
 		$this->settingManager->add(
-			$this->moduleName,
-			"share_raffle_bonus_on_alts",
-			"Share raffle bonus points between alts",
-			"edit",
-			"options",
-			'1',
-			"true;false",
-			"1;0",
-			'mod',
-			"raffle.txt"
+			module: $this->moduleName,
+			name: "share_raffle_bonus_on_alts",
+			description: "Share raffle bonus points between alts",
+			mode: "edit",
+			type: "options",
+			value: '1',
+			options: "true;false",
+			intoptions: "1;0",
+			accessLevel: 'mod',
+			help: "raffle.txt"
 		);
 		$this->settingManager->add(
-			$this->moduleName,
-			"raffle_allow_only_raiders",
-			"If a raid is running, only raiders may join the raffle",
-			"edit",
-			"options",
-			'0',
-			"true;false",
-			"1;0",
-			'mod'
+			module: $this->moduleName,
+			name: "raffle_allow_only_raiders",
+			description: "If a raid is running, only raiders may join the raffle",
+			mode: "edit",
+			type: "options",
+			value: '0',
+			options: "true;false",
+			intoptions: "1;0",
+			accessLevel: 'mod'
 		);
 		$this->settingManager->add(
-			$this->moduleName,
-			"raffle_cancelother_rank",
-			"Rank required to cancel other people's raffle",
-			"edit",
-			"rank",
-			'mod'
+			module: $this->moduleName,
+			name: "raffle_cancelother_rank",
+			description: "Rank required to cancel other people's raffle",
+			mode: "edit",
+			type: "rank",
+			value: 'mod'
 		);
 		$this->commandAlias->register($this->moduleName, "raffleadmin start", "raffle start");
 		$this->commandAlias->register($this->moduleName, "raffleadmin end", "raffle end");

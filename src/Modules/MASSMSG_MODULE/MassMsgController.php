@@ -87,12 +87,12 @@ class MassMsgController {
 	#[NCA\Setup]
 	public function setup(): void {
 		$this->settingManager->add(
-			$this->moduleName,
-			"massmsg_color",
-			"Color for mass messages/invites",
-			"edit",
-			"color",
-			"<font color='#FF9999'>",
+			module: $this->moduleName,
+			name: "massmsg_color",
+			description: "Color for mass messages/invites",
+			mode: "edit",
+			type: "color",
+			value: "<font color='#FF9999'>",
 		);
 	}
 

@@ -63,14 +63,14 @@ class ArulSabaController {
 		$this->db->loadCSVFile($this->moduleName, __DIR__ . "/arulsaba_buffs.csv");
 		$this->db->loadCSVFile($this->moduleName, __DIR__ . "/ingredient.csv");
 		$this->settingManager->add(
-			$this->moduleName,
-			'arulsaba_show_images',
-			"Show images for the Arul Saba steps",
-			"edit",
-			"options",
-			"2",
-			"yes, with links;yes;no",
-			"2;1;0"
+			module: $this->moduleName,
+			name: 'arulsaba_show_images',
+			description: "Show images for the Arul Saba steps",
+			mode: "edit",
+			type: "options",
+			value: "2",
+			options: "yes, with links;yes;no",
+			intoptions: "2;1;0"
 		);
 	}
 

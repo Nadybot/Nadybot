@@ -100,14 +100,14 @@ class GSPController implements MessageEmitter {
 	public function setup(): void {
 		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations");
 		$this->settingManager->add(
-			$this->moduleName,
-			"gsp_show_logon",
-			"Show on logon if there is a running GSP show",
-			"edit",
-			"options",
-			"1",
-			"true;false",
-			"1;0"
+			module: $this->moduleName,
+			name: "gsp_show_logon",
+			description: "Show on logon if there is a running GSP show",
+			mode: "edit",
+			type: "options",
+			value: "1",
+			options: "true;false",
+			intoptions: "1;0"
 		);
 		$this->messageHub->registerMessageEmitter($this);
 	}

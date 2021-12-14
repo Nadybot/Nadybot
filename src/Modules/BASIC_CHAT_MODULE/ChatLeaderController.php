@@ -65,22 +65,22 @@ class ChatLeaderController {
 	#[NCA\Setup]
 	public function setup(): void {
 		$this->settingManager->add(
-			$this->moduleName,
-			"leaderecho",
-			"Repeat the text of the leader",
-			"edit",
-			"options",
-			"1",
-			"true;false",
-			"1;0"
+			module: $this->moduleName,
+			name: "leaderecho",
+			description: "Repeat the text of the leader",
+			mode: "edit",
+			type: "options",
+			value: "1",
+			options: "true;false",
+			intoptions: "1;0"
 		);
 		$this->settingManager->add(
-			$this->moduleName,
-			"leaderecho_color",
-			"Color for leader echo",
-			"edit",
-			"color",
-			"<font color=#FFFF00>",
+			module: $this->moduleName,
+			name: "leaderecho_color",
+			description: "Color for leader echo",
+			mode: "edit",
+			type: "color",
+			value: "<font color=#FFFF00>",
 		);
 	}
 

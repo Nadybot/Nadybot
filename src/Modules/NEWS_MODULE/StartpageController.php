@@ -123,34 +123,34 @@ class StartpageController {
 			}
 		}
 		$this->settingManager->add(
-			$this->moduleName,
-			"startpage_layout",
-			"The tiles to show on the startpage",
-			"noedit",
-			"text",
-			""
+			module: $this->moduleName,
+			name: "startpage_layout",
+			description: "The tiles to show on the startpage",
+			mode: "noedit",
+			type: "text",
+			value: ""
 		);
 		$this->settingManager->add(
-			$this->moduleName,
-			"startpage_startmsg",
-			"The message when sending the startpage to people",
-			"edit",
-			"text",
-			"Welcome, {name}!",
-			"",
-			"",
-			"mod",
-			"startpage_startmsg.txt"
+			module: $this->moduleName,
+			name: "startpage_startmsg",
+			description: "The message when sending the startpage to people",
+			mode: "edit",
+			type: "text",
+			value: "Welcome, {name}!",
+			options: "",
+			intoptions: "",
+			accessLevel: "mod",
+			help: "startpage_startmsg.txt"
 		);
 		$this->settingManager->add(
-			$this->moduleName,
-			"startpage_show_members",
-			"When to show non-org-members the startpage",
-			"edit",
-			"options",
-			"2",
-			"Do not show to non-org-members;When Logging in;When joining the private channel",
-			"0;1;2",
+			module: $this->moduleName,
+			name: "startpage_show_members",
+			description: "When to show non-org-members the startpage",
+			mode: "edit",
+			type: "options",
+			value: "2",
+			options: "Do not show to non-org-members;When Logging in;When joining the private channel",
+			intoptions: "0;1;2",
 		);
 	}
 

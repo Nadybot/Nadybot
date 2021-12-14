@@ -93,15 +93,15 @@ class WhoisController {
 		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations");
 
 		$this->settingManager->add(
-			$this->moduleName,
-			'whois_add_comments',
-			'Add link to comments if found',
-			'edit',
-			'options',
-			'1',
-			'true;false',
-			'1;0',
-			'mod'
+			module: $this->moduleName,
+			name: 'whois_add_comments',
+			description: 'Add link to comments if found',
+			mode: 'edit',
+			type: 'options',
+			value: '1',
+			options: 'true;false',
+			intoptions: '1;0',
+			accessLevel: 'mod'
 		);
 
 		$this->commandAlias->register($this->moduleName, "whois", "w");

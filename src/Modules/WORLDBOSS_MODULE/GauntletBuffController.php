@@ -97,35 +97,35 @@ class GauntletBuffController implements MessageEmitter {
 	#[NCA\Setup]
 	public function setup(): void {
 		$this->settingManager->add(
-			$this->moduleName,
-			'gaubuff_times',
-			'Times to display gaubuff timer alerts',
-			'edit',
-			'text',
-			'30m 10m',
-			'30m 10m',
-			'',
-			'mod',
-			'gau_times.txt'
+			module: $this->moduleName,
+			name: 'gaubuff_times',
+			description: 'Times to display gaubuff timer alerts',
+			mode: 'edit',
+			type: 'text',
+			value: '30m 10m',
+			options: '30m 10m',
+			intoptions: '',
+			accessLevel: 'mod',
+			help: 'gau_times.txt'
 		);
 		$this->settingManager->add(
-			$this->moduleName,
-			"gaubuff_logon",
-			"Show gaubuff timer on logon",
-			"edit",
-			"options",
-			"1",
-			"true;false",
-			"1;0"
+			module: $this->moduleName,
+			name: "gaubuff_logon",
+			description: "Show gaubuff timer on logon",
+			mode: "edit",
+			type: "options",
+			value: "1",
+			options: "true;false",
+			intoptions: "1;0"
 		);
 		$this->settingManager->add(
-			$this->moduleName,
-			"gaubuff_default_side",
-			"Gauntlet buff side if none specified for gaubuff",
-			"edit",
-			"options",
-			"none",
-			"none;clan;omni"
+			module: $this->moduleName,
+			name: "gaubuff_default_side",
+			description: "Gauntlet buff side if none specified for gaubuff",
+			mode: "edit",
+			type: "options",
+			value: "none",
+			options: "none;clan;omni"
 		);
 		$this->messageHub->registerMessageEmitter($this);
 		$this->settingManager->registerChangeListener(

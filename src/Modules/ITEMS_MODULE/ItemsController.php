@@ -72,13 +72,13 @@ class ItemsController {
 		$this->db->loadCSVFile($this->moduleName, __DIR__ . "/item_group_names.csv");
 
 		$this->settingManager->add(
-			$this->moduleName,
-			'maxitems',
-			'Number of items shown on the list',
-			'edit',
-			'number',
-			'40',
-			'30;40;50;60'
+			module: $this->moduleName,
+			name: 'maxitems',
+			description: 'Number of items shown on the list',
+			mode: 'edit',
+			type: 'number',
+			value: '40',
+			options: '30;40;50;60'
 		);
 	}
 

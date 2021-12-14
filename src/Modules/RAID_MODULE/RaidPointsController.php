@@ -130,30 +130,30 @@ class RaidPointsController {
 	#[NCA\Setup]
 	public function setup(): void {
 		$this->settingManager->add(
-			$this->moduleName,
-			"raid_share_points",
-			"Share raid points across all alts",
-			"edit",
-			"options",
-			"1",
-			"true;false",
-			"1;0"
+			module: $this->moduleName,
+			name: "raid_share_points",
+			description: "Share raid points across all alts",
+			mode: "edit",
+			type: "options",
+			value: "1",
+			options: "true;false",
+			intoptions: "1;0"
 		);
 		$this->settingManager->add(
-			$this->moduleName,
-			"raid_top_amount",
-			"How many raiders to show in top list",
-			"edit",
-			"number",
-			"25"
+			module: $this->moduleName,
+			name: "raid_top_amount",
+			description: "How many raiders to show in top list",
+			mode: "edit",
+			type: "number",
+			value: "25"
 		);
 		$this->settingManager->add(
-			$this->moduleName,
-			"raid_points_reason_min_length",
-			"Minimum length required for points add/rem",
-			"edit",
-			"number",
-			"10"
+			module: $this->moduleName,
+			name: "raid_points_reason_min_length",
+			description: "Minimum length required for points add/rem",
+			mode: "edit",
+			type: "number",
+			value: "10"
 		);
 		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations/Points");
 		$this->commandAlias->register($this->moduleName, "reward", "rewards");

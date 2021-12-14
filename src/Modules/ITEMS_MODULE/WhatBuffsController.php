@@ -77,34 +77,34 @@ class WhatBuffsController {
 		$this->db->loadCSVFile($this->moduleName, __DIR__ . "/buffs.csv");
 
 		$this->settingManager->add(
-			$this->moduleName,
-			'whatbuffs_display',
-			'How to mark if an item can only be equipped left or right',
-			'edit',
-			'options',
-			'2',
-			'Do not mark;L/R;L-Wrist/R-Wrist',
-			'0;1;2',
+			module: $this->moduleName,
+			name: 'whatbuffs_display',
+			description: 'How to mark if an item can only be equipped left or right',
+			mode: 'edit',
+			type: 'options',
+			value: '2',
+			options: 'Do not mark;L/R;L-Wrist/R-Wrist',
+			intoptions: '0;1;2',
 		);
 		$this->settingManager->add(
-			$this->moduleName,
-			'whatbuffs_show_unique',
-			'How to mark unique items',
-			'edit',
-			'options',
-			'2',
-			'Do not mark;U;Unique',
-			'0;1;2',
+			module: $this->moduleName,
+			name: 'whatbuffs_show_unique',
+			description: 'How to mark unique items',
+			mode: 'edit',
+			type: 'options',
+			value: '2',
+			options: 'Do not mark;U;Unique',
+			intoptions: '0;1;2',
 		);
 		$this->settingManager->add(
-			$this->moduleName,
-			'whatbuffs_show_nodrop',
-			'How to mark nodrop items',
-			'edit',
-			'options',
-			'0',
-			'Do not mark;ND;Nodrop',
-			'0;1;2',
+			module: $this->moduleName,
+			name: 'whatbuffs_show_nodrop',
+			description: 'How to mark nodrop items',
+			mode: 'edit',
+			type: 'options',
+			value: '0',
+			options: 'Do not mark;ND;Nodrop',
+			intoptions: '0;1;2',
 		);
 	}
 

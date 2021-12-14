@@ -74,13 +74,13 @@ class WebUiController implements MessageEmitter {
 			}
 		}
 		$this->settingManager->add(
-			$this->moduleName,
-			"nadyui_channel",
-			"Which NadyUI webfrontend version to subscribe to",
-			"edit",
-			"options",
-			"stable",
-			join(";", $uiBranches)
+			module: $this->moduleName,
+			name: "nadyui_channel",
+			description: "Which NadyUI webfrontend version to subscribe to",
+			mode: "edit",
+			type: "options",
+			value: "stable",
+			options: join(";", $uiBranches)
 		);
 		$this->settingManager->registerChangeListener(
 			"nadyui_channel",
@@ -176,7 +176,14 @@ class WebUiController implements MessageEmitter {
 		}
 		$settingName = "nadyui_version";
 		if (!$this->settingManager->exists($settingName)) {
-			$this->settingManager->add($this->moduleName, $settingName, $settingName, 'noedit', 'number', "0");
+			$this->settingManager->add(
+				module: $this->moduleName,
+				name: $settingName,
+				description: $settingName,
+				mode: 'noedit',
+				type: 'number',
+				value: "0"
+			);
 		}
 		$currentVersion = $this->settingManager->getInt($settingName) ?? 0;
 		$lastModified = DateTime::createFromFormat(DateTime::RFC7231, $response->headers["last-modified"]);

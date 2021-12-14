@@ -125,83 +125,84 @@ class RaidController {
 	#[NCA\Setup]
 	public function setup(): void {
 		$this->settingManager->add(
-			$this->moduleName,
-			'raid_announcement',
-			'Announce the raid periodically',
-			'edit',
-			'options',
-			'1',
-			'true;false',
-			'1;0',
-			'raid_admin_2'
+			module: $this->moduleName,
+			name: 'raid_announcement',
+			description: 'Announce the raid periodically',
+			mode: 'edit',
+			type: 'options',
+			value: '1',
+			options: 'true;false',
+			intoptions: '1;0',
+			accessLevel: 'raid_admin_2'
 		);
 		$this->settingManager->add(
-			$this->moduleName,
-			'raid_announcement_interval',
-			'Announcement interval',
-			'edit',
-			'time',
-			'90s',
-			'30s;60s;90s;120s;150s;180s',
-			'',
-			'raid_admin_2'
+			module: $this->moduleName,
+			name: 'raid_announcement_interval',
+			description: 'Announcement interval',
+			mode: 'edit',
+			type: 'time',
+			value: '90s',
+			options: '30s;60s;90s;120s;150s;180s',
+			intoptions: '',
+			accessLevel: 'raid_admin_2'
 		);
 		$this->settingManager->add(
-			$this->moduleName,
-			'raid_points_for_time',
-			'Give raid points based on duration of participation',
-			'edit',
-			'options',
-			'0',
-			'true;false',
-			'1;0',
-			'raid_admin_2'
+			module: $this->moduleName,
+			name: 'raid_points_for_time',
+			description: 'Give raid points based on duration of participation',
+			mode: 'edit',
+			type: 'options',
+			value: '0',
+			options: 'true;false',
+			intoptions: '1;0',
+			accessLevel: 'raid_admin_2'
 		);
 		$this->settingManager->add(
-			$this->moduleName,
-			'raid_points_interval',
-			'Point rate, in seconds',
-			'edit',
-			'time',
-			'5m',
-			'',
-			'',
-			'raid_admin_2'
+			module: $this->moduleName,
+			name: 'raid_points_interval',
+			description: 'Point rate, in seconds',
+			mode: 'edit',
+			type: 'time',
+			value: '5m',
+			options: '',
+			intoptions: '',
+			accessLevel: 'raid_admin_2'
 		);
 		$this->settingManager->add(
-			$this->moduleName,
-			'raid_auto_add_creator',
-			'Add raid initiator to the raid',
-			'edit',
-			'options',
-			'1',
-			'true;false',
-			'1;0',
-			'raid_admin_2'
+			module: $this->moduleName,
+			name: 'raid_auto_add_creator',
+			description: 'Add raid initiator to the raid',
+			mode: 'edit',
+			type: 'options',
+			value: '1',
+			options: 'true;false',
+			intoptions: '1;0',
+			accessLevel: 'raid_admin_2'
 		);
 		$this->settingManager->add(
-			$this->moduleName,
-			'raid_stop_clears_callers',
-			'Stopping the raid clears the callers',
-			'edit',
-			'options',
-			'0',
-			'true;false',
-			'1;0',
-			'raid_admin_2'
+			module: $this->moduleName,
+			name: 'raid_stop_clears_callers',
+			description: 'Stopping the raid clears the callers',
+			mode: 'edit',
+			type: 'options',
+			value: '0',
+			options: 'true;false',
+			intoptions: '1;0',
+			accessLevel: 'raid_admin_2'
 		);
 		$this->settingManager->add(
-			$this->moduleName,
-			'raid_kick_notin_on_lock',
-			'Locking the raid kicks players not in the raid',
-			'edit',
-			'options',
-			'0',
-			"Kick everyone not in the raid".
+			module: $this->moduleName,
+			name: 'raid_kick_notin_on_lock',
+			description: 'Locking the raid kicks players not in the raid',
+			mode: 'edit',
+			type: 'options',
+			value: '0',
+			options:
+				"Kick everyone not in the raid".
 				";Kick all, except those who've been in the raid before".
 				";Don't kick on raid lock",
-			'2;1;0',
-			'raid_admin_2'
+			intoptions: '2;1;0',
+			accessLevel: 'raid_admin_2'
 		);
 		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations/Raid");
 		$this->timer->callLater(0, [$this, 'resumeRaid']);

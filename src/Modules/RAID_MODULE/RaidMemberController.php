@@ -90,27 +90,27 @@ class RaidMemberController {
 		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations/Member");
 
 		$this->settingManager->add(
-			$this->moduleName,
-			'raid_announce_raidmember_loc',
-			'Where to announce leaders add/rem people to/from the raid',
-			'edit',
-			'options',
-			'3',
-			'Do not announce;Private channel;Tell;Priv+Tell',
-			'0;1;2;3',
-			'mod'
+			module: $this->moduleName,
+			name: 'raid_announce_raidmember_loc',
+			description: 'Where to announce leaders add/rem people to/from the raid',
+			mode: 'edit',
+			type: 'options',
+			value: '3',
+			options: 'Do not announce;Private channel;Tell;Priv+Tell',
+			intoptions: '0;1;2;3',
+			accessLevel: 'mod'
 		);
 		$this->settingManager->add(
-			$this->moduleName,
-			'raid_allow_multi_joining',
-			'Allow people to join the raids on more than one character',
-			'edit',
-			'options',
-			'1',
-			'true;false',
-			'1;0',
-			'mod',
-			'multijoin.txt'
+			module: $this->moduleName,
+			name: 'raid_allow_multi_joining',
+			description: 'Allow people to join the raids on more than one character',
+			mode: 'edit',
+			type: 'options',
+			value: '1',
+			options: 'true;false',
+			intoptions: '1;0',
+			accessLevel: 'mod',
+			help: 'multijoin.txt'
 		);
 	}
 

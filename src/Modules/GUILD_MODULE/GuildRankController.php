@@ -77,14 +77,14 @@ class GuildRankController {
 		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations/RankMapping");
 
 		$this->settingManager->add(
-			$this->moduleName,
-			"map_org_ranks_to_bot_ranks",
-			"Map org ranks to bot ranks",
-			"edit",
-			"options",
-			"0",
-			"true;false",
-			"1;0"
+			module: $this->moduleName,
+			name: "map_org_ranks_to_bot_ranks",
+			description: "Map org ranks to bot ranks",
+			mode: "edit",
+			type: "options",
+			value: "0",
+			options: "true;false",
+			intoptions: "1;0"
 		);
 	}
 
