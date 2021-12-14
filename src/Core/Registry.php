@@ -5,6 +5,7 @@ namespace Nadybot\Core;
 use Nadybot\Core\Attributes as NCA;
 use ReflectionClass;
 use ReflectionNamedType;
+use RuntimeException;
 
 class Registry {
 	/** @var array<string,object> */
@@ -70,7 +71,7 @@ class Registry {
 				if (!isset($dependencyName)) {
 					$type = $property->getType();
 					if (!($type instanceof ReflectionNamedType)) {
-						throw new \Exception("Cannot determine type of {$reflection->getName()}::\${$property->getName()}");
+						throw new RuntimeException("Cannot determine type of {$reflection->getName()}::\${$property->getName()}");
 					}
 					$dependencyName = static::formatName($type->getName());
 				}
