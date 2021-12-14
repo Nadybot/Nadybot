@@ -2,7 +2,8 @@
 
 namespace Nadybot\Core;
 
-use Addendum\ReflectionAnnotatedClass;
+use Nadybot\Core\Attributes as NCA;
+use ReflectionClass;
 
 class Registry {
 	/** @var array<string,object> */
@@ -54,28 +55,32 @@ class Registry {
 	}
 
 	/**
-	 * Inject all fields marked with \@Inject in an object with the corresponding object instances
+	 * Inject all fields marked with #[Inject] in an object with the corresponding object instances
 	 */
 	public static function injectDependencies(object $instance): void {
-		// inject other instances that are annotated with @Inject
-		$reflection = new ReflectionAnnotatedClass($instance);
+		// inject other instances that have the #[Inject] attribute
+		$reflection = new ReflectionClass($instance);
 		foreach ($reflection->getProperties() as $property) {
-			/** @var \Addendum\ReflectionAnnotatedProperty $property */
-			if ($property->hasAnnotation('Inject')) {
-				if ($property->getAnnotation('Inject')->value != '') {
-					$dependencyName = $property->getAnnotation('Inject')->value;
-				} else {
-					$dependencyName = $property->name;
-				}
+			$injectAttrs = $property->getAttributes(NCA\Inject::class);
+			if (count($injectAttrs)) {
+				/** @var NCA\Inject */
+				$injectAttr = $injectAttrs[0]->newInstance();
+				$dependencyName = $injectAttr->instance ?? $property->name;
 				$dependency = Registry::getInstance($dependencyName);
 				if ($dependency === null) {
 					static::getLogger()->warning("Could not resolve dependency '$dependencyName' in '" . get_class($instance) ."'");
 				} else {
 					$instance->{$property->name} = $dependency;
 				}
-			} elseif ($property->hasAnnotation('Logger')) {
-				if (@$property->getAnnotation('Logger')->value != '') {
-					$tag = $property->getAnnotation('Logger')->value;
+				continue;
+			}
+
+			$loggerAttrs = $property->getAttributes(NCA\Logger::class);
+			if (count($loggerAttrs)) {
+				/** @var NCA\Logger */
+				$loggerAttr = $loggerAttrs[0]->newInstance();
+				if (isset($loggerAttr->tag)) {
+					$tag = $loggerAttr->tag;
 				} else {
 					$array = explode("\\", $reflection->name);
 					if (preg_match("/^Nadybot\\\\Modules\\\\/", $reflection->name)) {

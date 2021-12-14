@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\RAID_MODULE;
 
+use Nadybot\Core\Attributes as NCA;
 use DateTime;
 use Illuminate\Database\Query\JoinClause;
 use Illuminate\Support\Collection;
@@ -31,89 +32,86 @@ use Nadybot\Modules\ONLINE_MODULE\OnlineController;
 
 /**
  * This class contains all functions necessary to start, stsop and resume a raid
- *
- * @Instance
  * @package Nadybot\Modules\POINT_RAID_MODULE
- *
- * @DefineCommand(
- *     command       = 'raid',
- *     accessLevel   = 'all',
- *     description   = 'Check if the raid is running',
- *     help          = 'raid.txt'
- * )
- *
- * @DefineCommand(
- *     command       = 'raid .+',
- *     accessLevel   = 'raid_leader_1',
- *     description   = 'Everything to run a points raid',
- *     help          = 'raid.txt'
- *
- * )
- * @DefineCommand(
- *     command       = 'raid spp .+',
- *     accessLevel   = 'raid_leader_2',
- *     description   = 'Change the raid points ticker',
- *     help          = 'raid.txt'
- * )
- *
- * @ProvidesEvent("raid(start)")
- * @ProvidesEvent("raid(stop)")
- * @ProvidesEvent("raid(changed)")
- * @ProvidesEvent("raid(lock)")
- * @ProvidesEvent("raid(unlock)")
  */
+#[
+	NCA\Instance,
+	NCA\DefineCommand(
+		command: "raid",
+		accessLevel: "all",
+		description: "Check if the raid is running",
+		help: "raid.txt"
+	),
+	NCA\DefineCommand(
+		command: "raid .+",
+		accessLevel: "raid_leader_1",
+		description: "Everything to run a points raid",
+		help: "raid.txt"
+	),
+	NCA\DefineCommand(
+		command: "raid spp .+",
+		accessLevel: "raid_leader_2",
+		description: "Change the raid points ticker",
+		help: "raid.txt"
+	),
+	NCA\ProvidesEvent("raid(start)"),
+	NCA\ProvidesEvent("raid(stop)"),
+	NCA\ProvidesEvent("raid(changed)"),
+	NCA\ProvidesEvent("raid(lock)"),
+	NCA\ProvidesEvent("raid(unlock)")
+]
 class RaidController {
 	public const DB_TABLE = "raid_<myname>";
 	public const DB_TABLE_LOG = "raid_log_<myname>";
 
 	public string $moduleName;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Nadybot $chatBot;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Text $text;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Util $util;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public DB $db;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public EventManager $eventManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public SettingManager $settingManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public PlayerManager $playerManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Timer $timer;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public RaidMemberController $raidMemberController;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public AltsController $altsController;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public AccessManager $accessManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public CommandManager $commandManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public CommentController $commentController;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public RaidRankController $raidRankController;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public OnlineController $onlineController;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public ChatAssistController $chatAssistController;
 
 	/**
@@ -124,7 +122,7 @@ class RaidController {
 	public const ERR_NO_RAID = "There's currently no raid running.";
 	public const CAT_RAID = "raid";
 
-	/** @Setup */
+	#[NCA\Setup]
 	public function setup(): void {
 		$this->settingManager->add(
 			$this->moduleName,
@@ -311,9 +309,7 @@ class RaidController {
 		return $blob;
 	}
 
-	/**
-	 * @HandlesCommand("raid")
-	 */
+	#[NCA\HandlesCommand("raid")]
 	public function raidCommand(CmdContext $context): void {
 		if (!isset($this->raid)) {
 			$context->reply(static::ERR_NO_RAID);
@@ -365,11 +361,8 @@ class RaidController {
 		$this->raidMemberController->resumeRaid($lastRaid);
 	}
 
-	/**
-	 * @HandlesCommand("raid .+")
-	 * @Mask $action (start|run|create)
-	 */
-	public function raidStartCommand(CmdContext $context, string $action, string $description): void {
+	#[NCA\HandlesCommand("raid .+")]
+	public function raidStartCommand(CmdContext $context, #[NCA\Regexp("start|run|create")] string $action, string $description): void {
 		if (isset($this->raid)) {
 			$context->reply("There's already a raid running.");
 			return;
@@ -393,11 +386,8 @@ class RaidController {
 		);
 	}
 
-	/**
-	 * @HandlesCommand("raid .+")
-	 * @Mask $action (stop|end)
-	 */
-	public function raidStopCommand(CmdContext $context, string $action): void {
+	#[NCA\HandlesCommand("raid .+")]
+	public function raidStopCommand(CmdContext $context, #[NCA\Regexp("stop|end")] string $action): void {
 		if (!isset($this->raid)) {
 			$context->reply(static::ERR_NO_RAID);
 			return;
@@ -405,11 +395,8 @@ class RaidController {
 		$this->stopRaid($context->char->name);
 	}
 
-	/**
-	 * @HandlesCommand("raid .+")
-	 * @Mask $action (description|descr?)
-	 */
-	public function raidChangeDescCommand(CmdContext $context, string $action, string $description): void {
+	#[NCA\HandlesCommand("raid .+")]
+	public function raidChangeDescCommand(CmdContext $context, #[NCA\Regexp("description|descr?")] string $action, string $description): void {
 		if (!isset($this->raid)) {
 			$context->reply(static::ERR_NO_RAID);
 			return;
@@ -423,11 +410,8 @@ class RaidController {
 		$this->eventManager->fireEvent($event);
 	}
 
-	/**
-	 * @HandlesCommand("raid spp .+")
-	 * @Mask $action spp
-	 */
-	public function raidChangeSppCommand(CmdContext $context, string $action, int $spp): void {
+	#[NCA\HandlesCommand("raid spp .+")]
+	public function raidChangeSppCommand(CmdContext $context, #[NCA\Str("spp")] string $action, int $spp): void {
 		if (!isset($this->raid)) {
 			$context->reply(static::ERR_NO_RAID);
 			return;
@@ -441,11 +425,8 @@ class RaidController {
 		$this->eventManager->fireEvent($event);
 	}
 
-	/**
-	 * @HandlesCommand("raid .+")
-	 * @Mask $action (announce|announcement)
-	 */
-	public function raidChangeAnnounceCommand(CmdContext $context, string $action, string $interval): void {
+	#[NCA\HandlesCommand("raid .+")]
+	public function raidChangeAnnounceCommand(CmdContext $context, #[NCA\Regexp("announce|announcement")] string $action, string $interval): void {
 		if (!isset($this->raid)) {
 			$context->reply(static::ERR_NO_RAID);
 			return;
@@ -470,11 +451,8 @@ class RaidController {
 		$this->eventManager->fireEvent($event);
 	}
 
-	/**
-	 * @HandlesCommand("raid .+")
-	 * @Mask $action lock
-	 */
-	public function raidLockCommand(CmdContext $context, string $action): void {
+	#[NCA\HandlesCommand("raid .+")]
+	public function raidLockCommand(CmdContext $context, #[NCA\Str("lock")] string $action): void {
 		if (!isset($this->raid)) {
 			$context->reply(static::ERR_NO_RAID);
 			return;
@@ -496,11 +474,8 @@ class RaidController {
 		}
 	}
 
-	/**
-	 * @HandlesCommand("raid .+")
-	 * @Mask $action unlock
-	 */
-	public function raidUnlockCommand(CmdContext $context, string $action): void {
+	#[NCA\HandlesCommand("raid .+")]
+	public function raidUnlockCommand(CmdContext $context, #[NCA\Str("unlock")] string $action): void {
 		if (!isset($this->raid)) {
 			$context->reply(static::ERR_NO_RAID);
 			return;
@@ -518,11 +493,8 @@ class RaidController {
 		$this->eventManager->fireEvent($event);
 	}
 
-	/**
-	 * @HandlesCommand("raid .+")
-	 * @Mask $action check
-	 */
-	public function raidCheckCommand(CmdContext $context, string $action): void {
+	#[NCA\HandlesCommand("raid .+")]
+	public function raidCheckCommand(CmdContext $context, #[NCA\Str("check")] string $action): void {
 		if (!isset($this->raid)) {
 			$context->reply(static::ERR_NO_RAID);
 			return;
@@ -530,11 +502,8 @@ class RaidController {
 		$this->raidMemberController->sendRaidCheckBlob($this->raid, $context);
 	}
 
-	/**
-	 * @HandlesCommand("raid .+")
-	 * @Mask $action list
-	 */
-	public function raidListCommand(CmdContext $context, string $action): void {
+	#[NCA\HandlesCommand("raid .+")]
+	public function raidListCommand(CmdContext $context, #[NCA\Str("list")] string $action): void {
 		if (!isset($this->raid)) {
 			$context->reply(static::ERR_NO_RAID);
 			return;
@@ -542,12 +511,8 @@ class RaidController {
 		$context->reply($this->raidMemberController->getRaidListBlob($this->raid));
 	}
 
-	/**
-	 * @HandlesCommand("raid .+")
-	 * @Mask $action notinkick
-	 * @Mask $all all
-	 */
-	public function raidNotinKickCommand(CmdContext $context, string $action, ?string $all): void {
+	#[NCA\HandlesCommand("raid .+")]
+	public function raidNotinKickCommand(CmdContext $context, #[NCA\Str("notinkick")] string $action, #[NCA\Str("all")] ?string $all): void {
 		if (!isset($this->raid)) {
 			$context->reply(static::ERR_NO_RAID);
 			return;
@@ -564,11 +529,8 @@ class RaidController {
 		);
 	}
 
-	/**
-	 * @HandlesCommand("raid .+")
-	 * @Mask $action notin
-	 */
-	public function raidNotinCommand(CmdContext $context, string $action): void {
+	#[NCA\HandlesCommand("raid .+")]
+	public function raidNotinCommand(CmdContext $context, #[NCA\Str("notin")] string $action): void {
 		if (!isset($this->raid)) {
 			$context->reply(static::ERR_NO_RAID);
 			return;
@@ -606,11 +568,8 @@ class RaidController {
 		$sendto->reply($msgs);
 	}
 
-	/**
-	 * @HandlesCommand("raid .+")
-	 * @Mask $action history
-	 */
-	public function raidHistoryCommand(CmdContext $context, string $action): void {
+	#[NCA\HandlesCommand("raid .+")]
+	public function raidHistoryCommand(CmdContext $context, #[NCA\Str("history")] string $action): void {
 		$query = $this->db->table(self::DB_TABLE, "r")
 			->join(RaidPointsController::DB_TABLE_LOG . ' AS p', "r.raid_id", "p.raid_id")
 			->where("p.individual", false)
@@ -670,11 +629,8 @@ class RaidController {
 		return $blob;
 	}
 
-	/**
-	 * @HandlesCommand("raid .+")
-	 * @Mask $action history
-	 */
-	public function raidHistoryDetailCommand(CmdContext $context, string $action, int $raidId): void {
+	#[NCA\HandlesCommand("raid .+")]
+	public function raidHistoryDetailCommand(CmdContext $context, #[NCA\Str("history")] string $action, int $raidId): void {
 		/** @var ?Raid */
 		$raid = $this->db->table(self::DB_TABLE)
 			->where("raid_id", $raidId)
@@ -725,13 +681,10 @@ class RaidController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @HandlesCommand("raid .+")
-	 * @Mask $action history
-	 */
+	#[NCA\HandlesCommand("raid .+")]
 	public function raidHistoryDetailRaiderCommand(
 		CmdContext $context,
-		string $action,
+		#[NCA\Str("history")] string $action,
 		int $raidId,
 		PCharacter $char
 	): void {
@@ -801,11 +754,8 @@ class RaidController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @HandlesCommand("raid .+")
-	 * @Mask $action dual
-	 */
-	public function raidDualCommand(CmdContext $context, string $action): void {
+	#[NCA\HandlesCommand("raid .+")]
+	public function raidDualCommand(CmdContext $context, #[NCA\Str("dual")] string $action): void {
 		if (!isset($this->raid)) {
 			$context->reply(static::ERR_NO_RAID);
 			return;
@@ -889,10 +839,10 @@ class RaidController {
 			]);
 	}
 
-	/**
-	 * @Event("sendpriv");
-	 * @Description("Track when the bot sends messages on priv")
-	 */
+	#[NCA\Event(
+		name: "sendpriv",
+		description: "Track when the bot sends messages on priv"
+	)]
 	public function trackOurPrivChannelMessages(AOChatEvent $event): void {
 		if (!isset($this->raid)) {
 			return;
@@ -900,22 +850,10 @@ class RaidController {
 		$this->raid->we_are_most_recent_message = false;
 	}
 
-	/**
-	 * @Event("priv");
-	 * @Description("Track when someone sends messages on priv")
-	 */
-	public function trackPrivChannelMessages(AOChatEvent $event): void {
-		if (!isset($this->raid) || $event->channel !== $this->chatBot->vars["name"]) {
-			return;
-		}
-		$this->raid->we_are_most_recent_message = false;
-	}
-
-	/**
-	 * Announce when a raid was started
-	 * @Event("timer(30s)")
-	 * @Description("Announce the running raid")
-	 */
+	#[NCA\Event(
+		name: "timer(30s)",
+		description: "Announce the running raid"
+	)]
 	public function announceRaidRunning(): void {
 		if (!isset($this->raid) || $this->raid->announce_interval === 0) {
 			return;
@@ -941,9 +879,11 @@ class RaidController {
 
 	/**
 	 * Announce when a raid was started
-	 * @Event("raid(start)")
-	 * @Description("Announce when a raid was started")
 	 */
+	#[NCA\Event(
+		name: "raid(start)",
+		description: "Announce when a raid was started"
+	)]
 	public function announceRaidStart(RaidEvent $event): void {
 		$this->chatBot->sendPrivate(
 			"<highlight>{$event->raid->started_by}<end> started a raid: ".
@@ -958,9 +898,11 @@ class RaidController {
 
 	/**
 	 * Announce when a raid was stopped.
-	 * @Event("raid(stop)")
-	 * @Description("Announce when a raid is stopped")
 	 */
+	#[NCA\Event(
+		name: "raid(stop)",
+		description: "Announce when a raid is stopped"
+	)]
 	public function announceRaidStop(RaidEvent $event): void {
 		$this->chatBot->sendPrivate("<highlight>{$event->player}<end> has stopped the raid.");
 	}
@@ -1015,11 +957,8 @@ class RaidController {
 		$this->eventManager->fireEvent($event);
 	}
 
-	/**
-	 * @HandlesCommand("raid .+")
-	 * @Mask $action (notes?|comments?)
-	 */
-	public function raidCommentsCommand(CmdContext $context, string $action): void {
+	#[NCA\HandlesCommand("raid .+")]
+	public function raidCommentsCommand(CmdContext $context, #[NCA\Regexp("notes?|comments?")] string $action): void {
 		if (!$context->isDM()) {
 			$context->reply("<red>The '<symbol>raid {$action}' command only works in tells<end>.");
 			return;
@@ -1042,15 +981,11 @@ class RaidController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @HandlesCommand("raid .+")
-	 * @Mask $action (notes?|comments?)
-	 * @Mask $subAction (add|create|new)
-	 */
+	#[NCA\HandlesCommand("raid .+")]
 	public function raidCommentAddCommand(
 		CmdContext $context,
-		string $action,
-		string $subAction,
+		#[NCA\Regexp("notes?|comments?")] string $action,
+		#[NCA\Regexp("add|create|new")] string $subAction,
 		PCharacter $char,
 		string $comment
 	): void {
@@ -1063,15 +998,11 @@ class RaidController {
 		);
 	}
 
-	/**
-	 * @HandlesCommand("raid .+")
-	 * @Mask $action (notes?|comments?)
-	 * @Mask $subAction (get|read|search|find)
-	 */
+	#[NCA\HandlesCommand("raid .+")]
 	public function raidCommentSearchCommand(
 		CmdContext $context,
-		string $action,
-		string $subAction,
+		#[NCA\Regexp("notes?|comments?")] string $action,
+		#[NCA\Regexp("get|read|search|find")] string $subAction,
 		PCharacter $char
 	): void {
 		$this->commentController->searchCommentCommand(

@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\FUN_MODULE;
 
+use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\CmdContext;
 use Nadybot\Core\ParamClass\PCharacter;
 use Nadybot\Core\Text;
@@ -10,17 +11,17 @@ use Nadybot\Core\Util;
 /**
  * @author Tyrence (RK2)
  * @author Mdkdoc420 (RK2)
- *
- * @Instance
- *
  * Commands this controller contains:
- *	@DefineCommand(
- *		command     = 'fight',
- *		accessLevel = 'all',
- *		description = 'Let two people fight against each other',
- *		help        = 'fun_module.txt'
- *	)
  */
+#[
+	NCA\Instance,
+	NCA\DefineCommand(
+		command: "fight",
+		accessLevel: "all",
+		description: "Let two people fight against each other",
+		help: "fun_module.txt"
+	)
+]
 class FightController {
 
 	/**
@@ -29,17 +30,14 @@ class FightController {
 	 */
 	public string $moduleName;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Text $text;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Util $util;
 
-	/**
-	 * @HandlesCommand("fight")
-	 * @Mask $vs vs
-	 */
-	public function fightCommand(CmdContext $context, PCharacter $player1, ?string $vs, PCharacter $player2): void {
+	#[NCA\HandlesCommand("fight")]
+	public function fightCommand(CmdContext $context, PCharacter $player1, #[NCA\Str("vs")] ?string $vs, PCharacter $player2): void {
 		$player1 = $player1();
 		$player2 = $player2();
 

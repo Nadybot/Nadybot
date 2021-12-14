@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\ITEMS_MODULE;
 
+use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{
 	CmdContext,
 	DB,
@@ -14,55 +15,56 @@ use Nadybot\Core\{
 };
 
 /**
- * @Instance
- *
  * Commands this controller contains:
- *	@DefineCommand(
- *		command     = 'items',
- *		accessLevel = 'all',
- *		description = 'Searches for an item using the default items db',
- *		help        = 'items.txt',
- *		alias		= 'i'
- *	)
- *	@DefineCommand(
- *		command     = 'itemid',
- *		accessLevel = 'all',
- *		description = 'Searches for an item by id',
- *		help        = 'items.txt'
- *	)
- *	@DefineCommand(
- *		command     = 'id',
- *		accessLevel = 'all',
- *		description = 'Searches for an itemid by name',
- *		help        = 'items.txt'
- *	)
  */
+#[
+	NCA\Instance,
+	NCA\DefineCommand(
+		command: "items",
+		accessLevel: "all",
+		description: "Searches for an item using the default items db",
+		help: "items.txt",
+		alias: "i"
+	),
+	NCA\DefineCommand(
+		command: "itemid",
+		accessLevel: "all",
+		description: "Searches for an item by id",
+		help: "items.txt"
+	),
+	NCA\DefineCommand(
+		command: "id",
+		accessLevel: "all",
+		description: "Searches for an itemid by name",
+		help: "items.txt"
+	)
+]
 class ItemsController {
 
 	public string $moduleName;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public DB $db;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Nadybot $chatBot;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Http $http;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public SettingManager $settingManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Text $text;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Util $util;
 
-	/** @Logger */
+	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
-	/** @Setup */
+	#[NCA\Setup]
 	public function setup(): void {
 		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations/Items");
 		$this->db->loadCSVFile($this->moduleName, __DIR__ . "/aodb.csv");
@@ -80,17 +82,13 @@ class ItemsController {
 		);
 	}
 
-	/**
-	 * @HandlesCommand("items")
-	 */
+	#[NCA\HandlesCommand("items")]
 	public function itemsCommand(CmdContext $context, ?int $ql, string $search): void {
 		$msg = $this->findItems($ql, $search);
 		$context->reply($msg);
 	}
 
-	/**
-	 * @HandlesCommand("itemid")
-	 */
+	#[NCA\HandlesCommand("itemid")]
 	public function itemIdCommand(CmdContext $context, int $id): void {
 		$row = $this->findById($id);
 		if ($row === null) {
@@ -128,9 +126,7 @@ class ItemsController {
 			->first();
 	}
 
-	/**
-	 * @HandlesCommand("id")
-	 */
+	#[NCA\HandlesCommand("id")]
 	public function idCommand(CmdContext $context, string $search): void {
 		$query = $this->db->table("aodb AS a")
 			->leftJoin("item_groups AS g", "g.item_id", "a.lowid")
@@ -509,10 +505,8 @@ class ItemsController {
 
 	/**
 	 * Get the longest common string of 2 strings
-	 *
 	 * The LCS of "Cheap Caterwaul X-17" and "Exceptional Caterwaul X-17"
 	 * would be " Caterwaul X-17", so mind the included space!
-	 *
 	 * @param string $first  The first word to compare
 	 * @param string $second The second word to compare
 	 * @return string The longest common string of $first and $second
@@ -554,13 +548,11 @@ class ItemsController {
 
 	/**
 	 * Get the longest common string of X words
-	 *
 	 * The LCS of
 	 *  "Cheap Caterwaul X-17"
 	 *  "Exceptional Caterwaul X-17"
 	 *  and "Crappy Caterwaul"
 	 * would be "Caterwaul", without the leading space!
-	 *
 	 * @param string[] $words The words to compare
 	 * @return string  The longest common string of all given words
 	 */

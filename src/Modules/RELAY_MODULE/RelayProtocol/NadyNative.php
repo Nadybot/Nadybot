@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\RELAY_MODULE\RelayProtocol;
 
+use Nadybot\Core\Attributes as NCA;
 use JsonException;
 use Nadybot\Core\{
 	EventManager,
@@ -23,31 +24,39 @@ use Nadybot\Modules\{
 };
 use Throwable;
 
-/**
- * @RelayProtocol("nadynative")
- * @Description("This is the native protocol if your relay consists
- * 	only of Nadybots 5.2 or newer. It supports message-passing,
- * 	proper colorization and event-passing.")
- * @Param(name='sync-online', description='Sync the online list with the other bots of this relay', type='bool', required=false)
- */
+#[
+	NCA\RelayProtocol(
+		name: "nadynative",
+		description:
+			"This is the native protocol if your relay consists\n".
+			"only of Nadybots 5.2 or newer. It supports message-passing,\n".
+			"proper colorization and event-passing."
+	),
+	NCA\Param(
+		name: "sync-online",
+		type: "bool",
+		description: "Sync the online list with the other bots of this relay",
+		required: false
+	)
+]
 class NadyNative implements RelayProtocolInterface {
 	protected static int $supportedFeatures = 3;
 
 	protected Relay $relay;
 
-	/** @Logger */
+	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public OnlineController $onlineController;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Nadybot $chatBot;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public SettingManager $settingManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public EventManager $eventManager;
 
 	protected bool $syncOnline = true;
@@ -255,6 +264,7 @@ class NadyNative implements RelayProtocolInterface {
 		$onlineList = new OnlineList();
 		$onlineOrg = $this->onlineController->getPlayers('guild', $this->chatBot->char->name);
 		$isOrg = strlen($this->chatBot->vars["my_guild"] ?? "") ;
+		/** @psalm-suppress DocblockTypeContradiction */
 		if ($isOrg) {
 			$block = new OnlineBlock();
 			$orgLabel = $this->settingManager->getString("relay_guild_abbreviation");

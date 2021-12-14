@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\WHOIS_MODULE;
 
+use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\CmdContext;
 use Nadybot\Core\CommandReply;
 use Nadybot\Core\Modules\PLAYER_LOOKUP\PlayerHistory;
@@ -12,17 +13,17 @@ use Nadybot\Core\Text;
 
 /**
  * @author Tyrence (RK2)
- *
- * @Instance
- *
  * Commands this controller contains:
- *	@DefineCommand(
- *		command     = 'history',
- *		accessLevel = 'all',
- *		description = 'Show history of a player',
- *		help        = 'history.txt'
- *	)
  */
+#[
+	NCA\Instance,
+	NCA\DefineCommand(
+		command: "history",
+		accessLevel: "all",
+		description: "Show history of a player",
+		help: "history.txt"
+	)
+]
 class PlayerHistoryController {
 
 	/**
@@ -31,18 +32,16 @@ class PlayerHistoryController {
 	 */
 	public string $moduleName;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Nadybot $chatBot;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Text $text;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public PlayerHistoryManager $playerHistoryManager;
 
-	/**
-	 * @HandlesCommand("history")
-	 */
+	#[NCA\HandlesCommand("history")]
 	public function playerHistoryCommand(CmdContext $context, PCharacter $char, ?int $dimension): void {
 		$name = $char();
 		$dimension ??= (int)$this->chatBot->vars['dimension'];

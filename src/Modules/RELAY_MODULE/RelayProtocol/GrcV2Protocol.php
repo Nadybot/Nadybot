@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\RELAY_MODULE\RelayProtocol;
 
+use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\Routing\Character;
 use Nadybot\Core\Routing\RoutableEvent;
 use Nadybot\Core\Routing\RoutableMessage;
@@ -11,25 +12,37 @@ use Nadybot\Core\Util;
 use Nadybot\Modules\RELAY_MODULE\Relay;
 use Nadybot\Modules\RELAY_MODULE\RelayMessage;
 
-/**
- * @RelayProtocol("grcv2")
- * @Description("This is the old Nadybot protocol.
- * 	It enhances the old grc protocol by adding descriptions
- * 	in front of the tags and messages, so the client-side
- * 	can decide how to colorize them. However, it only supports
- * 	org, guest and raidbot chat.")
- * @Param(name='command', description='The command we send with each packet', type='string', required=false)
- * @Param(name='prefix', description='The prefix we send with each packet, e.g. "!" or ""', type='string', required=false)
- */
+#[
+	NCA\RelayProtocol(
+		name: "grcv2",
+		description: "This is the old Nadybot protocol.\n".
+			"It enhances the old grc protocol by adding descriptions\n".
+			"in front of the tags and messages, so the client-side\n".
+			"can decide how to colorize them. However, it only supports\n".
+			"org, guest and raidbot chat."
+	),
+	NCA\Param(
+		name: "command",
+		type: "string",
+		description: "The command we send with each packet",
+		required: false
+	),
+	NCA\Param(
+		name: "prefix",
+		type: "string",
+		description: "The prefix we send with each packet, e.g. \"!\" or \"\"",
+		required: false
+	)
+]
 class GrcV2Protocol implements RelayProtocolInterface {
 	protected static int $supportedFeatures = self::F_NONE;
 
 	protected Relay $relay;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Util $util;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Text $text;
 
 	protected string $command = "grc";

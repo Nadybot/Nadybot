@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\RELAY_MODULE\Layer;
 
+use Nadybot\Core\Attributes as NCA;
 use Exception;
 use Nadybot\Core\LoggerWrapper;
 use Nadybot\Modules\RELAY_MODULE\Relay;
@@ -9,14 +10,27 @@ use Nadybot\Modules\RELAY_MODULE\RelayLayerInterface;
 use Nadybot\Modules\RELAY_MODULE\RelayMessage;
 
 /**
- * @RelayStackMember("aes-gcm-encryption")
- * @Description('This adds 256 bit AES encryption with Galois/Counter mode to the relay-stack.
- *	It guarantees that the data was not tampered with, and rotates the salt(iv)
  *	on every message, so even if one was cracked, the rest is still secure.
  *	This is state-of-the-art cryptography and proven secure.
  *	Encryption only works if all parties use the same password!')
- * @Param(name='password', description='The password to derive our encryption key from', type='secret', required=true)
  */
+#[
+	NCA\RelayStackMember(
+		name: "aes-gcm-encryption",
+		description:
+			"This adds 256 bit AES encryption with Galois/Counter mode to the relay-stack.\n".
+			"It guarantees that the data was not tampered with, and rotates the salt(iv)\n".
+			"on every message, so even if one was cracked, the rest is still secure.\n".
+			"This is state-of-the-art cryptography and proven secure.\n".
+			"Encryption only works if all parties use the same password!"
+	),
+	NCA\Param(
+		name: "password",
+		type: "secret",
+		description: "The password to derive our encryption key from",
+		required: true
+	)
+]
 class AesGcmEncryption implements RelayLayerInterface {
 	public const CIPHER = "aes-256-gcm";
 	protected string $password;
@@ -24,7 +38,7 @@ class AesGcmEncryption implements RelayLayerInterface {
 
 	protected Relay $relay;
 
-	/** @Logger */
+	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
 	public function __construct(string $password) {

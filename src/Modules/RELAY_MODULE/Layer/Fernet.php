@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\RELAY_MODULE\Layer;
 
+use Nadybot\Core\Attributes as NCA;
 use Fernet\Fernet as FernetProto;
 use Nadybot\Core\LoggerWrapper;
 use Nadybot\Modules\RELAY_MODULE\Relay;
@@ -9,23 +10,48 @@ use Nadybot\Modules\RELAY_MODULE\RelayLayerInterface;
 use Nadybot\Modules\RELAY_MODULE\RelayMessage;
 
 /**
- * @RelayStackMember("fernet-encryption")
- * @Description('This adds fernet-based 128 bit AES encryption to the relay-stack.
- *	You can configure all parameters of the encryption key generation via options.
- *	Encryption layers only work if all relay-parties use the same encryption parameters!
- *	Fernet guarantees that the data you send is unaltered')
- * @Param(name='password', description='The password to derive our encryption key from', type='secret', required=true)
- * @Param(name='salt', description='The salt to add to the password', type='secret', required=true)
- * @Param(name='hash', description='The hash algorithm to ensure messages are unaltered', type='string', required=false)
- * @Param(name='iterations', description='Number of iterations', type='integer', required=false)
  * @package Nadybot\Modules\RELAY_MODULE\Encryption
  */
+#[
+	NCA\RelayStackMember(
+		name: "fernet-encryption",
+		description:
+			"This adds fernet-based 128 bit AES encryption to the relay-stack.\n".
+			"You can configure all parameters of the encryption key generation via options.\n".
+			"Encryption layers only work if all relay-parties use the same encryption parameters!\n".
+			"Fernet guarantees that the data you send is unaltered"
+	),
+	NCA\Param(
+		name: "password",
+		type: "secret",
+		description: "The password to derive our encryption key from",
+		required: true
+	),
+	NCA\Param(
+		name: "salt",
+		type: "secret",
+		description: "The salt to add to the password",
+		required: true
+	),
+	NCA\Param(
+		name: "hash",
+		type: "string",
+		description: "The hash algorithm to ensure messages are unaltered",
+		required: false
+	),
+	NCA\Param(
+		name: "iterations",
+		type: "integer",
+		description: "Number of iterations",
+		required: false
+	)
+]
 class Fernet implements RelayLayerInterface {
 	protected FernetProto $fernet;
 
 	protected Relay $relay;
 
-	/** @Logger */
+	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
 	public function __construct(string $password, string $salt, string $hashAlgo="sha256", int $iterations=10000) {

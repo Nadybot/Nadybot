@@ -2,10 +2,11 @@
 
 namespace Nadybot\Core;
 
-use Addendum\ReflectionAnnotatedClass;
+use Nadybot\Core\Attributes as NCA;
+use ReflectionClass;
 
 class ClassLoader {
-	/** @Logger */
+	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
 	/**
@@ -27,7 +28,7 @@ class ClassLoader {
 	}
 
 	/**
-	 * Load all classes that provide an @Instance
+	 * Load all classes that provide an #[Instance]
 	 */
 	public function loadInstances(): void {
 		$newInstances = $this->getNewInstancesInDir(__DIR__);
@@ -130,14 +131,14 @@ class ClassLoader {
 		}
 
 		if (count($newInstances) == 0) {
-			$this->logger->error("Could not load module {$moduleName}. No classes found with @Instance annotation!");
+			$this->logger->error("Could not load module {$moduleName}. No classes found with #[Instance] attribute!");
 			return;
 		}
 		$this->registeredModules[$moduleName] = "{$baseDir}/{$moduleName}";
 	}
 
 	/**
-	 * Get a list of all module which provide an @Instance for a directory
+	 * Get a list of all module which provide an #[Instance] for a directory
 	 *
 	 * @return array<string,ClassInstance> A mapping [module name => class info]
 	 */
@@ -155,13 +156,16 @@ class ClassLoader {
 
 		$newInstances = [];
 		foreach ($new as $className) {
-			$reflection = new ReflectionAnnotatedClass($className);
-			if ($reflection->hasAnnotation('Instance')) {
+			$reflection = new ReflectionClass($className);
+			$instanceAnnos = $reflection->getAttributes(NCA\Instance::class);
+			if (count($instanceAnnos)) {
 				$instance = new ClassInstance();
 				$instance->className = $className;
-				if ($reflection->getAnnotation('Instance')->value !== null) {
-					$name = $reflection->getAnnotation('Instance')->value;
-					$instance->overwrite = $reflection->getAnnotation('Instance')->overwrite ?? false;
+				/** @var NCA\Instance */
+				$instanceAttr = $instanceAnnos[0]->newInstance();
+				if ($instanceAttr->name !== null) {
+					$name = $instanceAttr->name;
+					$instance->overwrite = $instanceAttr->overwrite;
 				} else {
 					$name = Registry::formatName($className);
 				}

@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\RELAY_MODULE\Layer;
 
+use Nadybot\Core\Attributes as NCA;
 use JsonException;
 use Nadybot\Core\LoggerWrapper;
 use Nadybot\Modules\RELAY_MODULE\Relay;
@@ -10,16 +11,18 @@ use Nadybot\Modules\RELAY_MODULE\RelayMessage;
 use Nadybot\Modules\RELAY_MODULE\RelayStatus;
 use Nadybot\Modules\RELAY_MODULE\StatusProvider;
 
-/**
- * @RelayStackMember("tyr-relay")
- * @Description("This is the protocol spoken by Tyrence's websocket-server")
- */
+#[
+	NCA\RelayStackMember(
+		name: "tyr-relay",
+		description: "This is the protocol spoken by Tyrence's websocket-server"
+	)
+]
 class TyrRelay implements RelayLayerInterface, StatusProvider {
 	protected Relay $relay;
 
 	protected ?RelayStatus $status = null;
 
-	/** @Logger */
+	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
 	/** @var ?callable */

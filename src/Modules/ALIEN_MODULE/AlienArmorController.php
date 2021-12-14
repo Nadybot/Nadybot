@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\ALIEN_MODULE;
 
+use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\CmdContext;
 use Nadybot\Core\Text;
 use Nadybot\Modules\ITEMS_MODULE\ItemsController;
@@ -12,28 +13,26 @@ use Nadybot\Modules\ITEMS_MODULE\ItemsController;
  * @author Wolfbiter (RK1)
  * @author Gatester (RK2)
  * @author Marebone (RK2)
- *
- * @Instance
- *
  * Commands this controller contains:
- *	@DefineCommand(
- *		command     = 'aiarmor',
- *		accessLevel = 'all',
- *		description = 'Shows tradeskill process for Alien Armor',
- *		help        = 'aiarmor.txt'
- *	)
  */
+#[
+	NCA\Instance,
+	NCA\DefineCommand(
+		command: "aiarmor",
+		accessLevel: "all",
+		description: "Shows tradeskill process for Alien Armor",
+		help: "aiarmor.txt"
+	)
+]
 class AlienArmorController {
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Text $text;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public ItemsController $itemsController;
 
-	/**
-	 * @HandlesCommand("aiarmor")
-	 */
+	#[NCA\HandlesCommand("aiarmor")]
 	public function aiarmorListCommand(CmdContext $context): void {
 		$list = "Please choose from the following which armor to view information on:";
 		$list .= "\n\n<header2>Normal Armor<end>";
@@ -56,14 +55,13 @@ class AlienArmorController {
 
 	/**
 	 * This command handler shows tradeskill process for normal Alien Armor.
-	 *
-	 * @HandlesCommand("aiarmor")
 	 */
+	#[NCA\HandlesCommand("aiarmor")]
 	public function aiarmorNormal2Command(CmdContext $context, PBotType $armortype, int $ql): void {
 		$this->aiarmorNormalCommand($context, $ql, $armortype);
 	}
 
-	/** @HandlesCommand("aiarmor") */
+	#[NCA\HandlesCommand("aiarmor")]
 	public function aiarmorNormalCommand(CmdContext $context, ?int $ql, PBotType $armortype): void {
 		$ql ??= 300;
 		$armortype = $armortype();
@@ -204,21 +202,17 @@ class AlienArmorController {
 
 	/**
 	 * This command handler shows tradeskill process for combined Alien Armor.
-	 *
-	 * @HandlesCommand("aiarmor")
-	 * @Mask $type (cc|cm|co|cp|cs|css|ss)
 	 */
-	public function aiarmorCombinedCommand2(CmdContext $context, string $type, int $ql): void {
+	#[NCA\HandlesCommand("aiarmor")]
+	public function aiarmorCombinedCommand2(CmdContext $context, #[NCA\Regexp("cc|cm|co|cp|cs|css|ss")] string $type, int $ql): void {
 		$this->aiarmorCombinedCommand($context, $ql, $type);
 	}
 
 	/**
 	 * This command handler shows tradeskill process for combined Alien Armor.
-	 *
-	 * @HandlesCommand("aiarmor")
-	 * @Mask $type (cc|cm|co|cp|cs|css|ss)
 	 */
-	public function aiarmorCombinedCommand(CmdContext $context, ?int $ql, string $type): void {
+	#[NCA\HandlesCommand("aiarmor")]
+	public function aiarmorCombinedCommand(CmdContext $context, ?int $ql, #[NCA\Regexp("cc|cm|co|cp|cs|css|ss")] string $type): void {
 		$ql ??= 300;
 		$armortype = strtolower($type);
 		$targetQL = $ql;

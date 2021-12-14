@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\HELPBOT_MODULE;
 
+use Nadybot\Core\Attributes as NCA;
 use DateInterval;
 use DateTime;
 use DateTimeZone;
@@ -17,17 +18,17 @@ use Nadybot\Core\ParamClass\PWord;
 
 /**
  * @author Nadyita (RK5)
- *
- * @Instance
- *
  * Commands this controller contains:
- *	@DefineCommand(
- *		command     = 'arbiter',
- *		accessLevel = 'all',
- *		description = 'Show current arbiter mission',
- *		help        = 'arbiter.txt'
- *	)
  */
+#[
+	NCA\Instance,
+	NCA\DefineCommand(
+		command: "arbiter",
+		accessLevel: "all",
+		description: "Show current arbiter mission",
+		help: "arbiter.txt"
+	)
+]
 class ArbiterController {
 	public const DIO = "dio";
 	public const AI = "ai";
@@ -42,19 +43,19 @@ class ArbiterController {
 	 */
 	public string $moduleName;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public CommandAlias $commandAlias;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Util $util;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Text $text;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public DB $db;
 
-	/** @Setup */
+	#[NCA\Setup]
 	public function setup(): void {
 		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations/Arbiter");
 		$this->commandAlias->register($this->moduleName, "arbiter", "icc");
@@ -127,12 +128,8 @@ class ArbiterController {
 		return $this->util->unixtimeToReadable($time - ($time % 60));
 	}
 
-	/**
-	 * @HandlesCommand("arbiter")
-	 * @Mask $action set
-	 * @Mask $ends ends
-	 */
-	public function arbiterSetCommand(CmdContext $context, string $action, ?PWord $setWeek, ?string $ends): void {
+	#[NCA\HandlesCommand("arbiter")]
+	public function arbiterSetCommand(CmdContext $context, #[NCA\Str("set")] string $action, ?PWord $setWeek, #[NCA\Str("ends")] ?string $ends): void {
 		if (isset($setWeek)) {
 			$setWeek = strtolower($setWeek());
 		}
@@ -182,9 +179,7 @@ class ArbiterController {
 		);
 	}
 
-	/**
-	 * @HandlesCommand("arbiter")
-	 */
+	#[NCA\HandlesCommand("arbiter")]
 	public function arbiterCommand(CmdContext $context, ?string $timeGiven): void {
 		$time = time();
 		if (isset($timeGiven)) {
@@ -251,12 +246,15 @@ class ArbiterController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @NewsTile("arbiter")
-	 * @Description("Shows the current ICC arbiter week - if any")
-	 * @Example("<header2>Arbiter<end>
-	 * <tab>It's currently <highlight>DIO week<end>.")
-	 */
+	#[
+		NCA\NewsTile(
+			name: "arbiter",
+			description: "Shows the current ICC arbiter week - if any",
+			example:
+				"<header2>Arbiter<end>\n".
+				"<tab>It's currently <highlight>DIO week<end>."
+		)
+	]
 	public function arbiterNewsTile(string $sender, callable $callback): void {
 		/** @var ArbiterEvent[] */
 		$upcomingEvents = [
@@ -282,13 +280,16 @@ class ArbiterController {
 		$callback($msg);
 	}
 
-	/**
-	 * @NewsTile("arbiter-force")
-	 * @Description("Shows the current ICC arbiter week or what the next one will be")
-	 * @Example("<header2>Arbiter<end>
-	 * <tab>The arbiter is currently not here.
-	 * <tab>DIO week starts in <highlight>3 days 17 hrs 4 mins<end>.")
-	 */
+	#[
+		NCA\NewsTile(
+			name: "arbiter-force",
+			description: "Shows the current ICC arbiter week or what the next one will be",
+			example:
+				"<header2>Arbiter<end>\n".
+				"<tab>The arbiter is currently not here.\n".
+				"<tab>DIO week starts in <highlight>3 days 17 hrs 4 mins<end>."
+		)
+	]
 	public function arbiterNewsForceTile(string $sender, callable $callback): void {
 		/** @var ArbiterEvent[] */
 		$upcomingEvents = [

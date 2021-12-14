@@ -2,31 +2,30 @@
 
 namespace Nadybot\Core;
 
+use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\Modules\CONFIG\ConfigController;
 use Nadybot\Core\DBSchema\HelpTopic;
 
-/**
- * @Instance
- */
+#[NCA\Instance]
 class HelpManager {
 	public const DB_TABLE = "hlpcfg_<myname>";
 
-	/** @Inject */
+	#[NCA\Inject]
 	public DB $db;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public AccessManager $accessManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public ConfigController $configController;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Nadybot $chatBot;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Util $util;
 
-	/** @Logger */
+	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
 	/**

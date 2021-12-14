@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\IMPLANT_MODULE;
 
+use Nadybot\Core\Attributes as NCA;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	CmdContext,
@@ -12,17 +13,17 @@ use Nadybot\Core\{
 
 /**
  * @author Tyrence (RK2)
- *
- * @Instance
- *
  * Commands this class contains:
- *	@DefineCommand(
- *		command     = 'cluster',
- *		accessLevel = 'all',
- *		description = 'Find which clusters buff a specified skill',
- *		help        = 'cluster.txt'
- *	)
  */
+#[
+	NCA\Instance,
+	NCA\DefineCommand(
+		command: "cluster",
+		accessLevel: "all",
+		description: "Find which clusters buff a specified skill",
+		help: "cluster.txt"
+	)
+]
 class ClusterController {
 
 	/**
@@ -31,18 +32,16 @@ class ClusterController {
 	 */
 	public string $moduleName;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public DB $db;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Text $text;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Util $util;
 
-	/**
-	 * @HandlesCommand("cluster")
-	 */
+	#[NCA\HandlesCommand("cluster")]
 	public function clusterListCommand(CmdContext $context): void {
 		/** @var Collection<Cluster> */
 		$data = $this->db->table("Cluster")
@@ -66,9 +65,7 @@ class ClusterController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @HandlesCommand("cluster")
-	 */
+	#[NCA\HandlesCommand("cluster")]
 	public function clusterCommand(CmdContext $context, string $search): void {
 		$query = $this->db->table("Cluster");
 		$this->db->addWhereFromParams($query, explode(' ', $search), 'LongName');

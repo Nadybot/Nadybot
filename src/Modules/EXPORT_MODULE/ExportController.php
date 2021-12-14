@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\EXPORT_MODULE;
 
+use Nadybot\Core\Attributes as NCA;
 use JsonException;
 use Nadybot\Core\{
 	AccessManager,
@@ -56,17 +57,17 @@ use stdClass;
 
 /**
  * @author Nadyita (RK5) <nadyita@hodorraid.org>
- *
- * @Instance
- *
  * Commands this controller contains:
- *	@DefineCommand(
- *		command     = 'export',
- *		accessLevel = 'superadmin',
- *		description = 'Export the bot configuration and data',
- *		help        = 'export.txt'
- *	)
  */
+#[
+	NCA\Instance,
+	NCA\DefineCommand(
+		command: "export",
+		accessLevel: "superadmin",
+		description: "Export the bot configuration and data",
+		help: "export.txt"
+	)
+]
 class ExportController {
 
 	/**
@@ -76,27 +77,25 @@ class ExportController {
 	 */
 	public string $moduleName;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Nadybot $chatBot;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public DB $db;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public TimerController $timerController;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public AccessManager $accessManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public BuddylistManager $buddylistManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Preferences $preferences;
 
-	/**
-	 * @HandlesCommand("export")
-	 */
+	#[NCA\HandlesCommand("export")]
 	public function exportCommand(CmdContext $context, string $file): void {
 		$dataPath = $this->chatBot->vars["datafolder"] ?? "./data";
 		$fileName = "{$dataPath}/export/" . basename($file);

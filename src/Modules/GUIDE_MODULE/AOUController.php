@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\GUIDE_MODULE;
 
+use Nadybot\Core\Attributes as NCA;
 use DOMDocument;
 use DOMElement;
 use Nadybot\Core\{
@@ -18,17 +19,17 @@ use Throwable;
 
 /**
  * @author Tyrence (RK2)
- *
- * @Instance
- *
  * Commands this controller contains:
- *	@DefineCommand(
- *		command     = 'aou',
- *		accessLevel = 'all',
- *		description = 'Search for or view a guide from AO-Universe.com',
- *		help        = 'aou.txt'
- *	)
  */
+#[
+	NCA\Instance,
+	NCA\DefineCommand(
+		command: "aou",
+		accessLevel: "all",
+		description: "Search for or view a guide from AO-Universe.com",
+		help: "aou.txt"
+	)
+]
 class AOUController {
 
 	/**
@@ -37,16 +38,16 @@ class AOUController {
 	 */
 	public string $moduleName;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Text $text;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public ItemsController $itemsController;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public CacheManager $cacheManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Http $http;
 
 	public const AOU_URL = "https://www.ao-universe.com/mobile/parser.php?bot=nadybot";
@@ -65,9 +66,8 @@ class AOUController {
 
 	/**
 	 * View an AO-U guide.
-	 *
-	 * @HandlesCommand("aou")
 	 */
+	#[NCA\HandlesCommand("aou")]
 	public function aouView(CmdContext $context, int $guideId): void {
 		$params = [
 			'mode' => 'view',
@@ -129,19 +129,16 @@ class AOUController {
 
 	/**
 	 * Search for an AO-U guide and include guides that have the search terms in the guide text.
-	 *
-	 * @HandlesCommand("aou")
-	 * @Mask $action all
 	 */
-	public function aouAllSearch(CmdContext $context, string $action, string $search): void {
+	#[NCA\HandlesCommand("aou")]
+	public function aouAllSearch(CmdContext $context, #[NCA\Str("all")] string $action, string $search): void {
 		$this->searchAndShowAOUGuide($search, true, $context);
 	}
 
 	/**
 	 * Search for an AO-U guide.
-	 *
-	 * @HandlesCommand("aou")
 	 */
+	#[NCA\HandlesCommand("aou")]
 	public function aouSearch(CmdContext $context, string $search): void {
 		$this->searchAndShowAOUGuide($search, false, $context);
 	}
@@ -219,7 +216,6 @@ class AOUController {
 	}
 
 	/**
-	 *
 	 * @param string $haystack
 	 * @param string[] $needles
 	 * @return bool

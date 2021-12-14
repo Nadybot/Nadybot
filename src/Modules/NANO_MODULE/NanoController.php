@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\NANO_MODULE;
 
+use Nadybot\Core\Attributes as NCA;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	CmdContext,
@@ -16,37 +17,37 @@ use Nadybot\Core\{
  * @author Tyrence (RK2)
  * @author Healnjoo (RK2)
  * @author Mdkdoc420 (RK2)
- *
- * @Instance
- *
  * Commands this controller contains:
- *	@DefineCommand(
- *		command     = 'nano',
- *		accessLevel = 'all',
- *		description = 'Searches for a nano and tells you were to get it',
- *		help        = 'nano.txt'
- *	)
- *	@DefineCommand(
- *		command     = 'nanolines',
- *		accessLevel = 'all',
- *		description = 'Shows nanos based on nanoline',
- *		help        = 'nanolines.txt',
- *		alias		= 'nl'
- *	)
- *	@DefineCommand(
- *		command     = 'nanolinesfroob',
- *		accessLevel = 'all',
- *		description = 'Shows nanos for froobs based on nanoline ',
- *		help        = 'nanolinesfroob.txt',
- *		alias		= 'nlf'
- *	)
- *	@DefineCommand(
- *		command     = 'nanoloc',
- *		accessLevel = 'all',
- *		description = 'Browse nanos by location',
- *		help        = 'nano.txt'
- *	)
  */
+#[
+	NCA\Instance,
+	NCA\DefineCommand(
+		command: "nano",
+		accessLevel: "all",
+		description: "Searches for a nano and tells you were to get it",
+		help: "nano.txt"
+	),
+	NCA\DefineCommand(
+		command: "nanolines",
+		accessLevel: "all",
+		description: "Shows nanos based on nanoline",
+		help: "nanolines.txt",
+		alias: "nl"
+	),
+	NCA\DefineCommand(
+		command: "nanolinesfroob",
+		accessLevel: "all",
+		description: "Shows nanos for froobs based on nanoline ",
+		help: "nanolinesfroob.txt",
+		alias: "nlf"
+	),
+	NCA\DefineCommand(
+		command: "nanoloc",
+		accessLevel: "all",
+		description: "Browse nanos by location",
+		help: "nano.txt"
+	)
+]
 class NanoController {
 
 	/**
@@ -55,22 +56,22 @@ class NanoController {
 	 */
 	public string $moduleName;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public DB $db;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public SettingManager $settingManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Text $text;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Util $util;
 
 	/**
 	 * This handler is called on bot startup.
-	 * @Setup
 	 */
+	#[NCA\Setup]
 	public function setup(): void {
 		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations");
 		$this->db->loadCSVFile($this->moduleName, __DIR__ . "/nanos.csv");
@@ -99,9 +100,7 @@ class NanoController {
 		);
 	}
 
-	/**
-	 * @HandlesCommand("nano")
-	 */
+	#[NCA\HandlesCommand("nano")]
 	public function nanoCommand(CmdContext $context, string $search): void {
 		$search = htmlspecialchars_decode($search);
 		$query = $this->db->table("nanos")
@@ -161,23 +160,18 @@ class NanoController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @HandlesCommand("nanolines")
-	 */
+	#[NCA\HandlesCommand("nanolines")]
 	public function nanolinesListProfsCommand(CmdContext $context): void {
 		$this->listNanolineProfs($context, false);
 	}
 
-	/**
-	 * @HandlesCommand("nanolinesfroob")
-	 */
+	#[NCA\HandlesCommand("nanolinesfroob")]
 	public function nanolinesFroobListProfsCommand(CmdContext $context): void {
 		$this->listNanolineProfs($context, true);
 	}
 
 	/**
 	 * List all professions for which nanolines exist
-	 *
 	 * @param CmdContext $context Where to send the reply to
 	 * @param bool $froobObly Is set, only show professions a froob can play
 	 * @return void
@@ -204,16 +198,12 @@ class NanoController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @HandlesCommand("nanolines")
-	 */
+	#[NCA\HandlesCommand("nanolines")]
 	public function nanolinesListCommand(CmdContext $context, string $arg): void {
 		$this->listNanolines($context, false, $arg);
 	}
 
-	/**
-	 * @HandlesCommand("nanolinesfroob")
-	 */
+	#[NCA\HandlesCommand("nanolinesfroob")]
 	public function nanolinesFroobListCommand(CmdContext $context, string $arg): void {
 		$this->listNanolines($context, true, $arg);
 	}
@@ -289,7 +279,6 @@ class NanoController {
 
 	/**
 	 * List all nanolines for a profession, grouped by school
-	 *
 	 * @param string $profession The full name of the profession
 	 * @param bool   $froobOnly  If true, only show nanolines containing nanos a froob can use
 	 * @param CmdContext $context Object to send the reply to
@@ -339,9 +328,7 @@ class NanoController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @HandlesCommand("nanoloc")
-	 */
+	#[NCA\HandlesCommand("nanoloc")]
 	public function nanolocListCommand(CmdContext $context): void {
 		$query = $this->db->table("nanos")
 			->groupBy("location")
@@ -370,9 +357,7 @@ class NanoController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @HandlesCommand("nanoloc")
-	 */
+	#[NCA\HandlesCommand("nanoloc")]
 	public function nanolocViewCommand(CmdContext $context, string $location): void {
 		$nanos = $this->db->table("nanos")
 			->whereIlike("location", $location)

@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\HELPBOT_MODULE;
 
+use Nadybot\Core\Attributes as NCA;
 use DateTime;
 use Nadybot\Core\CmdContext;
 use Nadybot\Core\Text;
@@ -9,17 +10,17 @@ use Nadybot\Core\Util;
 
 /**
  * @author Tyrence (RK2)
- *
- * @Instance
- *
  * Commands this controller contains:
- *	@DefineCommand(
- *		command     = 'time',
- *		accessLevel = 'all',
- *		description = 'Show the time in the different timezones',
- *		help        = 'time.txt'
- *	)
  */
+#[
+	NCA\Instance,
+	NCA\DefineCommand(
+		command: "time",
+		accessLevel: "all",
+		description: "Show the time in the different timezones",
+		help: "time.txt"
+	)
+]
 class TimeController {
 	/**
 	 * Name of the module.
@@ -27,15 +28,13 @@ class TimeController {
 	 */
 	public string $moduleName;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Util $util;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Text $text;
 
-	/**
-	 * @HandlesCommand("time")
-	 */
+	#[NCA\HandlesCommand("time")]
 	public function timeListCommand(CmdContext $context): void {
 		$link  = "<header2>Australia<end>\n";
 		$link .= "<tab><highlight>Western Australia<end>\n";
@@ -106,9 +105,7 @@ class TimeController {
 		));
 	}
 
-	/**
-	 * @HandlesCommand("time")
-	 */
+	#[NCA\HandlesCommand("time")]
 	public function timeShowCommand(CmdContext $context, string $zone): void {
 		$zone = strtoupper($zone);
 		$timezone = $this->getTimezone($zone);

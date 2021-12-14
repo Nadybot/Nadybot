@@ -2,22 +2,23 @@
 
 namespace Nadybot\Core;
 
+use Nadybot\Core\Attributes as NCA;
 use Exception;
 use Nadybot\Core\Modules\CONFIG\ConfigController;
 
 /**
  * Class to represent a setting with an access level value for NadyBot
- * @SettingHandler("rank")
  */
+#[NCA\SettingHandler("rank")]
 class AccessLevelSettingHandler extends SettingHandler {
 
-	/** @Inject */
+	#[NCA\Inject]
 	public SettingManager $settingManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public ConfigController $configController;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public AccessManager $accessManager;
 
 	/**

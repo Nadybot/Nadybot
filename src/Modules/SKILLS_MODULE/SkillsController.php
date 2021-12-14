@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\SKILLS_MODULE;
 
+use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{
 	CmdContext,
 	CommandAlias,
@@ -19,77 +20,77 @@ use Nadybot\Modules\ITEMS_MODULE\ItemSearchResult;
 /**
  * @author Tyrence (RK2)
  * @author Nadyita
- *
- * @Instance
- *
  * Commands this controller contains:
- *	@DefineCommand(
- *		command     = 'aggdef',
- *		accessLevel = 'all',
- *		description = 'Agg/Def: Calculates weapon inits for your Agg/Def bar',
- *		help        = 'aggdef.txt'
- *	)
- *	@DefineCommand(
- *		command     = 'aimshot',
- *		accessLevel = 'all',
- *		description = 'Aim Shot: Calculates Aimed Shot',
- *		help        = 'aimshot.txt'
- *	)
- *	@DefineCommand(
- *		command     = 'nanoinit',
- *		accessLevel = 'all',
- *		description = 'Nanoinit: Calculates Nano Init',
- *		help        = 'nanoinit.txt'
- *	)
- *	@DefineCommand(
- *		command     = 'fullauto',
- *		accessLevel = 'all',
- *		description = 'Fullauto: Calculates Full Auto recharge',
- *		help        = 'fullauto.txt'
- *	)
- *	@DefineCommand(
- *		command     = 'burst',
- *		accessLevel = 'all',
- *		description = 'Burst: Calculates Burst',
- *		help        = 'burst.txt'
- *	)
- *	@DefineCommand(
- *		command     = 'fling',
- *		accessLevel = 'all',
- *		description = 'Fling: Calculates Fling',
- *		help        = 'fling.txt'
- *	)
- *	@DefineCommand(
- *		command     = 'mafist',
- *		accessLevel = 'all',
- *		description = 'MA Fist: Calculates your fist speed',
- *		help        = 'mafist.txt'
- *	)
- *	@DefineCommand(
- *		command     = 'dimach',
- *		accessLevel = 'all',
- *		description = 'Dimach: Calculates dimach facts',
- *		help        = 'dimach.txt'
- *	)
- *	@DefineCommand(
- *		command     = 'brawl',
- *		accessLevel = 'all',
- *		description = 'Brawl: Calculates brawl facts',
- *		help        = 'brawl.txt'
- *	)
- *	@DefineCommand(
- *		command     = 'fastattack',
- *		accessLevel = 'all',
- *		description = 'Fastattack: Calculates Fast Attack recharge',
- *		help        = 'fastattack.txt'
- *	)
- *	@DefineCommand(
- *		command     = 'weapon',
- *		accessLevel = 'all',
- *		description = 'Shows weapon info (skill cap specials recycle and aggdef positions)',
- *		help        = 'weapon.txt'
- *	)
  */
+#[
+	NCA\Instance,
+	NCA\DefineCommand(
+		command: "aggdef",
+		accessLevel: "all",
+		description: "Agg/Def: Calculates weapon inits for your Agg/Def bar",
+		help: "aggdef.txt"
+	),
+	NCA\DefineCommand(
+		command: "aimshot",
+		accessLevel: "all",
+		description: "Aim Shot: Calculates Aimed Shot",
+		help: "aimshot.txt"
+	),
+	NCA\DefineCommand(
+		command: "nanoinit",
+		accessLevel: "all",
+		description: "Nanoinit: Calculates Nano Init",
+		help: "nanoinit.txt"
+	),
+	NCA\DefineCommand(
+		command: "fullauto",
+		accessLevel: "all",
+		description: "Fullauto: Calculates Full Auto recharge",
+		help: "fullauto.txt"
+	),
+	NCA\DefineCommand(
+		command: "burst",
+		accessLevel: "all",
+		description: "Burst: Calculates Burst",
+		help: "burst.txt"
+	),
+	NCA\DefineCommand(
+		command: "fling",
+		accessLevel: "all",
+		description: "Fling: Calculates Fling",
+		help: "fling.txt"
+	),
+	NCA\DefineCommand(
+		command: "mafist",
+		accessLevel: "all",
+		description: "MA Fist: Calculates your fist speed",
+		help: "mafist.txt"
+	),
+	NCA\DefineCommand(
+		command: "dimach",
+		accessLevel: "all",
+		description: "Dimach: Calculates dimach facts",
+		help: "dimach.txt"
+	),
+	NCA\DefineCommand(
+		command: "brawl",
+		accessLevel: "all",
+		description: "Brawl: Calculates brawl facts",
+		help: "brawl.txt"
+	),
+	NCA\DefineCommand(
+		command: "fastattack",
+		accessLevel: "all",
+		description: "Fastattack: Calculates Fast Attack recharge",
+		help: "fastattack.txt"
+	),
+	NCA\DefineCommand(
+		command: "weapon",
+		accessLevel: "all",
+		description: "Shows weapon info (skill cap specials recycle and aggdef positions)",
+		help: "weapon.txt"
+	)
+]
 class SkillsController {
 
 	/**
@@ -98,28 +99,28 @@ class SkillsController {
 	 */
 	public string $moduleName;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public DB $db;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Http $http;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Text $text;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Util $util;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public ItemsController $itemsController;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public CommandAlias $commandAlias;
 
 	/**
 	 * This handler is called on bot startup.
-	 * @Setup
 	 */
+	#[NCA\Setup]
 	public function setup(): void {
 		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations/Weapons");
 		$this->db->loadCSVFile($this->moduleName, __DIR__ . "/weapon_attributes.csv");
@@ -130,9 +131,7 @@ class SkillsController {
 		$this->commandAlias->register($this->moduleName, "aimshot", "aimedshot");
 	}
 
-	/**
-	 * @HandlesCommand("aggdef")
-	 */
+	#[NCA\HandlesCommand("aggdef")]
 	public function aggdefCommand(CmdContext $context, float $attackTime, float $rechargeTime, int $initValue): void {
 		$blob = $this->getAggDefOutput($attackTime, $rechargeTime, $initValue);
 
@@ -222,9 +221,7 @@ class SkillsController {
 		return $this->getInitsForPercent(0, $attackTime, $rechargeTime);
 	}
 
-	/**
-	 * @HandlesCommand("aimshot")
-	 */
+	#[NCA\HandlesCommand("aimshot")]
 	public function aimshotCommand(CmdContext $context, float $attackTime, float $rechargeTime, int $aimedShot): void {
 		[$cap, $ASCap] = $this->capAimedShot($attackTime, $rechargeTime);
 
@@ -246,9 +243,7 @@ class SkillsController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @HandlesCommand("brawl")
-	 */
+	#[NCA\HandlesCommand("brawl")]
 	public function brawlCommand(CmdContext $context, int $brawlSkill): void {
 
 		$skillList  = [ 1, 1000, 1001, 2000, 2001, 3000];
@@ -287,9 +282,7 @@ class SkillsController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @HandlesCommand("burst")
-	 */
+	#[NCA\HandlesCommand("burst")]
 	public function burstCommand(CmdContext $context, float $attackTime, float $rechargeTime, int $burstDelay, int $burstSkill): void {
 		[$burstWeaponCap, $burstSkillCap] = $this->capBurst($attackTime, $rechargeTime, $burstDelay);
 
@@ -309,9 +302,7 @@ class SkillsController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @HandlesCommand("dimach")
-	 */
+	#[NCA\HandlesCommand("dimach")]
 	public function dimachCommand(CmdContext $context, int $dimachSkill): void {
 		$skillList	        = [   1, 1000, 1001, 2000, 2001, 3000];
 		$generalDamageList	= [   1, 2000, 2001, 2500, 2501, 2850];
@@ -362,9 +353,7 @@ class SkillsController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @HandlesCommand("fastattack")
-	 */
+	#[NCA\HandlesCommand("fastattack")]
 	public function fastAttackCommand(CmdContext $context, float $attackTime, int $fastAttack): void {
 		[$weaponCap, $skillNeededForCap] = $this->capFastAttack($attackTime);
 
@@ -386,9 +375,7 @@ class SkillsController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @HandlesCommand("fling")
-	 */
+	#[NCA\HandlesCommand("fling")]
 	public function flighShotCommand(CmdContext $context, float $attackTime, int $flingShot): void {
 		[$weaponCap, $skillCap] = $this->capFlingShot($attackTime);
 
@@ -405,9 +392,7 @@ class SkillsController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @HandlesCommand("fullauto")
-	 */
+	#[NCA\HandlesCommand("fullauto")]
 	public function fullAutoCommand(CmdContext $context, float $attackTime, float $rechargeTime, int $faRecharge, int $faSkill): void {
 		[$faWeaponCap, $faSkillCap] = $this->capFullAuto($attackTime, $rechargeTime, $faRecharge);
 
@@ -433,9 +418,7 @@ class SkillsController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @HandlesCommand("mafist")
-	 */
+	#[NCA\HandlesCommand("mafist")]
 	public function maFistCommand(CmdContext $context, int $maSkill): void {
 		// MA templates
 		$skillList =     [     1,    200,   1000,   1001,   2000,   2001,   3000];
@@ -514,9 +497,7 @@ class SkillsController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @HandlesCommand("nanoinit")
-	 */
+	#[NCA\HandlesCommand("nanoinit")]
 	public function nanoInitCommand(CmdContext $context, float $attackTime, int $initSkill): void {
 		$attackTimeReduction = $this->calcAttackTimeReduction($initSkill);
 		$effectiveAttackTime = $attackTime - $attackTimeReduction;
@@ -554,12 +535,12 @@ class SkillsController {
 		$context->reply($msg);
 	}
 
-	/** @HandlesCommand("weapon") */
+	#[NCA\HandlesCommand("weapon")]
 	public function weaponCommandWithDrop(CmdContext $context, PItem $item): void {
 		$this->weaponCommand($context, $item->highID, $item->ql);
 	}
 
-	/** @HandlesCommand("weapon") */
+	#[NCA\HandlesCommand("weapon")]
 	public function weaponCommand(CmdContext $context, int $highid, int $ql): void {
 		// this is a hack since Worn Soft Pepper Pistol has its high and low ids reversed in-game
 		// there may be others
@@ -678,7 +659,7 @@ class SkillsController {
 		$context->reply($msg);
 	}
 
-	/** @HandlesCommand("weapon") */
+	#[NCA\HandlesCommand("weapon")]
 	public function weaponSearchCommand(CmdContext $context, ?int $ql, PNonNumber $search): void {
 		$search = $search();
 		$data = $this->itemsController->findItemsFromLocal($search, $ql);

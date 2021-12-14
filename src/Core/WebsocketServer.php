@@ -2,22 +2,23 @@
 
 namespace Nadybot\Core;
 
+use Nadybot\Core\Attributes as NCA;
 use Exception;
 use Nadybot\Core\Socket\AsyncSocket;
 use Nadybot\Modules\WEBSOCKET_MODULE\WebsocketController;
 
 class WebsocketServer extends WebsocketBase {
 
-	/** @Inject */
+	#[NCA\Inject]
 	public SocketManager $socketManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Timer $timer;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public WebsocketController $websocketController;
 
-	/** @Logger */
+	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
 

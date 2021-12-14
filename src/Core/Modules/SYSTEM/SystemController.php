@@ -2,6 +2,7 @@
 
 namespace Nadybot\Core\Modules\SYSTEM;
 
+use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{
 	AccessManager,
 	AdminManager,
@@ -35,55 +36,55 @@ use Nadybot\Modules\WEBSERVER_MODULE\Response;
 /**
  * @author Sebuda (RK2)
  * @author Tyrence (RK2)
- *
- * @Instance
- *
  * Commands this controller contains:
- *	@DefineCommand(
- *		command       = 'checkaccess',
- *		accessLevel   = 'all',
- *		description   = 'Check effective access level of a character',
- *		help          = 'checkaccess.txt'
- *	)
- *	@DefineCommand(
- *		command       = 'clearqueue',
- *		accessLevel   = 'mod',
- *		description   = 'Clear outgoing chatqueue from all pending messages',
- *		help          = 'clearqueue.txt'
- *	)
- *	@DefineCommand(
- *		command       = 'macro',
- *		accessLevel   = 'all',
- *		description   = 'Execute multiple commands at once',
- *		help          = 'macro.txt'
- *	)
- *	@DefineCommand(
- *		command       = 'showcommand',
- *		accessLevel   = 'mod',
- *		description   = 'Execute a command and have output sent to another player',
- *		help          = 'showcommand.txt'
- *	)
- *	@DefineCommand(
- *		command       = 'system',
- *		accessLevel   = 'mod',
- *		description   = 'Show detailed information about the bot',
- *		help          = 'system.txt'
- *	)
- *	@DefineCommand(
- *		command       = 'restart',
- *		accessLevel   = 'admin',
- *		description   = 'Restart the bot',
- *		help          = 'system.txt',
- *      defaultStatus = '1'
- *	)
- *	@DefineCommand(
- *		command       = 'shutdown',
- *		accessLevel   = 'admin',
- *		description   = 'Shutdown the bot',
- *		help          = 'system.txt',
- *		defaultStatus = '1'
- *	)
  */
+#[
+	NCA\Instance,
+	NCA\DefineCommand(
+		command: "checkaccess",
+		accessLevel: "all",
+		description: "Check effective access level of a character",
+		help: "checkaccess.txt"
+	),
+	NCA\DefineCommand(
+		command: "clearqueue",
+		accessLevel: "mod",
+		description: "Clear outgoing chatqueue from all pending messages",
+		help: "clearqueue.txt"
+	),
+	NCA\DefineCommand(
+		command: "macro",
+		accessLevel: "all",
+		description: "Execute multiple commands at once",
+		help: "macro.txt"
+	),
+	NCA\DefineCommand(
+		command: "showcommand",
+		accessLevel: "mod",
+		description: "Execute a command and have output sent to another player",
+		help: "showcommand.txt"
+	),
+	NCA\DefineCommand(
+		command: "system",
+		accessLevel: "mod",
+		description: "Show detailed information about the bot",
+		help: "system.txt"
+	),
+	NCA\DefineCommand(
+		command: "restart",
+		accessLevel: "admin",
+		description: "Restart the bot",
+		help: "system.txt",
+		defaultStatus: 1
+	),
+	NCA\DefineCommand(
+		command: "shutdown",
+		accessLevel: "admin",
+		description: "Shutdown the bot",
+		help: "system.txt",
+		defaultStatus: 1
+	)
+]
 class SystemController implements MessageEmitter {
 
 	/**
@@ -92,172 +93,55 @@ class SystemController implements MessageEmitter {
 	 */
 	public string $moduleName;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public AccessManager $accessManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public AdminManager $adminManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Nadybot $chatBot;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public DB $db;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public CommandManager $commandManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public EventManager $eventManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public CommandAlias $commandAlias;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public SubcommandManager $subcommandManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public HelpManager $helpManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public BuddylistManager $buddylistManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public SettingManager $settingManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Text $text;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Util $util;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public MessageHub $messageHub;
 
-	/** @Logger */
+	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
 	/**
-	 * @Setting("symbol")
-	 * @Description("Command prefix symbol")
-	 * @Visibility("edit")
-	 * @Type("text")
-	 * @Options("!;#;*;@;$;+;-")
-	 * @AccessLevel("mod")
-	 */
-	public string $defaultSymbol = "!";
-
-	/**
-	 * @Setting("max_blob_size")
-	 * @Description("Max chars for a window")
-	 * @Visibility("edit")
-	 * @Type("number")
-	 * @Options("4500;6000;7500;9000;10500;12000")
-	 * @AccessLevel("mod")
-	 * @Help("max_blob_size.txt")
-	 */
-	public string $defaultMaxBlobSize = "7500";
-
-	/**
-	 * @Setting("http_timeout")
-	 * @Description("Max time to wait for response from making http queries")
-	 * @Visibility("edit")
-	 * @Type("time")
-	 * @Options("1s;2s;5s;10s;30s")
-	 * @AccessLevel("mod")
-	 */
-	public string $defaultHttpTimeout = "10s";
-
-	/**
-	 * @Setting("guild_channel_status")
-	 * @Description("Enable the guild channel")
-	 * @Visibility("edit")
-	 * @Type("options")
-	 * @Options("true;false")
-	 * @Intoptions("1;0")
-	 * @AccessLevel("mod")
-	 */
-	public string $defaultGuildChannelStatus = "1";
-
-	/**
-	 * @Setting("guild_channel_cmd_feedback")
-	 * @Description("Show message on invalid command in guild channel")
-	 * @Visibility("edit")
-	 * @Type("options")
-	 * @Options("true;false")
-	 * @Intoptions("1;0")
-	 * @AccessLevel("mod")
-	 */
-	public string $defaultGuildChannelCmdFeedback = "1";
-
-	/**
-	 * @Setting("private_channel_cmd_feedback")
-	 * @Description("Show message on invalid command in private channel")
-	 * @Visibility("edit")
-	 * @Type("options")
-	 * @Options("true;false")
-	 * @Intoptions("1;0")
-	 * @AccessLevel("mod")
-	 */
-	public string $defaultPrivateChannelCmdFeedback = "1";
-
-	/**
-	 * @Setting("version")
-	 * @Description("Database version")
-	 * @Visibility("noedit")
-	 * @Type("text")
-	 * @AccessLevel("mod")
-	 */
-	public string $defaultVersion = "0";
-
-	/**
-	 * @Setting("allow_mass_tells")
-	 * @Description("When using the proxy, allow sending tells via the workers")
-	 * @Visibility("edit")
-	 * @Type("options")
-	 * @Options("true;false")
-	 * @Intoptions("1;0")
-	 * @AccessLevel("mod")
-	 */
-	public string $allowMassTells = "1";
-
-	/**
-	 * @Setting("force_mass_tells")
-	 * @Description("When using the proxy, always send tells via the workers")
-	 * @Visibility("edit")
-	 * @Type("options")
-	 * @Options("true;false")
-	 * @Intoptions("1;0")
-	 * @AccessLevel("mod")
-	 */
-	public string $forceMassTells = "0";
-
-	/**
-	 * @Setting("reply_on_same_worker")
-	 * @Description("When using the proxy, always reply via the worker that sent the tell")
-	 * @Visibility("edit")
-	 * @Type("options")
-	 * @Options("true;false")
-	 * @Intoptions("1;0")
-	 * @AccessLevel("mod")
-	 */
-	public string $replyOnSameWorker = "0";
-
-	/**
-	 * @Setting("paging_on_same_worker")
-	 * @Description("When using the proxy, always send multi-page replies via one worker ")
-	 * @Visibility("edit")
-	 * @Type("options")
-	 * @Options("true;false")
-	 * @Intoptions("1;0")
-	 * @AccessLevel("mod")
-	 */
-	public string $pagingOnSameWorker = "1";
-
-	/**
-	 * @Setup
 	 * This handler is called on bot startup.
 	 */
+	#[NCA\Setup]
 	public function setup(): void {
 		$this->settingManager->save('version', $this->chatBot->runner::getVersion());
 
@@ -265,14 +149,143 @@ class SystemController implements MessageEmitter {
 
 		$name = $this->chatBot->vars['name'];
 		$this->settingManager->add(
-			$this->moduleName,
-			"default_private_channel",
-			"Private channel to process commands from",
-			"edit",
-			"text",
-			$name,
-			$name
+			module: $this->moduleName,
+			name: "default_private_channel",
+			description: "Private channel to process commands from",
+			mode: "edit",
+			type: "text",
+			value: $name,
+			options: $name
 		);
+
+		$this->settingManager->add(
+			module: $this->moduleName,
+			name: "symbol",
+			description: "Command prefix symbol",
+			mode: "edit",
+			type: "text",
+			options: "!;#;*;@;$;+;-",
+			accessLevel: "mod",
+			value: "!",
+		);
+
+		$this->settingManager->add(
+			module: $this->moduleName,
+			name: "max_blob_size",
+			description: "Max chars for a window",
+			mode: "edit",
+			type: "number",
+			options: "4500;6000;7500;9000;10500;12000",
+			accessLevel: "mod",
+			help: "max_blob_size.txt",
+			value: "7500",
+		);
+
+		$this->settingManager->add(
+			module: $this->moduleName,
+			name: "http_timeout",
+			description: "Max time to wait for response from making http queries",
+			mode: "edit",
+			type: "time",
+			options: "1s;2s;5s;10s;30s",
+			accessLevel: "mod",
+			value: "10s",
+		);
+
+		$this->settingManager->add(
+			module: $this->moduleName,
+			name: "guild_channel_status",
+			description: "Enable the guild channel",
+			mode: "edit",
+			type: "options",
+			options: "true;false",
+			intoptions: "1;0",
+			accessLevel: "mod",
+			value: "1",
+		);
+
+		$this->settingManager->add(
+			module: $this->moduleName,
+			name: "guild_channel_cmd_feedback",
+			description: "Show message on invalid command in guild channel",
+			mode: "edit",
+			type: "options",
+			options: "true;false",
+			intoptions: "1;0",
+			accessLevel: "mod",
+			value: "1",
+		);
+
+		$this->settingManager->add(
+			module: $this->moduleName,
+			name: "private_channel_cmd_feedback",
+			description: "Show message on invalid command in private channel",
+			mode: "edit",
+			type: "options",
+			options: "true;false",
+			intoptions: "1;0",
+			accessLevel: "mod",
+			value: "1",
+		);
+
+		$this->settingManager->add(
+			module: $this->moduleName,
+			name: "version",
+			description: "Database version",
+			mode: "noedit",
+			type: "text",
+			accessLevel: "mod",
+			value: "0",
+		);
+
+		$this->settingManager->add(
+			module: $this->moduleName,
+			name: "allow_mass_tells",
+			description: "When using the proxy, allow sending tells via the workers",
+			mode: "edit",
+			type: "options",
+			options: "true;false",
+			intoptions: "1;0",
+			accessLevel: "mod",
+			value: "1",
+		);
+
+		$this->settingManager->add(
+			module: $this->moduleName,
+			name: "force_mass_tells",
+			description: "When using the proxy, always send tells via the workers",
+			mode: "edit",
+			type: "options",
+			options: "true;false",
+			intoptions: "1;0",
+			accessLevel: "mod",
+			value: "0",
+		);
+
+		$this->settingManager->add(
+			module: $this->moduleName,
+			name: "reply_on_same_worker",
+			description: "When using the proxy, always reply via the worker that sent the tell",
+			mode: "edit",
+			type: "options",
+			options: "true;false",
+			intoptions: "1;0",
+			accessLevel: "mod",
+			value: "0",
+		);
+
+		$this->settingManager->add(
+			module: $this->moduleName,
+			name: "paging_on_same_worker",
+			description: "When using the proxy, always send multi-page replies via one worker ",
+			mode: "edit",
+			type: "options",
+			options: "true;false",
+			intoptions: "1;0",
+			accessLevel: "mod",
+			value: "1",
+		);
+
 		$this->messageHub->registerMessageEmitter($this);
 	}
 
@@ -280,9 +293,7 @@ class SystemController implements MessageEmitter {
 		return Source::SYSTEM . "(status)";
 	}
 
-	/**
-	 * @HandlesCommand("restart")
-	 */
+	#[NCA\HandlesCommand("restart")]
 	public function restartCommand(CmdContext $context): void {
 		$msg = "Bot is restarting.";
 		$this->chatBot->sendTell($msg, $context->char->name);
@@ -295,9 +306,7 @@ class SystemController implements MessageEmitter {
 		exit(-1);
 	}
 
-	/**
-	 * @HandlesCommand("shutdown")
-	 */
+	#[NCA\HandlesCommand("shutdown")]
 	public function shutdownCommand(CmdContext $context): void {
 		$msg = "The Bot is shutting down.";
 		$this->chatBot->sendTell($msg, $context->char->name);
@@ -317,12 +326,14 @@ class SystemController implements MessageEmitter {
 		$basicInfo->bot_name = $this->chatBot->vars["name"];
 		$basicInfo->bot_version = $this->chatBot->runner::getVersion();
 		$basicInfo->db_type = $this->db->getType();
+		/** @psalm-suppress DocblockTypeContradiction */
 		$basicInfo->org = strlen($this->chatBot->vars['my_guild']??"")
 			? $this->chatBot->vars['my_guild']
 			: null;
 		$basicInfo->org_id = $this->chatBot->vars['my_guild_id'] ?? null;
 		$basicInfo->php_version = phpversion();
 		$basicInfo->os = php_uname('s') . ' ' . php_uname('r') . ' ' . php_uname('m');
+		/** @psalm-suppress DocblockTypeContradiction */
 		$basicInfo->superadmin = strlen($this->chatBot->vars["SuperAdmin"]??"")
 			? $this->chatBot->vars["SuperAdmin"]
 			: null;
@@ -380,9 +391,7 @@ class SystemController implements MessageEmitter {
 		return $info;
 	}
 
-	/**
-	 * @HandlesCommand("system")
-	 */
+	#[NCA\HandlesCommand("system")]
 	public function systemCommand(CmdContext $context): void {
 		$info = $this->getSystemInfo();
 
@@ -465,9 +474,7 @@ class SystemController implements MessageEmitter {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @HandlesCommand("checkaccess")
-	 */
+	#[NCA\HandlesCommand("checkaccess")]
 	public function checkaccessSelfCommand(CmdContext $context): void {
 		$accessLevel = $this->accessManager->getDisplayName($this->accessManager->getAccessLevelForCharacter($context->char->name));
 
@@ -477,9 +484,7 @@ class SystemController implements MessageEmitter {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @HandlesCommand("checkaccess")
-	 */
+	#[NCA\HandlesCommand("checkaccess")]
 	public function checkaccessOtherCommand(CmdContext $context, PCharacter $name): void {
 		$this->chatBot->getUid(
 			$name(),
@@ -501,9 +506,8 @@ class SystemController implements MessageEmitter {
 
 	/**
 	 * This command handler clears outgoing chatqueue from all pending messages.
-	 *
-	 * @HandlesCommand("clearqueue")
 	 */
+	#[NCA\HandlesCommand("clearqueue")]
 	public function clearqueueCommand(CmdContext $context): void {
 		if (!isset($this->chatBot->chatqueue)) {
 			$context->reply("There is currently no Chat queue set up.");
@@ -520,9 +524,8 @@ class SystemController implements MessageEmitter {
 
 	/**
 	 * This command handler execute multiple commands at once, separated by pipes.
-	 *
-	 * @HandlesCommand("macro")
 	 */
+	#[NCA\HandlesCommand("macro")]
 	public function macroCommand(CmdContext $context, string $command): void {
 		$commands = explode("|", $command);
 		foreach ($commands as $commandString) {
@@ -531,11 +534,11 @@ class SystemController implements MessageEmitter {
 		}
 	}
 
-	/**
-	 * @Event("timer(1hr)")
-	 * @Description("This event handler is called every hour to keep MySQL connection active")
-	 * @DefaultStatus("1")
-	 */
+	#[NCA\Event(
+		name: "timer(1hr)",
+		description: "This event handler is called every hour to keep MySQL connection active",
+		defaultStatus: 1
+	)]
 	public function refreshMySQLConnectionEvent(Event $eventObj): void {
 		// if the bot doesn't query the mysql database for 8 hours the db connection is closed
 		$this->logger->info("Pinging database");
@@ -545,11 +548,11 @@ class SystemController implements MessageEmitter {
 			->first();
 	}
 
-	/**
-	 * @Event("connect")
-	 * @Description("Notify private channel, guild channel, and admins that bot is online")
-	 * @DefaultStatus("1")
-	 */
+	#[NCA\Event(
+		name: "connect",
+		description: "Notify private channel, guild channel, and admins that bot is online",
+		defaultStatus: 1
+	)]
 	public function onConnectEvent(Event $eventObj): void {
 		// send Admin(s) a tell that the bot is online
 		foreach ($this->adminManager->admins as $name => $info) {
@@ -567,9 +570,7 @@ class SystemController implements MessageEmitter {
 		$this->messageHub->handle($rMsg);
 	}
 
-	/**
-	 * @HandlesCommand("showcommand")
-	 */
+	#[NCA\HandlesCommand("showcommand")]
 	public function showCommandCommand(CmdContext $context, PCharacter $name, string $cmd): void {
 		$this->chatBot->getUid($name(), [$this, "showCommandUid"], $context, $name(), $cmd);
 	}
@@ -593,11 +594,13 @@ class SystemController implements MessageEmitter {
 
 	/**
 	 * Get system information
-	 * @Api("/sysinfo")
-	 * @GET
-	 * @AccessLevel("all")
-	 * @ApiResult(code=200, class='SystemInformation', desc='Some basic system information')
 	 */
+	#[
+		NCA\Api("/sysinfo"),
+		NCA\GET,
+		NCA\AccessLevel("all"),
+		NCA\ApiResult(code: 200, class: "SystemInformation", desc: "Some basic system information")
+	]
 	public function apiSysinfoGetEndpoint(Request $request, HttpProtocolWrapper $server): Response {
 		return new ApiResponse($this->getSystemInfo());
 	}

@@ -2,6 +2,7 @@
 
 namespace Nadybot\Core;
 
+use Nadybot\Core\Attributes as NCA;
 use Exception;
 use InvalidArgumentException;
 
@@ -68,13 +69,13 @@ class WebsocketBase {
 	protected string $uri;
 	protected ?int $lastWriteTime = null;
 
-	/** @Logger */
+	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Timer $timer;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public SocketManager $socketManager;
 
 	public function connect(): bool {

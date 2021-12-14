@@ -2,6 +2,7 @@
 
 namespace Nadybot\Core\Modules\DISCORD;
 
+use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{
 	Http,
 	LoggerWrapper,
@@ -11,9 +12,8 @@ use Nadybot\Core\{
 
 /**
  * @author Nadyita (RK5)
- *
- * @Instance
  */
+#[NCA\Instance]
 class DiscordController {
 
 	/**
@@ -22,25 +22,25 @@ class DiscordController {
 	 */
 	public string $moduleName;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Nadybot $chatBot;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public SettingManager $settingManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Http $http;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public DiscordAPIClient $discordAPIClient;
 
-	/** @Logger */
+	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
 	/**
-	 * @Setup
 	 * This handler is called on bot startup.
 	 */
+	#[NCA\Setup]
 	public function setup(): void {
 		$this->settingManager->add(
 			$this->moduleName,

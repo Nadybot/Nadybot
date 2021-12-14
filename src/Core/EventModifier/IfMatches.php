@@ -2,41 +2,45 @@
 
 namespace Nadybot\Core\EventModifier;
 
+use Nadybot\Core\Attributes as NCA;
 use Exception;
 use Nadybot\Core\EventModifier;
 use Nadybot\Core\Routing\RoutableEvent;
 
-/**
- * @EventModifier("if-matches")
- * @Description("This modifier will only route messages if they contain
- *	a certain text.")
- * @Param(
- *	name='text',
- *	type='string[]',
- *	description='The text that needs to be in the message.
- *	If more than one is given, any of the texts must match, not all.',
- *	required=true
- * )
- * @Param(
- *	name='case-sensitive',
- *	type='bool',
- *	description='Determines if the comparison is done case sensitive or not',
- *	required=false
- * )
- * @Param(
- *	name='regexp',
- *	type='bool',
- *	description='If set to true, text is a regular expression to match egainst.',
- *	required=false
- * )
- * @Param(
- *	name='inverse',
- *	type='bool',
- *	description='If set to true, this will inverse the logic
- *	and drop all messages matching the given text.',
- *	required=false
- * )
- */
+#[
+	NCA\EventModifier(
+		name: "if-matches",
+		description:
+			"This modifier will only route messages if they contain\n".
+			"a certain text."
+	),
+	NCA\Param(
+		name: "text",
+		type: "string[]",
+		description: "The text that needs to be in the message.\n".
+			"If more than one is given, any of the texts must match, not all.",
+		required: true
+	),
+	NCA\Param(
+		name: "case-sensitive",
+		type: "bool",
+		description: "Determines if the comparison is done case sensitive or not",
+		required: false
+	),
+	NCA\Param(
+		name: "regexp",
+		type: "bool",
+		description: "If set to true, text is a regular expression to match egainst.",
+		required: false
+	),
+	NCA\Param(
+		name: "inverse",
+		type: "bool",
+		description: "If set to true, this will inverse the logic\n".
+			"and drop all messages matching the given text.",
+		required: false
+	)
+]
 class IfMatches implements EventModifier {
 	/** @var string[] */
 	protected array $text = [];

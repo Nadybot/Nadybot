@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\PRIVATE_CHANNEL_MODULE;
 
+use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\AOChatEvent;
 use Nadybot\Core\CmdContext;
 use Nadybot\Core\Nadybot;
@@ -9,17 +10,17 @@ use Nadybot\Core\Text;
 
 /**
  * @author Nadyita (RK5)
- *
- * @Instance
- *
  * Commands this controller contains:
- *	@DefineCommand(
- *		command     = 'rules',
- *		accessLevel = 'all',
- *		description = "Rules of this bot",
- *		help        = 'rules.txt'
- *	)
  */
+#[
+	NCA\Instance,
+	NCA\DefineCommand(
+		command: "rules",
+		accessLevel: "all",
+		description: "Rules of this bot",
+		help: "rules.txt"
+	)
+]
 class RulesController {
 
 	/**
@@ -28,18 +29,16 @@ class RulesController {
 	 */
 	public string $moduleName;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Text $text;
 
 	/**
 	 * @var \Nadybot\Core\Nadybot $chatBot
-	 * @Inject
 	 */
+	#[NCA\Inject]
 	public Nadybot $chatBot;
 
-	/**
-	 * @HandlesCommand("rules")
-	 */
+	#[NCA\HandlesCommand("rules")]
 	public function rulesCommand(CmdContext $context): void {
 		$dataPath = $this->chatBot->vars["datafolder"] ?? "./data";
 		if (!@file_exists("{$dataPath}/rules.txt")) {
@@ -55,10 +54,10 @@ class RulesController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @Event("joinPriv")
-	 * @Description("If you defined rules, send them to people joining the private channel")
-	 */
+	#[NCA\Event(
+		name: "joinPriv",
+		description: "If you defined rules, send them to people joining the private channel"
+	)]
 	public function joinPrivateChannelShowRulesEvent(AOChatEvent $eventObj): void {
 		$dataPath = $this->chatBot->vars["datafolder"] ?? "./data";
 		if (

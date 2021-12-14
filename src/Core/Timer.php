@@ -2,9 +2,9 @@
 
 namespace Nadybot\Core;
 
-/**
- * @Instance
- */
+use Nadybot\Core\Attributes as NCA;
+
+#[NCA\Instance]
 class Timer {
 	/**
 	 * Array of waiting timer events.

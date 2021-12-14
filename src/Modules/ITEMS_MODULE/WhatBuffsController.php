@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\ITEMS_MODULE;
 
+use Nadybot\Core\Attributes as NCA;
 use Illuminate\Database\Query\JoinClause;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
@@ -20,52 +21,53 @@ use Nadybot\Core\{
 use Nadybot\Core\ParamClass\PWord;
 
 /**
- * @Instance
- *
  * Commands this controller contains:
- *	@DefineCommand(
- *		command     = 'whatbuffs',
- *		accessLevel = 'all',
- *		description = 'Find items or nanos that buff an ability or skill',
- *		help        = 'whatbuffs.txt'
- *	)
- *	@DefineCommand(
- *		command     = 'whatbuffsfroob',
- *		accessLevel = 'all',
- *		alias       = 'wbf',
- *		description = 'Find froob-friendly items or nanos that buff an ability or skill',
- *		help        = 'whatbuffs.txt'
- *	)
  */
+#[
+	NCA\Instance,
+	NCA\DefineCommand(
+		command: "whatbuffs",
+		accessLevel: "all",
+		description: "Find items or nanos that buff an ability or skill",
+		help: "whatbuffs.txt"
+	),
+	NCA\DefineCommand(
+		command: "whatbuffsfroob",
+		accessLevel: "all",
+		description: "Find froob-friendly items or nanos that buff an ability or skill",
+		help: "whatbuffs.txt",
+		alias: "wbf"
+	)
+]
 class WhatBuffsController {
 
 	public string $moduleName;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Http $http;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Text $text;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public DB $db;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Util $util;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public CommandManager $commandManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public SettingManager $settingManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public ItemsController $itemsController;
 
-	/** @Logger */
+	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
-	/** @Setup */
+	#[NCA\Setup]
 	public function setup(): void {
 		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations/Buff");
 		$this->db->loadCSVFile($this->moduleName, __DIR__ . "/item_buffs.csv");
@@ -106,12 +108,12 @@ class WhatBuffsController {
 		);
 	}
 
-	/** @HandlesCommand("whatbuffs") */
+	#[NCA\HandlesCommand("whatbuffs")]
 	public function whatbuffsCommand(CmdContext $context): void {
 		$this->showSkillChoice($context, false);
 	}
 
-	/** @HandlesCommand("whatbuffsfroob") */
+	#[NCA\HandlesCommand("whatbuffsfroob")]
 	public function whatbuffsFroobCommand(CmdContext $context): void {
 		$this->showSkillChoice($context, true);
 	}
@@ -135,10 +137,10 @@ class WhatBuffsController {
 		$sendto->reply($msg);
 	}
 
-	/**
-	 * @HandlesCommand("whatbuffs")
-	 * @HandlesCommand("whatbuffsfroob")
-	 */
+	#[
+		NCA\HandlesCommand("whatbuffs"),
+		NCA\HandlesCommand("whatbuffsfroob")
+	]
 	public function whatbuffsOneWordCommand(CmdContext $context, PWord $search): void {
 		$command = explode(" ", $context->message)[0];
 		$froobFriendly = strtolower($command) === "whatbuffsfroob";
@@ -229,16 +231,12 @@ class WhatBuffsController {
 		$sendto->reply($msg);
 	}
 
-	/**
-	 * @HandlesCommand("whatbuffs")
-	 */
+	#[NCA\HandlesCommand("whatbuffs")]
 	public function whatbuffs5Command(CmdContext $context, string $search): void {
 		$this->handleOtherComandline(false, $context, $search);
 	}
 
-	/**
-	 * @HandlesCommand("whatbuffsfroob")
-	 */
+	#[NCA\HandlesCommand("whatbuffsfroob")]
 	public function whatbuffsfroob5Command(CmdContext $context, string $search): void {
 		$this->handleOtherComandline(true, $context, $search);
 	}
@@ -524,7 +522,6 @@ class WhatBuffsController {
 
 	/**
 	 * Search for all skills and skill aliases matching $skill
-	 *
 	 * @return Skill[]
 	 */
 	public function searchForSkill(string $skill): array {

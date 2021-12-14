@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\ORGLIST_MODULE;
 
+use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{
 	CmdContext,
 	DB,
@@ -18,17 +19,17 @@ use Nadybot\Modules\ONLINE_MODULE\OnlineController;
 
 /**
  * @author Tyrence (RK2)
- *
- * @Instance
- *
  * Commands this controller contains:
- *	@DefineCommand(
- *		command     = 'whoisorg',
- *		accessLevel = 'all',
- *		description = 'Display org info',
- *		help        = 'whoisorg.txt'
- *	)
  */
+#[
+	NCA\Instance,
+	NCA\DefineCommand(
+		command: "whoisorg",
+		accessLevel: "all",
+		description: "Display org info",
+		help: "whoisorg.txt"
+	)
+]
 class WhoisOrgController {
 	/**
 	 * Name of the module.
@@ -36,39 +37,35 @@ class WhoisOrgController {
 	 */
 	public string $moduleName;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public DB $db;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Nadybot $chatBot;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Text $text;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Util $util;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public PlayerManager $playerManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public GuildManager $guildManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public OnlineController $onlineController;
 
-	/**
-	 * @HandlesCommand("whoisorg")
-	 */
+	#[NCA\HandlesCommand("whoisorg")]
 	public function whoisorgIdCommand(CmdContext $context, int $orgId, ?int $dimension): void {
 		$dimension ??= (int)$this->chatBot->vars['dimension'];
 		$this->sendOrgIdInfo($orgId, $context, $dimension);
 		return;
 	}
 
-	/**
-	 * @HandlesCommand("whoisorg")
-	 */
+	#[NCA\HandlesCommand("whoisorg")]
 	public function whoisorgCommand(CmdContext $context, PCharacter $char, ?int $dimension): void {
 		$dimension ??= (int)$this->chatBot->vars['dimension'];
 		$name = $char();

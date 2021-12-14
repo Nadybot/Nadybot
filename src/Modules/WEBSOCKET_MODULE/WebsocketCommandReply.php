@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\WEBSOCKET_MODULE;
 
+use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\AOChatEvent;
 use Nadybot\Core\CommandReply;
 use Nadybot\Core\EventManager;
@@ -15,19 +16,19 @@ use Nadybot\Core\SettingManager;
 use Nadybot\Modules\WEBSERVER_MODULE\WebChatConverter;
 
 class WebsocketCommandReply implements CommandReply, MessageEmitter {
-	/** @Inject */
+	#[NCA\Inject]
 	public Nadybot $chatBot;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public WebChatConverter $webChatConverter;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public EventManager $eventManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public SettingManager $settingManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public MessageHub $messageHub;
 
 	protected string $type;

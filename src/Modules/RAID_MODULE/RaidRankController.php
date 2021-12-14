@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\RAID_MODULE;
 
+use Nadybot\Core\Attributes as NCA;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	AccessManager,
@@ -22,71 +23,73 @@ use Nadybot\Core\{
 use Nadybot\Core\ParamClass\PCharacter;
 
 /**
- * @Instance
  * Commands this controller contains:
- * @DefineCommand(
- *     command       = 'raidadmin',
- *     accessLevel   = 'raid_admin_2',
- *     description   = 'Promote/demote someone to/from raid admin',
- *     help          = 'raidranks.txt'
- * )
- * @DefineCommand(
- *     command       = 'raidleader',
- *     accessLevel   = 'raid_admin_1',
- *     description   = 'Promote/demote someone to/from raid leader',
- *     help          = 'raidranks.txt'
- * )
- *	@DefineCommand(
- *		command       = 'leaderlist',
- *		accessLevel   = 'all',
- *		description   = 'Shows the list of raid leaders and admins',
- *		help          = 'leaderlist.txt',
- *		alias         = 'leaders',
- *		defaultStatus = '1'
- *	)
  */
+#[
+	NCA\Instance,
+	NCA\DefineCommand(
+		command: "raidadmin",
+		accessLevel: "raid_admin_2",
+		description: "Promote/demote someone to/from raid admin",
+		help: "raidranks.txt"
+	),
+	NCA\DefineCommand(
+		command: "raidleader",
+		accessLevel: "raid_admin_1",
+		description: "Promote/demote someone to/from raid leader",
+		help: "raidranks.txt"
+	),
+	NCA\DefineCommand(
+		command: "leaderlist",
+		accessLevel: "all",
+		description: "Shows the list of raid leaders and admins",
+		help: "leaderlist.txt",
+		defaultStatus: 1,
+		alias: "leaders"
+	)
+]
 class RaidRankController {
 	public const DB_TABLE = "raid_rank_<myname>";
 
 	public string $moduleName;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public SettingManager $settingManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public AdminManager $adminManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public AccessManager $accessManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public AltsController $altsController;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public CommandAlias $commandAlias;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public BuddylistManager $buddylistManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Nadybot $chatBot;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public DB $db;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Text $text;
 
-	/** @Logger */
+	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
 	/** @var array<string,RaidRank> */
 	public array $ranks = [];
 
 	/**
-	 * @Setup
 	 * @todo: Add support for the raid levels
 	 */
+	#[NCA\Setup]
 	public function setup(): void {
 		/**
 		$this->settingManager->add(
@@ -186,11 +189,11 @@ class RaidRankController {
 		$this->commandAlias->register($this->moduleName, "raidleader", "raid leader");
 	}
 
-	/**
-	 * @Event("connect")
-	 * @Description("Add raid leader and admins to the buddy list")
-	 * @DefaultStatus("1")
-	 */
+	#[NCA\Event(
+		name: "connect",
+		description: "Add raid leader and admins to the buddy list",
+		defaultStatus: 1
+	)]
 	public function checkRaidRanksEvent(): void {
 		$this->db->table(self::DB_TABLE)
 			->asObj(RaidRank::class)
@@ -201,8 +204,8 @@ class RaidRankController {
 
 	/**
 	 * Load the raid leaders, admins and veterans from the database into $ranks
-	 * @Setup
 	 */
+	#[NCA\Setup]
 	public function uploadRaidRanks(): void {
 		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations/Ranks");
 		$this->db->table(self::DB_TABLE)
@@ -234,7 +237,6 @@ class RaidRankController {
 
 	/**
 	 * Set the raid rank of a user
-	 *
 	 * @return string Either "demoted" or "promoted"
 	 */
 	public function addToLists(string $who, string $sender, int $rank): string {
@@ -383,11 +385,8 @@ class RaidRankController {
 		return true;
 	}
 
-	/**
-	 * @HandlesCommand("raidadmin")
-	 * @Mask $action (add|promote)
-	 */
-	public function raidAdminAddCommand(CmdContext $context, string $action, PCharacter $char, ?int $rank): void {
+	#[NCA\HandlesCommand("raidadmin")]
+	public function raidAdminAddCommand(CmdContext $context, #[NCA\Regexp("add|promote")] string $action, PCharacter $char, ?int $rank): void {
 		$rank ??= 1;
 		if ($rank < 1 || $rank > 3) {
 			$context->reply("The admin rank must be a number between 1 and 3");
@@ -398,21 +397,15 @@ class RaidRankController {
 		$this->add($char(), $context->char->name, $context, $rank+6, $rankName, "raid_admin_$rank");
 	}
 
-	/**
-	 * @HandlesCommand("raidadmin")
-	 * @Mask $action (remove|rem|del|rm|demote)
-	 */
-	public function raidAdminRemoveCommand(CmdContext $context, string $action, PCharacter $char): void {
+	#[NCA\HandlesCommand("raidadmin")]
+	public function raidAdminRemoveCommand(CmdContext $context, #[NCA\Regexp("remove|rem|del|rm|demote")] string $action, PCharacter $char): void {
 		$rank = 'a raid admin';
 
 		$this->remove($char(), $context->char->name, $context, [7, 8, 9], $rank);
 	}
 
-	/**
-	 * @HandlesCommand("raidleader")
-	 * @Mask $action (add|promote)
-	 */
-	public function raidLeaderAddCommand(CmdContext $context, string $action, PCharacter $char, ?int $rank): void {
+	#[NCA\HandlesCommand("raidleader")]
+	public function raidLeaderAddCommand(CmdContext $context, #[NCA\Regexp("add|promote")] string $action, PCharacter $char, ?int $rank): void {
 		$rank ??= 1;
 		if ($rank < 1 || $rank > 3) {
 			$context->reply("The leader rank must be a number between 1 and 3");
@@ -423,11 +416,8 @@ class RaidRankController {
 		$this->add($char(), $context->char->name, $context, $rank+3, $rankName, "raid_leader_$rank");
 	}
 
-	/**
-	 * @HandlesCommand("raidleader")
-	 * @Mask $action (rem|del|rm|demote)
-	 */
-	public function raidLeaderRemoveCommand(CmdContext $context, string $action, PCharacter $char): void {
+	#[NCA\HandlesCommand("raidleader")]
+	public function raidLeaderRemoveCommand(CmdContext $context, #[NCA\Regexp("rem|del|rm|demote")] string $action, PCharacter $char): void {
 		$rank = 'a raid leader';
 
 		$this->remove($char(), $context->char->name, $context, [4, 5, 6], $rank);
@@ -474,11 +464,8 @@ class RaidRankController {
 		return join("", $output) . "\n";
 	}
 
-	/**
-	 * @HandlesCommand("leaderlist")
-	 * @Mask $all all
-	 */
-	public function leaderlistCommand(CmdContext $context, ?string $all): void {
+	#[NCA\HandlesCommand("leaderlist")]
+	public function leaderlistCommand(CmdContext $context, #[NCA\Str("all")] ?string $all): void {
 		$showOfflineAlts = isset($all);
 
 		$blob = "";
@@ -555,10 +542,10 @@ class RaidRankController {
 		return $blob;
 	}
 
-	/**
-	 * @Event("alt(newmain)")
-	 * @Description("Move raid rank to new main")
-	 */
+	#[NCA\Event(
+		name: "alt(newmain)",
+		description: "Move raid rank to new main"
+	)]
 	public function moveRaidRanks(AltEvent $event): void {
 		$oldRank = $this->ranks[$event->alt] ?? null;
 		if ($oldRank === null) {

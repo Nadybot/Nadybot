@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\WHATLOCKS_MODULE;
 
+use Nadybot\Core\Attributes as NCA;
 use DateTime;
 use Nadybot\Core\{
 	CmdContext,
@@ -14,33 +15,34 @@ use Nadybot\Modules\ITEMS_MODULE\Skill;
 
 /**
  * @author Nadyita (RK5) <nadyita@hodorraid.org>
- * @Instance
- *
  * Commands this controller contains:
- *	@DefineCommand(
- *		command     = 'whatlocks',
- *		accessLevel = 'all',
- *		description = 'List skills locked by using items',
- *		help        = 'whatlocks.txt'
- *	)
  */
+#[
+	NCA\Instance,
+	NCA\DefineCommand(
+		command: "whatlocks",
+		accessLevel: "all",
+		description: "List skills locked by using items",
+		help: "whatlocks.txt"
+	)
+]
 class WhatLocksController {
 
 	public string $moduleName;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Text $text;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Util $util;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public DB $db;
 
 	/**
 	 * This handler is called on bot startup.
-	 * @Setup
 	 */
+	#[NCA\Setup]
 	public function setup(): void {
 		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations");
 		$this->db->loadCSVFile($this->moduleName, __DIR__ . "/what_locks.csv");
@@ -48,9 +50,8 @@ class WhatLocksController {
 
 	/**
 	 * Search for a list of skills that can be locked and how many items lock it
-	 *
-	 * @HandlesCommand("whatlocks")
 	 */
+	#[NCA\HandlesCommand("whatlocks")]
 	public function whatLocksCommand(CmdContext $context): void {
 		$query = $this->db->table("what_locks AS wl")
 			->join("skills AS s", "wl.skill_id", "s.id")
@@ -81,7 +82,6 @@ class WhatLocksController {
 
 	/**
 	 * Search the skill database for a skill
-	 *
 	 * @param string $skill The name of the skill searched for
 	 * @return Skill[] All matching skills
 	 */
@@ -108,7 +108,6 @@ class WhatLocksController {
 
 	/**
 	 * Get a dialog to choose which skill to search for locks
-	 *
 	 * @param Skill[] $skills A list of skills to choose from
 	 * @return string[] The complete dialogue
 	 */
@@ -128,9 +127,8 @@ class WhatLocksController {
 
 	/**
 	 * Search for a list of items that lock a specific skill
-	 *
-	 * @HandlesCommand("whatlocks")
 	 */
+	#[NCA\HandlesCommand("whatlocks")]
 	public function whatLocksSkillCommand(CmdContext $context, string $skill): void {
 		$skills = $this->searchForSkill($skill);
 		if (count($skills) === 0) {
@@ -184,7 +182,6 @@ class WhatLocksController {
 
 	/**
 	 * Get a pretty short string of a duration in seconds
-	 *
 	 * @param int $duration The ducation in seconds
 	 * @param int $cutAway (optional) Cut away the first $cutAway characters
 	 *                                from the returned string

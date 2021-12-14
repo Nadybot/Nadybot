@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\RELAY_MODULE;
 
+use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{
 	DBSchema\Player,
 	LoggerWrapper,
@@ -26,22 +27,22 @@ class Relay implements MessageReceiver {
 	public const ALLOW_IN = 1;
 	public const ALLOW_OUT = 2;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public MessageHub $messageHub;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Nadybot $chatBot;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public SettingManager $settingManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public PlayerManager $playerManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Timer $timer;
 
-	/** @Logger */
+	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
 	/** Name of this relay */

@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\COMMENT_MODULE;
 
+use Nadybot\Core\Attributes as NCA;
 use Exception;
 use Illuminate\Database\Schema\Blueprint;
 use Nadybot\Core\{
@@ -23,23 +24,23 @@ use Nadybot\Core\ParamClass\PWord;
 
 /**
  * @author Nadyita (RK5) <nadyita@hodorraid.org>
- *
- * @Instance
- *
  * Commands this controller contains:
- *	@DefineCommand(
- *		command     = 'comment',
- *		accessLevel = 'member',
- *		description = 'read/write comments about players',
- *		help        = 'comment.txt'
- *	)
- *	@DefineCommand(
- *		command     = 'commentcategories',
- *		accessLevel = 'mod',
- *		description = 'Manage comment categories',
- *		help        = 'comment-categories.txt'
- *	)
  */
+#[
+	NCA\Instance,
+	NCA\DefineCommand(
+		command: "comment",
+		accessLevel: "member",
+		description: "read/write comments about players",
+		help: "comment.txt"
+	),
+	NCA\DefineCommand(
+		command: "commentcategories",
+		accessLevel: "mod",
+		description: "Manage comment categories",
+		help: "comment-categories.txt"
+	)
+]
 class CommentController {
 	/**
 	 * Name of the module.
@@ -47,38 +48,36 @@ class CommentController {
 	 */
 	public string $moduleName;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public CommandAlias $commandAlias;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public AltsController $altsController;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public AccessManager $accessManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public SettingManager $settingManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Nadybot $chatBot;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public DB $db;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Util $util;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Text $text;
 
-	/** @Logger */
+	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
 	public const ADMIN="admin";
 
-	/**
-	 * @Setup
-	 */
+	#[NCA\Setup]
 	public function setup(): void {
 		$this->commandAlias->register($this->moduleName, "commentcategories", "comment categories");
 		$this->commandAlias->register($this->moduleName, "commentcategories", "comment category");
@@ -225,7 +224,6 @@ class CommentController {
 
 	/**
 	 * Delete a single category by its name
-	 *
 	 * @return int|null Number of deleted comments or null if the category didn't exist
 	 */
 	public function deleteCategory(string $category): ?int {
@@ -240,9 +238,8 @@ class CommentController {
 
 	/**
 	 * Command to list all categories
-	 *
-	 * @HandlesCommand("commentcategories")
 	 */
+	#[NCA\HandlesCommand("commentcategories")]
 	public function listCategoriesCommand(CmdContext $context): void {
 		/** @var CommentCategory[] */
 		$categories = $this->db->table("<table:comment_categories>")
@@ -279,9 +276,8 @@ class CommentController {
 
 	/**
 	 * Command to delete a category
-	 *
-	 * @HandlesCommand("commentcategories")
 	 */
+	#[NCA\HandlesCommand("commentcategories")]
 	public function deleteCategoryCommand(CmdContext $context, PRemove $action, string $category): void {
 		$cat = $this->getCategory($category);
 		if (isset($cat)) {
@@ -319,13 +315,11 @@ class CommentController {
 
 	/**
 	 * Command to add a new category
-	 *
-	 * @HandlesCommand("commentcategories")
-	 * @Mask $action (add|create|new|edit|change)
 	 */
+	#[NCA\HandlesCommand("commentcategories")]
 	public function addCategoryCommand(
 		CmdContext $context,
-		string $action,
+		#[NCA\Regexp("add|create|new|edit|change")] string $action,
 		PWord $category,
 		PWord $alForReading,
 		?PWord $alForWriting
@@ -366,13 +360,11 @@ class CommentController {
 
 	/**
 	 * Command to add a new comment
-	 *
-	 * @HandlesCommand("comment")
-	 * @Mask $action (add|create|new)
 	 */
+	#[NCA\HandlesCommand("comment")]
 	public function addCommentCommand(
 		CmdContext $context,
-		string $action,
+		#[NCA\Regexp("add|create|new")] string $action,
 		PCharacter $char,
 		PWord $category,
 		string $commentText
@@ -464,13 +456,11 @@ class CommentController {
 
 	/**
 	 * Command to read comments about a player
-	 *
-	 * @HandlesCommand("comment")
-	 * @Mask $action (get|search|find)
 	 */
+	#[NCA\HandlesCommand("comment")]
 	public function searchCommentCommand(
 		CmdContext $context,
-		string $action,
+		#[NCA\Regexp("get|search|find")] string $action,
 		PCharacter $char,
 		?PWord $category
 	): void {
@@ -514,11 +504,9 @@ class CommentController {
 
 	/**
 	 * Command to read comments about a player
-	 *
-	 * @HandlesCommand("comment")
-	 * @Mask $action list
 	 */
-	public function listCommentsCommand(CmdContext $context, string $action, PWord $categoryName): void {
+	#[NCA\HandlesCommand("comment")]
+	public function listCommentsCommand(CmdContext $context, #[NCA\Str("list")] string $action, PWord $categoryName): void {
 		$category = $this->getCategory($categoryName());
 		if ($category === null) {
 			$context->reply("The category <highlight>{$categoryName}<end> does not exist.");
@@ -625,9 +613,8 @@ class CommentController {
 
 	/**
 	 * Command to delete a comment about a player
-	 *
-	 * @HandlesCommand("comment")
 	 */
+	#[NCA\HandlesCommand("comment")]
 	public function deleteCommentCommand(CmdContext $context, PRemove $action, int $id): void {
 		/** @var ?Comment */
 		$comment = $this->db->table("<table:comments>")
@@ -655,7 +642,6 @@ class CommentController {
 
 	/**
 	 * Read all comments about a list of players or their alts/main, optionally limited to a category
-	 *
 	 * @return Comment[]
 	 */
 	public function getComments(?CommentCategory $category, string ...$characters): array {
@@ -676,7 +662,6 @@ class CommentController {
 
 	/**
 	 * Count all comments about a list of players or their alts/main, optionally limited to a category
-	 *
 	 * @return int
 	 */
 	public function countComments(?CommentCategory $category, string ...$characters): int {
@@ -696,7 +681,6 @@ class CommentController {
 
 	/**
 	 * Read all comments about of a category
-	 *
 	 * @return Comment[]
 	 */
 	public function readCategoryComments(CommentCategory $category): array {
