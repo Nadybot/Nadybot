@@ -54,6 +54,7 @@ class SQLController {
 	#[NCA\HandlesCommand("executesql")]
 	public function executesqlCommand(CmdContext $context, string $sql): void {
 		$sql = htmlspecialchars_decode($sql);
+		// I don't want to expose the API in any other way, so yeah...
 		$refDB = new ReflectionClass($this->db);
 		$refCap = $refDB->getProperty("capsule");
 		$refCap->setAccessible(true);
@@ -75,6 +76,7 @@ class SQLController {
 
 	#[NCA\HandlesCommand("querysql")]
 	public function querysqlCommand(CmdContext $context, string $sql): void {
+		// I don't want to expose the API in any other way, so yeah...
 		$refDB = new ReflectionClass($this->db);
 		$refCap = $refDB->getProperty("capsule");
 		$refCap->setAccessible(true);
