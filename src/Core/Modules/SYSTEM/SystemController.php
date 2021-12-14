@@ -143,7 +143,6 @@ class SystemController implements MessageEmitter {
 	 */
 	#[NCA\Setup]
 	public function setup(): void {
-		$this->settingManager->save('version', $this->chatBot->runner::getVersion());
 
 		$this->helpManager->register($this->moduleName, "budatime", "budatime.txt", "all", "Format for budatime");
 
@@ -285,6 +284,8 @@ class SystemController implements MessageEmitter {
 			accessLevel: "mod",
 			value: "1",
 		);
+
+		$this->settingManager->save('version', $this->chatBot->runner::getVersion());
 
 		$this->messageHub->registerMessageEmitter($this);
 	}

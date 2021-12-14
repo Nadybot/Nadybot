@@ -53,7 +53,7 @@ class Tell implements TransportInterface {
 	public function __construct(string $bot) {
 		$bot = ucfirst(strtolower($bot));
 		/** @var Nadybot */
-		$chatBot = Registry::getInstance('chatBot');
+		$chatBot = Registry::getInstance(Nadybot::class);
 		if ($chatBot->get_uid($bot) === false) {
 			throw new Exception("Unknown user <highlight>{$bot}<end>.");
 		}

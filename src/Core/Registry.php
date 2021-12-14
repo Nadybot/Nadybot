@@ -4,6 +4,8 @@ namespace Nadybot\Core;
 
 use Nadybot\Core\Attributes as NCA;
 use ReflectionClass;
+use ReflectionNamedType;
+use RuntimeException;
 
 class Registry {
 	/** @var array<string,object> */
@@ -44,7 +46,7 @@ class Registry {
 	 * Get the instance for the name $name or null if  none registered yet
 	 */
 	public static function getInstance(string $name, bool $reload=false): ?object {
-		$name = strtolower($name);
+		$name = static::formatName($name);
 
 		$instance = Registry::$repo[$name]??null;
 		if ($instance === null) {
@@ -65,7 +67,14 @@ class Registry {
 			if (count($injectAttrs)) {
 				/** @var NCA\Inject */
 				$injectAttr = $injectAttrs[0]->newInstance();
-				$dependencyName = $injectAttr->instance ?? $property->name;
+				$dependencyName = $injectAttr->instance;
+				if (!isset($dependencyName)) {
+					$type = $property->getType();
+					if (!($type instanceof ReflectionNamedType)) {
+						throw new RuntimeException("Cannot determine type of {$reflection->getName()}::\${$property->getName()}");
+					}
+					$dependencyName = static::formatName($type->getName());
+				}
 				$dependency = Registry::getInstance($dependencyName);
 				if ($dependency === null) {
 					static::getLogger()->warning("Could not resolve dependency '$dependencyName' in '" . get_class($instance) ."'");
