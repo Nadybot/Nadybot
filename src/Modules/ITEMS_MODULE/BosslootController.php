@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\ITEMS_MODULE;
 
+use Nadybot\Core\Attributes as NCA;
 use Illuminate\Database\Query\JoinClause;
 use Illuminate\Support\Collection;
 use Nadybot\Core\CmdContext;
@@ -19,23 +20,23 @@ use Nadybot\Modules\WHEREIS_MODULE\WhereisResult;
  * Boss Drop Table Database Module
  * Written 5/11/07
  * Last Modified 5/14/07
- *
- * @Instance
- *
  * Commands this controller contains:
- *	@DefineCommand(
- *		command     = 'boss',
- *		accessLevel = 'all',
- *		description = 'Shows bosses and their loot',
- *		help        = 'boss.txt'
- *	)
- *	@DefineCommand(
- *		command     = 'bossloot',
- *		accessLevel = 'all',
- *		description = 'Finds which boss drops certain loot',
- *		help        = 'boss.txt'
- *	)
  */
+#[
+	NCA\Instance,
+	NCA\DefineCommand(
+		command: "boss",
+		accessLevel: "all",
+		description: "Shows bosses and their loot",
+		help: "boss.txt"
+	),
+	NCA\DefineCommand(
+		command: "bossloot",
+		accessLevel: "all",
+		description: "Finds which boss drops certain loot",
+		help: "boss.txt"
+	)
+]
 class BosslootController {
 	/**
 	 * Name of the module.
@@ -43,19 +44,19 @@ class BosslootController {
 	 */
 	public string $moduleName;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public DB $db;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Text $text;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Util $util;
 
-	/** @Logger */
+	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
-	/** @Setup */
+	#[NCA\Setup]
 	public function setup(): void {
 		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations/Boss");
 		$this->db->loadCSVFile($this->moduleName, __DIR__ ."/boss_namedb.csv");
@@ -64,9 +65,8 @@ class BosslootController {
 
 	/**
 	 * This command handler shows bosses and their loot.
-	 *
-	 * @HandlesCommand("boss")
 	 */
+	#[NCA\HandlesCommand("boss")]
 	public function bossCommand(CmdContext $context, string $search): void {
 		$search = strtolower($search);
 
@@ -141,9 +141,8 @@ class BosslootController {
 
 	/**
 	 * This command handler finds which boss drops certain loot.
-	 *
-	 * @HandlesCommand("bossloot")
 	 */
+	#[NCA\HandlesCommand("bossloot")]
 	public function bosslootCommand(CmdContext $context, string $search): void {
 		$search = strtolower($search);
 

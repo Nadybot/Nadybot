@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\IMPLANT_MODULE;
 
+use Nadybot\Core\Attributes as NCA;
 use Illuminate\Support\Collection;
 use Nadybot\Core\CmdContext;
 use Nadybot\Core\DB;
@@ -17,23 +18,23 @@ use Nadybot\Modules\ITEMS_MODULE\Skill;
 
 /**
  * @author Nadyita (RK5)
- *
- * @Instance
- *
  * Commands this class contains:
- *	@DefineCommand(
- *		command     = 'bestsymbiants',
- *		accessLevel = 'all',
- *		description = 'Shows the best symbiants for the slots',
- *		help        = 'bestsymbiants.txt'
- *	)
- *	@DefineCommand(
- *		command     = 'symbcompare',
- *		accessLevel = 'all',
- *		description = 'Compare symbiants with each other',
- *		help        = 'bestsymbiants.txt'
- *	)
  */
+#[
+	NCA\Instance,
+	NCA\DefineCommand(
+		command: "bestsymbiants",
+		accessLevel: "all",
+		description: "Shows the best symbiants for the slots",
+		help: "bestsymbiants.txt"
+	),
+	NCA\DefineCommand(
+		command: "symbcompare",
+		accessLevel: "all",
+		description: "Compare symbiants with each other",
+		help: "bestsymbiants.txt"
+	)
+]
 class SymbiantController {
 
 	/**
@@ -42,32 +43,32 @@ class SymbiantController {
 	 */
 	public string $moduleName;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public PlayerManager $playerManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public DB $db;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Text $text;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public ItemsController $itemsController;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Util $util;
 
-	/** @HandlesCommand("bestsymbiants") */
+	#[NCA\HandlesCommand("bestsymbiants")]
 	public function findBestSymbiantsLvlProf(CmdContext $context, int $level, PWord $prof): void {
 		$this->findBestSymbiants($context, $prof, $level);
 	}
 
-	/** @HandlesCommand("bestsymbiants") */
+	#[NCA\HandlesCommand("bestsymbiants")]
 	public function findBestSymbiantsProfLvl(CmdContext $context, PWord $prof, int $level): void {
 		$this->findBestSymbiants($context, $prof, $level);
 	}
 
-	/** @HandlesCommand("bestsymbiants") */
+	#[NCA\HandlesCommand("bestsymbiants")]
 	public function findBestSymbiantsAuto(CmdContext $context): void {
 		$this->findBestSymbiants($context, null, null);
 	}
@@ -178,9 +179,7 @@ class SymbiantController {
 		return $blob;
 	}
 
-	/**
-	 * @HandlesCommand("symbcompare")
-	 */
+	#[NCA\HandlesCommand("symbcompare")]
 	public function compareSymbiants(CmdContext $context, int ...$ids): void {
 		$ids = new Collection($ids);
 

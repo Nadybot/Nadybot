@@ -2,7 +2,7 @@
 
 namespace Nadybot\Modules\WEBSERVER_MODULE;
 
-use Addendum\ReflectionAnnotatedMethod;
+use ReflectionMethod;
 use Closure;
 
 class ApiHandler {
@@ -12,7 +12,7 @@ class ApiHandler {
 	public string $path;
 	public string $route;
 	public Closure $handler;
-	public ReflectionAnnotatedMethod $reflectionMethod;
+	public ReflectionMethod $reflectionMethod;
 	public array $args = [];
 
 	public function exec(Request $request, HttpProtocolWrapper $server): ?Response {

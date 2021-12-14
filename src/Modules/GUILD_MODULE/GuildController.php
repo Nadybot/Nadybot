@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\GUILD_MODULE;
 
+use Nadybot\Core\Attributes as NCA;
 use Illuminate\Database\Query\JoinClause;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
@@ -38,47 +39,47 @@ use Nadybot\Core\Routing\Source;
  * @author Tyrence (RK2)
  * @author Mindrila (RK1)
  * @author Derroylo (RK2)
- *
- * @Instance
- *
  * Commands this controller contains:
- *	@DefineCommand(
- *		command     = "logon",
- *		accessLevel = "guild",
- *		description = "Set logon message",
- *		help        = "logon_msg.txt"
- *	)
- *	@DefineCommand(
- *		command     = "logoff",
- *		accessLevel = "guild",
- *		description = "Set logoff message",
- *		help        = "logoff_msg.txt"
- *	)
- *	@DefineCommand(
- *		command     = "lastseen",
- *		accessLevel = "guild",
- *		description = "Shows the last logoff time of a character",
- *		help        = "lastseen.txt"
- *	)
- *	@DefineCommand(
- *		command     = "recentseen",
- *		accessLevel = "guild",
- *		description = "Shows org members who have logged off recently",
- *		help        = "recentseen.txt"
- *	)
- *	@DefineCommand(
- *		command     = "notify",
- *		accessLevel = "mod",
- *		description = "Adds a character to the notify list manually",
- *		help        = "notify.txt"
- *	)
- *	@DefineCommand(
- *		command     = "updateorg",
- *		accessLevel = "mod",
- *		description = "Force an update of the org roster",
- *		help        = "updateorg.txt"
- *	)
  */
+#[
+	NCA\Instance,
+	NCA\DefineCommand(
+		command: "logon",
+		accessLevel: "guild",
+		description: "Set logon message",
+		help: "logon_msg.txt"
+	),
+	NCA\DefineCommand(
+		command: "logoff",
+		accessLevel: "guild",
+		description: "Set logoff message",
+		help: "logoff_msg.txt"
+	),
+	NCA\DefineCommand(
+		command: "lastseen",
+		accessLevel: "guild",
+		description: "Shows the last logoff time of a character",
+		help: "lastseen.txt"
+	),
+	NCA\DefineCommand(
+		command: "recentseen",
+		accessLevel: "guild",
+		description: "Shows org members who have logged off recently",
+		help: "recentseen.txt"
+	),
+	NCA\DefineCommand(
+		command: "notify",
+		accessLevel: "mod",
+		description: "Adds a character to the notify list manually",
+		help: "notify.txt"
+	),
+	NCA\DefineCommand(
+		command: "updateorg",
+		accessLevel: "mod",
+		description: "Force an update of the org roster",
+		help: "updateorg.txt"
+	)
+]
 class GuildController {
 
 	public const DB_TABLE = "org_members_<myname>";
@@ -89,45 +90,43 @@ class GuildController {
 	 */
 	public string $moduleName;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public DB $db;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Nadybot $chatBot;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public SettingManager $settingManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public BuddylistManager $buddylistManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public PlayerManager $playerManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public GuildManager $guildManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public MessageHub $messageHub;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Text $text;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Util $util;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public AltsController $altsController;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Preferences $preferences;
 
-	/** @Logger */
+	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
-	/**
-	 * @Setup
-	 */
+	#[NCA\Setup]
 	public function setup(): void {
 		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations/Base");
 
@@ -214,9 +213,7 @@ class GuildController {
 			->delete();
 	}
 
-	/**
-	 * @HandlesCommand("logon")
-	 */
+	#[NCA\HandlesCommand("logon")]
 	public function logonMessageShowCommand(CmdContext $context): void {
 		$logonMessage = $this->preferences->get($context->char->name, 'logon_msg');
 
@@ -228,9 +225,7 @@ class GuildController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @HandlesCommand("logon")
-	 */
+	#[NCA\HandlesCommand("logon")]
 	public function logonMessageSetCommand(CmdContext $context, string $logonMessage): void {
 		if ($logonMessage === 'clear') {
 			$this->preferences->save($context->char->name, 'logon_msg', '');
@@ -244,9 +239,7 @@ class GuildController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @HandlesCommand("logoff")
-	 */
+	#[NCA\HandlesCommand("logoff")]
 	public function logoffMessageShowCommand(CmdContext $context): void {
 		$logoffMessage = $this->preferences->get($context->char->name, 'logoff_msg');
 
@@ -258,9 +251,7 @@ class GuildController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @HandlesCommand("logoff")
-	 */
+	#[NCA\HandlesCommand("logoff")]
 	public function logoffMessageSetCommand(CmdContext $context, string $logoffMessage): void {
 		if ($logoffMessage == 'clear') {
 			$this->preferences->save($context->char->name, 'logoff_msg', '');
@@ -274,9 +265,7 @@ class GuildController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @HandlesCommand("lastseen")
-	 */
+	#[NCA\HandlesCommand("lastseen")]
 	public function lastSeenCommand(CmdContext $context, PCharacter $name): void {
 		$uid = $this->chatBot->get_uid($name());
 		if (!$uid) {
@@ -319,9 +308,7 @@ class GuildController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @HandlesCommand("recentseen")
-	 */
+	#[NCA\HandlesCommand("recentseen")]
 	public function recentSeenCommand(CmdContext $context, PDuration $duration): void {
 		if (!$this->isGuildBot()) {
 			$context->reply("The bot must be in an org.");
@@ -384,11 +371,8 @@ class GuildController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @HandlesCommand("notify")
-	 * @Mask $action (on|add)
-	 */
-	public function notifyAddCommand(CmdContext $context, string $action, PCharacter $who): void {
+	#[NCA\HandlesCommand("notify")]
+	public function notifyAddCommand(CmdContext $context, #[NCA\Regexp("on|add")] string $action, PCharacter $who): void {
 		$name = $who();
 		$uid = $this->chatBot->get_uid($name);
 
@@ -428,9 +412,7 @@ class GuildController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @HandlesCommand("notify")
-	 */
+	#[NCA\HandlesCommand("notify")]
 	public function notifyRemoveCommand(CmdContext $context, PRemove $action, PCharacter $who): void {
 		$name = $who();
 		$uid = $this->chatBot->get_uid($name);
@@ -463,9 +445,7 @@ class GuildController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @HandlesCommand("updateorg")
-	 */
+	#[NCA\HandlesCommand("updateorg")]
 	public function updateorgCommand(CmdContext $context): void {
 		$context->reply("Starting Roster update");
 		$this->updateOrgRoster([$context, "reply"], "Finished Roster update");
@@ -597,18 +577,18 @@ class GuildController {
 		$this->messageHub->handle($re);
 	}
 
-	/**
-	 * @Event("timer(24hrs)")
-	 * @Description("Download guild roster xml and update guild members")
-	 */
+	#[NCA\Event(
+		name: "timer(24hrs)",
+		description: "Download guild roster xml and update guild members"
+	)]
 	public function downloadOrgRosterEvent(Event $eventObj): void {
 		$this->updateOrgRoster();
 	}
 
-	/**
-	 * @Event("orgmsg")
-	 * @Description("Automatically update guild roster as characters join and leave the guild")
-	 */
+	#[NCA\Event(
+		name: "orgmsg",
+		description: "Automatically update guild roster as characters join and leave the guild"
+	)]
 	public function autoNotifyOrgMembersEvent(AOChatEvent $eventObj): void {
 		$message = $eventObj->message;
 		if (preg_match("/^(.+) invited (.+) to your organization.$/", $message, $arr)) {
@@ -713,10 +693,10 @@ class GuildController {
 		);
 	}
 
-	/**
-	 * @Event("logOn")
-	 * @Description("Shows an org member logon in chat")
-	 */
+	#[NCA\Event(
+		name: "logOn",
+		description: "Shows an org member logon in chat"
+	)]
 	public function orgMemberLogonMessageEvent(UserStateEvent $eventObj): void {
 		$sender = $eventObj->sender;
 		if (!isset($this->chatBot->guildmembers[$sender])
@@ -754,10 +734,10 @@ class GuildController {
 		return $msg;
 	}
 
-	/**
-	 * @Event("logOff")
-	 * @Description("Shows an org member logoff in chat")
-	 */
+	#[NCA\Event(
+		name: "logOff",
+		description: "Shows an org member logoff in chat"
+	)]
 	public function orgMemberLogoffMessageEvent(UserStateEvent $eventObj): void {
 		$sender = $eventObj->sender;
 		if (!isset($this->chatBot->guildmembers[$sender])
@@ -781,10 +761,10 @@ class GuildController {
 		}, $sender);
 	}
 
-	/**
-	 * @Event("logOff")
-	 * @Description("Record org member logoff for lastseen command")
-	 */
+	#[NCA\Event(
+		name: "logOff",
+		description: "Record org member logoff for lastseen command"
+	)]
 	public function orgMemberLogoffRecordEvent(UserStateEvent $eventObj): void {
 		$sender = $eventObj->sender;
 		if (!isset($this->chatBot->guildmembers[$sender])
@@ -803,10 +783,10 @@ class GuildController {
 			&& !empty($this->chatBot->vars["my_guild_id"]);
 	}
 
-	/**
-	 * @Event("connect")
-	 * @Description("Verifies that org name is correct")
-	 */
+	#[NCA\Event(
+		name: "connect",
+		description: "Verifies that org name is correct"
+	)]
 	public function verifyOrgNameEvent(Event $eventObj): void {
 		if (empty($this->chatBot->vars["my_guild"])) {
 			return;

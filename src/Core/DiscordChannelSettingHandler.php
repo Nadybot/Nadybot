@@ -2,23 +2,24 @@
 
 namespace Nadybot\Core;
 
+use Nadybot\Core\Attributes as NCA;
 use Exception;
 use JsonException;
 use Nadybot\Modules\DISCORD_GATEWAY_MODULE\DiscordGatewayController;
 
 /**
  * Class to represent a setting with a discord channel value for NadyBot
- * @SettingHandler("discord_channel")
  */
+#[NCA\SettingHandler("discord_channel")]
 class DiscordChannelSettingHandler extends SettingHandler {
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Http $http;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public SettingManager $settingManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public DiscordGatewayController $discordGatewayController;
 
 	/**

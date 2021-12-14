@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\LOOT_MODULE;
 
+use Nadybot\Core\Attributes as NCA;
 use Exception;
 use Illuminate\Database\Query\JoinClause;
 use Nadybot\Core\{
@@ -25,127 +26,126 @@ use Nadybot\Modules\BASIC_CHAT_MODULE\ChatLeaderController;
  * @author Chachy (RK2)
  * @author Dare2005 (RK2)
  * @author Nadyita (RK5)
- *
  * based on code for dbloot module by Chachy (RK2)
- *
- * @Instance
- *
  * Commands this class contains:
- *	@DefineCommand(
- *		command     = 'alb',
- *		accessLevel = 'all',
- *		description = 'Shows possible Albtraum loots',
- *		help        = 'albloot.txt'
- *	)
- *	@DefineCommand(
- *		command     = 'db1',
- *		accessLevel = 'all',
- *		description = 'Shows possible DB1 Armor/NCUs/Programs',
- *		help        = 'dbloot.txt'
- *	)
- *	@DefineCommand(
- *		command     = 'db2',
- *		accessLevel = 'all',
- *		description = 'Shows possible DB2 Armor',
- *		help        = 'dbloot.txt'
- *	)
- *	@DefineCommand(
- *		command     = 'db3',
- *		accessLevel = 'all',
- *		description = 'Shows possible DB3 Loot',
- *		help        = 'dbloot.txt'
- *	)
- *	@DefineCommand(
- *		command     = '7',
- *		accessLevel = 'all',
- *		description = 'Shows the Sector 7 loot list',
- *		help        = 'apf.txt'
- *	)
- *	@DefineCommand(
- *		command     = '13',
- *		accessLevel = 'rl',
- *		description = 'Adds APF 13 loot to the loot list',
- *		help        = 'apf.txt'
- *	)
- *	@DefineCommand(
- *		command     = '28',
- *		accessLevel = 'rl',
- *		description = 'Adds APF 28 loot to the loot list',
- *		help        = 'apf.txt'
- *	)
- *	@DefineCommand(
- *		command     = '35',
- *		accessLevel = 'rl',
- *		description = 'Adds APF 35 loot to the loot list',
- *		help        = 'apf.txt'
- *	)
- *	@DefineCommand(
- *		command     = 'apf',
- *		accessLevel = 'all',
- *		description = 'Shows what drops off APF Bosses',
- *		help        = 'apf.txt'
- *	)
- *	@DefineCommand(
- *		command     = 'beast',
- *		accessLevel = 'all',
- *		description = 'Shows Beast loot',
- *		help        = 'pande.txt'
- *	)
- *	@DefineCommand(
- *		command     = 'pande',
- *		accessLevel = 'all',
- *		description = 'Shows Pandemonium bosses and loot categories',
- *		help        = 'pande.txt'
- *	)
- *	@DefineCommand(
- *		command     = 'vortexx',
- *		accessLevel = 'all',
- *		description = 'Shows possible Vortexx Loot',
- *		help        = 'xan.txt'
- *	)
- *	@DefineCommand(
- *		command     = 'mitaar',
- *		accessLevel = 'all',
- *		description = 'Shows possible Mitaar Hero Loot',
- *		help        = 'xan.txt'
- *	)
- *	@DefineCommand(
- *		command     = '12m',
- *		accessLevel = 'all',
- *		description = 'Shows possible 12 man Loot',
- *		help        = 'xan.txt'
- *	)
- *	@DefineCommand(
- *		command     = 'poh',
- *		accessLevel = 'all',
- *		description = 'Shows possible Pyramid of Home loot',
- *		help        = 'poh.txt'
- *	)
- *	@DefineCommand(
- *		command     = 'totw',
- *		accessLevel = 'all',
- *		description = 'Shows possible TOTW 201+ loot',
- *		help        = 'totw.txt'
- *	)
- *	@DefineCommand(
- *		command     = 'halloween',
- *		accessLevel = 'all',
- *		description = 'Shows possible Halloween loot',
- *		help        = 'halloween.txt'
- *	)
- *	@DefineCommand(
- *		command     = 'subway',
- *		accessLevel = 'all',
- *		description = 'Shows possible Subway 201+',
- *		help        = 'subway.txt'
- *	)
- *	@DefineCommand(
- *		command     = 'lox',
- *		accessLevel = 'all',
- *		description = 'Shows Legacy of the Xan loot categories',
- *		help        = 'xan.txt'
- *	)
  */
+#[
+	NCA\Instance,
+	NCA\DefineCommand(
+		command: "alb",
+		accessLevel: "all",
+		description: "Shows possible Albtraum loots",
+		help: "albloot.txt"
+	),
+	NCA\DefineCommand(
+		command: "db1",
+		accessLevel: "all",
+		description: "Shows possible DB1 Armor/NCUs/Programs",
+		help: "dbloot.txt"
+	),
+	NCA\DefineCommand(
+		command: "db2",
+		accessLevel: "all",
+		description: "Shows possible DB2 Armor",
+		help: "dbloot.txt"
+	),
+	NCA\DefineCommand(
+		command: "db3",
+		accessLevel: "all",
+		description: "Shows possible DB3 Loot",
+		help: "dbloot.txt"
+	),
+	NCA\DefineCommand(
+		command: "7",
+		accessLevel: "all",
+		description: "Shows the Sector 7 loot list",
+		help: "apf.txt"
+	),
+	NCA\DefineCommand(
+		command: "13",
+		accessLevel: "rl",
+		description: "Adds APF 13 loot to the loot list",
+		help: "apf.txt"
+	),
+	NCA\DefineCommand(
+		command: "28",
+		accessLevel: "rl",
+		description: "Adds APF 28 loot to the loot list",
+		help: "apf.txt"
+	),
+	NCA\DefineCommand(
+		command: "35",
+		accessLevel: "rl",
+		description: "Adds APF 35 loot to the loot list",
+		help: "apf.txt"
+	),
+	NCA\DefineCommand(
+		command: "apf",
+		accessLevel: "all",
+		description: "Shows what drops off APF Bosses",
+		help: "apf.txt"
+	),
+	NCA\DefineCommand(
+		command: "beast",
+		accessLevel: "all",
+		description: "Shows Beast loot",
+		help: "pande.txt"
+	),
+	NCA\DefineCommand(
+		command: "pande",
+		accessLevel: "all",
+		description: "Shows Pandemonium bosses and loot categories",
+		help: "pande.txt"
+	),
+	NCA\DefineCommand(
+		command: "vortexx",
+		accessLevel: "all",
+		description: "Shows possible Vortexx Loot",
+		help: "xan.txt"
+	),
+	NCA\DefineCommand(
+		command: "mitaar",
+		accessLevel: "all",
+		description: "Shows possible Mitaar Hero Loot",
+		help: "xan.txt"
+	),
+	NCA\DefineCommand(
+		command: "12m",
+		accessLevel: "all",
+		description: "Shows possible 12 man Loot",
+		help: "xan.txt"
+	),
+	NCA\DefineCommand(
+		command: "poh",
+		accessLevel: "all",
+		description: "Shows possible Pyramid of Home loot",
+		help: "poh.txt"
+	),
+	NCA\DefineCommand(
+		command: "totw",
+		accessLevel: "all",
+		description: "Shows possible TOTW 201+ loot",
+		help: "totw.txt"
+	),
+	NCA\DefineCommand(
+		command: "halloween",
+		accessLevel: "all",
+		description: "Shows possible Halloween loot",
+		help: "halloween.txt"
+	),
+	NCA\DefineCommand(
+		command: "subway",
+		accessLevel: "all",
+		description: "Shows possible Subway 201+",
+		help: "subway.txt"
+	),
+	NCA\DefineCommand(
+		command: "lox",
+		accessLevel: "all",
+		description: "Shows Legacy of the Xan loot categories",
+		help: "xan.txt"
+	)
+]
 class LootListsController {
 	/**
 	 * Name of the module.
@@ -153,37 +153,37 @@ class LootListsController {
 	 */
 	public string $moduleName;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Nadybot $chatBot;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public DB $db;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Text $text;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Util $util;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public SettingManager $settingManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public LootController $lootController;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public ChatLeaderController $chatLeaderController;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public AccessManager $accessManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public CommandAlias $commandAlias;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public CommandManager $commandManager;
 
-	/** @Setup */
+	#[NCA\Setup]
 	public function setup(): void {
 		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations");
 		$this->db->loadCSVFile($this->moduleName, __DIR__ . "/raid_loot.csv");
@@ -224,9 +224,8 @@ class LootListsController {
 	/**
 	 * @author Dare2005 (RK2), based on code for dbloot module by
 	 * @author Chachy (RK2)
-	 *
-	 * @HandlesCommand("alb")
 	 */
+	#[NCA\HandlesCommand("alb")]
 	public function albCommand(CmdContext $context): void {
 		$blob = $this->findRaidLoot('Albtraum', 'Crystals & Crystalised Memories', $context);
 		$blob .= $this->findRaidLoot('Albtraum', 'Ancients', $context);
@@ -239,9 +238,8 @@ class LootListsController {
 
 	/**
 	 * @author Chachy (RK2), based on code for Pande Loot Bot by Marinerecon (RK2)
-	 *
-	 * @HandlesCommand("db1")
 	 */
+	#[NCA\HandlesCommand("db1")]
 	public function db1Command(CmdContext $context): void {
 		$blob = $this->findRaidLoot('DustBrigade', 'Armor', $context);
 		$blob .= $this->findRaidLoot('DustBrigade', 'DB1', $context);
@@ -251,9 +249,8 @@ class LootListsController {
 
 	/**
 	 * @author Chachy (RK2), based on code for Pande Loot Bot by Marinerecon (RK2)
-	 *
-	 * @HandlesCommand("db2")
 	 */
+	#[NCA\HandlesCommand("db2")]
 	public function db2Command(CmdContext $context): void {
 		$blob = $this->findRaidLoot('DustBrigade', 'Armor', $context);
 		$blob .= $this->findRaidLoot('DustBrigade', 'DB2', $context);
@@ -263,18 +260,15 @@ class LootListsController {
 
 	/**
 	 * @author Nadyita (RK5)
-	 *
-	 * @HandlesCommand("db3")
 	 */
+	#[NCA\HandlesCommand("db3")]
 	public function db3Command(CmdContext $context): void {
 		$blob = $this->findRaidLoot('DustBrigade', 'DB3', $context);
 		$msg = $this->text->makeBlob("DB3 Loot", $blob);
 		$context->reply($msg);
 	}
 
-	/**
-	 * @HandlesCommand("7")
-	 */
+	#[NCA\HandlesCommand("7")]
 	public function apf7Command(CmdContext $context): void {
 		$raid = "Sector 7";
 		$blob = $this->findRaidLoot($raid, "Misc", $context);
@@ -285,9 +279,7 @@ class LootListsController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @HandlesCommand("13")
-	 */
+	#[NCA\HandlesCommand("13")]
 	public function apf13Command(CmdContext $context): void {
 		if (!$this->chatLeaderController->checkLeaderAccess($context->char->name)) {
 			$context->reply("You must be Raid Leader to use this command.");
@@ -297,9 +289,7 @@ class LootListsController {
 		$this->addAPFLootToList(13);
 	}
 
-	/**
-	 * @HandlesCommand("28")
-	 */
+	#[NCA\HandlesCommand("28")]
 	public function apf28Command(CmdContext $context): void {
 		if (!$this->chatLeaderController->checkLeaderAccess($context->char->name)) {
 			$context->reply("You must be Raid Leader to use this command.");
@@ -309,9 +299,7 @@ class LootListsController {
 		$this->addAPFLootToList(28);
 	}
 
-	/**
-	 * @HandlesCommand("35")
-	 */
+	#[NCA\HandlesCommand("35")]
 	public function apf35Command(CmdContext $context): void {
 		if (!$this->chatLeaderController->checkLeaderAccess($context->char->name)) {
 			$context->reply("You must be Raid Leader to use this command.");
@@ -331,11 +319,8 @@ class LootListsController {
 		$this->chatBot->sendPrivate($msg);
 	}
 
-	/**
-	 * @HandlesCommand("apf")
-	 * @Mask $sector 7
-	 */
-	public function apfSevenCommand(CmdContext $context, string $sector): void {
+	#[NCA\HandlesCommand("apf")]
+	public function apfSevenCommand(CmdContext $context, #[NCA\Str("7")] string $sector): void {
 		$this->apf7Command($context);
 	}
 
@@ -383,11 +368,8 @@ class LootListsController {
 		return $itemlink;
 	}
 
-	/**
-	 * @HandlesCommand("apf")
-	 * @Mask $sector 13
-	 */
-	public function apfThirteenCommand(CmdContext $context, string $sector): void {
+	#[NCA\HandlesCommand("apf")]
+	public function apfThirteenCommand(CmdContext $context, #[NCA\Str("13")] string $sector): void {
 		$itemlink = $this->getApfItems();
 		$list = '';
 		//CRU
@@ -444,11 +426,8 @@ class LootListsController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @HandlesCommand("apf")
-	 * @Mask $sector 28
-	 */
-	public function apfTwentyEightCommand(CmdContext $context, string $sector): void {
+	#[NCA\HandlesCommand("apf")]
+	public function apfTwentyEightCommand(CmdContext $context, #[NCA\Str("28")] string $sector): void {
 		$itemlink = $this->getApfItems();
 		$list = '';
 		//CRU
@@ -498,11 +477,8 @@ class LootListsController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @HandlesCommand("apf")
-	 * @Mask $sector 35
-	 */
-	public function apfThirtyFiveCommand(CmdContext $context, string $sector): void {
+	#[NCA\HandlesCommand("apf")]
+	public function apfThirtyFiveCommand(CmdContext $context, #[NCA\Str("35")] string $sector): void {
 		$itemlink = $this->getApfItems();
 		$list = '';
 
@@ -554,9 +530,7 @@ class LootListsController {
 	}
 
 
-	/**
-	 * @HandlesCommand("beast")
-	 */
+	#[NCA\HandlesCommand("beast")]
 	public function beastCommand(CmdContext $context): void {
 		$blob = $this->findRaidLoot('Pande', 'Beast Armor', $context);
 		$blob .= $this->findRaidLoot('Pande', 'Beast Weapons', $context);
@@ -568,9 +542,8 @@ class LootListsController {
 
 	/**
 	 * @author Nadyita (RK5)
-	 *
-	 * @HandlesCommand("pande")
 	 */
+	#[NCA\HandlesCommand("pande")]
 	public function pandeSubCommand(CmdContext $context, string $mob): void {
 		$msg = $this->getPandemoniumLoot('Pande', $mob, $context);
 		if (empty($msg)) {
@@ -595,9 +568,8 @@ class LootListsController {
 
 	/**
 	 * @author Marinerecon (RK2)
-	 *
-	 * @HandlesCommand("pande")
 	 */
+	#[NCA\HandlesCommand("pande")]
 	public function pandeCommand(CmdContext $context): void {
 		$list  = "<header2>The Beast<end>\n";
 		$list .= "<tab>".$this->text->makeChatcmd("All Beast Loot (long)\n", "/tell <myname> beast");
@@ -634,9 +606,8 @@ class LootListsController {
 
 	/**
 	 * @author Morgo (RK2)
-	 *
-	 * @HandlesCommand("vortexx")
 	 */
+	#[NCA\HandlesCommand("vortexx")]
 	public function xanVortexxCommand(CmdContext $context): void {
 		$blob = $this->findRaidLoot('Vortexx', 'General', $context);
 		$blob .= $this->findRaidLoot('Vortexx', 'Symbiants', $context);
@@ -647,9 +618,8 @@ class LootListsController {
 
 	/**
 	 * @author Morgo (RK2)
-	 *
-	 * @HandlesCommand("mitaar")
 	 */
+	#[NCA\HandlesCommand("mitaar")]
 	public function xanMitaarCommand(CmdContext $context): void {
 		$blob = $this->findRaidLoot('Mitaar', 'General', $context);
 		$blob .= $this->findRaidLoot('Mitaar', 'Symbiants', $context);
@@ -660,9 +630,8 @@ class LootListsController {
 
 	/**
 	 * @author Morgo (RK2)
-	 *
-	 * @HandlesCommand("12m")
 	 */
+	#[NCA\HandlesCommand("12m")]
 	public function xan12mCommand(CmdContext $context): void {
 		$blob = $this->findRaidLoot('12Man', 'General', $context);
 		$blob .= $this->findRaidLoot('12Man', 'Symbiants', $context);
@@ -672,9 +641,7 @@ class LootListsController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @HandlesCommand("poh")
-	 */
+	#[NCA\HandlesCommand("poh")]
 	public function pohCommand(CmdContext $context): void {
 		$blob = $this->findRaidLoot('Pyramid of Home', 'General', $context);
 		$blob .= $this->findRaidLoot('Pyramid of Home', 'HUD/NCU', $context);
@@ -684,9 +651,7 @@ class LootListsController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @HandlesCommand("totw")
-	 */
+	#[NCA\HandlesCommand("totw")]
 	public function totwCommand(CmdContext $context): void {
 		$blob = $this->findRaidLoot('Temple of the Three Winds', 'Armor', $context);
 		$blob .= $this->findRaidLoot('Temple of the Three Winds', 'Symbiants', $context);
@@ -699,9 +664,7 @@ class LootListsController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @HandlesCommand("subway")
-	 */
+	#[NCA\HandlesCommand("subway")]
 	public function subwayCommand(CmdContext $context): void {
 		$blob  = $this->findRaidLoot('Subway', 'Armor', $context);
 		$blob .= $this->findRaidLoot('Subway', 'Weapons', $context);
@@ -713,9 +676,7 @@ class LootListsController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @HandlesCommand("halloween")
-	 */
+	#[NCA\HandlesCommand("halloween")]
 	public function halloweenCommand(CmdContext $context): void {
 		$guph = "Griefing Uncle Pumpkin-Heads can be found at the following locations:\n".
 			"<tab>- Level <black>0<end>10-<black>0<end>50: ".
@@ -831,9 +792,8 @@ class LootListsController {
 
 	/**
 	 * @author Nadyita
-	 *
-	 * @HandlesCommand("lox")
 	 */
+	#[NCA\HandlesCommand("lox")]
 	public function loxCommand(CmdContext $context): void {
 		$list  = $this->text->makeChatcmd("Ground Chief Vortexx", "/tell <myname> vortexx");
 		$list .= "\n<tab>- Eye\n";

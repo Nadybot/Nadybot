@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\RELAY_MODULE\Migrations;
 
+use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\DB;
 use Nadybot\Core\DBSchema\Route;
 use Nadybot\Core\DBSchema\RouteModifier;
@@ -21,19 +22,19 @@ use Nadybot\Modules\RELAY_MODULE\RelayLayer;
 use Nadybot\Modules\RELAY_MODULE\RelayLayerArgument;
 
 class MigrateToRelayTable implements SchemaMigration {
-	/** @Inject */
+	#[NCA\Inject]
 	public RelayController $relayController;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public MessageHub $messageHub;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public SettingManager $settingManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public ConfigController $configController;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Nadybot $chatBot;
 
 	protected string $prefix = "";

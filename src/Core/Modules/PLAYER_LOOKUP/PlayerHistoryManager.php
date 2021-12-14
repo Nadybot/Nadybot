@@ -2,16 +2,15 @@
 
 namespace Nadybot\Core\Modules\PLAYER_LOOKUP;
 
+use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\CacheManager;
 use Nadybot\Core\CacheResult;
 use Throwable;
 
-/**
- * @Instance
- */
+#[NCA\Instance]
 class PlayerHistoryManager {
 
-	/** @Inject */
+	#[NCA\Inject]
 	public CacheManager $cacheManager;
 
 	public function asyncLookup(string $name, int $dimension, callable $callback, ...$args): void {

@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\DISCORD_GATEWAY_MODULE;
 
+use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\Channels\DiscordChannel as ChannelsDiscordChannel;
 use Nadybot\Core\CommandReply;
 use Nadybot\Core\MessageEmitter;
@@ -17,19 +18,19 @@ use Nadybot\Core\Routing\Source;
 use Nadybot\Modules\DISCORD_GATEWAY_MODULE\Model\GuildMember;
 
 class DiscordMessageCommandReply implements CommandReply, MessageEmitter {
-	/** @Inject */
+	#[NCA\Inject]
 	public DiscordAPIClient $discordAPIClient;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public DiscordController $discordController;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public DiscordGatewayController $discordGatewayController;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public MessageHub $messageHub;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Nadybot $chatBot;
 
 	protected string $channelId;

@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\IMPLANT_MODULE;
 
+use Nadybot\Core\Attributes as NCA;
 use Exception;
 use Nadybot\Core\{
 	CmdContext,
@@ -11,17 +12,17 @@ use Nadybot\Core\{
 
 /**
  * @author Nadyita (RK5) <nadyita@hodorraid.org>
- *
- * @Instance
- *
  * Commands this controller contains:
- *	@DefineCommand(
- *		command     = 'implant',
- *		accessLevel = 'all',
- *		description = 'Get information about the QL of an implant',
- *		help        = 'implant.txt'
- *	)
  */
+#[
+	NCA\Instance,
+	NCA\DefineCommand(
+		command: "implant",
+		accessLevel: "all",
+		description: "Get information about the QL of an implant",
+		help: "implant.txt"
+	)
+]
 class ImplantController {
 	/**
 	 * Name of the module.
@@ -29,10 +30,10 @@ class ImplantController {
 	 */
 	public string $moduleName;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Nadybot $chatBot;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Text $text;
 
 	public const FADED = 0;
@@ -76,7 +77,6 @@ class ImplantController {
 
 	/**
 	 * Try to determine the bonus for an interpolated QL
-	 *
 	 * @param array<int,int> $itemSpecs An associative array [QLX => bonus X, QLY => bonus Y]
 	 * @param int $searchedQL The QL we want to interpolate to
 	 * @return int|null The interpolated bonus at the given QL or null if out of range
@@ -100,10 +100,8 @@ class ImplantController {
 
 	/**
 	 * Try to find the lowest QL that gives a bonus
-	 *
 	 * @param int   $bonus     The bonus you want to reach
 	 * @param array<int,int> $itemSpecs An associative array with ql => bonus
-	 *
 	 * @return int The lowest QL that gives that bonus
 	 */
 	public function findBestQLForBonus(int $bonus, array $itemSpecs): int {
@@ -121,10 +119,8 @@ class ImplantController {
 
 	/**
 	 * Get a single breakpoint-spec from the internal breakpoint list
-	 *
 	 * @param string $type     The name of the breakpoint ("abilities", "reqRegular", ...)
 	 * @param int    $position The position in the list (usually 0, 1 or 2)
-	 *
 	 * @return array<int,int> An associative array in the form [QL => bonus/requirement]
 	 */
 	protected function getBreakpoints(string $type, int $position): array {
@@ -138,11 +134,9 @@ class ImplantController {
 
 	/**
 	 * Find the highest implant QL you can equip with given attribute and treatment
-	 *
 	 * @param int    $attributeLevel How much of the implant's attribute do you have?
 	 * @param int    $treatmentLevel How much treatment do you have?
 	 * @param string $type           self::REGULAR or self::JOBE
-	 *
 	 * @return int The highest usable implant QL
 	 */
 	public function findHighestImplantQL(int $attributeLevel, int $treatmentLevel, string $type): int {
@@ -156,10 +150,8 @@ class ImplantController {
 
 	/**
 	 * Find the highest regular implant QL you can equip with given attribute and treatment
-	 *
 	 * @param int $attributeLevel How much of the implant's attribute do you have?
 	 * @param int $treatmentLevel How much treatment do you have?
-	 *
 	 * @return int The highest usable regular implant QL
 	 */
 	public function findHighestRegularImplantQL(int $attributeLevel, int $treatmentLevel): int {
@@ -168,19 +160,15 @@ class ImplantController {
 
 	/**
 	 * Find the highest Jobe Implant QL you can equip with given attribute and treatment
-	 *
 	 * @param int    $attributeLevel How much of the implant's attribute do you have?
 	 * @param int    $treatmentLevel How much treatment do you have?
-	 *
 	 * @return int The highest usable Jobe Implant QL
 	 */
 	public function findHighestJobeImplantQL(int $attributeLevel, int $treatmentLevel): int {
 		return $this->findHighestImplantQL($attributeLevel, $treatmentLevel, 'reqJobe');
 	}
 
-	/**
-	 * @HandlesCommand("implant")
-	 */
+	#[NCA\HandlesCommand("implant")]
 	public function impQlDetermineCommand(CmdContext $context, int $attrib, int $treatment): void {
 		$regularQL = $this->findHighestRegularImplantQL($attrib, $treatment);
 		$jobeQL = $this->findHighestJobeImplantQL($attrib, $treatment);
@@ -204,9 +192,7 @@ class ImplantController {
 		$context->reply($msg . ".");
 	}
 
-	/**
-	 * @HandlesCommand("implant")
-	 */
+	#[NCA\HandlesCommand("implant")]
 	public function impQlCommand(CmdContext $context, int $ql): void {
 		if ($ql < 1 || $ql > 300) {
 			$msg = "Implants only exist is QLs between 1 and 300.";
@@ -227,13 +213,10 @@ class ImplantController {
 
 	/**
 	 * Render a single bonus stat for a cluster type
-	 *
 	 * Roughly looks like this:
 	 * 42 (QL 147 - QL 150) Shiny -> 306 / 720
-	 *
 	 * @param ImplantBonusStats $stats The stats to render
 	 * @param string            $type  "Shiny", "Bright" or "Faded"
-	 *
 	 * @return string the rendered line including newline
 	 */
 	protected function renderBonusLine(ImplantBonusStats $stats, string $type): string {
@@ -254,10 +237,8 @@ class ImplantController {
 
 	/**
 	 * Render the popup-blob for a regular or jobe implant at a given QL
-	 *
 	 * @param string $type self::REGULAR or self::JOBE
 	 * @param int    $ql   The QL to render for
-	 *
 	 * @return array the full link to the blob
 	 */
 	public function renderBlob(string $type, int $ql): array {
@@ -351,11 +332,9 @@ class ImplantController {
 
 	/**
 	 * Returns the min- and max-ql for an implant to return a bonus
-	 *
 	 * @param string $type  The cluster type ("skill" or "abililities")
 	 * @param int    $slot  The cluster slot type (0 => faded, 1 => bright, 2 => shiny)
 	 * @param int    $bonus The bonus for which to return the QL-range
-	 *
 	 * @return int[] An array with the min- and the max-ql
 	 */
 	public function getBonusQLRange(string $type, int $slot, int $bonus): ?array {
@@ -383,7 +362,6 @@ class ImplantController {
 
 	/**
 	 * Get the bonus stats for an implant slot and ql
-	 *
 	 * @param string $type Type of bonus ("skills" or "abilities")
 	 * @param int    $slot 0 => faded, 1 => bright, 2 => shiny
 	 * @param int    $ql   The QL of the implant
@@ -406,7 +384,6 @@ class ImplantController {
 
 	/**
 	 * Get all specs of an implant at a certain ql
-	 *
 	 * @param string $type self::JOBE or self::REGULAR
 	 * @param int    $ql   The QL of the implant you want to build
 	 */

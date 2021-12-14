@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\BASIC_CHAT_MODULE;
 
+use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{
 	AOChatEvent,
 	CmdContext,
@@ -16,46 +17,53 @@ use Nadybot\Core\ParamClass\PWord;
 use Nadybot\Modules\HELPBOT_MODULE\PlayfieldController;
 
 /**
- * @Instance
- *
  * Commands this class contains:
- *	@DefineCommand(
- *		command     = 'rally',
- *		accessLevel = 'all',
- *		description = 'Shows the rally waypoint',
- *		help        = 'rally.txt'
- *	)
- *	@DefineCommand(
- *		command     = 'rally .+',
- *		accessLevel = 'rl',
- *		description = 'Sets the rally waypoint',
- *		help        = 'rally.txt'
- *	)
- *	@ProvidesEvent(value="sync(rally-set)", desc="Triggered when a rally point is set")
- *	@ProvidesEvent(value="sync(rally-clear)", desc="Triggered when someone clears the rally point")
  */
+#[
+	NCA\Instance,
+	NCA\DefineCommand(
+		command: "rally",
+		accessLevel: "all",
+		description: "Shows the rally waypoint",
+		help: "rally.txt"
+	),
+	NCA\DefineCommand(
+		command: "rally .+",
+		accessLevel: "rl",
+		description: "Sets the rally waypoint",
+		help: "rally.txt"
+	),
+	NCA\ProvidesEvent(
+		event: "sync(rally-set)",
+		desc: "Triggered when a rally point is set",
+	),
+	NCA\ProvidesEvent(
+		event: "sync(rally-clear)",
+		desc: "Triggered when someone clears the rally point",
+	)
+]
 class ChatRallyController {
 	public string $moduleName;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public SettingManager $settingManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Text $text;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public PlayfieldController $playfieldController;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Nadybot $chatBot;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public EventManager $eventManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public ChatLeaderController $chatLeaderController;
 
-	/** @Setup */
+	#[NCA\Setup]
 	public function setup(): void {
 		$this->settingManager->add(
 			$this->moduleName,
@@ -69,18 +77,17 @@ class ChatRallyController {
 
 	/**
 	 * This command displays the current rally location
-	 * @HandlesCommand("rally")
 	 */
+	#[NCA\HandlesCommand("rally")]
 	public function rallyCommand(CmdContext $context): void {
 		$this->replyCurrentRally($context);
 	}
 
 	/**
 	 * This command handler clears the current rally location
-	 * @HandlesCommand("rally .+")
-	 * @Mask $action clear
 	 */
-	public function rallyClearCommand(CmdContext $context, string $action): void {
+	#[NCA\HandlesCommand("rally .+")]
+	public function rallyClearCommand(CmdContext $context, #[NCA\Str("clear")] string $action): void {
 		if (!$this->chatLeaderController->checkLeaderAccess($context->char->name)) {
 			$context->reply("You must be Raid Leader to use this command.");
 			return;
@@ -101,12 +108,9 @@ class ChatRallyController {
 	 *  - rally 10.9 . 30 . <playfield id/name>
 	 *  - rally 10.9, 30, <playfield id/name>
 	 *  - etc...
-	 *
-	 * @HandlesCommand("rally .+")
-	 * @Mask $x ([0-9.]+\s*(?:[x,.]*))
-	 * @Mask $y ([0-9.]+\s*(?:[x,.]*))
 	 */
-	public function rallySet2Command(CmdContext $context, string $x, string $y, PWord $pf): void {
+	#[NCA\HandlesCommand("rally .+")]
+	public function rallySet2Command(CmdContext $context, #[NCA\Regexp("[0-9.]+\s*(?:[x,.]*)")] string $x, #[NCA\Regexp("[0-9.]+\s*(?:[x,.]*)")] string $y, PWord $pf): void {
 		if (!$this->chatLeaderController->checkLeaderAccess($context->char->name)) {
 			$context->reply("You must be Raid Leader to use this command.");
 			return;
@@ -147,9 +151,8 @@ class ChatRallyController {
 	/**
 	 * This command handler sets rally waypoint, using following example syntaxes:
 	 *  - rally (10.9 30 y 20 2434234)
-	 *
-	 * @HandlesCommand("rally .+")
 	 */
+	#[NCA\HandlesCommand("rally .+")]
 	public function rallySet1Command(CmdContext $context, string $input): void {
 		if (!$this->chatLeaderController->checkLeaderAccess($context->char->name)) {
 			$context->reply("You must be Raid Leader to use this command.");
@@ -183,10 +186,10 @@ class ChatRallyController {
 		$this->eventManager->fireEvent($rEvent);
 	}
 
-	/**
-	 * @Event("sync(rally-set)")
-	 * @Description("Handle synced rally sets")
-	 */
+	#[NCA\Event(
+		name: "sync(rally-set)",
+		description: "Handle synced rally sets"
+	)]
 	public function handleExtRallySet(SyncRallySetEvent $event): void {
 		if ($event->isLocal()) {
 			return;
@@ -194,10 +197,10 @@ class ChatRallyController {
 		$this->set($event->name, $event->pf, (string)$event->x, (string)$event->y);
 	}
 
-	/**
-	 * @Event("sync(rally-clear)")
-	 * @Description("Handle synced rally clears")
-	 */
+	#[NCA\Event(
+		name: "sync(rally-clear)",
+		description: "Handle synced rally clears"
+	)]
 	public function handleExtRallyClear(SyncRallyClearEvent $event): void {
 		if ($event->isLocal()) {
 			return;
@@ -205,10 +208,10 @@ class ChatRallyController {
 		$this->clear();
 	}
 
-	/**
-	 * @Event("joinpriv")
-	 * @Description("Sends rally to players joining the private channel")
-	 */
+	#[NCA\Event(
+		name: "joinpriv",
+		description: "Sends rally to players joining the private channel"
+	)]
 	public function sendRally(AOChatEvent $eventObj): void {
 		$sender = $eventObj->sender;
 
@@ -250,12 +253,15 @@ class ChatRallyController {
 		$sendto->reply($rally);
 	}
 
-	/**
-	 * @NewsTile("rally")
-	 * @Description("Will show a waypoint-link to the current rally-point - if any")
-	 * @Example("<header2>Rally<end>
-	 * <tab>We are rallying <u>here</u>")
-	 */
+	#[
+		NCA\NewsTile(
+			name: "rally",
+			description: "Will show a waypoint-link to the current rally-point - if any",
+			example:
+				"<header2>Rally<end>\n".
+				"<tab>We are rallying <u>here</u>"
+		)
+	]
 	public function rallyTile(string $sender, callable $callback): void {
 		$data = $this->settingManager->getString("rally")??"";
 		if (strpos($data, ":") === false) {

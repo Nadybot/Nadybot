@@ -2,14 +2,15 @@
 
 namespace Nadybot\Core;
 
+use Nadybot\Core\Attributes as NCA;
 use Monolog\Logger;
 use Throwable;
 
 /**
  * A wrapper class to monolog
  *
- * @Instance("logger")
  */
+#[NCA\Instance("logger")]
 class LoggerWrapper {
 	/**
 	 * The actual Monolog logger

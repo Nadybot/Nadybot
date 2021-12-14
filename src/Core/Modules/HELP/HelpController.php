@@ -2,6 +2,7 @@
 
 namespace Nadybot\Core\Modules\HELP;
 
+use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{
 	BotRunner,
 	CmdContext,
@@ -13,18 +14,18 @@ use Nadybot\Core\{
 
 /**
  * @author Tyrence (RK2)
- *
- * @Instance
- *
  * Commands this class contains:
- *	@DefineCommand(
- *		command       = 'help',
- *		accessLevel   = 'all',
- *		description   = 'Show help topics',
- *		help          = 'help.txt',
- *		defaultStatus = '1'
- *	)
  */
+#[
+	NCA\Instance,
+	NCA\DefineCommand(
+		command: "help",
+		accessLevel: "all",
+		description: "Show help topics",
+		help: "help.txt",
+		defaultStatus: 1
+	)
+]
 class HelpController {
 
 	/**
@@ -33,22 +34,22 @@ class HelpController {
 	 */
 	public string $moduleName;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public CommandManager $commandManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public CommandAlias $commandAlias;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public HelpManager $helpManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Text $text;
 
 	/**
-	 * @Setup
 	 * This handler is called on bot startup.
 	 */
+	#[NCA\Setup]
 	public function setup(): void {
 		$this->helpManager->register(
 			$this->moduleName,
@@ -69,9 +70,7 @@ class HelpController {
 		return $this->text->makeBlob("About Nadybot $version", $data);
 	}
 
-	/**
-	 * @HandlesCommand("help")
-	 */
+	#[NCA\HandlesCommand("help")]
 	public function helpListCommand(CmdContext $context): void {
 		$data = $this->helpManager->getAllHelpTopics($context->char->name);
 
@@ -96,9 +95,7 @@ class HelpController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @HandlesCommand("help")
-	 */
+	#[NCA\HandlesCommand("help")]
 	public function helpShowCommand(CmdContext $context, string $cmd): void {
 		$cmd = strtolower($cmd);
 

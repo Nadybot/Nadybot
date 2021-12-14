@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\RAID_MODULE;
 
+use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{
 	AOChatEvent,
 	CmdContext,
@@ -21,71 +22,68 @@ use Nadybot\Core\ParamClass\PCharacter;
 use Nadybot\Modules\ONLINE_MODULE\OnlineController;
 
 /**
- * @Instance
  * @package Nadybot\Modules\POINT_RAID_MODULE
- *
- * @DefineCommand(
- *     command       = 'raid (join|leave)',
- *     accessLevel   = 'member',
- *     description   = 'Join or leave the raid',
- *     help          = 'raiduser.txt'
- * )
- *
- * @DefineCommand(
- *     command       = 'raidmember',
- *     accessLevel   = 'raid_leader_1',
- *     description   = 'Add or remove someone from/to the raid',
- *     help          = 'raidmember.txt'
- * )
- *
- * @ProvidesEvent("raid(join)")
- * @ProvidesEvent("raid(leave)")
  */
+#[
+	NCA\Instance,
+	NCA\DefineCommand(
+		command: "raid (join|leave)",
+		accessLevel: "member",
+		description: "Join or leave the raid",
+		help: "raiduser.txt"
+	),
+	NCA\DefineCommand(
+		command: "raidmember",
+		accessLevel: "raid_leader_1",
+		description: "Add or remove someone from/to the raid",
+		help: "raidmember.txt"
+	),
+	NCA\ProvidesEvent("raid(join)"),
+	NCA\ProvidesEvent("raid(leave)")
+]
 class RaidMemberController {
 	public const DB_TABLE = "raid_member_<myname>";
 
 	public string $moduleName;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public DB $db;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public EventManager $eventManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public SettingManager $settingManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public PlayerManager $playerManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public AltsController $altsController;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public RaidController $raidController;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public RaidBlockController $raidBlockController;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public OnlineController $onlineController;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public CommandAlias $commandAlias;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Text $text;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Nadybot $chatBot;
 
 	public const ANNOUNCE_OFF = 0;
 	public const ANNOUNCE_PRIV = 1;
 	public const ANNOUNCE_TELL = 2;
 
-	/**
-	 * @Setup
-	 */
+	#[NCA\Setup]
 	public function setup(): void {
 		$this->commandAlias->register($this->moduleName, "raidmember add", "raid add");
 		$this->commandAlias->register($this->moduleName, "raidmember rem", "raid kick");
@@ -259,11 +257,8 @@ class RaidMemberController {
 		return null;
 	}
 
-	/**
-	 * @HandlesCommand("raid (join|leave)")
-	 * @Mask $action join
-	 */
-	public function raidJoinCommand(CmdContext $context, string $action): void {
+	#[NCA\HandlesCommand("raid (join|leave)")]
+	public function raidJoinCommand(CmdContext $context, #[NCA\Str("join")] string $action): void {
 		$reply = $this->joinRaid($context->char->name, $context->char->name, $context->channel, false);
 		if ($reply !== null) {
 			if ($context->isDM()) {
@@ -274,11 +269,8 @@ class RaidMemberController {
 		}
 	}
 
-	/**
-	 * @HandlesCommand("raid (join|leave)")
-	 * @Mask $action leave
-	 */
-	public function raidLeaveCommand(CmdContext $context, string $action): void {
+	#[NCA\HandlesCommand("raid (join|leave)")]
+	public function raidLeaveCommand(CmdContext $context, #[NCA\Str("leave")] string $action): void {
 		$reply = $this->leaveRaid($context->char->name, $context->char->name);
 		if ($reply !== null) {
 			if ($context->isDM()) {
@@ -289,22 +281,16 @@ class RaidMemberController {
 		}
 	}
 
-	/**
-	 * @HandlesCommand("raidmember")
-	 * @Mask $action add
-	 */
-	public function raidAddCommand(CmdContext $context, string $action, PCharacter $char): void {
+	#[NCA\HandlesCommand("raidmember")]
+	public function raidAddCommand(CmdContext $context, #[NCA\Str("add")] string $action, PCharacter $char): void {
 		$reply = $this->joinRaid($context->char->name, $char(), $context->channel, true);
 		if ($reply !== null) {
 			$context->reply($reply);
 		}
 	}
 
-	/**
-	 * @HandlesCommand("raidmember")
-	 * @Mask $action (rem|del|kick)
-	 */
-	public function raidKickCommand(CmdContext $context, string $action, PCharacter $char): void {
+	#[NCA\HandlesCommand("raidmember")]
+	public function raidKickCommand(CmdContext $context, #[NCA\Regexp("rem|del|kick")] string $action, PCharacter $char): void {
 		$reply = $this->leaveRaid($context->char->name, $char());
 		if ($reply !== null) {
 			$context->reply($reply);
@@ -313,7 +299,6 @@ class RaidMemberController {
 
 	/**
 	 * Warn everyone on the private channel who's not in the raid $raid
-	 *
 	 * @return string[]
 	 */
 	public function sendNotInRaidWarning(Raid $raid): array {
@@ -355,7 +340,6 @@ class RaidMemberController {
 
 	/**
 	 * kick everyone on the private channel who's not in the raid $raid
-	 *
 	 * @return string[]
 	 */
 	public function kickNotInRaid(Raid $raid, bool $all): array {
@@ -444,7 +428,6 @@ class RaidMemberController {
 
 	/**
 	 * Send the raid check blob with all active players to $sendto
-	 *
 	 * @param array<string,?Player> $activePlayers List of all the players in the raid
 	 * @param CommandReply $sendto Where to send the reply to
 	 */
@@ -490,10 +473,10 @@ class RaidMemberController {
 		$sendto->reply($blobs);
 	}
 
-	/**
-	 * @Event("leavePriv")
-	 * @Description("Remove players from the raid when they leave the channel")
-	 */
+	#[NCA\Event(
+		name: "leavePriv",
+		description: "Remove players from the raid when they leave the channel"
+	)]
 	public function leavePrivateChannelMessageEvent(AOChatEvent $eventObj): void {
 		if (!is_string($eventObj->sender)) {
 			return;

@@ -3,6 +3,7 @@
 namespace Nadybot\Modules\MASSMSG_MODULE;
 
 use DateTime;
+use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{
 	AccessManager,
 	BuddylistManager,
@@ -19,39 +20,37 @@ use Nadybot\Core\Modules\BAN\BanController;
 
 /**
  * This class contains all functions necessary for mass messaging
- *
- * @Instance
  * @package Nadybot\Modules\MASSMSG_MODULE
- *
- * @DefineCommand(
- *     command       = 'massmsg',
- *     accessLevel   = 'mod',
- *     description   = 'Send messages to all bot members online',
- *     help          = 'massmsg.txt',
- *     alias         = 'massmessage'
- * )
- *
- * @DefineCommand(
- *     command       = 'massmsgs',
- *     accessLevel   = 'member',
- *     description   = 'Control if you want to receive mass messages',
- *     help          = 'massmsg.txt'
- * )
- * @DefineCommand(
- *     command       = 'massinvites',
- *     accessLevel   = 'member',
- *     description   = 'Control if you want to receive mass invites',
- *     help          = 'massmsg.txt'
- * )
- *
- * @DefineCommand(
- *     command       = 'massinv',
- *     accessLevel   = 'mod',
- *     description   = 'Send invites with a message to all bot members online',
- *     help          = 'massmsg.txt',
- *     alias         = 'massinvite'
- * )
  */
+#[
+	NCA\Instance,
+	NCA\DefineCommand(
+		command: "massmsg",
+		accessLevel: "mod",
+		description: "Send messages to all bot members online",
+		help: "massmsg.txt",
+		alias: "massmessage"
+	),
+	NCA\DefineCommand(
+		command: "massmsgs",
+		accessLevel: "member",
+		description: "Control if you want to receive mass messages",
+		help: "massmsg.txt"
+	),
+	NCA\DefineCommand(
+		command: "massinvites",
+		accessLevel: "member",
+		description: "Control if you want to receive mass invites",
+		help: "massmsg.txt"
+	),
+	NCA\DefineCommand(
+		command: "massinv",
+		accessLevel: "mod",
+		description: "Send invites with a message to all bot members online",
+		help: "massmsg.txt",
+		alias: "massinvite"
+	)
+]
 class MassMsgController {
 	public const BLOCKED = 'blocked';
 	public const IN_CHAT = 'in chat';
@@ -63,36 +62,37 @@ class MassMsgController {
 
 	public string $moduleName;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public DB $db;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Text $text;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Util $util;
 
 	/** @Inject */
+	#[NCA\Inject]
 	public SettingManager $settingManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public AccessManager $accessManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public BuddylistManager $buddylistManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public BanController $banController;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Preferences $preferences;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Nadybot $chatBot;
 
 	public ?DateTime $lastMessage;
 
-	/** @Setup */
+	#[NCA\Setup]
 	public function setup(): void {
 		$this->settingManager->add(
 			$this->moduleName,
@@ -143,9 +143,7 @@ class MassMsgController {
 		return $message;
 	}
 
-	/**
-	 * @HandlesCommand("massmsg")
-	 */
+	#[NCA\HandlesCommand("massmsg")]
 	public function massMsgCommand(CmdContext $context, string $message): void {
 		if (($cooldownMsg = $this->massMsgRateLimitCheck()) !== null) {
 			$context->reply($cooldownMsg);
@@ -165,9 +163,7 @@ class MassMsgController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @HandlesCommand("massinv")
-	 */
+	#[NCA\HandlesCommand("massinv")]
 	public function massInvCommand(CmdContext $context, string $message): void {
 		if (($cooldownMsg = $this->massMsgRateLimitCheck()) !== null) {
 			$context->reply($cooldownMsg);
@@ -308,23 +304,17 @@ class MassMsgController {
 		$context->reply($prefLink);
 	}
 
-	/**
-	 * @HandlesCommand("massmsgs")
-	 */
+	#[NCA\HandlesCommand("massmsgs")]
 	public function massMessagesOverviewCommand(CmdContext $context): void {
 		$this->showMassPreferences($context);
 	}
 
-	/**
-	 * @HandlesCommand("massinvites")
-	 */
+	#[NCA\HandlesCommand("massinvites")]
 	public function massInvitesOverviewCommand(CmdContext $context): void {
 		$this->showMassPreferences($context);
 	}
 
-	/**
-	 * @HandlesCommand("massmsgs")
-	 */
+	#[NCA\HandlesCommand("massmsgs")]
 	public function massMessagesOnCommand(CmdContext $context, bool $status): void {
 		$value = $status ? "yes" : "no";
 		$colText = $status ? "<green>again receive<end>" : "<red>no longer receive<end>";
@@ -332,9 +322,7 @@ class MassMsgController {
 		$context->reply("You will {$colText} mass messages from this bot.");
 	}
 
-	/**
-	 * @HandlesCommand("massinvites")
-	 */
+	#[NCA\HandlesCommand("massinvites")]
 	public function massInvitesOnCommand(CmdContext $context, bool $status): void {
 		$value = $status ? "yes" : "no";
 		$colText = $status ? "<green>again receive<end>" : "<red>no longer receive<end>";
@@ -342,14 +330,18 @@ class MassMsgController {
 		$context->reply("You will {$colText} mass invites from this bot.");
 	}
 
-	/**
-	 * @NewsTile("massmsg-settings")
-	 * @Description("Shows your current settings for mass messages and -invites
-	 * as well with links to change these")
-	 * @Example("<header2>Mass messages<end>
-	 * <tab>[<green>On<end>] [<u>Off</u>] Receive Mass messages
-	 * <tab>[<u>On</u>] [<red>Off<end>] Receive Mass invites")
-	 */
+	#[
+		NCA\NewsTile(
+			name: "massmsg-settings",
+			description:
+				"Shows your current settings for mass messages and -invites\n".
+				"as well with links to change these",
+			example:
+				"<header2>Mass messages<end>\n".
+				"<tab>[<green>On<end>] [<u>Off</u>] Receive Mass messages\n".
+				"<tab>[<u>On</u>] [<red>Off<end>] Receive Mass invites"
+		)
+	]
 	public function massMsgNewsTile(string $sender, callable $callback): void {
 		$msgs = $this->preferences->get($sender, static::PREF_MSGS);
 		$invs = $this->preferences->get($sender, static::PREF_INVITES);

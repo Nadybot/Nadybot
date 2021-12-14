@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\BESTQL_MODULE;
 
+use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{
 	CmdContext,
 	SettingManager,
@@ -11,18 +12,18 @@ use Nadybot\Core\ParamClass\PItem;
 
 /**
  * @author Nadyita (RK5) <nadyita@hodorraid.org>
- *
- * @Instance
- *
  * Commands this controller contains:
- *	@DefineCommand(
- *		command     = 'bestql',
- *		accessLevel = 'all',
- *		description = 'Find breakpoints for bonuses',
- *		help        = 'bestql.txt',
- *		alias       = 'breakpoints'
- *	)
  */
+#[
+	NCA\Instance,
+	NCA\DefineCommand(
+		command: "bestql",
+		accessLevel: "all",
+		description: "Find breakpoints for bonuses",
+		help: "bestql.txt",
+		alias: "breakpoints"
+	)
+]
 class BestQLController {
 
 	/**
@@ -31,15 +32,14 @@ class BestQLController {
 	 */
 	public string $moduleName;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Text $text;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public SettingManager $settingManager;
 
 	/**
 	 * Try to determine the bonus for an interpolated QL
-	 *
 	 * @param array<int,int> $itemSpecs An associative array [QLX => bonus X, QLY => bonus Y]
 	 * @param int $searchedQL The QL we want to interpolate to
 	 * @return float|null The interpolated bonus at the given QL or null if out of range
@@ -61,11 +61,8 @@ class BestQLController {
 		return null;
 	}
 
-	/**
-	 * @HandlesCommand("bestql")
-	 * @Mask $specs ([0-9 ]+)
-	 */
-	public function bestqlCommand(CmdContext $context, string $specs, ?PItem $item): void {
+	#[NCA\HandlesCommand("bestql")]
+	public function bestqlCommand(CmdContext $context, #[NCA\Regexp("[0-9 ]+")] string $specs, ?PItem $item): void {
 		/** @var array<int,int> */
 		$itemSpecs = [];
 		$specPairs = preg_split('/\s+/', $specs);

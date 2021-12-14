@@ -2,14 +2,15 @@
 
 namespace Nadybot\Modules\WEBSERVER_MODULE;
 
+use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\CommandReply;
 use Nadybot\Core\EventManager;
 
 class EventCommandReply implements CommandReply {
-	/** @Inject */
+	#[NCA\Inject]
 	public EventManager $eventManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public WebChatConverter $webChatConverter;
 
 	protected string $uuid;

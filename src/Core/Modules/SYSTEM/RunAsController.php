@@ -2,6 +2,7 @@
 
 namespace Nadybot\Core\Modules\SYSTEM;
 
+use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{
 	AccessManager,
 	CmdContext,
@@ -13,17 +14,17 @@ use Nadybot\Core\Routing\Character;
 
 /**
  * @author Tyrence (RK2)
- *
- * @Instance
- *
  * Commands this controller contains:
- *	@DefineCommand(
- *		command     = 'runas',
- *		accessLevel = 'superadmin',
- *		description = 'Execute a command as another character',
- *		help        = 'runas.txt'
- *	)
  */
+#[
+	NCA\Instance,
+	NCA\DefineCommand(
+		command: "runas",
+		accessLevel: "superadmin",
+		description: "Execute a command as another character",
+		help: "runas.txt"
+	)
+]
 class RunAsController {
 
 	/**
@@ -32,18 +33,16 @@ class RunAsController {
 	 */
 	public string $moduleName;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public AccessManager $accessManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public CommandManager $commandManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Nadybot $chatBot;
 
-	/**
-	 * @HandlesCommand("runas")
-	 */
+	#[NCA\HandlesCommand("runas")]
 	public function runasCommand(CmdContext $context, PCharacter $name, string $command): void {
 		$context->message = $command;
 		$this->chatBot->getUid(

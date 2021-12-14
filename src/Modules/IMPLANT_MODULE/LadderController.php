@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\IMPLANT_MODULE;
 
+use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\CmdContext;
 use Nadybot\Core\DB;
 use Nadybot\Core\Text;
@@ -10,17 +11,17 @@ use Nadybot\Core\Util;
 /**
  * @author Tyrence (RK2)
  * @author Imoutochan (RK1)
- *
- * @Instance
- *
  * Commands this class contains:
- *	@DefineCommand(
- *		command     = 'ladder',
- *		accessLevel = 'all',
- *		description = 'Show sequence of laddering implants for maximum ability or treatment',
- *		help        = 'ladder.txt'
- *	)
  */
+#[
+	NCA\Instance,
+	NCA\DefineCommand(
+		command: "ladder",
+		accessLevel: "all",
+		description: "Show sequence of laddering implants for maximum ability or treatment",
+		help: "ladder.txt"
+	)
+]
 class LadderController {
 	/**
 	 * Name of the module.
@@ -28,27 +29,25 @@ class LadderController {
 	 */
 	public string $moduleName;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public DB $db;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public ImplantController $implantController;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Text $text;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Util $util;
 
-	/** @Setup */
+	#[NCA\Setup]
 	public function setup(): void {
 		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations/Base");
 		$this->db->loadCSVFile($this->moduleName, __DIR__ . "/implant_requirements.csv");
 	}
 
-	/**
-	 * @HandlesCommand("ladder")
-	 */
+	#[NCA\HandlesCommand("ladder")]
 	public function ladderCommand(CmdContext $context, string $type, int $startingValue): void {
 		$type = strtolower($type);
 

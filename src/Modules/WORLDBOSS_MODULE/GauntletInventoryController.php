@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\WORLDBOSS_MODULE;
 
+use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{
 	CmdContext,
 	Modules\ALTS\AltsController,
@@ -14,17 +15,17 @@ use Nadybot\Core\{
 /**
  * @author Equi
  * @author Nadyita (RK5) <nadyita@hodorraid.org>
- * @Instance
- *
  * Commands this controller contains:
- *
- *	@DefineCommand(
- *		command     = 'gaulist',
- *		accessLevel = 'member',
- *		description = 'Manage the stuff you got and need from the Gauntlet',
- *		help        = 'gaulist.txt'
- *	)
  */
+#[
+	NCA\Instance,
+	NCA\DefineCommand(
+		command: "gaulist",
+		accessLevel: "member",
+		description: "Manage the stuff you got and need from the Gauntlet",
+		help: "gaulist.txt"
+	)
+]
 class GauntletInventoryController {
 	/**
 	 * Name of the module.
@@ -32,18 +33,17 @@ class GauntletInventoryController {
 	 */
 	public string $moduleName;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Text $text;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public AltsController $altsController;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Preferences $preferences;
 
 	/**
 	 * (ref , image, need) 17 items without basic armor
-	 *
 	 * @var int[][]
 	 * @psalm-var list<array{0: int, 1: int, 2: int}>
 	 */
@@ -119,9 +119,7 @@ class GauntletInventoryController {
 		return $blob;
 	}
 
-	/**
-	 * @HandlesCommand("gaulist")
-	 */
+	#[NCA\HandlesCommand("gaulist")]
 	public function gaulistExtraCommand(CmdContext $context, ?PCharacter $name, ?int $numArmors): void {
 		$name = isset($name) ? $name() : $context->char->name;
 		$numArmors ??= 1;
@@ -138,11 +136,8 @@ class GauntletInventoryController {
 		return true;
 	}
 
-	/**
-	 * @HandlesCommand("gaulist")
-	 * @Mask $action add
-	 */
-	public function gaulistAddCommand(CmdContext $context, string $action, PCharacter $name, int $pos): void {
+	#[NCA\HandlesCommand("gaulist")]
+	public function gaulistAddCommand(CmdContext $context, #[NCA\Str("add")] string $action, PCharacter $name, int $pos): void {
 		$name = $name();
 		// Check and increase item
 		if ($this->altCheck($context, $context->char->name, $name) === false) {
@@ -160,9 +155,7 @@ class GauntletInventoryController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @HandlesCommand("gaulist")
-	 */
+	#[NCA\HandlesCommand("gaulist")]
 	public function gaulistDelCommand(CmdContext $context, PRemove $action, PCharacter $name, int $pos): void {
 		$name = $name();
 		// Check and increase item

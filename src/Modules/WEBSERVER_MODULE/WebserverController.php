@@ -2,11 +2,10 @@
 
 namespace Nadybot\Modules\WEBSERVER_MODULE;
 
-use Addendum\ReflectionAnnotatedClass;
+use ReflectionClass;
 use DateTime;
 use Exception;
-use Nadybot\Core\Annotations\HttpGet;
-use Nadybot\Core\Annotations\HttpPost;
+use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{
 	AsyncHttp,
 	CmdContext,
@@ -21,18 +20,20 @@ use Nadybot\Core\{
 	Timer,
 	Socket\AsyncSocket,
 };
+use ReflectionAttribute;
 
 /**
  * Commands this controller contains:
- *	@DefineCommand(
- *		command     = 'webauth',
- *		accessLevel = 'mod',
- *		description = 'Pre-authorize Websocket connections',
- *		help        = 'webauth.txt'
- *	)
- *
- * @Instance
  */
+#[
+	NCA\DefineCommand(
+		command: "webauth",
+		accessLevel: "mod",
+		description: "Pre-authorize Websocket connections",
+		help: "webauth.txt"
+	),
+	NCA\Instance
+]
 class WebserverController {
 	public const AUTH_AOAUTH = "aoauth";
 	public const AUTH_BASIC = "webauth";
@@ -46,25 +47,25 @@ class WebserverController {
 	 */
 	protected $serverSocket = null;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public SettingManager $settingManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Socket $socket;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Nadybot $chatBot;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Timer $timer;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Http $http;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public DB $db;
 
-	/** @Logger */
+	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
 	protected array $routes = ['get' => [], 'post' => [], 'put' => [], 'delete' => []];
@@ -77,10 +78,10 @@ class WebserverController {
 	protected ?string $aoAuthPubKey = null;
 	protected AsyncHttp $aoAuthPubKeyRequest;
 
-	/**
-	 * @Event("connect")
-	 * @Description("Download aoauth public key")
-	 */
+	#[NCA\Event(
+		name: "connect",
+		description: "Download aoauth public key"
+	)]
 	public function downloadPublicKey(): void {
 		if ($this->settingManager->getString('webserver_auth') !== static::AUTH_AOAUTH) {
 			return;
@@ -115,7 +116,7 @@ class WebserverController {
 		$this->aoAuthPubKey = $response->body;
 	}
 
-	/** @Setup */
+	#[NCA\Setup]
 	public function setup(): void {
 		$this->settingManager->add(
 			$this->moduleName,
@@ -217,7 +218,7 @@ class WebserverController {
 			"superadmin"
 		);
 
-		$this->scanRouteAnnotations();
+		$this->scanRouteAttributes();
 		if ($this->settingManager->getBool('webserver')) {
 			$this->listen();
 		}
@@ -272,9 +273,7 @@ class WebserverController {
 		return $uuid;
 	}
 
-	/**
-	 * @HandlesCommand("webauth")
-	 */
+	#[NCA\HandlesCommand("webauth")]
 	public function webauthCommand(CmdContext $context): void {
 		$uuid = $this->authenticate($context->char->name, 3600);
 		$msg = "You can now authenticate to the Webserver for 1h with the ".
@@ -283,27 +282,24 @@ class WebserverController {
 	}
 
 	/**
-	 * Scan all Instances for @HttpHet or @HttpPost annotations and register them
+	 * Scan all Instances for #[HttpGet] or #[HttpPost] attributes and register them
 	 * @return void
 	 */
-	public function scanRouteAnnotations(): void {
+	public function scanRouteAttributes(): void {
 		$instances = Registry::getAllInstances();
 		foreach ($instances as $instance) {
-			$reflection = new ReflectionAnnotatedClass($instance);
+			$reflection = new ReflectionClass($instance);
 			foreach ($reflection->getMethods() as $method) {
-				/** @var \Addendum\ReflectionAnnotatedMethod $method */
-				foreach (["HttpGet", "HttpPost", "HttpPut", "HttpDelete", "HttpPatch"] as $annoName) {
-					if (!$method->hasAnnotation($annoName)) {
-						continue;
-					}
-					foreach ($method->getAllAnnotations($annoName) as $annotation) {
-						/** @var HttpGet|HttpPost|HttpPut|HttpDelete|HttpPatch $annotation */
-						if (isset($annotation->value)) {
-							$closure = $method->getClosure($instance);
-							if (isset($closure)) {
-								$this->addRoute($annotation->type, $annotation->value, $closure);
-							}
-						}
+				$attrs = $method->getAttributes(NCA\HttpVerb::class, ReflectionAttribute::IS_INSTANCEOF);
+				if (empty($attrs)) {
+					continue;
+				}
+				foreach ($attrs as $attribute) {
+					/** @var NCA\HttpVerb */
+					$attrObj = $attribute->newInstance();
+					$closure = $method->getClosure($instance);
+					if (isset($closure)) {
+						$this->addRoute($attrObj->type, $attrObj->path, $closure);
 					}
 				}
 			}
@@ -496,16 +492,20 @@ class WebserverController {
 		return $result;
 	}
 
-	/**
-	 * @Event("http(get)")
-	 * @Event("http(head)")
-	 * @Event("http(post)")
-	 * @Event("http(put)")
-	 * @Event("http(delete)")
-	 * @Event("http(patch)")
-	 * @Description("Call handlers for HTTP GET requests")
-	 * @DefaultStatus("1")
-	 */
+	#[
+		NCA\Event(
+			name: [
+				"http(get)",
+				"http(head)",
+				"http(post)",
+				"http(put)",
+				"http(delete)",
+				"http(patch)",
+			],
+			description: "Call handlers for HTTP GET requests",
+			defaultStatus: 1
+		)
+	]
 	public function getRequest(HttpEvent $event, HttpProtocolWrapper $server): void {
 		if (!isset($event->request->authenticatedAs)) {
 			$authType = $this->settingManager->getString('webserver_auth');
@@ -732,11 +732,11 @@ class WebserverController {
 		return $payload->sub->name??null;
 	}
 
-	/**
-	 * @Event("timer(10min)")
-	 * @Description("Remove expired authentications")
-	 * @DefaultStatus("1")
-	 */
+	#[NCA\Event(
+		name: "timer(10min)",
+		description: "Remove expired authentications",
+		defaultStatus: 1
+	)]
 	public function clearExpiredAuthentications(): void {
 		foreach ($this->authentications as $user => $data) {
 			if ($data[1] < time()) {

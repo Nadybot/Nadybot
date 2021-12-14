@@ -2,22 +2,24 @@
 
 namespace Nadybot\Core;
 
+use Nadybot\Core\Attributes as NCA;
+
 class WebsocketClient extends WebsocketBase {
 	protected string $uri;
 	/** @var array<string,string> */
 	protected array $headers = [];
 	protected bool $isSSL = false;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public SocketManager $socketManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Util $util;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Timer $timer;
 
-	/** @Logger */
+	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
 	public function __destruct() {

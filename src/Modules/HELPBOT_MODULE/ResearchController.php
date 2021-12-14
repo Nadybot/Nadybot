@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\HELPBOT_MODULE;
 
+use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\CmdContext;
 use Nadybot\Core\DB;
 use Nadybot\Core\Text;
@@ -9,17 +10,17 @@ use Nadybot\Core\Text;
 /**
  * @author Tyrence (RK2)
  * @author Jaqueme
- *
- * @Instance
- *
  * Commands this controller contains:
- *	@DefineCommand(
- *		command     = 'research',
- *		accessLevel = 'all',
- *		description = 'Show info on Research',
- *		help        = 'research.txt'
- *	)
  */
+#[
+	NCA\Instance,
+	NCA\DefineCommand(
+		command: "research",
+		accessLevel: "all",
+		description: "Show info on Research",
+		help: "research.txt"
+	)
+]
 class ResearchController {
 	/**
 	 * Name of the module.
@@ -27,24 +28,22 @@ class ResearchController {
 	 */
 	public string $moduleName;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public DB $db;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Text $text;
 
 	/**
 	 * This handler is called on bot startup.
-	 * @Setup
 	 */
+	#[NCA\Setup]
 	public function setup(): void {
 		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations/Research");
 		$this->db->loadCSVFile($this->moduleName, __DIR__ . '/research.csv');
 	}
 
-	/**
-	 * @HandlesCommand("research")
-	 */
+	#[NCA\HandlesCommand("research")]
 	public function researchSingleCommand(CmdContext $context, int $level): void {
 		if ($level < 1 || $level > 10) {
 			$context->reply("Valid values are 1-10.");
@@ -73,9 +72,7 @@ class ResearchController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @HandlesCommand("research")
-	 */
+	#[NCA\HandlesCommand("research")]
 	public function researchDoubleCommand(CmdContext $context, int $from, int $to): void {
 		if ($from < 1 || $from > 10 || $to < 1 || $to > 10) {
 			$context->reply("Valid values are 1-10.");

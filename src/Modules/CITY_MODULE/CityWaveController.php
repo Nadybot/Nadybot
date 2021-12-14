@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\CITY_MODULE;
 
+use Nadybot\Core\Attributes as NCA;
 use Exception;
 use Nadybot\Core\{
 	AOChatEvent,
@@ -26,20 +27,20 @@ use Nadybot\Modules\TIMERS_MODULE\{
 /**
  * @author Funkman (RK2)
  * @author Tyrence (RK2)
- *
- * @Instance
- *
  * Commands this class contains:
- *	@DefineCommand(
- *		command     = 'citywave',
- *		accessLevel = 'guild',
- *		description = 'Shows/Starts/Stops the current city wave',
- *		help        = 'wavecounter.txt'
- *	)
- *	@ProvidesEvent("cityraid(start)")
- *	@ProvidesEvent("cityraid(wave)")
- *	@ProvidesEvent("cityraid(end)")
  */
+#[
+	NCA\Instance,
+	NCA\DefineCommand(
+		command: "citywave",
+		accessLevel: "guild",
+		description: "Shows/Starts/Stops the current city wave",
+		help: "wavecounter.txt"
+	),
+	NCA\ProvidesEvent("cityraid(start)"),
+	NCA\ProvidesEvent("cityraid(wave)"),
+	NCA\ProvidesEvent("cityraid(end)")
+]
 class CityWaveController implements MessageEmitter {
 	/**
 	 * Name of the module.
@@ -47,32 +48,30 @@ class CityWaveController implements MessageEmitter {
 	 */
 	public string $moduleName;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Nadybot $chatBot;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public CommandAlias $commandAlias;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public TimerController $timerController;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public MessageHub $messageHub;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public SettingManager $settingManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public EventManager $eventManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Util $util;
 
 	public const TIMER_NAME = "City Raid";
 
-	/**
-	 * @Setup
-	 */
+	#[NCA\Setup]
 	public function setup(): void {
 		$this->commandAlias->register($this->moduleName, "citywave start", "startwave");
 		$this->commandAlias->register($this->moduleName, "citywave stop", "stopwave");
@@ -123,11 +122,8 @@ class CityWaveController implements MessageEmitter {
 		}
 	}
 
-	/**
-	 * @HandlesCommand("citywave")
-	 * @Mask $action start
-	 */
-	public function citywaveStartCommand(CmdContext $context, string $action): void {
+	#[NCA\HandlesCommand("citywave")]
+	public function citywaveStartCommand(CmdContext $context, #[NCA\Str("start")] string $action): void {
 		$wave = $this->getWave();
 		if ($wave !== null) {
 			$context->reply("A raid is already in progress.");
@@ -136,11 +132,8 @@ class CityWaveController implements MessageEmitter {
 		}
 	}
 
-	/**
-	 * @HandlesCommand("citywave")
-	 * @Mask $action stop
-	 */
-	public function citywaveStopCommand(CmdContext $context, string $action): void {
+	#[NCA\HandlesCommand("citywave")]
+	public function citywaveStopCommand(CmdContext $context, #[NCA\Str("stop")] string $action): void {
 		$wave = $this->getWave();
 		if ($wave === null) {
 			$msg = "There is no raid in progress at this time.";
@@ -151,9 +144,7 @@ class CityWaveController implements MessageEmitter {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @HandlesCommand("citywave")
-	 */
+	#[NCA\HandlesCommand("citywave")]
 	public function citywaveCommand(CmdContext $context): void {
 		$wave = $this->getWave();
 		if ($wave === null) {
@@ -166,10 +157,10 @@ class CityWaveController implements MessageEmitter {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @Event("guild")
-	 * @Description("Starts a wave counter when cloak is lowered")
-	 */
+	#[NCA\Event(
+		name: "guild",
+		description: "Starts a wave counter when cloak is lowered"
+	)]
 	public function autoStartWaveCounterEvent(AOChatEvent $eventObj): void {
 		if (preg_match("/^Your city in (.+) has been targeted by hostile forces.$/i", $eventObj->message)) {
 			$this->startWaveCounter();

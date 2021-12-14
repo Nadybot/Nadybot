@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\WEBSERVER_MODULE;
 
+use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\AOChatEvent;
 use Nadybot\Core\CmdContext;
 use Nadybot\Core\CommandManager;
@@ -17,42 +18,42 @@ use Nadybot\Core\Text;
 use Nadybot\Modules\GUILD_MODULE\GuildController;
 use Nadybot\Modules\WEBSOCKET_MODULE\WebsocketCommandReply;
 
-/**
- * @Instance
- */
+#[NCA\Instance]
 class WebchatApiController {
-	/** @Inject */
+	#[NCA\Inject]
 	public Nadybot $chatBot;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public GuildController $guildController;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public CommandManager $commandManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public SettingManager $settingManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public EventManager $eventManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public MessageHub $messageHub;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public WebChatConverter $webChatConverter;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Text $text;
 
 	/**
 	 * Send a message to the org chat
-	 * @Api("/chat/web")
-	 * @POST
-	 * @AccessLevel("member")
-	 * @RequestBody(class='string', desc='The text to send', required=true)
-	 * @ApiResult(code=204, desc='Message sent')
 	 */
+	#[
+		NCA\Api("/chat/web"),
+		NCA\POST,
+		NCA\AccessLevel("member"),
+		NCA\RequestBody(class: "string", desc: "The text to send", required: true),
+		NCA\ApiResult(code: 204, desc: "Message sent")
+	]
 	public function sendWebMessageEndpoint(Request $request, HttpProtocolWrapper $server): Response {
 		$message = $request->decodedBody;
 		if (!is_string($message) || !isset($request->authenticatedAs)) {

@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\BANK_MODULE;
 
+use Nadybot\Core\Attributes as NCA;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	CmdContext,
@@ -16,24 +17,24 @@ use Nadybot\Core\ParamClass\PCharacter;
 /**
  * @author Tyrence (RK2)
  * @author Marebone (RK2)
- *
- * @Instance
- *
  * Commands this controller contains:
- *	@DefineCommand(
- *		command     = 'bank',
- *		accessLevel = 'guild',
- *		description = 'Browse and search the bank characters',
- *		help        = 'bank.txt'
- *	)
- *	@DefineCommand(
- *		command     = 'bank update',
- *		accessLevel = 'admin',
- *		description = 'Reloads the bank database from the AO Items Assistant file',
- *		help        = 'bank.txt',
- *		alias		= 'updatebank'
- *	)
  */
+#[
+	NCA\Instance,
+	NCA\DefineCommand(
+		command: "bank",
+		accessLevel: "guild",
+		description: "Browse and search the bank characters",
+		help: "bank.txt"
+	),
+	NCA\DefineCommand(
+		command: "bank update",
+		accessLevel: "admin",
+		description: "Reloads the bank database from the AO Items Assistant file",
+		help: "bank.txt",
+		alias: "updatebank"
+	)
+]
 class BankController {
 
 	/**
@@ -42,21 +43,19 @@ class BankController {
 	 */
 	public string $moduleName;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public DB $db;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Text $text;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Util $util;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public SettingManager $settingManager;
 
-	/**
-	 * @Setup
-	 */
+	#[NCA\Setup]
 	public function setup(): void {
 		$this->db->loadMigrations($this->moduleName, __DIR__ . '/Migrations');
 
@@ -79,11 +78,8 @@ class BankController {
 		);
 	}
 
-	/**
-	 * @HandlesCommand("bank")
-	 * @Mask $action browse
-	 */
-	public function bankBrowseCommand(CmdContext $context, string $action): void {
+	#[NCA\HandlesCommand("bank")]
+	public function bankBrowseCommand(CmdContext $context, #[NCA\Str("browse")] string $action): void {
 		$characters = $this->db->table("bank")
 			->orderBy("player")
 			->select("player")->distinct()
@@ -102,11 +98,8 @@ class BankController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @HandlesCommand("bank")
-	 * @Mask $action browse
-	 */
-	public function bankBrowsePlayerCommand(CmdContext $context, string $action, PCharacter $char): void {
+	#[NCA\HandlesCommand("bank")]
+	public function bankBrowsePlayerCommand(CmdContext $context, #[NCA\Str("browse")] string $action, PCharacter $char): void {
 		$name = $char();
 
 		$data = $this->db->table("bank")
@@ -129,11 +122,8 @@ class BankController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @HandlesCommand("bank")
-	 * @Mask $action browse
-	 */
-	public function bankBrowseContainerCommand(CmdContext $context, string $action, PCharacter $char, int $containerId): void {
+	#[NCA\HandlesCommand("bank")]
+	public function bankBrowseContainerCommand(CmdContext $context, #[NCA\Str("browse")] string $action, PCharacter $char, int $containerId): void {
 		$name = $char();
 		$limit = $this->settingManager->getInt('max_bank_items') ?? 50;
 
@@ -160,11 +150,8 @@ class BankController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @HandlesCommand("bank")
-	 * @Mask $action search
-	 */
-	public function bankSearchCommand(CmdContext $context, string $action, string $search): void {
+	#[NCA\HandlesCommand("bank")]
+	public function bankSearchCommand(CmdContext $context, #[NCA\Str("search")] string $action, string $search): void {
 		$search = htmlspecialchars_decode($search);
 		$words = explode(' ', $search);
 		$limit = $this->settingManager->getInt('max_bank_items') ?? 50;
@@ -192,11 +179,8 @@ class BankController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @HandlesCommand("bank update")
-	 * @Mask $action update
-	 */
-	public function bankUpdateCommand(CmdContext $context, string $action): void {
+	#[NCA\HandlesCommand("bank update")]
+	public function bankUpdateCommand(CmdContext $context, #[NCA\Str("update")] string $action): void {
 		$lines = @file($this->settingManager->getString('bank_file_location')??"");
 
 		if ($lines === false) {

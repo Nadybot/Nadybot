@@ -2,6 +2,7 @@
 
 namespace Nadybot\Core;
 
+use Nadybot\Core\Attributes as NCA;
 use Closure;
 use DateTime;
 use PDO;
@@ -21,17 +22,15 @@ use Nadybot\Core\CSV\Reader;
 use Nadybot\Core\DBSchema\Migration;
 use Throwable;
 
-/**
- * @Instance
- */
+#[NCA\Instance]
 class DB {
 
 	public const SQLITE_MIN_VERSION = "3.24.0";
 
-	/** @Inject */
+	#[NCA\Inject]
 	public SettingManager $settingManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Util $util;
 
 	/**
@@ -69,7 +68,7 @@ class DB {
 	private array $meta = [];
 	private array $metaTypes = [];
 
-	/** @Logger */
+	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
 	protected array $sqlReplacements = [];

@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\ORGLIST_MODULE;
 
+use Nadybot\Core\Attributes as NCA;
 use Illuminate\Support\Collection;
 use Nadybot\Core\CmdContext;
 use Nadybot\Core\CommandReply;
@@ -13,17 +14,17 @@ use Nadybot\Core\Text;
 
 /**
  * @author Tyrence (RK2)
- *
- * @Instance
- *
  * Commands this controller contains:
- *	@DefineCommand(
- *		command     = 'orgmembers',
- *		accessLevel = 'guild',
- *		description = 'Show guild members sorted by name',
- *		help        = 'orgmembers.txt'
- *	)
  */
+#[
+	NCA\Instance,
+	NCA\DefineCommand(
+		command: "orgmembers",
+		accessLevel: "guild",
+		description: "Show guild members sorted by name",
+		help: "orgmembers.txt"
+	)
+]
 class OrgMembersController {
 	/**
 	 * Name of the module.
@@ -31,18 +32,16 @@ class OrgMembersController {
 	 */
 	public string $moduleName;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public DB $db;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Text $text;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public GuildManager $guildManager;
 
-	/**
-	 * @HandlesCommand("orgmembers")
-	 */
+	#[NCA\HandlesCommand("orgmembers")]
 	public function orgmembers2Command(CmdContext $context, int $orgId): void {
 		$context->reply("Getting org info...");
 

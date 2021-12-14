@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\WEBSERVER_MODULE;
 
+use Nadybot\Core\Attributes as NCA;
 use DateTime;
 use Exception;
 use Nadybot\Core\{
@@ -17,13 +18,15 @@ use Throwable;
  * A convenient wrapper around AsyncSockets that emits
  * http(get) and http(post) events
  *
- * @ProvidesEvent("http(get)")
- * @ProvidesEvent("http(head)")
- * @ProvidesEvent("http(post)")
- * @ProvidesEvent("http(put)")
- * @ProvidesEvent("http(delete)")
- * @ProvidesEvent("http(patch)")
  */
+#[
+	NCA\ProvidesEvent("http(get)"),
+	NCA\ProvidesEvent("http(head)"),
+	NCA\ProvidesEvent("http(post)"),
+	NCA\ProvidesEvent("http(put)"),
+	NCA\ProvidesEvent("http(delete)"),
+	NCA\ProvidesEvent("http(patch)")
+]
 class HttpProtocolWrapper {
 	public const EXPECT_REQUEST = 1;
 	public const EXPECT_HEADER = 2;
@@ -34,16 +37,16 @@ class HttpProtocolWrapper {
 	protected AsyncSocket $asyncSocket;
 	protected Request $request;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public WebserverController $webserverController;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public EventManager $eventManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public SettingManager $settingManager;
 
-	/** @Logger */
+	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
 	protected string $readQueue = "";

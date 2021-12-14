@@ -2,6 +2,7 @@
 
 namespace Nadybot\Core\Modules\DISCORD;
 
+use Nadybot\Core\Attributes as NCA;
 use Closure;
 use JsonException;
 use stdClass;
@@ -18,19 +19,19 @@ use Nadybot\Modules\DISCORD_GATEWAY_MODULE\Model\GuildMember;
 
 /**
  * A Discord API-client
- * @Instance
  */
+#[NCA\Instance]
 class DiscordAPIClient {
-	/** @Inject */
+	#[NCA\Inject]
 	public SettingManager $settingManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Http $http;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Timer $timer;
 
-	/** @Logger */
+	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
 	protected array $outQueue = [];

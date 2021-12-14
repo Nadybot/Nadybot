@@ -2,6 +2,7 @@
 
 namespace Nadybot\Core\Modules\SYSTEM;
 
+use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{
 	AccessManager,
 	CmdContext,
@@ -13,21 +14,21 @@ use Nadybot\Core\{
 
 /**
  * @author Tyrence (RK2)
- *
- * @Instance
- *
  * Commands this controller contains:
- *	@DefineCommand(
- *		command       = 'querysql',
- *		accessLevel   = 'superadmin',
- *		description   = 'Run an SQL query and see the results'
- *	)
- *	@DefineCommand(
- *		command       = 'executesql',
- *		accessLevel   = 'superadmin',
- *		description   = 'Execute an SQL statement'
- *	)
  */
+#[
+	NCA\Instance,
+	NCA\DefineCommand(
+		command: "querysql",
+		accessLevel: "superadmin",
+		description: "Run an SQL query and see the results"
+	),
+	NCA\DefineCommand(
+		command: "executesql",
+		accessLevel: "superadmin",
+		description: "Execute an SQL statement"
+	)
+]
 class SQLController {
 
 	/**
@@ -36,21 +37,19 @@ class SQLController {
 	 */
 	public string $moduleName;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public AccessManager $accessManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public DB $db;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public CommandManager $commandManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Text $text;
 
-	/**
-	 * @HandlesCommand("executesql")
-	 */
+	#[NCA\HandlesCommand("executesql")]
 	public function executesqlCommand(CmdContext $context, string $sql): void {
 		$sql = htmlspecialchars_decode($sql);
 
@@ -63,9 +62,7 @@ class SQLController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @HandlesCommand("querysql")
-	 */
+	#[NCA\HandlesCommand("querysql")]
 	public function querysqlCommand(CmdContext $context, string $sql): void {
 		$sql = htmlspecialchars_decode($sql);
 

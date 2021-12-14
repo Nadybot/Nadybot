@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\ORGLIST_MODULE;
 
+use Nadybot\Core\Attributes as NCA;
 use Exception;
 use Nadybot\Core\{
 	CmdContext,
@@ -20,17 +21,17 @@ use Nadybot\Core\{
 
 /**
  * @author Tyrence (RK2)
- *
- * @Instance
- *
  * Commands this controller contains:
- *	@DefineCommand(
- *		command     = 'findorg',
- *		accessLevel = 'all',
- *		description = 'Find orgs by name',
- *		help        = 'findorg.txt'
- *	)
  */
+#[
+	NCA\Instance,
+	NCA\DefineCommand(
+		command: "findorg",
+		accessLevel: "all",
+		description: "Find orgs by name",
+		help: "findorg.txt"
+	)
+]
 class FindOrgController {
 	/**
 	 * Name of the module.
@@ -38,25 +39,25 @@ class FindOrgController {
 	 */
 	public string $moduleName;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public DB $db;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Nadybot $chatBot;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Text $text;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Util $util;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Http $http;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Timer $timer;
 
-	/** @Logger */
+	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
 	protected bool $ready = false;
@@ -67,7 +68,7 @@ class FindOrgController {
 		'others'
 	];
 
-	/** @Setup */
+	#[NCA\Setup]
 	public function setup(): void {
 		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations");
 		$this->ready = $this->db->table("organizations")
@@ -95,9 +96,7 @@ class FindOrgController {
 			->first();
 	}
 
-	/**
-	 * @HandlesCommand("findorg")
-	 */
+	#[NCA\HandlesCommand("findorg")]
 	public function findOrgCommand(CmdContext $context, string $search): void {
 		if (!$this->isReady()) {
 			$this->sendNotReadyError($context);
@@ -221,10 +220,10 @@ class FindOrgController {
 		}
 	}
 
-	/**
-	 * @Event("timer(24hrs)")
-	 * @Description("Parses all orgs from People of Rubi Ka")
-	 */
+	#[NCA\Event(
+		name: "timer(24hrs)",
+		description: "Parses all orgs from People of Rubi Ka"
+	)]
 	public function parseAllOrgsEvent(Event $eventObj): void {
 		$this->downloadOrglist();
 	}

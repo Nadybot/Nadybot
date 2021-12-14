@@ -2,24 +2,25 @@
 
 namespace Nadybot\Core;
 
+use Nadybot\Core\Attributes as NCA;
 use Exception;
 
 /**
  * Read-through cache to URLs
- * @Instance
  */
+#[NCA\Instance]
 class CacheManager {
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Nadybot $chatBot;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Http $http;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Util $util;
 
-	/** @Logger */
+	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
 	/**
@@ -29,8 +30,8 @@ class CacheManager {
 
 	/**
 	 * Initialize the cache on disk
-	 * @Setup
 	 */
+	#[NCA\Setup]
 	public function init(): void {
 		$this->cacheDir = $this->chatBot->vars["cachefolder"];
 
@@ -142,7 +143,6 @@ class CacheManager {
 
 	/**
 	 * Lookup information in the cache or retrieve it when outdated
-	 *
 	 * @param string $url               The URL to load the data from if the cache is outdate
 	 * @param string $groupName         The "name" of the cache, e.g. "guild_roster"
 	 * @param string $filename          Filename to cache the information in when retrieved
@@ -278,7 +278,6 @@ class CacheManager {
 
 	/**
 	 * Get a list of all files with cached information that belong to a group
-	 *
 	 * @param string $groupName The "name" of the cache, e.g. "guild_roster"
 	 * @return string[]
 	 */
@@ -290,7 +289,6 @@ class CacheManager {
 
 	/**
 	 * Get a list of all existing cache groups
-	 *
 	 * @return string[]
 	 */
 	public function getGroups(): array {

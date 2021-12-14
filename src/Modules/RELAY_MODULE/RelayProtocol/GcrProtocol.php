@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\RELAY_MODULE\RelayProtocol;
 
+use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\DBSchema\Player;
 use Nadybot\Core\Event;
 use Nadybot\Core\Modules\PLAYER_LOOKUP\PlayerManager;
@@ -18,38 +19,61 @@ use Nadybot\Modules\ONLINE_MODULE\OnlineController;
 use Nadybot\Modules\RELAY_MODULE\Relay;
 use Nadybot\Modules\RELAY_MODULE\RelayMessage;
 
-/**
- * @RelayProtocol("gcr")
- * @Description("This is the protocol that BeBot speaks natively.
- * 	It supports sharing online lists and basic colorization.
- * 	Nadybot only support colorization of messages from the
- * 	org and guest chat and not the BeBot native encryption.")
- * @Param(name='command', description='The command we send with each packet', type='string', required=false)
- * @Param(name='prefix', description='The prefix we send with each packet, e.g. "!" or ""', type='string', required=false)
- * @Param(name='sync-online', description='Sync the online list with the other bots of this relay', type='bool', required=false)
- * @Param(name='send-logon', description='Send messages that people in your org go online or offline', type='bool', required=false)
- */
+#[
+	NCA\RelayProtocol(
+		name: "gcr",
+		description:
+			"This is the protocol that BeBot speaks natively.\n".
+			"It supports sharing online lists and basic colorization.\n".
+			"Nadybot only support colorization of messages from the\n".
+			"org and guest chat and not the BeBot native encryption."
+	),
+	NCA\Param(
+		name: "command",
+		type: "string",
+		description: "The command we send with each packet",
+		required: false
+	),
+	NCA\Param(
+		name: "prefix",
+		type: "string",
+		description: "The prefix we send with each packet, e.g. \"!\" or \"\"",
+		required: false
+	),
+	NCA\Param(
+		name: "sync-online",
+		type: "bool",
+		description: "Sync the online list with the other bots of this relay",
+		required: false
+	),
+	NCA\Param(
+		name: "send-logon",
+		type: "bool",
+		description: "Send messages that people in your org go online or offline",
+		required: false
+	)
+]
 class GcrProtocol implements RelayProtocolInterface {
 	protected static int $supportedFeatures = self::F_ONLINE_SYNC;
 
 	protected Relay $relay;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Util $util;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Text $text;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public SettingManager $settingManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public PlayerManager $playerManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public OnlineController $onlineController;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Nadybot $chatBot;
 
 	protected string $command = "gcr";
