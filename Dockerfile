@@ -1,4 +1,4 @@
-FROM quay.io/nadyita/alpine:3.14
+FROM quay.io/nadyita/alpine:3.15
 ARG VERSION
 
 LABEL maintainer="nadyita@hodorraid.org" \
@@ -9,46 +9,49 @@ ENTRYPOINT ["/sbin/tini", "-g", "--"]
 
 CMD ["/nadybot/docker-entrypoint.sh"]
 
-
 RUN apk --no-cache add \
-    php7-cli \
-    php7-sqlite3 \
-    php7-iconv \
-    php7-phar \
-    php7-gmp \
-    php7-curl \
-    php7-sockets \
-    php7-pdo \
-    php7-pdo_sqlite \
-    php7-pdo_mysql \
-    php7-mbstring \
-    php7-ctype \
-    php7-bcmath \
-    php7-json \
-    php7-posix \
-    php7-xml \
-    php7-simplexml \
-    php7-dom \
-    php7-pcntl \
-    php7-zip \
-    php7-fileinfo \
+    php8-cli \
+    php8-sqlite3 \
+    php8-phar \
+    php8-curl \
+    php8-sockets \
+    php8-pdo \
+    php8-pdo_sqlite \
+    php8-pdo_mysql \
+    php8-mbstring \
+    php8-ctype \
+    php8-bcmath \
+    php8-json \
+    php8-posix \
+    php8-simplexml \
+    php8-dom \
+    php8-pcntl \
+    php8-zip \
+    php8-opcache \
+    php8-fileinfo \
 	tini \
     && \
     adduser -h /nadybot -s /bin/false -D -H nadybot
 
 COPY --chown=nadybot:nadybot . /nadybot
 
-RUN apk --no-cache add composer jq php7-tokenizer php7-xmlwriter && \
+RUN wget -O /usr/bin/composer https://getcomposer.org/composer-2.phar && \
+    chmod +x /usr/bin/composer && \
+    apk --no-cache add \
+        sudo \
+        jq \
+    && \
     cd /nadybot && \
-    composer install --no-dev --no-interaction --no-progress && \
-    rm -rf "$(composer config vendor-dir)/niktux/addendum/Tests" && \
-    rm -f "$(composer config vendor-dir)/niktux/addendum/composer.phar" && \
-    composer dumpautoload --no-dev --optimize --no-interaction 2>&1 | grep -v "/20[0-9]\{12\}_.*autoload" && \
-    composer clear-cache && \
-    chown -R nadybot:nadybot vendor && \
+    mkdir -p data/db cache && \
+    sudo -u nadybot jq 'del(."require-dev")' composer.json > composer.php8.json && \
+    mv composer.php8.json composer.json && \
+    sudo -u nadybot php8 /usr/bin/composer install --no-dev --no-interaction --no-progress && \
+    sudo -u nadybot php8 /usr/bin/composer dumpautoload --no-dev --optimize --no-interaction 2>&1 | grep -v "/20[0-9]\{12\}_.*autoload" && \
+    sudo -u nadybot php8 /usr/bin/composer clear-cache && \
+    rm -f /usr/bin/composer && \
     jq 'del(.monolog.handlers.logs)' conf/logging.json > conf/logging.json.2 && \
     mv conf/logging.json.2 conf/logging.json && \
-    apk del --no-cache composer jq php7-tokenizer php7-xmlwriter && \
+    apk del --no-cache sudo jq && \
     if [ "x${VERSION}" != "x" ]; then \
         sed -i -e "s/public const VERSION = \"[^\"]*\";/public const VERSION = \"${VERSION:-4.0}\";/g" src/Core/BotRunner.php; \
     fi
