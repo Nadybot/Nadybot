@@ -2,6 +2,7 @@
 
 namespace Nadybot\Core;
 
+use Nadybot\Core\Attributes as NCA;
 use Exception;
 
 /**
@@ -13,16 +14,16 @@ use Exception;
  */
 class AsyncHttp {
 
-	/** @Inject */
+	#[NCA\Inject]
 	public SettingObject $setting;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public SocketManager $socketManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Timer $timer;
 
-	/** @Logger */
+	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
 	/**

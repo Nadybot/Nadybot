@@ -2,11 +2,10 @@
 
 namespace Nadybot\Core;
 
+use Nadybot\Core\Attributes as NCA;
 use Exception;
 
-/**
- * @SettingHandler("number")
- */
+#[NCA\SettingHandler("number")]
 class NumberSettingHandler extends SettingHandler {
 
 	/**

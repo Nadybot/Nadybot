@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\WHOMPAH_MODULE;
 
+use Nadybot\Core\Attributes as NCA;
 use Illuminate\Support\Collection;
 use Nadybot\Core\CmdContext;
 use Nadybot\Core\CommandAlias;
@@ -11,17 +12,17 @@ use Nadybot\Core\Text;
 
 /**
  * @author Tyrence (RK2)
- *
- * @Instance
- *
  * Commands this controller contains:
- *	@DefineCommand(
- *		command     = 'whompah',
- *		accessLevel = 'all',
- *		description = 'Shows the whompah route from one city to another',
- *		help        = 'whompah.txt'
- *	)
  */
+#[
+	NCA\Instance,
+	NCA\DefineCommand(
+		command: "whompah",
+		accessLevel: "all",
+		description: "Shows the whompah route from one city to another",
+		help: "whompah.txt"
+	)
+]
 class WhompahController {
 
 	/**
@@ -30,19 +31,19 @@ class WhompahController {
 	 */
 	public string $moduleName;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public DB $db;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Text $text;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public CommandAlias $commandAlias;
 
 	/**
 	 * This handler is called on bot startup.
-	 * @Setup
 	 */
+	#[NCA\Setup]
 	public function setup(): void {
 		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations");
 		$this->db->loadCSVFile($this->moduleName, __DIR__ . "/whompah_cities.csv");
@@ -55,9 +56,8 @@ class WhompahController {
 
 	/**
 	 * Shows a list of known cities
-	 *
-	 * @HandlesCommand("whompah")
 	 */
+	#[NCA\HandlesCommand("whompah")]
 	public function whompahListCommand(CmdContext $context): void {
 		/** @var Collection<WhompahCity> */
 		$data = $this->db->table("whompah_cities")->orderBy("city_name")->asObj();
@@ -76,9 +76,8 @@ class WhompahController {
 
 	/**
 	 * Searches for a whompah-route from start to end
-	 *
-	 * @HandlesCommand("whompah")
 	 */
+	#[NCA\HandlesCommand("whompah")]
 	public function whompahTravelCommand(CmdContext $context, PWord $start, PWord $end): void {
 		$startCity = $this->findCity($start());
 		$endCity   = $this->findCity($end());
@@ -118,9 +117,8 @@ class WhompahController {
 
 	/**
 	 * Shows all whompah-connections of a city
-	 *
-	 * @HandlesCommand("whompah")
 	 */
+	#[NCA\HandlesCommand("whompah")]
 	public function whompahDestinationsCommand(CmdContext $context, string $cityName): void {
 		$city = $this->findCity($cityName);
 

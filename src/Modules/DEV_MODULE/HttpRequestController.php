@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\DEV_MODULE;
 
+use Nadybot\Core\Attributes as NCA;
 use JsonException;
 use Nadybot\Core\CmdContext;
 use Nadybot\Core\Http;
@@ -10,28 +11,26 @@ use Nadybot\Core\Text;
 
 /**
  * @author Nadyita
- *
- * @Instance
- *
  * Commands this controller contains:
- *	@DefineCommand(
- *		command     = 'httprequest',
- *		accessLevel = 'mod',
- *		description = 'Test http/https requests'
- *	)
  */
+#[
+	NCA\Instance,
+	NCA\DefineCommand(
+		command: "httprequest",
+		accessLevel: "mod",
+		description: "Test http/https requests"
+	)
+]
 class HttpRequestController {
 	public string $moduleName;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Http $http;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Text $text;
 
-	/**
-	 * @HandlesCommand("httprequest")
-	 */
+	#[NCA\HandlesCommand("httprequest")]
 	public function httprequestCommand(CmdContext $context, string $url): void {
 		$parts = parse_url(html_entity_decode($url));
 		if (!is_array($parts)) {

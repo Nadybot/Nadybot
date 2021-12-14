@@ -2,6 +2,7 @@
 
 namespace Nadybot\Core\Socket;
 
+use Nadybot\Core\Attributes as NCA;
 use Exception;
 use InvalidArgumentException;
 use Nadybot\Core\{
@@ -33,13 +34,13 @@ class AsyncSocket {
 	 */
 	protected $socket = null;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public SocketManager $socketManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Timer $timer;
 
-	/** @Logger("Core/AsyncSocket") */
+	#[NCA\Logger("Core/AsyncSocket")]
 	public LoggerWrapper $logger;
 
 	protected array $writeQueue = [];

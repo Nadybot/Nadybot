@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\RELAY_MODULE\Transport;
 
+use Nadybot\Core\Attributes as NCA;
 use Exception;
 use Nadybot\Core\AOChatEvent;
 use Nadybot\Core\BuddylistManager;
@@ -14,24 +15,32 @@ use Nadybot\Core\UserStateEvent;
 use Nadybot\Modules\RELAY_MODULE\Relay;
 use Nadybot\Modules\RELAY_MODULE\RelayMessage;
 
-/**
- * @RelayTransport("tell")
- * @Description("This is the Anarchy Online private message (tell) protocol.
- * 	You can use this to relay messages internally inside Anarchy Online
- * 	via sending tells. This is the simplest form of relaying messages.
- * 	Be aware though, that tells are rate-limited and will very likely
- * 	lag a lot. It is also not possible to setup a relay with more
- * 	then 2 bots this way.")
- * @Param(name='bot', description='The name of the other bot', type='string', required=true)
- */
+#[
+	NCA\RelayTransport(
+		name: "tell",
+		description:
+			"This is the Anarchy Online private message (tell) protocol.\n".
+			"You can use this to relay messages internally inside Anarchy Online\n".
+			"via sending tells. This is the simplest form of relaying messages.\n".
+			"Be aware though, that tells are rate-limited and will very likely\n".
+			"lag a lot. It is also not possible to setup a relay with more\n".
+			"then 2 bots this way."
+	),
+	NCA\Param(
+		name: "bot",
+		type: "string",
+		description: "The name of the other bot",
+		required: true
+	)
+]
 class Tell implements TransportInterface {
-	/** @Inject */
+	#[NCA\Inject]
 	public Nadybot $chatBot;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public EventManager $eventManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public BuddylistManager $buddylistManager;
 
 	protected Relay $relay;

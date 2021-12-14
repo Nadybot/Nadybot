@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\COMMENT_MODULE\Migrations;
 
+use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\DB;
 use Nadybot\Core\LoggerWrapper;
 use Nadybot\Core\SchemaMigration;
@@ -9,7 +10,7 @@ use Nadybot\Modules\COMMENT_MODULE\ReputationController;
 use Throwable;
 
 class MigrateReputationTable implements SchemaMigration {
-	/** @Inject */
+	#[NCA\Inject]
 	public ReputationController $reputationController;
 
 	public function migrate(LoggerWrapper $logger, DB $db): void {

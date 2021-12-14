@@ -2,12 +2,13 @@
 
 namespace Nadybot\Core;
 
+use Nadybot\Core\Attributes as NCA;
 use Exception;
 
 /**
  * Class to represent a setting with a text value for NadyBot
- * @SettingHandler("text")
  */
+#[NCA\SettingHandler("text")]
 class TextSettingHandler extends SettingHandler {
 
 	/**

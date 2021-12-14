@@ -2,23 +2,22 @@
 
 namespace Nadybot\Core;
 
+use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\DBSchema\CmdCfg;
 
-/**
- * @Instance
- */
+#[NCA\Instance]
 class SubcommandManager {
 
-	/** @Inject */
+	#[NCA\Inject]
 	public DB $db;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Nadybot $chatBot;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Util $util;
 
-	/** @Logger */
+	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
 	/** @var array<string,CmdCfg[]> */

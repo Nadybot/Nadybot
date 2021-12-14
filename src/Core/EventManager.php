@@ -3,8 +3,8 @@
 namespace Nadybot\Core;
 
 use Exception;
-use Addendum\ReflectionAnnotatedMethod;
 use Closure;
+use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\DBSchema\EventCfg;
 use Nadybot\Core\Modules\MESSAGES\MessageHubController;
 use ReflectionFunction;
@@ -13,28 +13,26 @@ use ReflectionMethod;
 use ReflectionNamedType;
 use Throwable;
 
-/**
- * @Instance
- */
+#[NCA\Instance]
 class EventManager {
 	public const DB_TABLE = "eventcfg_<myname>";
 
-	/** @Inject */
+	#[NCA\Inject]
 	public DB $db;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Nadybot $chatBot;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public SettingManager $settingManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Util $util;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public MessageHubController $messageHubController;
 
-	/** @Logger */
+	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
 	/** @var array<string,string[]> */
@@ -337,9 +335,13 @@ class EventManager {
 	}
 
 	public function getEventTypeByMethod(object $obj, string $methodName): ?string {
-		$method = new ReflectionAnnotatedMethod($obj, $methodName);
-		if ($method->hasAnnotation('Event')) {
-			return strtolower($method->getAnnotation('Event')->value);
+		$method = new ReflectionMethod($obj, $methodName);
+		foreach ($method->getAttributes(NCA\Event::class) as $event) {
+			/** @var NCA\Event */
+			$eventObj = $event->newInstance();
+			foreach ((array)$eventObj->name as $eventName) {
+				return strtolower($eventName);
+			}
 		}
 		return null;
 	}

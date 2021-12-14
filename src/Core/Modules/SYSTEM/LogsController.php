@@ -2,6 +2,7 @@
 
 namespace Nadybot\Core\Modules\SYSTEM;
 
+use Nadybot\Core\Attributes as NCA;
 use Exception;
 use Monolog\Formatter\JsonFormatter;
 use Monolog\Handler\AbstractHandler;
@@ -29,29 +30,29 @@ use Nadybot\Core\ParamClass\PWord;
 
 /**
  * @author Tyrence (RK2)
- *
- * @Instance
- *
  * Commands this controller contains:
- *	@DefineCommand(
- *		command       = 'logs',
- *		accessLevel   = 'admin',
- *		description   = 'View bot logs',
- *		help          = 'logs.txt'
- *	)
- *	@DefineCommand(
- *		command       = 'loglevel',
- *		accessLevel   = 'admin',
- *		description   = 'Change loglevel for debugging',
- *		help          = 'debug.txt'
- *	)
- *	@DefineCommand(
- *		command       = 'debug',
- *		accessLevel   = 'admin',
- *		description   = 'Create debug logs for a command',
- *		help          = 'debug.txt'
- *	)
  */
+#[
+	NCA\Instance,
+	NCA\DefineCommand(
+		command: "logs",
+		accessLevel: "admin",
+		description: "View bot logs",
+		help: "logs.txt"
+	),
+	NCA\DefineCommand(
+		command: "loglevel",
+		accessLevel: "admin",
+		description: "Change loglevel for debugging",
+		help: "debug.txt"
+	),
+	NCA\DefineCommand(
+		command: "debug",
+		accessLevel: "admin",
+		description: "Create debug logs for a command",
+		help: "debug.txt"
+	)
+]
 class LogsController {
 
 	/**
@@ -60,33 +61,31 @@ class LogsController {
 	 */
 	public string $moduleName;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public CommandManager $commandManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public SettingManager $settingManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Nadybot $chatBot;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Http $http;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Timer $timer;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Text $text;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Util $util;
 
-	/** @Logger */
+	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
-	/**
-	 * @HandlesCommand("logs")
-	 */
+	#[NCA\HandlesCommand("logs")]
 	public function logsCommand(CmdContext $context): void {
 		$files = $this->util->getFilesInDirectory(
 			$this->logger->getLoggingDirectory()
@@ -104,9 +103,7 @@ class LogsController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @HandlesCommand("logs")
-	 */
+	#[NCA\HandlesCommand("logs")]
 	public function logsFileCommand(CmdContext $context, PFilename $file, ?string $search): void {
 		$filename = $this->logger->getLoggingDirectory() . DIRECTORY_SEPARATOR . $file();
 		$readsize = ($this->settingManager->getInt('max_blob_size')??10000) - 500;
@@ -151,9 +148,7 @@ class LogsController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @HandlesCommand("loglevel")
-	 */
+	#[NCA\HandlesCommand("loglevel")]
 	public function loglevelCommand(CmdContext $context): void {
 		$loggers = LegacyLogger::getLoggers();
 		$names = [];
@@ -180,13 +175,10 @@ class LogsController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @HandlesCommand("loglevel")
-	 * @Mask $action reset
-	 */
+	#[NCA\HandlesCommand("loglevel")]
 	public function loglevelResetCommand(
 		CmdContext $context,
-		string $action
+		#[NCA\Str("reset")] string $action
 	): void {
 		$loggers = LegacyLogger::getLoggers();
 		LegacyLogger::getConfig(true);
@@ -217,13 +209,11 @@ class LogsController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @HandlesCommand("loglevel")
-	 * @Mask $loglevel (debug|info|notice|warning|error|emergency|alert)
-	 */
+	#[NCA\HandlesCommand("loglevel")]
 	public function loglevelFileCommand(
 		CmdContext $context,
 		PWord $mask,
+		#[NCA\Regexp("debug|info|notice|warning|error|emergency|alert")]
 		string $logLevel
 	): void {
 		$logLevel = strtoupper($logLevel);
@@ -257,9 +247,7 @@ class LogsController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @HandlesCommand("debug")
-	 */
+	#[NCA\HandlesCommand("debug")]
 	public function debugCommand(
 		CmdContext $context,
 		string $command

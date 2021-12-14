@@ -2,24 +2,23 @@
 
 namespace Nadybot\Core;
 
+use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\DBSchema\CmdAlias;
 
-/**
- * @Instance
- */
+#[NCA\Instance]
 class CommandAlias {
 	public const DB_TABLE = "cmd_alias_<myname>";
 
-	/** @Inject */
+	#[NCA\Inject]
 	public DB $db;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Nadybot $chatBot;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public CommandManager $commandManager;
 
-	/** @Logger */
+	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
 	public const ALIAS_HANDLER = "CommandAlias.process";

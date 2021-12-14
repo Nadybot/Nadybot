@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\TOWER_MODULE;
 
+use Nadybot\Core\Attributes as NCA;
 use Exception;
 use Nadybot\Core\BotRunner;
 use Nadybot\Core\Http;
@@ -9,9 +10,7 @@ use Nadybot\Core\HttpResponse;
 use Nadybot\Core\SettingManager;
 use Throwable;
 
-/**
- * @Instance
- */
+#[NCA\Instance]
 class TowerApiController {
 
 	public const TOWER_API = "tower_api";
@@ -24,19 +23,19 @@ class TowerApiController {
 	 */
 	public string $moduleName;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Http $http;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public SettingManager $settingManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public TowerController $towerController;
 
 	/** @var array<string,ApiCache> */
 	protected array $cache = [];
 
-	/** @Setup */
+	#[NCA\Setup]
 	public function setup(): void {
 		$this->settingManager->add(
 			$this->moduleName,
@@ -83,10 +82,10 @@ class TowerApiController {
 		}
 	}
 
-	/**
-	 * @Event("timer(5m)")
-	 * @Description("Clean API Cache")
-	 */
+	#[NCA\Event(
+		name: "timer(5m)",
+		description: "Clean API Cache"
+	)]
 	public function cleanApiCache(): void {
 		$keys = array_keys($this->cache);
 		foreach ($keys as $key) {

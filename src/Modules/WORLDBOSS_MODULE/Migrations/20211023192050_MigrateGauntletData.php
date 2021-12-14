@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\WORLDBOSS_MODULE\Migrations\Gauntlet;
 
+use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{
 	DB,
 	DBSchema\Route,
@@ -15,13 +16,13 @@ use Nadybot\Modules\WORLDBOSS_MODULE\GauntletInventoryController;
 use Nadybot\Modules\WORLDBOSS_MODULE\WorldBossController;
 
 class MigrateGauntletData implements SchemaMigration {
-	/** @Inject */
+	#[NCA\Inject]
 	public WorldBossController $worldBossController;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public GauntletInventoryController $gauntletInventoryController;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public TimerController $timerController;
 
 	public function migrate(LoggerWrapper $logger, DB $db): void {

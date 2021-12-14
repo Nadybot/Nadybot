@@ -2,18 +2,9 @@
 
 namespace Nadybot\Modules\WEBSERVER_MODULE;
 
-use Addendum\ReflectionAnnotatedClass;
-use Addendum\ReflectionAnnotatedMethod;
+use Nadybot\Core\Attributes as NCA;
 use Closure;
 use Illuminate\Support\Collection;
-use Nadybot\Core\Annotations\{
-	DELETE,
-	GET,
-	POST,
-	PUT,
-	PATCH,
-	RequestBody,
-};
 use Nadybot\Core\{
 	AccessManager,
 	CmdContext,
@@ -33,65 +24,67 @@ use Nadybot\Core\ParamClass\PRemove;
 use Nadybot\Modules\WEBSOCKET_MODULE\WebsocketController;
 use ReflectionClass;
 use ReflectionFunction;
+use ReflectionMethod;
 use ReflectionNamedType;
 use ReflectionProperty;
 use Throwable;
+use ReflectionAttribute;
 
-/**
- * @Instance
- *	@DefineCommand(
- *		command     = 'apiauth',
- *		accessLevel = 'mod',
- *		description = 'Create public/private key pairs for auth against the API',
- *		help        = 'apiauth.txt'
- *	)
- * @ProvidesEvent("cmdreply")
- */
+#[
+	NCA\Instance,
+	NCA\DefineCommand(
+		command: "apiauth",
+		accessLevel: "mod",
+		description: "Create public/private key pairs for auth against the API",
+		help: "apiauth.txt"
+	),
+	NCA\ProvidesEvent("cmdreply")
+]
 class ApiController {
 	public const DB_TABLE = "api_key_<myname>";
 
 	public string $moduleName;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public WebserverController $webserverController;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public SettingManager $settingManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public CommandManager $commandManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public SubcommandManager $subcommandManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public AccessManager $accessManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public EventManager $eventManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public WebsocketController $websocketController;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Util $util;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Text $text;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public DB $db;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Nadybot $chatBot;
 
-	/** @Logger */
+	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
 	/** @var array<array<string,ApiHandler>> */
 	protected array $routes = [];
 
-	/** @Setup */
+	#[NCA\Setup]
 	public function setup(): void {
 		$this->settingManager->add(
 			$this->moduleName,
@@ -104,14 +97,11 @@ class ApiController {
 			'1;0'
 		);
 
-		$this->scanApiAnnotations();
+		$this->scanApiAttributes();
 	}
 
-	/**
-	 * @HandlesCommand("apiauth")
-	 * @Mask $action list
-	 */
-	public function apiauthListCommand(CmdContext $context, ?string $action): void {
+	#[NCA\HandlesCommand("apiauth")]
+	public function apiauthListCommand(CmdContext $context, #[NCA\Str("list")] ?string $action): void {
 		$keys = $this->db->table(static::DB_TABLE)
 			->orderBy("created")
 			->asObj(ApiKey::class);
@@ -143,11 +133,8 @@ class ApiController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @HandlesCommand("apiauth")
-	 * @Mask $action (create|new)
-	 */
-	public function apiauthCreateCommand(CmdContext $context, string $action): void {
+	#[NCA\HandlesCommand("apiauth")]
+	public function apiauthCreateCommand(CmdContext $context, #[NCA\Regexp("create|new")] string $action): void {
 		$key = openssl_pkey_new(["private_key_type" => OPENSSL_KEYTYPE_EC, "curve_name" => "prime256v1"]);
 		if ($key === false) {
 			$context->reply("Your PHP installation doesn't support the required cryptographic algorithms.");
@@ -193,9 +180,7 @@ class ApiController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @HandlesCommand("apiauth")
-	 */
+	#[NCA\HandlesCommand("apiauth")]
 	public function apiauthDeleteCommand(CmdContext $context, PRemove $action, string $token): void {
 		/** @var ?ApiKey */
 		$key = $this->db->table(static::DB_TABLE)
@@ -218,11 +203,8 @@ class ApiController {
 		$context->reply("API token <highlight>{$token}<end> deleted.");
 	}
 
-	/**
-	 * @HandlesCommand("apiauth")
-	 * @Mask $action reset
-	 */
-	public function apiauthResetCommand(CmdContext $context, string $action, string $token): void {
+	#[NCA\HandlesCommand("apiauth")]
+	public function apiauthResetCommand(CmdContext $context, #[NCA\Str("reset")] string $action, string $token): void {
 		/** @var ?ApiKey */
 		$key = $this->db->table(static::DB_TABLE)
 			->where("token", $token)
@@ -246,44 +228,49 @@ class ApiController {
 	}
 
 	/**
-	 * Scan all Instances for @HttpHet or @HttpPost annotations and register them
-	 * @return void
+	 * Scan all Instances for #[HttpGet] or #[HttpPost] attributes and register them
 	 */
-	public function scanApiAnnotations(): void {
+	public function scanApiAttributes(): void {
 		$instances = Registry::getAllInstances();
 		foreach ($instances as $instance) {
-			$reflection = new ReflectionAnnotatedClass($instance);
+			$reflection = new ReflectionClass($instance);
 			foreach ($reflection->getMethods() as $method) {
-				/** @var ReflectionAnnotatedMethod $method */
-				if (!$method->hasAnnotation("Api")) {
+				$apiAttrs = $method->getAttributes(NCA\Api::class);
+				if (empty($apiAttrs)) {
 					continue;
 				}
 				$routes = [];
-				foreach ($method->getAllAnnotations("Api") as $annotation) {
-					if (isset($annotation->value)) {
-						$routes []= $annotation->value;
+				foreach ($apiAttrs as $apiAttr) {
+					/** @var NCA\Api */
+					$apiObj = $apiAttr->newInstance();
+					if (isset($apiObj->path)) {
+						$routes []= $apiObj->path;
 					}
 				}
 				$accessLevelFrom = null;
 				$accessLevel = null;
-				if ($method->hasAnnotation("AccessLevelFrom")) {
-					$accessLevelFrom = $method->getAnnotation("AccessLevelFrom")->value;
-				} elseif ($method->hasAnnotation("AccessLevel")) {
-					$accessLevel = $method->getAnnotation("AccessLevel")->value;
+				$alFromAttribs = $method->getAttributes(NCA\AccessLevelFrom::class);
+				$alAttribs = $method->getAttributes(NCA\AccessLevel::class);
+				if (count($alFromAttribs)) {
+					/** @var NCA\AccessLevelFrom */
+					$alFromObj = $alFromAttribs[0]->newInstance();
+					$accessLevelFrom = $alFromObj->value;
+				} elseif (count($alAttribs)) {
+					/** @var NCA\AccessLevel */
+					$alObj = $alAttribs[0]->newInstance();
+					$accessLevel = $alObj->value;
 				}
-				foreach (["GET", "POST", "PUT", "DELETE", "PATCH"] as $annoName) {
-					if (!$method->hasAnnotation($annoName)) {
-						continue;
-					}
-					$methods = [];
-					foreach ($method->getAllAnnotations($annoName) as $annotation) {
-						/** @var GET|POST|PUT|DELETE|PATCH $annotation */
-						$methods []= strtolower($annoName);
-					}
-					$closure = $method->getClosure($instance);
-					if (isset($closure)) {
-						$this->addApiRoute($routes, $methods, $closure, $accessLevelFrom, $accessLevel, $method);
-					}
+				$verbAttrs = $method->getAttributes(NCA\VERB::class, ReflectionAttribute::IS_INSTANCEOF);
+				if (empty($verbAttrs)) {
+					continue;
+				}
+				$methods = [];
+				foreach ($verbAttrs as $verbAttr) {
+					$methods []= strtolower(class_basename($verbAttr->getName()));
+				}
+				$closure = $method->getClosure($instance);
+				if (isset($closure)) {
+					$this->addApiRoute($routes, $methods, $closure, $accessLevelFrom, $accessLevel, $method);
 				}
 			}
 		}
@@ -293,7 +280,7 @@ class ApiController {
 	/**
 	 * Add a HTTP route handler for a path
 	 */
-	public function addApiRoute(array $paths, array $methods, callable $callback, ?string $alf, ?string $al, ReflectionAnnotatedMethod $refMet): void {
+	public function addApiRoute(array $paths, array $methods, callable $callback, ?string $alf, ?string $al, ReflectionMethod $refMet): void {
 		foreach ($paths as $path) {
 			$handler = new ApiHandler();
 			$route = $this->webserverController->routeToRegExp($path);
@@ -399,11 +386,12 @@ class ApiController {
 		if (in_array($request->method, [$request::GET, $request::HEAD, $request::DELETE])) {
 			return true;
 		}
-		if (!$apiHandler->reflectionMethod->hasAnnotation("RequestBody")) {
+		$rqBodyAttrs = $apiHandler->reflectionMethod->getAttributes(NCA\RequestBody::class);
+		if (empty($rqBodyAttrs)) {
 			return true;
 		}
-		/** @var RequestBody */
-		$reqBody = $apiHandler->reflectionMethod->getAnnotation("RequestBody");
+		/** @var NCA\RequestBody */
+		$reqBody = $rqBodyAttrs[0]->newInstance();
 		if ($request->decodedBody === null) {
 			if (!$reqBody->required) {
 				return true;
@@ -427,14 +415,13 @@ class ApiController {
 		return true;
 	}
 
-	/**
-	 * @HttpGet("/api/%s")
-	 * @HttpPost("/api/%s")
-	 * @HttpPut("/api/%s")
-	 * @HttpDelete("/api/%s")
-	 * @HttpPatch("/api/%s")
-	 * @Description("Handle API requests")
-	 */
+	#[
+		NCA\HttpGet("/api/%s"),
+		NCA\HttpPost("/api/%s"),
+		NCA\HttpPut("/api/%s"),
+		NCA\HttpDelete("/api/%s"),
+		NCA\HttpPatch("/api/%s"),
+	]
 	public function apiRequest(Request $request, HttpProtocolWrapper $server, string $path): void {
 		if (!$this->settingManager->getBool('api')) {
 			return;
@@ -496,14 +483,16 @@ class ApiController {
 
 	/**
 	 * Execute a command, result is sent via websocket
-	 * @Api("/execute/%s")
-	 * @POST
-	 * @AccessLevel("member")
-	 * @RequestBody(class='string', desc='The command to execute as typed in', required=true)
-	 * @ApiResult(code=204, desc='operation applied successfully')
-	 * @ApiResult(code=404, desc='Invalid UUID provided')
-	 * @ApiResult(code=422, desc='Unparseable data received')
 	 */
+	#[
+		NCA\Api("/execute/%s"),
+		NCA\POST,
+		NCA\AccessLevel("member"),
+		NCA\RequestBody(class: "string", desc: "The command to execute as typed in", required: true),
+		NCA\ApiResult(code: 204, desc: "operation applied successfully"),
+		NCA\ApiResult(code: 404, desc: "Invalid UUID provided"),
+		NCA\ApiResult(code: 422, desc: "Unparsable data received")
+	]
 	public function apiExecuteCommand(Request $request, HttpProtocolWrapper $server, string $uuid): Response {
 		if (!is_string($request->decodedBody)) {
 			return new Response(Response::UNPROCESSABLE_ENTITY);

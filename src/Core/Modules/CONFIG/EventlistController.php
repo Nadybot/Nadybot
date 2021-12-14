@@ -2,6 +2,7 @@
 
 namespace Nadybot\Core\Modules\CONFIG;
 
+use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{
 	CmdContext,
 	Text,
@@ -11,31 +12,31 @@ use Nadybot\Core\{
 use Nadybot\Core\DBSchema\EventCfg;
 
 /**
- * @Instance
- *
  * Commands this controller contains:
- *	@DefineCommand(
- *		command       = 'eventlist',
- *		accessLevel   = 'guild',
- *		description   = 'Shows a list of all events on the bot',
- *		help          = 'eventlist.txt',
- *		defaultStatus = '1'
- *	)
  */
+#[
+	NCA\Instance,
+	NCA\DefineCommand(
+		command: "eventlist",
+		accessLevel: "guild",
+		description: "Shows a list of all events on the bot",
+		help: "eventlist.txt",
+		defaultStatus: 1
+	)
+]
 class EventlistController {
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Text $text;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public DB $db;
 
 	/**
 	 * This command handler shows a list of all events on the bot.
 	 * Additionally, event type can be provided to show only events of that type.
-	 *
-	 * @HandlesCommand("eventlist")
 	 */
+	#[NCA\HandlesCommand("eventlist")]
 	public function eventlistCommand(CmdContext $context, ?string $type): void {
 		$query = $this->db->table(EventManager::DB_TABLE)
 			->select("type", "description", "module", "file", "status")

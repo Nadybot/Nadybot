@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\CITY_MODULE;
 
+use Nadybot\Core\Attributes as NCA;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	AOChatEvent,
@@ -23,20 +24,20 @@ use Nadybot\Core\{
 
 /**
  * @author Tyrence (RK2)
- *
- * @Instance
- *
  * Commands this class contains:
- *	@DefineCommand(
- *		command     = 'cloak',
- *		accessLevel = 'guild',
- *		description = 'Show the status of the city cloak',
- *		help        = 'cloak.txt',
- *		alias		= 'city'
- *	)
- *	@ProvidesEvent("cloak(raise)")
- *	@ProvidesEvent("cloak(lower)")
  */
+#[
+	NCA\Instance,
+	NCA\DefineCommand(
+		command: "cloak",
+		accessLevel: "guild",
+		description: "Show the status of the city cloak",
+		help: "cloak.txt",
+		alias: "city"
+	),
+	NCA\ProvidesEvent("cloak(raise)"),
+	NCA\ProvidesEvent("cloak(lower)")
+]
 class CloakController implements MessageEmitter {
 	public const DB_TABLE = "org_city_<myname>";
 
@@ -46,36 +47,34 @@ class CloakController implements MessageEmitter {
 	 */
 	public string $moduleName;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Nadybot $chatBot;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public SettingManager $settingManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public EventManager $eventManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public MessageHub $messageHub;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public DB $db;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Text $text;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Util $util;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public AltsController $altsController;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public CityWaveController $cityWaveController;
 
-	/**
-	 * @Setup
-	 */
+	#[NCA\Setup]
 	public function setup(): void {
 		$this->db->loadMigrations($this->moduleName, __DIR__ . '/Migrations');
 
@@ -106,9 +105,7 @@ class CloakController implements MessageEmitter {
 		return Source::SYSTEM . "(cloak)";
 	}
 
-	/**
-	 * @HandlesCommand("cloak")
-	 */
+	#[NCA\HandlesCommand("cloak")]
 	public function cloakCommand(CmdContext $context): void {
 		/** @var Collection<OrgCity> */
 		$data = $this->db->table(self::DB_TABLE)
@@ -154,11 +151,8 @@ class CloakController implements MessageEmitter {
 		$context->reply($blob);
 	}
 
-	/**
-	 * @HandlesCommand("cloak")
-	 * @Mask $action (raise|on)
-	 */
-	public function cloakRaiseCommand(CmdContext $context, string $action): void {
+	#[NCA\HandlesCommand("cloak")]
+	public function cloakRaiseCommand(CmdContext $context, #[NCA\Regexp("raise|on")] string $action): void {
 		/** @var ?OrgCity */
 		$row = $this->getLastOrgEntry(true);
 
@@ -181,10 +175,10 @@ class CloakController implements MessageEmitter {
 		$this->eventManager->fireEvent($event);
 	}
 
-	/**
-	 * @Event("guild")
-	 * @Description("Records when the cloak is raised or lowered")
-	 */
+	#[NCA\Event(
+		name: "guild",
+		description: "Records when the cloak is raised or lowered"
+	)]
 	public function recordCloakChangesEvent(AOChatEvent $eventObj): void {
 		if ($this->util->isValidSender($eventObj->sender)
 			|| !preg_match("/^(.+) turned the cloaking device in your city (on|off).$/i", $eventObj->message, $arr)
@@ -222,10 +216,10 @@ class CloakController implements MessageEmitter {
 		$this->messageHub->handle($e);
 	}
 
-	/**
-	 * @Event("timer(1min)")
-	 * @Description("Checks timer to see if cloak can be raised or lowered")
-	 */
+	#[NCA\Event(
+		name: "timer(1min)",
+		description: "Checks timer to see if cloak can be raised or lowered"
+	)]
 	public function checkTimerEvent(Event $eventObj): void {
 		$row = $this->getLastOrgEntry();
 		if ($row === null) {
@@ -247,10 +241,10 @@ class CloakController implements MessageEmitter {
 		}
 	}
 
-	/**
-	 * @Event("timer(1min)")
-	 * @Description("Reminds the player who lowered cloak to raise it")
-	 */
+	#[NCA\Event(
+		name: "timer(1min)",
+		description: "Reminds the player who lowered cloak to raise it"
+	)]
 	public function cloakReminderEvent(Event $eventObj): void {
 		$row = $this->getLastOrgEntry(true);
 		if ($row === null || $row->action === "on") {
@@ -282,10 +276,10 @@ class CloakController implements MessageEmitter {
 		}
 	}
 
-	/**
-	 * @Event("logOn")
-	 * @Description("Show cloak status to guild members logging in")
-	 */
+	#[NCA\Event(
+		name: "logOn",
+		description: "Show cloak status to guild members logging in"
+	)]
 	public function cityGuildLogonEvent(UserStateEvent $eventObj): void {
 		if (!$this->chatBot->isReady()
 			|| !isset($this->chatBot->guildmembers[$eventObj->sender])
@@ -339,13 +333,17 @@ class CloakController implements MessageEmitter {
 		return [1, "Unknown status on city cloak!"];
 	}
 
-	/**
-	 * @NewsTile("cloak-status")
-	 * @Description("Shows the current status of the city cloak, if and when
-	 * new raids can be initiated")
-	 * @Example("<header2>City<end>
-	 * <tab>The cloaking device is <green>enabled<end>. It is possible to disable it.")
-	 */
+	#[
+		NCA\NewsTile(
+			name: "cloak-status",
+			description:
+				"Shows the current status of the city cloak, if and when\n".
+				"new raids can be initiated",
+			example:
+				"<header2>City<end>\n".
+				"<tab>The cloaking device is <green>enabled<end>. It is possible to disable it."
+		)
+	]
 	public function cloakStatusTile(string $sender, callable $callback): void {
 		$data = $this->getCloakStatus();
 		if (!isset($data)) {

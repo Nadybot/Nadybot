@@ -2,24 +2,25 @@
 
 namespace Nadybot\Modules\WEBSERVER_MODULE;
 
+use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\MessageHub;
 use Nadybot\Core\Nadybot;
 use Nadybot\Core\Routing\Source;
 use Nadybot\Core\SettingManager;
 
 /**
- * @Instance
  * @package Nadybot\Modules\WEBSERVER_MODULE
  */
+#[NCA\Instance]
 class WebChatConverter {
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Nadybot $chatBot;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public SettingManager $settingManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public MessageHub $messageHub;
 
 	public function convertMessage(string $msg): string {

@@ -2,6 +2,7 @@
 
 namespace Nadybot\Core\Modules\PROFILE;
 
+use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{
 	CmdContext,
 	CommandAlias,
@@ -30,18 +31,18 @@ use Nadybot\Modules\RELAY_MODULE\RelayController;
 
 /**
  * @author Tyrence (RK2)
- *
- * @Instance
- *
  * Commands this controller contains:
- *	@DefineCommand(
- *		command     = 'profile',
- *		accessLevel = 'admin',
- *		description = 'View, add, remove, and load profiles',
- *		help        = 'profile.txt',
- *		alias       = 'profiles'
- *	)
  */
+#[
+	NCA\Instance,
+	NCA\DefineCommand(
+		command: "profile",
+		accessLevel: "admin",
+		description: "View, add, remove, and load profiles",
+		help: "profile.txt",
+		alias: "profiles"
+	)
+]
 class ProfileController {
 	public const FILE_EXT = ".txt";
 
@@ -51,39 +52,39 @@ class ProfileController {
 	 */
 	public string $moduleName;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public DB $db;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public SettingManager $settingManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Text $text;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Util $util;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public CommandManager $commandManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public MessageHub $messageHub;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Nadybot $chatBot;
 
-	/** @Logger */
+	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public RelayController $relayController;
 
 	private string $path;
 
 	/**
 	 * This handler is called on bot startup.
-	 * @Setup
 	 */
+	#[NCA\Setup]
 	public function setup(): void {
 		$dataPath = $this->chatBot->vars["datafolder"] ?? "./data";
 		$this->path = "{$dataPath}/profiles/";
@@ -96,7 +97,6 @@ class ProfileController {
 
 	/**
 	 * Get a list of all stored profiles
-	 *
 	 * @return string[]
 	 */
 	public function getProfileList(): array {
@@ -118,9 +118,7 @@ class ProfileController {
 		return $profileList;
 	}
 
-	/**
-	 * @HandlesCommand("profile")
-	 */
+	#[NCA\HandlesCommand("profile")]
 	public function profileListCommand(CmdContext $context): void {
 		try {
 			$profileList = $this->getProfileList();
@@ -146,11 +144,8 @@ class ProfileController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @HandlesCommand("profile")
-	 * @Mask $action view
-	 */
-	public function profileViewCommand(CmdContext $context, string $action, PFilename $profileName): void {
+	#[NCA\HandlesCommand("profile")]
+	public function profileViewCommand(CmdContext $context, #[NCA\Str("view")] string $action, PFilename $profileName): void {
 		$profileName = $profileName();
 		$filename = $this->getFilename($profileName);
 		if (!@file_exists($filename)) {
@@ -165,11 +160,8 @@ class ProfileController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @HandlesCommand("profile")
-	 * @Mask $action save
-	 */
-	public function profileSaveCommand(CmdContext $context, string $action, PFilename $fileName): void {
+	#[NCA\HandlesCommand("profile")]
+	public function profileSaveCommand(CmdContext $context, #[NCA\Str("save")] string $action, PFilename $fileName): void {
 		$fileName = $fileName();
 		try {
 			$this->saveProfile($fileName);
@@ -264,9 +256,7 @@ class ProfileController {
 		return file_put_contents($filename, $contents) !== false;
 	}
 
-	/**
-	 * @HandlesCommand("profile")
-	 */
+	#[NCA\HandlesCommand("profile")]
 	public function profileRemCommand(CmdContext $context, PRemove $action, PFilename $fileName): void {
 		$profileName = $fileName();
 		$filename = $this->getFilename($profileName);
@@ -283,11 +273,8 @@ class ProfileController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @HandlesCommand("profile")
-	 * @Mask $action load
-	 */
-	public function profileLoadCommand(CmdContext $context, string $action, PFilename $fileName): void {
+	#[NCA\HandlesCommand("profile")]
+	public function profileLoadCommand(CmdContext $context, #[NCA\Str("load")] string $action, PFilename $fileName): void {
 		$profileName = $fileName();
 		$filename = $this->getFilename($profileName);
 

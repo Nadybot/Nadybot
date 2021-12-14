@@ -2,6 +2,7 @@
 
 namespace Nadybot\Core\Modules\SECURITY;
 
+use Nadybot\Core\Attributes as NCA;
 use DateTime;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
@@ -21,16 +22,17 @@ use Nadybot\Modules\WEBSERVER_MODULE\{
 };
 
 /**
- * @Instance
- *
  * Commands this controller contains:
- *	@DefineCommand(
- *		command     = 'audit',
- *		accessLevel = 'admin',
- *		description = 'View security audit logs',
- *		help        = 'audit.txt'
- *	)
  */
+#[
+	NCA\Instance,
+	NCA\DefineCommand(
+		command: "audit",
+		accessLevel: "admin",
+		description: "View security audit logs",
+		help: "audit.txt"
+	)
+]
 class AuditController {
 	/**
 	 * Name of the module.
@@ -38,19 +40,19 @@ class AuditController {
 	 */
 	public string $moduleName;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public DB $db;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public SettingManager $settingManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Text $text;
 
 	/**
 	 * This handler is called on bot startup.
-	 * @Setup
 	 */
+	#[NCA\Setup]
 	public function setup(): void {
 		$this->settingManager->add(
 			$this->moduleName,
@@ -148,9 +150,7 @@ class AuditController {
 		return [$prevLink, $nextLink];
 	}
 
-	/**
-	 * @HandlesCommand("audit")
-	 */
+	#[NCA\HandlesCommand("audit")]
 	public function auditListCommand(CmdContext $context, ?string $filter): void {
 		$query = $this->db->table(AccessManager::DB_TABLE)
 			->orderByDesc("time")
@@ -190,19 +190,21 @@ class AuditController {
 
 	/**
 	 * Query entries from the audit log
-	 * @Api("/audit")
-	 * @GET
-	 * @QueryParam(name='limit', type='integer', desc='No more than this amount of entries will be returned. Default is 50', required=false)
-	 * @QueryParam(name='offset', type='integer', desc='How many entries to skip before beginning to return entries', required=false)
-	 * @QueryParam(name='actor', type='string', desc='Show only entries of this actor', required=false)
-	 * @QueryParam(name='actee', type='string', desc='Show only entries with this actee', required=false)
-	 * @QueryParam(name='action', type='string', desc='Show only entries with this action', required=false)
-	 * @QueryParam(name='before', type='integer', desc='Show only entries from before the given timestamp', required=false)
-	 * @QueryParam(name='after', type='integer', desc='Show only entries from after the given timestamp', required=false)
-	 * @AccessLevel("mod")
-	 * @ApiTag("audit")
-	 * @ApiResult(code=200, class='Audit[]', desc='The audit log entries')
 	 */
+	#[
+		NCA\Api("/audit"),
+		NCA\GET,
+		NCA\QueryParam(name: "limit", desc: "No more than this amount of entries will be returned. Default is 50", type: "integer"),
+		NCA\QueryParam(name: "offset", desc: "How many entries to skip before beginning to return entries", type: "integer"),
+		NCA\QueryParam(name: "actor", desc: "Show only entries of this actor"),
+		NCA\QueryParam(name: "actee", desc: "Show only entries with this actee"),
+		NCA\QueryParam(name: "action", desc: "Show only entries with this action"),
+		NCA\QueryParam(name: "before", desc: "Show only entries from before the given timestamp", type: "integer"),
+		NCA\QueryParam(name: "after", desc: "Show only entries from after the given timestamp", type: "integer"),
+		NCA\AccessLevel("mod"),
+		NCA\ApiTag("audit"),
+		NCA\ApiResult(code: 200, class: "Audit[]", desc: "The audit log entries")
+	]
 	public function auditGetListEndpoint(Request $request, HttpProtocolWrapper $server): Response {
 		$query = $this->db->table(AccessManager::DB_TABLE)
 			->orderByDesc("time")

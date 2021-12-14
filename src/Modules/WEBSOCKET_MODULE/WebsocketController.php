@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\WEBSOCKET_MODULE;
 
+use Nadybot\Core\Attributes as NCA;
 use Exception;
 use Throwable;
 use TypeError;
@@ -30,13 +31,14 @@ use Nadybot\Modules\WEBSERVER_MODULE\{
 
 /**
  * @author Nadyita (RK5) <nadyita@hodorraid.org>
- *
- * @Instance
- * @ProvidesEvent("websocket(subscribe)")
- * @ProvidesEvent("websocket(request)")
- * @ProvidesEvent("websocket(response)")
- * @ProvidesEvent("websocket(event)")
  */
+#[
+	NCA\Instance,
+	NCA\ProvidesEvent("websocket(subscribe)"),
+	NCA\ProvidesEvent("websocket(request)"),
+	NCA\ProvidesEvent("websocket(response)"),
+	NCA\ProvidesEvent("websocket(event)")
+]
 class WebsocketController {
 	/**
 	 * Name of the module.
@@ -44,25 +46,25 @@ class WebsocketController {
 	 */
 	public string $moduleName;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public EventManager $eventManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public WebChatConverter $webChatConverter;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public SettingManager $settingManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public MessageHub $messageHub;
 
-	/** @Logger */
+	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
 	/** @var array<string,WebsocketServer> */
 	protected array $clients = [];
 
-	/** @Setup */
+	#[NCA\Setup]
 	public function setup(): void {
 		$this->settingManager->add(
 			$this->moduleName,
@@ -104,10 +106,9 @@ class WebsocketController {
 			->unregisterMessageReceiver($wc->getChannelName());
 	}
 
-	/**
-	 * @HttpGet("/events")
-	 * @DefaultStatus("1")
-	 */
+	#[
+		NCA\HttpGet("/events"),
+	]
 	public function handleWebsocketStart(Request $request, HttpProtocolWrapper $server): void {
 		if (!$this->settingManager->getBool('websocket')) {
 			return;
@@ -235,11 +236,11 @@ class WebsocketController {
 		$this->eventManager->fireEvent($newEvent, $event->websocket);
 	}
 
-	/**
-	 * @Event("websocket(subscribe)")
-	 * @Description("Handle Websocket event subscriptions")
-	 * @DefaultStatus("1")
-	 */
+	#[NCA\Event(
+		name: "websocket(subscribe)",
+		description: "Handle Websocket event subscriptions",
+		defaultStatus: 1
+	)]
 	public function handleSubscriptions(WebsocketSubscribeEvent $event, WebsocketServer $server): void {
 		try {
 			$server->subscribe(...$event->data->events);
@@ -251,19 +252,19 @@ class WebsocketController {
 		}
 	}
 
-	/**
-	 * @Event("websocket(request)")
-	 * @Description("Handle API requests")
-	 */
+	#[NCA\Event(
+		name: "websocket(request)",
+		description: "Handle API requests"
+	)]
 	public function handleRequests(WebsocketRequestEvent $event, WebsocketServer $server): void {
 		// Not implemented yet
 	}
 
-	/**
-	 * @Event("*")
-	 * @Description("Distribute events to Websocket clients")
-	 * @DefaultStatus("1")
-	 */
+	#[NCA\Event(
+		name: "*",
+		description: "Distribute events to Websocket clients",
+		defaultStatus: 1
+	)]
 	public function displayEvent(Event $event): void {
 		$isPrivatPacket = $event->type === 'msg'
 			|| $event instanceof PacketEvent

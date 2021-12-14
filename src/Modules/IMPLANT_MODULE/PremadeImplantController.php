@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\IMPLANT_MODULE;
 
+use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{
 	CmdContext,
 	DB,
@@ -14,17 +15,17 @@ use Nadybot\Modules\ITEMS_MODULE\WhatBuffsController;
 
 /**
  * @author Tyrence (RK2)
- *
- * @Instance
- *
  * Commands this class contains:
- *	@DefineCommand(
- *		command     = 'premade',
- *		accessLevel = 'all',
- *		description = 'Searches for implants out of the premade implants booths',
- *		help        = 'premade.txt'
- *	)
  */
+#[
+	NCA\Instance,
+	NCA\DefineCommand(
+		command: "premade",
+		accessLevel: "all",
+		description: "Searches for implants out of the premade implants booths",
+		help: "premade.txt"
+	)
+]
 class PremadeImplantController {
 
 	/**
@@ -33,29 +34,25 @@ class PremadeImplantController {
 	 */
 	public string $moduleName;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public DB $db;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Text $text;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public WhatBuffsController $whatBuffsController;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Util $util;
 
-	/**
-	 * @Setup
-	 */
+	#[NCA\Setup]
 	public function setup(): void {
 		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations/Premade");
 		$this->db->loadCSVFile($this->moduleName, __DIR__ . "/premade_implant.csv");
 	}
 
-	/**
-	 * @HandlesCommand("premade")
-	 */
+	#[NCA\HandlesCommand("premade")]
 	public function premadeCommand(CmdContext $context, string $search): void {
 		$searchTerms = strtolower($search);
 		$results = null;

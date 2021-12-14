@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\IMPLANT_MODULE;
 
+use Nadybot\Core\Attributes as NCA;
 use Illuminate\Support\Collection;
 use Nadybot\Core\CmdContext;
 use Nadybot\Core\DB;
@@ -11,25 +12,25 @@ use Nadybot\Core\Util;
 
 /**
  * @author Tyrence (RK2)
- *
- * @Instance
- *
  * Commands this controller contains:
- *	@DefineCommand(
- *		command     = 'pocketboss',
- *		accessLevel = 'all',
- *		description = 'Shows what symbiants a pocketboss drops',
- *		help        = 'pocketboss.txt',
- *		alias       = 'pb'
- *	)
- *	@DefineCommand(
- *		command     = 'symbiant',
- *		accessLevel = 'all',
- *		description = 'Shows which pocketbosses drop a symbiant',
- *		help        = 'symbiant.txt',
- *		alias       = 'symb'
- *	)
  */
+#[
+	NCA\Instance,
+	NCA\DefineCommand(
+		command: "pocketboss",
+		accessLevel: "all",
+		description: "Shows what symbiants a pocketboss drops",
+		help: "pocketboss.txt",
+		alias: "pb"
+	),
+	NCA\DefineCommand(
+		command: "symbiant",
+		accessLevel: "all",
+		description: "Shows which pocketbosses drop a symbiant",
+		help: "symbiant.txt",
+		alias: "symb"
+	)
+]
 class PocketbossController {
 	/**
 	 * Name of the module.
@@ -37,27 +38,25 @@ class PocketbossController {
 	 */
 	public string $moduleName;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Text $text;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Util $util;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public DB $db;
 
 	/**
 	 * This handler is called on bot startup.
-	 * @Setup
 	 */
+	#[NCA\Setup]
 	public function setup(): void {
 		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations/Pocketboss");
 		$this->db->loadCSVFile($this->moduleName, __DIR__ . "/pocketboss.csv");
 	}
 
-	/**
-	 * @HandlesCommand("pocketboss")
-	 */
+	#[NCA\HandlesCommand("pocketboss")]
 	public function pocketbossCommand(CmdContext $context, string $search): void {
 		$data = $this->pbSearchResults($search);
 		$numrows = count($data);
@@ -132,9 +131,7 @@ class PocketbossController {
 			->toArray();
 	}
 
-	/**
-	 * @HandlesCommand("symbiant")
-	 */
+	#[NCA\HandlesCommand("symbiant")]
 	public function symbiantCommand(
 		CmdContext $context,
 		PWord $arg1,

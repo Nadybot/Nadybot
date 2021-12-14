@@ -2,6 +2,7 @@
 
 namespace Nadybot\Core\Channels;
 
+use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\AccessManager;
 use Nadybot\Core\MessageHub;
 use Nadybot\Core\MessageReceiver;
@@ -15,25 +16,25 @@ use Nadybot\Core\SettingManager;
 use Nadybot\Core\Text;
 
 class DiscordChannel implements MessageReceiver {
-	/** @Inject */
+	#[NCA\Inject]
 	public Nadybot $chatBot;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public DiscordAPIClient $discordAPIClient;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public MessageHub $messageHub;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public DiscordController $discordController;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public AccessManager $accessManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public SettingManager $settingManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Text $text;
 
 	protected string $channel;

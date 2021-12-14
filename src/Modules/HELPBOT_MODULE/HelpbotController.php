@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\HELPBOT_MODULE;
 
+use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{
 	CmdContext,
 	DB,
@@ -14,29 +15,29 @@ use ParseError;
  * @author Tyrence (RK2)
  * @author Neksus (RK2)
  * @author Mdkdoc420 (RK2)
- *
- * @Instance
- *
  * Commands this controller contains:
- *	@DefineCommand(
- *		command     = 'dyna',
- *		accessLevel = 'all',
- *		description = 'Search for RK Dynabosses',
- *		help        = 'dyna.txt'
- *	)
- *	@DefineCommand(
- *		command     = 'oe',
- *		accessLevel = 'all',
- *		description = 'Over-equipped calculation',
- *		help        = 'oe.txt'
- *	)
- *	@DefineCommand(
- *		command     = 'calc',
- *		accessLevel = 'all',
- *		description = 'Calculator',
- *		help        = 'calculator.txt'
- *	)
  */
+#[
+	NCA\Instance,
+	NCA\DefineCommand(
+		command: "dyna",
+		accessLevel: "all",
+		description: "Search for RK Dynabosses",
+		help: "dyna.txt"
+	),
+	NCA\DefineCommand(
+		command: "oe",
+		accessLevel: "all",
+		description: "Over-equipped calculation",
+		help: "oe.txt"
+	),
+	NCA\DefineCommand(
+		command: "calc",
+		accessLevel: "all",
+		description: "Calculator",
+		help: "calculator.txt"
+	)
+]
 class HelpbotController {
 
 	/**
@@ -45,27 +46,25 @@ class HelpbotController {
 	 */
 	public string $moduleName;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public DB $db;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Text $text;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Util $util;
 
 	/**
 	 * This handler is called on bot startup.
-	 * @Setup
 	 */
+	#[NCA\Setup]
 	public function setup(): void {
 		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations/Dyna");
 		$this->db->loadCSVFile($this->moduleName, __DIR__ . '/dynadb.csv');
 	}
 
-	/**
-	 * @HandlesCommand("dyna")
-	 */
+	#[NCA\HandlesCommand("dyna")]
 	public function dynaLevelCommand(CmdContext $context, int $search): void {
 		$range1 = (int)floor($search - $search / 10);
 		$range2 = (int)ceil($search + $search / 10);
@@ -94,9 +93,7 @@ class HelpbotController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @HandlesCommand("dyna")
-	 */
+	#[NCA\HandlesCommand("dyna")]
 	public function dynaNameCommand(CmdContext $context, string $dyna): void {
 		$search = str_replace(" ", "%", $dyna);
 		$data = $this->db->table("dynadb AS d")
@@ -147,9 +144,7 @@ class HelpbotController {
 		return $blob;
 	}
 
-	/**
-	 * @HandlesCommand("oe")
-	 */
+	#[NCA\HandlesCommand("oe")]
 	public function oeCommand(CmdContext $context, int $oe): void {
 		$oe100 = (int)floor($oe / 0.8);
 		$lowOE100 = (int)floor($oe * 0.8);
@@ -182,9 +177,7 @@ class HelpbotController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @HandlesCommand("calc")
-	 */
+	#[NCA\HandlesCommand("calc")]
 	public function calcCommand(CmdContext $context, string $param): void {
 		$calc = strtolower($param);
 

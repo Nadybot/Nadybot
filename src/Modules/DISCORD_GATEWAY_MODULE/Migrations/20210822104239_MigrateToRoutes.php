@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\DISCORD_GATEWAY_MODULE\Migrations;
 
+use Nadybot\Core\Attributes as NCA;
 use Exception;
 use Nadybot\Core\DB;
 use Nadybot\Core\DBSchema\Route;
@@ -18,13 +19,13 @@ use Nadybot\Core\SchemaMigration;
 use Nadybot\Core\SettingManager;
 
 class MigrateToRoutes implements SchemaMigration {
-	/** @Inject */
+	#[NCA\Inject]
 	public DiscordController $discordController;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Nadybot $chatBot;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public MessageHub $messageHub;
 
 	protected function getSetting(DB $db, string $name): ?Setting {

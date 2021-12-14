@@ -2,6 +2,7 @@
 
 namespace Nadybot\Core\Modules\CONFIG;
 
+use Nadybot\Core\Attributes as NCA;
 use Exception;
 use Nadybot\Core\{
 	AccessManager,
@@ -15,38 +16,37 @@ use Nadybot\Core\{
 use Nadybot\Core\DBSchema\CommandSearchResult;
 
 /**
- * @Instance
- *
  * Commands this controller contains:
- *	@DefineCommand(
- *		command       = 'cmdsearch',
- *      alias         = 'searchcmd',
- *		accessLevel   = 'all',
- *		description   = 'Finds commands based on key words',
- *		defaultStatus = 1,
- *		help          = 'cmdsearch.txt'
- *	)
  */
+#[
+	NCA\Instance,
+	NCA\DefineCommand(
+		command: "cmdsearch",
+		accessLevel: "all",
+		description: "Finds commands based on key words",
+		help: "cmdsearch.txt",
+		defaultStatus: 1,
+		alias: "searchcmd"
+	)
+]
 class CommandSearchController {
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Nadybot $chatBot;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public DB $db;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Text $text;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public AccessManager $accessManager;
 
 	/** @var string[] */
 	private array $searchWords;
 
-	/**
-	 * @HandlesCommand("cmdsearch")
-	 */
+	#[NCA\HandlesCommand("cmdsearch")]
 	public function searchCommand(CmdContext $context, string $search): void {
 		$this->searchWords = preg_split("/\s+/", $search);
 
@@ -80,7 +80,6 @@ class CommandSearchController {
 
 	/**
 	 * Remove all commands that we don't have access to
-	 *
 	 * @param string $sender
 	 * @param CommandSearchResult[] $data
 	 * @return CommandSearchResult[]

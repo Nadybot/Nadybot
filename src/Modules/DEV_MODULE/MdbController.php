@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\DEV_MODULE;
 
+use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{
 	CmdContext,
 	Nadybot,
@@ -11,19 +12,18 @@ use Nadybot\Core\{
 
 /**
  * @author Tyrence
- *
  * Read values from the MDB file
- *
- * @Instance
- *
  * Commands this controller contains:
- *	@DefineCommand(
- *		command     = 'mdb',
- *		accessLevel = 'all',
- *		description = 'Search for values in the MDB file',
- *		help        = 'mdb.txt'
- *	)
  */
+#[
+	NCA\Instance,
+	NCA\DefineCommand(
+		command: "mdb",
+		accessLevel: "all",
+		description: "Search for values in the MDB file",
+		help: "mdb.txt"
+	)
+]
 class MdbController {
 
 	/**
@@ -32,20 +32,16 @@ class MdbController {
 	 */
 	public string $moduleName;
 
-	/**
-	 * @Inject
-	 */
+	#[NCA\Inject]
 	public Nadybot $chatBot;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Util $util;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Text $text;
 
-	/**
-	 * @HandlesCommand("mdb")
-	 */
+	#[NCA\HandlesCommand("mdb")]
 	public function mdbCommand(CmdContext $context): void {
 		$categories = $this->chatBot->mmdbParser->getCategories();
 		if (!isset($categories)) {
@@ -63,9 +59,7 @@ class MdbController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @HandlesCommand("mdb")
-	 */
+	#[NCA\HandlesCommand("mdb")]
 	public function mdbCategoryCommand(CmdContext $context, int $categoryId): void {
 		$instances = $this->chatBot->mmdbParser->findAllInstancesInCategory($categoryId);
 		if (!isset($instances)) {
@@ -83,9 +77,7 @@ class MdbController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @HandlesCommand("mdb")
-	 */
+	#[NCA\HandlesCommand("mdb")]
 	public function mdbInstanceCommand(CmdContext $context, int $categoryId, int $instanceId): void {
 		$messageString = $this->chatBot->mmdbParser->getMessageString($categoryId, $instanceId);
 		$msg = "Unable to find MDB string category <highlight>{$categoryId}<end>, ".

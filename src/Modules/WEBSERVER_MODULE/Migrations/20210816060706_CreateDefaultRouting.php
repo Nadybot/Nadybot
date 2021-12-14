@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\WEBSERVER_MODULE\Migrations;
 
+use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\DB;
 use Nadybot\Core\DBSchema\Route;
 use Nadybot\Core\LoggerWrapper;
@@ -11,10 +12,10 @@ use Nadybot\Core\Routing\Source;
 use Nadybot\Core\SchemaMigration;
 
 class CreateDefaultRouting implements SchemaMigration {
-	/** @Inject */
+	#[NCA\Inject]
 	public MessageHub $messageHub;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Nadybot $chatBot;
 
 	public function migrate(LoggerWrapper $logger, DB $db): void {

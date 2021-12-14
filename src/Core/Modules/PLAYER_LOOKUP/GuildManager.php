@@ -2,6 +2,7 @@
 
 namespace Nadybot\Core\Modules\PLAYER_LOOKUP;
 
+use Nadybot\Core\Attributes as NCA;
 use Closure;
 use DateInterval;
 use DateTime;
@@ -19,22 +20,22 @@ use Nadybot\Core\DBSchema\Player;
 /**
  * @author Tyrence (RK2)
  *
- * @Instance
  */
+#[NCA\Instance]
 class GuildManager {
-	/** @Inject */
+	#[NCA\Inject]
 	public Nadybot $chatBot;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public DB $db;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public CacheManager $cacheManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public EventManager $eventManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public PlayerManager $playerManager;
 
 	protected function getJsonValidator(): Closure {

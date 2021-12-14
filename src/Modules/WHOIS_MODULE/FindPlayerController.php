@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\WHOIS_MODULE;
 
+use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\CmdContext;
 use Nadybot\Core\Modules\PLAYER_LOOKUP\PlayerManager;
 use Nadybot\Core\Nadybot;
@@ -9,17 +10,17 @@ use Nadybot\Core\Text;
 
 /**
  * @author Tyrence (RK2)
- *
- * @Instance
- *
  * Commands this controller contains:
- *	@DefineCommand(
- *		command     = 'findplayer',
- *		accessLevel = 'all',
- *		description = 'Find a player by name',
- *		help        = 'findplayer.txt'
- *	)
  */
+#[
+	NCA\Instance,
+	NCA\DefineCommand(
+		command: "findplayer",
+		accessLevel: "all",
+		description: "Find a player by name",
+		help: "findplayer.txt"
+	)
+]
 class FindPlayerController {
 
 	/**
@@ -28,18 +29,16 @@ class FindPlayerController {
 	 */
 	public string $moduleName;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Nadybot $chatBot;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Text $text;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public PlayerManager $playerManager;
 
-	/**
-	 * @HandlesCommand("findplayer")
-	 */
+	#[NCA\HandlesCommand("findplayer")]
 	public function findplayerCommand(CmdContext $context, string $search): void {
 		$players = $this->playerManager->searchForPlayers(
 			$search,

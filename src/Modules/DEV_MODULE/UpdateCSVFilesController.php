@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\DEV_MODULE;
 
+use Nadybot\Core\Attributes as NCA;
 use DateTime;
 use Exception;
 use Throwable;
@@ -16,17 +17,17 @@ use Nadybot\Core\{
 
 /**
  * @author Nadyita (RK5)
- *
- * @Instance
- *
  * Commands this controller contains:
- *	@DefineCommand(
- *		command     = 'updatecsv',
- *		accessLevel = 'admin',
- *		help        = 'updatecsv.txt',
- *		description = "Shows a list of all csv files"
- *	)
  */
+#[
+	NCA\Instance,
+	NCA\DefineCommand(
+		command: "updatecsv",
+		accessLevel: "admin",
+		description: "Shows a list of all csv files",
+		help: "updatecsv.txt"
+	)
+]
 class UpdateCSVFilesController {
 	/**
 	 * Name of the module.
@@ -34,13 +35,13 @@ class UpdateCSVFilesController {
 	 */
 	public string $moduleName;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Http $http;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public DB $db;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public SettingManager $settingManager;
 
 	public function getGitHash(string $file): ?string {
@@ -58,9 +59,7 @@ class UpdateCSVFilesController {
 		return $gitHash;
 	}
 
-	/**
-	 * @HandlesCommand("updatecsv")
-	 */
+	#[NCA\HandlesCommand("updatecsv")]
 	public function updateCsvCommand(CmdContext $context): void {
 		$checkCmd = BotRunner::isWindows() ? "where" : "command -v";
 		/** @psalm-suppress ForbiddenCode */
