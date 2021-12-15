@@ -22,6 +22,9 @@ use Nadybot\Core\ParamClass\PQuantity;
 use Nadybot\Core\ParamClass\PRemove;
 use Nadybot\Modules\BASIC_CHAT_MODULE\ChatLeaderController;
 use Nadybot\Modules\ITEMS_MODULE\AODBEntry;
+use Nadybot\Modules\ITEMS_MODULE\ItemsController;
+
+use function Amp\Promise\first;
 
 /**
  * @author Derroylo (RK2)
@@ -97,6 +100,9 @@ class LootController {
 
 	#[NCA\Inject]
 	public CommandManager $commandManager;
+	#
+	#[NCA\Inject]
+	public ItemsController $itemsController;
 
 	#[NCA\Inject]
 	public CommandAlias $commandAlias;
@@ -197,23 +203,24 @@ class LootController {
 		}
 	}
 
-	protected function getLootEntryID(int $id): ?DBRow {
-		$query2 = $this->db->table("raid_loot AS r")
-					->join("aodb AS a", "r.aoid", "a.highid")
-					->whereNotNull("r.aoid")
-					->where("r.id", $id);
-		$query2->select("*", $query2->colFunc("COALESCE", ["a.name", "r.name"], "name"));
-		$query = $this->db->table("raid_loot AS r")
-			->leftJoin("aodb AS a", function (JoinClause $join) {
-				$join->on("r.name", "a.name")
-					->on("r.ql", ">=", "a.lowql")
-					->on("r.ql", "<=", "a.highql");
-			})
-			->whereNull("r.aoid")
-			->where("r.id", $id)
-			->union($query2);
-		$query->select("*", $query2->colFunc("COALESCE", ["a.name", "r.name"], "name"));
-		return $query->asObj()->first();
+	protected function getLootEntryID(int $id): ?RaidLootSearch {
+		/** @var ?RaidLootSearch */
+		$raidLoot = $this->db->table("raid_loot AS r")
+					->where("r.id", $id)
+					->asObj(RaidLootSearch::class)
+					->first();
+		if (!isset($raidLoot)) {
+			return null;
+		}
+		if (isset($raidLoot->aoid)) {
+			$raidLoot->item = $this->itemsController->findById($raidLoot->aoid);
+		} else {
+			$raidLoot->item = $this->itemsController->getByNames($raidLoot->name)
+				->where("lowql", "<=", $raidLoot->ql)
+				->where("highql", ">=", $raidLoot->ql)
+				->first();
+		}
+		return $raidLoot;
 	}
 
 	/**
@@ -226,18 +233,18 @@ class LootController {
 			return;
 		}
 
-		$row = $this->getLootEntryID($id);
+		$loot = $this->getLootEntryID($id);
 
-		if ($row === null) {
+		if ($loot === null) {
 			$msg = "Could not find item with id <highlight>{$id}<end> to add.";
 			$context->reply($msg);
 			return;
 		}
 
-		$key = $this->getLootItem($row->name);
+		$key = $this->getLootItem($loot->name);
 		if ($key !== null) {
 			$item = $this->loot[$key];
-			$item->multiloot += $row->multiloot;
+			$item->multiloot += $loot->multiloot;
 		} else {
 			if (!empty($this->loot)) {
 				$key = count($this->loot) + 1;
@@ -247,20 +254,21 @@ class LootController {
 
 			$item = new LootItem();
 
-			$item->name = $row->name;
-			$item->icon = $row->icon;
+			$item->name = $loot->name;
+			$item->icon = null;
 			$item->added_by = $context->char->name;
-			$item->display = $row->name;
-			if ($row->lowid) {
-				$item->display = $this->text->makeItem($row->lowid, $row->highid, $row->ql, $row->name);
+			$item->display = $loot->name;
+			if (isset($loot->item)) {
+				$item->display = $loot->item->getLink($loot->ql, $loot->name);
+				$item->icon = $loot->item->icon;
 			}
-			$item->comment = $row->comment;
-			$item->multiloot = $row->multiloot;
+			$item->comment = $loot->comment;
+			$item->multiloot = $loot->multiloot;
 
 			$this->loot[$key] = $item;
 		}
 
-		$msg = "{$context->char->name} added <highlight>{$item->name}<end> (x$item->multiloot). To add use <symbol>add $key.";
+		$msg = "{$context->char->name} added <highlight>{$item->name}<end> (x$item->multiloot). To add use <symbol>add {$key}.";
 		$this->chatBot->sendPrivate($msg);
 	}
 
@@ -269,17 +277,17 @@ class LootController {
 	 */
 	#[NCA\HandlesCommand("loot .+")]
 	public function lootAuctionByIdCommand(CmdContext $context, #[NCA\Str("auction")] string $action, int $id): void {
-		$row = $this->getLootEntryID($id);
+		$loot = $this->getLootEntryID($id);
 
-		if ($row === null) {
+		if ($loot === null) {
 			$msg = "Could not find item with id <highlight>$id<end> to add.";
 			$context->reply($msg);
 			return;
 		}
 
-		$item = $row->name;
-		if ($row->lowid) {
-			$item = $this->text->makeItem((int)$row->lowid, $row->highid, $row->ql, $row->name);
+		$item = $loot->name;
+		if (isset($loot->item)) {
+			$item = $loot->item->getLink($loot->ql, $loot->name);
 		}
 		// We want this command to always use the same rights as the bid start
 		$context->message = "bid start {$item}";

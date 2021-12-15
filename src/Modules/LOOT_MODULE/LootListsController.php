@@ -4,7 +4,7 @@ namespace Nadybot\Modules\LOOT_MODULE;
 
 use Nadybot\Core\Attributes as NCA;
 use Exception;
-use Illuminate\Database\Query\JoinClause;
+use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	AccessManager,
 	CmdContext,
@@ -17,6 +17,7 @@ use Nadybot\Core\{
 	Util,
 };
 use Nadybot\Modules\BASIC_CHAT_MODULE\ChatLeaderController;
+use Nadybot\Modules\ITEMS_MODULE\ItemsController;
 
 /**
  * @author Marinerecon (RK2)
@@ -172,6 +173,9 @@ class LootListsController {
 	public LootController $lootController;
 
 	#[NCA\Inject]
+	public ItemsController $itemsController;
+
+	#[NCA\Inject]
 	public ChatLeaderController $chatLeaderController;
 
 	#[NCA\Inject]
@@ -197,28 +201,33 @@ class LootListsController {
 			options: 'true;false',
 			intoptions: '1;0'
 		);
-		$this->commandAlias->register($this->moduleName, "12m", '12man');
-		$this->commandAlias->register($this->moduleName, "12m", '12-man');
-		$this->commandAlias->register($this->moduleName, "lox", 'xan');
-		$this->commandAlias->register($this->moduleName, "pande Beast Armor", 'beastarmor');
-		$this->commandAlias->register($this->moduleName, "pande Beast Weapons", 'beastweaps');
-		$this->commandAlias->register($this->moduleName, "pande Beast Weapons", 'beastweapons');
-		$this->commandAlias->register($this->moduleName, "pande Stars", 'beaststars');
-		$this->commandAlias->register($this->moduleName, "pande The Night Heart", 'tnh');
-		$this->commandAlias->register($this->moduleName, "pande Shadowbreeds", 'sb');
-		$this->commandAlias->register($this->moduleName, "pande Aries", 'aries');
-		$this->commandAlias->register($this->moduleName, "pande Leo", 'leo');
-		$this->commandAlias->register($this->moduleName, "pande Virgo", 'virgo');
-		$this->commandAlias->register($this->moduleName, "pande Aquarius", 'aquarius');
-		$this->commandAlias->register($this->moduleName, "pande Cancer", 'cancer');
-		$this->commandAlias->register($this->moduleName, "pande Gemini", 'gemini');
-		$this->commandAlias->register($this->moduleName, "pande Libra", 'libra');
-		$this->commandAlias->register($this->moduleName, "pande Pisces", 'pisces');
-		$this->commandAlias->register($this->moduleName, "pande Taurus", 'taurus');
-		$this->commandAlias->register($this->moduleName, "pande Capricorn", 'capricorn');
-		$this->commandAlias->register($this->moduleName, "pande Sagittarius", 'sagittarius');
-		$this->commandAlias->register($this->moduleName, "pande Scorpio", 'scorpio');
-		$this->commandAlias->register($this->moduleName, "pande Bastion", 'bastion');
+		$aliases = [
+			'12man' => "12m",
+			'12-man' => "12m",
+			'xan' => "lox",
+			'beastarmor' => "pande Beast Armor",
+			'beastweaps' => "pande Beast Weapons",
+			'beastweapons' => "pande Beast Weapons",
+			'beaststars' => "pande Stars",
+			'tnh' => "pande The Night Heart",
+			'sb' => "pande Shadowbreeds",
+			'aries' => "pande Aries",
+			'leo' => "pande Leo",
+			'virgo' => "pande Virgo",
+			'aquarius' => "pande Aquarius",
+			'cancer' => "pande Cancer",
+			'gemini' => "pande Gemini",
+			'libra' => "pande Libra",
+			'pisces' => "pande Pisces",
+			'taurus' => "pande Taurus",
+			'capricorn' => "pande Capricorn",
+			'sagittarius' => "pande Sagittarius",
+			'scorpio' => "pande Scorpio",
+			'bastion' => "pande Bastion",
+		];
+		foreach ($aliases as $alias => $command) {
+			$this->commandAlias->register($this->moduleName, $command, $alias);
+		}
 	}
 
 	/**
@@ -558,7 +567,11 @@ class LootListsController {
 	 */
 	public function getPandemoniumLoot(string $raid, string $category, CmdContext $context) {
 		$category = ucwords(strtolower($category));
-		$blob = $this->findRaidLoot($raid, $category, $context);
+		try {
+			$blob = $this->findRaidLoot($raid, $category, $context);
+		} catch (Exception $e) {
+			return null;
+		}
 		if (empty($blob)) {
 			return null;
 		}
@@ -705,26 +718,25 @@ class LootListsController {
 
 	public function findRaidLoot(string $raid, string $category, CmdContext $context): string {
 		$sender = $context->char->name;
-		$query2 = $this->db->table("raid_loot AS r")
-					->join("aodb AS a", "r.aoid", "a.highid")
-					->whereNotNull("r.aoid")
-					->whereIlike("r.raid", $raid)
-					->whereIlike("r.category", $category);
-		$query2->select("*", $query2->colFunc("COALESCE", ["a.name", "r.name"], "name"));
-		$query = $this->db->table("raid_loot AS r")
-			->leftJoin("aodb AS a", function (JoinClause $join) {
-				$join->on("r.name", "a.name")
-					->on("r.ql", ">=", "a.lowql")
-					->on("r.ql", "<=", "a.highql");
-			})
-			->whereNull("r.aoid")
-			->whereIlike("r.raid", $raid)
-			->whereIlike("r.category", $category)
-			->union($query2);
-		$query->select("*", $query2->colFunc("COALESCE", ["a.name", "r.name"], "name"));
-		$data = $query->asObj();
 
-		if ($data->count() === 0) {
+		/** @var Collection<RaidLootSearch> */
+		$loot = $this->db->table("raid_loot AS r")
+					->whereIlike("r.raid", $raid)
+					->whereIlike("r.category", $category)
+					->asObj(RaidLootSearch::class);
+		$aoids = $loot->whereNotNull("aoid")->pluck("aoid");
+		$itemsByID = $this->itemsController->getByIDs(...$aoids)->keyBy("highid");
+		$names = $loot->whereNull("aoid")->pluck("name");
+		$itemsByName = $this->itemsController->getByNames(...$names)->keyBy("name");
+		foreach ($loot as $item) {
+			if (isset($item->aoid)) {
+				$item->item = $itemsByID->get($item->aoid);
+			} else {
+				$item->item = $itemsByName->get($item->name);
+			}
+		}
+
+		if ($loot->count() === 0) {
 			throw new Exception("No loot for type {$raid} found in the database");
 		}
 		$auctionsEnabled = true;
@@ -740,12 +752,12 @@ class LootListsController {
 
 		$blob = "\n<pagebreak><header2>{$category}<end>\n\n";
 		$showLootPics = $this->settingManager->get('show_raid_loot_pics');
-		foreach ($data as $row) {
+		foreach ($loot as $row) {
 			$actions = [];
 			if ($lootEnabled) {
 				$actions []= $this->text->makeChatcmd(
 					"Loot",
-					"/tell <myname> loot add $row->id"
+					"/tell <myname> loot add {$row->id}"
 				);
 			}
 			if ($lootEnabled && $auctionsEnabled) {
@@ -754,23 +766,23 @@ class LootListsController {
 					"/tell <myname> auction {$row->name}"
 				);
 			}
-			if ($row->lowid) {
+			if (isset($row->item)) {
 				if ($showLootPics) {
-					$name = "<img src=rdb://{$row->icon}>";
+					$name = "<img src=rdb://{$row->item->icon}>";
 				} else {
 					$name = $row->name;
 					if (count($actions)) {
 						$blob .= "[" . join("] [", $actions) . "] - ";
 					}
 				}
-				$blob .= $this->text->makeItem($row->lowid, $row->highid, $row->ql, $name);
+				$blob .= $this->text->makeItem($row->item->lowid, $row->item->highid, $row->ql, $name);
 			} else {
 				if (count($actions)) {
 					$blob .= "[" . join("] [", $actions) . "] - ";
 				}
 				$blob .= "<highlight>{$row->name}<end>";
 			}
-			if ($showLootPics && $row->lowid) {
+			if ($showLootPics && isset($row->item)) {
 				$blob .= "\n<highlight>{$row->name}<end>";
 			}
 			if ($row->multiloot > 1) {
@@ -781,7 +793,7 @@ class LootListsController {
 			}
 			if ($showLootPics) {
 				$blob .= "\n";
-				$blob .= $this->text->makeChatcmd("To Loot", "/tell <myname> loot add $row->id");
+				$blob .= $this->text->makeChatcmd("To Loot", "/tell <myname> loot add {$row->id}");
 				$blob .= "\n";
 			}
 			$blob .= "\n";
