@@ -2,8 +2,8 @@
 
 namespace Nadybot\Modules\LOOT_MODULE;
 
-use Nadybot\Modules\ITEMS_MODULE\AODBTrait;
+use Nadybot\Modules\ITEMS_MODULE\AODBEntry;
 
 class RaidLootSearch extends RaidLoot {
-	use AODBTrait;
+	public ?AODBEntry $item = null;
 }
