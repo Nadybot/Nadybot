@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\ITEMS_MODULE;
 
+use Illuminate\Support\Collection;
 use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{
 	CmdContext,
@@ -124,6 +125,32 @@ class ItemsController {
 			->limit(1)
 			->asObj(AODBEntry::class)
 			->first();
+	}
+
+	/**
+	 * Get 1 or more items by their IDs
+	 *
+	 * @return Collection<AODBEntry>
+	 */
+	public function getByIDs(int ...$ids): Collection {
+		return $this->db->table("aodb")
+			->whereIn("lowid", $ids)
+			->union(
+				$this->db->table("aodb")
+					->whereIn("highid", $ids)
+			)
+			->asObj(AODBEntry::class);
+	}
+
+	/**
+	 * Get 1 or more items by their names
+	 *
+	 * @return Collection<AODBEntry>
+	 */
+	public function getByNames(string ...$names): Collection {
+		return $this->db->table("aodb")
+			->whereIn("name", $names)
+			->asObj(AODBEntry::class);
 	}
 
 	#[NCA\HandlesCommand("id")]
