@@ -189,14 +189,6 @@ class BotRunner {
 			"Reflection",
 			"sockets",
 		];
-		$configFile = $this->getConfigFile();
-		/** @psalm-suppress DocblockTypeContradiction */
-		if (strlen($configFile->getVar('amqp_server')??"")
-			&& strlen($configFile->getVar('amqp_user')??"")
-			&& strlen($configFile->getVar('amqp_password')??"")
-		) {
-			$requiredModules []= "mbstring";
-		}
 		foreach ($requiredModules as $requiredModule) {
 			if (is_string($requiredModule) && !extension_loaded($requiredModule)) {
 				$missing []= $requiredModule;
@@ -287,9 +279,10 @@ class BotRunner {
 			]
 		);
 
-		$this->classLoader = new ClassLoader($vars['module_load_paths']);
+		$this->classLoader = new ClassLoader($this->getConfigFile()->moduleLoadPaths);
 		Registry::injectDependencies($this->classLoader);
 		$this->classLoader->loadInstances();
+exit;
 
 		$signalHandler = $this->installCtrlCHandler();
 		$this->connectToDatabase();
@@ -318,14 +311,14 @@ class BotRunner {
 	}
 
 	protected function createMissingDirs(): void {
-		$dirVars = ["cachefolder", "htmlfolder", "datafolder"];
+		$dirVars = ["cacheFolder", "htmlFolder", "dataFolder"];
 		foreach ($dirVars as $var) {
-			$dir = $this->getConfigFile()->getVar($var);
+			$dir = $this->getConfigFile()->{$var};
 			if (is_string($dir) && !@file_exists($dir)) {
 				@mkdir($dir, 0700);
 			}
 		}
-		foreach ($this->getConfigFile()->getVar("module_load_paths") as $dir) {
+		foreach ($this->getConfigFile()->moduleLoadPaths as $dir) {
 			if (is_string($dir) && !@file_exists($dir)) {
 				@mkdir($dir, 0700);
 			}
@@ -371,9 +364,7 @@ class BotRunner {
 		}
 		$configFilePath = $this->argv[1] ?? "conf/config.php";
 		global $configFile;
-		$this->configFile = new ConfigFile($configFilePath);
-		$this->configFile->load();
-		return $configFile = $this->configFile;
+		return $configFile = $this->configFile = ConfigFile::loadFromFile($configFilePath);
 	}
 
 	/**
@@ -382,7 +373,7 @@ class BotRunner {
 	 * @return array<string,mixed>
 	 */
 	protected function getConfigVars(): array {
-		return $this->getConfigFile()->getVars();
+		return $this->getConfigFile()->toArray();
 	}
 
 	/**
@@ -420,8 +411,7 @@ class BotRunner {
 	 * Is information missing to run the bot?
 	 */
 	private function shouldShowSetup(): bool {
-		global $vars;
-		return $vars['login'] == "" || $vars['password'] == "" || $vars['name'] == "";
+		return empty($this->configFile->login) || empty($this->configFile->password) || empty($this->configFile->name);
 	}
 
 	/**

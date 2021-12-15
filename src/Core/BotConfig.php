@@ -2,9 +2,9 @@
 
 namespace Nadybot\Core;
 
-use Spatie\DataTransferObject\FlexibleDataTransferObject;
+use Spatie\DataTransferObject\DataTransferObject;
 
-class BotConfig extends FlexibleDataTransferObject {
+class BotConfig extends DataTransferObject {
 	public string $login;
 	public string $password;
 	public string $name;

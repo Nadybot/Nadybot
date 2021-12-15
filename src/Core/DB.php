@@ -3,7 +3,6 @@
 namespace Nadybot\Core;
 
 use Nadybot\Core\Attributes as NCA;
-use Closure;
 use DateTime;
 use PDO;
 use PDOException;
@@ -73,8 +72,6 @@ class DB {
 
 	public int $maxPlaceholders = 9000;
 
-	private Closure $reconnect;
-
 	public const MYSQL = 'mysql';
 	public const SQLITE = 'sqlite';
 	public const POSTGRESQL = 'postgresql';
@@ -106,9 +103,6 @@ class DB {
 	 * @throws Exception for unsupported database types
 	 */
 	public function connect(string $type, string $dbName, ?string $host=null, ?string $user=null, ?string $pass=null): void {
-		$this->reconnect = function() use ($type, $dbName, $host, $user, $pass): void {
-			$this->connect($type, $dbName, $host, $user, $pass);
-		};
 		global $vars;
 		$errorShown = isset($this->sql);
 		unset($this->sql);

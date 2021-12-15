@@ -2,9 +2,9 @@
 
 namespace Nadybot\Modules\RELAY_MODULE\RelayProtocol\Tyrbot;
 
-use Spatie\DataTransferObject\FlexibleDataTransferObject;
+use Spatie\DataTransferObject\DataTransferObject;
 
-class BasePacket extends FlexibleDataTransferObject {
+class BasePacket extends DataTransferObject {
 	public const MESSAGE = "message";
 	public const ONLINE_LIST = "online_list";
 	public const ONLINE_LIST_REQUEST = "online_list_request";
