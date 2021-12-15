@@ -3,6 +3,7 @@
 namespace Nadybot\Core\Modules\SYSTEM;
 
 use Nadybot\Core\Attributes as NCA;
+use Illuminate\Database\Capsule\Manager as Capsule;
 use Nadybot\Core\{
 	AccessManager,
 	CmdContext,
@@ -11,6 +12,7 @@ use Nadybot\Core\{
 	SQLException,
 	Text,
 };
+use ReflectionClass;
 
 /**
  * @author Tyrence (RK2)
@@ -52,10 +54,20 @@ class SQLController {
 	#[NCA\HandlesCommand("executesql")]
 	public function executesqlCommand(CmdContext $context, string $sql): void {
 		$sql = htmlspecialchars_decode($sql);
+		// I don't want to expose the API in any other way, so yeah...
+		$refDB = new ReflectionClass($this->db);
+		$refCap = $refDB->getProperty("capsule");
+		$refCap->setAccessible(true);
+		/** @var Capsule */
+		$capsule = $refCap->getValue($this->db);
 
 		try {
-			$num_rows = $this->db->exec($sql);
-			$msg = "$num_rows rows affected.";
+			$success = $capsule->getConnection()->unprepared($sql);
+			if ($success) {
+				$msg = "Query run successfully.";
+			} else {
+				$msg = "Query run successfully, but no rows affected.";
+			}
 		} catch (SQLException $e) {
 			$msg = $this->text->makeBlob("SQL Error", $e->getMessage());
 		}
@@ -64,10 +76,16 @@ class SQLController {
 
 	#[NCA\HandlesCommand("querysql")]
 	public function querysqlCommand(CmdContext $context, string $sql): void {
+		// I don't want to expose the API in any other way, so yeah...
+		$refDB = new ReflectionClass($this->db);
+		$refCap = $refDB->getProperty("capsule");
+		$refCap->setAccessible(true);
+		/** @var Capsule */
+		$capsule = $refCap->getValue($this->db);
 		$sql = htmlspecialchars_decode($sql);
 
 		try {
-			$data = $this->db->query($sql);
+			$data = $capsule->getConnection()->select($sql);
 			$count = count($data);
 
 			$blob = "";
@@ -78,7 +96,11 @@ class SQLController {
 				}
 				$blob .= "\n";
 			}
-			$msg = $this->text->makeBlob("Results ($count)", $blob);
+			if (empty($data)) {
+				$msg = "Results ($count)";
+			} else {
+				$msg = $this->text->makeBlob("Results ($count)", $blob);
+			}
 		} catch (SQLException $e) {
 			$msg = $this->text->makeBlob("SQL Error", $e->getMessage());
 		}

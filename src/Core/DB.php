@@ -7,11 +7,8 @@ use Closure;
 use DateTime;
 use PDO;
 use PDOException;
-use PDOStatement;
 use Exception;
 use ReflectionClass;
-use ReflectionException;
-use ReflectionNamedType;
 use ReflectionProperty;
 use Illuminate\Database\Capsule\Manager as Capsule;
 use Illuminate\Database\Connection;
@@ -64,9 +61,6 @@ class DB {
 	protected string $dbName;
 
 	private string $guild;
-	private string $lastQuery;
-	private array $meta = [];
-	private array $metaTypes = [];
 
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
@@ -289,188 +283,6 @@ class DB {
 	}
 
 	/**
-	 * Execute an SQL statement and return the first row as object or null if no results
-	 * @deprecated Will be removed in Nadybot 6.0
-	 */
-	public function queryRow(string $sql): ?DBRow {
-		$result = $this->query(...func_get_args());
-
-		if (count($result) === 0) {
-			return null;
-		}
-		return $result[0];
-	}
-
-	/**
-	 * Populate and return an array of type changers for a query
-	 *
-	 * @return Closure[]
-	 */
-	protected function getTypeChanger(PDOStatement $ps, object $row): array {
-		$metaKey = md5($ps->queryString);
-		$numColumns = $ps->columnCount();
-		if (isset($this->meta[$metaKey])) {
-			return $this->meta[$metaKey];
-		}
-		$this->meta[$metaKey] = [];
-		for ($col=0; $col < $numColumns; $col++) {
-			$colMeta = $ps->getColumnMeta($col);
-			$type = $this->guessVarTypeFromColMeta($colMeta, $colMeta["name"]);
-			$refProp = new ReflectionProperty($row, $colMeta["name"]);
-			$refProp->setAccessible(true);
-			if ($type === "bool") {
-				$this->meta[$metaKey] []= function(object $row) use ($refProp): void {
-					$stringValue = $refProp->getValue($row);
-					if ($stringValue !== null) {
-						$refProp->setValue($row, (bool)$stringValue);
-					}
-				};
-			} elseif ($type === "int") {
-				$this->meta[$metaKey] []= function(object $row) use ($refProp): void {
-					$stringValue = $refProp->getValue($row);
-					if ($stringValue !== null) {
-						$refProp->setValue($row, (int)$stringValue);
-					}
-				};
-			}
-		}
-		return $this->meta[$metaKey];
-	}
-
-	/**
-	 * Execute an SQL statement and return all rows as an array of objects
-	 *
-	 * @deprecated Will be removed in Nadybot 6.0
-	 * @return \Nadybot\Core\DBRow[] All returned rows
-	 */
-	public function query(string $sql): array {
-		$sql = $this->formatSql($sql);
-
-		$args = $this->getParameters(func_get_args());
-
-		$sql = $this->applySQLCompatFixes($sql);
-		$ps = $this->executeQuery($sql, $args);
-		$ps->setFetchMode(PDO::FETCH_CLASS, DBRow::class);
-		$result = [];
-		while ($row = $ps->fetch(PDO::FETCH_CLASS)) {
-			/** @var DBRow $row */
-			$typeChangers = $this->getTypeChanger($ps, $row);
-			foreach ($typeChangers as $changer) {
-				$changer($row);
-			}
-			$result []= $row;
-		}
-		return $result;
-	}
-
-	/**
-	 * Execute an SQL statement and return all rows as an array of objects of the given class
-	 * @deprecated Will be removed in Nadybot 6.0
-	 */
-	public function fetchAll(string $className, string $sql, ...$args): array {
-		$sql = $this->formatSql($sql);
-
-		$sql = $this->applySQLCompatFixes($sql);
-		$ps = $this->executeQuery($sql, $args);
-		return $ps->fetchAll(
-			PDO::FETCH_FUNC,
-			/**
-			 * @param mixed $values
-			 * @return mixed
-			 */
-			function (...$values) use ($ps, $className) {
-				return $this->convertToClass($ps, $className, $values);
-			}
-		);
-	}
-
-	/**
-	 * Execute an SQL statement and return the first row as an objects of the given class
-	 * @deprecated Will be removed in Nadybot 6.0
-	 */
-	public function fetch(string $className, string $sql, ...$args): ?object {
-		return $this->fetchAll(...func_get_args())[0] ?? null;
-	}
-
-	protected function guessVarTypeFromReflection(ReflectionClass $refClass, string $colName): ?string {
-		if (!$refClass->hasProperty($colName)) {
-			return null;
-		}
-		$refProp = $refClass->getProperty($colName);
-		$refType = $refProp->getType();
-		if ($refType instanceof ReflectionNamedType) {
-			return $refType->getName();
-		}
-		return null;
-	}
-
-	protected function guessVarTypeFromColMeta(array $colMeta, string $colName): ?string {
-		$type = strtolower($colMeta["native_type"]);
-		$declType = strtolower($colMeta["sqlite:decl_type"] ?? "");
-		if (!in_array($type, ["integer", "tiny", "long", "newdecimal"])
-			&& !in_array($declType, ["int", "boolean", "tinyint(1)"])) {
-			return null;
-		}
-		if (
-			$type === 'tiny'
-			|| (in_array($declType, ['boolean', 'tinyint(1)']))
-		) {
-			return "bool";
-		} else {
-			return "int";
-		}
-	}
-
-	public function convertToClass(PDOStatement $ps, string $className, array $values): ?object {
-		$row = new $className();
-		$refClass = new ReflectionClass($row);
-		$metaKey = md5($ps->queryString);
-		$numColumns = $ps->columnCount();
-		if (!isset($this->metaTypes[$metaKey])) {
-			$this->metaTypes[$metaKey] = [];
-			for ($col=0; $col < $numColumns; $col++) {
-				$this->metaTypes[$metaKey] []= $ps->getColumnMeta($col);
-			}
-		}
-		$meta = $this->metaTypes[$metaKey];
-		for ($col=0; $col < $numColumns; $col++) {
-			$colMeta = $meta[$col];
-			$colName = $colMeta['name'];
-			if ($values[$col] === null) {
-				try {
-					$refProp = $refClass->getProperty($colName);
-					$refType = $refProp->getType();
-					if (isset($refType) && $refType->allowsNull()) {
-						$row->{$colName} = $values[$col];
-					}
-				} catch (ReflectionException $e) {
-					$row->{$colName} = null;
-				}
-				continue;
-			}
-			try {
-				$type = $this->guessVarTypeFromReflection($refClass, $colName)
-					?? $this->guessVarTypeFromColMeta($colMeta, $colName);
-				if ($type === "bool") {
-					$row->{$colName} = (bool)$values[$col];
-				} elseif ($type === "int") {
-					$row->{$colName} = (int)$values[$col];
-				} elseif ($type === "float") {
-					$row->{$colName} = (float)$values[$col];
-				} elseif ($type === DateTime::class) {
-					$row->{$colName} = (new DateTime())->setTimestamp((int)$values[$col]);
-				} else {
-					$row->{$colName} = $values[$col];
-				}
-			} catch (Throwable $e) {
-				$this->logger->error($e->getMessage(), ["exception" => $e]);
-				throw $e;
-			}
-		}
-		return $row;
-	}
-
-	/**
 	 * Change the SQL to work in a variety of MySQL/SQLite versions
 	 */
 	public function applySQLCompatFixes(string $sql): string {
@@ -483,111 +295,6 @@ class DB {
 			$sql = preg_replace($search, $replace, $sql);
 		}
 		return $sql;
-	}
-
-	/**
-	 * Execute a query and return the number of affected rows
-	 * @deprecated Will be removed in Nadybot 6.0
-	 */
-	public function exec(string $sql): int {
-		$sql = $this->formatSql($sql);
-
-		if (!empty($this->sqlCreateReplacements) && substr_compare($sql, "create ", 0, 7, true) === 0) {
-			$search = array_keys($this->sqlCreateReplacements);
-			$replace = array_values($this->sqlCreateReplacements);
-			$sql = str_ireplace($search, $replace, $sql);
-		}
-
-		$args = $this->getParameters(func_get_args());
-		if ($this->type === self::MYSQL && preg_match('/CREATE INDEX IF NOT EXISTS ([^ ]+) ON ([^ (]+)(.+)$/', $sql, $match)) {
-			$indexQuery = "SELECT COUNT(1) AS indexthere ".
-				"FROM INFORMATION_SCHEMA.STATISTICS ".
-				"WHERE table_schema=DATABASE() ".
-				"AND table_name=? ".
-				"AND index_name=?";
-			$tableName = preg_replace("/^`(.+?)`$/", "$1", $match[2]);
-			$indexName = preg_replace("/^`(.+?)`$/", "$1", $match[1]);
-			$indexQuery = $this->applySQLCompatFixes($indexQuery);
-			$ps = $this->executeQuery($indexQuery, [$tableName, $indexName]);
-			$indexResult = $ps->fetch(PDO::FETCH_ASSOC);
-			if ($indexResult !== false && (int)$indexResult["indexthere"] > 0) {
-				return 1;
-			}
-			$sql = "CREATE INDEX {$match[1]} ON {$match[2]}{$match[3]}";
-			try {
-				$sql = $this->applySQLCompatFixes($sql);
-				$ps = $this->executeQuery($sql, $args);
-				return $ps->rowCount();
-			} catch (SQLException $e) {
-				$this->logger->warning(
-					"Unable to create index {$match[1]} on table {$match[2]}. For optimal speed, ".
-					"consider upgrading to the latest MariaDB or use SQLite.",
-					["exception" => $e]
-				);
-				return 1;
-			}
-		}
-
-		$sql = $this->applySQLCompatFixes($sql);
-		$ps = $this->executeQuery($sql, $args);
-
-		return $ps->rowCount();
-	}
-
-	/**
-	 * Internal function to get additional parameters passed to exec()
-	 */
-	private function getParameters(array $args): array {
-		array_shift($args);
-		if (isset($args[0]) && is_array($args[0])) {
-			return $args[0];
-		}
-		return $args;
-	}
-
-	/**
-	 * Execute an SQL query, returning the statement object
-	 *
-	 * @throws SQLException when the query errors
-	 */
-	private function executeQuery(string $sql, array $params): PDOStatement {
-		$this->lastQuery = $sql;
-		$this->logger->debug($sql, [
-			"params" => $params,
-			"driver" => $this->sql->getAttribute(PDO::ATTR_DRIVER_NAME),
-			"version" => $this->sql->getAttribute(PDO::ATTR_SERVER_VERSION)
-		]);
-
-		try {
-			$ps = $this->sql->prepare($sql);
-			$count = 1;
-			foreach ($params as $param) {
-				if ($param === "NULL" || $param === null) {
-					$ps->bindValue($count++, $param, PDO::PARAM_NULL);
-				} elseif (is_bool($param)) {
-					$ps->bindValue($count++, $param, PDO::PARAM_BOOL);
-				} elseif (is_int($param)) {
-					$ps->bindValue($count++, $param, PDO::PARAM_INT);
-				} else {
-					$ps->bindValue($count++, $param);
-				}
-			}
-			$ps->execute();
-			return $ps;
-		} catch (PDOException $e) {
-			if ($this->type === self::SQLITE && $e->errorInfo[1] === 17) {
-				// fix for Sqlite schema changed error (retry the query)
-				return $this->executeQuery($sql, $params);
-			}
-			if ($this->type === self::MYSQL && in_array($e->errorInfo[1], [1927, 2006], true)) {
-				$this->logger->warning(
-					'DB had recoverable error: ' . trim($e->errorInfo[2]) . ' - reconnecting'
-				);
-				call_user_func($this->reconnect);
-				return $this->executeQuery(...func_get_args());
-			}
-			throw new SQLException("Error: {$e->errorInfo[2]}\nQuery: $sql\nParams: " . json_encode($params, JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES), 0, $e);
-		}
 	}
 
 	/**
@@ -650,168 +357,6 @@ class DB {
 		$sql = str_replace("<myguild>", $this->guild, $sql);
 
 		return $sql;
-	}
-
-	/**
-	 * Get the SQL query that was executed last
-	 */
-	public function getLastQuery(): ?string {
-		return $this->lastQuery;
-	}
-
-	/**
-	 * Loads an sql file if there is an update
-	 *
-	 * Will load the sql file with name $namexx.xx.xx.xx.sql if xx.xx.xx.xx is greater than settings[$name . "_sql_version"]
-	 * If there is an sql file with name $name.sql it would load that one every time
-	 * @deprecated Will be removed in Nadybot 6.0
-	 */
-	public function loadSQLFile(string $module, string $name, bool $forceUpdate=false): string {
-		$name = strtolower($name);
-
-		// only letters, numbers, underscores are allowed
-		if (!preg_match('/^[a-z0-9_]+$/i', $name)) {
-			$msg = "Invalid SQL file name: '$name' for module: '$module'!  Only numbers, letters, and underscores permitted!";
-			$this->logger->error($msg);
-			return $msg;
-		}
-
-		$settingName = $name . "_db_version";
-
-		$dir = $this->util->verifyFilename($module);
-		if (empty($dir)) {
-			$msg = "Could not find module '$module'.";
-			$this->logger->error($msg);
-			return $msg;
-		}
-		$d = dir($dir);
-
-		$currentVersion = false;
-		if ($this->settingManager->exists($settingName)) {
-			$currentVersion = $this->settingManager->get($settingName);
-		}
-		if ($currentVersion === false) {
-			$currentVersion = 0;
-		}
-
-		$file = false;
-		$maxFileVersion = 0;  // 0 indicates no version
-		if ($d) {
-			while (false !== ($entry = $d->read())) {
-				if (is_file("$dir/$entry") && preg_match("/^" . $name . "([0-9.]*)\\.sql$/i", $entry, $arr)) {
-					// If the file has no versioning in its filename, then we go off the modified timestamp
-					if ($arr[1] == '') {
-						$file = $entry;
-						$maxFileVersion = filemtime("$dir/$file");
-						break;
-					}
-
-					if ($this->util->compareVersionNumbers($arr[1], (string)$maxFileVersion) >= 0) {
-						$maxFileVersion = $arr[1];
-						$file = $entry;
-					}
-				}
-			}
-		}
-
-		if ($file === false) {
-			$msg = "No SQL file found with name '$name' in module '$module'!";
-			$this->logger->error($msg);
-			return $msg;
-		}
-
-		// make sure setting is verified so it doesn't get deleted
-		$this->settingManager->add(
-			module: $module,
-			name: $settingName,
-			description: $settingName,
-			mode: 'noedit',
-			type: 'text',
-			value: "0"
-		);
-
-		if (!$forceUpdate && $this->util->compareVersionNumbers((string)$maxFileVersion, (string)$currentVersion) <= 0) {
-			$msg = "'$name' database already up to date! version: '$currentVersion'";
-			$this->logger->info($msg);
-			return $msg;
-		}
-		$handle = @fopen("$dir/$file", "r");
-		if ($handle === false) {
-			$msg = "Could not load SQL file: '$dir/$file'";
-			$this->logger->error($msg);
-			return $msg;
-		}
-		try {
-			$oldLine = '';
-			while (($line = fgets($handle)) !== false) {
-				$line = trim($line);
-				// don't process comment lines or blank lines
-				if ($line === '' || substr($line, 0, 1) === "#" || substr($line, 0, 2) === "--") {
-					continue;
-				}
-				// If the line doesn't end with a ; we keep the value and add new lines
-				// to it until we hit a ;
-				if (substr($line, -1) !== ';') {
-					$oldLine .= "$line\n";
-				} else {
-					$this->exec($oldLine.$line);
-					$oldLine = '';
-				}
-			}
-
-			$this->settingManager->save($settingName, (string)$maxFileVersion);
-
-			if ($maxFileVersion != 0) {
-				$msg = "Updated '$name' database from '$currentVersion' to '$maxFileVersion'";
-				$this->logger->info($msg);
-			} else {
-				$msg = "Updated '$name' database";
-				$this->logger->info($msg);
-			}
-		} catch (SQLException $e) {
-			$msg = "Error loading sql file '$file': " . $e->getMessage();
-			$this->logger->error($msg);
-		}
-
-		return $msg;
-	}
-
-	/**
-	 * Check if a table exists in the database
-	 * @deprecated Will be removed in Nadybot 6.0
-	 */
-	public function tableExists(string $table): bool {
-		$table = $this->formatSql($table);
-		return $this->schema()->hasTable($table);
-	}
-
-	/** @deprecated */
-	public function columnExists(string $table, string $column): bool {
-		return $this->schema()->hasColumn($table, $column);
-	}
-
-	/**
-	 * Check if column $column in table $table is part of a unique constraint
-	 * @deprecated will be removed in 6.0
-	 */
-	public function columnUnique(string $table, string $column): bool {
-		if ($this->getType() === static::SQLITE) {
-			$indexes = $this->query("PRAGMA index_list(`{$table}`)");
-			foreach ($indexes as $index) {
-				if (!$index->unique) {
-					continue;
-				}
-				$indexColumns = $this->query("PRAGMA index_info(`{$index->name}`)");
-				foreach ($indexColumns as $indexColumn) {
-					if ($column !== $indexColumn->name) {
-						return true;
-					}
-				}
-			}
-			return false;
-		}
-		$indexes = $this->queryRow("SHOW INDEXES FROM `{$table}` WHERE Column_name=? AND NOT Non_Unique", $column);
-		return isset($indexes);
 	}
 
 	/**
@@ -887,6 +432,7 @@ class DB {
 		$schema = $this->capsule->schema($connection);
 		$builder = new SchemaBuilder($schema);
 		$builder->nadyDB = $this;
+		$builder->logger = new LoggerWrapper("Core/QueryBuilder");
 		return $builder;
 	}
 
@@ -907,6 +453,7 @@ class DB {
 			$myBuilder->{$attr} = $value;
 		}
 		$myBuilder->nadyDB = $this;
+		$myBuilder->logger = new LoggerWrapper("Core/QueryBuilder");
 		return $myBuilder;
 	}
 
@@ -924,6 +471,7 @@ class DB {
 			$builder->{$attr} = $value;
 		}
 		$builder->nadyDB = $this;
+		$builder->logger = new LoggerWrapper("Core/QueryBuilder");
 		return $builder;
 	}
 
