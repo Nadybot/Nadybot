@@ -724,9 +724,9 @@ class LootListsController {
 					->whereIlike("r.raid", $raid)
 					->whereIlike("r.category", $category)
 					->asObj(RaidLootSearch::class);
-		$aoids = $loot->whereNotNull("aoid")->pluck("aoid");
+		$aoids = $loot->whereNotNull("aoid")->pluck("aoid")->toArray();
 		$itemsByID = $this->itemsController->getByIDs(...$aoids)->keyBy("highid");
-		$names = $loot->whereNull("aoid")->pluck("name");
+		$names = $loot->whereNull("aoid")->pluck("name")->toArray();
 		$itemsByName = $this->itemsController->getByNames(...$names)->keyBy("name");
 		foreach ($loot as $item) {
 			if (isset($item->aoid)) {
