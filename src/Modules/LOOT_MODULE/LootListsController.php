@@ -722,7 +722,7 @@ class LootListsController {
 			->whereIlike("r.category", $category)
 			->union($query2);
 		$query->select("*", $query2->colFunc("COALESCE", ["a.name", "r.name"], "name"));
-		$data = $query->asObj();
+		$data = $query->asObj(RaidLootSearch::class);
 
 		if ($data->count() === 0) {
 			throw new Exception("No loot for type {$raid} found in the database");
@@ -754,7 +754,7 @@ class LootListsController {
 					"/tell <myname> auction {$row->name}"
 				);
 			}
-			if ($row->lowid) {
+			if (isset($row->lowid)) {
 				if ($showLootPics) {
 					$name = "<img src=rdb://{$row->icon}>";
 				} else {

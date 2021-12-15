@@ -22,8 +22,8 @@ class QueryBuilder extends Builder {
 
 	public LoggerWrapper $logger;
 
-	private array $meta = [];
-	private array $metaTypes = [];
+	private static array $meta = [];
+	private static array $metaTypes = [];
 
 	/**
 	 * Populate and return an array of type changers for a query
@@ -33,24 +33,24 @@ class QueryBuilder extends Builder {
 	protected function getTypeChanger(PDOStatement $ps, object $row): array {
 		$metaKey = md5($ps->queryString);
 		$numColumns = $ps->columnCount();
-		if (isset($this->meta[$metaKey])) {
-			return $this->meta[$metaKey];
+		if (isset(static::$meta[$metaKey])) {
+			return static::$meta[$metaKey];
 		}
-		$this->meta[$metaKey] = [];
+		static::$meta[$metaKey] = [];
 		for ($col=0; $col < $numColumns; $col++) {
 			$colMeta = $ps->getColumnMeta($col);
 			$type = $this->guessVarTypeFromColMeta($colMeta, $colMeta["name"]);
 			$refProp = new ReflectionProperty($row, $colMeta["name"]);
 			$refProp->setAccessible(true);
 			if ($type === "bool") {
-				$this->meta[$metaKey] []= function(object $row) use ($refProp): void {
+				static::$meta[$metaKey] []= function(object $row) use ($refProp): void {
 					$stringValue = $refProp->getValue($row);
 					if ($stringValue !== null) {
 						$refProp->setValue($row, (bool)$stringValue);
 					}
 				};
 			} elseif ($type === "int") {
-				$this->meta[$metaKey] []= function(object $row) use ($refProp): void {
+				static::$meta[$metaKey] []= function(object $row) use ($refProp): void {
 					$stringValue = $refProp->getValue($row);
 					if ($stringValue !== null) {
 						$refProp->setValue($row, (int)$stringValue);
@@ -58,7 +58,7 @@ class QueryBuilder extends Builder {
 				};
 			}
 		}
-		return $this->meta[$metaKey];
+		return static::$meta[$metaKey];
 	}
 
 	/**
@@ -119,13 +119,13 @@ class QueryBuilder extends Builder {
 		$refClass = new ReflectionClass($row);
 		$metaKey = md5($ps->queryString);
 		$numColumns = $ps->columnCount();
-		if (!isset($this->metaTypes[$metaKey])) {
-			$this->metaTypes[$metaKey] = [];
+		if (!isset(static::$metaTypes[$metaKey])) {
+			static::$metaTypes[$metaKey] = [];
 			for ($col=0; $col < $numColumns; $col++) {
-				$this->metaTypes[$metaKey] []= $ps->getColumnMeta($col);
+				static::$metaTypes[$metaKey] []= $ps->getColumnMeta($col);
 			}
 		}
-		$meta = $this->metaTypes[$metaKey];
+		$meta = static::$metaTypes[$metaKey];
 		for ($col=0; $col < $numColumns; $col++) {
 			$colMeta = $meta[$col];
 			$colName = $colMeta['name'];
