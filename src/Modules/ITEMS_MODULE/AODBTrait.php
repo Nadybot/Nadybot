@@ -12,4 +12,10 @@ trait AODBTrait {
 	public bool $froob_friendly = false;
 	public int $slot;
 	public int $flags;
+
+	public function getLink(?int $ql=null, string $name=null): string {
+		$ql ??= $this->lowql;
+		$name ??= $this->name;
+		return "<a href='itemref://{$this->lowid}/{$this->highid}/{$ql}'>{$name}</a>";
+	}
 }
