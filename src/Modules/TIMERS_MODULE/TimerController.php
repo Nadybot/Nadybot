@@ -156,7 +156,7 @@ class TimerController implements MessageEmitter {
 		return $data;
 	}
 
-	public function changeTimerAlertTimes(string $settingName, string $oldValue, $newValue, $data): void {
+	public function changeTimerAlertTimes(string $settingName, string $oldValue, string $newValue, mixed $data): void {
 		$alertTimes = array_reverse(explode(' ', $newValue));
 		$oldTime = 0;
 		foreach ($alertTimes as $alertTime) {

@@ -127,7 +127,7 @@ class CommentController {
 		$this->db->loadMigrations($this->moduleName, __DIR__ . '/Migrations');
 	}
 
-	public function changeTableSharing(string $settingName, string $oldValue, string $newValue, $data): void {
+	public function changeTableSharing(string $settingName, string $oldValue, string $newValue, mixed $data): void {
 		if ($oldValue === $newValue) {
 			return;
 		}

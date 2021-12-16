@@ -601,9 +601,8 @@ class AsyncHttp {
 
 	/**
 	 * Set a headers to be send with the request
-	 * @param mixed $value
 	 */
-	public function withHeader(string $header, $value): self {
+	public function withHeader(string $header, mixed $value): self {
 		$this->headers[$header] = $value;
 		return $this;
 	}

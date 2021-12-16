@@ -26,7 +26,7 @@ class JsonImporter {
 		return is_array($value) && array_diff_key($value, array_keys(array_keys($value)));
 	}
 
-	protected static function hasIntervalType(string $checkType, $value): bool {
+	protected static function hasIntervalType(string $checkType, mixed $value): bool {
 		if ($checkType === "string" && is_string($value)) {
 			return true;
 		}

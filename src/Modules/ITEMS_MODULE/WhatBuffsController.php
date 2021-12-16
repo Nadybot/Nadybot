@@ -562,7 +562,7 @@ class WhatBuffsController {
 			->toArray();
 	}
 
-	public function showItemLink(DBRow $item, $ql): string {
+	public function showItemLink(DBRow $item, int $ql): string {
 		return $this->text->makeItem($item->lowid, $item->highid, $ql, $item->name);
 	}
 

@@ -450,7 +450,7 @@ class WebsocketBase {
 		return $data;
 	}
 
-	public function close($status=1000, $message='kthxbye'): void {
+	public function close(int $status=1000, string $message='kthxbye'): void {
 		if (!$this->isConnected()) {
 			return;
 		}

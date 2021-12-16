@@ -66,7 +66,7 @@ class TowerApiController {
 		return $this->settingManager->getString(static::TOWER_API) !== static::API_NONE;
 	}
 
-	public function verifyTowerAPI(string $settingName, string $oldValue, string $newValue, $data): void {
+	public function verifyTowerAPI(string $settingName, string $oldValue, string $newValue, mixed $data): void {
 		if ($newValue === static::API_NONE) {
 			return;
 		}

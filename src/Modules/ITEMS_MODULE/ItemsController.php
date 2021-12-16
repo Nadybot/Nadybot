@@ -265,7 +265,7 @@ class ItemsController {
 	 * @param mixed|null $elapsed
 	 * @return string|string[]
 	 */
-	public function createItemsBlob(array $data, string $search, ?int $ql, string $version, string $server, string $footer, $elapsed=null): string|array {
+	public function createItemsBlob(array $data, string $search, ?int $ql, string $version, string $server, string $footer, mixed $elapsed=null): string|array {
 		$numItems = count($data);
 		$groups = count(
 			array_unique(

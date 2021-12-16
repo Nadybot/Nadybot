@@ -106,7 +106,7 @@ class CommandManager implements MessageEmitter {
 	 * @param int|null $defaultStatus The default state of this command:
 	 *                                1 (enabled), 0 (disabled) or null (use default value as configured)
 	 */
-	public function register(string $module, ?string $channelName, string $filename, string $command, string $accessLevelStr, string $description, ?string $help='', $defaultStatus=null): void {
+	public function register(string $module, ?string $channelName, string $filename, string $command, string $accessLevelStr, string $description, ?string $help='', ?int $defaultStatus=null): void {
 		$command = strtolower($command);
 		$module = strtoupper($module);
 		$accessLevel = $this->accessManager->getAccessLevel($accessLevelStr);

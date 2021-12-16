@@ -201,7 +201,7 @@ class TowerController {
 	/**
 	 * Adds listener callback which will be called when tower attacks occur.
 	 */
-	public function registerAttackListener(callable $callback, $data=null): void {
+	public function registerAttackListener(callable $callback, mixed $data=null): void {
 		$listener = new AttackListener();
 		$listener->callback = $callback;
 		$listener->data = $data;

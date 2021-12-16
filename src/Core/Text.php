@@ -38,7 +38,7 @@ class Text {
 	 * @param string|null $after The optional string after the blob
 	 * @return string[]
 	 */
-	public function blobWrap(string $before, $blob, ?string $after=""): array {
+	public function blobWrap(string $before, string|array $blob, ?string $after=""): array {
 		$blob = (array)$blob;
 		foreach ($blob as &$page) {
 			$page = "{$before}{$page}{$after}";

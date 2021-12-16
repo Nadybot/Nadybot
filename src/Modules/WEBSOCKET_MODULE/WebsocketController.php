@@ -82,7 +82,7 @@ class WebsocketController {
 		}
 	}
 
-	public function changeWebsocketStatus(string $setting, string $oldValue, string $newValue, $extraData): void {
+	public function changeWebsocketStatus(string $setting, string $oldValue, string $newValue, mixed $extraData): void {
 		if ($newValue === "1") {
 			$this->registerWebChat();
 		} else {

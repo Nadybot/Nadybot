@@ -382,7 +382,7 @@ class DB {
 	 * @param DBRow $row The data to update
 	 * @return int Number of updates records
 	 */
-	public function update(string $table, $key, DBRow $row): int {
+	public function update(string $table, string|array $key, DBRow $row): int {
 		/** @psalm-suppress DocblockTypeContradiction */
 		if (!is_string($key) && !is_array($key)) {
 			throw new InvalidArgumentException("argument 2 to " . __FUNCTION__ . " (\$key) must either be a string or an array of strings.");
