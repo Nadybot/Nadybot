@@ -8,7 +8,6 @@ use Nadybot\Core\CommandReply;
 use Nadybot\Core\ConfigFile;
 use Nadybot\Core\Modules\PLAYER_LOOKUP\PlayerHistory;
 use Nadybot\Core\Modules\PLAYER_LOOKUP\PlayerHistoryManager;
-use Nadybot\Core\Nadybot;
 use Nadybot\Core\ParamClass\PCharacter;
 use Nadybot\Core\Text;
 
