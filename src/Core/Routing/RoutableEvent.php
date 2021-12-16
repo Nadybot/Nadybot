@@ -13,8 +13,7 @@ class RoutableEvent extends Event {
 	/** @var Source[] */
 	public array $path = [];
 
-	/** @var string|Base|null */
-	public $data = null;
+	public string|Base|null $data = null;
 
 	public function getType(): string {
 		return $this->type;

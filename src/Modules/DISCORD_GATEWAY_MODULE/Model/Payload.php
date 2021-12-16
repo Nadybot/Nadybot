@@ -7,8 +7,8 @@ use Nadybot\Core\JSONDataModel;
 class Payload extends JSONDataModel {
 	/** Opcode for the payload */
 	public int $op;
-	/** @var mixed $d (any JSON value) event data */
-	public $d;
+	/** event data */
+	public mixed $d;
 	/** sequence number, used for resuming sessions and heartbeats */
 	public ?int $s;
 	/** the event name for this payload */
