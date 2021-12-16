@@ -9,6 +9,7 @@ use Nadybot\Core\{
 	AdminManager,
 	BuddylistManager,
 	CmdContext,
+	ConfigFile,
 	DB,
 	DBSchema\Alt,
 	DBSchema\Admin,
@@ -95,9 +96,12 @@ class ExportController {
 	#[NCA\Inject]
 	public Preferences $preferences;
 
+	#[NCA\Inject]
+	public ConfigFile $config;
+
 	#[NCA\HandlesCommand("export")]
 	public function exportCommand(CmdContext $context, string $file): void {
-		$dataPath = $this->chatBot->vars["datafolder"] ?? "./data";
+		$dataPath = $this->config->dataFolder;
 		$fileName = "{$dataPath}/export/" . basename($file);
 		if ((pathinfo($fileName)["extension"] ?? "") !== "json") {
 			$fileName .= ".json";
@@ -105,7 +109,7 @@ class ExportController {
 		if (!@file_exists("{$dataPath}/export")) {
 			@mkdir("{$dataPath}/export", 0700);
 		}
-		if (($this->chatBot->vars["use_proxy"] ?? 0) == 1) {
+		if ($this->config->useProxy) {
 			if (!$this->chatBot->proxyCapabilities->supportsBuddyMode(ProxyCapabilities::SEND_BY_WORKER)) {
 				$context->reply(
 					"You are using an unsupported proxy version. ".
@@ -243,9 +247,9 @@ class ExportController {
 			];
 			$exported[$member->name] = true;
 		}
-		if (!isset($exported[$this->chatBot->vars["SuperAdmin"]])) {
+		if (!isset($exported[$this->config->superAdmin])) {
 			$result []= (object)[
-				"character" => $this->toChar($this->chatBot->vars["SuperAdmin"]),
+				"character" => $this->toChar($this->config->superAdmin),
 				"autoInvite" => false,
 				"rank" => "superadmin",
 			];

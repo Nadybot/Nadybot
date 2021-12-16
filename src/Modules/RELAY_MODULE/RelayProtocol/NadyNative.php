@@ -5,6 +5,7 @@ namespace Nadybot\Modules\RELAY_MODULE\RelayProtocol;
 use Nadybot\Core\Attributes as NCA;
 use JsonException;
 use Nadybot\Core\{
+	ConfigFile,
 	EventManager,
 	LoggerWrapper,
 	Nadybot,
@@ -52,6 +53,9 @@ class NadyNative implements RelayProtocolInterface {
 
 	#[NCA\Inject]
 	public Nadybot $chatBot;
+
+	#[NCA\Inject]
+	public ConfigFile $config;
 
 	#[NCA\Inject]
 	public SettingManager $settingManager;
@@ -263,7 +267,7 @@ class NadyNative implements RelayProtocolInterface {
 	protected function getOnlineList(): OnlineList {
 		$onlineList = new OnlineList();
 		$onlineOrg = $this->onlineController->getPlayers('guild', $this->chatBot->char->name);
-		$isOrg = strlen($this->chatBot->vars["my_guild"] ?? "") ;
+		$isOrg = strlen($this->config->orgName);
 		/** @psalm-suppress DocblockTypeContradiction */
 		if ($isOrg) {
 			$block = new OnlineBlock();
@@ -273,14 +277,14 @@ class NadyNative implements RelayProtocolInterface {
 			}
 			$block->path []= new Source(
 				Source::ORG,
-				$this->chatBot->vars["my_guild"],
+				$this->config->orgName,
 				$orgLabel
 			);
 			foreach ($onlineOrg as $player) {
 				$block->users []= new Character(
 					$player->name,
 					$player->charid ?? null,
-					$player->dimension ?? (int)$this->chatBot->vars['dimension']
+					$player->dimension ?? $this->config->dimension
 				);
 			}
 			$onlineList->online []= $block;
@@ -302,7 +306,7 @@ class NadyNative implements RelayProtocolInterface {
 			$privBlock->users []= new Character(
 				$player->name,
 				$player->charid ?? null,
-				$player->dimension ?? (int)$this->chatBot->vars['dimension']
+				$player->dimension ?? $this->config->dimension
 			);
 		}
 		$onlineList->online []= $privBlock;
@@ -338,7 +342,7 @@ class NadyNative implements RelayProtocolInterface {
 	public function handleSyncEvent(SyncEvent $event): void {
 		if (isset($event->sourceBot)
 			&& isset($event->sourceDimension)
-			&& ($event->sourceDimension !== (int)$this->chatBot->vars["dimension"]
+			&& ($event->sourceDimension !== $this->config->dimension
 				|| $event->sourceBot !== $this->chatBot->char->name)
 		) {
 			// We don't want to relay other bot's events
@@ -349,7 +353,7 @@ class NadyNative implements RelayProtocolInterface {
 		}
 		$sEvent = clone $event;
 		$sEvent->sourceBot = $this->chatBot->char->name;
-		$sEvent->sourceDimension = (int)$this->chatBot->vars["dimension"];
+		$sEvent->sourceDimension = $this->config->dimension;
 		$rEvent = new RoutableEvent();
 		$rEvent->setType($rEvent::TYPE_EVENT);
 		$rEvent->setData($sEvent);

@@ -10,8 +10,8 @@ use Nadybot\Core\{
 	CmdContext,
 	ColorSettingHandler,
 	CommandAlias,
+	ConfigFile,
 	DB,
-	Event,
 	LoggerWrapper,
 	MessageHub,
 	StopExecutionException,
@@ -52,6 +52,9 @@ class TradebotController {
 
 	#[NCA\Inject]
 	public CommandAlias $commandAlias;
+
+	#[NCA\Inject]
+	public ConfigFile $config;
 
 	#[NCA\Inject]
 	public Nadybot $chatBot;
@@ -232,8 +235,7 @@ class TradebotController {
 			$msg = "Please make sure to use <highlight><symbol>route add tradebot(*) -&gt; aopriv<end> ".
 				"or <highlight><symbol>route add tradebot(*) -&gt; aoorg<end> to ".
 				"set up message routing between the tradebot and your org- and/or private channel.";
-			/** @psalm-suppress DocblockTypeContradiction */
-			if (strlen($this->chatBot->vars["my_guild"]??"")) {
+			if (strlen($this->config->orgName)) {
 				$this->chatBot->sendGuild($msg, true);
 			} else {
 				$this->chatBot->sendPrivate($msg, true);

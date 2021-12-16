@@ -8,6 +8,7 @@ use Exception;
 use Nadybot\Core\BotRunner;
 use Nadybot\Core\CmdContext;
 use Nadybot\Core\CommandReply;
+use Nadybot\Core\ConfigFile;
 use Nadybot\Core\DB;
 use Nadybot\Core\EventManager;
 use Nadybot\Core\Http;
@@ -54,6 +55,9 @@ class WebUiController implements MessageEmitter {
 
 	#[NCA\Inject]
 	public Nadybot $chatBot;
+
+	#[NCA\Inject]
+	public ConfigFile $config;
 
 	#[NCA\Inject]
 	public DB $db;
@@ -243,7 +247,7 @@ class WebUiController implements MessageEmitter {
 		}
 		$schema = "http"; /*$this->settingManager->getBool('webserver_tls') ? "https" : "http";*/
 		$port = $this->settingManager->getInt('webserver_port');
-		$superUser = $this->chatBot->vars['SuperAdmin'];
+		$superUser = $this->config->superAdmin;
 		$uuid = $this->webserverController->authenticate($superUser, 6 * 3600);
 		$this->logger->notice(
 			">>> You can now configure this bot at {$schema}://127.0.0.1:{$port}/"
@@ -264,7 +268,7 @@ class WebUiController implements MessageEmitter {
 		if ($updateDB && $this->settingManager->exists("nadyui_version")) {
 			$this->settingManager->save("nadyui_version", "0");
 		}
-		$path = $this->chatBot->vars["htmlfolder"] ?? "./html";
+		$path = $this->config->htmlFolder;
 		return (realpath("{$path}/css") ? $this->recursiveRemoveDirectory(realpath("{$path}/css")) : true)
 			&& (realpath("{$path}/img") ? $this->recursiveRemoveDirectory(realpath("{$path}/img")) : true)
 			&& (realpath("{$path}/js")  ? $this->recursiveRemoveDirectory(realpath("{$path}/js")) : true)
@@ -308,7 +312,7 @@ class WebUiController implements MessageEmitter {
 			if ($openResult !== true) {
 				throw new Exception("Error opening {$archiveName}. Code {$openResult}.");
 			}
-			$path = realpath($this->chatBot->vars["htmlfolder"] ?? "./html");
+			$path = realpath($this->config->htmlFolder);
 			if ($path === false || $extractor->extractTo($path) === false) {
 				throw new Exception("Error extracting {$archiveName}.");
 			}

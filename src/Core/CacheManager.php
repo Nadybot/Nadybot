@@ -20,6 +20,9 @@ class CacheManager {
 	#[NCA\Inject]
 	public Util $util;
 
+	#[NCA\Inject]
+	public ConfigFile $config;
+
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
@@ -33,7 +36,7 @@ class CacheManager {
 	 */
 	#[NCA\Setup]
 	public function init(): void {
-		$this->cacheDir = $this->chatBot->vars["cachefolder"];
+		$this->cacheDir = $this->config->cacheFolder;
 
 		//Making sure that the cache folder exists
 		if (!@is_dir($this->cacheDir)) {

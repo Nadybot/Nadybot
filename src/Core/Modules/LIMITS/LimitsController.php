@@ -7,6 +7,7 @@ use Nadybot\Core\{
 	AccessManager,
 	CmdEvent,
 	CommandHandler,
+	ConfigFile,
 	LoggerWrapper,
 	MessageHub,
 	Nadybot,
@@ -64,6 +65,9 @@ class LimitsController {
 
 	#[NCA\Inject]
 	public Timer $timer;
+
+	#[NCA\Inject]
+	public ConfigFile $config;
 
 	#[NCA\Inject]
 	public RateIgnoreController $rateIgnoreController;
@@ -292,7 +296,7 @@ class LimitsController {
 			}
 			$this->playerHistoryManager->asyncLookup(
 				$sender,
-				(int)$this->chatBot->vars['dimension'],
+				$this->config->dimension,
 				/** @param mixed $args */
 				function(?PlayerHistory $history, callable $errorHandler, callable $successHandler, ...$args): void {
 					$this->handleMinAgeRequirements($history, $errorHandler, $successHandler, ...$args);

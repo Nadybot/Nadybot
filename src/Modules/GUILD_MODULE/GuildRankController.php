@@ -8,6 +8,7 @@ use Nadybot\Core\{
 	AccessManager,
 	CmdContext,
 	CommandReply,
+	ConfigFile,
 	DB,
 	Nadybot,
 	SettingManager,
@@ -53,6 +54,9 @@ class GuildRankController {
 
 	#[NCA\Inject]
 	public Nadybot $chatBot;
+
+	#[NCA\Inject]
+	public ConfigFile $config;
 
 	#[NCA\Inject]
 	public AccessManager $accessManager;
@@ -117,7 +121,7 @@ class GuildRankController {
 			return;
 		}
 		$this->guildManager->getByIdAsync(
-			$this->chatBot->vars["my_guild_id"],
+			$this->config->orgId??0,
 			null,
 			false,
 			[$this, "displayRankMappings"],
@@ -168,7 +172,7 @@ class GuildRankController {
 			return;
 		}
 		$this->guildManager->getByIdAsync(
-			$this->chatBot->vars["my_guild_id"],
+			$this->config->orgId??0,
 			null,
 			false,
 			[$this, "setRankMapping"],
@@ -250,7 +254,7 @@ class GuildRankController {
 			return;
 		}
 		$this->guildManager->getByIdAsync(
-			$this->chatBot->vars["my_guild_id"],
+			$this->config->orgId??0,
 			null,
 			false,
 			[$this, "delRankMapping"],
@@ -302,7 +306,7 @@ class GuildRankController {
 			return;
 		}
 		$this->guildManager->getByIdAsync(
-			$this->chatBot->vars["my_guild_id"],
+			$this->config->orgId??0,
 			null,
 			false,
 			[$this, "displayGuildRanks"],

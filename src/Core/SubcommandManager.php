@@ -17,6 +17,9 @@ class SubcommandManager {
 	#[NCA\Inject]
 	public Util $util;
 
+	#[NCA\Inject]
+	public ConfigFile $config;
+
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
@@ -54,7 +57,7 @@ class SubcommandManager {
 		}
 
 		if ($defaultStatus === null) {
-			if ($this->chatBot->vars['default_module_status'] == 1) {
+			if ($this->config->defaultModuleStatus === 1) {
 				$status = 1;
 			} else {
 				$status = 0;

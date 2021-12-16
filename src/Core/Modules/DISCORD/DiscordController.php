@@ -4,6 +4,7 @@ namespace Nadybot\Core\Modules\DISCORD;
 
 use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{
+	ConfigFile,
 	Http,
 	LoggerWrapper,
 	Nadybot,
@@ -30,6 +31,9 @@ class DiscordController {
 
 	#[NCA\Inject]
 	public Http $http;
+
+	#[NCA\Inject]
+	public ConfigFile $config;
 
 	#[NCA\Inject]
 	public DiscordAPIClient $discordAPIClient;
@@ -120,8 +124,8 @@ class DiscordController {
 		$text = preg_replace('/((?:\d{4}-\d{2}-\d{2} )?\d+(?::\d+)+)/s', "`$1`", $text);
 		$text = preg_replace('/<(highlight|black|white|yellow|blue|green|red|orange|grey|cyan|violet|neutral|omni|clan|unknown|font [^>]*)><end>/s', '', $text);
 		$text = preg_replace('/<highlight>(.*?)<end>/s', '**$1**', $text);
-		$text = str_replace("<myname>", $this->chatBot->vars["name"], $text);
-		$text = str_replace("<myguild>", $this->chatBot->vars["my_guild"], $text);
+		$text = str_replace("<myname>", $this->chatBot->char->name, $text);
+		$text = str_replace("<myguild>", $this->config->orgName, $text);
 		$text = str_replace("<symbol>", $this->settingManager->getString("symbol")??"!", $text);
 		$text = str_replace("<br>", "\n", $text);
 		$text = str_replace("<tab>", "_ _  ", $text);

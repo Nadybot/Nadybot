@@ -10,6 +10,7 @@ use Nadybot\Core\{
 	CmdContext,
 	CommandAlias,
 	CommandManager,
+	ConfigFile,
 	DB,
 	DBSchema\Setting,
 	Event,
@@ -135,6 +136,9 @@ class SystemController implements MessageEmitter {
 	#[NCA\Inject]
 	public MessageHub $messageHub;
 
+	#[NCA\Inject]
+	public ConfigFile $config;
+
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
@@ -146,7 +150,7 @@ class SystemController implements MessageEmitter {
 
 		$this->helpManager->register($this->moduleName, "budatime", "budatime.txt", "all", "Format for budatime");
 
-		$name = $this->chatBot->vars['name'];
+		$name = $this->config->name;
 		$this->settingManager->add(
 			module: $this->moduleName,
 			name: "default_private_channel",
@@ -324,19 +328,19 @@ class SystemController implements MessageEmitter {
 		$info = new SystemInformation();
 
 		$info->basic = $basicInfo = new BasicSystemInformation();
-		$basicInfo->bot_name = $this->chatBot->vars["name"];
+		$basicInfo->bot_name = $this->chatBot->char->name;
 		$basicInfo->bot_version = $this->chatBot->runner::getVersion();
 		$basicInfo->db_type = $this->db->getType();
 		/** @psalm-suppress DocblockTypeContradiction */
-		$basicInfo->org = strlen($this->chatBot->vars['my_guild']??"")
-			? $this->chatBot->vars['my_guild']
+		$basicInfo->org = strlen($this->config->orgName)
+			? $this->config->orgName
 			: null;
-		$basicInfo->org_id = $this->chatBot->vars['my_guild_id'] ?? null;
+		$basicInfo->org_id = $this->config->orgId;
 		$basicInfo->php_version = phpversion();
 		$basicInfo->os = php_uname('s') . ' ' . php_uname('r') . ' ' . php_uname('m');
 		/** @psalm-suppress DocblockTypeContradiction */
-		$basicInfo->superadmin = strlen($this->chatBot->vars["SuperAdmin"]??"")
-			? $this->chatBot->vars["SuperAdmin"]
+		$basicInfo->superadmin = strlen($this->config->superAdmin)
+			? $this->config->superAdmin
 			: null;
 
 		$info->memory = $memory = new MemoryInformation();
@@ -346,8 +350,8 @@ class SystemController implements MessageEmitter {
 		$memory->peak_usage_real = memory_get_peak_usage(true);
 
 		$info->misc = $misc = new MiscSystemInformation();
-		$misc->uptime = time() - $this->chatBot->vars['startup'];
-		$misc->using_chat_proxy = ($this->chatBot->vars['use_proxy'] == 1);
+		$misc->uptime = time() - $this->chatBot->startup;
+		$misc->using_chat_proxy = ($this->config->useProxy === 1);
 		if ($misc->using_chat_proxy) {
 			$misc->proxy_capabilities = $this->chatBot->proxyCapabilities;
 		}

@@ -7,6 +7,7 @@ use Nadybot\Core\{
 	BotRunner,
 	CmdContext,
 	CommandManager,
+	ConfigFile,
 	LoggerWrapper,
 	MessageHub,
 	Nadybot,
@@ -40,6 +41,9 @@ class ConsoleController {
 
 	#[NCA\Inject]
 	public Timer $timer;
+
+	#[NCA\Inject]
+	public ConfigFile $config;
 
 	#[NCA\Inject]
 	public MessageHub $messageHub;
@@ -79,8 +83,9 @@ class ConsoleController {
 			options: "true;false",
 			intoptions: "1;0"
 		);
-		if ($this->chatBot->vars["enable_console_client"] &&!BotRunner::isWindows()) {
+		if ($this->config->enableConsoleClient &&!BotRunner::isWindows()) {
 			$handler = new ConsoleCommandReply($this->chatBot);
+			Registry::injectDependencies($handler);
 			$channel = new ConsoleChannel($handler);
 			Registry::injectDependencies($channel);
 			$this->messageHub->registerMessageReceiver($channel);
@@ -125,7 +130,7 @@ class ConsoleController {
 		defaultStatus: 1
 	)]
 	public function setupConsole(): void {
-		if (!$this->chatBot->vars["enable_console_client"]) {
+		if (!$this->config->enableConsoleClient) {
 			return;
 		}
 		if (BotRunner::isWindows()) {
@@ -194,10 +199,11 @@ class ConsoleController {
 			$this->saveHistory();
 			readline_callback_handler_install('> ', [$this, 'processLine']);
 		}
-		$context = new CmdContext($this->chatBot->vars["SuperAdmin"]);
+		$context = new CmdContext($this->config->superAdmin);
 		$context->channel = "msg";
 		$context->message = $line;
 		$context->sendto = new ConsoleCommandReply($this->chatBot);
+		Registry::injectDependencies($context->sendto);
 		$this->chatBot->getUid($context->char->name, function (?int $uid, CmdContext $context): void {
 			$context->char->id = $uid;
 			$this->commandManager->processCmd($context);

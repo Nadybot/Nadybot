@@ -9,6 +9,7 @@ use Nadybot\Core\{
 	AOChatPacket,
 	CmdContext,
 	CommandManager,
+	ConfigFile,
 	Event,
 	EventManager,
 	LoggerWrapper,
@@ -189,6 +190,9 @@ class TestController {
 	public Nadybot $chatBot;
 
 	#[NCA\Inject]
+	public ConfigFile $config;
+
+	#[NCA\Inject]
 	public Timer $timer;
 
 	#[NCA\Inject]
@@ -260,7 +264,7 @@ class TestController {
 
 		$files = $this->util->getFilesInDirectory($this->path);
 		$context->reply("Starting tests...");
-		$logFile = ($this->chatBot->vars["datafolder"] ?? "./data").
+		$logFile = $this->config->dataFolder.
 			"/tests-" . date("YmdHis", time()) . ".json";
 		$testLines = [];
 		foreach ($files as $file) {
@@ -283,7 +287,7 @@ class TestController {
 			$context->reply("Could not find test <highlight>$file<end> to run.");
 		} else {
 			$starttime = time();
-			$logFile = ($this->chatBot->vars["datafolder"] ?? "./data").
+			$logFile = $this->config->dataFolder.
 				"/tests-" . date("YmdHis", $starttime) . ".json";
 			$context->reply("Starting test $file...");
 			$this->runTests($lines, $testContext, $logFile);

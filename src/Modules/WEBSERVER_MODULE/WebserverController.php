@@ -9,11 +9,11 @@ use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{
 	AsyncHttp,
 	CmdContext,
+	ConfigFile,
 	DB,
 	Http,
 	HttpResponse,
 	LoggerWrapper,
-	Nadybot,
 	Registry,
 	SettingManager,
 	Socket,
@@ -54,7 +54,7 @@ class WebserverController {
 	public Socket $socket;
 
 	#[NCA\Inject]
-	public Nadybot $chatBot;
+	public ConfigFile $config;
 
 	#[NCA\Inject]
 	public Timer $timer;
@@ -457,10 +457,10 @@ class WebserverController {
 			"countryName" => "XX",
 			"localityName" => "Anarchy Online",
 			"commonName" => gethostname(),
-			"organizationName" => $this->chatBot->vars['name'],
+			"organizationName" => $this->config->name,
 		];
-		if (!empty($this->chatBot->vars['my_guild'])) {
-			$dn["organizationName"] = $this->chatBot->vars['my_guild'];
+		if (!empty($this->config->orgName)) {
+			$dn["organizationName"] = $this->config->orgName;
 		}
 
 		$privKey = openssl_pkey_new();
@@ -512,7 +512,7 @@ class WebserverController {
 			if ($authType === static::AUTH_BASIC) {
 				$server->httpError(new Response(
 					Response::UNAUTHORIZED,
-					["WWW-Authenticate" => "Basic realm=\"{$this->chatBot->vars['name']}\""],
+					["WWW-Authenticate" => "Basic realm=\"{$this->config->name}\""],
 				));
 			} elseif ($authType === static::AUTH_AOAUTH) {
 				$baseUrl = $this->settingManager->getString('webserver_base_url')??"";
@@ -579,7 +579,7 @@ class WebserverController {
 	}
 
 	protected function serveStaticFile(Request $request): Response {
-		$path = $this->chatBot->vars["htmlfolder"] ?? "./html";
+		$path = $this->config->htmlFolder;
 		$realFile = realpath("{$path}/{$request->path}");
 		$realBaseDir = realpath("{$path}/");
 		if (
