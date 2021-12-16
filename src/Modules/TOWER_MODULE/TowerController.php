@@ -1667,7 +1667,7 @@ class TowerController {
 
 		$this->timerController->add(
 			"Plant " . strip_tags($timerLocation),
-			$this->chatBot->vars['name'],
+			$this->chatBot->char->name,
 			$this->settingManager->getInt('tower_plant_timer') === 1 ? "priv": "guild",
 			$alerts,
 			'timercontroller.timerCallback'

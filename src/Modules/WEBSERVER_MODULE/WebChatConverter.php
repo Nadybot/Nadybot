@@ -3,8 +3,8 @@
 namespace Nadybot\Modules\WEBSERVER_MODULE;
 
 use Nadybot\Core\Attributes as NCA;
+use Nadybot\Core\ConfigFile;
 use Nadybot\Core\MessageHub;
-use Nadybot\Core\Nadybot;
 use Nadybot\Core\Routing\Source;
 use Nadybot\Core\SettingManager;
 
@@ -15,7 +15,7 @@ use Nadybot\Core\SettingManager;
 class WebChatConverter {
 
 	#[NCA\Inject]
-	public Nadybot $chatBot;
+	public ConfigFile $config;
 
 	#[NCA\Inject]
 	public SettingManager $settingManager;
@@ -132,8 +132,8 @@ class WebChatConverter {
 		];
 
 		$symbols = [
-			"<myname>" => $this->chatBot->vars["name"],
-			"<myguild>" => $this->chatBot->vars["my_guild"],
+			"<myname>" => $this->config->name,
+			"<myguild>" => $this->config->orgName,
 			"<tab>" => "<indent />",
 			"<symbol>" => "",
 			"<br>" => "<br />",

@@ -6,6 +6,7 @@ use Nadybot\Core\Attributes as NCA;
 use DateTimeZone;
 use Nadybot\Core\{
 	CmdContext,
+	ConfigFile,
 	Nadybot,
 	Text,
 };
@@ -39,6 +40,9 @@ class TimezoneController {
 	#[NCA\Inject]
 	public Nadybot $chatBot;
 
+	#[NCA\Inject]
+	public ConfigFile $config;
+
 	#[NCA\HandlesCommand("timezone")]
 	public function timezoneCommand(CmdContext $context): void {
 		$timezoneAreas = $this->getTimezoneAreas();
@@ -61,10 +65,8 @@ class TimezoneController {
 			return;
 		}
 		$msg = "Timezone has been set to <highlight>{$timezone}<end>.";
-		$config = $this->chatBot->runner->getConfigFile();
-		$config->load();
-		$config->setVar('timezone', $timezone);
-		$config->save();
+		$this->config->timezone = $timezone();
+		$this->config->save();
 		$context->reply($msg);
 	}
 

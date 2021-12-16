@@ -5,6 +5,7 @@ namespace Nadybot\Modules\PRIVATE_CHANNEL_MODULE;
 use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\AOChatEvent;
 use Nadybot\Core\CmdContext;
+use Nadybot\Core\ConfigFile;
 use Nadybot\Core\Nadybot;
 use Nadybot\Core\Text;
 
@@ -32,15 +33,15 @@ class RulesController {
 	#[NCA\Inject]
 	public Text $text;
 
-	/**
-	 * @var \Nadybot\Core\Nadybot $chatBot
-	 */
 	#[NCA\Inject]
 	public Nadybot $chatBot;
 
+	#[NCA\Inject]
+	public ConfigFile $config;
+
 	#[NCA\HandlesCommand("rules")]
 	public function rulesCommand(CmdContext $context): void {
-		$dataPath = $this->chatBot->vars["datafolder"] ?? "./data";
+		$dataPath = $this->config->dataFolder;
 		if (!@file_exists("{$dataPath}/rules.txt")) {
 			$context->reply("This bot does not have any rules defined yet.");
 			return;
@@ -59,7 +60,7 @@ class RulesController {
 		description: "If you defined rules, send them to people joining the private channel"
 	)]
 	public function joinPrivateChannelShowRulesEvent(AOChatEvent $eventObj): void {
-		$dataPath = $this->chatBot->vars["datafolder"] ?? "./data";
+		$dataPath = $this->config->dataFolder;
 		if (
 			!is_string($eventObj->sender)
 			|| !@file_exists("{$dataPath}/rules.txt")

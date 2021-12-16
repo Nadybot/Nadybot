@@ -8,6 +8,7 @@ use Nadybot\Core\{
 	CmdContext,
 	CommandAlias,
 	CommandReply,
+	ConfigFile,
 	Event,
 	DB,
 	DBSchema\Player,
@@ -55,6 +56,9 @@ class WhoisController {
 
 	#[NCA\Inject]
 	public Nadybot $chatBot;
+
+	#[NCA\Inject]
+	public ConfigFile $config;
 
 	#[NCA\Inject]
 	public Text $text;
@@ -254,7 +258,7 @@ class WhoisController {
 	public function whoisNameCommand(CmdContext $context, PCharacter $char): void {
 		$name = $char();
 		$this->chatBot->getUid($name, function(?int $uid) use ($context, $name): void {
-			$dimension = (int)$this->chatBot->vars['dimension'];
+			$dimension = $this->config->dimension;
 			if (isset($uid)) {
 				$online = $this->buddylistManager->isOnline($name);
 				if ($online === null) {
@@ -299,7 +303,7 @@ class WhoisController {
 				$blob .= "Character ID: <highlight>{$charID}<end> {$lookupCharIdLink}\n\n";
 			}
 			if (is_int($charID)) {
-				$blob .= $this->getNameHistory($charID, $this->chatBot->vars['dimension']);
+				$blob .= $this->getNameHistory($charID, $this->config->dimension);
 			}
 
 			$msg = $this->text->makeBlob("Basic Info for $name", $blob);
@@ -338,7 +342,7 @@ class WhoisController {
 		$blob .= "Source: <highlight>{$whois->source}<end>\n\n";
 
 		if ($charID !== false) {
-			$blob .= $this->getNameHistory($charID, $this->chatBot->vars['dimension']);
+			$blob .= $this->getNameHistory($charID, $this->config->dimension);
 		}
 
 		$msg = $this->playerManager->getInfo($whois);

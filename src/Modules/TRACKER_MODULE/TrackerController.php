@@ -9,6 +9,7 @@ use Nadybot\Core\{
 	AdminManager,
 	BuddylistManager,
 	CmdContext,
+	ConfigFile,
 	DB,
 	DBSchema\Player,
 	Event,
@@ -96,6 +97,9 @@ class TrackerController implements MessageEmitter {
 
 	#[NCA\Inject]
 	public Nadybot $chatBot;
+
+	#[NCA\Inject]
+	public ConfigFile $config;
 
 	#[NCA\Inject]
 	public SettingManager $settingManager;
@@ -258,7 +262,7 @@ class TrackerController implements MessageEmitter {
 			// Get the org info
 			$this->guildManager->getByIdAsync(
 				$org->org_id,
-				$this->chatBot->vars["dimension"],
+				$this->config->dimension,
 				true,
 				[$this, "updateRosterForOrg"],
 				function() use (&$i) {
@@ -287,7 +291,7 @@ class TrackerController implements MessageEmitter {
 			return;
 		}
 		if ($trackWho === self::ATT_OWN_ORG ) {
-			$attackingMyOrg = isset($defGuild) && $defGuild === $this->chatBot->vars["my_guild"];
+			$attackingMyOrg = isset($defGuild) && $defGuild === $this->config->orgName;
 			if (!$attackingMyOrg) {
 				return;
 			}
@@ -617,7 +621,7 @@ class TrackerController implements MessageEmitter {
 		$context->reply("Adding <" . strtolower($org->faction) . ">{$org->name}<end> to the tracker.");
 		$this->guildManager->getByIdAsync(
 			$orgId,
-			(int)$this->chatBot->vars["dimension"],
+			$this->config->dimension,
 			true,
 			[$this, "updateRosterForOrg"],
 			[$context, "reply"],

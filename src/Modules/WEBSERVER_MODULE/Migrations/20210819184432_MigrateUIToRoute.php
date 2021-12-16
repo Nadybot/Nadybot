@@ -3,8 +3,8 @@
 namespace Nadybot\Modules\WEBSERVER_MODULE\Migrations;
 
 use Nadybot\Core\Attributes as NCA;
+use Nadybot\Core\ConfigFile;
 use Nadybot\Core\DB;
-use Nadybot\Core\Nadybot;
 use Nadybot\Core\DBSchema\Route;
 use Nadybot\Core\LoggerWrapper;
 use Nadybot\Core\MessageHub;
@@ -13,7 +13,7 @@ use Nadybot\Core\SchemaMigration;
 
 class MigrateUIToRoute implements SchemaMigration {
 	#[NCA\Inject]
-	public Nadybot $chatBot;
+	public ConfigFile $config;
 
 	#[NCA\Inject]
 	public MessageHub $messageHub;
@@ -22,11 +22,10 @@ class MigrateUIToRoute implements SchemaMigration {
 		$table = $this->messageHub::DB_TABLE_ROUTES;
 		$route = new Route();
 		$route->source = Source::SYSTEM . "(webui)";
-		/** @psalm-suppress DocblockTypeContradiction */
-		if (strlen($this->chatBot->vars["my_guild"]??"")) {
+		if (strlen($this->config->orgName)) {
 			$route->destination = Source::ORG;
 		} else {
-			$route->destination = Source::PRIV . "(" . $this->chatBot->vars["name"] . ")";
+			$route->destination = Source::PRIV . "({$this->config->name})";
 		}
 		$db->insert($table, $route);
 	}

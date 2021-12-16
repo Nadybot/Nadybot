@@ -4,6 +4,7 @@ namespace Nadybot\Modules\RELAY_MODULE;
 
 use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{
+	ConfigFile,
 	DBSchema\Player,
 	LoggerWrapper,
 	MessageHub,
@@ -32,6 +33,9 @@ class Relay implements MessageReceiver {
 
 	#[NCA\Inject]
 	public Nadybot $chatBot;
+
+	#[NCA\Inject]
+	public ConfigFile $config;
 
 	#[NCA\Inject]
 	public SettingManager $settingManager;
@@ -353,12 +357,12 @@ class Relay implements MessageReceiver {
 	 * when we send data, so it can always be traced to us
 	 */
 	protected function prependMainHop(RoutableEvent $event): void {
-		$isOrgBot = strlen($this->chatBot->vars["my_guild"]??"") > 0;
+		$isOrgBot = strlen($this->config->orgName) > 0;
 		if (!empty($event->path) && $event->path[0]->type !== Source::ORG && $isOrgBot) {
 			$abbr = $this->settingManager->getString("relay_guild_abbreviation");
 			$event->prependPath(new Source(
 				Source::ORG,
-				$this->chatBot->vars["my_guild"],
+				$this->config->orgName,
 				($abbr === "none") ? null : $abbr
 			));
 		} elseif (!empty($event->path) && $event->path[0]->type !== Source::PRIV && !$isOrgBot) {

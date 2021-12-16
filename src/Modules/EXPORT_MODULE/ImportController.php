@@ -9,6 +9,7 @@ use Nadybot\Core\{
 	AccessManager,
 	AdminManager,
 	CmdContext,
+	ConfigFile,
 	DB,
 	LoggerWrapper,
 	Modules\BAN\BanController,
@@ -98,6 +99,9 @@ class ImportController {
 	#[NCA\Inject]
 	public RaidRankController $raidRankController;
 
+	#[NCA\Inject]
+	public ConfigFile $config;
+
 	protected function loadAndParseExportFile(string $fileName, CmdContext $sendto): ?object {
 		if (!@file_exists($fileName)) {
 			$sendto->reply("No export file <highlight>{$fileName}<end> found.");
@@ -129,7 +133,7 @@ class ImportController {
 
 	#[NCA\HandlesCommand("import")]
 	public function importCommand(CmdContext $context, PFilename $file, #[NCA\Regexp("\w+=\w+")] ?string ...$mappings): void {
-		$dataPath = $this->chatBot->vars["datafolder"] ?? "./data";
+		$dataPath = $this->config->dataFolder;
 		$fileName = "{$dataPath}/export/" . basename($file());
 		if ((pathinfo($fileName)["extension"] ?? "") !== "json") {
 			$fileName .= ".json";

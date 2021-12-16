@@ -7,6 +7,7 @@ use Nadybot\Core\{
 	CmdContext,
 	CommandAlias,
 	CommandManager,
+	ConfigFile,
 	DB,
 	EventManager,
 	LoggerWrapper,
@@ -79,6 +80,9 @@ class ProfileController {
 	#[NCA\Inject]
 	public RelayController $relayController;
 
+	#[NCA\Inject]
+	public ConfigFile $config;
+
 	private string $path;
 
 	/**
@@ -86,7 +90,7 @@ class ProfileController {
 	 */
 	#[NCA\Setup]
 	public function setup(): void {
-		$dataPath = $this->chatBot->vars["datafolder"] ?? "./data";
+		$dataPath = $this->config->dataFolder;
 		$this->path = "{$dataPath}/profiles/";
 
 		// make sure that the profile folder exists

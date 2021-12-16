@@ -253,7 +253,7 @@ class MassMsgController {
 			if ($uid === false || $this->banController->isBanned($uid)) {
 				continue;
 			}
-			if ($name === $this->chatBot->vars["name"]
+			if ($name === $this->chatBot->char->name
 				|| !$this->accessManager->checkAccess($name, "member")) {
 				continue;
 			}

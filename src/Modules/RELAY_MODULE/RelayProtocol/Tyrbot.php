@@ -5,6 +5,7 @@ namespace Nadybot\Modules\RELAY_MODULE\RelayProtocol;
 use Nadybot\Core\Attributes as NCA;
 use JsonException;
 use Nadybot\Core\{
+	ConfigFile,
 	LoggerWrapper,
 	Nadybot,
 	Routing\Character,
@@ -55,6 +56,9 @@ class Tyrbot implements RelayProtocolInterface {
 
 	#[NCA\Inject]
 	public Nadybot $chatBot;
+
+	#[NCA\Inject]
+	public ConfigFile $config;
 
 	#[NCA\Inject]
 	public OnlineController $onlineController;
@@ -273,10 +277,10 @@ class Tyrbot implements RelayProtocolInterface {
 		];
 		$onlineOrg = $this->onlineController->getPlayers('guild', $this->chatBot->char->name);
 		/** @psalm-suppress DocblockTypeContradiction */
-		if (strlen($this->chatBot->vars["my_guild"]??"")) {
+		if (strlen($this->config->orgName)) {
 			$orgSource = [
-				"name" => $this->chatBot->vars["my_guild"],
-				"server" => (int)$this->chatBot->vars["dimension"],
+				"name" => $this->config->orgName,
+				"server" => $this->config->dimension,
 			];
 			$orgLabel = $this->settingManager->getString("relay_guild_abbreviation");
 			if (strlen($orgLabel??"") && $orgLabel !== "none") {
@@ -299,10 +303,10 @@ class Tyrbot implements RelayProtocolInterface {
 		$onlinePriv = $this->onlineController->getPlayers('priv', $this->chatBot->char->name);
 		$privSource = [
 			"name" => $this->chatBot->char->name,
-			"server" => (int)$this->chatBot->vars["dimension"],
+			"server" => $this->config->dimension,
 		];
 		/** @psalm-suppress DocblockTypeContradiction */
-		if (strlen($this->chatBot->vars["my_guild"]??"")) {
+		if (strlen($this->config->orgName)) {
 			if (isset($orgLabel) && $orgLabel !== "none") {
 				$privSource['label'] = $orgLabel;
 			}
