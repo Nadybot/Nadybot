@@ -14,7 +14,7 @@ class CreateRaffleBonusTable implements SchemaMigration {
 		if ($db->schema()->hasTable($table)) {
 			return;
 		}
-		$db->schema()->create($table, function(Blueprint $table) {
+		$db->schema()->create($table, function(Blueprint $table): void {
 			$table->string("name", 20)->primary();
 			$table->integer("bonus")->default(0);
 		});

@@ -176,23 +176,23 @@ class Nadybot extends AOChat {
 
 		// To reduce queries load core items into memory
 		$this->db->table(CommandManager::DB_TABLE)->where("cmdevent", "subcmd")->asObj(CmdCfg::class)
-			->each(function(CmdCfg $row) {
+			->each(function(CmdCfg $row): void {
 				$this->existing_subcmds[$row->type][$row->cmd] = true;
 			});
 
 		$this->db->table(EventManager::DB_TABLE)->asObj(EventCfg::class)
-			->each(function(EventCfg $row) {
+			->each(function(EventCfg $row): void {
 				$this->existing_events[$row->type??""][$row->file??""] = true;
 			});
 
 		$this->db->table(HelpManager::DB_TABLE)->asObj(HlpCfg::class)
-			->each(function(HlpCfg $row) {
+			->each(function(HlpCfg $row): void {
 				$this->existing_helps[$row->name] = true;
 			});
 
 		$this->existing_settings = [];
 		$this->db->table(SettingManager::DB_TABLE)->asObj(Setting::class)
-			->each(function(Setting $row) {
+			->each(function(Setting $row): void {
 				$this->existing_settings[$row->name] = true;
 			});
 

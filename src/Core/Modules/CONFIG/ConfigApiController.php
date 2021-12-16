@@ -386,7 +386,7 @@ class ConfigApiController {
 			->where("type", "!=", "setup")
 			->where("module", $module)
 			->asObj(EventCfg::class)
-			->map(function (EventCfg $event) {
+			->map(function (EventCfg $event): ModuleEventConfig {
 				return new ModuleEventConfig($event);
 			});
 		return new ApiResponse($events->toArray());

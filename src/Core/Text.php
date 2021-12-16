@@ -54,7 +54,7 @@ class Text {
 	 * @param string|null $header If set, use $header as header, otherwise $name
 	 * @return string|string[] The string with link and reference or an array of strings if the message would be too big
 	 */
-	public function makeBlob(string $name, string $content, ?string $header=null, ?string $permanentHeader="") {
+	public function makeBlob(string $name, string $content, ?string $header=null, ?string $permanentHeader=""): string|array {
 		$header ??= $name;
 		$permanentHeader ??= "";
 
@@ -100,7 +100,7 @@ class Text {
 	 * @param string $content The content of the info window
 	 * @return string|string[] The string with link and reference or an array of strings if the message would be too big
 	 */
-	public function makeLegacyBlob(string $name, string $content) {
+	public function makeLegacyBlob(string $name, string $content): string|array {
 		// escape double quotes
 		$content = str_replace('"', '&quot;', $content);
 

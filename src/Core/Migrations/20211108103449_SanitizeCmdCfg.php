@@ -11,7 +11,7 @@ use Nadybot\Core\SchemaMigration;
 class SanitizeCmdCfg implements SchemaMigration {
 	public function migrate(LoggerWrapper $logger, DB $db): void {
 		$table = CommandManager::DB_TABLE;
-		$db->schema()->table($table, function(Blueprint $table) {
+		$db->schema()->table($table, function(Blueprint $table): void {
 			$table->string("module", 50)->nullable(false)->change();
 			$table->string("cmdevent", 6)->nullable(false)->change();
 			$table->string("type", 18)->nullable(false)->change();

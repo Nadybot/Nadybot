@@ -120,7 +120,7 @@ class SubcommandManager {
 				$has2 = (strpos($row2->cmd, '.') === false) ? 0 : 1;
 				return ($len2 <=> $len1) ?: ($has1 <=> $has2);
 			})
-			->each(function(CmdCfg $row) {
+			->each(function(CmdCfg $row): void {
 				$this->subcommands[$row->dependson] []= $row;
 			});
 	}

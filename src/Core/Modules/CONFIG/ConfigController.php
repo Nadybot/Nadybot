@@ -990,7 +990,7 @@ class ConfigController {
 			->orderBy("mode")
 			->orderBy("description")
 			->asObj(Setting::class)
-			->map(function (Setting $setting) {
+			->map(function (Setting $setting): ?SettingHandler {
 				return $this->settingManager->getSettingHandler($setting);
 			})
 			->filter()

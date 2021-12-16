@@ -97,7 +97,7 @@ class AlienMiscController {
 			->distinct()
 			->asObj()
 			->reduce(
-				function (string $blob, DBRow $row) {
+				function (string $blob, DBRow $row): string {
 					$professionLink = $this->text->makeChatcmd($row->profession, "/tell <myname> leprocs $row->profession");
 					return "{$blob}<tab>$professionLink\n";
 				},

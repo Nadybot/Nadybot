@@ -13,7 +13,7 @@ class CreateAlienweaponspecialsTable implements SchemaMigration {
 		if ($db->schema()->hasTable($table)) {
 			return;
 		}
-		$db->schema()->create($table, function(Blueprint $table) {
+		$db->schema()->create($table, function(Blueprint $table): void {
 			$table->integer("type");
 			$table->string("specials", 255);
 		});

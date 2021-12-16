@@ -163,7 +163,7 @@ class SilenceController {
 	public function overwriteCommandHandlersEvent(Event $eventObj): void {
 		$this->db->table(self::DB_TABLE)
 			->asObj(SilenceCmd::class)
-			->each(function (SilenceCmd $row) {
+			->each(function (SilenceCmd $row): void {
 				$this->commandManager->activate($row->channel, self::NULL_COMMAND_HANDLER, $row->cmd, 'all');
 			});
 	}

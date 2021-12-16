@@ -470,7 +470,7 @@ class DB {
 			if ($this->schema()->hasTable($table)) {
 				continue;
 			}
-			$this->schema()->create($table, function(Blueprint $table) {
+			$this->schema()->create($table, function(Blueprint $table): void {
 				$table->id();
 				$table->string('module');
 				$table->string('migration');

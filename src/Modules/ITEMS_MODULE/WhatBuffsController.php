@@ -358,7 +358,7 @@ class WhatBuffsController {
 	 * Gives a blob with all items buffing $skill in slot $category
 	 * @return string|string[]
 	 */
-	public function getSearchResults(string $category, Skill $skill, bool $froobFriendly) {
+	public function getSearchResults(string $category, Skill $skill, bool $froobFriendly): string|array {
 		$suffix = $froobFriendly ? "Froob" : "";
 		if ($category === 'Nanoprogram') {
 			$query = $this->db->table('buffs AS b');
@@ -570,8 +570,9 @@ class WhatBuffsController {
 	 * Format a list of item buff search results
 	 * @param ItemBuffSearchResult[] $items The items that matched the search
 	 * @return (int|string)[]
+	 * @psalm-return array{0: int, 1:string}
 	 */
-	public function formatItems(array $items, Skill $skill, string $category) {
+	public function formatItems(array $items, Skill $skill, string $category): array {
 		$showUniques = $this->settingManager->getInt('whatbuffs_show_unique');
 		$showNodrops = $this->settingManager->getInt('whatbuffs_show_nodrop');
 		$blob = "<header2>" . ucfirst($this->locationToItem($category)) . " that buff {$skill->name}<end>\n";
@@ -735,8 +736,9 @@ class WhatBuffsController {
 	/**
 	 * @param PerkBuffSearchResult[] $perks
 	 * @return (int|string)[]
+	 * @psalm-return array{0: int, 1:string}
 	 */
-	public function formatPerkBuffs(array $perks, Skill $skill) {
+	public function formatPerkBuffs(array $perks, Skill $skill): array {
 		$blob = "<header2>Perks that buff {$skill->name}<end>\n";
 		$maxBuff = 0;
 		foreach ($perks as $perk) {
@@ -768,8 +770,9 @@ class WhatBuffsController {
 	/**
 	 * @param NanoBuffSearchResult[] $items
 	 * @return (int|string)[]
+	 * @psalm-return array{0: int, 1: string}
 	 */
-	public function formatBuffs(array $items, Skill $skill) {
+	public function formatBuffs(array $items, Skill $skill): array {
 		$items = array_values(
 			array_filter(
 				$items,
@@ -810,7 +813,7 @@ class WhatBuffsController {
 	 * Show what buffs $skillName in slot $category
 	 * @return string|string[]
 	 */
-	public function showSearchResults(string $category, string $skillName, bool $froobFriendly) {
+	public function showSearchResults(string $category, string $skillName, bool $froobFriendly): string|array {
 		$category = ucfirst(strtolower($category));
 
 		$skills = $this->searchForSkill($skillName);

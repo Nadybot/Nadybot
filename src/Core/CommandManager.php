@@ -571,7 +571,7 @@ class CommandManager implements MessageEmitter {
 	 * Get the help text for a command
 	 * @return string|string[] The help text as one or more pages
 	 */
-	public function getHelpForCommand(string $cmd, string $channel, string $sender) {
+	public function getHelpForCommand(string $cmd, string $channel, string $sender): string|array {
 		$results = $this->get($cmd, $channel);
 		$result = $results[0];
 
@@ -592,7 +592,7 @@ class CommandManager implements MessageEmitter {
 	 * Check if a received message matches the stored Regexp handler of a method
 	 * @return string[]|bool|array<string,string[]> true if there is no regexp defined, false if it didn't match, otherwise an array with the matched results
 	 */
-	public function checkMatches(object $instance, string $method, string $message) {
+	public function checkMatches(object $instance, string $method, string $message): array|bool {
 		try {
 			$reflectedMethod = new ReflectionMethod($instance, $method);
 		} catch (ReflectionException $e) {

@@ -11,7 +11,7 @@ use Nadybot\Core\SchemaMigration;
 class AddIndexToCmdCfg implements SchemaMigration {
 	public function migrate(LoggerWrapper $logger, DB $db): void {
 		$table = CommandManager::DB_TABLE;
-		$db->schema()->table($table, function(Blueprint $table) {
+		$db->schema()->table($table, function(Blueprint $table): void {
 			$table->index(["cmdevent"]);
 			$table->index(["module", "status"]);
 		});

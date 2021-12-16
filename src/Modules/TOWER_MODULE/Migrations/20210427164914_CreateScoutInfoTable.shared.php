@@ -13,7 +13,7 @@ class CreateScoutInfoTable implements SchemaMigration {
 		if ($db->schema()->hasTable($table)) {
 			return;
 		}
-		$db->schema()->create($table, function(Blueprint $table) {
+		$db->schema()->create($table, function(Blueprint $table): void {
 			$table->integer("playfield_id");
 			$table->smallInteger("site_number");
 			$table->integer("scouted_on");

@@ -597,11 +597,11 @@ class TowerController {
 	public function getPFQuery(): QueryBuilder {
 		return $this->db->table("tower_site", "t")
 			->join("playfields AS p", "t.playfield_id", "=", "p.id")
-			->leftJoin("scout_info AS s", function (JoinClause $join) {
+			->leftJoin("scout_info AS s", function (JoinClause $join): void {
 				$join->on("s.playfield_id", "=", "t.playfield_id")
 					->on("s.site_number", "=", "t.site_number");
 			})
-			->leftJoin("organizations AS o", function (JoinClause $join) {
+			->leftJoin("organizations AS o", function (JoinClause $join): void {
 				$join->on("s.org_name", "=", "o.name")
 					->on("s.faction", "=", "o.faction");
 			})
@@ -851,7 +851,7 @@ class TowerController {
 	#[NCA\HandlesCommand("needsscout")]
 	public function needsScoutCommand(CmdContext $context, ?PPlayfield $playfield): void {
 		$query = $this->db->table("tower_site AS t")
-			->leftJoin("scout_info AS s", function (JoinClause $join) {
+			->leftJoin("scout_info AS s", function (JoinClause $join): void {
 				$join->on("t.playfield_id", "s.playfield_id")
 					->on("s.site_number", "t.site_number");
 			})->join("playfields AS p", "t.playfield_id", "p.id")
@@ -1004,11 +1004,11 @@ class TowerController {
 	public function getScoutPlusQuery(): QueryBuilder {
 		return $this->db->table("scout_info", "s")
 			->join("playfields AS p", "s.playfield_id", "=", "p.id")
-			->join("tower_site AS t", function (JoinClause $join) {
+			->join("tower_site AS t", function (JoinClause $join): void {
 				$join->on("s.playfield_id", "=", "t.playfield_id")
 					->on("s.site_number", "=", "t.site_number");
 			})
-			->leftJoin("organizations AS o", function (JoinClause $join) {
+			->leftJoin("organizations AS o", function (JoinClause $join): void {
 				$join->on("s.org_name", "=", "o.name")
 					->on("s.faction", "=", "o.faction");
 			})
@@ -1762,7 +1762,7 @@ class TowerController {
 
 		$query = $this->db->table(self::DB_TOWER_ATTACK, "a")
 			->leftJoin("playfields AS p", "a.playfield_id", "p.id")
-			->leftJoin("tower_site AS s", function (JoinClause $join) {
+			->leftJoin("tower_site AS s", function (JoinClause $join): void {
 				$join->on("a.playfield_id", "s.playfield_id")
 					->on("a.site_number", "s.site_number");
 			});
@@ -1838,7 +1838,7 @@ class TowerController {
 		$query = $this->db->table(self::DB_TOWER_VICTORY, "v")
 			->leftJoin(self::DB_TOWER_ATTACK . " AS a", "a.id", "v.attack_id")
 			->leftJoin("playfields AS p", "a.playfield_id", "p.id")
-			->leftJoin("tower_site AS s", function (JoinClause $join) {
+			->leftJoin("tower_site AS s", function (JoinClause $join): void {
 				$join->on("a.playfield_id", "s.playfield_id")
 					->on("a.site_number", "s.site_number");
 			})
@@ -2353,7 +2353,7 @@ class TowerController {
 		$query = $this->db->table(self::DB_TOWER_ATTACK, "a")
 			->leftJoin(self::DB_TOWER_VICTORY . " AS v", "v.attack_id", "a.id")
 			->join("playfields AS p", "a.playfield_id", "p.id")
-			->join("tower_site AS t", function (JoinClause $join) {
+			->join("tower_site AS t", function (JoinClause $join): void {
 				$join->on("a.playfield_id", "t.playfield_id")
 					->on("a.site_number", "t.site_number");
 			})

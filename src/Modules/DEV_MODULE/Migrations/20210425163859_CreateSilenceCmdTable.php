@@ -14,7 +14,7 @@ class CreateSilenceCmdTable implements SchemaMigration {
 		if ($db->schema()->hasTable($table)) {
 			return;
 		}
-		$db->schema()->create($table, function(Blueprint $table) {
+		$db->schema()->create($table, function(Blueprint $table): void {
 			$table->string("cmd", 25);
 			$table->string("channel", 18);
 		});

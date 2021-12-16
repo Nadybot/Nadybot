@@ -197,7 +197,7 @@ class QuoteController {
 	}
 
 	/** @return null|string|string[] */
-	public function getQuoteInfo(int $id=null) {
+	public function getQuoteInfo(int $id=null): null|string|array {
 		$count = $this->getMaxId();
 
 		if ($count === 0) {
@@ -240,7 +240,7 @@ class QuoteController {
 		$idList = $this->db->table("quote")
 			->where("poster", $poster)
 			->asObj(Quote::class)
-			->map(function (Quote $row) {
+			->map(function (Quote $row): string {
 				return $this->text->makeChatcmd(
 					(string)$row->id,
 					"/tell <myname> quote {$row->id}"

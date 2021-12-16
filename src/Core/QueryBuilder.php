@@ -310,7 +310,7 @@ class QueryBuilder extends Builder {
 		return $function;
 	}
 
-	public function newQuery() {
+	public function newQuery(): self {
 		$instance = new self($this->connection, $this->grammar, $this->processor);
 		$instance->nadyDB = $this->nadyDB;
 		return $instance;

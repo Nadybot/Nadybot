@@ -569,12 +569,11 @@ class WebsocketBase {
 		$this->socketManager->addSocketNotifier($this->notifier);
 	}
 
-	public function setTag(string $key, $value): void {
+	public function setTag(string $key, mixed $value): void {
 		$this->tags[$key] = $value;
 	}
 
-	/** @return mixed */
-	public function getTag(string $key) {
+	public function getTag(string $key): mixed {
 		return $this->tags[$key];
 	}
 }

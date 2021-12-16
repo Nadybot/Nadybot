@@ -14,7 +14,7 @@ class CreateCmdAliasTable implements SchemaMigration {
 		if ($db->schema()->hasTable($table)) {
 			return;
 		}
-		$db->schema()->create($table, function(Blueprint $table) {
+		$db->schema()->create($table, function(Blueprint $table): void {
 			$table->string("cmd", 255);
 			$table->string("module", 50)->nullable();
 			$table->string("alias", 25)->index();

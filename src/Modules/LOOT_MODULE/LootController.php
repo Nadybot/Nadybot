@@ -639,7 +639,7 @@ class LootController {
 	 * Get the current loot list
 	 * @return string|string[]
 	 */
-	public function getCurrentLootList() {
+	public function getCurrentLootList(): string|array {
 		if (empty($this->loot)) {
 			$msg = "No loot list exists yet.";
 			return $msg;
@@ -699,7 +699,7 @@ class LootController {
 
 		/** @var Collection<AODBEntry> */
 		$data = $this->db->table("raid_loot AS r")
-			->leftJoin("aodb AS a", function (JoinClause $join) {
+			->leftJoin("aodb AS a", function (JoinClause $join): void {
 				$join->on("r.name", "a.name")
 					->on("r.ql", ">=", "a.lowql")
 					->on("r.ql", "<=", "a.highql");

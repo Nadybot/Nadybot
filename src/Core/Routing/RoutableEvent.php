@@ -49,12 +49,11 @@ class RoutableEvent extends Event {
 		return $this;
 	}
 
-	/** @return mixed */
-	public function getData() {
+	public function getData(): mixed {
 		return $this->data;
 	}
 
-	public function setData($data): self {
+	public function setData(mixed $data): self {
 		$this->data = $data;
 		return $this;
 	}

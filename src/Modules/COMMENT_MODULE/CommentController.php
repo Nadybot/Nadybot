@@ -147,7 +147,7 @@ class CommentController {
 				$newCategoryTable = "comment_categories";
 				if (!$this->db->schema()->hasTable("comments")) {
 					$this->logger->notice('Creating table comments');
-					$this->db->schema()->create("comments", function(Blueprint $table) {
+					$this->db->schema()->create("comments", function(Blueprint $table): void {
 						$table->id();
 						$table->string("character", 15)->index();
 						$table->string("created_by", 15);
@@ -157,7 +157,7 @@ class CommentController {
 					});
 				}
 				if (!$this->db->schema()->hasTable("comment_categories")) {
-					$this->db->schema()->create("comment_categories", function(Blueprint $table) {
+					$this->db->schema()->create("comment_categories", function(Blueprint $table): void {
 						$table->string("name", 20)->primary();
 						$table->string("created_by", 15);
 						$table->integer("created_at");

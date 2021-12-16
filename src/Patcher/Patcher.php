@@ -22,7 +22,7 @@ class Patcher {
 	 * @param \Composer\Installer\PackageEvent $event
 	 * @return void
 	 */
-	public static function patch(PackageEvent $event) {
+	public static function patch(PackageEvent $event): void {
 		$vendorDir = $event->getComposer()->getConfig()->get('vendor-dir');
 		$operation = $event->getOperation();
 		if (method_exists($operation, 'getJobType')) {
@@ -52,7 +52,7 @@ class Patcher {
 	 * @param \Composer\Package\Package $package The package being installed
 	 * @return void
 	 */
-	public static function patchCodesniffer($vendorDir, Package $package) {
+	public static function patchCodesniffer($vendorDir, Package $package): void {
 		$file = $vendorDir . '/' . $package->getName() . '/CodeSniffer.conf.dist';
 		$oldContent = file_get_contents($file);
 		$newContent = "__DIR__.'/../../../style/Nadybot/ruleset.xml'";

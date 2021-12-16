@@ -183,7 +183,7 @@ class SettingManager {
 	 * @param string $name name of the setting to read
 	 * @return null|string|int|false the value of the setting, or false if a setting with that name does not exist
 	 */
-	public function get(string $name) {
+	public function get(string $name): null|string|int|false {
 		$name = strtolower($name);
 		if ($this->exists($name)) {
 			return $this->settings[$name]->value;
@@ -195,7 +195,7 @@ class SettingManager {
 	/**
 	 * @return int|bool|string|null
 	 */
-	public function getTyped(string $name) {
+	public function getTyped(string $name): int|bool|string|null {
 		$name = strtolower($name);
 		if ($this->exists($name)) {
 			return $this->settings[$name]->typed();

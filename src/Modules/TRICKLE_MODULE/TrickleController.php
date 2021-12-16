@@ -163,7 +163,7 @@ class TrickleController {
 			->orderBy("id")
 			->select("*")
 			->asObj(Trickle::class)
-			->filter(function (Trickle $row) use ($abilities) {
+			->filter(function (Trickle $row) use ($abilities): bool {
 				$row->amount = $row->amountAgi * $abilities->agi
 					+ $row->amountInt * $abilities->int
 					+ $row->amountPsy * $abilities->psy

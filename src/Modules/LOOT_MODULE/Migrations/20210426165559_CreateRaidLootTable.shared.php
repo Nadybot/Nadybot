@@ -11,7 +11,7 @@ class CreateRaidLootTable implements SchemaMigration {
 	public function migrate(LoggerWrapper $logger, DB $db): void {
 		$table = "raid_loot";
 		$db->schema()->dropIfExists($table);
-		$db->schema()->create($table, function(Blueprint $table) {
+		$db->schema()->create($table, function(Blueprint $table): void {
 			$table->integer("id")->primary();
 			$table->string("raid", 30)->index();
 			$table->string("category", 50)->index();
