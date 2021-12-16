@@ -2,9 +2,9 @@
 
 namespace Nadybot\Modules\TOWER_MODULE;
 
-use Spatie\DataTransferObject\FlexibleDataTransferObject;
+use Spatie\DataTransferObject\DataTransferObject;
 
-class ApiSite extends FlexibleDataTransferObject {
+class ApiSite extends DataTransferObject {
 	public int $playfield_id;
 	public string $playfield_long_name;
 	public string $playfield_short_name;

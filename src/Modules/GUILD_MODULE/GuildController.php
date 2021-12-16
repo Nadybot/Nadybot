@@ -9,6 +9,7 @@ use Nadybot\Core\{
 	AOChatEvent,
 	BuddylistManager,
 	CmdContext,
+	ConfigFile,
 	DB,
 	DBRow,
 	Event,
@@ -95,6 +96,9 @@ class GuildController {
 
 	#[NCA\Inject]
 	public Nadybot $chatBot;
+
+	#[NCA\Inject]
+	public ConfigFile $config;
 
 	#[NCA\Inject]
 	public SettingManager $settingManager;
@@ -452,15 +456,15 @@ class GuildController {
 	}
 
 	public function updateOrgRoster(?callable $callback=null, ...$args): void {
-		if (!$this->isGuildBot()) {
+		if (!$this->isGuildBot() || !isset($this->config->orgId)) {
 			return;
 		}
 		$this->logger->notice("Starting Roster update");
 
 		// Get the guild info
 		$this->guildManager->getByIdAsync(
-			$this->chatBot->vars["my_guild_id"],
-			$this->chatBot->vars["dimension"],
+			$this->config->orgId,
+			$this->config->dimension,
 			true,
 			[$this, "updateRosterForGuild"],
 			$callback,
@@ -503,7 +507,7 @@ class GuildController {
 		// Going through each member of the org and add or update his/her
 		foreach ($org->members as $member) {
 			// don't do anything if $member is the bot itself
-			if (strtolower($member->name) === strtolower($this->chatBot->vars["name"])) {
+			if (strtolower($member->name) === strtolower($this->chatBot->char->name)) {
 				continue;
 			}
 
@@ -570,7 +574,7 @@ class GuildController {
 		$abbr = $this->settingManager->getString('relay_guild_abbreviation');
 		$re->prependPath(new Source(
 			Source::ORG,
-			$this->chatBot->vars["my_guild"],
+			$this->config->orgName,
 			($abbr === "none") ? null : $abbr
 		));
 		$re->setData($event);
@@ -779,8 +783,8 @@ class GuildController {
 	}
 
 	public function isGuildBot(): bool {
-		return !empty($this->chatBot->vars["my_guild"])
-			&& !empty($this->chatBot->vars["my_guild_id"]);
+		return !empty($this->config->orgName)
+			&& !empty($this->config->orgId);
 	}
 
 	#[NCA\Event(
@@ -788,17 +792,17 @@ class GuildController {
 		description: "Verifies that org name is correct"
 	)]
 	public function verifyOrgNameEvent(Event $eventObj): void {
-		if (empty($this->chatBot->vars["my_guild"])) {
+		if (empty($this->config->orgName)) {
 			return;
 		}
-		if (empty($this->chatBot->vars["my_guild_id"])) {
-			$this->logger->warning("Org name '{$this->chatBot->vars["my_guild"]}' specified, but bot does not appear to belong to an org");
+		if (empty($this->config->orgId)) {
+			$this->logger->warning("Org name '{$this->config->orgName}' specified, but bot does not appear to belong to an org");
 			return;
 		}
-		$gid = $this->getOrgChannelIdByOrgId($this->chatBot->vars["my_guild_id"]);
+		$gid = $this->getOrgChannelIdByOrgId($this->config->orgId);
 		$orgChannel = $this->chatBot->gid[$gid]??null;
-		if (isset($orgChannel) && $orgChannel !== "Clan (name unknown)" && $orgChannel !== $this->chatBot->vars["my_guild"]) {
-			$this->logger->warning("Org name '{$this->chatBot->vars["my_guild"]}' specified, but bot belongs to org '$orgChannel'");
+		if (isset($orgChannel) && $orgChannel !== "Clan (name unknown)" && $orgChannel !== $this->config->orgName) {
+			$this->logger->warning("Org name '{$this->config->orgName}' specified, but bot belongs to org '$orgChannel'");
 		}
 	}
 

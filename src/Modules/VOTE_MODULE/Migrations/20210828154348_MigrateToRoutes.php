@@ -3,6 +3,7 @@
 namespace Nadybot\Modules\VOTE_MODULE\Migrations;
 
 use Nadybot\Core\Attributes as NCA;
+use Nadybot\Core\ConfigFile;
 use Nadybot\Core\DB;
 use Nadybot\Core\DBSchema\Route;
 use Nadybot\Core\DBSchema\Setting;
@@ -21,6 +22,9 @@ class MigrateToRoutes implements SchemaMigration {
 	#[NCA\Inject]
 	public Nadybot $chatBot;
 
+	#[NCA\Inject]
+	public ConfigFile $config;
+
 	protected function getSetting(DB $db, string $name): ?Setting {
 		return $db->table(SettingManager::DB_TABLE)
 			->where("name", $name)
@@ -32,8 +36,7 @@ class MigrateToRoutes implements SchemaMigration {
 		$table = MessageHub::DB_TABLE_ROUTES;
 		$showWhere = $this->getSetting($db, "vote_channel_spam");
 		if (!isset($showWhere)) {
-			/** @psalm-suppress DocblockTypeContradiction */
-			if (strlen($this->chatBot->vars['my_guild']??"")) {
+			if (strlen($this->config->orgName)) {
 				$showWhere = 2;
 			} else {
 				$showWhere = 0;

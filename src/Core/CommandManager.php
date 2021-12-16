@@ -57,6 +57,9 @@ class CommandManager implements MessageEmitter {
 	public Util $util;
 
 	#[NCA\Inject]
+	public ConfigFile $config;
+
+	#[NCA\Inject]
 	public SubcommandManager $subcommandManager;
 
 	#[NCA\Inject]
@@ -132,7 +135,7 @@ class CommandManager implements MessageEmitter {
 		}
 
 		if ($defaultStatus === null) {
-			if ($this->chatBot->vars['default_module_status'] == 1) {
+			if ($this->config->defaultModuleStatus) {
 				$status = 1;
 			} else {
 				$status = 0;

@@ -30,6 +30,9 @@ class SettingManager {
 	#[NCA\Inject]
 	public EventManager $eventManager;
 
+	#[NCA\Inject]
+	public ConfigFile $config;
+
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
@@ -46,7 +49,7 @@ class SettingManager {
 	 * Return the hardcoded value for a setting or a given default
 	 */
 	public function getHardcoded(string $setting, $default=null): ?string {
-		$value = $this->chatBot->vars["settings"][$setting]??$default;
+		$value = $this->config->settings[$setting]??$default;
 		if (is_bool($value)) {
 			return $value ? "1" : "0";
 		} elseif (is_int($value)) {

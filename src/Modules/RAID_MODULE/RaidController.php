@@ -215,7 +215,7 @@ class RaidController {
 		}
 		$raidCat = new CommentCategory();
 		$raidCat->name = static::CAT_RAID;
-		$raidCat->created_by = $this->chatBot->vars["name"];
+		$raidCat->created_by = $this->chatBot->char->name;
 		$raidCat->min_al_read = "raid_leader_1";
 		$raidCat->min_al_write = "raid_leader_2";
 		$raidCat->user_managed = false;

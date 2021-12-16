@@ -413,7 +413,7 @@ class CommentController {
 	 * about the same character again.
 	 */
 	protected function getCommentCooldown(Comment $comment): int {
-		if ($comment->created_by === $this->chatBot->vars["name"]) {
+		if ($comment->created_by === $this->chatBot->char->name) {
 			return 0;
 		}
 		$cooldown = $this->settingManager->getInt("comment_cooldown") ?? 1;
