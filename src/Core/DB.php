@@ -3,7 +3,6 @@
 namespace Nadybot\Core;
 
 use Nadybot\Core\Attributes as NCA;
-use Closure;
 use DateTime;
 use PDO;
 use PDOException;
@@ -29,6 +28,9 @@ class DB {
 
 	#[NCA\Inject]
 	public Util $util;
+
+	#[NCA\Inject]
+	public ConfigFile $config;
 
 	/**
 	 * The database type: mysql/sqlite
@@ -73,8 +75,6 @@ class DB {
 
 	public int $maxPlaceholders = 9000;
 
-	private Closure $reconnect;
-
 	public const MYSQL = 'mysql';
 	public const SQLITE = 'sqlite';
 	public const POSTGRESQL = 'postgresql';
@@ -82,22 +82,22 @@ class DB {
 
 	/** Get the lowercased name of the bot */
 	public function getBotname(): string {
-		return $this->botname;
+		return strtolower($this->config->name);
 	}
 
 	/** Get the correct name of the bot */
 	public function getMyname(): string {
-		return ucfirst($this->botname);
+		return ucfirst($this->getBotname());
 	}
 
 	/** Get the correct guild name of the bot */
 	public function getMyguild(): string {
-		return ucfirst($this->guild);
+		return ucfirst($this->config->orgName);
 	}
 
 	/** Get the dimension id of the bot */
 	public function getDim(): int {
-		return $this->dim;
+		return $this->config->dimension;
 	}
 
 	/**
@@ -106,17 +106,10 @@ class DB {
 	 * @throws Exception for unsupported database types
 	 */
 	public function connect(string $type, string $dbName, ?string $host=null, ?string $user=null, ?string $pass=null): void {
-		$this->reconnect = function() use ($type, $dbName, $host, $user, $pass): void {
-			$this->connect($type, $dbName, $host, $user, $pass);
-		};
-		global $vars;
 		$errorShown = isset($this->sql);
 		unset($this->sql);
 		$this->dbName = $dbName;
 		$this->type = strtolower($type);
-		$this->botname = strtolower($vars["name"]);
-		$this->dim = $vars["dimension"];
-		$this->guild = str_replace("'", "''", $vars["my_guild"]??"");
 		$this->capsule = new Capsule();
 
 		if ($this->type === self::MYSQL) {
@@ -350,10 +343,7 @@ class DB {
 			},
 			$sql
 		);
-		$sql = str_replace("<dim>", (string)$this->dim, $sql);
-		$sql = str_replace("<myname>", $this->botname, $sql);
-		$sql = str_replace("<Myname>", ucfirst($this->botname), $sql);
-		$sql = str_replace("<myguild>", $this->guild, $sql);
+		$sql = str_replace("<myname>", $this->getBotname(), $sql);
 
 		return $sql;
 	}

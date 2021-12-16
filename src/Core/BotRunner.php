@@ -189,14 +189,6 @@ class BotRunner {
 			"Reflection",
 			"sockets",
 		];
-		$configFile = $this->getConfigFile();
-		/** @psalm-suppress DocblockTypeContradiction */
-		if (strlen($configFile->getVar('amqp_server')??"")
-			&& strlen($configFile->getVar('amqp_user')??"")
-			&& strlen($configFile->getVar('amqp_password')??"")
-		) {
-			$requiredModules []= "mbstring";
-		}
 		foreach ($requiredModules as $requiredModule) {
 			if (is_string($requiredModule) && !extension_loaded($requiredModule)) {
 				$missing []= $requiredModule;
@@ -253,6 +245,7 @@ class BotRunner {
 		// load $vars
 		global $vars;
 		$vars = $this->getConfigVars();
+		$config = $this->getConfigFile();
 		$this->checkRequiredModules();
 		$this->checkRequiredPackages();
 		$this->createMissingDirs();
@@ -261,11 +254,10 @@ class BotRunner {
 
 		// these must happen first since the classes that are loaded may be used by processes below
 		$this->loadPhpLibraries();
-		if (isset($vars['timezone']) && @date_default_timezone_set($vars['timezone']) === false) {
-			die("Invalid timezone: \"{$vars['timezone']}\"\n");
+		if (isset($config->timezone) && @date_default_timezone_set($config->timezone) === false) {
+			die("Invalid timezone: \"{$config->timezone}\"\n");
 		}
-		$logFolderName = rtrim($vars["logsfolder"] ?? "./logs/", "/");
-		$logFolderName = "{$logFolderName}/{$vars['name']}.{$vars['dimension']}";
+		$logFolderName = "{$config->logsFolder}/{$config->name}.{$config->dimension}";
 
 		$this->setErrorHandling($logFolderName);
 		$this->logger = new LoggerWrapper("Core/BotRunner");
@@ -287,13 +279,13 @@ class BotRunner {
 			]
 		);
 
-		$this->classLoader = new ClassLoader($vars['module_load_paths']);
+		Registry::setInstance("configfile", $config);
+		$this->classLoader = new ClassLoader($this->getConfigFile()->moduleLoadPaths);
 		Registry::injectDependencies($this->classLoader);
 		$this->classLoader->loadInstances();
 
 		$signalHandler = $this->installCtrlCHandler();
 		$this->connectToDatabase();
-		$this->clearDatabaseInformation();
 		$this->uninstallCtrlCHandler($signalHandler);
 
 		$this->runUpgradeScripts();
@@ -304,7 +296,7 @@ class BotRunner {
 		$chatBot = Registry::getInstance(Nadybot::class);
 
 		// startup core systems and load modules
-		$chatBot->init($this, $vars);
+		$chatBot->init($this);
 
 		// connect to ao chat server
 		$chatBot->connectAO($vars['login'], $vars['password'], (string)$server, (int)$port);
@@ -318,14 +310,14 @@ class BotRunner {
 	}
 
 	protected function createMissingDirs(): void {
-		$dirVars = ["cachefolder", "htmlfolder", "datafolder"];
+		$dirVars = ["cacheFolder", "htmlFolder", "dataFolder"];
 		foreach ($dirVars as $var) {
-			$dir = $this->getConfigFile()->getVar($var);
+			$dir = $this->getConfigFile()->{$var};
 			if (is_string($dir) && !@file_exists($dir)) {
 				@mkdir($dir, 0700);
 			}
 		}
-		foreach ($this->getConfigFile()->getVar("module_load_paths") as $dir) {
+		foreach ($this->getConfigFile()->moduleLoadPaths as $dir) {
 			if (is_string($dir) && !@file_exists($dir)) {
 				@mkdir($dir, 0700);
 			}
@@ -371,9 +363,7 @@ class BotRunner {
 		}
 		$configFilePath = $this->argv[1] ?? "conf/config.php";
 		global $configFile;
-		$this->configFile = new ConfigFile($configFilePath);
-		$this->configFile->load();
-		return $configFile = $this->configFile;
+		return $configFile = $this->configFile = ConfigFile::loadFromFile($configFilePath);
 	}
 
 	/**
@@ -382,7 +372,7 @@ class BotRunner {
 	 * @return array<string,mixed>
 	 */
 	protected function getConfigVars(): array {
-		return $this->getConfigFile()->getVars();
+		return $this->getConfigFile()->toArray();
 	}
 
 	/**
@@ -420,8 +410,7 @@ class BotRunner {
 	 * Is information missing to run the bot?
 	 */
 	private function shouldShowSetup(): bool {
-		global $vars;
-		return $vars['login'] == "" || $vars['password'] == "" || $vars['name'] == "";
+		return empty($this->configFile->login) || empty($this->configFile->password) || empty($this->configFile->name);
 	}
 
 	/**
@@ -447,12 +436,12 @@ class BotRunner {
 	 * Connect to the database
 	 */
 	private function connectToDatabase(): void {
-		global $vars;
 		$db = Registry::getInstance(DB::class);
 		if (!isset($db)) {
 			throw new Exception("Cannot find DB instance.");
 		}
-		$db->connect($vars["DB Type"], $vars["DB Name"], $vars["DB Host"], $vars["DB username"], $vars["DB password"]);
+		$config = $this->getConfigFile();
+		$db->connect($config->dbType, $config->dbName, $config->dbHost, $config->dbUsername, $config->dbPassword);
 	}
 
 	/**

@@ -11,7 +11,7 @@ use Nadybot\Core\Attributes as NCA;
 class Util {
 
 	#[NCA\Inject]
-	public Nadybot $chatBot;
+	public ConfigFile $config;
 
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
@@ -303,7 +303,7 @@ class Util {
 		$filename = str_replace("\\", "/", $filename);
 
 		//check if the file exists
-		foreach (array_reverse($this->chatBot->vars['module_load_paths']) as $modulePath) {
+		foreach (array_reverse($this->config->moduleLoadPaths) as $modulePath) {
 			if (file_exists("$modulePath/$filename")) {
 				return "$modulePath/$filename";
 			}

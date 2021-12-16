@@ -4,6 +4,7 @@ namespace Nadybot\Modules\DISCORD_GATEWAY_MODULE\Migrations;
 
 use Nadybot\Core\Attributes as NCA;
 use Exception;
+use Nadybot\Core\ConfigFile;
 use Nadybot\Core\DB;
 use Nadybot\Core\DBSchema\Route;
 use Nadybot\Core\DBSchema\RouteHopColor;
@@ -13,7 +14,6 @@ use Nadybot\Core\LoggerWrapper;
 use Nadybot\Core\MessageHub;
 use Nadybot\Core\Modules\DISCORD\DiscordChannel;
 use Nadybot\Core\Modules\DISCORD\DiscordController;
-use Nadybot\Core\Nadybot;
 use Nadybot\Core\Routing\Source;
 use Nadybot\Core\SchemaMigration;
 use Nadybot\Core\SettingManager;
@@ -23,7 +23,7 @@ class MigrateToRoutes implements SchemaMigration {
 	public DiscordController $discordController;
 
 	#[NCA\Inject]
-	public Nadybot $chatBot;
+	public ConfigFile $config;
 
 	#[NCA\Inject]
 	public MessageHub $messageHub;
@@ -95,7 +95,7 @@ class MigrateToRoutes implements SchemaMigration {
 			$this->addRoute(
 				$db,
 				Source::DISCORD_PRIV . "({$channel->name})",
-				Source::PRIV . "({$this->chatBot->vars['name']})",
+				Source::PRIV . "({$this->config->name})",
 				$relayCommands->value === "1"
 			);
 		}

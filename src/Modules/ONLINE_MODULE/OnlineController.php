@@ -11,6 +11,7 @@ use Nadybot\Core\{
 	BuddylistManager,
 	CmdContext,
 	CommandAlias,
+	ConfigFile,
 	DB,
 	Event,
 	EventManager,
@@ -78,6 +79,9 @@ class OnlineController {
 
 	#[NCA\Inject]
 	public Nadybot $chatBot;
+
+	#[NCA\Inject]
+	public ConfigFile $config;
 
 	#[NCA\Inject]
 	public SettingManager $settingManager;
@@ -333,7 +337,7 @@ class OnlineController {
 		if (!isset($this->chatBot->guildmembers[$sender]) || !is_string($sender)) {
 			return;
 		}
-		$player = $this->addPlayerToOnlineList($sender, $this->chatBot->vars['my_guild'], 'guild');
+		$player = $this->addPlayerToOnlineList($sender, $this->config->orgName, 'guild');
 		if ($player === null) {
 			return;
 		}

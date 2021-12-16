@@ -82,6 +82,9 @@ class AccessManager {
 	#[NCA\Inject]
 	public RaidRankController $raidRankController;
 
+	#[NCA\Inject]
+	public ConfigFile $config;
+
 	/**
 	 * This method checks if given $sender has at least $accessLevel rights.
 	 *
@@ -198,7 +201,7 @@ class AccessManager {
 				$this->chatBot->guildmembers[$sender]
 			);
 		}
-		if ($this->chatBot->vars["SuperAdmin"] == $sender) {
+		if ($this->config->superAdmin === $sender) {
 			return "superadmin";
 		}
 		if (isset($this->adminManager->admins[$sender])) {

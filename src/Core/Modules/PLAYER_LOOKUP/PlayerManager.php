@@ -6,6 +6,7 @@ use Nadybot\Core\Attributes as NCA;
 use DateTime;
 use DateTimeZone;
 use Nadybot\Core\{
+	ConfigFile,
 	DB,
 	Http,
 	HttpResponse,
@@ -32,6 +33,9 @@ class PlayerManager {
 
 	#[NCA\Inject]
 	public Util $util;
+
+	#[NCA\Inject]
+	public ConfigFile $config;
 
 	#[NCA\Inject]
 	public Nadybot $chatBot;
@@ -128,7 +132,7 @@ class PlayerManager {
 
 	/** @psalm-param callable(?Player) $callback */
 	public function getByNameCallback(callable $callback, bool $sync, string $name, ?int $dimension=null, bool $forceUpdate=false): void {
-		$dimension ??= (int)$this->chatBot->vars['dimension'];
+		$dimension ??= $this->config->dimension;
 
 		$name = ucfirst(strtolower($name));
 
@@ -137,7 +141,7 @@ class PlayerManager {
 			$callback(null);
 			return;
 		}
-		if ($dimension === (int)$this->chatBot->vars['dimension']) {
+		if ($dimension === $this->config->dimension) {
 			$charid = $this->chatBot->get_uid($name);
 		}
 

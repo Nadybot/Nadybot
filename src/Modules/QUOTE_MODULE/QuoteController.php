@@ -6,6 +6,7 @@ use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{
 	AccessManager,
 	CmdContext,
+	ConfigFile,
 	DB,
 	Nadybot,
 	ParamClass\PRemove,
@@ -48,6 +49,9 @@ class QuoteController {
 
 	#[NCA\Inject]
 	public Nadybot $chatBot;
+
+	#[NCA\Inject]
+	public ConfigFile $config;
 
 	/**
 	 * This handler is called on bot startup.
@@ -223,7 +227,7 @@ class QuoteController {
 		$msg .= "Date: <highlight>" . $this->util->date($row->dt) . "<end>\n";
 		$msg .= "Quote: <highlight>$quoteMsg<end>\n";
 		$msg .= "Action:";
-		if (!empty($this->chatBot->vars["my_guild"])) {
+		if (!empty($this->config->orgName)) {
 			$msg .= " [".
 				$this->text->makeChatcmd("To orgchat", "/tell <myname> quote org {$row->id}").
 			"]";

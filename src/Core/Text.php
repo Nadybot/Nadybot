@@ -8,7 +8,7 @@ use Nadybot\Core\Attributes as NCA;
 class Text {
 
 	#[NCA\Inject]
-	public Nadybot $chatBot;
+	public ConfigFile $config;
 
 	#[NCA\Inject]
 	public SettingManager $settingManager;
@@ -267,8 +267,8 @@ class Text {
 			"<clan>" => $this->settingManager->getString('default_clan_color')??"",
 			"<unknown>" => $this->settingManager->getString('default_unknown_color')??"",
 
-			"<myname>" => $this->chatBot->vars["name"],
-			"<myguild>" => $this->chatBot->vars["my_guild"],
+			"<myname>" => $this->config->name,
+			"<myguild>" => $this->config->orgName,
 			"<tab>" => "    ",
 			"<end>" => "</font>",
 			"<symbol>" => $this->settingManager->getString("symbol")??"!",
