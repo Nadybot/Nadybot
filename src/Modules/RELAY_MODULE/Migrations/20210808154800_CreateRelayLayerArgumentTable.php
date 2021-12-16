@@ -11,7 +11,7 @@ use Nadybot\Modules\RELAY_MODULE\RelayController;
 class CreateRelayLayerArgumentTable implements SchemaMigration {
 	public function migrate(LoggerWrapper $logger, DB $db): void {
 		$table = RelayController::DB_TABLE_ARGUMENT;
-		$db->schema()->create($table, function(Blueprint $table) {
+		$db->schema()->create($table, function(Blueprint $table): void {
 			$table->id();
 			$table->unsignedBigInteger("layer_id")->index();
 			$table->string("name", 100);

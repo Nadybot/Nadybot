@@ -13,7 +13,7 @@ use Nadybot\Modules\WORLDBOSS_MODULE\WorldBossController;
 class CreateWorldbossTimersTable implements SchemaMigration {
 	public function migrate(LoggerWrapper $logger, DB $db): void {
 		$table = WorldBossController::DB_TABLE;
-		$db->schema()->create($table, function(Blueprint $table) {
+		$db->schema()->create($table, function(Blueprint $table): void {
 			$table->string("mob_name", 50)->primary();
 			$table->integer("timer");
 			$table->integer("spawn");

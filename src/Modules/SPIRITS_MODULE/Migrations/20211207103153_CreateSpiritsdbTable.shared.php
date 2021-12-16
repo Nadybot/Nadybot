@@ -11,7 +11,7 @@ class CreateSpiritsdbTable implements SchemaMigration {
 	public function migrate(LoggerWrapper $logger, DB $db): void {
 		$table = "spiritsdb";
 		$db->schema()->dropIfExists($table);
-		$db->schema()->create($table, function(Blueprint $table) {
+		$db->schema()->create($table, function(Blueprint $table): void {
 			$table->unsignedInteger("id")->primary();
 			$table->string("name", 45);
 			$table->unsignedSmallInteger("ql")->index();

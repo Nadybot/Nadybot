@@ -13,8 +13,7 @@ class RoutableEvent extends Event {
 	/** @var Source[] */
 	public array $path = [];
 
-	/** @var string|Base|null */
-	public $data = null;
+	public string|Base|null $data = null;
 
 	public function getType(): string {
 		return $this->type;
@@ -49,12 +48,11 @@ class RoutableEvent extends Event {
 		return $this;
 	}
 
-	/** @return mixed */
-	public function getData() {
+	public function getData(): mixed {
 		return $this->data;
 	}
 
-	public function setData($data): self {
+	public function setData(mixed $data): self {
 		$this->data = $data;
 		return $this;
 	}

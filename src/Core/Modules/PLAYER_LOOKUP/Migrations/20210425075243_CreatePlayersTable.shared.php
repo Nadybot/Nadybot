@@ -17,26 +17,26 @@ class CreatePlayersTable implements SchemaMigration {
 				->groupBy("name", "dimension")
 				->havingRaw("COUNT(*) > 1")
 				->delete();
-			$db->schema()->table($table, function(Blueprint $table) {
+			$db->schema()->table($table, function(Blueprint $table): void {
 				$table->string("prof_title", 40)->default('')->change();
 			});
 			try {
-				$db->schema()->table($table, function(Blueprint $table) {
+				$db->schema()->table($table, function(Blueprint $table): void {
 					$table->dropUnique("name");
 				});
 			} catch (Throwable $e) {
 				// Ignore
 			}
 
-			$db->schema()->table($table, function(Blueprint $table) {
+			$db->schema()->table($table, function(Blueprint $table): void {
 				$table->unique(["name", "dimension"]);
 			});
-			$db->schema()->table($table, function(Blueprint $table) {
+			$db->schema()->table($table, function(Blueprint $table): void {
 				$table->smallInteger("dimension")->nullable(false)->change();
 			});
 			return;
 		}
-		$db->schema()->create($table, function(Blueprint $table) {
+		$db->schema()->create($table, function(Blueprint $table): void {
 			$table->integer("charid")->index();
 			$table->string("firstname", 30)->default('');
 			$table->string("name", 20)->index();

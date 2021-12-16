@@ -13,7 +13,7 @@ class CreateFunTable implements SchemaMigration {
 		if ($db->schema()->hasTable($table)) {
 			return;
 		}
-		$db->schema()->create($table, function(Blueprint $table) {
+		$db->schema()->create($table, function(Blueprint $table): void {
 			$table->string("type", 20);
 			$table->text("content");
 		});

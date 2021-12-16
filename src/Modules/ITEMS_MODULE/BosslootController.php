@@ -118,9 +118,9 @@ class BosslootController {
 
 		/** @var Collection<BossLootdb> */
 		$data = $this->db->table("boss_lootdb AS b")
-			->leftJoin("aodb AS a", function (JoinClause $join) {
+			->leftJoin("aodb AS a", function (JoinClause $join): void {
 				$join->on("b.aoid", "a.lowid")
-					->orOn(function (JoinClause $join) {
+					->orOn(function (JoinClause $join): void {
 						$join->whereNull("b.aoid")
 							->whereColumn("b.itemname", "a.name");
 					});

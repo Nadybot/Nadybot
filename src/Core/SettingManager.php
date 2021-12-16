@@ -48,7 +48,7 @@ class SettingManager {
 	/**
 	 * Return the hardcoded value for a setting or a given default
 	 */
-	public function getHardcoded(string $setting, $default=null): ?string {
+	public function getHardcoded(string $setting, bool|int|string|null $default=null): ?string {
 		$value = $this->config->settings[$setting]??$default;
 		if (is_bool($value)) {
 			return $value ? "1" : "0";
@@ -183,7 +183,7 @@ class SettingManager {
 	 * @param string $name name of the setting to read
 	 * @return null|string|int|false the value of the setting, or false if a setting with that name does not exist
 	 */
-	public function get(string $name) {
+	public function get(string $name): null|string|int|false {
 		$name = strtolower($name);
 		if ($this->exists($name)) {
 			return $this->settings[$name]->value;
@@ -195,7 +195,7 @@ class SettingManager {
 	/**
 	 * @return int|bool|string|null
 	 */
-	public function getTyped(string $name) {
+	public function getTyped(string $name): int|bool|string|null {
 		$name = strtolower($name);
 		if ($this->exists($name)) {
 			return $this->settings[$name]->typed();
@@ -241,7 +241,7 @@ class SettingManager {
 	 * @param string|int $value The new value to set the setting to
 	 * @return bool false if the setting with that name does not exist, true otherwise
 	 */
-	public function save(string $name, $value): bool {
+	public function save(string $name, string|int $value): bool {
 		$name = strtolower($name);
 
 		if (!$this->exists($name)) {
@@ -312,7 +312,7 @@ class SettingManager {
 	 * @param callable $callback    the callback function to call
 	 * @param mixed    $data        any data which will be passed to to the callback (optional)
 	 */
-	public function registerChangeListener(string $settingName, callable $callback, $data=null): void {
+	public function registerChangeListener(string $settingName, callable $callback, mixed $data=null): void {
 		if (!is_callable($callback)) {
 			$this->logger->error('Given callback is not valid.');
 			return;

@@ -5,9 +5,8 @@ namespace Nadybot\Core;
 class AOChatEvent extends Event {
 	/**
 	 * Either the name of the sender or the numeric UID (eg. city raid accouncements)
-	 * @var string|int
 	 */
-	public $sender;
+	public int|string $sender;
 
 	/** The channel (msg, priv, guild) via which the message was sent */
 	public string $channel;

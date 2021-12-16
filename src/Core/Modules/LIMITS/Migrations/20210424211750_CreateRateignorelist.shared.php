@@ -13,7 +13,7 @@ class CreateRateignorelist implements SchemaMigration {
 		if ($db->schema()->hasTable($table)) {
 			return;
 		}
-		$db->schema()->create($table, function(Blueprint $table) {
+		$db->schema()->create($table, function(Blueprint $table): void {
 			$table->string("name", 20);
 			$table->string("added_by", 20);
 			$table->integer("added_dt");

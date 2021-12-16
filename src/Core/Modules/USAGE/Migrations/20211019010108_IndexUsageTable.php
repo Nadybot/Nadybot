@@ -11,7 +11,7 @@ use Nadybot\Core\SchemaMigration;
 class IndexUsageTable implements SchemaMigration {
 	public function migrate(LoggerWrapper $logger, DB $db): void {
 		$table = UsageController::DB_TABLE;
-		$db->schema()->table($table, function(Blueprint $table) {
+		$db->schema()->table($table, function(Blueprint $table): void {
 			$table->string("type", 10)->change();
 			$table->string("command", 20)->index()->change();
 			$table->string("sender", 20)->index()->change();

@@ -14,7 +14,7 @@ class CreateRaidRankTable implements SchemaMigration {
 		if ($db->schema()->hasTable($table)) {
 			return;
 		}
-		$db->schema()->create($table, function (Blueprint $table) {
+		$db->schema()->create($table, function (Blueprint $table): void {
 			$table->string("name", 25)->primary();
 			$table->integer("rank");
 		});

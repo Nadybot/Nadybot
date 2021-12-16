@@ -10,7 +10,7 @@ use Nadybot\Core\SchemaMigration;
 class AddIndexToMain implements SchemaMigration {
 	public function migrate(LoggerWrapper $logger, DB $db): void {
 		$table = "alts";
-		$db->schema()->table($table, function(Blueprint $table) {
+		$db->schema()->table($table, function(Blueprint $table): void {
 			$table->string("main", 25)->index()->change();
 		});
 	}

@@ -11,7 +11,7 @@ class CreateSymbiantClusterMatrixTable implements SchemaMigration {
 	public function migrate(LoggerWrapper $logger, DB $db): void {
 		$table = "SymbiantClusterMatrix";
 		$db->schema()->dropIfExists($table);
-		$db->schema()->create($table, function(Blueprint $table) {
+		$db->schema()->create($table, function(Blueprint $table): void {
 			$table->integer("SymbiantID");
 			$table->integer("ClusterID");
 			$table->integer("Amount");

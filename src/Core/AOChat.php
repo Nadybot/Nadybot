@@ -234,7 +234,7 @@ class AOChat {
 	 *
 	 * @return bool false we cannot connect, otherwise true
 	 */
-	public function connect(string $server, int $port) {
+	public function connect(string $server, int $port): bool {
 		$this->socket = @socket_create(AF_INET, SOCK_STREAM, SOL_TCP);
 		if ($this->socket === false) {
 			$this->socket = null;
@@ -560,11 +560,9 @@ class AOChat {
 
 	/**
 	 * Lookup the user id for a username or vice versa
-	 *
-	 * @param null|int|string $u
 	 * @return string|int|false The user id or false if not found
 	 */
-	public function lookup_user($u) {
+	public function lookup_user(null|int|string $u): string|int|false {
 		if (is_string($u)) {
 			$u = ucfirst(strtolower($u));
 		}
@@ -613,7 +611,7 @@ class AOChat {
 	 * @param int|string $user The name of the user to lookup
 	 * @return int|false false on error, otherwise the UID
 	 */
-	public function get_uid($user) {
+	public function get_uid(int|string $user): int|false {
 		if ($this->isReallyNumeric($user)) {
 			return $this->fixunsigned((int)$user);
 		}
@@ -679,11 +677,8 @@ class AOChat {
 
 	/**
 	 * Lookup the group id of a group
-	 *
-	 * @param int|string $arg
-	 * @return null|int|string
 	 */
-	public function lookup_group($arg, int $type=0) {
+	public function lookup_group(int|string $arg, int $type=0): null|int|string {
 		if ($type && ($isGid = (strlen((string)$arg) === 5 && (ord(((string)$arg)[0])&~0x80) < 0x10))) {
 			return $arg;
 		}
@@ -699,7 +694,7 @@ class AOChat {
 	 * @param string $g Name of the group
 	 * @return int|string|false Either the group id or false if not found
 	 */
-	public function get_gid(string $g) {
+	public function get_gid(string $g): int|string|false {
 		return $this->lookup_group($g, 1) ?? false;
 	}
 
@@ -709,7 +704,7 @@ class AOChat {
 	 * @param int|string $g The group id
 	 * @return int|string|false The group name or false if not found
 	 */
-	public function get_gname($g) {
+	public function get_gname(int|string $g): int|string|false {
 		if (($gid = $this->lookup_group($g, 1)) === null) {
 			return false;
 		}

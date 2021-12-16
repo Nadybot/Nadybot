@@ -14,7 +14,7 @@ class CreateDiscordMappingTable implements SchemaMigration {
 		if ($db->schema()->hasTable($table)) {
 			return;
 		}
-		$db->schema()->create($table, function(Blueprint $table) {
+		$db->schema()->create($table, function(Blueprint $table): void {
 			$table->string("name", 12);
 			$table->string("discord_id", 50);
 			$table->string("token", 32)->nullable();

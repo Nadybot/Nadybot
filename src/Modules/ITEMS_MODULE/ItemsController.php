@@ -190,7 +190,7 @@ class ItemsController {
 	 * @param array $args
 	 * @return string|string[]
 	 */
-	public function findItems(?int $ql, string $search) {
+	public function findItems(?int $ql, string $search): string|array {
 		if (isset($ql)) {
 			if ($ql < 1 || $ql > 500) {
 				return "QL must be between 1 and 500.";
@@ -265,7 +265,7 @@ class ItemsController {
 	 * @param mixed|null $elapsed
 	 * @return string|string[]
 	 */
-	public function createItemsBlob(array $data, string $search, ?int $ql, string $version, string $server, string $footer, $elapsed=null) {
+	public function createItemsBlob(array $data, string $search, ?int $ql, string $version, string $server, string $footer, mixed $elapsed=null): string|array {
 		$numItems = count($data);
 		$groups = count(
 			array_unique(
@@ -358,7 +358,7 @@ class ItemsController {
 	 * @param bool $showImages
 	 * @return string
 	 */
-	public function formatSearchResults(array $data, ?int $ql, bool $showImages, ?string $search=null) {
+	public function formatSearchResults(array $data, ?int $ql, bool $showImages, ?string $search=null): string {
 		$list = '';
 		$oldGroup = null;
 		for ($itemNum = 0; $itemNum < count($data); $itemNum++) {

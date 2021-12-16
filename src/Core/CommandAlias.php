@@ -32,7 +32,7 @@ class CommandAlias {
 		$this->db->table(self::DB_TABLE)
 			->where("status", 1)
 			->asObj(CmdAlias::class)
-			->each(function (CmdAlias $row) {
+			->each(function (CmdAlias $row): void {
 				$this->activate($row->cmd, $row->alias);
 			});
 	}

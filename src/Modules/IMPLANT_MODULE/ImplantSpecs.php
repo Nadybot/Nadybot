@@ -3,8 +3,7 @@
 namespace Nadybot\Modules\IMPLANT_MODULE;
 
 class ImplantSpecs {
-	/** @var int */
-	public $ql;
+	public int $ql;
 
 	public ImplantRequirements $requirements;
 

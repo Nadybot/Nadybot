@@ -11,7 +11,7 @@ use Nadybot\Modules\TRACKER_MODULE\TrackerController;
 class AddHiddenColumnToTrackedUsers implements SchemaMigration {
 	public function migrate(LoggerWrapper $logger, DB $db): void {
 		$table = TrackerController::DB_TABLE;
-		$db->schema()->table($table, function(Blueprint $table) {
+		$db->schema()->table($table, function(Blueprint $table): void {
 			$table->boolean("hidden")->default(false);
 		});
 	}
