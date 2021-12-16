@@ -74,7 +74,7 @@ class BotRunner {
 		if (!@file_exists("{$baseDir}/.git")) {
 			return static::VERSION;
 		}
-		set_error_handler(function(int $num, string $str, string $file, int $line) {
+		set_error_handler(function(int $num, string $str, string $file, int $line): void {
 			throw new ErrorException($str, 0, $num, $file, $line);
 		});
 		try {

@@ -63,7 +63,7 @@ class HelpController {
 	}
 
 	/** @return string|string[] */
-	public function getAbout() {
+	public function getAbout(): string|array {
 		$data = file_get_contents(__DIR__ . "/about.txt");
 		$version = BotRunner::getVersion();
 		$data = str_replace('<version>', $version, $data);

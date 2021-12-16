@@ -14,7 +14,7 @@ class CreateSettingsTable implements SchemaMigration {
 		if ($db->schema()->hasTable($table)) {
 			return;
 		}
-		$db->schema()->create($table, function(Blueprint $table) {
+		$db->schema()->create($table, function(Blueprint $table): void {
 			$table->string("name", 50)->index();
 			$table->string("module", 50)->nullable();
 			$table->string("type", 30)->nullable();

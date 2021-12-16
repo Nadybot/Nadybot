@@ -11,7 +11,7 @@ class CreatePerkLevelResistancesTable implements SchemaMigration {
 	public function migrate(LoggerWrapper $logger, DB $db): void {
 		$table = "perk_level_resistances";
 		$db->schema()->dropIfExists($table);
-		$db->schema()->create($table, function(Blueprint $table) {
+		$db->schema()->create($table, function(Blueprint $table): void {
 			$table->integer("perk_level_id")->index();
 			$table->integer("strain_id");
 			$table->integer("amount");

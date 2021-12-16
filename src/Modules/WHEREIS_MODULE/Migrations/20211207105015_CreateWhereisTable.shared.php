@@ -11,7 +11,7 @@ class CreateWhereisTable implements SchemaMigration {
 	public function migrate(LoggerWrapper $logger, DB $db): void {
 		$table = "whereis";
 		$db->schema()->dropIfExists($table);
-		$db->schema()->create($table, function(Blueprint $table) {
+		$db->schema()->create($table, function(Blueprint $table): void {
 				$table->integer("id")->primary();
 				$table->string("name", 100);
 				$table->text("answer");

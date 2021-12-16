@@ -13,7 +13,7 @@ class CreateLEProcsTable implements SchemaMigration {
 		if ($db->schema()->hasTable($table)) {
 			return;
 		}
-		$db->schema()->create($table, function(Blueprint $table) {
+		$db->schema()->create($table, function(Blueprint $table): void {
 			$table->string("profession", 20);
 			$table->string("name", 50);
 			$table->string("research_name", 50)->nullable();

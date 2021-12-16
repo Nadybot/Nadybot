@@ -11,7 +11,7 @@ use Nadybot\Core\SchemaMigration;
 class ExpandCommandName implements SchemaMigration {
 	public function migrate(LoggerWrapper $logger, DB $db): void {
 		$table = UsageController::DB_TABLE;
-		$db->schema()->table($table, function(Blueprint $table) {
+		$db->schema()->table($table, function(Blueprint $table): void {
 			$table->string("command", 25)->change();
 		});
 	}

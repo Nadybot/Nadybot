@@ -3,14 +3,12 @@
 namespace Nadybot\Modules\IMPLANT_MODULE;
 
 class ImplantBonusStats {
-	/** @var string */
-	public $slot = 'Faded';
+	public string $slot = 'Faded';
 
-	/** @var int */
-	public $buff;
+	public int $buff;
 
 	/** @var int[] */
-	public $range;
+	public array $range;
 
 	public function __construct(int $slot) {
 		if ($slot === ImplantController::FADED) {

@@ -14,7 +14,7 @@ class CreateBanlistTable implements SchemaMigration {
 		if ($db->schema()->hasTable($table)) {
 			return;
 		}
-		$db->schema()->create($table, function(Blueprint $table) {
+		$db->schema()->create($table, function(Blueprint $table): void {
 			$table->bigInteger("charid")->primary();
 			$table->string("admin", 25)->nullable();
 			$table->integer("time")->nullable();

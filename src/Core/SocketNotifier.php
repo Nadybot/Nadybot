@@ -50,7 +50,7 @@ class SocketNotifier {
 	 * Returns the callback
 	 * @return callable
 	 */
-	public function getCallback() {
+	public function getCallback(): callable {
 		return $this->callback;
 	}
 

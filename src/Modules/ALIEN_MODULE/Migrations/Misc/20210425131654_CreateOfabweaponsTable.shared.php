@@ -13,7 +13,7 @@ class CreateOfabweaponsTable implements SchemaMigration {
 		if ($db->schema()->hasTable($table)) {
 			return;
 		}
-		$db->schema()->create($table, function(Blueprint $table) {
+		$db->schema()->create($table, function(Blueprint $table): void {
 			$table->integer("type")->default(0);
 			$table->string("name", 255)->default('');
 		});

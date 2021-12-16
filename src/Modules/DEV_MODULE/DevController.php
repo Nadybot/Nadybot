@@ -108,7 +108,7 @@ class DevController {
 
 		// filter command handlers by access level
 		$accessManager = $this->accessManager;
-		$handlers = array_filter($handlers, function (CommandHandler $handler) use ($context, $accessManager) {
+		$handlers = array_filter($handlers, function (CommandHandler $handler) use ($context, $accessManager): bool {
 			return $accessManager->checkAccess($context->char->name, $handler->admin);
 		});
 
@@ -116,7 +116,7 @@ class DevController {
 		/** @var string[] */
 		$calls = array_reduce(
 			$handlers,
-			function (array $handlers, CommandHandler $handler) {
+			function (array $handlers, CommandHandler $handler): array {
 				return array_merge($handlers, explode(',', $handler->file));
 			},
 			[]

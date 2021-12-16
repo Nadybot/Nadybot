@@ -11,7 +11,7 @@ class CreateWeaponAttributesTable implements SchemaMigration {
 	public function migrate(LoggerWrapper $logger, DB $db): void {
 		$table = "weapon_attributes";
 		$db->schema()->dropIfExists($table);
-		$db->schema()->create($table, function(Blueprint $table) {
+		$db->schema()->create($table, function(Blueprint $table): void {
 			$table->integer("id")->primary();
 			$table->integer("attack_time");
 			$table->integer("recharge_time");

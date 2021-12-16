@@ -14,7 +14,7 @@ class CreateRaidLogTable implements SchemaMigration {
 		if ($db->schema()->hasTable($table)) {
 			return;
 		}
-		$db->schema()->create($table, function(Blueprint $table) {
+		$db->schema()->create($table, function(Blueprint $table): void {
 			$table->integer("raid_id")->index();
 			$table->string("description", 255)->nullable();
 			$table->integer("seconds_per_point");

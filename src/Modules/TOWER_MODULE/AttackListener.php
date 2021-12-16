@@ -6,6 +6,5 @@ class AttackListener {
 	/** @var callable */
 	public $callback;
 
-	/** @var mixed */
-	public $data;
+	public mixed $data;
 }

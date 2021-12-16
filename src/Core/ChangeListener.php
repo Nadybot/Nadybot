@@ -7,5 +7,5 @@ class ChangeListener {
 	public $callback;
 
 	/** @var mixed */
-	public $data;
+	public mixed $data;
 }

@@ -197,7 +197,7 @@ class RaidRankController {
 	public function checkRaidRanksEvent(): void {
 		$this->db->table(self::DB_TABLE)
 			->asObj(RaidRank::class)
-			->each(function (RaidRank $row) {
+			->each(function (RaidRank $row): void {
 				$this->buddylistManager->add($row->name, 'raidrank');
 			});
 	}
@@ -210,7 +210,7 @@ class RaidRankController {
 		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations/Ranks");
 		$this->db->table(self::DB_TABLE)
 			->asObj(RaidRank::class)
-			->each(function (RaidRank $row) {
+			->each(function (RaidRank $row): void {
 				$this->ranks[$row->name] = $row;
 			});
 	}

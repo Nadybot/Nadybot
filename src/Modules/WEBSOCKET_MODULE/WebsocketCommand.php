@@ -17,6 +17,5 @@ class WebsocketCommand extends JSONDataModel {
 	];
 
 	public string $command;
-	/** @var mixed */
-	public $data;
+	public mixed $data;
 }

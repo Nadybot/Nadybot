@@ -127,7 +127,7 @@ class VoteController implements MessageEmitter {
 		$this->db->table(self::DB_POLLS)
 			->where("status", "!=", self::STATUS_ENDED)
 			->asObj(Poll::class)
-			->each(function (Poll $topic) {
+			->each(function (Poll $topic): void {
 				$topic->answers = json_decode($topic->possible_answers, false);
 				$this->polls[$topic->id] = $topic;
 			});

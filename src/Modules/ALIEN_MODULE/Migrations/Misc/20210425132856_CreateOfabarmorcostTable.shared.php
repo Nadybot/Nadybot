@@ -13,7 +13,7 @@ class CreateOfabarmorcostTable implements SchemaMigration {
 		if ($db->schema()->hasTable($table)) {
 			return;
 		}
-		$db->schema()->create($table, function(Blueprint $table) {
+		$db->schema()->create($table, function(Blueprint $table): void {
 			$table->string("slot", 30);
 			$table->integer("ql");
 			$table->integer("vp");

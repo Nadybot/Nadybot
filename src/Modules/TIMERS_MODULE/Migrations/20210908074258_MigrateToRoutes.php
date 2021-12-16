@@ -33,7 +33,7 @@ class MigrateToRoutes implements SchemaMigration {
 
 	public function migrate(LoggerWrapper $logger, DB $db): void {
 		$table = TimerController::DB_TABLE;
-		$db->schema()->table($table, function(Blueprint $table) {
+		$db->schema()->table($table, function(Blueprint $table): void {
 			$table->string("mode", 50)->nullable()->change();
 			$table->string("origin", 100)->nullable();
 		});

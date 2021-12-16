@@ -23,9 +23,8 @@ class ModuleSetting {
 
 	/**
 	 * The current value
-	 * @var null|int|string|bool
 	 */
-	public $value = null;
+	public null|int|string|bool $value = null;
 
 	/**
 	 * A list of predefined options to pick from

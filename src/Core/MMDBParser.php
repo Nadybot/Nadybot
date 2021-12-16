@@ -165,7 +165,7 @@ class MMDBParser {
 	/**
 	 * @return array<string,int>
 	 */
-	private function readEntry($in) {
+	private function readEntry($in): array {
 		return ['id' => $this->readLong($in), 'offset' => $this->readLong($in)];
 	}
 

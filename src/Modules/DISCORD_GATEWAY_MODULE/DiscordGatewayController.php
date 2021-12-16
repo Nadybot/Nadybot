@@ -820,7 +820,7 @@ class DiscordGatewayController {
 		$this->guilds[$oldState->guild_id]->voice_states = array_values(
 			array_filter(
 				$this->guilds[$oldState->guild_id]->voice_states ?? [],
-				function (VoiceState $state) use ($oldState) {
+				function (VoiceState $state) use ($oldState): bool {
 					return $state->user_id !== $oldState->user_id;
 				}
 			)
@@ -849,7 +849,7 @@ class DiscordGatewayController {
 		$this->discordAPIClient->getGuildMember(
 			$guildId,
 			$voiceState->user_id,
-			function (GuildMember $member) use ($oldState) {
+			function (GuildMember $member) use ($oldState): void {
 				if (!isset($oldState->channel_id)) {
 					return;
 				}
@@ -921,7 +921,7 @@ class DiscordGatewayController {
 		$this->discordAPIClient->getGuildMember(
 			$voiceState->guild_id,
 			$voiceState->user_id,
-			function (GuildMember $member, DiscordChannel $channel) {
+			function (GuildMember $member, DiscordChannel $channel): void {
 				$event = new DiscordVoiceEvent();
 				$event->type = "discord_voice_join";
 				$event->discord_channel = $channel;

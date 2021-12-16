@@ -177,7 +177,7 @@ class AdminController {
 	)]
 	public function checkAdminsEvent(Event $eventObj): void {
 		$this->db->table(AdminManager::DB_TABLE)->asObj(Admin::class)
-			->each(function (Admin $row) {
+			->each(function (Admin $row): void {
 				$this->buddylistManager->add($row->name, 'admin');
 			});
 	}

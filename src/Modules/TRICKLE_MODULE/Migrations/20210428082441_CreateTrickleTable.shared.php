@@ -11,7 +11,7 @@ class CreateTrickleTable implements SchemaMigration {
 	public function migrate(LoggerWrapper $logger, DB $db): void {
 		$table = "trickle";
 		$db->schema()->dropIfExists($table);
-		$db->schema()->create($table, function(Blueprint $table) {
+		$db->schema()->create($table, function(Blueprint $table): void {
 			$table->integer("id")->primary();
 			$table->integer("skill_id");
 			$table->string("groupName", 20);

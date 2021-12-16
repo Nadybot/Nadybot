@@ -80,7 +80,7 @@ class SchemaBuilder {
 	 * @param string $table
 	 * @param string|array $columns
 	 */
-	public function dropColumns(string $table, $columns): void {
+	public function dropColumns(string $table, mixed $columns): void {
 		$table = $this->nadyDB->formatSql($table);
 		$this->builder->dropColumns($table, $columns);
 	}

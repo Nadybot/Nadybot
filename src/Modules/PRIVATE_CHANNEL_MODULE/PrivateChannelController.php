@@ -486,7 +486,7 @@ class PrivateChannelController {
 		$tl7 = 0;
 
 		$data = $this->db->table("online AS o")
-			->leftJoin("players AS p", function (JoinClause $join) {
+			->leftJoin("players AS p", function (JoinClause $join): void {
 				$join->on("o.name", "p.name")
 					->where("p.dimension", $this->db->getDim());
 			})->where("added_by", $this->db->getBotname())
@@ -541,7 +541,7 @@ class PrivateChannelController {
 		];
 
 		$query = $this->db->table("online AS o")
-			->leftJoin("players AS p", function (JoinClause $join) {
+			->leftJoin("players AS p", function (JoinClause $join): void {
 				$join->on("o.name", "p.name")
 					->where("p.dimension", $this->db->getDim());
 			})->where("added_by", $this->db->getBotname())
@@ -586,7 +586,7 @@ class PrivateChannelController {
 			return;
 		}
 		$query = $this->db->table("online AS o")
-			->leftJoin("players AS p", function (JoinClause $join) {
+			->leftJoin("players AS p", function (JoinClause $join): void {
 				$join->on("o.name", 'p.name')
 					->where("p.dimension", $this->db->getDim());
 			})->where("added_by", $this->db->getBotname())
@@ -626,7 +626,7 @@ class PrivateChannelController {
 			return;
 		}
 		$data = $this->db->table("online AS o")
-			->leftJoin("players AS p", function (JoinClause $join) {
+			->leftJoin("players AS p", function (JoinClause $join): void {
 				$join->on("o.name", 'p.name')
 					->where("p.dimension", $this->db->getDim());
 			})->where("added_by", $this->db->getBotname())
@@ -762,7 +762,7 @@ class PrivateChannelController {
 	public function connectEvent(Event $eventObj): void {
 		$this->db->table(self::DB_TABLE)
 			->asObj(Member::class)
-			->each(function (Member $member) {
+			->each(function (Member $member): void {
 				$this->buddylistManager->add($member->name, 'member');
 			});
 	}

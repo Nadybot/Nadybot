@@ -14,7 +14,7 @@ class CreatePreferencesTable implements SchemaMigration {
 		if ($db->schema()->hasTable($table)) {
 			return;
 		}
-		$db->schema()->create($table, function(Blueprint $table) {
+		$db->schema()->create($table, function(Blueprint $table): void {
 			$table->string("sender", 30);
 			$table->string("name", 30);
 			$table->string("value", 400);

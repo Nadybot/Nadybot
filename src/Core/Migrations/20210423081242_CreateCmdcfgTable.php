@@ -12,13 +12,13 @@ class CreateCmdcfgTable implements SchemaMigration {
 	public function migrate(LoggerWrapper $logger, DB $db): void {
 		$table = CommandManager::DB_TABLE;
 		if ($db->schema()->hasTable($table)) {
-			$db->schema()->table($table, function(Blueprint $table) {
+			$db->schema()->table($table, function(Blueprint $table): void {
 				$table->string("admin", 30)->nullable()->change();
 				$table->unique(["cmd", "type"]);
 			});
 			return;
 		}
-		$db->schema()->create($table, function(Blueprint $table) {
+		$db->schema()->create($table, function(Blueprint $table): void {
 			$table->string("module", 50)->nullable();
 			$table->string("cmdevent", 6)->nullable();
 			$table->string("type", 18)->nullable()->index();

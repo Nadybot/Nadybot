@@ -328,7 +328,7 @@ class LootController {
 	/**
 	 * Add one item to the loot roll
 	 */
-	public function addLootItem(string $input, int $multiloot, string $sender, $surpressMessage=false): void {
+	public function addLootItem(string $input, int $multiloot, string $sender, bool $suppressMessage=false): void {
 		//Check if the item is a link
 		if (preg_match("|^<a href=['\"]itemref://(\\d+)/(\\d+)/(\\d+)[\"']>(.+)</a>(.*)$|i", $input, $arr)) {
 			$itemQL = (int)$arr[3];
@@ -393,7 +393,7 @@ class LootController {
 
 		$msg = "$sender added <highlight>{$item->display}<end> (x$item->multiloot) to Slot <highlight>#$key<end>.";
 		$msg .= " To add use <symbol>add $key, or <symbol>rem to remove yourself.";
-		if ($surpressMessage) {
+		if ($suppressMessage) {
 			return;
 		}
 		$this->chatBot->sendPrivate($msg);
@@ -639,7 +639,7 @@ class LootController {
 	 * Get the current loot list
 	 * @return string|string[]
 	 */
-	public function getCurrentLootList() {
+	public function getCurrentLootList(): string|array {
 		if (empty($this->loot)) {
 			$msg = "No loot list exists yet.";
 			return $msg;
@@ -699,7 +699,7 @@ class LootController {
 
 		/** @var Collection<AODBEntry> */
 		$data = $this->db->table("raid_loot AS r")
-			->leftJoin("aodb AS a", function (JoinClause $join) {
+			->leftJoin("aodb AS a", function (JoinClause $join): void {
 				$join->on("r.name", "a.name")
 					->on("r.ql", ">=", "a.lowql")
 					->on("r.ql", "<=", "a.highql");

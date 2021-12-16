@@ -12,16 +12,16 @@ class CreateNotesTable implements SchemaMigration {
 		$table = "notes";
 		if ($db->schema()->hasTable($table)) {
 			if (!$db->schema()->hasColumn($table, "reminder")) {
-				$db->schema()->table($table, function (Blueprint $table) {
+				$db->schema()->table($table, function (Blueprint $table): void {
 					$table->integer("reminder")->default(0);
 				});
 			}
-			$db->schema()->table($table, function (Blueprint $table) {
+			$db->schema()->table($table, function (Blueprint $table): void {
 				$table->id("id")->change();
 			});
 			return;
 		}
-		$db->schema()->create($table, function(Blueprint $table) {
+		$db->schema()->create($table, function(Blueprint $table): void {
 			$table->id();
 			$table->string("owner", 25);
 			$table->string("added_by", 25);

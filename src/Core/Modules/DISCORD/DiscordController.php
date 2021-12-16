@@ -189,8 +189,9 @@ class DiscordController {
 
 	/**
 	 * Send a message to the configured Discord channel (if configured)
+	 * @param string|string[] $text
 	 */
-	public function sendDiscord($text, $allowGroupMentions=false): void {
+	public function sendDiscord(string|array $text, bool $allowGroupMentions=false): void {
 		$discordBotToken = $this->settingManager->getString('discord_bot_token');
 		if ($discordBotToken === "" || $discordBotToken === 'off') {
 			return;
