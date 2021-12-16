@@ -203,6 +203,7 @@ class ConsoleController {
 		$context->channel = "msg";
 		$context->message = $line;
 		$context->sendto = new ConsoleCommandReply($this->chatBot);
+		Registry::injectDependencies($context->sendto);
 		$this->chatBot->getUid($context->char->name, function (?int $uid, CmdContext $context): void {
 			$context->char->id = $uid;
 			$this->commandManager->processCmd($context);

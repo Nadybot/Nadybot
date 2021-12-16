@@ -12,7 +12,7 @@ class BuddylistManager {
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
-	#[NCA\Logger]
+	#[NCA\Inject]
 	public ConfigFile $config;
 
 	/**

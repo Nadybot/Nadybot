@@ -33,6 +33,7 @@ class ClassLoader {
 	public function loadInstances(): void {
 		$newInstances = $this->getInstancesOfClasses(...get_declared_classes());
 		unset($newInstances["logger"]);
+		unset($newInstances["configfile"]);
 		$newInstances = array_merge($newInstances, $this->getNewInstancesInDir(__DIR__));
 		foreach ($newInstances as $name => $class) {
 			Registry::setInstance($name, new $class->className);

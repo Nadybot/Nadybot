@@ -279,6 +279,7 @@ class BotRunner {
 			]
 		);
 
+		Registry::setInstance("configfile", $config);
 		$this->classLoader = new ClassLoader($this->getConfigFile()->moduleLoadPaths);
 		Registry::injectDependencies($this->classLoader);
 		$this->classLoader->loadInstances();
