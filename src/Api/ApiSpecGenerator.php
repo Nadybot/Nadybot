@@ -67,7 +67,7 @@ class ApiSpecGenerator {
 				$params = array_slice($method->getParameters(), 2);
 				$path = preg_replace_callback(
 					"/%[ds]/",
-					function(array $matches) use (&$params) {
+					function(array $matches) use (&$params): string {
 						$param = array_shift($params);
 						return '{' . $param->getName() . '}';
 					},

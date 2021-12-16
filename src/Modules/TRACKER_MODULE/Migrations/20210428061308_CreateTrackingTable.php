@@ -14,7 +14,7 @@ class CreateTrackingTable implements SchemaMigration {
 		if ($db->schema()->hasTable($table)) {
 			return;
 		}
-		$db->schema()->create($table, function(Blueprint $table) {
+		$db->schema()->create($table, function(Blueprint $table): void {
 			$table->bigInteger("uid");
 			$table->integer("dt");
 			$table->string("event", 6);

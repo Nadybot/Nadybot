@@ -459,7 +459,7 @@ class RaidPointsController {
 		$main = $altInfo->main;
 		$query = $this->db->table(self::DB_TABLE_LOG, "rpl")
 			->leftJoin("alts AS a", "a.alt", "rpl.username")
-			->where(function (QueryBuilder $where) use ($main) {
+			->where(function (QueryBuilder $where) use ($main): void {
 				$where->where("a.main", $main)
 					->where("a.validated_by_main", true)
 					->where("a.validated_by_alt", true);

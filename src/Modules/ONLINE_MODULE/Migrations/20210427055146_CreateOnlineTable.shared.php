@@ -11,7 +11,7 @@ class CreateOnlineTable implements SchemaMigration {
 	public function migrate(LoggerWrapper $logger, DB $db): void {
 		$table = "online";
 		if ($db->schema()->hasTable($table)) {
-			$db->schema()->table($table, function(Blueprint $table) {
+			$db->schema()->table($table, function(Blueprint $table): void {
 				$table->string("name", 15)->change();
 				$table->string("channel", 50)->nullable()->change();
 				$table->string("channel_type", 10)->change();
@@ -19,7 +19,7 @@ class CreateOnlineTable implements SchemaMigration {
 			});
 			return;
 		}
-		$db->schema()->create($table, function(Blueprint $table) {
+		$db->schema()->create($table, function(Blueprint $table): void {
 			$table->string("name", 15);
 			$table->string("afk", 255)->nullable()->default('');
 			$table->string("channel", 50)->nullable();

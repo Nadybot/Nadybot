@@ -10,7 +10,7 @@ use Nadybot\Core\SchemaMigration;
 class CreateItemTypesDB implements SchemaMigration {
 	public function migrate(LoggerWrapper $logger, DB $db): void {
 		$db->schema()->dropIfExists("item_types");
-		$db->schema()->create("item_types", function(Blueprint $table) {
+		$db->schema()->create("item_types", function(Blueprint $table): void {
 			$table->integer('item_id')->index();
 			$table->string("item_type", 15)->index();
 		});

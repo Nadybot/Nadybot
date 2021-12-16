@@ -143,7 +143,7 @@ class JWT {
 	 *
 	 * @throws DomainException Invalid Algorithm, bad key, or OpenSSL failure
 	 */
-	private static function verify(string $msg, string $signature, string $key, $alg) {
+	private static function verify(string $msg, string $signature, string $key, string $alg): bool {
 		if (empty(static::$supported_algs[$alg])) {
 			throw new DomainException('Algorithm not supported');
 		}
@@ -217,7 +217,7 @@ class JWT {
 	 *
 	 * @return void
 	 */
-	private static function handleJsonError($errno) {
+	private static function handleJsonError($errno): void {
 		$messages = [
 			JSON_ERROR_DEPTH => 'Maximum stack depth exceeded',
 			JSON_ERROR_STATE_MISMATCH => 'Invalid or malformed JSON',
@@ -273,7 +273,7 @@ class JWT {
 	 * @param   string  $value the value to encode
 	 * @return  string  the encoded object
 	 */
-	private static function encodeDER($type, $value) {
+	private static function encodeDER(int $type, string $value): string {
 		$tag_header = 0;
 		if ($type === self::ASN1_SEQUENCE) {
 			$tag_header |= 0x20;

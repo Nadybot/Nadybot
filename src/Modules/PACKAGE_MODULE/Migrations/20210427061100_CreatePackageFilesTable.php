@@ -14,7 +14,7 @@ class CreatePackageFilesTable implements SchemaMigration {
 		if ($db->schema()->hasTable($table)) {
 			return;
 		}
-		$db->schema()->create($table, function(Blueprint $table) {
+		$db->schema()->create($table, function(Blueprint $table): void {
 			$table->string("module", 25)->index();
 			$table->string("version", 50)->index();
 			$table->text("file");

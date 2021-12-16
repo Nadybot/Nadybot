@@ -846,7 +846,7 @@ class ConfigController {
 	/**
 	 * This helper method builds information and controls for given subcommand.
 	 */
-	private function getSubCommandInfo($cmd, $type): string {
+	private function getSubCommandInfo(string $cmd, string $type): string {
 		$subcmd_list = '';
 		/** @var CmdCfg[] $data */
 		$data = $this->db->table(CommandManager::DB_TABLE)
@@ -990,7 +990,7 @@ class ConfigController {
 			->orderBy("mode")
 			->orderBy("description")
 			->asObj(Setting::class)
-			->map(function (Setting $setting) {
+			->map(function (Setting $setting): ?SettingHandler {
 				return $this->settingManager->getSettingHandler($setting);
 			})
 			->filter()

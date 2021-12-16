@@ -139,7 +139,7 @@ class Tell implements TransportInterface {
 			$waitForRemoval = function (PacketEvent $event) use ($callback, &$waitForRemoval): void {
 				$uid = $event->packet->args[0];
 				$name = $this->chatBot->lookup_user($uid);
-				if ($name === $this->bot) {
+				if ($name === $this->bot && is_int($uid)) {
 					$this->buddylistManager->updateRemoved($uid);
 					$this->eventManager->unsubscribe("packet(41)", $waitForRemoval);
 					$callback();

@@ -9,6 +9,7 @@ use Monolog\Handler\AbstractProcessingHandler;
 use Monolog\Logger;
 use Monolog\Processor\PsrLogMessageProcessor;
 use RuntimeException;
+use Stringable;
 
 /**
  * A compatibility layer for logging
@@ -42,7 +43,7 @@ class LegacyLogger {
 	/**
 	 * Log a message according to log settings
 	 */
-	public static function log(string $category, string $channel, $message): void {
+	public static function log(string $category, string $channel, Stringable|string $message): void {
 		$logger = static::fromConfig($channel);
 		$level = static::getLoggerLevel($category);
 		$logger->log($level, $message);

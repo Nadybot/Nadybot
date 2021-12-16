@@ -83,7 +83,7 @@ class LoggerWrapper {
 	 * @param string $message The message to log
 	 * @return void
 	 */
-	public function logChat(string $channel, $sender, string $message): void {
+	public function logChat(string $channel, string|int $sender, string $message): void {
 		global $vars;
 		if ($vars['show_aoml_markup'] == 0) {
 			$message = preg_replace("|<font.*?>|", "", $message);

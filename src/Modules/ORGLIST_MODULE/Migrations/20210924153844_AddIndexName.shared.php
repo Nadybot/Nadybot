@@ -11,11 +11,11 @@ class AddIndexName implements SchemaMigration {
 	public function migrate(LoggerWrapper $logger, DB $db): void {
 		$table = "organizations";
 		$db->table($table)->truncate();
-		$db->schema()->table($table, function(Blueprint $table) {
+		$db->schema()->table($table, function(Blueprint $table): void {
 			$table->string("index", 6)->nullable(true)->index();
 			$table->string("governing_form", 10)->nullable(true);
 		});
-		$db->schema()->table($table, function(Blueprint $table) {
+		$db->schema()->table($table, function(Blueprint $table): void {
 			$table->string("index", 6)->nullable(false)->change();
 			$table->string("governing_form", 10)->nullable(false)->change();
 		});

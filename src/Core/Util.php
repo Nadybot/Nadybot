@@ -353,10 +353,8 @@ class Util {
 
 	/**
 	 * Randomly get a value from an array
-	 *
-	 * @return mixed A random element
 	 */
-	public function randomArrayValue(array $array) {
+	public function randomArrayValue(array $array): mixed {
 		return $array[array_rand($array)];
 	}
 

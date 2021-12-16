@@ -12,12 +12,12 @@ class CreateRaidTable implements SchemaMigration {
 	public function migrate(LoggerWrapper $logger, DB $db): void {
 		$table = RaidController::DB_TABLE;
 		if ($db->schema()->hasTable($table)) {
-			$db->schema()->table($table, function(Blueprint $table) {
+			$db->schema()->table($table, function(Blueprint $table): void {
 				$table->id("raid_id")->change();
 			});
 			return;
 		}
-		$db->schema()->create($table, function(Blueprint $table) {
+		$db->schema()->create($table, function(Blueprint $table): void {
 			$table->id("raid_id");
 			$table->string("description", 255)->nullable();
 			$table->integer("seconds_per_point");

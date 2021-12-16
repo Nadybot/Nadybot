@@ -10,27 +10,27 @@ use Nadybot\Core\SchemaMigration;
 class CreateBuffDBs implements SchemaMigration {
 	public function migrate(LoggerWrapper $logger, DB $db): void {
 		$db->schema()->dropIfExists("item_buffs");
-		$db->schema()->create("item_buffs", function(Blueprint $table) {
+		$db->schema()->create("item_buffs", function(Blueprint $table): void {
 			$table->integer("item_id")->index();
 			$table->integer("attribute_id")->index();
 			$table->integer("amount");
 		});
 
 		$db->schema()->dropIfExists("skills");
-		$db->schema()->create("skills", function(Blueprint $table) {
+		$db->schema()->create("skills", function(Blueprint $table): void {
 			$table->integer("id")->primary();
 			$table->string("name", 50);
 			$table->string("unit", 10);
 		});
 
 		$db->schema()->dropIfExists("skill_alias");
-		$db->schema()->create("skill_alias", function(Blueprint $table) {
+		$db->schema()->create("skill_alias", function(Blueprint $table): void {
 			$table->integer('id');
 			$table->string("name", 50);
 		});
 
 		$db->schema()->dropIfExists("buffs");
-		$db->schema()->create("buffs", function(Blueprint $table) {
+		$db->schema()->create("buffs", function(Blueprint $table): void {
 			$table->integer("id")->primary();
 			$table->integer("nano_id")->nullable()->index();
 			$table->integer("disc_id")->nullable();

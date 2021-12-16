@@ -565,7 +565,7 @@ class LootListsController {
 	/**
 	 * @return string|string[]|null
 	 */
-	public function getPandemoniumLoot(string $raid, string $category, CmdContext $context) {
+	public function getPandemoniumLoot(string $raid, string $category, CmdContext $context): null|string|array {
 		$category = ucwords(strtolower($category));
 		try {
 			$blob = $this->findRaidLoot($raid, $category, $context);

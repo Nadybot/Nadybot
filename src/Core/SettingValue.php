@@ -21,10 +21,7 @@ class SettingValue {
 		}
 	}
 
-	/**
-	 * @return null|bool|int|string
-	 */
-	public function typed() {
+	public function typed(): null|bool|int|string {
 		if (in_array($this->type, ['number', 'time'])) {
 			return (int)$this->value;
 		}

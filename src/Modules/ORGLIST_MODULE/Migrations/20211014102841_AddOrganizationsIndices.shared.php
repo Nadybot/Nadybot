@@ -10,7 +10,7 @@ use Nadybot\Core\SchemaMigration;
 class AddOrganizationsIndices implements SchemaMigration {
 	public function migrate(LoggerWrapper $logger, DB $db): void {
 		$table = "organizations";
-		$db->schema()->table($table, function(Blueprint $table) {
+		$db->schema()->table($table, function(Blueprint $table): void {
 			$table->index("name");
 			$table->index("id");
 		});

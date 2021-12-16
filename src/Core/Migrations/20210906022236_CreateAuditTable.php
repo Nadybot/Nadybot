@@ -11,7 +11,7 @@ use Nadybot\Core\SchemaMigration;
 class CreateAuditTable implements SchemaMigration {
 	public function migrate(LoggerWrapper $logger, DB $db): void {
 		$table = AccessManager::DB_TABLE;
-		$db->schema()->create($table, function(Blueprint $table) {
+		$db->schema()->create($table, function(Blueprint $table): void {
 			$table->id();
 			$table->string("actor", 12)->index();
 			$table->string("actee", 12)->nullable()->index();

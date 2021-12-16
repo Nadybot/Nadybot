@@ -704,7 +704,7 @@ class BuffPerksController {
 			->where("perk_id", $perk->id)
 			->orderBy("perk_level")
 			->asObj(PerkLevel::class)
-			->each(function (PerkLevel $row) use ($perk) {
+			->each(function (PerkLevel $row) use ($perk): void {
 				$row->professions = $this->db->table("perk_level_prof")
 					->where("perk_level_id", $row->id)
 					->select("profession")
@@ -721,7 +721,7 @@ class BuffPerksController {
 			->orderBy("pl.perk_level")
 			->select("pl.perk_level", "pla.*", "a.*")
 			->asObj(PerkLevelAction::class)
-			->each(function (PerkLevelAction $perkLevelAction) use ($perk) {
+			->each(function (PerkLevelAction $perkLevelAction) use ($perk): void {
 				$item = new AODBEntry();
 				foreach (get_class_vars(AODBEntry::class) as $key => $value) {
 					$item->{$key} = $perkLevelAction->{$key};
@@ -738,7 +738,7 @@ class BuffPerksController {
 			->orderBy("s.name")
 			->select("pl.perk_level", "plb.skill_id", "s.name AS skill_name", "plb.amount", "s.unit")
 			->asObj(PerkLevelBuff::class)
-			->each(function (PerkLevelBuff $buff) use ($perk) {
+			->each(function (PerkLevelBuff $buff) use ($perk): void {
 				$perk->levels[$buff->perk_level]->perk_buffs []= $buff;
 			});
 		$this->db->table("perk_level AS pl")
@@ -749,7 +749,7 @@ class BuffPerksController {
 			->orderBy("nl.name")
 			->select("pl.perk_level", "plr.*", "nl.name AS nanoline")
 			->asObj(PerkLevelResistance::class)
-			->each(function (PerkLevelResistance $res) use ($perk) {
+			->each(function (PerkLevelResistance $res) use ($perk): void {
 				$perk->levels[$res->perk_level]->perk_resistances []= $res;
 			});
 		return $perk;
@@ -780,7 +780,7 @@ class BuffPerksController {
 			->orderBy("pl.perk_level")
 			->select("pl.*", "plp.profession")
 			->asObj(PerkLevel::class)
-			->reduce(function (array $perks, PerkLevel $perkLevel) {
+			->reduce(function (array $perks, PerkLevel $perkLevel): array {
 				/** @var array<int,Perk> $perks */
 				$prof = $this->util->getProfessionAbbreviation($perkLevel->profession);
 				unset($perkLevel->profession);
@@ -819,7 +819,7 @@ class BuffPerksController {
 			->select("pl.perk_id", "pl.perk_level", "plb.skill_id")
 			->addSelect("s.name AS skill_name", "plb.amount", "s.unit")
 			->asObj(PerkLevelBuff::class)
-			->each(function (PerkLevelBuff $buff) use ($perks) {
+			->each(function (PerkLevelBuff $buff) use ($perks): void {
 				$perks[$buff->perk_id]->levels[$buff->perk_level]->perk_buffs []= $buff;
 			});
 		$this->db->table("perk_level AS pl")
@@ -832,7 +832,7 @@ class BuffPerksController {
 			->orderBy("nl.name")
 			->select("pl.perk_id", "pl.perk_level", "plr.*", "nl.name AS nanoline")
 			->asObj(PerkLevelResistance::class)
-			->each(function (PerkLevelResistance $res) use ($perks) {
+			->each(function (PerkLevelResistance $res) use ($perks): void {
 				$perks[$res->perk_id]->levels[$res->perk_level]->perk_resistances []= $res;
 			});
 		return array_values($perks);

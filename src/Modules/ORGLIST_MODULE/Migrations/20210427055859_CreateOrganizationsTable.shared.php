@@ -13,7 +13,7 @@ class CreateOrganizationsTable implements SchemaMigration {
 		if ($db->schema()->hasTable($table)) {
 			return;
 		}
-		$db->schema()->create($table, function(Blueprint $table) {
+		$db->schema()->create($table, function(Blueprint $table): void {
 			$table->integer("id");
 			$table->string("name", 255);
 			$table->string("faction", 10);

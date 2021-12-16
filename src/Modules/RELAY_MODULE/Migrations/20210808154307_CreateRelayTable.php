@@ -11,7 +11,7 @@ use Nadybot\Modules\RELAY_MODULE\RelayController;
 class CreateRelayTable implements SchemaMigration {
 	public function migrate(LoggerWrapper $logger, DB $db): void {
 		$table = RelayController::DB_TABLE;
-		$db->schema()->create($table, function(Blueprint $table) {
+		$db->schema()->create($table, function(Blueprint $table): void {
 			$table->id();
 			$table->string("name", 100)->unique();
 		});

@@ -16,7 +16,7 @@ class CreateRaidPointsLogTable implements SchemaMigration {
 			if ($db->schema()->hasColumn($table, "individual")) {
 				return;
 			}
-			$db->schema()->table($table, function(Blueprint $table) {
+			$db->schema()->table($table, function(Blueprint $table): void {
 				$table->boolean("individual")->default(true)->index()->change();
 			});
 			$db->table($table)->asObj()->each(function(stdClass $log) use ($db, $table) {
@@ -33,7 +33,7 @@ class CreateRaidPointsLogTable implements SchemaMigration {
 			});
 			return;
 		}
-		$db->schema()->create($table, function(Blueprint $table) {
+		$db->schema()->create($table, function(Blueprint $table): void {
 			$table->string("username", 20)->index();
 			$table->integer("delta");
 			$table->integer("time")->index();

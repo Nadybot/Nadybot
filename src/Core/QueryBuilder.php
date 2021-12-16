@@ -238,14 +238,14 @@ class QueryBuilder extends Builder {
 		return " as " . $this->grammar->wrap($as);
 	}
 
-	public function orderByFunc(string $function, $param, string $direction="asc"): self {
+	public function orderByFunc(string $function, mixed $param, string $direction="asc"): self {
 		$function = $this->dbFunc($function);
 		return $this->orderByRaw(
 			"$function({$param}) {$direction}"
 		);
 	}
 
-	public function orderByColFunc(string $function, $column, string $direction="asc"): self {
+	public function orderByColFunc(string $function, mixed $column, string $direction="asc"): self {
 		$function = $this->dbFunc($function);
 		if (!is_array($column)) {
 			$column = [$column];
@@ -257,7 +257,7 @@ class QueryBuilder extends Builder {
 		);
 	}
 
-	public function colFunc(string $function, $column, string $as=null): Expression {
+	public function colFunc(string $function, mixed $column, string $as=null): Expression {
 		$function = $this->dbFunc($function);
 		if (!is_array($column)) {
 			$column = [$column];
@@ -270,7 +270,7 @@ class QueryBuilder extends Builder {
 		);
 	}
 
-	public function rawFunc(string $function, $param, string $as=null): Expression {
+	public function rawFunc(string $function, mixed $param, string $as=null): Expression {
 		$function = $this->dbFunc($function);
 		return $this->raw(
 			"$function($param)".
@@ -310,7 +310,7 @@ class QueryBuilder extends Builder {
 		return $function;
 	}
 
-	public function newQuery() {
+	public function newQuery(): self {
 		$instance = new self($this->connection, $this->grammar, $this->processor);
 		$instance->nadyDB = $this->nadyDB;
 		return $instance;

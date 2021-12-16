@@ -11,7 +11,7 @@ class CreateSymbiantAbilityMatrixTable implements SchemaMigration {
 	public function migrate(LoggerWrapper $logger, DB $db): void {
 		$table = "SymbiantAbilityMatrix";
 		$db->schema()->dropIfExists($table);
-		$db->schema()->create($table, function(Blueprint $table) {
+		$db->schema()->create($table, function(Blueprint $table): void {
 			$table->integer("SymbiantID");
 			$table->integer("AbilityID");
 			$table->integer("Amount");

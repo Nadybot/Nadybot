@@ -367,7 +367,7 @@ class EventManager {
 		$this->db->table(self::DB_TABLE)
 			->where("status", 1)
 			->asObj(EventCfg::class)
-			->each(function(EventCfg $row) {
+			->each(function(EventCfg $row): void {
 				if (isset($this->dontActivateEvents[$row->type][$row->file])) {
 					unset($this->dontActivateEvents[$row->type][$row->file]);
 				} elseif (isset($row->type) && isset($row->file)) {

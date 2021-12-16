@@ -13,7 +13,7 @@ use Nadybot\Core\SchemaMigration;
 class CreateRouteTable implements SchemaMigration {
 	public function migrate(LoggerWrapper $logger, DB $db): void {
 		$table = MessageHub::DB_TABLE_ROUTES;
-		$db->schema()->create($table, function(Blueprint $table) {
+		$db->schema()->create($table, function(Blueprint $table): void {
 			$table->id();
 			$table->string("source", 100);
 			$table->string("destination", 100);

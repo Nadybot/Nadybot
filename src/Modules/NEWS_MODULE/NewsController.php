@@ -133,7 +133,7 @@ class NewsController {
 	/**
 	 * @return string|string[]|null
 	 */
-	public function getNews(string $player, bool $onlyUnread=true) {
+	public function getNews(string $player, bool $onlyUnread=true): null|string|array {
 		$news = $this->getNewsItems($player);
 		if ($onlyUnread) {
 			$news = $news->where("confirmed", false);
