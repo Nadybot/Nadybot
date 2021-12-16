@@ -4,8 +4,8 @@ namespace Nadybot\Modules\WHOIS_MODULE;
 
 use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\CmdContext;
+use Nadybot\Core\ConfigFile;
 use Nadybot\Core\Modules\PLAYER_LOOKUP\PlayerManager;
-use Nadybot\Core\Nadybot;
 use Nadybot\Core\Text;
 
 /**
@@ -30,7 +30,7 @@ class FindPlayerController {
 	public string $moduleName;
 
 	#[NCA\Inject]
-	public Nadybot $chatBot;
+	public ConfigFile $config;
 
 	#[NCA\Inject]
 	public Text $text;
@@ -42,7 +42,7 @@ class FindPlayerController {
 	public function findplayerCommand(CmdContext $context, string $search): void {
 		$players = $this->playerManager->searchForPlayers(
 			$search,
-			(int)$this->chatBot->vars['dimension']
+			$this->config->dimension
 		);
 		$count = count($players);
 

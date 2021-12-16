@@ -609,7 +609,7 @@ class AuctionController {
 				$auction->bid * -1,
 				true,
 				$auction->item->toString(),
-				$sender ?? $this->chatBot->vars["name"],
+				$sender ?? $this->chatBot->char->name,
 				$this->raidController->raid ?? null
 			);
 		}
@@ -634,7 +634,7 @@ class AuctionController {
 	public function getBiddingInfo(): string {
 		return "<header2>Placing a bid<end>\n".
 			"To place a bid, use\n".
-			"<tab><highlight>/tell " . $this->chatBot->vars["name"] . " bid &lt;points&gt;<end>\n".
+			"<tab><highlight>/tell " . $this->chatBot->char->name . " bid &lt;points&gt;<end>\n".
 			"<i>(Replace &lt;points&gt; with the number of points you would like to bid)</i>\n\n".
 			"The auction ends after " . ($this->settingManager->getInt('auction_duration')??50).
 			"s, or " . ($this->settingManager->getInt('auction_min_time_after_bid')??5) . "s after ".

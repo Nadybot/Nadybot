@@ -9,7 +9,7 @@ use Nadybot\Core\{
 	CacheResult,
 	CmdContext,
 	CommandAlias,
-	CommandReply,
+	ConfigFile,
 	DB,
 	Http,
 	HttpResponse,
@@ -57,6 +57,9 @@ class PackageController {
 
 	#[NCA\Inject]
 	public Nadybot $chatBot;
+
+	#[NCA\Inject]
+	public ConfigFile $config;
 
 	#[NCA\Inject]
 	public Text $text;
@@ -479,7 +482,7 @@ class PackageController {
 		PWord $package,
 		?string $version
 	): void {
-		if (($this->chatBot->vars['enable_package_module']??0) != 1) {
+		if (!$this->config->enablePackageModule) {
 			$context->reply(
 				"In order to be allowed to install modules from within Nadybot, ".
 				"you have to set <highlight>\$vars['enable_package_module'] = 1;<end> in your ".
@@ -501,7 +504,7 @@ class PackageController {
 		PWord $package,
 		?string $version
 	): void {
-		if (($this->chatBot->vars['enable_package_module']??0) != 1) {
+		if (!$this->config->enablePackageModule) {
 			$context->reply(
 				"In order to be allowed to update modules from within Nadybot, ".
 				"you have to set <highlight>\$vars['enable_package_module'] = 1;<end> in your ".
@@ -522,7 +525,7 @@ class PackageController {
 		#[NCA\Regexp("uninstall|delete|remove|erase|del|rm")] string $action,
 		string $package
 	): void {
-		if (($this->chatBot->vars['enable_package_module']??0) != 1) {
+		if (!$this->config->enablePackageModule) {
 			$context->reply(
 				"In order to be allowed to uninstall modules from within Nadybot, ".
 				"you have to set <highlight>\$vars['enable_package_module'] = 1;<end> in your ".
@@ -965,7 +968,7 @@ class PackageController {
 
 	/** Try to determine the directory where custom modules shall be installed */
 	public function getExtraModulesDir(): ?string {
-		$moduleDirs = array_map("realpath", $this->chatBot->vars["module_load_paths"]);
+		$moduleDirs = array_map("realpath", $this->config->moduleLoadPaths);
 		$moduleDirs = array_diff($moduleDirs, [realpath("./src/Modules")]);
 		$extraDir = end($moduleDirs);
 		if ($extraDir === false) {

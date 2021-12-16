@@ -4,6 +4,7 @@ namespace Nadybot\Modules\TOWER_MODULE\Migrations;
 
 use Nadybot\Core\Attributes as NCA;
 use Exception;
+use Nadybot\Core\ConfigFile;
 use Nadybot\Core\Modules\DISCORD\DiscordChannel;
 use Nadybot\Core\DB;
 use Nadybot\Core\DBSchema\Route;
@@ -13,7 +14,6 @@ use Nadybot\Core\DBSchema\Setting;
 use Nadybot\Core\LoggerWrapper;
 use Nadybot\Core\MessageHub;
 use Nadybot\Core\Modules\DISCORD\DiscordAPIClient;
-use Nadybot\Core\Nadybot;
 use Nadybot\Core\Routing\Source;
 use Nadybot\Core\SchemaMigration;
 use Nadybot\Core\SettingManager;
@@ -21,7 +21,7 @@ use Nadybot\Modules\TOWER_MODULE\TowerController;
 
 class MigrateToRoutes implements SchemaMigration {
 	#[NCA\Inject]
-	public Nadybot $chatBot;
+	public ConfigFile $config;
 
 	#[NCA\Inject]
 	public DiscordAPIClient $discordAPIClient;
@@ -66,8 +66,7 @@ class MigrateToRoutes implements SchemaMigration {
 		$table = MessageHub::DB_TABLE_ROUTES;
 		$showWhere = $this->getSetting($db, "tower_spam_target");
 		if (!isset($showWhere)) {
-			/** @psalm-suppress DocblockTypeContradiction */
-			if (strlen($this->chatBot->vars['my_guild']??"")) {
+			if (strlen($this->config->orgName)) {
 				$showWhere = 2;
 			} else {
 				$showWhere = 1;
@@ -76,7 +75,7 @@ class MigrateToRoutes implements SchemaMigration {
 			$showWhere = (int)$showWhere->value;
 		}
 		$map = [
-			1 => Source::PRIV . "({$this->chatBot->vars['name']})",
+			1 => Source::PRIV . "({$this->config->name})",
 			2 => Source::ORG,
 		];
 		foreach ($map as $flag => $dest) {

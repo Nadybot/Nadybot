@@ -16,8 +16,8 @@ use Nadybot\Core\{
 	CmdContext,
 	CommandAlias,
 	CommandManager,
+	ConfigFile,
 	DB,
-	Event,
 	EventManager,
 	EventType,
 	LoggerWrapper,
@@ -97,6 +97,9 @@ class RelayController {
 
 	#[NCA\Inject]
 	public Nadybot $chatBot;
+
+	#[NCA\Inject]
+	public ConfigFile $config;
 
 	#[NCA\Inject]
 	public SettingManager $settingManager;
@@ -223,7 +226,7 @@ class RelayController {
 		if ($abbr !== 'none') {
 			return $abbr;
 		} else {
-			return $this->chatBot->vars["my_guild"];
+			return $this->config->orgName;
 		}
 	}
 

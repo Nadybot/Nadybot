@@ -2,9 +2,9 @@
 
 namespace Nadybot\Modules\WORLDBOSS_MODULE;
 
-use Spatie\DataTransferObject\FlexibleDataTransferObject;
+use Spatie\DataTransferObject\DataTransferObject;
 
-class ApiSpawnData extends FlexibleDataTransferObject {
+class ApiSpawnData extends DataTransferObject {
 	public string $name;
 	public int $last_spawn;
 }

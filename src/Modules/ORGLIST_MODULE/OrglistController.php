@@ -263,7 +263,7 @@ class OrglistController {
 			$buddyOnlineStatus = $this->buddylistManager->isUidOnline($member->charid);
 			if ($buddyOnlineStatus !== null) {
 				$this->orglist->result[$member->name]->online = $buddyOnlineStatus;
-			} elseif ($this->chatBot->vars["name"] === $member->name) {
+			} elseif ($this->chatBot->char->name === $member->name) {
 				$this->orglist->result[$member->name]->online = true;
 			} else {
 				$this->orglist->check[$member->name] = true;

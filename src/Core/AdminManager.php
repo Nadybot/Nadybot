@@ -3,6 +3,7 @@
 namespace Nadybot\Core;
 
 use Nadybot\Core\Attributes as NCA;
+use Nadybot\Core\Attributes\Inject;
 use Nadybot\Core\DBSchema\Admin;
 use Nadybot\Core\DBSchema\Audit;
 
@@ -25,6 +26,9 @@ class AdminManager {
 	#[NCA\Inject]
 	public AccessManager $accessManager;
 
+	#[Inject]
+	public ConfigFile $config;
+
 	/**
 	 * Admin access levels of our admin users
 	 * @var array<string,array<string,int>> $admins
@@ -35,12 +39,10 @@ class AdminManager {
 	 * Load the bot admins from database into $admins
 	 */
 	public function uploadAdmins(): void {
-		$this->chatBot->vars["SuperAdmin"] = ucfirst(strtolower($this->chatBot->vars["SuperAdmin"]));
-
 		$this->db->table(self::DB_TABLE)->upsert(
 			[
 				"adminlevel" => 4,
-				"name" => $this->chatBot->vars["SuperAdmin"],
+				"name" => $this->config->superAdmin,
 			],
 			"name"
 		);

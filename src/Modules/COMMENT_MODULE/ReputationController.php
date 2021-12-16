@@ -70,7 +70,7 @@ class ReputationController {
 		}
 		$repCat = new CommentCategory();
 		$repCat->name = static::CAT_REPUTATION;
-		$repCat->created_by = $this->chatBot->vars["name"];
+		$repCat->created_by = $this->chatBot->char->name;
 		$repCat->min_al_read = "guild";
 		$repCat->min_al_write = "guild";
 		$repCat->user_managed = false;
