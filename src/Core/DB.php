@@ -29,6 +29,9 @@ class DB {
 	#[NCA\Inject]
 	public Util $util;
 
+	#[NCA\Inject]
+	public ConfigFile $config;
+
 	/**
 	 * The database type: mysql/sqlite
 	 */
@@ -79,22 +82,22 @@ class DB {
 
 	/** Get the lowercased name of the bot */
 	public function getBotname(): string {
-		return $this->botname;
+		return strtolower($this->config->name);
 	}
 
 	/** Get the correct name of the bot */
 	public function getMyname(): string {
-		return ucfirst($this->botname);
+		return ucfirst($this->getBotname());
 	}
 
 	/** Get the correct guild name of the bot */
 	public function getMyguild(): string {
-		return ucfirst($this->guild);
+		return ucfirst($this->config->orgName);
 	}
 
 	/** Get the dimension id of the bot */
 	public function getDim(): int {
-		return $this->dim;
+		return $this->config->dimension;
 	}
 
 	/**
@@ -103,14 +106,10 @@ class DB {
 	 * @throws Exception for unsupported database types
 	 */
 	public function connect(string $type, string $dbName, ?string $host=null, ?string $user=null, ?string $pass=null): void {
-		global $vars;
 		$errorShown = isset($this->sql);
 		unset($this->sql);
 		$this->dbName = $dbName;
 		$this->type = strtolower($type);
-		$this->botname = strtolower($vars["name"]);
-		$this->dim = $vars["dimension"];
-		$this->guild = str_replace("'", "''", $vars["my_guild"]??"");
 		$this->capsule = new Capsule();
 
 		if ($this->type === self::MYSQL) {

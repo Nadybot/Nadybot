@@ -63,7 +63,7 @@ class DiscordMessageCommandReply implements CommandReply, MessageEmitter {
 			$msg = [$msg];
 		}
 		$fakeGM = new GuildMember();
-		$fakeGM->nick = $this->chatBot->vars["name"];
+		$fakeGM->nick = $this->chatBot->char->name;
 		if (!$this->isDirectMsg) {
 			$this->discordGatewayController->lookupChannel(
 				$this->channelId,

@@ -7,6 +7,7 @@ use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	BotRunner,
 	CmdContext,
+	ConfigFile,
 	DB,
 	EventManager,
 	Nadybot,
@@ -58,6 +59,9 @@ class UsageController {
 
 	#[NCA\Inject]
 	public Text $text;
+
+	#[NCA\Inject]
+	public ConfigFile $config;
 
 	#[NCA\Inject]
 	public Nadybot $chatBot;
@@ -307,10 +311,10 @@ class UsageController {
 		}, new stdClass());
 
 		$settings = new SettingsUsageStats();
-		$settings->dimension               = (int)$this->chatBot->vars['dimension'];
-		$settings->is_guild_bot            = strlen($this->chatBot->vars['my_guild']??'') > 0;
+		$settings->dimension               = $this->config->dimension;
+		$settings->is_guild_bot            = strlen($this->config->orgName) > 0;
 		$settings->guildsize               = $this->getGuildSizeClass(count($this->chatBot->guildmembers));
-		$settings->using_chat_proxy        = (bool)$this->chatBot->vars['use_proxy'];
+		$settings->using_chat_proxy        = (bool)$this->config->useProxy;
 		$settings->db_type                 = $this->db->getType();
 		$settings->bot_version             = $version;
 		$settings->using_git               = @file_exists(BotRunner::getBasedir() . "/.git");
@@ -333,7 +337,7 @@ class UsageController {
 		$settings->http_server_enable      = $this->eventManager->getKeyForCronEvent(60, "httpservercontroller.startHTTPServer") !== null;
 
 		$obj = new UsageStats();
-		$obj->id       = sha1($botid . $this->chatBot->char->name . $this->chatBot->vars['dimension']);
+		$obj->id       = sha1($botid . $this->chatBot->char->name . $this->config->dimension);
 		$obj->version  = 2;
 		$obj->debug    = $debug;
 		$obj->commands = $commands;

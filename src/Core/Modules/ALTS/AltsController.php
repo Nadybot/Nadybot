@@ -150,7 +150,7 @@ class AltsController {
 		description: "Add unvalidated alts/mains to friendlist"
 	)]
 	public function addNonValidatedAsBuddies(): void {
-		$myName = ucfirst(strtolower($this->chatBot->vars["name"]));
+		$myName = ucfirst(strtolower($this->chatBot->char->name));
 		$this->db->table("alts")->where("validated_by_alt", false)->where("added_via", $myName)
 			->asObj(Alt::class)->each(function(Alt $alt) {
 				$this->buddylistManager->add($alt->alt, static::ALT_VALIDATE);
@@ -605,7 +605,7 @@ class AltsController {
 			return;
 		}
 		if (!$altInfo->isValidated($sender)) {
-			if ($altInfo->alts[$sender]->added_via !== $this->chatBot->vars['name']) {
+			if ($altInfo->alts[$sender]->added_via !== $this->chatBot->char->name) {
 				return;
 			}
 			if (!$altInfo->alts[$sender]->validated_by_alt) {

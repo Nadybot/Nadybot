@@ -2,6 +2,7 @@
 
 namespace Nadybot\Core;
 
+use Nadybot\Core\Attributes\Instance;
 use RuntimeException;
 use Spatie\DataTransferObject\Attributes\MapFrom;
 use Spatie\DataTransferObject\Attributes\MapTo;
@@ -11,6 +12,7 @@ use Spatie\DataTransferObject\DataTransferObject;
  * The ConfigFile class provides convenient interface for reading and saving
  * config files located in conf-subdirectory.
  */
+#[Instance]
 class ConfigFile extends DataTransferObject {
 	private string $filePath;
 
@@ -21,6 +23,8 @@ class ConfigFile extends DataTransferObject {
 	#[MapFrom('my_guild')]
 	#[MapTo('my_guild')]
 	public string $orgName;
+
+	public ?int $orgId = null;
 
 	// 6 for Live (new), 5 for Live (old), 4 for Test.
 	public int $dimension = 5;
@@ -33,7 +37,7 @@ class ConfigFile extends DataTransferObject {
 	/** What type of database should be used? ('sqlite' or 'mysql') */
 	#[MapFrom('DB Type')]
 	#[MapTo('DB Type')]
-	public string $dbType = "sqlite";
+	public string $dbType = DB::SQLITE;
 
 	/** Name of the database */
 	#[MapFrom('DB Name')]
@@ -63,22 +67,22 @@ class ConfigFile extends DataTransferObject {
 	/** Cache folder for storing organization XML files. */
 	#[MapFrom('cachefolder')]
 	#[MapTo('cachefolder')]
-	public ?string $cacheFolder = "./cache/";
+	public string $cacheFolder = "./cache/";
 
 	/** Folder for storing HTML files of the webserver */
 	#[MapFrom('htmlfolder')]
 	#[MapTo('htmlfolder')]
-	public ?string $htmlFolder = "./html/";
+	public string $htmlFolder = "./html/";
 
 	/** Folder for storing data files */
 	#[MapFrom('datafolder')]
 	#[MapTo('datafolder')]
-	public ?string $dataFolder = "./data/";
+	public string $dataFolder = "./data/";
 
 	/**Folder for storing log files */
 	#[MapFrom('logsfolder')]
 	#[MapTo('logsfolder')]
-	public ?string $logsFolder = "./logs/";
+	public string $logsFolder = "./logs/";
 
 	/** Default status for new modules? 1 for enabled, 0 for disabled. */
 	#[MapFrom('default_module_status')]
@@ -88,12 +92,12 @@ class ConfigFile extends DataTransferObject {
 	/** Enable the readline-based console interface to the bot? */
 	#[MapFrom('enable_console_client')]
 	#[MapTo('enable_console_client')]
-	public ?int $enableConsoleClient = 1;
+	public int $enableConsoleClient = 1;
 
 	/** Enable the module to install other modules from within the bot */
 	#[MapFrom('enable_package_module')]
 	#[MapTo('enable_package_module')]
-	public ?int $enablePackageModule = 1;
+	public int $enablePackageModule = 1;
 
 	/** Use AO Chat Proxy? 1 for enabled, 0 for disabled. */
 	#[MapFrom('use_proxy')]
@@ -119,14 +123,27 @@ class ConfigFile extends DataTransferObject {
 		'./extras'
 	];
 
+	/**
+	 * Define settings values which will be immutable
+	 *
+	 * @var array<string,mixed>
+	 */
+	public array $settings = [];
+
+	public ?string $timezone = null;
+
 	public function __construct(array $args) {
+		unset($args["my_guild_id"]);
+		$args["my_guild"] ??= "";
+		$args["cachefolder"] ??= "./cache/";
+		$args["htmlfolder"] ??= "./html/";
+		$args["datafolder"] ??= "./data/";
+		$args["logsfolder"] ??= "./logs/";
+		$args["enable_console_client"] ??= 0;
+		$args["enable_package_module"] ??= 0;
 		parent::__construct($args);
-		$this->cacheFolder ??= "./cache/";
-		$this->htmlFolder ??= "./html/";
-		$this->dataFolder ??= "./data/";
-		$this->logsFolder ??= "./logs/";
-		$this->enableConsoleClient ??= 0;
-		$this->enablePackageModule ??= 0;
+		$this->superAdmin = ucfirst(strtolower($this->superAdmin));
+		$this->name = ucfirst(strtolower($this->name));
 	}
 
 	/**
@@ -152,7 +169,7 @@ class ConfigFile extends DataTransferObject {
 	 * Saves the config file, creating the file if it doesn't exist yet.
 	 */
 	public function save(): void {
-		$vars = $this->except("filePath")->toArray();
+		$vars = $this->except("filePath", "orgId")->toArray();
 		static::copyFromTemplateIfNeeded($this->getFilePath());
 		$lines = file($this->filePath);
 		foreach ($lines as $key => $line) {

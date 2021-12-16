@@ -5,6 +5,7 @@ namespace Nadybot\Modules\ORGLIST_MODULE;
 use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{
 	CmdContext,
+	ConfigFile,
 	DB,
 	DBSchema\Player,
 	Modules\PLAYER_LOOKUP\Guild,
@@ -44,6 +45,9 @@ class WhoisOrgController {
 	public Nadybot $chatBot;
 
 	#[NCA\Inject]
+	public ConfigFile $config;
+
+	#[NCA\Inject]
 	public Text $text;
 
 	#[NCA\Inject]
@@ -60,14 +64,14 @@ class WhoisOrgController {
 
 	#[NCA\HandlesCommand("whoisorg")]
 	public function whoisorgIdCommand(CmdContext $context, int $orgId, ?int $dimension): void {
-		$dimension ??= (int)$this->chatBot->vars['dimension'];
+		$dimension ??= $this->config->dimension;
 		$this->sendOrgIdInfo($orgId, $context, $dimension);
 		return;
 	}
 
 	#[NCA\HandlesCommand("whoisorg")]
 	public function whoisorgCommand(CmdContext $context, PCharacter $char, ?int $dimension): void {
-		$dimension ??= (int)$this->chatBot->vars['dimension'];
+		$dimension ??= $this->config->dimension;
 		$name = $char();
 		$this->playerManager->getByNameAsync(
 			function(?Player $whois) use ($name, $context, $dimension): void {

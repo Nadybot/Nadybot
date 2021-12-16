@@ -11,6 +11,7 @@ use JsonException;
 use Nadybot\Core\{
 	CacheManager,
 	CacheResult,
+	ConfigFile,
 	DB,
 	EventManager,
 	Nadybot,
@@ -28,6 +29,9 @@ class GuildManager {
 
 	#[NCA\Inject]
 	public DB $db;
+
+	#[NCA\Inject]
+	public ConfigFile $config;
 
 	#[NCA\Inject]
 	public CacheManager $cacheManager;
@@ -55,7 +59,7 @@ class GuildManager {
 	/** @psalm-param callable(?Guild, mixed...) $callback */
 	public function getByIdAsync(int $guildID, ?int $dimension, bool $forceUpdate, callable $callback, ...$args): void {
 		// if no server number is specified use the one on which the bot is logged in
-		$dimension ??= (int)$this->chatBot->vars["dimension"];
+		$dimension ??= $this->config->dimension;
 
 		$url = "http://people.anarchy-online.com/org/stats/d/$dimension/name/$guildID/basicstats.xml?data_type=json";
 		$maxCacheAge = 86400;
@@ -80,16 +84,13 @@ class GuildManager {
 
 	public function getById(int $guildID, int $dimension=null, bool $forceUpdate=false): ?Guild {
 		// if no server number is specified use the one on which the bot is logged in
-		$dimension ??= (int)$this->chatBot->vars["dimension"];
+		$dimension ??= $this->config->dimension;
 
 		$url = "http://people.anarchy-online.com/org/stats/d/$dimension/name/$guildID/basicstats.xml?data_type=json";
 		$groupName = "guild_roster";
 		$filename = "$guildID.$dimension.json";
 		$maxCacheAge = 86400;
-		if (
-			isset($this->chatBot->vars["my_guild_id"])
-			&& $this->chatBot->vars["my_guild_id"] === $guildID
-		) {
+		if ($this->isMyGuild($guildID)) {
 			$maxCacheAge = 21600;
 		}
 		$cb = $this->getJsonValidator();
@@ -111,8 +112,8 @@ class GuildManager {
 	 * Check if $guildId is the bot's guild id
 	 */
 	public function isMyGuild(int $guildId): bool {
-		return isset($this->chatBot->vars["my_guild_id"])
-			&& $this->chatBot->vars["my_guild_id"] === $guildId;
+		return isset($this->config->orgId)
+			&& $this->config->orgId === $guildId;
 	}
 
 	/** @psalm-param callable(?Guild, mixed...) $callback */

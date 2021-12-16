@@ -245,6 +245,7 @@ class BotRunner {
 		// load $vars
 		global $vars;
 		$vars = $this->getConfigVars();
+		$config = $this->getConfigFile();
 		$this->checkRequiredModules();
 		$this->checkRequiredPackages();
 		$this->createMissingDirs();
@@ -253,11 +254,10 @@ class BotRunner {
 
 		// these must happen first since the classes that are loaded may be used by processes below
 		$this->loadPhpLibraries();
-		if (isset($vars['timezone']) && @date_default_timezone_set($vars['timezone']) === false) {
-			die("Invalid timezone: \"{$vars['timezone']}\"\n");
+		if (isset($config->timezone) && @date_default_timezone_set($config->timezone) === false) {
+			die("Invalid timezone: \"{$config->timezone}\"\n");
 		}
-		$logFolderName = rtrim($vars["logsfolder"] ?? "./logs/", "/");
-		$logFolderName = "{$logFolderName}/{$vars['name']}.{$vars['dimension']}";
+		$logFolderName = "{$config->logsFolder}/{$config->name}.{$config->dimension}";
 
 		$this->setErrorHandling($logFolderName);
 		$this->logger = new LoggerWrapper("Core/BotRunner");
@@ -282,11 +282,9 @@ class BotRunner {
 		$this->classLoader = new ClassLoader($this->getConfigFile()->moduleLoadPaths);
 		Registry::injectDependencies($this->classLoader);
 		$this->classLoader->loadInstances();
-exit;
 
 		$signalHandler = $this->installCtrlCHandler();
 		$this->connectToDatabase();
-		$this->clearDatabaseInformation();
 		$this->uninstallCtrlCHandler($signalHandler);
 
 		$this->runUpgradeScripts();
@@ -297,7 +295,7 @@ exit;
 		$chatBot = Registry::getInstance(Nadybot::class);
 
 		// startup core systems and load modules
-		$chatBot->init($this, $vars);
+		$chatBot->init($this);
 
 		// connect to ao chat server
 		$chatBot->connectAO($vars['login'], $vars['password'], (string)$server, (int)$port);
@@ -437,12 +435,12 @@ exit;
 	 * Connect to the database
 	 */
 	private function connectToDatabase(): void {
-		global $vars;
 		$db = Registry::getInstance(DB::class);
 		if (!isset($db)) {
 			throw new Exception("Cannot find DB instance.");
 		}
-		$db->connect($vars["DB Type"], $vars["DB Name"], $vars["DB Host"], $vars["DB username"], $vars["DB password"]);
+		$config = $this->getConfigFile();
+		$db->connect($config->dbType, $config->dbName, $config->dbHost, $config->dbUsername, $config->dbPassword);
 	}
 
 	/**

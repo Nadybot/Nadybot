@@ -5,6 +5,7 @@ namespace Nadybot\Modules\WHOIS_MODULE;
 use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\CmdContext;
 use Nadybot\Core\CommandReply;
+use Nadybot\Core\ConfigFile;
 use Nadybot\Core\Modules\PLAYER_LOOKUP\PlayerHistory;
 use Nadybot\Core\Modules\PLAYER_LOOKUP\PlayerHistoryManager;
 use Nadybot\Core\Nadybot;
@@ -33,7 +34,7 @@ class PlayerHistoryController {
 	public string $moduleName;
 
 	#[NCA\Inject]
-	public Nadybot $chatBot;
+	public ConfigFile $config;
 
 	#[NCA\Inject]
 	public Text $text;
@@ -44,7 +45,7 @@ class PlayerHistoryController {
 	#[NCA\HandlesCommand("history")]
 	public function playerHistoryCommand(CmdContext $context, PCharacter $char, ?int $dimension): void {
 		$name = $char();
-		$dimension ??= (int)$this->chatBot->vars['dimension'];
+		$dimension ??= $this->config->dimension;
 
 		$this->playerHistoryManager->asyncLookup($name, $dimension, [$this, "servePlayerHistory"], $name, $dimension, $context);
 	}

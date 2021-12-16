@@ -31,7 +31,9 @@ class ClassLoader {
 	 * Load all classes that provide an #[Instance]
 	 */
 	public function loadInstances(): void {
-		$newInstances = $this->getNewInstancesInDir(__DIR__);
+		$newInstances = $this->getInstancesOfClasses(...get_declared_classes());
+		unset($newInstances["logger"]);
+		$newInstances = array_merge($newInstances, $this->getNewInstancesInDir(__DIR__));
 		foreach ($newInstances as $name => $class) {
 			Registry::setInstance($name, new $class->className);
 		}
@@ -154,24 +156,34 @@ class ClassLoader {
 		}
 		$new = array_diff(get_declared_classes(), $original);
 
+		return static::getInstancesOfClasses(...$new);
+	}
+
+	/**
+	 * Get a list of all instances which provide an #[Instance] from a list of classes
+	 *
+	 * @return array<string,ClassInstance> A mapping [instance name => class info]
+	 */
+	public static function getInstancesOfClasses(string ...$classes): array {
 		$newInstances = [];
-		foreach ($new as $className) {
+		foreach ($classes as $className) {
 			$reflection = new ReflectionClass($className);
 			$instanceAnnos = $reflection->getAttributes(NCA\Instance::class);
-			if (count($instanceAnnos)) {
-				$instance = new ClassInstance();
-				$instance->className = $className;
-				/** @var NCA\Instance */
-				$instanceAttr = $instanceAnnos[0]->newInstance();
-				if ($instanceAttr->name !== null) {
-					$name = $instanceAttr->name;
-					$instance->overwrite = $instanceAttr->overwrite;
-				} else {
-					$name = Registry::formatName($className);
-				}
-				$instance->name = $name;
-				$newInstances[$name] = $instance;
+			if (!count($instanceAnnos)) {
+				continue;
 			}
+			$instance = new ClassInstance();
+			$instance->className = $className;
+			/** @var NCA\Instance */
+			$instanceAttr = $instanceAnnos[0]->newInstance();
+			if ($instanceAttr->name !== null) {
+				$name = $instanceAttr->name;
+				$instance->overwrite = $instanceAttr->overwrite;
+			} else {
+				$name = Registry::formatName($className);
+			}
+			$instance->name = $name;
+			$newInstances[$name] = $instance;
 		}
 		return $newInstances;
 	}

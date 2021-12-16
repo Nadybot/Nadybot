@@ -157,7 +157,7 @@ class ChatAssistController {
 			if (strlen($name)) {
 				$blob .= $callerList->name;
 			} else {
-				$blob .= $this->chatBot->vars["name"];
+				$blob .= $this->chatBot->char->name;
 			}
 			$blob .= " /assist " . join(" \\n /assist ", $callerList->getNames());
 			$blob .= "<end>\n<tab>Once: ".

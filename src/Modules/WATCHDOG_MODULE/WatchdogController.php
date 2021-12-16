@@ -3,7 +3,7 @@
 namespace Nadybot\Modules\WATCHDOG_MODULE;
 
 use Nadybot\Core\Attributes as NCA;
-use Nadybot\Core\Nadybot;
+use Nadybot\Core\ConfigFile;
 
 /**
  * Authors:
@@ -19,13 +19,13 @@ class WatchdogController {
 	public string $moduleName;
 
 	#[NCA\Inject]
-	public Nadybot $chatBot;
+	public ConfigFile $config;
 
 	#[NCA\Event(
 		name: "timer(10sec)",
 		description: "Periodically touch an alive-file"
 	)]
 	public function touchAliveFile(): void {
-		touch(sys_get_temp_dir().'/alive.'.$this->chatBot->vars['name'].'.'.$this->chatBot->vars['dimension']);
+		touch(sys_get_temp_dir().'/alive.'.$this->config->name.'.'.$this->config->dimension);
 	}
 }

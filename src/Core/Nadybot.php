@@ -84,6 +84,9 @@ class Nadybot extends AOChat {
 	#[NCA\Inject]
 	public MessageHub $messageHub;
 
+	#[NCA\Inject]
+	public ConfigFile $config;
+
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
@@ -122,13 +125,8 @@ class Nadybot extends AOChat {
 	 */
 	public array $guildmembers = [];
 
-	/**
-	 * The configuration variables of this bot as given in the config file
-	 * [(string)var => (mixed)value]
-	 *
-	 * @var array<string,mixed> $vars
-	 */
-	public array $vars;
+	/** Time the bot was started */
+	public int $startup;
 
 	/**
 	 * How many buddies can this bot hold
@@ -159,14 +157,13 @@ class Nadybot extends AOChat {
 	 *
 	 * @param array<string,mixed> $vars The configuration variables of the bot
 	 */
-	public function init(BotRunner $runner, array &$vars): void {
+	public function init(BotRunner $runner): void {
 		$this->started = time();
 		$this->runner = $runner;
-		$this->vars = $vars;
 		$this->proxyCapabilities = new ProxyCapabilities();
 
 		// Set startup time
-		$this->vars["startup"] = time();
+		$this->startup = time();
 
 		$this->logger->info('Initializing bot');
 
@@ -250,25 +247,25 @@ class Nadybot extends AOChat {
 			die();
 		}
 
-		$this->logger->notice("Logging in {$this->vars["name"]}...");
-		if (false === $this->login($this->vars["name"])) {
-			$this->logger->error("Character selection failed! Could not login on as character '{$this->vars["name"]}'.");
+		$this->logger->notice("Logging in {$this->config->name}...");
+		if (false === $this->login($this->config->name)) {
+			$this->logger->error("Character selection failed! Could not login on as character '{$this->config->name}'.");
 			sleep(10);
 			die();
 		}
 
-		if (($this->vars["use_proxy"]??0) == 1) {
+		if ($this->config->useProxy) {
 			$this->queryProxyFeatures();
 		}
 
 		$this->buddyListSize += 1000;
 		$this->logger->notice("Successfully logged in", [
-			"name" => $this->vars["name"],
+			"name" => $this->config->name,
 			"login" => $login,
 			"server" => $server,
 			"port" => $port,
 		]);
-		$pc = new PrivateChannel($this->vars["name"]);
+		$pc = new PrivateChannel($this->config->name);
 		Registry::injectDependencies($pc);
 		$this->messageHub
 			->registerMessageReceiver($pc)
@@ -373,13 +370,13 @@ class Nadybot extends AOChat {
 		$event->type = "sendpriv";
 		$event->channel = $group;
 		$event->message = $origMsg;
-		$event->sender = $this->vars["name"];
+		$event->sender = $this->config->name;
 		$this->eventManager->fireEvent($event, $disableRelay);
 		if (!$disableRelay) {
 			$rMessage = new RoutableMessage($origMsg);
 			$rMessage->setCharacter(new Character($this->char->name, $this->char->id));
 			$label = null;
-			if (isset($this->vars["my_guild"]) && strlen($this->vars["my_guild"])) {
+			if (strlen($this->config->orgName)) {
 				$label = "Guest";
 			}
 			$rMessage->prependPath(new Source(Source::PRIV, $this->char->name, $label));
@@ -419,9 +416,9 @@ class Nadybot extends AOChat {
 		$this->send_guild($guildColor.$message, "\0", $priority);
 		$event = new AOChatEvent();
 		$event->type = "sendguild";
-		$event->channel = $this->vars["my_guild"];
+		$event->channel = $this->config->orgName;
 		$event->message = $origMsg;
-		$event->sender = $this->vars["name"];
+		$event->sender = $this->config->name;
 		$this->eventManager->fireEvent($event, $disableRelay);
 
 		if ($disableRelay) {
@@ -432,7 +429,7 @@ class Nadybot extends AOChat {
 		$abbr = $this->settingManager->getString('relay_guild_abbreviation');
 		$rMessage->prependPath(new Source(
 			Source::ORG,
-			$this->vars["my_guild"],
+			$this->config->orgName,
 			($abbr === 'none') ? null : $abbr
 		));
 		$this->messageHub->handle($rMessage);
@@ -448,7 +445,7 @@ class Nadybot extends AOChat {
 	 * @return void
 	 */
 	public function sendTell($message, string $character, int $priority=null, bool $formatMessage=true): void {
-		if ( ($this->vars["use_proxy"]??0) == 1
+		if ($this->config->useProxy
 			&& $this->settingManager->getBool('force_mass_tells')
 			&& $this->settingManager->getBool('allow_mass_tells')
 		) {
@@ -492,7 +489,7 @@ class Nadybot extends AOChat {
 		$priority ??= $this->chatqueue::PRIORITY_HIGH;
 
 		// If we're not using a chat proxy or mass tells are disabled, this doesn't do anything
-		if (($this->vars["use_proxy"]??0) == 0
+		if (!$this->config->useProxy
 			|| !$this->settingManager->getBool('allow_mass_tells')) {
 			$this->sendTell($message, $character, $priority, $formatMessage);
 			return;
@@ -660,7 +657,7 @@ class Nadybot extends AOChat {
 		$orgId = $this->getOrgId($groupId);
 		$this->logger->info("AOChatPacket::GROUP_ANNOUNCE => name: '$groupName'");
 		if ($orgId) {
-			$this->vars["my_guild_id"] = $orgId;
+			$this->config->orgId = $orgId;
 		}
 	}
 
@@ -917,7 +914,7 @@ class Nadybot extends AOChat {
 
 		$rMsg = new RoutableMessage($message);
 		$rMsg->appendPath(new Source(Source::TELL, $sender));
-		$rMsg->setCharacter(new Character($sender, $senderId, (int)$this->vars['dimension']));
+		$rMsg->setCharacter(new Character($sender, $senderId, $this->config->dimension));
 		if ($this->messageHub->handle($rMsg) !== $this->messageHub::EVENT_NOT_ROUTED) {
 			return;
 		}
@@ -977,7 +974,7 @@ class Nadybot extends AOChat {
 		$this->logger->info("AOChatPacket::PRIVGRP_MESSAGE => sender: '$sender' channel: '$channel' message: '$message'");
 		$this->logger->logChat($channel, $sender, $message);
 
-		if ($sender == $this->vars["name"]) {
+		if ($sender == $this->config->name) {
 			return;
 		}
 		if ($this->isDefaultPrivateChannel($channel)) {
@@ -990,7 +987,7 @@ class Nadybot extends AOChat {
 		$rMessage = new RoutableMessage($message);
 		$rMessage->setCharacter(new Character($sender, $senderId));
 		$label = null;
-		if (isset($this->vars["my_guild"]) && strlen($this->vars["my_guild"])) {
+		if (strlen($this->config->orgName)) {
 			$label = "Guest";
 		}
 		$rMessage->prependPath(new Source(Source::PRIV, $channel, $label));
@@ -1041,7 +1038,7 @@ class Nadybot extends AOChat {
 		$orgId = $this->getOrgId($channelId);
 
 		// Route public messages not from the bot itself
-		if ($sender !== $this->vars["name"]) {
+		if ($sender !== $this->config->name) {
 			if (!$orgId || $this->settingManager->getBool('guild_channel_status')) {
 				$rMessage = new RoutableMessage($message);
 				if ($this->util->isValidSender($sender)) {
@@ -1073,7 +1070,7 @@ class Nadybot extends AOChat {
 
 		if ($this->util->isValidSender($sender)) {
 			// ignore messages that are sent from the bot self
-			if ($sender == $this->vars["name"]) {
+			if ($sender == $this->config->name) {
 				return;
 			}
 		}

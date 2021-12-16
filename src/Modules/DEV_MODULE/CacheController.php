@@ -6,6 +6,7 @@ use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{
 	CacheManager,
 	CmdContext,
+	ConfigFile,
 	Nadybot,
 	ParamClass\PFilename,
 	ParamClass\PRemove,
@@ -45,6 +46,9 @@ class CacheController {
 	#[NCA\Inject]
 	public Nadybot $chatBot;
 
+	#[NCA\Inject]
+	public ConfigFile $config;
+
 	#[NCA\HandlesCommand("cache")]
 	public function cacheCommand(CmdContext $context): void {
 		$blob = '';
@@ -57,7 +61,7 @@ class CacheController {
 
 	#[NCA\HandlesCommand("cache")]
 	public function cacheBrowseCommand(CmdContext $context, #[NCA\Str("browse")] string $action, #[NCA\Regexp("[a-z0-9_-]+")] string $group): void {
-		$path = $this->chatBot->vars['cachefolder'] . $group;
+		$path = $this->config->cacheFolder . $group;
 
 		$blob = '';
 		foreach ($this->cacheManager->getFilesInGroup($group) as $file) {

@@ -12,6 +12,7 @@ use Nadybot\Core\{
 	BuddylistManager,
 	CmdContext,
 	CommandAlias,
+	ConfigFile,
 	DB,
 	Event,
 	EventManager,
@@ -139,6 +140,9 @@ class PrivateChannelController {
 
 	#[NCA\Inject]
 	public Nadybot $chatBot;
+
+	#[NCA\Inject]
+	public ConfigFile $config;
 
 	#[NCA\Inject]
 	public EventManager $eventManager;
@@ -365,7 +369,7 @@ class PrivateChannelController {
 			$context->reply($msg);
 			return;
 		}
-		if ($this->chatBot->vars["name"] == $name) {
+		if ($this->chatBot->char->name == $name) {
 			$msg = "You cannot invite the bot to its own private channel.";
 			$context->reply($msg);
 			return;
@@ -855,7 +859,7 @@ class PrivateChannelController {
 	public function dispatchRoutableEvent(object $event): void {
 		$re = new RoutableEvent();
 		$label = null;
-		if (isset($this->chatBot->vars["my_guild"]) && strlen($this->chatBot->vars["my_guild"])) {
+		if (strlen($this->config->orgName)) {
 			$label = "Guest";
 		}
 		$re->type = RoutableEvent::TYPE_EVENT;
@@ -954,7 +958,7 @@ class PrivateChannelController {
 		$faction = strtolower($whois->faction);
 		$this->banController->add(
 			$whois->charid,
-			$this->chatBot->vars['name'],
+			$this->chatBot->char->name,
 			null,
 			sprintf(
 				"Autoban, because %s %s %s",
@@ -1033,7 +1037,7 @@ class PrivateChannelController {
 		}
 		$this->onlineController->addPlayerToOnlineList(
 			$sender,
-			$this->chatBot->vars['my_guild'] . ' Guests',
+			$this->config->orgName . ' Guests',
 			'priv'
 		);
 	}
@@ -1067,7 +1071,7 @@ class PrivateChannelController {
 		$autoInvite = $this->settingManager->getBool('autoinvite_default');
 		$name = ucfirst(strtolower($name));
 		$uid = $this->chatBot->get_uid($name);
-		if ($this->chatBot->vars["name"] == $name) {
+		if ($this->chatBot->char->name == $name) {
 			return "You cannot add the bot as a member of itself.";
 		} elseif (!$uid || $uid < 0) {
 			return "Character <highlight>$name<end> does not exist.";
@@ -1100,7 +1104,7 @@ class PrivateChannelController {
 		description: "Send welcome message data/welcome.txt to new members"
 	)]
 	public function sendWelcomeMessage(MemberEvent $event): void {
-		$dataPath = $this->chatBot->vars["datafolder"] ?? "./data";
+		$dataPath = $this->config->dataFolder;
 		if (!@file_exists("{$dataPath}/welcome.txt")) {
 			return;
 		}
