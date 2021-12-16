@@ -170,6 +170,9 @@ class ConfigFile extends DataTransferObject {
 	 */
 	public function save(): void {
 		$vars = $this->except("filePath", "orgId")->toArray();
+		$vars = array_filter($vars, function (mixed $value): bool {
+			return isset($value);
+		});
 		static::copyFromTemplateIfNeeded($this->getFilePath());
 		$lines = file($this->filePath);
 		foreach ($lines as $key => $line) {
