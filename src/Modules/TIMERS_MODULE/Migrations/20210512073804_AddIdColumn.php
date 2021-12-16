@@ -17,7 +17,7 @@ class AddIdColumn implements SchemaMigration {
 				return get_object_vars($item);
 			})->toArray();
 		$db->schema()->dropIfExists($table);
-		$db->schema()->create($table, function(Blueprint $table) {
+		$db->schema()->create($table, function(Blueprint $table): void {
 			$table->id();
 			$table->string("name", 255)->unique();
 			$table->string("owner", 25);

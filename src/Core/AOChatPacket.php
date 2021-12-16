@@ -196,10 +196,10 @@ class AOChatPacket {
 	/**
 	 * Create a new packet, either for parsing incoming or encoding outgoing ones
 	 *
-	 * @param mixed|mixed[] $data Either the data to decode (if $type == "in")
-	 *                             or the data to encode(if $type == "out")
+	 * @param mixed $data Either the data to decode (if $type == "in")
+	 *                    or the data to encode(if $type == "out")
 	 */
-	public function __construct(string $dir, int $type, $data) {
+	public function __construct(string $dir, int $type, mixed $data) {
 		$this->args = [];
 		$this->type = $type;
 		$this->dir  = $dir;

@@ -10,7 +10,7 @@ use Nadybot\Core\SchemaMigration;
 class AddBoundingBoxes implements SchemaMigration {
 	public function migrate(LoggerWrapper $logger, DB $db): void {
 		$table = "tower_site_bounds";
-		$db->schema()->create($table, function(Blueprint $table) {
+		$db->schema()->create($table, function(Blueprint $table): void {
 			$table->id();
 			$table->unsignedInteger("playfield_id")->index();
 			$table->unsignedInteger("site_number")->index();

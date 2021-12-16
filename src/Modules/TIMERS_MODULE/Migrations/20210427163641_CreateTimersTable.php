@@ -14,7 +14,7 @@ class CreateTimersTable implements SchemaMigration {
 		if ($db->schema()->hasTable($table)) {
 			return;
 		}
-		$db->schema()->create($table, function(Blueprint $table) {
+		$db->schema()->create($table, function(Blueprint $table): void {
 			$table->string("name", 255)->nullable();
 			$table->string("owner", 25)->nullable();
 			$table->string("mode", 50)->nullable();

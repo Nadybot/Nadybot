@@ -15,10 +15,8 @@ class Timer {
 
 	/**
 	 * Execute all timer events that are due now
-	 *
-	 * @return void
 	 */
-	public function executeTimerEvents() {
+	public function executeTimerEvents(): void {
 		// execute timer events
 		$time = time();
 		while (count($this->timerEvents) > 0 && $this->timerEvents[0]->time <= $time) {

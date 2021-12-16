@@ -443,6 +443,10 @@ class AMQP implements TransportInterface, StatusProvider {
 			$this->logger->info('Own AMQP Message received: ' . $message->body);
 			return;
 		}
+		if (!is_string($sender)) {
+			$this->logger->info('AMQP Message with invalid sender received: ' . $message->body);
+			return;
+		}
 		$this->logger->logChat('Inc. AMQP Msg.', $sender, $message->body);
 		$msg = new RelayMessage();
 		$msg->packages = [$message->body];

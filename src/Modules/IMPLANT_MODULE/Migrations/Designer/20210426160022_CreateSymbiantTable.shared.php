@@ -11,7 +11,7 @@ class CreateSymbiantTable implements SchemaMigration {
 	public function migrate(LoggerWrapper $logger, DB $db): void {
 		$table = "Symbiant";
 		$db->schema()->dropIfExists($table);
-		$db->schema()->create($table, function(Blueprint $table) {
+		$db->schema()->create($table, function(Blueprint $table): void {
 			$table->integer("ID")->primary();
 			$table->string("Name", 100);
 			$table->integer("QL");

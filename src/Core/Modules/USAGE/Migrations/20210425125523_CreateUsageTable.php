@@ -14,7 +14,7 @@ class CreateUsageTable implements SchemaMigration {
 		if ($db->schema()->hasTable($table)) {
 			return;
 		}
-		$db->schema()->create($table, function(Blueprint $table) {
+		$db->schema()->create($table, function(Blueprint $table): void {
 			$table->string("type", 5);
 			$table->string("command", 20);
 			$table->string("sender", 20);

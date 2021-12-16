@@ -11,7 +11,7 @@ use Nadybot\Core\SchemaMigration;
 class CreateRouteHopFormatTable implements SchemaMigration {
 	public function migrate(LoggerWrapper $logger, DB $db): void {
 		$table = Source::DB_TABLE;
-		$db->schema()->create($table, function(Blueprint $table) {
+		$db->schema()->create($table, function(Blueprint $table): void {
 			$table->id();
 			$table->string("hop", 50);
 			$table->string("where", 50)->nullable(true);

@@ -11,7 +11,7 @@ class CreateDiscsTable implements SchemaMigration {
 	public function migrate(LoggerWrapper $logger, DB $db): void {
 		$table = "discs";
 		$db->schema()->dropIfExists($table);
-		$db->schema()->create($table, function(Blueprint $table) {
+		$db->schema()->create($table, function(Blueprint $table): void {
 			$table->integer("disc_id")->primary();
 			$table->integer("crystal_id");
 			$table->integer("crystal_ql");

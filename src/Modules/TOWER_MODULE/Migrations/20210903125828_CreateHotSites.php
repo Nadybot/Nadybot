@@ -11,7 +11,7 @@ use Nadybot\Modules\TOWER_MODULE\TowerController;
 class CreateHotSites implements SchemaMigration {
 	public function migrate(LoggerWrapper $logger, DB $db): void {
 		$table = TowerController::DB_HOT;
-		$db->schema()->create($table, function(Blueprint $table) {
+		$db->schema()->create($table, function(Blueprint $table): void {
 			$table->id();
 			$table->unsignedInteger("playfield_id");
 			$table->unsignedSmallInteger("site_number");

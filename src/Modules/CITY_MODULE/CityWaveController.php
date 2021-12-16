@@ -108,7 +108,7 @@ class CityWaveController implements MessageEmitter {
 		$this->messageHub->handle($e);
 	}
 
-	public function changeWaveTimes(string $settingName, string $oldValue, string $newValue, $data): void {
+	public function changeWaveTimes(string $settingName, string $oldValue, string $newValue, mixed $data): void {
 		$alertTimes = explode(' ', $newValue);
 		if (count($alertTimes) !== 9) {
 			throw new Exception("Error saving setting: must have 9 spawn times. For more info type !help city_wave_times.");

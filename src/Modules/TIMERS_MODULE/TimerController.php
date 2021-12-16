@@ -107,7 +107,7 @@ class TimerController implements MessageEmitter {
 		$this->timers = [];
 		/** @var Collection<Timer> */
 		$data = $this->readAllTimers();
-		$data->each(function (Timer $timer) {
+		$data->each(function (Timer $timer): void {
 			// remove alerts that have already passed
 			// leave 1 alert so that owner can be notified of timer finishing
 			while (count($timer->alerts) > 1 && $timer->alerts[0]->time <= time()) {
@@ -156,7 +156,7 @@ class TimerController implements MessageEmitter {
 		return $data;
 	}
 
-	public function changeTimerAlertTimes(string $settingName, string $oldValue, $newValue, $data): void {
+	public function changeTimerAlertTimes(string $settingName, string $oldValue, string $newValue, mixed $data): void {
 		$alertTimes = array_reverse(explode(' ', $newValue));
 		$oldTime = 0;
 		foreach ($alertTimes as $alertTime) {

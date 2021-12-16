@@ -11,7 +11,7 @@ class CreatePremadeImplantTable implements SchemaMigration {
 	public function migrate(LoggerWrapper $logger, DB $db): void {
 		$table = "premade_implant";
 		$db->schema()->dropIfExists($table);
-		$db->schema()->create($table, function(Blueprint $table) {
+		$db->schema()->create($table, function(Blueprint $table): void {
 			$table->integer("ImplantTypeID");
 			$table->integer("ProfessionID");
 			$table->integer("AbilityID");

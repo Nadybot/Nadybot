@@ -121,7 +121,7 @@ class AltInfo {
 	 * @param bool $firstPageOnly Only show the first page (login alt-list)
 	 * @return string|string[]
 	 */
-	public function getAltsBlob(bool $firstPageOnly=false) {
+	public function getAltsBlob(bool $firstPageOnly=false): string|array {
 		if (count($this->alts) === 0) {
 			return "No registered alts.";
 		}
@@ -145,7 +145,7 @@ class AltInfo {
 	}
 
 	/** @return string|string[] */
-	protected function getAltsBlobForPlayer(?Player $player, bool $firstPageOnly) {
+	protected function getAltsBlobForPlayer(?Player $player, bool $firstPageOnly): string|array {
 		if (!isset($player)) {
 			return "Main character not found.";
 		}

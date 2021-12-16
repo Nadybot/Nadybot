@@ -207,7 +207,7 @@ class WebsocketClient extends WebsocketBase {
 
 		$headers = array_merge($headers, $this->headers);
 		$headerStrings =  array_map(
-			function (string $key, string $value) {
+			function (string $key, string $value): string {
 				return "$key: $value";
 			},
 			array_keys($headers),
@@ -224,7 +224,7 @@ class WebsocketClient extends WebsocketBase {
 		$this->notifier = new SocketNotifier(
 			$this->socket,
 			SocketNotifier::ACTIVITY_READ,
-			function() use ($key) {
+			function() use ($key): void {
 				$this->validateWebsocketUpgradeReply($key);
 			}
 		);

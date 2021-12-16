@@ -11,7 +11,7 @@ class CreateClusterTypeTable implements SchemaMigration {
 	public function migrate(LoggerWrapper $logger, DB $db): void {
 		$table = "ClusterType";
 		$db->schema()->dropIfExists($table);
-		$db->schema()->create($table, function(Blueprint $table) {
+		$db->schema()->create($table, function(Blueprint $table): void {
 			$table->integer("ClusterTypeID")->primary();
 			$table->string("Name", 10);
 		});

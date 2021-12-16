@@ -269,12 +269,12 @@ class OnlineController {
 
 		$query = $this->db->table("online AS o");
 		/** @psalm-suppress ImplicitToStringCast */
-		$query->leftJoin("alts AS a", function (JoinClause $join) {
+		$query->leftJoin("alts AS a", function (JoinClause $join): void {
 			$join->on("o.name", "a.alt")
 				->where("a.validated_by_main", true)
 				->where("a.validated_by_alt", true);
 		})->leftJoin("alts AS a2", "a2.main", $query->colFunc("COALESCE", ["a.main", "o.name"]))
-		->leftJoin("players AS p", function (JoinClause $join) use ($query) {
+		->leftJoin("players AS p", function (JoinClause $join) use ($query): void {
 			$join->on("a2.alt", "p.name")
 				->orWhere("p.name", $query->colFunc("COALESCE", ["a.main", "o.name"]));
 		})
@@ -588,7 +588,7 @@ class OnlineController {
 				]);
 		}
 		$query = $this->db->table("online AS o")
-			->leftJoin("alts AS a", function (JoinClause $join) {
+			->leftJoin("alts AS a", function (JoinClause $join): void {
 				$join->on("o.name", "a.alt")
 					->where("a.validated_by_main", true)
 					->where("a.validated_by_alt", true);
@@ -915,7 +915,7 @@ class OnlineController {
 	 */
 	public function getPlayers(string $channelType, ?string $limitToBot=null): array {
 		$query = $this->db->table("online AS o")
-			->leftJoin("alts AS a", function (JoinClause $join) {
+			->leftJoin("alts AS a", function (JoinClause $join): void {
 				$join->on("o.name", "a.alt")
 					->where("a.validated_by_main", true)
 					->where("a.validated_by_alt", true);

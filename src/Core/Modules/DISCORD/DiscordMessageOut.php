@@ -6,8 +6,7 @@ use JsonException;
 
 class DiscordMessageOut {
 	public string $content;
-	/** @var mixed */
-	public $nonce = null;
+	public mixed $nonce = null;
 	public bool $tts = false;
 	public ?string $file = null;
 	public array $embeds = [];

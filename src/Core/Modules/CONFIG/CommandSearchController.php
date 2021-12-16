@@ -136,7 +136,7 @@ class CommandSearchController {
 	 * @param mixed $exactMatch
 	 * @return string|string[]
 	 */
-	public function render(array $results, bool $hasAccess, bool $exactMatch) {
+	public function render(array $results, bool $hasAccess, bool $exactMatch): string|array {
 		$blob = '';
 		foreach ($results as $row) {
 			$helpLink = "";

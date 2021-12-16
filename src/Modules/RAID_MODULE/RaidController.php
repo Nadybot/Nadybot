@@ -648,7 +648,7 @@ class RaidController {
 		$query->addSelect($query->colFunc("SUM", "delta", "delta"));
 
 		$noPoints = $this->db->table(RaidMemberController::DB_TABLE, "rm")
-			->leftJoin(RaidPointsController::DB_TABLE_LOG . " as l", function (JoinClause $join) {
+			->leftJoin(RaidPointsController::DB_TABLE_LOG . " as l", function (JoinClause $join): void {
 				$join->on("rm.raid_id", "l.raid_id")
 					->on("rm.player", "l.username");
 			})

@@ -13,7 +13,7 @@ class CreateCommentCategoriesTable implements SchemaMigration {
 		if ($db->schema()->hasTable($table)) {
 			return;
 		}
-		$db->schema()->create($table, function(Blueprint $table) {
+		$db->schema()->create($table, function(Blueprint $table): void {
 			$table->string("name", 20)->primary();
 			$table->string("created_by", 15);
 			$table->integer("created_at");
