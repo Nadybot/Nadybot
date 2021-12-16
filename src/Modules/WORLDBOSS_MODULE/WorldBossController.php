@@ -84,6 +84,18 @@ use Nadybot\Core\{
  *		description = 'Update or set Gaunlet timer',
  *		help        = 'gauntlet.txt'
  *	)
+ *	@DefineCommand(
+ *		command     = 'father',
+ *		accessLevel = 'all',
+ *		description = 'shows timer of Father Time',
+ *		help        = 'father.txt'
+ *	)
+ *	@DefineCommand(
+ *		command     = 'father .+',
+ *		accessLevel = 'member',
+ *		description = 'Update or set Father Time timer',
+ *		help        = 'father.txt'
+ *	)
  *	@ProvidesEvent(value="sync(worldboss)", desc="Triggered when the spawntime of a worldboss is set manually")
  *	@ProvidesEvent(value="sync(worldboss-delete)", desc="Triggered when the timer for a worldboss is deleted")
  */
@@ -99,12 +111,14 @@ class WorldBossController {
 	public const REAPER = 'The Hollow Reaper';
 	public const LOREN = 'Loren Warr';
 	public const VIZARESH = 'Vizaresh';
+	public const FATHER_TIME = 'Father Time';
 
 	public const BOSS_MAP = [
 		self::TARA => "tara",
 		self::REAPER => "reaper",
 		self::LOREN => "loren",
 		self::VIZARESH => "vizaresh",
+		self::FATHER_TIME => "father-time",
 	];
 
 	public const BOSS_DATA = [
@@ -123,6 +137,10 @@ class WorldBossController {
 		self::VIZARESH => [
 			self::INTERVAL => 17*3600,
 			self::IMMORTAL => 420,
+		],
+		self::FATHER_TIME => [
+			self::INTERVAL => 9*3600,
+			self::IMMORTAL => 15*60,
 		],
 	];
 
@@ -212,7 +230,10 @@ class WorldBossController {
 			"gauntlet kill",
 			"gaukill"
 		);
-		foreach (["tara", "lauren", "reaper", "gauntlet"] as $boss) {
+		foreach (static::BOSS_MAP as $long => $boss) {
+			if ($boss === "vizaresh") {
+				$boss = "gauntlet";
+			}
 			foreach (["prespawn", "spawn", "vulnerable"] as $event) {
 				$emitter = new WorldBossChannel("{$boss}-{$event}");
 				$this->messageHub->registerMessageEmitter($emitter);
@@ -509,6 +530,7 @@ class WorldBossController {
 	protected function getMobFromContext(CmdContext $context): string {
 		$mobs = array_flip(static::BOSS_MAP);
 		$mobs["gauntlet"] = $mobs["vizaresh"];
+		$mobs["father"] = $mobs["father-time"];
 		return $mobs[explode(" ", strtolower($context->message))[0]];
 	}
 
@@ -517,6 +539,7 @@ class WorldBossController {
 	 * @HandlesCommand("loren")
 	 * @HandlesCommand("reaper")
 	 * @HandlesCommand("gauntlet")
+	 * @HandlesCommand("father")
 	 */
 	public function bossSpawnCommand(CmdContext $context): void {
 		$context->reply($this->getWorldBossMessage($this->getMobFromContext($context)));
@@ -527,6 +550,7 @@ class WorldBossController {
 	 * @HandlesCommand("loren .+")
 	 * @HandlesCommand("reaper .+")
 	 * @HandlesCommand("gauntlet .+")
+	 * @HandlesCommand("father .+")
 	 * @Mask $action kill
 	 */
 	public function bossKillCommand(CmdContext $context, string $action): void {
@@ -544,6 +568,7 @@ class WorldBossController {
 	 * @HandlesCommand("loren .+")
 	 * @HandlesCommand("reaper .+")
 	 * @HandlesCommand("gauntlet .+")
+	 * @HandlesCommand("father .+")
 	 * @Mask $action update
 	 */
 	public function bossUpdateCommand(CmdContext $context, string $action, PDuration $duration): void {
@@ -558,6 +583,7 @@ class WorldBossController {
 	 * @HandlesCommand("tara .+")
 	 * @HandlesCommand("loren .+")
 	 * @HandlesCommand("reaper .+")
+	 * @HandlesCommand("father .+")
 	 */
 	public function bossDeleteCommand(CmdContext $context, PRemove $action): void {
 		$boss = $this->getMobFromContext($context);
@@ -589,7 +615,7 @@ class WorldBossController {
 		$rMsg->appendPath(new Source(
 			"spawn",
 			static::BOSS_MAP[$boss] . "-{$event}",
-			ucfirst(static::BOSS_MAP[$boss])
+			join("-", array_map("ucfirst", explode("-", static::BOSS_MAP[$boss])))
 		));
 		$this->messageHub->handle($rMsg);
 	}

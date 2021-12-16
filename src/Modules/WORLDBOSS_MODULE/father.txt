@@ -1,0 +1,18 @@
+Manage Father Time spawn times
+
+To list the next spawn time(s) for Father Time:
+<tab><highlight><symbol>father<end>
+
+To set a new timers once Father Time has been killed:
+<tab><highlight><symbol>father kill<end>
+
+To manually set a new timers when Father Time is vulnerable:
+<tab><highlight><symbol>father update 'time'<end>
+
+To delete the timer, because you are not interested in it:
+<tab><highlight><symbol>father del<end>
+
+<header2>Examples:<end>
+
+Father Time will be vulnerable in 1 hours, 2 minutes and 10 seconds:
+<tab><highlight><symbol>father update 1h2m10s<end>
