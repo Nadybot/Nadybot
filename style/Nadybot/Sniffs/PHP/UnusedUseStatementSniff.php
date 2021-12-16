@@ -45,7 +45,7 @@ class UnusedUseStatementSniff implements Sniff
      *
      * @return void
      */
-    public function process(File $phpcsFile, int $stackPtr)
+    public function process(File $phpcsFile, $stackPtr)
     {
         $tokens = $phpcsFile->getTokens();
 
