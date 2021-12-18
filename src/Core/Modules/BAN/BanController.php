@@ -496,14 +496,16 @@ class BanController {
 	public function uploadBanlist(): void {
 		$this->banlist = [];
 
-		$query = $this->db->table(self::DB_TABLE, "b")
-			->leftJoin("players AS p", "b.charid", "p.charid");
-		$query
-			->select("b.*", "p.name")
-			->asObj(BanEntry::class)->each(function(BanEntry $row) {
-				$row->name ??= (string)$row->charid;
-				$this->banlist[$row->charid] = $row;
-			});
+		$bans = $this->db->table(self::DB_TABLE)
+			->asObj(BanEntry::class);
+		$bannedUids = $bans->pluck("charid")->toArray();
+		$players = $this->playerManager
+			->searchByUids($this->db->getDim(), ...$bannedUids)
+			->keyBy("charid");
+		$bans->each(function (BanEntry $ban) use ($players): void {
+			$ban->name = $players->get($ban->charid)?->name ?? (string)$ban->charid;
+			$this->banlist[$ban->charid] = $ban;
+		});
 	}
 
 	/** Sync the org-banlist from the database */

@@ -234,6 +234,21 @@ class QueryBuilder extends Builder {
 		}
 	}
 
+	/**
+	 * Pluck values as type $type
+	 *
+	 * @param string $column
+	 * @param string $type
+	 * @return \Illuminate\Support\Collection
+	 */
+	public function pluckAs(string $column, string $type): Collection {
+		return $this->pluck($column)
+			->map(function (mixed $value, int $key) use ($type): mixed {
+				settype($value, $type);
+				return $value;
+			});
+	}
+
 	public function as(string $as): string {
 		return " as " . $this->grammar->wrap($as);
 	}

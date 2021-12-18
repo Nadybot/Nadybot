@@ -2,7 +2,7 @@
 
 namespace Nadybot\Modules\WHEREIS_MODULE;
 
-trait WhereisTrait {
+class Whereis {
 	public int $id;
 	public string $name;
 	public string $answer;

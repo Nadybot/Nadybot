@@ -3,7 +3,6 @@
 namespace Nadybot\Modules\GUILD_MODULE;
 
 use Nadybot\Core\Attributes as NCA;
-use Illuminate\Database\Query\JoinClause;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	AOChatEvent,
@@ -11,7 +10,6 @@ use Nadybot\Core\{
 	CmdContext,
 	ConfigFile,
 	DB,
-	DBRow,
 	Event,
 	LoggerWrapper,
 	MessageHub,
@@ -191,20 +189,14 @@ class GuildController {
 
 	protected function loadGuildMembers(): void {
 		$this->chatBot->guildmembers = [];
-		$query = $this->db->table(self::DB_TABLE . " AS o")
-			->leftJoin("players AS p", function(JoinClause $join) {
-				$join->on("o.name", "p.name")
-					->where("p.dimension", $this->db->getDim())
-					->where("p.guild", $this->db->getMyguild());
-			})->where("mode", "!=", "del")
-			->select("o.name")
-			->orderBy("o.name");
-		$query->selectRaw(
-			"COALESCE(" . $query->grammar->wrap("p.guild_rank_id") . ", 6)".
-			$query->as("guild_rank_id")
-		);
-		$query->asObj()->each(function(DBRow $row) {
-			$this->chatBot->guildmembers[$row->name] = $row->guild_rank_id;
+		$members = $this->db->table(self::DB_TABLE)
+			->where("mode", "!=", "del")
+			->orderBy("name")
+			->asObj(OrgMember::class);
+		$players = $this->playerManager
+			->searchByNames($this->db->getDim(), ...$members->pluck("name")->toArray());
+		$players->each(function (Player $player): void {
+			$this->chatBot->guildmembers[$player->name] = $player->guild_rank_id ?? 6;
 		});
 	}
 
@@ -329,20 +321,21 @@ class GuildController {
 		$timeString = $this->util->unixtimeToReadable($time, false);
 		$time = time() - $time;
 
-		$query = $this->db->table(self::DB_TABLE . " AS o")
-			->leftJoin("alts AS a", "o.name", "a.alt")
+		/** @var Collection<RecentOrgMember> */
+		$members = $this->db->table(self::DB_TABLE)
 			->where("mode", "!=", "del")
 			->where("logged_off", ">", $time)
-			->orderByDesc("o.logged_off")
-			->orderBy("o.name");
-		$query->selectRaw($query->colFunc("COALESCE", ["a.main", "o.name"], "main")->getValue());
-		$query->addSelect("o.logged_off", "o.name");
-		$data = $query->asObj();
+			->orderByDesc("logged_off")
+			->asObj(RecentOrgMember::class);
+		$members->each(function (RecentOrgMember $member): void {
+			$member->main = $this->altsController->getMainOf($member->name);
+		});
 
-		if ($data->count() === 0) {
+		if ($members->count() === 0) {
 			$context->reply("No members recorded.");
 			return;
 		}
+		$members = $members->groupBy("main");
 
 		$numRecentCount = 0;
 		$highlight = false;
@@ -350,17 +343,20 @@ class GuildController {
 		$blob = "Org members who have logged off within the last <highlight>{$timeString}<end>.\n\n";
 
 		$prevToon = '';
-		foreach ($data as $row) {
-			if ($row->main === $prevToon) {
+		foreach ($members as $main => $memberAlts) {
+			/** @var Collection<RecentOrgMember> $memberAlts */
+			$member = $memberAlts->first();
+			/** @var RecentOrgMember $member */
+			if ($member->main === $prevToon) {
 				continue;
 			}
-			$prevToon = $row->main;
+			$prevToon = $member->main;
 			$numRecentCount++;
-			$alts = $this->text->makeChatcmd("alts", "/tell <myname> alts {$row->main}");
-			$logged = $row->logged_off;
-			$lastToon = $row->name;
+			$alts = $this->text->makeChatcmd("alts", "/tell <myname> alts {$member->main}");
+			$logged = $member->logged_off??time();
+			$lastToon = $member->name;
 
-			$character = "<pagebreak><highlight>{$row->main}<end> [{$alts}]\n".
+			$character = "<pagebreak><highlight>{$member->main}<end> [{$alts}]\n".
 				"<tab>Last seen as $lastToon on ".
 				$this->util->date($logged) . "\n\n";
 			if ($highlight === true) {

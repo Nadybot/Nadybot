@@ -8,6 +8,7 @@ use Nadybot\Core\CmdContext;
 use Nadybot\Core\DB;
 use Nadybot\Core\Text;
 use Nadybot\Core\Util;
+use Nadybot\Modules\HELPBOT_MODULE\PlayfieldController;
 
 /**
  * @author Jaqueme
@@ -40,6 +41,9 @@ class WhereisController {
 	#[NCA\Inject]
 	public DB $db;
 
+	#[NCA\Inject]
+	public PlayfieldController $pfController;
+
 	/**
 	 * This handler is called on bot startup.
 	 */
@@ -47,6 +51,16 @@ class WhereisController {
 	public function setup(): void {
 		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations");
 		$this->db->loadCSVFile($this->moduleName, __DIR__ . "/whereis.csv");
+	}
+
+	/** @return Collection<WhereisResult> */
+	public function getByName(string $name): Collection {
+		return $this->db->table("whereis AS w")
+			->where("name", $name)
+			->asObj(WhereisResult::class)
+			->each(function (WhereisResult $wi): void {
+				$wi->pf = $this->pfController->getPlayfieldById($wi->playfield_id);
+			});
 	}
 
 	#[NCA\HandlesCommand("whereis")]

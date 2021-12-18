@@ -153,6 +153,23 @@ class ItemsController {
 			->asObj(AODBEntry::class);
 	}
 
+	/**
+	 * Get 1 or more items by a name search
+	 *
+	 * @return Collection<AODBEntry>
+	 */
+	public function getBySearch(string $search, ?int $ql=null): Collection {
+		$query = $this->db->table("aodb");
+		$tmp = explode(" ", $search);
+		$this->db->addWhereFromParams($query, $tmp, "name");
+
+		if ($ql !== null) {
+			$query->where("a.lowql", "<=", $ql)
+				->where("a.highql", ">=", $ql);
+		}
+		return $query->asObj(AODBEntry::class);
+	}
+
 	#[NCA\HandlesCommand("id")]
 	public function idCommand(CmdContext $context, string $search): void {
 		$query = $this->db->table("aodb AS a")

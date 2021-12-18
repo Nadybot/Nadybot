@@ -11,7 +11,6 @@ use Nadybot\Core\{
 	DB,
 	DBRow,
 	DBSchema\Alt,
-	Event,
 	EventManager,
 	Modules\PLAYER_LOOKUP\PlayerManager,
 	Nadybot,
@@ -92,6 +91,8 @@ class AltsController {
 	#[NCA\Inject]
 	public Text $text;
 
+	private array $alts = [];
+
 	/**
 	 * This handler is called on bot startup.
 	 */
@@ -143,6 +144,23 @@ class AltsController {
 			intoptions: '',
 			accessLevel: 'mod'
 		);
+		$this->cacheAlts();
+	}
+
+	private function cacheAlts(): void {
+		$this->alts = [];
+		$this->db->table("alts")
+			->where("added_via", $this->db->getMyname())
+			->where("validated_by_main", true)
+			->where("validated_by_alt", true)
+			->asObj(Alt::class)
+			->each(function (Alt $alt): void {
+				$this->alts[$alt->alt] = $alt->main;
+			});
+	}
+
+	public function getMainOf(string $char): string {
+		return $this->alts[$char] ?? $char;
 	}
 
 	#[NCA\Event(
@@ -474,6 +492,7 @@ class AltsController {
 			->where("main", $altInfo->main)
 			->update(["validated_by_main" => true]);
 
+		$this->alts[$toValidate] = $altInfo->main;
 		$this->fireAltValidatedEvent($altInfo->main, $toValidate);
 
 		$sendto->reply("<highlight>{$toValidate}<end> has been validated as your alt.");
@@ -495,6 +514,7 @@ class AltsController {
 			->where("main", $altInfo->main)
 			->update(["validated_by_alt" => true]);
 
+		$this->alts[$sender] = $altInfo->main;
 		$this->fireAltValidatedEvent($altInfo->main, $sender);
 
 		$audit = new Audit();
@@ -719,6 +739,7 @@ class AltsController {
 			$this->eventManager->fireEvent($event);
 		}
 		if ($validatedByAlt && $validatedByMain) {
+			$this->alts[$alt] = $main;
 			$audit = new Audit();
 			$audit->actor = $main;
 			$audit->actee = $alt;
@@ -750,6 +771,7 @@ class AltsController {
 			$this->eventManager->fireEvent($event);
 
 			if (isset($old) && $old->validated_by_alt && $old->validated_by_main) {
+				unset($this->alts[$alt]);
 				$audit = new Audit();
 				$audit->actor = $main;
 				$audit->actee = $alt;
