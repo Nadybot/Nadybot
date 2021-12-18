@@ -26,6 +26,9 @@ class MigrateGauntletData implements SchemaMigration {
 
 	public function migrate(LoggerWrapper $logger, DB $db): void {
 		$table = "timers_<myname>";
+		if (!$db->schema()->hasTable($table)) {
+			return;
+		}
 		$timer = $db->table($table)
 			->where("name", "Gauntlet")
 			->limit(1)
