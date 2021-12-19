@@ -173,6 +173,13 @@ exit 0
 %endif
 
 %changelog
+* Sun Dec 19 2021 Nadyita <nadyita@hodorraid.org> 5.3.1-1
+- Fix a race condition in database migrations which would throw an
+  error that the timers table didn't exist
+- Fix migration errors for some MySQL versions that did not allow
+  creating an index on the organizations table
+- Support new Father Time worldboss
+
 * Sat Dec 11 2021 Nadyita <nadyita@hodorraid.org> 5.3.0-1
 - Fix discord relay sometimes not showing the name of the
   person saying something on Discord

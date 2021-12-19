@@ -1,4 +1,18 @@
 *****************************
+	Version 5.3.1
+*****************************
+5.3.x This is the last version support PHP7.
+
+Bugfixes:
+- Fix a race condition in database migrations which would throw an
+  error that the timers table didn't exist
+- Fix migration errors for some MySQL versions that did not allow
+  creating an index on the organizations table
+
+Features:
+- Support new Father Time worldboss
+
+*****************************
 	Version 5.3.0
 *****************************
 5.3.x This is the last version support PHP7.

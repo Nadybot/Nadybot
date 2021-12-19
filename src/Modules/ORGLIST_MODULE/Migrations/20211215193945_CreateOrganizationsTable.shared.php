@@ -10,14 +10,14 @@ use Nadybot\Core\SchemaMigration;
 class CreateOrganizationsTable implements SchemaMigration {
 	public function migrate(LoggerWrapper $logger, DB $db): void {
 		$table = "organizations";
-		if ($db->schema()->hasTable($table)) {
-			return;
-		}
+		$db->schema()->dropIfExists($table);
 		$db->schema()->create($table, function(Blueprint $table) {
-			$table->integer("id");
-			$table->string("name", 255);
+			$table->unsignedInteger("id")->index();
+			$table->string("name", 40)->index();
 			$table->string("faction", 10);
-			$table->integer("num_members");
+			$table->unsignedInteger("num_members");
+			$table->string("index", 6)->index();
+			$table->string("governing_form", 10);
 		});
 	}
 }
