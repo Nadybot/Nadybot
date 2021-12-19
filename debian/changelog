@@ -1,3 +1,14 @@
+nadybot (5.3.1-1+ubuntu1) bionic; urgency=medium
+  Bugfixes:
+  - Fix a race condition in database migrations which would throw an
+    error that the timers table didn't exist
+  - Fix migration errors for some MySQL versions that did not allow
+    creating an index on the organizations table
+
+  Features:
+  - Support new Father Time worldboss
+ -- Nadyita <nadyita@hodorraid.org>  Sun, 19 Dec 2021 09:15:00 +0100
+
 nadybot (5.3.0-1+ubuntu1) bionic; urgency=medium
   Bugfixes:
   - Fix discord relay sometimes not showing the name of the
@@ -129,7 +140,7 @@ nadybot (5.3.0-1+ubuntu1) bionic; urgency=medium
     to your function.
     The old syntax will still be supported until at least 7.0 release.
     See the WIKI for details.
- -- Nadyita <nadyita@hodorraid.org>  Sat, 11 Dec 2021 15:43:00 +0200
+ -- Nadyita <nadyita@hodorraid.org>  Sat, 11 Dec 2021 15:43:00 +0100
 
 nadybot (5.2.2-1+ubuntu1) bionic; urgency=medium
   Features:
