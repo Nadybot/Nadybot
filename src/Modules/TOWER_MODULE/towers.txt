@@ -1,0 +1,8 @@
+To show the towertypes by QL of the tower:
+<highlight><tab><symbol>towertype<end>
+
+To show how many towers you are allowed to plant:
+<highlight><tab><symbol>towerqty<end>
+
+To get an overview of number of towers by level:
+<highlight><tab><symbol>towerqty all<end>

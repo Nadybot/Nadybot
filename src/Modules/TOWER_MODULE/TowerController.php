@@ -112,6 +112,20 @@ use Nadybot\Modules\{
  *		help        = 'victory.txt',
  *		alias       = 'victories'
  *	)
+ *	@DefineCommand(
+ *		command     = 'towertype',
+ *		accessLevel = 'member',
+ *		description = 'Show the level ranges for tower types',
+ *		help        = 'towers.txt',
+ *		alias       = 'towertypes'
+ *	)
+ *	@DefineCommand(
+ *		command     = 'towerqty',
+ *		accessLevel = 'member',
+ *		description = 'Show how many towers each level is allowed to plant',
+ *		help        = 'towers.txt',
+ *		alias       = 'numtowers'
+ *	)
  *  @ProvidesEvent("tower(attack)")
  *  @ProvidesEvent("tower(win)")
  *  @ProvidesEvent(value="sync(scout)", desc="Triggered whenever someone manually scouts a site")
@@ -127,6 +141,15 @@ class TowerController {
 	public const FIXED_TIMES = [
 		1 => 4,
 		2 => 20,
+	];
+
+	public const TOWER_TYPE_QLS = [
+		34 => 2,
+		82 => 3,
+		129 => 4,
+		177 => 5,
+		201 => 6,
+		226 => 7,
 	];
 
 	/**
@@ -1083,21 +1106,12 @@ class TowerController {
 	}
 
 	public function qlToSiteType(int $qlCT): int {
-		if ($qlCT < 34) {
-			return 1;
-		} elseif ($qlCT < 82) {
-			return 2;
-		} elseif ($qlCT < 129) {
-			return 3;
-		} elseif ($qlCT < 177) {
-			return 4;
-		} elseif ($qlCT < 201) {
-			return 5;
-		} elseif ($qlCT < 226) {
-			return 6;
-		} else {
-			return 7;
+		foreach (static::TOWER_TYPE_QLS as $ql => $level) {
+			if ($qlCT < $ql) {
+				return $level - 1;
+			}
 		}
+		return 7;
 	}
 
 	/** Check if the data from $apiSite is more up-to-date than $localSite */
@@ -2342,6 +2356,75 @@ class TowerController {
 	 */
 	public function scoutCommand(CmdContext $context, PTowerSite $site, string $text): void {
 		$this->scoutInputHandler($context, $site->pf, $site->site, $text);
+	}
+
+	/**
+	 * @HandlesCommand("towertype")
+	 */
+	public function towerTypeCommand(CmdContext $context): void {
+		$blob = "<header2>Tower types by QL<end>";
+		$minQL = 1;
+		$roman = ["I", "II", "III", "IV", "V", "VI", "VII"];
+		$qls = static::TOWER_TYPE_QLS;
+		$qls[301] = 8;
+		foreach ($qls as $ql => $type) {
+			$maxQL = $ql - 1;
+			$blob .= "\n<tab>" . $this->text->alignNumber($minQL, 3).
+				" - ".
+				$this->text->alignNumber($maxQL, 3).
+				": Type " . $roman[$type-2];
+			$minQL = $ql;
+		}
+		$msg = $this->text->makeBlob("Tower types by QL", $blob);
+		$context->reply($msg);
+	}
+
+	/**
+	 * @HandlesCommand("towerqty")
+	 * @Mask $all all
+	 */
+	public function towerQtyCommand(CmdContext $context, ?string $all): void {
+		if (isset($all)) {
+			$msg = $this->text->makeBlob("Allowed number of towers", $this->getAllTowerQuantitiesBlob());
+			$context->reply($msg);
+			return;
+		}
+		$this->playerManager->getByNameAsync(
+			function (?Player $player) use ($context): void {
+				$blob = $this->getAllTowerQuantitiesBlob();
+				if (!isset($player)) {
+					$msg = $this->text->makeBlob("Allowed number of towers", $blob);
+					$context->reply($msg);
+					return;
+				}
+				if ($player->level < 15) {
+					$msg = "Your level is too low to have any towers.";
+				} elseif ($player->level < 75) {
+					$msg = "Your level ({$player->level}) allows you to have <highlight>1<end> tower.";
+				} elseif ($player->level < 150) {
+					$msg = "Your level ({$player->level}) allows you to have <highlight>2<end> towers.";
+				} elseif ($player->level < 200) {
+					$msg = "Your level ({$player->level}) allows you to have <highlight>3<end> towers.";
+				} else {
+					$msg = "Your level ({$player->level}) allows you to have <highlight>4<end> towers.";
+				}
+				$msg = $this->text->blobWrap(
+					$msg . " ",
+					$this->text->makeBlob("See full list", $blob, "Towers by level")
+				);
+				$context->reply($msg);
+			},
+			$context->char->name,
+		);
+	}
+
+	private function getAllTowerQuantitiesBlob(): string {
+		return "<header2>Number of towers by level<end>\n".
+			"<tab>Level <black>00<end>1 - <black>0<end>14: <highlight>0<end> towers\n".
+			"<tab>Level <black>0<end>15 - <black>0<end>74: <highlight>1<end> tower\n".
+			"<tab>Level <black>0<end>75 - 149: <highlight>2<end> towers\n".
+			"<tab>Level 150 - 199: <highlight>3<end> towers\n".
+			"<tab>Level 200 - 220: <highlight>4<end> towers\n";
 	}
 
 	/**
