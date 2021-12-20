@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\SKILLS_MODULE;
 
+use Illuminate\Support\Collection;
 use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{
 	CmdContext,
@@ -71,6 +72,8 @@ class BuffPerksController {
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
+	public Collection $perks;
+
 	#[NCA\Setup]
 	public function setup(): void {
 		$applied = $this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations/Perks");
@@ -96,12 +99,12 @@ class BuffPerksController {
 		if ($this->settingManager->exists("perks_db_version")) {
 			$dbVersion = (int)$this->settingManager->get("perks_db_version");
 		}
+		$perkInfo = $this->getPerkInfo();
+		$this->perks = new Collection($perkInfo);
 		if (($mtime === false || $dbVersion >= $mtime) && !$applied) {
 			return;
 		}
 		$this->logger->notice("(Re)building perk database...");
-
-		$perkInfo = $this->getPerkInfo();
 
 		$this->db->beginTransaction();
 		try {
@@ -646,7 +649,7 @@ class BuffPerksController {
 		$minLevel = min(array_keys($perk->levels));
 		$result->professions = $perk->levels[$minLevel]->professions;
 		$result->max_level = max(array_keys($perk->levels));
-		/** @var array<int,PerkLevelBuff> */
+		/** @var array<int,ExtPerkLevelBuff> */
 		$buffs = [];
 		/** @var array<int,PerkLevelResistance> */
 		$resistances = [];
@@ -672,7 +675,7 @@ class BuffPerksController {
 		$result->buffs = array_values($buffs);
 		usort(
 			$result->buffs,
-			function (PerkLevelBuff $a, PerkLevelBuff $b): int {
+			function (ExtPerkLevelBuff $a, ExtPerkLevelBuff $b): int {
 				return strcmp($a->skill_name, $b->skill_name);
 			}
 		);
@@ -737,8 +740,8 @@ class BuffPerksController {
 			->orderBy("pl.perk_level")
 			->orderBy("s.name")
 			->select("pl.perk_level", "plb.skill_id", "s.name AS skill_name", "plb.amount", "s.unit")
-			->asObj(PerkLevelBuff::class)
-			->each(function (PerkLevelBuff $buff) use ($perk): void {
+			->asObj(ExtPerkLevelBuff::class)
+			->each(function (ExtPerkLevelBuff $buff) use ($perk): void {
 				$perk->levels[$buff->perk_level]->perk_buffs []= $buff;
 			});
 		$this->db->table("perk_level AS pl")
@@ -818,8 +821,8 @@ class BuffPerksController {
 			->orderBy("s.name")
 			->select("pl.perk_id", "pl.perk_level", "plb.skill_id")
 			->addSelect("s.name AS skill_name", "plb.amount", "s.unit")
-			->asObj(PerkLevelBuff::class)
-			->each(function (PerkLevelBuff $buff) use ($perks): void {
+			->asObj(ExtPerkLevelBuff::class)
+			->each(function (ExtPerkLevelBuff $buff) use ($perks): void {
 				$perks[$buff->perk_id]->levels[$buff->perk_level]->perk_buffs []= $buff;
 			});
 		$this->db->table("perk_level AS pl")
@@ -836,5 +839,39 @@ class BuffPerksController {
 				$perks[$res->perk_id]->levels[$res->perk_level]->perk_resistances []= $res;
 			});
 		return array_values($perks);
+	}
+
+	/** @return Collection<PerkLevelBuff> */
+	public function getPerkBuffs(?int $perkLevelId=null, null|int|array $skillId=null): Collection {
+		$query = $this->db->table("perk_level_buffs");
+		if (isset($perkLevelId)) {
+			$query->where("perk_level_id", $perkLevelId);
+		}
+		if (is_int($skillId)) {
+			$query->where("skill_id", $skillId);
+		} elseif (isset($skillId)) {
+			$query->whereIn("skill_id", $skillId);
+		}
+		return $query->asObj(PerkLevelBuff::class);
+	}
+
+	/**
+	 * @param null|int|int[] $perkId
+	 * @param null|int|int[] $perkLevelId
+	 * @return Collection<PerkLevel>
+	 */
+	public function getPerkLevels(null|int|array $perkId=null, null|int|array $perkLevelId=null): Collection {
+		$query = $this->db->table("perk_level");
+		if (is_array($perkLevelId)) {
+			$query->whereIn("id", $perkLevelId);
+		} elseif (is_int($perkLevelId)) {
+			$query->where("id", $perkLevelId);
+		}
+		if (is_int($perkId)) {
+			$query->where("perk_id", $perkId);
+		} elseif (isset($perkId)) {
+			$query->whereIn("perk_id", $perkId);
+		}
+		return $query->asObj(PerkLevel::class);
 	}
 }
