@@ -23,6 +23,7 @@ use Nadybot\Core\ParamClass\PWord;
 use Nadybot\Modules\SKILLS_MODULE\BuffPerksController;
 use Nadybot\Modules\SKILLS_MODULE\Perk;
 use Nadybot\Modules\SKILLS_MODULE\PerkLevelBuff;
+use Nadybot\Modules\SKILLS_MODULE\SkillsController;
 
 /**
  * Commands this controller contains:
@@ -70,6 +71,9 @@ class WhatBuffsController {
 
 	#[NCA\Inject]
 	public BuffPerksController $buffPerksController;
+
+	#[NCA\Inject]
+	public SkillsController $skillsController;
 
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
@@ -461,7 +465,6 @@ class WhatBuffsController {
 				->join("item_types AS i", "i.item_id", "a.highid")
 				->join("item_buffs AS b", "b.item_id", "a.highid")
 				->leftJoin("item_buffs AS b2", "b2.item_id", "a.lowid")
-				->leftJoin("weapon_attributes AS wa", "wa.id", "a.highid")
 				->join("skills AS s", function(JoinClause $join) {
 					$join->on("b.attribute_id", "s.id")
 						->on("b2.attribute_id", "s.id");
@@ -471,20 +474,30 @@ class WhatBuffsController {
 					$query->whereIn("s.name", ['SkillLockModifier', '% Add. Nano Cost'])
 						->orWhere("b.amount", ">", 0);
 				})->groupBy([
-					"a.name", "a.lowql", "a.highql", "b.amount", "b2.amount",
-					"wa.multi_m", "wa.multi_r", "a.lowid", "a.highid", "a.icon",
-					"a.froob_friendly", "a.slot", "a.flags", "s.unit"
+					"a.name", "a.lowql", "a.highql", "b.amount", "b2.amount", "a.lowid",
+					"a.highid", "a.icon", "a.froob_friendly", "a.slot", "a.flags", "s.unit"
 				])->orderByDesc($query->colFunc("ABS", "b.amount"))
 				->orderByDesc("name")
 				->select([
-					"a.*", "b.amount", "b2.amount AS low_amount",
-					"wa.multi_m", "wa.multi_r", "s.unit"
+					"a.*", "b.amount", "b2.amount AS low_amount", "s.unit"
 				]);
 			if ($froobFriendly) {
 				$query->where("a.froob_friendly", true);
 			}
 			/** @var Collection<ItemBuffSearchResult> */
 			$data = $query->asObj(ItemBuffSearchResult::class);
+			$specialsById = $this->skillsController->getWeaponAttributes(
+				aoid: $data->pluck("highid")->toArray()
+			)->keyBy("id");
+			$data->each(function (ItemBuffSearchResult $item) use ($specialsById): void {
+				if (($specials = $specialsById->get($item->highid)) === null) {
+					$item->multi_m = null;
+					$item->multi_r = null;
+					return;
+				}
+				$item->multi_m = $specials->multi_m;
+				$item->multi_r = $specials->multi_r;
+			});
 			if ($data->isNotEmpty() && $data->last()->amount < 0) {
 				$data = $data->reverse();
 			}

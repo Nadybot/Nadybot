@@ -697,29 +697,40 @@ class LootController {
 		$this->loot = [];
 		$count = 1;
 
-		/** @var Collection<AODBEntry> */
-		$data = $this->db->table("raid_loot AS r")
-			->leftJoin("aodb AS a", function (JoinClause $join): void {
-				$join->on("r.name", "a.name")
-					->on("r.ql", ">=", "a.lowql")
-					->on("r.ql", "<=", "a.highql");
-			})
+		/** @var Collection<RaidLoot> */
+		$data = $this->db->table("raid_loot")
 			->where(["raid" => $raid, "category" => $category])
-			->asObj(AODBEntry::class);
+			->asObj(RaidLoot::class);
 
 		if ($data->count() === 0) {
 			return false;
 		}
 
+		$itemsByBame =$this->itemsController->getByNames(...$data->pluck("name")->toArray())
+			->groupBy("name");
+		$data->each(function (RaidLoot $loot) use ($itemsByBame): void {
+			$loot->item = $itemsByBame->get($loot->name)
+				->where("lowql", "<=", $loot->ql)
+				->where("highql", ">=", $loot->ql)
+				->first();
+		});
+
 		foreach ($data as $row) {
-			$item = $this->text->makeItem($row->lowid, $row->highid, $row->ql, $row->name);
-			if (empty($row->comment)) {
-				$row->display = $item;
-			} else {
-				$row->display = $item . " ($row->comment)";
+			$lootItem = new LootItem();
+			$lootItem->comment = $row->comment;
+			$lootItem->icon = $row->item?->icon ?? null;
+			$lootItem->multiloot = $row->multiloot;
+			$lootItem->name = $row->name;
+			$item = $row->name;
+			if (isset($row->item)) {
+				$item = $row->item->getLink($row->ql);
 			}
-			$row->users = [];
-			$this->loot[$count] = $row;
+			if (empty($row->comment)) {
+				$lootItem->display = $item;
+			} else {
+				$lootItem->display = $item . " ($row->comment)";
+			}
+			$this->loot[$count] = $lootItem;
 			$count++;
 		}
 
