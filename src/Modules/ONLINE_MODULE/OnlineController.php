@@ -24,6 +24,8 @@ use Nadybot\Core\{
 	UserStateEvent,
 	Util,
 };
+use Nadybot\Core\Modules\ALTS\AltsController;
+use Nadybot\Core\Modules\PLAYER_LOOKUP\PlayerManager;
 use Nadybot\Modules\{
 	DISCORD_GATEWAY_MODULE\DiscordGatewayController,
 	RAID_MODULE\RaidController,
@@ -105,6 +107,9 @@ class OnlineController {
 	public RelayController $relayController;
 
 	#[NCA\Inject]
+	public AltsController $altsController;
+
+	#[NCA\Inject]
 	public Text $text;
 
 	#[NCA\Inject]
@@ -112,6 +117,9 @@ class OnlineController {
 
 	#[NCA\Inject]
 	public CommandAlias $commandAlias;
+
+	#[NCA\Inject]
+	public PlayerManager $playerManager;
 
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
@@ -267,28 +275,33 @@ class OnlineController {
 			return;
 		}
 
-		$query = $this->db->table("online AS o");
-		/** @psalm-suppress ImplicitToStringCast */
-		$query->leftJoin("alts AS a", function (JoinClause $join): void {
-			$join->on("o.name", "a.alt")
-				->where("a.validated_by_main", true)
-				->where("a.validated_by_alt", true);
-		})->leftJoin("alts AS a2", "a2.main", $query->colFunc("COALESCE", ["a.main", "o.name"]))
-		->leftJoin("players AS p", function (JoinClause $join) use ($query): void {
-			$join->on("a2.alt", "p.name")
-				->orWhere($query->colFunc("COALESCE", ["a.main", "o.name"]), "p.name");
-		})
-		->leftJoin("online AS o2", "p.name", "o2.name")
-		->where("p.profession", $profession)
-		->orderByRaw($query->colFunc("COALESCE", ["a.main", "o.name"]))
-		->select("p.*", "o.afk")
-		->addSelect($query->colFunc("COALESCE", ["a.main", "p.name"], "pmain"))
-		->selectRaw(
-			"(CASE WHEN " . $query->grammar->wrap("o2.name") . " IS NULL ".
-			"THEN 0 ELSE 1 END) AS " . $query->grammar->wrap("online")
-		);
+		$onlineChars = $this->db->table("online")->asObj(Online::class);
+		$onlineByName = $onlineChars->keyBy("name");
+		$mains = $onlineChars->map(function (Online $online): string {
+			return $this->altsController->getMainOf($online->name);
+		})->unique();
 		/** @var Collection<OnlinePlayer> */
-		$players = $query->asObj(OnlinePlayer::class);
+		$players = new Collection();
+		foreach ($mains as $main) {
+			$alts = $this->altsController->getAltsOf($main);
+			$chars = $this->playerManager->searchByNames($this->db->getDim(), ...$alts)
+				->where("profession", $profession);
+			if ($chars->isEmpty()) {
+				continue;
+			}
+			foreach ($chars as $char) {
+				$onlineChar = new OnlinePlayer();
+				foreach ($char as $key => $value) {
+					$onlineChar->{$key} = $value;
+				}
+				$onlineChar->online = $onlineByName->has($char->name);
+				$onlineChar->pmain = $main;
+				$onlineChar->afk = $onlineByName->get($char->name, null)?->afk ?? "";
+				$players->push($onlineChar);
+			}
+		}
+		$players = $players->sortBy("pmain");
+
 		$count = $players->count();
 		$mainCount = 0;
 		$currentMain = "";

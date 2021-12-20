@@ -163,6 +163,17 @@ class AltsController {
 		return $this->alts[$char] ?? $char;
 	}
 
+	/** @return string[] */
+	public function getAltsOf(string $char): array {
+		$alts = [$char];
+		foreach ($this->alts as $alt => $main) {
+			if ($main === $char) {
+				$alts []= $alt;
+			}
+		}
+		return $alts;
+	}
+
 	#[NCA\Event(
 		name: "connect",
 		description: "Add unvalidated alts/mains to friendlist"
