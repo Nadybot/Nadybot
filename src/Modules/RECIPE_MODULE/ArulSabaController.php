@@ -14,6 +14,7 @@ use Nadybot\Core\Text;
 use Nadybot\Modules\ITEMS_MODULE\AODBEntry;
 use Nadybot\Modules\ITEMS_MODULE\ItemFlag;
 use Nadybot\Modules\ITEMS_MODULE\ItemsController;
+use Nadybot\Modules\ITEMS_MODULE\ItemWithBuffs;
 use Nadybot\Modules\ITEMS_MODULE\Skill;
 
 /**
@@ -106,21 +107,18 @@ class ArulSabaController {
 		$blob = '';
 		$gems = 0;
 		foreach ($aruls as $arul) {
-			$buffs = $this->db->table("item_buffs AS ib")
-				->join("skills AS s", "ib.attribute_id", "s.id")
-				->where("ib.item_id", $arul->left_aoid)
-				->select("s.name", "ib.amount", "s.unit")
-				->asObj();
 			$item = $this->itemsController->findById($arul->left_aoid);
 			if (!isset($item)) {
 				$context->reply("Cannot find item #{$arul->left_aoid} in bot's item database.");
 				return;
 			}
+			/** @var ItemWithBuffs */
+			$item = $this->itemsController->addBuffs($item)->firstOrFail();
 			$shortName = preg_replace("/^.*\((.+?) - Left\)$/", "$1", $item->name);
 			$blob .= "<header2>{$shortName}<end>\n".
 				"<tab>Min level: <highlight>{$arul->min_level}<end>\n";
-			foreach ($buffs as $buff) {
-				$blob .= "<tab>{$buff->name}: <highlight>+{$buff->amount}{$buff->unit}<end>\n";
+			foreach ($item->buffs as $buff) {
+				$blob .= "<tab>{$buff->skill->name}: <highlight>+{$buff->amount}{$buff->skill->unit}<end>\n";
 			}
 			$leftLink = $this->text->makeChatcmd("Left", "/tell <myname> arulsaba {$arul->name} {$gems} left");
 			$rightLink = $this->text->makeChatcmd("Right", "/tell <myname> arulsaba {$arul->name} {$gems} right");

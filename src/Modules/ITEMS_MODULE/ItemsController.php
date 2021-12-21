@@ -609,4 +609,43 @@ class ItemsController {
 			)
 		);
 	}
+
+	/** @return Collection<Skill> */
+	public function getSkillByIDs(int ...$ids): Collection {
+		return $this->db->table("skills")
+			->whereIn("id", $ids)
+			->asObj(Skill::class);
+	}
+
+	/** @return Collection<ItemWithBuffs> */
+	public function addBuffs(AODBEntry ...$items): Collection {
+		$buffs = $this->db->table("item_buffs")
+			->whereIn("item_id", array_unique([...array_column($items, "highid"), ...array_column($items, "lowid")]))
+			->asObj(ItemBuff::class);
+		$skills = $this->getSkillByIDs(...$buffs->pluck("attribute_id")->unique()->toArray())
+			->keyBy("id");
+			/** @param Collection<ItemBuff> $buffs */
+		$buffs = $buffs->groupBy("item_id")
+			->map(function (Collection $iBuffs, int $itemId) use ($skills): array {
+				return $iBuffs->map(function (ItemBuff $buff) use ($skills): ExtBuff {
+					$res = new ExtBuff();
+					$res->skill = $skills->get($buff->attribute_id);
+					$res->amount = $buff->amount;
+					return $res;
+				})->toArray();
+			});
+		$result = new Collection();
+		foreach ($items as $item) {
+			$new = new ItemWithBuffs();
+			foreach ($item as $key => $value) {
+				$new->{$key} = $value;
+			}
+			$new->buffs = $buffs->get($new->lowid, []);
+			if ($new->lowid !== $new->highid) {
+				$new->buffs = array_merge($new->buffs, $buffs->get($new->highid, []));
+			}
+			$result->push($new);
+		}
+		return $result;
+	}
 }
