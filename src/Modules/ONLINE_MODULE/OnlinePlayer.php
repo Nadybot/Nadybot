@@ -26,4 +26,19 @@ class OnlinePlayer extends Player {
 	 * True if this player is currently online, false otherwise
 	 */
 	public bool $online = false;
+
+	public static function fromPlayer(?Player $player=null, ?Online $online=null): self {
+		$op = new self();
+		if (isset($player)) {
+			foreach ($player as $key => $value) {
+				$op->{$key} = $value;
+			}
+		}
+		if (isset($online)) {
+			$op->online = true;
+			$op->name = $online->name;
+			$op->afk = $online->afk ?? "";
+		}
+		return $op;
+	}
 }
