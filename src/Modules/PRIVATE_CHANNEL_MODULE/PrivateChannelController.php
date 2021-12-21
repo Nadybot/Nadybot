@@ -485,26 +485,23 @@ class PrivateChannelController {
 		$tl6 = 0;
 		$tl7 = 0;
 
-		$data = $this->db->table("online AS o")
-			->leftJoin("players AS p", function (JoinClause $join): void {
-				$join->on("o.name", "p.name")
-					->where("p.dimension", $this->db->getDim());
-			})->where("added_by", $this->db->getBotname())
-			->where("channel_type", "priv")
-			->asObj()->toArray();
-		$numonline = count($data);
-		foreach ($data as $row) {
-			if ($row->level > 1 && $row->level <= 14) {
+		$chars = $this->onlineController->getPlayers("priv", $this->config->name);
+		$numonline = count($chars);
+		foreach ($chars as $char) {
+			if (!isset($char->level)) {
+				continue;
+			}
+			if ($char->level > 1 && $char->level <= 14) {
 				$tl1++;
-			} elseif ($row->level <= 49) {
+			} elseif ($char->level <= 49) {
 				$tl2++;
-			} elseif ($row->level <= 99) {
+			} elseif ($char->level <= 99) {
 				$tl3++;
-			} elseif ($row->level <= 149) {
+			} elseif ($char->level <= 149) {
 				$tl4++;
-			} elseif ($row->level <= 189) {
+			} elseif ($char->level <= 189) {
 				$tl5++;
-			} elseif ($row->level <= 204) {
+			} elseif ($char->level <= 204) {
 				$tl6++;
 			} else {
 				$tl7++;
@@ -523,97 +520,59 @@ class PrivateChannelController {
 
 	#[NCA\HandlesCommand("count")]
 	public function countProfessionCommand(CmdContext $context, #[NCA\Regexp("all|profs?")] string $action): void {
-		$online = [
-			"Adventurer" => 0,
-			"Agent" => 0,
-			"Bureaucrat" => 0,
-			"Doctor" => 0,
-			"Enforcer" => 0,
-			"Engineer" => 0,
-			"Fixer" => 0,
-			"Keeper" => 0,
-			"Martial Artist" => 0,
-			"Meta-Physicist" => 0,
-			"Nano-Technician" => 0,
-			"Soldier" => 0,
-			"Trader" => 0,
-			"Shade" => 0,
-		];
-
-		$query = $this->db->table("online AS o")
-			->leftJoin("players AS p", function (JoinClause $join): void {
-				$join->on("o.name", "p.name")
-					->where("p.dimension", $this->db->getDim());
-			})->where("added_by", $this->db->getBotname())
-			->where("channel_type", "priv")
-			->groupBy("profession");
-		$query->select($query->rawFunc("COUNT", "*", "count"), "profession");
-		$data = $query->asObj()->toArray();
-		$numonline = count($data);
-		$msg = "<highlight>$numonline<end> in total: ";
-
-		foreach ($data as $row) {
-			$online[$row->profession] = $row->count;
-		}
-
-		$msg .= "<highlight>".$online['Adventurer']."<end> Adv, "
-			. "<highlight>".$online['Agent']."<end> Agent, "
-			. "<highlight>".$online['Bureaucrat']."<end> Crat, "
-			. "<highlight>".$online['Doctor']."<end> Doc, "
-			. "<highlight>".$online['Enforcer']."<end> Enf, "
-			. "<highlight>".$online['Engineer']."<end> Eng, "
-			. "<highlight>".$online['Fixer']."<end> Fix, "
-			. "<highlight>".$online['Keeper']."<end> Keeper, "
-			. "<highlight>".$online['Martial Artist']."<end> MA, "
-			. "<highlight>".$online['Meta-Physicist']."<end> MP, "
-			. "<highlight>".$online['Nano-Technician']."<end> NT, "
-			. "<highlight>".$online['Soldier']."<end> Sol, "
-			. "<highlight>".$online['Shade']."<end> Shade, "
-			. "<highlight>".$online['Trader']."<end> Trader";
+		$chars = new Collection($this->onlineController->getPlayers("priv", $this->config->name));
+		$online = $chars->countBy("profession")->toArray();
+		$numOnline = $chars->count();
+		$msg = "<highlight>{$numOnline}<end> in total: ".
+			"<highlight>".($online['Adventurer']??0)."<end> Adv, ".
+			"<highlight>".($online['Agent']??0)."<end> Agent, ".
+			"<highlight>".($online['Bureaucrat']??0)."<end> Crat, ".
+			"<highlight>".($online['Doctor']??0)."<end> Doc, ".
+			"<highlight>".($online['Enforcer']??0)."<end> Enf, ".
+			"<highlight>".($online['Engineer']??0)."<end> Eng, ".
+			"<highlight>".($online['Fixer']??0)."<end> Fix, ".
+			"<highlight>".($online['Keeper']??0)."<end> Keeper, ".
+			"<highlight>".($online['Martial Artist']??0)."<end> MA, ".
+			"<highlight>".($online['Meta-Physicist']??0)."<end> MP, ".
+			"<highlight>".($online['Nano-Technician']??0)."<end> NT, ".
+			"<highlight>".($online['Soldier']??0)."<end> Sol, ".
+			"<highlight>".($online['Shade']??0)."<end> Shade, ".
+			"<highlight>".($online['Trader']??0)."<end> Trader";
 
 		$context->reply($msg);
 	}
 
 	#[NCA\HandlesCommand("count")]
 	public function countOrganizationCommand(CmdContext $context, #[NCA\Regexp("orgs?")] string $action): void {
-		$numOnline = $this->db->table("online")
-			->where("added_by", $this->db->getBotname())
-			->where("channel_type", "priv")->count();
+		$online = new Collection($this->onlineController->getPlayers("priv", $this->config->name));
 
-		if ($numOnline === 0) {
+		if ($online->isEmpty()) {
 			$msg = "No characters in channel.";
 			$context->reply($msg);
 			return;
 		}
-		$query = $this->db->table("online AS o")
-			->leftJoin("players AS p", function (JoinClause $join): void {
-				$join->on("o.name", 'p.name')
-					->where("p.dimension", $this->db->getDim());
-			})->where("added_by", $this->db->getBotname())
-			->where("channel_type", "priv")
-			->groupBy("guild");
-		$query->orderByRaw($query->rawFunc('COUNT', '*') . ' desc')
-			->orderByRaw($query->colFunc('AVG', 'level') . ' desc')
-			->select("guild", $query->rawFunc("COUNT", "*", "cnt"))
-			->addSelect($query->colFunc("AVG", "level", "avg_level"));
-		$data = $query->asObj();
-		$numOrgs = $data->count();
+		$byOrg = $online->groupBy("guild");
+		/** @var Collection<OrgCount> */
+		$orgStats = $byOrg->map(function (Collection $chars, string $orgName): OrgCount {
+			$result = new OrgCount();
+			$result->avgLevel = $chars->avg("level");
+			$result->numPlayers = $chars->count();
+			$result->orgName = strlen($orgName) ? $orgName : null;
+			return $result;
+		})->flatten()->sortByDesc("avgLevel")->sortByDesc("numPlayers");
 
-		$blob = '';
-		foreach ($data as $row) {
-			$guild = '(none)';
-			if ($row->guild != '') {
-				$guild = $row->guild;
-			}
+		$lines = $orgStats->map(function (OrgCount $org) use ($online): string {
+			$guild = $org->orgName ?? '(none)';
 			$percent = $this->text->alignNumber(
-				(int)round($row->cnt * 100 / $numOnline, 0),
+				(int)round($org->numPlayers * 100 / $online->count(), 0),
 				3
 			);
-			$avg_level = round((float)$row->avg_level, 1);
-			$blob .= "{$percent}% <highlight>{$guild}<end> - {$row->cnt} member(s), average level {$avg_level}\n";
-		}
+			$avg_level = round((float)$org->avgLevel, 1);
+			return "<tab>{$percent}% <highlight>{$guild}<end> - {$org->numPlayers} member(s), average level {$avg_level}";
+		});
+		$blob = "<header2>Org statistics<end>\n" . $lines->join("\n");
 
-		$msg = $this->text->makeBlob("Organizations ($numOrgs)", $blob);
+		$msg = $this->text->makeBlob("Organizations (" . $lines->count() . ")", $blob);
 		$context->reply($msg);
 	}
 
@@ -625,21 +584,16 @@ class PrivateChannelController {
 			$context->reply($msg);
 			return;
 		}
-		$data = $this->db->table("online AS o")
-			->leftJoin("players AS p", function (JoinClause $join): void {
-				$join->on("o.name", 'p.name')
-					->where("p.dimension", $this->db->getDim());
-			})->where("added_by", $this->db->getBotname())
-			->where("channel_type", "priv")
-			->where("profession", $prof)
-			->asObj();
-		$numonline = $data->count();
-		if ($numonline === 0) {
-			$msg = "<highlight>$numonline<end> {$prof}s.";
+		/** @var Collection<OnlinePlayer> */
+		$data = (new Collection($this->onlineController->getPlayers("priv", $this->config->name)))
+			->where("profession", $prof);
+		$numOnline = $data->count();
+		if ($numOnline === 0) {
+			$msg = "<highlight>$numOnline<end> {$prof}s.";
 			$context->reply($msg);
 			return;
 		}
-		$msg = "<highlight>$numonline<end> $prof:";
+		$msg = "<highlight>$numOnline<end> $prof:";
 
 		foreach ($data as $row) {
 			if ($row->afk !== "") {
