@@ -195,4 +195,13 @@ class PlayfieldController {
 			->orWhereIlike("short_name", $playfieldName)
 			->asObj(Playfield::class);
 	}
+
+	/**
+	 * @return Collection<Playfield>
+	 */
+	public function searchPlayfieldsByIds(int ...$ids): Collection {
+		return $this->db->table("playfields")
+			->whereIn("id", $ids)
+			->asObj(Playfield::class);
+	}
 }

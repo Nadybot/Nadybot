@@ -14,7 +14,6 @@ use Nadybot\Core\{
 	CommandReply,
 	DB,
 	DBSchema\Player,
-	Event,
 	EventManager,
 	Http,
 	LoggerWrapper,
@@ -535,11 +534,12 @@ class TowerController {
 	#[NCA\HandlesCommand("lc")]
 	public function lcCommand(CmdContext $context): void {
 		/** @var Collection<Playfield> */
-		$playfields = $this->db->table("tower_site AS t")
-			->join("playfields AS p", "p.id", "t.playfield_id")
-			->orderBy("p.short_name")
-			->select("p.*")->distinct()
-			->asObj(Playfield::class);
+		$playfields = $this->db->table("tower_site")
+			->asObj(TowerSite::class)
+			->pluck("playfield_id")->unique()
+			->map(function (int $id): ?Playfield {
+				return $this->playfieldController->getPlayfieldById($id);
+			})->filter()->sortBy("long_name");
 
 		$blob = "<header2>Playfields with notum fields<end>\n";
 		foreach ($playfields as $pf) {
@@ -565,18 +565,19 @@ class TowerController {
 
 		/** @var Collection<SiteInfo> */
 		$data = $this->db->table("tower_site AS t")
-			->join("playfields AS p", "t.playfield_id", "p.id")
-			->where("t.playfield_id", $playfield->id)
-			->asObj(SiteInfo::class);
+			->where("playfield_id", $playfield->id)
+			->asObj(SiteInfo::class)
+			->each(function (SiteInfo $info) use ($playfield): void {
+				$info->id = $playfield->id;
+				$info->short_name = $playfield->short_name;
+				$info->long_name = $playfield->long_name;
+			});
 		if ($data->isEmpty()) {
 			$msg = "Playfield <highlight>$playfield->long_name<end> does not have any tower sites.";
 			$context->reply($msg);
 			return;
 		}
-		$query = $this->getPFQuery();
-		/** @var Collection<ScoutInfoPlus> */
-		$sites = $query->where("t.playfield_id", $playfield->id)
-			->asObj(ScoutInfoPlus::class);
+		$sites = $this->getScoutInfoPlus($playfield->id);
 		if ($this->towerApiController->isActive()) {
 			$params = ["enabled" => "1", "playfield_id" => $playfield->id];
 			$this->towerApiController->call(
@@ -594,25 +595,36 @@ class TowerController {
 		$this->showArea($sites, null, $data, $playfield, $context);
 	}
 
-	public function getPFQuery(): QueryBuilder {
-		return $this->db->table("tower_site", "t")
-			->join("playfields AS p", "t.playfield_id", "=", "p.id")
+	/** @return Collection<ScoutInfoPlus> */
+	public function getScoutInfoPlus(int $playfieldId): Collection {
+		$pf = $this->playfieldController->getPlayfieldById($playfieldId);
+		if (!isset($pf)) {
+			return new Collection();
+		}
+		$sites = $this->db->table("tower_site", "t")
+			->where("t.playfield_id", $playfieldId)
 			->leftJoin("scout_info AS s", function (JoinClause $join): void {
 				$join->on("s.playfield_id", "=", "t.playfield_id")
 					->on("s.site_number", "=", "t.site_number");
 			})
-			->leftJoin("organizations AS o", function (JoinClause $join): void {
-				$join->on("s.org_name", "=", "o.name")
-					->on("s.faction", "=", "o.faction");
-			})
 			->select([
 				"s.*",
 				"t.playfield_id", "t.site_number",
-				"p.long_name AS playfield_long_name", "p.short_name AS playfield_short_name",
 				"t.min_ql", "t.max_ql", "t.x_coord", "t.y_coord", "t.site_name",
-				"o.id AS org_id"
 			])
-			->where("t.enabled", 1);
+			->where("t.enabled", 1)
+			->asObj(ScoutInfoPlus::class);
+		$orgNames = $sites->pluck("org_name")->filter()->toArray();
+		$orgs = $this->findOrgController->getOrgsByName(...$orgNames)->keyBy("name");
+		$sites->each(function (ScoutInfoPlus $info) use ($orgs, $pf): void {
+			$info->org_id = 0;
+			if (isset($info->org_name)) {
+				$info->org_id = $orgs->get($info->org_name)->id;
+			}
+			$info->playfield_short_name = $pf->short_name;
+			$info->playfield_long_name = $pf->long_name;
+		});
+		return $sites;
 	}
 
 	/** Show the API-result of a whole playfield */
@@ -705,19 +717,20 @@ class TowerController {
 
 		/** @var ?SiteInfo */
 		$site = $this->db->table("tower_site AS t")
-			->join("playfields AS p", "p.id", "t.playfield_id")
 			->where("t.playfield_id", $playfield->id)
 			->where("t.site_number", $site->site)
-			->asObj(SiteInfo::class)->first();
+			->asObj(SiteInfo::class)
+			->each(function(SiteInfo $info) use ($playfield): void {
+				$info->id = $playfield->id;
+				$info->short_name = $playfield->short_name;
+				$info->long_name = $playfield->long_name;
+			})->first();
 		if ($site === null) {
 			$msg = "Invalid site number.";
 			$context->reply($msg);
 			return;
 		}
-		$query = $this->getPFQuery();
-		/** @var Collection<ScoutInfoPlus> */
-		$sites = $query->where("t.playfield_id", $playfield->id)
-			->asObj(ScoutInfoPlus::class);
+		$sites = $this->getScoutInfoPlus($playfield->id);
 		if ($this->towerApiController->isActive()) {
 			$params = ["enabled" => "1", "playfield_id" => $playfield->id];
 			$this->towerApiController->call(
@@ -854,8 +867,8 @@ class TowerController {
 			->leftJoin("scout_info AS s", function (JoinClause $join): void {
 				$join->on("t.playfield_id", "s.playfield_id")
 					->on("s.site_number", "t.site_number");
-			})->join("playfields AS p", "t.playfield_id", "p.id")
-			->select("t.*", "p.*")
+			})
+			->select("t.*")
 			->where("t.enabled", 1)
 			->where(function (QueryBuilder $where): void {
 				$where->whereNull("s.playfield_id")
@@ -863,16 +876,14 @@ class TowerController {
 					$where->whereNull("s.ql")
 						->where("s.scouted_on", "<", time() - 20*60);
 				});
-			})
-			->orderBy("p.short_name")
-			->orderBy("t.site_number");
+			});
 		if (isset($playfield)) {
 			$pf = $this->playfieldController->getPlayfieldByName($playfield());
 			if (!isset($pf)) {
 				$context->reply("Unable to find playfield <highlight>{$playfield}<end>.");
 				return;
 			}
-			$query->where("p.id", $pf->id);
+			$query->where("t.playfield_id", $pf->id);
 		}
 		$data = $query->asObj(SiteInfo::class);
 		if ($data->count() === 0) {
@@ -883,7 +894,17 @@ class TowerController {
 			}
 			return;
 		}
-		$groups = $data->groupBy("short_name");
+		$pfIds = $data->pluck("playfield_id")->filter()->toArray();
+		$playfields = $this->playfieldController->searchPlayfieldsByIds(...$pfIds)
+			->keyBy("id");
+		$data->each(function(SiteInfo $info) use ($playfields): void {
+			/** @var Playfield */
+			$pf = $playfields->get($info->playfield_id);
+			$info->id = $pf->id;
+			$info->short_name = $pf->short_name;
+			$info->long_name = $pf->long_name;
+		});
+		$groups = $data->sortBy("site_number")->sortBy("long_name")->groupBy("short_name");
 		$blob = $groups->map([$this, "formatSiteGroup"])
 			->join("\n\n");
 

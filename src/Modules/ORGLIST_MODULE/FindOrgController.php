@@ -4,6 +4,7 @@ namespace Nadybot\Modules\ORGLIST_MODULE;
 
 use Nadybot\Core\Attributes as NCA;
 use Exception;
+use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	CmdContext,
 	Event,
@@ -243,5 +244,14 @@ class FindOrgController {
 				->withCallback(function(HttpResponse $response) use ($url, $searchIndex) {
 					$this->handleOrglistResponse($url, $searchIndex, $response);
 				});
+	}
+
+	public function getOrgsByName(string ...$names): Collection {
+		if (empty($names)) {
+			return new Collection();
+		}
+		return $this->db->table("organization")
+			->whereIn("name", $names)
+			->asObj(Organization::class);
 	}
 }
