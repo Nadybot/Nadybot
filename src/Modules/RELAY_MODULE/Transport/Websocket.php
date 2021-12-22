@@ -3,17 +3,21 @@
 namespace Nadybot\Modules\RELAY_MODULE\Transport;
 
 use Exception;
-use Nadybot\Core\LoggerWrapper;
-use Nadybot\Core\Nadybot;
-use Nadybot\Core\Timer;
-use Nadybot\Core\Websocket as CoreWebsocket;
-use Nadybot\Core\WebsocketCallback;
-use Nadybot\Core\WebsocketClient;
-use Nadybot\Core\WebsocketError;
-use Nadybot\Modules\RELAY_MODULE\Relay;
-use Nadybot\Modules\RELAY_MODULE\RelayMessage;
-use Nadybot\Modules\RELAY_MODULE\RelayStatus;
-use Nadybot\Modules\RELAY_MODULE\StatusProvider;
+use Nadybot\Core\{
+	LoggerWrapper,
+	Nadybot,
+	Timer,
+	Websocket as CoreWebsocket,
+	WebsocketCallback,
+	WebsocketClient,
+	WebsocketError,
+};
+use Nadybot\Modules\RELAY_MODULE\{
+	Relay,
+	RelayMessage,
+	RelayStatus,
+	StatusProvider,
+};
 
 /**
  * @RelayTransport("websocket")
@@ -97,26 +101,30 @@ class Websocket implements TransportInterface, StatusProvider {
 		$this->status = new RelayStatus(RelayStatus::INIT, $event->data??"Unknown state");
 		if ($event->code === WebsocketError::CONNECT_TIMEOUT) {
 			if (isset($this->initCallback)) {
-				$this->timer->callLater(30, [$this->client, 'connect']);
+				$this->timer->callLater(10, [$this->client, 'connect']);
 			} else {
 				unset($this->client);
-				$this->relay->init();
+				$this->timer->callLater(10, [$this->relay, 'init']);
 			}
+		} else {
+			unset($this->client);
+			$this->timer->callLater(10, [$this->relay, 'init']);
 		}
 	}
 
 	public function processClose(WebsocketCallback $event): void {
-		$this->logger->notice("Reconnecting to Websocket {$this->uri} in 10s.");
 		if (isset($this->initCallback)) {
+			$this->logger->notice("Reconnecting to Websocket {$this->uri} in 10s.");
 			$this->status = new RelayStatus(
 				RelayStatus::INIT,
 				"Reconnecting to {$this->uri}"
 			);
-			$this->timer->callLater(30, [$this->client, 'connect']);
+			$this->timer->callLater(10, [$this->client, 'connect']);
 		} else {
 			$this->client->close();
 			unset($this->client);
-			$this->relay->init();
+			$this->logger->notice("Reconnecting to Websocket {$this->uri}.");
+			$this->timer->callLater(0, [$this->relay, 'init']);
 		}
 	}
 
