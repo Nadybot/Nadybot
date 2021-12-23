@@ -4,6 +4,7 @@ namespace Nadybot\Modules\TRACKER_MODULE;
 
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
+	AccessManager,
 	AdminManager,
 	BuddylistManager,
 	CmdContext,
@@ -121,6 +122,9 @@ class TrackerController implements MessageEmitter {
 
 	/** @Inject */
 	public FindOrgController $findOrgController;
+
+	/** @Inject */
+	public AccessManager $accessManager;
 
 	/** @Logger */
 	public LoggerWrapper $logger;
@@ -272,6 +276,10 @@ class TrackerController implements MessageEmitter {
 	 */
 	public function trackTowerAttacks(TowerAttackEvent $eventObj): void {
 		$attacker = $eventObj->attacker;
+		if ($this->accessManager->checkAccess($attacker->name, "member")) {
+			// Don't add members of the bot to the tracker
+			return;
+		}
 		$defGuild = $eventObj->defender->org ?? null;
 		$defFaction = $eventObj->defender->faction ?? null;
 		$trackWho = $this->settingManager->getInt('tracker_add_attackers') ?? 0;

@@ -170,7 +170,26 @@ class RelayController {
 			'none',
 			'none'
 		);
+		$this->settingManager->add(
+			$this->moduleName,
+			'relay_queue_size',
+			'How many messages to queue when relay is offline',
+			'edit',
+			'number',
+			'10',
+			'10;20;50'
+		);
 		$this->loadStackComponents();
+		$this->settingManager->registerChangeListener("relay_queue_size", [$this, "adaptQueueSize"]);
+	}
+
+	public function adaptQueueSize(string $setting, string $old, string $new): void {
+		if ($new < 0) {
+			throw new Exception("The queue length cannot be negative.");
+		}
+		foreach ($this->relays as $relay) {
+			$relay->setMessageQueueSize((int)$new);
+		}
 	}
 
 	public function loadStackComponents(): void {
@@ -1076,6 +1095,7 @@ class RelayController {
 		if (isset($this->relays[$relay->getName()])) {
 			return false;
 		}
+		$relay->setMessageQueueSize($this->settingManager->getInt("relay_queue_size")??10);
 		$this->relays[$relay->getName()] = $relay;
 		return true;
 	}

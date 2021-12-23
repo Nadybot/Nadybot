@@ -100,13 +100,11 @@ class AccessManager {
 	 * To check if a character named 'Tyrence' has moderator access,
 	 * you would do:
 	 *
-	 * <code>
 	 * if ($this->accessManager->checkAccess("Tyrence", "moderator")) {
 	 *    // Tyrence has [at least] moderator access level
 	 * } else {
 	 *    // Tyrence does not have moderator access level
 	 * }
-	 * </code>
 	 *
 	 * Note that this will return true if 'Tyrence' is a moderator on your
 	 * bot, but also if he is anything higher, such as administrator, or superadmin.

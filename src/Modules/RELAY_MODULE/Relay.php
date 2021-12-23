@@ -13,6 +13,7 @@ use Nadybot\Core\{
 	Routing\Source,
 	SettingManager,
 	SyncEvent,
+	Timer,
 };
 use Nadybot\Modules\{
 	ONLINE_MODULE\OnlinePlayer,
@@ -36,6 +37,9 @@ class Relay implements MessageReceiver {
 
 	/** @Inject */
 	public PlayerManager $playerManager;
+
+	/** @Inject */
+	public Timer $timer;
 
 	/** @Logger */
 	public LoggerWrapper $logger;
@@ -67,8 +71,15 @@ class Relay implements MessageReceiver {
 	public bool $registerAsReceiver = true;
 	public bool $registerAsEmitter = true;
 
+	public MessageQueue $msgQueue;
+
 	public function __construct(string $name) {
+		$this->msgQueue = new MessageQueue();
 		$this->name = $name;
+	}
+
+	public function setMessageQueueSize(int $size): void {
+		$this->msgQueue->setMaxLength($size);
 	}
 
 	public function getName(): string {
@@ -180,7 +191,7 @@ class Relay implements MessageReceiver {
 			$class = substr($class, $pos + 1);
 		}
 		if ($element instanceof StatusProvider) {
-			$status = $element->getStatus();
+			$status = clone $element->getStatus();
 			$status->text = "{$class}: {$status->text}";
 			return $status;
 		}
@@ -277,6 +288,13 @@ class Relay implements MessageReceiver {
 			if (isset($callback)) {
 				$callback();
 			}
+			$this->timer->callLater(10, function() {
+				if ($this->initialized) {
+					foreach ($this->msgQueue as $message) {
+						$this->receive($message, $this->getName());
+					}
+				}
+			});
 			return;
 		}
 		$element->setRelay($this);
@@ -352,6 +370,7 @@ class Relay implements MessageReceiver {
 
 	public function receive(RoutableEvent $event, string $destination): bool {
 		if (!$this->initialized) {
+			$this->msgQueue->enqueue($event);
 			return false;
 		}
 		$this->prependMainHop($event);
