@@ -1,3 +1,20 @@
+nadybot (5.3.2-1+ubuntu1) bionic; urgency=medium
+  Bugfixes:
+  - Websocket-based relays will once again reconnect
+    if the websocket server restarts
+
+  Other:
+  - If a member of the bot accidentally attacks a CT,
+    don't put them on the automatic track list
+
+  Features:
+  - New command !towerqty to show how many towers your
+    level allows you to plant
+  - New command !towertype to show the tower types by QL
+  - Allow queueing of relay messages if the relay is down,
+    so restarting a relay-bot won't lead to lost messages.
+ -- Nadyita <nadyita@hodorraid.org>  Thu, 23 Dec 2021 08:25:00 +0100
+
 nadybot (5.3.1-1+ubuntu1) bionic; urgency=medium
   Bugfixes:
   - Fix a race condition in database migrations which would throw an

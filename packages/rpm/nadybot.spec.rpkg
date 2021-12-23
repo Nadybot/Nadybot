@@ -173,6 +173,17 @@ exit 0
 %endif
 
 %changelog
+* Thu Dec 23 2021 Nadyita <nadyita@hodorraid.org> 5.3.2-1
+- Websocket-based relays will once again reconnect
+  if the websocket server restarts
+- If a member of the bot accidentally attacks a CT,
+  don't put them on the automatic track list
+- New command !towerqty to show how many towers your
+  level allows you to plant
+- New command !towertype to show the tower types by QL
+- Allow queueing of relay messages if the relay is down,
+  so restarting a relay-bot won't lead to lost messages.
+
 * Sun Dec 19 2021 Nadyita <nadyita@hodorraid.org> 5.3.1-1
 - Fix a race condition in database migrations which would throw an
   error that the timers table didn't exist
