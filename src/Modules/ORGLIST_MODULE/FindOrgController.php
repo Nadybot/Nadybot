@@ -246,12 +246,23 @@ class FindOrgController {
 				});
 	}
 
+	/** @return Collection<Organization> */
 	public function getOrgsByName(string ...$names): Collection {
 		if (empty($names)) {
 			return new Collection();
 		}
 		return $this->db->table("organizations")
 			->whereIn("name", $names)
+			->asObj(Organization::class);
+	}
+
+	/** @return Collection<Organization> */
+	public function getOrgsById(int ...$ids): Collection {
+		if (empty($ids)) {
+			return new Collection();
+		}
+		return $this->db->table("organizations")
+			->whereIn("id", $ids)
 			->asObj(Organization::class);
 	}
 }

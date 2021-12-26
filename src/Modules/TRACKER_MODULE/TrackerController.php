@@ -5,7 +5,7 @@ namespace Nadybot\Modules\TRACKER_MODULE;
 use Nadybot\Core\Attributes as NCA;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
-	AdminManager,
+	AccessManager,
 	BuddylistManager,
 	CmdContext,
 	ConfigFile,
@@ -34,7 +34,6 @@ use Nadybot\Core\Routing\Source;
 use Nadybot\Modules\{
 	ONLINE_MODULE\OnlineController,
 	ONLINE_MODULE\OnlinePlayer,
-	PRIVATE_CHANNEL_MODULE\PrivateChannelController,
 	TOWER_MODULE\TowerAttackEvent,
 };
 use Nadybot\Modules\ORGLIST_MODULE\FindOrgController;
@@ -126,6 +125,9 @@ class TrackerController implements MessageEmitter {
 
 	#[NCA\Inject]
 	public FindOrgController $findOrgController;
+
+	#[NCA\Inject]
+	public AccessManager $accessManager;
 
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
@@ -292,14 +294,14 @@ class TrackerController implements MessageEmitter {
 			if (!isset($defGuild)) {
 				return;
 			}
-			$isOurGuild = $this->db->table(PrivateChannelController::DB_TABLE, "m")
-				->join("players AS p", "m.name", "p.name")
-				->where("p.guild", $defGuild)
-				->exists() ||
-			$this->db->table(AdminManager::DB_TABLE, "a")
-				->join("players AS p", "a.name", "p.name")
-				->where("p.guild", $defGuild)
-				->exists();
+			$isOurGuild = $this->playerManager->searchByColumn(
+				$this->config->dimension,
+				"guild",
+				$defGuild
+			)->contains(function (Player $player): bool {
+				return $this->accessManager->getAccessLevelForCharacter($player->name) !== "all";
+			});
+
 			if (!$isOurGuild) {
 				return;
 			}
@@ -315,7 +317,15 @@ class TrackerController implements MessageEmitter {
 				return;
 			}
 		}
-		$this->trackUid($attacker->charid, $attacker->name);
+		if (isset($attacker->charid)) {
+			$this->trackUid($attacker->charid, $attacker->name);
+			return;
+		}
+		$this->chatBot->getUid($attacker->name, function (?int $uid) use ($attacker): void {
+			if (isset($uid)) {
+				$this->trackUid($uid, $attacker->name);
+			}
+		});
 	}
 
 	#[NCA\Event(
@@ -690,20 +700,30 @@ class TrackerController implements MessageEmitter {
 
 	#[NCA\HandlesCommand("track")]
 	public function trackListOrgsCommand(CmdContext $context, #[NCA\Regexp("orgs?")] string $action, #[NCA\Str("list")] ?string $subAction): void {
-		$orgs = $this->db->table(static::DB_ORG, "to")
-			->join("organizations AS o", "o.id", "to.org_id")
-			->orderBy("name")
-			->asObj(Organization::class);
-		if ($orgs->isEmpty()) {
+		$orgs = $this->db->table(static::DB_ORG)
+			->asObj(TrackingOrg::class);
+		$orgIds = $orgs->pluck("org_id")->filter()->toArray();
+		$orgsByID = $this->findOrgController->getOrgsById(...$orgIds)
+			->keyBy("id");
+		$orgs = $orgs->each(function(TrackingOrg $o) use ($orgsByID): void {
+			$o->org = $orgsByID->get($o->org_id);
+		})->sort(function (TrackingOrg $o1, TrackingOrg $o2): int {
+			return strcasecmp($o1->org?->name??"", $o2->org?->name??"");
+		});
+
+		$lines = $orgs->map(function(TrackingOrg $o): ?string {
+			if (!isset($o->org)) {
+				return null;
+			}
+			$delLink = $this->text->makeChatcmd("remove", "/tell <myname> track remorg {$o->org->id}");
+			return "<tab>{$o->org->name} (<" . strtolower($o->org->faction) . ">{$o->org->faction}<end>) - ".
+				"<highlight>{$o->org->num_members}<end> members, added by <highlight>{$o->added_by}<end> ".
+				"[{$delLink}]";
+		})->filter();
+		if ($lines->isEmpty()) {
 			$context->reply("There are currently no orgs being tracked.");
 			return;
 		}
-		$lines = $orgs->map(function(Organization $o): string {
-			$delLink = $this->text->makeChatcmd("remove", "/tell <myname> track remorg {$o->id}");
-			return "<tab>{$o->name} (<" . strtolower($o->faction) . ">{$o->faction}<end>) - ".
-				"<highlight>{$o->num_members}<end> members, added by <highlight>{$o->added_by}<end> ".
-				"[{$delLink}]";
-		});
 		$blob = "<header2>Orgs being tracked<end>\n".
 			$lines->join("\n");
 		$msg = $this->text->makeBlob("Tracked orgs(" . $lines->count() . ")", $blob);
@@ -805,31 +825,26 @@ class TrackerController implements MessageEmitter {
 
 	#[NCA\HandlesCommand("track")]
 	public function trackOnlineCommand(CmdContext $context, #[NCA\Str("online")] string $action, #[NCA\Str("all")] ?string $all, #[NCA\Str("--edit")] ?string $edit): void {
-		$data2 = $this->db->table(self::DB_ORG_MEMBER, "tu")
-			->join("players AS p", "tu.name", "p.name")
-			->where("p.dimension", $this->db->getDim())
-			->orderBy("p.name")
-			->select("p.*", "p.name AS pmain", "tu.hidden");
+		$data1 = $this->db->table(self::DB_ORG_MEMBER)->select("name");
+		$data2 = $this->db->table(self::DB_TABLE)->select("name");
 		if (!isset($all)) {
-			$data2->where("tu.hidden", false);
+			$data1->where("hidden", false);
+			$data2->where("hidden", false);
 		}
-		$sql = $this->db->table(self::DB_TABLE, "tu")
-			->join("players AS p", "tu.name", "p.name")
-			->where("p.dimension", $this->db->getDim())
-			->orderBy("p.name")
-			->select("p.*", "p.name AS pmain", "tu.hidden");
-		if (!isset($all)) {
-			$sql->where("tu.hidden", false);
-		}
-		/** @var OnlinePlayer[] */
-		$data = $sql
+		$trackedUsers = $data1
 			->union($data2)
-			->asObj(OnlinePlayer::class)
-			->each(function (OnlinePlayer $player): void {
-				$player->afk = "";
-				$player->online = true;
+			->pluckAs("name", "string")
+			->unique()
+			->toArray();
+		$data = $this->playerManager->searchByNames($this->config->dimension, ...$trackedUsers)
+			->sortBy("name")
+			->map(function (Player $p): OnlinePlayer {
+				$op = OnlinePlayer::fromPlayer($p);
+				$op->pmain ??= $op->name;
+				$op->online = $this->buddylistManager->isOnline($op->name) ?? false;
+				return $op;
 			})->filter(function(OnlinePlayer $player): bool {
-				return $this->buddylistManager->isOnline($player->name) === true;
+				return $player->online;
 			})->toArray();
 		if (!count($data)) {
 			$context->reply("No tracked players are currently online.");
