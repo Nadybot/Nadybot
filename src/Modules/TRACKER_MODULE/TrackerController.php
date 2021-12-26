@@ -835,16 +835,17 @@ class TrackerController implements MessageEmitter {
 			->union($data2)
 			->pluckAs("name", "string")
 			->unique()
+			->filter(function (string $name): bool {
+				return $this->buddylistManager->isOnline($name) ?? false;
+			})
 			->toArray();
 		$data = $this->playerManager->searchByNames($this->config->dimension, ...$trackedUsers)
 			->sortBy("name")
 			->map(function (Player $p): OnlinePlayer {
 				$op = OnlinePlayer::fromPlayer($p);
 				$op->pmain ??= $op->name;
-				$op->online = $this->buddylistManager->isOnline($op->name) ?? false;
+				$op->online = true;
 				return $op;
-			})->filter(function(OnlinePlayer $player): bool {
-				return $player->online;
 			})->toArray();
 		if (!count($data)) {
 			$context->reply("No tracked players are currently online.");
