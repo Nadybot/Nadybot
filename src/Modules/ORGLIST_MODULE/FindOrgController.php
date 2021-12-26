@@ -250,7 +250,7 @@ class FindOrgController {
 		if (empty($names)) {
 			return new Collection();
 		}
-		return $this->db->table("organization")
+		return $this->db->table("organizations")
 			->whereIn("name", $names)
 			->asObj(Organization::class);
 	}
