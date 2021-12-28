@@ -514,7 +514,6 @@ class DB {
 
 
 	public function createMigrationTables(): void {
-		$infoShown = false;
 		foreach (["migrations", "migrations_<myname>"] as $table) {
 			if ($this->schema()->hasTable($table)) {
 				continue;
@@ -525,18 +524,6 @@ class DB {
 				$table->string('migration');
 				$table->integer('applied_at');
 			});
-			if ($infoShown) {
-				continue;
-			}
-			if ($this->schema()->hasTable(AdminManager::DB_TABLE)) {
-				$log = 'Migrating database to a new schema.';
-			} else {
-				$log = 'Initializing database.';
-			}
-			$this->logger->notice(
-				$log . ' ' . 'This can take a while; please be patient.'
-			);
-			$infoShown = true;
 		}
 	}
 
