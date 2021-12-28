@@ -5,6 +5,7 @@ namespace Nadybot\Core\Modules\PLAYER_LOOKUP;
 use Nadybot\Core\Attributes as NCA;
 use DateTime;
 use DateTimeZone;
+use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	ConfigFile,
 	DB,
@@ -189,6 +190,37 @@ class PlayerManager {
 			$player->source .= ' (current-cache)';
 			$callback($player);
 		}
+	}
+
+	/**
+	 * @return Collection<Player>
+	 */
+	public function searchByNames(int $dimension, string ...$names): Collection {
+		$names = array_map("ucfirst", array_map("strtolower", $names));
+		return $this->db->table("players")
+			->where("dimension", $dimension)
+			->whereIn("name", $names)
+			->asObj(Player::class);
+	}
+
+	/**
+	 * @return Collection<Player>
+	 */
+	public function searchByUids(int $dimension, int ...$uids): Collection {
+		return $this->db->table("players")
+			->where("dimension", $dimension)
+			->whereIn("charid", $uids)
+			->asObj(Player::class);
+	}
+
+	/**
+	 * @return Collection<Player>
+	 */
+	public function searchByColumn(int $dimension, string $column, mixed ...$values): Collection {
+		return $this->db->table("players")
+			->where("dimension", $dimension)
+			->whereIn($column, $values)
+			->asObj(Player::class);
 	}
 
 	public function findInDb(string $name, int $dimension): ?Player {

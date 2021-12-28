@@ -210,14 +210,20 @@ class AlienMiscController {
 			->asObj()
 			->first()->type;
 
-		$data = $this->db->table("ofabarmor AS o1")
-			->leftJoin("ofabarmorcost AS o2", "o1.slot", "o2.slot")
-			->where("o1.profession", $profession)
-			->where("o2.ql", $ql)
+		/** @var Collection<OfabArmor> */
+		$armors = $this->db->table("ofabarmor")
+			->where("profession", $profession)
 			->orderBy("upgrade")
 			->orderBy("name")
-			->asObj();
-		if ($data->count() === 0) {
+			->asObj(OfabArmor::class);
+
+		/** @var Collection<OfabArmorCost> */
+		$costBySlot = $this->db->table("ofabarmorcost")
+			->where("ql", $ql)
+			->asObj(OfabArmorCost::class)
+			->keyBy("slot");
+
+		if ($armors->count() === 0 || $costBySlot->count() === 0) {
 			$msg = "Could not find any OFAB armor for {$profession} in QL {$ql}.";
 			$context->reply($msg);
 			return;
@@ -228,24 +234,28 @@ class AlienMiscController {
 		$typeQl = round(.8 * $ql);
 		$blob .= "Upgrade with $typeLink (minimum QL {$typeQl})\n\n";
 
-		/** @var Collection<DBRow> */
+		/** @var Collection<int> */
 		$qls = $this->db->table("ofabarmorcost")
 			->orderBy("ql")
 			->select("ql")->distinct()
-			->asObj();
-		foreach ($qls as $row2) {
-			if ($row2->ql === $ql) {
-				$blob .= "<yellow>[<end>{$row2->ql}<yellow>]<end> ";
+			->pluckAs("ql", "int");
+		foreach ($qls as $currQL) {
+			if ($currQL === $ql) {
+				$blob .= "<yellow>[<end>{$currQL}<yellow>]<end> ";
 			} else {
-				$ql_link = $this->text->makeChatcmd((string)$row2->ql, "/tell <myname> ofabarmor {$profession} {$row2->ql}");
-				$blob .= "[{$ql_link}] ";
+				$qlLink = $this->text->makeChatcmd((string)$currQL, "/tell <myname> ofabarmor {$profession} {$currQL}");
+				$blob .= "[{$qlLink}] ";
 			}
 		}
 		$blob .= "\n";
 
 		$currentUpgrade = null;
 		$fullSetVP = 0;
-		foreach ($data as $row) {
+		foreach ($armors as $row) {
+			if (!$costBySlot->has($row->slot)) {
+				continue;
+			}
+			$vp = $costBySlot->get($row->slot)->vp ?? 0;
 			if ($currentUpgrade !== $row->upgrade) {
 				$currentUpgrade = $row->upgrade;
 				$blob .= "\n<header2>";
@@ -261,8 +271,8 @@ class AlienMiscController {
 			$blob .= "<tab>" . $this->text->makeItem($row->lowid, $row->highid, $ql, $row->name);
 
 			if ($row->upgrade === 0 || $row->upgrade === 3) {
-				$blob .= "  (<highlight>{$row->vp}<end> VP)";
-				$fullSetVP += $row->vp;
+				$blob .= "  (<highlight>{$vp}<end> VP)";
+				$fullSetVP += $vp;
 			}
 			$blob .= "\n";
 		}

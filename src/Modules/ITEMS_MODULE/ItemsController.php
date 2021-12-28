@@ -153,6 +153,23 @@ class ItemsController {
 			->asObj(AODBEntry::class);
 	}
 
+	/**
+	 * Get 1 or more items by a name search
+	 *
+	 * @return Collection<AODBEntry>
+	 */
+	public function getBySearch(string $search, ?int $ql=null): Collection {
+		$query = $this->db->table("aodb");
+		$tmp = explode(" ", $search);
+		$this->db->addWhereFromParams($query, $tmp, "name");
+
+		if ($ql !== null) {
+			$query->where("a.lowql", "<=", $ql)
+				->where("a.highql", ">=", $ql);
+		}
+		return $query->asObj(AODBEntry::class);
+	}
+
 	#[NCA\HandlesCommand("id")]
 	public function idCommand(CmdContext $context, string $search): void {
 		$query = $this->db->table("aodb AS a")
@@ -591,5 +608,68 @@ class ItemsController {
 				array_shift($words)
 			)
 		);
+	}
+
+	/** @return Collection<Skill> */
+	public function getSkillByIDs(int ...$ids): Collection {
+		return $this->db->table("skills")
+			->whereIn("id", $ids)
+			->asObj(Skill::class);
+	}
+
+	/** @return Collection<Skill> */
+	public function searchForSkill(string $skillName): Collection {
+		// check for exact match first, in order to disambiguate
+		// between Bow and Bow special attack
+		$query = $this->db->table("skills");
+		/**
+		 * @psalm-suppress ImplicitToStringCast
+		 * @var Collection<Skill>
+		 */
+		$results = $query->where($query->colFunc("LOWER", "name"), strtolower($skillName))
+			->select("*")->distinct()
+			->asObj(Skill::class);
+		if ($results->containsOneItem()) {
+			return $results;
+		}
+
+		$query = $this->db->table("skills")->select("*")->distinct();
+
+		$tmp = explode(" ", $skillName);
+		$this->db->addWhereFromParams($query, $tmp, "name");
+
+		return $query->asObj(Skill::class);
+	}
+
+	/** @return Collection<ItemWithBuffs> */
+	public function addBuffs(AODBEntry ...$items): Collection {
+		$buffs = $this->db->table("item_buffs")
+			->whereIn("item_id", array_unique([...array_column($items, "highid"), ...array_column($items, "lowid")]))
+			->asObj(ItemBuff::class);
+		$skills = $this->getSkillByIDs(...$buffs->pluck("attribute_id")->unique()->toArray())
+			->keyBy("id");
+			/** @param Collection<ItemBuff> $buffs */
+		$buffs = $buffs->groupBy("item_id")
+			->map(function (Collection $iBuffs, int $itemId) use ($skills): array {
+				return $iBuffs->map(function (ItemBuff $buff) use ($skills): ExtBuff {
+					$res = new ExtBuff();
+					$res->skill = $skills->get($buff->attribute_id);
+					$res->amount = $buff->amount;
+					return $res;
+				})->toArray();
+			});
+		$result = new Collection();
+		foreach ($items as $item) {
+			$new = new ItemWithBuffs();
+			foreach ($item as $key => $value) {
+				$new->{$key} = $value;
+			}
+			$new->buffs = $buffs->get($new->lowid, []);
+			if ($new->lowid !== $new->highid) {
+				$new->buffs = array_merge($new->buffs, $buffs->get($new->highid, []));
+			}
+			$result->push($new);
+		}
+		return $result;
 	}
 }
