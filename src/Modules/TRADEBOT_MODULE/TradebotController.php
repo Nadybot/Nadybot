@@ -33,6 +33,7 @@ use Nadybot\Modules\COMMENT_MODULE\CommentController;
  */
 #[
 	NCA\Instance,
+	NCA\HasMigrations,
 	NCA\DefineCommand(
 		command: "tradecolor",
 		accessLevel: "mod",
@@ -158,8 +159,6 @@ class TradebotController {
 			'tradebot',
 			[$this, 'changeTradebot']
 		);
-
-		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations");
 	}
 
 	#[NCA\Event(

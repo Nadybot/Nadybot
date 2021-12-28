@@ -19,6 +19,7 @@ use Nadybot\Modules\ITEMS_MODULE\WhatBuffsController;
  */
 #[
 	NCA\Instance,
+	NCA\HasMigrations("Migrations/Premade"),
 	NCA\DefineCommand(
 		command: "premade",
 		accessLevel: "all",
@@ -48,7 +49,6 @@ class PremadeImplantController {
 
 	#[NCA\Setup]
 	public function setup(): void {
-		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations/Premade");
 		$this->db->loadCSVFile($this->moduleName, __DIR__ . "/premade_implant.csv");
 	}
 

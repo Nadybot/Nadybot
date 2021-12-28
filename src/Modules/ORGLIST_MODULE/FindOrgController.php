@@ -26,6 +26,7 @@ use Nadybot\Core\{
  */
 #[
 	NCA\Instance,
+	NCA\HasMigrations,
 	NCA\DefineCommand(
 		command: "findorg",
 		accessLevel: "all",
@@ -71,7 +72,6 @@ class FindOrgController {
 
 	#[NCA\Setup]
 	public function setup(): void {
-		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations");
 		$this->ready = $this->db->table("organizations")
 			->where("index", "others")
 			->exists();

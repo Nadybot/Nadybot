@@ -20,6 +20,7 @@ use ParseError;
  */
 #[
 	NCA\Instance,
+	NCA\HasMigrations("Migrations/Dyna"),
 	NCA\DefineCommand(
 		command: "dyna",
 		accessLevel: "all",
@@ -64,7 +65,6 @@ class HelpbotController {
 	 */
 	#[NCA\Setup]
 	public function setup(): void {
-		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations/Dyna");
 		$this->db->loadCSVFile($this->moduleName, __DIR__ . '/dynadb.csv');
 	}
 

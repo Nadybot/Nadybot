@@ -26,6 +26,7 @@ use Nadybot\Modules\ORGLIST_MODULE\OrglistController;
  */
 #[
 	NCA\Instance,
+	NCA\HasMigrations("Migrations/RankMapping"),
 	NCA\DefineCommand(
 		command: "ranks",
 		accessLevel: "all",
@@ -78,7 +79,6 @@ class GuildRankController {
 
 	#[NCA\Setup]
 	public function setup(): void {
-		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations/RankMapping");
 
 		$this->settingManager->add(
 			module: $this->moduleName,

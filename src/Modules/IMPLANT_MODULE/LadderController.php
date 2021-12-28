@@ -15,6 +15,7 @@ use Nadybot\Core\Util;
  */
 #[
 	NCA\Instance,
+	NCA\HasMigrations("Migrations/Base"),
 	NCA\DefineCommand(
 		command: "ladder",
 		accessLevel: "all",
@@ -43,7 +44,6 @@ class LadderController {
 
 	#[NCA\Setup]
 	public function setup(): void {
-		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations/Base");
 		$this->db->loadCSVFile($this->moduleName, __DIR__ . "/implant_requirements.csv");
 	}
 

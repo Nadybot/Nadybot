@@ -33,7 +33,8 @@ use ZipArchive;
 		description: "Install or upgrade the NadyUI",
 		help: "webui.txt"
 	),
-	NCA\Instance
+	NCA\Instance,
+	NCA\HasMigrations
 ]
 class WebUiController implements MessageEmitter {
 	public string $moduleName;
@@ -70,7 +71,6 @@ class WebUiController implements MessageEmitter {
 
 	#[NCA\Setup]
 	public function setup(): void {
-		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations");
 		$uiBranches = ["off", "stable", "unstable"];
 		if (preg_match("/@(?<branch>.+)$/", BotRunner::getVersion(), $matches)) {
 			if (!in_array($matches['branch'], $uiBranches)) {

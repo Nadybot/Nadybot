@@ -54,6 +54,7 @@ use Nadybot\Modules\RELAY_MODULE\RelayProtocol\RelayProtocolInterface;
  */
 #[
 	NCA\Instance,
+	NCA\HasMigrations,
 	NCA\DefineCommand(
 		command: "relay",
 		accessLevel: "mod",
@@ -164,7 +165,6 @@ class RelayController {
 
 	#[NCA\Setup]
 	public function setup(): void {
-		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations");
 		$this->settingManager->add(
 			module: $this->moduleName,
 			name: 'relay_guild_abbreviation',

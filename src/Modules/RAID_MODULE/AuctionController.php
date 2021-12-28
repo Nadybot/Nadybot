@@ -30,6 +30,7 @@ use Nadybot\Modules\RAFFLE_MODULE\RaffleItem;
  */
 #[
 	NCA\Instance,
+	NCA\HasMigrations("Migrations/Auctions"),
 	NCA\DefineCommand(
 		command: "bid",
 		accessLevel: "member",
@@ -204,7 +205,6 @@ class AuctionController {
 			options: 'Simple;Yellow border;Yellow header;Pink border;Rainbow border;Gratulations',
 			intoptions: '1;2;3;4;5;6'
 		);
-		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations/Auctions");
 		$this->commandAlias->register($this->moduleName, "bid history", "bh");
 		$this->commandAlias->register($this->moduleName, "auction start", "bid start");
 		$this->commandAlias->register($this->moduleName, "auction end", "bid end");

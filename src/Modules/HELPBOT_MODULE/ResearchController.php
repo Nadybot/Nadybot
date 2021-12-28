@@ -14,6 +14,7 @@ use Nadybot\Core\Text;
  */
 #[
 	NCA\Instance,
+	NCA\HasMigrations("Migrations/Research"),
 	NCA\DefineCommand(
 		command: "research",
 		accessLevel: "all",
@@ -39,7 +40,6 @@ class ResearchController {
 	 */
 	#[NCA\Setup]
 	public function setup(): void {
-		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations/Research");
 		$this->db->loadCSVFile($this->moduleName, __DIR__ . '/research.csv');
 	}
 

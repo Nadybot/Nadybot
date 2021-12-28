@@ -27,6 +27,7 @@ use Nadybot\Core\ParamClass\PCharacter;
  */
 #[
 	NCA\Instance,
+	NCA\HasMigrations("Migrations/Ranks"),
 	NCA\DefineCommand(
 		command: "raidadmin",
 		accessLevel: "raid_admin_2",
@@ -207,7 +208,6 @@ class RaidRankController {
 	 */
 	#[NCA\Setup]
 	public function uploadRaidRanks(): void {
-		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations/Ranks");
 		$this->db->table(self::DB_TABLE)
 			->asObj(RaidRank::class)
 			->each(function (RaidRank $row): void {
