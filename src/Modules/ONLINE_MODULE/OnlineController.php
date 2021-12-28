@@ -3,7 +3,6 @@
 namespace Nadybot\Modules\ONLINE_MODULE;
 
 use Nadybot\Core\Attributes as NCA;
-use Illuminate\Database\Query\JoinClause;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	AccessManager,
@@ -24,6 +23,8 @@ use Nadybot\Core\{
 	UserStateEvent,
 	Util,
 };
+use Nadybot\Core\Modules\ALTS\AltsController;
+use Nadybot\Core\Modules\PLAYER_LOOKUP\PlayerManager;
 use Nadybot\Modules\{
 	DISCORD_GATEWAY_MODULE\DiscordGatewayController,
 	RAID_MODULE\RaidController,
@@ -105,6 +106,9 @@ class OnlineController {
 	public RelayController $relayController;
 
 	#[NCA\Inject]
+	public AltsController $altsController;
+
+	#[NCA\Inject]
 	public Text $text;
 
 	#[NCA\Inject]
@@ -112,6 +116,9 @@ class OnlineController {
 
 	#[NCA\Inject]
 	public CommandAlias $commandAlias;
+
+	#[NCA\Inject]
+	public PlayerManager $playerManager;
 
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
@@ -267,28 +274,28 @@ class OnlineController {
 			return;
 		}
 
-		$query = $this->db->table("online AS o");
-		/** @psalm-suppress ImplicitToStringCast */
-		$query->leftJoin("alts AS a", function (JoinClause $join): void {
-			$join->on("o.name", "a.alt")
-				->where("a.validated_by_main", true)
-				->where("a.validated_by_alt", true);
-		})->leftJoin("alts AS a2", "a2.main", $query->colFunc("COALESCE", ["a.main", "o.name"]))
-		->leftJoin("players AS p", function (JoinClause $join) use ($query): void {
-			$join->on("a2.alt", "p.name")
-				->orWhere($query->colFunc("COALESCE", ["a.main", "o.name"]), "p.name");
-		})
-		->leftJoin("online AS o2", "p.name", "o2.name")
-		->where("p.profession", $profession)
-		->orderByRaw($query->colFunc("COALESCE", ["a.main", "o.name"]))
-		->select("p.*", "o.afk")
-		->addSelect($query->colFunc("COALESCE", ["a.main", "p.name"], "pmain"))
-		->selectRaw(
-			"(CASE WHEN " . $query->grammar->wrap("o2.name") . " IS NULL ".
-			"THEN 0 ELSE 1 END) AS " . $query->grammar->wrap("online")
-		);
+		$onlineChars = $this->db->table("online")->asObj(Online::class);
+		$onlineByName = $onlineChars->keyBy("name");
+		$mains = $onlineChars->map(function (Online $online): string {
+			return $this->altsController->getMainOf($online->name);
+		})->unique();
 		/** @var Collection<OnlinePlayer> */
-		$players = $query->asObj(OnlinePlayer::class);
+		$players = new Collection();
+		foreach ($mains as $main) {
+			$alts = $this->altsController->getAltsOf($main);
+			$chars = $this->playerManager->searchByNames($this->db->getDim(), ...$alts)
+				->where("profession", $profession);
+			if ($chars->isEmpty()) {
+				continue;
+			}
+			foreach ($chars as $char) {
+				$onlineChar = OnlinePlayer::fromPlayer($char, $onlineByName->get($char->name));
+				$onlineChar->pmain = $main;
+				$players->push($onlineChar);
+			}
+		}
+		$players = $players->sortBy("name")->sortBy("pmain");
+
 		$count = $players->count();
 		$mainCount = 0;
 		$currentMain = "";
@@ -581,23 +588,21 @@ class OnlineController {
 			$this->db->table("online")
 				->insert([
 					"name" => $sender,
-					"channel" => $channelType,
+					"channel" => $channel,
 					"channel_type" => $channelType,
 					"added_by" => $this->db->getBotname(),
 					"dt" => time()
 				]);
 		}
-		$query = $this->db->table("online AS o")
-			->leftJoin("alts AS a", function (JoinClause $join): void {
-				$join->on("o.name", "a.alt")
-					->where("a.validated_by_main", true)
-					->where("a.validated_by_alt", true);
-			})->leftJoin("players AS p", "o.name", "p.name")
-			->where("o.channel_type", $channelType)
-			->where("o.name", $sender)
-			->select("p.*", "o.name", "o.afk");
-		$query->addSelect($query->colFunc("COALESCE", ["a.main", "o.name"], "pmain"));
-		$op = $query->asObj(OnlinePlayer::class)->first();
+		$op = new OnlinePlayer();
+		$player = $this->playerManager->findInDb($sender, $this->config->dimension);
+		if (isset($player)) {
+			foreach ($player as $key => $value) {
+				$op->{$key} = $value;
+			}
+		}
+		$op->online = true;
+		$op->pmain = $this->altsController->getMainOf($sender);
 		return $op;
 	}
 
@@ -915,31 +920,33 @@ class OnlineController {
 	 */
 	public function getPlayers(string $channelType, ?string $limitToBot=null): array {
 		$query = $this->db->table("online AS o")
-			->leftJoin("alts AS a", function (JoinClause $join): void {
-				$join->on("o.name", "a.alt")
-					->where("a.validated_by_main", true)
-					->where("a.validated_by_alt", true);
-			})->leftJoin("players AS p", "o.name", "p.name")
-			->where("o.channel_type", $channelType)
-			->select("p.*", "o.name", "o.afk");
+			->where("o.channel_type", $channelType);
 		if (isset($limitToBot)) {
 			$query->where("o.added_by", strtolower($limitToBot));
 		}
-		$query->addSelect($query->colFunc("COALESCE", ["a.main", "o.name"], "pmain"));
+		$online = $query->asObj(Online::class);
+		$playersByName = $this->playerManager->searchByNames(
+			$this->config->dimension,
+			...$online->pluck("name")->toArray()
+		)->keyBy("name");
+		$op = $online->map(function (Online $o) use ($playersByName): OnlinePlayer {
+			$p = $playersByName->get($o->name);
+			$op = OnlinePlayer::fromPlayer($p, $o);
+			$op->pmain = $this->altsController->getMainOf($o->name);
+			return $op;
+		});
+
 		$groupBy = $this->settingManager->getInt('online_group_by');
 		if ($groupBy === static::GROUP_BY_MAIN) {
-			$query->orderByRaw($query->colFunc("COALESCE", ["a.main", "o.name"])->getValue());
+			$op = $op->sortBy("pmain");
 		} elseif ($groupBy === static::GROUP_BY_PROFESSION) {
-			$query->orderByRaw(
-				"COALESCE(" . $query->grammar->wrap("p.profession") . ", ?) asc",
-				['Unknown']
-			)->orderBy("o.name");
+			$op = $op->sortBy("name")->sortBy("profession");
 		} elseif ($groupBy === static::GROUP_BY_FACTION) {
-			$query->orderBy("p.faction")->orderBy("o.name");
+			$op = $op->sortBy("name")->sortBy("faction");
 		} else {
-			$query->orderByRaw("o.name");
+			$op = $op->sortBy("name");
 		}
-		return $query->asObj(OnlinePlayer::class)->toArray();
+		return $op->toArray();
 	}
 
 	public function getProfessionId(string $profession): ?int {

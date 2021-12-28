@@ -14,7 +14,6 @@ use Nadybot\Core\{
 	CommandReply,
 	DB,
 	DBSchema\Player,
-	Event,
 	EventManager,
 	Http,
 	LoggerWrapper,
@@ -45,6 +44,7 @@ use Nadybot\Modules\{
 	ORGLIST_MODULE\OrglistController,
 	TIMERS_MODULE\TimerController,
 };
+use Nadybot\Modules\ORGLIST_MODULE\Organization;
 
 /**
  * Commands this controller contains:
@@ -411,6 +411,7 @@ class TowerController {
 		$query = $this->getScoutPlusQuery()
 			->whereNull("s.ql");
 		$sites = $query->asObj(ScoutInfoPlus::class);
+		$this->addPlusToScout($sites);
 		$result = $this->scoutToAPI($sites);
 		$this->showUnplantedSites($result, $context);
 	}
@@ -426,9 +427,12 @@ class TowerController {
 			array_filter($result->results, function (ApiSite $site): bool {
 				$query = $this->getScoutPlusQuery()
 					->where("s.playfield_id", $site->playfield_id)
-					->where("s.site_number", $site->site_number);
+					->where("s.site_number", $site->site_number)
+					->limit(1);
+				$scoutedInfo = $query->asObj(ScoutInfoPlus::class);
+				$this->addPlusToScout($scoutedInfo);
 				/** @var ?ScoutInfoPlus */
-				$scoutedInfo = $query->asObj(ScoutInfoPlus::class)->first();
+				$scoutedInfo = $scoutedInfo->first();
 				if (!isset($scoutedInfo) || !isset($scoutedInfo->ql)) {
 					return true;
 				}
@@ -504,8 +508,9 @@ class TowerController {
 	/** Query the API for a list of all sites of an org and show to $sendto */
 	protected function showSitesOfOrg(int $orgId, CommandReply $sendto): void {
 		$sites = $this->getScoutPlusQuery()
-			->where("o.id", $orgId)
 			->asObj(ScoutInfoPlus::class);
+		$this->addPlusToScout($sites);
+		$sites = $sites->where("org_id", $orgId);
 		if ($this->towerApiController->isActive()) {
 			$params = ["enabled" => "1", "org_id" => $orgId];
 			$this->towerApiController->call($params, [$this, "showOrgSites"], $sites, $sendto, $orgId);
@@ -558,11 +563,12 @@ class TowerController {
 	#[NCA\HandlesCommand("lc")]
 	public function lcCommand(CmdContext $context): void {
 		/** @var Collection<Playfield> */
-		$playfields = $this->db->table("tower_site AS t")
-			->join("playfields AS p", "p.id", "t.playfield_id")
-			->orderBy("p.short_name")
-			->select("p.*")->distinct()
-			->asObj(Playfield::class);
+		$playfields = $this->db->table("tower_site")
+			->asObj(TowerSite::class)
+			->pluck("playfield_id")->unique()
+			->map(function (int $id): ?Playfield {
+				return $this->playfieldController->getPlayfieldById($id);
+			})->filter()->sortBy("long_name");
 
 		$blob = "<header2>Playfields with notum fields<end>\n";
 		foreach ($playfields as $pf) {
@@ -588,18 +594,19 @@ class TowerController {
 
 		/** @var Collection<SiteInfo> */
 		$data = $this->db->table("tower_site AS t")
-			->join("playfields AS p", "t.playfield_id", "p.id")
-			->where("t.playfield_id", $playfield->id)
-			->asObj(SiteInfo::class);
+			->where("playfield_id", $playfield->id)
+			->asObj(SiteInfo::class)
+			->each(function (SiteInfo $info) use ($playfield): void {
+				$info->id = $playfield->id;
+				$info->short_name = $playfield->short_name;
+				$info->long_name = $playfield->long_name;
+			});
 		if ($data->isEmpty()) {
 			$msg = "Playfield <highlight>$playfield->long_name<end> does not have any tower sites.";
 			$context->reply($msg);
 			return;
 		}
-		$query = $this->getPFQuery();
-		/** @var Collection<ScoutInfoPlus> */
-		$sites = $query->where("t.playfield_id", $playfield->id)
-			->asObj(ScoutInfoPlus::class);
+		$sites = $this->getScoutInfoPlus($playfield->id);
 		if ($this->towerApiController->isActive()) {
 			$params = ["enabled" => "1", "playfield_id" => $playfield->id];
 			$this->towerApiController->call(
@@ -617,25 +624,36 @@ class TowerController {
 		$this->showArea($sites, null, $data, $playfield, $context);
 	}
 
-	public function getPFQuery(): QueryBuilder {
-		return $this->db->table("tower_site", "t")
-			->join("playfields AS p", "t.playfield_id", "=", "p.id")
+	/** @return Collection<ScoutInfoPlus> */
+	public function getScoutInfoPlus(int $playfieldId): Collection {
+		$pf = $this->playfieldController->getPlayfieldById($playfieldId);
+		if (!isset($pf)) {
+			return new Collection();
+		}
+		$sites = $this->db->table("tower_site", "t")
+			->where("t.playfield_id", $playfieldId)
 			->leftJoin("scout_info AS s", function (JoinClause $join): void {
 				$join->on("s.playfield_id", "=", "t.playfield_id")
 					->on("s.site_number", "=", "t.site_number");
 			})
-			->leftJoin("organizations AS o", function (JoinClause $join): void {
-				$join->on("s.org_name", "=", "o.name")
-					->on("s.faction", "=", "o.faction");
-			})
 			->select([
 				"s.*",
 				"t.playfield_id", "t.site_number",
-				"p.long_name AS playfield_long_name", "p.short_name AS playfield_short_name",
 				"t.min_ql", "t.max_ql", "t.x_coord", "t.y_coord", "t.site_name",
-				"o.id AS org_id"
 			])
-			->where("t.enabled", 1);
+			->where("t.enabled", 1)
+			->asObj(ScoutInfoPlus::class);
+		$orgNames = $sites->pluck("org_name")->filter()->toArray();
+		$orgs = $this->findOrgController->getOrgsByName(...$orgNames)->keyBy("name");
+		$sites->each(function (ScoutInfoPlus $info) use ($orgs, $pf): void {
+			$info->org_id = 0;
+			if (isset($info->org_name)) {
+				$info->org_id = $orgs->get($info->org_name)?->id??null;
+			}
+			$info->playfield_short_name = $pf->short_name;
+			$info->playfield_long_name = $pf->long_name;
+		});
+		return $sites;
 	}
 
 	/** Show the API-result of a whole playfield */
@@ -728,19 +746,20 @@ class TowerController {
 
 		/** @var ?SiteInfo */
 		$site = $this->db->table("tower_site AS t")
-			->join("playfields AS p", "p.id", "t.playfield_id")
 			->where("t.playfield_id", $playfield->id)
 			->where("t.site_number", $site->site)
-			->asObj(SiteInfo::class)->first();
+			->asObj(SiteInfo::class)
+			->each(function(SiteInfo $info) use ($playfield): void {
+				$info->id = $playfield->id;
+				$info->short_name = $playfield->short_name;
+				$info->long_name = $playfield->long_name;
+			})->first();
 		if ($site === null) {
 			$msg = "Invalid site number.";
 			$context->reply($msg);
 			return;
 		}
-		$query = $this->getPFQuery();
-		/** @var Collection<ScoutInfoPlus> */
-		$sites = $query->where("t.playfield_id", $playfield->id)
-			->asObj(ScoutInfoPlus::class);
+		$sites = $this->getScoutInfoPlus($playfield->id);
 		if ($this->towerApiController->isActive()) {
 			$params = ["enabled" => "1", "playfield_id" => $playfield->id];
 			$this->towerApiController->call(
@@ -815,6 +834,7 @@ class TowerController {
 		$sites = $this->getScoutPlusQuery()
 			->where("s.penalty_until", ">=", time())
 			->asObj(ScoutInfoPlus::class);
+		$this->addPlusToScout($sites);
 		if ($this->towerApiController->isActive()) {
 			$params = ["enabled" => "true", "penalty" => "true"];
 			if (strlen($orgName??"")) {
@@ -877,8 +897,8 @@ class TowerController {
 			->leftJoin("scout_info AS s", function (JoinClause $join): void {
 				$join->on("t.playfield_id", "s.playfield_id")
 					->on("s.site_number", "t.site_number");
-			})->join("playfields AS p", "t.playfield_id", "p.id")
-			->select("t.*", "p.*")
+			})
+			->select("t.*")
 			->where("t.enabled", 1)
 			->where(function (QueryBuilder $where): void {
 				$where->whereNull("s.playfield_id")
@@ -886,16 +906,14 @@ class TowerController {
 					$where->whereNull("s.ql")
 						->where("s.scouted_on", "<", time() - 20*60);
 				});
-			})
-			->orderBy("p.short_name")
-			->orderBy("t.site_number");
+			});
 		if (isset($playfield)) {
 			$pf = $this->playfieldController->getPlayfieldByName($playfield());
 			if (!isset($pf)) {
 				$context->reply("Unable to find playfield <highlight>{$playfield}<end>.");
 				return;
 			}
-			$query->where("p.id", $pf->id);
+			$query->where("t.playfield_id", $pf->id);
 		}
 		$data = $query->asObj(SiteInfo::class);
 		if ($data->count() === 0) {
@@ -906,7 +924,17 @@ class TowerController {
 			}
 			return;
 		}
-		$groups = $data->groupBy("short_name");
+		$pfIds = $data->pluck("playfield_id")->filter()->toArray();
+		$playfields = $this->playfieldController->searchPlayfieldsByIds(...$pfIds)
+			->keyBy("id");
+		$data->each(function(SiteInfo $info) use ($playfields): void {
+			/** @var Playfield */
+			$pf = $playfields->get($info->playfield_id);
+			$info->id = $pf->id;
+			$info->short_name = $pf->short_name;
+			$info->long_name = $pf->long_name;
+		});
+		$groups = $data->sortBy("site_number")->sortBy("long_name")->groupBy("short_name");
 		$blob = $groups->map([$this, "formatSiteGroup"])
 			->join("\n\n");
 
@@ -1024,22 +1052,38 @@ class TowerController {
 		);
 	}
 
+	/**
+	 * @param Collection<ScoutInfoPlus> $data
+	 */
+	private function addPlusToScout(Collection $data): void {
+		$pfs = $this->playfieldController->searchPlayfieldsByIds(
+			...$data->pluck("playfield_id")->filter()->toArray()
+		)->keyBy("id");
+		$orgs = $this->findOrgController->getOrgsByName(
+			...$data->pluck("org_name")->filter()->toArray()
+		)->keyBy("name");
+		foreach ($data as $scout) {
+			/** @var ?Playfield */
+			$pf = $pfs->get($scout->playfield_id);
+			if (isset($pf)) {
+				$scout->playfield_long_name = $pf->long_name;
+				$scout->playfield_short_name = $pf->short_name;
+			}
+			/** @var ?Organization */
+			$org = $orgs->get($scout->org_name);
+			$scout->org_id = $org?->id ?? null;
+		}
+	}
+
 	public function getScoutPlusQuery(): QueryBuilder {
 		return $this->db->table("scout_info", "s")
-			->join("playfields AS p", "s.playfield_id", "=", "p.id")
 			->join("tower_site AS t", function (JoinClause $join): void {
 				$join->on("s.playfield_id", "=", "t.playfield_id")
 					->on("s.site_number", "=", "t.site_number");
 			})
-			->leftJoin("organizations AS o", function (JoinClause $join): void {
-				$join->on("s.org_name", "=", "o.name")
-					->on("s.faction", "=", "o.faction");
-			})
 			->select([
 				"s.*",
-				"p.long_name AS playfield_long_name", "p.short_name AS playfield_short_name",
 				"t.min_ql", "t.max_ql", "t.x_coord", "t.y_coord", "t.site_name",
-				"o.id AS org_id"
 			])
 			->where("t.enabled", 1);
 	}
@@ -1048,6 +1092,7 @@ class TowerController {
 		$query = $this->getScoutPlusQuery()
 			->whereNotNull("close_time");
 		$sites = $query->asObj(ScoutInfoPlus::class);
+		$this->addPlusToScout($sites);
 		$sites = $sites->filter(function (ScoutInfoPlus $site) use ($time): bool {
 			$gas = $this->getGasLevel($site->close_time??0, $time ?: time());
 			return $gas->gas_level < 75
@@ -1774,24 +1819,38 @@ class TowerController {
 		$pageSize = $this->settingManager->getInt('tower_page_size') ?? 15;
 		$startRow = ($pageLabel - 1) * $pageSize;
 
-		$query = $this->db->table(self::DB_TOWER_ATTACK, "a")
-			->leftJoin("playfields AS p", "a.playfield_id", "p.id")
-			->leftJoin("tower_site AS s", function (JoinClause $join): void {
-				$join->on("a.playfield_id", "s.playfield_id")
-					->on("a.site_number", "s.site_number");
-			});
+		$query = $this->db->table(self::DB_TOWER_ATTACK)
+			->orderByDesc("time")
+			->limit($pageSize)
+			->offset($startRow);
 		if (isset($where)) {
 			$query->where($where);
 		}
-		$data = $query->orderByDesc("a.time")
-			->limit($pageSize)
-			->offset($startRow)
-			->asObj();
-		if ($data->isEmpty()) {
+		$sites = $this->db->table("tower_site")
+			->asObj(TowerSite::class)
+			->groupBy("playfield_id")
+			->map(function (Collection $sites2): Collection {
+				return $sites2->keyBy("site_number");
+			});
+		/** @var Collection<AttackPlus> */
+		$attacks = $query->asObj(AttackPlus::class)
+			->each(function (AttackPlus $att) use ($sites): void {
+				if (!isset($att->playfield_id) || !isset($att->site_number)) {
+					return;
+				}
+				$att->site = $sites->get($att->playfield_id)?->get($att->site_number)??null;
+			});
+		if ($attacks->isEmpty()) {
 			$msg = "No tower attacks found.";
 			$sendto->reply($msg);
 			return;
 		}
+		$pfs = $this->playfieldController->searchPlayfieldsByIds(
+			...$attacks->pluck("playfield_id")->filter()->toArray()
+		)->keyBy("id");
+		$attacks->each(function (AttackPlus $att) use ($pfs): void {
+			$att->pf = $pfs->get($att->playfield_id);
+		});
 		$links = [];
 		if ($pageLabel > 1) {
 			$links['Previous Page'] = '/tell <myname> attacks ' . ($pageLabel - 1);
@@ -1801,38 +1860,46 @@ class TowerController {
 		$blob = "The last $pageSize Tower Attacks (page $pageLabel)\n\n";
 		$blob .= $this->text->makeHeaderLinks($links) . "\n\n";
 
-		foreach ($data as $row) {
-			$timeString = $this->util->unixtimeToReadable(time() - $row->time);
-			$blob .= "Time: " . $this->util->date($row->time) . " (<highlight>$timeString<end> ago)\n";
-			if ($row->att_faction == '') {
+		foreach ($attacks as $attack) {
+			$timeString = $this->util->unixtimeToReadable(time() - $attack->time);
+			$blob .= "Time: " . $this->util->date($attack->time) . " (<highlight>$timeString<end> ago)\n";
+			if ($attack->att_faction == '') {
 				$att_faction = "unknown";
 			} else {
-				$att_faction = strtolower($row->att_faction);
+				$att_faction = strtolower($attack->att_faction);
 			}
 
-			if ($row->def_faction == '') {
+			if ($attack->def_faction == '') {
 				$def_faction = "unknown";
 			} else {
-				$def_faction = strtolower($row->def_faction);
+				$def_faction = strtolower($attack->def_faction);
 			}
 
-			if ($row->att_profession == 'Unknown') {
-				$blob .= "Attacker: <{$att_faction}>{$row->att_player}<end> ({$row->att_faction})\n";
-			} elseif (!isset($row->att_guild_name) || $row->att_guild_name === '') {
-				$blob .= "Attacker: <{$att_faction}>{$row->att_player}<end>";
-				if (isset($row->att_level)) {
-					$blob .= " ({$row->att_level}/<green>{$row->att_ai_level}<end> {$row->att_profession})";
+			if ($attack->att_profession == 'Unknown') {
+				$blob .= "Attacker: <{$att_faction}>{$attack->att_player}<end> ({$attack->att_faction})\n";
+			} elseif (!isset($attack->att_guild_name) || $attack->att_guild_name === '') {
+				$blob .= "Attacker: <{$att_faction}>{$attack->att_player}<end>";
+				if (isset($attack->att_level)) {
+					$blob .= " ({$attack->att_level}/<green>{$attack->att_ai_level}<end> ".
+						"{$attack->att_profession})";
 				}
 				$blob .= "\n";
 			} else {
-				$blob .= "Attacker: <{$att_faction}>{$row->att_player}<end> ({$row->att_level}/<green>{$row->att_ai_level}<end> {$row->att_profession}) <{$att_faction}>{$row->att_guild_name}<end>\n";
+				$blob .= "Attacker: <{$att_faction}>{$attack->att_player}<end> ".
+					"({$attack->att_level}/<green>{$attack->att_ai_level}<end> ".
+					"{$attack->att_profession}) ".
+					"<{$att_faction}>{$attack->att_guild_name}<end>\n";
 			}
 
-			$base = $this->text->makeChatcmd("{$row->short_name} {$row->site_number}", "/tell <myname> lc {$row->short_name} {$row->site_number}");
-			$base .= " ({$row->min_ql}-{$row->max_ql})";
+			$blob .= "Defender: <{$def_faction}>{$attack->def_guild_name}<end> ({$attack->def_faction})\n";
 
-			$blob .= "Defender: <{$def_faction}>{$row->def_guild_name}<end> ({$row->def_faction})\n";
-			$blob .= "Site: $base\n\n";
+			if (isset($attack->pf) && isset($attack->site_number) && isset($attack->site)) {
+				$base = $this->text->makeChatcmd("{$attack->pf->short_name} {$attack->site_number}", "/tell <myname> lc {$attack->pf->short_name} {$attack->site_number}");
+				$base .= " ({$attack->site->min_ql}-{$attack->site->max_ql})";
+				$blob .= "Site: $base\n\n";
+			} else {
+				$blob .= "\n";
+			}
 		}
 		$msg = $this->text->makeBlob("Tower Attacks", $blob);
 
@@ -1851,11 +1918,6 @@ class TowerController {
 
 		$query = $this->db->table(self::DB_TOWER_VICTORY, "v")
 			->leftJoin(self::DB_TOWER_ATTACK . " AS a", "a.id", "v.attack_id")
-			->leftJoin("playfields AS p", "a.playfield_id", "p.id")
-			->leftJoin("tower_site AS s", function (JoinClause $join): void {
-				$join->on("a.playfield_id", "s.playfield_id")
-					->on("a.site_number", "s.site_number");
-			})
 			->orderByDesc("victory_time")
 			->limit($pageSize)
 			->offset($startRow)
@@ -1864,53 +1926,55 @@ class TowerController {
 			$query->where($search);
 		}
 
-		/** @var TowerVictory[] */
-		$data = $query->asObj(TowerVictory::class)->toArray();
+		/** @var Collection<TowerVictoryPlus> */
+		$data = $query->asObj(TowerVictoryPlus::class);
 		if (count($data) == 0) {
 			$msg = "No Tower results found.";
-		} else {
-			$links = [];
-			if ($pageLabel > 1) {
-				$links['Previous Page'] = '/tell <myname> victory ' . ($pageLabel - 1);
-			}
-			$links['Next Page'] = "/tell <myname> victory {$cmd}" . ($pageLabel + 1);
-
-			$blob = "The last $pageSize Tower Results (page $pageLabel)\n\n";
-			$blob .= $this->text->makeHeaderLinks($links) . "\n\n";
-			foreach ($data as $row) {
-				/** @var int $row->victory_time */
-				$timeString = $this->util->unixtimeToReadable(time() - $row->victory_time);
-				$blob .= "Time: " . $this->util->date($row->victory_time) . " (<highlight>$timeString<end> ago)\n";
-
-				if (!strlen($win_side = strtolower($row->win_faction??""))) {
-					$win_side = "unknown";
-				}
-				if (!strlen($lose_side = strtolower($row->lose_faction??""))) {
-					$lose_side = "unknown";
-				}
-
-				/**
-				 * @var int|null $row->playfield_id
-				 * @var ?int $row->site_number
-				 */
-				if ($row->playfield_id !== null && $row->site_number !== null) {
-					/**
-					 * @var string $row->short_name
-					 * @var int $row->min_ql
-					 * @var int $row->max_ql
-					 */
-					$base = $this->text->makeChatcmd("{$row->short_name} {$row->site_number}", "/tell <myname> lc {$row->short_name} {$row->site_number}");
-					$base .= " ({$row->min_ql}-{$row->max_ql})";
-				} else {
-					$base = "Unknown";
-				}
-
-				$blob .= "Winner: <{$win_side}>{$row->win_guild_name}<end> (".ucfirst($win_side).")\n";
-				$blob .= "Loser: <{$lose_side}>{$row->lose_guild_name}<end> (".ucfirst($lose_side).")\n";
-				$blob .= "Site: $base\n\n";
-			}
-			$msg = $this->text->makeBlob("Tower Victories", $blob);
+			$sendto->reply($msg);
+			return;
 		}
+		$links = [];
+		if ($pageLabel > 1) {
+			$links['Previous Page'] = '/tell <myname> victory ' . ($pageLabel - 1);
+		}
+		$links['Next Page'] = "/tell <myname> victory {$cmd}" . ($pageLabel + 1);
+
+		$blob = "The last $pageSize Tower Results (page $pageLabel)\n\n";
+		$blob .= $this->text->makeHeaderLinks($links) . "\n\n";
+		$pfs = $this->playfieldController->searchPlayfieldsByIds(
+			...$data->pluck("playfield_id")->filter()->toArray()
+		)->keyBy("id");
+		$sites = $this->db->table("tower_site")
+			->asObj(TowerSite::class)
+			->groupBy("playfield_id")
+			->map(function (Collection $sites2): Collection {
+				return $sites2->keyBy("site_number");
+			});
+		foreach ($data as $row) {
+			$row->pf = $pfs->get($row->playfield_id);
+			$row->site = $sites->get($row->playfield_id)?->get($row->site_number)??null;
+			$timeString = $this->util->unixtimeToReadable(time() - $row->victory_time);
+			$blob .= "Time: " . $this->util->date($row->victory_time) . " (<highlight>$timeString<end> ago)\n";
+
+			if (!strlen($win_side = strtolower($row->win_faction??""))) {
+				$win_side = "unknown";
+			}
+			if (!strlen($lose_side = strtolower($row->lose_faction??""))) {
+				$lose_side = "unknown";
+			}
+
+			if ($row->playfield_id !== null && $row->site_number !== null) {
+				$base = $this->text->makeChatcmd("{$row->pf->short_name} {$row->site_number}", "/tell <myname> lc {$row->pf->short_name} {$row->site_number}");
+				$base .= " ({$row->site->min_ql}-{$row->site->max_ql})";
+			} else {
+				$base = "Unknown";
+			}
+
+			$blob .= "Winner: <{$win_side}>{$row->win_guild_name}<end>\n";
+			$blob .= "Loser: <{$lose_side}>{$row->lose_guild_name}<end>\n";
+			$blob .= "Site: $base\n\n";
+		}
+		$msg = $this->text->makeBlob("Tower Victories", $blob);
 
 		$sendto->reply($msg);
 	}
@@ -2430,25 +2494,30 @@ class TowerController {
 		}
 		$query = $this->db->table(self::DB_TOWER_ATTACK, "a")
 			->leftJoin(self::DB_TOWER_VICTORY . " AS v", "v.attack_id", "a.id")
-			->join("playfields AS p", "a.playfield_id", "p.id")
-			->join("tower_site AS t", function (JoinClause $join): void {
-				$join->on("a.playfield_id", "t.playfield_id")
-					->on("a.site_number", "t.site_number");
-			})
 			->where("a.def_guild_name", $whois->guild)
 			->where("a.time", ">", time() - 3600*72)
-			->orderByDesc("dt")
-			->select("a.*", "v.*", "p.short_name", "p.long_name", "t.min_ql", "t.max_ql");
-		$attacks = $query->addSelect($query->colFunc("COALESCE", ["v.time", "a.time"], "dt"))
+			->select("a.*", "v.*", "a.time AS attack_time", "v.time AS victory_time");
+		$attacks = $query->orderByDesc($query->colFunc("COALESCE", ["v.time", "a.time"]))
 			->limit(5)
-			->asObj(TowerAttackAndVictory::class);
+			->asObj(TowerVictoryPlus::class);
 		if ($attacks->isEmpty()) {
 			$callback(null);
 			return;
 		}
+		$pfs = $this->playfieldController->searchPlayfieldsByIds(
+			...$attacks->pluck("playfield_id")->filter()->toArray()
+		)->keyBy("id");
+		$sites = $this->db->table("tower_site")
+			->asObj(TowerSite::class)
+			->groupBy("playfield_id")
+			->map(function (Collection $sites2): Collection {
+				return $sites2->keyBy("site_number");
+			});
 		$blob = $attacks->map(
-			function(TowerAttackAndVictory $attack): string {
-				$line = "<tab>" . $this->util->date($attack->dt) . " - ";
+			function(TowerVictoryPlus $attack) use ($sites, $pfs): string {
+				$attack->pf = $pfs->get($attack->playfield_id);
+				$attack->site = $sites->get($attack->playfield_id)?->get($attack->site_number)??null;
+				$line = "<tab>" . $this->util->date($attack->attack_time) . " - ";
 				if (empty($attack->attack_id)) {
 					// attack
 					$attFaction = strtolower($attack->att_faction ?? "highlight");
@@ -2460,13 +2529,19 @@ class TowerController {
 					$line .= " attacked ";
 				} else {
 					// victory
-					$line .= "<$attack->win_faction>$attack->win_guild_name<end> won in ";
+					$line .= "<{$attack->win_faction}>{$attack->win_guild_name}<end> won in ";
 				}
-				$line .= $this->text->makeChatcmd(
-					"{$attack->short_name} {$attack->site_number}",
-					"/waypoint {$attack->x_coords} {$attack->y_coord} {$attack->playfield_id}"
-				);
-				$line .= " (QL {$attack->min_ql}-{$attack->max_ql})";
+				if (isset($attack->pf)) {
+					$line .= $this->text->makeChatcmd(
+						"{$attack->pf->short_name} {$attack->site_number}",
+						"/waypoint {$attack->x_coords} {$attack->y_coord} {$attack->playfield_id}"
+					);
+				} else {
+					$line .= "unknown";
+				}
+				if (isset($attack->site)) {
+					$line .= " (QL {$attack->site->min_ql}-{$attack->site->max_ql})";
+				}
 				return $line;
 			}
 		)->join("\n");

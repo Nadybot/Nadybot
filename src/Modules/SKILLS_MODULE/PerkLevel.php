@@ -32,7 +32,7 @@ class PerkLevel extends DBRow {
 
 	/**
 	 * @db:ignore
-	 * @var PerkLevelBuff[]
+	 * @var ExtPerkLevelBuff[]
 	 */
 	public array $perk_buffs = [];
 

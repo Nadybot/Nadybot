@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\HELPBOT_MODULE;
 
+use Illuminate\Support\Collection;
 use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{
 	CmdContext,
@@ -55,6 +56,9 @@ class HelpbotController {
 	#[NCA\Inject]
 	public Util $util;
 
+	#[NCA\Inject]
+	public PlayfieldController $pfController;
+
 	/**
 	 * This handler is called on bot startup.
 	 */
@@ -68,16 +72,16 @@ class HelpbotController {
 	public function dynaLevelCommand(CmdContext $context, int $search): void {
 		$range1 = (int)floor($search - $search / 10);
 		$range2 = (int)ceil($search + $search / 10);
-		/** @var DynaDB[] */
+		/** @var Collection<DynaDB> */
 		$data = $this->db->table("dynadb AS d")
-			->join("playfields AS p", "d.playfield_id", "p.id")
 			->where("max_ql", ">=", $range1)
 			->where("min_ql", "<=", $range2)
-			->orderBy("p.long_name")
 			->orderBy("min_ql")
-			->asObj(DynaDBSearch::class)->toArray();
-		$count = count($data);
-		if (!$count) {
+			->asObj(DynaDBSearch::class)
+			->each(function (DynaDBSearch $search): void {
+				$search->pf = $this->pfController->getPlayfieldById($search->playfield_id);
+			});
+		if ($data->isEmpty()) {
 			$context->reply(
 				"No dynacamps found between level <highlight>{$range1}<end> ".
 				"and <highlight>{$range2}<end>."
@@ -89,19 +93,21 @@ class HelpbotController {
 
 		$blob .= $this->formatResults($data);
 
-		$msg = $this->text->makeBlob("Dynacamps ($count)", $blob);
+		$msg = $this->text->makeBlob("Dynacamps (" . $data->count() . ")", $blob);
 		$context->reply($msg);
 	}
 
 	#[NCA\HandlesCommand("dyna")]
 	public function dynaNameCommand(CmdContext $context, string $dyna): void {
 		$search = str_replace(" ", "%", $dyna);
+		$playfields = $this->pfController->searchPlayfieldsByName("%{$search}%");
 		$data = $this->db->table("dynadb AS d")
-			->join("playfields AS p", "d.playfield_id", "p.id")
-			->whereIlike("long_name", "%{$search}%")
-			->orWhereIlike("short_name", "%{$search}%")
+			->whereIn("playfield_id", $playfields->pluck("id")->toArray())
 			->orWhereIlike("mob", "%{$search}%")
-			->asObj(DynaDBSearch::class)->toArray();
+			->asObj(DynaDBSearch::class)
+			->each(function (DynaDBSearch $search): void {
+				$search->pf = $this->pfController->getPlayfieldById($search->playfield_id);
+			});
 		$count = count($data);
 
 		if (!$count) {
@@ -118,30 +124,29 @@ class HelpbotController {
 
 	/**
 	 * Format the dynacamp results as a blob for a popup
-	 * @param DynaDBSearch[] $data
+	 * @param Collection<DynaDBSearch> $data
 	 */
-	private function formatResults(array $data): string {
+	private function formatResults(Collection $data): string {
 		$blob = '';
-		$lastPF = '';
-		foreach ($data as $row) {
-			if ($lastPF !== $row->long_name) {
-				if ($lastPF !== '') {
-					$blob .= "\n";
+		$data = $data->filter(fn (DynaDBSearch $search): bool => isset($search->pf))
+			->groupBy("pf.long_name")
+			->sortKeys();
+
+		foreach ($data as $pfName => $rows) {
+			$blob .= "\n<pagebreak><header2>{$pfName}<end>\n";
+			foreach ($rows as $row) {
+				$coordLink = $this->text->makeChatcmd(
+					"{$row->x_coord}x{$row->y_coord}",
+					"/waypoint {$row->x_coord} {$row->y_coord} {$row->playfield_id}"
+				);
+				$range = "{$row->min_ql}-{$row->max_ql}";
+				if (strlen($range) < 7) {
+					$range = "<black>" . str_repeat("_", 7 - strlen($range)) . "<end>{$range}";
 				}
-				$blob .= "<pagebreak><header2>{$row->long_name}<end>\n";
-				$lastPF = $row->long_name;
+				$blob .= "<tab>{$range}: <highlight>{$row->mob}<end> at {$coordLink}\n";
 			}
-			$coordLink = $this->text->makeChatcmd(
-				"{$row->x_coord}x{$row->y_coord}",
-				"/waypoint {$row->x_coord} {$row->y_coord} {$row->playfield_id}"
-			);
-			$range = "{$row->min_ql}-{$row->max_ql}";
-			if (strlen($range) < 7) {
-				$range = "<black>" . str_repeat("_", 7 - strlen($range)) . "<end>{$range}";
-			}
-			$blob .= "<tab>{$range}: <highlight>{$row->mob}<end> at {$coordLink}\n";
 		}
-		return $blob;
+		return trim($blob);
 	}
 
 	#[NCA\HandlesCommand("oe")]

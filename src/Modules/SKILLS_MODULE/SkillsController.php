@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\SKILLS_MODULE;
 
+use Illuminate\Support\Collection;
 use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{
 	CmdContext,
@@ -376,7 +377,7 @@ class SkillsController {
 	}
 
 	#[NCA\HandlesCommand("fling")]
-	public function flighShotCommand(CmdContext $context, float $attackTime, int $flingShot): void {
+	public function flingShotCommand(CmdContext $context, float $attackTime, int $flingShot): void {
 		[$weaponCap, $skillCap] = $this->capFlingShot($attackTime);
 
 		$recharge =  round(($attackTime * 16) - ($flingShot / 100));
@@ -787,8 +788,6 @@ class SkillsController {
 	public function capAimedShot(float $attackTime, float $rechargeTime): array {
 		$hardCap = (int)floor($attackTime + 10);
 		$skillCap = (int)ceil((4000 * $rechargeTime - 1100) / 3);
-		//$skill_cap = round((($recharge_time * 4000) - ($attack_time * 100) - 1000) / 3);
-		//$skill_cap = ceil(((4000 * $recharge_time) - 1000) / 3);
 
 		return [$hardCap, $skillCap];
 	}
@@ -805,5 +804,20 @@ class SkillsController {
 			$blob .= " (" . $this->text->alignNumber($percent, 3) . "%)\n";
 		}
 		return $blob;
+	}
+
+	/**
+	 * @param integer|integer[] $aoid
+	 * @return Collection<WeaponAttributes>
+	 */
+	public function getWeaponAttributes(null|int|array $aoid): Collection {
+		$query = $this->db->table("weapon_attributes");
+		if (is_int($aoid)) {
+			$query->where("id", $aoid);
+		} elseif (is_array($aoid)) {
+			$query->whereIn("id", $aoid);
+		}
+
+		return $query->asObj(WeaponAttribute::class);
 	}
 }

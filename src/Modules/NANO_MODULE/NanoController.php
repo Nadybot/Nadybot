@@ -1,4 +1,6 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace Nadybot\Modules\NANO_MODULE;
 
@@ -406,5 +408,12 @@ class NanoController {
 	 */
 	public function makeNanoLink(Nano $nano): string {
 		return "<a href='itemid://53019/{$nano->nano_id}'>{$nano->nano_name}</a>";
+	}
+
+	/** @return Collection<Nanoline> */
+	public function getNanoLinesByIds(int ...$ids): Collection {
+		return $this->db->table("nano_lines")
+			->whereIn("strain_id", $ids)
+			->asObj(Nanoline::class);
 	}
 }

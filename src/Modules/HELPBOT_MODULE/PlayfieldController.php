@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\HELPBOT_MODULE;
 
+use Illuminate\Support\Collection;
 use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\CmdContext;
 use Nadybot\Core\CommandAlias;
@@ -48,6 +49,8 @@ class PlayfieldController {
 	#[NCA\Inject]
 	public Util $util;
 
+	private array $playfields = [];
+
 	/**
 	 * This handler is called on bot startup.
 	 */
@@ -57,6 +60,10 @@ class PlayfieldController {
 		$this->db->loadCSVFile($this->moduleName, __DIR__ . '/playfields.csv');
 
 		$this->commandAlias->register($this->moduleName, "playfields", "playfield");
+		$this->playfields = $this->db->table("playfields")
+			->asObj(Playfield::class)
+			->keyBy("id")
+			->toArray();
 	}
 
 	#[NCA\HandlesCommand("playfields")]
@@ -176,9 +183,25 @@ class PlayfieldController {
 	}
 
 	public function getPlayfieldById(int $playfieldId): ?Playfield {
+		return $this->playfields[$playfieldId] ?? null;
+	}
+
+	/**
+	 * @return Collection<Playfield>
+	 */
+	public function searchPlayfieldsByName(string $playfieldName): Collection {
 		return $this->db->table("playfields")
-			->where("id", $playfieldId)
-			->asObj(Playfield::class)
-			->first();
+			->whereIlike("long_name", $playfieldName)
+			->orWhereIlike("short_name", $playfieldName)
+			->asObj(Playfield::class);
+	}
+
+	/**
+	 * @return Collection<Playfield>
+	 */
+	public function searchPlayfieldsByIds(int ...$ids): Collection {
+		return $this->db->table("playfields")
+			->whereIn("id", $ids)
+			->asObj(Playfield::class);
 	}
 }

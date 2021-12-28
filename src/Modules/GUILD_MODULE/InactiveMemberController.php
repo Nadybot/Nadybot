@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\GUILD_MODULE;
 
+use Illuminate\Support\Collection;
 use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{
 	CmdContext,
@@ -9,6 +10,7 @@ use Nadybot\Core\{
 	Text,
 	Util,
 };
+use Nadybot\Core\Modules\ALTS\AltsController;
 use Nadybot\Core\ParamClass\PDuration;
 
 /**
@@ -42,6 +44,9 @@ class InactiveMemberController {
 	#[NCA\Inject]
 	public Util $util;
 
+	#[NCA\Inject]
+	public AltsController $altsController;
+
 	#[NCA\HandlesCommand("inactivemem")]
 	public function inactivememCommand(CmdContext $context, PDuration $duration): void {
 		$time = $duration->toSecs();
@@ -54,57 +59,44 @@ class InactiveMemberController {
 		$timeString = $this->util->unixtimeToReadable($time, false);
 		$time = time() - $time;
 
-		$data = $this->db->table(GuildController::DB_TABLE, "o")
-			->leftJoin("alts AS a", "o.name", "a.alt")
+		$members = $this->db->table(GuildController::DB_TABLE)
 			->where("mode", "!=", "del")
-			->where("logged_off", "<", $time)
-			->orderBy("o.name")
-			->asObj()->toArray();
-
-		if (count($data) === 0) {
+			->orderByDesc("logged_off")
+			->asObj(RecentOrgMember::class)
+			->each(function (RecentOrgMember $member): void {
+				$member->main = $this->altsController->getMainOf($member->name);
+			})
+			->groupBy("main")
+			->sortKeys();
+		if (count($members) === 0) {
 			$context->reply("There are no members in the org roster.");
 			return;
 		}
 
 		$numInactive = 0;
-		$highlight = false;
 
 		$blob = "Org members who have not logged off since ".
 			"<highlight>{$timeString}<end> ago.\n\n".
 			"<header2>Inactive org members<end>\n";
 
-		foreach ($data as $row) {
-			$logged = 0;
-			$main = $row->main;
-			if ($row->main !== null) {
-				$data1 = $this->db->table("alts AS a")
-					->join(GuildController::DB_TABLE . " AS o", "a.alt", "o.name")
-					->where("a.main", $row->main)
-					->asObj();
-				foreach ($data1 as $row1) {
-					if ($row1->logged_off > $time) {
-						continue 2;
-					}
-
-					if ($row1->logged_off > $logged) {
-						$logged = $row1->logged_off;
-						$lasttoon = $row1->name;
-					}
-				}
+		foreach ($members as $mainName => $altsLink) {
+			/** @var Collection<RecentOrgMember> $alts */
+			$alt = $altsLink->first();
+			/** @var RecentOrgMember $alt */
+			if ($alt->logged_off >= $time) {
+				continue;
 			}
-
+			$alt->logged_off ??= 0;
 			$numInactive++;
-			$alts = $this->text->makeChatcmd("alts", "/tell <myname> alts {$row->name}");
-			$logged = $row->logged_off;
-			$lasttoon = $row->name;
-			$lastseen = ($row->logged_off == 0) ? "never" : $this->util->date($logged);
+			$altsLink = $this->text->makeChatcmd(
+				"alts",
+				"/tell <myname> alts {$alt->main}"
+			);
 
-			$player = "<pagebreak><tab>[{$alts}] $row->name";
-			if (isset($main)) {
-				$player .= "; Main: $main";
-			}
-			if ($lastseen !== "never") {
-				$player .= ": Last seen on [$lasttoon] on {$lastseen}\n";
+			$player = "<pagebreak><tab>[{$altsLink}] {$alt->main}";
+			if ($alt->logged_off) {
+				$lastseen = $this->util->date($alt->logged_off);
+				$player .= ": Last seen on [{$alt->name}] on {$lastseen}\n";
 			} else {
 				$player .= ": Never seen\n";
 			}

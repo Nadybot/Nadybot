@@ -4,6 +4,7 @@ namespace Nadybot\Modules\TRACKER_MODULE;
 
 use DateTime;
 use Nadybot\Core\DBRow;
+use Nadybot\Modules\ORGLIST_MODULE\Organization;
 
 class TrackingOrg extends DBRow {
 	public int $org_id;
@@ -13,4 +14,6 @@ class TrackingOrg extends DBRow {
 	public function __construct() {
 		$this->added_dt = new DateTime();
 	}
+	/** @db:ignore */
+	public ?Organization $org = null;
 }
