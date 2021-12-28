@@ -64,6 +64,7 @@ id,name,unit
 90,"Imp/Proj AC",""
 19,Intelligence,""
 615,InvadersKilled,""
+53,"IP",""
 140,"Map Navig.",""
 100,"Martial Arts",""
 127,Matt.Metam,""
@@ -150,3 +151,4 @@ id,name,unit
 166,"Vehicle Ground",""
 117,"Vehicle Water",""
 158,"Weapon Smt",""
+52,"XP",""

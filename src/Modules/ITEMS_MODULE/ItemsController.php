@@ -617,6 +617,30 @@ class ItemsController {
 			->asObj(Skill::class);
 	}
 
+	/** @return Collection<Skill> */
+	public function searchForSkill(string $skillName): Collection {
+		// check for exact match first, in order to disambiguate
+		// between Bow and Bow special attack
+		$query = $this->db->table("skills");
+		/**
+		 * @psalm-suppress ImplicitToStringCast
+		 * @var Collection<Skill>
+		 */
+		$results = $query->where($query->colFunc("LOWER", "name"), strtolower($skillName))
+			->select("*")->distinct()
+			->asObj(Skill::class);
+		if ($results->containsOneItem()) {
+			return $results;
+		}
+
+		$query = $this->db->table("skills")->select("*")->distinct();
+
+		$tmp = explode(" ", $skillName);
+		$this->db->addWhereFromParams($query, $tmp, "name");
+
+		return $query->asObj(Skill::class);
+	}
+
 	/** @return Collection<ItemWithBuffs> */
 	public function addBuffs(AODBEntry ...$items): Collection {
 		$buffs = $this->db->table("item_buffs")
