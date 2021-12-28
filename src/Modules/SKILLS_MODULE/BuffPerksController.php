@@ -109,7 +109,7 @@ class BuffPerksController {
 		}
 		$perkInfo = $this->getPerkInfo();
 		$this->perks = new Collection($perkInfo);
-		$empty = !$this->db->table("perks")->exists();
+		$empty = !$this->db->table("perk")->exists();
 		if (($mtime === false || $dbVersion >= $mtime) && !$empty) {
 			return;
 		}
