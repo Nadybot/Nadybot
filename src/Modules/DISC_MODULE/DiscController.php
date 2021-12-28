@@ -19,6 +19,7 @@ use Nadybot\Core\ParamClass\PItem;
  */
 #[
 	NCA\Instance,
+	NCA\HasMigrations,
 	NCA\DefineCommand(
 		command: "disc",
 		accessLevel: "all",
@@ -49,7 +50,6 @@ class DiscController {
 	#[NCA\Setup]
 	public function setup(): void {
 		// load database tables from .sql-files
-		$this->db->loadMigrations($this->moduleName, __DIR__ . '/Migrations');
 		$this->db->loadCSVFile($this->moduleName, __DIR__ . '/discs.csv');
 	}
 

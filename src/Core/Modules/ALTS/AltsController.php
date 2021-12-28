@@ -54,7 +54,8 @@ use Nadybot\Core\ParamClass\PRemove;
 	NCA\ProvidesEvent("alt(del)"),
 	NCA\ProvidesEvent("alt(validate)"),
 	NCA\ProvidesEvent("alt(decline)"),
-	NCA\ProvidesEvent("alt(newmain)")
+	NCA\ProvidesEvent("alt(newmain)"),
+	NCA\HasMigrations
 ]
 class AltsController {
 
@@ -98,8 +99,6 @@ class AltsController {
 	 */
 	#[NCA\Setup]
 	public function setup(): void {
-		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations");
-
 		$this->settingManager->add(
 			module: $this->moduleName,
 			name: 'alts_require_confirmation',

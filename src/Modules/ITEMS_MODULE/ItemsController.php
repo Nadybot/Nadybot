@@ -20,6 +20,7 @@ use Nadybot\Core\{
  */
 #[
 	NCA\Instance,
+	NCA\HasMigrations("Migrations/Items"),
 	NCA\DefineCommand(
 		command: "items",
 		accessLevel: "all",
@@ -67,7 +68,6 @@ class ItemsController {
 
 	#[NCA\Setup]
 	public function setup(): void {
-		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations/Items");
 		$this->db->loadCSVFile($this->moduleName, __DIR__ . "/aodb.csv");
 		$this->db->loadCSVFile($this->moduleName, __DIR__ . "/item_groups.csv");
 		$this->db->loadCSVFile($this->moduleName, __DIR__ . "/item_group_names.csv");

@@ -33,6 +33,7 @@ use Throwable;
  */
 #[
 	NCA\Instance,
+	NCA\HasMigrations("Migrations/Perks"),
 	NCA\DefineCommand(
 		command: "perks",
 		accessLevel: "all",
@@ -84,7 +85,6 @@ class BuffPerksController {
 
 	#[NCA\Setup]
 	public function setup(): void {
-		$applied = $this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations/Perks");
 		$this->settingManager->add(
 			module: $this->moduleName,
 			name: "perks_db_version",
@@ -93,12 +93,12 @@ class BuffPerksController {
 			type: 'text',
 			value: "0"
 		);
-		$this->timer->callLater(0, [$this, "initPerksDatabase"], $applied);
+		$this->timer->callLater(0, [$this, "initPerksDatabase"]);
 	}
 
-	public function initPerksDatabase(bool $applied): void {
+	public function initPerksDatabase(): void {
 		if ($this->db->inTransaction()) {
-			$this->timer->callLater(0, [$this, "initPerksDatabase"], $applied);
+			$this->timer->callLater(0, [$this, "initPerksDatabase"]);
 			return;
 		}
 		$path = __DIR__ . "/perks.csv";
@@ -109,7 +109,8 @@ class BuffPerksController {
 		}
 		$perkInfo = $this->getPerkInfo();
 		$this->perks = new Collection($perkInfo);
-		if (($mtime === false || $dbVersion >= $mtime) && !$applied) {
+		$empty = !$this->db->table("perk")->exists();
+		if (($mtime === false || $dbVersion >= $mtime) && !$empty) {
 			return;
 		}
 		$this->logger->notice("(Re)building perk database...");

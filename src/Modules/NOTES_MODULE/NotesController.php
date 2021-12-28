@@ -29,6 +29,7 @@ use Nadybot\Core\ParamClass\PRemove;
  */
 #[
 	NCA\Instance,
+	NCA\HasMigrations("Migrations/Notes"),
 	NCA\DefineCommand(
 		command: "notes",
 		accessLevel: "guild",
@@ -104,7 +105,6 @@ class NotesController {
 
 	#[NCA\Setup]
 	public function setup(): void {
-		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations/Notes");
 		$this->commandAlias->register($this->moduleName, "notes rem", "reminders rem");
 		$this->settingManager->add(
 			module: $this->moduleName,

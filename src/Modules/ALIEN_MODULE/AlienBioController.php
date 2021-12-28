@@ -24,6 +24,7 @@ use Nadybot\Modules\ITEMS_MODULE\ItemsController;
  */
 #[
 	NCA\Instance,
+	NCA\HasMigrations("Migrations/Weapons"),
 	NCA\DefineCommand(
 		command: "bio",
 		accessLevel: "all",
@@ -69,7 +70,6 @@ class AlienBioController {
 	#[NCA\Setup]
 	public function setup(): void {
 		// load database tables from .sql-files
-		$this->db->loadMigrations($this->moduleName, __DIR__ . '/Migrations/Weapons');
 		$this->db->loadCSVFile($this->moduleName, __DIR__ . '/alienweapons.csv');
 		$this->db->loadCSVFile($this->moduleName, __DIR__ . '/alienweaponspecials.csv');
 	}

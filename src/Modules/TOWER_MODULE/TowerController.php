@@ -51,6 +51,7 @@ use Nadybot\Modules\ORGLIST_MODULE\Organization;
  */
 #[
 	NCA\Instance,
+	NCA\HasMigrations,
 	NCA\DefineCommand(
 		command: "towerstats",
 		accessLevel: "member",
@@ -236,7 +237,6 @@ class TowerController {
 	 */
 	#[NCA\Setup]
 	public function setup(): void {
-		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations");
 		$this->db->loadCSVFile($this->moduleName, __DIR__ . '/tower_site.csv');
 		$this->db->loadCSVFile($this->moduleName, __DIR__ . '/tower_site_bounds.csv');
 

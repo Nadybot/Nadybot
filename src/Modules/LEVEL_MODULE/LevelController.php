@@ -16,6 +16,7 @@ use Nadybot\Core\DB;
  */
 #[
 	NCA\Instance,
+	NCA\HasMigrations,
 	NCA\DefineCommand(
 		command: "level",
 		accessLevel: "all",
@@ -55,7 +56,6 @@ class LevelController {
 	 */
 	#[NCA\Setup]
 	public function setup(): void {
-		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations");
 		$this->db->loadCSVFile($this->moduleName, __DIR__ . "/levels.csv");
 
 		$this->commandAlias->register($this->moduleName, "level", "pvp");

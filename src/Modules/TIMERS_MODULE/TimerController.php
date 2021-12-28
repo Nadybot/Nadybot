@@ -32,6 +32,7 @@ use Nadybot\Core\ParamClass\PRemove;
  */
 #[
 	NCA\Instance,
+	NCA\HasMigrations,
 	NCA\DefineCommand(
 		command: "rtimer",
 		accessLevel: "guild",
@@ -102,7 +103,6 @@ class TimerController implements MessageEmitter {
 
 	#[NCA\Setup]
 	public function setup(): void {
-		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations");
 
 		$this->timers = [];
 		/** @var Collection<Timer> */

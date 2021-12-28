@@ -16,6 +16,7 @@ use Nadybot\Core\Util;
  */
 #[
 	NCA\Instance,
+	NCA\HasMigrations("Migrations/Playfields"),
 	NCA\DefineCommand(
 		command: "playfields",
 		accessLevel: "all",
@@ -56,7 +57,6 @@ class PlayfieldController {
 	 */
 	#[NCA\Setup]
 	public function setup(): void {
-		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations/Playfields");
 		$this->db->loadCSVFile($this->moduleName, __DIR__ . '/playfields.csv');
 
 		$this->commandAlias->register($this->moduleName, "playfields", "playfield");

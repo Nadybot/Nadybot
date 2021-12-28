@@ -20,6 +20,7 @@ use Nadybot\Core\ParamClass\PWord;
  */
 #[
 	NCA\Instance,
+	NCA\HasMigrations("Migrations/Links"),
 	NCA\DefineCommand(
 		command: "links",
 		accessLevel: "guild",
@@ -49,7 +50,6 @@ class LinksController {
 
 	#[NCA\Setup]
 	public function setup(): void {
-		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations/Links");
 		$this->settingManager->add(
 			module: $this->moduleName,
 			name: 'showfullurls',

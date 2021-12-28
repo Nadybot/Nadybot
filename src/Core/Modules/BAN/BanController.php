@@ -31,6 +31,7 @@ use Nadybot\Core\ParamClass\PRemove;
  */
 #[
 	NCA\Instance,
+	NCA\HasMigrations,
 	NCA\DefineCommand(
 		command: "ban",
 		accessLevel: "mod",
@@ -114,7 +115,6 @@ class BanController {
 	 */
 	#[NCA\Setup]
 	public function setup(): void {
-		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations");
 		if ($this->db->schema()->hasTable("players")) {
 			$this->uploadBanlist();
 		}

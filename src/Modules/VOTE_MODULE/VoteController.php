@@ -32,6 +32,7 @@ use Nadybot\Core\Routing\Source;
  */
 #[
 	NCA\Instance,
+	NCA\HasMigrations,
 	NCA\DefineCommand(
 		command: "vote",
 		accessLevel: "all",
@@ -113,7 +114,6 @@ class VoteController implements MessageEmitter {
 	 */
 	#[NCA\Setup]
 	public function setup(): void {
-		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations");
 		$this->commandAlias->register($this->moduleName, "poll", "polls");
 		$this->cacheVotes();
 		$this->messageHub->registerMessageEmitter($this);

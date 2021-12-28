@@ -30,6 +30,7 @@ use Nadybot\Modules\COMMENT_MODULE\CommentController;
  */
 #[
 	NCA\Instance,
+	NCA\HasMigrations,
 	NCA\DefineCommand(
 		command: "whois",
 		accessLevel: "member",
@@ -94,7 +95,6 @@ class WhoisController {
 
 	#[NCA\Setup]
 	public function setup(): void {
-		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations");
 
 		$this->settingManager->add(
 			module: $this->moduleName,

@@ -114,6 +114,11 @@ class QueryBuilder extends Builder {
 		}
 	}
 
+	public static function clearMetaCache(): void {
+		static::$meta = [];
+		static::$metaTypes = [];
+	}
+
 	protected function convertToClass(PDOStatement $ps, string $className, array $values): ?object {
 		$row = new $className();
 		$refClass = new ReflectionClass($row);
@@ -138,6 +143,17 @@ class QueryBuilder extends Builder {
 					}
 				} catch (ReflectionException $e) {
 					$row->{$colName} = null;
+				} catch (Throwable $e) {
+					$this->logger->error(
+						"Error trying to get the meta information for {className}, column {colNum}: {error}",
+						[
+							"className" => $className,
+							"colNum" => $col,
+							"error" => $e->getMessage(),
+							"exception" => $e,
+							"colMeta" => $colMeta,
+						]
+					);
 				}
 				continue;
 			}

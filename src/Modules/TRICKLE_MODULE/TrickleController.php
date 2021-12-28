@@ -17,6 +17,7 @@ use Nadybot\Core\{
  */
 #[
 	NCA\Instance,
+	NCA\HasMigrations,
 	NCA\DefineCommand(
 		command: "trickle",
 		accessLevel: "all",
@@ -46,7 +47,6 @@ class TrickleController {
 	 */
 	#[NCA\Setup]
 	public function setup(): void {
-		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations");
 		$this->db->loadCSVFile($this->moduleName, __DIR__ . "/trickle.csv");
 	}
 
