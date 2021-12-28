@@ -566,6 +566,7 @@ class DB {
 		if ($missingMigs->isEmpty()) {
 			return;
 		}
+		$start = microtime(true);
 		$this->logger->notice("Applying {numMigs} database migrations", [
 			"numMigs" => $missingMigs->count(),
 		]);
@@ -588,7 +589,10 @@ class DB {
 				exit;
 			}
 		}
-		$this->logger->notice("All migrations applied successfully");
+		$end = microtime(true);
+		$this->logger->notice("All migrations applied successfully in {timeMS}ms", [
+			"timeMS" => number_format(($end - $start) * 1000, 2)
+		]);
 	}
 
 	private function filterAppliedMigrations(string $module, Collection $migrations): Collection {
