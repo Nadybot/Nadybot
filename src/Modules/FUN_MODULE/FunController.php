@@ -16,6 +16,7 @@ use Nadybot\Core\{
  */
 #[
 	NCA\Instance,
+	NCA\HasMigrations,
 	NCA\DefineCommand(
 		command: "beer",
 		accessLevel: "all",
@@ -88,7 +89,6 @@ class FunController {
 
 	#[NCA\Setup]
 	public function setup(): void {
-		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations");
 		$this->db->loadCSVFile($this->moduleName, __DIR__ . "/beer.csv");
 		$this->db->loadCSVFile($this->moduleName, __DIR__ . "/brain.csv");
 		$this->db->loadCSVFile($this->moduleName, __DIR__ . "/chuck.csv");

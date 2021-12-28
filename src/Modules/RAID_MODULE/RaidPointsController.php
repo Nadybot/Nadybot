@@ -32,6 +32,7 @@ use Throwable;
  */
 #[
 	NCA\Instance,
+	NCA\HasMigrations("Migrations/Points"),
 	NCA\DefineCommand(
 		command: "raidpoints",
 		accessLevel: "raid_leader_1",
@@ -155,7 +156,6 @@ class RaidPointsController {
 			type: "number",
 			value: "10"
 		);
-		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations/Points");
 		$this->commandAlias->register($this->moduleName, "reward", "rewards");
 		$this->commandAlias->register($this->moduleName, "pointsmod add", "points add");
 		$this->commandAlias->register($this->moduleName, "pointsmod rem", "points rem");

@@ -21,6 +21,7 @@ use Nadybot\Modules\WEBSERVER_MODULE\Response;
  */
 #[
 	NCA\Instance,
+	NCA\HasMigrations("Migrations/History"),
 	NCA\DefineCommand(
 		command: "orghistory",
 		accessLevel: "guild",
@@ -49,7 +50,6 @@ class OrgHistoryController {
 
 	#[NCA\Setup]
 	public function setup(): void {
-		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations/History");
 	}
 
 	#[NCA\HandlesCommand("orghistory")]

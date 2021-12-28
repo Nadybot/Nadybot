@@ -32,6 +32,7 @@ use ZipArchive;
  */
 #[
 	NCA\Instance,
+	NCA\HasMigrations,
 	NCA\DefineCommand(
 		command: "package",
 		accessLevel: "admin",
@@ -78,7 +79,6 @@ class PackageController {
 
 	#[NCA\Setup]
 	public function setup(): void {
-		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations");
 		$this->scanForUnregisteredExtraModules();
 		$this->commandAlias->register($this->moduleName, "package", "packages");
 		$this->commandAlias->register($this->moduleName, "package", "modules");

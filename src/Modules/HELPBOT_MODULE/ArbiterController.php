@@ -22,6 +22,7 @@ use Nadybot\Core\ParamClass\PWord;
  */
 #[
 	NCA\Instance,
+	NCA\HasMigrations("Migrations/Arbiter"),
 	NCA\DefineCommand(
 		command: "arbiter",
 		accessLevel: "all",
@@ -57,7 +58,6 @@ class ArbiterController {
 
 	#[NCA\Setup]
 	public function setup(): void {
-		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations/Arbiter");
 		$this->commandAlias->register($this->moduleName, "arbiter", "icc");
 	}
 

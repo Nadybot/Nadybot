@@ -16,6 +16,7 @@ use Nadybot\Core\Text;
  */
 #[
 	NCA\Instance,
+	NCA\HasMigrations,
 	NCA\DefineCommand(
 		command: "whompah",
 		accessLevel: "all",
@@ -45,7 +46,6 @@ class WhompahController {
 	 */
 	#[NCA\Setup]
 	public function setup(): void {
-		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations");
 		$this->db->loadCSVFile($this->moduleName, __DIR__ . "/whompah_cities.csv");
 		$this->db->loadCSVFile($this->moduleName, __DIR__ . "/whompah_cities_rel.csv");
 

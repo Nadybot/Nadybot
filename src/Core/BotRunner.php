@@ -460,7 +460,7 @@ class BotRunner {
 	private function runUpgradeScripts(): void {
 		/** @var DB */
 		$db = Registry::getInstance(DB::class);
-		$db->loadMigrations("Core", __DIR__ . "/Migrations");
+		$db->createDatabaseSchema();
 	}
 
 	/**

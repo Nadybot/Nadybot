@@ -25,6 +25,7 @@ use Nadybot\Modules\ITEMS_MODULE\ItemsController;
  */
 #[
 	NCA\Instance,
+	NCA\HasMigrations("Migrations/Misc"),
 	NCA\DefineCommand(
 		command: "leprocs",
 		accessLevel: "all",
@@ -76,7 +77,6 @@ class AlienMiscController {
 	#[NCA\Setup]
 	public function setup(): void {
 		// load database tables from .sql-files
-		$this->db->loadMigrations($this->moduleName, __DIR__ . '/Migrations/Misc');
 		$this->db->loadCSVFile($this->moduleName, __DIR__ . '/leprocs.csv');
 		$this->db->loadCSVFile($this->moduleName, __DIR__ . '/ofabarmor.csv');
 		$this->db->loadCSVFile($this->moduleName, __DIR__ . '/ofabarmortype.csv');

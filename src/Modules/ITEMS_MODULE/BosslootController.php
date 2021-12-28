@@ -18,6 +18,7 @@ use Nadybot\Modules\WHEREIS_MODULE\WhereisResult;
  */
 #[
 	NCA\Instance,
+	NCA\HasMigrations("Migrations/Boss"),
 	NCA\DefineCommand(
 		command: "boss",
 		accessLevel: "all",
@@ -58,7 +59,6 @@ class BosslootController {
 
 	#[NCA\Setup]
 	public function setup(): void {
-		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations/Boss");
 		$this->db->loadCSVFile($this->moduleName, __DIR__ ."/boss_namedb.csv");
 		$this->db->loadCSVFile($this->moduleName, __DIR__ ."/boss_lootdb.csv");
 	}

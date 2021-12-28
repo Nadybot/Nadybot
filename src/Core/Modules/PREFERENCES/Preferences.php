@@ -12,7 +12,8 @@ use Nadybot\Modules\WEBSERVER_MODULE\Response;
 /**
  * @author Tyrence (RK2)
  */
-#[NCA\Instance]
+#[NCA\Instance,
+	NCA\HasMigrations]
 class Preferences {
 	public const DB_TABLE = "preferences_<myname>";
 
@@ -27,7 +28,6 @@ class Preferences {
 
 	#[NCA\Setup]
 	public function setup(): void {
-		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations");
 	}
 
 	public function save(string $sender, string $name, string $value): void {

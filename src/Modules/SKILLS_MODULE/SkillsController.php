@@ -25,6 +25,7 @@ use Nadybot\Modules\ITEMS_MODULE\ItemSearchResult;
  */
 #[
 	NCA\Instance,
+	NCA\HasMigrations("Migrations/Weapons"),
 	NCA\DefineCommand(
 		command: "aggdef",
 		accessLevel: "all",
@@ -123,7 +124,6 @@ class SkillsController {
 	 */
 	#[NCA\Setup]
 	public function setup(): void {
-		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations/Weapons");
 		$this->db->loadCSVFile($this->moduleName, __DIR__ . "/weapon_attributes.csv");
 
 		$this->commandAlias->register($this->moduleName, "weapon", "specials");

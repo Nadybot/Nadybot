@@ -20,6 +20,7 @@ use Nadybot\Modules\ITEMS_MODULE\AODBEntry;
  */
 #[
 	NCA\Instance,
+	NCA\HasMigrations("Migrations/Recipes"),
 	NCA\DefineCommand(
 		command: "recipe",
 		accessLevel: "all",
@@ -132,7 +133,6 @@ class RecipeController {
 
 	#[NCA\Setup]
 	public function setup(): void {
-		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations/Recipes");
 	}
 
 	/**

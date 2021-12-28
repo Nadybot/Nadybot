@@ -8,7 +8,8 @@ use Nadybot\Core\DB;
 /**
  * @author Tyrence (RK2)
  */
-#[NCA\Instance]
+#[NCA\Instance,
+	NCA\HasMigrations]
 class PlayerLookupController {
 
 	/**
@@ -25,6 +26,5 @@ class PlayerLookupController {
 	 */
 	#[NCA\Setup]
 	public function setup(): void {
-		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations");
 	}
 }

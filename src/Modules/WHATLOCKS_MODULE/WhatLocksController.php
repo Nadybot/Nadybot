@@ -22,6 +22,7 @@ use Nadybot\Modules\ITEMS_MODULE\Skill;
  */
 #[
 	NCA\Instance,
+	NCA\HasMigrations,
 	NCA\DefineCommand(
 		command: "whatlocks",
 		accessLevel: "all",
@@ -50,7 +51,6 @@ class WhatLocksController {
 	 */
 	#[NCA\Setup]
 	public function setup(): void {
-		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations");
 		$this->db->loadCSVFile($this->moduleName, __DIR__ . "/what_locks.csv");
 	}
 

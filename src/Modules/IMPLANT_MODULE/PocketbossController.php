@@ -16,6 +16,7 @@ use Nadybot\Core\Util;
  */
 #[
 	NCA\Instance,
+	NCA\HasMigrations("Migrations/Pocketboss"),
 	NCA\DefineCommand(
 		command: "pocketboss",
 		accessLevel: "all",
@@ -52,7 +53,6 @@ class PocketbossController {
 	 */
 	#[NCA\Setup]
 	public function setup(): void {
-		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations/Pocketboss");
 		$this->db->loadCSVFile($this->moduleName, __DIR__ . "/pocketboss.csv");
 	}
 
