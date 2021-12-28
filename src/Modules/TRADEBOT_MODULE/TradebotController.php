@@ -159,7 +159,6 @@ class TradebotController {
 			'tradebot',
 			[$this, 'changeTradebot']
 		);
-
 	}
 
 	#[NCA\Event(
