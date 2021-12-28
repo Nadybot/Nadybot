@@ -67,30 +67,30 @@ class WhereisController {
 	public function whereisCommand(CmdContext $context, string $search): void {
 		$search = strtolower($search);
 		$words = explode(' ', $search);
-		$query = $this->db->table("whereis AS w")
-			->leftJoin("playfields AS p", "w.playfield_id", "p.id");
+		$query = $this->db->table("whereis");
 		$this->db->addWhereFromParams($query, $words, "name");
 		$this->db->addWhereFromParams($query, $words, "keywords", "or");
-		/** @var Collection<WhereisResult> */
-		$npcs = $query->asObj(WhereisResult::class);
-		$count = $npcs->count();
+		/** @var Collection<string> */
+		$lines = $query->asObj(WhereisResult::class)
+			->map(function (WhereisResult $npc): string {
+				$npc->pf = $this->pfController->getPlayfieldById($npc->playfield_id);
+				$line = "<pagebreak><header2>{$npc->name}<end>\n".
+					"<tab>{$npc->answer}";
+				if (isset($npc->pf) && $npc->xcoord !== 0 && $npc->ycoord !== 0) {
+					$line .= " " . $this->text->makeChatcmd("{$npc->xcoord}x{$npc->ycoord} {$npc->pf->short_name}", "/waypoint {$npc->xcoord} {$npc->ycoord} {$npc->pf->id}");
+				}
+				return $line;
+			});
+		$count = $lines->count();
 
 		if ($count === 0) {
 			$msg = "There were no matches for your search.";
 			$context->reply($msg);
 			return;
 		}
-		$blob = "";
-		foreach ($npcs as $npc) {
-			$blob .= "<pagebreak><header2>{$npc->name}<end>\n".
-				"<tab>{$npc->answer}";
-			if ($npc->playfield_id !== 0 && $npc->xcoord !== 0 && $npc->ycoord !== 0) {
-				$blob .= " " . $this->text->makeChatcmd("waypoint: {$npc->xcoord}x{$npc->ycoord} {$npc->short_name}", "/waypoint {$npc->xcoord} {$npc->ycoord} {$npc->playfield_id}");
-			}
-			$blob .= "\n\n";
-		}
+		$blob = $lines->join("\n\n");
 
-		$msg = $this->text->makeBlob("Found $count matches for \"$search\".", $blob);
+		$msg = $this->text->makeBlob("Matches for \"{$search}\" ({$count})", $blob);
 		$context->reply($msg);
 	}
 }
