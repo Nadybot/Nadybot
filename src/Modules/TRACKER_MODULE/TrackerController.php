@@ -37,7 +37,6 @@ use Nadybot\Modules\{
 	TOWER_MODULE\TowerAttackEvent,
 };
 use Nadybot\Modules\ORGLIST_MODULE\FindOrgController;
-use Nadybot\Modules\ORGLIST_MODULE\Organization;
 use Throwable;
 
 /**

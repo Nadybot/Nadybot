@@ -3,7 +3,6 @@
 namespace Nadybot\Modules\LOOT_MODULE;
 
 use Nadybot\Core\Attributes as NCA;
-use Illuminate\Database\Query\JoinClause;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	CmdContext,

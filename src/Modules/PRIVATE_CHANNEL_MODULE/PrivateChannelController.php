@@ -4,7 +4,6 @@ namespace Nadybot\Modules\PRIVATE_CHANNEL_MODULE;
 
 use Nadybot\Core\Attributes as NCA;
 use Exception;
-use Illuminate\Database\Query\JoinClause;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	AccessManager,

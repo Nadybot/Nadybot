@@ -9,19 +9,12 @@ use Nadybot\Core\DB;
 use Nadybot\Core\LoggerWrapper;
 use Nadybot\Core\Text;
 use Nadybot\Core\Util;
-use Nadybot\Modules\ITEMS_MODULE\ItemsController;
 use Nadybot\Modules\WHEREIS_MODULE\WhereisController;
 use Nadybot\Modules\WHEREIS_MODULE\WhereisResult;
 
 /**
  * Bossloot Module Ver 1.1
- * Written By Jaqueme
- * For Budabot
- * Database Adapted From One Originally Compiled by Malosar For BeBot
- * Boss Drop Table Database Module
- * Written 5/11/07
- * Last Modified 5/14/07
- * Commands this controller contains:
+ * Originally written By Jaqueme for Budabot
  */
 #[
 	NCA\Instance,
