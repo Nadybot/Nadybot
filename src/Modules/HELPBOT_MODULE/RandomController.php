@@ -19,6 +19,7 @@ use Nadybot\Core\{
  */
 #[
 	NCA\Instance,
+	NCA\HasMigrations("Migrations/Roll"),
 	NCA\DefineCommand(
 		command: "random",
 		accessLevel: "all",
@@ -66,7 +67,6 @@ class RandomController {
 	 */
 	#[NCA\Setup]
 	public function setup(): void {
-		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations/Roll");
 
 		$this->settingManager->add(
 			module: $this->moduleName,

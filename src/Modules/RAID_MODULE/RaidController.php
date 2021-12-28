@@ -36,6 +36,7 @@ use Nadybot\Modules\ONLINE_MODULE\OnlineController;
  */
 #[
 	NCA\Instance,
+	NCA\HasMigrations("Migrations/Raid"),
 	NCA\DefineCommand(
 		command: "raid",
 		accessLevel: "all",
@@ -204,7 +205,6 @@ class RaidController {
 			intoptions: '2;1;0',
 			accessLevel: 'raid_admin_2'
 		);
-		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations/Raid");
 		$this->timer->callLater(0, [$this, 'resumeRaid']);
 	}
 

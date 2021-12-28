@@ -23,6 +23,7 @@ use Nadybot\Core\ParamClass\PCharacter;
  */
 #[
 	NCA\Instance,
+	NCA\HasMigrations,
 	NCA\DefineCommand(
 		command: "extauth",
 		accessLevel: "all",
@@ -93,7 +94,6 @@ class DiscordGatewayCommandHandler {
 			value: "!",
 			options: "!;#;*;@;$;+;-",
 		);
-		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations");
 	}
 
 	public function getNameForDiscordId(string $discordId): ?string {

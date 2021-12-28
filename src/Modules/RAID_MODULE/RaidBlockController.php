@@ -22,6 +22,7 @@ use Nadybot\Core\ParamClass\PRemove;
  */
 #[
 	NCA\Instance,
+	NCA\HasMigrations("Migrations/Block"),
 	NCA\DefineCommand(
 		command: "raidblock",
 		accessLevel: "member",
@@ -65,7 +66,6 @@ class RaidBlockController {
 
 	#[NCA\Setup]
 	public function setup(): void {
-		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations/Block");
 		$this->loadBlocks();
 	}
 

@@ -7,6 +7,7 @@ use DateTime;
 use PDO;
 use PDOException;
 use Exception;
+use GlobIterator;
 use ReflectionClass;
 use ReflectionProperty;
 use Illuminate\Database\Capsule\Manager as Capsule;
@@ -14,11 +15,14 @@ use Illuminate\Database\Connection;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Collection;
 use InvalidArgumentException;
+use Nadybot\Core\Attributes\HasMigrations;
 use Nadybot\Core\CSV\Reader;
 use Nadybot\Core\DBSchema\Migration;
+use Nadybot\Core\Migration as CoreMigration;
 use Throwable;
 
 #[NCA\Instance]
+#[NCA\HasMigrations(module: "Core")]
 class DB {
 
 	public const SQLITE_MIN_VERSION = "3.23.0";
@@ -464,6 +468,51 @@ class DB {
 		return $builder;
 	}
 
+	public function createDatabaseSchema(): void {
+		$instances = Registry::getAllInstances();
+		$migrations = new Collection();
+		foreach ($instances as $instance) {
+			$migrations = $migrations->merge($this->getMigrationFiles($instance));
+		}
+		$this->runMigrations(...$migrations->toArray());
+	}
+
+	private function getMigrationFiles(object $instance): Collection {
+		$migrations = new Collection();
+		$ref = new ReflectionClass($instance);
+		$attrs = $ref->getAttributes(HasMigrations::class);
+		if (empty($attrs)) {
+			return $migrations;
+		}
+		/** @var ?HasMigrations */
+		$migDir = $attrs[0]->newInstance();
+		if (!isset($migDir)) {
+			return new Collection();
+		}
+		$migDir->module ??= $instance->moduleName ?? null;
+		if (!isset($migDir->module)) {
+			return new Collection();
+		}
+		$fullDir = dirname($ref->getFileName()) . "/" . $migDir->dir;
+		$iter = new GlobIterator("{$fullDir}/*.php");
+		foreach ($iter as $file) {
+			if (is_string($file)) {
+				continue;
+			}
+			if (!preg_match("/^(\d+)/", $file->getFilename(), $m1)) {
+				continue;
+			}
+			$migrations->push(new CoreMigration(
+				filePath: $file->getPathname(),
+				baseName: $file->getBasename(".php"),
+				timeStr: $m1[1],
+				module: $migDir->module,
+			));
+		}
+		return $migrations;
+	}
+
+
 	public function createMigrationTables(): void {
 		$infoShown = false;
 		foreach (["migrations", "migrations_<myname>"] as $table) {
@@ -517,21 +566,48 @@ class DB {
 				->exists();
 	}
 
-	/** Load and apply all migrations for $module from directory $dir and return if any were applied */
-	public function loadMigrations(string $module, string $dir): bool {
+	public function runMigrations(CoreMigration ...$migrations): void {
+		$migrations = new Collection($migrations);
 		$this->createMigrationTables();
-		$files = glob("{$dir}/*.php");
-		$applied = $this->getAppliedMigrations($module);
-		$numApplied = 0;
-		foreach ($files as $file) {
-			$baseName = basename($file, '.php');
-			if ($applied->contains("migration", $baseName)) {
-				continue;
-			}
-			$this->applyMigration($module, $file);
-			$numApplied++;
+		$groupedMigs = $migrations->groupBy("module");
+		$missingMigs = $groupedMigs->map(function (Collection $migs, string $module): Collection {
+			return $this->filterAppliedMigrations($module, $migs);
+		})->flatten()
+		->sort(function (CoreMigration $f1, CoreMigration $f2): int {
+			return strcmp($f1->timeStr, $f2->timeStr);
+		});
+		if ($missingMigs->isEmpty()) {
+			return;
 		}
-		return $numApplied > 0;
+		$this->logger->notice("Applying {numMigs} database migrations", [
+			"numMigs" => $missingMigs->count(),
+		]);
+		foreach ($missingMigs as $mig) {
+			try {
+				$this->beginTransaction();
+				$this->applyMigration($mig->module, $mig->filePath);
+				if ($this->inTransaction()) {
+					$this->commit();
+				}
+			} catch (Throwable $e) {
+				$this->logger->critical(
+					"Error applying migration {module}/{baseName}: {error}",
+					array_merge((array)$mig, ["error" => $e->getMessage(), "exception" => $e])
+				);
+				if ($this->inTransaction()) {
+					$this->rollback();
+				}
+				exit;
+			}
+		}
+		$this->logger->notice("All migrations applied successfully");
+	}
+
+	private function filterAppliedMigrations(string $module, Collection $migrations): Collection {
+		$applied = $this->getAppliedMigrations($module);
+		return $migrations->filter(function (CoreMigration $m) use ($applied): bool {
+			return !$applied->contains("migration", $m->baseName);
+		});
 	}
 
 	protected function applyMigration(string $module, string $file): void {

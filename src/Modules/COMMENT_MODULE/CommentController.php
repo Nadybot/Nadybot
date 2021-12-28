@@ -28,6 +28,7 @@ use Nadybot\Core\ParamClass\PWord;
  */
 #[
 	NCA\Instance,
+	NCA\HasMigrations,
 	NCA\DefineCommand(
 		command: "comment",
 		accessLevel: "member",
@@ -124,7 +125,6 @@ class CommentController {
 		$this->db->registerTableName("comments", $sm->getString("table_name_comments")??"");
 		$this->db->registerTableName("comment_categories", $sm->getString("table_name_comment_categories")??"");
 		$sm->registerChangeListener("share_comments", [$this, "changeTableSharing"]);
-		$this->db->loadMigrations($this->moduleName, __DIR__ . '/Migrations');
 	}
 
 	public function changeTableSharing(string $settingName, string $oldValue, string $newValue, mixed $data): void {

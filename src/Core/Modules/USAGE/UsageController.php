@@ -29,6 +29,7 @@ use stdClass;
  */
 #[
 	NCA\Instance,
+	NCA\HasMigrations,
 	NCA\DefineCommand(
 		command: "usage",
 		accessLevel: "guild",
@@ -68,7 +69,6 @@ class UsageController {
 
 	#[NCA\Setup]
 	public function setup(): void {
-		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations");
 
 		$this->settingManager->add(
 			module: $this->moduleName,

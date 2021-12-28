@@ -17,6 +17,7 @@ use Nadybot\Modules\HELPBOT_MODULE\PlayfieldController;
  */
 #[
 	NCA\Instance,
+	NCA\HasMigrations,
 	NCA\DefineCommand(
 		command: "whereis",
 		accessLevel: "all",
@@ -49,7 +50,6 @@ class WhereisController {
 	 */
 	#[NCA\Setup]
 	public function setup(): void {
-		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations");
 		$this->db->loadCSVFile($this->moduleName, __DIR__ . "/whereis.csv");
 	}
 

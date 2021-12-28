@@ -42,6 +42,7 @@ use Nadybot\Core\Routing\Source;
  */
 #[
 	NCA\Instance,
+	NCA\HasMigrations("Migrations/Base"),
 	NCA\DefineCommand(
 		command: "logon",
 		accessLevel: "guild",
@@ -130,7 +131,6 @@ class GuildController {
 
 	#[NCA\Setup]
 	public function setup(): void {
-		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations/Base");
 
 		$this->settingManager->add(
 			module: $this->moduleName,

@@ -30,6 +30,7 @@ use Nadybot\Modules\SKILLS_MODULE\SkillsController;
  */
 #[
 	NCA\Instance,
+	NCA\HasMigrations("Migrations/Buff"),
 	NCA\DefineCommand(
 		command: "whatbuffs",
 		accessLevel: "all",
@@ -80,7 +81,6 @@ class WhatBuffsController {
 
 	#[NCA\Setup]
 	public function setup(): void {
-		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations/Buff");
 		$this->db->loadCSVFile($this->moduleName, __DIR__ . "/item_buffs.csv");
 		$this->db->loadCSVFile($this->moduleName, __DIR__ . "/skills.csv");
 		$this->db->loadCSVFile($this->moduleName, __DIR__ . "/skill_alias.csv");

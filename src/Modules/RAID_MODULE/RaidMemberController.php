@@ -26,6 +26,7 @@ use Nadybot\Modules\ONLINE_MODULE\OnlineController;
  */
 #[
 	NCA\Instance,
+	NCA\HasMigrations("Migrations/Member"),
 	NCA\DefineCommand(
 		command: "raid (join|leave)",
 		accessLevel: "member",
@@ -87,7 +88,6 @@ class RaidMemberController {
 	public function setup(): void {
 		$this->commandAlias->register($this->moduleName, "raidmember add", "raid add");
 		$this->commandAlias->register($this->moduleName, "raidmember rem", "raid kick");
-		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations/Member");
 
 		$this->settingManager->add(
 			module: $this->moduleName,

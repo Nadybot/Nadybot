@@ -23,6 +23,7 @@ use Nadybot\Modules\ITEMS_MODULE\Skill;
  */
 #[
 	NCA\Instance,
+	NCA\HasMigrations("Migrations/ArulSaba"),
 	NCA\DefineCommand(
 		command: "arulsaba",
 		accessLevel: "all",
@@ -59,7 +60,6 @@ class ArulSabaController {
 
 	#[NCA\Setup]
 	public function setup(): void {
-		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations/ArulSaba");
 		$this->db->loadCSVFile($this->moduleName, __DIR__ . "/arulsaba.csv");
 		$this->db->loadCSVFile($this->moduleName, __DIR__ . "/arulsaba_buffs.csv");
 		$this->db->loadCSVFile($this->moduleName, __DIR__ . "/ingredient.csv");
