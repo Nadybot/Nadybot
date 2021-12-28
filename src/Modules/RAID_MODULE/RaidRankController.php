@@ -423,25 +423,31 @@ class RaidRankController {
 		$this->remove($char(), $context->char->name, $context, [4, 5, 6], $rank);
 	}
 
+	/** @return Collection<RaidStat> */
 	protected function getRaidsByStarter(): Collection {
 		$query = $this->db->table(RaidController::DB_TABLE, "r")
 			->join(RaidMemberController::DB_TABLE . " AS rm", "r.raid_id", "rm.raid_id")
-			->leftJoin("alts AS a", "r.started_by", "a.alt")
 			->groupBy("r.raid_id", "r.started_by", "r.started");
-		$query = $query->havingRaw("COUNT(*) >= 5")
+		return $query->havingRaw("COUNT(*) >= 5")
 			->select(
 				"r.raid_id",
 				"r.started",
-				$query->colFunc("COALESCE", ["a.main", "r.started_by"], "main"),
-				$query->colFunc("COUNT", "*", "count")
-			);
-		return $query->asObj();
+				"r.started_by",
+				$query->colFunc("COUNT", "*", "num_raiders")
+			)
+			->asObj(RaidStat::class)
+			->each(function (RaidStat $stat): void {
+				$stat->starter_main = $this->altsController->getMainOf($stat->started_by);
+			});
 	}
 
+	/**
+	 * @param Collection<RaidStat> $stats
+	 */
 	protected function renderLeaders(bool $showStats, bool $showOfflineAlts, Collection $stats, string ...$names): string {
 		sort($names);
 		$output = [];
-		$raids = $stats->groupBy("main");
+		$raids = $stats->groupBy("starter_main");
 		foreach ($names as $who) {
 			$line = "<tab>{$who}" . $this->getOnlineStatus($who);
 			if ($showStats) {

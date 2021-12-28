@@ -3,7 +3,7 @@
 namespace Nadybot\Core\Modules\ALTS;
 
 use Nadybot\Core\Attributes as NCA;
-use Illuminate\Database\Query\JoinClause;
+use Illuminate\Support\Collection;
 use Nadybot\Core\BuddylistManager;
 use Nadybot\Core\DB;
 use Nadybot\Core\DBSchema\Alt;
@@ -185,30 +185,33 @@ class AltInfo {
 		$blob .= $this->formatOnlineStatus($online);
 		$blob .= "\n";
 
-		$query = $this->db->table("alts AS a")
-			->leftJoin("players AS p", function(JoinClause $table) {
-				$table->on("a.alt", "p.name");
-				$table->where("p.dimension", $this->db->getDim());
-			})
+		/** @var Collection<Alt> */
+		$alts = $this->db->table("alts AS a")
 			->where("a.main", $this->main)
-			->select("a.alt", "a.main", "a.validated_by_main", "a.validated_by_alt", "p.*");
+			->asObj(AltPlayer::class);
+		$altNames = $alts->pluck("alt")->toArray();
+		$playerDataByAlt = $this->playerManager
+			->searchByNames($this->db->getDim(), ...$altNames)
+			->keyBy("name");
+		$alts->each(function (AltPlayer $alt) use ($playerDataByAlt): void {
+			$alt->player = $playerDataByAlt->get($alt->alt);
+		});
 		if ($this->settingManager->get('alts_sort') === 'level') {
-			$query->orderByDesc("p.level");
-			$query->orderByDesc("p.ai_level");
-			$query->orderBy("p.name");
+			$alts = $alts->sortBy("alt")
+				->sortByDesc("player.ai_level")
+				->sortByDesc("player.level");
 		} elseif ($this->settingManager->get('alts_sort') === 'name') {
-			$query->orderBy("p.name");
+			$alts = $alts->sortBy("alt");
 		}
-		$data = $query->asObj(Alt::class)->toArray();
-		$count = count($data) + 1;
-		foreach ($data as $row) {
+		$count = $alts->count() + 1;
+		foreach ($alts as $row) {
 			$online = $this->buddylistManager->isOnline($row->alt);
-			$blob .= $this->text->alignNumber((int)$row->level, 3, "highlight");
+			$blob .= $this->text->alignNumber($row->player?->level??0, 3, "highlight");
 			$blob .= " ";
-			$blob .= $this->text->alignNumber((int)$row->ai_level, 2, "green");
+			$blob .= $this->text->alignNumber($row->player?->ai_level??0, 2, "green");
 			$blob .= " ";
-			if ($profDisplay & 1 && $row->profession !== null) {
-				$profId = $this->onlineController->getProfessionId($row->profession);
+			if ($profDisplay & 1 && $row->player?->profession !== null) {
+				$profId = $this->onlineController->getProfessionId($row->player?->profession??"");
 				if (isset($profId)) {
 					$blob .= "<img src=tdb://id:GFX_GUI_ICON_PROFESSION_{$profId}> ";
 				}
@@ -217,15 +220,15 @@ class AltInfo {
 			}
 			$blob .= $this->formatCharName($row->alt, $online);
 			$extraInfo = [];
-			if ($profDisplay & 2 && $row->profession !== null) {
-				$extraInfo []= $this->util->getProfessionAbbreviation($row->profession);
+			if ($profDisplay & 2 && $row->player?->profession !== null) {
+				$extraInfo []= $this->util->getProfessionAbbreviation($row->player->profession);
 			}
-			if ($profDisplay & 4 && $row->profession !== null) {
-				$extraInfo []= $row->profession;
+			if ($profDisplay & 4 && $row->player?->profession !== null) {
+				$extraInfo []= $row->player->profession;
 			}
-			if ($this->settingManager->getBool('alts_show_org') && $row->faction !== null && !$firstPageOnly) {
-				$factionColor = strtolower($row->faction);
-				$orgName = strlen($row->guild) ? $row->guild : $row->faction;
+			if ($this->settingManager->getBool('alts_show_org') && $row->player?->faction !== null && !$firstPageOnly) {
+				$factionColor = strtolower($row->player->faction);
+				$orgName = !empty($row->player?->guild) ? $row->player->guild : $row->player->faction;
 				$extraInfo []= "<{$factionColor}>{$orgName}<end>";
 			}
 			if (count($extraInfo)) {

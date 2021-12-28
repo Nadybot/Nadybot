@@ -21,7 +21,7 @@ class PerkAggregate {
 	public int $max_level = 1;
 
 	/**
-	 * @var PerkLevelBuff[]
+	 * @var ExtPerkLevelBuff[]
 	 */
 	public array $buffs = [];
 

@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\SKILLS_MODULE;
 
+use Illuminate\Support\Collection;
 use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{
 	CmdContext,
@@ -21,6 +22,8 @@ use Nadybot\Modules\{
 	ITEMS_MODULE\Skill,
 	ITEMS_MODULE\WhatBuffsController,
 };
+use Nadybot\Modules\ITEMS_MODULE\ItemsController;
+use Nadybot\Modules\NANO_MODULE\NanoController;
 use Throwable;
 
 /**
@@ -66,10 +69,18 @@ class BuffPerksController {
 	public SettingManager $settingManager;
 
 	#[NCA\Inject]
+	public ItemsController $itemsController;
+
+	#[NCA\Inject]
+	public NanoController $nanoController;
+
+	#[NCA\Inject]
 	public Timer $timer;
 
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
+
+	public Collection $perks;
 
 	#[NCA\Setup]
 	public function setup(): void {
@@ -96,12 +107,12 @@ class BuffPerksController {
 		if ($this->settingManager->exists("perks_db_version")) {
 			$dbVersion = (int)$this->settingManager->get("perks_db_version");
 		}
+		$perkInfo = $this->getPerkInfo();
+		$this->perks = new Collection($perkInfo);
 		if (($mtime === false || $dbVersion >= $mtime) && !$applied) {
 			return;
 		}
 		$this->logger->notice("(Re)building perk database...");
-
-		$perkInfo = $this->getPerkInfo();
 
 		$this->db->beginTransaction();
 		try {
@@ -646,7 +657,7 @@ class BuffPerksController {
 		$minLevel = min(array_keys($perk->levels));
 		$result->professions = $perk->levels[$minLevel]->professions;
 		$result->max_level = max(array_keys($perk->levels));
-		/** @var array<int,PerkLevelBuff> */
+		/** @var array<int,ExtPerkLevelBuff> */
 		$buffs = [];
 		/** @var array<int,PerkLevelResistance> */
 		$resistances = [];
@@ -672,7 +683,7 @@ class BuffPerksController {
 		$result->buffs = array_values($buffs);
 		usort(
 			$result->buffs,
-			function (PerkLevelBuff $a, PerkLevelBuff $b): int {
+			function (ExtPerkLevelBuff $a, ExtPerkLevelBuff $b): int {
 				return strcmp($a->skill_name, $b->skill_name);
 			}
 		);
@@ -714,44 +725,52 @@ class BuffPerksController {
 					->toArray();
 				$perk->levels[$row->perk_level] = $row;
 			});
-		$this->db->table("perk_level AS pl")
+		$levels = $this->db->table("perk_level AS pl")
 			->join("perk_level_actions AS pla", "pl.id", "pla.perk_level_id")
-			->join("aodb AS a", "a.lowid", "pla.action_id")
 			->where("pl.perk_id", $perk->id)
 			->orderBy("pl.perk_level")
-			->select("pl.perk_level", "pla.*", "a.*")
-			->asObj(PerkLevelAction::class)
-			->each(function (PerkLevelAction $perkLevelAction) use ($perk): void {
-				$item = new AODBEntry();
-				foreach (get_class_vars(AODBEntry::class) as $key => $value) {
-					$item->{$key} = $perkLevelAction->{$key};
-					unset($perkLevelAction->{$key});
-				}
-				$perkLevelAction->aodb = $item;
-				$perk->levels[$perkLevelAction->perk_level??0]->action = $perkLevelAction;
-			});
-		$this->db->table("perk_level AS pl")
+			->select("pl.perk_level", "pla.*")
+			->asObj(PerkLevelAction::class);
+		$items = $this->itemsController->getByIDs(...$levels->pluck("action_id")->toArray())
+			->keyBy("lowid");
+		$levels->each(function (PerkLevelAction $perkLevelAction) use ($perk, $items): void {
+			$perkLevelAction->aodb = $items->get($perkLevelAction->action_id);
+			$perk->levels[$perkLevelAction->perk_level??0]->action = $perkLevelAction;
+		});
+		$eplb = $this->db->table("perk_level AS pl")
 			->join("perk_level_buffs AS plb", "pl.id", "plb.perk_level_id")
-			->join("skills AS s", "s.id", "plb.skill_id")
 			->where("pl.perk_id", $perk->id)
 			->orderBy("pl.perk_level")
-			->orderBy("s.name")
-			->select("pl.perk_level", "plb.skill_id", "s.name AS skill_name", "plb.amount", "s.unit")
-			->asObj(PerkLevelBuff::class)
-			->each(function (PerkLevelBuff $buff) use ($perk): void {
-				$perk->levels[$buff->perk_level]->perk_buffs []= $buff;
-			});
-		$this->db->table("perk_level AS pl")
+			->select("pl.perk_level", "plb.skill_id", "plb.amount")
+			->asObj(ExtPerkLevelBuff::class);
+		$skills = $this->itemsController->getSkillByIDs(...$eplb->pluck("skill_id")->toArray())
+			->keyBy("id");
+		$eplb->each(function (ExtPerkLevelBuff $buff) use ($skills): void {
+			/** @var Skill */
+			$skill = $skills->get($buff->skill_id);
+			$buff->skill_name = $skill->name;
+			$buff->unit = $skill->unit;
+		});
+		$eplb = $eplb->sortBy("skill_name");
+		$eplb->each(function (ExtPerkLevelBuff $buff) use ($perk): void {
+			$perk->levels[$buff->perk_level]->perk_buffs []= $buff;
+		});
+		$plr = $this->db->table("perk_level AS pl")
 			->join("perk_level_resistances AS plr", "pl.id", "plr.perk_level_id")
-			->join("nano_lines AS nl", "nl.strain_id", "plr.strain_id")
 			->where("pl.perk_id", $perk->id)
 			->orderBy("pl.perk_level")
-			->orderBy("nl.name")
-			->select("pl.perk_level", "plr.*", "nl.name AS nanoline")
-			->asObj(PerkLevelResistance::class)
-			->each(function (PerkLevelResistance $res) use ($perk): void {
-				$perk->levels[$res->perk_level]->perk_resistances []= $res;
-			});
+			->select("pl.perk_level", "plr.*")
+			->asObj(PerkLevelResistance::class);
+		$nanolines = $this->nanoController
+			->getNanoLinesByIds(...$plr->pluck("strain_id")->toArray())
+			->keyBy("strain_id");
+		$plr->each(function (PerkLevelResistance $res) use ($nanolines): void {
+			$res->nanoline = $nanolines->get($res->strain_id)->name;
+		});
+		$plr = $plr->sortBy("nanoline");
+		$plr->each(function (PerkLevelResistance $res) use ($perk): void {
+			$perk->levels[$res->perk_level]->perk_resistances []= $res;
+		});
 		return $perk;
 	}
 
@@ -790,51 +809,95 @@ class BuffPerksController {
 				$perks[$perkLevel->perk_id]->levels[$perkLevel->perk_level]->professions []= $prof;
 				return $perks;
 			}, $perks);
-		$this->db->table("perk_level AS pl")
+		$pla = $this->db->table("perk_level AS pl")
 			->join("perk_level_prof AS plp", "pl.id", "plp.perk_level_id")
 			->join("perk_level_actions AS pla", "pl.id", "pla.perk_level_id")
-			->join("aodb AS a", "a.lowid", "pla.action_id")
 			->where("pl.required_level", "<=", $level)
 			->where("plp.profession", $profession)
 			->orderBy("pl.perk_level")
-			->select("pl.perk_id", "pl.perk_level", "pla.*", "a.*")
-			->asObj(PerkLevelAction::class)
-			->each(function(PerkLevelAction $action) use ($perks) {
-				$item = new AODBEntry();
-				foreach (get_class_vars(AODBEntry::class) as $key => $value) {
-					$item->{$key} = $action->{$key};
-					unset($action->{$key});
-				}
-				$action->aodb = $item;
-				$perks[$action->perk_id]->levels[$action->perk_level??0]->action = $action;
-			});
-		$this->db->table("perk_level AS pl")
+			->select("pl.perk_id", "pl.perk_level", "pla.*")
+			->asObj(PerkLevelAction::class);
+		$items = $this->itemsController
+			->getByIDs(...$pla->pluck("action_id")->toArray())
+			->keyBy("lowid");
+		$pla->each(function(PerkLevelAction $action) use ($perks, $items) {
+			$action->aodb = $items->get($action->action_id);
+			$perks[$action->perk_id]->levels[$action->perk_level??0]->action = $action;
+		});
+		$plb = $this->db->table("perk_level AS pl")
 			->join("perk_level_prof AS plp", "pl.id", "plp.perk_level_id")
 			->join("perk_level_buffs AS plb", "pl.id", "plb.perk_level_id")
-			->join("skills AS s", "s.id", "plb.skill_id")
 			->where("pl.required_level", "<=", $level)
 			->where("plp.profession", $profession)
 			->orderBy("pl.perk_level")
-			->orderBy("s.name")
-			->select("pl.perk_id", "pl.perk_level", "plb.skill_id")
-			->addSelect("s.name AS skill_name", "plb.amount", "s.unit")
-			->asObj(PerkLevelBuff::class)
-			->each(function (PerkLevelBuff $buff) use ($perks): void {
-				$perks[$buff->perk_id]->levels[$buff->perk_level]->perk_buffs []= $buff;
-			});
-		$this->db->table("perk_level AS pl")
+			->select("pl.perk_id", "pl.perk_level", "plb.skill_id", "plb.amount")
+			->asObj(ExtPerkLevelBuff::class);
+		$skills = $this->itemsController
+			->getSkillByIDs(...$plb->pluck("skill_id")->toArray())
+			->keyBy("id");
+		$plb->each(function (ExtPerkLevelBuff $buff) use ($skills): void {
+			/** @var Skill */
+			$skill = $skills->get($buff->skill_id);
+			$buff->skill_name = $skill->name;
+			$buff->unit = $skill->unit;
+		});
+		$plb = $plb->sortBy("skill_name");
+		$plb->each(function (ExtPerkLevelBuff $buff) use ($perks): void {
+			$perks[$buff->perk_id]->levels[$buff->perk_level]->perk_buffs []= $buff;
+		});
+		$plr = $this->db->table("perk_level AS pl")
 			->join("perk_level_prof AS plp", "pl.id", "plp.perk_level_id")
 			->join("perk_level_resistances AS plr", "pl.id", "plr.perk_level_id")
-			->join("nano_lines AS nl", "nl.strain_id", "plr.strain_id")
 			->where("pl.required_level", "<=", $level)
 			->where("plp.profession", $profession)
 			->orderBy("pl.perk_level")
-			->orderBy("nl.name")
-			->select("pl.perk_id", "pl.perk_level", "plr.*", "nl.name AS nanoline")
-			->asObj(PerkLevelResistance::class)
-			->each(function (PerkLevelResistance $res) use ($perks): void {
-				$perks[$res->perk_id]->levels[$res->perk_level]->perk_resistances []= $res;
-			});
+			->select("pl.perk_id", "pl.perk_level", "plr.*")
+			->asObj(PerkLevelResistance::class);
+
+		$nanolines = $this->nanoController
+			->getNanoLinesByIds(...$plr->pluck("strain_id")->toArray())
+			->keyBy("strain_id");
+		$plr->each(function (PerkLevelResistance $res) use ($nanolines): void {
+			$res->nanoline = $nanolines->get($res->strain_id)->name;
+		});
+		$plr = $plr->sortBy("nanoline");
+		$plr->each(function (PerkLevelResistance $res) use ($perks): void {
+			$perks[$res->perk_id]->levels[$res->perk_level]->perk_resistances []= $res;
+		});
 		return array_values($perks);
+	}
+
+	/** @return Collection<PerkLevelBuff> */
+	public function getPerkBuffs(?int $perkLevelId=null, null|int|array $skillId=null): Collection {
+		$query = $this->db->table("perk_level_buffs");
+		if (isset($perkLevelId)) {
+			$query->where("perk_level_id", $perkLevelId);
+		}
+		if (is_int($skillId)) {
+			$query->where("skill_id", $skillId);
+		} elseif (isset($skillId)) {
+			$query->whereIn("skill_id", $skillId);
+		}
+		return $query->asObj(PerkLevelBuff::class);
+	}
+
+	/**
+	 * @param null|int|int[] $perkId
+	 * @param null|int|int[] $perkLevelId
+	 * @return Collection<PerkLevel>
+	 */
+	public function getPerkLevels(null|int|array $perkId=null, null|int|array $perkLevelId=null): Collection {
+		$query = $this->db->table("perk_level");
+		if (is_array($perkLevelId)) {
+			$query->whereIn("id", $perkLevelId);
+		} elseif (is_int($perkLevelId)) {
+			$query->where("id", $perkLevelId);
+		}
+		if (is_int($perkId)) {
+			$query->where("perk_id", $perkId);
+		} elseif (isset($perkId)) {
+			$query->whereIn("perk_id", $perkId);
+		}
+		return $query->asObj(PerkLevel::class);
 	}
 }
