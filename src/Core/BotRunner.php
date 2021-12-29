@@ -174,6 +174,11 @@ class BotRunner {
 	}
 
 	public function checkRequiredModules(): void {
+		if (version_compare(PHP_VERSION, "8.0.0", "<")) {
+			fwrite(STDERR, "Nadybot 6 needs at least PHP version 8 to run, you have " . PHP_VERSION . "\n");
+			sleep(5);
+			exit(1);
+		}
 		$missing = [];
 		$requiredModules = [
 			["bcmath", "gmp"],
