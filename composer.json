@@ -50,7 +50,10 @@
 		}
 	},
 	"config": {
-		"vendor-dir": "vendor"
+		"vendor-dir": "vendor",
+		"allow-plugins": {
+			"composer/package-versions-deprecated": true
+		}
 	},
 	"require-dev": {
 		"squizlabs/php_codesniffer": "^3.6",
