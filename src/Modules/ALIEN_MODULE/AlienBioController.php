@@ -350,12 +350,12 @@ class AlienBioController {
 
 		$requiredEEandCL = (int)floor($ql * 4.5);
 
-		$row = $this->db->table("alienweaponspecials")
+		$specials = $this->db->table("alienweaponspecials")
 			->where("type", $type)
 			->select("specials")
 			->limit(1)
-			->asObj()->first();
-		$specials = $row->specials;
+			->pluckAs("specials", "string")
+			->first();
 
 		$blob = $item . "\n\n";
 		$blob .= "It will take <highlight>$requiredEEandCL<end> EE & CL (<highlight>4.5 * QL<end>) to analyze the Bio-Material.\n\n";

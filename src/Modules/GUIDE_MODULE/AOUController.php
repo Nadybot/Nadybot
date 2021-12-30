@@ -14,6 +14,7 @@ use Nadybot\Core\{
 	HttpResponse,
 	Text,
 };
+use Nadybot\Modules\ITEMS_MODULE\AODBEntry;
 use Nadybot\Modules\ITEMS_MODULE\ItemsController;
 use Throwable;
 
@@ -328,7 +329,7 @@ class AOUController {
 		return $tag;
 	}
 
-	private function generateItemMarkup(string $type, DBRow $obj): string {
+	private function generateItemMarkup(string $type, AODBEntry $obj): string {
 		$output = '';
 		if ($type === "item" || $type === "itemicon") {
 			$output .= $this->text->makeImage($obj->icon);

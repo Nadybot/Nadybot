@@ -30,7 +30,7 @@ class WebChatConverter {
 	/**
 	 * Add the color and display information to the path
 	 * @param null|Source[] $path
-	 * @return null|Source[]
+	 * @return null|WebSource[]
 	 */
 	public function convertPath(?array $path=null): ?array {
 		if (!isset($path)) {
@@ -39,12 +39,15 @@ class WebChatConverter {
 		$result = [];
 		$lastHop = null;
 		foreach ($path as $hop) {
-			$newHop = clone $hop;
+			$newHop = new WebSource($hop->type, $hop->name, $hop->label);
+			foreach ($hop as $key => $value) {
+				$newHop->{$key} = $value;
+			}
 			$newHop->renderAs = $newHop->render($lastHop);
 			$lastHop = $hop;
 			$color = $this->messageHub->getHopColor($path, Source::WEB, $newHop, "tag_color");
 			if (isset($color)) {
-				$newHop->color = $color->tag_color;
+				$newHop->color = $color->tag_color ?? "";
 			} else {
 				$newHop->color = "";
 			}

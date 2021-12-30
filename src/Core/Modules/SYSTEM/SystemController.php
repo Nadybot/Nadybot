@@ -380,7 +380,7 @@ class SystemController implements MessageEmitter {
 		$stats->org_size = count($this->chatBot->guildmembers);
 		$stats->chatqueue_length = 0;
 		if (isset($this->chatBot->chatqueue)) {
-			$stats->chatqueue_length = count($this->chatBot->chatqueue->queue);
+			$stats->chatqueue_length = $this->chatBot->chatqueue->getSize();
 		}
 
 		foreach ($this->chatBot->grp as $gid => $status) {
@@ -518,11 +518,7 @@ class SystemController implements MessageEmitter {
 			$context->reply("There is currently no Chat queue set up.");
 			return;
 		}
-		$num = 0;
-		foreach ($this->chatBot->chatqueue->queue as $priority) {
-			$num += count($priority);
-		}
-		$this->chatBot->chatqueue->queue = [];
+		$num = $this->chatBot->chatqueue->clear();
 
 		$context->reply("Chat queue has been cleared of <highlight>{$num}<end> messages.");
 	}

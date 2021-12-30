@@ -11,7 +11,7 @@ use Nadybot\Core\ParamClass\PItem;
 use Nadybot\Core\Text;
 use Nadybot\Core\Util;
 use Nadybot\Modules\ITEMS_MODULE\ItemsController;
-use Nadybot\Modules\ITEMS_MODULE\AODBEntry;
+use Nadybot\Modules\ITEMS_MODULE\AODBItem;
 
 /**
  * @author Tyrence
@@ -79,10 +79,10 @@ class RecipeController {
 		$recipe->name = $data->name ?? "<unnamed>";
 		$recipe->author = $data->author ?? "<unknown>";
 		$recipe->date = filemtime($this->path . $fileName);
-		/** @var array<string,AODBEntry> */
+		/** @var array<string,AODBItem> */
 		$items = [];
 		foreach ($data->items as $item) {
-			$dbItem = $this->itemsController->findById($item->item_id);
+			$dbItem = AODBItem::fromEntry($this->itemsController->findById($item->item_id));
 			if ($dbItem === null) {
 				throw new Exception("Could not find item '{$item->item_id}'");
 			}

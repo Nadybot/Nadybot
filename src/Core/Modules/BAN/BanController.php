@@ -647,7 +647,7 @@ class BanController {
 	}
 
 	/**
-	 * @param Organization[] $orgs
+	 * @param \Nadybot\Modules\ORGLIST_MODULE\Organization[] $orgs
 	 * @param string|null $duration
 	 * @param string $reason
 	 */

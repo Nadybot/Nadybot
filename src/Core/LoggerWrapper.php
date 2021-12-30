@@ -62,15 +62,15 @@ class LoggerWrapper {
 	 * Log a message according to log settings
 	 *
 	 * @param string $category The log category (TRACE, DEBUG, INFO, WARN, ERROR, FATAL)
-	 * @param mixed $message The message to log
-	 * @param Throwable $throwable Optional throwable information to include in the logging event
+	 * @param string $message The message to log
+	 * @param ?Throwable $throwable Optional throwable information to include in the logging event
 	 * @return void
 	 */
 	public function log(string $category, string $message, ?Throwable $throwable=null): void {
 		$level = LegacyLogger::getLoggerLevel($category);
 		$context = [];
 		if (isset($throwable)) {
-			$context["Exception"] = $throwable;
+			$context["exception"] = $throwable;
 		}
 		$this->logger->log($level, $message, $context);
 	}

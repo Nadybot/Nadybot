@@ -141,18 +141,8 @@ class TimerController implements MessageEmitter {
 		/** @var Collection<Timer> */
 		$data = $this->db->table(static::DB_TABLE)
 			->select("id", "name", "owner", "mode", "endtime", "settime", "origin")
-			->addSelect("callback", "data", "alerts AS alerts_raw")
+			->addSelect("callback", "data", "alerts")
 			->asObj(Timer::class);
-		foreach ($data as $row) {
-			$alertsData = json_decode($row->alerts_raw);
-			foreach ($alertsData as $alertData) {
-				$alert = new Alert();
-				foreach ($alertData as $key => $value) {
-					$alert->{$key} = $value;
-				}
-				$row->alerts []= $alert;
-			}
-		}
 		return $data;
 	}
 

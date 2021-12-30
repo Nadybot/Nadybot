@@ -97,7 +97,7 @@ class JWT {
 		}
 
 		// Check the signature
-		if (!static::verify("$headb64.$bodyb64", $sig, $key, $header->alg)) {
+		if (!self::verify("$headb64.$bodyb64", $sig, $key, $header->alg)) {
 			throw new SignatureInvalidException('Signature verification failed');
 		}
 
@@ -183,7 +183,7 @@ class JWT {
 		}
 
 		if ($errno = json_last_error()) {
-			static::handleJsonError($errno);
+			self::handleJsonError($errno);
 		} elseif ($obj === null && $input !== 'null') {
 			throw new DomainException('Null result with non-null input');
 		}

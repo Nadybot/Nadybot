@@ -136,11 +136,11 @@ class DiscController {
 	/**
 	 * Get additional information about the nano of a disc
 	 */
-	public function getNanoDetails(Disc $disc): ?DBRow {
+	public function getNanoDetails(Disc $disc): ?NanoDetails {
 		return $this->db->table("nanos")
 			->where("crystal_id", $disc->crystal_id)
 			->select("location", "professions", "strain AS nanoline_name")
-			->asObj()
+			->asObj(NanoDetails::class)
 			->first();
 	}
 

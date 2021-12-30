@@ -2,14 +2,16 @@
 
 namespace Nadybot\Modules\SKILLS_MODULE;
 
+use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\DBRow;
 use Nadybot\Modules\ITEMS_MODULE\AODBEntry;
 
 class PerkLevelAction extends DBRow {
 	public int $perk_level_id;
-	/** @db:ignore */
+	#[NCA\DB\Ignore]
 	public ?int $perk_level;
 	public int $action_id;
 	public bool $scaling = false;
-	public ?AODBEntry $aodb;
+	#[NCA\DB\Ignore]
+	public ?AODBEntry $aodb = null;
 }

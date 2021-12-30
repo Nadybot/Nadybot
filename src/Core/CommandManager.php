@@ -7,6 +7,7 @@ use Nadybot\Core\Attributes as NCA;
 use Throwable;
 use ReflectionException;
 use Nadybot\Core\DBSchema\CmdCfg;
+use Nadybot\Core\DBSchema\CommandSearchResult;
 use Nadybot\Core\Modules\CONFIG\CommandSearchController;
 use Nadybot\Core\Modules\LIMITS\LimitsController;
 use Nadybot\Core\Modules\USAGE\UsageController;
@@ -298,7 +299,7 @@ class CommandManager implements MessageEmitter {
 	/**
 	 * Get the name of a similar command
 	 */
-	private function mapToCmd(DBRow $sc): string {
+	private function mapToCmd(CommandSearchResult $sc): string {
 		return $sc->cmd;
 	}
 

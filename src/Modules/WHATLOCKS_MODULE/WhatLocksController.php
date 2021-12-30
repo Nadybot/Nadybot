@@ -92,7 +92,7 @@ class WhatLocksController {
 
 	/**
 	 * Get a dialog to choose which skill to search for locks
-	 * @param Skill[] $skills A list of skills to choose from
+	 * @param Skill $skills A list of skills to choose from
 	 * @return string[] The complete dialogue
 	 */
 	public function getSkillChoiceDialog(Skill ...$skills): array {

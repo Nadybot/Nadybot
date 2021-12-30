@@ -44,7 +44,7 @@ class Guild extends JSONDataModel {
 	public array $roles = [];
 	/**
 	 * custom guild emojis
-	 * @var Nadybot\Modules\DISCORD_GATEWAY_MODULE\Model\Emoji[]
+	 * @var \Nadybot\Modules\DISCORD_GATEWAY_MODULE\Model\Emoji[]
 	 */
 	public array $emojis = [];
 	/**

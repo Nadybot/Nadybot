@@ -434,6 +434,7 @@ class NewsController {
 		} catch (Throwable $e) {
 			return new Response(Response::UNPROCESSABLE_ENTITY);
 		}
+		$decoded = News::fromNewNews($decoded);
 		unset($decoded->id);
 		$decoded->time ??= time();
 		$decoded->name = $request->authenticatedAs??"_";
@@ -473,6 +474,7 @@ class NewsController {
 		} catch (Throwable $e) {
 			return new Response(Response::UNPROCESSABLE_ENTITY);
 		}
+		$decoded = News::fromNewNews($decoded);
 		$decoded->id = $id;
 		$decoded->name = $request->authenticatedAs??"_";
 		foreach ($decoded as $attr => $value) {

@@ -208,12 +208,12 @@ class NadyNative implements RelayProtocolInterface {
 	}
 
 	protected function handleOnlineList(?string $sender, object $onlineList): void {
+		/** @var OnlineList $onlineList */
 		if (!isset($sender)) {
 			// If we don't know the sender of that package, we can never
 			// put people to offline when the bot leaves
 			return;
 		}
-		/** @var OnlineList $onlineList */
 		foreach ($onlineList->online as $block) {
 			$this->handleOnlineBlock($sender, $block);
 		}
@@ -228,7 +228,7 @@ class NadyNative implements RelayProtocolInterface {
 				$hop->type,
 				$hop->name,
 				$hop->label??null,
-				$hop->dimension??null
+				isset($hop->dimension) ? $hop->dimension : null
 			);
 			$hops []= $source->render($lastHop);
 			$lastHop = $source;

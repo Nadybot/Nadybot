@@ -154,8 +154,6 @@ class Nadybot extends AOChat {
 
 	/**
 	 * Initialize the bot
-	 *
-	 * @param array<string,mixed> $vars The configuration variables of the bot
 	 */
 	public function init(BotRunner $runner): void {
 		$this->started = time();

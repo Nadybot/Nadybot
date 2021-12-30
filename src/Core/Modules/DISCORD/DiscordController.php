@@ -153,6 +153,7 @@ class DiscordController {
 			-1,
 			$linksReplaced
 		);
+		$linksReplaced2 = 0;
 		$text = preg_replace(
 			"|<a [^>]*?href=['\"]itemid://53019/(\d+)['\"]>(.+?)</a>|s",
 			"[$2](https://aoitems.com/item/$1)",
@@ -174,7 +175,7 @@ class DiscordController {
 
 		$text = strip_tags($text);
 		$text = str_replace(["&lt;", "&gt;"], ["<", ">"], $text);
-		if (!count($embeds) && $linksReplaced > 0) {
+		if (!count($embeds) && $linksReplaced !== 0) {
 			$embed = new DiscordEmbed();
 			$embed->description = $text;
 			$text = "";

@@ -66,6 +66,9 @@ class ItemsController {
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
+	/** @var array<int,Skill> */
+	private array $skills = [];
+
 	#[NCA\Setup]
 	public function setup(): void {
 		$this->db->loadCSVFile($this->moduleName, __DIR__ . "/aodb.csv");
@@ -81,6 +84,10 @@ class ItemsController {
 			value: '40',
 			options: '30;40;50;60'
 		);
+		$this->skills = $this->db->table("skills")
+			->asObj(Skill::class)
+			->keyBy("id")
+			->toArray();
 	}
 
 	#[NCA\HandlesCommand("items")]
@@ -91,7 +98,7 @@ class ItemsController {
 
 	#[NCA\HandlesCommand("itemid")]
 	public function itemIdCommand(CmdContext $context, int $id): void {
-		$row = $this->findById($id);
+		$row = ItemSearchResult::fromItem($this->findById($id));
 		if ($row === null) {
 			$msg = "No item found with id <highlight>$id<end>.";
 			$context->reply($msg);
@@ -99,7 +106,9 @@ class ItemsController {
 		}
 		$blob = "";
 		foreach ($row as $key => $value) {
-			$blob .= "$key: <highlight>$value<end>\n";
+			if ($key !== "numExactMatches") {
+				$blob .= "$key: <highlight>" . (is_bool($value) ? ["no", "yes"][(int)$value] : $value) . "<end>\n";
+			}
 		}
 		$row->ql = $row->highql;
 		if ($row->lowid === $id) {
@@ -204,7 +213,6 @@ class ItemsController {
 	}
 
 	/**
-	 * @param array $args
 	 * @return string|string[]
 	 */
 	public function findItems(?int $ql, string $search): string|array {
@@ -380,7 +388,7 @@ class ItemsController {
 		$oldGroup = null;
 		for ($itemNum = 0; $itemNum < count($data); $itemNum++) {
 			$row = $data[$itemNum];
-			$row->origName = $row->name;
+			$origName = $row->name;
 			$newGroup = false;
 			if (!isset($row->group_id) && $ql && $ql !== $row->ql) {
 				continue;
@@ -439,7 +447,7 @@ class ItemsController {
 				} else {
 					$list .= ", ";
 				}
-				if (isset($search) && $this->itemNameMatchesSearch($row->origName, $search)) {
+				if (isset($search) && $this->itemNameMatchesSearch($origName, $search)) {
 					if (!isset($nameMatches)) {
 						$list .= "<red>[<end>";
 						$nameMatches = true;
@@ -608,6 +616,11 @@ class ItemsController {
 				array_shift($words)
 			)
 		);
+	}
+
+	/** @return ?Skill */
+	public function getSkillByID(int $id): ?Skill {
+		return $this->skills[$id] ?? null;
 	}
 
 	/** @return Collection<Skill> */

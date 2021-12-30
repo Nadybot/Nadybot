@@ -12,6 +12,7 @@ use Nadybot\Core\SettingManager;
 use Nadybot\Core\Util;
 use Nadybot\Core\Text;
 use Nadybot\Modules\ITEMS_MODULE\AODBEntry;
+use Nadybot\Modules\ITEMS_MODULE\AODBItem;
 use Nadybot\Modules\ITEMS_MODULE\ItemFlag;
 use Nadybot\Modules\ITEMS_MODULE\ItemsController;
 use Nadybot\Modules\ITEMS_MODULE\ItemWithBuffs;
@@ -138,7 +139,7 @@ class ArulSabaController {
 		if (!isset($ing->aoid)) {
 			return $ing;
 		}
-		$ing->item = $this->itemsController->findById($ing->aoid);
+		$ing->item = AODBItem::fromEntry($this->itemsController->findById($ing->aoid));
 		if (isset($ing->item)) {
 			$ql ??= $ing->item->lowql;
 			$ing->item->ql = $ql;
@@ -346,12 +347,12 @@ class ArulSabaController {
 
 		$blob .= "<pagebreak><header2>Balancing the blueprint<end>\n".
 			$this->renderStep($adjuster, $bPrint, $bbPrint, [static::ME => "*3", static::EE => "*3.2"]);
-		$liqSilver         = $this->itemsController->findByName("Liquid Silver", $ingot->ql);
-		$silFilWire        = $this->itemsController->findByName("Silver Filigree Wire", $ingot->ql);
-		$silNaCircWire     = $this->itemsController->findByName("Silver Nano Circuitry Filigree Wire", $ingot->ql);
-		$nanoSensor        = $this->itemsController->findById(150923);
-		$intNanoSensor     = $this->itemsController->findById(150926);
-		$circuitry         = $this->itemsController->findByName("Bracelet Circuitry", $ingot->ql);
+		$liqSilver         = AODBItem::fromEntry($this->itemsController->findByName("Liquid Silver", $ingot->ql));
+		$silFilWire        = AODBItem::fromEntry($this->itemsController->findByName("Silver Filigree Wire", $ingot->ql));
+		$silNaCircWire     = AODBItem::fromEntry($this->itemsController->findByName("Silver Nano Circuitry Filigree Wire", $ingot->ql));
+		$nanoSensor        = AODBItem::fromEntry($this->itemsController->findById(150923));
+		$intNanoSensor     = AODBItem::fromEntry($this->itemsController->findById(150926));
+		$circuitry         = AODBItem::fromEntry($this->itemsController->findByName("Bracelet Circuitry", $ingot->ql));
 		if (!isset($liqSilver)
 			|| !isset($silFilWire)
 			|| !isset($silNaCircWire)
@@ -410,7 +411,7 @@ class ArulSabaController {
 			$resultName = "Bracelet of Arul Saba ({$prefix} {$arul->name} - ".
 				($i + 1) . "/{$reqGems} - ".
 				ucfirst($side) . ")";
-			$result = $this->itemsController->findByName($resultName);
+			$result = AODBItem::fromEntry($this->itemsController->findByName($resultName));
 			if (!isset($result)) {
 				$context->reply("Unable to find the item {$resultName} in your bot's item database.");
 				return;
@@ -433,17 +434,17 @@ class ArulSabaController {
 		$context->reply($msg);
 	}
 
-	protected function renderStep(AODBEntry $source, AODBEntry $dest, AODBEntry $result, array $skillReqs=[]): string {
+	protected function renderStep(AODBItem $source, AODBItem $dest, AODBItem $result, array $skillReqs=[]): string {
 		$showImages = $this->settingManager->getInt('arulsaba_show_images');
-		$sLink = $this->text->makeItem($source->lowid, $source->highid, $source->ql, $source->name);
+		$sLink = $source->getLink();
 		$sIcon = $this->text->makeImage($source->icon);
-		$sIconLink = $this->text->makeItem($source->lowid, $source->highid, $source->ql, $sIcon);
-		$dLink = $this->text->makeItem($dest->lowid, $dest->highid, $dest->ql, $dest->name);
+		$sIconLink = $source->getLink(name: $sIcon);
+		$dLink = $dest->getLink();
 		$dIcon = $this->text->makeImage($dest->icon);
-		$dIconLink = $this->text->makeItem($dest->lowid, $dest->highid, $dest->ql, $dIcon);
-		$rLink = $this->text->makeItem($result->lowid, $result->highid, $result->ql, $result->name);
+		$dIconLink = $dest->getLink(name: $dIcon);
+		$rLink = $result->getLink();
 		$rIcon = $this->text->makeImage($result->icon);
-		$rIconLink = $this->text->makeItem($result->lowid, $result->highid, $result->ql, $rIcon);
+		$rIconLink = $result->getLink(name: $rIcon);
 
 		$line = "";
 

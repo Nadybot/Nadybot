@@ -456,8 +456,8 @@ class ApiController {
 			$server->httpError(new Response(Response::UNPROCESSABLE_ENTITY));
 			return;
 		}
-		/** @var Response */
 		try {
+			/** @var Response */
 			$response = $handler->exec($request, $server);
 		} catch (Throwable $e) {
 			$response = null;

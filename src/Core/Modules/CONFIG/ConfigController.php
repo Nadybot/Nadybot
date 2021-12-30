@@ -700,7 +700,7 @@ class ConfigController {
 		if (count($data) > 0) {
 			$found = true;
 			$blob .= "\n<header2>Commands<end>\n";
-			usort($data, function (CmdCfg $a, CmdCfg $b): int {
+			usort($data, function (RegisteredCmd $a, RegisteredCmd $b): int {
 				return strcmp($a->cmd, $b->cmd);
 			});
 		}
@@ -1025,13 +1025,13 @@ class ConfigController {
 	}
 
 	/**
-	 * @return CmdCfg[]
+	 * @return RegisteredCmd[]
 	 */
 	public function getAllRegisteredCommands(string $module): array {
 		$query = $this->getRegisteredCommandsQuery();
 		$query->where("module", $module);
 		$query->where("cmd", "!=", "config");
-		return $query->asObj(CmdCfg::class)->toArray();
+		return $query->asObj(RegisteredCmd::class)->toArray();
 	}
 
 	public function getRegisteredCommand(string $module, string $command): ?CmdCfg {

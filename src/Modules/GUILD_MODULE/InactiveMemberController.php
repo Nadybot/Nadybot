@@ -80,7 +80,7 @@ class InactiveMemberController {
 			"<header2>Inactive org members<end>\n";
 
 		foreach ($members as $mainName => $altsLink) {
-			/** @var Collection<RecentOrgMember> $alts */
+			/** @var Collection<RecentOrgMember> $altsLink */
 			$alt = $altsLink->first();
 			/** @var RecentOrgMember $alt */
 			if ($alt->logged_off >= $time) {

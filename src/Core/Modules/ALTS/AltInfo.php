@@ -185,7 +185,7 @@ class AltInfo {
 		$blob .= $this->formatOnlineStatus($online);
 		$blob .= "\n";
 
-		/** @var Collection<Alt> */
+		/** @var Collection<AltPlayer> */
 		$alts = $this->db->table("alts AS a")
 			->where("a.main", $this->main)
 			->asObj(AltPlayer::class);

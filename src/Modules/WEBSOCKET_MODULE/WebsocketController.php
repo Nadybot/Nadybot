@@ -275,7 +275,7 @@ class WebsocketController {
 		}
 		$parts = explode("\\", get_class($event));
 		$class = end($parts);
-		$event->class = $class;
+		// $event->class = $class;
 		$packet = new WebsocketCommand();
 		$packet->command = $packet::EVENT;
 		$packet->data = $event;

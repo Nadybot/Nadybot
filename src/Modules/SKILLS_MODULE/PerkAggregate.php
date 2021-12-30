@@ -2,10 +2,9 @@
 
 namespace Nadybot\Modules\SKILLS_MODULE;
 
-class PerkAggregate {
-	/** Internal ID of that perkline */
-	public int $id;
+use Nadybot\Modules\ITEMS_MODULE\ExtBuff;
 
+class PerkAggregate {
 	/** Name of the perk */
 	public string $name;
 
@@ -21,12 +20,12 @@ class PerkAggregate {
 	public int $max_level = 1;
 
 	/**
-	 * @var ExtPerkLevelBuff[]
+	 * @var array<int,int>
 	 */
 	public array $buffs = [];
 
 	/**
-	 * @var PerkLevelResistance[]
+	 * @var array<int,int>
 	 */
 	public array $resistances = [];
 

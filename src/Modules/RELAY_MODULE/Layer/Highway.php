@@ -214,9 +214,12 @@ class Highway implements RelayLayerInterface, StatusProvider {
 			if ($json->type === static::TYPE_ERROR) {
 				$this->logger->error("Highway error on {relay}: {message}", [
 					"relay" => $this->relay->getName(),
-					"message" => $json->message,
+					"message" => isset($json->message) ? $json->message : null,
 				]);
-				$this->status = new RelayStatus(RelayStatus::ERROR, $json->message);
+				$this->status = new RelayStatus(
+					RelayStatus::ERROR,
+					isset($json->message) ? $json->message : "Unknown highway error"
+				);
 				$data = null;
 				continue;
 			}

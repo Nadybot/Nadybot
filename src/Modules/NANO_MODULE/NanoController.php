@@ -71,6 +71,8 @@ class NanoController {
 	#[NCA\Inject]
 	public Util $util;
 
+	/** @var array<int,Nanoline> */
+	public array $nanolines = [];
 	/**
 	 * This handler is called on bot startup.
 	 */
@@ -100,6 +102,10 @@ class NanoController {
 			options: "true;false",
 			intoptions: "1;0"
 		);
+		$this->nanolines = $this->db->table("nano_lines")
+			->asObj(Nanoline::class)
+			->keyBy("strain_id")
+			->toArray();
 	}
 
 	#[NCA\HandlesCommand("nano")]
@@ -175,7 +181,7 @@ class NanoController {
 	/**
 	 * List all professions for which nanolines exist
 	 * @param CmdContext $context Where to send the reply to
-	 * @param bool $froobObly Is set, only show professions a froob can play
+	 * @param bool $froobOnly Is set, only show professions a froob can play
 	 * @return void
 	 */
 	public function listNanolineProfs(CmdContext $context, bool $froobOnly): void {
@@ -415,5 +421,9 @@ class NanoController {
 		return $this->db->table("nano_lines")
 			->whereIn("strain_id", $ids)
 			->asObj(Nanoline::class);
+	}
+
+	public function getNanoLineById(int $id): ?Nanoline {
+		return $this->nanolines[$id] ?? null;
 	}
 }

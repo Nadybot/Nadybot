@@ -419,7 +419,6 @@ class DiscordGatewayController {
 	)]
 	public function processGatewayInvalidSession(DiscordGatewayEvent $event): void {
 		$payload = $event->payload;
-		/** @var bool $payload->d */
 		if ($payload->d === true) {
 			$this->logger->info("Session invalid, trying to resume");
 			$this->sendResume();

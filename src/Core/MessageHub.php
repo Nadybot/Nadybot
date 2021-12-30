@@ -96,8 +96,6 @@ class MessageHub {
 
 	/**
 	 * Register an event modifier for public use
-	 * @param string $name Name of the modifier
-	 * @param FunctionParameter[] $params Name and position of the constructor arguments
 	 */
 	public function registerEventModifier(ClassSpec $spec): void {
 		$name = strtolower($spec->name);

@@ -130,7 +130,7 @@ class DB {
 						'prefix' => ''
 					]);
 					$this->sql = $this->capsule->getConnection()->getPdo();
-				} catch (Throwable $e) {
+				} catch (PDOException $e) {
 					if (!$errorShown) {
 						$this->logger->error(
 							"Cannot connect to the MySQL db at {$host}: ".
@@ -203,7 +203,7 @@ class DB {
 						'prefix' => ''
 					]);
 					$this->sql = $this->capsule->getConnection()->getPdo();
-				} catch (Throwable $e) {
+				} catch (PDOException $e) {
 					if (!$errorShown) {
 						$this->logger->error(
 							"Cannot connect to the PostgreSQL db at {$host}: ".
@@ -234,7 +234,7 @@ class DB {
 						'prefix' => ''
 					]);
 					$this->sql = $this->capsule->getConnection()->getPdo();
-				} catch (Throwable $e) {
+				} catch (PDOException $e) {
 					if (!$errorShown) {
 						$this->logger->error(
 							"Cannot connect to the MSSQL db at {$host}: ".
@@ -255,8 +255,7 @@ class DB {
 			throw new Exception("Invalid database type: '$type'.  Expecting '" . self::MYSQL . "', '". self::POSTGRESQL . "' or '" . self::SQLITE . "'.");
 		}
 		$this->capsule->setAsGlobal();
-		/** @psalm-suppress TooManyArguments */
-		$this->capsule->setFetchMode(PDO::FETCH_CLASS, DBRow::class);
+		$this->capsule->setFetchMode(PDO::FETCH_CLASS);
 		$this->capsule->getConnection()->beforeExecuting(
 			function(string $query, array $bindings, Connection $connection): void {
 				$this->logger->debug(
@@ -360,15 +359,19 @@ class DB {
 		$props = $refClass->getProperties(ReflectionProperty::IS_PUBLIC);
 		$data = [];
 		foreach ($props as $prop) {
-			$comment = $prop->getDocComment();
-			if ($comment !== false && preg_match("/@db:ignore/", $comment)) {
+			if (count($prop->getAttributes(NCA\DB\Ignore::class))) {
 				continue;
 			}
-			if ($prop->isInitialized($row)) {
-				$data[$prop->name] = $prop->getValue($row);
-				if ($data[$prop->name] instanceof DateTime) {
-					$data[$prop->name] = $data[$prop->name]->getTimestamp();
-				}
+			if (!$prop->isInitialized($row)) {
+				continue;
+			}
+			$data[$prop->name] = $prop->getValue($row);
+			if (count($attrs = $prop->getAttributes(NCA\DB\MapWrite::class))) {
+				/** @var NCA\DB\MapWrite */
+				$mapper = $attrs[0]->newInstance();
+				$data[$prop->name] = $mapper->map($data[$prop->name]);
+			} elseif ($data[$prop->name] instanceof DateTime) {
+				$data[$prop->name] = $data[$prop->name]->getTimestamp();
 			}
 		}
 		$table = $this->formatSql($table);
@@ -395,15 +398,19 @@ class DB {
 		$props = $refClass->getProperties(ReflectionProperty::IS_PUBLIC);
 		$updates = [];
 		foreach ($props as $prop) {
-			$comment = $prop->getDocComment();
-			if ($comment !== false && preg_match("/@db:ignore/", $comment)) {
+			if (count($prop->getAttributes(NCA\DB\Ignore::class))) {
 				continue;
 			}
-			if ($prop->isInitialized($row)) {
-				$updates[$prop->name] = $prop->getValue($row);
-				if ($updates[$prop->name] instanceof DateTime) {
-					$updates[$prop->name] = $updates[$prop->name]->getTimestamp();
-				}
+			if (!$prop->isInitialized($row)) {
+				continue;
+			}
+			$updates[$prop->name] = $prop->getValue($row);
+			if (count($attrs = $prop->getAttributes(NCA\DB\MapWrite::class))) {
+				/** @var NCA\DB\MapWrite */
+				$mapper = $attrs[0]->newInstance();
+				$updates[$prop->name] = $mapper->map($updates[$prop->name]);
+			} elseif ($updates[$prop->name] instanceof DateTime) {
+				$updates[$prop->name] = $updates[$prop->name]->getTimestamp();
 			}
 		}
 		$query = $this->table($table);
@@ -644,8 +651,7 @@ class DB {
 	 * Load a CSV file $file into table $table
 	 * @param string $module The module to which this file belongs
 	 * @param string $file The full path to the CSV file
-	 * @param string $table Name of the table to insert the data into
-	 * @return bool trueif inserted, false if already up-to-date
+	 * @return bool true if inserted, false if already up-to-date
 	 * @throws Exception
 	 */
 	public function loadCSVFile(string $module, string $file): bool {

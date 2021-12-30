@@ -150,7 +150,7 @@ class ConfigFile extends DataTransferObject {
 	 * Constructor method.
 	 */
 	public static function loadFromFile(string $filePath): self {
-		static::copyFromTemplateIfNeeded($filePath);
+		self::copyFromTemplateIfNeeded($filePath);
 		$vars = [];
 		require $filePath;
 		$config = new self($vars);
@@ -173,7 +173,7 @@ class ConfigFile extends DataTransferObject {
 		$vars = array_filter($vars, function (mixed $value): bool {
 			return isset($value);
 		});
-		static::copyFromTemplateIfNeeded($this->getFilePath());
+		self::copyFromTemplateIfNeeded($this->getFilePath());
 		$lines = file($this->filePath);
 		foreach ($lines as $key => $line) {
 			if (preg_match("/^(.+)vars\[('|\")(.+)('|\")](.*)=(.*)\"(.*)\";(.*)$/si", $line, $arr)) {

@@ -27,6 +27,7 @@ use Illuminate\Database\Schema\Builder;
 class SchemaBuilder {
 	public DB $nadyDB;
 	public Builder $builder;
+	public LoggerWrapper $logger;
 
 	public function __construct(Builder $builder) {
 		$this->builder = $builder;

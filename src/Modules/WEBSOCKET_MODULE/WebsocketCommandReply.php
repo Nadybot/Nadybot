@@ -3,7 +3,6 @@
 namespace Nadybot\Modules\WEBSOCKET_MODULE;
 
 use Nadybot\Core\Attributes as NCA;
-use Nadybot\Core\AOChatEvent;
 use Nadybot\Core\CommandReply;
 use Nadybot\Core\EventManager;
 use Nadybot\Core\MessageEmitter;
@@ -13,7 +12,9 @@ use Nadybot\Core\Routing\Character;
 use Nadybot\Core\Routing\RoutableMessage;
 use Nadybot\Core\Routing\Source;
 use Nadybot\Core\SettingManager;
+use Nadybot\Modules\WEBSERVER_MODULE\AOWebChatEvent;
 use Nadybot\Modules\WEBSERVER_MODULE\WebChatConverter;
+use Nadybot\Modules\WEBSERVER_MODULE\WebSource;
 
 class WebsocketCommandReply implements CommandReply, MessageEmitter {
 	#[NCA\Inject]
@@ -59,13 +60,13 @@ class WebsocketCommandReply implements CommandReply, MessageEmitter {
 		}
 		$msgs = $this->webChatConverter->convertMessages($msg);
 		foreach ($msgs as $msg) {
-			$xmlMessage = new AOChatEvent();
+			$xmlMessage = new AOWebChatEvent();
 			$xmlMessage->message = $msg;
 			$xmlMessage->sender = $this->chatBot->char->name;
 			$xmlMessage->type = "chat({$this->type})";
 			$xmlMessage->channel = $this->type;
 			$xmlMessage->path = [
-				new Source(Source::WEB, "Web")
+				new WebSource(Source::WEB, "Web")
 			];
 			$xmlMessage->path[0]->renderAs = $xmlMessage->path[0]->render(null);
 			$color = $this->messageHub->getHopColor($rMessage->path, Source::WEB, new Source(Source::WEB, "Web"), "tag_color");

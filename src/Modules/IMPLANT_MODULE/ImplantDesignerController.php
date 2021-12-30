@@ -616,7 +616,8 @@ class ImplantDesignerController {
 		return $blob;
 	}
 
-	public function getImplantInfo(int $ql, ?string $shiny, ?string $bright, ?string $faded): ?object {
+	public function getImplantInfo(int $ql, ?string $shiny, ?string $bright, ?string $faded): ?ImplantInfo {
+		/** @var ?ImplantInfo */
 		$row = $this->db->table("ImplantMatrix AS i")
 			->join("Cluster AS c1", "i.ShiningID", "c1.ClusterID")
 			->join("Cluster AS c2", "i.BrightID", "c2.ClusterID")
@@ -633,7 +634,7 @@ class ImplantDesignerController {
 			->addSelect("c3.EffectTypeID as FadedEffectTypeID")
 			->addSelect("a.Name AS AbilityName")
 			->limit(1)
-			->asObj()
+			->asObj(ImplantInfo::class)
 			->first();
 
 		if ($row === null) {
@@ -642,7 +643,7 @@ class ImplantDesignerController {
 		return $this->addImplantInfo($row, $ql);
 	}
 
-	private function addImplantInfo(DBRow $implantInfo, int $ql): object {
+	private function addImplantInfo(ImplantInfo $implantInfo, int $ql): ImplantInfo {
 		if ($ql < 201) {
 			$minAbility = $implantInfo->AbilityQL1;
 			$maxAbility = $implantInfo->AbilityQL200;

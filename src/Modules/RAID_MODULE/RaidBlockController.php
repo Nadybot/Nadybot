@@ -158,7 +158,7 @@ class RaidBlockController {
 		$this->db->insert(self::DB_TABLE, $block, null);
 		$msg = "<highlight>{$player}<end> is now blocked from <highlight>".
 			$this->blockToString($blockFrom) . "<end> ";
-		if ($duration > 0) {
+		if (is_int($duration) && $duration > 0) {
 			$msg .= "for <highlight>" . $this->util->unixtimeToReadable($duration) . "<end>.";
 		} else {
 			$msg .= "until someone removes the block.";

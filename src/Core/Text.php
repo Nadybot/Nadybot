@@ -206,7 +206,7 @@ class Text {
 	 * providing you with a menu of options (ignore etc.)
 	 * (see 18.1 AO patchnotes)
 	 *
-	 * @param string $name The name of the user to create a link for
+	 * @param string $user The name of the user to create a link for
 	 * @param string $style (optional) any styling you want applied to the link, e.g. color="..."
 	 * @return string The link to the user
 	 */
@@ -310,7 +310,7 @@ class Text {
 
 	/**
 	 * Convert a list of string into a 1, 2, 3, 4 and 5 enumeration
-	 * @param string[] $words The words to enumerate
+	 * @param string $words The words to enumerate
 	 * @return string The enumerated string
 	 */
 	public function enumerate(string ...$words): string {
@@ -325,7 +325,7 @@ class Text {
 	/**
 	 * Run an sprintf format on an array of strings
 	 * @param string $format The sprintf-style format
-	 * @param string[] $strings The words to change
+	 * @param string $strings The words to change
 	 * @return string[] The formatted array
 	 */
 	public function arraySprintf(string $format, string ...$strings): array {

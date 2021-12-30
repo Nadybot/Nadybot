@@ -15,6 +15,7 @@ use Nadybot\Core\Routing\Source;
 use Nadybot\Core\SchemaMigration;
 use Nadybot\Core\SettingManager;
 use Nadybot\Modules\TIMERS_MODULE\TimerController;
+use stdClass;
 use Throwable;
 
 class MigrateToRoutes implements SchemaMigration {
@@ -73,8 +74,8 @@ class MigrateToRoutes implements SchemaMigration {
 	protected function rewriteTimerMode(DB $db, string $table, array $defaultMode, ?string $discord=null): void {
 		sort($defaultMode);
 		$db->table($table)
-			->asObj()
-			->each(function (object $timer) use ($defaultMode, $table, $db, $discord): void {
+			->get()
+			->each(function (stdClass $timer) use ($defaultMode, $table, $db, $discord): void {
 				if (!isset($timer->mode) || !preg_match("/^timercontroller/", $timer->callback)) {
 					return;
 				}

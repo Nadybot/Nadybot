@@ -1177,12 +1177,12 @@ class TowerController {
 	 */
 	protected function mergeLocalToAPI(Collection $local, ApiResult $api): ApiResult {
 		$result = [];
+		/** @var array<int,array<int,ApiSite>> */
 		$apiSites = [];
 		foreach ($api->results as $apiSite) {
 			$apiSites[$apiSite->playfield_id] ??= [];
 			$apiSites[$apiSite->playfield_id][$apiSite->site_number] = $apiSite;
 		}
-		/** @var array<int,array<int,ApiSite>> $apiSites */
 		foreach ($local as $localSite) {
 			/** @var ?ApiSite */
 			$apiSite = $apiSites[$localSite->playfield_id][$localSite->site_number] ?? null;
@@ -1458,15 +1458,12 @@ class TowerController {
 				$playfieldName = $matches[2];
 				if ($whois === null) {
 					$whois = new Player();
-					$whois->type = 'npc';
 					$whois->name = $attPlayer;
 					$whois->faction = 'Neutral';
-				} else {
-					$whois->type = 'player';
 				}
 				$playerName = "<highlight>{$whois->name}<end> ({$whois->faction}";
-				if ($attGuild) {
-					$playerName .= " org \"{$whois->guild}\"";
+				if (isset($attGuild)) {
+					$playerName .= " org \"{$attGuild}\"";
 				}
 				$playerName .= ")";
 				$discordMessage = str_replace(
@@ -1537,21 +1534,21 @@ class TowerController {
 	}
 
 	public function handleAttack(Attack $attack, ?Player $whois): void {
+		$type = 'player';
 		if ($whois === null) {
 			$whois = new Player();
-			$whois->type = 'npc';
+			$type = 'npc';
 
 			// in case it's not a player who causes attack message (pet, mob, etc)
 			$whois->name = $attack->attPlayer;
 			$whois->faction = 'Neutral';
-		} else {
-			$whois->type = 'player';
 		}
+		$factionGuess = false;
 		if (isset($attack->attSide)) {
 			$whois->faction = $attack->attSide;
 		} else {
-			$whois->factionGuess = true;
-			$whois->originalGuild = $whois->guild;
+			$factionGuess = true;
+			$originalGuild = $whois->guild;
 		}
 		$whois->guild = $attack->attGuild ?? null;
 
@@ -1583,7 +1580,7 @@ class TowerController {
 
 			// Beginning of the 'more' window
 			$link = "";
-			if (isset($whois->factionGuess)) {
+			if ($factionGuess) {
 				$link .= "<highlight>Warning:<end> The attacker could also be a pet with a fake name!\n\n";
 			}
 			$link .= "Attacker: <highlight>";
@@ -1640,7 +1637,7 @@ class TowerController {
 
 		// Starting tower message to org/private chat
 		$msg = "";
-		$likelyFake = isset($whois->factionGuess) && isset($whois->originalGuild) && strlen($whois->originalGuild);
+		$likelyFake = $factionGuess && isset($originalGuild) && strlen($originalGuild);
 		if ($whois->guild) {
 			$msg .= "<".strtolower($whois->faction).">$whois->guild<end>";
 		} else {
@@ -1650,7 +1647,7 @@ class TowerController {
 
 		$s = $this->settingManager->getInt("tower_attack_spam");
 		// tower_attack_spam >= 2 (normal) includes attacker stats
-		if ($s >= 2 && $whois->type !== 'npc' && !$likelyFake) {
+		if ($s >= 2 && $type !== 'npc' && !$likelyFake) {
 			$msg .= " - ".preg_replace(
 				"/, <(omni|neutral|clan)>(omni|neutral|clan)<end>/i",
 				'',
@@ -1660,7 +1657,7 @@ class TowerController {
 					$this->playerManager->getInfo($whois, false)
 				)
 			);
-		} elseif ($s >= 2 && $whois->type !== 'npc') {
+		} elseif ($s >= 2 && $type !== 'npc') {
 			$msg .= " (<highlight>{$whois->level}<end>/<green>{$whois->ai_level}<end> <" . strtolower($whois->faction) . ">{$whois->faction}<end> <highlight>{$whois->profession}<end> or fake name)";
 		}
 

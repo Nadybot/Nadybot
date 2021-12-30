@@ -51,7 +51,7 @@ class DiscordChannel extends JSONDataModel {
 	public ?int $rate_limit_per_user = null;
 	/**
 	 * the recipients of the DM
-	 * @var \Nadybot\Modules\DISCORD_GATEWAY_MODULE\Model\User[]
+	 * @var \Nadybot\Core\Modules\DISCORD\DiscordUser[]
 	 */
 	public ?array $recipients = null;
 	/** icon hash */

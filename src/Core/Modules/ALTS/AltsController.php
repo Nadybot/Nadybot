@@ -185,8 +185,9 @@ class AltsController {
 			});
 		$this->db->table("alts")->where("validated_by_main", false)->where("added_via", $myName)
 			->select("main")->distinct()
-			->asObj()->each(function(DBRow $main) {
-				$this->buddylistManager->add($main->main, static::MAIN_VALIDATE);
+			->pluckAs("main", "string")
+			->each(function(string $main) {
+				$this->buddylistManager->add($main, static::MAIN_VALIDATE);
 			});
 	}
 

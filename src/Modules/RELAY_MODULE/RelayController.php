@@ -1364,7 +1364,7 @@ class RelayController {
 			return new Response(Response::UNPROCESSABLE_ENTITY, []);
 		}
 		try {
-			/** @var RelayEvent */
+			/** @var RelayEvent $event */
 			JsonImporter::convert(RelayEvent::class, $event);
 			if (!isset($event->event)) {
 				throw new Exception("event name not given");

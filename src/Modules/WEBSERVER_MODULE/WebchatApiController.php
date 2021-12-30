@@ -3,7 +3,6 @@
 namespace Nadybot\Modules\WEBSERVER_MODULE;
 
 use Nadybot\Core\Attributes as NCA;
-use Nadybot\Core\AOChatEvent;
 use Nadybot\Core\CmdContext;
 use Nadybot\Core\CommandManager;
 use Nadybot\Core\EventManager;
@@ -59,12 +58,12 @@ class WebchatApiController {
 		if (!is_string($message) || !isset($request->authenticatedAs)) {
 			return new Response(Response::UNPROCESSABLE_ENTITY);
 		}
-		$event = new AOChatEvent();
+		$event = new AOWebChatEvent();
 		$event->type = "chat(web)";
 		$event->channel = "web";
 		$event->color = "";
 		$event->path = [
-			new Source(Source::WEB, "Web")
+			new WebSource(Source::WEB, "Web")
 		];
 		$event->path[0]->renderAs = $event->path[0]->render(null);
 		$color = $this->messageHub->getHopColor($event->path, Source::WEB, new Source(Source::WEB, "Web"), "tag_color");

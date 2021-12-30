@@ -4,6 +4,7 @@ namespace Nadybot\Core;
 
 use Closure;
 use DateTime;
+use Nadybot\Core\Attributes as NCA;
 use Illuminate\Database\Connection;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Collection;
@@ -33,24 +34,24 @@ class QueryBuilder extends Builder {
 	protected function getTypeChanger(PDOStatement $ps, object $row): array {
 		$metaKey = md5($ps->queryString);
 		$numColumns = $ps->columnCount();
-		if (isset(static::$meta[$metaKey])) {
-			return static::$meta[$metaKey];
+		if (isset(self::$meta[$metaKey])) {
+			return self::$meta[$metaKey];
 		}
-		static::$meta[$metaKey] = [];
+		self::$meta[$metaKey] = [];
 		for ($col=0; $col < $numColumns; $col++) {
 			$colMeta = $ps->getColumnMeta($col);
 			$type = $this->guessVarTypeFromColMeta($colMeta, $colMeta["name"]);
 			$refProp = new ReflectionProperty($row, $colMeta["name"]);
 			$refProp->setAccessible(true);
 			if ($type === "bool") {
-				static::$meta[$metaKey] []= function(object $row) use ($refProp): void {
+				self::$meta[$metaKey] []= function(object $row) use ($refProp): void {
 					$stringValue = $refProp->getValue($row);
 					if ($stringValue !== null) {
 						$refProp->setValue($row, (bool)$stringValue);
 					}
 				};
 			} elseif ($type === "int") {
-				static::$meta[$metaKey] []= function(object $row) use ($refProp): void {
+				self::$meta[$metaKey] []= function(object $row) use ($refProp): void {
 					$stringValue = $refProp->getValue($row);
 					if ($stringValue !== null) {
 						$refProp->setValue($row, (int)$stringValue);
@@ -58,7 +59,7 @@ class QueryBuilder extends Builder {
 				};
 			}
 		}
-		return static::$meta[$metaKey];
+		return self::$meta[$metaKey];
 	}
 
 	/**
@@ -115,8 +116,8 @@ class QueryBuilder extends Builder {
 	}
 
 	public static function clearMetaCache(): void {
-		static::$meta = [];
-		static::$metaTypes = [];
+		self::$meta = [];
+		self::$metaTypes = [];
 	}
 
 	protected function convertToClass(PDOStatement $ps, string $className, array $values): ?object {
@@ -124,13 +125,13 @@ class QueryBuilder extends Builder {
 		$refClass = new ReflectionClass($row);
 		$metaKey = md5($ps->queryString);
 		$numColumns = $ps->columnCount();
-		if (!isset(static::$metaTypes[$metaKey])) {
-			static::$metaTypes[$metaKey] = [];
+		if (!isset(self::$metaTypes[$metaKey])) {
+			self::$metaTypes[$metaKey] = [];
 			for ($col=0; $col < $numColumns; $col++) {
-				static::$metaTypes[$metaKey] []= $ps->getColumnMeta($col);
+				self::$metaTypes[$metaKey] []= $ps->getColumnMeta($col);
 			}
 		}
-		$meta = static::$metaTypes[$metaKey];
+		$meta = self::$metaTypes[$metaKey];
 		for ($col=0; $col < $numColumns; $col++) {
 			$colMeta = $meta[$col];
 			$colName = $colMeta['name'];
@@ -160,16 +161,26 @@ class QueryBuilder extends Builder {
 			try {
 				$type = $this->guessVarTypeFromReflection($refClass, $colName)
 					?? $this->guessVarTypeFromColMeta($colMeta, $colName);
-				if ($type === "bool") {
-					$row->{$colName} = (bool)$values[$col];
-				} elseif ($type === "int") {
-					$row->{$colName} = (int)$values[$col];
-				} elseif ($type === "float") {
-					$row->{$colName} = (float)$values[$col];
-				} elseif ($type === DateTime::class) {
-					$row->{$colName} = (new DateTime())->setTimestamp((int)$values[$col]);
+				$refProp = $refClass->getProperty($colName);
+				$readMap = $refProp->getAttributes(NCA\DB\MapRead::class);
+				if (count($readMap)) {
+					foreach ($readMap as $mapper) {
+						/** @var NCA\DB\MapRead */
+						$mapper = $mapper->newInstance();
+						$row->{$colName} = $mapper->map($values[$col]);
+					}
 				} else {
-					$row->{$colName} = $values[$col];
+					if ($type === "bool") {
+						$row->{$colName} = (bool)$values[$col];
+					} elseif ($type === "int") {
+						$row->{$colName} = (int)$values[$col];
+					} elseif ($type === "float") {
+						$row->{$colName} = (float)$values[$col];
+					} elseif ($type === DateTime::class) {
+						$row->{$colName} = (new DateTime())->setTimestamp((int)$values[$col]);
+					} else {
+						$row->{$colName} = $values[$col];
+					}
 				}
 			} catch (Throwable $e) {
 				$this->logger->error($e->getMessage(), ["exception" => $e]);

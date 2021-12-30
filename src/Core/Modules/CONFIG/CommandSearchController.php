@@ -109,7 +109,6 @@ class CommandSearchController {
 		foreach ($data as $row) {
 			$keywords = [$row->cmd];
 			$keywords = array_unique($keywords);
-			$row->similarity_percent = 0;
 			foreach ($wordArray as $searchWord) {
 				$similarity = 0;
 				$rowSimilarity = 0;
@@ -131,9 +130,7 @@ class CommandSearchController {
 	}
 
 	/**
-	 * @param array CommandSearchResult[]
-	 * @param bool $hasAccess
-	 * @param mixed $exactMatch
+	 * @param CommandSearchResult[] $results
 	 * @return string|string[]
 	 */
 	public function render(array $results, bool $hasAccess, bool $exactMatch): string|array {

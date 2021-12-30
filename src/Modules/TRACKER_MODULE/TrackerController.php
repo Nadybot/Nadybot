@@ -37,6 +37,7 @@ use Nadybot\Modules\{
 	TOWER_MODULE\TowerAttackEvent,
 };
 use Nadybot\Modules\ORGLIST_MODULE\FindOrgController;
+use Nadybot\Modules\ORGLIST_MODULE\Organization;
 use Throwable;
 
 /**
@@ -646,16 +647,13 @@ class TrackerController implements MessageEmitter {
 			$context->reply("No matches found.");
 			return;
 		}
-		$blob = $this->formatOrglist($orgs);
+		$blob = $this->formatOrglist(...$orgs->toArray());
 		$msg = $this->text->makeBlob("Org Search Results for '{$orgName}' ($count)", $blob);
 		$context->reply($msg);
 	}
 
-	/**
-	 * @param Collection<Organization> $orgs
-	 */
-	public function formatOrglist(Collection $orgs): string {
-		$orgs = $orgs->sortBy("name");
+	public function formatOrglist(Organization ...$orgs): string {
+		$orgs = (new Collection($orgs))->sortBy("name");
 		$blob = "<header2>Matching orgs<end>\n";
 		foreach ($orgs as $org) {
 			$addLink = $this->text->makeChatcmd('track', "/tell <myname> track addorg {$org->id}");
@@ -828,6 +826,17 @@ class TrackerController implements MessageEmitter {
 
 	#[NCA\HandlesCommand("track")]
 	public function trackOnlineCommand(CmdContext $context, #[NCA\Str("online")] string $action, #[NCA\Str("all")] ?string $all, #[NCA\Str("--edit")] ?string $edit): void {
+		$hiddenChars = $this->db->table(self::DB_ORG_MEMBER)
+			->select("name")
+			->where("hidden", true)
+			->union(
+				$this->db->table(self::DB_TABLE)
+					->select("name")
+					->where("hidden", true)
+			)->pluckAs("name", "string")
+			->unique()
+			->mapToDictionary(fn (string $s): array => [$s => true])
+			->toArray();
 		$data1 = $this->db->table(self::DB_ORG_MEMBER)->select("name");
 		$data2 = $this->db->table(self::DB_TABLE)->select("name");
 		if (!isset($all)) {
@@ -844,10 +853,11 @@ class TrackerController implements MessageEmitter {
 			->toArray();
 		$data = $this->playerManager->searchByNames($this->config->dimension, ...$trackedUsers)
 			->sortBy("name")
-			->map(function (Player $p): OnlinePlayer {
-				$op = OnlinePlayer::fromPlayer($p);
+			->map(function (Player $p) use ($hiddenChars): OnlineTrackedUser {
+				$op = OnlineTrackedUser::fromPlayer($p);
 				$op->pmain ??= $op->name;
 				$op->online = true;
+				$op->hidden = isset($hiddenChars[$op->name]);
 				return $op;
 			})->toArray();
 		if (!count($data)) {
@@ -886,7 +896,7 @@ class TrackerController implements MessageEmitter {
 
 	/**
 	 * Get the blob with details about the tracked players currently online
-	 * @param OnlinePlayer[] $players
+	 * @param OnlineTrackedUser[] $players
 	 * @return string The blob
 	 */
 	public function renderOnlineList(array $players, bool $edit): string {
@@ -926,17 +936,17 @@ class TrackerController implements MessageEmitter {
 
 	/**
 	 * Return the content of the online list for one player group
-	 * @param OnlinePlayer[] $players The list of players in that group
+	 * @param OnlineTrackedUser[] $players The list of players in that group
 	 * @return string The blob for this group
 	 */
 	public function renderPlayerGroup(array $players, int $groupBy, bool $edit): string {
-		usort($players, function(OnlinePlayer $p1, OnlinePlayer $p2): int {
+		usort($players, function(OnlineTrackedUser $p1, OnlineTrackedUser $p2): int {
 			return strnatcmp($p1->name, $p2->name);
 		});
 		return "<tab>" . join(
 			"\n<tab>",
 			array_map(
-				function(OnlinePlayer $player) use ($groupBy, $edit) {
+				function(OnlineTrackedUser $player) use ($groupBy, $edit) {
 					return $this->renderPlayerLine($player, $groupBy, $edit);
 				},
 				$players
@@ -946,11 +956,11 @@ class TrackerController implements MessageEmitter {
 
 	/**
 	 * Render a single online-line of a player
-	 * @param OnlinePlayer $player The player to render
+	 * @param OnlineTrackedUser $player The player to render
 	 * @param int $groupBy Which grouping method to use. When grouping by prof, we don't show the prof icon
 	 * @return string A single like without newlines
 	 */
-	public function renderPlayerLine(OnlinePlayer $player, int $groupBy, bool $edit): string {
+	public function renderPlayerLine(OnlineTrackedUser $player, int $groupBy, bool $edit): string {
 		$faction = strtolower($player->faction);
 		$blob = "";
 		if ($groupBy !== static::GROUP_PROF) {

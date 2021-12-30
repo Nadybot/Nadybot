@@ -415,7 +415,7 @@ class NotesController {
 
 	/**
 	 * Render the reminder message for $sender, reminding about the $notes
-	 * @param string $sender Person being reminded
+	 * @param string $format The format to render the messages with
 	 * @param Note[] $notes The notes we are reminded about
 	 * @return string The rendered message
 	 */

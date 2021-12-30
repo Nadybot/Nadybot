@@ -491,12 +491,12 @@ class RaidPointsController {
 			return;
 		}
 		$char = $char();
-		/** @var RaidPointsLog[] */
 		if (isset($all)) {
 			$pointLogs = $this->getRaidpointLogsForAccount($char);
 		} else {
 			$pointLogs = $this->getRaidpointLogsForChar($char);
 		}
+		/** @var RaidPointsLog[] $pointLogs */
 		if (count($pointLogs) === 0) {
 			$context->reply("{$char} has never received any raid points at <myname>.");
 			return;

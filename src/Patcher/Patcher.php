@@ -28,7 +28,7 @@ class Patcher {
 		if (method_exists($operation, 'getJobType')) {
 			$operationType = $operation->getJobType();
 		} elseif (defined(get_class($operation) . '::TYPE')) {
-			$operationType = $operation::TYPE;
+			$operationType = constant(get_class($operation) . '::TYPE');
 		} else {
 			throw new Exception('You are using an unsupported version of Composer');
 		}
