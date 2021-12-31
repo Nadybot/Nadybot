@@ -571,7 +571,7 @@ class RaffleController {
 
 	protected function getBonusPoints(string $player): int {
 		if ($this->settingManager->getBool('share_raffle_bonus_on_alts')) {
-			$player = $this->altsController->getAltInfo($player)->main;
+			$player = $this->altsController->getMainOf($player);
 		}
 		return $this->db->table(self::DB_TABLE)
 			->where("name", $player)
@@ -654,7 +654,7 @@ class RaffleController {
 	protected function getMainCharacters(string ...$players): array {
 		return array_map(
 			function(string $player): string {
-				return $this->altsController->getAltInfo($player)->main;
+				return $this->altsController->getMainOf($player);
 			},
 			$players
 		);

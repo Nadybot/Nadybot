@@ -108,7 +108,7 @@ class RaidBlockController {
 	 * Check if a player is blocked from a certain raid activity
 	 */
 	public function isBlocked(string $player, string $activity): bool {
-		$player = $this->altsController->getAltInfo($player)->main;
+		$player = $this->altsController->getMainOf($player);
 		$this->expireBans();
 		return isset($this->blocks[ucfirst(strtolower($player))][$activity]);
 	}
@@ -141,7 +141,7 @@ class RaidBlockController {
 		if (!$this->chatBot->get_uid($player)) {
 			$context->reply("<highlight>{$player}<end> doesn't exist.");
 		}
-		$player = $this->altsController->getAltInfo($player)->main;
+		$player = $this->altsController->getMainOf($player);
 		if (isset($duration)) {
 			$duration = $duration->toSecs();
 			$expiration = time() + $duration;
@@ -169,7 +169,7 @@ class RaidBlockController {
 	#[NCA\HandlesCommand("raidblock")]
 	public function raidBlockCommand(CmdContext $context): void {
 		$this->expireBans();
-		$player = $this->altsController->getAltInfo($context->char->name)->main;
+		$player = $this->altsController->getMainOf($context->char->name);
 		if (!isset($this->blocks[$player])) {
 			$context->reply("You are currently not blocked from any part of raiding.");
 			return;
@@ -190,7 +190,7 @@ class RaidBlockController {
 	#[NCA\HandlesCommand("raidblock .+")]
 	public function raidBlockShowCommand(CmdContext $context, PCharacter $char): void {
 		$player = $char();
-		$player = $this->altsController->getAltInfo($player)->main;
+		$player = $this->altsController->getMainOf($player);
 		$this->expireBans();
 		if (!isset($this->blocks[$player])) {
 			$context->reply("<highlight>{$player}<end> is currently not blocked from any part of raiding.");
@@ -219,7 +219,7 @@ class RaidBlockController {
 		#[NCA\Regexp("points|join|bid")] ?string $blockFrom
 	): void {
 		$player = $char();
-		$player = $this->altsController->getAltInfo($player)->main;
+		$player = $this->altsController->getMainOf($player);
 		$this->expireBans();
 		if (!isset($this->blocks[$player])) {
 			$context->reply("<highlight>{$player}<end> is currently not blocked from any part of raiding.");

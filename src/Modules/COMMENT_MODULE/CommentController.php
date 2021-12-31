@@ -388,7 +388,7 @@ class CommentController {
 			);
 			return;
 		}
-		if ($this->altsController->getAltInfo($context->char->name)->main === $this->altsController->getAltInfo($character)->main) {
+		if ($this->altsController->getMainOf($context->char->name) === $this->altsController->getMainOf($character)) {
 			$context->reply("You cannot comment on yourself.");
 			return;
 		}
@@ -577,7 +577,7 @@ class CommentController {
 		if ($groupByMain) {
 			$grouped = [];
 			foreach ($chars as $char => $comments) {
-				$main = $this->altsController->getAltInfo($char)->main;
+				$main = $this->altsController->getMainOf($char);
 				$grouped[$main] ??= [];
 				$grouped[$main] = [...$grouped[$main], ...$comments];
 			}

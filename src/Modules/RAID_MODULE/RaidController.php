@@ -671,7 +671,7 @@ class RaidController {
 				$raider->username,
 				"/tell <myname> raid history {$raid->raid_id} {$raider->username}"
 			);
-			$main = $this->altsController->getAltInfo($raider->username)->main;
+			$main = $this->altsController->getMainOf($raider->username);
 			$blob .= $this->text->alignNumber($raider->delta, 7).
 				" - {$detailsCmd}";
 			if ($raider->username !== $main) {

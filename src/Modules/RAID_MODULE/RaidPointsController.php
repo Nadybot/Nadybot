@@ -198,7 +198,7 @@ class RaidPointsController {
 		$pointsChar = ucfirst(strtolower($player));
 		$sharePoints = $this->settingManager->getBool('raid_share_points');
 		if ($sharePoints) {
-			$pointsChar = $this->altsController->getAltInfo($pointsChar)->main;
+			$pointsChar = $this->altsController->getMainOf($pointsChar);
 		}
 		$raid->raiders[$player]->points++;
 		$raid->raiders[$player]->pointsRewarded++;
@@ -235,7 +235,7 @@ class RaidPointsController {
 		$pointsChar = ucfirst(strtolower($player));
 		$sharePoints = $this->settingManager->getBool('raid_share_points');
 		if ($sharePoints) {
-			$pointsChar = $this->altsController->getAltInfo($pointsChar)->main;
+			$pointsChar = $this->altsController->getMainOf($pointsChar);
 		}
 		// If that player already received reward based points for this reward on an alt ignore this
 		if (isset($raid) && isset($raid->pointsGiven[$pointsChar])) {

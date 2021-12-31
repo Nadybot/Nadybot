@@ -112,7 +112,7 @@ class NewsController {
 	 */
 	public function getNewsItems(string $player): Collection {
 		if ($this->settingManager->getBool('news_confirmed_for_all_alts')) {
-			$player = $this->altsController->getAltInfo($player)->main;
+			$player = $this->altsController->getMainOf($player);
 		}
 		$query = $this->db->table("news AS n")
 			->where("deleted", 0)
@@ -271,7 +271,7 @@ class NewsController {
 			return;
 		}
 		if ($this->settingManager->getBool('news_confirmed_for_all_alts')) {
-			$sender = $this->altsController->getAltInfo($context->char->name)->main;
+			$sender = $this->altsController->getMainOf($context->char->name);
 		}
 
 		if ($this->db->table("news_confirmed")
