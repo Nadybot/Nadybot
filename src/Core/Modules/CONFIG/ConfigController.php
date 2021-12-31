@@ -1036,11 +1036,11 @@ class ConfigController {
 		return $query->asObj(RegisteredCmd::class)->toArray();
 	}
 
-	public function getRegisteredCommand(string $module, string $command): ?CmdCfg {
+	public function getRegisteredCommand(string $module, string $command): ?RegisteredCmd {
 		$query = $this->getRegisteredCommandsQuery();
 		$query->where("module", $module);
 		$query->where("cmd", $command);
 		$query->where("cmd", "!=", "config");
-		return $query->asObj(CmdCfg::class)->first();
+		return $query->asObj(RegisteredCmd::class)->first();
 	}
 }

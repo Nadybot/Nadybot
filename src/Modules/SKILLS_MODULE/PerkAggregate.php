@@ -2,8 +2,6 @@
 
 namespace Nadybot\Modules\SKILLS_MODULE;
 
-use Nadybot\Modules\ITEMS_MODULE\ExtBuff;
-
 class PerkAggregate {
 	/** Name of the perk */
 	public string $name;

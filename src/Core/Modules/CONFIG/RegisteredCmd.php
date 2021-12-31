@@ -23,7 +23,7 @@ class RegisteredCmd extends DBRow {
 	public int $priv_status;
 	public int $msg_status;
 
-	public int $guild_al;
-	public int $priv_al;
-	public int $msg_al;
+	public ?string $guild_al;
+	public ?string $priv_al;
+	public ?string $msg_al;
 }

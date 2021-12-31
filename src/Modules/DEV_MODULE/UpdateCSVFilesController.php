@@ -220,7 +220,7 @@ class UpdateCSVFilesController {
 			return;
 		}
 		if (preg_match("/^#\s*Requires:\s*(.+)$/m", $response->body??"", $matches)) {
-			if (!$this->db->hasAppliedMigration($setting->module, trim($matches[1]))) {
+			if (!$this->db->hasAppliedMigration($setting->module??"Core", trim($matches[1]))) {
 				$callback(
 					$file,
 					"The new version for {$file} cannot be applied, because you require ".
@@ -229,7 +229,7 @@ class UpdateCSVFilesController {
 				return;
 			}
 		}
-		if (preg_match("/^\d+$/", $setting->value)) {
+		if (preg_match("/^\d+$/", $setting->value??"")) {
 			if ((int)$setting->value >= $gitModified->getTimestamp()) {
 				$callback($file, false);
 				return;
