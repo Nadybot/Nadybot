@@ -272,11 +272,9 @@ class PackageController {
 			$installLink = "";
 			$installedVersion = null;
 			if ($package->state === static::EXTRA) {
-				$query = $this->db->table(self::DB_TABLE)
-					->where("module", $package->name);
-				$query->selectRaw($query->colFunc("MAX", "version", "cur")->getValue());
-				$res = $query->asObj()->first();
-				$installedVersion = $res->cur;
+				$installedVersion = (string)$this->db->table(self::DB_TABLE)
+					->where("module", $package->name)
+					->max("version");
 			}
 			if (isset($pGroup->highest_supported) && $package->state !== static::BUILT_INT) {
 				if ($pGroup->highest_supported && isset($installedVersion) && $installedVersion !== "") {
@@ -345,11 +343,9 @@ class PackageController {
 			return;
 		}
 		if ($packages[0]->state === static::EXTRA) {
-			$query = $this->db->table(self::DB_TABLE)
-				->where("module", $packages[0]->name);
-			$query->selectRaw($query->colFunc("MAX", "version", "cur")->getValue());
-			$res = $query->asObj()->first();
-			$installedVersion = $res->cur;
+			$installedVersion = (string)$this->db->table(self::DB_TABLE)
+				->where("module", $packages[0]->name)
+				->max("version");
 		}
 		$blob = trim($this->renderHTML($packages[0]->description));
 		$blob .= "\n\n<header2>Details<end>\n".

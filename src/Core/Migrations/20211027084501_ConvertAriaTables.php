@@ -15,8 +15,7 @@ class ConvertAriaTables implements SchemaMigration {
 			->where("TABLE_SCHEMA", $db->schema()->getConnection()->getDatabaseName())
 			->where("ENGINE", "Aria")
 			->select("TABLE_NAME")
-			->asObj()
-			->pluck("TABLE_NAME")
+			->pluckAs("TABLE_NAME", "string")
 			->toArray();
 		if (empty($tables)) {
 			return;

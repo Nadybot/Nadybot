@@ -60,7 +60,9 @@ class WhompahController {
 	#[NCA\HandlesCommand("whompah")]
 	public function whompahListCommand(CmdContext $context): void {
 		/** @var Collection<WhompahCity> */
-		$data = $this->db->table("whompah_cities")->orderBy("city_name")->asObj();
+		$data = $this->db->table("whompah_cities")
+			->orderBy("city_name")
+			->asObj(WhompahCity::class);
 
 		$blob = "<header2>All known cities with Whom-Pahs<end>\n";
 		foreach ($data as $row) {

@@ -573,11 +573,10 @@ class RaffleController {
 		if ($this->settingManager->getBool('share_raffle_bonus_on_alts')) {
 			$player = $this->altsController->getAltInfo($player)->main;
 		}
-		$data = $this->db->table(self::DB_TABLE)
+		return $this->db->table(self::DB_TABLE)
 			->where("name", $player)
 			->select("bonus")
-			->asObj()->first();
-		return $data ? $data->bonus : 0;
+			->pluckAs("bonus", "int")->first() ?? 0;
 	}
 
 	/**
@@ -679,10 +678,11 @@ class RaffleController {
 		}
 		$losersUpdate = [];
 		if (count($losers)) {
+			/** @var string[] */
 			$losersUpdate = $this->db->table(self::DB_TABLE)
 					->whereIn("name", $losers)
 					->select("name")
-					->asObj()->pluck("name")->toArray();
+					->pluckAs("name", "string")->toArray();
 		}
 		$losersInsert = array_diff($losers, $losersUpdate);
 		if (count($losersUpdate)) {

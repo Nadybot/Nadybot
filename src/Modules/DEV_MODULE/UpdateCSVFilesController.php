@@ -14,6 +14,7 @@ use Nadybot\Core\{
 	HttpResponse,
 	SettingManager,
 };
+use Nadybot\Core\DBSchema\Setting;
 
 /**
  * @author Nadyita (RK5)
@@ -209,9 +210,10 @@ class UpdateCSVFilesController {
 			$callback($file, false);
 			return;
 		}
+		/** @var ?Setting */
 		$setting = $this->db->table(SettingManager::DB_TABLE)
 			->where("name", $settingName)
-			->asObj()
+			->asObj(Setting::class)
 			->first();
 		if (!isset($setting)) {
 			$callback($file, false);

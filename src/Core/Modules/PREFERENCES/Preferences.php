@@ -44,16 +44,12 @@ class Preferences {
 	public function get(string $sender, string $name): ?string {
 		$sender = ucfirst(strtolower($sender));
 		$name = strtolower($name);
-		$row = $this->db->table(self::DB_TABLE)
+		return $this->db->table(self::DB_TABLE)
 			->where("sender", $sender)
 			->where("name", $name)
 			->select("value")
-			->asObj()
+			->pluckAs("value", "string")
 			->first();
-		if ($row === null) {
-			return null;
-		}
-		return $row->value;
 	}
 
 	public function delete(string $sender, string $name): bool {

@@ -85,7 +85,8 @@ class ResearchController {
 			->where("level", "<=", $hiLevel);
 		$query->select($query->colFunc("SUM", "sk", "totalsk"));
 		$query->addSelect($query->colFunc("MAX", "levelcap", "levelcap"));
-		$row = $query->asObj()->first();
+		/** @var ?ResearchResult */
+		$row = $query->asObj(ResearchResult::class)->first();
 		if ($row->levelcap === null) {
 			$msg = "That doesn't make any sense.";
 			$context->reply($msg);

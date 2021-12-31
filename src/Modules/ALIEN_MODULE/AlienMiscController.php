@@ -292,7 +292,7 @@ class AlienMiscController {
 		$qls = $this->db->table("ofabweaponscost")
 			->orderBy("ql")
 			->select("ql")->distinct()
-			->asObj()->pluck("ql");
+			->pluckAs("ql", "int")->toArray();
 		$blob = $this->db->table("ofabweapons")
 			->orderBy("name")
 			->asObj(OfabWeapon::class)
@@ -343,7 +343,7 @@ class AlienMiscController {
 		$blob = $this->db->table("ofabweaponscost")
 			->orderBy("ql")
 			->select("ql")->distinct()
-			->asObj()->pluck("ql")
+			->pluckAs("ql", "int")
 			->reduce(
 				function(string $blob, int $ql) use ($searchQL, $weapon): string {
 					if ($ql === $searchQL) {

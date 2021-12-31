@@ -19,6 +19,7 @@ use Nadybot\Core\{
 	Nadybot,
 	ProxyCapabilities,
 };
+use Nadybot\Core\DBSchema\BanEntry;
 use Nadybot\Modules\{
 	CITY_MODULE\CloakController,
 	CITY_MODULE\OrgCity,
@@ -54,6 +55,8 @@ use Nadybot\Modules\{
 	VOTE_MODULE\Vote,
 	VOTE_MODULE\VoteController,
 };
+use Nadybot\Modules\NEWS_MODULE\NewsConfirmed;
+use Nadybot\Modules\RAFFLE_MODULE\RaffleBonus;
 use stdClass;
 
 /**
@@ -294,8 +297,9 @@ class ExportController {
 	}
 
 	protected function exportBanlist(): array {
+		/** @var BanEntry[] */
 		$banList = $this->db->table(BanController::DB_TABLE)
-			->asObj()->toArray();
+			->asObj(BanEntry::class)->toArray();
 		$result = [];
 		foreach ($banList as $banEntry) {
 			$ban = (object)[
@@ -378,9 +382,10 @@ class ExportController {
 	}
 
 	protected function exportRaffleBonus(): array {
+		/** @var RaffleBonus[] */
 		$data = $this->db->table(RaffleController::DB_TABLE)
 			->orderBy("name")
-			->asObj()
+			->asObj(RaffleBonus::class)
 			->toArray();
 		$result = [];
 		foreach ($data as $bonus) {
@@ -607,9 +612,10 @@ class ExportController {
 				"deleted" => $topic->deleted,
 				"confirmedBy" => [],
 			];
+			/** @var NewsConfirmed[] */
 			$confirmations = $this->db->table("news_confirmed")
 				->where("id", $topic->id)
-				->asObj()
+				->asObj(NewsConfirmed::class)
 				->toArray();
 			foreach ($confirmations as $confirmation) {
 				$data->confirmedBy []= (object)[

@@ -396,9 +396,9 @@ class OnlineController {
 		if (!$this->chatBot->isReady()) {
 			return;
 		}
+		/** @var Collection<Online> */
 		$data = $this->db->table("online")
-			->select("name", "channel_type")
-			->asObj();
+			->asObj(Online::class);
 
 		$guildArray = [];
 		$privArray = [];
@@ -523,14 +523,15 @@ class OnlineController {
 		if (preg_match("/^\Q$symbol\E?afk(.*)$/i", $message)) {
 			return;
 		}
-		$row = $this->buildOnlineQuery($sender, $type)
+		/** @var ?string */
+		$afk = $this->buildOnlineQuery($sender, $type)
 			->select("afk")
-			->asObj()->first();
+			->pluckAs("afk", "string")->first();
 
-		if ($row === null || $row->afk === '') {
+		if ($afk === null || $afk === '') {
 			return;
 		}
-		$time = explode('|', $row->afk)[0];
+		$time = explode('|', $afk)[0];
 		$timeString = $this->util->unixtimeToReadable(time() - (int)$time);
 		// $sender is back
 		$this->buildOnlineQuery($sender, $type)
@@ -580,11 +581,8 @@ class OnlineController {
 	}
 
 	public function addPlayerToOnlineList(string $sender, string $channel, string $channelType): ?OnlinePlayer {
-		$data = $this->buildOnlineQuery($sender, $channelType)
-			->select("name")
-			->asObj()->toArray();
-
-		if (count($data) === 0) {
+		$exists = $this->buildOnlineQuery($sender, $channelType)->exists();
+		if (!$exists) {
 			$this->db->table("online")
 				->insert([
 					"name" => $sender,

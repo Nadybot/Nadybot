@@ -56,8 +56,7 @@ class PlayerLookupJob {
 				$query->from("players")
 					->whereColumn("alts.alt", "players.name");
 			})->select("alt")
-			->asObj()
-			->pluck("alt")
+			->pluckAs("alt", "string")
 			->map(function (string $alt): Player {
 				$result = new Player();
 				$result->name = $alt;

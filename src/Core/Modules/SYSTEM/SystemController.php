@@ -369,10 +369,7 @@ class SystemController implements MessageEmitter {
 
 		$info->stats = $stats = new SystemStats();
 
-		$query = $this->db->table("players");
-		$row = $query->select($query->rawFunc("COUNT", "*", "count"))
-			->asObj()->first();
-		$stats->charinfo_cache_size = (int)$row->count;
+		$stats->charinfo_cache_size = $this->db->table("players")->count();
 
 		$stats->buddy_list_size = $this->buddylistManager->countConfirmedBuddies();
 		$stats->max_buddy_list_size = $this->chatBot->getBuddyListSize();

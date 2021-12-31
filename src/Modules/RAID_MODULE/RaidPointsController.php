@@ -320,7 +320,7 @@ class RaidPointsController {
 		$pointsChar = ucfirst(strtolower($player));
 		$sharePoints = $this->settingManager->getBool('raid_share_points');
 		if ($sharePoints) {
-			$pointsChar = $this->altsController->getAltInfo($pointsChar)->main;
+			$pointsChar = $this->altsController->getMainOf($pointsChar);
 		}
 		return $this->getThisAltsRaidPoints($pointsChar);
 	}
@@ -329,13 +329,11 @@ class RaidPointsController {
 	 * Get this character's raid points, not taking into consideration any alts
 	 */
 	public function getThisAltsRaidPoints(string $player): ?int {
-		$row = $this->db->table(self::DB_TABLE)
+		return $this->db->table(self::DB_TABLE)
 			->where("username", $player)
-			->asObj()->first();
-		if ($row === null) {
-			return null;
-		}
-		return (int)$row->points;
+			->select("points")
+			->pluckAs("points", "int")
+			->first();
 	}
 
 	#[NCA\HandlesCommand("raidpoints")]

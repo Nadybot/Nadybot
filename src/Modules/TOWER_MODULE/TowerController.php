@@ -1322,11 +1322,15 @@ class TowerController {
 			->where("time", ">=", time() - $time)
 			->groupBy("att_faction")
 			->orderBy("att_faction");
+		/** @var Collection<FactionCount> */
 		$data = $query->orderBy($query->colFunc("COUNT", "att_faction"))
-			->select("att_faction", $query->colFunc("COUNT", "att_faction", "num"))
-			->asObj();
+			->select(
+				"att_faction AS faction",
+				$query->colFunc("COUNT", "att_faction", "num")
+			)
+			->asObj(FactionCount::class);
 		foreach ($data as $row) {
-			$blob .= "<{$row->att_faction}>{$row->att_faction}s<end> have attacked <highlight>{$row->num}<end> ".
+			$blob .= "<{$row->faction}>{$row->faction}s<end> have attacked <highlight>{$row->num}<end> ".
 				$this->text->pluralize("time", $row->num) . ".\n";
 		}
 		if ($data->isNotEmpty()) {
@@ -1337,11 +1341,12 @@ class TowerController {
 			->where("time", ">=", time() - $time)
 			->groupBy("lose_faction")
 			->orderByDesc("num")
-			->select("lose_faction");
+			->select("lose_faction as faction");
+		/** @var Collection<FactionCount> */
 		$data = $query->addSelect($query->colFunc("COUNT", "lose_faction", "num"))
-			->asObj();
+			->asObj(FactionCount::class);
 		foreach ($data as $row) {
-			$blob .= "<{$row->lose_faction}>{$row->lose_faction}s<end> have lost <highlight>{$row->num}<end> tower ".
+			$blob .= "<{$row->faction}>{$row->faction}s<end> have lost <highlight>{$row->num}<end> tower ".
 				$this->text->pluralize("site", $row->num) . ".\n";
 		}
 
@@ -1986,6 +1991,7 @@ class TowerController {
 	}
 
 	protected function getClosestSite(int $playfieldID, int $xCoords, int $yCoords): ?TowerSite {
+		/** @var ?int */
 		$bbMatch = $this->db->table("tower_site_bounds")
 			->where("playfield_id", $playfieldID)
 			->where("x_coord1", "<=", $xCoords)
@@ -1993,10 +1999,10 @@ class TowerController {
 			->where("y_coord1", ">=", $yCoords)
 			->where("y_coord2", "<=", $yCoords)
 			->select("site_number")
-			->asObj()
+			->pluckAs("site_number", "int")
 			->first();
 		if (isset($bbMatch)) {
-			return $this->getTowerInfo($playfieldID, $bbMatch->site_number);
+			return $this->getTowerInfo($playfieldID, $bbMatch);
 		}
 		$zoneSites = $this->db->table("tower_site")
 			->where("playfield_id", $playfieldID)

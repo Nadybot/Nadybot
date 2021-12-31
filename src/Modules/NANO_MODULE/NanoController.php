@@ -192,12 +192,13 @@ class NanoController {
 		if ($froobOnly) {
 			$query->whereNotIn("professions", ["Keeper", "Shade"]);
 		}
-		$data = $query->asObj();
+		/** @var Collection<string> */
+		$profs = $query->pluckAs("professions", "string");
 
 		$blob = "<header2>Choose a profession<end>\n";
 		$command = $froobOnly ? "nanolinesfroob" : "nanolines";
-		foreach ($data as $row) {
-			$blob .= "<tab>" . $this->text->makeChatcmd($row->professions, "/tell <myname> $command $row->professions");
+		foreach ($profs as $prof) {
+			$blob .= "<tab>" . $this->text->makeChatcmd($prof, "/tell <myname> {$command} {$prof}");
 			$blob .= "\n";
 		}
 		$blob .= $this->getFooter();
@@ -306,7 +307,8 @@ class NanoController {
 			}
 			$query->where("froob_friendly", true);
 		}
-		$data = $query->asObj()->toArray();
+		/** @var SchoolAndStrain[] */
+		$data = $query->asObj(SchoolAndStrain::class)->toArray();
 
 		$shortProf = $profession;
 		if ($profession !== 'General') {
@@ -343,7 +345,8 @@ class NanoController {
 			->orderBy("location")
 			->select("location");
 		$query->addSelect($query->colFunc("COUNT", "location", "count"));
-		$data = $query->asObj();
+		/** @var Collection<LocationCount> */
+		$data = $query->asObj(LocationCount::class);
 		$nanoCount = [];
 		foreach ($data as $row) {
 			$locations = preg_split("/\s*\/\s*/", $row->location);

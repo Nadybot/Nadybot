@@ -66,7 +66,7 @@ class QuoteController {
 		$quoteMsg = trim($quote);
 		$row = $this->db->table("quote")
 			->whereIlike("msg", $quoteMsg)
-			->asObj()->first();
+			->asObj(Quote::class)->first();
 		if (isset($row)) {
 			$msg = "This quote has already been added as quote <highlight>{$row->id}<end>.";
 			$context->reply($msg);

@@ -82,22 +82,23 @@ class ClusterController {
 		$implantDesignerLink = $this->text->makeChatcmd("implant designer", "/tell <myname> implantdesigner");
 		$blob = "Click 'Add' to add cluster to $implantDesignerLink.\n\n";
 		foreach ($data as $cluster) {
+			/** @var SlotClusterType[] */
 			$results = $this->db->table("ClusterImplantMap AS c1")
 				->join("ClusterType AS c2", "c1.ClusterTypeID", "c2.ClusterTypeID")
 				->join("ImplantType AS i", "c1.ImplantTypeID", "i.ImplantTypeID")
 				->where("c1.ClusterID", $cluster->ClusterID)
 				->orderByDesc("c2.ClusterTypeID")
 				->select("i.ShortName as Slot", "c2.Name AS ClusterType")
-				->asObj()->toArray();
+				->asObj(SlotClusterType::class)->toArray();
 			$blob .= "<pagebreak><header2>{$cluster->LongName}<end>:\n";
 
 			foreach ($results as $row) {
 				$impDesignerLink = $this->text->makeChatcmd(
 					"add",
-					"/tell <myname> implantdesigner $row->Slot $row->ClusterType $cluster->LongName"
+					"/tell <myname> implantdesigner {$row->Slot} {$row->ClusterType} {$cluster->LongName}"
 				);
 				$clusterType = ucfirst($row->ClusterType);
-				$blob .= "<tab><highlight>$clusterType<end>: $row->Slot [$impDesignerLink]";
+				$blob .= "<tab><highlight>{$clusterType}<end>: {$row->Slot} [{$impDesignerLink}]";
 			}
 			$blob .= "\n\n";
 		}

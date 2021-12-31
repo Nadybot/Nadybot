@@ -579,6 +579,7 @@ class RaidController {
 			->orderByDesc("r.raid_id")
 			->limit(50)
 			->select("r.raid_id", "r.started", "r.stopped");
+		/** @var Collection<RaidHistoryEntry> */
 		$raids = $query->addSelect(
 			$query->rawFunc(
 				"COUNT",
@@ -586,7 +587,7 @@ class RaidController {
 				"raiders"
 			),
 			$query->colFunc("SUM", "delta", "points")
-		)->asObj();
+		)->asObj(RaidHistoryEntry::class);
 		if ($raids->isEmpty()) {
 			$msg = "No raids have ever been run on <myname>.";
 			$context->reply($msg);
@@ -594,7 +595,7 @@ class RaidController {
 		}
 		$blob = "";
 		foreach ($raids as $raid) {
-			$time = DateTime::createFromFormat("U", (string)$raid->started)->format("Y-m-d H:i:s");
+			$time = (new DateTime())->setTimestamp($raid->started)->format("Y-m-d H:i:s");
 			$avgPoints = round($raid->points / $raid->raiders, 1);
 			$detailsCmd = $this->text->makeChatcmd(
 				"details",
@@ -715,7 +716,8 @@ class RaidController {
 			->whereNotNull("left")
 			->select("left AS time");
 		$left->selectRaw("0" . $left->as("status"));
-		$events = $joined->union($left)->orderBy("time")->asObj();
+		$events = $joined->union($left)->orderBy("time")->asObj(RaidStatus::class);
+		/** Collection<RaidStatus|RaidPointsLog> */
 		$allLogs = $logs->concat($events)
 			->sort(function(object $a, object $b) {
 				return $a->time <=> $b->time;
@@ -724,7 +726,7 @@ class RaidController {
 			$context->reply("<highlight>{$char}<end> didn't get any points in this raid.");
 			return;
 		}
-		$main = $this->altsController->getAltInfo($char())->main;
+		$main = $this->altsController->getMainOf($char());
 		$blob = $this->getRaidSummary($raid);
 		$blob .= "\n<header2>Detailed points for {$char}";
 		if ($main !== $char()) {
@@ -742,7 +744,7 @@ class RaidController {
 					$log->reason.
 					($log->individual ? "<end>" : "").
 					" (by {$log->changed_by})\n";
-			} else {
+			} elseif ($log instanceof RaidStatus) {
 				$blob .= "<tab>" . $this->util->date($log->time) . "<tab>".
 					($log->status ? "Raid joined" : "Raid left") . "\n";
 			}

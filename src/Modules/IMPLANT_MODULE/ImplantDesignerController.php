@@ -121,19 +121,19 @@ class ImplantDesignerController {
 	}
 
 	private function getClusterModAmount(int $ql, string $grade, int $effectId): int {
-		$row = $this->db->table("EffectTypeMatrix")
+		/** @var EffectTypeMatrix */
+		$etm = $this->db->table("EffectTypeMatrix")
 			->where("ID", $effectId)
-			->select("ID", "Name", "MinValLow", "MaxValLow", "MinValHigh", "MaxValHigh")
-			->asObj()->first();
+			->asObj(EffectTypeMatrix::class)->firstOrFail();
 
 		if ($ql < 201) {
-			$minVal = $row->MinValLow;
-			$maxVal = $row->MaxValLow;
+			$minVal = $etm->MinValLow;
+			$maxVal = $etm->MaxValLow;
 			$minQl = 1;
 			$maxQl = 200;
 		} else {
-			$minVal = $row->MinValHigh;
-			$maxVal = $row->MaxValHigh;
+			$minVal = $etm->MinValHigh;
+			$maxVal = $etm->MaxValHigh;
 			$minQl = 201;
 			$maxQl = 300;
 		}
@@ -234,9 +234,9 @@ class ImplantDesignerController {
 		}
 		$msg .= "\n";
 		$msg .= $this->text->makeChatcmd("-Empty-", "/tell <myname> implantdesigner $slot $grade clear") . "\n";
-		$data = $this->getClustersForSlot($slot, $grade);
-		foreach ($data as $row) {
-			$msg .= $this->text->makeChatcmd($row->skill, "/tell <myname> implantdesigner $slot $grade $row->skill") . "\n";
+		$skills = $this->getClustersForSlot($slot, $grade);
+		foreach ($skills as $skill) {
+			$msg .= $this->text->makeChatcmd($skill, "/tell <myname> implantdesigner {$slot} {$grade} {$skill}") . "\n";
 		}
 		$msg .= "\n\n";
 		return $msg;
@@ -256,11 +256,13 @@ class ImplantDesignerController {
 		$slotObj = &$design->$slot;
 
 		if ($type === 'symb') {
+			/** @var ?Symbiant */
 			$symbRow = $this->db->table("Symbiant AS s")
 				->join("ImplantType AS i", "s.SlotID", "i.ImplantTypeID")
 				->where("i.ShortName", $slot)
 				->where("s.Name", $item)
-				->asObj()->first();
+				->select("s.*")
+				->asObj(Symbiant::class)->first();
 
 			if ($symbRow === null) {
 				$msg = "Could not find symbiant <highlight>$item<end>.";
@@ -281,14 +283,14 @@ class ImplantDesignerController {
 					->join("Ability AS a", "s.AbilityID", "a.AbilityID")
 					->where("SymbiantID", $symbRow->ID)
 					->select("a.Name", "s.Amount")
-					->asObj()->toArray();
+					->asObj(AbilityAmount::class)->toArray();
 
 				// add mods
 				$symb->mods = $this->db->table("SymbiantClusterMatrix AS s")
 					->join("Cluster AS c", "s.ClusterID", "c.ClusterID")
 					->where("SymbiantID", $symbRow->ID)
 					->select("c.LongName AS Name", "s.Amount")
-					->asObj()->toArray();
+					->asObj(AbilityAmount::class)->toArray();
 
 				$slotObj->symb = $symb;
 				$msg = "<highlight>$slot(symb)<end> has been set to <highlight>$symb->name<end>.";
@@ -390,10 +392,10 @@ class ImplantDesignerController {
 			$blob .= $this->text->makeChatcmd($slot, "/tell <myname> implantdesigner $slot");
 			$blob .= $this->getImplantSummary($slotObj) . "\n";
 			$blob .= "Which ability do you want to require for $slot?\n\n";
-			$data = $this->db->table("Ability")->select("Name")
-				->asObj()->toArray();
-			foreach ($data as $row) {
-				$blob .= $this->text->makeChatcmd($row->Name, "/tell <myname> implantdesigner $slot require $row->Name") . "\n";
+			$abilities = $this->db->table("Ability")->select("Name")
+				->pluckAs("Name", "string")->toArray();
+			foreach ($abilities as $ability) {
+				$blob .= $this->text->makeChatcmd($ability, "/tell <myname> implantdesigner {$slot} require {$ability}") . "\n";
 			}
 			$msg = $this->text->makeBlob("Implant Designer Require Ability ($slot)", $blob);
 		}
@@ -428,14 +430,14 @@ class ImplantDesignerController {
 			$blob .= "\n-------------------------\n\n";
 			$blob .= $this->text->makeChatcmd($slot, "/tell <myname> implantdesigner $slot");
 			$blob .= $this->getImplantSummary($slotObj) . "\n";
-			$blob .= "Combinations for <highlight>$slot<end> that will require $ability:\n";
+			$blob .= "Combinations for <highlight>{$slot}<end> that will require {$ability}:\n";
 			$query = $this->db
 				->table("ImplantMatrix AS i")
 				->join("Cluster AS c1", "i.ShiningID", "c1.ClusterID")
 				->join("Cluster AS c2", "i.BrightID", "c2.ClusterID")
 				->join("Cluster AS c3", "i.FadedID", "c3.ClusterID")
 				->join("Ability AS a", "i.AbilityID", "a.AbilityID")
-				->where("a.Name", $ability)
+				->where("a.Name", ucfirst($ability))
 				->select("i.AbilityQL1", "i.AbilityQL200", "i.AbilityQL201")
 				->addSelect("i.AbilityQL300", "i.TreatQL1", "i.TreatQL200")
 				->addSelect("i.TreatQL201", "i.TreatQL300")
@@ -456,7 +458,8 @@ class ImplantDesignerController {
 				$query->where("c3.LongName", $slotObj->faded);
 			}
 
-			$data = $query->asObj()->toArray();
+			/** @var ImplantLayout[] */
+			$data = $query->asObj(ImplantLayout::class)->toArray();
 			$primary = null;
 			foreach ($data as $row) {
 				$results = [];
@@ -666,6 +669,7 @@ class ImplantDesignerController {
 		return $implantInfo;
 	}
 
+	/** @return string[] */
 	public function getClustersForSlot(string $implantType, string $clusterType): array {
 		return $this->db
 			->table("Cluster AS c1")
@@ -675,20 +679,20 @@ class ImplantDesignerController {
 			->where("i.ShortName", strtolower($implantType))
 			->where("c3.Name", strtolower($clusterType))
 			->select("LongName AS skill")
-			->asObj()
+			->pluckAs("skill", "string")
 			->toArray();
 	}
 
 	public function getDesign(string $sender, string $name): stdClass {
-		$row = $this->db->table("implant_design")
+		$design = $this->db->table("implant_design")
 			->where("owner", $sender)
 			->where("name", $name)
-			->asObj()
+			->pluckAs("design", "string")
 			->first();
-		if ($row === null) {
+		if ($design === null) {
 			return new stdClass();
 		}
-		return json_decode($row->design);
+		return json_decode($design);
 	}
 
 	public function saveDesign(string $sender, string $name, object $design): void {

@@ -666,7 +666,6 @@ class CommentController {
 	 */
 	public function countComments(?CommentCategory $category, string ...$characters): int {
 		$query = $this->db->table("<table:comments>");
-		$query->select($query->rawFunc("COUNT", "*", "num"));
 		$chars = [];
 		foreach ($characters as $character) {
 			$altInfo = $this->altsController->getAltInfo($character);
@@ -676,7 +675,7 @@ class CommentController {
 		if (isset($category)) {
 			$query->where("category", $category->name);
 		}
-		return (int)$query->asObj()->first()->num;
+		return $query->count();
 	}
 
 	/**

@@ -382,12 +382,12 @@ class GuildController {
 			return;
 		}
 
-		$row = $this->db->table(self::DB_TABLE)
+		$mode = $this->db->table(self::DB_TABLE)
 			->where("name", $name)
 			->select("mode")
-			->asObj()->first();
+			->pluckAs("mode", "string")->first();
 
-		if ($row !== null && $row->mode !== "del") {
+		if ($mode !== null && $mode !== "del") {
 			$msg = "<highlight>{$name}<end> is already on the Notify list.";
 			$context->reply($msg);
 			return;
@@ -423,14 +423,14 @@ class GuildController {
 			return;
 		}
 
-		$row = $this->db->table(self::DB_TABLE)
+		$mode = $this->db->table(self::DB_TABLE)
 			->where("name", $name)
 			->select("mode")
-			->asObj()->first();
+			->pluckAs("mode", "string")->first();
 
-		if ($row === null) {
+		if ($mode === null) {
 			$msg = "<highlight>{$name}<end> is not on the guild roster.";
-		} elseif ($row->mode == "del") {
+		} elseif ($mode == "del") {
 			$msg = "<highlight>{$name}<end> has already been removed from the Notify list.";
 		} else {
 			$this->db->table(self::DB_TABLE)

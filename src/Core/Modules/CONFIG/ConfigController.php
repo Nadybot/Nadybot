@@ -4,6 +4,7 @@ namespace Nadybot\Core\Modules\CONFIG;
 
 use Nadybot\Core\Attributes as NCA;
 use Exception;
+use Illuminate\Support\Collection;
 use ReflectionClass;
 use Nadybot\Core\{
 	AccessManager,
@@ -936,7 +937,8 @@ class ConfigController {
 			"SUM(CASE WHEN {$stat} = 4 then 1 ELSE 0 END)".
 			$outerQuery->as("count_settings")
 		);
-		$data = $outerQuery->asObj()->toArray();
+		/** @var Collection<ModuleStats> */
+		$data = $outerQuery->asObj(ModuleStats::class);
 		$result = [];
 		foreach ($data as $row) {
 			$config = new ConfigModule();

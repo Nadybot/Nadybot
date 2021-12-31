@@ -190,18 +190,16 @@ class LadderController {
 	public function setHighestAndLowestQls(LadderRequirements $obj, string $var): void {
 		$varValue = $obj->$var;
 
-		$query = $this->db->table("implant_requirements")
-			->where($var, $varValue);
-		$query->select($query->colFunc("MAX", "ql", "max"))
-			->addSelect($query->colFunc("MIN", "ql", "min"));
-		$row = $query->asObj()->first();
-
+		$min = $this->db->table("implant_requirements")
+			->where($var, $varValue)->min("ql");
+		$max = $this->db->table("implant_requirements")
+			->where($var, $varValue)->max("ql");
 		// camel case var name
 		$tempNameVar = ucfirst($var);
 		$tempHighestName = "highest$tempNameVar";
 		$tempLowestName = "lowest$tempNameVar";
 
-		$obj->$tempLowestName = $row->min;
-		$obj->$tempHighestName = $row->max;
+		$obj->$tempLowestName = (int)$min;
+		$obj->$tempHighestName = (int)$max;
 	}
 }

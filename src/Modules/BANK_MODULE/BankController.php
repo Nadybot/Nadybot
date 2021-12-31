@@ -83,7 +83,7 @@ class BankController {
 		$characters = $this->db->table("bank")
 			->orderBy("player")
 			->select("player")->distinct()
-			->asObj()->pluck("player");
+			->pluckAs("player", "string");
 		if ($characters->isEmpty()) {
 			$context->reply("No bank characters found.");
 			return;
@@ -99,14 +99,18 @@ class BankController {
 	}
 
 	#[NCA\HandlesCommand("bank")]
-	public function bankBrowsePlayerCommand(CmdContext $context, #[NCA\Str("browse")] string $action, PCharacter $char): void {
+	public function bankBrowsePlayerCommand(
+		CmdContext $context,
+		#[NCA\Str("browse")] string $action,
+		PCharacter $char
+	): void {
 		$name = $char();
 
+		/** @var Collection<Bank> */
 		$data = $this->db->table("bank")
 			->where("player", $name)
 			->orderBy("container")
-			->select("container_id", "container", "player")
-			->asObj();
+			->asObj(Bank::class);
 		if ($data->count() === 0) {
 			$msg = "Could not find bank character <highlight>$name<end>.";
 			$context->reply($msg);
