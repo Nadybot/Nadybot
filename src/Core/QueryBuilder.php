@@ -2,7 +2,6 @@
 
 namespace Nadybot\Core;
 
-use Closure;
 use DateTime;
 use Nadybot\Core\Attributes as NCA;
 use Illuminate\Database\Connection;
@@ -15,7 +14,6 @@ use PDOStatement;
 use ReflectionClass;
 use ReflectionException;
 use ReflectionNamedType;
-use ReflectionProperty;
 use Throwable;
 
 class QueryBuilder extends Builder {
@@ -25,66 +23,6 @@ class QueryBuilder extends Builder {
 
 	private static array $meta = [];
 	private static array $metaTypes = [];
-
-	/**
-	 * Populate and return an array of type changers for a query
-	 *
-	 * @return Closure[]
-	 */
-	protected function getTypeChanger(PDOStatement $ps, object $row): array {
-		$metaKey = md5($ps->queryString);
-		$numColumns = $ps->columnCount();
-		if (isset(self::$meta[$metaKey])) {
-			return self::$meta[$metaKey];
-		}
-		self::$meta[$metaKey] = [];
-		for ($col=0; $col < $numColumns; $col++) {
-			$colMeta = $ps->getColumnMeta($col);
-			$type = $this->guessVarTypeFromColMeta($colMeta, $colMeta["name"]);
-			$refProp = new ReflectionProperty($row, $colMeta["name"]);
-			$refProp->setAccessible(true);
-			if ($type === "bool") {
-				self::$meta[$metaKey] []= function(object $row) use ($refProp): void {
-					$stringValue = $refProp->getValue($row);
-					if ($stringValue !== null) {
-						$refProp->setValue($row, (bool)$stringValue);
-					}
-				};
-			} elseif ($type === "int") {
-				self::$meta[$metaKey] []= function(object $row) use ($refProp): void {
-					$stringValue = $refProp->getValue($row);
-					if ($stringValue !== null) {
-						$refProp->setValue($row, (int)$stringValue);
-					}
-				};
-			}
-		}
-		return self::$meta[$metaKey];
-	}
-
-	/**
-	 * Execute an SQL statement and return all rows as an array of objects
-	 *
-	 * @return \Nadybot\Core\DBRow[] All returned rows
-	 */
-	protected function query(string $sql, ...$args): array {
-		$sql = $this->nadyDB->formatSql($sql);
-
-		$sql = $this->nadyDB->applySQLCompatFixes($sql);
-		$ps = $this->executeQuery($sql, $args);
-		$ps->setFetchMode(PDO::FETCH_CLASS, DBRow::class);
-		$result = [];
-		while ($row = $ps->fetch(PDO::FETCH_CLASS)) {
-			/** @var DBRow $row */
-			$typeChangers = $this->getTypeChanger($ps, $row);
-			foreach ($typeChangers as $changer) {
-				$changer($row);
-			}
-			$result []= $row;
-		}
-		return $result;
-	}
-
 
 	protected function guessVarTypeFromReflection(ReflectionClass $refClass, string $colName): ?string {
 		if (!$refClass->hasProperty($colName)) {
@@ -98,23 +36,6 @@ class QueryBuilder extends Builder {
 		return null;
 	}
 
-	protected function guessVarTypeFromColMeta(array $colMeta, string $colName): ?string {
-		$type = strtolower($colMeta["native_type"]);
-		$declType = strtolower($colMeta["sqlite:decl_type"] ?? "");
-		if (!in_array($type, ["integer", "tiny", "long", "newdecimal"])
-			&& !in_array($declType, ["int", "boolean", "tinyint(1)"])) {
-			return null;
-		}
-		if (
-			$type === 'tiny'
-			|| (in_array($declType, ['boolean', 'tinyint(1)']))
-		) {
-			return "bool";
-		} else {
-			return "int";
-		}
-	}
-
 	public static function clearMetaCache(): void {
 		self::$meta = [];
 		self::$metaTypes = [];
@@ -123,17 +44,9 @@ class QueryBuilder extends Builder {
 	protected function convertToClass(PDOStatement $ps, string $className, array $values): ?object {
 		$row = new $className();
 		$refClass = new ReflectionClass($row);
-		$metaKey = md5($ps->queryString);
-		$numColumns = $ps->columnCount();
-		if (!isset(self::$metaTypes[$metaKey])) {
-			self::$metaTypes[$metaKey] = [];
-			for ($col=0; $col < $numColumns; $col++) {
-				self::$metaTypes[$metaKey] []= $ps->getColumnMeta($col);
-			}
-		}
-		$meta = self::$metaTypes[$metaKey];
+		$numColumns = count($values);
 		for ($col=0; $col < $numColumns; $col++) {
-			$colMeta = $meta[$col];
+			$colMeta = $ps->getColumnMeta($col);
 			$colName = $colMeta['name'];
 			if ($values[$col] === null) {
 				try {
@@ -159,8 +72,7 @@ class QueryBuilder extends Builder {
 				continue;
 			}
 			try {
-				$type = $this->guessVarTypeFromReflection($refClass, $colName)
-					?? $this->guessVarTypeFromColMeta($colMeta, $colName);
+				$type = $this->guessVarTypeFromReflection($refClass, $colName);
 				$refProp = $refClass->getProperty($colName);
 				$readMap = $refProp->getAttributes(NCA\DB\MapRead::class);
 				if (count($readMap)) {
@@ -253,12 +165,8 @@ class QueryBuilder extends Builder {
 		);
 	}
 
-	public function asObj(string $class=null): Collection {
-		if ($class === null) {
-			return new Collection($this->query($this->toSql(), ...$this->getBindings()));
-		} else {
-			return new Collection($this->fetchAll($class, $this->toSql(), ...$this->getBindings()));
-		}
+	public function asObj(string $class): Collection {
+		return new Collection($this->fetchAll($class, $this->toSql(), ...$this->getBindings()));
 	}
 
 	/**
