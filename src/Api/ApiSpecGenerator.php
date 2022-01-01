@@ -249,7 +249,7 @@ class ApiSpecGenerator {
 		];
 	}
 
-	/** @param array<string,ReflectionMethod> $mapping */
+	/** @param array<string,ReflectionMethod[]> $mapping */
 	public function getSpec(array $mapping): array {
 		$result = [
 			"openapi" => "3.0.0",

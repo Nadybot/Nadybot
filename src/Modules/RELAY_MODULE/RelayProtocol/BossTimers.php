@@ -49,7 +49,7 @@ class BossTimers implements RelayProtocolInterface {
 		if (!isset($event)) {
 			return null;
 		}
-		foreach ($data as $key => $value) {
+		foreach (get_object_vars($data) as $key => $value) {
 			if (!isset($event->{$key})) {
 				$event->{$key} = $value;
 			}

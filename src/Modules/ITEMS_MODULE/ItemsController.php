@@ -105,9 +105,9 @@ class ItemsController {
 			return;
 		}
 		$blob = "";
-		foreach ($row as $key => $value) {
+		foreach (get_object_vars($row) as $key => $value) {
 			if ($key !== "numExactMatches") {
-				$blob .= "$key: <highlight>" . (is_bool($value) ? ["no", "yes"][(int)$value] : $value) . "<end>\n";
+				$blob .= "$key: <highlight>" . (is_bool($value) ? ($value ? "yes" : "no") : ($value??"<empty>")) . "<end>\n";
 			}
 		}
 		$row->ql = $row->highql;
@@ -675,7 +675,7 @@ class ItemsController {
 		$result = new Collection();
 		foreach ($items as $item) {
 			$new = new ItemWithBuffs();
-			foreach ($item as $key => $value) {
+			foreach (get_object_vars($item) as $key => $value) {
 				$new->{$key} = $value;
 			}
 			$new->buffs = $buffs->get($new->lowid, []);

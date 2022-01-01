@@ -13,7 +13,7 @@ class ItemSearchResult extends AODBEntry {
 			return null;
 		}
 		$obj = new self();
-		foreach ($item as $key => $value) {
+		foreach (get_object_vars($item) as $key => $value) {
 			$obj->{$key} = $value;
 		}
 		return $obj;

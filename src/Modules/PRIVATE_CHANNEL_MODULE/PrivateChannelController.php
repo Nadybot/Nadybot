@@ -856,7 +856,7 @@ class PrivateChannelController {
 				$event->type = "online(priv)";
 				$event->player = new OnlinePlayer();
 				$event->channel = "priv";
-				foreach ($whois as $key => $value) {
+				foreach (get_object_vars($whois) as $key => $value) {
 					$event->player->$key = $value;
 				}
 				$event->player->online = true;

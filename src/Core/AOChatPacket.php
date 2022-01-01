@@ -309,6 +309,5 @@ class AOChatPacket {
 
 			$this->data = $data;
 		}
-		return true;
 	}
 }

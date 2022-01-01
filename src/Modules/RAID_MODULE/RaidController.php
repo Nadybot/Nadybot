@@ -352,7 +352,7 @@ class RaidController {
 			->asObj(RaidLog::class)
 			->first();
 		if ($lastRaidLog) {
-			foreach ($lastRaidLog as $key => $value) {
+			foreach (get_object_vars($lastRaidLog) as $key => $value) {
 				if (property_exists($lastRaid, $key)) {
 					$lastRaid->{$key} = $value;
 				}

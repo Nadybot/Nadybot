@@ -40,7 +40,7 @@ class WebChatConverter {
 		$lastHop = null;
 		foreach ($path as $hop) {
 			$newHop = new WebSource($hop->type, $hop->name, $hop->label);
-			foreach ($hop as $key => $value) {
+			foreach (get_object_vars($hop) as $key => $value) {
 				$newHop->{$key} = $value;
 			}
 			$newHop->renderAs = $newHop->render($lastHop);

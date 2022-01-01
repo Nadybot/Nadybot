@@ -449,7 +449,7 @@ class DB {
 		}
 		$builder = $this->capsule->table($table, $as, $connection);
 		$myBuilder = new QueryBuilder($builder->getConnection(), $builder->getGrammar(), $builder->getProcessor());
-		foreach ($builder as $attr => $value) {
+		foreach (get_object_vars($builder) as $attr => $value) {
 			$myBuilder->{$attr} = $value;
 		}
 		$myBuilder->nadyDB = $this;
@@ -467,7 +467,7 @@ class DB {
 	public function fromSub($query, string $as): QueryBuilder {
 		$query = $this->capsule->getConnection()->query()->fromSub($query, $as);
 		$builder = new QueryBuilder($query->connection, $query->grammar, $query->processor);
-		foreach ($query as $attr => $value) {
+		foreach (get_object_vars($query) as $attr => $value) {
 			$builder->{$attr} = $value;
 		}
 		$builder->nadyDB = $this;

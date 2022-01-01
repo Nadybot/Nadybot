@@ -141,7 +141,7 @@ class TrickleController {
 	 */
 	private function processAbilities(AbilityConfig $abilities): array {
 		$headerParts = [];
-		foreach ($abilities as $short => $bonus) {
+		foreach (get_object_vars($abilities) as $short => $bonus) {
 			if ($bonus > 0) {
 				$headerParts []= ($this->util->getAbility($short, true) ?? "Unknown ability").
 					": <highlight>$bonus<end>";

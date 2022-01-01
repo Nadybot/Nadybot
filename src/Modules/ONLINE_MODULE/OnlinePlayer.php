@@ -33,7 +33,7 @@ class OnlinePlayer extends Player {
 	public static function fromPlayer(?Player $player=null, ?Online $online=null): static {
 		$op = new static();
 		if (isset($player)) {
-			foreach ($player as $key => $value) {
+			foreach (get_object_vars($player) as $key => $value) {
 				$op->{$key} = $value;
 			}
 		}

@@ -128,6 +128,7 @@ class HelpbotController {
 	 */
 	private function formatResults(Collection $data): string {
 		$blob = '';
+		/** @var Collection<string,Collection<DynaDBSearch>> */
 		$data = $data->filter(fn (DynaDBSearch $search): bool => isset($search->pf))
 			->groupBy("pf.long_name")
 			->sortKeys();

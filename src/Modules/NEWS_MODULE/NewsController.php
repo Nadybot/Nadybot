@@ -477,7 +477,7 @@ class NewsController {
 		$decoded = News::fromNewNews($decoded);
 		$decoded->id = $id;
 		$decoded->name = $request->authenticatedAs??"_";
-		foreach ($decoded as $attr => $value) {
+		foreach (get_object_vars($decoded) as $attr => $value) {
 			if (isset($value)) {
 				$result->{$attr} = $value;
 			}

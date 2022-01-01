@@ -595,7 +595,7 @@ class OnlineController {
 		$op = new OnlinePlayer();
 		$player = $this->playerManager->findInDb($sender, $this->config->dimension);
 		if (isset($player)) {
-			foreach ($player as $key => $value) {
+			foreach (get_object_vars($player) as $key => $value) {
 				$op->{$key} = $value;
 			}
 		}
