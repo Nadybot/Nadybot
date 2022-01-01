@@ -17,7 +17,7 @@ class MigrateReputationTable implements SchemaMigration {
 		if (!$db->schema()->hasTable("reputation")) {
 			return;
 		};
-		$oldData = $db->table("reputation")->asObj();
+		$oldData = $db->table("reputation")->get();
 		if ($oldData->count() === 0) {
 			$logger->log("INFO", "Reputation table empty, no need to convert anything");
 			$db->schema()->dropIfExists("reputation");
@@ -33,10 +33,10 @@ class MigrateReputationTable implements SchemaMigration {
 				$db->table("<table:comments>")
 					->insert([
 						"category" => $cat->name,
-						"character" => $row->name,
+						"character" => (string)$row->name,
 						"comment" => "{$row->reputation} {$row->comment}",
-						"created_at" => $row->dt,
-						"created_by" => $row->by
+						"created_at" => (int)$row->dt,
+						"created_by" => (string)$row->by
 					]);
 			}
 		} catch (Throwable $e) {

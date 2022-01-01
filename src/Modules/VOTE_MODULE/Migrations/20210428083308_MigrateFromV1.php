@@ -17,33 +17,33 @@ class MigrateFromV1 implements SchemaMigration {
 		$logger->log("INFO", "Converting old vote format into poll format");
 		$oldPolls = $db->table(self::DB_OLD_VOTE)
 			->whereNotNull("duration")
-			->asObj()
+			->get()
 			->toArray();
 		foreach ($oldPolls as $oldPoll) {
 			$id = $db->table(VoteController::DB_POLLS)->insertGetId([
-				"author" => $oldPoll->author,
-				"question" => $oldPoll->question,
-				"possible_answers" => json_encode(explode(VoteController::DELIMITER, $oldPoll->answer)),
+				"author" => (string)$oldPoll->author,
+				"question" => (string)$oldPoll->question,
+				"possible_answers" => json_encode(explode(VoteController::DELIMITER, (string)$oldPoll->answer)),
 				"started" => (int)$oldPoll->started,
 				"duration" => (int)$oldPoll->duration,
 				"status" => (int)$oldPoll->status,
 			]);
 			$oldVotes = $db->table(self::DB_OLD_VOTE)
-				->where("question", $oldPoll->question)
+				->where("question", (string)$oldPoll->question)
 				->whereNull("duration")
-				->asObj()->toArray();
+				->get()->toArray();
 			foreach ($oldVotes as $oldVote) {
 				if (!$db->table(VoteController::DB_VOTES)->insert([
 					"poll_id" => $id,
-					"author" => $oldVote->author,
-					"answer" => $oldVote->answer
+					"author" => (string)$oldVote->author,
+					"answer" => (string)$oldVote->answer
 				])) {
 					$logger->log("ERROR", "Cannot convert old votes into new format.");
 					return;
 				}
 			}
 			$db->table(self::DB_OLD_VOTE)
-				->where("question", $oldPoll->question)
+				->where("question", (string)$oldPoll->question)
 				->delete();
 			$logger->log("INFO", "Poll \"{$oldPoll->question}\" converted to new poll system");
 		}
