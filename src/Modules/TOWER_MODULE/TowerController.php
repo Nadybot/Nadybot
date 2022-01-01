@@ -365,8 +365,8 @@ class TowerController {
 
 		$cmd = "{$site->pf} {$site->site} ";
 		$search = function (QueryBuilder $query) use ($towerInfo): void {
-			$query->where("a.playfield_id", $towerInfo->playfield_id)
-				->where("a.site_number", $towerInfo->site_number);
+			$query->where("playfield_id", $towerInfo->playfield_id)
+				->where("site_number", $towerInfo->site_number);
 		};
 		$this->attacksCommandHandler($page??1, $search, $cmd, $context);
 	}
@@ -379,8 +379,8 @@ class TowerController {
 	public function attacksOrgCommand(CmdContext $context, #[NCA\Str("org")] string $action, PNonGreedy $orgName, ?int $page): void {
 		$cmd = "org $orgName ";
 		$search = function (QueryBuilder $query) use ($orgName): void {
-			$query->whereIlike("a.att_guild_name", $orgName())
-				->orWhereIlike("a.def_guild_name", $orgName());
+			$query->whereIlike("att_guild_name", $orgName())
+				->orWhereIlike("def_guild_name", $orgName());
 		};
 		$this->attacksCommandHandler($page??1, $search, $cmd, $context);
 	}
@@ -393,7 +393,7 @@ class TowerController {
 	public function attacksPlayerCommand(CmdContext $context, #[NCA\Str("player")] string $action, PCharacter $player, ?int $page): void {
 		$cmd = "player {$player} ";
 		$search = function (QueryBuilder $query) use ($player): void {
-			$query->whereIlike("a.att_player", $player());
+			$query->whereIlike("att_player", $player());
 		};
 		$this->attacksCommandHandler($page??1, $search, $cmd, $context);
 	}
@@ -2537,7 +2537,7 @@ class TowerController {
 				if (isset($attack->pf)) {
 					$line .= $this->text->makeChatcmd(
 						"{$attack->pf->short_name} {$attack->site_number}",
-						"/waypoint {$attack->x_coords} {$attack->y_coord} {$attack->playfield_id}"
+						"/waypoint {$attack->x_coords} {$attack->y_coords} {$attack->playfield_id}"
 					);
 				} else {
 					$line .= "unknown";

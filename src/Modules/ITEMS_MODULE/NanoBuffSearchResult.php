@@ -11,4 +11,5 @@ class NanoBuffSearchResult extends Buff {
 	public ?int $low_ncu;
 	public ?int $low_amount;
 	public string $unit;
+	public bool $froob_friendly = false;
 }

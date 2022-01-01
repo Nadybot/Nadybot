@@ -186,6 +186,7 @@ class ItemsController {
 			->leftJoin("item_group_names AS gn", "g.group_id", "gn.group_id")
 			->orderByColFunc("COALESCE", ["gn.name", "a.name"])
 			->orderBy("a.lowql")
+			->select("a.*")
 			->limit($this->settingManager->getInt('maxitems')??40);
 		$tmp = explode(" ", $search);
 		$this->db->addWhereFromParams($query, $tmp, "a.name");

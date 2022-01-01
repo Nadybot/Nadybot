@@ -21,9 +21,6 @@ class QueryBuilder extends Builder {
 
 	public LoggerWrapper $logger;
 
-	private static array $meta = [];
-	private static array $metaTypes = [];
-
 	protected function guessVarTypeFromReflection(ReflectionClass $refClass, string $colName): ?string {
 		if (!$refClass->hasProperty($colName)) {
 			return null;
@@ -34,11 +31,6 @@ class QueryBuilder extends Builder {
 			return $refType->getName();
 		}
 		return null;
-	}
-
-	public static function clearMetaCache(): void {
-		self::$meta = [];
-		self::$metaTypes = [];
 	}
 
 	protected function convertToClass(PDOStatement $ps, string $className, array $values): ?object {

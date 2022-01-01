@@ -87,7 +87,7 @@ class ResearchController {
 		$query->addSelect($query->colFunc("MAX", "levelcap", "levelcap"));
 		/** @var ?ResearchResult */
 		$row = $query->asObj(ResearchResult::class)->first();
-		if (!isset($row)) {
+		if (!isset($row) || $loLevel === $hiLevel) {
 			$msg = "That doesn't make any sense.";
 			$context->reply($msg);
 			return;

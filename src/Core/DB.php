@@ -581,7 +581,6 @@ class DB {
 			try {
 				$this->beginTransaction();
 				$this->applyMigration($mig->module, $mig->filePath);
-				QueryBuilder::clearMetaCache();
 				if ($this->inTransaction()) {
 					$this->commit();
 				}

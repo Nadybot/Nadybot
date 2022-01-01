@@ -544,22 +544,13 @@ class SkillsController {
 	public function weaponCommand(CmdContext $context, int $highid, int $ql): void {
 		// this is a hack since Worn Soft Pepper Pistol has its high and low ids reversed in-game
 		// there may be others
-		$queryOne = $this->db->table("aodb")
-			->where("highid", $highid)
-			->where("lowql", "<=", $ql)
-			->where("highql", ">=", $ql)
-			->select("*");
-		$queryOne->selectRaw("1" . $queryOne->as("order_col"));
-		$queryTwo = $this->db->table("aodb")
-			->where("lowid", $highid)
-			->where("lowql", "<=", $ql)
-			->where("highql", ">=", $ql)
-			->select("*");
-		$queryTwo->selectRaw("2" . $queryTwo->as("order_col"));
-
 		/** @var ?AODBEntry */
-		$row = $queryOne->union($queryTwo)->orderBy("order_col")
-			->asObj(AODBEntry::class)->first();
+		$row = $this->itemsController->getByIDs($highid)
+			->where("lowql", "<=", $ql)
+			->where("highql", ">=", $ql)
+			->sort(function (AODBEntry $i1, AODBEntry $i2) use ($highid): int {
+				return ($i1->highid === $highid) ? 1 : 2;
+			})->first();
 
 		if ($row === null) {
 			$msg = "Item does not exist in the items database.";
