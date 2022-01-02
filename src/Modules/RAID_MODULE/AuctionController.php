@@ -4,7 +4,7 @@ namespace Nadybot\Modules\RAID_MODULE;
 
 use Nadybot\Core\Attributes as NCA;
 use DateTime;
-use Exception;
+use InvalidArgumentException;
 use Nadybot\Core\{
 	CmdContext,
 	CommandAlias,
@@ -678,7 +678,6 @@ class AuctionController {
 			default:
 				return ["", ""];
 		}
-		return ["", ""];
 	}
 
 	public function getAuctionAnnouncement(Auction $auction): string {
@@ -724,6 +723,9 @@ class AuctionController {
 	}
 
 	protected function rainbow(string $text, int $length=1): string {
+		if ($length < 1) {
+			throw new InvalidArgumentException("Argument\$length to " . __FUNCTION__ . "() cannot be less than 1");
+		}
 		$colors = [
 			"FF0000",
 			"FFa500",
@@ -733,9 +735,6 @@ class AuctionController {
 			"EE82EE",
 		];
 		$chars = str_split($text, $length);
-		if ($chars === false) {
-			throw new Exception("Unknown error drawing a rainbow.");
-		}
 		$result = "";
 		for ($i = 0; $i < count($chars); $i++) {
 			$result .= "<font color=#" . $colors[$i % count($colors)] . ">{$chars[$i]}</font>";
@@ -768,7 +767,6 @@ class AuctionController {
 			default:
 				return $line1;
 		}
-		return "Someone won something. And some admin misconfigured something.";
 	}
 
 	#[NCA\Event(

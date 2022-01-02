@@ -1353,7 +1353,7 @@ class Nadybot extends AOChat {
 				implode(',', $definition['handlers']),
 				(string)$command,
 				$definition['accessLevel'],
-				$definition['description']??"No description given",
+				$definition['description'],
 				$definition['help'],
 				$definition['defaultStatus']
 			);

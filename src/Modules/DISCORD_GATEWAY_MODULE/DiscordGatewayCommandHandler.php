@@ -206,8 +206,8 @@ class DiscordGatewayCommandHandler {
 		}
 		$this->discordAPIClient->getUser(
 			$discordUserId,
-			function(DiscordUser $user) use ($context, $name, $discordUserId, $uid) {
-				$context->char->name = $user ? $user->username . "#" . $user->discriminator : $discordUserId;
+			function(DiscordUser $user) use ($context, $name, $uid) {
+				$context->char->name = $user->username . "#" . $user->discriminator;
 				$blob = "The Discord user <highlight>{$context->char->name}<end> has requested to be linked with your ".
 					"game account. If you confirm the link, that discord user will be linked ".
 					"with this account, be able to run the same commands and have the same rights ".

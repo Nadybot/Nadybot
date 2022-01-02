@@ -2,6 +2,7 @@
 
 namespace Nadybot\Core;
 
+use Directory;
 use Nadybot\Core\Attributes as NCA;
 use ReflectionClass;
 
@@ -71,7 +72,7 @@ class ClassLoader {
 		$this->logger->notice("Loading USER modules...");
 		foreach ($this->moduleLoadPaths as $path) {
 			$this->logger->info("Loading modules in path '$path'");
-			if (!@file_exists($path) || ($d = dir($path)) === false || $d === null) {
+			if (!@file_exists($path) || !(($d = dir($path)) instanceof Directory)) {
 				continue;
 			}
 			while (false !== ($moduleName = $d->read())) {

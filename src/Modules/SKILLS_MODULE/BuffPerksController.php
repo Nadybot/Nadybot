@@ -349,6 +349,7 @@ class BuffPerksController {
 					return strcmp($o1->name, $o2->name);
 				}
 			);
+			// @phpstan-ignore-next-line
 			if (count($perks2)) {
 				$blobs []= $this->renderPerkAggGroup($name, ...$perks2);
 			}

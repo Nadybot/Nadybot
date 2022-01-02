@@ -920,7 +920,7 @@ class TrackerController implements MessageEmitter {
 				$groups[$prof]->members []= $player;
 			}
 		} else {
-			$groups["all"] ??= (object)['title' => "All tracked players", 'members' => $players, 'sort' => 0];
+			$groups["all"] = (object)['title' => "All tracked players", 'members' => $players, 'sort' => 0];
 		}
 		usort($groups, function(object $a, object $b): int {
 			return $a->sort <=> $b->sort;

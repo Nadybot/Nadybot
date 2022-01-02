@@ -477,6 +477,7 @@ class RelayController {
 			isset($layer) && in_array($layer->layer, ["tyrbot", "nadynative"])
 		);
 		$msg = "Relay <highlight>{$name}<end> added.";
+		// @phpstan-ignore-next-line
 		if (!$this->messageHub->hasRouteFor($relay->getChannelName()) && !($context instanceof ProfileCommandReply)) {
 			$help = (array)$this->text->makeBlob("setup your routing", $blob);
 			$msg .= " Make sure to {$help[0]}, otherwise no messages will be exchanged.";

@@ -191,8 +191,6 @@ class Tyrbot implements RelayProtocolInterface {
 			);
 			return null;
 		}
-
-		return null;
 	}
 
 	protected function decodeAndHandlePacket(?string $sender, BasePacket $identify, array $data): ?RoutableEvent {

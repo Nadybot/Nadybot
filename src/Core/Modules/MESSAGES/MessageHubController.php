@@ -865,8 +865,8 @@ class MessageHubController {
 
 	/** Define how to render a specific hop */
 	public function setHopDisplay(string $hop, string $format): void {
-		if (preg_match("/%[^%]/", $format) && @sprintf($format, "text") === false) {
-			throw new Exception("Invalid format string given.");
+		if (preg_match("/%[^%]/", $format)) {
+			$_ignore = sprintf($format, "text");
 		}
 		$spec = Source::$format->first(fn(RouteHopFormat $x) => $x->hop === $hop);
 		/** @var RouteHopFormat $format */

@@ -190,6 +190,7 @@ class VoteController implements MessageEmitter {
 					$mstatus = self::STATUS_60_SECONDS_LEFT;
 				}
 				$this->polls[$id]->status = $mstatus;
+			// @phpstan-ignore-next-line
 			} elseif ($timeleft <= 60 && $timeleft > 0 && $poll->status !== self::STATUS_60_SECONDS_LEFT) {
 				$title = "60 seconds left: $poll->question";
 				$this->polls[$id]->status = self::STATUS_60_SECONDS_LEFT;

@@ -853,7 +853,7 @@ class AOChat {
 	 * Add someone to our friend list
 	 */
 	public function buddy_add(int $uid, string $payload="\1"): bool {
-		if ($uid === $this->char->id??null) {
+		if ($uid === $this->char->id) {
 			return false;
 		}
 		$this->buddyQueue []= $uid;

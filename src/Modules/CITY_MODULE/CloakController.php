@@ -230,6 +230,7 @@ class CloakController implements MessageEmitter {
 			// send message to org chat every 5 minutes that the cloaking device is
 			// disabled past the the time that the cloaking device could be enabled.
 			$interval = $this->settingManager->getInt('cloak_reminder_interval') ?? 300;
+			// @phpstan-ignore-next-line
 			if ($timeSinceChange >= 60*60 && ($timeSinceChange % $interval >= 0 && $timeSinceChange % $interval <= 60 )) {
 				$timeString = $this->util->unixtimeToReadable(time() - $row->time, false);
 				$this->sendCloakMessage("The cloaking device was disabled by <highlight>{$row->player}<end> $timeString ago. It is possible to enable it.");
@@ -261,6 +262,7 @@ class CloakController implements MessageEmitter {
 		} elseif ($timeSinceChange >= 58*60 && $timeSinceChange <= 59*60) {
 			// 1 minute before send tell to player
 			$msg = "The cloaking device is <orange>disabled<end>. It is possible in $timeString to enable it.";
+		// @phpstan-ignore-next-line
 		} elseif ($timeSinceChange >= 59*60 && ($timeSinceChange % (60*5) >= 0 && $timeSinceChange % (60*5) <= 60 )) {
 			// when cloak can be raised, send tell to player and
 			// every 5 minutes after, send tell to player

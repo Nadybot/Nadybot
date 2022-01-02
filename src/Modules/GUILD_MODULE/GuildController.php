@@ -226,7 +226,7 @@ class GuildController {
 		if ($logonMessage === 'clear') {
 			$this->preferences->save($context->char->name, 'logon_msg', '');
 			$msg = "Your logon message has been cleared.";
-		} elseif (strlen($logonMessage) <= $this->settingManager->getInt('max_logon_msg_size')??200) {
+		} elseif (strlen($logonMessage) <= ($this->settingManager->getInt('max_logon_msg_size')??200)) {
 			$this->preferences->save($context->char->name, 'logon_msg', $logonMessage);
 			$msg = "Your logon message has been set.";
 		} else {
@@ -484,6 +484,7 @@ class GuildController {
 		// Save the current org_members table in a var
 		/** @var Collection<OrgMember> */
 		$data = $this->db->table(self::DB_TABLE)->asObj(OrgMember::class);
+		// @phpstan-ignore-next-line
 		if ($data->count() === 0 && (count($org->members) > 0)) {
 			$restart = true;
 		} else {

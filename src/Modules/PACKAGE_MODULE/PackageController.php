@@ -277,6 +277,7 @@ class PackageController {
 					->max("version");
 			}
 			if (isset($pGroup->highest_supported) && $package->state !== static::BUILT_INT) {
+				// @phpstan-ignore-next-line
 				if ($pGroup->highest_supported && isset($installedVersion) && $installedVersion !== "") {
 					if (SemanticVersion::compareUsing($installedVersion, $pGroup->highest_supported->version, '<')) {
 						$installLink = "[" . $this->text->makeChatcmd(

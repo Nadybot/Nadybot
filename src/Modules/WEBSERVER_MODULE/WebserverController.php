@@ -605,9 +605,6 @@ class WebserverController {
 			['Content-Type' => $this->guessContentType($realFile)],
 			$body
 		);
-		if ($response->body === false) {
-			return new Response(Response::FORBIDDEN);
-		}
 		$lastmodified = @filemtime($realFile);
 		if ($lastmodified !== false) {
 			$modifiedDate = (new DateTime())->setTimestamp($lastmodified)->format(DateTime::RFC7231);
@@ -683,6 +680,7 @@ class WebserverController {
 			return null;
 		}
 		$decodedSig = base64_decode($signature);
+		// @phpstan-ignore-next-line
 		if ($decodedSig === false) {
 			return null;
 		}

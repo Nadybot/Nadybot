@@ -40,6 +40,8 @@ class WebsocketBase {
 		'pong'         => self::OP_PONG,
 	];
 
+	protected const FRAMESIZE = 4096;
+
 	/** @var array<string,callable> */
 	protected array $eventCallbacks = [];
 
@@ -53,7 +55,6 @@ class WebsocketBase {
 	protected $socket;
 	protected string $peerName = "Unknown websocket";
 	protected int $timeout = 55;
-	protected int $frameSize = 4096;
 	protected bool $isClosing = false;
 	protected ?string $lastOpcode = null;
 	protected ?int $closeStatus = null;
@@ -487,10 +488,7 @@ class WebsocketBase {
 			throw new Exception("Bad opcode '$opcode'.");
 		}
 
-		$dataChunks = str_split($data, $this->frameSize);
-		if ($dataChunks === false) {
-			throw new Exception("Cannot chunk Websocket data into frames");
-		}
+		$dataChunks = str_split($data, self::FRAMESIZE);
 
 		while (count($dataChunks)) {
 			$chunk = array_shift($dataChunks);

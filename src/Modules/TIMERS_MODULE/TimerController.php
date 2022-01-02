@@ -393,7 +393,7 @@ class TimerController implements MessageEmitter {
 			$sTimer->name = $name;
 			$sTimer->endtime = time() + $runTime;
 			$sTimer->settime = time();
-			$sTimer->interval;
+			$sTimer->interval = null;
 			$sTimer->owner = $context->char->name;
 			$sTimer->forceSync = $context->forceSync;
 			$this->eventManager->fireEvent($sTimer);

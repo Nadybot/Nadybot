@@ -337,9 +337,6 @@ class PlayerManager {
 	}
 
 	public function update(Player $char): void {
-		if ($char->guild_rank_id === '') {
-			$char->guild_rank_id = -1;
-		}
 		$this->db->table("players")
 			->upsert(
 				[

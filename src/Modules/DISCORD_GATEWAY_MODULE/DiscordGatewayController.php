@@ -497,7 +497,7 @@ class DiscordGatewayController {
 		if (!isset($message->author)) {
 			return;
 		}
-		if ($message->author->id === $this->me->id ?? null) {
+		if ($message->author->id === $this->me?->id) {
 			return;
 		}
 

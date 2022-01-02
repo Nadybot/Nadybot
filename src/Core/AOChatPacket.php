@@ -207,13 +207,11 @@ class AOChatPacket {
 
 		if (!$pmap) {
 			throw new Exception("Unsupported packet type (". $dir . ", " . $type . ")");
-			return false;
 		}
 
 		if ($dir == "in") {
 			if (!is_string($data)) {
 				throw new Exception("Incorrect argument for incoming packet, expecting a string.");
-				return false;
 			}
 
 			for ($i = 0; $i < strlen($pmap["args"]); $i++) {
@@ -259,7 +257,6 @@ class AOChatPacket {
 
 					default:
 						throw new Exception("Unknown argument type! (" . $sa . ")");
-						continue(2);
 				}
 				$this->args[] = $res;
 			}
@@ -278,7 +275,6 @@ class AOChatPacket {
 
 				if (is_null($it)) {
 					throw new Exception("Missing argument for packet.");
-					break;
 				}
 
 				switch ($sa) {
@@ -303,7 +299,6 @@ class AOChatPacket {
 
 					default:
 						throw new Exception("Unknown argument type! (" . $sa . ")");
-						continue(2);
 				}
 			}
 

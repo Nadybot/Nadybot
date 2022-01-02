@@ -14,7 +14,6 @@ use Illuminate\Database\Capsule\Manager as Capsule;
 use Illuminate\Database\Connection;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Collection;
-use InvalidArgumentException;
 use Nadybot\Core\Attributes\HasMigrations;
 use Nadybot\Core\CSV\Reader;
 use Nadybot\Core\DBSchema\Migration;
@@ -390,10 +389,6 @@ class DB {
 	 * @return int Number of updates records
 	 */
 	public function update(string $table, string|array $key, DBRow $row): int {
-		/** @psalm-suppress DocblockTypeContradiction */
-		if (!is_string($key) && !is_array($key)) {
-			throw new InvalidArgumentException("argument 2 to " . __FUNCTION__ . " (\$key) must either be a string or an array of strings.");
-		}
 		$refClass = new ReflectionClass($row);
 		$props = $refClass->getProperties(ReflectionProperty::IS_PUBLIC);
 		$updates = [];

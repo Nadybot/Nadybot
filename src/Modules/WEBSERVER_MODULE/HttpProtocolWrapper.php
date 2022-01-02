@@ -415,6 +415,7 @@ class HttpProtocolWrapper {
 			return null;
 		}
 		$userPassString = base64_decode($parts[1]);
+		// @phpstan-ignore-next-line
 		if ($userPassString === false) {
 			return null;
 		}

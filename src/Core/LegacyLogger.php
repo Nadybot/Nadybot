@@ -69,7 +69,6 @@ class LegacyLogger {
 			default:
 				return Logger::NOTICE;
 		}
-		return Logger::NOTICE;
 	}
 
 	public static function getConfig(bool $noCache=false): array {

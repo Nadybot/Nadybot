@@ -366,23 +366,12 @@ class AMQP implements TransportInterface, StatusProvider {
 		$routingKey ??= $sender;
 		try {
 			$channel->basic_publish($message, $exchange, $routingKey);
-		} catch (AMQPTimeoutException $e) {
-			$this->status = new RelayStatus(
-				RelayStatus::ERROR,
-				'Sending message to AMQP server timed out'
-			);
-		} catch (AMQPIOException $e) {
-			$this->status = new RelayStatus(
-				RelayStatus::ERROR,
-				'Sending message to AMQP server interrupted'
-			);
-		} catch (ErrorException $e) {
+		} catch (Throwable $e) {
 			$this->status = new RelayStatus(
 				RelayStatus::ERROR,
 				'Error sending message to AMQP server: ' . $e->getMessage()
 			);
 		}
-		/** @phpstan-ignore-next-line */
 		if (isset($e)) {
 			if (isset($this->status)) {
 				$this->logger->notice($this->status->text);
@@ -482,11 +471,6 @@ class AMQP implements TransportInterface, StatusProvider {
 					RelayStatus::ERROR,
 					'AMQP server timed out'
 				);
-			} catch (AMQPIOException $e) {
-				$this->status = new RelayStatus(
-					RelayStatus::ERROR,
-					'AMQP IO exception'
-				);
 			} catch (ErrorException $e) {
 				$this->status = new RelayStatus(
 					RelayStatus::ERROR,
@@ -512,6 +496,7 @@ class AMQP implements TransportInterface, StatusProvider {
 				$this->relay->init();
 				return;
 			}
+		// @phpstan-ignore-next-line
 		} while ($this->lastWaitReceivedMessage === true && $channel->is_consuming());
 	}
 }

@@ -2,7 +2,6 @@
 
 namespace Nadybot\Modules\WEBSERVER_MODULE;
 
-use ArrayAccess;
 use Nadybot\Modules\WEBSERVER_MODULE\JWT\BeforeValidException;
 use Nadybot\Modules\WEBSERVER_MODULE\JWT\ExpiredException;
 use Nadybot\Modules\WEBSERVER_MODULE\JWT\SignatureInvalidException;
@@ -85,6 +84,7 @@ class JWT {
 			$sig = self::signatureToDER($sig);
 		}
 
+/*
 		if (is_array($key) || $key instanceof ArrayAccess) {
 			if (isset($header->kid)) {
 				if (!isset($key[$header->kid])) {
@@ -95,7 +95,7 @@ class JWT {
 				throw new UnexpectedValueException('"kid" empty, unable to lookup correct key');
 			}
 		}
-
+*/
 		// Check the signature
 		if (!self::verify("$headb64.$bodyb64", $sig, $key, $header->alg)) {
 			throw new SignatureInvalidException('Signature verification failed');
@@ -104,7 +104,8 @@ class JWT {
 		// Check the nbf if it is defined. This is the time that the
 		// token can actually be used. If it's not yet that time, abort.
 		if (isset($payload->nbf) && $payload->nbf > ($timestamp + static::$leeway)) {
-			$date = date(DateTime::ISO8601, $payload->nbf);
+			$date = @date(DateTime::ISO8601, $payload->nbf);
+			// @phpstan-ignore-next-line
 			if ($date === false) {
 				$date = "<unknown>";
 			}
@@ -115,7 +116,8 @@ class JWT {
 		// using tokens that have been created for later use (and haven't
 		// correctly used the nbf claim).
 		if (isset($payload->iat) && $payload->iat > ($timestamp + static::$leeway)) {
-			$date = date(DateTime::ISO8601, $payload->iat);
+			$date = @date(DateTime::ISO8601, $payload->iat);
+			// @phpstan-ignore-next-line
 			if ($date === false) {
 				$date = "<unknown>";
 			}
@@ -204,6 +206,7 @@ class JWT {
 			$input .= str_repeat('=', $padlen);
 		}
 		$decoded = base64_decode(strtr($input, '-_', '+/'));
+		// @phpstan-ignore-next-line
 		if ($decoded === false) {
 			return null;
 		}
@@ -241,6 +244,7 @@ class JWT {
 	private static function signatureToDER($sig): string {
 		// Separate the signature into r-value and s-value
 		$rs = str_split($sig, (int) (strlen($sig) / 2));
+		// @phpstan-ignore-next-line
 		if ($rs === false) {
 			throw new Exception("Invalid r+s data found");
 		}

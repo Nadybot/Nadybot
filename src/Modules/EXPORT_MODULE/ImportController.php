@@ -216,9 +216,11 @@ class ImportController {
 	 */
 	protected function getRanks(object $import): array {
 		$ranks = [];
+		// @phpstan-ignore-next-line
 		foreach ($import->members??[] as $member) {
 			$ranks[$member->rank] = true;
 		}
+		// @phpstan-ignore-next-line
 		foreach ($import->commentCategories??[] as $category) {
 			if (isset($category->minRankToRead)) {
 				$ranks[$category->minRankToRead] = true;
@@ -227,6 +229,7 @@ class ImportController {
 				$ranks[$category->minRankToWrite] = true;
 			}
 		}
+		// @phpstan-ignore-next-line
 		foreach ($import->polls??[] as $poll) {
 			if (isset($poll->minRankToVote)) {
 				$ranks[$poll->minRankToVote] = true;

@@ -717,7 +717,7 @@ class RaidController {
 			->select("left AS time");
 		$left->selectRaw("0" . $left->as("status"));
 		$events = $joined->union($left)->orderBy("time")->asObj(RaidStatus::class);
-		/** Collection<RaidStatus|RaidPointsLog> */
+		/** @var Collection<RaidStatus|RaidPointsLog> */
 		$allLogs = $logs->concat($events)
 			->sort(function(object $a, object $b) {
 				return $a->time <=> $b->time;

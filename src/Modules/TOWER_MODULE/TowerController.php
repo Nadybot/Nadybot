@@ -2265,7 +2265,7 @@ class TowerController {
 			} else {
 				$blob .= "<tab>Planted: <highlight>Unknown<end>\n";
 			}
-		} elseif ($row->enabled === 0) {
+		} elseif (!$row->enabled) {
 				$blob .= "<tab>Planted: <highlight>This site is disabled<end>\n";
 		}
 		$blob .= "<tab>Center coordinates: $waypointLink\n".

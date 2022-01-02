@@ -57,11 +57,6 @@ class WebsocketClient extends WebsocketBase {
 		return $this;
 	}
 
-	public function withframeSize(int $frameSize): self {
-		$this->frameSize = $frameSize;
-		return $this;
-	}
-
 	/**
 	 * Set a headers to be send with the request
 	 */

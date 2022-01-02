@@ -4,7 +4,6 @@ namespace Nadybot\Modules\RELAY_MODULE\RelayProtocol;
 
 use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\DBSchema\Player;
-use Nadybot\Core\Event;
 use Nadybot\Core\Modules\PLAYER_LOOKUP\PlayerManager;
 use Nadybot\Core\Nadybot;
 use Nadybot\Core\Routing\Character;
@@ -93,9 +92,9 @@ class GcrProtocol implements RelayProtocolInterface {
 			return $this->renderMessage($event);
 		}
 		if ($event->getType() === RoutableEvent::TYPE_EVENT) {
-			/** @var Event $llEvent */
+			/** @var object $llEvent */
 			$llEvent = $event->getData();
-			if ($llEvent->type??null === Online::TYPE) {
+			if (isset($llEvent->type) && ($llEvent->type === Online::TYPE)) {
 				return $this->renderUserState($event);
 			}
 		}

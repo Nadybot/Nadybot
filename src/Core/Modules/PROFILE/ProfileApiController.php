@@ -97,10 +97,10 @@ class ProfileApiController {
 		NCA\ApiResult(code: 404, desc: "Profile not found")
 	]
 	public function loadProfileEndpoint(Request $request, HttpProtocolWrapper $server, string $profile): Response {
-		$op = null;
-		if (is_object($request->decodedBody)) {
-			$op = $request->decodedBody->op ?? null;
+		if (!is_object($request->decodedBody) || !isset($request->decodedBody->op)) {
+			return new Response(Response::UNPROCESSABLE_ENTITY);
 		}
+		$op = $request->decodedBody->op;
 		if ($op !== "load") {
 			return new Response(Response::UNPROCESSABLE_ENTITY);
 		}
