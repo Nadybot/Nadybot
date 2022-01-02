@@ -638,6 +638,7 @@ class ItemsController {
 		$query = $this->db->table("skills");
 		/**
 		 * @psalm-suppress ImplicitToStringCast
+		 * @phpstan-ignore-next-line
 		 * @var Collection<Skill>
 		 */
 		$results = $query->where($query->colFunc("LOWER", "name"), strtolower($skillName))

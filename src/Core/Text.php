@@ -138,7 +138,7 @@ class Text {
 	 * @return string[] An array of strings with the resulting pages
 	 */
 	public function paginate(string $input, int $maxLength, array $symbols): array {
-		if (count($symbols) == 0) {
+		if (count($symbols) === 0) {
 			$this->logger->error("Could not successfully page blob due to lack of paging symbols");
 			return (array)$input;
 		}
@@ -147,7 +147,12 @@ class Text {
 		$currentPage = '';
 		$result = [];
 		$symbol = array_shift($symbols);
+		if (!strlen($symbol)) {
+			$this->logger->error("Could not successfully page blob due to lack of paging symbols");
+			return (array)$input;
+		}
 
+		// @phpstan-ignore-next-line
 		$lines = explode($symbol, $input);
 		foreach ($lines as $line) {
 			// retain new lines and spaces in output

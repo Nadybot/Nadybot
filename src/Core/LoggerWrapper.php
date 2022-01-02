@@ -72,6 +72,7 @@ class LoggerWrapper {
 		if (isset($throwable)) {
 			$context["exception"] = $throwable;
 		}
+		// @phpstan-ignore-next-line
 		$this->logger->log($level, $message, $context);
 	}
 
@@ -139,6 +140,7 @@ class LoggerWrapper {
 	 * @return boolean
 	 */
 	public function isHandling(int $level): bool {
+		// @phpstan-ignore-next-line
 		return $this->logger->isHandling($level);
 	}
 }

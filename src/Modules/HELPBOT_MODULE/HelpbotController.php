@@ -72,7 +72,7 @@ class HelpbotController {
 	public function dynaLevelCommand(CmdContext $context, int $search): void {
 		$range1 = (int)floor($search - $search / 10);
 		$range2 = (int)ceil($search + $search / 10);
-		/** @var Collection<DynaDB> */
+		/** @var Collection<DynaDBSearch> */
 		$data = $this->db->table("dynadb AS d")
 			->where("max_ql", ">=", $range1)
 			->where("min_ql", "<=", $range2)
@@ -89,7 +89,7 @@ class HelpbotController {
 			return;
 		}
 
-		$blob = "Results of Dynacams level <highlight>{$range1}<end>-<highlight>{$range2}<end>\n\n";
+		$blob = "Results of Dynacamps level <highlight>{$range1}<end>-<highlight>{$range2}<end>\n\n";
 
 		$blob .= $this->formatResults($data);
 

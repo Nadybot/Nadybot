@@ -221,12 +221,18 @@ class QueryBuilder extends Builder {
 	}
 
 	public function orWhereIlike(string $column, string $value): self {
-		/** @psalm-suppress ImplicitToStringCast */
+		/**
+		 * @psalm-suppress ImplicitToStringCast
+		 * @phpstan-ignore-next-line
+		 */
 		return $this->orWhere($this->colFunc("LOWER", $column), "like", strtolower($value));
 	}
 
 	public function whereIlike(string $column, string $value, string $boolean='and'): self {
-		/** @psalm-suppress ImplicitToStringCast */
+		/**
+		 * @psalm-suppress ImplicitToStringCast
+		 * @phpstan-ignore-next-line
+		 */
 		return $this->where($this->colFunc("LOWER", $column), "like", strtolower($value), $boolean);
 	}
 

@@ -497,6 +497,7 @@ class EventManager {
 			return $eventObj;
 		}
 		try {
+			// @phpstan-ignore-next-line
 			$typedEvent = $class::fromSyncEvent($eventObj);
 		} catch (Throwable $e) {
 			return null;

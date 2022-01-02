@@ -9,7 +9,6 @@ use Monolog\Handler\AbstractProcessingHandler;
 use Monolog\Logger;
 use Monolog\Processor\PsrLogMessageProcessor;
 use RuntimeException;
-use Stringable;
 
 /**
  * A compatibility layer for logging
@@ -38,15 +37,6 @@ class LegacyLogger {
 				return fnmatch($mask, $logger->getName(), FNM_CASEFOLD);
 			}
 		);
-	}
-
-	/**
-	 * Log a message according to log settings
-	 */
-	public static function log(string $category, string $channel, Stringable|string $message): void {
-		$logger = static::fromConfig($channel);
-		$level = static::getLoggerLevel($category);
-		$logger->log($level, $message);
 	}
 
 	/**
@@ -123,6 +113,7 @@ class LegacyLogger {
 			if (!fnmatch($logLevelConf[0], $logger->getName(), FNM_CASEFOLD)) {
 				continue;
 			}
+			// @phpstan-ignore-next-line
 			$newLevel = $logger->toMonologLevel($logLevelConf[1]);
 			foreach ($handlers as $name => $handler) {
 				if ($handler instanceof AbstractHandler) {

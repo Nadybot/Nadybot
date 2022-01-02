@@ -11,7 +11,6 @@ use Nadybot\Core\ParamClass\PWord;
 use Nadybot\Core\SettingManager;
 use Nadybot\Core\Util;
 use Nadybot\Core\Text;
-use Nadybot\Modules\ITEMS_MODULE\AODBEntry;
 use Nadybot\Modules\ITEMS_MODULE\AODBItem;
 use Nadybot\Modules\ITEMS_MODULE\ItemFlag;
 use Nadybot\Modules\ITEMS_MODULE\ItemsController;
@@ -396,7 +395,7 @@ class ArulSabaController {
 			return;
 		}
 
-		/** @var AODBEntry $result */
+		/** @var AODBItem $result */
 		$coated = clone($result);
 		$coated->lowid = $coated->highid = $finished[$numGems][$side];
 		$coated->name = "Bracelet of Arul Saba";
