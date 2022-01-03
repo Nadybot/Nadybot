@@ -11,6 +11,7 @@ use Nadybot\Core\{
 	DB,
 	Http,
 	HttpResponse,
+	Instance,
 	LoggerWrapper,
 	Nadybot,
 	Registry,
@@ -24,11 +25,8 @@ use Nadybot\Core\DBSchema\Player;
  * @author Tyrence (RK2)
  */
 #[NCA\Instance]
-class PlayerManager {
+class PlayerManager extends Instance {
 	public const CACHE_GRACE_TIME = 87000;
-
-	public string $moduleName;
-
 	#[NCA\Inject]
 	public DB $db;
 

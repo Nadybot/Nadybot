@@ -6,8 +6,8 @@ use Nadybot\Core\Attributes as NCA;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	CmdContext,
-	CommandReply,
 	DB,
+	Instance,
 	SettingManager,
 	Text,
 	Util,
@@ -36,15 +36,9 @@ use Nadybot\Core\ParamClass\PCharacter;
 		alias: "updatebank"
 	)
 ]
-class BankController {
+class BankController extends Instance {
 
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
-
-	#[NCA\Inject]
+		#[NCA\Inject]
 	public DB $db;
 
 	#[NCA\Inject]

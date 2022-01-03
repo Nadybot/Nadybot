@@ -665,8 +665,11 @@ class CommandManager implements MessageEmitter {
 					break;
 			}
 		} else {
-			$new = "(?:" . [$type->getName(), "getPreRegExp"]().
-				"(?<{$varName}>" . [$type->getName(), "getRegexp"]() . "))";
+			$c1 = [$type->getName(), "getPreRegExp"];
+			$c2 = [$type->getName(), "getRegexp"];
+			if (is_callable($c1) && is_callable($c2)) {
+				$new = "(?:" . $c1() . "(?<{$varName}>" . $c2() . "))";
+			}
 		}
 		if (!isset($new)) {
 			return null;

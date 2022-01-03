@@ -3,23 +3,24 @@
 namespace Nadybot\Modules\SKILLS_MODULE;
 
 use Illuminate\Support\Collection;
-use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{
+	Attributes as NCA,
 	CmdContext,
 	CommandReply,
 	DB,
-	LoggerWrapper,
-	Text,
-	Util,
-	Modules\PLAYER_LOOKUP\PlayerManager,
 	DBSchema\Player,
+	Instance,
+	LoggerWrapper,
+	Modules\PLAYER_LOOKUP\PlayerManager,
+	ParamClass\PNonNumberWord,
 	SettingManager,
+	Text,
 	Timer,
+	Util,
 };
-use Nadybot\Core\ParamClass\PNonNumberWord;
-use Nadybot\Modules\{
-	ITEMS_MODULE\Skill,
-	ITEMS_MODULE\WhatBuffsController,
+use Nadybot\Modules\ITEMS_MODULE\{
+	Skill,
+	WhatBuffsController,
 };
 use Nadybot\Modules\ITEMS_MODULE\ExtBuff;
 use Nadybot\Modules\ITEMS_MODULE\ItemsController;
@@ -40,17 +41,11 @@ use Throwable;
 		help: "perks.txt"
 	)
 ]
-class BuffPerksController {
+class BuffPerksController extends Instance {
 	public const ALIEN_INVASION = "ai";
 	public const SHADOWLANDS = "sl";
 
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
-
-	#[NCA\Inject]
+		#[NCA\Inject]
 	public Text $text;
 
 	#[NCA\Inject]

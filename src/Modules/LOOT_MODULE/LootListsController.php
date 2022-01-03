@@ -2,15 +2,16 @@
 
 namespace Nadybot\Modules\LOOT_MODULE;
 
-use Nadybot\Core\Attributes as NCA;
 use Exception;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	AccessManager,
+	Attributes as NCA,
 	CmdContext,
 	CommandAlias,
 	CommandManager,
 	DB,
+	Instance,
 	Nadybot,
 	SettingManager,
 	Text,
@@ -148,14 +149,8 @@ use Nadybot\Modules\ITEMS_MODULE\ItemsController;
 		help: "xan.txt"
 	)
 ]
-class LootListsController {
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
-
-	#[NCA\Inject]
+class LootListsController extends Instance {
+		#[NCA\Inject]
 	public Nadybot $chatBot;
 
 	#[NCA\Inject]

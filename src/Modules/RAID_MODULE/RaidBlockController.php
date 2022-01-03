@@ -2,19 +2,19 @@
 
 namespace Nadybot\Modules\RAID_MODULE;
 
-use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{
+	Attributes as NCA,
 	CmdContext,
-	CommandReply,
 	DB,
+	Instance,
+	Modules\ALTS\AltsController,
 	Nadybot,
+	ParamClass\PCharacter,
+	ParamClass\PDuration,
+	ParamClass\PRemove,
 	Text,
 	Util,
 };
-use Nadybot\Core\Modules\ALTS\AltsController;
-use Nadybot\Core\ParamClass\PCharacter;
-use Nadybot\Core\ParamClass\PDuration;
-use Nadybot\Core\ParamClass\PRemove;
 
 /**
  * This class contains all functions necessary to deal with temporary raid blocks
@@ -36,14 +36,11 @@ use Nadybot\Core\ParamClass\PRemove;
 		help: "raidblock.txt"
 	)
 ]
-class RaidBlockController {
+class RaidBlockController extends Instance {
 	public const DB_TABLE = "raid_block_<myname>";
 	public const POINTS_GAIN = "points";
 	public const JOIN_RAIDS = "join";
 	public const AUCTION_BIDS = "bid";
-
-	public string $moduleName;
-
 	public int $lastExpiration = 0;
 
 	/** @var array<string,array<string,RaidBlock>> */

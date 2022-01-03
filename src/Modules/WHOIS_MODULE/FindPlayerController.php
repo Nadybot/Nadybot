@@ -2,11 +2,14 @@
 
 namespace Nadybot\Modules\WHOIS_MODULE;
 
-use Nadybot\Core\Attributes as NCA;
-use Nadybot\Core\CmdContext;
-use Nadybot\Core\ConfigFile;
-use Nadybot\Core\Modules\PLAYER_LOOKUP\PlayerManager;
-use Nadybot\Core\Text;
+use Nadybot\Core\{
+	Attributes as NCA,
+	CmdContext,
+	ConfigFile,
+	Instance,
+	Modules\PLAYER_LOOKUP\PlayerManager,
+	Text,
+};
 
 /**
  * @author Tyrence (RK2)
@@ -21,15 +24,9 @@ use Nadybot\Core\Text;
 		help: "findplayer.txt"
 	)
 ]
-class FindPlayerController {
+class FindPlayerController extends Instance {
 
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
-
-	#[NCA\Inject]
+		#[NCA\Inject]
 	public ConfigFile $config;
 
 	#[NCA\Inject]

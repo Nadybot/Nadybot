@@ -62,7 +62,11 @@ class BotRunner {
 
 	/** Get the base directory of the bot */
 	public static function getBasedir(): string {
-		return realpath(dirname(dirname(__DIR__)));
+		$baseDir = realpath(dirname(dirname(__DIR__)));
+		if ($baseDir === false) {
+			throw new Exception("Cannot determine basedir for the bot relative to " . __DIR__);
+		}
+		return $baseDir;
 	}
 
 	/**
@@ -79,7 +83,7 @@ class BotRunner {
 			throw new ErrorException($str, 0, $num, $file, $line);
 		});
 		try {
-			$ref = explode(": ", trim(@file_get_contents("{$baseDir}/.git/HEAD")), 2)[1];
+			$ref = explode(": ", trim(@file_get_contents("{$baseDir}/.git/HEAD")?:""), 2)[1];
 			$branch = explode("/", $ref, 3)[2];
 			$latestTag = static::getLatestTag();
 			if (!isset($latestTag)) {
@@ -109,7 +113,7 @@ class BotRunner {
 			return null;
 		}
 		fclose($pipes[0]);
-		$gitDescribe = trim(stream_get_contents($pipes[1]));
+		$gitDescribe = trim(stream_get_contents($pipes[1])?:"");
 		fclose($pipes[1]);
 		fclose($pipes[2]);
 		proc_close($pid);
@@ -133,7 +137,7 @@ class BotRunner {
 			return static::$latestTag = null;
 		}
 		fclose($pipes[0]);
-		$tags = explode("\n", trim(stream_get_contents($pipes[1])));
+		$tags = explode("\n", trim(stream_get_contents($pipes[1])?:""));
 		fclose($pipes[1]);
 		fclose($pipes[2]);
 		proc_close($pid);
@@ -442,6 +446,7 @@ class BotRunner {
 	 * Connect to the database
 	 */
 	private function connectToDatabase(): void {
+		/** @var ?DB */
 		$db = Registry::getInstance(DB::class);
 		if (!isset($db)) {
 			throw new Exception("Cannot find DB instance.");

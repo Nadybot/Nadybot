@@ -11,9 +11,11 @@ use Nadybot\Core\{
 	CmdContext,
 	ConfigFile,
 	DB,
+	Instance,
 	LoggerWrapper,
 	Modules\BAN\BanController,
 	Modules\PREFERENCES\Preferences,
+	ParamClass\PFilename,
 	Nadybot,
 	Registry,
 	SettingManager,
@@ -40,12 +42,11 @@ use Nadybot\Modules\{
 	RAID_MODULE\RaidRankController,
 	TIMERS_MODULE\Alert,
 	TIMERS_MODULE\Timer,
+	TIMERS_MODULE\TimerController,
 	TRACKER_MODULE\TrackerController,
 	VOTE_MODULE\VoteController,
 };
 use Exception;
-use Nadybot\Core\ParamClass\PFilename;
-use Nadybot\Modules\TIMERS_MODULE\TimerController;
 use Throwable;
 
 /**
@@ -61,15 +62,8 @@ use Throwable;
 		help: "export.txt"
 	)
 ]
-class ImportController {
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 * @var string $moduleName
-	 */
-	public string $moduleName;
-
-	#[NCA\Inject]
+class ImportController extends Instance {
+		#[NCA\Inject]
 	public Nadybot $chatBot;
 
 	#[NCA\Inject]

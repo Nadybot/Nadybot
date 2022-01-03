@@ -2,8 +2,8 @@
 
 namespace Nadybot\Modules\PACKAGE_MODULE;
 
-use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{
+	Attributes as NCA,
 	BotRunner,
 	CacheManager,
 	CacheResult,
@@ -13,6 +13,7 @@ use Nadybot\Core\{
 	DB,
 	Http,
 	HttpResponse,
+	Instance,
 	LoggerWrapper,
 	Nadybot,
 	ParamClass\PWord,
@@ -40,20 +41,14 @@ use ZipArchive;
 		help: "package.txt"
 	)
 ]
-class PackageController {
+class PackageController extends Instance {
 	public const DB_TABLE = "package_files_<myname>";
 	public const EXTRA = 2;
 	public const BUILT_INT = 1;
 	public const UNINST = 0;
 	public const API = "https://pkg.aobots.org/api";
 
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
-
-	#[NCA\Inject]
+		#[NCA\Inject]
 	public DB $db;
 
 	#[NCA\Inject]

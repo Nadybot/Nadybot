@@ -2,12 +2,15 @@
 
 namespace Nadybot\Modules\DEV_MODULE;
 
-use Nadybot\Core\Attributes as NCA;
 use JsonException;
-use Nadybot\Core\CmdContext;
-use Nadybot\Core\Http;
-use Nadybot\Core\HttpResponse;
-use Nadybot\Core\Text;
+use Nadybot\Core\{
+	Attributes as NCA,
+	CmdContext,
+	Http,
+	HttpResponse,
+	Instance,
+	Text,
+};
 
 /**
  * @author Nadyita
@@ -21,10 +24,7 @@ use Nadybot\Core\Text;
 		description: "Test http/https requests"
 	)
 ]
-class HttpRequestController {
-	public string $moduleName;
-
-	#[NCA\Inject]
+class HttpRequestController extends Instance {	#[NCA\Inject]
 	public Http $http;
 
 	#[NCA\Inject]

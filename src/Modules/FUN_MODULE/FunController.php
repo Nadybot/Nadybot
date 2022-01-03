@@ -2,11 +2,12 @@
 
 namespace Nadybot\Modules\FUN_MODULE;
 
-use Nadybot\Core\Attributes as NCA;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
+	Attributes as NCA,
 	CmdContext,
 	DB,
+	Instance,
 	Util,
 };
 
@@ -73,15 +74,9 @@ use Nadybot\Core\{
 		help: "fun_module.txt"
 	)
 ]
-class FunController {
+class FunController extends Instance {
 
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
-
-	#[NCA\Inject]
+		#[NCA\Inject]
 	public DB $db;
 
 	#[NCA\Inject]

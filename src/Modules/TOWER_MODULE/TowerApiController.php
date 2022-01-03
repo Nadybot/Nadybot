@@ -2,28 +2,25 @@
 
 namespace Nadybot\Modules\TOWER_MODULE;
 
-use Nadybot\Core\Attributes as NCA;
 use Exception;
-use Nadybot\Core\BotRunner;
-use Nadybot\Core\Http;
-use Nadybot\Core\HttpResponse;
-use Nadybot\Core\SettingManager;
 use Throwable;
+use Nadybot\Core\{
+	Attributes as NCA,
+	BotRunner,
+	Http,
+	HttpResponse,
+	Instance,
+	SettingManager,
+};
 
 #[NCA\Instance]
-class TowerApiController {
+class TowerApiController extends Instance {
 
 	public const TOWER_API = "tower_api";
 	public const API_TYRENCE = "https://tower-api.jkbff.com/v1/api/towers";
 	public const API_NONE = "none";
 
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
-
-	#[NCA\Inject]
+		#[NCA\Inject]
 	public Http $http;
 
 	#[NCA\Inject]

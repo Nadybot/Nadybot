@@ -10,6 +10,7 @@ use Nadybot\Core\{
 	DBSchema\Setting,
 	EventManager,
 	HelpManager,
+	Instance,
 	InsufficientAccessException,
 	SettingManager,
 };
@@ -27,14 +28,8 @@ use Nadybot\Modules\WEBSERVER_MODULE\WebChatConverter;
  * @package Nadybot\Core\Modules\CONFIG
  */
 #[NCA\Instance]
-class ConfigApiController {
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
-
-	#[NCA\Inject]
+class ConfigApiController extends Instance {
+		#[NCA\Inject]
 	public DiscordRelayController $discordRelayController;
 
 	#[NCA\Inject]

@@ -2,23 +2,20 @@
 
 namespace Nadybot\Modules\WATCHDOG_MODULE;
 
-use Nadybot\Core\Attributes as NCA;
-use Nadybot\Core\ConfigFile;
+use Nadybot\Core\{
+	Attributes as NCA,
+	ConfigFile,
+	Instance,
+};
 
 /**
  * Authors:
  *  - Nadyita (RK5)
  */
 #[NCA\Instance]
-class WatchdogController {
+class WatchdogController extends Instance {
 
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
-
-	#[NCA\Inject]
+		#[NCA\Inject]
 	public ConfigFile $config;
 
 	#[NCA\Event(

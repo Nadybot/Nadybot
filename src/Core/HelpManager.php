@@ -7,7 +7,7 @@ use Nadybot\Core\Modules\CONFIG\ConfigController;
 use Nadybot\Core\DBSchema\HelpTopic;
 
 #[NCA\Instance]
-class HelpManager {
+class HelpManager extends Instance {
 	public const DB_TABLE = "hlpcfg_<myname>";
 
 	#[NCA\Inject]
@@ -101,7 +101,10 @@ class HelpManager {
 			}
 			if ($this->checkAccessLevels($accessLevel, explode(",", $row->admin_list))) {
 				$output .= $this->configController->getAliasInfo($row->name);
-				$output .= trim(file_get_contents($row->file)) . "\n\n";
+				$content = file_get_contents($row->file);
+				if (is_string($content)) {
+					$output .= trim($content) . "\n\n";
+				}
 				$shown[$row->file] = true;
 			}
 		}

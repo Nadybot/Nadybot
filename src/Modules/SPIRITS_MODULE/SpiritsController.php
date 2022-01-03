@@ -2,16 +2,19 @@
 
 namespace Nadybot\Modules\SPIRITS_MODULE;
 
-use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{
+	Attributes as NCA,
 	CmdContext,
 	DB,
+	Instance,
+	ParamClass\PNonNumber,
+	ParamClass\PNumRange,
 	Text,
 };
-use Nadybot\Core\ParamClass\PNonNumber;
-use Nadybot\Core\ParamClass\PNumRange;
-use Nadybot\Modules\IMPLANT_MODULE\PImplantSlot;
-use Nadybot\Modules\ITEMS_MODULE\AODBEntry;
+use Nadybot\Modules\{
+	IMPLANT_MODULE\PImplantSlot,
+	ITEMS_MODULE\AODBEntry,
+};
 
 /**
  * @author Tyrence (RK2)
@@ -29,14 +32,8 @@ use Nadybot\Modules\ITEMS_MODULE\AODBEntry;
 		help: "spirits.txt"
 	)
 ]
-class SpiritsController {
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
-
-	#[NCA\Inject]
+class SpiritsController extends Instance {
+		#[NCA\Inject]
 	public DB $db;
 
 	#[NCA\Inject]

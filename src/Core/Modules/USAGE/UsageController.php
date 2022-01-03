@@ -10,6 +10,7 @@ use Nadybot\Core\{
 	ConfigFile,
 	DB,
 	EventManager,
+	Instance,
 	Nadybot,
 	SettingManager,
 	SQLException,
@@ -38,15 +39,9 @@ use stdClass;
 		defaultStatus: 1
 	)
 ]
-class UsageController {
+class UsageController extends Instance {
 	public const DB_TABLE = "usage_<myname>";
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
-
-	#[NCA\Inject]
+		#[NCA\Inject]
 	public DB $db;
 
 	#[NCA\Inject]

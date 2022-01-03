@@ -7,6 +7,7 @@ use Nadybot\Core\{
 	AOChatEvent,
 	CmdContext,
 	EventManager,
+	Instance,
 	Nadybot,
 	SettingManager,
 	Text,
@@ -34,15 +35,9 @@ use Nadybot\Core\{
 	NCA\ProvidesEvent("topic(set)"),
 	NCA\ProvidesEvent("topic(clear)")
 ]
-class ChatTopicController {
+class ChatTopicController extends Instance {
 
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
-
-	#[NCA\Inject]
+		#[NCA\Inject]
 	public Nadybot $chatBot;
 
 	#[NCA\Inject]

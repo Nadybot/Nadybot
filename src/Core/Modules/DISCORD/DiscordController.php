@@ -6,6 +6,7 @@ use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{
 	ConfigFile,
 	Http,
+	Instance,
 	LoggerWrapper,
 	Nadybot,
 	SettingManager,
@@ -15,15 +16,9 @@ use Nadybot\Core\{
  * @author Nadyita (RK5)
  */
 #[NCA\Instance]
-class DiscordController {
+class DiscordController extends Instance {
 
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
-
-	#[NCA\Inject]
+		#[NCA\Inject]
 	public Nadybot $chatBot;
 
 	#[NCA\Inject]

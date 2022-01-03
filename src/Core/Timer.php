@@ -5,7 +5,7 @@ namespace Nadybot\Core;
 use Nadybot\Core\Attributes as NCA;
 
 #[NCA\Instance]
-class Timer {
+class Timer extends Instance {
 	/**
 	 * Array of waiting timer events.
 	 * @internal

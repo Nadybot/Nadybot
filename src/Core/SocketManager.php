@@ -5,7 +5,7 @@ namespace Nadybot\Core;
 use Nadybot\Core\Attributes as NCA;
 
 #[NCA\Instance]
-class SocketManager {
+class SocketManager extends Instance {
 	/** @var SocketNotifier[] */
 	private array $socketNotifiers = [];
 	/** @var array<int,resource[]> */

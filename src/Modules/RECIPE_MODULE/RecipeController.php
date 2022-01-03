@@ -2,16 +2,21 @@
 
 namespace Nadybot\Modules\RECIPE_MODULE;
 
-use Nadybot\Core\Attributes as NCA;
 use Exception;
 use JsonException;
-use Nadybot\Core\CmdContext;
-use Nadybot\Core\DB;
-use Nadybot\Core\ParamClass\PItem;
-use Nadybot\Core\Text;
-use Nadybot\Core\Util;
-use Nadybot\Modules\ITEMS_MODULE\ItemsController;
-use Nadybot\Modules\ITEMS_MODULE\AODBItem;
+use Nadybot\Core\{
+	Attributes as NCA,
+	CmdContext,
+	DB,
+	Instance,
+	ParamClass\PItem,
+	Text,
+	Util,
+};
+use Nadybot\Modules\ITEMS_MODULE\{
+	ItemsController,
+	AODBItem,
+};
 
 /**
  * @author Tyrence
@@ -28,15 +33,9 @@ use Nadybot\Modules\ITEMS_MODULE\AODBItem;
 		help: "recipe.txt"
 	)
 ]
-class RecipeController {
+class RecipeController extends Instance {
 
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
-
-	#[NCA\Inject]
+		#[NCA\Inject]
 	public DB $db;
 
 	#[NCA\Inject]

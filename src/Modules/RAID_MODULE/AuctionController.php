@@ -2,24 +2,25 @@
 
 namespace Nadybot\Modules\RAID_MODULE;
 
-use Nadybot\Core\Attributes as NCA;
 use DateTime;
 use InvalidArgumentException;
 use Nadybot\Core\{
+	Attributes as NCA,
 	CmdContext,
 	CommandAlias,
 	CommandReply,
 	DB,
 	EventManager,
+	Instance,
 	LoggerWrapper,
 	Nadybot,
+	ParamClass\PCharacter,
 	SettingManager,
 	Text,
 	Timer,
 	TimerEvent,
 	Util,
 };
-use Nadybot\Core\ParamClass\PCharacter;
 use Nadybot\Modules\RAFFLE_MODULE\RaffleItem;
 
 /**
@@ -54,12 +55,9 @@ use Nadybot\Modules\RAFFLE_MODULE\RaffleItem;
 	NCA\ProvidesEvent("auction(cancel)"),
 	NCA\ProvidesEvent("auction(bid)")
 ]
-class AuctionController {
+class AuctionController extends Instance {
 	public const DB_TABLE = "auction_<myname>";
 	public const ERR_NO_AUCTION = "There's currently nothing being auctioned.";
-
-	public string $moduleName;
-
 	#[NCA\Inject]
 	public DB $db;
 

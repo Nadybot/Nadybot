@@ -10,6 +10,7 @@ use Nadybot\Core\{
 	ConfigFile,
 	DB,
 	EventManager,
+	Instance,
 	LoggerWrapper,
 	MessageHub,
 	Nadybot,
@@ -44,16 +45,10 @@ use Nadybot\Modules\RELAY_MODULE\RelayController;
 		alias: "profiles"
 	)
 ]
-class ProfileController {
+class ProfileController extends Instance {
 	public const FILE_EXT = ".txt";
 
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
-
-	#[NCA\Inject]
+		#[NCA\Inject]
 	public DB $db;
 
 	#[NCA\Inject]

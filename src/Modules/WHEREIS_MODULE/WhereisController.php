@@ -2,12 +2,15 @@
 
 namespace Nadybot\Modules\WHEREIS_MODULE;
 
-use Nadybot\Core\Attributes as NCA;
 use Illuminate\Support\Collection;
-use Nadybot\Core\CmdContext;
-use Nadybot\Core\DB;
-use Nadybot\Core\Text;
-use Nadybot\Core\Util;
+use Nadybot\Core\{
+	Attributes as NCA,
+	CmdContext,
+	DB,
+	Instance,
+	Text,
+	Util,
+};
 use Nadybot\Modules\HELPBOT_MODULE\PlayfieldController;
 
 /**
@@ -25,15 +28,9 @@ use Nadybot\Modules\HELPBOT_MODULE\PlayfieldController;
 		help: "whereis.txt"
 	)
 ]
-class WhereisController {
+class WhereisController extends Instance {
 
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
-
-	#[NCA\Inject]
+		#[NCA\Inject]
 	public Text $text;
 
 	#[NCA\Inject]

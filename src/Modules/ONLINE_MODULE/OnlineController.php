@@ -2,11 +2,11 @@
 
 namespace Nadybot\Modules\ONLINE_MODULE;
 
-use Nadybot\Core\Attributes as NCA;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	AccessManager,
 	AOChatEvent,
+	Attributes as NCA,
 	BuddylistManager,
 	CmdContext,
 	CommandAlias,
@@ -14,7 +14,10 @@ use Nadybot\Core\{
 	DB,
 	Event,
 	EventManager,
+	Instance,
 	LoggerWrapper,
+	Modules\ALTS\AltsController,
+	Modules\PLAYER_LOOKUP\PlayerManager,
 	Nadybot,
 	QueryBuilder,
 	SettingManager,
@@ -23,8 +26,6 @@ use Nadybot\Core\{
 	UserStateEvent,
 	Util,
 };
-use Nadybot\Core\Modules\ALTS\AltsController;
-use Nadybot\Core\Modules\PLAYER_LOOKUP\PlayerManager;
 use Nadybot\Modules\{
 	DISCORD_GATEWAY_MODULE\DiscordGatewayController,
 	RAID_MODULE\RaidController,
@@ -54,7 +55,7 @@ use Nadybot\Modules\{
 	NCA\ProvidesEvent("online(org)"),
 	NCA\ProvidesEvent("offline(org)")
 ]
-class OnlineController {
+class OnlineController extends Instance {
 	protected const GROUP_OFF = 0;
 	protected const GROUP_BY_MAIN = 1;
 	protected const GROUP_BY_ORG = 1;
@@ -70,13 +71,7 @@ class OnlineController {
 	protected const RAID_NOT_IN = 2;
 	protected const RAID_COMPACT = 4;
 
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
-
-	#[NCA\Inject]
+		#[NCA\Inject]
 	public DB $db;
 
 	#[NCA\Inject]

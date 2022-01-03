@@ -3,27 +3,29 @@
 namespace Nadybot\Modules\ITEMS_MODULE;
 
 use Closure;
-use Nadybot\Core\Attributes as NCA;
 use Illuminate\Database\Query\JoinClause;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
+	Attributes as NCA,
 	CmdContext,
 	CommandManager,
 	CommandReply,
 	DB,
-	DBRow,
 	Http,
+	Instance,
 	LoggerWrapper,
 	QueryBuilder,
+	ParamClass\PWord,
 	SettingManager,
 	Text,
 	Util,
 };
-use Nadybot\Core\ParamClass\PWord;
-use Nadybot\Modules\SKILLS_MODULE\BuffPerksController;
-use Nadybot\Modules\SKILLS_MODULE\Perk;
-use Nadybot\Modules\SKILLS_MODULE\PerkLevelBuff;
-use Nadybot\Modules\SKILLS_MODULE\SkillsController;
+use Nadybot\Modules\SKILLS_MODULE\{
+	BuffPerksController,
+	Perk,
+	PerkLevelBuff,
+	SkillsController,
+};
 
 /**
  * Commands this controller contains:
@@ -45,10 +47,7 @@ use Nadybot\Modules\SKILLS_MODULE\SkillsController;
 		alias: "wbf"
 	)
 ]
-class WhatBuffsController {
-
-	public string $moduleName;
-
+class WhatBuffsController extends Instance {
 	#[NCA\Inject]
 	public Http $http;
 

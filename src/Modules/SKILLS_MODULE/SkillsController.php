@@ -3,20 +3,23 @@
 namespace Nadybot\Modules\SKILLS_MODULE;
 
 use Illuminate\Support\Collection;
-use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{
+	Attributes as NCA,
 	CmdContext,
 	CommandAlias,
 	DB,
 	Http,
+	Instance,
+	ParamClass\PItem,
+	ParamClass\PNonNumber,
 	Text,
 	Util,
 };
-use Nadybot\Core\ParamClass\PItem;
-use Nadybot\Core\ParamClass\PNonNumber;
-use Nadybot\Modules\ITEMS_MODULE\AODBEntry;
-use Nadybot\Modules\ITEMS_MODULE\ItemsController;
-use Nadybot\Modules\ITEMS_MODULE\ItemSearchResult;
+use Nadybot\Modules\ITEMS_MODULE\{
+	AODBEntry,
+	ItemsController,
+	ItemSearchResult,
+};
 
 /**
  * @author Tyrence (RK2)
@@ -93,15 +96,9 @@ use Nadybot\Modules\ITEMS_MODULE\ItemSearchResult;
 		help: "weapon.txt"
 	)
 ]
-class SkillsController {
+class SkillsController extends Instance {
 
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
-
-	#[NCA\Inject]
+		#[NCA\Inject]
 	public DB $db;
 
 	#[NCA\Inject]

@@ -14,6 +14,7 @@ use Nadybot\Core\{
 	DB,
 	EventManager,
 	HelpManager,
+	Instance,
 	InsufficientAccessException,
 	LoggerWrapper,
 	Nadybot,
@@ -41,15 +42,9 @@ use Nadybot\Core\ParamClass\PWord;
 	),
 	NCA\Instance
 ]
-class ConfigController {
+class ConfigController extends Instance {
 
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
-
-	#[NCA\Inject]
+		#[NCA\Inject]
 	public Text $text;
 
 	#[NCA\Inject]
@@ -644,7 +639,7 @@ class ConfigController {
 			return null;
 		}
 		$files = array_values(array_filter(
-			glob("{$path}/*", GLOB_NOSORT),
+			glob("{$path}/*", GLOB_NOSORT) ?: [],
 			function (string $file): bool {
 				return strtolower(basename($file)) === "readme.txt";
 			}

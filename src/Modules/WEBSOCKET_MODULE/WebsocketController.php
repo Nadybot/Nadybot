@@ -2,14 +2,16 @@
 
 namespace Nadybot\Modules\WEBSOCKET_MODULE;
 
-use Nadybot\Core\Attributes as NCA;
 use Exception;
 use Throwable;
 use TypeError;
 
 use Nadybot\Core\{
+	Attributes as NCA,
+	Channels\WebChannel,
 	Event,
 	EventManager,
+	Instance,
 	LoggerWrapper,
 	MessageHub,
 	PacketEvent,
@@ -19,7 +21,6 @@ use Nadybot\Core\{
 	WebsocketCallback,
 	WebsocketServer,
 };
-use Nadybot\Core\Channels\WebChannel;
 use Nadybot\Modules\WEBSERVER_MODULE\{
 	CommandReplyEvent,
 	HttpProtocolWrapper,
@@ -39,14 +40,8 @@ use Nadybot\Modules\WEBSERVER_MODULE\{
 	NCA\ProvidesEvent("websocket(response)"),
 	NCA\ProvidesEvent("websocket(event)")
 ]
-class WebsocketController {
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
-
-	#[NCA\Inject]
+class WebsocketController extends Instance {
+		#[NCA\Inject]
 	public EventManager $eventManager;
 
 	#[NCA\Inject]

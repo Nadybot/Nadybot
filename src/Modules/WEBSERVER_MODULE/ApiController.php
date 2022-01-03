@@ -2,25 +2,26 @@
 
 namespace Nadybot\Modules\WEBSERVER_MODULE;
 
-use Nadybot\Core\Attributes as NCA;
 use Closure;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	AccessManager,
+	Attributes as NCA,
 	CmdContext,
 	CommandHandler,
 	CommandManager,
 	DB,
 	EventManager,
+	Instance,
 	LoggerWrapper,
 	Nadybot,
+	ParamClass\PRemove,
 	Registry,
 	SettingManager,
 	SubcommandManager,
 	Text,
 	Util,
 };
-use Nadybot\Core\ParamClass\PRemove;
 use Nadybot\Modules\WEBSOCKET_MODULE\WebsocketController;
 use ReflectionClass;
 use ReflectionFunction;
@@ -40,11 +41,8 @@ use ReflectionAttribute;
 	),
 	NCA\ProvidesEvent("cmdreply")
 ]
-class ApiController {
+class ApiController extends Instance {
 	public const DB_TABLE = "api_key_<myname>";
-
-	public string $moduleName;
-
 	#[NCA\Inject]
 	public WebserverController $webserverController;
 

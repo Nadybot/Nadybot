@@ -2,9 +2,12 @@
 
 namespace Nadybot\Modules\LEVEL_MODULE;
 
-use Nadybot\Core\Attributes as NCA;
-use Nadybot\Core\CmdContext;
-use Nadybot\Core\Text;
+use Nadybot\Core\{
+	Attributes as NCA,
+	CmdContext,
+	Instance,
+	Text,
+};
 
 /**
  * @author Tyrence (RK2)
@@ -19,14 +22,8 @@ use Nadybot\Core\Text;
 		help: "xp.txt"
 	)
 ]
-class AXPController {
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
-
-	#[NCA\Inject]
+class AXPController extends Instance {
+		#[NCA\Inject]
 	public Text $text;
 
 	/**

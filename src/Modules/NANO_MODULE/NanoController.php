@@ -4,11 +4,12 @@ declare(strict_types=1);
 
 namespace Nadybot\Modules\NANO_MODULE;
 
-use Nadybot\Core\Attributes as NCA;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
+	Attributes as NCA,
 	CmdContext,
 	DB,
+	Instance,
 	SettingManager,
 	Text,
 	Util,
@@ -51,15 +52,9 @@ use Nadybot\Core\{
 		help: "nano.txt"
 	)
 ]
-class NanoController {
+class NanoController extends Instance {
 
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
-
-	#[NCA\Inject]
+		#[NCA\Inject]
 	public DB $db;
 
 	#[NCA\Inject]

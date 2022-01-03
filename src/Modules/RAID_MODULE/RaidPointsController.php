@@ -2,29 +2,29 @@
 
 namespace Nadybot\Modules\RAID_MODULE;
 
-use Nadybot\Core\Attributes as NCA;
 use DateTime;
 use Exception;
 use Illuminate\Support\Collection;
+use Throwable;
 use Nadybot\Core\{
+	Attributes as NCA,
 	CmdContext,
 	CommandAlias,
 	DB,
+	Instance,
 	LoggerWrapper,
 	Modules\ALTS\AltsController,
 	Modules\ALTS\AltEvent,
 	Nadybot,
-	QueryBuilder,
+	ParamClass\PCharacter,
+	ParamClass\PNonNumber,
+	ParamClass\PNonNumberWord,
+	ParamClass\PRemove,
+	ParamClass\PWord,
 	SettingManager,
 	Text,
 	Timer,
 };
-use Nadybot\Core\ParamClass\PCharacter;
-use Nadybot\Core\ParamClass\PNonNumber;
-use Nadybot\Core\ParamClass\PNonNumberWord;
-use Nadybot\Core\ParamClass\PRemove;
-use Nadybot\Core\ParamClass\PWord;
-use Throwable;
 
 /**
  * This class contains all functions necessary to deal with points in a raid
@@ -88,13 +88,10 @@ use Throwable;
 		help: "reward.txt"
 	)
 ]
-class RaidPointsController {
+class RaidPointsController extends Instance {
 	public const DB_TABLE = "raid_points_<myname>";
 	public const DB_TABLE_LOG = "raid_points_log_<myname>";
 	public const DB_TABLE_REWARD = "raid_reward_<myname>";
-
-	public string $moduleName;
-
 	#[NCA\Inject]
 	public DB $db;
 

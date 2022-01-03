@@ -8,6 +8,7 @@ use Nadybot\Core\{
 	CmdEvent,
 	CommandHandler,
 	ConfigFile,
+	Instance,
 	LoggerWrapper,
 	MessageHub,
 	Nadybot,
@@ -32,17 +33,11 @@ use Nadybot\Core\Routing\Source;
  * @author Tyrence (RK2)
  */
 #[NCA\Instance]
-class LimitsController {
+class LimitsController extends Instance {
 	public const ALL = 3;
 	public const FAILURE = 2;
 	public const SUCCESS = 1;
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
-
-	#[NCA\Inject]
+		#[NCA\Inject]
 	public SettingManager $settingManager;
 
 	#[NCA\Inject]

@@ -14,6 +14,7 @@ use Nadybot\Core\{
 	ConfigFile,
 	DB,
 	EventManager,
+	Instance,
 	Nadybot,
 };
 use Nadybot\Core\DBSchema\Player;
@@ -23,7 +24,7 @@ use Nadybot\Core\DBSchema\Player;
  *
  */
 #[NCA\Instance]
-class GuildManager {
+class GuildManager extends Instance {
 	#[NCA\Inject]
 	public Nadybot $chatBot;
 

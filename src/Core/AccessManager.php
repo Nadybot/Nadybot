@@ -4,6 +4,7 @@ namespace Nadybot\Core;
 
 use Nadybot\Core\Attributes as NCA;
 use Exception;
+use Nadybot\Core\Instance;
 use Nadybot\Core\DBSchema\Audit;
 use Nadybot\Modules\BASIC_CHAT_MODULE\ChatLeaderController;
 use Nadybot\Modules\RAID_MODULE\RaidRankController;
@@ -16,7 +17,7 @@ use Nadybot\Modules\PRIVATE_CHANNEL_MODULE\PrivateChannelController;
  *
  */
 #[NCA\Instance]
-class AccessManager {
+class AccessManager extends Instance {
 	public const DB_TABLE = "audit_<myname>";
 	public const ADD_RANK = "add-rank";
 	public const DEL_RANK = "del-rank";

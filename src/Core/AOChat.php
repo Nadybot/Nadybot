@@ -175,10 +175,8 @@ class AOChat {
 
 	/**
 	 * The socket with which we are connected to the chat server
-	 *
-	 * @var null|false|\Socket|resource $socket
 	 */
-	public $socket;
+	public null|false|\Socket $socket = null;
 
 	/**
 	 * Timestamp when the last package was received
@@ -215,8 +213,7 @@ class AOChat {
 	 * Disconnect from the chat server (if connected) and init variables
 	 */
 	public function disconnect(): void {
-		if (isset($this->socket) && $this->socket !== false) {
-			/** @psalm-suppress PossiblyInvalidArgument */
+		if ($this->socket instanceof \Socket) {
 			socket_close($this->socket);
 		}
 		$this->socket      = null;
@@ -297,6 +294,9 @@ class AOChat {
 	 */
 	public function waitForPacket(int $time=1): ?AOChatPacket {
 		$this->iteration();
+		if (!($this->socket instanceof \Socket)) {
+			return null;
+		}
 
 		$a = [$this->socket];
 		$b = [];
@@ -315,7 +315,10 @@ class AOChat {
 		$data = "";
 		$rlen = $len;
 		while ($rlen > 0) {
-			/** @psalm-suppress InvalidArgument */
+			if (!($this->socket instanceof \Socket)) {
+				$this->logger->error("Socket seems to have been closed");
+				die();
+			}
 			if (($tmp = socket_read($this->socket, $rlen)) === false) {
 				$lastError = socket_strerror(socket_last_error($this->socket));
 				$this->logger->error("Read error: {error}", ["error" => $lastError]);
@@ -339,8 +342,12 @@ class AOChat {
 		if (strlen($head) !== 4) {
 			return null;
 		}
+		if (($data = unpack("n2", $head)) === false) {
+			return null;
+		}
+		/** @phpstan-var array{int,int,int} $data */
 
-		[, $type, $len] = unpack("n2", $head);
+		[, $type, $len] = $data;
 
 		$data = $this->readData((int)$len);
 
@@ -448,7 +455,10 @@ class AOChat {
 			);
 		}
 
-		/** @psalm-suppress InvalidArgument */
+		if (!($this->socket instanceof \Socket)) {
+			$this->logger->error("Something unexpectedly closed the socket");
+			die();
+		}
 		socket_write($this->socket, $data, strlen($data));
 		return true;
 	}
@@ -930,6 +940,9 @@ class AOChat {
 		}
 
 		$r = bcpowmod($base, $exp, $mod);
+		if (!is_string($r)) {
+			throw new Exception("Error in AO encryption");
+		}
 		return $this->bigdechex($r);
 	}
 
@@ -1086,6 +1099,9 @@ class AOChat {
 
 		$keyarr  = unpack("V*", pack("H*", $key));
 		$dataarr = unpack("V*", $str);
+		if (!is_array($keyarr) || !is_array($dataarr)) {
+			throw new Exception("Invalid key or string received.");
+		}
 
 		$prev = [0, 0];
 		for ($i = 1; $i <= count($dataarr); $i += 2) {
@@ -1163,6 +1179,9 @@ class AOChat {
 
 				case "I":
 					$array = unpack("N", $msg);
+					if (!is_array($array)) {
+						throw new Exception("Invalid packet data received.");
+					}
 					$args[] = $array[1];
 					$msg = substr($msg, 4);
 					break;
@@ -1185,6 +1204,9 @@ class AOChat {
 
 				case "l":
 					$array = unpack("N", $msg);
+					if (!is_array($array)) {
+						throw new Exception("Invalid packet data received.");
+					}
 					$msg = substr($msg, 4);
 					$cat = 20000;
 					$ins = $array[1];

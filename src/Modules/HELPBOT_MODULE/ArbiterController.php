@@ -11,6 +11,7 @@ use Nadybot\Core\{
 	CmdContext,
 	CommandAlias,
 	DB,
+	Instance,
 	Text,
 	Util,
 };
@@ -30,7 +31,7 @@ use Nadybot\Core\ParamClass\PWord;
 		help: "arbiter.txt"
 	)
 ]
-class ArbiterController {
+class ArbiterController extends Instance {
 	public const DIO = "dio";
 	public const AI = "ai";
 	public const BS = "bs";
@@ -38,13 +39,7 @@ class ArbiterController {
 
 	public const DB_TABLE = "icc_arbiter";
 
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
-
-	#[NCA\Inject]
+		#[NCA\Inject]
 	public CommandAlias $commandAlias;
 
 	#[NCA\Inject]

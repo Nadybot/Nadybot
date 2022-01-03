@@ -2,11 +2,12 @@
 
 namespace Nadybot\Modules\TRICKLE_MODULE;
 
-use Nadybot\Core\Attributes as NCA;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
+	Attributes as NCA,
 	CmdContext,
 	DB,
+	Instance,
 	Text,
 	Util,
 };
@@ -25,15 +26,9 @@ use Nadybot\Core\{
 		help: "trickle.txt"
 	)
 ]
-class TrickleController {
+class TrickleController extends Instance {
 
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
-
-	#[NCA\Inject]
+		#[NCA\Inject]
 	public Text $text;
 
 	#[NCA\Inject]

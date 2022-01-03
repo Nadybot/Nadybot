@@ -16,7 +16,7 @@ use ReflectionMethod;
 use Throwable;
 
 #[NCA\Instance]
-class MessageHub {
+class MessageHub extends Instance {
 	public const EVENT_NOT_ROUTED = 0;
 	public const EVENT_DISCARDED = 1;
 	public const EVENT_DELIVERED = 2;
@@ -65,6 +65,9 @@ class MessageHub {
 	#[NCA\Setup]
 	public function setup(): void {
 		$modifierFiles = glob(__DIR__ . "/EventModifier/*.php");
+		if ($modifierFiles === false) {
+			throw new Exception("Cannot read " . __DIR__ . "/EventModifier/*.php");
+		}
 		foreach ($modifierFiles as $file) {
 			require_once $file;
 			$className = basename($file, '.php');

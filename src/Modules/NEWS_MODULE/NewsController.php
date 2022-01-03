@@ -2,14 +2,14 @@
 
 namespace Nadybot\Modules\NEWS_MODULE;
 
-use Nadybot\Core\Attributes as NCA;
 use Exception;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	AOChatEvent,
+	Attributes as NCA,
 	CmdContext,
 	DB,
-	Event,
+	Instance,
 	Nadybot,
 	SettingManager,
 	Text,
@@ -52,7 +52,7 @@ use Throwable;
 		help: "news.txt"
 	)
 ]
-class NewsController {
+class NewsController extends Instance {
 	#[NCA\Inject]
 	public DB $db;
 
@@ -70,9 +70,6 @@ class NewsController {
 
 	#[NCA\Inject]
 	public Util $util;
-
-	public string $moduleName;
-
 	#[NCA\Setup]
 	public function setup(): void {
 

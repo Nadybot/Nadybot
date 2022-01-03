@@ -3,6 +3,7 @@
 namespace Nadybot\Core;
 
 use Nadybot\Core\Attributes as NCA;
+use Nadybot\Core\Instance;
 use Nadybot\Core\Attributes\Inject;
 use Nadybot\Core\DBSchema\Admin;
 use Nadybot\Core\DBSchema\Audit;
@@ -11,7 +12,7 @@ use Nadybot\Core\DBSchema\Audit;
  * Manage the bot admins
  */
 #[NCA\Instance]
-class AdminManager {
+class AdminManager extends Instance {
 	public const DB_TABLE = "admin_<myname>";
 
 	#[NCA\Inject]

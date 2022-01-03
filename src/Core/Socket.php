@@ -9,7 +9,7 @@ use Nadybot\Core\Socket\AsyncSocket;
  * A factory to Nadybot\Core\Socket\AsyncSocket
  */
 #[NCA\Instance]
-class Socket {
+class Socket extends Instance {
 	/**
 	 * Wrap a socket resource into a class for easy async operations
 	 * @param resource $socket

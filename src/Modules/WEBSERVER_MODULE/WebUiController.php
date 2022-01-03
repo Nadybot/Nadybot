@@ -2,24 +2,27 @@
 
 namespace Nadybot\Modules\WEBSERVER_MODULE;
 
-use Nadybot\Core\Attributes as NCA;
 use DateTime;
 use Exception;
-use Nadybot\Core\BotRunner;
-use Nadybot\Core\CmdContext;
-use Nadybot\Core\CommandReply;
-use Nadybot\Core\ConfigFile;
-use Nadybot\Core\DB;
-use Nadybot\Core\EventManager;
-use Nadybot\Core\Http;
-use Nadybot\Core\HttpResponse;
-use Nadybot\Core\LoggerWrapper;
-use Nadybot\Core\MessageEmitter;
-use Nadybot\Core\MessageHub;
-use Nadybot\Core\Nadybot;
-use Nadybot\Core\Routing\Source;
-use Nadybot\Core\SettingManager;
-use Nadybot\Core\Timer;
+use Nadybot\Core\{
+	Attributes as NCA,
+	BotRunner,
+	CmdContext,
+	CommandReply,
+	ConfigFile,
+	DB,
+	EventManager,
+	Http,
+	HttpResponse,
+	Instance,
+	LoggerWrapper,
+	MessageEmitter,
+	MessageHub,
+	Nadybot,
+	Routing\Source,
+	SettingManager,
+	Timer,
+};
 use Throwable;
 use ZipArchive;
 
@@ -36,9 +39,7 @@ use ZipArchive;
 	NCA\Instance,
 	NCA\HasMigrations
 ]
-class WebUiController implements MessageEmitter {
-	public string $moduleName;
-
+class WebUiController extends Instance implements MessageEmitter {
 	#[NCA\Inject]
 	public Http $http;
 

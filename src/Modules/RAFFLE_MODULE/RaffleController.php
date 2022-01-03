@@ -2,14 +2,15 @@
 
 namespace Nadybot\Modules\RAFFLE_MODULE;
 
-use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{
+	Attributes as NCA,
 	AccessManager,
 	CmdContext,
 	CommandAlias,
 	DB,
 	Event,
 	EventManager,
+	Instance,
 	Modules\ALTS\AltsController,
 	Nadybot,
 	PrivateChannelCommandReply,
@@ -46,17 +47,11 @@ use Nadybot\Modules\RAID_MODULE\RaidController;
 	NCA\ProvidesEvent("raffle(join)"),
 	NCA\ProvidesEvent("raffle(leave)")
 ]
-class RaffleController {
+class RaffleController extends Instance {
 	public const DB_TABLE = "raffle_bonus_<myname>";
 	public const NO_RAFFLE_ERROR = "There is no active raffle.";
 
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
-
-	#[NCA\Inject]
+		#[NCA\Inject]
 	public SettingManager $settingManager;
 
 	#[NCA\Inject]

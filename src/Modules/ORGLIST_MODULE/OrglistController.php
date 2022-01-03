@@ -2,22 +2,23 @@
 
 namespace Nadybot\Modules\ORGLIST_MODULE;
 
-use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{
+	Attributes as NCA,
 	BuddylistManager,
 	CmdContext,
 	CommandReply,
 	DB,
+	DBSchema\Player,
 	Event,
+	Instance,
+	Modules\PLAYER_LOOKUP\Guild,
+	Modules\PLAYER_LOOKUP\GuildManager,
+	Modules\PLAYER_LOOKUP\PlayerManager,
 	Nadybot,
 	Text,
 	UserStateEvent,
 	Util,
 };
-use Nadybot\Core\Modules\PLAYER_LOOKUP\GuildManager;
-use Nadybot\Core\Modules\PLAYER_LOOKUP\PlayerManager;
-use Nadybot\Core\DBSchema\Player;
-use Nadybot\Core\Modules\PLAYER_LOOKUP\Guild;
 
 /**
  * @author Tyrence (RK2)
@@ -33,15 +34,9 @@ use Nadybot\Core\Modules\PLAYER_LOOKUP\Guild;
 		help: "orglist.txt"
 	)
 ]
-class OrglistController {
+class OrglistController extends Instance {
 
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
-
-	#[NCA\Inject]
+		#[NCA\Inject]
 	public DB $db;
 
 	#[NCA\Inject]

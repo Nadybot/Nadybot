@@ -89,8 +89,10 @@ class JSONDataModel {
 				}
 			} else {
 				$value = new $typeName();
-				$value->fromJSON($data->{$propName});
-				$refProp->setValue($this, $value);
+				if (method_exists($value, "fromJSON")) {
+					$value->fromJSON($data->{$propName});
+					$refProp->setValue($this, $value);
+				}
 			}
 		}
 	}

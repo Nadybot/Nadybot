@@ -2,13 +2,16 @@
 
 namespace Nadybot\Modules\WHOMPAH_MODULE;
 
-use Nadybot\Core\Attributes as NCA;
 use Illuminate\Support\Collection;
-use Nadybot\Core\CmdContext;
-use Nadybot\Core\CommandAlias;
-use Nadybot\Core\DB;
-use Nadybot\Core\ParamClass\PWord;
-use Nadybot\Core\Text;
+use Nadybot\Core\{
+	Attributes as NCA,
+	CmdContext,
+	CommandAlias,
+	DB,
+	Instance,
+	ParamClass\PWord,
+	Text,
+};
 
 /**
  * @author Tyrence (RK2)
@@ -24,15 +27,9 @@ use Nadybot\Core\Text;
 		help: "whompah.txt"
 	)
 ]
-class WhompahController {
+class WhompahController extends Instance {
 
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
-
-	#[NCA\Inject]
+		#[NCA\Inject]
 	public DB $db;
 
 	#[NCA\Inject]

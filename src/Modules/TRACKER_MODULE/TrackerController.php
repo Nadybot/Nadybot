@@ -2,10 +2,10 @@
 
 namespace Nadybot\Modules\TRACKER_MODULE;
 
-use Nadybot\Core\Attributes as NCA;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	AccessManager,
+	Attributes as NCA,
 	BuddylistManager,
 	CmdContext,
 	ConfigFile,
@@ -13,30 +13,31 @@ use Nadybot\Core\{
 	DBSchema\Player,
 	Event,
 	EventManager,
+	Instance,
 	LoggerWrapper,
 	MessageEmitter,
 	MessageHub,
 	Modules\DISCORD\DiscordController,
+	Modules\PLAYER_LOOKUP\Guild,
+	Modules\PLAYER_LOOKUP\GuildManager,
 	Modules\PLAYER_LOOKUP\PlayerManager,
 	Nadybot,
+	ParamClass\PCharacter,
+	ParamClass\PNonNumber,
+	ParamClass\PRemove,
+	Routing\RoutableMessage,
+	Routing\Source,
 	SettingManager,
 	Text,
 	UserStateEvent,
 	Util,
 };
-use Nadybot\Core\Modules\PLAYER_LOOKUP\Guild;
-use Nadybot\Core\Modules\PLAYER_LOOKUP\GuildManager;
-use Nadybot\Core\ParamClass\PCharacter;
-use Nadybot\Core\ParamClass\PNonNumber;
-use Nadybot\Core\ParamClass\PRemove;
-use Nadybot\Core\Routing\RoutableMessage;
-use Nadybot\Core\Routing\Source;
 use Nadybot\Modules\{
 	ONLINE_MODULE\OnlineController,
+	ORGLIST_MODULE\FindOrgController,
+	ORGLIST_MODULE\Organization,
 	TOWER_MODULE\TowerAttackEvent,
 };
-use Nadybot\Modules\ORGLIST_MODULE\FindOrgController;
-use Nadybot\Modules\ORGLIST_MODULE\Organization;
 use Throwable;
 
 /**
@@ -55,7 +56,7 @@ use Throwable;
 	NCA\ProvidesEvent("tracker(logon)"),
 	NCA\ProvidesEvent("tracker(logoff)")
 ]
-class TrackerController implements MessageEmitter {
+class TrackerController extends Instance implements MessageEmitter {
 	public const DB_TABLE = "tracked_users_<myname>";
 	public const DB_TRACKING = "tracking_<myname>";
 	public const DB_ORG = "tracking_org_<myname>";
@@ -78,13 +79,7 @@ class TrackerController implements MessageEmitter {
 	public const ATT_OMNI = 8;
 	public const ATT_NEUTRAL = 16;
 
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
-
-	#[NCA\Inject]
+		#[NCA\Inject]
 	public Text $text;
 
 	#[NCA\Inject]

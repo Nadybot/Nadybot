@@ -7,8 +7,8 @@ use Nadybot\Core\{
 	AccessManager,
 	AOChatEvent,
 	CmdContext,
-	Event,
 	EventManager,
+	Instance,
 	Nadybot,
 	SettingManager,
 };
@@ -41,10 +41,7 @@ use Nadybot\Core\ParamClass\PCharacter;
 	NCA\ProvidesEvent("leader(clear)"),
 	NCA\ProvidesEvent("leader(set)")
 ]
-class ChatLeaderController {
-
-	public string $moduleName;
-
+class ChatLeaderController extends Instance {
 	#[NCA\Inject]
 	public Nadybot $chatBot;
 

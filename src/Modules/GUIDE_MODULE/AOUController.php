@@ -9,9 +9,9 @@ use Nadybot\Core\{
 	CacheManager,
 	CacheResult,
 	CmdContext,
-	DBRow,
 	Http,
 	HttpResponse,
+	Instance,
 	Text,
 };
 use Nadybot\Modules\ITEMS_MODULE\AODBEntry;
@@ -31,15 +31,9 @@ use Throwable;
 		help: "aou.txt"
 	)
 ]
-class AOUController {
+class AOUController extends Instance {
 
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
-
-	#[NCA\Inject]
+		#[NCA\Inject]
 	public Text $text;
 
 	#[NCA\Inject]

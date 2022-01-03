@@ -2,18 +2,23 @@
 
 namespace Nadybot\Modules\GUILD_MODULE;
 
-use Nadybot\Core\Attributes as NCA;
 use Illuminate\Support\Collection;
-use Nadybot\Core\AOChatEvent;
-use Nadybot\Core\CmdContext;
-use Nadybot\Core\DB;
-use Nadybot\Core\ParamClass\PCharacter;
-use Nadybot\Core\Text;
-use Nadybot\Core\Util;
-use Nadybot\Modules\WEBSERVER_MODULE\ApiResponse;
-use Nadybot\Modules\WEBSERVER_MODULE\HttpProtocolWrapper;
-use Nadybot\Modules\WEBSERVER_MODULE\Request;
-use Nadybot\Modules\WEBSERVER_MODULE\Response;
+use Nadybot\Core\{
+	Attributes as NCA,
+	AOChatEvent,
+	CmdContext,
+	DB,
+	Instance,
+	ParamClass\PCharacter,
+	Text,
+	Util,
+};
+use Nadybot\Modules\WEBSERVER_MODULE\{
+	ApiResponse,
+	HttpProtocolWrapper,
+	Request,
+	Response,
+};
 
 /**
  * @author Tyrence (RK2)
@@ -29,17 +34,11 @@ use Nadybot\Modules\WEBSERVER_MODULE\Response;
 		help: "orghistory.txt"
 	)
 ]
-class OrgHistoryController {
+class OrgHistoryController extends Instance {
 
 	public const DB_TABLE = "org_history";
 
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
-
-	#[NCA\Inject]
+		#[NCA\Inject]
 	public DB $db;
 
 	#[NCA\Inject]

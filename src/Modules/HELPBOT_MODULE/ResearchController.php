@@ -2,10 +2,13 @@
 
 namespace Nadybot\Modules\HELPBOT_MODULE;
 
-use Nadybot\Core\Attributes as NCA;
-use Nadybot\Core\CmdContext;
-use Nadybot\Core\DB;
-use Nadybot\Core\Text;
+use Nadybot\Core\{
+	Attributes as NCA,
+	CmdContext,
+	DB,
+	Instance,
+	Text,
+};
 
 /**
  * @author Tyrence (RK2)
@@ -22,14 +25,8 @@ use Nadybot\Core\Text;
 		help: "research.txt"
 	)
 ]
-class ResearchController {
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
-
-	#[NCA\Inject]
+class ResearchController extends Instance {
+		#[NCA\Inject]
 	public DB $db;
 
 	#[NCA\Inject]

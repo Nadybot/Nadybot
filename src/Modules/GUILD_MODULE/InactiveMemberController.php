@@ -3,15 +3,16 @@
 namespace Nadybot\Modules\GUILD_MODULE;
 
 use Illuminate\Support\Collection;
-use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{
+	Attributes as NCA,
 	CmdContext,
 	DB,
+	Instance,
+	Modules\ALTS\AltsController,
+	ParamClass\PDuration,
 	Text,
 	Util,
 };
-use Nadybot\Core\Modules\ALTS\AltsController;
-use Nadybot\Core\ParamClass\PDuration;
 
 /**
  * @author Tyrence (RK2)
@@ -27,15 +28,9 @@ use Nadybot\Core\ParamClass\PDuration;
 		help: "inactivemem.txt"
 	)
 ]
-class InactiveMemberController {
+class InactiveMemberController extends Instance {
 
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
-
-	#[NCA\Inject]
+		#[NCA\Inject]
 	public DB $db;
 
 	#[NCA\Inject]

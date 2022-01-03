@@ -9,9 +9,9 @@ use Nadybot\Core\{
 	CmdContext,
 	CommandReply,
 	DB,
-	DBRow,
 	DBSchema\Alt,
 	EventManager,
+	Instance,
 	Modules\PLAYER_LOOKUP\PlayerManager,
 	Nadybot,
 	QueryBuilder,
@@ -57,18 +57,12 @@ use Nadybot\Core\ParamClass\PRemove;
 	NCA\ProvidesEvent("alt(newmain)"),
 	NCA\HasMigrations
 ]
-class AltsController {
+class AltsController extends Instance {
 
 	public const ALT_VALIDATE = "altvalidate";
 	public const MAIN_VALIDATE = "mainvalidate";
 
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
-
-	#[NCA\Inject]
+		#[NCA\Inject]
 	public Nadybot $chatBot;
 
 	#[NCA\Inject]

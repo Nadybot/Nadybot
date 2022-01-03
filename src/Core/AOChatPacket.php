@@ -220,12 +220,18 @@ class AOChatPacket {
 				switch ($sa) {
 					case "I":
 						$unp  = unpack("N", $data);
+						if (!is_array($unp)) {
+							throw new Exception("Invalid packet data received.");
+						}
 						$res  = array_pop($unp);
 						$data = substr($data, 4);
 						break;
 
 					case "S":
 						$unp  = unpack("n", $data);
+						if (!is_array($unp)) {
+							throw new Exception("Invalid packet data received.");
+						}
 						$len  = array_pop($unp);
 						$res  = substr($data, 2, $len);
 						$data = substr($data, 2 + $len);
@@ -238,18 +244,31 @@ class AOChatPacket {
 
 					case "i":
 						$unp  = unpack("n", $data);
+						if (!is_array($unp)) {
+							throw new Exception("Invalid packet data received.");
+						}
 						$len  = array_pop($unp);
-						$res  = array_values(unpack("N" . $len, substr($data, 2)));
+						$unp = unpack("N" . $len, substr($data, 2));
+						if (!is_array($unp)) {
+							throw new Exception("Invalid packet data received.");
+						}
+						$res  = array_values($unp);
 						$data = substr($data, 2 + 4 * $len);
 						break;
 
 					case "s":
 						$unp  = unpack("n", $data);
+						if (!is_array($unp)) {
+							throw new Exception("Invalid packet data received.");
+						}
 						$len  = array_pop($unp);
 						$data = substr($data, 2);
 						$res  = [];
 						while ($len--) {
 							$unp   = unpack("n", $data);
+							if (!is_array($unp)) {
+								throw new Exception("Invalid packet data received.");
+							}
 							$slen  = array_pop($unp);
 							$res[] = substr($data, 2, $slen);
 							$data  = substr($data, 2+$slen);

@@ -115,7 +115,7 @@ class ClassLoader {
 			$entries = parse_ini_file("{$baseDir}/{$moduleName}/module.ini");
 			// check that current PHP version is greater or equal than module's
 			// minimum required PHP version
-			if (isset($entries["minimum_php_version"])) {
+			if (is_array($entries) && isset($entries["minimum_php_version"])) {
 				$minimum = $entries["minimum_php_version"];
 				$current = phpversion();
 				if (strnatcmp($minimum, $current) > 0) {
@@ -129,9 +129,12 @@ class ClassLoader {
 
 		$newInstances = $this->getNewInstancesInDir("{$baseDir}/{$moduleName}");
 		foreach ($newInstances as $name => $class) {
+			/** @phpstan-var class-string */
 			$className = $class->className;
 			$obj = new $className();
-			$obj->moduleName = $moduleName;
+			if (property_exists($obj, "moduleName")) {
+				$obj->moduleName = $moduleName;
+			}
 			if (Registry::instanceExists($name) && !$class->overwrite) {
 				$this->logger->warning("Instance with name '$name' already registered--replaced with new instance");
 			}
@@ -168,6 +171,7 @@ class ClassLoader {
 	/**
 	 * Get a list of all instances which provide an #[Instance] from a list of classes
 	 *
+	 * @phpstan-param class-string $classes
 	 * @return array<string,ClassInstance> A mapping [instance name => class info]
 	 */
 	public static function getInstancesOfClasses(string ...$classes): array {

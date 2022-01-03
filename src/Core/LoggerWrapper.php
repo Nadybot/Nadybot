@@ -2,6 +2,7 @@
 
 namespace Nadybot\Core;
 
+use Exception;
 use Nadybot\Core\Attributes as NCA;
 use Monolog\Logger;
 use Throwable;
@@ -11,7 +12,7 @@ use Throwable;
  *
  */
 #[NCA\Instance("logger")]
-class LoggerWrapper {
+class LoggerWrapper extends Instance {
 	/**
 	 * The actual Monolog logger
 	 */
@@ -119,7 +120,11 @@ class LoggerWrapper {
 	 * Get the relative path of the directory where logs of this bot are stored
 	 */
 	public static function getLoggingDirectory(): string {
-		$logDir = dirname(ini_get('error_log'));
+		$errorLog = ini_get('error_log');
+		if (!is_string($errorLog)) {
+			throw new Exception("Your php.ini error_log is misconfigured.");
+		}
+		$logDir = dirname($errorLog);
 		if (substr($logDir, 0, 1) !== '/') {
 			$logDirNew = realpath(dirname(__DIR__, 2) . '/' . $logDir);
 			if ($logDirNew === false) {

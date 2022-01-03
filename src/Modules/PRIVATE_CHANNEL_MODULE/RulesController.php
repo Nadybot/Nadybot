@@ -2,12 +2,15 @@
 
 namespace Nadybot\Modules\PRIVATE_CHANNEL_MODULE;
 
-use Nadybot\Core\Attributes as NCA;
-use Nadybot\Core\AOChatEvent;
-use Nadybot\Core\CmdContext;
-use Nadybot\Core\ConfigFile;
-use Nadybot\Core\Nadybot;
-use Nadybot\Core\Text;
+use Nadybot\Core\{
+	Attributes as NCA,
+	AOChatEvent,
+	CmdContext,
+	ConfigFile,
+	Instance,
+	Nadybot,
+	Text,
+};
 
 /**
  * @author Nadyita (RK5)
@@ -22,15 +25,9 @@ use Nadybot\Core\Text;
 		help: "rules.txt"
 	)
 ]
-class RulesController {
+class RulesController extends Instance {
 
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
-
-	#[NCA\Inject]
+		#[NCA\Inject]
 	public Text $text;
 
 	#[NCA\Inject]

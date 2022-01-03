@@ -2,20 +2,25 @@
 
 namespace Nadybot\Modules\RECIPE_MODULE;
 
-use Nadybot\Core\Attributes as NCA;
 use Exception;
 use Illuminate\Support\Collection;
-use Nadybot\Core\CmdContext;
-use Nadybot\Core\DB;
-use Nadybot\Core\ParamClass\PWord;
-use Nadybot\Core\SettingManager;
-use Nadybot\Core\Util;
-use Nadybot\Core\Text;
-use Nadybot\Modules\ITEMS_MODULE\AODBItem;
-use Nadybot\Modules\ITEMS_MODULE\ItemFlag;
-use Nadybot\Modules\ITEMS_MODULE\ItemsController;
-use Nadybot\Modules\ITEMS_MODULE\ItemWithBuffs;
-use Nadybot\Modules\ITEMS_MODULE\Skill;
+use Nadybot\Core\{
+	Attributes as NCA,
+	CmdContext,
+	DB,
+	Instance,
+	ParamClass\PWord,
+	SettingManager,
+	Util,
+	Text,
+};
+use Nadybot\Modules\ITEMS_MODULE\{
+	AODBItem,
+	ItemFlag,
+	ItemsController,
+	ItemWithBuffs,
+	Skill,
+};
 
 /**
  * @author Nadyita
@@ -32,18 +37,12 @@ use Nadybot\Modules\ITEMS_MODULE\Skill;
 		alias: "aruls"
 	)
 ]
-class ArulSabaController {
+class ArulSabaController extends Instance {
 	public const ME = 125;
 	public const EE = 126;
 	public const AGI = 17;
 
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
-
-	#[NCA\Inject]
+		#[NCA\Inject]
 	public DB $db;
 
 	#[NCA\Inject]

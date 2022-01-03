@@ -2,10 +2,11 @@
 
 namespace Nadybot\Modules\IMPLANT_MODULE;
 
-use Nadybot\Core\Attributes as NCA;
 use Exception;
 use Nadybot\Core\{
+	Attributes as NCA,
 	CmdContext,
+	Instance,
 	Nadybot,
 	Text,
 };
@@ -23,14 +24,8 @@ use Nadybot\Core\{
 		help: "implant.txt"
 	)
 ]
-class ImplantController {
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
-
-	#[NCA\Inject]
+class ImplantController extends Instance {
+		#[NCA\Inject]
 	public Nadybot $chatBot;
 
 	#[NCA\Inject]

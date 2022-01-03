@@ -2,9 +2,9 @@
 
 namespace Nadybot\Core\Modules\SYSTEM;
 
-use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{
 	AccessManager,
+	Attributes as NCA,
 	AdminManager,
 	BuddylistManager,
 	CmdContext,
@@ -16,23 +16,26 @@ use Nadybot\Core\{
 	Event,
 	EventManager,
 	HelpManager,
+	Instance,
 	LoggerWrapper,
 	MessageEmitter,
 	MessageHub,
 	Nadybot,
+	ParamClass\PCharacter,
 	PrivateMessageCommandReply,
+	Routing\RoutableMessage,
+	Routing\Source,
 	SettingManager,
 	SubcommandManager,
 	Text,
 	Util,
 };
-use Nadybot\Core\ParamClass\PCharacter;
-use Nadybot\Core\Routing\RoutableMessage;
-use Nadybot\Core\Routing\Source;
-use Nadybot\Modules\WEBSERVER_MODULE\ApiResponse;
-use Nadybot\Modules\WEBSERVER_MODULE\HttpProtocolWrapper;
-use Nadybot\Modules\WEBSERVER_MODULE\Request;
-use Nadybot\Modules\WEBSERVER_MODULE\Response;
+use Nadybot\Modules\WEBSERVER_MODULE\{
+	ApiResponse,
+	HttpProtocolWrapper,
+	Request,
+	Response,
+};
 
 /**
  * @author Sebuda (RK2)
@@ -86,15 +89,9 @@ use Nadybot\Modules\WEBSERVER_MODULE\Response;
 		defaultStatus: 1
 	)
 ]
-class SystemController implements MessageEmitter {
+class SystemController extends Instance implements MessageEmitter {
 
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
-
-	#[NCA\Inject]
+		#[NCA\Inject]
 	public AccessManager $accessManager;
 
 	#[NCA\Inject]

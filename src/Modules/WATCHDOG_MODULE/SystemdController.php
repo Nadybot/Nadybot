@@ -2,10 +2,13 @@
 
 namespace Nadybot\Modules\WATCHDOG_MODULE;
 
-use Nadybot\Core\Attributes as NCA;
-use Nadybot\Core\Event;
-use Nadybot\Core\EventManager;
 use Socket;
+use Nadybot\Core\{
+	Attributes as NCA,
+	Event,
+	EventManager,
+	Instance,
+};
 
 /**
  * Authors:
@@ -13,14 +16,8 @@ use Socket;
  */
 
 #[NCA\Instance]
-class SystemdController {
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
-
-	#[NCA\Inject]
+class SystemdController extends Instance {
+		#[NCA\Inject]
 	public EventManager $eventManager;
 
 	public const EINVAL = 22;

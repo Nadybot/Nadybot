@@ -2,12 +2,12 @@
 
 namespace Nadybot\Modules\RAID_MODULE;
 
-use Nadybot\Core\Attributes as NCA;
 use DateTime;
 use Illuminate\Database\Query\JoinClause;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	AccessManager,
+	Attributes as NCA,
 	AOChatEvent,
 	CmdContext,
 	CommandReply,
@@ -15,16 +15,17 @@ use Nadybot\Core\{
 	DB,
 	DBSchema\Player,
 	EventManager,
+	Instance,
 	Modules\ALTS\AltsController,
+	Modules\PLAYER_LOOKUP\PlayerManager,
 	Nadybot,
+	ParamClass\PCharacter,
+	ParamClass\PWord,
 	SettingManager,
 	Text,
 	Timer,
 	Util,
 };
-use Nadybot\Core\Modules\PLAYER_LOOKUP\PlayerManager;
-use Nadybot\Core\ParamClass\PCharacter;
-use Nadybot\Core\ParamClass\PWord;
 use Nadybot\Modules\BASIC_CHAT_MODULE\ChatAssistController;
 use Nadybot\Modules\COMMENT_MODULE\CommentCategory;
 use Nadybot\Modules\COMMENT_MODULE\CommentController;
@@ -61,12 +62,9 @@ use Nadybot\Modules\ONLINE_MODULE\OnlineController;
 	NCA\ProvidesEvent("raid(lock)"),
 	NCA\ProvidesEvent("raid(unlock)")
 ]
-class RaidController {
+class RaidController extends Instance {
 	public const DB_TABLE = "raid_<myname>";
 	public const DB_TABLE_LOG = "raid_log_<myname>";
-
-	public string $moduleName;
-
 	#[NCA\Inject]
 	public Nadybot $chatBot;
 

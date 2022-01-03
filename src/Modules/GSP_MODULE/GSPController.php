@@ -2,27 +2,27 @@
 
 namespace Nadybot\Modules\GSP_MODULE;
 
-use Nadybot\Core\Attributes as NCA;
 use DateTime;
 use DateTimeZone;
 use JsonException;
 use Nadybot\Core\{
+	Attributes as NCA,
 	CmdContext,
 	DB,
-	Event,
 	EventManager,
 	Http,
 	HttpResponse,
+	Instance,
 	MessageEmitter,
 	MessageHub,
 	Modules\DISCORD\DiscordController,
 	Nadybot,
+	Routing\RoutableMessage,
+	Routing\Source,
 	SettingManager,
 	Text,
 	UserStateEvent,
 };
-use Nadybot\Core\Routing\RoutableMessage;
-use Nadybot\Core\Routing\Source;
 
 /**
  * @author Nadyita (RK5) <nadyita@hodorraid.org>
@@ -41,13 +41,7 @@ use Nadybot\Core\Routing\Source;
 	NCA\ProvidesEvent("gsp(show_start)"),
 	NCA\ProvidesEvent("gsp(show_end)")
 ]
-class GSPController implements MessageEmitter {
-
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
+class GSPController extends Instance implements MessageEmitter {
 
 	#[NCA\Inject]
 	public Nadybot $chatBot;

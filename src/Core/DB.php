@@ -22,7 +22,7 @@ use Throwable;
 
 #[NCA\Instance]
 #[NCA\HasMigrations(module: "Core")]
-class DB {
+class DB extends Instance {
 
 	public const SQLITE_MIN_VERSION = "3.23.0";
 
@@ -496,11 +496,15 @@ class DB {
 		if (!isset($migDir)) {
 			return new Collection();
 		}
-		$migDir->module ??= $instance->moduleName ?? null;
+		$migDir->module ??= property_exists($instance, "moduleName") ? $instance->moduleName ?? null : null;
 		if (!isset($migDir->module)) {
 			return new Collection();
 		}
-		$fullDir = dirname($ref->getFileName()) . "/" . $migDir->dir;
+		$fullFile = $ref->getFileName();
+		if (!is_string($fullFile)) {
+			return new Collection();
+		}
+		$fullDir = dirname($fullFile) . "/" . $migDir->dir;
 		$iter = new GlobIterator("{$fullDir}/*.php");
 		foreach ($iter as $file) {
 			if (is_string($file)) {
@@ -723,7 +727,7 @@ class DB {
 		$items = [];
 		$itemCount = 0;
 		try {
-			if (isset($where) && count($where)) {
+			if (isset($where) && is_countable($where) && count($where)) {
 				$this->table($table)->where(...$where)->delete();
 			} else {
 				$this->table($table)->delete();

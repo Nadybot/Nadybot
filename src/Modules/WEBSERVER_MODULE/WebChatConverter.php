@@ -2,17 +2,20 @@
 
 namespace Nadybot\Modules\WEBSERVER_MODULE;
 
-use Nadybot\Core\Attributes as NCA;
-use Nadybot\Core\ConfigFile;
-use Nadybot\Core\MessageHub;
-use Nadybot\Core\Routing\Source;
-use Nadybot\Core\SettingManager;
+use Nadybot\Core\{
+	Attributes as NCA,
+	ConfigFile,
+	Instance,
+	MessageHub,
+	Routing\Source,
+	SettingManager,
+};
 
 /**
  * @package Nadybot\Modules\WEBSERVER_MODULE
  */
 #[NCA\Instance]
-class WebChatConverter {
+class WebChatConverter extends Instance {
 
 	#[NCA\Inject]
 	public ConfigFile $config;

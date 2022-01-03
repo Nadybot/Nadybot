@@ -2,27 +2,28 @@
 
 namespace Nadybot\Modules\VOTE_MODULE;
 
-use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{
 	AccessManager,
+	Attributes as NCA,
 	CmdContext,
 	CommandAlias,
 	DB,
 	Event,
 	EventManager,
+	Instance,
 	LoggerWrapper,
 	MessageEmitter,
 	MessageHub,
 	Nadybot,
+	ParamClass\PDuration,
+	ParamClass\PRemove,
+	Routing\RoutableMessage,
+	Routing\Source,
 	SettingManager,
 	Text,
 	Timer,
 	Util,
 };
-use Nadybot\Core\ParamClass\PDuration;
-use Nadybot\Core\ParamClass\PRemove;
-use Nadybot\Core\Routing\RoutableMessage;
-use Nadybot\Core\Routing\Source;
 
 /**
  * @author Nadyita (RK5)
@@ -52,16 +53,10 @@ use Nadybot\Core\Routing\Source;
 	NCA\ProvidesEvent("vote(del)"),
 	NCA\ProvidesEvent("vote(change)")
 ]
-class VoteController implements MessageEmitter {
+class VoteController extends Instance implements MessageEmitter {
 
 	public const DB_POLLS = "polls_<myname>";
 	public const DB_VOTES = "votes_<myname>";
-
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
 
 	#[NCA\Inject]
 	public Text $text;

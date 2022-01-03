@@ -5,7 +5,7 @@ namespace Nadybot\Core;
 use Nadybot\Core\Attributes as NCA;
 
 #[NCA\Instance]
-class Text {
+class Text extends Instance {
 
 	#[NCA\Inject]
 	public ConfigFile $config;

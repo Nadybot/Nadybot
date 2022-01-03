@@ -2,14 +2,15 @@
 
 namespace Nadybot\Modules\TIMERS_MODULE;
 
-use Nadybot\Core\Attributes as NCA;
 use Exception;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	AccessManager,
+	Attributes as NCA,
 	CmdContext,
 	DB,
 	EventManager,
+	Instance,
 	LoggerWrapper,
 	MessageHub,
 	MessageEmitter,
@@ -54,15 +55,9 @@ use Nadybot\Core\ParamClass\PRemove;
 		desc: "Triggered when a new timer is created with the timer command",
 	)
 ]
-class TimerController implements MessageEmitter {
+class TimerController extends Instance implements MessageEmitter {
 
 	public const DB_TABLE = "timers_<myname>";
-
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
 
 	#[NCA\Inject]
 	public DB $db;

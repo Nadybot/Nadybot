@@ -5,14 +5,15 @@ namespace Nadybot\Modules\WEBSERVER_MODULE;
 use ReflectionClass;
 use DateTime;
 use Exception;
-use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{
 	AsyncHttp,
+	Attributes as NCA,
 	CmdContext,
 	ConfigFile,
 	DB,
 	Http,
 	HttpResponse,
+	Instance,
 	LoggerWrapper,
 	Registry,
 	SettingManager,
@@ -34,14 +35,11 @@ use ReflectionAttribute;
 	),
 	NCA\Instance
 ]
-class WebserverController {
+class WebserverController extends Instance {
 	public const AUTH_AOAUTH = "aoauth";
 	public const AUTH_BASIC = "webauth";
 
-	/** Set by the registry */
-	public string $moduleName;
-
-	/**
+		/**
 	 * @var ?resource
 	 * @psalm-var null|resource|closed-resource
 	 */

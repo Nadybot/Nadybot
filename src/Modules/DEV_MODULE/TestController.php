@@ -12,20 +12,21 @@ use Nadybot\Core\{
 	ConfigFile,
 	Event,
 	EventManager,
+	Instance,
 	LoggerWrapper,
+	Modules\BUDDYLIST\BuddylistController,
+	Modules\DISCORD\DiscordMessageIn,
 	Nadybot,
+	ParamClass\PCharacter,
+	ParamClass\PFaction,
+	ParamClass\PPlayfield,
+	ParamClass\PTowerSite,
 	Registry,
 	SettingManager,
 	Text,
 	Timer,
 	Util,
 };
-use Nadybot\Core\Modules\BUDDYLIST\BuddylistController;
-use Nadybot\Core\Modules\DISCORD\DiscordMessageIn;
-use Nadybot\Core\ParamClass\PCharacter;
-use Nadybot\Core\ParamClass\PFaction;
-use Nadybot\Core\ParamClass\PPlayfield;
-use Nadybot\Core\ParamClass\PTowerSite;
 use Nadybot\Modules\DISCORD_GATEWAY_MODULE\DiscordMessageEvent;
 use Nadybot\Modules\HELPBOT_MODULE\PlayfieldController;
 use Nadybot\Modules\TOWER_MODULE\TowerController;
@@ -169,15 +170,9 @@ use Nadybot\Modules\TOWER_MODULE\TowerController;
 		help: "test.txt"
 	)
 ]
-class TestController {
+class TestController extends Instance {
 
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
-
-	#[NCA\Inject]
+		#[NCA\Inject]
 	public SettingManager $settingManager;
 
 	#[NCA\Inject]

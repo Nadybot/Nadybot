@@ -2,23 +2,28 @@
 
 namespace Nadybot\Modules\WEBSERVER_MODULE;
 
-use Nadybot\Core\Attributes as NCA;
-use Nadybot\Core\CmdContext;
-use Nadybot\Core\CommandManager;
-use Nadybot\Core\EventManager;
-use Nadybot\Core\MessageHub;
-use Nadybot\Core\Nadybot;
-use Nadybot\Core\Registry;
-use Nadybot\Core\Routing\Character;
-use Nadybot\Core\Routing\RoutableMessage;
-use Nadybot\Core\Routing\Source;
-use Nadybot\Core\SettingManager;
-use Nadybot\Core\Text;
-use Nadybot\Modules\GUILD_MODULE\GuildController;
-use Nadybot\Modules\WEBSOCKET_MODULE\WebsocketCommandReply;
+use Nadybot\Core\{
+	Attributes as NCA,
+	CmdContext,
+	CommandManager,
+	EventManager,
+	Instance,
+	MessageHub,
+	Nadybot,
+	Registry,
+	Routing\Character,
+	Routing\RoutableMessage,
+	Routing\Source,
+	SettingManager,
+	Text,
+};
+use Nadybot\Modules\{
+	GUILD_MODULE\GuildController,
+	WEBSOCKET_MODULE\WebsocketCommandReply,
+};
 
 #[NCA\Instance]
-class WebchatApiController {
+class WebchatApiController extends Instance {
 	#[NCA\Inject]
 	public Nadybot $chatBot;
 

@@ -2,25 +2,26 @@
 
 namespace Nadybot\Modules\RAID_MODULE;
 
-use Nadybot\Core\Attributes as NCA;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	AccessManager,
 	AdminManager,
+	Attributes as NCA,
 	BuddylistManager,
 	CmdContext,
 	CommandAlias,
 	CommandReply,
 	DB,
 	DBSchema\Audit,
+	Instance,
 	LoggerWrapper,
 	Modules\ALTS\AltEvent,
 	Modules\ALTS\AltsController,
 	Nadybot,
+	ParamClass\PCharacter,
 	SettingManager,
 	Text,
 };
-use Nadybot\Core\ParamClass\PCharacter;
 
 /**
  * Commands this controller contains:
@@ -49,11 +50,8 @@ use Nadybot\Core\ParamClass\PCharacter;
 		alias: "leaders"
 	)
 ]
-class RaidRankController {
+class RaidRankController extends Instance {
 	public const DB_TABLE = "raid_rank_<myname>";
-
-	public string $moduleName;
-
 	#[NCA\Inject]
 	public SettingManager $settingManager;
 

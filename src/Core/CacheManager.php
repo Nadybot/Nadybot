@@ -9,7 +9,7 @@ use Exception;
  * Read-through cache to URLs
  */
 #[NCA\Instance]
-class CacheManager {
+class CacheManager extends Instance {
 
 	#[NCA\Inject]
 	public Nadybot $chatBot;
@@ -233,8 +233,10 @@ class CacheManager {
 		@unlink($cacheFile);
 
 		$fp = fopen($cacheFile, "w");
-		fwrite($fp, $contents);
-		fclose($fp);
+		if (is_resource($fp)) {
+			fwrite($fp, $contents);
+			fclose($fp);
+		}
 	}
 
 	/**
@@ -243,10 +245,11 @@ class CacheManager {
 	public function retrieve(string $groupName, string $filename): ?string {
 		$cacheFile = "{$this->cacheDir}/$groupName/$filename";
 
-		if (@file_exists($cacheFile)) {
-			return file_get_contents($cacheFile);
+		if (!@file_exists($cacheFile)) {
+			return null;
 		}
-		return null;
+		$contents = file_get_contents($cacheFile);
+		return is_string($contents) ? $contents : null;
 	}
 
 	/**

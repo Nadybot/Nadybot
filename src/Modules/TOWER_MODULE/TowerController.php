@@ -2,7 +2,6 @@
 
 namespace Nadybot\Modules\TOWER_MODULE;
 
-use Nadybot\Core\Attributes as NCA;
 use Closure;
 use DateTime;
 use Exception;
@@ -10,12 +9,14 @@ use Illuminate\Database\Query\JoinClause;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	AOChatEvent,
+	Attributes as NCA,
 	CmdContext,
 	CommandReply,
 	DB,
 	DBSchema\Player,
 	EventManager,
 	Http,
+	Instance,
 	LoggerWrapper,
 	MessageEmitter,
 	MessageHub,
@@ -41,10 +42,10 @@ use Nadybot\Modules\{
 	LEVEL_MODULE\LevelController,
 	TIMERS_MODULE\Alert,
 	ORGLIST_MODULE\FindOrgController,
+	ORGLIST_MODULE\Organization,
 	ORGLIST_MODULE\OrglistController,
 	TIMERS_MODULE\TimerController,
 };
-use Nadybot\Modules\ORGLIST_MODULE\Organization;
 
 /**
  * Commands this controller contains:
@@ -140,7 +141,7 @@ use Nadybot\Modules\ORGLIST_MODULE\Organization;
 		desc: "Triggered when marking a site as in need of scouting",
 	)
 ]
-class TowerController {
+class TowerController extends Instance {
 
 	public const DB_HOT = "tower_site_hot_<myname>";
 	public const DB_TOWER_ATTACK = "tower_attack_<myname>";
@@ -161,13 +162,7 @@ class TowerController {
 		226 => 7,
 	];
 
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
-
-	#[NCA\Inject]
+		#[NCA\Inject]
 	public PlayfieldController $playfieldController;
 
 	#[NCA\Inject]

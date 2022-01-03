@@ -14,6 +14,7 @@ use Nadybot\Core\{
 	DBSchema\Alt,
 	DBSchema\Admin,
 	DBSchema\Member,
+	Instance,
 	Modules\BAN\BanController,
 	Modules\PREFERENCES\Preferences,
 	Nadybot,
@@ -29,10 +30,12 @@ use Nadybot\Modules\{
 	GUILD_MODULE\OrgMember,
 	MASSMSG_MODULE\MassMsgController,
 	NEWS_MODULE\News,
+	NEWS_MODULE\NewsConfirmed,
 	NOTES_MODULE\Link,
 	NOTES_MODULE\Note,
 	PRIVATE_CHANNEL_MODULE\PrivateChannelController,
 	QUOTE_MODULE\Quote,
+	RAFFLE_MODULE\RaffleBonus,
 	RAFFLE_MODULE\RaffleController,
 	RAID_MODULE\AuctionController,
 	RAID_MODULE\DBAuction,
@@ -55,8 +58,6 @@ use Nadybot\Modules\{
 	VOTE_MODULE\Vote,
 	VOTE_MODULE\VoteController,
 };
-use Nadybot\Modules\NEWS_MODULE\NewsConfirmed;
-use Nadybot\Modules\RAFFLE_MODULE\RaffleBonus;
 use stdClass;
 
 /**
@@ -72,16 +73,9 @@ use stdClass;
 		help: "export.txt"
 	)
 ]
-class ExportController {
+class ExportController extends Instance {
 
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 * @var string $moduleName
-	 */
-	public string $moduleName;
-
-	#[NCA\Inject]
+		#[NCA\Inject]
 	public Nadybot $chatBot;
 
 	#[NCA\Inject]

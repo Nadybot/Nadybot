@@ -12,6 +12,7 @@ use Nadybot\Core\{
 	CommandReply,
 	DB,
 	Event,
+	Instance,
 	LoggerWrapper,
 	Nadybot,
 	SettingManager,
@@ -51,14 +52,9 @@ use Nadybot\Core\ParamClass\PRemove;
 		defaultStatus: 1
 	)
 ]
-class AdminController {
+class AdminController extends Instance {
 
-	/**
-	 * Name of the module.
-	 */
-	public string $moduleName;
-
-	#[NCA\Inject]
+		#[NCA\Inject]
 	public AdminManager $adminManager;
 
 	#[NCA\Inject]

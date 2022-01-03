@@ -2,16 +2,21 @@
 
 namespace Nadybot\Modules\DISCORD_GATEWAY_MODULE;
 
-use Nadybot\Core\Attributes as NCA;
 use JsonException;
 use Nadybot\Core\{
+	Attributes as NCA,
+	Channels\DiscordChannel as RoutedChannel,
+	Channels\DiscordMsg,
 	CommandManager,
-	Event,
 	EventManager,
+	Instance,
 	LoggerWrapper,
 	MessageHub,
 	Nadybot,
 	Registry,
+	Routing\Character,
+	Routing\RoutableMessage,
+	Routing\Source,
 	SettingManager,
 	Text,
 	Timer,
@@ -27,11 +32,6 @@ use Nadybot\Core\Modules\DISCORD\{
 	DiscordMessageIn,
 	DiscordUser,
 };
-use Nadybot\Core\Routing\Character;
-use Nadybot\Core\Routing\RoutableMessage;
-use Nadybot\Core\Routing\Source;
-use Nadybot\Core\Channels\DiscordChannel as RoutedChannel;
-use Nadybot\Core\Channels\DiscordMsg;
 use Nadybot\Modules\DISCORD_GATEWAY_MODULE\Model\{
 	Activity,
 	CloseEvents,
@@ -79,10 +79,7 @@ use stdClass;
 	NCA\ProvidesEvent("discord_voice_join"),
 	NCA\ProvidesEvent("discord_voice_leave")
 ]
-class DiscordGatewayController {
-	public string $moduleName;
-
-	#[NCA\Inject]
+class DiscordGatewayController extends Instance {	#[NCA\Inject]
 	public SettingManager $settingManager;
 
 	#[NCA\Inject]

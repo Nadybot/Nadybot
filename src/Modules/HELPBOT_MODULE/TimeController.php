@@ -2,11 +2,14 @@
 
 namespace Nadybot\Modules\HELPBOT_MODULE;
 
-use Nadybot\Core\Attributes as NCA;
 use DateTime;
-use Nadybot\Core\CmdContext;
-use Nadybot\Core\Text;
-use Nadybot\Core\Util;
+use Nadybot\Core\{
+	Attributes as NCA,
+	CmdContext,
+	Instance,
+	Text,
+	Util,
+};
 
 /**
  * @author Tyrence (RK2)
@@ -21,14 +24,8 @@ use Nadybot\Core\Util;
 		help: "time.txt"
 	)
 ]
-class TimeController {
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
-
-	#[NCA\Inject]
+class TimeController extends Instance {
+		#[NCA\Inject]
 	public Util $util;
 
 	#[NCA\Inject]

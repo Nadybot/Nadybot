@@ -3,17 +3,12 @@
 namespace Nadybot\Core\Modules\COLORS;
 
 use Nadybot\Core\Attributes as NCA;
+use Nadybot\Core\Instance;
 use Nadybot\Core\SettingManager;
 
 #[NCA\Instance]
-class ColorsController {
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
-
-	#[NCA\Inject]
+class ColorsController extends Instance {
+		#[NCA\Inject]
 	public SettingManager $settingManager;
 
 	#[NCA\Setup]

@@ -2,18 +2,23 @@
 
 namespace Nadybot\Modules\IMPLANT_MODULE;
 
-use Nadybot\Core\Attributes as NCA;
 use Illuminate\Support\Collection;
-use Nadybot\Core\CmdContext;
-use Nadybot\Core\DB;
-use Nadybot\Core\DBSchema\Player;
-use Nadybot\Core\Modules\PLAYER_LOOKUP\PlayerManager;
-use Nadybot\Core\ParamClass\PWord;
-use Nadybot\Core\Text;
-use Nadybot\Core\Util;
-use Nadybot\Modules\ITEMS_MODULE\ExtBuff;
-use Nadybot\Modules\ITEMS_MODULE\ItemsController;
-use Nadybot\Modules\ITEMS_MODULE\ItemWithBuffs;
+use Nadybot\Core\{
+	Attributes as NCA,
+	CmdContext,
+	DB,
+	DBSchema\Player,
+	Instance,
+	Modules\PLAYER_LOOKUP\PlayerManager,
+	ParamClass\PWord,
+	Text,
+	Util,
+};
+use Nadybot\Modules\ITEMS_MODULE\{
+	ExtBuff,
+	ItemsController,
+	ItemWithBuffs,
+};
 
 /**
  * @author Nadyita (RK5)
@@ -34,15 +39,9 @@ use Nadybot\Modules\ITEMS_MODULE\ItemWithBuffs;
 		help: "bestsymbiants.txt"
 	)
 ]
-class SymbiantController {
+class SymbiantController extends Instance {
 
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
-
-	#[NCA\Inject]
+		#[NCA\Inject]
 	public PlayerManager $playerManager;
 
 	#[NCA\Inject]

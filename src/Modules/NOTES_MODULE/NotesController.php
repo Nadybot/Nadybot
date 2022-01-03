@@ -2,15 +2,16 @@
 
 namespace Nadybot\Modules\NOTES_MODULE;
 
-use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{
 	AOChatEvent,
 	AccessManager,
+	Attributes as NCA,
 	BuddylistManager,
 	CmdContext,
 	CommandAlias,
 	CommandManager,
 	DB,
+	Instance,
 	LoggerWrapper,
 	Modules\ALTS\AltsController,
 	Nadybot,
@@ -51,7 +52,7 @@ use Nadybot\Core\ParamClass\PRemove;
 		help: "notes.txt"
 	)
 ]
-class NotesController {
+class NotesController extends Instance {
 	public const FORMAT_GROUPED = 'grouped';
 	public const FORMAT_INDIVIDUAL = 'individual';
 	public const FORMAT_INDIVIDUAL2 = 'individual2';
@@ -64,13 +65,7 @@ class NotesController {
 		self::FORMAT_INDIVIDUAL2,
 	];
 
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
-
-	#[NCA\Inject]
+		#[NCA\Inject]
 	public DB $db;
 
 	#[NCA\Inject]

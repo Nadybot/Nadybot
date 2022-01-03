@@ -10,6 +10,7 @@ use Nadybot\Core\{
 	CommandHandler,
 	CommandManager,
 	DB,
+	Instance,
 	Registry,
 	SubcommandManager,
 	Text,
@@ -67,15 +68,9 @@ use ReflectionException;
 		help: "makeitem.txt"
 	)
 ]
-class DevController {
+class DevController extends Instance {
 
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
-
-	#[NCA\Inject]
+		#[NCA\Inject]
 	public AccessManager $accessManager;
 
 	#[NCA\Inject]

@@ -2,11 +2,14 @@
 
 namespace Nadybot\Modules\FUN_MODULE;
 
-use Nadybot\Core\Attributes as NCA;
-use Nadybot\Core\CmdContext;
-use Nadybot\Core\ParamClass\PCharacter;
-use Nadybot\Core\Text;
-use Nadybot\Core\Util;
+use Nadybot\Core\{
+	Attributes as NCA,
+	CmdContext,
+	Instance,
+	ParamClass\PCharacter,
+	Text,
+	Util,
+};
 
 /**
  * @author Tyrence (RK2)
@@ -22,15 +25,9 @@ use Nadybot\Core\Util;
 		help: "fun_module.txt"
 	)
 ]
-class FightController {
+class FightController extends Instance {
 
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
-
-	#[NCA\Inject]
+		#[NCA\Inject]
 	public Text $text;
 
 	#[NCA\Inject]

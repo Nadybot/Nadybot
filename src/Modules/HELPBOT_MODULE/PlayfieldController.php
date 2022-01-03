@@ -3,12 +3,15 @@
 namespace Nadybot\Modules\HELPBOT_MODULE;
 
 use Illuminate\Support\Collection;
-use Nadybot\Core\Attributes as NCA;
-use Nadybot\Core\CmdContext;
-use Nadybot\Core\CommandAlias;
-use Nadybot\Core\DB;
-use Nadybot\Core\Text;
-use Nadybot\Core\Util;
+use Nadybot\Core\{
+	Attributes as NCA,
+	CmdContext,
+	CommandAlias,
+	DB,
+	Instance,
+	Text,
+	Util,
+};
 
 /**
  * @author Tyrence (RK2)
@@ -30,15 +33,9 @@ use Nadybot\Core\Util;
 		help: "waypoint.txt"
 	)
 ]
-class PlayfieldController {
+class PlayfieldController extends Instance {
 
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
-
-	#[NCA\Inject]
+		#[NCA\Inject]
 	public DB $db;
 
 	#[NCA\Inject]

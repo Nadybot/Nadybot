@@ -2,16 +2,17 @@
 
 namespace Nadybot\Modules\ORGLIST_MODULE;
 
-use Nadybot\Core\Attributes as NCA;
 use Exception;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
+	Attributes as NCA,
 	CmdContext,
 	Event,
 	CommandReply,
 	DB,
 	Http,
 	HttpResponse,
+	Instance,
 	LoggerWrapper,
 	Nadybot,
 	SQLException,
@@ -34,14 +35,8 @@ use Nadybot\Core\{
 		help: "findorg.txt"
 	)
 ]
-class FindOrgController {
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
-
-	#[NCA\Inject]
+class FindOrgController extends Instance {
+		#[NCA\Inject]
 	public DB $db;
 
 	#[NCA\Inject]

@@ -2,10 +2,10 @@
 
 namespace Nadybot\Modules\PRIVATE_CHANNEL_MODULE;
 
-use Nadybot\Core\Attributes as NCA;
 use Exception;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
+	Attributes as NCA,
 	AccessManager,
 	AOChatEvent,
 	BuddylistManager,
@@ -13,16 +13,17 @@ use Nadybot\Core\{
 	CommandAlias,
 	ConfigFile,
 	DB,
+	DBSchema\Audit,
+	DBSchema\Member,
+	DBSchema\Player,
 	Event,
 	EventManager,
+	Instance,
 	Nadybot,
 	SettingManager,
 	Text,
 	Timer,
 	Util,
-	DBSchema\Audit,
-	DBSchema\Member,
-	DBSchema\Player,
 	LoggerWrapper,
 	MessageHub,
 	Modules\ALTS\AltsController,
@@ -126,16 +127,10 @@ use Nadybot\Modules\{
 	NCA\ProvidesEvent("member(add)"),
 	NCA\ProvidesEvent("member(rem)")
 ]
-class PrivateChannelController {
+class PrivateChannelController extends Instance {
 	public const DB_TABLE = "members_<myname>";
 
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
-
-	#[NCA\Inject]
+		#[NCA\Inject]
 	public DB $db;
 
 	#[NCA\Inject]

@@ -2,14 +2,14 @@
 
 namespace Nadybot\Modules\WHATLOCKS_MODULE;
 
-use Nadybot\Core\Attributes as NCA;
 use DateTime;
 use DateTimeZone;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
+	Attributes as NCA,
 	CmdContext,
 	DB,
-	DBRow,
+	Instance,
 	Text,
 	Util,
 };
@@ -30,10 +30,7 @@ use Nadybot\Modules\ITEMS_MODULE\Skill;
 		help: "whatlocks.txt"
 	)
 ]
-class WhatLocksController {
-
-	public string $moduleName;
-
+class WhatLocksController extends Instance {
 	#[NCA\Inject]
 	public Text $text;
 

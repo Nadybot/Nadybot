@@ -2,7 +2,6 @@
 
 namespace Nadybot\Modules\RELAY_MODULE;
 
-use Nadybot\Core\Attributes as NCA;
 use Exception;
 use Illuminate\Support\Collection;
 use JsonException;
@@ -12,6 +11,7 @@ use ReflectionMethod;
 use Throwable;
 
 use Nadybot\Core\{
+	Attributes as NCA,
 	ClassSpec,
 	CmdContext,
 	CommandAlias,
@@ -20,6 +20,7 @@ use Nadybot\Core\{
 	DB,
 	EventManager,
 	EventType,
+	Instance,
 	LoggerWrapper,
 	MessageHub,
 	Nadybot,
@@ -32,11 +33,11 @@ use Nadybot\Core\{
 	Modules\PREFERENCES\Preferences,
 	Modules\PROFILE\ProfileCommandReply,
 	ParamClass\PNonNumber,
+	ParamClass\PNonNumberWord,
 	ParamClass\PRemove,
 	ParamClass\PWord,
 	Registry,
 };
-use Nadybot\Core\ParamClass\PNonNumberWord;
 use Nadybot\Modules\{
 	GUILD_MODULE\GuildController,
 	WEBSERVER_MODULE\ApiResponse,
@@ -69,7 +70,7 @@ use Nadybot\Modules\RELAY_MODULE\RelayProtocol\RelayProtocolInterface;
 	),
 	NCA\ProvidesEvent("routable(message)")
 ]
-class RelayController {
+class RelayController extends Instance {
 	public const DB_TABLE = 'relay_<myname>';
 	public const DB_TABLE_LAYER = 'relay_layer_<myname>';
 	public const DB_TABLE_ARGUMENT = 'relay_layer_argument_<myname>';
@@ -87,13 +88,7 @@ class RelayController {
 	/** @var array<string,Relay> */
 	public array $relays = [];
 
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
-
-	#[NCA\Inject]
+		#[NCA\Inject]
 	public DB $db;
 
 	#[NCA\Inject]

@@ -13,26 +13,28 @@ use ReflectionMethod;
 use Nadybot\Core\{
 	AccessManager,
 	AOChatEvent,
+	Attributes as NCA,
 	CmdContext,
 	CommandReply,
 	DB,
-	Event,
+	Instance,
 	LoggerWrapper,
+	Modules\BAN\BanController,
 	Nadybot,
+	ParamClass\PRemove,
 	Registry,
 	SettingManager,
 	Text,
 	UserStateEvent,
 	Util,
 };
-use Nadybot\Core\Attributes as NCA;
-use Nadybot\Core\Modules\BAN\BanController;
-use Nadybot\Core\ParamClass\PRemove;
-use Nadybot\Modules\WEBSERVER_MODULE\ApiResponse;
-use Nadybot\Modules\WEBSERVER_MODULE\HttpProtocolWrapper;
-use Nadybot\Modules\WEBSERVER_MODULE\Request;
-use Nadybot\Modules\WEBSERVER_MODULE\Response;
-use Nadybot\Modules\WEBSERVER_MODULE\WebChatConverter;
+use Nadybot\Modules\WEBSERVER_MODULE\{
+	ApiResponse,
+	HttpProtocolWrapper,
+	Request,
+	Response,
+	WebChatConverter,
+};
 use Throwable;
 
 /**
@@ -53,10 +55,7 @@ use Throwable;
 		help: "startpage.txt"
 	)
 ]
-class StartpageController {
-	public string $moduleName;
-
-	#[NCA\Inject]
+class StartpageController extends Instance {	#[NCA\Inject]
 	public DB $db;
 
 	#[NCA\Inject]

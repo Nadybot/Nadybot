@@ -2,12 +2,15 @@
 
 namespace Nadybot\Modules\TIMERS_MODULE;
 
-use Nadybot\Core\Attributes as NCA;
 use DateTime;
-use Nadybot\Core\CmdContext;
-use Nadybot\Core\LoggerWrapper;
-use Nadybot\Core\Text;
-use Nadybot\Core\Util;
+use Nadybot\Core\{
+	Attributes as NCA,
+	CmdContext,
+	Instance,
+	LoggerWrapper,
+	Text,
+	Util,
+};
 
 /**
  * A stopwatch controller with start, stop and lap
@@ -24,14 +27,8 @@ use Nadybot\Core\Util;
 		alias: "sw"
 	)
 ]
-class StopwatchController {
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
-
-	#[NCA\Inject]
+class StopwatchController extends Instance {
+		#[NCA\Inject]
 	public Text $text;
 
 	#[NCA\Inject]

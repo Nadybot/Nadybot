@@ -2,13 +2,16 @@
 
 namespace Nadybot\Modules\IMPLANT_MODULE;
 
-use Nadybot\Core\Attributes as NCA;
 use Illuminate\Support\Collection;
-use Nadybot\Core\CmdContext;
-use Nadybot\Core\DB;
-use Nadybot\Core\ParamClass\PWord;
-use Nadybot\Core\Text;
-use Nadybot\Core\Util;
+use Nadybot\Core\{
+	Attributes as NCA,
+	CmdContext,
+	DB,
+	Instance,
+	ParamClass\PWord,
+	Text,
+	Util,
+};
 
 /**
  * @author Tyrence (RK2)
@@ -32,14 +35,8 @@ use Nadybot\Core\Util;
 		alias: "symb"
 	)
 ]
-class PocketbossController {
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
-
-	#[NCA\Inject]
+class PocketbossController extends Instance {
+		#[NCA\Inject]
 	public Text $text;
 
 	#[NCA\Inject]

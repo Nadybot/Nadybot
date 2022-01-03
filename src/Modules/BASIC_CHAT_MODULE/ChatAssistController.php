@@ -6,6 +6,7 @@ use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{
 	CmdContext,
 	EventManager,
+	Instance,
 	Nadybot,
 	ParamClass\PCharacter,
 	ParamClass\PRemove,
@@ -37,15 +38,9 @@ use Nadybot\Core\{
 	NCA\ProvidesEvent("assist(set)"),
 	NCA\ProvidesEvent("assist(add)")
 ]
-class ChatAssistController {
+class ChatAssistController extends Instance {
 
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
-
-	#[NCA\Inject]
+		#[NCA\Inject]
 	public Nadybot $chatBot;
 
 	#[NCA\Inject]

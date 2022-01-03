@@ -2,6 +2,7 @@
 
 namespace Nadybot\Core;
 
+use Exception;
 use Nadybot\Core\Attributes\Instance;
 use RuntimeException;
 use Spatie\DataTransferObject\Attributes\MapFrom;
@@ -178,6 +179,9 @@ class ConfigFile extends DataTransferObject {
 		});
 		self::copyFromTemplateIfNeeded($this->getFilePath());
 		$lines = file($this->filePath);
+		if (!is_array($lines)) {
+			throw new Exception("Cannot load {$this->filePath}");
+		}
 		foreach ($lines as $key => $line) {
 			if (preg_match("/^(.+)vars\[('|\")(.+)('|\")](.*)=(.*)\"(.*)\";(.*)$/si", $line, $arr)) {
 				$lines[$key] = "$arr[1]vars['$arr[3]']$arr[5]=$arr[6]\"{$vars[$arr[3]]}\";$arr[8]";

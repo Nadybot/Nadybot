@@ -2,13 +2,13 @@
 
 namespace Nadybot\Modules\MASSMSG_MODULE;
 
-use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{
 	AccessManager,
+	Attributes as NCA,
 	BuddylistManager,
 	CmdContext,
-	CommandReply,
 	DB,
+	Instance,
 	Nadybot,
 	SettingManager,
 	Text,
@@ -49,7 +49,7 @@ use Nadybot\Core\Modules\BAN\BanController;
 		alias: "massinvite"
 	)
 ]
-class MassMsgController {
+class MassMsgController extends Instance {
 	public const BLOCKED = 'blocked';
 	public const IN_CHAT = 'in chat';
 	public const IN_ORG  = 'in org';
@@ -57,9 +57,6 @@ class MassMsgController {
 
 	public const PREF_MSGS = 'massmsgs';
 	public const PREF_INVITES = 'massinvites';
-
-	public string $moduleName;
-
 	#[NCA\Inject]
 	public DB $db;
 

@@ -6,6 +6,7 @@ use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{
 	AccessManager,
 	CmdContext,
+	Instance,
 	Nadybot,
 	SettingManager,
 	Text,
@@ -13,15 +14,15 @@ use Nadybot\Core\{
 	Util,
 };
 use Nadybot\Core\Modules\{
+	ALTS\AltsController,
 	CONFIG\ConfigController,
+	CONFIG\SettingOption,
 	DISCORD\DiscordAPIClient,
 	DISCORD\DiscordChannel,
 	DISCORD\DiscordController,
+	PLAYER_LOOKUP\PlayerManager,
+	PREFERENCES\Preferences,
 };
-use Nadybot\Core\Modules\ALTS\AltsController;
-use Nadybot\Core\Modules\CONFIG\SettingOption;
-use Nadybot\Core\Modules\PLAYER_LOOKUP\PlayerManager;
-use Nadybot\Core\Modules\PREFERENCES\Preferences;
 use Nadybot\Modules\GUILD_MODULE\GuildController;
 use Nadybot\Modules\PRIVATE_CHANNEL_MODULE\PrivateChannelController;
 use Nadybot\Modules\RELAY_MODULE\RelayController;
@@ -39,10 +40,7 @@ use Nadybot\Modules\RELAY_MODULE\RelayController;
 		help: "discord.txt"
 	)
 ]
-class DiscordRelayController {
-	public string $moduleName;
-
-	#[NCA\Inject]
+class DiscordRelayController extends Instance {	#[NCA\Inject]
 	public DiscordGatewayController $discordGatewayController;
 
 	#[NCA\Inject]

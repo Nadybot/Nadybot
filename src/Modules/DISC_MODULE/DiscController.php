@@ -6,7 +6,7 @@ use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{
 	CmdContext,
 	DB,
-	DBRow,
+	Instance,
 	Nadybot,
 	Text,
 	Util,
@@ -27,15 +27,9 @@ use Nadybot\Core\ParamClass\PItem;
 		help: "disc.txt"
 	)
 ]
-class DiscController {
+class DiscController extends Instance {
 
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
-
-	#[NCA\Inject]
+		#[NCA\Inject]
 	public Nadybot $chatBot;
 
 	#[NCA\Inject]

@@ -10,6 +10,7 @@ use Nadybot\Core\{
 	CmdContext,
 	CommandAlias,
 	DB,
+	Instance,
 	LoggerWrapper,
 	Nadybot,
 	SettingManager,
@@ -42,14 +43,8 @@ use Nadybot\Core\ParamClass\PWord;
 		help: "comment-categories.txt"
 	)
 ]
-class CommentController {
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
-
-	#[NCA\Inject]
+class CommentController extends Instance {
+		#[NCA\Inject]
 	public CommandAlias $commandAlias;
 
 	#[NCA\Inject]

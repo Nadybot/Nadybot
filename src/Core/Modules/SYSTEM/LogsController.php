@@ -17,6 +17,7 @@ use Nadybot\Core\{
 	DedupHandler,
 	Http,
 	HttpResponse,
+	Instance,
 	LegacyLogger,
 	LoggerWrapper,
 	Nadybot,
@@ -53,15 +54,9 @@ use Nadybot\Core\ParamClass\PWord;
 		help: "debug.txt"
 	)
 ]
-class LogsController {
+class LogsController extends Instance {
 
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
-
-	#[NCA\Inject]
+		#[NCA\Inject]
 	public CommandManager $commandManager;
 
 	#[NCA\Inject]

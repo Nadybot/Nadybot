@@ -2,27 +2,26 @@
 
 namespace Nadybot\Modules\RELAY_MODULE;
 
-use Nadybot\Core\Attributes as NCA;
-use Nadybot\Core\LoggerWrapper;
-use Nadybot\Core\Registry;
-use Nadybot\Core\SettingManager;
-use Nadybot\Modules\RELAY_MODULE\Layer\HighwayPublic;
-use Nadybot\Modules\RELAY_MODULE\RelayProtocol\BossTimers;
-use Nadybot\Modules\RELAY_MODULE\Transport\Websocket;
+use Nadybot\Core\{
+	Attributes as NCA,
+	Instance,
+	LoggerWrapper,
+	Registry,
+	SettingManager,
+};
+use Nadybot\Modules\RELAY_MODULE\{
+	Layer\HighwayPublic,
+	RelayProtocol\BossTimers,
+	Transport\Websocket,
+};
 
 /**
  * This class is the interface to the public highway channels
  * @author Nadyita
  */
 #[NCA\Instance]
-class GlobalEventsController {
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
-
-	#[NCA\Inject]
+class GlobalEventsController extends Instance {
+		#[NCA\Inject]
 	public SettingManager $settingManager;
 
 	#[NCA\Inject]

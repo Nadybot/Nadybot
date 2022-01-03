@@ -2,14 +2,15 @@
 
 namespace Nadybot\Modules\CITY_MODULE;
 
-use Nadybot\Core\Attributes as NCA;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	AOChatEvent,
+	Attributes as NCA,
 	CmdContext,
 	DB,
 	Event,
 	EventManager,
+	Instance,
 	MessageEmitter,
 	MessageHub,
 	Modules\ALTS\AltsController,
@@ -39,14 +40,8 @@ use Nadybot\Core\{
 	NCA\ProvidesEvent("cloak(raise)"),
 	NCA\ProvidesEvent("cloak(lower)")
 ]
-class CloakController implements MessageEmitter {
+class CloakController extends Instance implements MessageEmitter {
 	public const DB_TABLE = "org_city_<myname>";
-
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
 
 	#[NCA\Inject]
 	public Nadybot $chatBot;

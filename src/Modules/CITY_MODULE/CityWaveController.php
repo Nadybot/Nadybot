@@ -2,14 +2,14 @@
 
 namespace Nadybot\Modules\CITY_MODULE;
 
-use Nadybot\Core\Attributes as NCA;
 use Exception;
 use Nadybot\Core\{
 	AOChatEvent,
+	Attributes as NCA,
 	CmdContext,
 	CommandAlias,
-	Event,
 	EventManager,
+	Instance,
 	MessageEmitter,
 	MessageHub,
 	Nadybot,
@@ -41,13 +41,7 @@ use Nadybot\Modules\TIMERS_MODULE\{
 	NCA\ProvidesEvent("cityraid(wave)"),
 	NCA\ProvidesEvent("cityraid(end)")
 ]
-class CityWaveController implements MessageEmitter {
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
-
+class CityWaveController extends Instance implements MessageEmitter {
 	#[NCA\Inject]
 	public Nadybot $chatBot;
 

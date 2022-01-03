@@ -7,6 +7,7 @@ use Nadybot\Core\{
 	CmdContext,
 	CommandAlias,
 	DB,
+	Instance,
 	SettingManager,
 	SQLException,
 	Text,
@@ -39,15 +40,9 @@ use Nadybot\Core\{
 		help: "roll.txt"
 	)
 ]
-class RandomController {
+class RandomController extends Instance {
 
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
-
-	#[NCA\Inject]
+		#[NCA\Inject]
 	public DB $db;
 
 	#[NCA\Inject]

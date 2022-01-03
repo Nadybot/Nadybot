@@ -6,6 +6,7 @@ use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{
 	CmdContext,
 	CommandAlias,
+	Instance,
 	Text,
 	Util,
 };
@@ -26,15 +27,9 @@ use Nadybot\Core\ParamClass\PFilename;
 		alias: "guide"
 	)
 ]
-class GuideController {
+class GuideController extends Instance {
 
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
-
-	#[NCA\Inject]
+		#[NCA\Inject]
 	public Text $text;
 
 	#[NCA\Inject]

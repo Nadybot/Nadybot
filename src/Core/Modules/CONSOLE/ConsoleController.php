@@ -8,6 +8,7 @@ use Nadybot\Core\{
 	CmdContext,
 	CommandManager,
 	ConfigFile,
+	Instance,
 	LoggerWrapper,
 	MessageHub,
 	Nadybot,
@@ -20,14 +21,8 @@ use Nadybot\Core\{
 use Nadybot\Core\Channels\ConsoleChannel;
 
 #[NCA\Instance]
-class ConsoleController {
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
-
-	#[NCA\Inject]
+class ConsoleController extends Instance {
+		#[NCA\Inject]
 	public SocketManager $socketManager;
 
 	#[NCA\Inject]

@@ -7,6 +7,7 @@ use Nadybot\Core\{
 	CmdContext,
 	CommandManager,
 	DB,
+	Instance,
 	LoggerWrapper,
 	Nadybot,
 	Registry,
@@ -31,11 +32,8 @@ use Nadybot\Core\ParamClass\PCharacter;
 		help: "extauth.txt"
 	)
 ]
-class DiscordGatewayCommandHandler {
+class DiscordGatewayCommandHandler extends Instance {
 	public const DB_TABLE = "discord_mapping_<myname>";
-
-	public string $moduleName;
-
 	#[NCA\Inject]
 	public DB $db;
 

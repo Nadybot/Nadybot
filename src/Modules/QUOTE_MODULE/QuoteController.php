@@ -2,12 +2,13 @@
 
 namespace Nadybot\Modules\QUOTE_MODULE;
 
-use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{
+	Attributes as NCA,
 	AccessManager,
 	CmdContext,
 	ConfigFile,
 	DB,
+	Instance,
 	Nadybot,
 	ParamClass\PRemove,
 	Text,
@@ -29,14 +30,8 @@ use Nadybot\Core\{
 		help: "quote.txt"
 	)
 ]
-class QuoteController {
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
-
-	#[NCA\Inject]
+class QuoteController extends Instance {
+		#[NCA\Inject]
 	public DB $db;
 
 	#[NCA\Inject]

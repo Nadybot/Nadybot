@@ -16,16 +16,16 @@ use ReflectionProperty;
 
 class ApiSpecGenerator {
 	public function loadClasses(): void {
-		foreach (glob(__DIR__ . "/../Core/DBSchema/*.php") as $file) {
+		foreach (glob(__DIR__ . "/../Core/DBSchema/*.php")?:[] as $file) {
 			require_once $file;
 		}
-		foreach (glob(__DIR__ . "/../Core/Modules/*/*.php") as $file) {
+		foreach (glob(__DIR__ . "/../Core/Modules/*/*.php")?:[] as $file) {
 			require_once $file;
 		}
-		foreach (glob(__DIR__ . "/../Core/*.php") as $file) {
+		foreach (glob(__DIR__ . "/../Core/*.php")?:[] as $file) {
 			require_once $file;
 		}
-		foreach (glob(__DIR__ . "/../Modules/*/*.php") as $file) {
+		foreach (glob(__DIR__ . "/../Modules/*/*.php")?:[] as $file) {
 			require_once $file;
 		}
 	}
@@ -33,6 +33,7 @@ class ApiSpecGenerator {
 	/**
 	 * Return an array of [instancename => full class name] for all #[Instance]s
 	 * @return array<string,string>
+	 * @phpstan-return array<string,class-string>
 	 */
 	public function getInstances(): array {
 		$classes = get_declared_classes();
@@ -88,6 +89,7 @@ class ApiSpecGenerator {
 		return $paths;
 	}
 
+	/** @phpstan-return null|class-string */
 	public function getFullClass(string $className): ?string {
 		$classes = get_declared_classes();
 		foreach ($classes as $class) {
@@ -193,7 +195,7 @@ class ApiSpecGenerator {
 		$propName = $refProp->getName();
 		if (!$refProp->hasType()) {
 			$comment = $refProp->getDocComment();
-			if (!preg_match("/@var ([^\s]+)/s", $comment, $matches)) {
+			if ($comment === false || !preg_match("/@var ([^\s]+)/s", $comment, $matches)) {
 				return [$propName, "mixed"];
 			}
 			$types = explode("|", $matches[1]);
@@ -356,9 +358,9 @@ class ApiSpecGenerator {
 				if ($refType->getName() === "bool") {
 					$paramResult["schema"]["type"] = "boolean";
 				}
-				if (preg_match("/@param.*?\\$\Q$param\E\s+(.+)$/m", $method->getDocComment(), $matches)) {
+				if (preg_match("/@param.*?\\$\Q$param\E\s+(.+)$/m", $method->getDocComment()?:"", $matches)) {
 					$matches[1] = preg_replace("/\*\//", "", $matches[1]);
-					if ($matches[1]) {
+					if (is_string($matches[1])) {
 						$paramResult["description"] = trim($matches[1]);
 					}
 				}
@@ -391,13 +393,16 @@ class ApiSpecGenerator {
 	public function getMethodDoc(ReflectionMethod $method): PathDoc {
 		$doc = new PathDoc();
 		$comment = $method->getDocComment();
-		$doc->description = $this->getDescriptionFromComment($comment);
+		$doc->description = $comment ? $this->getDescriptionFromComment($comment) : "No documentation provided";
 
 		$apiResultAttrs = $method->getAttributes(NCA\ApiResult::class);
 		if (empty($apiResultAttrs)) {
 			throw new Exception("Method " . $method->getDeclaringClass()->getName() . '::' . $method->getName() . "() has no #[ApiResult] defined");
 		}
-		$dir = dirname($method->getFileName());
+		if (($fileName = $method->getFileName()) === false) {
+			throw new Exception("Cannot determine file for" . $method->getDeclaringClass()->getName());
+		}
+		$dir = dirname($fileName);
 		if (preg_match("{(?:/|^)([A-Z_]+)(?:/|$)}", $dir, $matches)) {
 			$doc->tags = [strtolower(preg_replace("/_MODULE/", "", $matches[1]))];
 		}

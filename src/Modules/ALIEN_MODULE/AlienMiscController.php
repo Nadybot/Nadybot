@@ -7,7 +7,7 @@ use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	CmdContext,
 	DB,
-	DBRow,
+	Instance,
 	LoggerWrapper,
 	Text,
 	Util,
@@ -21,7 +21,6 @@ use Nadybot\Modules\ITEMS_MODULE\ItemsController;
  * @author Wolfbiter (RK1)
  * @author Gatester (RK2)
  * @author Marebone (RK2)
- * Commands this controller contains:
  */
 #[
 	NCA\Instance,
@@ -52,14 +51,8 @@ use Nadybot\Modules\ITEMS_MODULE\ItemsController;
 		help: "aigen.txt"
 	)
 ]
-class AlienMiscController {
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
-
-	#[NCA\Inject]
+class AlienMiscController extends Instance {
+		#[NCA\Inject]
 	public DB $db;
 
 	#[NCA\Inject]

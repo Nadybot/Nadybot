@@ -12,6 +12,7 @@ use Nadybot\Core\{
 	DB,
 	Http,
 	HttpResponse,
+	Instance,
 	SettingManager,
 };
 use Nadybot\Core\DBSchema\Setting;
@@ -29,14 +30,8 @@ use Nadybot\Core\DBSchema\Setting;
 		help: "updatecsv.txt"
 	)
 ]
-class UpdateCSVFilesController {
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
-
-	#[NCA\Inject]
+class UpdateCSVFilesController extends Instance {
+		#[NCA\Inject]
 	public Http $http;
 
 	#[NCA\Inject]

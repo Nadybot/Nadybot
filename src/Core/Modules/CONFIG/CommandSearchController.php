@@ -9,6 +9,7 @@ use Nadybot\Core\{
 	CmdContext,
 	CommandManager,
 	DB,
+	Instance,
 	Nadybot,
 	SQLException,
 	Text,
@@ -29,7 +30,7 @@ use Nadybot\Core\DBSchema\CommandSearchResult;
 		alias: "searchcmd"
 	)
 ]
-class CommandSearchController {
+class CommandSearchController extends Instance {
 
 	#[NCA\Inject]
 	public Nadybot $chatBot;
@@ -48,7 +49,7 @@ class CommandSearchController {
 
 	#[NCA\HandlesCommand("cmdsearch")]
 	public function searchCommand(CmdContext $context, string $search): void {
-		$this->searchWords = preg_split("/\s+/", $search);
+		$this->searchWords = preg_split("/\s+/", $search) ?: [];
 
 		// if a mod or higher, show all commands, not just enabled commands
 		$access = false;

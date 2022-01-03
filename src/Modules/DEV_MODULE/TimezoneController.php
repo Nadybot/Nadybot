@@ -7,6 +7,7 @@ use DateTimeZone;
 use Nadybot\Core\{
 	CmdContext,
 	ConfigFile,
+	Instance,
 	Nadybot,
 	Text,
 };
@@ -26,15 +27,9 @@ use Nadybot\Core\ParamClass\PWord;
 		alias: "timezones"
 	)
 ]
-class TimezoneController {
+class TimezoneController extends Instance {
 
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
-
-	#[NCA\Inject]
+		#[NCA\Inject]
 	public Text $text;
 
 	#[NCA\Inject]

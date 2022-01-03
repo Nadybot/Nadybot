@@ -2,12 +2,13 @@
 
 namespace Nadybot\Modules\WEATHER_MODULE;
 
-use Nadybot\Core\Attributes as NCA;
 use JsonException;
 use Nadybot\Core\{
+	Attributes as NCA,
 	CmdContext,
 	Http,
 	HttpResponse,
+	Instance,
 	Text,
 };
 
@@ -24,15 +25,9 @@ use Nadybot\Core\{
 		help: "weather.txt"
 	)
 ]
-class WeatherController {
+class WeatherController extends Instance {
 
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
-
-	#[NCA\Inject]
+		#[NCA\Inject]
 	public Text $text;
 
 	#[NCA\Inject]

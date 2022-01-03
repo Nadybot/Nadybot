@@ -7,8 +7,8 @@ use Nadybot\Core\{
 	AOChatEvent,
 	CmdContext,
 	CommandReply,
-	Event,
 	EventManager,
+	Instance,
 	Nadybot,
 	SettingManager,
 	Text,
@@ -42,10 +42,7 @@ use Nadybot\Modules\HELPBOT_MODULE\PlayfieldController;
 		desc: "Triggered when someone clears the rally point",
 	)
 ]
-class ChatRallyController {
-	public string $moduleName;
-
-	#[NCA\Inject]
+class ChatRallyController extends Instance {	#[NCA\Inject]
 	public SettingManager $settingManager;
 
 	#[NCA\Inject]

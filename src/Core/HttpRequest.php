@@ -50,7 +50,7 @@ class HttpRequest {
 	 */
 	private function parseUri(): void {
 		$uriComponents = parse_url($this->uri);
-		if (!is_array($this->uriComponents)) {
+		if (!is_array($uriComponents)) {
 			throw new InvalidHttpRequest("Invalid URI: '{$this->uri}'");
 		}
 		$this->uriComponents = $uriComponents;

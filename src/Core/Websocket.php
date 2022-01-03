@@ -5,7 +5,7 @@ namespace Nadybot\Core;
 use Nadybot\Core\Attributes as NCA;
 
 #[NCA\Instance]
-class Websocket {
+class Websocket extends Instance {
 	#[NCA\Inject]
 	public Timer $timer;
 

@@ -2,37 +2,38 @@
 
 namespace Nadybot\Modules\GUILD_MODULE;
 
-use Nadybot\Core\Attributes as NCA;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	AOChatEvent,
+	Attributes as NCA,
 	BuddylistManager,
 	CmdContext,
 	ConfigFile,
 	DB,
+	DBSchema\Player,
 	Event,
+	Instance,
 	LoggerWrapper,
 	MessageHub,
 	Modules\ALTS\AltsController,
+	Modules\PLAYER_LOOKUP\Guild,
 	Modules\PLAYER_LOOKUP\GuildManager,
 	Modules\PLAYER_LOOKUP\PlayerManager,
 	Modules\PREFERENCES\Preferences,
 	Nadybot,
+	ParamClass\PCharacter,
+	ParamClass\PDuration,
+	ParamClass\PRemove,
+	Routing\Character,
+	Routing\Events\Base,
+	Routing\Events\Online,
+	Routing\RoutableEvent,
+	Routing\Source,
 	SettingManager,
 	Text,
 	UserStateEvent,
 	Util,
 };
-use Nadybot\Core\DBSchema\Player;
-use Nadybot\Core\Modules\PLAYER_LOOKUP\Guild;
-use Nadybot\Core\ParamClass\PCharacter;
-use Nadybot\Core\ParamClass\PDuration;
-use Nadybot\Core\ParamClass\PRemove;
-use Nadybot\Core\Routing\Character;
-use Nadybot\Core\Routing\Events\Base;
-use Nadybot\Core\Routing\Events\Online;
-use Nadybot\Core\Routing\RoutableEvent;
-use Nadybot\Core\Routing\Source;
 
 /**
  * @author Tyrence (RK2)
@@ -80,17 +81,11 @@ use Nadybot\Core\Routing\Source;
 		help: "updateorg.txt"
 	)
 ]
-class GuildController {
+class GuildController extends Instance {
 
 	public const DB_TABLE = "org_members_<myname>";
 
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
-
-	#[NCA\Inject]
+		#[NCA\Inject]
 	public DB $db;
 
 	#[NCA\Inject]

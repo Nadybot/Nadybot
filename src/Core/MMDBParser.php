@@ -2,6 +2,8 @@
 
 namespace Nadybot\Core;
 
+use Exception;
+
 /**
  * Reads entries from the text.mdb file
  *
@@ -175,7 +177,14 @@ class MMDBParser {
 	 * @param resource $in
 	 */
 	private function readLong($in): int {
-		$unpacked = unpack("L", fread($in, 4));
+		$packed = fread($in, 4);
+		if ($packed === false) {
+			throw new Exception("Unable to read 4 bytes of MMDB data");
+		}
+		$unpacked = unpack("L", $packed);
+		if ($unpacked === false) {
+			throw new Exception("Illegal data read from MMDB data file. Corrupt?");
+		}
 		return array_pop($unpacked);
 	}
 

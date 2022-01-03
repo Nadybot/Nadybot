@@ -2,9 +2,9 @@
 
 namespace Nadybot\Modules\TRADEBOT_MODULE;
 
-use Nadybot\Core\Attributes as NCA;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
+	Attributes as NCA,
 	AOChatEvent,
 	BuddylistManager,
 	CmdContext,
@@ -12,19 +12,20 @@ use Nadybot\Core\{
 	CommandAlias,
 	ConfigFile,
 	DB,
+	Instance,
 	LoggerWrapper,
 	MessageHub,
-	StopExecutionException,
 	Nadybot,
+	ParamClass\PCharacter,
+	ParamClass\PColor,
+	ParamClass\PRemove,
+	Routing\RoutableMessage,
+	Routing\Source,
 	SettingManager,
+	StopExecutionException,
 	Text,
 	UserStateEvent,
 };
-use Nadybot\Core\ParamClass\PCharacter;
-use Nadybot\Core\ParamClass\PColor;
-use Nadybot\Core\ParamClass\PRemove;
-use Nadybot\Core\Routing\RoutableMessage;
-use Nadybot\Core\Routing\Source;
 use Nadybot\Modules\COMMENT_MODULE\CommentController;
 
 /**
@@ -41,17 +42,11 @@ use Nadybot\Modules\COMMENT_MODULE\CommentController;
 		help: "tradecolor.txt"
 	)
 ]
-class TradebotController {
+class TradebotController extends Instance {
 	public const NONE = 'None';
 	public const DB_TABLE = "tradebot_colors_<myname>";
 
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
-
-	#[NCA\Inject]
+		#[NCA\Inject]
 	public CommandAlias $commandAlias;
 
 	#[NCA\Inject]

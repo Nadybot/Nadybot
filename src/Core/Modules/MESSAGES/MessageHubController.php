@@ -17,6 +17,7 @@ use Nadybot\Core\{
 	DBSchema\RouteHopFormat,
 	DBSchema\RouteModifier,
 	DBSchema\RouteModifierArgument,
+	Instance,
 	LoggerWrapper,
 	MessageEmitter,
 	MessageHub,
@@ -46,14 +47,8 @@ use ReflectionException;
 		defaultStatus: 1
 	)
 ]
-class MessageHubController {
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
-
-	#[NCA\Inject]
+class MessageHubController extends Instance {
+		#[NCA\Inject]
 	public SettingManager $settingManager;
 
 	#[NCA\Inject]
