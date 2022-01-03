@@ -279,6 +279,9 @@ class ApiController {
 
 	/**
 	 * Add a HTTP route handler for a path
+	 * @param string[] $paths
+	 * @param string[] $methods
+	 * @psalm-param callable(Request,HttpProtocolWrapper,mixed...) $callback
 	 */
 	public function addApiRoute(array $paths, array $methods, callable $callback, ?string $alf, ?string $al, ReflectionMethod $refMet): void {
 		foreach ($paths as $path) {
@@ -319,6 +322,10 @@ class ApiController {
 				return $handler;
 			}
 			$handler = clone($data[$request->method]);
+			if (!isset($handler->handler)) {
+				$handler->allowedMethods = array_keys($data);
+				return $handler;
+			}
 			array_shift($parts);
 			$ref = new ReflectionFunction($handler->handler);
 			$params = $ref->getParameters();

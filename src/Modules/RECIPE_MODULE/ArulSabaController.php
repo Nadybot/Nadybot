@@ -433,6 +433,9 @@ class ArulSabaController {
 		$context->reply($msg);
 	}
 
+	/**
+	 * @param array<int,string|int> $skillReqs
+	 */
 	protected function renderStep(AODBItem $source, AODBItem $dest, AODBItem $result, array $skillReqs=[]): string {
 		$showImages = $this->settingManager->getInt('arulsaba_show_images');
 		$sLink = $source->getLink();

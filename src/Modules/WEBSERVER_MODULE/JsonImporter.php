@@ -22,7 +22,7 @@ class JsonImporter {
 		return null;
 	}
 
-	protected static function isAssocArray($value): bool {
+	protected static function isAssocArray(mixed $value): bool {
 		return is_array($value) && array_diff_key($value, array_keys(array_keys($value)));
 	}
 
@@ -45,7 +45,7 @@ class JsonImporter {
 		return false;
 	}
 
-	public static function matchesType(string $type, &$value): bool {
+	public static function matchesType(string $type, mixed &$value): bool {
 		if (substr($type, 0, 1) === "?") {
 			if ($value === null) {
 				return true;

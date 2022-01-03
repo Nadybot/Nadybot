@@ -99,7 +99,11 @@ class TowerApiController {
 		$this->cache = [];
 	}
 
-	public function call(array $params, callable $callback, ...$args): void {
+	/**
+	 * @param array<string,mixed> $params
+	 * @psalm-param callable(?ApiResult, mixed...) $callback
+	 */
+	public function call(array $params, callable $callback, mixed ...$args): void {
 		$roundTo = $this->settingManager->getInt('tower_cache_duration') ?? 600;
 		if (isset($params["min_close_time"])) {
 			$params["min_close_time"] -= $params["min_close_time"] % $roundTo;
@@ -127,7 +131,11 @@ class TowerApiController {
 			->withCallback([$this, "handleResult"], $params, $cacheKey, $callback, ...$args);
 	}
 
-	public function handleResult(HttpResponse $response, array $params, string $cacheKey, callable $callback, ...$args): void {
+	/**
+	 * @param array<string,mixed> $params
+	 * @psalm-param callable(?ApiResult, mixed...) $callback
+	 */
+	public function handleResult(HttpResponse $response, array $params, string $cacheKey, callable $callback, mixed ...$args): void {
 		if (!isset($response->body) || ($response->headers["status-code"]??"0") !== "200") {
 			$callback(null, ...$args);
 			return;

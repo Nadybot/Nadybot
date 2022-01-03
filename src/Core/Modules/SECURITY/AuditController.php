@@ -67,6 +67,9 @@ class AuditController {
 		);
 	}
 
+	/**
+	 * @param array<mixed> $params
+	 */
 	protected function parseParams(QueryBuilder $query, string $args, array &$params): ?string {
 		$keys = [
 			"limit", "offset", "before", "after", "actor", "actee", "action"
@@ -125,6 +128,13 @@ class AuditController {
 		return null;
 	}
 
+	/**
+	 * @param Collection<mixed> $data
+	 * @param array<string,mixed> $params
+	 * @return string[]
+	 * @psalm-return array{0: ?string, 1: ?string}
+	 * @phpstan-return array{0: ?string, 1: ?string}
+	 */
 	protected function getPrevNextLinks(Collection $data, array $params): array {
 		$prevLink = $nextLink = null;
 		if ($params["offset"] > 0) {

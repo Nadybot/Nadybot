@@ -8,6 +8,7 @@ namespace Nadybot\Core;
  * @author: Tyrence (RK2)
  */
 class MMDBParser {
+	/** @var array<int,array<int,string>> */
 	private array $mmdb = [];
 
 	private LoggerWrapper $logger;
@@ -163,17 +164,24 @@ class MMDBParser {
 	}
 
 	/**
+	 * @param resource $in
 	 * @return array<string,int>
 	 */
 	private function readEntry($in): array {
 		return ['id' => $this->readLong($in), 'offset' => $this->readLong($in)];
 	}
 
+	/**
+	 * @param resource $in
+	 */
 	private function readLong($in): int {
 		$unpacked = unpack("L", fread($in, 4));
 		return array_pop($unpacked);
 	}
 
+	/**
+	 * @param resource $in
+	 */
 	private function readString($in): string {
 		$message = '';
 		$char = '';

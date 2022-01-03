@@ -239,7 +239,7 @@ class ImplantController {
 	 * Render the popup-blob for a regular or jobe implant at a given QL
 	 * @param string $type self::REGULAR or self::JOBE
 	 * @param int    $ql   The QL to render for
-	 * @return array the full link to the blob
+	 * @return string[] the full link to the blob
 	 */
 	public function renderBlob(string $type, int $ql): array {
 		$specs = $this->getImplantQLSpecs($type, $ql);

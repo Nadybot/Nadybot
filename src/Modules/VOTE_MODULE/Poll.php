@@ -10,6 +10,7 @@ class Poll extends DBRow {
 	public string $author;
 	public string $question;
 	public string $possible_answers;
+	/** @var string[] */
 	#[NCA\DB\Ignore]
 	public array $answers = [];
 	public int $started;

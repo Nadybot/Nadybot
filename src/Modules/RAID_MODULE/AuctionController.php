@@ -473,6 +473,7 @@ class AuctionController {
 		$context->reply($blob);
 	}
 
+	/** @param DBAuction[] $items */
 	public function renderAuctionList(array $items): string {
 		$result = [];
 		foreach ($items as $item) {
@@ -650,6 +651,11 @@ class AuctionController {
 			"Slowly increasing your bid might cost you points!";
 	}
 
+	/**
+	 * @return string[]
+	 * @psalm-return array{0:string, 1:string}
+	 * @phpstan-return array{0:string, 1:string}
+	 */
 	public function getAnnouncementBorders(): array {
 		$layout = $this->settingManager->getInt('auction_announcement_layout');
 		$shortDash = str_repeat("-", 25);

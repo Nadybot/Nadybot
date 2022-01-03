@@ -6,6 +6,7 @@ use Attribute;
 
 #[Attribute(Attribute::TARGET_PROPERTY)]
 class MapRead {
+	/** @var callable[] */
 	private array $mappers = [];
 
 	public function __construct(callable ...$callbacks) {

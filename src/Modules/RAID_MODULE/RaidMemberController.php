@@ -360,6 +360,7 @@ class RaidMemberController {
 
 	/**
 	 * Get the blob for the !raid list command
+	 * @return string[]
 	 */
 	public function getRaidListBlob(Raid $raid, bool $justBlob=false): array {
 		ksort($raid->raiders);

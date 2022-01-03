@@ -8,6 +8,7 @@ use ReflectionMethod;
 class PathDoc {
 	public string $description;
 	public string $path;
+	/** @var string[] */
 	public array $tags = [];
 	/** @var string[] */
 	public array $methods = [];

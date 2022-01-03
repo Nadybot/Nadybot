@@ -175,6 +175,7 @@ class AOChatPacket {
 
 	/**
 	 * The decoded arguments of the chat packet
+	 * @var mixed[]
 	 */
 	public array $args=[];
 

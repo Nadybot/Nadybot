@@ -102,8 +102,12 @@ class PlayerManager {
 		return $result;
 	}
 
-	/** @psalm-param callable(list<?Player>) $callback */
+	/**
+	 * @psalm-param callable(array<string,?Player>) $callback
+	 * @param string[] $names
+	 */
 	public function massGetByNameAsync(callable $callback, array $names, int $dimension=null, bool $forceUpdate=false): void {
+		/** @var array<string,?Player> */
 		$result = [];
 		$left = count($names);
 		if ($left === 0) {
@@ -261,7 +265,7 @@ class PlayerManager {
 	}
 
 	/** @psalm-param callable(?Player, mixed...) $callback */
-	public function lookupAsync(string $name, int $dimension, callable $callback, ...$args): void {
+	public function lookupAsync(string $name, int $dimension, callable $callback, mixed ...$args): void {
 		$this->lookupUrlAsync(
 			"http://people.anarchy-online.com/character/bio/d/$dimension/name/$name/bio.xml?data_type=json",
 			function (?Player $player) use ($dimension, $name, $callback, $args): void {
@@ -397,7 +401,7 @@ class PlayerManager {
 	 * Search for players in the database
 	 * @param string $search Search term
 	 * @param int|null $dimension Dimension to limit search to
-	 * @return array Player[]
+	 * @return Player[]
 	 * @throws SQLException On error
 	 */
 	public function searchForPlayers(string $search, ?int $dimension=null): array {

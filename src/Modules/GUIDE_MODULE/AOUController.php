@@ -247,6 +247,7 @@ class AOUController {
 		return $obj;
 	}
 
+	/** @param string[] $arr */
 	private function replaceItem(array $arr): string {
 		$type = $arr[1];
 		$id = (int)$arr[3];
@@ -262,6 +263,7 @@ class AOUController {
 		return $output;
 	}
 
+	/** @param string[] $arr */
 	private function replaceWaypoint(array $arr): string {
 		$label = $arr[2];
 		$params = explode(" ", $arr[1]);
@@ -274,6 +276,7 @@ class AOUController {
 		return $this->text->makeChatcmd($label . " ({$wp['x']}x{$wp['y']})", "/waypoint {$wp['x']} {$wp['y']} {$wp['pf']}");
 	}
 
+	/** @param string[] $arr */
 	private function replaceGuideLinks(array $arr): string {
 		$url = $arr[2];
 		$label = $arr[3];

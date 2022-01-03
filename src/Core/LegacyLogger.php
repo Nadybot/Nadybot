@@ -17,6 +17,7 @@ class LegacyLogger {
 	/** @var array<string,Logger> */
 	public static array $loggers = [];
 
+	/** @var array<string,mixed> */
 	public static array $config = [];
 
 	/**
@@ -61,6 +62,7 @@ class LegacyLogger {
 		}
 	}
 
+	/** @return array<string,mixed> */
 	public static function getConfig(bool $noCache=false): array {
 		if (!empty(static::$config) && !$noCache) {
 			return static::$config;
@@ -150,7 +152,7 @@ class LegacyLogger {
 	/**
 	 * Parse th defined handlers into objects
 	 *
-	 * @param array<string,array> $handlers
+	 * @param array<string,mixed> $handlers
 	 * @param array<string,FormatterInterface> $formatters
 	 * @return array<string,AbstractProcessingHandler>
 	 */
@@ -181,7 +183,7 @@ class LegacyLogger {
 	/**
 	 * Parse the defined formatters and return them as objects
 	 *
-	 * @param array<string,array> $formatters
+	 * @param array<string,array<mixed>> $formatters
 	 * @return array<string,FormatterInterface>
 	 */
 	public static function parseFormattersConfig(array $formatters): array {

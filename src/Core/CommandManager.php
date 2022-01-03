@@ -78,18 +78,9 @@ class CommandManager implements MessageEmitter {
 	/** @var array<string,array<string,CommandHandler>> $commands */
 	public array $commands;
 
-	protected array $matchClasses = [];
-
 	#[NCA\Setup]
 	public function setup(): void {
 		$this->messageHub->registerMessageEmitter($this);
-		$this->matchClasses['CHARACTER'] = "[a-zA-Z][a-zA-Z0-9-]{3,11}";
-		$this->matchClasses['PLAYFIELD'] = "[0-9A-Za-z]+[A-Za-z]";
-	}
-
-	public function registerMatchClass(string $name, string $regexp): bool {
-		$this->matchClasses[strtoupper($name)] = $regexp;
-		return true;
 	}
 
 	/**

@@ -11,6 +11,7 @@ class Reader {
 
 	/**
 	 * Get a line from the CSV as hash
+	 * @return array<mixed>|\Generator<array<string,mixed>>
 	 */
 	public function items(): iterable {
 		$file = fopen($this->file, 'r');

@@ -29,7 +29,11 @@ class AXPController {
 	#[NCA\Inject]
 	public Text $text;
 
-	/** @var array<array> */
+	/**
+	 * @var array<array<int|string>>
+	 * @psalm-var array{0:int, 1:int, 2:string}[]
+	 * @phpstan-var array{0:int, 1:int, 2:string}[]
+	 */
 	private array $aiRanks = [
 		[    1_500,   5, "Fledgling"],
 		[    9_000,  15, "Amateur"],

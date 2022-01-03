@@ -27,6 +27,7 @@ class RelayLayer extends DBRow {
 	#[NCA\DB\Ignore]
 	public array $arguments = [];
 
+	/** @param string[] $secrets */
 	public function toString(?string $linkType=null, array $secrets=[]): string {
 		$arguments = array_map(
 			function(RelayLayerArgument $argument) use ($secrets): string {

@@ -538,6 +538,8 @@ class CommentController {
 
 	/**
 	 * Remove all comments from $comments that $sender does not have permission to read
+	 * @param Comment[] $comments
+	 * @return Comment[]
 	 */
 	public function filterInaccessibleComments(array $comments, string $sender): array {
 		$accessCache = [];

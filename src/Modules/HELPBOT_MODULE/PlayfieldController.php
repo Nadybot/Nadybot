@@ -50,6 +50,7 @@ class PlayfieldController {
 	#[NCA\Inject]
 	public Util $util;
 
+	/** @var array<int,Playfield> */
 	private array $playfields = [];
 
 	/**
@@ -167,6 +168,7 @@ class PlayfieldController {
 		$context->reply($this->processWaypointCommand($xCoords, $yCoords, $playfieldName??(string)$playfieldId, $playfieldId));
 	}
 
+	/** @return string[] */
 	private function processWaypointCommand(string $xCoords, string $yCoords, string $playfieldName, int $playfieldId): array {
 		$link = $this->text->makeChatcmd("waypoint: {$xCoords}x{$yCoords} {$playfieldName}", "/waypoint {$xCoords} {$yCoords} {$playfieldId}");
 		$blob = "Click here to use waypoint: $link";

@@ -10,6 +10,7 @@ class CmdContext implements CommandReply {
 	public string $channel = "tell";
 	public Character $char;
 	public CommandReply $sendto;
+	/** @var mixed[] */
 	public array $args = [];
 	public bool $forceSync = false;
 

@@ -5,6 +5,7 @@ namespace Nadybot\Modules\WATCHDOG_MODULE;
 use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\Event;
 use Nadybot\Core\EventManager;
+use Socket;
 
 /**
  * Authors:
@@ -64,10 +65,11 @@ class SystemdController {
 	/**
 	 * sd_pid_notify_with_fds PHP implementation
 	 * @link https://github.com/systemd/systemd/blob/master/src/libsystemd/sd-daemon/sd-daemon.c
+	 * @param int[] $fds
 	 */
 	public function notifyWithFDs(int $pid, bool $unsetEnvironment, string $state, array $fds): int {
 		[$fd, $result] = $this->sdPidNotifyWithFDs($pid, $state, $fds);
-		if (isset($fd) && $fd) {
+		if (isset($fd) && $fd instanceof Socket) {
 			socket_close($fd);
 		}
 
@@ -78,6 +80,11 @@ class SystemdController {
 		return $result;
 	}
 
+	/**
+	 * @param int[] $fds
+	 * @return array<null|bool|int|Socket>
+	 * @phpstan-return array{null|bool|Socket,int}
+	 */
 	public function sdPidNotifyWithFDs(int $pid, string $state, array $fds): array {
 		$state = trim($state);
 

@@ -118,7 +118,7 @@ class TimeController {
 		$context->reply($msg);
 	}
 
-	public function safeGetTimezone($tz): Timezone {
+	public function safeGetTimezone(string $tz): Timezone {
 		$obj = $this->getTimezone($tz);
 		if (isset($obj)) {
 			return $obj;
@@ -130,7 +130,7 @@ class TimeController {
 		return $obj;
 	}
 
-	public function getTimezone($tz): ?Timezone {
+	public function getTimezone(string $tz): ?Timezone {
 		$date = new DateTime();
 		$time = time() - $date->getOffset();
 		$time_format = "dS M, H:i";

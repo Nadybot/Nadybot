@@ -36,6 +36,7 @@ class BotRunner {
 
 	/**
 	 * Create a new instance
+	 * @param string[] $argv
 	 */
 	public function __construct(array $argv) {
 		$this->argv = $argv;
@@ -470,6 +471,7 @@ class BotRunner {
 
 	/**
 	 * Get AO's chat server hostname and port
+	 * @param array<string,mixed> $vars
 	 * @return (string|int)[] [(string)Server, (int)Port]
 	 */
 	protected function getServerAndPort(array $vars): array {

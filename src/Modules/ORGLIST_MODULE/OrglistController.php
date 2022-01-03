@@ -77,7 +77,10 @@ class OrglistController {
 		"Department" => ["President", "General",      "Squad Commander", "Unit Commander", "Unit Leader", "Unit Member", "Applicant"],
 	];
 
-	/** Get a hierarchical array of all the ranks in the goven governing form */
+	/**
+	 * Get a hierarchical array of all the ranks in the goven governing form
+	 * @return string[]
+	 */
 	public function getOrgRanks(string $governingForm): array {
 		return $this->orgrankmap[ucfirst(strtolower($governingForm))] ?? [];
 	}
@@ -271,6 +274,7 @@ class OrglistController {
 		}
 	}
 
+	/** @param array<string,int> $uidLookup */
 	public function addOrgMembersToBuddylist(array $uidLookup=[]): void {
 		if (!isset($this->orglist)) {
 			return;
@@ -331,6 +335,7 @@ class OrglistController {
 	}
 
 	/**
+	 * @param array<string,string> $orgcolor
 	 * @return string[]
 	 */
 	public function orgmatesformat(Orglist $memberlist, array $orgcolor, int $timestart): array {

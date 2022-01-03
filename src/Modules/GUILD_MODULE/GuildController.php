@@ -451,7 +451,7 @@ class GuildController {
 		$this->updateOrgRoster([$context, "reply"], "Finished Roster update");
 	}
 
-	public function updateOrgRoster(?callable $callback=null, ...$args): void {
+	public function updateOrgRoster(?callable $callback=null, mixed ...$args): void {
 		if (!$this->isGuildBot() || !isset($this->config->orgId)) {
 			return;
 		}
@@ -468,7 +468,10 @@ class GuildController {
 		);
 	}
 
-	public function updateRosterForGuild(?Guild $org, ?callable $callback, ...$args): void {
+	/**
+	 * @psalm-param null|callable(mixed...) $callback
+	 */
+	public function updateRosterForGuild(?Guild $org, ?callable $callback, mixed ...$args): void {
 		// Check if guild xml file is correct if not abort
 		if ($org === null) {
 			$this->logger->error("Error downloading the guild roster xml file");

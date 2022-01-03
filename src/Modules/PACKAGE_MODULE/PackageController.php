@@ -170,7 +170,7 @@ class PackageController {
 	}
 
 	/** Download and parse the full package index */
-	public function getPackages(callable $callback, ...$args): void {
+	public function getPackages(callable $callback, mixed ...$args): void {
 		$this->cacheManager->asyncLookup(
 			static::API . "/packages",
 			"PACKAGE_MODULE",
@@ -184,8 +184,10 @@ class PackageController {
 		);
 	}
 
-	/** Download and parse the package index for $package */
-	public function getPackage(string $package, callable $callback, ...$args): void {
+	/**
+	 * Download and parse the package index for $package
+	 */
+	public function getPackage(string $package, callable $callback, mixed ...$args): void {
 		$this->cacheManager->asyncLookup(
 			static::API . "/packages/{$package}",
 			"PACKAGE_MODULE",
@@ -199,7 +201,10 @@ class PackageController {
 		);
 	}
 
-	public function parsePackages(CacheResult $response, callable $callback, ...$args): void {
+	/**
+	 * @psalm-param callable(null|Package[], mixed...) $callback
+	 */
+	public function parsePackages(CacheResult $response, callable $callback, mixed ...$args): void {
 		if ($response->data === null) {
 			$callback(null, ...$args);
 			return;
@@ -237,6 +242,9 @@ class PackageController {
 		$this->getPackages([$this, "displayPackages"], $context);
 	}
 
+	/**
+	 * @param null|Package[] $packages
+	 */
 	public function displayPackages(?array $packages, CmdContext $context): void {
 		if (!isset($packages)) {
 			$context->reply("There was an error retrieving the list of available packages.");

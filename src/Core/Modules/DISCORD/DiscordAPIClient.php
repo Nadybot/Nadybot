@@ -34,6 +34,10 @@ class DiscordAPIClient {
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
+	/**
+	 * @phpstan-var array{0: string, 1: string, 2: ?callable}[]
+	 * @psalm-var array{0: string, 1: string, 2: ?callable}[]
+	 */
 	protected array $outQueue = [];
 	protected bool $queueProcessing = false;
 
@@ -65,7 +69,7 @@ class DiscordAPIClient {
 		$this->logger->info("Adding discord message to end of channel queue {channel}", [
 			"channel" => $channel,
 		]);
-		$this->outQueue []= func_get_args();
+		$this->outQueue []= [$channel, $message, $callback];
 		if ($this->queueProcessing === false) {
 			$this->processQueue();
 		}
@@ -75,7 +79,7 @@ class DiscordAPIClient {
 		$this->logger->info("Adding discord message to front of channel queue {channel}", [
 			"channel" => $channel,
 		]);
-		array_unshift($this->outQueue, func_get_args());
+		array_unshift($this->outQueue, [$channel, $message, $callback]);
 		if ($this->queueProcessing === false) {
 			$this->processQueue();
 		}
@@ -137,7 +141,7 @@ class DiscordAPIClient {
 	}
 
 	/** @psalm-param null|callable(DiscordUser, mixed...) $callback */
-	public function cacheUserLookup(DiscordUser $user, ?callable $callback, ...$args): void {
+	public function cacheUserLookup(DiscordUser $user, ?callable $callback, mixed ...$args): void {
 		$this->cacheUser($user);
 		if (isset($callback)) {
 			$callback($user, ...$args);
@@ -145,7 +149,7 @@ class DiscordAPIClient {
 	}
 
 	/** @psalm-param callable(DiscordChannel, mixed...) $callback */
-	public function getChannel(string $channelId, callable $callback, ...$args): void {
+	public function getChannel(string $channelId, callable $callback, mixed ...$args): void {
 		$this->logger->info("Looking up discord channel {channelId}", [
 			"channelId" => $channelId,
 		]);
@@ -161,7 +165,7 @@ class DiscordAPIClient {
 	}
 
 	/** @psalm-param callable(DiscordUser, mixed...) $callback */
-	public function getUser(string $userId, callable $callback, ...$args): void {
+	public function getUser(string $userId, callable $callback, mixed ...$args): void {
 		$this->logger->info("Looking up discord user {userId}", [
 			"userId" => $userId,
 		]);
@@ -191,7 +195,7 @@ class DiscordAPIClient {
 		}
 	}
 
-	public function getGuildMember(string $guildId, string $userId, callable $callback, ...$args): void {
+	public function getGuildMember(string $guildId, string $userId, callable $callback, mixed ...$args): void {
 		$this->logger->info("Looking up discord guild {guildId} member {userId}", [
 			"guildId" => $guildId,
 			"userId" => $userId,
@@ -216,14 +220,14 @@ class DiscordAPIClient {
 		);
 	}
 
-	protected function cacheGuildMemberLookup(GuildMember $member, string $guildId, ?callable $callback, ...$args): void {
+	protected function cacheGuildMemberLookup(GuildMember $member, string $guildId, ?callable $callback, mixed ...$args): void {
 		$this->cacheGuildMember($guildId, $member);
 		if (isset($callback)) {
 			$callback($member, ...$args);
 		}
 	}
 
-	protected function getErrorWrapper(?JSONDataModel $o, ?callable $callback, ...$args): Closure {
+	protected function getErrorWrapper(?JSONDataModel $o, ?callable $callback, mixed ...$args): Closure {
 		return function(HttpResponse $response) use ($o, $callback, $args) {
 			if (isset($response->error)) {
 				$this->logger->error("Error from discord server: {error}", [

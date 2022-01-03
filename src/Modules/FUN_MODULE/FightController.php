@@ -83,7 +83,7 @@ class FightController {
 		$context->reply($msg);
 	}
 
-	public function getFighter($name): Fighter {
+	public function getFighter(string $name): Fighter {
 		$weaponNames = [
 			"with a nerfstick" => "nerfed damage",
 			"with bad breath" => "disease damage",

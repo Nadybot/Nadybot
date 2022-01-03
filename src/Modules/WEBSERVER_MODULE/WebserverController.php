@@ -68,9 +68,18 @@ class WebserverController {
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
-	protected array $routes = ['get' => [], 'post' => [], 'put' => [], 'delete' => []];
+	/** @var array<string,array<string,callable[]>> */
+	protected array $routes = [
+		'get' => [],
+		'post' => [],
+		'put' => [],
+		'delete' => []
+	];
 
-	/** @var array */
+	/**
+	 * @var array<string,array<int|string>>
+	 * @phpstan-var array<string,array{string,int}>
+	 */
 	protected array $authentications = [];
 
 	protected AsyncSocket $asyncSocket;
@@ -479,6 +488,11 @@ class WebserverController {
 	}
 */
 
+	/**
+	 * @return array<array<callable|string[]>>
+	 * @phpstan-return array<array{callable,string[]}>
+	 * @psalm-return array<array{callable,string[]}>
+	 */
 	public function getHandlersForRequest(Request $request): array {
 		$result = [];
 		foreach ($this->routes[$request->method] as $mask => $handlers) {

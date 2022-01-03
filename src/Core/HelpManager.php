@@ -181,6 +181,9 @@ class HelpManager {
 		return $topics;
 	}
 
+	/**
+	 * @param string[] $accessLevelsArray
+	 */
 	public function checkAccessLevels(string $accessLevel1, array $accessLevelsArray): bool {
 		foreach ($accessLevelsArray as $accessLevel2) {
 			if ($this->accessManager->compareAccessLevels($accessLevel1, $accessLevel2) >= 0) {

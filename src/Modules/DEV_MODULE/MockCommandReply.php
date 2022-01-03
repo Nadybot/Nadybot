@@ -10,6 +10,7 @@ class MockCommandReply implements CommandReply {
 
 	public ?string $logFile;
 	public string $command;
+	/** @var string[] */
 	public array $output = [];
 
 	public function __construct(string $command, ?string $logFile=null) {
@@ -17,7 +18,8 @@ class MockCommandReply implements CommandReply {
 		$this->command = $command;
 	}
 
-	public function reply($msg): void {
+	/** @param string|string[] $msg */
+	public function reply(string|array $msg): void {
 		foreach ((array)$msg as $result) {
 			if (isset($this->logger)) {
 				$this->logger->notice($result);

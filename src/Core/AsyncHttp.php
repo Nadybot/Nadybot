@@ -333,6 +333,10 @@ class AsyncHttp {
 	 * Turn on TLS as soon as we can write and then continue processing as usual
 	 */
 	private function activateTLS(): void {
+		if (!is_resource($this->stream)) {
+			$this->logger->info("Activating TLS not possible for closed stream", ["uri" => $this->uri]);
+			return;
+		}
 		$this->notifier = new SocketNotifier(
 			$this->stream,
 			SocketNotifier::ACTIVITY_WRITE,
@@ -369,6 +373,10 @@ class AsyncHttp {
 	 * Setup the event loop to notify us when something happens in the stream
 	 */
 	private function setupStreamNotify(): void {
+		if (!is_resource($this->stream)) {
+			$this->logger->info("Setting up stream notification not possible for closed stream", ["uri" => $this->uri]);
+			return;
+		}
 		$this->notifier = new SocketNotifier(
 			$this->stream,
 			SocketNotifier::ACTIVITY_READ | SocketNotifier::ACTIVITY_WRITE | SocketNotifier::ACTIVITY_ERROR,
@@ -543,6 +551,7 @@ class AsyncHttp {
 
 	/**
 	 * Parse the received headers into an associative array [header => value]
+	 * @return array<string,string>
 	 */
 	private function extractHeadersFromHeaderData(string $data): array {
 		$headers = [];

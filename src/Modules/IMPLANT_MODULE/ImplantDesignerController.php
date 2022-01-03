@@ -47,7 +47,9 @@ class ImplantDesignerController {
 	#[NCA\Inject]
 	public ImplantController $implantController;
 
+	/** @var string[] */
 	private array $slots = ['head', 'eye', 'ear', 'rarm', 'chest', 'larm', 'rwrist', 'waist', 'lwrist', 'rhand', 'legs', 'lhand', 'feet'];
+	/** @var string[] */
 	private array $grades = ['shiny', 'bright', 'faded'];
 
 	#[NCA\Setup]

@@ -5,6 +5,8 @@ namespace Nadybot\Core;
 use Nadybot\Core\Attributes as NCA;
 use Exception;
 use InvalidArgumentException;
+use Nadybot\Core\Socket\ShutdownRequest;
+use Nadybot\Core\Socket\WriteClosureInterface;
 
 class WebsocketBase {
 	public const GUID            = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
@@ -58,7 +60,7 @@ class WebsocketBase {
 	protected bool $isClosing = false;
 	protected ?string $lastOpcode = null;
 	protected ?int $closeStatus = null;
-	/** @var string[] */
+	/** @var array<WriteClosureInterface|ShutdownRequest|string> */
 	protected array $sendQueue = [];
 	protected string $receiveBuffer = "";
 	public ?SocketNotifier $notifier = null;
@@ -98,13 +100,13 @@ class WebsocketBase {
 		return $this;
 	}
 
-	protected function fireEvent($eventName, WebsocketCallback $event): void {
+	protected function fireEvent(string $eventName, WebsocketCallback $event): void {
 		if (isset($this->eventCallbacks[$eventName])) {
 			$this->eventCallbacks[$eventName]($event);
 		}
 	}
 
-	protected function getEvent($eventName=null): WebsocketCallback {
+	protected function getEvent(?string $eventName=null): WebsocketCallback {
 		$eventName ??= $this->lastOpcode ?? "unknown";
 		$event = new WebsocketCallback();
 		$event->eventName = $eventName;
@@ -264,7 +266,7 @@ class WebsocketBase {
 			return;
 		}
 		$uri = ($this->uri ?? $this->peerName);
-		$this->receiveBuffer .= $response[0];
+		$this->receiveBuffer .= $response[0]??"";
 		// Not a complete package yet
 		if (!$response[1]) {
 			$this->logger->debug("[Websocket {uri}] fragment received", [
@@ -287,11 +289,16 @@ class WebsocketBase {
 		$event = $this->getEvent();
 		$event->data = $this->receiveBuffer;
 		$this->receiveBuffer = "";
-		if ($this->lastOpcode !== "close") {
+		if (isset($this->lastOpcode) && $this->lastOpcode !== "close") {
 			$this->fireEvent($this->lastOpcode, $event);
 		}
 	}
 
+	/**
+	 * @return array<null|int|string>
+	 * @psalm-return array{0:null|string, 1:bool}
+	 * @phpstan-return array{0:null|string, 1:bool}
+	 */
 	protected function receiveFragment(): array {
 		$data = $this->read(2);
 
@@ -533,6 +540,9 @@ class WebsocketBase {
 			$callback = $this->notifier->getCallback();
 			$this->socketManager->removeSocketNotifier($this->notifier);
 		}
+		if (!is_resource($this->socket)) {
+			return;
+		}
 		$this->notifier = new SocketNotifier(
 			$this->socket,
 			SocketNotifier::ACTIVITY_READ,
@@ -547,6 +557,9 @@ class WebsocketBase {
 			$callback = $this->notifier->getCallback();
 			$this->socketManager->removeSocketNotifier($this->notifier);
 		}
+		if (!is_resource($this->socket)) {
+			return;
+		}
 		$this->notifier = new SocketNotifier(
 			$this->socket,
 			SocketNotifier::ACTIVITY_READ | SocketNotifier::ACTIVITY_WRITE,
@@ -558,6 +571,9 @@ class WebsocketBase {
 	protected function listenForWebsocketReadWrite(): void {
 		if (isset($this->notifier)) {
 			$this->socketManager->removeSocketNotifier($this->notifier);
+		}
+		if (!is_resource($this->socket)) {
+			return;
 		}
 		$this->notifier = new SocketNotifier(
 			$this->socket,

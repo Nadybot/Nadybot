@@ -250,6 +250,8 @@ class RandomController {
 	 * @param string $sender Name of the person rolling
 	 * @param string[] $options The options to roll between
 	 * @return array An array with the roll number and the chosen option
+	 * @psalm-return array{0:int, 1:string}
+	 * @phpstan-return array{0:int, 1:string}
 	 * @throws SQLException on SQL errors
 	 */
 	public function roll(string $sender, array $options, int $amount=1): array {

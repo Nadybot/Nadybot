@@ -477,7 +477,10 @@ class MessageHub {
 		return array_values($allRoutes);
 	}
 
-	/** Get a list of commands to re-create all routes */
+	/**
+	 * Get a list of commands to re-create all routes
+	 * @return string[]
+	 */
 	public function getRouteDump(bool $useForce=false): array {
 		$routes = $this->getRoutes();
 		$cmd = $useForce ? "addforce" : "add";

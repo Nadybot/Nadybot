@@ -17,6 +17,10 @@ class ClassLoader {
 	 */
 	private array $moduleLoadPaths;
 
+	/**
+	 * Array of module name => path
+	 * @var array<string,string>
+	 */
 	public array $registeredModules = [];
 
 	/**

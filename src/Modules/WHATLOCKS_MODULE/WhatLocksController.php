@@ -175,6 +175,7 @@ class WhatLocksController {
 	 * @return array An array with 2 elements:
 	 *               How many characters are useless fill information,
 	 *               The prettified duration string
+	 * @phpstan-return array{int, string}
 	 */
 	public function prettyDuration(int $duration, int $cutAway=0): array {
 		$short = (new DateTime())

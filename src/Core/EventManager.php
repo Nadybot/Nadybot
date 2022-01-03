@@ -53,7 +53,10 @@ class EventManager {
 	private int $lastCronTime = 0;
 	private bool $areConnectEventsFired = false;
 	protected bool $eventsReady = false;
-	/** Events that were disabled before eventhandler was initialized */
+	/**
+	 * Events that were disabled before eventhandler was initialized
+	 * @var array<string,array<string,bool>>
+	 */
 	protected array $dontActivateEvents = [];
 	public const PACKET_TYPE_REGEX = '/packet\(\d+\)/';
 	public const TIMER_EVENT_REGEX = '/timer\(([0-9a-z]+)\)/';
@@ -455,7 +458,7 @@ class EventManager {
 		return 0;
 	}
 
-	public function fireEvent(Event $eventObj, ...$args): void {
+	public function fireEvent(Event $eventObj, mixed ...$args): void {
 		foreach ($this->events as $type => $handlers) {
 			if ($eventObj->type !== $type && !fnmatch($type, $eventObj->type, FNM_CASEFOLD)) {
 				continue;
@@ -506,6 +509,7 @@ class EventManager {
 	}
 
 	/**
+	 * @param mixed[] $args
 	 * @throws StopExecutionException
 	 */
 	public function callEventHandler(Event $eventObj, string $handler, array $args): void {

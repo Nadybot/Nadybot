@@ -386,6 +386,7 @@ class Relay implements MessageReceiver {
 		return empty($this->transport->send($data));
 	}
 
+	/** @param string[] $data */
 	public function receiveFromMember(RelayStackMemberInterface $member, array $data): void {
 		$i = count($this->stack);
 		if ($member !== $this->relayProtocol) {
@@ -417,6 +418,7 @@ class Relay implements MessageReceiver {
 		return $allow->outgoing;
 	}
 
+	/** @param RelayEvent[] $events */
 	public function setEvents(array $events): void {
 		$this->events = [];
 		foreach ($events as $event) {

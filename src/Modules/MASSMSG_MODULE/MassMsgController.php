@@ -145,6 +145,8 @@ class MassMsgController {
 
 	/**
 	 * Turn the result of a massCallback() into a nice popup
+	 * @param array<string,string> $result
+	 * @return string[]
 	 */
 	protected function getMassResultPopup(array $result): array {
 		ksort($result);
@@ -202,6 +204,7 @@ class MassMsgController {
 	/**
 	 * Run a callback for all users that are members, online but not in
 	 * our private channel.
+	 * @param array<string,callable> $callback
 	 * @return array<string,string> array(name => status)
 	 */
 	protected function massCallback(array $callback): array {

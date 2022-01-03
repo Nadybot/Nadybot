@@ -13,7 +13,7 @@ class PlayerHistoryManager {
 	#[NCA\Inject]
 	public CacheManager $cacheManager;
 
-	public function asyncLookup(string $name, int $dimension, callable $callback, ...$args): void {
+	public function asyncLookup(string $name, int $dimension, callable $callback, mixed ...$args): void {
 		$name = ucfirst(strtolower($name));
 		$url = "https://pork.jkbff.com/pork/history.php?server=$dimension&name=$name";
 		$groupName = "player_history";
@@ -59,7 +59,10 @@ class PlayerHistoryManager {
 		return $playerHistory;
 	}
 
-	public function handleCacheResult(?CacheResult $cacheResult, string $name, callable $callback, ...$args): void {
+	/**
+	 * @psalm-param callable(?PlayerHistory, mixed...) $callback
+	 */
+	public function handleCacheResult(?CacheResult $cacheResult, string $name, callable $callback, mixed ...$args): void {
 		if (!isset($cacheResult) || $cacheResult->success !== true) {
 			$callback(null, ...$args);
 			return;

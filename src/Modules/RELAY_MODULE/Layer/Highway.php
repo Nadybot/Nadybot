@@ -56,6 +56,7 @@ class Highway implements RelayLayerInterface, StatusProvider {
 	/** @var ?callable */
 	protected $deInitCallback = null;
 
+	/** @param string[] $rooms */
 	public function __construct(array $rooms) {
 		foreach ($rooms as $room) {
 			if (strlen($room) < 32) {

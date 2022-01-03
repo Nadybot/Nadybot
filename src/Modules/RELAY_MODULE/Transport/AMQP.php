@@ -127,6 +127,7 @@ class AMQP implements TransportInterface, StatusProvider {
 	/** @var array<string,AMQPExchange> */
 	private array $exchanges = [];
 
+	/** @var string[] */
 	protected array $exchangeNames = [];
 	protected string $user;
 	protected string $password;

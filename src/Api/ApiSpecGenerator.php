@@ -4,6 +4,7 @@ namespace Nadybot\Api;
 
 use Exception;
 use Nadybot\Core\Attributes as NCA;
+use Nadybot\Core\Attributes\RequestBody;
 use Nadybot\Core\BotRunner;
 use Nadybot\Core\DBRow;
 use Nadybot\Core\Registry;
@@ -50,6 +51,7 @@ class ApiSpecGenerator {
 		return $instances;
 	}
 
+	/** @return array<string,ReflectionMethod[]> */
 	public function getPathMapping(): array {
 		$instances = $this->getInstances();
 		$paths = [];
@@ -99,6 +101,7 @@ class ApiSpecGenerator {
 		return null;
 	}
 
+	/** @param array<string,array<mixed>> $result */
 	public function addSchema(array &$result, string $className): void {
 		$className = preg_replace("/\[\]$/", "", $className);
 		if (isset($result[$className])) {
@@ -150,7 +153,7 @@ class ApiSpecGenerator {
 			if (!$refType || $refType->allowsNull()) {
 				$newResult["properties"][$nameAndType[0]]["nullable"] = true;
 			}
-			if (count($nameAndType) > 2 && strlen($nameAndType[2])) {
+			if (isset($nameAndType[2]) && strlen($nameAndType[2])) {
 				$newResult["properties"][$nameAndType[0]]["description"] = $nameAndType[2];
 			}
 			if ($nameAndType[1] === 'array') {
@@ -222,6 +225,11 @@ class ApiSpecGenerator {
 		return [$propName, "#/components/schemas/" . end($name)];
 	}
 
+	/**
+	 * @return null|array<mixed>
+	 * @psalm-return null|array{0: string, 1: string|string[], 2?: string}
+	 * @phpstan-return null|array{0: string, 1: string|string[], 2?: string}
+	 */
 	protected function getNameAndType(ReflectionProperty $refProperty): ?array {
 		$docComment = $refProperty->getDocComment();
 		if ($docComment === false) {
@@ -237,6 +245,7 @@ class ApiSpecGenerator {
 		return [...$this->getRegularNameAndType($refProperty), $description];
 	}
 
+	/** @return array<string,mixed> */
 	public function getInfoSpec(): array {
 		return [
 			'title' => 'Nadybot API',
@@ -249,7 +258,10 @@ class ApiSpecGenerator {
 		];
 	}
 
-	/** @param array<string,ReflectionMethod[]> $mapping */
+	/**
+	 * @param array<string,ReflectionMethod[]> $mapping
+	 * @return array<string,mixed>
+	 */
 	public function getSpec(array $mapping): array {
 		$result = [
 			"openapi" => "3.0.0",
@@ -313,6 +325,11 @@ class ApiSpecGenerator {
 		return $result;
 	}
 
+	/**
+	 * @return array<int,array<string,mixed>>
+	 * @psalm-return list<array{"name": string, "required": bool, "in": string, "schema": array{"type": string}, "description"?: string}>
+	 * @phpstan-return list<array{"name": string, "required": bool, "in": string, "schema": array{"type": string}, "description"?: string}>
+	 */
 	public function getParamDocs(string $path, ReflectionMethod $method): array {
 		$result = [];
 		if (preg_match_all('/\{(.+?)\}/', $path, $matches)) {
@@ -403,6 +420,11 @@ class ApiSpecGenerator {
 		return $doc;
 	}
 
+	/**
+	 * @return array<string,mixed>
+	 * @phpstan-return array{"description"?: string, "required"?: bool, "content": array{"application/json": array{"schema": string|array<mixed>}}}
+	 * @psalm-return array{"description"?: string, "required"?: bool, "content": array{"application/json": array{"schema": string|array<mixed>}}}
+	 */
 	public function getRequestBodyDefinition(NCA\RequestBody $requestBody): array {
 		$result = [];
 		if (isset($requestBody->desc)) {
@@ -428,6 +450,11 @@ class ApiSpecGenerator {
 		return $result;
 	}
 
+	/**
+	 * @return array<string,string|array<string,string>>
+	 * @phpstan-return array{"type"?: string, "$ref"?: string}|array{"type": "array", "items":array{"type"?: string, "$ref"?: string}}
+	 * @psalm-return array{"type"?: string, "$ref"?: string}|array{"type": "array", "items":array{"type"?: string, "$ref"?: string}}
+	 */
 	protected function getClassRef(string $class): array {
 		if (substr($class, -2) === '[]') {
 			return ["type" => "array", "items" => $this->getSimpleClassRef(substr($class, 0, -2))];
@@ -435,6 +462,11 @@ class ApiSpecGenerator {
 		return $this->getSimpleClassRef($class);
 	}
 
+	/**
+	 * @return array<string,string>
+	 * @phpstan-return array{"type"?: string, "$ref"?: string}
+	 * @psalm-return array{"type"?: string, "$ref"?: string}
+	 */
 	protected function getSimpleClassRef(string $class): array {
 		if (in_array($class, ["string", "bool", "int", "float"])) {
 			return ["type" => str_replace(["int", "bool"], ["integer", "boolean"], $class)];

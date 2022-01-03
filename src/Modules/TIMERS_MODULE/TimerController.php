@@ -94,7 +94,7 @@ class TimerController implements MessageEmitter {
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
-	/** @var Timer[] */
+	/** @var array<string,Timer> */
 	private $timers = [];
 
 	public function getChannelName(): string {
@@ -554,24 +554,24 @@ class TimerController implements MessageEmitter {
 		return $timer->id;
 	}
 
-	public function remove($name): void {
+	public function remove(string|int $name): void {
 		if (is_string($name)) {
 			$this->db->table(static::DB_TABLE)
 				->whereIlike("name", $name)
 				->delete();
 			unset($this->timers[strtolower($name)]);
-		} elseif (is_int($name)) {
-			$this->db->table(static::DB_TABLE)->delete($name);
-			foreach ($this->timers as $tName => $timer) {
-				if ($timer->id === $name) {
-					unset($this->timers[$tName]);
-					return;
-				}
+			return;
+		}
+		$this->db->table(static::DB_TABLE)->delete($name);
+		foreach ($this->timers as $tName => $timer) {
+			if ($timer->id === $name) {
+				unset($this->timers[$tName]);
+				return;
 			}
 		}
 	}
 
-	public function get($name): ?Timer {
+	public function get(string|int $name): ?Timer {
 		$timer = $this->timers[strtolower((string)$name)] ?? null;
 		if (isset($timer)) {
 			return $timer;

@@ -92,6 +92,7 @@ class AltsController {
 	#[NCA\Inject]
 	public Text $text;
 
+	/** @var array<string,string> */
 	private array $alts = [];
 
 	/**

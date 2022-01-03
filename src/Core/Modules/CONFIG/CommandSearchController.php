@@ -97,6 +97,10 @@ class CommandSearchController {
 		return $results;
 	}
 
+	/**
+	 * @param string[] $wordArray
+	 * @return CommandSearchResult[]
+	 */
 	public function findSimilarCommands(array $wordArray, bool $includeDisabled=false): array {
 		$query = $this->db->table(CommandManager::DB_TABLE)
 			->select("module", "cmd", "help", "description", "admin")->distinct();

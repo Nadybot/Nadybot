@@ -255,6 +255,7 @@ class RecipeController {
 		return (array)$this->text->makeBlob("Recipe for $recipe_name", $recipeText);
 	}
 
+	/** @param string[] $arr */
 	private function replaceItem(array $arr): string {
 		$id = (int)$arr[2];
 		$row = $this->itemsController->findById($id);

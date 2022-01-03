@@ -55,6 +55,7 @@ class GauntletInventoryController {
 		[292517, 292762, 3]
 	];
 
+	/** @return int[] */
 	public function getData(string $name): array {
 		$data = $this->preferences->get($name, 'gauntlet');
 		if (isset($data)) {
@@ -64,6 +65,7 @@ class GauntletInventoryController {
 		}
 	}
 
+	/** @param int[] $inv */
 	public function saveData(string $sender, array $inv): void {
 		$this->preferences->save($sender, 'gauntlet', json_encode($inv));
 	}

@@ -43,6 +43,7 @@ class AsyncSocket {
 	#[NCA\Logger("Core/AsyncSocket")]
 	public LoggerWrapper $logger;
 
+	/** @var array<WriteClosureInterface|ShutdownRequest|string> */
 	protected array $writeQueue = [];
 
 	/** @var array<string,callable[]> */
@@ -61,6 +62,9 @@ class AsyncSocket {
 	protected int $timeout = 5;
 	protected int $state = self::STATE_READY;
 
+	/**
+	 * @param resource $socket
+	 */
 	public function __construct($socket) {
 		try {
 			$this->socket = $socket;
@@ -79,6 +83,7 @@ class AsyncSocket {
 		return $this->socket;
 	}
 
+	/** @return array<WriteClosureInterface|ShutdownRequest|string> */
 	public function getWriteQueue(): array {
 		return $this->writeQueue;
 	}
@@ -173,7 +178,7 @@ class AsyncSocket {
 	}
 
 	protected function initNotifier(): void {
-		if (isset($this->notifier) || $this->state === static::STATE_CLOSED) {
+		if (isset($this->notifier) || $this->state === static::STATE_CLOSED || !is_resource($this->socket)) {
 			return;
 		}
 		$this->notifier = new SocketNotifier(
@@ -205,7 +210,7 @@ class AsyncSocket {
 	/**
 	 * Trigger an event and call all registered callbacks
 	 */
-	protected function trigger(string $event, ...$params): void {
+	protected function trigger(string $event, mixed ...$params): void {
 		foreach ($this->callbacks[$event] as $callback) {
 			$callback($this, ...$params);
 		}

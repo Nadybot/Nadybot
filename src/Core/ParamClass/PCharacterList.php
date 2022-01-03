@@ -5,6 +5,7 @@ namespace Nadybot\Core\ParamClass;
 class PCharacterList extends Base {
 	protected static string $regExp = "(?:[a-zA-Z][a-zA-Z0-9-]{3,11}\s+)*[a-zA-Z][a-zA-Z0-9-]{3,11}";
 	protected string $value;
+	/** @var string[] */
 	public array $chars = [];
 
 	public function __construct(string $value) {

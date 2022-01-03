@@ -33,7 +33,6 @@ use Nadybot\Core\Routing\RoutableMessage;
 use Nadybot\Core\Routing\Source;
 use Nadybot\Modules\{
 	ONLINE_MODULE\OnlineController,
-	ONLINE_MODULE\OnlinePlayer,
 	TOWER_MODULE\TowerAttackEvent,
 };
 use Nadybot\Modules\ORGLIST_MODULE\FindOrgController;
@@ -731,7 +730,11 @@ class TrackerController implements MessageEmitter {
 		$context->reply($msg);
 	}
 
-	public function updateRosterForOrg(?Guild $org, ?callable $callback, ...$args): void {
+	/**
+	 *
+	 * @psalm-param null|callable(mixed ...) $callback
+	 */
+	public function updateRosterForOrg(?Guild $org, ?callable $callback, mixed ...$args): void {
 		// Check if JSON file was downloaded properly
 		if ($org === null) {
 			$this->logger->error("Error downloading the guild roster JSON file");

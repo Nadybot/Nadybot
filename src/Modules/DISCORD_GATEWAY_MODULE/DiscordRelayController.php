@@ -138,6 +138,11 @@ class DiscordRelayController {
 		return $result;
 	}
 
+	/**
+	 * @return array<bool|string>
+	 * @psalm-return array{0: bool, 1:string}
+	 * @phpstan-return array{0: bool, 1:string}
+	 */
 	protected function getChannelTree(?callable $callback=null): array {
 		if (!$this->discordGatewayController->isConnected()) {
 			return [false, "The bot is not (yet) connected to discord."];

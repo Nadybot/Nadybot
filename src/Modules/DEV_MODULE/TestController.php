@@ -296,6 +296,7 @@ class TestController {
 		}
 	}
 
+	/** @param string[] $commands */
 	public function runTests(array $commands, CmdContext $context, string $logFile): void {
 		do {
 			$line = array_shift($commands);

@@ -56,8 +56,10 @@ class GuildManager {
 		};
 	}
 
-	/** @psalm-param callable(?Guild, mixed...) $callback */
-	public function getByIdAsync(int $guildID, ?int $dimension, bool $forceUpdate, callable $callback, ...$args): void {
+	/**
+	 * @psalm-param callable(?Guild, mixed...) $callback
+	 */
+	public function getByIdAsync(int $guildID, ?int $dimension, bool $forceUpdate, callable $callback, mixed ...$args): void {
 		// if no server number is specified use the one on which the bot is logged in
 		$dimension ??= $this->config->dimension;
 
@@ -117,7 +119,7 @@ class GuildManager {
 	}
 
 	/** @psalm-param callable(?Guild, mixed...) $callback */
-	public function handleGuildLookup(CacheResult $cacheResult, int $guildID, int $dimension, callable $callback, ...$args): void {
+	public function handleGuildLookup(CacheResult $cacheResult, int $guildID, int $dimension, callable $callback, mixed ...$args): void {
 
 		// if there is still no valid data available give an error back
 		if ($cacheResult->success !== true) {

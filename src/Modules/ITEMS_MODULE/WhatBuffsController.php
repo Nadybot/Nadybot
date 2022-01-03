@@ -514,10 +514,17 @@ class WhatBuffsController {
 		return $msg;
 	}
 
+	/**
+	 * @param PerkBuffSearchResult[] $data
+	 * @return PerkBuffSearchResult[]
+	 */
 	protected function generatePerkBufflist(array $data): array {
 		/** @var array<string,PerkBuffSearchResult> */
 		$result = [];
 		foreach ($data as $perk) {
+			if (!isset($perk->name)) {
+				continue;
+			}
 			if (!isset($result[$perk->name])) {
 				$result[$perk->name] = $perk;
 			} else {

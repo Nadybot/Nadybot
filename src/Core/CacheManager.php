@@ -98,7 +98,7 @@ class CacheManager {
 	 * @psalm-param callable(?string): bool $isValidCallback
 	 * @psalm-param callable(CacheResult, mixed...) $callback
 	 */
-	public function handleCacheLookup(HttpResponse $response, string $groupName, string $filename, callable $isValidCallback, callable $callback, ...$args): void {
+	public function handleCacheLookup(HttpResponse $response, string $groupName, string $filename, callable $isValidCallback, callable $callback, mixed ...$args): void {
 		if ($response->error) {
 			$this->logger->warning($response->error);
 		}

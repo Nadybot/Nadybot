@@ -34,6 +34,7 @@ class JWT {
 	 */
 	public static ?int $timestamp = null;
 
+	/** @var array<string,string> */
 	public static array $supported_algs = [
 		'ES384' => 'SHA384',
 		'ES256' => 'SHA256',
@@ -45,6 +46,7 @@ class JWT {
 	/**
 	 * Decodes a JWT string into a PHP object.
 	 *
+	 * @param string[] $allowed_algs
 	 * @return object The JWT's payload as a PHP object
 	 *
 	 * @throws InvalidArgumentException     Provided JWT was empty

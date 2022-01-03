@@ -218,6 +218,7 @@ class DiscordController {
 		}
 	}
 
+	/** @param string[] $matches */
 	protected function parsePopupToEmbed(array $matches): DiscordEmbed {
 		$embed = new DiscordEmbed();
 		$embed->title = $matches[2];

@@ -88,6 +88,7 @@ class Raffle {
 		return in_array($player, $participants);
 	}
 
+	/** @return string[] */
 	public function getWinnerNames(): array {
 		/** @var string[][] */
 		$winners = array_map(

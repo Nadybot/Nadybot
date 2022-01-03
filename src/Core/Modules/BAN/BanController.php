@@ -557,12 +557,12 @@ class BanController {
 
 	/**
 	 * Call either the notbanned ort banned callback for $charId
-	 * @psalm-suppress MissingClosureReturnType
-	 * @psalm-suppress TooManyArguments
+	 * @psalm-param null|callable(int, mixed...) $notBanned
+	 * @psalm-param null|callable(int, mixed...) $banned
 	 */
-	public function handleBan(int $charId, ?callable $notBanned, ?callable $banned, ...$args): void {
-		$notBanned ??= fn() => null;
-		$banned ??= fn() => null;
+	public function handleBan(int $charId, ?callable $notBanned, ?callable $banned, mixed ...$args): void {
+		$notBanned ??= fn(int $charId, mixed ...$args): mixed => null;
+		$banned ??= fn(int $charId, mixed ...$args): mixed => null;
 		if (isset($this->banlist[$charId])) {
 			$banned($charId, ...$args);
 			return;

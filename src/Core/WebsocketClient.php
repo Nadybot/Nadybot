@@ -216,6 +216,9 @@ class WebsocketClient extends WebsocketBase {
 			"uri" => $this->uri,
 			"header" => $header,
 		]);
+		if (!is_resource($this->socket)) {
+			return;
+		}
 		$this->notifier = new SocketNotifier(
 			$this->socket,
 			SocketNotifier::ACTIVITY_READ,
@@ -227,7 +230,7 @@ class WebsocketClient extends WebsocketBase {
 		$this->socketManager->addSocketNotifier($this->notifier);
 	}
 
-	public function validateWebsocketUpgradeReply($key): bool {
+	public function validateWebsocketUpgradeReply(string $key): bool {
 		if (isset($this->notifier)) {
 			$this->socketManager->removeSocketNotifier($this->notifier);
 		}

@@ -80,6 +80,7 @@ class BuffPerksController {
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
+	/** @var Collection<Perk> */
 	public Collection $perks;
 
 	#[NCA\Setup]
@@ -659,7 +660,10 @@ class BuffPerksController {
 		return $blob;
 	}
 
-	/** @return Collection<ExtBuff> */
+	/**
+	 * @param array<int,int> $buffs
+	 * @return Collection<ExtBuff>
+	 */
 	private function buffHashToCollection(array $buffs): Collection {
 		$result = new Collection();
 		foreach ($buffs as $skillId => $amount) {
@@ -677,7 +681,10 @@ class BuffPerksController {
 		});
 	}
 
-	/** @return Collection<ExtResistance> */
+	/**
+	 * @param array<int,int> $resistances
+	 * @return Collection<ExtResistance>
+	 */
 	private function resistanceHashToCollection(array $resistances): Collection {
 		$result = new Collection();
 		foreach ($resistances as $strainId => $amount) {

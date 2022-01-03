@@ -21,6 +21,7 @@ class QueryBuilder extends Builder {
 
 	public LoggerWrapper $logger;
 
+	/** @phpstan-param ReflectionClass<object> $refClass */
 	protected function guessVarTypeFromReflection(ReflectionClass $refClass, string $colName): ?string {
 		if (!$refClass->hasProperty($colName)) {
 			return null;
@@ -33,6 +34,7 @@ class QueryBuilder extends Builder {
 		return null;
 	}
 
+	/** @param array<int,null|string> $values */
 	protected function convertToClass(PDOStatement $ps, string $className, array $values): ?object {
 		$row = new $className();
 		$refClass = new ReflectionClass($row);
@@ -98,6 +100,8 @@ class QueryBuilder extends Builder {
 	/**
 	 * Execute an SQL query, returning the statement object
 	 *
+	 * @param array<mixed> $params
+	 *
 	 * @throws SQLException when the query errors
 	 */
 	private function executeQuery(string $sql, array $params): PDOStatement {
@@ -143,8 +147,10 @@ class QueryBuilder extends Builder {
 
 	/**
 	 * Execute an SQL statement and return all rows as an array of objects of the given class
+	 *
+	 * @return object[]
 	 */
-	private function fetchAll(string $className, string $sql, ...$args): array {
+	private function fetchAll(string $className, string $sql, mixed ...$args): array {
 		$sql = $this->nadyDB->formatSql($sql);
 
 		$sql = $this->nadyDB->applySQLCompatFixes($sql);
@@ -157,6 +163,13 @@ class QueryBuilder extends Builder {
 		);
 	}
 
+	/**
+	 * @template T
+	 * @psalm-param class-string<T> $class
+	 * @phpstan-param class-string<T> $class
+	 * @psalm-return Collection<T>
+	 * @phpstan-return Collection<T>
+	 */
 	public function asObj(string $class): Collection {
 		return new Collection($this->fetchAll($class, $this->toSql(), ...$this->getBindings()));
 	}
@@ -166,6 +179,7 @@ class QueryBuilder extends Builder {
 	 *
 	 * @param string $column
 	 * @param string $type
+	 * @phpstan-ignore-next-line
 	 * @return \Illuminate\Support\Collection
 	 */
 	public function pluckAs(string $column, string $type): Collection {
@@ -269,6 +283,8 @@ class QueryBuilder extends Builder {
 	 *
 	 * Depending on the DB system, there is a limit of maximum
 	 * rows or placeholders that we can insert.
+	 *
+	 * @param array<string,mixed>|array<array<string,mixed>> $values
 	 */
 	public function chunkInsert(array $values): bool {
 		if (!isset($values[0])) {

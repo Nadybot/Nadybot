@@ -132,6 +132,9 @@ class ConfigFile extends DataTransferObject {
 
 	public ?string $timezone = null;
 
+	/**
+	 * @param array<string,mixed> $args
+	 */
 	public function __construct(array $args) {
 		unset($args["my_guild_id"]);
 		$args["my_guild"] ??= "";

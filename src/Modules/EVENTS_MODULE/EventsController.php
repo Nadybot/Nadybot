@@ -276,6 +276,7 @@ class EventsController {
 		$context->reply($msg);
 	}
 
+	/** @return null|string[] */
 	public function getEvents(): ?array {
 		/** @var Collection<EventModel> */
 		$data = $this->db->table("events")

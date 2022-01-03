@@ -965,7 +965,10 @@ class MessageHubController {
 		return substr($type, 0, $bracket);
 	}
 
-	/** Render a blob for an emitter group */
+	/**
+	 * Render a blob for an emitter group
+	 * @param Collection<MessageEmitter> $values
+	 */
 	public function renderEmitterGroup(Collection $values, string $group): string {
 		return "<header2>{$group}<end>\n<tab>".
 			$values->map(function(MessageEmitter $emitter): string {

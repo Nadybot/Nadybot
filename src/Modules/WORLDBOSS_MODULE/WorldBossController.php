@@ -204,6 +204,7 @@ class WorldBossController {
 	 */
 	private array $lastSpawnPrecise = [];
 
+	/** @var array<string,array<int,int>> */
 	private array $sentNotifications = [];
 
 	#[NCA\Setup]

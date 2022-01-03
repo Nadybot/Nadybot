@@ -105,6 +105,7 @@ class Tyrbot implements RelayProtocolInterface {
 		return [$data];
 	}
 
+	/** @return array<string,mixed> */
 	protected function nadyPathToTyr(RoutableEvent $event): array {
 		$source = [
 			"name" => $event->path[0]->name,
@@ -193,6 +194,7 @@ class Tyrbot implements RelayProtocolInterface {
 		}
 	}
 
+	/** @param array<mixed> $data */
 	protected function decodeAndHandlePacket(?string $sender, BasePacket $identify, array $data): ?RoutableEvent {
 		switch ($identify->type) {
 			case $identify::MESSAGE:
@@ -428,7 +430,7 @@ class Tyrbot implements RelayProtocolInterface {
 		$this->relay = $relay;
 	}
 
-	protected function jsonEncode($data): string {
+	protected function jsonEncode(mixed $data): string {
 		return json_encode($data, JSON_UNESCAPED_SLASHES|JSON_INVALID_UTF8_SUBSTITUTE|JSON_THROW_ON_ERROR);
 	}
 

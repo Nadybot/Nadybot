@@ -69,7 +69,10 @@ class SchemaBuilder {
 		return $this->builder->hasColumn($table, $column);
 	}
 
-	/** Determine if the given table has given columns.  */
+	/**
+	 * Determine if the given table has given columns.
+	 * @param string[] $columns
+	 */
 	public function hasColumns(string $table, array $columns): bool {
 		$table = $this->nadyDB->formatSql($table);
 		return $this->builder->hasColumns($table, $columns);
@@ -79,14 +82,17 @@ class SchemaBuilder {
 	 * Drop columns from a table schema.
 	 *
 	 * @param string $table
-	 * @param string|array $columns
+	 * @param string|string[] $columns
 	 */
 	public function dropColumns(string $table, mixed $columns): void {
 		$table = $this->nadyDB->formatSql($table);
 		$this->builder->dropColumns($table, $columns);
 	}
 
-	/** Get the column listing for a given table. */
+	/**
+	 * Get the column listing for a given table.
+	 * @return string[]
+	 */
 	public function getColumnListing(string $table): array {
 		$table = $this->nadyDB->formatSql($table);
 		return $this->builder->getColumnListing($table);
@@ -98,7 +104,10 @@ class SchemaBuilder {
 		return $this->builder->getColumnType($table, $column);
 	}
 
-	public function __call(string $name, array $arguments) {
+	/**
+	 * @param mixed[] $arguments
+	 */
+	public function __call(string $name, array $arguments): mixed {
 		return $this->builder->$name(...$arguments);
 	}
 }

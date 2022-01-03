@@ -17,6 +17,7 @@ class CallerBackup {
 
 	public string $command;
 
+	/** @param array<string,CallerList> $callers */
 	public function __construct(string $changer, string $command, array $callers) {
 		$this->time = new DateTime();
 		$this->changer = $changer;

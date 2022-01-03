@@ -276,6 +276,7 @@ class OnlineController {
 
 		$onlineChars = $this->db->table("online")->asObj(Online::class);
 		$onlineByName = $onlineChars->keyBy("name");
+		/** @var Collection<string> */
 		$mains = $onlineChars->map(function (Online $online): string {
 			return $this->altsController->getMainOf($online->name);
 		})->unique();
@@ -513,9 +514,9 @@ class OnlineController {
 	/**
 	 * Set someone back from afk if needed
 	 */
-	public function afkCheck($sender, string $message, string $type): void {
+	public function afkCheck(int|string $sender, string $message, string $type): void {
 		// to stop raising and lowering the cloak messages from triggering afk check
-		if (!$this->util->isValidSender($sender)) {
+		if (!is_string($sender) || !$this->util->isValidSender($sender)) {
 			return;
 		}
 
@@ -799,6 +800,11 @@ class OnlineController {
 		return "";
 	}
 
+	/**
+	 * @return string[]
+	 * @psalm-return array{0: string, 1: string}
+	 * @phpstan-return array{0: string, 1: string}
+	 */
 	public function getRaidInfo(string $name, string $fancyColon): array {
 		$mode = $this->settingManager->getInt("online_raid")??0;
 		if ($mode === 0) {

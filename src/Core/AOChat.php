@@ -130,17 +130,18 @@ class AOChat {
 	/**
 	 * A lookup cache for character name => id and id => character name
 	 *
-	 * @var array<int|string,int|string> $id
+	 * @var array<int|string,int|string>
 	 */
 	public array $id;
 
 	/**
 	 * A temporary lookup cache for character name => id and id => character name
 	 *
-	 * @var array<int|string,int|string> $id
+	 * @var array<int|string,int|string>
 	 */
 	public array $tempId = [];
 
+	/** @var array<string,\stdClass> */
 	public array $pendingIdLookups = [];
 
 	/**
@@ -454,6 +455,7 @@ class AOChat {
 
 	/**
 	 * Login with an account to the server
+	 * @return null|array<AOChatChar>
 	 */
 	public function authenticate(string $username, string $password): ?array {
 		$packet = $this->getPacket();

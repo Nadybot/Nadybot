@@ -73,6 +73,7 @@ class Raid extends DBRow {
 
 	/**
 	 * Internal array to track which mains already received points
+	 * @var array<string,bool>
 	 */
 	#[NCA\DB\Ignore]
 	public array $pointsGiven = [];

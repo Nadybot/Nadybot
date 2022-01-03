@@ -27,6 +27,7 @@ class ClassSpec {
 		return $this;
 	}
 
+	/** @return string[] */
 	public function getSecrets(): array {
 		$secrets = [];
 		foreach ($this->params as $param) {

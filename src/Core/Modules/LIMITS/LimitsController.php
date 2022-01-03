@@ -207,8 +207,10 @@ class LimitsController {
 
 	/**
 	 * Check if $sender is allowed to send $message
+	 * @phpstan-param callable(mixed...):mixed $callback
+	 * @psalm-param callable(mixed...) $callback
 	 */
-	public function checkAndExecute(string $sender, string $message, callable $callback, ...$args): void {
+	public function checkAndExecute(string $sender, string $message, callable $callback, mixed ...$args): void {
 		if (
 			$this->commandIgnoresLimits($message)
 			|| $this->rateIgnoreController->check($sender)
@@ -253,7 +255,13 @@ class LimitsController {
 		}
 	}
 
-	protected function handleLevelAndFactionRequirements(?Player $whois, callable $errorHandler, callable $successHandler, ...$args): void {
+	/**
+	 * @phpstan-param callable(string):void $errorHandler
+	 * @psalm-param callable(string):void $errorHandler
+	 * @phpstan-param callable(mixed...):mixed $successHandler
+	 * @psalm-param callable(mixed...) $successHandler
+	 */
+	protected function handleLevelAndFactionRequirements(?Player $whois, callable $errorHandler, callable $successHandler, mixed ...$args): void {
 		if ($whois === null) {
 			$errorHandler("Error! Unable to get your character info for limit checks. Please try again later.");
 			return;
@@ -287,8 +295,13 @@ class LimitsController {
 
 	/**
 	 * Check if $sender is allowed to run commands on the bot
+	 *
+	 * @phpstan-param callable(string):void $errorHandler
+	 * @psalm-param callable(string):void $errorHandler
+	 * @phpstan-param callable(mixed...):mixed $successHandler
+	 * @psalm-param callable(mixed...) $successHandler
 	 */
-	public function checkAccessError(string $sender, callable $errorHandler, callable $successHandler, ...$args): void {
+	public function checkAccessError(string $sender, callable $errorHandler, callable $successHandler, mixed ...$args): void {
 		$minAgeCheck = function() use ($sender, $errorHandler, $successHandler, $args): void {
 			if ($this->settingManager->getInt("tell_min_player_age") <= 1) {
 				$successHandler(...$args);
@@ -325,7 +338,13 @@ class LimitsController {
 		$minAgeCheck();
 	}
 
-	protected function handleMinAgeRequirements(?PlayerHistory $history, callable $errorHandler, callable $successHandler, ...$args): void {
+	/**
+	 * @phpstan-param callable(string):void $errorHandler
+	 * @psalm-param callable(string):void $errorHandler
+	 * @phpstan-param callable(mixed...):mixed $successHandler
+	 * @psalm-param callable(mixed...) $successHandler
+	 */
+	protected function handleMinAgeRequirements(?PlayerHistory $history, callable $errorHandler, callable $successHandler, mixed ...$args): void {
 		if ($history === null) {
 			$errorHandler("Error! Unable to get your character history for limit checks. Please try again later.");
 			return;

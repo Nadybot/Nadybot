@@ -520,7 +520,10 @@ class TowerController {
 		$this->showOrgSites($result, null, $sendto, $orgId);
 	}
 
-	/** Show the result of the sites of org query to $sendto */
+	/**
+	 * Show the result of the sites of org query to $sendto
+	 * @param null|Collection<ScoutInfoPlus> $local
+	 */
 	public function showOrgSites(?ApiResult $result, ?Collection $local, CommandReply $sendto, int $orgId): void {
 		if (isset($result) && isset($local)) {
 			$result = $this->mergeLocalToAPI($local, $result);
@@ -656,7 +659,11 @@ class TowerController {
 		return $sites;
 	}
 
-	/** Show the API-result of a whole playfield */
+	/**
+	 * Show the API-result of a whole playfield
+	 * @param null|Collection<ScoutInfoPlus> $local
+	 * @param Collection<SiteInfo> $data
+	 */
 	public function showArea(?ApiResult $result, ?Collection $local, Collection $data, Playfield $pf, CommandReply $sendto): void {
 		$blob = '';
 		if (isset($result) && isset($local)) {
@@ -775,7 +782,9 @@ class TowerController {
 		$sites = $this->scoutToAPI($sites);
 		$this->showSite($sites, null, $site, $playfield, $context);
 	}
-
+	/**
+	 * @param null|Collection<ScoutInfoPlus> $local
+	 */
 	public function showSite(?ApiResult $result, ?Collection $local, SiteInfo $site, Playfield $playfield, CommandReply $sendto): void {
 		$details = null;
 		if (isset($result) && isset($local)) {
@@ -859,6 +868,9 @@ class TowerController {
 		$this->processPenaltySites($result, null, $context);
 	}
 
+	/**
+	 * @param null|Collection<ScoutInfoPlus> $local
+	 */
 	public function processPenaltySites(?ApiResult $result, ?Collection $local, CommandReply $sendto): void {
 		if (isset($result) && isset($local)) {
 			$result = $this->mergeLocalToAPI($local, $result);
@@ -1088,6 +1100,10 @@ class TowerController {
 			->where("t.enabled", 1);
 	}
 
+	/**
+	 * @param array<string,mixed> $params
+	 * @return null|Collection<ScoutInfoPlus>
+	 */
 	public function getScoutedHotSites(array $params, int $time, CommandReply $sendto): ?Collection {
 		$query = $this->getScoutPlusQuery()
 			->whereNotNull("close_time");
@@ -1213,6 +1229,7 @@ class TowerController {
 	/**
 	 * Render the API !hot results
 	 * @param Collection<ScoutInfoPlus> $local
+	 * @param array<string,mixed> $params
 	 */
 	public function showHotSites(?ApiResult $result, Collection $local, array $params, string $sender, CommandReply $sendto, int $time=0): void {
 		if ($result === null) {
@@ -1235,6 +1252,9 @@ class TowerController {
 		);
 	}
 
+	/**
+	 * @param array<string,mixed> $params
+	 */
 	protected function renderHotSites(ApiResult $result, array $params, int $time): string {
 		$time += time();
 		$sites = new Collection($result->results);
@@ -2283,6 +2303,7 @@ class TowerController {
 		return $faction;
 	}
 
+	/** @return string[] */
 	protected function makeBlob(string $name, string $content): array {
 		$content = trim($content);
 		$lines = explode("\n", $content);

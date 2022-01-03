@@ -9,6 +9,7 @@ class DiscordMessageOut {
 	public mixed $nonce = null;
 	public bool $tts = false;
 	public ?string $file = null;
+	/** @var \Nadybot\Core\Modules\DISCORD\DiscordEmbed[] */
 	public array $embeds = [];
 	public ?object $allowed_mentions = null;
 	public ?object $message_reference = null;

@@ -549,6 +549,9 @@ class RaidController {
 		);
 	}
 
+	/**
+	 * @param array<string|Player> $players
+	 */
 	protected function reportNotInResult(array $players, CommandReply $sendto): void {
 		$blob = "<header2>Players that were warned<end>\n";
 		ksort($players);

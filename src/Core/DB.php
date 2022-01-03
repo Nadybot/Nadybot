@@ -70,10 +70,14 @@ class DB {
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
+	/** @var array<string,string> */
 	protected array $sqlReplacements = [];
+	/** @var array<string,string> */
 	protected array $sqlRegexpReplacements = [];
+	/** @var array<string,string> */
 	protected array $sqlCreateReplacements = [];
 
+	/** @var array<string,string> */
 	protected array $tableNames = [];
 
 	public int $maxPlaceholders = 9000;
@@ -479,6 +483,7 @@ class DB {
 		$this->runMigrations(...$migrations->toArray());
 	}
 
+	/** @return Collection<CoreMigration> */
 	private function getMigrationFiles(object $instance): Collection {
 		$migrations = new Collection();
 		$ref = new ReflectionClass($instance);
@@ -596,6 +601,10 @@ class DB {
 		]);
 	}
 
+	/**
+	 * @param Collection<CoreMigration> $migrations
+	 * @return Collection<CoreMigration>
+	 */
 	private function filterAppliedMigrations(string $module, Collection $migrations): Collection {
 		$applied = $this->getAppliedMigrations($module);
 		return $migrations->filter(function (CoreMigration $m) use ($applied): bool {

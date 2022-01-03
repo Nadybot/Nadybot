@@ -362,6 +362,7 @@ class RaidRankController {
 		return true;
 	}
 
+	/** @param int[] $ranks */
 	public function remove(string $who, string $sender, CommandReply $sendto, array $ranks, string $rankName): bool {
 		if (!in_array($this->ranks[$who]->rank ?? null, $ranks)) {
 			$sendto->reply("<highlight>$who<end> is not $rankName.");

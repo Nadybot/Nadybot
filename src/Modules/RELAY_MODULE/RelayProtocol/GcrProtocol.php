@@ -101,6 +101,7 @@ class GcrProtocol implements RelayProtocolInterface {
 		return [];
 	}
 
+	/** @return string[] */
 	public function renderMessage(RoutableEvent $event): array {
 		$path = $event->getPath();
 		$hops = [];
@@ -123,6 +124,7 @@ class GcrProtocol implements RelayProtocolInterface {
 		];
 	}
 
+	/** @return string[] */
 	public function renderUserState(RoutableEvent $event): array {
 		$character = $event->getData()->char ?? null;
 		if (!isset($character) || !$this->util->isValidSender($character->name??-1)) {
@@ -340,10 +342,13 @@ class GcrProtocol implements RelayProtocolInterface {
 		} elseif (preg_match("/^onlinereq$/", $text, $matches)) {
 			$onlineList = $this->getOnlineList();
 			if (isset($onlineList)) {
-				$this->relay->receiveFromMember(
-					$this,
-					[$this->getOnlineList()]
-				);
+				$data = $this->getOnlineList();
+				if (isset($data)) {
+					$this->relay->receiveFromMember(
+						$this,
+						[$data]
+					);
+				}
 			}
 		}
 		return null;

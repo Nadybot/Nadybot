@@ -170,6 +170,7 @@ class ExportController {
 		return $char;
 	}
 
+	/** @return stdClass[] */
 	protected function exportAlts(): array {
 		/** @var Alt[] */
 		$alts = $this->db->table("alts")->asObj(Alt::class)->toArray();
@@ -195,6 +196,7 @@ class ExportController {
 		return $result;
 	}
 
+	/** @return stdClass[] */
 	protected function exportMembers(): array {
 		$exported = [];
 		$result = [];
@@ -279,6 +281,7 @@ class ExportController {
 		return $result;
 	}
 
+	/** @return stdClass[] */
 	protected function exportQuotes(): array {
 		/** @var Quote[] */
 		$quotes = $this->db->table("quote")
@@ -296,6 +299,7 @@ class ExportController {
 		return $result;
 	}
 
+	/** @return stdClass[] */
 	protected function exportBanlist(): array {
 		/** @var BanEntry[] */
 		$banList = $this->db->table(BanController::DB_TABLE)
@@ -316,6 +320,7 @@ class ExportController {
 		return $result;
 	}
 
+	/** @return stdClass[] */
 	protected function exportCloak(): array {
 		/** @var OrgCity[] */
 		$cloakList = $this->db->table(CloakController::DB_TABLE)
@@ -333,6 +338,7 @@ class ExportController {
 		return $result;
 	}
 
+	/** @return stdClass[] */
 	protected function exportPolls(): array {
 		/** @var Poll[] */
 		$polls = $this->db->table(VoteController::DB_POLLS)
@@ -381,6 +387,7 @@ class ExportController {
 		return $result;
 	}
 
+	/** @return stdClass[] */
 	protected function exportRaffleBonus(): array {
 		/** @var RaffleBonus[] */
 		$data = $this->db->table(RaffleController::DB_TABLE)
@@ -397,6 +404,7 @@ class ExportController {
 		return $result;
 	}
 
+	/** @return stdClass[] */
 	protected function exportRaidBlocks(): array {
 		/** @var RaidBlock[] */
 		$data = $this->db->table(RaidBlockController::DB_TABLE)
@@ -424,6 +432,7 @@ class ExportController {
 		return ($value === $nullvalue )? null : $value;
 	}
 
+	/** @return stdClass[] */
 	protected function exportRaidLogs(): array {
 		/** @var RaidLog[] */
 		$data = $this->db->table(RaidController::DB_TABLE_LOG)
@@ -469,6 +478,7 @@ class ExportController {
 		return array_values($raids);
 	}
 
+	/** @return stdClass[] */
 	protected function exportRaidPoints(): array {
 		/** @var RaidPoints[] */
 		$data = $this->db->table(RaidPointsController::DB_TABLE)
@@ -485,6 +495,7 @@ class ExportController {
 		return $result;
 	}
 
+	/** @return stdClass[] */
 	protected function exportRaidPointsLog(): array {
 		/** @var RaidPointsLog[] */
 		$data = $this->db->table(RaidPointsController::DB_TABLE_LOG)
@@ -511,6 +522,7 @@ class ExportController {
 		return $result;
 	}
 
+	/** @return stdClass[] */
 	protected function exportTimers(): array {
 		$timers = $this->timerController->getAllTimers();
 		$result = [];
@@ -537,6 +549,7 @@ class ExportController {
 		return $result;
 	}
 
+	/** @return stdClass[] */
 	protected function exportTrackedCharacters(): array {
 		/** @var TrackedUser[] */
 		$users = $this->db->table(TrackerController::DB_TABLE)
@@ -569,6 +582,7 @@ class ExportController {
 		return array_values($result);
 	}
 
+	/** @return stdClass[] */
 	protected function exportAuctions(): array {
 		/** @var DBAuction[] */
 		$auctions = $this->db->table(AuctionController::DB_TABLE)
@@ -597,6 +611,7 @@ class ExportController {
 		return $result;
 	}
 
+	/** @return stdClass[] */
 	protected function exportNews(): array {
 		/** @var News[] */
 		$news = $this->db->table("news")
@@ -628,6 +643,7 @@ class ExportController {
 		return $result;
 	}
 
+	/** @return stdClass[] */
 	protected function exportNotes(): array {
 		/** @var Note[] */
 		$notes = $this->db->table("notes")
@@ -651,6 +667,7 @@ class ExportController {
 		return $result;
 	}
 
+	/** @return stdClass[] */
 	protected function exportLinks(): array {
 		/** @var Link[] */
 		$links = $this->db->table("links")
@@ -669,6 +686,7 @@ class ExportController {
 		return $result;
 	}
 
+	/** @return stdClass[] */
 	protected function exportCommentCategories(): array {
 		/** @var CommentCategory[] */
 		$categories = $this->db->table("<table:comment_categories>")
@@ -689,6 +707,7 @@ class ExportController {
 		return $result;
 	}
 
+	/** @return stdClass[] */
 	protected function exportComments(): array {
 		/** @var Comment[] */
 		$comments = $this->db->table("<table:comments>")

@@ -197,7 +197,7 @@ class CloakController implements MessageEmitter {
 		$this->eventManager->fireEvent($event);
 	}
 
-	public function getLastOrgEntry($cloakOnly=false): ?OrgCity {
+	public function getLastOrgEntry(bool $cloakOnly=false): ?OrgCity {
 		$query = $this->db->table(self::DB_TABLE)
 			->orderByDesc("time")
 			->limit(1);
@@ -301,6 +301,11 @@ class CloakController implements MessageEmitter {
 		}
 	}
 
+	/**
+	 * @return null|array<int|string>
+	 * @psalm-return null|array{0:int,1:string}
+	 * @phpstan-return null|array{0:int,1:string}
+	 */
 	protected function getCloakStatus(): ?array {
 		$row = $this->getLastOrgEntry(true);
 

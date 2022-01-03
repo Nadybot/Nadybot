@@ -7,7 +7,8 @@ use JsonException;
 use ReflectionClass;
 
 class JsonExporter {
-	protected static function processAnnotations(ReflectionClass $refClass, object &$data, &$name, &$value): bool {
+	/** @param ReflectionClass<object> $refClass */
+	protected static function processAnnotations(ReflectionClass $refClass, object &$data, string &$name, mixed &$value): bool {
 		if (!$refClass->hasProperty($name)) {
 			return true;
 		}
@@ -57,7 +58,7 @@ class JsonExporter {
 		return true;
 	}
 
-	protected static function jsonEncode($data): string {
+	protected static function jsonEncode(mixed $data): string {
 		try {
 			return json_encode($data, JSON_INVALID_UTF8_SUBSTITUTE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR);
 		} catch (JsonException $e) {
@@ -65,7 +66,7 @@ class JsonExporter {
 		}
 	}
 
-	public static function encode($data): string {
+	public static function encode(mixed $data): string {
 		if ($data === null || is_resource($data) || (is_object($data) && get_class($data) === "Socket")) {
 			return 'null';
 		}

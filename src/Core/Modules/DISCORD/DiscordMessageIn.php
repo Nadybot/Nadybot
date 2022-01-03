@@ -27,11 +27,15 @@ class DiscordMessageIn extends JSONDataModel {
 	public bool $mention_everyone = false;
 	/** @var \Nadybot\Core\Modules\DISCORD\DiscordUser[] */
 	public array $mentions = [];
+	/** @var array<mixed> */
 	public array $mention_roles = [];
+	/** @var null|array<mixed> */
 	public ?array $mention_channels = null;
+	/** @var null|array<mixed> */
 	public ?array $attachments = [];
 	/** @var \Nadybot\Core\Modules\DISCORD\DiscordEmbed[] */
 	public array $embeds = [];
+	/** @var null|array<mixed> */
 	public ?array $reactions = null;
 	public mixed $nonce = null;
 	public bool $pinned = false;

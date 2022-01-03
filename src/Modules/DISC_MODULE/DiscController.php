@@ -147,6 +147,7 @@ class DiscController {
 	/**
 	 * Generate a choice dialogue if multiple discs match the search criteria
 	 * @param Disc[] $discs The discs that matched the search
+	 * @return string[]
 	 */
 	public function getDiscChoiceDialogue(array $discs): array {
 		$blob = [];

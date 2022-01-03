@@ -291,7 +291,7 @@ class AltInfo {
 		return false;
 	}
 
-	public function getValidatedMain($sender): string {
+	public function getValidatedMain(string $sender): string {
 		if ($this->isValidated($sender)) {
 			return $this->main;
 		}

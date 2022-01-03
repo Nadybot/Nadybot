@@ -333,6 +333,7 @@ class LootListsController {
 		$this->apf7Command($context);
 	}
 
+	/** @return array<string,string> */
 	protected function getApfItems(): array {
 		$itemlink = [];
 		$itemlink["ICE"] = $this->text->makeItem(257968, 257968, 1, "Hacker ICE-Breaker Source");
