@@ -55,7 +55,8 @@ use Throwable;
 		help: "startpage.txt"
 	)
 ]
-class StartpageController extends Instance {	#[NCA\Inject]
+class StartpageController extends Instance {
+	#[NCA\Inject]
 	public DB $db;
 
 	#[NCA\Inject]

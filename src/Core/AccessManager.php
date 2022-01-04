@@ -2,13 +2,12 @@
 
 namespace Nadybot\Core;
 
-use Nadybot\Core\Attributes as NCA;
 use Exception;
-use Nadybot\Core\Instance;
+use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\DBSchema\Audit;
+use Nadybot\Core\Modules\ALTS\AltsController;
 use Nadybot\Modules\BASIC_CHAT_MODULE\ChatLeaderController;
 use Nadybot\Modules\RAID_MODULE\RaidRankController;
-use Nadybot\Core\Modules\ALTS\AltsController;
 use Nadybot\Modules\GUILD_MODULE\GuildRankController;
 use Nadybot\Modules\PRIVATE_CHANNEL_MODULE\PrivateChannelController;
 

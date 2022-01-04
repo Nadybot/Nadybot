@@ -40,7 +40,8 @@ use Nadybot\Modules\RELAY_MODULE\RelayController;
 		help: "discord.txt"
 	)
 ]
-class DiscordRelayController extends Instance {	#[NCA\Inject]
+class DiscordRelayController extends Instance {
+	#[NCA\Inject]
 	public DiscordGatewayController $discordGatewayController;
 
 	#[NCA\Inject]
