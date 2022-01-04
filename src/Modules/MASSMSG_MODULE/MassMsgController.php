@@ -115,7 +115,7 @@ class MassMsgController extends Instance {
 		$this->chatBot->sendGuild($message, true);
 		$message .= " :: " . $this->getMassMsgOptInOutBlob();
 		$result = $this->massCallback([
-			static::PREF_MSGS => function(string $name) use ($message) {
+			self::PREF_MSGS => function(string $name) use ($message): void {
 				$this->chatBot->sendMassTell($message, $name);
 			}
 		]);
@@ -131,10 +131,12 @@ class MassMsgController extends Instance {
 		$this->chatBot->sendGuild($message, true);
 		$message .= " :: " . $this->getMassMsgOptInOutBlob();
 		$result = $this->massCallback([
-			static::PREF_MSGS => function(string $name) use ($message) {
+			self::PREF_MSGS => function(string $name) use ($message): void {
 				$this->chatBot->sendMassTell($message, $name);
 			},
-			static::PREF_INVITES => [$this->chatBot, "privategroup_invite"],
+			self::PREF_INVITES => function (string $name): void {
+				$this->chatBot->privategroup_invite($name);
+			}
 		]);
 		$msg = $this->getMassResultPopup($result);
 		$context->reply($msg);
@@ -202,6 +204,7 @@ class MassMsgController extends Instance {
 	 * Run a callback for all users that are members, online but not in
 	 * our private channel.
 	 * @param array<string,callable> $callback
+	 * @phpstan-param array<string,callable(string):void> $callback
 	 * @return array<string,string> array(name => status)
 	 */
 	protected function massCallback(array $callback): array {

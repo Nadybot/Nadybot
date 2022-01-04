@@ -4,7 +4,7 @@ namespace Nadybot\Modules\RELAY_MODULE;
 
 use Exception;
 use Illuminate\Support\Collection;
-use JsonException;
+use Safe\Exceptions\JsonException;
 use ReflectionClass;
 use ReflectionException;
 use ReflectionMethod;
@@ -47,6 +47,7 @@ use Nadybot\Modules\{
 	WEBSERVER_MODULE\Response,
 };
 use Nadybot\Modules\RELAY_MODULE\RelayProtocol\RelayProtocolInterface;
+use Nadybot\Modules\RELAY_MODULE\Transport\TransportInterface;
 
 /**
  * @author Tyrence
@@ -192,6 +193,10 @@ class RelayController extends Instance {
 	}
 
 	public function loadStackComponents(): void {
+		/**
+		 * @var array<string,string|callable>
+		 * @phpstan-var array<string,array{class-string, callable}>
+		 */
 		$types = [
 			"RelayProtocol" => [
 				NCA\RelayProtocol::class,
@@ -207,14 +212,16 @@ class RelayController extends Instance {
 			]
 		];
 		foreach ($types as $dir => $data) {
-			$files = glob(__DIR__ . "/{$dir}/*.php");
+			$files = \Safe\glob(__DIR__ . "/{$dir}/*.php");
 			foreach ($files as $file) {
 				require_once $file;
 				$className = basename($file, ".php");
 				$fullClass = __NAMESPACE__ . "\\{$dir}\\{$className}";
-				$spec = $this->util->getClassSpecFromClass($fullClass, $data[0]);
-				if (isset($spec)) {
-					$data[1]($spec);
+				if (class_exists($fullClass)) {
+					$spec = $this->util->getClassSpecFromClass($fullClass, $data[0]);
+					if (isset($spec)) {
+						$data[1]($spec);
+					}
 				}
 			}
 		}
@@ -293,11 +300,7 @@ class RelayController extends Instance {
 		if (!isset($spec)) {
 			return ["No {$name} <highlight>{$key}<end> found."];
 		}
-		try {
-			$refClass = new ReflectionClass($spec->class);
-		} catch (ReflectionException $e) {
-			return ["<highlight>{$spec->name}<end> cannot be initialized."];
-		}
+		$refClass = new ReflectionClass($spec->class);
 		try {
 			$refConstr = $refClass->getMethod("__construct");
 			$refParams = $refConstr->getParameters();
@@ -318,7 +321,7 @@ class RelayController extends Instance {
 					if (isset($refParams[$parNum]) && $refParams[$parNum]->isDefaultValueAvailable()) {
 						try {
 							$blob .= " (optional, default=".
-								json_encode(
+								\Safe\json_encode(
 									$refParams[$parNum]->getDefaultValue(),
 									JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR|JSON_INVALID_UTF8_SUBSTITUTE
 								) . ")";
@@ -913,7 +916,7 @@ class RelayController extends Instance {
 		}
 		$eventConfigs = [];
 		foreach ($events as $eventConfig) {
-			[$eventName, $dir] = preg_split("/\s+/", $eventConfig??"");
+			[$eventName, $dir] = \Safe\preg_split("/\s+/", $eventConfig??"");
 			$eventConfigs[$eventName] = $dir;
 		}
 		$this->db->table(static::DB_TABLE_EVENT)
@@ -923,7 +926,7 @@ class RelayController extends Instance {
 		foreach ($eventConfigs as $eventName => $dir) {
 			$event = new RelayEvent();
 			$event->relay_id = $relay->id;
-			$event->event = $eventName;
+			$event->event = (string)$eventName;
 			$event->incoming = stripos($dir, "I") !== false;
 			$event->outgoing = stripos($dir, "O") !== false;
 			$event->id = $this->db->insert(static::DB_TABLE_EVENT, $event, "id");
@@ -1073,6 +1076,7 @@ class RelayController extends Instance {
 				"known transport for relaying. Perhaps the order was wrong?"
 			);
 		}
+		/** @var TransportInterface */
 		$transportLayer = $this->getRelayLayer(
 			$transport->layer,
 			$transport->getKVArguments(),
@@ -1103,11 +1107,13 @@ class RelayController extends Instance {
 				"known relay protocol. Perhaps the order was wrong?"
 			);
 		}
+		/** @var RelayProtocolInterface */
 		$protocolLayer = $this->getRelayLayer(
 			$proto->layer,
 			$proto->getKVArguments(),
 			$spec
 		);
+		/** @var RelayLayerInterface[] $stack */
 		$relay->setStack($transportLayer, $protocolLayer, ...$stack);
 		$relay->setEvents($conf->events);
 		return $relay;

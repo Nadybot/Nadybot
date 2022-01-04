@@ -344,12 +344,13 @@ class NanoController extends Instance {
 		$data = $query->asObj(LocationCount::class);
 		$nanoCount = [];
 		foreach ($data as $row) {
-			$locations = preg_split("/\s*\/\s*/", $row->location);
+			$locations = \Safe\preg_split("/\s*\/\s*/", $row->location);
 			foreach ($locations as $loc) {
 				$nanoCount[$loc] = ($nanoCount[$loc]??0) + $row->count;
 			}
 		}
 		ksort($nanoCount);
+		/** @var array<string,int> $nanoCount */
 
 		$blob = "<header2>All nano locations<end>\n";
 		foreach ($nanoCount as $loc => $count) {

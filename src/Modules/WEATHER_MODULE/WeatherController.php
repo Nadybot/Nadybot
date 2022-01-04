@@ -2,7 +2,7 @@
 
 namespace Nadybot\Modules\WEATHER_MODULE;
 
-use JsonException;
+use Safe\Exceptions\JsonException;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
@@ -69,7 +69,7 @@ class WeatherController extends Instance {
 			return;
 		}
 		try {
-			$data = json_decode($response->body, false, 512, JSON_THROW_ON_ERROR);
+			$data = \Safe\json_decode($response->body, false, 512, JSON_THROW_ON_ERROR);
 		} catch (JsonException $e) {
 			$context->reply(
 				"Invalid JSON received from Location provider: ".
@@ -119,7 +119,7 @@ class WeatherController extends Instance {
 			return;
 		}
 		try {
-			$data = json_decode($response->body, false, 512, JSON_THROW_ON_ERROR);
+			$data = \Safe\json_decode($response->body, false, 512, JSON_THROW_ON_ERROR);
 		} catch (JsonException $e) {
 			$context->reply(
 				"Invalid JSON received from Weather provider: ".

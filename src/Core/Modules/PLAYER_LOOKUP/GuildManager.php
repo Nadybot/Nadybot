@@ -7,7 +7,7 @@ use Closure;
 use DateInterval;
 use DateTime;
 use DateTimeZone;
-use JsonException;
+use Safe\Exceptions\JsonException;
 use Nadybot\Core\{
 	CacheManager,
 	CacheResult,
@@ -49,7 +49,7 @@ class GuildManager extends Instance {
 				if ($data === null) {
 					return false;
 				}
-				$result = json_decode($data, false, 512, JSON_THROW_ON_ERROR);
+				$result = \Safe\json_decode($data, false, 512, JSON_THROW_ON_ERROR);
 				return $result !== null;
 			} catch (JsonException $e) {
 				return false;
@@ -128,7 +128,7 @@ class GuildManager extends Instance {
 			return;
 		}
 
-		[$orgInfo, $members, $lastUpdated] = json_decode($cacheResult->data??"");
+		[$orgInfo, $members, $lastUpdated] = \Safe\json_decode($cacheResult->data??"");
 
 		if ($orgInfo->NAME === null) {
 			$callback(null, ...$args);

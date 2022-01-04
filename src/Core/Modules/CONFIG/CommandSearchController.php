@@ -49,7 +49,7 @@ class CommandSearchController extends Instance {
 
 	#[NCA\HandlesCommand("cmdsearch")]
 	public function searchCommand(CmdContext $context, string $search): void {
-		$this->searchWords = preg_split("/\s+/", $search) ?: [];
+		$this->searchWords = \Safe\preg_split("/\s+/", $search) ?: [];
 
 		// if a mod or higher, show all commands, not just enabled commands
 		$access = false;

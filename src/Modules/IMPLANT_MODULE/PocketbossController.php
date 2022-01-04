@@ -136,6 +136,7 @@ class PocketbossController extends Instance {
 		?PWord $arg3
 	): void {
 		$args = $context->args;
+		/** @var string[] */
 		$args = array_filter([$args[1], $args[2]??null, $args[3]??null]);
 		$paramCount = count($args);
 

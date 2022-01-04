@@ -3,7 +3,7 @@
 namespace Nadybot\Core\Modules\PLAYER_LOOKUP;
 
 use Nadybot\Core\Attributes as NCA;
-use DateTime;
+use Safe\DateTime;
 use DateTimeZone;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
@@ -305,7 +305,7 @@ class PlayerManager extends Instance {
 		if (!isset($response->body) || $response->body === "null") {
 			return null;
 		}
-		[$char, $org, $lastUpdated] = json_decode($response->body);
+		[$char, $org, $lastUpdated] = \Safe\json_decode($response->body);
 
 		$obj = new Player();
 

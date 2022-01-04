@@ -169,16 +169,16 @@ class WebsocketBase {
 	}
 
 	protected function toFrame(bool $final, string $data, string $opcode, bool $masked): string {
-		$frame= pack("C", ((int)$final << 7)
+		$frame= \Safe\pack("C", ((int)$final << 7)
 			+ (static::ALLOWED_OPCODES[$opcode]))[0];
 		$maskedBit = 128 * (int)$masked;
 		$dataLength = strlen($data);
 		if ($dataLength > 65535) {
-			$frame.= pack("CJ", 127 + $maskedBit, $dataLength);
+			$frame.= \Safe\pack("CJ", 127 + $maskedBit, $dataLength);
 		} elseif ($dataLength > 125) {
-			$frame.= pack("Cn", 126 + $maskedBit, $dataLength);
+			$frame.= \Safe\pack("Cn", 126 + $maskedBit, $dataLength);
 		} else {
-			$frame.= pack("C", $dataLength + $maskedBit);
+			$frame.= \Safe\pack("C", $dataLength + $maskedBit);
 		}
 
 		if ($masked) {
@@ -221,7 +221,7 @@ class WebsocketBase {
 				"uri" => $this->uri,
 			]);
 			$length = strlen($data);
-			@fclose($this->socket);
+			@\Safe\fclose($this->socket);
 			$this->throwError(
 				WebsocketError::WRITE_ERROR,
 				"Failed to write $length bytes to websocket {$uri}."
@@ -338,13 +338,13 @@ class WebsocketBase {
 		if ($payloadLength > 125) {
 			if ($payloadLength === 126) {
 				$data = $this->read(2); // 126: Payload is a 16-bit unsigned int
-				$payloadLength = unpack("n", $data)[1];
+				$payloadLength = \Safe\unpack("n", $data)[1];
 			} else {
 				$data = $this->read(8); // 127: Payload is a 64-bit unsigned int
 				if (PHP_INT_SIZE < 8) {
-					$payloadLength = unpack("N", substr($data, 4))[1];
+					$payloadLength = \Safe\unpack("N", substr($data, 4))[1];
 				} else {
-					$payloadLength = unpack("J", $data)[1];
+					$payloadLength = \Safe\unpack("J", $data)[1];
 				}
 			}
 		}
@@ -408,7 +408,7 @@ class WebsocketBase {
 			$this->logger->debug("[Websocket {uri}] Closing socket", [
 				"uri" => $uri
 			]);
-			stream_socket_shutdown($this->socket, STREAM_SHUT_RDWR);
+			\Safe\stream_socket_shutdown($this->socket, STREAM_SHUT_RDWR);
 		}
 
 		// Closing should not return message.
@@ -425,6 +425,7 @@ class WebsocketBase {
 		}
 		$uri = ($this->uri ?? $this->peerName);
 		while (strlen($data) < $length) {
+			// @phpstan-ignore-next-line
 			$buffer = fread($this->socket, $length - strlen($data));
 			$meta = stream_get_meta_data($this->socket);
 			if ($buffer === false) {
@@ -434,7 +435,7 @@ class WebsocketBase {
 			}
 			if ($meta["timed_out"] === true || $buffer === '') {
 				if (feof($this->socket)) {
-					@fclose($this->socket);
+					@\Safe\fclose($this->socket);
 					$this->logger->info("[Websocket {uri}] Socket closed with status {status}", [
 						"uri" => $uri,
 						"status" => $this->closeStatus ?? "<unknown>",
@@ -463,7 +464,7 @@ class WebsocketBase {
 			return;
 		}
 		$uri = ($this->uri ?? $this->peerName);
-		$statusString = pack("n", $status);
+		$statusString = \Safe\pack("n", $status);
 		$this->isClosing = true;
 		$this->send($statusString . $message, 'close');
 		$this->logger->info("[Websocket {uri}] Closing with status: {status}", [

@@ -14,15 +14,12 @@ class Reader {
 	 * @return array<mixed>|\Generator<array<string,mixed>>
 	 */
 	public function items(): iterable {
-		$file = fopen($this->file, 'r');
-		if ($file === false) {
-			return [];
-		}
+		$file = \Safe\fopen($this->file, 'r');
 		$numCols = 0;
 		if (!feof($file)) {
-			$headers = fgetcsv($file, 8192);
+			$headers = \Safe\fgetcsv($file, 8192);
 			while (is_array($headers) && count($headers) === 1 && isset($headers[0]) && is_string($headers[0]) && $headers[0][0] === "#") {
-				$headers = fgetcsv($file, 8192);
+				$headers = \Safe\fgetcsv($file, 8192);
 			}
 			if (!is_array($headers)) {
 				return [];
@@ -51,7 +48,7 @@ class Reader {
 				}
 			}
 
-			yield array_combine($headers??[], $row);
+			yield \Safe\array_combine($headers??[], $row);
 		}
 
 		return [];

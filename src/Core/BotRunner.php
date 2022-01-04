@@ -62,11 +62,7 @@ class BotRunner {
 
 	/** Get the base directory of the bot */
 	public static function getBasedir(): string {
-		$baseDir = realpath(dirname(dirname(__DIR__)));
-		if ($baseDir === false) {
-			throw new Exception("Cannot determine basedir for the bot relative to " . __DIR__);
-		}
-		return $baseDir;
+		return \Safe\realpath(dirname(dirname(__DIR__)));
 	}
 
 	/**
@@ -83,7 +79,7 @@ class BotRunner {
 			throw new ErrorException($str, 0, $num, $file, $line);
 		});
 		try {
-			$ref = explode(": ", trim(@file_get_contents("{$baseDir}/.git/HEAD")?:""), 2)[1];
+			$ref = explode(": ", trim(@\Safe\file_get_contents("{$baseDir}/.git/HEAD")?:""), 2)[1];
 			$branch = explode("/", $ref, 3)[2];
 			$latestTag = static::getLatestTag();
 			if (!isset($latestTag)) {
@@ -112,10 +108,10 @@ class BotRunner {
 		if ($pid === false) {
 			return null;
 		}
-		fclose($pipes[0]);
-		$gitDescribe = trim(stream_get_contents($pipes[1])?:"");
-		fclose($pipes[1]);
-		fclose($pipes[2]);
+		\Safe\fclose($pipes[0]);
+		$gitDescribe = trim(\Safe\stream_get_contents($pipes[1])?:"");
+		\Safe\fclose($pipes[1]);
+		\Safe\fclose($pipes[2]);
 		proc_close($pid);
 		return $gitDescribe;
 	}
@@ -136,10 +132,10 @@ class BotRunner {
 		if ($pid === false) {
 			return static::$latestTag = null;
 		}
-		fclose($pipes[0]);
-		$tags = explode("\n", trim(stream_get_contents($pipes[1])?:""));
-		fclose($pipes[1]);
-		fclose($pipes[2]);
+		\Safe\fclose($pipes[0]);
+		$tags = explode("\n", trim(\Safe\stream_get_contents($pipes[1])?:""));
+		\Safe\fclose($pipes[1]);
+		\Safe\fclose($pipes[2]);
 		proc_close($pid);
 
 		$tags = array_map(
@@ -163,7 +159,7 @@ class BotRunner {
 		try {
 			new ReflectionClass("Monolog\\Logger");
 		} catch (ReflectionException $e) { // @phpstan-ignore-line
-			fwrite(
+			\Safe\fwrite(
 				STDERR,
 				"Nadybot cannot find all the required composer modules in 'vendor'.\n".
 				"Please run 'composer install' to install all missing modules\n".
@@ -173,15 +169,15 @@ class BotRunner {
 				"See https://github.com/Nadybot/Nadybot/wiki/Running#cloning-the-repository\n".
 				"for more information.\n"
 			);
-			sleep(5);
+			\Safe\sleep(5);
 			exit(1);
 		}
 	}
 
 	public function checkRequiredModules(): void {
 		if (version_compare(PHP_VERSION, "8.0.0", "<")) {
-			fwrite(STDERR, "Nadybot 6 needs at least PHP version 8 to run, you have " . PHP_VERSION . "\n");
-			sleep(5);
+			\Safe\fwrite(STDERR, "Nadybot 6 needs at least PHP version 8 to run, you have " . PHP_VERSION . "\n");
+			\Safe\sleep(5);
 			exit(1);
 		}
 		$missing = [];
@@ -211,8 +207,8 @@ class BotRunner {
 		if (!count($missing)) {
 			return;
 		}
-		fwrite(STDERR, "Nadybot needs the following missing PHP-extensions: " . join(", ", $missing) . ".\n");
-		sleep(5);
+		\Safe\fwrite(STDERR, "Nadybot needs the following missing PHP-extensions: " . join(", ", $missing) . ".\n");
+		\Safe\sleep(5);
 		exit(1);
 	}
 
@@ -223,10 +219,10 @@ class BotRunner {
 			exit;
 		};
 		if (function_exists('sapi_windows_set_ctrl_handler')) {
-			sapi_windows_set_ctrl_handler($signalHandler, true);
+			\Safe\sapi_windows_set_ctrl_handler($signalHandler, true);
 		} elseif (function_exists('pcntl_signal')) {
-			pcntl_signal(SIGINT, $signalHandler);
-			pcntl_signal(SIGTERM, $signalHandler);
+			\Safe\pcntl_signal(SIGINT, $signalHandler);
+			\Safe\pcntl_signal(SIGTERM, $signalHandler);
 			pcntl_async_signals(true);
 		} else {
 			$this->logger->error('You need to have the pcntl extension on Linux');
@@ -238,10 +234,10 @@ class BotRunner {
 	/** Uninstall a previously installed signal handler */
 	protected function uninstallCtrlCHandler(Closure $signalHandler): void {
 		if (function_exists('sapi_windows_set_ctrl_handler')) {
-			sapi_windows_set_ctrl_handler($signalHandler, false);
+			\Safe\sapi_windows_set_ctrl_handler($signalHandler, false);
 		} elseif (function_exists('pcntl_signal')) {
-			pcntl_signal(SIGINT, SIG_DFL);
-			pcntl_signal(SIGTERM, SIG_DFL);
+			\Safe\pcntl_signal(SIGINT, SIG_DFL);
+			\Safe\pcntl_signal(SIGTERM, SIG_DFL);
 		}
 	}
 
@@ -324,12 +320,12 @@ class BotRunner {
 		foreach ($dirVars as $var) {
 			$dir = $this->getConfigFile()->{$var};
 			if (is_string($dir) && !@file_exists($dir)) {
-				@mkdir($dir, 0700);
+				@\Safe\mkdir($dir, 0700);
 			}
 		}
 		foreach ($this->getConfigFile()->moduleLoadPaths as $dir) {
 			if (is_string($dir) && !@file_exists($dir)) {
-				@mkdir($dir, 0700);
+				@\Safe\mkdir($dir, 0700);
 			}
 		}
 	}
@@ -390,9 +386,9 @@ class BotRunner {
 	 */
 	private function setErrorHandling(string $logFolderName): void {
 		error_reporting(E_ALL & ~E_STRICT & ~E_WARNING & ~E_NOTICE);
-		ini_set("log_errors", "1");
-		ini_set('display_errors', "1");
-		ini_set("error_log", "${logFolderName}/php_errors.log");
+		\Safe\ini_set("log_errors", "1");
+		\Safe\ini_set('display_errors', "1");
+		\Safe\ini_set("error_log", "${logFolderName}/php_errors.log");
 	}
 
 	/**
@@ -439,7 +435,7 @@ class BotRunner {
 			return;
 		}
 		global $vars;
-		system("title {$vars['name']} - Nadybot");
+		\Safe\system("title {$vars['name']} - Nadybot");
 	}
 
 	/**

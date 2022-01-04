@@ -3,7 +3,7 @@
 namespace Nadybot\Modules\RECIPE_MODULE;
 
 use Exception;
-use JsonException;
+use Safe\Exceptions\JsonException;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
@@ -17,6 +17,7 @@ use Nadybot\Modules\ITEMS_MODULE\{
 	ItemsController,
 	AODBItem,
 };
+use Safe\Exceptions\DirException;
 
 /**
  * @author Tyrence
@@ -52,13 +53,13 @@ class RecipeController extends Instance {
 	protected function parseTextFile(int $id, string $fileName): Recipe {
 		$recipe = new Recipe();
 		$recipe->id = $id;
-		$lines = file($this->path . $fileName);
+		$lines = \Safe\file($this->path . $fileName);
 		$nameLine = trim(array_shift($lines));
 		$authorLine = trim(array_shift($lines));
 		$recipe->name = (strlen($nameLine) > 6) ? substr($nameLine, 6) : "Unknown";
 		$recipe->author = (strlen($authorLine) > 8) ? substr($authorLine, 8) : "Unknown";
 		$recipe->recipe = implode("", $lines);
-		$recipe->date = filemtime($this->path . $fileName);
+		$recipe->date = \Safe\filemtime($this->path . $fileName);
 
 		return $recipe;
 	}
@@ -67,8 +68,8 @@ class RecipeController extends Instance {
 		$recipe = new Recipe();
 		$recipe->id = $id;
 		try {
-			$data = json_decode(
-				file_get_contents($this->path . $fileName),
+			$data = \Safe\json_decode(
+				\Safe\file_get_contents($this->path . $fileName),
 				false,
 				JSON_THROW_ON_ERROR
 			);
@@ -77,7 +78,7 @@ class RecipeController extends Instance {
 		}
 		$recipe->name = $data->name ?? "<unnamed>";
 		$recipe->author = $data->author ?? "<unknown>";
-		$recipe->date = filemtime($this->path . $fileName);
+		$recipe->date = \Safe\filemtime($this->path . $fileName);
 		/** @var array<string,AODBItem> */
 		$items = [];
 		foreach ($data->items as $item) {
@@ -144,8 +145,10 @@ class RecipeController extends Instance {
 	)]
 	public function connectEvent(): void {
 		$this->path = __DIR__ . "/recipes/";
-		if (($handle = opendir($this->path)) === false) {
-			throw new Exception("Could not open '$this->path' for loading recipes");
+		try {
+			$handle = \Safe\opendir($this->path);
+		} catch (DirException) {
+			throw new Exception("Could not open '{$this->path}' for loading recipes");
 		}
 		/** @var array<string,Recipe> */
 		$recipes = [];
@@ -154,7 +157,7 @@ class RecipeController extends Instance {
 		while (($fileName = readdir($handle)) !== false) {
 			if (!preg_match("/(\d+)\.(txt|json)$/", $fileName, $args)
 				|| (isset($recipes[$args[1]])
-					&& filemtime($this->path . $fileName) === $recipes[$args[1]]->date)
+					&& \Safe\filemtime($this->path . $fileName) === $recipes[$args[1]]->date)
 			) {
 				continue;
 			}

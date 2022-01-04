@@ -2,6 +2,7 @@
 
 namespace Nadybot\Core\Modules\SYSTEM;
 
+use function Safe\unpack;
 use Nadybot\Core\{
 	AccessManager,
 	Attributes as NCA,

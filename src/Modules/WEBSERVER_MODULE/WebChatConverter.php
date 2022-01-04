@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\WEBSERVER_MODULE;
 
+use Exception;
 use Nadybot\Core\{
 	Attributes as NCA,
 	ConfigFile,
@@ -145,6 +146,7 @@ class WebChatConverter extends Instance {
 			"<br>" => "<br />",
 		];
 
+		/** @var string[] */
 		$stack = [];
 		$message = preg_replace("/<\/font>/", "<end>", $message);
 		$message = preg_replace_callback(
@@ -154,6 +156,7 @@ class WebChatConverter extends Instance {
 					if (empty($stack)) {
 						return "";
 					}
+					// @phpstan-ignore-next-line
 					return "</" . array_pop($stack) . ">";
 				} elseif (preg_match("/font\s+color\s*=\s*[\"']?(#.{6})[\"']?/i", $matches[1], $colorMatch)) {
 					$tag = $colorMatch[1];
@@ -173,13 +176,15 @@ class WebChatConverter extends Instance {
 			$message
 		);
 		while (count($stack)) {
+			// @phpstan-ignore-next-line
 			$message .= "</" . array_pop($stack) . ">";
 		}
 		$message = preg_replace_callback(
 			"/(\r?\n[-*][^\r\n]+){2,}/s",
 			function (array $matches): string {
 				$text = preg_replace("/(\r?\n)[-*]\s+([^\r\n]+)/s", "<li>$2</li>", $matches[0]);
-				return "\n<ul>$text</ul>";
+				// @phpstan-ignore-next-line
+				return "\n<ul>{$text}</ul>";
 			},
 			$message
 		);
@@ -225,7 +230,10 @@ class WebChatConverter extends Instance {
 		$message = preg_replace("/<(\/?[a-z]+):/", "<$1___", $message);
 		$xml = new \DOMDocument();
 		@$xml->loadHTML('<?xml encoding="UTF-8">' . $message);
-		$message = preg_replace("/^.+?<body>(.+)<\/body><\/html>$/si", "$1", $xml->saveXML());
+		if (($message = $xml->saveXML()) === false) {
+			throw new Exception("Invalid XML data created");
+		}
+		$message = preg_replace("/^.+?<body>(.+)<\/body><\/html>$/si", "$1", $message);
 		$message = preg_replace("/<([\/a-z]+)___/", "<$1:", $message);
 		return $message;
 	}
@@ -237,6 +245,7 @@ class WebChatConverter extends Instance {
 			"/<a\s+href\s*=\s*([\"'])text:\/\/(.+?)\\1>(.*?)<\/a>/s",
 			function (array $matches) use (&$parts, &$id): string {
 				$parts["ao-" . ++$id] = $this->formatMsg(
+					// @phpstan-ignore-next-line
 					preg_replace(
 						"/^<font.*?>(<\/font>|<end>)?/",
 						"",
@@ -260,7 +269,7 @@ class WebChatConverter extends Instance {
 		$data = "";
 		if (count(get_object_vars($msg->popups))) {
 			$data .= "<data>";
-			foreach ($msg->popups as $key => $value) {
+			foreach (get_object_vars($msg->popups) as $key => $value) {
 				$data .= "<section id=\"{$key}\">" . $this->fixUnclosedTags($value) . "</section>";
 			}
 			$data .= "</data>";

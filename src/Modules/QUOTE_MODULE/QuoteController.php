@@ -270,7 +270,7 @@ class QuoteController extends Instance {
 			return;
 		}
 		$result = [];
-		$lines = preg_split("/ (?=(?:\(\d{2}:\d{2}\) )?\[[a-zA-Z 0-9-]+\])/", $row->msg);
+		$lines = \Safe\preg_split("/ (?=(?:\(\d{2}:\d{2}\) )?\[[a-zA-Z 0-9-]+\])/", $row->msg);
 		foreach ($lines as $line) {
 			$result = [...$result, ...explode("\n", $line)];
 		}

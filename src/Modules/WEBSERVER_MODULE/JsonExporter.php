@@ -3,7 +3,7 @@
 namespace Nadybot\Modules\WEBSERVER_MODULE;
 
 use DateTime;
-use JsonException;
+use Safe\Exceptions\JsonException;
 use ReflectionClass;
 
 class JsonExporter {
@@ -45,7 +45,7 @@ class JsonExporter {
 					$param = (int)$value;
 				} else {
 					try {
-						$param = json_decode($param, false, 4, JSON_THROW_ON_ERROR);
+						$param = \Safe\json_decode($param, false, 4, JSON_THROW_ON_ERROR);
 					} catch (\Throwable $e) {
 						$map = false;
 					}
@@ -60,7 +60,7 @@ class JsonExporter {
 
 	protected static function jsonEncode(mixed $data): string {
 		try {
-			return json_encode($data, JSON_INVALID_UTF8_SUBSTITUTE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR);
+			return \Safe\json_encode($data, JSON_INVALID_UTF8_SUBSTITUTE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR);
 		} catch (JsonException $e) {
 			return "";
 		}
@@ -81,6 +81,7 @@ class JsonExporter {
 				return '[]';
 			}
 			if (array_keys($data) === range(0, count($data) - 1)) {
+				// @phpstan-ignore-next-line
 				return '[' . join(",", array_map(['static', __FUNCTION__], $data)) . ']';
 			}
 			$result = [];
@@ -94,7 +95,7 @@ class JsonExporter {
 		}
 		$result = [];
 		$refClass = new ReflectionClass($data);
-		foreach ($data as $name => $value) {
+		foreach (get_object_vars($data) as $name => $value) {
 			if (!static::processAnnotations($refClass, $data, $name, $value)) {
 				continue;
 			}

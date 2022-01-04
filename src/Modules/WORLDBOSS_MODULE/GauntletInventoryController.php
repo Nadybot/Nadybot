@@ -54,7 +54,7 @@ class GauntletInventoryController extends Instance {
 	public function getData(string $name): array {
 		$data = $this->preferences->get($name, 'gauntlet');
 		if (isset($data)) {
-			return json_decode($data);
+			return \Safe\json_decode($data);
 		} else {
 			return array_fill(0, 17, 0);
 		}
@@ -62,7 +62,7 @@ class GauntletInventoryController extends Instance {
 
 	/** @param int[] $inv */
 	public function saveData(string $sender, array $inv): void {
-		$this->preferences->save($sender, 'gauntlet', json_encode($inv));
+		$this->preferences->save($sender, 'gauntlet', \Safe\json_encode($inv));
 	}
 
 	/**

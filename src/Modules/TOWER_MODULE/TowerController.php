@@ -1237,7 +1237,7 @@ class TowerController extends Instance {
 			return;
 		}
 		$blob = $this->renderHotSites($result, $params, $time);
-		$timeString = date("H:i:s", $params["min_close_time"]);
+		$timeString = \Safe\date("H:i:s", $params["min_close_time"]);
 		$faction = isset($params["faction"]) ? " {$params['faction']}" : "";
 		$sendto->reply(
 			$this->makeBlob(

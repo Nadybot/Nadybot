@@ -11,6 +11,8 @@ use Nadybot\Core\{
 	Util,
 };
 use Nadybot\Core\ParamClass\PFilename;
+use Safe\Exceptions\DirException;
+use Safe\Exceptions\FilesystemException;
 
 /**
  * @author Tyrence (RK2)
@@ -65,8 +67,10 @@ class GuideController extends Instance {
 
 	#[NCA\HandlesCommand("guides")]
 	public function guidesListCommand(CmdContext $context): void {
-		if (($handle = opendir($this->path)) === false) {
-			$msg = "Error reading topics.";
+		try {
+			$handle = \Safe\opendir($this->path);
+		} catch (DirException $e) {
+			$msg = "Error reading topics: " . $e->getMessage();
 			$context->reply($msg);
 			return;
 		}
@@ -76,7 +80,7 @@ class GuideController extends Instance {
 		while (($fileName = readdir($handle)) !== false) {
 			// if file has the correct extension, it's a topic file
 			if ($this->util->endsWith($fileName, self::FILE_EXT)) {
-				$firstLine = strip_tags(trim(file($this->path . '/' . $fileName)[0]));
+				$firstLine = strip_tags(trim(\Safe\file($this->path . '/' . $fileName)[0]));
 				$topicList[$firstLine] = basename($fileName, self::FILE_EXT);
 			}
 		}
@@ -104,15 +108,14 @@ class GuideController extends Instance {
 		// get the filename and read in the file
 		$fileName = strtolower($fileName());
 		$file = $this->path . $fileName . self::FILE_EXT;
-		$info = @file_get_contents($file);
-
-		if ($info === false) {
-			$msg = "No guide named <highlight>$fileName<end> was found.";
-		} else {
+		try {
+			$info = \Safe\file_get_contents($file);
 			$lines = explode("\n", $info);
 			$firstLine = preg_replace("/<header>(.+)<end>/", "$1", array_shift($lines));
 			$info = trim(implode("\n", $lines));
 			$msg = $this->text->makeBlob('Guide for "' . $firstLine . '"', $info, $firstLine);
+		} catch (FilesystemException) {
+			$msg = "No guide named <highlight>{$fileName}<end> was found.";
 		}
 		$context->reply($msg);
 	}

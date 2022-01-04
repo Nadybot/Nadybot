@@ -6,7 +6,7 @@ use Directory;
 use Nadybot\Core\Attributes as NCA;
 use ReflectionClass;
 
-class ClassLoader {
+class ClassLoader extends Instance {
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
@@ -41,7 +41,10 @@ class ClassLoader {
 		unset($newInstances["configfile"]);
 		$newInstances = array_merge($newInstances, $this->getNewInstancesInDir(__DIR__));
 		foreach ($newInstances as $name => $class) {
-			Registry::setInstance($name, new $class->className);
+			if (is_subclass_of($class->className, Instance::class)) {
+				/** @psalm-suppress UnsafeInstantiation */
+				Registry::setInstance($name, new $class->className);
+			}
 		}
 
 		$this->loadCoreModules();
@@ -112,7 +115,7 @@ class ClassLoader {
 	public function registerModule(string $baseDir, string $moduleName): void {
 		// read module.ini file (if it exists) from module's directory
 		if (file_exists("{$baseDir}/{$moduleName}/module.ini")) {
-			$entries = parse_ini_file("{$baseDir}/{$moduleName}/module.ini");
+			$entries = \Safe\parse_ini_file("{$baseDir}/{$moduleName}/module.ini");
 			// check that current PHP version is greater or equal than module's
 			// minimum required PHP version
 			if (is_array($entries) && isset($entries["minimum_php_version"])) {
@@ -129,8 +132,11 @@ class ClassLoader {
 
 		$newInstances = $this->getNewInstancesInDir("{$baseDir}/{$moduleName}");
 		foreach ($newInstances as $name => $class) {
-			/** @phpstan-var class-string */
 			$className = $class->className;
+			if (!class_exists($className) || !is_subclass_of($className, Instance::class)) {
+				continue;
+			}
+			/** @psalm-suppress UnsafeInstantiation */
 			$obj = new $className();
 			if (property_exists($obj, "moduleName")) {
 				$obj->moduleName = $moduleName;

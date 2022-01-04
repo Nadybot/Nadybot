@@ -2,10 +2,7 @@
 
 namespace Nadybot\Core;
 
-class Instance {
+trait InstanceTrait {
 	/** Set when registering the module */
 	public string $moduleName;
-
-	public function __construct() {
-	}
 }

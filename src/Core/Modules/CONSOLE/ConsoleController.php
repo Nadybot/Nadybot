@@ -97,22 +97,19 @@ class ConsoleController extends Instance {
 		return sys_get_temp_dir() . "/Nadybot/readline.history";
 	}
 
-	public function loadHistory(): bool {
+	public function loadHistory(): void {
 		$file = $this->getCacheFile();
-		if (!@file_exists($file)) {
-			return false;
+		if (@file_exists($file)) {
+			\Safe\readline_read_history($file);
 		}
-		return readline_read_history($file);
 	}
 
-	public function saveHistory(): bool {
+	public function saveHistory(): void {
 		$file = $this->getCacheFile();
 		if (!@file_exists($file)) {
-			if (!@mkdir(dirname($file), 0700, true)) {
-				return false;
-			}
+			\Safe\mkdir(dirname($file), 0700, true);
 		}
-		return readline_write_history($file);
+		\Safe\readline_write_history($file);
 	}
 
 	/**
@@ -152,7 +149,7 @@ class ConsoleController extends Instance {
 			$this->logger->notice("StdIn console activated, accepting commands");
 			$this->socketManager->addSocketNotifier($this->notifier);
 			if ($this->useReadline) {
-				readline_callback_handler_install('> ', [$this, 'processLine']);
+				\Safe\readline_callback_handler_install('> ', [$this, 'processLine']);
 			} else {
 				echo("> ");
 			}
@@ -168,7 +165,7 @@ class ConsoleController extends Instance {
 		}
 		if (feof($this->socket)) {
 			echo("EOF received, closing console.\n");
-			@fclose($this->socket);
+			@\Safe\fclose($this->socket);
 			$this->socketManager->removeSocketNotifier($this->notifier);
 			return;
 		}
@@ -190,9 +187,9 @@ class ConsoleController extends Instance {
 			}
 		}
 		if ($this->useReadline) {
-			readline_add_history($line);
+			\Safe\readline_add_history($line);
 			$this->saveHistory();
-			readline_callback_handler_install('> ', [$this, 'processLine']);
+			\Safe\readline_callback_handler_install('> ', [$this, 'processLine']);
 		}
 		$context = new CmdContext($this->config->superAdmin);
 		$context->channel = "msg";

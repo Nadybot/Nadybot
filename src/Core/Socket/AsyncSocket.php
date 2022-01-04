@@ -68,7 +68,7 @@ class AsyncSocket {
 	public function __construct($socket) {
 		try {
 			$this->socket = $socket;
-			stream_set_blocking($this->socket, false);
+			\Safe\stream_set_blocking($this->socket, false);
 		} catch (Throwable $e) {
 			throw new InvalidArgumentException("Argument 1 to " . get_class() . "::__construct() must be a socket.");
 		}
@@ -91,7 +91,7 @@ class AsyncSocket {
 	public function setTimeout(int $timeout): self {
 		$this->timeout = $timeout;
 		if ($timeout > 0 && is_resource($this->socket)) {
-			stream_set_timeout($this->socket, $timeout);
+			\Safe\stream_set_timeout($this->socket, $timeout);
 		}
 		return $this;
 	}
@@ -132,7 +132,7 @@ class AsyncSocket {
 		if ($this->state === static::STATE_CLOSING) {
 			$this->logger->info('Forcefully closing socket');
 			if (is_resource($this->socket)) {
-				@fclose($this->socket);
+				@\Safe\fclose($this->socket);
 			}
 			$this->destroy();
 			return;
@@ -251,7 +251,7 @@ class AsyncSocket {
 		if (!isset($this->socket) || !is_resource($this->socket)) {
 			return;
 		}
-		@fclose($this->socket);
+		@\Safe\fclose($this->socket);
 		$this->unsubscribeSocketEvent(SocketNotifier::ACTIVITY_READ);
 		$this->unsubscribeSocketEvent(SocketNotifier::ACTIVITY_WRITE);
 		$this->state = static::STATE_CLOSED;
@@ -352,7 +352,7 @@ class AsyncSocket {
 				return;
 			}
 			$this->logger->info('Closing socket');
-			if (!is_resource($this->socket) || @stream_socket_shutdown($this->socket, STREAM_SHUT_WR) === false) {
+			if (!is_resource($this->socket) || @\stream_socket_shutdown($this->socket, STREAM_SHUT_WR) === false) {
 				$this->forceClose();
 				return;
 			}
@@ -422,7 +422,7 @@ class AsyncSocket {
 				'"'
 			);
 		}
-		$written = is_resource($this->socket) ? fwrite($this->socket, $data, 4096) : false;
+		$written = is_resource($this->socket) ? \Safe\fwrite($this->socket, $data, 4096) : false;
 		if ($written === false) {
 			$this->forceClose();
 			return false;

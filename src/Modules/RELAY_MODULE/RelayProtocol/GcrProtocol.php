@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\RELAY_MODULE\RelayProtocol;
 
+use Closure;
 use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\DBSchema\Player;
 use Nadybot\Core\Modules\PLAYER_LOOKUP\PlayerManager;
@@ -296,8 +297,8 @@ class GcrProtocol implements RelayProtocolInterface {
 		}
 		if (preg_match("/^buddy (?<status>\d) (?<char>.+?) (?<where>[^ ]+)( \d+)?$/", $text, $matches)) {
 			$callback = ($matches['status'] === '1')
-				? [$this->relay, "setOnline"]
-				: [$this->relay, "setOffline"];
+				? Closure::fromCallable([$this->relay, "setOnline"])
+				: Closure::fromCallable([$this->relay, "setOffline"]);
 			$this->playerManager->getByNameCallback(
 				function(?Player $player) use ($matches, $callback): void {
 					if (!isset($player)) {
@@ -324,7 +325,10 @@ class GcrProtocol implements RelayProtocolInterface {
 					}
 					$chars = explode(";", $matches[1]);
 					foreach ($chars as $char) {
-						[$name,$where,$rank] = [...explode(",", $char), null, null];
+						[$name, $where, $rank] = [...explode(",", $char), null, null];
+						if (!isset($name)) {
+							continue;
+						}
 						$this->relay->setOnline(
 							$player->name,
 							(!empty($player->guild))

@@ -71,7 +71,7 @@ class SystemdController extends Instance {
 		}
 
 		if ($unsetEnvironment) {
-			putenv('NOTIFY_SOCKET');
+			\Safe\putenv('NOTIFY_SOCKET');
 		}
 
 		return $result;
@@ -120,7 +120,7 @@ class SystemdController extends Instance {
 			$messageHeader['name'][0] = "\x00";
 		}
 
-		$havePID = $pid && getmypid() !== $pid;
+		$havePID = $pid && \Safe\getmypid() !== $pid;
 
 		if (count($fds) > 0 || $havePID) {
 			if (count($fds)) {
@@ -137,8 +137,8 @@ class SystemdController extends Instance {
 					'type' => SCM_CREDENTIALS,
 					'data' => [
 						'pid' => $pid,
-						'uid' => getmyuid(),
-						'gid' => getmygid()
+						'uid' => \Safe\getmyuid(),
+						'gid' => \Safe\getmygid()
 					]
 				];
 			}
@@ -171,10 +171,10 @@ class SystemdController extends Instance {
 	public function isSystemdWatchdogEnabled(bool $unsetEnvironment, int &$usec): int {
 		$result = $this->systemdWatchdogEnabled($usec);
 		if ($unsetEnvironment && getenv('WATCHDOG_USEC') !== false) {
-			putenv('WATCHDOG_USEC');
+			\Safe\putenv('WATCHDOG_USEC');
 		}
 		if ($unsetEnvironment && getenv('WATCHDOG_PID') !== false) {
-			putenv('WATCHDOG_PID');
+			\Safe\putenv('WATCHDOG_PID');
 		}
 
 		return $result;
@@ -206,7 +206,7 @@ class SystemdController extends Instance {
 		}
 
 		// Is this for us?
-		if (getmypid() !== $pid) {
+		if (\Safe\getmypid() !== $pid) {
 			return 0;
 		}
 

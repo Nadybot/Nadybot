@@ -508,7 +508,7 @@ class NewsController extends Instance {
 		$blobLines = [];
 		foreach ($unreadNews as $news) {
 			$firstLine = explode("\n", $news->news)[0];
-			$firstWords = array_slice(preg_split("/\s+/", $firstLine), 0, 5);
+			$firstWords = array_slice(\Safe\preg_split("/\s+/", $firstLine), 0, 5);
 			$blobLines []= "<tab><highlight>" . $this->util->date($news->time).
 				"<end>: " . join(" ", $firstWords) . "...";
 		}

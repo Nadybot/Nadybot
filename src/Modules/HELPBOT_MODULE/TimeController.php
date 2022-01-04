@@ -269,7 +269,7 @@ class TimeController extends Instance {
 		$obj = new Timezone();
 		$obj->name = $name;
 		$obj->offset = $offset;
-		$obj->time = date($time_format, (int)($time + $offset));
+		$obj->time = \Safe\date($time_format, (int)($time + $offset));
 		return $obj;
 	}
 }

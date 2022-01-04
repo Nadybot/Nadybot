@@ -2,8 +2,9 @@
 
 namespace Nadybot\Core\Modules\HELP;
 
-use Nadybot\Core\Attributes as NCA;
+use function Safe\file_get_contents;
 use Nadybot\Core\{
+	Attributes as NCA,
 	BotRunner,
 	CmdContext,
 	CommandAlias,
@@ -29,7 +30,7 @@ use Nadybot\Core\{
 ]
 class HelpController extends Instance {
 
-		#[NCA\Inject]
+	#[NCA\Inject]
 	public CommandManager $commandManager;
 
 	#[NCA\Inject]

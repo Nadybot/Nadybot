@@ -16,6 +16,7 @@ use Nadybot\Core\{
 	SettingManager,
 };
 use Nadybot\Core\DBSchema\Setting;
+use Safe\Exceptions\FilesystemException;
 
 /**
  * @author Nadyita (RK5)
@@ -48,10 +49,10 @@ class UpdateCSVFilesController extends Instance {
 		if ($pid === false) {
 			return null;
 		}
-		fclose($pipes[0]);
-		$gitHash = trim(stream_get_contents($pipes[1]));
-		fclose($pipes[1]);
-		fclose($pipes[2]);
+		\Safe\fclose($pipes[0]);
+		$gitHash = trim(\Safe\stream_get_contents($pipes[1]));
+		\Safe\fclose($pipes[1]);
+		\Safe\fclose($pipes[2]);
 		return $gitHash;
 	}
 
@@ -59,7 +60,7 @@ class UpdateCSVFilesController extends Instance {
 	public function updateCsvCommand(CmdContext $context): void {
 		$checkCmd = BotRunner::isWindows() ? "where" : "command -v";
 		/** @psalm-suppress ForbiddenCode */
-		$gitPath = shell_exec("{$checkCmd} git");
+		$gitPath = \Safe\shell_exec("{$checkCmd} git");
 		$hasGit = is_string($gitPath) && is_executable(rtrim($gitPath));
 		if (!$hasGit) {
 			$context->reply(
@@ -79,7 +80,7 @@ class UpdateCSVFilesController extends Instance {
 		if ($response->headers["status-code"] !== "200") {
 			$error = $response->error ?: $response->body ?? 'null';
 			try {
-				$error = json_decode($error, false, 512, JSON_THROW_ON_ERROR);
+				$error = \Safe\json_decode($error, false, 512, JSON_THROW_ON_ERROR);
 				$error = $error->message;
 			} catch (Throwable $e) {
 				// Ignore it if not json
@@ -91,7 +92,7 @@ class UpdateCSVFilesController extends Instance {
 			if (!isset($response->body)) {
 				throw new Exception();
 			}
-			$data = json_decode($response->body, false, 512, JSON_THROW_ON_ERROR);
+			$data = \Safe\json_decode($response->body, false, 512, JSON_THROW_ON_ERROR);
 			if (!is_object($data) || !isset($data->tree)) {
 				throw new Exception();
 			}
@@ -100,6 +101,7 @@ class UpdateCSVFilesController extends Instance {
 			return;
 		}
 
+		/** @var array<string,mixed> */
 		$updates = [];
 		$todo = 0;
 		foreach ($data->tree as $file) {
@@ -115,6 +117,7 @@ class UpdateCSVFilesController extends Instance {
 			$this->checkIfCanUpdateCsvFile(
 				/** @param string|bool $result */
 				function(string $path, $result) use (&$updates, &$todo, $context): void {
+					/** @var array<string,mixed> $updates */
 					$updates[$path] = $result;
 					$todo--;
 					if ($todo > 0) {
@@ -171,16 +174,16 @@ class UpdateCSVFilesController extends Instance {
 			if (!isset($response->body)) {
 				throw new Exception();
 			}
-			$data = json_decode($response->body, false, 512, JSON_THROW_ON_ERROR);
+			$data = \Safe\json_decode($response->body, false, 512, JSON_THROW_ON_ERROR);
 		} catch (Throwable $e) {
 			$callback($file, "Error decoding the JSON data from GitHub for {$file}.");
 			return;
 		}
-		$gitModified = DateTime::createFromFormat(
+		$gitModified = \Safe\DateTime::createFromFormat(
 			DateTime::ISO8601,
 			$data[0]->commit->committer->date
 		);
-		$localModified = @filemtime(BotRunner::getBasedir() . "/" . $file);
+		$localModified = filemtime(BotRunner::getBasedir() . "/" . $file);
 		if ($localModified === false || $localModified >= $gitModified->getTimestamp()) {
 			$callback($file, false);
 			return;
@@ -243,25 +246,24 @@ class UpdateCSVFilesController extends Instance {
 			$callback($file, "Couldn't download {$file} from GitHub.");
 			return;
 		}
-		$tmpFile = tempnam(sys_get_temp_dir(), $file);
-		if ($tmpFile !== false) {
-			if (file_put_contents($tmpFile, $response->body)) {
-				@touch($tmpFile, $gitModified->getTimestamp());
-				try {
-					$this->db->beginTransaction();
-					$this->db->loadCSVFile($module, $tmpFile);
-					$this->db->commit();
-					$callback($file, true);
-					return;
-				} catch (Throwable $e) {
-					$this->db->rollback();
-					$callback($file, "There was an SQL error loading the CSV file {$file}, please check your logs.");
-				} finally {
-					@unlink($tmpFile);
-				}
+		try {
+			$tmpFile = \Safe\tempnam(sys_get_temp_dir(), $file);
+			\Safe\file_put_contents($tmpFile, $response->body);
+			\Safe\touch($tmpFile, $gitModified->getTimestamp());
+			$this->db->beginTransaction();
+			$this->db->loadCSVFile($module, $tmpFile);
+			$this->db->commit();
+			$callback($file, true);
+			return;
+		} catch (FilesystemException) {
+		} catch (Throwable $e) {
+			$this->db->rollback();
+			$callback($file, "There was an SQL error loading the CSV file {$file}, please check your logs.");
+		} finally {
+			if (isset($tmpFile)) {
+				\Safe\unlink($tmpFile);
 			}
 		}
-		@unlink($tmpFile);
 		$callback($file, "Unable to save {$file} into a temporary file for updating.");
 	}
 }

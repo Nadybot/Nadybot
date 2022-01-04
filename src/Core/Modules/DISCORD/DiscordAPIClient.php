@@ -2,12 +2,13 @@
 
 namespace Nadybot\Core\Modules\DISCORD;
 
-use Nadybot\Core\Attributes as NCA;
+use function Safe\json_encode;
 use Closure;
-use JsonException;
+use Safe\Exceptions\JsonException;
 use stdClass;
 use Nadybot\Core\{
 	AsyncHttp,
+	Attributes as NCA,
 	Http,
 	HttpResponse,
 	Instance,
@@ -266,7 +267,7 @@ class DiscordAPIClient extends Instance {
 				return;
 			}
 			try {
-				$reply = json_decode($response->body??"null", false, 512, JSON_THROW_ON_ERROR);
+				$reply = \Safe\json_decode($response->body??"null", false, 512, JSON_THROW_ON_ERROR);
 			} catch (JsonException $e) {
 				$this->logger->error('Error decoding JSON response from Discord-Server: {error}', [
 					"error" => $e->getMessage(),

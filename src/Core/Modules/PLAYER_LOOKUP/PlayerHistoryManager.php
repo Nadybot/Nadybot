@@ -72,7 +72,7 @@ class PlayerHistoryManager extends Instance {
 		$obj->name = $name;
 		$obj->data = [];
 		try {
-			$history = json_decode($cacheResult->data??"[]", false, 512, JSON_THROW_ON_ERROR);
+			$history = \Safe\json_decode($cacheResult->data??"[]", false, 512, JSON_THROW_ON_ERROR);
 		} catch (Throwable $e) {
 			$callback(null, ...$args);
 			return;

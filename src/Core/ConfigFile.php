@@ -4,7 +4,6 @@ namespace Nadybot\Core;
 
 use Exception;
 use Nadybot\Core\Attributes\Instance;
-use RuntimeException;
 use Spatie\DataTransferObject\Attributes\MapFrom;
 use Spatie\DataTransferObject\Attributes\MapTo;
 use Spatie\DataTransferObject\DataTransferObject;
@@ -178,7 +177,7 @@ class ConfigFile extends DataTransferObject {
 			return isset($value);
 		});
 		self::copyFromTemplateIfNeeded($this->getFilePath());
-		$lines = file($this->filePath);
+		$lines = \Safe\file($this->filePath);
 		if (!is_array($lines)) {
 			throw new Exception("Cannot load {$this->filePath}");
 		}
@@ -211,7 +210,7 @@ class ConfigFile extends DataTransferObject {
 			// $lines []= "\n";
 		}
 
-		file_put_contents($this->filePath, $lines);
+		\Safe\file_put_contents($this->filePath, $lines);
 	}
 
 	/**
@@ -222,11 +221,6 @@ class ConfigFile extends DataTransferObject {
 			return;
 		}
 		$templatePath = __DIR__ . '/../../conf/config.template.php';
-		if (copy($templatePath, $filePath) === false) {
-			throw new RuntimeException(
-				"could not create config file {$filePath}: ".
-				(error_get_last()??["message" => "unknown error"])["message"]
-			);
-		}
+		\Safe\copy($templatePath, $filePath);
 	}
 }

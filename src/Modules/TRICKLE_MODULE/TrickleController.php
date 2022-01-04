@@ -52,7 +52,7 @@ class TrickleController extends Instance {
 	public function trickle1Command(CmdContext $context, #[NCA\Regexp("\w+\s+\d+(\s+\w+\s+\d+){0,5}")] string $pairs): void {
 		$abilities = new AbilityConfig();
 
-		$array = preg_split("/\s+/", $pairs);
+		$array = \Safe\preg_split("/\s+/", $pairs);
 		for ($i = 0; isset($array[$i]); $i += 2) {
 			$ability = $this->util->getAbility($array[$i]);
 			if ($ability === null) {
@@ -75,7 +75,7 @@ class TrickleController extends Instance {
 	public function trickle2Command(CmdContext $context, #[NCA\Regexp("\d+\s+\w+(\s+\d+\s+\w+){0,5}")] string $pairs): void {
 		$abilities = new AbilityConfig();
 
-		$array = preg_split("/\s+/", $pairs);
+		$array = \Safe\preg_split("/\s+/", $pairs);
 		for ($i = 0; isset($array[$i]); $i += 2) {
 			$shortAbility = $this->util->getAbility($array[1 + $i]);
 			if ($shortAbility === null) {

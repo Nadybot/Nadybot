@@ -40,7 +40,7 @@ class CacheManager extends Instance {
 
 		//Making sure that the cache folder exists
 		if (!@is_dir($this->cacheDir)) {
-			mkdir($this->cacheDir, 0777);
+			\Safe\mkdir($this->cacheDir, 0777);
 		}
 	}
 
@@ -223,19 +223,19 @@ class CacheManager extends Instance {
 	 */
 	public function store(string $groupName, string $filename, string $contents): void {
 		if (!dir($this->cacheDir . '/' . $groupName)) {
-			mkdir($this->cacheDir . '/' . $groupName, 0777);
+			\Safe\mkdir($this->cacheDir . '/' . $groupName, 0777);
 		}
 
 		$cacheFile = "$this->cacheDir/$groupName/$filename";
 
 		// at least in windows, modification timestamp will not change unless this is done
 		// not sure why that is the case -tyrence
-		@unlink($cacheFile);
+		@\Safe\unlink($cacheFile);
 
-		$fp = fopen($cacheFile, "w");
+		$fp = \Safe\fopen($cacheFile, "w");
 		if (is_resource($fp)) {
-			fwrite($fp, $contents);
-			fclose($fp);
+			\Safe\fwrite($fp, $contents);
+			\Safe\fclose($fp);
 		}
 	}
 
@@ -248,8 +248,7 @@ class CacheManager extends Instance {
 		if (!@file_exists($cacheFile)) {
 			return null;
 		}
-		$contents = file_get_contents($cacheFile);
-		return is_string($contents) ? $contents : null;
+		return \Safe\file_get_contents($cacheFile);
 	}
 
 	/**
@@ -259,7 +258,7 @@ class CacheManager extends Instance {
 		$cacheFile = "$this->cacheDir/$groupName/$filename";
 
 		if (@file_exists($cacheFile)) {
-			return time() - filemtime($cacheFile);
+			return time() - \Safe\filemtime($cacheFile);
 		}
 		return null;
 	}
@@ -276,10 +275,9 @@ class CacheManager extends Instance {
 	/**
 	 * Delete a cache
 	 */
-	public function remove(string $groupName, string $filename): bool {
+	public function remove(string $groupName, string $filename): void {
 		$cacheFile = "$this->cacheDir/$groupName/$filename";
-
-		return @unlink($cacheFile);
+		\Safe\unlink($cacheFile);
 	}
 
 	/**

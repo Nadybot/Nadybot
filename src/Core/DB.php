@@ -18,6 +18,7 @@ use Nadybot\Core\Attributes\HasMigrations;
 use Nadybot\Core\CSV\Reader;
 use Nadybot\Core\DBSchema\Migration;
 use Nadybot\Core\Migration as CoreMigration;
+use Safe\Exceptions\FilesystemException;
 use Throwable;
 
 #[NCA\Instance]
@@ -144,7 +145,7 @@ class DB extends Instance {
 						);
 						$errorShown = true;
 					}
-					sleep(1);
+					\Safe\sleep(1);
 				}
 			} while (!isset($this->sql));
 			if ($errorShown) {
@@ -160,10 +161,16 @@ class DB extends Instance {
 				$dbName = "$host/$dbName";
 			}
 			if (!@file_exists($dbName)) {
-				if (!touch($dbName)) {
+				try {
+					\Safe\touch($dbName);
+				} catch (FilesystemException $e) {
 					$this->logger->error(
-						"Unable to create the dababase \"{$dbName}\". Check that the directory ".
-						"exists and is writable by the current user."
+						"Unable to create the dababase \"{$dbName}\": {error}. Check that the directory ".
+						"exists and is writable by the current user.",
+						[
+							"error" => $e->getMessage(),
+							"exception" => $e,
+						]
 					);
 					exit(10);
 				}
@@ -217,7 +224,7 @@ class DB extends Instance {
 						);
 						$errorShown = true;
 					}
-					sleep(1);
+					\Safe\sleep(1);
 				}
 			} while (!isset($this->sql));
 			if ($errorShown) {
@@ -248,7 +255,7 @@ class DB extends Instance {
 						);
 						$errorShown = true;
 					}
-					sleep(1);
+					\Safe\sleep(1);
 				}
 			} while (!isset($this->sql));
 			if ($errorShown) {
@@ -667,8 +674,8 @@ class DB extends Instance {
 		if (!@file_exists($file)) {
 			throw new Exception("The CSV-file {$file} was not found.");
 		}
-		$version = filemtime($file) ?: 0;
-		$handle = fopen($file, 'r');
+		$version = \Safe\filemtime($file) ?: 0;
+		$handle = \Safe\fopen($file, 'r');
 		while ($handle !== false && !feof($handle)) {
 			$line = fgets($handle);
 			if ($line === false || substr($line, 0, 1) !== "#") {
@@ -681,7 +688,7 @@ class DB extends Instance {
 			$value = $matches[2];
 			switch (strtolower($matches[1])) {
 				case "replaces":
-					$where = preg_split("/\s*=\s*/", $value);
+					$where = \Safe\preg_split("/\s*=\s*/", $value);
 					break;
 				case "version":
 					$version = $value;
@@ -697,7 +704,7 @@ class DB extends Instance {
 			}
 		}
 		if ($handle !== false) {
-			fclose($handle);
+			\Safe\fclose($handle);
 		}
 		$settingName = strtolower("{$fileBase}_db_version");
 		$currentVersion = false;

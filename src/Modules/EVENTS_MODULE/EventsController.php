@@ -261,7 +261,7 @@ class EventsController extends Instance {
 			$msg = "Could not find an event with id $id.";
 		} else {
 			// yyyy-dd-mm hh:mm:ss
-			$eventDate = strtotime($date);
+			$eventDate = \Safe\strtotime($date);
 			$this->db->table("events")
 				->where("id", $id)
 				->update(["event_date" => $eventDate]);

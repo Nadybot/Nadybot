@@ -803,7 +803,7 @@ class GuildController extends Instance {
 
 	public function getOrgChannelIdByOrgId(int $orgId): ?string {
 		foreach ($this->chatBot->grp as $gid => $status) {
-			$string = unpack("N", substr((string)$gid, 1));
+			$string = \Safe\unpack("N", substr((string)$gid, 1));
 			if (ord(substr((string)$gid, 0, 1)) === 3 && $string[1] == $orgId) {
 				return (string)$gid;
 			}

@@ -394,7 +394,7 @@ class Util extends Instance {
 		$arr1 = [];
 		$arr2 = [];
 		foreach ($trace as $obj) {
-			$file = str_replace(getcwd() . "/", "", $obj['file']);
+			$file = str_replace(\Safe\getcwd() . "/", "", $obj['file']);
 			$arr1 []= "{$file}({$obj['line']})";
 			$arr2 []= "{$obj['function']}()";
 		}
@@ -415,7 +415,7 @@ class Util extends Instance {
 	 * Convert UNIX timestamp to date and time
 	 */
 	public function date(int $unixtime): string {
-		return date(self::DATETIME, $unixtime);
+		return \Safe\date(self::DATETIME, $unixtime);
 	}
 
 	/**
@@ -491,8 +491,8 @@ class Util extends Instance {
 		}
 		// Split the array in half
 		$halfway = count($array) / 2;
-		$array1 = array_slice($array, 0, $halfway);
-		$array2 = array_slice($array, $halfway);
+		$array1 = array_slice($array, 0, (int)$halfway);
+		$array2 = array_slice($array, (int)$halfway);
 		// Recurse to sort the two halves
 		$this->mergesort($array1, $cmp_function);
 		$this->mergesort($array2, $cmp_function);
@@ -540,7 +540,7 @@ class Util extends Instance {
 	 * @return string[] An array of file names in that directory
 	 */
 	public function getFilesInDirectory(string $path): array {
-		$files = @scandir($path);
+		$files = @\Safe\scandir($path);
 		if (!is_array($files)) {
 			return [];
 		}
@@ -555,7 +555,7 @@ class Util extends Instance {
 	 * @return string[] An array of dir names in that directory
 	 */
 	public function getDirectoriesInDirectory(string $path): array {
-		$files = @scandir($path);
+		$files = @\Safe\scandir($path);
 		if (!is_array($files)) {
 			return [];
 		}
@@ -594,6 +594,7 @@ class Util extends Instance {
 		return 7;
 	}
 
+	/** @phpstan-param class-string $class */
 	public function getClassSpecFromClass(string $class, string $attrName): ?ClassSpec {
 		if (!is_subclass_of($attrName, NCA\ClassSpec::class)) {
 			throw new InvalidArgumentException("{$attrName} is not a class spec");
@@ -605,6 +606,7 @@ class Util extends Instance {
 		}
 		/** @var NCA\ClassSpec */
 		$attrObj = $attrs[0]->newInstance();
+		/** @phpstan-var class-string */
 		$name = $attrObj->name;
 		/** @var FunctionParameter[] */
 		$params = [];

@@ -183,7 +183,7 @@ class UsageController extends Instance {
 	#[NCA\HandlesCommand("usage")]
 	public function usageInfoCommand(CmdContext $context, #[NCA\Str("info")] string $action): void {
 		$info = $this->getUsageInfo(time() - 7*24*3600, time());
-		$blob = json_encode(
+		$blob = \Safe\json_encode(
 			$info,
 			JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR
 		);

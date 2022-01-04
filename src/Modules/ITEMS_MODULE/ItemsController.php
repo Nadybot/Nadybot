@@ -350,7 +350,7 @@ class ItemsController extends Instance {
 				$numExactMatches = 100;
 				continue;
 			}
-			$itemKeywords = preg_split("/\s/", $row->name);
+			$itemKeywords = \Safe\preg_split("/\s/", $row->name);
 			$numExactMatches = 0;
 			foreach ($itemKeywords as $keyword) {
 				foreach ($searchTerms as $searchWord) {
@@ -504,7 +504,7 @@ class ItemsController extends Instance {
 		if (!isset($search)) {
 			return false;
 		}
-		$tokens = preg_split("/\s+/", $search);
+		$tokens = \Safe\preg_split("/\s+/", $search);
 		foreach ($tokens as $token) {
 			if (substr($token, 0, 1) === "-"
 				&& stripos($itemName, substr($token, 1)) !== false) {
@@ -608,6 +608,9 @@ class ItemsController extends Instance {
 	 * @return string  The longest common string of all given words
 	 */
 	public function getLongestCommonStringOfWords(array $words): string {
+		if (empty($words)) {
+			return "";
+		}
 		return trim(
 			array_reduce(
 				$words,

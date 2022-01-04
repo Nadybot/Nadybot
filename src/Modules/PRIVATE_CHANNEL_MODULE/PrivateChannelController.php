@@ -44,6 +44,7 @@ use Nadybot\Modules\{
 	ONLINE_MODULE\OnlineEvent,
 	ONLINE_MODULE\OnlinePlayer,
 };
+use Safe\Exceptions\FilesystemException;
 
 /**
  * @author Tyrence (RK2)
@@ -1057,15 +1058,10 @@ class PrivateChannelController extends Instance {
 			return;
 		}
 		error_clear_last();
-		$content = @file_get_contents("{$dataPath}/welcome.txt");
-		if ($content === false) {
-			$error = error_get_last();
-			if (isset($error)) {
-				$error = ": " . $error["message"];
-			} else {
-				$error = "";
-			}
-			$this->logger->error("Error reading {$dataPath}/welcome.txt{$error}");
+		try {
+			$content = \Safe\file_get_contents("{$dataPath}/welcome.txt");
+		} catch (FilesystemException $e) {
+			$this->logger->error("Error reading {$dataPath}/welcome.txt: " . $e->getMessage());
 			return;
 		}
 		$msg = $this->settingManager->getString("welcome_msg_string")??"<link>Welcome</link>!";

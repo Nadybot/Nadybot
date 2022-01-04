@@ -206,7 +206,8 @@ class WhompahController extends Instance {
 			->keyBy("id")->toArray();
 
 		$this->db->table("whompah_cities_rel")->orderBy("city1_id")
-			->each(function(object $city) use ($whompahs) {
+			->asObj(WhompahCityRel::class)
+			->each(function(WhompahCityRel $city) use ($whompahs) {
 				$whompahs[$city->city1_id]->connections ??= [];
 				$whompahs[$city->city1_id]->connections[] = (int)$city->city2_id;
 			});

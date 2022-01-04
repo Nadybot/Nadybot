@@ -2,7 +2,8 @@
 
 namespace Nadybot\Core\Modules\DISCORD;
 
-use JsonException;
+use Safe\Exceptions\JsonException;
+use function Safe\json_encode;
 
 class DiscordMessageOut {
 	public string $content;

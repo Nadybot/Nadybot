@@ -11,6 +11,7 @@ use Nadybot\Modules\{
 	WEBSERVER_MODULE\Request,
 	WEBSERVER_MODULE\Response,
 };
+use Safe\Exceptions\FilesystemException;
 use Throwable;
 
 #[NCA\Instance]
@@ -71,8 +72,9 @@ class ProfileApiController extends Instance {
 	public function deleteProfileEndpoint(Request $request, HttpProtocolWrapper $server, string $profile): Response {
 		$filename = $this->profileController->getFilename($profile);
 
-		if (!@file_exists($filename)
-			|| @unlink($filename) === false) {
+		try {
+			\Safe\unlink($filename);
+		} catch (FilesystemException) {
 			return new Response(Response::NOT_FOUND, [], "Profile {$filename} not found.");
 		}
 		return new Response(Response::NO_CONTENT);

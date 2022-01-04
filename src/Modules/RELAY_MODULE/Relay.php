@@ -218,6 +218,7 @@ class Relay implements MessageReceiver {
 		RelayProtocolInterface $relayProtocol,
 		RelayLayerInterface ...$stack
 	): void {
+		/** @var RelayLayerInterface[] $stack */
 		$this->transport = $transport;
 		$this->relayProtocol = $relayProtocol;
 		$this->stack = $stack;

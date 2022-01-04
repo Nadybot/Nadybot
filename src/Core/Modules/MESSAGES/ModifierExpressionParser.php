@@ -89,7 +89,7 @@ class ModifierExpressionParser {
 		$result->name = $argument->findFirst("key")->toString();
 		$value = $argument->findFirst("value");
 		if ($value->getDetailType() === 'string') {
-			$result->value = json_decode($value->toString());
+			$result->value = \Safe\json_decode($value->toString());
 		} else {
 			$result->value = $value->toString();
 		}

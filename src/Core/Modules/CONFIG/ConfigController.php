@@ -2,12 +2,14 @@
 
 namespace Nadybot\Core\Modules\CONFIG;
 
-use Nadybot\Core\Attributes as NCA;
+use function Safe\file_get_contents;
+use function Safe\glob;
 use Exception;
 use Illuminate\Support\Collection;
 use ReflectionClass;
 use Nadybot\Core\{
 	AccessManager,
+	Attributes as NCA,
 	CmdContext,
 	CommandAlias,
 	CommandManager,

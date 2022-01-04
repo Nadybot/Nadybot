@@ -28,6 +28,7 @@ use Nadybot\Core\{
 };
 use Nadybot\Core\ParamClass\PFilename;
 use Nadybot\Core\ParamClass\PWord;
+use Safe\Exceptions\FilesystemException;
 
 /**
  * @author Tyrence (RK2)
@@ -253,7 +254,7 @@ class LogsController extends Instance {
 		$formatter = new JsonFormatter(JsonFormatter::BATCH_MODE_JSON, true, true);
 		$formatter->includeStacktraces(true);
 		$debugFile = sys_get_temp_dir() . "/{$this->chatBot->char->name}.debug.json";
-		@unlink($debugFile);
+		@\Safe\unlink($debugFile);
 		$handler = new StreamHandler($debugFile, Logger::DEBUG, true, 0600);
 		$handler->setFormatter($formatter);
 		$processor = new IntrospectionProcessor(Logger::DEBUG, [], 1);
@@ -277,9 +278,10 @@ class LogsController extends Instance {
 	}
 
 	public function uploadDebugLog(CmdContext $context, string $filename): void {
-		$content = file_get_contents($filename);
-		if ($content === false) {
-			$context->reply("Unable to open <highlight>{$filename}<end>.");
+		try {
+			$content = \Safe\file_get_contents($filename);
+		} catch (FilesystemException $e) {
+			$context->reply("Unable to open <highlight>{$filename}<end>: " . $e->getMessage() . ".");
 			return;
 		}
 		$content = str_replace('"' . BotRunner::getBasedir() . "/", "", $content);
@@ -295,7 +297,7 @@ class LogsController extends Instance {
 				"--{$boundary}--\r\n"
 			)
 			->withCallback([$this, "handleDebugLogUpload"], $context);
-			@unlink($filename);
+			@\Safe\unlink($filename);
 	}
 
 	public function handleDebugLogUpload(HttpResponse $response, CmdContext $context): void {

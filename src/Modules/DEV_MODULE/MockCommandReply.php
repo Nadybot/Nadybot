@@ -41,9 +41,9 @@ class MockCommandReply implements CommandReply {
 		if (!isset($this->logFile)) {
 			return;
 		}
-		file_put_contents(
+		\Safe\file_put_contents(
 			$this->logFile,
-			json_encode([
+			\Safe\json_encode([
 				"command" => $this->command,
 				"output" => $this->output,
 			], JSON_UNESCAPED_SLASHES|JSON_INVALID_UTF8_SUBSTITUTE|JSON_UNESCAPED_UNICODE) . PHP_EOL,

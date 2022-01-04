@@ -4,7 +4,7 @@ namespace Nadybot\Core\Modules\MESSAGES;
 
 use Nadybot\Core\Attributes as NCA;
 use Exception;
-use JsonException;
+use Safe\Exceptions\JsonException;
 use ReflectionClass;
 use Throwable;
 use Illuminate\Support\Collection;
@@ -304,7 +304,7 @@ class MessageHubController extends Instance {
 					if (isset($refParams[$parNum]) && $refParams[$parNum]->isDefaultValueAvailable()) {
 						try {
 							$blob .= " (optional, default=".
-								json_encode(
+								\Safe\json_encode(
 									$refParams[$parNum]->getDefaultValue(),
 									JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR|JSON_INVALID_UTF8_SUBSTITUTE
 								) . ")";

@@ -2,8 +2,9 @@
 
 namespace Nadybot\Modules\RELAY_MODULE\RelayProtocol;
 
+use Closure;
 use Nadybot\Core\Attributes as NCA;
-use JsonException;
+use Safe\Exceptions\JsonException;
 use Nadybot\Core\{
 	ConfigFile,
 	EventManager,
@@ -23,6 +24,7 @@ use Nadybot\Modules\{
 	RELAY_MODULE\RelayProtocol\Nadybot\OnlineBlock,
 	RELAY_MODULE\RelayProtocol\Nadybot\OnlineList,
 };
+use stdClass;
 use Throwable;
 
 #[
@@ -84,7 +86,7 @@ class NadyNative implements RelayProtocolInterface {
 			$event->data->message = str_replace("<myname>", $this->chatBot->char->name, $event->data->message??"");
 		}
 		try {
-			$data = json_encode($event, JSON_UNESCAPED_SLASHES|JSON_INVALID_UTF8_SUBSTITUTE|JSON_THROW_ON_ERROR);
+			$data = \Safe\json_encode($event, JSON_UNESCAPED_SLASHES|JSON_INVALID_UTF8_SUBSTITUTE|JSON_THROW_ON_ERROR);
 		} catch (JsonException $e) {
 			$this->logger->error(
 				'Cannot send event via Nadynative protocol: '.
@@ -106,7 +108,7 @@ class NadyNative implements RelayProtocolInterface {
 		}
 		$serialized = array_shift($message->packages);
 		try {
-			$data = json_decode($serialized, false, 10, JSON_UNESCAPED_SLASHES|JSON_INVALID_UTF8_SUBSTITUTE|JSON_THROW_ON_ERROR);
+			$data = \Safe\json_decode($serialized, false, 10, JSON_UNESCAPED_SLASHES|JSON_INVALID_UTF8_SUBSTITUTE|JSON_THROW_ON_ERROR);
 		} catch (JsonException $e) {
 			$this->logger->error(
 				'Invalid data received via Nadynative protocol',
@@ -142,7 +144,7 @@ class NadyNative implements RelayProtocolInterface {
 		}
 		$event->data = $data->data??null;
 		$event->type = $data->type;
-		if (isset($data->char) && is_object($data->char)) {
+		if (isset($data->char) && is_object($data->char) && ($data->char instanceof stdClass) && isset($data->char->name)) {
 			$event->setCharacter(
 				new Character(
 					$data->char->name,
@@ -153,7 +155,8 @@ class NadyNative implements RelayProtocolInterface {
 		}
 		if ($event->type === RoutableEvent::TYPE_EVENT
 			&& is_object($event->data)
-			&& $event->data->type === Online::TYPE
+			&& ($event->data instanceof stdClass)
+			&& ($event->data->type??null) === Online::TYPE
 			&& isset($message->sender)
 			&& $this->syncOnline
 		) {
@@ -184,7 +187,7 @@ class NadyNative implements RelayProtocolInterface {
 	protected function handleExtSyncEvent(object $event): void {
 		try {
 			$sEvent = new SyncEvent();
-			foreach ($event as $key => $value) {
+			foreach (get_object_vars($event) as $key => $value) {
 				$sEvent->{$key} = $value;
 			}
 			if ($sEvent->isLocal()) {
@@ -260,7 +263,9 @@ class NadyNative implements RelayProtocolInterface {
 		if (!isset($llEvent->char)) {
 			return;
 		}
-		$call = $llEvent->online ? [$this->relay, "setOnline"] : [$this->relay, "setOffline"];
+		$call = $llEvent->online
+			? Closure::fromCallable([$this->relay, "setOnline"])
+			: Closure::fromCallable([$this->relay, "setOffline"]);
 		$call($sender, $where, $llEvent->char->name, $llEvent->char->id, $llEvent->char->dimension);
 	}
 
@@ -336,7 +341,7 @@ class NadyNative implements RelayProtocolInterface {
 	}
 
 	protected function jsonEncode(mixed $data): string {
-		return json_encode($data, JSON_UNESCAPED_SLASHES|JSON_INVALID_UTF8_SUBSTITUTE|JSON_THROW_ON_ERROR);
+		return \Safe\json_encode($data, JSON_UNESCAPED_SLASHES|JSON_INVALID_UTF8_SUBSTITUTE|JSON_THROW_ON_ERROR);
 	}
 
 	public function handleSyncEvent(SyncEvent $event): void {

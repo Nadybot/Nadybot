@@ -2,7 +2,7 @@
 
 namespace Nadybot\Modules\GSP_MODULE;
 
-use DateTime;
+use Safe\DateTime;
 use DateTimeZone;
 use JsonException;
 use Nadybot\Core\{
@@ -158,7 +158,7 @@ class GSPController extends Instance implements MessageEmitter {
 		}
 		$show = new Show();
 		try {
-			$show->fromJSON(json_decode($response->body, false, 512, JSON_THROW_ON_ERROR));
+			$show->fromJSON(\Safe\json_decode($response->body, false, 512, JSON_THROW_ON_ERROR));
 		} catch (JsonException $e) {
 			return;
 		}
@@ -322,7 +322,7 @@ class GSPController extends Instance implements MessageEmitter {
 		}
 		$show = new Show();
 		try {
-			$show->fromJSON(json_decode($response->body));
+			$show->fromJSON(\Safe\json_decode($response->body));
 		} catch (JsonException $e) {
 			return "GSP seems to have problems with their service. Please try again later.";
 		}
@@ -389,7 +389,7 @@ class GSPController extends Instance implements MessageEmitter {
 		}
 		$show = new Show();
 		try {
-			$show->fromJSON(json_decode($response->body));
+			$show->fromJSON(\Safe\json_decode($response->body));
 		} catch (JsonException $e) {
 			$callback(null);
 			return;

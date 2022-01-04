@@ -184,7 +184,7 @@ class WhatLocksController extends Instance {
 		$short = preg_replace_callback(
 			"/^(\d+)/",
 			function(array $match): string {
-				return (string)($match[1] - 1);
+				return (string)((int)$match[1] - 1);
 			},
 			$short
 		);

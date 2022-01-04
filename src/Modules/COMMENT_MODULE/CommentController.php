@@ -480,7 +480,8 @@ class CommentController extends Instance {
 				return;
 			}
 		}
-		/** @var Comment[] */
+		/** @var ?CommentCategory $category */
+		/** @var Comment[] $comments */
 		$comments = $this->getComments($category, $character);
 		$comments = $this->filterInaccessibleComments($comments, $context->char->name);
 		if (!count($comments)) {

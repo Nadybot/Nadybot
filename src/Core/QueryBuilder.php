@@ -41,6 +41,17 @@ class QueryBuilder extends Builder {
 		$numColumns = count($values);
 		for ($col=0; $col < $numColumns; $col++) {
 			$colMeta = $ps->getColumnMeta($col);
+			if ($colMeta === false) {
+				$this->logger->error(
+					"Error trying to get the meta information for {className}, column {colNum}: {error}",
+					[
+						"className" => $className,
+						"colNum" => $col,
+						"error" => "query didn't return that many columns",
+					]
+				);
+				continue;
+			}
 			$colName = $colMeta['name'];
 			if ($values[$col] === null) {
 				try {
@@ -141,7 +152,7 @@ class QueryBuilder extends Builder {
 				$conn->reconnect();
 				return $this->executeQuery(...func_get_args());
 			}
-			throw new SQLException("Error: {$e->errorInfo[2]}\nQuery: $sql\nParams: " . json_encode($params, JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES), 0, $e);
+			throw new SQLException("Error: {$e->errorInfo[2]}\nQuery: $sql\nParams: " . \Safe\json_encode($params, JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES), 0, $e);
 		}
 	}
 
@@ -155,12 +166,18 @@ class QueryBuilder extends Builder {
 
 		$sql = $this->nadyDB->applySQLCompatFixes($sql);
 		$ps = $this->executeQuery($sql, $args);
-		return $ps->fetchAll(
+		$data = $ps->fetchAll(
 			PDO::FETCH_FUNC,
 			function (mixed ...$values) use ($ps, $className): ?object {
+				/** @var mixed[] $values */
 				return $this->convertToClass($ps, $className, $values);
 			}
 		);
+		if ($data === false) {
+			$this->logger->critical("Unknown error converting data from the database");
+			die();
+		}
+		return $data;
 	}
 
 	/**
@@ -185,7 +202,7 @@ class QueryBuilder extends Builder {
 	public function pluckAs(string $column, string $type): Collection {
 		return $this->pluck($column)
 			->map(function (mixed $value, int $key) use ($type): mixed {
-				settype($value, $type);
+				\Safe\settype($value, $type);
 				return $value;
 			});
 	}

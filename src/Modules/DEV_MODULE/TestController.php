@@ -30,6 +30,7 @@ use Nadybot\Core\{
 use Nadybot\Modules\DISCORD_GATEWAY_MODULE\DiscordMessageEvent;
 use Nadybot\Modules\HELPBOT_MODULE\PlayfieldController;
 use Nadybot\Modules\TOWER_MODULE\TowerController;
+use Safe\Exceptions\FilesystemException;
 
 /**
  * @author Tyrence (RK2)
@@ -260,10 +261,11 @@ class TestController extends Instance {
 		$files = $this->util->getFilesInDirectory($this->path);
 		$context->reply("Starting tests...");
 		$logFile = $this->config->dataFolder.
-			"/tests-" . date("YmdHis", time()) . ".json";
+			"/tests-" . \Safe\date("YmdHis", time()) . ".json";
 		$testLines = [];
 		foreach ($files as $file) {
-			$lines = file($this->path . $file, \FILE_IGNORE_NEW_LINES);
+			$lines = \Safe\file($this->path . $file, \FILE_IGNORE_NEW_LINES);
+			/** @var string[] $lines */
 			$testLines = [...$testLines, ...$lines];
 		}
 		$this->runTests($testLines, $testContext, $logFile);
@@ -277,18 +279,19 @@ class TestController extends Instance {
 		$testContext = clone $context;
 		$testContext->channel = "msg";
 
-		$lines = file($this->path . $file, FILE_IGNORE_NEW_LINES);
-		if ($lines === false) {
+		try {
+			$lines = \Safe\file($this->path . $file, FILE_IGNORE_NEW_LINES);
+		} catch (FilesystemException) {
 			$context->reply("Could not find test <highlight>$file<end> to run.");
-		} else {
-			$starttime = time();
-			$logFile = $this->config->dataFolder.
-				"/tests-" . date("YmdHis", $starttime) . ".json";
-			$context->reply("Starting test $file...");
-			$this->runTests($lines, $testContext, $logFile);
-			$time = $this->util->unixtimeToReadable(time() - $starttime);
-			$context->reply("Finished test $file. Time: $time");
+			return;
 		}
+		$starttime = time();
+		$logFile = $this->config->dataFolder.
+			"/tests-" . \Safe\date("YmdHis", $starttime) . ".json";
+		$context->reply("Starting test $file...");
+		$this->runTests($lines, $testContext, $logFile);
+		$time = $this->util->unixtimeToReadable(time() - $starttime);
+		$context->reply("Finished test $file. Time: $time");
 	}
 
 	/** @param string[] $commands */
@@ -600,7 +603,7 @@ class TestController extends Instance {
 	public function testDiscordMessageCommand(CmdContext $context, PCharacter $nick, string $content): void {
 		$event = new DiscordMessageEvent();
 		$message = new DiscordMessageIn();
-		$payload = json_decode(
+		$payload = \Safe\json_decode(
 			'{'.
 				'"type":0,'.
 				'"tts":false,'.
@@ -613,7 +616,7 @@ class TestController extends Instance {
 				'"mention_everyone":false,'.
 				'"member":{'.
 					'"roles":["731589704247410729"],'.
-					'"nick":' . json_encode($nick()) . ','.
+					'"nick":' . \Safe\json_encode($nick()) . ','.
 					'"mute":false,'.
 					'"joined_at":"2020-07-11T16:46:42.205000+00:00",'.
 					'"hoisted_role":null,'.
@@ -623,11 +626,11 @@ class TestController extends Instance {
 				'"flags":0,'.
 				'"embeds":[],'.
 				'"edited_timestamp":null,'.
-				'"content":' . json_encode($content) . ','.
+				'"content":' . \Safe\json_encode($content) . ','.
 				'"components":[],'.
 				'"channel_id":"731553649184211064",'.
 				'"author":{'.
-					'"username":' . json_encode($nick()) . ','.
+					'"username":' . \Safe\json_encode($nick()) . ','.
 					'"public_flags":0,'.
 					'"id":"356025105371103232",'.
 					'"discriminator":"9062",'.
@@ -654,7 +657,7 @@ class TestController extends Instance {
 			$context->reply("The character <highlight>{$who}<end> does not exist.");
 			return;
 		}
-		$packet = new AOChatPacket("in", AOChatPacket::BUDDY_ADD, pack("NNn", $uid, 1, 0));
+		$packet = new AOChatPacket("in", AOChatPacket::BUDDY_ADD, \Safe\pack("NNn", $uid, 1, 0));
 
 		$this->chatBot->process_packet($packet);
 	}
@@ -666,7 +669,7 @@ class TestController extends Instance {
 			$context->reply("The character <highlight>{$who}<end> does not exist.");
 			return;
 		}
-		$packet = new AOChatPacket("in", AOChatPacket::BUDDY_ADD, pack("NNn", $uid, 0, 0));
+		$packet = new AOChatPacket("in", AOChatPacket::BUDDY_ADD, \Safe\pack("NNn", $uid, 0, 0));
 
 		$this->chatBot->process_packet($packet);
 	}
@@ -684,7 +687,7 @@ class TestController extends Instance {
 			$context->reply("Cannot determine this bot's private channel.");
 			return;
 		}
-		$packet = new AOChatPacket("in", AOChatPacket::PRIVGRP_CLIJOIN, pack("NN", $channelUid, $uid));
+		$packet = new AOChatPacket("in", AOChatPacket::PRIVGRP_CLIJOIN, \Safe\pack("NN", $channelUid, $uid));
 
 		$this->chatBot->process_packet($packet);
 	}
@@ -702,13 +705,13 @@ class TestController extends Instance {
 			$context->reply("Cannot determine this bot's private channel.");
 			return;
 		}
-		$packet = new AOChatPacket("in", AOChatPacket::PRIVGRP_CLIPART, pack("NN", $channelUid, $uid));
+		$packet = new AOChatPacket("in", AOChatPacket::PRIVGRP_CLIPART, \Safe\pack("NN", $channelUid, $uid));
 
 		$this->chatBot->process_packet($packet);
 	}
 
 	#[NCA\HandlesCommand("testsleep")]
 	public function testSleepCommand(CmdContext $context, int $duration): void {
-		sleep($duration);
+		\Safe\sleep($duration);
 	}
 }

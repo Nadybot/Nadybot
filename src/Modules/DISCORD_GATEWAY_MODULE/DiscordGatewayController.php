@@ -79,7 +79,8 @@ use stdClass;
 	NCA\ProvidesEvent("discord_voice_join"),
 	NCA\ProvidesEvent("discord_voice_leave")
 ]
-class DiscordGatewayController extends Instance {	#[NCA\Inject]
+class DiscordGatewayController extends Instance {
+	#[NCA\Inject]
 	public SettingManager $settingManager;
 
 	#[NCA\Inject]
@@ -215,7 +216,7 @@ class DiscordGatewayController extends Instance {	#[NCA\Inject]
 		} else {
 			$packet->d->activities = [];
 		}
-		$this->client->send(json_encode($packet));
+		$this->client->send(\Safe\json_encode($packet));
 	}
 
 	/**
@@ -264,14 +265,14 @@ class DiscordGatewayController extends Instance {	#[NCA\Inject]
 			return;
 		}
 		$this->lastHeartbeat = time();
-		$this->client->send(json_encode(["op" => 1, "d" => $this->lastSequenceNumber]), "text");
+		$this->client->send(\Safe\json_encode(["op" => 1, "d" => $this->lastSequenceNumber]), "text");
 		$this->logger->info("Sending heartbeat");
 		$this->timer->callLater($this->heartbeatInterval, [$this, __FUNCTION__]);
 	}
 
 	public function processWebsocketError(WebsocketCallback $event): void {
 		$this->logger->error("[$event->code] $event->data");
-		if ($event->code === WebsocketError::CONNECT_TIMEOUT) {
+		if ($event->code === WebsocketError::CONNECT_TIMEOUT && isset($this->client)) {
 			$this->timer->callLater(30, [$this->client, 'connect']);
 		}
 	}
@@ -283,7 +284,7 @@ class DiscordGatewayController extends Instance {	#[NCA\Inject]
 			if (!isset($event->data)) {
 				throw new JsonException("null message received.");
 			}
-			$payload->fromJSON(json_decode($event->data, false, 512, JSON_THROW_ON_ERROR));
+			$payload->fromJSON(\Safe\json_decode($event->data, false, 512, JSON_THROW_ON_ERROR));
 		} catch (JsonException $e) {
 			$this->logger->error("Invalid JSON data received from Discord: {error}", [
 				"error" => $e->getMessage(),
@@ -330,7 +331,7 @@ class DiscordGatewayController extends Instance {	#[NCA\Inject]
 	)]
 	public function processGatewayHello(DiscordGatewayEvent $event): void {
 		$payload = $event->payload;
-		/** @var object $payload->d */
+		/** @var stdClass $payload->d */
 		$this->heartbeatInterval = intdiv($payload->d->heartbeat_interval, 1000);
 		$this->timer->callLater($this->heartbeatInterval, [$this, "sendWebsocketHeartbeat"]);
 		$this->logger->info("Setting Discord heartbeat interval to ".$this->heartbeatInterval."sec");
@@ -356,7 +357,7 @@ class DiscordGatewayController extends Instance {	#[NCA\Inject]
 		$login->op = Opcode::IDENTIFY;
 		$login->d = $identify;
 		if (isset($this->client)) {
-			$this->client->send(json_encode($login));
+			$this->client->send(\Safe\json_encode($login));
 		}
 	}
 
@@ -374,7 +375,7 @@ class DiscordGatewayController extends Instance {	#[NCA\Inject]
 		$payload->op = Opcode::RESUME;
 		$payload->d = $resume;
 		if (isset($this->client)) {
-			$this->client->send(json_encode($payload));
+			$this->client->send(\Safe\json_encode($payload));
 		}
 	}
 
@@ -467,8 +468,9 @@ class DiscordGatewayController extends Instance {	#[NCA\Inject]
 			$this->sessionId = null;
 		}
 		if (
-			(($event->code ?? null) === 1000 && $this->mustReconnect)
-			|| $this->shouldReconnect($event->code ?? null)
+			((($event->code ?? null) === 1000 && $this->mustReconnect)
+			|| $this->shouldReconnect($event->code ?? null))
+			&& isset($this->client)
 		) {
 			$this->logger->notice("Reconnecting to Discord gateway in {$this->reconnectDelay}s.");
 			$this->mustReconnect = false;
@@ -568,7 +570,7 @@ class DiscordGatewayController extends Instance {	#[NCA\Inject]
 			$blob .= DiscordRelayController::formatMessage($embed->description) . "\n\n";
 		}
 		foreach ($embed->fields??[] as $field) {
-			if (!is_object($field)) {
+			if (!is_object($field) || !isset($field->name) || !isset($field->value)) {
 				continue;
 			}
 			$blob .= "<header2>".
@@ -648,7 +650,7 @@ class DiscordGatewayController extends Instance {	#[NCA\Inject]
 	]
 	public function processDiscordGuildMessages(DiscordGatewayEvent $event): void {
 		$guild = new Guild();
-		/** @var object $event->payload->d */
+		/** @var stdClass $event->payload->d */
 		$guild->fromJSON($event->payload->d);
 		$this->guilds[(string)$guild->id] = $guild;
 		foreach ($guild->voice_states as $voiceState) {
@@ -694,7 +696,7 @@ class DiscordGatewayController extends Instance {	#[NCA\Inject]
 	]
 	public function processDiscordChannelMessages(DiscordGatewayEvent $event): void {
 		$channel = new DiscordChannel();
-		/** @var object $event->payload->d */
+		/** @var stdClass $event->payload->d */
 		$channel->fromJSON($event->payload->d);
 		// Not a guild-channel? Must be a DM channel which we don't cache anyway
 		if (!isset($channel->guild_id)) {
@@ -764,7 +766,7 @@ class DiscordGatewayController extends Instance {	#[NCA\Inject]
 	)]
 	public function processDiscordReady(DiscordGatewayEvent $event): void {
 		$payload = $event->payload;
-		/** @var object $payload->d */
+		/** @var stdClass $payload->d */
 		$this->sessionId = $payload->d->session_id;
 		$user = new DiscordUser();
 		$user->fromJSON($payload->d->user);
@@ -799,7 +801,7 @@ class DiscordGatewayController extends Instance {	#[NCA\Inject]
 	public function trackVoiceStateChanges(DiscordGatewayEvent $event): void {
 		$payload = $event->payload;
 		$voiceState = new VoiceState();
-		/** @var object $payload->d */
+		/** @var stdClass $payload->d */
 		$voiceState->fromJSON($payload->d);
 		if (!isset($voiceState->channel_id) || $voiceState->channel_id === "") {
 			$this->handleVoiceChannelLeave($voiceState);

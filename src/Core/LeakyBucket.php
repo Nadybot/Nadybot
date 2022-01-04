@@ -3,9 +3,9 @@
 namespace Nadybot\Core;
 
 if (!defined("AOC_PRIORITY_HIGH")) {
-	define('AOC_PRIORITY_HIGH', 1000);
-	define('AOC_PRIORITY_MED',   500);
-	define('AOC_PRIORITY_LOW',   100);
+	\Safe\define('AOC_PRIORITY_HIGH', 1000);
+	\Safe\define('AOC_PRIORITY_MED',   500);
+	\Safe\define('AOC_PRIORITY_LOW',   100);
 }
 
 class LeakyBucket implements QueueInterface {

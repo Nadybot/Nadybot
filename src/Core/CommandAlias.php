@@ -136,8 +136,8 @@ class CommandAlias extends Instance {
 		$cmd = preg_replace_callback(
 			"/\{(\d+)(:.*?)?\}/",
 			function (array $matches) use ($aliasParams): string {
-				if (isset($aliasParams[$matches[1]])) {
-					return $aliasParams[$matches[1]];
+				if (isset($aliasParams[(int)$matches[1]])) {
+					return $aliasParams[(int)$matches[1]];
 				}
 				if (count($matches) < 3) {
 					return $matches[0];

@@ -3,7 +3,7 @@
 namespace Nadybot\Modules\RELAY_MODULE\Layer;
 
 use Nadybot\Core\Attributes as NCA;
-use JsonException;
+use Safe\Exceptions\JsonException;
 use Nadybot\Core\LoggerWrapper;
 use Nadybot\Modules\RELAY_MODULE\Relay;
 use Nadybot\Modules\RELAY_MODULE\RelayLayerInterface;
@@ -54,7 +54,7 @@ class TyrRelay implements RelayLayerInterface, StatusProvider {
 				"payload" => $packet,
 			];
 			try {
-				$encoded []= json_encode($json, JSON_THROW_ON_ERROR|JSON_UNESCAPED_SLASHES|JSON_INVALID_UTF8_SUBSTITUTE);
+				$encoded []= \Safe\json_encode($json, JSON_THROW_ON_ERROR|JSON_UNESCAPED_SLASHES|JSON_INVALID_UTF8_SUBSTITUTE);
 			} catch (JsonException $e) {
 				$this->logger->error(
 					"Unable to encode the relay data into tyr-relay protocol: ".
@@ -70,7 +70,7 @@ class TyrRelay implements RelayLayerInterface, StatusProvider {
 	public function receive(RelayMessage $msg): ?RelayMessage {
 		foreach ($msg->packages as &$data) {
 			try {
-				$json = json_decode($data, false, 512, JSON_THROW_ON_ERROR);
+				$json = \Safe\json_decode($data, false, 512, JSON_THROW_ON_ERROR);
 			} catch (JsonException $e) {
 				$this->status = new RelayStatus(
 					RelayStatus::ERROR,

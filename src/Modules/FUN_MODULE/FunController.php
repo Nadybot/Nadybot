@@ -118,6 +118,7 @@ class FunController extends Instance {
 			$msg = str_replace("*creds*", (string)$cred, $msg);
 		}
 
+		// @phpstan-ignore-next-line
 		return $msg;
 	}
 

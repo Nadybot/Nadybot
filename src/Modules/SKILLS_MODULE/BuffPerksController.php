@@ -485,7 +485,7 @@ class BuffPerksController extends Instance {
 	 */
 	public function getPerkInfo(): array {
 		$path = __DIR__ . "/perks.csv";
-		$lines = explode("\n", file_get_contents($path));
+		$lines = explode("\n", \Safe\file_get_contents($path));
 		$perks = [];
 		$skillCache = [];
 		foreach ($lines as $line) {
@@ -557,9 +557,9 @@ class BuffPerksController extends Instance {
 			}
 
 			if (strlen($resistances??'')) {
-				$resistances = preg_split("/\s*,\s*/", $resistances??"");
+				$resistances = \Safe\preg_split("/\s*,\s*/", $resistances??"");
 				foreach ($resistances as $resistance) {
-					[$strainId, $amount] = preg_split("/\s*:\s*/", $resistance);
+					[$strainId, $amount] = \Safe\preg_split("/\s*:\s*/", $resistance);
 					$level->resistances[(int)$strainId] = (int)$amount;
 				}
 			}
@@ -706,9 +706,10 @@ class BuffPerksController extends Instance {
 		$result->expansion = $perk->expansion;
 		$result->name = $perk->name;
 		$result->description = $perk->description;
-		$minLevel = min(array_keys($perk->levels));
+		/** @var int */
+		$minLevel = (new Collection($perk->levels))->keys()->min();
 		$result->professions = $perk->levels[$minLevel]->professions;
-		$result->max_level = max(array_keys($perk->levels));
+		$result->max_level = (new Collection($perk->levels))->keys()->max();
 		/** @var array<int,int> */
 		$buffs = [];
 		/** @var array<int,int> */

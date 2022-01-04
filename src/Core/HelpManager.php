@@ -101,7 +101,7 @@ class HelpManager extends Instance {
 			}
 			if ($this->checkAccessLevels($accessLevel, explode(",", $row->admin_list))) {
 				$output .= $this->configController->getAliasInfo($row->name);
-				$content = file_get_contents($row->file);
+				$content = \Safe\file_get_contents($row->file);
 				if (is_string($content)) {
 					$output .= trim($content) . "\n\n";
 				}

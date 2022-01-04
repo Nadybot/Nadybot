@@ -64,14 +64,14 @@ class MessageHub extends Instance {
 
 	#[NCA\Setup]
 	public function setup(): void {
-		$modifierFiles = glob(__DIR__ . "/EventModifier/*.php");
-		if ($modifierFiles === false) {
-			throw new Exception("Cannot read " . __DIR__ . "/EventModifier/*.php");
-		}
+		$modifierFiles = \Safe\glob(__DIR__ . "/EventModifier/*.php");
 		foreach ($modifierFiles as $file) {
 			require_once $file;
 			$className = basename($file, '.php');
 			$fullClass = __NAMESPACE__ . "\\EventModifier\\{$className}";
+			if (!class_exists($fullClass)) {
+				continue;
+			}
 			$spec = $this->util->getClassSpecFromClass($fullClass, NCA\EventModifier::class);
 			if (isset($spec)) {
 				$this->registerEventModifier($spec);
@@ -341,7 +341,7 @@ class MessageHub extends Instance {
 		try {
 			$this->logger->info(
 				"Trying to route {$type} - ".
-				json_encode($event, JSON_UNESCAPED_SLASHES|JSON_INVALID_UTF8_SUBSTITUTE|JSON_THROW_ON_ERROR)
+				\Safe\json_encode($event, JSON_UNESCAPED_SLASHES|JSON_INVALID_UTF8_SUBSTITUTE|JSON_THROW_ON_ERROR)
 			);
 		} catch (JsonException $e) {
 			// Ignore

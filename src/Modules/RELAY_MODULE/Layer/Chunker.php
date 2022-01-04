@@ -108,9 +108,9 @@ class Chunker implements RelayLayerInterface {
 				"sent" => $created,
 				"data" => $chunk,
 			]);
-			$json = json_encode($msg, JSON_UNESCAPED_SLASHES|JSON_INVALID_UTF8_SUBSTITUTE);
+			$json = \Safe\json_encode($msg, JSON_UNESCAPED_SLASHES|JSON_INVALID_UTF8_SUBSTITUTE);
 			if ($json !== false) {
-				$result []= json_encode($msg, JSON_UNESCAPED_SLASHES|JSON_INVALID_UTF8_SUBSTITUTE);
+				$result []= \Safe\json_encode($msg, JSON_UNESCAPED_SLASHES|JSON_INVALID_UTF8_SUBSTITUTE);
 			}
 		}
 		return $result;
@@ -119,7 +119,7 @@ class Chunker implements RelayLayerInterface {
 	public function receive(RelayMessage $msg): ?RelayMessage {
 		foreach ($msg->packages as &$data) {
 			try {
-				$json = json_decode($data, true, 512, JSON_THROW_ON_ERROR);
+				$json = \Safe\json_decode($data, true, 512, JSON_THROW_ON_ERROR);
 				$chunk = new Chunk($json);
 			} catch (Throwable $e) {
 				// Chunking is optional

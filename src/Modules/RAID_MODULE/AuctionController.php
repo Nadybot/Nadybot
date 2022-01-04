@@ -2,7 +2,7 @@
 
 namespace Nadybot\Modules\RAID_MODULE;
 
-use DateTime;
+use Safe\DateTime;
 use InvalidArgumentException;
 use Nadybot\Core\{
 	Attributes as NCA,
@@ -436,7 +436,7 @@ class AuctionController extends Instance {
 		} else {
 			$this->db->addWhereFromParams(
 				$query,
-				preg_split('/\s+/', $search),
+				\Safe\preg_split('/\s+/', $search),
 				'item'
 			);
 		}

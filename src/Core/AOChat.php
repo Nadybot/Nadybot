@@ -53,52 +53,7 @@ use Monolog\Logger;
  * phpcs:disable PSR1.Methods.CamelCapsMethodName.NotCamelCaps
  */
 
-if ((float)phpversion() < 7.4) {
-	die("AOChat class needs PHP version 7.4.0 or higher in order to work.\n");
-}
-
-if (!extension_loaded("sockets")) {
-	die("AOChat class needs the Sockets extension to work.\n");
-}
-
-if (!extension_loaded("bcmath")) {
-	die("AOChat class needs the BCMath extension to work.\n");
-}
-
-set_time_limit(0);
-ini_set("html_errors", "0");
-
-define('AOC_GROUP_NOWRITE',     0x00000002);
-define('AOC_GROUP_NOASIAN',     0x00000020);
-define('AOC_GROUP_MUTE',        0x01010000);
-define('AOC_GROUP_LOG',         0x02020000);
-
-define('AOC_FLOOD_LIMIT',                5);
-define('AOC_FLOOD_INC',                  2);
-
-define('AOEM_UNKNOWN',                0xFF);
-define('AOEM_ORG_JOIN',               0x10);
-define('AOEM_ORG_KICK',               0x11);
-define('AOEM_ORG_LEAVE',              0x12);
-define('AOEM_ORG_DISBAND',            0x13);
-define('AOEM_ORG_FORM',               0x14);
-define('AOEM_ORG_VOTE',               0x15);
-define('AOEM_ORG_STRIKE',             0x16);
-define('AOEM_NW_ATTACK',              0x20);
-define('AOEM_NW_ABANDON',             0x21);
-define('AOEM_NW_OPENING',             0x22);
-define('AOEM_NW_TOWER_ATT_ORG',       0x23);
-define('AOEM_NW_TOWER_ATT',           0x24);
-define('AOEM_NW_TOWER',               0x25);
-define('AOEM_AI_CLOAK',               0x30);
-define('AOEM_AI_RADAR',               0x31);
-define('AOEM_AI_ATTACK',              0x32);
-define('AOEM_AI_REMOVE_INIT',         0x33);
-define('AOEM_AI_REMOVE',              0x34);
-define('AOEM_AI_HQ_REMOVE_INIT',      0x35);
-define('AOEM_AI_HQ_REMOVE',           0x36);
-
-class AOChat {
+class AOChat extends Instance {
 	public const AOC_GROUP_NOWRITE = 0x00000002;
 	public const AOC_GROUP_NOASIAN = 0x00000020;
 	public const AOC_GROUP_MUTE =    0x01010000;
@@ -260,7 +215,7 @@ class AOChat {
 			return false;
 		}
 
-		$this->chatqueue = new LeakyBucket(AOC_FLOOD_LIMIT, AOC_FLOOD_INC);
+		$this->chatqueue = new LeakyBucket(self::AOC_FLOOD_LIMIT, self::AOC_FLOOD_INC);
 
 		return true;
 	}
@@ -342,10 +297,8 @@ class AOChat {
 		if (strlen($head) !== 4) {
 			return null;
 		}
-		if (($data = unpack("n2", $head)) === false) {
-			return null;
-		}
-		/** @phpstan-var array{int,int,int} $data */
+		/** @phpstan-var array{int,int,int} */
+		$data = \Safe\unpack("n2", $head);
 
 		[, $type, $len] = $data;
 
@@ -433,7 +386,7 @@ class AOChat {
 	 * Send a packet
 	 */
 	public function sendPacket(AOChatPacket $packet): bool {
-		$data = pack("n2", $packet->type, strlen($packet->data)) . $packet->data;
+		$data = \Safe\pack("n2", $packet->type, strlen($packet->data)) . $packet->data;
 
 		if ($this->logger->isHandling(Logger::DEBUG)) {
 			$refClass = new \ReflectionClass($packet);
@@ -759,7 +712,7 @@ class AOChat {
 			return false;
 		}
 
-		return $this->sendPacket(new AOChatPacket("out", AOChatPacket::GROUP_DATA_SET, [$gid, $this->grp[(int)$gid] & ~AOC_GROUP_MUTE, "\0"]));
+		return $this->sendPacket(new AOChatPacket("out", AOChatPacket::GROUP_DATA_SET, [$gid, $this->grp[(int)$gid] & ~self::AOC_GROUP_MUTE, "\0"]));
 	}
 
 	/**
@@ -772,7 +725,7 @@ class AOChat {
 			return false;
 		}
 
-		return $this->sendPacket(new AOChatPacket("out", AOChatPacket::GROUP_DATA_SET, [$gid, $this->grp[(int)$gid] | AOC_GROUP_MUTE, "\0"]));
+		return $this->sendPacket(new AOChatPacket("out", AOChatPacket::GROUP_DATA_SET, [$gid, $this->grp[(int)$gid] | self::AOC_GROUP_MUTE, "\0"]));
 	}
 
 	/**
@@ -820,7 +773,7 @@ class AOChat {
 	 *
 	 * @param int|string $user The user to invite to our private group
 	 */
-	public function privategroup_invite($user): bool {
+	public function privategroup_invite(string|int $user): bool {
 		if (($uid = $this->get_uid($user)) === false) {
 			return false;
 		}
@@ -1076,10 +1029,10 @@ class AOChat {
 			$dhK = substr($dhK, 0, 32);
 		}
 
-		$prefix = pack("H16", $this->getRandomHexKey(64));
+		$prefix = \Safe\pack("H16", $this->getRandomHexKey(64));
 		$length = 8 + 4 + strlen($str); // prefix, int, ...
 		$pad    = str_repeat(" ", (8 - $length % 8) % 8);
-		$strlen = pack("N", strlen($str));
+		$strlen = \Safe\pack("N", strlen($str));
 
 		$plain   = $prefix . $strlen . $str . $pad;
 		$encrypted = $this->aoChatCrypt($dhK, $plain);
@@ -1097,11 +1050,8 @@ class AOChat {
 
 		$ret    = "";
 
-		$keyarr  = unpack("V*", pack("H*", $key));
-		$dataarr = unpack("V*", $str);
-		if (!is_array($keyarr) || !is_array($dataarr)) {
-			throw new Exception("Invalid key or string received.");
-		}
+		$keyarr  = \Safe\unpack("V*", \Safe\pack("H*", $key));
+		$dataarr = \Safe\unpack("V*", $str);
 
 		$prev = [0, 0];
 		for ($i = 1; $i <= count($dataarr); $i += 2) {
@@ -1178,7 +1128,7 @@ class AOChat {
 					break;
 
 				case "I":
-					$array = unpack("N", $msg);
+					$array = \Safe\unpack("N", $msg);
 					if (!is_array($array)) {
 						throw new Exception("Invalid packet data received.");
 					}
@@ -1203,7 +1153,7 @@ class AOChat {
 					break;
 
 				case "l":
-					$array = unpack("N", $msg);
+					$array = \Safe\unpack("N", $msg);
 					if (!is_array($array)) {
 						throw new Exception("Invalid packet data received.");
 					}

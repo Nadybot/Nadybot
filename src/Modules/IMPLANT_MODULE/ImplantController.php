@@ -101,6 +101,7 @@ class ImplantController extends Instance {
 	 */
 	public function findBestQLForBonus(int $bonus, array $itemSpecs): int {
 		for ($searchedQL = min(array_keys($itemSpecs)); $searchedQL <= max(array_keys($itemSpecs)); $searchedQL++) {
+			// @phpstan-ignore-next-line
 			$value = $this->calcStatFromQL($itemSpecs, $searchedQL);
 			if ($value === null) {
 				continue;
@@ -334,7 +335,9 @@ class ImplantController extends Instance {
 	 */
 	public function getBonusQLRange(string $type, int $slot, int $bonus): ?array {
 		$breakpoints = $this->getBreakpoints($type, $slot);
+		/** @var int */
 		$minQL = min(array_keys($breakpoints));
+		/** @var int */
 		$maxQL = max(array_keys($breakpoints));
 		$foundMinQL = 0;
 		$foundMaxQL = 300;

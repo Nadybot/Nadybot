@@ -22,6 +22,8 @@ use Nadybot\Core\{
 	Socket\AsyncSocket,
 };
 use ReflectionAttribute;
+use Safe\Exceptions\FilesystemException;
+use Safe\Exceptions\StreamException;
 
 /**
  * Commands this controller contains:
@@ -339,7 +341,7 @@ class WebserverController extends Instance {
 	 * Convert the route notation /foo/%s/bar into a regexp
 	 */
 	public function routeToRegExp(string $route): string {
-		$match = preg_split("/(%[sd])/", $route, 0, PREG_SPLIT_DELIM_CAPTURE|PREG_SPLIT_NO_EMPTY);
+		$match = \Safe\preg_split("/(%[sd])/", $route, 0, PREG_SPLIT_DELIM_CAPTURE|PREG_SPLIT_NO_EMPTY);
 		$newMask = array_reduce(
 			$match,
 			function(string $carry, string $part): string {
@@ -365,11 +367,16 @@ class WebserverController extends Instance {
 		if (!is_resource($lowSock)) {
 			return;
 		}
-		$newSocket = stream_socket_accept($lowSock, 0, $peerName);
-		if ($newSocket === false) {
+		try {
+			$newSocket = \Safe\stream_socket_accept($lowSock, 0, $peerName);
+		} catch (StreamException $e) {
+			$this->logger->info('Error accepting client connection: {error}', [
+				"error" => $e->getMessage(),
+				"exception" => $e,
+			]);
 			return;
 		}
-		$this->logger->info('New client connected from ' . $peerName);
+		$this->logger->info('New client connected from ' . ($peerName??"Unknown location"));
 		$wrapper = $this->socket->wrap($newSocket);
 		$wrapper->on(AsyncSocket::CLOSE, [$this, "handleClientDisconnect"]);
 /*
@@ -397,7 +404,7 @@ class WebserverController extends Instance {
 		$port = $this->settingManager->getInt('webserver_port');
 		$addr = $this->settingManager->getString('webserver_addr');
 		$context = stream_context_create();
-/*
+		/*
 		$tls = $this->settingManager->getBool('webserver_tls');
 		if ($tls) {
 			$certPath = $this->settingManager->get('webserver_certificate');
@@ -409,17 +416,21 @@ class WebserverController extends Instance {
 			stream_context_set_option($context, 'ssl', 'verify_peer', false);
 		}
 */
-		$serverSocket = @stream_socket_server(
-			"tcp://{$addr}:{$port}",
-			$errno,
-			$errstr,
-			STREAM_SERVER_BIND|STREAM_SERVER_LISTEN,
-			$context
-		);
-
-		if ($serverSocket === false) {
-			$error = "Could not listen on {$addr} port {$port}: {$errstr} ({$errno})";
-			$this->logger->error($error);
+		try {
+			$serverSocket = @\Safe\stream_socket_server(
+				"tcp://{$addr}:{$port}",
+				$errno,
+				$errstr,
+				STREAM_SERVER_BIND | STREAM_SERVER_LISTEN,
+				$context
+			);
+		} catch (StreamException $e) {
+			$error = "Could not listen on {addr} port {port}: {error}";
+			$this->logger->error($error, [
+				"addr" => $addr,
+				"port" => $port,
+				"error" => $e->getMessage(),
+			]);
 			return false;
 		}
 		$this->serverSocket = $serverSocket;
@@ -442,9 +453,9 @@ class WebserverController extends Instance {
 		}
 		if (isset($this->asyncSocket)) {
 			$this->asyncSocket->destroy();
-			@fclose($this->serverSocket);
+			@\Safe\fclose($this->serverSocket);
 		} else {
-			@fclose($this->serverSocket);
+			@\Safe\fclose($this->serverSocket);
 		}
 		$this->logger->notice("Webserver shutdown");
 		return true;
@@ -592,13 +603,14 @@ class WebserverController extends Instance {
 
 	protected function serveStaticFile(Request $request): Response {
 		$path = $this->config->htmlFolder;
-		$realFile = realpath("{$path}/{$request->path}");
-		$realBaseDir = realpath("{$path}/");
-		if (
-			$realFile === false
-			|| (
-				$realFile !== $realBaseDir
-				&& strncmp($realFile, $realBaseDir.DIRECTORY_SEPARATOR, strlen($realBaseDir)+1) !== 0)
+		try {
+			$realFile = \Safe\realpath("{$path}/{$request->path}");
+			$realBaseDir = \Safe\realpath("{$path}/");
+		} catch (FilesystemException) {
+			return new Response(Response::NOT_FOUND);
+		}
+		if ($realFile !== $realBaseDir
+			&& strncmp($realFile, $realBaseDir.DIRECTORY_SEPARATOR, strlen($realBaseDir)+1) !== 0
 		) {
 			return new Response(Response::NOT_FOUND);
 		}
@@ -608,7 +620,7 @@ class WebserverController extends Instance {
 		if (!@file_exists($realFile)) {
 			return new Response(Response::NOT_FOUND);
 		}
-		$body = file_get_contents($realFile);
+		$body = \Safe\file_get_contents($realFile);
 		if (!is_string($body)) {
 			$body = "";
 		}
@@ -617,7 +629,7 @@ class WebserverController extends Instance {
 			['Content-Type' => $this->guessContentType($realFile)],
 			$body
 		);
-		$lastmodified = @filemtime($realFile);
+		$lastmodified = @\Safe\filemtime($realFile);
 		if ($lastmodified !== false) {
 			$modifiedDate = (new DateTime())->setTimestamp($lastmodified)->format(DateTime::RFC7231);
 			$response->headers['Last-Modified'] = $modifiedDate;
@@ -646,7 +658,7 @@ class WebserverController extends Instance {
 				return "image/svg+xml";
 			default:
 				if (extension_loaded("fileinfo")) {
-					return mime_content_type($file);
+					return \Safe\mime_content_type($file);
 				}
 				return "application/octet-stream";
 		}
@@ -691,12 +703,12 @@ class WebserverController extends Instance {
 		if ($key->last_sequence_nr >= $sequence) {
 			return null;
 		}
-		$decodedSig = base64_decode($signature);
+		$decodedSig = \Safe\base64_decode($signature);
 		// @phpstan-ignore-next-line
 		if ($decodedSig === false) {
 			return null;
 		}
-		if (openssl_verify($sequence, $decodedSig, $key->pubkey, $algorithm) !== 1) {
+		if (\Safe\openssl_verify($sequence, $decodedSig, $key->pubkey, $algorithm) !== 1) {
 			return null;
 		}
 		$key->last_sequence_nr = (int)$sequence;

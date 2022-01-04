@@ -123,7 +123,7 @@ class VoteController extends Instance implements MessageEmitter {
 			->where("status", "!=", self::STATUS_ENDED)
 			->asObj(Poll::class)
 			->each(function (Poll $topic): void {
-				$topic->answers = json_decode($topic->possible_answers, false);
+				$topic->answers = \Safe\json_decode($topic->possible_answers, false);
 				$this->polls[$topic->id] = $topic;
 			});
 	}
@@ -138,7 +138,7 @@ class VoteController extends Instance implements MessageEmitter {
 		if ($topic === null) {
 			return null;
 		}
-		$topic->answers = json_decode($topic->possible_answers);
+		$topic->answers = \Safe\json_decode($topic->possible_answers);
 		return $topic;
 	}
 
@@ -433,7 +433,7 @@ class VoteController extends Instance implements MessageEmitter {
 		PDuration $duration,
 		string $definition
 	): void {
-		$answers = preg_split("/\s*\Q" . self::DELIMITER . "\E\s*/", $definition);
+		$answers = \Safe\preg_split("/\s*\Q" . self::DELIMITER . "\E\s*/", $definition);
 		$question = array_shift($answers);
 		$duration = $duration->toSecs();
 
@@ -453,7 +453,7 @@ class VoteController extends Instance implements MessageEmitter {
 		$topic->started = time();
 		$topic->duration = $duration;
 		$topic->answers = $answers;
-		$topic->possible_answers = json_encode($answers);
+		$topic->possible_answers = \Safe\json_encode($answers);
 		$topic->status = self::STATUS_CREATED;
 
 		$topic->id = $this->db->insert(self::DB_POLLS, $topic);

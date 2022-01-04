@@ -54,11 +54,11 @@ class Patcher {
 	 */
 	public static function patchCodesniffer($vendorDir, Package $package): void {
 		$file = $vendorDir . '/' . $package->getName() . '/CodeSniffer.conf.dist';
-		$oldContent = file_get_contents($file);
+		$oldContent = \Safe\file_get_contents($file);
 		$newContent = "__DIR__.'/../../../style/Nadybot/ruleset.xml'";
 		$data = preg_replace("/'PSR2'/", $newContent, $oldContent);
 		$data = preg_replace("/(?<='show_warnings' => ')0/", "1", $data);
 		$newFile = $vendorDir . '/' . $package->getName() . '/CodeSniffer.conf';
-		file_put_contents($newFile, $data);
+		\Safe\file_put_contents($newFile, $data);
 	}
 }

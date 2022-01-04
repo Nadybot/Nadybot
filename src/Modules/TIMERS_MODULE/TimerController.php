@@ -519,7 +519,9 @@ class TimerController extends Instance implements MessageEmitter {
 		$timer = new Timer();
 		$timer->name = $name;
 		$timer->owner = $owner;
-		$timer->endtime = end($alerts)->time;
+		/** @var Alert */
+		$lastAlert = (new Collection($alerts))->last();
+		$timer->endtime = $lastAlert->time;
 		$timer->settime = time();
 		$timer->callback = $callback;
 		$timer->data = $data;
@@ -541,7 +543,7 @@ class TimerController extends Instance implements MessageEmitter {
 				"settime" => $timer->settime,
 				"callback" => $callback,
 				"data" => $data,
-				"alerts" => json_encode($alerts),
+				"alerts" => \Safe\json_encode($alerts),
 			]);
 
 		$this->timers[strtolower($name)] = $timer;

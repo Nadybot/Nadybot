@@ -2,7 +2,7 @@
 
 namespace Nadybot\Modules\DEV_MODULE;
 
-use JsonException;
+use Safe\Exceptions\JsonException;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
@@ -24,7 +24,8 @@ use Nadybot\Core\{
 		description: "Test http/https requests"
 	)
 ]
-class HttpRequestController extends Instance {	#[NCA\Inject]
+class HttpRequestController extends Instance {
+	#[NCA\Inject]
 	public Http $http;
 
 	#[NCA\Inject]
@@ -32,7 +33,7 @@ class HttpRequestController extends Instance {	#[NCA\Inject]
 
 	#[NCA\HandlesCommand("httprequest")]
 	public function httprequestCommand(CmdContext $context, string $url): void {
-		$parts = parse_url(html_entity_decode($url));
+		$parts = \Safe\parse_url(html_entity_decode($url));
 		if (!is_array($parts)) {
 			$context->reply("<highlight>{$url}<end> is not a valid URL.");
 			return;
@@ -70,11 +71,11 @@ class HttpRequestController extends Instance {	#[NCA\Inject]
 		$blob .= "\n<pagebreak><header2>Body<end>";
 		$response->body ??= "The body is empty";
 		try {
-			$decoded = json_decode($response->body, false, 512, JSON_THROW_ON_ERROR);
-			$response->body = json_encode($decoded, JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES);
+			$decoded = \Safe\json_decode($response->body, false, 512, JSON_THROW_ON_ERROR);
+			$response->body = \Safe\json_encode($decoded, JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES);
 		} catch (JsonException $e) {
 		}
-		$lines = preg_split("/\r?\n/", htmlspecialchars($response->body));
+		$lines = \Safe\preg_split("/\r?\n/", htmlspecialchars($response->body));
 		foreach ($lines as $line) {
 			if (strlen($line) > 500) {
 				$blob .= "\n<pagebreak><tab>" . wordwrap($line, 75, "\n<tab>", true);

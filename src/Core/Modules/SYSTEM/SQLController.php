@@ -87,7 +87,7 @@ class SQLController extends Instance {
 			foreach ($data as $row) {
 				$blob .= "<pagebreak><header2>Entry<end>\n";
 				foreach ($row as $key => $value) {
-					$blob .= "<tab><highlight>$key:<end> ".json_encode($value, JSON_UNESCAPED_SLASHES)."\n";
+					$blob .= "<tab><highlight>$key:<end> ".\Safe\json_encode($value, JSON_UNESCAPED_SLASHES)."\n";
 				}
 				$blob .= "\n";
 			}

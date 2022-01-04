@@ -61,6 +61,9 @@ class CacheController extends Instance {
 		$blob = '';
 		foreach ($this->cacheManager->getFilesInGroup($group) as $file) {
 			$fileInfo = stat($path . "/" . $file);
+			if ($fileInfo === false) {
+				continue;
+			}
 			$blob .= "<highlight>$file<end>  " . $this->util->bytesConvert($fileInfo['size']) . " - Last modified " . $this->util->date($fileInfo['mtime']);
 			$blob .= "  [" . $this->text->makeChatcmd("View", "/tell <myname> cache view $group $file") . "]";
 			$blob .= "  [" . $this->text->makeChatcmd("Delete", "/tell <myname> cache rem $group $file") . "]\n";
@@ -89,7 +92,7 @@ class CacheController extends Instance {
 		if ($this->cacheManager->cacheExists($group, $file)) {
 			$contents = $this->cacheManager->retrieve($group, $file)??'null';
 			if (preg_match("/\.json$/", $file)) {
-				$contents = json_encode(json_decode($contents), JSON_PRETTY_PRINT);
+				$contents = \Safe\json_encode(\Safe\json_decode($contents), JSON_PRETTY_PRINT);
 			}
 			$msg = $this->text->makeBlob("Cache File: $group $file", htmlspecialchars($contents));
 		} else {

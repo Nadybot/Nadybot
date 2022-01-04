@@ -10,6 +10,7 @@ use InvalidArgumentException;
 use UnexpectedValueException;
 use DateTime;
 use Exception;
+use stdClass;
 
 /**
  * Based on https://github.com/firebase/php-jwt
@@ -47,7 +48,7 @@ class JWT {
 	 * Decodes a JWT string into a PHP object.
 	 *
 	 * @param string[] $allowed_algs
-	 * @return object The JWT's payload as a PHP object
+	 * @return stdClass The JWT's payload as a PHP object
 	 *
 	 * @throws InvalidArgumentException     Provided JWT was empty
 	 * @throws UnexpectedValueException     Provided JWT was invalid
@@ -56,7 +57,7 @@ class JWT {
 	 * @throws BeforeValidException         Provided JWT is trying to be used before it's been created as defined by 'iat'
 	 * @throws ExpiredException             Provided JWT has since expired, as defined by the 'exp' claim
 	 */
-	public static function decode(string $jwt, string $key, array $allowed_algs=[]): object {
+	public static function decode(string $jwt, string $key, array $allowed_algs=[]): stdClass {
 		$timestamp = is_null(static::$timestamp) ? time() : static::$timestamp;
 
 		if (empty($key)) {
@@ -106,7 +107,7 @@ class JWT {
 		// Check the nbf if it is defined. This is the time that the
 		// token can actually be used. If it's not yet that time, abort.
 		if (isset($payload->nbf) && $payload->nbf > ($timestamp + static::$leeway)) {
-			$date = @date(DateTime::ISO8601, $payload->nbf);
+			$date = @\Safe\date(DateTime::ISO8601, $payload->nbf);
 			// @phpstan-ignore-next-line
 			if ($date === false) {
 				$date = "<unknown>";
@@ -118,7 +119,7 @@ class JWT {
 		// using tokens that have been created for later use (and haven't
 		// correctly used the nbf claim).
 		if (isset($payload->iat) && $payload->iat > ($timestamp + static::$leeway)) {
-			$date = @date(DateTime::ISO8601, $payload->iat);
+			$date = @\Safe\date(DateTime::ISO8601, $payload->iat);
 			// @phpstan-ignore-next-line
 			if ($date === false) {
 				$date = "<unknown>";
@@ -153,7 +154,7 @@ class JWT {
 		}
 
 		$algorithm = static::$supported_algs[$alg];
-		$success = openssl_verify($msg, $signature, $key, $algorithm);
+		$success = \Safe\openssl_verify($msg, $signature, $key, $algorithm);
 		if ($success === 1) {
 			return true;
 		} elseif ($success === 0) {
@@ -170,20 +171,20 @@ class JWT {
 	 *
 	 * @param string $input JSON string
 	 *
-	 * @return object Object representation of JSON string
+	 * @return stdClass Object representation of JSON string
 	 *
 	 * @throws DomainException Provided string was invalid JSON
 	 */
-	public static function jsonDecode(?string $input): object {
+	public static function jsonDecode(?string $input): stdClass {
 		if (!isset($input)) {
 			throw new DomainException("Invalid JSON data received");
 		}
 		if (version_compare(PHP_VERSION, '5.4.0', '>=') && !(defined('JSON_C_VERSION') && PHP_INT_SIZE > 4)) {
-			$obj = json_decode($input, false, 512, JSON_BIGINT_AS_STRING);
+			$obj = \Safe\json_decode($input, false, 512, JSON_BIGINT_AS_STRING);
 		} else {
 			$max_int_length = strlen((string) PHP_INT_MAX) - 1;
 			$json_without_bigints = preg_replace('/:\s*(-?\d{' . $max_int_length . ',})/', ': "$1"', $input);
-			$obj = json_decode($json_without_bigints);
+			$obj = \Safe\json_decode($json_without_bigints);
 		}
 
 		if ($errno = json_last_error()) {
@@ -207,7 +208,7 @@ class JWT {
 			$padlen = 4 - $remainder;
 			$input .= str_repeat('=', $padlen);
 		}
-		$decoded = base64_decode(strtr($input, '-_', '+/'));
+		$decoded = \Safe\base64_decode(strtr($input, '-_', '+/'));
 		// @phpstan-ignore-next-line
 		if ($decoded === false) {
 			return null;
@@ -243,13 +244,13 @@ class JWT {
 	 * @param   string $sig The ECDSA signature to convert
 	 * @return  string The encoded DER object
 	 */
-	private static function signatureToDER($sig): string {
-		// Separate the signature into r-value and s-value
-		$rs = str_split($sig, (int) (strlen($sig) / 2));
-		// @phpstan-ignore-next-line
-		if ($rs === false) {
+	private static function signatureToDER(string $sig): string {
+		$chunkSize = (int)(strlen($sig) / 2);
+		if ($chunkSize < 1) {
 			throw new Exception("Invalid r+s data found");
 		}
+		// Separate the signature into r-value and s-value
+		$rs = str_split($sig, $chunkSize);
 		[$r, $s] = $rs;
 
 		// Trim leading zeros

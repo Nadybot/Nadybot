@@ -548,7 +548,7 @@ class RaidController extends Instance {
 	}
 
 	/**
-	 * @param array<string|Player> $players
+	 * @param array<null|Player> $players
 	 */
 	protected function reportNotInResult(array $players, CommandReply $sendto): void {
 		$blob = "<header2>Players that were warned<end>\n";
@@ -720,7 +720,7 @@ class RaidController extends Instance {
 		$events = $joined->union($left)->orderBy("time")->asObj(RaidStatus::class);
 		/** @var Collection<RaidStatus|RaidPointsLog> */
 		$allLogs = $logs->concat($events)
-			->sort(function(object $a, object $b) {
+			->sort(function(RaidStatus|RaidPointsLog $a, RaidStatus|RaidPointsLog $b) {
 				return $a->time <=> $b->time;
 			});
 		if ($allLogs->isEmpty()) {
@@ -809,6 +809,9 @@ class RaidController extends Instance {
 					$blob .= "<tab>- <highlight>{$name}<end> - {$player->level}/<green>{$player->ai_level}<end> {$player->profession} :: <red>in raid<end>\n";
 					foreach ($alts as $alt => $inRaid) {
 						$player = $lookup[$alt];
+						if ($player === null) {
+							continue;
+						}
 						$blob .= "<tab>- <highlight>{$alt}<end> - {$player->level}/<green>{$player->ai_level}<end> {$player->profession}";
 						if ($inRaid) {
 							$blob .= " :: <red>in raid<end>";

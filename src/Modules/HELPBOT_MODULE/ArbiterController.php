@@ -16,6 +16,7 @@ use Nadybot\Core\{
 	Util,
 };
 use Nadybot\Core\ParamClass\PWord;
+use Safe\Exceptions\DatetimeException;
 
 /**
  * @author Nadyita (RK5)
@@ -141,11 +142,12 @@ class ArbiterController extends Instance {
 			);
 			return;
 		}
+		/** @var string $setWeek */
 		$this->db->beginTransaction();
 		$day = (new DateTime("now", new DateTimeZone("UTC")))->format("N");
 		$startsToday = ($day === "7") && !isset($ends);
-		$start =  strtotime($startsToday ? "today" : "last sunday");
-		$end = strtotime($startsToday ? "monday + 7 days" : "next monday");
+		$start =  \Safe\strtotime($startsToday ? "today" : "last sunday");
+		$end = \Safe\strtotime($startsToday ? "monday + 7 days" : "next monday");
 		try {
 			$this->db->table(static::DB_TABLE)->truncate();
 			for ($i = 0; $i < 3; $i++) {
@@ -178,8 +180,9 @@ class ArbiterController extends Instance {
 	public function arbiterCommand(CmdContext $context, ?string $timeGiven): void {
 		$time = time();
 		if (isset($timeGiven)) {
-			$time = strtotime($timeGiven);
-			if ($time === false) {
+			try {
+				$time = \Safe\strtotime($timeGiven);
+			} catch (DatetimeException) {
 				$context->reply("Unable to parse <highlight>{$timeGiven}<end> into a date.");
 				return;
 			}

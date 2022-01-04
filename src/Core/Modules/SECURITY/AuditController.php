@@ -117,7 +117,7 @@ class AuditController extends Instance {
 
 		$action = $params["action"]??null;
 		if (isset($action)) {
-			$query->whereIn("action", preg_split("/\s*,\s*/", strtolower($action)));
+			$query->whereIn("action", \Safe\preg_split("/\s*,\s*/", strtolower($action)));
 		}
 
 		return null;

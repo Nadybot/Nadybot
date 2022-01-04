@@ -204,7 +204,7 @@ class Nadybot extends AOChat {
 		$this->db->commit();
 		$this->db->beginTransaction();
 		foreach (Registry::getAllInstances() as $name => $instance) {
-			if (isset($instance->moduleName)) {
+			if ($instance instanceof Instance && isset($instance->moduleName)) {
 				$this->registerInstance($name, $instance);
 			} else {
 				$this->callSetupMethod($name, $instance);
@@ -235,21 +235,21 @@ class Nadybot extends AOChat {
 		$this->logger->notice("Connecting to AO Server...({$server}:{$port})");
 		if (!$this->connect($server, $port)) {
 			$this->logger->error("Connection failed! Please check your Internet connection and firewall.");
-			sleep(10);
+			\Safe\sleep(10);
 			die();
 		}
 
 		$this->logger->notice("Authenticate login data...");
 		if (null === $this->authenticate($login, $password)) {
 			$this->logger->error("Authentication failed! Invalid username or password.");
-			sleep(10);
+			\Safe\sleep(10);
 			die();
 		}
 
 		$this->logger->notice("Logging in {$this->config->name}...");
 		if (false === $this->login($this->config->name)) {
 			$this->logger->error("Character selection failed! Could not login on as character '{$this->config->name}'.");
-			sleep(10);
+			\Safe\sleep(10);
 			die();
 		}
 
@@ -290,10 +290,10 @@ class Nadybot extends AOChat {
 			$continue = false;
 		};
 		if (function_exists('sapi_windows_set_ctrl_handler')) {
-			sapi_windows_set_ctrl_handler($signalHandler, true);
+			\Safe\sapi_windows_set_ctrl_handler($signalHandler, true);
 		} elseif (function_exists('pcntl_signal')) {
-			pcntl_signal(SIGINT, $signalHandler);
-			pcntl_signal(SIGTERM, $signalHandler);
+			\Safe\pcntl_signal(SIGINT, $signalHandler);
+			\Safe\pcntl_signal(SIGTERM, $signalHandler);
 		} else {
 			$this->logger->error('You need to have the pcntl extension on Linux');
 			exit(1);
@@ -307,7 +307,7 @@ class Nadybot extends AOChat {
 		while ($continue) {
 			$loop->execSingleLoop();
 			if ($callDispatcher && function_exists('pcntl_signal_dispatch')) {
-				pcntl_signal_dispatch();
+				\Safe\pcntl_signal_dispatch();
 			}
 		}
 		$this->logger->notice('Graceful shutdown.');
@@ -807,7 +807,7 @@ class Nadybot extends AOChat {
 
 		$worker = 0;
 		try {
-			$payload = json_decode($extra, false, 512, JSON_THROW_ON_ERROR);
+			$payload = \Safe\json_decode($extra, false, 512, JSON_THROW_ON_ERROR);
 			$worker = $payload->id ?? 0;
 		} catch (Throwable $e) {
 		}
@@ -882,7 +882,7 @@ class Nadybot extends AOChat {
 		$eventObj->message = $message;
 		if ($extra !== "\0") {
 			try {
-				$extraData = json_decode($extra, false, 512, JSON_THROW_ON_ERROR);
+				$extraData = \Safe\json_decode($extra, false, 512, JSON_THROW_ON_ERROR);
 				if (isset($extraData) && is_object($extraData) && isset($extraData->id)) {
 					$eventObj->worker = $extraData->id;
 				}
@@ -1137,7 +1137,7 @@ class Nadybot extends AOChat {
 			return;
 		}
 		try {
-			$obj = json_decode($reply, false, 512, JSON_THROW_ON_ERROR);
+			$obj = \Safe\json_decode($reply, false, 512, JSON_THROW_ON_ERROR);
 			if (!is_object($obj) || !isset($obj->type) || !isset($classMapping[$obj->type])) {
 				throw new Exception();
 			}
@@ -1389,7 +1389,7 @@ class Nadybot extends AOChat {
 			if (empty($method->getAttributes(NCA\Setup::class))) {
 				continue;
 			}
-			if (call_user_func([$obj, $method->name]) === false) {
+			if ($method->invoke($obj) === false) {
 				$this->logger->error("Failed to call setup handler for '$name'");
 			}
 		}
@@ -1406,7 +1406,7 @@ class Nadybot extends AOChat {
 	 * Get the OrgID for a ChannelID or null if not an org channel
 	 */
 	public function getOrgId(string $channelId): ?int {
-		$b = unpack("Ctype/Nid", $channelId);
+		$b = \Safe\unpack("Ctype/Nid", $channelId);
 		if ($b['type'] === 3) {
 			return $b['id'];
 		}
@@ -1463,7 +1463,7 @@ class Nadybot extends AOChat {
 		if (!isset($result) || $result->type !== AOChatPacket::GROUP_ANNOUNCE) {
 			return $result;
 		}
-		$data = unpack("Ctype/Nid", (string)$result->args[0]);
+		$data = \Safe\unpack("Ctype/Nid", (string)$result->args[0]);
 		if ($data["type"] !== 3) { // guild channel
 			$pc = new PublicChannel($result->args[1]);
 			Registry::injectDependencies($pc);

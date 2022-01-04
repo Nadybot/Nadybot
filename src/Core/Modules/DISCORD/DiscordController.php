@@ -2,8 +2,9 @@
 
 namespace Nadybot\Core\Modules\DISCORD;
 
-use Nadybot\Core\Attributes as NCA;
+use function Safe\preg_split;
 use Nadybot\Core\{
+	Attributes as NCA,
 	ConfigFile,
 	Http,
 	Instance,

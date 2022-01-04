@@ -2,7 +2,7 @@
 
 namespace Nadybot\Core;
 
-use JsonException;
+use Safe\Exceptions\JsonException;
 use Monolog\Formatter\FormatterInterface;
 use Monolog\Handler\AbstractHandler;
 use Monolog\Handler\AbstractProcessingHandler;
@@ -67,12 +67,9 @@ class LegacyLogger {
 		if (!empty(static::$config) && !$noCache) {
 			return static::$config;
 		}
-		$json = file_get_contents("./conf/logging.json");
-		if ($json === false) {
-			throw new RuntimeException("Unable to read logging config file");
-		}
+		$json = \Safe\file_get_contents("./conf/logging.json");
 		try {
-			$logStruct = json_decode($json, true, 512, JSON_THROW_ON_ERROR);
+			$logStruct = \Safe\json_decode($json, true, 512, JSON_THROW_ON_ERROR);
 		} catch (JsonException $e) {
 			throw new RuntimeException("Unable to parse logging config", 0, $e);
 		}

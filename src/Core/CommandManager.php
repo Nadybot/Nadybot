@@ -27,7 +27,7 @@ use ReflectionParameter;
 	NCA\ProvidesEvent("command(help)"),
 	NCA\ProvidesEvent("command(error)")
 ]
-class CommandManager implements MessageEmitter {
+class CommandManager extends Instance implements MessageEmitter {
 	public const DB_TABLE = "cmdcfg_<myname>";
 
 	#[NCA\Inject]
@@ -568,7 +568,7 @@ class CommandManager implements MessageEmitter {
 		$result = $results[0];
 
 		if (isset($result->help) && $result->help !== '') {
-			$blob = file_get_contents($result->help);
+			$blob = \Safe\file_get_contents($result->help);
 		} else {
 			$blob = $this->helpManager->find($cmd, $sender);
 		}

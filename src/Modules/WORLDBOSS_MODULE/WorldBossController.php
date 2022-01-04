@@ -266,7 +266,7 @@ class WorldBossController extends Instance {
 		/** @var ApiSpawnData[] */
 		$timers = [];
 		try {
-			$data = json_decode($response->body, true, 512, JSON_THROW_ON_ERROR);
+			$data = \Safe\json_decode($response->body, true, 512, JSON_THROW_ON_ERROR);
 			if (!is_array($data)) {
 				throw new JsonException();
 			}

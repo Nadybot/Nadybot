@@ -77,8 +77,8 @@ class AsyncHttp {
 	/**
 	 * The socket to communicate with
 	 *
-	 * @var null|false|resource
-	 * @psalm-var null|false|resource|closed-resource
+	 * @var null|resource
+	 * @psalm-var null|resource|closed-resource
 	 */
 	private $stream = null;
 
@@ -244,7 +244,7 @@ class AsyncHttp {
 			$this->notifier = null;
 		}
 		if (isset($this->stream) && is_resource($this->stream)) {
-			fclose($this->stream);
+			\Safe\fclose($this->stream);
 		}
 	}
 
@@ -294,18 +294,14 @@ class AsyncHttp {
 	 */
 	private function createStream(): bool {
 		$streamUri = $this->getStreamUri();
-		$this->stream = stream_socket_client(
+		$this->stream = \Safe\stream_socket_client(
 			$streamUri,
 			$errno,
 			$errstr,
 			0,
 			$this->getStreamFlags()
 		);
-		if ($this->stream === false) {
-			$this->abortWithMessage("Failed to create socket stream, reason: $errstr ($errno)");
-			return false;
-		}
-		stream_set_blocking($this->stream, false);
+		\Safe\stream_set_blocking($this->stream, false);
 		$this->logger->info("Stream for {$streamUri} created", ["uri" => $this->uri]);
 		return true;
 	}

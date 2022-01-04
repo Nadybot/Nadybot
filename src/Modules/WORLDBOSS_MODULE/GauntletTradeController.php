@@ -29,7 +29,7 @@ class GauntletTradeController extends Instance {
 
 	#[NCA\HandlesCommand("gautrade")]
 	public function gautradeCommand(CmdContext $context): void {
-		$info = file_get_contents(__DIR__ . '/gautrade.html');
+		$info = \Safe\file_get_contents(__DIR__ . '/gautrade.html');
 		$msg = $this->text->makeBlob("Gauntlet Tradeskills", $info);
 		$context->reply($msg);
 	}

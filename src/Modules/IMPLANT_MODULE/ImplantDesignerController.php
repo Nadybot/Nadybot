@@ -91,7 +91,7 @@ class ImplantDesignerController extends Instance {
 		return $blob;
 	}
 
-	private function getImplantSummary(object $slotObj): string {
+	private function getImplantSummary(stdClass $slotObj): string {
 		if ($slotObj->symb !== null) {
 			$msg = " " . $slotObj->symb->name . "\n";
 			return $msg;
@@ -386,7 +386,9 @@ class ImplantDesignerController extends Instance {
 			$blob .= $this->text->makeChatcmd("Clear this slot", "/tell <myname> implantdesigner $slot clear");
 			$blob .= "\n-------------------------\n\n";
 			$blob .= $this->text->makeChatcmd($slot, "/tell <myname> implantdesigner $slot");
-			$blob .= $this->getImplantSummary($slotObj) . "\n";
+			if ($slotObj instanceof stdClass) {
+				$blob .= $this->getImplantSummary($slotObj) . "\n";
+			}
 			$blob .= "Which ability do you want to require for $slot?\n\n";
 			$abilities = $this->db->table("Ability")->select("Name")
 				->pluckAs("Name", "string")->toArray();
@@ -425,7 +427,9 @@ class ImplantDesignerController extends Instance {
 			$blob .= $this->text->makeChatcmd("Clear this slot", "/tell <myname> implantdesigner $slot clear");
 			$blob .= "\n-------------------------\n\n";
 			$blob .= $this->text->makeChatcmd($slot, "/tell <myname> implantdesigner $slot");
-			$blob .= $this->getImplantSummary($slotObj) . "\n";
+			if ($slotObj instanceof stdClass) {
+				$blob .= $this->getImplantSummary($slotObj) . "\n";
+			}
 			$blob .= "Combinations for <highlight>{$slot}<end> that will require {$ability}:\n";
 			$query = $this->db
 				->table("ImplantMatrix AS i")
@@ -468,6 +472,7 @@ class ImplantDesignerController extends Instance {
 				if (empty($slotObj->faded)) {
 					$results []= ['faded', $row->FadedEffect];
 				}
+				/** @var string[] */
 				$results = array_map(function($item) use ($slot) {
 					return (empty($item[1]) ? '-Empty-' : $this->text->makeChatcmd($item[1], "/tell <myname> implantdesigner $slot {$item[0]} {$item[1]}"));
 				}, $results);
@@ -688,11 +693,11 @@ class ImplantDesignerController extends Instance {
 		if ($design === null) {
 			return new stdClass();
 		}
-		return json_decode($design);
+		return \Safe\json_decode($design);
 	}
 
 	public function saveDesign(string $sender, string $name, object $design): void {
-		$json = json_encode($design);
+		$json = \Safe\json_encode($design);
 		$this->db->table("implant_design")
 			->updateOrInsert(
 				[

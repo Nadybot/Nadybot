@@ -16,16 +16,16 @@ use ReflectionProperty;
 
 class ApiSpecGenerator {
 	public function loadClasses(): void {
-		foreach (glob(__DIR__ . "/../Core/DBSchema/*.php")?:[] as $file) {
+		foreach (\Safe\glob(__DIR__ . "/../Core/DBSchema/*.php")?:[] as $file) {
 			require_once $file;
 		}
-		foreach (glob(__DIR__ . "/../Core/Modules/*/*.php")?:[] as $file) {
+		foreach (\Safe\glob(__DIR__ . "/../Core/Modules/*/*.php")?:[] as $file) {
 			require_once $file;
 		}
-		foreach (glob(__DIR__ . "/../Core/*.php")?:[] as $file) {
+		foreach (\Safe\glob(__DIR__ . "/../Core/*.php")?:[] as $file) {
 			require_once $file;
 		}
-		foreach (glob(__DIR__ . "/../Modules/*/*.php")?:[] as $file) {
+		foreach (\Safe\glob(__DIR__ . "/../Modules/*/*.php")?:[] as $file) {
 			require_once $file;
 		}
 	}
@@ -106,7 +106,7 @@ class ApiSpecGenerator {
 	/** @param array<string,array<mixed>> $result */
 	public function addSchema(array &$result, string $className): void {
 		$className = preg_replace("/\[\]$/", "", $className);
-		if (isset($result[$className])) {
+		if (!is_string($className) || isset($result[$className])) {
 			return;
 		}
 		$class = $this->getFullClass($className);
@@ -166,7 +166,7 @@ class ApiSpecGenerator {
 				if (!preg_match("/@var\s+(.+?)\[\]/", $docBlock, $matches)) {
 					throw new Exception("Untyped array found at {$class}::\$" . $refProp->name);
 				}
-				$parts = explode("\\", $matches[1]);
+				$parts = explode("\\", $matches[1]??"");
 				$newResult["properties"][$nameAndType[0]]["items"] = $this->getSimpleClassRef(end($parts));
 				$this->addSchema($result, end($parts));
 			}
@@ -198,7 +198,7 @@ class ApiSpecGenerator {
 			if ($comment === false || !preg_match("/@var ([^\s]+)/s", $comment, $matches)) {
 				return [$propName, "mixed"];
 			}
-			$types = explode("|", $matches[1]);
+			$types = explode("|", $matches[1]??"");
 			foreach ($types as &$type) {
 				if ($type === "int") {
 					$type = "integer";
@@ -382,6 +382,7 @@ class ApiSpecGenerator {
 		return $result;
 	}
 
+	/** @psalm-suppress PossiblyInvalidArgument */
 	public function getDescriptionFromComment(string $comment): string {
 		$comment = trim(preg_replace("|^/\*\*(.*)\*/$|s", '$1', $comment));
 		$comment = preg_replace("|^\s*\*\s*|m", '', $comment);

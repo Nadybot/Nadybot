@@ -68,7 +68,7 @@ class TowerApiController extends Instance {
 			return;
 		}
 		$parsed = parse_url($newValue);
-		if ($parsed === false) {
+		if (!is_array($parsed)) {
 			throw new Exception("<highlight>{$newValue}<end> is not a valid URL.");
 		}
 		if (!isset($parsed["scheme"]) ||!isset($parsed["host"])) {
@@ -138,7 +138,7 @@ class TowerApiController extends Instance {
 			return;
 		}
 		try {
-			$data = json_decode($response->body, true, 512, JSON_THROW_ON_ERROR);
+			$data = \Safe\json_decode($response->body, true, 512, JSON_THROW_ON_ERROR);
 			$result = new ApiResult($data);
 		} catch (Throwable $e) {
 			$callback(null, ...$args);

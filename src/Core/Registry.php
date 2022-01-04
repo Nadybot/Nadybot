@@ -8,7 +8,7 @@ use ReflectionNamedType;
 use RuntimeException;
 
 class Registry {
-	/** @var array<string,Instance> */
+	/** @var array<string,Instance|ConfigFile> */
 	protected static array $repo = [];
 
 	protected static ?LoggerWrapper $logger = null;
@@ -18,7 +18,7 @@ class Registry {
 		return static::$logger;
 	}
 
-	public static function setInstance(string $name, object $obj): void {
+	public static function setInstance(string $name, Instance|ConfigFile $obj): void {
 		$name = strtolower($name);
 		static::getLogger()->info("Adding instance '$name'");
 		static::$repo[$name] = $obj;
@@ -45,7 +45,7 @@ class Registry {
 	/**
 	 * Get the instance for the name $name or null if  none registered yet
 	 */
-	public static function getInstance(string $name, bool $reload=false): ?object {
+	public static function getInstance(string $name, bool $reload=false): null|Instance|ConfigFile {
 		$name = static::formatName($name);
 
 		$instance = Registry::$repo[$name]??null;
@@ -107,7 +107,7 @@ class Registry {
 
 	/**
 	 * Get all registered instance objects
-	 * @return array<string,Instance>
+	 * @return array<string,Instance|ConfigFile>
 	 */
 	public static function getAllInstances(): array {
 		return self::$repo;

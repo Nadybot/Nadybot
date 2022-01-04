@@ -171,7 +171,7 @@ class JsonImporter {
 		throw new Exception("Invalid type found: {$type}");
 	}
 
-	public static function convert(string $class, object $obj): ?object {
+	public static function convert(string $class, object $obj): object {
 		$class = static::expandClassname($class);
 		if ($class === null) {
 			throw new Exception("Cannot find class $class");
@@ -189,7 +189,7 @@ class JsonImporter {
 		if ($data === null) {
 			return null;
 		}
-		$obj = json_decode($data, false, 512, JSON_THROW_ON_ERROR);
+		$obj = \Safe\json_decode($data, false, 512, JSON_THROW_ON_ERROR);
 		return static::convert($class, $obj);
 	}
 }

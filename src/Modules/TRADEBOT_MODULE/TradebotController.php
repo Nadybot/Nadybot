@@ -339,6 +339,7 @@ class TradebotController extends Instance {
 			return $message;
 		}
 		$tag = strip_tags($matches[1]);
+		/** @var string */
 		$text = preg_replace("/^(\s|<\/?font.*?>)*/s", "", $matches[2]);
 		$textColor = $this->settingManager->getString('tradebot_text_color');
 		$tagColor = $this->getTagColor($tradeBot, $tag);

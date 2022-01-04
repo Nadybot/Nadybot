@@ -150,7 +150,7 @@ class GauntletBuffController extends Instance implements MessageEmitter {
 		/** @var ApiGauntletBuff[] */
 		$buffs = [];
 		try {
-			$data = json_decode($response->body, true, 512, JSON_THROW_ON_ERROR);
+			$data = \Safe\json_decode($response->body, true, 512, JSON_THROW_ON_ERROR);
 			if (!is_array($data)) {
 				throw new JsonException();
 			}
@@ -252,7 +252,7 @@ class GauntletBuffController extends Instance implements MessageEmitter {
 			"",
 			$alerts,
 			"GauntletBuffController.gaubuffcallback",
-			json_encode($data)
+			\Safe\json_encode($data)
 		);
 	}
 

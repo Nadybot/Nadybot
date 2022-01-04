@@ -4,7 +4,7 @@ namespace Nadybot\Modules\RELAY_MODULE\Layer;
 
 use Nadybot\Core\Attributes as NCA;
 use Exception;
-use JsonException;
+use Safe\Exceptions\JsonException;
 use Nadybot\Core\LoggerWrapper;
 use Nadybot\Modules\RELAY_MODULE\Relay;
 use Nadybot\Modules\RELAY_MODULE\RelayLayerInterface;
@@ -82,7 +82,7 @@ class Highway implements RelayLayerInterface, StatusProvider {
 				"room" => $room,
 			];
 			try {
-				$encoded = json_encode($json, JSON_THROW_ON_ERROR|JSON_UNESCAPED_SLASHES|JSON_INVALID_UTF8_SUBSTITUTE);
+				$encoded = \Safe\json_encode($json, JSON_THROW_ON_ERROR|JSON_UNESCAPED_SLASHES|JSON_INVALID_UTF8_SUBSTITUTE);
 			} catch (JsonException $e) {
 				$this->status = new RelayStatus(
 					RelayStatus::ERROR,
@@ -110,7 +110,7 @@ class Highway implements RelayLayerInterface, StatusProvider {
 				"room" => $room,
 			];
 			try {
-				$encoded = json_encode($json, JSON_THROW_ON_ERROR|JSON_UNESCAPED_SLASHES|JSON_INVALID_UTF8_SUBSTITUTE);
+				$encoded = \Safe\json_encode($json, JSON_THROW_ON_ERROR|JSON_UNESCAPED_SLASHES|JSON_INVALID_UTF8_SUBSTITUTE);
 			} catch (JsonException $e) {
 				$this->status = new RelayStatus(
 					RelayStatus::ERROR,
@@ -140,7 +140,7 @@ class Highway implements RelayLayerInterface, StatusProvider {
 					"body" => $packet,
 				];
 				try {
-					$encoded []= json_encode($json, JSON_THROW_ON_ERROR|JSON_UNESCAPED_SLASHES|JSON_INVALID_UTF8_SUBSTITUTE);
+					$encoded []= \Safe\json_encode($json, JSON_THROW_ON_ERROR|JSON_UNESCAPED_SLASHES|JSON_INVALID_UTF8_SUBSTITUTE);
 				} catch (JsonException $e) {
 					$this->logger->error(
 						"Unable to encode the relay data into highway protocol: ".
@@ -168,7 +168,7 @@ class Highway implements RelayLayerInterface, StatusProvider {
 					"relay" => $this->relay->getName(),
 					"message" => $data,
 				]);
-				$json = json_decode($data, false, 512, JSON_THROW_ON_ERROR);
+				$json = \Safe\json_decode($data, false, 512, JSON_THROW_ON_ERROR);
 			} catch (JsonException $e) {
 				$this->status = new RelayStatus(
 					RelayStatus::ERROR,

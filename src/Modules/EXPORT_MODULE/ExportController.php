@@ -3,7 +3,7 @@
 namespace Nadybot\Modules\EXPORT_MODULE;
 
 use Nadybot\Core\Attributes as NCA;
-use JsonException;
+use Safe\Exceptions\JsonException;
 use Nadybot\Core\{
 	AccessManager,
 	AdminManager,
@@ -58,6 +58,7 @@ use Nadybot\Modules\{
 	VOTE_MODULE\Vote,
 	VOTE_MODULE\VoteController,
 };
+use Safe\Exceptions\FilesystemException;
 use stdClass;
 
 /**
@@ -104,7 +105,7 @@ class ExportController extends Instance {
 			$fileName .= ".json";
 		}
 		if (!@file_exists("{$dataPath}/export")) {
-			@mkdir("{$dataPath}/export", 0700);
+			@\Safe\mkdir("{$dataPath}/export", 0700);
 		}
 		if ($this->config->useProxy) {
 			if (!$this->chatBot->proxyCapabilities->supportsBuddyMode(ProxyCapabilities::SEND_BY_WORKER)) {
@@ -137,13 +138,15 @@ class ExportController extends Instance {
 		$exports->timers = $this->exportTimers();
 		$exports->trackedCharacters = $this->exportTrackedCharacters();
 		try {
-			$output = @json_encode($exports, JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR);
+			$output = @\Safe\json_encode($exports, JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR);
 		} catch (JsonException $e) {
 			$context->reply("There was an error exporting the data: " . $e->getMessage());
 			return;
 		}
-		if (!@file_put_contents($fileName, $output)) {
-			$context->reply(substr(strstr(error_get_last()["message"]??"", "): "), 3));
+		try {
+			\Safe\file_put_contents($fileName, $output);
+		} catch (FilesystemException $e) {
+			$context->reply($e->getMessage());
 			return;
 		}
 		$context->reply("The export was successfully saved in {$fileName}.");
@@ -348,7 +351,7 @@ class ExportController extends Instance {
 				"endTime" => $poll->started + $poll->duration,
 			];
 			$answers = [];
-			foreach (json_decode($poll->possible_answers, false) as $answer) {
+			foreach (\Safe\json_decode($poll->possible_answers, false) as $answer) {
 				$answers[$answer] ??= (object)[
 					"answer" => $answer,
 					"votes" => [],

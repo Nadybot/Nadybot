@@ -296,7 +296,7 @@ class AOUController extends Instance {
 		$input = str_replace(["[b]", "[/b]"], ["<highlight>", "<end>"], $input);
 
 		$pattern = "/(\[.+?\])/";
-		$matches = preg_split($pattern, $input, -1, PREG_SPLIT_DELIM_CAPTURE | PREG_SPLIT_NO_EMPTY);
+		$matches = \Safe\preg_split($pattern, $input, -1, PREG_SPLIT_DELIM_CAPTURE | PREG_SPLIT_NO_EMPTY);
 
 		$output = '';
 		foreach ($matches as $match) {

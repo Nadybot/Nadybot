@@ -47,6 +47,7 @@ use Nadybot\Modules\{
 	VOTE_MODULE\VoteController,
 };
 use Exception;
+use stdClass;
 use Throwable;
 
 /**
@@ -103,7 +104,7 @@ class ImportController extends Instance {
 		}
 		$this->logger->notice("Decoding the JSON data");
 		try {
-			$import = json_decode(file_get_contents($fileName), false, 512, JSON_THROW_ON_ERROR);
+			$import = \Safe\json_decode(\Safe\file_get_contents($fileName), false, 512, JSON_THROW_ON_ERROR);
 		} catch (Throwable $e) {
 			$sendto->reply("Error decoding <highlight>{$fileName}<end>.");
 			return null;
@@ -169,10 +170,8 @@ class ImportController extends Instance {
 	}
 
 	/**
-	 * @return array<string,array<self|string>>
-	 * @phpstan-return array<string,array{0:self,1:string}>
-	 * @psalm-return array<string,array{0:self,1:string}>
-	*/
+	 * @return array<string,callable>
+	 */
 	protected function getImportMapping(): array {
 		return [
 			"members"           => [$this, "importMembers"],
@@ -237,7 +236,7 @@ class ImportController extends Instance {
 		return array_keys($ranks);
 	}
 
-	protected function characterToName(?object $char): ?string {
+	protected function characterToName(?stdClass $char): ?string {
 		if (!isset($char)) {
 			return null;
 		}
@@ -248,7 +247,7 @@ class ImportController extends Instance {
 		return $name;
 	}
 
-	/** @param array<\stdClass> $alts */
+	/** @param array<stdClass> $alts */
 	public function importAlts(array $alts): void {
 		$this->logger->notice("Importing alts for " . count($alts) . " character(s)");
 		$numImported = 0;
@@ -275,7 +274,7 @@ class ImportController extends Instance {
 		$this->logger->notice("{$numImported} alt(s) imported");
 	}
 
-	protected function importAlt(string $mainName, object $alt): int {
+	protected function importAlt(string $mainName, stdClass $alt): int {
 		$altName = $this->characterToName($alt->alt);
 		if (!isset($altName)) {
 			return 0;
@@ -291,7 +290,7 @@ class ImportController extends Instance {
 		return 1;
 	}
 
-	/** @param array<\stdClass> $auctions */
+	/** @param array<stdClass> $auctions */
 	public function importAuctions(array $auctions): void {
 		$this->logger->notice("Importing " . count($auctions) . " auction(s)");
 		$this->db->beginTransaction();
@@ -320,7 +319,7 @@ class ImportController extends Instance {
 		$this->logger->notice("All auctions imported");
 	}
 
-	/** @param array<\stdClass> $banlist */
+	/** @param array<stdClass> $banlist */
 	public function importBanlist(array $banlist): void {
 		$numImported = 0;
 		$this->logger->notice("Importing " . count($banlist) . " ban(s)");
@@ -354,7 +353,7 @@ class ImportController extends Instance {
 		$this->logger->notice("{$numImported} bans successfully imported");
 	}
 
-	/** @param array<\stdClass> $cloakActions */
+	/** @param array<stdClass> $cloakActions */
 	public function importCloak(array $cloakActions): void {
 		$this->logger->notice("Importing " . count($cloakActions) . " cloak action(s)");
 		$this->db->beginTransaction();
@@ -379,7 +378,7 @@ class ImportController extends Instance {
 		$this->logger->notice("All cloak actions imported");
 	}
 
-	/** @param array<\stdClass> $links */
+	/** @param array<stdClass> $links */
 	public function importLinks(array $links): void {
 		$this->logger->notice("Importing " . count($links) . " links");
 		$this->db->beginTransaction();
@@ -411,7 +410,7 @@ class ImportController extends Instance {
 	}
 
 	/**
-	 * @param array<\stdClass> $members
+	 * @param array<stdClass> $members
 	 * @param array<string,string> $rankMap
 	 */
 	public function importMembers(array $members, array $rankMap=[]): void {
@@ -493,7 +492,7 @@ class ImportController extends Instance {
 		$this->logger->notice("{$numImported} members successfully imported");
 	}
 
-	/** @param array<\stdClass> $news */
+	/** @param array<stdClass> $news */
 	public function importNews(array $news): void {
 		$this->logger->notice("Importing " . count($news) . " news");
 		$this->db->beginTransaction();
@@ -533,7 +532,7 @@ class ImportController extends Instance {
 		$this->logger->notice("All news imported");
 	}
 
-	/** @param array<\stdClass> $notes */
+	/** @param array<stdClass> $notes */
 	public function importNotes(array $notes): void {
 		$this->logger->notice("Importing " . count($notes) . " notes");
 		$this->db->beginTransaction();
@@ -570,7 +569,7 @@ class ImportController extends Instance {
 		$this->logger->notice("All notes imported");
 	}
 
-	/** @param array<\stdClass> $polls */
+	/** @param array<stdClass> $polls */
 	public function importPolls(array $polls): void {
 		$this->logger->notice("Importing " . count($polls) . " polls");
 		$this->db->beginTransaction();
@@ -583,9 +582,9 @@ class ImportController extends Instance {
 					->insertGetId([
 						"author" => $this->characterToName($poll->author??null) ?? $this->chatBot->char->name,
 						"question" => $poll->question,
-						"possible_answers" => json_encode(
+						"possible_answers" => \Safe\json_encode(
 							array_map(
-								function(object $answer): string {
+								function(stdClass $answer): string {
 									return $answer->answer;
 								},
 								$poll->answers??[]
@@ -617,7 +616,7 @@ class ImportController extends Instance {
 		$this->logger->notice("All polls imported");
 	}
 
-	/** @param array<\stdClass> $quotes */
+	/** @param array<stdClass> $quotes */
 	public function importQuotes(array $quotes): void {
 		$this->logger->notice("Importing " . count($quotes) . " quotes");
 		$this->db->beginTransaction();
@@ -642,7 +641,7 @@ class ImportController extends Instance {
 		$this->logger->notice("All quotes imported");
 	}
 
-	/** @param array<\stdClass> $bonuses */
+	/** @param array<stdClass> $bonuses */
 	public function importRaffleBonus(array $bonuses): void {
 		$this->logger->notice("Importing " . count($bonuses) . " raffle bonuses");
 		$this->db->beginTransaction();
@@ -670,7 +669,7 @@ class ImportController extends Instance {
 		$this->logger->notice("All raffle bonuses imported");
 	}
 
-	/** @param array<\stdClass> $blocks */
+	/** @param array<stdClass> $blocks */
 	public function importRaidBlocks(array $blocks): void {
 		$this->logger->notice("Importing " . count($blocks) . " raid blocks");
 		$this->db->beginTransaction();
@@ -702,7 +701,7 @@ class ImportController extends Instance {
 		$this->logger->notice("All raid blocks imported");
 	}
 
-	/** @param array<\stdClass> $raids */
+	/** @param array<stdClass> $raids */
 	public function importRaids(array $raids): void {
 		$this->logger->notice("Importing " . count($raids) . " raids");
 		$this->db->beginTransaction();
@@ -717,7 +716,7 @@ class ImportController extends Instance {
 				$history = $raid->history ?? [];
 				usort(
 					$history,
-					function (object $o1, object $o2): int {
+					function (stdClass $o1, stdClass $o2): int {
 						return $o1->time <=> $o2->time;
 					}
 				);
@@ -775,7 +774,7 @@ class ImportController extends Instance {
 		$this->logger->notice("All raids imported");
 	}
 
-	/** @param array<\stdClass> $points */
+	/** @param array<stdClass> $points */
 	public function importRaidPoints(array $points): void {
 		$this->logger->notice("Importing " . count($points) . " raid points");
 		$this->db->beginTransaction();
@@ -802,7 +801,7 @@ class ImportController extends Instance {
 		$this->logger->notice("All raid points imported");
 	}
 
-	/** @param array<\stdClass> $points */
+	/** @param array<stdClass> $points */
 	public function importRaidPointsLog(array $points): void {
 		$this->logger->notice("Importing " . count($points) . " raid point logs");
 		$this->db->beginTransaction();
@@ -854,9 +853,9 @@ class ImportController extends Instance {
 		return join(",", $result);
 	}
 
-	/** @param array<\stdClass> $timers */
+	/** @param array<stdClass> $timers */
 	public function importTimers(array $timers): void {
-		$table = Registry::getInstance(TimerController::class)::DB_TABLE;
+		$table = TimerController::DB_TABLE;
 		$this->logger->notice("Importing " . count($timers) . " timers");
 		$this->db->beginTransaction();
 		try {
@@ -893,7 +892,7 @@ class ImportController extends Instance {
 						"settime" => $timer->startTime ?? time(),
 						"callback" => $entry->callback,
 						"data" => $entry->data,
-						"alerts" => json_encode($entry->alerts)
+						"alerts" => \Safe\json_encode($entry->alerts)
 					]);
 				$timerNum++;
 			}
@@ -907,7 +906,7 @@ class ImportController extends Instance {
 		$this->logger->notice("All timers imported");
 	}
 
-	/** @param array<\stdClass> $trackedUsers */
+	/** @param array<stdClass> $trackedUsers */
 	public function importTrackedCharacters(array $trackedUsers): void {
 		$this->logger->notice("Importing " . count($trackedUsers) . " tracked users");
 		$this->db->beginTransaction();
@@ -950,7 +949,7 @@ class ImportController extends Instance {
 	}
 
 	/**
-	 * @param array<\stdClass> $categories
+	 * @param array<stdClass> $categories
 	 * @param array<string,string> $rankMap
 	 */
 	public function importCommentCategories(array $categories, array $rankMap): void {
@@ -986,7 +985,7 @@ class ImportController extends Instance {
 		$this->logger->notice("All comment categories imported");
 	}
 
-	/** @param array<object> $comments */
+	/** @param array<stdClass> $comments */
 	public function importComments(array $comments): void {
 		$this->logger->notice("Importing " . count($comments) . " comment(s)");
 		$this->db->beginTransaction();

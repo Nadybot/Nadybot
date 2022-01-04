@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\PACKAGE_MODULE;
 
+use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	Attributes as NCA,
 	BotRunner,
@@ -20,9 +21,10 @@ use Nadybot\Core\{
 	Text,
 };
 use Nadybot\Modules\WEBSERVER_MODULE\JsonImporter;
-
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
+use Safe\Exceptions\DirException;
+use Safe\Exceptions\FilesystemException;
 use SplFileInfo;
 use Throwable;
 use ZipArchive;
@@ -88,7 +90,8 @@ class PackageController extends Instance {
 		if ($targetDir === null) {
 			return;
 		}
-		if ($dh = opendir($targetDir)) {
+		try {
+			$dh = \Safe\opendir($targetDir);
 			while (($dir = readdir($dh)) !== false) {
 				if (in_array($dir, [".", ".."], true)) {
 					continue;
@@ -96,6 +99,7 @@ class PackageController extends Instance {
 				$this->scanExtraModule($targetDir, $dir);
 			}
 			closedir($dh);
+		} catch (DirException) {
 		}
 	}
 
@@ -105,10 +109,10 @@ class PackageController extends Instance {
 		if (!isset($path)) {
 			return static::UNINST;
 		}
-		if (realpath(dirname($path)) === realpath(dirname(__DIR__))) {
+		if (\Safe\realpath(dirname($path)) === \Safe\realpath(dirname(__DIR__))) {
 			return static::BUILT_INT;
 		}
-		if (realpath(dirname($path)) === realpath(dirname(dirname(__DIR__))."/Core/Modules")) {
+		if (\Safe\realpath(dirname($path)) === \Safe\realpath(dirname(dirname(__DIR__))."/Core/Modules")) {
 			return static::BUILT_INT;
 		}
 		return static::EXTRA;
@@ -157,7 +161,7 @@ class PackageController extends Instance {
 			return false;
 		}
 		try {
-			$data = json_decode($data, false, 512, JSON_THROW_ON_ERROR);
+			$data = \Safe\json_decode($data, false, 512, JSON_THROW_ON_ERROR);
 		} catch (Throwable $e) {
 			return false;
 		}
@@ -205,7 +209,7 @@ class PackageController extends Instance {
 			return;
 		}
 		try {
-			$data = json_decode($response->data, false, 512, JSON_THROW_ON_ERROR);
+			$data = \Safe\json_decode($response->data, false, 512, JSON_THROW_ON_ERROR);
 		} catch (Throwable $e) {
 			$callback(null, ...$args);
 			return;
@@ -214,16 +218,14 @@ class PackageController extends Instance {
 			$callback(null, ...$args);
 			return;
 		}
-		$packages = [];
+		/** @var Collection<Package> */
+		$packages = new Collection();
 		foreach ($data as $pack) {
-			$packages []= JsonImporter::convert(Package::class, $pack);
+			$packages[]= JsonImporter::convert(Package::class, $pack);
 		}
-		$packages = array_values(array_filter(
-			$packages,
-			function(Package $package): bool {
-				return $package->bot_type === "Nadybot";
-			}
-		));
+		$packages = $packages->filter(function(Package $package): bool {
+			return $package->bot_type === "Nadybot";
+		})->values();
 		/** @var Package[] $packages */
 		foreach ($packages as $package) {
 			$package->compatible = $this->isVersionCompatible($package->bot_version);
@@ -461,7 +463,7 @@ class PackageController extends Instance {
 	 * @return bool true if we match, false if not
 	 */
 	public function isVersionCompatible(string $version): bool {
-		$parts = preg_split("/\s*,\s*/", $version);
+		$parts = \Safe\preg_split("/\s*,\s*/", $version);
 		$ourVersion = BotRunner::getVersion();
 
 		foreach ($parts as $part) {
@@ -547,9 +549,12 @@ class PackageController extends Instance {
 			return;
 		}
 		$modulePath = $this->chatBot->runner->classLoader->registeredModules[$module];
-		$path = realpath($modulePath);
-		if ($path === false) {
-			$this->logger->error("Cannot determine absolute path of {$modulePath}");
+		try {
+			$path = \Safe\realpath($modulePath);
+		} catch (FilesystemException $e) {
+			$this->logger->error("Cannot determine absolute path of {$modulePath}", [
+				"exception" => $e
+			]);
 			$context->reply("Something is wrong with the path of this module.");
 			return;
 		}
@@ -597,18 +602,20 @@ class PackageController extends Instance {
 			}
 			if (is_dir($file)) {
 				$this->logger->notice("rmdir {$relFile}");
-				if (!@rmdir($file)) {
+				try {
+					\Safe\rmdir($file);
+				} catch (FilesystemException $e) {
 					$context->reply(
-						"Error deleting directory {$relFile}: " . (error_get_last()["message"]??"unknown error")
+						"Error deleting directory {$relFile}: " . $e->getMessage()
 					);
 					return;
 				}
 			} else {
 				$this->logger->notice("del {$relFile}");
-				if (!@unlink($file)) {
-					$context->reply(
-						"Error deleting {$relFile}: " . (error_get_last()["message"]??"unknown error")
-					);
+				try {
+					\Safe\unlink($file);
+				} catch (FilesystemException $e) {
+					$context->reply("Error deleting {$relFile}: " . $e->getMessage());
 					return;
 				}
 			}
@@ -724,8 +731,9 @@ class PackageController extends Instance {
 		if (!@file_exists("{$moduleDir}/{$package}/aopkg.toml")) {
 			return "";
 		}
-		$content = file_get_contents("{$moduleDir}/{$package}/aopkg.toml");
-		if ($content === false) {
+		try {
+			$content = \Safe\file_get_contents("{$moduleDir}/{$package}/aopkg.toml");
+		} catch (FilesystemException) {
 			return "";
 		}
 		if (!preg_match("/^\s*version\s*=\s*\"(.*?)\"/m", $content, $matches)) {
@@ -751,16 +759,18 @@ class PackageController extends Instance {
 			$cmd->sendto->reply("Error downloading {$cmd->package} {$cmd->version}.");
 			return null;
 		}
-		$temp = tempnam(sys_get_temp_dir(), "nadybot-module");
-		if (@file_put_contents($temp, $response->body) === false) {
+		try {
+			$temp = \Safe\tempnam(sys_get_temp_dir(), "nadybot-module");
+			\Safe\file_put_contents($temp, $response->body);
+		} catch (FilesystemException $e) {
 			$cmd->sendto->reply(
-				"Error writing to temporary file: " . (error_get_last()["message"]??"unknown error")
+				"Error writing to temporary file: " . $e->getMessage()
 			);
 			return null;
 		}
 		$zip = new ZipArchive();
 		$openResult = $zip->open($temp);
-		@unlink($temp);
+		@\Safe\unlink($temp);
 		if ($openResult !== true) {
 			$cmd->sendto->reply("The downloaded file was corrupt.");
 			return null;
@@ -797,20 +807,22 @@ class PackageController extends Instance {
 			return;
 		}
 		$oldVersion = $this->getInstalledVersion($cmd->package, $targetDir);
-		$cmd->oldVersion = isset($oldVersion) ? new SemanticVersion($oldVersion) : $oldVersion;
+		$cmd->oldVersion = isset($oldVersion) ? new SemanticVersion($oldVersion) : null;
 		if (!$this->canInstallVersion($cmd)) {
 			return;
 		}
 
 		$this->logger->notice("Installing module {$cmd->package} into {$targetDir}/{$cmd->package}");
 		if (!@file_exists("{$targetDir}/{$cmd->package}/")) {
-			if (!@mkdir("{$targetDir}/{$cmd->package}", 0700, true)) {
+			try {
+				\Safe\mkdir("{$targetDir}/{$cmd->package}", 0700, true);
+			} catch (FilesystemException $e) {
 				$cmd->sendto->reply(
 					"There was an error creating ".
 					"<highlight>{$targetDir}/{$cmd->package}<end>."
 				);
 				$this->logger->error("Error on mkdir of {$targetDir}/{$cmd->package}: " .
-					(error_get_last()["message"]??"unknown error"));
+					$e->getMessage());
 				return;
 			}
 		}
@@ -856,10 +868,10 @@ class PackageController extends Instance {
 			}
 			if (@is_dir($fullFilename)) {
 				$this->logger->notice("rmdir {$fullFilename}");
-				@rmdir($fullFilename);
+				@\Safe\rmdir($fullFilename);
 			} else {
 				$this->logger->notice("del {$fullFilename}");
-				@unlink($fullFilename);
+				@\Safe\unlink($fullFilename);
 			}
 		}
 		return true;
@@ -873,36 +885,43 @@ class PackageController extends Instance {
 		$subDir = $this->getSubdir($zip);
 		for ($i = 0; $i < $zip->numFiles; $i++) {
 			$fileName = $zip->getNameIndex($i);
-			if ($subDir ===  $fileName) {
+			if ($subDir === $fileName || $fileName === false) {
 				continue;
 			}
 			$targetFile = "{$targetDir}/{$cmd->package}/" . substr($fileName, strlen($subDir));
 			if (substr($targetFile, -1, 1) === "/") {
-				if (@mkdir($targetFile, 0700, true) === false) {
+				try {
+					\Safe\mkdir($targetFile, 0700, true);
+				} catch (FilesystemException $e) {
 					$cmd->sendto->reply(
 						"There was an error creating <highlight>{$targetFile}<end>."
 					);
 					$this->logger->error("Error on mkdir of {$targetFile}: ".
-						(error_get_last()["message"]??"unknown error"));
+						$e->getMessage());
 					return false;
 				}
 			} else {
-				$success = @file_put_contents($targetFile, $zip->getFromIndex($i));
-				if ($success === false) {
+				try {
+					\Safe\file_put_contents($targetFile, $zip->getFromIndex($i));
+				} catch (FilesystemException $e) {
 					$cmd->sendto->reply(
 						"There was an error extracting <highlight>{$targetFile}<end>."
 					);
 					$this->logger->error("Error on extraction of {$targetFile}: ".
-						(error_get_last()["message"]??"unknown error"));
+						$e->getMessage());
 					return false;
 				}
+			}
+			$index = $zip->getNameIndex($i);
+			if ($index === false) {
+				continue;
 			}
 			$this->logger->notice("unzip -> {$targetFile}");
 			$this->db->table(self::DB_TABLE)
 				->insert([
 					"module" => $cmd->package,
 					"version" => $cmd->version,
-					"file" => "{$cmd->package}/" . substr($zip->getNameIndex($i), strlen($subDir)),
+					"file" => "{$cmd->package}/" . substr($index, strlen($subDir)),
 				]);
 		}
 		return true;
@@ -957,6 +976,9 @@ class PackageController extends Instance {
 		$subdir = "";
 		for ($i = 0; $i < $zip->numFiles; $i++ ) {
 			$name = $zip->getNameIndex($i);
+			if ($name === false) {
+				return "";
+			}
 			$slashPos = strpos($name, "/");
 			if ($slashPos === false) {
 				return "";
@@ -969,7 +991,7 @@ class PackageController extends Instance {
 	/** Try to determine the directory where custom modules shall be installed */
 	public function getExtraModulesDir(): ?string {
 		$moduleDirs = array_map("realpath", $this->config->moduleLoadPaths);
-		$moduleDirs = array_diff($moduleDirs, [realpath("./src/Modules")]);
+		$moduleDirs = array_diff($moduleDirs, [\Safe\realpath("./src/Modules")]);
 		$extraDir = end($moduleDirs);
 		if ($extraDir === false) {
 			return null;

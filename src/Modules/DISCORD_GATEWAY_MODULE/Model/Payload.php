@@ -15,9 +15,12 @@ class Payload extends JSONDataModel {
 	public ?string $t;
 
 	public function fromJSON(object $data): void {
+		if (!isset($data->op) || !isset($data->d)) {
+			return;
+		}
 		$this->op = $data->op;
 		$this->d  = $data->d;
-		$this->s  = $data->s ?? null;
-		$this->t  = $data->t ?? null;
+		$this->s  = isset($data->s) ? $data->s : null;
+		$this->t  = isset($data->t) ? $data->t : null;
 	}
 }

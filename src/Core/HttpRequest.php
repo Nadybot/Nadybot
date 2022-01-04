@@ -49,7 +49,7 @@ class HttpRequest {
 	 * @throws InvalidHttpRequest on error
 	 */
 	private function parseUri(): void {
-		$uriComponents = parse_url($this->uri);
+		$uriComponents = \Safe\parse_url($this->uri);
 		if (!is_array($uriComponents)) {
 			throw new InvalidHttpRequest("Invalid URI: '{$this->uri}'");
 		}

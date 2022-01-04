@@ -2,7 +2,7 @@
 
 namespace Nadybot\Modules\RAID_MODULE;
 
-use DateTime;
+use Safe\DateTime;
 use Exception;
 use Illuminate\Support\Collection;
 use Throwable;

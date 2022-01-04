@@ -13,6 +13,7 @@ use Nadybot\Core\{
 	Util,
 };
 use Nadybot\Core\ParamClass\PCharacter;
+use Safe\Exceptions\FilesystemException;
 
 /**
  * @author Tyrence (RK2)
@@ -179,10 +180,12 @@ class BankController extends Instance {
 
 	#[NCA\HandlesCommand("bank update")]
 	public function bankUpdateCommand(CmdContext $context, #[NCA\Str("update")] string $action): void {
-		$lines = @file($this->settingManager->getString('bank_file_location')??"");
-
-		if ($lines === false) {
-			$msg = "Could not open file: '" . ($this->settingManager->getString('bank_file_location')??"") . "'";
+		try {
+			$lines = \Safe\file($this->settingManager->getString('bank_file_location')??"");
+		} catch (FilesystemException $e) {
+			$msg = "Could not open file '".
+				($this->settingManager->getString('bank_file_location')??"") . "': ".
+				$e->getMessage();
 			$context->reply($msg);
 			return;
 		}

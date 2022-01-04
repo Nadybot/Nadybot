@@ -46,7 +46,7 @@ class Timer extends DBRow {
 		if (!isset($alerts)) {
 			return [];
 		}
-		$alertsData = json_decode($alerts);
+		$alertsData = \Safe\json_decode($alerts);
 		$result = [];
 		foreach ($alertsData as $alertData) {
 			$alert = new Alert();

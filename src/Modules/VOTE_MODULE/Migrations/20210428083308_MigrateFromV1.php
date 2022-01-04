@@ -23,7 +23,7 @@ class MigrateFromV1 implements SchemaMigration {
 			$id = $db->table(VoteController::DB_POLLS)->insertGetId([
 				"author" => (string)$oldPoll->author,
 				"question" => (string)$oldPoll->question,
-				"possible_answers" => json_encode(explode(VoteController::DELIMITER, (string)$oldPoll->answer)),
+				"possible_answers" => \Safe\json_encode(explode(VoteController::DELIMITER, (string)$oldPoll->answer)),
 				"started" => (int)$oldPoll->started,
 				"duration" => (int)$oldPoll->duration,
 				"status" => (int)$oldPoll->status,

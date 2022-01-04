@@ -85,10 +85,11 @@ class RandomController extends Instance {
 
 	#[NCA\HandlesCommand("random")]
 	public function randomCommand(CmdContext $context, string $string): void {
-		$items = preg_split("/(,\s+|\s+|,)/", trim($string));
+		$items = \Safe\preg_split("/(,\s+|\s+|,)/", trim($string));
 		$list = [];
 		while (count($items)) {
 			// Pick a random item from $items and remove it
+			// @phpstan-ignore-next-line
 			$elem = array_splice($items, array_rand($items, 1), 1)[0];
 			$list []= $elem;
 		}
@@ -148,7 +149,7 @@ class RandomController extends Instance {
 			$context->reply($msg);
 			return;
 		}
-		$options = preg_split("/(,\s+|\s+|,)/", $names);
+		$options = \Safe\preg_split("/(,\s+|\s+|,)/", $names);
 		if ($amount > count($options)) {
 			$msg = "Cannot pick more items than are on the list.";
 			$context->reply($msg);
@@ -181,7 +182,7 @@ class RandomController extends Instance {
 			$context->reply($msg);
 			return;
 		}
-		$options = preg_split("/(,\s+|\s+|,)/", $names);
+		$options = \Safe\preg_split("/(,\s+|\s+|,)/", $names);
 		[$rollNumber, $result] = $this->roll($context->char->name, $options);
 		$msg = "The roll is <highlight>$result<end> out of the possible options ".
 			$this->joinOptions($options, "highlight") . ". To verify do /tell <myname> verify $rollNumber";
