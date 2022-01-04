@@ -164,6 +164,7 @@ class MessageHubController extends Instance {
 				return;
 			}
 		}
+		/** @var null|RouteModifier[] $modifiers */
 		$transactionRunning = false;
 		try {
 			$this->db->beginTransaction();
@@ -282,12 +283,7 @@ class MessageHubController extends Instance {
 			$context->reply("No message modifier <highlight>{$modifier}<end> found.");
 			return;
 		}
-		try {
-			$refClass = new ReflectionClass($mod->class);
-		} catch (ReflectionException $e) {
-			$context->reply("The modifier <highlight>{$modifier}<end> cannot be initialized.");
-			return;
-		}
+		$refClass = new ReflectionClass($mod->class);
 		try {
 			$refConstr = $refClass->getMethod("__construct");
 			$refParams = $refConstr->getParameters();
@@ -551,9 +547,11 @@ class MessageHubController extends Instance {
 		if (isset($where)) {
 			$where = $this->fixDiscordChannelName($where());
 		}
+		/** @var ?string $where */
 		if (isset($via)) {
 			$via = $this->fixDiscordChannelName($via());
 		}
+		/** @var ?string $via */
 		$color = $this->getHopColor($tag, $where??null, $via??null);
 		$name = $tag;
 		if (isset($where)) {

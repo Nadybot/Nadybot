@@ -318,7 +318,7 @@ class AccessManager extends Instance {
 	/**
 	 * Return all allowed and known access levels
 	 *
-	 * @return int[] All access levels with the name as key and the number as value
+	 * @return array<string,int> All access levels with the name as key and the number as value
 	 */
 	public function getAccessLevels(): array {
 		return self::$ACCESS_LEVELS;

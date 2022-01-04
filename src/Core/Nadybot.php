@@ -2,6 +2,7 @@
 
 namespace Nadybot\Core;
 
+use function Safe\json_encode;
 use ReflectionClass;
 use Nadybot\Core\Modules\BAN\BanController;
 use Nadybot\Core\Modules\LIMITS\LimitsController;
@@ -1243,6 +1244,7 @@ class Nadybot extends AOChat {
 		);
 	}
 
+	/** @phpstan-param class-string $class */
 	public function registerEvents(string $class): void {
 		$reflection = new ReflectionClass($class);
 
@@ -1272,7 +1274,7 @@ class Nadybot extends AOChat {
 	 * In order to later easily find a module, it registers here
 	 * and other modules can get the instance by querying for $name
 	 */
-	public function registerInstance(string $name, object $obj): void {
+	public function registerInstance(string $name, Instance $obj): void {
 		$this->logger->info("Registering instance name '$name' for module '{$obj->moduleName}'");
 		$moduleName = $obj->moduleName;
 
@@ -1309,7 +1311,7 @@ class Nadybot extends AOChat {
 
 		foreach ($reflection->getMethods() as $method) {
 			if (count($method->getAttributes(NCA\Setup::class))) {
-				if (call_user_func([$obj, $method->name]) === false) {
+				if ($method->invoke($obj) === false) {
 					$this->logger->error("Failed to call setup handler for '$name'");
 				}
 			}

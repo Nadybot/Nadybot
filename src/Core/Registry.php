@@ -8,7 +8,7 @@ use ReflectionNamedType;
 use RuntimeException;
 
 class Registry {
-	/** @var array<string,object> */
+	/** @var array<string,Instance> */
 	protected static array $repo = [];
 
 	protected static ?LoggerWrapper $logger = null;
@@ -107,7 +107,7 @@ class Registry {
 
 	/**
 	 * Get all registered instance objects
-	 * @return array<string,object>
+	 * @return array<string,Instance>
 	 */
 	public static function getAllInstances(): array {
 		return self::$repo;

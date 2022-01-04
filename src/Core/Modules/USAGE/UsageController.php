@@ -185,7 +185,7 @@ class UsageController extends Instance {
 		$info = $this->getUsageInfo(time() - 7*24*3600, time());
 		$blob = json_encode(
 			$info,
-			JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES
+			JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR
 		);
 		$msg = $this->text->makeBlob("Collected usage info", $blob);
 		$context->reply($msg);
@@ -304,7 +304,7 @@ class UsageController extends Instance {
 			->select("command");
 		$query->selectRaw($query->rawFunc("COUNT", "*", "count")->getValue());
 		$commands = $query->asObj(CommandUsageStats::class)
-			->reduce(function(stdClass $carry, object $entry) {
+			->reduce(function(stdClass $carry, CommandUsageStats $entry) {
 				$carry->{$entry->command} = $entry->count;
 				return $carry;
 			}, new stdClass());

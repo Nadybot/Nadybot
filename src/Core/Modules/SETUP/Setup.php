@@ -30,7 +30,11 @@ class Setup {
 
 	public function readInput(string $output=""): string {
 		echo $output;
-		return trim(fgets(STDIN));
+		$input = fgets(STDIN);
+		if (!is_string($input)) {
+			die();
+		}
+		return trim($input);
 	}
 
 	public function showStep(string $text): void {

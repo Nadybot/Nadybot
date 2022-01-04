@@ -2,9 +2,12 @@
 
 namespace Nadybot\Core;
 
+use InvalidArgumentException;
+
 class ClassSpec {
 	public string $name;
 
+	/** @phpstan-var class-string */
 	public string $class;
 
 	/** @var FunctionParameter[] */
@@ -12,8 +15,12 @@ class ClassSpec {
 
 	public ?string $description = null;
 
+	/** @phpstan-param class-string $name */
 	public function __construct(string $name, string $class) {
 		$this->name = $name;
+		if (!class_exists($class)) {
+			throw new InvalidArgumentException("{$name} is not a valid class");
+		}
 		$this->class = $class;
 	}
 
