@@ -26,7 +26,7 @@ class WebsocketClient extends WebsocketBase {
 
 	public function __destruct() {
 		if ($this->isConnected() && is_resource($this->socket)) {
-			@\Safe\fclose($this->socket);
+			@fclose($this->socket);
 		}
 		$this->socket = null;
 	}
@@ -72,7 +72,7 @@ class WebsocketClient extends WebsocketBase {
 		$event->code = $code;
 		$event->data = $message;
 		if ($this->isConnected() && is_resource($this->socket)) {
-			@\Safe\fclose($this->socket);
+			@fclose($this->socket);
 			$this->resetClient();
 		}
 		$this->fireEvent(static::ON_ERROR, $event);

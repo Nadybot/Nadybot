@@ -107,7 +107,7 @@ class HttpProtocolWrapper {
 				$this->readBody($socket);
 				break;
 			case self::EXPECT_IGNORE:
-				@\Safe\fread($sock, 4096);
+				@fread($sock, 4096);
 				break;
 			case self::EXPECT_DONE:
 				break;
@@ -273,7 +273,7 @@ class HttpProtocolWrapper {
 		if (strlen($line) > 5 && ord($line[0]) === 0x16 && ord($line[5]) === 0x01) {
 			$this->logger->info("SSL connection for non-SSL socket detected");
 			// Empty the socket data, send a close and ignore all further replies
-			@\Safe\fread($sock, 4096);
+			@fread($sock, 4096);
 			$socket->close();
 			$this->nextPart = static::EXPECT_IGNORE;
 			return;

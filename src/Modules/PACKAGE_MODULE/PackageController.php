@@ -770,7 +770,7 @@ class PackageController extends Instance {
 		}
 		$zip = new ZipArchive();
 		$openResult = $zip->open($temp);
-		@\Safe\unlink($temp);
+		@unlink($temp);
 		if ($openResult !== true) {
 			$cmd->sendto->reply("The downloaded file was corrupt.");
 			return null;
@@ -868,10 +868,10 @@ class PackageController extends Instance {
 			}
 			if (@is_dir($fullFilename)) {
 				$this->logger->notice("rmdir {$fullFilename}");
-				@\Safe\rmdir($fullFilename);
+				@rmdir($fullFilename);
 			} else {
 				$this->logger->notice("del {$fullFilename}");
-				@\Safe\unlink($fullFilename);
+				@unlink($fullFilename);
 			}
 		}
 		return true;

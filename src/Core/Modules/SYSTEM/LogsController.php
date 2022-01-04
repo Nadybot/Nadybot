@@ -254,7 +254,7 @@ class LogsController extends Instance {
 		$formatter = new JsonFormatter(JsonFormatter::BATCH_MODE_JSON, true, true);
 		$formatter->includeStacktraces(true);
 		$debugFile = sys_get_temp_dir() . "/{$this->chatBot->char->name}.debug.json";
-		@\Safe\unlink($debugFile);
+		@unlink($debugFile);
 		$handler = new StreamHandler($debugFile, Logger::DEBUG, true, 0600);
 		$handler->setFormatter($formatter);
 		$processor = new IntrospectionProcessor(Logger::DEBUG, [], 1);
@@ -295,9 +295,8 @@ class LogsController extends Instance {
 				"Content-Type: application/json\r\n\r\n".
 				$content . "\r\n".
 				"--{$boundary}--\r\n"
-			)
-			->withCallback([$this, "handleDebugLogUpload"], $context);
-			@\Safe\unlink($filename);
+			)->withCallback([$this, "handleDebugLogUpload"], $context);
+			@unlink($filename);
 	}
 
 	public function handleDebugLogUpload(HttpResponse $response, CmdContext $context): void {

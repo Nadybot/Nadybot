@@ -165,7 +165,7 @@ class ConsoleController extends Instance {
 		}
 		if (feof($this->socket)) {
 			echo("EOF received, closing console.\n");
-			@\Safe\fclose($this->socket);
+			@fclose($this->socket);
 			$this->socketManager->removeSocketNotifier($this->notifier);
 			return;
 		}

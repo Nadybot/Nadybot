@@ -10,6 +10,7 @@ use InvalidArgumentException;
 use UnexpectedValueException;
 use DateTime;
 use Exception;
+use Safe\Exceptions\DatetimeException;
 use stdClass;
 
 /**
@@ -107,9 +108,9 @@ class JWT {
 		// Check the nbf if it is defined. This is the time that the
 		// token can actually be used. If it's not yet that time, abort.
 		if (isset($payload->nbf) && $payload->nbf > ($timestamp + static::$leeway)) {
-			$date = @\Safe\date(DateTime::ISO8601, $payload->nbf);
-			// @phpstan-ignore-next-line
-			if ($date === false) {
+			try {
+				$date = \Safe\date(DateTime::ISO8601, $payload->nbf);
+			} catch (DatetimeException) {
 				$date = "<unknown>";
 			}
 			throw new BeforeValidException("Cannot handle token prior to {$date}");
@@ -119,9 +120,9 @@ class JWT {
 		// using tokens that have been created for later use (and haven't
 		// correctly used the nbf claim).
 		if (isset($payload->iat) && $payload->iat > ($timestamp + static::$leeway)) {
-			$date = @\Safe\date(DateTime::ISO8601, $payload->iat);
-			// @phpstan-ignore-next-line
-			if ($date === false) {
+			try {
+				$date = \Safe\date(DateTime::ISO8601, $payload->iat);
+			} catch (DatetimeException) {
 				$date = "<unknown>";
 			}
 			throw new BeforeValidException("Cannot handle token prior to {$date}");

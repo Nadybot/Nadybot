@@ -221,7 +221,7 @@ class WebsocketBase {
 				"uri" => $this->uri,
 			]);
 			$length = strlen($data);
-			@\Safe\fclose($this->socket);
+			@fclose($this->socket);
 			$this->throwError(
 				WebsocketError::WRITE_ERROR,
 				"Failed to write $length bytes to websocket {$uri}."
@@ -435,7 +435,7 @@ class WebsocketBase {
 			}
 			if ($meta["timed_out"] === true || $buffer === '') {
 				if (feof($this->socket)) {
-					@\Safe\fclose($this->socket);
+					@fclose($this->socket);
 					$this->logger->info("[Websocket {uri}] Socket closed with status {status}", [
 						"uri" => $uri,
 						"status" => $this->closeStatus ?? "<unknown>",

@@ -332,7 +332,7 @@ class WebUiController extends Instance implements MessageEmitter {
 				@$extractor->close();
 			}
 			if (isset($file)) {
-				@\Safe\fclose($file);
+				@fclose($file);
 			}
 		}
 	}

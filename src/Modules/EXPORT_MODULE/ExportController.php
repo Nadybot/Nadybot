@@ -105,7 +105,7 @@ class ExportController extends Instance {
 			$fileName .= ".json";
 		}
 		if (!@file_exists("{$dataPath}/export")) {
-			@\Safe\mkdir("{$dataPath}/export", 0700);
+			\Safe\mkdir("{$dataPath}/export", 0700);
 		}
 		if ($this->config->useProxy) {
 			if (!$this->chatBot->proxyCapabilities->supportsBuddyMode(ProxyCapabilities::SEND_BY_WORKER)) {
@@ -138,7 +138,7 @@ class ExportController extends Instance {
 		$exports->timers = $this->exportTimers();
 		$exports->trackedCharacters = $this->exportTrackedCharacters();
 		try {
-			$output = @\Safe\json_encode($exports, JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR);
+			$output = \Safe\json_encode($exports, JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES);
 		} catch (JsonException $e) {
 			$context->reply("There was an error exporting the data: " . $e->getMessage());
 			return;

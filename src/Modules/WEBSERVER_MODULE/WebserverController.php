@@ -417,7 +417,7 @@ class WebserverController extends Instance {
 		}
 */
 		try {
-			$serverSocket = @\Safe\stream_socket_server(
+			$serverSocket = \Safe\stream_socket_server(
 				"tcp://{$addr}:{$port}",
 				$errno,
 				$errstr,
@@ -453,9 +453,9 @@ class WebserverController extends Instance {
 		}
 		if (isset($this->asyncSocket)) {
 			$this->asyncSocket->destroy();
-			@\Safe\fclose($this->serverSocket);
+			@fclose($this->serverSocket);
 		} else {
-			@\Safe\fclose($this->serverSocket);
+			@fclose($this->serverSocket);
 		}
 		$this->logger->notice("Webserver shutdown");
 		return true;
@@ -629,10 +629,11 @@ class WebserverController extends Instance {
 			['Content-Type' => $this->guessContentType($realFile)],
 			$body
 		);
-		$lastmodified = @\Safe\filemtime($realFile);
-		if ($lastmodified !== false) {
+		try {
+			$lastmodified = \Safe\filemtime($realFile);
 			$modifiedDate = (new DateTime())->setTimestamp($lastmodified)->format(DateTime::RFC7231);
 			$response->headers['Last-Modified'] = $modifiedDate;
+		} catch (FilesystemException) {
 		}
 		$response->headers['Cache-Control'] = 'private, max-age=3600';
 		$response->headers['ETag'] = '"' . dechex(crc32($body)) . '"';

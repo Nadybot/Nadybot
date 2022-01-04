@@ -540,7 +540,7 @@ class Util extends Instance {
 	 * @return string[] An array of file names in that directory
 	 */
 	public function getFilesInDirectory(string $path): array {
-		$files = @\Safe\scandir($path);
+		$files = @scandir($path);
 		if (!is_array($files)) {
 			return [];
 		}
@@ -555,7 +555,7 @@ class Util extends Instance {
 	 * @return string[] An array of dir names in that directory
 	 */
 	public function getDirectoriesInDirectory(string $path): array {
-		$files = @\Safe\scandir($path);
+		$files = @scandir($path);
 		if (!is_array($files)) {
 			return [];
 		}

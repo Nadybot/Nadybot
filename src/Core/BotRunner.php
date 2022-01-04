@@ -79,7 +79,7 @@ class BotRunner {
 			throw new ErrorException($str, 0, $num, $file, $line);
 		});
 		try {
-			$ref = explode(": ", trim(@\Safe\file_get_contents("{$baseDir}/.git/HEAD")?:""), 2)[1];
+			$ref = explode(": ", trim(\Safe\file_get_contents("{$baseDir}/.git/HEAD")), 2)[1];
 			$branch = explode("/", $ref, 3)[2];
 			$latestTag = static::getLatestTag();
 			if (!isset($latestTag)) {
@@ -320,12 +320,12 @@ class BotRunner {
 		foreach ($dirVars as $var) {
 			$dir = $this->getConfigFile()->{$var};
 			if (is_string($dir) && !@file_exists($dir)) {
-				@\Safe\mkdir($dir, 0700);
+				@mkdir($dir, 0700);
 			}
 		}
 		foreach ($this->getConfigFile()->moduleLoadPaths as $dir) {
 			if (is_string($dir) && !@file_exists($dir)) {
-				@\Safe\mkdir($dir, 0700);
+				@mkdir($dir, 0700);
 			}
 		}
 	}

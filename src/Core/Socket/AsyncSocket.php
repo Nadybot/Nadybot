@@ -132,7 +132,7 @@ class AsyncSocket {
 		if ($this->state === static::STATE_CLOSING) {
 			$this->logger->info('Forcefully closing socket');
 			if (is_resource($this->socket)) {
-				@\Safe\fclose($this->socket);
+				@fclose($this->socket);
 			}
 			$this->destroy();
 			return;
@@ -251,7 +251,7 @@ class AsyncSocket {
 		if (!isset($this->socket) || !is_resource($this->socket)) {
 			return;
 		}
-		@\Safe\fclose($this->socket);
+		@fclose($this->socket);
 		$this->unsubscribeSocketEvent(SocketNotifier::ACTIVITY_READ);
 		$this->unsubscribeSocketEvent(SocketNotifier::ACTIVITY_WRITE);
 		$this->state = static::STATE_CLOSED;

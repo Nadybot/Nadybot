@@ -230,7 +230,7 @@ class CacheManager extends Instance {
 
 		// at least in windows, modification timestamp will not change unless this is done
 		// not sure why that is the case -tyrence
-		@\Safe\unlink($cacheFile);
+		@unlink($cacheFile);
 
 		$fp = \Safe\fopen($cacheFile, "w");
 		if (is_resource($fp)) {
