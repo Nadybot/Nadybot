@@ -6,6 +6,7 @@ use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{
 	CmdContext,
 	CommandManager,
+	ModuleInstance,
 	Nadybot,
 };
 
@@ -21,13 +22,7 @@ use Nadybot\Core\{
 		help: "demo.txt"
 	)
 ]
-class SameChannelResponseController {
-
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
+class SameChannelResponseController extends ModuleInstance {
 
 	#[NCA\Inject]
 	public CommandManager $commandManager;

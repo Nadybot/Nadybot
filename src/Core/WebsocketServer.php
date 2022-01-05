@@ -36,10 +36,10 @@ class WebsocketServer extends WebsocketBase {
 		if (!is_resource($this->socket)) {
 			throw new Exception("Tried to create a websocket server with a closed socket.");
 		}
-		$this->peerName = stream_socket_get_name($this->socket, true);
+		$this->peerName = \Safe\stream_socket_get_name($this->socket, true);
 		[$usecs, $secs] = explode(" ", microtime(false));
-		$this->uuid = bin2hex(pack("NN", (int)$secs, (int)((float)$usecs*1000000)) . random_bytes(16));
-		stream_set_blocking($this->socket, false);
+		$this->uuid = bin2hex(\Safe\pack("NN", (int)$secs, (int)((float)$usecs*1000000)) . random_bytes(16));
+		\Safe\stream_set_blocking($this->socket, false);
 	}
 
 	public function serve(): void {

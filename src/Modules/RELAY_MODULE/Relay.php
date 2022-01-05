@@ -130,7 +130,7 @@ class Relay implements MessageReceiver {
 					return;
 				}
 				$player->source = $clientId;
-				foreach ($player as $key => $value) {
+				foreach (get_object_vars($player) as $key => $value) {
 					$this->onlineChars[$where][$character]->{$key} = $value;
 				}
 			},
@@ -218,6 +218,7 @@ class Relay implements MessageReceiver {
 		RelayProtocolInterface $relayProtocol,
 		RelayLayerInterface ...$stack
 	): void {
+		/** @var RelayLayerInterface[] $stack */
 		$this->transport = $transport;
 		$this->relayProtocol = $relayProtocol;
 		$this->stack = $stack;
@@ -386,6 +387,7 @@ class Relay implements MessageReceiver {
 		return empty($this->transport->send($data));
 	}
 
+	/** @param string[] $data */
 	public function receiveFromMember(RelayStackMemberInterface $member, array $data): void {
 		$i = count($this->stack);
 		if ($member !== $this->relayProtocol) {
@@ -417,6 +419,7 @@ class Relay implements MessageReceiver {
 		return $allow->outgoing;
 	}
 
+	/** @param RelayEvent[] $events */
 	public function setEvents(array $events): void {
 		$this->events = [];
 		foreach ($events as $event) {

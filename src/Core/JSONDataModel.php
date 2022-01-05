@@ -87,10 +87,14 @@ class JSONDataModel {
 				} else {
 					$refProp->setValue($this, null);
 				}
+			} elseif ($typeName === "stdClass") {
+				$refProp->setValue($this, $data->{$propName});
 			} else {
 				$value = new $typeName();
-				$value->fromJSON($data->{$propName});
-				$refProp->setValue($this, $value);
+				if (method_exists($value, "fromJSON")) {
+					$value->fromJSON($data->{$propName});
+					$refProp->setValue($this, $value);
+				}
 			}
 		}
 	}

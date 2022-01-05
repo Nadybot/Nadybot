@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\IMPLANT_MODULE;
 
+use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\DBRow;
 
 class Symbiant extends DBRow {
@@ -9,9 +10,9 @@ class Symbiant extends DBRow {
 	public string $Name;
 	public int $QL;
 	public int $SlotID;
-	/** @db:ignore */
+	#[NCA\DB\Ignore]
 	public string $SlotName;
-	/** @db:ignore */
+	#[NCA\DB\Ignore]
 	public string $SlotLongName;
 	public int $TreatmentReq;
 	public int $LevelReq;

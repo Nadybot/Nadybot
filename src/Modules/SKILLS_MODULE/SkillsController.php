@@ -3,20 +3,23 @@
 namespace Nadybot\Modules\SKILLS_MODULE;
 
 use Illuminate\Support\Collection;
-use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{
+	Attributes as NCA,
 	CmdContext,
 	CommandAlias,
 	DB,
 	Http,
+	ModuleInstance,
+	ParamClass\PItem,
+	ParamClass\PNonNumber,
 	Text,
 	Util,
 };
-use Nadybot\Core\ParamClass\PItem;
-use Nadybot\Core\ParamClass\PNonNumber;
-use Nadybot\Modules\ITEMS_MODULE\AODBEntry;
-use Nadybot\Modules\ITEMS_MODULE\ItemsController;
-use Nadybot\Modules\ITEMS_MODULE\ItemSearchResult;
+use Nadybot\Modules\ITEMS_MODULE\{
+	AODBEntry,
+	ItemsController,
+	ItemSearchResult,
+};
 
 /**
  * @author Tyrence (RK2)
@@ -93,13 +96,7 @@ use Nadybot\Modules\ITEMS_MODULE\ItemSearchResult;
 		help: "weapon.txt"
 	)
 ]
-class SkillsController {
-
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
+class SkillsController extends ModuleInstance {
 
 	#[NCA\Inject]
 	public DB $db;
@@ -470,8 +467,7 @@ class SkillsController {
 		$min = $this->util->interpolate($skillList[$i], $skillList[($i + 1)], $maMinList[$i], $maMinList[($i + 1)], $maSkill);
 		$max = $this->util->interpolate($skillList[$i], $skillList[($i + 1)], $maMaxList[$i], $maMaxList[($i + 1)], $maSkill);
 		$crit = $this->util->interpolate($skillList[$i], $skillList[($i + 1)], $maCritList[$i], $maCritList[($i + 1)], $maSkill);
-		//$ma_speed = $this->util->interpolate($skill_list[$i], $skill_list[($i + 1)], $MA_fist_speed[$i], $MA_fist_speed[($i + 1)], $MaSkill);
-		$maBaseSpeed = (($maSkill - $skillList[$i]) * ($maFistSpeed[($i + 1)] - $maFistSpeed[$i])) / ($skillList[($i + 1)] - $skillList[$i]) + $maFistSpeed[$i];
+		$maBaseSpeed = (($maSkill - $skillList[$i]) * ($maFistSpeed[($i + 1)] - $maFistSpeed[$i])) / ($skillList[($i + 1)] - $skillList[$i]) + $maFistSpeed[$i]; // @phpstan-ignore-line
 		$maFistSpeed = round($maBaseSpeed, 2);
 		$dmg = "<highlight>{$min}<end>-<highlight>{$max}<end> (<highlight>{$crit}<end>)";
 		$blob .= "<header2>Martial Artist<end> (".  $this->text->makeItem($maAOID[$i], $maAOID[$i+1], $aoidQL, "item") . ")\n";
@@ -545,22 +541,13 @@ class SkillsController {
 	public function weaponCommand(CmdContext $context, int $highid, int $ql): void {
 		// this is a hack since Worn Soft Pepper Pistol has its high and low ids reversed in-game
 		// there may be others
-		$queryOne = $this->db->table("aodb")
-			->where("highid", $highid)
-			->where("lowql", "<=", $ql)
-			->where("highql", ">=", $ql)
-			->select("*");
-		$queryOne->selectRaw("1" . $queryOne->as("order_col"));
-		$queryTwo = $this->db->table("aodb")
-			->where("lowid", $highid)
-			->where("lowql", "<=", $ql)
-			->where("highql", ">=", $ql)
-			->select("*");
-		$queryTwo->selectRaw("2" . $queryTwo->as("order_col"));
-
 		/** @var ?AODBEntry */
-		$row = $queryOne->union($queryTwo)->orderBy("order_col")
-			->asObj(AODBEntry::class)->first();
+		$row = $this->itemsController->getByIDs($highid)
+			->where("lowql", "<=", $ql)
+			->where("highql", ">=", $ql)
+			->sort(function (AODBEntry $i1, AODBEntry $i2) use ($highid): int {
+				return ($i1->highid === $highid) ? 1 : 2;
+			})->first();
 
 		if ($row === null) {
 			$msg = "Item does not exist in the items database.";
@@ -808,7 +795,7 @@ class SkillsController {
 
 	/**
 	 * @param integer|integer[] $aoid
-	 * @return Collection<WeaponAttributes>
+	 * @return Collection<WeaponAttribute>
 	 */
 	public function getWeaponAttributes(null|int|array $aoid): Collection {
 		$query = $this->db->table("weapon_attributes");

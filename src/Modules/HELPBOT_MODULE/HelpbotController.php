@@ -7,6 +7,7 @@ use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{
 	CmdContext,
 	DB,
+	ModuleInstance,
 	Text,
 	Util,
 };
@@ -40,13 +41,7 @@ use ParseError;
 		help: "calculator.txt"
 	)
 ]
-class HelpbotController {
-
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
+class HelpbotController extends ModuleInstance {
 
 	#[NCA\Inject]
 	public DB $db;
@@ -72,7 +67,7 @@ class HelpbotController {
 	public function dynaLevelCommand(CmdContext $context, int $search): void {
 		$range1 = (int)floor($search - $search / 10);
 		$range2 = (int)ceil($search + $search / 10);
-		/** @var Collection<DynaDB> */
+		/** @var Collection<DynaDBSearch> */
 		$data = $this->db->table("dynadb AS d")
 			->where("max_ql", ">=", $range1)
 			->where("min_ql", "<=", $range2)
@@ -89,7 +84,7 @@ class HelpbotController {
 			return;
 		}
 
-		$blob = "Results of Dynacams level <highlight>{$range1}<end>-<highlight>{$range2}<end>\n\n";
+		$blob = "Results of Dynacamps level <highlight>{$range1}<end>-<highlight>{$range2}<end>\n\n";
 
 		$blob .= $this->formatResults($data);
 
@@ -128,6 +123,7 @@ class HelpbotController {
 	 */
 	private function formatResults(Collection $data): string {
 		$blob = '';
+		/** @var Collection<string,Collection<DynaDBSearch>> */
 		$data = $data->filter(fn (DynaDBSearch $search): bool => isset($search->pf))
 			->groupBy("pf.long_name")
 			->sortKeys();

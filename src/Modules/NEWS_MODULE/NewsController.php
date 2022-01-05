@@ -2,14 +2,14 @@
 
 namespace Nadybot\Modules\NEWS_MODULE;
 
-use Nadybot\Core\Attributes as NCA;
 use Exception;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	AOChatEvent,
+	Attributes as NCA,
 	CmdContext,
 	DB,
-	Event,
+	ModuleInstance,
 	Nadybot,
 	SettingManager,
 	Text,
@@ -52,7 +52,7 @@ use Throwable;
 		help: "news.txt"
 	)
 ]
-class NewsController {
+class NewsController extends ModuleInstance {
 	#[NCA\Inject]
 	public DB $db;
 
@@ -70,9 +70,6 @@ class NewsController {
 
 	#[NCA\Inject]
 	public Util $util;
-
-	public string $moduleName;
-
 	#[NCA\Setup]
 	public function setup(): void {
 
@@ -112,7 +109,7 @@ class NewsController {
 	 */
 	public function getNewsItems(string $player): Collection {
 		if ($this->settingManager->getBool('news_confirmed_for_all_alts')) {
-			$player = $this->altsController->getAltInfo($player)->main;
+			$player = $this->altsController->getMainOf($player);
 		}
 		$query = $this->db->table("news AS n")
 			->where("deleted", 0)
@@ -271,7 +268,7 @@ class NewsController {
 			return;
 		}
 		if ($this->settingManager->getBool('news_confirmed_for_all_alts')) {
-			$sender = $this->altsController->getAltInfo($context->char->name)->main;
+			$sender = $this->altsController->getMainOf($context->char->name);
 		}
 
 		if ($this->db->table("news_confirmed")
@@ -434,6 +431,7 @@ class NewsController {
 		} catch (Throwable $e) {
 			return new Response(Response::UNPROCESSABLE_ENTITY);
 		}
+		$decoded = News::fromNewNews($decoded);
 		unset($decoded->id);
 		$decoded->time ??= time();
 		$decoded->name = $request->authenticatedAs??"_";
@@ -473,9 +471,10 @@ class NewsController {
 		} catch (Throwable $e) {
 			return new Response(Response::UNPROCESSABLE_ENTITY);
 		}
+		$decoded = News::fromNewNews($decoded);
 		$decoded->id = $id;
 		$decoded->name = $request->authenticatedAs??"_";
-		foreach ($decoded as $attr => $value) {
+		foreach (get_object_vars($decoded) as $attr => $value) {
 			if (isset($value)) {
 				$result->{$attr} = $value;
 			}
@@ -509,7 +508,7 @@ class NewsController {
 		$blobLines = [];
 		foreach ($unreadNews as $news) {
 			$firstLine = explode("\n", $news->news)[0];
-			$firstWords = array_slice(preg_split("/\s+/", $firstLine), 0, 5);
+			$firstWords = array_slice(\Safe\preg_split("/\s+/", $firstLine), 0, 5);
 			$blobLines []= "<tab><highlight>" . $this->util->date($news->time).
 				"<end>: " . join(" ", $firstWords) . "...";
 		}

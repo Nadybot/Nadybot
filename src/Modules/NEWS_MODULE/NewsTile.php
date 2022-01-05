@@ -6,6 +6,7 @@ use Closure;
 use InvalidArgumentException;
 use ReflectionFunction;
 use ReflectionNamedType;
+use ReflectionUnionType;
 
 class NewsTile {
 	/** The name of this news tile */
@@ -46,7 +47,7 @@ class NewsTile {
 			$type = $params[0]->getType();
 			if ($type instanceof ReflectionNamedType) {
 				$typeNames =[$type->getName()];
-			} elseif (is_object($type)) {
+			} elseif ($type instanceof ReflectionUnionType) {
 				/** @psalm-suppress UndefinedMethod */
 				$typeNames = array_map(fn(ReflectionNamedType $type) => $type->getName(), $type->getTypes());
 			}
@@ -61,7 +62,7 @@ class NewsTile {
 			$type = $params[1]->getType();
 			if ($type instanceof ReflectionNamedType) {
 				$typeNames =[$type->getName()];
-			} elseif (is_object($type)) {
+			} elseif ($type instanceof ReflectionUnionType) {
 				/** @psalm-suppress UndefinedMethod */
 				$typeNames = array_map(fn(ReflectionNamedType $type) => $type->getName(), $type->getTypes());
 			}

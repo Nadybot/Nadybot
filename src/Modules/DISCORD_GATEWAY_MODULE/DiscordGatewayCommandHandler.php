@@ -7,6 +7,7 @@ use Nadybot\Core\{
 	CmdContext,
 	CommandManager,
 	DB,
+	ModuleInstance,
 	LoggerWrapper,
 	Nadybot,
 	Registry,
@@ -31,11 +32,8 @@ use Nadybot\Core\ParamClass\PCharacter;
 		help: "extauth.txt"
 	)
 ]
-class DiscordGatewayCommandHandler {
+class DiscordGatewayCommandHandler extends ModuleInstance {
 	public const DB_TABLE = "discord_mapping_<myname>";
-
-	public string $moduleName;
-
 	#[NCA\Inject]
 	public DB $db;
 
@@ -206,8 +204,8 @@ class DiscordGatewayCommandHandler {
 		}
 		$this->discordAPIClient->getUser(
 			$discordUserId,
-			function(DiscordUser $user) use ($context, $name, $discordUserId, $uid) {
-				$context->char->name = $user ? $user->username . "#" . $user->discriminator : $discordUserId;
+			function(DiscordUser $user) use ($context, $name, $uid) {
+				$context->char->name = $user->username . "#" . $user->discriminator;
 				$blob = "The Discord user <highlight>{$context->char->name}<end> has requested to be linked with your ".
 					"game account. If you confirm the link, that discord user will be linked ".
 					"with this account, be able to run the same commands and have the same rights ".

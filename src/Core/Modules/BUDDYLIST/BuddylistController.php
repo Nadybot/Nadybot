@@ -7,6 +7,7 @@ use Nadybot\Core\BuddylistEntry;
 use Nadybot\Core\Nadybot;
 use Nadybot\Core\BuddylistManager;
 use Nadybot\Core\CmdContext;
+use Nadybot\Core\ModuleInstance;
 use Nadybot\Core\Text;
 use Nadybot\Core\ParamClass\PCharacter;
 use Nadybot\Core\ParamClass\PRemove;
@@ -26,13 +27,7 @@ use Nadybot\Core\ParamClass\PWord;
 		alias: "friendlist"
 	)
 ]
-class BuddylistController {
-
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
+class BuddylistController extends ModuleInstance {
 
 	#[NCA\Inject]
 	public Nadybot $chatBot;

@@ -2,27 +2,27 @@
 
 namespace Nadybot\Modules\GSP_MODULE;
 
-use Nadybot\Core\Attributes as NCA;
-use DateTime;
+use Safe\DateTime;
 use DateTimeZone;
 use JsonException;
 use Nadybot\Core\{
+	Attributes as NCA,
 	CmdContext,
 	DB,
-	Event,
 	EventManager,
 	Http,
 	HttpResponse,
+	ModuleInstance,
 	MessageEmitter,
 	MessageHub,
 	Modules\DISCORD\DiscordController,
 	Nadybot,
+	Routing\RoutableMessage,
+	Routing\Source,
 	SettingManager,
 	Text,
 	UserStateEvent,
 };
-use Nadybot\Core\Routing\RoutableMessage;
-use Nadybot\Core\Routing\Source;
 
 /**
  * @author Nadyita (RK5) <nadyita@hodorraid.org>
@@ -41,13 +41,7 @@ use Nadybot\Core\Routing\Source;
 	NCA\ProvidesEvent("gsp(show_start)"),
 	NCA\ProvidesEvent("gsp(show_end)")
 ]
-class GSPController implements MessageEmitter {
-
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
+class GSPController extends ModuleInstance implements MessageEmitter {
 
 	#[NCA\Inject]
 	public Nadybot $chatBot;
@@ -164,7 +158,7 @@ class GSPController implements MessageEmitter {
 		}
 		$show = new Show();
 		try {
-			$show->fromJSON(json_decode($response->body, false, 512, JSON_THROW_ON_ERROR));
+			$show->fromJSON(\Safe\json_decode($response->body, false, 512, JSON_THROW_ON_ERROR));
 		} catch (JsonException $e) {
 			return;
 		}
@@ -328,7 +322,7 @@ class GSPController implements MessageEmitter {
 		}
 		$show = new Show();
 		try {
-			$show->fromJSON(json_decode($response->body));
+			$show->fromJSON(\Safe\json_decode($response->body));
 		} catch (JsonException $e) {
 			return "GSP seems to have problems with their service. Please try again later.";
 		}
@@ -395,7 +389,7 @@ class GSPController implements MessageEmitter {
 		}
 		$show = new Show();
 		try {
-			$show->fromJSON(json_decode($response->body));
+			$show->fromJSON(\Safe\json_decode($response->body));
 		} catch (JsonException $e) {
 			$callback(null);
 			return;

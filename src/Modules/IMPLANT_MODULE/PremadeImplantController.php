@@ -6,6 +6,7 @@ use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{
 	CmdContext,
 	DB,
+	ModuleInstance,
 	QueryBuilder,
 	Text,
 	Util,
@@ -27,13 +28,7 @@ use Nadybot\Modules\ITEMS_MODULE\WhatBuffsController;
 		help: "premade.txt"
 	)
 ]
-class PremadeImplantController {
-
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
+class PremadeImplantController extends ModuleInstance {
 
 	#[NCA\Inject]
 	public DB $db;

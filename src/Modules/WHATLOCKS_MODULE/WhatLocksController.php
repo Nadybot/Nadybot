@@ -2,14 +2,14 @@
 
 namespace Nadybot\Modules\WHATLOCKS_MODULE;
 
-use Nadybot\Core\Attributes as NCA;
 use DateTime;
 use DateTimeZone;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
+	Attributes as NCA,
 	CmdContext,
 	DB,
-	DBRow,
+	ModuleInstance,
 	Text,
 	Util,
 };
@@ -30,10 +30,7 @@ use Nadybot\Modules\ITEMS_MODULE\Skill;
 		help: "whatlocks.txt"
 	)
 ]
-class WhatLocksController {
-
-	public string $moduleName;
-
+class WhatLocksController extends ModuleInstance {
 	#[NCA\Inject]
 	public Text $text;
 
@@ -92,7 +89,7 @@ class WhatLocksController {
 
 	/**
 	 * Get a dialog to choose which skill to search for locks
-	 * @param Skill[] $skills A list of skills to choose from
+	 * @param Skill $skills A list of skills to choose from
 	 * @return string[] The complete dialogue
 	 */
 	public function getSkillChoiceDialog(Skill ...$skills): array {
@@ -175,6 +172,7 @@ class WhatLocksController {
 	 * @return array An array with 2 elements:
 	 *               How many characters are useless fill information,
 	 *               The prettified duration string
+	 * @phpstan-return array{int, string}
 	 */
 	public function prettyDuration(int $duration, int $cutAway=0): array {
 		$short = (new DateTime())
@@ -186,7 +184,7 @@ class WhatLocksController {
 		$short = preg_replace_callback(
 			"/^(\d+)/",
 			function(array $match): string {
-				return (string)($match[1] - 1);
+				return (string)((int)$match[1] - 1);
 			},
 			$short
 		);

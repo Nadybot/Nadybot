@@ -9,6 +9,7 @@ use Nadybot\Core\{
 	CmdContext,
 	CommandManager,
 	DB,
+	ModuleInstance,
 	Text,
 };
 use Nadybot\Core\DBSchema\CommandListEntry;
@@ -26,7 +27,7 @@ use Nadybot\Core\DBSchema\CommandListEntry;
 		defaultStatus: 1
 	)
 ]
-class CommandlistController {
+class CommandlistController extends ModuleInstance {
 
 	#[NCA\Inject]
 	public AccessManager $accessManager;

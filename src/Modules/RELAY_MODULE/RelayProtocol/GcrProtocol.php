@@ -2,9 +2,9 @@
 
 namespace Nadybot\Modules\RELAY_MODULE\RelayProtocol;
 
+use Closure;
 use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\DBSchema\Player;
-use Nadybot\Core\Event;
 use Nadybot\Core\Modules\PLAYER_LOOKUP\PlayerManager;
 use Nadybot\Core\Nadybot;
 use Nadybot\Core\Routing\Character;
@@ -93,15 +93,16 @@ class GcrProtocol implements RelayProtocolInterface {
 			return $this->renderMessage($event);
 		}
 		if ($event->getType() === RoutableEvent::TYPE_EVENT) {
-			/** @var Event $llEvent */
+			/** @var object $llEvent */
 			$llEvent = $event->getData();
-			if ($llEvent->type??null === Online::TYPE) {
+			if (isset($llEvent->type) && ($llEvent->type === Online::TYPE)) {
 				return $this->renderUserState($event);
 			}
 		}
 		return [];
 	}
 
+	/** @return string[] */
 	public function renderMessage(RoutableEvent $event): array {
 		$path = $event->getPath();
 		$hops = [];
@@ -124,6 +125,7 @@ class GcrProtocol implements RelayProtocolInterface {
 		];
 	}
 
+	/** @return string[] */
 	public function renderUserState(RoutableEvent $event): array {
 		$character = $event->getData()->char ?? null;
 		if (!isset($character) || !$this->util->isValidSender($character->name??-1)) {
@@ -295,8 +297,8 @@ class GcrProtocol implements RelayProtocolInterface {
 		}
 		if (preg_match("/^buddy (?<status>\d) (?<char>.+?) (?<where>[^ ]+)( \d+)?$/", $text, $matches)) {
 			$callback = ($matches['status'] === '1')
-				? [$this->relay, "setOnline"]
-				: [$this->relay, "setOffline"];
+				? Closure::fromCallable([$this->relay, "setOnline"])
+				: Closure::fromCallable([$this->relay, "setOffline"]);
 			$this->playerManager->getByNameCallback(
 				function(?Player $player) use ($matches, $callback): void {
 					if (!isset($player)) {
@@ -323,7 +325,10 @@ class GcrProtocol implements RelayProtocolInterface {
 					}
 					$chars = explode(";", $matches[1]);
 					foreach ($chars as $char) {
-						[$name,$where,$rank] = [...explode(",", $char), null, null];
+						[$name, $where, $rank] = [...explode(",", $char), null, null];
+						if (!isset($name)) {
+							continue;
+						}
 						$this->relay->setOnline(
 							$player->name,
 							(!empty($player->guild))
@@ -341,10 +346,13 @@ class GcrProtocol implements RelayProtocolInterface {
 		} elseif (preg_match("/^onlinereq$/", $text, $matches)) {
 			$onlineList = $this->getOnlineList();
 			if (isset($onlineList)) {
-				$this->relay->receiveFromMember(
-					$this,
-					[$this->getOnlineList()]
-				);
+				$data = $this->getOnlineList();
+				if (isset($data)) {
+					$this->relay->receiveFromMember(
+						$this,
+						[$data]
+					);
+				}
 			}
 		}
 		return null;

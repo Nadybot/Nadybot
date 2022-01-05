@@ -2,10 +2,13 @@
 
 namespace Nadybot\Modules\HELPBOT_MODULE;
 
-use Nadybot\Core\Attributes as NCA;
-use Nadybot\Core\CmdContext;
-use Nadybot\Core\DB;
-use Nadybot\Core\Text;
+use Nadybot\Core\{
+	Attributes as NCA,
+	CmdContext,
+	DB,
+	ModuleInstance,
+	Text,
+};
 
 /**
  * @author Tyrence (RK2)
@@ -22,13 +25,7 @@ use Nadybot\Core\Text;
 		help: "research.txt"
 	)
 ]
-class ResearchController {
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
-
+class ResearchController extends ModuleInstance {
 	#[NCA\Inject]
 	public DB $db;
 
@@ -85,8 +82,9 @@ class ResearchController {
 			->where("level", "<=", $hiLevel);
 		$query->select($query->colFunc("SUM", "sk", "totalsk"));
 		$query->addSelect($query->colFunc("MAX", "levelcap", "levelcap"));
-		$row = $query->asObj()->first();
-		if ($row->levelcap === null) {
+		/** @var ?ResearchResult */
+		$row = $query->asObj(ResearchResult::class)->first();
+		if (!isset($row) || $loLevel === $hiLevel) {
 			$msg = "That doesn't make any sense.";
 			$context->reply($msg);
 			return;

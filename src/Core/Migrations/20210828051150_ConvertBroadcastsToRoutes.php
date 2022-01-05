@@ -2,6 +2,7 @@
 
 namespace Nadybot\Core\Migrations;
 
+use Illuminate\Support\Collection;
 use Nadybot\Core\DB;
 use Nadybot\Core\DBSchema\Route;
 use Nadybot\Core\DBSchema\Setting;
@@ -24,7 +25,8 @@ class ConvertBroadcastsToRoutes implements SchemaMigration {
 		if (!$db->schema()->hasTable($table)) {
 			return;
 		}
-		$broadcasts = $db->table($table)->asObj();
+		/** @var Collection<string> */
+		$broadcasts = $db->table($table)->pluckAs("name", "string");
 		$orgSetting = $this->getSetting($db, 'broadcast_to_guild');
 		$toOrg = isset($orgSetting) ? ($orgSetting->value === "1") : true;
 		$privSetting = $this->getSetting($db, 'broadcast_to_privchan');
@@ -35,8 +37,8 @@ class ConvertBroadcastsToRoutes implements SchemaMigration {
 		$db->schema()->dropIfExists($table);
 	}
 
-	public function convertBroadcastToRoute(DB $db, object $broadcast, bool $org, bool $priv): void {
-		$name = ucfirst(strtolower($broadcast->name));
+	public function convertBroadcastToRoute(DB $db, string $broadcast, bool $org, bool $priv): void {
+		$name = ucfirst(strtolower($broadcast));
 		$botName = $db->getMyname();
 		if ($org) {
 			$route = new Route();

@@ -2,14 +2,13 @@
 
 namespace Nadybot\Core;
 
-use JsonException;
+use Safe\Exceptions\JsonException;
 use Monolog\Formatter\FormatterInterface;
 use Monolog\Handler\AbstractHandler;
 use Monolog\Handler\AbstractProcessingHandler;
 use Monolog\Logger;
 use Monolog\Processor\PsrLogMessageProcessor;
 use RuntimeException;
-use Stringable;
 
 /**
  * A compatibility layer for logging
@@ -18,6 +17,7 @@ class LegacyLogger {
 	/** @var array<string,Logger> */
 	public static array $loggers = [];
 
+	/** @var array<string,mixed> */
 	public static array $config = [];
 
 	/**
@@ -41,15 +41,6 @@ class LegacyLogger {
 	}
 
 	/**
-	 * Log a message according to log settings
-	 */
-	public static function log(string $category, string $channel, Stringable|string $message): void {
-		$logger = static::fromConfig($channel);
-		$level = static::getLoggerLevel($category);
-		$logger->log($level, $message);
-	}
-
-	/**
 	 * Get the Monolog log level for a Nadybot logging category
 	 */
 	public static function getLoggerLevel(string $category): int {
@@ -69,19 +60,16 @@ class LegacyLogger {
 			default:
 				return Logger::NOTICE;
 		}
-		return Logger::NOTICE;
 	}
 
+	/** @return array<string,mixed> */
 	public static function getConfig(bool $noCache=false): array {
 		if (!empty(static::$config) && !$noCache) {
 			return static::$config;
 		}
-		$json = file_get_contents("./conf/logging.json");
-		if ($json === false) {
-			throw new RuntimeException("Unable to read logging config file");
-		}
+		$json = \Safe\file_get_contents("./conf/logging.json");
 		try {
-			$logStruct = json_decode($json, true, 512, JSON_THROW_ON_ERROR);
+			$logStruct = \Safe\json_decode($json, true, 512, JSON_THROW_ON_ERROR);
 		} catch (JsonException $e) {
 			throw new RuntimeException("Unable to parse logging config", 0, $e);
 		}
@@ -124,6 +112,7 @@ class LegacyLogger {
 			if (!fnmatch($logLevelConf[0], $logger->getName(), FNM_CASEFOLD)) {
 				continue;
 			}
+			// @phpstan-ignore-next-line
 			$newLevel = $logger->toMonologLevel($logLevelConf[1]);
 			foreach ($handlers as $name => $handler) {
 				if ($handler instanceof AbstractHandler) {
@@ -160,7 +149,7 @@ class LegacyLogger {
 	/**
 	 * Parse th defined handlers into objects
 	 *
-	 * @param array<string,array> $handlers
+	 * @param array<string,mixed> $handlers
 	 * @param array<string,FormatterInterface> $formatters
 	 * @return array<string,AbstractProcessingHandler>
 	 */
@@ -191,7 +180,7 @@ class LegacyLogger {
 	/**
 	 * Parse the defined formatters and return them as objects
 	 *
-	 * @param array<string,array> $formatters
+	 * @param array<string,array<mixed>> $formatters
 	 * @return array<string,FormatterInterface>
 	 */
 	public static function parseFormattersConfig(array $formatters): array {

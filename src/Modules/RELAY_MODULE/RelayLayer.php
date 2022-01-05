@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\RELAY_MODULE;
 
+use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\DBRow;
 
 class RelayLayer extends DBRow {
@@ -21,11 +22,12 @@ class RelayLayer extends DBRow {
 	public string $layer;
 
 	/**
-	 * @db:ignore
 	 * @var RelayLayerArgument[]
 	 */
+	#[NCA\DB\Ignore]
 	public array $arguments = [];
 
+	/** @param string[] $secrets */
 	public function toString(?string $linkType=null, array $secrets=[]): string {
 		$arguments = array_map(
 			function(RelayLayerArgument $argument) use ($secrets): string {

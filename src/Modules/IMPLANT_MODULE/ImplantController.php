@@ -2,10 +2,11 @@
 
 namespace Nadybot\Modules\IMPLANT_MODULE;
 
-use Nadybot\Core\Attributes as NCA;
 use Exception;
 use Nadybot\Core\{
+	Attributes as NCA,
 	CmdContext,
+	ModuleInstance,
 	Nadybot,
 	Text,
 };
@@ -23,13 +24,7 @@ use Nadybot\Core\{
 		help: "implant.txt"
 	)
 ]
-class ImplantController {
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
-
+class ImplantController extends ModuleInstance {
 	#[NCA\Inject]
 	public Nadybot $chatBot;
 
@@ -106,6 +101,7 @@ class ImplantController {
 	 */
 	public function findBestQLForBonus(int $bonus, array $itemSpecs): int {
 		for ($searchedQL = min(array_keys($itemSpecs)); $searchedQL <= max(array_keys($itemSpecs)); $searchedQL++) {
+			// @phpstan-ignore-next-line
 			$value = $this->calcStatFromQL($itemSpecs, $searchedQL);
 			if ($value === null) {
 				continue;
@@ -239,7 +235,7 @@ class ImplantController {
 	 * Render the popup-blob for a regular or jobe implant at a given QL
 	 * @param string $type self::REGULAR or self::JOBE
 	 * @param int    $ql   The QL to render for
-	 * @return array the full link to the blob
+	 * @return string[] the full link to the blob
 	 */
 	public function renderBlob(string $type, int $ql): array {
 		$specs = $this->getImplantQLSpecs($type, $ql);
@@ -339,7 +335,9 @@ class ImplantController {
 	 */
 	public function getBonusQLRange(string $type, int $slot, int $bonus): ?array {
 		$breakpoints = $this->getBreakpoints($type, $slot);
+		/** @var int */
 		$minQL = min(array_keys($breakpoints));
+		/** @var int */
 		$maxQL = max(array_keys($breakpoints));
 		$foundMinQL = 0;
 		$foundMaxQL = 300;

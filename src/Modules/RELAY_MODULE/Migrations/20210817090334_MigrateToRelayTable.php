@@ -72,6 +72,7 @@ class MigrateToRelayTable implements SchemaMigration {
 		return $db->insert($this->messageHub::DB_TABLE_ROUTE_MODIFIER, $mod);
 	}
 
+	/** @param array<string,mixed> $kv */
 	protected function addArgs(DB $db, int $modId, array $kv): void {
 		foreach ($kv as $name => $value) {
 			$arg = new RouteModifierArgument();

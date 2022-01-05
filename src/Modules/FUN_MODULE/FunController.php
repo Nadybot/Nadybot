@@ -2,11 +2,12 @@
 
 namespace Nadybot\Modules\FUN_MODULE;
 
-use Nadybot\Core\Attributes as NCA;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
+	Attributes as NCA,
 	CmdContext,
 	DB,
+	ModuleInstance,
 	Util,
 };
 
@@ -73,13 +74,7 @@ use Nadybot\Core\{
 		help: "fun_module.txt"
 	)
 ]
-class FunController {
-
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
+class FunController extends ModuleInstance {
 
 	#[NCA\Inject]
 	public DB $db;
@@ -123,6 +118,7 @@ class FunController {
 			$msg = str_replace("*creds*", (string)$cred, $msg);
 		}
 
+		// @phpstan-ignore-next-line
 		return $msg;
 	}
 

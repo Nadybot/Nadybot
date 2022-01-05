@@ -2,14 +2,14 @@
 
 namespace Nadybot\Modules\RELAY_MODULE;
 
-use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{
+	Attributes as NCA,
 	CmdContext,
-	CommandReply,
+	ModuleInstance,
+	Routing\Source,
 	Text,
 	Util,
 };
-use Nadybot\Core\Routing\Source;
 
 /**
  * @author Tyrence
@@ -25,13 +25,7 @@ use Nadybot\Core\Routing\Source;
 		help: "quickrelay.txt"
 	)
 ]
-class QuickRelayController {
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
-
+class QuickRelayController extends ModuleInstance {
 	#[NCA\Inject]
 	public Text $text;
 

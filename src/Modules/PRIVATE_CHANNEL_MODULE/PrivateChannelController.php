@@ -2,10 +2,10 @@
 
 namespace Nadybot\Modules\PRIVATE_CHANNEL_MODULE;
 
-use Nadybot\Core\Attributes as NCA;
 use Exception;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
+	Attributes as NCA,
 	AccessManager,
 	AOChatEvent,
 	BuddylistManager,
@@ -13,16 +13,17 @@ use Nadybot\Core\{
 	CommandAlias,
 	ConfigFile,
 	DB,
+	DBSchema\Audit,
+	DBSchema\Member,
+	DBSchema\Player,
 	Event,
 	EventManager,
+	ModuleInstance,
 	Nadybot,
 	SettingManager,
 	Text,
 	Timer,
 	Util,
-	DBSchema\Audit,
-	DBSchema\Member,
-	DBSchema\Player,
 	LoggerWrapper,
 	MessageHub,
 	Modules\ALTS\AltsController,
@@ -43,6 +44,7 @@ use Nadybot\Modules\{
 	ONLINE_MODULE\OnlineEvent,
 	ONLINE_MODULE\OnlinePlayer,
 };
+use Safe\Exceptions\FilesystemException;
 
 /**
  * @author Tyrence (RK2)
@@ -126,14 +128,8 @@ use Nadybot\Modules\{
 	NCA\ProvidesEvent("member(add)"),
 	NCA\ProvidesEvent("member(rem)")
 ]
-class PrivateChannelController {
+class PrivateChannelController extends ModuleInstance {
 	public const DB_TABLE = "members_<myname>";
-
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
 
 	#[NCA\Inject]
 	public DB $db;
@@ -856,7 +852,7 @@ class PrivateChannelController {
 				$event->type = "online(priv)";
 				$event->player = new OnlinePlayer();
 				$event->channel = "priv";
-				foreach ($whois as $key => $value) {
+				foreach (get_object_vars($whois) as $key => $value) {
 					$event->player->$key = $value;
 				}
 				$event->player->online = true;
@@ -1062,15 +1058,10 @@ class PrivateChannelController {
 			return;
 		}
 		error_clear_last();
-		$content = @file_get_contents("{$dataPath}/welcome.txt");
-		if ($content === false) {
-			$error = error_get_last();
-			if (isset($error)) {
-				$error = ": " . $error["message"];
-			} else {
-				$error = "";
-			}
-			$this->logger->error("Error reading {$dataPath}/welcome.txt{$error}");
+		try {
+			$content = \Safe\file_get_contents("{$dataPath}/welcome.txt");
+		} catch (FilesystemException $e) {
+			$this->logger->error("Error reading {$dataPath}/welcome.txt: " . $e->getMessage());
 			return;
 		}
 		$msg = $this->settingManager->getString("welcome_msg_string")??"<link>Welcome</link>!";

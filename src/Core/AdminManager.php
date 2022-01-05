@@ -2,10 +2,11 @@
 
 namespace Nadybot\Core;
 
-use Nadybot\Core\Attributes as NCA;
-use Nadybot\Core\Attributes\Inject;
-use Nadybot\Core\DBSchema\Admin;
-use Nadybot\Core\DBSchema\Audit;
+use Nadybot\Core\{
+	Attributes as NCA,
+	DBSchema\Admin,
+	DBSchema\Audit,
+};
 
 /**
  * Manage the bot admins
@@ -26,7 +27,7 @@ class AdminManager {
 	#[NCA\Inject]
 	public AccessManager $accessManager;
 
-	#[Inject]
+	#[NCA\Inject]
 	public ConfigFile $config;
 
 	/**

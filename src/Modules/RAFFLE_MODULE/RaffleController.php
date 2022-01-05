@@ -2,14 +2,15 @@
 
 namespace Nadybot\Modules\RAFFLE_MODULE;
 
-use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{
+	Attributes as NCA,
 	AccessManager,
 	CmdContext,
 	CommandAlias,
 	DB,
 	Event,
 	EventManager,
+	ModuleInstance,
 	Modules\ALTS\AltsController,
 	Nadybot,
 	PrivateChannelCommandReply,
@@ -46,15 +47,9 @@ use Nadybot\Modules\RAID_MODULE\RaidController;
 	NCA\ProvidesEvent("raffle(join)"),
 	NCA\ProvidesEvent("raffle(leave)")
 ]
-class RaffleController {
+class RaffleController extends ModuleInstance {
 	public const DB_TABLE = "raffle_bonus_<myname>";
 	public const NO_RAFFLE_ERROR = "There is no active raffle.";
-
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
 
 	#[NCA\Inject]
 	public SettingManager $settingManager;
@@ -571,13 +566,12 @@ class RaffleController {
 
 	protected function getBonusPoints(string $player): int {
 		if ($this->settingManager->getBool('share_raffle_bonus_on_alts')) {
-			$player = $this->altsController->getAltInfo($player)->main;
+			$player = $this->altsController->getMainOf($player);
 		}
-		$data = $this->db->table(self::DB_TABLE)
+		return $this->db->table(self::DB_TABLE)
 			->where("name", $player)
 			->select("bonus")
-			->asObj()->first();
-		return $data ? $data->bonus : 0;
+			->pluckAs("bonus", "int")->first() ?? 0;
 	}
 
 	/**
@@ -655,7 +649,7 @@ class RaffleController {
 	protected function getMainCharacters(string ...$players): array {
 		return array_map(
 			function(string $player): string {
-				return $this->altsController->getAltInfo($player)->main;
+				return $this->altsController->getMainOf($player);
 			},
 			$players
 		);
@@ -679,10 +673,11 @@ class RaffleController {
 		}
 		$losersUpdate = [];
 		if (count($losers)) {
+			/** @var string[] */
 			$losersUpdate = $this->db->table(self::DB_TABLE)
 					->whereIn("name", $losers)
 					->select("name")
-					->asObj()->pluck("name")->toArray();
+					->pluckAs("name", "string")->toArray();
 		}
 		$losersInsert = array_diff($losers, $losersUpdate);
 		if (count($losersUpdate)) {

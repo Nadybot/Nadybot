@@ -2,9 +2,10 @@
 
 namespace Nadybot\Modules\DEV_MODULE;
 
-use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{
+	Attributes as NCA,
 	CmdContext,
+	ModuleInstance,
 	Text,
 };
 
@@ -20,13 +21,7 @@ use Nadybot\Core\{
 		description: "List all game icons with their name"
 	)
 ]
-class GameIconsController {
-
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
+class GameIconsController extends ModuleInstance {
 
 	#[NCA\Inject]
 	public Text $text;

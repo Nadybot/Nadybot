@@ -4,11 +4,12 @@ declare(strict_types=1);
 
 namespace Nadybot\Modules\NANO_MODULE;
 
-use Nadybot\Core\Attributes as NCA;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
+	Attributes as NCA,
 	CmdContext,
 	DB,
+	ModuleInstance,
 	SettingManager,
 	Text,
 	Util,
@@ -51,13 +52,7 @@ use Nadybot\Core\{
 		help: "nano.txt"
 	)
 ]
-class NanoController {
-
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
+class NanoController extends ModuleInstance {
 
 	#[NCA\Inject]
 	public DB $db;
@@ -71,6 +66,8 @@ class NanoController {
 	#[NCA\Inject]
 	public Util $util;
 
+	/** @var array<int,Nanoline> */
+	public array $nanolines = [];
 	/**
 	 * This handler is called on bot startup.
 	 */
@@ -100,6 +97,10 @@ class NanoController {
 			options: "true;false",
 			intoptions: "1;0"
 		);
+		$this->nanolines = $this->db->table("nano_lines")
+			->asObj(Nanoline::class)
+			->keyBy("strain_id")
+			->toArray();
 	}
 
 	#[NCA\HandlesCommand("nano")]
@@ -175,7 +176,7 @@ class NanoController {
 	/**
 	 * List all professions for which nanolines exist
 	 * @param CmdContext $context Where to send the reply to
-	 * @param bool $froobObly Is set, only show professions a froob can play
+	 * @param bool $froobOnly Is set, only show professions a froob can play
 	 * @return void
 	 */
 	public function listNanolineProfs(CmdContext $context, bool $froobOnly): void {
@@ -186,12 +187,13 @@ class NanoController {
 		if ($froobOnly) {
 			$query->whereNotIn("professions", ["Keeper", "Shade"]);
 		}
-		$data = $query->asObj();
+		/** @var Collection<string> */
+		$profs = $query->pluckAs("professions", "string");
 
 		$blob = "<header2>Choose a profession<end>\n";
 		$command = $froobOnly ? "nanolinesfroob" : "nanolines";
-		foreach ($data as $row) {
-			$blob .= "<tab>" . $this->text->makeChatcmd($row->professions, "/tell <myname> $command $row->professions");
+		foreach ($profs as $prof) {
+			$blob .= "<tab>" . $this->text->makeChatcmd($prof, "/tell <myname> {$command} {$prof}");
 			$blob .= "\n";
 		}
 		$blob .= $this->getFooter();
@@ -300,7 +302,8 @@ class NanoController {
 			}
 			$query->where("froob_friendly", true);
 		}
-		$data = $query->asObj()->toArray();
+		/** @var SchoolAndStrain[] */
+		$data = $query->asObj(SchoolAndStrain::class)->toArray();
 
 		$shortProf = $profession;
 		if ($profession !== 'General') {
@@ -337,15 +340,17 @@ class NanoController {
 			->orderBy("location")
 			->select("location");
 		$query->addSelect($query->colFunc("COUNT", "location", "count"));
-		$data = $query->asObj();
+		/** @var Collection<LocationCount> */
+		$data = $query->asObj(LocationCount::class);
 		$nanoCount = [];
 		foreach ($data as $row) {
-			$locations = preg_split("/\s*\/\s*/", $row->location);
+			$locations = \Safe\preg_split("/\s*\/\s*/", $row->location);
 			foreach ($locations as $loc) {
 				$nanoCount[$loc] = ($nanoCount[$loc]??0) + $row->count;
 			}
 		}
 		ksort($nanoCount);
+		/** @var array<string,int> $nanoCount */
 
 		$blob = "<header2>All nano locations<end>\n";
 		foreach ($nanoCount as $loc => $count) {
@@ -415,5 +420,9 @@ class NanoController {
 		return $this->db->table("nano_lines")
 			->whereIn("strain_id", $ids)
 			->asObj(Nanoline::class);
+	}
+
+	public function getNanoLineById(int $id): ?Nanoline {
+		return $this->nanolines[$id] ?? null;
 	}
 }

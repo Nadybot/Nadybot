@@ -2,9 +2,12 @@
 
 namespace Nadybot\Modules\LEVEL_MODULE;
 
-use Nadybot\Core\Attributes as NCA;
-use Nadybot\Core\CmdContext;
-use Nadybot\Core\Text;
+use Nadybot\Core\{
+	Attributes as NCA,
+	CmdContext,
+	ModuleInstance,
+	Text,
+};
 
 /**
  * @author Tyrence (RK2)
@@ -19,17 +22,15 @@ use Nadybot\Core\Text;
 		help: "xp.txt"
 	)
 ]
-class AXPController {
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
-
+class AXPController extends ModuleInstance {
 	#[NCA\Inject]
 	public Text $text;
 
-	/** @var array<array> */
+	/**
+	 * @var array<array<int|string>>
+	 * @psalm-var array{0:int, 1:int, 2:string}[]
+	 * @phpstan-var array{0:int, 1:int, 2:string}[]
+	 */
 	private array $aiRanks = [
 		[    1_500,   5, "Fledgling"],
 		[    9_000,  15, "Amateur"],

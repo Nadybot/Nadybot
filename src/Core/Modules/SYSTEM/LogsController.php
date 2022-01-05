@@ -17,6 +17,7 @@ use Nadybot\Core\{
 	DedupHandler,
 	Http,
 	HttpResponse,
+	ModuleInstance,
 	LegacyLogger,
 	LoggerWrapper,
 	Nadybot,
@@ -27,6 +28,7 @@ use Nadybot\Core\{
 };
 use Nadybot\Core\ParamClass\PFilename;
 use Nadybot\Core\ParamClass\PWord;
+use Safe\Exceptions\FilesystemException;
 
 /**
  * @author Tyrence (RK2)
@@ -53,13 +55,7 @@ use Nadybot\Core\ParamClass\PWord;
 		help: "debug.txt"
 	)
 ]
-class LogsController {
-
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
+class LogsController extends ModuleInstance {
 
 	#[NCA\Inject]
 	public CommandManager $commandManager;
@@ -282,9 +278,10 @@ class LogsController {
 	}
 
 	public function uploadDebugLog(CmdContext $context, string $filename): void {
-		$content = file_get_contents($filename);
-		if ($content === false) {
-			$context->reply("Unable to open <highlight>{$filename}<end>.");
+		try {
+			$content = \Safe\file_get_contents($filename);
+		} catch (FilesystemException $e) {
+			$context->reply("Unable to open <highlight>{$filename}<end>: " . $e->getMessage() . ".");
 			return;
 		}
 		$content = str_replace('"' . BotRunner::getBasedir() . "/", "", $content);
@@ -298,8 +295,7 @@ class LogsController {
 				"Content-Type: application/json\r\n\r\n".
 				$content . "\r\n".
 				"--{$boundary}--\r\n"
-			)
-			->withCallback([$this, "handleDebugLogUpload"], $context);
+			)->withCallback([$this, "handleDebugLogUpload"], $context);
 			@unlink($filename);
 	}
 

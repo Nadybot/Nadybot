@@ -129,6 +129,7 @@ class GrcV2Protocol implements RelayProtocolInterface {
 		if (preg_match("/^<relay_bot_color>/s", $data)) {
 			$message->char = null;
 		}
+		/** @var string */
 		$data = preg_replace("/^<relay_[a-z]+_color>(.*)$/s", "$1", $data);
 		$data = preg_replace("/<\/end>$/s", "", $data);
 		$message->setData(ltrim($data));

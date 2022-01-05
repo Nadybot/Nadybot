@@ -2,15 +2,16 @@
 
 namespace Nadybot\Modules\NOTES_MODULE;
 
-use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{
 	AOChatEvent,
 	AccessManager,
+	Attributes as NCA,
 	BuddylistManager,
 	CmdContext,
 	CommandAlias,
 	CommandManager,
 	DB,
+	ModuleInstance,
 	LoggerWrapper,
 	Modules\ALTS\AltsController,
 	Nadybot,
@@ -51,7 +52,7 @@ use Nadybot\Core\ParamClass\PRemove;
 		help: "notes.txt"
 	)
 ]
-class NotesController {
+class NotesController extends ModuleInstance {
 	public const FORMAT_GROUPED = 'grouped';
 	public const FORMAT_INDIVIDUAL = 'individual';
 	public const FORMAT_INDIVIDUAL2 = 'individual2';
@@ -63,12 +64,6 @@ class NotesController {
 		self::FORMAT_INDIVIDUAL,
 		self::FORMAT_INDIVIDUAL2,
 	];
-
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
 
 	#[NCA\Inject]
 	public DB $db;
@@ -415,7 +410,7 @@ class NotesController {
 
 	/**
 	 * Render the reminder message for $sender, reminding about the $notes
-	 * @param string $sender Person being reminded
+	 * @param string $format The format to render the messages with
 	 * @param Note[] $notes The notes we are reminded about
 	 * @return string The rendered message
 	 */

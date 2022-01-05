@@ -10,6 +10,7 @@ use Nadybot\Core\{
 	DBSchema\Setting,
 	EventManager,
 	HelpManager,
+	ModuleInstance,
 	InsufficientAccessException,
 	SettingManager,
 };
@@ -27,13 +28,7 @@ use Nadybot\Modules\WEBSERVER_MODULE\WebChatConverter;
  * @package Nadybot\Core\Modules\CONFIG
  */
 #[NCA\Instance]
-class ConfigApiController {
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
-
+class ConfigApiController extends ModuleInstance {
 	#[NCA\Inject]
 	public DiscordRelayController $discordRelayController;
 
@@ -79,10 +74,10 @@ class ConfigApiController {
 		NCA\ApiResult(code: 404, desc: "Module or Event not found")
 	]
 	public function toggleEventStatusEndpoint(Request $request, HttpProtocolWrapper $server, string $module, string $event, string $handler): Response {
-		$op = null;
-		if (is_object($request->decodedBody)) {
-			$op = $request->decodedBody->op ?? null;
+		if (!is_object($request->decodedBody) || !isset($request->decodedBody->op)) {
+			return new Response(Response::UNPROCESSABLE_ENTITY);
 		}
+		$op = $request->decodedBody->op;
 		if (!in_array($op, ["enable", "disable"], true)) {
 			return new Response(Response::UNPROCESSABLE_ENTITY);
 		}
@@ -267,10 +262,10 @@ class ConfigApiController {
 		NCA\ApiResult(code: 402, desc: "Wrong or no operation given")
 	]
 	public function toggleCommandStatusEndpoint(Request $request, HttpProtocolWrapper $server, string $module, string $command): Response {
-		$op = null;
-		if (is_object($request->decodedBody)) {
-			$op = $request->decodedBody->op ?? null;
+		if (!is_object($request->decodedBody) || !isset($request->decodedBody->op)) {
+			return new Response(Response::UNPROCESSABLE_ENTITY);
 		}
+		$op = $request->decodedBody->op;
 		if (!in_array($op, ["enable", "disable"], true)) {
 			return new Response(Response::UNPROCESSABLE_ENTITY);
 		}
@@ -305,10 +300,10 @@ class ConfigApiController {
 		NCA\ApiResult(code: 402, desc: "Wrong or no operation given")
 	]
 	public function toggleModuleStatusEndpoint(Request $request, HttpProtocolWrapper $server, string $module): Response {
-		$op = null;
-		if (is_object($request->decodedBody)) {
-			$op = $request->decodedBody->op ?? null;
+		if (!is_object($request->decodedBody) || !isset($request->decodedBody->op)) {
+			return new Response(Response::UNPROCESSABLE_ENTITY);
 		}
+		$op = $request->decodedBody->op;
 		if (!in_array($op, ["enable", "disable"], true)) {
 			return new Response(Response::UNPROCESSABLE_ENTITY);
 		}

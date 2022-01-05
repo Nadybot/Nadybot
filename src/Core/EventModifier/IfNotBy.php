@@ -32,6 +32,9 @@ class IfNotBy implements EventModifier {
 	protected array $senders = [];
 	protected bool $inverse;
 
+	/**
+	 * @param string[] $senders
+	 */
 	public function __construct(array $senders, bool $inverse=false) {
 		$this->senders = array_map("strtolower", $senders);
 		$this->inverse = $inverse;

@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\RELAY_MODULE\Layer;
 
+use InvalidArgumentException;
 use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\LoggerWrapper;
 use Nadybot\Core\Timer;
@@ -36,6 +37,7 @@ use Throwable;
 	)
 ]
 class Chunker implements RelayLayerInterface {
+	/** @psalm-var positive-int */
 	protected int $chunkSize = 50000;
 	protected int $timeout = 60;
 
@@ -56,6 +58,9 @@ class Chunker implements RelayLayerInterface {
 	public LoggerWrapper $logger;
 
 	public function __construct(int $chunkSize, int $timeout=60) {
+		if ($chunkSize < 1) {
+			throw new InvalidArgumentException("length cannot be less than 1");
+		}
 		$this->chunkSize = $chunkSize;
 		$this->timeout = $timeout;
 	}
@@ -91,9 +96,6 @@ class Chunker implements RelayLayerInterface {
 			return [$packet];
 		}
 		$chunks = str_split($packet, $this->chunkSize);
-		if ($chunks === false) {
-			return [$packet];
-		}
 		$result = [];
 		$uuid = $this->util->createUUID();
 		$part = 1;
@@ -106,9 +108,9 @@ class Chunker implements RelayLayerInterface {
 				"sent" => $created,
 				"data" => $chunk,
 			]);
-			$json = json_encode($msg, JSON_UNESCAPED_SLASHES|JSON_INVALID_UTF8_SUBSTITUTE);
+			$json = \Safe\json_encode($msg, JSON_UNESCAPED_SLASHES|JSON_INVALID_UTF8_SUBSTITUTE);
 			if ($json !== false) {
-				$result []= json_encode($msg, JSON_UNESCAPED_SLASHES|JSON_INVALID_UTF8_SUBSTITUTE);
+				$result []= \Safe\json_encode($msg, JSON_UNESCAPED_SLASHES|JSON_INVALID_UTF8_SUBSTITUTE);
 			}
 		}
 		return $result;
@@ -117,7 +119,7 @@ class Chunker implements RelayLayerInterface {
 	public function receive(RelayMessage $msg): ?RelayMessage {
 		foreach ($msg->packages as &$data) {
 			try {
-				$json = json_decode($data, true, 512, JSON_THROW_ON_ERROR);
+				$json = \Safe\json_decode($data, true, 512, JSON_THROW_ON_ERROR);
 				$chunk = new Chunk($json);
 			} catch (Throwable $e) {
 				// Chunking is optional

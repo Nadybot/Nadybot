@@ -2,25 +2,26 @@
 
 namespace Nadybot\Modules\RAID_MODULE;
 
-use Nadybot\Core\Attributes as NCA;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	AccessManager,
 	AdminManager,
+	Attributes as NCA,
 	BuddylistManager,
 	CmdContext,
 	CommandAlias,
 	CommandReply,
 	DB,
 	DBSchema\Audit,
+	ModuleInstance,
 	LoggerWrapper,
 	Modules\ALTS\AltEvent,
 	Modules\ALTS\AltsController,
 	Nadybot,
+	ParamClass\PCharacter,
 	SettingManager,
 	Text,
 };
-use Nadybot\Core\ParamClass\PCharacter;
 
 /**
  * Commands this controller contains:
@@ -49,11 +50,8 @@ use Nadybot\Core\ParamClass\PCharacter;
 		alias: "leaders"
 	)
 ]
-class RaidRankController {
+class RaidRankController extends ModuleInstance {
 	public const DB_TABLE = "raid_rank_<myname>";
-
-	public string $moduleName;
-
 	#[NCA\Inject]
 	public SettingManager $settingManager;
 
@@ -362,6 +360,7 @@ class RaidRankController {
 		return true;
 	}
 
+	/** @param int[] $ranks */
 	public function remove(string $who, string $sender, CommandReply $sendto, array $ranks, string $rankName): bool {
 		if (!in_array($this->ranks[$who]->rank ?? null, $ranks)) {
 			$sendto->reply("<highlight>$who<end> is not $rankName.");

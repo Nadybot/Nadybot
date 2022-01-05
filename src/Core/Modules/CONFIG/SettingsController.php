@@ -10,6 +10,7 @@ use Nadybot\Core\{
 	CommandManager,
 	DB,
 	HelpManager,
+	ModuleInstance,
 	SettingHandler,
 	SettingManager,
 	Text,
@@ -31,13 +32,7 @@ use Nadybot\Core\ParamClass\PWord;
 		defaultStatus: 1
 	)
 ]
-class SettingsController {
-
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
+class SettingsController extends ModuleInstance {
 
 	#[NCA\Inject]
 	public Text $text;

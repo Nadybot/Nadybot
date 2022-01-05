@@ -12,7 +12,7 @@ class SyncEvent extends Event {
 
 	public static function fromSyncEvent(SyncEvent $event): self {
 		$obj = new static();
-		foreach ($event as $key => $value) {
+		foreach (get_object_vars($event) as $key => $value) {
 			$obj->{$key} = $value;
 		}
 		return $obj;

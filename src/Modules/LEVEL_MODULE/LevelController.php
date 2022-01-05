@@ -2,11 +2,14 @@
 
 namespace Nadybot\Modules\LEVEL_MODULE;
 
-use Nadybot\Core\Attributes as NCA;
 use Illuminate\Support\Collection;
-use Nadybot\Core\CmdContext;
-use Nadybot\Core\CommandAlias;
-use Nadybot\Core\DB;
+use Nadybot\Core\{
+	Attributes as NCA,
+	CmdContext,
+	CommandAlias,
+	DB,
+	ModuleInstance,
+};
 
 /**
  * @author Tyrence (RK2)
@@ -38,13 +41,7 @@ use Nadybot\Core\DB;
 		alias: "sk"
 	)
 ]
-class LevelController {
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
-
+class LevelController extends ModuleInstance {
 	#[NCA\Inject]
 	public DB $db;
 
