@@ -10,8 +10,6 @@ use Exception;
  * This class is used as a callback-provider when installing or updating
  * composer packages.
  *
- * - For Addendum, we need to patch it to support multi-line annotations
- *   and be PHP 8.1 compatible without deprecation warnings.
  * - PHP Codesniffer gets a default config to use the Nadybot styleguide.
  *   deprecation warnings.
  */
@@ -54,11 +52,14 @@ class Patcher {
 	 */
 	public static function patchCodesniffer($vendorDir, Package $package): void {
 		$file = $vendorDir . '/' . $package->getName() . '/CodeSniffer.conf.dist';
-		$oldContent = \Safe\file_get_contents($file);
+		$oldContent = file_get_contents($file);
+		if ($oldContent === false) {
+			return;
+		}
 		$newContent = "__DIR__.'/../../../style/Nadybot/ruleset.xml'";
 		$data = preg_replace("/'PSR2'/", $newContent, $oldContent);
 		$data = preg_replace("/(?<='show_warnings' => ')0/", "1", $data);
 		$newFile = $vendorDir . '/' . $package->getName() . '/CodeSniffer.conf';
-		\Safe\file_put_contents($newFile, $data);
+		file_put_contents($newFile, $data);
 	}
 }
