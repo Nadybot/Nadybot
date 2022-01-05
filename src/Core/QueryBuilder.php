@@ -3,6 +3,7 @@
 namespace Nadybot\Core;
 
 use DateTime;
+use Exception;
 use Nadybot\Core\Attributes as NCA;
 use Illuminate\Database\Connection;
 use Illuminate\Database\Query\Builder;
@@ -23,9 +24,6 @@ class QueryBuilder extends Builder {
 
 	/** @phpstan-param ReflectionClass<object> $refClass */
 	protected function guessVarTypeFromReflection(ReflectionClass $refClass, string $colName): ?string {
-		if (!$refClass->hasProperty($colName)) {
-			return null;
-		}
 		$refProp = $refClass->getProperty($colName);
 		$refType = $refProp->getType();
 		if ($refType instanceof ReflectionNamedType) {
@@ -35,7 +33,7 @@ class QueryBuilder extends Builder {
 	}
 
 	/** @param array<int,null|string> $values */
-	protected function convertToClass(PDOStatement $ps, string $className, array $values): ?object {
+	protected function convertToClass(PDOStatement $ps, string $className, array $values): object {
 		$row = new $className();
 		$refClass = new ReflectionClass($row);
 		$numColumns = count($values);
@@ -77,6 +75,12 @@ class QueryBuilder extends Builder {
 				continue;
 			}
 			try {
+				if (!$refClass->hasProperty($colName)) {
+					$this->logger->error("Unable to load data into " . $refClass->getName() . "::\${$colName}: property doesn't exist", [
+						"exception" => new Exception()
+					]);
+					continue;
+				}
 				$type = $this->guessVarTypeFromReflection($refClass, $colName);
 				$refProp = $refClass->getProperty($colName);
 				$readMap = $refProp->getAttributes(NCA\DB\MapRead::class);
@@ -168,7 +172,7 @@ class QueryBuilder extends Builder {
 		$ps = $this->executeQuery($sql, $args);
 		$data = $ps->fetchAll(
 			PDO::FETCH_FUNC,
-			function (mixed ...$values) use ($ps, $className): ?object {
+			function (mixed ...$values) use ($ps, $className): object {
 				/** @var mixed[] $values */
 				return $this->convertToClass($ps, $className, $values);
 			}
