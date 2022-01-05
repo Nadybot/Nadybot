@@ -14,6 +14,7 @@ class Request {
 	public array $headers = [];
 	public ?string $body = null;
 	public mixed $decodedBody = null;
+	/** @var array<string,mixed> */
 	public array $query = [];
 	public string $method;
 	public string $path;
@@ -22,6 +23,7 @@ class Request {
 	public float $replied;
 	public ?float $received = null;
 
+	/** @return array<string,string> */
 	public function getCookies(): array {
 		$cookies = [];
 

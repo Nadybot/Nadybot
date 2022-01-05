@@ -4,6 +4,7 @@ namespace Nadybot\Modules\ALIEN_MODULE;
 
 use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\CmdContext;
+use Nadybot\Core\ModuleInstance;
 use Nadybot\Core\Text;
 use Nadybot\Modules\ITEMS_MODULE\ItemsController;
 
@@ -24,7 +25,7 @@ use Nadybot\Modules\ITEMS_MODULE\ItemsController;
 		help: "aiarmor.txt"
 	)
 ]
-class AlienArmorController {
+class AlienArmorController extends ModuleInstance {
 
 	#[NCA\Inject]
 	public Text $text;

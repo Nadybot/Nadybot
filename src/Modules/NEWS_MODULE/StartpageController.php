@@ -13,26 +13,28 @@ use ReflectionMethod;
 use Nadybot\Core\{
 	AccessManager,
 	AOChatEvent,
+	Attributes as NCA,
 	CmdContext,
 	CommandReply,
 	DB,
-	Event,
+	ModuleInstance,
 	LoggerWrapper,
+	Modules\BAN\BanController,
 	Nadybot,
+	ParamClass\PRemove,
 	Registry,
 	SettingManager,
 	Text,
 	UserStateEvent,
 	Util,
 };
-use Nadybot\Core\Attributes as NCA;
-use Nadybot\Core\Modules\BAN\BanController;
-use Nadybot\Core\ParamClass\PRemove;
-use Nadybot\Modules\WEBSERVER_MODULE\ApiResponse;
-use Nadybot\Modules\WEBSERVER_MODULE\HttpProtocolWrapper;
-use Nadybot\Modules\WEBSERVER_MODULE\Request;
-use Nadybot\Modules\WEBSERVER_MODULE\Response;
-use Nadybot\Modules\WEBSERVER_MODULE\WebChatConverter;
+use Nadybot\Modules\WEBSERVER_MODULE\{
+	ApiResponse,
+	HttpProtocolWrapper,
+	Request,
+	Response,
+	WebChatConverter,
+};
 use Throwable;
 
 /**
@@ -53,9 +55,7 @@ use Throwable;
 		help: "startpage.txt"
 	)
 ]
-class StartpageController {
-	public string $moduleName;
-
+class StartpageController extends ModuleInstance {
 	#[NCA\Inject]
 	public DB $db;
 
@@ -470,6 +470,7 @@ class StartpageController {
 			$context->reply("<highlight>{$tileName}<end> is currently not on your startpage.");
 			return;
 		}
+		// @phpstan-ignore-next-line
 		$newPos = $oldPos + $delta;
 		if ($newPos < 0 || $newPos >= count($tileKeys)) {
 			$context->reply("Cannot move <highlight>{$tileName}<end> further.");

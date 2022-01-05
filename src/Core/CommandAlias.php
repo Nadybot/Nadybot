@@ -136,8 +136,8 @@ class CommandAlias {
 		$cmd = preg_replace_callback(
 			"/\{(\d+)(:.*?)?\}/",
 			function (array $matches) use ($aliasParams): string {
-				if (isset($aliasParams[$matches[1]])) {
-					return $aliasParams[$matches[1]];
+				if (isset($aliasParams[(int)$matches[1]])) {
+					return $aliasParams[(int)$matches[1]];
 				}
 				if (count($matches) < 3) {
 					return $matches[0];
@@ -158,7 +158,7 @@ class CommandAlias {
 	/**
 	 * Adds a command alias to the db
 	 */
-	public function add(object $row): int {
+	public function add(CmdAlias $row): int {
 		$this->logger->info("Adding alias: '{$row->alias}' for command: '{$row->cmd}'");
 		return $this->db->table(self::DB_TABLE)->insert([
 			"module" => $row->module,
@@ -171,8 +171,8 @@ class CommandAlias {
 	/**
 	 * Updates a command alias in the db
 	 */
-	public function update(object $row): int {
-		$this->logger->info("Updating alias :($row->alias)");
+	public function update(CmdAlias $row): int {
+		$this->logger->info("Updating alias :({$row->alias})");
 		return $this->db->table(self::DB_TABLE)
 			->where("alias", $row->alias)
 			->update([

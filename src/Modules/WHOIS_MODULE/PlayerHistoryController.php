@@ -2,14 +2,17 @@
 
 namespace Nadybot\Modules\WHOIS_MODULE;
 
-use Nadybot\Core\Attributes as NCA;
-use Nadybot\Core\CmdContext;
-use Nadybot\Core\CommandReply;
-use Nadybot\Core\ConfigFile;
-use Nadybot\Core\Modules\PLAYER_LOOKUP\PlayerHistory;
-use Nadybot\Core\Modules\PLAYER_LOOKUP\PlayerHistoryManager;
-use Nadybot\Core\ParamClass\PCharacter;
-use Nadybot\Core\Text;
+use Nadybot\Core\{
+	Attributes as NCA,
+	CmdContext,
+	CommandReply,
+	ConfigFile,
+	ModuleInstance,
+	Modules\PLAYER_LOOKUP\PlayerHistory,
+	Modules\PLAYER_LOOKUP\PlayerHistoryManager,
+	ParamClass\PCharacter,
+	Text,
+};
 
 /**
  * @author Tyrence (RK2)
@@ -24,13 +27,7 @@ use Nadybot\Core\Text;
 		help: "history.txt"
 	)
 ]
-class PlayerHistoryController {
-
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
+class PlayerHistoryController extends ModuleInstance {
 
 	#[NCA\Inject]
 	public ConfigFile $config;

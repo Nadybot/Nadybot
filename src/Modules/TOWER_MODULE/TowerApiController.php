@@ -2,26 +2,23 @@
 
 namespace Nadybot\Modules\TOWER_MODULE;
 
-use Nadybot\Core\Attributes as NCA;
 use Exception;
-use Nadybot\Core\BotRunner;
-use Nadybot\Core\Http;
-use Nadybot\Core\HttpResponse;
-use Nadybot\Core\SettingManager;
 use Throwable;
+use Nadybot\Core\{
+	Attributes as NCA,
+	BotRunner,
+	Http,
+	HttpResponse,
+	ModuleInstance,
+	SettingManager,
+};
 
 #[NCA\Instance]
-class TowerApiController {
+class TowerApiController extends ModuleInstance {
 
 	public const TOWER_API = "tower_api";
 	public const API_TYRENCE = "https://tower-api.jkbff.com/v1/api/towers";
 	public const API_NONE = "none";
-
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
 
 	#[NCA\Inject]
 	public Http $http;
@@ -71,7 +68,7 @@ class TowerApiController {
 			return;
 		}
 		$parsed = parse_url($newValue);
-		if ($parsed === false) {
+		if (!is_array($parsed)) {
 			throw new Exception("<highlight>{$newValue}<end> is not a valid URL.");
 		}
 		if (!isset($parsed["scheme"]) ||!isset($parsed["host"])) {
@@ -99,7 +96,11 @@ class TowerApiController {
 		$this->cache = [];
 	}
 
-	public function call(array $params, callable $callback, ...$args): void {
+	/**
+	 * @param array<string,mixed> $params
+	 * @psalm-param callable(?ApiResult, mixed...) $callback
+	 */
+	public function call(array $params, callable $callback, mixed ...$args): void {
 		$roundTo = $this->settingManager->getInt('tower_cache_duration') ?? 600;
 		if (isset($params["min_close_time"])) {
 			$params["min_close_time"] -= $params["min_close_time"] % $roundTo;
@@ -127,13 +128,17 @@ class TowerApiController {
 			->withCallback([$this, "handleResult"], $params, $cacheKey, $callback, ...$args);
 	}
 
-	public function handleResult(HttpResponse $response, array $params, string $cacheKey, callable $callback, ...$args): void {
+	/**
+	 * @param array<string,mixed> $params
+	 * @psalm-param callable(?ApiResult, mixed...) $callback
+	 */
+	public function handleResult(HttpResponse $response, array $params, string $cacheKey, callable $callback, mixed ...$args): void {
 		if (!isset($response->body) || ($response->headers["status-code"]??"0") !== "200") {
 			$callback(null, ...$args);
 			return;
 		}
 		try {
-			$data = json_decode($response->body, true, 512, JSON_THROW_ON_ERROR);
+			$data = \Safe\json_decode($response->body, true, 512, JSON_THROW_ON_ERROR);
 			$result = new ApiResult($data);
 		} catch (Throwable $e) {
 			$callback(null, ...$args);

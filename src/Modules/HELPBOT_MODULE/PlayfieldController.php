@@ -3,12 +3,15 @@
 namespace Nadybot\Modules\HELPBOT_MODULE;
 
 use Illuminate\Support\Collection;
-use Nadybot\Core\Attributes as NCA;
-use Nadybot\Core\CmdContext;
-use Nadybot\Core\CommandAlias;
-use Nadybot\Core\DB;
-use Nadybot\Core\Text;
-use Nadybot\Core\Util;
+use Nadybot\Core\{
+	Attributes as NCA,
+	CmdContext,
+	CommandAlias,
+	DB,
+	ModuleInstance,
+	Text,
+	Util,
+};
 
 /**
  * @author Tyrence (RK2)
@@ -30,13 +33,7 @@ use Nadybot\Core\Util;
 		help: "waypoint.txt"
 	)
 ]
-class PlayfieldController {
-
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
+class PlayfieldController extends ModuleInstance {
 
 	#[NCA\Inject]
 	public DB $db;
@@ -50,6 +47,7 @@ class PlayfieldController {
 	#[NCA\Inject]
 	public Util $util;
 
+	/** @var array<int,Playfield> */
 	private array $playfields = [];
 
 	/**
@@ -167,6 +165,7 @@ class PlayfieldController {
 		$context->reply($this->processWaypointCommand($xCoords, $yCoords, $playfieldName??(string)$playfieldId, $playfieldId));
 	}
 
+	/** @return string[] */
 	private function processWaypointCommand(string $xCoords, string $yCoords, string $playfieldName, int $playfieldId): array {
 		$link = $this->text->makeChatcmd("waypoint: {$xCoords}x{$yCoords} {$playfieldName}", "/waypoint {$xCoords} {$yCoords} {$playfieldId}");
 		$blob = "Click here to use waypoint: $link";

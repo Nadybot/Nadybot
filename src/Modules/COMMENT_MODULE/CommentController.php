@@ -10,6 +10,7 @@ use Nadybot\Core\{
 	CmdContext,
 	CommandAlias,
 	DB,
+	ModuleInstance,
 	LoggerWrapper,
 	Nadybot,
 	SettingManager,
@@ -42,13 +43,7 @@ use Nadybot\Core\ParamClass\PWord;
 		help: "comment-categories.txt"
 	)
 ]
-class CommentController {
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
-
+class CommentController extends ModuleInstance {
 	#[NCA\Inject]
 	public CommandAlias $commandAlias;
 
@@ -388,7 +383,7 @@ class CommentController {
 			);
 			return;
 		}
-		if ($this->altsController->getAltInfo($context->char->name)->main === $this->altsController->getAltInfo($character)->main) {
+		if ($this->altsController->getMainOf($context->char->name) === $this->altsController->getMainOf($character)) {
 			$context->reply("You cannot comment on yourself.");
 			return;
 		}
@@ -485,7 +480,8 @@ class CommentController {
 				return;
 			}
 		}
-		/** @var Comment[] */
+		/** @var ?CommentCategory $category */
+		/** @var Comment[] $comments */
 		$comments = $this->getComments($category, $character);
 		$comments = $this->filterInaccessibleComments($comments, $context->char->name);
 		if (!count($comments)) {
@@ -538,6 +534,8 @@ class CommentController {
 
 	/**
 	 * Remove all comments from $comments that $sender does not have permission to read
+	 * @param Comment[] $comments
+	 * @return Comment[]
 	 */
 	public function filterInaccessibleComments(array $comments, string $sender): array {
 		$accessCache = [];
@@ -577,7 +575,7 @@ class CommentController {
 		if ($groupByMain) {
 			$grouped = [];
 			foreach ($chars as $char => $comments) {
-				$main = $this->altsController->getAltInfo($char)->main;
+				$main = $this->altsController->getMainOf($char);
 				$grouped[$main] ??= [];
 				$grouped[$main] = [...$grouped[$main], ...$comments];
 			}
@@ -666,7 +664,6 @@ class CommentController {
 	 */
 	public function countComments(?CommentCategory $category, string ...$characters): int {
 		$query = $this->db->table("<table:comments>");
-		$query->select($query->rawFunc("COUNT", "*", "num"));
 		$chars = [];
 		foreach ($characters as $character) {
 			$altInfo = $this->altsController->getAltInfo($character);
@@ -676,7 +673,7 @@ class CommentController {
 		if (isset($category)) {
 			$query->where("category", $category->name);
 		}
-		return (int)$query->asObj()->first()->num;
+		return $query->count();
 	}
 
 	/**

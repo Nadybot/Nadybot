@@ -43,7 +43,7 @@ class Raffle {
 			},
 			$text
 		);
-		$parts = preg_split("/\s*,\s*/", $text);
+		$parts = \Safe\preg_split("/\s*,\s*/", $text);
 		foreach ($parts as $part) {
 			$slot = new RaffleSlot();
 			$slot->fromString($part);
@@ -88,6 +88,7 @@ class Raffle {
 		return in_array($player, $participants);
 	}
 
+	/** @return string[] */
 	public function getWinnerNames(): array {
 		/** @var string[][] */
 		$winners = array_map(

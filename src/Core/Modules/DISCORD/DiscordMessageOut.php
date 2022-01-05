@@ -2,13 +2,15 @@
 
 namespace Nadybot\Core\Modules\DISCORD;
 
-use JsonException;
+use Safe\Exceptions\JsonException;
+use function Safe\json_encode;
 
 class DiscordMessageOut {
 	public string $content;
 	public mixed $nonce = null;
 	public bool $tts = false;
 	public ?string $file = null;
+	/** @var \Nadybot\Core\Modules\DISCORD\DiscordEmbed[] */
 	public array $embeds = [];
 	public ?object $allowed_mentions = null;
 	public ?object $message_reference = null;

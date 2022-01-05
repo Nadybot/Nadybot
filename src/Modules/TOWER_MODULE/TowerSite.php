@@ -12,6 +12,7 @@ class TowerSite extends DBRow {
 	public int $x_coord;
 	public int $y_coord;
 	public string $site_name;
+	public bool $enabled;
 
 	/**
 	 * Is this legacy (0), EU-friendly (1) or US-friendly (2)

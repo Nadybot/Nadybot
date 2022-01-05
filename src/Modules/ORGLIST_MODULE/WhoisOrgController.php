@@ -2,12 +2,13 @@
 
 namespace Nadybot\Modules\ORGLIST_MODULE;
 
-use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{
+	Attributes as NCA,
 	CmdContext,
 	ConfigFile,
 	DB,
 	DBSchema\Player,
+	ModuleInstance,
 	Modules\PLAYER_LOOKUP\Guild,
 	Modules\PLAYER_LOOKUP\GuildManager,
 	Modules\PLAYER_LOOKUP\PlayerManager,
@@ -31,13 +32,7 @@ use Nadybot\Modules\ONLINE_MODULE\OnlineController;
 		help: "whoisorg.txt"
 	)
 ]
-class WhoisOrgController {
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
-
+class WhoisOrgController extends ModuleInstance {
 	#[NCA\Inject]
 	public DB $db;
 

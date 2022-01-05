@@ -2,14 +2,15 @@
 
 namespace Nadybot\Modules\TIMERS_MODULE;
 
-use Nadybot\Core\Attributes as NCA;
 use Exception;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	AccessManager,
+	Attributes as NCA,
 	CmdContext,
 	DB,
 	EventManager,
+	ModuleInstance,
 	LoggerWrapper,
 	MessageHub,
 	MessageEmitter,
@@ -54,15 +55,9 @@ use Nadybot\Core\ParamClass\PRemove;
 		desc: "Triggered when a new timer is created with the timer command",
 	)
 ]
-class TimerController implements MessageEmitter {
+class TimerController extends ModuleInstance implements MessageEmitter {
 
 	public const DB_TABLE = "timers_<myname>";
-
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
 
 	#[NCA\Inject]
 	public DB $db;
@@ -94,7 +89,7 @@ class TimerController implements MessageEmitter {
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
-	/** @var Timer[] */
+	/** @var array<string,Timer> */
 	private $timers = [];
 
 	public function getChannelName(): string {
@@ -141,18 +136,8 @@ class TimerController implements MessageEmitter {
 		/** @var Collection<Timer> */
 		$data = $this->db->table(static::DB_TABLE)
 			->select("id", "name", "owner", "mode", "endtime", "settime", "origin")
-			->addSelect("callback", "data", "alerts AS alerts_raw")
+			->addSelect("callback", "data", "alerts")
 			->asObj(Timer::class);
-		foreach ($data as $row) {
-			$alertsData = json_decode($row->alerts_raw);
-			foreach ($alertsData as $alertData) {
-				$alert = new Alert();
-				foreach ($alertData as $key => $value) {
-					$alert->{$key} = $value;
-				}
-				$row->alerts []= $alert;
-			}
-		}
 		return $data;
 	}
 
@@ -403,7 +388,7 @@ class TimerController implements MessageEmitter {
 			$sTimer->name = $name;
 			$sTimer->endtime = time() + $runTime;
 			$sTimer->settime = time();
-			$sTimer->interval;
+			$sTimer->interval = null;
 			$sTimer->owner = $context->char->name;
 			$sTimer->forceSync = $context->forceSync;
 			$this->eventManager->fireEvent($sTimer);
@@ -534,7 +519,9 @@ class TimerController implements MessageEmitter {
 		$timer = new Timer();
 		$timer->name = $name;
 		$timer->owner = $owner;
-		$timer->endtime = end($alerts)->time;
+		/** @var Alert */
+		$lastAlert = (new Collection($alerts))->last();
+		$timer->endtime = $lastAlert->time;
 		$timer->settime = time();
 		$timer->callback = $callback;
 		$timer->data = $data;
@@ -556,7 +543,7 @@ class TimerController implements MessageEmitter {
 				"settime" => $timer->settime,
 				"callback" => $callback,
 				"data" => $data,
-				"alerts" => json_encode($alerts),
+				"alerts" => \Safe\json_encode($alerts),
 			]);
 
 		$this->timers[strtolower($name)] = $timer;
@@ -564,24 +551,24 @@ class TimerController implements MessageEmitter {
 		return $timer->id;
 	}
 
-	public function remove($name): void {
+	public function remove(string|int $name): void {
 		if (is_string($name)) {
 			$this->db->table(static::DB_TABLE)
 				->whereIlike("name", $name)
 				->delete();
 			unset($this->timers[strtolower($name)]);
-		} elseif (is_int($name)) {
-			$this->db->table(static::DB_TABLE)->delete($name);
-			foreach ($this->timers as $tName => $timer) {
-				if ($timer->id === $name) {
-					unset($this->timers[$tName]);
-					return;
-				}
+			return;
+		}
+		$this->db->table(static::DB_TABLE)->delete($name);
+		foreach ($this->timers as $tName => $timer) {
+			if ($timer->id === $name) {
+				unset($this->timers[$tName]);
+				return;
 			}
 		}
 	}
 
-	public function get($name): ?Timer {
+	public function get(string|int $name): ?Timer {
 		$timer = $this->timers[strtolower((string)$name)] ?? null;
 		if (isset($timer)) {
 			return $timer;

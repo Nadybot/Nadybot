@@ -2,8 +2,9 @@
 
 namespace Nadybot\Core;
 
-use Closure;
 use DateTime;
+use Exception;
+use Nadybot\Core\Attributes as NCA;
 use Illuminate\Database\Connection;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Collection;
@@ -14,7 +15,6 @@ use PDOStatement;
 use ReflectionClass;
 use ReflectionException;
 use ReflectionNamedType;
-use ReflectionProperty;
 use Throwable;
 
 class QueryBuilder extends Builder {
@@ -22,73 +22,8 @@ class QueryBuilder extends Builder {
 
 	public LoggerWrapper $logger;
 
-	private static array $meta = [];
-	private static array $metaTypes = [];
-
-	/**
-	 * Populate and return an array of type changers for a query
-	 *
-	 * @return Closure[]
-	 */
-	protected function getTypeChanger(PDOStatement $ps, object $row): array {
-		$metaKey = md5($ps->queryString);
-		$numColumns = $ps->columnCount();
-		if (isset(static::$meta[$metaKey])) {
-			return static::$meta[$metaKey];
-		}
-		static::$meta[$metaKey] = [];
-		for ($col=0; $col < $numColumns; $col++) {
-			$colMeta = $ps->getColumnMeta($col);
-			$type = $this->guessVarTypeFromColMeta($colMeta, $colMeta["name"]);
-			$refProp = new ReflectionProperty($row, $colMeta["name"]);
-			$refProp->setAccessible(true);
-			if ($type === "bool") {
-				static::$meta[$metaKey] []= function(object $row) use ($refProp): void {
-					$stringValue = $refProp->getValue($row);
-					if ($stringValue !== null) {
-						$refProp->setValue($row, (bool)$stringValue);
-					}
-				};
-			} elseif ($type === "int") {
-				static::$meta[$metaKey] []= function(object $row) use ($refProp): void {
-					$stringValue = $refProp->getValue($row);
-					if ($stringValue !== null) {
-						$refProp->setValue($row, (int)$stringValue);
-					}
-				};
-			}
-		}
-		return static::$meta[$metaKey];
-	}
-
-	/**
-	 * Execute an SQL statement and return all rows as an array of objects
-	 *
-	 * @return \Nadybot\Core\DBRow[] All returned rows
-	 */
-	protected function query(string $sql, ...$args): array {
-		$sql = $this->nadyDB->formatSql($sql);
-
-		$sql = $this->nadyDB->applySQLCompatFixes($sql);
-		$ps = $this->executeQuery($sql, $args);
-		$ps->setFetchMode(PDO::FETCH_CLASS, DBRow::class);
-		$result = [];
-		while ($row = $ps->fetch(PDO::FETCH_CLASS)) {
-			/** @var DBRow $row */
-			$typeChangers = $this->getTypeChanger($ps, $row);
-			foreach ($typeChangers as $changer) {
-				$changer($row);
-			}
-			$result []= $row;
-		}
-		return $result;
-	}
-
-
+	/** @phpstan-param ReflectionClass<object> $refClass */
 	protected function guessVarTypeFromReflection(ReflectionClass $refClass, string $colName): ?string {
-		if (!$refClass->hasProperty($colName)) {
-			return null;
-		}
 		$refProp = $refClass->getProperty($colName);
 		$refType = $refProp->getType();
 		if ($refType instanceof ReflectionNamedType) {
@@ -97,42 +32,24 @@ class QueryBuilder extends Builder {
 		return null;
 	}
 
-	protected function guessVarTypeFromColMeta(array $colMeta, string $colName): ?string {
-		$type = strtolower($colMeta["native_type"]);
-		$declType = strtolower($colMeta["sqlite:decl_type"] ?? "");
-		if (!in_array($type, ["integer", "tiny", "long", "newdecimal"])
-			&& !in_array($declType, ["int", "boolean", "tinyint(1)"])) {
-			return null;
-		}
-		if (
-			$type === 'tiny'
-			|| (in_array($declType, ['boolean', 'tinyint(1)']))
-		) {
-			return "bool";
-		} else {
-			return "int";
-		}
-	}
-
-	public static function clearMetaCache(): void {
-		static::$meta = [];
-		static::$metaTypes = [];
-	}
-
-	protected function convertToClass(PDOStatement $ps, string $className, array $values): ?object {
+	/** @param array<int,null|string> $values */
+	protected function convertToClass(PDOStatement $ps, string $className, array $values): object {
 		$row = new $className();
 		$refClass = new ReflectionClass($row);
-		$metaKey = md5($ps->queryString);
-		$numColumns = $ps->columnCount();
-		if (!isset(static::$metaTypes[$metaKey])) {
-			static::$metaTypes[$metaKey] = [];
-			for ($col=0; $col < $numColumns; $col++) {
-				static::$metaTypes[$metaKey] []= $ps->getColumnMeta($col);
-			}
-		}
-		$meta = static::$metaTypes[$metaKey];
+		$numColumns = count($values);
 		for ($col=0; $col < $numColumns; $col++) {
-			$colMeta = $meta[$col];
+			$colMeta = $ps->getColumnMeta($col);
+			if ($colMeta === false) {
+				$this->logger->error(
+					"Error trying to get the meta information for {className}, column {colNum}: {error}",
+					[
+						"className" => $className,
+						"colNum" => $col,
+						"error" => "query didn't return that many columns",
+					]
+				);
+				continue;
+			}
 			$colName = $colMeta['name'];
 			if ($values[$col] === null) {
 				try {
@@ -158,18 +75,33 @@ class QueryBuilder extends Builder {
 				continue;
 			}
 			try {
-				$type = $this->guessVarTypeFromReflection($refClass, $colName)
-					?? $this->guessVarTypeFromColMeta($colMeta, $colName);
-				if ($type === "bool") {
-					$row->{$colName} = (bool)$values[$col];
-				} elseif ($type === "int") {
-					$row->{$colName} = (int)$values[$col];
-				} elseif ($type === "float") {
-					$row->{$colName} = (float)$values[$col];
-				} elseif ($type === DateTime::class) {
-					$row->{$colName} = (new DateTime())->setTimestamp((int)$values[$col]);
+				if (!$refClass->hasProperty($colName)) {
+					$this->logger->error("Unable to load data into " . $refClass->getName() . "::\${$colName}: property doesn't exist", [
+						"exception" => new Exception()
+					]);
+					continue;
+				}
+				$type = $this->guessVarTypeFromReflection($refClass, $colName);
+				$refProp = $refClass->getProperty($colName);
+				$readMap = $refProp->getAttributes(NCA\DB\MapRead::class);
+				if (count($readMap)) {
+					foreach ($readMap as $mapper) {
+						/** @var NCA\DB\MapRead */
+						$mapper = $mapper->newInstance();
+						$row->{$colName} = $mapper->map($values[$col]);
+					}
 				} else {
-					$row->{$colName} = $values[$col];
+					if ($type === "bool") {
+						$row->{$colName} = (bool)$values[$col];
+					} elseif ($type === "int") {
+						$row->{$colName} = (int)$values[$col];
+					} elseif ($type === "float") {
+						$row->{$colName} = (float)$values[$col];
+					} elseif ($type === DateTime::class) {
+						$row->{$colName} = (new DateTime())->setTimestamp((int)$values[$col]);
+					} else {
+						$row->{$colName} = $values[$col];
+					}
 				}
 			} catch (Throwable $e) {
 				$this->logger->error($e->getMessage(), ["exception" => $e]);
@@ -182,6 +114,8 @@ class QueryBuilder extends Builder {
 
 	/**
 	 * Execute an SQL query, returning the statement object
+	 *
+	 * @param array<mixed> $params
 	 *
 	 * @throws SQLException when the query errors
 	 */
@@ -222,32 +156,43 @@ class QueryBuilder extends Builder {
 				$conn->reconnect();
 				return $this->executeQuery(...func_get_args());
 			}
-			throw new SQLException("Error: {$e->errorInfo[2]}\nQuery: $sql\nParams: " . json_encode($params, JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES), 0, $e);
+			throw new SQLException("Error: {$e->errorInfo[2]}\nQuery: $sql\nParams: " . \Safe\json_encode($params, JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES), 0, $e);
 		}
 	}
 
 	/**
 	 * Execute an SQL statement and return all rows as an array of objects of the given class
+	 *
+	 * @return object[]
 	 */
-	private function fetchAll(string $className, string $sql, ...$args): array {
+	private function fetchAll(string $className, string $sql, mixed ...$args): array {
 		$sql = $this->nadyDB->formatSql($sql);
 
 		$sql = $this->nadyDB->applySQLCompatFixes($sql);
 		$ps = $this->executeQuery($sql, $args);
-		return $ps->fetchAll(
+		$data = $ps->fetchAll(
 			PDO::FETCH_FUNC,
-			function (mixed ...$values) use ($ps, $className): ?object {
+			function (mixed ...$values) use ($ps, $className): object {
+				/** @var mixed[] $values */
 				return $this->convertToClass($ps, $className, $values);
 			}
 		);
+		if ($data === false) {
+			$this->logger->critical("Unknown error converting data from the database");
+			die();
+		}
+		return $data;
 	}
 
-	public function asObj(string $class=null): Collection {
-		if ($class === null) {
-			return new Collection($this->query($this->toSql(), ...$this->getBindings()));
-		} else {
-			return new Collection($this->fetchAll($class, $this->toSql(), ...$this->getBindings()));
-		}
+	/**
+	 * @template T
+	 * @psalm-param class-string<T> $class
+	 * @phpstan-param class-string<T> $class
+	 * @psalm-return Collection<T>
+	 * @phpstan-return Collection<T>
+	 */
+	public function asObj(string $class): Collection {
+		return new Collection($this->fetchAll($class, $this->toSql(), ...$this->getBindings()));
 	}
 
 	/**
@@ -255,12 +200,13 @@ class QueryBuilder extends Builder {
 	 *
 	 * @param string $column
 	 * @param string $type
+	 * @phpstan-ignore-next-line
 	 * @return \Illuminate\Support\Collection
 	 */
 	public function pluckAs(string $column, string $type): Collection {
 		return $this->pluck($column)
 			->map(function (mixed $value, int $key) use ($type): mixed {
-				settype($value, $type);
+				\Safe\settype($value, $type);
 				return $value;
 			});
 	}
@@ -310,12 +256,18 @@ class QueryBuilder extends Builder {
 	}
 
 	public function orWhereIlike(string $column, string $value): self {
-		/** @psalm-suppress ImplicitToStringCast */
+		/**
+		 * @psalm-suppress ImplicitToStringCast
+		 * @phpstan-ignore-next-line
+		 */
 		return $this->orWhere($this->colFunc("LOWER", $column), "like", strtolower($value));
 	}
 
 	public function whereIlike(string $column, string $value, string $boolean='and'): self {
-		/** @psalm-suppress ImplicitToStringCast */
+		/**
+		 * @psalm-suppress ImplicitToStringCast
+		 * @phpstan-ignore-next-line
+		 */
 		return $this->where($this->colFunc("LOWER", $column), "like", strtolower($value), $boolean);
 	}
 
@@ -352,6 +304,8 @@ class QueryBuilder extends Builder {
 	 *
 	 * Depending on the DB system, there is a limit of maximum
 	 * rows or placeholders that we can insert.
+	 *
+	 * @param array<string,mixed>|array<array<string,mixed>> $values
 	 */
 	public function chunkInsert(array $values): bool {
 		if (!isset($values[0])) {

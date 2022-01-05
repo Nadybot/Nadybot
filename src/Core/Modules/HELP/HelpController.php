@@ -2,13 +2,15 @@
 
 namespace Nadybot\Core\Modules\HELP;
 
-use Nadybot\Core\Attributes as NCA;
+use function Safe\file_get_contents;
 use Nadybot\Core\{
+	Attributes as NCA,
 	BotRunner,
 	CmdContext,
 	CommandAlias,
 	CommandManager,
 	HelpManager,
+	ModuleInstance,
 	Text,
 };
 
@@ -26,13 +28,7 @@ use Nadybot\Core\{
 		defaultStatus: 1
 	)
 ]
-class HelpController {
-
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
+class HelpController extends ModuleInstance {
 
 	#[NCA\Inject]
 	public CommandManager $commandManager;

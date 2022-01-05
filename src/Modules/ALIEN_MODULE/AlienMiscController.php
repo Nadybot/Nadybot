@@ -7,7 +7,7 @@ use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	CmdContext,
 	DB,
-	DBRow,
+	ModuleInstance,
 	LoggerWrapper,
 	Text,
 	Util,
@@ -21,7 +21,6 @@ use Nadybot\Modules\ITEMS_MODULE\ItemsController;
  * @author Wolfbiter (RK1)
  * @author Gatester (RK2)
  * @author Marebone (RK2)
- * Commands this controller contains:
  */
 #[
 	NCA\Instance,
@@ -52,13 +51,7 @@ use Nadybot\Modules\ITEMS_MODULE\ItemsController;
 		help: "aigen.txt"
 	)
 ]
-class AlienMiscController {
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
-
+class AlienMiscController extends ModuleInstance {
 	#[NCA\Inject]
 	public DB $db;
 
@@ -95,10 +88,10 @@ class AlienMiscController {
 			->orderBy("profession")
 			->select("profession")
 			->distinct()
-			->asObj()
+			->pluckAs("profession", "string")
 			->reduce(
-				function (string $blob, DBRow $row): string {
-					$professionLink = $this->text->makeChatcmd($row->profession, "/tell <myname> leprocs $row->profession");
+				function (string $blob, string $profession): string {
+					$professionLink = $this->text->makeChatcmd($profession, "/tell <myname> leprocs {$profession}");
 					return "{$blob}<tab>$professionLink\n";
 				},
 				$blob
@@ -162,7 +155,8 @@ class AlienMiscController {
 			->orderBy("ql")
 			->select("ql")
 			->distinct()
-			->asObj()->pluck("ql")->toArray();
+			->pluckAs("ql", "int")
+			->toArray();
 		$blob = $this->db->table("ofabarmortype")
 			->orderBy("profession")
 			->asObj(OfabArmorType::class)
@@ -207,8 +201,8 @@ class AlienMiscController {
 
 		$type = $this->db->table("ofabarmortype")
 			->where("profession", $profession)
-			->asObj()
-			->first()->type;
+			->pluckAs("type", "int")
+			->first();
 
 		/** @var Collection<OfabArmor> */
 		$armors = $this->db->table("ofabarmor")
@@ -291,7 +285,7 @@ class AlienMiscController {
 		$qls = $this->db->table("ofabweaponscost")
 			->orderBy("ql")
 			->select("ql")->distinct()
-			->asObj()->pluck("ql");
+			->pluckAs("ql", "int")->toArray();
 		$blob = $this->db->table("ofabweapons")
 			->orderBy("name")
 			->asObj(OfabWeapon::class)
@@ -322,12 +316,12 @@ class AlienMiscController {
 		$weapon = ucfirst($weapon());
 		$searchQL ??= 300;
 
-		/** @var DBRow|null */
+		/** @var OfabWeaponWithCost|null */
 		$row = $this->db->table("ofabweapons AS w")
 			->crossJoin("ofabweaponscost AS c")
 			->where("w.name", $weapon)
 			->where("c.ql", $searchQL)
-			->asObj()->first();
+			->asObj(OfabWeaponWithCost::class)->first();
 		if ($row === null) {
 			$msg = "Could not find any OFAB weapon <highlight>{$weapon}<end> in QL <highlight>{$searchQL}<end>.";
 			$context->reply($msg);
@@ -342,7 +336,7 @@ class AlienMiscController {
 		$blob = $this->db->table("ofabweaponscost")
 			->orderBy("ql")
 			->select("ql")->distinct()
-			->asObj()->pluck("ql")
+			->pluckAs("ql", "int")
 			->reduce(
 				function(string $blob, int $ql) use ($searchQL, $weapon): string {
 					if ($ql === $searchQL) {

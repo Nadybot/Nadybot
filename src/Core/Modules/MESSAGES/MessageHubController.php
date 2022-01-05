@@ -4,7 +4,7 @@ namespace Nadybot\Core\Modules\MESSAGES;
 
 use Nadybot\Core\Attributes as NCA;
 use Exception;
-use JsonException;
+use Safe\Exceptions\JsonException;
 use ReflectionClass;
 use Throwable;
 use Illuminate\Support\Collection;
@@ -17,6 +17,7 @@ use Nadybot\Core\{
 	DBSchema\RouteHopFormat,
 	DBSchema\RouteModifier,
 	DBSchema\RouteModifierArgument,
+	ModuleInstance,
 	LoggerWrapper,
 	MessageEmitter,
 	MessageHub,
@@ -46,13 +47,7 @@ use ReflectionException;
 		defaultStatus: 1
 	)
 ]
-class MessageHubController {
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
-
+class MessageHubController extends ModuleInstance {
 	#[NCA\Inject]
 	public SettingManager $settingManager;
 
@@ -169,6 +164,7 @@ class MessageHubController {
 				return;
 			}
 		}
+		/** @var null|RouteModifier[] $modifiers */
 		$transactionRunning = false;
 		try {
 			$this->db->beginTransaction();
@@ -287,12 +283,7 @@ class MessageHubController {
 			$context->reply("No message modifier <highlight>{$modifier}<end> found.");
 			return;
 		}
-		try {
-			$refClass = new ReflectionClass($mod->class);
-		} catch (ReflectionException $e) {
-			$context->reply("The modifier <highlight>{$modifier}<end> cannot be initialized.");
-			return;
-		}
+		$refClass = new ReflectionClass($mod->class);
 		try {
 			$refConstr = $refClass->getMethod("__construct");
 			$refParams = $refConstr->getParameters();
@@ -313,7 +304,7 @@ class MessageHubController {
 					if (isset($refParams[$parNum]) && $refParams[$parNum]->isDefaultValueAvailable()) {
 						try {
 							$blob .= " (optional, default=".
-								json_encode(
+								\Safe\json_encode(
 									$refParams[$parNum]->getDefaultValue(),
 									JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR|JSON_INVALID_UTF8_SUBSTITUTE
 								) . ")";
@@ -556,9 +547,11 @@ class MessageHubController {
 		if (isset($where)) {
 			$where = $this->fixDiscordChannelName($where());
 		}
+		/** @var ?string $where */
 		if (isset($via)) {
 			$via = $this->fixDiscordChannelName($via());
 		}
+		/** @var ?string $via */
 		$color = $this->getHopColor($tag, $where??null, $via??null);
 		$name = $tag;
 		if (isset($where)) {
@@ -865,8 +858,8 @@ class MessageHubController {
 
 	/** Define how to render a specific hop */
 	public function setHopDisplay(string $hop, string $format): void {
-		if (preg_match("/%[^%]/", $format) && @sprintf($format, "text") === false) {
-			throw new Exception("Invalid format string given.");
+		if (preg_match("/%[^%]/", $format)) {
+			$_ignore = sprintf($format, "text");
 		}
 		$spec = Source::$format->first(fn(RouteHopFormat $x) => $x->hop === $hop);
 		/** @var RouteHopFormat $format */
@@ -965,7 +958,10 @@ class MessageHubController {
 		return substr($type, 0, $bracket);
 	}
 
-	/** Render a blob for an emitter group */
+	/**
+	 * Render a blob for an emitter group
+	 * @param Collection<MessageEmitter> $values
+	 */
 	public function renderEmitterGroup(Collection $values, string $group): string {
 		return "<header2>{$group}<end>\n<tab>".
 			$values->map(function(MessageEmitter $emitter): string {

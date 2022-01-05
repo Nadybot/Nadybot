@@ -2,37 +2,38 @@
 
 namespace Nadybot\Modules\GUILD_MODULE;
 
-use Nadybot\Core\Attributes as NCA;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	AOChatEvent,
+	Attributes as NCA,
 	BuddylistManager,
 	CmdContext,
 	ConfigFile,
 	DB,
+	DBSchema\Player,
 	Event,
+	ModuleInstance,
 	LoggerWrapper,
 	MessageHub,
 	Modules\ALTS\AltsController,
+	Modules\PLAYER_LOOKUP\Guild,
 	Modules\PLAYER_LOOKUP\GuildManager,
 	Modules\PLAYER_LOOKUP\PlayerManager,
 	Modules\PREFERENCES\Preferences,
 	Nadybot,
+	ParamClass\PCharacter,
+	ParamClass\PDuration,
+	ParamClass\PRemove,
+	Routing\Character,
+	Routing\Events\Base,
+	Routing\Events\Online,
+	Routing\RoutableEvent,
+	Routing\Source,
 	SettingManager,
 	Text,
 	UserStateEvent,
 	Util,
 };
-use Nadybot\Core\DBSchema\Player;
-use Nadybot\Core\Modules\PLAYER_LOOKUP\Guild;
-use Nadybot\Core\ParamClass\PCharacter;
-use Nadybot\Core\ParamClass\PDuration;
-use Nadybot\Core\ParamClass\PRemove;
-use Nadybot\Core\Routing\Character;
-use Nadybot\Core\Routing\Events\Base;
-use Nadybot\Core\Routing\Events\Online;
-use Nadybot\Core\Routing\RoutableEvent;
-use Nadybot\Core\Routing\Source;
 
 /**
  * @author Tyrence (RK2)
@@ -80,15 +81,9 @@ use Nadybot\Core\Routing\Source;
 		help: "updateorg.txt"
 	)
 ]
-class GuildController {
+class GuildController extends ModuleInstance {
 
 	public const DB_TABLE = "org_members_<myname>";
-
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
 
 	#[NCA\Inject]
 	public DB $db;
@@ -226,7 +221,7 @@ class GuildController {
 		if ($logonMessage === 'clear') {
 			$this->preferences->save($context->char->name, 'logon_msg', '');
 			$msg = "Your logon message has been cleared.";
-		} elseif (strlen($logonMessage) <= $this->settingManager->getInt('max_logon_msg_size')??200) {
+		} elseif (strlen($logonMessage) <= ($this->settingManager->getInt('max_logon_msg_size')??200)) {
 			$this->preferences->save($context->char->name, 'logon_msg', $logonMessage);
 			$msg = "Your logon message has been set.";
 		} else {
@@ -382,12 +377,12 @@ class GuildController {
 			return;
 		}
 
-		$row = $this->db->table(self::DB_TABLE)
+		$mode = $this->db->table(self::DB_TABLE)
 			->where("name", $name)
 			->select("mode")
-			->asObj()->first();
+			->pluckAs("mode", "string")->first();
 
-		if ($row !== null && $row->mode !== "del") {
+		if ($mode !== null && $mode !== "del") {
 			$msg = "<highlight>{$name}<end> is already on the Notify list.";
 			$context->reply($msg);
 			return;
@@ -423,14 +418,14 @@ class GuildController {
 			return;
 		}
 
-		$row = $this->db->table(self::DB_TABLE)
+		$mode = $this->db->table(self::DB_TABLE)
 			->where("name", $name)
 			->select("mode")
-			->asObj()->first();
+			->pluckAs("mode", "string")->first();
 
-		if ($row === null) {
+		if ($mode === null) {
 			$msg = "<highlight>{$name}<end> is not on the guild roster.";
-		} elseif ($row->mode == "del") {
+		} elseif ($mode == "del") {
 			$msg = "<highlight>{$name}<end> has already been removed from the Notify list.";
 		} else {
 			$this->db->table(self::DB_TABLE)
@@ -451,7 +446,7 @@ class GuildController {
 		$this->updateOrgRoster([$context, "reply"], "Finished Roster update");
 	}
 
-	public function updateOrgRoster(?callable $callback=null, ...$args): void {
+	public function updateOrgRoster(?callable $callback=null, mixed ...$args): void {
 		if (!$this->isGuildBot() || !isset($this->config->orgId)) {
 			return;
 		}
@@ -468,7 +463,10 @@ class GuildController {
 		);
 	}
 
-	public function updateRosterForGuild(?Guild $org, ?callable $callback, ...$args): void {
+	/**
+	 * @psalm-param null|callable(mixed...) $callback
+	 */
+	public function updateRosterForGuild(?Guild $org, ?callable $callback, mixed ...$args): void {
 		// Check if guild xml file is correct if not abort
 		if ($org === null) {
 			$this->logger->error("Error downloading the guild roster xml file");
@@ -484,6 +482,7 @@ class GuildController {
 		// Save the current org_members table in a var
 		/** @var Collection<OrgMember> */
 		$data = $this->db->table(self::DB_TABLE)->asObj(OrgMember::class);
+		// @phpstan-ignore-next-line
 		if ($data->count() === 0 && (count($org->members) > 0)) {
 			$restart = true;
 		} else {
@@ -804,7 +803,7 @@ class GuildController {
 
 	public function getOrgChannelIdByOrgId(int $orgId): ?string {
 		foreach ($this->chatBot->grp as $gid => $status) {
-			$string = unpack("N", substr((string)$gid, 1));
+			$string = \Safe\unpack("N", substr((string)$gid, 1));
 			if (ord(substr((string)$gid, 0, 1)) === 3 && $string[1] == $orgId) {
 				return (string)$gid;
 			}

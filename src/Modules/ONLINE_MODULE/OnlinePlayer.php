@@ -27,10 +27,13 @@ class OnlinePlayer extends Player {
 	 */
 	public bool $online = false;
 
-	public static function fromPlayer(?Player $player=null, ?Online $online=null): self {
-		$op = new self();
+	final public function __construct() {
+	}
+
+	public static function fromPlayer(?Player $player=null, ?Online $online=null): static {
+		$op = new static();
 		if (isset($player)) {
-			foreach ($player as $key => $value) {
+			foreach (get_object_vars($player) as $key => $value) {
 				$op->{$key} = $value;
 			}
 		}

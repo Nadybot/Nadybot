@@ -16,5 +16,5 @@ trait TowerAttackTrait {
 	public ?int $playfield_id = null;
 	public ?int $site_number = null;
 	public ?int $x_coords = null;
-	public ?int $y_coord = null;
+	public ?int $y_coords = null;
 }

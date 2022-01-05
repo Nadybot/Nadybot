@@ -7,6 +7,7 @@ use Nadybot\Core\{
 	CmdContext,
 	CommandAlias,
 	DB,
+	ModuleInstance,
 	SettingManager,
 	SQLException,
 	Text,
@@ -39,13 +40,7 @@ use Nadybot\Core\{
 		help: "roll.txt"
 	)
 ]
-class RandomController {
-
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
+class RandomController extends ModuleInstance {
 
 	#[NCA\Inject]
 	public DB $db;
@@ -90,10 +85,11 @@ class RandomController {
 
 	#[NCA\HandlesCommand("random")]
 	public function randomCommand(CmdContext $context, string $string): void {
-		$items = preg_split("/(,\s+|\s+|,)/", trim($string));
+		$items = \Safe\preg_split("/(,\s+|\s+|,)/", trim($string));
 		$list = [];
 		while (count($items)) {
 			// Pick a random item from $items and remove it
+			// @phpstan-ignore-next-line
 			$elem = array_splice($items, array_rand($items, 1), 1)[0];
 			$list []= $elem;
 		}
@@ -153,7 +149,7 @@ class RandomController {
 			$context->reply($msg);
 			return;
 		}
-		$options = preg_split("/(,\s+|\s+|,)/", $names);
+		$options = \Safe\preg_split("/(,\s+|\s+|,)/", $names);
 		if ($amount > count($options)) {
 			$msg = "Cannot pick more items than are on the list.";
 			$context->reply($msg);
@@ -186,7 +182,7 @@ class RandomController {
 			$context->reply($msg);
 			return;
 		}
-		$options = preg_split("/(,\s+|\s+|,)/", $names);
+		$options = \Safe\preg_split("/(,\s+|\s+|,)/", $names);
 		[$rollNumber, $result] = $this->roll($context->char->name, $options);
 		$msg = "The roll is <highlight>$result<end> out of the possible options ".
 			$this->joinOptions($options, "highlight") . ". To verify do /tell <myname> verify $rollNumber";
@@ -250,6 +246,8 @@ class RandomController {
 	 * @param string $sender Name of the person rolling
 	 * @param string[] $options The options to roll between
 	 * @return array An array with the roll number and the chosen option
+	 * @psalm-return array{0:int, 1:string}
+	 * @phpstan-return array{0:int, 1:string}
 	 * @throws SQLException on SQL errors
 	 */
 	public function roll(string $sender, array $options, int $amount=1): array {

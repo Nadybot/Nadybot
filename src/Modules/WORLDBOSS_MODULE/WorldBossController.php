@@ -2,10 +2,10 @@
 
 namespace Nadybot\Modules\WORLDBOSS_MODULE;
 
-use Nadybot\Core\Attributes as NCA;
 use DateTime;
 use JsonException;
 use Nadybot\Core\{
+	Attributes as NCA,
 	CmdContext,
 	CommandAlias,
 	DB,
@@ -13,6 +13,7 @@ use Nadybot\Core\{
 	EventManager,
 	Http,
 	HttpResponse,
+	ModuleInstance,
 	LoggerWrapper,
 	MessageHub,
 	ParamClass\PDuration,
@@ -107,7 +108,7 @@ use Nadybot\Core\{
 		desc: "Triggered when the timer for a worldboss is deleted",
 	)
 ]
-class WorldBossController {
+class WorldBossController extends ModuleInstance {
 	public const WORLDBOSS_API = "https://timers.aobots.org/api/v1.0/bosses";
 
 	public const DB_TABLE = "worldboss_timers_<myname>";
@@ -156,12 +157,6 @@ class WorldBossController {
 	public const SPAWN_SHOULD = 2;
 	public const SPAWN_EVENT = 3;
 
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
-
 	#[NCA\Inject]
 	public Text $text;
 
@@ -204,6 +199,7 @@ class WorldBossController {
 	 */
 	private array $lastSpawnPrecise = [];
 
+	/** @var array<string,array<int,int>> */
 	private array $sentNotifications = [];
 
 	#[NCA\Setup]
@@ -270,7 +266,7 @@ class WorldBossController {
 		/** @var ApiSpawnData[] */
 		$timers = [];
 		try {
-			$data = json_decode($response->body, true, 512, JSON_THROW_ON_ERROR);
+			$data = \Safe\json_decode($response->body, true, 512, JSON_THROW_ON_ERROR);
 			if (!is_array($data)) {
 				throw new JsonException();
 			}

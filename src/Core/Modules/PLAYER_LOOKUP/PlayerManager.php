@@ -3,7 +3,7 @@
 namespace Nadybot\Core\Modules\PLAYER_LOOKUP;
 
 use Nadybot\Core\Attributes as NCA;
-use DateTime;
+use Safe\DateTime;
 use DateTimeZone;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
@@ -11,6 +11,7 @@ use Nadybot\Core\{
 	DB,
 	Http,
 	HttpResponse,
+	ModuleInstance,
 	LoggerWrapper,
 	Nadybot,
 	Registry,
@@ -24,11 +25,8 @@ use Nadybot\Core\DBSchema\Player;
  * @author Tyrence (RK2)
  */
 #[NCA\Instance]
-class PlayerManager {
+class PlayerManager extends ModuleInstance {
 	public const CACHE_GRACE_TIME = 87000;
-
-	public string $moduleName;
-
 	#[NCA\Inject]
 	public DB $db;
 
@@ -102,8 +100,12 @@ class PlayerManager {
 		return $result;
 	}
 
-	/** @psalm-param callable(list<?Player>) $callback */
+	/**
+	 * @psalm-param callable(array<string,?Player>) $callback
+	 * @param string[] $names
+	 */
 	public function massGetByNameAsync(callable $callback, array $names, int $dimension=null, bool $forceUpdate=false): void {
+		/** @var array<string,?Player> */
 		$result = [];
 		$left = count($names);
 		if ($left === 0) {
@@ -261,7 +263,7 @@ class PlayerManager {
 	}
 
 	/** @psalm-param callable(?Player, mixed...) $callback */
-	public function lookupAsync(string $name, int $dimension, callable $callback, ...$args): void {
+	public function lookupAsync(string $name, int $dimension, callable $callback, mixed ...$args): void {
 		$this->lookupUrlAsync(
 			"http://people.anarchy-online.com/character/bio/d/$dimension/name/$name/bio.xml?data_type=json",
 			function (?Player $player) use ($dimension, $name, $callback, $args): void {
@@ -303,7 +305,7 @@ class PlayerManager {
 		if (!isset($response->body) || $response->body === "null") {
 			return null;
 		}
-		[$char, $org, $lastUpdated] = json_decode($response->body);
+		[$char, $org, $lastUpdated] = \Safe\json_decode($response->body);
 
 		$obj = new Player();
 
@@ -337,9 +339,6 @@ class PlayerManager {
 	}
 
 	public function update(Player $char): void {
-		if ($char->guild_rank_id === '') {
-			$char->guild_rank_id = -1;
-		}
 		$this->db->table("players")
 			->upsert(
 				[
@@ -400,7 +399,7 @@ class PlayerManager {
 	 * Search for players in the database
 	 * @param string $search Search term
 	 * @param int|null $dimension Dimension to limit search to
-	 * @return array Player[]
+	 * @return Player[]
 	 * @throws SQLException On error
 	 */
 	public function searchForPlayers(string $search, ?int $dimension=null): array {

@@ -9,6 +9,7 @@ use Nadybot\Core\{
 	CmdContext,
 	CommandManager,
 	DB,
+	ModuleInstance,
 	SQLException,
 	Text,
 };
@@ -31,13 +32,7 @@ use ReflectionClass;
 		description: "Execute an SQL statement"
 	)
 ]
-class SQLController {
-
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
+class SQLController extends ModuleInstance {
 
 	#[NCA\Inject]
 	public AccessManager $accessManager;
@@ -92,7 +87,7 @@ class SQLController {
 			foreach ($data as $row) {
 				$blob .= "<pagebreak><header2>Entry<end>\n";
 				foreach ($row as $key => $value) {
-					$blob .= "<tab><highlight>$key:<end> ".json_encode($value, JSON_UNESCAPED_SLASHES)."\n";
+					$blob .= "<tab><highlight>$key:<end> ".\Safe\json_encode($value, JSON_UNESCAPED_SLASHES)."\n";
 				}
 				$blob .= "\n";
 			}

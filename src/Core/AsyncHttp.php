@@ -77,8 +77,8 @@ class AsyncHttp {
 	/**
 	 * The socket to communicate with
 	 *
-	 * @var null|false|resource
-	 * @psalm-var null|false|resource|closed-resource
+	 * @var null|resource
+	 * @psalm-var null|resource|closed-resource
 	 */
 	private $stream = null;
 
@@ -244,7 +244,7 @@ class AsyncHttp {
 			$this->notifier = null;
 		}
 		if (isset($this->stream) && is_resource($this->stream)) {
-			fclose($this->stream);
+			\Safe\fclose($this->stream);
 		}
 	}
 
@@ -294,18 +294,14 @@ class AsyncHttp {
 	 */
 	private function createStream(): bool {
 		$streamUri = $this->getStreamUri();
-		$this->stream = stream_socket_client(
+		$this->stream = \Safe\stream_socket_client(
 			$streamUri,
 			$errno,
 			$errstr,
 			0,
 			$this->getStreamFlags()
 		);
-		if ($this->stream === false) {
-			$this->abortWithMessage("Failed to create socket stream, reason: $errstr ($errno)");
-			return false;
-		}
-		stream_set_blocking($this->stream, false);
+		\Safe\stream_set_blocking($this->stream, false);
 		$this->logger->info("Stream for {$streamUri} created", ["uri" => $this->uri]);
 		return true;
 	}
@@ -333,6 +329,10 @@ class AsyncHttp {
 	 * Turn on TLS as soon as we can write and then continue processing as usual
 	 */
 	private function activateTLS(): void {
+		if (!is_resource($this->stream)) {
+			$this->logger->info("Activating TLS not possible for closed stream", ["uri" => $this->uri]);
+			return;
+		}
 		$this->notifier = new SocketNotifier(
 			$this->stream,
 			SocketNotifier::ACTIVITY_WRITE,
@@ -369,6 +369,10 @@ class AsyncHttp {
 	 * Setup the event loop to notify us when something happens in the stream
 	 */
 	private function setupStreamNotify(): void {
+		if (!is_resource($this->stream)) {
+			$this->logger->info("Setting up stream notification not possible for closed stream", ["uri" => $this->uri]);
+			return;
+		}
 		$this->notifier = new SocketNotifier(
 			$this->stream,
 			SocketNotifier::ACTIVITY_READ | SocketNotifier::ACTIVITY_WRITE | SocketNotifier::ACTIVITY_ERROR,
@@ -543,6 +547,7 @@ class AsyncHttp {
 
 	/**
 	 * Parse the received headers into an associative array [header => value]
+	 * @return array<string,string>
 	 */
 	private function extractHeadersFromHeaderData(string $data): array {
 		$headers = [];

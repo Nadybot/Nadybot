@@ -2,7 +2,6 @@
 
 namespace Nadybot\Modules\TOWER_MODULE;
 
-use Nadybot\Core\Attributes as NCA;
 use Closure;
 use DateTime;
 use Exception;
@@ -10,12 +9,14 @@ use Illuminate\Database\Query\JoinClause;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	AOChatEvent,
+	Attributes as NCA,
 	CmdContext,
 	CommandReply,
 	DB,
 	DBSchema\Player,
 	EventManager,
 	Http,
+	ModuleInstance,
 	LoggerWrapper,
 	MessageEmitter,
 	MessageHub,
@@ -41,10 +42,10 @@ use Nadybot\Modules\{
 	LEVEL_MODULE\LevelController,
 	TIMERS_MODULE\Alert,
 	ORGLIST_MODULE\FindOrgController,
+	ORGLIST_MODULE\Organization,
 	ORGLIST_MODULE\OrglistController,
 	TIMERS_MODULE\TimerController,
 };
-use Nadybot\Modules\ORGLIST_MODULE\Organization;
 
 /**
  * Commands this controller contains:
@@ -140,7 +141,7 @@ use Nadybot\Modules\ORGLIST_MODULE\Organization;
 		desc: "Triggered when marking a site as in need of scouting",
 	)
 ]
-class TowerController {
+class TowerController extends ModuleInstance {
 
 	public const DB_HOT = "tower_site_hot_<myname>";
 	public const DB_TOWER_ATTACK = "tower_attack_<myname>";
@@ -160,12 +161,6 @@ class TowerController {
 		201 => 6,
 		226 => 7,
 	];
-
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
 
 	#[NCA\Inject]
 	public PlayfieldController $playfieldController;
@@ -365,8 +360,8 @@ class TowerController {
 
 		$cmd = "{$site->pf} {$site->site} ";
 		$search = function (QueryBuilder $query) use ($towerInfo): void {
-			$query->where("a.playfield_id", $towerInfo->playfield_id)
-				->where("a.site_number", $towerInfo->site_number);
+			$query->where("playfield_id", $towerInfo->playfield_id)
+				->where("site_number", $towerInfo->site_number);
 		};
 		$this->attacksCommandHandler($page??1, $search, $cmd, $context);
 	}
@@ -379,8 +374,8 @@ class TowerController {
 	public function attacksOrgCommand(CmdContext $context, #[NCA\Str("org")] string $action, PNonGreedy $orgName, ?int $page): void {
 		$cmd = "org $orgName ";
 		$search = function (QueryBuilder $query) use ($orgName): void {
-			$query->whereIlike("a.att_guild_name", $orgName())
-				->orWhereIlike("a.def_guild_name", $orgName());
+			$query->whereIlike("att_guild_name", $orgName())
+				->orWhereIlike("def_guild_name", $orgName());
 		};
 		$this->attacksCommandHandler($page??1, $search, $cmd, $context);
 	}
@@ -393,7 +388,7 @@ class TowerController {
 	public function attacksPlayerCommand(CmdContext $context, #[NCA\Str("player")] string $action, PCharacter $player, ?int $page): void {
 		$cmd = "player {$player} ";
 		$search = function (QueryBuilder $query) use ($player): void {
-			$query->whereIlike("a.att_player", $player());
+			$query->whereIlike("att_player", $player());
 		};
 		$this->attacksCommandHandler($page??1, $search, $cmd, $context);
 	}
@@ -520,7 +515,10 @@ class TowerController {
 		$this->showOrgSites($result, null, $sendto, $orgId);
 	}
 
-	/** Show the result of the sites of org query to $sendto */
+	/**
+	 * Show the result of the sites of org query to $sendto
+	 * @param null|Collection<ScoutInfoPlus> $local
+	 */
 	public function showOrgSites(?ApiResult $result, ?Collection $local, CommandReply $sendto, int $orgId): void {
 		if (isset($result) && isset($local)) {
 			$result = $this->mergeLocalToAPI($local, $result);
@@ -656,7 +654,11 @@ class TowerController {
 		return $sites;
 	}
 
-	/** Show the API-result of a whole playfield */
+	/**
+	 * Show the API-result of a whole playfield
+	 * @param null|Collection<ScoutInfoPlus> $local
+	 * @param Collection<SiteInfo> $data
+	 */
 	public function showArea(?ApiResult $result, ?Collection $local, Collection $data, Playfield $pf, CommandReply $sendto): void {
 		$blob = '';
 		if (isset($result) && isset($local)) {
@@ -775,7 +777,9 @@ class TowerController {
 		$sites = $this->scoutToAPI($sites);
 		$this->showSite($sites, null, $site, $playfield, $context);
 	}
-
+	/**
+	 * @param null|Collection<ScoutInfoPlus> $local
+	 */
 	public function showSite(?ApiResult $result, ?Collection $local, SiteInfo $site, Playfield $playfield, CommandReply $sendto): void {
 		$details = null;
 		if (isset($result) && isset($local)) {
@@ -859,6 +863,9 @@ class TowerController {
 		$this->processPenaltySites($result, null, $context);
 	}
 
+	/**
+	 * @param null|Collection<ScoutInfoPlus> $local
+	 */
 	public function processPenaltySites(?ApiResult $result, ?Collection $local, CommandReply $sendto): void {
 		if (isset($result) && isset($local)) {
 			$result = $this->mergeLocalToAPI($local, $result);
@@ -1088,6 +1095,10 @@ class TowerController {
 			->where("t.enabled", 1);
 	}
 
+	/**
+	 * @param array<string,mixed> $params
+	 * @return null|Collection<ScoutInfoPlus>
+	 */
 	public function getScoutedHotSites(array $params, int $time, CommandReply $sendto): ?Collection {
 		$query = $this->getScoutPlusQuery()
 			->whereNotNull("close_time");
@@ -1177,12 +1188,12 @@ class TowerController {
 	 */
 	protected function mergeLocalToAPI(Collection $local, ApiResult $api): ApiResult {
 		$result = [];
+		/** @var array<int,array<int,ApiSite>> */
 		$apiSites = [];
 		foreach ($api->results as $apiSite) {
 			$apiSites[$apiSite->playfield_id] ??= [];
 			$apiSites[$apiSite->playfield_id][$apiSite->site_number] = $apiSite;
 		}
-		/** @var array<int,array<int,ApiSite>> $apiSites */
 		foreach ($local as $localSite) {
 			/** @var ?ApiSite */
 			$apiSite = $apiSites[$localSite->playfield_id][$localSite->site_number] ?? null;
@@ -1213,6 +1224,7 @@ class TowerController {
 	/**
 	 * Render the API !hot results
 	 * @param Collection<ScoutInfoPlus> $local
+	 * @param array<string,mixed> $params
 	 */
 	public function showHotSites(?ApiResult $result, Collection $local, array $params, string $sender, CommandReply $sendto, int $time=0): void {
 		if ($result === null) {
@@ -1225,7 +1237,7 @@ class TowerController {
 			return;
 		}
 		$blob = $this->renderHotSites($result, $params, $time);
-		$timeString = date("H:i:s", $params["min_close_time"]);
+		$timeString = \Safe\date("H:i:s", $params["min_close_time"]);
 		$faction = isset($params["faction"]) ? " {$params['faction']}" : "";
 		$sendto->reply(
 			$this->makeBlob(
@@ -1235,6 +1247,9 @@ class TowerController {
 		);
 	}
 
+	/**
+	 * @param array<string,mixed> $params
+	 */
 	protected function renderHotSites(ApiResult $result, array $params, int $time): string {
 		$time += time();
 		$sites = new Collection($result->results);
@@ -1322,11 +1337,15 @@ class TowerController {
 			->where("time", ">=", time() - $time)
 			->groupBy("att_faction")
 			->orderBy("att_faction");
+		/** @var Collection<FactionCount> */
 		$data = $query->orderBy($query->colFunc("COUNT", "att_faction"))
-			->select("att_faction", $query->colFunc("COUNT", "att_faction", "num"))
-			->asObj();
+			->select(
+				"att_faction AS faction",
+				$query->colFunc("COUNT", "att_faction", "num")
+			)
+			->asObj(FactionCount::class);
 		foreach ($data as $row) {
-			$blob .= "<{$row->att_faction}>{$row->att_faction}s<end> have attacked <highlight>{$row->num}<end> ".
+			$blob .= "<{$row->faction}>{$row->faction}s<end> have attacked <highlight>{$row->num}<end> ".
 				$this->text->pluralize("time", $row->num) . ".\n";
 		}
 		if ($data->isNotEmpty()) {
@@ -1337,11 +1356,12 @@ class TowerController {
 			->where("time", ">=", time() - $time)
 			->groupBy("lose_faction")
 			->orderByDesc("num")
-			->select("lose_faction");
+			->select("lose_faction as faction");
+		/** @var Collection<FactionCount> */
 		$data = $query->addSelect($query->colFunc("COUNT", "lose_faction", "num"))
-			->asObj();
+			->asObj(FactionCount::class);
 		foreach ($data as $row) {
-			$blob .= "<{$row->lose_faction}>{$row->lose_faction}s<end> have lost <highlight>{$row->num}<end> tower ".
+			$blob .= "<{$row->faction}>{$row->faction}s<end> have lost <highlight>{$row->num}<end> tower ".
 				$this->text->pluralize("site", $row->num) . ".\n";
 		}
 
@@ -1458,15 +1478,12 @@ class TowerController {
 				$playfieldName = $matches[2];
 				if ($whois === null) {
 					$whois = new Player();
-					$whois->type = 'npc';
 					$whois->name = $attPlayer;
 					$whois->faction = 'Neutral';
-				} else {
-					$whois->type = 'player';
 				}
 				$playerName = "<highlight>{$whois->name}<end> ({$whois->faction}";
-				if ($attGuild) {
-					$playerName .= " org \"{$whois->guild}\"";
+				if (isset($attGuild)) {
+					$playerName .= " org \"{$attGuild}\"";
 				}
 				$playerName .= ")";
 				$discordMessage = str_replace(
@@ -1537,21 +1554,21 @@ class TowerController {
 	}
 
 	public function handleAttack(Attack $attack, ?Player $whois): void {
+		$type = 'player';
 		if ($whois === null) {
 			$whois = new Player();
-			$whois->type = 'npc';
+			$type = 'npc';
 
 			// in case it's not a player who causes attack message (pet, mob, etc)
 			$whois->name = $attack->attPlayer;
 			$whois->faction = 'Neutral';
-		} else {
-			$whois->type = 'player';
 		}
+		$factionGuess = false;
 		if (isset($attack->attSide)) {
 			$whois->faction = $attack->attSide;
 		} else {
-			$whois->factionGuess = true;
-			$whois->originalGuild = $whois->guild;
+			$factionGuess = true;
+			$originalGuild = $whois->guild;
 		}
 		$whois->guild = $attack->attGuild ?? null;
 
@@ -1583,7 +1600,7 @@ class TowerController {
 
 			// Beginning of the 'more' window
 			$link = "";
-			if (isset($whois->factionGuess)) {
+			if ($factionGuess) {
 				$link .= "<highlight>Warning:<end> The attacker could also be a pet with a fake name!\n\n";
 			}
 			$link .= "Attacker: <highlight>";
@@ -1640,7 +1657,7 @@ class TowerController {
 
 		// Starting tower message to org/private chat
 		$msg = "";
-		$likelyFake = isset($whois->factionGuess) && isset($whois->originalGuild) && strlen($whois->originalGuild);
+		$likelyFake = $factionGuess && isset($originalGuild) && strlen($originalGuild);
 		if ($whois->guild) {
 			$msg .= "<".strtolower($whois->faction).">$whois->guild<end>";
 		} else {
@@ -1650,7 +1667,7 @@ class TowerController {
 
 		$s = $this->settingManager->getInt("tower_attack_spam");
 		// tower_attack_spam >= 2 (normal) includes attacker stats
-		if ($s >= 2 && $whois->type !== 'npc' && !$likelyFake) {
+		if ($s >= 2 && $type !== 'npc' && !$likelyFake) {
 			$msg .= " - ".preg_replace(
 				"/, <(omni|neutral|clan)>(omni|neutral|clan)<end>/i",
 				'',
@@ -1660,7 +1677,7 @@ class TowerController {
 					$this->playerManager->getInfo($whois, false)
 				)
 			);
-		} elseif ($s >= 2 && $whois->type !== 'npc') {
+		} elseif ($s >= 2 && $type !== 'npc') {
 			$msg .= " (<highlight>{$whois->level}<end>/<green>{$whois->ai_level}<end> <" . strtolower($whois->faction) . ">{$whois->faction}<end> <highlight>{$whois->profession}<end> or fake name)";
 		}
 
@@ -1989,6 +2006,7 @@ class TowerController {
 	}
 
 	protected function getClosestSite(int $playfieldID, int $xCoords, int $yCoords): ?TowerSite {
+		/** @var ?int */
 		$bbMatch = $this->db->table("tower_site_bounds")
 			->where("playfield_id", $playfieldID)
 			->where("x_coord1", "<=", $xCoords)
@@ -1996,10 +2014,10 @@ class TowerController {
 			->where("y_coord1", ">=", $yCoords)
 			->where("y_coord2", "<=", $yCoords)
 			->select("site_number")
-			->asObj()
+			->pluckAs("site_number", "int")
 			->first();
 		if (isset($bbMatch)) {
-			return $this->getTowerInfo($playfieldID, $bbMatch->site_number);
+			return $this->getTowerInfo($playfieldID, $bbMatch);
 		}
 		$zoneSites = $this->db->table("tower_site")
 			->where("playfield_id", $playfieldID)
@@ -2272,7 +2290,7 @@ class TowerController {
 			} else {
 				$blob .= "<tab>Planted: <highlight>Unknown<end>\n";
 			}
-		} elseif ($row->enabled === 0) {
+		} elseif (!$row->enabled) {
 				$blob .= "<tab>Planted: <highlight>This site is disabled<end>\n";
 		}
 		$blob .= "<tab>Center coordinates: $waypointLink\n".
@@ -2290,6 +2308,7 @@ class TowerController {
 		return $faction;
 	}
 
+	/** @return string[] */
 	protected function makeBlob(string $name, string $content): array {
 		$content = trim($content);
 		$lines = explode("\n", $content);
@@ -2544,7 +2563,7 @@ class TowerController {
 				if (isset($attack->pf)) {
 					$line .= $this->text->makeChatcmd(
 						"{$attack->pf->short_name} {$attack->site_number}",
-						"/waypoint {$attack->x_coords} {$attack->y_coord} {$attack->playfield_id}"
+						"/waypoint {$attack->x_coords} {$attack->y_coords} {$attack->playfield_id}"
 					);
 				} else {
 					$line .= "unknown";

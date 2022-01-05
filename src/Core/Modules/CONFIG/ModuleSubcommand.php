@@ -2,8 +2,6 @@
 
 namespace Nadybot\Core\Modules\CONFIG;
 
-use Nadybot\Core\DBSchema\CmdCfg;
-
 class ModuleSubcommand {
 	public const TYPE_COMMAND = "cmd";
 	public const TYPE_SUBCOMMAND = "subcmd";
@@ -26,7 +24,7 @@ class ModuleSubcommand {
 	/** Settings for org channel */
 	public ?ModuleSubcommandChannel $org;
 
-	public function __construct(CmdCfg $cfg) {
+	public function __construct(RegisteredCmd $cfg) {
 		$this->command = $cfg->cmd;
 		$this->type = $cfg->cmdevent;
 		$this->description = $cfg->description;

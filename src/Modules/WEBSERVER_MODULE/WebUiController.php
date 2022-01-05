@@ -2,24 +2,28 @@
 
 namespace Nadybot\Modules\WEBSERVER_MODULE;
 
-use Nadybot\Core\Attributes as NCA;
 use DateTime;
 use Exception;
-use Nadybot\Core\BotRunner;
-use Nadybot\Core\CmdContext;
-use Nadybot\Core\CommandReply;
-use Nadybot\Core\ConfigFile;
-use Nadybot\Core\DB;
-use Nadybot\Core\EventManager;
-use Nadybot\Core\Http;
-use Nadybot\Core\HttpResponse;
-use Nadybot\Core\LoggerWrapper;
-use Nadybot\Core\MessageEmitter;
-use Nadybot\Core\MessageHub;
-use Nadybot\Core\Nadybot;
-use Nadybot\Core\Routing\Source;
-use Nadybot\Core\SettingManager;
-use Nadybot\Core\Timer;
+use Nadybot\Core\{
+	Attributes as NCA,
+	BotRunner,
+	CmdContext,
+	CommandReply,
+	ConfigFile,
+	DB,
+	EventManager,
+	Http,
+	HttpResponse,
+	ModuleInstance,
+	LoggerWrapper,
+	MessageEmitter,
+	MessageHub,
+	Nadybot,
+	Routing\Source,
+	SettingManager,
+	Timer,
+};
+use Safe\Exceptions\FilesystemException;
 use Throwable;
 use ZipArchive;
 
@@ -36,9 +40,7 @@ use ZipArchive;
 	NCA\Instance,
 	NCA\HasMigrations
 ]
-class WebUiController implements MessageEmitter {
-	public string $moduleName;
-
+class WebUiController extends ModuleInstance implements MessageEmitter {
 	#[NCA\Inject]
 	public Http $http;
 
@@ -269,22 +271,24 @@ class WebUiController implements MessageEmitter {
 			$this->settingManager->save("nadyui_version", "0");
 		}
 		$path = $this->config->htmlFolder;
-		return (realpath("{$path}/css") ? $this->recursiveRemoveDirectory(realpath("{$path}/css")) : true)
-			&& (realpath("{$path}/img") ? $this->recursiveRemoveDirectory(realpath("{$path}/img")) : true)
-			&& (realpath("{$path}/js")  ? $this->recursiveRemoveDirectory(realpath("{$path}/js")) : true)
-			&& (realpath("{$path}/index.html") ? unlink(realpath("{$path}/index.html")) : true)
-			&& (realpath("{$path}/favicon.ico") ? unlink(realpath("{$path}/favicon.ico")) : true);
+		return (realpath("{$path}/css") ? $this->recursiveRemoveDirectory(\Safe\realpath("{$path}/css")) : true)
+			&& (realpath("{$path}/img") ? $this->recursiveRemoveDirectory(\Safe\realpath("{$path}/img")) : true)
+			&& (realpath("{$path}/js")  ? $this->recursiveRemoveDirectory(\Safe\realpath("{$path}/js")) : true)
+			&& (realpath("{$path}/index.html") ? unlink(\Safe\realpath("{$path}/index.html")) : true)
+			&& (realpath("{$path}/favicon.ico") ? unlink(\Safe\realpath("{$path}/favicon.ico")) : true);
 	}
 
 	/**
 	 * Delete a directory and all its subdirectories
 	 */
 	public function recursiveRemoveDirectory(string $directory): bool {
-		foreach (glob("{$directory}/*") as $file) {
+		foreach (\Safe\glob("{$directory}/*") as $file) {
 			if (is_dir($file)) {
 				$this->recursiveRemoveDirectory($file);
 			} else {
-				if (unlink($file) === false) {
+				try {
+					\Safe\unlink($file);
+				} catch (FilesystemException) {
 					return false;
 				}
 			}
@@ -302,18 +306,19 @@ class WebUiController implements MessageEmitter {
 	public function installNewRelease(HttpResponse $response): void {
 		try {
 			$oldMask = umask(0027);
-			$file = tmpfile();
+			$file = \Safe\tmpfile();
 			$archiveName = stream_get_meta_data($file)['uri'];
-			if (!isset($response->body) || fwrite($file, $response->body) === false) {
+			if (!isset($response->body)) {
 				throw new Exception("Cannot write to temp file {$archiveName}.");
 			}
+			\Safe\fwrite($file, $response->body) ;
 			$extractor = new ZipArchive();
 			$openResult = $extractor->open($archiveName);
 			if ($openResult !== true) {
 				throw new Exception("Error opening {$archiveName}. Code {$openResult}.");
 			}
-			$path = realpath($this->config->htmlFolder);
-			if ($path === false || $extractor->extractTo($path) === false) {
+			$path = \Safe\realpath($this->config->htmlFolder);
+			if ($extractor->extractTo($path) === false) {
 				throw new Exception("Error extracting {$archiveName}.");
 			}
 		} catch (Throwable $e) {

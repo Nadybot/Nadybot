@@ -32,6 +32,7 @@ class MessageRoute {
 		return $this->route->destination;
 	}
 
+	/** @return EventModifier[] */
 	public function getModifiers(): array {
 		return $this->modifiers;
 	}

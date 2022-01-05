@@ -9,6 +9,7 @@ use Nadybot\Core\{
 	CmdContext,
 	CommandManager,
 	DB,
+	ModuleInstance,
 	Nadybot,
 	SQLException,
 	Text,
@@ -29,7 +30,7 @@ use Nadybot\Core\DBSchema\CommandSearchResult;
 		alias: "searchcmd"
 	)
 ]
-class CommandSearchController {
+class CommandSearchController extends ModuleInstance {
 
 	#[NCA\Inject]
 	public Nadybot $chatBot;
@@ -48,7 +49,7 @@ class CommandSearchController {
 
 	#[NCA\HandlesCommand("cmdsearch")]
 	public function searchCommand(CmdContext $context, string $search): void {
-		$this->searchWords = preg_split("/\s+/", $search);
+		$this->searchWords = \Safe\preg_split("/\s+/", $search) ?: [];
 
 		// if a mod or higher, show all commands, not just enabled commands
 		$access = false;
@@ -97,6 +98,10 @@ class CommandSearchController {
 		return $results;
 	}
 
+	/**
+	 * @param string[] $wordArray
+	 * @return CommandSearchResult[]
+	 */
 	public function findSimilarCommands(array $wordArray, bool $includeDisabled=false): array {
 		$query = $this->db->table(CommandManager::DB_TABLE)
 			->select("module", "cmd", "help", "description", "admin")->distinct();
@@ -109,7 +114,6 @@ class CommandSearchController {
 		foreach ($data as $row) {
 			$keywords = [$row->cmd];
 			$keywords = array_unique($keywords);
-			$row->similarity_percent = 0;
 			foreach ($wordArray as $searchWord) {
 				$similarity = 0;
 				$rowSimilarity = 0;
@@ -131,9 +135,7 @@ class CommandSearchController {
 	}
 
 	/**
-	 * @param array CommandSearchResult[]
-	 * @param bool $hasAccess
-	 * @param mixed $exactMatch
+	 * @param CommandSearchResult[] $results
 	 * @return string|string[]
 	 */
 	public function render(array $results, bool $hasAccess, bool $exactMatch): string|array {

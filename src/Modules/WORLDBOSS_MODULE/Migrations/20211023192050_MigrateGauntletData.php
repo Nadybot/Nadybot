@@ -14,6 +14,7 @@ use Nadybot\Core\{
 use Nadybot\Modules\TIMERS_MODULE\TimerController;
 use Nadybot\Modules\WORLDBOSS_MODULE\GauntletInventoryController;
 use Nadybot\Modules\WORLDBOSS_MODULE\WorldBossController;
+use stdClass;
 
 class MigrateGauntletData implements SchemaMigration {
 	#[NCA\Inject]
@@ -32,17 +33,16 @@ class MigrateGauntletData implements SchemaMigration {
 		}
 		$timer = $db->table($table)
 			->where("name", "Gauntlet")
-			->limit(1)
-			->asObj()
-			->first();
+			->limit(1)->get() ->first();
 		if (isset($timer)) {
-			while ($timer->endtime < time()) {
-				$timer->endtime += 61640;
+			$endtime = (int)$timer->endtime;
+			while ($endtime < time()) {
+				$endtime += 61640;
 			}
 			$this->worldBossController->worldBossUpdate(
-				new Character($timer->owner),
+				new Character((string)$timer->owner),
 				WorldBossController::VIZARESH,
-				$timer->endtime - time(),
+				$endtime - time(),
 			);
 			$this->timerController->remove("Gauntlet");
 		}
@@ -75,14 +75,14 @@ class MigrateGauntletData implements SchemaMigration {
 			}
 			return;
 		}
-		$gauInv = $db->table($table)
-			->asObj();
-		$gauInv->each(function (object $inv): void {
-			$items = @unserialize($inv->items);
-			if (is_array($items)) {
-				$this->gauntletInventoryController->saveData($inv->player, $items);
-			}
-		});
+		$db->table($table)
+			->get()
+			->each(function (stdClass $inv): void {
+				$items = @unserialize((string)$inv->items);
+				if (is_array($items)) {
+					$this->gauntletInventoryController->saveData((string)$inv->player, $items);
+				}
+			});
 		$db->schema()->dropIfExists($table);
 		$db->schema()->dropIfExists("bigboss_timers");
 	}

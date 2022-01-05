@@ -2,8 +2,8 @@
 
 namespace Nadybot\Core;
 
+use Exception;
 use Nadybot\Core\Attributes\Instance;
-use RuntimeException;
 use Spatie\DataTransferObject\Attributes\MapFrom;
 use Spatie\DataTransferObject\Attributes\MapTo;
 use Spatie\DataTransferObject\DataTransferObject;
@@ -132,6 +132,9 @@ class ConfigFile extends DataTransferObject {
 
 	public ?string $timezone = null;
 
+	/**
+	 * @param array<string,mixed> $args
+	 */
 	public function __construct(array $args) {
 		unset($args["my_guild_id"]);
 		$args["my_guild"] ??= "";
@@ -150,7 +153,7 @@ class ConfigFile extends DataTransferObject {
 	 * Constructor method.
 	 */
 	public static function loadFromFile(string $filePath): self {
-		static::copyFromTemplateIfNeeded($filePath);
+		self::copyFromTemplateIfNeeded($filePath);
 		$vars = [];
 		require $filePath;
 		$config = new self($vars);
@@ -173,8 +176,11 @@ class ConfigFile extends DataTransferObject {
 		$vars = array_filter($vars, function (mixed $value): bool {
 			return isset($value);
 		});
-		static::copyFromTemplateIfNeeded($this->getFilePath());
-		$lines = file($this->filePath);
+		self::copyFromTemplateIfNeeded($this->getFilePath());
+		$lines = \Safe\file($this->filePath);
+		if (!is_array($lines)) {
+			throw new Exception("Cannot load {$this->filePath}");
+		}
 		foreach ($lines as $key => $line) {
 			if (preg_match("/^(.+)vars\[('|\")(.+)('|\")](.*)=(.*)\"(.*)\";(.*)$/si", $line, $arr)) {
 				$lines[$key] = "$arr[1]vars['$arr[3]']$arr[5]=$arr[6]\"{$vars[$arr[3]]}\";$arr[8]";
@@ -204,7 +210,7 @@ class ConfigFile extends DataTransferObject {
 			// $lines []= "\n";
 		}
 
-		file_put_contents($this->filePath, $lines);
+		\Safe\file_put_contents($this->filePath, $lines);
 	}
 
 	/**
@@ -215,11 +221,6 @@ class ConfigFile extends DataTransferObject {
 			return;
 		}
 		$templatePath = __DIR__ . '/../../conf/config.template.php';
-		if (copy($templatePath, $filePath) === false) {
-			throw new RuntimeException(
-				"could not create config file {$filePath}: ".
-				(error_get_last()??["message" => "unknown error"])["message"]
-			);
-		}
+		\Safe\copy($templatePath, $filePath);
 	}
 }

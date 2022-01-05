@@ -2,8 +2,8 @@
 
 namespace Nadybot\Modules\WHOIS_MODULE;
 
-use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{
+	Attributes as NCA,
 	BuddylistManager,
 	CmdContext,
 	CommandAlias,
@@ -12,16 +12,17 @@ use Nadybot\Core\{
 	Event,
 	DB,
 	DBSchema\Player,
+	ModuleInstance,
 	Modules\ALTS\AltsController,
 	Modules\PLAYER_LOOKUP\PlayerManager,
 	Nadybot,
 	PacketEvent,
+	ParamClass\PCharacter,
 	SettingManager,
 	Text,
 	UserStateEvent,
 	Util,
 };
-use Nadybot\Core\ParamClass\PCharacter;
 use Nadybot\Modules\COMMENT_MODULE\CommentController;
 
 /**
@@ -44,13 +45,7 @@ use Nadybot\Modules\COMMENT_MODULE\CommentController;
 		help: "lookup.txt"
 	)
 ]
-class WhoisController {
-
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
+class WhoisController extends ModuleInstance {
 
 	#[NCA\Inject]
 	public DB $db;

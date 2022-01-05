@@ -2,26 +2,25 @@
 
 namespace Nadybot\Core\Modules\MESSAGES;
 
-use Nadybot\Core\Attributes as NCA;
-use Nadybot\Core\DB;
-use Nadybot\Core\MessageHub;
-use Nadybot\Core\Routing\Source;
-use Nadybot\Modules\WEBSERVER_MODULE\ApiResponse;
-use Nadybot\Modules\WEBSERVER_MODULE\HttpProtocolWrapper;
-use Nadybot\Modules\WEBSERVER_MODULE\Request;
-use Nadybot\Modules\WEBSERVER_MODULE\Response;
+use Nadybot\Core\{
+	Attributes as NCA,
+	DB,
+	ModuleInstance,
+	MessageHub,
+	Routing\Source,
+};
+use Nadybot\Modules\WEBSERVER_MODULE\{
+	ApiResponse,
+	HttpProtocolWrapper,
+	Request,
+	Response,
+};
 
 /**
  * @author Nadyita (RK5)
  */
 #[NCA\Instance]
-class MessageHubAPI {
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
-
+class MessageHubAPI extends ModuleInstance {
 	#[NCA\Inject]
 	public MessageHub $messageHub;
 

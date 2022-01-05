@@ -7,13 +7,14 @@ use Closure;
 use DateInterval;
 use DateTime;
 use DateTimeZone;
-use JsonException;
+use Safe\Exceptions\JsonException;
 use Nadybot\Core\{
 	CacheManager,
 	CacheResult,
 	ConfigFile,
 	DB,
 	EventManager,
+	ModuleInstance,
 	Nadybot,
 };
 use Nadybot\Core\DBSchema\Player;
@@ -23,7 +24,7 @@ use Nadybot\Core\DBSchema\Player;
  *
  */
 #[NCA\Instance]
-class GuildManager {
+class GuildManager extends ModuleInstance {
 	#[NCA\Inject]
 	public Nadybot $chatBot;
 
@@ -48,7 +49,7 @@ class GuildManager {
 				if ($data === null) {
 					return false;
 				}
-				$result = json_decode($data, false, 512, JSON_THROW_ON_ERROR);
+				$result = \Safe\json_decode($data, false, 512, JSON_THROW_ON_ERROR);
 				return $result !== null;
 			} catch (JsonException $e) {
 				return false;
@@ -56,8 +57,10 @@ class GuildManager {
 		};
 	}
 
-	/** @psalm-param callable(?Guild, mixed...) $callback */
-	public function getByIdAsync(int $guildID, ?int $dimension, bool $forceUpdate, callable $callback, ...$args): void {
+	/**
+	 * @psalm-param callable(?Guild, mixed...) $callback
+	 */
+	public function getByIdAsync(int $guildID, ?int $dimension, bool $forceUpdate, callable $callback, mixed ...$args): void {
 		// if no server number is specified use the one on which the bot is logged in
 		$dimension ??= $this->config->dimension;
 
@@ -117,7 +120,7 @@ class GuildManager {
 	}
 
 	/** @psalm-param callable(?Guild, mixed...) $callback */
-	public function handleGuildLookup(CacheResult $cacheResult, int $guildID, int $dimension, callable $callback, ...$args): void {
+	public function handleGuildLookup(CacheResult $cacheResult, int $guildID, int $dimension, callable $callback, mixed ...$args): void {
 
 		// if there is still no valid data available give an error back
 		if ($cacheResult->success !== true) {
@@ -125,7 +128,7 @@ class GuildManager {
 			return;
 		}
 
-		[$orgInfo, $members, $lastUpdated] = json_decode($cacheResult->data??"");
+		[$orgInfo, $members, $lastUpdated] = \Safe\json_decode($cacheResult->data??"");
 
 		if ($orgInfo->NAME === null) {
 			$callback(null, ...$args);

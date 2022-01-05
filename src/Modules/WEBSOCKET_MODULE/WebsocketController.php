@@ -2,14 +2,16 @@
 
 namespace Nadybot\Modules\WEBSOCKET_MODULE;
 
-use Nadybot\Core\Attributes as NCA;
 use Exception;
 use Throwable;
 use TypeError;
 
 use Nadybot\Core\{
+	Attributes as NCA,
+	Channels\WebChannel,
 	Event,
 	EventManager,
+	ModuleInstance,
 	LoggerWrapper,
 	MessageHub,
 	PacketEvent,
@@ -19,7 +21,6 @@ use Nadybot\Core\{
 	WebsocketCallback,
 	WebsocketServer,
 };
-use Nadybot\Core\Channels\WebChannel;
 use Nadybot\Modules\WEBSERVER_MODULE\{
 	CommandReplyEvent,
 	HttpProtocolWrapper,
@@ -39,13 +40,7 @@ use Nadybot\Modules\WEBSERVER_MODULE\{
 	NCA\ProvidesEvent("websocket(response)"),
 	NCA\ProvidesEvent("websocket(event)")
 ]
-class WebsocketController {
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
-
+class WebsocketController extends ModuleInstance {
 	#[NCA\Inject]
 	public EventManager $eventManager;
 
@@ -160,12 +155,12 @@ class WebsocketController {
 		}
 		$key = $request->headers["sec-websocket-key"];
 		if (isset($request->headers["sec-websocket-protocol"])
-			&& !in_array("nadybot", preg_split("/\s*,\s*/", $request->headers["sec-websocket-protocol"]))) {
+			&& !in_array("nadybot", \Safe\preg_split("/\s*,\s*/", $request->headers["sec-websocket-protocol"]))) {
 			return $errorResponse;
 		}
 
 		/** @todo Validate key length and base 64 */
-		$responseKey = base64_encode(pack('H*', sha1($key . WebsocketBase::GUID)));
+		$responseKey = base64_encode(\Safe\pack('H*', sha1($key . WebsocketBase::GUID)));
 		return new Response(
 			Response::SWITCHING_PROTOCOLS,
 			[
@@ -202,7 +197,7 @@ class WebsocketController {
 			if (!is_string($event->data)) {
 				throw new Exception();
 			}
-			$data = json_decode($event->data, false, 512, JSON_THROW_ON_ERROR);
+			$data = \Safe\json_decode($event->data, false, 512, JSON_THROW_ON_ERROR);
 			$command = new WebsocketCommand();
 			$command->fromJSON($data);
 			if (!in_array($command->command, $command::ALLOWED_COMMANDS)) {
@@ -275,7 +270,7 @@ class WebsocketController {
 		}
 		$parts = explode("\\", get_class($event));
 		$class = end($parts);
-		$event->class = $class;
+		// $event->class = $class;
 		$packet = new WebsocketCommand();
 		$packet->command = $packet::EVENT;
 		$packet->data = $event;

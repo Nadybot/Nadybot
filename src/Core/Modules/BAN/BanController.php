@@ -9,6 +9,7 @@ use Nadybot\Core\{
 	CmdContext,
 	CommandReply,
 	DBSchema\Player,
+	ModuleInstance,
 	Modules\ALTS\AltsController,
 	Modules\PLAYER_LOOKUP\PlayerManager,
 	Modules\PLAYER_LOOKUP\GuildManager,
@@ -61,15 +62,9 @@ use Nadybot\Core\ParamClass\PRemove;
 		alias: "orgbans"
 	)
 ]
-class BanController {
+class BanController extends ModuleInstance {
 	public const DB_TABLE = "banlist_<myname>";
 	public const DB_TABLE_BANNED_ORGS = "banned_orgs_<myname>";
-
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
 
 	#[NCA\Inject]
 	public AccessManager $accessManager;
@@ -557,12 +552,12 @@ class BanController {
 
 	/**
 	 * Call either the notbanned ort banned callback for $charId
-	 * @psalm-suppress MissingClosureReturnType
-	 * @psalm-suppress TooManyArguments
+	 * @psalm-param null|callable(int, mixed...) $notBanned
+	 * @psalm-param null|callable(int, mixed...) $banned
 	 */
-	public function handleBan(int $charId, ?callable $notBanned, ?callable $banned, ...$args): void {
-		$notBanned ??= fn() => null;
-		$banned ??= fn() => null;
+	public function handleBan(int $charId, ?callable $notBanned, ?callable $banned, mixed ...$args): void {
+		$notBanned ??= fn(int $charId, mixed ...$args): mixed => null;
+		$banned ??= fn(int $charId, mixed ...$args): mixed => null;
 		if (isset($this->banlist[$charId])) {
 			$banned($charId, ...$args);
 			return;
@@ -647,7 +642,7 @@ class BanController {
 	}
 
 	/**
-	 * @param Organization[] $orgs
+	 * @param \Nadybot\Modules\ORGLIST_MODULE\Organization[] $orgs
 	 * @param string|null $duration
 	 * @param string $reason
 	 */

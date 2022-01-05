@@ -2,23 +2,23 @@
 
 namespace Nadybot\Modules\RAID_MODULE;
 
-use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{
+	Attributes as NCA,
 	AOChatEvent,
 	CmdContext,
 	CommandAlias,
 	CommandReply,
 	DB,
 	DBSchema\Player,
-	Event,
 	EventManager,
+	ModuleInstance,
 	Modules\PLAYER_LOOKUP\PlayerManager,
 	Modules\ALTS\AltsController,
 	Nadybot,
+	ParamClass\PCharacter,
 	SettingManager,
 	Text,
 };
-use Nadybot\Core\ParamClass\PCharacter;
 use Nadybot\Modules\ONLINE_MODULE\OnlineController;
 
 /**
@@ -42,11 +42,8 @@ use Nadybot\Modules\ONLINE_MODULE\OnlineController;
 	NCA\ProvidesEvent("raid(join)"),
 	NCA\ProvidesEvent("raid(leave)")
 ]
-class RaidMemberController {
+class RaidMemberController extends ModuleInstance {
 	public const DB_TABLE = "raid_member_<myname>";
-
-	public string $moduleName;
-
 	#[NCA\Inject]
 	public DB $db;
 
@@ -360,6 +357,7 @@ class RaidMemberController {
 
 	/**
 	 * Get the blob for the !raid list command
+	 * @return string[]
 	 */
 	public function getRaidListBlob(Raid $raid, bool $justBlob=false): array {
 		ksort($raid->raiders);

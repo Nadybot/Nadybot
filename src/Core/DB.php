@@ -14,11 +14,11 @@ use Illuminate\Database\Capsule\Manager as Capsule;
 use Illuminate\Database\Connection;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Collection;
-use InvalidArgumentException;
 use Nadybot\Core\Attributes\HasMigrations;
 use Nadybot\Core\CSV\Reader;
 use Nadybot\Core\DBSchema\Migration;
 use Nadybot\Core\Migration as CoreMigration;
+use Safe\Exceptions\FilesystemException;
 use Throwable;
 
 #[NCA\Instance]
@@ -71,10 +71,14 @@ class DB {
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
+	/** @var array<string,string> */
 	protected array $sqlReplacements = [];
+	/** @var array<string,string> */
 	protected array $sqlRegexpReplacements = [];
+	/** @var array<string,string> */
 	protected array $sqlCreateReplacements = [];
 
+	/** @var array<string,string> */
 	protected array $tableNames = [];
 
 	public int $maxPlaceholders = 9000;
@@ -130,7 +134,7 @@ class DB {
 						'prefix' => ''
 					]);
 					$this->sql = $this->capsule->getConnection()->getPdo();
-				} catch (Throwable $e) {
+				} catch (PDOException $e) {
 					if (!$errorShown) {
 						$this->logger->error(
 							"Cannot connect to the MySQL db at {$host}: ".
@@ -141,7 +145,7 @@ class DB {
 						);
 						$errorShown = true;
 					}
-					sleep(1);
+					\Safe\sleep(1);
 				}
 			} while (!isset($this->sql));
 			if ($errorShown) {
@@ -157,10 +161,16 @@ class DB {
 				$dbName = "$host/$dbName";
 			}
 			if (!@file_exists($dbName)) {
-				if (!touch($dbName)) {
+				try {
+					\Safe\touch($dbName);
+				} catch (FilesystemException $e) {
 					$this->logger->error(
-						"Unable to create the dababase \"{$dbName}\". Check that the directory ".
-						"exists and is writable by the current user."
+						"Unable to create the dababase \"{$dbName}\": {error}. Check that the directory ".
+						"exists and is writable by the current user.",
+						[
+							"error" => $e->getMessage(),
+							"exception" => $e,
+						]
 					);
 					exit(10);
 				}
@@ -204,7 +214,7 @@ class DB {
 						'prefix' => ''
 					]);
 					$this->sql = $this->capsule->getConnection()->getPdo();
-				} catch (Throwable $e) {
+				} catch (PDOException $e) {
 					if (!$errorShown) {
 						$this->logger->error(
 							"Cannot connect to the PostgreSQL db at {$host}: ".
@@ -215,7 +225,7 @@ class DB {
 						);
 						$errorShown = true;
 					}
-					sleep(1);
+					\Safe\sleep(1);
 				}
 			} while (!isset($this->sql));
 			if ($errorShown) {
@@ -235,7 +245,7 @@ class DB {
 						'prefix' => ''
 					]);
 					$this->sql = $this->capsule->getConnection()->getPdo();
-				} catch (Throwable $e) {
+				} catch (PDOException $e) {
 					if (!$errorShown) {
 						$this->logger->error(
 							"Cannot connect to the MSSQL db at {$host}: ".
@@ -246,7 +256,7 @@ class DB {
 						);
 						$errorShown = true;
 					}
-					sleep(1);
+					\Safe\sleep(1);
 				}
 			} while (!isset($this->sql));
 			if ($errorShown) {
@@ -256,8 +266,7 @@ class DB {
 			throw new Exception("Invalid database type: '$type'.  Expecting '" . self::MYSQL . "', '". self::POSTGRESQL . "' or '" . self::SQLITE . "'.");
 		}
 		$this->capsule->setAsGlobal();
-		/** @psalm-suppress TooManyArguments */
-		$this->capsule->setFetchMode(PDO::FETCH_CLASS, DBRow::class);
+		$this->capsule->setFetchMode(PDO::FETCH_CLASS);
 		$this->capsule->getConnection()->beforeExecuting(
 			function(string $query, array $bindings, Connection $connection): void {
 				$this->logger->debug(
@@ -361,15 +370,19 @@ class DB {
 		$props = $refClass->getProperties(ReflectionProperty::IS_PUBLIC);
 		$data = [];
 		foreach ($props as $prop) {
-			$comment = $prop->getDocComment();
-			if ($comment !== false && preg_match("/@db:ignore/", $comment)) {
+			if (count($prop->getAttributes(NCA\DB\Ignore::class))) {
 				continue;
 			}
-			if ($prop->isInitialized($row)) {
-				$data[$prop->name] = $prop->getValue($row);
-				if ($data[$prop->name] instanceof DateTime) {
-					$data[$prop->name] = $data[$prop->name]->getTimestamp();
-				}
+			if (!$prop->isInitialized($row)) {
+				continue;
+			}
+			$data[$prop->name] = $prop->getValue($row);
+			if (count($attrs = $prop->getAttributes(NCA\DB\MapWrite::class))) {
+				/** @var NCA\DB\MapWrite */
+				$mapper = $attrs[0]->newInstance();
+				$data[$prop->name] = $mapper->map($data[$prop->name]);
+			} elseif ($data[$prop->name] instanceof DateTime) {
+				$data[$prop->name] = $data[$prop->name]->getTimestamp();
 			}
 		}
 		$table = $this->formatSql($table);
@@ -388,23 +401,23 @@ class DB {
 	 * @return int Number of updates records
 	 */
 	public function update(string $table, string|array $key, DBRow $row): int {
-		/** @psalm-suppress DocblockTypeContradiction */
-		if (!is_string($key) && !is_array($key)) {
-			throw new InvalidArgumentException("argument 2 to " . __FUNCTION__ . " (\$key) must either be a string or an array of strings.");
-		}
 		$refClass = new ReflectionClass($row);
 		$props = $refClass->getProperties(ReflectionProperty::IS_PUBLIC);
 		$updates = [];
 		foreach ($props as $prop) {
-			$comment = $prop->getDocComment();
-			if ($comment !== false && preg_match("/@db:ignore/", $comment)) {
+			if (count($prop->getAttributes(NCA\DB\Ignore::class))) {
 				continue;
 			}
-			if ($prop->isInitialized($row)) {
-				$updates[$prop->name] = $prop->getValue($row);
-				if ($updates[$prop->name] instanceof DateTime) {
-					$updates[$prop->name] = $updates[$prop->name]->getTimestamp();
-				}
+			if (!$prop->isInitialized($row)) {
+				continue;
+			}
+			$updates[$prop->name] = $prop->getValue($row);
+			if (count($attrs = $prop->getAttributes(NCA\DB\MapWrite::class))) {
+				/** @var NCA\DB\MapWrite */
+				$mapper = $attrs[0]->newInstance();
+				$updates[$prop->name] = $mapper->map($updates[$prop->name]);
+			} elseif ($updates[$prop->name] instanceof DateTime) {
+				$updates[$prop->name] = $updates[$prop->name]->getTimestamp();
 			}
 		}
 		$query = $this->table($table);
@@ -443,7 +456,7 @@ class DB {
 		}
 		$builder = $this->capsule->table($table, $as, $connection);
 		$myBuilder = new QueryBuilder($builder->getConnection(), $builder->getGrammar(), $builder->getProcessor());
-		foreach ($builder as $attr => $value) {
+		foreach (get_object_vars($builder) as $attr => $value) {
 			$myBuilder->{$attr} = $value;
 		}
 		$myBuilder->nadyDB = $this;
@@ -461,7 +474,7 @@ class DB {
 	public function fromSub($query, string $as): QueryBuilder {
 		$query = $this->capsule->getConnection()->query()->fromSub($query, $as);
 		$builder = new QueryBuilder($query->connection, $query->grammar, $query->processor);
-		foreach ($query as $attr => $value) {
+		foreach (get_object_vars($query) as $attr => $value) {
 			$builder->{$attr} = $value;
 		}
 		$builder->nadyDB = $this;
@@ -478,6 +491,7 @@ class DB {
 		$this->runMigrations(...$migrations->toArray());
 	}
 
+	/** @return Collection<CoreMigration> */
 	private function getMigrationFiles(object $instance): Collection {
 		$migrations = new Collection();
 		$ref = new ReflectionClass($instance);
@@ -490,11 +504,15 @@ class DB {
 		if (!isset($migDir)) {
 			return new Collection();
 		}
-		$migDir->module ??= $instance->moduleName ?? null;
+		$migDir->module ??= is_subclass_of($instance, ModuleInstanceInterface::class) ? $instance->getModuleName() : null;
 		if (!isset($migDir->module)) {
 			return new Collection();
 		}
-		$fullDir = dirname($ref->getFileName()) . "/" . $migDir->dir;
+		$fullFile = $ref->getFileName();
+		if (!is_string($fullFile)) {
+			return new Collection();
+		}
+		$fullDir = dirname($fullFile) . "/" . $migDir->dir;
 		$iter = new GlobIterator("{$fullDir}/*.php");
 		foreach ($iter as $file) {
 			if (is_string($file)) {
@@ -575,7 +593,6 @@ class DB {
 			try {
 				$this->beginTransaction();
 				$this->applyMigration($mig->module, $mig->filePath);
-				QueryBuilder::clearMetaCache();
 				if ($this->inTransaction()) {
 					$this->commit();
 				}
@@ -596,6 +613,10 @@ class DB {
 		]);
 	}
 
+	/**
+	 * @param Collection<CoreMigration> $migrations
+	 * @return Collection<CoreMigration>
+	 */
 	private function filterAppliedMigrations(string $module, Collection $migrations): Collection {
 		$applied = $this->getAppliedMigrations($module);
 		return $migrations->filter(function (CoreMigration $m) use ($applied): bool {
@@ -645,8 +666,7 @@ class DB {
 	 * Load a CSV file $file into table $table
 	 * @param string $module The module to which this file belongs
 	 * @param string $file The full path to the CSV file
-	 * @param string $table Name of the table to insert the data into
-	 * @return bool trueif inserted, false if already up-to-date
+	 * @return bool true if inserted, false if already up-to-date
 	 * @throws Exception
 	 */
 	public function loadCSVFile(string $module, string $file): bool {
@@ -655,8 +675,8 @@ class DB {
 		if (!@file_exists($file)) {
 			throw new Exception("The CSV-file {$file} was not found.");
 		}
-		$version = filemtime($file) ?: 0;
-		$handle = fopen($file, 'r');
+		$version = \Safe\filemtime($file) ?: 0;
+		$handle = \Safe\fopen($file, 'r');
 		while ($handle !== false && !feof($handle)) {
 			$line = fgets($handle);
 			if ($line === false || substr($line, 0, 1) !== "#") {
@@ -669,7 +689,7 @@ class DB {
 			$value = $matches[2];
 			switch (strtolower($matches[1])) {
 				case "replaces":
-					$where = preg_split("/\s*=\s*/", $value);
+					$where = \Safe\preg_split("/\s*=\s*/", $value);
 					break;
 				case "version":
 					$version = $value;
@@ -685,7 +705,7 @@ class DB {
 			}
 		}
 		if ($handle !== false) {
-			fclose($handle);
+			\Safe\fclose($handle);
 		}
 		$settingName = strtolower("{$fileBase}_db_version");
 		$currentVersion = false;
@@ -715,7 +735,7 @@ class DB {
 		$items = [];
 		$itemCount = 0;
 		try {
-			if (isset($where) && count($where)) {
+			if (isset($where) && is_countable($where) && count($where)) {
 				$this->table($table)->where(...$where)->delete();
 			} else {
 				$this->table($table)->delete();

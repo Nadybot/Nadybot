@@ -2,12 +2,16 @@
 
 namespace Nadybot\Modules\PRIVATE_CHANNEL_MODULE;
 
-use Nadybot\Core\Attributes as NCA;
-use Nadybot\Core\AOChatEvent;
-use Nadybot\Core\CmdContext;
-use Nadybot\Core\ConfigFile;
-use Nadybot\Core\Nadybot;
-use Nadybot\Core\Text;
+use Nadybot\Core\{
+	Attributes as NCA,
+	AOChatEvent,
+	CmdContext,
+	ConfigFile,
+	ModuleInstance,
+	Nadybot,
+	Text,
+};
+use Safe\Exceptions\FilesystemException;
 
 /**
  * @author Nadyita (RK5)
@@ -22,13 +26,7 @@ use Nadybot\Core\Text;
 		help: "rules.txt"
 	)
 ]
-class RulesController {
-
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
+class RulesController extends ModuleInstance {
 
 	#[NCA\Inject]
 	public Text $text;
@@ -46,8 +44,9 @@ class RulesController {
 			$context->reply("This bot does not have any rules defined yet.");
 			return;
 		}
-		$content = @file_get_contents("{$dataPath}/rules.txt");
-		if ($content === false) {
+		try {
+			$content = \Safe\file_get_contents("{$dataPath}/rules.txt");
+		} catch (FilesystemException) {
 			$context->reply("This bot has rules defined, but I was unable to read them.");
 			return;
 		}
@@ -61,11 +60,12 @@ class RulesController {
 	)]
 	public function joinPrivateChannelShowRulesEvent(AOChatEvent $eventObj): void {
 		$dataPath = $this->config->dataFolder;
-		if (
-			!is_string($eventObj->sender)
-			|| !@file_exists("{$dataPath}/rules.txt")
-			|| ($content = @file_get_contents("{$dataPath}/rules.txt")) === false
-		) {
+		if (!is_string($eventObj->sender) || !@file_exists("{$dataPath}/rules.txt")) {
+			return;
+		}
+		try {
+			$content = \Safe\file_get_contents("{$dataPath}/rules.txt");
+		} catch (FilesystemException) {
 			return;
 		}
 		$msg = $this->text->makeBlob("<myname>'s rules", $content);

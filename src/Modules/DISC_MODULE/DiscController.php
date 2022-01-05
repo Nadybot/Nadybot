@@ -6,7 +6,7 @@ use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{
 	CmdContext,
 	DB,
-	DBRow,
+	ModuleInstance,
 	Nadybot,
 	Text,
 	Util,
@@ -27,13 +27,7 @@ use Nadybot\Core\ParamClass\PItem;
 		help: "disc.txt"
 	)
 ]
-class DiscController {
-
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
+class DiscController extends ModuleInstance {
 
 	#[NCA\Inject]
 	public Nadybot $chatBot;
@@ -136,17 +130,18 @@ class DiscController {
 	/**
 	 * Get additional information about the nano of a disc
 	 */
-	public function getNanoDetails(Disc $disc): ?DBRow {
+	public function getNanoDetails(Disc $disc): ?NanoDetails {
 		return $this->db->table("nanos")
 			->where("crystal_id", $disc->crystal_id)
 			->select("location", "professions", "strain AS nanoline_name")
-			->asObj()
+			->asObj(NanoDetails::class)
 			->first();
 	}
 
 	/**
 	 * Generate a choice dialogue if multiple discs match the search criteria
 	 * @param Disc[] $discs The discs that matched the search
+	 * @return string[]
 	 */
 	public function getDiscChoiceDialogue(array $discs): array {
 		$blob = [];

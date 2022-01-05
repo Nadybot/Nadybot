@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\RAID_MODULE;
 
+use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\DBRow;
 
 class RaidMember extends DBRow {
@@ -23,20 +24,20 @@ class RaidMember extends DBRow {
 
 	/**
 	 * How many points have they gotten in this raid
-	 * @db:ignore
 	 */
+	#[NCA\DB\Ignore]
 	public int $points = 0;
 
 	/**
 	 * How many points have they received from rewards in this raid
-	 * @db:ignore
 	 */
+	#[NCA\DB\Ignore]
 	public int $pointsRewarded = 0;
 
 	/**
 	 * How many points have they gained/lost individually in this raid
-	 * @db:ignore
 	 */
+	#[NCA\DB\Ignore]
 	public int $pointsIndividual = 0;
 
 	public function __construct() {

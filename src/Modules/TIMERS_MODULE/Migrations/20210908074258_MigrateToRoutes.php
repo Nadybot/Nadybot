@@ -15,6 +15,7 @@ use Nadybot\Core\Routing\Source;
 use Nadybot\Core\SchemaMigration;
 use Nadybot\Core\SettingManager;
 use Nadybot\Modules\TIMERS_MODULE\TimerController;
+use stdClass;
 use Throwable;
 
 class MigrateToRoutes implements SchemaMigration {
@@ -70,11 +71,12 @@ class MigrateToRoutes implements SchemaMigration {
 		$this->rewriteTimerMode($db, $table, $defaultMode);
 	}
 
+	/** @param string[] $defaultMode */
 	protected function rewriteTimerMode(DB $db, string $table, array $defaultMode, ?string $discord=null): void {
 		sort($defaultMode);
 		$db->table($table)
-			->asObj()
-			->each(function (object $timer) use ($defaultMode, $table, $db, $discord): void {
+			->get()
+			->each(function (stdClass $timer) use ($defaultMode, $table, $db, $discord): void {
 				if (!isset($timer->mode) || !preg_match("/^timercontroller/", $timer->callback)) {
 					return;
 				}
@@ -103,6 +105,7 @@ class MigrateToRoutes implements SchemaMigration {
 			});
 	}
 
+	/** @param string[] $defaultMode */
 	public function migrateChannelToRoute(DiscordChannel $channel, DB $db, string $table, array $defaultMode): void {
 		$this->rewriteTimerMode($db, $table, $defaultMode, Source::DISCORD_PRIV . "({$channel->name})");
 		if (!in_array("discord", $defaultMode)) {

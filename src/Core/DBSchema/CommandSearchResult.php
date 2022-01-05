@@ -10,4 +10,5 @@ class CommandSearchResult extends DBRow {
 	public ?string $help;
 	public string $description;
 	public string $admin;
+	public float $similarity_percent = 0;
 }

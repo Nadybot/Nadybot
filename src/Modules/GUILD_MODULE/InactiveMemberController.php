@@ -3,15 +3,16 @@
 namespace Nadybot\Modules\GUILD_MODULE;
 
 use Illuminate\Support\Collection;
-use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{
+	Attributes as NCA,
 	CmdContext,
 	DB,
+	ModuleInstance,
+	Modules\ALTS\AltsController,
+	ParamClass\PDuration,
 	Text,
 	Util,
 };
-use Nadybot\Core\Modules\ALTS\AltsController;
-use Nadybot\Core\ParamClass\PDuration;
 
 /**
  * @author Tyrence (RK2)
@@ -27,13 +28,7 @@ use Nadybot\Core\ParamClass\PDuration;
 		help: "inactivemem.txt"
 	)
 ]
-class InactiveMemberController {
-
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
+class InactiveMemberController extends ModuleInstance {
 
 	#[NCA\Inject]
 	public DB $db;
@@ -80,7 +75,7 @@ class InactiveMemberController {
 			"<header2>Inactive org members<end>\n";
 
 		foreach ($members as $mainName => $altsLink) {
-			/** @var Collection<RecentOrgMember> $alts */
+			/** @var Collection<RecentOrgMember> $altsLink */
 			$alt = $altsLink->first();
 			/** @var RecentOrgMember $alt */
 			if ($alt->logged_off >= $time) {

@@ -2,16 +2,22 @@
 
 namespace Nadybot\Modules\RECIPE_MODULE;
 
-use Nadybot\Core\Attributes as NCA;
 use Exception;
-use JsonException;
-use Nadybot\Core\CmdContext;
-use Nadybot\Core\DB;
-use Nadybot\Core\ParamClass\PItem;
-use Nadybot\Core\Text;
-use Nadybot\Core\Util;
-use Nadybot\Modules\ITEMS_MODULE\ItemsController;
-use Nadybot\Modules\ITEMS_MODULE\AODBEntry;
+use Safe\Exceptions\JsonException;
+use Nadybot\Core\{
+	Attributes as NCA,
+	CmdContext,
+	DB,
+	ModuleInstance,
+	ParamClass\PItem,
+	Text,
+	Util,
+};
+use Nadybot\Modules\ITEMS_MODULE\{
+	ItemsController,
+	AODBItem,
+};
+use Safe\Exceptions\DirException;
 
 /**
  * @author Tyrence
@@ -28,13 +34,7 @@ use Nadybot\Modules\ITEMS_MODULE\AODBEntry;
 		help: "recipe.txt"
 	)
 ]
-class RecipeController {
-
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
+class RecipeController extends ModuleInstance {
 
 	#[NCA\Inject]
 	public DB $db;
@@ -53,13 +53,13 @@ class RecipeController {
 	protected function parseTextFile(int $id, string $fileName): Recipe {
 		$recipe = new Recipe();
 		$recipe->id = $id;
-		$lines = file($this->path . $fileName);
+		$lines = \Safe\file($this->path . $fileName);
 		$nameLine = trim(array_shift($lines));
 		$authorLine = trim(array_shift($lines));
 		$recipe->name = (strlen($nameLine) > 6) ? substr($nameLine, 6) : "Unknown";
 		$recipe->author = (strlen($authorLine) > 8) ? substr($authorLine, 8) : "Unknown";
 		$recipe->recipe = implode("", $lines);
-		$recipe->date = filemtime($this->path . $fileName);
+		$recipe->date = \Safe\filemtime($this->path . $fileName);
 
 		return $recipe;
 	}
@@ -68,8 +68,8 @@ class RecipeController {
 		$recipe = new Recipe();
 		$recipe->id = $id;
 		try {
-			$data = json_decode(
-				file_get_contents($this->path . $fileName),
+			$data = \Safe\json_decode(
+				\Safe\file_get_contents($this->path . $fileName),
 				false,
 				JSON_THROW_ON_ERROR
 			);
@@ -78,11 +78,11 @@ class RecipeController {
 		}
 		$recipe->name = $data->name ?? "<unnamed>";
 		$recipe->author = $data->author ?? "<unknown>";
-		$recipe->date = filemtime($this->path . $fileName);
-		/** @var array<string,AODBEntry> */
+		$recipe->date = \Safe\filemtime($this->path . $fileName);
+		/** @var array<string,AODBItem> */
 		$items = [];
 		foreach ($data->items as $item) {
-			$dbItem = $this->itemsController->findById($item->item_id);
+			$dbItem = AODBItem::fromEntry($this->itemsController->findById($item->item_id));
 			if ($dbItem === null) {
 				throw new Exception("Could not find item '{$item->item_id}'");
 			}
@@ -145,8 +145,10 @@ class RecipeController {
 	)]
 	public function connectEvent(): void {
 		$this->path = __DIR__ . "/recipes/";
-		if (($handle = opendir($this->path)) === false) {
-			throw new Exception("Could not open '$this->path' for loading recipes");
+		try {
+			$handle = \Safe\opendir($this->path);
+		} catch (DirException) {
+			throw new Exception("Could not open '{$this->path}' for loading recipes");
 		}
 		/** @var array<string,Recipe> */
 		$recipes = [];
@@ -155,7 +157,7 @@ class RecipeController {
 		while (($fileName = readdir($handle)) !== false) {
 			if (!preg_match("/(\d+)\.(txt|json)$/", $fileName, $args)
 				|| (isset($recipes[$args[1]])
-					&& filemtime($this->path . $fileName) === $recipes[$args[1]]->date)
+					&& \Safe\filemtime($this->path . $fileName) === $recipes[$args[1]]->date)
 			) {
 				continue;
 			}
@@ -255,6 +257,7 @@ class RecipeController {
 		return (array)$this->text->makeBlob("Recipe for $recipe_name", $recipeText);
 	}
 
+	/** @param string[] $arr */
 	private function replaceItem(array $arr): string {
 		$id = (int)$arr[2];
 		$row = $this->itemsController->findById($id);

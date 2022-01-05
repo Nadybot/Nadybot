@@ -2,9 +2,10 @@
 
 namespace Nadybot\Core\Modules\SYSTEM;
 
-use Nadybot\Core\Attributes as NCA;
+use function Safe\unpack;
 use Nadybot\Core\{
 	AccessManager,
+	Attributes as NCA,
 	AdminManager,
 	BuddylistManager,
 	CmdContext,
@@ -16,23 +17,26 @@ use Nadybot\Core\{
 	Event,
 	EventManager,
 	HelpManager,
+	ModuleInstance,
 	LoggerWrapper,
 	MessageEmitter,
 	MessageHub,
 	Nadybot,
+	ParamClass\PCharacter,
 	PrivateMessageCommandReply,
+	Routing\RoutableMessage,
+	Routing\Source,
 	SettingManager,
 	SubcommandManager,
 	Text,
 	Util,
 };
-use Nadybot\Core\ParamClass\PCharacter;
-use Nadybot\Core\Routing\RoutableMessage;
-use Nadybot\Core\Routing\Source;
-use Nadybot\Modules\WEBSERVER_MODULE\ApiResponse;
-use Nadybot\Modules\WEBSERVER_MODULE\HttpProtocolWrapper;
-use Nadybot\Modules\WEBSERVER_MODULE\Request;
-use Nadybot\Modules\WEBSERVER_MODULE\Response;
+use Nadybot\Modules\WEBSERVER_MODULE\{
+	ApiResponse,
+	HttpProtocolWrapper,
+	Request,
+	Response,
+};
 
 /**
  * @author Sebuda (RK2)
@@ -86,13 +90,7 @@ use Nadybot\Modules\WEBSERVER_MODULE\Response;
 		defaultStatus: 1
 	)
 ]
-class SystemController implements MessageEmitter {
-
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
+class SystemController extends ModuleInstance implements MessageEmitter {
 
 	#[NCA\Inject]
 	public AccessManager $accessManager;
@@ -369,10 +367,7 @@ class SystemController implements MessageEmitter {
 
 		$info->stats = $stats = new SystemStats();
 
-		$query = $this->db->table("players");
-		$row = $query->select($query->rawFunc("COUNT", "*", "count"))
-			->asObj()->first();
-		$stats->charinfo_cache_size = (int)$row->count;
+		$stats->charinfo_cache_size = $this->db->table("players")->count();
 
 		$stats->buddy_list_size = $this->buddylistManager->countConfirmedBuddies();
 		$stats->max_buddy_list_size = $this->chatBot->getBuddyListSize();
@@ -380,7 +375,7 @@ class SystemController implements MessageEmitter {
 		$stats->org_size = count($this->chatBot->guildmembers);
 		$stats->chatqueue_length = 0;
 		if (isset($this->chatBot->chatqueue)) {
-			$stats->chatqueue_length = count($this->chatBot->chatqueue->queue);
+			$stats->chatqueue_length = $this->chatBot->chatqueue->getSize();
 		}
 
 		foreach ($this->chatBot->grp as $gid => $status) {
@@ -518,11 +513,7 @@ class SystemController implements MessageEmitter {
 			$context->reply("There is currently no Chat queue set up.");
 			return;
 		}
-		$num = 0;
-		foreach ($this->chatBot->chatqueue->queue as $priority) {
-			$num += count($priority);
-		}
-		$this->chatBot->chatqueue->queue = [];
+		$num = $this->chatBot->chatqueue->clear();
 
 		$context->reply("Chat queue has been cleared of <highlight>{$num}<end> messages.");
 	}

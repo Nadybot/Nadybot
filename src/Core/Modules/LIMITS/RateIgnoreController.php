@@ -6,6 +6,7 @@ use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{
 	CmdContext,
 	DB,
+	ModuleInstance,
 	Nadybot,
 	SQLException,
 	Text,
@@ -30,13 +31,7 @@ use Nadybot\Core\ParamClass\PRemove;
 		defaultStatus: 1
 	)
 ]
-class RateIgnoreController {
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
-
+class RateIgnoreController extends ModuleInstance {
 	#[NCA\Inject]
 	public DB $db;
 

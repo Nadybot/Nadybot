@@ -2,11 +2,14 @@
 
 namespace Nadybot\Modules\FUN_MODULE;
 
-use Nadybot\Core\Attributes as NCA;
-use Nadybot\Core\CmdContext;
-use Nadybot\Core\ParamClass\PCharacter;
-use Nadybot\Core\Text;
-use Nadybot\Core\Util;
+use Nadybot\Core\{
+	Attributes as NCA,
+	CmdContext,
+	ModuleInstance,
+	ParamClass\PCharacter,
+	Text,
+	Util,
+};
 
 /**
  * @author Tyrence (RK2)
@@ -22,13 +25,7 @@ use Nadybot\Core\Util;
 		help: "fun_module.txt"
 	)
 ]
-class FightController {
-
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
+class FightController extends ModuleInstance {
 
 	#[NCA\Inject]
 	public Text $text;
@@ -83,7 +80,7 @@ class FightController {
 		$context->reply($msg);
 	}
 
-	public function getFighter($name): Fighter {
+	public function getFighter(string $name): Fighter {
 		$weaponNames = [
 			"with a nerfstick" => "nerfed damage",
 			"with bad breath" => "disease damage",

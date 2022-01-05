@@ -7,6 +7,7 @@ use Nadybot\Core\ParamClass\Base;
 class PImplantSlot extends Base {
 	protected static string $regExp = "head|eyes?|ear|rarm|chest|larm|rwrist|waist|lwrist|rhand|legs?|lhand|feet|foot|brain|body";
 	protected string $value;
+	/** @var array<string,string> */
 	private array $aliases = [
 		"eyes" => "eye",
 		"foot" => "feet",

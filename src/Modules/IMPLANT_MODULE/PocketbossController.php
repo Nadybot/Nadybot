@@ -2,13 +2,16 @@
 
 namespace Nadybot\Modules\IMPLANT_MODULE;
 
-use Nadybot\Core\Attributes as NCA;
 use Illuminate\Support\Collection;
-use Nadybot\Core\CmdContext;
-use Nadybot\Core\DB;
-use Nadybot\Core\ParamClass\PWord;
-use Nadybot\Core\Text;
-use Nadybot\Core\Util;
+use Nadybot\Core\{
+	Attributes as NCA,
+	CmdContext,
+	DB,
+	ModuleInstance,
+	ParamClass\PWord,
+	Text,
+	Util,
+};
 
 /**
  * @author Tyrence (RK2)
@@ -32,13 +35,7 @@ use Nadybot\Core\Util;
 		alias: "symb"
 	)
 ]
-class PocketbossController {
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
-
+class PocketbossController extends ModuleInstance {
 	#[NCA\Inject]
 	public Text $text;
 
@@ -139,6 +136,7 @@ class PocketbossController {
 		?PWord $arg3
 	): void {
 		$args = $context->args;
+		/** @var string[] */
 		$args = array_filter([$args[1], $args[2]??null, $args[3]??null]);
 		$paramCount = count($args);
 
@@ -146,8 +144,9 @@ class PocketbossController {
 		$symbtype = '%';
 		$line = '%';
 
+		/** @var string[] */
 		$lines = $this->db->table("pocketboss")->select("line")->distinct()
-			->asObj()->pluck("line")->toArray();
+			->pluckAs("line", "string")->toArray();
 
 		for ($i = 0; $i < $paramCount; $i++) {
 			switch (strtolower($args[$i])) {

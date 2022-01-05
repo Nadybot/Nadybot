@@ -2,21 +2,18 @@
 
 namespace Nadybot\Modules\WATCHDOG_MODULE;
 
-use Nadybot\Core\Attributes as NCA;
-use Nadybot\Core\ConfigFile;
+use Nadybot\Core\{
+	Attributes as NCA,
+	ConfigFile,
+	ModuleInstance,
+};
 
 /**
  * Authors:
  *  - Nadyita (RK5)
  */
 #[NCA\Instance]
-class WatchdogController {
-
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
+class WatchdogController extends ModuleInstance {
 
 	#[NCA\Inject]
 	public ConfigFile $config;
@@ -26,6 +23,6 @@ class WatchdogController {
 		description: "Periodically touch an alive-file"
 	)]
 	public function touchAliveFile(): void {
-		touch(sys_get_temp_dir().'/alive.'.$this->config->name.'.'.$this->config->dimension);
+		\Safe\touch(sys_get_temp_dir().'/alive.'.$this->config->name.'.'.$this->config->dimension);
 	}
 }

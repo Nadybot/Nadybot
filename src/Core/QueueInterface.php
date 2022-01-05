@@ -20,4 +20,14 @@ interface QueueInterface {
 	public function getNext(): ?AOChatPacket;
 
 	public function disable(): void;
+
+	/**
+	 * Clear all items from the queue and return the number of removed items
+	 */
+	public function clear(): int;
+
+	/**
+	 * Returns the number of items currently in the queue
+	 */
+	public function getSize(): int;
 }

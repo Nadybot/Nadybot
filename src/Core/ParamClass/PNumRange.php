@@ -12,7 +12,7 @@ class PNumRange extends Base {
 	public int $high;
 
 	public function __construct(string $value) {
-		[$low, $high] = preg_split("/\s*-\s*/", $value);
+		[$low, $high] = \Safe\preg_split("/\s*-\s*/", $value);
 		$this->low = min((int)$low, (int)$high);
 		$this->high = max((int)$low, (int)$high);
 		$this->value = $value;

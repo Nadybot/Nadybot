@@ -2,25 +2,26 @@
 
 namespace Nadybot\Modules\WEBSERVER_MODULE;
 
-use Nadybot\Core\Attributes as NCA;
 use Closure;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	AccessManager,
+	Attributes as NCA,
 	CmdContext,
 	CommandHandler,
 	CommandManager,
 	DB,
 	EventManager,
+	ModuleInstance,
 	LoggerWrapper,
 	Nadybot,
+	ParamClass\PRemove,
 	Registry,
 	SettingManager,
 	SubcommandManager,
 	Text,
 	Util,
 };
-use Nadybot\Core\ParamClass\PRemove;
 use Nadybot\Modules\WEBSOCKET_MODULE\WebsocketController;
 use ReflectionClass;
 use ReflectionFunction;
@@ -40,11 +41,8 @@ use ReflectionAttribute;
 	),
 	NCA\ProvidesEvent("cmdreply")
 ]
-class ApiController {
+class ApiController extends ModuleInstance {
 	public const DB_TABLE = "api_key_<myname>";
-
-	public string $moduleName;
-
 	#[NCA\Inject]
 	public WebserverController $webserverController;
 
@@ -279,6 +277,9 @@ class ApiController {
 
 	/**
 	 * Add a HTTP route handler for a path
+	 * @param string[] $paths
+	 * @param string[] $methods
+	 * @psalm-param callable(Request,HttpProtocolWrapper,mixed...) $callback
 	 */
 	public function addApiRoute(array $paths, array $methods, callable $callback, ?string $alf, ?string $al, ReflectionMethod $refMet): void {
 		foreach ($paths as $path) {
@@ -319,6 +320,10 @@ class ApiController {
 				return $handler;
 			}
 			$handler = clone($data[$request->method]);
+			if (!isset($handler->handler)) {
+				$handler->allowedMethods = array_keys($data);
+				return $handler;
+			}
 			array_shift($parts);
 			$ref = new ReflectionFunction($handler->handler);
 			$params = $ref->getParameters();
@@ -456,8 +461,8 @@ class ApiController {
 			$server->httpError(new Response(Response::UNPROCESSABLE_ENTITY));
 			return;
 		}
-		/** @var Response */
 		try {
+			/** @var Response */
 			$response = $handler->exec($request, $server);
 		} catch (Throwable $e) {
 			$response = null;

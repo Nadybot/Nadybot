@@ -2,12 +2,12 @@
 
 namespace Nadybot\Modules\RAID_MODULE;
 
-use Nadybot\Core\Attributes as NCA;
 use DateTime;
 use Illuminate\Database\Query\JoinClause;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	AccessManager,
+	Attributes as NCA,
 	AOChatEvent,
 	CmdContext,
 	CommandReply,
@@ -15,16 +15,17 @@ use Nadybot\Core\{
 	DB,
 	DBSchema\Player,
 	EventManager,
+	ModuleInstance,
 	Modules\ALTS\AltsController,
+	Modules\PLAYER_LOOKUP\PlayerManager,
 	Nadybot,
+	ParamClass\PCharacter,
+	ParamClass\PWord,
 	SettingManager,
 	Text,
 	Timer,
 	Util,
 };
-use Nadybot\Core\Modules\PLAYER_LOOKUP\PlayerManager;
-use Nadybot\Core\ParamClass\PCharacter;
-use Nadybot\Core\ParamClass\PWord;
 use Nadybot\Modules\BASIC_CHAT_MODULE\ChatAssistController;
 use Nadybot\Modules\COMMENT_MODULE\CommentCategory;
 use Nadybot\Modules\COMMENT_MODULE\CommentController;
@@ -61,12 +62,9 @@ use Nadybot\Modules\ONLINE_MODULE\OnlineController;
 	NCA\ProvidesEvent("raid(lock)"),
 	NCA\ProvidesEvent("raid(unlock)")
 ]
-class RaidController {
+class RaidController extends ModuleInstance {
 	public const DB_TABLE = "raid_<myname>";
 	public const DB_TABLE_LOG = "raid_log_<myname>";
-
-	public string $moduleName;
-
 	#[NCA\Inject]
 	public Nadybot $chatBot;
 
@@ -352,7 +350,7 @@ class RaidController {
 			->asObj(RaidLog::class)
 			->first();
 		if ($lastRaidLog) {
-			foreach ($lastRaidLog as $key => $value) {
+			foreach (get_object_vars($lastRaidLog) as $key => $value) {
 				if (property_exists($lastRaid, $key)) {
 					$lastRaid->{$key} = $value;
 				}
@@ -549,6 +547,9 @@ class RaidController {
 		);
 	}
 
+	/**
+	 * @param array<null|Player> $players
+	 */
 	protected function reportNotInResult(array $players, CommandReply $sendto): void {
 		$blob = "<header2>Players that were warned<end>\n";
 		ksort($players);
@@ -579,6 +580,7 @@ class RaidController {
 			->orderByDesc("r.raid_id")
 			->limit(50)
 			->select("r.raid_id", "r.started", "r.stopped");
+		/** @var Collection<RaidHistoryEntry> */
 		$raids = $query->addSelect(
 			$query->rawFunc(
 				"COUNT",
@@ -586,7 +588,7 @@ class RaidController {
 				"raiders"
 			),
 			$query->colFunc("SUM", "delta", "points")
-		)->asObj();
+		)->asObj(RaidHistoryEntry::class);
 		if ($raids->isEmpty()) {
 			$msg = "No raids have ever been run on <myname>.";
 			$context->reply($msg);
@@ -594,7 +596,7 @@ class RaidController {
 		}
 		$blob = "";
 		foreach ($raids as $raid) {
-			$time = DateTime::createFromFormat("U", (string)$raid->started)->format("Y-m-d H:i:s");
+			$time = (new DateTime())->setTimestamp($raid->started)->format("Y-m-d H:i:s");
 			$avgPoints = round($raid->points / $raid->raiders, 1);
 			$detailsCmd = $this->text->makeChatcmd(
 				"details",
@@ -670,7 +672,7 @@ class RaidController {
 				$raider->username,
 				"/tell <myname> raid history {$raid->raid_id} {$raider->username}"
 			);
-			$main = $this->altsController->getAltInfo($raider->username)->main;
+			$main = $this->altsController->getMainOf($raider->username);
 			$blob .= $this->text->alignNumber($raider->delta, 7).
 				" - {$detailsCmd}";
 			if ($raider->username !== $main) {
@@ -715,16 +717,17 @@ class RaidController {
 			->whereNotNull("left")
 			->select("left AS time");
 		$left->selectRaw("0" . $left->as("status"));
-		$events = $joined->union($left)->orderBy("time")->asObj();
+		$events = $joined->union($left)->orderBy("time")->asObj(RaidStatus::class);
+		/** @var Collection<RaidStatus|RaidPointsLog> */
 		$allLogs = $logs->concat($events)
-			->sort(function(object $a, object $b) {
+			->sort(function(RaidStatus|RaidPointsLog $a, RaidStatus|RaidPointsLog $b) {
 				return $a->time <=> $b->time;
 			});
 		if ($allLogs->isEmpty()) {
 			$context->reply("<highlight>{$char}<end> didn't get any points in this raid.");
 			return;
 		}
-		$main = $this->altsController->getAltInfo($char())->main;
+		$main = $this->altsController->getMainOf($char());
 		$blob = $this->getRaidSummary($raid);
 		$blob .= "\n<header2>Detailed points for {$char}";
 		if ($main !== $char()) {
@@ -742,7 +745,7 @@ class RaidController {
 					$log->reason.
 					($log->individual ? "<end>" : "").
 					" (by {$log->changed_by})\n";
-			} else {
+			} elseif ($log instanceof RaidStatus) {
 				$blob .= "<tab>" . $this->util->date($log->time) . "<tab>".
 					($log->status ? "Raid joined" : "Raid left") . "\n";
 			}
@@ -806,6 +809,9 @@ class RaidController {
 					$blob .= "<tab>- <highlight>{$name}<end> - {$player->level}/<green>{$player->ai_level}<end> {$player->profession} :: <red>in raid<end>\n";
 					foreach ($alts as $alt => $inRaid) {
 						$player = $lookup[$alt];
+						if ($player === null) {
+							continue;
+						}
 						$blob .= "<tab>- <highlight>{$alt}<end> - {$player->level}/<green>{$player->ai_level}<end> {$player->profession}";
 						if ($inRaid) {
 							$blob .= " :: <red>in raid<end>";

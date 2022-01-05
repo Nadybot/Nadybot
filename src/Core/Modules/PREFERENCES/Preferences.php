@@ -4,6 +4,7 @@ namespace Nadybot\Core\Modules\PREFERENCES;
 
 use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\DB;
+use Nadybot\Core\ModuleInstance;
 use Nadybot\Modules\WEBSERVER_MODULE\ApiResponse;
 use Nadybot\Modules\WEBSERVER_MODULE\HttpProtocolWrapper;
 use Nadybot\Modules\WEBSERVER_MODULE\Request;
@@ -12,16 +13,12 @@ use Nadybot\Modules\WEBSERVER_MODULE\Response;
 /**
  * @author Tyrence (RK2)
  */
-#[NCA\Instance,
-	NCA\HasMigrations]
-class Preferences {
+#[
+	NCA\Instance,
+	NCA\HasMigrations
+]
+class Preferences extends ModuleInstance {
 	public const DB_TABLE = "preferences_<myname>";
-
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
 
 	#[NCA\Inject]
 	public DB $db;
@@ -44,16 +41,12 @@ class Preferences {
 	public function get(string $sender, string $name): ?string {
 		$sender = ucfirst(strtolower($sender));
 		$name = strtolower($name);
-		$row = $this->db->table(self::DB_TABLE)
+		return $this->db->table(self::DB_TABLE)
 			->where("sender", $sender)
 			->where("name", $name)
 			->select("value")
-			->asObj()
+			->pluckAs("value", "string")
 			->first();
-		if ($row === null) {
-			return null;
-		}
-		return $row->value;
 	}
 
 	public function delete(string $sender, string $name): bool {

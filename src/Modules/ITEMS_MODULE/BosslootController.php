@@ -2,15 +2,20 @@
 
 namespace Nadybot\Modules\ITEMS_MODULE;
 
-use Nadybot\Core\Attributes as NCA;
 use Illuminate\Support\Collection;
-use Nadybot\Core\CmdContext;
-use Nadybot\Core\DB;
-use Nadybot\Core\LoggerWrapper;
-use Nadybot\Core\Text;
-use Nadybot\Core\Util;
-use Nadybot\Modules\WHEREIS_MODULE\WhereisController;
-use Nadybot\Modules\WHEREIS_MODULE\WhereisResult;
+use Nadybot\Core\{
+	Attributes as NCA,
+	CmdContext,
+	DB,
+	ModuleInstance,
+	LoggerWrapper,
+	Text,
+	Util,
+};
+use Nadybot\Modules\WHEREIS_MODULE\{
+	WhereisController,
+	WhereisResult,
+};
 
 /**
  * Bossloot Module Ver 1.1
@@ -32,13 +37,7 @@ use Nadybot\Modules\WHEREIS_MODULE\WhereisResult;
 		help: "boss.txt"
 	)
 ]
-class BosslootController {
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
-
+class BosslootController extends ModuleInstance {
 	#[NCA\Inject]
 	public DB $db;
 

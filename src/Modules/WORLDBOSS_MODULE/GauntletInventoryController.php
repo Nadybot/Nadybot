@@ -2,9 +2,10 @@
 
 namespace Nadybot\Modules\WORLDBOSS_MODULE;
 
-use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{
+	Attributes as NCA,
 	CmdContext,
+	ModuleInstance,
 	Modules\ALTS\AltsController,
 	Modules\PREFERENCES\Preferences,
 	ParamClass\PCharacter,
@@ -26,13 +27,7 @@ use Nadybot\Core\{
 		help: "gaulist.txt"
 	)
 ]
-class GauntletInventoryController {
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
-
+class GauntletInventoryController extends ModuleInstance {
 	#[NCA\Inject]
 	public Text $text;
 
@@ -55,17 +50,19 @@ class GauntletInventoryController {
 		[292517, 292762, 3]
 	];
 
+	/** @return int[] */
 	public function getData(string $name): array {
 		$data = $this->preferences->get($name, 'gauntlet');
 		if (isset($data)) {
-			return json_decode($data);
+			return \Safe\json_decode($data);
 		} else {
 			return array_fill(0, 17, 0);
 		}
 	}
 
+	/** @param int[] $inv */
 	public function saveData(string $sender, array $inv): void {
-		$this->preferences->save($sender, 'gauntlet', json_encode($inv));
+		$this->preferences->save($sender, 'gauntlet', \Safe\json_encode($inv));
 	}
 
 	/**

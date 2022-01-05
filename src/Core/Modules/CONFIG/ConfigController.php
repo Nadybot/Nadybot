@@ -2,17 +2,21 @@
 
 namespace Nadybot\Core\Modules\CONFIG;
 
-use Nadybot\Core\Attributes as NCA;
+use function Safe\file_get_contents;
+use function Safe\glob;
 use Exception;
+use Illuminate\Support\Collection;
 use ReflectionClass;
 use Nadybot\Core\{
 	AccessManager,
+	Attributes as NCA,
 	CmdContext,
 	CommandAlias,
 	CommandManager,
 	DB,
 	EventManager,
 	HelpManager,
+	ModuleInstance,
 	InsufficientAccessException,
 	LoggerWrapper,
 	Nadybot,
@@ -40,13 +44,7 @@ use Nadybot\Core\ParamClass\PWord;
 	),
 	NCA\Instance
 ]
-class ConfigController {
-
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
+class ConfigController extends ModuleInstance {
 
 	#[NCA\Inject]
 	public Text $text;
@@ -643,7 +641,7 @@ class ConfigController {
 			return null;
 		}
 		$files = array_values(array_filter(
-			glob("{$path}/*", GLOB_NOSORT),
+			glob("{$path}/*", GLOB_NOSORT) ?: [],
 			function (string $file): bool {
 				return strtolower(basename($file)) === "readme.txt";
 			}
@@ -700,7 +698,7 @@ class ConfigController {
 		if (count($data) > 0) {
 			$found = true;
 			$blob .= "\n<header2>Commands<end>\n";
-			usort($data, function (CmdCfg $a, CmdCfg $b): int {
+			usort($data, function (RegisteredCmd $a, RegisteredCmd $b): int {
 				return strcmp($a->cmd, $b->cmd);
 			});
 		}
@@ -936,7 +934,8 @@ class ConfigController {
 			"SUM(CASE WHEN {$stat} = 4 then 1 ELSE 0 END)".
 			$outerQuery->as("count_settings")
 		);
-		$data = $outerQuery->asObj()->toArray();
+		/** @var Collection<ModuleStats> */
+		$data = $outerQuery->asObj(ModuleStats::class);
 		$result = [];
 		foreach ($data as $row) {
 			$config = new ConfigModule();
@@ -1025,20 +1024,20 @@ class ConfigController {
 	}
 
 	/**
-	 * @return CmdCfg[]
+	 * @return RegisteredCmd[]
 	 */
 	public function getAllRegisteredCommands(string $module): array {
 		$query = $this->getRegisteredCommandsQuery();
 		$query->where("module", $module);
 		$query->where("cmd", "!=", "config");
-		return $query->asObj(CmdCfg::class)->toArray();
+		return $query->asObj(RegisteredCmd::class)->toArray();
 	}
 
-	public function getRegisteredCommand(string $module, string $command): ?CmdCfg {
+	public function getRegisteredCommand(string $module, string $command): ?RegisteredCmd {
 		$query = $this->getRegisteredCommandsQuery();
 		$query->where("module", $module);
 		$query->where("cmd", $command);
 		$query->where("cmd", "!=", "config");
-		return $query->asObj(CmdCfg::class)->first();
+		return $query->asObj(RegisteredCmd::class)->first();
 	}
 }

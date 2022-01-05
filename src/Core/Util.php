@@ -353,6 +353,7 @@ class Util {
 
 	/**
 	 * Randomly get a value from an array
+	 * @param array<mixed> $array
 	 */
 	public function randomArrayValue(array $array): mixed {
 		return $array[array_rand($array)];
@@ -362,10 +363,8 @@ class Util {
 	 * Checks to see if the $sender is valid
 	 *
 	 * Invalid values: -1 on 32bit and 4294967295  on 64bit
-	 *
-	 * @param int|string $sender
 	 */
-	public function isValidSender($sender): bool {
+	public function isValidSender(int|string $sender): bool {
 		$isValid = !in_array(
 			$sender,
 			[(string)0xFFFFFFFF, (int)0xFFFFFFFF, 0xFFFFFFFF, "-1", -1],
@@ -395,7 +394,7 @@ class Util {
 		$arr1 = [];
 		$arr2 = [];
 		foreach ($trace as $obj) {
-			$file = str_replace(getcwd() . "/", "", $obj['file']);
+			$file = str_replace(\Safe\getcwd() . "/", "", $obj['file']);
 			$arr1 []= "{$file}({$obj['line']})";
 			$arr2 []= "{$obj['function']}()";
 		}
@@ -416,7 +415,7 @@ class Util {
 	 * Convert UNIX timestamp to date and time
 	 */
 	public function date(int $unixtime): string {
-		return date(self::DATETIME, $unixtime);
+		return \Safe\date(self::DATETIME, $unixtime);
 	}
 
 	/**
@@ -492,8 +491,8 @@ class Util {
 		}
 		// Split the array in half
 		$halfway = count($array) / 2;
-		$array1 = array_slice($array, 0, $halfway);
-		$array2 = array_slice($array, $halfway);
+		$array1 = array_slice($array, 0, (int)$halfway);
+		$array2 = array_slice($array, (int)$halfway);
 		// Recurse to sort the two halves
 		$this->mergesort($array1, $cmp_function);
 		$this->mergesort($array2, $cmp_function);
@@ -536,20 +535,6 @@ class Util {
 	}
 
 	/**
-	 * Run a function over an associative array and glue the results together with $glue
-	 */
-	public function mapFilterCombine(array $arr, string $glue, callable $func): string {
-		$newArr = [];
-		foreach ($arr as $key => $value) {
-			$result = call_user_func($func, $key, $value);
-			if ($result !== null) {
-				$newArr []= $result;
-			}
-		}
-		return implode($glue, $newArr);
-	}
-
-	/**
 	 * Get an array with all files (not dirs) in a directory
 	 *
 	 * @return string[] An array of file names in that directory
@@ -582,7 +567,7 @@ class Util {
 	/**
 	 * Test if $input only consists of digits
 	 */
-	public function isInteger($input): bool {
+	public function isInteger(mixed $input): bool {
 		return(ctype_digit(strval($input)));
 	}
 
@@ -609,6 +594,7 @@ class Util {
 		return 7;
 	}
 
+	/** @phpstan-param class-string $class */
 	public function getClassSpecFromClass(string $class, string $attrName): ?ClassSpec {
 		if (!is_subclass_of($attrName, NCA\ClassSpec::class)) {
 			throw new InvalidArgumentException("{$attrName} is not a class spec");
@@ -620,6 +606,7 @@ class Util {
 		}
 		/** @var NCA\ClassSpec */
 		$attrObj = $attrs[0]->newInstance();
+		/** @phpstan-var class-string */
 		$name = $attrObj->name;
 		/** @var FunctionParameter[] */
 		$params = [];

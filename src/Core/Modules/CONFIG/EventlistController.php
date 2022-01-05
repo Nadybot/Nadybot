@@ -5,6 +5,7 @@ namespace Nadybot\Core\Modules\CONFIG;
 use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{
 	CmdContext,
+	ModuleInstance,
 	Text,
 	DB,
 	EventManager,
@@ -24,7 +25,7 @@ use Nadybot\Core\DBSchema\EventCfg;
 		defaultStatus: 1
 	)
 ]
-class EventlistController {
+class EventlistController extends ModuleInstance {
 
 	#[NCA\Inject]
 	public Text $text;
