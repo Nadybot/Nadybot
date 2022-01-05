@@ -15,7 +15,7 @@ use Nadybot\Core\{
 	DB,
 	DBSchema\Player,
 	EventManager,
-	Instance,
+	ModuleInstance,
 	Modules\ALTS\AltsController,
 	Modules\PLAYER_LOOKUP\PlayerManager,
 	Nadybot,
@@ -62,7 +62,7 @@ use Nadybot\Modules\ONLINE_MODULE\OnlineController;
 	NCA\ProvidesEvent("raid(lock)"),
 	NCA\ProvidesEvent("raid(unlock)")
 ]
-class RaidController extends Instance {
+class RaidController extends ModuleInstance {
 	public const DB_TABLE = "raid_<myname>";
 	public const DB_TABLE_LOG = "raid_log_<myname>";
 	#[NCA\Inject]

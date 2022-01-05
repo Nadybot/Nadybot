@@ -14,7 +14,7 @@ use Nadybot\Core\{
 	DB,
 	Http,
 	HttpResponse,
-	Instance,
+	ModuleInstance,
 	LoggerWrapper,
 	Nadybot,
 	ParamClass\PWord,
@@ -43,14 +43,14 @@ use ZipArchive;
 		help: "package.txt"
 	)
 ]
-class PackageController extends Instance {
+class PackageController extends ModuleInstance {
 	public const DB_TABLE = "package_files_<myname>";
 	public const EXTRA = 2;
 	public const BUILT_INT = 1;
 	public const UNINST = 0;
 	public const API = "https://pkg.aobots.org/api";
 
-		#[NCA\Inject]
+	#[NCA\Inject]
 	public DB $db;
 
 	#[NCA\Inject]

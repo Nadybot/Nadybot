@@ -14,7 +14,7 @@ use ReflectionNamedType;
 use Throwable;
 
 #[NCA\Instance]
-class EventManager extends Instance {
+class EventManager {
 	public const DB_TABLE = "eventcfg_<myname>";
 
 	#[NCA\Inject]

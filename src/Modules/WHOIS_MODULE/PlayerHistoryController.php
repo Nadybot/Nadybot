@@ -7,7 +7,7 @@ use Nadybot\Core\{
 	CmdContext,
 	CommandReply,
 	ConfigFile,
-	Instance,
+	ModuleInstance,
 	Modules\PLAYER_LOOKUP\PlayerHistory,
 	Modules\PLAYER_LOOKUP\PlayerHistoryManager,
 	ParamClass\PCharacter,
@@ -27,9 +27,9 @@ use Nadybot\Core\{
 		help: "history.txt"
 	)
 ]
-class PlayerHistoryController extends Instance {
+class PlayerHistoryController extends ModuleInstance {
 
-		#[NCA\Inject]
+	#[NCA\Inject]
 	public ConfigFile $config;
 
 	#[NCA\Inject]

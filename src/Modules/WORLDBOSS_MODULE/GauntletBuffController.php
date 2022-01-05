@@ -12,7 +12,7 @@ use Nadybot\Core\{
 	EventManager,
 	Http,
 	HttpResponse,
-	Instance,
+	ModuleInstance,
 	LoggerWrapper,
 	MessageEmitter,
 	MessageHub,
@@ -49,7 +49,7 @@ use Nadybot\Modules\TIMERS_MODULE\{
 		desc: "Triggered when someone sets the gauntlet buff for either side",
 	)
 ]
-class GauntletBuffController extends Instance implements MessageEmitter {
+class GauntletBuffController extends ModuleInstance implements MessageEmitter {
 	public const SIDE_NONE = 'none';
 	public const GAUNTLET_API = "https://timers.aobots.org/api/v1.0/gaubuffs";
 

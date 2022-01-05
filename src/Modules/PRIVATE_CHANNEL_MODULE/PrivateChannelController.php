@@ -18,7 +18,7 @@ use Nadybot\Core\{
 	DBSchema\Player,
 	Event,
 	EventManager,
-	Instance,
+	ModuleInstance,
 	Nadybot,
 	SettingManager,
 	Text,
@@ -128,10 +128,10 @@ use Safe\Exceptions\FilesystemException;
 	NCA\ProvidesEvent("member(add)"),
 	NCA\ProvidesEvent("member(rem)")
 ]
-class PrivateChannelController extends Instance {
+class PrivateChannelController extends ModuleInstance {
 	public const DB_TABLE = "members_<myname>";
 
-		#[NCA\Inject]
+	#[NCA\Inject]
 	public DB $db;
 
 	#[NCA\Inject]

@@ -6,7 +6,7 @@ use Exception;
 use Nadybot\Core\{
 	Attributes as NCA,
 	ConfigFile,
-	Instance,
+	ModuleInstance,
 	MessageHub,
 	Routing\Source,
 	SettingManager,
@@ -16,7 +16,7 @@ use Nadybot\Core\{
  * @package Nadybot\Modules\WEBSERVER_MODULE
  */
 #[NCA\Instance]
-class WebChatConverter extends Instance {
+class WebChatConverter extends ModuleInstance {
 
 	#[NCA\Inject]
 	public ConfigFile $config;

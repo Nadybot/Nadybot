@@ -9,7 +9,7 @@ use Exception;
  * Read-through cache to URLs
  */
 #[NCA\Instance]
-class CacheManager extends Instance {
+class CacheManager {
 
 	#[NCA\Inject]
 	public Nadybot $chatBot;

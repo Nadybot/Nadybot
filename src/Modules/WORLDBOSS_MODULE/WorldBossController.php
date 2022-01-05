@@ -13,7 +13,7 @@ use Nadybot\Core\{
 	EventManager,
 	Http,
 	HttpResponse,
-	Instance,
+	ModuleInstance,
 	LoggerWrapper,
 	MessageHub,
 	ParamClass\PDuration,
@@ -108,7 +108,7 @@ use Nadybot\Core\{
 		desc: "Triggered when the timer for a worldboss is deleted",
 	)
 ]
-class WorldBossController extends Instance {
+class WorldBossController extends ModuleInstance {
 	public const WORLDBOSS_API = "https://timers.aobots.org/api/v1.0/bosses";
 
 	public const DB_TABLE = "worldboss_timers_<myname>";
@@ -157,7 +157,7 @@ class WorldBossController extends Instance {
 	public const SPAWN_SHOULD = 2;
 	public const SPAWN_EVENT = 3;
 
-		#[NCA\Inject]
+	#[NCA\Inject]
 	public Text $text;
 
 	#[NCA\Inject]

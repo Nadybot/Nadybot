@@ -10,7 +10,7 @@ use Nadybot\Core\{
 	DB,
 	Event,
 	EventManager,
-	Instance,
+	ModuleInstance,
 	LoggerWrapper,
 	MessageEmitter,
 	MessageHub,
@@ -53,7 +53,7 @@ use Nadybot\Core\{
 	NCA\ProvidesEvent("vote(del)"),
 	NCA\ProvidesEvent("vote(change)")
 ]
-class VoteController extends Instance implements MessageEmitter {
+class VoteController extends ModuleInstance implements MessageEmitter {
 
 	public const DB_POLLS = "polls_<myname>";
 	public const DB_VOTES = "votes_<myname>";

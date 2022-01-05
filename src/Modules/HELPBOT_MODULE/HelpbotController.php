@@ -7,7 +7,7 @@ use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{
 	CmdContext,
 	DB,
-	Instance,
+	ModuleInstance,
 	Text,
 	Util,
 };
@@ -41,9 +41,9 @@ use ParseError;
 		help: "calculator.txt"
 	)
 ]
-class HelpbotController extends Instance {
+class HelpbotController extends ModuleInstance {
 
-		#[NCA\Inject]
+	#[NCA\Inject]
 	public DB $db;
 
 	#[NCA\Inject]

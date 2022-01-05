@@ -10,7 +10,7 @@ use Nadybot\Core\{
 	CmdContext,
 	DB,
 	EventManager,
-	Instance,
+	ModuleInstance,
 	LoggerWrapper,
 	MessageHub,
 	MessageEmitter,
@@ -55,7 +55,7 @@ use Nadybot\Core\ParamClass\PRemove;
 		desc: "Triggered when a new timer is created with the timer command",
 	)
 ]
-class TimerController extends Instance implements MessageEmitter {
+class TimerController extends ModuleInstance implements MessageEmitter {
 
 	public const DB_TABLE = "timers_<myname>";
 

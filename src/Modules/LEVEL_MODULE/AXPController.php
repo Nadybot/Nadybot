@@ -5,7 +5,7 @@ namespace Nadybot\Modules\LEVEL_MODULE;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
-	Instance,
+	ModuleInstance,
 	Text,
 };
 
@@ -22,8 +22,8 @@ use Nadybot\Core\{
 		help: "xp.txt"
 	)
 ]
-class AXPController extends Instance {
-		#[NCA\Inject]
+class AXPController extends ModuleInstance {
+	#[NCA\Inject]
 	public Text $text;
 
 	/**

@@ -9,7 +9,7 @@ use Nadybot\Core\{
 	CommandReply,
 	DB,
 	DBSchema\Player,
-	Instance,
+	ModuleInstance,
 	LoggerWrapper,
 	Modules\PLAYER_LOOKUP\PlayerManager,
 	ParamClass\PNonNumberWord,
@@ -41,11 +41,11 @@ use Throwable;
 		help: "perks.txt"
 	)
 ]
-class BuffPerksController extends Instance {
+class BuffPerksController extends ModuleInstance {
 	public const ALIEN_INVASION = "ai";
 	public const SHADOWLANDS = "sl";
 
-		#[NCA\Inject]
+	#[NCA\Inject]
 	public Text $text;
 
 	#[NCA\Inject]

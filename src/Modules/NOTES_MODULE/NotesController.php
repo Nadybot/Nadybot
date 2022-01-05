@@ -11,7 +11,7 @@ use Nadybot\Core\{
 	CommandAlias,
 	CommandManager,
 	DB,
-	Instance,
+	ModuleInstance,
 	LoggerWrapper,
 	Modules\ALTS\AltsController,
 	Nadybot,
@@ -52,7 +52,7 @@ use Nadybot\Core\ParamClass\PRemove;
 		help: "notes.txt"
 	)
 ]
-class NotesController extends Instance {
+class NotesController extends ModuleInstance {
 	public const FORMAT_GROUPED = 'grouped';
 	public const FORMAT_INDIVIDUAL = 'individual';
 	public const FORMAT_INDIVIDUAL2 = 'individual2';
@@ -65,7 +65,7 @@ class NotesController extends Instance {
 		self::FORMAT_INDIVIDUAL2,
 	];
 
-		#[NCA\Inject]
+	#[NCA\Inject]
 	public DB $db;
 
 	#[NCA\Inject]

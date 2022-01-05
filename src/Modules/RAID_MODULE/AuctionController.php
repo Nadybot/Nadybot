@@ -11,7 +11,7 @@ use Nadybot\Core\{
 	CommandReply,
 	DB,
 	EventManager,
-	Instance,
+	ModuleInstance,
 	LoggerWrapper,
 	Nadybot,
 	ParamClass\PCharacter,
@@ -55,7 +55,7 @@ use Nadybot\Modules\RAFFLE_MODULE\RaffleItem;
 	NCA\ProvidesEvent("auction(cancel)"),
 	NCA\ProvidesEvent("auction(bid)")
 ]
-class AuctionController extends Instance {
+class AuctionController extends ModuleInstance {
 	public const DB_TABLE = "auction_<myname>";
 	public const ERR_NO_AUCTION = "There's currently nothing being auctioned.";
 	#[NCA\Inject]

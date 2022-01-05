@@ -5,7 +5,7 @@ namespace Nadybot\Modules\RELAY_MODULE;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
-	Instance,
+	ModuleInstance,
 	Routing\Source,
 	Text,
 	Util,
@@ -25,8 +25,8 @@ use Nadybot\Core\{
 		help: "quickrelay.txt"
 	)
 ]
-class QuickRelayController extends Instance {
-		#[NCA\Inject]
+class QuickRelayController extends ModuleInstance {
+	#[NCA\Inject]
 	public Text $text;
 
 	#[NCA\Inject]

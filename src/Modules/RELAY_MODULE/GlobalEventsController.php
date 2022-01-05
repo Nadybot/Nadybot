@@ -4,7 +4,7 @@ namespace Nadybot\Modules\RELAY_MODULE;
 
 use Nadybot\Core\{
 	Attributes as NCA,
-	Instance,
+	ModuleInstance,
 	LoggerWrapper,
 	Registry,
 	SettingManager,
@@ -20,8 +20,8 @@ use Nadybot\Modules\RELAY_MODULE\{
  * @author Nadyita
  */
 #[NCA\Instance]
-class GlobalEventsController extends Instance {
-		#[NCA\Inject]
+class GlobalEventsController extends ModuleInstance {
+	#[NCA\Inject]
 	public SettingManager $settingManager;
 
 	#[NCA\Inject]

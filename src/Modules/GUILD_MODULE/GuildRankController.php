@@ -10,7 +10,7 @@ use Nadybot\Core\{
 	CommandReply,
 	ConfigFile,
 	DB,
-	Instance,
+	ModuleInstance,
 	Modules\PLAYER_LOOKUP\Guild,
 	Modules\PLAYER_LOOKUP\GuildManager,
 	Nadybot,
@@ -41,11 +41,11 @@ use Nadybot\Modules\ORGLIST_MODULE\OrglistController;
 		help: "maprank.txt"
 	)
 ]
-class GuildRankController extends Instance {
+class GuildRankController extends ModuleInstance {
 
 	public const DB_TABLE = "org_rank_mapping_<myname>";
 
-		#[NCA\Inject]
+	#[NCA\Inject]
 	public DB $db;
 
 	#[NCA\Inject]

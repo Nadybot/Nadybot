@@ -9,7 +9,7 @@ use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
 	DB,
-	Instance,
+	ModuleInstance,
 	Text,
 	Util,
 };
@@ -30,7 +30,7 @@ use Nadybot\Modules\ITEMS_MODULE\Skill;
 		help: "whatlocks.txt"
 	)
 ]
-class WhatLocksController extends Instance {
+class WhatLocksController extends ModuleInstance {
 	#[NCA\Inject]
 	public Text $text;
 

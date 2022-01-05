@@ -12,7 +12,7 @@ use Nadybot\Core\{
 	EventManager,
 	Http,
 	HttpResponse,
-	Instance,
+	ModuleInstance,
 	MessageEmitter,
 	MessageHub,
 	Modules\DISCORD\DiscordController,
@@ -41,7 +41,7 @@ use Nadybot\Core\{
 	NCA\ProvidesEvent("gsp(show_start)"),
 	NCA\ProvidesEvent("gsp(show_end)")
 ]
-class GSPController extends Instance implements MessageEmitter {
+class GSPController extends ModuleInstance implements MessageEmitter {
 
 	#[NCA\Inject]
 	public Nadybot $chatBot;

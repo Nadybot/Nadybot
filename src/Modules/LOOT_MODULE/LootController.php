@@ -10,7 +10,7 @@ use Nadybot\Core\{
 	CommandManager,
 	DB,
 	DBSchema\Player,
-	Instance,
+	ModuleInstance,
 	Nadybot,
 	ParamClass\PItem,
 	ParamClass\PQuantity,
@@ -75,8 +75,8 @@ use Nadybot\Modules\ITEMS_MODULE\ItemsController;
 		help: "add_rem.txt"
 	)
 ]
-class LootController extends Instance {
-		#[NCA\Inject]
+class LootController extends ModuleInstance {
+	#[NCA\Inject]
 	public DB $db;
 
 	#[NCA\Inject]

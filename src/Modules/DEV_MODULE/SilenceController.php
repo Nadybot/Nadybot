@@ -10,7 +10,7 @@ use Nadybot\Core\{
 	Event,
 	DB,
 	DBSchema\CmdCfg,
-	Instance,
+	ModuleInstance,
 	LoggerWrapper,
 	Text,
 };
@@ -36,11 +36,11 @@ use Nadybot\Core\ParamClass\PWord;
 		help: "silence.txt"
 	)
 ]
-class SilenceController extends Instance {
+class SilenceController extends ModuleInstance {
 
 	public const DB_TABLE = "silence_cmd_<myname>";
 
-		#[NCA\Inject]
+	#[NCA\Inject]
 	public DB $db;
 
 	#[NCA\Inject]

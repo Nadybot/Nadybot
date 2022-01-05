@@ -9,18 +9,18 @@ use Nadybot\Core\{
 	BotRunner,
 	Http,
 	HttpResponse,
-	Instance,
+	ModuleInstance,
 	SettingManager,
 };
 
 #[NCA\Instance]
-class TowerApiController extends Instance {
+class TowerApiController extends ModuleInstance {
 
 	public const TOWER_API = "tower_api";
 	public const API_TYRENCE = "https://tower-api.jkbff.com/v1/api/towers";
 	public const API_NONE = "none";
 
-		#[NCA\Inject]
+	#[NCA\Inject]
 	public Http $http;
 
 	#[NCA\Inject]

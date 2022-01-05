@@ -13,7 +13,7 @@ use Nadybot\Core\{
 	DBSchema\Player,
 	Event,
 	EventManager,
-	Instance,
+	ModuleInstance,
 	LoggerWrapper,
 	MessageEmitter,
 	MessageHub,
@@ -56,7 +56,7 @@ use Throwable;
 	NCA\ProvidesEvent("tracker(logon)"),
 	NCA\ProvidesEvent("tracker(logoff)")
 ]
-class TrackerController extends Instance implements MessageEmitter {
+class TrackerController extends ModuleInstance implements MessageEmitter {
 	public const DB_TABLE = "tracked_users_<myname>";
 	public const DB_TRACKING = "tracking_<myname>";
 	public const DB_ORG = "tracking_org_<myname>";
@@ -79,7 +79,7 @@ class TrackerController extends Instance implements MessageEmitter {
 	public const ATT_OMNI = 8;
 	public const ATT_NEUTRAL = 16;
 
-		#[NCA\Inject]
+	#[NCA\Inject]
 	public Text $text;
 
 	#[NCA\Inject]

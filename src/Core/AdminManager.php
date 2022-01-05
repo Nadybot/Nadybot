@@ -12,7 +12,7 @@ use Nadybot\Core\{
  * Manage the bot admins
  */
 #[NCA\Instance]
-class AdminManager extends Instance {
+class AdminManager {
 	public const DB_TABLE = "admin_<myname>";
 
 	#[NCA\Inject]

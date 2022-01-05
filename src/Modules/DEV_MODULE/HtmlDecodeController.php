@@ -6,7 +6,7 @@ use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
 	CommandManager,
-	Instance,
+	ModuleInstance,
 };
 
 /**
@@ -22,9 +22,9 @@ use Nadybot\Core\{
 		help: "htmldecode.txt"
 	)
 ]
-class HtmlDecodeController extends Instance {
+class HtmlDecodeController extends ModuleInstance {
 
-		#[NCA\Inject]
+	#[NCA\Inject]
 	public CommandManager $commandManager;
 
 	#[NCA\HandlesCommand("htmldecode")]

@@ -9,7 +9,7 @@ use Nadybot\Core\{
 	CmdContext,
 	CommandAlias,
 	EventManager,
-	Instance,
+	ModuleInstance,
 	MessageEmitter,
 	MessageHub,
 	Nadybot,
@@ -41,7 +41,7 @@ use Nadybot\Modules\TIMERS_MODULE\{
 	NCA\ProvidesEvent("cityraid(wave)"),
 	NCA\ProvidesEvent("cityraid(end)")
 ]
-class CityWaveController extends Instance implements MessageEmitter {
+class CityWaveController extends ModuleInstance implements MessageEmitter {
 	#[NCA\Inject]
 	public Nadybot $chatBot;
 

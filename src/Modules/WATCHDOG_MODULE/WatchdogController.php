@@ -5,7 +5,7 @@ namespace Nadybot\Modules\WATCHDOG_MODULE;
 use Nadybot\Core\{
 	Attributes as NCA,
 	ConfigFile,
-	Instance,
+	ModuleInstance,
 };
 
 /**
@@ -13,9 +13,9 @@ use Nadybot\Core\{
  *  - Nadyita (RK5)
  */
 #[NCA\Instance]
-class WatchdogController extends Instance {
+class WatchdogController extends ModuleInstance {
 
-		#[NCA\Inject]
+	#[NCA\Inject]
 	public ConfigFile $config;
 
 	#[NCA\Event(

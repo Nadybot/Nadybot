@@ -8,7 +8,7 @@ use Nadybot\Core\{
 	AOChatEvent,
 	CmdContext,
 	DB,
-	Instance,
+	ModuleInstance,
 	Nadybot,
 	SettingManager,
 	Text,
@@ -58,9 +58,9 @@ use Nadybot\Core\ParamClass\PRemove;
 		help: "events.txt"
 	)
 ]
-class EventsController extends Instance {
+class EventsController extends ModuleInstance {
 
-		#[NCA\Inject]
+	#[NCA\Inject]
 	public DB $db;
 
 	#[NCA\Inject]

@@ -5,7 +5,7 @@ namespace Nadybot\Core\Modules\MESSAGES;
 use Nadybot\Core\{
 	Attributes as NCA,
 	DB,
-	Instance,
+	ModuleInstance,
 	MessageHub,
 	Routing\Source,
 };
@@ -20,8 +20,8 @@ use Nadybot\Modules\WEBSERVER_MODULE\{
  * @author Nadyita (RK5)
  */
 #[NCA\Instance]
-class MessageHubAPI extends Instance {
-		#[NCA\Inject]
+class MessageHubAPI extends ModuleInstance {
+	#[NCA\Inject]
 	public MessageHub $messageHub;
 
 	#[NCA\Inject]

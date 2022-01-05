@@ -5,7 +5,7 @@ namespace Nadybot\Modules\WORLDBOSS_MODULE;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
-	Instance,
+	ModuleInstance,
 	Modules\ALTS\AltsController,
 	Modules\PREFERENCES\Preferences,
 	ParamClass\PCharacter,
@@ -27,8 +27,8 @@ use Nadybot\Core\{
 		help: "gaulist.txt"
 	)
 ]
-class GauntletInventoryController extends Instance {
-		#[NCA\Inject]
+class GauntletInventoryController extends ModuleInstance {
+	#[NCA\Inject]
 	public Text $text;
 
 	#[NCA\Inject]

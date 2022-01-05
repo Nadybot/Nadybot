@@ -6,7 +6,7 @@ use Directory;
 use Nadybot\Core\Attributes as NCA;
 use ReflectionClass;
 
-class ClassLoader extends Instance {
+class ClassLoader {
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
@@ -41,10 +41,8 @@ class ClassLoader extends Instance {
 		unset($newInstances["configfile"]);
 		$newInstances = array_merge($newInstances, $this->getNewInstancesInDir(__DIR__));
 		foreach ($newInstances as $name => $class) {
-			if (is_subclass_of($class->className, Instance::class)) {
-				/** @psalm-suppress UnsafeInstantiation */
-				Registry::setInstance($name, new $class->className);
-			}
+			/** @psalm-suppress UnsafeInstantiation */
+			Registry::setInstance($name, new $class->className);
 		}
 
 		$this->loadCoreModules();
@@ -133,14 +131,12 @@ class ClassLoader extends Instance {
 		$newInstances = $this->getNewInstancesInDir("{$baseDir}/{$moduleName}");
 		foreach ($newInstances as $name => $class) {
 			$className = $class->className;
-			if (!class_exists($className) || !is_subclass_of($className, Instance::class)) {
+			if (!class_exists($className) || !is_subclass_of($className, ModuleInstanceInterface::class)) {
 				continue;
 			}
 			/** @psalm-suppress UnsafeInstantiation */
 			$obj = new $className();
-			if (property_exists($obj, "moduleName")) {
-				$obj->moduleName = $moduleName;
-			}
+			$obj->setModuleName($moduleName);
 			if (Registry::instanceExists($name) && !$class->overwrite) {
 				$this->logger->warning("Instance with name '$name' already registered--replaced with new instance");
 			}

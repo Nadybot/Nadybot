@@ -12,7 +12,7 @@ use Nadybot\Core\{
 	CommandReply,
 	DB,
 	Http,
-	Instance,
+	ModuleInstance,
 	LoggerWrapper,
 	QueryBuilder,
 	ParamClass\PWord,
@@ -47,7 +47,7 @@ use Nadybot\Modules\SKILLS_MODULE\{
 		alias: "wbf"
 	)
 ]
-class WhatBuffsController extends Instance {
+class WhatBuffsController extends ModuleInstance {
 	#[NCA\Inject]
 	public Http $http;
 

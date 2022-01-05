@@ -9,7 +9,7 @@ use Nadybot\Core\{
 	Channels\DiscordMsg,
 	CommandManager,
 	EventManager,
-	Instance,
+	ModuleInstance,
 	LoggerWrapper,
 	MessageHub,
 	Nadybot,
@@ -79,7 +79,7 @@ use stdClass;
 	NCA\ProvidesEvent("discord_voice_join"),
 	NCA\ProvidesEvent("discord_voice_leave")
 ]
-class DiscordGatewayController extends Instance {
+class DiscordGatewayController extends ModuleInstance {
 	#[NCA\Inject]
 	public SettingManager $settingManager;
 

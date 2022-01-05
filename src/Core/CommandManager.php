@@ -27,7 +27,7 @@ use ReflectionParameter;
 	NCA\ProvidesEvent("command(help)"),
 	NCA\ProvidesEvent("command(error)")
 ]
-class CommandManager extends Instance implements MessageEmitter {
+class CommandManager implements MessageEmitter {
 	public const DB_TABLE = "cmdcfg_<myname>";
 
 	#[NCA\Inject]

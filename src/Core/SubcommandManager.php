@@ -6,7 +6,7 @@ use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\DBSchema\CmdCfg;
 
 #[NCA\Instance]
-class SubcommandManager extends Instance {
+class SubcommandManager {
 
 	#[NCA\Inject]
 	public DB $db;

@@ -8,7 +8,7 @@ use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
 	DB,
-	Instance,
+	ModuleInstance,
 	ParamClass\PWord,
 	SettingManager,
 	Util,
@@ -37,12 +37,12 @@ use Nadybot\Modules\ITEMS_MODULE\{
 		alias: "aruls"
 	)
 ]
-class ArulSabaController extends Instance {
+class ArulSabaController extends ModuleInstance {
 	public const ME = 125;
 	public const EE = 126;
 	public const AGI = 17;
 
-		#[NCA\Inject]
+	#[NCA\Inject]
 	public DB $db;
 
 	#[NCA\Inject]

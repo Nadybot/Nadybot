@@ -23,7 +23,7 @@ use Throwable;
 
 #[NCA\Instance]
 #[NCA\HasMigrations(module: "Core")]
-class DB extends Instance {
+class DB {
 
 	public const SQLITE_MIN_VERSION = "3.23.0";
 
@@ -503,7 +503,7 @@ class DB extends Instance {
 		if (!isset($migDir)) {
 			return new Collection();
 		}
-		$migDir->module ??= property_exists($instance, "moduleName") ? $instance->moduleName ?? null : null;
+		$migDir->module ??= is_subclass_of($instance, ModuleInstanceInterface::class) ? $instance->getModuleName() : null;
 		if (!isset($migDir->module)) {
 			return new Collection();
 		}

@@ -6,7 +6,7 @@ use DateTime;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
-	Instance,
+	ModuleInstance,
 	LoggerWrapper,
 	Text,
 	Util,
@@ -27,8 +27,8 @@ use Nadybot\Core\{
 		alias: "sw"
 	)
 ]
-class StopwatchController extends Instance {
-		#[NCA\Inject]
+class StopwatchController extends ModuleInstance {
+	#[NCA\Inject]
 	public Text $text;
 
 	#[NCA\Inject]

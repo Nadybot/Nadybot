@@ -8,7 +8,7 @@ use Nadybot\Core\{
 	BuddylistManager,
 	CmdContext,
 	DB,
-	Instance,
+	ModuleInstance,
 	Nadybot,
 	SettingManager,
 	Text,
@@ -49,7 +49,7 @@ use Nadybot\Core\Modules\BAN\BanController;
 		alias: "massinvite"
 	)
 ]
-class MassMsgController extends Instance {
+class MassMsgController extends ModuleInstance {
 	public const BLOCKED = 'blocked';
 	public const IN_CHAT = 'in chat';
 	public const IN_ORG  = 'in org';

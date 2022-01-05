@@ -3,7 +3,7 @@
 namespace Nadybot\Core\Modules\PROFILE;
 
 use Nadybot\Core\Attributes as NCA;
-use Nadybot\Core\Instance;
+use Nadybot\Core\ModuleInstance;
 use Exception;
 use Nadybot\Modules\{
 	WEBSERVER_MODULE\ApiResponse,
@@ -15,8 +15,8 @@ use Safe\Exceptions\FilesystemException;
 use Throwable;
 
 #[NCA\Instance]
-class ProfileApiController extends Instance {
-		#[NCA\Inject]
+class ProfileApiController extends ModuleInstance {
+	#[NCA\Inject]
 	public ProfileController $profileController;
 
 	/**

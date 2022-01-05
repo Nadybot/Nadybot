@@ -5,7 +5,7 @@ namespace Nadybot\Modules\DEV_MODULE;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
-	Instance,
+	ModuleInstance,
 	Text,
 };
 
@@ -21,9 +21,9 @@ use Nadybot\Core\{
 		description: "List all game icons with their name"
 	)
 ]
-class GameIconsController extends Instance {
+class GameIconsController extends ModuleInstance {
 
-		#[NCA\Inject]
+	#[NCA\Inject]
 	public Text $text;
 
 	#[NCA\HandlesCommand("gameicons")]

@@ -11,7 +11,7 @@ use Nadybot\Core\{
 	Attributes as NCA,
 	Http,
 	HttpResponse,
-	Instance,
+	ModuleInstance,
 	JSONDataModel,
 	LoggerWrapper,
 	SettingManager,
@@ -23,7 +23,7 @@ use Nadybot\Modules\DISCORD_GATEWAY_MODULE\Model\GuildMember;
  * A Discord API-client
  */
 #[NCA\Instance]
-class DiscordAPIClient extends Instance {
+class DiscordAPIClient extends ModuleInstance {
 	#[NCA\Inject]
 	public SettingManager $settingManager;
 

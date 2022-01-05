@@ -7,7 +7,7 @@ use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	CmdContext,
 	DB,
-	Instance,
+	ModuleInstance,
 	LoggerWrapper,
 	Text,
 	Util,
@@ -51,8 +51,8 @@ use Nadybot\Modules\ITEMS_MODULE\ItemsController;
 		help: "aigen.txt"
 	)
 ]
-class AlienMiscController extends Instance {
-		#[NCA\Inject]
+class AlienMiscController extends ModuleInstance {
+	#[NCA\Inject]
 	public DB $db;
 
 	#[NCA\Inject]

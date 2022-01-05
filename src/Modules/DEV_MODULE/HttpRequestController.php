@@ -8,7 +8,7 @@ use Nadybot\Core\{
 	CmdContext,
 	Http,
 	HttpResponse,
-	Instance,
+	ModuleInstance,
 	Text,
 };
 
@@ -24,7 +24,7 @@ use Nadybot\Core\{
 		description: "Test http/https requests"
 	)
 ]
-class HttpRequestController extends Instance {
+class HttpRequestController extends ModuleInstance {
 	#[NCA\Inject]
 	public Http $http;
 

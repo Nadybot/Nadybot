@@ -8,7 +8,7 @@ use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
 	DB,
-	Instance,
+	ModuleInstance,
 	SettingManager,
 	Text,
 };
@@ -29,9 +29,9 @@ use Nadybot\Core\ParamClass\PWord;
 		help: "links.txt"
 	)
 ]
-class LinksController extends Instance {
+class LinksController extends ModuleInstance {
 
-		#[NCA\Inject]
+	#[NCA\Inject]
 	public DB $db;
 
 	#[NCA\Inject]

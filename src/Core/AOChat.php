@@ -53,7 +53,7 @@ use Monolog\Logger;
  * phpcs:disable PSR1.Methods.CamelCapsMethodName.NotCamelCaps
  */
 
-class AOChat extends Instance {
+class AOChat {
 	public const AOC_GROUP_NOWRITE = 0x00000002;
 	public const AOC_GROUP_NOASIAN = 0x00000020;
 	public const AOC_GROUP_MUTE =    0x01010000;

@@ -5,7 +5,7 @@ namespace Nadybot\Modules\DEV_MODULE;
 use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{
 	CmdContext,
-	Instance,
+	ModuleInstance,
 	Nadybot,
 	Text,
 	Util,
@@ -25,9 +25,9 @@ use Nadybot\Core\{
 		help: "mdb.txt"
 	)
 ]
-class MdbController extends Instance {
+class MdbController extends ModuleInstance {
 
-		#[NCA\Inject]
+	#[NCA\Inject]
 	public Nadybot $chatBot;
 
 	#[NCA\Inject]

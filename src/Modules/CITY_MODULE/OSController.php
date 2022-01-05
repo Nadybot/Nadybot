@@ -5,7 +5,7 @@ namespace Nadybot\Modules\CITY_MODULE;
 use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\AOChatEvent;
 use Nadybot\Core\ConfigFile;
-use Nadybot\Core\Instance;
+use Nadybot\Core\ModuleInstance;
 use Nadybot\Core\Nadybot;
 use Nadybot\Modules\TIMERS_MODULE\TimerController;
 
@@ -13,8 +13,8 @@ use Nadybot\Modules\TIMERS_MODULE\TimerController;
  * @author Tyrence (RK2)
  */
 #[NCA\Instance]
-class OSController extends Instance {
-		#[NCA\Inject]
+class OSController extends ModuleInstance {
+	#[NCA\Inject]
 	public ConfigFile $config;
 
 	#[NCA\Inject]

@@ -6,7 +6,7 @@ use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
 	ConfigFile,
-	Instance,
+	ModuleInstance,
 	Modules\PLAYER_LOOKUP\PlayerManager,
 	Text,
 };
@@ -24,9 +24,9 @@ use Nadybot\Core\{
 		help: "findplayer.txt"
 	)
 ]
-class FindPlayerController extends Instance {
+class FindPlayerController extends ModuleInstance {
 
-		#[NCA\Inject]
+	#[NCA\Inject]
 	public ConfigFile $config;
 
 	#[NCA\Inject]

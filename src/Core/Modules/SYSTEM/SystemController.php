@@ -17,7 +17,7 @@ use Nadybot\Core\{
 	Event,
 	EventManager,
 	HelpManager,
-	Instance,
+	ModuleInstance,
 	LoggerWrapper,
 	MessageEmitter,
 	MessageHub,
@@ -90,9 +90,9 @@ use Nadybot\Modules\WEBSERVER_MODULE\{
 		defaultStatus: 1
 	)
 ]
-class SystemController extends Instance implements MessageEmitter {
+class SystemController extends ModuleInstance implements MessageEmitter {
 
-		#[NCA\Inject]
+	#[NCA\Inject]
 	public AccessManager $accessManager;
 
 	#[NCA\Inject]

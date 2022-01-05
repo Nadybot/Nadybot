@@ -9,7 +9,7 @@ use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
 	DB,
-	Instance,
+	ModuleInstance,
 	Nadybot,
 	SettingManager,
 	Text,
@@ -52,7 +52,7 @@ use Throwable;
 		help: "news.txt"
 	)
 ]
-class NewsController extends Instance {
+class NewsController extends ModuleInstance {
 	#[NCA\Inject]
 	public DB $db;
 

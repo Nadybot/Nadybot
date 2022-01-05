@@ -7,7 +7,7 @@ use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
 	DB,
-	Instance,
+	ModuleInstance,
 	ParamClass\PWord,
 	Text,
 	Util,
@@ -35,8 +35,8 @@ use Nadybot\Core\{
 		alias: "symb"
 	)
 ]
-class PocketbossController extends Instance {
-		#[NCA\Inject]
+class PocketbossController extends ModuleInstance {
+	#[NCA\Inject]
 	public Text $text;
 
 	#[NCA\Inject]

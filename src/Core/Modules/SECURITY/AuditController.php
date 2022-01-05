@@ -10,7 +10,7 @@ use Nadybot\Core\{
 	CmdContext,
 	DB,
 	DBSchema\Audit,
-	Instance,
+	ModuleInstance,
 	QueryBuilder,
 	SettingManager,
 	Text,
@@ -34,8 +34,8 @@ use Nadybot\Modules\WEBSERVER_MODULE\{
 		help: "audit.txt"
 	)
 ]
-class AuditController extends Instance {
-		#[NCA\Inject]
+class AuditController extends ModuleInstance {
+	#[NCA\Inject]
 	public DB $db;
 
 	#[NCA\Inject]

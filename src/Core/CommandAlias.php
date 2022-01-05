@@ -6,7 +6,7 @@ use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\DBSchema\CmdAlias;
 
 #[NCA\Instance]
-class CommandAlias extends Instance {
+class CommandAlias {
 	public const DB_TABLE = "cmd_alias_<myname>";
 
 	#[NCA\Inject]

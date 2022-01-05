@@ -5,7 +5,7 @@ namespace Nadybot\Modules\FUN_MODULE;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
-	Instance,
+	ModuleInstance,
 	Util,
 };
 
@@ -24,9 +24,9 @@ use Nadybot\Core\{
 		help: "fun_module.txt"
 	)
 ]
-class DingController extends Instance {
+class DingController extends ModuleInstance {
 
-		#[NCA\Inject]
+	#[NCA\Inject]
 	public Util $util;
 
 	#[NCA\HandlesCommand("ding")]

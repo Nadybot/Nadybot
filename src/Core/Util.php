@@ -8,7 +8,7 @@ use InvalidArgumentException;
 use Nadybot\Core\Attributes as NCA;
 
 #[NCA\Instance]
-class Util extends Instance {
+class Util {
 
 	#[NCA\Inject]
 	public ConfigFile $config;

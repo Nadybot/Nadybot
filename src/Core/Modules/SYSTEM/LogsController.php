@@ -17,7 +17,7 @@ use Nadybot\Core\{
 	DedupHandler,
 	Http,
 	HttpResponse,
-	Instance,
+	ModuleInstance,
 	LegacyLogger,
 	LoggerWrapper,
 	Nadybot,
@@ -55,9 +55,9 @@ use Safe\Exceptions\FilesystemException;
 		help: "debug.txt"
 	)
 ]
-class LogsController extends Instance {
+class LogsController extends ModuleInstance {
 
-		#[NCA\Inject]
+	#[NCA\Inject]
 	public CommandManager $commandManager;
 
 	#[NCA\Inject]

@@ -6,7 +6,7 @@ use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{
 	CmdContext,
 	DB,
-	Instance,
+	ModuleInstance,
 	ParamClass\PAttribute,
 	Text,
 	Util,
@@ -28,8 +28,8 @@ use stdClass;
 		alias: "impdesign"
 	)
 ]
-class ImplantDesignerController extends Instance {
-		#[NCA\Inject]
+class ImplantDesignerController extends ModuleInstance {
+	#[NCA\Inject]
 	public DB $db;
 
 	#[NCA\Inject]

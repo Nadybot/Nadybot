@@ -7,7 +7,7 @@ use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
 	EventManager,
-	Instance,
+	ModuleInstance,
 	Nadybot,
 	SettingManager,
 	Timer,
@@ -31,7 +31,7 @@ use Nadybot\Core\{
 		desc: "Triggered when someone starts a countdown",
 	)
 ]
-class CountdownController extends Instance {
+class CountdownController extends ModuleInstance {
 
 	public const CONF_CD_TELL_LOCATION = 'cd_tell_location';
 	public const CONF_CD_DEFAULT_TEXT = 'cd_default_text';
@@ -40,7 +40,7 @@ class CountdownController extends Instance {
 	public const LOC_PRIV = 1;
 	public const LOC_ORG = 2;
 
-		#[NCA\Inject]
+	#[NCA\Inject]
 	public SettingManager $settingManager;
 
 	#[NCA\Inject]

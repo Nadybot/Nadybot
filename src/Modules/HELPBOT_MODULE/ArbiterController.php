@@ -11,7 +11,7 @@ use Nadybot\Core\{
 	CmdContext,
 	CommandAlias,
 	DB,
-	Instance,
+	ModuleInstance,
 	Text,
 	Util,
 };
@@ -32,7 +32,7 @@ use Safe\Exceptions\DatetimeException;
 		help: "arbiter.txt"
 	)
 ]
-class ArbiterController extends Instance {
+class ArbiterController extends ModuleInstance {
 	public const DIO = "dio";
 	public const AI = "ai";
 	public const BS = "bs";
@@ -40,7 +40,7 @@ class ArbiterController extends Instance {
 
 	public const DB_TABLE = "icc_arbiter";
 
-		#[NCA\Inject]
+	#[NCA\Inject]
 	public CommandAlias $commandAlias;
 
 	#[NCA\Inject]

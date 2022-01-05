@@ -6,7 +6,7 @@ use DateTime;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
-	Instance,
+	ModuleInstance,
 	Text,
 	Util,
 };
@@ -24,8 +24,8 @@ use Nadybot\Core\{
 		help: "time.txt"
 	)
 ]
-class TimeController extends Instance {
-		#[NCA\Inject]
+class TimeController extends ModuleInstance {
+	#[NCA\Inject]
 	public Util $util;
 
 	#[NCA\Inject]

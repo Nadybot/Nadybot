@@ -10,7 +10,7 @@ use Nadybot\Core\{
 	DB,
 	DBSchema\Player,
 	Event,
-	Instance,
+	ModuleInstance,
 	Modules\PLAYER_LOOKUP\Guild,
 	Modules\PLAYER_LOOKUP\GuildManager,
 	Modules\PLAYER_LOOKUP\PlayerManager,
@@ -34,9 +34,9 @@ use Nadybot\Core\{
 		help: "orglist.txt"
 	)
 ]
-class OrglistController extends Instance {
+class OrglistController extends ModuleInstance {
 
-		#[NCA\Inject]
+	#[NCA\Inject]
 	public DB $db;
 
 	#[NCA\Inject]

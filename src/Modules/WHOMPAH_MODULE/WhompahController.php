@@ -8,7 +8,7 @@ use Nadybot\Core\{
 	CmdContext,
 	CommandAlias,
 	DB,
-	Instance,
+	ModuleInstance,
 	ParamClass\PWord,
 	Text,
 };
@@ -27,9 +27,9 @@ use Nadybot\Core\{
 		help: "whompah.txt"
 	)
 ]
-class WhompahController extends Instance {
+class WhompahController extends ModuleInstance {
 
-		#[NCA\Inject]
+	#[NCA\Inject]
 	public DB $db;
 
 	#[NCA\Inject]

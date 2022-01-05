@@ -12,7 +12,7 @@ use Nadybot\Core\{
 	ConfigFile,
 	Event,
 	EventManager,
-	Instance,
+	ModuleInstance,
 	LoggerWrapper,
 	Modules\BUDDYLIST\BuddylistController,
 	Modules\DISCORD\DiscordMessageIn,
@@ -171,9 +171,9 @@ use Safe\Exceptions\FilesystemException;
 		help: "test.txt"
 	)
 ]
-class TestController extends Instance {
+class TestController extends ModuleInstance {
 
-		#[NCA\Inject]
+	#[NCA\Inject]
 	public SettingManager $settingManager;
 
 	#[NCA\Inject]

@@ -4,7 +4,7 @@ namespace Nadybot\Core\Modules\PREFERENCES;
 
 use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\DB;
-use Nadybot\Core\Instance;
+use Nadybot\Core\ModuleInstance;
 use Nadybot\Modules\WEBSERVER_MODULE\ApiResponse;
 use Nadybot\Modules\WEBSERVER_MODULE\HttpProtocolWrapper;
 use Nadybot\Modules\WEBSERVER_MODULE\Request;
@@ -17,10 +17,10 @@ use Nadybot\Modules\WEBSERVER_MODULE\Response;
 	NCA\Instance,
 	NCA\HasMigrations
 ]
-class Preferences extends Instance {
+class Preferences extends ModuleInstance {
 	public const DB_TABLE = "preferences_<myname>";
 
-		#[NCA\Inject]
+	#[NCA\Inject]
 	public DB $db;
 
 	#[NCA\Setup]

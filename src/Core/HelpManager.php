@@ -7,7 +7,7 @@ use Nadybot\Core\Modules\CONFIG\ConfigController;
 use Nadybot\Core\DBSchema\HelpTopic;
 
 #[NCA\Instance]
-class HelpManager extends Instance {
+class HelpManager {
 	public const DB_TABLE = "hlpcfg_<myname>";
 
 	#[NCA\Inject]

@@ -9,7 +9,7 @@ use Nadybot\Core\{
 	CmdContext,
 	CommandManager,
 	DB,
-	Instance,
+	ModuleInstance,
 	SQLException,
 	Text,
 };
@@ -32,9 +32,9 @@ use ReflectionClass;
 		description: "Execute an SQL statement"
 	)
 ]
-class SQLController extends Instance {
+class SQLController extends ModuleInstance {
 
-		#[NCA\Inject]
+	#[NCA\Inject]
 	public AccessManager $accessManager;
 
 	#[NCA\Inject]

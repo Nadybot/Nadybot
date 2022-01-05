@@ -16,7 +16,7 @@ use Nadybot\Core\{
 	DB,
 	EventManager,
 	HelpManager,
-	Instance,
+	ModuleInstance,
 	InsufficientAccessException,
 	LoggerWrapper,
 	Nadybot,
@@ -44,9 +44,9 @@ use Nadybot\Core\ParamClass\PWord;
 	),
 	NCA\Instance
 ]
-class ConfigController extends Instance {
+class ConfigController extends ModuleInstance {
 
-		#[NCA\Inject]
+	#[NCA\Inject]
 	public Text $text;
 
 	#[NCA\Inject]

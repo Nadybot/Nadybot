@@ -20,7 +20,7 @@ use Nadybot\Core\{
 	DB,
 	EventManager,
 	EventType,
-	Instance,
+	ModuleInstance,
 	LoggerWrapper,
 	MessageHub,
 	Nadybot,
@@ -71,7 +71,7 @@ use Nadybot\Modules\RELAY_MODULE\Transport\TransportInterface;
 	),
 	NCA\ProvidesEvent("routable(message)")
 ]
-class RelayController extends Instance {
+class RelayController extends ModuleInstance {
 	public const DB_TABLE = 'relay_<myname>';
 	public const DB_TABLE_LAYER = 'relay_layer_<myname>';
 	public const DB_TABLE_ARGUMENT = 'relay_layer_argument_<myname>';
@@ -89,7 +89,7 @@ class RelayController extends Instance {
 	/** @var array<string,Relay> */
 	public array $relays = [];
 
-		#[NCA\Inject]
+	#[NCA\Inject]
 	public DB $db;
 
 	#[NCA\Inject]

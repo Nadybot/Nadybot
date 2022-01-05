@@ -6,7 +6,7 @@ use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{
 	CmdContext,
 	CommandAlias,
-	Instance,
+	ModuleInstance,
 	Text,
 	Util,
 };
@@ -29,9 +29,9 @@ use Safe\Exceptions\FilesystemException;
 		alias: "guide"
 	)
 ]
-class GuideController extends Instance {
+class GuideController extends ModuleInstance {
 
-		#[NCA\Inject]
+	#[NCA\Inject]
 	public Text $text;
 
 	#[NCA\Inject]

@@ -10,7 +10,7 @@ use Nadybot\Core\{
 	DB,
 	Event,
 	EventManager,
-	Instance,
+	ModuleInstance,
 	MessageEmitter,
 	MessageHub,
 	Modules\ALTS\AltsController,
@@ -40,7 +40,7 @@ use Nadybot\Core\{
 	NCA\ProvidesEvent("cloak(raise)"),
 	NCA\ProvidesEvent("cloak(lower)")
 ]
-class CloakController extends Instance implements MessageEmitter {
+class CloakController extends ModuleInstance implements MessageEmitter {
 	public const DB_TABLE = "org_city_<myname>";
 
 	#[NCA\Inject]

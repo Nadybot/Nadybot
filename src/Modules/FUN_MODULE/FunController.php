@@ -7,7 +7,7 @@ use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
 	DB,
-	Instance,
+	ModuleInstance,
 	Util,
 };
 
@@ -74,9 +74,9 @@ use Nadybot\Core\{
 		help: "fun_module.txt"
 	)
 ]
-class FunController extends Instance {
+class FunController extends ModuleInstance {
 
-		#[NCA\Inject]
+	#[NCA\Inject]
 	public DB $db;
 
 	#[NCA\Inject]

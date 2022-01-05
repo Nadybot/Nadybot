@@ -8,7 +8,7 @@ use Nadybot\Core\{
 	CmdContext,
 	DB,
 	Http,
-	Instance,
+	ModuleInstance,
 	LoggerWrapper,
 	Nadybot,
 	SettingManager,
@@ -42,7 +42,7 @@ use Nadybot\Core\{
 		help: "items.txt"
 	)
 ]
-class ItemsController extends Instance {
+class ItemsController extends ModuleInstance {
 	#[NCA\Inject]
 	public DB $db;
 

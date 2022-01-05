@@ -12,7 +12,7 @@ use Nadybot\Core\{
 	Event,
 	DB,
 	DBSchema\Player,
-	Instance,
+	ModuleInstance,
 	Modules\ALTS\AltsController,
 	Modules\PLAYER_LOOKUP\PlayerManager,
 	Nadybot,
@@ -45,9 +45,9 @@ use Nadybot\Modules\COMMENT_MODULE\CommentController;
 		help: "lookup.txt"
 	)
 ]
-class WhoisController extends Instance {
+class WhoisController extends ModuleInstance {
 
-		#[NCA\Inject]
+	#[NCA\Inject]
 	public DB $db;
 
 	#[NCA\Inject]

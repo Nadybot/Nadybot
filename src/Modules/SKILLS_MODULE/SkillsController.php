@@ -9,7 +9,7 @@ use Nadybot\Core\{
 	CommandAlias,
 	DB,
 	Http,
-	Instance,
+	ModuleInstance,
 	ParamClass\PItem,
 	ParamClass\PNonNumber,
 	Text,
@@ -96,9 +96,9 @@ use Nadybot\Modules\ITEMS_MODULE\{
 		help: "weapon.txt"
 	)
 ]
-class SkillsController extends Instance {
+class SkillsController extends ModuleInstance {
 
-		#[NCA\Inject]
+	#[NCA\Inject]
 	public DB $db;
 
 	#[NCA\Inject]

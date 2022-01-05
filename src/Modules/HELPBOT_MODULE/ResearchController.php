@@ -6,7 +6,7 @@ use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
 	DB,
-	Instance,
+	ModuleInstance,
 	Text,
 };
 
@@ -25,8 +25,8 @@ use Nadybot\Core\{
 		help: "research.txt"
 	)
 ]
-class ResearchController extends Instance {
-		#[NCA\Inject]
+class ResearchController extends ModuleInstance {
+	#[NCA\Inject]
 	public DB $db;
 
 	#[NCA\Inject]

@@ -5,7 +5,7 @@ namespace Nadybot\Core;
 use Nadybot\Core\Attributes as NCA;
 
 #[NCA\Instance]
-class BuddylistManager extends Instance {
+class BuddylistManager {
 	#[NCA\Inject]
 	public Nadybot $chatBot;
 

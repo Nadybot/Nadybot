@@ -13,7 +13,7 @@ use Nadybot\Core\{
 	CommandReply,
 	DB,
 	DBSchema\Audit,
-	Instance,
+	ModuleInstance,
 	LoggerWrapper,
 	Modules\ALTS\AltEvent,
 	Modules\ALTS\AltsController,
@@ -50,7 +50,7 @@ use Nadybot\Core\{
 		alias: "leaders"
 	)
 ]
-class RaidRankController extends Instance {
+class RaidRankController extends ModuleInstance {
 	public const DB_TABLE = "raid_rank_<myname>";
 	#[NCA\Inject]
 	public SettingManager $settingManager;

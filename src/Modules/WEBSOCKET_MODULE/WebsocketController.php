@@ -11,7 +11,7 @@ use Nadybot\Core\{
 	Channels\WebChannel,
 	Event,
 	EventManager,
-	Instance,
+	ModuleInstance,
 	LoggerWrapper,
 	MessageHub,
 	PacketEvent,
@@ -40,8 +40,8 @@ use Nadybot\Modules\WEBSERVER_MODULE\{
 	NCA\ProvidesEvent("websocket(response)"),
 	NCA\ProvidesEvent("websocket(event)")
 ]
-class WebsocketController extends Instance {
-		#[NCA\Inject]
+class WebsocketController extends ModuleInstance {
+	#[NCA\Inject]
 	public EventManager $eventManager;
 
 	#[NCA\Inject]

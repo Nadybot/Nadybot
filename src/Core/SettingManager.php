@@ -10,7 +10,7 @@ use Nadybot\Core\DBSchema\Setting;
 	NCA\Instance,
 	NCA\ProvidesEvent("setting(*)")
 ]
-class SettingManager extends Instance {
+class SettingManager {
 	public const DB_TABLE = "settings_<myname>";
 	#[NCA\Inject]
 	public DB $db;

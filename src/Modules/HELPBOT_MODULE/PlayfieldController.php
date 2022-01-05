@@ -8,7 +8,7 @@ use Nadybot\Core\{
 	CmdContext,
 	CommandAlias,
 	DB,
-	Instance,
+	ModuleInstance,
 	Text,
 	Util,
 };
@@ -33,9 +33,9 @@ use Nadybot\Core\{
 		help: "waypoint.txt"
 	)
 ]
-class PlayfieldController extends Instance {
+class PlayfieldController extends ModuleInstance {
 
-		#[NCA\Inject]
+	#[NCA\Inject]
 	public DB $db;
 
 	#[NCA\Inject]

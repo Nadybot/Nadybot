@@ -7,7 +7,7 @@ use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
 	DB,
-	Instance,
+	ModuleInstance,
 	Text,
 	Util,
 };
@@ -26,9 +26,9 @@ use Nadybot\Core\{
 		help: "trickle.txt"
 	)
 ]
-class TrickleController extends Instance {
+class TrickleController extends ModuleInstance {
 
-		#[NCA\Inject]
+	#[NCA\Inject]
 	public Text $text;
 
 	#[NCA\Inject]

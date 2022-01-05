@@ -7,7 +7,7 @@ use Nadybot\Core\{
 	AccessManager,
 	CmdContext,
 	CommandManager,
-	Instance,
+	ModuleInstance,
 	Nadybot,
 };
 use Nadybot\Core\ParamClass\PCharacter;
@@ -26,9 +26,9 @@ use Nadybot\Core\Routing\Character;
 		help: "runas.txt"
 	)
 ]
-class RunAsController extends Instance {
+class RunAsController extends ModuleInstance {
 
-		#[NCA\Inject]
+	#[NCA\Inject]
 	public AccessManager $accessManager;
 
 	#[NCA\Inject]

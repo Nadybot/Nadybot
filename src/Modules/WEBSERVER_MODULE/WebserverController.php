@@ -13,7 +13,7 @@ use Nadybot\Core\{
 	DB,
 	Http,
 	HttpResponse,
-	Instance,
+	ModuleInstance,
 	LoggerWrapper,
 	Registry,
 	SettingManager,
@@ -37,7 +37,7 @@ use Safe\Exceptions\StreamException;
 	),
 	NCA\Instance
 ]
-class WebserverController extends Instance {
+class WebserverController extends ModuleInstance {
 	public const AUTH_AOAUTH = "aoauth";
 	public const AUTH_BASIC = "webauth";
 

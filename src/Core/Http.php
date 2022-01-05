@@ -5,7 +5,7 @@ namespace Nadybot\Core;
 use Nadybot\Core\Attributes as NCA;
 
 #[NCA\Instance]
-class Http extends Instance {
+class Http {
 
 	#[NCA\Inject]
 	public Timer $timer;

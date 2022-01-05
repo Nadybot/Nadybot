@@ -13,7 +13,7 @@ use Throwable;
  *
  */
 #[NCA\Instance("logger")]
-class LoggerWrapper extends Instance {
+class LoggerWrapper {
 	/**
 	 * The actual Monolog logger
 	 */

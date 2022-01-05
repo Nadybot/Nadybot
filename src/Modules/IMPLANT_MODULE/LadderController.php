@@ -6,7 +6,7 @@ use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
 	DB,
-	Instance,
+	ModuleInstance,
 	Text,
 	Util,
 };
@@ -26,8 +26,8 @@ use Nadybot\Core\{
 		help: "ladder.txt"
 	)
 ]
-class LadderController extends Instance {
-		#[NCA\Inject]
+class LadderController extends ModuleInstance {
+	#[NCA\Inject]
 	public DB $db;
 
 	#[NCA\Inject]

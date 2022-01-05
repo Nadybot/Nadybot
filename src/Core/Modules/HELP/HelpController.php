@@ -10,7 +10,7 @@ use Nadybot\Core\{
 	CommandAlias,
 	CommandManager,
 	HelpManager,
-	Instance,
+	ModuleInstance,
 	Text,
 };
 
@@ -28,7 +28,7 @@ use Nadybot\Core\{
 		defaultStatus: 1
 	)
 ]
-class HelpController extends Instance {
+class HelpController extends ModuleInstance {
 
 	#[NCA\Inject]
 	public CommandManager $commandManager;

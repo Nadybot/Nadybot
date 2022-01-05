@@ -204,7 +204,7 @@ class Nadybot extends AOChat {
 		$this->db->commit();
 		$this->db->beginTransaction();
 		foreach (Registry::getAllInstances() as $name => $instance) {
-			if ($instance instanceof Instance && isset($instance->moduleName)) {
+			if ($instance instanceof ModuleInstanceInterface && $instance->getModuleName() !== "") {
 				$this->registerInstance($name, $instance);
 			} else {
 				$this->callSetupMethod($name, $instance);
@@ -1274,9 +1274,12 @@ class Nadybot extends AOChat {
 	 * In order to later easily find a module, it registers here
 	 * and other modules can get the instance by querying for $name
 	 */
-	public function registerInstance(string $name, Instance $obj): void {
-		$this->logger->info("Registering instance name '$name' for module '{$obj->moduleName}'");
-		$moduleName = $obj->moduleName;
+	public function registerInstance(string $name, ModuleInstanceInterface $obj): void {
+		$moduleName = $obj->getModuleName();
+		$this->logger->info("Registering instance name '{name}' for module '{moduleName}'", [
+			"name" => $name,
+			"moduleName" => $moduleName,
+		]);
 
 		// register settings annotated on the class
 		$reflection = new ReflectionClass($obj);

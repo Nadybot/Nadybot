@@ -7,7 +7,7 @@ use Nadybot\Core\{
 	CmdContext,
 	CommandManager,
 	EventManager,
-	Instance,
+	ModuleInstance,
 	MessageHub,
 	Nadybot,
 	Registry,
@@ -23,7 +23,7 @@ use Nadybot\Modules\{
 };
 
 #[NCA\Instance]
-class WebchatApiController extends Instance {
+class WebchatApiController extends ModuleInstance {
 	#[NCA\Inject]
 	public Nadybot $chatBot;
 

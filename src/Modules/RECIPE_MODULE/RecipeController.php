@@ -8,7 +8,7 @@ use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
 	DB,
-	Instance,
+	ModuleInstance,
 	ParamClass\PItem,
 	Text,
 	Util,
@@ -34,9 +34,9 @@ use Safe\Exceptions\DirException;
 		help: "recipe.txt"
 	)
 ]
-class RecipeController extends Instance {
+class RecipeController extends ModuleInstance {
 
-		#[NCA\Inject]
+	#[NCA\Inject]
 	public DB $db;
 
 	#[NCA\Inject]

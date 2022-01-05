@@ -11,7 +11,7 @@ use Nadybot\Core\{
 	ConfigFile,
 	DB,
 	EventManager,
-	Instance,
+	ModuleInstance,
 	LoggerWrapper,
 	MessageHub,
 	Nadybot,
@@ -47,10 +47,10 @@ use Safe\Exceptions\FilesystemException;
 		alias: "profiles"
 	)
 ]
-class ProfileController extends Instance {
+class ProfileController extends ModuleInstance {
 	public const FILE_EXT = ".txt";
 
-		#[NCA\Inject]
+	#[NCA\Inject]
 	public DB $db;
 
 	#[NCA\Inject]

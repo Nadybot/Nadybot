@@ -5,7 +5,7 @@ namespace Nadybot\Modules\BESTQL_MODULE;
 use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{
 	CmdContext,
-	Instance,
+	ModuleInstance,
 	SettingManager,
 	Text,
 };
@@ -25,9 +25,9 @@ use Nadybot\Core\ParamClass\PItem;
 		alias: "breakpoints"
 	)
 ]
-class BestQLController extends Instance {
+class BestQLController extends ModuleInstance {
 
-		#[NCA\Inject]
+	#[NCA\Inject]
 	public Text $text;
 
 	#[NCA\Inject]

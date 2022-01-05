@@ -17,7 +17,7 @@ use Nadybot\Core\{
 	CmdContext,
 	CommandReply,
 	DB,
-	Instance,
+	ModuleInstance,
 	LoggerWrapper,
 	Modules\BAN\BanController,
 	Nadybot,
@@ -55,7 +55,7 @@ use Throwable;
 		help: "startpage.txt"
 	)
 ]
-class StartpageController extends Instance {
+class StartpageController extends ModuleInstance {
 	#[NCA\Inject]
 	public DB $db;
 

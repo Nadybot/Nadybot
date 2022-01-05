@@ -8,7 +8,7 @@ use Nadybot\Core\{
 	CmdContext,
 	CommandAlias,
 	DB,
-	Instance,
+	ModuleInstance,
 };
 
 /**
@@ -41,8 +41,8 @@ use Nadybot\Core\{
 		alias: "sk"
 	)
 ]
-class LevelController extends Instance {
-		#[NCA\Inject]
+class LevelController extends ModuleInstance {
+	#[NCA\Inject]
 	public DB $db;
 
 	#[NCA\Inject]

@@ -9,7 +9,7 @@ use Nadybot\Core\{
 	CommandReply,
 	DB,
 	DBSchema\Player,
-	Instance,
+	ModuleInstance,
 	Modules\PLAYER_LOOKUP\Guild,
 	Modules\PLAYER_LOOKUP\GuildManager,
 	Text,
@@ -28,8 +28,8 @@ use Nadybot\Core\{
 		help: "orgmembers.txt"
 	)
 ]
-class OrgMembersController extends Instance {
-		#[NCA\Inject]
+class OrgMembersController extends ModuleInstance {
+	#[NCA\Inject]
 	public DB $db;
 
 	#[NCA\Inject]

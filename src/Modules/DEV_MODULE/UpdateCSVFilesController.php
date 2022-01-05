@@ -12,7 +12,7 @@ use Nadybot\Core\{
 	DB,
 	Http,
 	HttpResponse,
-	Instance,
+	ModuleInstance,
 	SettingManager,
 };
 use Nadybot\Core\DBSchema\Setting;
@@ -31,8 +31,8 @@ use Safe\Exceptions\FilesystemException;
 		help: "updatecsv.txt"
 	)
 ]
-class UpdateCSVFilesController extends Instance {
-		#[NCA\Inject]
+class UpdateCSVFilesController extends ModuleInstance {
+	#[NCA\Inject]
 	public Http $http;
 
 	#[NCA\Inject]

@@ -12,7 +12,7 @@ use Nadybot\Core\{
 	DB,
 	Http,
 	HttpResponse,
-	Instance,
+	ModuleInstance,
 	LoggerWrapper,
 	Nadybot,
 	SQLException,
@@ -35,8 +35,8 @@ use Nadybot\Core\{
 		help: "findorg.txt"
 	)
 ]
-class FindOrgController extends Instance {
-		#[NCA\Inject]
+class FindOrgController extends ModuleInstance {
+	#[NCA\Inject]
 	public DB $db;
 
 	#[NCA\Inject]

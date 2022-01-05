@@ -8,7 +8,7 @@ use Nadybot\Core\{
 	ConfigFile,
 	DB,
 	DBSchema\Player,
-	Instance,
+	ModuleInstance,
 	Modules\PLAYER_LOOKUP\Guild,
 	Modules\PLAYER_LOOKUP\GuildManager,
 	Modules\PLAYER_LOOKUP\PlayerManager,
@@ -32,8 +32,8 @@ use Nadybot\Modules\ONLINE_MODULE\OnlineController;
 		help: "whoisorg.txt"
 	)
 ]
-class WhoisOrgController extends Instance {
-		#[NCA\Inject]
+class WhoisOrgController extends ModuleInstance {
+	#[NCA\Inject]
 	public DB $db;
 
 	#[NCA\Inject]

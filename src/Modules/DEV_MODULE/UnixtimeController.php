@@ -4,7 +4,7 @@ namespace Nadybot\Modules\DEV_MODULE;
 
 use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\CmdContext;
-use Nadybot\Core\Instance;
+use Nadybot\Core\ModuleInstance;
 use Nadybot\Core\Util;
 
 /**
@@ -20,9 +20,9 @@ use Nadybot\Core\Util;
 		help: "unixtime.txt"
 	)
 ]
-class UnixtimeController extends Instance {
+class UnixtimeController extends ModuleInstance {
 
-		#[NCA\Inject]
+	#[NCA\Inject]
 	public Util $util;
 
 	#[NCA\HandlesCommand("unixtime")]

@@ -11,7 +11,7 @@ use Nadybot\Core\{
 	DB,
 	DBSchema\Player,
 	EventManager,
-	Instance,
+	ModuleInstance,
 	Modules\PLAYER_LOOKUP\PlayerManager,
 	Modules\ALTS\AltsController,
 	Nadybot,
@@ -42,7 +42,7 @@ use Nadybot\Modules\ONLINE_MODULE\OnlineController;
 	NCA\ProvidesEvent("raid(join)"),
 	NCA\ProvidesEvent("raid(leave)")
 ]
-class RaidMemberController extends Instance {
+class RaidMemberController extends ModuleInstance {
 	public const DB_TABLE = "raid_member_<myname>";
 	#[NCA\Inject]
 	public DB $db;

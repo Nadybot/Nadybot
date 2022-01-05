@@ -16,7 +16,7 @@ use ReflectionMethod;
 use Throwable;
 
 #[NCA\Instance]
-class MessageHub extends Instance {
+class MessageHub {
 	public const EVENT_NOT_ROUTED = 0;
 	public const EVENT_DISCARDED = 1;
 	public const EVENT_DELIVERED = 2;

@@ -12,7 +12,7 @@ use Nadybot\Core\{
 	CommandAlias,
 	ConfigFile,
 	DB,
-	Instance,
+	ModuleInstance,
 	LoggerWrapper,
 	MessageHub,
 	Nadybot,
@@ -42,11 +42,11 @@ use Nadybot\Modules\COMMENT_MODULE\CommentController;
 		help: "tradecolor.txt"
 	)
 ]
-class TradebotController extends Instance {
+class TradebotController extends ModuleInstance {
 	public const NONE = 'None';
 	public const DB_TABLE = "tradebot_colors_<myname>";
 
-		#[NCA\Inject]
+	#[NCA\Inject]
 	public CommandAlias $commandAlias;
 
 	#[NCA\Inject]

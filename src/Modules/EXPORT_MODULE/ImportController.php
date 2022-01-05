@@ -11,7 +11,7 @@ use Nadybot\Core\{
 	CmdContext,
 	ConfigFile,
 	DB,
-	Instance,
+	ModuleInstance,
 	LoggerWrapper,
 	Modules\BAN\BanController,
 	Modules\PREFERENCES\Preferences,
@@ -63,8 +63,8 @@ use Throwable;
 		help: "export.txt"
 	)
 ]
-class ImportController extends Instance {
-		#[NCA\Inject]
+class ImportController extends ModuleInstance {
+	#[NCA\Inject]
 	public Nadybot $chatBot;
 
 	#[NCA\Inject]

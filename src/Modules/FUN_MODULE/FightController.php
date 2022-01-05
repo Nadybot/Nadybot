@@ -5,7 +5,7 @@ namespace Nadybot\Modules\FUN_MODULE;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
-	Instance,
+	ModuleInstance,
 	ParamClass\PCharacter,
 	Text,
 	Util,
@@ -25,9 +25,9 @@ use Nadybot\Core\{
 		help: "fun_module.txt"
 	)
 ]
-class FightController extends Instance {
+class FightController extends ModuleInstance {
 
-		#[NCA\Inject]
+	#[NCA\Inject]
 	public Text $text;
 
 	#[NCA\Inject]

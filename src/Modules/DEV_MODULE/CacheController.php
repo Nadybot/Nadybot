@@ -7,7 +7,7 @@ use Nadybot\Core\{
 	CacheManager,
 	CmdContext,
 	ConfigFile,
-	Instance,
+	ModuleInstance,
 	Nadybot,
 	ParamClass\PFilename,
 	ParamClass\PRemove,
@@ -28,8 +28,8 @@ use Nadybot\Core\{
 		help: "cache.txt"
 	)
 ]
-class CacheController extends Instance {
-		#[NCA\Inject]
+class CacheController extends ModuleInstance {
+	#[NCA\Inject]
 	public CacheManager $cacheManager;
 
 	#[NCA\Inject]

@@ -6,7 +6,7 @@ use Exception;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
-	Instance,
+	ModuleInstance,
 	Nadybot,
 	Text,
 };
@@ -24,8 +24,8 @@ use Nadybot\Core\{
 		help: "implant.txt"
 	)
 ]
-class ImplantController extends Instance {
-		#[NCA\Inject]
+class ImplantController extends ModuleInstance {
+	#[NCA\Inject]
 	public Nadybot $chatBot;
 
 	#[NCA\Inject]

@@ -9,7 +9,7 @@ use Nadybot\Core\{
 	CmdContext,
 	CommandReply,
 	DBSchema\Player,
-	Instance,
+	ModuleInstance,
 	Modules\ALTS\AltsController,
 	Modules\PLAYER_LOOKUP\PlayerManager,
 	Modules\PLAYER_LOOKUP\GuildManager,
@@ -62,11 +62,11 @@ use Nadybot\Core\ParamClass\PRemove;
 		alias: "orgbans"
 	)
 ]
-class BanController extends Instance {
+class BanController extends ModuleInstance {
 	public const DB_TABLE = "banlist_<myname>";
 	public const DB_TABLE_BANNED_ORGS = "banned_orgs_<myname>";
 
-		#[NCA\Inject]
+	#[NCA\Inject]
 	public AccessManager $accessManager;
 
 	#[NCA\Inject]

@@ -8,7 +8,7 @@ use Nadybot\Core\{
 	CmdContext,
 	ConfigFile,
 	DB,
-	Instance,
+	ModuleInstance,
 	Nadybot,
 	ParamClass\PRemove,
 	Text,
@@ -30,8 +30,8 @@ use Nadybot\Core\{
 		help: "quote.txt"
 	)
 ]
-class QuoteController extends Instance {
-		#[NCA\Inject]
+class QuoteController extends ModuleInstance {
+	#[NCA\Inject]
 	public DB $db;
 
 	#[NCA\Inject]

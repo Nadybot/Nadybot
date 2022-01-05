@@ -8,7 +8,7 @@ use Nadybot\Core\{
 	AOChatEvent,
 	CmdContext,
 	DB,
-	Instance,
+	ModuleInstance,
 	ParamClass\PCharacter,
 	Text,
 	Util,
@@ -34,11 +34,11 @@ use Nadybot\Modules\WEBSERVER_MODULE\{
 		help: "orghistory.txt"
 	)
 ]
-class OrgHistoryController extends Instance {
+class OrgHistoryController extends ModuleInstance {
 
 	public const DB_TABLE = "org_history";
 
-		#[NCA\Inject]
+	#[NCA\Inject]
 	public DB $db;
 
 	#[NCA\Inject]

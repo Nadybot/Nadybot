@@ -7,7 +7,7 @@ use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	CmdContext,
 	DB,
-	Instance,
+	ModuleInstance,
 	SettingManager,
 	Text,
 	Util,
@@ -37,9 +37,9 @@ use Safe\Exceptions\FilesystemException;
 		alias: "updatebank"
 	)
 ]
-class BankController extends Instance {
+class BankController extends ModuleInstance {
 
-		#[NCA\Inject]
+	#[NCA\Inject]
 	public DB $db;
 
 	#[NCA\Inject]

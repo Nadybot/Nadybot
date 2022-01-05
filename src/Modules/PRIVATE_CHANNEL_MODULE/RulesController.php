@@ -7,7 +7,7 @@ use Nadybot\Core\{
 	AOChatEvent,
 	CmdContext,
 	ConfigFile,
-	Instance,
+	ModuleInstance,
 	Nadybot,
 	Text,
 };
@@ -26,9 +26,9 @@ use Safe\Exceptions\FilesystemException;
 		help: "rules.txt"
 	)
 ]
-class RulesController extends Instance {
+class RulesController extends ModuleInstance {
 
-		#[NCA\Inject]
+	#[NCA\Inject]
 	public Text $text;
 
 	#[NCA\Inject]

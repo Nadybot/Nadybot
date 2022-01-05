@@ -7,7 +7,7 @@ use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
 	DB,
-	Instance,
+	ModuleInstance,
 	Text,
 	Util,
 };
@@ -28,9 +28,9 @@ use Nadybot\Modules\HELPBOT_MODULE\PlayfieldController;
 		help: "whereis.txt"
 	)
 ]
-class WhereisController extends Instance {
+class WhereisController extends ModuleInstance {
 
-		#[NCA\Inject]
+	#[NCA\Inject]
 	public Text $text;
 
 	#[NCA\Inject]

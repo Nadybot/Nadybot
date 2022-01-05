@@ -11,7 +11,7 @@ use Nadybot\Core\{
 	CommandAlias,
 	CommandManager,
 	DB,
-	Instance,
+	ModuleInstance,
 	Nadybot,
 	SettingManager,
 	Text,
@@ -149,8 +149,8 @@ use Nadybot\Modules\ITEMS_MODULE\ItemsController;
 		help: "xan.txt"
 	)
 ]
-class LootListsController extends Instance {
-		#[NCA\Inject]
+class LootListsController extends ModuleInstance {
+	#[NCA\Inject]
 	public Nadybot $chatBot;
 
 	#[NCA\Inject]

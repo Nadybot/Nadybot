@@ -9,7 +9,7 @@ use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
 	DB,
-	Instance,
+	ModuleInstance,
 	SettingManager,
 	Text,
 	Util,
@@ -52,9 +52,9 @@ use Nadybot\Core\{
 		help: "nano.txt"
 	)
 ]
-class NanoController extends Instance {
+class NanoController extends ModuleInstance {
 
-		#[NCA\Inject]
+	#[NCA\Inject]
 	public DB $db;
 
 	#[NCA\Inject]

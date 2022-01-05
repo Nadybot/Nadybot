@@ -6,7 +6,7 @@ use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
 	DB,
-	Instance,
+	ModuleInstance,
 	Modules\ALTS\AltsController,
 	Nadybot,
 	ParamClass\PCharacter,
@@ -36,7 +36,7 @@ use Nadybot\Core\{
 		help: "raidblock.txt"
 	)
 ]
-class RaidBlockController extends Instance {
+class RaidBlockController extends ModuleInstance {
 	public const DB_TABLE = "raid_block_<myname>";
 	public const POINTS_GAIN = "points";
 	public const JOIN_RAIDS = "join";

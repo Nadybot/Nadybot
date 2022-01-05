@@ -7,7 +7,7 @@ use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	CmdContext,
 	DB,
-	Instance,
+	ModuleInstance,
 	Text,
 };
 
@@ -23,7 +23,7 @@ use Nadybot\Core\{
 		help: "check.txt"
 	)
 ]
-class ChatCheckController extends Instance {
+class ChatCheckController extends ModuleInstance {
 
 	#[NCA\Inject]
 	public DB $db;

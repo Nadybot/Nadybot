@@ -16,7 +16,7 @@ use Nadybot\Modules\PRIVATE_CHANNEL_MODULE\PrivateChannelController;
  *
  */
 #[NCA\Instance]
-class AccessManager extends Instance {
+class AccessManager {
 	public const DB_TABLE = "audit_<myname>";
 	public const ADD_RANK = "add-rank";
 	public const DEL_RANK = "del-rank";

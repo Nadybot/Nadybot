@@ -5,7 +5,7 @@ namespace Nadybot\Modules\WORLDBOSS_MODULE;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
-	Instance,
+	ModuleInstance,
 	Text,
 };
 
@@ -23,8 +23,8 @@ use Nadybot\Core\{
 		help: "gauntlet.txt"
 	)
 ]
-class GauntletTradeController extends Instance {
-		#[NCA\Inject]
+class GauntletTradeController extends ModuleInstance {
+	#[NCA\Inject]
 	public Text $text;
 
 	#[NCA\HandlesCommand("gautrade")]

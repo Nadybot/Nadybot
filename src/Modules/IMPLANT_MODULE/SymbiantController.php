@@ -8,7 +8,7 @@ use Nadybot\Core\{
 	CmdContext,
 	DB,
 	DBSchema\Player,
-	Instance,
+	ModuleInstance,
 	Modules\PLAYER_LOOKUP\PlayerManager,
 	ParamClass\PWord,
 	Text,
@@ -39,9 +39,9 @@ use Nadybot\Modules\ITEMS_MODULE\{
 		help: "bestsymbiants.txt"
 	)
 ]
-class SymbiantController extends Instance {
+class SymbiantController extends ModuleInstance {
 
-		#[NCA\Inject]
+	#[NCA\Inject]
 	public PlayerManager $playerManager;
 
 	#[NCA\Inject]

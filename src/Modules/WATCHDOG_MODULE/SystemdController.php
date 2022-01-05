@@ -7,7 +7,7 @@ use Nadybot\Core\{
 	Attributes as NCA,
 	Event,
 	EventManager,
-	Instance,
+	ModuleInstance,
 };
 
 /**
@@ -16,8 +16,8 @@ use Nadybot\Core\{
  */
 
 #[NCA\Instance]
-class SystemdController extends Instance {
-		#[NCA\Inject]
+class SystemdController extends ModuleInstance {
+	#[NCA\Inject]
 	public EventManager $eventManager;
 
 	public const EINVAL = 22;

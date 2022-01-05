@@ -6,7 +6,7 @@ use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{
 	AccessManager,
 	CmdContext,
-	Instance,
+	ModuleInstance,
 	Nadybot,
 	SettingManager,
 	Text,
@@ -40,7 +40,7 @@ use Nadybot\Modules\RELAY_MODULE\RelayController;
 		help: "discord.txt"
 	)
 ]
-class DiscordRelayController extends Instance {
+class DiscordRelayController extends ModuleInstance {
 	#[NCA\Inject]
 	public DiscordGatewayController $discordGatewayController;
 

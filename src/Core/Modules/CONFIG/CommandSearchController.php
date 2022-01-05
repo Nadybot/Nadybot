@@ -9,7 +9,7 @@ use Nadybot\Core\{
 	CmdContext,
 	CommandManager,
 	DB,
-	Instance,
+	ModuleInstance,
 	Nadybot,
 	SQLException,
 	Text,
@@ -30,7 +30,7 @@ use Nadybot\Core\DBSchema\CommandSearchResult;
 		alias: "searchcmd"
 	)
 ]
-class CommandSearchController extends Instance {
+class CommandSearchController extends ModuleInstance {
 
 	#[NCA\Inject]
 	public Nadybot $chatBot;

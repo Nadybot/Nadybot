@@ -12,7 +12,7 @@ use Nadybot\Core\{
 	CommandManager,
 	DB,
 	EventManager,
-	Instance,
+	ModuleInstance,
 	LoggerWrapper,
 	Nadybot,
 	ParamClass\PRemove,
@@ -41,7 +41,7 @@ use ReflectionAttribute;
 	),
 	NCA\ProvidesEvent("cmdreply")
 ]
-class ApiController extends Instance {
+class ApiController extends ModuleInstance {
 	public const DB_TABLE = "api_key_<myname>";
 	#[NCA\Inject]
 	public WebserverController $webserverController;

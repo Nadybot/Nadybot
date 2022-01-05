@@ -7,7 +7,7 @@ use Exception;
 use Nadybot\Core\{
 	CmdContext,
 	DB,
-	Instance,
+	ModuleInstance,
 	LoggerWrapper,
 	Text,
 };
@@ -40,9 +40,9 @@ use Nadybot\Modules\ITEMS_MODULE\ItemsController;
 		alias: "biotype"
 	)
 ]
-class AlienBioController extends Instance {
+class AlienBioController extends ModuleInstance {
 
-		#[NCA\Inject]
+	#[NCA\Inject]
 	public DB $db;
 
 	#[NCA\Inject]

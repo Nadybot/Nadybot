@@ -14,7 +14,7 @@ use Nadybot\Core\{
 	DBSchema\Alt,
 	DBSchema\Admin,
 	DBSchema\Member,
-	Instance,
+	ModuleInstance,
 	Modules\BAN\BanController,
 	Modules\PREFERENCES\Preferences,
 	Nadybot,
@@ -74,9 +74,9 @@ use stdClass;
 		help: "export.txt"
 	)
 ]
-class ExportController extends Instance {
+class ExportController extends ModuleInstance {
 
-		#[NCA\Inject]
+	#[NCA\Inject]
 	public Nadybot $chatBot;
 
 	#[NCA\Inject]

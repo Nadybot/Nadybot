@@ -14,7 +14,7 @@ use Nadybot\Core\{
 	DB,
 	Event,
 	EventManager,
-	Instance,
+	ModuleInstance,
 	LoggerWrapper,
 	Modules\ALTS\AltsController,
 	Modules\PLAYER_LOOKUP\PlayerManager,
@@ -55,7 +55,7 @@ use Nadybot\Modules\{
 	NCA\ProvidesEvent("online(org)"),
 	NCA\ProvidesEvent("offline(org)")
 ]
-class OnlineController extends Instance {
+class OnlineController extends ModuleInstance {
 	protected const GROUP_OFF = 0;
 	protected const GROUP_BY_MAIN = 1;
 	protected const GROUP_BY_ORG = 1;
@@ -71,7 +71,7 @@ class OnlineController extends Instance {
 	protected const RAID_NOT_IN = 2;
 	protected const RAID_COMPACT = 4;
 
-		#[NCA\Inject]
+	#[NCA\Inject]
 	public DB $db;
 
 	#[NCA\Inject]

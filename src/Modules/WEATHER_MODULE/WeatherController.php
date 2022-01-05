@@ -8,7 +8,7 @@ use Nadybot\Core\{
 	CmdContext,
 	Http,
 	HttpResponse,
-	Instance,
+	ModuleInstance,
 	Text,
 };
 
@@ -25,9 +25,9 @@ use Nadybot\Core\{
 		help: "weather.txt"
 	)
 ]
-class WeatherController extends Instance {
+class WeatherController extends ModuleInstance {
 
-		#[NCA\Inject]
+	#[NCA\Inject]
 	public Text $text;
 
 	#[NCA\Inject]

@@ -6,7 +6,7 @@ use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
 	DB,
-	Instance,
+	ModuleInstance,
 	ParamClass\PNonNumber,
 	ParamClass\PNumRange,
 	Text,
@@ -32,8 +32,8 @@ use Nadybot\Modules\{
 		help: "spirits.txt"
 	)
 ]
-class SpiritsController extends Instance {
-		#[NCA\Inject]
+class SpiritsController extends ModuleInstance {
+	#[NCA\Inject]
 	public DB $db;
 
 	#[NCA\Inject]

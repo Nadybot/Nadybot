@@ -11,7 +11,7 @@ use Nadybot\Core\{
 	CmdContext,
 	CommandAlias,
 	DB,
-	Instance,
+	ModuleInstance,
 	LoggerWrapper,
 	Modules\ALTS\AltsController,
 	Modules\ALTS\AltEvent,
@@ -88,7 +88,7 @@ use Nadybot\Core\{
 		help: "reward.txt"
 	)
 ]
-class RaidPointsController extends Instance {
+class RaidPointsController extends ModuleInstance {
 	public const DB_TABLE = "raid_points_<myname>";
 	public const DB_TABLE_LOG = "raid_points_log_<myname>";
 	public const DB_TABLE_REWARD = "raid_reward_<myname>";

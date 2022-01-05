@@ -16,7 +16,7 @@ use Nadybot\Core\{
 	DBSchema\Player,
 	EventManager,
 	Http,
-	Instance,
+	ModuleInstance,
 	LoggerWrapper,
 	MessageEmitter,
 	MessageHub,
@@ -141,7 +141,7 @@ use Nadybot\Modules\{
 		desc: "Triggered when marking a site as in need of scouting",
 	)
 ]
-class TowerController extends Instance {
+class TowerController extends ModuleInstance {
 
 	public const DB_HOT = "tower_site_hot_<myname>";
 	public const DB_TOWER_ATTACK = "tower_attack_<myname>";
@@ -162,7 +162,7 @@ class TowerController extends Instance {
 		226 => 7,
 	];
 
-		#[NCA\Inject]
+	#[NCA\Inject]
 	public PlayfieldController $playfieldController;
 
 	#[NCA\Inject]

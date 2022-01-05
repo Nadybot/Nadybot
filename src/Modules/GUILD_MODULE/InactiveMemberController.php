@@ -7,7 +7,7 @@ use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
 	DB,
-	Instance,
+	ModuleInstance,
 	Modules\ALTS\AltsController,
 	ParamClass\PDuration,
 	Text,
@@ -28,9 +28,9 @@ use Nadybot\Core\{
 		help: "inactivemem.txt"
 	)
 ]
-class InactiveMemberController extends Instance {
+class InactiveMemberController extends ModuleInstance {
 
-		#[NCA\Inject]
+	#[NCA\Inject]
 	public DB $db;
 
 	#[NCA\Inject]

@@ -6,7 +6,7 @@ use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
 	EventManager,
-	Instance,
+	ModuleInstance,
 	Nadybot,
 };
 
@@ -41,7 +41,7 @@ use Nadybot\Core\{
 	NCA\ProvidesEvent("leadersay"),
 	NCA\ProvidesEvent("leadercmd")
 ]
-class ChatSayController extends Instance {
+class ChatSayController extends ModuleInstance {
 
 	#[NCA\Inject]
 	public Nadybot $chatBot;

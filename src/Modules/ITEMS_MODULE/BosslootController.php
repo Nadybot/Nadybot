@@ -7,7 +7,7 @@ use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
 	DB,
-	Instance,
+	ModuleInstance,
 	LoggerWrapper,
 	Text,
 	Util,
@@ -37,8 +37,8 @@ use Nadybot\Modules\WHEREIS_MODULE\{
 		help: "boss.txt"
 	)
 ]
-class BosslootController extends Instance {
-		#[NCA\Inject]
+class BosslootController extends ModuleInstance {
+	#[NCA\Inject]
 	public DB $db;
 
 	#[NCA\Inject]

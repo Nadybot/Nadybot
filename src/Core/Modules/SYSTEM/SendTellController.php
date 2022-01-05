@@ -5,7 +5,7 @@ namespace Nadybot\Core\Modules\SYSTEM;
 use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{
 	CmdContext,
-	Instance,
+	ModuleInstance,
 	LoggerWrapper,
 	Nadybot,
 	QueueInterface,
@@ -25,7 +25,7 @@ use Nadybot\Core\ParamClass\PCharacter;
 		help: "sendtell.txt"
 	)
 ]
-class SendTellController extends Instance {
+class SendTellController extends ModuleInstance {
 
 		#[NCA\Logger]
 	public LoggerWrapper $logger;

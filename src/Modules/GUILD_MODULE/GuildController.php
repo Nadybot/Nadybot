@@ -12,7 +12,7 @@ use Nadybot\Core\{
 	DB,
 	DBSchema\Player,
 	Event,
-	Instance,
+	ModuleInstance,
 	LoggerWrapper,
 	MessageHub,
 	Modules\ALTS\AltsController,
@@ -81,11 +81,11 @@ use Nadybot\Core\{
 		help: "updateorg.txt"
 	)
 ]
-class GuildController extends Instance {
+class GuildController extends ModuleInstance {
 
 	public const DB_TABLE = "org_members_<myname>";
 
-		#[NCA\Inject]
+	#[NCA\Inject]
 	public DB $db;
 
 	#[NCA\Inject]

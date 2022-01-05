@@ -10,7 +10,7 @@ use Nadybot\Core\{
 	DB,
 	Event,
 	EventManager,
-	Instance,
+	ModuleInstance,
 	Modules\ALTS\AltsController,
 	Nadybot,
 	PrivateChannelCommandReply,
@@ -47,11 +47,11 @@ use Nadybot\Modules\RAID_MODULE\RaidController;
 	NCA\ProvidesEvent("raffle(join)"),
 	NCA\ProvidesEvent("raffle(leave)")
 ]
-class RaffleController extends Instance {
+class RaffleController extends ModuleInstance {
 	public const DB_TABLE = "raffle_bonus_<myname>";
 	public const NO_RAFFLE_ERROR = "There is no active raffle.";
 
-		#[NCA\Inject]
+	#[NCA\Inject]
 	public SettingManager $settingManager;
 
 	#[NCA\Inject]

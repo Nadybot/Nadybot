@@ -11,7 +11,7 @@ use Nadybot\Core\{
 	CmdContext,
 	Http,
 	HttpResponse,
-	Instance,
+	ModuleInstance,
 	Text,
 };
 use Nadybot\Modules\ITEMS_MODULE\AODBEntry;
@@ -31,9 +31,9 @@ use Throwable;
 		help: "aou.txt"
 	)
 ]
-class AOUController extends Instance {
+class AOUController extends ModuleInstance {
 
-		#[NCA\Inject]
+	#[NCA\Inject]
 	public Text $text;
 
 	#[NCA\Inject]

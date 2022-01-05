@@ -14,7 +14,7 @@ use Nadybot\Core\{
 	EventManager,
 	Http,
 	HttpResponse,
-	Instance,
+	ModuleInstance,
 	LoggerWrapper,
 	MessageEmitter,
 	MessageHub,
@@ -40,7 +40,7 @@ use ZipArchive;
 	NCA\Instance,
 	NCA\HasMigrations
 ]
-class WebUiController extends Instance implements MessageEmitter {
+class WebUiController extends ModuleInstance implements MessageEmitter {
 	#[NCA\Inject]
 	public Http $http;
 
