@@ -2,24 +2,25 @@
 
 namespace Nadybot\Modules\RAID_MODULE;
 
-use Nadybot\Core\Attributes as NCA;
-use DateTime;
-use Exception;
+use Safe\DateTime;
+use InvalidArgumentException;
 use Nadybot\Core\{
+	Attributes as NCA,
 	CmdContext,
 	CommandAlias,
 	CommandReply,
 	DB,
 	EventManager,
+	ModuleInstance,
 	LoggerWrapper,
 	Nadybot,
+	ParamClass\PCharacter,
 	SettingManager,
 	Text,
 	Timer,
 	TimerEvent,
 	Util,
 };
-use Nadybot\Core\ParamClass\PCharacter;
 use Nadybot\Modules\RAFFLE_MODULE\RaffleItem;
 
 /**
@@ -54,12 +55,9 @@ use Nadybot\Modules\RAFFLE_MODULE\RaffleItem;
 	NCA\ProvidesEvent("auction(cancel)"),
 	NCA\ProvidesEvent("auction(bid)")
 ]
-class AuctionController {
+class AuctionController extends ModuleInstance {
 	public const DB_TABLE = "auction_<myname>";
 	public const ERR_NO_AUCTION = "There's currently nothing being auctioned.";
-
-	public string $moduleName;
-
 	#[NCA\Inject]
 	public DB $db;
 
@@ -438,7 +436,7 @@ class AuctionController {
 		} else {
 			$this->db->addWhereFromParams(
 				$query,
-				preg_split('/\s+/', $search),
+				\Safe\preg_split('/\s+/', $search),
 				'item'
 			);
 		}
@@ -473,6 +471,7 @@ class AuctionController {
 		$context->reply($blob);
 	}
 
+	/** @param DBAuction[] $items */
 	public function renderAuctionList(array $items): string {
 		$result = [];
 		foreach ($items as $item) {
@@ -650,6 +649,11 @@ class AuctionController {
 			"Slowly increasing your bid might cost you points!";
 	}
 
+	/**
+	 * @return string[]
+	 * @psalm-return array{0:string, 1:string}
+	 * @phpstan-return array{0:string, 1:string}
+	 */
 	public function getAnnouncementBorders(): array {
 		$layout = $this->settingManager->getInt('auction_announcement_layout');
 		$shortDash = str_repeat("-", 25);
@@ -678,7 +682,6 @@ class AuctionController {
 			default:
 				return ["", ""];
 		}
-		return ["", ""];
 	}
 
 	public function getAuctionAnnouncement(Auction $auction): string {
@@ -724,6 +727,9 @@ class AuctionController {
 	}
 
 	protected function rainbow(string $text, int $length=1): string {
+		if ($length < 1) {
+			throw new InvalidArgumentException("Argument\$length to " . __FUNCTION__ . "() cannot be less than 1");
+		}
 		$colors = [
 			"FF0000",
 			"FFa500",
@@ -733,9 +739,6 @@ class AuctionController {
 			"EE82EE",
 		];
 		$chars = str_split($text, $length);
-		if ($chars === false) {
-			throw new Exception("Unknown error drawing a rainbow.");
-		}
 		$result = "";
 		for ($i = 0; $i < count($chars); $i++) {
 			$result .= "<font color=#" . $colors[$i % count($colors)] . ">{$chars[$i]}</font>";
@@ -768,7 +771,6 @@ class AuctionController {
 			default:
 				return $line1;
 		}
-		return "Someone won something. And some admin misconfigured something.";
 	}
 
 	#[NCA\Event(

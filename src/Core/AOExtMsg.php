@@ -10,6 +10,7 @@ namespace Nadybot\Core;
  */
 
 class AOExtMsg {
+	/** @var mixed[] */
 	public array $args;
 	public int $category;
 	public int $instance;

@@ -10,6 +10,7 @@ use Nadybot\Core\{
 	CmdContext,
 	DB,
 	DBSchema\Audit,
+	ModuleInstance,
 	QueryBuilder,
 	SettingManager,
 	Text,
@@ -33,13 +34,7 @@ use Nadybot\Modules\WEBSERVER_MODULE\{
 		help: "audit.txt"
 	)
 ]
-class AuditController {
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
-
+class AuditController extends ModuleInstance {
 	#[NCA\Inject]
 	public DB $db;
 
@@ -67,6 +62,9 @@ class AuditController {
 		);
 	}
 
+	/**
+	 * @param array<mixed> $params
+	 */
 	protected function parseParams(QueryBuilder $query, string $args, array &$params): ?string {
 		$keys = [
 			"limit", "offset", "before", "after", "actor", "actee", "action"
@@ -119,12 +117,19 @@ class AuditController {
 
 		$action = $params["action"]??null;
 		if (isset($action)) {
-			$query->whereIn("action", preg_split("/\s*,\s*/", strtolower($action)));
+			$query->whereIn("action", \Safe\preg_split("/\s*,\s*/", strtolower($action)));
 		}
 
 		return null;
 	}
 
+	/**
+	 * @param Collection<mixed> $data
+	 * @param array<string,mixed> $params
+	 * @return string[]
+	 * @psalm-return array{0: ?string, 1: ?string}
+	 * @phpstan-return array{0: ?string, 1: ?string}
+	 */
 	protected function getPrevNextLinks(Collection $data, array $params): array {
 		$prevLink = $nextLink = null;
 		if ($params["offset"] > 0) {

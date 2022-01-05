@@ -7,6 +7,7 @@ use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	CmdContext,
 	DB,
+	ModuleInstance,
 	Text,
 };
 
@@ -22,7 +23,7 @@ use Nadybot\Core\{
 		help: "check.txt"
 	)
 ]
-class ChatCheckController {
+class ChatCheckController extends ModuleInstance {
 
 	#[NCA\Inject]
 	public DB $db;
@@ -42,8 +43,7 @@ class ChatCheckController {
 			->where("added_by", $this->db->getBotname())
 			->where("channel_type", self::CHANNEL_TYPE)
 			->select("name")
-			->asObj()
-			->pluck("name");
+			->pluckAs("name", "string");
 		$content = "";
 		if ($data->count() === 0) {
 			$msg = "There's no one to check online.";

@@ -9,7 +9,7 @@ use RuntimeException;
 
 class Registry {
 	/** @var array<string,object> */
-	private static array $repo = [];
+	protected static array $repo = [];
 
 	protected static ?LoggerWrapper $logger = null;
 

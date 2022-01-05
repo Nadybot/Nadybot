@@ -8,6 +8,7 @@ use Nadybot\Core\{
 	CmdContext,
 	DB,
 	Http,
+	ModuleInstance,
 	LoggerWrapper,
 	Nadybot,
 	SettingManager,
@@ -41,10 +42,7 @@ use Nadybot\Core\{
 		help: "items.txt"
 	)
 ]
-class ItemsController {
-
-	public string $moduleName;
-
+class ItemsController extends ModuleInstance {
 	#[NCA\Inject]
 	public DB $db;
 
@@ -66,6 +64,9 @@ class ItemsController {
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
+	/** @var array<int,Skill> */
+	private array $skills = [];
+
 	#[NCA\Setup]
 	public function setup(): void {
 		$this->db->loadCSVFile($this->moduleName, __DIR__ . "/aodb.csv");
@@ -81,6 +82,10 @@ class ItemsController {
 			value: '40',
 			options: '30;40;50;60'
 		);
+		$this->skills = $this->db->table("skills")
+			->asObj(Skill::class)
+			->keyBy("id")
+			->toArray();
 	}
 
 	#[NCA\HandlesCommand("items")]
@@ -91,15 +96,17 @@ class ItemsController {
 
 	#[NCA\HandlesCommand("itemid")]
 	public function itemIdCommand(CmdContext $context, int $id): void {
-		$row = $this->findById($id);
+		$row = ItemSearchResult::fromItem($this->findById($id));
 		if ($row === null) {
 			$msg = "No item found with id <highlight>$id<end>.";
 			$context->reply($msg);
 			return;
 		}
 		$blob = "";
-		foreach ($row as $key => $value) {
-			$blob .= "$key: <highlight>$value<end>\n";
+		foreach (get_object_vars($row) as $key => $value) {
+			if ($key !== "numExactMatches") {
+				$blob .= "$key: <highlight>" . (is_bool($value) ? ($value ? "yes" : "no") : ($value??"<empty>")) . "<end>\n";
+			}
 		}
 		$row->ql = $row->highql;
 		if ($row->lowid === $id) {
@@ -177,6 +184,7 @@ class ItemsController {
 			->leftJoin("item_group_names AS gn", "g.group_id", "gn.group_id")
 			->orderByColFunc("COALESCE", ["gn.name", "a.name"])
 			->orderBy("a.lowql")
+			->select("a.*")
 			->limit($this->settingManager->getInt('maxitems')??40);
 		$tmp = explode(" ", $search);
 		$this->db->addWhereFromParams($query, $tmp, "a.name");
@@ -204,7 +212,6 @@ class ItemsController {
 	}
 
 	/**
-	 * @param array $args
 	 * @return string|string[]
 	 */
 	public function findItems(?int $ql, string $search): string|array {
@@ -343,7 +350,7 @@ class ItemsController {
 				$numExactMatches = 100;
 				continue;
 			}
-			$itemKeywords = preg_split("/\s/", $row->name);
+			$itemKeywords = \Safe\preg_split("/\s/", $row->name);
 			$numExactMatches = 0;
 			foreach ($itemKeywords as $keyword) {
 				foreach ($searchTerms as $searchWord) {
@@ -380,7 +387,7 @@ class ItemsController {
 		$oldGroup = null;
 		for ($itemNum = 0; $itemNum < count($data); $itemNum++) {
 			$row = $data[$itemNum];
-			$row->origName = $row->name;
+			$origName = $row->name;
 			$newGroup = false;
 			if (!isset($row->group_id) && $ql && $ql !== $row->ql) {
 				continue;
@@ -439,7 +446,7 @@ class ItemsController {
 				} else {
 					$list .= ", ";
 				}
-				if (isset($search) && $this->itemNameMatchesSearch($row->origName, $search)) {
+				if (isset($search) && $this->itemNameMatchesSearch($origName, $search)) {
 					if (!isset($nameMatches)) {
 						$list .= "<red>[<end>";
 						$nameMatches = true;
@@ -497,7 +504,7 @@ class ItemsController {
 		if (!isset($search)) {
 			return false;
 		}
-		$tokens = preg_split("/\s+/", $search);
+		$tokens = \Safe\preg_split("/\s+/", $search);
 		foreach ($tokens as $token) {
 			if (substr($token, 0, 1) === "-"
 				&& stripos($itemName, substr($token, 1)) !== false) {
@@ -601,6 +608,9 @@ class ItemsController {
 	 * @return string  The longest common string of all given words
 	 */
 	public function getLongestCommonStringOfWords(array $words): string {
+		if (empty($words)) {
+			return "";
+		}
 		return trim(
 			array_reduce(
 				$words,
@@ -608,6 +618,11 @@ class ItemsController {
 				array_shift($words)
 			)
 		);
+	}
+
+	/** @return ?Skill */
+	public function getSkillByID(int $id): ?Skill {
+		return $this->skills[$id] ?? null;
 	}
 
 	/** @return Collection<Skill> */
@@ -624,6 +639,7 @@ class ItemsController {
 		$query = $this->db->table("skills");
 		/**
 		 * @psalm-suppress ImplicitToStringCast
+		 * @phpstan-ignore-next-line
 		 * @var Collection<Skill>
 		 */
 		$results = $query->where($query->colFunc("LOWER", "name"), strtolower($skillName))
@@ -661,7 +677,7 @@ class ItemsController {
 		$result = new Collection();
 		foreach ($items as $item) {
 			$new = new ItemWithBuffs();
-			foreach ($item as $key => $value) {
+			foreach (get_object_vars($item) as $key => $value) {
 				$new->{$key} = $value;
 			}
 			$new->buffs = $buffs->get($new->lowid, []);

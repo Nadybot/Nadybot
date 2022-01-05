@@ -2,8 +2,10 @@
 
 namespace Nadybot\Core;
 
+use Exception;
 use Nadybot\Core\Attributes as NCA;
 use Monolog\Logger;
+use Safe\Exceptions\FilesystemException;
 use Throwable;
 
 /**
@@ -26,34 +28,42 @@ class LoggerWrapper {
 		$this->logger = LegacyLogger::fromConfig($tag);
 	}
 
+	/** @param array<string,mixed> $context */
 	public function debug(string $message, array $context=[]): void {
 		$this->logger->debug($message, $context);
 	}
 
+	/** @param array<string,mixed> $context */
 	public function info(string $message, array $context=[]): void {
 		$this->logger->info($message, $context);
 	}
 
+	/** @param array<string,mixed> $context */
 	public function notice(string $message, array $context=[]): void {
 		$this->logger->notice($message, $context);
 	}
 
+	/** @param array<string,mixed> $context */
 	public function warning(string $message, array $context=[]): void {
 		$this->logger->warning($message, $context);
 	}
 
+	/** @param array<string,mixed> $context */
 	public function error(string $message, array $context=[]): void {
 		$this->logger->error($message, $context);
 	}
 
+	/** @param array<string,mixed> $context */
 	public function critical(string $message, array $context=[]): void {
 		$this->logger->critical($message, $context);
 	}
 
+	/** @param array<string,mixed> $context */
 	public function alert(string $message, array $context=[]): void {
 		$this->logger->alert($message, $context);
 	}
 
+	/** @param array<string,mixed> $context */
 	public function emergency(string $message, array $context=[]): void {
 		$this->logger->emergency($message, $context);
 	}
@@ -62,16 +72,17 @@ class LoggerWrapper {
 	 * Log a message according to log settings
 	 *
 	 * @param string $category The log category (TRACE, DEBUG, INFO, WARN, ERROR, FATAL)
-	 * @param mixed $message The message to log
-	 * @param Throwable $throwable Optional throwable information to include in the logging event
+	 * @param string $message The message to log
+	 * @param ?Throwable $throwable Optional throwable information to include in the logging event
 	 * @return void
 	 */
 	public function log(string $category, string $message, ?Throwable $throwable=null): void {
 		$level = LegacyLogger::getLoggerLevel($category);
 		$context = [];
 		if (isset($throwable)) {
-			$context["Exception"] = $throwable;
+			$context["exception"] = $throwable;
 		}
+		// @phpstan-ignore-next-line
 		$this->logger->log($level, $message, $context);
 	}
 
@@ -110,10 +121,15 @@ class LoggerWrapper {
 	 * Get the relative path of the directory where logs of this bot are stored
 	 */
 	public static function getLoggingDirectory(): string {
-		$logDir = dirname(ini_get('error_log'));
+		$errorLog = \Safe\ini_get('error_log');
+		if (!is_string($errorLog)) {
+			throw new Exception("Your php.ini error_log is misconfigured.");
+		}
+		$logDir = dirname($errorLog);
 		if (substr($logDir, 0, 1) !== '/') {
-			$logDirNew = realpath(dirname(__DIR__, 2) . '/' . $logDir);
-			if ($logDirNew === false) {
+			try {
+				$logDirNew = \Safe\realpath(dirname(__DIR__, 2) . '/' . $logDir);
+			} catch (FilesystemException) {
 				$logDirNew = dirname(__DIR__, 2) . '/' . $logDir;
 			}
 			$logDir = $logDirNew;
@@ -139,6 +155,7 @@ class LoggerWrapper {
 	 * @return boolean
 	 */
 	public function isHandling(int $level): bool {
+		// @phpstan-ignore-next-line
 		return $this->logger->isHandling($level);
 	}
 }

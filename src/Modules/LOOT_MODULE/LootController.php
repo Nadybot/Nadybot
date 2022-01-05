@@ -9,21 +9,19 @@ use Nadybot\Core\{
 	CommandAlias,
 	CommandManager,
 	DB,
-	DBRow,
+	DBSchema\Player,
+	ModuleInstance,
 	Nadybot,
+	ParamClass\PItem,
+	ParamClass\PQuantity,
+	ParamClass\PRemove,
 	SettingManager,
 	Text,
 	Modules\PLAYER_LOOKUP\PlayerManager,
 };
-use Nadybot\Core\DBSchema\Player;
-use Nadybot\Core\ParamClass\PItem;
-use Nadybot\Core\ParamClass\PQuantity;
-use Nadybot\Core\ParamClass\PRemove;
 use Nadybot\Modules\BASIC_CHAT_MODULE\ChatLeaderController;
 use Nadybot\Modules\ITEMS_MODULE\AODBEntry;
 use Nadybot\Modules\ITEMS_MODULE\ItemsController;
-
-use function Amp\Promise\first;
 
 /**
  * @author Derroylo (RK2)
@@ -77,14 +75,7 @@ use function Amp\Promise\first;
 		help: "add_rem.txt"
 	)
 ]
-class LootController {
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 * @var string $moduleName
-	 */
-	public string $moduleName;
-
+class LootController extends ModuleInstance {
 	#[NCA\Inject]
 	public DB $db;
 

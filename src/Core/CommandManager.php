@@ -7,6 +7,7 @@ use Nadybot\Core\Attributes as NCA;
 use Throwable;
 use ReflectionException;
 use Nadybot\Core\DBSchema\CmdCfg;
+use Nadybot\Core\DBSchema\CommandSearchResult;
 use Nadybot\Core\Modules\CONFIG\CommandSearchController;
 use Nadybot\Core\Modules\LIMITS\LimitsController;
 use Nadybot\Core\Modules\USAGE\UsageController;
@@ -77,18 +78,9 @@ class CommandManager implements MessageEmitter {
 	/** @var array<string,array<string,CommandHandler>> $commands */
 	public array $commands;
 
-	protected array $matchClasses = [];
-
 	#[NCA\Setup]
 	public function setup(): void {
 		$this->messageHub->registerMessageEmitter($this);
-		$this->matchClasses['CHARACTER'] = "[a-zA-Z][a-zA-Z0-9-]{3,11}";
-		$this->matchClasses['PLAYFIELD'] = "[0-9A-Za-z]+[A-Za-z]";
-	}
-
-	public function registerMatchClass(string $name, string $regexp): bool {
-		$this->matchClasses[strtoupper($name)] = $regexp;
-		return true;
 	}
 
 	/**
@@ -298,7 +290,7 @@ class CommandManager implements MessageEmitter {
 	/**
 	 * Get the name of a similar command
 	 */
-	private function mapToCmd(DBRow $sc): string {
+	private function mapToCmd(CommandSearchResult $sc): string {
 		return $sc->cmd;
 	}
 
@@ -576,7 +568,7 @@ class CommandManager implements MessageEmitter {
 		$result = $results[0];
 
 		if (isset($result->help) && $result->help !== '') {
-			$blob = file_get_contents($result->help);
+			$blob = \Safe\file_get_contents($result->help);
 		} else {
 			$blob = $this->helpManager->find($cmd, $sender);
 		}
@@ -673,8 +665,11 @@ class CommandManager implements MessageEmitter {
 					break;
 			}
 		} else {
-			$new = "(?:" . [$type->getName(), "getPreRegExp"]().
-				"(?<{$varName}>" . [$type->getName(), "getRegexp"]() . "))";
+			$c1 = [$type->getName(), "getPreRegExp"];
+			$c2 = [$type->getName(), "getRegexp"];
+			if (is_callable($c1) && is_callable($c2)) {
+				$new = "(?:" . $c1() . "(?<{$varName}>" . $c2() . "))";
+			}
 		}
 		if (!isset($new)) {
 			return null;

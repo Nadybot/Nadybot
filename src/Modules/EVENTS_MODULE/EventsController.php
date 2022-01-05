@@ -8,7 +8,7 @@ use Nadybot\Core\{
 	AOChatEvent,
 	CmdContext,
 	DB,
-	Event,
+	ModuleInstance,
 	Nadybot,
 	SettingManager,
 	Text,
@@ -58,13 +58,7 @@ use Nadybot\Core\ParamClass\PRemove;
 		help: "events.txt"
 	)
 ]
-class EventsController {
-
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
+class EventsController extends ModuleInstance {
 
 	#[NCA\Inject]
 	public DB $db;
@@ -267,7 +261,7 @@ class EventsController {
 			$msg = "Could not find an event with id $id.";
 		} else {
 			// yyyy-dd-mm hh:mm:ss
-			$eventDate = strtotime($date);
+			$eventDate = \Safe\strtotime($date);
 			$this->db->table("events")
 				->where("id", $id)
 				->update(["event_date" => $eventDate]);
@@ -276,6 +270,7 @@ class EventsController {
 		$context->reply($msg);
 	}
 
+	/** @return null|string[] */
 	public function getEvents(): ?array {
 		/** @var Collection<EventModel> */
 		$data = $this->db->table("events")

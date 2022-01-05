@@ -10,6 +10,7 @@ use Nadybot\Core\{
 	ConfigFile,
 	DB,
 	EventManager,
+	ModuleInstance,
 	Nadybot,
 	SettingManager,
 	SQLException,
@@ -38,14 +39,8 @@ use stdClass;
 		defaultStatus: 1
 	)
 ]
-class UsageController {
+class UsageController extends ModuleInstance {
 	public const DB_TABLE = "usage_<myname>";
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
-
 	#[NCA\Inject]
 	public DB $db;
 
@@ -125,7 +120,7 @@ class UsageController {
 			->select("command");
 		$query->orderByRaw($query->colFunc("COUNT", "command")->getValue())
 			->selectRaw($query->colFunc("COUNT", "command", "count")->getValue());
-		$data = $query->asObj();
+		$data = $query->asObj(CommandUsageStats::class);
 		$count = $data->count();
 
 		if ($count > 0) {
@@ -169,7 +164,7 @@ class UsageController {
 			->groupBy("sender");
 		$query->orderByColFunc("COUNT", "sender", "desc")
 			->select("sender", $query->colFunc("COUNT", "command", "count"));
-		$data = $query->asObj()->toArray();
+		$data = $query->asObj(PlayerUsageStats::class)->toArray();
 		$count = count($data);
 
 		if ($count > 0) {
@@ -188,9 +183,9 @@ class UsageController {
 	#[NCA\HandlesCommand("usage")]
 	public function usageInfoCommand(CmdContext $context, #[NCA\Str("info")] string $action): void {
 		$info = $this->getUsageInfo(time() - 7*24*3600, time());
-		$blob = json_encode(
+		$blob = \Safe\json_encode(
 			$info,
-			JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES
+			JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR
 		);
 		$msg = $this->text->makeBlob("Collected usage info", $blob);
 		$context->reply($msg);
@@ -217,18 +212,19 @@ class UsageController {
 			->where("dt", ">", $time)
 			->groupBy("type")
 			->orderBy("type")
-			->select("type");
-		$query->selectRaw($query->colFunc("COUNT", "type", "cnt")->getValue());
-		$data = $query->asObj()->toArray();
+			->select("type AS channel");
+		$query->selectRaw($query->colFunc("COUNT", "type", "count")->getValue());
+		/** @var ChannelUsageStats[] */
+		$data = $query->asObj(ChannelUsageStats::class)->toArray();
 
 		$blob = "<header2>Channel Usage<end>\n";
 		foreach ($data as $row) {
-			if ($row->type === "msg") {
-				$blob .= "<tab>Number of commands executed in tells: <highlight>$row->cnt<end>\n";
-			} elseif ($row->type === "priv") {
-				$blob .= "<tab>Number of commands executed in private channel: <highlight>$row->cnt<end>\n";
-			} elseif ($row->type === "guild") {
-				$blob .= "<tab>Number of commands executed in guild channel: <highlight>$row->cnt<end>\n";
+			if ($row->channel === "msg") {
+				$blob .= "<tab>Number of commands executed in tells: <highlight>{$row->count}<end>\n";
+			} elseif ($row->channel === "priv") {
+				$blob .= "<tab>Number of commands executed in private channel: <highlight>{$row->count}<end>\n";
+			} elseif ($row->channel === "guild") {
+				$blob .= "<tab>Number of commands executed in guild channel: <highlight>{$row->count}<end>\n";
 			}
 		}
 		$blob .= "\n";
@@ -241,7 +237,8 @@ class UsageController {
 			->limit($limit)
 			->select("command");
 		$query->selectRaw($query->colFunc("COUNT", "command", "count")->getValue());
-		$data = $query->asObj()->toArray();
+		/** @var CommandUsageStats[] */
+		$data = $query->asObj(CommandUsageStats::class)->toArray();
 
 		$blob .= "<header2>$limit Most Used Commands<end>\n";
 		foreach ($data as $row) {
@@ -258,7 +255,8 @@ class UsageController {
 			->limit($limit)
 			->select("sender");
 		$query->selectRaw($query->colFunc("COUNT", "sender", "count")->getValue());
-		$data = $query->asObj()->toArray();
+		/** @var PlayerUsageStats[] */
+		$data = $query->asObj(PlayerUsageStats::class)->toArray();
 
 		$blob .= "\n<header2>$limit Most Active Users<end>\n";
 		foreach ($data as $row) {
@@ -305,10 +303,11 @@ class UsageController {
 			->groupBy("command")
 			->select("command");
 		$query->selectRaw($query->rawFunc("COUNT", "*", "count")->getValue());
-		$commands = $query->asObj()->reduce(function(stdClass $carry, object $entry) {
-			$carry->{$entry->command} = $entry->count;
-			return $carry;
-		}, new stdClass());
+		$commands = $query->asObj(CommandUsageStats::class)
+			->reduce(function(stdClass $carry, CommandUsageStats $entry) {
+				$carry->{$entry->command} = $entry->count;
+				return $carry;
+			}, new stdClass());
 
 		$settings = new SettingsUsageStats();
 		$settings->dimension               = $this->config->dimension;
@@ -381,21 +380,22 @@ class UsageController {
 		)
 	]
 	public function usageNewsTile(string $sender, callable $callback): void {
-		$data = $this->db->table(self::DB_TABLE)
+		/** @var Collection<string> */
+		$commands = $this->db->table(self::DB_TABLE)
 			->where("sender", $sender)
 			->where("dt", ">", time() - 7*24*3600)
 			->groupBy("command")
 			->orderByColFunc("COUNT", "command", "desc")
 			->addSelect("command")
 			->limit(4)
-			->asObj();
-		if ($data->isEmpty()) {
+			->pluckAs("command", "string");
+		if ($commands->isEmpty()) {
 			$callback(null);
 			return;
 		}
 		$blob = "<header2>Popular commands<end>\n";
-		foreach ($data as $cmdSpec) {
-			$blob .= "<tab>{$cmdSpec->command}\n";
+		foreach ($commands as $command) {
+			$blob .= "<tab>{$command}\n";
 		}
 		$callback($blob);
 	}

@@ -2,9 +2,12 @@
 
 namespace Nadybot\Modules\WORLDBOSS_MODULE;
 
-use Nadybot\Core\Attributes as NCA;
-use Nadybot\Core\CmdContext;
-use Nadybot\Core\Text;
+use Nadybot\Core\{
+	Attributes as NCA,
+	CmdContext,
+	ModuleInstance,
+	Text,
+};
 
 /**
  * @author Equi
@@ -20,19 +23,13 @@ use Nadybot\Core\Text;
 		help: "gauntlet.txt"
 	)
 ]
-class GauntletTradeController {
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
-
+class GauntletTradeController extends ModuleInstance {
 	#[NCA\Inject]
 	public Text $text;
 
 	#[NCA\HandlesCommand("gautrade")]
 	public function gautradeCommand(CmdContext $context): void {
-		$info = file_get_contents(__DIR__ . '/gautrade.html');
+		$info = \Safe\file_get_contents(__DIR__ . '/gautrade.html');
 		$msg = $this->text->makeBlob("Gauntlet Tradeskills", $info);
 		$context->reply($msg);
 	}

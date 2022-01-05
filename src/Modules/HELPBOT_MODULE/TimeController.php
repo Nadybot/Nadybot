@@ -2,11 +2,14 @@
 
 namespace Nadybot\Modules\HELPBOT_MODULE;
 
-use Nadybot\Core\Attributes as NCA;
 use DateTime;
-use Nadybot\Core\CmdContext;
-use Nadybot\Core\Text;
-use Nadybot\Core\Util;
+use Nadybot\Core\{
+	Attributes as NCA,
+	CmdContext,
+	ModuleInstance,
+	Text,
+	Util,
+};
 
 /**
  * @author Tyrence (RK2)
@@ -21,13 +24,7 @@ use Nadybot\Core\Util;
 		help: "time.txt"
 	)
 ]
-class TimeController {
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
-
+class TimeController extends ModuleInstance {
 	#[NCA\Inject]
 	public Util $util;
 
@@ -118,7 +115,7 @@ class TimeController {
 		$context->reply($msg);
 	}
 
-	public function safeGetTimezone($tz): Timezone {
+	public function safeGetTimezone(string $tz): Timezone {
 		$obj = $this->getTimezone($tz);
 		if (isset($obj)) {
 			return $obj;
@@ -130,7 +127,7 @@ class TimeController {
 		return $obj;
 	}
 
-	public function getTimezone($tz): ?Timezone {
+	public function getTimezone(string $tz): ?Timezone {
 		$date = new DateTime();
 		$time = time() - $date->getOffset();
 		$time_format = "dS M, H:i";
@@ -272,7 +269,7 @@ class TimeController {
 		$obj = new Timezone();
 		$obj->name = $name;
 		$obj->offset = $offset;
-		$obj->time = date($time_format, (int)($time + $offset));
+		$obj->time = \Safe\date($time_format, (int)($time + $offset));
 		return $obj;
 	}
 }

@@ -11,9 +11,11 @@ use Nadybot\Core\{
 	CmdContext,
 	ConfigFile,
 	DB,
+	ModuleInstance,
 	LoggerWrapper,
 	Modules\BAN\BanController,
 	Modules\PREFERENCES\Preferences,
+	ParamClass\PFilename,
 	Nadybot,
 	Registry,
 	SettingManager,
@@ -40,12 +42,12 @@ use Nadybot\Modules\{
 	RAID_MODULE\RaidRankController,
 	TIMERS_MODULE\Alert,
 	TIMERS_MODULE\Timer,
+	TIMERS_MODULE\TimerController,
 	TRACKER_MODULE\TrackerController,
 	VOTE_MODULE\VoteController,
 };
 use Exception;
-use Nadybot\Core\ParamClass\PFilename;
-use Nadybot\Modules\TIMERS_MODULE\TimerController;
+use stdClass;
 use Throwable;
 
 /**
@@ -61,14 +63,7 @@ use Throwable;
 		help: "export.txt"
 	)
 ]
-class ImportController {
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 * @var string $moduleName
-	 */
-	public string $moduleName;
-
+class ImportController extends ModuleInstance {
 	#[NCA\Inject]
 	public Nadybot $chatBot;
 
@@ -109,7 +104,7 @@ class ImportController {
 		}
 		$this->logger->notice("Decoding the JSON data");
 		try {
-			$import = json_decode(file_get_contents($fileName), false, 512, JSON_THROW_ON_ERROR);
+			$import = \Safe\json_decode(\Safe\file_get_contents($fileName), false, 512, JSON_THROW_ON_ERROR);
 		} catch (Throwable $e) {
 			$sendto->reply("Error decoding <highlight>{$fileName}<end>.");
 			return null;
@@ -174,6 +169,9 @@ class ImportController {
 		$context->reply("The import finished successfully.");
 	}
 
+	/**
+	 * @return array<string,callable>
+	 */
 	protected function getImportMapping(): array {
 		return [
 			"members"           => [$this, "importMembers"],
@@ -216,9 +214,11 @@ class ImportController {
 	 */
 	protected function getRanks(object $import): array {
 		$ranks = [];
+		// @phpstan-ignore-next-line
 		foreach ($import->members??[] as $member) {
 			$ranks[$member->rank] = true;
 		}
+		// @phpstan-ignore-next-line
 		foreach ($import->commentCategories??[] as $category) {
 			if (isset($category->minRankToRead)) {
 				$ranks[$category->minRankToRead] = true;
@@ -227,6 +227,7 @@ class ImportController {
 				$ranks[$category->minRankToWrite] = true;
 			}
 		}
+		// @phpstan-ignore-next-line
 		foreach ($import->polls??[] as $poll) {
 			if (isset($poll->minRankToVote)) {
 				$ranks[$poll->minRankToVote] = true;
@@ -235,7 +236,7 @@ class ImportController {
 		return array_keys($ranks);
 	}
 
-	protected function characterToName(?object $char): ?string {
+	protected function characterToName(?stdClass $char): ?string {
 		if (!isset($char)) {
 			return null;
 		}
@@ -246,6 +247,7 @@ class ImportController {
 		return $name;
 	}
 
+	/** @param array<stdClass> $alts */
 	public function importAlts(array $alts): void {
 		$this->logger->notice("Importing alts for " . count($alts) . " character(s)");
 		$numImported = 0;
@@ -272,7 +274,7 @@ class ImportController {
 		$this->logger->notice("{$numImported} alt(s) imported");
 	}
 
-	protected function importAlt(string $mainName, object $alt): int {
+	protected function importAlt(string $mainName, stdClass $alt): int {
 		$altName = $this->characterToName($alt->alt);
 		if (!isset($altName)) {
 			return 0;
@@ -288,6 +290,7 @@ class ImportController {
 		return 1;
 	}
 
+	/** @param array<stdClass> $auctions */
 	public function importAuctions(array $auctions): void {
 		$this->logger->notice("Importing " . count($auctions) . " auction(s)");
 		$this->db->beginTransaction();
@@ -300,7 +303,7 @@ class ImportController {
 						"raid_id" => $auction->raidId ?? null,
 						"item" => $auction->item,
 						"auctioneer" => $this->characterToName($auction->startedBy??null) ?? $this->chatBot->char->name,
-						"cost" => ($auction->cost ?? null) ? (int)round($auction->cost, 0) : null,
+						"cost" => ($auction->cost ?? null) ? (int)round($auction->cost??0, 0) : null,
 						"winner" => $this->characterToName($auction->winner??null),
 						"end" => $auction->timeEnd ?? time(),
 						"reimbursed" => $auction->reimbursed ?? false,
@@ -316,6 +319,7 @@ class ImportController {
 		$this->logger->notice("All auctions imported");
 	}
 
+	/** @param array<stdClass> $banlist */
 	public function importBanlist(array $banlist): void {
 		$numImported = 0;
 		$this->logger->notice("Importing " . count($banlist) . " ban(s)");
@@ -349,6 +353,7 @@ class ImportController {
 		$this->logger->notice("{$numImported} bans successfully imported");
 	}
 
+	/** @param array<stdClass> $cloakActions */
 	public function importCloak(array $cloakActions): void {
 		$this->logger->notice("Importing " . count($cloakActions) . " cloak action(s)");
 		$this->db->beginTransaction();
@@ -373,6 +378,7 @@ class ImportController {
 		$this->logger->notice("All cloak actions imported");
 	}
 
+	/** @param array<stdClass> $links */
 	public function importLinks(array $links): void {
 		$this->logger->notice("Importing " . count($links) . " links");
 		$this->db->beginTransaction();
@@ -398,10 +404,15 @@ class ImportController {
 		$this->logger->notice("All links imported");
 	}
 
+	/** @param array<string,string> $mapping */
 	protected function getMappedRank(array $mapping, string $rank): ?string {
 		return $mapping[$rank] ?? null;
 	}
 
+	/**
+	 * @param array<stdClass> $members
+	 * @param array<string,string> $rankMap
+	 */
 	public function importMembers(array $members, array $rankMap=[]): void {
 		$numImported = 0;
 		$this->logger->notice("Importing " . count($members) . " member(s)");
@@ -481,6 +492,7 @@ class ImportController {
 		$this->logger->notice("{$numImported} members successfully imported");
 	}
 
+	/** @param array<stdClass> $news */
 	public function importNews(array $news): void {
 		$this->logger->notice("Importing " . count($news) . " news");
 		$this->db->beginTransaction();
@@ -520,6 +532,7 @@ class ImportController {
 		$this->logger->notice("All news imported");
 	}
 
+	/** @param array<stdClass> $notes */
 	public function importNotes(array $notes): void {
 		$this->logger->notice("Importing " . count($notes) . " notes");
 		$this->db->beginTransaction();
@@ -556,6 +569,7 @@ class ImportController {
 		$this->logger->notice("All notes imported");
 	}
 
+	/** @param array<stdClass> $polls */
 	public function importPolls(array $polls): void {
 		$this->logger->notice("Importing " . count($polls) . " polls");
 		$this->db->beginTransaction();
@@ -568,9 +582,9 @@ class ImportController {
 					->insertGetId([
 						"author" => $this->characterToName($poll->author??null) ?? $this->chatBot->char->name,
 						"question" => $poll->question,
-						"possible_answers" => json_encode(
+						"possible_answers" => \Safe\json_encode(
 							array_map(
-								function(object $answer): string {
+								function(stdClass $answer): string {
 									return $answer->answer;
 								},
 								$poll->answers??[]
@@ -602,6 +616,7 @@ class ImportController {
 		$this->logger->notice("All polls imported");
 	}
 
+	/** @param array<stdClass> $quotes */
 	public function importQuotes(array $quotes): void {
 		$this->logger->notice("Importing " . count($quotes) . " quotes");
 		$this->db->beginTransaction();
@@ -626,6 +641,7 @@ class ImportController {
 		$this->logger->notice("All quotes imported");
 	}
 
+	/** @param array<stdClass> $bonuses */
 	public function importRaffleBonus(array $bonuses): void {
 		$this->logger->notice("Importing " . count($bonuses) . " raffle bonuses");
 		$this->db->beginTransaction();
@@ -653,6 +669,7 @@ class ImportController {
 		$this->logger->notice("All raffle bonuses imported");
 	}
 
+	/** @param array<stdClass> $blocks */
 	public function importRaidBlocks(array $blocks): void {
 		$this->logger->notice("Importing " . count($blocks) . " raid blocks");
 		$this->db->beginTransaction();
@@ -684,6 +701,7 @@ class ImportController {
 		$this->logger->notice("All raid blocks imported");
 	}
 
+	/** @param array<stdClass> $raids */
 	public function importRaids(array $raids): void {
 		$this->logger->notice("Importing " . count($raids) . " raids");
 		$this->db->beginTransaction();
@@ -698,7 +716,7 @@ class ImportController {
 				$history = $raid->history ?? [];
 				usort(
 					$history,
-					function (object $o1, object $o2): int {
+					function (stdClass $o1, stdClass $o2): int {
 						return $o1->time <=> $o2->time;
 					}
 				);
@@ -756,6 +774,7 @@ class ImportController {
 		$this->logger->notice("All raids imported");
 	}
 
+	/** @param array<stdClass> $points */
 	public function importRaidPoints(array $points): void {
 		$this->logger->notice("Importing " . count($points) . " raid points");
 		$this->db->beginTransaction();
@@ -782,6 +801,7 @@ class ImportController {
 		$this->logger->notice("All raid points imported");
 	}
 
+	/** @param array<stdClass> $points */
 	public function importRaidPointsLog(array $points): void {
 		$this->logger->notice("Importing " . count($points) . " raid point logs");
 		$this->db->beginTransaction();
@@ -815,6 +835,7 @@ class ImportController {
 		$this->logger->notice("All raid point logs imported");
 	}
 
+	/** @param string[] $channels */
 	protected function channelsToMode(array $channels): string {
 		$modes = [
 			"org" => "guild",
@@ -832,8 +853,9 @@ class ImportController {
 		return join(",", $result);
 	}
 
+	/** @param array<stdClass> $timers */
 	public function importTimers(array $timers): void {
-		$table = Registry::getInstance(TimerController::class)::DB_TABLE;
+		$table = TimerController::DB_TABLE;
 		$this->logger->notice("Importing " . count($timers) . " timers");
 		$this->db->beginTransaction();
 		try {
@@ -870,7 +892,7 @@ class ImportController {
 						"settime" => $timer->startTime ?? time(),
 						"callback" => $entry->callback,
 						"data" => $entry->data,
-						"alerts" => json_encode($entry->alerts)
+						"alerts" => \Safe\json_encode($entry->alerts)
 					]);
 				$timerNum++;
 			}
@@ -884,6 +906,7 @@ class ImportController {
 		$this->logger->notice("All timers imported");
 	}
 
+	/** @param array<stdClass> $trackedUsers */
 	public function importTrackedCharacters(array $trackedUsers): void {
 		$this->logger->notice("Importing " . count($trackedUsers) . " tracked users");
 		$this->db->beginTransaction();
@@ -895,7 +918,7 @@ class ImportController {
 				if (!isset($name)) {
 					continue;
 				}
-				$id = $trackedUser->character->id ? $trackedUser->character->id : $this->chatBot->get_uid($name);
+				$id = isset($trackedUser->character->id) ? $trackedUser->character->id : $this->chatBot->get_uid($name);
 				if (!isset($id) || $id === false) {
 					continue;
 				}
@@ -925,6 +948,10 @@ class ImportController {
 		$this->logger->notice("All raid blocks imported");
 	}
 
+	/**
+	 * @param array<stdClass> $categories
+	 * @param array<string,string> $rankMap
+	 */
 	public function importCommentCategories(array $categories, array $rankMap): void {
 		$this->logger->notice("Importing " . count($categories) . " comment categories");
 		$this->db->beginTransaction();
@@ -958,6 +985,7 @@ class ImportController {
 		$this->logger->notice("All comment categories imported");
 	}
 
+	/** @param array<stdClass> $comments */
 	public function importComments(array $comments): void {
 		$this->logger->notice("Importing " . count($comments) . " comment(s)");
 		$this->db->beginTransaction();

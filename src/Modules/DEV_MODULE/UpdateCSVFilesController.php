@@ -12,8 +12,11 @@ use Nadybot\Core\{
 	DB,
 	Http,
 	HttpResponse,
+	ModuleInstance,
 	SettingManager,
 };
+use Nadybot\Core\DBSchema\Setting;
+use Safe\Exceptions\FilesystemException;
 
 /**
  * @author Nadyita (RK5)
@@ -28,13 +31,7 @@ use Nadybot\Core\{
 		help: "updatecsv.txt"
 	)
 ]
-class UpdateCSVFilesController {
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
-
+class UpdateCSVFilesController extends ModuleInstance {
 	#[NCA\Inject]
 	public Http $http;
 
@@ -52,10 +49,10 @@ class UpdateCSVFilesController {
 		if ($pid === false) {
 			return null;
 		}
-		fclose($pipes[0]);
-		$gitHash = trim(stream_get_contents($pipes[1]));
-		fclose($pipes[1]);
-		fclose($pipes[2]);
+		\Safe\fclose($pipes[0]);
+		$gitHash = trim(\Safe\stream_get_contents($pipes[1]));
+		\Safe\fclose($pipes[1]);
+		\Safe\fclose($pipes[2]);
 		return $gitHash;
 	}
 
@@ -63,7 +60,7 @@ class UpdateCSVFilesController {
 	public function updateCsvCommand(CmdContext $context): void {
 		$checkCmd = BotRunner::isWindows() ? "where" : "command -v";
 		/** @psalm-suppress ForbiddenCode */
-		$gitPath = shell_exec("{$checkCmd} git");
+		$gitPath = \Safe\shell_exec("{$checkCmd} git");
 		$hasGit = is_string($gitPath) && is_executable(rtrim($gitPath));
 		if (!$hasGit) {
 			$context->reply(
@@ -83,7 +80,7 @@ class UpdateCSVFilesController {
 		if ($response->headers["status-code"] !== "200") {
 			$error = $response->error ?: $response->body ?? 'null';
 			try {
-				$error = json_decode($error, false, 512, JSON_THROW_ON_ERROR);
+				$error = \Safe\json_decode($error, false, 512, JSON_THROW_ON_ERROR);
 				$error = $error->message;
 			} catch (Throwable $e) {
 				// Ignore it if not json
@@ -95,7 +92,7 @@ class UpdateCSVFilesController {
 			if (!isset($response->body)) {
 				throw new Exception();
 			}
-			$data = json_decode($response->body, false, 512, JSON_THROW_ON_ERROR);
+			$data = \Safe\json_decode($response->body, false, 512, JSON_THROW_ON_ERROR);
 			if (!is_object($data) || !isset($data->tree)) {
 				throw new Exception();
 			}
@@ -104,6 +101,7 @@ class UpdateCSVFilesController {
 			return;
 		}
 
+		/** @var array<string,mixed> */
 		$updates = [];
 		$todo = 0;
 		foreach ($data->tree as $file) {
@@ -119,6 +117,7 @@ class UpdateCSVFilesController {
 			$this->checkIfCanUpdateCsvFile(
 				/** @param string|bool $result */
 				function(string $path, $result) use (&$updates, &$todo, $context): void {
+					/** @var array<string,mixed> $updates */
 					$updates[$path] = $result;
 					$todo--;
 					if ($todo > 0) {
@@ -175,16 +174,16 @@ class UpdateCSVFilesController {
 			if (!isset($response->body)) {
 				throw new Exception();
 			}
-			$data = json_decode($response->body, false, 512, JSON_THROW_ON_ERROR);
+			$data = \Safe\json_decode($response->body, false, 512, JSON_THROW_ON_ERROR);
 		} catch (Throwable $e) {
 			$callback($file, "Error decoding the JSON data from GitHub for {$file}.");
 			return;
 		}
-		$gitModified = DateTime::createFromFormat(
+		$gitModified = \Safe\DateTime::createFromFormat(
 			DateTime::ISO8601,
 			$data[0]->commit->committer->date
 		);
-		$localModified = @filemtime(BotRunner::getBasedir() . "/" . $file);
+		$localModified = filemtime(BotRunner::getBasedir() . "/" . $file);
 		if ($localModified === false || $localModified >= $gitModified->getTimestamp()) {
 			$callback($file, false);
 			return;
@@ -209,16 +208,17 @@ class UpdateCSVFilesController {
 			$callback($file, false);
 			return;
 		}
+		/** @var ?Setting */
 		$setting = $this->db->table(SettingManager::DB_TABLE)
 			->where("name", $settingName)
-			->asObj()
+			->asObj(Setting::class)
 			->first();
 		if (!isset($setting)) {
 			$callback($file, false);
 			return;
 		}
 		if (preg_match("/^#\s*Requires:\s*(.+)$/m", $response->body??"", $matches)) {
-			if (!$this->db->hasAppliedMigration($setting->module, trim($matches[1]))) {
+			if (!$this->db->hasAppliedMigration($setting->module??"Core", trim($matches[1]))) {
 				$callback(
 					$file,
 					"The new version for {$file} cannot be applied, because you require ".
@@ -227,7 +227,7 @@ class UpdateCSVFilesController {
 				return;
 			}
 		}
-		if (preg_match("/^\d+$/", $setting->value)) {
+		if (preg_match("/^\d+$/", $setting->value??"")) {
 			if ((int)$setting->value >= $gitModified->getTimestamp()) {
 				$callback($file, false);
 				return;
@@ -246,25 +246,24 @@ class UpdateCSVFilesController {
 			$callback($file, "Couldn't download {$file} from GitHub.");
 			return;
 		}
-		$tmpFile = tempnam(sys_get_temp_dir(), $file);
-		if ($tmpFile !== false) {
-			if (file_put_contents($tmpFile, $response->body)) {
-				@touch($tmpFile, $gitModified->getTimestamp());
-				try {
-					$this->db->beginTransaction();
-					$this->db->loadCSVFile($module, $tmpFile);
-					$this->db->commit();
-					$callback($file, true);
-					return;
-				} catch (Throwable $e) {
-					$this->db->rollback();
-					$callback($file, "There was an SQL error loading the CSV file {$file}, please check your logs.");
-				} finally {
-					@unlink($tmpFile);
-				}
+		try {
+			$tmpFile = \Safe\tempnam(sys_get_temp_dir(), $file);
+			\Safe\file_put_contents($tmpFile, $response->body);
+			\Safe\touch($tmpFile, $gitModified->getTimestamp());
+			$this->db->beginTransaction();
+			$this->db->loadCSVFile($module, $tmpFile);
+			$this->db->commit();
+			$callback($file, true);
+			return;
+		} catch (FilesystemException) {
+		} catch (Throwable $e) {
+			$this->db->rollback();
+			$callback($file, "There was an SQL error loading the CSV file {$file}, please check your logs.");
+		} finally {
+			if (isset($tmpFile)) {
+				\Safe\unlink($tmpFile);
 			}
 		}
-		@unlink($tmpFile);
 		$callback($file, "Unable to save {$file} into a temporary file for updating.");
 	}
 }

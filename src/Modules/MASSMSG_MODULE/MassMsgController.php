@@ -3,13 +3,13 @@
 namespace Nadybot\Modules\MASSMSG_MODULE;
 
 use DateTime;
-use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{
 	AccessManager,
+	Attributes as NCA,
 	BuddylistManager,
 	CmdContext,
-	CommandReply,
 	DB,
+	ModuleInstance,
 	Nadybot,
 	SettingManager,
 	Text,
@@ -51,7 +51,7 @@ use Nadybot\Core\Modules\BAN\BanController;
 		alias: "massinvite"
 	)
 ]
-class MassMsgController {
+class MassMsgController extends ModuleInstance {
 	public const BLOCKED = 'blocked';
 	public const IN_CHAT = 'in chat';
 	public const IN_ORG  = 'in org';
@@ -59,9 +59,6 @@ class MassMsgController {
 
 	public const PREF_MSGS = 'massmsgs';
 	public const PREF_INVITES = 'massinvites';
-
-	public string $moduleName;
-
 	#[NCA\Inject]
 	public DB $db;
 
@@ -155,7 +152,7 @@ class MassMsgController {
 		$this->chatBot->sendGuild($message, true);
 		$message .= " :: " . $this->getMassMsgOptInOutBlob();
 		$result = $this->massCallback([
-			static::PREF_MSGS => function(string $name) use ($message) {
+			self::PREF_MSGS => function(string $name) use ($message): void {
 				$this->chatBot->sendMassTell($message, $name);
 			}
 		]);
@@ -175,10 +172,12 @@ class MassMsgController {
 		$this->chatBot->sendGuild($message, true);
 		$message .= " :: " . $this->getMassMsgOptInOutBlob();
 		$result = $this->massCallback([
-			static::PREF_MSGS => function(string $name) use ($message) {
+			self::PREF_MSGS => function(string $name) use ($message): void {
 				$this->chatBot->sendMassTell($message, $name);
 			},
-			static::PREF_INVITES => [$this->chatBot, "privategroup_invite"],
+			self::PREF_INVITES => function (string $name): void {
+				$this->chatBot->privategroup_invite($name);
+			}
 		]);
 		$msg = $this->getMassResultPopup($result);
 		$context->reply($msg);
@@ -186,6 +185,8 @@ class MassMsgController {
 
 	/**
 	 * Turn the result of a massCallback() into a nice popup
+	 * @param array<string,string> $result
+	 * @return string[]
 	 */
 	protected function getMassResultPopup(array $result): array {
 		ksort($result);
@@ -243,6 +244,8 @@ class MassMsgController {
 	/**
 	 * Run a callback for all users that are members, online but not in
 	 * our private channel.
+	 * @param array<string,callable> $callback
+	 * @phpstan-param array<string,callable(string):void> $callback
 	 * @return array<string,string> array(name => status)
 	 */
 	protected function massCallback(array $callback): array {

@@ -3,6 +3,7 @@
 namespace Nadybot\Core\Modules\PROFILE;
 
 use Nadybot\Core\Attributes as NCA;
+use Nadybot\Core\ModuleInstance;
 use Exception;
 use Nadybot\Modules\{
 	WEBSERVER_MODULE\ApiResponse,
@@ -10,16 +11,11 @@ use Nadybot\Modules\{
 	WEBSERVER_MODULE\Request,
 	WEBSERVER_MODULE\Response,
 };
+use Safe\Exceptions\FilesystemException;
 use Throwable;
 
 #[NCA\Instance]
-class ProfileApiController {
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
-
+class ProfileApiController extends ModuleInstance {
 	#[NCA\Inject]
 	public ProfileController $profileController;
 
@@ -76,8 +72,9 @@ class ProfileApiController {
 	public function deleteProfileEndpoint(Request $request, HttpProtocolWrapper $server, string $profile): Response {
 		$filename = $this->profileController->getFilename($profile);
 
-		if (!@file_exists($filename)
-			|| @unlink($filename) === false) {
+		try {
+			\Safe\unlink($filename);
+		} catch (FilesystemException) {
 			return new Response(Response::NOT_FOUND, [], "Profile {$filename} not found.");
 		}
 		return new Response(Response::NO_CONTENT);
@@ -97,10 +94,10 @@ class ProfileApiController {
 		NCA\ApiResult(code: 404, desc: "Profile not found")
 	]
 	public function loadProfileEndpoint(Request $request, HttpProtocolWrapper $server, string $profile): Response {
-		$op = null;
-		if (is_object($request->decodedBody)) {
-			$op = $request->decodedBody->op ?? null;
+		if (!is_object($request->decodedBody) || !isset($request->decodedBody->op)) {
+			return new Response(Response::UNPROCESSABLE_ENTITY);
 		}
+		$op = $request->decodedBody->op;
 		if ($op !== "load") {
 			return new Response(Response::UNPROCESSABLE_ENTITY);
 		}

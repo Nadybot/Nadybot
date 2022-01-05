@@ -101,7 +101,10 @@ class HelpManager {
 			}
 			if ($this->checkAccessLevels($accessLevel, explode(",", $row->admin_list))) {
 				$output .= $this->configController->getAliasInfo($row->name);
-				$output .= trim(file_get_contents($row->file)) . "\n\n";
+				$content = \Safe\file_get_contents($row->file);
+				if (is_string($content)) {
+					$output .= trim($content) . "\n\n";
+				}
 				$shown[$row->file] = true;
 			}
 		}
@@ -181,6 +184,9 @@ class HelpManager {
 		return $topics;
 	}
 
+	/**
+	 * @param string[] $accessLevelsArray
+	 */
 	public function checkAccessLevels(string $accessLevel1, array $accessLevelsArray): bool {
 		foreach ($accessLevelsArray as $accessLevel2) {
 			if ($this->accessManager->compareAccessLevels($accessLevel1, $accessLevel2) >= 0) {

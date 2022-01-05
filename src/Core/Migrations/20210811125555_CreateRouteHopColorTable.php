@@ -54,14 +54,14 @@ class CreateRouteHopColorTable implements SchemaMigration {
 		if (!preg_match("/#([0-9a-f]{6})/i", $privSysColor->value??"", $matches)) {
 			return;
 		}
-		$privSysColor = $matches[1];
+		$privSysColor = $matches[1]??"";
 		if ($privSysColor === $sysColor) {
 			return;
 		}
 		$sysHop = new RouteHopColor();
 		$sysHop->hop = Source::SYSTEM;
 		$sysHop->where = Source::PRIV . "(" . $db->getMyname() . ")";
-		$sysHop->text_color = $matches[1];
+		$sysHop->text_color = $matches[1]??"";
 		$db->insert($table, $sysHop);
 	}
 }

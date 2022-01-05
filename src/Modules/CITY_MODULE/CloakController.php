@@ -2,14 +2,15 @@
 
 namespace Nadybot\Modules\CITY_MODULE;
 
-use Nadybot\Core\Attributes as NCA;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	AOChatEvent,
+	Attributes as NCA,
 	CmdContext,
 	DB,
 	Event,
 	EventManager,
+	ModuleInstance,
 	MessageEmitter,
 	MessageHub,
 	Modules\ALTS\AltsController,
@@ -39,14 +40,8 @@ use Nadybot\Core\{
 	NCA\ProvidesEvent("cloak(raise)"),
 	NCA\ProvidesEvent("cloak(lower)")
 ]
-class CloakController implements MessageEmitter {
+class CloakController extends ModuleInstance implements MessageEmitter {
 	public const DB_TABLE = "org_city_<myname>";
-
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
 
 	#[NCA\Inject]
 	public Nadybot $chatBot;
@@ -197,7 +192,7 @@ class CloakController implements MessageEmitter {
 		$this->eventManager->fireEvent($event);
 	}
 
-	public function getLastOrgEntry($cloakOnly=false): ?OrgCity {
+	public function getLastOrgEntry(bool $cloakOnly=false): ?OrgCity {
 		$query = $this->db->table(self::DB_TABLE)
 			->orderByDesc("time")
 			->limit(1);
@@ -230,6 +225,7 @@ class CloakController implements MessageEmitter {
 			// send message to org chat every 5 minutes that the cloaking device is
 			// disabled past the the time that the cloaking device could be enabled.
 			$interval = $this->settingManager->getInt('cloak_reminder_interval') ?? 300;
+			// @phpstan-ignore-next-line
 			if ($timeSinceChange >= 60*60 && ($timeSinceChange % $interval >= 0 && $timeSinceChange % $interval <= 60 )) {
 				$timeString = $this->util->unixtimeToReadable(time() - $row->time, false);
 				$this->sendCloakMessage("The cloaking device was disabled by <highlight>{$row->player}<end> $timeString ago. It is possible to enable it.");
@@ -261,6 +257,7 @@ class CloakController implements MessageEmitter {
 		} elseif ($timeSinceChange >= 58*60 && $timeSinceChange <= 59*60) {
 			// 1 minute before send tell to player
 			$msg = "The cloaking device is <orange>disabled<end>. It is possible in $timeString to enable it.";
+		// @phpstan-ignore-next-line
 		} elseif ($timeSinceChange >= 59*60 && ($timeSinceChange % (60*5) >= 0 && $timeSinceChange % (60*5) <= 60 )) {
 			// when cloak can be raised, send tell to player and
 			// every 5 minutes after, send tell to player
@@ -299,6 +296,11 @@ class CloakController implements MessageEmitter {
 		}
 	}
 
+	/**
+	 * @return null|array<int|string>
+	 * @psalm-return null|array{0:int,1:string}
+	 * @phpstan-return null|array{0:int,1:string}
+	 */
 	protected function getCloakStatus(): ?array {
 		$row = $this->getLastOrgEntry(true);
 

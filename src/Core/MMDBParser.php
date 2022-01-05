@@ -2,12 +2,15 @@
 
 namespace Nadybot\Core;
 
+use Safe\Exceptions\FilesystemException;
+
 /**
  * Reads entries from the text.mdb file
  *
  * @author: Tyrence (RK2)
  */
 class MMDBParser {
+	/** @var array<int,array<int,string>> */
 	private array $mmdb = [];
 
 	private LoggerWrapper $logger;
@@ -32,7 +35,7 @@ class MMDBParser {
 		$category = $this->findEntry($in, $categoryId, 8);
 		if ($category === null) {
 			$this->logger->error("Could not find categoryID: '{$categoryId}'");
-			fclose($in);
+			\Safe\fclose($in);
 			return null;
 		}
 
@@ -40,7 +43,7 @@ class MMDBParser {
 		$instance = $this->findEntry($in, $instanceId, $category['offset']);
 		if ($instance === null) {
 			$this->logger->error("Could not find instance id: '{$instanceId}' for categoryId: '{$categoryId}'");
-			fclose($in);
+			\Safe\fclose($in);
 			return null;
 		}
 
@@ -48,7 +51,7 @@ class MMDBParser {
 		$message = $this->readString($in);
 		$this->mmdb[$categoryId][$instanceId] = $message;
 
-		fclose($in);
+		\Safe\fclose($in);
 
 		return $message;
 	}
@@ -67,7 +70,7 @@ class MMDBParser {
 		$category = $this->findEntry($in, $categoryId, 8);
 		if ($category === null) {
 			$this->logger->error("Could not find categoryID: '{$categoryId}'");
-			fclose($in);
+			\Safe\fclose($in);
 			return null;
 		}
 
@@ -83,7 +86,7 @@ class MMDBParser {
 			$instance = $this->readEntry($in);
 		}
 
-		fclose($in);
+		\Safe\fclose($in);
 
 		return $instances;
 	}
@@ -110,7 +113,7 @@ class MMDBParser {
 			$category = $this->readEntry($in);
 		}
 
-		fclose($in);
+		\Safe\fclose($in);
 
 		return $categories;
 	}
@@ -121,9 +124,10 @@ class MMDBParser {
 	 * @return null|resource
 	 */
 	private function openFile(string $filename="data/text.mdb") {
-		$in = fopen($filename, 'rb');
-		if ($in === false) {
-			$this->logger->error("Could not open file: '{$filename}'");
+		try {
+			$in = \Safe\fopen($filename, 'rb');
+		} catch (FilesystemException $e) {
+			$this->logger->error("Could not open file '{$filename}': " . $e->getMessage());
 			return null;
 		}
 
@@ -131,7 +135,7 @@ class MMDBParser {
 		$entry = $this->readEntry($in);
 		if ($entry['id'] !== 1111772493) {
 			$this->logger->error("Not an mmdb file: '{$filename}'");
-			fclose($in);
+			\Safe\fclose($in);
 			return null;
 		}
 
@@ -163,25 +167,33 @@ class MMDBParser {
 	}
 
 	/**
+	 * @param resource $in
 	 * @return array<string,int>
 	 */
 	private function readEntry($in): array {
 		return ['id' => $this->readLong($in), 'offset' => $this->readLong($in)];
 	}
 
+	/**
+	 * @param resource $in
+	 */
 	private function readLong($in): int {
-		$unpacked = unpack("L", fread($in, 4));
+		$packed = \Safe\fread($in, 4);
+		$unpacked = \Safe\unpack("L", $packed);
 		return array_pop($unpacked);
 	}
 
+	/**
+	 * @param resource $in
+	 */
 	private function readString($in): string {
 		$message = '';
 		$char = '';
 
-		$char = fread($in, 1);
+		$char = \Safe\fread($in, 1);
 		while ($char !== "\0" && !feof($in)) {
 			$message .= $char;
-			$char = fread($in, 1);
+			$char = \Safe\fread($in, 1);
 		}
 
 		return $message;

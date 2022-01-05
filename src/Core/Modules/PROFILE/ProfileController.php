@@ -2,17 +2,22 @@
 
 namespace Nadybot\Core\Modules\PROFILE;
 
-use Nadybot\Core\Attributes as NCA;
+use function Safe\file_get_contents;
 use Nadybot\Core\{
+	Attributes as NCA,
 	CmdContext,
 	CommandAlias,
 	CommandManager,
 	ConfigFile,
 	DB,
 	EventManager,
+	ModuleInstance,
 	LoggerWrapper,
 	MessageHub,
 	Nadybot,
+	ParamClass\PFilename,
+	ParamClass\PRemove,
+	Routing\Source,
 	SettingManager,
 	Text,
 	Util,
@@ -25,10 +30,8 @@ use Nadybot\Core\DBSchema\{
 	RouteHopColor,
 	RouteHopFormat,
 };
-use Nadybot\Core\ParamClass\PFilename;
-use Nadybot\Core\ParamClass\PRemove;
-use Nadybot\Core\Routing\Source;
 use Nadybot\Modules\RELAY_MODULE\RelayController;
+use Safe\Exceptions\FilesystemException;
 
 /**
  * @author Tyrence (RK2)
@@ -44,14 +47,8 @@ use Nadybot\Modules\RELAY_MODULE\RelayController;
 		alias: "profiles"
 	)
 ]
-class ProfileController {
+class ProfileController extends ModuleInstance {
 	public const FILE_EXT = ".txt";
-
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
 
 	#[NCA\Inject]
 	public DB $db;
@@ -95,7 +92,7 @@ class ProfileController {
 
 		// make sure that the profile folder exists
 		if (!@is_dir($this->path)) {
-			mkdir($this->path, 0777);
+			\Safe\mkdir($this->path, 0777);
 		}
 	}
 
@@ -104,9 +101,7 @@ class ProfileController {
 	 * @return string[]
 	 */
 	public function getProfileList(): array {
-		if (($handle = opendir($this->path)) === false) {
-			throw new Exception("Could not open profiles directory.");
-		}
+		$handle = \Safe\opendir($this->path);
 		$profileList = [];
 
 		while (false !== ($fileName = readdir($handle))) {
@@ -257,7 +252,7 @@ class ProfileController {
 			$contents .= "!route format display {$row->hop} {$row->format}\n";
 		}
 
-		return file_put_contents($filename, $contents) !== false;
+		return \Safe\file_put_contents($filename, $contents) !== false;
 	}
 
 	#[NCA\HandlesCommand("profile")]
@@ -269,10 +264,12 @@ class ProfileController {
 			$context->reply($msg);
 			return;
 		}
-		if (@unlink($filename) === false) {
-			$msg = "Unable to delete the profile <highlight>{$profileName}<end>.";
-		} else {
+		try {
+			\Safe\unlink($filename);
 			$msg = "Profile <highlight>{$profileName}<end> has been deleted.";
+		} catch (FilesystemException $e) {
+			$msg = "Unable to delete the profile <highlight>{$profileName}<end>: ".
+				$e->getMessage();
 		}
 		$context->reply($msg);
 	}

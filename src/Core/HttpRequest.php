@@ -6,17 +6,28 @@ class HttpRequest {
 
 	private string $method;
 	private string $uri;
+	/** @var array<string,string> */
 	private array $extraHeaders  = [];
+	/** @var array<string,string|int|array<mixed>> */
 	private array $queryParams   = [];
 	private ?string $streamScheme = null;
 	private ?int $streamPort = null;
 	private ?string $streamHost = null;
 	private ?string $postData = null;
+	/**
+	 * @var array<string,string|int>
+	 * @psalm-var array{"scheme"?: string, "host"?: string, "port"?: int, "user"?: string, "pass"?: string, "path"?: string, "query"?: string, "fragment"?: string}
+	 * @phpstan-var array{"scheme"?: string, "host"?: string, "port"?: int, "user"?: string, "pass"?: string, "path"?: string, "query"?: string, "fragment"?: string}
+	 */
 	private array $uriComponents = [];
 
 	/** @internal */
 	public static ?string $overridePathPrefix = null;
 
+	/**
+	 * @param array<string,mixed> $queryParams
+	 * @param array<string,string> $extraHeaders
+	 */
 	public function __construct(string $method, string $uri, array $queryParams, array $extraHeaders, ?string $postData) {
 		$this->method = $method;
 		$this->uri = $uri;
@@ -38,10 +49,11 @@ class HttpRequest {
 	 * @throws InvalidHttpRequest on error
 	 */
 	private function parseUri(): void {
-		$this->uriComponents = parse_url($this->uri);
-		if (!is_array($this->uriComponents)) {
+		$uriComponents = \Safe\parse_url($this->uri);
+		if (!is_array($uriComponents)) {
 			throw new InvalidHttpRequest("Invalid URI: '{$this->uri}'");
 		}
+		$this->uriComponents = $uriComponents;
 	}
 
 	/**
@@ -50,9 +62,9 @@ class HttpRequest {
 	 * @throws InvalidHttpRequest on invalid schema
 	 */
 	private function extractStreamScheme(): void {
-		if ($this->uriComponents['scheme'] == 'http') {
+		if (($this->uriComponents['scheme']??null) === 'http') {
 			$this->streamScheme = 'tcp';
-		} elseif ($this->uriComponents['scheme'] == 'https') {
+		} elseif (($this->uriComponents['scheme']??null) === 'https') {
 			$this->streamScheme = 'ssl';
 		} else {
 			throw new InvalidHttpRequest("URI has no valid scheme: '{$this->uri}'");
@@ -66,13 +78,13 @@ class HttpRequest {
 	 * @throws InvalidHttpRequest on invalid scheme
 	 */
 	private function extractStreamPort(): void {
-		if ($this->uriComponents['scheme'] == 'http') {
+		if (($this->uriComponents['scheme']??null) === 'http') {
 			if (isset($this->uriComponents['port'])) {
 				$this->streamPort = $this->uriComponents['port'];
 			} else {
 				$this->streamPort = 80;
 			}
-		} elseif ($this->uriComponents['scheme'] == 'https') {
+		} elseif (($this->uriComponents['scheme']??null) === 'https') {
 			if (isset($this->uriComponents['port'])) {
 				$this->streamPort = $this->uriComponents['port'];
 			} else {
@@ -113,7 +125,7 @@ class HttpRequest {
 			($this->uriComponents["host"]??"").
 			(($this->uriComponents["port"]??null) ?: "").
 			($this->uriComponents["path"]??"").
-			($this->uriComponents["query"] ? "?" . $this->uriComponents["query"] : "");
+			(isset($this->uriComponents["query"]) ? "?" . $this->uriComponents["query"] : "");
 	}
 
 	public function getData(): string {
@@ -159,16 +171,17 @@ class HttpRequest {
 		return "$path";
 	}
 
+	/** @return array<string,?string> */
 	private function getHeaders(): array {
 		$headers = [];
 		$headers['Host'] = $this->streamHost;
 		$headers['User-Agent'] = 'Nadybot ' . BotRunner::getVersion();
 		if ($this->method == 'post') {
 			if ($this->postData) {
-				$headers['Content-Length'] = strlen($this->postData);
+				$headers['Content-Length'] = (string)strlen($this->postData);
 			} elseif ($this->queryParams) {
 				$headers['Content-Type'] = 'application/x-www-form-urlencoded';
-				$headers['Content-Length'] = strlen($this->getPostQueryStr());
+				$headers['Content-Length'] = (string)strlen($this->getPostQueryStr());
 			}
 		}
 

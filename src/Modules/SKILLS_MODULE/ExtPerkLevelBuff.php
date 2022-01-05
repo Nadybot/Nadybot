@@ -9,4 +9,5 @@ class ExtPerkLevelBuff extends DBRow {
 	public string $skill_name;
 	public int $amount;
 	public string $unit;
+	public int $perk_level;
 }

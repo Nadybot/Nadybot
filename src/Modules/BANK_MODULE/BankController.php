@@ -6,13 +6,14 @@ use Nadybot\Core\Attributes as NCA;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	CmdContext,
-	CommandReply,
 	DB,
+	ModuleInstance,
 	SettingManager,
 	Text,
 	Util,
 };
 use Nadybot\Core\ParamClass\PCharacter;
+use Safe\Exceptions\FilesystemException;
 
 /**
  * @author Tyrence (RK2)
@@ -36,13 +37,7 @@ use Nadybot\Core\ParamClass\PCharacter;
 		alias: "updatebank"
 	)
 ]
-class BankController {
-
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
+class BankController extends ModuleInstance {
 
 	#[NCA\Inject]
 	public DB $db;
@@ -83,7 +78,7 @@ class BankController {
 		$characters = $this->db->table("bank")
 			->orderBy("player")
 			->select("player")->distinct()
-			->asObj()->pluck("player");
+			->pluckAs("player", "string");
 		if ($characters->isEmpty()) {
 			$context->reply("No bank characters found.");
 			return;
@@ -99,14 +94,18 @@ class BankController {
 	}
 
 	#[NCA\HandlesCommand("bank")]
-	public function bankBrowsePlayerCommand(CmdContext $context, #[NCA\Str("browse")] string $action, PCharacter $char): void {
+	public function bankBrowsePlayerCommand(
+		CmdContext $context,
+		#[NCA\Str("browse")] string $action,
+		PCharacter $char
+	): void {
 		$name = $char();
 
+		/** @var Collection<Bank> */
 		$data = $this->db->table("bank")
 			->where("player", $name)
 			->orderBy("container")
-			->select("container_id", "container", "player")
-			->asObj();
+			->asObj(Bank::class);
 		if ($data->count() === 0) {
 			$msg = "Could not find bank character <highlight>$name<end>.";
 			$context->reply($msg);
@@ -181,10 +180,12 @@ class BankController {
 
 	#[NCA\HandlesCommand("bank update")]
 	public function bankUpdateCommand(CmdContext $context, #[NCA\Str("update")] string $action): void {
-		$lines = @file($this->settingManager->getString('bank_file_location')??"");
-
-		if ($lines === false) {
-			$msg = "Could not open file: '" . ($this->settingManager->getString('bank_file_location')??"") . "'";
+		try {
+			$lines = \Safe\file($this->settingManager->getString('bank_file_location')??"");
+		} catch (FilesystemException $e) {
+			$msg = "Could not open file '".
+				($this->settingManager->getString('bank_file_location')??"") . "': ".
+				$e->getMessage();
 			$context->reply($msg);
 			return;
 		}

@@ -105,6 +105,7 @@ class Tyrbot implements RelayProtocolInterface {
 		return [$data];
 	}
 
+	/** @return array<string,mixed> */
 	protected function nadyPathToTyr(RoutableEvent $event): array {
 		$source = [
 			"name" => $event->path[0]->name,
@@ -175,7 +176,7 @@ class Tyrbot implements RelayProtocolInterface {
 		]);
 		$serialized = array_shift($message->packages);
 		try {
-			$data = json_decode($serialized, true, 10, JSON_UNESCAPED_SLASHES|JSON_INVALID_UTF8_SUBSTITUTE|JSON_THROW_ON_ERROR);
+			$data = \Safe\json_decode($serialized, true, 10, JSON_UNESCAPED_SLASHES|JSON_INVALID_UTF8_SUBSTITUTE|JSON_THROW_ON_ERROR);
 			$identify = new BasePacket($data);
 			return $this->decodeAndHandlePacket($message->sender, $identify, $data);
 		} catch (JsonException $e) {
@@ -191,10 +192,9 @@ class Tyrbot implements RelayProtocolInterface {
 			);
 			return null;
 		}
-
-		return null;
 	}
 
+	/** @param array<mixed> $data */
 	protected function decodeAndHandlePacket(?string $sender, BasePacket $identify, array $data): ?RoutableEvent {
 		switch ($identify->type) {
 			case $identify::MESSAGE:
@@ -430,8 +430,8 @@ class Tyrbot implements RelayProtocolInterface {
 		$this->relay = $relay;
 	}
 
-	protected function jsonEncode($data): string {
-		return json_encode($data, JSON_UNESCAPED_SLASHES|JSON_INVALID_UTF8_SUBSTITUTE|JSON_THROW_ON_ERROR);
+	protected function jsonEncode(mixed $data): string {
+		return \Safe\json_encode($data, JSON_UNESCAPED_SLASHES|JSON_INVALID_UTF8_SUBSTITUTE|JSON_THROW_ON_ERROR);
 	}
 
 	public static function supportsFeature(int $feature): bool {

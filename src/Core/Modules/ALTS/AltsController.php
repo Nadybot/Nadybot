@@ -9,9 +9,9 @@ use Nadybot\Core\{
 	CmdContext,
 	CommandReply,
 	DB,
-	DBRow,
 	DBSchema\Alt,
 	EventManager,
+	ModuleInstance,
 	Modules\PLAYER_LOOKUP\PlayerManager,
 	Nadybot,
 	QueryBuilder,
@@ -57,16 +57,10 @@ use Nadybot\Core\ParamClass\PRemove;
 	NCA\ProvidesEvent("alt(newmain)"),
 	NCA\HasMigrations
 ]
-class AltsController {
+class AltsController extends ModuleInstance {
 
 	public const ALT_VALIDATE = "altvalidate";
 	public const MAIN_VALIDATE = "mainvalidate";
-
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
 
 	#[NCA\Inject]
 	public Nadybot $chatBot;
@@ -92,6 +86,7 @@ class AltsController {
 	#[NCA\Inject]
 	public Text $text;
 
+	/** @var array<string,string> */
 	private array $alts = [];
 
 	/**
@@ -185,8 +180,9 @@ class AltsController {
 			});
 		$this->db->table("alts")->where("validated_by_main", false)->where("added_via", $myName)
 			->select("main")->distinct()
-			->asObj()->each(function(DBRow $main) {
-				$this->buddylistManager->add($main->main, static::MAIN_VALIDATE);
+			->pluckAs("main", "string")
+			->each(function(string $main) {
+				$this->buddylistManager->add($main, static::MAIN_VALIDATE);
 			});
 	}
 

@@ -6,6 +6,7 @@ use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{
 	CmdContext,
 	DB,
+	ModuleInstance,
 	LoggerWrapper,
 	Nadybot,
 	SettingManager,
@@ -30,14 +31,8 @@ use Nadybot\Core\ParamClass\PWord;
 		help: "reputation.txt"
 	)
 ]
-class ReputationController {
+class ReputationController extends ModuleInstance {
 	public const CAT_REPUTATION = "reputation";
-
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
 
 	#[NCA\Inject]
 	public DB $db;

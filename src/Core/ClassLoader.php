@@ -2,6 +2,7 @@
 
 namespace Nadybot\Core;
 
+use Directory;
 use Nadybot\Core\Attributes as NCA;
 use ReflectionClass;
 
@@ -16,6 +17,10 @@ class ClassLoader {
 	 */
 	private array $moduleLoadPaths;
 
+	/**
+	 * Array of module name => path
+	 * @var array<string,string>
+	 */
 	public array $registeredModules = [];
 
 	/**
@@ -36,6 +41,7 @@ class ClassLoader {
 		unset($newInstances["configfile"]);
 		$newInstances = array_merge($newInstances, $this->getNewInstancesInDir(__DIR__));
 		foreach ($newInstances as $name => $class) {
+			/** @psalm-suppress UnsafeInstantiation */
 			Registry::setInstance($name, new $class->className);
 		}
 
@@ -71,7 +77,7 @@ class ClassLoader {
 		$this->logger->notice("Loading USER modules...");
 		foreach ($this->moduleLoadPaths as $path) {
 			$this->logger->info("Loading modules in path '$path'");
-			if (!@file_exists($path) || ($d = dir($path)) === false || $d === null) {
+			if (!@file_exists($path) || !(($d = dir($path)) instanceof Directory)) {
 				continue;
 			}
 			while (false !== ($moduleName = $d->read())) {
@@ -107,10 +113,10 @@ class ClassLoader {
 	public function registerModule(string $baseDir, string $moduleName): void {
 		// read module.ini file (if it exists) from module's directory
 		if (file_exists("{$baseDir}/{$moduleName}/module.ini")) {
-			$entries = parse_ini_file("{$baseDir}/{$moduleName}/module.ini");
+			$entries = \Safe\parse_ini_file("{$baseDir}/{$moduleName}/module.ini");
 			// check that current PHP version is greater or equal than module's
 			// minimum required PHP version
-			if (isset($entries["minimum_php_version"])) {
+			if (is_array($entries) && isset($entries["minimum_php_version"])) {
 				$minimum = $entries["minimum_php_version"];
 				$current = phpversion();
 				if (strnatcmp($minimum, $current) > 0) {
@@ -125,8 +131,12 @@ class ClassLoader {
 		$newInstances = $this->getNewInstancesInDir("{$baseDir}/{$moduleName}");
 		foreach ($newInstances as $name => $class) {
 			$className = $class->className;
+			if (!class_exists($className) || !is_subclass_of($className, ModuleInstanceInterface::class)) {
+				continue;
+			}
+			/** @psalm-suppress UnsafeInstantiation */
 			$obj = new $className();
-			$obj->moduleName = $moduleName;
+			$obj->setModuleName($moduleName);
 			if (Registry::instanceExists($name) && !$class->overwrite) {
 				$this->logger->warning("Instance with name '$name' already registered--replaced with new instance");
 			}
@@ -163,6 +173,7 @@ class ClassLoader {
 	/**
 	 * Get a list of all instances which provide an #[Instance] from a list of classes
 	 *
+	 * @phpstan-param class-string $classes
 	 * @return array<string,ClassInstance> A mapping [instance name => class info]
 	 */
 	public static function getInstancesOfClasses(string ...$classes): array {

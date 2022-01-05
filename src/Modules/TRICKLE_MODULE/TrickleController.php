@@ -2,11 +2,12 @@
 
 namespace Nadybot\Modules\TRICKLE_MODULE;
 
-use Nadybot\Core\Attributes as NCA;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
+	Attributes as NCA,
 	CmdContext,
 	DB,
+	ModuleInstance,
 	Text,
 	Util,
 };
@@ -25,13 +26,7 @@ use Nadybot\Core\{
 		help: "trickle.txt"
 	)
 ]
-class TrickleController {
-
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
+class TrickleController extends ModuleInstance {
 
 	#[NCA\Inject]
 	public Text $text;
@@ -57,7 +52,7 @@ class TrickleController {
 	public function trickle1Command(CmdContext $context, #[NCA\Regexp("\w+\s+\d+(\s+\w+\s+\d+){0,5}")] string $pairs): void {
 		$abilities = new AbilityConfig();
 
-		$array = preg_split("/\s+/", $pairs);
+		$array = \Safe\preg_split("/\s+/", $pairs);
 		for ($i = 0; isset($array[$i]); $i += 2) {
 			$ability = $this->util->getAbility($array[$i]);
 			if ($ability === null) {
@@ -80,7 +75,7 @@ class TrickleController {
 	public function trickle2Command(CmdContext $context, #[NCA\Regexp("\d+\s+\w+(\s+\d+\s+\w+){0,5}")] string $pairs): void {
 		$abilities = new AbilityConfig();
 
-		$array = preg_split("/\s+/", $pairs);
+		$array = \Safe\preg_split("/\s+/", $pairs);
 		for ($i = 0; isset($array[$i]); $i += 2) {
 			$shortAbility = $this->util->getAbility($array[1 + $i]);
 			if ($shortAbility === null) {
@@ -141,7 +136,7 @@ class TrickleController {
 	 */
 	private function processAbilities(AbilityConfig $abilities): array {
 		$headerParts = [];
-		foreach ($abilities as $short => $bonus) {
+		foreach (get_object_vars($abilities) as $short => $bonus) {
 			if ($bonus > 0) {
 				$headerParts []= ($this->util->getAbility($short, true) ?? "Unknown ability").
 					": <highlight>$bonus<end>";

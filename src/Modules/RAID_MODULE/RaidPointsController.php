@@ -2,29 +2,29 @@
 
 namespace Nadybot\Modules\RAID_MODULE;
 
-use Nadybot\Core\Attributes as NCA;
-use DateTime;
+use Safe\DateTime;
 use Exception;
 use Illuminate\Support\Collection;
+use Throwable;
 use Nadybot\Core\{
+	Attributes as NCA,
 	CmdContext,
 	CommandAlias,
 	DB,
+	ModuleInstance,
 	LoggerWrapper,
 	Modules\ALTS\AltsController,
 	Modules\ALTS\AltEvent,
 	Nadybot,
-	QueryBuilder,
+	ParamClass\PCharacter,
+	ParamClass\PNonNumber,
+	ParamClass\PNonNumberWord,
+	ParamClass\PRemove,
+	ParamClass\PWord,
 	SettingManager,
 	Text,
 	Timer,
 };
-use Nadybot\Core\ParamClass\PCharacter;
-use Nadybot\Core\ParamClass\PNonNumber;
-use Nadybot\Core\ParamClass\PNonNumberWord;
-use Nadybot\Core\ParamClass\PRemove;
-use Nadybot\Core\ParamClass\PWord;
-use Throwable;
 
 /**
  * This class contains all functions necessary to deal with points in a raid
@@ -88,13 +88,10 @@ use Throwable;
 		help: "reward.txt"
 	)
 ]
-class RaidPointsController {
+class RaidPointsController extends ModuleInstance {
 	public const DB_TABLE = "raid_points_<myname>";
 	public const DB_TABLE_LOG = "raid_points_log_<myname>";
 	public const DB_TABLE_REWARD = "raid_reward_<myname>";
-
-	public string $moduleName;
-
 	#[NCA\Inject]
 	public DB $db;
 
@@ -198,7 +195,7 @@ class RaidPointsController {
 		$pointsChar = ucfirst(strtolower($player));
 		$sharePoints = $this->settingManager->getBool('raid_share_points');
 		if ($sharePoints) {
-			$pointsChar = $this->altsController->getAltInfo($pointsChar)->main;
+			$pointsChar = $this->altsController->getMainOf($pointsChar);
 		}
 		$raid->raiders[$player]->points++;
 		$raid->raiders[$player]->pointsRewarded++;
@@ -235,7 +232,7 @@ class RaidPointsController {
 		$pointsChar = ucfirst(strtolower($player));
 		$sharePoints = $this->settingManager->getBool('raid_share_points');
 		if ($sharePoints) {
-			$pointsChar = $this->altsController->getAltInfo($pointsChar)->main;
+			$pointsChar = $this->altsController->getMainOf($pointsChar);
 		}
 		// If that player already received reward based points for this reward on an alt ignore this
 		if (isset($raid) && isset($raid->pointsGiven[$pointsChar])) {
@@ -320,7 +317,7 @@ class RaidPointsController {
 		$pointsChar = ucfirst(strtolower($player));
 		$sharePoints = $this->settingManager->getBool('raid_share_points');
 		if ($sharePoints) {
-			$pointsChar = $this->altsController->getAltInfo($pointsChar)->main;
+			$pointsChar = $this->altsController->getMainOf($pointsChar);
 		}
 		return $this->getThisAltsRaidPoints($pointsChar);
 	}
@@ -329,13 +326,11 @@ class RaidPointsController {
 	 * Get this character's raid points, not taking into consideration any alts
 	 */
 	public function getThisAltsRaidPoints(string $player): ?int {
-		$row = $this->db->table(self::DB_TABLE)
+		return $this->db->table(self::DB_TABLE)
 			->where("username", $player)
-			->asObj()->first();
-		if ($row === null) {
-			return null;
-		}
-		return (int)$row->points;
+			->select("points")
+			->pluckAs("points", "int")
+			->first();
 	}
 
 	#[NCA\HandlesCommand("raidpoints")]
@@ -491,12 +486,12 @@ class RaidPointsController {
 			return;
 		}
 		$char = $char();
-		/** @var RaidPointsLog[] */
 		if (isset($all)) {
 			$pointLogs = $this->getRaidpointLogsForAccount($char);
 		} else {
 			$pointLogs = $this->getRaidpointLogsForChar($char);
 		}
+		/** @var RaidPointsLog[] $pointLogs */
 		if (count($pointLogs) === 0) {
 			$context->reply("{$char} has never received any raid points at <myname>.");
 			return;

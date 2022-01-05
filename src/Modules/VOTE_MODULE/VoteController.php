@@ -2,27 +2,28 @@
 
 namespace Nadybot\Modules\VOTE_MODULE;
 
-use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{
 	AccessManager,
+	Attributes as NCA,
 	CmdContext,
 	CommandAlias,
 	DB,
 	Event,
 	EventManager,
+	ModuleInstance,
 	LoggerWrapper,
 	MessageEmitter,
 	MessageHub,
 	Nadybot,
+	ParamClass\PDuration,
+	ParamClass\PRemove,
+	Routing\RoutableMessage,
+	Routing\Source,
 	SettingManager,
 	Text,
 	Timer,
 	Util,
 };
-use Nadybot\Core\ParamClass\PDuration;
-use Nadybot\Core\ParamClass\PRemove;
-use Nadybot\Core\Routing\RoutableMessage;
-use Nadybot\Core\Routing\Source;
 
 /**
  * @author Nadyita (RK5)
@@ -52,16 +53,10 @@ use Nadybot\Core\Routing\Source;
 	NCA\ProvidesEvent("vote(del)"),
 	NCA\ProvidesEvent("vote(change)")
 ]
-class VoteController implements MessageEmitter {
+class VoteController extends ModuleInstance implements MessageEmitter {
 
 	public const DB_POLLS = "polls_<myname>";
 	public const DB_VOTES = "votes_<myname>";
-
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
 
 	#[NCA\Inject]
 	public Text $text;
@@ -128,7 +123,7 @@ class VoteController implements MessageEmitter {
 			->where("status", "!=", self::STATUS_ENDED)
 			->asObj(Poll::class)
 			->each(function (Poll $topic): void {
-				$topic->answers = json_decode($topic->possible_answers, false);
+				$topic->answers = \Safe\json_decode($topic->possible_answers, false);
 				$this->polls[$topic->id] = $topic;
 			});
 	}
@@ -143,7 +138,7 @@ class VoteController implements MessageEmitter {
 		if ($topic === null) {
 			return null;
 		}
-		$topic->answers = json_decode($topic->possible_answers);
+		$topic->answers = \Safe\json_decode($topic->possible_answers);
 		return $topic;
 	}
 
@@ -190,6 +185,7 @@ class VoteController implements MessageEmitter {
 					$mstatus = self::STATUS_60_SECONDS_LEFT;
 				}
 				$this->polls[$id]->status = $mstatus;
+			// @phpstan-ignore-next-line
 			} elseif ($timeleft <= 60 && $timeleft > 0 && $poll->status !== self::STATUS_60_SECONDS_LEFT) {
 				$title = "60 seconds left: $poll->question";
 				$this->polls[$id]->status = self::STATUS_60_SECONDS_LEFT;
@@ -437,7 +433,7 @@ class VoteController implements MessageEmitter {
 		PDuration $duration,
 		string $definition
 	): void {
-		$answers = preg_split("/\s*\Q" . self::DELIMITER . "\E\s*/", $definition);
+		$answers = \Safe\preg_split("/\s*\Q" . self::DELIMITER . "\E\s*/", $definition);
 		$question = array_shift($answers);
 		$duration = $duration->toSecs();
 
@@ -457,7 +453,7 @@ class VoteController implements MessageEmitter {
 		$topic->started = time();
 		$topic->duration = $duration;
 		$topic->answers = $answers;
-		$topic->possible_answers = json_encode($answers);
+		$topic->possible_answers = \Safe\json_encode($answers);
 		$topic->status = self::STATUS_CREATED;
 
 		$topic->id = $this->db->insert(self::DB_POLLS, $topic);

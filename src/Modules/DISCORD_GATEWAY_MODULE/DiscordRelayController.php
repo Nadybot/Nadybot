@@ -6,6 +6,7 @@ use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{
 	AccessManager,
 	CmdContext,
+	ModuleInstance,
 	Nadybot,
 	SettingManager,
 	Text,
@@ -13,15 +14,15 @@ use Nadybot\Core\{
 	Util,
 };
 use Nadybot\Core\Modules\{
+	ALTS\AltsController,
 	CONFIG\ConfigController,
+	CONFIG\SettingOption,
 	DISCORD\DiscordAPIClient,
 	DISCORD\DiscordChannel,
 	DISCORD\DiscordController,
+	PLAYER_LOOKUP\PlayerManager,
+	PREFERENCES\Preferences,
 };
-use Nadybot\Core\Modules\ALTS\AltsController;
-use Nadybot\Core\Modules\CONFIG\SettingOption;
-use Nadybot\Core\Modules\PLAYER_LOOKUP\PlayerManager;
-use Nadybot\Core\Modules\PREFERENCES\Preferences;
 use Nadybot\Modules\GUILD_MODULE\GuildController;
 use Nadybot\Modules\PRIVATE_CHANNEL_MODULE\PrivateChannelController;
 use Nadybot\Modules\RELAY_MODULE\RelayController;
@@ -39,9 +40,7 @@ use Nadybot\Modules\RELAY_MODULE\RelayController;
 		help: "discord.txt"
 	)
 ]
-class DiscordRelayController {
-	public string $moduleName;
-
+class DiscordRelayController extends ModuleInstance {
 	#[NCA\Inject]
 	public DiscordGatewayController $discordGatewayController;
 
@@ -138,6 +137,11 @@ class DiscordRelayController {
 		return $result;
 	}
 
+	/**
+	 * @return array<bool|string>
+	 * @psalm-return array{0: bool, 1:string}
+	 * @phpstan-return array{0: bool, 1:string}
+	 */
 	protected function getChannelTree(?callable $callback=null): array {
 		if (!$this->discordGatewayController->isConnected()) {
 			return [false, "The bot is not (yet) connected to discord."];

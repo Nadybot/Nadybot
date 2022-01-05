@@ -2,22 +2,23 @@
 
 namespace Nadybot\Modules\GUILD_MODULE;
 
-use Nadybot\Core\Attributes as NCA;
 use Exception;
 use Nadybot\Core\{
 	AccessManager,
+	Attributes as NCA,
 	CmdContext,
 	CommandReply,
 	ConfigFile,
 	DB,
+	ModuleInstance,
+	Modules\PLAYER_LOOKUP\Guild,
+	Modules\PLAYER_LOOKUP\GuildManager,
 	Nadybot,
+	ParamClass\PRemove,
+	ParamClass\PWord,
 	SettingManager,
 	Text,
 };
-use Nadybot\Core\Modules\PLAYER_LOOKUP\Guild;
-use Nadybot\Core\Modules\PLAYER_LOOKUP\GuildManager;
-use Nadybot\Core\ParamClass\PRemove;
-use Nadybot\Core\ParamClass\PWord;
 use Nadybot\Modules\ORGLIST_MODULE\OrglistController;
 
 /**
@@ -40,15 +41,9 @@ use Nadybot\Modules\ORGLIST_MODULE\OrglistController;
 		help: "maprank.txt"
 	)
 ]
-class GuildRankController {
+class GuildRankController extends ModuleInstance {
 
 	public const DB_TABLE = "org_rank_mapping_<myname>";
-
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
 
 	#[NCA\Inject]
 	public DB $db;

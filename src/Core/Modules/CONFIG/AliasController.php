@@ -7,6 +7,7 @@ use Nadybot\Core\{
 	CmdContext,
 	CommandAlias,
 	CommandManager,
+	ModuleInstance,
 	Text,
 };
 use Nadybot\Core\DBSchema\CmdAlias;
@@ -26,7 +27,7 @@ use Nadybot\Core\ParamClass\PWord;
 		defaultStatus: 1
 	)
 ]
-class AliasController {
+class AliasController extends ModuleInstance {
 
 	#[NCA\Inject]
 	public CommandAlias $commandAlias;

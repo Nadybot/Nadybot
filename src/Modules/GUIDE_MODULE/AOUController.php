@@ -9,11 +9,12 @@ use Nadybot\Core\{
 	CacheManager,
 	CacheResult,
 	CmdContext,
-	DBRow,
 	Http,
 	HttpResponse,
+	ModuleInstance,
 	Text,
 };
+use Nadybot\Modules\ITEMS_MODULE\AODBEntry;
 use Nadybot\Modules\ITEMS_MODULE\ItemsController;
 use Throwable;
 
@@ -30,13 +31,7 @@ use Throwable;
 		help: "aou.txt"
 	)
 ]
-class AOUController {
-
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
+class AOUController extends ModuleInstance {
 
 	#[NCA\Inject]
 	public Text $text;
@@ -246,6 +241,7 @@ class AOUController {
 		return $obj;
 	}
 
+	/** @param string[] $arr */
 	private function replaceItem(array $arr): string {
 		$type = $arr[1];
 		$id = (int)$arr[3];
@@ -261,6 +257,7 @@ class AOUController {
 		return $output;
 	}
 
+	/** @param string[] $arr */
 	private function replaceWaypoint(array $arr): string {
 		$label = $arr[2];
 		$params = explode(" ", $arr[1]);
@@ -273,6 +270,7 @@ class AOUController {
 		return $this->text->makeChatcmd($label . " ({$wp['x']}x{$wp['y']})", "/waypoint {$wp['x']} {$wp['y']} {$wp['pf']}");
 	}
 
+	/** @param string[] $arr */
 	private function replaceGuideLinks(array $arr): string {
 		$url = $arr[2];
 		$label = $arr[3];
@@ -298,7 +296,7 @@ class AOUController {
 		$input = str_replace(["[b]", "[/b]"], ["<highlight>", "<end>"], $input);
 
 		$pattern = "/(\[.+?\])/";
-		$matches = preg_split($pattern, $input, -1, PREG_SPLIT_DELIM_CAPTURE | PREG_SPLIT_NO_EMPTY);
+		$matches = \Safe\preg_split($pattern, $input, -1, PREG_SPLIT_DELIM_CAPTURE | PREG_SPLIT_NO_EMPTY);
 
 		$output = '';
 		foreach ($matches as $match) {
@@ -328,7 +326,7 @@ class AOUController {
 		return $tag;
 	}
 
-	private function generateItemMarkup(string $type, DBRow $obj): string {
+	private function generateItemMarkup(string $type, AODBEntry $obj): string {
 		$output = '';
 		if ($type === "item" || $type === "itemicon") {
 			$output .= $this->text->makeImage($obj->icon);

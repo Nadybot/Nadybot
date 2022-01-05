@@ -3,27 +3,29 @@
 namespace Nadybot\Modules\ITEMS_MODULE;
 
 use Closure;
-use Nadybot\Core\Attributes as NCA;
 use Illuminate\Database\Query\JoinClause;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
+	Attributes as NCA,
 	CmdContext,
 	CommandManager,
 	CommandReply,
 	DB,
-	DBRow,
 	Http,
+	ModuleInstance,
 	LoggerWrapper,
 	QueryBuilder,
+	ParamClass\PWord,
 	SettingManager,
 	Text,
 	Util,
 };
-use Nadybot\Core\ParamClass\PWord;
-use Nadybot\Modules\SKILLS_MODULE\BuffPerksController;
-use Nadybot\Modules\SKILLS_MODULE\Perk;
-use Nadybot\Modules\SKILLS_MODULE\PerkLevelBuff;
-use Nadybot\Modules\SKILLS_MODULE\SkillsController;
+use Nadybot\Modules\SKILLS_MODULE\{
+	BuffPerksController,
+	Perk,
+	PerkLevelBuff,
+	SkillsController,
+};
 
 /**
  * Commands this controller contains:
@@ -45,10 +47,7 @@ use Nadybot\Modules\SKILLS_MODULE\SkillsController;
 		alias: "wbf"
 	)
 ]
-class WhatBuffsController {
-
-	public string $moduleName;
-
+class WhatBuffsController extends ModuleInstance {
 	#[NCA\Inject]
 	public Http $http;
 
@@ -514,10 +513,17 @@ class WhatBuffsController {
 		return $msg;
 	}
 
+	/**
+	 * @param PerkBuffSearchResult[] $data
+	 * @return PerkBuffSearchResult[]
+	 */
 	protected function generatePerkBufflist(array $data): array {
 		/** @var array<string,PerkBuffSearchResult> */
 		$result = [];
 		foreach ($data as $perk) {
+			if (!isset($perk->name)) {
+				continue;
+			}
 			if (!isset($result[$perk->name])) {
 				$result[$perk->name] = $perk;
 			} else {
@@ -608,7 +614,7 @@ class WhatBuffsController {
 			->toArray();
 	}
 
-	public function showItemLink(DBRow $item, int $ql): string {
+	public function showItemLink(AODBEntry $item, int $ql): string {
 		return $this->text->makeItem($item->lowid, $item->highid, $ql, $item->name);
 	}
 
@@ -624,14 +630,16 @@ class WhatBuffsController {
 		$blob = "<header2>" . ucfirst($this->locationToItem($category)) . " that buff {$skill->name}<end>\n";
 		$maxBuff = 0;
 		$itemMapping = [];
+		$maxQL = [];
+		$maxAmount = [];
 		foreach ($items as $item) {
 			if ($item->amount === $item->low_amount) {
 				$item->highql = $item->lowql;
 			}
 			// Some items are not in game with the maximum possible QL
 			// Replace the shown QL with the maximum possible QL
-			$item->maxql = $item->highql;
-			$item->maxamount = $item->amount;
+			$maxQL[$item->lowid] = $item->highql;
+			$maxAmount[$item->lowid] = $item->amount;
 			if (
 				$item->highql > 250 && (
 					strpos($item->name, " Filigree Ring set with a ") !== false ||
@@ -681,8 +689,9 @@ class WhatBuffsController {
 					$link = $this->text->makeItem($item->lowid, $item->highid, 0, $item->name);
 					$blob .= " " . $this->text->makeChatcmd(
 						"Breakpoints",
-						"/tell <myname> bestql $item->lowql $item->low_amount $item->maxql $item->maxamount ".
-						$link
+						"/tell <myname> bestql $item->lowql $item->low_amount ".
+							$maxQL[$item->lowid] . " " . $maxAmount[$item->lowid].
+							" {$link}"
 					);
 				}
 			}

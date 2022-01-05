@@ -2,12 +2,13 @@
 
 namespace Nadybot\Modules\NOTES_MODULE;
 
-use Nadybot\Core\Attributes as NCA;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	AccessManager,
+	Attributes as NCA,
 	CmdContext,
 	DB,
+	ModuleInstance,
 	SettingManager,
 	Text,
 };
@@ -28,13 +29,7 @@ use Nadybot\Core\ParamClass\PWord;
 		help: "links.txt"
 	)
 ]
-class LinksController {
-
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
+class LinksController extends ModuleInstance {
 
 	#[NCA\Inject]
 	public DB $db;

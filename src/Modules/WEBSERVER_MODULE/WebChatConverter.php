@@ -2,17 +2,21 @@
 
 namespace Nadybot\Modules\WEBSERVER_MODULE;
 
-use Nadybot\Core\Attributes as NCA;
-use Nadybot\Core\ConfigFile;
-use Nadybot\Core\MessageHub;
-use Nadybot\Core\Routing\Source;
-use Nadybot\Core\SettingManager;
+use Exception;
+use Nadybot\Core\{
+	Attributes as NCA,
+	ConfigFile,
+	ModuleInstance,
+	MessageHub,
+	Routing\Source,
+	SettingManager,
+};
 
 /**
  * @package Nadybot\Modules\WEBSERVER_MODULE
  */
 #[NCA\Instance]
-class WebChatConverter {
+class WebChatConverter extends ModuleInstance {
 
 	#[NCA\Inject]
 	public ConfigFile $config;
@@ -30,7 +34,7 @@ class WebChatConverter {
 	/**
 	 * Add the color and display information to the path
 	 * @param null|Source[] $path
-	 * @return null|Source[]
+	 * @return null|WebSource[]
 	 */
 	public function convertPath(?array $path=null): ?array {
 		if (!isset($path)) {
@@ -39,12 +43,15 @@ class WebChatConverter {
 		$result = [];
 		$lastHop = null;
 		foreach ($path as $hop) {
-			$newHop = clone $hop;
+			$newHop = new WebSource($hop->type, $hop->name, $hop->label);
+			foreach (get_object_vars($hop) as $key => $value) {
+				$newHop->{$key} = $value;
+			}
 			$newHop->renderAs = $newHop->render($lastHop);
 			$lastHop = $hop;
 			$color = $this->messageHub->getHopColor($path, Source::WEB, $newHop, "tag_color");
 			if (isset($color)) {
-				$newHop->color = $color->tag_color;
+				$newHop->color = $color->tag_color ?? "";
 			} else {
 				$newHop->color = "";
 			}
@@ -139,6 +146,7 @@ class WebChatConverter {
 			"<br>" => "<br />",
 		];
 
+		/** @var string[] */
 		$stack = [];
 		$message = preg_replace("/<\/font>/", "<end>", $message);
 		$message = preg_replace_callback(
@@ -148,6 +156,7 @@ class WebChatConverter {
 					if (empty($stack)) {
 						return "";
 					}
+					// @phpstan-ignore-next-line
 					return "</" . array_pop($stack) . ">";
 				} elseif (preg_match("/font\s+color\s*=\s*[\"']?(#.{6})[\"']?/i", $matches[1], $colorMatch)) {
 					$tag = $colorMatch[1];
@@ -167,13 +176,15 @@ class WebChatConverter {
 			$message
 		);
 		while (count($stack)) {
+			// @phpstan-ignore-next-line
 			$message .= "</" . array_pop($stack) . ">";
 		}
 		$message = preg_replace_callback(
 			"/(\r?\n[-*][^\r\n]+){2,}/s",
 			function (array $matches): string {
 				$text = preg_replace("/(\r?\n)[-*]\s+([^\r\n]+)/s", "<li>$2</li>", $matches[0]);
-				return "\n<ul>$text</ul>";
+				// @phpstan-ignore-next-line
+				return "\n<ul>{$text}</ul>";
 			},
 			$message
 		);
@@ -219,7 +230,10 @@ class WebChatConverter {
 		$message = preg_replace("/<(\/?[a-z]+):/", "<$1___", $message);
 		$xml = new \DOMDocument();
 		@$xml->loadHTML('<?xml encoding="UTF-8">' . $message);
-		$message = preg_replace("/^.+?<body>(.+)<\/body><\/html>$/si", "$1", $xml->saveXML());
+		if (($message = $xml->saveXML()) === false) {
+			throw new Exception("Invalid XML data created");
+		}
+		$message = preg_replace("/^.+?<body>(.+)<\/body><\/html>$/si", "$1", $message);
 		$message = preg_replace("/<([\/a-z]+)___/", "<$1:", $message);
 		return $message;
 	}
@@ -231,6 +245,7 @@ class WebChatConverter {
 			"/<a\s+href\s*=\s*([\"'])text:\/\/(.+?)\\1>(.*?)<\/a>/s",
 			function (array $matches) use (&$parts, &$id): string {
 				$parts["ao-" . ++$id] = $this->formatMsg(
+					// @phpstan-ignore-next-line
 					preg_replace(
 						"/^<font.*?>(<\/font>|<end>)?/",
 						"",
@@ -254,7 +269,7 @@ class WebChatConverter {
 		$data = "";
 		if (count(get_object_vars($msg->popups))) {
 			$data .= "<data>";
-			foreach ($msg->popups as $key => $value) {
+			foreach (get_object_vars($msg->popups) as $key => $value) {
 				$data .= "<section id=\"{$key}\">" . $this->fixUnclosedTags($value) . "</section>";
 			}
 			$data .= "</data>";

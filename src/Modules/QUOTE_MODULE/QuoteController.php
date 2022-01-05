@@ -2,12 +2,13 @@
 
 namespace Nadybot\Modules\QUOTE_MODULE;
 
-use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{
+	Attributes as NCA,
 	AccessManager,
 	CmdContext,
 	ConfigFile,
 	DB,
+	ModuleInstance,
 	Nadybot,
 	ParamClass\PRemove,
 	Text,
@@ -29,13 +30,7 @@ use Nadybot\Core\{
 		help: "quote.txt"
 	)
 ]
-class QuoteController {
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
-
+class QuoteController extends ModuleInstance {
 	#[NCA\Inject]
 	public DB $db;
 
@@ -66,7 +61,7 @@ class QuoteController {
 		$quoteMsg = trim($quote);
 		$row = $this->db->table("quote")
 			->whereIlike("msg", $quoteMsg)
-			->asObj()->first();
+			->asObj(Quote::class)->first();
 		if (isset($row)) {
 			$msg = "This quote has already been added as quote <highlight>{$row->id}<end>.";
 			$context->reply($msg);
@@ -275,7 +270,7 @@ class QuoteController {
 			return;
 		}
 		$result = [];
-		$lines = preg_split("/ (?=(?:\(\d{2}:\d{2}\) )?\[[a-zA-Z 0-9-]+\])/", $row->msg);
+		$lines = \Safe\preg_split("/ (?=(?:\(\d{2}:\d{2}\) )?\[[a-zA-Z 0-9-]+\])/", $row->msg);
 		foreach ($lines as $line) {
 			$result = [...$result, ...explode("\n", $line)];
 		}

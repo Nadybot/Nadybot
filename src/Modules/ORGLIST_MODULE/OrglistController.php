@@ -2,22 +2,23 @@
 
 namespace Nadybot\Modules\ORGLIST_MODULE;
 
-use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{
+	Attributes as NCA,
 	BuddylistManager,
 	CmdContext,
 	CommandReply,
 	DB,
+	DBSchema\Player,
 	Event,
+	ModuleInstance,
+	Modules\PLAYER_LOOKUP\Guild,
+	Modules\PLAYER_LOOKUP\GuildManager,
+	Modules\PLAYER_LOOKUP\PlayerManager,
 	Nadybot,
 	Text,
 	UserStateEvent,
 	Util,
 };
-use Nadybot\Core\Modules\PLAYER_LOOKUP\GuildManager;
-use Nadybot\Core\Modules\PLAYER_LOOKUP\PlayerManager;
-use Nadybot\Core\DBSchema\Player;
-use Nadybot\Core\Modules\PLAYER_LOOKUP\Guild;
 
 /**
  * @author Tyrence (RK2)
@@ -33,13 +34,7 @@ use Nadybot\Core\Modules\PLAYER_LOOKUP\Guild;
 		help: "orglist.txt"
 	)
 ]
-class OrglistController {
-
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
+class OrglistController extends ModuleInstance {
 
 	#[NCA\Inject]
 	public DB $db;
@@ -77,7 +72,10 @@ class OrglistController {
 		"Department" => ["President", "General",      "Squad Commander", "Unit Commander", "Unit Leader", "Unit Member", "Applicant"],
 	];
 
-	/** Get a hierarchical array of all the ranks in the goven governing form */
+	/**
+	 * Get a hierarchical array of all the ranks in the goven governing form
+	 * @return string[]
+	 */
 	public function getOrgRanks(string $governingForm): array {
 		return $this->orgrankmap[ucfirst(strtolower($governingForm))] ?? [];
 	}
@@ -271,6 +269,7 @@ class OrglistController {
 		}
 	}
 
+	/** @param array<string,int> $uidLookup */
 	public function addOrgMembersToBuddylist(array $uidLookup=[]): void {
 		if (!isset($this->orglist)) {
 			return;
@@ -331,6 +330,7 @@ class OrglistController {
 	}
 
 	/**
+	 * @param array<string,string> $orgcolor
 	 * @return string[]
 	 */
 	public function orgmatesformat(Orglist $memberlist, array $orgcolor, int $timestart): array {

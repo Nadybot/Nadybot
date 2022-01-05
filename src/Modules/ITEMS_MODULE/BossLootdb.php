@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\ITEMS_MODULE;
 
+use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\DBRow;
 
 class BossLootdb extends DBRow {
@@ -14,6 +15,6 @@ class BossLootdb extends DBRow {
 	/** The internal ID of this item */
 	public int $aoid;
 
-	/** @db:ignore */
+	#[NCA\DB\Ignore]
 	public ?AODBEntry $item = null;
 }

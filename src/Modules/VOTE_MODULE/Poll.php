@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\VOTE_MODULE;
 
+use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\DBRow;
 
 class Poll extends DBRow {
@@ -9,7 +10,8 @@ class Poll extends DBRow {
 	public string $author;
 	public string $question;
 	public string $possible_answers;
-	/** @db:ignore */
+	/** @var string[] */
+	#[NCA\DB\Ignore]
 	public array $answers = [];
 	public int $started;
 	public int $duration;

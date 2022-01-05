@@ -17156,6 +17156,7 @@ lowid,highid,lowql,highql,name,icon,froob_friendly,slot,flags
 215556,215557,25,300,"Control Unit Pants",214753,0,2049,1
 215568,215568,1,1,"Bio Shield",238997,1,0,16384
 215577,215577,1,1,"Bio Cocoon",238999,1,0,16384
+215578,215578,1,1,"Bio Rejuvenation",239147,1,0,16384
 215599,215599,1,1,"Bio Regrowth",239149,1,0,16384
 215600,215601,25,300,"Artillery Pants",214753,0,2049,1
 215602,215603,25,300,"Artillery Boots",214751,0,16385,1
@@ -20617,6 +20618,7 @@ lowid,highid,lowql,highql,name,icon,froob_friendly,slot,flags
 226727,226727,132,132,"Nano Crystal (Blunt Defense)",42452,0,0,4194819
 226729,226729,191,191,"Nano Crystal (Disable Defense)",42452,0,0,4194819
 226731,226731,191,191,"Nano Crystal (Debilitate Defense)",42452,0,0,4194819
+226732,226732,1,1,"Called Shot",239093,0,0,0
 226735,226735,203,203,"Nano Crystal (Emasculate Defense)",42452,0,0,4194819
 226737,226737,203,203,"Nano Crystal (Enfeeble Defense)",42452,0,0,4194819
 226739,226739,211,211,"Nano Crystal (Exhaust Defense)",42452,0,0,4194819
@@ -20768,6 +20770,7 @@ lowid,highid,lowql,highql,name,icon,froob_friendly,slot,flags
 227218,227218,1,1,"Annihilate Notum Molecules",239175,1,0,0
 227219,227219,1,1,"Strip Nano",239173,1,0,0
 227221,227221,1,1,"Tap Notum Source",239193,1,0,0
+227223,227223,1,1,"Heal",239149,1,0,0
 227236,227236,1,1,"Reconstruct DNA",239147,1,0,16384
 227237,227237,1,1,"Viral Wipe",239227,1,0,16384
 227312,227312,1,1,"Access Notum Source",239189,1,0,16384

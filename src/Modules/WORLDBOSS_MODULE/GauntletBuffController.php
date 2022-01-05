@@ -2,21 +2,23 @@
 
 namespace Nadybot\Modules\WORLDBOSS_MODULE;
 
-use Nadybot\Core\Attributes as NCA;
 use DateTime;
 use Exception;
 use JsonException;
 use Nadybot\Core\{
 	AOChatEvent,
+	Attributes as NCA,
 	CmdContext,
 	EventManager,
 	Http,
 	HttpResponse,
+	ModuleInstance,
 	LoggerWrapper,
 	MessageEmitter,
 	MessageHub,
 	Modules\ALTS\AltsController,
 	Nadybot,
+	ParamClass\PDuration,
 	Routing\RoutableMessage,
 	Routing\Source,
 	SettingManager,
@@ -24,15 +26,15 @@ use Nadybot\Core\{
 	UserStateEvent,
 	Util,
 };
-use Nadybot\Core\ParamClass\PDuration;
-use Nadybot\Modules\TIMERS_MODULE\Alert;
-use Nadybot\Modules\TIMERS_MODULE\Timer;
-use Nadybot\Modules\TIMERS_MODULE\TimerController;
+use Nadybot\Modules\TIMERS_MODULE\{
+	Alert,
+	Timer,
+	TimerController,
+};
 
 /**
  * @author Equi
  * @author Nadyita (RK5) <nadyita@hodorraid.org>
- * Commands this controller contains:
  */
 #[
 	NCA\Instance,
@@ -47,15 +49,9 @@ use Nadybot\Modules\TIMERS_MODULE\TimerController;
 		desc: "Triggered when someone sets the gauntlet buff for either side",
 	)
 ]
-class GauntletBuffController implements MessageEmitter {
+class GauntletBuffController extends ModuleInstance implements MessageEmitter {
 	public const SIDE_NONE = 'none';
 	public const GAUNTLET_API = "https://timers.aobots.org/api/v1.0/gaubuffs";
-
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
 
 	#[NCA\Inject]
 	public Text $text;
@@ -154,7 +150,7 @@ class GauntletBuffController implements MessageEmitter {
 		/** @var ApiGauntletBuff[] */
 		$buffs = [];
 		try {
-			$data = json_decode($response->body, true, 512, JSON_THROW_ON_ERROR);
+			$data = \Safe\json_decode($response->body, true, 512, JSON_THROW_ON_ERROR);
 			if (!is_array($data)) {
 				throw new JsonException();
 			}
@@ -256,7 +252,7 @@ class GauntletBuffController implements MessageEmitter {
 			"",
 			$alerts,
 			"GauntletBuffController.gaubuffcallback",
-			json_encode($data)
+			\Safe\json_encode($data)
 		);
 	}
 

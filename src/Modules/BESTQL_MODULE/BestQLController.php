@@ -5,6 +5,7 @@ namespace Nadybot\Modules\BESTQL_MODULE;
 use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{
 	CmdContext,
+	ModuleInstance,
 	SettingManager,
 	Text,
 };
@@ -24,13 +25,7 @@ use Nadybot\Core\ParamClass\PItem;
 		alias: "breakpoints"
 	)
 ]
-class BestQLController {
-
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
+class BestQLController extends ModuleInstance {
 
 	#[NCA\Inject]
 	public Text $text;
@@ -65,7 +60,7 @@ class BestQLController {
 	public function bestqlCommand(CmdContext $context, #[NCA\Regexp("[0-9 ]+")] string $specs, ?PItem $item): void {
 		/** @var array<int,int> */
 		$itemSpecs = [];
-		$specPairs = preg_split('/\s+/', $specs);
+		$specPairs = \Safe\preg_split('/\s+/', $specs);
 
 		if (count($specPairs) < 4) {
 			$msg = "You have to provide at least 2 bonuses at 2 different QLs.";

@@ -9,6 +9,7 @@ use Nadybot\Core\EventManager;
 use Nadybot\Core\LoggerWrapper;
 use Nadybot\Core\SchemaMigration;
 use Nadybot\Modules\WORLDBOSS_MODULE\WorldBossController;
+use stdClass;
 
 class CreateWorldbossTimersTable implements SchemaMigration {
 	public function migrate(LoggerWrapper $logger, DB $db): void {
@@ -28,14 +29,18 @@ class CreateWorldbossTimersTable implements SchemaMigration {
 	}
 
 	protected function migrateBigbossData(LoggerWrapper $logger, DB $db): void {
-		$oldTimers = $db->table("bigboss_timers")
-			->asObj()
-			->map(function(object $o): array {
-				return (array)$o;
-			})
-			->toArray();
-		$db->table(WorldBossController::DB_TABLE)
-			->insert($oldTimers);
+		$db->table("bigboss_timers")
+			->get()
+			->each(function (stdClass $timer) use ($db): void {
+				$db->table(WorldBossController::DB_TABLE)->insert([
+					"mob_name" => (string)$timer->mob_name,
+					"timer" => (int)$timer->timer,
+					"spawn" => (int)$timer->spawn,
+					"killable" => (int)$timer->killable,
+					"time_submitted" => (int)$timer->time_submitted,
+					"submitter_name" => (string)$timer->submitter_name,
+				]);
+			});
 		$db->table(CommandManager::DB_TABLE)
 			->where('module', 'BIGBOSS_MODULE')
 			->update(["status" => 0]);

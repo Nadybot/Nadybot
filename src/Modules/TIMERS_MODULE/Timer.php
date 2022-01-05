@@ -2,7 +2,10 @@
 
 namespace Nadybot\Modules\TIMERS_MODULE;
 
-class Timer {
+use Nadybot\Core\Attributes as NCA;
+use Nadybot\Core\DBRow;
+
+class Timer extends DBRow {
 	/** ID of the timer */
 	public int $id;
 
@@ -25,13 +28,33 @@ class Timer {
 	public string $callback;
 
 	/** For repeating timers, this is the repeat interval in seconds */
-	public ?string $data;
+	public ?string $data=null;
 
+	#[NCA\DB\Ignore]
 	public ?string $origin=null;
 
 	/**
 	 * A list of alerts, each calling $callback
 	 * @var Alert[]
 	 */
+	#[NCA\DB\MapRead([self::class, "decodeAlerts"])]
+	#[NCA\DB\MapWrite("json_encode")]
 	public array $alerts = [];
+
+	/** @return Alert[] */
+	public static function decodeAlerts(?string $alerts): array {
+		if (!isset($alerts)) {
+			return [];
+		}
+		$alertsData = \Safe\json_decode($alerts);
+		$result = [];
+		foreach ($alertsData as $alertData) {
+			$alert = new Alert();
+			foreach ($alertData as $key => $value) {
+				$alert->{$key} = $value;
+			}
+			$result []= $alert;
+		}
+		return $result;
+	}
 }

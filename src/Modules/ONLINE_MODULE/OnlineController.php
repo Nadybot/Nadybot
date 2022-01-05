@@ -2,11 +2,11 @@
 
 namespace Nadybot\Modules\ONLINE_MODULE;
 
-use Nadybot\Core\Attributes as NCA;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	AccessManager,
 	AOChatEvent,
+	Attributes as NCA,
 	BuddylistManager,
 	CmdContext,
 	CommandAlias,
@@ -14,7 +14,10 @@ use Nadybot\Core\{
 	DB,
 	Event,
 	EventManager,
+	ModuleInstance,
 	LoggerWrapper,
+	Modules\ALTS\AltsController,
+	Modules\PLAYER_LOOKUP\PlayerManager,
 	Nadybot,
 	QueryBuilder,
 	SettingManager,
@@ -23,8 +26,6 @@ use Nadybot\Core\{
 	UserStateEvent,
 	Util,
 };
-use Nadybot\Core\Modules\ALTS\AltsController;
-use Nadybot\Core\Modules\PLAYER_LOOKUP\PlayerManager;
 use Nadybot\Modules\{
 	DISCORD_GATEWAY_MODULE\DiscordGatewayController,
 	RAID_MODULE\RaidController,
@@ -54,7 +55,7 @@ use Nadybot\Modules\{
 	NCA\ProvidesEvent("online(org)"),
 	NCA\ProvidesEvent("offline(org)")
 ]
-class OnlineController {
+class OnlineController extends ModuleInstance {
 	protected const GROUP_OFF = 0;
 	protected const GROUP_BY_MAIN = 1;
 	protected const GROUP_BY_ORG = 1;
@@ -69,12 +70,6 @@ class OnlineController {
 	protected const RAID_IN = 1;
 	protected const RAID_NOT_IN = 2;
 	protected const RAID_COMPACT = 4;
-
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
 
 	#[NCA\Inject]
 	public DB $db;
@@ -276,6 +271,7 @@ class OnlineController {
 
 		$onlineChars = $this->db->table("online")->asObj(Online::class);
 		$onlineByName = $onlineChars->keyBy("name");
+		/** @var Collection<string> */
 		$mains = $onlineChars->map(function (Online $online): string {
 			return $this->altsController->getMainOf($online->name);
 		})->unique();
@@ -396,9 +392,9 @@ class OnlineController {
 		if (!$this->chatBot->isReady()) {
 			return;
 		}
+		/** @var Collection<Online> */
 		$data = $this->db->table("online")
-			->select("name", "channel_type")
-			->asObj();
+			->asObj(Online::class);
 
 		$guildArray = [];
 		$privArray = [];
@@ -513,9 +509,9 @@ class OnlineController {
 	/**
 	 * Set someone back from afk if needed
 	 */
-	public function afkCheck($sender, string $message, string $type): void {
+	public function afkCheck(int|string $sender, string $message, string $type): void {
 		// to stop raising and lowering the cloak messages from triggering afk check
-		if (!$this->util->isValidSender($sender)) {
+		if (!is_string($sender) || !$this->util->isValidSender($sender)) {
 			return;
 		}
 
@@ -523,14 +519,15 @@ class OnlineController {
 		if (preg_match("/^\Q$symbol\E?afk(.*)$/i", $message)) {
 			return;
 		}
-		$row = $this->buildOnlineQuery($sender, $type)
+		/** @var ?string */
+		$afk = $this->buildOnlineQuery($sender, $type)
 			->select("afk")
-			->asObj()->first();
+			->pluckAs("afk", "string")->first();
 
-		if ($row === null || $row->afk === '') {
+		if ($afk === null || $afk === '') {
 			return;
 		}
-		$time = explode('|', $row->afk)[0];
+		$time = explode('|', $afk)[0];
 		$timeString = $this->util->unixtimeToReadable(time() - (int)$time);
 		// $sender is back
 		$this->buildOnlineQuery($sender, $type)
@@ -580,11 +577,8 @@ class OnlineController {
 	}
 
 	public function addPlayerToOnlineList(string $sender, string $channel, string $channelType): ?OnlinePlayer {
-		$data = $this->buildOnlineQuery($sender, $channelType)
-			->select("name")
-			->asObj()->toArray();
-
-		if (count($data) === 0) {
+		$exists = $this->buildOnlineQuery($sender, $channelType)->exists();
+		if (!$exists) {
 			$this->db->table("online")
 				->insert([
 					"name" => $sender,
@@ -597,7 +591,7 @@ class OnlineController {
 		$op = new OnlinePlayer();
 		$player = $this->playerManager->findInDb($sender, $this->config->dimension);
 		if (isset($player)) {
-			foreach ($player as $key => $value) {
+			foreach (get_object_vars($player) as $key => $value) {
 				$op->{$key} = $value;
 			}
 		}
@@ -801,6 +795,11 @@ class OnlineController {
 		return "";
 	}
 
+	/**
+	 * @return string[]
+	 * @psalm-return array{0: string, 1: string}
+	 * @phpstan-return array{0: string, 1: string}
+	 */
 	public function getRaidInfo(string $name, string $fancyColon): array {
 		$mode = $this->settingManager->getInt("online_raid")??0;
 		if ($mode === 0) {

@@ -2,12 +2,12 @@
 
 namespace Nadybot\Core;
 
-use Nadybot\Core\Attributes as NCA;
 use Exception;
+use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\DBSchema\Audit;
+use Nadybot\Core\Modules\ALTS\AltsController;
 use Nadybot\Modules\BASIC_CHAT_MODULE\ChatLeaderController;
 use Nadybot\Modules\RAID_MODULE\RaidRankController;
-use Nadybot\Core\Modules\ALTS\AltsController;
 use Nadybot\Modules\GUILD_MODULE\GuildRankController;
 use Nadybot\Modules\PRIVATE_CHANNEL_MODULE\PrivateChannelController;
 
@@ -317,7 +317,7 @@ class AccessManager {
 	/**
 	 * Return all allowed and known access levels
 	 *
-	 * @return int[] All access levels with the name as key and the number as value
+	 * @return array<string,int> All access levels with the name as key and the number as value
 	 */
 	public function getAccessLevels(): array {
 		return self::$ACCESS_LEVELS;

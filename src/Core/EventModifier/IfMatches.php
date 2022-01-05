@@ -48,6 +48,9 @@ class IfMatches implements EventModifier {
 	protected bool $isRegexp = false;
 	protected bool $inverse = false;
 
+	/**
+	 * @param string[] $text
+	 */
 	public function __construct(array $text, bool $caseSensitive=false, bool $isRegexp=false, bool $inverse=false) {
 		$this->text = $text;
 		$this->caseSensitive = $caseSensitive;

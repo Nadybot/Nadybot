@@ -2,10 +2,10 @@
 
 namespace Nadybot\Modules\TRACKER_MODULE;
 
-use Nadybot\Core\Attributes as NCA;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	AccessManager,
+	Attributes as NCA,
 	BuddylistManager,
 	CmdContext,
 	ConfigFile,
@@ -13,30 +13,31 @@ use Nadybot\Core\{
 	DBSchema\Player,
 	Event,
 	EventManager,
+	ModuleInstance,
 	LoggerWrapper,
 	MessageEmitter,
 	MessageHub,
 	Modules\DISCORD\DiscordController,
+	Modules\PLAYER_LOOKUP\Guild,
+	Modules\PLAYER_LOOKUP\GuildManager,
 	Modules\PLAYER_LOOKUP\PlayerManager,
 	Nadybot,
+	ParamClass\PCharacter,
+	ParamClass\PNonNumber,
+	ParamClass\PRemove,
+	Routing\RoutableMessage,
+	Routing\Source,
 	SettingManager,
 	Text,
 	UserStateEvent,
 	Util,
 };
-use Nadybot\Core\Modules\PLAYER_LOOKUP\Guild;
-use Nadybot\Core\Modules\PLAYER_LOOKUP\GuildManager;
-use Nadybot\Core\ParamClass\PCharacter;
-use Nadybot\Core\ParamClass\PNonNumber;
-use Nadybot\Core\ParamClass\PRemove;
-use Nadybot\Core\Routing\RoutableMessage;
-use Nadybot\Core\Routing\Source;
 use Nadybot\Modules\{
 	ONLINE_MODULE\OnlineController,
-	ONLINE_MODULE\OnlinePlayer,
+	ORGLIST_MODULE\FindOrgController,
+	ORGLIST_MODULE\Organization,
 	TOWER_MODULE\TowerAttackEvent,
 };
-use Nadybot\Modules\ORGLIST_MODULE\FindOrgController;
 use Throwable;
 
 /**
@@ -55,7 +56,7 @@ use Throwable;
 	NCA\ProvidesEvent("tracker(logon)"),
 	NCA\ProvidesEvent("tracker(logoff)")
 ]
-class TrackerController implements MessageEmitter {
+class TrackerController extends ModuleInstance implements MessageEmitter {
 	public const DB_TABLE = "tracked_users_<myname>";
 	public const DB_TRACKING = "tracking_<myname>";
 	public const DB_ORG = "tracking_org_<myname>";
@@ -77,12 +78,6 @@ class TrackerController implements MessageEmitter {
 	public const ATT_CLAN = 4;
 	public const ATT_OMNI = 8;
 	public const ATT_NEUTRAL = 16;
-
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
 
 	#[NCA\Inject]
 	public Text $text;
@@ -646,16 +641,13 @@ class TrackerController implements MessageEmitter {
 			$context->reply("No matches found.");
 			return;
 		}
-		$blob = $this->formatOrglist($orgs);
+		$blob = $this->formatOrglist(...$orgs->toArray());
 		$msg = $this->text->makeBlob("Org Search Results for '{$orgName}' ($count)", $blob);
 		$context->reply($msg);
 	}
 
-	/**
-	 * @param Collection<Organization> $orgs
-	 */
-	public function formatOrglist(Collection $orgs): string {
-		$orgs = $orgs->sortBy("name");
+	public function formatOrglist(Organization ...$orgs): string {
+		$orgs = (new Collection($orgs))->sortBy("name");
 		$blob = "<header2>Matching orgs<end>\n";
 		foreach ($orgs as $org) {
 			$addLink = $this->text->makeChatcmd('track', "/tell <myname> track addorg {$org->id}");
@@ -733,7 +725,11 @@ class TrackerController implements MessageEmitter {
 		$context->reply($msg);
 	}
 
-	public function updateRosterForOrg(?Guild $org, ?callable $callback, ...$args): void {
+	/**
+	 *
+	 * @psalm-param null|callable(mixed ...) $callback
+	 */
+	public function updateRosterForOrg(?Guild $org, ?callable $callback, mixed ...$args): void {
 		// Check if JSON file was downloaded properly
 		if ($org === null) {
 			$this->logger->error("Error downloading the guild roster JSON file");
@@ -828,6 +824,17 @@ class TrackerController implements MessageEmitter {
 
 	#[NCA\HandlesCommand("track")]
 	public function trackOnlineCommand(CmdContext $context, #[NCA\Str("online")] string $action, #[NCA\Str("all")] ?string $all, #[NCA\Str("--edit")] ?string $edit): void {
+		$hiddenChars = $this->db->table(self::DB_ORG_MEMBER)
+			->select("name")
+			->where("hidden", true)
+			->union(
+				$this->db->table(self::DB_TABLE)
+					->select("name")
+					->where("hidden", true)
+			)->pluckAs("name", "string")
+			->unique()
+			->mapToDictionary(fn (string $s): array => [$s => true])
+			->toArray();
 		$data1 = $this->db->table(self::DB_ORG_MEMBER)->select("name");
 		$data2 = $this->db->table(self::DB_TABLE)->select("name");
 		if (!isset($all)) {
@@ -844,10 +851,11 @@ class TrackerController implements MessageEmitter {
 			->toArray();
 		$data = $this->playerManager->searchByNames($this->config->dimension, ...$trackedUsers)
 			->sortBy("name")
-			->map(function (Player $p): OnlinePlayer {
-				$op = OnlinePlayer::fromPlayer($p);
+			->map(function (Player $p) use ($hiddenChars): OnlineTrackedUser {
+				$op = OnlineTrackedUser::fromPlayer($p);
 				$op->pmain ??= $op->name;
 				$op->online = true;
+				$op->hidden = isset($hiddenChars[$op->name]);
 				return $op;
 			})->toArray();
 		if (!count($data)) {
@@ -886,7 +894,7 @@ class TrackerController implements MessageEmitter {
 
 	/**
 	 * Get the blob with details about the tracked players currently online
-	 * @param OnlinePlayer[] $players
+	 * @param OnlineTrackedUser[] $players
 	 * @return string The blob
 	 */
 	public function renderOnlineList(array $players, bool $edit): string {
@@ -910,7 +918,7 @@ class TrackerController implements MessageEmitter {
 				$groups[$prof]->members []= $player;
 			}
 		} else {
-			$groups["all"] ??= (object)['title' => "All tracked players", 'members' => $players, 'sort' => 0];
+			$groups["all"] = (object)['title' => "All tracked players", 'members' => $players, 'sort' => 0];
 		}
 		usort($groups, function(object $a, object $b): int {
 			return $a->sort <=> $b->sort;
@@ -926,17 +934,17 @@ class TrackerController implements MessageEmitter {
 
 	/**
 	 * Return the content of the online list for one player group
-	 * @param OnlinePlayer[] $players The list of players in that group
+	 * @param OnlineTrackedUser[] $players The list of players in that group
 	 * @return string The blob for this group
 	 */
 	public function renderPlayerGroup(array $players, int $groupBy, bool $edit): string {
-		usort($players, function(OnlinePlayer $p1, OnlinePlayer $p2): int {
+		usort($players, function(OnlineTrackedUser $p1, OnlineTrackedUser $p2): int {
 			return strnatcmp($p1->name, $p2->name);
 		});
 		return "<tab>" . join(
 			"\n<tab>",
 			array_map(
-				function(OnlinePlayer $player) use ($groupBy, $edit) {
+				function(OnlineTrackedUser $player) use ($groupBy, $edit) {
 					return $this->renderPlayerLine($player, $groupBy, $edit);
 				},
 				$players
@@ -946,11 +954,11 @@ class TrackerController implements MessageEmitter {
 
 	/**
 	 * Render a single online-line of a player
-	 * @param OnlinePlayer $player The player to render
+	 * @param OnlineTrackedUser $player The player to render
 	 * @param int $groupBy Which grouping method to use. When grouping by prof, we don't show the prof icon
 	 * @return string A single like without newlines
 	 */
-	public function renderPlayerLine(OnlinePlayer $player, int $groupBy, bool $edit): string {
+	public function renderPlayerLine(OnlineTrackedUser $player, int $groupBy, bool $edit): string {
 		$faction = strtolower($player->faction);
 		$blob = "";
 		if ($groupBy !== static::GROUP_PROF) {

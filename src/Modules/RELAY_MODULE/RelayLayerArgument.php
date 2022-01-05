@@ -30,6 +30,6 @@ class RelayLayerArgument extends DBRow {
 		if (preg_match("/^(true|false|\d+)$/", $this->value)) {
 			return "{$this->name}={$this->value}";
 		}
-		return "{$this->name}=" . json_encode($this->value, JSON_UNESCAPED_SLASHES);
+		return "{$this->name}=" . \Safe\json_encode($this->value, JSON_UNESCAPED_SLASHES);
 	}
 }

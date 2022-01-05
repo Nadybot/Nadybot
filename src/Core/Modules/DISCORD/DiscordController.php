@@ -2,10 +2,12 @@
 
 namespace Nadybot\Core\Modules\DISCORD;
 
-use Nadybot\Core\Attributes as NCA;
+use function Safe\preg_split;
 use Nadybot\Core\{
+	Attributes as NCA,
 	ConfigFile,
 	Http,
+	ModuleInstance,
 	LoggerWrapper,
 	Nadybot,
 	SettingManager,
@@ -15,13 +17,7 @@ use Nadybot\Core\{
  * @author Nadyita (RK5)
  */
 #[NCA\Instance]
-class DiscordController {
-
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
+class DiscordController extends ModuleInstance {
 
 	#[NCA\Inject]
 	public Nadybot $chatBot;
@@ -153,6 +149,7 @@ class DiscordController {
 			-1,
 			$linksReplaced
 		);
+		$linksReplaced2 = 0;
 		$text = preg_replace(
 			"|<a [^>]*?href=['\"]itemid://53019/(\d+)['\"]>(.+?)</a>|s",
 			"[$2](https://aoitems.com/item/$1)",
@@ -174,7 +171,7 @@ class DiscordController {
 
 		$text = strip_tags($text);
 		$text = str_replace(["&lt;", "&gt;"], ["<", ">"], $text);
-		if (!count($embeds) && $linksReplaced > 0) {
+		if (!count($embeds) && $linksReplaced !== 0) {
 			$embed = new DiscordEmbed();
 			$embed->description = $text;
 			$text = "";
@@ -217,6 +214,7 @@ class DiscordController {
 		}
 	}
 
+	/** @param string[] $matches */
 	protected function parsePopupToEmbed(array $matches): DiscordEmbed {
 		$embed = new DiscordEmbed();
 		$embed->title = $matches[2];

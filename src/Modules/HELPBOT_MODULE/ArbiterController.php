@@ -11,10 +11,12 @@ use Nadybot\Core\{
 	CmdContext,
 	CommandAlias,
 	DB,
+	ModuleInstance,
 	Text,
 	Util,
 };
 use Nadybot\Core\ParamClass\PWord;
+use Safe\Exceptions\DatetimeException;
 
 /**
  * @author Nadyita (RK5)
@@ -30,19 +32,13 @@ use Nadybot\Core\ParamClass\PWord;
 		help: "arbiter.txt"
 	)
 ]
-class ArbiterController {
+class ArbiterController extends ModuleInstance {
 	public const DIO = "dio";
 	public const AI = "ai";
 	public const BS = "bs";
 	public const CYCLE_LENGTH = 3628800;
 
 	public const DB_TABLE = "icc_arbiter";
-
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
 
 	#[NCA\Inject]
 	public CommandAlias $commandAlias;
@@ -146,11 +142,12 @@ class ArbiterController {
 			);
 			return;
 		}
+		/** @var string $setWeek */
 		$this->db->beginTransaction();
 		$day = (new DateTime("now", new DateTimeZone("UTC")))->format("N");
 		$startsToday = ($day === "7") && !isset($ends);
-		$start =  strtotime($startsToday ? "today" : "last sunday");
-		$end = strtotime($startsToday ? "monday + 7 days" : "next monday");
+		$start =  \Safe\strtotime($startsToday ? "today" : "last sunday");
+		$end = \Safe\strtotime($startsToday ? "monday + 7 days" : "next monday");
 		try {
 			$this->db->table(static::DB_TABLE)->truncate();
 			for ($i = 0; $i < 3; $i++) {
@@ -183,8 +180,9 @@ class ArbiterController {
 	public function arbiterCommand(CmdContext $context, ?string $timeGiven): void {
 		$time = time();
 		if (isset($timeGiven)) {
-			$time = strtotime($timeGiven);
-			if ($time === false) {
+			try {
+				$time = \Safe\strtotime($timeGiven);
+			} catch (DatetimeException) {
 				$context->reply("Unable to parse <highlight>{$timeGiven}<end> into a date.");
 				return;
 			}

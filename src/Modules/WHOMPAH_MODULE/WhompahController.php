@@ -2,13 +2,16 @@
 
 namespace Nadybot\Modules\WHOMPAH_MODULE;
 
-use Nadybot\Core\Attributes as NCA;
 use Illuminate\Support\Collection;
-use Nadybot\Core\CmdContext;
-use Nadybot\Core\CommandAlias;
-use Nadybot\Core\DB;
-use Nadybot\Core\ParamClass\PWord;
-use Nadybot\Core\Text;
+use Nadybot\Core\{
+	Attributes as NCA,
+	CmdContext,
+	CommandAlias,
+	DB,
+	ModuleInstance,
+	ParamClass\PWord,
+	Text,
+};
 
 /**
  * @author Tyrence (RK2)
@@ -24,13 +27,7 @@ use Nadybot\Core\Text;
 		help: "whompah.txt"
 	)
 ]
-class WhompahController {
-
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
+class WhompahController extends ModuleInstance {
 
 	#[NCA\Inject]
 	public DB $db;
@@ -60,7 +57,9 @@ class WhompahController {
 	#[NCA\HandlesCommand("whompah")]
 	public function whompahListCommand(CmdContext $context): void {
 		/** @var Collection<WhompahCity> */
-		$data = $this->db->table("whompah_cities")->orderBy("city_name")->asObj();
+		$data = $this->db->table("whompah_cities")
+			->orderBy("city_name")
+			->asObj(WhompahCity::class);
 
 		$blob = "<header2>All known cities with Whom-Pahs<end>\n";
 		foreach ($data as $row) {
@@ -207,7 +206,8 @@ class WhompahController {
 			->keyBy("id")->toArray();
 
 		$this->db->table("whompah_cities_rel")->orderBy("city1_id")
-			->each(function(object $city) use ($whompahs) {
+			->asObj(WhompahCityRel::class)
+			->each(function(WhompahCityRel $city) use ($whompahs) {
 				$whompahs[$city->city1_id]->connections ??= [];
 				$whompahs[$city->city1_id]->connections[] = (int)$city->city2_id;
 			});

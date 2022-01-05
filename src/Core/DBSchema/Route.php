@@ -2,6 +2,7 @@
 
 namespace Nadybot\Core\DBSchema;
 
+use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\DBRow;
 
 class Route extends DBRow {
@@ -19,8 +20,8 @@ class Route extends DBRow {
 
 	/**
 	 * The modifiers for this route
-	 * @db:ignore
 	 * @var RouteModifier[]
 	 */
+	#[NCA\DB\Ignore]
 	public array $modifiers = [];
 }
