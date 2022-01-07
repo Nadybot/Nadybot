@@ -75,6 +75,14 @@ class DiscordGatewayCommandHandler {
 		);
 		$this->settingManager->add(
 			$this->moduleName,
+			"discord_process_commands_only_in",
+			"Limit command execution to a specific channel",
+			"edit",
+			"discord_channel",
+			"off",
+		);
+		$this->settingManager->add(
+			$this->moduleName,
 			"discord_unknown_cmd_errors",
 			"Show a message for unknown commands on Discord",
 			"edit",
@@ -291,6 +299,10 @@ class DiscordGatewayCommandHandler {
 			|| strlen($event->message) < 2
 			|| !$this->settingManager->getBool('discord_process_commands')
 		) {
+			return;
+		}
+		$cmdChannel = $this->settingManager->getString('discord_process_commands_only_in') ?? "off";
+		if ($cmdChannel !== "off" && $event->discord_message->channel_id !== $cmdChannel) {
 			return;
 		}
 		$cmd = strtolower(explode(" ", substr($event->message, 1))[0]);

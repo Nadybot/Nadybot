@@ -65,11 +65,14 @@ class DiscordChannelSettingHandler extends SettingHandler {
 			->waitAndReturnResponse();
 		if ($response->headers["status-code"] !== "200" && isset($response->body)) {
 			try {
-				$reply = json_decode($response->body, true, 512, JSON_THROW_ON_ERROR);
+				$reply = json_decode($response->body, false, 512, JSON_THROW_ON_ERROR);
 			} catch (JsonException $e) {
 				throw new Exception("Cannot use <highlight>{$newValue}<end> as value.");
 			}
-			throw new Exception("<highlight>{$newValue}<end>: {$reply->message}.");
+			if (isset($reply->message)) {
+				throw new Exception("<highlight>{$newValue}<end>: {$reply->message}.");
+			}
+			throw new Exception("<highlight>{$newValue}<end>: Unknown error getting channel info.");
 		}
 		return $newValue;
 	}
