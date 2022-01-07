@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\MASSMSG_MODULE;
 
+use DateTime;
 use Nadybot\Core\{
 	AccessManager,
 	BuddylistManager,
@@ -11,6 +12,7 @@ use Nadybot\Core\{
 	Nadybot,
 	SettingManager,
 	Text,
+	Util,
 	Modules\PREFERENCES\Preferences,
 };
 use Nadybot\Core\Modules\BAN\BanController;
@@ -68,6 +70,9 @@ class MassMsgController {
 	public Text $text;
 
 	/** @Inject */
+	public Util $util;
+
+	/** @Inject */
 	public SettingManager $settingManager;
 
 	/** @Inject */
@@ -85,6 +90,8 @@ class MassMsgController {
 	/** @Inject */
 	public Nadybot $chatBot;
 
+	public ?DateTime $lastMessage;
+
 	/** @Setup */
 	public function setup(): void {
 		$this->settingManager->add(
@@ -94,6 +101,15 @@ class MassMsgController {
 			"edit",
 			"color",
 			"<font color='#FF9999'>",
+		);
+		$this->settingManager->add(
+			$this->moduleName,
+			"massmsg_cooldown",
+			"Cooldown between sending 2 mass-messages/-invites",
+			"edit",
+			"time",
+			"1s",
+			"1s;30s;1m;5m;15m"
 		);
 	}
 
@@ -111,10 +127,30 @@ class MassMsgController {
 		return "[{$prefLink}]";
 	}
 
+	protected function massMsgRateLimitCheck(): ?string {
+		$cooldown = $this->settingManager->getInt("massmsg_cooldown") ?? 1;
+		$message = null;
+		if (isset($this->lastMessage)) {
+			$notAllowedBefore = $this->lastMessage->getTimestamp() + $cooldown;
+			$now = time();
+			if ($notAllowedBefore > $now) {
+				return "You have to wait <highlight>".
+					$this->util->unixtimeToReadable($notAllowedBefore - $now).
+					"<end> before sending another mass-message or -invite.";
+			}
+		}
+		$this->lastMessage = new DateTime();
+		return $message;
+	}
+
 	/**
 	 * @HandlesCommand("massmsg")
 	 */
 	public function massMsgCommand(CmdContext $context, string $message): void {
+		if (($cooldownMsg = $this->massMsgRateLimitCheck()) !== null) {
+			$context->reply($cooldownMsg);
+			return;
+		}
 		$message = "<highlight>Message from {$context->char->name}<end>: ".
 			($this->settingManager->getString('massmsg_color')??"<font>") . $message . "<end>";
 		$this->chatBot->sendPrivate($message, true);
@@ -133,6 +169,10 @@ class MassMsgController {
 	 * @HandlesCommand("massinv")
 	 */
 	public function massInvCommand(CmdContext $context, string $message): void {
+		if (($cooldownMsg = $this->massMsgRateLimitCheck()) !== null) {
+			$context->reply($cooldownMsg);
+			return;
+		}
 		$message = "<highlight>Invite from {$context->char->name}<end>: ".
 			($this->settingManager->getString('massmsg_color')??"<font>") . $message . "<end>";
 		$this->chatBot->sendPrivate($message, true);
