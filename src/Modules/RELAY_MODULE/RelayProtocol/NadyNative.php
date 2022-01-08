@@ -11,6 +11,7 @@ use Nadybot\Core\{
 	LoggerWrapper,
 	Nadybot,
 	Routing\Character,
+	Routing\Events\Base,
 	Routing\Events\Online,
 	Routing\RoutableEvent,
 	Routing\Source,
@@ -77,7 +78,7 @@ class NadyNative implements RelayProtocolInterface {
 			"event" => $event,
 		]);
 		$event = clone $event;
-		if (is_object($event->data)) {
+		if (isset($event->data) && ($event->data instanceof Base)) {
 			$event->data->renderPath = true;
 		}
 		if (is_string($event->data)) {
@@ -350,7 +351,7 @@ class NadyNative implements RelayProtocolInterface {
 			&& ($event->sourceDimension !== $this->config->dimension
 				|| $event->sourceBot !== $this->chatBot->char->name)
 		) {
-			// We don't want to relay other bot's events
+			// We don't want to relay other bots' events
 			return;
 		}
 		if (!$this->relay->allowOutSyncEvent($event) && !$event->forceSync) {

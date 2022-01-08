@@ -134,8 +134,8 @@ class Tyrbot implements RelayProtocolInterface {
 		$event = clone $event;
 		if (is_string($event->data)) {
 			$event->data = str_replace("<myname>", $this->chatBot->char->name, $event->data);
-		} elseif (is_object($event->data) && is_string($event->data->message)) {
-			$event->data = str_replace("<myname>", $this->chatBot->char->name, $event->data->message);
+		} elseif (is_object($event->data) && is_string($event->data->message??null)) {
+			$event->data = str_replace("<myname>", $this->chatBot->char->name, $event->data->message??"");
 		} else {
 			return [];
 		}

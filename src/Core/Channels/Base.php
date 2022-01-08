@@ -4,6 +4,7 @@ namespace Nadybot\Core\Channels;
 
 use Nadybot\Core\MessageHub;
 use Nadybot\Core\MessageReceiver;
+use Nadybot\Core\Routing\Events\Base as EventsBase;
 use Nadybot\Core\Routing\RoutableEvent;
 
 abstract class Base implements MessageReceiver {
@@ -12,11 +13,12 @@ abstract class Base implements MessageReceiver {
 	protected function getEventMessage(RoutableEvent $event, MessageHub $hub, ?string $channelName=null): ?string {
 		$renderPath = true;
 		if ($event->getType() !== $event::TYPE_MESSAGE) {
-			if (!is_object($event->data) || !is_string($event->data->message??null)) {
+			$baseEvent = $event->data??null;
+			if (!isset($baseEvent) || !($baseEvent instanceof EventsBase) || !isset($baseEvent->message)) {
 				return null;
 			}
-			$msg = $event->data->message;
-			$renderPath = $event->data->renderPath;
+			$msg = $baseEvent->message;
+			$renderPath = $baseEvent->renderPath;
 		} else {
 			$msg = $event->getData();
 		}
