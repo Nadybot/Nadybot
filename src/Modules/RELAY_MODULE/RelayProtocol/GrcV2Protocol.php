@@ -4,6 +4,7 @@ namespace Nadybot\Modules\RELAY_MODULE\RelayProtocol;
 
 use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\Routing\Character;
+use Nadybot\Core\Routing\Events\Base;
 use Nadybot\Core\Routing\RoutableEvent;
 use Nadybot\Core\Routing\RoutableMessage;
 use Nadybot\Core\Routing\Source;
@@ -55,7 +56,7 @@ class GrcV2Protocol implements RelayProtocolInterface {
 
 	public function send(RoutableEvent $event): array {
 		if ($event->getType() !== RoutableEvent::TYPE_MESSAGE) {
-			if (!is_object($event->data) || !strlen($event->data->message??"")) {
+			if (!isset($event->data) || !($event->data instanceof Base) || !strlen($event->data->message??"")) {
 				return [];
 			}
 			$event2 = clone $event;

@@ -4,6 +4,7 @@ namespace Nadybot\Core\EventModifier;
 
 use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\EventModifier;
+use Nadybot\Core\Routing\Events\Base;
 use Nadybot\Core\Routing\RoutableEvent;
 use Nadybot\Core\Text;
 
@@ -42,7 +43,7 @@ class RemovePopups implements EventModifier {
 			}
 			$message = $this->text->removePopups($message, $this->removeLinks);
 			$modifiedEvent = clone $event;
-			if (is_object($modifiedEvent->data)) {
+			if (isset($modifiedEvent->data) && ($modifiedEvent->data instanceof Base)) {
 				$modifiedEvent->data->message = $message;
 			}
 			return $modifiedEvent;

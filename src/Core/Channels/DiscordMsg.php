@@ -9,6 +9,7 @@ use Nadybot\Core\MessageReceiver;
 use Nadybot\Core\Modules\DISCORD\DiscordAPIClient;
 use Nadybot\Core\Modules\DISCORD\DiscordController;
 use Nadybot\Core\Nadybot;
+use Nadybot\Core\Routing\Events\Base;
 use Nadybot\Core\Routing\Events\Online;
 use Nadybot\Core\Routing\RoutableEvent;
 use Nadybot\Core\Routing\Source;
@@ -47,12 +48,13 @@ class DiscordMsg implements MessageReceiver {
 	public function receive(RoutableEvent $event, string $destination): bool {
 		$renderPath = true;
 		if ($event->getType() !== $event::TYPE_MESSAGE) {
-			if (!is_object($event->data) || !is_string($event->data->message??null)) {
+			$baseEvent = $event->data??null;
+			if (!isset($baseEvent) || !($baseEvent instanceof Base) || !isset($baseEvent->message)) {
 				return false;
 			}
-			$msg = $event->data->message;
-			$renderPath = $event->data->renderPath;
-			if (isset($msg) && $event->data->type === Online::TYPE) {
+			$msg = $baseEvent->message;
+			$renderPath = $baseEvent->renderPath;
+			if ($baseEvent->type === Online::TYPE) {
 				$msg = $this->text->removePopups($msg);
 			}
 		} else {
