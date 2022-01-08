@@ -5,6 +5,7 @@ namespace Nadybot\Core\EventModifier;
 use Nadybot\Core\Attributes as NCA;
 use Exception;
 use Nadybot\Core\EventModifier;
+use Nadybot\Core\Routing\Events\Base;
 use Nadybot\Core\Routing\RoutableEvent;
 use Nadybot\Core\Text;
 
@@ -88,16 +89,19 @@ class ChangeMessage implements EventModifier {
 			return $event;
 		}
 		if ($event->getType() !== $event::TYPE_MESSAGE) {
-			$message = $event->getData()->message??null;
-			if (!isset($message)) {
+			$baseEvent = $event->data??null;
+			if (!isset($baseEvent) || !($baseEvent instanceof Base) || !isset($baseEvent->message)) {
 				return $event;
 			}
+			$message = $baseEvent->message;
 			$message = $this->alterMessage($message);
 			$modifiedEvent = clone $event;
 			if (!isset($modifiedEvent->data) || !is_object($modifiedEvent->data)) {
 				return $event;
 			}
-			$modifiedEvent->data->message = $message;
+			if (isset($modifiedEvent->data) && ($modifiedEvent->data instanceof Base)) {
+				$modifiedEvent->data->message = $message;
+			}
 			return $modifiedEvent;
 		}
 		$message = $event->getData();

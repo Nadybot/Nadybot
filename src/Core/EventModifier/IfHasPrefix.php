@@ -4,6 +4,7 @@ namespace Nadybot\Core\EventModifier;
 
 use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\EventModifier;
+use Nadybot\Core\Routing\Events\Base;
 use Nadybot\Core\Routing\RoutableEvent;
 use Nadybot\Core\Routing\Source;
 
@@ -80,7 +81,7 @@ class IfHasPrefix implements EventModifier {
 			$hasPrefix = isset($message) && (strncmp($message, $this->prefix, strlen($this->prefix)) === 0);
 			if ($hasPrefix === $this->inverse) {
 				$event = clone $event;
-				if (is_object($event->data)) {
+				if (isset($event->data) && ($event->data instanceof Base)) {
 					$event->data->message = null;
 				}
 				return $event;
@@ -89,7 +90,7 @@ class IfHasPrefix implements EventModifier {
 				return $event;
 			}
 			$event = clone $event;
-			if (is_object($event->data)) {
+			if (isset($event->data) && ($event->data instanceof Base)) {
 				/** @psalm-suppress PossiblyNullArgument */
 				$event->data->message = ltrim(substr($message, strlen($this->prefix)));
 			}
