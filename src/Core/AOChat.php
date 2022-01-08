@@ -131,7 +131,7 @@ class AOChat {
 	/**
 	 * The socket with which we are connected to the chat server
 	 */
-	public null|false|\Socket $socket = null;
+	public null|\Socket $socket = null;
 
 	/**
 	 * Timestamp when the last package was received
@@ -158,6 +158,9 @@ class AOChat {
 	/** @var int[] */
 	public array $buddyQueue = [];
 
+	protected string $readBuffer = "";
+	protected string $writeBuffer = "";
+
 	public function __construct() {
 		$this->disconnect();
 		$this->mmdbParser = new MMDBParser();
@@ -172,6 +175,8 @@ class AOChat {
 			socket_close($this->socket);
 		}
 		$this->socket      = null;
+		$this->readBuffer = "";
+		$this->writeBuffer = "";
 		unset($this->char);
 		$this->last_packet = 0;
 		$this->last_ping   = 0;
@@ -188,14 +193,14 @@ class AOChat {
 	 * @return bool false we cannot connect, otherwise true
 	 */
 	public function connect(string $server, int $port): bool {
-		$this->socket = @socket_create(AF_INET, SOCK_STREAM, SOL_TCP);
-		if ($this->socket === false) {
-			$this->socket = null;
+		$socket = @socket_create(AF_INET, SOCK_STREAM, SOL_TCP);
+		if ($socket === false) {
 			$this->logger->error("Could not create socket: {error}", [
 				"error" => trim(socket_strerror(socket_last_error())),
 			]);
 			return false;
 		}
+		$this->socket = $socket;
 
 		// prevents bot from hanging on startup when chatserver does not send login seed
 		$timeout = 10;
@@ -237,6 +242,7 @@ class AOChat {
 		if (($now - $this->last_packet) > 60 && ($now - $this->last_ping) > 60) {
 			$this->sendPing();
 		}
+		$this->processWriteBuffer();
 	}
 
 	/**
@@ -245,7 +251,7 @@ class AOChat {
 	 * Returns the packet if one arrived or null if none arrived in $time seconds.
 	 *
 	 * @param integer $time The  amount of seconds to wait for
-	 * @return \Nadybot\Core\AOChatPacket|null The received package or null if none arrived or false if we couldn't parse it
+	 * @return AOChatPacket|null The received package or null if none arrived or false if we couldn't parse it
 	 */
 	public function waitForPacket(int $time=1): ?AOChatPacket {
 		$this->iteration();
@@ -263,48 +269,113 @@ class AOChat {
 		return $this->getPacket();
 	}
 
+	protected function processWriteBuffer(): void {
+		if (!strlen($this->writeBuffer) || !isset($this->socket)) {
+			return;
+		}
+		$a = [];
+		$b = [$this->socket];
+		$c = [];
+		if (!socket_select($a, $b, $c, 0)) {
+			return;
+		}
+		$start = microtime(true);
+		$written = socket_write($this->socket, $this->writeBuffer);
+		$end = microtime(true);
+		if ($written === false) {
+			$errorCode = socket_last_error($this->socket);
+			if ($errorCode === SOCKET_EWOULDBLOCK) {
+				return;
+			}
+			$this->logger->critical("Error writing to chat server: {error} (code {code})", [
+				"error" => socket_strerror($errorCode),
+				"code" => $errorCode,
+			]);
+			die();
+		}
+		$this->logger->debug("Wrote {written} bytes in {duration}ms", [
+			"written" => $written,
+			"duration" => number_format(($end-$start)*1000, 3),
+		]);
+		$this->writeBuffer = substr($this->writeBuffer, $written);
+	}
+
 	/**
 	 * Read $len bytes from the socket
 	 */
-	public function readData(int $len): string {
+	public function readData(int $len, bool $blocking): string {
+		$this->logger->debug("Trying to read {len} bytes {mode}", [
+			"len" => $len,
+			"mode" => $blocking ? "blocking" : "non-blocking"
+		]);
 		$data = "";
 		$rlen = $len;
-		while ($rlen > 0) {
+		if ($len === 0) {
+			return "";
+		}
+		do {
 			if (!($this->socket instanceof \Socket)) {
 				$this->logger->error("Socket seems to have been closed");
 				die();
 			}
-			if (($tmp = socket_read($this->socket, $rlen)) === false) {
-				$lastError = socket_strerror(socket_last_error($this->socket));
-				$this->logger->error("Read error: {error}", ["error" => $lastError]);
+			$start = microtime(true);
+			$bytesRead = socket_recv($this->socket, $buffer, $rlen, $blocking ? 0 : 0/*\MSG_DONTWAIT*/);
+			$end = microtime(true);
+			if ($bytesRead === false) {
+				$lastErrorCode = socket_last_error($this->socket);
+				if ($lastErrorCode === SOCKET_EWOULDBLOCK) {
+					return "";
+				}
+				$lastError = socket_strerror($lastErrorCode);
+				$this->logger->error("Read error: {error} (code {code})", [
+					"error" => $lastError,
+					"code" => $lastErrorCode,
+				]);
 				die();
 			}
-			if ($tmp === "") {
-				$this->logger->error("Read error: EOF - (Someone else logged in on to same account?)");
+			if ($bytesRead === 0) {
+				$this->logger->error("Chat server or proxy terminated the connection. Someone else logged in on to same account?");
 				die();
 			}
-			$data .= $tmp;
-			$rlen -= strlen($tmp);
-		}
+			$data .= $buffer;
+			$this->logger->debug("Read {numRead} out of {total} bytes in {duration}ms", [
+				"numRead" => $bytesRead,
+				"total" => $rlen,
+				"duration" => number_format(($end-$start)*1000, 3),
+			]);
+			$rlen -= $bytesRead;
+		} while ($blocking && $rlen > 0);
 		return $data;
 	}
 
 	/**
 	 * Read a packet from the socket
 	 */
-	public function getPacket(): ?AOChatPacket {
-		$head = $this->readData(4);
-		if (strlen($head) !== 4) {
+	public function getPacket(bool $blocking=false): ?AOChatPacket {
+		if (strlen($this->readBuffer) < 4) {
+			$this->readBuffer .= $this->readData(4 - strlen($this->readBuffer), $blocking);
+		}
+		if (strlen($this->readBuffer) < 4) {
 			return null;
 		}
+		$head = substr($this->readBuffer, 0, 4);
 		/** @phpstan-var array{int,int,int} */
 		$data = \Safe\unpack("n2", $head);
 
 		[, $type, $len] = $data;
 
-		$data = $this->readData((int)$len);
+		do {
+			$len -= strlen($this->readBuffer) - 4;
+			$data = $this->readData((int)$len, $blocking);
+			$this->readBuffer .= $data;
+		} while ($blocking && strlen($data) < $len);
+		if (strlen($data) < $len) {
+			$this->logger->debug("Partial package received, waiting for more");
+			return null;
+		}
 
-		$packet = new AOChatPacket("in", (int)$type, $data);
+		$packet = new AOChatPacket("in", (int)$type, substr($this->readBuffer, 4));
+		$this->readBuffer = "";
 
 		if ($this->logger->isHandling(Logger::DEBUG)) {
 			$refClass = new \ReflectionClass($packet);
@@ -385,7 +456,7 @@ class AOChat {
 	/**
 	 * Send a packet
 	 */
-	public function sendPacket(AOChatPacket $packet): bool {
+	public function sendPacket(AOChatPacket $packet, bool $sync=false): bool {
 		$data = \Safe\pack("n2", $packet->type, strlen($packet->data)) . $packet->data;
 
 		if ($this->logger->isHandling(Logger::DEBUG)) {
@@ -412,7 +483,11 @@ class AOChat {
 			$this->logger->error("Something unexpectedly closed the socket");
 			die();
 		}
-		socket_write($this->socket, $data, strlen($data));
+		if ($sync === true) {
+			socket_write($this->socket, $data, strlen($data));
+		} else {
+			$this->writeBuffer .= $data;
+		}
 		return true;
 	}
 
@@ -421,12 +496,11 @@ class AOChat {
 	 * @return null|array<AOChatChar>
 	 */
 	public function authenticate(string $username, string $password): ?array {
-		$packet = $this->getPacket();
+		$packet = $this->getPacket(true);
 		if ($packet === null) {
 			return null;
 		}
 		if ($packet->type !== AOChatPacket::LOGIN_SEED) {
-			return null;
 			$refClass = new \ReflectionClass(AOChatPacket::class);
 			$pktLookup = array_flip($refClass->getConstants());
 			$pktType  = $pktLookup[$packet->type] ?? "UNKNOWN PACKET";
@@ -434,13 +508,14 @@ class AOChat {
 				"expected" => "LOGIN_SEED",
 				"type" => $pktType
 			]);
+			return null;
 		}
 		$serverseed = $packet->args[0];
 
 		$key = $this->generateLoginKey($serverseed, $username, $password);
 		$pak = new AOChatPacket("out", AOChatPacket::LOGIN_REQUEST, [0, $username, $key]);
-		$this->sendPacket($pak);
-		$packet = $this->getPacket();
+		$this->sendPacket($pak, true);
+		$packet = $this->getPacket(true);
 		if ($packet === null) {
 			return null;
 		}
@@ -503,7 +578,7 @@ class AOChat {
 		}
 
 		$loginSelect = new AOChatPacket("out", AOChatPacket::LOGIN_SELECT, $char->id);
-		$this->sendPacket($loginSelect);
+		$this->sendPacket($loginSelect, true);
 		$packet = $this->getPacket();
 		if ($packet === null) {
 			return false;
