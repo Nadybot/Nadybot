@@ -288,7 +288,7 @@ class WebsocketClient extends WebsocketBase {
 		if ($keyAccept !== $expectedResonse) {
 			$this->throwError(
 				WebsocketError::INVALID_UPGRADE_RESPONSE,
-				'Server sent bad upgrade response.'
+				"Server sent bad upgrade response '{$keyAccept}' instead of '{$expectedResonse}'."
 			);
 			return false;
 		}
