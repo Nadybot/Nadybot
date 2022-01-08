@@ -27,7 +27,7 @@ class EventLoop {
 
 	public function execSingleLoop(): void {
 		try {
-			$this->chatBot->processAllPackets();
+			$aoActivity = $this->chatBot->processNextPacket();
 
 			if ($this->chatBot->isReady()) {
 				$socketActivity = $this->socketManager->checkMonitoredSockets();
@@ -41,7 +41,7 @@ class EventLoop {
 				}
 				$this->eventManager->crons();
 
-				if (!$socketActivity) {
+				if (!$socketActivity && !$aoActivity) {
 					usleep(10000);
 				} else {
 					usleep(200);

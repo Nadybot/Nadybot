@@ -252,7 +252,15 @@ class Nadybot extends AOChat {
 			\Safe\sleep(10);
 			die();
 		}
+		if (!isset($this->socket)) {
+			die();
+		}
 
+		if (socket_set_nonblock($this->socket)) {
+			$this->logger->notice("Connection with AO switched to non-blocking");
+		} else {
+			$this->logger->warning("Unable to switch the AO-connection to non-blocking");
+		}
 		if ($this->config->useProxy) {
 			$this->queryProxyFeatures();
 		}
@@ -332,10 +340,12 @@ class Nadybot extends AOChat {
 		if ($packet) {
 			$this->process_packet($packet);
 			return true;
-		} else {
+		}
+		if (!strlen($this->readBuffer) && !strlen($this->writeBuffer)) {
 			$this->ready = true;
 			return false;
 		}
+		return true;
 	}
 
 	/**
@@ -1461,8 +1471,8 @@ class Nadybot extends AOChat {
 		return null;
 	}
 
-	public function getPacket(): ?AOChatPacket {
-		$result = parent::getPacket();
+	public function getPacket(bool $blocking=false): ?AOChatPacket {
+		$result = parent::getPacket($blocking);
 		if (!isset($result) || $result->type !== AOChatPacket::GROUP_ANNOUNCE) {
 			return $result;
 		}
