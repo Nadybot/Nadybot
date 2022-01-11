@@ -115,7 +115,7 @@ export default createStore({
         "Successfully set UUID for outgoing commands and fetched system information"
       );
     },
-    OnlineEvent(context, data: Record<string, unknown>): void {
+    HandleOnline(context, data: Record<string, unknown>): void {
       const player = data.player as OnlinePlayer;
       const channel = data.channel as string;
       if (channel == "org") {
@@ -124,7 +124,7 @@ export default createStore({
         context.commit("addOnlinePrivUser", player);
       }
     },
-    OfflineEvent(context, data: Record<string, unknown>): void {
+    HandleOffline(context, data: Record<string, unknown>): void {
       const player_name = data.player as string;
       const channel = data.channel as string;
       if (channel == "org") {
@@ -133,7 +133,7 @@ export default createStore({
         context.commit("delOnlinePrivUser", player_name);
       }
     },
-    CommandReplyEvent(context, data: CommandReply): void {
+    HandleCommandReply(context, data: CommandReply): void {
       data.msgs.forEach(function (msg) {
         const new_message: Message = {
           message: parseXml(msg),
@@ -142,7 +142,7 @@ export default createStore({
         context.state.console_messages.push(new_message);
       });
     },
-    async AOChatEvent(context, msg: ChatMessageIncoming): Promise<void> {
+    async HandleChatMessage(context, msg: ChatMessageIncoming): Promise<void> {
       const xml = parseXml(msg.message);
       // Display the <text> note content as notification
       // if chat is not currently focused
