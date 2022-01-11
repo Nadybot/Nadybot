@@ -3,6 +3,7 @@
 namespace Nadybot\Modules\RELAY_MODULE\RelayProtocol;
 
 use Closure;
+use JsonMapper;
 use Nadybot\Core\Attributes as NCA;
 use Safe\Exceptions\JsonException;
 use Nadybot\Core\{
@@ -161,6 +162,7 @@ class NadyNative implements RelayProtocolInterface {
 			&& isset($message->sender)
 			&& $this->syncOnline
 		) {
+			$event->data = (new JsonMapper())->map($event->data, new Online());
 			$this->logger->debug("Received online event for {relay}", [
 				"relay" => $this->relay->getName(),
 				"event" => $event,
@@ -169,7 +171,7 @@ class NadyNative implements RelayProtocolInterface {
 		}
 		if ($event->type === RoutableEvent::TYPE_EVENT
 			&& is_object($event->data)
-			&& fnmatch("sync(*)", $event->data->type, FNM_CASEFOLD)
+			&& fnmatch("sync(*)", $event->data->type??"", FNM_CASEFOLD)
 		) {
 			$this->logger->debug("Received sync event for {relay}", [
 				"relay" => $this->relay->getName(),

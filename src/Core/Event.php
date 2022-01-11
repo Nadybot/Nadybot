@@ -2,6 +2,8 @@
 
 namespace Nadybot\Core;
 
-class Event {
+use stdClass;
+
+class Event extends stdClass {
 	public string $type;
 }
