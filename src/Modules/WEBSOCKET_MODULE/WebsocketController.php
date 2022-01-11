@@ -238,6 +238,9 @@ class WebsocketController extends ModuleInstance {
 	)]
 	public function handleSubscriptions(WebsocketSubscribeEvent $event, WebsocketServer $server): void {
 		try {
+			if (!isset($event->data->events) || !is_array($event->data->events)) {
+				return;
+			}
 			$server->subscribe(...$event->data->events);
 			$this->logger->info('Websocket subscribed to ' . join(",", $event->data->events));
 		} catch (TypeError $e) {
@@ -268,9 +271,6 @@ class WebsocketController extends ModuleInstance {
 		if ($isPrivatPacket) {
 			return;
 		}
-		$parts = explode("\\", get_class($event));
-		$class = end($parts);
-		// $event->class = $class;
 		$packet = new WebsocketCommand();
 		$packet->command = $packet::EVENT;
 		$packet->data = $event;
@@ -282,7 +282,10 @@ class WebsocketController extends ModuleInstance {
 				if ($subscription === $event->type
 					|| fnmatch($subscription, $event->type)) {
 					$client->send(JsonExporter::encode($packet), 'text');
-					$this->logger->info("Sending {$class} to Websocket client");
+					$this->logger->info("Sending {class} to Websocket client", [
+						"class" => get_class($event),
+						"packet" => $packet
+					]);
 				}
 			}
 		}
