@@ -11,8 +11,8 @@ class News extends NewNews {
 
 	public static function fromNewNews(NewNews $news): self {
 		$result = new self();
-		foreach (get_class_vars(NewNews::class) as $key) {
-			$result->{$key} = $news->{$key};
+		foreach (get_object_vars($news) as $key => $value) {
+			$result->{$key} = $value;
 		}
 		return $result;
 	}
