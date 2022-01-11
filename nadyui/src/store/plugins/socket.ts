@@ -19,13 +19,13 @@ export default function createWebSocketPlugin() {
       const data = JSON.parse(e.data);
 
       if (data.command == "event") {
-        if (data.command == "cmdreply") {
+        if (data.data.type == "cmdreply") {
           store.dispatch("HandleCommandReply", data.data);
-        } else if (data.command == "chat(web)") {
+        } else if (data.data.type == "chat(web)") {
           store.dispatch("HandleChatMessage", data.data);
-        } else if (data.command.startsWith("offline(")) {
+        } else if (data.data.type.startsWith("offline(")) {
           store.dispatch("HandleOffline", data.data);
-        } else if (data.command.startsWith("online(")) {
+        } else if (data.data.type.startsWith("online(")) {
           store.dispatch("HandleOnline", data.data);
         }
       } else if (data.command == "uuid") {
