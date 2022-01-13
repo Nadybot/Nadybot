@@ -5,6 +5,7 @@ namespace Nadybot\Modules\PRIVATE_CHANNEL_MODULE;
 use Exception;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
+	AccessLevelProvider,
 	Attributes as NCA,
 	AccessManager,
 	AOChatEvent,
@@ -128,7 +129,7 @@ use Safe\Exceptions\FilesystemException;
 	NCA\ProvidesEvent("member(add)"),
 	NCA\ProvidesEvent("member(rem)")
 ]
-class PrivateChannelController extends ModuleInstance {
+class PrivateChannelController extends ModuleInstance implements AccessLevelProvider {
 	public const DB_TABLE = "members_<myname>";
 
 	#[NCA\Inject]
@@ -187,7 +188,7 @@ class PrivateChannelController extends ModuleInstance {
 
 	#[NCA\Setup]
 	public function setup(): void {
-
+		$this->accessManager->registerProvider($this);
 		$this->settingManager->add(
 			module: $this->moduleName,
 			name: "add_member_on_join",
@@ -279,6 +280,19 @@ class PrivateChannelController extends ModuleInstance {
 			"welcome_msg_string",
 			[$this, "validateWelcomeMsg"]
 		);
+	}
+
+	public function getSingleAccessLevel(string $sender): ?string {
+		$isMember = $this->db->table(PrivateChannelController::DB_TABLE)
+			->where("name", $sender)
+			->exists();
+		if ($isMember) {
+			return "member";
+		}
+		if (isset($this->chatBot->chatlist[$sender])) {
+			return "guest";
+		}
+		return null;
 	}
 
 	public function validateWelcomeMsg(string $setting, string $old, string $new): void {

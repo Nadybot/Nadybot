@@ -12,7 +12,7 @@ use Nadybot\Core\{
  * Manage the bot admins
  */
 #[NCA\Instance]
-class AdminManager {
+class AdminManager implements AccessLevelProvider {
 	public const DB_TABLE = "admin_<myname>";
 
 	#[NCA\Inject]
@@ -35,6 +35,21 @@ class AdminManager {
 	 * @var array<string,array<string,int>> $admins
 	 */
 	public array $admins = [];
+
+	public function getSingleAccessLevel(string $sender): ?string {
+		$level = $this->admins[$sender]["level"] ?? 0;
+		if ($level >= 4) {
+			return "admin";
+		} elseif ($level >= 3) {
+			return "mod";
+		}
+		return null;
+	}
+
+	#[NCA\Setup]
+	public function setup(): void {
+		$this->accessManager->registerProvider($this);
+	}
 
 	/**
 	 * Load the bot admins from database into $admins

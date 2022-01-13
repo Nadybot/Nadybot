@@ -6,10 +6,7 @@ use Exception;
 use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\DBSchema\Audit;
 use Nadybot\Core\Modules\ALTS\AltsController;
-use Nadybot\Modules\BASIC_CHAT_MODULE\ChatLeaderController;
-use Nadybot\Modules\RAID_MODULE\RaidRankController;
-use Nadybot\Modules\GUILD_MODULE\GuildRankController;
-use Nadybot\Modules\PRIVATE_CHANNEL_MODULE\PrivateChannelController;
+use SplObjectStorage;
 
 /**
  * The AccessLevel class provides functionality for checking a player's access level.
@@ -52,7 +49,8 @@ class AccessManager {
 		// 'raid_level_1'  => 13,
 		'member'        => 14,
 		'rl'            => 15,
-		'all'           => 16,
+		'guest'         => 16,
+		'all'           => 17,
 	];
 
 	#[NCA\Inject]
@@ -74,16 +72,23 @@ class AccessManager {
 	public AltsController $altsController;
 
 	#[NCA\Inject]
-	public ChatLeaderController $chatLeaderController;
-
-	#[NCA\Inject]
-	public GuildRankController $guildRankController;
-
-	#[NCA\Inject]
-	public RaidRankController $raidRankController;
-
-	#[NCA\Inject]
 	public ConfigFile $config;
+
+	/** @var SplObjectStorage<AccessLevelProvider,AccessLevelProvider> */
+	private SplObjectStorage $providers;
+
+	public function __construct() {
+		$this->providers = new SplObjectStorage();
+	}
+
+	/**
+	 * Registers the given AccessLevelProvider to be queried for the
+	 * access level it provides every time we are calculating a character's
+	 * access level.
+	 */
+	public function registerProvider(AccessLevelProvider $provider): void {
+		$this->providers->attach($provider);
+	}
 
 	/**
 	 * This method checks if given $sender has at least $accessLevel rights.
@@ -183,58 +188,26 @@ class AccessManager {
 		return $displayName;
 	}
 
-	public function highestRank(string $al1, string $al2): string {
-		$cmd = $this->compareAccessLevels($al1, $al2);
-		return ($cmd > 0) ? $al1 : $al2;
-	}
-
 	/**
 	 * Returns the access level of $sender, ignoring guild admin and inheriting access level from main
 	 */
 	public function getSingleAccessLevel(string $sender): string {
-		$orgRank = "all";
-		if (isset($this->chatBot->guildmembers[$sender])
-			&& $this->settingManager->getBool('map_org_ranks_to_bot_ranks')) {
-			$orgRank = $this->guildRankController->getEffectiveAccessLevel(
-				$this->chatBot->guildmembers[$sender]
-			);
-		}
 		if ($this->config->superAdmin === $sender) {
 			return "superadmin";
 		}
-		if (isset($this->adminManager->admins[$sender])) {
-			$level = $this->adminManager->admins[$sender]["level"];
-			if ($level >= 4) {
-				return $this->highestRank($orgRank, "admin");
+		/** @var array<string,int> */
+		$ranks = [];
+		foreach ($this->providers as $provider) {
+			$rank = $provider->getSingleAccessLevel($sender);
+			if (isset($rank)) {
+				$ranks[$rank] = self::$ACCESS_LEVELS[$rank] ?? self::$ACCESS_LEVELS["all"];
 			}
-			if ($level >= 3) {
-				return $this->highestRank($orgRank, "mod");
-			}
 		}
-		if (isset($this->raidRankController->ranks[$sender])) {
-			$rank = $this->raidRankController->ranks[$sender]->rank;
-			if ($rank >= 7) {
-				return $this->highestRank("raid_admin_" . ($rank-6), $orgRank);
-			}
-			if ($rank >= 4) {
-				return $this->highestRank("raid_leader_" . ($rank-3), $orgRank);
-			}
-			return $this->highestRank("raid_level_{$rank}", $orgRank);
+		if (empty($ranks)) {
+			return "all";
 		}
-		if ($this->chatLeaderController !== null && $this->chatLeaderController->getLeader() == $sender) {
-			return $this->highestRank("rl", $orgRank);
-		}
-		if (isset($this->chatBot->guildmembers[$sender])) {
-			return $this->highestRank("guild", $orgRank);
-		}
-
-		if ($this->db->table(PrivateChannelController::DB_TABLE)
-			->where("name", $sender)
-			->exists()
-		) {
-			return "member";
-		}
-		return "all";
+		asort($ranks);
+		return array_keys($ranks)[0];
 	}
 
 	/**
