@@ -2,17 +2,18 @@
 
 namespace Nadybot\Modules\BASIC_CHAT_MODULE;
 
-use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{
+	AccessLevelProvider,
 	AccessManager,
 	AOChatEvent,
+	Attributes as NCA,
 	CmdContext,
 	EventManager,
 	ModuleInstance,
 	Nadybot,
+	ParamClass\PCharacter,
 	SettingManager,
 };
-use Nadybot\Core\ParamClass\PCharacter;
 
 /**
  * Commands this controller contains:
@@ -41,7 +42,7 @@ use Nadybot\Core\ParamClass\PCharacter;
 	NCA\ProvidesEvent("leader(clear)"),
 	NCA\ProvidesEvent("leader(set)")
 ]
-class ChatLeaderController extends ModuleInstance {
+class ChatLeaderController extends ModuleInstance implements AccessLevelProvider {
 	#[NCA\Inject]
 	public Nadybot $chatBot;
 
@@ -61,6 +62,7 @@ class ChatLeaderController extends ModuleInstance {
 
 	#[NCA\Setup]
 	public function setup(): void {
+		$this->accessManager->registerProvider($this);
 		$this->settingManager->add(
 			module: $this->moduleName,
 			name: "leaderecho",
@@ -79,6 +81,13 @@ class ChatLeaderController extends ModuleInstance {
 			type: "color",
 			value: "<font color=#FFFF00>",
 		);
+	}
+
+	public function getSingleAccessLevel(string $sender): ?string {
+		if ($this->getLeader() === $sender) {
+			return "rl";
+		}
+		return null;
 	}
 
 	/**

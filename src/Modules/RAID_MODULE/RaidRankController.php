@@ -4,6 +4,7 @@ namespace Nadybot\Modules\RAID_MODULE;
 
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
+	AccessLevelProvider,
 	AccessManager,
 	AdminManager,
 	Attributes as NCA,
@@ -50,7 +51,7 @@ use Nadybot\Core\{
 		alias: "leaders"
 	)
 ]
-class RaidRankController extends ModuleInstance {
+class RaidRankController extends ModuleInstance implements AccessLevelProvider {
 	public const DB_TABLE = "raid_rank_<myname>";
 	#[NCA\Inject]
 	public SettingManager $settingManager;
@@ -90,6 +91,7 @@ class RaidRankController extends ModuleInstance {
 	 */
 	#[NCA\Setup]
 	public function setup(): void {
+		$this->accessManager->registerProvider($this);
 		/**
 		$this->settingManager->add(
 			module: $this->moduleName,
@@ -186,6 +188,20 @@ class RaidRankController extends ModuleInstance {
 		);
 		$this->commandAlias->register($this->moduleName, "raidadmin", "raid admin");
 		$this->commandAlias->register($this->moduleName, "raidleader", "raid leader");
+	}
+
+	public function getSingleAccessLevel(string $sender): ?string {
+		if (!isset($this->ranks[$sender])) {
+			return null;
+		}
+		$rank = $this->ranks[$sender]->rank;
+		if ($rank >= 7) {
+			return "raid_admin_" . ($rank-6);
+		}
+		if ($rank >= 4) {
+			return "raid_leader_" . ($rank-3);
+		}
+		return "raid_level_{$rank}";
 	}
 
 	#[NCA\Event(
