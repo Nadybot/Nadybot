@@ -4,6 +4,7 @@ namespace Nadybot\Modules\GUILD_MODULE;
 
 use Exception;
 use Nadybot\Core\{
+	AccessLevelProvider,
 	AccessManager,
 	Attributes as NCA,
 	CmdContext,
@@ -41,7 +42,7 @@ use Nadybot\Modules\ORGLIST_MODULE\OrglistController;
 		help: "maprank.txt"
 	)
 ]
-class GuildRankController extends ModuleInstance {
+class GuildRankController extends ModuleInstance implements AccessLevelProvider {
 
 	public const DB_TABLE = "org_rank_mapping_<myname>";
 
@@ -74,7 +75,7 @@ class GuildRankController extends ModuleInstance {
 
 	#[NCA\Setup]
 	public function setup(): void {
-
+		$this->accessManager->registerProvider($this);
 		$this->settingManager->add(
 			module: $this->moduleName,
 			name: "map_org_ranks_to_bot_ranks",
@@ -85,6 +86,16 @@ class GuildRankController extends ModuleInstance {
 			options: "true;false",
 			intoptions: "1;0"
 		);
+	}
+
+	public function getSingleAccessLevel(string $sender): ?string {
+		if (!isset($this->chatBot->guildmembers[$sender])) {
+			return null;
+		}
+		if (!$this->settingManager->getBool('map_org_ranks_to_bot_ranks')) {
+			return "guild";
+		}
+		return $this->getEffectiveAccessLevel($this->chatBot->guildmembers[$sender]);
 	}
 
 	/**
