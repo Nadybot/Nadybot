@@ -4,6 +4,8 @@ namespace Nadybot\Modules\DISCORD_GATEWAY_MODULE;
 
 use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{
+	AccessLevelProvider,
+	AccessManager,
 	CmdContext,
 	CommandManager,
 	DB,
@@ -32,7 +34,7 @@ use Nadybot\Core\ParamClass\PCharacter;
 		help: "extauth.txt"
 	)
 ]
-class DiscordGatewayCommandHandler extends ModuleInstance {
+class DiscordGatewayCommandHandler extends ModuleInstance implements AccessLevelProvider {
 	public const DB_TABLE = "discord_mapping_<myname>";
 	#[NCA\Inject]
 	public DB $db;
@@ -50,6 +52,9 @@ class DiscordGatewayCommandHandler extends ModuleInstance {
 	public CommandManager $commandManager;
 
 	#[NCA\Inject]
+	public AccessManager $accessManager;
+
+	#[NCA\Inject]
 	public DiscordAPIClient $discordAPIClient;
 
 	#[NCA\Inject]
@@ -63,6 +68,7 @@ class DiscordGatewayCommandHandler extends ModuleInstance {
 
 	#[NCA\Setup]
 	public function setup(): void {
+		$this->accessManager->registerProvider($this);
 		$this->settingManager->add(
 			module: $this->moduleName,
 			name: "discord_process_commands",
@@ -100,6 +106,24 @@ class DiscordGatewayCommandHandler extends ModuleInstance {
 			value: "!",
 			options: "!;#;*;@;$;+;-",
 		);
+	}
+
+	public function getSingleAccessLevel(string $sender): ?string {
+		if (!ctype_digit($sender)) {
+			return null;
+		}
+		$guilds = $this->discordGatewayController->getGuilds();
+		foreach ($guilds as $guild) {
+			foreach ($guild->members as $member) {
+				if (!isset($member->user)) {
+					continue;
+				}
+				if ($member->user->id === $sender) {
+					return "guest";
+				}
+			}
+		}
+		return null;
 	}
 
 	public function getNameForDiscordId(string $discordId): ?string {
