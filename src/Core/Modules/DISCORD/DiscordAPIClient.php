@@ -197,6 +197,64 @@ class DiscordAPIClient extends ModuleInstance {
 		}
 	}
 
+	public function getGuildMembers(string $guildId, callable $callback, mixed ...$args): void {
+		$this->getGuildMembersLowlevel($guildId, 2, null, [], $callback, ...$args);
+	}
+
+	/**
+	 * @param stdClass[] $carry
+	 */
+	protected function getGuildMembersLowlevel(string $guildId, int $limit, ?string $after, array $carry, callable $callback, mixed ...$args): void {
+		$this->logger->info("Looking up discord guild {guildId} members", [
+			"guildId" => $guildId,
+			"limit" => $limit,
+			"after" => $after,
+		]);
+		$params = ["limit" => $limit];
+		if (isset($after)) {
+			$params["after"] = $after;
+		}
+		$this->get(
+			self::DISCORD_API . "/guilds/{$guildId}/members"
+		)->withQueryParams($params)
+		->withCallback(
+			$this->getErrorWrapper(
+				null,
+				Closure::fromCallable([$this, "handleGuildMembers"]),
+				$guildId,
+				$limit,
+				$after,
+				$carry,
+				$callback,
+				...$args
+			)
+		);
+	}
+
+	/**
+	 * @param stdClass[] $members
+	 * @param stdClass[] $carry
+	 */
+	protected function handleGuildMembers(array $members, string $guildId, int $limit, ?string $after, array $carry, callable $callback, mixed ...$args): void {
+		$carry = array_merge($carry, $members);
+		if (count($members) === $limit) {
+			$lastMember = $members[count($members)-1]->user?->id ?? null;
+			$this->getGuildMembersLowlevel($guildId, $limit, $lastMember, $carry, $callback, ...$args);
+			return;
+		}
+		$result = [];
+		foreach ($carry as $member) {
+			$o = new GuildMember();
+			$o->fromJSON($member);
+			if (!isset($o->user)) {
+				continue;
+			}
+			$this->guildMemberCache[$guildId][$o->user->id] = $o;
+			$result []= $o;
+		}
+		$callback($result, ...$args);
+	}
+
 	public function getGuildMember(string $guildId, string $userId, callable $callback, mixed ...$args): void {
 		$this->logger->info("Looking up discord guild {guildId} member {userId}", [
 			"guildId" => $guildId,
