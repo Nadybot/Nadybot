@@ -37,10 +37,12 @@ use Nadybot\Modules\DISCORD_GATEWAY_MODULE\Model\{
 	CloseEvents,
 	Guild,
 	GuildMember,
+	GuildMemberChunk,
 	IdentifyPacket,
 	Intent,
 	Opcode,
 	Payload,
+	RequestGuildMembers,
 	ResumePacket,
 	UpdateStatus,
 	VoiceState,
@@ -67,6 +69,7 @@ use stdClass;
 	NCA\ProvidesEvent("discord(guild_role_create)"),
 	NCA\ProvidesEvent("discord(guild_role_update)"),
 	NCA\ProvidesEvent("discord(guild_role_update_delete)"),
+	NCA\ProvidesEvent("discord(guild_members_chunk)"),
 	NCA\ProvidesEvent("discord(message_create)"),
 	NCA\ProvidesEvent("discord(message_update)"),
 	NCA\ProvidesEvent("discord(message_delete)"),
@@ -296,6 +299,7 @@ class DiscordGatewayController extends ModuleInstance {
 			}
 			return;
 		}
+		$this->logger->debug("Packet received", ["packet" => $payload]);
 		$opcodeToName = [
 			 0 => "Dispatch",
 			 1 => "Heartbeat",
@@ -349,8 +353,10 @@ class DiscordGatewayController extends ModuleInstance {
 		$this->logger->notice("Logging into Discord gateway");
 		$identify = new IdentifyPacket();
 		$identify->token = $this->settingManager->getString('discord_bot_token') ?? "off";
+		$identify->large_threshold = 250;
 		$identify->intents = Intent::GUILD_MESSAGES
 			| Intent::DIRECT_MESSAGES
+			| Intent::GUILD_MEMBERS
 			| Intent::GUILDS
 			| Intent::GUILD_VOICE_STATES;
 		$login = new Payload();
@@ -374,6 +380,16 @@ class DiscordGatewayController extends ModuleInstance {
 		$payload = new Payload();
 		$payload->op = Opcode::RESUME;
 		$payload->d = $resume;
+		if (isset($this->client)) {
+			$this->client->send(\Safe\json_encode($payload));
+		}
+	}
+
+	protected function sendRequestGuildMembers(string $guildId): void {
+		$request = new RequestGuildMembers($guildId);
+		$payload = new Payload();
+		$payload->op = Opcode::REQUEST_GUILD_MEMBERS;
+		$payload->d = $request;
 		if (isset($this->client)) {
 			$this->client->send(\Safe\json_encode($payload));
 		}
@@ -478,6 +494,41 @@ class DiscordGatewayController extends ModuleInstance {
 			$this->reconnectDelay = max($this->reconnectDelay * 2, 5);
 		} else {
 			$this->guilds = [];
+		}
+	}
+	#
+	#[NCA\Event(
+		name: "discord(guild_members_chunk)",
+		description: "Handle discord server members",
+		defaultStatus: 1
+	)]
+	public function processDiscordMembersChunk(DiscordGatewayEvent $event): void {
+		if (!isset($event->payload->d) || !is_object($event->payload->d)) {
+			return;
+		}
+		$chunk = new GuildMemberChunk();
+		$chunk->fromJSON($event->payload->d);
+		$this->logger->debug("Processing incoming discord members chunk", [
+			"message" => $chunk,
+		]);
+		$oldMembers = [];
+		$guild = $this->guilds[$chunk->guild_id] ?? null;
+		if (!isset($guild)) {
+			return;
+		}
+		$guild->members ??= [];
+		foreach ($guild->members as $member) {
+			if (!isset($member->user)) {
+				continue;
+			}
+			$oldMembers[$member->user->id] = $member;
+		}
+		foreach ($chunk->members as $member) {
+			if (!isset($member->user) || isset($oldMembers[$member->user->id])) {
+				continue;
+			}
+			$this->discordAPIClient->cacheGuildMember($guild->id, $member);
+			$guild->members []= $member;
 		}
 	}
 
@@ -653,6 +704,10 @@ class DiscordGatewayController extends ModuleInstance {
 		/** @var stdClass $event->payload->d */
 		$guild->fromJSON($event->payload->d);
 		$this->guilds[(string)$guild->id] = $guild;
+		$this->sendRequestGuildMembers((string)$guild->id);
+		// $this->discordAPIClient->getGuildMembers((string)$guild->id, function(array $members) use ($guild): void {
+		// 	$guild->members = $members;
+		// });
 		foreach ($guild->voice_states as $voiceState) {
 			if (!isset($voiceState->user_id)) {
 				continue;
