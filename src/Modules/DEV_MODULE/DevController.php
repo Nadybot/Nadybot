@@ -185,8 +185,8 @@ class DevController extends ModuleInstance {
 			}
 			if (isset($this->subcommandManager->subcommands[$cmd])) {
 				foreach ($this->subcommandManager->subcommands[$cmd] as $handler) {
-					if ($handler->type == $channel) {
-						$handlers []= new CommandHandler($handler->file, $handler->admin);
+					if (isset($handler->permissions[$channel])) {
+						$handlers []= new CommandHandler($handler->file, $handler->permissions[$channel]->access_level);
 					}
 				}
 			}
@@ -243,8 +243,10 @@ class DevController extends ModuleInstance {
 
 		// subcommand
 		foreach ($this->subcommandManager->subcommands[$cmd] as $row) {
-			$blob .= "<header2>$row->type ($row->cmd)<end>\n";
-			$blob .= $row->file . "\n\n";
+			foreach ($row->permissions as $permission) {
+				$blob .= "<header2>{$permission->name} ($row->cmd)<end>\n";
+				$blob .= $row->file . "\n\n";
+			}
 		}
 
 		$msg = $this->text->makeBlob("Command Handlers for '$cmd'", $blob);

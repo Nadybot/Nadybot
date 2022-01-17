@@ -70,12 +70,13 @@ class HelpManager {
 	 */
 	public function find(string $helpcmd, string $char): ?string {
 		$helpcmd = strtolower($helpcmd);
-		$cmdHelp = $this->db->table(CommandManager::DB_TABLE)
-			->where("cmdevent", "cmd")
-			->where("status", 1)
-			->where("cmd", $helpcmd)
-			->where("help", "!=", '')
-			->select("module", "admin", "cmd AS name", "help AS file");
+		$cmdHelp = $this->db->table(CommandManager::DB_TABLE, "c")
+			->join(CommandManager::DB_TABLE_PERMS . " as p", "c.cmd", "p.cmd")
+			->where("c.cmdevent", "cmd")
+			->where("c.cmd", $helpcmd)
+			->where("p.enabled", true)
+			->where("c.help", "!=", '')
+			->select("c.module", "p.access_level as admin", "c.cmd AS name", "c.help AS file");
 		$settingsHelp = $this->db->table(SettingManager::DB_TABLE)
 			->where("name", $helpcmd)
 			->where("help", "!=", '')
@@ -136,11 +137,12 @@ class HelpManager {
 	 * @return HelpTopic[] Help topics
 	 */
 	public function getAllHelpTopics($char): array {
-		$cmdHelp = $this->db->table(CommandManager::DB_TABLE)
-			->where("cmdevent", "cmd")
-			->where("status", 1)
-			->where("help", "!=", '')
-			->select("module", "admin", "cmd AS name", "help AS file", "description");
+		$cmdHelp = $this->db->table(CommandManager::DB_TABLE, "c")
+			->join(CommandManager::DB_TABLE_PERMS . " as p", "c.cmd", "p.cmd")
+			->where("c.cmdevent", "cmd")
+			->where("p.enabled", true)
+			->where("c.help", "!=", '')
+			->select("c.module", "p.access_level as admin", "c.cmd AS name", "c.help AS file", "description");
 		$cmdHelp->selectRaw("2" . $cmdHelp->as("sort"));
 		$settingsHelp = $this->db->table(SettingManager::DB_TABLE)
 			->where("help", "!=", '')

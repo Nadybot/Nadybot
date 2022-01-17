@@ -82,20 +82,15 @@ class SilenceController extends ModuleInstance {
 	public function silenceAddCommand(CmdContext $context, string $command, PWord $channel): void {
 		$command = strtolower($command);
 		$channel = strtolower($channel());
-		if ($channel === "org") {
-			$channel = "guild";
-		} elseif ($channel === "tell") {
-			$channel = "msg";
-		}
 
-		$data = $this->commandManager->get($command, $channel);
-		if (count($data) === 0) {
-			$msg = "Could not find command <highlight>$command<end> for channel <highlight>$channel<end>.";
-		} elseif ($this->isSilencedCommand($data[0])) {
-			$msg = "Command <highlight>$command<end> for channel <highlight>$channel<end> has already been silenced.";
+		$cmdCfg = $this->commandManager->get($command);
+		if (!isset($cmdCfg) || !isset($cmdCfg->permissions[$channel]) || !$cmdCfg->permissions[$channel]->enabled) {
+			$msg = "Could not find command <highlight>{$command}<end> for channel <highlight>{$channel}<end>.";
+		} elseif ($this->isSilencedCommand($cmdCfg, $channel)) {
+			$msg = "Command <highlight>{$command}<end> for channel <highlight>{$channel}<end> has already been silenced.";
 		} else {
-			$this->addSilencedCommand($data[0]);
-			$msg = "Command <highlight>$command<end> for channel <highlight>$channel<end> has been silenced.";
+			$this->addSilencedCommand($cmdCfg, $channel);
+			$msg = "Command <highlight>{$command}<end> for channel <highlight>{$channel}<end> has been silenced.";
 		}
 		$context->reply($msg);
 	}
@@ -110,13 +105,13 @@ class SilenceController extends ModuleInstance {
 			$channel = "msg";
 		}
 
-		$data = $this->commandManager->get($command, $channel);
-		if (count($data) === 0) {
-			$msg = "Could not find command <highlight>$command<end> for channel <highlight>$channel<end>.";
-		} elseif (!$this->isSilencedCommand($data[0])) {
+		$cmdCfg = $this->commandManager->get($command);
+		if (!isset($cmdCfg) || !isset($cmdCfg->permissions[$channel]) || !$cmdCfg->permissions[$channel]->enabled) {
+			$msg = "Could not find command <highlight>{$command}<end> for channel <highlight>{$channel}<end>.";
+		} elseif (!$this->isSilencedCommand($cmdCfg, $channel)) {
 			$msg = "Command <highlight>$command<end> for channel <highlight>$channel<end> has not been silenced.";
 		} else {
-			$this->removeSilencedCommand($data[0]);
+			$this->removeSilencedCommand($cmdCfg, $channel);
 			$msg = "Command <highlight>$command<end> for channel <highlight>$channel<end> has been unsilenced.";
 		}
 		$context->reply($msg);
@@ -126,27 +121,27 @@ class SilenceController extends ModuleInstance {
 		$this->logger->info("Silencing command '{$context->message}' for channel '{$context->channel}'");
 	}
 
-	public function addSilencedCommand(CmdCfg $row): void {
-		$this->commandManager->activate($row->type, self::NULL_COMMAND_HANDLER, $row->cmd, 'all');
+	public function addSilencedCommand(CmdCfg $row, string $channel): void {
+		$this->commandManager->activate($channel, self::NULL_COMMAND_HANDLER, $row->cmd, 'all');
 		$this->db->table(self::DB_TABLE)
 			->insert([
 				"cmd" => $row->cmd,
-				"channel" => $row->type,
+				"channel" => $channel,
 			]);
 	}
 
-	public function isSilencedCommand(CmdCfg $row): bool {
+	public function isSilencedCommand(CmdCfg $row, string $channel): bool {
 		return $this->db->table(self::DB_TABLE)
 			->where("cmd", $row->cmd)
-			->where("channel", $row->type)
+			->where("channel", $channel)
 			->exists();
 	}
 
-	public function removeSilencedCommand(CmdCfg $row): void {
-		$this->commandManager->activate($row->type, $row->file, $row->cmd, $row->admin);
+	public function removeSilencedCommand(CmdCfg $row, string $channel): void {
+		$this->commandManager->activate($channel, $row->file, $row->cmd, $row->permissions[$channel]->access_level);
 		$this->db->table(self::DB_TABLE)
 			->where("cmd", $row->cmd)
-			->where("channel", $row->type)
+			->where("channel", $channel)
 			->delete();
 	}
 

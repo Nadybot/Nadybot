@@ -3,6 +3,7 @@
 namespace Nadybot\Modules\RELAY_MODULE\Migrations;
 
 use Nadybot\Core\Attributes as NCA;
+use Nadybot\Core\CommandManager;
 use Nadybot\Core\DB;
 use Nadybot\Core\DBSchema\RouteHopColor;
 use Nadybot\Core\DBSchema\Setting;
@@ -66,7 +67,9 @@ class MigrateRelayColors implements SchemaMigration {
 		}
 
 		$this->messageHub->loadTagColor();
-		if ($this->configController->toggleModule("ALLIANCE_RELAY_MODULE", "all", false)) {
+		if ($db->table(CommandManager::DB_TABLE)
+			->where("module", "ALLIANCE_RELAY_MODULE")
+			->update(["status" => 0])) {
 			$logger->log(
 				'WARN',
 				"Found the ALLIANCE_RELAY_MODULE, converted all settings and ".

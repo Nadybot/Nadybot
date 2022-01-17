@@ -353,8 +353,8 @@ class ApiController extends ModuleInstance {
 		$mainCommand = explode(" ", $handler->accessLevelFrom)[0];
 		if (isset($this->subcommandManager->subcommands[$mainCommand])) {
 			foreach ($this->subcommandManager->subcommands[$mainCommand] as $row) {
-				if ($row->type === "msg" && ($row->cmd === $handler->accessLevelFrom || preg_match("/^{$row->cmd}$/si", $handler->accessLevelFrom))) {
-					return new CommandHandler($row->file, $row->admin);
+				if (isset($row->permissions["msg"]) && ($row->cmd === $handler->accessLevelFrom || preg_match("/^{$row->cmd}$/si", $handler->accessLevelFrom))) {
+					return new CommandHandler($row->file, $row->permissions["msg"]->access_level);
 				}
 			}
 		}

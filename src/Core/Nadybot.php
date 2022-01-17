@@ -107,7 +107,7 @@ class Nadybot extends AOChat {
 	 **/
 	public array $privateChats = [];
 
-	/** @var array<string,array<string,bool>> */
+	/** @var array<string,bool> */
 	public array $existing_subcmds = [];
 
 	/** @var array<string,array<string,bool>> */
@@ -174,9 +174,11 @@ class Nadybot extends AOChat {
 		$this->db->table(EventManager::DB_TABLE)->where("type", "setup")->update(["verify" => 1]);
 
 		// To reduce queries load core items into memory
-		$this->db->table(CommandManager::DB_TABLE)->where("cmdevent", "subcmd")->asObj(CmdCfg::class)
+		$this->db->table(CommandManager::DB_TABLE)
+			->where("cmdevent", "subcmd")
+			->asObj(CmdCfg::class)
 			->each(function(CmdCfg $row): void {
-				$this->existing_subcmds[$row->type][$row->cmd] = true;
+				$this->existing_subcmds[$row->cmd] = true;
 			});
 
 		$this->db->table(EventManager::DB_TABLE)->asObj(EventCfg::class)
@@ -1364,7 +1366,6 @@ class Nadybot extends AOChat {
 			}
 			$this->commandManager->register(
 				$moduleName,
-				$definition['channels'],
 				implode(',', $definition['handlers']),
 				(string)$command,
 				$definition['accessLevel'],
@@ -1381,7 +1382,6 @@ class Nadybot extends AOChat {
 			}
 			$this->subcommandManager->register(
 				$moduleName,
-				$definition['channels'],
 				implode(',', $definition['handlers']),
 				$subcommand,
 				$definition['accessLevel'],

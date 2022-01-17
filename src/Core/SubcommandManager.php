@@ -2,8 +2,10 @@
 
 namespace Nadybot\Core;
 
+use Illuminate\Support\Collection;
 use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\DBSchema\CmdCfg;
+use Nadybot\Core\DBSchema\CmdPermission;
 
 #[NCA\Instance]
 class SubcommandManager {
@@ -32,10 +34,9 @@ class SubcommandManager {
 	 */
 	public function register(
 		string $module,
-		?string $channel,
 		string $filename,
 		string $command,
-		string $admin,
+		string $accessLevel,
 		string $parent_command,
 		?string $description='none',
 		?string $help='',
@@ -43,12 +44,6 @@ class SubcommandManager {
 	): void {
 		$command = strtolower($command);
 		$module = strtoupper($module);
-
-		if (!$this->chatBot->processCommandArgs($channel, $admin)) {
-			$this->logger->error("Invalid args for $module:subcommand($command)");
-			return;
-		}
-		/** @var string[] $channel */
 
 		$name = explode(".", $filename)[0];
 		if (!Registry::instanceExists($name)) {
@@ -66,37 +61,37 @@ class SubcommandManager {
 			$status = $defaultStatus;
 		}
 
-		for ($i = 0; $i < count($channel); $i++) {
-			$this->logger->info("Adding Subcommand to list:($command) File:($filename) Rights:(" . join(", ", (array)$admin).") Channel:({$channel[$i]})");
-
-			if ($this->chatBot->existing_subcmds[$channel[$i]][$command] == true) {
-				$this->db->table(CommandManager::DB_TABLE)
-					->where("cmd", $command)
-					->where("type", $channel[$i])
-					->update([
-						"module" => $module,
-						"verify" => 1,
-						"file" => $filename,
-						"description" => $description,
-						"dependson" => $parent_command,
-						"help" => $help,
-					]);
-			} else {
-				$this->db->table(CommandManager::DB_TABLE)
-					->insert([
-						"module" => $module,
-						"type" => $channel[$i],
+		$this->logger->info("Adding Subcommand to list:($command) File:($filename)");
+		$this->db->table(CommandManager::DB_TABLE)
+			->upsert(
+				[
+					"module" => $module,
+					"verify" => 1,
+					"file" => $filename,
+					"description" => $description,
+					"help" => $help,
+					"cmd" => $command,
+					"dependson" => $parent_command,
+					"cmdevent" => "subcmd",
+				],
+				["cmd"],
+				["module", "verify", "file", "description", "help"]
+			);
+		if (isset($this->chatBot->existing_subcmds[$command])) {
+			return;
+		}
+		$channels = $this->db->table(CommandManager::DB_TABLE_PERM_SET)
+			->select("name")->pluckAs("name", "string");
+		foreach ($channels as $channel) {
+			$this->db->table(CommandManager::DB_TABLE_PERMS)
+				->insertOrIgnore(
+					[
+						"name" => $channel,
+						"access_level" => $accessLevel,
 						"cmd" => $command,
-						"cmdevent" => "subcmd",
-						"admin" => $admin[$i],
-						"verify" => 1,
-						"status" => $status,
-						"file" => $filename,
-						"description" => $description,
-						"dependson" => $parent_command,
-						"help" => $help,
-					]);
-			}
+						"enabled" => (bool)$status,
+					],
+				);
 		}
 	}
 
@@ -109,10 +104,21 @@ class SubcommandManager {
 
 		$this->subcommands = [];
 
+		$permissions = $this->db->table(CommandManager::DB_TABLE_PERMS)
+			->where("enabled", true)
+			->asObj(CmdPermission::class)
+			->groupBy("cmd");
+
 		$this->db->table(CommandManager::DB_TABLE)
-			->where("status", 1)
 			->where("cmdevent", "subcmd")
 			->asObj(CmdCfg::class)
+			->each(function (CmdCfg $row) use ($permissions): void {
+				$row->permissions = $permissions->get($row->cmd, new Collection())
+					->keyBy("name")->toArray();
+			})
+			->filter(function (CmdCfg $cfg): bool {
+				return count($cfg->permissions) > 0;
+			})
 			->sort(function (CmdCfg $row1, CmdCfg $row2): int {
 				$len1 = strlen($row1->cmd);
 				$len2 = strlen($row2->cmd);

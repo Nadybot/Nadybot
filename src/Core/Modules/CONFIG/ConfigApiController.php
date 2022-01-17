@@ -5,6 +5,7 @@ namespace Nadybot\Core\Modules\CONFIG;
 use Nadybot\Core\Attributes as NCA;
 use Exception;
 use Nadybot\Core\{
+	CommandManager,
 	DB,
 	DBSchema\EventCfg,
 	DBSchema\Setting,
@@ -40,6 +41,9 @@ class ConfigApiController extends ModuleInstance {
 
 	#[NCA\Inject]
 	public HelpManager $helpManager;
+
+	#[NCA\Inject]
+	public CommandManager $commandManager;
 
 	#[NCA\Inject]
 	public WebChatConverter $webChatConverter;
@@ -238,15 +242,15 @@ class ConfigApiController extends ModuleInstance {
 		if ($result === 0 && !isset($exception)) {
 			return new Response(Response::NOT_FOUND);
 		}
-		$cmd = $this->configController->getRegisteredCommand($module, $command);
-		if (!isset($cmd)) {
+		$cmd = $this->commandManager->get($command);
+		if (!isset($cmd) || $cmd->module !== $module) {
 			return new Response(Response::NOT_FOUND);
 		}
 		if ($channel === "guild") {
 			$channel = "org";
 		}
 		$moduleCommand = new ModuleCommand($cmd);
-		return new ApiResponse($moduleCommand->{$channel});
+		return new ApiResponse($moduleCommand);
 	}
 
 	/**
@@ -272,8 +276,8 @@ class ConfigApiController extends ModuleInstance {
 		$subCmd = (bool)preg_match("/\s/", $command);
 		try {
 			if ($this->configController->toggleCmd($request->authenticatedAs??"_", $subCmd, $command, "all", $op === "enable") === true) {
-				$cmd = $this->configController->getRegisteredCommand($module, $command);
-				if (!isset($cmd)) {
+				$cmd = $this->commandManager->get($command);
+				if (!isset($cmd) || $cmd->module !== $module) {
 					return new Response(Response::NOT_FOUND);
 				}
 				return new ApiResponse(new ModuleSubcommand($cmd));
@@ -397,14 +401,13 @@ class ConfigApiController extends ModuleInstance {
 		NCA\ApiResult(code: 200, class: "ModuleCommand[]", desc: "A list of all command and possible subcommands this module provides")
 	]
 	public function apiConfigCommandsGetEndpoint(Request $request, HttpProtocolWrapper $server, string $module): Response {
-		$cmds = $this->configController->getAllRegisteredCommands($module);
-		/** @var array<string,ModuleSubcommand> */
+		$cmds = $this->commandManager->getAllForModule($module, true)->sortBy("cmdevent");
+		/** @var array<string,ModuleCommand> */
 		$result = [];
 		foreach ($cmds as $cmd) {
 			if ($cmd->cmdevent === "cmd") {
 				$result[$cmd->cmd] = new ModuleCommand($cmd);
 			} else {
-				$result[$cmd->dependson]->subcommands ??= [];
 				$result[$cmd->dependson]->subcommands []= new ModuleSubcommand($cmd);
 			}
 		}
