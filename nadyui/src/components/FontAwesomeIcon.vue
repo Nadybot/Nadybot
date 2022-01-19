@@ -1,6 +1,6 @@
 <template>
   <img
-    :src="require(`../assets/font-awesome-icons/${icon}.svg`).default"
+    :src="require(`../assets/font-awesome-icons/${icon}.svg`)"
     :height="size"
     :width="size"
     :style="'filter: invert(' + invert + '%);'"
