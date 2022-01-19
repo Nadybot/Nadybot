@@ -96,6 +96,8 @@ export interface ChannelInfo {
   readonly name: string;
   // The ID the game uses for this channel
   readonly id: number;
+  // The class of the channel (OOC, towers, etc.)
+  readonly class: number;
 }
 
 export interface SystemInformation {
@@ -177,6 +179,7 @@ const systemStatsDecoderMapping = {
 const channelInfoDecoderMapping = {
   name: JsonDecoder.string,
   id: JsonDecoder.number,
+  class: JsonDecoder.number,
 };
 
 const basicSystemInformationDecoder =
