@@ -314,7 +314,7 @@ class RaidController extends ModuleInstance {
 			$context->reply(static::ERR_NO_RAID);
 			return;
 		}
-		$handler = $this->commandManager->getActiveCommandHandler("raid", "priv", "raid start test");
+		$handler = $this->commandManager->getActiveCommandHandler("raid", $context->channel, "raid start test");
 		if (isset($handler)) {
 			$canAdminRaid = $this->accessManager->checkAccess($context->char->name, $handler->admin);
 			if ($canAdminRaid) {

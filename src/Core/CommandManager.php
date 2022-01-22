@@ -448,7 +448,7 @@ class CommandManager implements MessageEmitter {
 		}
 
 		// if the character doesn't have access
-		if (!$this->checkAccessLevel($context->channel, $context->message, $context->char->name, $context->sendto, $cmd, $commandHandler)) {
+		if (!$this->checkAccessLevel($context, $cmd, $commandHandler)) {
 			$event->type = "command(forbidden)";
 			$this->eventManager->fireEvent($event);
 			return;
@@ -493,31 +493,30 @@ class CommandManager implements MessageEmitter {
 
 	/**
 	 * Check if the person sending a command has the right to
-	 * @param string                $channel        The name of the channel where this command was received:
-	 *                                              "msg", "priv" or "guild"
-	 * @param string                $message        The exact message that was received
-	 * @param string                $sender         name of the person who sent the  command
-	 * @param CommandReply $sendto  Where to send replies to
-	 * @param string                $cmd            The name of the command that was requested
-	 * @param CommandHandler        $commandHandler The command handler for this command
+	 * @param CmdContext	$context	The full command context
+	 * @param string	$cmd	The name of the command that was requested
+	 * @param CommandHandler	$commandHandler	The command handler for this command
 	 * @return bool true if allowed to execute, otherwise false
 	 */
-	public function checkAccessLevel(string $channel, string $message, string $sender, CommandReply $sendto, string $cmd, CommandHandler $commandHandler): bool {
-		if ($this->accessManager->checkAccess($sender, $commandHandler->admin) === true) {
+	public function checkAccessLevel(CmdContext $context, string $cmd, CommandHandler $commandHandler): bool {
+		if ($this->accessManager->checkAccess($context->char->name, $commandHandler->admin) === true) {
 			return true;
 		}
-		if ($channel == 'msg') {
-			$r = new RoutableMessage("Player <highlight>$sender<end> was denied access to command <highlight>$cmd<end>.");
+		if ($context->isDM()) {
+			$r = new RoutableMessage("Player <highlight>{$context->char->name}<end> was denied access to command <highlight>$cmd<end>.");
 			$r->appendPath(new Source(Source::SYSTEM, "access-denied"));
 			$this->messageHub->handle($r);
 		}
 
 		// if they've disabled feedback for guild or private channel, just return
-		if (($channel == 'guild' && !$this->settingManager->getBool('guild_channel_cmd_feedback')) || ($channel == 'priv' && !$this->settingManager->getBool('private_channel_cmd_feedback'))) {
+		if (
+			($context->channel == 'guild' && !$this->settingManager->getBool('guild_channel_cmd_feedback'))
+			|| ($context->channel == 'priv' && !$this->settingManager->getBool('private_channel_cmd_feedback'))
+		) {
 			return false;
 		}
 
-		$sendto->reply("Error! Access denied.");
+		$context->reply("Error! Access denied.");
 		return false;
 	}
 

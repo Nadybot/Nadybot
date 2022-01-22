@@ -99,11 +99,6 @@ class SilenceController extends ModuleInstance {
 	public function unsilenceAddCommand(CmdContext $context, string $command, PWord $channel): void {
 		$command = strtolower($command);
 		$channel = strtolower($channel());
-		if ($channel === "org") {
-			$channel = "guild";
-		} elseif ($channel === "tell") {
-			$channel = "msg";
-		}
 
 		$cmdCfg = $this->commandManager->get($command);
 		if (!isset($cmdCfg) || !isset($cmdCfg->permissions[$channel]) || !$cmdCfg->permissions[$channel]->enabled) {

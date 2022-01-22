@@ -175,7 +175,7 @@ class AOChat {
 			socket_close($this->socket);
 		}
 		$this->socket      = null;
-		$this->readBuffer = "";
+		$this->readBuffer  = "";
 		$this->writeBuffer = "";
 		unset($this->char);
 		$this->last_packet = 0;

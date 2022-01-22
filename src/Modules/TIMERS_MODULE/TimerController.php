@@ -271,7 +271,7 @@ class TimerController extends ModuleInstance implements MessageEmitter {
 		PDuration $interval,
 		string $name
 	): void {
-		$alertChannel = $this->getTimerAlertChannel($context->channel);
+		$alertChannel = $this->getTimerAlertChannel($context);
 
 		$timer = $this->get($name);
 		if ($timer !== null) {
@@ -359,9 +359,9 @@ class TimerController extends ModuleInstance implements MessageEmitter {
 		$context->reply($msg);
 	}
 
-	protected function getTimerAlertChannel(string ...$channels): string {
+	protected function getTimerAlertChannel(CmdContext $context): string {
 		// Timers via tell always create tell alerts only
-		if ($channels === ["msg"]) {
+		if ($context->channel === "msg") {
 			return "msg";
 		}
 		return "";
@@ -377,7 +377,7 @@ class TimerController extends ModuleInstance implements MessageEmitter {
 		$name ??= $context->char->name;
 
 		$runTime = $duration->toSecs();
-		$alertChannel = $this->getTimerAlertChannel($context->channel);
+		$alertChannel = $this->getTimerAlertChannel($context);
 
 		$sendto = $context->sendto;
 		$origin = ($sendto instanceof MessageEmitter) ? $sendto->getChannelName() : null;

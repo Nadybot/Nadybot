@@ -265,8 +265,7 @@ class TestController extends ModuleInstance {
 		$testLines = [];
 		foreach ($files as $file) {
 			$lines = \Safe\file($this->path . $file, \FILE_IGNORE_NEW_LINES);
-			/** @var string[] $lines */
-			$testLines = [...$testLines, ...$lines];
+			$testLines = array_merge($testLines, $lines);
 		}
 		$this->runTests($testLines, $testContext, $logFile);
 		$context->reply("Tests queued.");

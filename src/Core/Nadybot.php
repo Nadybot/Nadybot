@@ -16,7 +16,6 @@ use Nadybot\Core\DBSchema\{
 };
 use Nadybot\Modules\WEBSERVER_MODULE\JsonImporter;
 use Exception;
-use InvalidArgumentException;
 use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\Channels\OrgChannel;
 use Nadybot\Core\Channels\PrivateChannel;
@@ -568,33 +567,6 @@ class Nadybot extends AOChat {
 		$this->messageHub->handle($rMessage);
 
 		$this->send_group($channel, $guildColor.$message, "\0", $priority);
-	}
-
-	/**
-	 * Returns a command type in the proper format
-	 *
-	 * @param null|string|string[] $type A space-separate list of any combination of "msg", "priv" and "guild"
-	 * @param string|string[] $admin A space-separate list of access rights needed
-	 */
-	public function processCommandArgs(&$type, &$admin): bool {
-		if ($type === null || $type === "") {
-			$type = ["msg", "priv", "guild"];
-		} elseif (is_string($type)) {
-			$type = explode(' ', $type);
-		}
-
-		if (!is_string($admin)) {
-			throw new InvalidArgumentException("Wrong parameter type 2 to " .__FUNCTION__);
-		}
-
-		$admin = explode(' ', $admin);
-		if (count($admin) === 1) {
-			$admin = array_fill(0, count($type), $admin[0]);
-		} elseif (count($admin) != count($type)) {
-			$this->logger->error("The number of type arguments does not equal the number of admin arguments for command/subcommand registration");
-			return false;
-		}
-		return true;
 	}
 
 	/**

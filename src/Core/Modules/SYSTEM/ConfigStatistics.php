@@ -3,14 +3,11 @@
 namespace Nadybot\Core\Modules\SYSTEM;
 
 class ConfigStatistics {
-	/** Number of commands activated for use with /tell */
-	public int $active_tell_commands = 0;
-
-	/** Number of commands activated for use in the private channel */
-	public int $active_priv_commands = 0;
-
-	/** Number of commands activated for use in the org channel */
-	public int $active_org_commands = 0;
+	/**
+	 * Number of commands activated for each channel
+	 * @var ChannelCommandStats[]
+	 */
+	public array $active_commands = [];
 
 	/** Number of subcommands activated */
 	public int $active_subcommands = 0;

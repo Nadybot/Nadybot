@@ -206,9 +206,6 @@ class ConfigApiController extends ModuleInstance {
 		$result = 0;
 		$parsed = 0;
 		$exception = null;
-		if ($channel === "org") {
-			$channel = "guild";
-		}
 		if (isset($body->access_level)) {
 			$parsed++;
 			try {
@@ -245,9 +242,6 @@ class ConfigApiController extends ModuleInstance {
 		$cmd = $this->commandManager->get($command);
 		if (!isset($cmd) || $cmd->module !== $module) {
 			return new Response(Response::NOT_FOUND);
-		}
-		if ($channel === "guild") {
-			$channel = "org";
 		}
 		$moduleCommand = new ModuleCommand($cmd);
 		return new ApiResponse($moduleCommand);
@@ -312,7 +306,8 @@ class ConfigApiController extends ModuleInstance {
 			return new Response(Response::UNPROCESSABLE_ENTITY);
 		}
 		$channel = $request->query["channel"] ?? "all";
-		if (!in_array($channel, ["all", "msg", "priv", "guild"])) {
+		$channels = $this->commandManager->getPermissionSets()->pluck("name")->toArray();
+		if ($channel !== "all" && !in_array($channel, $channels, true)) {
 			return new Response(Response::UNPROCESSABLE_ENTITY);
 		}
 		if ($this->configController->toggleModule($module, $channel, $op === "enable")) {

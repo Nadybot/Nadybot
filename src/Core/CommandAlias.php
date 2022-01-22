@@ -74,9 +74,9 @@ class CommandAlias {
 
 		$this->logger->info("Activate Command Alias command:($command) alias:($alias)");
 
-		$this->commandManager->activate('msg', self::ALIAS_HANDLER, $alias, 'all');
-		$this->commandManager->activate('priv', self::ALIAS_HANDLER, $alias, 'all');
-		$this->commandManager->activate('guild', self::ALIAS_HANDLER, $alias, 'all');
+		foreach ($this->commandManager->getPermissionSets() as $set) {
+			$this->commandManager->activate($set->name, self::ALIAS_HANDLER, $alias, 'all');
+		}
 	}
 
 	/**
@@ -87,9 +87,9 @@ class CommandAlias {
 
 		$this->logger->info("Deactivate Command Alias:($alias)");
 
-		$this->commandManager->deactivate('msg', self::ALIAS_HANDLER, $alias);
-		$this->commandManager->deactivate('priv', self::ALIAS_HANDLER, $alias);
-		$this->commandManager->deactivate('guild', self::ALIAS_HANDLER, $alias);
+		foreach ($this->commandManager->getPermissionSets() as $set) {
+			$this->commandManager->deactivate($set->name, self::ALIAS_HANDLER, $alias);
+		}
 	}
 
 	/**
