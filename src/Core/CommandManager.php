@@ -4,6 +4,7 @@ namespace Nadybot\Core;
 
 use Exception;
 use Illuminate\Support\Collection;
+use InvalidArgumentException;
 use Throwable;
 use ReflectionException;
 use ReflectionClass;
@@ -13,6 +14,8 @@ use ReflectionParameter;
 use Nadybot\Core\{
 	Attributes as NCA,
 	DBSchema\CmdCfg,
+	DBSchema\CmdPermission,
+	DBSchema\CmdPermissionSet,
 	DBSchema\CommandSearchResult,
 	Modules\CONFIG\CommandSearchController,
 	Modules\LIMITS\LimitsController,
@@ -21,8 +24,6 @@ use Nadybot\Core\{
 	Routing\RoutableMessage,
 	Routing\Source,
 };
-use Nadybot\Core\DBSchema\CmdPermission;
-use Nadybot\Core\DBSchema\CmdPermissionSet;
 
 #[
 	NCA\Instance,
@@ -85,6 +86,9 @@ class CommandManager implements MessageEmitter {
 	/** @var array<string,array<string,CommandHandler>> $commands */
 	public array $commands;
 
+	/** @var array<string,CmdPermission> */
+	private array $cmdDefaultPermissions = [];
+
 	#[NCA\Setup]
 	public function setup(): void {
 		$this->messageHub->registerMessageEmitter($this);
@@ -136,6 +140,12 @@ class CommandManager implements MessageEmitter {
 		}
 
 		$this->logger->info("Adding Command to list:($command) File:($filename)");
+		$defaultPerms = new CmdPermission();
+		$defaultPerms->access_level = $accessLevel;
+		$defaultPerms->enabled = (bool)$status;
+		$defaultPerms->cmd = $command;
+		$defaultPerms->name = "default";
+		$this->cmdDefaultPermissions[$command] = $defaultPerms;
 		try {
 			$this->db->table(self::DB_TABLE)
 				->upsert(
@@ -858,5 +868,106 @@ class CommandManager implements MessageEmitter {
 
 	public function getChannelName(): string {
 		return Source::SYSTEM . "(access-denied)";
+	}
+
+	public function getDefaultPermissions(string $cmd): ?CmdPermission {
+		return $this->cmdDefaultPermissions[$cmd] ?? null;
+	}
+
+	private function insertPermissionSet(string $name, string $letter, CmdPermission ...$perms): void {
+		$letter = strtoupper($letter);
+		$name = strtolower($name);
+		if (strlen($letter) !== 1) {
+			throw new InvalidArgumentException("The letter of a permission set must be exactly 1 character long.");
+		}
+		if ($this->db->table(self::DB_TABLE_PERM_SET)->where("name", $name)->exists()) {
+			throw new InvalidArgumentException("The permission set <highlight>{$name}<end> already exists.");
+		}
+		if ($this->db->table(self::DB_TABLE_PERM_SET)->where("letter", $letter)->exists()) {
+			throw new InvalidArgumentException("A permission set with the letter <highlight>{$letter}<end> already exists.");
+		}
+		$inserts = [];
+		foreach ($perms as $perm) {
+			unset($perm->id);
+			$perm->name = $name;
+			$inserts []= (array)$perm;
+		}
+		$this->db->beginTransaction();
+		try {
+			$this->db->table(self::DB_TABLE_PERM_SET)
+				->insert(["name" => $name, "letter" => $letter]);
+			$this->db->table(self::DB_TABLE_PERMS)
+				->chunkInsert($inserts);
+		} catch (Exception $e) {
+			$this->db->rollback();
+			throw new Exception("There was an unknown error saving the new permission set.", 0, $e);
+		}
+		$this->db->commit();
+		$this->loadCommands();
+		$this->subcommandManager->loadSubcommands();
+	}
+
+	/**
+	 * Create a new set of permissions based on the default permissions of the bot
+	 *
+	 * @throws InvalidArgumentException when one of the parameters is invalid
+	 * @throws Exception on unknown errors, like SQL
+	 */
+	public function createPermissionSet(string $name, string $letter): void {
+		$allCmds = $this->getAll(true);
+		$perms = [];
+		foreach ($allCmds as $cmd) {
+			$cmdPerms = ($cmd->cmdevent === "cmd")
+				? $this->getDefaultPermissions($cmd->cmd)
+				: $this->subcommandManager->getDefaultPermissions($cmd->cmd);
+			if (!isset($cmdPerms)) {
+				throw new Exception("There are no default permissions registered for {$cmd->cmd}.");
+			}
+			$cmdPerms->name = $name;
+			$perms []= $cmdPerms;
+		}
+		$this->insertPermissionSet($name, $letter, ...$perms);
+	}
+
+	/**
+	 * Create a new set of permissions based another set
+	 *
+	 * @throws InvalidArgumentException when one of the parameters is invalid
+	 * @throws Exception on unknown errors, like SQL
+	 */
+	public function clonePermissionSet(string $oldName, string $name, string $letter): void {
+		$perms = $this->db->table(self::DB_TABLE_PERMS)
+			->where("name", $oldName)
+			->asObj(CmdPermission::class)
+			->toArray();
+		$this->insertPermissionSet($name, $letter, ...$perms);
+	}
+
+	/**
+	 * Delete a permission set
+	 *
+	 * @throws InvalidArgumentException when one of the parameters is invalid
+	 * @throws Exception on unknown errors, like SQL
+	 */
+	public function deletePermissionSet(string $name): void {
+		$name = strtolower($name);
+		if (!$this->db->table(self::DB_TABLE_PERM_SET)->where("name", $name)->exists()) {
+			throw new InvalidArgumentException("The permission set <highlight>{$name}<end> does not exist.");
+		}
+		$this->db->beginTransaction();
+		try {
+			$this->db->table(self::DB_TABLE_PERMS)
+				->where("name", $name)
+				->delete();
+			$this->db->table(self::DB_TABLE_PERM_SET)
+				->where("name", $name)
+				->delete();
+		} catch (Exception $e) {
+			$this->db->rollback();
+			throw new Exception("There was an unknown error deleting that permission set.", 0, $e);
+		}
+		$this->db->commit();
+		unset($this->commands[$name]);
+		$this->subcommandManager->loadSubcommands();
 	}
 }

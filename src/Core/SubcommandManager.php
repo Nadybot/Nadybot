@@ -28,6 +28,9 @@ class SubcommandManager {
 	/** @var array<string,CmdCfg[]> */
 	public array $subcommands = [];
 
+	/** @var array<string,CmdPermission> */
+	private array $cmdDefaultPermissions = [];
+
 	/**
 	 * @name: register
 	 * @description: Registers a subcommand
@@ -60,6 +63,13 @@ class SubcommandManager {
 		} else {
 			$status = $defaultStatus;
 		}
+
+		$defaultPerms = new CmdPermission();
+		$defaultPerms->access_level = $accessLevel;
+		$defaultPerms->enabled = (bool)$status;
+		$defaultPerms->cmd = $command;
+		$defaultPerms->name = "default";
+		$this->cmdDefaultPermissions[$command] = $defaultPerms;
 
 		$this->logger->info("Adding Subcommand to list:($command) File:($filename)");
 		$this->db->table(CommandManager::DB_TABLE)
@@ -129,5 +139,9 @@ class SubcommandManager {
 			->each(function(CmdCfg $row): void {
 				$this->subcommands[$row->dependson] []= $row;
 			});
+	}
+
+	public function getDefaultPermissions(string $cmd): ?CmdPermission {
+		return $this->cmdDefaultPermissions[$cmd] ?? null;
 	}
 }

@@ -6,7 +6,7 @@ use Nadybot\Core\DBRow;
 
 class CmdPermission extends DBRow {
 	/** @json:ignore */
-	public int $id;
+	public ?int $id=null;
 
 	/** The name of the permission-channel */
 	public string $name;
