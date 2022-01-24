@@ -585,7 +585,8 @@ class SystemController extends ModuleInstance implements MessageEmitter {
 		$newContext = new CmdContext($context->char->name, $context->char->id);
 		$newContext->sendto = $showSendto;
 		$newContext->message = $cmd;
-		$newContext->channel = "msg";
+		$newContext->source = $context->source;
+		$newContext->channel = $context->channel;
 		$this->commandManager->processCmd($newContext);
 
 		$context->reply("Command <highlight>{$cmd}<end> has been sent to <highlight>{$name}<end>.");

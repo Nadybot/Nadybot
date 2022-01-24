@@ -2,14 +2,18 @@
 
 namespace Nadybot\Core\Modules\CONFIG;
 
+use Closure;
 use Exception;
+use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
 	CommandManager,
 	ModuleInstance,
 	ParamClass\PWord,
+	Text,
 };
+use Nadybot\Core\DBSchema\CmdPermissionSet;
 use Nadybot\Core\ParamClass\PRemove;
 
 /**
@@ -28,6 +32,9 @@ use Nadybot\Core\ParamClass\PRemove;
 class PermissinSetController extends ModuleInstance {
 	#[NCA\Inject]
 	public CommandManager $cmdManager;
+	#
+	#[NCA\Inject]
+	public Text $text;
 
 	#[NCA\HandlesCommand("permset")]
 	public function permsetNewCommand(
@@ -76,5 +83,29 @@ class PermissinSetController extends ModuleInstance {
 			return;
 		}
 		$context->reply("Permission set <highlight>{$name}<end> successfully deleted.");
+	}
+
+	#[NCA\HandlesCommand("permset")]
+	public function permsetListCommand(CmdContext $context): void {
+		$sets = $this->cmdManager->getPermissionSets(true);
+		$blocks = $sets->map(Closure::fromCallable([$this, "renderPermissionSet"]));
+		$blob = $blocks->join("\n\n<pagebreak>");
+		$context->reply(
+			$this->text->makeBlob("Permission sets (" . $blocks->count() . ")", $blob)
+		);
+	}
+
+	protected function renderPermissionSet(CmdPermissionSet $set): string {
+		$block = "<header2>{$set->name}<end>\n".
+			"<tab>Letter: <highlight>{$set->letter}<end>\n".
+			"<tab>Channels: <highlight>".
+			(new Collection($set->mappings))->pluck("source")
+				->join("<end>, <highlight>", "<end> and <highlight>") . "<end>";
+		if (empty($set->mappings)) {
+			$block .= "\n<tab>Actions: [".
+				$this->text->makeChatcmd("delete", "/tell <myname> permset rem {$set->name}").
+				"]";
+		}
+		return $block;
 	}
 }

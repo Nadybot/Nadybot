@@ -907,21 +907,16 @@ class Nadybot extends AOChat {
 			function(int $senderId, AOChatEvent $eventObj, string $message, string $sender, string $type): void {
 				$this->eventManager->fireEvent($eventObj);
 
-				// remove the symbol if there is one
-				if ($message[0] == $this->settingManager->get("symbol") && strlen($message) > 1) {
-					$message = substr($message, 1);
-				}
-
-				// check tell limits
 				$context = new CmdContext($sender, $senderId);
-				$context->channel = $type;
 				$context->message = $message;
+				$context->source = Source::TELL . "({$sender})";
 				$context->sendto = new PrivateMessageCommandReply($this, $sender, $eventObj->worker ?? null);
+				$context->setIsDM();
 				$this->limitsController->checkAndExecute(
 					$sender,
 					$message,
 					function(CmdContext $context): void {
-						$this->commandManager->processCmd($context);
+						$this->commandManager->checkAndHandleCmd($context);
 					},
 					$context
 				);
@@ -975,25 +970,11 @@ class Nadybot extends AOChat {
 		}
 		$rMessage->prependPath(new Source(Source::PRIV, $channel, $label));
 		$this->messageHub->handle($rMessage);
-		if ($message[0] !== $this->settingManager->get("symbol")
-			|| strlen($message) <= 1
-			|| !$this->isDefaultPrivateChannel($channel)
-		) {
-			return;
-		}
-
 		$context = new CmdContext($sender, $senderId);
-		$context->channel = $type;
-		$context->message = substr($message, 1);
+		$context->message = $message;
+		$context->source = Source::PRIV . "({$channel})";
 		$context->sendto = new PrivateChannelCommandReply($this, $channel);
-		$this->banController->handleBan(
-			$senderId,
-			function (int $senderId, CmdContext $context): void {
-				$this->commandManager->processCmd($context);
-			},
-			null,
-			$context
-		);
+		$this->commandManager->checkAndHandleCmd($context);
 	}
 
 	/**
@@ -1072,21 +1053,11 @@ class Nadybot extends AOChat {
 			$eventObj->type = $type;
 
 			$this->eventManager->fireEvent($eventObj);
-
-			if ($message[0] == $this->settingManager->get("symbol") && strlen($message) > 1) {
-				$context = new CmdContext($sender, $senderId);
-				$context->channel = "guild";
-				$context->message = substr($message, 1);
-				$context->sendto = new GuildChannelCommandReply($this);
-				$this->banController->handleBan(
-					$senderId,
-					function (int $senderId, CmdContext $context): void {
-						$this->commandManager->processCmd($context);
-					},
-					null,
-					$context
-				);
-			}
+			$context = new CmdContext($sender, $senderId);
+			$context->source = Source::ORG;
+			$context->message = $message;
+			$context->sendto = new GuildChannelCommandReply($this);
+			$this->commandManager->checkAndHandleCmd($context);
 		}
 	}
 

@@ -92,19 +92,16 @@ class WebchatApiController extends ModuleInstance {
 		$rMessage->prependPath(new Source(Source::WEB, "Web"));
 		$this->messageHub->handle($rMessage);
 
-		if ($message[0] === $this->settingManager->get("symbol") && strlen($message) > 1) {
-			$message = substr($message, 1);
-			$sendto = new WebsocketCommandReply("web");
-			Registry::injectDependencies($sendto);
-			$context = new CmdContext($request->authenticatedAs);
-			$context->channel = "priv";
-			$context->sendto = $sendto;
-			$context->message = $message;
-			$this->chatBot->getUid($context->char->name, function (?int $uid, CmdContext $context): void {
-				$context->char->id = $uid;
-				$this->commandManager->processCmd($context);
-			}, $context);
-		}
+		$sendto = new WebsocketCommandReply("web");
+		Registry::injectDependencies($sendto);
+		$context = new CmdContext($request->authenticatedAs);
+		$context->source = Source::WEB;
+		$context->sendto = $sendto;
+		$context->message = $message;
+		$this->chatBot->getUid($context->char->name, function (?int $uid, CmdContext $context): void {
+			$context->char->id = $uid;
+			$this->commandManager->checkAndHandleCmd($context);
+		}, $context);
 		return new Response(Response::NO_CONTENT);
 	}
 }

@@ -306,7 +306,7 @@ class ProfileController extends ModuleInstance {
 			$context = new CmdContext($sender);
 			$context->char->id = $this->chatBot->get_uid($sender) ?: null;
 			$context->sendto = $profileSendTo;
-			$context->channel = "msg";
+			$context->channel = $this->commandManager->getPermissionSets()->firstOrFail()->name;
 			$numSkipped = 0;
 			for ($profileRow=0; $profileRow < count($lines); $profileRow++) {
 				$line = $lines[$profileRow];

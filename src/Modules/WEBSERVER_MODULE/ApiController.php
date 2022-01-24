@@ -349,16 +349,20 @@ class ApiController extends ModuleInstance {
 		if (!isset($handler->accessLevelFrom)) {
 			return null;
 		}
+		$set = $this->commandManager->getPermsetMapForSource("api");
+		if (!isset($set)) {
+			return null;
+		}
 		// Check if a subcommands for this exists
 		$mainCommand = explode(" ", $handler->accessLevelFrom)[0];
 		if (isset($this->subcommandManager->subcommands[$mainCommand])) {
 			foreach ($this->subcommandManager->subcommands[$mainCommand] as $row) {
-				if (isset($row->permissions["msg"]) && ($row->cmd === $handler->accessLevelFrom || preg_match("/^{$row->cmd}$/si", $handler->accessLevelFrom))) {
-					return new CommandHandler($row->file, $row->permissions["msg"]->access_level);
+				if (isset($row->permissions[$set->name]) && ($row->cmd === $handler->accessLevelFrom || preg_match("/^{$row->cmd}$/si", $handler->accessLevelFrom))) {
+					return new CommandHandler($row->file, $row->permissions[$set->name]->access_level);
 				}
 			}
 		}
-		return $this->commandManager->commands["msg"][$handler->accessLevelFrom] ?? null;
+		return $this->commandManager->commands[$set->name][$handler->accessLevelFrom] ?? null;
 	}
 
 
@@ -510,10 +514,15 @@ class ApiController extends ModuleInstance {
 			return new Response(Response::NOT_FOUND);
 		}
 		if (strlen($msg) && isset($request->authenticatedAs)) {
+			$set = $this->commandManager->getPermsetMapForSource("api");
 			$handler = new EventCommandReply($uuid);
 			Registry::injectDependencies($handler);
 			$context = new CmdContext($request->authenticatedAs);
-			$context->channel = "msg";
+			$context->source = "api";
+			$context->setIsDM();
+			$context->channel = isset($set)
+				? $set->name
+				: $this->commandManager->getPermissionSets()->firstOrFail()->name;
 			$context->sendto = $handler;
 			$context->message = $msg;
 			$this->chatBot->getUid($context->char->name, function (?int $uid, CmdContext $context): void {

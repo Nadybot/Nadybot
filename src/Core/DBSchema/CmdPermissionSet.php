@@ -7,4 +7,10 @@ use Nadybot\Core\DBRow;
 class CmdPermissionSet extends DBRow {
 	public string $name;
 	public string $letter;
+
+	/**
+	 * @db:ignore
+	 * @var CmdPermSetMapping[]
+	 */
+	public array $mappings = [];
 }

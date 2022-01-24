@@ -254,7 +254,6 @@ class TestController extends ModuleInstance {
 	#[NCA\HandlesCommand("test")]
 	public function testAllCommand(CmdContext $context, #[NCA\Str("all")] string $action): void {
 		$testContext = clone $context;
-		$testContext->channel = "msg";
 		$testContext->sendto = new MockCommandReply("buddylist clear");
 		$this->buddylistController->buddylistShowCommand($testContext, "clear");
 

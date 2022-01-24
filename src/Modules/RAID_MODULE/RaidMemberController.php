@@ -128,7 +128,7 @@ class RaidMemberController extends ModuleInstance {
 	/**
 	 * Add player $player to the raid by player $sender
 	 */
-	public function joinRaid(string $sender, string $player, string $channel, bool $force=false): ?string {
+	public function joinRaid(string $sender, string $player, ?string $source, bool $force=false): ?string {
 		$raid = $this->raidController->raid;
 		if ($raid === null) {
 			return RaidController::ERR_NO_RAID;
@@ -165,7 +165,7 @@ class RaidMemberController extends ModuleInstance {
 		}
 		if ($raid->locked && $sender === $player && !$force) {
 			$msg = "The raid is currently <red>locked<end>.";
-			if ($channel === 'priv') {
+			if (isset($source) && strncmp($source, 'aopriv', 6) === 0) {
 				$msg .= " [" . ((array)$this->text->makeBlob(
 					"admin",
 					$this->text->makeChatcmd("Add {$player} to the raid", "/tell <myname> raid add {$player}"),
@@ -256,7 +256,7 @@ class RaidMemberController extends ModuleInstance {
 
 	#[NCA\HandlesCommand("raid (join|leave)")]
 	public function raidJoinCommand(CmdContext $context, #[NCA\Str("join")] string $action): void {
-		$reply = $this->joinRaid($context->char->name, $context->char->name, $context->channel, false);
+		$reply = $this->joinRaid($context->char->name, $context->char->name, $context->source, false);
 		if ($reply !== null) {
 			if ($context->isDM()) {
 				$this->chatBot->sendMassTell($reply, $context->char->name);
@@ -280,7 +280,7 @@ class RaidMemberController extends ModuleInstance {
 
 	#[NCA\HandlesCommand("raidmember")]
 	public function raidAddCommand(CmdContext $context, #[NCA\Str("add")] string $action, PCharacter $char): void {
-		$reply = $this->joinRaid($context->char->name, $char(), $context->channel, true);
+		$reply = $this->joinRaid($context->char->name, $char(), $context->source, true);
 		if ($reply !== null) {
 			$context->reply($reply);
 		}

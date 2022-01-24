@@ -17,6 +17,7 @@ use Nadybot\Core\{
 	DBSchema\CmdPermission,
 	DBSchema\CmdPermissionSet,
 	DBSchema\CommandSearchResult,
+	Modules\BAN\BanController,
 	Modules\CONFIG\CommandSearchController,
 	Modules\LIMITS\LimitsController,
 	Modules\USAGE\UsageController,
@@ -24,6 +25,7 @@ use Nadybot\Core\{
 	Routing\RoutableMessage,
 	Routing\Source,
 };
+use Nadybot\Core\DBSchema\CmdPermSetMapping;
 
 #[
 	NCA\Instance,
@@ -37,6 +39,7 @@ class CommandManager implements MessageEmitter {
 	public const DB_TABLE = "cmdcfg_<myname>";
 	public const DB_TABLE_PERMS = "cmd_permission_<myname>";
 	public const DB_TABLE_PERM_SET = "cmd_permission_set_<myname>";
+	public const DB_TABLE_MAPPING = "cmd_permission_set_mapping_<myname>";
 
 	#[NCA\Inject]
 	public DB $db;
@@ -80,6 +83,9 @@ class CommandManager implements MessageEmitter {
 	#[NCA\Inject]
 	public LimitsController $limitsController;
 
+	#[NCA\Inject]
+	public BanController $banController;
+
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
@@ -89,9 +95,20 @@ class CommandManager implements MessageEmitter {
 	/** @var array<string,CmdPermission> */
 	private array $cmdDefaultPermissions = [];
 
+	/** @var CmdPermSetMapping[] */
+	private array $permSetMappings = [];
+
 	#[NCA\Setup]
 	public function setup(): void {
+		$this->loadPermsetMappings();
 		$this->messageHub->registerMessageEmitter($this);
+	}
+
+	private function loadPermsetMappings(): void {
+		$query = $this->db->table(self::DB_TABLE_MAPPING);
+		$this->permSetMappings = $query->orderByDesc($query->colFunc("LENGTH", "source"))
+			->asObj(CmdPermSetMapping::class)
+			->toArray();
 	}
 
 	/**
@@ -291,9 +308,22 @@ class CommandManager implements MessageEmitter {
 	}
 
 	/** @return Collection<CmdPermissionSet> */
-	public function getPermissionSets(): Collection {
-		return $this->db->table(CommandManager::DB_TABLE_PERM_SET)
+	public function getPermissionSets(bool $addMappings=false): Collection {
+		$permSets = $this->db->table(CommandManager::DB_TABLE_PERM_SET)
 			->asObj(CmdPermissionSet::class);
+		if ($addMappings) {
+			$mappings = $this->getPermSetMappings()
+				->groupBy("name");
+			$permSets->each(function(CmdPermissionSet $set) use ($mappings): void {
+				$set->mappings = $mappings->get($set->name, new Collection())->toArray();
+			});
+		}
+		return $permSets;
+	}
+
+	/** @return Collection<CmdPermSetMapping> */
+	public function getPermSetMappings(): Collection {
+		return new Collection($this->permSetMappings);
 	}
 
 	/** @return Collection<CmdCfg> */
@@ -401,21 +431,6 @@ class CommandManager implements MessageEmitter {
 		return $sc->cmd;
 	}
 
-	/**
-	 * Handle an incoming command
-	 * @deprecated Please use processCmd() instead
-	 * @throws \Nadybot\Core\StopExecutionException
-	 * @throws \Nadybot\Core\SQLException For SQL errors during command execution
-	 * @throws \Exception For a generic exception during command execution
-	 */
-	public function process(string $channel, string $message, string $sender, CommandReply $sendto): void {
-		$context = new CmdContext($sender);
-		$context->channel = $channel;
-		$context->message = $message;
-		$context->sendto = $sendto;
-		$this->processCmd($context);
-	}
-
 	public function processCmd(CmdContext $context): void {
 		$cmd = explode(' ', $context->message, 2)[0];
 		$cmd = strtolower($cmd);
@@ -432,11 +447,7 @@ class CommandManager implements MessageEmitter {
 
 		// if command doesn't exist
 		if ($commandHandler === null) {
-			// if they've disabled feedback for guild or private channel, just return
-			if (
-				($context->channel === 'guild' && !$this->settingManager->getBool('guild_channel_cmd_feedback'))
-				|| ($context->channel == 'priv' && !$this->settingManager->getBool('private_channel_cmd_feedback'))
-			) {
+			if (isset($context->mapping) && !$context->mapping->feedback) {
 				return;
 			}
 
@@ -519,26 +530,12 @@ class CommandManager implements MessageEmitter {
 		}
 
 		// if they've disabled feedback for guild or private channel, just return
-		if (
-			($context->channel == 'guild' && !$this->settingManager->getBool('guild_channel_cmd_feedback'))
-			|| ($context->channel == 'priv' && !$this->settingManager->getBool('private_channel_cmd_feedback'))
-		) {
+		if (isset($context->mapping) && !$context->mapping->feedback) {
 			return false;
 		}
 
 		$context->reply("Error! Access denied.");
 		return false;
-	}
-
-	/**
-	 * Call the command handler for a given command and return which one was used
-	 */
-	public function callCommandHandler(CommandHandler $commandHandler, string $message, string $channel, string $sender, CommandReply $sendto): ?string {
-		$context = new CmdContext($sender);
-		$context->message = $message;
-		$context->channel = $channel;
-		$context->sendto = $sendto;
-		return $this->executeCommandHandler($commandHandler, $context);
 	}
 
 	public function executeCommandHandler(CommandHandler $commandHandler, CmdContext $context): ?string {
@@ -954,6 +951,13 @@ class CommandManager implements MessageEmitter {
 		if (!$this->db->table(self::DB_TABLE_PERM_SET)->where("name", $name)->exists()) {
 			throw new InvalidArgumentException("The permission set <highlight>{$name}<end> does not exist.");
 		}
+		if (count($usedBy = $this->getSourcesForPermsetName($name)) > 0) {
+			throw new InvalidArgumentException(
+				"The permission set <highlight>{$name}<end> is still assigned to <highlight>".
+				(new Collection($usedBy))->join("<end>, <highlight>", "<end> and <highlight>").
+				"<end>."
+			);
+		}
 		$this->db->beginTransaction();
 		try {
 			$this->db->table(self::DB_TABLE_PERMS)
@@ -969,5 +973,70 @@ class CommandManager implements MessageEmitter {
 		$this->db->commit();
 		unset($this->commands[$name]);
 		$this->subcommandManager->loadSubcommands();
+	}
+
+	/**
+	 * Try to determine to which permission set a routing source maps
+	 * @param string $source Name of the source, e.g. aopriv(Tester)
+	 * @return null|CmdPermSetMapping The mapping of the permission set, or null if no execution intended
+	 */
+	public function getPermsetMapForSource(string $source): ?CmdPermSetMapping {
+		foreach ($this->permSetMappings as $map) {
+			if (fnmatch($map->source, $source, FNM_CASEFOLD)) {
+				return $map;
+			}
+		}
+		return null;
+	}
+
+	/**
+	 * Get the names of all sources using the permission set $name
+	 * @param string $name Name of the permission set
+	 * @return string[] A list of all sources mapping to this
+	 */
+	public function getSourcesForPermsetName(string $name): array {
+		$name = strtolower($name);
+		$result = [];
+		foreach ($this->permSetMappings as $map) {
+			if ($map->name === $name) {
+				$result []= $map->source;
+			}
+		}
+		return $result;
+	}
+
+	/**
+	 * Check the message in $context for a valid command and execute it in the proper channel
+	 */
+	public function checkAndHandleCmd(CmdContext $context): bool {
+		if (!isset($context->source)) {
+			return false;
+		}
+		$this->logger->notice("Received msg from {$context->source}");
+		$cmdMap = $this->getPermsetMapForSource($context->source);
+		if (!isset($cmdMap)) {
+			return false;
+		}
+		if (strncmp($context->message, $cmdMap->symbol, strlen($cmdMap->symbol)) === 0) {
+			$context->message = substr($context->message, strlen($cmdMap->symbol));
+		} elseif (!$cmdMap->symbol_optional) {
+			return false;
+		}
+
+		$context->channel = $cmdMap->name;
+		$context->mapping = $cmdMap;
+		if (!isset($context->char->id)) {
+			$this->processCmd($context);
+			return true;
+		}
+		$this->banController->handleBan(
+			$context->char->id,
+			function (int $senderId, CmdContext $context): void {
+				$this->processCmd($context);
+			},
+			null,
+			$context
+		);
+		return true;
 	}
 }

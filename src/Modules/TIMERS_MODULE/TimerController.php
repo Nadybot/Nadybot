@@ -361,7 +361,7 @@ class TimerController extends ModuleInstance implements MessageEmitter {
 
 	protected function getTimerAlertChannel(CmdContext $context): string {
 		// Timers via tell always create tell alerts only
-		if ($context->channel === "msg") {
+		if (isset($context->source) && strncmp($context->source, "aotell(", 7) === 0) {
 			return "msg";
 		}
 		return "";

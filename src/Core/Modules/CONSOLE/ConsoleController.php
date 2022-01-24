@@ -180,25 +180,19 @@ class ConsoleController extends ModuleInstance {
 		if ($line === null || trim($line) === '') {
 			return;
 		}
-		if (substr($line, 0, 1) === $this->settingManager->getString('symbol')) {
-			$line = substr($line, 1);
-			if (trim($line) === '') {
-				return;
-			}
-		}
 		if ($this->useReadline) {
 			\Safe\readline_add_history($line);
 			$this->saveHistory();
 			\Safe\readline_callback_handler_install('> ', [$this, 'processLine']);
 		}
 		$context = new CmdContext($this->config->superAdmin);
-		$context->channel = "msg";
 		$context->message = $line;
+		$context->source = "console";
 		$context->sendto = new ConsoleCommandReply($this->chatBot);
 		Registry::injectDependencies($context->sendto);
 		$this->chatBot->getUid($context->char->name, function (?int $uid, CmdContext $context): void {
 			$context->char->id = $uid;
-			$this->commandManager->processCmd($context);
+			$this->commandManager->checkAndHandleCmd($context);
 		}, $context);
 	}
 }
