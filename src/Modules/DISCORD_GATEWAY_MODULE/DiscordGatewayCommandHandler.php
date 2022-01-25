@@ -71,6 +71,8 @@ class DiscordGatewayCommandHandler extends ModuleInstance implements AccessLevel
 	#[NCA\Setup]
 	public function setup(): void {
 		$this->accessManager->registerProvider($this);
+		$this->commandManager->registerSource(Source::DISCORD_MSG . "(*)");
+		$this->commandManager->registerSource(Source::DISCORD_PRIV . "(*)");
 		$this->settingManager->add(
 			module: $this->moduleName,
 			name: "discord_process_commands",

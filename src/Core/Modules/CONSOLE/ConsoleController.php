@@ -58,6 +58,7 @@ class ConsoleController extends ModuleInstance {
 
 	#[NCA\Setup]
 	public function setup(): void {
+		$this->commandManager->registerSource("console");
 		$this->settingManager->add(
 			module: $this->moduleName,
 			name: "console_color",

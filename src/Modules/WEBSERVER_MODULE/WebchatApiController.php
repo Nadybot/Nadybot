@@ -48,6 +48,11 @@ class WebchatApiController extends ModuleInstance {
 	#[NCA\Inject]
 	public Text $text;
 
+	#[NCA\Setup]
+	public function setup(): void {
+		$this->commandManager->registerSource(Source::WEB);
+	}
+
 	/**
 	 * Send a message to the org chat
 	 */

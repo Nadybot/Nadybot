@@ -284,6 +284,9 @@ class Nadybot extends AOChat {
 		$this->messageHub
 			->registerMessageReceiver($pm)
 			->registerMessageEmitter($pm);
+		$this->commandManager->registerSource(Source::PRIV . "(*)");
+		$this->commandManager->registerSource(Source::ORG);
+		$this->commandManager->registerSource(Source::TELL . "(*)");
 	}
 
 	/**

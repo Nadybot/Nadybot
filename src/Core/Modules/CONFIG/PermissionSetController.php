@@ -9,12 +9,14 @@ use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
 	CommandManager,
+	DB,
+	DBSchema\CmdPermissionSet,
 	ModuleInstance,
+	ParamClass\PRemove,
 	ParamClass\PWord,
+	SettingManager,
 	Text,
 };
-use Nadybot\Core\DBSchema\CmdPermissionSet;
-use Nadybot\Core\ParamClass\PRemove;
 
 /**
  * Commands this controller contains:
@@ -27,12 +29,12 @@ use Nadybot\Core\ParamClass\PRemove;
 		description: "Manages permission sets",
 		help: "permset.txt",
 		defaultStatus: 1
-	)
+	),
 ]
-class PermissinSetController extends ModuleInstance {
+class PermissionSetController extends ModuleInstance {
 	#[NCA\Inject]
 	public CommandManager $cmdManager;
-	#
+
 	#[NCA\Inject]
 	public Text $text;
 

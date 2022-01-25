@@ -14,6 +14,7 @@ use ReflectionParameter;
 use Nadybot\Core\{
 	Attributes as NCA,
 	DBSchema\CmdCfg,
+	DBSchema\CmdPermSetMapping,
 	DBSchema\CmdPermission,
 	DBSchema\CmdPermissionSet,
 	DBSchema\CommandSearchResult,
@@ -25,7 +26,6 @@ use Nadybot\Core\{
 	Routing\RoutableMessage,
 	Routing\Source,
 };
-use Nadybot\Core\DBSchema\CmdPermSetMapping;
 
 #[
 	NCA\Instance,
@@ -98,17 +98,45 @@ class CommandManager implements MessageEmitter {
 	/** @var CmdPermSetMapping[] */
 	private array $permSetMappings = [];
 
+	/** @var array<string,bool> */
+	private array $sources = [];
+
 	#[NCA\Setup]
 	public function setup(): void {
 		$this->loadPermsetMappings();
 		$this->messageHub->registerMessageEmitter($this);
 	}
 
-	private function loadPermsetMappings(): void {
+	public function loadPermsetMappings(): void {
 		$query = $this->db->table(self::DB_TABLE_MAPPING);
 		$this->permSetMappings = $query->orderByDesc($query->colFunc("LENGTH", "source"))
 			->asObj(CmdPermSetMapping::class)
 			->toArray();
+	}
+
+	/** Register a source mask to be used as command source */
+	public function registerSource(string $source): bool {
+		$source = strtolower($source);
+		if (isset($this->sources[$source])) {
+			return false;
+		}
+		$this->sources[$source] = true;
+		return true;
+	}
+
+	/** Unregister a source mask to be used as command source */
+	public function unregisterSource(string $source): bool {
+		$source = strtolower($source);
+		if (!isset($this->sources[$source])) {
+			return false;
+		}
+		unset($this->sources[$source]);
+		return true;
+	}
+
+	/** @return string[] */
+	public function getSources(): array {
+		return array_keys($this->sources);
 	}
 
 	/**
@@ -422,13 +450,6 @@ class CommandManager implements MessageEmitter {
 			}
 		}
 		return false;
-	}
-
-	/**
-	 * Get the name of a similar command
-	 */
-	private function mapToCmd(CommandSearchResult $sc): string {
-		return $sc->cmd;
 	}
 
 	public function processCmd(CmdContext $context): void {
@@ -758,7 +779,7 @@ class CommandManager implements MessageEmitter {
 			if (!empty($constAttrs)) {
 				/** @var NCA\Str */
 				$constObj = $constAttrs[0]->newInstance();
-				$mask = preg_quote($constObj->value);
+				$mask = join("|", array_map("preg_quote", $constObj->values));
 			} elseif (!empty($regexpAttrs)) {
 				/** @var NCA\Regexp */
 				$regexpObj = $regexpAttrs[0]->newInstance();
@@ -973,6 +994,27 @@ class CommandManager implements MessageEmitter {
 		$this->db->commit();
 		unset($this->commands[$name]);
 		$this->subcommandManager->loadSubcommands();
+	}
+
+	/**
+	 * Delete a permission set mapping
+	 *
+	 * @throws InvalidArgumentException when one of the parameters is invalid
+	 * @throws Exception on unknown errors, like SQL
+	 */
+	public function deletePermissionSetMapping(string $source): bool {
+		$source = strtolower($source);
+		if ($this->getPermSetMappings()->where("source", $source)->isEmpty()) {
+			return false;
+		}
+		$numDeleted = $this->db->table(self::DB_TABLE_MAPPING)
+			->where("source", $source)
+			->delete();
+		if ($numDeleted === 0) {
+			return false;
+		}
+		$this->loadPermsetMappings();
+		return true;
 	}
 
 	/**

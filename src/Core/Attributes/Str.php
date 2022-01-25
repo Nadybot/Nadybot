@@ -6,6 +6,9 @@ use Attribute;
 
 #[Attribute(Attribute::TARGET_PARAMETER)]
 class Str {
-	public function __construct(public string $value) {
+	/** @var string[] */
+	public array $values = [];
+	public function __construct(string $value, string ...$values) {
+		$this->values = array_unique(array_merge([$value], $values));
 	}
 }

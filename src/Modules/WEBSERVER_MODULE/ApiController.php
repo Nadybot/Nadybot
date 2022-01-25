@@ -84,6 +84,7 @@ class ApiController extends ModuleInstance {
 
 	#[NCA\Setup]
 	public function setup(): void {
+		$this->commandManager->registerSource("api");
 		$this->settingManager->add(
 			module: $this->moduleName,
 			name: 'api',
@@ -527,7 +528,7 @@ class ApiController extends ModuleInstance {
 			$context->message = $msg;
 			$this->chatBot->getUid($context->char->name, function (?int $uid, CmdContext $context): void {
 				$context->char->id = $uid;
-				$this->commandManager->processCmd($context);
+				$this->commandManager->checkAndHandleCmd($context);
 			}, $context);
 		}
 		return new Response(Response::NO_CONTENT);
