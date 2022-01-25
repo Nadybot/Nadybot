@@ -60,12 +60,7 @@ export interface MiscSystemInformation {
 }
 
 export interface ConfigStatistics {
-  // Number of commands activated for use with /tell
-  readonly active_tell_commands: number;
-  // Number of commands activated for use in the private channel
-  readonly active_priv_commands: number;
-  // Number of commands activated for use in the org channel
-  readonly active_org_commands: number;
+  readonly active_commands: Array<ActiveCommandStatistics>;
   // Number of subcommands activated
   readonly active_subcommands: number;
   // Number of aliases
@@ -74,6 +69,11 @@ export interface ConfigStatistics {
   readonly active_events: number;
   // Number of active help texts for commands
   readonly active_help_commands: number;
+}
+
+export interface ActiveCommandStatistics {
+  readonly name: string;
+  readonly active_commands: number;
 }
 
 export interface SystemStats {
@@ -157,10 +157,22 @@ const miscSystemInformationDecoderMapping = {
   proxy_capabilities: JsonDecoder.optional(proxyCapabilitiesDecoder),
 };
 
+const activeCommandStatisticsDecoderMapping = {
+  name: JsonDecoder.string,
+  active_commands: JsonDecoder.number,
+};
+
+const activeCommandStatisticsDecoder =
+  JsonDecoder.objectStrict<ActiveCommandStatistics>(
+    activeCommandStatisticsDecoderMapping,
+    "ActiveCommandStatistics"
+  );
+
 const configStatisticsDecoderMapping = {
-  active_tell_commands: JsonDecoder.number,
-  active_priv_commands: JsonDecoder.number,
-  active_org_commands: JsonDecoder.number,
+  active_commands: JsonDecoder.array(
+    activeCommandStatisticsDecoder,
+    "ActiveCommandStatisticsArray"
+  ),
   active_subcommands: JsonDecoder.number,
   active_aliases: JsonDecoder.number,
   active_events: JsonDecoder.number,

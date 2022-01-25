@@ -96,7 +96,7 @@
           >
             <div class="col-3">Default Mode:</div>
             <div class="text-end col-9">
-              {{ info.misc.proxy_capabilities.default_mode }}
+              {{ info.misc.proxy_capabilities.default_msode }}
             </div>
           </li>
           <li
@@ -113,22 +113,16 @@
       <div class="card">
         <div class="card-header">Config</div>
         <ul class="list-group list-group-flush">
-          <li class="list-group-item">
-            <div class="col-8">Active tell commands:</div>
-            <div class="text-end col-4">
-              {{ info.config.active_tell_commands }}
+          <li
+            v-for="active_command_statistic in info.config.active_commands"
+            :key="active_command_statistic.name"
+            class="list-group-item"
+          >
+            <div class="col-8">
+              Active {{ active_command_statistic.name }} commands:
             </div>
-          </li>
-          <li class="list-group-item">
-            <div class="col-8">Active priv commands:</div>
             <div class="text-end col-4">
-              {{ info.config.active_priv_commands }}
-            </div>
-          </li>
-          <li class="list-group-item">
-            <div class="col-8">Active org commands:</div>
-            <div class="text-end col-4">
-              {{ info.config.active_org_commands }}
+              {{ active_command_statistic.active_commands }}
             </div>
           </li>
           <li class="list-group-item">
