@@ -241,7 +241,7 @@ class AOChat {
 			$this->logger->error("Could not create socket: {error}", [
 				"error" => trim(socket_strerror(socket_last_error())),
 			]);
-			die();
+			return false;
 		}
 
 		// prevents bot from hanging on startup when chatserver does not send login seed
@@ -457,8 +457,18 @@ class AOChat {
 	 */
 	public function authenticate(string $username, string $password): ?array {
 		$packet = $this->getPacket();
-		if ($packet === null || $packet->type != AOChatPacket::LOGIN_SEED) {
+		if ($packet === null) {
 			return null;
+		}
+		if ($packet->type !== AOChatPacket::LOGIN_SEED) {
+			return null;
+			$refClass = new \ReflectionClass(AOChatPacket::class);
+			$pktLookup = array_flip($refClass->getConstants());
+			$pktType  = $pktLookup[$packet->type] ?? "UNKNOWN PACKET";
+			$this->logger->error("Wrong answer from login server. Expected {expected}, got {type}", [
+				"expected" => "LOGIN_SEED",
+				"type" => $pktType
+			]);
 		}
 		$serverseed = $packet->args[0];
 
@@ -466,7 +476,23 @@ class AOChat {
 		$pak = new AOChatPacket("out", AOChatPacket::LOGIN_REQUEST, [0, $username, $key]);
 		$this->sendPacket($pak);
 		$packet = $this->getPacket();
-		if ($packet === null || $packet->type != AOChatPacket::LOGIN_CHARLIST) {
+		if ($packet === null) {
+			return null;
+		}
+		if ($packet->type === AOChatPacket::LOGIN_ERROR) {
+			$this->logger->error("Error from login server: {error}", [
+				"error" => $packet->args[0]
+			]);
+			return null;
+		}
+		if ($packet->type !== AOChatPacket::LOGIN_CHARLIST) {
+			$refClass = new \ReflectionClass(AOChatPacket::class);
+			$pktLookup = array_flip($refClass->getConstants());
+			$pktType  = $pktLookup[$packet->type] ?? "UNKNOWN PACKET";
+			$this->logger->error("Wrong answer from login server. Expected {expected}, got {type}", [
+				"expected" => "LOGIN_CHARLIST",
+				"type" => $pktType
+			]);
 			return null;
 		}
 
@@ -500,17 +526,30 @@ class AOChat {
 		}
 
 		if (!($char instanceof AOChatChar)) {
-			$this->logger->error("AOChat: no valid character to login", [
-				"chars" => $this->chars,
-				"char" => $char,
-			]);
+			$this->logger->error(
+				"The character {charName} is not on this account. Found only {validNames}",
+				[
+					"validNames" => join(", ", array_column($this->chars, "name")),
+					"chars" => $this->chars,
+					"charName" => $char,
+				]
+			);
 			return false;
 		}
 
 		$loginSelect = new AOChatPacket("out", AOChatPacket::LOGIN_SELECT, $char->id);
 		$this->sendPacket($loginSelect);
 		$packet = $this->getPacket();
-		if ($packet === null || $packet->type !== AOChatPacket::LOGIN_OK) {
+		if ($packet === null) {
+			return false;
+		}
+		if ($packet->type === AOChatPacket::LOGIN_ERROR) {
+			$this->logger->error("Error from login server: {error}", [
+				"error" => $packet->args[0]
+			]);
+			return false;
+		}
+		if ($packet->type !== AOChatPacket::LOGIN_OK) {
 			return false;
 		}
 
