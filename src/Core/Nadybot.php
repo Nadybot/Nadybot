@@ -242,23 +242,23 @@ class Nadybot extends AOChat {
 		// Begin the login process
 		$this->logger->notice("Connecting to AO Server...({$server}:{$port})");
 		if (!$this->connect($server, $port)) {
-			$this->logger->error("Connection failed! Please check your Internet connection and firewall.");
+			$this->logger->critical("Connection failed! Please check your Internet connection and firewall.");
 			sleep(10);
-			die();
+			exit(1);
 		}
 
 		$this->logger->notice("Authenticate login data...");
 		if (null === $this->authenticate($login, $password)) {
-			$this->logger->error("Authentication failed! Invalid username or password.");
+			$this->logger->critical("Login failed.");
 			sleep(10);
-			die();
+			exit(1);
 		}
 
 		$this->logger->notice("Logging in {$this->vars["name"]}...");
 		if (false === $this->login($this->vars["name"])) {
-			$this->logger->error("Character selection failed! Could not login on as character '{$this->vars["name"]}'.");
+			$this->logger->critical("Character selection failed.");
 			sleep(10);
-			die();
+			exit(1);
 		}
 
 		if (($this->vars["use_proxy"]??0) == 1) {
