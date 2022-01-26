@@ -9,6 +9,7 @@ use Nadybot\Core\{
 	CmdContext,
 	DB,
 	Event,
+	EventManager,
 	Nadybot,
 	SettingManager,
 	Text,
@@ -48,6 +49,8 @@ use Throwable;
  *		description = 'Adds, removes, pins or unpins a news entry',
  *		help        = 'news.txt'
  *	)
+ *  @ProvidesEvent(value="sync(news)", desc="Triggered whenever someone creates or modifies a news entry")
+ *  @ProvidesEvent(value="sync(remnews)", desc="Triggered when deleting a news entry")
  */
 class NewsController {
 	/** @Inject */
@@ -61,6 +64,9 @@ class NewsController {
 
 	/** @Inject */
 	public SettingManager $settingManager;
+
+	/** @Inject */
+	public EventManager $eventManager;
 
 	/** @Inject */
 	public Text $text;
@@ -303,15 +309,25 @@ class NewsController {
 	 * @Mask $action add
 	 */
 	public function newsAddCommand(CmdContext $context, string $action, string $news): void {
+		$entry = [
+			"time" => time(),
+			"name" => $context->char->name,
+			"news" => $news,
+			"sticky" => 0,
+			"deleted" => 0,
+			"uuid" => $this->util->createUUID(),
+		];
 		$this->db->table("news")
-			->insert([
-				"time" => time(),
-				"name" => $context->char->name,
-				"news" => $news,
-				"sticky" => 0,
-				"deleted" => 0,
-			]);
+			->insert($entry);
 		$msg = "News has been added successfully.";
+		$event = new SyncNewsEvent();
+		$event->time = $entry["time"];
+		$event->name = $entry["name"];
+		$event->news = $entry["news"];
+		$event->uuid = $entry["uuid"];
+		$event->sticky = (bool)$entry["sticky"];
+		$event->forceSync = $context->forceSync;
+		$this->eventManager->fireEvent($event);
 
 		$context->reply($msg);
 	}
@@ -330,6 +346,10 @@ class NewsController {
 				->where("id", $id)
 				->update(["deleted" => 1]);
 			$msg = "News entry <highlight>{$id}<end> was deleted successfully.";
+			$event = new SyncRemnewsEvent();
+			$event->uuid = $row->uuid;
+			$event->forceSync = $context->forceSync;
+			$this->eventManager->fireEvent($event);
 		}
 
 		$context->reply($msg);
@@ -353,6 +373,14 @@ class NewsController {
 				->where("id", $id)
 				->update(["sticky" => 1]);
 			$msg = "News ID {$id} successfully pinned.";
+			$event = new SyncNewsEvent();
+			$event->time = $row->time;
+			$event->name = $row->name;
+			$event->news = $row->news;
+			$event->uuid = $row->uuid;
+			$event->sticky = true;
+			$event->forceSync = $context->forceSync;
+			$this->eventManager->fireEvent($event);
 		}
 		$context->reply($msg);
 	}
@@ -375,6 +403,14 @@ class NewsController {
 				->where("id", $id)
 				->update(["sticky" => 0]);
 			$msg = "News ID {$id} successfully unpinned.";
+			$event = new SyncNewsEvent();
+			$event->time = $row->time;
+			$event->name = $row->name;
+			$event->news = $row->news;
+			$event->uuid = $row->uuid;
+			$event->sticky = false;
+			$event->forceSync = $context->forceSync;
+			$this->eventManager->fireEvent($event);
 		}
 		$context->reply($msg);
 	}
@@ -443,10 +479,18 @@ class NewsController {
 		$decoded->name = $request->authenticatedAs??"_";
 		$decoded->sticky ??= false;
 		$decoded->deleted ??= false;
+		$decoded->uuid = $this->util->createUUID();
 		if (!isset($decoded->news)) {
 			return new Response(Response::UNPROCESSABLE_ENTITY);
 		}
 		if ($this->db->insert("news", $decoded)) {
+			$event = new SyncNewsEvent();
+			$event->time = $decoded->time;
+			$event->name = $decoded->name;
+			$event->news = $decoded->news;
+			$event->uuid = $decoded->uuid;
+			$event->sticky = $decoded->sticky;
+			$this->eventManager->fireEvent($event);
 			return new Response(Response::NO_CONTENT);
 		}
 		return new Response(Response::INTERNAL_SERVER_ERROR);
@@ -483,6 +527,13 @@ class NewsController {
 			}
 		}
 		if (!$this->db->update("news", "id", $decoded)) {
+			$event = new SyncNewsEvent();
+			$event->time = $decoded->time;
+			$event->name = $decoded->name;
+			$event->news = $decoded->news;
+			$event->uuid = $result->uuid;
+			$event->sticky = $decoded->sticky;
+			$this->eventManager->fireEvent($event);
 			return new Response(Response::INTERNAL_SERVER_ERROR);
 		}
 		return new ApiResponse($this->getNewsItem($id));
@@ -514,5 +565,27 @@ class NewsController {
 		}
 		$blob .= join("\n", $blobLines);
 		$callback($blob);
+	}
+
+	/**
+	 * @Event("sync(news)")
+	 * @Description("Sync external news created or modified")
+	 */
+	public function processNewsSyncEvent(SyncNewsEvent $event): void {
+		if ($event->isLocal()) {
+			return;
+		}
+		$this->db->table("news")
+			->upsert($event->toData(), "uuid", $event->toData());
+	}
+
+	/**
+	 * @Event("sync(remnews)")
+	 * @Description("Sync external news being deleted")
+	 */
+	public function processRemnewsSyncEvent(SyncRemnewsEvent $event): void {
+		if (!$event->isLocal()) {
+			$this->db->table("news")->where("uuid", $event->uuid)->update(["deleted" => 1]);
+		}
 	}
 }
