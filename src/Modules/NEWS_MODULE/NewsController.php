@@ -50,7 +50,7 @@ use Throwable;
  *		help        = 'news.txt'
  *	)
  *  @ProvidesEvent(value="sync(news)", desc="Triggered whenever someone creates or modifies a news entry")
- *  @ProvidesEvent(value="sync(remnews)", desc="Triggered when deleting a news entry")
+ *  @ProvidesEvent(value="sync(news-delete)", desc="Triggered when deleting a news entry")
  */
 class NewsController {
 	/** @Inject */
@@ -346,7 +346,7 @@ class NewsController {
 				->where("id", $id)
 				->update(["deleted" => 1]);
 			$msg = "News entry <highlight>{$id}<end> was deleted successfully.";
-			$event = new SyncRemnewsEvent();
+			$event = new SyncNewsDeleteEvent();
 			$event->uuid = $row->uuid;
 			$event->forceSync = $context->forceSync;
 			$this->eventManager->fireEvent($event);
@@ -580,10 +580,10 @@ class NewsController {
 	}
 
 	/**
-	 * @Event("sync(remnews)")
+	 * @Event("sync(news-delete)")
 	 * @Description("Sync external news being deleted")
 	 */
-	public function processRemnewsSyncEvent(SyncRemnewsEvent $event): void {
+	public function processNewsDeleteSyncEvent(SyncNewsDeleteEvent $event): void {
 		if (!$event->isLocal()) {
 			$this->db->table("news")->where("uuid", $event->uuid)->update(["deleted" => 1]);
 		}

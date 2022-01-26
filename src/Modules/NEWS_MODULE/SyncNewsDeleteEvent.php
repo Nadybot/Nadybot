@@ -4,8 +4,8 @@ namespace Nadybot\Modules\NEWS_MODULE;
 
 use Nadybot\Core\SyncEvent;
 
-class SyncRemnewsEvent extends SyncEvent {
-	public string $type = "sync(remnews)";
+class SyncNewsDeleteEvent extends SyncEvent {
+	public string $type = "sync(news-delete)";
 
 	/** UUID of these news */
 	public string $uuid;
