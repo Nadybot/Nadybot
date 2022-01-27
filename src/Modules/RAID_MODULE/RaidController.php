@@ -379,7 +379,7 @@ class RaidController extends ModuleInstance {
 		}
 		$this->startRaid($raid);
 		if ($this->settingManager->getBool('raid_auto_add_creator')) {
-			$this->raidMemberController->joinRaid($context->char->name, $context->char->name, $context->permissionSet, false);
+			$this->raidMemberController->joinRaid($context->char->name, $context->char->name, $context->source, false);
 		}
 		$this->chatBot->sendTell(
 			$this->text->makeBlob("Raid Control", $this->getControlInterface()),
