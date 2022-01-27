@@ -86,6 +86,57 @@ class PermissionSetController extends ModuleInstance {
 	}
 
 	#[NCA\HandlesCommand("permset")]
+	public function permsetRenameCommand(
+		CmdContext $context,
+		#[NCA\Str("rename")] string $action,
+		PWord $oldName,
+		#[NCA\Str("to")] ?string $to,
+		PWord $newName
+	): void {
+		$old = $this->cmdManager->getPermissionSet($oldName());
+		if (!isset($old)) {
+			$context->reply("The permission set <highlight>{$oldName}<end> doesn't exist.");
+			return;
+		}
+		$old->name = $newName();
+		try {
+			$this->cmdManager->changePermissionSet($oldName(), $old);
+		} catch (Exception $e) {
+			$context->reply($e->getMessage());
+			return;
+		}
+		$context->reply(
+			"Permission set <highlight>{$oldName}<end> successfully renamed to <highlight>{$newName}<end>."
+		);
+	}
+
+	#[NCA\HandlesCommand("permset")]
+	public function permsetChangeLetterCommand(
+		CmdContext $context,
+		#[NCA\Str("letter")] string $action,
+		PWord $name,
+		PWord $newLetter
+	): void {
+		$old = $this->cmdManager->getPermissionSet($name());
+		if (!isset($old)) {
+			$context->reply("The permission set <highlight>{$name}<end> doesn't exist.");
+			return;
+		}
+		$oldLetter = $old->letter;
+		$old->letter = strtoupper($newLetter());
+		try {
+			$this->cmdManager->changePermissionSet($name(), $old);
+		} catch (Exception $e) {
+			$context->reply($e->getMessage());
+			return;
+		}
+		$context->reply(
+			"Changed the letter of Permission set <highlight>{$name}<end> ".
+			"from <highlight>{$oldLetter}<end> to <highlight>{$old->letter}<end>."
+		);
+	}
+
+	#[NCA\HandlesCommand("permset")]
 	public function permsetListCommand(CmdContext $context): void {
 		$sets = $this->cmdManager->getExtPermissionSets();
 		$blocks = $sets->map(Closure::fromCallable([$this, "renderPermissionSet"]));

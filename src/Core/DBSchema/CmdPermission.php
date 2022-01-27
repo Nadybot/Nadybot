@@ -8,7 +8,7 @@ class CmdPermission extends DBRow {
 	/** @json:ignore */
 	public ?int $id=null;
 
-	/** The name of the permission-channel */
+	/** The name of the permission-set */
 	public string $name;
 
 	/** @json:ignore */

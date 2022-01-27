@@ -23,4 +23,10 @@ To create a new permission set based on another permission set:
 To delete a permission set that is not used:
 <highlight><tab><symbol>permset remove 'name'<end>
 
+To rename a permission set:
+<highlight><tab><symbol>permset rename 'old name' to 'new name'<end>
+
+To change a permission set's letter:
+<highlight><tab><symbol>permset letter 'name' 'new letter'<end>
+
 <i>See <a href='chatcmd:///tell <myname> help cmdmap'><symbol>help cmdmap</a> for how to assign permission sets to command sources.</i>

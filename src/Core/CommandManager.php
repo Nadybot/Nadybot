@@ -1017,7 +1017,7 @@ class CommandManager implements MessageEmitter {
 			if ($data->name !== $old->name) {
 				$this->db->table(self::DB_TABLE_MAPPING)
 					->where("permission_set", $name)
-					->update(["permission_et" => $data->name]);
+					->update(["permission_set" => $data->name]);
 				$this->db->table(self::DB_TABLE_PERMS)
 					->where("name", $name)
 					->update(["name" => $data->name]);
