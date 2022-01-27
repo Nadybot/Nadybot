@@ -39,7 +39,7 @@ class PermissionSetController extends ModuleInstance {
 	#[NCA\HandlesCommand("permset")]
 	public function permsetNewCommand(
 		CmdContext $context,
-		#[NCA\Str("new")] string $action,
+		#[NCA\Str("new", "create")] string $action,
 		PWord $name,
 		string $letter
 	): void {
