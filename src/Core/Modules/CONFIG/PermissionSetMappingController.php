@@ -116,7 +116,7 @@ class PermissionSetMappingController extends ModuleInstance {
 			return;
 		}
 		$permset = strtolower($permset());
-		if (!$this->cmdManager->hasChannel($permset)) {
+		if (!$this->cmdManager->hasPermissionSet($permset)) {
 			$context->reply("There is no permission set <highlight>{$permset}<end>.");
 			return;
 		}

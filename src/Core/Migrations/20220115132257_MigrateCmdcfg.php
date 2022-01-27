@@ -27,7 +27,7 @@ class MigrateCmdcfg implements SchemaMigration {
 		$cmds = [];
 		foreach ($entries as $entry) {
 			$db->table("cmd_permission_<myname>")->insert([
-				"name" => (string)$entry->type,
+				"permission_set" => (string)$entry->type,
 				"cmd" => (string)$entry->cmd,
 				"enabled" => (bool)$entry->status,
 				"access_level" => (string)$entry->admin,

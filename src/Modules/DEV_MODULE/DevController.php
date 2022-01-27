@@ -244,7 +244,7 @@ class DevController extends ModuleInstance {
 		// subcommand
 		foreach ($this->subcommandManager->subcommands[$cmd] as $row) {
 			foreach ($row->permissions as $permission) {
-				$blob .= "<header2>{$permission->name} ($row->cmd)<end>\n";
+				$blob .= "<header2>{$permission->permission_set} ($row->cmd)<end>\n";
 				$blob .= $row->file . "\n\n";
 			}
 		}

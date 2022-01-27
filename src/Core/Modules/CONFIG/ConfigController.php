@@ -158,11 +158,11 @@ class ConfigController extends ModuleInstance {
 		CmdContext $context,
 		#[NCA\Str("cmd")] string $cmd,
 		bool $status,
-		PWord $channel
+		PWord $permissionSet
 	): void {
-		$channel = strtolower($channel());
-		if ($channel !== "all" && !$this->commandManager->hasChannel($channel)) {
-			$context->reply("No such channel '<highlight>{$channel}<end>'.");
+		$permissionSet = strtolower($permissionSet());
+		if ($permissionSet !== "all" && !$this->commandManager->hasPermissionSet($permissionSet)) {
+			$context->reply("No such channel '<highlight>{$permissionSet}<end>'.");
 			return;
 		}
 		$permQuery = $this->db->table(CommandManager::DB_TABLE_PERMS);
@@ -170,9 +170,9 @@ class ConfigController extends ModuleInstance {
 			->where("cmdevent", "cmd")
 			->where("cmd", "!=", "config");
 		$confirmString = "all";
-		if ($channel !== "all") {
-			$permQuery->where("name", $channel);
-			$confirmString = "all " . $channel;
+		if ($permissionSet !== "all") {
+			$permQuery->where("permission_set", $permissionSet);
+			$confirmString = "all " . $permissionSet;
 		}
 
 		/** @var Collection<CmdCfg> */
@@ -191,9 +191,9 @@ class ConfigController extends ModuleInstance {
 				}
 				$updated []= $perm->id;
 				if ($status) {
-					$this->commandManager->activate($perm->name, $row->file, $row->cmd, $perm->access_level);
+					$this->commandManager->activate($perm->permission_set, $row->file, $row->cmd, $perm->access_level);
 				} else {
-					$this->commandManager->deactivate($perm->name, $row->file, $row->cmd);
+					$this->commandManager->deactivate($perm->permission_set, $row->file, $row->cmd);
 				}
 			}
 		}
@@ -218,7 +218,7 @@ class ConfigController extends ModuleInstance {
 		PWord $channel
 	): void {
 		$channel = strtolower($channel());
-		if ($channel !== "all" && !$this->commandManager->hasChannel($channel)) {
+		if ($channel !== "all" && !$this->commandManager->hasPermissionSet($channel)) {
 			$context->reply("No such channel '<highlight>{$channel}<end>'.");
 			return;
 		}
@@ -254,7 +254,7 @@ class ConfigController extends ModuleInstance {
 	): void {
 		$type = strtolower($type);
 		$channel = strtolower($channel());
-		if ($channel !== "all" && !$this->commandManager->hasChannel($channel)) {
+		if ($channel !== "all" && !$this->commandManager->hasPermissionSet($channel)) {
 			$context->reply("No such channel '<highlight>{$channel}<end>'.");
 			return;
 		}
@@ -305,7 +305,7 @@ class ConfigController extends ModuleInstance {
 		PWord $channel
 	): void {
 		$channel = strtolower($channel());
-		if ($channel !== "all" && !$this->commandManager->hasChannel($channel)) {
+		if ($channel !== "all" && !$this->commandManager->hasPermissionSet($channel)) {
 			$context->reply("No such channel '<highlight>{$channel}<end>'.");
 			return;
 		}
@@ -381,11 +381,11 @@ class ConfigController extends ModuleInstance {
 	/**
 	 * Enable or disable all commands and events for a module
 	 * @param string $module Name of the module
-	 * @param string $channel msg, priv, guild or all
+	 * @param string $permissionSet msg, priv, guild or all
 	 * @param bool $enable true for enabling, false for disabling
 	 * @return bool True for success, False if the module doesn't exist
 	 */
-	public function toggleModule(string $module, string $channel, bool $enable): bool {
+	public function toggleModule(string $module, string $permissionSet, bool $enable): bool {
 		$commands = $this->commandManager->getAllForModule($module, true)
 			->where("cmd", "!=", "config");
 		$events = $this->db->table(EventManager::DB_TABLE)
@@ -398,16 +398,16 @@ class ConfigController extends ModuleInstance {
 				$cmd->file = $event->file;
 				$perm = new CmdPermission();
 				$perm->access_level = "";
-				$perm->name = $event->type;
+				$perm->permission_set = $event->type;
 				$perm->enabled = (bool)$event->status;
 				$cmd->permissions[$event->type] = $perm;
 				return $cmd;
 			});
 		$data = $commands->merge($events);
-		if ($channel !== "all") {
-			$data = $data->filter(function (CmdCfg $cfg) use ($channel): bool {
+		if ($permissionSet !== "all") {
+			$data = $data->filter(function (CmdCfg $cfg) use ($permissionSet): bool {
 				$cfg->permissions = (new Collection($cfg->permissions))
-					->where("name", $channel)->toArray();
+					->where("permission_set", $permissionSet)->toArray();
 				if (empty($cfg->permissions)) {
 					return false;
 				}
@@ -427,8 +427,8 @@ class ConfigController extends ModuleInstance {
 
 		$eventQuery = $this->db->table(EventManager::DB_TABLE)
 			->where("module", $module);
-		if ($channel !== "all") {
-			$eventQuery->where("type", $channel);
+		if ($permissionSet !== "all") {
+			$eventQuery->where("type", $permissionSet);
 		}
 
 		$this->db->table(CommandManager::DB_TABLE_PERMS)
@@ -449,16 +449,16 @@ class ConfigController extends ModuleInstance {
 			if ($cfg->cmdevent === "event") {
 				if ($cfg->verify !== 0) {
 					if ($enable) {
-						$this->eventManager->activate($perm->name, $cfg->file);
+						$this->eventManager->activate($perm->permission_set, $cfg->file);
 					} else {
-						$this->eventManager->deactivate($perm->name, $cfg->file);
+						$this->eventManager->deactivate($perm->permission_set, $cfg->file);
 					}
 				}
 			} elseif ($cfg->cmdevent === "cmd") {
 				if ($enable) {
-					$this->commandManager->activate($perm->name, $cfg->file, $cfg->cmd, $perm->access_level);
+					$this->commandManager->activate($perm->permission_set, $cfg->file, $cfg->cmd, $perm->access_level);
 				} else {
-					$this->commandManager->deactivate($perm->name, $cfg->file, $cfg->cmd);
+					$this->commandManager->deactivate($perm->permission_set, $cfg->file, $cfg->cmd);
 				}
 			}
 		}
@@ -480,7 +480,7 @@ class ConfigController extends ModuleInstance {
 		$category = strtolower($category);
 		$command = strtolower($cmd);
 		$channel = strtolower($channel());
-		if ($channel !== "all" && !$this->commandManager->hasChannel($channel)) {
+		if ($channel !== "all" && !$this->commandManager->hasPermissionSet($channel)) {
 			$context->reply("No such channel '<highlight>{$channel}<end>'.");
 			return;
 		}

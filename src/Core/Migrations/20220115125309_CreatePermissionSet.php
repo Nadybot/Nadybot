@@ -19,11 +19,11 @@ class CreatePermissionSet implements SchemaMigration {
 		$table = CommandManager::DB_TABLE_PERMS;
 		$db->schema()->create($table, function(Blueprint $table) {
 			$table->id();
-			$table->string("name", 50)->index();
+			$table->string("permission_set", 50)->index();
 			$table->string("cmd", 50)->index();
 			$table->boolean("enabled")->default(false);
 			$table->string("access_level", 30);
-			$table->unique(["cmd", "name"]);
+			$table->unique(["cmd", "permission_set"]);
 		});
 	}
 }

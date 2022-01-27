@@ -9,7 +9,7 @@ class CmdPermission extends DBRow {
 	public ?int $id=null;
 
 	/** The name of the permission-set */
-	public string $name;
+	public string $permission_set;
 
 	/** @json:ignore */
 	public string $cmd;
@@ -17,6 +17,6 @@ class CmdPermission extends DBRow {
 	/** The access-level (member,admin,guest,all,etc) */
 	public string $access_level;
 
-	/** Is the (sub-)command enabled on this permission-channel */
+	/** Is the (sub-)command enabled on this permission-set */
 	public bool $enabled;
 }

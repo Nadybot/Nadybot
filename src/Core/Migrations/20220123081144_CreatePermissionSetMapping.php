@@ -81,7 +81,7 @@ class CreatePermissionSetMapping implements SchemaMigration {
 			[
 				"permission_set" => "msg",
 				"source" => "api",
-				"symbol" => "",
+				"symbol" => $symbol,
 				"symbol_optional" => true,
 				"feedback" => false,
 			],

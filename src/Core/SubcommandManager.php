@@ -40,7 +40,7 @@ class SubcommandManager {
 		string $filename,
 		string $command,
 		string $accessLevel,
-		string $parent_command,
+		string $parentCommand,
 		?string $description='none',
 		?string $help='',
 		?int $defaultStatus=null
@@ -68,7 +68,7 @@ class SubcommandManager {
 		$defaultPerms->access_level = $accessLevel;
 		$defaultPerms->enabled = (bool)$status;
 		$defaultPerms->cmd = $command;
-		$defaultPerms->name = "default";
+		$defaultPerms->permission_set = "default";
 		$this->cmdDefaultPermissions[$command] = $defaultPerms;
 
 		$this->logger->info("Adding Subcommand to list:($command) File:($filename)");
@@ -81,7 +81,7 @@ class SubcommandManager {
 					"description" => $description,
 					"help" => $help,
 					"cmd" => $command,
-					"dependson" => $parent_command,
+					"dependson" => $parentCommand,
 					"cmdevent" => "subcmd",
 				],
 				["cmd"],
@@ -90,13 +90,13 @@ class SubcommandManager {
 		if (isset($this->chatBot->existing_subcmds[$command])) {
 			return;
 		}
-		$channels = $this->db->table(CommandManager::DB_TABLE_PERM_SET)
+		$permSets = $this->db->table(CommandManager::DB_TABLE_PERM_SET)
 			->select("name")->pluckAs("name", "string");
-		foreach ($channels as $channel) {
+		foreach ($permSets as $permSet) {
 			$this->db->table(CommandManager::DB_TABLE_PERMS)
 				->insertOrIgnore(
 					[
-						"name" => $channel,
+						"permission_set" => $permSet,
 						"access_level" => $accessLevel,
 						"cmd" => $command,
 						"enabled" => (bool)$status,
@@ -124,7 +124,7 @@ class SubcommandManager {
 			->asObj(CmdCfg::class)
 			->each(function (CmdCfg $row) use ($permissions): void {
 				$row->permissions = $permissions->get($row->cmd, new Collection())
-					->keyBy("name")->toArray();
+					->keyBy("permission_set")->toArray();
 			})
 			->filter(function (CmdCfg $cfg): bool {
 				return count($cfg->permissions) > 0;

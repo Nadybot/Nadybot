@@ -190,7 +190,7 @@ class CommandManager implements MessageEmitter {
 		$defaultPerms->access_level = $accessLevel;
 		$defaultPerms->enabled = (bool)$status;
 		$defaultPerms->cmd = $command;
-		$defaultPerms->name = "default";
+		$defaultPerms->permission_set = "default";
 		$this->cmdDefaultPermissions[$command] = $defaultPerms;
 		try {
 			$this->db->table(self::DB_TABLE)
@@ -217,7 +217,7 @@ class CommandManager implements MessageEmitter {
 			$this->db->table(self::DB_TABLE_PERMS)
 				->insertOrIgnore(
 					[
-						"name" => $permSet,
+						"permission_set" => $permSet,
 						"access_level" => $accessLevel,
 						"cmd" => $command,
 						"enabled" => (bool)$status,
@@ -228,21 +228,21 @@ class CommandManager implements MessageEmitter {
 
 	/**
 	 * Activates a command
-	 * @param string $channel     The name of the channel  where this command should be activated:
-	 *                            "msg", "priv" or "guild"
-	 * @param string $filename    A comma-separated list of class.method which will handle the command
-	 * @param string $command     The name of the command
-	 * @param string $accessLevel The required access level to use this command:
-	 *                            "raidleader", "moderator", "administrator", "none", "superadmin", "admin"
-	 *                            "mod", "guild", "member", "rl", "all"
+	 * @param string $permissionSet The name of the channel  where this command should be activated:
+	 *                              "msg", "priv" or "guild"
+	 * @param string $filename      A comma-separated list of class.method which will handle the command
+	 * @param string $command       The name of the command
+	 * @param string $accessLevel   The required access level to use this command:
+	 *                              "raidleader", "moderator", "administrator", "none", "superadmin", "admin"
+	 *                              "mod", "guild", "member", "rl", "all"
 	 * @return void
 	 */
-	public function activate(string $channel, string $filename, string $command, string $accessLevel='all'): void {
+	public function activate(string $permissionSet, string $filename, string $command, string $accessLevel='all'): void {
 		$command = strtolower($command);
 		$accessLevel = $this->accessManager->getAccessLevel($accessLevel);
-		$channel = strtolower($channel);
+		$permissionSet = strtolower($permissionSet);
 
-		$this->logger->info("Activate Command $command (Access Level $accessLevel, File $filename, Channel $channel)");
+		$this->logger->info("Activate Command $command (Access Level $accessLevel, File $filename, PermissionSet $permissionSet)");
 
 		foreach (explode(',', $filename) as $handler) {
 			[$name, $method] = explode(".", $handler);
@@ -254,37 +254,38 @@ class CommandManager implements MessageEmitter {
 
 		$obj = new CommandHandler($filename, $accessLevel);
 
-		$this->commands[$channel][$command] = $obj;
+		$this->commands[$permissionSet][$command] = $obj;
 	}
 
 	/**
 	 * Deactivates a command
-	 * @param string $channel  The name of the channel  where this command should be deactivated:
-	 *                         "msg", "priv" or "guild"
-	 * @param string $filename A comma-separated list of class.method which will handle the command
-	 * @param string $command  The name of the command
+	 * @param string $permissionSet  The permission set for which this command should be deactivated:
+	 *                               "msg", "priv", "guild" or whatever custom ones are used
+	 * @param string $filename       A comma-separated list of class.method which will handle the command
+	 * @param string $command        The name of the command
 	 * @return void
 	 */
-	public function deactivate(string $channel, string $filename, string $command): void {
+	public function deactivate(string $permissionSet, string $filename, string $command): void {
 		$command = strtolower($command);
-		$channel = strtolower($channel);
+		$permissionSet = strtolower($permissionSet);
 
-		$this->logger->info("Deactivate Command:($command) File:($filename) Channel:($channel)");
+		$this->logger->info("Deactivate Command:($command) File:($filename) Permission Set:($permissionSet)");
 
-		unset($this->commands[$channel][$command]);
+		unset($this->commands[$permissionSet][$command]);
 	}
 
 	/**
 	 * update the active/inactive status of a command
-	 * @param string      $channel The name of the channel  where this command's status should be changed:
-	 *                             "msg", "priv" or "guild"
-	 * @param string      $cmd     The name of the command
-	 * @param string      $module  The name of the module of the command
-	 * @param int         $status  The new status: 0=off 1=on
-	 * @param string|null $admin   The access level for which to update the status
+	 * @param string      $permissionSet The name of the permission set for which this
+	 *                                   command's status should be changed:
+	 *                                   "msg", "priv", "guild" or any other custom one
+	 * @param string      $cmd           The name of the command
+	 * @param string      $module        The name of the module of the command
+	 * @param int         $status        The new status: 0=off 1=on
+	 * @param string|null $admin         The access level for which to update the status
 	 * @return int
 	 */
-	public function updateStatus(?string $channel, ?string $cmd, ?string $module, int $status, ?string $admin): int {
+	public function updateStatus(?string $permissionSet, ?string $cmd, ?string $module, int $status, ?string $admin): int {
 		$query = $this->db->table(self::DB_TABLE)
 			->where("cmdevent", "cmd");
 		if ($module !== '' && $module !== null) {
@@ -302,14 +303,14 @@ class CommandManager implements MessageEmitter {
 		$permissionQuery = $this->db->table(CommandManager::DB_TABLE_PERMS)
 			->whereIn("cmd", $data->pluck("cmd")->toArray());
 
-		if ($channel !== 'all' && $channel !== '' && $channel !== null) {
-			$permissionQuery->where("name", $channel);
+		if ($permissionSet !== 'all' && $permissionSet !== '' && $permissionSet !== null) {
+			$permissionQuery->where("permission_set", $permissionSet);
 		}
 		$permissions = $permissionQuery->asObj(CmdPermission::class)
 			->groupBy("cmd");
 		$data->each(function (CmdCfg $row) use ($permissions): void {
 			$row->permissions = $permissions->get($row->cmd, new Collection())
-				->keyBy("name")->toArray();
+				->keyBy("permission_set")->toArray();
 		});
 
 		$update = ["enabled" => (bool)$status];
@@ -320,9 +321,9 @@ class CommandManager implements MessageEmitter {
 		foreach ($data as $row) {
 			foreach ($row->permissions as $permission) {
 				if ($permission->enabled) {
-					$this->activate($permission->name, $row->file, $row->cmd, $admin??"all");
+					$this->activate($permission->permission_set, $row->file, $row->cmd, $admin??"all");
 				} else {
-					$this->deactivate($permission->name, $row->file, $row->cmd);
+					$this->deactivate($permission->permission_set, $row->file, $row->cmd);
 				}
 			}
 		}
@@ -330,9 +331,9 @@ class CommandManager implements MessageEmitter {
 		return $permissionQuery->update($update);
 	}
 
-	public function hasChannel(string $channel): bool {
+	public function hasPermissionSet(string $name): bool {
 		return $this->db->table(CommandManager::DB_TABLE_PERM_SET)
-			->where("name", $channel)
+			->where("name", $name)
 			->exists();
 	}
 
@@ -371,7 +372,7 @@ class CommandManager implements MessageEmitter {
 			->asObj(CmdCfg::class)
 			->each(function (CmdCfg $row) use ($permissions): void {
 				$row->permissions = $permissions->get($row->cmd, new Collection())
-					->keyBy("name")->toArray();
+					->keyBy("permission_set")->toArray();
 			});
 		return $data;
 	}
@@ -388,7 +389,7 @@ class CommandManager implements MessageEmitter {
 			->asObj(CmdCfg::class)
 			->each(function (CmdCfg $row) use ($permissions): void {
 				$row->permissions = $permissions->get($row->cmd, new Collection())
-					->keyBy("name")->toArray();
+					->keyBy("permission_set")->toArray();
 			});
 		return $data;
 	}
@@ -401,11 +402,11 @@ class CommandManager implements MessageEmitter {
 
 		$this->getAll()
 			->each(function (CmdCfg $row): void {
-				foreach ($row->permissions as $channel => $permission) {
+				foreach ($row->permissions as $permSet => $permission) {
 					if (!$permission->enabled) {
 						continue;
 					}
-					$this->activate($permission->name, $row->file, $row->cmd, $permission->access_level);
+					$this->activate($permission->permission_set, $row->file, $row->cmd, $permission->access_level);
 				}
 			});
 	}
@@ -414,7 +415,7 @@ class CommandManager implements MessageEmitter {
 	 * Get command config for a command
 	 * @return null|CmdCfg
 	 */
-	public function get(string $command, ?string $channel=null): ?CmdCfg {
+	public function get(string $command, ?string $permissionSet=null): ?CmdCfg {
 		$query = $this->db->table(self::DB_TABLE)
 			->where("cmd", strtolower($command));
 		/** @var ?CmdCfg */
@@ -424,11 +425,11 @@ class CommandManager implements MessageEmitter {
 		}
 		$permQuery = $this->db->table(CommandManager::DB_TABLE_PERMS)
 			->where("cmd", strtolower($command));
-		if (isset($channel)) {
-			$permQuery->where("name", $channel);
+		if (isset($permissionSet)) {
+			$permQuery->where("permission_set", $permissionSet);
 		}
 		$cmd->permissions = $permQuery->asObj(CmdPermission::class)
-			->keyBy("name")
+			->keyBy("permission_set")
 			->toArray();
 
 		return $cmd;
@@ -441,12 +442,12 @@ class CommandManager implements MessageEmitter {
 			->exists();
 	}
 
-	public function cmdExecutable(string $command, string $sender, ?string $channel=null): bool {
+	public function cmdExecutable(string $command, string $sender, ?string $permissionSet=null): bool {
 		$permissionQuery = $this->db->table(CommandManager::DB_TABLE_PERMS)
 			->where("cmd", $command)
 			->where("enabled", true);
-		if (isset($channel)) {
-			$permissionQuery->where("name", $channel);
+		if (isset($permissionSet)) {
+			$permissionQuery->where("permission_set", $permissionSet);
 		}
 		/** @var Collection<CmdPermission> */
 		$permissions = $permissionQuery->asObj(CmdPermission::class);
@@ -657,13 +658,13 @@ class CommandManager implements MessageEmitter {
 	/**
 	 * Get the command handler that is responsible for handling a command
 	 */
-	public function getActiveCommandHandler(string $cmd, string $channel, string $message): ?CommandHandler {
+	public function getActiveCommandHandler(string $cmd, string $permissionSet, string $message): ?CommandHandler {
 		// Check if there is an alias for this command that should take precedence
 		$parts = explode(" ", $message);
 		// Only consider aliases like "raid add" and not "raid"
 		while (count($parts) > 1) {
 			$command = join(" ", $parts);
-			$handler = $this->commands[$channel][$command] ?? null;
+			$handler = $this->commands[$permissionSet][$command] ?? null;
 			if ($handler instanceof CommandHandler) {
 				return $handler;
 			}
@@ -672,28 +673,28 @@ class CommandManager implements MessageEmitter {
 		// Check if a subcommands for this exists
 		if (isset($this->subcommandManager->subcommands[$cmd])) {
 			foreach ($this->subcommandManager->subcommands[$cmd] as $row) {
-				if (isset($row->permissions[$channel]) && preg_match("/^{$row->cmd}$/si", $message)) {
-					return new CommandHandler($row->file, $row->permissions[$channel]->access_level);
+				if (isset($row->permissions[$permissionSet]) && preg_match("/^{$row->cmd}$/si", $message)) {
+					return new CommandHandler($row->file, $row->permissions[$permissionSet]->access_level);
 				}
 			}
 		}
-		return $this->commands[$channel][$cmd] ?? null;
+		return $this->commands[$permissionSet][$cmd] ?? null;
 	}
 
-	public function isCommandActive(string $cmd, string $channel): bool {
+	public function isCommandActive(string $cmd, string $permissionSet): bool {
 		$parts = explode(" ", $cmd, 2);
 		if (count($parts) === 1) {
-			return isset($this->commands[$channel][$cmd]);
+			return isset($this->commands[$permissionSet][$cmd]);
 		}
 		if (isset($this->subcommandManager->subcommands[$parts[0]])) {
 			foreach ($this->subcommandManager->subcommands[$parts[0]] as $row) {
-				if (!isset($row->permissions[$channel])) {
+				if (!isset($row->permissions[$permissionSet])) {
 					continue;
 				}
 				if ($row->cmd !== $cmd) {
 					continue;
 				}
-				if ($row->permissions[$channel]->enabled) {
+				if ($row->permissions[$permissionSet]->enabled) {
 					return true;
 				}
 			}
@@ -937,7 +938,7 @@ class CommandManager implements MessageEmitter {
 		$inserts = [];
 		foreach ($perms as $perm) {
 			unset($perm->id);
-			$perm->name = $name;
+			$perm->permission_set = $name;
 			$inserts []= (array)$perm;
 		}
 		$this->db->beginTransaction();
@@ -971,7 +972,7 @@ class CommandManager implements MessageEmitter {
 			if (!isset($cmdPerms)) {
 				throw new Exception("There are no default permissions registered for {$cmd->cmd}.");
 			}
-			$cmdPerms->name = $name;
+			$cmdPerms->permission_set = $name;
 			$perms []= $cmdPerms;
 		}
 		$this->insertPermissionSet($name, $letter, ...$perms);
@@ -1067,7 +1068,7 @@ class CommandManager implements MessageEmitter {
 		$this->db->beginTransaction();
 		try {
 			$this->db->table(self::DB_TABLE_PERMS)
-				->where("name", $name)
+				->where("permission_set", $name)
 				->delete();
 			$this->db->table(self::DB_TABLE_PERM_SET)
 				->where("name", $name)
@@ -1144,6 +1145,9 @@ class CommandManager implements MessageEmitter {
 		if (!isset($cmdMap)) {
 			return false;
 		}
+		$this->logger->notice("Using permission set {$cmdMap->permission_set}", [
+			"map" => $cmdMap,
+		]);
 		if (strncmp($context->message, $cmdMap->symbol, strlen($cmdMap->symbol)) === 0) {
 			$context->message = substr($context->message, strlen($cmdMap->symbol));
 		} elseif (!$cmdMap->symbol_optional) {
