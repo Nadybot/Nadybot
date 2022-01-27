@@ -888,6 +888,21 @@ class CommandManager implements MessageEmitter {
 		return Source::SYSTEM . "(access-denied)";
 	}
 
+	public function getPermissionSet(string $name, bool $addMappings=false): ?CmdPermissionSet {
+		/** @var ?CmdPermissionSet */
+		$permSet = $this->db->table(self::DB_TABLE_PERM_SET)
+			->where("name", $name)
+			->asObj(CmdPermissionSet::class)
+			->first();
+		if (isset($permSet) && $addMappings) {
+			$permSet->mappings = $this->getPermSetMappings()
+				->where("name", $name)
+				->values()
+				->toArray();
+		}
+		return $permSet;
+	}
+
 	public function getDefaultPermissions(string $cmd): ?CmdPermission {
 		return $this->cmdDefaultPermissions[$cmd] ?? null;
 	}
@@ -945,6 +960,61 @@ class CommandManager implements MessageEmitter {
 			$perms []= $cmdPerms;
 		}
 		$this->insertPermissionSet($name, $letter, ...$perms);
+	}
+
+	/**
+	 * Change a permission set
+	 *
+	 * @throws InvalidArgumentException when one of the parameters is invalid
+	 * @throws Exception on unknown errors, like SQL
+	 */
+	public function changePermissionSet(string $name, CmdPermissionSet $data): void {
+		$old = $this->getPermissionSet($name);
+		if (!isset($old)) {
+			throw new InvalidArgumentException("The permission set <highlight>{$name}<end> does not exist.");
+		}
+		if ($data->name !== $old->name) {
+			$newNameExists = $this->db->table(self::DB_TABLE_PERM_SET)
+				->where("name", $data->name)->exists();
+			if ($newNameExists) {
+				throw new InvalidArgumentException(
+					"A permission set <highlight>{$data->name}<end> already exists."
+				);
+			}
+		}
+		if ($data->letter !== $old->letter) {
+			$newLetterExists = $this->db->table(self::DB_TABLE_PERM_SET)
+				->where("letter", $data->letter)->exists();
+			if ($newLetterExists) {
+				throw new InvalidArgumentException(
+					"A permission set with the letter <highlight>{$data->letter}<end> already exists."
+				);
+			}
+		}
+		$this->db->beginTransaction();
+		try {
+			$this->db->table(self::DB_TABLE_PERM_SET)
+				->where("name", $name)
+				->update([
+					"name" => $data->name,
+					"letter" => $data->letter
+				]);
+			if ($data->name !== $old->name) {
+				$this->db->table(self::DB_TABLE_MAPPING)
+					->where("name", $name)
+					->update(["name" => $data->name]);
+				$this->db->table(self::DB_TABLE_PERMS)
+					->where("name", $name)
+					->update(["name" => $data->name]);
+			}
+		} catch (Exception $e) {
+			$this->db->rollback();
+			throw $e;
+		}
+		$this->db->commit();
+		$this->loadPermsetMappings();
+		$this->loadCommands();
+		$this->subcommandManager->loadSubcommands();
 	}
 
 	/**

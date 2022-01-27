@@ -15,7 +15,7 @@ use Nadybot\Core\{
 	InsufficientAccessException,
 	SettingManager,
 };
-
+use Nadybot\Core\DBSchema\CmdPermissionSet;
 use Nadybot\Modules\{
 	DISCORD_GATEWAY_MODULE\DiscordRelayController,
 	WEBSERVER_MODULE\ApiResponse,
@@ -23,7 +23,9 @@ use Nadybot\Modules\{
 	WEBSERVER_MODULE\Request,
 	WEBSERVER_MODULE\Response,
 };
+use Nadybot\Modules\WEBSERVER_MODULE\JsonImporter;
 use Nadybot\Modules\WEBSERVER_MODULE\WebChatConverter;
+use Throwable;
 
 /**
  * @package Nadybot\Core\Modules\CONFIG
@@ -410,7 +412,7 @@ class ConfigApiController extends ModuleInstance {
 	}
 
 	/**
-	 * Get a list of available events for a module
+	 * Get a list of configured access levels
 	 */
 	#[
 		NCA\Api("/access_levels"),
@@ -420,5 +422,102 @@ class ConfigApiController extends ModuleInstance {
 	]
 	public function apiConfigAccessLevelsGetEndpoint(Request $request, HttpProtocolWrapper $server): Response {
 		return new ApiResponse($this->configController->getValidAccessLevels());
+	}
+
+	/**
+	 * Get a list of permission sets
+	 */
+	#[
+		NCA\Api("/permission_set"),
+		NCA\GET,
+		NCA\AccessLevel("all"),
+		NCA\ApiResult(code: 200, class: "CmdPermissionSet[]", desc: "A list of permission sets")
+	]
+	public function apiConfigPermissionSetGetEndpoint(Request $request, HttpProtocolWrapper $server): Response {
+		return new ApiResponse($this->commandManager->getPermissionSets(true)->toArray());
+	}
+
+	/**
+	 * Get a permission set by its name
+	 */
+	#[
+		NCA\Api("/permission_set/%s"),
+		NCA\GET,
+		NCA\AccessLevel("all"),
+		NCA\ApiResult(code: 200, class: "CmdPermissionSet", desc: "A permission set")
+	]
+	public function apiConfigPermissionSetGetByNameEndpoint(Request $request, HttpProtocolWrapper $server, string $name): Response {
+		$set = $this->commandManager->getPermissionSets(true)
+			->where("name", $name)
+			->first();
+		if (!isset($set)) {
+			return new Response(Response::NOT_FOUND);
+		}
+		return new ApiResponse($set);
+	}
+
+	/**
+	 * Create a new permission set
+	 */
+	#[
+		NCA\Api("/permission_set"),
+		NCA\POST,
+		NCA\RequestBody(class: "CmdPermissionSet", desc: "The new permission set", required: true),
+		NCA\AccessLevel("superadmin"),
+		NCA\ApiResult(code: 204, desc: "Permission Set created successfully")
+	]
+	public function apiConfigPermissionSetCreateEndpoint(Request $request, HttpProtocolWrapper $server): Response {
+		$set = $request->decodedBody;
+		try {
+			if (!is_object($set)) {
+				throw new Exception("Wrong content body");
+			}
+			/** @var CmdPermissionSet */
+			$decoded = JsonImporter::convert(CmdPermissionSet::class, $set);
+		} catch (Throwable $e) {
+			return new Response(Response::UNPROCESSABLE_ENTITY);
+		}
+		try {
+			$this->commandManager->createPermissionSet($decoded->name, $decoded->letter);
+		} catch (Exception $e) {
+			return new Response(Response::UNPROCESSABLE_ENTITY, [], $e->getMessage());
+		}
+		return new Response(Response::NO_CONTENT);
+	}
+
+	/**
+	 * Change a permission set
+	 */
+	#[
+		NCA\Api("/permission_set/%s"),
+		NCA\PATCH,
+		NCA\RequestBody(class: "CmdPermissionSet", desc: "The new permission set data", required: true),
+		NCA\AccessLevel("superadmin"),
+		NCA\ApiResult(code: 204, class: "CmdPermissionSet", desc: "Permission Set changed successfully")
+	]
+	public function apiConfigPermissionSetPatchEndpoint(Request $request, HttpProtocolWrapper $server, string $name): Response {
+		$set = $request->decodedBody;
+		try {
+			if (!is_object($set)) {
+				throw new Exception("Wrong content body");
+			}
+			/** @var CmdPermissionSet */
+			$decoded = JsonImporter::convert(CmdPermissionSet::class, $set);
+		} catch (Throwable $e) {
+			return new Response(Response::UNPROCESSABLE_ENTITY);
+		}
+		$old = $this->commandManager->getPermissionSet($name);
+		if (!isset($old)) {
+			return new Response(Response::NOT_FOUND);
+		}
+		foreach (get_object_vars($decoded) as $key => $value) {
+			$old->{$key} = $value;
+		}
+		try {
+			$this->commandManager->changePermissionSet($name, $old);
+		} catch (Exception $e) {
+			return new Response(Response::UNPROCESSABLE_ENTITY, [], $e->getMessage());
+		}
+		return new ApiResponse($this->commandManager->getPermissionSet($old->name, true));
 	}
 }
