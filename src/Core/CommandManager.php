@@ -18,6 +18,7 @@ use Nadybot\Core\{
 	DBSchema\CmdPermission,
 	DBSchema\CmdPermissionSet,
 	DBSchema\CommandSearchResult,
+	DBSchema\ExtCmdPermissionSet,
 	Modules\BAN\BanController,
 	Modules\CONFIG\CommandSearchController,
 	Modules\LIMITS\LimitsController,
@@ -336,16 +337,21 @@ class CommandManager implements MessageEmitter {
 	}
 
 	/** @return Collection<CmdPermissionSet> */
-	public function getPermissionSets(bool $addMappings=false): Collection {
+	public function getPermissionSets(): Collection {
 		$permSets = $this->db->table(CommandManager::DB_TABLE_PERM_SET)
 			->asObj(CmdPermissionSet::class);
-		if ($addMappings) {
-			$mappings = $this->getPermSetMappings()
-				->groupBy("permission_set");
-			$permSets->each(function(CmdPermissionSet $set) use ($mappings): void {
-				$set->mappings = $mappings->get($set->name, new Collection())->toArray();
-			});
-		}
+		return $permSets;
+	}
+
+	/** @return Collection<ExtCmdPermissionSet> */
+	public function getExtPermissionSets(): Collection {
+		$permSets = $this->db->table(CommandManager::DB_TABLE_PERM_SET)
+			->asObj(ExtCmdPermissionSet::class);
+		$mappings = $this->getPermSetMappings()
+			->groupBy("permission_set");
+		$permSets->each(function(ExtCmdPermissionSet $set) use ($mappings): void {
+			$set->mappings = $mappings->get($set->name, new Collection())->toArray();
+		});
 		return $permSets;
 	}
 
@@ -888,13 +894,22 @@ class CommandManager implements MessageEmitter {
 		return Source::SYSTEM . "(access-denied)";
 	}
 
-	public function getPermissionSet(string $name, bool $addMappings=false): ?CmdPermissionSet {
+	public function getPermissionSet(string $name): ?CmdPermissionSet {
 		/** @var ?CmdPermissionSet */
 		$permSet = $this->db->table(self::DB_TABLE_PERM_SET)
 			->where("name", $name)
 			->asObj(CmdPermissionSet::class)
 			->first();
-		if (isset($permSet) && $addMappings) {
+		return $permSet;
+	}
+
+	public function getExtPermissionSet(string $name): ?ExtCmdPermissionSet {
+		/** @var ?ExtCmdPermissionSet */
+		$permSet = $this->db->table(self::DB_TABLE_PERM_SET)
+			->where("name", $name)
+			->asObj(ExtCmdPermissionSet::class)
+			->first();
+		if (isset($permSet)) {
 			$permSet->mappings = $this->getPermSetMappings()
 				->where("permission_set", $name)
 				->values()

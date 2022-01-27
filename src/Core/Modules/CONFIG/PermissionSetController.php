@@ -9,12 +9,10 @@ use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
 	CommandManager,
-	DB,
-	DBSchema\CmdPermissionSet,
+	DBSchema\ExtCmdPermissionSet,
 	ModuleInstance,
 	ParamClass\PRemove,
 	ParamClass\PWord,
-	SettingManager,
 	Text,
 };
 
@@ -89,7 +87,7 @@ class PermissionSetController extends ModuleInstance {
 
 	#[NCA\HandlesCommand("permset")]
 	public function permsetListCommand(CmdContext $context): void {
-		$sets = $this->cmdManager->getPermissionSets(true);
+		$sets = $this->cmdManager->getExtPermissionSets();
 		$blocks = $sets->map(Closure::fromCallable([$this, "renderPermissionSet"]));
 		$blob = $blocks->join("\n\n<pagebreak>");
 		$context->reply(
@@ -97,7 +95,7 @@ class PermissionSetController extends ModuleInstance {
 		);
 	}
 
-	protected function renderPermissionSet(CmdPermissionSet $set): string {
+	protected function renderPermissionSet(ExtCmdPermissionSet $set): string {
 		$block = "<header2>{$set->name}<end>\n".
 			"<tab>Letter: <highlight>{$set->letter}<end>\n".
 			"<tab>Channels: <highlight>".

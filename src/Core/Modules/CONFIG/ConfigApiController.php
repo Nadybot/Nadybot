@@ -2,11 +2,13 @@
 
 namespace Nadybot\Core\Modules\CONFIG;
 
-use Nadybot\Core\Attributes as NCA;
 use Exception;
+use Throwable;
 use Nadybot\Core\{
+	Attributes as NCA,
 	CommandManager,
 	DB,
+	DBSchema\CmdPermissionSet,
 	DBSchema\EventCfg,
 	DBSchema\Setting,
 	EventManager,
@@ -15,17 +17,15 @@ use Nadybot\Core\{
 	InsufficientAccessException,
 	SettingManager,
 };
-use Nadybot\Core\DBSchema\CmdPermissionSet;
 use Nadybot\Modules\{
 	DISCORD_GATEWAY_MODULE\DiscordRelayController,
 	WEBSERVER_MODULE\ApiResponse,
 	WEBSERVER_MODULE\HttpProtocolWrapper,
+	WEBSERVER_MODULE\JsonImporter,
 	WEBSERVER_MODULE\Request,
 	WEBSERVER_MODULE\Response,
+	WEBSERVER_MODULE\WebChatConverter,
 };
-use Nadybot\Modules\WEBSERVER_MODULE\JsonImporter;
-use Nadybot\Modules\WEBSERVER_MODULE\WebChatConverter;
-use Throwable;
 
 /**
  * @package Nadybot\Core\Modules\CONFIG
@@ -431,10 +431,10 @@ class ConfigApiController extends ModuleInstance {
 		NCA\Api("/permission_set"),
 		NCA\GET,
 		NCA\AccessLevel("all"),
-		NCA\ApiResult(code: 200, class: "CmdPermissionSet[]", desc: "A list of permission sets")
+		NCA\ApiResult(code: 200, class: "ExtCmdPermissionSet[]", desc: "A list of permission sets")
 	]
 	public function apiConfigPermissionSetGetEndpoint(Request $request, HttpProtocolWrapper $server): Response {
-		return new ApiResponse($this->commandManager->getPermissionSets(true)->toArray());
+		return new ApiResponse($this->commandManager->getExtPermissionSets()->toArray());
 	}
 
 	/**
@@ -444,12 +444,10 @@ class ConfigApiController extends ModuleInstance {
 		NCA\Api("/permission_set/%s"),
 		NCA\GET,
 		NCA\AccessLevel("all"),
-		NCA\ApiResult(code: 200, class: "CmdPermissionSet", desc: "A permission set")
+		NCA\ApiResult(code: 200, class: "ExtCmdPermissionSet", desc: "A permission set")
 	]
 	public function apiConfigPermissionSetGetByNameEndpoint(Request $request, HttpProtocolWrapper $server, string $name): Response {
-		$set = $this->commandManager->getPermissionSets(true)
-			->where("name", $name)
-			->first();
+		$set = $this->commandManager->getExtPermissionSet($name);
 		if (!isset($set)) {
 			return new Response(Response::NOT_FOUND);
 		}
@@ -493,7 +491,7 @@ class ConfigApiController extends ModuleInstance {
 		NCA\PATCH,
 		NCA\RequestBody(class: "CmdPermissionSet", desc: "The new permission set data", required: true),
 		NCA\AccessLevel("superadmin"),
-		NCA\ApiResult(code: 204, class: "CmdPermissionSet", desc: "Permission Set changed successfully")
+		NCA\ApiResult(code: 204, class: "ExtCmdPermissionSet", desc: "Permission Set changed successfully")
 	]
 	public function apiConfigPermissionSetPatchEndpoint(Request $request, HttpProtocolWrapper $server, string $name): Response {
 		$set = $request->decodedBody;
@@ -518,6 +516,6 @@ class ConfigApiController extends ModuleInstance {
 		} catch (Exception $e) {
 			return new Response(Response::UNPROCESSABLE_ENTITY, [], $e->getMessage());
 		}
-		return new ApiResponse($this->commandManager->getPermissionSet($old->name, true));
+		return new ApiResponse($this->commandManager->getExtPermissionSet($old->name));
 	}
 }
