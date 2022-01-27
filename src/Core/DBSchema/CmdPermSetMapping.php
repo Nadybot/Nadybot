@@ -8,8 +8,8 @@ class CmdPermSetMapping extends DBRow {
 	/** @json:ignore */
 	public ?int $id = null;
 
-	/** The channel where to map $source to */
-	public string $name;
+	/** The permission set to map $source to */
+	public string $permission_set;
 
 	/** The command source to map */
 	public string $source;

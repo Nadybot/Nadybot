@@ -209,14 +209,14 @@ class CommandManager implements MessageEmitter {
 		} catch (SQLException $e) {
 			$this->logger->error("Error registering method '$handler' for command '$command': " . $e->getMessage(), ["exception" => $e]);
 		}
-		$channels = $this->db->table(self::DB_TABLE_PERM_SET)
+		$permSets = $this->db->table(self::DB_TABLE_PERM_SET)
 			->select("name")->pluckAs("name", "string");
-		foreach ($channels as $channel) {
+		foreach ($permSets as $permSet) {
 			$this->logger->info("Adding permissions to command $command");
 			$this->db->table(self::DB_TABLE_PERMS)
 				->insertOrIgnore(
 					[
-						"name" => $channel,
+						"name" => $permSet,
 						"access_level" => $accessLevel,
 						"cmd" => $command,
 						"enabled" => (bool)$status,
@@ -341,7 +341,7 @@ class CommandManager implements MessageEmitter {
 			->asObj(CmdPermissionSet::class);
 		if ($addMappings) {
 			$mappings = $this->getPermSetMappings()
-				->groupBy("name");
+				->groupBy("permission_set");
 			$permSets->each(function(CmdPermissionSet $set) use ($mappings): void {
 				$set->mappings = $mappings->get($set->name, new Collection())->toArray();
 			});
@@ -896,7 +896,7 @@ class CommandManager implements MessageEmitter {
 			->first();
 		if (isset($permSet) && $addMappings) {
 			$permSet->mappings = $this->getPermSetMappings()
-				->where("name", $name)
+				->where("permission_set", $name)
 				->values()
 				->toArray();
 		}
@@ -1001,8 +1001,8 @@ class CommandManager implements MessageEmitter {
 				]);
 			if ($data->name !== $old->name) {
 				$this->db->table(self::DB_TABLE_MAPPING)
-					->where("name", $name)
-					->update(["name" => $data->name]);
+					->where("permission_set", $name)
+					->update(["permission_et" => $data->name]);
 				$this->db->table(self::DB_TABLE_PERMS)
 					->where("name", $name)
 					->update(["name" => $data->name]);
@@ -1110,7 +1110,7 @@ class CommandManager implements MessageEmitter {
 		$name = strtolower($name);
 		$result = [];
 		foreach ($this->permSetMappings as $map) {
-			if ($map->name === $name) {
+			if ($map->permission_set === $name) {
 				$result []= $map->source;
 			}
 		}
@@ -1135,7 +1135,7 @@ class CommandManager implements MessageEmitter {
 			return false;
 		}
 
-		$context->channel = $cmdMap->name;
+		$context->channel = $cmdMap->permission_set;
 		$context->mapping = $cmdMap;
 		if (!isset($context->char->id)) {
 			$this->processCmd($context);

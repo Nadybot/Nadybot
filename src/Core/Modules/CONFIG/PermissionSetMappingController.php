@@ -92,7 +92,7 @@ class PermissionSetMappingController extends ModuleInstance {
 		$feedbackText = $map->feedback ? "no" : "yes";
 		$feedbackLink = $this->text->makeChatcmd($feedbackText, "/tell <myname> cmdmap feedback set {$map->source} {$feedbackText}");
 		$block = "<header2>{$map->source}<end> [{$deleteLink}]\n".
-			"<tab>Permission set: <highlight>{$map->name}<end> [{$permSetLink}]\n".
+			"<tab>Permission set: <highlight>{$map->permission_set}<end> [{$permSetLink}]\n".
 			"<tab>Symbol: <highlight>".
 				(strlen($map->symbol) ? $map->symbol : "&lt;none&gt;").
 			"<end> [{$symbolLink}]\n".
@@ -133,7 +133,7 @@ class PermissionSetMappingController extends ModuleInstance {
 		}
 		$map = new CmdPermSetMapping();
 		$map->source = $source;
-		$map->name = $permset;
+		$map->permission_set = $permset;
 		$map->symbol = $this->settingManager->getString("symbol") ?? "!";
 		try {
 			$map->id = $this->db->insert(CommandManager::DB_TABLE_MAPPING, $map);
@@ -187,7 +187,7 @@ class PermissionSetMappingController extends ModuleInstance {
 			$context->reply(
 				"Commands from <highlight>{$source}<end> will now be handled ".
 				"by the mapping for <highlight>{$map->source}<end>, run with ".
-				"permission set <highlight>{$map->name}<end> with symbol ".
+				"permission set <highlight>{$map->permission_set}<end> with symbol ".
 				"<highlight>{$map->symbol}<end>."
 			);
 			return;
@@ -272,7 +272,7 @@ class PermissionSetMappingController extends ModuleInstance {
 			return;
 		}
 		$this->changeCmdMap($context, $source, function(CmdPermSetMapping $set) use ($permset): void {
-			$set->name = $permset;
+			$set->permission_set = $permset;
 		});
 	}
 

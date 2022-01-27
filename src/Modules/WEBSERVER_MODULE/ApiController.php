@@ -358,12 +358,12 @@ class ApiController extends ModuleInstance {
 		$mainCommand = explode(" ", $handler->accessLevelFrom)[0];
 		if (isset($this->subcommandManager->subcommands[$mainCommand])) {
 			foreach ($this->subcommandManager->subcommands[$mainCommand] as $row) {
-				if (isset($row->permissions[$set->name]) && ($row->cmd === $handler->accessLevelFrom || preg_match("/^{$row->cmd}$/si", $handler->accessLevelFrom))) {
-					return new CommandHandler($row->file, $row->permissions[$set->name]->access_level);
+				if (isset($row->permissions[$set->permission_set]) && ($row->cmd === $handler->accessLevelFrom || preg_match("/^{$row->cmd}$/si", $handler->accessLevelFrom))) {
+					return new CommandHandler($row->file, $row->permissions[$set->permission_set]->access_level);
 				}
 			}
 		}
-		return $this->commandManager->commands[$set->name][$handler->accessLevelFrom] ?? null;
+		return $this->commandManager->commands[$set->permission_set][$handler->accessLevelFrom] ?? null;
 	}
 
 
@@ -522,7 +522,7 @@ class ApiController extends ModuleInstance {
 			$context->source = "api";
 			$context->setIsDM();
 			$context->channel = isset($set)
-				? $set->name
+				? $set->permission_set
 				: $this->commandManager->getPermissionSets()->firstOrFail()->name;
 			$context->sendto = $handler;
 			$context->message = $msg;

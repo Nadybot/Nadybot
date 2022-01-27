@@ -27,7 +27,7 @@ class CreatePermissionSetMapping implements SchemaMigration {
 		$table = CommandManager::DB_TABLE_MAPPING;
 		$db->schema()->create($table, function(Blueprint $table) {
 			$table->id();
-			$table->string("name", 50);
+			$table->string("permission_set", 50);
 			$table->string("source", 100)->unique();
 			$table->string("symbol", 1)->default("!");
 			$table->boolean("symbol_optional")->default(false);
@@ -37,49 +37,49 @@ class CreatePermissionSetMapping implements SchemaMigration {
 		$discordSymbol = $this->getSettingValue($db, "discord_symbol") ?? "!";
 		$inserts = [
 			[
-				"name" => "msg",
+				"permission_set" => "msg",
 				"source" => "console",
 				"symbol" => $symbol,
 				"symbol_optional" => true,
 				"feedback" => true,
 			],
 			[
-				"name" => "msg",
+				"permission_set" => "msg",
 				"source" => "aotell(*)",
 				"symbol" => $symbol,
 				"symbol_optional" => true,
 				"feedback" => true,
 			],
 			[
-				"name" => "priv",
+				"permission_set" => "priv",
 				"source" => "aopriv(" . strtolower(($this->getSettingValue($db, "default_private_channel") ?? $db->getMyname())) . ")",
 				"symbol" => $symbol,
 				"symbol_optional" => false,
 				"feedback" => (bool)($this->getSettingValue($db, "private_channel_cmd_feedback") ?? "1"),
 			],
 			[
-				"name" => "guild",
+				"permission_set" => "guild",
 				"source" => "aoorg",
 				"symbol" => $symbol,
 				"symbol_optional" => false,
 				"feedback" => (bool)($this->getSettingValue($db, "guild_channel_cmd_feedback") ?? "1"),
 			],
 			[
-				"name" => "msg",
+				"permission_set" => "msg",
 				"source" => "discordmsg(*)",
 				"symbol" => $discordSymbol,
 				"symbol_optional" => true,
 				"feedback" => (bool)($this->getSettingValue($db, "discord_unknown_cmd_errors") ?? "1"),
 			],
 			[
-				"name" => "priv",
+				"permission_set" => "priv",
 				"source" => "web",
 				"symbol" => $symbol,
 				"symbol_optional" => false,
 				"feedback" => true,
 			],
 			[
-				"name" => "msg",
+				"permission_set" => "msg",
 				"source" => "api",
 				"symbol" => "",
 				"symbol_optional" => true,
