@@ -735,8 +735,12 @@ class LootListsController extends ModuleInstance {
 		if ($loot->count() === 0) {
 			throw new Exception("No loot for type {$raid} found in the database");
 		}
-		$auctionsEnabled = $this->commandManager->cmdExecutable("auction", $sender, $context->channel);
-		$lootEnabled = $this->commandManager->cmdExecutable('loot .+', $sender, $context->channel);
+		$auctionsEnabled = false;
+		$lootEnabled = false;
+		if (isset($context->permissionSet)) {
+			$auctionsEnabled = $this->commandManager->cmdExecutable("auction", $sender, $context->permissionSet);
+			$lootEnabled = $this->commandManager->cmdExecutable('loot .+', $sender, $context->permissionSet);
+		}
 
 		$blob = "\n<pagebreak><header2>{$category}<end>\n\n";
 		$showLootPics = $this->settingManager->get('show_raid_loot_pics');

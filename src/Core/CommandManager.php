@@ -466,9 +466,12 @@ class CommandManager implements MessageEmitter {
 		if ($this->limitsController->isIgnored($context->char->name)) {
 			return;
 		}
-		$commandHandler = $this->getActiveCommandHandler($cmd, $context->channel, $context->message);
+		if (!isset($context->permissionSet)) {
+			return;
+		}
+		$commandHandler = $this->getActiveCommandHandler($cmd, $context->permissionSet, $context->message);
 		$event = new CmdEvent();
-		$event->channel = $context->channel;
+		$event->channel = $context->permissionSet;
 		$event->cmd = $cmd;
 		$event->sender = $context->char->name;
 		$event->cmdHandler = $commandHandler;
@@ -482,7 +485,7 @@ class CommandManager implements MessageEmitter {
 			$cmdNames = $this->commandSearchController
 				->findSimilarCommands($cmd, $context->char->name)
 				->filter(function (CommandSearchResult $row) use ($context): bool {
-					return $row->permissions[$context->channel]->enabled ?? false;
+					return $row->permissions[$context->permissionSet]->enabled ?? false;
 				})->slice(0, 5)
 				->pluck("cmd");
 
@@ -533,7 +536,7 @@ class CommandManager implements MessageEmitter {
 		try {
 			// record usage stats (in try/catch block in case there is an error)
 			if ($this->settingManager->getBool('record_usage_stats') && isset($handler)) {
-				$this->usageController->record($context->channel, $cmd, $context->char->name, $handler);
+				$this->usageController->record($context->permissionSet, $cmd, $context->char->name, $handler);
 			}
 		} catch (Exception $e) {
 			$this->logger->error($e->getMessage(), ["exception" => $e]);
@@ -640,7 +643,7 @@ class CommandManager implements MessageEmitter {
 						}
 						$syntaxError = $instance->$method($context, ...$args) === false;
 					} else {
-						$syntaxError = ($instance->$method($context->message, $context->channel, $context->char->name, $context->sendto, $context->args) === false);
+						continue;
 					}
 					if ($syntaxError == false) {
 						// we can stop looking, command was handled successfully
@@ -1154,7 +1157,7 @@ class CommandManager implements MessageEmitter {
 			return false;
 		}
 
-		$context->channel = $cmdMap->permission_set;
+		$context->permissionSet = $cmdMap->permission_set;
 		$context->mapping = $cmdMap;
 		if (!isset($context->char->id)) {
 			$this->processCmd($context);

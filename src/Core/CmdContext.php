@@ -8,7 +8,7 @@ use Nadybot\Core\Routing\Character;
 
 class CmdContext implements CommandReply {
 	public string $message = "";
-	public string $channel = "tell";
+	public ?string $permissionSet = null;
 	public ?string $source = null;
 	public Character $char;
 	public CommandReply $sendto;

@@ -521,7 +521,7 @@ class ApiController extends ModuleInstance {
 			$context = new CmdContext($request->authenticatedAs);
 			$context->source = "api";
 			$context->setIsDM();
-			$context->channel = isset($set)
+			$context->permissionSet = isset($set)
 				? $set->permission_set
 				: $this->commandManager->getPermissionSets()->firstOrFail()->name;
 			$context->sendto = $handler;

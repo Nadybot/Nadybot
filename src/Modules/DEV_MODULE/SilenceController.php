@@ -113,7 +113,10 @@ class SilenceController extends ModuleInstance {
 	}
 
 	public function nullCommand(CmdContext $context): void {
-		$this->logger->info("Silencing command '{$context->message}' for channel '{$context->channel}'");
+		$this->logger->info("Silencing command '{command}' for permission set '{permission_set}'", [
+			"command" => $context->message,
+			"permission_set" => $context->permissionSet ?? "<all>"
+		]);
 	}
 
 	public function addSilencedCommand(CmdCfg $row, string $channel): void {

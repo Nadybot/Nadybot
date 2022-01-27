@@ -275,7 +275,7 @@ class TestController extends ModuleInstance {
 		$file = "{$file}.txt";
 
 		$testContext = clone $context;
-		$testContext->channel = "msg";
+		$testContext->permissionSet = "msg";
 
 		try {
 			$lines = \Safe\file($this->path . $file, FILE_IGNORE_NEW_LINES);

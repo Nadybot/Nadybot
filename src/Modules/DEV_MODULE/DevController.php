@@ -98,8 +98,11 @@ class DevController extends ModuleInstance {
 
 	#[NCA\HandlesCommand("showcmdregex")]
 	public function showcmdregexCommand(CmdContext $context, ?string $cmd): void {
+		if (!isset($context->permissionSet)) {
+			return;
+		}
 		// get all command handlers
-		$handlers = $this->getAllCommandHandlers($cmd, $context->channel);
+		$handlers = $this->getAllCommandHandlers($cmd, $context->permissionSet);
 
 		// filter command handlers by access level
 		$accessManager = $this->accessManager;
