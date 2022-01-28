@@ -26,13 +26,12 @@
 					"value": {
 						"oneOf": [
 							{
-								"type": "integer"
+								"type": "string"
 							},
 							{
-								"type": "string"
+								"type": "integer"
 							}
 						],
-						"nullable": true,
 						"description": "Which value does this option represent?"
 					}
 				}
@@ -187,50 +186,54 @@
 					}
 				}
 			},
-			"ModuleSubcommandChannel": {
+			"CmdPermission": {
 				"type": "object",
 				"properties": {
+					"permission_set": {
+						"type": "string",
+						"description": "The name of the permission-set"
+					},
 					"access_level": {
 						"type": "string",
-						"description": "The access level you need to have in order to be allowed to use this command in this channel"
+						"description": "The access-level (member,admin,guest,all,etc)"
 					},
 					"enabled": {
 						"type": "boolean",
-						"description": "Can this command be used in this channel?"
+						"description": "Is the (sub-)command enabled on this permission-set"
+					}
+				}
+			},
+			"CmdCfg": {
+				"type": "object",
+				"properties": {
+					"cmd": {
+						"type": "string"
+					},
+					"description": {
+						"type": "string"
+					},
+					"help": {
+						"type": "string",
+						"nullable": true
+					},
+					"permissions": {
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/CmdPermission"
+						}
 					}
 				}
 			},
 			"ModuleSubcommand": {
-				"type": "object",
-				"properties": {
-					"command": {
-						"type": "string",
-						"description": "The string or regexp that has to match this command"
+				"allOf": [
+					{
+						"$ref": "#/components/schemas/CmdCfg"
 					},
-					"type": {
-						"type": "string",
-						"description": "Either \"cmd\" or \"subcmd\""
-					},
-					"description": {
-						"type": "string",
-						"description": "A short description of the command"
-					},
-					"msg": {
-						"$ref": "#/components/schemas/ModuleSubcommandChannel",
-						"nullable": true,
-						"description": "Settings for tells"
-					},
-					"priv": {
-						"$ref": "#/components/schemas/ModuleSubcommandChannel",
-						"nullable": true,
-						"description": "Settings for private channel"
-					},
-					"org": {
-						"$ref": "#/components/schemas/ModuleSubcommandChannel",
-						"nullable": true,
-						"description": "Settings for org channel"
+					{
+						"type": "object",
+						"properties": []
 					}
-				}
+				]
 			},
 			"ModuleCommand": {
 				"allOf": [
@@ -250,6 +253,19 @@
 						}
 					}
 				]
+			},
+			"ModuleSubcommandChannel": {
+				"type": "object",
+				"properties": {
+					"access_level": {
+						"type": "string",
+						"description": "The access level you need to have in order to be allowed to use this command in this channel"
+					},
+					"enabled": {
+						"type": "boolean",
+						"description": "Can this command be used in this channel?"
+					}
+				}
 			},
 			"ModuleEventConfig": {
 				"type": "object",
@@ -286,16 +302,16 @@
 					"value": {
 						"oneOf": [
 							{
-								"type": "null"
+								"type": "string"
 							},
 							{
 								"type": "integer"
 							},
 							{
-								"type": "string"
+								"type": "boolean"
 							},
 							{
-								"type": "boolean"
+								"type": "null"
 							}
 						],
 						"nullable": true,
@@ -543,6 +559,60 @@
 						"description": "Timestamp when the action happened"
 					}
 				}
+			},
+			"CmdPermSetMapping": {
+				"type": "object",
+				"properties": {
+					"permission_set": {
+						"type": "string",
+						"description": "The permission set to map $source to"
+					},
+					"source": {
+						"type": "string",
+						"description": "The command source to map"
+					},
+					"symbol": {
+						"type": "string",
+						"description": "The symbol that triggers a command if it's the first letter"
+					},
+					"symbol_optional": {
+						"type": "boolean",
+						"description": "Is the symbol required to interpret the msg as command or optional"
+					},
+					"feedback": {
+						"type": "boolean",
+						"description": "Shall we report an error if the command doesn't exist"
+					}
+				}
+			},
+			"CmdPermissionSet": {
+				"type": "object",
+				"properties": {
+					"name": {
+						"type": "string"
+					},
+					"letter": {
+						"type": "string"
+					}
+				}
+			},
+			"ExtCmdPermissionSet": {
+				"allOf": [
+					{
+						"$ref": "#/components/schemas/CmdPermissionSet"
+					},
+					{
+						"type": "object",
+						"properties": {
+							"mappings": {
+								"type": "array",
+								"items": {
+									"$ref": "#/components/schemas/CmdPermSetMapping"
+								}
+							}
+						}
+					}
+				]
 			},
 			"EventType": {
 				"type": "object",
@@ -845,20 +915,28 @@
 					}
 				}
 			},
+			"ChannelCommandStats": {
+				"type": "object",
+				"properties": {
+					"name": {
+						"type": "string",
+						"description": "Name of the channel"
+					},
+					"active_commands": {
+						"type": "integer",
+						"description": "Number of active commands in this channel"
+					}
+				}
+			},
 			"ConfigStatistics": {
 				"type": "object",
 				"properties": {
-					"active_tell_commands": {
-						"type": "integer",
-						"description": "Number of commands activated for use with /tell"
-					},
-					"active_priv_commands": {
-						"type": "integer",
-						"description": "Number of commands activated for use in the private channel"
-					},
-					"active_org_commands": {
-						"type": "integer",
-						"description": "Number of commands activated for use in the org channel"
+					"active_commands": {
+						"type": "array",
+						"description": "Number of commands activated for each channel",
+						"items": {
+							"$ref": "#/components/schemas/ChannelCommandStats"
+						}
 					},
 					"active_subcommands": {
 						"type": "integer",
@@ -972,7 +1050,7 @@
 						"basicAuth": []
 					}
 				],
-				"description": "Get a list of available events for a module",
+				"description": "Get a list of configured access levels",
 				"responses": {
 					"200": {
 						"description": "A list of all access levels",
@@ -1134,7 +1212,7 @@
 						"description": "Invalid UUID provided"
 					},
 					"422": {
-						"description": "Unparseable data received"
+						"description": "Unparsable data received"
 					}
 				},
 				"requestBody": {
@@ -2110,6 +2188,131 @@
 						"type": "integer"
 					},
 					"description": "Show only entries from after the given timestamp"
+				}
+			]
+		},
+		"/permission_set": {
+			"get": {
+				"security": [
+					{
+						"basicAuth": []
+					}
+				],
+				"description": "Get a list of permission sets",
+				"responses": {
+					"200": {
+						"description": "A list of permission sets",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "array",
+									"items": {
+										"$ref": "#/components/schemas/ExtCmdPermissionSet"
+									}
+								}
+							}
+						}
+					}
+				},
+				"tags": [
+					"config"
+				]
+			},
+			"post": {
+				"security": [
+					{
+						"basicAuth": []
+					}
+				],
+				"description": "Create a new permission set",
+				"responses": {
+					"204": {
+						"description": "Permission Set created successfully"
+					}
+				},
+				"requestBody": {
+					"description": "The new permission set",
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/CmdPermissionSet"
+							}
+						}
+					}
+				},
+				"tags": [
+					"config"
+				]
+			},
+			"parameters": []
+		},
+		"/permission_set/{name}": {
+			"get": {
+				"security": [
+					{
+						"basicAuth": []
+					}
+				],
+				"description": "Get a permission set by its name",
+				"responses": {
+					"200": {
+						"description": "A permission set",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ExtCmdPermissionSet"
+								}
+							}
+						}
+					}
+				},
+				"tags": [
+					"config"
+				]
+			},
+			"patch": {
+				"security": [
+					{
+						"basicAuth": []
+					}
+				],
+				"description": "Change a permission set",
+				"responses": {
+					"204": {
+						"description": "Permission Set changed successfully",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ExtCmdPermissionSet"
+								}
+							}
+						}
+					}
+				},
+				"requestBody": {
+					"description": "The new permission set data",
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/CmdPermissionSet"
+							}
+						}
+					}
+				},
+				"tags": [
+					"config"
+				]
+			},
+			"parameters": [
+				{
+					"name": "name",
+					"required": true,
+					"in": "path",
+					"schema": {
+						"type": "string"
+					}
 				}
 			]
 		},
