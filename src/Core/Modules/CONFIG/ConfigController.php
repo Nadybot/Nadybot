@@ -607,20 +607,13 @@ class ConfigController extends ModuleInstance {
 	 * Get a blob like "Aliases: alias1, alias2" for command $cmd
 	 */
 	public function getAliasInfo(string $cmd): string {
-		$aliases = $this->commandAlias->findAliasesByCommand($cmd);
-		$aliasesList = [];
-		foreach ($aliases as $row) {
-			if ($row->status === 1) {
-				$aliasesList []= "<highlight>{$row->alias}<end>";
-			}
+		$aliases = $this->commandAlias->findAliasesByCommand($cmd)
+			->where("status", 1)
+			->pluck("alias");
+		if ($aliases->isEmpty()) {
+			return "";
 		}
-		$aliasesBlob = join(", ", $aliasesList);
-
-		$blob = '';
-		if (count($aliasesList) > 0) {
-			$blob .= "Aliases: $aliasesBlob\n\n";
-		}
-		return $blob;
+		return "Aliases: <highlight>" . $aliases->join("<end>, <highlight>") . "<end>\n\n";
 	}
 
 	public function getModuleDescription(string $module): ?string {

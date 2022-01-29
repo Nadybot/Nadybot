@@ -2,6 +2,7 @@
 
 namespace Nadybot\Core;
 
+use Illuminate\Support\Collection;
 use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\DBSchema\CmdAlias;
 
@@ -209,13 +210,12 @@ class CommandAlias {
 	 * Find all aliases for a command
 	 *
 	 * @param string $command The command to check
-	 * @return CmdAlias[]
+	 * @return Collection<CmdAlias>
 	 */
-	public function findAliasesByCommand(string $command): array {
+	public function findAliasesByCommand(string $command): Collection {
 		return $this->db->table(self::DB_TABLE)
 			->whereIlike("cmd", $command)
-			->asObj(CmdAlias::class)
-			->toArray();
+			->asObj(CmdAlias::class);
 	}
 
 	/**
