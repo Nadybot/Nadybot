@@ -20,7 +20,7 @@ use Nadybot\Core\{
 	InsufficientAccessException,
 	LoggerWrapper,
 	Nadybot,
-	QueryBuilder,
+	ParamClass\PWord,
 	Registry,
 	SettingHandler,
 	SettingManager,
@@ -34,7 +34,6 @@ use Nadybot\Core\DBSchema\{
 	CmdPermissionSet,
 	Setting,
 };
-use Nadybot\Core\ParamClass\PWord;
 
 #[
 	NCA\DefineCommand(
@@ -361,17 +360,11 @@ class ConfigController extends ModuleInstance {
 			->where("file", $file)
 			->where("type", $eventType)
 			->select("*");
-		$query->selectRaw($query->grammar->quoteString("event") . $query->as("cmdevent"));
-		/** @var CmdCfg[] $data */
-		$data = $query->asObj(CmdCfg::class)->toArray();
-
-		if (count($data) === 0) {
-			return false;
-		}
-
-		foreach ($data as $row) {
-			$this->toggleCmdCfg($row, $enable);
-		}
+		/** @var Collection<EventCfg> */
+		$data = $query->asObj(EventCfg::class);
+		$data->each(function (EventCfg $cfg) use ($enable): void {
+			$this->toggleEventCfg($cfg, $enable);
+		});
 
 		$query->update(["status" => (int)$enable]);
 
@@ -388,24 +381,14 @@ class ConfigController extends ModuleInstance {
 	public function toggleModule(string $module, string $permissionSet, bool $enable): bool {
 		$commands = $this->commandManager->getAllForModule($module, true)
 			->where("cmd", "!=", "config");
-		$events = $this->db->table(EventManager::DB_TABLE)
-			->where("module", $module)
-			->asObj(EventCfg::class)
-			->map(function (EventCfg $event): CmdCfg {
-				$cmd = new CmdCfg();
-				$cmd->cmd = '';
-				$cmd->cmdevent = "event";
-				$cmd->file = $event->file;
-				$perm = new CmdPermission();
-				$perm->access_level = "";
-				$perm->permission_set = $event->type;
-				$perm->enabled = (bool)$event->status;
-				$cmd->permissions[$event->type] = $perm;
-				return $cmd;
-			});
-		$data = $commands->merge($events);
+		$events = new Collection();
+		if ($permissionSet === "all") {
+			$eventQuery = $this->db->table(EventManager::DB_TABLE)
+				->where("module", $module);
+			$events = $eventQuery->asObj(EventCfg::class);
+		}
 		if ($permissionSet !== "all") {
-			$data = $data->filter(function (CmdCfg $cfg) use ($permissionSet): bool {
+			$commands = $commands->filter(function (CmdCfg $cfg) use ($permissionSet): bool {
 				$cfg->permissions = (new Collection($cfg->permissions))
 					->where("permission_set", $permissionSet)->toArray();
 				if (empty($cfg->permissions)) {
@@ -415,26 +398,21 @@ class ConfigController extends ModuleInstance {
 			});
 		}
 
-		if ($data->isEmpty()) {
-			return false;
-		}
-
 		$ids = [];
-		foreach ($data as $row) {
-			$ids = array_merge($ids, array_column($row->permissions, "id"));
-			$this->toggleCmdCfg($row, $enable);
+		foreach ($commands as $cmd) {
+			$ids = array_merge($ids, array_column($cmd->permissions, "id"));
+			$this->toggleCmdCfg($cmd, $enable);
 		}
-
-		$eventQuery = $this->db->table(EventManager::DB_TABLE)
-			->where("module", $module);
-		if ($permissionSet !== "all") {
-			$eventQuery->where("type", $permissionSet);
+		foreach ($events as $event) {
+			$this->toggleEventCfg($event, $enable);
 		}
 
 		$this->db->table(CommandManager::DB_TABLE_PERMS)
 			->whereIn("id", $ids)
 			->update(["enabled" => $enable]);
-		$eventQuery->update(["status" => (int)$enable]);
+		if ($events->isNotEmpty() && isset($eventQuery)) {
+			$eventQuery->update(["status" => (int)$enable]);
+		}
 
 		// for subcommands which are handled differently
 		$this->subcommandManager->loadSubcommands();
@@ -446,20 +424,25 @@ class ConfigController extends ModuleInstance {
 			if ($perm->enabled === $enable) {
 				continue;
 			}
-			if ($cfg->cmdevent === "event") {
-				if ($cfg->verify !== 0) {
-					if ($enable) {
-						$this->eventManager->activate($perm->permission_set, $cfg->file);
-					} else {
-						$this->eventManager->deactivate($perm->permission_set, $cfg->file);
-					}
-				}
-			} elseif ($cfg->cmdevent === "cmd") {
+			if ($cfg->cmdevent === "cmd") {
 				if ($enable) {
 					$this->commandManager->activate($perm->permission_set, $cfg->file, $cfg->cmd, $perm->access_level);
 				} else {
 					$this->commandManager->deactivate($perm->permission_set, $cfg->file, $cfg->cmd);
 				}
+			}
+		}
+	}
+
+	public function toggleEventCfg(EventCfg $cfg, bool $enable): void {
+		if ((bool)$cfg->status === $enable) {
+			return;
+		}
+		if ($cfg->verify !== 0) {
+			if ($enable) {
+				$this->eventManager->activate($cfg->type, $cfg->file);
+			} else {
+				$this->eventManager->deactivate($cfg->type, $cfg->file);
 			}
 		}
 	}
@@ -853,13 +836,13 @@ class ConfigController extends ModuleInstance {
 			->where("cmdevent", "subcmd")
 			->asObj(CmdCfg::class);
 		$permissions = $this->db->table(CommandManager::DB_TABLE_PERMS)
-			->where("name", $type)
+			->where("permission_set", $type)
 			->whereIn("cmd", $data->pluck("cmd")->toArray())
 			->asObj(CmdPermission::class)
 			->groupBy("cmd");
 		$data->each(function (CmdCfg $row) use ($permissions): void {
 			$row->permissions = $permissions->get($row->cmd, new Collection())
-				->keyBy("name")->toArray();
+				->keyBy("permission_set")->toArray();
 		});
 
 		$showRaidAL = $this->db->table(CommandManager::DB_TABLE, "c")
