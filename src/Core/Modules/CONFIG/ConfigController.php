@@ -786,7 +786,7 @@ class ConfigController extends ModuleInstance {
 	private function getCommandInfo(string $cmd, string $permSet): string {
 		$msg = "";
 		$cfg = $this->commandManager->get($cmd, $permSet);
-		if (!isset($cfg)) {
+		if (!isset($cfg) || !isset($cfg->permissions[$permSet])) {
 			$msg .= "<red>Unused<end>\n";
 		} else {
 			$perm = $cfg->permissions[$permSet];
@@ -830,17 +830,17 @@ class ConfigController extends ModuleInstance {
 	 */
 	private function getSubCommandInfo(string $cmd, string $permSet): string {
 		$subcmdList = '';
-		/** @var Collection<CmdCfg> $data */
-		$data = $this->db->table(CommandManager::DB_TABLE)
+		/** @var Collection<CmdCfg> */
+		$commands = $this->db->table(CommandManager::DB_TABLE)
 			->where("dependson", $cmd)
 			->where("cmdevent", "subcmd")
 			->asObj(CmdCfg::class);
 		$permissions = $this->db->table(CommandManager::DB_TABLE_PERMS)
 			->where("permission_set", $permSet)
-			->whereIn("cmd", $data->pluck("cmd")->toArray())
+			->whereIn("cmd", $commands->pluck("cmd")->toArray())
 			->asObj(CmdPermission::class)
 			->groupBy("cmd");
-		$data->each(function (CmdCfg $row) use ($permissions): void {
+		$commands->each(function (CmdCfg $row) use ($permissions): void {
 			$row->permissions = $permissions->get($row->cmd, new Collection())
 				->keyBy("permission_set")->toArray();
 		});
@@ -850,11 +850,14 @@ class ConfigController extends ModuleInstance {
 			->where("c.module", "RAID_MODULE")
 			->where("p.enabled", true)
 			->exists();
-		foreach ($data as $row) {
-			$perms = $row->permissions[$permSet];
-			$subcmdList .= "<pagebreak><header2>{$row->cmd}<end> ({$permSet})\n";
-			if ($row->description != "") {
-				$subcmdList .= "<tab>Description: <highlight>{$row->description}<end>\n";
+		foreach ($commands as $command) {
+			$perms = $command->permissions[$permSet] ?? null;
+			if (!isset($perms)) {
+				continue;
+			}
+			$subcmdList .= "<pagebreak><header2>{$command->cmd}<end> ({$permSet})\n";
+			if ($command->description != "") {
+				$subcmdList .= "<tab>Description: <highlight>{$command->description}<end>\n";
 			}
 
 			$perms->access_level = $this->getAdminDescription($perms->access_level);
@@ -867,8 +870,8 @@ class ConfigController extends ModuleInstance {
 
 			$subcmdList .= "<tab>Current Status: $status (Access: {$perms->access_level}) \n";
 			$subcmdList .= "<tab>Set status: [";
-			$subcmdList .= $this->text->makeChatcmd("enabled", "/tell <myname> config subcmd {$row->cmd} enable {$permSet}") . "] [";
-			$subcmdList .= $this->text->makeChatcmd("disabled", "/tell <myname> config subcmd {$row->cmd} disable {$permSet}") . "]\n";
+			$subcmdList .= $this->text->makeChatcmd("enabled", "/tell <myname> config subcmd {$command->cmd} enable {$permSet}") . "] [";
+			$subcmdList .= $this->text->makeChatcmd("disabled", "/tell <myname> config subcmd {$command->cmd} disable {$permSet}") . "]\n";
 
 			$subcmdList .= "<tab>Set access level: ";
 			foreach ($this->accessManager->getAccessLevels() as $accessLevel => $level) {
@@ -879,7 +882,7 @@ class ConfigController extends ModuleInstance {
 					continue;
 				}
 				$alName = $this->getAdminDescription($accessLevel);
-				$subcmdList .= $this->text->makeChatcmd($alName, "/tell <myname> config subcmd {$row->cmd} admin {$permSet} $accessLevel") . "  ";
+				$subcmdList .= $this->text->makeChatcmd($alName, "/tell <myname> config subcmd {$command->cmd} admin {$permSet} $accessLevel") . "  ";
 			}
 			$subcmdList .= "\n\n";
 		}
