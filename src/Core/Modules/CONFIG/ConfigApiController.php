@@ -3,6 +3,7 @@
 namespace Nadybot\Core\Modules\CONFIG;
 
 use Exception;
+use Illuminate\Support\Collection;
 use Throwable;
 use Nadybot\Core\{
 	Attributes as NCA,
@@ -17,6 +18,7 @@ use Nadybot\Core\{
 	InsufficientAccessException,
 	SettingManager,
 };
+use Nadybot\Core\DBSchema\CmdPermSetMapping;
 use Nadybot\Modules\{
 	DISCORD_GATEWAY_MODULE\DiscordRelayController,
 	WEBSERVER_MODULE\ApiResponse,
@@ -517,5 +519,33 @@ class ConfigApiController extends ModuleInstance {
 			return new Response(Response::UNPROCESSABLE_ENTITY, [], $e->getMessage());
 		}
 		return new ApiResponse($this->commandManager->getExtPermissionSet($old->name));
+	}
+
+	/**
+	 * Get a list of command sources
+	 */
+	#[
+		NCA\Api("/cmd_source"),
+		NCA\GET,
+		NCA\AccessLevel("all"),
+		NCA\ApiResult(code: 200, class: "CmdSource[]", desc: "A list of command sources and their mappings")
+	]
+	public function apiConfigCmdSrcGetEndpoint(Request $request, HttpProtocolWrapper $server): Response {
+		$sources = $this->commandManager->getSources();
+		$maps = $this->commandManager->getPermSetMappings()
+			->groupBy(function (CmdPermSetMapping $map): string {
+				return preg_replace("/\(.*$/", "", $map->source);
+			});
+		$result = [];
+		foreach ($sources as $source) {
+			$cmdSrc = new CmdSource();
+			$cmdSrc->name = $source;
+			$cmdSrc->mappings = $maps->get(
+				preg_replace("/\(.*$/", "", $source),
+				new Collection()
+			)->toArray();
+			$result []= $cmdSrc;
+		}
+		return new ApiResponse($result);
 	}
 }

@@ -87,6 +87,47 @@
 					}
 				}
 			},
+			"CmdPermSetMapping": {
+				"type": "object",
+				"properties": {
+					"permission_set": {
+						"type": "string",
+						"description": "The permission set to map $source to"
+					},
+					"source": {
+						"type": "string",
+						"description": "The command source to map"
+					},
+					"symbol": {
+						"type": "string",
+						"description": "The symbol that triggers a command if it's the first letter"
+					},
+					"symbol_optional": {
+						"type": "boolean",
+						"description": "Is the symbol required to interpret the msg as command or optional"
+					},
+					"feedback": {
+						"type": "boolean",
+						"description": "Shall we report an error if the command doesn't exist"
+					}
+				}
+			},
+			"CmdSource": {
+				"type": "object",
+				"properties": {
+					"name": {
+						"type": "string",
+						"description": "The name/mask of this command source If the name contains an asterisk wildcard, it represents a mask of possible sources, e.g. aotell(*)"
+					},
+					"mappings": {
+						"type": "array",
+						"description": "A list of permission set mappings this command source maps to",
+						"items": {
+							"$ref": "#/components/schemas/CmdPermSetMapping"
+						}
+					}
+				}
+			},
 			"RouteHopColor": {
 				"type": "object",
 				"properties": {
@@ -557,31 +598,6 @@
 						"type": "integer",
 						"nullable": true,
 						"description": "Timestamp when the action happened"
-					}
-				}
-			},
-			"CmdPermSetMapping": {
-				"type": "object",
-				"properties": {
-					"permission_set": {
-						"type": "string",
-						"description": "The permission set to map $source to"
-					},
-					"source": {
-						"type": "string",
-						"description": "The command source to map"
-					},
-					"symbol": {
-						"type": "string",
-						"description": "The symbol that triggers a command if it's the first letter"
-					},
-					"symbol_optional": {
-						"type": "boolean",
-						"description": "Is the symbol required to interpret the msg as command or optional"
-					},
-					"feedback": {
-						"type": "boolean",
-						"description": "Shall we report an error if the command doesn't exist"
 					}
 				}
 			},
@@ -1192,6 +1208,35 @@
 				},
 				"tags": [
 					"webserver"
+				]
+			},
+			"parameters": []
+		},
+		"/cmd_source": {
+			"get": {
+				"security": [
+					{
+						"basicAuth": []
+					}
+				],
+				"description": "Get a list of command sources",
+				"responses": {
+					"200": {
+						"description": "A list of command sources and their mappings",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "array",
+									"items": {
+										"$ref": "#/components/schemas/CmdSource"
+									}
+								}
+							}
+						}
+					}
+				},
+				"tags": [
+					"config"
 				]
 			},
 			"parameters": []
