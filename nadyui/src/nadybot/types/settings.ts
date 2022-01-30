@@ -65,7 +65,7 @@ export interface ModuleEventConfig {
 }
 
 export interface PermissionSet {
-  name: string;
+  permission_set: string;
   // The access level you need to have in order to be allowed to use this command in this channel
   access_level: string;
   // Can this command be used in this channel?
@@ -177,7 +177,7 @@ export const moduleEventConfigArrayDecoder = JsonDecoder.array(
 );
 
 const permissionSetDecoderMapping = {
-  name: JsonDecoder.string,
+  permission_set: JsonDecoder.string,
   access_level: JsonDecoder.string,
   enabled: JsonDecoder.boolean,
 };

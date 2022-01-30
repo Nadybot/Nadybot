@@ -203,7 +203,7 @@
                 v-for="permission_set in selected_commands[0].permissions"
                 :key="permission_set.name"
               >
-                {{ titleCase(permission_set.name) }}
+                {{ titleCase(permission_set.permission_set) }}
               </th>
             </tr>
           </thead>
@@ -535,7 +535,7 @@ export default defineComponent({
         await toggleCommand(
           this.selected.name,
           command.cmd,
-          config.name,
+          config.permission_set,
           config.access_level,
           config.enabled
         );
