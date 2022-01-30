@@ -369,7 +369,7 @@ class Nadybot extends AOChat {
 		}
 
 		if ($group === null) {
-			$group = $this->settingManager->getString("default_private_channel") ?? $this->char->name;
+			$group = $this->char->name;
 		}
 
 		$message = $this->text->formatMessage($origMsg = $message);
@@ -1383,7 +1383,7 @@ class Nadybot extends AOChat {
 	 * Check if a private channel is this bot's private channel
 	 */
 	public function isDefaultPrivateChannel(string $channel): bool {
-		return $channel === ($this->settingManager->getString("default_private_channel") ?? $this->char->name);
+		return $channel === $this->char->name;
 	}
 
 	public function getUptime(): int {

@@ -6,7 +6,10 @@ use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\CommandReply;
 use Nadybot\Core\ConfigFile;
 use Nadybot\Core\MessageEmitter;
+use Nadybot\Core\MessageHub;
 use Nadybot\Core\Nadybot;
+use Nadybot\Core\Routing\Character;
+use Nadybot\Core\Routing\RoutableMessage;
 use Nadybot\Core\Routing\Source;
 use Nadybot\Core\SettingManager;
 
@@ -15,6 +18,9 @@ class ConsoleCommandReply implements CommandReply, MessageEmitter {
 
 	#[NCA\Inject]
 	public SettingManager $settingManager;
+
+	#[NCA\Inject]
+	public MessageHub $messageHub;
 
 	#[NCA\Inject]
 	public ConfigFile $config;
@@ -28,6 +34,18 @@ class ConsoleCommandReply implements CommandReply, MessageEmitter {
 	}
 
 	public function reply($msg): void {
+		foreach ((array)$msg as $text) {
+			$rMessage = new RoutableMessage($text);
+			$rMessage->setCharacter(new Character($this->chatBot->char->name, $this->chatBot->char->id));
+			$rMessage->prependPath(new Source(Source::CONSOLE, "Console"));
+			$this->messageHub->handle($rMessage);
+			$text = $this->formatMsg($text);
+			echo("{$this->chatBot->char->name}: {$text}\n");
+		}
+	}
+
+	/** @param string|string[] $msg */
+	public function replyOnly(string|array $msg): void {
 		foreach ((array)$msg as $text) {
 			$text = $this->formatMsg($text);
 			echo("{$this->chatBot->char->name}: {$text}\n");
