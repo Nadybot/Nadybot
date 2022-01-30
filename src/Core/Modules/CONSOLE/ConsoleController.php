@@ -2,9 +2,10 @@
 
 namespace Nadybot\Core\Modules\CONSOLE;
 
-use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{
+	Attributes as NCA,
 	BotRunner,
+	Channels\ConsoleChannel,
 	CmdContext,
 	CommandManager,
 	ConfigFile,
@@ -13,12 +14,13 @@ use Nadybot\Core\{
 	MessageHub,
 	Nadybot,
 	Registry,
+	Routing\RoutableMessage,
+	Routing\Source,
 	SettingManager,
 	SocketManager,
 	SocketNotifier,
 	Timer,
 };
-use Nadybot\Core\Channels\ConsoleChannel;
 
 #[NCA\Instance]
 class ConsoleController extends ModuleInstance {
@@ -58,7 +60,6 @@ class ConsoleController extends ModuleInstance {
 
 	#[NCA\Setup]
 	public function setup(): void {
-		$this->commandManager->registerSource("console");
 		$this->settingManager->add(
 			module: $this->moduleName,
 			name: "console_color",
@@ -80,11 +81,13 @@ class ConsoleController extends ModuleInstance {
 			intoptions: "1;0"
 		);
 		if ($this->config->enableConsoleClient &&!BotRunner::isWindows()) {
+			$this->commandManager->registerSource("console");
 			$handler = new ConsoleCommandReply($this->chatBot);
 			Registry::injectDependencies($handler);
 			$channel = new ConsoleChannel($handler);
 			Registry::injectDependencies($channel);
-			$this->messageHub->registerMessageReceiver($channel);
+			$this->messageHub->registerMessageReceiver($channel)
+				->registerMessageEmitter($channel);
 		}
 	}
 
@@ -186,6 +189,7 @@ class ConsoleController extends ModuleInstance {
 			$this->saveHistory();
 			\Safe\readline_callback_handler_install('> ', [$this, 'processLine']);
 		}
+
 		$context = new CmdContext($this->config->superAdmin);
 		$context->message = $line;
 		$context->source = "console";
@@ -193,6 +197,11 @@ class ConsoleController extends ModuleInstance {
 		Registry::injectDependencies($context->sendto);
 		$this->chatBot->getUid($context->char->name, function (?int $uid, CmdContext $context): void {
 			$context->char->id = $uid;
+			$rMessage = new RoutableMessage($context->message);
+			$rMessage->setCharacter($context->char);
+			$rMessage->prependPath(new Source(Source::CONSOLE, "Console"));
+			$this->messageHub->handle($rMessage);
+
 			$this->commandManager->checkAndHandleCmd($context);
 		}, $context);
 	}
