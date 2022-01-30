@@ -17,6 +17,7 @@ use Nadybot\Core\{
 	ModuleInstance,
 	InsufficientAccessException,
 	SettingManager,
+	SQLException,
 };
 use Nadybot\Core\DBSchema\CmdPermSetMapping;
 use Nadybot\Modules\{
@@ -521,6 +522,18 @@ class ConfigApiController extends ModuleInstance {
 		return new ApiResponse($this->commandManager->getExtPermissionSet($old->name));
 	}
 
+	/** @return Collection<CmdSourceMapping> */
+	protected function getCmdSourceMappings(?string $source=null): Collection {
+		/** @var Collection<CmdSourceMapping> */
+		$maps = $this->commandManager->getPermSetMappings()
+			->map([CmdSourceMapping::class, "fromPermSetMapping"]);
+		if (isset($source)) {
+			return $maps->where("source", $source)->values();
+		}
+		return $maps;
+	}
+
+
 	/**
 	 * Get a list of command sources
 	 */
@@ -532,20 +545,312 @@ class ConfigApiController extends ModuleInstance {
 	]
 	public function apiConfigCmdSrcGetEndpoint(Request $request, HttpProtocolWrapper $server): Response {
 		$sources = $this->commandManager->getSources();
-		$maps = $this->commandManager->getPermSetMappings()
-			->groupBy(function (CmdPermSetMapping $map): string {
-				return preg_replace("/\(.*$/", "", $map->source);
-			});
+		$maps = $this->getCmdSourceMappings()->groupBy("source");
 		$result = [];
 		foreach ($sources as $source) {
-			$cmdSrc = new CmdSource();
-			$cmdSrc->name = $source;
-			$cmdSrc->mappings = $maps->get(
-				preg_replace("/\(.*$/", "", $source),
-				new Collection()
-			)->toArray();
+			$cmdSrc = CmdSource::fromMask($source);
+			$cmdSrc->mappings = $maps->get($cmdSrc->source, new Collection())->toArray();
 			$result []= $cmdSrc;
 		}
 		return new ApiResponse($result);
+	}
+
+	protected function getCmdSource(string $sourceName): ?CmdSource {
+		$sourceName = strtolower($sourceName);
+		$sources = new Collection($this->commandManager->getSources());
+		$source = $sources->first(function (string $source) use ($sourceName): bool {
+			return preg_replace("/\(.+$/", "", $source) === $sourceName;
+		});
+		return isset($source) ? CmdSource::fromMask($source) : null;
+	}
+
+	/**
+	 * Get details for a specific command source
+	 */
+	#[
+		NCA\Api("/cmd_source/%s"),
+		NCA\GET,
+		NCA\AccessLevel("all"),
+		NCA\ApiResult(code: 200, class: "CmdSource", desc: "The command source and its mappings")
+	]
+	public function apiConfigCmdSrcDetailGetEndpoint(Request $request, HttpProtocolWrapper $server, string $source): Response {
+		$cmdSrc = $this->getCmdSource(strtolower($source));
+		if (!isset($cmdSrc)) {
+			return new Response(Response::NOT_FOUND);
+		}
+		$cmdSrc->mappings = $this->getCmdSourceMappings($source)->toArray();
+		return new ApiResponse($cmdSrc);
+	}
+
+	/**
+	 * Get mappings for a specific command source
+	 */
+	#[
+		NCA\Api("/cmd_source/%s/mappings"),
+		NCA\GET,
+		NCA\AccessLevel("all"),
+		NCA\ApiResult(code: 200, class: "CmdSourceMapping[]", desc: "The command source's mappings")
+	]
+	public function apiConfigCmdSrcMappingsGetEndpoint(Request $request, HttpProtocolWrapper $server, string $source): Response {
+		$cmdSrc = $this->getCmdSource(strtolower($source));
+		if (!isset($cmdSrc)) {
+			return new Response(Response::NOT_FOUND);
+		}
+		return new ApiResponse($this->getCmdSourceMappings($source)->toArray());
+	}
+
+	/**
+	 * Get mappings for a specific command source
+	 */
+	#[
+		NCA\Api("/cmd_source/%s/mappings/%s"),
+		NCA\GET,
+		NCA\AccessLevel("all"),
+		NCA\ApiResult(code: 200, class: "CmdSourceMapping", desc: "The command's sub-source mapping")
+	]
+	public function apiConfigCmdSrcSubMappingGetEndpoint(Request $request, HttpProtocolWrapper $server, string $source, string $subSource): Response {
+		$cmdSrc = $this->getCmdSource(strtolower($source));
+		if (!isset($cmdSrc)) {
+			return new Response(Response::NOT_FOUND);
+		}
+		$mappings = $this->getCmdSourceMappings($source);
+		$mapping = $mappings->where("sub_source", strtolower($subSource))->first();
+		if (!isset($mapping)) {
+			return new Response(Response::NOT_FOUND);
+		}
+		return new ApiResponse($mapping);
+	}
+
+	/**
+	 * Delete mapping for a specific command sub-source
+	 */
+	#[
+		NCA\Api("/cmd_source/%s/mappings/%s"),
+		NCA\DELETE,
+		NCA\AccessLevel("superadmin"),
+		NCA\ApiResult(code: 204, desc: "The sub-source mapping was deleted successfully")
+	]
+	public function apiConfigCmdSrcSubMappingDeleteEndpoint(Request $request, HttpProtocolWrapper $server, string $source, string $subSource): Response {
+		$cmdSrc = $this->getCmdSource(strtolower($source));
+		if (!isset($cmdSrc)) {
+			return new Response(Response::NOT_FOUND);
+		}
+		$fullSource = strtolower("{$source}({$subSource})");
+		try {
+			if (!$this->commandManager->deletePermissionSetMapping($fullSource)) {
+				return new Response(Response::NOT_FOUND);
+			}
+		} catch (Exception $e) {
+			return new Response(Response::FORBIDDEN);
+		}
+		return new Response(Response::NO_CONTENT);
+	}
+
+	/**
+	 * Delete mapping for a specific command source
+	 */
+	#[
+		NCA\Api("/cmd_source/%s/mappings"),
+		NCA\DELETE,
+		NCA\AccessLevel("superadmin"),
+		NCA\ApiResult(code: 204, desc: "The source mapping was deleted successfully")
+	]
+	public function apiConfigCmdSrcMappingDeleteEndpoint(Request $request, HttpProtocolWrapper $server, string $source): Response {
+		$cmdSrc = $this->getCmdSource(strtolower($source));
+		if (!isset($cmdSrc) || $cmdSrc->has_sub_sources) {
+			return new Response(Response::NOT_FOUND);
+		}
+		try {
+			if (!$this->commandManager->deletePermissionSetMapping(strtolower($source))) {
+				return new Response(Response::NOT_FOUND);
+			}
+		} catch (Exception $e) {
+			return new Response(Response::FORBIDDEN);
+		}
+		return new Response(Response::NO_CONTENT);
+	}
+
+	protected function createCmdSourceMapping(CmdSourceMapping $decoded): Response {
+		try {
+			$cmdSrc = $this->getCmdSource($decoded->source);
+			if (!isset($cmdSrc)) {
+				throw new Exception("No command source {$decoded->source} found.");
+			}
+			$source = $decoded->source;
+			if ($cmdSrc->has_sub_sources) {
+				if (!isset($decoded->sub_source) || !strlen($decoded->sub_source)) {
+					$source .= "(*)";
+				} else {
+					$source .= "({$decoded->sub_source})";
+				}
+			}
+			$source = strtolower($source);
+			if ($this->commandManager->getPermSetMappings()->where("source", $source)->isNotEmpty()) {
+				return new Response(Response::CONFLICT);
+			}
+			$decoded->permission_set = strtolower($decoded->permission_set);
+			if (!$this->commandManager->hasPermissionSet($decoded->permission_set)) {
+				return new Response(
+					Response::UNPROCESSABLE_ENTITY,
+					["Content-type" => "text/plain"],
+					"There is no permission set {$decoded->permission_set}."
+				);
+			}
+			$map = $decoded->toPermSetMapping();
+			try {
+				$map->id = $this->db->insert(CommandManager::DB_TABLE_MAPPING, $map);
+			} catch (SQLException $e) {
+				return new Response(
+					Response::INTERNAL_SERVER_ERROR,
+					["Content-type" => "text/plain"],
+					$e->getMessage()
+				);
+			}
+			$this->commandManager->loadPermsetMappings();
+		} catch (Exception $e) {
+			return new Response(
+				Response::UNPROCESSABLE_ENTITY,
+				["Content-type" => "text/plain"],
+				$e->getMessage()
+			);
+		}
+		return new Response(Response::NO_CONTENT);
+	}
+
+	/**
+	 * Create a new mapping
+	 */
+	#[
+		NCA\Api("/cmd_source/%s/mappings"),
+		NCA\POST,
+		NCA\AccessLevel("superadmin"),
+		NCA\RequestBody(class: "CmdSourceMapping", desc: "The new mapping", required: true),
+		NCA\ApiResult(code: 204, desc: "A new command mapping was created")
+	]
+	public function apiConfigCmdSrcNewMappingEndpoint(Request $request, HttpProtocolWrapper $server, string $source): Response {
+		$cmdSrc = $this->getCmdSource(strtolower($source));
+		if (!isset($cmdSrc)) {
+			return new Response(Response::NOT_FOUND);
+		}
+		$set = $request->decodedBody;
+		try {
+			if (!is_object($set)) {
+				throw new Exception("Wrong content body");
+			}
+			/** @var CmdSourceMapping */
+			$decoded = JsonImporter::convert(CmdSourceMapping::class, $set);
+			$decoded->source = $source;
+		} catch (Throwable $e) {
+			return new Response(Response::UNPROCESSABLE_ENTITY);
+		}
+		return $this->createCmdSourceMapping($decoded);
+	}
+
+	protected function modifyCmdSourceMapping(CmdSourceMapping $decoded): Response {
+		try {
+			$cmdSrc = $this->getCmdSource($decoded->source);
+			if (!isset($cmdSrc)) {
+				throw new Exception("No command source {$decoded->source} found.");
+			}
+			$source = $decoded->source;
+			if ($cmdSrc->has_sub_sources) {
+				if (!isset($decoded->sub_source) || !strlen($decoded->sub_source)) {
+					return new Response(Response::NOT_FOUND);
+				} else {
+					$source .= "({$decoded->sub_source})";
+				}
+			}
+			$source = strtolower($source);
+			/** @var ?CmdPermSetMapping */
+			$old = $this->commandManager->getPermSetMappings()->where("source", $source)->first();
+			if (!isset($old)) {
+				return new Response(Response::NOT_FOUND);
+			}
+			$decoded->permission_set = strtolower($decoded->permission_set);
+			if (!$this->commandManager->hasPermissionSet($decoded->permission_set)) {
+				return new Response(
+					Response::UNPROCESSABLE_ENTITY,
+					["Content-type" => "text/plain"],
+					"There is no permission set {$decoded->permission_set}."
+				);
+			}
+			$map = $decoded->toPermSetMapping();
+			$map->id = $old->id;
+			try {
+				$map->id = $this->db->update(CommandManager::DB_TABLE_MAPPING, "id", $map);
+			} catch (SQLException $e) {
+				return new Response(
+					Response::INTERNAL_SERVER_ERROR,
+					["Content-type" => "text/plain"],
+					$e->getMessage()
+				);
+			}
+			$this->commandManager->loadPermsetMappings();
+		} catch (Exception $e) {
+			return new Response(
+				Response::UNPROCESSABLE_ENTITY,
+				["Content-type" => "text/plain"],
+				$e->getMessage()
+			);
+		}
+		return new ApiResponse(CmdSourceMapping::fromPermSetMapping($map));
+	}
+
+	/**
+	 * Modify mapping for a specific command source
+	 */
+	#[
+		NCA\Api("/cmd_source/%s/mappings"),
+		NCA\PUT,
+		NCA\AccessLevel("superadmin"),
+		NCA\ApiResult(code: 200, class: "CmdSourceMapping", desc: "The new, modified source mapping")
+	]
+	public function apiConfigCmdSrcMappingPutEndpoint(Request $request, HttpProtocolWrapper $server, string $source): Response {
+		$cmdSrc = $this->getCmdSource(strtolower($source));
+		if (!isset($cmdSrc) || $cmdSrc->has_sub_sources) {
+			return new Response(Response::NOT_FOUND);
+		}
+		$set = $request->decodedBody;
+		try {
+			if (!is_object($set)) {
+				throw new Exception("Wrong content body");
+			}
+			/** @var CmdSourceMapping */
+			$decoded = JsonImporter::convert(CmdSourceMapping::class, $set);
+			$decoded->source = strtolower($source);
+			$decoded->sub_source = null;
+		} catch (Throwable $e) {
+			return new Response(Response::UNPROCESSABLE_ENTITY);
+		}
+		return $this->modifyCmdSourceMapping($decoded);
+	}
+
+	/**
+	 * Modify mapping for a specific command source
+	 */
+	#[
+		NCA\Api("/cmd_source/%s/mappings/%s"),
+		NCA\PUT,
+		NCA\AccessLevel("superadmin"),
+		NCA\ApiResult(code: 200, class: "CmdSourceMapping", desc: "The new, modified source mapping")
+	]
+	public function apiConfigCmdSubSrcMappingPutEndpoint(Request $request, HttpProtocolWrapper $server, string $source, string $subSource): Response {
+		$cmdSrc = $this->getCmdSource(strtolower($source));
+		if (!isset($cmdSrc) || !$cmdSrc->has_sub_sources) {
+			return new Response(Response::NOT_FOUND);
+		}
+		$set = $request->decodedBody;
+		try {
+			if (!is_object($set)) {
+				throw new Exception("Wrong content body");
+			}
+			/** @var CmdSourceMapping */
+			$decoded = JsonImporter::convert(CmdSourceMapping::class, $set);
+			$decoded->source = strtolower($source);
+			$decoded->sub_source = strtolower($subSource);
+		} catch (Throwable $e) {
+			return new Response(Response::UNPROCESSABLE_ENTITY);
+		}
+		return $this->modifyCmdSourceMapping($decoded);
 	}
 }
