@@ -27,7 +27,7 @@ class ConsoleChannel extends Base {
 		if (!isset($message)) {
 			return false;
 		}
-		$this->sendto->reply($message);
+		$this->sendto->replyOnly($message);
 		return true;
 	}
 }

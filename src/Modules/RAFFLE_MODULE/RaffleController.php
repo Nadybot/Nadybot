@@ -235,7 +235,7 @@ class RaffleController extends ModuleInstance {
 		if ($context->isDM()) {
 			$this->raffle->sendto = new PrivateChannelCommandReply(
 				$this->chatBot,
-				$this->settingManager->getString("default_private_channel") ?? $this->chatBot->char->name
+				$this->chatBot->char->name
 			);
 		}
 		$event = new RaffleEvent();

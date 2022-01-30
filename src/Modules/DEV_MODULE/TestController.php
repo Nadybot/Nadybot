@@ -679,12 +679,7 @@ class TestController extends ModuleInstance {
 			$context->reply("The character <highlight>{$who}<end> does not exist.");
 			return;
 		}
-		$channel = $this->settingManager->getString("default_private_channel") ?? $this->chatBot->char->name;
-		$channelUid = $this->chatBot->get_uid($channel);
-		if ($channelUid === false) {
-			$context->reply("Cannot determine this bot's private channel.");
-			return;
-		}
+		$channelUid = $this->chatBot->char->id;
 		$packet = new AOChatPacket("in", AOChatPacket::PRIVGRP_CLIJOIN, \Safe\pack("NN", $channelUid, $uid));
 
 		$this->chatBot->process_packet($packet);
@@ -697,12 +692,7 @@ class TestController extends ModuleInstance {
 			$context->reply("The character <highlight>{$who}<end> does not exist.");
 			return;
 		}
-		$channel = $this->settingManager->getString("default_private_channel") ?? $this->chatBot->char->name;
-		$channelUid = $this->chatBot->get_uid($channel);
-		if ($channelUid === false) {
-			$context->reply("Cannot determine this bot's private channel.");
-			return;
-		}
+		$channelUid = $this->chatBot->char->id;
 		$packet = new AOChatPacket("in", AOChatPacket::PRIVGRP_CLIPART, \Safe\pack("NN", $channelUid, $uid));
 
 		$this->chatBot->process_packet($packet);
