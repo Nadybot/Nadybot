@@ -1089,9 +1089,13 @@ class CommandManager implements MessageEmitter {
 	 * Delete a permission set mapping
 	 *
 	 * @throws InvalidArgumentException when one of the parameters is invalid
-	 * @throws Exception on unknown errors, like SQL
+	 * @throws Exception when trying to delete the last permission set mapping
 	 */
 	public function deletePermissionSetMapping(string $source): bool {
+		$numMappings = $this->getPermSetMappings()->count();
+		if ($numMappings < 2) {
+			throw new Exception("You cannot delete the last permission mapping.");
+		}
 		$source = strtolower($source);
 		if ($this->getPermSetMappings()->where("source", $source)->isEmpty()) {
 			return false;
@@ -1143,12 +1147,12 @@ class CommandManager implements MessageEmitter {
 		if (!isset($context->source)) {
 			return false;
 		}
-		$this->logger->notice("Received msg from {$context->source}");
+		$this->logger->info("Received msg from {$context->source}");
 		$cmdMap = $this->getPermsetMapForSource($context->source);
 		if (!isset($cmdMap)) {
 			return false;
 		}
-		$this->logger->notice("Using permission set {$cmdMap->permission_set}", [
+		$this->logger->info("Using permission set {$cmdMap->permission_set}", [
 			"map" => $cmdMap,
 		]);
 		if (strncmp($context->message, $cmdMap->symbol, strlen($cmdMap->symbol)) === 0) {

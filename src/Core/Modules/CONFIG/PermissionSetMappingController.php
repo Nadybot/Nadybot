@@ -3,6 +3,7 @@
 namespace Nadybot\Core\Modules\CONFIG;
 
 use Closure;
+use Exception;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	Attributes as NCA,
@@ -178,8 +179,13 @@ class PermissionSetMappingController extends ModuleInstance {
 		string $source,
 	): void {
 		$source = strtolower($source);
-		if (!$this->cmdManager->deletePermissionSetMapping($source)) {
-			$context->reply("There is no permission set map for <highlight>{$source}<end>.");
+		try {
+			if (!$this->cmdManager->deletePermissionSetMapping($source)) {
+				$context->reply("There is no permission set map for <highlight>{$source}<end>.");
+				return;
+			}
+		} catch (Exception $e) {
+			$context->reply($e->getMessage());
 			return;
 		}
 		$map = $this->cmdManager->getPermsetMapForSource($source);
