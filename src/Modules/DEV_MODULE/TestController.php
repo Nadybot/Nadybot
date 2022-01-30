@@ -254,7 +254,6 @@ class TestController extends ModuleInstance {
 	#[NCA\HandlesCommand("test")]
 	public function testAllCommand(CmdContext $context, #[NCA\Str("all")] string $action): void {
 		$testContext = clone $context;
-		$testContext->channel = "msg";
 		$testContext->sendto = new MockCommandReply("buddylist clear");
 		$this->buddylistController->buddylistShowCommand($testContext, "clear");
 
@@ -265,8 +264,7 @@ class TestController extends ModuleInstance {
 		$testLines = [];
 		foreach ($files as $file) {
 			$lines = \Safe\file($this->path . $file, \FILE_IGNORE_NEW_LINES);
-			/** @var string[] $lines */
-			$testLines = [...$testLines, ...$lines];
+			$testLines = array_merge($testLines, $lines);
 		}
 		$this->runTests($testLines, $testContext, $logFile);
 		$context->reply("Tests queued.");
@@ -277,7 +275,7 @@ class TestController extends ModuleInstance {
 		$file = "{$file}.txt";
 
 		$testContext = clone $context;
-		$testContext->channel = "msg";
+		$testContext->permissionSet = "msg";
 
 		try {
 			$lines = \Safe\file($this->path . $file, FILE_IGNORE_NEW_LINES);

@@ -4,7 +4,6 @@ namespace Nadybot\Api;
 
 use Exception;
 use Nadybot\Core\Attributes as NCA;
-use Nadybot\Core\Attributes\RequestBody;
 use Nadybot\Core\BotRunner;
 use Nadybot\Core\DBRow;
 use Nadybot\Core\Registry;
@@ -13,6 +12,7 @@ use ReflectionMethod;
 use ReflectionNamedType;
 use ReflectionParameter;
 use ReflectionProperty;
+use ReflectionUnionType;
 
 class ApiSpecGenerator {
 	public function loadClasses(): void {
@@ -163,7 +163,8 @@ class ApiSpecGenerator {
 				if ($docBlock === false) {
 					throw new Exception("Untyped array found at {$class}::\$" . $refProp->name);
 				}
-				if (!preg_match("/@var\s+(.+?)\[\]/", $docBlock, $matches)) {
+				if (!preg_match("/@json-var\s+(.+?)\[\]/", $docBlock, $matches)
+					&& !preg_match("/@var\s+(.+?)\[\]/", $docBlock, $matches)) {
 					throw new Exception("Untyped array found at {$class}::\$" . $refProp->name);
 				}
 				$parts = explode("\\", $matches[1]??"");
@@ -208,23 +209,36 @@ class ApiSpecGenerator {
 			}
 			return [$propName, $types];
 		}
-		/** @var ReflectionNamedType */
+		$refTypes = [];
 		$refType = $refProp->getType();
-		if ($refType->isBuiltin()) {
-			if ($refType->getName() === "int") {
-				return [$propName, "integer"];
-			}
-			if ($refType->getName() === "bool") {
-				return [$propName, "boolean"];
-			}
-			return [$propName, $refType->getName()];
+		if ($refType instanceof ReflectionUnionType) {
+			$refTypes = $refType->getTypes();
+		} elseif ($refType instanceof ReflectionNamedType) {
+			$refTypes = [$refType];
+		} else {
+			throw new Exception("Unknown ReflectionClass");
 		}
-		if ($refType->getName() === "DateTime") {
-			return [$propName, "integer"];
+		$types = [];
+		foreach ($refTypes as $refType) {
+			if ($refType->isBuiltin()) {
+				if ($refType->getName() === "int") {
+					$types []= "integer";
+				} elseif ($refType->getName() === "bool") {
+					$types []= "boolean";
+				} else {
+					$types []= $refType->getName();
+				}
+			} elseif ($refType->getName() === "DateTime") {
+				$types []= "integer";
+			} else {
+				$name = explode("\\", $refType->getName());
+				$types []= "#/components/schemas/" . end($name);
+			}
 		}
-		$name = explode("\\", $refType->getName());
-
-		return [$propName, "#/components/schemas/" . end($name)];
+		if (count($types) === 1) {
+			return [$propName, $types[0]];
+		}
+		return [$propName, $types];
 	}
 
 	/**

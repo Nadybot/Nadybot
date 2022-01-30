@@ -23,10 +23,12 @@ use Nadybot\Core\{
 	Util,
 };
 use Exception;
+use Illuminate\Support\Collection;
 use Nadybot\Core\DBSchema\{
 	CmdAlias,
 	CmdCfg,
 	EventCfg,
+	CmdPermission,
 	RouteHopColor,
 	RouteHopFormat,
 };
@@ -193,16 +195,13 @@ class ProfileController extends ModuleInstance {
 			$contents .= "!config event {$row->type} {$row->file} {$status} all\n";
 		}
 		$contents .= "\n# Commands\n";
-		/** @var CmdCfg[] */
-		$data = $this->db->table(CommandManager::DB_TABLE)
-			->asObj(CmdCfg::class)
-			->toArray();
+		/** @var Collection<CmdCfg> */
+		$data = $this->commandManager->getAll();
 		foreach ($data as $row) {
-			$status = "disable";
-			if ($row->status === 1) {
-				$status = "enable";
+			foreach ($row->permissions as $channel => $permissions) {
+				$status = $permissions->enabled ? "enable" : "disable";
+				$contents .= "!config {$row->cmdevent} {$row->cmd} {$status} {$channel}\n";
 			}
-			$contents .= "!config {$row->cmdevent} {$row->cmd} {$status} {$row->type}\n";
 		}
 		$contents .= "\n# Aliases\n";
 		/** @var CmdAlias[] */
@@ -307,7 +306,7 @@ class ProfileController extends ModuleInstance {
 			$context = new CmdContext($sender);
 			$context->char->id = $this->chatBot->get_uid($sender) ?: null;
 			$context->sendto = $profileSendTo;
-			$context->channel = "msg";
+			$context->permissionSet = $this->commandManager->getPermissionSets()->firstOrFail()->name;
 			$numSkipped = 0;
 			for ($profileRow=0; $profileRow < count($lines); $profileRow++) {
 				$line = $lines[$profileRow];
@@ -318,19 +317,13 @@ class ProfileController extends ModuleInstance {
 						continue;
 					}
 				} elseif (preg_match("/^!config (cmd|subcmd) (.+) (enable|disable) ([^ ]+)$/", $line, $parts)) {
-					/** @var CmdCfg|null $data */
-					$data = $this->db->table(CommandManager::DB_TABLE)
-						->where("cmdevent", $parts[1])
+					/** @var CmdPermission|null $data */
+					$data = $this->db->table(CommandManager::DB_TABLE_PERMS)
 						->where("cmd", $parts[2])
-						->where("type", $parts[4])
-						->asObj(CmdCfg::class)
+						->where("name", $parts[4])
+						->asObj(CmdPermission::class)
 						->first();
-					if (isset($data)
-						&& (
-								($data->status === 1 && $parts[3] === 'enable')
-							||	($data->status === 0 && $parts[3] === 'disable')
-						)
-					) {
+					if (isset($data) && ($data->enabled === ($parts[3] === 'enable'))) {
 						$numSkipped++;
 						continue;
 					}

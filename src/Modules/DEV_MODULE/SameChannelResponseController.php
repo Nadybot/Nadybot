@@ -32,7 +32,10 @@ class SameChannelResponseController extends ModuleInstance {
 
 	#[NCA\HandlesCommand("demo")]
 	public function demoCommand(CmdContext $context, string $commandString): void {
-		$context->sendto = new DemoResponseCommandReply($context->channel, $context->sendto, $this->chatBot->char->name);
+		if (!isset($context->source)) {
+			return;
+		}
+		$context->sendto = new DemoResponseCommandReply($context->source, $context->sendto, $this->chatBot->char->name);
 		$context->message = $commandString;
 		$this->commandManager->processCmd($context);
 	}

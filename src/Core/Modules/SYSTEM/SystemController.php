@@ -149,20 +149,11 @@ class SystemController extends ModuleInstance implements MessageEmitter {
 		$this->helpManager->register($this->moduleName, "budatime", "budatime.txt", "all", "Format for budatime");
 
 		$name = $this->config->name;
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: "default_private_channel",
-			description: "Private channel to process commands from",
-			mode: "edit",
-			type: "text",
-			value: $name,
-			options: $name
-		);
 
 		$this->settingManager->add(
 			module: $this->moduleName,
 			name: "symbol",
-			description: "Command prefix symbol",
+			description: "Default command prefix symbol",
 			mode: "edit",
 			type: "text",
 			options: "!;#;*;@;$;+;-",
@@ -197,30 +188,6 @@ class SystemController extends ModuleInstance implements MessageEmitter {
 			module: $this->moduleName,
 			name: "guild_channel_status",
 			description: "Enable the guild channel",
-			mode: "edit",
-			type: "options",
-			options: "true;false",
-			intoptions: "1;0",
-			accessLevel: "mod",
-			value: "1",
-		);
-
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: "guild_channel_cmd_feedback",
-			description: "Show message on invalid command in guild channel",
-			mode: "edit",
-			type: "options",
-			options: "true;false",
-			intoptions: "1;0",
-			accessLevel: "mod",
-			value: "1",
-		);
-
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: "private_channel_cmd_feedback",
-			description: "Show message on invalid command in private channel",
 			mode: "edit",
 			type: "options",
 			options: "true;false",
@@ -359,9 +326,12 @@ class SystemController extends ModuleInstance implements MessageEmitter {
 		foreach ($this->eventManager->events as $type => $events) {
 			$config->active_events += count($events);
 		}
-		$config->active_tell_commands = (count($this->commandManager->commands['msg']) - $numAliases);
-		$config->active_priv_commands = (count($this->commandManager->commands['priv']) - $numAliases);
-		$config->active_org_commands = (count($this->commandManager->commands['guild']) - $numAliases);
+		foreach ($this->commandManager->commands as $channel => $commands) {
+			$chanStat = new ChannelCommandStats();
+			$chanStat->name = $channel;
+			$chanStat->active_commands = count($commands) - $numAliases;
+			$config->active_commands []= $chanStat;
+		}
 		$config->active_subcommands = count($this->subcommandManager->subcommands);
 		$config->active_help_commands = count($this->helpManager->getAllHelpTopics(null));
 
@@ -446,9 +416,9 @@ class SystemController extends ModuleInstance implements MessageEmitter {
 		$blob .= "<tab>Bot Uptime: <highlight>$date_string<end>\n\n";
 
 		$blob .= "<header2>Configuration<end>\n";
-		$blob .= "<tab>Active tell commands: <highlight>{$info->config->active_tell_commands}<end>\n";
-		$blob .= "<tab>Active private channel commands: <highlight>{$info->config->active_priv_commands}<end>\n";
-		$blob .= "<tab>Active org channel commands: <highlight>{$info->config->active_org_commands}<end>\n";
+		foreach ($info->config->active_commands as $cmdChannelStats) {
+			$blob .= "<tab>Active {$cmdChannelStats->name} commands: <highlight>{$cmdChannelStats->active_commands}<end>\n";
+		}
 		$blob .= "<tab>Active subcommands: <highlight>{$info->config->active_subcommands}<end>\n";
 		$blob .= "<tab>Active command aliases: <highlight>{$info->config->active_aliases}<end>\n";
 		$blob .= "<tab>Active events: <highlight>{$info->config->active_events}<end>\n";
@@ -582,7 +552,8 @@ class SystemController extends ModuleInstance implements MessageEmitter {
 		$newContext = new CmdContext($context->char->name, $context->char->id);
 		$newContext->sendto = $showSendto;
 		$newContext->message = $cmd;
-		$newContext->channel = "msg";
+		$newContext->source = $context->source;
+		$newContext->permissionSet = $context->permissionSet;
 		$this->commandManager->processCmd($newContext);
 
 		$context->reply("Command <highlight>{$cmd}<end> has been sent to <highlight>{$name}<end>.");

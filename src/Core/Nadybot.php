@@ -16,7 +16,6 @@ use Nadybot\Core\DBSchema\{
 };
 use Nadybot\Modules\WEBSERVER_MODULE\JsonImporter;
 use Exception;
-use InvalidArgumentException;
 use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\Channels\OrgChannel;
 use Nadybot\Core\Channels\PrivateChannel;
@@ -107,7 +106,7 @@ class Nadybot extends AOChat {
 	 **/
 	public array $privateChats = [];
 
-	/** @var array<string,array<string,bool>> */
+	/** @var array<string,bool> */
 	public array $existing_subcmds = [];
 
 	/** @var array<string,array<string,bool>> */
@@ -174,9 +173,11 @@ class Nadybot extends AOChat {
 		$this->db->table(EventManager::DB_TABLE)->where("type", "setup")->update(["verify" => 1]);
 
 		// To reduce queries load core items into memory
-		$this->db->table(CommandManager::DB_TABLE)->where("cmdevent", "subcmd")->asObj(CmdCfg::class)
+		$this->db->table(CommandManager::DB_TABLE)
+			->where("cmdevent", "subcmd")
+			->asObj(CmdCfg::class)
 			->each(function(CmdCfg $row): void {
-				$this->existing_subcmds[$row->type][$row->cmd] = true;
+				$this->existing_subcmds[$row->cmd] = true;
 			});
 
 		$this->db->table(EventManager::DB_TABLE)->asObj(EventCfg::class)
@@ -283,6 +284,9 @@ class Nadybot extends AOChat {
 		$this->messageHub
 			->registerMessageReceiver($pm)
 			->registerMessageEmitter($pm);
+		$this->commandManager->registerSource(Source::PRIV . "(*)");
+		$this->commandManager->registerSource(Source::ORG);
+		$this->commandManager->registerSource(Source::TELL . "(*)");
 	}
 
 	/**
@@ -566,33 +570,6 @@ class Nadybot extends AOChat {
 		$this->messageHub->handle($rMessage);
 
 		$this->send_group($channel, $guildColor.$message, "\0", $priority);
-	}
-
-	/**
-	 * Returns a command type in the proper format
-	 *
-	 * @param null|string|string[] $type A space-separate list of any combination of "msg", "priv" and "guild"
-	 * @param string|string[] $admin A space-separate list of access rights needed
-	 */
-	public function processCommandArgs(&$type, &$admin): bool {
-		if ($type === null || $type === "") {
-			$type = ["msg", "priv", "guild"];
-		} elseif (is_string($type)) {
-			$type = explode(' ', $type);
-		}
-
-		if (!is_string($admin)) {
-			throw new InvalidArgumentException("Wrong parameter type 2 to " .__FUNCTION__);
-		}
-
-		$admin = explode(' ', $admin);
-		if (count($admin) === 1) {
-			$admin = array_fill(0, count($type), $admin[0]);
-		} elseif (count($admin) != count($type)) {
-			$this->logger->error("The number of type arguments does not equal the number of admin arguments for command/subcommand registration");
-			return false;
-		}
-		return true;
 	}
 
 	/**
@@ -933,21 +910,16 @@ class Nadybot extends AOChat {
 			function(int $senderId, AOChatEvent $eventObj, string $message, string $sender, string $type): void {
 				$this->eventManager->fireEvent($eventObj);
 
-				// remove the symbol if there is one
-				if ($message[0] == $this->settingManager->get("symbol") && strlen($message) > 1) {
-					$message = substr($message, 1);
-				}
-
-				// check tell limits
 				$context = new CmdContext($sender, $senderId);
-				$context->channel = $type;
 				$context->message = $message;
+				$context->source = Source::TELL . "({$sender})";
 				$context->sendto = new PrivateMessageCommandReply($this, $sender, $eventObj->worker ?? null);
+				$context->setIsDM();
 				$this->limitsController->checkAndExecute(
 					$sender,
 					$message,
 					function(CmdContext $context): void {
-						$this->commandManager->processCmd($context);
+						$this->commandManager->checkAndHandleCmd($context);
 					},
 					$context
 				);
@@ -1001,25 +973,11 @@ class Nadybot extends AOChat {
 		}
 		$rMessage->prependPath(new Source(Source::PRIV, $channel, $label));
 		$this->messageHub->handle($rMessage);
-		if ($message[0] !== $this->settingManager->get("symbol")
-			|| strlen($message) <= 1
-			|| !$this->isDefaultPrivateChannel($channel)
-		) {
-			return;
-		}
-
 		$context = new CmdContext($sender, $senderId);
-		$context->channel = $type;
-		$context->message = substr($message, 1);
+		$context->message = $message;
+		$context->source = Source::PRIV . "({$channel})";
 		$context->sendto = new PrivateChannelCommandReply($this, $channel);
-		$this->banController->handleBan(
-			$senderId,
-			function (int $senderId, CmdContext $context): void {
-				$this->commandManager->processCmd($context);
-			},
-			null,
-			$context
-		);
+		$this->commandManager->checkAndHandleCmd($context);
 	}
 
 	/**
@@ -1098,21 +1056,11 @@ class Nadybot extends AOChat {
 			$eventObj->type = $type;
 
 			$this->eventManager->fireEvent($eventObj);
-
-			if ($message[0] == $this->settingManager->get("symbol") && strlen($message) > 1) {
-				$context = new CmdContext($sender, $senderId);
-				$context->channel = "guild";
-				$context->message = substr($message, 1);
-				$context->sendto = new GuildChannelCommandReply($this);
-				$this->banController->handleBan(
-					$senderId,
-					function (int $senderId, CmdContext $context): void {
-						$this->commandManager->processCmd($context);
-					},
-					null,
-					$context
-				);
-			}
+			$context = new CmdContext($sender, $senderId);
+			$context->source = Source::ORG;
+			$context->message = $message;
+			$context->sendto = new GuildChannelCommandReply($this);
+			$this->commandManager->checkAndHandleCmd($context);
 		}
 	}
 
@@ -1364,7 +1312,6 @@ class Nadybot extends AOChat {
 			}
 			$this->commandManager->register(
 				$moduleName,
-				$definition['channels'],
 				implode(',', $definition['handlers']),
 				(string)$command,
 				$definition['accessLevel'],
@@ -1381,7 +1328,6 @@ class Nadybot extends AOChat {
 			}
 			$this->subcommandManager->register(
 				$moduleName,
-				$definition['channels'],
 				implode(',', $definition['handlers']),
 				$subcommand,
 				$definition['accessLevel'],

@@ -684,8 +684,7 @@ class WhatBuffsController extends ModuleInstance {
 			$blob .= $this->showItemLink($item, $item->highql);
 			if ($item->amount > $item->low_amount) {
 				$blob .= " ($item->low_amount - $item->amount)";
-				$bestQlCommands = $this->commandManager->get('bestql', 'msg');
-				if ($bestQlCommands && $bestQlCommands[0]->status) {
+				if ($this->commandManager->cmdEnabled('bestql')) {
 					$link = $this->text->makeItem($item->lowid, $item->highid, 0, $item->name);
 					$blob .= " " . $this->text->makeChatcmd(
 						"Breakpoints",

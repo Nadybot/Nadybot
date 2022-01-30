@@ -62,12 +62,14 @@ class AliasController extends ModuleInstance {
 		$aliasObj->alias = $alias;
 		$aliasObj->status = 1;
 
-		$commands = $this->commandManager->get($alias);
+		$command = $this->commandManager->get($alias);
 		$enabled = false;
-		foreach ($commands as $command) {
-			if ($command->status == 1) {
-				$enabled = true;
-				break;
+		if (isset($command)) {
+			foreach ($command->permissions as $permission) {
+				if ($permission->enabled) {
+					$enabled = true;
+					break;
+				}
 			}
 		}
 		$row = $this->commandAlias->get($alias);

@@ -194,12 +194,7 @@ class NotesController extends ModuleInstance {
 		$blob = '';
 		$current = '';
 		$format = $this->settingManager->getInt('reminder_format') ?? 2;
-		$reminderCommands = $this->commandManager->get('reminders', 'msg');
-		// If the command is not available to the sender, don't render reminder-links
-		if (empty($reminderCommands)
-			|| !$reminderCommands[0]->status
-			|| !$this->accessManager->checkAccess($sender, $reminderCommands[0]->admin)
-		) {
+		if (!$this->commandManager->cmdExecutable('reminders', $sender)) {
 			$format = 0;
 		}
 		foreach ($notes as $note) {

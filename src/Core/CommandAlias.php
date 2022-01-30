@@ -2,6 +2,7 @@
 
 namespace Nadybot\Core;
 
+use Illuminate\Support\Collection;
 use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\DBSchema\CmdAlias;
 
@@ -74,9 +75,9 @@ class CommandAlias {
 
 		$this->logger->info("Activate Command Alias command:($command) alias:($alias)");
 
-		$this->commandManager->activate('msg', self::ALIAS_HANDLER, $alias, 'all');
-		$this->commandManager->activate('priv', self::ALIAS_HANDLER, $alias, 'all');
-		$this->commandManager->activate('guild', self::ALIAS_HANDLER, $alias, 'all');
+		foreach ($this->commandManager->getPermissionSets() as $set) {
+			$this->commandManager->activate($set->name, self::ALIAS_HANDLER, $alias, 'all');
+		}
 	}
 
 	/**
@@ -87,9 +88,9 @@ class CommandAlias {
 
 		$this->logger->info("Deactivate Command Alias:($alias)");
 
-		$this->commandManager->deactivate('msg', self::ALIAS_HANDLER, $alias);
-		$this->commandManager->deactivate('priv', self::ALIAS_HANDLER, $alias);
-		$this->commandManager->deactivate('guild', self::ALIAS_HANDLER, $alias);
+		foreach ($this->commandManager->getPermissionSets() as $set) {
+			$this->commandManager->deactivate($set->name, self::ALIAS_HANDLER, $alias);
+		}
 	}
 
 	/**
@@ -209,13 +210,12 @@ class CommandAlias {
 	 * Find all aliases for a command
 	 *
 	 * @param string $command The command to check
-	 * @return CmdAlias[]
+	 * @return Collection<CmdAlias>
 	 */
-	public function findAliasesByCommand(string $command): array {
+	public function findAliasesByCommand(string $command): Collection {
 		return $this->db->table(self::DB_TABLE)
 			->whereIlike("cmd", $command)
-			->asObj(CmdAlias::class)
-			->toArray();
+			->asObj(CmdAlias::class);
 	}
 
 	/**

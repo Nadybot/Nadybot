@@ -4,6 +4,7 @@ namespace Nadybot\Modules\BASIC_CHAT_MODULE;
 
 use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{
+	BuddylistManager,
 	CmdContext,
 	EventManager,
 	ModuleInstance,
@@ -57,6 +58,9 @@ class ChatAssistController extends ModuleInstance {
 
 	#[NCA\Inject]
 	public EventManager $eventManager;
+
+	#[NCA\Inject]
+	public BuddylistManager $buddylistManager;
 
 	/**
 	 * Names of all callers
@@ -307,8 +311,12 @@ class ChatAssistController extends ModuleInstance {
 			$uid = $this->chatBot->get_uid($name);
 			if (!$uid) {
 				$errors []= "Character <highlight>$name<end> does not exist.";
-			} elseif ($context->channel === "priv" && !isset($this->chatBot->chatlist[$name])) {
-				$errors []= "Character <highlight>$name<end> is not in this bot.";
+			} elseif (
+				!isset($this->chatBot->guildmembers[$name])
+				&& !$this->buddylistManager->isUidOnline($uid)
+				&& !isset($this->chatBot->chatlist[$name])
+			) {
+				$errors []= "Character <highlight>{$name}<end> is not in this bot.";
 			} else {
 				$newCallers []= $name;
 			}
@@ -370,7 +378,11 @@ class ChatAssistController extends ModuleInstance {
 		if (!$uid) {
 			$context->reply("Character <highlight>$name<end> does not exist.");
 			return;
-		} elseif ($context->channel === "priv" && !isset($this->chatBot->chatlist[$name])) {
+		} elseif (
+			!isset($this->chatBot->guildmembers[$name])
+			&& !$this->buddylistManager->isUidOnline($uid)
+			&& !isset($this->chatBot->chatlist[$name])
+		) {
 			$context->reply("Character <highlight>$name<end> is not in this bot.");
 			return;
 		}

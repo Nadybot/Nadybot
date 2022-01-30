@@ -4,6 +4,7 @@ namespace Nadybot\Core\Modules\CONFIG;
 
 use Nadybot\Core\Attributes as NCA;
 use Exception;
+use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	AccessManager,
 	CmdContext,
@@ -15,6 +16,7 @@ use Nadybot\Core\{
 	Text,
 };
 use Nadybot\Core\DBSchema\CommandSearchResult;
+use Nadybot\Core\DBSchema\CmdPermission;
 
 /**
  * Commands this controller contains:
@@ -44,34 +46,56 @@ class CommandSearchController extends ModuleInstance {
 	#[NCA\Inject]
 	public AccessManager $accessManager;
 
-	/** @var string[] */
-	private array $searchWords;
+	#[NCA\Inject]
+	public CommandManager $commandManager;
+
+	/** @return Collection<CommandSearchResult> */
+	protected function getAllCmds(): Collection {
+		$permissions = $this->db->table(CommandManager::DB_TABLE_PERMS)
+			->asObj(CmdPermission::class)
+			->groupBy("cmd");
+		return $this->db->table(CommandManager::DB_TABLE)
+			->where("cmdevent", "cmd")
+			->asObj(CommandSearchResult::class)
+			->each(function (CommandSearchResult $cmd) use ($permissions): void {
+				$cmd->permissions = $permissions->get($cmd->cmd, new Collection())
+					->keyBy("name")->toArray();
+			});
+	}
+
+	/**
+	 * @param Collection<CommandSearchResult> $commands
+	 * @return Collection<CommandSearchResult>
+	 */
+	protected function filterDisabled(Collection $commands): Collection {
+		return $commands->filter(function (CommandSearchResult $cmd): bool {
+			$cmd->permissions = array_filter($cmd->permissions, function (CmdPermission $perm): bool {
+				return $perm->enabled;
+			});
+			return count($cmd->permissions) > 0;
+		})->values();
+	}
 
 	#[NCA\HandlesCommand("cmdsearch")]
 	public function searchCommand(CmdContext $context, string $search): void {
-		$this->searchWords = \Safe\preg_split("/\s+/", $search) ?: [];
-
+		$commands = $this->getAllCmds();
+		$access = true;
 		// if a mod or higher, show all commands, not just enabled commands
-		$access = false;
-		if ($this->accessManager->checkAccess($context->char->name, 'mod')) {
-			$access = true;
+		if (!$this->accessManager->checkAccess($context->char->name, 'mod')) {
+			$commands = $this->filterDisabled($commands);
+			$access = false;
 		}
 
-		$query = $this->db->table(CommandManager::DB_TABLE)
-			->where("cmd", $search)
-			->select("module", "cmd", "help", "description", "admin")->distinct();
-		if (!$access) {
-			$query->where("status", 1);
-		}
-		$results = $query->asObj(CommandSearchResult::class)->toArray();
-		$results = $this->filterResultsByAccessLevel($context->char->name, $results);
+		$commands = $this->filterResultsByAccessLevel($context->char->name, $commands);
 
-		$exactMatch = !empty($results);
+		$exactMatch = $commands->where("cmd", $search)->first();
 
-		if (!$exactMatch) {
-			$results = $this->findSimilarCommands($this->searchWords, $access);
-			$results = $this->filterResultsByAccessLevel($context->char->name, $results);
-			$results = array_slice($results, 0, 5);
+		if ($exactMatch) {
+			$results = new Collection([$exactMatch]);
+			$exactMatch = true;
+		} else {
+			$exactMatch = true;
+			$results = $this->orderBySimilarity($commands, $search)->slice(0, 5);
 		}
 
 		$msg = $this->render($results, $access, $exactMatch);
@@ -82,68 +106,45 @@ class CommandSearchController extends ModuleInstance {
 	/**
 	 * Remove all commands that we don't have access to
 	 * @param string $sender
-	 * @param CommandSearchResult[] $data
-	 * @return CommandSearchResult[]
+	 * @param Collection<CommandSearchResult> $data
+	 * @return Collection<CommandSearchResult>
 	 * @throws SQLException
 	 * @throws Exception
 	 */
-	public function filterResultsByAccessLevel(string $sender, array $data): array {
-		$results = [];
+	public function filterResultsByAccessLevel(string $sender, Collection $data): Collection {
 		$charAccessLevel = $this->accessManager->getSingleAccessLevel($sender);
-		foreach ($data as $key => $row) {
-			if ($this->accessManager->compareAccessLevels($charAccessLevel, $row->admin) >= 0) {
-				$results []= $row;
-			}
-		}
-		return $results;
+		return $data->filter(function (CommandSearchResult $cmd) use ($charAccessLevel): bool {
+			$cmd->permissions = array_filter($cmd->permissions, function (CmdPermission $perm) use ($charAccessLevel): bool {
+				return $this->accessManager->compareAccessLevels($charAccessLevel, $perm->access_level) >= 0;
+			});
+			return count($cmd->permissions) > 0;
+		});
 	}
 
 	/**
-	 * @param string[] $wordArray
-	 * @return CommandSearchResult[]
+	 * @param Collection<CommandSearchResult> $data
+	 * @return Collection<CommandSearchResult>
 	 */
-	public function findSimilarCommands(array $wordArray, bool $includeDisabled=false): array {
-		$query = $this->db->table(CommandManager::DB_TABLE)
-			->select("module", "cmd", "help", "description", "admin")->distinct();
-		if (!$includeDisabled) {
-			$query->where("status", 1);
-		}
-		/** @var CommandSearchResult[] $data */
-		$data = $query->asObj(CommandSearchResult::class)->toArray();
-
-		foreach ($data as $row) {
-			$keywords = [$row->cmd];
-			$keywords = array_unique($keywords);
-			foreach ($wordArray as $searchWord) {
-				$similarity = 0;
-				$rowSimilarity = 0;
-				foreach ($keywords as $keyword) {
-					similar_text($keyword, $searchWord, $rowSimilarity);
-					$similarity = max($similarity, $rowSimilarity);
-				}
-				$row->similarity_percent = $similarity;
-			}
-		}
-		$results = $data;
-		usort($results, [$this, 'sortBySimilarity']);
-
-		return $results;
-	}
-
-	public function sortBySimilarity(CommandSearchResult $row1, CommandSearchResult $row2): int {
-		return $row2->similarity_percent <=> $row1->similarity_percent;
+	public function orderBySimilarity(Collection $data, string $search): Collection {
+		return $data->each(function (CommandSearchResult $row) use ($search): void {
+			similar_text($row->cmd, $search, $row->similarity_percent);
+		})->filter(function (CommandSearchResult $row): bool {
+			return $row->similarity_percent >= 66;
+		})->sort(function (CommandSearchResult $row1, CommandSearchResult $row2): int {
+			return $row2->similarity_percent <=> $row1->similarity_percent;
+		});
 	}
 
 	/**
-	 * @param CommandSearchResult[] $results
+	 * @param Collection<CommandSearchResult> $results
 	 * @return string|string[]
 	 */
-	public function render(array $results, bool $hasAccess, bool $exactMatch): string|array {
+	public function render(Collection $results, bool $hasAccess, bool $exactMatch): string|array {
 		$blob = '';
 		foreach ($results as $row) {
 			$helpLink = "";
 			if ($row->help !== null && $row->help !== '') {
-				$helpLink = ' (' . $this->text->makeChatcmd("Help", "/tell <myname> help $row->cmd") . ')';
+				$helpLink = ' [' . $this->text->makeChatcmd("help", "/tell <myname> help $row->cmd") . ']';
 			}
 			if ($hasAccess) {
 				$module = $this->text->makeChatcmd($row->module, "/tell <myname> config {$row->module}");
@@ -154,8 +155,8 @@ class CommandSearchController extends ModuleInstance {
 			$blob .= "<header2>{$row->cmd}<end>\n<tab>{$module} - {$row->description}{$helpLink}\n";
 		}
 
-		$count = count($results);
-		if ($count === 0) {
+		$count = $results->count();
+		if ($results->isEmpty()) {
 			return "No results found.";
 		}
 		if ($exactMatch) {
@@ -164,5 +165,13 @@ class CommandSearchController extends ModuleInstance {
 			$msg = $this->text->makeBlob("Possible Matches ($count)", $blob);
 		}
 		return $msg;
+	}
+
+	/** @return Collection<CommandSearchResult> */
+	public function findSimilarCommands(string $search, string $sender): Collection {
+		$commands = $this->getAllCmds();
+		$commands = $this->filterDisabled($commands);
+		$commands = $this->filterResultsByAccessLevel($sender, $commands);
+		return $this->orderBySimilarity($commands, $search);
 	}
 }

@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\DISCORD_GATEWAY_MODULE;
 
+use Closure;
 use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{
 	AccessLevelProvider,
@@ -19,6 +20,7 @@ use Nadybot\Core\{
 use Nadybot\Core\Modules\DISCORD\DiscordAPIClient;
 use Nadybot\Core\Modules\DISCORD\DiscordUser;
 use Nadybot\Core\ParamClass\PCharacter;
+use Nadybot\Core\Routing\Source;
 
 /**
  * @author Nadyita (RK5)
@@ -69,43 +71,8 @@ class DiscordGatewayCommandHandler extends ModuleInstance implements AccessLevel
 	#[NCA\Setup]
 	public function setup(): void {
 		$this->accessManager->registerProvider($this);
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: "discord_process_commands",
-			description: "Process commands sent on Discord",
-			mode: "edit",
-			type: "options",
-			value: "0",
-			options: "true;false",
-			intoptions: "1;0"
-		);
-		$this->settingManager->add(
-			$this->moduleName,
-			"discord_process_commands_only_in",
-			"Limit command execution to a specific channel",
-			"edit",
-			"discord_channel",
-			"off",
-		);
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: "discord_unknown_cmd_errors",
-			description: "Show a message for unknown commands on Discord",
-			mode: "edit",
-			type: "options",
-			value: "1",
-			options: "true;false",
-			intoptions: "1;0"
-		);
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: "discord_symbol",
-			description: "Discord command prefix symbol",
-			mode: "edit",
-			type: "text",
-			value: "!",
-			options: "!;#;*;@;$;+;-",
-		);
+		$this->commandManager->registerSource(Source::DISCORD_MSG . "(*)");
+		$this->commandManager->registerSource(Source::DISCORD_PRIV . "(*)");
 	}
 
 	public function getSingleAccessLevel(string $sender): ?string {
@@ -269,35 +236,11 @@ class DiscordGatewayCommandHandler extends ModuleInstance implements AccessLevel
 		description: "Handle commands from Discord private messages"
 	)]
 	public function processDiscordDirectMessage(DiscordMessageEvent $event): void {
-		$isCommand = substr($event->message??"", 0, 1) === $this->settingManager->get("discord_symbol");
-		if ( $isCommand ) {
-			$event->message = substr($event->message??"", 1);
-		}
-		$sendto = new DiscordMessageCommandReply(
-			$event->channel,
-			true,
-			$event->discord_message,
-		);
-		Registry::injectDependencies($sendto);
 		$discordUserId = $event->discord_message->author->id ?? (string)$event->sender;
 		$context = new CmdContext($discordUserId);
-		$context->channel = "msg";
+		$context->source = Source::DISCORD_MSG . "({$discordUserId})";
 		$context->message = $event->message;
-		$context->sendto = $sendto;
-		if (preg_match("/^extauth\s+request/si", $event->message)) {
-			$this->commandManager->processCmd($context);
-			return;
-		}
-		$userId = $this->getNameForDiscordId($discordUserId);
-		if (!isset($userId)) {
-			$this->commandManager->processCmd($context);
-			return;
-		}
-		$context->char->name = $userId;
-		$this->chatBot->getUid($userId, function(?int $uid, CmdContext $context): void {
-			$context->char->id = $uid;
-			$this->commandManager->processCmd($context);
-		}, $context);
+		$this->processDiscordMessage($event, $context);
 	}
 
 	/**
@@ -309,47 +252,44 @@ class DiscordGatewayCommandHandler extends ModuleInstance implements AccessLevel
 	)]
 	public function processDiscordChannelMessage(DiscordMessageEvent $event): void {
 		$discordUserId = $event->discord_message->author->id ?? (string)$event->sender;
-		$isCommand = substr($event->message, 0, 1) === $this->settingManager->getString("discord_symbol");
-		if (
-			!$isCommand
-			|| strlen($event->message) < 2
-			|| !$this->settingManager->getBool('discord_process_commands')
-		) {
-			return;
-		}
-		$cmdChannel = $this->settingManager->getString('discord_process_commands_only_in') ?? "off";
-		if ($cmdChannel !== "off" && $event->discord_message->channel_id !== $cmdChannel) {
-			return;
-		}
-		$cmd = strtolower(explode(" ", substr($event->message, 1))[0]);
-		$commandHandler = $this->commandManager->getActiveCommandHandler($cmd, "priv", substr($event->message, 1));
-		if ($commandHandler === null && !$this->settingManager->getBool('discord_unknown_cmd_errors')) {
-			return;
-		}
+		$context = new CmdContext($discordUserId);
+		$context->source = Source::DISCORD_PRIV . "({$event->discord_message->channel_id})";
+		$context->message = $event->message;
+		$this->processDiscordMessage($event, $context);
+	}
+
+	protected function processDiscordMessage(DiscordMessageEvent $event, CmdContext $context): void {
+		$discordUserId = $event->discord_message->author->id ?? (string)$event->sender;
 		$sendto = new DiscordMessageCommandReply(
 			$event->channel,
 			false,
 			$event->discord_message,
 		);
-		Registry::injectDependencies($sendto);
-		$discordUserId = $event->discord_message->author->id ?? (string)$event->sender;
-		$context = new CmdContext($discordUserId);
-		$context->channel = "priv";
-		$context->message = substr($event->message, 1);
 		$context->sendto = $sendto;
-		if (preg_match("/^extauth\s+request/si", $event->message)) {
-			$this->commandManager->processCmd($context);
-			return;
+		Registry::injectDependencies($sendto);
+		if (!preg_match("/^.?extauth\s+request/si", $event->message)) {
+			$userId = $this->getNameForDiscordId($discordUserId);
 		}
-		$userId = $this->getNameForDiscordId($discordUserId);
+		$execCmd = function() use ($context, $sendto): void {
+			if ($this->commandManager->checkAndHandleCmd($context)) {
+				return;
+			}
+			$context->source = $sendto->getChannelName();
+			$this->commandManager->checkAndHandleCmd($context);
+		};
 		if (!isset($userId)) {
-			$this->commandManager->processCmd($context);
+			$execCmd();
 			return;
 		}
 		$context->char->name = $userId;
-		$this->chatBot->getUid($userId, function(?int $uid, CmdContext $context): void {
-			$context->char->id = $uid;
-			$this->commandManager->processCmd($context);
-		}, $context);
+		$this->chatBot->getUid(
+			$userId,
+			function(?int $uid, CmdContext $context, Closure $execCmd): void {
+				$context->char->id = $uid;
+				$execCmd();
+			},
+			$context,
+			$execCmd
+		);
 	}
 }
