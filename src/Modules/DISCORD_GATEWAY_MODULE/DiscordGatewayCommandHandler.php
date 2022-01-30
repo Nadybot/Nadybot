@@ -73,35 +73,6 @@ class DiscordGatewayCommandHandler extends ModuleInstance implements AccessLevel
 		$this->accessManager->registerProvider($this);
 		$this->commandManager->registerSource(Source::DISCORD_MSG . "(*)");
 		$this->commandManager->registerSource(Source::DISCORD_PRIV . "(*)");
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: "discord_process_commands",
-			description: "Process commands sent on Discord",
-			mode: "edit",
-			type: "options",
-			value: "0",
-			options: "true;false",
-			intoptions: "1;0"
-		);
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: "discord_unknown_cmd_errors",
-			description: "Show a message for unknown commands on Discord",
-			mode: "edit",
-			type: "options",
-			value: "1",
-			options: "true;false",
-			intoptions: "1;0"
-		);
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: "discord_symbol",
-			description: "Discord command prefix symbol",
-			mode: "edit",
-			type: "text",
-			value: "!",
-			options: "!;#;*;@;$;+;-",
-		);
 	}
 
 	public function getSingleAccessLevel(string $sender): ?string {

@@ -219,7 +219,7 @@ class PermissionSetMappingController extends ModuleInstance {
 		}
 		$sets = $this->cmdManager->getPermissionSets();
 		$choices = $sets->map(function(CmdPermissionSet $set) use ($source): string {
-			return "<tab>" . $this->text->makeChatcmd($set->name, "/tell <myname> permset set {$source} {$set->name}");
+			return "<tab>" . $this->text->makeChatcmd($set->name, "/tell <myname> cmdmap permset set {$source} {$set->name}");
 		})->join("\n");
 		$context->reply(
 			$this->text->makeBlob(
@@ -254,7 +254,7 @@ class PermissionSetMappingController extends ModuleInstance {
 			return;
 		}
 		$choices = (new Collection(explode(";", $row->options)))->map(function (string $option) use ($source): string {
-			return "<tab><highlight>{$option}<end> [" . $this->text->makeChatcmd("use this", "/tell <myname> symbol set {$source} {$option}") . "]";
+			return "<tab><highlight>{$option}<end> [" . $this->text->makeChatcmd("use this", "/tell <myname> cmdmap symbol set {$source} {$option}") . "]";
 		})->join("\n");
 		$context->reply(
 			$this->text->makeBlob(

@@ -41,10 +41,10 @@ class PermissionSetController extends ModuleInstance {
 		CmdContext $context,
 		#[NCA\Str("new", "create")] string $action,
 		PWord $name,
-		string $letter
+		?string $letter
 	): void {
 		try {
-			$this->cmdManager->createPermissionSet($name(), $letter);
+			$this->cmdManager->createPermissionSet($name(), $letter ?? substr($name(), 0, 1));
 		} catch (Exception $e) {
 			$context->reply($e->getMessage());
 			return;
@@ -147,11 +147,14 @@ class PermissionSetController extends ModuleInstance {
 	}
 
 	protected function renderPermissionSet(ExtCmdPermissionSet $set): string {
+		$channelNames = "&lt;none&gt;";
+		if (!empty($set->mappings)) {
+			$channelNames = (new Collection($set->mappings))->pluck("source")
+				->join("<end>, <highlight>", "<end> and <highlight>");
+		}
 		$block = "<header2>{$set->name}<end>\n".
 			"<tab>Letter: <highlight>{$set->letter}<end>\n".
-			"<tab>Channels: <highlight>".
-			(new Collection($set->mappings))->pluck("source")
-				->join("<end>, <highlight>", "<end> and <highlight>") . "<end>";
+			"<tab>Channels: <highlight>{$channelNames}<end>";
 		if (empty($set->mappings)) {
 			$block .= "\n<tab>Actions: [".
 				$this->text->makeChatcmd("delete", "/tell <myname> permset rem {$set->name}").

@@ -87,26 +87,27 @@
 					}
 				}
 			},
-			"CmdPermSetMapping": {
+			"CmdSourceMapping": {
 				"type": "object",
 				"properties": {
+					"sub_source": {
+						"type": "string",
+						"nullable": true,
+						"description": "The value for the sub-source, or null if none"
+					},
 					"permission_set": {
 						"type": "string",
 						"description": "The permission set to map $source to"
 					},
-					"source": {
+					"cmd_prefix": {
 						"type": "string",
-						"description": "The command source to map"
+						"description": "The prefix that triggers a command if it's the first letter"
 					},
-					"symbol": {
-						"type": "string",
-						"description": "The symbol that triggers a command if it's the first letter"
-					},
-					"symbol_optional": {
+					"cmd_prefix_optional": {
 						"type": "boolean",
-						"description": "Is the symbol required to interpret the msg as command or optional"
+						"description": "Is the prefix required to interpret the msg as command or optional"
 					},
-					"feedback": {
+					"unknown_cmd_feedback": {
 						"type": "boolean",
 						"description": "Shall we report an error if the command doesn't exist"
 					}
@@ -115,15 +116,18 @@
 			"CmdSource": {
 				"type": "object",
 				"properties": {
-					"name": {
+					"source": {
 						"type": "string",
 						"description": "The name/mask of this command source If the name contains an asterisk wildcard, it represents a mask of possible sources, e.g. aotell(*)"
+					},
+					"has_sub_sources": {
+						"type": "boolean"
 					},
 					"mappings": {
 						"type": "array",
 						"description": "A list of permission set mappings this command source maps to",
 						"items": {
-							"$ref": "#/components/schemas/CmdPermSetMapping"
+							"$ref": "#/components/schemas/CmdSourceMapping"
 						}
 					}
 				}
@@ -598,6 +602,31 @@
 						"type": "integer",
 						"nullable": true,
 						"description": "Timestamp when the action happened"
+					}
+				}
+			},
+			"CmdPermSetMapping": {
+				"type": "object",
+				"properties": {
+					"permission_set": {
+						"type": "string",
+						"description": "The permission set to map $source to"
+					},
+					"source": {
+						"type": "string",
+						"description": "The command source to map"
+					},
+					"symbol": {
+						"type": "string",
+						"description": "The symbol that triggers a command if it's the first letter"
+					},
+					"symbol_optional": {
+						"type": "boolean",
+						"description": "Is the symbol required to interpret the msg as command or optional"
+					},
+					"feedback": {
+						"type": "boolean",
+						"description": "Shall we report an error if the command doesn't exist"
 					}
 				}
 			},
@@ -1240,6 +1269,227 @@
 				]
 			},
 			"parameters": []
+		},
+		"/cmd_source/{source}": {
+			"get": {
+				"security": [
+					{
+						"basicAuth": []
+					}
+				],
+				"description": "Get details for a specific command source",
+				"responses": {
+					"200": {
+						"description": "The command source and its mappings",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/CmdSource"
+								}
+							}
+						}
+					}
+				},
+				"tags": [
+					"config"
+				]
+			},
+			"parameters": [
+				{
+					"name": "source",
+					"required": true,
+					"in": "path",
+					"schema": {
+						"type": "string"
+					}
+				}
+			]
+		},
+		"/cmd_source/{source}/mappings": {
+			"get": {
+				"security": [
+					{
+						"basicAuth": []
+					}
+				],
+				"description": "Get mappings for a specific command source",
+				"responses": {
+					"200": {
+						"description": "The command source's mappings",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "array",
+									"items": {
+										"$ref": "#/components/schemas/CmdSourceMapping"
+									}
+								}
+							}
+						}
+					}
+				},
+				"tags": [
+					"config"
+				]
+			},
+			"post": {
+				"security": [
+					{
+						"basicAuth": []
+					}
+				],
+				"description": "Create a new mapping",
+				"responses": {
+					"204": {
+						"description": "A new command mapping was created"
+					}
+				},
+				"requestBody": {
+					"description": "The new mapping",
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/CmdSourceMapping"
+							}
+						}
+					}
+				},
+				"tags": [
+					"config"
+				]
+			},
+			"put": {
+				"security": [
+					{
+						"basicAuth": []
+					}
+				],
+				"description": "Modify mapping for a specific command source",
+				"responses": {
+					"200": {
+						"description": "The new, modified source mapping",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/CmdSourceMapping"
+								}
+							}
+						}
+					}
+				},
+				"tags": [
+					"config"
+				]
+			},
+			"delete": {
+				"security": [
+					{
+						"basicAuth": []
+					}
+				],
+				"description": "Delete mapping for a specific command source",
+				"responses": {
+					"204": {
+						"description": "The source mapping was deleted successfully"
+					}
+				},
+				"tags": [
+					"config"
+				]
+			},
+			"parameters": [
+				{
+					"name": "source",
+					"required": true,
+					"in": "path",
+					"schema": {
+						"type": "string"
+					}
+				}
+			]
+		},
+		"/cmd_source/{source}/mappings/{subSource}": {
+			"get": {
+				"security": [
+					{
+						"basicAuth": []
+					}
+				],
+				"description": "Get mappings for a specific command source",
+				"responses": {
+					"200": {
+						"description": "The command's sub-source mapping",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/CmdSourceMapping"
+								}
+							}
+						}
+					}
+				},
+				"tags": [
+					"config"
+				]
+			},
+			"put": {
+				"security": [
+					{
+						"basicAuth": []
+					}
+				],
+				"description": "Modify mapping for a specific command source",
+				"responses": {
+					"200": {
+						"description": "The new, modified source mapping",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/CmdSourceMapping"
+								}
+							}
+						}
+					}
+				},
+				"tags": [
+					"config"
+				]
+			},
+			"delete": {
+				"security": [
+					{
+						"basicAuth": []
+					}
+				],
+				"description": "Delete mapping for a specific command sub-source",
+				"responses": {
+					"204": {
+						"description": "The sub-source mapping was deleted successfully"
+					}
+				},
+				"tags": [
+					"config"
+				]
+			},
+			"parameters": [
+				{
+					"name": "source",
+					"required": true,
+					"in": "path",
+					"schema": {
+						"type": "string"
+					}
+				},
+				{
+					"name": "subSource",
+					"required": true,
+					"in": "path",
+					"schema": {
+						"type": "string"
+					}
+				}
+			]
 		},
 		"/execute/{uuid}": {
 			"post": {

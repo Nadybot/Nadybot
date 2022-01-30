@@ -149,20 +149,11 @@ class SystemController extends ModuleInstance implements MessageEmitter {
 		$this->helpManager->register($this->moduleName, "budatime", "budatime.txt", "all", "Format for budatime");
 
 		$name = $this->config->name;
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: "default_private_channel",
-			description: "Private channel to process commands from",
-			mode: "edit",
-			type: "text",
-			value: $name,
-			options: $name
-		);
 
 		$this->settingManager->add(
 			module: $this->moduleName,
 			name: "symbol",
-			description: "Command prefix symbol",
+			description: "Default command prefix symbol",
 			mode: "edit",
 			type: "text",
 			options: "!;#;*;@;$;+;-",
@@ -197,30 +188,6 @@ class SystemController extends ModuleInstance implements MessageEmitter {
 			module: $this->moduleName,
 			name: "guild_channel_status",
 			description: "Enable the guild channel",
-			mode: "edit",
-			type: "options",
-			options: "true;false",
-			intoptions: "1;0",
-			accessLevel: "mod",
-			value: "1",
-		);
-
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: "guild_channel_cmd_feedback",
-			description: "Show message on invalid command in guild channel",
-			mode: "edit",
-			type: "options",
-			options: "true;false",
-			intoptions: "1;0",
-			accessLevel: "mod",
-			value: "1",
-		);
-
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: "private_channel_cmd_feedback",
-			description: "Show message on invalid command in private channel",
 			mode: "edit",
 			type: "options",
 			options: "true;false",
