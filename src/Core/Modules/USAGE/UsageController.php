@@ -219,13 +219,7 @@ class UsageController extends ModuleInstance {
 
 		$blob = "<header2>Channel Usage<end>\n";
 		foreach ($data as $row) {
-			if ($row->channel === "msg") {
-				$blob .= "<tab>Number of commands executed in tells: <highlight>{$row->count}<end>\n";
-			} elseif ($row->channel === "priv") {
-				$blob .= "<tab>Number of commands executed in private channel: <highlight>{$row->count}<end>\n";
-			} elseif ($row->channel === "guild") {
-				$blob .= "<tab>Number of commands executed in guild channel: <highlight>{$row->count}<end>\n";
-			}
+			$blob .= "<tab>Number of commands executed in {$row->channel}: <highlight>{$row->count}<end>\n";
 		}
 		$blob .= "\n";
 

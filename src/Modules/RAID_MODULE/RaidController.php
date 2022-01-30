@@ -314,7 +314,9 @@ class RaidController extends ModuleInstance {
 			$context->reply(static::ERR_NO_RAID);
 			return;
 		}
-		$handler = $this->commandManager->getActiveCommandHandler("raid", "priv", "raid start test");
+		$handler = isset($context->permissionSet)
+			? $this->commandManager->getActiveCommandHandler("raid", $context->permissionSet, "raid start test")
+			: null;
 		if (isset($handler)) {
 			$canAdminRaid = $this->accessManager->checkAccess($context->char->name, $handler->admin);
 			if ($canAdminRaid) {
@@ -377,7 +379,7 @@ class RaidController extends ModuleInstance {
 		}
 		$this->startRaid($raid);
 		if ($this->settingManager->getBool('raid_auto_add_creator')) {
-			$this->raidMemberController->joinRaid($context->char->name, $context->char->name, $context->channel, false);
+			$this->raidMemberController->joinRaid($context->char->name, $context->char->name, $context->source, false);
 		}
 		$this->chatBot->sendTell(
 			$this->text->makeBlob("Raid Control", $this->getControlInterface()),

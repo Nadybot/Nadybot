@@ -2,13 +2,6 @@
 
 namespace Nadybot\Core\DBSchema;
 
-use Nadybot\Core\DBRow;
-
-class CommandSearchResult extends DBRow {
-	public string $module;
-	public string $cmd;
-	public ?string $help;
-	public string $description;
-	public string $admin;
+class CommandSearchResult extends CmdCfg {
 	public float $similarity_percent = 0;
 }

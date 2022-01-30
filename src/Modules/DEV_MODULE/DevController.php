@@ -98,8 +98,11 @@ class DevController extends ModuleInstance {
 
 	#[NCA\HandlesCommand("showcmdregex")]
 	public function showcmdregexCommand(CmdContext $context, ?string $cmd): void {
+		if (!isset($context->permissionSet)) {
+			return;
+		}
 		// get all command handlers
-		$handlers = $this->getAllCommandHandlers($cmd, $context->channel);
+		$handlers = $this->getAllCommandHandlers($cmd, $context->permissionSet);
 
 		// filter command handlers by access level
 		$accessManager = $this->accessManager;
@@ -185,8 +188,8 @@ class DevController extends ModuleInstance {
 			}
 			if (isset($this->subcommandManager->subcommands[$cmd])) {
 				foreach ($this->subcommandManager->subcommands[$cmd] as $handler) {
-					if ($handler->type == $channel) {
-						$handlers []= new CommandHandler($handler->file, $handler->admin);
+					if (isset($handler->permissions[$channel])) {
+						$handlers []= new CommandHandler($handler->file, $handler->permissions[$channel]->access_level);
 					}
 				}
 			}
@@ -243,8 +246,10 @@ class DevController extends ModuleInstance {
 
 		// subcommand
 		foreach ($this->subcommandManager->subcommands[$cmd] as $row) {
-			$blob .= "<header2>$row->type ($row->cmd)<end>\n";
-			$blob .= $row->file . "\n\n";
+			foreach ($row->permissions as $permission) {
+				$blob .= "<header2>{$permission->permission_set} ($row->cmd)<end>\n";
+				$blob .= $row->file . "\n\n";
+			}
 		}
 
 		$msg = $this->text->makeBlob("Command Handlers for '$cmd'", $blob);

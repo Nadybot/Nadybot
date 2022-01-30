@@ -260,7 +260,10 @@ class WorldBossController extends ModuleInstance {
 	 */
 	public function handleTimersFromApi(HttpResponse $response): void {
 		if ($response->headers["status-code"] !== "200" || !isset($response->body)) {
-			$this->logger->error('Worldboss API did not send correct data.');
+			$this->logger->error('Worldboss API did not send correct data.', [
+				"headers" => $response->headers,
+				"body" => $response->body,
+			]);
 			return;
 		}
 		/** @var ApiSpawnData[] */
@@ -274,7 +277,9 @@ class WorldBossController extends ModuleInstance {
 				$timers []= new ApiSpawnData($timerData);
 			}
 		} catch (JsonException $e) {
-			$this->logger->error("Worldboss API sent invalid json.");
+			$this->logger->error("Worldboss API sent invalid json.", [
+				"json" => $response->body
+			]);
 			return;
 		}
 		foreach ($timers as $timer) {
