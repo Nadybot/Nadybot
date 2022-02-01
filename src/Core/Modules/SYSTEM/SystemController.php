@@ -270,7 +270,7 @@ class SystemController extends ModuleInstance implements MessageEmitter {
 		exit(-1);
 	}
 
-	/** Shutdown the bot. Configured propertly, it won't start again */
+	/** Shutdown the bot. Configured properly, it won't start again */
 	#[NCA\HandlesCommand("shutdown")]
 	public function shutdownCommand(CmdContext $context): void {
 		$msg = "The Bot is shutting down.";

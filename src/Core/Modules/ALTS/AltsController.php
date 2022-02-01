@@ -410,7 +410,7 @@ class AltsController extends ModuleInstance {
 	}
 
 	/**
-	 * Set your current charater as your main
+	 * Set your current character as your main
 	 */
 	#[NCA\HandlesCommand("alts")]
 	public function setMainCommand(CmdContext $context, #[NCA\Str("setmain")] string $action): void {
