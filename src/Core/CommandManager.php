@@ -763,14 +763,14 @@ class CommandManager implements MessageEmitter {
 
 	/**
 	 * @return string[]
-	 * @phpstan-return array{0: string, 1?: string}
+	 * @phpstan-return array{string, ?string}
 	 */
 	protected function cleanComment(string $comment): array {
 		$comment = trim(preg_replace("|^/\*\*(.*)\*/|s", '$1', $comment));
 		$comment = preg_replace("/^[ \t]*\*[ \t]*/m", '', $comment);
-		/** @phpstan-var array{0: string, 1?: string} */
-		$result = \Safe\preg_split("/\r?\n/", $comment, 2);
-		return $result;
+		/** @phpstan-var array{string, ?string} */
+		$result = \Safe\preg_split("/\r?\n\r?\n/", $comment, 2);
+		return [trim($result[0]), isset($result[1]) ? trim($result[1]) : null];
 	}
 
 	/**

@@ -2,25 +2,24 @@
 
 namespace Nadybot\Modules\COMMENT_MODULE;
 
-use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{
+	Attributes as NCA,
 	CmdContext,
 	DB,
 	ModuleInstance,
 	LoggerWrapper,
 	Nadybot,
+	ParamClass\PCharacter,
+	ParamClass\PWord,
 	SettingManager,
 	Text,
 	Timer,
 	Util,
 };
-use Nadybot\Core\ParamClass\PCharacter;
-use Nadybot\Core\ParamClass\PWord;
 
 /**
  * @author Tyrence (RK2)
  * @author Nadyita (RK5)
- * Commands this controller contains:
  */
 #[
 	NCA\Instance,
@@ -28,7 +27,6 @@ use Nadybot\Core\ParamClass\PWord;
 		command: "reputation",
 		accessLevel: "guild",
 		description: "Allows people to see and add reputation of other players",
-		help: "reputation.txt"
 	)
 ]
 class ReputationController extends ModuleInstance {
@@ -73,6 +71,7 @@ class ReputationController extends ModuleInstance {
 		return $repCat;
 	}
 
+	/** See a list of characters that have reputation */
 	#[NCA\HandlesCommand("reputation")]
 	public function reputationListCommand(CmdContext $context): void {
 		$cat = $this->getReputationCategory();
@@ -118,6 +117,7 @@ class ReputationController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
+	/** Add positive or negative reputation to a character */
 	#[NCA\HandlesCommand("reputation")]
 	public function reputationAddCommand(
 		CmdContext $context,
@@ -134,6 +134,10 @@ class ReputationController extends ModuleInstance {
 		);
 	}
 
+	/**
+	 * See the reputation for a character
+	 * If 'all' is given, print more than just the last 10 entries
+	 */
 	#[NCA\HandlesCommand("reputation")]
 	public function reputationViewCommand(
 		CmdContext $context,

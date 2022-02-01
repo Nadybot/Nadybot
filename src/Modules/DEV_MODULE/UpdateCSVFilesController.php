@@ -2,25 +2,24 @@
 
 namespace Nadybot\Modules\DEV_MODULE;
 
-use Nadybot\Core\Attributes as NCA;
 use DateTime;
 use Exception;
 use Throwable;
 use Nadybot\Core\{
+	Attributes as NCA,
 	BotRunner,
 	CmdContext,
 	DB,
+	DBSchema\Setting,
 	Http,
 	HttpResponse,
 	ModuleInstance,
 	SettingManager,
 };
-use Nadybot\Core\DBSchema\Setting;
 use Safe\Exceptions\FilesystemException;
 
 /**
  * @author Nadyita (RK5)
- * Commands this controller contains:
  */
 #[
 	NCA\Instance,
@@ -28,7 +27,6 @@ use Safe\Exceptions\FilesystemException;
 		command: "updatecsv",
 		accessLevel: "admin",
 		description: "Shows a list of all csv files",
-		help: "updatecsv.txt"
 	)
 ]
 class UpdateCSVFilesController extends ModuleInstance {
@@ -56,6 +54,7 @@ class UpdateCSVFilesController extends ModuleInstance {
 		return $gitHash;
 	}
 
+	/** Update all your CSV files and thus static database content */
 	#[NCA\HandlesCommand("updatecsv")]
 	public function updateCsvCommand(CmdContext $context): void {
 		$checkCmd = BotRunner::isWindows() ? "where" : "command -v";

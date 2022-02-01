@@ -1,7 +1,0 @@
-To show the current status of the city cloak:
-<highlight><tab><symbol>cloak<end>
-
-To manually set the cloak status to on (for when the bot was offline when the cloak was turned on):
-<highlight><tab><symbol>cloak on<end>
-
-Note: An asterisk (*) will appear next to the person's name if they manually set the cloak to on

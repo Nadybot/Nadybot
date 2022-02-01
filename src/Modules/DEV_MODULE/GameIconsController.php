@@ -26,6 +26,7 @@ class GameIconsController extends ModuleInstance {
 	#[NCA\Inject]
 	public Text $text;
 
+	/** List all game icons with their name */
 	#[NCA\HandlesCommand("gameicons")]
 	public function gameIconsCommand(CmdContext $context): void {
 		$icons = [
