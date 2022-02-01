@@ -577,81 +577,81 @@ class CommandManager implements MessageEmitter {
 			$instance = Registry::getInstance($name);
 			if ($instance === null) {
 				$this->logger->error("Could not find instance for name '$name'");
-			} else {
-				$arr = $this->checkMatches($instance, $method, $context->message);
-				if ($arr !== false) {
-					$context->args = is_bool($arr) ? [] : $arr;
-					$refClass = new ReflectionClass($instance);
-					$refMethod = $refClass->getMethod($method);
-					$params = $refMethod->getParameters();
-					// methods will return false to indicate a syntax error, so when a false is returned,
-					// we set $syntaxError = true, otherwise we set it to false
-					if (count($params) > 0
-						&& $params[0]->hasType()
-						&& ($type = $params[0]->getType())
-						&& ($type instanceof ReflectionNamedType)
-						&& ($type->getName() === CmdContext::class)
-					) {
-						$args = [];
-						for ($i = 1; $i < count($params); $i++) {
-							$var = $params[$i]->getName();
-							if (!$params[$i]->hasType() || !isset($context->args[$var]) || ($context->args[$var] === '' && $params[$i]->allowsNull())) {
-								if (!$params[$i]->isVariadic()) {
-									$args []= null;
-								}
-								continue;
+				continue;
+			}
+			$arr = $this->checkMatches($instance, $method, $context->message);
+			if ($arr === false) {
+				continue;
+			}
+			$context->args = is_bool($arr) ? [] : $arr;
+			$refClass = new ReflectionClass($instance);
+			$refMethod = $refClass->getMethod($method);
+			$params = $refMethod->getParameters();
+			// methods will return false to indicate a syntax error, so when a false is returned,
+			// we set $syntaxError = true, otherwise we set it to false
+			if (count($params) === 0
+				|| !$params[0]->hasType()
+				|| ($type = $params[0]->getType()) === null
+				|| !($type instanceof ReflectionNamedType)
+				|| ($type->getName() !== CmdContext::class)
+			) {
+				continue;
+			}
+			$args = [];
+			for ($i = 1; $i < count($params); $i++) {
+				$var = $params[$i]->getName();
+				if (!$params[$i]->hasType() || !isset($context->args[$var]) || ($context->args[$var] === '' && $params[$i]->allowsNull())) {
+					if (!$params[$i]->isVariadic()) {
+						$args []= null;
+					}
+					continue;
+				}
+				$type = $params[$i]->getType();
+				if (!($type instanceof ReflectionNamedType) || (!$type->isBuiltin() && !is_subclass_of($type->getName(), Base::class))) {
+					$args []= null;
+					continue;
+				}
+				/** @var ReflectionNamedType $type */
+				if (is_array($context->args[$var]) && !$params[$i]->isVariadic()) {
+					$context->args[$var] = $context->args[$var][0];
+				}
+				switch ($type->getName()) {
+					case "int":
+						foreach ((array)$context->args[$var] as $val) {
+							$args []= (int)$val;
+						}
+						break;
+					case "bool":
+						foreach ((array)$context->args[$var] as $val) {
+							$args []= in_array(strtolower($val), ["yes", "true", "1", "on", "enable", "enabled"]);
+						}
+						break;
+					case "float":
+						foreach ((array)$context->args[$var] as $val) {
+							$args []= (float)$val;
+						}
+						break;
+					default:
+						if (is_subclass_of($type->getName(), Base::class)) {
+							$class = $type->getName();
+							foreach ((array)$context->args[$var] as $val) {
+								/** @psalm-suppress UnsafeInstantiation */
+								$args []= new $class($val);
 							}
-							$type = $params[$i]->getType();
-							if (!($type instanceof ReflectionNamedType) || (!$type->isBuiltin() && !is_subclass_of($type->getName(), Base::class))) {
-								$args []= null;
-								continue;
-							}
-							/** @var ReflectionNamedType $type */
-							if (is_array($context->args[$var]) && !$params[$i]->isVariadic()) {
-								$context->args[$var] = $context->args[$var][0];
-							}
-							switch ($type->getName()) {
-								case "int":
-									foreach ((array)$context->args[$var] as $val) {
-										$args []= (int)$val;
-									}
-									break;
-								case "bool":
-									foreach ((array)$context->args[$var] as $val) {
-										$args []= in_array(strtolower($val), ["yes", "true", "1", "on", "enable", "enabled"]);
-									}
-									break;
-								case "float":
-									foreach ((array)$context->args[$var] as $val) {
-										$args []= (float)$val;
-									}
-									break;
-								default:
-									if (is_subclass_of($type->getName(), Base::class)) {
-										$class = $type->getName();
-										foreach ((array)$context->args[$var] as $val) {
-											/** @psalm-suppress UnsafeInstantiation */
-											$args []= new $class($val);
-										}
-									} else {
-										foreach ((array)$context->args[$var] as $val) {
-											$args []= $val;
-										}
-									}
-									break;
+						} else {
+							foreach ((array)$context->args[$var] as $val) {
+								$args []= $val;
 							}
 						}
-						$syntaxError = $instance->$method($context, ...$args) === false;
-					} else {
-						continue;
-					}
-					if ($syntaxError == false) {
-						// we can stop looking, command was handled successfully
-
-						$successfulHandler = $handler;
 						break;
-					}
 				}
+			}
+			$syntaxError = $instance->$method($context, ...$args) === false;
+			if ($syntaxError == false) {
+				// we can stop looking, command was handled successfully
+
+				$successfulHandler = $handler;
+				break;
 			}
 		}
 
@@ -863,7 +863,9 @@ class CommandManager implements MessageEmitter {
 					$niceParam = "[{$niceParam}]";
 				}
 				if ($params[$i]->isVariadic()) {
-					$niceParam .= ", ...";
+					$parMask = str_replace("&gt;", "%d&gt;", preg_replace("/s\b/", "", preg_replace("/ies\b/", "y", $niceParam)));
+					$niceParam = sprintf($parMask, 1) . " " . sprintf($parMask, 2) . " ...";
+					// $niceParam .= ", ...";
 				}
 				$paramText []= $niceParam;
 			}

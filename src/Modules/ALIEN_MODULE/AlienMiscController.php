@@ -29,26 +29,22 @@ use Nadybot\Modules\ITEMS_MODULE\ItemsController;
 		command: "leprocs",
 		accessLevel: "all",
 		description: "Shows each profession's LE procs",
-		help: "leprocs.txt",
 		alias: "leproc"
 	),
 	NCA\DefineCommand(
 		command: "ofabarmor",
 		accessLevel: "all",
 		description: "Shows ofab armors available to a given profession and their VP cost",
-		help: "ofabarmor.txt"
 	),
 	NCA\DefineCommand(
 		command: "ofabweapons",
 		accessLevel: "all",
 		description: "Shows Ofab weapons, their marks, and VP cost",
-		help: "ofabweapons.txt"
 	),
 	NCA\DefineCommand(
 		command: "aigen",
 		accessLevel: "all",
 		description: "Shows info about Alien City Generals",
-		help: "aigen.txt"
 	)
 ]
 class AlienMiscController extends ModuleInstance {
@@ -79,7 +75,7 @@ class AlienMiscController extends ModuleInstance {
 	}
 
 	/**
-	 * This command handler shows menu of each profession's LE procs.
+	 * See a list of professions that have LE procs
 	 */
 	#[NCA\HandlesCommand("leprocs")]
 	public function leprocsCommand(CmdContext $context): void {
@@ -102,7 +98,7 @@ class AlienMiscController extends ModuleInstance {
 	}
 
 	/**
-	 * This command handler shows the LE procs for a particular profession.
+	 * Shows the LE procs for a specific profession
 	 */
 	#[NCA\HandlesCommand("leprocs")]
 	public function leprocsInfoCommand(CmdContext $context, string $prof): void {
@@ -146,9 +142,13 @@ class AlienMiscController extends ModuleInstance {
 	}
 
 	/**
-	 * This command handler shows Ofab armors and VP cost.
+	 * Show a list of professions and their LE bio types
 	 */
 	#[NCA\HandlesCommand("ofabarmor")]
+	#[NCA\Help\Epilogue(
+		"Valid QLs are:\n".
+		"<tab>1, 25, 50, 75, 100, 125, 150, 175, 200, 225, 250, 275, and 300."
+	)]
 	public function ofabarmorCommand(CmdContext $context): void {
 		/** @var int[] */
 		$qls = $this->db->table("ofabarmorcost")
@@ -177,7 +177,7 @@ class AlienMiscController extends ModuleInstance {
 	}
 
 	/**
-	 * This command handler shows list of ofab armors available to a given profession.
+	 * Show Ofab armor for a specific profession at a certain ql
 	 */
 	#[NCA\HandlesCommand("ofabarmor")]
 	public function ofabarmorInfoCommand2(CmdContext $context, string $prof, int $ql): void {
@@ -185,7 +185,7 @@ class AlienMiscController extends ModuleInstance {
 	}
 
 	/**
-	 * This command handler shows list of ofab armors available to a given profession.
+	 * Show Ofab armor for a specific profession at a certain ql
 	 */
 	#[NCA\HandlesCommand("ofabarmor")]
 	public function ofabarmorInfoCommand(CmdContext $context, ?int $ql, string $prof): void {
@@ -277,9 +277,13 @@ class AlienMiscController extends ModuleInstance {
 	}
 
 	/**
-	 * This command handler shows Ofab weapons and VP cost.
+	 * Show a list of Ofab weapons and the type needed to upgrade
 	 */
 	#[NCA\HandlesCommand("ofabweapons")]
+	#[NCA\Help\Epilogue(
+		"Valid QLs are:\n".
+		"<tab>1, 25, 50, 75, 100, 125, 150, 175, 200, 225, 250, 275, and 300."
+	)]
 	public function ofabweaponsCommand(CmdContext $context): void {
 		/** @var int[] */
 		$qls = $this->db->table("ofabweaponscost")
@@ -309,7 +313,7 @@ class AlienMiscController extends ModuleInstance {
 	}
 
 	/**
-	 * This command handler shows all six marks of the Ofab weapon.
+	 * Show all 6 marks for a particular Ofab weapon at ql 300, or &lt;search ql&gt;
 	 */
 	#[NCA\HandlesCommand("ofabweapons")]
 	public function ofabweaponsInfoCommand(CmdContext $context, PWord $weapon, ?int $searchQL): void {
@@ -368,10 +372,13 @@ class AlienMiscController extends ModuleInstance {
 	}
 
 	/**
-	 * This command handler shows info about Alien City Generals.
+	 * Show info about the Alien City Generals
 	 */
 	#[NCA\HandlesCommand("aigen")]
-	public function aigenCommand(CmdContext $context, #[NCA\Str("ankari", "ilari", "rimah", "jaax", "xoch", "cha")] string $general): void {
+	public function aigenCommand(
+		CmdContext $context,
+		#[NCA\Regexp("ankari|ilari|rimah|jaax|xoch|cha", example: "ankari|ilari|rimah|jaax|xoch|cha")] string $general
+	): void {
 		$gen = ucfirst(strtolower($general));
 
 		$blob = '';
