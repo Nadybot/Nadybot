@@ -15,29 +15,22 @@ use Nadybot\Core\{
 	SettingManager,
 };
 
-/**
- * Commands this controller contains:
- */
-
 #[
 	NCA\Instance,
 	NCA\DefineCommand(
 		command: "leader",
 		accessLevel: "all",
 		description: "Sets the Leader of the raid",
-		help: "leader.txt"
 	),
 	NCA\DefineCommand(
 		command: "leader (.+)",
 		accessLevel: "rl",
 		description: "Sets a specific Leader",
-		help: "leader.txt"
 	),
 	NCA\DefineCommand(
 		command: "leaderecho",
 		accessLevel: "rl",
 		description: "Set if the text of the leader will be repeated",
-		help: "leader.txt"
 	),
 	NCA\ProvidesEvent("leader(clear)"),
 	NCA\ProvidesEvent("leader(set)")
@@ -91,7 +84,7 @@ class ChatLeaderController extends ModuleInstance implements AccessLevelProvider
 	}
 
 	/**
-	 * This command handler sets the leader of the raid.
+	 * Sets the leader of the raid, granting special access
 	 */
 	#[NCA\HandlesCommand("leader")]
 	public function leaderCommand(CmdContext $context): void {
@@ -110,11 +103,11 @@ class ChatLeaderController extends ModuleInstance implements AccessLevelProvider
 	}
 
 	/**
-	 * This command handler sets a specific leader.
+	 * Set someone to be raid leader
 	 */
 	#[NCA\HandlesCommand("leader (.+)")]
-	public function leaderSetCommand(CmdContext $context, PCharacter $leader): void {
-		$msg = $this->setLeader($leader(), $context->char->name);
+	public function leaderSetCommand(CmdContext $context, PCharacter $newLeader): void {
+		$msg = $this->setLeader($newLeader(), $context->char->name);
 		if ($msg !== null) {
 			$context->reply($msg);
 		}
@@ -144,7 +137,7 @@ class ChatLeaderController extends ModuleInstance implements AccessLevelProvider
 	}
 
 	/**
-	 * This command handler enables leader echoing in private channel.
+	 * Enable or disable leader echoing in the private channel
 	 */
 	#[NCA\HandlesCommand("leaderecho")]
 	public function leaderEchoOnCommand(CmdContext $context, bool $on): void {
@@ -157,7 +150,7 @@ class ChatLeaderController extends ModuleInstance implements AccessLevelProvider
 	}
 
 	/**
-	 * This command handler shows current echoing state.
+	 * Shows the current echoing state
 	 */
 	#[NCA\HandlesCommand("leaderecho")]
 	public function leaderEchoCommand(CmdContext $context): void {

@@ -34,7 +34,6 @@ use Nadybot\Modules\ITEMS_MODULE\ItemsController;
 		command: "bioinfo",
 		accessLevel: "all",
 		description: "Shows info about a particular bio type",
-		help: "bioinfo.txt",
 	)
 ]
 class AlienBioController extends ModuleInstance {

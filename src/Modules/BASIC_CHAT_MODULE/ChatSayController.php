@@ -14,9 +14,9 @@ use Nadybot\Core\{
  * @author Legendadv (RK2)
  * @author Derroylo (RK2)
  * @author Marebone (RK2)
- * The ChatSayController class allows user to send messages to either org
+ *
+ * The ChatSayController class allows users to send messages to either org
  * channel or to private (guest) channel.
- * Commands this class contains:
  */
 #[
 	NCA\Instance,
@@ -24,25 +24,21 @@ use Nadybot\Core\{
 		command: "say",
 		accessLevel: "rl",
 		description: "Sends message to org chat or private chat",
-		help: "say.txt"
 	),
 	NCA\DefineCommand(
 		command: "tell",
 		accessLevel: "rl",
 		description: "Repeats a message 3 times",
-		help: "tell.txt"
 	),
 	NCA\DefineCommand(
 		command: "cmd",
 		accessLevel: "rl",
 		description: "Creates a highly visible message",
-		help: "cmd.txt"
 	),
 	NCA\ProvidesEvent("leadersay"),
 	NCA\ProvidesEvent("leadercmd")
 ]
 class ChatSayController extends ModuleInstance {
-
 	#[NCA\Inject]
 	public Nadybot $chatBot;
 
@@ -53,7 +49,7 @@ class ChatSayController extends ModuleInstance {
 	public EventManager $eventManager;
 
 	/**
-	 * This command handler sends message to org chat.
+	 * Have the bot say something in the org channel
 	 */
 	#[NCA\HandlesCommand("say")]
 	public function sayOrgCommand(CmdContext $context, #[NCA\Str("org")] string $channel, string $message): void {
@@ -70,7 +66,7 @@ class ChatSayController extends ModuleInstance {
 	}
 
 	/**
-	 * This command handler sends message to private channel.
+	 * Have the bot say something in the private channel
 	 */
 	#[NCA\HandlesCommand("say")]
 	public function sayPrivCommand(CmdContext $context, #[NCA\Str("priv")] string $channel, string $message): void {
@@ -87,7 +83,7 @@ class ChatSayController extends ModuleInstance {
 	}
 
 	/**
-	 * This command handler creates a highly visible message.
+	 * Show a highly visible message
 	 */
 	#[NCA\HandlesCommand("cmd")]
 	public function cmdCommand(CmdContext $context, string $message): void {
@@ -114,7 +110,7 @@ class ChatSayController extends ModuleInstance {
 	}
 
 	/**
-	 * This command handler repeats a message 3 times.
+	 * Repeat a message 3 times
 	 */
 	#[NCA\HandlesCommand("tell")]
 	public function tellCommand(CmdContext $context, string $message): void {

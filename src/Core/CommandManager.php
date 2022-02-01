@@ -587,8 +587,7 @@ class CommandManager implements MessageEmitter {
 			$refClass = new ReflectionClass($instance);
 			$refMethod = $refClass->getMethod($method);
 			$params = $refMethod->getParameters();
-			// methods will return false to indicate a syntax error, so when a false is returned,
-			// we set $syntaxError = true, otherwise we set it to false
+			/** @psalm-suppress TypeDoesNotContainNull */
 			if (count($params) === 0
 				|| !$params[0]->hasType()
 				|| ($type = $params[0]->getType()) === null
@@ -646,10 +645,11 @@ class CommandManager implements MessageEmitter {
 						break;
 				}
 			}
+			// methods will return false to indicate a syntax error, so when a false is returned,
+			// we set $syntaxError = true, otherwise we set it to false
 			$syntaxError = $instance->$method($context, ...$args) === false;
-			if ($syntaxError == false) {
+			if ($syntaxError === false) {
 				// we can stop looking, command was handled successfully
-
 				$successfulHandler = $handler;
 				break;
 			}

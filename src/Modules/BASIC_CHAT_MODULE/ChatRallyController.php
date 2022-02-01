@@ -2,18 +2,18 @@
 
 namespace Nadybot\Modules\BASIC_CHAT_MODULE;
 
-use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{
 	AOChatEvent,
+	Attributes as NCA,
 	CmdContext,
 	CommandReply,
 	EventManager,
 	ModuleInstance,
 	Nadybot,
+	ParamClass\PWord,
 	SettingManager,
 	Text,
 };
-use Nadybot\Core\ParamClass\PWord;
 use Nadybot\Modules\HELPBOT_MODULE\PlayfieldController;
 
 /**
@@ -25,13 +25,11 @@ use Nadybot\Modules\HELPBOT_MODULE\PlayfieldController;
 		command: "rally",
 		accessLevel: "all",
 		description: "Shows the rally waypoint",
-		help: "rally.txt"
 	),
 	NCA\DefineCommand(
 		command: "rally .+",
 		accessLevel: "rl",
 		description: "Sets the rally waypoint",
-		help: "rally.txt"
 	),
 	NCA\ProvidesEvent(
 		event: "sync(rally-set)",
@@ -74,7 +72,7 @@ class ChatRallyController extends ModuleInstance {
 	}
 
 	/**
-	 * This command displays the current rally location
+	 * Display the current rally location
 	 */
 	#[NCA\HandlesCommand("rally")]
 	public function rallyCommand(CmdContext $context): void {
@@ -82,7 +80,7 @@ class ChatRallyController extends ModuleInstance {
 	}
 
 	/**
-	 * This command handler clears the current rally location
+	 * Clear the current rally location
 	 */
 	#[NCA\HandlesCommand("rally .+")]
 	public function rallyClearCommand(
@@ -104,18 +102,17 @@ class ChatRallyController extends ModuleInstance {
 	}
 
 	/**
-	 * This command handler sets rally waypoint, using following example syntaxes:
-	 *  - rally 10.9 x 30 x <playfield id/name>
-	 *  - rally 10.9 . 30 . <playfield id/name>
-	 *  - rally 10.9, 30, <playfield id/name>
-	 *  - etc...
+	 * Set the rally waypoint
 	 */
 	#[NCA\HandlesCommand("rally .+")]
+	#[NCA\Help\Example("<symbol>rally 10.9 x 30 x 560")]
+	#[NCA\Help\Example("<symbol>rally 10.9 . 30 . 4HO")]
+	#[NCA\Help\Example("<symbol>rally 10.9, 30, 560")]
 	public function rallySet2Command(
 		CmdContext $context,
 		#[NCA\Regexp("[0-9.]+\s*(?:[x,.]*)")] string $x,
 		#[NCA\Regexp("[0-9.]+\s*(?:[x,.]*)")] string $y,
-		PWord $pf
+		PWord $playfield
 	): void {
 		if (!$this->chatLeaderController->checkLeaderAccess($context->char->name)) {
 			$context->reply("You must be Raid Leader to use this command.");
@@ -124,23 +121,23 @@ class ChatRallyController extends ModuleInstance {
 		$xCoords = (float)$x;
 		$yCoords = (float)$y;
 
-		$playfieldName = $pf();
-		if (is_numeric($pf())) {
-			$playfieldId = (int)$pf();
+		$playfieldName = $playfield();
+		if (is_numeric($playfield())) {
+			$playfieldId = (int)$playfield();
 			$playfieldName = (string)$playfieldId;
 
-			$playfield = $this->playfieldController->getPlayfieldById($playfieldId);
-			if ($playfield !== null && isset($playfield->short_name)) {
-				$playfieldName = $playfield->short_name;
+			$pfObj = $this->playfieldController->getPlayfieldById($playfieldId);
+			if ($pfObj !== null && isset($pfObj->short_name)) {
+				$playfieldName = $pfObj->short_name;
 			}
 		} else {
-			$playfieldName = $pf();
-			$playfield = $this->playfieldController->getPlayfieldByName($playfieldName);
-			if ($playfield === null) {
+			$playfieldName = $playfield();
+			$pfObj = $this->playfieldController->getPlayfieldByName($playfieldName);
+			if ($pfObj === null) {
 				$context->reply("Could not find playfield '{$playfieldName}'");
 				return;
 			}
-			$playfieldId = $playfield->id;
+			$playfieldId = $pfObj->id;
 		}
 		$this->set($playfieldName, $playfieldId, (string)$xCoords, (string)$yCoords);
 		$this->replyCurrentRally($context);
@@ -155,17 +152,17 @@ class ChatRallyController extends ModuleInstance {
 	}
 
 	/**
-	 * This command handler sets rally waypoint, using following example syntaxes:
-	 *  - rally (10.9 30 y 20 2434234)
+	 * Set the rally waypoint
 	 */
 	#[NCA\HandlesCommand("rally .+")]
-	public function rallySet1Command(CmdContext $context, string $input): void {
+	#[NCA\Help\Example("<symbol>rally (10.9 30.0 y 20.1 550)")]
+	public function rallySet1Command(CmdContext $context, string $pasteFromF9): void {
 		if (!$this->chatLeaderController->checkLeaderAccess($context->char->name)) {
 			$context->reply("You must be Raid Leader to use this command.");
 			return;
 		}
 
-		if (preg_match("/(\d+\.\d) (\d+\.\d) y \d+\.\d (\d+)/", $input, $matches)) {
+		if (preg_match("/(\d+\.\d) (\d+\.\d) y \d+\.\d (\d+)/", $pasteFromF9, $matches)) {
 			$xCoords = $matches[1];
 			$yCoords = $matches[2];
 			$playfieldId = (int)$matches[3];

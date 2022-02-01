@@ -2,29 +2,24 @@
 
 namespace Nadybot\Modules\BASIC_CHAT_MODULE;
 
-use Nadybot\Core\Attributes as NCA;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
+	Attributes as NCA,
 	CmdContext,
 	DB,
 	ModuleInstance,
 	Text,
 };
 
-/**
- * Commands this class contains:
- */
 #[
 	NCA\Instance,
 	NCA\DefineCommand(
 		command: "check",
 		accessLevel: "all",
 		description: "Checks who of the raidgroup is in the area",
-		help: "check.txt"
 	)
 ]
 class ChatCheckController extends ModuleInstance {
-
 	#[NCA\Inject]
 	public DB $db;
 
@@ -34,7 +29,7 @@ class ChatCheckController extends ModuleInstance {
 	public const CHANNEL_TYPE = "priv";
 
 	/**
-	 * This command handler checks who of the raidgroup is in the area.
+	 * Checks who in the private channel is in the area
 	 */
 	#[NCA\HandlesCommand("check")]
 	public function checkAllCommand(CmdContext $context): void {
