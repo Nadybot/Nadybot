@@ -724,6 +724,55 @@ class CommandManager implements MessageEmitter {
 		return $this->getCmdHelpFromCode($cmd);
 	}
 
+	protected function getRefMethodForHandler(string $handler): ?ReflectionMethod {
+		[$name, $method] = explode(".", $handler);
+		$instance = Registry::getInstance($name);
+		if ($instance === null) {
+			$this->logger->error("Could not find instance for name '$name'");
+			return null;
+		}
+		$refClass = new ReflectionClass($instance);
+		try {
+			$refMethod = $refClass->getMethod($method);
+		} catch (ReflectionException $e) {
+			$this->logger->error("Could not find method {$name}::{$method}()");
+			return null;
+		}
+		return $refMethod;
+	}
+
+	/**
+	 * @param Collection<ReflectionMethod> $methods
+	 * @return Collection<ReflectionMethod[]>
+	 */
+	public function groupRefMethods(Collection $methods): Collection {
+		$lookup = [];
+		$empty = [];
+		foreach ($methods as $m) {
+			$comment = $m->getDocComment();
+			if ($comment === false) {
+				$empty []= [$m];
+				continue;
+			}
+			$headline = $this->cleanComment($comment)[0];
+			$lookup[$headline] ??= [];
+			$lookup[$headline] []= $m;
+		}
+		return new Collection(array_merge(array_values($lookup), array_values($empty)));
+	}
+
+	/**
+	 * @return string[]
+	 * @phpstan-return array{0: string, 1?: string}
+	 */
+	protected function cleanComment(string $comment): array {
+		$comment = trim(preg_replace("|^/\*\*(.*)\*/|s", '$1', $comment));
+		$comment = preg_replace("/^[ \t]*\*[ \t]*/m", '', $comment);
+		/** @phpstan-var array{0: string, 1?: string} */
+		$result = \Safe\preg_split("/\r?\n/", $comment, 2);
+		return $result;
+	}
+
 	/**
 	 * Get the help text for a command, purely from the code
 	 * @return string|string[] The help text as one or more pages
@@ -741,27 +790,20 @@ class CommandManager implements MessageEmitter {
 		$parts = [];
 		$prologues = [];
 		$epilogues = [];
+		/** @var Collection<ReflectionMethod> */
+		$methods = new Collection();
 		foreach (explode(',', $cmds) as $handler) {
-			[$name, $method] = explode(".", $handler);
-			$instance = Registry::getInstance($name);
-			if ($instance === null) {
-				$this->logger->error("Could not find instance for name '$name'");
-				continue;
-			}
-			$refClass = new ReflectionClass($instance);
-			try {
-				$refMethod = $refClass->getMethod($method);
-			} catch (ReflectionException $e) {
-				$this->logger->error("Could not find method {$name}::{$method}()");
-				continue;
-			}
-			$parts []= $this->getHelpText($refMethod, $cmd);
-			if (count($prologue = $refMethod->getAttributes(NCA\Help\Prologue::class)) > 0) {
+			$methods->push($this->getRefMethodForHandler($handler));
+		}
+		$grouped = $this->groupRefMethods($methods->filter());
+		foreach ($grouped as $refMethods) {
+			$parts []= $this->getHelpText($refMethods, $cmd);
+			if (count($prologue = $refMethods[0]->getAttributes(NCA\Help\Prologue::class)) > 0) {
 				/** @var NCA\Help\Prologue */
 				$prologue = $prologue[0]->newInstance();
 				$prologues []= $prologue->text;
 			}
-			if (count($epilogue = $refMethod->getAttributes(NCA\Help\Epilogue::class)) > 0) {
+			if (count($epilogue = $refMethods[0]->getAttributes(NCA\Help\Epilogue::class)) > 0) {
 				/** @var NCA\Help\Epilogue */
 				$epilogue = $epilogue[0]->newInstance();
 				$epilogues []= $epilogue->text;
@@ -780,58 +822,62 @@ class CommandManager implements MessageEmitter {
 		return $this->text->makeBlob("Help ($cmd)", $blob);
 	}
 
-	public function getHelpText(ReflectionMethod $m, string $command): string {
-		$params = $m->getParameters();
-		if (count($params) === 0
-			|| !$params[0]->hasType() ) {
-			throw new Exception("Wrong command function signature");
-		}
-		$type = $params[0]->getType();
-		if (!($type instanceof ReflectionNamedType)
-			|| ($type->getName() !== CmdContext::class)) {
-			throw new Exception("Wrong command function signature");
-		}
-		$cmds = $m->getAttributes(NCA\HandlesCommand::class);
-		if (count($cmds) === 0) {
-			throw new Exception("Wrong command function signature");
+	/** @param ReflectionMethod[] $ms */
+	public function getHelpText(array $ms, string $command): string {
+		foreach ($ms as $m) {
+			$params = $m->getParameters();
+			if (count($params) === 0
+				|| !$params[0]->hasType()) {
+				throw new Exception("Wrong command function signature");
+			}
+			$type = $params[0]->getType();
+			if (!($type instanceof ReflectionNamedType)
+				|| ($type->getName() !== CmdContext::class)) {
+				throw new Exception("Wrong command function signature");
+			}
+			$cmds = $m->getAttributes(NCA\HandlesCommand::class);
+			if (count($cmds) === 0) {
+				throw new Exception("Wrong command function signature");
+			}
 		}
 		$lines = [];
 		$extra = [];
-		$comment = $m->getDocComment();
+		$comment = $ms[0]->getDocComment();
 		if ($comment !== false) {
-			$comment = trim(preg_replace("|^/\*\*(.*)\*/|s", '$1', $comment));
-			$comment = preg_replace("/^[ \t]*\*[ \t]*/m", '', $comment);
-			$parts = preg_split("/\r?\n/", $comment, 2);
-			if (is_array($parts)) {
-				$lines []= trim($parts[0]);
-				if (count($parts) === 2) {
-					$extra []= "<i>" . trim($parts[1]) . "</i>";
+			$parts = $this->cleanComment($comment);
+			$lines []= trim($parts[0]);
+			if (isset($parts[1])) {
+				$extra []= "<i>" . trim($parts[1]) . "</i>";
+			}
+		}
+		for ($j = 0; $j < count($ms); $j++) {
+			$m = $ms[$j];
+			$params = $m->getParameters();
+			$paramText = ["<symbol>{$command}"];
+			for ($i = 1; $i < count($params); $i++) {
+				$niceParam = $this->getParamText($params[$i]);
+				if (!isset($niceParam)) {
+					throw new Exception("Wrong command function signature");
 				}
-			} else {
-				$lines []= $comment;
+				if ($params[$i]->allowsNull()) {
+					$niceParam = "[{$niceParam}]";
+				}
+				if ($params[$i]->isVariadic()) {
+					$niceParam .= ", ...";
+				}
+				$paramText []= $niceParam;
 			}
-		}
-		$paramText = ["<symbol>{$command}"];
-		for ($i = 1; $i < count($params); $i++) {
-			$niceParam = $this->getParamText($params[$i]);
-			if (!isset($niceParam)) {
-				throw new Exception("Wrong command function signature");
+			if ($j > 0) {
+				$lines []= "or";
 			}
-			if ($params[$i]->allowsNull()) {
-				$niceParam = "[{$niceParam}]";
+			$lines []= "<tab><highlight>" . join(" ", $paramText) . "<end>";
+			$examples = $m->getAttributes(NCA\Help\Example::class);
+			foreach ($examples as $exAttr) {
+				/** @var NCA\Help\Example */
+				$example = $exAttr->newInstance();
+				$lines []= "<tab>-&gt; <highlight>{$example->command}<end>".
+					(isset($example->description) ? " - {$example->description}" : "");
 			}
-			if ($params[$i]->isVariadic()) {
-				$niceParam .= ", ...";
-			}
-			$paramText []= $niceParam;
-		}
-		$lines []= "<tab><highlight>" . join(" ", $paramText) . "<end>";
-		$examples = $m->getAttributes(NCA\Help\Example::class);
-		foreach ($examples as $exAttr) {
-			/** @var NCA\Help\Example */
-			$example = $exAttr->newInstance();
-			$lines []= "<tab>-&gt; <highlight>{$example->command}<end>".
-				(isset($example->description) ? " - {$example->description}" : "");
 		}
 		if (count($extra) > 0) {
 			$lines = array_merge($lines, $extra);
@@ -851,7 +897,7 @@ class CommandManager implements MessageEmitter {
 			return null;
 		}
 		$niceName = preg_replace_callback(
-			"/([A-Z])/",
+			"/([A-Z]+)/",
 			function (array $matches): string {
 				return " " . strtolower($matches[1]);
 			},
