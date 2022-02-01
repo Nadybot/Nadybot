@@ -485,7 +485,10 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 	}
 
 	#[NCA\HandlesCommand("count")]
-	public function countLevelCommand(CmdContext $context, #[NCA\Regexp("levels?|lvls?")] string $action): void {
+	public function countLevelCommand(
+		CmdContext $context,
+		#[NCA\Regexp("levels?|lvls?", example: "lvl")] string $action
+	): void {
 		$tl1 = 0;
 		$tl2 = 0;
 		$tl3 = 0;
@@ -528,7 +531,10 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 	}
 
 	#[NCA\HandlesCommand("count")]
-	public function countProfessionCommand(CmdContext $context, #[NCA\Regexp("all|profs?")] string $action): void {
+	public function countProfessionCommand(
+		CmdContext $context,
+		#[NCA\Regexp("all|profs?", example: "profs")] string $action
+	): void {
 		$chars = new Collection($this->onlineController->getPlayers("priv", $this->config->name));
 		$online = $chars->countBy("profession")->toArray();
 		$numOnline = $chars->count();
@@ -552,7 +558,10 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 	}
 
 	#[NCA\HandlesCommand("count")]
-	public function countOrganizationCommand(CmdContext $context, #[NCA\Regexp("orgs?")] string $action): void {
+	public function countOrganizationCommand(
+		CmdContext $context,
+		#[NCA\Regexp("orgs?", example: "orgs")] string $action
+	): void {
 		$online = new Collection($this->onlineController->getPlayers("priv", $this->config->name));
 
 		if ($online->isEmpty()) {

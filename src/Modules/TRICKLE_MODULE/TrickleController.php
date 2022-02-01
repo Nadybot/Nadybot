@@ -49,7 +49,10 @@ class TrickleController extends ModuleInstance {
 	 * View trickle skills
 	 */
 	#[NCA\HandlesCommand("trickle")]
-	public function trickle1Command(CmdContext $context, #[NCA\Regexp("\w+\s+\d+(\s+\w+\s+\d+){0,5}")] string $pairs): void {
+	public function trickle1Command(
+		CmdContext $context,
+		#[NCA\Regexp("\w+\s+\d+(\s+\w+\s+\d+){0,5}")] string $pairs
+	): void {
 		$abilities = new AbilityConfig();
 
 		$array = \Safe\preg_split("/\s+/", $pairs);
@@ -72,7 +75,10 @@ class TrickleController extends ModuleInstance {
 	 * View trickle skills
 	 */
 	#[NCA\HandlesCommand("trickle")]
-	public function trickle2Command(CmdContext $context, #[NCA\Regexp("\d+\s+\w+(\s+\d+\s+\w+){0,5}")] string $pairs): void {
+	public function trickle2Command(
+		CmdContext $context,
+		#[NCA\Regexp("\d+\s+\w+(\s+\d+\s+\w+){0,5}")] string $pairs
+	): void {
 		$abilities = new AbilityConfig();
 
 		$array = \Safe\preg_split("/\s+/", $pairs);

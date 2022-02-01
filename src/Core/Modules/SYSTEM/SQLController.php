@@ -46,6 +46,7 @@ class SQLController extends ModuleInstance {
 	#[NCA\Inject]
 	public Text $text;
 
+	/** Execute a non-select SQL command */
 	#[NCA\HandlesCommand("executesql")]
 	public function executesqlCommand(CmdContext $context, string $sql): void {
 		$sql = htmlspecialchars_decode($sql);
@@ -69,6 +70,7 @@ class SQLController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
+	/** Execute a select SQL query */
 	#[NCA\HandlesCommand("querysql")]
 	public function querysqlCommand(CmdContext $context, string $sql): void {
 		// I don't want to expose the API in any other way, so yeah...

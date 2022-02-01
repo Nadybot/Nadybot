@@ -122,7 +122,7 @@ class ReputationController extends ModuleInstance {
 	public function reputationAddCommand(
 		CmdContext $context,
 		PCharacter $char,
-		#[NCA\Regexp("\+1|\-1")] string $action,
+		#[NCA\Regexp("\+1|\-1", example: "+1|-1")] string $action,
 		string $comment
 	): void {
 		$this->commentController->addCommentCommand(

@@ -314,7 +314,7 @@ class CommentController extends ModuleInstance {
 	#[NCA\HandlesCommand("commentcategories")]
 	public function addCategoryCommand(
 		CmdContext $context,
-		#[NCA\Regexp("add|create|new|edit|change")] string $action,
+		#[NCA\Str("add", "create", "new", "edit", "change")] string $action,
 		PWord $category,
 		PWord $alForReading,
 		?PWord $alForWriting
@@ -359,7 +359,7 @@ class CommentController extends ModuleInstance {
 	#[NCA\HandlesCommand("comment")]
 	public function addCommentCommand(
 		CmdContext $context,
-		#[NCA\Regexp("add|create|new")] string $action,
+		#[NCA\Str("add", "create", "new")] string $action,
 		PCharacter $char,
 		PWord $category,
 		string $commentText
@@ -455,7 +455,7 @@ class CommentController extends ModuleInstance {
 	#[NCA\HandlesCommand("comment")]
 	public function searchCommentCommand(
 		CmdContext $context,
-		#[NCA\Regexp("get|search|find")] string $action,
+		#[NCA\Str("get", "search", "find")] string $action,
 		PCharacter $char,
 		?PWord $category
 	): void {

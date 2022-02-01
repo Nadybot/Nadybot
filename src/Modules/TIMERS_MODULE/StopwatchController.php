@@ -98,7 +98,7 @@ class StopwatchController extends ModuleInstance {
 	 * Show a user's stopwatch
 	 */
 	#[NCA\HandlesCommand("stopwatch")]
-	public function showStopwatchCommand(CmdContext $context, #[NCA\Regexp("view|show")] string $action): void {
+	public function showStopwatchCommand(CmdContext $context, #[NCA\Str("view", "show")] string $action): void {
 		if (!array_key_exists($context->char->name, $this->stopwatches)) {
 			$msg = "You don't have a stopwatch running.";
 			$context->reply($msg);

@@ -55,7 +55,11 @@ class CacheController extends ModuleInstance {
 	}
 
 	#[NCA\HandlesCommand("cache")]
-	public function cacheBrowseCommand(CmdContext $context, #[NCA\Str("browse")] string $action, #[NCA\Regexp("[a-z0-9_-]+")] string $group): void {
+	public function cacheBrowseCommand(
+		CmdContext $context,
+		#[NCA\Str("browse")] string $action,
+		#[NCA\Regexp("[a-z0-9_-]+")] string $group
+	): void {
 		$path = $this->config->cacheFolder . $group;
 
 		$blob = '';
@@ -73,7 +77,12 @@ class CacheController extends ModuleInstance {
 	}
 
 	#[NCA\HandlesCommand("cache")]
-	public function cacheRemCommand(CmdContext $context, PRemove $action, #[NCA\Regexp("[a-z0-9_-]+")] string $group, PFilename $file): void {
+	public function cacheRemCommand(
+		CmdContext $context,
+		PRemove $action,
+		#[NCA\Regexp("[a-z0-9_-]+")] string $group,
+		PFilename $file
+	): void {
 		$file = $file();
 
 		if ($this->cacheManager->cacheExists($group, $file)) {
@@ -86,7 +95,12 @@ class CacheController extends ModuleInstance {
 	}
 
 	#[NCA\HandlesCommand("cache")]
-	public function cacheViewCommand(CmdContext $context, #[NCA\Str("view")] string $action, #[NCA\Regexp("[a-z0-9_-]+")] string $group, PFilename $file): void {
+	public function cacheViewCommand(
+		CmdContext $context,
+		#[NCA\Str("view")] string $action,
+		#[NCA\Regexp("[a-z0-9_-]+")] string $group,
+		PFilename $file
+	): void {
 		$file = $file();
 
 		if ($this->cacheManager->cacheExists($group, $file)) {

@@ -127,7 +127,11 @@ class ImportController extends ModuleInstance {
 	}
 
 	#[NCA\HandlesCommand("import")]
-	public function importCommand(CmdContext $context, PFilename $file, #[NCA\Regexp("\w+=\w+")] ?string ...$mappings): void {
+	public function importCommand(
+		CmdContext $context,
+		PFilename $file,
+		#[NCA\Regexp("\w+=\w+", example: "accesslevel=accesslevel")] ?string ...$mappings
+	): void {
 		$dataPath = $this->config->dataFolder;
 		$fileName = "{$dataPath}/export/" . basename($file());
 		if ((pathinfo($fileName)["extension"] ?? "") !== "json") {

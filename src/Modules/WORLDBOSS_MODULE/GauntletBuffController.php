@@ -314,7 +314,7 @@ class GauntletBuffController extends ModuleInstance implements MessageEmitter {
 	 * This command handler shows when all known gauntlet buffs
 	 */
 	#[NCA\HandlesCommand("gaubuff")]
-	public function gaubuffCommand(CmdContext $context, #[NCA\Regexp("clan|omni")] ?string $buffSide): void {
+	public function gaubuffCommand(CmdContext $context, #[NCA\Str("clan", "omni")] ?string $buffSide): void {
 		$sides = $this->getSidesToShowBuff($buffSide);
 		$msgs = [];
 		foreach ($sides as $side) {
@@ -340,7 +340,7 @@ class GauntletBuffController extends ModuleInstance implements MessageEmitter {
 	 * This command sets a gauntlet buff timer
 	 */
 	#[NCA\HandlesCommand("gaubuff")]
-	public function gaubuffSetCommand(CmdContext $context, #[NCA\Regexp("clan|omni")] ?string $side, PDuration $time): void {
+	public function gaubuffSetCommand(CmdContext $context, #[NCA\Str("clan", "omni")] ?string $side, PDuration $time): void {
 		$defaultSide = $this->settingManager->getString('gaubuff_default_side') ?? "none";
 		$side = $side ?? $defaultSide;
 		if ($side === static::SIDE_NONE) {

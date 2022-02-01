@@ -717,15 +717,176 @@ class CommandManager implements MessageEmitter {
 
 		if (isset($result->help) && $result->help !== '') {
 			$blob = \Safe\file_get_contents($result->help);
-		} else {
-			$blob = $this->helpManager->find($cmd, $sender);
+			if (!empty($blob)) {
+				return $this->text->makeBlob("Help ($cmd)", $blob);
+			}
 		}
-		if (!empty($blob)) {
-			$msg = $this->text->makeBlob("Help ($cmd)", $blob);
-		} else {
-			$msg = "Error! Invalid syntax.";
+		return $this->getCmdHelpFromCode($cmd);
+	}
+
+	/**
+	 * Get the help text for a command, purely from the code
+	 * @return string|string[] The help text as one or more pages
+	 */
+	public function getCmdHelpFromCode(string $cmd): string|array {
+		$cmds = $this->db->table(self::DB_TABLE)
+			->where("dependson", $cmd)
+			->orWhere("cmd", $cmd)
+			->asObj(CmdCfg::class)
+			->pluck("file")
+			->join(",");
+		if ($cmds === "") {
+			return "No help for {$cmd}.";
 		}
-		return $msg;
+		$parts = [];
+		$prologues = [];
+		$epilogues = [];
+		foreach (explode(',', $cmds) as $handler) {
+			[$name, $method] = explode(".", $handler);
+			$instance = Registry::getInstance($name);
+			if ($instance === null) {
+				$this->logger->error("Could not find instance for name '$name'");
+				continue;
+			}
+			$refClass = new ReflectionClass($instance);
+			try {
+				$refMethod = $refClass->getMethod($method);
+			} catch (ReflectionException $e) {
+				$this->logger->error("Could not find method {$name}::{$method}()");
+				continue;
+			}
+			$parts []= $this->getHelpText($refMethod, $cmd);
+			if (count($prologue = $refMethod->getAttributes(NCA\Help\Prologue::class)) > 0) {
+				/** @var NCA\Help\Prologue */
+				$prologue = $prologue[0]->newInstance();
+				$prologues []= $prologue->text;
+			}
+			if (count($epilogue = $refMethod->getAttributes(NCA\Help\Epilogue::class)) > 0) {
+				/** @var NCA\Help\Epilogue */
+				$epilogue = $epilogue[0]->newInstance();
+				$epilogues []= $epilogue->text;
+			}
+		}
+		if (empty($parts)) {
+			return "No help for {$cmd}.";
+		}
+		$blob = "<header2>(Sub-)Commands for <symbol>{$cmd}<end>\n\n" . join("\n\n", $parts);
+		if (count($prologues)) {
+			$blob = join("\n\n", $prologues) . "\n\n{$blob}";
+		}
+		if (count($epilogues)) {
+			$blob .= "\n\n" . join("\n\n", $epilogues);
+		}
+		return $this->text->makeBlob("Help ($cmd)", $blob);
+	}
+
+	public function getHelpText(ReflectionMethod $m, string $command): string {
+		$params = $m->getParameters();
+		if (count($params) === 0
+			|| !$params[0]->hasType() ) {
+			throw new Exception("Wrong command function signature");
+		}
+		$type = $params[0]->getType();
+		if (!($type instanceof ReflectionNamedType)
+			|| ($type->getName() !== CmdContext::class)) {
+			throw new Exception("Wrong command function signature");
+		}
+		$cmds = $m->getAttributes(NCA\HandlesCommand::class);
+		if (count($cmds) === 0) {
+			throw new Exception("Wrong command function signature");
+		}
+		$lines = [];
+		$extra = [];
+		$comment = $m->getDocComment();
+		if ($comment !== false) {
+			$comment = trim(preg_replace("|^/\*\*(.*)\*/|s", '$1', $comment));
+			$comment = preg_replace("/^[ \t]*\*[ \t]*/m", '', $comment);
+			$parts = preg_split("/\r?\n/", $comment, 2);
+			if (is_array($parts)) {
+				$lines []= trim($parts[0]);
+				if (count($parts) === 2) {
+					$extra []= "<i>" . trim($parts[1]) . "</i>";
+				}
+			} else {
+				$lines []= $comment;
+			}
+		}
+		$paramText = ["<symbol>{$command}"];
+		for ($i = 1; $i < count($params); $i++) {
+			$niceParam = $this->getParamText($params[$i]);
+			if (!isset($niceParam)) {
+				throw new Exception("Wrong command function signature");
+			}
+			if ($params[$i]->allowsNull()) {
+				$niceParam = "[{$niceParam}]";
+			}
+			if ($params[$i]->isVariadic()) {
+				$niceParam .= ", ...";
+			}
+			$paramText []= $niceParam;
+		}
+		$lines []= "<tab><highlight>" . join(" ", $paramText) . "<end>";
+		$examples = $m->getAttributes(NCA\Help\Example::class);
+		foreach ($examples as $exAttr) {
+			/** @var NCA\Help\Example */
+			$example = $exAttr->newInstance();
+			$lines []= "<tab>-&gt; <highlight>{$example->command}<end>".
+				(isset($example->description) ? " - {$example->description}" : "");
+		}
+		if (count($extra) > 0) {
+			$lines = array_merge($lines, $extra);
+		}
+		return join("\n", $lines);
+	}
+
+	public function getParamText(ReflectionParameter $param): ?string {
+		if (!$param->hasType()) {
+			return null;
+		}
+		$type = $param->getType();
+		if (!($type instanceof ReflectionNamedType)) {
+			return null;
+		}
+		if (!$type->isBuiltin() && !is_subclass_of($type->getName(), Base::class)) {
+			return null;
+		}
+		$niceName = preg_replace_callback(
+			"/([A-Z])/",
+			function (array $matches): string {
+				return " " . strtolower($matches[1]);
+			},
+			$param->getName(),
+		);
+		$niceName = "&lt;{$niceName}&gt;";
+		if ($type->isBuiltin()) {
+			$constAttrs = $param->getAttributes(NCA\Str::class);
+			$regexpAttrs = $param->getAttributes(NCA\Regexp::class);
+			if (!empty($constAttrs)) {
+				/** @var NCA\Str */
+				$constObj = $constAttrs[0]->newInstance();
+				return $constObj->values[0];
+			} elseif (!empty($regexpAttrs)) {
+				/** @var NCA\Regexp */
+				$regexpObj = $regexpAttrs[0]->newInstance();
+				if (isset($regexpObj->example)) {
+					$niceName = $regexpObj->example;
+					return $niceName;
+				}
+			}
+			switch ($type->getName()) {
+				case "bool":
+					return "yes|no";
+				default:
+					return $niceName;
+			}
+		} elseif (is_subclass_of($type->getName(), Base::class)) {
+			$class = $type->getName();
+			$example = $class::getExample();
+			if (isset($example)) {
+				$niceName = $example;
+			}
+		}
+		return $niceName;
 	}
 
 	/**

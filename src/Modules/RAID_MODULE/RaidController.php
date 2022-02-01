@@ -308,6 +308,9 @@ class RaidController extends ModuleInstance {
 		return $blob;
 	}
 
+	/**
+	 * Show if a raid is currently running, with a link to join
+	 */
 	#[NCA\HandlesCommand("raid")]
 	public function raidCommand(CmdContext $context): void {
 		if (!isset($this->raid)) {
@@ -362,8 +365,15 @@ class RaidController extends ModuleInstance {
 		$this->raidMemberController->resumeRaid($lastRaid);
 	}
 
+	/**
+	 * Start a raid with a given description
+	 */
 	#[NCA\HandlesCommand("raid .+")]
-	public function raidStartCommand(CmdContext $context, #[NCA\Regexp("start|run|create")] string $action, string $description): void {
+	public function raidStartCommand(
+		CmdContext $context,
+		#[NCA\Str("start", "run", "create")] string $action,
+		string $description
+	): void {
 		if (isset($this->raid)) {
 			$context->reply("There's already a raid running.");
 			return;
@@ -387,8 +397,14 @@ class RaidController extends ModuleInstance {
 		);
 	}
 
+	/**
+	 * Stop the currently running raid
+	 */
 	#[NCA\HandlesCommand("raid .+")]
-	public function raidStopCommand(CmdContext $context, #[NCA\Regexp("stop|end")] string $action): void {
+	public function raidStopCommand(
+		CmdContext $context,
+		#[NCA\Str("stop", "end")] string $action
+	): void {
 		if (!isset($this->raid)) {
 			$context->reply(static::ERR_NO_RAID);
 			return;
@@ -396,8 +412,15 @@ class RaidController extends ModuleInstance {
 		$this->stopRaid($context->char->name);
 	}
 
+	/**
+	 * Change the raid's description
+	 */
 	#[NCA\HandlesCommand("raid .+")]
-	public function raidChangeDescCommand(CmdContext $context, #[NCA\Regexp("description|descr?")] string $action, string $description): void {
+	public function raidChangeDescCommand(
+		CmdContext $context,
+		#[NCA\Regexp("description|descr?", example: "description")] string $action,
+		string $description
+	): void {
 		if (!isset($this->raid)) {
 			$context->reply(static::ERR_NO_RAID);
 			return;
@@ -411,13 +434,20 @@ class RaidController extends ModuleInstance {
 		$this->eventManager->fireEvent($event);
 	}
 
+	/**
+	 * Change the ticker of the raid, i.e. how many seconds per raid point
+	 */
 	#[NCA\HandlesCommand("raid spp .+")]
-	public function raidChangeSppCommand(CmdContext $context, #[NCA\Str("spp")] string $action, int $spp): void {
+	public function raidChangeSppCommand(
+		CmdContext $context,
+		#[NCA\Str("spp")] string $action,
+		int $secondsPerPoint
+	): void {
 		if (!isset($this->raid)) {
 			$context->reply(static::ERR_NO_RAID);
 			return;
 		}
-		$this->raid->seconds_per_point = $spp;
+		$this->raid->seconds_per_point = $secondsPerPoint;
 		$this->logRaidChanges($this->raid);
 		$context->reply("Raid seconds per point changed.");
 		$event = new RaidEvent($this->raid);
@@ -426,8 +456,17 @@ class RaidController extends ModuleInstance {
 		$this->eventManager->fireEvent($event);
 	}
 
+	/**
+	 * Change the raid announcement interval. "off" to turn it off completely
+	 */
 	#[NCA\HandlesCommand("raid .+")]
-	public function raidChangeAnnounceCommand(CmdContext $context, #[NCA\Regexp("announce|announcement")] string $action, string $interval): void {
+	#[NCA\Help\Example("<symbol>raid announce off", "Stop announcing the raid")]
+	#[NCA\Help\Example("<symbol>raid announce 5m", "Announce every 5 minutes")]
+	public function raidChangeAnnounceCommand(
+		CmdContext $context,
+		#[NCA\Str("announce", "announcement")] string $action,
+		string $interval
+	): void {
 		if (!isset($this->raid)) {
 			$context->reply(static::ERR_NO_RAID);
 			return;
@@ -452,6 +491,9 @@ class RaidController extends ModuleInstance {
 		$this->eventManager->fireEvent($event);
 	}
 
+	/**
+	 * Lock the raid, preventing raiders from joining with <symbol>raid join
+	 */
 	#[NCA\HandlesCommand("raid .+")]
 	public function raidLockCommand(CmdContext $context, #[NCA\Str("lock")] string $action): void {
 		if (!isset($this->raid)) {
@@ -475,6 +517,9 @@ class RaidController extends ModuleInstance {
 		}
 	}
 
+	/**
+	 * Unlock the raid, allowing raiders to join with <symbol>raid join
+	 */
 	#[NCA\HandlesCommand("raid .+")]
 	public function raidUnlockCommand(CmdContext $context, #[NCA\Str("unlock")] string $action): void {
 		if (!isset($this->raid)) {
@@ -494,6 +539,9 @@ class RaidController extends ModuleInstance {
 		$this->eventManager->fireEvent($event);
 	}
 
+	/**
+	 * Get a list of all raiders, with a link to check if everyone is in the vicinity
+	 */
 	#[NCA\HandlesCommand("raid .+")]
 	public function raidCheckCommand(CmdContext $context, #[NCA\Str("check")] string $action): void {
 		if (!isset($this->raid)) {
@@ -503,6 +551,9 @@ class RaidController extends ModuleInstance {
 		$this->raidMemberController->sendRaidCheckBlob($this->raid, $context);
 	}
 
+	/**
+	 * Get a list of all raiders
+	 */
 	#[NCA\HandlesCommand("raid .+")]
 	public function raidListCommand(CmdContext $context, #[NCA\Str("list")] string $action): void {
 		if (!isset($this->raid)) {
@@ -512,8 +563,16 @@ class RaidController extends ModuleInstance {
 		$context->reply($this->raidMemberController->getRaidListBlob($this->raid));
 	}
 
+	/**
+	 * Kick everyone in the private channel who's not in the raid.
+	 * If the additional "all" is given, it will also kick raider's alts not in the raid.
+	 */
 	#[NCA\HandlesCommand("raid .+")]
-	public function raidNotinKickCommand(CmdContext $context, #[NCA\Str("notinkick")] string $action, #[NCA\Str("all")] ?string $all): void {
+	public function raidNotinKickCommand(
+		CmdContext $context,
+		#[NCA\Str("notinkick")] string $action,
+		#[NCA\Str("all")] ?string $all
+	): void {
 		if (!isset($this->raid)) {
 			$context->reply(static::ERR_NO_RAID);
 			return;
@@ -530,6 +589,9 @@ class RaidController extends ModuleInstance {
 		);
 	}
 
+	/**
+	 * Send everyone in the private channel who's not in the raid a reminder to join
+	 */
 	#[NCA\HandlesCommand("raid .+")]
 	public function raidNotinCommand(CmdContext $context, #[NCA\Str("notin")] string $action): void {
 		if (!isset($this->raid)) {
@@ -572,6 +634,9 @@ class RaidController extends ModuleInstance {
 		$sendto->reply($msgs);
 	}
 
+	/**
+	 * Show a list of old raids with details about them
+	 */
 	#[NCA\HandlesCommand("raid .+")]
 	public function raidHistoryCommand(CmdContext $context, #[NCA\Str("history")] string $action): void {
 		$query = $this->db->table(self::DB_TABLE, "r")
@@ -634,8 +699,15 @@ class RaidController extends ModuleInstance {
 		return $blob;
 	}
 
+	/**
+	 * Get detailed information about an old raid
+	 */
 	#[NCA\HandlesCommand("raid .+")]
-	public function raidHistoryDetailCommand(CmdContext $context, #[NCA\Str("history")] string $action, int $raidId): void {
+	public function raidHistoryDetailCommand(
+		CmdContext $context,
+		#[NCA\Str("history")] string $action,
+		int $raidId
+	): void {
 		/** @var ?Raid */
 		$raid = $this->db->table(self::DB_TABLE)
 			->where("raid_id", $raidId)
@@ -686,6 +758,9 @@ class RaidController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
+	/**
+	 * Get detailed information about  raid member of an old raid
+	 */
 	#[NCA\HandlesCommand("raid .+")]
 	public function raidHistoryDetailRaiderCommand(
 		CmdContext $context,
@@ -760,6 +835,9 @@ class RaidController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
+	/**
+	 * Check if anyone in the current raid is dual-logged
+	 */
 	#[NCA\HandlesCommand("raid .+")]
 	public function raidDualCommand(CmdContext $context, #[NCA\Str("dual")] string $action): void {
 		if (!isset($this->raid)) {
@@ -966,8 +1044,14 @@ class RaidController extends ModuleInstance {
 		$this->eventManager->fireEvent($event);
 	}
 
+	/**
+	 * Show the notes about all people in the current raid
+	 */
 	#[NCA\HandlesCommand("raid .+")]
-	public function raidCommentsCommand(CmdContext $context, #[NCA\Regexp("notes?|comments?")] string $action): void {
+	public function raidCommentsCommand(
+		CmdContext $context,
+		#[NCA\Regexp("notes?|comments?", example: "notes")] string $action
+	): void {
 		if (!$context->isDM()) {
 			$context->reply("<red>The '<symbol>raid {$action}' command only works in tells<end>.");
 			return;
@@ -990,28 +1074,34 @@ class RaidController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
+	/**
+	 * Add a new raid note about a character
+	 */
 	#[NCA\HandlesCommand("raid .+")]
 	public function raidCommentAddCommand(
 		CmdContext $context,
-		#[NCA\Regexp("notes?|comments?")] string $action,
-		#[NCA\Regexp("add|create|new")] string $subAction,
+		#[NCA\Regexp("notes?|comments?", example: "note")] string $action,
+		#[NCA\Str("add", "create", "new")] string $subAction,
 		PCharacter $char,
-		string $comment
+		string $note
 	): void {
 		$this->commentController->addCommentCommand(
 			$context,
 			"new",
 			$char,
 			new PWord($this->getRaidCategory()->name),
-			$comment
+			$note
 		);
 	}
 
+	/**
+	 * Get all raid notes about a character
+	 */
 	#[NCA\HandlesCommand("raid .+")]
 	public function raidCommentSearchCommand(
 		CmdContext $context,
-		#[NCA\Regexp("notes?|comments?")] string $action,
-		#[NCA\Regexp("get|read|search|find")] string $subAction,
+		#[NCA\Regexp("notes?|comments?", example: "notes")] string $action,
+		#[NCA\Str("get", "read", "search", "find")] string $subAction,
 		PCharacter $char
 	): void {
 		$this->commentController->searchCommentCommand(

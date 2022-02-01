@@ -49,44 +49,37 @@ use Nadybot\Modules\WEBSERVER_MODULE\{
 		command: "checkaccess",
 		accessLevel: "all",
 		description: "Check effective access level of a character",
-		help: "checkaccess.txt"
 	),
 	NCA\DefineCommand(
 		command: "clearqueue",
 		accessLevel: "mod",
 		description: "Clear outgoing chatqueue from all pending messages",
-		help: "clearqueue.txt"
 	),
 	NCA\DefineCommand(
 		command: "macro",
 		accessLevel: "all",
 		description: "Execute multiple commands at once",
-		help: "macro.txt"
 	),
 	NCA\DefineCommand(
 		command: "showcommand",
 		accessLevel: "mod",
 		description: "Execute a command and have output sent to another player",
-		help: "showcommand.txt"
 	),
 	NCA\DefineCommand(
 		command: "system",
 		accessLevel: "mod",
 		description: "Show detailed information about the bot",
-		help: "system.txt"
 	),
 	NCA\DefineCommand(
 		command: "restart",
 		accessLevel: "admin",
 		description: "Restart the bot",
-		help: "system.txt",
 		defaultStatus: 1
 	),
 	NCA\DefineCommand(
 		command: "shutdown",
 		accessLevel: "admin",
 		description: "Shutdown the bot",
-		help: "system.txt",
 		defaultStatus: 1
 	)
 ]
@@ -263,6 +256,7 @@ class SystemController extends ModuleInstance implements MessageEmitter {
 		return Source::SYSTEM . "(status)";
 	}
 
+	/** Restart the bot */
 	#[NCA\HandlesCommand("restart")]
 	public function restartCommand(CmdContext $context): void {
 		$msg = "Bot is restarting.";
@@ -276,6 +270,7 @@ class SystemController extends ModuleInstance implements MessageEmitter {
 		exit(-1);
 	}
 
+	/** Shutdown the bot. Configured propertly, it won't start again */
 	#[NCA\HandlesCommand("shutdown")]
 	public function shutdownCommand(CmdContext $context): void {
 		$msg = "The Bot is shutting down.";
@@ -361,6 +356,7 @@ class SystemController extends ModuleInstance implements MessageEmitter {
 		return $info;
 	}
 
+	/** Get an overview of the bot system */
 	#[NCA\HandlesCommand("system")]
 	public function systemCommand(CmdContext $context): void {
 		$info = $this->getSystemInfo();
@@ -444,6 +440,7 @@ class SystemController extends ModuleInstance implements MessageEmitter {
 		$context->reply($msg);
 	}
 
+	/** Show which access level you currently have */
 	#[NCA\HandlesCommand("checkaccess")]
 	public function checkaccessSelfCommand(CmdContext $context): void {
 		$accessLevel = $this->accessManager->getDisplayName($this->accessManager->getAccessLevelForCharacter($context->char->name));
@@ -454,28 +451,29 @@ class SystemController extends ModuleInstance implements MessageEmitter {
 		$context->reply($msg);
 	}
 
+	/** Show which access level &lt;character&gt; currently has */
 	#[NCA\HandlesCommand("checkaccess")]
-	public function checkaccessOtherCommand(CmdContext $context, PCharacter $name): void {
+	public function checkaccessOtherCommand(CmdContext $context, PCharacter $character): void {
 		$this->chatBot->getUid(
-			$name(),
-			function (?int $uid, CmdContext $context, string $name): void {
+			$character(),
+			function (?int $uid, CmdContext $context, string $character): void {
 				if (!isset($uid)) {
-					$context->reply("Character <highlight>{$name}<end> does not exist.");
+					$context->reply("Character <highlight>{$character}<end> does not exist.");
 					return;
 				}
-				$accessLevel = $this->accessManager->getDisplayName($this->accessManager->getAccessLevelForCharacter($name));
-				$msg = "Access level for <highlight>{$name}<end> (ID {$uid}) is <highlight>$accessLevel<end>.";
+				$accessLevel = $this->accessManager->getDisplayName($this->accessManager->getAccessLevelForCharacter($character));
+				$msg = "Access level for <highlight>{$character}<end> (ID {$uid}) is <highlight>$accessLevel<end>.";
 				$context->reply($msg);
 				return;
 			},
 			$context,
-			$name()
+			$character()
 		);
 		return;
 	}
 
 	/**
-	 * This command handler clears outgoing chatqueue from all pending messages.
+	 * Clears the outgoing chatqueue from all pending messages
 	 */
 	#[NCA\HandlesCommand("clearqueue")]
 	public function clearqueueCommand(CmdContext $context): void {
@@ -489,9 +487,13 @@ class SystemController extends ModuleInstance implements MessageEmitter {
 	}
 
 	/**
-	 * This command handler execute multiple commands at once, separated by pipes.
+	 * Execute multiple commands at once, separated by pipes.
 	 */
 	#[NCA\HandlesCommand("macro")]
+	#[NCA\Help\Example(
+		command: "<symbol>macro cmd That's all!|raid stop|kickall"
+	)]
+	#[NCA\Help\Epilogue("This command works especially well with aliases")]
 	public function macroCommand(CmdContext $context, string $command): void {
 		$commands = explode("|", $command);
 		foreach ($commands as $commandString) {
@@ -536,7 +538,12 @@ class SystemController extends ModuleInstance implements MessageEmitter {
 		$this->messageHub->handle($rMsg);
 	}
 
+	/** Show  the output of &lt;cmd&gt; to &lt;name&gt; */
 	#[NCA\HandlesCommand("showcommand")]
+	#[NCA\Help\Example(
+		command: "<symbol>showcommand Tyrence online",
+		description: "Show the online list to Tyrence"
+	)]
 	public function showCommandCommand(CmdContext $context, PCharacter $name, string $cmd): void {
 		$this->chatBot->getUid($name(), [$this, "showCommandUid"], $context, $name(), $cmd);
 	}

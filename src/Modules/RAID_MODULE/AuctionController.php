@@ -257,7 +257,7 @@ class AuctionController extends ModuleInstance {
 	}
 
 	#[NCA\HandlesCommand("auction reimburse .+")]
-	public function bidReimburseCommand(CmdContext $context, #[NCA\Regexp("reimburse|payback|refund")] string $action, PCharacter $winner): void {
+	public function bidReimburseCommand(CmdContext $context, #[NCA\Str("reimburse", "payback", "refund")] string $action, PCharacter $winner): void {
 		$winner = $winner();
 		/** @var ?DBAuction */
 		$lastAuction = $this->db->table(self::DB_TABLE)

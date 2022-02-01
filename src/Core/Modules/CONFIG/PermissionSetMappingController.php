@@ -30,7 +30,6 @@ use Nadybot\Core\{
 		command: "cmdmap",
 		accessLevel: "superadmin",
 		description: "Manages command to permission mappings",
-		help: "cmdmap.txt",
 		defaultStatus: 1
 	)
 ]
@@ -50,7 +49,15 @@ class PermissionSetMappingController extends ModuleInstance {
 	#[NCA\Inject]
 	public PermissionSetController $permSetCtrl;
 
+	/** Show a list of the current permission set mapping */
 	#[NCA\HandlesCommand("cmdmap")]
+	#[NCA\Help\Prologue(
+		"<header2>Permission set mappings<end>\n\n".
+		"Permission set mappings tell the bot which permission set to use when\n".
+		"receiving commands from a command source.\n".
+		"They also describe which symbol a message has to start with, in order\n".
+		"to be treated as a command, along with some other flags."
+	)]
 	public function cmdmapListCommand(CmdContext $context): void {
 		$srcs = new Collection($this->cmdManager->getSources());
 		$maps = $this->cmdManager->getPermSetMappings();
@@ -104,21 +111,22 @@ class PermissionSetMappingController extends ModuleInstance {
 		return $block;
 	}
 
+	/** Map commands from &lt;source&gt; to use the &lt;permission set&gt;*/
 	#[NCA\HandlesCommand("cmdmap")]
 	public function cmdmapNewCommand(
 		CmdContext $context,
 		#[NCA\Str("new", "create")] string $action,
 		string $source,
-		PWord $permset
+		PWord $permissionSet
 	): void {
 		$source = strtolower($source);
 		if ($this->cmdManager->getPermSetMappings()->where("source", $source)->isNotEmpty()) {
 			$context->reply("There is already a permission set map for <highlight>{$source}<end>.");
 			return;
 		}
-		$permset = strtolower($permset());
-		if (!$this->cmdManager->hasPermissionSet($permset)) {
-			$context->reply("There is no permission set <highlight>{$permset}<end>.");
+		$permissionSet = strtolower($permissionSet());
+		if (!$this->cmdManager->hasPermissionSet($permissionSet)) {
+			$context->reply("There is no permission set <highlight>{$permissionSet}<end>.");
 			return;
 		}
 		$srcValid = (new Collection($this->cmdManager->getSources()))
@@ -134,7 +142,7 @@ class PermissionSetMappingController extends ModuleInstance {
 		}
 		$map = new CmdPermSetMapping();
 		$map->source = $source;
-		$map->permission_set = $permset;
+		$map->permission_set = $permissionSet;
 		$map->symbol = $this->settingManager->getString("symbol") ?? "!";
 		try {
 			$map->id = $this->db->insert(CommandManager::DB_TABLE_MAPPING, $map);
@@ -145,7 +153,7 @@ class PermissionSetMappingController extends ModuleInstance {
 		$this->cmdManager->loadPermsetMappings();
 		$context->reply(
 			$this->text->blobWrap(
-				"Mapping from {$source} to {$permset} created. ",
+				"Mapping from {$source} to {$permissionSet} created. ",
 				$this->text->makeBlob(
 					"Configure it",
 					$this->renderPermSetMapping($map),
@@ -155,6 +163,7 @@ class PermissionSetMappingController extends ModuleInstance {
 		);
 	}
 
+	/** Show a list of all command sources */
 	#[NCA\HandlesCommand("cmdmap")]
 	public function cmdmapListSourcesCommand(
 		CmdContext $context,
@@ -172,6 +181,7 @@ class PermissionSetMappingController extends ModuleInstance {
 		);
 	}
 
+	/** Delete a permission set mapping. This will stop executing commands from &lt;source&gt; */
 	#[NCA\HandlesCommand("cmdmap")]
 	public function cmdmapDeleteCommand(
 		CmdContext $context,
@@ -203,6 +213,7 @@ class PermissionSetMappingController extends ModuleInstance {
 		);
 	}
 
+	/** Change the permission set to use for a command source */
 	#[NCA\HandlesCommand("cmdmap")]
 	public function cmdmapPickPermsetCommand(
 		CmdContext $context,
@@ -229,10 +240,11 @@ class PermissionSetMappingController extends ModuleInstance {
 		);
 	}
 
+	/** Change the prefix symbol for a command source */
 	#[NCA\HandlesCommand("cmdmap")]
 	public function cmdmapPickSymbolCommand(
 		CmdContext $context,
-		#[NCA\Str("symbol")] string $action,
+		#[NCA\Str("prefix", "symbol")] string $action,
 		#[NCA\Str("pick")] string $subAction,
 		string $source
 	): void {
@@ -264,28 +276,30 @@ class PermissionSetMappingController extends ModuleInstance {
 		);
 	}
 
+	/** Set the permission set for a command source */
 	#[NCA\HandlesCommand("cmdmap")]
 	public function cmdmapSetPermsetCommand(
 		CmdContext $context,
 		#[NCA\Str("permset")] string $action,
 		#[NCA\Str("set")] string $subAction,
 		string $source,
-		PWord $permset
+		PWord $permissionSet
 	): void {
-		$permset = strtolower($permset());
-		if ($this->cmdManager->getPermissionSets()->where("name", $permset)->isEmpty()) {
-			$context->reply("The permission set <highlight>{$permset}<end> doesn't exist.");
+		$permissionSet = strtolower($permissionSet());
+		if ($this->cmdManager->getPermissionSets()->where("name", $permissionSet)->isEmpty()) {
+			$context->reply("The permission set <highlight>{$permissionSet}<end> doesn't exist.");
 			return;
 		}
-		$this->changeCmdMap($context, $source, function(CmdPermSetMapping $set) use ($permset): void {
-			$set->permission_set = $permset;
+		$this->changeCmdMap($context, $source, function(CmdPermSetMapping $set) use ($permissionSet): void {
+			$set->permission_set = $permissionSet;
 		});
 	}
 
+	/** Set the prefix symbol for a command source */
 	#[NCA\HandlesCommand("cmdmap")]
 	public function cmdmapSetSymbolCommand(
 		CmdContext $context,
-		#[NCA\Str("symbol")] string $action,
+		#[NCA\Str("prefix", "symbol")] string $action,
 		#[NCA\Str("set")] string $subAction,
 		string $source,
 		string $symbol
@@ -295,10 +309,11 @@ class PermissionSetMappingController extends ModuleInstance {
 		});
 	}
 
+	/** Set if the prefix symbol is optional for a command source */
 	#[NCA\HandlesCommand("cmdmap")]
 	public function cmdmapChangeSymbolOptionalCommand(
 		CmdContext $context,
-		#[NCA\Str("symbolopt")] string $action,
+		#[NCA\Str("prefixopt", "symbolopt")] string $action,
 		#[NCA\Str("set")] string $subAction,
 		string $source,
 		bool $optional
@@ -308,6 +323,7 @@ class PermissionSetMappingController extends ModuleInstance {
 		});
 	}
 
+	/** Set if unknown commands from &lt;source&gt; trigger error messages */
 	#[NCA\HandlesCommand("cmdmap")]
 	public function cmdmapChangeFeedbackCommand(
 		CmdContext $context,

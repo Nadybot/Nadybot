@@ -391,7 +391,7 @@ class RaffleController extends ModuleInstance {
 	}
 
 	#[NCA\HandlesCommand("raffle")]
-	public function raffleJoinCommand(CmdContext $context, #[NCA\Regexp("join|enter")] string $action, ?int $slot): void {
+	public function raffleJoinCommand(CmdContext $context, #[NCA\Str("join", "enter")] string $action, ?int $slot): void {
 		if (!isset($this->raffle)) {
 			$context->reply(static::NO_RAFFLE_ERROR);
 			return;

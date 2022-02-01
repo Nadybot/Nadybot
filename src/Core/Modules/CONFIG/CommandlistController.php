@@ -23,7 +23,6 @@ use Nadybot\Core\DBSchema\CmdCfg;
 		command: "cmdlist",
 		accessLevel: "guild",
 		description: "Shows a list of all commands on the bot",
-		help: "cmdlist.txt",
 		defaultStatus: 1
 	)
 ]
@@ -41,12 +40,13 @@ class CommandlistController extends ModuleInstance {
 	#[NCA\Inject]
 	public DB $db;
 
+	/** Show a list of all commands, optionally only for the given access level */
 	#[NCA\HandlesCommand("cmdlist")]
-	public function cmdlistCommand(CmdContext $context, ?string $al): void {
+	public function cmdlistCommand(CmdContext $context, ?string $accessLevel): void {
 		$cmds = $this->commandManager->getAll(true);
-		if (isset($al)) {
-			$cmds = $cmds->filter(function (CmdCfg $cmd) use ($al): bool {
-				$cmd->permissions = (new Collection($cmd->permissions))->where("access_level", $al)
+		if (isset($accessLevel)) {
+			$cmds = $cmds->filter(function (CmdCfg $cmd) use ($accessLevel): bool {
+				$cmd->permissions = (new Collection($cmd->permissions))->where("access_level", $accessLevel)
 					->toArray();
 				return count($cmd->permissions) > 0;
 			});

@@ -255,7 +255,7 @@ class TestController extends ModuleInstance {
 	public function testAllCommand(CmdContext $context, #[NCA\Str("all")] string $action): void {
 		$testContext = clone $context;
 		$testContext->sendto = new MockCommandReply("buddylist clear");
-		$this->buddylistController->buddylistShowCommand($testContext, "clear");
+		$this->buddylistController->buddylistClearCommand($testContext, "clear");
 
 		$files = $this->util->getFilesInDirectory($this->path);
 		$context->reply("Starting tests...");

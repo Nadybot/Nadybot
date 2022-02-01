@@ -1,5 +1,0 @@
-To check the access level of a character:
-<highlight><tab><symbol>checkaccess <i>character</i><end>
-
-To check the access level of yourself:
-<highlight><tab><symbol>checkaccess<end>

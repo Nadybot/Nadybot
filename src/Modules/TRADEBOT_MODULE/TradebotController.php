@@ -457,7 +457,7 @@ class TradebotController extends ModuleInstance {
 	}
 
 	#[NCA\HandlesCommand("tradecolor")]
-	public function addTradecolorCommand(CmdContext $context, #[NCA\Regexp("add|set")] string $action, PCharacter $tradeBot, string $tag, PColor $color): void {
+	public function addTradecolorCommand(CmdContext $context, #[NCA\Str("add", "set")] string $action, PCharacter $tradeBot, string $tag, PColor $color): void {
 		$tag = strtolower($tag);
 		$color = $color->getCode();
 		if (!array_key_exists($tradeBot(), self::BOT_DATA)) {

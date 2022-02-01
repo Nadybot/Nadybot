@@ -33,7 +33,6 @@ use Nadybot\Core\ParamClass\PRemove;
 		command: "adminlist",
 		accessLevel: "all",
 		description: "Shows the list of administrators and moderators",
-		help: "adminlist.txt",
 		defaultStatus: 1,
 		alias: "admins"
 	),
@@ -41,14 +40,12 @@ use Nadybot\Core\ParamClass\PRemove;
 		command: "admin",
 		accessLevel: "superadmin",
 		description: "Add or remove an administrator",
-		help: "admin.txt",
 		defaultStatus: 1
 	),
 	NCA\DefineCommand(
 		command: "mod",
 		accessLevel: "admin",
 		description: "Add or remove a moderator",
-		help: "mod.txt",
 		defaultStatus: 1
 	)
 ]
@@ -97,6 +94,7 @@ class AdminController extends ModuleInstance {
 		$this->commandAlias->register($this->moduleName, "mod rem", "remmod");
 	}
 
+	/** Make &lt;who&gt; an administrator */
 	#[NCA\HandlesCommand("admin")]
 	public function adminAddCommand(
 		CmdContext $context,
@@ -109,6 +107,7 @@ class AdminController extends ModuleInstance {
 		$this->add($who(), $context->char->name, $context, $intlevel, $rank);
 	}
 
+	/** Make &lt;who&gt; a moderator */
 	#[NCA\HandlesCommand("mod")]
 	public function modAddCommand(
 		CmdContext $context,
@@ -121,6 +120,7 @@ class AdminController extends ModuleInstance {
 		$this->add($who(), $context->char->name, $context, $intlevel, $rank);
 	}
 
+	/** Demote &lt;who&gt; from administrator */
 	#[NCA\HandlesCommand("admin")]
 	public function adminRemoveCommand(CmdContext $context, PRemove $rem, PCharacter $who): void {
 		$intlevel = 4;
@@ -129,6 +129,7 @@ class AdminController extends ModuleInstance {
 		$this->remove($who(), $context->char->name, $context, $intlevel, $rank);
 	}
 
+	/** Demote &lt;who&gt; from moderator */
 	#[NCA\HandlesCommand("mod")]
 	public function modRemoveCommand(CmdContext $context, PRemove $rem, PCharacter $who): void {
 		$intlevel = 3;
@@ -137,6 +138,10 @@ class AdminController extends ModuleInstance {
 		$this->remove($who(), $context->char->name, $context, $intlevel, $rank);
 	}
 
+	/**
+	 * See the list of moderators and administrators.
+	 * Add "all" to include offline alts
+	 */
 	#[NCA\HandlesCommand("adminlist")]
 	public function adminlistCommand(CmdContext $context, #[NCA\Str("all")] ?string $all): void {
 		$showOfflineAlts = isset($all);

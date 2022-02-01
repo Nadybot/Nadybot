@@ -141,7 +141,11 @@ class RandomController extends ModuleInstance {
 	}
 
 	#[NCA\HandlesCommand("roll")]
-	public function rollMultipleNamesCommand(CmdContext $context, #[NCA\Regexp("(?:\d+)[x*]")] string $amount, string $names): void {
+	public function rollMultipleNamesCommand(
+		CmdContext $context,
+		#[NCA\Regexp("(?:\d+)[x*]", example: "&lt;amount&gt;x")] string $amount,
+		string $names
+	): void {
 		$amount = (int)$amount;
 		$timeBetweenRolls = $this->settingManager->getInt('time_between_rolls')??30;
 		if (!$this->canRoll($context->char->name, $timeBetweenRolls)) {

@@ -659,7 +659,11 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 	}
 
 	#[NCA\HandlesCommand("track")]
-	public function trackRemOrgCommand(CmdContext $context, #[NCA\Regexp("(?:rem|del)org")] string $action, int $orgId): void {
+	public function trackRemOrgCommand(
+		CmdContext $context,
+		#[NCA\Regexp("(?:rem|del)org", example: "remorg")] string $action,
+		int $orgId
+	): void {
 		if (!$this->findOrgController->isReady()) {
 			$this->findOrgController->sendNotReadyError($context);
 			return;
@@ -694,7 +698,11 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 	}
 
 	#[NCA\HandlesCommand("track")]
-	public function trackListOrgsCommand(CmdContext $context, #[NCA\Regexp("orgs?")] string $action, #[NCA\Str("list")] ?string $subAction): void {
+	public function trackListOrgsCommand(
+		CmdContext $context,
+		#[NCA\Regexp("orgs?", example: "orgs")] string $action,
+		#[NCA\Str("list")] ?string $subAction
+	): void {
 		$orgs = $this->db->table(static::DB_ORG)
 			->asObj(TrackingOrg::class);
 		$orgIds = $orgs->pluck("org_id")->filter()->toArray();
@@ -1066,7 +1074,7 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 	}
 
 	#[NCA\HandlesCommand("track")]
-	public function trackShowCommand(CmdContext $context, #[NCA\Regexp("show|view")] string $action, PCharacter $char): void {
+	public function trackShowCommand(CmdContext $context, #[NCA\Str("show", "view")] string $action, PCharacter $char): void {
 		$this->chatBot->getUid($char(), function(?int $uid) use ($context, $char): void {
 			if (!isset($uid)) {
 				$msg = "<highlight>{$char}<end> does not exist.";

@@ -283,7 +283,7 @@ class NotesController extends ModuleInstance {
 	}
 
 	#[NCA\HandlesCommand("reminders")]
-	public function reminderAddCommand(CmdContext $context, #[NCA\Regexp("add|addall|addself")] string $action, string $note): void {
+	public function reminderAddCommand(CmdContext $context, #[NCA\Str("add", "addall", "addself")] string $action, string $note): void {
 		$reminder = Note::REMIND_ALL;
 		if ($action === "addself") {
 			$reminder = Note::REMIND_SELF;
@@ -313,7 +313,7 @@ class NotesController extends ModuleInstance {
 	}
 
 	#[NCA\HandlesCommand("reminders")]
-	public function reminderSetCommand(CmdContext $context, #[NCA\Str("set")] string $action, #[NCA\Regexp("all|self|off")] string $type, int $id): void {
+	public function reminderSetCommand(CmdContext $context, #[NCA\Str("set")] string $action, #[NCA\Str("all", "self", "off")] string $type, int $id): void {
 		$reminder = Note::REMIND_ALL;
 		if ($type === "self") {
 			$reminder = Note::REMIND_SELF;

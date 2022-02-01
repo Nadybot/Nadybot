@@ -455,7 +455,7 @@ class StartpageController extends ModuleInstance {
 		CmdContext $context,
 		#[NCA\Str("move")] string $action,
 		string $tileName,
-		#[NCA\Regexp("up|down")]
+		#[NCA\Str("up", "down")]
 		string $direction
 	): void {
 		$currentTiles = $this->getActiveLayout();

@@ -524,7 +524,7 @@ class PackageController extends ModuleInstance {
 	#[NCA\HandlesCommand("package")]
 	public function packageUninstallCommand(
 		CmdContext $context,
-		#[NCA\Regexp("uninstall|delete|remove|erase|del|rm")] string $action,
+		#[NCA\Str("uninstall", "delete", "remove", "erase", "del", "rm")] string $action,
 		string $package
 	): void {
 		if (!$this->config->enablePackageModule) {

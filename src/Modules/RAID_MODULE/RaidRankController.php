@@ -401,7 +401,7 @@ class RaidRankController extends ModuleInstance implements AccessLevelProvider {
 	}
 
 	#[NCA\HandlesCommand("raidadmin")]
-	public function raidAdminAddCommand(CmdContext $context, #[NCA\Regexp("add|promote")] string $action, PCharacter $char, ?int $rank): void {
+	public function raidAdminAddCommand(CmdContext $context, #[NCA\Str("add", "promote")] string $action, PCharacter $char, ?int $rank): void {
 		$rank ??= 1;
 		if ($rank < 1 || $rank > 3) {
 			$context->reply("The admin rank must be a number between 1 and 3");
@@ -413,14 +413,14 @@ class RaidRankController extends ModuleInstance implements AccessLevelProvider {
 	}
 
 	#[NCA\HandlesCommand("raidadmin")]
-	public function raidAdminRemoveCommand(CmdContext $context, #[NCA\Regexp("remove|rem|del|rm|demote")] string $action, PCharacter $char): void {
+	public function raidAdminRemoveCommand(CmdContext $context, #[NCA\Str("remove", "rem", "del", "rm", "demote")] string $action, PCharacter $char): void {
 		$rank = 'a raid admin';
 
 		$this->remove($char(), $context->char->name, $context, [7, 8, 9], $rank);
 	}
 
 	#[NCA\HandlesCommand("raidleader")]
-	public function raidLeaderAddCommand(CmdContext $context, #[NCA\Regexp("add|promote")] string $action, PCharacter $char, ?int $rank): void {
+	public function raidLeaderAddCommand(CmdContext $context, #[NCA\Str("add", "promote")] string $action, PCharacter $char, ?int $rank): void {
 		$rank ??= 1;
 		if ($rank < 1 || $rank > 3) {
 			$context->reply("The leader rank must be a number between 1 and 3");
@@ -432,7 +432,7 @@ class RaidRankController extends ModuleInstance implements AccessLevelProvider {
 	}
 
 	#[NCA\HandlesCommand("raidleader")]
-	public function raidLeaderRemoveCommand(CmdContext $context, #[NCA\Regexp("rem|del|rm|demote")] string $action, PCharacter $char): void {
+	public function raidLeaderRemoveCommand(CmdContext $context, #[NCA\Str("rem", "del", "rm", "demote")] string $action, PCharacter $char): void {
 		$rank = 'a raid leader';
 
 		$this->remove($char(), $context->char->name, $context, [4, 5, 6], $rank);

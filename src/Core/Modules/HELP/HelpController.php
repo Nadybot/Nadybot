@@ -3,6 +3,7 @@
 namespace Nadybot\Core\Modules\HELP;
 
 use function Safe\file_get_contents;
+
 use Nadybot\Core\{
 	Attributes as NCA,
 	BotRunner,
@@ -24,7 +25,6 @@ use Nadybot\Core\{
 		command: "help",
 		accessLevel: "all",
 		description: "Show help topics",
-		help: "help.txt",
 		defaultStatus: 1
 	)
 ]
@@ -66,6 +66,7 @@ class HelpController extends ModuleInstance {
 		return $this->text->makeBlob("About Nadybot $version", $data);
 	}
 
+	/** Get a list of all help topics */
 	#[NCA\HandlesCommand("help")]
 	public function helpListCommand(CmdContext $context): void {
 		$data = $this->helpManager->getAllHelpTopics($context->char->name);
@@ -91,30 +92,34 @@ class HelpController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
+	/**
+	 * See help for a given topic
+	 *
+	 * The topic can be a module name, a command or a topic like "budatime"
+	 */
 	#[NCA\HandlesCommand("help")]
-	public function helpShowCommand(CmdContext $context, string $cmd): void {
-		$cmd = strtolower($cmd);
+	public function helpShowCommand(CmdContext $context, string $topic): void {
+		$topic = strtolower($topic);
 
-		if ($cmd === 'about') {
+		if ($topic === 'about') {
 			$msg = $this->getAbout();
 			$context->reply($msg);
 			return;
 		}
 
 		// check for alias
-		$row = $this->commandAlias->get($cmd);
+		$row = $this->commandAlias->get($topic);
 		if ($row !== null && $row->status === 1) {
-			$cmd = explode(' ', $row->cmd)[0];
+			$topic = explode(' ', $row->cmd)[0];
 		}
 
-		$blob = $this->helpManager->find($cmd, $context->char->name);
+		$blob = $this->helpManager->find($topic, $context->char->name);
 		if ($blob === null) {
-			$msg = "No help found on this topic.";
-			$context->reply($msg);
+			$context->reply($this->commandManager->getCmdHelpFromCode($topic));
 			return;
 		}
-		$cmd = ucfirst($cmd);
-		$msg = $this->text->makeBlob("Help ($cmd)", $blob);
+		$topic = ucfirst($topic);
+		$msg = $this->text->makeBlob("Help ($topic)", $blob);
 		$context->reply($msg);
 	}
 }

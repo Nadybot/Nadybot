@@ -303,7 +303,7 @@ class LootController extends ModuleInstance {
 	#[NCA\HandlesCommand("loot .+")]
 	public function multilootCommand(
 		CmdContext $context,
-		#[NCA\Regexp("addmulti|multiadd")] string $action,
+		#[NCA\Str("addmulti", "multiadd")] string $action,
 		PQuantity $amount,
 		string $items
 	): void {

@@ -22,7 +22,6 @@ use Nadybot\Core\ParamClass\PCharacter;
 		command: "sendtell",
 		accessLevel: "superadmin",
 		description: "Send a tell to another character from the bot",
-		help: "sendtell.txt"
 	)
 ]
 class SendTellController extends ModuleInstance {
@@ -33,21 +32,22 @@ class SendTellController extends ModuleInstance {
 	#[NCA\Inject]
 	public Nadybot $chatBot;
 
+	/** Have the bot send a tell to another */
 	#[NCA\HandlesCommand("sendtell")]
-	public function sendtellCommand(CmdContext $context, PCharacter $name, string $message): void {
+	public function sendtellCommand(CmdContext $context, PCharacter $character, string $message): void {
 		$this->chatBot->getUid(
-			$name(),
-			function (?int $uid, CmdContext $context, string $name, string $message): void {
+			$character(),
+			function (?int $uid, CmdContext $context, string $character, string $message): void {
 				if (!isset($uid)) {
-					$context->reply("The character <highlight>{$name}<end> does not exist.");
+					$context->reply("The character <highlight>{$character}<end> does not exist.");
 					return;
 				}
-				$this->logger->logChat("Out. Msg.", $name, $message);
+				$this->logger->logChat("Out. Msg.", $character, $message);
 				$this->chatBot->send_tell($uid, $message, "\0", QueueInterface::PRIORITY_MED);
-				$context->reply("Message has been sent to <highlight>{$name}<end>.");
+				$context->reply("Message has been sent to <highlight>{$character}<end>.");
 			},
 			$context,
-			$name(),
+			$character(),
 			$message
 		);
 	}

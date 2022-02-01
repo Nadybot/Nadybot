@@ -23,7 +23,6 @@ use Nadybot\Core\Routing\Character;
 		command: "runas",
 		accessLevel: "superadmin",
 		description: "Execute a command as another character",
-		help: "runas.txt"
 	)
 ]
 class RunAsController extends ModuleInstance {
@@ -37,27 +36,28 @@ class RunAsController extends ModuleInstance {
 	#[NCA\Inject]
 	public Nadybot $chatBot;
 
+	/** Run a command as another character */
 	#[NCA\HandlesCommand("runas")]
-	public function runasCommand(CmdContext $context, PCharacter $name, string $command): void {
+	public function runasCommand(CmdContext $context, PCharacter $character, string $command): void {
 		$context->message = $command;
 		$this->chatBot->getUid(
-			$name(),
-			function (?int $uid, CmdContext $context, string $name): void {
+			$character(),
+			function (?int $uid, CmdContext $context, string $character): void {
 				if (!isset($uid)) {
-					$context->reply("Player <highlight>{$name}<end> does not exist.");
+					$context->reply("Character <highlight>{$character}<end> does not exist.");
 					return;
 				}
 				if (!$this->accessManager->checkAccess($context->char->name, "superadmin")
-					&& $this->accessManager->compareCharacterAccessLevels($context->char->name, $name) <= 0
+					&& $this->accessManager->compareCharacterAccessLevels($context->char->name, $character) <= 0
 				) {
-					$context->reply("Error! Access level not sufficient to run commands as <highlight>$name<end>.");
+					$context->reply("Error! Access level not sufficient to run commands as <highlight>$character<end>.");
 					return;
 				}
-				$context->char = new Character($name, $uid);
+				$context->char = new Character($character, $uid);
 				$this->commandManager->processCmd($context);
 			},
 			$context,
-			$name()
+			$character()
 		);
 	}
 }

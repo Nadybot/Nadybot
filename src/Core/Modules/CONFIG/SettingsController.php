@@ -2,22 +2,22 @@
 
 namespace Nadybot\Core\Modules\CONFIG;
 
-use Nadybot\Core\Attributes as NCA;
 use Exception;
 use Nadybot\Core\{
 	AccessManager,
+	Attributes as NCA,
 	CmdContext,
 	CommandManager,
 	DB,
+	DBSchema\Setting,
 	HelpManager,
 	ModuleInstance,
+	ParamClass\PWord,
 	SettingHandler,
 	SettingManager,
 	Text,
 	Util,
 };
-use Nadybot\Core\DBSchema\Setting;
-use Nadybot\Core\ParamClass\PWord;
 
 /**
  * Commands this controller contains:
@@ -28,7 +28,6 @@ use Nadybot\Core\ParamClass\PWord;
 		command: "settings",
 		accessLevel: "mod",
 		description: "Change settings on the bot",
-		help: "settings.txt",
 		defaultStatus: 1
 	)
 ]
@@ -63,6 +62,11 @@ class SettingsController extends ModuleInstance {
 		$this->settingManager->upload();
 	}
 
+	/**
+	 * Get a list of all the settings of the bot
+	 *
+	 * Note: When a setting is editable, it will include a 'Modify' link next to the setting name.
+	 */
 	#[NCA\HandlesCommand("settings")]
 	public function settingsCommand(CmdContext $context): void {
 		$blob = "Changing any of these settings will take effect immediately. Please note that some of these settings are read-only and cannot be changed.\n\n";
@@ -95,6 +99,7 @@ class SettingsController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
+	/** See info about a setting and its allowed values */
 	#[NCA\HandlesCommand("settings")]
 	public function changeCommand(CmdContext $context, #[NCA\Str("change")] string $action, PWord $setting): void {
 		$settingName = strtolower($setting());
@@ -132,6 +137,7 @@ class SettingsController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
+	/** Set &lt;setting&gt; to &lt;new value&gt; and save it */
 	#[NCA\HandlesCommand("settings")]
 	public function saveCommand(CmdContext $context, #[NCA\Str("save")] string $action, PWord $setting, string $newValue): void {
 		$name = strtolower($setting());

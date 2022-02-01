@@ -154,7 +154,7 @@ class QuoteController extends ModuleInstance {
 	}
 
 	#[NCA\HandlesCommand("quote")]
-	public function quoteShowCommand(CmdContext $context, #[NCA\Regexp("org|priv")] ?string $channel, int $id): void {
+	public function quoteShowCommand(CmdContext $context, #[NCA\Str("org", "priv")] ?string $channel, int $id): void {
 		$result = $this->getQuoteInfo($id);
 
 		if ($result === null) {

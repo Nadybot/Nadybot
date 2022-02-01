@@ -344,7 +344,7 @@ class VoteController extends ModuleInstance implements MessageEmitter {
 	}
 
 	#[NCA\HandlesCommand("poll")]
-	public function voteShowCommand(CmdContext $context, #[NCA\Regexp("show|view")] ?string $action, int $id): void {
+	public function voteShowCommand(CmdContext $context, #[NCA\Str("show", "view")] ?string $action, int $id): void {
 		$topic = $this->getPoll($id);
 		if ($topic === null) {
 			$context->reply("There is no poll Nr. <highlight>{$id}<end>.");
@@ -429,7 +429,7 @@ class VoteController extends ModuleInstance implements MessageEmitter {
 	#[NCA\HandlesCommand("poll")]
 	public function pollCreateCommand(
 		CmdContext $context,
-		#[NCA\Regexp("add|create|new")] string $action,
+		#[NCA\Str("add", "create", "new")] string $action,
 		PDuration $duration,
 		string $definition
 	): void {

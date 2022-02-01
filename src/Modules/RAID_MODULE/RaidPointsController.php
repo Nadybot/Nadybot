@@ -737,7 +737,7 @@ class RaidPointsController extends ModuleInstance {
 	#[NCA\HandlesCommand("reward .+")]
 	public function rewardChangeCommand(
 		CmdContext $context,
-		#[NCA\Regexp("change|edit|alter|mod|modify")] string $action,
+		#[NCA\Str("change", "edit", "alter", "mod", "modify")] string $action,
 		PWord $name,
 		int $points,
 		?string $reason

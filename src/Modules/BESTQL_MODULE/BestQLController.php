@@ -57,7 +57,11 @@ class BestQLController extends ModuleInstance {
 	}
 
 	#[NCA\HandlesCommand("bestql")]
-	public function bestqlCommand(CmdContext $context, #[NCA\Regexp("[0-9 ]+")] string $specs, ?PItem $item): void {
+	public function bestqlCommand(
+		CmdContext $context,
+		#[NCA\Regexp("[0-9 ]+")] string $specs,
+		?PItem $item
+	): void {
 		/** @var array<int,int> */
 		$itemSpecs = [];
 		$specPairs = \Safe\preg_split('/\s+/', $specs);

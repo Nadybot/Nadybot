@@ -254,6 +254,9 @@ class RaidMemberController extends ModuleInstance {
 		return null;
 	}
 
+	/**
+	 * Join the currently running raid
+	 */
 	#[NCA\HandlesCommand("raid (join|leave)")]
 	public function raidJoinCommand(CmdContext $context, #[NCA\Str("join")] string $action): void {
 		$reply = $this->joinRaid($context->char->name, $context->char->name, $context->source, false);
@@ -266,6 +269,9 @@ class RaidMemberController extends ModuleInstance {
 		}
 	}
 
+	/**
+	 * Leave the currently running raid
+	 */
 	#[NCA\HandlesCommand("raid (join|leave)")]
 	public function raidLeaveCommand(CmdContext $context, #[NCA\Str("leave")] string $action): void {
 		$reply = $this->leaveRaid($context->char->name, $context->char->name);
@@ -278,6 +284,9 @@ class RaidMemberController extends ModuleInstance {
 		}
 	}
 
+	/**
+	 * Add someone to the raid, even if they currently cannot join, because it is locked
+	 */
 	#[NCA\HandlesCommand("raidmember")]
 	public function raidAddCommand(CmdContext $context, #[NCA\Str("add")] string $action, PCharacter $char): void {
 		$reply = $this->joinRaid($context->char->name, $char(), $context->source, true);
@@ -286,8 +295,11 @@ class RaidMemberController extends ModuleInstance {
 		}
 	}
 
+	/**
+	 * Kick someone from the raid
+	 */
 	#[NCA\HandlesCommand("raidmember")]
-	public function raidKickCommand(CmdContext $context, #[NCA\Regexp("rem|del|kick")] string $action, PCharacter $char): void {
+	public function raidKickCommand(CmdContext $context, #[NCA\Str("rem", "del", "kick")] string $action, PCharacter $char): void {
 		$reply = $this->leaveRaid($context->char->name, $char());
 		if ($reply !== null) {
 			$context->reply($reply);

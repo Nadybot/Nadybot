@@ -147,7 +147,7 @@ class CloakController extends ModuleInstance implements MessageEmitter {
 	}
 
 	#[NCA\HandlesCommand("cloak")]
-	public function cloakRaiseCommand(CmdContext $context, #[NCA\Regexp("raise|on")] string $action): void {
+	public function cloakRaiseCommand(CmdContext $context, #[NCA\Str("raise", "on")] string $action): void {
 		/** @var ?OrgCity */
 		$row = $this->getLastOrgEntry(true);
 

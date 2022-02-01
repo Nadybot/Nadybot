@@ -492,7 +492,7 @@ class ImplantDesignerController extends ModuleInstance {
 	}
 
 	#[NCA\HandlesCommand("implantdesigner")]
-	public function implantdesignerResultCommand(CmdContext $context, #[NCA\Regexp("result|results")] string $action): void {
+	public function implantdesignerResultCommand(CmdContext $context, #[NCA\Str("result", "results")] string $action): void {
 		$blob = $this->getImplantDesignerResults($context->char->name);
 
 		$msg = $this->text->makeBlob("Implant Designer Results", $blob);

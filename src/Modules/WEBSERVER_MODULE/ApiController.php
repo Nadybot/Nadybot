@@ -133,7 +133,7 @@ class ApiController extends ModuleInstance {
 	}
 
 	#[NCA\HandlesCommand("apiauth")]
-	public function apiauthCreateCommand(CmdContext $context, #[NCA\Regexp("create|new")] string $action): void {
+	public function apiauthCreateCommand(CmdContext $context, #[NCA\Str("create", "new")] string $action): void {
 		$key = openssl_pkey_new(["private_key_type" => OPENSSL_KEYTYPE_EC, "curve_name" => "prime256v1"]);
 		if ($key === false) {
 			$context->reply("Your PHP installation doesn't support the required cryptographic algorithms.");

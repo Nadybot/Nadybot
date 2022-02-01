@@ -371,7 +371,7 @@ class AlienMiscController extends ModuleInstance {
 	 * This command handler shows info about Alien City Generals.
 	 */
 	#[NCA\HandlesCommand("aigen")]
-	public function aigenCommand(CmdContext $context, #[NCA\Regexp("ankari|ilari|rimah|jaax|xoch|cha")] string $general): void {
+	public function aigenCommand(CmdContext $context, #[NCA\Str("ankari", "ilari", "rimah", "jaax", "xoch", "cha")] string $general): void {
 		$gen = ucfirst(strtolower($general));
 
 		$blob = '';

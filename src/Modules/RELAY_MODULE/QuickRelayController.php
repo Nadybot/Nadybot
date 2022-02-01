@@ -120,7 +120,7 @@ class QuickRelayController extends ModuleInstance {
 	}
 
 	#[NCA\HandlesCommand("quickrelay")]
-	public function quickrelayAllianceCommand(CmdContext $context, #[NCA\Regexp("alliance|agcr")] string $type): void {
+	public function quickrelayAllianceCommand(CmdContext $context, #[NCA\Str("alliance", "agcr")] string $type): void {
 		$blob = "To setup a relay called \"alliance\" between multiple bots that use the agcr-protocol\n".
 			"and relay via a private-channel called \"Privchannel\", run this on all bots:\n".
 			"<tab><highlight><symbol>relay add alliance private-channel(channel=\"Privchannel\") ".
@@ -136,7 +136,7 @@ class QuickRelayController extends ModuleInstance {
 	}
 
 	#[NCA\HandlesCommand("quickrelay")]
-	public function quickrelayOldCommand(CmdContext $context, #[NCA\Regexp("old|grc")] string $type): void {
+	public function quickrelayOldCommand(CmdContext $context, #[NCA\Str("old", "grc")] string $type): void {
 		$blob = "To setup a relay called \"compat\" between multiple bots that use the grc-protocol\n".
 			"and relay via a private-channel called \"Privchannel\", run this on all bots:\n".
 			"<tab><highlight><symbol>relay add compat private-channel(channel=\"Privchannel\") ".

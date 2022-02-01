@@ -220,7 +220,11 @@ class ChatAssistController extends ModuleInstance {
 	}
 
 	#[NCA\HandlesCommand("assist .+")]
-	public function assistClearListCommand(CmdContext $context, #[NCA\Str("clear")] string $action, #[NCA\Regexp(".*")] string $groupKey): void {
+	public function assistClearListCommand(
+		CmdContext $context,
+		#[NCA\Str("clear")] string $action,
+		#[NCA\Regexp(".*")] string $groupKey
+	): void {
 		if (!$this->chatLeaderController->checkLeaderAccess($context->char->name)) {
 			$context->reply("You must be Raid Leader to use this command.");
 			return;

@@ -2,9 +2,9 @@
 
 namespace Nadybot\Core\Modules\USAGE;
 
-use Nadybot\Core\Attributes as NCA;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
+	Attributes as NCA,
 	BotRunner,
 	CmdContext,
 	ConfigFile,
@@ -12,14 +12,14 @@ use Nadybot\Core\{
 	EventManager,
 	ModuleInstance,
 	Nadybot,
+	ParamClass\PCharacter,
+	ParamClass\PDuration,
+	ParamClass\PWord,
 	SettingManager,
 	SQLException,
 	Text,
 	Util,
 };
-use Nadybot\Core\ParamClass\PCharacter;
-use Nadybot\Core\ParamClass\PDuration;
-use Nadybot\Core\ParamClass\PWord;
 use Nadybot\Modules\RELAY_MODULE\RelayController;
 use Nadybot\Modules\RELAY_MODULE\RelayLayer;
 use stdClass;
@@ -35,7 +35,6 @@ use stdClass;
 		command: "usage",
 		accessLevel: "guild",
 		description: "Shows usage stats",
-		help: "usage.txt",
 		defaultStatus: 1
 	)
 ]
@@ -93,11 +92,12 @@ class UsageController extends ModuleInstance {
 		);
 	}
 
+	/** Show usage stats for the past 7 days or &lt;duration&gt; for a given character */
 	#[NCA\HandlesCommand("usage")]
-	public function usagePlayerCommand(
+	public function usageCharacterCommand(
 		CmdContext $context,
-		#[NCA\Str("player")] string $action,
-		PCharacter $player,
+		#[NCA\Str("char", "character", "player")] string $action,
+		PCharacter $character,
 		?PDuration $duration
 	): void {
 		$time = 604800;
@@ -114,7 +114,7 @@ class UsageController extends ModuleInstance {
 		$time = time() - $time;
 
 		$query = $this->db->table(self::DB_TABLE)
-			->where("sender", $player())
+			->where("sender", $character())
 			->where("dt", ">", $time)
 			->groupBy("command")
 			->select("command");
@@ -129,13 +129,14 @@ class UsageController extends ModuleInstance {
 				$blob .= $this->text->alignNumber($row->count, 3) . " <highlight>{$row->command}<end>\n";
 			}
 
-			$msg = $this->text->makeBlob("Usage for $player - $timeString ($count)", $blob);
+			$msg = $this->text->makeBlob("Usage for $character - $timeString ($count)", $blob);
 		} else {
-			$msg = "No usage statistics found for <highlight>{$player}<end>.";
+			$msg = "No usage statistics found for <highlight>{$character}<end>.";
 		}
 		$context->reply($msg);
 	}
 
+	/** Show usage stats for the past 7 days or &lt;duration&gt; for a given command */
 	#[NCA\HandlesCommand("usage")]
 	public function usageCmdCommand(
 		CmdContext $context,
@@ -180,6 +181,7 @@ class UsageController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
+	/** Show the internal usage data that used to be sent to the Budabot stats server */
 	#[NCA\HandlesCommand("usage")]
 	public function usageInfoCommand(CmdContext $context, #[NCA\Str("info")] string $action): void {
 		$info = $this->getUsageInfo(time() - 7*24*3600, time());
@@ -191,6 +193,7 @@ class UsageController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
+	/** Show usage stats for the past 7 days or &lt;duration&gt; */
 	#[NCA\HandlesCommand("usage")]
 	public function usageCommand(CmdContext $context, ?PDuration $duration): void {
 		$time = 604800;
