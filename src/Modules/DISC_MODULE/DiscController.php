@@ -2,20 +2,19 @@
 
 namespace Nadybot\Modules\DISC_MODULE;
 
-use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{
+	Attributes as NCA,
 	CmdContext,
 	DB,
 	ModuleInstance,
 	Nadybot,
+	ParamClass\PItem,
 	Text,
 	Util,
 };
-use Nadybot\Core\ParamClass\PItem;
 
 /**
  * @author Nadyita (RK5) <nadyita@hodorraid.org>
- * Commands this controller contains:
  */
 #[
 	NCA\Instance,
@@ -24,11 +23,9 @@ use Nadybot\Core\ParamClass\PItem;
 		command: "disc",
 		accessLevel: "all",
 		description: "Show which nano a disc will turn into",
-		help: "disc.txt"
 	)
 ]
 class DiscController extends ModuleInstance {
-
 	#[NCA\Inject]
 	public Nadybot $chatBot;
 
@@ -68,9 +65,10 @@ class DiscController extends ModuleInstance {
 	}
 
 	/**
-	 * Command to show what nano a disc will turn into
+	 * Show what nano a disc will turn into
 	 */
 	#[NCA\HandlesCommand("disc")]
+	#[NCA\Help\Example("<symbol>disc <a href=itemref://163410/163410/139>Instruction Disc (Tranquility of the Vale)</a>")]
 	public function discByItemCommand(CmdContext $context, PItem $item): void {
 		$disc = $this->getDiscById($item->lowID);
 		if (!isset($disc)) {
@@ -83,15 +81,16 @@ class DiscController extends ModuleInstance {
 	}
 
 	/**
-	 * Command to show what nano a disc will turn into
+	 * Show what nano a disc will turn into
 	 */
 	#[NCA\HandlesCommand("disc")]
-	public function discByNameCommand(CmdContext $context, string $item): void {
+	#[NCA\Help\Example("<symbol>disc tranquility vale")]
+	public function discByNameCommand(CmdContext $context, string $search): void {
 		// If only a name was given, lookup the disc's ID
-		$discs = $this->getDiscsByName($item);
+		$discs = $this->getDiscsByName($search);
 		// Not found? Cannot be made into a nano anymore or simply mistyped
 		if (empty($discs)) {
-			$msg = "Either <highlight>{$item}<end> was mistyped or it cannot be turned into a nano anymore.";
+			$msg = "Either <highlight>{$search}<end> was mistyped or it cannot be turned into a nano anymore.";
 			$context->reply($msg);
 			return;
 		}

@@ -2,10 +2,10 @@
 
 namespace Nadybot\Modules\EVENTS_MODULE;
 
-use Nadybot\Core\Attributes as NCA;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	AOChatEvent,
+	Attributes as NCA,
 	CmdContext,
 	DB,
 	ModuleInstance,
@@ -15,14 +15,13 @@ use Nadybot\Core\{
 	Util,
 	Modules\ALTS\AltsController,
 	Modules\PLAYER_LOOKUP\PlayerManager,
+	ParamClass\PRemove,
 	UserStateEvent,
 };
-use Nadybot\Core\ParamClass\PRemove;
 
 /**
  * @author Legendadv (RK2)
  * @author Tyrence (RK2)
- * Commands this controller contains:
  */
 #[
 	NCA\Instance,
@@ -31,35 +30,29 @@ use Nadybot\Core\ParamClass\PRemove;
 		command: "events",
 		accessLevel: "all",
 		description: "View/Join/Leave events",
-		help: "events.txt"
 	),
 	NCA\DefineCommand(
 		command: "events add .+",
 		accessLevel: "mod",
 		description: "Add an event",
-		help: "events.txt"
 	),
 	NCA\DefineCommand(
 		command: "events (rem|del) .+",
 		accessLevel: "mod",
 		description: "Remove an event",
-		help: "events.txt"
 	),
 	NCA\DefineCommand(
 		command: "events setdesc .+",
 		accessLevel: "mod",
 		description: "Change or set the description for an event",
-		help: "events.txt"
 	),
 	NCA\DefineCommand(
 		command: "events setdate .+",
 		accessLevel: "mod",
 		description: "Change or set the date for an event",
-		help: "events.txt"
 	)
 ]
 class EventsController extends ModuleInstance {
-
 	#[NCA\Inject]
 	public DB $db;
 
@@ -83,7 +76,6 @@ class EventsController extends ModuleInstance {
 
 	#[NCA\Setup]
 	public function setup(): void {
-
 		$this->settingManager->add(
 			module: $this->moduleName,
 			name: "num_events_shown",
@@ -95,6 +87,7 @@ class EventsController extends ModuleInstance {
 		);
 	}
 
+	/** Show the five closest past and upcoming events */
 	#[NCA\HandlesCommand("events")]
 	public function eventsCommand(CmdContext $context): void {
 		$msg = $this->getEvents();
@@ -111,6 +104,7 @@ class EventsController extends ModuleInstance {
 			->first();
 	}
 
+	/** Join event #id */
 	#[NCA\HandlesCommand("events")]
 	public function eventsJoinCommand(CmdContext $context, #[NCA\Str("join")] string $action, int $id): void {
 		$row = $this->getEvent($id);
@@ -139,6 +133,7 @@ class EventsController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
+	/** Leave event #id */
 	#[NCA\HandlesCommand("events")]
 	public function eventsLeaveCommand(CmdContext $context, #[NCA\Str("leave")] string $action, int $id): void {
 		$row = $this->getEvent($id);
@@ -166,6 +161,7 @@ class EventsController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
+	/** List all characters marked as joining event #id */
 	#[NCA\HandlesCommand("events")]
 	public function eventsListCommand(CmdContext $context, #[NCA\Str("list")] string $action, int $id): void {
 		$row = $this->getEvent($id);
@@ -210,6 +206,12 @@ class EventsController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
+	/**
+	 * Add a new event
+	 *
+	 * An event ID is returned when you submit an event.
+	 * This is the ID you will use to change data regarding that event.
+	 */
 	#[NCA\HandlesCommand("events add .+")]
 	public function eventsAddCommand(CmdContext $context, #[NCA\Str("add")] string $action, string $eventName): void {
 		$eventId = $this->db->table("events")
@@ -223,6 +225,7 @@ class EventsController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
+	/** Delete an event */
 	#[NCA\HandlesCommand("events (rem|del) .+")]
 	public function eventsRemoveCommand(CmdContext $context, PRemove $action, int $id): void {
 		$row = $this->getEvent($id);
@@ -235,6 +238,7 @@ class EventsController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
+	/** Change the description of an event */
 	#[NCA\HandlesCommand("events setdesc .+")]
 	public function eventsSetDescCommand(CmdContext $context, #[NCA\Str("setdesc")] string $action, int $id, string $description): void {
 		$row = $this->getEvent($id);
@@ -249,6 +253,7 @@ class EventsController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
+	/** Change the date of an event */
 	#[NCA\HandlesCommand("events setdate .+")]
 	public function eventsSetDateCommand(
 		CmdContext $context,

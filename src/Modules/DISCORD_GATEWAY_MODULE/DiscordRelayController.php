@@ -2,9 +2,9 @@
 
 namespace Nadybot\Modules\DISCORD_GATEWAY_MODULE;
 
-use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{
 	AccessManager,
+	Attributes as NCA,
 	CmdContext,
 	ModuleInstance,
 	Nadybot,
@@ -29,7 +29,6 @@ use Nadybot\Modules\RELAY_MODULE\RelayController;
 
 /**
  * @author Nadyite (RK5)
- * Commands this controller contains:
  */
 #[
 	NCA\Instance,
@@ -37,7 +36,6 @@ use Nadybot\Modules\RELAY_MODULE\RelayController;
 		command: "discord",
 		accessLevel: "mod",
 		description: "Information about the discord link",
-		help: "discord.txt"
 	)
 ]
 class DiscordRelayController extends ModuleInstance {
