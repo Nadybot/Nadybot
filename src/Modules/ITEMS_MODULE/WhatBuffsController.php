@@ -37,13 +37,11 @@ use Nadybot\Modules\SKILLS_MODULE\{
 		command: "whatbuffs",
 		accessLevel: "all",
 		description: "Find items or nanos that buff an ability or skill",
-		help: "whatbuffs.txt"
 	),
 	NCA\DefineCommand(
 		command: "whatbuffsfroob",
 		accessLevel: "all",
 		description: "Find froob-friendly items or nanos that buff an ability or skill",
-		help: "whatbuffs.txt",
 		alias: "wbf"
 	)
 ]
@@ -118,14 +116,13 @@ class WhatBuffsController extends ModuleInstance {
 		);
 	}
 
+	/** Show a list of attributes and skills that are being buffed */
 	#[NCA\HandlesCommand("whatbuffs")]
-	public function whatbuffsCommand(CmdContext $context): void {
-		$this->showSkillChoice($context, false);
-	}
-
 	#[NCA\HandlesCommand("whatbuffsfroob")]
-	public function whatbuffsFroobCommand(CmdContext $context): void {
-		$this->showSkillChoice($context, true);
+	public function whatbuffsCommand(CmdContext $context): void {
+		$command = explode(" ", $context->message)[0];
+		$froobFriendly = strtolower($command) === "whatbuffsfroob";
+		$this->showSkillChoice($context, $froobFriendly);
 	}
 
 	public function showSkillChoice(CommandReply $sendto, bool $froobFriendly): void {
@@ -147,6 +144,7 @@ class WhatBuffsController extends ModuleInstance {
 		$sendto->reply($msg);
 	}
 
+	/** Search for buff items for a slot or skill/attribute */
 	#[
 		NCA\HandlesCommand("whatbuffs"),
 		NCA\HandlesCommand("whatbuffsfroob")
@@ -260,14 +258,15 @@ class WhatBuffsController extends ModuleInstance {
 		$sendto->reply($msg);
 	}
 
+	/** Search for a slot and or skill/attribute to buff */
 	#[NCA\HandlesCommand("whatbuffs")]
-	public function whatbuffs5Command(CmdContext $context, string $search): void {
-		$this->handleOtherComandline(false, $context, $search);
-	}
-
 	#[NCA\HandlesCommand("whatbuffsfroob")]
-	public function whatbuffsfroob5Command(CmdContext $context, string $search): void {
-		$this->handleOtherComandline(true, $context, $search);
+	#[NCA\Help\Example("<symbol>whatbuffs cl nanoprogram")]
+	#[NCA\Help\Example("<symbol>whatbuffs legs agility")]
+	public function whatbuffs5Command(CmdContext $context, string $search): void {
+		$command = explode(" ", $context->message)[0];
+		$froobFriendly = strtolower($command) === "whatbuffsfroob";
+		$this->handleOtherComandline($froobFriendly, $context, $search);
 	}
 
 	public function filterGoodPerkBuffs(PerkLevelBuff $buff): bool {
