@@ -15,7 +15,6 @@ use Nadybot\Core\{
 
 /**
  * @author Tyrence (RK2)
- * Commands this controller contains:
  */
 #[
 	NCA\Instance,
@@ -24,17 +23,15 @@ use Nadybot\Core\{
 		command: "playfields",
 		accessLevel: "all",
 		description: "Show playfield ids, long names, and short names",
-		help: "waypoint.txt"
+		alias: "playfield"
 	),
 	NCA\DefineCommand(
 		command: "waypoint",
 		accessLevel: "all",
 		description: "Create a waypoint link",
-		help: "waypoint.txt"
 	)
 ]
 class PlayfieldController extends ModuleInstance {
-
 	#[NCA\Inject]
 	public DB $db;
 
@@ -57,13 +54,13 @@ class PlayfieldController extends ModuleInstance {
 	public function setup(): void {
 		$this->db->loadCSVFile($this->moduleName, __DIR__ . '/playfields.csv');
 
-		$this->commandAlias->register($this->moduleName, "playfields", "playfield");
 		$this->playfields = $this->db->table("playfields")
 			->asObj(Playfield::class)
 			->keyBy("id")
 			->toArray();
 	}
 
+	/** Show a list of playfields, including their id, short name, and long name */
 	#[NCA\HandlesCommand("playfields")]
 	public function playfieldListCommand(CmdContext $context): void {
 		$blob = $this->db->table("playfields")
@@ -77,6 +74,7 @@ class PlayfieldController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
+	/** Search for a playfields by its short or long name */
 	#[NCA\HandlesCommand("playfields")]
 	public function playfieldShowCommand(CmdContext $context, string $search): void {
 		$search = strtolower($search);
@@ -105,9 +103,11 @@ class PlayfieldController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
+	/** Create a waypoint link in the chat */
 	#[NCA\HandlesCommand("waypoint")]
-	public function waypoint1Command(CmdContext $context, #[NCA\Str("Pos:")] string $action, string $pos): void {
-		if (!preg_match("/^([0-9\\.]+), ([0-9\\.]+), ([0-9\\.]+), Area: ([a-zA-Z ]+)$/i", $pos, $args)) {
+	#[NCA\Help\Example("<symbol>waypoint Pos: 17.5, 28.1, 100.2, Area: Perpetual Wastelands")]
+	public function waypoint1Command(CmdContext $context, #[NCA\Str("Pos:")] string $action, string $posString): void {
+		if (!preg_match("/^([0-9\\.]+), ([0-9\\.]+), ([0-9\\.]+), Area: ([a-zA-Z ]+)$/i", $posString, $args)) {
 			$context->reply("Wrong waypoint format.");
 			return;
 		}
@@ -125,17 +125,20 @@ class PlayfieldController extends ModuleInstance {
 		$context->reply($this->processWaypointCommand($xCoords, $yCoords, $playfield->short_name??"UNKNOWN", $playfield->id));
 	}
 
+	/** Create a waypoint link in the chat */
 	#[NCA\HandlesCommand("waypoint")]
-	public function waypoint2Command(CmdContext $context, string $pos): void {
-		if (preg_match("/^\(?([0-9.]+) ([0-9.]+) y ([0-9.]+) ([0-9]+)\)?$/i", $pos, $args)) {
+	#[NCA\Help\Example("<symbol>waypoint 17 28 100 PW")]
+	#[NCA\Help\Example("<symbol>waypoint (10.9 30.0 y 20.1 550)")]
+	public function waypoint2Command(CmdContext $context, string $pasteFromF9): void {
+		if (preg_match("/^\(?([0-9.]+) ([0-9.]+) y ([0-9.]+) ([0-9]+)\)?$/i", $pasteFromF9, $args)) {
 			$xCoords = $args[1];
 			$yCoords = $args[2];
 			$playfieldId = (int)$args[4];
-		} elseif (preg_match("/^([0-9.]+)([x,. ]+)([0-9.]+)([x,. ]+)([0-9]+)$/i", $pos, $args)) {
+		} elseif (preg_match("/^([0-9.]+)([x,. ]+)([0-9.]+)([x,. ]+)([0-9]+)$/i", $pasteFromF9, $args)) {
 			$xCoords = $args[1];
 			$yCoords = $args[3];
 			$playfieldId = (int)$args[5];
-		} elseif (preg_match("/^([0-9\\.]+)([x,. ]+)([0-9\\.]+)([x,. ]+)(.+)$/i", $pos, $args)) {
+		} elseif (preg_match("/^([0-9\\.]+)([x,. ]+)([0-9\\.]+)([x,. ]+)(.+)$/i", $pasteFromF9, $args)) {
 			$xCoords = $args[1];
 			$yCoords = $args[3];
 			$playfieldName = $args[5];

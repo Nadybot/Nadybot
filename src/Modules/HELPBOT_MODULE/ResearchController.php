@@ -13,7 +13,6 @@ use Nadybot\Core\{
 /**
  * @author Tyrence (RK2)
  * @author Jaqueme
- * Commands this controller contains:
  */
 #[
 	NCA\Instance,
@@ -22,7 +21,6 @@ use Nadybot\Core\{
 		command: "research",
 		accessLevel: "all",
 		description: "Show info on Research",
-		help: "research.txt"
 	)
 ]
 class ResearchController extends ModuleInstance {
@@ -40,6 +38,7 @@ class ResearchController extends ModuleInstance {
 		$this->db->loadCSVFile($this->moduleName, __DIR__ . '/research.csv');
 	}
 
+	/** Show information about a specific research level */
 	#[NCA\HandlesCommand("research")]
 	public function researchSingleCommand(CmdContext $context, int $level): void {
 		if ($level < 1 || $level > 10) {
@@ -69,6 +68,7 @@ class ResearchController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
+	/** Show the amount of SK needed from one research level to another */
 	#[NCA\HandlesCommand("research")]
 	public function researchDoubleCommand(CmdContext $context, int $from, int $to): void {
 		if ($from < 1 || $from > 10 || $to < 1 || $to > 10) {

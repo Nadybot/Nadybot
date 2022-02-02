@@ -2,8 +2,9 @@
 
 namespace Nadybot\Modules\IMPLANT_MODULE;
 
-use Nadybot\Core\Attributes as NCA;
+use stdClass;
 use Nadybot\Core\{
+	Attributes as NCA,
 	CmdContext,
 	DB,
 	ModuleInstance,
@@ -11,7 +12,6 @@ use Nadybot\Core\{
 	Text,
 	Util,
 };
-use stdClass;
 
 /**
  * @author Tyrence (RK2)
@@ -24,7 +24,6 @@ use stdClass;
 		command: "implantdesigner",
 		accessLevel: "all",
 		description: "Implant Designer",
-		help: "implantdesigner.txt",
 		alias: "impdesign"
 	)
 ]
@@ -63,7 +62,12 @@ class ImplantDesignerController extends ModuleInstance {
 		$this->db->loadCSVFile($this->moduleName, __DIR__ . "/SymbiantProfessionMatrix.csv");
 	}
 
+	/** Look at your current implant design */
 	#[NCA\HandlesCommand("implantdesigner")]
+	#[NCA\Help\Epilogue(
+		"<i>Slot can be any of head, eye, ear, rarm, chest, larm, rwrist, waist, ".
+		"lwrist, rhand, legs, lhand, and feet.</i>"
+	)]
 	public function implantdesignerCommand(CmdContext $context): void {
 		$blob = $this->getImplantDesignerBuild($context->char->name);
 		$msg = $this->text->makeBlob("Implant Designer", $blob);
@@ -144,6 +148,7 @@ class ImplantDesignerController extends ModuleInstance {
 		return (int)$modAmount;
 	}
 
+	/** Remove all clusters from your current implant design */
 	#[NCA\HandlesCommand("implantdesigner")]
 	public function implantdesignerClearCommand(CmdContext $context, #[NCA\Str("clear")] string $action): void {
 		$this->saveDesign($context->char->name, '@', new stdClass());
@@ -156,6 +161,7 @@ class ImplantDesignerController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
+	/** See a specific slot in your current implant design */
 	#[NCA\HandlesCommand("implantdesigner")]
 	public function implantdesignerSlotCommand(CmdContext $context, PImplantSlot $slot): void {
 		$slot = $slot();
@@ -238,30 +244,31 @@ class ImplantDesignerController extends ModuleInstance {
 		return $msg;
 	}
 
+	/** Add a cluster to a slot in your current implant design */
 	#[NCA\HandlesCommand("implantdesigner")]
 	public function implantdesignerSlotAddClusterCommand(
 		CmdContext $context,
 		PImplantSlot $slot,
-		PClusterSlot $type,
-		string $item
+		PClusterSlot $grade,
+		string $cluster
 	): void {
 		$slot = $slot();
-		$type = $type();
+		$grade = $grade();
 		$design = $this->getDesign($context->char->name, '@');
 		$design->$slot ??= new stdClass();
 		$slotObj = &$design->$slot;
 
-		if ($type === 'symb') {
+		if ($grade === 'symb') {
 			/** @var ?Symbiant */
 			$symbRow = $this->db->table("Symbiant AS s")
 				->join("ImplantType AS i", "s.SlotID", "i.ImplantTypeID")
 				->where("i.ShortName", $slot)
-				->where("s.Name", $item)
+				->where("s.Name", $cluster)
 				->select("s.*")
 				->asObj(Symbiant::class)->first();
 
 			if ($symbRow === null) {
-				$msg = "Could not find symbiant <highlight>$item<end>.";
+				$msg = "Could not find symbiant <highlight>$cluster<end>.";
 			} else {
 				// convert slot to symb
 				unset($slotObj->shiny);
@@ -292,17 +299,17 @@ class ImplantDesignerController extends ModuleInstance {
 				$msg = "<highlight>$slot(symb)<end> has been set to <highlight>$symb->name<end>.";
 			}
 		} else {
-			if (strtolower($item) == 'clear') {
-				if ($slotObj->$type === null) {
-					$msg = "There is no cluster in <highlight>$slot($type)<end>.";
+			if (strtolower($cluster) == 'clear') {
+				if ($slotObj->$grade === null) {
+					$msg = "There is no cluster in <highlight>$slot($grade)<end>.";
 				} else {
-					unset($slotObj->$type);
-					$msg = "<highlight>$slot($type)<end> has been cleared.";
+					unset($slotObj->$grade);
+					$msg = "<highlight>$slot($grade)<end> has been cleared.";
 				}
 			} else {
-				unset($slotObj->$type);
-				$slotObj->$type = $item;
-				$msg = "<highlight>$slot($type)<end> has been set to <highlight>$item<end>.";
+				unset($slotObj->$grade);
+				$slotObj->$grade = $cluster;
+				$msg = "<highlight>$slot($grade)<end> has been set to <highlight>$cluster<end>.";
 			}
 		}
 
@@ -316,6 +323,7 @@ class ImplantDesignerController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
+	/** Set the QL for a slot in your current implant design */
 	#[NCA\HandlesCommand("implantdesigner")]
 	public function implantdesignerSlotQLCommand(
 		CmdContext $context,
@@ -340,6 +348,7 @@ class ImplantDesignerController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
+	/** Clear all clusters from a slot in your current implant design */
 	#[NCA\HandlesCommand("implantdesigner")]
 	public function implantdesignerSlotClearCommand(
 		CmdContext $context,
@@ -362,6 +371,7 @@ class ImplantDesignerController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
+	/** Show how to make a slot require a certain attribute in your current implant design */
 	#[NCA\HandlesCommand("implantdesigner")]
 	public function implantdesignerSlotRequireCommand(
 		CmdContext $context,
@@ -401,6 +411,7 @@ class ImplantDesignerController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
+	/** Show how to make a slot require a certain attribute in your current implant design */
 	#[NCA\HandlesCommand("implantdesigner")]
 	public function implantdesignerSlotRequireAbilityCommand(
 		CmdContext $context,
@@ -491,6 +502,7 @@ class ImplantDesignerController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
+	/** Show the result of your current implant design */
 	#[NCA\HandlesCommand("implantdesigner")]
 	public function implantdesignerResultCommand(CmdContext $context, #[NCA\Str("result", "results")] string $action): void {
 		$blob = $this->getImplantDesignerResults($context->char->name);
