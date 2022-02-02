@@ -1,2 +1,0 @@
-To show what GridStream Productions is currently playing:
-<highlight><tab><symbol>radio<end>

@@ -2,10 +2,11 @@
 
 namespace Nadybot\Modules\GUIDE_MODULE;
 
-use Nadybot\Core\Attributes as NCA;
 use DOMDocument;
 use DOMElement;
+use Throwable;
 use Nadybot\Core\{
+	Attributes as NCA,
 	CacheManager,
 	CacheResult,
 	CmdContext,
@@ -14,25 +15,23 @@ use Nadybot\Core\{
 	ModuleInstance,
 	Text,
 };
-use Nadybot\Modules\ITEMS_MODULE\AODBEntry;
-use Nadybot\Modules\ITEMS_MODULE\ItemsController;
-use Throwable;
+use Nadybot\Modules\ITEMS_MODULE\{
+	AODBEntry,
+	ItemsController,
+};
 
 /**
  * @author Tyrence (RK2)
- * Commands this controller contains:
  */
 #[
 	NCA\Instance,
 	NCA\DefineCommand(
 		command: "aou",
 		accessLevel: "all",
-		description: "Search for or view a guide from AO-Universe.com",
-		help: "aou.txt"
+		description: "Search for or view a guide from AO-Universe",
 	)
 ]
 class AOUController extends ModuleInstance {
-
 	#[NCA\Inject]
 	public Text $text;
 
@@ -60,7 +59,7 @@ class AOUController extends ModuleInstance {
 	}
 
 	/**
-	 * View an AO-U guide.
+	 * View a specific guide on AO-Universe
 	 */
 	#[NCA\HandlesCommand("aou")]
 	public function aouView(CmdContext $context, int $guideId): void {
@@ -100,13 +99,13 @@ class AOUController extends ModuleInstance {
 
 		$content = $dom->getElementsByTagName('content')->item(0);
 		if ($content == null || !($content instanceof DOMElement)) {
-			$msg = "Error retrieving guide <highlight>$guideId<end> from AO-Universe.com";
+			$msg = "Error retrieving guide <highlight>$guideId<end> from AO-Universe";
 			$sendto->reply($msg);
 			return;
 		}
 		$title = $content->getElementsByTagName('name')->item(0)->nodeValue;
 
-		$blob = $this->text->makeChatcmd("Guide on AO-Universe.com", "/start https://www.ao-universe.com/main.php?site=knowledge&id={$guideId}") . "\n\n";
+		$blob = $this->text->makeChatcmd("Guide on AO-Universe", "/start https://www.ao-universe.com/main.php?site=knowledge&id={$guideId}") . "\n\n";
 
 		$blob .= "Updated: <highlight>" . $content->getElementsByTagName('update')->item(0)->nodeValue . "<end>\n";
 		$blob .= "Profession: <highlight>" . $content->getElementsByTagName('class')->item(0)->nodeValue . "<end>\n";
@@ -116,14 +115,16 @@ class AOUController extends ModuleInstance {
 
 		$blob .= $this->processInput($content->getElementsByTagName('text')->item(0)->nodeValue);
 
-		$blob .= "\n\n<highlight>Powered by<end> " . $this->text->makeChatcmd("AO-Universe.com", "/start https://www.ao-universe.com");
+		$blob .= "\n\n<i>Powered by " . $this->text->makeChatcmd("AO-Universe", "/start https://www.ao-universe.com") . "</i>";
 
 		$msg = $this->text->makeBlob($title, $blob);
 		$sendto->reply($msg);
 	}
 
 	/**
-	 * Search for an AO-U guide and include guides that have the search terms in the guide text.
+	 * Search for an AO-Universe guide and include guides that have the search terms in the guide text
+	 *
+	 * Note: this will search the name, category, and description as well as the guide body for matches.
 	 */
 	#[NCA\HandlesCommand("aou")]
 	public function aouAllSearch(CmdContext $context, #[NCA\Str("all")] string $action, string $search): void {
@@ -131,7 +132,9 @@ class AOUController extends ModuleInstance {
 	}
 
 	/**
-	 * Search for an AO-U guide.
+	 * Search for an AO-Universe guide
+	 *
+	 * Note: this will search the name, category, and description for matches
 	 */
 	#[NCA\HandlesCommand("aou")]
 	public function aouSearch(CmdContext $context, string $search): void {
@@ -192,13 +195,13 @@ class AOUController extends ModuleInstance {
 			}
 		}
 
-		$blob .= "\n<highlight>Powered by<end> " . $this->text->makeChatcmd("AO-Universe.com", "/start https://www.ao-universe.com");
+		$blob .= "\n<i>Powered by " . $this->text->makeChatcmd("AO-Universe.com", "/start https://www.ao-universe.com") . "</i>";
 
 		if ($count > 0) {
 			if ($searchGuideText) {
-				$title = "All AO-U Guides containing '$search' ($count)";
+				$title = "All AO-Universe Guides containing '$search' ($count)";
 			} else {
-				$title = "AO-U Guides containing '$search' ($count)";
+				$title = "AO-Universe Guides containing '$search' ($count)";
 			}
 			$msg = $this->text->makeBlob($title, $blob);
 		} else {

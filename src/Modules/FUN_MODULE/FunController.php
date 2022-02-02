@@ -13,7 +13,6 @@ use Nadybot\Core\{
 
 /**
  * @author Tyrence (RK2)
- * Commands this controller contains:
  */
 #[
 	NCA\Instance,
@@ -22,60 +21,50 @@ use Nadybot\Core\{
 		command: "beer",
 		accessLevel: "all",
 		description: "Shows a random beer message",
-		help: "fun_module.txt"
 	),
 	NCA\DefineCommand(
 		command: "brain",
 		accessLevel: "all",
 		description: "Shows a random pinky and the brain quote",
-		help: "fun_module.txt",
 		alias: "pinky"
 	),
 	NCA\DefineCommand(
 		command: "chuck",
 		accessLevel: "all",
 		description: "Shows a random Chuck Norris joke",
-		help: "fun_module.txt"
 	),
 	NCA\DefineCommand(
 		command: "cybor",
 		accessLevel: "all",
 		description: "Shows a random cybor message",
-		help: "fun_module.txt"
 	),
 	NCA\DefineCommand(
 		command: "dwight",
 		accessLevel: "all",
 		description: "Shows a random Dwight quote",
-		help: "fun_module.txt"
 	),
 	NCA\DefineCommand(
 		command: "fc",
 		accessLevel: "all",
 		description: "Shows a random FC quote",
-		help: "fun_module.txt"
 	),
 	NCA\DefineCommand(
 		command: "homer",
 		accessLevel: "all",
 		description: "Shows a random homer quote",
-		help: "fun_module.txt"
 	),
 	NCA\DefineCommand(
 		command: "pirates",
 		accessLevel: "all",
 		description: "Shows a random Pirates of the Caribbean quote",
-		help: "fun_module.txt"
 	),
 	NCA\DefineCommand(
 		command: "compliment",
 		accessLevel: "all",
 		description: "Shows a random compliment",
-		help: "fun_module.txt"
 	)
 ]
 class FunController extends ModuleInstance {
-
 	#[NCA\Inject]
 	public DB $db;
 
@@ -122,6 +111,7 @@ class FunController extends ModuleInstance {
 		return $msg;
 	}
 
+	/** Show a random funny line/quote/compliment, or a specific one given with &lt;num&gt; */
 	#[
 		NCA\HandlesCommand("beer"),
 		NCA\HandlesCommand("brain"),

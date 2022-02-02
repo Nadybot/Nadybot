@@ -13,7 +13,6 @@ use Nadybot\Core\{
  * @author Neksus (RK2)
  * @author Mdkdoc420 (RK2)
  * @author Tyrence (RK2)
- * Commands this controller contains:
  */
 #[
 	NCA\Instance,
@@ -21,14 +20,13 @@ use Nadybot\Core\{
 		command: "ding",
 		accessLevel: "all",
 		description: "Shows a random ding gratz message",
-		help: "fun_module.txt"
 	)
 ]
 class DingController extends ModuleInstance {
-
 	#[NCA\Inject]
 	public Util $util;
 
+	/** Show a random ding gratz message */
 	#[NCA\HandlesCommand("ding")]
 	public function ding1Command(CmdContext $context): void {
 		$dingText = [
@@ -41,14 +39,16 @@ class DingController extends ModuleInstance {
 		$context->reply($this->util->randomArrayValue($dingText));
 	}
 
+	/** Show a cheesy ding reply */
 	#[NCA\HandlesCommand("ding")]
 	public function dingDongCommand(CmdContext $context, #[NCA\Str("dong")] string $action): void {
 		$msg =	"Ditch, Bitch!";
 		$context->reply($msg);
 	}
 
+	/** Show a ding gratz message for dinging &lt;level&gt; */
 	#[NCA\HandlesCommand("ding")]
-	public function ding3Command(CmdContext $context, int $level, ?string $ignore): void {
+	public function ding3Command(CmdContext $context, int $level, ?string $ignoredText): void {
 		if ($level <= 0) {
 			$lvl = (int)round(220 - $level);
 			$dingText = [

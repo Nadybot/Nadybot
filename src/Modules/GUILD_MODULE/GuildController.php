@@ -39,7 +39,6 @@ use Nadybot\Core\{
  * @author Tyrence (RK2)
  * @author Mindrila (RK1)
  * @author Derroylo (RK2)
- * Commands this controller contains:
  */
 #[
 	NCA\Instance,
@@ -48,41 +47,34 @@ use Nadybot\Core\{
 		command: "logon",
 		accessLevel: "guild",
 		description: "Set logon message",
-		help: "logon_msg.txt"
 	),
 	NCA\DefineCommand(
 		command: "logoff",
 		accessLevel: "guild",
 		description: "Set logoff message",
-		help: "logoff_msg.txt"
 	),
 	NCA\DefineCommand(
 		command: "lastseen",
 		accessLevel: "guild",
 		description: "Shows the last logoff time of a character",
-		help: "lastseen.txt"
 	),
 	NCA\DefineCommand(
 		command: "recentseen",
 		accessLevel: "guild",
 		description: "Shows org members who have logged off recently",
-		help: "recentseen.txt"
 	),
 	NCA\DefineCommand(
 		command: "notify",
 		accessLevel: "mod",
 		description: "Adds a character to the notify list manually",
-		help: "notify.txt"
 	),
 	NCA\DefineCommand(
 		command: "updateorg",
 		accessLevel: "mod",
 		description: "Force an update of the org roster",
-		help: "updateorg.txt"
 	)
 ]
 class GuildController extends ModuleInstance {
-
 	public const DB_TABLE = "org_members_<myname>";
 
 	#[NCA\Inject]
@@ -126,7 +118,6 @@ class GuildController extends ModuleInstance {
 
 	#[NCA\Setup]
 	public function setup(): void {
-
 		$this->settingManager->add(
 			module: $this->moduleName,
 			name: "max_logon_msg_size",
@@ -204,6 +195,7 @@ class GuildController extends ModuleInstance {
 			->delete();
 	}
 
+	/** See your current logon message */
 	#[NCA\HandlesCommand("logon")]
 	public function logonMessageShowCommand(CmdContext $context): void {
 		$logonMessage = $this->preferences->get($context->char->name, 'logon_msg');
@@ -216,6 +208,7 @@ class GuildController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
+	/** Set your new logon message. 'clear' to remove it */
 	#[NCA\HandlesCommand("logon")]
 	public function logonMessageSetCommand(CmdContext $context, string $logonMessage): void {
 		if ($logonMessage === 'clear') {
@@ -230,6 +223,7 @@ class GuildController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
+	/** See your current logon message */
 	#[NCA\HandlesCommand("logoff")]
 	public function logoffMessageShowCommand(CmdContext $context): void {
 		$logoffMessage = $this->preferences->get($context->char->name, 'logoff_msg');
@@ -242,6 +236,7 @@ class GuildController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
+	/** Set your new logoff message. 'clear' to remove it */
 	#[NCA\HandlesCommand("logoff")]
 	public function logoffMessageSetCommand(CmdContext $context, string $logoffMessage): void {
 		if ($logoffMessage == 'clear') {
@@ -256,6 +251,7 @@ class GuildController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
+	/** Check when a member of your org was last seen online by the bot */
 	#[NCA\HandlesCommand("lastseen")]
 	public function lastSeenCommand(CmdContext $context, PCharacter $name): void {
 		$uid = $this->chatBot->get_uid($name());
@@ -299,7 +295,16 @@ class GuildController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
+	/**
+	 * Show all org members who have logged on within a specified amount of time
+	 *
+	 * This will take into account each member's alts when reporting their last logon time
+	 */
 	#[NCA\HandlesCommand("recentseen")]
+	#[NCA\Help\Example(
+		command: "<symbol>recentseen 1d",
+		description: "List all org members who logged on within 1 day"
+	)]
 	public function recentSeenCommand(CmdContext $context, PDuration $duration): void {
 		if (!$this->isGuildBot()) {
 			$context->reply("The bot must be in an org.");
@@ -366,9 +371,14 @@ class GuildController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
+	/**
+	 * Manually add a character to the notify list
+	 *
+	 * Do this if someone is an org member, but not in the org roster yet
+	 */
 	#[NCA\HandlesCommand("notify")]
-	public function notifyAddCommand(CmdContext $context, #[NCA\Str("on", "add")] string $action, PCharacter $who): void {
-		$name = $who();
+	public function notifyAddCommand(CmdContext $context, #[NCA\Str("on", "add")] string $action, PCharacter $char): void {
+		$name = $char();
 		$uid = $this->chatBot->get_uid($name);
 
 		if (!$uid) {
@@ -407,9 +417,12 @@ class GuildController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
+	/**
+	 * Manually remove a character from the notify list
+	 */
 	#[NCA\HandlesCommand("notify")]
-	public function notifyRemoveCommand(CmdContext $context, PRemove $action, PCharacter $who): void {
-		$name = $who();
+	public function notifyRemoveCommand(CmdContext $context, PRemove $action, PCharacter $char): void {
+		$name = $char();
 		$uid = $this->chatBot->get_uid($name);
 
 		if (!$uid) {
@@ -440,6 +453,7 @@ class GuildController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
+	/** Force an update of the org roster */
 	#[NCA\HandlesCommand("updateorg")]
 	public function updateorgCommand(CmdContext $context): void {
 		$context->reply("Starting Roster update");

@@ -853,26 +853,33 @@ class CommandManager implements MessageEmitter {
 		for ($j = 0; $j < count($ms); $j++) {
 			$m = $ms[$j];
 			$params = $m->getParameters();
-			$paramText = ["<symbol>{$command}"];
-			for ($i = 1; $i < count($params); $i++) {
-				$niceParam = $this->getParamText($params[$i]);
-				if (!isset($niceParam)) {
-					throw new Exception("Wrong command function signature");
+			$commandAttrs = $m->getAttributes(NCA\HandlesCommand::class);
+			for ($k = 0; $k < count($commandAttrs); $k++) {
+				/** @var NCA\HandlesCommand */
+				$commandObj = $commandAttrs[$k]->newInstance();
+				$commandName = explode(" ", $commandObj->command)[0];
+				$paramText = ["<symbol>{$commandName}"];
+				for ($i = 1; $i < count($params); $i++) {
+					$niceParam = $this->getParamText($params[$i]);
+					if (!isset($niceParam)) {
+						throw new Exception("Wrong command function signature");
+					}
+					if ($params[$i]->allowsNull()) {
+						$niceParam = "[{$niceParam}]";
+					}
+					if ($params[$i]->isVariadic()) {
+						$parMask = str_replace("&gt;", "%d&gt;", preg_replace("/s\b/", "", preg_replace("/ies\b/", "y", $niceParam)));
+						$ones = array_fill(0, substr_count($parMask, "%d"), 1);
+						$twos = array_fill(0, substr_count($parMask, "%d"), 2);
+						$niceParam = sprintf($parMask, ...$ones) . " " . sprintf($parMask, ...$twos) . " ...";
+					}
+					$paramText []= $niceParam;
 				}
-				if ($params[$i]->allowsNull()) {
-					$niceParam = "[{$niceParam}]";
+				if ($j > 0 && $k === 0) {
+					$lines []= "or";
 				}
-				if ($params[$i]->isVariadic()) {
-					$parMask = str_replace("&gt;", "%d&gt;", preg_replace("/s\b/", "", preg_replace("/ies\b/", "y", $niceParam)));
-					$niceParam = sprintf($parMask, 1) . " " . sprintf($parMask, 2) . " ...";
-					// $niceParam .= ", ...";
-				}
-				$paramText []= $niceParam;
+				$lines []= "<tab><highlight>" . join(" ", $paramText) . "<end>";
 			}
-			if ($j > 0) {
-				$lines []= "or";
-			}
-			$lines []= "<tab><highlight>" . join(" ", $paramText) . "<end>";
 			$examples = $m->getAttributes(NCA\Help\Example::class);
 			foreach ($examples as $exAttr) {
 				/** @var NCA\Help\Example */

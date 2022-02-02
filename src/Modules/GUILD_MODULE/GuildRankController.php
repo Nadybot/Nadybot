@@ -24,7 +24,6 @@ use Nadybot\Modules\ORGLIST_MODULE\OrglistController;
 
 /**
  * @author Nadyita (RK5)
- * Commands this controller contains:
  */
 #[
 	NCA\Instance,
@@ -33,17 +32,14 @@ use Nadybot\Modules\ORGLIST_MODULE\OrglistController;
 		command: "ranks",
 		accessLevel: "all",
 		description: "Show a list of all available org ranks",
-		help: "ranks.txt"
 	),
 	NCA\DefineCommand(
 		command: "maprank",
 		accessLevel: "admin",
 		description: "Define how org ranks map to bot ranks",
-		help: "maprank.txt"
 	)
 ]
 class GuildRankController extends ModuleInstance implements AccessLevelProvider {
-
 	public const DB_TABLE = "org_rank_mapping_<myname>";
 
 	#[NCA\Inject]
@@ -120,6 +116,7 @@ class GuildRankController extends ModuleInstance implements AccessLevelProvider 
 		return $rank ? $rank->access_level : "guild";
 	}
 
+	/** Get a list of all your defined mappings of org rank to bot access level */
 	#[NCA\HandlesCommand("maprank")]
 	public function maprankListCommand(CmdContext $context): void {
 		if (!$this->guildController->isGuildBot()) {
@@ -171,8 +168,20 @@ class GuildRankController extends ModuleInstance implements AccessLevelProvider 
 		$context->reply($msg);
 	}
 
+	/** Give &lt;access level&gt; rights to every org member rank &lt;rank id&gt; or higher */
 	#[NCA\HandlesCommand("maprank")]
-	public function maprankCommand(CmdContext $context, int $rank, #[NCA\Str("to")] ?string $to, PWord $accessLevel): void {
+	#[NCA\Help\Example(
+		command: "<symbol>maprank 0 to admin",
+		description: "Give admin rights to org rank 0 (President, Monarch, Lorg, etc.)"
+	)]
+	#[NCA\Help\Example(
+		command: "<symbol>maprank 1 to mod",
+		description: "Give mod rights to org rank 1 (Knight, Advisor, Board Member, etc.) or higher",
+	)]
+	#[NCA\Help\Epilogue(
+		"Use <a href='chatcmd:///tell <myname> ranks'><symbol>ranks</a> to get the numeric rank IDs of your org"
+	)]
+	public function maprankCommand(CmdContext $context, int $rankId, #[NCA\Str("to")] ?string $to, PWord $accessLevel): void {
 		if (!$this->guildController->isGuildBot()) {
 			$context->reply("The bot must be in an org.");
 			return;
@@ -182,7 +191,7 @@ class GuildRankController extends ModuleInstance implements AccessLevelProvider 
 			null,
 			false,
 			[$this, "setRankMapping"],
-			$rank,
+			$rankId,
 			$accessLevel(),
 			$context->char->name,
 			$context
@@ -253,6 +262,7 @@ class GuildRankController extends ModuleInstance implements AccessLevelProvider 
 		$sendto->reply("Every <highlight>{$rankName}<end> or higher will now be mapped to <highlight>{$alName}<end>.");
 	}
 
+	/** Remove the special rights for an org rank */
 	#[NCA\HandlesCommand("maprank")]
 	public function maprankDelCommand(CmdContext $context, PRemove $action, int $rankId): void {
 		if (!$this->guildController->isGuildBot()) {
@@ -305,6 +315,7 @@ class GuildRankController extends ModuleInstance implements AccessLevelProvider 
 		);
 	}
 
+	/** Get a list of all your org's ranks */
 	#[NCA\HandlesCommand("ranks")]
 	public function ranksCommand(CmdContext $context): void {
 		if (!$this->guildController->isGuildBot()) {
