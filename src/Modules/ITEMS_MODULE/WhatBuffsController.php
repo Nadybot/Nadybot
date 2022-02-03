@@ -27,9 +27,6 @@ use Nadybot\Modules\SKILLS_MODULE\{
 	SkillsController,
 };
 
-/**
- * Commands this controller contains:
- */
 #[
 	NCA\Instance,
 	NCA\HasMigrations("Migrations/Buff"),

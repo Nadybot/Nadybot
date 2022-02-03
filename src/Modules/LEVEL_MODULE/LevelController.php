@@ -15,7 +15,6 @@ use Nadybot\Core\{
  * @author Tyrence (RK2)
  * @author Derroylo (RK2)
  * @author Legendadv (RK2)
- * Commands this controller contains:
  */
 #[
 	NCA\Instance,
@@ -24,20 +23,17 @@ use Nadybot\Core\{
 		command: "level",
 		accessLevel: "all",
 		description: "Show level ranges",
-		help: "level.txt"
 	),
 	NCA\DefineCommand(
 		command: "missions",
 		accessLevel: "all",
 		description: "Shows what ql missions a character can roll",
-		help: "missions.txt",
 		alias: "mission"
 	),
 	NCA\DefineCommand(
 		command: "xp",
 		accessLevel: "all",
 		description: "Show xp/sk needed for specified level(s)",
-		help: "xp.txt",
 		alias: "sk"
 	)
 ]
@@ -59,6 +55,7 @@ class LevelController extends ModuleInstance {
 		$this->commandAlias->register($this->moduleName, "level", "lvl");
 	}
 
+	/** Show information and level ranges for a character level */
 	#[NCA\HandlesCommand("level")]
 	public function levelCommand(CmdContext $context, int $level): void {
 		if (($row = $this->getLevelInfo($level)) === null) {
@@ -77,6 +74,7 @@ class LevelController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
+	/** See which levels can roll a mission in the given QL */
 	#[NCA\HandlesCommand("missions")]
 	public function missionsCommand(CmdContext $context, int $missionQL): void {
 		if ($missionQL <= 0 || $missionQL > 250) {
@@ -95,6 +93,7 @@ class LevelController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
+	/** See needed XP to level up for a single level */
 	#[NCA\HandlesCommand("xp")]
 	public function xpSingleCommand(CmdContext $context, int $level): void {
 		if (($row = $this->getLevelInfo($level)) === null) {
@@ -110,22 +109,23 @@ class LevelController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
+	/** See how much XP is needed from one level to another */
 	#[NCA\HandlesCommand("xp")]
-	public function xpDoubleCommand(CmdContext $context, int $minLevel, int $maxLevel): void {
-		if ($minLevel < 1 || $minLevel > 220 || $maxLevel < 1 || $maxLevel > 220) {
+	public function xpDoubleCommand(CmdContext $context, int $startLevel, int $endLevel): void {
+		if ($startLevel < 1 || $startLevel > 220 || $endLevel < 1 || $endLevel > 220) {
 			$msg = "Level must be between 1 and 220.";
 			$context->reply($msg);
 			return;
 		}
-		if ($minLevel >= $maxLevel) {
+		if ($startLevel >= $endLevel) {
 			$msg = "The start level must be lower than the end level.";
 			$context->reply($msg);
 			return;
 		}
 		/** @var Collection<Level> */
 		$data = $this->db->table("levels")
-			->where("level", ">=", $minLevel)
-			->where("level", "<", $maxLevel)
+			->where("level", ">=", $startLevel)
+			->where("level", "<", $endLevel)
 			->asObj(Level::class);
 		$xp = 0;
 		$sk = 0;
@@ -137,18 +137,18 @@ class LevelController extends ModuleInstance {
 			}
 		}
 		if ($sk > 0 && $xp > 0) {
-			$msg = "From the beginning of level <highlight>$minLevel<end> ".
+			$msg = "From the beginning of level <highlight>$startLevel<end> ".
 				"you need <highlight>".number_format($xp)."<end> XP ".
 				"and <highlight>".number_format($sk)."<end> SK ".
-				"to reach level <highlight>$maxLevel<end>.";
+				"to reach level <highlight>$endLevel<end>.";
 		} elseif ($sk > 0) {
-			$msg = "From the beginning of level <highlight>$minLevel<end> ".
+			$msg = "From the beginning of level <highlight>$startLevel<end> ".
 				"you need <highlight>".number_format($sk)."<end> SK ".
-				"to reach level <highlight>$maxLevel<end>.";
+				"to reach level <highlight>$endLevel<end>.";
 		} elseif ($xp > 0) {
-			$msg = "From the beginning of level <highlight>$minLevel<end> ".
+			$msg = "From the beginning of level <highlight>$startLevel<end> ".
 				"you need <highlight>".number_format($xp)."<end> XP ".
-				"to reach level <highlight>$maxLevel<end>.";
+				"to reach level <highlight>$endLevel<end>.";
 		} else {
 			$msg = "You somehow managed to pass illegal parameters.";
 		}
