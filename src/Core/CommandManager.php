@@ -511,7 +511,7 @@ class CommandManager implements MessageEmitter {
 			$event->type = "command(success)";
 
 			if ($handler === null) {
-				$help = $this->getHelpForCommand($cmd, $context->char->name);
+				$help = $this->getHelpForCommand($cmd, $context);
 				$context->reply($help);
 				$event->type = "command(help)";
 				$this->eventManager->fireEvent($event);
@@ -709,7 +709,7 @@ class CommandManager implements MessageEmitter {
 	 * Get the help text for a command
 	 * @return string|string[] The help text as one or more pages
 	 */
-	public function getHelpForCommand(string $cmd, string $sender): string|array {
+	public function getHelpForCommand(string $cmd, CmdContext $context): string|array {
 		$result = $this->get($cmd);
 		if (!isset($result)) {
 			return "Unknown command '{$cmd}'";
@@ -721,7 +721,7 @@ class CommandManager implements MessageEmitter {
 				return $this->text->makeBlob("Help ($cmd)", $blob);
 			}
 		}
-		return $this->getCmdHelpFromCode($cmd);
+		return $this->getCmdHelpFromCode($cmd, $context);
 	}
 
 	protected function getRefMethodForHandler(string $handler): ?ReflectionMethod {
@@ -793,18 +793,52 @@ class CommandManager implements MessageEmitter {
 		return $ms;
 	}
 
+	protected function canViewHelp(CmdContext $context, ReflectionMethod $m): bool {
+		if (count($m->getAttributes(NCA\Help\Hide::class)) > 0) {
+			return false;
+		}
+		$cmdAttrs = $m->getAttributes(NCA\HandlesCommand::class);
+		foreach ($cmdAttrs as $cmdAttr) {
+			/** @var NCA\HandlesCommand */
+			$handlesCommand = $cmdAttr->newInstance();
+			$cmd = explode(" ", $handlesCommand->command)[0];
+			if (isset($this->subcommandManager->subcommands[$cmd])) {
+				foreach ($this->subcommandManager->subcommands[$cmd] as $row) {
+					if (!isset($row->permissions[$context->permissionSet])
+						|| ($row->cmd !== $handlesCommand->command)
+						|| (!$row->permissions[$context->permissionSet]->enabled)
+					) {
+						continue;
+					}
+					$handler = new CommandHandler($row->file, $row->permissions[$context->permissionSet]->access_level);
+				}
+			}
+			if (!isset($handler)) {
+				$handler = $this->commands[$context->permissionSet][$cmd] ?? null;
+			}
+			if (!isset($handler)) {
+				continue;
+			}
+			$this->logger->notice("{$handlesCommand->command}: {$handler->admin}");
+			if ($this->accessManager->checkAccess($context->char->name, $handler->admin) === true) {
+				return true;
+			}
+		}
+		return false;
+	}
+
 	/**
 	 * Get the help text for a command, purely from the code
 	 * @return string|string[] The help text as one or more pages
 	 */
-	public function getCmdHelpFromCode(string $cmd): string|array {
+	public function getCmdHelpFromCode(string $cmd, CmdContext $context): string|array {
 		$cmds = $this->db->table(self::DB_TABLE)
 			->where("dependson", $cmd)
 			->orWhere("cmd", $cmd)
 			->asObj(CmdCfg::class)
 			->pluck("file")
 			->join(",");
-		if ($cmds === "") {
+		if ($cmds === "" ||  !isset($context->permissionSet)) {
 			return "No help for {$cmd}.";
 		}
 		$parts = [];
@@ -824,8 +858,8 @@ class CommandManager implements MessageEmitter {
 			}
 		}
 		$methods = $methods->merge($ms)->unique();
-		$methods = $methods->filter(function (ReflectionMethod $m): bool {
-			return count($m->getAttributes(NCA\Help\Hide::class)) === 0;
+		$methods = $methods->filter(function (ReflectionMethod $m) use ($context): bool {
+			return $this->canViewHelp($context, $m);
 		});
 		$grouped = $this->groupRefMethods($methods->filter());
 		foreach ($grouped as $refMethods) {

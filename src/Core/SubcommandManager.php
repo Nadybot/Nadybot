@@ -9,7 +9,6 @@ use Nadybot\Core\DBSchema\CmdPermission;
 
 #[NCA\Instance]
 class SubcommandManager {
-
 	#[NCA\Inject]
 	public DB $db;
 

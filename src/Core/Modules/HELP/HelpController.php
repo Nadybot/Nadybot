@@ -115,7 +115,7 @@ class HelpController extends ModuleInstance {
 
 		$blob = $this->helpManager->find($topic, $context->char->name);
 		if ($blob === null) {
-			$context->reply($this->commandManager->getCmdHelpFromCode($topic));
+			$context->reply($this->commandManager->getCmdHelpFromCode($topic, $context));
 			return;
 		}
 		$topic = ucfirst($topic);
