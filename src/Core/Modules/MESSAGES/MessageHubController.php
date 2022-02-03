@@ -422,7 +422,7 @@ class MessageHubController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
-	/** Get a tree view of all defined routes. If "all" is given, it will include system routes as well */
+	/** Get a tree view of all defined routes. If 'all' is given, it will include system routes as well */
 	#[NCA\HandlesCommand("route")]
 	public function routeTree(CmdContext $context, #[NCA\Str("tree")] ?string $tree, #[NCA\Str("all")] ?string $all): void {
 		$routes = $this->messageHub->getRoutes();

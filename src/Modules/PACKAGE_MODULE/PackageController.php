@@ -3,6 +3,13 @@
 namespace Nadybot\Modules\PACKAGE_MODULE;
 
 use Illuminate\Support\Collection;
+use RecursiveDirectoryIterator;
+use RecursiveIteratorIterator;
+use Safe\Exceptions\DirException;
+use Safe\Exceptions\FilesystemException;
+use SplFileInfo;
+use Throwable;
+use ZipArchive;
 use Nadybot\Core\{
 	Attributes as NCA,
 	BotRunner,
@@ -21,17 +28,9 @@ use Nadybot\Core\{
 	Text,
 };
 use Nadybot\Modules\WEBSERVER_MODULE\JsonImporter;
-use RecursiveDirectoryIterator;
-use RecursiveIteratorIterator;
-use Safe\Exceptions\DirException;
-use Safe\Exceptions\FilesystemException;
-use SplFileInfo;
-use Throwable;
-use ZipArchive;
 
 /**
  * @author Nadyita (RK5)
- * Commands this controller contains:
  */
 #[
 	NCA\Instance,
@@ -40,7 +39,6 @@ use ZipArchive;
 		command: "package",
 		accessLevel: "admin",
 		description: "Install or update external packages",
-		help: "package.txt"
 	)
 ]
 class PackageController extends ModuleInstance {
@@ -234,6 +232,7 @@ class PackageController extends ModuleInstance {
 		$callback($packages, ...$args);
 	}
 
+	/** Get a full list of all available packages*/
 	#[NCA\HandlesCommand("package")]
 	public function listPackagesCommand(CmdContext $context, #[NCA\Str("list")] string $action): void {
 		$this->getPackages([$this, "displayPackages"], $context);
@@ -331,8 +330,13 @@ class PackageController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
+	/** Get information about a specific package */
 	#[NCA\HandlesCommand("package")]
-	public function packageInfoCommand(CmdContext $context, #[NCA\Str("info")] string $action, string $package): void {
+	public function packageInfoCommand(
+		CmdContext $context,
+		#[NCA\Str("info")] string $action,
+		string $package
+	): void {
 		$this->getPackage($package, [$this, "displayPackageDetail"], $package, $context);
 	}
 
@@ -477,6 +481,7 @@ class PackageController extends ModuleInstance {
 		return true;
 	}
 
+	/** Install a package */
 	#[NCA\HandlesCommand("package")]
 	public function packageInstallCommand(
 		CmdContext $context,
@@ -499,6 +504,7 @@ class PackageController extends ModuleInstance {
 		$this->getPackage($package(), [$this, "checkAndInstall"], $cmd);
 	}
 
+	/** Update an already installed package, optionally to a specific version */
 	#[NCA\HandlesCommand("package")]
 	public function packageUpdateCommand(
 		CmdContext $context,
@@ -521,6 +527,7 @@ class PackageController extends ModuleInstance {
 		$this->getPackage($package(), [$this, "checkAndInstall"], $cmd);
 	}
 
+	/** Uninstall a package */
 	#[NCA\HandlesCommand("package")]
 	public function packageUninstallCommand(
 		CmdContext $context,

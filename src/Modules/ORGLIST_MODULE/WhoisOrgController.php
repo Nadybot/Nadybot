@@ -21,7 +21,6 @@ use Nadybot\Modules\ONLINE_MODULE\OnlineController;
 
 /**
  * @author Tyrence (RK2)
- * Commands this controller contains:
  */
 #[
 	NCA\Instance,
@@ -29,7 +28,6 @@ use Nadybot\Modules\ONLINE_MODULE\OnlineController;
 		command: "whoisorg",
 		accessLevel: "all",
 		description: "Display org info",
-		help: "whoisorg.txt"
 	)
 ]
 class WhoisOrgController extends ModuleInstance {
@@ -57,6 +55,7 @@ class WhoisOrgController extends ModuleInstance {
 	#[NCA\Inject]
 	public OnlineController $onlineController;
 
+	/** Show information about an organization */
 	#[NCA\HandlesCommand("whoisorg")]
 	public function whoisorgIdCommand(CmdContext $context, int $orgId, ?int $dimension): void {
 		$dimension ??= $this->config->dimension;
@@ -64,6 +63,7 @@ class WhoisOrgController extends ModuleInstance {
 		return;
 	}
 
+	/** Show information about a character's org */
 	#[NCA\HandlesCommand("whoisorg")]
 	public function whoisorgCommand(CmdContext $context, PCharacter $char, ?int $dimension): void {
 		$dimension ??= $this->config->dimension;

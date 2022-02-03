@@ -15,7 +15,6 @@ use Safe\Exceptions\FilesystemException;
 
 /**
  * @author Nadyita (RK5)
- * Commands this controller contains:
  */
 #[
 	NCA\Instance,
@@ -23,11 +22,9 @@ use Safe\Exceptions\FilesystemException;
 		command: "rules",
 		accessLevel: "all",
 		description: "Rules of this bot",
-		help: "rules.txt"
 	)
 ]
 class RulesController extends ModuleInstance {
-
 	#[NCA\Inject]
 	public Text $text;
 
@@ -37,7 +34,12 @@ class RulesController extends ModuleInstance {
 	#[NCA\Inject]
 	public ConfigFile $config;
 
+	/** See the rules for this bot */
 	#[NCA\HandlesCommand("rules")]
+	#[NCA\Help\Epilogue(
+		"To set up rules for this bot, put a file into\n".
+		"<tab><highlight>data/rules.txt<end>"
+	)]
 	public function rulesCommand(CmdContext $context): void {
 		$dataPath = $this->config->dataFolder;
 		if (!@file_exists("{$dataPath}/rules.txt")) {

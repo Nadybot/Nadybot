@@ -26,8 +26,6 @@ use Nadybot\Modules\RAFFLE_MODULE\RaffleItem;
 /**
  * This class contains all functions necessary to deal with points in a raid
  * @package Nadybot\Modules\RAID_MODULE
- *
-
  */
 #[
 	NCA\Instance,
@@ -36,19 +34,16 @@ use Nadybot\Modules\RAFFLE_MODULE\RaffleItem;
 		command: "bid",
 		accessLevel: "member",
 		description: "Bid points for an auctioned item",
-		help: "auctions.txt"
 	),
 	NCA\DefineCommand(
 		command: "auction",
 		accessLevel: "raid_leader_1",
 		description: "Manage auctions",
-		help: "auctions.txt"
 	),
 	NCA\DefineCommand(
 		command: "auction reimburse .+",
 		accessLevel: "raid_leader_1",
 		description: "Give back points for an auction",
-		help: "auctions.txt"
 	),
 	NCA\ProvidesEvent("auction(start)"),
 	NCA\ProvidesEvent("auction(end)"),
@@ -58,6 +53,7 @@ use Nadybot\Modules\RAFFLE_MODULE\RaffleItem;
 class AuctionController extends ModuleInstance {
 	public const DB_TABLE = "auction_<myname>";
 	public const ERR_NO_AUCTION = "There's currently nothing being auctioned.";
+
 	#[NCA\Inject]
 	public DB $db;
 
@@ -212,8 +208,14 @@ class AuctionController extends ModuleInstance {
 		$this->commandAlias->register($this->moduleName, "auction reimburse", "bid refund");
 	}
 
+	/** Auction an item */
 	#[NCA\HandlesCommand("auction")]
-	public function bidStartCommand(CmdContext $context, #[NCA\Str("start")] string $action, string $item): void {
+	#[NCA\Help\Group("auction")]
+	public function bidStartCommand(
+		CmdContext $context,
+		#[NCA\Str("start")] string $action,
+		string $item
+	): void {
 		if ($this->settingManager->getBool('auctions_only_for_raid') && !isset($this->raidController->raid)) {
 			$context->reply(RaidController::ERR_NO_RAID);
 			return;
@@ -230,8 +232,13 @@ class AuctionController extends ModuleInstance {
 		$this->startAuction($auction);
 	}
 
+	/** Cancel the running auction */
 	#[NCA\HandlesCommand("auction")]
-	public function bidCancelCommand(CmdContext $context, #[NCA\Str("cancel")] string $action): void {
+	#[NCA\Help\Group("auction")]
+	public function bidCancelCommand(
+		CmdContext $context,
+		#[NCA\Str("cancel")] string $action
+	): void {
 		if (!isset($this->auction)) {
 			$context->reply(static::ERR_NO_AUCTION);
 			return;
@@ -247,8 +254,13 @@ class AuctionController extends ModuleInstance {
 		$this->eventManager->fireEvent($event);
 	}
 
+	/** End the running auction prematurely */
 	#[NCA\HandlesCommand("auction")]
-	public function bidEndCommand(CmdContext $context, #[NCA\Str("end")] string $action): void {
+	#[NCA\Help\Group("auction")]
+	public function bidEndCommand(
+		CmdContext $context,
+		#[NCA\Str("end")] string $action
+	): void {
 		if (!isset($this->auction)) {
 			$context->reply(static::ERR_NO_AUCTION);
 			return;
@@ -256,8 +268,25 @@ class AuctionController extends ModuleInstance {
 		$this->endAuction($context->char->name);
 	}
 
+	/**
+	 * Refund someone for an accidentally won auction
+	 *
+	 * This will refund &lt;winner&gt; for the last auction they have won.
+	 * It will usually not give them back the full amount, but subtract
+	 * a small "tax", as configured on the bot.
+	 *
+	 * You cannot refund further back than the last auction &lt;winner&gt; has won.
+	 *
+	 * If you want custom refunds or refunds further back than the last
+	 * auction, take a look at the '<symbol>points add' and '<symbol>points rem' commands.
+	 */
 	#[NCA\HandlesCommand("auction reimburse .+")]
-	public function bidReimburseCommand(CmdContext $context, #[NCA\Str("reimburse", "payback", "refund")] string $action, PCharacter $winner): void {
+	#[NCA\Help\Group("auction")]
+	public function bidReimburseCommand(
+		CmdContext $context,
+		#[NCA\Str("reimburse", "payback", "refund")] string $action,
+		PCharacter $winner
+	): void {
 		$winner = $winner();
 		/** @var ?DBAuction */
 		$lastAuction = $this->db->table(self::DB_TABLE)
@@ -355,7 +384,19 @@ class AuctionController extends ModuleInstance {
 		}
 	}
 
+	/**
+	 * Place a bid for the currently running auction
+	 *
+	 * This is your maximum offer which the bot will use to automatically bid
+	 * against other players bidding on the same item.
+	 * The bot will only use up as much of your maximum offer as necessary to
+	 * win the auction.
+	 *
+	 * You can also use the same command to increase an already given maximum offer,
+	 * but not to lower it.
+	 */
 	#[NCA\HandlesCommand("bid")]
+	#[NCA\Help\Group("auction")]
 	public function bidCommand(CmdContext $context, int $bid): void {
 		if (!$context->isDM()) {
 			$context->reply("<red>The <symbol>bid command only works in tells<end>.");
@@ -395,8 +436,13 @@ class AuctionController extends ModuleInstance {
 		$this->bid($context->char->name, $bid, $context);
 	}
 
+	/** See a list of the last 40 auctions */
 	#[NCA\HandlesCommand("bid")]
-	public function bidHistoryCommand(CmdContext $context, #[NCA\Str("history")] string $action): void {
+	#[NCA\Help\Group("auction")]
+	public function bidHistoryCommand(
+		CmdContext $context,
+		#[NCA\Str("history")] string $action
+	): void {
 		/** @var DBAuction[] */
 		$items = $this->db->table(self::DB_TABLE)
 			->orderByDesc("id")
@@ -415,8 +461,14 @@ class AuctionController extends ModuleInstance {
 		);
 	}
 
+	/** Search the bid history for an item */
 	#[NCA\HandlesCommand("bid")]
-	public function bidHistorySearchCommand(CmdContext $context, #[NCA\Str("history")] string $action, string $search): void {
+	#[NCA\Help\Group("auction")]
+	public function bidHistorySearchCommand(
+		CmdContext $context,
+		#[NCA\Str("history")] string $action,
+		string $search
+	): void {
 		$shortcuts = [
 			"boc"  => ["%Burden of Competence%"],
 			"acdc" => ["%Alien Combat Directive Controller%", "%acdc%", "%Invasion Plan%"],

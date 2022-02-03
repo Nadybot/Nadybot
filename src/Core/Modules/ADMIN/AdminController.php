@@ -140,7 +140,7 @@ class AdminController extends ModuleInstance {
 
 	/**
 	 * See the list of moderators and administrators.
-	 * Add "all" to include offline alts
+	 * Add 'all' to include offline alts
 	 */
 	#[NCA\HandlesCommand("adminlist")]
 	public function adminlistCommand(CmdContext $context, #[NCA\Str("all")] ?string $all): void {

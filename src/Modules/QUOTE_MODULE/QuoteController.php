@@ -18,7 +18,6 @@ use Nadybot\Core\{
 /**
  * @author Lucier (RK1)
  * @author Tyrence (RK2)
- * Commands this controller contains:
  */
 #[
 	NCA\Instance,
@@ -27,7 +26,6 @@ use Nadybot\Core\{
 		command: "quote",
 		accessLevel: "all",
 		description: "Add/Remove/View Quotes",
-		help: "quote.txt"
 	)
 ]
 class QuoteController extends ModuleInstance {
@@ -49,15 +47,13 @@ class QuoteController extends ModuleInstance {
 	#[NCA\Inject]
 	public ConfigFile $config;
 
-	/**
-	 * This handler is called on bot startup.
-	 */
-	#[NCA\Setup]
-	public function setup(): void {
-	}
-
+	/** Add a quote */
 	#[NCA\HandlesCommand("quote")]
-	public function quoteAddCommand(CmdContext $context, #[NCA\Str("add")] string $action, string $quote): void {
+	public function quoteAddCommand(
+		CmdContext $context,
+		#[NCA\Str("add")] string $action,
+		string $quote
+	): void {
 		$quoteMsg = trim($quote);
 		$row = $this->db->table("quote")
 			->whereIlike("msg", $quoteMsg)
@@ -84,8 +80,13 @@ class QuoteController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
+	/** Remove a quote */
 	#[NCA\HandlesCommand("quote")]
-	public function quoteRemoveCommand(CmdContext $context, PRemove $action, int $id): void {
+	public function quoteRemoveCommand(
+		CmdContext $context,
+		PRemove $action,
+		int $id
+	): void {
 		/** @var ?Quote */
 		$row = $this->db->table("quote")
 			->where("id", $id)
@@ -110,8 +111,13 @@ class QuoteController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
+	/** Search for a quote of a specific author/victim/text */
 	#[NCA\HandlesCommand("quote")]
-	public function quoteSearchCommand(CmdContext $context, #[NCA\Str("search")] string $action, string $search): void {
+	public function quoteSearchCommand(
+		CmdContext $context,
+		#[NCA\Str("search")] string $action,
+		string $search
+	): void {
 		$searchParam = "%{$search}%";
 		$msg = "";
 
@@ -153,8 +159,13 @@ class QuoteController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
+	/** Show a given quote, optionally to the org or private channel */
 	#[NCA\HandlesCommand("quote")]
-	public function quoteShowCommand(CmdContext $context, #[NCA\Str("org", "priv")] ?string $channel, int $id): void {
+	public function quoteShowCommand(
+		CmdContext $context,
+		#[NCA\Regexp("org|priv", example: "org|priv")] ?string $channel,
+		int $id
+	): void {
 		$result = $this->getQuoteInfo($id);
 
 		if ($result === null) {
@@ -174,6 +185,7 @@ class QuoteController extends ModuleInstance {
 		}
 	}
 
+	/** Show a random quote */
 	#[NCA\HandlesCommand("quote")]
 	public function quoteShowRandomCommand(CmdContext $context): void {
 		// choose a random quote to show

@@ -60,69 +60,58 @@ use Safe\Exceptions\FilesystemException;
 		command: "members",
 		accessLevel: "all",
 		description: "Member list",
-		help: "private_channel.txt"
 	),
 	NCA\DefineCommand(
 		command: "member",
 		accessLevel: "guild",
 		description: "Adds or removes a player to/from the members list",
-		help: "private_channel.txt"
 	),
 	NCA\DefineCommand(
 		command: "invite",
 		accessLevel: "guild",
 		description: "Invite players to the private channel",
-		help: "private_channel.txt",
 		alias: "inviteuser"
 	),
 	NCA\DefineCommand(
 		command: "kick",
 		accessLevel: "guild",
 		description: "Kick players from the private channel",
-		help: "private_channel.txt",
 		alias: "kickuser"
 	),
 	NCA\DefineCommand(
 		command: "autoinvite",
 		accessLevel: "member",
 		description: "Enable or disable autoinvite",
-		help: "autoinvite.txt"
 	),
 	NCA\DefineCommand(
 		command: "count",
 		accessLevel: "all",
 		description: "Shows how many characters are in the private channel",
-		help: "count.txt"
 	),
 	NCA\DefineCommand(
 		command: "kickall",
 		accessLevel: "guild",
 		description: "Kicks all from the private channel",
-		help: "kickall.txt"
 	),
 	NCA\DefineCommand(
 		command: "join",
 		accessLevel: "member",
 		description: "Join command for characters who want to join the private channel",
-		help: "private_channel.txt"
 	),
 	NCA\DefineCommand(
 		command: "leave",
 		accessLevel: "all",
 		description: "Leave command for characters in private channel",
-		help: "private_channel.txt"
 	),
 	NCA\DefineCommand(
 		command: "lock",
 		accessLevel: "superadmin",
 		description: "Kick everyone and lock the private channel",
-		help: "lock.txt"
 	),
 	NCA\DefineCommand(
 		command: "unlock",
 		accessLevel: "superadmin",
 		description: "Allow people to join the private channel again",
-		help: "lock.txt"
 	),
 	NCA\ProvidesEvent("online(priv)"),
 	NCA\ProvidesEvent("offline(priv)"),
@@ -324,7 +313,9 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 		}
 	}
 
+	/** Show who is a member of the bot */
 	#[NCA\HandlesCommand("members")]
+	#[NCA\Help\Group("private-channel")]
 	public function membersCommand(CmdContext $context): void {
 		/** @var Collection<Member> */
 		$members = $this->db->table(self::DB_TABLE)
@@ -355,21 +346,43 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 		$context->reply($msg);
 	}
 
+	/**
+	 * Make someone a member of this bot
+	 * They will get auto-invited after logging in
+	 */
 	#[NCA\HandlesCommand("member")]
-	public function addUserCommand(CmdContext $context, #[NCA\Str("add")] string $action, PCharacter $member): void {
-		$msg = $this->addUser($member(), $context->char->name);
+	#[NCA\Help\Group("private-channel")]
+	public function addUserCommand(
+		CmdContext $context,
+		#[NCA\Str("add")] string $action,
+		PCharacter $char
+	): void {
+		$msg = $this->addUser($char(), $context->char->name);
 
 		$context->reply($msg);
 	}
 
+	/**
+	 * Remove someone from the bot's member list
+	 */
 	#[NCA\HandlesCommand("member")]
-	public function remUserCommand(CmdContext $context, PRemove $action, PCharacter $member): void {
+	#[NCA\Help\Group("private-channel")]
+	public function remUserCommand(
+		CmdContext $context,
+		PRemove $action,
+		PCharacter $member
+	): void {
 		$msg = $this->removeUser($member(), $context->char->name);
 
 		$context->reply($msg);
 	}
 
+	/**
+	 * Invite someone to the bot's private channel. This won't make
+	 * them a member, but they will have access level 'guest'
+	 */
 	#[NCA\HandlesCommand("invite")]
+	#[NCA\Help\Group("private-channel")]
 	public function inviteCommand(CmdContext $context, PCharacter $char): void {
 		$name = $char();
 		$uid = $this->chatBot->get_uid($name);
@@ -419,7 +432,12 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 		);
 	}
 
+	/**
+	 * Kick someone off the bot's private channel. This won't remove
+	 * their membership status (if any)
+	 */
 	#[NCA\HandlesCommand("kick")]
+	#[NCA\Help\Group("private-channel")]
 	public function kickCommand(CmdContext $context, PCharacter $char, ?string $reason): void {
 		$name = $char();
 		$uid = $this->chatBot->get_uid($name);
@@ -452,6 +470,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 		}
 	}
 
+	/** Change your auto invite preference */
 	#[NCA\HandlesCommand("autoinvite")]
 	public function autoInviteCommand(CmdContext $context, bool $status): void {
 		if ($status) {
@@ -484,6 +503,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 		$context->reply($msg);
 	}
 
+	/** Show how many people are in the private channel, grouped by level */
 	#[NCA\HandlesCommand("count")]
 	public function countLevelCommand(
 		CmdContext $context,
@@ -530,6 +550,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 		$context->reply($msg);
 	}
 
+	/** Show how many people are in the private channel, grouped by profession */
 	#[NCA\HandlesCommand("count")]
 	public function countProfessionCommand(
 		CmdContext $context,
@@ -557,6 +578,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 		$context->reply($msg);
 	}
 
+	/** Show how many people are in the private channel, grouped by organization */
 	#[NCA\HandlesCommand("count")]
 	public function countOrganizationCommand(
 		CmdContext $context,
@@ -594,6 +616,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 		$context->reply($msg);
 	}
 
+	/** Show how many people are in the private channel of a given profession */
 	#[NCA\HandlesCommand("count")]
 	public function countCommand(CmdContext $context, string $profession): void {
 		$prof = $this->util->getProfessionName($profession);
@@ -624,11 +647,13 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 		$context->reply($msg);
 	}
 
+	/** Immediately kick everyone off the bot's private channel */
 	#[NCA\HandlesCommand("kickall")]
 	public function kickallNowCommand(CmdContext $context, #[NCA\Str("now")] string $action): void {
 		$this->chatBot->privategroup_kick_all();
 	}
 
+	/** Kick everyone off the bot's private channel after 10 seconds */
 	#[NCA\HandlesCommand("kickall")]
 	public function kickallCommand(CmdContext $context): void {
 		$msg = "Everyone will be kicked from this channel in 10 seconds. [by <highlight>{$context->char->name}<end>]";
@@ -636,7 +661,9 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 		$this->timer->callLater(10, [$this->chatBot, 'privategroup_kick_all']);
 	}
 
+	/** Join this bot's private channel (if you have the permission) */
 	#[NCA\HandlesCommand("join")]
+	#[NCA\Help\Group("private-channel")]
 	public function joinCommand(CmdContext $context): void {
 		if ($this->isLockedFor($context->char->name)) {
 			$context->reply("The private channel is currently <red>locked<end>: {$this->lockReason}");
@@ -670,12 +697,16 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 		$context->reply($msg);
 	}
 
+	/** Leave this bot's private channel */
 	#[NCA\HandlesCommand("leave")]
+	#[NCA\Help\Group("private-channel")]
 	public function leaveCommand(CmdContext $context): void {
 		$this->chatBot->privategroup_kick($context->char->name);
 	}
 
+	/** Lock the private channel, forbidding anyone to join */
 	#[NCA\HandlesCommand("lock")]
+	#[NCA\Help\Group("lock")]
 	public function lockCommand(CmdContext $context, string $reason): void {
 		if (isset($this->lockReason)) {
 			$this->lockReason = trim($reason);
@@ -699,7 +730,9 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 		$this->accessManager->addAudit($audit);
 	}
 
+	/** Open the private channel again */
 	#[NCA\HandlesCommand("unlock")]
+	#[NCA\Help\Group("lock")]
 	public function unlockCommand(CmdContext $context): void {
 		if (!isset($this->lockReason)) {
 			$context->reply("The private channel is currently not locked.");

@@ -26,10 +26,12 @@ use Nadybot\Core\{
 	Timer,
 	Util,
 };
-use Nadybot\Modules\BASIC_CHAT_MODULE\ChatAssistController;
-use Nadybot\Modules\COMMENT_MODULE\CommentCategory;
-use Nadybot\Modules\COMMENT_MODULE\CommentController;
-use Nadybot\Modules\ONLINE_MODULE\OnlineController;
+use Nadybot\Modules\{
+	BASIC_CHAT_MODULE\ChatAssistController,
+	COMMENT_MODULE\CommentCategory,
+	COMMENT_MODULE\CommentController,
+	ONLINE_MODULE\OnlineController,
+};
 
 /**
  * This class contains all functions necessary to start, stsop and resume a raid
@@ -42,19 +44,16 @@ use Nadybot\Modules\ONLINE_MODULE\OnlineController;
 		command: "raid",
 		accessLevel: "all",
 		description: "Check if the raid is running",
-		help: "raid.txt"
 	),
 	NCA\DefineCommand(
 		command: "raid .+",
 		accessLevel: "raid_leader_1",
 		description: "Everything to run a points raid",
-		help: "raid.txt"
 	),
 	NCA\DefineCommand(
 		command: "raid spp .+",
 		accessLevel: "raid_leader_2",
 		description: "Change the raid points ticker",
-		help: "raid.txt"
 	),
 	NCA\ProvidesEvent("raid(start)"),
 	NCA\ProvidesEvent("raid(stop)"),
@@ -65,6 +64,7 @@ use Nadybot\Modules\ONLINE_MODULE\OnlineController;
 class RaidController extends ModuleInstance {
 	public const DB_TABLE = "raid_<myname>";
 	public const DB_TABLE_LOG = "raid_log_<myname>";
+
 	#[NCA\Inject]
 	public Nadybot $chatBot;
 
@@ -495,7 +495,10 @@ class RaidController extends ModuleInstance {
 	 * Lock the raid, preventing raiders from joining with <symbol>raid join
 	 */
 	#[NCA\HandlesCommand("raid .+")]
-	public function raidLockCommand(CmdContext $context, #[NCA\Str("lock")] string $action): void {
+	public function raidLockCommand(
+		CmdContext $context,
+		#[NCA\Str("lock")] string $action
+	): void {
 		if (!isset($this->raid)) {
 			$context->reply(static::ERR_NO_RAID);
 			return;
@@ -521,7 +524,10 @@ class RaidController extends ModuleInstance {
 	 * Unlock the raid, allowing raiders to join with <symbol>raid join
 	 */
 	#[NCA\HandlesCommand("raid .+")]
-	public function raidUnlockCommand(CmdContext $context, #[NCA\Str("unlock")] string $action): void {
+	public function raidUnlockCommand(
+		CmdContext $context,
+		#[NCA\Str("unlock")] string $action
+	): void {
 		if (!isset($this->raid)) {
 			$context->reply(static::ERR_NO_RAID);
 			return;
@@ -543,7 +549,10 @@ class RaidController extends ModuleInstance {
 	 * Get a list of all raiders, with a link to check if everyone is in the vicinity
 	 */
 	#[NCA\HandlesCommand("raid .+")]
-	public function raidCheckCommand(CmdContext $context, #[NCA\Str("check")] string $action): void {
+	public function raidCheckCommand(
+		CmdContext $context,
+		#[NCA\Str("check")] string $action
+	): void {
 		if (!isset($this->raid)) {
 			$context->reply(static::ERR_NO_RAID);
 			return;
@@ -555,7 +564,10 @@ class RaidController extends ModuleInstance {
 	 * Get a list of all raiders
 	 */
 	#[NCA\HandlesCommand("raid .+")]
-	public function raidListCommand(CmdContext $context, #[NCA\Str("list")] string $action): void {
+	public function raidListCommand(
+		CmdContext $context,
+		#[NCA\Str("list")] string $action
+	): void {
 		if (!isset($this->raid)) {
 			$context->reply(static::ERR_NO_RAID);
 			return;
@@ -565,7 +577,7 @@ class RaidController extends ModuleInstance {
 
 	/**
 	 * Kick everyone in the private channel who's not in the raid.
-	 * If the additional "all" is given, it will also kick raider's alts not in the raid.
+	 * If the additional 'all' is given, it will also kick raiders' alts not in the raid.
 	 */
 	#[NCA\HandlesCommand("raid .+")]
 	public function raidNotinKickCommand(
@@ -638,7 +650,10 @@ class RaidController extends ModuleInstance {
 	 * Show a list of old raids with details about them
 	 */
 	#[NCA\HandlesCommand("raid .+")]
-	public function raidHistoryCommand(CmdContext $context, #[NCA\Str("history")] string $action): void {
+	public function raidHistoryCommand(
+		CmdContext $context,
+		#[NCA\Str("history")] string $action
+	): void {
 		$query = $this->db->table(self::DB_TABLE, "r")
 			->join(RaidPointsController::DB_TABLE_LOG . ' AS p', "r.raid_id", "p.raid_id")
 			->where("p.individual", false)
@@ -759,7 +774,7 @@ class RaidController extends ModuleInstance {
 	}
 
 	/**
-	 * Get detailed information about  raid member of an old raid
+	 * Get detailed information about raid member of an old raid
 	 */
 	#[NCA\HandlesCommand("raid .+")]
 	public function raidHistoryDetailRaiderCommand(
