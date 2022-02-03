@@ -41,6 +41,7 @@ class DingController extends ModuleInstance {
 
 	/** Show a cheesy ding reply */
 	#[NCA\HandlesCommand("ding")]
+	#[NCA\Help\Hide()]
 	public function dingDongCommand(CmdContext $context, #[NCA\Str("dong")] string $action): void {
 		$msg =	"Ditch, Bitch!";
 		$context->reply($msg);

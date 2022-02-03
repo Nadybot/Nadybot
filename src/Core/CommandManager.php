@@ -768,9 +768,29 @@ class CommandManager implements MessageEmitter {
 	protected function cleanComment(string $comment): array {
 		$comment = trim(preg_replace("|^/\*\*(.*)\*/|s", '$1', $comment));
 		$comment = preg_replace("/^[ \t]*\*[ \t]*/m", '', $comment);
+		$comment = trim(preg_replace("/^@.*/m", '', $comment));
 		/** @phpstan-var array{string, ?string} */
 		$result = \Safe\preg_split("/\r?\n\r?\n/", $comment, 2);
 		return [trim($result[0]), isset($result[1]) ? trim($result[1]) : null];
+	}
+
+	/** @return Collection<ReflectionMethod> */
+	protected function findGroupMembers(string $groupName): Collection {
+		$objs = Registry::getAllInstances();
+		$ms = new Collection();
+		foreach ($objs as $obj) {
+			$refObj = new ReflectionClass($obj);
+			foreach ($refObj->getMethods(\ReflectionMethod::IS_PUBLIC) as $m) {
+				foreach ($m->getAttributes(NCA\Help\Group::class) as $attr) {
+					/** @var NCA\Help\Group */
+					$attrObj = $attr->newInstance();
+					if ($attrObj->group === $groupName) {
+						$ms->push($m);
+					}
+				}
+			}
+		}
+		return $ms;
 	}
 
 	/**
@@ -795,6 +815,18 @@ class CommandManager implements MessageEmitter {
 		foreach (explode(',', $cmds) as $handler) {
 			$methods->push($this->getRefMethodForHandler($handler));
 		}
+		$ms = new Collection();
+		foreach ($methods->filter() as $m) {
+			foreach ($m->getAttributes(NCA\Help\Group::class) as $attr) {
+				/** @var NCA\Help\Group */
+				$attrObj = $attr->newInstance();
+				$ms->push(...$this->findGroupMembers($attrObj->group)->toArray());
+			}
+		}
+		$methods = $methods->merge($ms)->unique();
+		$methods = $methods->filter(function (ReflectionMethod $m): bool {
+			return count($m->getAttributes(NCA\Help\Hide::class)) === 0;
+		});
 		$grouped = $this->groupRefMethods($methods->filter());
 		foreach ($grouped as $refMethods) {
 			$parts []= $this->getHelpText($refMethods, $cmd);
