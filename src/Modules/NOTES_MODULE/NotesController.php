@@ -13,20 +13,19 @@ use Nadybot\Core\{
 	DB,
 	ModuleInstance,
 	LoggerWrapper,
+	Modules\ALTS\AltEvent,
 	Modules\ALTS\AltsController,
+	Modules\PREFERENCES\Preferences,
 	Nadybot,
+	ParamClass\PRemove,
 	SettingManager,
 	Text,
 	UserStateEvent,
 };
-use Nadybot\Core\Modules\ALTS\AltEvent;
-use Nadybot\Core\Modules\PREFERENCES\Preferences;
-use Nadybot\Core\ParamClass\PRemove;
 
 /**
  * @author Tyrence (RK2)
  * @author Nadyita (RK5)
- * Commands this class contains:
  */
 #[
 	NCA\Instance,
@@ -35,21 +34,18 @@ use Nadybot\Core\ParamClass\PRemove;
 		command: "notes",
 		accessLevel: "guild",
 		description: "Displays, adds, or removes a note from your list",
-		help: "notes.txt",
 		alias: "note"
 	),
 	NCA\DefineCommand(
 		command: "reminders",
 		accessLevel: "guild",
 		description: "Displays, adds, or removes a reminder from your list",
-		help: "notes.txt",
 		alias: "reminder"
 	),
 	NCA\DefineCommand(
 		command: "reminderformat",
 		accessLevel: "guild",
 		description: "Displays or changes the reminder format for oneself",
-		help: "notes.txt"
 	)
 ]
 class NotesController extends ModuleInstance {
@@ -114,7 +110,9 @@ class NotesController extends ModuleInstance {
 		);
 	}
 
+	/** Show all your notes */
 	#[NCA\HandlesCommand("notes")]
+	#[NCA\Help\Group("notes")]
 	public function notesListCommand(CmdContext $context): void {
 		$altInfo = $this->altsController->getAltInfo($context->char->name);
 		$main = $altInfo->getValidatedMain($context->char->name);
@@ -134,7 +132,9 @@ class NotesController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
+	/** Show all your notes with reminders */
 	#[NCA\HandlesCommand("reminders")]
+	#[NCA\Help\Group("notes")]
 	public function remindersListCommand(CmdContext $context): void {
 		$altInfo = $this->altsController->getAltInfo($context->char->name);
 		$main = $altInfo->getValidatedMain($context->char->name);
@@ -274,7 +274,9 @@ class NotesController extends ModuleInstance {
 		return $this->db->insert("notes", $note);
 	}
 
+	/** Add a new note to your list */
 	#[NCA\HandlesCommand("notes")]
+	#[NCA\Help\Group("notes")]
 	public function notesAddCommand(CmdContext $context, #[NCA\Str("add")] string $action, string $note): void {
 		$this->saveNote($note, $context->char->name);
 		$msg = "Note added successfully.";
@@ -282,8 +284,14 @@ class NotesController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
+	/** Add a note and be reminded about it on logon */
 	#[NCA\HandlesCommand("reminders")]
-	public function reminderAddCommand(CmdContext $context, #[NCA\Str("add", "addall", "addself")] string $action, string $note): void {
+	#[NCA\Help\Group("notes")]
+	public function reminderAddCommand(
+		CmdContext $context,
+		#[NCA\Regexp("add|addall|addself", example: "add|addall|addself")] string $action,
+		string $note
+	): void {
 		$reminder = Note::REMIND_ALL;
 		if ($action === "addself") {
 			$reminder = Note::REMIND_SELF;
@@ -294,7 +302,9 @@ class NotesController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
+	/** Remove a note from your list */
 	#[NCA\HandlesCommand("notes")]
+	#[NCA\Help\Group("notes")]
 	public function notesRemoveCommand(CmdContext $context, PRemove $action, int $id): void {
 		$altInfo = $this->altsController->getAltInfo($context->char->name);
 		$main = $altInfo->getValidatedMain($context->char->name);
@@ -312,8 +322,21 @@ class NotesController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
+	/** Change the reminder type of a note */
 	#[NCA\HandlesCommand("reminders")]
-	public function reminderSetCommand(CmdContext $context, #[NCA\Str("set")] string $action, #[NCA\Str("all", "self", "off")] string $type, int $id): void {
+	#[NCA\Help\Group("notes")]
+	#[NCA\Help\Epilogue(
+		"<header2>Reminder types<end>\n".
+		"<tab>self: Be reminded only on the character who created the note/reminder\n".
+		"<tab>all: Be reminded on all your alts\n".
+		"<tab>off: Don't be reminded\n"
+	)]
+	public function reminderSetCommand(
+		CmdContext $context,
+		#[NCA\Str("set")] string $action,
+		#[NCA\Regexp("all|self|off", example: "all|self|off")] string $type,
+		int $id
+	): void {
 		$reminder = Note::REMIND_ALL;
 		if ($type === "self") {
 			$reminder = Note::REMIND_SELF;
@@ -435,7 +458,9 @@ class NotesController extends ModuleInstance {
 		return  $msg;
 	}
 
+	/** Show the format of your reminder */
 	#[NCA\HandlesCommand("reminderformat")]
+	#[NCA\Help\Group("notes")]
 	public function reminderformatShowCommand(CmdContext $context): void {
 		$reminderFormat = $this->getReminderFormat($context->char->name);
 		$exampleNote1 = new Note();
@@ -473,7 +498,9 @@ class NotesController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
+	/** Change the format of your reminder */
 	#[NCA\HandlesCommand("reminderformat")]
+	#[NCA\Help\Group("notes")]
 	public function reminderformatChangeCommand(CmdContext $context, string $format): void {
 		$format = strtolower($format);
 		$formats = static::VALID_FORMATS;

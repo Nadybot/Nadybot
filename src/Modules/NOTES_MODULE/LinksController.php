@@ -9,15 +9,14 @@ use Nadybot\Core\{
 	CmdContext,
 	DB,
 	ModuleInstance,
+	ParamClass\PRemove,
+	ParamClass\PWord,
 	SettingManager,
 	Text,
 };
-use Nadybot\Core\ParamClass\PRemove;
-use Nadybot\Core\ParamClass\PWord;
 
 /**
  * @author Tyrence (RK2)
- * Commands this class contains:
  */
 #[
 	NCA\Instance,
@@ -26,11 +25,9 @@ use Nadybot\Core\ParamClass\PWord;
 		command: "links",
 		accessLevel: "guild",
 		description: "Displays, adds, or removes links from the org link list",
-		help: "links.txt"
 	)
 ]
 class LinksController extends ModuleInstance {
-
 	#[NCA\Inject]
 	public DB $db;
 
@@ -57,6 +54,7 @@ class LinksController extends ModuleInstance {
 		);
 	}
 
+	/** Show all links */
 	#[NCA\HandlesCommand("links")]
 	public function linksListCommand(CmdContext $context): void {
 		/** @var Collection<Link> */
@@ -84,6 +82,7 @@ class LinksController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
+	/** Add a link to the list */
 	#[NCA\HandlesCommand("links")]
 	public function linksAddCommand(CmdContext $context, #[NCA\Str("add")] string $action, PWord $url, string $comments): void {
 		$website = htmlspecialchars($url());
@@ -104,6 +103,7 @@ class LinksController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
+	/** Remoev a link from the list */
 	#[NCA\HandlesCommand("links")]
 	public function linksRemoveCommand(CmdContext $context, PRemove $action, int $id): void {
 		/** @var ?Link */

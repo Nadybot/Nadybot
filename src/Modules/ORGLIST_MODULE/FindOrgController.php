@@ -23,7 +23,6 @@ use Nadybot\Core\{
 
 /**
  * @author Tyrence (RK2)
- * Commands this controller contains:
  */
 #[
 	NCA\Instance,
@@ -32,7 +31,6 @@ use Nadybot\Core\{
 		command: "findorg",
 		accessLevel: "all",
 		description: "Find orgs by name",
-		help: "findorg.txt"
 	)
 ]
 class FindOrgController extends ModuleInstance {
@@ -93,6 +91,7 @@ class FindOrgController extends ModuleInstance {
 			->first();
 	}
 
+	/** Find an organization by its name */
 	#[NCA\HandlesCommand("findorg")]
 	public function findOrgCommand(CmdContext $context, string $search): void {
 		if (!$this->isReady()) {

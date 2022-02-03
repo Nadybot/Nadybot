@@ -17,7 +17,6 @@ use Nadybot\Core\{
 
 /**
  * @author Tyrence (RK2)
- * Commands this controller contains:
  */
 #[
 	NCA\Instance,
@@ -25,7 +24,6 @@ use Nadybot\Core\{
 		command: "orgmembers",
 		accessLevel: "guild",
 		description: "Show guild members sorted by name",
-		help: "orgmembers.txt"
 	)
 ]
 class OrgMembersController extends ModuleInstance {
@@ -38,6 +36,7 @@ class OrgMembersController extends ModuleInstance {
 	#[NCA\Inject]
 	public GuildManager $guildManager;
 
+	/** Show the members of an organization, sorted by name */
 	#[NCA\HandlesCommand("orgmembers")]
 	public function orgmembers2Command(CmdContext $context, int $orgId): void {
 		$context->reply("Getting org info...");

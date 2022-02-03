@@ -20,7 +20,6 @@ use Nadybot\Core\{
  * @author Tyrence (RK2)
  * @author Healnjoo (RK2)
  * @author Mdkdoc420 (RK2)
- * Commands this controller contains:
  */
 #[
 	NCA\Instance,
@@ -29,31 +28,26 @@ use Nadybot\Core\{
 		command: "nano",
 		accessLevel: "all",
 		description: "Searches for a nano and tells you were to get it",
-		help: "nano.txt"
 	),
 	NCA\DefineCommand(
 		command: "nanolines",
 		accessLevel: "all",
 		description: "Shows nanos based on nanoline",
-		help: "nanolines.txt",
 		alias: "nl"
 	),
 	NCA\DefineCommand(
 		command: "nanolinesfroob",
 		accessLevel: "all",
 		description: "Shows nanos for froobs based on nanoline ",
-		help: "nanolinesfroob.txt",
 		alias: "nlf"
 	),
 	NCA\DefineCommand(
 		command: "nanoloc",
 		accessLevel: "all",
 		description: "Browse nanos by location",
-		help: "nano.txt"
 	)
 ]
 class NanoController extends ModuleInstance {
-
 	#[NCA\Inject]
 	public DB $db;
 
@@ -103,7 +97,9 @@ class NanoController extends ModuleInstance {
 			->toArray();
 	}
 
+	/** Search for a nano by name */
 	#[NCA\HandlesCommand("nano")]
+	#[NCA\Help\Group("nano")]
 	public function nanoCommand(CmdContext $context, string $search): void {
 		$search = htmlspecialchars_decode($search);
 		$query = $this->db->table("nanos")
@@ -163,12 +159,16 @@ class NanoController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
+	/** Show all professions that have nanolines */
 	#[NCA\HandlesCommand("nanolines")]
+	#[NCA\Help\Group("nanolines")]
 	public function nanolinesListProfsCommand(CmdContext $context): void {
 		$this->listNanolineProfs($context, false);
 	}
 
+	/** Show all froob professions that have nanolines */
 	#[NCA\HandlesCommand("nanolinesfroob")]
+	#[NCA\Help\Group("nanolines")]
 	public function nanolinesFroobListProfsCommand(CmdContext $context): void {
 		$this->listNanolineProfs($context, true);
 	}
@@ -202,14 +202,18 @@ class NanoController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
+	/** Show all nanos in a given nano line */
 	#[NCA\HandlesCommand("nanolines")]
-	public function nanolinesListCommand(CmdContext $context, string $arg): void {
-		$this->listNanolines($context, false, $arg);
+	#[NCA\Help\Group("nanolines")]
+	public function nanolinesListCommand(CmdContext $context, string $nanoLine): void {
+		$this->listNanolines($context, false, $nanoLine);
 	}
 
+	/** Show all froob-usable nanos in a given nano line */
 	#[NCA\HandlesCommand("nanolinesfroob")]
-	public function nanolinesFroobListCommand(CmdContext $context, string $arg): void {
-		$this->listNanolines($context, true, $arg);
+	#[NCA\Help\Group("nanolines")]
+	public function nanolinesFroobListCommand(CmdContext $context, string $nanoLine): void {
+		$this->listNanolines($context, true, $nanoLine);
 	}
 
 	public function listNanolines(CmdContext $context, bool $froobOnly, string $arg): void {
@@ -333,7 +337,9 @@ class NanoController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
+	/** Show a list of nano locations */
 	#[NCA\HandlesCommand("nanoloc")]
+	#[NCA\Help\Group("nano")]
 	public function nanolocListCommand(CmdContext $context): void {
 		$query = $this->db->table("nanos")
 			->groupBy("location")
@@ -364,7 +370,9 @@ class NanoController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
+	/** Search for a nano by location */
 	#[NCA\HandlesCommand("nanoloc")]
+	#[NCA\Help\Group("nano")]
 	public function nanolocViewCommand(CmdContext $context, string $location): void {
 		$nanos = $this->db->table("nanos")
 			->whereIlike("location", $location)

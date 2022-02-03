@@ -10,6 +10,7 @@ use DateTimeZone;
 use Illuminate\Support\Collection;
 use InvalidArgumentException;
 use ReflectionMethod;
+use Throwable;
 use Nadybot\Core\{
 	AccessManager,
 	AOChatEvent,
@@ -35,24 +36,18 @@ use Nadybot\Modules\WEBSERVER_MODULE\{
 	Response,
 	WebChatConverter,
 };
-use Throwable;
 
-/**
- * Commands this class contains:
- */
 #[
 	NCA\Instance,
 	NCA\DefineCommand(
 		command: "startpage",
 		accessLevel: "mod",
 		description: "configures the personal startpage",
-		help: "startpage.txt"
 	),
 	NCA\DefineCommand(
 		command: "start",
 		accessLevel: "member",
 		description: "Shows your personal startpage",
-		help: "startpage.txt"
 	)
 ]
 class StartpageController extends ModuleInstance {
@@ -346,17 +341,23 @@ class StartpageController extends ModuleInstance {
 	}
 
 	/**
-	 * This command handler shows one's personal startpage
+	 * Show your personal startpage
 	 */
 	#[NCA\HandlesCommand("start")]
+	#[NCA\Help\Group("start")]
 	public function startCommand(CmdContext $context): void {
 		$this->showStartpage($context->char->name, $context, true);
 	}
 
 	/**
-	 * This command handler shows one's personal startpage
+	 * Show the current startpage layout
 	 */
 	#[NCA\HandlesCommand("startpage")]
+	#[NCA\Help\Group("start")]
+	#[NCA\Help\Epilogue(
+		"To customize the message that is sent with the startpage:\n".
+		"<tab><a href='chatcmd:///tell <myname> settings change startpage_startmsg'><symbol>settings change startpage_startmsg</a>"
+	)]
 	public function startpageCommand(CmdContext $context): void {
 		$this->showStartpageLayout($context, false);
 	}
@@ -377,9 +378,10 @@ class StartpageController extends ModuleInstance {
 	}
 
 	/**
-	 * This command handler lets you pick an unused tile for a specific position
+	 * Pick an entry for the startpage at position &lt;pos&gt; (0 being the top)
 	 */
 	#[NCA\HandlesCommand("startpage")]
+	#[NCA\Help\Group("start")]
 	public function startpagePickCommand(CmdContext $context, #[NCA\Str("pick")] string $action, int $pos): void {
 		$tiles = $this->getActiveLayout();
 		$unusedTiles = $this->getTiles();
@@ -407,9 +409,10 @@ class StartpageController extends ModuleInstance {
 	}
 
 	/**
-	 * This command handler shows the description of a tile
+	 * Show the description of a tile
 	 */
 	#[NCA\HandlesCommand("startpage")]
+	#[NCA\Help\Group("start")]
 	public function startpageDescribeTileCommand(CmdContext $context, #[NCA\Str("describe")] string $action, string $tileName): void {
 		$allTiles = $this->getTiles();
 		$tile = $allTiles[$tileName] ?? null;
@@ -422,9 +425,10 @@ class StartpageController extends ModuleInstance {
 	}
 
 	/**
-	 * This command handler assigns an unused tile to a position
+	 * Assign &lt;tile name&gt; to position &lt;pos&gt; of the startpage
 	 */
 	#[NCA\HandlesCommand("startpage")]
+	#[NCA\Help\Group("start")]
 	public function startpagePickTileCommand(
 		CmdContext $context,
 		#[NCA\Str("pick")] string $action,
@@ -448,14 +452,15 @@ class StartpageController extends ModuleInstance {
 	}
 
 	/**
-	 * This command handler moves around tiles
+	 * Move tiles around on the startpage
 	 */
 	#[NCA\HandlesCommand("startpage")]
+	#[NCA\Help\Group("start")]
 	public function startpageMoveTileCommand(
 		CmdContext $context,
 		#[NCA\Str("move")] string $action,
 		string $tileName,
-		#[NCA\Str("up", "down")]
+		#[NCA\Regexp("up|down", example: "up|down")]
 		string $direction
 	): void {
 		$currentTiles = $this->getActiveLayout();
@@ -485,9 +490,10 @@ class StartpageController extends ModuleInstance {
 	}
 
 	/**
-	 * This command handler removes a tile from the startpage
+	 * Remove a tile from the startpage
 	 */
 	#[NCA\HandlesCommand("startpage")]
+	#[NCA\Help\Group("start")]
 	public function startpageRemTileCommand(CmdContext $context, PRemove $action, string $tileName): void {
 		$currentTiles = $this->getActiveLayout();
 		if (!isset($currentTiles[$tileName])) {
