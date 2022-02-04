@@ -1,6 +1,0 @@
-To calculate your dimach recharge and damage:
-<tab><highlight><symbol>dimach 'dimach skill'<end>
-
-Example:
-<tab>You have <highlight>750<end> Dimach skill.
-<tab><a href='chatcmd:///tell <myname> <symbol>dimach 750'>/tell <myname> <symbol>dimach 750</a>

@@ -65,7 +65,6 @@ use Nadybot\Modules\{
 		command: "sync",
 		accessLevel: "member",
 		description: "Force syncing of next command if relay sync exists",
-		help: "sync.txt"
 	),
 	NCA\ProvidesEvent("routable(message)")
 ]
@@ -970,7 +969,8 @@ class RelayController extends ModuleInstance {
 	}
 
 	/**
-	 * Force syncing a command via all supporting relays.
+	 * Force syncing a command via all supporting relays
+	 *
 	 * Note: This will only force the outgoing event to be sent, not that
 	 * the other relays allow receiving this event.
 	 */
