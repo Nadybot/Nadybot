@@ -579,7 +579,7 @@ class MessageHubController extends ModuleInstance {
 	public function routeTagColorRemCommand(
 		CmdContext $context,
 		#[NCA\Str("color")] string $action,
-		#[NCA\Regexp("tag|text", example: "tag|text")] string $type,
+		#[NCA\StrChoice("tag", "text")] string $type,
 		PRemove $subAction,
 		PSource $tag,
 		?PWhere $where,
@@ -640,7 +640,7 @@ class MessageHubController extends ModuleInstance {
 	public function routeSetColorCommand(
 		CmdContext $context,
 		#[NCA\Str("color")] string $action,
-		#[NCA\Regexp("tag|text", example: "tag|text")] string $type,
+		#[NCA\StrChoice("tag", "text")] string $type,
 		#[NCA\Str("set")] string $subAction,
 		PSource $tag,
 		?PWhere $where,
@@ -706,7 +706,7 @@ class MessageHubController extends ModuleInstance {
 	public function routePickColorCommand(
 		CmdContext $context,
 		#[NCA\Str("color")] string $action,
-		#[NCA\Regexp("tag|text", example: "tag|text")] string $type,
+		#[NCA\StrChoice("tag", "text")] string $type,
 		#[NCA\Str("pick")] string $subAction,
 		PSource $tag,
 		?PWhere $where,

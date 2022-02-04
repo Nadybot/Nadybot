@@ -27,6 +27,7 @@ use Nadybot\Core\{
 	Routing\RoutableMessage,
 	Routing\Source,
 };
+use ReflectionAttribute;
 
 #[
 	NCA\Instance,
@@ -967,12 +968,12 @@ class CommandManager implements MessageEmitter {
 		);
 		$niceName = "&lt;{$niceName}&gt;";
 		if ($type->isBuiltin()) {
-			$constAttrs = $param->getAttributes(NCA\Str::class);
+			$constAttrs = $param->getAttributes(NCA\Str::class, ReflectionAttribute::IS_INSTANCEOF);
 			$regexpAttrs = $param->getAttributes(NCA\Regexp::class);
 			if (!empty($constAttrs)) {
 				/** @var NCA\Str */
 				$constObj = $constAttrs[0]->newInstance();
-				return $constObj->values[0];
+				return $constObj->renderParameter($param);
 			} elseif (!empty($regexpAttrs)) {
 				/** @var NCA\Regexp */
 				$regexpObj = $regexpAttrs[0]->newInstance();
@@ -1053,7 +1054,7 @@ class CommandManager implements MessageEmitter {
 		$varName = $param->getName();
 		if ($type->isBuiltin()) {
 			$mask = null;
-			$constAttrs = $param->getAttributes(NCA\Str::class);
+			$constAttrs = $param->getAttributes(NCA\Str::class, ReflectionAttribute::IS_INSTANCEOF);
 			$regexpAttrs = $param->getAttributes(NCA\Regexp::class);
 			if (!empty($constAttrs)) {
 				/** @var NCA\Str */

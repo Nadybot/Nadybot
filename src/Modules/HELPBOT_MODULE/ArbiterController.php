@@ -133,7 +133,7 @@ class ArbiterController extends ModuleInstance {
 	public function arbiterSetCommand(
 		CmdContext $context,
 		#[NCA\Str("set")] string $action,
-		#[NCA\Regexp("ai|bs|dio", example: "ai|bs|dio")] string $setWeek,
+		#[NCA\StrChoice("ai", "bs", "dio")] string $setWeek,
 		#[NCA\Str("ends")] ?string $ends
 	): void {
 		$setWeek = strtolower($setWeek);

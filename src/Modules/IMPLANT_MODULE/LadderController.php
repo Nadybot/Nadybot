@@ -51,7 +51,7 @@ class LadderController extends ModuleInstance {
 	)]
 	public function ladderCommand(
 		CmdContext $context,
-		#[NCA\Regexp("treat|treatment|ability", example: "treatment|ability")] string $type,
+		#[NCA\StrChoice("treatment", "ability")] string $type,
 		int $startingValue
 	): void {
 		$type = strtolower($type);

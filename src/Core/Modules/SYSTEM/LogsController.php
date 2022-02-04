@@ -217,8 +217,7 @@ class LogsController extends ModuleInstance {
 	public function loglevelFileCommand(
 		CmdContext $context,
 		PWord $mask,
-		#[NCA\Regexp("debug|info|notice|warning|error|emergency|alert", example: "debug|info|notice|warning|error|emergency|alert")]
-		string $logLevel
+		#[NCA\StrChoice("debug", "info", "notice", "warning", "error", "emergency", "alert")] string $logLevel
 	): void {
 		$logLevel = strtoupper($logLevel);
 		$loggers = LegacyLogger::getLoggers();

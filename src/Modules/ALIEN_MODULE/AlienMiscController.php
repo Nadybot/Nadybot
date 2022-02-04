@@ -377,7 +377,7 @@ class AlienMiscController extends ModuleInstance {
 	#[NCA\HandlesCommand("aigen")]
 	public function aigenCommand(
 		CmdContext $context,
-		#[NCA\Regexp("ankari|ilari|rimah|jaax|xoch|cha", example: "ankari|ilari|rimah|jaax|xoch|cha")] string $general
+		#[NCA\StrChoice("ankari", "ilari", "rimah", "jaax", "xoch", "cha")] string $general
 	): void {
 		$gen = ucfirst(strtolower($general));
 

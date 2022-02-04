@@ -129,7 +129,7 @@ class RaidBlockController extends ModuleInstance {
 	#[NCA\HandlesCommand("raidblock .+")]
 	public function raidBlockAddCommand(
 		CmdContext $context,
-		#[NCA\Regexp("points|join|bid", example: "points|join|bid")] string $blockFrom,
+		#[NCA\StrChoice("points", "join", "bid")] string $blockFrom,
 		PCharacter $character,
 		?PDuration $duration,
 		string $reason
@@ -220,7 +220,7 @@ class RaidBlockController extends ModuleInstance {
 		CmdContext $context,
 		PRemove $action,
 		PCharacter $char,
-		#[NCA\Regexp("points|join|bid", example: "points|join|bid")] ?string $blockFrom
+		#[NCA\StrChoice("points", "join", "bid")] ?string $blockFrom
 	): void {
 		$player = $char();
 		$player = $this->altsController->getMainOf($player);

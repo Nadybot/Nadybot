@@ -183,7 +183,7 @@ class ArulSabaController extends ModuleInstance {
 		CmdContext $context,
 		PWord $type,
 		int $numGems,
-		#[NCA\Regexp("left|right", example: "left|right")] string $side
+		#[NCA\StrChoice("left", "right")] string $side
 	): void {
 		$type = ucfirst(strtolower($type()));
 		$reqGems = max(1, $numGems);
