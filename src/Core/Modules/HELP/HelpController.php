@@ -29,7 +29,6 @@ use Nadybot\Core\{
 	)
 ]
 class HelpController extends ModuleInstance {
-
 	#[NCA\Inject]
 	public CommandManager $commandManager;
 
@@ -42,9 +41,6 @@ class HelpController extends ModuleInstance {
 	#[NCA\Inject]
 	public Text $text;
 
-	/**
-	 * This handler is called on bot startup.
-	 */
 	#[NCA\Setup]
 	public function setup(): void {
 		$this->helpManager->register(

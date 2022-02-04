@@ -51,7 +51,6 @@ use Safe\Exceptions\FilesystemException;
  * @author Tyrence (RK2)
  * @author Mindrila (RK1)
  * @author Nadyita (RK5)
- * Commands this controller contains:
  */
 #[
 	NCA\Instance,

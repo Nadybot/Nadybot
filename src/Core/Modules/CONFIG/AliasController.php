@@ -14,9 +14,6 @@ use Nadybot\Core\DBSchema\CmdAlias;
 use Nadybot\Core\ParamClass\PRemove;
 use Nadybot\Core\ParamClass\PWord;
 
-/**
- * Commands this controller contains:
- */
 #[
 	NCA\Instance,
 	NCA\DefineCommand(
@@ -27,7 +24,6 @@ use Nadybot\Core\ParamClass\PWord;
 	)
 ]
 class AliasController extends ModuleInstance {
-
 	#[NCA\Inject]
 	public CommandAlias $commandAlias;
 

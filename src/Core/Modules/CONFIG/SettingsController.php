@@ -19,9 +19,6 @@ use Nadybot\Core\{
 	Util,
 };
 
-/**
- * Commands this controller contains:
- */
 #[
 	NCA\Instance,
 	NCA\DefineCommand(
@@ -32,7 +29,6 @@ use Nadybot\Core\{
 	)
 ]
 class SettingsController extends ModuleInstance {
-
 	#[NCA\Inject]
 	public Text $text;
 
@@ -54,9 +50,6 @@ class SettingsController extends ModuleInstance {
 	#[NCA\Inject]
 	public AccessManager $accessManager;
 
-	/**
-	 * This handler is called on bot startup.
-	 */
 	#[NCA\Setup]
 	public function setup(): void {
 		$this->settingManager->upload();

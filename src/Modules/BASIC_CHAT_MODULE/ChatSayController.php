@@ -86,6 +86,7 @@ class ChatSayController extends ModuleInstance {
 	 * Show a highly visible message
 	 */
 	#[NCA\HandlesCommand("cmd")]
+	#[NCA\Help\Group("cmd")]
 	public function cmdCommand(CmdContext $context, string $message): void {
 		if (!$this->chatLeaderController->checkLeaderAccess($context->char->name)) {
 			$context->reply("You must be Raid Leader to use this command.");
@@ -113,6 +114,7 @@ class ChatSayController extends ModuleInstance {
 	 * Repeat a message 3 times
 	 */
 	#[NCA\HandlesCommand("tell")]
+	#[NCA\Help\Group("cmd")]
 	public function tellCommand(CmdContext $context, string $message): void {
 		if (!$this->chatLeaderController->checkLeaderAccess($context->char->name)) {
 			$context->reply("You must be Raid Leader to use this command.");

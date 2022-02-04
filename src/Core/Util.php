@@ -9,7 +9,6 @@ use Nadybot\Core\Attributes as NCA;
 
 #[NCA\Instance]
 class Util {
-
 	#[NCA\Inject]
 	public ConfigFile $config;
 

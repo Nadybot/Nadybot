@@ -34,7 +34,6 @@ use Nadybot\Core\{
 	)
 ]
 class SilenceController extends ModuleInstance {
-
 	public const DB_TABLE = "silence_cmd_<myname>";
 
 	#[NCA\Inject]

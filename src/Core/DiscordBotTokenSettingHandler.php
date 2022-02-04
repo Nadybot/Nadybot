@@ -12,7 +12,6 @@ use Nadybot\Modules\DISCORD_GATEWAY_MODULE\DiscordGatewayController;
  */
 #[NCA\SettingHandler("discord_bot_token")]
 class DiscordBotTokenSettingHandler extends SettingHandler {
-
 	#[NCA\Inject]
 	public Http $http;
 

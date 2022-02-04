@@ -30,9 +30,6 @@ class ResearchController extends ModuleInstance {
 	#[NCA\Inject]
 	public Text $text;
 
-	/**
-	 * This handler is called on bot startup.
-	 */
 	#[NCA\Setup]
 	public function setup(): void {
 		$this->db->loadCSVFile($this->moduleName, __DIR__ . '/research.csv');

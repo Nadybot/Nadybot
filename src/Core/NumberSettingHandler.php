@@ -7,7 +7,6 @@ use Exception;
 
 #[NCA\SettingHandler("number")]
 class NumberSettingHandler extends SettingHandler {
-
 	/**
 	 * @inheritDoc
 	 */

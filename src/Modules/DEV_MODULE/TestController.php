@@ -35,7 +35,6 @@ use Safe\Exceptions\FilesystemException;
 
 /**
  * @author Tyrence (RK2)
- * Commands this controller contains:
  */
 #[
 	NCA\Instance,

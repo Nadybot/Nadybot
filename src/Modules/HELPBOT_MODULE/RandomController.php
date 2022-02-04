@@ -52,9 +52,6 @@ class RandomController extends ModuleInstance {
 	#[NCA\Inject]
 	public CommandAlias $commandAlias;
 
-	/**
-	 * This handler is called on bot startup.
-	 */
 	#[NCA\Setup]
 	public function setup(): void {
 		$this->settingManager->add(

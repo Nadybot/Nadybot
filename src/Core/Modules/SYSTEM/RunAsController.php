@@ -15,7 +15,6 @@ use Nadybot\Core\Routing\Character;
 
 /**
  * @author Tyrence (RK2)
- * Commands this controller contains:
  */
 #[
 	NCA\Instance,
@@ -26,7 +25,6 @@ use Nadybot\Core\Routing\Character;
 	)
 ]
 class RunAsController extends ModuleInstance {
-
 	#[NCA\Inject]
 	public AccessManager $accessManager;
 

@@ -12,9 +12,6 @@ use Nadybot\Core\{
 	EventManager,
 };
 
-/**
- * Commands this controller contains:
- */
 #[
 	NCA\Instance,
 	NCA\DefineCommand(
@@ -25,7 +22,6 @@ use Nadybot\Core\{
 	)
 ]
 class EventlistController extends ModuleInstance {
-
 	#[NCA\Inject]
 	public Text $text;
 

@@ -14,7 +14,6 @@ use Nadybot\Core\{
 
 /**
  * @author Nadyita
- * Commands this controller contains:
  */
 #[
 	NCA\Instance,

@@ -27,7 +27,6 @@ use Nadybot\Core\{
 
 /**
  * @author Tyrence (RK2)
- * Commands this controller contains:
  */
 #[
 	NCA\Instance,
@@ -54,7 +53,6 @@ use Nadybot\Core\{
 	NCA\HasMigrations
 ]
 class AltsController extends ModuleInstance {
-
 	public const ALT_VALIDATE = "altvalidate";
 	public const MAIN_VALIDATE = "mainvalidate";
 
@@ -85,9 +83,6 @@ class AltsController extends ModuleInstance {
 	/** @var array<string,string> */
 	private array $alts = [];
 
-	/**
-	 * This handler is called on bot startup.
-	 */
 	#[NCA\Setup]
 	public function setup(): void {
 		$this->settingManager->add(
@@ -186,6 +181,7 @@ class AltsController extends ModuleInstance {
 	 * Add one or more alts to your main
 	 */
 	#[NCA\HandlesCommand("alts")]
+	#[NCA\Help\Group("alts")]
 	#[NCA\Help\Epilogue(
 		"<header2>Validation after '<symbol>alts add'<end>\n\n".
 		"If <a href='chatcmd:///tell <myname> settings change alts_require_confirmation'>alts require confirmation</a> is on (default is on), then the\n".
@@ -291,6 +287,7 @@ class AltsController extends ModuleInstance {
 	 * Add yourself as an alt of another main character
 	 */
 	#[NCA\HandlesCommand("alts")]
+	#[NCA\Help\Group("alts")]
 	#[NCA\Help\Epilogue(
 		"<header2>Validation after 'alts main'<end>\n\n".
 		"Alts added to someone's altlist via '<symbol>alts main' are unvalidated.\n\n".
@@ -383,6 +380,7 @@ class AltsController extends ModuleInstance {
 	 * Remove one of your alts
 	 */
 	#[NCA\HandlesCommand("alts")]
+	#[NCA\Help\Group("alts")]
 	public function removeAltCommand(CmdContext $context, PRemove $rem, PCharacter $name): void {
 		$name = $name();
 
@@ -413,6 +411,7 @@ class AltsController extends ModuleInstance {
 	 * Set your current character as your main
 	 */
 	#[NCA\HandlesCommand("alts")]
+	#[NCA\Help\Group("alts")]
 	public function setMainCommand(CmdContext $context, #[NCA\Str("setmain")] string $action): void {
 		$newMain = $context->char->name;
 		$altInfo = $this->getAltInfo($newMain);
@@ -470,6 +469,7 @@ class AltsController extends ModuleInstance {
 	 * List your or &lt;name&gt;'s alts
 	 */
 	#[NCA\HandlesCommand("alts")]
+	#[NCA\Help\Group("alts")]
 	public function altsCommand(CmdContext $context, ?PCharacter $name): void {
 		$name = isset($name) ? $name() : $context->char->name;
 
@@ -486,6 +486,7 @@ class AltsController extends ModuleInstance {
 	 * Validate an alt or main
 	 */
 	#[NCA\HandlesCommand("altvalidate")]
+	#[NCA\Help\Group("alts")]
 	#[NCA\Help\Prologue(
 		"Alts added to someone's altlist via '<symbol>alts main' are unvalidated, and cannot ".
 		"<a href='chatcmd:///tell <myname> settings change alts_inherit_admin'>inherit</a> ".
@@ -571,6 +572,7 @@ class AltsController extends ModuleInstance {
 	 * Declines an alt or main requests
 	 */
 	#[NCA\HandlesCommand("altdecline")]
+	#[NCA\Help\Group("alts")]
 	public function altDeclineCommand(CmdContext $context, PCharacter $name): void {
 		$altInfo = $this->getAltInfo($context->char->name, true);
 		$toDecline = $name();

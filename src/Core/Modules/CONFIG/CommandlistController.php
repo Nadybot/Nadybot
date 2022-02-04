@@ -14,9 +14,6 @@ use Nadybot\Core\{
 };
 use Nadybot\Core\DBSchema\CmdCfg;
 
-/**
- * Commands this controller contains:
- */
 #[
 	NCA\Instance,
 	NCA\DefineCommand(
@@ -27,7 +24,6 @@ use Nadybot\Core\DBSchema\CmdCfg;
 	)
 ]
 class CommandlistController extends ModuleInstance {
-
 	#[NCA\Inject]
 	public AccessManager $accessManager;
 

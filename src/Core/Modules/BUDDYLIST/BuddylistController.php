@@ -15,7 +15,6 @@ use Nadybot\Core\ParamClass\PWord;
 
 /**
  * @author Tyrence (RK2)
- * Commands this controller contains:
  */
 #[
 	NCA\Instance,
@@ -27,7 +26,6 @@ use Nadybot\Core\ParamClass\PWord;
 	)
 ]
 class BuddylistController extends ModuleInstance {
-
 	#[NCA\Inject]
 	public Nadybot $chatBot;
 

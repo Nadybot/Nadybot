@@ -50,9 +50,6 @@ class HelpbotController extends ModuleInstance {
 	#[NCA\Inject]
 	public PlayfieldController $pfController;
 
-	/**
-	 * This handler is called on bot startup.
-	 */
 	#[NCA\Setup]
 	public function setup(): void {
 		$this->db->loadCSVFile($this->moduleName, __DIR__ . '/dynadb.csv');

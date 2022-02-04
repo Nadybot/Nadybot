@@ -12,13 +12,9 @@ use Nadybot\Core\ModuleInstance;
 #[NCA\Instance,
 	NCA\HasMigrations]
 class PlayerLookupController extends ModuleInstance {
-
 	#[NCA\Inject]
 	public DB $db;
 
-	/**
-	 * This handler is called on bot startup.
-	 */
 	#[NCA\Setup]
 	public function setup(): void {
 	}

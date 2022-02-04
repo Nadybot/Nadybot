@@ -12,7 +12,6 @@ use Nadybot\Modules\DISCORD_GATEWAY_MODULE\DiscordGatewayController;
  */
 #[NCA\SettingHandler("discord_channel")]
 class DiscordChannelSettingHandler extends SettingHandler {
-
 	#[NCA\Inject]
 	public Http $http;
 

@@ -10,9 +10,6 @@ use Nadybot\Core\{
 	Nadybot,
 };
 
-/**
- * Commands this controller contains:
- */
 #[
 	NCA\Instance,
 	NCA\DefineCommand(
@@ -22,7 +19,6 @@ use Nadybot\Core\{
 	)
 ]
 class SameChannelResponseController extends ModuleInstance {
-
 	#[NCA\Inject]
 	public CommandManager $commandManager;
 

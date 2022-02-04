@@ -85,9 +85,6 @@ class GSPController extends ModuleInstance implements MessageEmitter {
 		return Source::SYSTEM . "(gsp)";
 	}
 
-	/**
-	 * This handler is called on bot startup.
-	 */
 	#[NCA\Setup]
 	public function setup(): void {
 		$this->settingManager->add(

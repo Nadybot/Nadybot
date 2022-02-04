@@ -14,7 +14,6 @@ use Nadybot\Core\ParamClass\PCharacter;
 
 /**
  * @author Tyrence (RK2)
- * Commands this controller contains:
  */
 #[
 	NCA\Instance,
@@ -25,7 +24,6 @@ use Nadybot\Core\ParamClass\PCharacter;
 	)
 ]
 class SendTellController extends ModuleInstance {
-
 		#[NCA\Logger]
 	public LoggerWrapper $logger;
 

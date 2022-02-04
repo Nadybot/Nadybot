@@ -22,9 +22,6 @@ use Nadybot\Modules\WEBSERVER_MODULE\{
 	Response,
 };
 
-/**
- * Commands this controller contains:
- */
 #[
 	NCA\Instance,
 	NCA\DefineCommand(
@@ -43,9 +40,6 @@ class AuditController extends ModuleInstance {
 	#[NCA\Inject]
 	public Text $text;
 
-	/**
-	 * This handler is called on bot startup.
-	 */
 	#[NCA\Setup]
 	public function setup(): void {
 		$this->settingManager->add(

@@ -24,7 +24,6 @@ use Nadybot\Modules\ITEMS_MODULE\ItemsController;
 	)
 ]
 class AlienArmorController extends ModuleInstance {
-
 	#[NCA\Inject]
 	public Text $text;
 

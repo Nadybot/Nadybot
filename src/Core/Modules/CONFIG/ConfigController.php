@@ -45,7 +45,6 @@ use Nadybot\Core\DBSchema\{
 	NCA\Instance
 ]
 class ConfigController extends ModuleInstance {
-
 	#[NCA\Inject]
 	public Text $text;
 
@@ -79,9 +78,6 @@ class ConfigController extends ModuleInstance {
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
-	/**
-	 * This handler is called on bot startup.
-	 */
 	#[NCA\Setup]
 	public function setup(): void {
 		// construct list of command handlers

@@ -19,7 +19,6 @@ use Nadybot\Core\Util;
 	)
 ]
 class UnixtimeController extends ModuleInstance {
-
 	#[NCA\Inject]
 	public Util $util;
 

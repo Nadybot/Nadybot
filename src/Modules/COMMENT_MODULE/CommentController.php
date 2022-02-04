@@ -33,13 +33,11 @@ use Nadybot\Core\{
 		command: "comment",
 		accessLevel: "member",
 		description: "read/write comments about players",
-		// help: "comment.txt"
 	),
 	NCA\DefineCommand(
 		command: "commentcategories",
 		accessLevel: "mod",
 		description: "Manage comment categories",
-		// help: "comment-categories.txt"
 	)
 ]
 class CommentController extends ModuleInstance {

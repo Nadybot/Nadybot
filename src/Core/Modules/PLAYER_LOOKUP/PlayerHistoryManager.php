@@ -10,7 +10,6 @@ use Throwable;
 
 #[NCA\Instance]
 class PlayerHistoryManager extends ModuleInstance {
-
 	#[NCA\Inject]
 	public CacheManager $cacheManager;
 

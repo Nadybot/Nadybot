@@ -10,7 +10,6 @@ use Exception;
  */
 #[NCA\SettingHandler("color")]
 class ColorSettingHandler extends SettingHandler {
-
 	/**
 	 * Get a displayable representation of the setting
 	 */

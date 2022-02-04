@@ -42,9 +42,6 @@ class PocketbossController extends ModuleInstance {
 	#[NCA\Inject]
 	public DB $db;
 
-	/**
-	 * This handler is called on bot startup.
-	 */
 	#[NCA\Setup]
 	public function setup(): void {
 		$this->db->loadCSVFile($this->moduleName, __DIR__ . "/pocketboss.csv");

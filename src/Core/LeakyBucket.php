@@ -9,7 +9,6 @@ if (!defined("AOC_PRIORITY_HIGH")) {
 }
 
 class LeakyBucket implements QueueInterface {
-
 	/**
 	 * The packet queue for each priority (low, med, high)
 	 *

@@ -21,9 +21,6 @@ use Nadybot\Core\{
 	Text,
 };
 
-/**
- * Commands this controller contains:
- */
 #[
 	NCA\Instance,
 	NCA\DefineCommand(

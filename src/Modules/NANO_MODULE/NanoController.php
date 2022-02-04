@@ -62,9 +62,6 @@ class NanoController extends ModuleInstance {
 
 	/** @var array<int,Nanoline> */
 	public array $nanolines = [];
-	/**
-	 * This handler is called on bot startup.
-	 */
 	#[NCA\Setup]
 	public function setup(): void {
 		$this->db->loadCSVFile($this->moduleName, __DIR__ . "/nanos.csv");

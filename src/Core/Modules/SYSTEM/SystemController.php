@@ -41,7 +41,6 @@ use Nadybot\Modules\WEBSERVER_MODULE\{
 /**
  * @author Sebuda (RK2)
  * @author Tyrence (RK2)
- * Commands this controller contains:
  */
 #[
 	NCA\Instance,
@@ -84,7 +83,6 @@ use Nadybot\Modules\WEBSERVER_MODULE\{
 	)
 ]
 class SystemController extends ModuleInstance implements MessageEmitter {
-
 	#[NCA\Inject]
 	public AccessManager $accessManager;
 
@@ -133,9 +131,6 @@ class SystemController extends ModuleInstance implements MessageEmitter {
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
-	/**
-	 * This handler is called on bot startup.
-	 */
 	#[NCA\Setup]
 	public function setup(): void {
 

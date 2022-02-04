@@ -44,9 +44,6 @@ class LevelController extends ModuleInstance {
 	#[NCA\Inject]
 	public CommandAlias $commandAlias;
 
-	/**
-	 * This handler is called on bot startup.
-	 */
 	#[NCA\Setup]
 	public function setup(): void {
 		$this->db->loadCSVFile($this->moduleName, __DIR__ . "/levels.csv");
@@ -95,6 +92,7 @@ class LevelController extends ModuleInstance {
 
 	/** See needed XP to level up for a single level */
 	#[NCA\HandlesCommand("xp")]
+	#[NCA\Help\Group("xp")]
 	public function xpSingleCommand(CmdContext $context, int $level): void {
 		if (($row = $this->getLevelInfo($level)) === null) {
 			$msg = "Level must be between 1 and 219.";
@@ -111,6 +109,7 @@ class LevelController extends ModuleInstance {
 
 	/** See how much XP is needed from one level to another */
 	#[NCA\HandlesCommand("xp")]
+	#[NCA\Help\Group("xp")]
 	public function xpDoubleCommand(CmdContext $context, int $startLevel, int $endLevel): void {
 		if ($startLevel < 1 || $startLevel > 220 || $endLevel < 1 || $endLevel > 220) {
 			$msg = "Level must be between 1 and 220.";

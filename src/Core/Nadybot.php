@@ -36,7 +36,6 @@ use Throwable;
 
 #[NCA\Instance]
 class Nadybot extends AOChat {
-
 	public const PING_IDENTIFIER = "Nadybot";
 
 	#[NCA\Inject]

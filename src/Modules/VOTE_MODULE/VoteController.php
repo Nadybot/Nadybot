@@ -101,9 +101,6 @@ class VoteController extends ModuleInstance implements MessageEmitter {
 	public const STATUS_60_SECONDS_LEFT = 4;
 	public const STATUS_ENDED = 9;
 
-	/**
-	 * This handler is called on bot startup.
-	 */
 	#[NCA\Setup]
 	public function setup(): void {
 		$this->cacheVotes();

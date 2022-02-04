@@ -24,7 +24,6 @@ use Throwable;
 #[NCA\Instance]
 #[NCA\HasMigrations(module: "Core")]
 class DB {
-
 	public const SQLITE_MIN_VERSION = "3.24.0";
 
 	#[NCA\Inject]

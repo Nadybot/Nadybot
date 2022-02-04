@@ -35,7 +35,6 @@ use Nadybot\Core\{
 	NCA\ProvidesEvent("assist(add)")
 ]
 class ChatAssistController extends ModuleInstance {
-
 	#[NCA\Inject]
 	public Nadybot $chatBot;
 

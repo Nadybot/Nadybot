@@ -47,9 +47,6 @@ class PlayfieldController extends ModuleInstance {
 	/** @var array<int,Playfield> */
 	private array $playfields = [];
 
-	/**
-	 * This handler is called on bot startup.
-	 */
 	#[NCA\Setup]
 	public function setup(): void {
 		$this->db->loadCSVFile($this->moduleName, __DIR__ . '/playfields.csv');

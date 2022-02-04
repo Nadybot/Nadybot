@@ -17,7 +17,6 @@ use ReflectionClass;
 
 /**
  * @author Tyrence (RK2)
- * Commands this controller contains:
  */
 #[
 	NCA\Instance,
@@ -33,7 +32,6 @@ use ReflectionClass;
 	)
 ]
 class SQLController extends ModuleInstance {
-
 	#[NCA\Inject]
 	public AccessManager $accessManager;
 

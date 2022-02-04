@@ -26,7 +26,6 @@ use Nadybot\Core\{
 	UserStateEvent,
 	Util,
 };
-use Nadybot\Core\Attributes\Help\Example;
 use Nadybot\Modules\TIMERS_MODULE\{
 	Alert,
 	Timer,

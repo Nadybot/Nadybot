@@ -18,7 +18,6 @@ use Safe\Exceptions\FilesystemException;
 /**
  * @author Tyrence (RK2)
  * @author Marebone (RK2)
- * Commands this controller contains:
  */
 #[
 	NCA\Instance,
@@ -36,7 +35,6 @@ use Safe\Exceptions\FilesystemException;
 	)
 ]
 class BankController extends ModuleInstance {
-
 	#[NCA\Inject]
 	public DB $db;
 

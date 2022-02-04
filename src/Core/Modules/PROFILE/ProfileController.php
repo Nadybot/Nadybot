@@ -37,7 +37,6 @@ use Safe\Exceptions\FilesystemException;
 
 /**
  * @author Tyrence (RK2)
- * Commands this controller contains:
  */
 #[
 	NCA\Instance,
@@ -83,9 +82,6 @@ class ProfileController extends ModuleInstance {
 
 	private string $path;
 
-	/**
-	 * This handler is called on bot startup.
-	 */
 	#[NCA\Setup]
 	public function setup(): void {
 		$dataPath = $this->config->dataFolder;

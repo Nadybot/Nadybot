@@ -17,7 +17,6 @@ use Safe\Exceptions\FilesystemException;
 /**
  * @author Tyrence (RK2)
  * Guides compiled by Plugsz (RK1)
- * Commands this controller contains:
  */
 #[
 	NCA\Instance,
@@ -41,9 +40,6 @@ class GuideController extends ModuleInstance {
 	private string $path;
 	private const FILE_EXT = ".txt";
 
-	/**
-	 * This handler is called on bot startup.
-	 */
 	#[NCA\Setup]
 	public function setup(): void {
 		$this->commandAlias->register($this->moduleName, "guides healdelta", "healdelta");

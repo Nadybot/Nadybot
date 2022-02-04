@@ -2470,7 +2470,15 @@ class TowerController extends ModuleInstance {
 	 */
 	#[NCA\HandlesCommand("scout")]
 	#[NCA\Help\Group("scout")]
-	#[NCA\Help\Example("<symbol>scout PW 4 Control Tower - Clan Level: 190 Danger level: Killing it poses no danger. Might attack you on sight. Alignment: clan  Organization: Dark Ninjas Created at UTC: 2014-05-19 12:34:56")]
+	#[NCA\Help\Example(
+		"<symbol>scout PW 4 Control Tower - Clan ".
+		"Level: 190 ".
+		"Danger level: Killing it poses no danger. ".
+		"Might attack you on sight. ".
+		"Alignment: clan  ".
+		"Organization: Dark Ninjas ".
+		"Created at UTC: 2014-05-19 12:34:56"
+	)]
 	#[NCA\Help\Example("<symbol>scout PW 4 none")]
 	public function scoutCommand(CmdContext $context, PTowerSite $site, string $text): void {
 		$this->scoutInputHandler($context, $site->pf, $site->site, $text);
