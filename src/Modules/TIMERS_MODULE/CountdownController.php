@@ -15,7 +15,6 @@ use Nadybot\Core\{
 
 /**
  * @author Tyrence (RK2)
- * Commands this class contains:
  */
 #[
 	NCA\Instance,
@@ -23,7 +22,6 @@ use Nadybot\Core\{
 		command: "countdown",
 		accessLevel: "rl",
 		description: "Start a 5-second countdown",
-		help: "countdown.txt",
 		alias: "cd"
 	),
 	NCA\ProvidesEvent(
@@ -32,7 +30,6 @@ use Nadybot\Core\{
 	)
 ]
 class CountdownController extends ModuleInstance {
-
 	public const CONF_CD_TELL_LOCATION = 'cd_tell_location';
 	public const CONF_CD_DEFAULT_TEXT = 'cd_default_text';
 	public const CONF_CD_COOLDOWN = 'cd_cooldown';
@@ -87,7 +84,11 @@ class CountdownController extends ModuleInstance {
 		);
 	}
 
+	/** Start a 5s countdown timer with an optional custom message */
 	#[NCA\HandlesCommand("countdown")]
+	#[NCA\Help\Epilogue(
+		"By default, this command can only be run once every 30s"
+	)]
 	public function countdownCommand(CmdContext $context, ?string $message): void {
 		$message ??= $this->settingManager->getString(self::CONF_CD_DEFAULT_TEXT)??"GO";
 		$cooldown = $this->settingManager->getInt(self::CONF_CD_COOLDOWN)??30;
