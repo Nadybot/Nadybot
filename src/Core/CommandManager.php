@@ -819,7 +819,6 @@ class CommandManager implements MessageEmitter {
 			if (!isset($handler)) {
 				continue;
 			}
-			$this->logger->notice("{$handlesCommand->command}: {$handler->admin}");
 			if ($this->accessManager->checkAccess($context->char->name, $handler->admin) === true) {
 				return true;
 			}

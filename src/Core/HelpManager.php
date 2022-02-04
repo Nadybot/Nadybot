@@ -15,6 +15,9 @@ class HelpManager {
 
 	#[NCA\Inject]
 	public AccessManager $accessManager;
+	#
+	#[NCA\Inject]
+	public CommandManager $commandManager;
 
 	#[NCA\Inject]
 	public ConfigController $configController;
@@ -133,15 +136,13 @@ class HelpManager {
 	/**
 	 * Return all help topics a character has access to
 	 *
-	 * @param null|string $char Name of the char
 	 * @return HelpTopic[] Help topics
 	 */
-	public function getAllHelpTopics($char): array {
+	public function getAllHelpTopics(?CmdContext $context): array {
 		$cmdHelp = $this->db->table(CommandManager::DB_TABLE, "c")
 			->join(CommandManager::DB_TABLE_PERMS . " as p", "c.cmd", "p.cmd")
 			->where("c.cmdevent", "cmd")
 			->where("p.enabled", true)
-			->where("c.help", "!=", '')
 			->select("c.module", "p.access_level as admin", "c.cmd AS name", "c.help AS file", "description");
 		$cmdHelp->selectRaw("2" . $cmdHelp->as("sort"));
 		$settingsHelp = $this->db->table(SettingManager::DB_TABLE)
@@ -162,8 +163,8 @@ class HelpManager {
 		/** @var HelpTopic[] $data */
 		$data = $outerQuery->asObj(HelpTopic::class)->toArray();
 
-		if ($char !== null) {
-			$accessLevel = $this->accessManager->getAccessLevelForCharacter($char);
+		if (isset($context)) {
+			$accessLevel = $this->accessManager->getAccessLevelForCharacter($context->char->name);
 		}
 
 		$topics = [];
@@ -173,7 +174,7 @@ class HelpManager {
 			if (isset($added[$key])) {
 				continue;
 			}
-			if ($char === null || $this->checkAccessLevels($accessLevel??"all", explode(",", $row->admin_list))) {
+			if (!isset($context) || $this->checkAccessLevels($accessLevel??"all", explode(",", $row->admin_list))) {
 				$obj = new HelpTopic();
 				$obj->module = $row->module;
 				$obj->name = $row->name;

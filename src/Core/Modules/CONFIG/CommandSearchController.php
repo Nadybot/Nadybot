@@ -138,10 +138,7 @@ class CommandSearchController extends ModuleInstance {
 	public function render(Collection $results, bool $hasAccess, bool $exactMatch): string|array {
 		$blob = '';
 		foreach ($results as $row) {
-			$helpLink = "";
-			if ($row->help !== null && $row->help !== '') {
-				$helpLink = ' [' . $this->text->makeChatcmd("help", "/tell <myname> help $row->cmd") . ']';
-			}
+			$helpLink = ' [' . $this->text->makeChatcmd("help", "/tell <myname> help $row->cmd") . ']';
 			if ($hasAccess) {
 				$module = $this->text->makeChatcmd($row->module, "/tell <myname> config {$row->module}");
 			} else {

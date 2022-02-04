@@ -65,7 +65,7 @@ class HelpController extends ModuleInstance {
 	/** Get a list of all help topics */
 	#[NCA\HandlesCommand("help")]
 	public function helpListCommand(CmdContext $context): void {
-		$data = $this->helpManager->getAllHelpTopics($context->char->name);
+		$data = $this->helpManager->getAllHelpTopics($context);
 
 		if (count($data) === 0) {
 			$msg = "No help files found.";
