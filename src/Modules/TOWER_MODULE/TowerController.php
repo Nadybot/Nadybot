@@ -30,11 +30,11 @@ use Nadybot\Core\{
 	Util,
 };
 use Nadybot\Core\ParamClass\{
-	PCharacter,
 	PDuration,
 	PNonGreedy,
 	PPlayfield,
 	PTowerSite,
+	PWord,
 };
 use Nadybot\Modules\{
 	HELPBOT_MODULE\Playfield,
@@ -47,9 +47,6 @@ use Nadybot\Modules\{
 	TIMERS_MODULE\TimerController,
 };
 
-/**
- * Commands this controller contains:
- */
 #[
 	NCA\Instance,
 	NCA\HasMigrations,
@@ -57,77 +54,65 @@ use Nadybot\Modules\{
 		command: "towerstats",
 		accessLevel: "member",
 		description: "Show how many towers each faction has lost",
-		help: "towerstats.txt"
 	),
 	NCA\DefineCommand(
 		command: "attacks",
 		accessLevel: "member",
 		description: "Show the last Tower Attack messages",
-		help: "attacks.txt",
 		alias: "battles"
 	),
 	NCA\DefineCommand(
 		command: "lc",
 		accessLevel: "member",
 		description: "Show status of towers",
-		help: "lc.txt"
 	),
 	NCA\DefineCommand(
 		command: "sites",
 		accessLevel: "member",
 		description: "Show sites of an org",
-		help: "sites.txt"
 	),
 	NCA\DefineCommand(
 		command: "penalty",
 		accessLevel: "member",
 		description: "Show orgs in penalty",
-		help: "penalty.txt"
 	),
 	NCA\DefineCommand(
 		command: "remscout",
 		accessLevel: "guild",
 		description: "Remove tower info from watch list",
-		help: "scout.txt"
 	),
 	NCA\DefineCommand(
 		command: "scout",
 		accessLevel: "guild",
 		description: "Add tower info to watch list",
-		help: "scout.txt"
 	),
 	NCA\DefineCommand(
 		command: "needsscout",
 		accessLevel: "guild",
 		description: "Check which tower sites need scouting",
-		help: "scout.txt",
 		alias: "needscout"
 	),
 	NCA\DefineCommand(
 		command: "hot",
 		accessLevel: "member",
 		description: "Check which sites are or will be attackable soon",
-		help: "hot.txt"
 	),
 	NCA\DefineCommand(
 		command: "victory",
 		accessLevel: "member",
 		description: "Show the last Tower Battle results",
-		help: "victory.txt",
 		alias: "victories"
 	),
 	NCA\DefineCommand(
 		command: "towertype",
 		accessLevel: "member",
 		description: "Show the level ranges for tower types",
-		help: "towers.txt",
 		alias: "towertypes"
 	),
 	NCA\DefineCommand(
 		command: "towerqty",
 		accessLevel: "member",
 		description: "Show how many towers each level is allowed to plant",
-		help: "towers.txt",
 		alias: "numtowers"
 	),
 	NCA\ProvidesEvent("tower(attack)"),
@@ -142,7 +127,6 @@ use Nadybot\Modules\{
 	)
 ]
 class TowerController extends ModuleInstance {
-
 	public const DB_HOT = "tower_site_hot_<myname>";
 	public const DB_TOWER_ATTACK = "tower_attack_<myname>";
 	public const DB_TOWER_VICTORY = "tower_victory_<myname>";
@@ -227,9 +211,6 @@ class TowerController extends ModuleInstance {
 		$this->attackListeners []= $listener;
 	}
 
-	/**
-	 * This handler is called on bot startup.
-	 */
 	#[NCA\Setup]
 	public function setup(): void {
 		$this->db->loadCSVFile($this->moduleName, __DIR__ . '/tower_site.csv');
@@ -331,7 +312,7 @@ class TowerController extends ModuleInstance {
 	}
 
 	/**
-	 * This command handler shows the last tower attack messages.
+	 * Show the last tower attack messages
 	 */
 	#[NCA\HandlesCommand("attacks")]
 	public function attacksCommand(CmdContext $context, ?int $page): void {
@@ -339,8 +320,7 @@ class TowerController extends ModuleInstance {
 	}
 
 	/**
-	 * This command handler shows the last tower attack messages by site number
-	 * and optionally by page.
+	 * Show the last tower attack messages for a site
 	 */
 	#[NCA\HandlesCommand("attacks")]
 	public function attacks2Command(CmdContext $context, PTowerSite $site, ?int $page): void {
@@ -367,11 +347,18 @@ class TowerController extends ModuleInstance {
 	}
 
 	/**
-	 * This command handler shows the last tower attack messages where given
-	 * org has been an attacker or defender.
+	 * Show the last tower attack messages involving a specific organization
 	 */
 	#[NCA\HandlesCommand("attacks")]
-	public function attacksOrgCommand(CmdContext $context, #[NCA\Str("org")] string $action, PNonGreedy $orgName, ?int $page): void {
+	#[NCA\Help\Example("<symbol>attacks org %sneak%")]
+	#[NCA\Help\Example("<symbol>attacks org Komodo")]
+	#[NCA\Help\Epilogue("Note: you can use '%' as a wildcard in org and character names")]
+	public function attacksOrgCommand(
+		CmdContext $context,
+		#[NCA\Str("org")] string $action,
+		PNonGreedy $orgName,
+		?int $page
+	): void {
 		$cmd = "org $orgName ";
 		$search = function (QueryBuilder $query) use ($orgName): void {
 			$query->whereIlike("att_guild_name", $orgName())
@@ -381,20 +368,26 @@ class TowerController extends ModuleInstance {
 	}
 
 	/**
-	 * This command handler shows the last tower attack messages where given
-	 * player has been as attacker.
+	 * Show the last tower attack messages involving a given character
 	 */
 	#[NCA\HandlesCommand("attacks")]
-	public function attacksPlayerCommand(CmdContext $context, #[NCA\Str("player")] string $action, PCharacter $player, ?int $page): void {
-		$cmd = "player {$player} ";
-		$search = function (QueryBuilder $query) use ($player): void {
-			$query->whereIlike("att_player", $player());
+	#[NCA\Help\Example("<symbol>attacks char nady%")]
+	#[NCA\Help\Example("<symbol>attacks char nadyita")]
+	public function attacksPlayerCommand(
+		CmdContext $context,
+		#[NCA\Str("char", "character", "player")] string $action,
+		PWord $char,
+		?int $page
+	): void {
+		$cmd = "player {$char} ";
+		$search = function (QueryBuilder $query) use ($char): void {
+			$query->whereIlike("att_player", $char());
 		};
 		$this->attacksCommandHandler($page??1, $search, $cmd, $context);
 	}
 
 	/**
-	 * This command handler shows all unplanted towerfields
+	 * Show all unplanted towerfields
 	 */
 	#[NCA\HandlesCommand("sites")]
 	public function unplantedSitesCommand(CmdContext $context): void {
@@ -453,9 +446,11 @@ class TowerController extends ModuleInstance {
 	}
 
 	/**
-	 * This command handler shows all towerfields of a single org
+	 * Show all towerfields of a single org
 	 */
 	#[NCA\HandlesCommand("sites")]
+	#[NCA\Help\Example("<symbol>sites athen paladins")]
+	#[NCA\Help\Example("<symbol>sites 4736")]
 	public function sitesByNameCommand(CmdContext $context, string $search): void {
 		if (!$this->findOrgController->isReady()) {
 			$this->findOrgController->sendNotReadyError($context);
@@ -556,7 +551,7 @@ class TowerController extends ModuleInstance {
 	}
 
 	/**
-	 * This command handler shows status of towers.
+	 * Show a list of playfield with tower fields
 	 */
 	#[NCA\HandlesCommand("lc")]
 	public function lcCommand(CmdContext $context): void {
@@ -578,9 +573,10 @@ class TowerController extends ModuleInstance {
 	}
 
 	/**
-	 * This command handler shows status of all tower sites in a zone.
+	 * Show the status of all tower sites in a playfield
 	 */
 	#[NCA\HandlesCommand("lc")]
+	#[NCA\Help\Example("<symbol>lc pw")]
 	public function lc2Command(CmdContext $context, PPlayfield $pf): void {
 		$playfieldName = $pf();
 		$playfield = $this->playfieldController->getPlayfieldByName($playfieldName);
@@ -734,9 +730,11 @@ class TowerController extends ModuleInstance {
 	}
 
 	/**
-	 * This command handler shows status of towers.
+	 * Show the status of a single tower site
 	 */
 	#[NCA\HandlesCommand("lc")]
+	#[NCA\Help\Example("<symbol>lc pw8")]
+	#[NCA\Help\Example("<symbol>lc mort 6")]
 	public function lc3Command(CmdContext $context, PTowerSite $site): void {
 		$playfieldName = $site->pf;
 		$playfield = $this->playfieldController->getPlayfieldByName($playfieldName);
@@ -833,7 +831,13 @@ class TowerController extends ModuleInstance {
 		$sendto->reply($msg);
 	}
 
+	/**
+	 * Show tower sites which are hot because the owning orgs are in penalty for attacking.
+	 * This can be limited to a given org name or faction
+	 */
 	#[NCA\HandlesCommand("penalty")]
+	#[NCA\Help\Example("<symbol>penalty neutral")]
+	#[NCA\Help\Example("<symbol>penalty Obeya")]
 	public function penaltySitesApiCommand(CmdContext $context, ?string $orgName): void {
 		$sites = $this->getScoutPlusQuery()
 			->where("s.penalty_until", ">=", time())
@@ -898,7 +902,16 @@ class TowerController extends ModuleInstance {
 		);
 	}
 
+	/**
+	 * Show tower sites for which you have no local scout information
+	 * Give a playfield to only show those in this given playfield
+	 *
+	 * Note that you only need to do local scouting, if you don't want
+	 * to use the tower API, or want to add information that API hasn't
+	 * caught up with yet.
+	 */
 	#[NCA\HandlesCommand("needsscout")]
+	#[NCA\Help\Group("scout")]
 	public function needsScoutCommand(CmdContext $context, ?PPlayfield $playfield): void {
 		$query = $this->db->table("tower_site AS t")
 			->leftJoin("scout_info AS s", function (JoinClause $join): void {
@@ -973,7 +986,18 @@ class TowerController extends ModuleInstance {
 			"<tab>{$siteLinks}";
 	}
 
+	/**
+	 * See which sites are currently hot.
+	 * You can limit this by any combination of
+	 * faction, playfield, ql, level range, and time in the future
+	 */
 	#[NCA\HandlesCommand("hot")]
+	#[NCA\Help\Example("<symbol>hot clan")]
+	#[NCA\Help\Example("<symbol>hot pw")]
+	#[NCA\Help\Example("<symbol>hot 60", "Only those in PvP-range for a level 60 char")]
+	#[NCA\Help\Example("<symbol>hot 99-110", "Only where the CT is between QL 99 and 110")]
+	#[NCA\Help\Example("<symbol>hot 6h")]
+	#[NCA\Help\Example("<symbol>hot omni 3h pw 180-300")]
 	public function hotSitesCommand(CmdContext $context, ?string $search): void {
 		$search ??= "";
 		if (substr($search, 0, 1) !== " ") {
@@ -1320,6 +1344,7 @@ class TowerController extends ModuleInstance {
 		return $blob;
 	}
 
+	/** See how many tower sites each faction has taken and lost in the past 24 hours or &lt;time&gt; */
 	#[NCA\HandlesCommand("towerstats")]
 	public function towerStatsCommand(CmdContext $context, ?PDuration $time): void {
 		$time = isset($time) ? $time->toSecs() : 86400;
@@ -1374,7 +1399,7 @@ class TowerController extends ModuleInstance {
 	}
 
 	/**
-	 * This command handler shows the last tower battle results.
+	 * See the last tower battle results
 	 */
 	#[NCA\HandlesCommand("victory")]
 	public function victoryCommand(CmdContext $context, ?int $page): void {
@@ -1382,7 +1407,7 @@ class TowerController extends ModuleInstance {
 	}
 
 	/**
-	 * This command handler shows the last tower battle results.
+	 * See the last tower battle results for a given tower site
 	 */
 	#[NCA\HandlesCommand("victory")]
 	public function victory2Command(CmdContext $context, PTowerSite $site, ?int $page): void {
@@ -1409,9 +1434,12 @@ class TowerController extends ModuleInstance {
 	}
 
 	/**
-	 * This command handler shows the last tower battle results.
+	 * See the last tower battle results for a given organization
 	 */
 	#[NCA\HandlesCommand("victory")]
+	#[NCA\Help\Epilogue("Note: you can use '%' as a wildcard in org and character names")]
+	#[NCA\Help\Example("<symbol>victory org %sneak%")]
+	#[NCA\Help\Example("<symbol>victory org Komodo")]
 	public function victoryOrgCommand(CmdContext $context, #[NCA\Str("org")] string $action, PNonGreedy $orgName, ?int $page): void {
 		$cmd = "org {$orgName} ";
 		$search = function (QueryBuilder $query) use ($orgName): void {
@@ -1422,13 +1450,20 @@ class TowerController extends ModuleInstance {
 	}
 
 	/**
-	 * This command handler shows the last tower battle results.
+	 * See the last tower battle results for a given character
 	 */
 	#[NCA\HandlesCommand("victory")]
-	public function victoryPlayerCommand(CmdContext $context, #[NCA\Str("player")] string $action, PCharacter $player, ?int $page): void {
-		$cmd = "player {$player} ";
-		$search = function (QueryBuilder $query) use ($player): void {
-			$query->whereIlike("a.att_player", $player());
+	#[NCA\Help\Example("<symbol>victory char nady%")]
+	#[NCA\Help\Example("<symbol>victory char nadyita")]
+	public function victoryPlayerCommand(
+		CmdContext $context,
+		#[NCA\Str("char", "character", "player")] string $action,
+		PWord $char,
+		?int $page
+	): void {
+		$cmd = "player {$char} ";
+		$search = function (QueryBuilder $query) use ($char): void {
+			$query->whereIlike("a.att_player", $char());
 		};
 		$this->victoryCommandHandler($page??1, $search, $cmd, $context);
 	}
@@ -2322,9 +2357,10 @@ class TowerController extends ModuleInstance {
 	}
 
 	/**
-	 * This command handler removes tower info to watch list.
+	 * Remove local scout info for a site and mark it unscouted
 	 */
 	#[NCA\HandlesCommand("remscout")]
+	#[NCA\Help\Group("scout")]
 	public function remscoutCommand(CmdContext $context, PTowerSite $site): void {
 		$playfield = $this->playfieldController->getPlayfieldByName($site->pf);
 		if ($playfield === null) {
@@ -2427,12 +2463,22 @@ class TowerController extends ModuleInstance {
 		$context->reply("There was an unknown error recording this scout information, please check the logs.");
 	}
 
+
+	/**
+	 * Scout a tower site by pasting the CT blob info.
+	 * If the field is unplanted, use 'none'
+	 */
 	#[NCA\HandlesCommand("scout")]
+	#[NCA\Help\Group("scout")]
+	#[NCA\Help\Example("<symbol>scout PW 4 Control Tower - Clan Level: 190 Danger level: Killing it poses no danger. Might attack you on sight. Alignment: clan  Organization: Dark Ninjas Created at UTC: 2014-05-19 12:34:56")]
+	#[NCA\Help\Example("<symbol>scout PW 4 none")]
 	public function scoutCommand(CmdContext $context, PTowerSite $site, string $text): void {
 		$this->scoutInputHandler($context, $site->pf, $site->site, $text);
 	}
 
+	/** Show the tower types by QL of the tower */
 	#[NCA\HandlesCommand("towertype")]
+	#[NCA\Help\Group("tower")]
 	public function towerTypeCommand(CmdContext $context): void {
 		$blob = "<header2>Tower types by QL<end>";
 		$minQL = 1;
@@ -2451,7 +2497,9 @@ class TowerController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
+	/** Show how many towers you are allowed to plant. Add 'all' to show it generally */
 	#[NCA\HandlesCommand("towerqty")]
+	#[NCA\Help\Group("tower")]
 	public function towerQtyCommand(CmdContext $context, #[NCA\Str("all")] ?string $all): void {
 		if (isset($all)) {
 			$msg = $this->text->makeBlob("Allowed number of towers", $this->getAllTowerQuantitiesBlob());
