@@ -149,11 +149,10 @@ class CommandManager implements MessageEmitter {
 	 *                                "raidleader", "moderator", "administrator", "none", "superadmin", "admin"
 	 *                                "mod", "guild", "member", "rl", "guest", "all"
 	 * @param string   $description   A short description what this command is for
-	 * @param string   $help          The optional name of file with extended information (without .txt)
 	 * @param int|null $defaultStatus The default state of this command:
 	 *                                1 (enabled), 0 (disabled) or null (use default value as configured)
 	 */
-	public function register(string $module, string $filename, string $command, string $accessLevelStr, string $description, ?string $help='', ?int $defaultStatus=null): void {
+	public function register(string $module, string $filename, string $command, string $accessLevelStr, string $description, ?int $defaultStatus=null): void {
 		$command = strtolower($command);
 		$module = strtoupper($module);
 		$accessLevel = $this->accessManager->getAccessLevel($accessLevelStr);
@@ -169,10 +168,6 @@ class CommandManager implements MessageEmitter {
 				$this->logger->error("Error registering method '$handler' for command '$command'.  Could not find instance '$name'.");
 				return;
 			}
-		}
-
-		if (!empty($help)) {
-			$help = $this->helpManager->checkForHelpFile($module, $help);
 		}
 
 		if ($defaultStatus === null) {
@@ -200,12 +195,11 @@ class CommandManager implements MessageEmitter {
 						"verify" => 1,
 						"file" => $filename,
 						"description" => $description,
-						"help" => $help,
 						"cmd" => $command,
 						"cmdevent" => "cmd",
 					],
 					["cmd"],
-					["module", "verify", "file", "description", "help"]
+					["module", "verify", "file", "description"]
 				);
 		} catch (SQLException $e) {
 			$this->logger->error("Error registering method '$handler' for command '$command': " . $e->getMessage(), ["exception" => $e]);
@@ -715,12 +709,6 @@ class CommandManager implements MessageEmitter {
 			return "Unknown command '{$cmd}'";
 		}
 
-		if (isset($result->help) && $result->help !== '') {
-			$blob = \Safe\file_get_contents($result->help);
-			if (!empty($blob)) {
-				return $this->text->makeBlob("Help ($cmd)", $blob);
-			}
-		}
 		return $this->getCmdHelpFromCode($cmd, $context);
 	}
 
@@ -877,7 +865,7 @@ class CommandManager implements MessageEmitter {
 		if (empty($parts)) {
 			return "No help for {$cmd}.";
 		}
-		$blob = "<header2>(Sub-)Commands for <symbol>{$cmd}<end>\n\n" . join("\n\n", $parts);
+		$blob = "<header2>Command Syntax<end>\n\n" . join("\n\n", $parts);
 		if (count($prologues)) {
 			$blob = join("\n\n", $prologues) . "\n\n{$blob}";
 		}

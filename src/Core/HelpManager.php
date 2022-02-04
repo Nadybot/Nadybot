@@ -73,13 +73,6 @@ class HelpManager {
 	 */
 	public function find(string $helpcmd, string $char): ?string {
 		$helpcmd = strtolower($helpcmd);
-		$cmdHelp = $this->db->table(CommandManager::DB_TABLE, "c")
-			->join(CommandManager::DB_TABLE_PERMS . " as p", "c.cmd", "p.cmd")
-			->where("c.cmdevent", "cmd")
-			->where("c.cmd", $helpcmd)
-			->where("p.enabled", true)
-			->where("c.help", "!=", '')
-			->select("c.module", "p.access_level as admin", "c.cmd AS name", "c.help AS file");
 		$settingsHelp = $this->db->table(SettingManager::DB_TABLE)
 			->where("name", $helpcmd)
 			->where("help", "!=", '')
@@ -89,7 +82,7 @@ class HelpManager {
 			->where("file", "!=", '')
 			->select("module", "admin", "name", "file");
 		$outerQuery = $this->db->fromSub(
-			$cmdHelp->union($settingsHelp)->union($hlpHelp),
+			$settingsHelp->union($hlpHelp),
 			"foo"
 		)->select("foo.module", "foo.file", "foo.name", "foo.admin AS admin_list");
 		/** @var HelpTopic[] $data */
@@ -100,7 +93,7 @@ class HelpManager {
 		$output = '';
 		$shown = [];
 		foreach ($data as $row) {
-			if (isset($shown[$row->file])) {
+			if (!isset($row->file) || isset($shown[$row->file])) {
 				continue;
 			}
 			if ($this->checkAccessLevels($accessLevel, explode(",", $row->admin_list))) {
@@ -143,7 +136,9 @@ class HelpManager {
 			->join(CommandManager::DB_TABLE_PERMS . " as p", "c.cmd", "p.cmd")
 			->where("c.cmdevent", "cmd")
 			->where("p.enabled", true)
-			->select("c.module", "p.access_level as admin", "c.cmd AS name", "c.help AS file", "description");
+			->select("c.module", "p.access_level as admin", "c.cmd AS name");
+		$cmdHelp->selectRaw("NULL" . $cmdHelp->as("file"));
+		$cmdHelp->addSelect("description");
 		$cmdHelp->selectRaw("2" . $cmdHelp->as("sort"));
 		$settingsHelp = $this->db->table(SettingManager::DB_TABLE)
 			->where("help", "!=", '')
