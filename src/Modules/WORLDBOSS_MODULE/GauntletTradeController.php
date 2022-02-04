@@ -12,7 +12,6 @@ use Nadybot\Core\{
 /**
  * @author Equi
  * @author Nadyita (RK5) <nadyita@hodorraid.org>
- * Commands this controller contains:
  */
 #[
 	NCA\Instance,
@@ -20,13 +19,13 @@ use Nadybot\Core\{
 		command: "gautrade",
 		accessLevel: "all",
 		description: "Gauntlet tradeskills",
-		help: "gauntlet.txt"
 	)
 ]
 class GauntletTradeController extends ModuleInstance {
 	#[NCA\Inject]
 	public Text $text;
 
+	/** Show the Bastion tradeskill process for a single piece */
 	#[NCA\HandlesCommand("gautrade")]
 	public function gautradeCommand(CmdContext $context): void {
 		$info = \Safe\file_get_contents(__DIR__ . '/gautrade.html');

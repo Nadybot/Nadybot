@@ -13,7 +13,6 @@ use Nadybot\Core\{
 
 /**
  * @author Tyrence (RK2)
- * Commands this controller contains:
  */
 #[
 	NCA\Instance,
@@ -21,11 +20,9 @@ use Nadybot\Core\{
 		command: "findplayer",
 		accessLevel: "all",
 		description: "Find a player by name",
-		help: "findplayer.txt"
 	)
 ]
 class FindPlayerController extends ModuleInstance {
-
 	#[NCA\Inject]
 	public ConfigFile $config;
 
@@ -35,6 +32,7 @@ class FindPlayerController extends ModuleInstance {
 	#[NCA\Inject]
 	public PlayerManager $playerManager;
 
+	/** Find a player by name in the local database */
 	#[NCA\HandlesCommand("findplayer")]
 	public function findplayerCommand(CmdContext $context, string $search): void {
 		$players = $this->playerManager->searchForPlayers(

@@ -15,8 +15,7 @@ use Nadybot\Modules\HELPBOT_MODULE\PlayfieldController;
 
 /**
  * @author Jaqueme
- *  Database adapted from one originally compiled by Malosar for BeBot
- * Commands this controller contains:
+ * Database adapted from one originally compiled by Malosar for BeBot
  */
 #[
 	NCA\Instance,
@@ -25,11 +24,9 @@ use Nadybot\Modules\HELPBOT_MODULE\PlayfieldController;
 		command: "whereis",
 		accessLevel: "all",
 		description: "Shows where places and NPCs are",
-		help: "whereis.txt"
 	)
 ]
 class WhereisController extends ModuleInstance {
-
 	#[NCA\Inject]
 	public Text $text;
 
@@ -42,9 +39,6 @@ class WhereisController extends ModuleInstance {
 	#[NCA\Inject]
 	public PlayfieldController $pfController;
 
-	/**
-	 * This handler is called on bot startup.
-	 */
 	#[NCA\Setup]
 	public function setup(): void {
 		$this->db->loadCSVFile($this->moduleName, __DIR__ . "/whereis.csv");
@@ -60,7 +54,13 @@ class WhereisController extends ModuleInstance {
 			});
 	}
 
+	/**
+	 * Show the location of NPCs or places
+	 */
 	#[NCA\HandlesCommand("whereis")]
+	#[NCA\Help\Example("<symbol>whereis elmer ragg")]
+	#[NCA\Help\Example("<symbol>whereis prisoner")]
+	#[NCA\Help\Example("<symbol>whereis 12m")]
 	public function whereisCommand(CmdContext $context, string $search): void {
 		$search = strtolower($search);
 		$words = explode(' ', $search);

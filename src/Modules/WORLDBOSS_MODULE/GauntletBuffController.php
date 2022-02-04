@@ -26,6 +26,7 @@ use Nadybot\Core\{
 	UserStateEvent,
 	Util,
 };
+use Nadybot\Core\Attributes\Help\Example;
 use Nadybot\Modules\TIMERS_MODULE\{
 	Alert,
 	Timer,
@@ -42,7 +43,6 @@ use Nadybot\Modules\TIMERS_MODULE\{
 		command: "gaubuff",
 		accessLevel: "all",
 		description: "Handles timer for gauntlet buff",
-		help: "gaubuff.txt"
 	),
 	NCA\ProvidesEvent(
 		event: "sync(gaubuff)",
@@ -87,9 +87,6 @@ class GauntletBuffController extends ModuleInstance implements MessageEmitter {
 		return Source::SYSTEM . "(gauntlet-buff)";
 	}
 
-	/**
-	 * This handler is called on bot startup.
-	 */
 	#[NCA\Setup]
 	public function setup(): void {
 		$this->settingManager->add(
@@ -311,10 +308,13 @@ class GauntletBuffController extends ModuleInstance implements MessageEmitter {
 	}
 
 	/**
-	 * This command handler shows when all known gauntlet buffs
+	 * Show the current Gauntlet buff timer, optionally for a given faction only
 	 */
 	#[NCA\HandlesCommand("gaubuff")]
-	public function gaubuffCommand(CmdContext $context, #[NCA\Str("clan", "omni")] ?string $buffSide): void {
+	public function gaubuffCommand(
+		CmdContext $context,
+		#[NCA\Regexp("clan|omni", example: "clan|omni")] ?string $buffSide
+	): void {
 		$sides = $this->getSidesToShowBuff($buffSide);
 		$msgs = [];
 		foreach ($sides as $side) {
@@ -337,13 +337,19 @@ class GauntletBuffController extends ModuleInstance implements MessageEmitter {
 	}
 
 	/**
-	 * This command sets a gauntlet buff timer
+	 * Set the Gauntlet buff timer for your default faction or the given one
 	 */
 	#[NCA\HandlesCommand("gaubuff")]
-	public function gaubuffSetCommand(CmdContext $context, #[NCA\Str("clan", "omni")] ?string $side, PDuration $time): void {
+	#[NCA\Help\Example("<symbol>gaubuff 14h")]
+	#[NCA\Help\Example("<symbol>gaubuff clan 10h15m")]
+	public function gaubuffSetCommand(
+		CmdContext $context,
+		#[NCA\Regexp("clan|omni", example: "clan|omni")] ?string $faction,
+		PDuration $time
+	): void {
 		$defaultSide = $this->settingManager->getString('gaubuff_default_side') ?? "none";
-		$side = $side ?? $defaultSide;
-		if ($side === static::SIDE_NONE) {
+		$faction = $faction ?? $defaultSide;
+		if ($faction === static::SIDE_NONE) {
 			$msg = "You have to specify for which side the buff is: omni or clan";
 			$context->reply($msg);
 			return;
@@ -355,12 +361,12 @@ class GauntletBuffController extends ModuleInstance implements MessageEmitter {
 			return;
 		}
 		$buffEnds += time();
-		$this->setGaubuff($side, $buffEnds, $context->char->name, time());
-		$msg = "Gauntletbuff timer for <{$side}>{$side}<end> has been set and expires at <highlight>".$this->tmTime($buffEnds)."<end>.";
+		$this->setGaubuff($faction, $buffEnds, $context->char->name, time());
+		$msg = "Gauntletbuff timer for <{$faction}>{$faction}<end> has been set and expires at <highlight>".$this->tmTime($buffEnds)."<end>.";
 		$context->reply($msg);
 		$event = new SyncGaubuffEvent();
 		$event->expires = $buffEnds;
-		$event->faction = strtolower($side);
+		$event->faction = strtolower($faction);
 		$event->sender = $context->char->name;
 		$event->forceSync = $context->forceSync;
 		$this->eventManager->fireEvent($event);

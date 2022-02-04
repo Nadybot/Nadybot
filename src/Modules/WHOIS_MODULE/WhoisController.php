@@ -27,7 +27,6 @@ use Nadybot\Modules\COMMENT_MODULE\CommentController;
 
 /**
  * @author Tyrence (RK2)
- * Commands this controller contains:
  */
 #[
 	NCA\Instance,
@@ -36,17 +35,14 @@ use Nadybot\Modules\COMMENT_MODULE\CommentController;
 		command: "whois",
 		accessLevel: "member",
 		description: "Show character info, online status, and name history",
-		help: "whois.txt"
 	),
 	NCA\DefineCommand(
 		command: "lookup",
 		accessLevel: "all",
 		description: "Find the charId for a character",
-		help: "lookup.txt"
 	)
 ]
 class WhoisController extends ModuleInstance {
-
 	#[NCA\Inject]
 	public DB $db;
 
@@ -90,7 +86,6 @@ class WhoisController extends ModuleInstance {
 
 	#[NCA\Setup]
 	public function setup(): void {
-
 		$this->settingManager->add(
 			module: $this->moduleName,
 			name: 'whois_add_comments',
@@ -168,6 +163,7 @@ class WhoisController extends ModuleInstance {
 		$this->nameHistoryCache []= $charData;
 	}
 
+	/** Show the name(s) for a character id */
 	#[NCA\HandlesCommand("lookup")]
 	public function lookupIdCommand(CmdContext $context, int $charID): void {
 		$this->chatBot->getName($charID, function(?string $name) use ($context, $charID): void {
@@ -200,6 +196,7 @@ class WhoisController extends ModuleInstance {
 		});
 	}
 
+	/** Show the character id for a character */
 	#[NCA\HandlesCommand("lookup")]
 	public function lookupNameCommand(CmdContext $context, PCharacter $char): void {
 		$name = $char();
@@ -249,6 +246,7 @@ class WhoisController extends ModuleInstance {
 		return $blob;
 	}
 
+	/** Show character info, online status, and name history for a character */
 	#[NCA\HandlesCommand("whois")]
 	public function whoisNameCommand(CmdContext $context, PCharacter $char): void {
 		$name = $char();
