@@ -14,7 +14,6 @@ use Nadybot\Core\{
 
 /**
  * @author Nadyita (RK5)
- * Commands this controller contains:
  */
 #[
 	NCA\Instance,
@@ -22,18 +21,30 @@ use Nadybot\Core\{
 		command: "weather",
 		accessLevel: "all",
 		description: "View Weather",
-		help: "weather.txt"
 	)
 ]
 class WeatherController extends ModuleInstance {
-
 	#[NCA\Inject]
 	public Text $text;
 
 	#[NCA\Inject]
 	public Http $http;
 
+	/**
+	 * Lookup the weather for a given location
+	 *
+	 * If the location found is not the right one, try adding country codes or other
+	 * information like state, region, or zip, separated by a comma.
+	 * You can search for anything in any language, down to house numbers, streets
+	 * and objects, but also for countries, states and so on.
+	 */
 	#[NCA\HandlesCommand("weather")]
+	#[NCA\Help\Example("<symbol>weather uk")]
+	#[NCA\Help\Example("<symbol>weather london")]
+	#[NCA\Help\Example("<symbol>weather westminster")]
+	#[NCA\Help\Example("<symbol>weather hannover,us")]
+	#[NCA\Help\Example("<symbol>weather cologne cathedral")]
+	#[NCA\Help\Example("<symbol>weather athens,ga")]
 	public function weatherCommand(CmdContext $context, string $location): void {
 		$this->lookupLocation($location, [$this, "getWeatherForLocationResponse"], $context);
 	}

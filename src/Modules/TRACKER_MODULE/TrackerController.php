@@ -42,7 +42,6 @@ use Throwable;
 
 /**
  * @author Tyrence (RK2)
- * Commands this controller contains:
  */
 #[
 	NCA\Instance,
@@ -51,7 +50,6 @@ use Throwable;
 		command: "track",
 		accessLevel: "all",
 		description: "Show and manage tracked players",
-		help: "track.txt"
 	),
 	NCA\ProvidesEvent("tracker(logon)"),
 	NCA\ProvidesEvent("tracker(logoff)")
@@ -129,7 +127,6 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 
 	#[NCA\Setup]
 	public function setup(): void {
-
 		$this->settingManager->add(
 			module: $this->moduleName,
 			name: 'tracker_layout',
@@ -476,6 +473,7 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 		return sprintf($format, $info);
 	}
 
+	/** See the list of users on the track list */
 	#[NCA\HandlesCommand("track")]
 	public function trackListCommand(CmdContext $context): void {
 		/** @var Collection<TrackedUser> */
@@ -522,8 +520,13 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 		$context->reply($msg);
 	}
 
+	/** Remove a player from the track list */
 	#[NCA\HandlesCommand("track")]
-	public function trackRemoveNameCommand(CmdContext $context, PRemove $action, PCharacter $char): void {
+	public function trackRemoveNameCommand(
+		CmdContext $context,
+		PRemove $action,
+		PCharacter $char
+	): void {
 		$this->chatBot->getUid(
 			$char(),
 			function(?int $uid, string $name) use ($context): void {
@@ -538,8 +541,13 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 		);
 	}
 
+	/** Remove a player from the track list */
 	#[NCA\HandlesCommand("track")]
-	public function trackRemoveUidCommand(CmdContext $context, PRemove $action, int $uid): void {
+	public function trackRemoveUidCommand(
+		CmdContext $context,
+		PRemove $action,
+		int $uid
+	): void {
 		$this->chatBot->getName($uid, function(?string $char) use ($uid, $context): void {
 			$this->trackRemoveCommand($context, $char ?? "UID {$uid}", $uid);
 		});
@@ -578,8 +586,18 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 		$context->reply($msg);
 	}
 
+	/** Add a player to the track list */
 	#[NCA\HandlesCommand("track")]
-	public function trackAddCommand(CmdContext $context, #[NCA\Str("add")] string $action, PCharacter $char): void {
+	#[NCA\Help\Epilogue(
+		"Tracked characters are announced via the source 'system(tracker)'\n".
+		"Make sure you have routes in place to display these messages\n".
+		"where you want to see them. See <a href='chatcmd:///tell <myname> help route'><symbol>help route</a> for more information."
+	)]
+	public function trackAddCommand(
+		CmdContext $context,
+		#[NCA\Str("add")] string $action,
+		PCharacter $char
+	): void {
 		$this->chatBot->getUid($char(), function(?int $uid) use ($context, $char): void {
 			if (!isset($uid)) {
 				$msg = "Character <highlight>{$char}<end> does not exist.";
@@ -597,8 +615,13 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 		});
 	}
 
+	/** Add a whole organization to the track list */
 	#[NCA\HandlesCommand("track")]
-	public function trackAddOrgIdCommand(CmdContext $context, #[NCA\Str("addorg")] string $action, int $orgId): void {
+	public function trackAddOrgIdCommand(
+		CmdContext $context,
+		#[NCA\Str("addorg")] string $action,
+		int $orgId
+	): void {
 		if (!$this->findOrgController->isReady()) {
 			$this->findOrgController->sendNotReadyError($context);
 			return;
@@ -629,8 +652,13 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 		);
 	}
 
+	/** Add a whole organization to the track list */
 	#[NCA\HandlesCommand("track")]
-	public function trackAddOrgNameCommand(CmdContext $context, #[NCA\Str("addorg")] string $action, PNonNumber $orgName): void {
+	public function trackAddOrgNameCommand(
+		CmdContext $context,
+		#[NCA\Str("addorg")] string $action,
+		PNonNumber $orgName
+	): void {
 		if (!$this->findOrgController->isReady()) {
 			$this->findOrgController->sendNotReadyError($context);
 			return;
@@ -658,6 +686,7 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 		return $blob;
 	}
 
+	/** Remove an organization from the track list */
 	#[NCA\HandlesCommand("track")]
 	public function trackRemOrgCommand(
 		CmdContext $context,
@@ -697,6 +726,7 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 		$context->reply($msg);
 	}
 
+	/** List the organizations on the track list */
 	#[NCA\HandlesCommand("track")]
 	public function trackListOrgsCommand(
 		CmdContext $context,
@@ -830,8 +860,19 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 		return true;
 	}
 
+	/**
+	 * Show a nice online list of everyone on your track list
+	 *
+	 * By default, this will not show chars hidden via '<symbol>track hide', unless you give 'all'
+	 * To get links for removing and hiding/unhiding characters, add '--edit'
+	 */
 	#[NCA\HandlesCommand("track")]
-	public function trackOnlineCommand(CmdContext $context, #[NCA\Str("online")] string $action, #[NCA\Str("all")] ?string $all, #[NCA\Str("--edit")] ?string $edit): void {
+	public function trackOnlineCommand(
+		CmdContext $context,
+		#[NCA\Str("online")] string $action,
+		#[NCA\Str("all")] ?string $all,
+		#[NCA\Str("--edit")] ?string $edit
+	): void {
 		$hiddenChars = $this->db->table(self::DB_ORG_MEMBER)
 			->select("name")
 			->where("hidden", true)
@@ -1002,15 +1043,25 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 		return $blob;
 	}
 
+	/** Hide a character from the '<symbol>track online' list */
 	#[NCA\HandlesCommand("track")]
-	public function trackHideUidCommand(CmdContext $context, #[NCA\Str("hide")] string $action, int $uid): void {
+	public function trackHideUidCommand(
+		CmdContext $context,
+		#[NCA\Str("hide")] string $action,
+		int $uid
+	): void {
 		$this->chatBot->getName($uid, function(?string $name) use ($context, $uid): void {
 			$this->trackHideCommand($context, $name ?? "UID {$uid}", $uid);
 		});
 	}
 
+	/** Hide a character from the '<symbol>track online' list */
 	#[NCA\HandlesCommand("track")]
-	public function trackHideNameCommand(CmdContext $context, #[NCA\Str("hide")] string $action, PCharacter $char): void {
+	public function trackHideNameCommand(
+		CmdContext $context,
+		#[NCA\Str("hide")] string $action,
+		PCharacter $char
+	): void {
 		$this->chatBot->getUid($char(), function(?int $uid) use ($context, $char): void {
 			if (!isset($uid)) {
 				$msg = "Character <highlight>{$char}<end> does not exist.";
@@ -1037,15 +1088,25 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 		$context->reply($msg);
 	}
 
+	/** Show a hidden a character on the '<symbol>track online' list again */
 	#[NCA\HandlesCommand("track")]
-	public function trackUnhideUidCommand(CmdContext $context, #[NCA\Str("unhide")] string $action, int $uid): void {
+	public function trackUnhideUidCommand(
+		CmdContext $context,
+		#[NCA\Str("unhide")] string $action,
+		int $uid
+	): void {
 		$this->chatBot->getName($uid, function(?string $name) use ($context, $uid): void {
 			$this->trackUnhideCommand($context, $name ?? "UID {$uid}", $uid);
 		});
 	}
 
+	/** Show a hidden a character on the '<symbol>track online' list again */
 	#[NCA\HandlesCommand("track")]
-	public function trackUnhideNameCommand(CmdContext $context, #[NCA\Str("unhide")] string $action, PCharacter $char): void {
+	public function trackUnhideNameCommand(
+		CmdContext $context,
+		#[NCA\Str("unhide")] string $action,
+		PCharacter $char
+	): void {
 		$this->chatBot->getUid($char(), function(?int $uid) use ($context, $char): void {
 			if (!isset($uid)) {
 				$msg = "Character <highlight>{$char}<end> does not exist.";
@@ -1073,8 +1134,13 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 		$context->reply($msg);
 	}
 
+	/** See the track history of a given character */
 	#[NCA\HandlesCommand("track")]
-	public function trackShowCommand(CmdContext $context, #[NCA\Str("show", "view")] string $action, PCharacter $char): void {
+	public function trackShowCommand(
+		CmdContext $context,
+		#[NCA\Str("show", "view")] string $action,
+		PCharacter $char
+	): void {
 		$this->chatBot->getUid($char(), function(?int $uid) use ($context, $char): void {
 			if (!isset($uid)) {
 				$msg = "<highlight>{$char}<end> does not exist.";

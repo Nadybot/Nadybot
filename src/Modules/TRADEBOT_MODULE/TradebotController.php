@@ -30,7 +30,6 @@ use Nadybot\Modules\COMMENT_MODULE\CommentController;
 
 /**
  * @author Nadyita (RK5) <nadyita@hodorraid.org>
- * Commands this controller contains:
  */
 #[
 	NCA\Instance,
@@ -39,7 +38,6 @@ use Nadybot\Modules\COMMENT_MODULE\CommentController;
 		command: "tradecolor",
 		accessLevel: "mod",
 		description: "Define colors for tradebot tags",
-		help: "tradecolor.txt"
 	)
 ]
 class TradebotController extends ModuleInstance {
@@ -410,6 +408,9 @@ class TradebotController extends ModuleInstance {
 		}
 	}
 
+	/**
+	 * List the currently custom defined colors
+	 */
 	#[NCA\HandlesCommand("tradecolor")]
 	public function listTradecolorsCommand(CmdContext $context): void {
 		/** @var Collection<TradebotColors> */
@@ -447,6 +448,7 @@ class TradebotController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
+	/** Remove a custom defined color */
 	#[NCA\HandlesCommand("tradecolor")]
 	public function remTradecolorCommand(CmdContext $context, PRemove $action, int $id): void {
 		if (!$this->db->table(self::DB_TABLE)->delete($id)) {
@@ -456,8 +458,29 @@ class TradebotController extends ModuleInstance {
 		$context->reply("Tradebot color <highlight>#{$id}<end> deleted.");
 	}
 
+	/** Configure the tag-colors, based on the channel and the tradebot */
 	#[NCA\HandlesCommand("tradecolor")]
-	public function addTradecolorCommand(CmdContext $context, #[NCA\Str("add", "set")] string $action, PCharacter $tradeBot, string $tag, PColor $color): void {
+	#[NCA\Help\Example("<symbol>tradecolor set Darknet lootrights #FFFFFF")]
+	#[NCA\Help\Example("<symbol>tradecolor set Darknet pv? #0000FF")]
+	#[NCA\Help\Example("<symbol>tradecolor set Darknet * #9900FF")]
+	#[NCA\Help\Epilogue(
+		"<header2>Wildcards<end>\n\n".
+		"<highlight>&lt;tag&gt;<end> can use the following placeholders:\n".
+		"<tab><highlight>*<end> (any number of any character)\n".
+		"<tab><highlight>?<end> (any single character).\n\n".
+		"<header2>Settings<end>\n\n".
+		"To be able to define your own colors, you first have to ".
+		"<a href='chatcmd:///tell <myname> settings save tradebot_custom_colors 1'>enable custom colors</a>.\n".
+		"To configure the main text color, ".
+		"<a href='chatcmd:///tell <myname> settings change tradebot_text_color'>change this setting</a>"
+	)]
+	public function addTradecolorCommand(
+		CmdContext $context,
+		#[NCA\Str("set", "add")] string $action,
+		PCharacter $tradeBot,
+		string $tag,
+		PColor $color
+	): void {
 		$tag = strtolower($tag);
 		$color = $color->getCode();
 		if (!array_key_exists($tradeBot(), self::BOT_DATA)) {
@@ -485,8 +508,14 @@ class TradebotController extends ModuleInstance {
 		);
 	}
 
+	/** Pick a tag-color, based on the channel and the tradebot */
 	#[NCA\HandlesCommand("tradecolor")]
-	public function pickTradecolorCommand(CmdContext $context, #[NCA\Str("pick")] string $action, PCharacter $tradeBot, string $tag): void {
+	public function pickTradecolorCommand(
+		CmdContext $context,
+		#[NCA\Str("pick")] string $action,
+		PCharacter $tradeBot,
+		string $tag
+	): void {
 		$tag = strtolower($tag);
 		if (!array_key_exists($tradeBot(), self::BOT_DATA)) {
 			$context->reply("{$tradeBot} is not a supported tradebot.");

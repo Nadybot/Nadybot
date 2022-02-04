@@ -27,15 +27,11 @@ use Safe\Exceptions\FilesystemException;
 use Throwable;
 use ZipArchive;
 
-/**
- * Commands this controller contains:
- */
 #[
 	NCA\DefineCommand(
 		command: "webui",
 		accessLevel: "mod",
 		description: "Install or upgrade the NadyUI",
-		help: "webui.txt"
 	),
 	NCA\Instance,
 	NCA\HasMigrations
@@ -337,12 +333,25 @@ class WebUiController extends ModuleInstance implements MessageEmitter {
 		}
 	}
 
+	/** Manually install the WebUI "NadyUI" */
 	#[NCA\HandlesCommand("webui")]
-	public function webUiInstallCommand(CmdContext $context, #[NCA\Str("install")] string $action, string $channel): void {
+	#[NCA\Help\Epilogue(
+		"You should only use these commands for debugging. The regular way to install\n".
+		"the WebUI is via the ".
+		"<a href='chatcmd:///tell <myname> settings change nadyui_channel'>nadyui_channel</a> setting."
+	)]
+	#[NCA\Help\Example("<symbol>webui install stable")]
+	#[NCA\Help\Example("<symbol>webui install unstable")]
+	public function webUiInstallCommand(
+		CmdContext $context,
+		#[NCA\Str("install")] string $action,
+		string $channel
+	): void {
 		$this->processNadyUIRelease($channel, $context, function() {
 		});
 	}
 
+	/** Completely remove the WebUI installation */
 	#[NCA\HandlesCommand("webui")]
 	public function webUiUninstallCommand(CmdContext $context, #[NCA\Str("uninstall")] string $action): void {
 		$msg = "There was an error removig the old files from NadyUI, please clean up manually.";
