@@ -18,7 +18,6 @@ use Nadybot\Core\ParamClass\PRemove;
 
 /**
  * @author Tyrence (RK2)
- * Commands this class contains:
  */
 #[
 	NCA\Instance,

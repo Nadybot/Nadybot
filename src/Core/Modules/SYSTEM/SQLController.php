@@ -46,6 +46,7 @@ class SQLController extends ModuleInstance {
 
 	/** Execute a non-select SQL command */
 	#[NCA\HandlesCommand("executesql")]
+	#[NCA\Help\Group("sql")]
 	public function executesqlCommand(CmdContext $context, string $sql): void {
 		$sql = htmlspecialchars_decode($sql);
 		// I don't want to expose the API in any other way, so yeah...
@@ -70,6 +71,7 @@ class SQLController extends ModuleInstance {
 
 	/** Execute a select SQL query */
 	#[NCA\HandlesCommand("querysql")]
+	#[NCA\Help\Group("sql")]
 	public function querysqlCommand(CmdContext $context, string $sql): void {
 		// I don't want to expose the API in any other way, so yeah...
 		$refDB = new ReflectionClass($this->db);

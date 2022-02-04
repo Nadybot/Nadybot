@@ -2,13 +2,15 @@
 
 namespace Nadybot\Core\Modules\MESSAGES;
 
-use Nadybot\Core\Attributes as NCA;
 use Exception;
 use Safe\Exceptions\JsonException;
 use ReflectionClass;
+use ReflectionException;
 use Throwable;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
+	Attributes as NCA,
+	Channels\DiscordChannel,
 	CmdContext,
 	ColorSettingHandler,
 	DB,
@@ -23,15 +25,13 @@ use Nadybot\Core\{
 	MessageHub,
 	MessageRoute,
 	Nadybot,
+	ParamClass\PColor,
+	ParamClass\PRemove,
 	SettingManager,
 	Text,
 	Util,
 	Routing\Source,
 };
-use Nadybot\Core\Channels\DiscordChannel;
-use Nadybot\Core\ParamClass\PColor;
-use Nadybot\Core\ParamClass\PRemove;
-use ReflectionException;
 
 /**
  * @author Nadyita (RK5)

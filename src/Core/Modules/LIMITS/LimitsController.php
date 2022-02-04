@@ -37,6 +37,7 @@ class LimitsController extends ModuleInstance {
 	public const ALL = 3;
 	public const FAILURE = 2;
 	public const SUCCESS = 1;
+
 	#[NCA\Inject]
 	public SettingManager $settingManager;
 

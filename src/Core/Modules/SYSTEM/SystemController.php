@@ -253,6 +253,7 @@ class SystemController extends ModuleInstance implements MessageEmitter {
 
 	/** Restart the bot */
 	#[NCA\HandlesCommand("restart")]
+	#[NCA\Help\Group("restart")]
 	public function restartCommand(CmdContext $context): void {
 		$msg = "Bot is restarting.";
 		$this->chatBot->sendTell($msg, $context->char->name);
@@ -267,6 +268,7 @@ class SystemController extends ModuleInstance implements MessageEmitter {
 
 	/** Shutdown the bot. Configured properly, it won't start again */
 	#[NCA\HandlesCommand("shutdown")]
+	#[NCA\Help\Group("restart")]
 	public function shutdownCommand(CmdContext $context): void {
 		$msg = "The Bot is shutting down.";
 		$this->chatBot->sendTell($msg, $context->char->name);

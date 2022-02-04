@@ -2,13 +2,17 @@
 
 namespace Nadybot\Core\Modules\PREFERENCES;
 
-use Nadybot\Core\Attributes as NCA;
-use Nadybot\Core\DB;
-use Nadybot\Core\ModuleInstance;
-use Nadybot\Modules\WEBSERVER_MODULE\ApiResponse;
-use Nadybot\Modules\WEBSERVER_MODULE\HttpProtocolWrapper;
-use Nadybot\Modules\WEBSERVER_MODULE\Request;
-use Nadybot\Modules\WEBSERVER_MODULE\Response;
+use Nadybot\Core\{
+	Attributes as NCA,
+	DB,
+	ModuleInstance,
+};
+use Nadybot\Modules\WEBSERVER_MODULE\{
+	ApiResponse,
+	HttpProtocolWrapper,
+	Request,
+	Response,
+};
 
 /**
  * @author Tyrence (RK2)
@@ -22,10 +26,6 @@ class Preferences extends ModuleInstance {
 
 	#[NCA\Inject]
 	public DB $db;
-
-	#[NCA\Setup]
-	public function setup(): void {
-	}
 
 	public function save(string $sender, string $name, string $value): void {
 		$sender = ucfirst(strtolower($sender));
