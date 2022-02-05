@@ -7,10 +7,9 @@ use Nadybot\Core\ParamAttribute;
 use ReflectionParameter;
 
 #[Attribute(Attribute::TARGET_PARAMETER)]
-class Regexp implements ParamAttribute {
+class PWord implements ParamAttribute {
 	public function __construct(
-		public string $value,
-		public ?string $example=null,
+		public ?string $example=null
 	) {
 	}
 
@@ -28,6 +27,6 @@ class Regexp implements ParamAttribute {
 	}
 
 	public function getRegexp(): string {
-		return $this->value;
+		return "[^ ]+";
 	}
 }

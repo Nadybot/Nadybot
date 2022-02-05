@@ -12,12 +12,12 @@ use Nadybot\Core\{
 	CommandManager,
 	HelpManager,
 	ModuleInstance,
+	Modules\PREFERENCES\Preferences,
 	Text,
 };
 
 /**
  * @author Tyrence (RK2)
- * Commands this class contains:
  */
 #[
 	NCA\Instance,
@@ -29,6 +29,8 @@ use Nadybot\Core\{
 	)
 ]
 class HelpController extends ModuleInstance {
+	public const LEGEND_PREF = "help_legend";
+
 	#[NCA\Inject]
 	public CommandManager $commandManager;
 
@@ -37,6 +39,9 @@ class HelpController extends ModuleInstance {
 
 	#[NCA\Inject]
 	public HelpManager $helpManager;
+
+	#[NCA\Inject]
+	public Preferences $preferences;
 
 	#[NCA\Inject]
 	public Text $text;
@@ -86,6 +91,27 @@ class HelpController extends ModuleInstance {
 		$msg = $this->text->makeBlob("Help (main)", $blob);
 
 		$context->reply($msg);
+	}
+
+	/**
+	 * Enable or disable showing the syntax explanation on every help page
+	 */
+	#[NCA\HandlesCommand("help")]
+	public function helpLegendSettingCommand(
+		CmdContext $context,
+		bool $enable,
+		#[NCA\Str("explanation", "legend")] string $topic
+	): void {
+		$this->preferences->save(
+			$context->char->name,
+			self::LEGEND_PREF,
+			$enable ? "1" : "0"
+		);
+		if ($enable) {
+			$context->reply("Showing the syntax explanation is now <green>on<end>.");
+		} else {
+			$context->reply("Showing the syntax explanation is now <red>off<end>.");
+		}
 	}
 
 	/**

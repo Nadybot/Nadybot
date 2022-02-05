@@ -22,11 +22,13 @@ use Nadybot\Core\{
 	Modules\BAN\BanController,
 	Modules\CONFIG\CommandSearchController,
 	Modules\LIMITS\LimitsController,
+	Modules\PREFERENCES\Preferences,
 	Modules\USAGE\UsageController,
 	ParamClass\Base,
 	Routing\RoutableMessage,
 	Routing\Source,
 };
+use Nadybot\Core\Modules\HELP\HelpController;
 use ReflectionAttribute;
 
 #[
@@ -63,6 +65,9 @@ class CommandManager implements MessageEmitter {
 
 	#[NCA\Inject]
 	public HelpManager $helpManager;
+
+	#[NCA\Inject]
+	public Preferences $preferences;
 
 	#[NCA\Inject]
 	public Text $text;
@@ -873,7 +878,25 @@ class CommandManager implements MessageEmitter {
 		if (count($epilogues)) {
 			$blob .= "\n\n" . join("\n\n", $epilogues);
 		}
-		return $this->text->makeBlob("Help ($cmd)", $blob);
+		return $this->text->makeBlob("Help ($cmd)", $blob . $this->getSyntaxExplanation($context));
+	}
+
+	protected function getSyntaxExplanation(CmdContext $context): string {
+		$showSyntax = $this->preferences->get($context->char->name, HelpController::LEGEND_PREF) ?? "1";
+		if ($showSyntax === "0") {
+			return "";
+		}
+		return "\n\n<header2>Syntax explanation<end> [<a href='chatcmd:///tell <myname> help disable explanation'>hide</a>]\n\n".
+			"<highlight>param<end> denotes a required, literal text 'param'\n".
+			"<highlight>par1|par2|par3<end> denotes a required, literal choice out of 'param1', 'param2', or 'param3'\n".
+			"<highlight>[param]<end> denotes an optional, literal text 'param'\n".
+			"<highlight>[par1|par2|par3]<end> denotes an optional, literal choice out of 'param1', 'param2', or 'param3'\n".
+			"<highlight>&lt;param&gt;<end> denotes a required parameter of the type 'param'\n".
+			"<highlight>&lt;param&gt;|all<end> denotes a required parameter of the type 'param' or the literal text 'all'\n".
+			"<highlight>&lt;param1&gt; &lt;param2&gt; ...<end> denotes one or more required parameters of the type 'param'\n".
+			"<highlight>[&lt;param&gt;]<end> denotes an optional parameter of the type 'param'\n".
+			"<highlight>[&lt;param&gt;|all]<end> denotes an optional parameter of the type 'param' or the optional literal text 'all'\n".
+			"<highlight>[&lt;param1&gt;] [&lt;param2&gt;] ...<end> denotes zero or more optional parameters of the type 'param'";
 	}
 
 	/** @param ReflectionMethod[] $ms */
@@ -968,19 +991,16 @@ class CommandManager implements MessageEmitter {
 		);
 		$niceName = "&lt;{$niceName}&gt;";
 		if ($type->isBuiltin()) {
-			$constAttrs = $param->getAttributes(NCA\Str::class, ReflectionAttribute::IS_INSTANCEOF);
-			$regexpAttrs = $param->getAttributes(NCA\Regexp::class);
-			if (!empty($constAttrs)) {
-				/** @var NCA\Str */
-				$constObj = $constAttrs[0]->newInstance();
-				return $constObj->renderParameter($param);
-			} elseif (!empty($regexpAttrs)) {
-				/** @var NCA\Regexp */
-				$regexpObj = $regexpAttrs[0]->newInstance();
-				if (isset($regexpObj->example)) {
-					$niceName = $regexpObj->example;
-					return $niceName;
-				}
+			$attrs = $param->getAttributes(ParamAttribute::class, ReflectionAttribute::IS_INSTANCEOF);
+			if (!empty($attrs)) {
+				return join(
+					"|",
+					array_map(function (ReflectionAttribute $attr) use ($param): string {
+						/** @var ParamAttribute */
+						$attrObj = $attr->newInstance();
+						return $attrObj->renderParameter($param);
+					}, $attrs)
+				);
 			}
 			switch ($type->getName()) {
 				case "bool":
@@ -1054,16 +1074,16 @@ class CommandManager implements MessageEmitter {
 		$varName = $param->getName();
 		if ($type->isBuiltin()) {
 			$mask = null;
-			$constAttrs = $param->getAttributes(NCA\Str::class, ReflectionAttribute::IS_INSTANCEOF);
-			$regexpAttrs = $param->getAttributes(NCA\Regexp::class);
-			if (!empty($constAttrs)) {
-				/** @var NCA\Str */
-				$constObj = $constAttrs[0]->newInstance();
-				$mask = join("|", array_map("preg_quote", $constObj->values));
-			} elseif (!empty($regexpAttrs)) {
-				/** @var NCA\Regexp */
-				$regexpObj = $regexpAttrs[0]->newInstance();
-				$mask = $regexpObj->value;
+			$attrs = $param->getAttributes(ParamAttribute::class, ReflectionAttribute::IS_INSTANCEOF);
+			if (!empty($attrs)) {
+				$mask = join(
+					"|",
+					array_map(function (ReflectionAttribute $attr): string {
+						/** @var ParamAttribute */
+						$attrObj = $attr->newInstance();
+						return $attrObj->getRegexp();
+					}, $attrs)
+				);
 			}
 			switch ($type->getName()) {
 				case "string":

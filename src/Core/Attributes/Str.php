@@ -3,10 +3,11 @@
 namespace Nadybot\Core\Attributes;
 
 use Attribute;
+use Nadybot\Core\ParamAttribute;
 use ReflectionParameter;
 
 #[Attribute(Attribute::TARGET_PARAMETER)]
-class Str {
+class Str implements ParamAttribute {
 	/** @var string[] */
 	public array $values = [];
 
@@ -16,5 +17,9 @@ class Str {
 
 	public function renderParameter(ReflectionParameter $param): string {
 		return $this->values[0];
+	}
+
+	public function getRegexp(): string {
+		return join("|", array_map("preg_quote", $this->values));
 	}
 }
