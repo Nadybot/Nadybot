@@ -937,7 +937,7 @@ class CommandManager implements MessageEmitter {
 				$commandName = explode(" ", $commandObj->command)[0];
 				$paramText = ["<symbol>{$commandName}"];
 				for ($i = 1; $i < count($params); $i++) {
-					$niceParam = $this->getParamText($params[$i]);
+					$niceParam = $this->getParamText($params[$i], count($params));
 					if (!isset($niceParam)) {
 						throw new Exception("Wrong command function signature");
 					}
@@ -971,7 +971,7 @@ class CommandManager implements MessageEmitter {
 		return join("\n", $lines);
 	}
 
-	public function getParamText(ReflectionParameter $param): ?string {
+	public function getParamText(ReflectionParameter $param, int $paramCount): ?string {
 		if (!$param->hasType()) {
 			return null;
 		}
@@ -1004,6 +1004,9 @@ class CommandManager implements MessageEmitter {
 			}
 			switch ($type->getName()) {
 				case "bool":
+					if ($param->getPosition() !== $paramCount - 1) {
+						return "enable|disable";
+					}
 					return "yes|no";
 				default:
 					return $niceName;
