@@ -439,7 +439,7 @@ class ConfigController extends ModuleInstance {
 	}
 
 	/**
-	 * Sets a command's access level for a permission set or for "all"
+	 * Sets a command's access level for a permission set or for 'all'
 	 */
 	#[NCA\HandlesCommand("config")]
 	public function setAccessLevelOfChannelCommand(

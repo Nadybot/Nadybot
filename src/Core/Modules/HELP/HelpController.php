@@ -91,7 +91,7 @@ class HelpController extends ModuleInstance {
 	/**
 	 * See help for a given topic
 	 *
-	 * The topic can be a module name, a command or a topic like "budatime"
+	 * The topic can be a module name, a command or a topic like 'budatime'
 	 */
 	#[NCA\HandlesCommand("help")]
 	public function helpShowCommand(CmdContext $context, string $topic): void {

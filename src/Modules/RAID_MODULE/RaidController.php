@@ -457,7 +457,7 @@ class RaidController extends ModuleInstance {
 	}
 
 	/**
-	 * Change the raid announcement interval. "off" to turn it off completely
+	 * Change the raid announcement interval. 'off' to turn it off completely
 	 */
 	#[NCA\HandlesCommand("raid .+")]
 	#[NCA\Help\Example("<symbol>raid announce off", "Stop announcing the raid")]
