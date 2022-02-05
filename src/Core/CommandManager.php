@@ -887,16 +887,16 @@ class CommandManager implements MessageEmitter {
 			return "";
 		}
 		return "\n\n<header2>Syntax explanation<end> [<a href='chatcmd:///tell <myname> help disable explanation'>hide</a>]\n\n".
-			"<highlight>param<end> denotes a required, literal text 'param'\n".
-			"<highlight>par1|par2|par3<end> denotes a required, literal choice out of 'param1', 'param2', or 'param3'\n".
-			"<highlight>[param]<end> denotes an optional, literal text 'param'\n".
-			"<highlight>[par1|par2|par3]<end> denotes an optional, literal choice out of 'param1', 'param2', or 'param3'\n".
-			"<highlight>&lt;param&gt;<end> denotes a required parameter of the type 'param'\n".
-			"<highlight>&lt;param&gt;|all<end> denotes a required parameter of the type 'param' or the literal text 'all'\n".
-			"<highlight>&lt;param1&gt; &lt;param2&gt; ...<end> denotes one or more required parameters of the type 'param'\n".
-			"<highlight>[&lt;param&gt;]<end> denotes an optional parameter of the type 'param'\n".
-			"<highlight>[&lt;param&gt;|all]<end> denotes an optional parameter of the type 'param' or the optional literal text 'all'\n".
-			"<highlight>[&lt;param1&gt;] [&lt;param2&gt;] ...<end> denotes zero or more optional parameters of the type 'param'";
+			"<highlight>lorem ipsum<end>\n<tab> denotes a required, literal text 'lorem ipsum'\n".
+			"<highlight>one|two|three<end>\n<tab> denotes a required, literal choice out of 'one', 'two', or 'three'\n".
+			"<highlight>[param]<end>\n<tab> denotes an optional, literal text 'param'\n".
+			"<highlight>[one|two|three]<end>\n<tab> denotes an optional, literal choice out of 'one', 'two', or 'three'\n".
+			"<highlight>&lt;param&gt;<end>\n<tab> denotes a required parameter of the type 'param'\n".
+			"<highlight>&lt;param&gt;|all<end>\n<tab> denotes a required parameter of the type 'param' or the literal text 'all'\n".
+			"<highlight>&lt;param1&gt; &lt;param2&gt; ...<end>\n<tab> denotes one or more required parameters of the type 'param'\n".
+			"<highlight>[&lt;param&gt;]<end>\n<tab> denotes an optional parameter of the type 'param'\n".
+			"<highlight>[&lt;param&gt;|all]<end>\n<tab> denotes an optional parameter of the type 'param' or the optional literal text 'all'\n".
+			"<highlight>[&lt;param1&gt;] [&lt;param2&gt;] ...<end>\n<tab> denotes zero or more optional parameters of the type 'param'";
 	}
 
 	/** @param ReflectionMethod[] $ms */
