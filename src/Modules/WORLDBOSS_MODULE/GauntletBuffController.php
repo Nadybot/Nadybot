@@ -344,7 +344,7 @@ class GauntletBuffController extends ModuleInstance implements MessageEmitter {
 	public function gaubuffSetCommand(
 		CmdContext $context,
 		#[NCA\StrChoice("clan", "omni")] ?string $faction,
-		PDuration $time
+		PDuration $duration
 	): void {
 		$defaultSide = $this->settingManager->getString('gaubuff_default_side') ?? "none";
 		$faction = $faction ?? $defaultSide;
@@ -353,9 +353,9 @@ class GauntletBuffController extends ModuleInstance implements MessageEmitter {
 			$context->reply($msg);
 			return;
 		}
-		$buffEnds = $time->toSecs();
+		$buffEnds = $duration->toSecs();
 		if ($buffEnds < 1) {
-			$msg = "<highlight>" . $time() . "<end> is not a valid budatime string.";
+			$msg = "<highlight>" . $duration() . "<end> is not a valid budatime string.";
 			$context->reply($msg);
 			return;
 		}

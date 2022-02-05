@@ -263,7 +263,7 @@ class TimerController extends ModuleInstance implements MessageEmitter {
 	public function rtimerCommand(
 		CmdContext $context,
 		#[NCA\Str("add")] ?string $action,
-		PDuration $initial,
+		PDuration $duration,
 		PDuration $interval,
 		string $name
 	): void {
@@ -276,7 +276,7 @@ class TimerController extends ModuleInstance implements MessageEmitter {
 			return;
 		}
 
-		$initialRunTime = $initial->toSecs();
+		$initialRunTime = $duration->toSecs();
 		$runTime = $interval->toSecs();
 
 		if ($runTime < 1) {

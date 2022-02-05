@@ -574,13 +574,13 @@ class WorldBossController extends ModuleInstance {
 	public function bossUpdateCommand(
 		CmdContext $context,
 		#[NCA\Str("update")] string $action,
-		PDuration $timeUntilVulnerable
+		PDuration $durationUntilVulnerable
 	): void {
 		$boss = $this->getMobFromContext($context);
-		$this->worldBossUpdate($context->char, $boss, $timeUntilVulnerable->toSecs());
+		$this->worldBossUpdate($context->char, $boss, $durationUntilVulnerable->toSecs());
 		$msg = "The timer for <highlight>{$boss}<end> has been updated.";
 		$context->reply($msg);
-		$this->sendSyncEvent($context->char->name, $boss, $timeUntilVulnerable->toSecs(), $context->forceSync);
+		$this->sendSyncEvent($context->char->name, $boss, $durationUntilVulnerable->toSecs(), $context->forceSync);
 	}
 
 	/** Completely remove a worldboss's timer, because you are not interested in it */

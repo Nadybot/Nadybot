@@ -435,21 +435,31 @@ class RaidController extends ModuleInstance {
 	}
 
 	/**
-	 * Change the ticker of the raid, i.e. how many seconds per raid point
+	 * Change the interval for getting a participation raid point, 'off' to turn it off
 	 */
 	#[NCA\HandlesCommand("raid spp .+")]
 	public function raidChangeSppCommand(
 		CmdContext $context,
 		#[NCA\Str("spp")] string $action,
-		int $secondsPerPoint
+		#[NCA\PDuration] #[NCA\Str("off")] string $interval
 	): void {
 		if (!isset($this->raid)) {
 			$context->reply(static::ERR_NO_RAID);
 			return;
 		}
-		$this->raid->seconds_per_point = $secondsPerPoint;
+		if ($interval === "off") {
+			$this->raid->seconds_per_point = 0;
+			$context->reply("Raid ticker turned off.");
+		} else {
+			$spp = $this->util->parseTime($interval);
+			if ($spp === 0) {
+				$context->reply("Invalid interval: {$interval}.");
+				return;
+			}
+			$this->raid->seconds_per_point = 0;
+			$context->reply("Raid seconds per point changed.");
+		}
 		$this->logRaidChanges($this->raid);
-		$context->reply("Raid seconds per point changed.");
 		$event = new RaidEvent($this->raid);
 		$event->type = "raid(change)";
 		$event->player = $context->char->name;
@@ -460,12 +470,10 @@ class RaidController extends ModuleInstance {
 	 * Change the raid announcement interval. 'off' to turn it off completely
 	 */
 	#[NCA\HandlesCommand("raid .+")]
-	#[NCA\Help\Example("<symbol>raid announce off", "Stop announcing the raid")]
-	#[NCA\Help\Example("<symbol>raid announce 5m", "Announce every 5 minutes")]
 	public function raidChangeAnnounceCommand(
 		CmdContext $context,
 		#[NCA\Str("announce", "announcement")] string $action,
-		string $interval
+		#[NCA\PDuration] #[NCA\Str("off")] string $interval
 	): void {
 		if (!isset($this->raid)) {
 			$context->reply(static::ERR_NO_RAID);

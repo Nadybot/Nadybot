@@ -1344,22 +1344,22 @@ class TowerController extends ModuleInstance {
 		return $blob;
 	}
 
-	/** See how many tower sites each faction has taken and lost in the past 24 hours or &lt;time&gt; */
+	/** See how many tower sites each faction has taken and lost in the past 24 hours or &lt;duration&gt; */
 	#[NCA\HandlesCommand("towerstats")]
-	public function towerStatsCommand(CmdContext $context, ?PDuration $time): void {
-		$time = isset($time) ? $time->toSecs() : 86400;
-		if ($time < 1) {
+	public function towerStatsCommand(CmdContext $context, ?PDuration $duration): void {
+		$duration = isset($duration) ? $duration->toSecs() : 86400;
+		if ($duration < 1) {
 			$msg = "You must enter a valid time parameter.";
 			$context->reply($msg);
 			return;
 		}
 
-		$timeString = $this->util->unixtimeToReadable($time);
+		$timeString = $this->util->unixtimeToReadable($duration);
 
 		$blob = '';
 
 		$query = $this->db->table(self::DB_TOWER_ATTACK)
-			->where("time", ">=", time() - $time)
+			->where("time", ">=", time() - $duration)
 			->groupBy("att_faction")
 			->orderBy("att_faction");
 		/** @var Collection<FactionCount> */
@@ -1378,7 +1378,7 @@ class TowerController extends ModuleInstance {
 		}
 
 		$query = $this->db->table(self::DB_TOWER_VICTORY)
-			->where("time", ">=", time() - $time)
+			->where("time", ">=", time() - $duration)
 			->groupBy("lose_faction")
 			->orderByDesc("num")
 			->select("lose_faction as faction");

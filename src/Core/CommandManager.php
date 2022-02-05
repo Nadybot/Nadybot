@@ -896,7 +896,11 @@ class CommandManager implements MessageEmitter {
 			"<highlight>&lt;param1&gt; &lt;param2&gt; ...<end>\n<tab> denotes one or more required parameters of the type 'param'\n".
 			"<highlight>[&lt;param&gt;]<end>\n<tab> denotes an optional parameter of the type 'param'\n".
 			"<highlight>[&lt;param&gt;|all]<end>\n<tab> denotes an optional parameter of the type 'param' or the optional literal text 'all'\n".
-			"<highlight>[&lt;param1&gt;] [&lt;param2&gt;] ...<end>\n<tab> denotes zero or more optional parameters of the type 'param'";
+			"<highlight>[&lt;param1&gt;] [&lt;param2&gt;] ...<end>\n<tab> denotes zero or more optional parameters of the type 'param'\n".
+			"\n<header2>Types<end>\n\n".
+			"<highlight>&lt;duration&gt;<end>\n<tab> denotes a \"Budatime\" duration like '5h10m'. See <highlight><symbol>help budatime<end> for a complete description\n".
+			"<highlight>&lt;playfield&gt;<end>\n<tab> denotes a playfield in short form like 'PW' for Perpetual Wastelands. See <highlight><symbol>playfield<end> for a list\n".
+			"<highlight>&lt;tower site&gt;<end>\n<tab> denotes a playfield followed by the site number, e.g. 'PW 12' or 'PW12' for site X12 in Perpetual Wastelands";
 	}
 
 	/** @param ReflectionMethod[] $ms */
