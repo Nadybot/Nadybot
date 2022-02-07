@@ -10,9 +10,12 @@ use Nadybot\Core\{
 	CmdContext,
 	CommandAlias,
 	CommandManager,
+	Modules\CONFIG\ConfigController,
+	DB,
 	HelpManager,
 	ModuleInstance,
 	Modules\PREFERENCES\Preferences,
+	Nadybot,
 	Text,
 };
 
@@ -25,6 +28,12 @@ use Nadybot\Core\{
 		command: "help",
 		accessLevel: "all",
 		description: "Show help topics",
+		defaultStatus: 1
+	),
+	NCA\DefineCommand(
+		command: "adminhelp",
+		accessLevel: "mod",
+		description: "Show admin help topics",
 		defaultStatus: 1
 	)
 ]
@@ -44,6 +53,15 @@ class HelpController extends ModuleInstance {
 	public Preferences $preferences;
 
 	#[NCA\Inject]
+	public Nadybot $chatBot;
+
+	#[NCA\Inject]
+	public ConfigController $configController;
+
+	#[NCA\Inject]
+	public DB $db;
+
+	#[NCA\Inject]
 	public Text $text;
 
 	#[NCA\Setup]
@@ -57,6 +75,7 @@ class HelpController extends ModuleInstance {
 		);
 
 		$this->commandAlias->register($this->moduleName, "help about", "about");
+		$this->commandAlias->register($this->moduleName, "help modules", "modules");
 	}
 
 	/** @return string|string[] */
@@ -69,7 +88,10 @@ class HelpController extends ModuleInstance {
 
 	/** Get a list of all help topics */
 	#[NCA\HandlesCommand("help")]
-	public function helpListCommand(CmdContext $context): void {
+	public function helpListCommand(
+		CmdContext $context,
+		#[NCA\Str("topics", "list")] string $action
+	): void {
 		$data = $this->helpManager->getAllHelpTopics($context);
 
 		if (count($data) === 0) {
@@ -90,6 +112,63 @@ class HelpController extends ModuleInstance {
 
 		$msg = $this->text->makeBlob("Help (main)", $blob);
 
+		$context->reply($msg);
+	}
+
+	/** Get the initial help overview */
+	#[NCA\HandlesCommand("help")]
+	public function helpCommand(CmdContext $context): void {
+		$data = file_get_contents(__DIR__ . "/overview.txt");
+		$version = BotRunner::getVersion();
+		$database = $this->db->getVersion();
+		$data = str_replace(
+			['<version>', '<database>', '<php_version>'],
+			[$version, $database, phpversion()],
+			$data
+		);
+		$msg = $this->text->makeBlob("Help", $data);
+		$context->reply($msg);
+	}
+
+	/** Get an explanation of the syntax used throughout the help */
+	#[NCA\HandlesCommand("help")]
+	public function helpSyntaxCommand(
+		CmdContext $context,
+		#[NCA\Str("syntax")] string $action
+	): void {
+		$data = file_get_contents(__DIR__ . "/syntax.txt");
+		$msg = $this->text->makeBlob("Help", trim($data));
+		$context->reply($msg);
+	}
+
+	/** Get a list of all modules with their short description */
+	#[NCA\HandlesCommand("help")]
+	public function helpModulesCommand(
+		CmdContext $context,
+		#[NCA\Str("modules")] string $action
+	): void {
+		$modules = $this->chatBot->runner->classLoader->registeredModules;
+		/** @var array<string,string> */
+		$data = [];
+		foreach ($modules as $module => $path) {
+			$data[$module] = $this->configController->getModuleDescription($module) ?? "&lt;no description&gt;";
+		}
+		ksort($data);
+		/** @var string[] */
+		$blobs = [];
+		foreach ($data as $module => $description) {
+			$blobs []= "<header2>{$module}<end>\n<tab>".
+				join("\n<tab>", explode("\n", $description));
+		}
+		$msg = $this->text->makeBlob("Help", join("\n\n", $blobs));
+		$context->reply($msg);
+	}
+
+	/** Get the initial adminhelp overview */
+	#[NCA\HandlesCommand("adminhelp")]
+	public function adminhelpCommand(CmdContext $context): void {
+		$data = file_get_contents(__DIR__ . "/adminhelp.txt");
+		$msg = $this->text->makeBlob("Help", $data);
 		$context->reply($msg);
 	}
 

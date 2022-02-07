@@ -107,6 +107,10 @@ class DB {
 		return $this->config->dimension;
 	}
 
+	public function getVersion(): string {
+		return $this->config->dbType . " " . $this->sql->getAttribute(PDO::ATTR_SERVER_VERSION);
+	}
+
 	/**
 	 * Connect to the database
 	 *

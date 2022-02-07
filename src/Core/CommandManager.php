@@ -881,26 +881,13 @@ class CommandManager implements MessageEmitter {
 		return $this->text->makeBlob("Help ($cmd)", $blob . $this->getSyntaxExplanation($context));
 	}
 
-	protected function getSyntaxExplanation(CmdContext $context): string {
+	public function getSyntaxExplanation(CmdContext $context, bool $ignorePrefs=false): string {
 		$showSyntax = $this->preferences->get($context->char->name, HelpController::LEGEND_PREF) ?? "1";
-		if ($showSyntax === "0") {
+		if ($showSyntax === "0" && !$ignorePrefs) {
 			return "";
 		}
-		return "\n\n<header2>Syntax explanation<end> [<a href='chatcmd:///tell <myname> help disable explanation'>hide</a>]\n\n".
-			"<highlight>lorem ipsum<end>\n<tab> denotes a required, literal text 'lorem ipsum'\n".
-			"<highlight>one|two|three<end>\n<tab> denotes a required, literal choice out of 'one', 'two', or 'three'\n".
-			"<highlight>[param]<end>\n<tab> denotes an optional, literal text 'param'\n".
-			"<highlight>[one|two|three]<end>\n<tab> denotes an optional, literal choice out of 'one', 'two', or 'three'\n".
-			"<highlight>&lt;param&gt;<end>\n<tab> denotes a required parameter of the type 'param'\n".
-			"<highlight>&lt;param&gt;|all<end>\n<tab> denotes a required parameter of the type 'param' or the literal text 'all'\n".
-			"<highlight>&lt;param1&gt; &lt;param2&gt; ...<end>\n<tab> denotes one or more required parameters of the type 'param'\n".
-			"<highlight>[&lt;param&gt;]<end>\n<tab> denotes an optional parameter of the type 'param'\n".
-			"<highlight>[&lt;param&gt;|all]<end>\n<tab> denotes an optional parameter of the type 'param' or the optional literal text 'all'\n".
-			"<highlight>[&lt;param1&gt;] [&lt;param2&gt;] ...<end>\n<tab> denotes zero or more optional parameters of the type 'param'\n".
-			"\n<header2>Types<end>\n\n".
-			"<highlight>&lt;duration&gt;<end>\n<tab> denotes a \"Budatime\" duration like '5h10m'. See <highlight><symbol>help budatime<end> for a complete description\n".
-			"<highlight>&lt;playfield&gt;<end>\n<tab> denotes a playfield in short form like 'PW' for Perpetual Wastelands. See <highlight><symbol>playfield<end> for a list\n".
-			"<highlight>&lt;tower site&gt;<end>\n<tab> denotes a playfield followed by the site number, e.g. 'PW 12' or 'PW12' for site X12 in Perpetual Wastelands";
+		return "\n\n<i>See " . $this->text->makeChatcmd("<symbol>help syntax", "/tell <myname> help syntax").
+			" for help unterstanding the command syntax</i>";
 	}
 
 	/** @param ReflectionMethod[] $ms */

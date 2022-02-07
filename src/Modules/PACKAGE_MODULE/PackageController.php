@@ -76,7 +76,6 @@ class PackageController extends ModuleInstance {
 	public function setup(): void {
 		$this->scanForUnregisteredExtraModules();
 		$this->commandAlias->register($this->moduleName, "package", "packages");
-		$this->commandAlias->register($this->moduleName, "package", "modules");
 		$this->commandAlias->register($this->moduleName, "package", "module");
 	}
 

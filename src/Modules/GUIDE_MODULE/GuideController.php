@@ -53,7 +53,12 @@ class GuideController extends ModuleInstance {
 		$this->commandAlias->register($this->moduleName, "guides gos", "gos");
 		$this->commandAlias->register($this->moduleName, "guides gos", "faction");
 		$this->commandAlias->register($this->moduleName, "guides gos", "guardian");
-		$this->commandAlias->register($this->moduleName, "guides adminhelp", "adminhelp");
+		$row = $this->commandAlias->get("adminhelp");
+		if (isset($row) && $row->status === 1) {
+			$row->status = 0;
+			$this->commandAlias->update($row);
+			$this->commandAlias->deactivate("adminhelp");
+		}
 		$this->commandAlias->register($this->moduleName, "guides light", "light");
 
 		$this->path = __DIR__ . "/guides/";
