@@ -45,3 +45,4 @@ Although hardly ever called like this, preferences are individual user settings 
 <header2>Getting Started<end>
 
 Most often, when you want to configure your bot, you should use <a href='chatcmd:///tell <myname> config'><symbol>config</a>. This shows all the modules in the bot. Selecting a module will show all settings, events, and commands for that module. You can either enable or disable the entire module, or change the settings, events, and commands individually.
+For detailed information about concepts like Relaying, Routing, Discord or the AOChatProxy, you should see the <a href='chatcmd:///start https://github.com/Nadybot/Nadybot/wiki'>Nadybot WIKI</a>.

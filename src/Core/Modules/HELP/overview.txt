@@ -1,7 +1,10 @@
 Welcome to Nadybot <version>, running <highlight>PHP <php_version><end> and <highlight><database><end>!
 
-Want help for a command? Use <highlight><symbol>help &lt;command&gt;<end>, where &lt;command&gt; is the name of any command.
-Need an explanation what all this &lt;command&gt;, [all] or [&lt;nonsense&gt;] means? See <a href='chatcmd:///tell <myname> help syntax'><symbol>help syntax</a>
+<header2>Start<end>
+
+Want help for a command? Use <highlight><symbol>help &lt;command&gt;<end>, e.g. <a href='chatcmd:///tell <myname> help help'><symbol>help notes</a>.
+No idea what all this &lt;command&gt;, [all] or [&lt;nonsense&gt;] means? See <a href='chatcmd:///tell <myname> help syntax'><symbol>help syntax</a>
+Need personal help from the community? <a href='chatcmd:///start https://discord.gg/aDR9UBxRfg'>Join Nadybot Discord</a> or <a href='chatcmd:///start https://discord.gg/2x9WesJ'>Join AOBots Discord</a>.
 Need an introduction how to run and manage the bot? Use <a href='chatcmd:///tell <myname> adminhelp'><symbol>adminhelp</a>
 
 <header2>Further information<end>
