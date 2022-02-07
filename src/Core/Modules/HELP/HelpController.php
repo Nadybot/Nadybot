@@ -157,10 +157,13 @@ class HelpController extends ModuleInstance {
 		/** @var string[] */
 		$blobs = [];
 		foreach ($data as $module => $description) {
-			$blobs []= "<header2>{$module}<end>\n<tab>".
+			$blobs []= "<pagebreak><header2>{$module}<end>\n<tab>".
 				join("\n<tab>", explode("\n", $description));
 		}
-		$msg = $this->text->makeBlob("Help", join("\n\n", $blobs));
+		$blob = "Use <highlight><symbol>config &lt;module name&gt;<end> to configure ".
+			"a module's settings, events and commands.\n\n".
+			join("\n\n", $blobs);
+		$msg = $this->text->makeBlob("Help", $blob);
 		$context->reply($msg);
 	}
 
