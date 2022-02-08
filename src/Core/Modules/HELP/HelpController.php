@@ -152,6 +152,13 @@ class HelpController extends ModuleInstance {
 		$data = [];
 		foreach ($modules as $module => $path) {
 			$data[$module] = $this->configController->getModuleDescription($module) ?? "&lt;no description&gt;";
+			$data[$module] = preg_replace_callback(
+				"/(https?:\/\/[^\s\n<]+)/s",
+				function(array $matches): string {
+					return $this->text->makeChatcmd($matches[1], "/start {$matches[1]}");
+				},
+				$data[$module]
+			);
 		}
 		ksort($data);
 		/** @var string[] */
