@@ -507,6 +507,28 @@ class CommandManager implements MessageEmitter {
 		return false;
 	}
 
+	/** Check if the character in the current context could run $command */
+	public function couldRunCommand(CmdContext $context, string $command): bool {
+		$context = clone $context;
+		$context->message = $command;
+		if (!isset($context->permissionSet)) {
+			return false;
+		}
+		$cmd = explode(" ", $command)[0];
+		$commandHandler = $this->getActiveCommandHandler($cmd, $context->permissionSet, $command);
+		if (!isset($commandHandler)) {
+			return false;
+		}
+		// Remove all handler we are not allowed to call or which don't match
+		$commandHandler->files = array_filter(
+			$commandHandler->files,
+			function (string $handler) use ($context): bool {
+				return $this->canCallHandler($context, $handler);
+			}
+		);
+		return count($commandHandler->files) > 0;
+	}
+
 	public function processCmd(CmdContext $context): void {
 		$cmd = explode(' ', $context->message, 2)[0];
 		$cmd = strtolower($cmd);

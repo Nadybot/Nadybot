@@ -317,17 +317,12 @@ class RaidController extends ModuleInstance {
 			$context->reply(static::ERR_NO_RAID);
 			return;
 		}
-		$handler = isset($context->permissionSet)
-			? $this->commandManager->getActiveCommandHandler("raid", $context->permissionSet, "raid start test")
-			: null;
-		if (isset($handler)) {
-			$canAdminRaid = $this->accessManager->checkAccess($context->char->name, $handler->access_level);
-			if ($canAdminRaid) {
-				$this->chatBot->sendTell(
-					$this->text->makeBlob("Raid Control", $this->getControlInterface()),
-					$context->char->name
-				);
-			}
+		$canAdminRaid = $this->commandManager->couldRunCommand($context, "raid start test");
+		if ($canAdminRaid) {
+			$this->chatBot->sendTell(
+				$this->text->makeBlob("Raid Control", $this->getControlInterface()),
+				$context->char->name
+			);
 		}
 		$msg = ((array)$this->text->makeBlob("click to join", $this->getRaidJoinLink(), "Raid information"))[0];
 		$announceMsg = $this->raid->getAnnounceMessage($msg);
