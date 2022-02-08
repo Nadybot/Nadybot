@@ -2,21 +2,21 @@
 
 namespace Nadybot\Core\Modules\CONFIG;
 
-use Nadybot\Core\Attributes as NCA;
 use Exception;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	AccessManager,
+	Attributes as NCA,
 	CmdContext,
 	CommandManager,
 	DB,
+	DBSchema\CommandSearchResult,
+	DBSchema\CmdPermission,
 	ModuleInstance,
 	Nadybot,
 	SQLException,
 	Text,
 };
-use Nadybot\Core\DBSchema\CommandSearchResult;
-use Nadybot\Core\DBSchema\CmdPermission;
 
 #[
 	NCA\Instance,

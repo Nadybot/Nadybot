@@ -2,17 +2,17 @@
 
 namespace Nadybot\Core\Modules\CONFIG;
 
-use Nadybot\Core\Attributes as NCA;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
+	Attributes as NCA,
 	AccessManager,
 	CmdContext,
 	CommandManager,
 	DB,
+	DBSchema\CmdCfg,
 	ModuleInstance,
 	Text,
 };
-use Nadybot\Core\DBSchema\CmdCfg;
 
 #[
 	NCA\Instance,

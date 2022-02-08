@@ -2,22 +2,22 @@
 
 namespace Nadybot\Core\Modules\PLAYER_LOOKUP;
 
-use Nadybot\Core\Attributes as NCA;
 use Closure;
 use DateInterval;
 use DateTime;
 use DateTimeZone;
 use Safe\Exceptions\JsonException;
 use Nadybot\Core\{
+	Attributes as NCA,
 	CacheManager,
 	CacheResult,
 	ConfigFile,
 	DB,
+	DBSchema\Player,
 	EventManager,
 	ModuleInstance,
 	Nadybot,
 };
-use Nadybot\Core\DBSchema\Player;
 
 /**
  * @author Tyrence (RK2)

@@ -2,17 +2,17 @@
 
 namespace Nadybot\Core\Modules\CONFIG;
 
-use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{
+	Attributes as NCA,
 	CmdContext,
 	CommandAlias,
 	CommandManager,
+	DBSchema\CmdAlias,
 	ModuleInstance,
+	ParamClass\PRemove,
+	ParamClass\PWord,
 	Text,
 };
-use Nadybot\Core\DBSchema\CmdAlias;
-use Nadybot\Core\ParamClass\PRemove;
-use Nadybot\Core\ParamClass\PWord;
 
 #[
 	NCA\Instance,

@@ -8,26 +8,26 @@ use Nadybot\Core\{
 	CmdEvent,
 	CommandHandler,
 	ConfigFile,
-	ModuleInstance,
+	DBSchema\Audit,
+	DBSchema\Player,
 	LoggerWrapper,
 	MessageHub,
+	ModuleInstance,
+	Modules\BAN\BanController,
+	Modules\CONFIG\ConfigController,
 	Nadybot,
+	Routing\RoutableMessage,
+	Routing\Source,
 	SettingManager,
 	Timer,
 	Util,
 };
-use Nadybot\Core\DBSchema\Audit;
-use Nadybot\Core\DBSchema\Player;
-use Nadybot\Core\Modules\BAN\BanController;
-use Nadybot\Core\Modules\CONFIG\ConfigController;
 use Nadybot\Core\Modules\PLAYER_LOOKUP\{
 	PlayerHistory,
 	PlayerHistoryData,
 	PlayerHistoryManager,
 	PlayerManager,
 };
-use Nadybot\Core\Routing\RoutableMessage;
-use Nadybot\Core\Routing\Source;
 
 /**
  * @author Tyrence (RK2)
