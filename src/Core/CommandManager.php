@@ -252,7 +252,7 @@ class CommandManager implements MessageEmitter {
 			}
 		}
 
-		$obj = new CommandHandler($filename, $accessLevel);
+		$obj = new CommandHandler($accessLevel, ...explode(",", $filename));
 
 		$this->commands[$permissionSet][$command] = $obj;
 	}
@@ -416,6 +416,10 @@ class CommandManager implements MessageEmitter {
 	 * @return null|CmdCfg
 	 */
 	public function get(string $command, ?string $permissionSet=null): ?CmdCfg {
+		$subCmd = $this->subcommandManager->subcommands[$command][$permissionSet]??null;
+		if (isset($subCmd)) {
+			return $subCmd;
+		}
 		$query = $this->db->table(self::DB_TABLE)
 			->where("cmd", strtolower($command));
 		/** @var ?CmdCfg */
@@ -455,6 +459,50 @@ class CommandManager implements MessageEmitter {
 			if ($this->accessManager->checkAccess($sender, $permission->access_level)) {
 				return true;
 			}
+		}
+		return false;
+	}
+
+	public function canCallHandler(CmdContext $context, string $handler): bool {
+		if ($handler === CommandAlias::ALIAS_HANDLER) {
+			return true;
+		}
+		[$name, $method] = explode(".", $handler);
+		$instance = Registry::getInstance($name);
+		if ($instance === null) {
+			$this->logger->error("Could not find instance for name '$name'");
+			return false;
+		}
+		// Check if this matches any command regular expression
+		$arr = $this->checkMatches($instance, $method, $context->message);
+		if ($arr === false) {
+			return false;
+		}
+		try {
+			$reflectedMethod = new ReflectionMethod($instance, $method);
+		} catch (ReflectionException $e) {
+			// method doesn't exist (probably handled dynamically)
+			return false;
+		}
+		$handlesAttrs = $reflectedMethod->getAttributes(NCA\HandlesCommand::class);
+		if (empty($handlesAttrs)) {
+			return false;
+		}
+		foreach ($handlesAttrs as $handlesAttr) {
+			/** @var NCA\HandlesCommand */
+			$handlesCmdObj = $handlesAttr->newInstance();
+			$baseCmd = explode(" ", $handlesCmdObj->command)[0];
+			if ($baseCmd !== explode(" ", $context->message)[0]) {
+				continue;
+			}
+			$cmdCfg = $this->get($handlesCmdObj->command, $context->permissionSet);
+			if (!isset($cmdCfg) || !isset($cmdCfg->permissions[$context->permissionSet])) {
+				continue;
+			}
+			if (!$this->accessManager->checkAccess($context->char->name, $cmdCfg->permissions[$context->permissionSet]->access_level) === true) {
+				continue;
+			}
+			return true;
 		}
 		return false;
 	}
@@ -499,8 +547,17 @@ class CommandManager implements MessageEmitter {
 			return;
 		}
 
-		// if the character doesn't have access
-		if (!$this->checkAccessLevel($context, $cmd, $commandHandler)) {
+		// Remove all handler we are not allowed to call or which don't match
+		$commandHandler->files = array_filter(
+			$commandHandler->files,
+			function (string $handler) use ($context): bool {
+				return $this->canCallHandler($context, $handler);
+			}
+		);
+
+		// If there are no handlers we have access to and the character doesn't
+		// even have access to the main-command: error
+		if (empty($commandHandler->files) && !$this->checkAccessLevel($context, $cmd, $commandHandler)) {
 			$event->type = "command(forbidden)";
 			$this->eventManager->fireEvent($event);
 			return;
@@ -510,6 +567,7 @@ class CommandManager implements MessageEmitter {
 			$handler = $this->executeCommandHandler($commandHandler, $context);
 			$event->type = "command(success)";
 
+			// No handler found? Display the help
 			if ($handler === null) {
 				$help = $this->getHelpForCommand($cmd, $context);
 				$context->reply($help);
@@ -551,7 +609,7 @@ class CommandManager implements MessageEmitter {
 	 * @return bool true if allowed to execute, otherwise false
 	 */
 	public function checkAccessLevel(CmdContext $context, string $cmd, CommandHandler $commandHandler): bool {
-		if ($this->accessManager->checkAccess($context->char->name, $commandHandler->admin) === true) {
+		if ($this->accessManager->checkAccess($context->char->name, $commandHandler->access_level) === true) {
 			return true;
 		}
 		if ($context->isDM()) {
@@ -572,7 +630,7 @@ class CommandManager implements MessageEmitter {
 	public function executeCommandHandler(CommandHandler $commandHandler, CmdContext $context): ?string {
 		$successfulHandler = null;
 
-		foreach (explode(',', $commandHandler->file) as $handler) {
+		foreach ($commandHandler->files as $handler) {
 			[$name, $method] = explode(".", $handler);
 			$instance = Registry::getInstance($name);
 			if ($instance === null) {
@@ -669,19 +727,24 @@ class CommandManager implements MessageEmitter {
 			$command = join(" ", $parts);
 			$handler = $this->commands[$permissionSet][$command] ?? null;
 			if ($handler instanceof CommandHandler) {
-				return $handler;
+				return clone $handler;
 			}
 			array_pop($parts);
 		}
+		$handler = $this->commands[$permissionSet][$cmd] ?? null;
+		if (!isset($handler)) {
+			return null;
+		}
+		$handler = clone $handler;
 		// Check if a subcommands for this exists
 		if (isset($this->subcommandManager->subcommands[$cmd])) {
 			foreach ($this->subcommandManager->subcommands[$cmd] as $row) {
-				if (isset($row->permissions[$permissionSet]) && preg_match("/^{$row->cmd}$/si", $message)) {
-					return new CommandHandler($row->file, $row->permissions[$permissionSet]->access_level);
+				if (isset($row->permissions[$permissionSet])) {
+					$handler->addFile(...explode(",", $row->file));
 				}
 			}
 		}
-		return $this->commands[$permissionSet][$cmd] ?? null;
+		return $handler;
 	}
 
 	public function isCommandActive(string $cmd, string $permissionSet): bool {
@@ -804,7 +867,7 @@ class CommandManager implements MessageEmitter {
 					) {
 						continue;
 					}
-					$handler = new CommandHandler($row->file, $row->permissions[$context->permissionSet]->access_level);
+					$handler = new CommandHandler($row->permissions[$context->permissionSet]->access_level, ...explode(",", $row->file));
 				}
 			}
 			if (!isset($handler)) {
@@ -813,7 +876,7 @@ class CommandManager implements MessageEmitter {
 			if (!isset($handler)) {
 				continue;
 			}
-			if ($this->accessManager->checkAccess($context->char->name, $handler->admin) === true) {
+			if ($this->accessManager->checkAccess($context->char->name, $handler->access_level) === true) {
 				return true;
 			}
 		}
@@ -1026,20 +1089,20 @@ class CommandManager implements MessageEmitter {
 
 		$regexes = $this->retrieveRegexes($reflectedMethod);
 
-		if (count($regexes) > 0) {
-			foreach ($regexes as $regex) {
-				if (preg_match($regex->match, $message, $arr)) {
-					if (isset($regex->variadicMatch)) {
-						if (preg_match_all($regex->variadicMatch, $message, $arr2)) {
-							$arr = $arr2;
-						}
-					}
-					return $arr;
-				}
-			}
-			return false;
+		if (count($regexes) === 0) {
+			return true;
 		}
-		return true;
+		foreach ($regexes as $regex) {
+			if (preg_match($regex->match, $message, $arr)) {
+				if (isset($regex->variadicMatch)) {
+					if (preg_match_all($regex->variadicMatch, $message, $arr2)) {
+						$arr = $arr2;
+					}
+				}
+				return $arr;
+			}
+		}
+		return false;
 	}
 
 	/**

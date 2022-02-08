@@ -102,7 +102,7 @@ class DevController extends ModuleInstance {
 		// filter command handlers by access level
 		$accessManager = $this->accessManager;
 		$handlers = array_filter($handlers, function (CommandHandler $handler) use ($context, $accessManager): bool {
-			return $accessManager->checkAccess($context->char->name, $handler->admin);
+			return $accessManager->checkAccess($context->char->name, $handler->access_level);
 		});
 
 		// get calls for handlers
@@ -110,7 +110,7 @@ class DevController extends ModuleInstance {
 		$calls = array_reduce(
 			$handlers,
 			function (array $handlers, CommandHandler $handler): array {
-				return array_merge($handlers, explode(',', $handler->file));
+				return array_merge($handlers, $handler->files);
 			},
 			[]
 		);
@@ -239,7 +239,7 @@ class DevController extends ModuleInstance {
 		foreach ($this->commandManager->commands as $channelName => $channel) {
 			if (isset($channel[$cmd])) {
 				$blob .= "<header2>$channelName ($cmd)<end>\n";
-				$blob .= $channel[$cmd]->file . "\n\n";
+				$blob .= join(", ", $channel[$cmd]->files) . "\n\n";
 			}
 		}
 

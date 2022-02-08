@@ -417,7 +417,7 @@ class LimitsController extends ModuleInstance {
 	 * Aliases for example do not count, because else they would count twice.
 	 */
 	public function commandHandlerCounts(CommandHandler $ch): bool {
-		if ($ch->file === "CommandAlias.process") {
+		if ($ch->files === ["CommandAlias.process"]) {
 			return false;
 		}
 		return true;

@@ -321,7 +321,7 @@ class RaidController extends ModuleInstance {
 			? $this->commandManager->getActiveCommandHandler("raid", $context->permissionSet, "raid start test")
 			: null;
 		if (isset($handler)) {
-			$canAdminRaid = $this->accessManager->checkAccess($context->char->name, $handler->admin);
+			$canAdminRaid = $this->accessManager->checkAccess($context->char->name, $handler->access_level);
 			if ($canAdminRaid) {
 				$this->chatBot->sendTell(
 					$this->text->makeBlob("Raid Control", $this->getControlInterface()),
