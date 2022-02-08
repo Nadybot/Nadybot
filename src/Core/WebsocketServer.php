@@ -8,7 +8,6 @@ use Nadybot\Core\Socket\AsyncSocket;
 use Nadybot\Modules\WEBSOCKET_MODULE\WebsocketController;
 
 class WebsocketServer extends WebsocketBase {
-
 	#[NCA\Inject]
 	public SocketManager $socketManager;
 

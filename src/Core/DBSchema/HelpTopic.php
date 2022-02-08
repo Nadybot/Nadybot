@@ -5,7 +5,7 @@ namespace Nadybot\Core\DBSchema;
 use Nadybot\Core\DBRow;
 
 class HelpTopic extends DBRow {
-	public string $file;
+	public ?string $file = null;
 	public int $sort;
 	public string $admin_list;
 	public string $module;

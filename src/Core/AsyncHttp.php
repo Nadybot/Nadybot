@@ -13,7 +13,6 @@ use Exception;
  * AsyncHttp class.
  */
 class AsyncHttp {
-
 	#[NCA\Inject]
 	public SettingManager $settingManager;
 

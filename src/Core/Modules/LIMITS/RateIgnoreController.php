@@ -18,7 +18,6 @@ use Nadybot\Core\ParamClass\PRemove;
 
 /**
  * @author Tyrence (RK2)
- * Commands this class contains:
  */
 #[
 	NCA\Instance,
@@ -27,7 +26,6 @@ use Nadybot\Core\ParamClass\PRemove;
 		command: "rateignore",
 		accessLevel: "all",
 		description: "Add players to the rate limit ignore list to bypass limits check",
-		help: "rateignore.txt",
 		defaultStatus: 1
 	)
 ]
@@ -48,7 +46,13 @@ class RateIgnoreController extends ModuleInstance {
 	public function setup(): void {
 	}
 
+	/** See a list of characters on the rate ignore list */
 	#[NCA\HandlesCommand("rateignore")]
+	#[NCA\Help\Prologue(
+		"The rate ignore list is a list of characters/bots that should be able to\n".
+		"access the bot, but would normally not be able to due to limits being set.\n".
+		"See <a href='chatcmd:///tell <myname> help limits'><symbol>limits</a>"
+	)]
 	public function rateignoreCommand(CmdContext $context): void {
 		$list = $this->all();
 		if (count($list) === 0) {
@@ -65,11 +69,13 @@ class RateIgnoreController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
+	/** Add a character to the rate ignore list */
 	#[NCA\HandlesCommand("rateignore")]
 	public function rateignoreAddCommand(CmdContext $context, #[NCA\Str("add")] string $action, PCharacter $who): void {
 		$context->reply($this->add($who(), $context->char->name));
 	}
 
+	/** Remove a character from the rate ignore list */
 	#[NCA\HandlesCommand("rateignore")]
 	public function rateignoreRemoveCommand(CmdContext $context, PRemove $rem, PCharacter $who): void {
 		$context->reply($this->remove($who()));

@@ -18,22 +18,17 @@ use Nadybot\Core\{
 use Nadybot\Core\DBSchema\CommandSearchResult;
 use Nadybot\Core\DBSchema\CmdPermission;
 
-/**
- * Commands this controller contains:
- */
 #[
 	NCA\Instance,
 	NCA\DefineCommand(
 		command: "cmdsearch",
 		accessLevel: "all",
 		description: "Finds commands based on key words",
-		help: "cmdsearch.txt",
 		defaultStatus: 1,
 		alias: "searchcmd"
 	)
 ]
 class CommandSearchController extends ModuleInstance {
-
 	#[NCA\Inject]
 	public Nadybot $chatBot;
 
@@ -76,6 +71,7 @@ class CommandSearchController extends ModuleInstance {
 		})->values();
 	}
 
+	/** Search for a command */
 	#[NCA\HandlesCommand("cmdsearch")]
 	public function searchCommand(CmdContext $context, string $search): void {
 		$commands = $this->getAllCmds();
@@ -142,10 +138,7 @@ class CommandSearchController extends ModuleInstance {
 	public function render(Collection $results, bool $hasAccess, bool $exactMatch): string|array {
 		$blob = '';
 		foreach ($results as $row) {
-			$helpLink = "";
-			if ($row->help !== null && $row->help !== '') {
-				$helpLink = ' [' . $this->text->makeChatcmd("help", "/tell <myname> help $row->cmd") . ']';
-			}
+			$helpLink = ' [' . $this->text->makeChatcmd("help", "/tell <myname> help $row->cmd") . ']';
 			if ($hasAccess) {
 				$module = $this->text->makeChatcmd($row->module, "/tell <myname> config {$row->module}");
 			} else {

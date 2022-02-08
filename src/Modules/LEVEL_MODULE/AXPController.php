@@ -11,7 +11,6 @@ use Nadybot\Core\{
 
 /**
  * @author Tyrence (RK2)
- * Commands this controller contains:
  */
 #[
 	NCA\Instance,
@@ -19,7 +18,6 @@ use Nadybot\Core\{
 		command: "axp",
 		accessLevel: "all",
 		description: "Show axp needed for specified level(s)",
-		help: "xp.txt"
 	)
 ]
 class AXPController extends ModuleInstance {
@@ -64,7 +62,9 @@ class AXPController extends ModuleInstance {
 		[5_968_409, 200, "Vindicator"],
 	];
 
+	/** See a list of all Alien Levels */
 	#[NCA\HandlesCommand("axp")]
+	#[NCA\Help\Group("xp")]
 	public function axpListCommand(CmdContext $context): void {
 		$blob = "<u>AI Lvl | Lvl Req |          AXP  |  Rank         </u>\n";
 		for ($aiRank = 0; $aiRank < count($this->aiRanks); $aiRank++) {
@@ -80,7 +80,9 @@ class AXPController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
+	/** See needed XP to level up for a single Alien Level */
 	#[NCA\HandlesCommand("axp")]
+	#[NCA\Help\Group("xp")]
 	public function axpSingleCommand(CmdContext $context, int $level): void {
 		if ($level > 30) {
 			$msg = "AI level must be between 0 and 30.";
@@ -92,7 +94,9 @@ class AXPController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
+	/** See how much AXP is needed from one level to another */
 	#[NCA\HandlesCommand("axp")]
+	#[NCA\Help\Group("xp")]
 	public function axpDoubleCommand(CmdContext $context, int $startLevel, int $endLevel): void {
 		if ($startLevel > 30 || $endLevel > 30) {
 			$msg = "AI level must be between 0 and 30.";

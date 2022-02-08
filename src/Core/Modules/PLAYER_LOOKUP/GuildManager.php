@@ -21,7 +21,6 @@ use Nadybot\Core\DBSchema\Player;
 
 /**
  * @author Tyrence (RK2)
- *
  */
 #[NCA\Instance]
 class GuildManager extends ModuleInstance {

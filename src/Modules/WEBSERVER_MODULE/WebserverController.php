@@ -25,15 +25,11 @@ use ReflectionAttribute;
 use Safe\Exceptions\FilesystemException;
 use Safe\Exceptions\StreamException;
 
-/**
- * Commands this controller contains:
- */
 #[
 	NCA\DefineCommand(
 		command: "webauth",
 		accessLevel: "mod",
 		description: "Pre-authorize Websocket connections",
-		help: "webauth.txt"
 	),
 	NCA\Instance
 ]
@@ -41,7 +37,7 @@ class WebserverController extends ModuleInstance {
 	public const AUTH_AOAUTH = "aoauth";
 	public const AUTH_BASIC = "webauth";
 
-		/**
+	/**
 	 * @var ?resource
 	 * @psalm-var null|resource|closed-resource
 	 */
@@ -282,6 +278,12 @@ class WebserverController extends ModuleInstance {
 		return $uuid;
 	}
 
+	/**
+	 * Authenticate as an admin so you can login to the webserver
+	 *
+	 * You will get a token in return which you can use as a password together
+	 * with your character name to login to the built-in webserver.
+	 */
 	#[NCA\HandlesCommand("webauth")]
 	public function webauthCommand(CmdContext $context): void {
 		$uuid = $this->authenticate($context->char->name, 3600);

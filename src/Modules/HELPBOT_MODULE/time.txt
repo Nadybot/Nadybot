@@ -1,5 +1,0 @@
-To the current time and a list of time zones:
-<highlight><tab><symbol>time<end>
-
-To show the current time in a specific time zone:
-<highlight><tab><symbol>time 'timezone'<end>

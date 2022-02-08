@@ -22,7 +22,6 @@ use Nadybot\Modules\WEBSERVER_MODULE\{
 
 /**
  * @author Tyrence (RK2)
- * Commands this controller contains:
  */
 #[
 	NCA\Instance,
@@ -31,11 +30,9 @@ use Nadybot\Modules\WEBSERVER_MODULE\{
 		command: "orghistory",
 		accessLevel: "guild",
 		description: "Shows the org history (invites and kicks and leaves) for a character",
-		help: "orghistory.txt"
 	)
 ]
 class OrgHistoryController extends ModuleInstance {
-
 	public const DB_TABLE = "org_history";
 
 	#[NCA\Inject]
@@ -47,10 +44,7 @@ class OrgHistoryController extends ModuleInstance {
 	#[NCA\Inject]
 	public Util $util;
 
-	#[NCA\Setup]
-	public function setup(): void {
-	}
-
+	/** Show the last org actions (invite, kick, leave) */
 	#[NCA\HandlesCommand("orghistory")]
 	public function orgHistoryCommand(CmdContext $context, ?int $page): void {
 		$page ??= 1;
@@ -80,6 +74,7 @@ class OrgHistoryController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
+	/** Show all actions (invite, kick, leave) performed on or by a character */
 	#[NCA\HandlesCommand("orghistory")]
 	public function orgHistoryPlayerCommand(CmdContext $context, PCharacter $char): void {
 		$player = $char();
@@ -99,7 +94,7 @@ class OrgHistoryController extends ModuleInstance {
 
 		/** @var Collection<OrgHistory> */
 		$data = $this->db->table(self::DB_TABLE)
-			->whereIlike("action", $player)
+			->whereIlike("actor", $player)
 			->orderByDesc("time")
 			->asObj(OrgHistory::class);
 		$count = $data->count();

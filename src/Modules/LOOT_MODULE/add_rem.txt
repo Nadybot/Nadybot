@@ -1,5 +1,0 @@
-To join a roll:
-<highlight><tab><symbol>add 'loot number'<end>
-
-To leave a roll:
-<highlight><tab><symbol>rem<end>

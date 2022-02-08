@@ -22,7 +22,6 @@ use Safe\Exceptions\DirException;
 /**
  * @author Tyrence
  * Based on a module written by Captainzero (RK1) of the same name for an earlier version of Budabot
- * Commands this controller contains:
  */
 #[
 	NCA\Instance,
@@ -31,11 +30,9 @@ use Safe\Exceptions\DirException;
 		command: "recipe",
 		accessLevel: "all",
 		description: "Search for a recipe",
-		help: "recipe.txt"
 	)
 ]
 class RecipeController extends ModuleInstance {
-
 	#[NCA\Inject]
 	public DB $db;
 
@@ -179,6 +176,7 @@ class RecipeController extends ModuleInstance {
 		closedir($handle);
 	}
 
+	/** Show a specific recipe */
 	#[NCA\HandlesCommand("recipe")]
 	public function recipeShowCommand(CmdContext $context, int $id): void {
 		/** @var ?Recipe */
@@ -192,6 +190,7 @@ class RecipeController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
+	/** Search for a recipe */
 	#[NCA\HandlesCommand("recipe")]
 	public function recipeSearchCommand(CmdContext $context, string $search): void {
 		$query = $this->db->table("recipes")

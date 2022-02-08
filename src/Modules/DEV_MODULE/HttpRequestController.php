@@ -14,7 +14,6 @@ use Nadybot\Core\{
 
 /**
  * @author Nadyita
- * Commands this controller contains:
  */
 #[
 	NCA\Instance,
@@ -31,6 +30,7 @@ class HttpRequestController extends ModuleInstance {
 	#[NCA\Inject]
 	public Text $text;
 
+	/** Load the given URL and show the result */
 	#[NCA\HandlesCommand("httprequest")]
 	public function httprequestCommand(CmdContext $context, string $url): void {
 		$parts = \Safe\parse_url(html_entity_decode($url));

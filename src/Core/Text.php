@@ -6,7 +6,6 @@ use Nadybot\Core\Attributes as NCA;
 
 #[NCA\Instance]
 class Text {
-
 	#[NCA\Inject]
 	public ConfigFile $config;
 

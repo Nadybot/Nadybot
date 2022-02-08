@@ -1,5 +1,0 @@
-To show the character id for a player:
-<highlight><tab><symbol>lookup 'player'<end>
-
-To show the name(s) for a character id:
-<highlight><tab><symbol>lookup 'character id'<end>

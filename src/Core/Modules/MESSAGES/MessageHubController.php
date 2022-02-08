@@ -2,13 +2,15 @@
 
 namespace Nadybot\Core\Modules\MESSAGES;
 
-use Nadybot\Core\Attributes as NCA;
 use Exception;
 use Safe\Exceptions\JsonException;
 use ReflectionClass;
+use ReflectionException;
 use Throwable;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
+	Attributes as NCA,
+	Channels\DiscordChannel,
 	CmdContext,
 	ColorSettingHandler,
 	DB,
@@ -23,15 +25,13 @@ use Nadybot\Core\{
 	MessageHub,
 	MessageRoute,
 	Nadybot,
+	ParamClass\PColor,
+	ParamClass\PRemove,
 	SettingManager,
 	Text,
 	Util,
 	Routing\Source,
 };
-use Nadybot\Core\Channels\DiscordChannel;
-use Nadybot\Core\ParamClass\PColor;
-use Nadybot\Core\ParamClass\PRemove;
-use ReflectionException;
 
 /**
  * @author Nadyita (RK5)
@@ -43,7 +43,6 @@ use ReflectionException;
 		command: "route",
 		accessLevel: "mod",
 		description: "Set which message are routed from where to where",
-		help: "route.txt",
 		defaultStatus: 1
 	)
 ]
@@ -110,10 +109,32 @@ class MessageHubController extends ModuleInstance {
 		return $name;
 	}
 
+	/** Create a new route from &lt;from&gt; to &lt;to&gt; with optional modifiers */
 	#[NCA\HandlesCommand("route")]
+	#[NCA\Help\Example(
+		"<symbol>route add system(*) -&gt; web",
+		"Route all system messages to the web interface"
+	)]
+	#[NCA\Help\Example(
+		"<symbol>route add aopriv &lt;-&gt; aoorg if-has-prefix(prefix=\"-\")",
+		"Relay between org and private channel by using a dash prefix"
+	)]
+	#[NCA\Help\Example(
+		"<symbol>route add tradebot -&gt; aotell(Nady) if-matches(text=machi case-sensitive=false)",
+		"Send all messages from Darknet containing \"machi\" to Nady"
+	)]
+	#[NCA\Help\Prologue(
+		"Routes define from which source to which destination\n".
+		"messages will be forwarded. They consist of a source,\n".
+		"a destination and any number of modifiers, where modifiers\n".
+		"can either modify or completely drop a message.\n"
+	)]
+	#[NCA\Help\Epilogue(
+		"For more information, see the <a href='chatcmd:///start https://github.com/Nadybot/Nadybot/wiki/Routing'>Nadybot WIKI</a>"
+	)]
 	public function routeAddCommand(
 		CmdContext $context,
-		#[NCA\Regexp("add|addforce")] string $action,
+		#[NCA\Str("add", "addforce")] string $action,
 		#[NCA\Str("from")] ?string $fromConst,
 		PSource $from,
 		PDirection $direction,
@@ -222,8 +243,13 @@ class MessageHubController extends ModuleInstance {
 		);
 	}
 
+	/** List all route sources */
 	#[NCA\HandlesCommand("route")]
-	public function routeListFromCommand(CmdContext $context, #[NCA\Str("list")] string $action, #[NCA\Regexp("from|sources?|src")] string $subAction): void {
+	public function routeListFromCommand(
+		CmdContext $context,
+		#[NCA\Str("list")] string $action,
+		#[NCA\Regexp("from|sources?|src", example: "src")] string $subAction
+	): void {
 		$emitters = $this->messageHub->getEmitters();
 		$count = count($emitters);
 		ksort($emitters);
@@ -235,8 +261,13 @@ class MessageHubController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
+	/** List all route destinations */
 	#[NCA\HandlesCommand("route")]
-	public function routeListToCommand(CmdContext $context, #[NCA\Str("list")] string $action, #[NCA\Regexp("to|dsts?|dests?|destinations?")] string $subAction): void {
+	public function routeListToCommand(
+		CmdContext $context,
+		#[NCA\Str("list")] string $action,
+		#[NCA\Regexp("to|dsts?|dests?|destinations?", example: "dst")] string $subAction
+	): void {
 		$receivers = $this->messageHub->getReceivers();
 		$count = count($receivers);
 		ksort($receivers);
@@ -248,8 +279,13 @@ class MessageHubController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
+	/** List all route modifiers */
 	#[NCA\HandlesCommand("route")]
-	public function routeListModifiersCommand(CmdContext $context, #[NCA\Str("list")] string $action, #[NCA\Regexp("mods?|modifiers?")] string $subAction): void {
+	public function routeListModifiersCommand(
+		CmdContext $context,
+		#[NCA\Str("list")] string $action,
+		#[NCA\Regexp("mods?|modifiers?", example: "mods")] string $subAction
+	): void {
 		$mods = $this->messageHub->modifiers;
 		$count = count($mods);
 		if (!$count) {
@@ -271,11 +307,12 @@ class MessageHubController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
+	/** Get detailed information about a route modifier */
 	#[NCA\HandlesCommand("route")]
 	public function routeListModifierCommand(
 		CmdContext $context,
 		#[NCA\Str("list")] string $action,
-		#[NCA\Regexp("mods?|modifiers?")] string $subAction,
+		#[NCA\Regexp("mods?|modifiers?", example: "mod")] string $subAction,
 		string $modifier
 	): void {
 		$mod = $this->messageHub->modifiers[$modifier]??null;
@@ -325,6 +362,7 @@ class MessageHubController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
+	/** Delete a route by its ID */
 	#[NCA\HandlesCommand("route")]
 	public function routeDel(CmdContext $context, PRemove $action, int $id): void {
 		$route = $this->getRoute($id);
@@ -362,6 +400,7 @@ class MessageHubController extends ModuleInstance {
 		}
 	}
 
+	/** Get a list view of all defined routes */
 	#[NCA\HandlesCommand("route")]
 	public function routeList(CmdContext $context, #[NCA\Str("list")] string $action): void {
 		$routes = $this->messageHub->getRoutes();
@@ -383,6 +422,7 @@ class MessageHubController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
+	/** Get a tree view of all defined routes. If 'all' is given, it will include system routes as well */
 	#[NCA\HandlesCommand("route")]
 	public function routeTree(CmdContext $context, #[NCA\Str("tree")] ?string $tree, #[NCA\Str("all")] ?string $all): void {
 		$routes = $this->messageHub->getRoutes();
@@ -461,6 +501,7 @@ class MessageHubController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
+	/** Show the current colors for all sources and routes */
 	#[NCA\HandlesCommand("route")]
 	public function routeListColorConfigCommand(CmdContext $context, #[NCA\Str("color")] string $action): void {
 		$colors = $this->messageHub::$colors;
@@ -533,11 +574,12 @@ class MessageHubController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
+	/** Remove the tag or text color definition for a source or route */
 	#[NCA\HandlesCommand("route")]
 	public function routeTagColorRemCommand(
 		CmdContext $context,
 		#[NCA\Str("color")] string $action,
-		#[NCA\Regexp("tag|text")] string $type,
+		#[NCA\StrChoice("tag", "text")] string $type,
 		PRemove $subAction,
 		PSource $tag,
 		?PWhere $where,
@@ -584,6 +626,7 @@ class MessageHubController extends ModuleInstance {
 		$context->reply("Color definition for <highlight>{$name}<end> deleted.");
 	}
 
+	/** Remove all color definitions for tags and texts */
 	#[NCA\HandlesCommand("route")]
 	public function routeTagColorRemAllCommand(CmdContext $context, #[NCA\Str("color")] string $action, #[NCA\Str("remall")] string $subAction): void {
 		$this->db->table($this->messageHub::DB_TABLE_COLORS)
@@ -592,11 +635,12 @@ class MessageHubController extends ModuleInstance {
 		$context->reply("All route color definitions deleted.");
 	}
 
+	/** Set the tag or text color for a source or route */
 	#[NCA\HandlesCommand("route")]
 	public function routeSetColorCommand(
 		CmdContext $context,
 		#[NCA\Str("color")] string $action,
-		#[NCA\Regexp("tag|text")] string $type,
+		#[NCA\StrChoice("tag", "text")] string $type,
 		#[NCA\Str("set")] string $subAction,
 		PSource $tag,
 		?PWhere $where,
@@ -657,11 +701,12 @@ class MessageHubController extends ModuleInstance {
 		);
 	}
 
+	/** Pick the tag or text color for a source or route */
 	#[NCA\HandlesCommand("route")]
 	public function routePickColorCommand(
 		CmdContext $context,
 		#[NCA\Str("color")] string $action,
-		#[NCA\Regexp("tag|text")] string $type,
+		#[NCA\StrChoice("tag", "text")] string $type,
 		#[NCA\Str("pick")] string $subAction,
 		PSource $tag,
 		?PWhere $where,
@@ -712,6 +757,7 @@ class MessageHubController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
+	/** Show how the hops of a route are rendered */
 	#[NCA\HandlesCommand("route")]
 	public function routeListFormatCommand(CmdContext $context, #[NCA\Str("format")] string $action): void {
 		$formats = Source::$format;
@@ -760,6 +806,7 @@ class MessageHubController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
+	/** Reset the rendering of a hop to the default */
 	#[NCA\HandlesCommand("route")]
 	public function routeFormatClearCommand(
 		CmdContext $context,
@@ -775,6 +822,7 @@ class MessageHubController extends ModuleInstance {
 		$context->reply("Format cleared for <highlight>{$hop}<end>.");
 	}
 
+	/** Reset the rendering of all hops to their default */
 	#[NCA\HandlesCommand("route")]
 	public function routeFormatRemAllCommand(CmdContext $context, #[NCA\Str("format")] string $action, #[NCA\Str("remall")] string $subAction): void {
 		$this->db->table(Source::DB_TABLE)->truncate();
@@ -782,6 +830,7 @@ class MessageHubController extends ModuleInstance {
 		$context->reply("All route format definitions deleted.");
 	}
 
+	/** Switch the displaying of a hop's name on or off */
 	#[NCA\HandlesCommand("route")]
 	public function routeFormatChangeRenderCommand(
 		CmdContext $context,
@@ -799,6 +848,7 @@ class MessageHubController extends ModuleInstance {
 		$context->reply("Format saved.");
 	}
 
+	/** Change the display text format of a hop's name */
 	#[NCA\HandlesCommand("route")]
 	public function routeFormatChangeDisplayCommand(
 		CmdContext $context,
@@ -825,6 +875,7 @@ class MessageHubController extends ModuleInstance {
 		$context->reply("Display format saved.");
 	}
 
+	/** Remove all routes. Do not use unless you know what you are doing */
 	#[NCA\HandlesCommand("route")]
 	public function routeRemAllCommand(CmdContext $context, #[NCA\Str("remall")] string $action): void {
 		try {

@@ -16,6 +16,8 @@ use Nadybot\Core\{
 	MessageEmitter,
 	Modules\DISCORD\DiscordController,
 	Nadybot,
+	ParamClass\PDuration,
+	ParamClass\PRemove,
 	Registry,
 	Routing\RoutableMessage,
 	Routing\Source,
@@ -24,12 +26,9 @@ use Nadybot\Core\{
 	Text,
 	Util,
 };
-use Nadybot\Core\ParamClass\PDuration;
-use Nadybot\Core\ParamClass\PRemove;
 
 /**
  * @author Tyrence (RK2)
- * Commands this class contains:
  */
 #[
 	NCA\Instance,
@@ -38,13 +37,11 @@ use Nadybot\Core\ParamClass\PRemove;
 		command: "rtimer",
 		accessLevel: "guild",
 		description: "Adds a repeating timer",
-		help: "timers.txt"
 	),
 	NCA\DefineCommand(
 		command: "timers",
 		accessLevel: "guild",
 		description: "Sets and shows timers",
-		help: "timers.txt",
 		alias: "timer"
 	),
 	NCA\ProvidesEvent("timer(start)"),
@@ -56,7 +53,6 @@ use Nadybot\Core\ParamClass\PRemove;
 	)
 ]
 class TimerController extends ModuleInstance implements MessageEmitter {
-
 	public const DB_TABLE = "timers_<myname>";
 
 	#[NCA\Inject]
@@ -98,7 +94,6 @@ class TimerController extends ModuleInstance implements MessageEmitter {
 
 	#[NCA\Setup]
 	public function setup(): void {
-
 		$this->timers = [];
 		/** @var Collection<Timer> */
 		$data = $this->readAllTimers();
@@ -261,13 +256,14 @@ class TimerController extends ModuleInstance implements MessageEmitter {
 	}
 
 	/**
-	 * This command handler adds a repeating timer.
+	 * Create a new repeating timer, repeating every &lt;interval&gt; after &lt;initial&gt;
 	 */
 	#[NCA\HandlesCommand("rtimer")]
+	#[NCA\Help\Group("timers")]
 	public function rtimerCommand(
 		CmdContext $context,
 		#[NCA\Str("add")] ?string $action,
-		PDuration $initial,
+		PDuration $duration,
 		PDuration $interval,
 		string $name
 	): void {
@@ -280,7 +276,7 @@ class TimerController extends ModuleInstance implements MessageEmitter {
 			return;
 		}
 
-		$initialRunTime = $initial->toSecs();
+		$initialRunTime = $duration->toSecs();
 		$runTime = $interval->toSecs();
 
 		if ($runTime < 1) {
@@ -319,7 +315,9 @@ class TimerController extends ModuleInstance implements MessageEmitter {
 		$this->eventManager->fireEvent($sTimer);
 	}
 
+	/** Show a specific timer */
 	#[NCA\HandlesCommand("timers")]
+	#[NCA\Help\Group("timers")]
 	public function timersViewCommand(CmdContext $context, #[NCA\Str("view")] string $action, string $id): void {
 		$timer = $this->get($id);
 		if ($timer === null) {
@@ -341,7 +339,13 @@ class TimerController extends ModuleInstance implements MessageEmitter {
 		$context->reply($msg);
 	}
 
+	/**
+	 * Remove a timer
+	 *
+	 * You can only remove other peoples' timers if you are a moderator or higher
+	 */
 	#[NCA\HandlesCommand("timers")]
+	#[NCA\Help\Group("timers")]
 	public function timersRemoveCommand(CmdContext $context, PRemove $action, int $id): void {
 		$timer = $this->get($id);
 		if ($timer === null) {
@@ -367,7 +371,9 @@ class TimerController extends ModuleInstance implements MessageEmitter {
 		return "";
 	}
 
+	/** Add a new timer that triggers after &lt;duration&gt; */
 	#[NCA\HandlesCommand("timers")]
+	#[NCA\Help\Group("timers")]
 	public function timersAddCommand(
 		CmdContext $context,
 		#[NCA\Str("add")] ?string $action,
@@ -395,7 +401,9 @@ class TimerController extends ModuleInstance implements MessageEmitter {
 		}
 	}
 
+	/** Show all currently running timers and repeating timers */
 	#[NCA\HandlesCommand("timers")]
+	#[NCA\Help\Group("timers")]
 	public function timersListCommand(CmdContext $context): void {
 		$timers = $this->getAllTimers();
 		$count = count($timers);

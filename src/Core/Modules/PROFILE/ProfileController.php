@@ -37,7 +37,6 @@ use Safe\Exceptions\FilesystemException;
 
 /**
  * @author Tyrence (RK2)
- * Commands this controller contains:
  */
 #[
 	NCA\Instance,
@@ -45,7 +44,6 @@ use Safe\Exceptions\FilesystemException;
 		command: "profile",
 		accessLevel: "admin",
 		description: "View, add, remove, and load profiles",
-		help: "profile.txt",
 		alias: "profiles"
 	)
 ]
@@ -84,9 +82,6 @@ class ProfileController extends ModuleInstance {
 
 	private string $path;
 
-	/**
-	 * This handler is called on bot startup.
-	 */
 	#[NCA\Setup]
 	public function setup(): void {
 		$dataPath = $this->config->dataFolder;
@@ -119,7 +114,13 @@ class ProfileController extends ModuleInstance {
 		return $profileList;
 	}
 
+	/** See the list of available profiles */
 	#[NCA\HandlesCommand("profile")]
+	#[NCA\Help\Epilogue(
+		"Note: Profiles are stored in ./data/profiles. ".
+		"Only lines that start with '!' will be executed and all other lines will ".
+		"be ignored. Feel free to add or edit profiles as you wish."
+	)]
 	public function profileListCommand(CmdContext $context): void {
 		try {
 			$profileList = $this->getProfileList();
@@ -145,6 +146,7 @@ class ProfileController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
+	/** View a profile */
 	#[NCA\HandlesCommand("profile")]
 	public function profileViewCommand(CmdContext $context, #[NCA\Str("view")] string $action, PFilename $profileName): void {
 		$profileName = $profileName();
@@ -161,15 +163,16 @@ class ProfileController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
+	/** Save the current configuration as a profile */
 	#[NCA\HandlesCommand("profile")]
-	public function profileSaveCommand(CmdContext $context, #[NCA\Str("save")] string $action, PFilename $fileName): void {
-		$fileName = $fileName();
+	public function profileSaveCommand(CmdContext $context, #[NCA\Str("save")] string $action, PFilename $profileName): void {
+		$profileName = $profileName();
 		try {
-			$this->saveProfile($fileName);
+			$this->saveProfile($profileName);
 		} catch (Exception $e) {
 			$context->reply($e->getMessage());
 		}
-		$msg = "Profile <highlight>{$fileName}<end> has been saved.";
+		$msg = "Profile <highlight>{$profileName}<end> has been saved.";
 		$context->reply($msg);
 	}
 
@@ -254,9 +257,10 @@ class ProfileController extends ModuleInstance {
 		return \Safe\file_put_contents($filename, $contents) !== false;
 	}
 
+	/** Remove a profile */
 	#[NCA\HandlesCommand("profile")]
-	public function profileRemCommand(CmdContext $context, PRemove $action, PFilename $fileName): void {
-		$profileName = $fileName();
+	public function profileRemCommand(CmdContext $context, PRemove $action, PFilename $profileName): void {
+		$profileName = $profileName();
 		$filename = $this->getFilename($profileName);
 		if (!@file_exists($filename)) {
 			$msg = "Profile <highlight>{$profileName}<end> does not exist.";
@@ -273,9 +277,10 @@ class ProfileController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
+	/** Load a profile, replacing all your settings with the profile's */
 	#[NCA\HandlesCommand("profile")]
-	public function profileLoadCommand(CmdContext $context, #[NCA\Str("load")] string $action, PFilename $fileName): void {
-		$profileName = $fileName();
+	public function profileLoadCommand(CmdContext $context, #[NCA\Str("load")] string $action, PFilename $profileName): void {
+		$profileName = $profileName();
 		$filename = $this->getFilename($profileName);
 
 		if (!@file_exists($filename)) {

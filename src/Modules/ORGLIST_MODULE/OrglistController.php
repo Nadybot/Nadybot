@@ -23,7 +23,6 @@ use Nadybot\Core\{
 /**
  * @author Tyrence (RK2)
  * @author Lucier (RK1)
- * Commands this controller contains:
  */
 #[
 	NCA\Instance,
@@ -31,11 +30,9 @@ use Nadybot\Core\{
 		command: "orglist",
 		accessLevel: "guild",
 		description: "Check an org roster",
-		help: "orglist.txt"
 	)
 ]
 class OrglistController extends ModuleInstance {
-
 	#[NCA\Inject]
 	public DB $db;
 
@@ -80,6 +77,7 @@ class OrglistController extends ModuleInstance {
 		return $this->orgrankmap[ucfirst(strtolower($governingForm))] ?? [];
 	}
 
+	/** Stop a running orglist lookup */
 	#[NCA\HandlesCommand("orglist")]
 	public function orglistEndCommand(CmdContext $context, #[NCA\Str("end")] string $action): void {
 		if (isset($this->orglist)) {
@@ -89,7 +87,14 @@ class OrglistController extends ModuleInstance {
 		}
 	}
 
+	/**
+	 * Show who is online in an org / a player's org
+	 *
+	 * You can use '%' as a wildcard in the org name
+	 */
 	#[NCA\HandlesCommand("orglist")]
+	#[NCA\Help\Example("<symbol>orglist Team Rainbow")]
+	#[NCA\Help\Example("<symbol>orglist Nadyita")]
 	public function orglistCommand(CmdContext $context, string $search): void {
 		if (preg_match("/^\d+$/", $search)) {
 			$this->checkOrglist((int)$search, $context);

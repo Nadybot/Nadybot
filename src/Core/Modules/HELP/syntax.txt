@@ -1,0 +1,42 @@
+The command syntax is automatically created from the command definition in the bot.
+Therefore, it is always 100% correct and consistent, but maybe not 100% self-explanatory.
+To help you understand how to read the command syntax, read further.
+
+If you've already done so and feel like the reminder on each page is annoying you, use
+<a href='chatcmd:///tell <myname> help disable explanation'><symbol>help disable explanation</a> to turn it off.
+
+<header2>Syntax explanation<end>
+
+<highlight>lorem ipsum<end>
+<tab>denotes a required, literal text 'lorem ipsum'
+<highlight>one|two|three<end>
+<tab>denotes a required, literal choice out of 'one', 'two', or 'three'
+<highlight>[lorem]<end>
+<tab>denotes an optional, literal text 'lorem'
+<highlight>[one|two|three]<end>
+<tab>denotes an optional, literal choice out of 'one', 'two', or 'three'
+<highlight>&lt;arg&gt;<end>
+<tab>denotes a required argument of the type 'arg'
+<highlight>&lt;arg&gt;|all<end>
+<tab>denotes a required argument of the type 'arg' or the literal text 'all'
+<highlight>&lt;arg1&gt; &lt;arg2&gt; ...<end>
+<tab>denotes one or more required arguments of the type 'arg'
+<highlight>[&lt;arg&gt;]<end>
+<tab>denotes an optional argument of the type 'arg'
+<highlight>[&lt;arg&gt;|all]<end>
+<tab>denotes an optional argument of the type 'arg' or the optional literal text 'all'
+<highlight>[&lt;arg1&gt;] [&lt;arg2&gt;] ...<end>
+<tab>denotes zero or more optional arguments of the type 'arg'
+
+<header2>Command argument types<end>
+
+<highlight>&lt;duration&gt;<end> / <highlight>&lt;interval&gt;<end>
+<tab>denotes a "Budatime" duration like '5h10m'. See <a href='chatcmd:///tell <myname> help budabot'><symbol>help budatime</a> for a complete description.
+<highlight>&lt;playfield&gt;<end>
+<tab>denotes a playfield in short form like 'PW' for Perpetual Wastelands. See <a href='chatcmd:///tell <myname> playfield'><symbol>playfield</a> for a list.
+<highlight>&lt;tower site&gt;<end>
+<tab>denotes a playfield followed by the site number, e.g. 'PW 12' or 'PW12' for site X12 in Perpetual Wastelands.
+<highlight>&lt;char&gt;<end>
+<tab>denotes the name of a character, no matter if written in upper- or lowercase
+<highlight>&lt;id&gt;<end> / <highlight>&lt;uid&gt;<end>
+<tab>denotes a non-negative number

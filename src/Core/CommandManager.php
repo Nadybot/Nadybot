@@ -22,11 +22,14 @@ use Nadybot\Core\{
 	Modules\BAN\BanController,
 	Modules\CONFIG\CommandSearchController,
 	Modules\LIMITS\LimitsController,
+	Modules\PREFERENCES\Preferences,
 	Modules\USAGE\UsageController,
 	ParamClass\Base,
 	Routing\RoutableMessage,
 	Routing\Source,
 };
+use Nadybot\Core\Modules\HELP\HelpController;
+use ReflectionAttribute;
 
 #[
 	NCA\Instance,
@@ -62,6 +65,9 @@ class CommandManager implements MessageEmitter {
 
 	#[NCA\Inject]
 	public HelpManager $helpManager;
+
+	#[NCA\Inject]
+	public Preferences $preferences;
 
 	#[NCA\Inject]
 	public Text $text;
@@ -149,11 +155,10 @@ class CommandManager implements MessageEmitter {
 	 *                                "raidleader", "moderator", "administrator", "none", "superadmin", "admin"
 	 *                                "mod", "guild", "member", "rl", "guest", "all"
 	 * @param string   $description   A short description what this command is for
-	 * @param string   $help          The optional name of file with extended information (without .txt)
 	 * @param int|null $defaultStatus The default state of this command:
 	 *                                1 (enabled), 0 (disabled) or null (use default value as configured)
 	 */
-	public function register(string $module, string $filename, string $command, string $accessLevelStr, string $description, ?string $help='', ?int $defaultStatus=null): void {
+	public function register(string $module, string $filename, string $command, string $accessLevelStr, string $description, ?int $defaultStatus=null): void {
 		$command = strtolower($command);
 		$module = strtoupper($module);
 		$accessLevel = $this->accessManager->getAccessLevel($accessLevelStr);
@@ -169,10 +174,6 @@ class CommandManager implements MessageEmitter {
 				$this->logger->error("Error registering method '$handler' for command '$command'.  Could not find instance '$name'.");
 				return;
 			}
-		}
-
-		if (!empty($help)) {
-			$help = $this->helpManager->checkForHelpFile($module, $help);
 		}
 
 		if ($defaultStatus === null) {
@@ -200,12 +201,11 @@ class CommandManager implements MessageEmitter {
 						"verify" => 1,
 						"file" => $filename,
 						"description" => $description,
-						"help" => $help,
 						"cmd" => $command,
 						"cmdevent" => "cmd",
 					],
 					["cmd"],
-					["module", "verify", "file", "description", "help"]
+					["module", "verify", "file", "description"]
 				);
 		} catch (SQLException $e) {
 			$this->logger->error("Error registering method '$handler' for command '$command': " . $e->getMessage(), ["exception" => $e]);
@@ -511,7 +511,7 @@ class CommandManager implements MessageEmitter {
 			$event->type = "command(success)";
 
 			if ($handler === null) {
-				$help = $this->getHelpForCommand($cmd, $context->char->name);
+				$help = $this->getHelpForCommand($cmd, $context);
 				$context->reply($help);
 				$event->type = "command(help)";
 				$this->eventManager->fireEvent($event);
@@ -577,81 +577,81 @@ class CommandManager implements MessageEmitter {
 			$instance = Registry::getInstance($name);
 			if ($instance === null) {
 				$this->logger->error("Could not find instance for name '$name'");
-			} else {
-				$arr = $this->checkMatches($instance, $method, $context->message);
-				if ($arr !== false) {
-					$context->args = is_bool($arr) ? [] : $arr;
-					$refClass = new ReflectionClass($instance);
-					$refMethod = $refClass->getMethod($method);
-					$params = $refMethod->getParameters();
-					// methods will return false to indicate a syntax error, so when a false is returned,
-					// we set $syntaxError = true, otherwise we set it to false
-					if (count($params) > 0
-						&& $params[0]->hasType()
-						&& ($type = $params[0]->getType())
-						&& ($type instanceof ReflectionNamedType)
-						&& ($type->getName() === CmdContext::class)
-					) {
-						$args = [];
-						for ($i = 1; $i < count($params); $i++) {
-							$var = $params[$i]->getName();
-							if (!$params[$i]->hasType() || !isset($context->args[$var]) || ($context->args[$var] === '' && $params[$i]->allowsNull())) {
-								if (!$params[$i]->isVariadic()) {
-									$args []= null;
-								}
-								continue;
+				continue;
+			}
+			$arr = $this->checkMatches($instance, $method, $context->message);
+			if ($arr === false) {
+				continue;
+			}
+			$context->args = is_bool($arr) ? [] : $arr;
+			$refClass = new ReflectionClass($instance);
+			$refMethod = $refClass->getMethod($method);
+			$params = $refMethod->getParameters();
+			/** @psalm-suppress TypeDoesNotContainNull */
+			if (count($params) === 0
+				|| !$params[0]->hasType()
+				|| ($type = $params[0]->getType()) === null
+				|| !($type instanceof ReflectionNamedType)
+				|| ($type->getName() !== CmdContext::class)
+			) {
+				continue;
+			}
+			$args = [];
+			for ($i = 1; $i < count($params); $i++) {
+				$var = $params[$i]->getName();
+				if (!$params[$i]->hasType() || !isset($context->args[$var]) || ($context->args[$var] === '' && $params[$i]->allowsNull())) {
+					if (!$params[$i]->isVariadic()) {
+						$args []= null;
+					}
+					continue;
+				}
+				$type = $params[$i]->getType();
+				if (!($type instanceof ReflectionNamedType) || (!$type->isBuiltin() && !is_subclass_of($type->getName(), Base::class))) {
+					$args []= null;
+					continue;
+				}
+				/** @var ReflectionNamedType $type */
+				if (is_array($context->args[$var]) && !$params[$i]->isVariadic()) {
+					$context->args[$var] = $context->args[$var][0];
+				}
+				switch ($type->getName()) {
+					case "int":
+						foreach ((array)$context->args[$var] as $val) {
+							$args []= (int)$val;
+						}
+						break;
+					case "bool":
+						foreach ((array)$context->args[$var] as $val) {
+							$args []= in_array(strtolower($val), ["yes", "true", "1", "on", "enable", "enabled"]);
+						}
+						break;
+					case "float":
+						foreach ((array)$context->args[$var] as $val) {
+							$args []= (float)$val;
+						}
+						break;
+					default:
+						if (is_subclass_of($type->getName(), Base::class)) {
+							$class = $type->getName();
+							foreach ((array)$context->args[$var] as $val) {
+								/** @psalm-suppress UnsafeInstantiation */
+								$args []= new $class($val);
 							}
-							$type = $params[$i]->getType();
-							if (!($type instanceof ReflectionNamedType) || (!$type->isBuiltin() && !is_subclass_of($type->getName(), Base::class))) {
-								$args []= null;
-								continue;
-							}
-							/** @var ReflectionNamedType $type */
-							if (is_array($context->args[$var]) && !$params[$i]->isVariadic()) {
-								$context->args[$var] = $context->args[$var][0];
-							}
-							switch ($type->getName()) {
-								case "int":
-									foreach ((array)$context->args[$var] as $val) {
-										$args []= (int)$val;
-									}
-									break;
-								case "bool":
-									foreach ((array)$context->args[$var] as $val) {
-										$args []= in_array(strtolower($val), ["yes", "true", "1", "on", "enable", "enabled"]);
-									}
-									break;
-								case "float":
-									foreach ((array)$context->args[$var] as $val) {
-										$args []= (float)$val;
-									}
-									break;
-								default:
-									if (is_subclass_of($type->getName(), Base::class)) {
-										$class = $type->getName();
-										foreach ((array)$context->args[$var] as $val) {
-											/** @psalm-suppress UnsafeInstantiation */
-											$args []= new $class($val);
-										}
-									} else {
-										foreach ((array)$context->args[$var] as $val) {
-											$args []= $val;
-										}
-									}
-									break;
+						} else {
+							foreach ((array)$context->args[$var] as $val) {
+								$args []= $val;
 							}
 						}
-						$syntaxError = $instance->$method($context, ...$args) === false;
-					} else {
-						continue;
-					}
-					if ($syntaxError == false) {
-						// we can stop looking, command was handled successfully
-
-						$successfulHandler = $handler;
 						break;
-					}
 				}
+			}
+			// methods will return false to indicate a syntax error, so when a false is returned,
+			// we set $syntaxError = true, otherwise we set it to false
+			$syntaxError = $instance->$method($context, ...$args) === false;
+			if ($syntaxError === false) {
+				// we can stop looking, command was handled successfully
+				$successfulHandler = $handler;
+				break;
 			}
 		}
 
@@ -709,23 +709,307 @@ class CommandManager implements MessageEmitter {
 	 * Get the help text for a command
 	 * @return string|string[] The help text as one or more pages
 	 */
-	public function getHelpForCommand(string $cmd, string $sender): string|array {
+	public function getHelpForCommand(string $cmd, CmdContext $context): string|array {
 		$result = $this->get($cmd);
 		if (!isset($result)) {
 			return "Unknown command '{$cmd}'";
 		}
 
-		if (isset($result->help) && $result->help !== '') {
-			$blob = \Safe\file_get_contents($result->help);
-		} else {
-			$blob = $this->helpManager->find($cmd, $sender);
+		return $this->getCmdHelpFromCode($cmd, $context);
+	}
+
+	protected function getRefMethodForHandler(string $handler): ?ReflectionMethod {
+		[$name, $method] = explode(".", $handler);
+		$instance = Registry::getInstance($name);
+		if ($instance === null) {
+			$this->logger->error("Could not find instance for name '$name'");
+			return null;
 		}
-		if (!empty($blob)) {
-			$msg = $this->text->makeBlob("Help ($cmd)", $blob);
-		} else {
-			$msg = "Error! Invalid syntax.";
+		$refClass = new ReflectionClass($instance);
+		try {
+			$refMethod = $refClass->getMethod($method);
+		} catch (ReflectionException $e) {
+			$this->logger->error("Could not find method {$name}::{$method}()");
+			return null;
 		}
-		return $msg;
+		return $refMethod;
+	}
+
+	/**
+	 * @param Collection<ReflectionMethod> $methods
+	 * @return Collection<ReflectionMethod[]>
+	 */
+	public function groupRefMethods(Collection $methods): Collection {
+		$lookup = [];
+		$empty = [];
+		foreach ($methods as $m) {
+			$comment = $m->getDocComment();
+			if ($comment === false) {
+				$empty []= [$m];
+				continue;
+			}
+			$headline = $this->cleanComment($comment)[0];
+			$lookup[$headline] ??= [];
+			$lookup[$headline] []= $m;
+		}
+		return new Collection(array_merge(array_values($lookup), array_values($empty)));
+	}
+
+	/**
+	 * @return string[]
+	 * @phpstan-return array{string, ?string}
+	 */
+	protected function cleanComment(string $comment): array {
+		$comment = trim(preg_replace("|^/\*\*(.*)\*/|s", '$1', $comment));
+		$comment = preg_replace("/^[ \t]*\*[ \t]*/m", '', $comment);
+		$comment = trim(preg_replace("/^@.*/m", '', $comment));
+		/** @phpstan-var array{string, ?string} */
+		$result = \Safe\preg_split("/\r?\n\r?\n/", $comment, 2);
+		return [trim($result[0]), isset($result[1]) ? trim($result[1]) : null];
+	}
+
+	/** @return Collection<ReflectionMethod> */
+	protected function findGroupMembers(string $groupName): Collection {
+		$objs = Registry::getAllInstances();
+		$ms = new Collection();
+		foreach ($objs as $obj) {
+			$refObj = new ReflectionClass($obj);
+			foreach ($refObj->getMethods(\ReflectionMethod::IS_PUBLIC) as $m) {
+				foreach ($m->getAttributes(NCA\Help\Group::class) as $attr) {
+					/** @var NCA\Help\Group */
+					$attrObj = $attr->newInstance();
+					if ($attrObj->group === $groupName) {
+						$ms->push($m);
+					}
+				}
+			}
+		}
+		return $ms;
+	}
+
+	protected function canViewHelp(CmdContext $context, ReflectionMethod $m): bool {
+		if (count($m->getAttributes(NCA\Help\Hide::class)) > 0) {
+			return false;
+		}
+		$cmdAttrs = $m->getAttributes(NCA\HandlesCommand::class);
+		foreach ($cmdAttrs as $cmdAttr) {
+			/** @var NCA\HandlesCommand */
+			$handlesCommand = $cmdAttr->newInstance();
+			$cmd = explode(" ", $handlesCommand->command)[0];
+			if (isset($this->subcommandManager->subcommands[$cmd])) {
+				foreach ($this->subcommandManager->subcommands[$cmd] as $row) {
+					if (!isset($row->permissions[$context->permissionSet])
+						|| ($row->cmd !== $handlesCommand->command)
+						|| (!$row->permissions[$context->permissionSet]->enabled)
+					) {
+						continue;
+					}
+					$handler = new CommandHandler($row->file, $row->permissions[$context->permissionSet]->access_level);
+				}
+			}
+			if (!isset($handler)) {
+				$handler = $this->commands[$context->permissionSet][$cmd] ?? null;
+			}
+			if (!isset($handler)) {
+				continue;
+			}
+			if ($this->accessManager->checkAccess($context->char->name, $handler->admin) === true) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	/**
+	 * Get the help text for a command, purely from the code
+	 * @return string|string[] The help text as one or more pages
+	 */
+	public function getCmdHelpFromCode(string $cmd, CmdContext $context): string|array {
+		$cmds = $this->db->table(self::DB_TABLE)
+			->where("dependson", $cmd)
+			->orWhere("cmd", $cmd)
+			->asObj(CmdCfg::class)
+			->pluck("file")
+			->join(",");
+		if ($cmds === "" ||  !isset($context->permissionSet)) {
+			return "No help for {$cmd}.";
+		}
+		$parts = [];
+		$prologues = [];
+		$epilogues = [];
+		/** @var Collection<ReflectionMethod> */
+		$methods = new Collection();
+		foreach (explode(',', $cmds) as $handler) {
+			$methods->push($this->getRefMethodForHandler($handler));
+		}
+		$ms = new Collection();
+		foreach ($methods->filter() as $m) {
+			foreach ($m->getAttributes(NCA\Help\Group::class) as $attr) {
+				/** @var NCA\Help\Group */
+				$attrObj = $attr->newInstance();
+				$ms->push(...$this->findGroupMembers($attrObj->group)->toArray());
+			}
+		}
+		$methods = $methods->merge($ms)->unique();
+		$methods = $methods->filter(function (ReflectionMethod $m) use ($context): bool {
+			return $this->canViewHelp($context, $m);
+		});
+		$grouped = $this->groupRefMethods($methods->filter());
+		foreach ($grouped as $refMethods) {
+			$parts []= $this->getHelpText($refMethods, $cmd);
+			if (count($prologue = $refMethods[0]->getAttributes(NCA\Help\Prologue::class)) > 0) {
+				/** @var NCA\Help\Prologue */
+				$prologue = $prologue[0]->newInstance();
+				$prologues []= $prologue->text;
+			}
+			if (count($epilogue = $refMethods[0]->getAttributes(NCA\Help\Epilogue::class)) > 0) {
+				/** @var NCA\Help\Epilogue */
+				$epilogue = $epilogue[0]->newInstance();
+				$epilogues []= $epilogue->text;
+			}
+		}
+		if (empty($parts)) {
+			return "No help for {$cmd}.";
+		}
+		$blob = "<header2>Command Syntax<end>\n\n" . join("\n\n", $parts);
+		if (count($prologues)) {
+			$blob = join("\n\n", $prologues) . "\n\n{$blob}";
+		}
+		if (count($epilogues)) {
+			$blob .= "\n\n" . join("\n\n", $epilogues);
+		}
+		return $this->text->makeBlob("Help ($cmd)", $blob . $this->getSyntaxExplanation($context));
+	}
+
+	public function getSyntaxExplanation(CmdContext $context, bool $ignorePrefs=false): string {
+		$showSyntax = $this->preferences->get($context->char->name, HelpController::LEGEND_PREF) ?? "1";
+		if ($showSyntax === "0" && !$ignorePrefs) {
+			return "";
+		}
+		return "\n\n<i>See " . $this->text->makeChatcmd("<symbol>help syntax", "/tell <myname> help syntax").
+			" for an explanation of the command syntax</i>";
+	}
+
+	/** @param ReflectionMethod[] $ms */
+	public function getHelpText(array $ms, string $command): string {
+		foreach ($ms as $m) {
+			$params = $m->getParameters();
+			if (count($params) === 0
+				|| !$params[0]->hasType()) {
+				throw new Exception("Wrong command function signature");
+			}
+			$type = $params[0]->getType();
+			if (!($type instanceof ReflectionNamedType)
+				|| ($type->getName() !== CmdContext::class)) {
+				throw new Exception("Wrong command function signature");
+			}
+			$cmds = $m->getAttributes(NCA\HandlesCommand::class);
+			if (count($cmds) === 0) {
+				throw new Exception("Wrong command function signature");
+			}
+		}
+		$lines = [];
+		$extra = [];
+		$comment = $ms[0]->getDocComment();
+		if ($comment !== false) {
+			$parts = $this->cleanComment($comment);
+			$lines []= trim($parts[0]);
+			if (isset($parts[1])) {
+				$extra []= "<i>" . trim($parts[1]) . "</i>";
+			}
+		}
+		for ($j = 0; $j < count($ms); $j++) {
+			$m = $ms[$j];
+			$params = $m->getParameters();
+			$commandAttrs = $m->getAttributes(NCA\HandlesCommand::class);
+			for ($k = 0; $k < count($commandAttrs); $k++) {
+				/** @var NCA\HandlesCommand */
+				$commandObj = $commandAttrs[$k]->newInstance();
+				$commandName = explode(" ", $commandObj->command)[0];
+				$paramText = ["<symbol>{$commandName}"];
+				for ($i = 1; $i < count($params); $i++) {
+					$niceParam = $this->getParamText($params[$i], count($params));
+					if (!isset($niceParam)) {
+						throw new Exception("Wrong command function signature");
+					}
+					if ($params[$i]->allowsNull()) {
+						$niceParam = "[{$niceParam}]";
+					}
+					if ($params[$i]->isVariadic()) {
+						$parMask = str_replace("&gt;", "%d&gt;", preg_replace("/s\b/", "", preg_replace("/ies\b/", "y", $niceParam)));
+						$ones = array_fill(0, substr_count($parMask, "%d"), 1);
+						$twos = array_fill(0, substr_count($parMask, "%d"), 2);
+						$niceParam = sprintf($parMask, ...$ones) . " " . sprintf($parMask, ...$twos) . " ...";
+					}
+					$paramText []= $niceParam;
+				}
+				if ($j > 0 && $k === 0) {
+					$lines []= "or";
+				}
+				$lines []= "<tab><highlight>" . join(" ", $paramText) . "<end>";
+			}
+			$examples = $m->getAttributes(NCA\Help\Example::class);
+			foreach ($examples as $exAttr) {
+				/** @var NCA\Help\Example */
+				$example = $exAttr->newInstance();
+				$lines []= "<tab>-&gt; <highlight>{$example->command}<end>".
+					(isset($example->description) ? " - {$example->description}" : "");
+			}
+		}
+		if (count($extra) > 0) {
+			$lines = array_merge($lines, $extra);
+		}
+		return join("\n", $lines);
+	}
+
+	public function getParamText(ReflectionParameter $param, int $paramCount): ?string {
+		if (!$param->hasType()) {
+			return null;
+		}
+		$type = $param->getType();
+		if (!($type instanceof ReflectionNamedType)) {
+			return null;
+		}
+		if (!$type->isBuiltin() && !is_subclass_of($type->getName(), Base::class)) {
+			return null;
+		}
+		$niceName = preg_replace_callback(
+			"/([A-Z]+)/",
+			function (array $matches): string {
+				return " " . strtolower($matches[1]);
+			},
+			$param->getName(),
+		);
+		$niceName = "&lt;{$niceName}&gt;";
+		if ($type->isBuiltin()) {
+			$attrs = $param->getAttributes(ParamAttribute::class, ReflectionAttribute::IS_INSTANCEOF);
+			if (!empty($attrs)) {
+				return join(
+					"|",
+					array_map(function (ReflectionAttribute $attr) use ($param): string {
+						/** @var ParamAttribute */
+						$attrObj = $attr->newInstance();
+						return $attrObj->renderParameter($param);
+					}, $attrs)
+				);
+			}
+			switch ($type->getName()) {
+				case "bool":
+					if ($param->getPosition() !== $paramCount - 1) {
+						return "enable|disable";
+					}
+					return "yes|no";
+				default:
+					return $niceName;
+			}
+		} elseif (is_subclass_of($type->getName(), Base::class)) {
+			$class = $type->getName();
+			$example = $class::getExample();
+			if (isset($example)) {
+				$niceName = $example;
+			}
+		}
+		return $niceName;
 	}
 
 	/**
@@ -784,16 +1068,16 @@ class CommandManager implements MessageEmitter {
 		$varName = $param->getName();
 		if ($type->isBuiltin()) {
 			$mask = null;
-			$constAttrs = $param->getAttributes(NCA\Str::class);
-			$regexpAttrs = $param->getAttributes(NCA\Regexp::class);
-			if (!empty($constAttrs)) {
-				/** @var NCA\Str */
-				$constObj = $constAttrs[0]->newInstance();
-				$mask = join("|", array_map("preg_quote", $constObj->values));
-			} elseif (!empty($regexpAttrs)) {
-				/** @var NCA\Regexp */
-				$regexpObj = $regexpAttrs[0]->newInstance();
-				$mask = $regexpObj->value;
+			$attrs = $param->getAttributes(ParamAttribute::class, ReflectionAttribute::IS_INSTANCEOF);
+			if (!empty($attrs)) {
+				$mask = join(
+					"|",
+					array_map(function (ReflectionAttribute $attr): string {
+						/** @var ParamAttribute */
+						$attrObj = $attr->newInstance();
+						return $attrObj->getRegexp();
+					}, $attrs)
+				);
 			}
 			switch ($type->getName()) {
 				case "string":

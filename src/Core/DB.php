@@ -24,7 +24,6 @@ use Throwable;
 #[NCA\Instance]
 #[NCA\HasMigrations(module: "Core")]
 class DB {
-
 	public const SQLITE_MIN_VERSION = "3.24.0";
 
 	#[NCA\Inject]
@@ -106,6 +105,10 @@ class DB {
 	/** Get the dimension id of the bot */
 	public function getDim(): int {
 		return $this->config->dimension;
+	}
+
+	public function getVersion(): string {
+		return $this->config->dbType . " " . $this->sql->getAttribute(PDO::ATTR_SERVER_VERSION);
 	}
 
 	/**

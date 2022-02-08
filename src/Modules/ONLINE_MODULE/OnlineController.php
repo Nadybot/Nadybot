@@ -41,7 +41,6 @@ use Nadybot\Modules\{
  * @author Tyrence (RK2)
  * @author Mindrila (RK1)
  * @author Naturarum (Paradise, RK2)
- * Commands this class contains:
  */
 #[
 	NCA\Instance,
@@ -50,7 +49,6 @@ use Nadybot\Modules\{
 		command: "online",
 		accessLevel: "member",
 		description: "Shows who is online",
-		help: "online.txt"
 	),
 	NCA\ProvidesEvent("online(org)"),
 	NCA\ProvidesEvent("offline(org)")
@@ -248,18 +246,21 @@ class OnlineController extends ModuleInstance {
 			->where("added_by", $this->db->getBotname());
 	}
 
+	/** Show a full list of players online with their alts */
 	#[NCA\HandlesCommand("online")]
 	public function onlineCommand(CmdContext $context): void {
 		$msg = $this->getOnlineList();
 		$context->reply($msg);
 	}
 
+	/** Show a full list of players online, including other bots you share online list with */
 	#[NCA\HandlesCommand("online")]
 	public function onlineAllCommand(CmdContext $context, #[NCA\Str("all")] string $action): void {
 		$msg = $this->getOnlineList(1);
 		$context->reply($msg);
 	}
 
+	/** Show a list of players that have the specified profession as an alt */
 	#[NCA\HandlesCommand("online")]
 	public function onlineProfCommand(CmdContext $context, string $profName): void {
 		$profession = $this->util->getProfessionName($profName);

@@ -1,8 +1,0 @@
-To set a logoff message:
-<highlight><tab><symbol>logoff 'insert message here'<end>
-
-To clear your logoff message:
-<highlight><tab><symbol>logoff clear<end>
-
-To see your logoff message:
-<highlight><tab><symbol>logoff<end>

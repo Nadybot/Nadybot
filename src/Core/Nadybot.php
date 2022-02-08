@@ -36,7 +36,6 @@ use Throwable;
 
 #[NCA\Instance]
 class Nadybot extends AOChat {
-
 	public const PING_IDENTIFIER = "Nadybot";
 
 	#[NCA\Inject]
@@ -1316,7 +1315,6 @@ class Nadybot extends AOChat {
 				(string)$command,
 				$definition['accessLevel'],
 				$definition['description'],
-				$definition['help'],
 				$definition['defaultStatus']
 			);
 		}
@@ -1333,7 +1331,6 @@ class Nadybot extends AOChat {
 				$definition['accessLevel'],
 				$definition['parentCommand'],
 				$definition['description'],
-				$definition['help'],
 				$definition['defaultStatus']
 			);
 		}

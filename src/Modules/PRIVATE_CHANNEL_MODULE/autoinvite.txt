@@ -1,5 +1,0 @@
-To set your autoinvite preference to on:
-<highlight><tab><symbol>autoinvite on<end>
-
-To set your autoinvite preference to off:
-<highlight><tab><symbol>autoinvite off<end>

@@ -3,8 +3,8 @@
 namespace Nadybot\Modules\ITEMS_MODULE;
 
 use Illuminate\Support\Collection;
-use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{
+	Attributes as NCA,
 	CmdContext,
 	DB,
 	Http,
@@ -16,9 +16,6 @@ use Nadybot\Core\{
 	Util,
 };
 
-/**
- * Commands this controller contains:
- */
 #[
 	NCA\Instance,
 	NCA\HasMigrations("Migrations/Items"),
@@ -26,20 +23,17 @@ use Nadybot\Core\{
 		command: "items",
 		accessLevel: "all",
 		description: "Searches for an item using the default items db",
-		help: "items.txt",
 		alias: "i"
 	),
 	NCA\DefineCommand(
 		command: "itemid",
 		accessLevel: "all",
 		description: "Searches for an item by id",
-		help: "items.txt"
 	),
 	NCA\DefineCommand(
 		command: "id",
 		accessLevel: "all",
 		description: "Searches for an itemid by name",
-		help: "items.txt"
 	)
 ]
 class ItemsController extends ModuleInstance {
@@ -88,13 +82,22 @@ class ItemsController extends ModuleInstance {
 			->toArray();
 	}
 
+	/**
+	 * Search for an item by name, optionally in a specific QL.
+	 * You can also use '-&lt;search&gt;' to exclude those matching the term
+	 */
 	#[NCA\HandlesCommand("items")]
+	#[NCA\Help\Example("<symbol>items first tier nano")]
+	#[NCA\Help\Example("<symbol>items 133 first tier nano")]
+	#[NCA\Help\Example("<symbol>items panther -ofab")]
 	public function itemsCommand(CmdContext $context, ?int $ql, string $search): void {
 		$msg = $this->findItems($ql, $search);
 		$context->reply($msg);
 	}
 
+	/** Show information about an item id */
 	#[NCA\HandlesCommand("itemid")]
+	#[NCA\Help\Example("<symbol>itemid 244718", "Show Burden of Competence")]
 	public function itemIdCommand(CmdContext $context, int $id): void {
 		$row = ItemSearchResult::fromItem($this->findById($id));
 		if ($row === null) {
@@ -103,8 +106,42 @@ class ItemsController extends ModuleInstance {
 			return;
 		}
 		$blob = "";
+		$types = $this->db->table("item_types")
+			->where("item_id", $id)
+			->select("item_type")
+			->pluckAs("item_type", "string")
+			->toArray();
 		foreach (get_object_vars($row) as $key => $value) {
-			if ($key !== "numExactMatches") {
+			if ($key === "numExactMatches") {
+				continue;
+			}
+			$key = str_replace("_", " ", $key);
+			if ($key === "flags") {
+				$blob .= "$key: <highlight>" . join(", ", $this->flagsToText((int)$value)) . "<end>\n";
+			} elseif ($key === "slot") {
+				$slots = $this->slotToText((int)$value);
+				if (count(array_diff($types, ["Util", "Hud", "Deck", "Weapon"]))) {
+					$slots = array_diff($slots, [
+						"UTILS1", "UTILS2", "UTILS3",
+						"HUD1", "HUD2", "HUD3", "DECK", "LHAND", "RHAND"
+					]);
+				}
+				if (count(array_diff($types, [
+					"Arms", "Back", "Chest", "Feet", "Fingers", "Head", "Legs",
+					"Neck", "Shoulders", "Hands", "Wrists"
+				]))) {
+					$slots = array_diff($slots, [
+						"NECK", "HEAD", "BACK", "RSHOULDER", "BODY", "LSHOULDER",
+						"RARM", "HANDS", "LARM", "RWRIST", "LEGS", "LWRIST",
+						"RFINGER", "FEET", "LFINGER",
+					]);
+				}
+				if (count($slots)) {
+					$blob .= "$key: <highlight>" . join(", ", $slots) . "<end>\n";
+				} else {
+					$blob .= "$key: <highlight>&lt;none&gt;<end>\n";
+				}
+			} else {
 				$blob .= "$key: <highlight>" . (is_bool($value) ? ($value ? "yes" : "no") : ($value??"<empty>")) . "<end>\n";
 			}
 		}
@@ -120,6 +157,32 @@ class ItemsController extends ModuleInstance {
 		);
 
 		$context->reply($msg);
+	}
+
+	/** @return string[] */
+	protected function flagsToText(int $flags): array {
+		$result = [];
+		$refClass = new \ReflectionClass(Flag::class);
+		$constants = $refClass->getConstants();
+		foreach ($constants as $name => $value) {
+			if ($flags & $value) {
+				$result []= $name;
+			}
+		}
+		return $result;
+	}
+
+	/** @return string[] */
+	protected function slotToText(int $flags): array {
+		$result = [];
+		$refClass = new \ReflectionClass(Slot::class);
+		$constants = $refClass->getConstants();
+		foreach ($constants as $name => $value) {
+			if ($flags & $value) {
+				$result []= $name;
+			}
+		}
+		return $result;
 	}
 
 	public function findById(int $id): ?AODBEntry {
@@ -177,6 +240,7 @@ class ItemsController extends ModuleInstance {
 		return $query->asObj(AODBEntry::class);
 	}
 
+	/** Search the item id of an item */
 	#[NCA\HandlesCommand("id")]
 	public function idCommand(CmdContext $context, string $search): void {
 		$query = $this->db->table("aodb AS a")
@@ -230,7 +294,7 @@ class ItemsController extends ModuleInstance {
 		$footer = "QLs between <red>[<end>brackets<red>]<end> denote items matching your name search\n".
 			"Item DB rips created using the $aoiaPlusLink tool.";
 
-		$msg = $this->createItemsBlob($data, $search, $ql, $this->settingManager->getString('aodb_db_version')??"unknown", 'local', $footer);
+		$msg = $this->createItemsBlob($data, $search, $ql, $this->settingManager->getString('aodb_db_version')??"unknown", $footer);
 
 		return $msg;
 	}
@@ -284,12 +348,11 @@ class ItemsController extends ModuleInstance {
 	 * @param string $search
 	 * @param null|int $ql
 	 * @param string $version
-	 * @param string $server
 	 * @param string $footer
 	 * @param mixed|null $elapsed
 	 * @return string|string[]
 	 */
-	public function createItemsBlob(array $data, string $search, ?int $ql, string $version, string $server, string $footer, mixed $elapsed=null): string|array {
+	public function createItemsBlob(array $data, string $search, ?int $ql, string $version, string $footer, mixed $elapsed=null): string|array {
 		$numItems = count($data);
 		$groups = count(
 			array_unique(
@@ -322,7 +385,6 @@ class ItemsController extends ModuleInstance {
 		} else {
 			$blob .= "Search: <highlight>$search<end>\n";
 		}
-		$blob .= "Server: <highlight>" . $server . "<end>\n";
 		if ($elapsed) {
 			$blob .= "Time: <highlight>" . round($elapsed, 2) . "s<end>\n";
 		}

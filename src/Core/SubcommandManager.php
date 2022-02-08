@@ -9,7 +9,6 @@ use Nadybot\Core\DBSchema\CmdPermission;
 
 #[NCA\Instance]
 class SubcommandManager {
-
 	#[NCA\Inject]
 	public DB $db;
 
@@ -42,7 +41,6 @@ class SubcommandManager {
 		string $accessLevel,
 		string $parentCommand,
 		?string $description='none',
-		?string $help='',
 		?int $defaultStatus=null
 	): void {
 		$command = strtolower($command);
@@ -79,13 +77,12 @@ class SubcommandManager {
 					"verify" => 1,
 					"file" => $filename,
 					"description" => $description,
-					"help" => $help,
 					"cmd" => $command,
 					"dependson" => $parentCommand,
 					"cmdevent" => "subcmd",
 				],
 				["cmd"],
-				["module", "verify", "file", "description", "help"]
+				["module", "verify", "file", "description"]
 			);
 		if (isset($this->chatBot->existing_subcmds[$command])) {
 			return;

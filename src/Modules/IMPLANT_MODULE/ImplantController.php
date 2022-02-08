@@ -13,7 +13,6 @@ use Nadybot\Core\{
 
 /**
  * @author Nadyita (RK5) <nadyita@hodorraid.org>
- * Commands this controller contains:
  */
 #[
 	NCA\Instance,
@@ -21,7 +20,6 @@ use Nadybot\Core\{
 		command: "implant",
 		accessLevel: "all",
 		description: "Get information about the QL of an implant",
-		help: "implant.txt"
 	)
 ]
 class ImplantController extends ModuleInstance {
@@ -164,7 +162,19 @@ class ImplantController extends ModuleInstance {
 		return $this->findHighestImplantQL($attributeLevel, $treatmentLevel, 'reqJobe');
 	}
 
+	/** Show the highest QL implant for a given ability and treatment */
 	#[NCA\HandlesCommand("implant")]
+	#[NCA\Help\Epilogue(
+		"<header2>Explanation<end>\n\n".
+		"If you had 404 agility and 951 treatment, you would do\n".
+		"<highlight><tab><symbol>implant 404 951<end>\n".
+		"And the bot would tell you the highest ql implant you could wear, but\n".
+		"also the requirements to reach the next breakpoint for each slot.\n\n".
+		"When you view more info on an implant ql, the range of numbers next to the modifier tells you the range of quality levels that will give you the same modifier.\n\n".
+		"For instance,\n\n".
+		"<tab>Faded   22 (196 - 208)\n\n".
+		"means that you will get 22 points (of ability, in this case) from the faded cluster slot starting with ql 196 on up to ql 208."
+	)]
 	public function impQlDetermineCommand(CmdContext $context, int $attrib, int $treatment): void {
 		$regularQL = $this->findHighestRegularImplantQL($attrib, $treatment);
 		$jobeQL = $this->findHighestJobeImplantQL($attrib, $treatment);
@@ -188,6 +198,7 @@ class ImplantController extends ModuleInstance {
 		$context->reply($msg . ".");
 	}
 
+	/** Show the stats for implants at a given QL */
 	#[NCA\HandlesCommand("implant")]
 	public function impQlCommand(CmdContext $context, int $ql): void {
 		if ($ql < 1 || $ql > 300) {

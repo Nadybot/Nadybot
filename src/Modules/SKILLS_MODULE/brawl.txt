@@ -1,6 +1,0 @@
-To calculate your brawl recharge and damage:
-<tab><highlight><symbol>brawl 'brawl skill'<end>
-
-Example:
-<tab>You have <highlight>750<end> Brawl skill:
-<tab><a href='chatcmd:///tell <myname> <symbol>brawl 750'>/tell <myname> <symbol>brawl 750</a>

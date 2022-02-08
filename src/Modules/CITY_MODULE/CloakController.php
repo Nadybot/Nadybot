@@ -25,7 +25,6 @@ use Nadybot\Core\{
 
 /**
  * @author Tyrence (RK2)
- * Commands this class contains:
  */
 #[
 	NCA\Instance,
@@ -34,7 +33,6 @@ use Nadybot\Core\{
 		command: "cloak",
 		accessLevel: "guild",
 		description: "Show the status of the city cloak",
-		help: "cloak.txt",
 		alias: "city"
 	),
 	NCA\ProvidesEvent("cloak(raise)"),
@@ -72,7 +70,6 @@ class CloakController extends ModuleInstance implements MessageEmitter {
 
 	#[NCA\Setup]
 	public function setup(): void {
-
 		$this->settingManager->add(
 			module: $this->moduleName,
 			name: "showcloakstatus",
@@ -100,6 +97,11 @@ class CloakController extends ModuleInstance implements MessageEmitter {
 		return Source::SYSTEM . "(cloak)";
 	}
 
+	/**
+	 * Show the current status of the city cloak
+	 *
+	 * An asterisk (*) will appear next to the person's name if they manually set the cloak to on.
+	 */
 	#[NCA\HandlesCommand("cloak")]
 	public function cloakCommand(CmdContext $context): void {
 		/** @var Collection<OrgCity> */
@@ -146,8 +148,9 @@ class CloakController extends ModuleInstance implements MessageEmitter {
 		$context->reply($blob);
 	}
 
+	/** Manually set the cloak status to on (in case the bot was offline when it was raised) */
 	#[NCA\HandlesCommand("cloak")]
-	public function cloakRaiseCommand(CmdContext $context, #[NCA\Regexp("raise|on")] string $action): void {
+	public function cloakRaiseCommand(CmdContext $context, #[NCA\Str("raise", "on")] string $action): void {
 		/** @var ?OrgCity */
 		$row = $this->getLastOrgEntry(true);
 

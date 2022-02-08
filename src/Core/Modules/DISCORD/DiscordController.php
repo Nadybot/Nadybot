@@ -18,7 +18,6 @@ use Nadybot\Core\{
  */
 #[NCA\Instance]
 class DiscordController extends ModuleInstance {
-
 	#[NCA\Inject]
 	public Nadybot $chatBot;
 
@@ -37,9 +36,6 @@ class DiscordController extends ModuleInstance {
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
-	/**
-	 * This handler is called on bot startup.
-	 */
 	#[NCA\Setup]
 	public function setup(): void {
 		$this->settingManager->add(

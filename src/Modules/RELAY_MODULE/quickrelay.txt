@@ -1,2 +1,0 @@
-To list all support quick relay types:
-<tab><highlight><symbol>quickrelay<end>

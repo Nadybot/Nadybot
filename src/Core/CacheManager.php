@@ -10,7 +10,6 @@ use Exception;
  */
 #[NCA\Instance]
 class CacheManager {
-
 	#[NCA\Inject]
 	public Nadybot $chatBot;
 

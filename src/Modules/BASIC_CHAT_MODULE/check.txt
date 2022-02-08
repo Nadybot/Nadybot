@@ -1,2 +1,0 @@
-To check for players in private channel in vicinity:
-<highlight><tab><symbol>check<end>

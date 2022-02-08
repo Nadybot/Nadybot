@@ -22,7 +22,6 @@ use Nadybot\Modules\ITEMS_MODULE\{
 
 /**
  * @author Nadyita (RK5)
- * Commands this class contains:
  */
 #[
 	NCA\Instance,
@@ -30,17 +29,14 @@ use Nadybot\Modules\ITEMS_MODULE\{
 		command: "bestsymbiants",
 		accessLevel: "all",
 		description: "Shows the best symbiants for the slots",
-		help: "bestsymbiants.txt"
 	),
 	NCA\DefineCommand(
 		command: "symbcompare",
 		accessLevel: "all",
 		description: "Compare symbiants with each other",
-		help: "bestsymbiants.txt"
 	)
 ]
 class SymbiantController extends ModuleInstance {
-
 	#[NCA\Inject]
 	public PlayerManager $playerManager;
 
@@ -56,16 +52,21 @@ class SymbiantController extends ModuleInstance {
 	#[NCA\Inject]
 	public Util $util;
 
+	/** Show the 3 best symbiants for a profession at a given level */
 	#[NCA\HandlesCommand("bestsymbiants")]
+	#[NCA\Help\Example("<symbol>bestsymbiants 120 enf")]
 	public function findBestSymbiantsLvlProf(CmdContext $context, int $level, PWord $prof): void {
 		$this->findBestSymbiants($context, $prof, $level);
 	}
 
+	/** Show the 3 best symbiants for a profession at a given level */
 	#[NCA\HandlesCommand("bestsymbiants")]
+	#[NCA\Help\Example("<symbol>bestsymbiants 15 trader")]
 	public function findBestSymbiantsProfLvl(CmdContext $context, PWord $prof, int $level): void {
 		$this->findBestSymbiants($context, $prof, $level);
 	}
 
+	/** Show the best symbiants your character can currently equip */
 	#[NCA\HandlesCommand("bestsymbiants")]
 	public function findBestSymbiantsAuto(CmdContext $context): void {
 		$this->findBestSymbiants($context, null, null);
@@ -141,7 +142,7 @@ class SymbiantController extends ModuleInstance {
 			if (!isset($typeMap[$slot])) {
 				continue;
 			}
-			$blob .= "\n<header2>" . $typeMap[$slot];
+			$blob .= "\n<pagebreak><header2>" . $typeMap[$slot];
 			$aoids = [];
 			foreach ($configs as $unit => $config) {
 				if (empty($config->{$slot})) {
@@ -177,6 +178,7 @@ class SymbiantController extends ModuleInstance {
 		return $blob;
 	}
 
+	/** Compare symbiants by their id to see how they differ in the bonus they give */
 	#[NCA\HandlesCommand("symbcompare")]
 	public function compareSymbiants(CmdContext $context, int ...$ids): void {
 		$items = $this->itemsController->getByIDs(...$ids);

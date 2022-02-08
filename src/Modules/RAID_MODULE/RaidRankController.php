@@ -24,9 +24,6 @@ use Nadybot\Core\{
 	Text,
 };
 
-/**
- * Commands this controller contains:
- */
 #[
 	NCA\Instance,
 	NCA\HasMigrations("Migrations/Ranks"),
@@ -34,19 +31,16 @@ use Nadybot\Core\{
 		command: "raidadmin",
 		accessLevel: "raid_admin_2",
 		description: "Promote/demote someone to/from raid admin",
-		help: "raidranks.txt"
 	),
 	NCA\DefineCommand(
 		command: "raidleader",
 		accessLevel: "raid_admin_1",
 		description: "Promote/demote someone to/from raid leader",
-		help: "raidranks.txt"
 	),
 	NCA\DefineCommand(
 		command: "leaderlist",
 		accessLevel: "all",
 		description: "Shows the list of raid leaders and admins",
-		help: "leaderlist.txt",
 		defaultStatus: 1,
 		alias: "leaders"
 	)
@@ -400,8 +394,15 @@ class RaidRankController extends ModuleInstance implements AccessLevelProvider {
 		return true;
 	}
 
+	/** Promote someone to raid admin */
 	#[NCA\HandlesCommand("raidadmin")]
-	public function raidAdminAddCommand(CmdContext $context, #[NCA\Regexp("add|promote")] string $action, PCharacter $char, ?int $rank): void {
+	#[NCA\Help\Group("raid-ranks")]
+	public function raidAdminAddCommand(
+		CmdContext $context,
+		#[NCA\Str("add", "promote")] string $action,
+		PCharacter $char,
+		?int $rank
+	): void {
 		$rank ??= 1;
 		if ($rank < 1 || $rank > 3) {
 			$context->reply("The admin rank must be a number between 1 and 3");
@@ -412,15 +413,28 @@ class RaidRankController extends ModuleInstance implements AccessLevelProvider {
 		$this->add($char(), $context->char->name, $context, $rank+6, $rankName, "raid_admin_$rank");
 	}
 
+	/** Demote someone from raid admin */
 	#[NCA\HandlesCommand("raidadmin")]
-	public function raidAdminRemoveCommand(CmdContext $context, #[NCA\Regexp("remove|rem|del|rm|demote")] string $action, PCharacter $char): void {
+	#[NCA\Help\Group("raid-ranks")]
+	public function raidAdminRemoveCommand(
+		CmdContext $context,
+		#[NCA\Str("remove", "rem", "del", "rm", "demote")] string $action,
+		PCharacter $char
+	): void {
 		$rank = 'a raid admin';
 
 		$this->remove($char(), $context->char->name, $context, [7, 8, 9], $rank);
 	}
 
+	/** Promote someone to raid leader */
 	#[NCA\HandlesCommand("raidleader")]
-	public function raidLeaderAddCommand(CmdContext $context, #[NCA\Regexp("add|promote")] string $action, PCharacter $char, ?int $rank): void {
+	#[NCA\Help\Group("raid-ranks")]
+	public function raidLeaderAddCommand(
+		CmdContext $context,
+		#[NCA\Str("add", "promote")] string $action,
+		PCharacter $char,
+		?int $rank
+	): void {
 		$rank ??= 1;
 		if ($rank < 1 || $rank > 3) {
 			$context->reply("The leader rank must be a number between 1 and 3");
@@ -431,8 +445,14 @@ class RaidRankController extends ModuleInstance implements AccessLevelProvider {
 		$this->add($char(), $context->char->name, $context, $rank+3, $rankName, "raid_leader_$rank");
 	}
 
+	/** Demote someone from raid leader */
 	#[NCA\HandlesCommand("raidleader")]
-	public function raidLeaderRemoveCommand(CmdContext $context, #[NCA\Regexp("rem|del|rm|demote")] string $action, PCharacter $char): void {
+	#[NCA\Help\Group("raid-ranks")]
+	public function raidLeaderRemoveCommand(
+		CmdContext $context,
+		#[NCA\Str("rem", "del", "rm", "demote")] string $action,
+		PCharacter $char
+	): void {
 		$rank = 'a raid leader';
 
 		$this->remove($char(), $context->char->name, $context, [4, 5, 6], $rank);
@@ -485,6 +505,7 @@ class RaidRankController extends ModuleInstance implements AccessLevelProvider {
 		return join("", $output) . "\n";
 	}
 
+	/** See the list of raid leaders/admins, 'all' to include all offline alts */
 	#[NCA\HandlesCommand("leaderlist")]
 	public function leaderlistCommand(CmdContext $context, #[NCA\Str("all")] ?string $all): void {
 		$showOfflineAlts = isset($all);

@@ -2,30 +2,29 @@
 
 namespace Nadybot\Modules\COMMENT_MODULE;
 
-use Nadybot\Core\Attributes as NCA;
 use Exception;
 use Illuminate\Database\Schema\Blueprint;
 use Nadybot\Core\{
 	AccessManager,
+	Attributes as NCA,
 	CmdContext,
 	CommandAlias,
 	DB,
 	ModuleInstance,
 	LoggerWrapper,
+	Modules\ALTS\AltsController,
 	Nadybot,
+	ParamClass\PCharacter,
+	ParamClass\PRemove,
+	ParamClass\PWord,
 	SettingManager,
 	SQLException,
 	Text,
 	Util,
 };
-use Nadybot\Core\Modules\ALTS\AltsController;
-use Nadybot\Core\ParamClass\PCharacter;
-use Nadybot\Core\ParamClass\PRemove;
-use Nadybot\Core\ParamClass\PWord;
 
 /**
  * @author Nadyita (RK5) <nadyita@hodorraid.org>
- * Commands this controller contains:
  */
 #[
 	NCA\Instance,
@@ -34,13 +33,11 @@ use Nadybot\Core\ParamClass\PWord;
 		command: "comment",
 		accessLevel: "member",
 		description: "read/write comments about players",
-		help: "comment.txt"
 	),
 	NCA\DefineCommand(
 		command: "commentcategories",
 		accessLevel: "mod",
 		description: "Manage comment categories",
-		help: "comment-categories.txt"
 	)
 ]
 class CommentController extends ModuleInstance {
@@ -232,7 +229,7 @@ class CommentController extends ModuleInstance {
 	}
 
 	/**
-	 * Command to list all categories
+	 * Get a list of all defined comment categories
 	 */
 	#[NCA\HandlesCommand("commentcategories")]
 	public function listCategoriesCommand(CmdContext $context): void {
@@ -270,10 +267,16 @@ class CommentController extends ModuleInstance {
 	}
 
 	/**
-	 * Command to delete a category
+	 * Delete a category and all comments within it
+	 *
+	 * You can only delete categories to which you have the access level for reading and writing
 	 */
 	#[NCA\HandlesCommand("commentcategories")]
-	public function deleteCategoryCommand(CmdContext $context, PRemove $action, string $category): void {
+	public function deleteCategoryCommand(
+		CmdContext $context,
+		PRemove $action,
+		string $category
+	): void {
 		$cat = $this->getCategory($category);
 		if (isset($cat)) {
 			if ($cat->user_managed === false) {
@@ -309,12 +312,13 @@ class CommentController extends ModuleInstance {
 	}
 
 	/**
-	 * Command to add a new category
+	 * Add a new comment category with a minimum access level of
+	 * &lt;al for reading&gt; and optionally a &lt;al for writing&gt;
 	 */
 	#[NCA\HandlesCommand("commentcategories")]
 	public function addCategoryCommand(
 		CmdContext $context,
-		#[NCA\Regexp("add|create|new|edit|change")] string $action,
+		#[NCA\Str("add", "create", "new", "edit", "change")] string $action,
 		PWord $category,
 		PWord $alForReading,
 		?PWord $alForWriting
@@ -354,12 +358,19 @@ class CommentController extends ModuleInstance {
 	}
 
 	/**
-	 * Command to add a new comment
+	 * Add a new comment &lt;comment text&lt; about &lt;char&gt; in the category &lt;category&gt;
 	 */
 	#[NCA\HandlesCommand("comment")]
+	#[NCA\Help\Epilogue(
+		"<header2>Customization<end>\n\n".
+		"In order to simulate the old kill-on-sight list (kos), you could do:\n".
+		"<tab>1. <highlight><symbol>alias add kos comment list kos<end>\n".
+		"<tab>2. <highlight><symbol>alias add \"kos add\" comment add {1} kos {2:Kill on sight}<end>\n".
+		"<tab>3. <highlight><symbol>comment category add kos guild<end>\n"
+	)]
 	public function addCommentCommand(
 		CmdContext $context,
-		#[NCA\Regexp("add|create|new")] string $action,
+		#[NCA\Str("add", "create", "new")] string $action,
 		PCharacter $char,
 		PWord $category,
 		string $commentText
@@ -450,12 +461,13 @@ class CommentController extends ModuleInstance {
 	}
 
 	/**
-	 * Command to read comments about a player
+	 * Get a list of all comments about a character and their alts.
+	 * If &lt;category&gt; is given, limit the list to this category
 	 */
 	#[NCA\HandlesCommand("comment")]
 	public function searchCommentCommand(
 		CmdContext $context,
-		#[NCA\Regexp("get|search|find")] string $action,
+		#[NCA\Str("get", "search", "find")] string $action,
 		PCharacter $char,
 		?PWord $category
 	): void {
@@ -499,10 +511,14 @@ class CommentController extends ModuleInstance {
 	}
 
 	/**
-	 * Command to read comments about a player
+	 * Get a list of all comments of category &lt;category&gt; about all characters
 	 */
 	#[NCA\HandlesCommand("comment")]
-	public function listCommentsCommand(CmdContext $context, #[NCA\Str("list")] string $action, PWord $categoryName): void {
+	public function listCommentsCommand(
+		CmdContext $context,
+		#[NCA\Str("list")] string $action,
+		PWord $categoryName
+	): void {
 		$category = $this->getCategory($categoryName());
 		if ($category === null) {
 			$context->reply("The category <highlight>{$categoryName}<end> does not exist.");
@@ -610,10 +626,14 @@ class CommentController extends ModuleInstance {
 	}
 
 	/**
-	 * Command to delete a comment about a player
+	 * Delete a comment about a player by its ID
 	 */
 	#[NCA\HandlesCommand("comment")]
-	public function deleteCommentCommand(CmdContext $context, PRemove $action, int $id): void {
+	public function deleteCommentCommand(
+		CmdContext $context,
+		PRemove $action,
+		int $id
+	): void {
 		/** @var ?Comment */
 		$comment = $this->db->table("<table:comments>")
 			->where("id", $id)

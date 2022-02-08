@@ -38,7 +38,6 @@ use Throwable;
 		command: "perks",
 		accessLevel: "all",
 		description: "Show buff perks",
-		help: "perks.txt"
 	)
 ]
 class BuffPerksController extends ModuleInstance {
@@ -170,6 +169,7 @@ class BuffPerksController extends ModuleInstance {
 		$this->db->commit();
 	}
 
+	/** See which perks are available for your level and profession */
 	#[NCA\HandlesCommand("perks")]
 	public function buffPerksNoArgsCommand(CmdContext $context): void {
 		$this->playerManager->getByNameAsync(
@@ -185,11 +185,21 @@ class BuffPerksController extends ModuleInstance {
 		);
 	}
 
+	/**
+	 * See which perks are available for a given level and profession
+	 *
+	 * If you give a search string, it will search for perks buffing this skill/attribute
+	 */
 	#[NCA\HandlesCommand("perks")]
 	public function buffPerksLevelFirstCommand(CmdContext $context, int $level, PNonNumberWord $prof, ?string $search): void {
 		$this->buffPerksProfFirstCommand($context, $prof, $level, $search);
 	}
 
+	/**
+	 * See which perks are available for a given level and profession
+	 *
+	 * If you give a search string, it will search for perks buffing this skill/attribute
+	 */
 	#[NCA\HandlesCommand("perks")]
 	public function buffPerksProfFirstCommand(CmdContext $context, PNonNumberWord $prof, int $level, ?string $search): void {
 		$profession = $this->util->getProfessionName($prof());
@@ -578,8 +588,13 @@ class BuffPerksController extends ModuleInstance {
 		return $perks;
 	}
 
+	/** Show detailed information for all of a perk's levels */
 	#[NCA\HandlesCommand("perks")]
-	public function showPerkCommand(CmdContext $context, #[NCA\Str("show")] string $action, string $perkName): void {
+	public function showPerkCommand(
+		CmdContext $context,
+		#[NCA\Str("show")] string $action,
+		string $perkName
+	): void {
 		$perk = $this->perks->first(function (Perk $perk) use ($perkName): bool {
 			return strcasecmp($perk->name, $perkName) === 0;
 		});

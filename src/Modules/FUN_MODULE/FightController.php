@@ -14,7 +14,6 @@ use Nadybot\Core\{
 /**
  * @author Tyrence (RK2)
  * @author Mdkdoc420 (RK2)
- * Commands this controller contains:
  */
 #[
 	NCA\Instance,
@@ -22,19 +21,27 @@ use Nadybot\Core\{
 		command: "fight",
 		accessLevel: "all",
 		description: "Let two people fight against each other",
-		help: "fun_module.txt"
 	)
 ]
 class FightController extends ModuleInstance {
-
 	#[NCA\Inject]
 	public Text $text;
 
 	#[NCA\Inject]
 	public Util $util;
 
+	/**
+	 * Let 2 people fight against each other
+	 *
+	 * Note: Chuck Norris never loses
+	 */
 	#[NCA\HandlesCommand("fight")]
-	public function fightCommand(CmdContext $context, PCharacter $player1, #[NCA\Str("vs")] ?string $vs, PCharacter $player2): void {
+	public function fightCommand(
+		CmdContext $context,
+		PCharacter $player1,
+		#[NCA\Str("vs")] ?string $vs,
+		PCharacter $player2
+	): void {
 		$player1 = $player1();
 		$player2 = $player2();
 

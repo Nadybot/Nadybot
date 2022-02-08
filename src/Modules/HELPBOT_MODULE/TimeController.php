@@ -13,7 +13,6 @@ use Nadybot\Core\{
 
 /**
  * @author Tyrence (RK2)
- * Commands this controller contains:
  */
 #[
 	NCA\Instance,
@@ -21,7 +20,6 @@ use Nadybot\Core\{
 		command: "time",
 		accessLevel: "all",
 		description: "Show the time in the different timezones",
-		help: "time.txt"
 	)
 ]
 class TimeController extends ModuleInstance {
@@ -31,6 +29,7 @@ class TimeController extends ModuleInstance {
 	#[NCA\Inject]
 	public Text $text;
 
+	/** Show the current time in a list of time zones */
 	#[NCA\HandlesCommand("time")]
 	public function timeListCommand(CmdContext $context): void {
 		$link  = "<header2>Australia<end>\n";
@@ -102,12 +101,15 @@ class TimeController extends ModuleInstance {
 		));
 	}
 
+	/** Show the current time in a given time zones */
 	#[NCA\HandlesCommand("time")]
-	public function timeShowCommand(CmdContext $context, string $zone): void {
-		$zone = strtoupper($zone);
-		$timezone = $this->getTimezone($zone);
-		if ($timezone !== null) {
-			$msg = "{$timezone->name} is <highlight>{$timezone->time}<end>";
+	#[NCA\Help\Example("<symbol>time MST")]
+	#[NCA\Help\Example("<symbol>time CET")]
+	public function timeShowCommand(CmdContext $context, string $timeZone): void {
+		$timeZone = strtoupper($timeZone);
+		$timeZone = $this->getTimezone($timeZone);
+		if ($timeZone !== null) {
+			$msg = "{$timeZone->name} is <highlight>{$timeZone->time}<end>";
 		} else {
 			$msg = "Unknown timezone.";
 		}
@@ -130,7 +132,7 @@ class TimeController extends ModuleInstance {
 	public function getTimezone(string $tz): ?Timezone {
 		$date = new DateTime();
 		$time = time() - $date->getOffset();
-		$time_format = "dS M, H:i";
+		$time_format = "F j, Y, H:i";
 
 		switch ($tz) {
 			case "CST":

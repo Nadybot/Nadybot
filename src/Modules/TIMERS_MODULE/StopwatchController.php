@@ -15,7 +15,6 @@ use Nadybot\Core\{
 /**
  * A stopwatch controller with start, stop and lap
  * @author Nadyita (RK5) <nadyita@hodorraid.org>
- * Commands this controller contains:
  */
 #[
 	NCA\Instance,
@@ -23,7 +22,6 @@ use Nadybot\Core\{
 		command: "stopwatch",
 		accessLevel: "all",
 		description: "stop time difference(s)",
-		help: "stopwatch.txt",
 		alias: "sw"
 	)
 ]
@@ -43,7 +41,7 @@ class StopwatchController extends ModuleInstance {
 	public array $stopwatches = [];
 
 	/**
-	 * Start a new stopwatch
+	 * Start a new stopwatch for yourself
 	 */
 	#[NCA\HandlesCommand("stopwatch")]
 	public function startStopwatchCommand(CmdContext $context, #[NCA\Str("start")] string $action): void {
@@ -59,7 +57,7 @@ class StopwatchController extends ModuleInstance {
 	}
 
 	/**
-	 * Stop a user's stopwatch
+	 * Stop your stopwatch and show the time elapsed and the laps
 	 */
 	#[NCA\HandlesCommand("stopwatch")]
 	public function stopStopwatchCommand(CmdContext $context, #[NCA\Str("stop")] string $action): void {
@@ -76,7 +74,7 @@ class StopwatchController extends ModuleInstance {
 	}
 
 	/**
-	 * Command to add a lap to the stopwatch
+	 * Add a lap with an optional name to your stopwatch
 	 */
 	#[NCA\HandlesCommand("stopwatch")]
 	public function stopwatchLapCommand(CmdContext $context, #[NCA\Str("lap")] string $action, ?string $lapName): void {
@@ -95,10 +93,10 @@ class StopwatchController extends ModuleInstance {
 	}
 
 	/**
-	 * Show a user's stopwatch
+	 * View the current times on your stopwatch without stopping it
 	 */
 	#[NCA\HandlesCommand("stopwatch")]
-	public function showStopwatchCommand(CmdContext $context, #[NCA\Regexp("view|show")] string $action): void {
+	public function showStopwatchCommand(CmdContext $context, #[NCA\Str("view", "show")] string $action): void {
 		if (!array_key_exists($context->char->name, $this->stopwatches)) {
 			$msg = "You don't have a stopwatch running.";
 			$context->reply($msg);

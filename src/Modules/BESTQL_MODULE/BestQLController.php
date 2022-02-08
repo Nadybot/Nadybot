@@ -2,18 +2,17 @@
 
 namespace Nadybot\Modules\BESTQL_MODULE;
 
-use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{
+	Attributes as NCA,
 	CmdContext,
 	ModuleInstance,
+	ParamClass\PItem,
 	SettingManager,
 	Text,
 };
-use Nadybot\Core\ParamClass\PItem;
 
 /**
  * @author Nadyita (RK5) <nadyita@hodorraid.org>
- * Commands this controller contains:
  */
 #[
 	NCA\Instance,
@@ -21,12 +20,10 @@ use Nadybot\Core\ParamClass\PItem;
 		command: "bestql",
 		accessLevel: "all",
 		description: "Find breakpoints for bonuses",
-		help: "bestql.txt",
 		alias: "breakpoints"
 	)
 ]
 class BestQLController extends ModuleInstance {
-
 	#[NCA\Inject]
 	public Text $text;
 
@@ -56,8 +53,75 @@ class BestQLController extends ModuleInstance {
 		return null;
 	}
 
+	/**
+	 * Find the breakpoints for all possible bonuses of an item
+	 */
 	#[NCA\HandlesCommand("bestql")]
-	public function bestqlCommand(CmdContext $context, #[NCA\Regexp("[0-9 ]+")] string $specs, ?PItem $item): void {
+	public function bestql1Command(
+		CmdContext $context,
+		int $lowQl,
+		int $lowqlBonus,
+		int $highQl,
+		int $highqlBonus,
+		?PItem $pastedItem
+	): void {
+		$this->bestqlCommand($context, "{$lowQl} {$lowqlBonus} {$highQl} {$highqlBonus}", $pastedItem);
+	}
+
+	/**
+	 * Find the highest usable QL of an item
+	 */
+	#[NCA\HandlesCommand("bestql")]
+	public function bestql2Command(
+		CmdContext $context,
+		int $lowQl,
+		int $lowqlRequirement,
+		int $highQl,
+		int $highqlRequirement,
+		int $attributeValue,
+		?PItem $pastedItem
+	): void {
+		$this->bestqlCommand($context, "{$lowQl} {$lowqlRequirement} {$highQl} {$highqlRequirement} {$attributeValue}", $pastedItem);
+	}
+
+	/**
+	 * General syntax, need at least 4 values for the specs. Paste item for links
+	 */
+	#[NCA\HandlesCommand("bestql")]
+	#[NCA\Help\Epilogue(
+		"<header2>Examples:<end>\n\n".
+		"Platinum Filigree Ring set with a Perfectly Cut Amber. QL 1 bonus is 6, QL 400 bonus is 23:\n".
+		"<tab><highlight><symbol>bestql 1 6 400 23<end>\n\n".
+		"<tab>QL <highlight><black>__<end>1<end> has stat <highlight>6<end>.\n".
+		"<tab>QL <highlight><black>_<end>13<end> has stat <highlight>7<end>.\n".
+		"<tab>QL <highlight><black>_<end>37<end> has stat <highlight>8<end>.\n".
+		"<tab>QL <highlight><black>_<end>60<end> has stat <highlight>9<end>.\n".
+		"<tab>QL <highlight><black>_<end>84<end> has stat <highlight>10<end>.\n".
+		"<tab>QL <highlight>107<end> has stat <highlight>11<end>.\n".
+		"<tab>QL <highlight>131<end> has stat <highlight>12<end>.\n".
+		"<tab>QL <highlight>154<end> has stat <highlight>13<end>.\n".
+		"<tab>QL <highlight>178<end> has stat <highlight>14<end>.\n".
+		"<tab>QL <highlight>201<end> has stat <highlight>15<end>.\n".
+		"<tab>QL <highlight>224<end> has stat <highlight>16<end>.\n".
+		"<tab>QL <highlight>248<end> has stat <highlight>17<end>.\n".
+		"<tab>QL <highlight>271<end> has stat <highlight>18<end>.\n".
+		"<tab>QL <highlight>295<end> has stat <highlight>19<end>.\n".
+		"<tab>QL <highlight>318<end> has stat <highlight>20<end>.\n".
+		"<tab>QL <highlight>342<end> has stat <highlight>21<end>.\n".
+		"<tab>QL <highlight>366<end> has stat <highlight>22<end>.\n".
+		"<tab>QL <highlight>389<end> has stat <highlight>23<end>.\n\n".
+		"Carbonum armor. Agility requirement at QL 1 is 8 at QL 200 it's 476. Our agility is 200:\n".
+		"<tab><highlight><symbol>bestql 1 8 200 476 200<end>\n\n".
+		"<tab>The highest QL is <highlight>82<end> with a requirement of <highlight>198<end>.\n\n".
+		"Note: in order to get the best results, it's important to get the correct QLs of an item.\n".
+		"The <highlight><symbol>items<end> command should work in most cases, but ".
+		"<a href='chatcmd:///start https://aoitems.com/home/'>AOItems</a> might be better.\n"
+	)]
+	public function bestqlCommand(
+		CmdContext $context,
+		#[NCA\Regexp("[0-9 ]+")] string $specs,
+		?PItem $pastedItem
+	): void {
 		/** @var array<int,int> */
 		$itemSpecs = [];
 		$specPairs = \Safe\preg_split('/\s+/', $specs);
@@ -104,8 +168,8 @@ class BestQLController extends ModuleInstance {
 					$this->text->alignNumber($searchedQL, 3, "highlight"),
 					$value
 				);
-				if ($item) {
-					$msg .= " " . $this->text->makeItem($item->lowID, $item->highID, $searchedQL, $item->name);
+				if ($pastedItem) {
+					$msg .= " " . $this->text->makeItem($pastedItem->lowID, $pastedItem->highID, $searchedQL, $pastedItem->name);
 				}
 				$msg .= "\n";
 				$numFoundItems++;

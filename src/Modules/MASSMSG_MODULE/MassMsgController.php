@@ -10,13 +10,13 @@ use Nadybot\Core\{
 	CmdContext,
 	DB,
 	ModuleInstance,
+	Modules\BAN\BanController,
 	Nadybot,
 	SettingManager,
 	Text,
 	Util,
 	Modules\PREFERENCES\Preferences,
 };
-use Nadybot\Core\Modules\BAN\BanController;
 
 /**
  * This class contains all functions necessary for mass messaging
@@ -28,26 +28,22 @@ use Nadybot\Core\Modules\BAN\BanController;
 		command: "massmsg",
 		accessLevel: "mod",
 		description: "Send messages to all bot members online",
-		help: "massmsg.txt",
 		alias: "massmessage"
 	),
 	NCA\DefineCommand(
 		command: "massmsgs",
 		accessLevel: "member",
 		description: "Control if you want to receive mass messages",
-		help: "massmsg.txt"
 	),
 	NCA\DefineCommand(
 		command: "massinvites",
 		accessLevel: "member",
 		description: "Control if you want to receive mass invites",
-		help: "massmsg.txt"
 	),
 	NCA\DefineCommand(
 		command: "massinv",
 		accessLevel: "mod",
 		description: "Send invites with a message to all bot members online",
-		help: "massmsg.txt",
 		alias: "massinvite"
 	)
 ]
@@ -59,6 +55,7 @@ class MassMsgController extends ModuleInstance {
 
 	public const PREF_MSGS = 'massmsgs';
 	public const PREF_INVITES = 'massinvites';
+
 	#[NCA\Inject]
 	public DB $db;
 
@@ -68,7 +65,6 @@ class MassMsgController extends ModuleInstance {
 	#[NCA\Inject]
 	public Util $util;
 
-	/** @Inject */
 	#[NCA\Inject]
 	public SettingManager $settingManager;
 
@@ -87,6 +83,7 @@ class MassMsgController extends ModuleInstance {
 	#[NCA\Inject]
 	public Nadybot $chatBot;
 
+	/** date and time when the last mass message was sent */
 	public ?DateTime $lastMessage;
 
 	#[NCA\Setup]
@@ -140,7 +137,12 @@ class MassMsgController extends ModuleInstance {
 		return $message;
 	}
 
+	/**
+	 * Send a mass message to every member of this bot,
+	 * except for those who are already in the private channel
+	 */
 	#[NCA\HandlesCommand("massmsg")]
+	#[NCA\Help\Group("massmessaging")]
 	public function massMsgCommand(CmdContext $context, string $message): void {
 		if (($cooldownMsg = $this->massMsgRateLimitCheck()) !== null) {
 			$context->reply($cooldownMsg);
@@ -160,7 +162,13 @@ class MassMsgController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
+	/**
+	 * Send a mass message to every member of this bot,
+	 * except for those who are already in the private channel
+	 * and also invite them to the bot's private channel
+	 */
 	#[NCA\HandlesCommand("massinv")]
+	#[NCA\Help\Group("massmessaging")]
 	public function massInvCommand(CmdContext $context, string $message): void {
 		if (($cooldownMsg = $this->massMsgRateLimitCheck()) !== null) {
 			$context->reply($cooldownMsg);
@@ -307,17 +315,19 @@ class MassMsgController extends ModuleInstance {
 		$context->reply($prefLink);
 	}
 
+	/**
+	 * Show your mass-message and mass-invite preferences
+	 */
 	#[NCA\HandlesCommand("massmsgs")]
+	#[NCA\HandlesCommand("massinvites")]
+	#[NCA\Help\Group("massmessaging")]
 	public function massMessagesOverviewCommand(CmdContext $context): void {
 		$this->showMassPreferences($context);
 	}
 
-	#[NCA\HandlesCommand("massinvites")]
-	public function massInvitesOverviewCommand(CmdContext $context): void {
-		$this->showMassPreferences($context);
-	}
-
+	/** Enable or disable receiving of mass-messages */
 	#[NCA\HandlesCommand("massmsgs")]
+	#[NCA\Help\Group("massmessaging")]
 	public function massMessagesOnCommand(CmdContext $context, bool $status): void {
 		$value = $status ? "yes" : "no";
 		$colText = $status ? "<green>again receive<end>" : "<red>no longer receive<end>";
@@ -325,7 +335,9 @@ class MassMsgController extends ModuleInstance {
 		$context->reply("You will {$colText} mass messages from this bot.");
 	}
 
+	/** Enable or disable receiving of mass-invites */
 	#[NCA\HandlesCommand("massinvites")]
+	#[NCA\Help\Group("massmessaging")]
 	public function massInvitesOnCommand(CmdContext $context, bool $status): void {
 		$value = $status ? "yes" : "no";
 		$colText = $status ? "<green>again receive<end>" : "<red>no longer receive<end>";

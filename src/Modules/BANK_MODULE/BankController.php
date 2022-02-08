@@ -2,23 +2,22 @@
 
 namespace Nadybot\Modules\BANK_MODULE;
 
-use Nadybot\Core\Attributes as NCA;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
+	Attributes as NCA,
 	CmdContext,
 	DB,
 	ModuleInstance,
+	ParamClass\PCharacter,
 	SettingManager,
 	Text,
 	Util,
 };
-use Nadybot\Core\ParamClass\PCharacter;
 use Safe\Exceptions\FilesystemException;
 
 /**
  * @author Tyrence (RK2)
  * @author Marebone (RK2)
- * Commands this controller contains:
  */
 #[
 	NCA\Instance,
@@ -27,18 +26,15 @@ use Safe\Exceptions\FilesystemException;
 		command: "bank",
 		accessLevel: "guild",
 		description: "Browse and search the bank characters",
-		help: "bank.txt"
 	),
 	NCA\DefineCommand(
 		command: "bank update",
 		accessLevel: "admin",
 		description: "Reloads the bank database from the AO Items Assistant file",
-		help: "bank.txt",
 		alias: "updatebank"
 	)
 ]
 class BankController extends ModuleInstance {
-
 	#[NCA\Inject]
 	public DB $db;
 
@@ -73,6 +69,7 @@ class BankController extends ModuleInstance {
 		);
 	}
 
+	/** List the bank characters in the database: */
 	#[NCA\HandlesCommand("bank")]
 	public function bankBrowseCommand(CmdContext $context, #[NCA\Str("browse")] string $action): void {
 		$characters = $this->db->table("bank")
@@ -93,6 +90,7 @@ class BankController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
+	/** List the containers of a given bank character: */
 	#[NCA\HandlesCommand("bank")]
 	public function bankBrowsePlayerCommand(
 		CmdContext $context,
@@ -121,6 +119,7 @@ class BankController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
+	/** See the contents of a container on a bank character */
 	#[NCA\HandlesCommand("bank")]
 	public function bankBrowseContainerCommand(CmdContext $context, #[NCA\Str("browse")] string $action, PCharacter $char, int $containerId): void {
 		$name = $char();
@@ -149,6 +148,7 @@ class BankController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
+	/** Search for an item on all bank characters */
 	#[NCA\HandlesCommand("bank")]
 	public function bankSearchCommand(CmdContext $context, #[NCA\Str("search")] string $action, string $search): void {
 		$search = htmlspecialchars_decode($search);
@@ -178,6 +178,7 @@ class BankController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
+	/** Reload the bank database from the file specified with the <a href='chatcmd:///tell <myname> settings change bank_file_location'>bank_file_location</a> setting */
 	#[NCA\HandlesCommand("bank update")]
 	public function bankUpdateCommand(CmdContext $context, #[NCA\Str("update")] string $action): void {
 		try {

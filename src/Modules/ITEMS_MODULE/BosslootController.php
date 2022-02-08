@@ -28,13 +28,11 @@ use Nadybot\Modules\WHEREIS_MODULE\{
 		command: "boss",
 		accessLevel: "all",
 		description: "Shows bosses and their loot",
-		help: "boss.txt"
 	),
 	NCA\DefineCommand(
 		command: "bossloot",
 		accessLevel: "all",
 		description: "Finds which boss drops certain loot",
-		help: "boss.txt"
 	)
 ]
 class BosslootController extends ModuleInstance {
@@ -80,14 +78,14 @@ class BosslootController extends ModuleInstance {
 	}
 
 	/**
-	 * This command handler shows bosses and their loot.
+	 * See the drop table for a boss
 	 */
 	#[NCA\HandlesCommand("boss")]
-	public function bossCommand(CmdContext $context, string $search): void {
-		$search = strtolower($search);
+	public function bossCommand(CmdContext $context, string $bossName): void {
+		$bossName = strtolower($bossName);
 
 		$query = $this->db->table("boss_namedb");
-		$this->db->addWhereFromParams($query, explode(' ', $search), 'bossname');
+		$this->db->addWhereFromParams($query, explode(' ', $bossName), 'bossname');
 
 		/** @var Collection<BossNamedb> */
 		$bosses = $query->asObj(BossNamedb::class);
@@ -99,7 +97,7 @@ class BosslootController extends ModuleInstance {
 			return;
 		}
 		if ($count > 1) {
-			$blob = "Results of Search for '$search'\n\n";
+			$blob = "Results of Search for '$bossName'\n\n";
 			//If multiple matches found output list of bosses
 			foreach ($bosses as $row) {
 				$blob .= $this->getBossLootOutput($row);
@@ -154,18 +152,18 @@ class BosslootController extends ModuleInstance {
 	}
 
 	/**
-	 * This command handler finds which boss drops certain loot.
+	 * Search for the boss dropping the item
 	 */
 	#[NCA\HandlesCommand("bossloot")]
-	public function bosslootCommand(CmdContext $context, string $search): void {
-		$search = strtolower($search);
+	public function bosslootCommand(CmdContext $context, string $item): void {
+		$item = strtolower($item);
 
-		$blob = "Bosses that drop items matching '$search':\n\n";
+		$blob = "Bosses that drop items matching '$item':\n\n";
 
 		$query = $this->db->table("boss_lootdb AS b1")
 			->join("boss_namedb AS b2", "b2.bossid", "b1.bossid")
 			->select("b2.bossid", "b2.bossname")->distinct();
-		$this->db->addWhereFromParams($query, explode(' ', $search), 'b1.itemname');
+		$this->db->addWhereFromParams($query, explode(' ', $item), 'b1.itemname');
 
 		/** @var Collection<BossNamedb> */
 		$loot = $query->asObj(BossNamedb::class);
@@ -174,7 +172,7 @@ class BosslootController extends ModuleInstance {
 		$output = "There were no matches for your search.";
 		if ($count !== 0) {
 			foreach ($loot as $row) {
-				$blob .= $this->getBossLootOutput($row, $search);
+				$blob .= $this->getBossLootOutput($row, $item);
 			}
 			$output = $this->text->makeBlob("Bossloot Search Results ($count)", $blob);
 		}

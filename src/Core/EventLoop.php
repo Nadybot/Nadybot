@@ -6,7 +6,6 @@ use Nadybot\Core\Attributes as NCA;
 use Throwable;
 
 class EventLoop {
-
 	#[NCA\Inject]
 	public Nadybot $chatBot;
 

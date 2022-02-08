@@ -2,9 +2,9 @@
 
 namespace Nadybot\Modules\BASIC_CHAT_MODULE;
 
-use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{
 	AOChatEvent,
+	Attributes as NCA,
 	CmdContext,
 	EventManager,
 	ModuleInstance,
@@ -15,28 +15,22 @@ use Nadybot\Core\{
 	Util,
 };
 
-/**
- * Commands this controller contains:
- */
 #[
 	NCA\Instance,
 	NCA\DefineCommand(
 		command: "topic",
 		accessLevel: "all",
 		description: "Shows Topic",
-		help: "topic.txt"
 	),
 	NCA\DefineCommand(
 		command: "topic .+",
 		accessLevel: "rl",
 		description: "Changes Topic",
-		help: "topic.txt"
 	),
 	NCA\ProvidesEvent("topic(set)"),
 	NCA\ProvidesEvent("topic(clear)")
 ]
 class ChatTopicController extends ModuleInstance {
-
 	#[NCA\Inject]
 	public Nadybot $chatBot;
 
@@ -86,7 +80,7 @@ class ChatTopicController extends ModuleInstance {
 		);
 	}
 	/**
-	 * This command handler shows topic.
+	 * Show the current topic
 	 */
 	#[NCA\HandlesCommand("topic")]
 	public function topicCommand(CmdContext $context): void {
@@ -100,7 +94,7 @@ class ChatTopicController extends ModuleInstance {
 	}
 
 	/**
-	 * This command handler clears topic.
+	 * Clear the topic
 	 */
 	#[NCA\HandlesCommand("topic .+")]
 	public function topicClearCommand(CmdContext $context, #[NCA\Str("clear")] string $action): void {
@@ -119,7 +113,7 @@ class ChatTopicController extends ModuleInstance {
 	}
 
 	/**
-	 * This command handler sets topic.
+	 * Set a new topic
 	 */
 	#[NCA\HandlesCommand("topic .+")]
 	public function topicSetCommand(CmdContext $context, string $topic): void {

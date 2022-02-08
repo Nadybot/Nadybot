@@ -24,7 +24,6 @@ use Nadybot\Modules\ITEMS_MODULE\{
 /**
  * @author Tyrence (RK2)
  * @author Nadyita
- * Commands this controller contains:
  */
 #[
 	NCA\Instance,
@@ -33,71 +32,59 @@ use Nadybot\Modules\ITEMS_MODULE\{
 		command: "aggdef",
 		accessLevel: "all",
 		description: "Agg/Def: Calculates weapon inits for your Agg/Def bar",
-		help: "aggdef.txt"
 	),
 	NCA\DefineCommand(
 		command: "aimshot",
 		accessLevel: "all",
 		description: "Aim Shot: Calculates Aimed Shot",
-		help: "aimshot.txt"
 	),
 	NCA\DefineCommand(
 		command: "nanoinit",
 		accessLevel: "all",
 		description: "Nanoinit: Calculates Nano Init",
-		help: "nanoinit.txt"
 	),
 	NCA\DefineCommand(
 		command: "fullauto",
 		accessLevel: "all",
 		description: "Fullauto: Calculates Full Auto recharge",
-		help: "fullauto.txt"
 	),
 	NCA\DefineCommand(
 		command: "burst",
 		accessLevel: "all",
 		description: "Burst: Calculates Burst",
-		help: "burst.txt"
 	),
 	NCA\DefineCommand(
 		command: "fling",
 		accessLevel: "all",
 		description: "Fling: Calculates Fling",
-		help: "fling.txt"
 	),
 	NCA\DefineCommand(
 		command: "mafist",
 		accessLevel: "all",
 		description: "MA Fist: Calculates your fist speed",
-		help: "mafist.txt"
 	),
 	NCA\DefineCommand(
 		command: "dimach",
 		accessLevel: "all",
 		description: "Dimach: Calculates dimach facts",
-		help: "dimach.txt"
 	),
 	NCA\DefineCommand(
 		command: "brawl",
 		accessLevel: "all",
 		description: "Brawl: Calculates brawl facts",
-		help: "brawl.txt"
 	),
 	NCA\DefineCommand(
 		command: "fastattack",
 		accessLevel: "all",
 		description: "Fastattack: Calculates Fast Attack recharge",
-		help: "fastattack.txt"
 	),
 	NCA\DefineCommand(
 		command: "weapon",
 		accessLevel: "all",
 		description: "Shows weapon info (skill cap specials recycle and aggdef positions)",
-		help: "weapon.txt"
 	)
 ]
 class SkillsController extends ModuleInstance {
-
 	#[NCA\Inject]
 	public DB $db;
 
@@ -116,9 +103,6 @@ class SkillsController extends ModuleInstance {
 	#[NCA\Inject]
 	public CommandAlias $commandAlias;
 
-	/**
-	 * This handler is called on bot startup.
-	 */
 	#[NCA\Setup]
 	public function setup(): void {
 		$this->db->loadCSVFile($this->moduleName, __DIR__ . "/weapon_attributes.csv");
@@ -129,7 +113,16 @@ class SkillsController extends ModuleInstance {
 		$this->commandAlias->register($this->moduleName, "aimshot", "aimedshot");
 	}
 
+	/** Find out where to set your aggdef slider to be 1/1 */
 	#[NCA\HandlesCommand("aggdef")]
+	#[NCA\Help\Epilogue(
+		"If you are lazy, just use\n".
+		"<tab><highlight><symbol>weapon &lt;drop weapon into chat&gt;<end>\n\n".
+		"Example:\n".
+		"<tab>Your weapon has an attack time of <highlight>1.2<end> seconds and a recharge time of <highlight>1.5<end> seconds.\n".
+		"<tab>Your melee/ranged init is <highlight>1200<end>:\n".
+		"<tab><a href='chatcmd:///tell <myname> <symbol>aggdef 1.2 1.5 1200'>/tell <myname> <symbol>aggdef 1.2 1.5 1200</a>"
+	)]
 	public function aggdefCommand(CmdContext $context, float $attackTime, float $rechargeTime, int $initValue): void {
 		$blob = $this->getAggDefOutput($attackTime, $rechargeTime, $initValue);
 
@@ -219,7 +212,16 @@ class SkillsController extends ModuleInstance {
 		return $this->getInitsForPercent(0, $attackTime, $rechargeTime);
 	}
 
+	/** Calculate your aimed shot recharge */
 	#[NCA\HandlesCommand("aimshot")]
+	#[NCA\Help\Epilogue(
+		"If you are lazy, just use\n".
+		"<tab><highlight><symbol>weapon &lt;drop weapon into chat&gt;<end>\n\n".
+		"Example:\n".
+		"<tab>Your weapon has an attack time of <highlight>1.2<end> seconds and a recharge time of <highlight>1.5<end> seconds.\n".
+		"<tab>You have <highlight>1200<end> Aimed Shot skill:\n".
+		"<tab><a href='chatcmd:///tell <myname> <symbol>aimshot 1.2 1.5 1200'>/tell <myname> <symbol>aimshot 1.2 1.5 1200</a>"
+	)]
 	public function aimshotCommand(CmdContext $context, float $attackTime, float $rechargeTime, int $aimedShot): void {
 		[$cap, $ASCap] = $this->capAimedShot($attackTime, $rechargeTime);
 
@@ -241,6 +243,7 @@ class SkillsController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
+	/** Calculate your brawl recharge and damage */
 	#[NCA\HandlesCommand("brawl")]
 	public function brawlCommand(CmdContext $context, int $brawlSkill): void {
 
@@ -280,7 +283,20 @@ class SkillsController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
+	/** Calculate your burst recharge */
 	#[NCA\HandlesCommand("burst")]
+	#[NCA\Help\Epilogue(
+		"If you are lazy, just use\n".
+		"<tab><highlight><symbol>weapon &lt;drop weapon into chat&gt;<end>\n\n".
+		"Example:\n".
+		"<tab>Your weapon has an attack time of <highlight>1.2<end> seconds and a recharge time of <highlight>1.5<end> seconds.\n".
+		"<tab>Your weapon has a Burst Delay of <highlight>1600<end>.\n".
+		"<tab>You have <highlight>900<end> Burst skill.\n".
+		"<tab><a href='chatcmd:///tell <myname> burst 1.2 1.5 1600 900'><symbol>burst 1.2 1.5 1600 900</a>\n\n".
+		"<i>Your Burst Delay value (1600) can be found by using the ".
+		"<a href='chatcmd:///tell <myname> help specials'>specials</a> command or on ".
+		"<a href='chatcmd:///start http://www.auno.org'>auno.org</a> as Burst Cycle.</i>"
+	)]
 	public function burstCommand(CmdContext $context, float $attackTime, float $rechargeTime, int $burstDelay, int $burstSkill): void {
 		[$burstWeaponCap, $burstSkillCap] = $this->capBurst($attackTime, $rechargeTime, $burstDelay);
 
@@ -300,6 +316,7 @@ class SkillsController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
+	/** Calculate your dimach recharge and damage */
 	#[NCA\HandlesCommand("dimach")]
 	public function dimachCommand(CmdContext $context, int $dimachSkill): void {
 		$skillList	        = [   1, 1000, 1001, 2000, 2001, 3000];
@@ -351,7 +368,16 @@ class SkillsController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
+	/** Calculate your fast attack recharge */
 	#[NCA\HandlesCommand("fastattack")]
+	#[NCA\Help\Epilogue(
+		"If you are lazy, just use\n".
+		"<tab><highlight><symbol>weapon &lt;drop weapon into chat&gt;<end>\n\n".
+		"Example:\n".
+		"<tab>Your weapon has an attack time of <highlight>1.2<end> seconds.\n".
+		"<tab>You have <highlight>900<end> Fast Attack skill:\n".
+		"<tab><a href='chatcmd:///tell <myname> <symbol>fastattack 1.2 900'>/tell <myname> <symbol>fastattack 1.2 900</a>"
+	)]
 	public function fastAttackCommand(CmdContext $context, float $attackTime, int $fastAttack): void {
 		[$weaponCap, $skillNeededForCap] = $this->capFastAttack($attackTime);
 
@@ -373,7 +399,16 @@ class SkillsController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
+	/** Calculate your fling shot recharge */
 	#[NCA\HandlesCommand("fling")]
+	#[NCA\Help\Epilogue(
+		"If you are lazy, just use\n".
+		"<tab><highlight><symbol>weapon &lt;drop weapon into chat&gt;<end>\n\n".
+		"Example:\n".
+		"<tab>Your weapon has an attack of <highlight>1.2<end> seconds.\n".
+		"<tab>You have <highlight>900<end> Fling skill.\n".
+		"<tab><a href='chatcmd:///tell <myname> <symbol>fling 1.2 900'>/tell <myname> <symbol>fling 1.2 900</a>"
+	)]
 	public function flingShotCommand(CmdContext $context, float $attackTime, int $flingShot): void {
 		[$weaponCap, $skillCap] = $this->capFlingShot($attackTime);
 
@@ -390,7 +425,20 @@ class SkillsController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
+	/** Calculate your full auto recharge */
 	#[NCA\HandlesCommand("fullauto")]
+	#[NCA\Help\Epilogue(
+		"If you are lazy, just use\n".
+		"<tab><highlight><symbol>weapon &lt;drop weapon into chat&gt;<end>\n\n".
+		"Example:\n".
+		"<tab>Your weapon has an attack and recharge time of <highlight>1<end> second\n".
+		"<tab>and a Full Auto recharge value of <highlight>5000<end>.\n".
+		"<tab>You have <highlight>1200<end> Full Auto skill:\n".
+		"<tab><a href='chatcmd:///tell <myname> fullauto 1 1 5000 1200'><symbol>fullauto 1 1 5000 1200</a>\n\n".
+		"<i>Your Full Auto recharge value (5000) can be found by using the ".
+		"<a href='chatcmd:///tell <myname> help weapon'>weapon</a> command or on ".
+		"<a href='chatcmd:///start http://www.auno.org'>auno.org</a> as FullAuto Cycle.</i>"
+	)]
 	public function fullAutoCommand(CmdContext $context, float $attackTime, float $rechargeTime, int $faRecharge, int $faSkill): void {
 		[$faWeaponCap, $faSkillCap] = $this->capFullAuto($attackTime, $rechargeTime, $faRecharge);
 
@@ -416,6 +464,7 @@ class SkillsController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
+	/** Calculate the damage of your fist attacks */
 	#[NCA\HandlesCommand("mafist")]
 	public function maFistCommand(CmdContext $context, int $maSkill): void {
 		// MA templates
@@ -494,12 +543,17 @@ class SkillsController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
+	/** Calculate the effective casting time of a nano */
 	#[NCA\HandlesCommand("nanoinit")]
-	public function nanoInitCommand(CmdContext $context, float $attackTime, int $initSkill): void {
-		$attackTimeReduction = $this->calcAttackTimeReduction($initSkill);
-		$effectiveAttackTime = $attackTime - $attackTimeReduction;
+	#[NCA\Help\Example(
+		command: "<symbol>nanoinit 3.72 400",
+		description: "Casting Volcanic Eruption with 400 nano init"
+	)]
+	public function nanoInitCommand(CmdContext $context, float $castingTime, int $initSkill): void {
+		$castingTimeReduction = $this->calcAttackTimeReduction($initSkill);
+		$effectiveCastingTime = $castingTime - $castingTimeReduction;
 
-		$barSetting = $this->calcBarSetting($effectiveAttackTime);
+		$barSetting = $this->calcBarSetting($effectiveCastingTime);
 		if ($barSetting < 0) {
 			$barSetting = 0;
 		}
@@ -507,11 +561,11 @@ class SkillsController extends ModuleInstance {
 			$barSetting = 100;
 		}
 
-		$fullAggInits = $this->calcInits($attackTime - 1);
-		$neutralInits = $this->calcInits($attackTime);
-		$fulldefInits = $this->calcInits($attackTime + 1);
+		$fullAggInits = $this->calcInits($castingTime - 1);
+		$neutralInits = $this->calcInits($castingTime);
+		$fulldefInits = $this->calcInits($castingTime + 1);
 
-		$blob = "Attack:    <highlight>${attackTime}<end> second(s)\n";
+		$blob = "Attack:    <highlight>${castingTime}<end> second(s)\n";
 		$blob .= "Init Skill:  <highlight>${initSkill}<end>\n";
 		$blob .= "Def/Agg:  <highlight>" . round($barSetting, 0) . "%<end>\n";
 		$blob .= "You must set your AGG bar at <highlight>" . round($barSetting, 0) ."% (". round($barSetting * 8 / 100, 2) .") <end>to instacast your nano.\n\n";
@@ -532,12 +586,22 @@ class SkillsController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
+	/**
+	 * See weapon info, including how much skills you need to cap your weapon specials
+	 * and attack speed at different aggdef positions
+	 */
 	#[NCA\HandlesCommand("weapon")]
+	#[NCA\Help\Example("<symbol>weapon <a href='itemref://30190/30190/300'>Perfected Diamondine Kick Pistol</a>")]
 	public function weaponCommandWithDrop(CmdContext $context, PItem $item): void {
 		$this->weaponCommand($context, $item->highID, $item->ql);
 	}
 
+	/**
+	 * See weapon info, including how much skills you need to cap your weapon specials
+	 * and attack speed at different aggdef positions
+	 */
 	#[NCA\HandlesCommand("weapon")]
+	#[NCA\Help\Example("<symbol>weapon 30190 300")]
 	public function weaponCommand(CmdContext $context, int $highid, int $ql): void {
 		// this is a hack since Worn Soft Pepper Pistol has its high and low ids reversed in-game
 		// there may be others
@@ -647,7 +711,13 @@ class SkillsController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
+	/**
+	 * See weapon info, including how much skills you need to cap your weapon specials
+	 * and attack speed at different aggdef positions
+	 */
 	#[NCA\HandlesCommand("weapon")]
+	#[NCA\Help\Example("<symbol>weapon perf diamondine")]
+	#[NCA\Help\Example("<symbol>weapon 144 nippy")]
 	public function weaponSearchCommand(CmdContext $context, ?int $ql, PNonNumber $search): void {
 		$search = $search();
 		$data = $this->itemsController->findItemsFromLocal($search, $ql);

@@ -1,0 +1,48 @@
+<header>Admin Help<end>
+
+This guide gives a quick overview of Nadybot commands, features, and ideology that a bot admin may find useful when managing the bot.
+
+Nadybot has three main entities that can be configured to change the way the bot works. They are <highlight>Settings<end>, <highlight>Events<end>, and <highlight>Commands<end>. Additionally, there are <highlight>Modules<end> which group together settings, events, and commands that are related to each other.
+
+<header2>Settings<end>
+
+Settings have one of 5 types: 'color', 'number', 'text', 'options', and 'time'. The type indicates the type of value that the setting can hold.
+
+<tab>- Color means that the setting holds a color and will change the color of some output of the bot
+<tab>- Number means that the setting must contain a positive integer value (no decimal or fractional numbers).
+<tab>- Text means that the setting can contain any text value.
+<tab>- Options means that the setting has a list of values, and you can only choose one of the values.
+<tab>- Time means that the setting must be set to a time value. The format of the time value should be in Budatime (see: <a href='chatcmd:///tell <myname> help budatime'><symbol>help budatime</a>).
+<tab>- AccessLevel means the short name of a Nadybot access level like 'admin', 'mod', 'member'.
+<tab>- DiscordBotToken is a special case. It's a 59 characters long string.
+
+Note that many settings display a list of options for you to choose, but allow you to provide your own value as well.
+
+Settings cannot be disabled. For information on viewing or changing settings, see <a href='chatcmd:///tell <myname> help settings'><symbol>help settings</a>.
+
+<header2>Events<end>
+
+Events come in two categories: normal and cron events. Normal events run in response to something that happens externally. For instance, an org member logs on or a character joins the private channel. Cron events run at specified intervals. For instance, there is a cron event that happens every 24 hours to check for updates to the org roster.
+
+Events can be enabled or disabled - there are no other configuration options. For more information on viewing or configuring events, see <a href='chatcmd:///tell <myname> help eventlist'><symbol>help eventlist</a>.
+
+<header2>Commands<end>
+
+Commands can be registered for any type of permission set. The pre-defined permission sets are msg (tells, discord DMs, console, API), priv (private channel, web chat), and guild (org channel). For each permission set, a command can be enabled or disabled. Additionally, for each permission set, a command can have a different access level. This is important to know because when you enable or disable a command, or adjust the access level, you will typically want to do it for all permission sets.
+
+<header2>Sub-commands<end>
+
+Some commands, like '<symbol>raid' have arguments that will require a different access level. While everyone is able to run '<symbol>raid', to check if a raid is running, only raid leaders are allowed to run '<symbol>raid start'. If specific command arguments require a different access level, they are put into a separate sub-command. The only reason for this is to be able to assign separate access levels.
+In short: sub-commands are a group of command arguments that can have their own access level.
+
+To create or remove permission sets, see <a href='chatcmd:///tell <myname> help permset'><symbol>help permset</a>
+To assign the permission sets to message sources, like Discord, AO tells, etc. see <a href='chatcmd:///tell <myname> help cmdmap'><symbol>help cmdmap</a>
+
+<header2>Preferences<end>
+
+Although hardly ever called like this, preferences are individual user settings that apply to a single character (or a char and all its alts) only. In contrary to settings, which are system-wide for ever user, preferences are things like "logon message" or "reminder format".
+
+<header2>Getting Started<end>
+
+Most often, when you want to configure your bot, you should use <a href='chatcmd:///tell <myname> config'><symbol>config</a>. This shows all the modules in the bot. Selecting a module will show all settings, events, and commands for that module. You can either enable or disable the entire module, or change the settings, events, and commands individually.
+For detailed information about concepts like Relaying, Routing, Discord or the AOChatProxy, you should see the <a href='chatcmd:///start https://github.com/Nadybot/Nadybot/wiki'>Nadybot WIKI</a>.

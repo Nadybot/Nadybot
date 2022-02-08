@@ -1,8 +1,0 @@
-To shows all links:
-<highlight><tab><symbol>links<end>
-
-To add a link to the list:
-<highlight><tab><symbol>links add 'url' 'description'<end>
-
-To remove a link from the list:
-<highlight><tab><symbol>links rem 'link id'<end>

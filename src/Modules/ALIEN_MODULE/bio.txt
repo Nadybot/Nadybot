@@ -1,2 +1,0 @@
-To check a Biomaterial:
-<highlight><tab><symbol>bio 'Drag&Drop your Biomaterial here'<end>

@@ -28,7 +28,6 @@ use Nadybot\Core\{
 
 /**
  * @author Nadyita (RK5) <nadyita@hodorraid.org>
- * Commands this controller contains:
  */
 #[
 	NCA\Instance,
@@ -37,67 +36,56 @@ use Nadybot\Core\{
 		command: "wb",
 		accessLevel: "all",
 		description: "Show next spawntime(s)",
-		help: "wb.txt"
 	),
 	NCA\DefineCommand(
 		command: "tara",
 		accessLevel: "all",
 		description: "Show next Tarasque spawntime(s)",
-		help: "tara.txt"
 	),
 	NCA\DefineCommand(
 		command: "tara .+",
 		accessLevel: "member",
 		description: "Update, set or delete Tarasque killtimer",
-		help: "tara.txt"
 	),
 	NCA\DefineCommand(
 		command: "reaper",
 		accessLevel: "all",
 		description: "Show next Reaper spawntime(s)",
-		help: "reaper.txt"
 	),
 	NCA\DefineCommand(
 		command: "reaper .+",
 		accessLevel: "member",
 		description: "Update, set or delete Reaper killtimer",
-		help: "reaper.txt"
 	),
 	NCA\DefineCommand(
 		command: "loren",
 		accessLevel: "all",
 		description: "Show next Loren Warr spawntime(s)",
-		help: "loren.txt"
 	),
 	NCA\DefineCommand(
 		command: "loren .+",
 		accessLevel: "member",
 		description: "Update, set or delete Loren Warr killtimer",
-		help: "loren.txt"
 	),
 	NCA\DefineCommand(
 		command: "gauntlet",
 		accessLevel: "all",
 		description: "shows timer of Gauntlet",
-		help: "gauntlet.txt"
 	),
 	NCA\DefineCommand(
 		command: "gauntlet .+",
 		accessLevel: "member",
 		description: "Update or set Gaunlet timer",
-		help: "gauntlet.txt"
 	),
 	NCA\DefineCommand(
 		command: "father",
 		accessLevel: "all",
 		description: "shows timer of Father Time",
-		help: "father.txt"
 	),
 	NCA\DefineCommand(
 		command: "father .+",
 		accessLevel: "member",
 		description: "Update or set Father Time timer",
-		help: "father.txt"
 	),
 	NCA\ProvidesEvent(
 		event: "sync(worldboss)",
@@ -516,7 +504,9 @@ class WorldBossController extends ModuleInstance {
 		$this->eventManager->fireEvent($event);
 	}
 
+	/** Show all upcoming world boss spawn timers in the correct order */
 	#[NCA\HandlesCommand("wb")]
+	#[NCA\Help\Group("worldboss")]
 	public function bossCommand(CmdContext $context): void {
 		$timers = $this->getWorldBossTimers();
 		if (!count($timers)) {
@@ -540,23 +530,27 @@ class WorldBossController extends ModuleInstance {
 		return $mobs[explode(" ", strtolower($context->message))[0]];
 	}
 
+	/** Show the next spawn time(s) for a world boss */
 	#[
 		NCA\HandlesCommand("tara"),
 		NCA\HandlesCommand("loren"),
 		NCA\HandlesCommand("reaper"),
 		NCA\HandlesCommand("gauntlet"),
-		NCA\HandlesCommand("father")
+		NCA\HandlesCommand("father"),
+		NCA\Help\Group("worldboss")
 	]
 	public function bossSpawnCommand(CmdContext $context): void {
 		$context->reply($this->getWorldBossMessage($this->getMobFromContext($context)));
 	}
 
+	/** Mark a worldboss as killed, setting a new timer for it */
 	#[
 		NCA\HandlesCommand("tara .+"),
 		NCA\HandlesCommand("loren .+"),
 		NCA\HandlesCommand("reaper .+"),
 		NCA\HandlesCommand("gauntlet .+"),
-		NCA\HandlesCommand("father .+")
+		NCA\HandlesCommand("father .+"),
+		NCA\Help\Group("worldboss")
 	]
 	public function bossKillCommand(CmdContext $context, #[NCA\Str("kill")] string $action): void {
 		$boss = $this->getMobFromContext($context);
@@ -568,26 +562,34 @@ class WorldBossController extends ModuleInstance {
 		$this->sendSyncEvent($context->char->name, $boss, 0, $context->forceSync);
 	}
 
+	/** Manually update a worldboss's timer by giving the time until it is vulnerable */
 	#[
 		NCA\HandlesCommand("tara .+"),
 		NCA\HandlesCommand("loren .+"),
 		NCA\HandlesCommand("reaper .+"),
 		NCA\HandlesCommand("gauntlet .+"),
-		NCA\HandlesCommand("father .+")
+		NCA\HandlesCommand("father .+"),
+		NCA\Help\Group("worldboss")
 	]
-	public function bossUpdateCommand(CmdContext $context, #[NCA\Str("update")] string $action, PDuration $duration): void {
+	public function bossUpdateCommand(
+		CmdContext $context,
+		#[NCA\Str("update")] string $action,
+		PDuration $durationUntilVulnerable
+	): void {
 		$boss = $this->getMobFromContext($context);
-		$this->worldBossUpdate($context->char, $boss, $duration->toSecs());
+		$this->worldBossUpdate($context->char, $boss, $durationUntilVulnerable->toSecs());
 		$msg = "The timer for <highlight>{$boss}<end> has been updated.";
 		$context->reply($msg);
-		$this->sendSyncEvent($context->char->name, $boss, $duration->toSecs(), $context->forceSync);
+		$this->sendSyncEvent($context->char->name, $boss, $durationUntilVulnerable->toSecs(), $context->forceSync);
 	}
 
+	/** Completely remove a worldboss's timer, because you are not interested in it */
 	#[
 		NCA\HandlesCommand("tara .+"),
 		NCA\HandlesCommand("loren .+"),
 		NCA\HandlesCommand("reaper .+"),
-		NCA\HandlesCommand("father .+")
+		NCA\HandlesCommand("father .+"),
+		NCA\Help\Group("worldboss")
 	]
 	public function bossDeleteCommand(CmdContext $context, PRemove $action): void {
 		$boss = $this->getMobFromContext($context);

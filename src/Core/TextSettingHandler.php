@@ -10,7 +10,6 @@ use Exception;
  */
 #[NCA\SettingHandler("text")]
 class TextSettingHandler extends SettingHandler {
-
 	/**
 	 * @inheritDoc
 	 */

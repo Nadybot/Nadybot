@@ -14,7 +14,6 @@ use Nadybot\Core\{
  */
 #[NCA\Instance]
 class WatchdogController extends ModuleInstance {
-
 	#[NCA\Inject]
 	public ConfigFile $config;
 

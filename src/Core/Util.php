@@ -9,7 +9,6 @@ use Nadybot\Core\Attributes as NCA;
 
 #[NCA\Instance]
 class Util {
-
 	#[NCA\Inject]
 	public ConfigFile $config;
 
@@ -394,17 +393,26 @@ class Util {
 		$arr1 = [];
 		$arr2 = [];
 		foreach ($trace as $obj) {
-			$file = str_replace(\Safe\getcwd() . "/", "", $obj['file']);
-			$arr1 []= "{$file}({$obj['line']})";
-			$arr2 []= "{$obj['function']}()";
+			$file = str_replace(\Safe\getcwd() . "/", "", ($obj['file'] ?? "{Closure}"));
+			if (isset($obj['line'])) {
+				$arr1 []= "{$file}({$obj['line']})";
+			} else {
+				$arr1 []= "{$file}";
+			}
+			if (isset($obj['function'])) {
+				$arr2 []= "{$obj['function']}()";
+			}
 		}
 
 		array_shift($arr2);
 
 		$str = "";
 		for ($i = 0; $i < count($arr1); $i++) {
-			if ($arr1[$i] !== "()") {
-				$str .= "$arr1[$i] : ";
+			if ($arr1[$i] !== "{Closure}") {
+				$str .= $arr1[$i];
+				if (isset($arr2[$i])) {
+					$str .= ": ";
+				}
 			}
 			$str .= "$arr2[$i]\n";
 		}

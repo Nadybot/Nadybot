@@ -26,7 +26,6 @@ use Nadybot\Core\{
 
 /**
  * @author Nadyita (RK5) <nadyita@hodorraid.org>
- * Commands this controller contains:
  */
 #[
 	NCA\Instance,
@@ -35,14 +34,12 @@ use Nadybot\Core\{
 		command: "radio",
 		accessLevel: "all",
 		description: "List what is currently playing on GridStream",
-		help: "radio.txt",
 		alias: "gsp"
 	),
 	NCA\ProvidesEvent("gsp(show_start)"),
 	NCA\ProvidesEvent("gsp(show_end)")
 ]
 class GSPController extends ModuleInstance implements MessageEmitter {
-
 	#[NCA\Inject]
 	public Nadybot $chatBot;
 
@@ -88,9 +85,6 @@ class GSPController extends ModuleInstance implements MessageEmitter {
 		return Source::SYSTEM . "(gsp)";
 	}
 
-	/**
-	 * This handler is called on bot startup.
-	 */
 	#[NCA\Setup]
 	public function setup(): void {
 		$this->settingManager->add(
@@ -213,6 +207,7 @@ class GSPController extends ModuleInstance implements MessageEmitter {
 		$this->chatBot->sendMassTell($msg, $sender);
 	}
 
+	/** Show what GridStream Productions is currently playing */
 	#[NCA\HandlesCommand("radio")]
 	public function radioCommand(CmdContext $context): void {
 		$this->http
