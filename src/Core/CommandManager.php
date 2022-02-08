@@ -887,7 +887,7 @@ class CommandManager implements MessageEmitter {
 			return "";
 		}
 		return "\n\n<i>See " . $this->text->makeChatcmd("<symbol>help syntax", "/tell <myname> help syntax").
-			" for help unterstanding the command syntax</i>";
+			" for an explanation of the command syntax</i>";
 	}
 
 	/** @param ReflectionMethod[] $ms */
