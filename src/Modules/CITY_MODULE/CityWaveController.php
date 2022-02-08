@@ -13,11 +13,11 @@ use Nadybot\Core\{
 	MessageEmitter,
 	MessageHub,
 	Nadybot,
+	Routing\RoutableMessage,
+	Routing\Source,
 	SettingManager,
 	Util,
 };
-use Nadybot\Core\Routing\RoutableMessage;
-use Nadybot\Core\Routing\Source;
 use Nadybot\Modules\TIMERS_MODULE\{
 	Alert,
 	TimerController,
@@ -35,7 +35,6 @@ use Nadybot\Modules\TIMERS_MODULE\{
 		command: "citywave",
 		accessLevel: "guild",
 		description: "Shows/Starts/Stops the current city wave",
-		help: "wavecounter.txt"
 	),
 	NCA\ProvidesEvent("cityraid(start)"),
 	NCA\ProvidesEvent("cityraid(wave)"),
@@ -116,7 +115,12 @@ class CityWaveController extends ModuleInstance implements MessageEmitter {
 		}
 	}
 
+	/** Manually start the wave timer */
 	#[NCA\HandlesCommand("citywave")]
+	#[NCA\Help\Epilogue(
+		"Note: the Wave Counter will start and stop automatically under normal circumstances, ".
+		"but the start and stop functions are provided just in case."
+	)]
 	public function citywaveStartCommand(CmdContext $context, #[NCA\Str("start")] string $action): void {
 		$wave = $this->getWave();
 		if ($wave !== null) {
@@ -126,6 +130,7 @@ class CityWaveController extends ModuleInstance implements MessageEmitter {
 		}
 	}
 
+	/** Manually stop the wave timer */
 	#[NCA\HandlesCommand("citywave")]
 	public function citywaveStopCommand(CmdContext $context, #[NCA\Str("stop")] string $action): void {
 		$wave = $this->getWave();
@@ -138,6 +143,7 @@ class CityWaveController extends ModuleInstance implements MessageEmitter {
 		$context->reply($msg);
 	}
 
+	/** Show the current wave */
 	#[NCA\HandlesCommand("citywave")]
 	public function citywaveCommand(CmdContext $context): void {
 		$wave = $this->getWave();

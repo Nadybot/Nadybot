@@ -2,17 +2,17 @@
 
 namespace Nadybot\Modules\ALIEN_MODULE;
 
-use Nadybot\Core\Attributes as NCA;
 use Exception;
 use Nadybot\Core\{
+	Attributes as NCA,
 	CmdContext,
 	DB,
 	ModuleInstance,
 	LoggerWrapper,
+	ParamClass\PItem,
+	ParamClass\PWord,
 	Text,
 };
-use Nadybot\Core\ParamClass\PItem;
-use Nadybot\Core\ParamClass\PWord;
 use Nadybot\Modules\ITEMS_MODULE\ItemsController;
 
 /**
@@ -21,7 +21,6 @@ use Nadybot\Modules\ITEMS_MODULE\ItemsController;
  * @author Wolfbiter (RK1)
  * @author Gatester (RK2)
  * @author Marebone (RK2)
- * Commands this controller contains:
  */
 #[
 	NCA\Instance,
@@ -30,18 +29,14 @@ use Nadybot\Modules\ITEMS_MODULE\ItemsController;
 		command: "bio",
 		accessLevel: "all",
 		description: "Identifies Solid Clump of Kyr'Ozch Bio-Material",
-		help: "bio.txt"
 	),
 	NCA\DefineCommand(
 		command: "bioinfo",
 		accessLevel: "all",
 		description: "Shows info about a particular bio type",
-		help: "bioinfo.txt",
-		alias: "biotype"
 	)
 ]
 class AlienBioController extends ModuleInstance {
-
 	#[NCA\Inject]
 	public DB $db;
 
@@ -59,9 +54,6 @@ class AlienBioController extends ModuleInstance {
 	private const AI_ARMOR_TYPES  = ['mutated', 'pristine'];
 	private const AI_WEAPON_TYPES = [1, 2, 3, 4, 5, 12, 13, 48, 76, 112, 240, 880, 992];
 
-	/**
-	 * This handler is called on bot startup.
-	 */
 	#[NCA\Setup]
 	public function setup(): void {
 		// load database tables from .sql-files
@@ -70,9 +62,10 @@ class AlienBioController extends ModuleInstance {
 	}
 
 	/**
-	 * This command handler identifies Solid Clump of Kyr'Ozch Bio-Material.
+	 * Identify a "Solid Clump of Kyr'Ozch Bio-Material"
 	 */
 	#[NCA\HandlesCommand("bio")]
+	#[NCA\Help\Epilogue("Just drag and drop biomaterials into the chat as parameters.")]
 	public function bioCommand(CmdContext $context, #[NCA\SpaceOptional] PItem ...$clumps): void {
 		$blob = '';
 		$bioinfo = "";
@@ -191,6 +184,7 @@ class AlienBioController extends ModuleInstance {
 		}
 	}
 
+	/** See all bio material types */
 	#[NCA\HandlesCommand("bioinfo")]
 	public function bioinfoListCommand(CmdContext $context): void {
 		$blob  = "<header2>OFAB Armor Types<end>\n";
@@ -221,7 +215,7 @@ class AlienBioController extends ModuleInstance {
 	}
 
 	/**
-	 * This command handler shows info about a particular bio type.
+	 * Show info about a particular bio type
 	 */
 	#[NCA\HandlesCommand("bioinfo")]
 	public function bioinfoIDCommand(CmdContext $context, int $bio, ?int $ql): void {

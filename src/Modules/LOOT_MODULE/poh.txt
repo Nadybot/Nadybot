@@ -1,2 +1,0 @@
-To view Pyramid of Home loot list:
-<highlight><tab><symbol>poh<end>

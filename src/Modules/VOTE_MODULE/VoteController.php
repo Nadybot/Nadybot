@@ -29,7 +29,6 @@ use Nadybot\Core\{
  * @author Nadyita (RK5)
  * @author Lucier (RK1)
  * @author Tyrence (RK2)
- * Commands this controller contains:
  */
 #[
 	NCA\Instance,
@@ -38,13 +37,12 @@ use Nadybot\Core\{
 		command: "vote",
 		accessLevel: "all",
 		description: "Vote in polls",
-		help: "vote.txt"
 	),
 	NCA\DefineCommand(
 		command: "poll",
 		accessLevel: "all",
 		description: "Create, view or delete polls",
-		help: "vote.txt"
+		alias: 'polls'
 	),
 	NCA\ProvidesEvent("poll(start)"),
 	NCA\ProvidesEvent("poll(end)"),
@@ -54,7 +52,6 @@ use Nadybot\Core\{
 	NCA\ProvidesEvent("vote(change)")
 ]
 class VoteController extends ModuleInstance implements MessageEmitter {
-
 	public const DB_POLLS = "polls_<myname>";
 	public const DB_VOTES = "votes_<myname>";
 
@@ -104,12 +101,8 @@ class VoteController extends ModuleInstance implements MessageEmitter {
 	public const STATUS_60_SECONDS_LEFT = 4;
 	public const STATUS_ENDED = 9;
 
-	/**
-	 * This handler is called on bot startup.
-	 */
 	#[NCA\Setup]
 	public function setup(): void {
-		$this->commandAlias->register($this->moduleName, "poll", "polls");
 		$this->cacheVotes();
 		$this->messageHub->registerMessageEmitter($this);
 	}
@@ -217,9 +210,10 @@ class VoteController extends ModuleInstance implements MessageEmitter {
 	}
 
 	/**
-	 * This command handler shows votes.
+	 * Show all the polls
 	 */
 	#[NCA\HandlesCommand("poll")]
+	#[NCA\Help\Group("voting")]
 	public function pollCommand(CmdContext $context): void {
 		/** @var Poll[] */
 		$topics = $this->db->table(self::DB_POLLS)
@@ -258,9 +252,10 @@ class VoteController extends ModuleInstance implements MessageEmitter {
 	}
 
 	/**
-	 * This command handler deletes polls.
+	 * Delete a poll
 	 */
 	#[NCA\HandlesCommand("poll")]
+	#[NCA\Help\Group("voting")]
 	public function pollKillCommand(CmdContext $context, PRemove $action, int $pollId): void {
 		$owner = null;
 		if (!$this->accessManager->checkAccess($context->char->name, "moderator")) {
@@ -286,9 +281,10 @@ class VoteController extends ModuleInstance implements MessageEmitter {
 	}
 
 	/**
-	 * This command handler removes someones vote from a running vote.
+	 * Remove your vote from a running poll
 	 */
 	#[NCA\HandlesCommand("vote")]
+	#[NCA\Help\Group("voting")]
 	public function voteRemoveCommand(CmdContext $context, PRemove $action, int $pollId): void {
 		if (!isset($this->polls[$pollId])) {
 			$msg = "There is no active poll Nr. <highlight>{$pollId}<end>.";
@@ -315,9 +311,10 @@ class VoteController extends ModuleInstance implements MessageEmitter {
 	}
 
 	/**
-	 * This command handler ends a running vote.
+	 * End a poll (voting will end in 60 seconds)
 	 */
 	#[NCA\HandlesCommand("poll")]
+	#[NCA\Help\Group("voting")]
 	public function pollEndCommand(CmdContext $context, #[NCA\Str("end")] string $action, int $pollId): void {
 		$topic = $this->getPoll($pollId);
 
@@ -343,8 +340,10 @@ class VoteController extends ModuleInstance implements MessageEmitter {
 		$context->reply($msg);
 	}
 
+	/** View a specific poll */
 	#[NCA\HandlesCommand("poll")]
-	public function voteShowCommand(CmdContext $context, #[NCA\Regexp("show|view")] ?string $action, int $id): void {
+	#[NCA\Help\Group("voting")]
+	public function voteShowCommand(CmdContext $context, #[NCA\Str("show", "view")] ?string $action, int $id): void {
 		$topic = $this->getPoll($id);
 		if ($topic === null) {
 			$context->reply("There is no poll Nr. <highlight>{$id}<end>.");
@@ -374,7 +373,9 @@ class VoteController extends ModuleInstance implements MessageEmitter {
 		$context->reply($msg);
 	}
 
+	/** Vote for a poll */
 	#[NCA\HandlesCommand("vote")]
+	#[NCA\Help\Group("voting")]
 	public function voteCommand(CmdContext $context, int $pollId, string $answer): void {
 		$topic = $this->getPoll($pollId);
 		if ($topic === null) {
@@ -426,10 +427,17 @@ class VoteController extends ModuleInstance implements MessageEmitter {
 		$this->eventManager->fireEvent($event);
 	}
 
+	/**
+	 * Create a new poll
+	 * The poll will be active for &lt;duration&gt;
+	 * The format of &lt;definition&gt; is &lt;topic&gt;|&lt;option1&gt;|&lt;option2&gt;...
+	 */
 	#[NCA\HandlesCommand("poll")]
+	#[NCA\Help\Group("voting")]
+	#[NCA\Help\Example("<symbol>poll create 4d3h2m1s WHAT... Is your favorite color?!?|Blue|Yellow")]
 	public function pollCreateCommand(
 		CmdContext $context,
-		#[NCA\Regexp("add|create|new")] string $action,
+		#[NCA\Str("add", "create", "new")] string $action,
 		PDuration $duration,
 		string $definition
 	): void {

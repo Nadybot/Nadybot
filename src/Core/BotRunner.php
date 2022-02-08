@@ -11,7 +11,6 @@ use ReflectionClass;
 use ReflectionException;
 
 class BotRunner {
-
 	/**
 	 * Nadybot's current version
 	 */

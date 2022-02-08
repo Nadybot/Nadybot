@@ -2,25 +2,24 @@
 
 namespace Nadybot\Modules\HELPBOT_MODULE;
 
-use Nadybot\Core\Attributes as NCA;
 use DateInterval;
 use DateTime;
 use DateTimeZone;
 use Exception;
 use Nadybot\Core\{
+	Attributes as NCA,
 	CmdContext,
 	CommandAlias,
 	DB,
 	ModuleInstance,
+	ParamClass\PWord,
 	Text,
 	Util,
 };
-use Nadybot\Core\ParamClass\PWord;
 use Safe\Exceptions\DatetimeException;
 
 /**
  * @author Nadyita (RK5)
- * Commands this controller contains:
  */
 #[
 	NCA\Instance,
@@ -29,7 +28,7 @@ use Safe\Exceptions\DatetimeException;
 		command: "arbiter",
 		accessLevel: "all",
 		description: "Show current arbiter mission",
-		help: "arbiter.txt"
+		alias: "icc",
 	)
 ]
 class ArbiterController extends ModuleInstance {
@@ -51,11 +50,6 @@ class ArbiterController extends ModuleInstance {
 
 	#[NCA\Inject]
 	public DB $db;
-
-	#[NCA\Setup]
-	public function setup(): void {
-		$this->commandAlias->register($this->moduleName, "arbiter", "icc");
-	}
 
 	/**
 	 * Calculate the next (or current) times for an event
@@ -124,22 +118,28 @@ class ArbiterController extends ModuleInstance {
 		return $this->util->unixtimeToReadable($time - ($time % 60));
 	}
 
+	/**
+	 * Once in a while, the arbiter takes a break and doesn't come to the ICC.
+	 * In that case, you can manually set which week you are currently in
+	 *
+	 * When setting the arbiter week on a Sunday, we don't know for sure which
+	 * Sunday this is - the first or the last day of the period.
+	 * By default, we will assume that this is the first Sunday of the
+	 * event, but you can add 'ends' to the command like so:
+	 * <tab>'<symbol>arbiter set bs ends'
+	 * This will set that today is the last day of the PvP week.
+	 */
 	#[NCA\HandlesCommand("arbiter")]
-	public function arbiterSetCommand(CmdContext $context, #[NCA\Str("set")] string $action, ?PWord $setWeek, #[NCA\Str("ends")] ?string $ends): void {
-		if (isset($setWeek)) {
-			$setWeek = strtolower($setWeek());
-		}
+	public function arbiterSetCommand(
+		CmdContext $context,
+		#[NCA\Str("set")] string $action,
+		#[NCA\StrChoice("ai", "bs", "dio")] string $setWeek,
+		#[NCA\Str("ends")] ?string $ends
+	): void {
+		$setWeek = strtolower($setWeek);
 		$validTypes = [static::AI, static::BS, static::DIO];
-		if (!isset($setWeek) || !is_int($pos = array_search($setWeek, $validTypes))) {
-			$context->reply(
-				"Allowed current arbiter weeks are ".
-				$this->text->enumerate(
-					...$this->text->arraySprintf(
-						"<highlight>%s<end>",
-						...$validTypes
-					)
-				)
-			);
+		$pos = array_search($setWeek, $validTypes);
+		if ($pos === false) {
 			return;
 		}
 		/** @var string $setWeek */
@@ -176,7 +176,11 @@ class ArbiterController extends ModuleInstance {
 		);
 	}
 
+	/** Check what's the current mission from Arbiter Vincenzo Palmiero */
 	#[NCA\HandlesCommand("arbiter")]
+	#[NCA\Help\Example("<symbol>arbiter june 6th 2025")]
+	#[NCA\Help\Example("<symbol>arbiter next week")]
+	#[NCA\Help\Example("<symbol>arbiter saturday")]
 	public function arbiterCommand(CmdContext $context, ?string $timeGiven): void {
 		$time = time();
 		if (isset($timeGiven)) {

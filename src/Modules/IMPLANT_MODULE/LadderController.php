@@ -14,7 +14,6 @@ use Nadybot\Core\{
 /**
  * @author Tyrence (RK2)
  * @author Imoutochan (RK1)
- * Commands this class contains:
  */
 #[
 	NCA\Instance,
@@ -23,7 +22,6 @@ use Nadybot\Core\{
 		command: "ladder",
 		accessLevel: "all",
 		description: "Show sequence of laddering implants for maximum ability or treatment",
-		help: "ladder.txt"
 	)
 ]
 class LadderController extends ModuleInstance {
@@ -44,10 +42,16 @@ class LadderController extends ModuleInstance {
 		$this->db->loadCSVFile($this->moduleName, __DIR__ . "/implant_requirements.csv");
 	}
 
+	/** Show sequence of laddering implants for an ability or treatment */
 	#[NCA\HandlesCommand("ladder")]
+	#[NCA\Help\Epilogue(
+		"The base amount should be the treatment or ability you have with all nano buffs, ".
+		"perks, and items-buffing equipment equipped, but minus any implants you have ".
+		"equipped."
+	)]
 	public function ladderCommand(
 		CmdContext $context,
-		#[NCA\Regexp("treat|treatment|ability")] string $type,
+		#[NCA\StrChoice("treatment", "ability")] string $type,
 		int $startingValue
 	): void {
 		$type = strtolower($type);

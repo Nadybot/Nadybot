@@ -24,7 +24,6 @@ use Nadybot\Modules\ITEMS_MODULE\{
 
 /**
  * @author Nadyita
- * Commands this controller contains:
  */
 #[
 	NCA\Instance,
@@ -33,7 +32,6 @@ use Nadybot\Modules\ITEMS_MODULE\{
 		command: "arulsaba",
 		accessLevel: "all",
 		description: "Get recipe for Arul Saba bracers",
-		help: "arulsaba.txt",
 		alias: "aruls"
 	)
 ]
@@ -74,6 +72,7 @@ class ArulSabaController extends ModuleInstance {
 		);
 	}
 
+	/** Get a list of all Arul Saba bracelets */
 	#[NCA\HandlesCommand("arulsaba")]
 	public function arulSabaListCommand(CmdContext $context): void {
 		$blob = "<header2>Choose the type of bracer<end>\n";
@@ -92,7 +91,9 @@ class ArulSabaController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
+	/** See the different types of a specific Arul Saba bracelet */
 	#[NCA\HandlesCommand("arulsaba")]
+	#[NCA\Help\Example("<symbol>arulsaba desert")]
 	public function arulSabaChooseQLCommand(CmdContext $context, PWord $name): void {
 		/** @var Collection<ArulSabaBuffs> */
 		$aruls = $this->db->table("arulsaba_buffs")
@@ -175,8 +176,15 @@ class ArulSabaController extends ModuleInstance {
 		return $this->enrichIngredient($ing, $amount, $ql, $qlCanBeHigher);
 	}
 
+	/** See the recipe for a specific Arul Sabe bracelet */
 	#[NCA\HandlesCommand("arulsaba")]
-	public function arulSabaRecipeCommand(CmdContext $context, PWord $type, int $numGems, #[NCA\Regexp("left|right")] string $side): void {
+	#[NCA\Help\Example("<symbol>arulsaba desert 5 left")]
+	public function arulSabaRecipeCommand(
+		CmdContext $context,
+		PWord $type,
+		int $numGems,
+		#[NCA\StrChoice("left", "right")] string $side
+	): void {
 		$type = ucfirst(strtolower($type()));
 		$reqGems = max(1, $numGems);
 		$side = strtolower($side);

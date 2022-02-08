@@ -1,5 +1,0 @@
-To lock the private channel for updates, etc.:
-<tab><highlight><symbol>lock 'reason'<end>
-
-To open it up again:
-<tab><highlight><symbol>unlock<end>

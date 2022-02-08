@@ -15,7 +15,6 @@ use Nadybot\Core\{
 
 /**
  * @author Tyrence (RK2)
- * Commands this controller contains:
  */
 #[
 	NCA\Instance,
@@ -24,11 +23,9 @@ use Nadybot\Core\{
 		command: "whompah",
 		accessLevel: "all",
 		description: "Shows the whompah route from one city to another",
-		help: "whompah.txt"
 	)
 ]
 class WhompahController extends ModuleInstance {
-
 	#[NCA\Inject]
 	public DB $db;
 
@@ -38,9 +35,6 @@ class WhompahController extends ModuleInstance {
 	#[NCA\Inject]
 	public CommandAlias $commandAlias;
 
-	/**
-	 * This handler is called on bot startup.
-	 */
 	#[NCA\Setup]
 	public function setup(): void {
 		$this->db->loadCSVFile($this->moduleName, __DIR__ . "/whompah_cities.csv");
@@ -52,7 +46,7 @@ class WhompahController extends ModuleInstance {
 	}
 
 	/**
-	 * Shows a list of known cities
+	 * Shows a list of whompah cities
 	 */
 	#[NCA\HandlesCommand("whompah")]
 	public function whompahListCommand(CmdContext $context): void {
@@ -74,7 +68,7 @@ class WhompahController extends ModuleInstance {
 	}
 
 	/**
-	 * Searches for a whompah-route from start to end
+	 * Searches a whompah-route from one location to another
 	 */
 	#[NCA\HandlesCommand("whompah")]
 	public function whompahTravelCommand(CmdContext $context, PWord $start, PWord $end): void {
@@ -115,7 +109,7 @@ class WhompahController extends ModuleInstance {
 	}
 
 	/**
-	 * Shows all whompah-connections of a city
+	 * Show all whompah-connections of a city
 	 */
 	#[NCA\HandlesCommand("whompah")]
 	public function whompahDestinationsCommand(CmdContext $context, string $cityName): void {

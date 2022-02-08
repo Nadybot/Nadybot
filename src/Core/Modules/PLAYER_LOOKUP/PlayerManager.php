@@ -2,13 +2,14 @@
 
 namespace Nadybot\Core\Modules\PLAYER_LOOKUP;
 
-use Nadybot\Core\Attributes as NCA;
 use Safe\DateTime;
 use DateTimeZone;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
+	Attributes as NCA,
 	ConfigFile,
 	DB,
+	DBSchema\Player,
 	Http,
 	HttpResponse,
 	ModuleInstance,
@@ -19,7 +20,6 @@ use Nadybot\Core\{
 	SQLException,
 	Util,
 };
-use Nadybot\Core\DBSchema\Player;
 
 /**
  * @author Tyrence (RK2)
@@ -27,6 +27,7 @@ use Nadybot\Core\DBSchema\Player;
 #[NCA\Instance]
 class PlayerManager extends ModuleInstance {
 	public const CACHE_GRACE_TIME = 87000;
+
 	#[NCA\Inject]
 	public DB $db;
 

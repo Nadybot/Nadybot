@@ -2,8 +2,8 @@
 
 namespace Nadybot\Modules\DEV_MODULE;
 
-use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{
+	Attributes as NCA,
 	CacheManager,
 	CmdContext,
 	ConfigFile,
@@ -17,7 +17,6 @@ use Nadybot\Core\{
 
 /**
  * @author Tyrence (RK2)
- * Commands this controller contains:
  */
 #[
 	NCA\Instance,
@@ -25,7 +24,6 @@ use Nadybot\Core\{
 		command: "cache",
 		accessLevel: "superadmin",
 		description: "Manage cached files",
-		help: "cache.txt"
 	)
 ]
 class CacheController extends ModuleInstance {
@@ -44,6 +42,7 @@ class CacheController extends ModuleInstance {
 	#[NCA\Inject]
 	public ConfigFile $config;
 
+	/** View a list of cache categories */
 	#[NCA\HandlesCommand("cache")]
 	public function cacheCommand(CmdContext $context): void {
 		$blob = '';
@@ -54,8 +53,13 @@ class CacheController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
+	/** View a list of files in a cache category */
 	#[NCA\HandlesCommand("cache")]
-	public function cacheBrowseCommand(CmdContext $context, #[NCA\Str("browse")] string $action, #[NCA\Regexp("[a-z0-9_-]+")] string $group): void {
+	public function cacheBrowseCommand(
+		CmdContext $context,
+		#[NCA\Str("browse")] string $action,
+		#[NCA\Regexp("[a-z0-9_-]+")] string $group
+	): void {
 		$path = $this->config->cacheFolder . $group;
 
 		$blob = '';
@@ -72,8 +76,14 @@ class CacheController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
+	/** Delete a cache file from a cache category */
 	#[NCA\HandlesCommand("cache")]
-	public function cacheRemCommand(CmdContext $context, PRemove $action, #[NCA\Regexp("[a-z0-9_-]+")] string $group, PFilename $file): void {
+	public function cacheRemCommand(
+		CmdContext $context,
+		PRemove $action,
+		#[NCA\Regexp("[a-z0-9_-]+")] string $group,
+		PFilename $file
+	): void {
 		$file = $file();
 
 		if ($this->cacheManager->cacheExists($group, $file)) {
@@ -85,8 +95,14 @@ class CacheController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
+	/** View the contents of a cache file */
 	#[NCA\HandlesCommand("cache")]
-	public function cacheViewCommand(CmdContext $context, #[NCA\Str("view")] string $action, #[NCA\Regexp("[a-z0-9_-]+")] string $group, PFilename $file): void {
+	public function cacheViewCommand(
+		CmdContext $context,
+		#[NCA\Str("view")] string $action,
+		#[NCA\Regexp("[a-z0-9_-]+")] string $group,
+		PFilename $file
+	): void {
 		$file = $file();
 
 		if ($this->cacheManager->cacheExists($group, $file)) {

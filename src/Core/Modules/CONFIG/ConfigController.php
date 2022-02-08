@@ -40,13 +40,11 @@ use Nadybot\Core\DBSchema\{
 		command: "config",
 		accessLevel: "mod",
 		description: "Configure bot settings",
-		help: "config.txt",
 		defaultStatus: 1
 	),
 	NCA\Instance
 ]
 class ConfigController extends ModuleInstance {
-
 	#[NCA\Inject]
 	public Text $text;
 
@@ -80,9 +78,6 @@ class ConfigController extends ModuleInstance {
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
-	/**
-	 * This handler is called on bot startup.
-	 */
 	#[NCA\Setup]
 	public function setup(): void {
 		// construct list of command handlers
@@ -99,18 +94,16 @@ class ConfigController extends ModuleInstance {
 		foreach ($this->commandManager->getPermissionSets() as $set) {
 			$this->commandManager->activate($set->name, $filename, "config", "mod");
 		}
-
-		$this->helpManager->register($this->moduleName, "config", "config.txt", "mod", "Configure Commands/Events");
 	}
 
 	/**
-	 * This command handler lists list of modules which can be configured.
+	 * Get a list of modules which can be configured
 	 */
 	#[NCA\HandlesCommand("config")]
 	public function configCommand(CmdContext $context): void {
-		$channels = $this->commandManager->getPermissionSets();
+		$permSets = $this->commandManager->getPermissionSets();
 		$blob = "<header2>Quick config<end>\n".
-			$channels->map(function (CmdPermissionSet $set): string {
+			$permSets->map(function (CmdPermissionSet $set): string {
 				return "<tab>" . ucfirst(strtolower($set->name)) . " Commands [" .
 					$this->text->makeChatcmd('enable all', '/tell <myname> config cmd enable ' . $set->name) . "] [" .
 					$this->text->makeChatcmd('disable all', '/tell <myname> config cmd disable ' . $set->name) . "]";
@@ -150,18 +143,18 @@ class ConfigController extends ModuleInstance {
 	}
 
 	/**
-	 * This command handler turns a channel of all modules on or off.
+	 * Turn a permission set for all modules on or off
 	 */
 	#[NCA\HandlesCommand("config")]
 	public function toggleChannelOfAllModulesCommand(
 		CmdContext $context,
 		#[NCA\Str("cmd")] string $cmd,
 		bool $status,
-		PWord $permissionSet
+		#[NCA\PWord] #[NCA\Str("all")] string $permissionSet,
 	): void {
-		$permissionSet = strtolower($permissionSet());
+		$permissionSet = strtolower($permissionSet);
 		if ($permissionSet !== "all" && !$this->commandManager->hasPermissionSet($permissionSet)) {
-			$context->reply("No such channel '<highlight>{$permissionSet}<end>'.");
+			$context->reply("No such permission set '<highlight>{$permissionSet}<end>'.");
 			return;
 		}
 		$permQuery = $this->db->table(CommandManager::DB_TABLE_PERMS);
@@ -206,7 +199,7 @@ class ConfigController extends ModuleInstance {
 	}
 
 	/**
-	 * This command handler turns one or all channels of a single module on or off
+	 * Turn one or all permission sets of a single module on or off
 	 */
 	#[NCA\HandlesCommand("config")]
 	public function toggleModuleChannelCommand(
@@ -214,47 +207,47 @@ class ConfigController extends ModuleInstance {
 		#[NCA\Str("mod")] string $action,
 		string $module,
 		bool $enable,
-		PWord $channel
+		#[NCA\PWord] #[NCA\Str("all")] string $permissionSet,
 	): void {
-		$channel = strtolower($channel());
-		if ($channel !== "all" && !$this->commandManager->hasPermissionSet($channel)) {
-			$context->reply("No such channel '<highlight>{$channel}<end>'.");
+		$permissionSet = strtolower($permissionSet);
+		if ($permissionSet !== "all" && !$this->commandManager->hasPermissionSet($permissionSet)) {
+			$context->reply("No such permission set '<highlight>{$permissionSet}<end>'.");
 			return;
 		}
-		if (!$this->toggleModule($module, $channel, $enable)) {
-			if ($channel === "all") {
+		if (!$this->toggleModule($module, $permissionSet, $enable)) {
+			if ($permissionSet === "all") {
 				$msg = "Could not find Module <highlight>{$module}<end>.";
 			} else {
-				$msg = "Could not find module <highlight>{$module}<end> for channel <highlight>{$channel}<end>.";
+				$msg = "Could not find module <highlight>{$module}<end> for permission set <highlight>{$permissionSet}<end>.";
 			}
 			$context->reply($msg);
 			return;
 		}
 		$color = $enable ? "green" : "red";
 		$status = $enable ? "enable" : "disable";
-		if ($channel === "all") {
+		if ($permissionSet === "all") {
 			$msg = "Updated status of module <highlight>{$module}<end> to <{$color}>{$status}d<end>.";
 		} else {
-			$msg = "Updated status of module <highlight>{$module}<end> in channel <highlight>{$channel}<end> to <{$color}>{$status}d<end>.";
+			$msg = "Updated status of module <highlight>{$module}<end> in permission set <highlight>{$permissionSet}<end> to <{$color}>{$status}d<end>.";
 		}
 		$context->reply($msg);
 	}
 
 	/**
-	 * This command handler turns one or all channels of a single command on or off
+	 * Turn one or all permission set of a single command on or off
 	 */
 	#[NCA\HandlesCommand("config")]
 	public function toggleCommandChannelCommand(
 		CmdContext $context,
-		#[NCA\Regexp("cmd|subcmd")] string $type,
+		#[NCA\Str("cmd", "subcmd")] string $type,
 		string $cmd,
 		bool $enable,
-		PWord $channel
+		#[NCA\PWord] #[NCA\Str("all")] string $permissionSet,
 	): void {
 		$type = strtolower($type);
-		$channel = strtolower($channel());
-		if ($channel !== "all" && !$this->commandManager->hasPermissionSet($channel)) {
-			$context->reply("No such channel '<highlight>{$channel}<end>'.");
+		$permissionSet = strtolower($permissionSet);
+		if ($permissionSet !== "all" && !$this->commandManager->hasPermissionSet($permissionSet)) {
+			$context->reply("No such permission set '<highlight>{$permissionSet}<end>'.");
 			return;
 		}
 		try {
@@ -262,7 +255,7 @@ class ConfigController extends ModuleInstance {
 				$context->char->name,
 				$type === "subcmd",
 				$cmd,
-				$channel,
+				$permissionSet,
 				$enable
 			);
 		} catch (InsufficientAccessException $e) {
@@ -271,9 +264,9 @@ class ConfigController extends ModuleInstance {
 		}
 		$type = str_replace("cmd", "command", $type);
 		if (!$result) {
-			if ($channel !== "all") {
+			if ($permissionSet !== "all") {
 				$msg = "Could not find {$type} <highlight>{$cmd}<end> ".
-					"for channel <highlight>{$channel}<end>.";
+					"for permission set <highlight>{$permissionSet}<end>.";
 			} else {
 				$msg = "Could not find {$type} <highlight>{$cmd}<end>.";
 			}
@@ -282,55 +275,53 @@ class ConfigController extends ModuleInstance {
 		}
 		$color = $enable ? "green" : "red";
 		$status = $enable ? "enable" : "disable";
-		if ($channel === "all") {
+		if ($permissionSet === "all") {
 			$msg = "Updated status of {$type} <highlight>{$cmd}<end> ".
 				"to <{$color}>{$status}d<end>.";
 		} else {
 			$msg = "Updated status of {$type} <highlight>{$cmd}<end> ".
-				"to <{$color}>{$status}d<end> in channel <highlight>{$channel}<end>.";
+				"to <{$color}>{$status}d<end> in permission set <highlight>{$permissionSet}<end>.";
 		}
 		$context->reply($msg);
 	}
 
 	/**
-	 * This command handler turns one or all channels of a single event on or off
+	 * Turn one or all permission sets of a single event on or off
 	 */
 	#[NCA\HandlesCommand("config")]
 	public function toggleEventCommand(
 		CmdContext $context,
 		#[NCA\Str("event")] string $type,
-		string $event,
+		PWord $event,
+		string $eventHandler,
 		bool $enable,
-		PWord $channel
+		#[NCA\PWord] #[NCA\Str("all")] string $permissionSet,
 	): void {
-		$channel = strtolower($channel());
-		if ($channel !== "all" && !$this->commandManager->hasPermissionSet($channel)) {
-			$context->reply("No such channel '<highlight>{$channel}<end>'.");
+		$permissionSet = strtolower($permissionSet);
+		if ($permissionSet !== "all" && !$this->commandManager->hasPermissionSet($permissionSet)) {
+			$context->reply("No such permission set '<highlight>{$permissionSet}<end>'.");
 			return;
 		}
-		$temp = explode(" ", $event);
-		$eventType = strtolower($temp[0]);
-		$file = $temp[1] ?? "";
 
-		if ( !$this->toggleEvent($eventType, $file, $enable) ) {
-			$msg = "Could not find event <highlight>{$eventType}<end> for handler <highlight>{$file}<end>.";
+		if ( !$this->toggleEvent($event(), $eventHandler, $enable) ) {
+			$msg = "Could not find event <highlight>{$event}<end> for handler <highlight>{$eventHandler}<end>.";
 			$context->reply($msg);
 			return;
 		}
 
 		$color = $enable ? "green" : "red";
 		$status = $enable ? "enable" : "disable";
-		$msg = "Updated status of event <highlight>{$eventType}<end> to <{$color}>{$status}d<end>.";
+		$msg = "Updated status of event <highlight>{$event}<end> to <{$color}>{$status}d<end>.";
 
 		$context->reply($msg);
 	}
 
 	/**
-	 * Enable or disable a command or subcommand for one or all channels
+	 * Enable or disable a command or subcommand for one or all permission sets
 	 */
-	public function toggleCmd(string $sender, bool $subCmd, string $cmd, string $channel, bool $enable): bool {
+	public function toggleCmd(string $sender, bool $subCmd, string $cmd, string $permSet, bool $enable): bool {
 		$cmdEvent = $subCmd ? "subcmd" : "cmd";
-		$cfg = $this->commandManager->get($cmd, ($channel === "all") ? null : $channel);
+		$cfg = $this->commandManager->get($cmd, ($permSet === "all") ? null : $permSet);
 		if (!isset($cfg) || $cmd === "config" || $cfg->cmdevent !== $cmdEvent) {
 			return false;
 		}
@@ -448,33 +439,32 @@ class ConfigController extends ModuleInstance {
 	}
 
 	/**
-	 * This command handler sets command's access level on a particular channel.
-	 * Note: This handler has not been not registered, only activated.
+	 * Sets a command's access level for one or all permission sets
 	 */
 	#[NCA\HandlesCommand("config")]
 	public function setAccessLevelOfChannelCommand(
 		CmdContext $context,
-		#[NCA\Regexp("subcmd|cmd")] string $category,
+		#[NCA\Str("subcmd", "cmd")] string $category,
 		string $cmd,
 		#[NCA\Str("admin")] string $admin,
-		PWord $channel,
+		#[NCA\PWord] #[NCA\Str("all")] string $permissionSet,
 		string $accessLevel
 	): void {
 		$category = strtolower($category);
 		$command = strtolower($cmd);
-		$channel = strtolower($channel());
-		if ($channel !== "all" && !$this->commandManager->hasPermissionSet($channel)) {
-			$context->reply("No such channel '<highlight>{$channel}<end>'.");
+		$permissionSet = strtolower($permissionSet);
+		if ($permissionSet !== "all" && !$this->commandManager->hasPermissionSet($permissionSet)) {
+			$context->reply("No such permission set '<highlight>{$permissionSet}<end>'.");
 			return;
 		}
 
 		$type = "command";
 		try {
 			if ($category === "cmd") {
-				$result = $this->changeCommandAL($context->char->name, $command, $channel, $accessLevel);
+				$result = $this->changeCommandAL($context->char->name, $command, $permissionSet, $accessLevel);
 			} else {
 				$type = "subcommand";
-				$result = $this->changeSubcommandAL($context->char->name, $command, $channel, $accessLevel);
+				$result = $this->changeSubcommandAL($context->char->name, $command, $permissionSet, $accessLevel);
 			}
 		} catch (InsufficientAccessException $e) {
 			$msg = "You do not have the required access level to change this {$type}.";
@@ -486,10 +476,10 @@ class ConfigController extends ModuleInstance {
 		}
 
 		if ($result === 0) {
-			if ($channel === "all") {
+			if ($permissionSet === "all") {
 				$msg = "Could not find {$type} <highlight>{$command}<end>.";
 			} else {
-				$msg = "Could not find {$type} <highlight>{$command}<end> for channel <highlight>{$channel}<end>.";
+				$msg = "Could not find {$type} <highlight>{$command}<end> for permission set <highlight>{$permissionSet}<end>.";
 			}
 			$context->reply($msg);
 			return;
@@ -499,18 +489,18 @@ class ConfigController extends ModuleInstance {
 			$context->reply($msg);
 			return;
 		}
-		if ($channel === "all") {
+		if ($permissionSet === "all") {
 			$msg = "Updated access of {$type} <highlight>{$command}<end> to <highlight>{$accessLevel}<end>.";
 		} else {
-			$msg = "Updated access of {$type} <highlight>{$command}<end> in channel <highlight>{$channel}<end> to <highlight>{$accessLevel}<end>.";
+			$msg = "Updated access of {$type} <highlight>{$command}<end> in permission set <highlight>{$permissionSet}<end> to <highlight>{$accessLevel}<end>.";
 		}
 		$context->reply($msg);
 	}
 
-	public function changeCommandAL(string $sender, string $command, string $channel, string $accessLevel): int {
+	public function changeCommandAL(string $sender, string $command, string $permSet, string $accessLevel): int {
 		$accessLevel = $this->accessManager->getAccessLevel($accessLevel);
 
-		$cfg = $this->commandManager->get($command, ($channel === "all") ? null : $channel);
+		$cfg = $this->commandManager->get($command, ($permSet === "all") ? null : $permSet);
 
 		if (!isset($cfg)) {
 			return 0;
@@ -519,12 +509,12 @@ class ConfigController extends ModuleInstance {
 		} elseif (!$this->accessManager->checkAccess($sender, $accessLevel)) {
 			return -1;
 		}
-		$this->commandManager->updateStatus($channel, $command, null, 1, $accessLevel);
+		$this->commandManager->updateStatus($permSet, $command, null, 1, $accessLevel);
 		return 1;
 	}
 
-	public function changeSubcommandAL(string $sender, string $command, string $channel, string $accessLevel): int {
-		$cfg = $this->commandManager->get($command, $channel);
+	public function changeSubcommandAL(string $sender, string $command, string $permSet, string $accessLevel): int {
+		$cfg = $this->commandManager->get($command, $permSet);
 		$accessLevel = $this->accessManager->getAccessLevel($accessLevel);
 		if (!isset($cfg)) {
 			return 0;
@@ -553,8 +543,7 @@ class ConfigController extends ModuleInstance {
 	}
 
 	/**
-	 * This command handler shows information and controls of a command in
-	 * each channel.
+	 * Show information and permissions of a command, detailed by permission set
 	 */
 	#[NCA\HandlesCommand("config")]
 	public function configCommandCommand(
@@ -636,7 +625,7 @@ class ConfigController extends ModuleInstance {
 
 
 	/**
-	 * This command handler shows configuration and controls for a single module.
+	 * Show configuration and controls for a single module
 	 */
 	#[NCA\HandlesCommand("config")]
 	public function configModuleCommand(CmdContext $context, PWord $module): void {

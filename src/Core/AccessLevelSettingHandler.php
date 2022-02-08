@@ -11,7 +11,6 @@ use Nadybot\Core\Modules\CONFIG\ConfigController;
  */
 #[NCA\SettingHandler("rank")]
 class AccessLevelSettingHandler extends SettingHandler {
-
 	#[NCA\Inject]
 	public SettingManager $settingManager;
 

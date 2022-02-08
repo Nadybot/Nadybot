@@ -1,8 +1,0 @@
-To find a cluster for a skill:
-<highlight><tab><symbol>cluster 'cluster name'<end>
-
-<header2>Example<end>
-To find the clusters that buff computer literacy:
-<highlight><tab><symbol>cluster comp lit<end>
-
-by Imoutochan, RK1

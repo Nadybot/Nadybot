@@ -2,9 +2,9 @@
 
 namespace Nadybot\Modules\DEV_MODULE;
 
-use Nadybot\Core\Attributes as NCA;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
+	Attributes as NCA,
 	CmdContext,
 	CommandManager,
 	Event,
@@ -12,13 +12,12 @@ use Nadybot\Core\{
 	DBSchema\CmdCfg,
 	ModuleInstance,
 	LoggerWrapper,
+	ParamClass\PWord,
 	Text,
 };
-use Nadybot\Core\ParamClass\PWord;
 
 /**
  * @author Tyrence (RK2)
- * Commands this controller contains:
  */
 #[
 	NCA\Instance,
@@ -27,17 +26,14 @@ use Nadybot\Core\ParamClass\PWord;
 		command: "silence",
 		accessLevel: "mod",
 		description: "Silence commands in a particular channel",
-		help: "silence.txt"
 	),
 	NCA\DefineCommand(
 		command: "unsilence",
 		accessLevel: "mod",
 		description: "Unsilence commands in a particular channel",
-		help: "silence.txt"
 	)
 ]
 class SilenceController extends ModuleInstance {
-
 	public const DB_TABLE = "silence_cmd_<myname>";
 
 	#[NCA\Inject]
@@ -58,6 +54,7 @@ class SilenceController extends ModuleInstance {
 	public function setup(): void {
 	}
 
+	/** Get a list of all commands that have been silenced */
 	#[NCA\HandlesCommand("silence")]
 	public function silenceCommand(CmdContext $context): void {
 		/** @var Collection<SilenceCmd> */
@@ -78,36 +75,38 @@ class SilenceController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
+	/** Silence a command for a specific permission set */
 	#[NCA\HandlesCommand("silence")]
-	public function silenceAddCommand(CmdContext $context, string $command, PWord $channel): void {
+	public function silenceAddCommand(CmdContext $context, string $command, PWord $permissionSet): void {
 		$command = strtolower($command);
-		$channel = strtolower($channel());
+		$permissionSet = strtolower($permissionSet());
 
 		$cmdCfg = $this->commandManager->get($command);
-		if (!isset($cmdCfg) || !isset($cmdCfg->permissions[$channel]) || !$cmdCfg->permissions[$channel]->enabled) {
-			$msg = "Could not find command <highlight>{$command}<end> for channel <highlight>{$channel}<end>.";
-		} elseif ($this->isSilencedCommand($cmdCfg, $channel)) {
-			$msg = "Command <highlight>{$command}<end> for channel <highlight>{$channel}<end> has already been silenced.";
+		if (!isset($cmdCfg) || !isset($cmdCfg->permissions[$permissionSet]) || !$cmdCfg->permissions[$permissionSet]->enabled) {
+			$msg = "Could not find command <highlight>{$command}<end> for channel <highlight>{$permissionSet}<end>.";
+		} elseif ($this->isSilencedCommand($cmdCfg, $permissionSet)) {
+			$msg = "Command <highlight>{$command}<end> for channel <highlight>{$permissionSet}<end> has already been silenced.";
 		} else {
-			$this->addSilencedCommand($cmdCfg, $channel);
-			$msg = "Command <highlight>{$command}<end> for channel <highlight>{$channel}<end> has been silenced.";
+			$this->addSilencedCommand($cmdCfg, $permissionSet);
+			$msg = "Command <highlight>{$command}<end> for channel <highlight>{$permissionSet}<end> has been silenced.";
 		}
 		$context->reply($msg);
 	}
 
+	/** Unsilence a command for a specific permission set */
 	#[NCA\HandlesCommand("unsilence")]
-	public function unsilenceAddCommand(CmdContext $context, string $command, PWord $channel): void {
+	public function unsilenceAddCommand(CmdContext $context, string $command, PWord $permissionSet): void {
 		$command = strtolower($command);
-		$channel = strtolower($channel());
+		$permissionSet = strtolower($permissionSet());
 
 		$cmdCfg = $this->commandManager->get($command);
-		if (!isset($cmdCfg) || !isset($cmdCfg->permissions[$channel]) || !$cmdCfg->permissions[$channel]->enabled) {
-			$msg = "Could not find command <highlight>{$command}<end> for channel <highlight>{$channel}<end>.";
-		} elseif (!$this->isSilencedCommand($cmdCfg, $channel)) {
-			$msg = "Command <highlight>$command<end> for channel <highlight>$channel<end> has not been silenced.";
+		if (!isset($cmdCfg) || !isset($cmdCfg->permissions[$permissionSet]) || !$cmdCfg->permissions[$permissionSet]->enabled) {
+			$msg = "Could not find command <highlight>{$command}<end> for channel <highlight>{$permissionSet}<end>.";
+		} elseif (!$this->isSilencedCommand($cmdCfg, $permissionSet)) {
+			$msg = "Command <highlight>$command<end> for channel <highlight>$permissionSet<end> has not been silenced.";
 		} else {
-			$this->removeSilencedCommand($cmdCfg, $channel);
-			$msg = "Command <highlight>$command<end> for channel <highlight>$channel<end> has been unsilenced.";
+			$this->removeSilencedCommand($cmdCfg, $permissionSet);
+			$msg = "Command <highlight>$command<end> for channel <highlight>$permissionSet<end> has been unsilenced.";
 		}
 		$context->reply($msg);
 	}

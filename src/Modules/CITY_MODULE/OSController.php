@@ -2,11 +2,13 @@
 
 namespace Nadybot\Modules\CITY_MODULE;
 
-use Nadybot\Core\Attributes as NCA;
-use Nadybot\Core\AOChatEvent;
-use Nadybot\Core\ConfigFile;
-use Nadybot\Core\ModuleInstance;
-use Nadybot\Core\Nadybot;
+use Nadybot\Core\{
+	Attributes as NCA,
+	AOChatEvent,
+	ConfigFile,
+	ModuleInstance,
+	Nadybot,
+};
 use Nadybot\Modules\TIMERS_MODULE\TimerController;
 
 /**

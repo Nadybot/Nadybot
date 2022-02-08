@@ -17,7 +17,6 @@ use Nadybot\Core\{
 /**
  * @author Tyrence (RK2)
  * @author Mindrila (RK1)
- * Commands this controller contains:
  */
 #[
 	NCA\Instance,
@@ -25,11 +24,9 @@ use Nadybot\Core\{
 		command: "inactivemem",
 		accessLevel: "guild",
 		description: "Check for inactive members",
-		help: "inactivemem.txt"
 	)
 ]
 class InactiveMemberController extends ModuleInstance {
-
 	#[NCA\Inject]
 	public DB $db;
 
@@ -42,6 +39,7 @@ class InactiveMemberController extends ModuleInstance {
 	#[NCA\Inject]
 	public AltsController $altsController;
 
+	/** Show org members who have not logged on for a specified amount of time */
 	#[NCA\HandlesCommand("inactivemem")]
 	public function inactivememCommand(CmdContext $context, PDuration $duration): void {
 		$time = $duration->toSecs();

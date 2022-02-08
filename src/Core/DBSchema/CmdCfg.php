@@ -18,7 +18,6 @@ class CmdCfg extends DBRow {
 	public int $verify=0;
 	/** @json:ignore **/
 	public string $dependson='none';
-	public ?string $help=null;
 
 	/**
 	 * @var array<string,CmdPermission>

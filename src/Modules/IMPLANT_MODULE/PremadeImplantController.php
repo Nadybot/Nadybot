@@ -2,8 +2,8 @@
 
 namespace Nadybot\Modules\IMPLANT_MODULE;
 
-use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{
+	Attributes as NCA,
 	CmdContext,
 	DB,
 	ModuleInstance,
@@ -11,8 +11,10 @@ use Nadybot\Core\{
 	Text,
 	Util,
 };
-use Nadybot\Modules\ITEMS_MODULE\Skill;
-use Nadybot\Modules\ITEMS_MODULE\WhatBuffsController;
+use Nadybot\Modules\ITEMS_MODULE\{
+	Skill,
+	WhatBuffsController,
+};
 
 /**
  * @author Tyrence (RK2)
@@ -25,11 +27,9 @@ use Nadybot\Modules\ITEMS_MODULE\WhatBuffsController;
 		command: "premade",
 		accessLevel: "all",
 		description: "Searches for implants out of the premade implants booths",
-		help: "premade.txt"
 	)
 ]
 class PremadeImplantController extends ModuleInstance {
-
 	#[NCA\Inject]
 	public DB $db;
 
@@ -47,7 +47,11 @@ class PremadeImplantController extends ModuleInstance {
 		$this->db->loadCSVFile($this->moduleName, __DIR__ . "/premade_implant.csv");
 	}
 
+	/** Search for implants by profession, slot, or modifier in the premade implant booth */
 	#[NCA\HandlesCommand("premade")]
+	#[NCA\Help\Example("<symbol>premade agent")]
+	#[NCA\Help\Example("<symbol>premade cl")]
+	#[NCA\Help\Example("<symbol>premade rwrist")]
 	public function premadeCommand(CmdContext $context, string $search): void {
 		$searchTerms = strtolower($search);
 		$results = null;

@@ -37,7 +37,6 @@ use ReflectionAttribute;
 		command: "apiauth",
 		accessLevel: "mod",
 		description: "Create public/private key pairs for auth against the API",
-		help: "apiauth.txt"
 	),
 	NCA\ProvidesEvent("cmdreply")
 ]
@@ -99,8 +98,12 @@ class ApiController extends ModuleInstance {
 		$this->scanApiAttributes();
 	}
 
+	/** See a list of all currently issued tokens */
 	#[NCA\HandlesCommand("apiauth")]
-	public function apiauthListCommand(CmdContext $context, #[NCA\Str("list")] ?string $action): void {
+	public function apiauthListCommand(
+		CmdContext $context,
+		#[NCA\Str("list")] ?string $action
+	): void {
 		$keys = $this->db->table(static::DB_TABLE)
 			->orderBy("created")
 			->asObj(ApiKey::class);
@@ -132,8 +135,16 @@ class ApiController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
+	/** Create a new token for yourself */
 	#[NCA\HandlesCommand("apiauth")]
-	public function apiauthCreateCommand(CmdContext $context, #[NCA\Regexp("create|new")] string $action): void {
+	#[NCA\Help\Epilogue(
+		"The <a href='chatcmd:///start https://github.com/Nadybot/Nadybot/wiki/REST-API#signed-requests'>full API documentation</a> ".
+		"in on the Nadybot WIKI."
+	)]
+	public function apiauthCreateCommand(
+		CmdContext $context,
+		#[NCA\Str("create", "new")] string $action
+	): void {
 		$key = openssl_pkey_new(["private_key_type" => OPENSSL_KEYTYPE_EC, "curve_name" => "prime256v1"]);
 		if ($key === false) {
 			$context->reply("Your PHP installation doesn't support the required cryptographic algorithms.");
@@ -179,8 +190,13 @@ class ApiController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
+	/** Delete one of your tokens */
 	#[NCA\HandlesCommand("apiauth")]
-	public function apiauthDeleteCommand(CmdContext $context, PRemove $action, string $token): void {
+	public function apiauthDeleteCommand(
+		CmdContext $context,
+		PRemove $action,
+		string $token
+	): void {
 		/** @var ?ApiKey */
 		$key = $this->db->table(static::DB_TABLE)
 			->where("token", $token)
@@ -202,8 +218,13 @@ class ApiController extends ModuleInstance {
 		$context->reply("API token <highlight>{$token}<end> deleted.");
 	}
 
+	/** Reset the last used sequence for one of your tokens */
 	#[NCA\HandlesCommand("apiauth")]
-	public function apiauthResetCommand(CmdContext $context, #[NCA\Str("reset")] string $action, string $token): void {
+	public function apiauthResetCommand(
+		CmdContext $context,
+		#[NCA\Str("reset")] string $action,
+		string $token
+	): void {
 		/** @var ?ApiKey */
 		$key = $this->db->table(static::DB_TABLE)
 			->where("token", $token)

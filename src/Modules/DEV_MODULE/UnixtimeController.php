@@ -9,7 +9,6 @@ use Nadybot\Core\Util;
 
 /**
  * @author Tyrence (RK2)
- * Commands this controller contains:
  */
 #[
 	NCA\Instance,
@@ -17,14 +16,13 @@ use Nadybot\Core\Util;
 		command: "unixtime",
 		accessLevel: "all",
 		description: "Show the date and time for a unix timestamp",
-		help: "unixtime.txt"
 	)
 ]
 class UnixtimeController extends ModuleInstance {
-
 	#[NCA\Inject]
 	public Util $util;
 
+	/** Show the date and time for a unix time stamp */
 	#[NCA\HandlesCommand("unixtime")]
 	public function reloadinstanceAllCommand(CmdContext $context, int $time): void {
 		$msg = "$time is <highlight>" . $this->util->date($time) . "<end>.";

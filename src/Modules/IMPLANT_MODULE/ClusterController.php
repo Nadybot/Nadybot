@@ -14,7 +14,6 @@ use Nadybot\Core\{
 
 /**
  * @author Tyrence (RK2)
- * Commands this class contains:
  */
 #[
 	NCA\Instance,
@@ -22,11 +21,9 @@ use Nadybot\Core\{
 		command: "cluster",
 		accessLevel: "all",
 		description: "Find which clusters buff a specified skill",
-		help: "cluster.txt"
 	)
 ]
 class ClusterController extends ModuleInstance {
-
 	#[NCA\Inject]
 	public DB $db;
 
@@ -36,6 +33,7 @@ class ClusterController extends ModuleInstance {
 	#[NCA\Inject]
 	public Util $util;
 
+	/** Get a list of skills/attributes you can get clusters for */
 	#[NCA\HandlesCommand("cluster")]
 	public function clusterListCommand(CmdContext $context): void {
 		/** @var Collection<Cluster> */
@@ -60,7 +58,10 @@ class ClusterController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
+	/** Find a cluster for a skill/attribute */
 	#[NCA\HandlesCommand("cluster")]
+	#[NCA\Help\Example("<symbol>cluster comp lit")]
+	#[NCA\Help\Example("<symbol>cluster agility")]
 	public function clusterCommand(CmdContext $context, string $search): void {
 		$query = $this->db->table("Cluster");
 		$this->db->addWhereFromParams($query, explode(' ', $search), 'LongName');

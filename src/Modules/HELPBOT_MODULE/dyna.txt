@@ -1,8 +1,0 @@
-To return a list of Dynacamps within -25 and +25 of QL:
-<highlight><tab><symbol>dyna 'QL'<end>
-
-To return a list of all the Dynacamps in the specified playfield:
-<highlight><tab><symbol>dyna 'playfield'<end>
-
-To return a list of all the Dynacamps that consist of the specified type of mob:
-<highlight><tab><symbol>dyna 'mob type'<end>

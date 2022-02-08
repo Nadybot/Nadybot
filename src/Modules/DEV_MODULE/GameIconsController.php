@@ -11,7 +11,6 @@ use Nadybot\Core\{
 
 /**
  * @author Nadyita (RK5)
- * Commands this controller contains:
  */
 #[
 	NCA\Instance,
@@ -22,10 +21,10 @@ use Nadybot\Core\{
 	)
 ]
 class GameIconsController extends ModuleInstance {
-
 	#[NCA\Inject]
 	public Text $text;
 
+	/** List all game icons with their name */
 	#[NCA\HandlesCommand("gameicons")]
 	public function gameIconsCommand(CmdContext $context): void {
 		$icons = [

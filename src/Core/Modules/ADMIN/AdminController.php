@@ -24,16 +24,12 @@ use Nadybot\Core\Modules\ALTS\AltEvent;
 use Nadybot\Core\ParamClass\PCharacter;
 use Nadybot\Core\ParamClass\PRemove;
 
-/**
- * Commands this controller contains:
- */
 #[
 	NCA\Instance,
 	NCA\DefineCommand(
 		command: "adminlist",
 		accessLevel: "all",
 		description: "Shows the list of administrators and moderators",
-		help: "adminlist.txt",
 		defaultStatus: 1,
 		alias: "admins"
 	),
@@ -41,19 +37,16 @@ use Nadybot\Core\ParamClass\PRemove;
 		command: "admin",
 		accessLevel: "superadmin",
 		description: "Add or remove an administrator",
-		help: "admin.txt",
 		defaultStatus: 1
 	),
 	NCA\DefineCommand(
 		command: "mod",
 		accessLevel: "admin",
 		description: "Add or remove a moderator",
-		help: "mod.txt",
 		defaultStatus: 1
 	)
 ]
 class AdminController extends ModuleInstance {
-
 	#[NCA\Inject]
 	public AdminManager $adminManager;
 
@@ -84,9 +77,6 @@ class AdminController extends ModuleInstance {
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
-	/**
-	 * This handler is called on bot startup.
-	 */
 	#[NCA\Setup]
 	public function setup(): void {
 		$this->adminManager->uploadAdmins();
@@ -97,7 +87,9 @@ class AdminController extends ModuleInstance {
 		$this->commandAlias->register($this->moduleName, "mod rem", "remmod");
 	}
 
+	/** Make &lt;who&gt; an administrator */
 	#[NCA\HandlesCommand("admin")]
+	#[NCA\Help\Group("ranks")]
 	public function adminAddCommand(
 		CmdContext $context,
 		#[NCA\Str("add")] string $action,
@@ -109,7 +101,9 @@ class AdminController extends ModuleInstance {
 		$this->add($who(), $context->char->name, $context, $intlevel, $rank);
 	}
 
+	/** Make &lt;who&gt; a moderator */
 	#[NCA\HandlesCommand("mod")]
+	#[NCA\Help\Group("ranks")]
 	public function modAddCommand(
 		CmdContext $context,
 		#[NCA\Str("add")] string $action,
@@ -121,7 +115,9 @@ class AdminController extends ModuleInstance {
 		$this->add($who(), $context->char->name, $context, $intlevel, $rank);
 	}
 
+	/** Demote &lt;who&gt; from administrator */
 	#[NCA\HandlesCommand("admin")]
+	#[NCA\Help\Group("ranks")]
 	public function adminRemoveCommand(CmdContext $context, PRemove $rem, PCharacter $who): void {
 		$intlevel = 4;
 		$rank = 'an administrator';
@@ -129,7 +125,9 @@ class AdminController extends ModuleInstance {
 		$this->remove($who(), $context->char->name, $context, $intlevel, $rank);
 	}
 
+	/** Demote &lt;who&gt; from moderator */
 	#[NCA\HandlesCommand("mod")]
+	#[NCA\Help\Group("ranks")]
 	public function modRemoveCommand(CmdContext $context, PRemove $rem, PCharacter $who): void {
 		$intlevel = 3;
 		$rank = 'a moderator';
@@ -137,7 +135,12 @@ class AdminController extends ModuleInstance {
 		$this->remove($who(), $context->char->name, $context, $intlevel, $rank);
 	}
 
+	/**
+	 * See the list of moderators and administrators.
+	 * Add 'all' to include offline alts
+	 */
 	#[NCA\HandlesCommand("adminlist")]
+	#[NCA\Help\Group("ranks")]
 	public function adminlistCommand(CmdContext $context, #[NCA\Str("all")] ?string $all): void {
 		$showOfflineAlts = isset($all);
 		$blob = "<header2>Administrators<end>\n";

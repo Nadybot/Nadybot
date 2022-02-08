@@ -2,12 +2,14 @@
 
 namespace Nadybot\Modules\EXPORT_MODULE;
 
-use Nadybot\Core\Attributes as NCA;
+use Exception;
+use stdClass;
+use Throwable;
 use Swaggest\JsonSchema\Schema;
-
 use Nadybot\Core\{
 	AccessManager,
 	AdminManager,
+	Attributes as NCA,
 	CmdContext,
 	ConfigFile,
 	DB,
@@ -17,7 +19,6 @@ use Nadybot\Core\{
 	Modules\PREFERENCES\Preferences,
 	ParamClass\PFilename,
 	Nadybot,
-	Registry,
 	SettingManager,
 };
 use Nadybot\Modules\{
@@ -46,13 +47,9 @@ use Nadybot\Modules\{
 	TRACKER_MODULE\TrackerController,
 	VOTE_MODULE\VoteController,
 };
-use Exception;
-use stdClass;
-use Throwable;
 
 /**
  * @author Nadyita (RK5) <nadyita@hodorraid.org>
- * Commands this controller contains:
  */
 #[
 	NCA\Instance,
@@ -60,7 +57,6 @@ use Throwable;
 		command: "import",
 		accessLevel: "superadmin",
 		description: "Import bot data and replace the current one",
-		help: "export.txt"
 	)
 ]
 class ImportController extends ModuleInstance {
@@ -126,8 +122,35 @@ class ImportController extends ModuleInstance {
 		return $import;
 	}
 
+	/**
+	 * Import data from a file, mapping the exported access levels to your own ones
+	 */
 	#[NCA\HandlesCommand("import")]
-	public function importCommand(CmdContext $context, PFilename $file, #[NCA\Regexp("\w+=\w+")] ?string ...$mappings): void {
+	#[NCA\Help\Example("<symbol>import 2021-01-31 superadmin=admin admin=mod leader=member member=member")]
+	#[NCA\Help\Prologue(
+		"In order to import data from an old export, you should first think about\n".
+		"how you want to map access levels between the bots.\n".
+		"BeBot or Tyrbot use a totally different access level system than Nadybot."
+	)]
+	#[NCA\Help\Epilogue(
+		"<header2>Warning<end>\n\n".
+		"Please note that importing a dump will delete most of the already existing\n".
+		"data of your bot, so:\n".
+		"<highlight>only do this after you created an export or database backup<end>!\n".
+		"This cannot be stressed enough.\n\n".
+		"<header2>In detail<end>\n\n".
+		"Everything that is included in the dump, will be deleted before importing.\n".
+		"So if your dump contains members of the bot, they will all be wiped first.\n".
+		"If it does include an empty set of members, they will still be wiped.\n".
+		"Only if the members were not exported at all, they won't be touched.\n\n".
+		"There is no extra step in-between, so be careful not to delete any\n".
+		"data you might want to keep.\n"
+	)]
+	public function importCommand(
+		CmdContext $context,
+		PFilename $file,
+		#[NCA\Regexp("\w+=\w+", example: "&lt;exported al&gt;=&lt;new al&gt;")] ?string ...$mappings
+	): void {
 		$dataPath = $this->config->dataFolder;
 		$fileName = "{$dataPath}/export/" . basename($file());
 		if ((pathinfo($fileName)["extension"] ?? "") !== "json") {

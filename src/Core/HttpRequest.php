@@ -3,7 +3,6 @@
 namespace Nadybot\Core;
 
 class HttpRequest {
-
 	private string $method;
 	private string $uri;
 	/** @var array<string,string> */

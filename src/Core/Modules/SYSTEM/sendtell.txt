@@ -1,2 +1,0 @@
-To send a tell to a player from the bot:
-<highlight><tab><symbol>sendtell 'player' 'message'<end>

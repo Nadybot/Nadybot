@@ -16,7 +16,6 @@ use Nadybot\Core\{
 
 /**
  * @author Tyrence (RK2)
- * Commands this controller contains:
  */
 #[
 	NCA\Instance,
@@ -24,11 +23,9 @@ use Nadybot\Core\{
 		command: "history",
 		accessLevel: "all",
 		description: "Show history of a player",
-		help: "history.txt"
 	)
 ]
 class PlayerHistoryController extends ModuleInstance {
-
 	#[NCA\Inject]
 	public ConfigFile $config;
 
@@ -38,6 +35,11 @@ class PlayerHistoryController extends ModuleInstance {
 	#[NCA\Inject]
 	public PlayerHistoryManager $playerHistoryManager;
 
+	/**
+	 * Show the history of a player on this dimension or &lt;dimension&gt;
+	 *
+	 * Valid dimensions are 1 (Atlantean), 2 (Rimor), and 5 (New server)
+	 */
 	#[NCA\HandlesCommand("history")]
 	public function playerHistoryCommand(CmdContext $context, PCharacter $char, ?int $dimension): void {
 		$name = $char();

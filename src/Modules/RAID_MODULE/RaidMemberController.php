@@ -21,9 +21,6 @@ use Nadybot\Core\{
 };
 use Nadybot\Modules\ONLINE_MODULE\OnlineController;
 
-/**
- * @package Nadybot\Modules\POINT_RAID_MODULE
- */
 #[
 	NCA\Instance,
 	NCA\HasMigrations("Migrations/Member"),
@@ -31,19 +28,18 @@ use Nadybot\Modules\ONLINE_MODULE\OnlineController;
 		command: "raid (join|leave)",
 		accessLevel: "member",
 		description: "Join or leave the raid",
-		help: "raiduser.txt"
 	),
 	NCA\DefineCommand(
 		command: "raidmember",
 		accessLevel: "raid_leader_1",
 		description: "Add or remove someone from/to the raid",
-		help: "raidmember.txt"
 	),
 	NCA\ProvidesEvent("raid(join)"),
 	NCA\ProvidesEvent("raid(leave)")
 ]
 class RaidMemberController extends ModuleInstance {
 	public const DB_TABLE = "raid_member_<myname>";
+
 	#[NCA\Inject]
 	public DB $db;
 
@@ -254,8 +250,15 @@ class RaidMemberController extends ModuleInstance {
 		return null;
 	}
 
+	/**
+	 * Join the currently running raid
+	 */
 	#[NCA\HandlesCommand("raid (join|leave)")]
-	public function raidJoinCommand(CmdContext $context, #[NCA\Str("join")] string $action): void {
+	#[NCA\Help\Group("raid-members")]
+	public function raidJoinCommand(
+		CmdContext $context,
+		#[NCA\Str("join")] string $action
+	): void {
 		$reply = $this->joinRaid($context->char->name, $context->char->name, $context->source, false);
 		if ($reply !== null) {
 			if ($context->isDM()) {
@@ -266,8 +269,15 @@ class RaidMemberController extends ModuleInstance {
 		}
 	}
 
+	/**
+	 * Leave the currently running raid
+	 */
 	#[NCA\HandlesCommand("raid (join|leave)")]
-	public function raidLeaveCommand(CmdContext $context, #[NCA\Str("leave")] string $action): void {
+	#[NCA\Help\Group("raid-members")]
+	public function raidLeaveCommand(
+		CmdContext $context,
+		#[NCA\Str("leave")] string $action
+	): void {
 		$reply = $this->leaveRaid($context->char->name, $context->char->name);
 		if ($reply !== null) {
 			if ($context->isDM()) {
@@ -278,16 +288,32 @@ class RaidMemberController extends ModuleInstance {
 		}
 	}
 
+	/**
+	 * Add someone to the raid, even if they currently cannot join, because it is locked
+	 */
 	#[NCA\HandlesCommand("raidmember")]
-	public function raidAddCommand(CmdContext $context, #[NCA\Str("add")] string $action, PCharacter $char): void {
+	#[NCA\Help\Group("raid-members")]
+	public function raidAddCommand(
+		CmdContext $context,
+		#[NCA\Str("add")] string $action,
+		PCharacter $char
+	): void {
 		$reply = $this->joinRaid($context->char->name, $char(), $context->source, true);
 		if ($reply !== null) {
 			$context->reply($reply);
 		}
 	}
 
+	/**
+	 * Kick someone from the raid
+	 */
 	#[NCA\HandlesCommand("raidmember")]
-	public function raidKickCommand(CmdContext $context, #[NCA\Regexp("rem|del|kick")] string $action, PCharacter $char): void {
+	#[NCA\Help\Group("raid-members")]
+	public function raidKickCommand(
+		CmdContext $context,
+		#[NCA\Str("kick", "rem", "del")] string $action,
+		PCharacter $char
+	): void {
 		$reply = $this->leaveRaid($context->char->name, $char());
 		if ($reply !== null) {
 			$context->reply($reply);

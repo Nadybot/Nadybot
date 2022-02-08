@@ -16,16 +16,12 @@ use Nadybot\Core\{
 	Text,
 };
 
-/**
- * Commands this controller contains:
- */
 #[
 	NCA\Instance,
 	NCA\DefineCommand(
 		command: "permset",
 		accessLevel: "superadmin",
 		description: "Manages permission sets",
-		help: "permset.txt",
 		defaultStatus: 1
 	),
 ]
@@ -36,7 +32,20 @@ class PermissionSetController extends ModuleInstance {
 	#[NCA\Inject]
 	public Text $text;
 
+	/** Create a new permission &lt;name&gt; set with default permissions */
 	#[NCA\HandlesCommand("permset")]
+	#[NCA\Help\Prologue(
+		"<header2>Permission sets<end>\n\n".
+		"Permission sets describe which commands should be enabled or disabled,\n".
+		"but also which access level is required to execute each command.\n".
+		"Since you might want to have different permissions for commands via tells\n".
+		"and the guild channel, or you want to disable certain commands in the\n".
+		"private channel, you might want to use more than just one permission set.\n\n".
+		"By default there are 3 pre-defined permission sets: msg, priv and guild.\n".
+		"Each permission set has a name and a letter. The letter is used to show\n".
+		"if a command is enabled/disable for a permission set in the <symbol>config\n".
+		"command.\n"
+	)]
 	public function permsetNewCommand(
 		CmdContext $context,
 		#[NCA\Str("new", "create")] string $action,
@@ -52,6 +61,7 @@ class PermissionSetController extends ModuleInstance {
 		$context->reply("Permission set <highlight>{$name}<end> successfully created.");
 	}
 
+	/** Create a new permission set based on another permission set */
 	#[NCA\HandlesCommand("permset")]
 	public function permsetCloneCommand(
 		CmdContext $context,
@@ -70,6 +80,7 @@ class PermissionSetController extends ModuleInstance {
 		$context->reply("Permission set <highlight>{$name}<end> successfully created.");
 	}
 
+	/** Delete a permission set that is not used */
 	#[NCA\HandlesCommand("permset")]
 	public function permsetRemoveCommand(
 		CmdContext $context,
@@ -85,6 +96,7 @@ class PermissionSetController extends ModuleInstance {
 		$context->reply("Permission set <highlight>{$name}<end> successfully deleted.");
 	}
 
+	/** Change the name of a permission set */
 	#[NCA\HandlesCommand("permset")]
 	public function permsetRenameCommand(
 		CmdContext $context,
@@ -110,6 +122,7 @@ class PermissionSetController extends ModuleInstance {
 		);
 	}
 
+	/** Change the letter of a permission set */
 	#[NCA\HandlesCommand("permset")]
 	public function permsetChangeLetterCommand(
 		CmdContext $context,
@@ -136,6 +149,7 @@ class PermissionSetController extends ModuleInstance {
 		);
 	}
 
+	/** Show a list of all permission sets */
 	#[NCA\HandlesCommand("permset")]
 	public function permsetListCommand(CmdContext $context): void {
 		$sets = $this->cmdManager->getExtPermissionSets();

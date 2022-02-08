@@ -20,7 +20,6 @@ use Nadybot\Modules\{
  * @author Tyrence (RK2)
  * Originally Written for Budabot By Jaqueme
  * Database Adapted From One Originally Compiled by Wolfbiter For BeBot
- * Commands this controller contains:
  */
 #[
 	NCA\Instance,
@@ -29,7 +28,6 @@ use Nadybot\Modules\{
 		command: "spirits",
 		accessLevel: "all",
 		description: "Search for spirits",
-		help: "spirits.txt"
 	)
 ]
 class SpiritsController extends ModuleInstance {
@@ -44,12 +42,16 @@ class SpiritsController extends ModuleInstance {
 		$this->db->loadCSVFile($this->moduleName, __DIR__ . '/spiritsdb.csv');
 	}
 
+	/** Search for spirits by a variety of attributes */
 	#[NCA\HandlesCommand("spirits")]
+	#[NCA\Help\Example("<symbol>spirits head 60-70")]
 	public function spiritsSlotAndRangeCommand(CmdContext $context, PImplantSlot $slot, PNumRange $qlRange): void {
 		$this->spiritsRangeAndSlotCommand($context, $qlRange, $slot);
 	}
 
+	/** Search for spirits by a variety of attributes */
 	#[NCA\HandlesCommand("spirits")]
+	#[NCA\Help\Example("<symbol>spirits 60-70 feet")]
 	public function spiritsRangeAndSlotCommand(CmdContext $context, PNumRange $qlRange, PImplantSlot $slot): void {
 		$lowQL = $qlRange->low;
 		$highQL = $qlRange->high;
@@ -77,12 +79,16 @@ class SpiritsController extends ModuleInstance {
 		$context->reply($spirits);
 	}
 
+	/** Search for spirits by a variety of attributes */
 	#[NCA\HandlesCommand("spirits")]
+	#[NCA\Help\Example("<symbol>spirits grave feet")]
 	public function spiritsCommandTypeAndSlot(CmdContext $context, PNonNumber $name, PImplantSlot $slot): void {
 		$this->spiritsCommandSlotAndType($context, $slot, $name);
 	}
 
+	/** Search for spirits by a variety of attributes */
 	#[NCA\HandlesCommand("spirits")]
+	#[NCA\Help\Example("<symbol>spirits feet grave")]
 	public function spiritsCommandSlotAndType(CmdContext $context, PImplantSlot $slot, PNonNumber $name): void {
 		$name = ucwords(strtolower($name()));
 		$slot = ucfirst($slot());
@@ -103,7 +109,9 @@ class SpiritsController extends ModuleInstance {
 		$context->reply($spirits);
 	}
 
+	/** Search for spirits by a variety of attributes */
 	#[NCA\HandlesCommand("spirits")]
+	#[NCA\Help\Example("<symbol>spirits 220")]
 	public function spiritsQLCommand(CmdContext $context, int $ql): void {
 		if ($ql < 1 or $ql > 300) {
 			$msg = "Invalid QL specified.";
@@ -125,7 +133,9 @@ class SpiritsController extends ModuleInstance {
 		$context->reply($spirits);
 	}
 
+	/** Search for spirits by a variety of attributes */
 	#[NCA\HandlesCommand("spirits")]
+	#[NCA\Help\Example("<symbol>spirits 210-230")]
 	public function spiritsCommandQLRange(CmdContext $context, PNumRange $qlRange): void {
 		$spirits = "";
 		$lowQL = $qlRange->low;
@@ -152,12 +162,16 @@ class SpiritsController extends ModuleInstance {
 		$context->reply($spirits);
 	}
 
+	/** Search for spirits by a variety of attributes */
 	#[NCA\HandlesCommand("spirits")]
+	#[NCA\Help\Example("<symbol>spirits chest 210")]
 	public function spiritsTypeAndQlCommand(CmdContext $context, PImplantSlot $slot, int $ql): void {
 		$this->spiritsQlAndTypeCommand($context, $ql, $slot);
 	}
 
+	/** Search for spirits by a variety of attributes */
 	#[NCA\HandlesCommand("spirits")]
+	#[NCA\Help\Example("<symbol>spirits 210 chest")]
 	public function spiritsQlAndTypeCommand(CmdContext $context, int $ql, PImplantSlot $slot): void {
 		$slot = ucfirst($slot());
 		$title = "$slot Spirits QL $ql";
@@ -181,7 +195,9 @@ class SpiritsController extends ModuleInstance {
 		$context->reply($spirits);
 	}
 
+	/** Search for spirits by a variety of attributes */
 	#[NCA\HandlesCommand("spirits")]
+	#[NCA\Help\Example("<symbol>spirits beta")]
 	public function spiritsCommandSearch(CmdContext $context, PNonNumber $search): void {
 		$name = ucwords(strtolower($search()));
 		$title = "Spirits Database for $name";

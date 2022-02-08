@@ -5,6 +5,7 @@ namespace Nadybot\Modules\DEV_MODULE;
 use ReflectionMethod;
 use Nadybot\Core\{
 	AccessManager,
+	Attributes as NCA,
 	CmdContext,
 	CommandAlias,
 	CommandHandler,
@@ -16,12 +17,10 @@ use Nadybot\Core\{
 	Text,
 	Util,
 };
-use Nadybot\Core\Attributes as NCA;
 use ReflectionException;
 
 /**
  * @author Tyrence (RK2)
- * Commands this controller contains:
  */
 #[
 	NCA\Instance,
@@ -29,47 +28,39 @@ use ReflectionException;
 		command: "showcmdregex",
 		accessLevel: "admin",
 		description: "Test the bot commands",
-		help: "test.txt"
 	),
 	NCA\DefineCommand(
 		command: "intransaction",
 		accessLevel: "admin",
 		description: "Test the bot commands",
-		help: "test.txt"
 	),
 	NCA\DefineCommand(
 		command: "rollbacktransaction",
 		accessLevel: "admin",
 		description: "Test the bot commands",
-		help: "test.txt"
 	),
 	NCA\DefineCommand(
 		command: "stacktrace",
 		accessLevel: "admin",
 		description: "Test the bot commands",
-		help: "test.txt"
 	),
 	NCA\DefineCommand(
 		command: "cmdhandlers",
 		accessLevel: "admin",
 		description: "Show command handlers for a command",
-		help: "cmdhandlers.txt"
 	),
 	NCA\DefineCommand(
 		command: "createblob",
 		accessLevel: "admin",
 		description: "Creates a blob of random characters",
-		help: "createblob.txt"
 	),
 	NCA\DefineCommand(
 		command: "makeitem",
 		accessLevel: "admin",
 		description: "Creates an item link",
-		help: "makeitem.txt"
 	)
 ]
 class DevController extends ModuleInstance {
-
 	#[NCA\Inject]
 	public AccessManager $accessManager;
 
@@ -96,6 +87,10 @@ class DevController extends ModuleInstance {
 		$this->commandAlias->register($this->moduleName, "querysql select", "select");
 	}
 
+	/**
+	 * Get a list of regular expressions for either all commands
+	 * or only the command and sub-commands of &lt;cmd&gt;
+	 */
 	#[NCA\HandlesCommand("showcmdregex")]
 	public function showcmdregexCommand(CmdContext $context, ?string $cmd): void {
 		if (!isset($context->permissionSet)) {
@@ -197,6 +192,7 @@ class DevController extends ModuleInstance {
 		return $handlers;
 	}
 
+	/** Check if there is currently a open database transaction */
 	#[NCA\HandlesCommand("intransaction")]
 	public function inTransactionCommand(CmdContext $context): void {
 		if ($this->db->inTransaction()) {
@@ -207,6 +203,7 @@ class DevController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
+	/** Rollback the currently open database transaction (if any) */
 	#[NCA\HandlesCommand("rollbacktransaction")]
 	public function rollbackTransactionCommand(CmdContext $context): void {
 		$this->db->rollback();
@@ -215,6 +212,7 @@ class DevController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
+	/** Print a stacktrace */
 	#[NCA\HandlesCommand("stacktrace")]
 	public function stacktraceCommand(CmdContext $context): void {
 		$stacktrace = trim($this->util->getStackTrace());
@@ -229,6 +227,7 @@ class DevController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
+	/** Print all command handlers for a command, grouped by permission set */
 	#[NCA\HandlesCommand("cmdhandlers")]
 	public function cmdhandlersCommand(CmdContext $context, string $command): void {
 		$cmdArray = explode(" ", $command, 2);
@@ -257,11 +256,13 @@ class DevController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
+	/** Create a custom item link */
 	#[NCA\HandlesCommand("makeitem")]
 	public function makeItemCommand(CmdContext $context, int $lowId, int $highId, int $ql, string $name): void {
 		$context->reply($this->text->makeItem($lowId, $highId, $ql, $name));
 	}
 
+	/** Create 1 or &lt;num blobs&gt; blobs of &lt;length&gt; characters */
 	#[NCA\HandlesCommand("createblob")]
 	public function createBlobCommand(CmdContext $context, int $length, ?int $numBlobs): void {
 		$numBlobs ??= 1;

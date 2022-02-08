@@ -1,9 +1,0 @@
-To show the towersites of orgs who have attacked, or won battles
-in the last 2 hours:
-<highlight><tab><symbol>penalty<end>
-
-To only see those of the org 'Obeya':
-<highlight><tab><symbol>penalty obeya<end>
-
-To only see those of neutral orgs:
-<highlight><tab><symbol>penalty neutral<end>

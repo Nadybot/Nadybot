@@ -2,17 +2,20 @@
 
 namespace Nadybot\Modules\EXPORT_MODULE;
 
-use Nadybot\Core\Attributes as NCA;
+use stdClass;
+use Safe\Exceptions\FilesystemException;
 use Safe\Exceptions\JsonException;
 use Nadybot\Core\{
 	AccessManager,
 	AdminManager,
+	Attributes as NCA,
 	BuddylistManager,
 	CmdContext,
 	ConfigFile,
 	DB,
 	DBSchema\Alt,
 	DBSchema\Admin,
+	DBSchema\BanEntry,
 	DBSchema\Member,
 	ModuleInstance,
 	Modules\BAN\BanController,
@@ -20,7 +23,6 @@ use Nadybot\Core\{
 	Nadybot,
 	ProxyCapabilities,
 };
-use Nadybot\Core\DBSchema\BanEntry;
 use Nadybot\Modules\{
 	CITY_MODULE\CloakController,
 	CITY_MODULE\OrgCity,
@@ -58,12 +60,9 @@ use Nadybot\Modules\{
 	VOTE_MODULE\Vote,
 	VOTE_MODULE\VoteController,
 };
-use Safe\Exceptions\FilesystemException;
-use stdClass;
 
 /**
  * @author Nadyita (RK5) <nadyita@hodorraid.org>
- * Commands this controller contains:
  */
 #[
 	NCA\Instance,
@@ -71,11 +70,9 @@ use stdClass;
 		command: "export",
 		accessLevel: "superadmin",
 		description: "Export the bot configuration and data",
-		help: "export.txt"
 	)
 ]
 class ExportController extends ModuleInstance {
-
 	#[NCA\Inject]
 	public Nadybot $chatBot;
 
@@ -97,7 +94,19 @@ class ExportController extends ModuleInstance {
 	#[NCA\Inject]
 	public ConfigFile $config;
 
+	/**
+	 * Export all of this bot's data into a portable JSON-file
+	 */
 	#[NCA\HandlesCommand("export")]
+	#[NCA\Help\Example(
+		command: "<symbol>export 2021-01-31",
+		description: "Export everything into 'data/export/2021-01-31.json'"
+	)]
+	#[NCA\Help\Prologue(
+		"The purpose of this command is to create a portable file containing all the\n".
+		"data, not settings, of your bot so it can later be imported into another\n".
+		"bot."
+	)]
 	public function exportCommand(CmdContext $context, string $file): void {
 		$dataPath = $this->config->dataFolder;
 		$fileName = "{$dataPath}/export/" . basename($file);

@@ -3,6 +3,7 @@
 namespace Nadybot\Modules\NEWS_MODULE;
 
 use Exception;
+use Throwable;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	AOChatEvent,
@@ -12,14 +13,14 @@ use Nadybot\Core\{
 	Event,
 	EventManager,
 	ModuleInstance,
+	Modules\ALTS\AltsController,
 	Nadybot,
+	ParamClass\PRemove,
 	SettingManager,
 	Text,
 	UserStateEvent,
 	Util,
 };
-use Nadybot\Core\Modules\ALTS\AltsController;
-use Nadybot\Core\ParamClass\PRemove;
 use Nadybot\Modules\WEBSERVER_MODULE\{
 	ApiResponse,
 	HttpProtocolWrapper,
@@ -27,7 +28,6 @@ use Nadybot\Modules\WEBSERVER_MODULE\{
 	Request,
 	Response,
 };
-use Throwable;
 
 /**
  * Commands this class contains:
@@ -39,19 +39,16 @@ use Throwable;
 		command: "news",
 		accessLevel: "member",
 		description: "Shows news",
-		help: "news.txt"
 	),
 	NCA\DefineCommand(
 		command: "news confirm .+",
 		accessLevel: "member",
 		description: "Mark news as read",
-		help: "news.txt"
 	),
 	NCA\DefineCommand(
 		command: "news .+",
 		accessLevel: "mod",
 		description: "Adds, removes, pins or unpins a news entry",
-		help: "news.txt"
 	),
 	NCA\ProvidesEvent(
 		event: "sync(news)",
@@ -86,7 +83,6 @@ class NewsController extends ModuleInstance {
 
 	#[NCA\Setup]
 	public function setup(): void {
-
 		$this->settingManager->add(
 			module: $this->moduleName,
 			name: "num_news_shown",
@@ -261,7 +257,7 @@ class NewsController extends ModuleInstance {
 	}
 
 	/**
-	 * This command handler shows latest news.
+	 * Show the latest news entries
 	 */
 	#[NCA\HandlesCommand("news")]
 	public function newsCommand(CmdContext $context): void {
@@ -271,7 +267,7 @@ class NewsController extends ModuleInstance {
 	}
 
 	/**
-	 * This command handler confirms a news entry.
+	 * Confirm having read a news entry
 	 */
 	#[NCA\HandlesCommand("news confirm .+")]
 	public function newsconfirmCommand(CmdContext $context, #[NCA\Str("confirm")] string $action, int $id): void {
@@ -305,7 +301,7 @@ class NewsController extends ModuleInstance {
 	}
 
 	/**
-	 * This command handler adds a news entry.
+	 * Add a news entry
 	 */
 	#[NCA\HandlesCommand("news .+")]
 	public function newsAddCommand(CmdContext $context, #[NCA\Str("add")] string $action, string $news): void {
@@ -333,7 +329,7 @@ class NewsController extends ModuleInstance {
 	}
 
 	/**
-	 * This command handler removes a news entry.
+	 * Remove a news entry by ID
 	 */
 	#[NCA\HandlesCommand("news .+")]
 	public function newsRemCommand(CmdContext $context, PRemove $action, int $id): void {
@@ -355,7 +351,7 @@ class NewsController extends ModuleInstance {
 	}
 
 	/**
-	 * This command handler pins a news entry.
+	 * Pin a news entry to the top
 	 */
 	#[NCA\HandlesCommand("news .+")]
 	public function newsPinCommand(CmdContext $context, #[NCA\Str("pin")] string $action, int $id): void {
@@ -383,7 +379,7 @@ class NewsController extends ModuleInstance {
 	}
 
 	/**
-	 * This command handler unpins a news entry.
+	 * Unpin a news entry from the top
 	 */
 	#[NCA\HandlesCommand("news .+")]
 	public function newsUnpinCommand(CmdContext $context, #[NCA\Str("unpin")] string $action, int $id): void {

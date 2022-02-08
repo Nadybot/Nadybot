@@ -7,7 +7,6 @@ use Exception;
 
 #[NCA\SettingHandler("options")]
 class OptionsSettingHandler extends SettingHandler {
-
 	/**
 	 * @inheritDoc
 	 */

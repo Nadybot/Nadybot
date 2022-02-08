@@ -22,16 +22,12 @@ use Nadybot\Modules\WEBSERVER_MODULE\{
 	Response,
 };
 
-/**
- * Commands this controller contains:
- */
 #[
 	NCA\Instance,
 	NCA\DefineCommand(
 		command: "audit",
 		accessLevel: "admin",
 		description: "View security audit logs",
-		help: "audit.txt"
 	)
 ]
 class AuditController extends ModuleInstance {
@@ -44,9 +40,6 @@ class AuditController extends ModuleInstance {
 	#[NCA\Inject]
 	public Text $text;
 
-	/**
-	 * This handler is called on bot startup.
-	 */
 	#[NCA\Setup]
 	public function setup(): void {
 		$this->settingManager->add(
@@ -155,7 +148,22 @@ class AuditController extends ModuleInstance {
 		return [$prevLink, $nextLink];
 	}
 
+	/**
+	 * See the most recent audit entries in the database, optionally filtered
+	 *
+	 * The filter key can be any of 'action', 'actor', 'actee', 'before' or 'after'
+	 */
 	#[NCA\HandlesCommand("audit")]
+	#[NCA\Help\Prologue("If you have enabled audit logging, you can query the data with this command.")]
+	#[NCA\Help\Epilogue(
+		"To navigate around the results, use <highlight>limit<end> and <highlight>offset<end>\n".
+		"<tab><highlight><symbol>audit limit=200<end>\n".
+		"<tab><highlight><symbol>audit limit=200 offset=1000<end>"
+	)]
+	#[NCA\Help\Example("<symbol>audit actor=Nady after=after=2020-08-20 before=before=2020-08-27")]
+	#[NCA\Help\Example("<symbol>audit actor=Nady action=set-rank")]
+	#[NCA\Help\Example("<symbol>audit actor=Nady action=set-rank after=last week")]
+	#[NCA\Help\Example("<symbol>audit action=action=invite,join,leave after=2021-08-01 20:17:55 CEST")]
 	public function auditListCommand(CmdContext $context, ?string $filter): void {
 		$query = $this->db->table(AccessManager::DB_TABLE)
 			->orderByDesc("time")

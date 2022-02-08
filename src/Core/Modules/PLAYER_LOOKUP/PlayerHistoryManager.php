@@ -2,15 +2,16 @@
 
 namespace Nadybot\Core\Modules\PLAYER_LOOKUP;
 
-use Nadybot\Core\Attributes as NCA;
-use Nadybot\Core\CacheManager;
-use Nadybot\Core\CacheResult;
-use Nadybot\Core\ModuleInstance;
 use Throwable;
+use Nadybot\Core\{
+	Attributes as NCA,
+	CacheManager,
+	CacheResult,
+	ModuleInstance,
+};
 
 #[NCA\Instance]
 class PlayerHistoryManager extends ModuleInstance {
-
 	#[NCA\Inject]
 	public CacheManager $cacheManager;
 

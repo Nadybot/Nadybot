@@ -40,19 +40,18 @@ use Nadybot\Core\{
 };
 use Nadybot\Modules\{
 	GUILD_MODULE\GuildController,
+	RELAY_MODULE\RelayProtocol\RelayProtocolInterface,
+	RELAY_MODULE\Transport\TransportInterface,
 	WEBSERVER_MODULE\ApiResponse,
 	WEBSERVER_MODULE\HttpProtocolWrapper,
 	WEBSERVER_MODULE\JsonImporter,
 	WEBSERVER_MODULE\Request,
 	WEBSERVER_MODULE\Response,
 };
-use Nadybot\Modules\RELAY_MODULE\RelayProtocol\RelayProtocolInterface;
-use Nadybot\Modules\RELAY_MODULE\Transport\TransportInterface;
 
 /**
  * @author Tyrence
  * @author Nadyita
- * Commands this controller contains:
  */
 #[
 	NCA\Instance,
@@ -61,13 +60,11 @@ use Nadybot\Modules\RELAY_MODULE\Transport\TransportInterface;
 		command: "relay",
 		accessLevel: "mod",
 		description: "Setup and modify relays between bots",
-		help: "relay.txt"
 	),
 	NCA\DefineCommand(
 		command: "sync",
 		accessLevel: "member",
 		description: "Force syncing of next command if relay sync exists",
-		help: "sync.txt"
 	),
 	NCA\ProvidesEvent("routable(message)")
 ]
@@ -344,13 +341,12 @@ class RelayController extends ModuleInstance {
 		);
 	}
 
+	/** Get a list of all available relay protocols */
 	#[NCA\HandlesCommand("relay")]
 	public function relayListProtocolsCommand(
 		CmdContext $context,
-		#[NCA\Str("list")]
-		string $action,
-		#[NCA\Regexp("protocols?")]
-		string $subAction
+		#[NCA\Str("list")] string $action,
+		#[NCA\Regexp("protocols?", example: "protocols")] string $subAction
 	): void {
 		$context->reply(
 			$this->renderClassSpecOverview(
@@ -361,6 +357,7 @@ class RelayController extends ModuleInstance {
 		);
 	}
 
+	/** Get detailed information about a specific relay protocol */
 	#[NCA\HandlesCommand("relay")]
 	public function relayListProtocolDetailCommand(
 		CmdContext $context,
@@ -377,11 +374,12 @@ class RelayController extends ModuleInstance {
 		);
 	}
 
+	/** Get a list of all available relay transports */
 	#[NCA\HandlesCommand("relay")]
 	public function relayListTransportsCommand(
 		CmdContext $context,
 		#[NCA\Str("list")] string $action,
-		#[NCA\Regexp("transports?")] string $subAction
+		#[NCA\Regexp("transports?", example: "transports")] string $subAction
 	): void {
 		$context->reply(
 			$this->renderClassSpecOverview(
@@ -392,6 +390,7 @@ class RelayController extends ModuleInstance {
 		);
 	}
 
+	/** Get detailed information about a specific relay transport */
 	#[NCA\HandlesCommand("relay")]
 	public function relayListTransportDetailCommand(
 		CmdContext $context,
@@ -408,11 +407,12 @@ class RelayController extends ModuleInstance {
 		);
 	}
 
+	/** Get a list of all available relay layers */
 	#[NCA\HandlesCommand("relay")]
 	public function relayListStacksCommand(
 		CmdContext $context,
 		#[NCA\Str("list")] string $action,
-		#[NCA\Regexp("layers?")] string $subAction
+		#[NCA\Regexp("layers?", example: "layers")] string $subAction
 	): void {
 		$context->reply(
 			$this->renderClassSpecOverview(
@@ -423,6 +423,7 @@ class RelayController extends ModuleInstance {
 		);
 	}
 
+	/** Get detailed information about a specific relay layer */
 	#[NCA\HandlesCommand("relay")]
 	public function relayListStackDetailCommand(
 		CmdContext $context,
@@ -439,7 +440,17 @@ class RelayController extends ModuleInstance {
 		);
 	}
 
+	/**
+	 * Add a new relay, specifying in the order of transport, layers and protocol.
+	 *
+	 * A relay consists of (at the very least) a transport and a protocol.
+	 * Use <highlight><symbol>quickrelay<end> to see examples of how to create a relay,
+	 * or jump directly to the wiki.
+	 */
 	#[NCA\HandlesCommand("relay")]
+	#[NCA\Help\Example(
+		command: "<symbol>relay add test private-channel(channel=\"Privchannel\") grcv2()"
+	)]
 	public function relayAddCommand(
 		CmdContext $context,
 		#[NCA\Str("add")] string $action,
@@ -621,6 +632,11 @@ class RelayController extends ModuleInstance {
 		}, $relays);
 	}
 
+	/**
+	 * Get the command that will create the relay #id
+	 *
+	 * You can use this to create the relay on another bot, or save it as backup
+	 */
 	#[NCA\HandlesCommand("relay")]
 	public function relayDescribeIdCommand(
 		CmdContext $context,
@@ -630,6 +646,11 @@ class RelayController extends ModuleInstance {
 		$this->relayDescribeCommand($context, $id, null);
 	}
 
+	/**
+	 * Get the command that will create the relay &lt;name&gt;
+	 *
+	 * You can use this to create the relay on another bot, or save it as backup
+	 */
 	#[NCA\HandlesCommand("relay")]
 	public function relayDescribeNameCommand(
 		CmdContext $context,
@@ -666,8 +687,12 @@ class RelayController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
+	/** Get a list of all relays and their current status */
 	#[NCA\HandlesCommand("relay")]
-	public function relayListCommand(CmdContext $context, #[NCA\Str("list")] ?string $action): void {
+	public function relayListCommand(
+		CmdContext $context,
+		#[NCA\Str("list")] ?string $action
+	): void {
 		$relays = $this->getRelays();
 		if (empty($relays)) {
 			$context->reply("There are no relays defined.");
@@ -720,11 +745,13 @@ class RelayController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
+	/** Delete a relay by its id */
 	#[NCA\HandlesCommand("relay")]
 	public function relayRemIdCommand(CmdContext $context, PRemove $action, int $id): void {
 		$this->relayRemCommand($context, $id, null);
 	}
 
+	/** Delete a relay by its name */
 	#[NCA\HandlesCommand("relay")]
 	public function relayRemNameCommand(CmdContext $context, PRemove $action, PNonNumber $name): void {
 		$this->relayRemCommand($context, null, $name());
@@ -753,17 +780,20 @@ class RelayController extends ModuleInstance {
 		);
 	}
 
+	/** Delete all relays */
 	#[NCA\HandlesCommand("relay")]
-	public function relayRemAllCommand(CmdContext $context, #[NCA\Regexp("remall|delall")] string $action): void {
+	public function relayRemAllCommand(CmdContext $context, #[NCA\Str("remall", "delall")] string $action): void {
 		$numDeleted = $this->deleteAllRelays();
 		$context->reply("<highlight>{$numDeleted}<end> relays deleted.");
 	}
 
+	/** Configure a relay by its id. Only supported for nadynative */
 	#[NCA\HandlesCommand("relay")]
 	public function relayConfigIdCommand(CmdContext $context, #[NCA\Str("config")] string $action, int $id): void {
 		$this->relayConfigCommand($context, $id, null);
 	}
 
+	/** Configure a relay by its name. Only supported for nadynative */
 	#[NCA\HandlesCommand("relay")]
 	public function relayConfigNameCommand(CmdContext $context, #[NCA\Str("config")] string $action, PNonNumberWord $name): void {
 		$this->relayConfigCommand($context, null, $name());
@@ -825,6 +855,7 @@ class RelayController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
+	/** Allow or forbid incoming or outgoing a syncable event for a relay */
 	#[NCA\HandlesCommand("relay")]
 	public function relayConfigEventmodCommand(
 		CmdContext $context,
@@ -833,7 +864,7 @@ class RelayController extends ModuleInstance {
 		#[NCA\Str("eventmod")] string $subAction,
 		PWord $event,
 		bool $enable,
-		#[NCA\Regexp("incoming|outgoing")] string $direction
+		#[NCA\Str("incoming", "outgoing")] string $direction
 	): void {
 		$name = $name();
 		$relay = $this->getRelayByName($name);
@@ -892,13 +923,14 @@ class RelayController extends ModuleInstance {
 		return true;
 	}
 
+	/** Batch allow or forbid incoming or outgoing a syncable events for a relay */
 	#[NCA\HandlesCommand("relay")]
 	public function relayConfigEventsetCommand(
 		CmdContext $context,
 		#[NCA\Str("config")] string $action,
 		PWord $name,
 		#[NCA\Str("eventset")] string $subAction,
-		#[NCA\Regexp("[a-z()_-]+\s+(?:IO|O|I)")] ?string ...$events
+		#[NCA\Regexp("[a-z()_-]+\s+(?:IO|O|I)", example: "&lt;event I|O|IO&gt;")] ?string ...$events
 	): void {
 		$name = $name();
 		$relay = $this->getRelayByName($name);
@@ -936,6 +968,12 @@ class RelayController extends ModuleInstance {
 		$context->reply("Relay events set for <highlight>{$relay->name}<end>.");
 	}
 
+	/**
+	 * Force syncing a command via all supporting relays
+	 *
+	 * Note: This will only force the outgoing event to be sent, not that
+	 * the other relays allow receiving this event.
+	 */
 	#[NCA\HandlesCommand("sync")]
 	public function syncCommand(CmdContext $context, string $command): void {
 		$context->message = $command;

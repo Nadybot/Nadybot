@@ -16,7 +16,6 @@ use Nadybot\Core\{
 /**
  * @author Equi
  * @author Nadyita (RK5) <nadyita@hodorraid.org>
- * Commands this controller contains:
  */
 #[
 	NCA\Instance,
@@ -24,7 +23,6 @@ use Nadybot\Core\{
 		command: "gaulist",
 		accessLevel: "member",
 		description: "Manage the stuff you got and need from the Gauntlet",
-		help: "gaulist.txt"
 	)
 ]
 class GauntletInventoryController extends ModuleInstance {
@@ -116,8 +114,13 @@ class GauntletInventoryController extends ModuleInstance {
 		return $blob;
 	}
 
+	/** Show the Gauntlet inventory for you or someone else, wanting to make &lt;num armors&gt; */
 	#[NCA\HandlesCommand("gaulist")]
-	public function gaulistExtraCommand(CmdContext $context, ?PCharacter $name, ?int $numArmors): void {
+	public function gaulistExtraCommand(
+		CmdContext $context,
+		?PCharacter $name,
+		?int $numArmors
+	): void {
 		$name = isset($name) ? $name() : $context->char->name;
 		$numArmors ??= 1;
 		$msg = $this->renderBastionInventory($name, $numArmors);
@@ -133,8 +136,15 @@ class GauntletInventoryController extends ModuleInstance {
 		return true;
 	}
 
+	/** Add the item &lt;pos&gt; to &lt;name&gt;'s Gauntlet inventory */
 	#[NCA\HandlesCommand("gaulist")]
-	public function gaulistAddCommand(CmdContext $context, #[NCA\Str("add")] string $action, PCharacter $name, int $pos): void {
+	#[NCA\Help\Hide()]
+	public function gaulistAddCommand(
+		CmdContext $context,
+		#[NCA\Str("add")] string $action,
+		PCharacter $name,
+		int $pos
+	): void {
 		$name = $name();
 		// Check and increase item
 		if ($this->altCheck($context, $context->char->name, $name) === false) {
@@ -152,8 +162,15 @@ class GauntletInventoryController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
+	/** Remove the item &lt;pos&gt; from &lt;name&gt;'s Gauntlet inventory */
 	#[NCA\HandlesCommand("gaulist")]
-	public function gaulistDelCommand(CmdContext $context, PRemove $action, PCharacter $name, int $pos): void {
+	#[NCA\Help\Hide()]
+	public function gaulistDelCommand(
+		CmdContext $context,
+		PRemove $action,
+		PCharacter $name,
+		int $pos
+	): void {
 		$name = $name();
 		// Check and increase item
 		if ($this->altCheck($context, $context->char->name, $name) === false) {

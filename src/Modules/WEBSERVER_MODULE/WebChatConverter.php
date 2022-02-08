@@ -17,7 +17,6 @@ use Nadybot\Core\{
  */
 #[NCA\Instance]
 class WebChatConverter extends ModuleInstance {
-
 	#[NCA\Inject]
 	public ConfigFile $config;
 

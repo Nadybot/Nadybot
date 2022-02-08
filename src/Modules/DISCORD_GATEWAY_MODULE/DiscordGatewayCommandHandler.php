@@ -3,8 +3,8 @@
 namespace Nadybot\Modules\DISCORD_GATEWAY_MODULE;
 
 use Closure;
-use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{
+	Attributes as NCA,
 	AccessLevelProvider,
 	AccessManager,
 	CmdContext,
@@ -12,19 +12,18 @@ use Nadybot\Core\{
 	DB,
 	ModuleInstance,
 	LoggerWrapper,
+	Modules\DISCORD\DiscordAPIClient,
+	Modules\DISCORD\DiscordUser,
 	Nadybot,
+	ParamClass\PCharacter,
+	Routing\Source,
 	Registry,
 	SettingManager,
 	Text,
 };
-use Nadybot\Core\Modules\DISCORD\DiscordAPIClient;
-use Nadybot\Core\Modules\DISCORD\DiscordUser;
-use Nadybot\Core\ParamClass\PCharacter;
-use Nadybot\Core\Routing\Source;
 
 /**
  * @author Nadyita (RK5)
- * Commands this controller contains:
  */
 #[
 	NCA\Instance,
@@ -33,7 +32,6 @@ use Nadybot\Core\Routing\Source;
 		command: "extauth",
 		accessLevel: "all",
 		description: "Link an AO account with a Discord user",
-		help: "extauth.txt"
 	)
 ]
 class DiscordGatewayCommandHandler extends ModuleInstance implements AccessLevelProvider {
@@ -103,6 +101,7 @@ class DiscordGatewayCommandHandler extends ModuleInstance implements AccessLevel
 		return $data ? $data->name : null;
 	}
 
+	/** Accept to be linked with a Discord account */
 	#[NCA\HandlesCommand("extauth")]
 	public function extAuthAccept(CmdContext $context, #[NCA\Str("accept")] string $action, string $uid): void {
 		if (!$context->isDM()) {
@@ -141,6 +140,7 @@ class DiscordGatewayCommandHandler extends ModuleInstance implements AccessLevel
 		$context->reply($msg);
 	}
 
+	/** Reject to be linked with a Discord account */
 	#[NCA\HandlesCommand("extauth")]
 	public function extAuthRejectCommand(CmdContext $context, #[NCA\Str("reject")] string $action, string $uid): void {
 		if (!$context->isDM()) {
@@ -155,7 +155,17 @@ class DiscordGatewayCommandHandler extends ModuleInstance implements AccessLevel
 		$context->reply($msg);
 	}
 
+	/**
+	 * Request to be linked with an AO character &lt;char&gt;
+	 *
+	 * Follow the instructions you received on your AO character
+	 */
 	#[NCA\HandlesCommand("extauth")]
+	#[NCA\Help\Epilogue(
+		"<header2>Be careful:<end>\n\n".
+		"Linking your Discord user with an AO character effectively\n".
+		"gives the Discord user the same rights!"
+	)]
 	public function extAuthCommand(CmdContext $context, #[NCA\Str("request")] string $action, PCharacter $char): void {
 		$discordUserId = $context->char->name;
 		if (($authedAs = $this->getNameForDiscordId($discordUserId)) !== null) {

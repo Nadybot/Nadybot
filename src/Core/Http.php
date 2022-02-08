@@ -6,7 +6,6 @@ use Nadybot\Core\Attributes as NCA;
 
 #[NCA\Instance]
 class Http {
-
 	#[NCA\Inject]
 	public Timer $timer;
 

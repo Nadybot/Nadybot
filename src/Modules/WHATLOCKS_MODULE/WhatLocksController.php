@@ -18,7 +18,6 @@ use Nadybot\Modules\ITEMS_MODULE\Skill;
 
 /**
  * @author Nadyita (RK5) <nadyita@hodorraid.org>
- * Commands this controller contains:
  */
 #[
 	NCA\Instance,
@@ -27,7 +26,6 @@ use Nadybot\Modules\ITEMS_MODULE\Skill;
 		command: "whatlocks",
 		accessLevel: "all",
 		description: "List skills locked by using items",
-		help: "whatlocks.txt"
 	)
 ]
 class WhatLocksController extends ModuleInstance {
@@ -43,9 +41,6 @@ class WhatLocksController extends ModuleInstance {
 	#[NCA\Inject]
 	public DB $db;
 
-	/**
-	 * This handler is called on bot startup.
-	 */
 	#[NCA\Setup]
 	public function setup(): void {
 		$this->db->loadCSVFile($this->moduleName, __DIR__ . "/what_locks.csv");

@@ -1,2 +1,0 @@
-To show a large visible message:
-<highlight><tab><symbol>cmd 'message'<end>
