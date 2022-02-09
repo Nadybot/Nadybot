@@ -41,12 +41,7 @@ use Nadybot\Modules\WEBSERVER_MODULE\{
 		description: "Shows news",
 	),
 	NCA\DefineCommand(
-		command: "news confirm .+",
-		accessLevel: "member",
-		description: "Mark news as read",
-	),
-	NCA\DefineCommand(
-		command: "news .+",
+		command: NewsController::CMD_NEWS_MANAGE,
 		accessLevel: "mod",
 		description: "Adds, removes, pins or unpins a news entry",
 	),
@@ -60,6 +55,8 @@ use Nadybot\Modules\WEBSERVER_MODULE\{
 	)
 ]
 class NewsController extends ModuleInstance {
+	public const CMD_NEWS_MANAGE = "news add/change/delete";
+
 	#[NCA\Inject]
 	public DB $db;
 
@@ -269,8 +266,12 @@ class NewsController extends ModuleInstance {
 	/**
 	 * Confirm having read a news entry
 	 */
-	#[NCA\HandlesCommand("news confirm .+")]
-	public function newsconfirmCommand(CmdContext $context, #[NCA\Str("confirm")] string $action, int $id): void {
+	#[NCA\HandlesCommand("news")]
+	public function newsconfirmCommand(
+		CmdContext $context,
+		#[NCA\Str("confirm")] string $action,
+		int $id
+	): void {
 		$row = $this->getNewsItem($id);
 		if ($row === null) {
 			$msg = "No news entry found with the ID <highlight>{$id}<end>.";
@@ -303,8 +304,12 @@ class NewsController extends ModuleInstance {
 	/**
 	 * Add a news entry
 	 */
-	#[NCA\HandlesCommand("news .+")]
-	public function newsAddCommand(CmdContext $context, #[NCA\Str("add")] string $action, string $news): void {
+	#[NCA\HandlesCommand(self::CMD_NEWS_MANAGE)]
+	public function newsAddCommand(
+		CmdContext $context,
+		#[NCA\Str("add")] string $action,
+		string $news
+	): void {
 		$entry = [
 			"time" => time(),
 			"name" => $context->char->name,
@@ -331,8 +336,12 @@ class NewsController extends ModuleInstance {
 	/**
 	 * Remove a news entry by ID
 	 */
-	#[NCA\HandlesCommand("news .+")]
-	public function newsRemCommand(CmdContext $context, PRemove $action, int $id): void {
+	#[NCA\HandlesCommand(self::CMD_NEWS_MANAGE)]
+	public function newsRemCommand(
+		CmdContext $context,
+		PRemove $action,
+		int $id
+	): void {
 		$row = $this->getNewsItem($id);
 		if ($row === null) {
 			$msg = "No news entry found with the ID <highlight>{$id}<end>.";
@@ -353,8 +362,12 @@ class NewsController extends ModuleInstance {
 	/**
 	 * Pin a news entry to the top
 	 */
-	#[NCA\HandlesCommand("news .+")]
-	public function newsPinCommand(CmdContext $context, #[NCA\Str("pin")] string $action, int $id): void {
+	#[NCA\HandlesCommand(self::CMD_NEWS_MANAGE)]
+	public function newsPinCommand(
+		CmdContext $context,
+		#[NCA\Str("pin")] string $action,
+		int $id
+	): void {
 		$row = $this->getNewsItem($id);
 
 		if (!isset($row)) {
@@ -381,8 +394,12 @@ class NewsController extends ModuleInstance {
 	/**
 	 * Unpin a news entry from the top
 	 */
-	#[NCA\HandlesCommand("news .+")]
-	public function newsUnpinCommand(CmdContext $context, #[NCA\Str("unpin")] string $action, int $id): void {
+	#[NCA\HandlesCommand(self::CMD_NEWS_MANAGE)]
+	public function newsUnpinCommand(
+		CmdContext $context,
+		#[NCA\Str("unpin")] string $action,
+		int $id
+	): void {
 		$row = $this->getNewsItem($id);
 
 		if (!isset($row)) {

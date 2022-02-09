@@ -12,11 +12,15 @@ use Nadybot\Modules\BASIC_CHAT_MODULE\ChatAssistController;
 use Nadybot\Modules\BASIC_CHAT_MODULE\ChatLeaderController;
 use Nadybot\Modules\BASIC_CHAT_MODULE\ChatRallyController;
 use Nadybot\Modules\BASIC_CHAT_MODULE\ChatTopicController;
+use Nadybot\Modules\EVENTS_MODULE\EventsController;
+use Nadybot\Modules\LOOT_MODULE\LootController;
+use Nadybot\Modules\RAFFLE_MODULE\RaffleController;
 use Nadybot\Modules\RAID_MODULE\AuctionController;
 use Nadybot\Modules\RAID_MODULE\RaidBlockController;
 use Nadybot\Modules\RAID_MODULE\RaidController;
 use Nadybot\Modules\RAID_MODULE\RaidMemberController;
 use Nadybot\Modules\RAID_MODULE\RaidPointsController;
+use Nadybot\Modules\WORLDBOSS_MODULE\WorldBossController;
 
 class MigrateSubCmds implements SchemaMigration {
 	protected function deleteAlias(DB $db, LoggerWrapper $logger, string $alias): void {
@@ -56,6 +60,13 @@ class MigrateSubCmds implements SchemaMigration {
 			"points rem",
 			"raid reward",
 			"raid punish",
+			"comment categories",
+			"comment category",
+			"raffle start",
+			"raffle end",
+			"raffle cancel",
+			"raffle timer",
+			"raffle announce",
 		];
 
 		$renamedCmds = [
@@ -63,9 +74,8 @@ class MigrateSubCmds implements SchemaMigration {
 			"leader (.+)" => ChatLeaderController::CMD_LEADER_SET,
 			"rally .+" => ChatRallyController::CMD_RALLY_SET,
 			"topic .+" => ChatTopicController::CMD_TOPIC_SET,
-			"auction" => AuctionController::CMD_BID_AUCTIONS,
+			"auction" => AuctionController::CMD_BID_AUCTION,
 			"auction reimburse .+" => AuctionController::CMD_BID_REIMBURSE,
-
 			"raid .+" => RaidController::CMD_RAID_MANAGE,
 			"raid spp .+" => RaidController::CMD_RAID_TICKER,
 			"raid (join|leave)" => RaidMemberController::CMD_RAID_JOIN_LEAVE,
@@ -75,6 +85,15 @@ class MigrateSubCmds implements SchemaMigration {
 			"points .+" => RaidPointsController::CMD_POINTS_OTHER,
 			"pointsmod" => RaidPointsController::CMD_POINTS_MODIFY,
 			"raidblock .+" => RaidBlockController::CMD_RAIDBLOCK_EDIT,
+			"commentcategories" => "comment categories",
+			"events add .+" => EventsController::CMD_EVENT_MANAGE,
+			"loot .+" => LootController::CMD_LOOT_MANAGE,
+			"raffleadmin" => RaffleController::CMD_RAFFLE_MANAGE,
+			"tara .+" => WorldBossController::CMD_TARA_UPDATE,
+			"father .+" => WorldBossController::CMD_FATHER_UPDATE,
+			"loren .+" => WorldBossController::CMD_LOREN_UPDATE,
+			"gauntlet .+" => WorldBossController::CMD_GAUNTLET_UPDATE,
+			"reaper .+" => WorldBossController::CMD_REAPER_UPDATE,
 		];
 
 		foreach ($deletedAliases as $alias) {
@@ -84,6 +103,5 @@ class MigrateSubCmds implements SchemaMigration {
 		foreach ($renamedCmds as $oldName => $newName) {
 			$this->migrateSubCmdRights($db, $logger, $oldName, $newName);
 		}
-		throw new Exception("Boom!");
 	}
 }

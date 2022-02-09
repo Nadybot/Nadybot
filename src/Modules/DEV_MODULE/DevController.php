@@ -27,22 +27,22 @@ use ReflectionException;
 	NCA\DefineCommand(
 		command: "showcmdregex",
 		accessLevel: "admin",
-		description: "Test the bot commands",
+		description: "View regex masks used to match commands",
 	),
 	NCA\DefineCommand(
 		command: "intransaction",
 		accessLevel: "admin",
-		description: "Test the bot commands",
+		description: "Check if a DB transaction is open",
 	),
 	NCA\DefineCommand(
 		command: "rollbacktransaction",
 		accessLevel: "admin",
-		description: "Test the bot commands",
+		description: "Rollback an open DB transaction",
 	),
 	NCA\DefineCommand(
 		command: "stacktrace",
 		accessLevel: "admin",
-		description: "Test the bot commands",
+		description: "Show a stacktrace",
 	),
 	NCA\DefineCommand(
 		command: "cmdhandlers",
@@ -184,7 +184,7 @@ class DevController extends ModuleInstance {
 			if (isset($this->subcommandManager->subcommands[$cmd])) {
 				foreach ($this->subcommandManager->subcommands[$cmd] as $handler) {
 					if (isset($handler->permissions[$channel])) {
-						$handlers []= new CommandHandler($handler->file, $handler->permissions[$channel]->access_level);
+						$handlers []= new CommandHandler($handler->permissions[$channel]->access_level, ...explode(",", $handler->file));
 					}
 				}
 			}

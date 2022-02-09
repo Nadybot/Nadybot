@@ -29,6 +29,11 @@ use Safe\Exceptions\DatetimeException;
 		accessLevel: "all",
 		description: "Show current arbiter mission",
 		alias: "icc",
+	),
+	NCA\DefineCommand(
+		command: "arbiter change",
+		accessLevel: "member",
+		description: "Change current arbiter mission",
 	)
 ]
 class ArbiterController extends ModuleInstance {
@@ -129,7 +134,7 @@ class ArbiterController extends ModuleInstance {
 	 * <tab>'<symbol>arbiter set bs ends'
 	 * This will set that today is the last day of the PvP week.
 	 */
-	#[NCA\HandlesCommand("arbiter")]
+	#[NCA\HandlesCommand("arbiter change")]
 	public function arbiterSetCommand(
 		CmdContext $context,
 		#[NCA\Str("set")] string $action,

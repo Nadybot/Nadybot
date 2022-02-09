@@ -43,7 +43,7 @@ use Nadybot\Core\{
 		description: "Show next Tarasque spawntime(s)",
 	),
 	NCA\DefineCommand(
-		command: "tara .+",
+		command: WorldBossController::CMD_TARA_UPDATE,
 		accessLevel: "member",
 		description: "Update, set or delete Tarasque killtimer",
 	),
@@ -53,7 +53,7 @@ use Nadybot\Core\{
 		description: "Show next Reaper spawntime(s)",
 	),
 	NCA\DefineCommand(
-		command: "reaper .+",
+		command: WorldBossController::CMD_REAPER_UPDATE,
 		accessLevel: "member",
 		description: "Update, set or delete Reaper killtimer",
 	),
@@ -63,7 +63,7 @@ use Nadybot\Core\{
 		description: "Show next Loren Warr spawntime(s)",
 	),
 	NCA\DefineCommand(
-		command: "loren .+",
+		command: WorldBossController::CMD_LOREN_UPDATE,
 		accessLevel: "member",
 		description: "Update, set or delete Loren Warr killtimer",
 	),
@@ -73,7 +73,7 @@ use Nadybot\Core\{
 		description: "shows timer of Gauntlet",
 	),
 	NCA\DefineCommand(
-		command: "gauntlet .+",
+		command: WorldBossController::CMD_GAUNTLET_UPDATE,
 		accessLevel: "member",
 		description: "Update or set Gaunlet timer",
 	),
@@ -83,7 +83,7 @@ use Nadybot\Core\{
 		description: "shows timer of Father Time",
 	),
 	NCA\DefineCommand(
-		command: "father .+",
+		command: WorldBossController::CMD_FATHER_UPDATE,
 		accessLevel: "member",
 		description: "Update or set Father Time timer",
 	),
@@ -97,6 +97,12 @@ use Nadybot\Core\{
 	)
 ]
 class WorldBossController extends ModuleInstance {
+	public const CMD_TARA_UPDATE = "tara set/delete";
+	public const CMD_FATHER_UPDATE = "father set/delete";
+	public const CMD_GAUNTLET_UPDATE = "gauntlet set/delete";
+	public const CMD_LOREN_UPDATE = "loren set/delete";
+	public const CMD_REAPER_UPDATE = "reaper set/delete";
+
 	public const WORLDBOSS_API = "https://timers.aobots.org/api/v1.0/bosses";
 
 	public const DB_TABLE = "worldboss_timers_<myname>";
@@ -545,11 +551,11 @@ class WorldBossController extends ModuleInstance {
 
 	/** Mark a worldboss as killed, setting a new timer for it */
 	#[
-		NCA\HandlesCommand("tara .+"),
-		NCA\HandlesCommand("loren .+"),
-		NCA\HandlesCommand("reaper .+"),
-		NCA\HandlesCommand("gauntlet .+"),
-		NCA\HandlesCommand("father .+"),
+		NCA\HandlesCommand(self::CMD_TARA_UPDATE),
+		NCA\HandlesCommand(self::CMD_LOREN_UPDATE),
+		NCA\HandlesCommand(self::CMD_REAPER_UPDATE),
+		NCA\HandlesCommand(self::CMD_GAUNTLET_UPDATE),
+		NCA\HandlesCommand(self::CMD_FATHER_UPDATE),
 		NCA\Help\Group("worldboss")
 	]
 	public function bossKillCommand(CmdContext $context, #[NCA\Str("kill")] string $action): void {
@@ -564,11 +570,11 @@ class WorldBossController extends ModuleInstance {
 
 	/** Manually update a worldboss's timer by giving the time until it is vulnerable */
 	#[
-		NCA\HandlesCommand("tara .+"),
-		NCA\HandlesCommand("loren .+"),
-		NCA\HandlesCommand("reaper .+"),
-		NCA\HandlesCommand("gauntlet .+"),
-		NCA\HandlesCommand("father .+"),
+		NCA\HandlesCommand(self::CMD_TARA_UPDATE),
+		NCA\HandlesCommand(self::CMD_LOREN_UPDATE),
+		NCA\HandlesCommand(self::CMD_REAPER_UPDATE),
+		NCA\HandlesCommand(self::CMD_GAUNTLET_UPDATE),
+		NCA\HandlesCommand(self::CMD_FATHER_UPDATE),
 		NCA\Help\Group("worldboss")
 	]
 	public function bossUpdateCommand(
@@ -585,10 +591,10 @@ class WorldBossController extends ModuleInstance {
 
 	/** Completely remove a worldboss's timer, because you are not interested in it */
 	#[
-		NCA\HandlesCommand("tara .+"),
-		NCA\HandlesCommand("loren .+"),
-		NCA\HandlesCommand("reaper .+"),
-		NCA\HandlesCommand("father .+"),
+		NCA\HandlesCommand(self::CMD_TARA_UPDATE),
+		NCA\HandlesCommand(self::CMD_LOREN_UPDATE),
+		NCA\HandlesCommand(self::CMD_REAPER_UPDATE),
+		NCA\HandlesCommand(self::CMD_FATHER_UPDATE),
 		NCA\Help\Group("worldboss")
 	]
 	public function bossDeleteCommand(CmdContext $context, PRemove $action): void {

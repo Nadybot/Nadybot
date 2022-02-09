@@ -39,7 +39,7 @@ use Nadybot\Modules\{
 		description: "Show the loot list",
 	),
 	NCA\DefineCommand(
-		command: "loot .+",
+		command: LootController::CMD_LOOT_MANAGE,
 		accessLevel: "rl",
 		description: "Modify the loot list",
 	),
@@ -61,15 +61,17 @@ use Nadybot\Modules\{
 	NCA\DefineCommand(
 		command: "add",
 		accessLevel: "all",
-		description: "Add a player to a roll slot",
+		description: "Add yourself to a roll slot",
 	),
 	NCA\DefineCommand(
 		command: "rem",
 		accessLevel: "all",
-		description: "Remove a player from a roll slot",
+		description: "Remove yoruself from a roll slot",
 	)
 ]
 class LootController extends ModuleInstance {
+	public const CMD_LOOT_MANAGE = "loot add/change/delete";
+
 	#[NCA\Inject]
 	public DB $db;
 
@@ -170,7 +172,7 @@ class LootController extends ModuleInstance {
 	/**
 	 * Clear the current loot list
 	 */
-	#[NCA\HandlesCommand("loot .+")]
+	#[NCA\HandlesCommand(self::CMD_LOOT_MANAGE)]
 	#[NCA\Help\Group("loot")]
 	public function lootClearCommand(CmdContext $context, #[NCA\Str("clear")] string $action): void {
 		if (!$this->chatLeaderController->checkLeaderAccess($context->char->name)) {
@@ -211,7 +213,7 @@ class LootController extends ModuleInstance {
 	/**
 	 * Add an item from a loot list to the loot roll
 	 */
-	#[NCA\HandlesCommand("loot .+")]
+	#[NCA\HandlesCommand(self::CMD_LOOT_MANAGE)]
 	#[NCA\Help\Group("loot")]
 	public function lootAddByIdCommand(CmdContext $context, #[NCA\Str("add")] string $action, int $id): void {
 		if (!$this->chatLeaderController->checkLeaderAccess($context->char->name)) {
@@ -261,7 +263,7 @@ class LootController extends ModuleInstance {
 	/**
 	 * Auction off an item from a loot list
 	 */
-	#[NCA\HandlesCommand("loot .+")]
+	#[NCA\HandlesCommand(self::CMD_LOOT_MANAGE)]
 	#[NCA\Help\Group("loot")]
 	public function lootAuctionByIdCommand(CmdContext $context, #[NCA\Str("auction")] string $action, int $id): void {
 		$loot = $this->getLootEntryID($id);
@@ -284,7 +286,7 @@ class LootController extends ModuleInstance {
 	/**
 	 * Add an item to the loot roll by name or by pasting it
 	 */
-	#[NCA\HandlesCommand("loot .+")]
+	#[NCA\HandlesCommand(self::CMD_LOOT_MANAGE)]
 	#[NCA\Help\Group("loot")]
 	public function lootAddCommand(CmdContext $context, #[NCA\Str("add")] string $action, string $item): void {
 		if (!$this->chatLeaderController->checkLeaderAccess($context->char->name)) {
@@ -298,7 +300,7 @@ class LootController extends ModuleInstance {
 	/**
 	 * Add multiple items to the loot roll
 	 */
-	#[NCA\HandlesCommand("loot .+")]
+	#[NCA\HandlesCommand(self::CMD_LOOT_MANAGE)]
 	#[NCA\Help\Group("loot")]
 	#[NCA\Help\Example("<symbol>loot addmulti 3 Lockpick")]
 	public function multilootCommand(
@@ -392,7 +394,7 @@ class LootController extends ModuleInstance {
 	/**
 	 * Remove a single item from the loot list
 	 */
-	#[NCA\HandlesCommand("loot .+")]
+	#[NCA\HandlesCommand(self::CMD_LOOT_MANAGE)]
 	#[NCA\Help\Group("loot")]
 	public function lootRemCommand(CmdContext $context, PRemove $action, int $key): void {
 		if (!$this->chatLeaderController->checkLeaderAccess($context->char->name)) {

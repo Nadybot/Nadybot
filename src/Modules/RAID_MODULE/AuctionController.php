@@ -36,7 +36,7 @@ use Nadybot\Modules\RAFFLE_MODULE\RaffleItem;
 		description: "Bid points for an auctioned item",
 	),
 	NCA\DefineCommand(
-		command: AuctionController::CMD_BID_AUCTIONS,
+		command: AuctionController::CMD_BID_AUCTION,
 		accessLevel: "raid_leader_1",
 		description: "Manage auctions",
 	),
@@ -51,7 +51,7 @@ use Nadybot\Modules\RAFFLE_MODULE\RaffleItem;
 	NCA\ProvidesEvent("auction(bid)")
 ]
 class AuctionController extends ModuleInstance {
-	public const CMD_BID_AUCTIONS = "bid auctions";
+	public const CMD_BID_AUCTION = "bid auction";
 	public const CMD_BID_REIMBURSE = "bid reimburse";
 	public const DB_TABLE = "auction_<myname>";
 	public const ERR_NO_AUCTION = "There's currently nothing being auctioned.";
@@ -211,8 +211,7 @@ class AuctionController extends ModuleInstance {
 	}
 
 	/** Auction an item */
-	#[NCA\HandlesCommand(self::CMD_BID_AUCTIONS)]
-	#[NCA\Help\Group("auction")]
+	#[NCA\HandlesCommand(self::CMD_BID_AUCTION)]
 	public function bidStartCommand(
 		CmdContext $context,
 		#[NCA\Str("start")] string $action,
@@ -235,7 +234,7 @@ class AuctionController extends ModuleInstance {
 	}
 
 	/** Cancel the running auction */
-	#[NCA\HandlesCommand(self::CMD_BID_AUCTIONS)]
+	#[NCA\HandlesCommand(self::CMD_BID_AUCTION)]
 	#[NCA\Help\Group("auction")]
 	public function bidCancelCommand(
 		CmdContext $context,
@@ -257,8 +256,7 @@ class AuctionController extends ModuleInstance {
 	}
 
 	/** End the running auction prematurely */
-	#[NCA\HandlesCommand(self::CMD_BID_AUCTIONS)]
-	#[NCA\Help\Group("auction")]
+	#[NCA\HandlesCommand(self::CMD_BID_AUCTION)]
 	public function bidEndCommand(
 		CmdContext $context,
 		#[NCA\Str("end")] string $action
@@ -283,7 +281,6 @@ class AuctionController extends ModuleInstance {
 	 * auction, take a look at the '<symbol>points add' and '<symbol>points rem' commands.
 	 */
 	#[NCA\HandlesCommand(self::CMD_BID_REIMBURSE)]
-	#[NCA\Help\Group("auction")]
 	public function bidReimburseCommand(
 		CmdContext $context,
 		#[NCA\Str("reimburse", "payback", "refund")] string $action,
@@ -398,7 +395,6 @@ class AuctionController extends ModuleInstance {
 	 * but not to lower it.
 	 */
 	#[NCA\HandlesCommand("bid")]
-	#[NCA\Help\Group("auction")]
 	public function bidCommand(CmdContext $context, int $bid): void {
 		if (!$context->isDM()) {
 			$context->reply("<red>The <symbol>bid command only works in tells<end>.");
@@ -440,7 +436,6 @@ class AuctionController extends ModuleInstance {
 
 	/** See a list of the last 40 auctions */
 	#[NCA\HandlesCommand("bid")]
-	#[NCA\Help\Group("auction")]
 	public function bidHistoryCommand(
 		CmdContext $context,
 		#[NCA\Str("history")] string $action
@@ -465,7 +460,6 @@ class AuctionController extends ModuleInstance {
 
 	/** Search the bid history for an item */
 	#[NCA\HandlesCommand("bid")]
-	#[NCA\Help\Group("auction")]
 	public function bidHistorySearchCommand(
 		CmdContext $context,
 		#[NCA\Str("history")] string $action,
