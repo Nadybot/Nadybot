@@ -694,7 +694,7 @@ class ConfigController extends ModuleInstance {
 				if (in_array(true, $enabled, true)) {
 					$statusLinks []= $this->text->makeChatcmd("disable", "/tell <myname> config subcmd {$row->cmd} disable all");
 				}
-				$cmdNameLink = "<tab>{$row->cmd}";
+				$cmdNameLink = "<tab>" . explode(" ", $row->cmd, 2)[1];
 			}
 
 			$status = [];
