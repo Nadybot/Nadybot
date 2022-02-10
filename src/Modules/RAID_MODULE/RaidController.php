@@ -437,7 +437,7 @@ class RaidController extends ModuleInstance {
 	#[NCA\HandlesCommand(self::CMD_RAID_TICKER)]
 	public function raidChangeSppCommand(
 		CmdContext $context,
-		#[NCA\Str("spp")] string $action,
+		#[NCA\Str("ticker", "spp")] string $action,
 		#[NCA\PDuration] #[NCA\Str("off")] string $interval
 	): void {
 		if (!isset($this->raid)) {

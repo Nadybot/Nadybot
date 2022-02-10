@@ -958,23 +958,42 @@ class CommandManager implements MessageEmitter {
 			return $this->canViewHelp($context, $m);
 		});
 		$grouped = $this->groupRefMethods($methods->filter());
-		foreach ($grouped as $refMethods) {
-			$parts []= $this->getHelpText($refMethods, $cmd);
-			if (count($prologue = $refMethods[0]->getAttributes(NCA\Help\Prologue::class)) > 0) {
-				/** @var NCA\Help\Prologue */
-				$prologue = $prologue[0]->newInstance();
-				$prologues []= $prologue->text;
+		$groupedByCmd = $this->groupBySubcmd($grouped);
+		$showRights = ($this->settingManager->getBool('help_show_al') ?? true)
+			&& $this->accessManager->checkSingleAccess($context->char->name, 'mod');
+		/** @var string $cmdName */
+		foreach ($groupedByCmd as $cmdName => $refGroups) {
+			/** @var Collection<ReflectionMethod[]> $refGroups */
+			$header = "<header2>'{$cmdName}' command".
+				((count($refGroups) > 1 || count($refGroups[0]) > 1) ? "s" : "");
+			if ($showRights) {
+				$cmdCfg = $this->get($cmdName);
+				if (isset($cmdCfg) && isset($cmdCfg->permissions[$context->permissionSet])) {
+					$al = $cmdCfg->permissions[$context->permissionSet]->access_level;
+					$al = $this->accessManager->getDisplayName($al);
+					$header .= " ({$al})";
+				}
 			}
-			if (count($epilogue = $refMethods[0]->getAttributes(NCA\Help\Epilogue::class)) > 0) {
-				/** @var NCA\Help\Epilogue */
-				$epilogue = $epilogue[0]->newInstance();
-				$epilogues []= $epilogue->text;
+			$header .= "<end>";
+			$parts []= $header;
+			foreach ($refGroups as $refMethods) {
+				$parts []= $this->getHelpText($refMethods, $cmd);
+				if (count($prologue = $refMethods[0]->getAttributes(NCA\Help\Prologue::class)) > 0) {
+					/** @var NCA\Help\Prologue */
+					$prologue = $prologue[0]->newInstance();
+					$prologues []= $prologue->text;
+				}
+				if (count($epilogue = $refMethods[0]->getAttributes(NCA\Help\Epilogue::class)) > 0) {
+					/** @var NCA\Help\Epilogue */
+					$epilogue = $epilogue[0]->newInstance();
+					$epilogues []= $epilogue->text;
+				}
 			}
 		}
 		if (empty($parts)) {
 			return "No help for {$cmd}.";
 		}
-		$blob = "<header2>Command Syntax<end>\n\n" . join("\n\n", $parts);
+		$blob = join("\n\n", $parts);
 		if (count($prologues)) {
 			$blob = join("\n\n", $prologues) . "\n\n{$blob}";
 		}
@@ -982,6 +1001,36 @@ class CommandManager implements MessageEmitter {
 			$blob .= "\n\n" . join("\n\n", $epilogues);
 		}
 		return $this->text->makeBlob("Help ($cmd)", $blob . $this->getSyntaxExplanation($context));
+	}
+
+	/**
+	 * @param Collection<ReflectionMethod[]> $list
+	 * @return Collection<ReflectionMethod[]>
+	 */
+	protected function groupBySubcmd(Collection $list): Collection {
+		/**
+		 * @param ReflectionMethod[] $refMethods1
+		 * @param ReflectionMethod[] $refMethods2
+		 */
+		$list->sort(function (array $refMethods1, array $refMethods2): int {
+			$n1 = $refMethods1[0]->getDeclaringClass()->getShortName();
+			$n2 = $refMethods2[0]->getDeclaringClass()->getShortName();
+			return strcmp($n1, $n2)
+				?: $refMethods1[0]->getStartLine() <=> $refMethods2[0]->getStartLine();
+		});
+		/** @param ReflectionMethod[] $refMethods */
+		return $list->groupBy(function (array $refMethods): string {
+			if (empty($refMethods)) {
+				return "";
+			}
+			$attrs = $refMethods[0]->getAttributes(NCA\HandlesCommand::class);
+			if (empty($attrs)) {
+				return "";
+			}
+			/** @var NCA\HandlesCommand */
+			$handlesCmd = $attrs[0]->newInstance();
+			return $handlesCmd->command;
+		});
 	}
 
 	public function getSyntaxExplanation(CmdContext $context, bool $ignorePrefs=false): string {
