@@ -286,8 +286,6 @@ class UsageController extends ModuleInstance {
 	}
 
 	public function getUsageInfo(int $lastSubmittedStats, int $now, bool $debug=false): UsageStats {
-		global $version;
-
 		$botid = $this->settingManager->getString('botid')??"";
 		if ($botid === '') {
 			$botid = $this->util->genRandomString(20);
@@ -312,7 +310,7 @@ class UsageController extends ModuleInstance {
 		$settings->guildsize               = $this->getGuildSizeClass(count($this->chatBot->guildmembers));
 		$settings->using_chat_proxy        = (bool)$this->config->useProxy;
 		$settings->db_type                 = $this->db->getType();
-		$settings->bot_version             = $version;
+		$settings->bot_version             = BotRunner::getVersion();
 		$settings->using_git               = @file_exists(BotRunner::getBasedir() . "/.git");
 		$settings->os                      = BotRunner::isWindows() ? 'Windows' : php_uname("s");
 		$settings->symbol                  = $this->settingManager->getString('symbol')??"!";

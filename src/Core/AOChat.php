@@ -165,6 +165,7 @@ class AOChat {
 		$this->disconnect();
 		$this->mmdbParser = new MMDBParser();
 		$this->logger = new LoggerWrapper('Core/AOChat');
+		Registry::injectDependencies($this->logger);
 	}
 
 	/**

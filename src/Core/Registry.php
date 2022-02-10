@@ -14,7 +14,11 @@ class Registry {
 	protected static ?LoggerWrapper $logger = null;
 
 	protected static function getLogger(): LoggerWrapper {
+		if (isset(static::$logger)) {
+			return static::$logger;
+		}
 		static::$logger ??= new LoggerWrapper("Core/Registry");
+		// static::injectDependencies(static::$logger);
 		return static::$logger;
 	}
 
@@ -101,6 +105,7 @@ class Registry {
 					}
 				}
 				$instance->{$property->name} = new LoggerWrapper($tag);
+				static::injectDependencies($instance->{$property->name});
 			}
 		}
 	}

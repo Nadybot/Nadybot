@@ -39,9 +39,6 @@ class BotRunner {
 	 */
 	public function __construct(array $argv) {
 		$this->argv = $argv;
-
-		global $version;
-		$version = self::getVersion();
 	}
 
 	/**
@@ -247,10 +244,8 @@ class BotRunner {
 		// set default timezone
 		date_default_timezone_set("UTC");
 
-		// load $vars
-		global $vars;
-		$vars = $this->getConfigVars();
 		$config = $this->getConfigFile();
+		Registry::setInstance("configfile", $config);
 		$this->checkRequiredModules();
 		$this->checkRequiredPackages();
 		$this->createMissingDirs();
@@ -266,26 +261,26 @@ class BotRunner {
 
 		$this->setErrorHandling($logFolderName);
 		$this->logger = new LoggerWrapper("Core/BotRunner");
+		Registry::injectDependencies($this->logger);
 
-		$this->showSetupDialog();
-		$this->canonicalizeBotCharacterName();
-
-		$this->setWindowTitle();
+		if ($this->showSetupDialog()) {
+			$config = $this->getConfigFile();
+		}
+		$this->setWindowTitle($config);
 
 		$version = self::getVersion();
 		$this->logger->notice(
 			"Starting {name} {version} on RK{dimension} using PHP {phpVersion} and {dbType}...",
 			[
-				"name" => $vars['name'],
+				"name" => $config->name,
 				"version" => $version,
-				"dimension" => $vars['dimension'],
+				"dimension" => $config->dimension,
 				"phpVersion" => phpversion(),
-				"dbType" => $vars['DB Type'],
+				"dbType" => $config->dbType,
 			]
 		);
 
-		Registry::setInstance("configfile", $config);
-		$this->classLoader = new ClassLoader($this->getConfigFile()->moduleLoadPaths);
+		$this->classLoader = new ClassLoader($config->moduleLoadPaths);
 		Registry::injectDependencies($this->classLoader);
 		$this->classLoader->loadInstances();
 
@@ -295,7 +290,7 @@ class BotRunner {
 
 		$this->runUpgradeScripts();
 
-		[$server, $port] = $this->getServerAndPort($vars);
+		[$server, $port] = $this->getServerAndPort($config);
 
 		/** @var Nadybot */
 		$chatBot = Registry::getInstance(Nadybot::class);
@@ -304,11 +299,7 @@ class BotRunner {
 		$chatBot->init($this);
 
 		// connect to ao chat server
-		$chatBot->connectAO($vars['login'], $vars['password'], (string)$server, (int)$port);
-
-		// clear login credentials
-		unset($vars['login']);
-		unset($vars['password']);
+		$chatBot->connectAO($config->login, $config->password, (string)$server, (int)$port);
 
 		// pass control to Nadybot class
 		$chatBot->run();
@@ -367,17 +358,7 @@ class BotRunner {
 			return $this->configFile;
 		}
 		$configFilePath = $this->argv[1] ?? "conf/config.php";
-		global $configFile;
-		return $configFile = $this->configFile = ConfigFile::loadFromFile($configFilePath);
-	}
-
-	/**
-	 * Parse and load our configuration and return it
-	 *
-	 * @return array<string,mixed>
-	 */
-	protected function getConfigVars(): array {
-		return $this->getConfigFile()->toArray();
+		return $this->configFile = ConfigFile::loadFromFile($configFilePath);
 	}
 
 	/**
@@ -399,16 +380,14 @@ class BotRunner {
 	/**
 	 * Guide customer through setup if needed
 	 */
-	private function showSetupDialog(): void {
+	private function showSetupDialog(): bool {
 		if (!$this->shouldShowSetup()) {
-			return;
+			return false;
 		}
 		$setup = new Setup($this->getConfigFile());
 		$setup->showIntro();
 		$this->logger->notice("Reloading configuration and testing your settings.");
-		unset($this->configFile);
-		global $vars;
-		$vars = $this->getConfigVars();
+		return true;
 	}
 
 	/**
@@ -419,22 +398,13 @@ class BotRunner {
 	}
 
 	/**
-	 * Canonicaize the botname: starts with capital letter, rest lowercase
-	 */
-	private function canonicalizeBotCharacterName(): void {
-		global $vars;
-		$vars["name"] = ucfirst(strtolower($vars["name"]));
-	}
-
-	/**
 	 * Set the title of the command prompt window in Windows
 	 */
-	private function setWindowTitle(): void {
+	private function setWindowTitle(ConfigFile $config): void {
 		if ($this->isWindows() === false) {
 			return;
 		}
-		global $vars;
-		\Safe\system("title {$vars['name']} - Nadybot");
+		\Safe\system("title {$config->name} - Nadybot");
 	}
 
 	/**
@@ -450,18 +420,6 @@ class BotRunner {
 		$db->connect($config->dbType, $config->dbName, $config->dbHost, $config->dbUsername, $config->dbPassword);
 	}
 
-	/**
-	 * Delete all database-related information from memory
-	 */
-	private function clearDatabaseInformation(): void {
-		global $vars;
-		unset($vars["DB Type"]);
-		unset($vars["DB Name"]);
-		unset($vars["DB Host"]);
-		unset($vars["DB username"]);
-		unset($vars["DB password"]);
-	}
-
 	/** Run migration scripts to keep the SQL schema up-to-date */
 	private function runUpgradeScripts(): void {
 		/** @var DB */
@@ -471,22 +429,22 @@ class BotRunner {
 
 	/**
 	 * Get AO's chat server hostname and port
-	 * @param array<string,mixed> $vars
 	 * @return (string|int)[] [(string)Server, (int)Port]
+	 * @phpstan-return array{string,int}
 	 */
-	protected function getServerAndPort(array $vars): array {
+	protected function getServerAndPort(ConfigFile $config): array {
 		// Choose server
-		if ($vars['use_proxy'] == 1) {
+		if ($config->useProxy) {
 			// For use with the AO chat proxy ONLY!
-			$server = $vars['proxy_server'];
-			$port = $vars['proxy_port'];
-		} elseif ($vars["dimension"] == 4) {
+			$server = $config->proxyServer;
+			$port = $config->proxyPort;
+		} elseif ($config->dimension === 4) {
 			$server = "chat.dt.funcom.com";
 			$port = 7109;
-		} elseif ($vars["dimension"] == 5) {
+		} elseif ($config->dimension === 5) {
 			$server = "chat.d1.funcom.com";
 			$port = 7105;
-		} elseif ($vars["dimension"] == 6) {
+		} elseif ($config->dimension === 6) {
 			$server = "chat.d1.funcom.com";
 			$port = 7106;
 		} else {

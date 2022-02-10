@@ -17,6 +17,7 @@ class MMDBParser {
 
 	public function __construct() {
 		$this->logger = new LoggerWrapper('Core/MMDBParser');
+		Registry::injectDependencies($this->logger);
 	}
 
 	public function getMessageString(int $categoryId, int $instanceId): ?string {
