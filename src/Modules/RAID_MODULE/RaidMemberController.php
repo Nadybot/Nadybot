@@ -25,12 +25,12 @@ use Nadybot\Modules\ONLINE_MODULE\OnlineController;
 	NCA\Instance,
 	NCA\HasMigrations("Migrations/Member"),
 	NCA\DefineCommand(
-		command: "raid (join|leave)",
+		command: RaidMemberController::CMD_RAID_JOIN_LEAVE,
 		accessLevel: "member",
 		description: "Join or leave the raid",
 	),
 	NCA\DefineCommand(
-		command: "raidmember",
+		command: RaidMemberController::CMD_RAID_KICK_ADD,
 		accessLevel: "raid_leader_1",
 		description: "Add or remove someone from/to the raid",
 	),
@@ -39,6 +39,8 @@ use Nadybot\Modules\ONLINE_MODULE\OnlineController;
 ]
 class RaidMemberController extends ModuleInstance {
 	public const DB_TABLE = "raid_member_<myname>";
+	public const CMD_RAID_JOIN_LEAVE = "raid join/leave";
+	public const CMD_RAID_KICK_ADD = "raid kick/add";
 
 	#[NCA\Inject]
 	public DB $db;
@@ -79,9 +81,6 @@ class RaidMemberController extends ModuleInstance {
 
 	#[NCA\Setup]
 	public function setup(): void {
-		$this->commandAlias->register($this->moduleName, "raidmember add", "raid add");
-		$this->commandAlias->register($this->moduleName, "raidmember rem", "raid kick");
-
 		$this->settingManager->add(
 			module: $this->moduleName,
 			name: 'raid_announce_raidmember_loc',
@@ -253,7 +252,7 @@ class RaidMemberController extends ModuleInstance {
 	/**
 	 * Join the currently running raid
 	 */
-	#[NCA\HandlesCommand("raid (join|leave)")]
+	#[NCA\HandlesCommand(self::CMD_RAID_JOIN_LEAVE)]
 	#[NCA\Help\Group("raid-members")]
 	public function raidJoinCommand(
 		CmdContext $context,
@@ -272,7 +271,7 @@ class RaidMemberController extends ModuleInstance {
 	/**
 	 * Leave the currently running raid
 	 */
-	#[NCA\HandlesCommand("raid (join|leave)")]
+	#[NCA\HandlesCommand(self::CMD_RAID_JOIN_LEAVE)]
 	#[NCA\Help\Group("raid-members")]
 	public function raidLeaveCommand(
 		CmdContext $context,
@@ -291,7 +290,7 @@ class RaidMemberController extends ModuleInstance {
 	/**
 	 * Add someone to the raid, even if they currently cannot join, because it is locked
 	 */
-	#[NCA\HandlesCommand("raidmember")]
+	#[NCA\HandlesCommand(self::CMD_RAID_KICK_ADD)]
 	#[NCA\Help\Group("raid-members")]
 	public function raidAddCommand(
 		CmdContext $context,
@@ -307,7 +306,7 @@ class RaidMemberController extends ModuleInstance {
 	/**
 	 * Kick someone from the raid
 	 */
-	#[NCA\HandlesCommand("raidmember")]
+	#[NCA\HandlesCommand(self::CMD_RAID_KICK_ADD)]
 	#[NCA\Help\Group("raid-members")]
 	public function raidKickCommand(
 		CmdContext $context,

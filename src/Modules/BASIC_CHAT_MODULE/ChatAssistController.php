@@ -26,7 +26,7 @@ use Nadybot\Core\{
 		alias: "callers"
 	),
 	NCA\DefineCommand(
-		command: "assist .+",
+		command: ChatAssistController::CMD_SET_ADD_CLEAR,
 		accessLevel: "rl",
 		description: "Set, add or clear assists",
 	),
@@ -35,6 +35,8 @@ use Nadybot\Core\{
 	NCA\ProvidesEvent("assist(add)")
 ]
 class ChatAssistController extends ModuleInstance {
+	public const CMD_SET_ADD_CLEAR = "assist set/add/clear";
+
 	#[NCA\Inject]
 	public Nadybot $chatBot;
 
@@ -175,7 +177,7 @@ class ChatAssistController extends ModuleInstance {
 	}
 
 	/** Remove a player from all or only a specific assist list */
-	#[NCA\HandlesCommand("assist .+")]
+	#[NCA\HandlesCommand(ChatAssistController::CMD_SET_ADD_CLEAR)]
 	#[NCA\Help\Example("<symbol>assist rem Nady", "Remove Nady from all assist lists")]
 	#[NCA\Help\Example("<symbol>assist rem FOO.Nady", "Remove Nady from the assist lists FOO")]
 	public function assistRemCommand(CmdContext $context, PRemove $action, string $toRemove): void {
@@ -218,7 +220,7 @@ class ChatAssistController extends ModuleInstance {
 	}
 
 	/** Clear a specific assist list */
-	#[NCA\HandlesCommand("assist .+")]
+	#[NCA\HandlesCommand(ChatAssistController::CMD_SET_ADD_CLEAR)]
 	#[NCA\Help\Example("<symbol>assist clear FOO", "Clear the assist list FOO")]
 	#[NCA\Help\Example(
 		"<symbol>assist clear mine",
@@ -285,7 +287,7 @@ class ChatAssistController extends ModuleInstance {
 	}
 
 	/** Clear all assist lists */
-	#[NCA\HandlesCommand("assist .+")]
+	#[NCA\HandlesCommand(ChatAssistController::CMD_SET_ADD_CLEAR)]
 	public function assistClearCommand(CmdContext $context, #[NCA\Str("clear")] string $action): void {
 		if (!$this->chatLeaderController->checkLeaderAccess($context->char->name)) {
 			$context->reply("You must be Raid Leader to use this command.");
@@ -311,7 +313,7 @@ class ChatAssistController extends ModuleInstance {
 	}
 
 	/** Create an assist macro for multiple characters */
-	#[NCA\HandlesCommand("assist .+")]
+	#[NCA\HandlesCommand(ChatAssistController::CMD_SET_ADD_CLEAR)]
 	public function assistSetCommand(CmdContext $context, #[NCA\Str("set")] string $action, PCharacter ...$callers): void {
 		if (!$this->chatLeaderController->checkLeaderAccess($context->char->name)) {
 			$context->reply("You must be Raid Leader to use this command.");
@@ -375,7 +377,7 @@ class ChatAssistController extends ModuleInstance {
 	}
 
 	/** Add a new player to the global assist list, or the one given */
-	#[NCA\HandlesCommand("assist .+")]
+	#[NCA\HandlesCommand(ChatAssistController::CMD_SET_ADD_CLEAR)]
 	public function assistAddCommand(CmdContext $context, #[NCA\Str("add")] string $action, ?PWord $assistList, PCharacter $caller): void {
 		if (!$this->chatLeaderController->checkLeaderAccess($context->char->name)) {
 			$context->reply("You must be Raid Leader to use this command.");
@@ -435,7 +437,7 @@ class ChatAssistController extends ModuleInstance {
 	}
 
 	/** Undo the last &lt;steps&gt; or 1 modification(s) of the caller list */
-	#[NCA\HandlesCommand("assist .+")]
+	#[NCA\HandlesCommand(ChatAssistController::CMD_SET_ADD_CLEAR)]
 	public function assistUndoCommand(CmdContext $context, #[NCA\Str("undo")] string $action, ?int $steps): void {
 		if (!$this->chatLeaderController->checkLeaderAccess($context->char->name)) {
 			$context->reply("You must be Raid Leader to use this command.");
@@ -464,7 +466,7 @@ class ChatAssistController extends ModuleInstance {
 	}
 
 	/** See the most recent changes to the list of callers */
-	#[NCA\HandlesCommand("assist .+")]
+	#[NCA\HandlesCommand(ChatAssistController::CMD_SET_ADD_CLEAR)]
 	public function assistHistoryCommand(CmdContext $context, #[NCA\Str("history")] string $action): void {
 		if (!$this->chatLeaderController->checkLeaderAccess($context->char->name)) {
 			$context->reply("You must be Raid Leader to use this command.");
@@ -492,7 +494,7 @@ class ChatAssistController extends ModuleInstance {
 	}
 
 	/** Create an assist macro for a single character */
-	#[NCA\HandlesCommand("assist .+")]
+	#[NCA\HandlesCommand(ChatAssistController::CMD_SET_ADD_CLEAR)]
 	public function assistOnceCommand(CmdContext $context, PCharacter $char): void {
 		$name = $char();
 		if (!$this->chatBot->get_uid($name)) {

@@ -66,7 +66,6 @@ class MigrateRelayColors implements SchemaMigration {
 			$this->migrateAllianceRelayModuleColors($db);
 		}
 
-		$this->messageHub->loadTagColor();
 		if ($db->table(CommandManager::DB_TABLE)
 			->where("module", "ALLIANCE_RELAY_MODULE")
 			->update(["status" => 0])) {

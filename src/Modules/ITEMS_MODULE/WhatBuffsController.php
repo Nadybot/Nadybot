@@ -591,14 +591,19 @@ class WhatBuffsController extends ModuleInstance {
 			return $results->toArray();
 		}
 
-		$skillsQuery = $this->db->table('skills')->select(['id', 'name', 'unit'])->distinct();
-		$aliasQuery = $this->db->table('skill_alias')->select(['id', 'name', 'unit'])->distinct();
+		$skillsQuery = $this->db->table('skills')
+			->select(['id', 'name', 'unit'])
+			->distinct();
+		$aliasQuery = $this->db->table('skill_alias', 'a')
+			->join('skills AS s', 'a.id', 's.id')
+			->select(['s.id', 's.name', 's.unit'])
+			->distinct();
 
 		$tmp = explode(" ", $skill);
 		$this->db->addWhereFromParams($skillsQuery, $tmp, 'name');
-		$this->db->addWhereFromParams($aliasQuery, $tmp, 'name');
+		$this->db->addWhereFromParams($aliasQuery, $tmp, 'a.name');
 
-		return $this->db
+		$skills = $this->db
 			->fromSub(
 				$skillsQuery->union($aliasQuery),
 				"foo"
@@ -608,6 +613,7 @@ class WhatBuffsController extends ModuleInstance {
 			->select(["id", "name", "unit"])
 			->asObj(Skill::class)
 			->toArray();
+		return $skills;
 	}
 
 	public function showItemLink(AODBEntry $item, int $ql): string {

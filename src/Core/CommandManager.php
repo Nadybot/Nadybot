@@ -252,7 +252,7 @@ class CommandManager implements MessageEmitter {
 			}
 		}
 
-		$obj = new CommandHandler($filename, $accessLevel);
+		$obj = new CommandHandler($accessLevel, ...explode(",", $filename));
 
 		$this->commands[$permissionSet][$command] = $obj;
 	}
@@ -416,6 +416,10 @@ class CommandManager implements MessageEmitter {
 	 * @return null|CmdCfg
 	 */
 	public function get(string $command, ?string $permissionSet=null): ?CmdCfg {
+		$subCmd = $this->subcommandManager->subcommands[$command][$permissionSet]??null;
+		if (isset($subCmd)) {
+			return $subCmd;
+		}
 		$query = $this->db->table(self::DB_TABLE)
 			->where("cmd", strtolower($command));
 		/** @var ?CmdCfg */
@@ -459,6 +463,73 @@ class CommandManager implements MessageEmitter {
 		return false;
 	}
 
+	public function canCallHandler(CmdContext $context, string $handler): bool {
+		if ($handler === CommandAlias::ALIAS_HANDLER) {
+			return true;
+		}
+		[$name, $method] = explode(".", $handler);
+		[$method, $line] = explode(":", $method);
+		$instance = Registry::getInstance($name);
+		if ($instance === null) {
+			$this->logger->error("Could not find instance for name '$name'");
+			return false;
+		}
+		// Check if this matches any command regular expression
+		$arr = $this->checkMatches($instance, $method, $context->message);
+		if ($arr === false) {
+			return false;
+		}
+		try {
+			$reflectedMethod = new ReflectionMethod($instance, $method);
+		} catch (ReflectionException $e) {
+			// method doesn't exist (probably handled dynamically)
+			return false;
+		}
+		$handlesAttrs = $reflectedMethod->getAttributes(NCA\HandlesCommand::class);
+		if (empty($handlesAttrs)) {
+			return false;
+		}
+		foreach ($handlesAttrs as $handlesAttr) {
+			/** @var NCA\HandlesCommand */
+			$handlesCmdObj = $handlesAttr->newInstance();
+			$baseCmd = explode(" ", $handlesCmdObj->command)[0];
+			if ($baseCmd !== explode(" ", $context->message)[0]) {
+				continue;
+			}
+			$cmdCfg = $this->get($handlesCmdObj->command, $context->permissionSet);
+			if (!isset($cmdCfg) || !isset($cmdCfg->permissions[$context->permissionSet])) {
+				continue;
+			}
+			if (!$this->accessManager->checkAccess($context->char->name, $cmdCfg->permissions[$context->permissionSet]->access_level) === true) {
+				continue;
+			}
+			return true;
+		}
+		return false;
+	}
+
+	/** Check if the character in the current context could run $command */
+	public function couldRunCommand(CmdContext $context, string $command): bool {
+		$context = clone $context;
+		$context->message = $command;
+		if (!isset($context->permissionSet)) {
+			return false;
+		}
+		$cmd = explode(" ", $command)[0];
+		$commandHandler = $this->getActiveCommandHandler($cmd, $context->permissionSet, $command);
+		if (!isset($commandHandler)) {
+			return false;
+		}
+		// Remove all handler we are not allowed to call or which don't match
+		$commandHandler->files = array_filter(
+			$commandHandler->files,
+			function (string $handler) use ($context): bool {
+				return $this->canCallHandler($context, $handler);
+			}
+		);
+		return count($commandHandler->files) > 0;
+	}
+
 	public function processCmd(CmdContext $context): void {
 		$cmd = explode(' ', $context->message, 2)[0];
 		$cmd = strtolower($cmd);
@@ -499,8 +570,17 @@ class CommandManager implements MessageEmitter {
 			return;
 		}
 
-		// if the character doesn't have access
-		if (!$this->checkAccessLevel($context, $cmd, $commandHandler)) {
+		// Remove all handler we are not allowed to call or which don't match
+		$commandHandler->files = array_filter(
+			$commandHandler->files,
+			function (string $handler) use ($context): bool {
+				return $this->canCallHandler($context, $handler);
+			}
+		);
+
+		// If there are no handlers we have access to and the character doesn't
+		// even have access to the main-command: error
+		if (empty($commandHandler->files) && !$this->checkAccessLevel($context, $cmd, $commandHandler)) {
 			$event->type = "command(forbidden)";
 			$this->eventManager->fireEvent($event);
 			return;
@@ -510,6 +590,7 @@ class CommandManager implements MessageEmitter {
 			$handler = $this->executeCommandHandler($commandHandler, $context);
 			$event->type = "command(success)";
 
+			// No handler found? Display the help
 			if ($handler === null) {
 				$help = $this->getHelpForCommand($cmd, $context);
 				$context->reply($help);
@@ -551,7 +632,7 @@ class CommandManager implements MessageEmitter {
 	 * @return bool true if allowed to execute, otherwise false
 	 */
 	public function checkAccessLevel(CmdContext $context, string $cmd, CommandHandler $commandHandler): bool {
-		if ($this->accessManager->checkAccess($context->char->name, $commandHandler->admin) === true) {
+		if ($this->accessManager->checkAccess($context->char->name, $commandHandler->access_level) === true) {
 			return true;
 		}
 		if ($context->isDM()) {
@@ -572,8 +653,9 @@ class CommandManager implements MessageEmitter {
 	public function executeCommandHandler(CommandHandler $commandHandler, CmdContext $context): ?string {
 		$successfulHandler = null;
 
-		foreach (explode(',', $commandHandler->file) as $handler) {
+		foreach ($commandHandler->files as $handler) {
 			[$name, $method] = explode(".", $handler);
+			[$method, $line] = explode(":", $method);
 			$instance = Registry::getInstance($name);
 			if ($instance === null) {
 				$this->logger->error("Could not find instance for name '$name'");
@@ -669,19 +751,39 @@ class CommandManager implements MessageEmitter {
 			$command = join(" ", $parts);
 			$handler = $this->commands[$permissionSet][$command] ?? null;
 			if ($handler instanceof CommandHandler) {
-				return $handler;
+				return clone $handler;
 			}
 			array_pop($parts);
 		}
+		$handler = $this->commands[$permissionSet][$cmd] ?? null;
+		if (!isset($handler)) {
+			return null;
+		}
+		$handler = clone $handler;
 		// Check if a subcommands for this exists
 		if (isset($this->subcommandManager->subcommands[$cmd])) {
 			foreach ($this->subcommandManager->subcommands[$cmd] as $row) {
-				if (isset($row->permissions[$permissionSet]) && preg_match("/^{$row->cmd}$/si", $message)) {
-					return new CommandHandler($row->file, $row->permissions[$permissionSet]->access_level);
+				if (isset($row->permissions[$permissionSet])) {
+					$handler->addFile(...explode(",", $row->file));
 				}
 			}
 		}
-		return $this->commands[$permissionSet][$cmd] ?? null;
+		$this->sortCalls($handler->files);
+		return $handler;
+	}
+
+	/** @param string[] $calls */
+	public function sortCalls(array &$calls): void {
+		usort($calls, function (string $call1, string $call2): int {
+			/** @phpstan-var array{array{string,int}, array{string,int}} */
+			$refs = [];
+			foreach ([$call1, $call2] as $call) {
+				[$class, $method] = explode(".", $call);
+				[$method, $line] = explode(":", $method);
+				$refs []= [$class, (int)$line];
+			}
+			return strcmp($refs[0][0], $refs[1][0]) ?: $refs[0][1] <=> $refs[1][1];
+		});
 	}
 
 	public function isCommandActive(string $cmd, string $permissionSet): bool {
@@ -720,6 +822,7 @@ class CommandManager implements MessageEmitter {
 
 	protected function getRefMethodForHandler(string $handler): ?ReflectionMethod {
 		[$name, $method] = explode(".", $handler);
+		[$method, $line] = explode(":", $method);
 		$instance = Registry::getInstance($name);
 		if ($instance === null) {
 			$this->logger->error("Could not find instance for name '$name'");
@@ -804,7 +907,7 @@ class CommandManager implements MessageEmitter {
 					) {
 						continue;
 					}
-					$handler = new CommandHandler($row->file, $row->permissions[$context->permissionSet]->access_level);
+					$handler = new CommandHandler($row->permissions[$context->permissionSet]->access_level, ...explode(",", $row->file));
 				}
 			}
 			if (!isset($handler)) {
@@ -813,7 +916,7 @@ class CommandManager implements MessageEmitter {
 			if (!isset($handler)) {
 				continue;
 			}
-			if ($this->accessManager->checkAccess($context->char->name, $handler->admin) === true) {
+			if ($this->accessManager->checkAccess($context->char->name, $handler->access_level) === true) {
 				return true;
 			}
 		}
@@ -855,23 +958,42 @@ class CommandManager implements MessageEmitter {
 			return $this->canViewHelp($context, $m);
 		});
 		$grouped = $this->groupRefMethods($methods->filter());
-		foreach ($grouped as $refMethods) {
-			$parts []= $this->getHelpText($refMethods, $cmd);
-			if (count($prologue = $refMethods[0]->getAttributes(NCA\Help\Prologue::class)) > 0) {
-				/** @var NCA\Help\Prologue */
-				$prologue = $prologue[0]->newInstance();
-				$prologues []= $prologue->text;
+		$groupedByCmd = $this->groupBySubcmd($grouped);
+		$showRights = ($this->settingManager->getBool('help_show_al') ?? true)
+			&& $this->accessManager->checkSingleAccess($context->char->name, 'mod');
+		/** @var string $cmdName */
+		foreach ($groupedByCmd as $cmdName => $refGroups) {
+			/** @var Collection<ReflectionMethod[]> $refGroups */
+			$header = "<header2>'{$cmdName}' command".
+				((count($refGroups) > 1 || count($refGroups[0]) > 1) ? "s" : "");
+			if ($showRights) {
+				$cmdCfg = $this->get((string)$cmdName);
+				if (isset($cmdCfg) && isset($cmdCfg->permissions[$context->permissionSet])) {
+					$al = $cmdCfg->permissions[$context->permissionSet]->access_level;
+					$al = $this->accessManager->getDisplayName($al);
+					$header .= " ({$al})";
+				}
 			}
-			if (count($epilogue = $refMethods[0]->getAttributes(NCA\Help\Epilogue::class)) > 0) {
-				/** @var NCA\Help\Epilogue */
-				$epilogue = $epilogue[0]->newInstance();
-				$epilogues []= $epilogue->text;
+			$header .= "<end>";
+			$parts []= $header;
+			foreach ($refGroups as $refMethods) {
+				$parts []= $this->getHelpText($refMethods, $cmd);
+				if (count($prologue = $refMethods[0]->getAttributes(NCA\Help\Prologue::class)) > 0) {
+					/** @var NCA\Help\Prologue */
+					$prologue = $prologue[0]->newInstance();
+					$prologues []= $prologue->text;
+				}
+				if (count($epilogue = $refMethods[0]->getAttributes(NCA\Help\Epilogue::class)) > 0) {
+					/** @var NCA\Help\Epilogue */
+					$epilogue = $epilogue[0]->newInstance();
+					$epilogues []= $epilogue->text;
+				}
 			}
 		}
 		if (empty($parts)) {
 			return "No help for {$cmd}.";
 		}
-		$blob = "<header2>Command Syntax<end>\n\n" . join("\n\n", $parts);
+		$blob = join("\n\n", $parts);
 		if (count($prologues)) {
 			$blob = join("\n\n", $prologues) . "\n\n{$blob}";
 		}
@@ -879,6 +1001,36 @@ class CommandManager implements MessageEmitter {
 			$blob .= "\n\n" . join("\n\n", $epilogues);
 		}
 		return $this->text->makeBlob("Help ($cmd)", $blob . $this->getSyntaxExplanation($context));
+	}
+
+	/**
+	 * @param Collection<ReflectionMethod[]> $list
+	 * @return Collection<ReflectionMethod[]>
+	 */
+	protected function groupBySubcmd(Collection $list): Collection {
+		/**
+		 * @param ReflectionMethod[] $refMethods1
+		 * @param ReflectionMethod[] $refMethods2
+		 */
+		$sList = $list->sort(function (array $refMethods1, array $refMethods2): int {
+			$n1 = $refMethods1[0]->getDeclaringClass()->getShortName();
+			$n2 = $refMethods2[0]->getDeclaringClass()->getShortName();
+			return strcmp($n1, $n2)
+				?: $refMethods1[0]->getStartLine() <=> $refMethods2[0]->getStartLine();
+		});
+		/** @param ReflectionMethod[] $refMethods */
+		return $sList->groupBy(function (array $refMethods): string {
+			if (empty($refMethods)) {
+				return "";
+			}
+			$attrs = $refMethods[0]->getAttributes(NCA\HandlesCommand::class);
+			if (empty($attrs)) {
+				return "";
+			}
+			/** @var NCA\HandlesCommand */
+			$handlesCmd = $attrs[0]->newInstance();
+			return $handlesCmd->command;
+		});
 	}
 
 	public function getSyntaxExplanation(CmdContext $context, bool $ignorePrefs=false): string {
@@ -1026,20 +1178,20 @@ class CommandManager implements MessageEmitter {
 
 		$regexes = $this->retrieveRegexes($reflectedMethod);
 
-		if (count($regexes) > 0) {
-			foreach ($regexes as $regex) {
-				if (preg_match($regex->match, $message, $arr)) {
-					if (isset($regex->variadicMatch)) {
-						if (preg_match_all($regex->variadicMatch, $message, $arr2)) {
-							$arr = $arr2;
-						}
-					}
-					return $arr;
-				}
-			}
-			return false;
+		if (count($regexes) === 0) {
+			return true;
 		}
-		return true;
+		foreach ($regexes as $regex) {
+			if (preg_match($regex->match, $message, $arr)) {
+				if (isset($regex->variadicMatch)) {
+					if (preg_match_all($regex->variadicMatch, $message, $arr2)) {
+						$arr = $arr2;
+					}
+				}
+				return $arr;
+			}
+		}
+		return false;
 	}
 
 	/**

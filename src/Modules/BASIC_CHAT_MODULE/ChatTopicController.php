@@ -23,7 +23,7 @@ use Nadybot\Core\{
 		description: "Shows Topic",
 	),
 	NCA\DefineCommand(
-		command: "topic .+",
+		command: ChatTopicController::CMD_TOPIC_SET,
 		accessLevel: "rl",
 		description: "Changes Topic",
 	),
@@ -31,6 +31,8 @@ use Nadybot\Core\{
 	NCA\ProvidesEvent("topic(clear)")
 ]
 class ChatTopicController extends ModuleInstance {
+	public const CMD_TOPIC_SET = "topic set/clear";
+
 	#[NCA\Inject]
 	public Nadybot $chatBot;
 
@@ -96,7 +98,7 @@ class ChatTopicController extends ModuleInstance {
 	/**
 	 * Clear the topic
 	 */
-	#[NCA\HandlesCommand("topic .+")]
+	#[NCA\HandlesCommand(self::CMD_TOPIC_SET)]
 	public function topicClearCommand(CmdContext $context, #[NCA\Str("clear")] string $action): void {
 		if (!$this->chatLeaderController->checkLeaderAccess($context->char->name)) {
 			$context->reply("You must be Raid Leader to use this command.");
@@ -115,7 +117,7 @@ class ChatTopicController extends ModuleInstance {
 	/**
 	 * Set a new topic
 	 */
-	#[NCA\HandlesCommand("topic .+")]
+	#[NCA\HandlesCommand(self::CMD_TOPIC_SET)]
 	public function topicSetCommand(CmdContext $context, string $topic): void {
 		if (!$this->chatLeaderController->checkLeaderAccess($context->char->name)) {
 			$context->reply("You must be Raid Leader to use this command.");

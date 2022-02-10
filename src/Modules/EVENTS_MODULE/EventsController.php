@@ -30,29 +30,17 @@ use Nadybot\Core\{
 		command: "events",
 		accessLevel: "all",
 		description: "View/Join/Leave events",
+		alias: 'event',
 	),
 	NCA\DefineCommand(
-		command: "events add .+",
+		command: EventsController::CMD_EVENT_MANAGE,
 		accessLevel: "mod",
-		description: "Add an event",
+		description: "Add/change or delete an event",
 	),
-	NCA\DefineCommand(
-		command: "events (rem|del) .+",
-		accessLevel: "mod",
-		description: "Remove an event",
-	),
-	NCA\DefineCommand(
-		command: "events setdesc .+",
-		accessLevel: "mod",
-		description: "Change or set the description for an event",
-	),
-	NCA\DefineCommand(
-		command: "events setdate .+",
-		accessLevel: "mod",
-		description: "Change or set the date for an event",
-	)
 ]
 class EventsController extends ModuleInstance {
+	public const CMD_EVENT_MANAGE = "events add/change/delete";
+
 	#[NCA\Inject]
 	public DB $db;
 
@@ -103,7 +91,7 @@ class EventsController extends ModuleInstance {
 	 * An event ID is returned when you submit an event.
 	 * This is the ID you will use to change data regarding that event.
 	 */
-	#[NCA\HandlesCommand("events add .+")]
+	#[NCA\HandlesCommand(self::CMD_EVENT_MANAGE)]
 	public function eventsAddCommand(CmdContext $context, #[NCA\Str("add")] string $action, string $eventName): void {
 		$eventId = $this->db->table("events")
 			->insertGetId([
@@ -117,7 +105,7 @@ class EventsController extends ModuleInstance {
 	}
 
 	/** Delete an event */
-	#[NCA\HandlesCommand("events (rem|del) .+")]
+	#[NCA\HandlesCommand(self::CMD_EVENT_MANAGE)]
 	public function eventsRemoveCommand(CmdContext $context, PRemove $action, int $id): void {
 		$row = $this->getEvent($id);
 		if ($row === null) {
@@ -130,7 +118,7 @@ class EventsController extends ModuleInstance {
 	}
 
 	/** Change the description of an event */
-	#[NCA\HandlesCommand("events setdesc .+")]
+	#[NCA\HandlesCommand(self::CMD_EVENT_MANAGE)]
 	public function eventsSetDescCommand(CmdContext $context, #[NCA\Str("setdesc")] string $action, int $id, string $description): void {
 		$row = $this->getEvent($id);
 		if ($row === null) {
@@ -145,7 +133,7 @@ class EventsController extends ModuleInstance {
 	}
 
 	/** Change the date of an event */
-	#[NCA\HandlesCommand("events setdate .+")]
+	#[NCA\HandlesCommand(self::CMD_EVENT_MANAGE)]
 	public function eventsSetDateCommand(
 		CmdContext $context,
 		#[NCA\Str("setdate")] string $action,

@@ -36,12 +36,12 @@ use Nadybot\Modules\RAFFLE_MODULE\RaffleItem;
 		description: "Bid points for an auctioned item",
 	),
 	NCA\DefineCommand(
-		command: "auction",
+		command: AuctionController::CMD_BID_AUCTION,
 		accessLevel: "raid_leader_1",
 		description: "Manage auctions",
 	),
 	NCA\DefineCommand(
-		command: "auction reimburse .+",
+		command: AuctionController::CMD_BID_REIMBURSE,
 		accessLevel: "raid_leader_1",
 		description: "Give back points for an auction",
 	),
@@ -51,6 +51,8 @@ use Nadybot\Modules\RAFFLE_MODULE\RaffleItem;
 	NCA\ProvidesEvent("auction(bid)")
 ]
 class AuctionController extends ModuleInstance {
+	public const CMD_BID_AUCTION = "bid auction";
+	public const CMD_BID_REIMBURSE = "bid reimburse";
 	public const DB_TABLE = "auction_<myname>";
 	public const ERR_NO_AUCTION = "There's currently nothing being auctioned.";
 
@@ -200,17 +202,16 @@ class AuctionController extends ModuleInstance {
 			intoptions: '1;2;3;4;5;6'
 		);
 		$this->commandAlias->register($this->moduleName, "bid history", "bh");
-		$this->commandAlias->register($this->moduleName, "auction start", "bid start");
-		$this->commandAlias->register($this->moduleName, "auction end", "bid end");
-		$this->commandAlias->register($this->moduleName, "auction cancel", "bid cancel");
-		$this->commandAlias->register($this->moduleName, "auction reimburse", "bid reimburse");
-		$this->commandAlias->register($this->moduleName, "auction reimburse", "bid payback");
-		$this->commandAlias->register($this->moduleName, "auction reimburse", "bid refund");
+		// $this->commandAlias->register($this->moduleName, "auction start", "bid start");
+		// $this->commandAlias->register($this->moduleName, "auction end", "bid end");
+		// $this->commandAlias->register($this->moduleName, "auction cancel", "bid cancel");
+		// $this->commandAlias->register($this->moduleName, "auction reimburse", "bid reimburse");
+		// $this->commandAlias->register($this->moduleName, "auction reimburse", "bid payback");
+		// $this->commandAlias->register($this->moduleName, "auction reimburse", "bid refund");
 	}
 
 	/** Auction an item */
-	#[NCA\HandlesCommand("auction")]
-	#[NCA\Help\Group("auction")]
+	#[NCA\HandlesCommand(self::CMD_BID_AUCTION)]
 	public function bidStartCommand(
 		CmdContext $context,
 		#[NCA\Str("start")] string $action,
@@ -233,7 +234,7 @@ class AuctionController extends ModuleInstance {
 	}
 
 	/** Cancel the running auction */
-	#[NCA\HandlesCommand("auction")]
+	#[NCA\HandlesCommand(self::CMD_BID_AUCTION)]
 	#[NCA\Help\Group("auction")]
 	public function bidCancelCommand(
 		CmdContext $context,
@@ -255,8 +256,7 @@ class AuctionController extends ModuleInstance {
 	}
 
 	/** End the running auction prematurely */
-	#[NCA\HandlesCommand("auction")]
-	#[NCA\Help\Group("auction")]
+	#[NCA\HandlesCommand(self::CMD_BID_AUCTION)]
 	public function bidEndCommand(
 		CmdContext $context,
 		#[NCA\Str("end")] string $action
@@ -280,8 +280,7 @@ class AuctionController extends ModuleInstance {
 	 * If you want custom refunds or refunds further back than the last
 	 * auction, take a look at the '<symbol>points add' and '<symbol>points rem' commands.
 	 */
-	#[NCA\HandlesCommand("auction reimburse .+")]
-	#[NCA\Help\Group("auction")]
+	#[NCA\HandlesCommand(self::CMD_BID_REIMBURSE)]
 	public function bidReimburseCommand(
 		CmdContext $context,
 		#[NCA\Str("reimburse", "payback", "refund")] string $action,
@@ -396,7 +395,6 @@ class AuctionController extends ModuleInstance {
 	 * but not to lower it.
 	 */
 	#[NCA\HandlesCommand("bid")]
-	#[NCA\Help\Group("auction")]
 	public function bidCommand(CmdContext $context, int $bid): void {
 		if (!$context->isDM()) {
 			$context->reply("<red>The <symbol>bid command only works in tells<end>.");
@@ -438,7 +436,6 @@ class AuctionController extends ModuleInstance {
 
 	/** See a list of the last 40 auctions */
 	#[NCA\HandlesCommand("bid")]
-	#[NCA\Help\Group("auction")]
 	public function bidHistoryCommand(
 		CmdContext $context,
 		#[NCA\Str("history")] string $action
@@ -463,7 +460,6 @@ class AuctionController extends ModuleInstance {
 
 	/** Search the bid history for an item */
 	#[NCA\HandlesCommand("bid")]
-	#[NCA\Help\Group("auction")]
 	public function bidHistorySearchCommand(
 		CmdContext $context,
 		#[NCA\Str("history")] string $action,

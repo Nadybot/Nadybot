@@ -23,7 +23,7 @@ use Nadybot\Core\{
 		description: "Sets the Leader of the raid",
 	),
 	NCA\DefineCommand(
-		command: "leader (.+)",
+		command: ChatLeaderController::CMD_LEADER_SET,
 		accessLevel: "rl",
 		description: "Sets a specific Leader",
 	),
@@ -36,6 +36,8 @@ use Nadybot\Core\{
 	NCA\ProvidesEvent("leader(set)")
 ]
 class ChatLeaderController extends ModuleInstance implements AccessLevelProvider {
+	public const CMD_LEADER_SET = "leader set leader";
+
 	#[NCA\Inject]
 	public Nadybot $chatBot;
 
@@ -105,7 +107,7 @@ class ChatLeaderController extends ModuleInstance implements AccessLevelProvider
 	/**
 	 * Set someone to be raid leader
 	 */
-	#[NCA\HandlesCommand("leader (.+)")]
+	#[NCA\HandlesCommand(self::CMD_LEADER_SET)]
 	public function leaderSetCommand(CmdContext $context, PCharacter $newLeader): void {
 		$msg = $this->setLeader($newLeader(), $context->char->name);
 		if ($msg !== null) {

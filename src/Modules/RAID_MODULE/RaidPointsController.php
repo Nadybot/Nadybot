@@ -28,13 +28,12 @@ use Nadybot\Core\{
 
 /**
  * This class contains all functions necessary to deal with points in a raid
- * @package Nadybot\Modules\RAID_MODULE
  */
 #[
 	NCA\Instance,
 	NCA\HasMigrations("Migrations/Points"),
 	NCA\DefineCommand(
-		command: "raidpoints",
+		command: RaidPointsController::CMD_RAID_REWARD_PUNISH,
 		accessLevel: "raid_leader_1",
 		description: "Add or remove points from all raiders",
 	),
@@ -44,37 +43,28 @@ use Nadybot\Core\{
 		description: "Check how many raid points you have",
 	),
 	NCA\DefineCommand(
-		command: "points log",
-		accessLevel: "all",
-		description: "Check how many raid points you gained when",
-	),
-	NCA\DefineCommand(
-		command: "points log all",
-		accessLevel: "all",
-		description: "Check how many raid points you gained when on all alts",
-	),
-	NCA\DefineCommand(
-		command: "points .+",
+		command: RaidPointsController::CMD_POINTS_OTHER,
 		accessLevel: "raid_admin_1",
 		description: "Check the raid points of another raider",
 	),
 	NCA\DefineCommand(
-		command: "pointsmod",
+		command: RaidPointsController::CMD_POINTS_MODIFY,
 		accessLevel: "raid_admin_1",
 		description: "Manipulate raid points of a single raider",
 	),
 	NCA\DefineCommand(
 		command: "points top",
 		accessLevel: "member",
-		description: "Show the top 25 raiders",
+		description: "Show the top raiders",
 	),
 	NCA\DefineCommand(
 		command: "reward",
 		accessLevel: "member",
 		description: "Show the raid rewards for the raids",
+		alias: 'rewards'
 	),
 	NCA\DefineCommand(
-		command: "reward .+",
+		command: RaidPointsController::CMD_REWARD_EDIT,
 		accessLevel: "raid_admin_1",
 		description: "Create, Edit and Remove raid reward entries",
 	)
@@ -83,6 +73,12 @@ class RaidPointsController extends ModuleInstance {
 	public const DB_TABLE = "raid_points_<myname>";
 	public const DB_TABLE_LOG = "raid_points_log_<myname>";
 	public const DB_TABLE_REWARD = "raid_reward_<myname>";
+
+	public const CMD_RAID_REWARD_PUNISH = "raid reward/punish";
+	public const CMD_POINTS_OTHER = "points see other";
+	public const CMD_POINTS_MODIFY = "points modify";
+	public const CMD_REWARD_EDIT = "reward add/change/delete";
+
 	#[NCA\Inject]
 	public DB $db;
 
@@ -144,11 +140,6 @@ class RaidPointsController extends ModuleInstance {
 			type: "number",
 			value: "10"
 		);
-		$this->commandAlias->register($this->moduleName, "reward", "rewards");
-		$this->commandAlias->register($this->moduleName, "pointsmod add", "points add");
-		$this->commandAlias->register($this->moduleName, "pointsmod rem", "points rem");
-		$this->commandAlias->register($this->moduleName, "raidpoints reward", "raid reward");
-		$this->commandAlias->register($this->moduleName, "raidpoints punish", "raid punish");
 	}
 
 	/**
@@ -325,7 +316,7 @@ class RaidPointsController extends ModuleInstance {
 	}
 
 	/** Reward everyone in the raid a pre-defined reward for &lt;mob&gt; */
-	#[NCA\HandlesCommand("raidpoints")]
+	#[NCA\HandlesCommand(self::CMD_RAID_REWARD_PUNISH)]
 	#[NCA\Help\Group("raid-points")]
 	public function raidRewardPredefCommand(
 		CmdContext $context,
@@ -341,7 +332,7 @@ class RaidPointsController extends ModuleInstance {
 	}
 
 	/** Reward everyone in the raid points */
-	#[NCA\HandlesCommand("raidpoints")]
+	#[NCA\HandlesCommand(self::CMD_RAID_REWARD_PUNISH)]
 	#[NCA\Help\Group("raid-points")]
 	public function raidRewardCommand(
 		CmdContext $context,
@@ -368,7 +359,7 @@ class RaidPointsController extends ModuleInstance {
 	}
 
 	/** Remove raidpoints from everyone in the raid */
-	#[NCA\HandlesCommand("raidpoints")]
+	#[NCA\HandlesCommand(self::CMD_RAID_REWARD_PUNISH)]
 	#[NCA\Help\Group("raid-points")]
 	public function raidPunishCommand(
 		CmdContext $context,
@@ -433,25 +424,15 @@ class RaidPointsController extends ModuleInstance {
 		);
 	}
 
-	/** See when your current character has received raid points and for what */
-	#[NCA\HandlesCommand("points log")]
+	/** See when your current character or 'all' your alts have received raid points and for what */
+	#[NCA\HandlesCommand("points")]
 	#[NCA\Help\Group("raid-points")]
 	public function pointsLogCommand(
 		CmdContext $context,
-		#[NCA\Str("log")] string $action
-	): void {
-		$this->showraidPoints($context, false, ...$this->getRaidpointLogsForChar($context->char->name));
-	}
-
-	/** See when any of your alts has received raid points and for what */
-	#[NCA\HandlesCommand("points log all")]
-	#[NCA\Help\Group("raid-points")]
-	public function pointsLogAllCommand(
-		CmdContext $context,
 		#[NCA\Str("log")] string $action,
-		#[NCA\Str("all")] string $all
+		#[NCA\Str("all")] ?string $all
 	): void {
-		$this->showraidPoints($context, true, ...$this->getRaidpointLogsForChar($context->char->name));
+		$this->showraidPoints($context, isset($all), ...$this->getRaidpointLogsForChar($context->char->name));
 	}
 
 	public function showraidPoints(CmdContext $context, bool $showUsername, RaidPointsLog ...$pointLogs): void {
@@ -504,7 +485,7 @@ class RaidPointsController extends ModuleInstance {
 	}
 
 	/** See a history of &lt;char&gt;'s raid points. Add 'all' to include all alts */
-	#[NCA\HandlesCommand("points .+")]
+	#[NCA\HandlesCommand(self::CMD_POINTS_OTHER)]
 	#[NCA\Help\Group("raid-points")]
 	public function pointsOtherLogCommand(
 		CmdContext $context,
@@ -516,7 +497,7 @@ class RaidPointsController extends ModuleInstance {
 	}
 
 	/** See a history of &lt;char&gt;'s raid points. Add 'all' to include all alts */
-	#[NCA\HandlesCommand("points .+")]
+	#[NCA\HandlesCommand(self::CMD_POINTS_OTHER)]
 	#[NCA\Help\Group("raid-points")]
 	public function pointsLogOtherCommand(
 		CmdContext $context,
@@ -576,8 +557,8 @@ class RaidPointsController extends ModuleInstance {
 		return [$header, join("\n", $rows)];
 	}
 
-	/** See &lt;char&gt's raid points */
-	#[NCA\HandlesCommand("points .+")]
+	/** See &lt;char&gt;'s raid points */
+	#[NCA\HandlesCommand(self::CMD_POINTS_OTHER)]
 	#[NCA\Help\Group("raid-points")]
 	public function pointsOtherCommand(CmdContext $context, PCharacter $char): void {
 		if (!$context->isDM()) {
@@ -593,7 +574,7 @@ class RaidPointsController extends ModuleInstance {
 	}
 
 	/** Add &lt;points&gt; raid points to &lt;char&gt;'s account with a reason */
-	#[NCA\HandlesCommand("pointsmod")]
+	#[NCA\HandlesCommand(self::CMD_POINTS_MODIFY)]
 	#[NCA\Help\Group("raid-points")]
 	public function pointsAdd2Command(
 		CmdContext $context,
@@ -606,7 +587,7 @@ class RaidPointsController extends ModuleInstance {
 	}
 
 	/** Add &lt;points&gt; raid points to &lt;char&gt;'s account with a reason */
-	#[NCA\HandlesCommand("pointsmod")]
+	#[NCA\HandlesCommand(self::CMD_POINTS_MODIFY)]
 	#[NCA\Help\Group("raid-points")]
 	public function pointsAddCommand(
 		CmdContext $context,
@@ -640,7 +621,7 @@ class RaidPointsController extends ModuleInstance {
 	}
 
 	/** Remove &lt;points&gt; raid points from &lt;char&gt;'s account with a reason */
-	#[NCA\HandlesCommand("pointsmod")]
+	#[NCA\HandlesCommand(self::CMD_POINTS_MODIFY)]
 	#[NCA\Help\Group("raid-points")]
 	public function pointsRem2Command(
 		CmdContext $context,
@@ -653,7 +634,7 @@ class RaidPointsController extends ModuleInstance {
 	}
 
 	/** Remove &lt;points&gt; raid points from &lt;char&gt;'s account with a reason */
-	#[NCA\HandlesCommand("pointsmod")]
+	#[NCA\HandlesCommand(self::CMD_POINTS_MODIFY)]
 	#[NCA\Help\Group("raid-points")]
 	public function pointsRemCommand(
 		CmdContext $context,
@@ -766,7 +747,7 @@ class RaidPointsController extends ModuleInstance {
 	}
 
 	/** Create a new pre-defined raid reward with a name, points and reason */
-	#[NCA\HandlesCommand("reward .+")]
+	#[NCA\HandlesCommand(self::CMD_REWARD_EDIT)]
 	#[NCA\Help\Example("<symbol>reward add beast 80 Beast kill")]
 	#[NCA\Help\Example("<symbol>reward add zod 25 Zodiac")]
 	#[NCA\Help\Example("<symbol>reward add capri 25 Capricorn")]
@@ -798,7 +779,7 @@ class RaidPointsController extends ModuleInstance {
 	}
 
 	/** Remove a pre-defined raid reward */
-	#[NCA\HandlesCommand("reward .+")]
+	#[NCA\HandlesCommand(self::CMD_REWARD_EDIT)]
 	public function rewardRemCommand(
 		CmdContext $context,
 		PRemove $action,
@@ -813,7 +794,7 @@ class RaidPointsController extends ModuleInstance {
 	}
 
 	/** Remove a pre-defined raid reward */
-	#[NCA\HandlesCommand("reward .+")]
+	#[NCA\HandlesCommand(self::CMD_REWARD_EDIT)]
 	public function rewardRemIdCommand(CmdContext $context, PRemove $action, int $id): void {
 		$deleted = $this->db->table(self::DB_TABLE_REWARD)->delete($id);
 		if ($deleted) {
@@ -824,7 +805,7 @@ class RaidPointsController extends ModuleInstance {
 	}
 
 	/** Change a pre-defined raid reward */
-	#[NCA\HandlesCommand("reward .+")]
+	#[NCA\HandlesCommand(self::CMD_REWARD_EDIT)]
 	#[NCA\Help\Example("<symbol>reward change beast 120 Beast kill")]
 	public function rewardChangeCommand(
 		CmdContext $context,

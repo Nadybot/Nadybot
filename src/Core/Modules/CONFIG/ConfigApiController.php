@@ -10,6 +10,7 @@ use Nadybot\Core\{
 	CommandManager,
 	DB,
 	DBSchema\CmdPermissionSet,
+	DBSchema\CmdPermSetMapping,
 	DBSchema\EventCfg,
 	DBSchema\Setting,
 	EventManager,
@@ -19,7 +20,6 @@ use Nadybot\Core\{
 	SettingManager,
 	SQLException,
 };
-use Nadybot\Core\DBSchema\CmdPermSetMapping;
 use Nadybot\Modules\{
 	DISCORD_GATEWAY_MODULE\DiscordRelayController,
 	WEBSERVER_MODULE\ApiResponse,

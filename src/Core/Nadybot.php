@@ -1279,7 +1279,7 @@ class Nadybot extends AOChat {
 				/** @var NCA\HandlesCommand */
 				$command = $command->newInstance();
 				$commandName = $command->command;
-				$handlerName = "{$name}.{$method->name}";
+				$handlerName = "{$name}.{$method->name}:".$method->getStartLine();
 				if (isset($commands[$commandName])) {
 					$commands[$commandName]['handlers'][] = $handlerName;
 				} elseif (isset($subcommands[$commandName])) {

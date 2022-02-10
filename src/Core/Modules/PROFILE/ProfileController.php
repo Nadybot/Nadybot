@@ -325,7 +325,7 @@ class ProfileController extends ModuleInstance {
 					/** @var CmdPermission|null $data */
 					$data = $this->db->table(CommandManager::DB_TABLE_PERMS)
 						->where("cmd", $parts[2])
-						->where("name", $parts[4])
+						->where("permission_set", $parts[4])
 						->asObj(CmdPermission::class)
 						->first();
 					if (isset($data) && ($data->enabled === ($parts[3] === 'enable'))) {

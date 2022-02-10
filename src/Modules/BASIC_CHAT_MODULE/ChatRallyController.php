@@ -27,7 +27,7 @@ use Nadybot\Modules\HELPBOT_MODULE\PlayfieldController;
 		description: "Shows the rally waypoint",
 	),
 	NCA\DefineCommand(
-		command: "rally .+",
+		command: ChatRallyController::CMD_RALLY_SET,
 		accessLevel: "rl",
 		description: "Sets the rally waypoint",
 	),
@@ -41,6 +41,8 @@ use Nadybot\Modules\HELPBOT_MODULE\PlayfieldController;
 	)
 ]
 class ChatRallyController extends ModuleInstance {
+	public const CMD_RALLY_SET = "rally set/clear";
+
 	#[NCA\Inject]
 	public SettingManager $settingManager;
 
@@ -82,7 +84,7 @@ class ChatRallyController extends ModuleInstance {
 	/**
 	 * Clear the current rally location
 	 */
-	#[NCA\HandlesCommand("rally .+")]
+	#[NCA\HandlesCommand(self::CMD_RALLY_SET)]
 	public function rallyClearCommand(
 		CmdContext $context,
 		#[NCA\Str("clear")] string $action
@@ -104,7 +106,7 @@ class ChatRallyController extends ModuleInstance {
 	/**
 	 * Set the rally waypoint
 	 */
-	#[NCA\HandlesCommand("rally .+")]
+	#[NCA\HandlesCommand(self::CMD_RALLY_SET)]
 	#[NCA\Help\Example("<symbol>rally 10.9 x 30 x 560")]
 	#[NCA\Help\Example("<symbol>rally 10.9 . 30 . 4HO")]
 	#[NCA\Help\Example("<symbol>rally 10.9, 30, 560")]
@@ -154,7 +156,7 @@ class ChatRallyController extends ModuleInstance {
 	/**
 	 * Set the rally waypoint
 	 */
-	#[NCA\HandlesCommand("rally .+")]
+	#[NCA\HandlesCommand(self::CMD_RALLY_SET)]
 	#[NCA\Help\Example("<symbol>rally (10.9 30.0 y 20.1 550)")]
 	public function rallySet1Command(CmdContext $context, string $pasteFromF9): void {
 		if (!$this->chatLeaderController->checkLeaderAccess($context->char->name)) {

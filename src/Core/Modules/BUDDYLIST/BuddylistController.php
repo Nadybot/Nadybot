@@ -2,16 +2,18 @@
 
 namespace Nadybot\Core\Modules\BUDDYLIST;
 
-use Nadybot\Core\Attributes as NCA;
-use Nadybot\Core\BuddylistEntry;
-use Nadybot\Core\Nadybot;
-use Nadybot\Core\BuddylistManager;
-use Nadybot\Core\CmdContext;
-use Nadybot\Core\ModuleInstance;
-use Nadybot\Core\Text;
-use Nadybot\Core\ParamClass\PCharacter;
-use Nadybot\Core\ParamClass\PRemove;
-use Nadybot\Core\ParamClass\PWord;
+use Nadybot\Core\{
+	Attributes as NCA,
+	BuddylistEntry,
+	Nadybot,
+	BuddylistManager,
+	CmdContext,
+	ModuleInstance,
+	Text,
+	ParamClass\PCharacter,
+	ParamClass\PRemove,
+	ParamClass\PWord,
+};
 
 /**
  * @author Tyrence (RK2)

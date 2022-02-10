@@ -51,21 +51,9 @@ class DB {
 	private Capsule $capsule;
 
 	/**
-	 * The name of the bot
-	 */
-	private string $botname;
-
-	/**
-	 * The dimension
-	 */
-	private int $dim;
-
-	/**
 	 * The database name
 	 */
 	protected string $dbName;
-
-	private string $guild;
 
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
@@ -221,7 +209,7 @@ class DB {
 					if (!$errorShown) {
 						$this->logger->error(
 							"Cannot connect to the PostgreSQL db at {$host}: ".
-							trim($e->errorInfo[2])
+							trim($e->errorInfo[2] ?? $e->getMessage())
 						);
 						$this->logger->notice(
 							"Will keep retrying until the db is back up again"

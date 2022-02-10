@@ -27,22 +27,22 @@ use ReflectionException;
 	NCA\DefineCommand(
 		command: "showcmdregex",
 		accessLevel: "admin",
-		description: "Test the bot commands",
+		description: "View regex masks used to match commands",
 	),
 	NCA\DefineCommand(
 		command: "intransaction",
 		accessLevel: "admin",
-		description: "Test the bot commands",
+		description: "Check if a DB transaction is open",
 	),
 	NCA\DefineCommand(
 		command: "rollbacktransaction",
 		accessLevel: "admin",
-		description: "Test the bot commands",
+		description: "Rollback an open DB transaction",
 	),
 	NCA\DefineCommand(
 		command: "stacktrace",
 		accessLevel: "admin",
-		description: "Test the bot commands",
+		description: "Show a stacktrace",
 	),
 	NCA\DefineCommand(
 		command: "cmdhandlers",
@@ -96,13 +96,16 @@ class DevController extends ModuleInstance {
 		if (!isset($context->permissionSet)) {
 			return;
 		}
+		if (isset($cmd) && ($alias = $this->commandAlias->get($cmd)) !== null) {
+			$cmd = $alias->cmd;
+		}
 		// get all command handlers
 		$handlers = $this->getAllCommandHandlers($cmd, $context->permissionSet);
 
 		// filter command handlers by access level
 		$accessManager = $this->accessManager;
 		$handlers = array_filter($handlers, function (CommandHandler $handler) use ($context, $accessManager): bool {
-			return $accessManager->checkAccess($context->char->name, $handler->admin);
+			return $accessManager->checkAccess($context->char->name, $handler->access_level);
 		});
 
 		// get calls for handlers
@@ -110,15 +113,18 @@ class DevController extends ModuleInstance {
 		$calls = array_reduce(
 			$handlers,
 			function (array $handlers, CommandHandler $handler): array {
-				return array_merge($handlers, explode(',', $handler->file));
+				return array_merge($handlers, $handler->files);
 			},
 			[]
 		);
+
+		$this->commandManager->sortCalls($calls);
 
 		// get regexes for calls
 		$regexes = [];
 		foreach ($calls as $call) {
 			[$name, $method] = explode(".", $call);
+			[$method, $line] = explode(":", $method);
 			$instance = Registry::getInstance($name);
 			if (!isset($instance)) {
 				continue;
@@ -178,15 +184,15 @@ class DevController extends ModuleInstance {
 			$cmds = (array)$command;
 		}
 		foreach ($cmds as $cmd) {
-			if (isset($this->commandManager->commands[$channel][$cmd])) {
-				$handlers []= $this->commandManager->commands[$channel][$cmd];
-			}
 			if (isset($this->subcommandManager->subcommands[$cmd])) {
 				foreach ($this->subcommandManager->subcommands[$cmd] as $handler) {
 					if (isset($handler->permissions[$channel])) {
-						$handlers []= new CommandHandler($handler->file, $handler->permissions[$channel]->access_level);
+						$handlers []= new CommandHandler($handler->permissions[$channel]->access_level, ...explode(",", $handler->file));
 					}
 				}
+			}
+			if (isset($this->commandManager->commands[$channel][$cmd])) {
+				$handlers []= $this->commandManager->commands[$channel][$cmd];
 			}
 		}
 		return $handlers;
@@ -239,7 +245,7 @@ class DevController extends ModuleInstance {
 		foreach ($this->commandManager->commands as $channelName => $channel) {
 			if (isset($channel[$cmd])) {
 				$blob .= "<header2>$channelName ($cmd)<end>\n";
-				$blob .= $channel[$cmd]->file . "\n\n";
+				$blob .= join(", ", $channel[$cmd]->files) . "\n\n";
 			}
 		}
 

@@ -379,9 +379,12 @@ class ApiController extends ModuleInstance {
 		$mainCommand = explode(" ", $handler->accessLevelFrom)[0];
 		if (isset($this->subcommandManager->subcommands[$mainCommand])) {
 			foreach ($this->subcommandManager->subcommands[$mainCommand] as $row) {
-				if (isset($row->permissions[$set->permission_set]) && ($row->cmd === $handler->accessLevelFrom || preg_match("/^{$row->cmd}$/si", $handler->accessLevelFrom))) {
-					return new CommandHandler($row->file, $row->permissions[$set->permission_set]->access_level);
+				$perms = $row->permissions[$set->permission_set] ?? null;
+				if (!isset($perms) || $row->cmd !== $handler->accessLevelFrom) {
+					continue;
 				}
+				$files = explode(",", $row->file);
+				return new CommandHandler($perms->access_level, ...$files);
 			}
 		}
 		return $this->commandManager->commands[$set->permission_set][$handler->accessLevelFrom] ?? null;
@@ -393,7 +396,7 @@ class ApiController extends ModuleInstance {
 		if ($cmdHandler === null || !isset($request->authenticatedAs)) {
 			return false;
 		}
-		return $this->accessManager->checkAccess($request->authenticatedAs, $cmdHandler->admin);
+		return $this->accessManager->checkAccess($request->authenticatedAs, $cmdHandler->access_level);
 	}
 
 	protected function checkBodyIsComplete(Request $request, ApiHandler $apiHandler): bool {
