@@ -2,25 +2,28 @@
 
 namespace Nadybot\Core\Migrations;
 
-use Exception;
-use Nadybot\Core\CommandAlias;
-use Nadybot\Core\CommandManager;
-use Nadybot\Core\DB;
-use Nadybot\Core\LoggerWrapper;
-use Nadybot\Core\SchemaMigration;
-use Nadybot\Modules\BASIC_CHAT_MODULE\ChatAssistController;
-use Nadybot\Modules\BASIC_CHAT_MODULE\ChatLeaderController;
-use Nadybot\Modules\BASIC_CHAT_MODULE\ChatRallyController;
-use Nadybot\Modules\BASIC_CHAT_MODULE\ChatTopicController;
-use Nadybot\Modules\EVENTS_MODULE\EventsController;
-use Nadybot\Modules\LOOT_MODULE\LootController;
-use Nadybot\Modules\RAFFLE_MODULE\RaffleController;
-use Nadybot\Modules\RAID_MODULE\AuctionController;
-use Nadybot\Modules\RAID_MODULE\RaidBlockController;
-use Nadybot\Modules\RAID_MODULE\RaidController;
-use Nadybot\Modules\RAID_MODULE\RaidMemberController;
-use Nadybot\Modules\RAID_MODULE\RaidPointsController;
-use Nadybot\Modules\WORLDBOSS_MODULE\WorldBossController;
+use Nadybot\Core\{
+	CommandAlias,
+	CommandManager,
+	DB,
+	LoggerWrapper,
+	SchemaMigration,
+};
+use Nadybot\Modules\{
+	BASIC_CHAT_MODULE\ChatAssistController,
+	BASIC_CHAT_MODULE\ChatLeaderController,
+	BASIC_CHAT_MODULE\ChatRallyController,
+	BASIC_CHAT_MODULE\ChatTopicController,
+	EVENTS_MODULE\EventsController,
+	LOOT_MODULE\LootController,
+	RAFFLE_MODULE\RaffleController,
+	RAID_MODULE\AuctionController,
+	RAID_MODULE\RaidBlockController,
+	RAID_MODULE\RaidController,
+	RAID_MODULE\RaidMemberController,
+	RAID_MODULE\RaidPointsController,
+	WORLDBOSS_MODULE\WorldBossController,
+};
 
 class MigrateSubCmds implements SchemaMigration {
 	protected function deleteAlias(DB $db, LoggerWrapper $logger, string $alias): void {
