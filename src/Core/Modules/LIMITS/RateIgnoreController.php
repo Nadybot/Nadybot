@@ -2,19 +2,19 @@
 
 namespace Nadybot\Core\Modules\LIMITS;
 
-use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{
+	Attributes as NCA,
 	CmdContext,
 	DB,
+	DBSchema\RateIgnoreList,
 	ModuleInstance,
 	Nadybot,
+	ParamClass\PCharacter,
+	ParamClass\PRemove,
 	SQLException,
 	Text,
 	Util,
 };
-use Nadybot\Core\DBSchema\RateIgnoreList;
-use Nadybot\Core\ParamClass\PCharacter;
-use Nadybot\Core\ParamClass\PRemove;
 
 /**
  * @author Tyrence (RK2)

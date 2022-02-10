@@ -60,7 +60,6 @@ class MigrateToRoutes implements SchemaMigration {
 		$hopFormat->render = true;
 		$db->insert(Source::DB_TABLE, $hopFormat);
 
-		$this->messageHub->loadTagColor();
 		$this->messageHub->loadTagFormat();
 
 		$table = MessageHub::DB_TABLE_ROUTES;

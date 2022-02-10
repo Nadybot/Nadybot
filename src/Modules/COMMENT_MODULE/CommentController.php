@@ -33,9 +33,10 @@ use Nadybot\Core\{
 		command: "comment",
 		accessLevel: "member",
 		description: "read/write comments about players",
+		alias: 'comments',
 	),
 	NCA\DefineCommand(
-		command: "commentcategories",
+		command: "comment categories",
 		accessLevel: "mod",
 		description: "Manage comment categories",
 	)
@@ -68,13 +69,10 @@ class CommentController extends ModuleInstance {
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
-	public const ADMIN="admin";
+	public const ADMIN = "admin";
 
 	#[NCA\Setup]
 	public function setup(): void {
-		$this->commandAlias->register($this->moduleName, "commentcategories", "comment categories");
-		$this->commandAlias->register($this->moduleName, "commentcategories", "comment category");
-		$this->commandAlias->register($this->moduleName, "comment", "comments");
 		$sm = $this->settingManager;
 		$sm->add(
 			$this->moduleName,
@@ -231,8 +229,11 @@ class CommentController extends ModuleInstance {
 	/**
 	 * Get a list of all defined comment categories
 	 */
-	#[NCA\HandlesCommand("commentcategories")]
-	public function listCategoriesCommand(CmdContext $context): void {
+	#[NCA\HandlesCommand("comment categories")]
+	public function listCategoriesCommand(
+		CmdContext $context,
+		#[NCA\Str("category", "categories")] string $action,
+	): void {
 		/** @var CommentCategory[] */
 		$categories = $this->db->table("<table:comment_categories>")
 			->asObj(CommentCategory::class)->toArray();
@@ -271,10 +272,11 @@ class CommentController extends ModuleInstance {
 	 *
 	 * You can only delete categories to which you have the access level for reading and writing
 	 */
-	#[NCA\HandlesCommand("commentcategories")]
+	#[NCA\HandlesCommand("comment categories")]
 	public function deleteCategoryCommand(
 		CmdContext $context,
-		PRemove $action,
+		#[NCA\Str("category", "categories")] string $action,
+		PRemove $subAction,
 		string $category
 	): void {
 		$cat = $this->getCategory($category);
@@ -315,10 +317,11 @@ class CommentController extends ModuleInstance {
 	 * Add a new comment category with a minimum access level of
 	 * &lt;al for reading&gt; and optionally a &lt;al for writing&gt;
 	 */
-	#[NCA\HandlesCommand("commentcategories")]
+	#[NCA\HandlesCommand("comment categories")]
 	public function addCategoryCommand(
 		CmdContext $context,
-		#[NCA\Str("add", "create", "new", "edit", "change")] string $action,
+		#[NCA\Str("category", "categories")] string $action,
+		#[NCA\Str("add", "create", "new", "edit", "change")] string $subAction,
 		PWord $category,
 		PWord $alForReading,
 		?PWord $alForWriting

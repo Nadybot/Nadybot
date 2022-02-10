@@ -19,6 +19,9 @@ class MigrateCmdcfg implements SchemaMigration {
 		$entries = $db->table($table)->get();
 		$db->table($table)->truncate();
 
+		$db->schema()->table($table, function(Blueprint $table): void {
+			$table->dropUnique(["cmd", "type"]);
+		});
 		$db->schema()->dropColumns($table, ["admin", "status", "type"]);
 		$db->schema()->table($table, function(Blueprint $table): void {
 			$table->unique("cmd");

@@ -44,110 +44,10 @@ use Safe\Exceptions\FilesystemException;
 		description: "Test the bot commands",
 	),
 	NCA\DefineCommand(
-		command: "test orgjoin .+",
-		accessLevel: "admin",
-		description: "Test the bot commands",
-	),
-	NCA\DefineCommand(
-		command: "test orgkick .+",
-		accessLevel: "admin",
-		description: "Test the bot commands",
-	),
-	NCA\DefineCommand(
-		command: "test orgleave .+",
-		accessLevel: "admin",
-		description: "Test the bot commands",
-	),
-	NCA\DefineCommand(
-		command: "test towerattack .+",
-		accessLevel: "admin",
-		description: "Test the bot commands",
-	),
-	NCA\DefineCommand(
-		command: "test towerattackorgless .+",
-		accessLevel: "admin",
-		description: "Test the bot commands",
-	),
-	NCA\DefineCommand(
-		command: "test towervictory .+",
-		accessLevel: "admin",
-		description: "Test the bot commands",
-	),
-	NCA\DefineCommand(
-		command: "test towerabandon .+",
-		accessLevel: "admin",
-		description: "Test the bot commands",
-	),
-	NCA\DefineCommand(
-		command: "test orgattack .+",
-		accessLevel: "admin",
-		description: "Test the bot commands",
-	),
-	NCA\DefineCommand(
-		command: "test orgattackprep .+",
-		accessLevel: "admin",
-		description: "Test the bot commands",
-	),
-	NCA\DefineCommand(
-		command: "test os .+",
-		accessLevel: "admin",
-		description: "Test the bot commands",
-	),
-	NCA\DefineCommand(
-		command: "test event .+",
-		accessLevel: "admin",
-		description: "Test the bot commands",
-	),
-	NCA\DefineCommand(
-		command: "test cloaklower",
-		accessLevel: "admin",
-		description: "Test the bot commands",
-	),
-	NCA\DefineCommand(
-		command: "test cloakraise",
-		accessLevel: "admin",
-		description: "Test the bot commands",
-	),
-	NCA\DefineCommand(
 		command: "msginfo",
 		accessLevel: "all",
 		description: "Show number of characters in response and the time it took to process",
 	),
-	NCA\DefineCommand(
-		command: "test tradebotmsg",
-		accessLevel: "admin",
-		description: "Test a tradebot message",
-	),
-	NCA\DefineCommand(
-		command: "test discordpriv .+",
-		accessLevel: "admin",
-		description: "Test a discord channel message",
-	),
-	NCA\DefineCommand(
-		command: "test logon .+",
-		accessLevel: "admin",
-		description: "Test a logon event",
-	),
-	NCA\DefineCommand(
-		command: "test logoff .+",
-		accessLevel: "admin",
-		description: "Test a logoff event",
-	),
-	NCA\DefineCommand(
-		command: "test join .+",
-		accessLevel: "admin",
-		description: "Test a priv channel join event",
-	),
-	NCA\DefineCommand(
-		command: "test leave .+",
-		accessLevel: "admin",
-		description: "Test a priv channel leave event",
-	),
-	NCA\DefineCommand(
-		command: "test sleep .+",
-		accessLevel: "admin",
-		description: "Sleep for a give time in seconds",
-	)
 ]
 class TestController extends ModuleInstance {
 	#[NCA\Inject]
@@ -251,24 +151,36 @@ class TestController extends ModuleInstance {
 	}
 
 	/** Pretend that &lt;char&gt; joins your org */
-	#[NCA\HandlesCommand("test orgjoin .+")]
-	public function testOrgJoinCommand(CmdContext $context, #[NCA\Str("orgjoin")] string $action, PCharacter $char): void {
+	#[NCA\HandlesCommand("test")]
+	public function testOrgJoinCommand(
+		CmdContext $context,
+		#[NCA\Str("orgjoin")] string $action,
+		PCharacter $char
+	): void {
 		$this->sendOrgMsg(
 			"{$context->char->name} invited {$char} to your organization."
 		);
 	}
 
 	/** Pretend that &lt;char&gt; was kicked from your org */
-	#[NCA\HandlesCommand("test orgkick .+")]
-	public function testOrgKickCommand(CmdContext $context, #[NCA\Str("orgkick")] string $action, PCharacter $char): void {
+	#[NCA\HandlesCommand("test")]
+	public function testOrgKickCommand(
+		CmdContext $context,
+		#[NCA\Str("orgkick")] string $action,
+		PCharacter $char
+	): void {
 		$this->sendOrgMsg(
 			"{$context->char->name} kicked {$char} from your organization."
 		);
 	}
 
 	/** Pretend that &lt;char&gt; left your org */
-	#[NCA\HandlesCommand("test orgleave .+")]
-	public function testOrgLeaveCommand(CmdContext $context, #[NCA\Str("orgleave")] string $action, PCharacter $char): void {
+	#[NCA\HandlesCommand("test")]
+	public function testOrgLeaveCommand(
+		CmdContext $context,
+		#[NCA\Str("orgleave")] string $action,
+		PCharacter $char
+	): void {
 		$this->sendOrgMsg("{$char} just left your organization.");
 	}
 
@@ -300,7 +212,7 @@ class TestController extends ModuleInstance {
 	}
 
 	/** Run a fictional tower attack by another org */
-	#[NCA\HandlesCommand("test towerattack .+")]
+	#[NCA\HandlesCommand("test")]
 	public function testTowerAttackCommand(
 		CmdContext $context,
 		#[NCA\Str("towerattack")] string $action,
@@ -324,7 +236,7 @@ class TestController extends ModuleInstance {
 	}
 
 	/** Run a fictional tower attack by an orgless attacker */
-	#[NCA\HandlesCommand("test towerattackorgless .+")]
+	#[NCA\HandlesCommand("test")]
 	public function testTowerAttackOrglessCommand(
 		CmdContext $context,
 		#[NCA\Str("towerattackorgless")] string $action,
@@ -345,7 +257,7 @@ class TestController extends ModuleInstance {
 	}
 
 	/** Pretend an org /terminates a Control Tower */
-	#[NCA\HandlesCommand("test towerabandon .+")]
+	#[NCA\HandlesCommand("test")]
 	public function testTowerAbandonCommand(
 		CmdContext $context,
 		#[NCA\Str("towerabandon")] string $action,
@@ -365,7 +277,7 @@ class TestController extends ModuleInstance {
 	}
 
 	/** Simulate your own Control Tower being attacked */
-	#[NCA\HandlesCommand("test orgattack .+")]
+	#[NCA\HandlesCommand("test")]
 	public function testOrgAttackCommand(
 		CmdContext $context,
 		#[NCA\Str("orgattack")] string $action,
@@ -380,7 +292,7 @@ class TestController extends ModuleInstance {
 	}
 
 	/** Simulate your own Control Tower gets the defense shield disabled */
-	#[NCA\HandlesCommand("test orgattackprep .+")]
+	#[NCA\HandlesCommand("test")]
 	public function testOrgAttackPrepCommand(
 		CmdContext $context,
 		#[NCA\Str("orgattackprep")] string $action,
@@ -396,7 +308,7 @@ class TestController extends ModuleInstance {
 	}
 
 	/** Pretend &lt;att org&gt; won the attack against &lt;def org&gt; */
-	#[NCA\HandlesCommand("test towervictory .+")]
+	#[NCA\HandlesCommand("test")]
 	public function testTowerVictoryCommand(
 		CmdContext $context,
 		#[NCA\Str("towervictory")] string $action,
@@ -419,7 +331,7 @@ class TestController extends ModuleInstance {
 	}
 
 	/** Pretend &lt;launcher&gt; just launched an orbital strike */
-	#[NCA\HandlesCommand("test os .+")]
+	#[NCA\HandlesCommand("test")]
 	public function testOSCommand(
 		CmdContext $context,
 		#[NCA\Str("os")] string $action,
@@ -435,7 +347,7 @@ class TestController extends ModuleInstance {
 	 *
 	 * Note that the $eventObj will be null, so this typically only works for cron events
 	 */
-	#[NCA\HandlesCommand("test event .+")]
+	#[NCA\HandlesCommand("test")]
 	public function testEventCommand(
 		CmdContext $context,
 		#[NCA\Str("event")] string $action,
@@ -456,8 +368,11 @@ class TestController extends ModuleInstance {
 	}
 
 	/** Pretend you just lowered your city cloak */
-	#[NCA\HandlesCommand("test cloaklower")]
-	public function testCloakLowerCommand(CmdContext $context, #[NCA\Str("cloaklower")] string $action): void {
+	#[NCA\HandlesCommand("test")]
+	public function testCloakLowerCommand(
+		CmdContext $context,
+		#[NCA\Str("cloaklower")] string $action
+	): void {
 		foreach ($this->chatBot->grp as $gid => $status) {
 			if (ord(substr((string)$gid, 0, 1)) === 3) {
 				break;
@@ -480,8 +395,11 @@ class TestController extends ModuleInstance {
 	}
 
 	/** Pretend you just raised your city cloak */
-	#[NCA\HandlesCommand("test cloakraise")]
-	public function testCloakRaiseCommand(CmdContext $context, #[NCA\Str("cloakraise")] string $action): void {
+	#[NCA\HandlesCommand("test")]
+	public function testCloakRaiseCommand(
+		CmdContext $context,
+		#[NCA\Str("cloakraise")] string $action
+	): void {
 		foreach ($this->chatBot->grp as $gid => $status) {
 			if (ord(substr((string)$gid, 0, 1)) === 3) {
 				break;
@@ -515,8 +433,11 @@ class TestController extends ModuleInstance {
 	}
 
 	/** Receive a dummy message from a tradebot */
-	#[NCA\HandlesCommand("test tradebotmsg")]
-	public function testTradebotMessageCommand(CmdContext $context, #[NCA\Str("tradebotmsg")] string $action): void {
+	#[NCA\HandlesCommand("test")]
+	public function testTradebotMessageCommand(
+		CmdContext $context,
+		#[NCA\Str("tradebotmsg")] string $action
+	): void {
 		$eventObj = new AOChatEvent();
 		$tradebot = $this->settingManager->getString('tradebot') ?? "Darknet";
 		$eventObj->sender = $tradebot;
@@ -564,7 +485,7 @@ class TestController extends ModuleInstance {
 	}
 
 	/** Receive a discord message from &lt;nick&gt; */
-	#[NCA\HandlesCommand("test discordpriv .+")]
+	#[NCA\HandlesCommand("test")]
 	public function testDiscordMessageCommand(
 		CmdContext $context,
 		#[NCA\Str("discordpriv")] string $action,
@@ -621,8 +542,12 @@ class TestController extends ModuleInstance {
 	}
 
 	/** Simulate &lt;char&gt; logging on */
-	#[NCA\HandlesCommand("test logon .+")]
-	public function testLogonCommand(CmdContext $context, #[NCA\Str("logon")] string $action, PCharacter $char): void {
+	#[NCA\HandlesCommand("test")]
+	public function testLogonCommand(
+		CmdContext $context,
+		#[NCA\Str("logon")] string $action,
+		PCharacter $char
+	): void {
 		$uid = $this->chatBot->get_uid($char());
 		if ($uid === false) {
 			$context->reply("The character <highlight>{$char}<end> does not exist.");
@@ -634,8 +559,12 @@ class TestController extends ModuleInstance {
 	}
 
 	/** Simulate &lt;char&gt; logging off */
-	#[NCA\HandlesCommand("test logoff .+")]
-	public function testLogoffCommand(CmdContext $context, #[NCA\Str("logoff")] string $action, PCharacter $char): void {
+	#[NCA\HandlesCommand("test")]
+	public function testLogoffCommand(
+		CmdContext $context,
+		#[NCA\Str("logoff")] string $action,
+		PCharacter $char
+	): void {
 		$uid = $this->chatBot->get_uid($char());
 		if ($uid === false) {
 			$context->reply("The character <highlight>{$char}<end> does not exist.");
@@ -647,8 +576,12 @@ class TestController extends ModuleInstance {
 	}
 
 	/** Simulate &lt;char&gt; joining the private channel */
-	#[NCA\HandlesCommand("test join .+")]
-	public function testJoinCommand(CmdContext $context, #[NCA\Str("join")] string $action, PCharacter $char): void {
+	#[NCA\HandlesCommand("test")]
+	public function testJoinCommand(
+		CmdContext $context,
+		#[NCA\Str("join")] string $action,
+		PCharacter $char
+	): void {
 		$uid = $this->chatBot->get_uid($char());
 		if ($uid === false) {
 			$context->reply("The character <highlight>{$char}<end> does not exist.");
@@ -661,8 +594,12 @@ class TestController extends ModuleInstance {
 	}
 
 	/** Simulate &lt;char&gt; leaving the private channel */
-	#[NCA\HandlesCommand("test leave .+")]
-	public function testLeaveCommand(CmdContext $context, #[NCA\Str("leave")] string $action, PCharacter $char): void {
+	#[NCA\HandlesCommand("test")]
+	public function testLeaveCommand(
+		CmdContext $context,
+		#[NCA\Str("leave")] string $action,
+		PCharacter $char
+	): void {
 		$uid = $this->chatBot->get_uid($char());
 		if ($uid === false) {
 			$context->reply("The character <highlight>{$char}<end> does not exist.");
@@ -675,8 +612,12 @@ class TestController extends ModuleInstance {
 	}
 
 	/** Sleep for &lt;duration&gt; seconds. This can lead to lots of timeouts */
-	#[NCA\HandlesCommand("test sleep .+")]
-	public function testSleepCommand(CmdContext $context, #[NCA\Str("sleep")] string $action, int $duration): void {
+	#[NCA\HandlesCommand("test")]
+	public function testSleepCommand(
+		CmdContext $context,
+		#[NCA\Str("sleep")] string $action,
+		int $duration
+	): void {
 		\Safe\sleep($duration);
 	}
 
@@ -697,7 +638,10 @@ class TestController extends ModuleInstance {
 
 	/** Run absolutely all bot tests */
 	#[NCA\HandlesCommand("test")]
-	public function testAllCommand(CmdContext $context, #[NCA\Str("all")] string $action): void {
+	public function testAllCommand(
+		CmdContext $context,
+		#[NCA\Str("all")] string $action
+	): void {
 		$testContext = clone $context;
 		$testContext->sendto = new MockCommandReply("buddylist clear");
 		$this->buddylistController->buddylistClearCommand($testContext, "clear");

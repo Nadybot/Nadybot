@@ -34,7 +34,7 @@ use Nadybot\Modules\RAID_MODULE\RaidController;
 		description: "Join or leave raffles",
 	),
 	NCA\DefineCommand(
-		command: "raffleadmin",
+		command: RaffleController::CMD_RAFFLE_MANAGE,
 		accessLevel: "all",
 		description: "Raffle off items to players",
 	),
@@ -47,6 +47,8 @@ use Nadybot\Modules\RAID_MODULE\RaidController;
 class RaffleController extends ModuleInstance {
 	public const DB_TABLE = "raffle_bonus_<myname>";
 	public const NO_RAFFLE_ERROR = "There is no active raffle.";
+
+	public const CMD_RAFFLE_MANAGE = "raffle manage";
 
 	#[NCA\Inject]
 	public SettingManager $settingManager;
@@ -167,11 +169,6 @@ class RaffleController extends ModuleInstance {
 			type: "rank",
 			value: 'mod'
 		);
-		$this->commandAlias->register($this->moduleName, "raffleadmin start", "raffle start");
-		$this->commandAlias->register($this->moduleName, "raffleadmin end", "raffle end");
-		$this->commandAlias->register($this->moduleName, "raffleadmin cancel", "raffle cancel");
-		$this->commandAlias->register($this->moduleName, "raffleadmin timer", "raffle timer");
-		$this->commandAlias->register($this->moduleName, "raffleadmin announce", "raffle announce");
 	}
 
 	protected function fancyFrame(string $text): string {
@@ -209,8 +206,7 @@ class RaffleController extends ModuleInstance {
 	 * Use 0x 'item/group' to raffle an unlimited number of an item or group
 	 * Use &lt;duration&gt; 'items/groups' to start with a custom timer
 	 */
-	#[NCA\HandlesCommand("raffleadmin")]
-	#[NCA\Help\Group("raffle")]
+	#[NCA\HandlesCommand(self::CMD_RAFFLE_MANAGE)]
 	#[NCA\Help\Example("<symbol>raffle start Alpha Box")]
 	#[NCA\Help\Example("<symbol>raffle start Alpha Box, Beta Box")]
 	#[NCA\Help\Example("<symbol>raffle start 3x Alpha Box, 3x Beta Box")]
@@ -322,11 +318,10 @@ class RaffleController extends ModuleInstance {
 	}
 
 	/** Cancel the running raffle immediately, no one wins */
-	#[NCA\HandlesCommand("raffleadmin")]
-	#[NCA\Help\Group("raffle")]
+	#[NCA\HandlesCommand(self::CMD_RAFFLE_MANAGE)]
 	public function raffleCancelCommand(
 		CmdContext $context,
-		#[NCA\Str("cancel")] string $action
+		#[NCA\Str("cancel", "stop")] string $action
 	): void {
 		if (!isset($this->raffle)) {
 			$context->reply(static::NO_RAFFLE_ERROR);
@@ -350,9 +345,11 @@ class RaffleController extends ModuleInstance {
 	}
 
 	/** End the raffle immediately and post the results */
-	#[NCA\HandlesCommand("raffleadmin")]
-	#[NCA\Help\Group("raffle")]
-	public function raffleEndCommand(CmdContext $context, #[NCA\Str("end")] string $action): void {
+	#[NCA\HandlesCommand(self::CMD_RAFFLE_MANAGE)]
+	public function raffleEndCommand(
+		CmdContext $context,
+		#[NCA\Str("end")] string $action
+	): void {
 		if (!isset($this->raffle)) {
 			$context->reply(static::NO_RAFFLE_ERROR);
 			return;
@@ -372,9 +369,12 @@ class RaffleController extends ModuleInstance {
 	 *
 	 * If the timer was unset before, the bot will immediately start it now
 	 */
-	#[NCA\HandlesCommand("raffleadmin")]
-	#[NCA\Help\Group("raffle")]
-	public function raffleTimerCommand(CmdContext $context, #[NCA\Str("timer")] string $action, PDuration $duration): void {
+	#[NCA\HandlesCommand(self::CMD_RAFFLE_MANAGE)]
+	public function raffleTimerCommand(
+		CmdContext $context,
+		#[NCA\Str("timer")] string $action,
+		PDuration $duration
+	): void {
 		if (!isset($this->raffle)) {
 			$context->reply(static::NO_RAFFLE_ERROR);
 			return;
@@ -400,8 +400,7 @@ class RaffleController extends ModuleInstance {
 	}
 
 	/** Announce the raffle, optionally with an extra message */
-	#[NCA\HandlesCommand("raffleadmin")]
-	#[NCA\Help\Group("raffle")]
+	#[NCA\HandlesCommand(self::CMD_RAFFLE_MANAGE)]
 	public function raffleAnnounceCommand(
 		CmdContext $context,
 		#[NCA\Str("announce")] string $action,
@@ -425,7 +424,6 @@ class RaffleController extends ModuleInstance {
 	 * If more than 1 item is raffled, a slot must be given
 	 */
 	#[NCA\HandlesCommand("raffle")]
-	#[NCA\Help\Group("raffle")]
 	public function raffleJoinCommand(
 		CmdContext $context,
 		#[NCA\Str("join", "enter")] string $action,
@@ -491,7 +489,6 @@ class RaffleController extends ModuleInstance {
 
 	/** Leave the raffle for all or just a single slot */
 	#[NCA\HandlesCommand("raffle")]
-	#[NCA\Help\Group("raffle")]
 	public function raffleLeaveCommand(
 		CmdContext $context,
 		#[NCA\Str("leave")] string $action,

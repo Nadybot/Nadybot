@@ -16,6 +16,7 @@ use Nadybot\Core\{
 	ModuleInstance,
 	Modules\PREFERENCES\Preferences,
 	Nadybot,
+	SettingManager,
 	Text,
 };
 
@@ -59,6 +60,9 @@ class HelpController extends ModuleInstance {
 	public ConfigController $configController;
 
 	#[NCA\Inject]
+	public SettingManager $settingManager;
+
+	#[NCA\Inject]
 	public DB $db;
 
 	#[NCA\Inject]
@@ -72,6 +76,18 @@ class HelpController extends ModuleInstance {
 			"about.txt",
 			"all",
 			"Info about the development of Nadybot"
+		);
+
+		$this->settingManager->add(
+			module: $this->moduleName,
+			name: "help_show_al",
+			description: 'Show mods the required access level for each command',
+			mode: 'edit',
+			type: "options",
+			options: "true;false",
+			intoptions: "1;0",
+			accessLevel: "mod",
+			value: "1",
 		);
 
 		$this->commandAlias->register($this->moduleName, "help about", "about");

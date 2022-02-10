@@ -29,7 +29,7 @@ use Nadybot\Core\{
 		description: "Check your raid blocks",
 	),
 	NCA\DefineCommand(
-		command: "raidblock .+",
+		command: RaidBlockController::CMD_RAIDBLOCK_EDIT,
 		accessLevel: "raid_leader_1",
 		description: "Temporarily block raiders",
 	)
@@ -39,6 +39,9 @@ class RaidBlockController extends ModuleInstance {
 	public const POINTS_GAIN = "points";
 	public const JOIN_RAIDS = "join";
 	public const AUCTION_BIDS = "bid";
+
+	public const CMD_RAIDBLOCK_EDIT = "raidblock add/remove";
+
 	public int $lastExpiration = 0;
 
 	/** @var array<string,array<string,RaidBlock>> */
@@ -126,7 +129,7 @@ class RaidBlockController extends ModuleInstance {
 	 * If &lt;duration&gt; is given, then the block is only temporary.
 	 * Permanent blocks can only be lifted manually.
 	 */
-	#[NCA\HandlesCommand("raidblock .+")]
+	#[NCA\HandlesCommand(self::CMD_RAIDBLOCK_EDIT)]
 	public function raidBlockAddCommand(
 		CmdContext $context,
 		#[NCA\StrChoice("points", "join", "bid")] string $blockFrom,
@@ -190,7 +193,7 @@ class RaidBlockController extends ModuleInstance {
 	}
 
 	/** Check another character's blocks */
-	#[NCA\HandlesCommand("raidblock .+")]
+	#[NCA\HandlesCommand(self::CMD_RAIDBLOCK_EDIT)]
 	public function raidBlockShowCommand(CmdContext $context, PCharacter $char): void {
 		$player = $char();
 		$player = $this->altsController->getMainOf($player);
@@ -215,7 +218,7 @@ class RaidBlockController extends ModuleInstance {
 	}
 
 	/** Lift all or just one raid block from a character */
-	#[NCA\HandlesCommand("raidblock .+")]
+	#[NCA\HandlesCommand(self::CMD_RAIDBLOCK_EDIT)]
 	public function raidBlockLiftCommand(
 		CmdContext $context,
 		PRemove $action,
