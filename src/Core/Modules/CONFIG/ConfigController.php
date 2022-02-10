@@ -878,10 +878,10 @@ class ConfigController extends ModuleInstance {
 	public function getModules(): array {
 		$eventQuery = $this->db->table(EventManager::DB_TABLE)
 			->select("module");
-		$eventQuery->selectRaw($eventQuery->grammar->wrap("status") . "+2");
+		$eventQuery->selectRaw($eventQuery->grammar->wrap("status") . "+2 " . $eventQuery->as("status"));
 		$settingsQuery = $this->db->table(SettingManager::DB_TABLE)
 			->select("module");
-		$settingsQuery->selectRaw("4");
+		$settingsQuery->selectRaw("4 " . $settingsQuery->as("status"));
 
 		$outerQuery = $this->db->fromSub(
 			$eventQuery->unionAll($settingsQuery),

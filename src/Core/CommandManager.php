@@ -967,7 +967,7 @@ class CommandManager implements MessageEmitter {
 			$header = "<header2>'{$cmdName}' command".
 				((count($refGroups) > 1 || count($refGroups[0]) > 1) ? "s" : "");
 			if ($showRights) {
-				$cmdCfg = $this->get($cmdName);
+				$cmdCfg = $this->get((string)$cmdName);
 				if (isset($cmdCfg) && isset($cmdCfg->permissions[$context->permissionSet])) {
 					$al = $cmdCfg->permissions[$context->permissionSet]->access_level;
 					$al = $this->accessManager->getDisplayName($al);
@@ -1012,14 +1012,14 @@ class CommandManager implements MessageEmitter {
 		 * @param ReflectionMethod[] $refMethods1
 		 * @param ReflectionMethod[] $refMethods2
 		 */
-		$list->sort(function (array $refMethods1, array $refMethods2): int {
+		$sList = $list->sort(function (array $refMethods1, array $refMethods2): int {
 			$n1 = $refMethods1[0]->getDeclaringClass()->getShortName();
 			$n2 = $refMethods2[0]->getDeclaringClass()->getShortName();
 			return strcmp($n1, $n2)
 				?: $refMethods1[0]->getStartLine() <=> $refMethods2[0]->getStartLine();
 		});
 		/** @param ReflectionMethod[] $refMethods */
-		return $list->groupBy(function (array $refMethods): string {
+		return $sList->groupBy(function (array $refMethods): string {
 			if (empty($refMethods)) {
 				return "";
 			}
