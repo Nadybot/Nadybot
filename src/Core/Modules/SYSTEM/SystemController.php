@@ -80,6 +80,12 @@ use Nadybot\Modules\WEBSERVER_MODULE\{
 		accessLevel: "admin",
 		description: "Shutdown the bot",
 		defaultStatus: 1
+	),
+	NCA\DefineCommand(
+		command: "showconfig",
+		accessLevel: "superadmin",
+		description: "Show a cleaned up version of your current config file",
+		defaultStatus: 1
 	)
 ]
 class SystemController extends ModuleInstance implements MessageEmitter {
@@ -561,6 +567,20 @@ class SystemController extends ModuleInstance implements MessageEmitter {
 		$this->commandManager->processCmd($newContext);
 
 		$context->reply("Command <highlight>{$cmd}<end> has been sent to <highlight>{$name}<end>.");
+	}
+
+	/** Show your current config file with sensitive information removed */
+	#[NCA\HandlesCommand("showconfig")]
+	public function showConfigCommand(CmdContext $context): void {
+		$json = \Safe\json_encode(
+			$this->config
+				->except("password", "DB username", "DB password")
+				->toArray(),
+			JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE
+		);
+		$context->reply(
+			$this->text->makeBlob("Your config", $json)
+		);
 	}
 
 	/**
