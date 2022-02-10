@@ -33,16 +33,13 @@ class MigrateSubCmds implements SchemaMigration {
 	}
 
 	protected function migrateSubCmdRights(DB $db, LoggerWrapper $logger, string $old, string $new): void {
-		$updated = $db->table(CommandManager::DB_TABLE)
+		$db->table(CommandManager::DB_TABLE)
 			->where('cmd', $old)
 			->update([
 				'cmd' => $new,
 				'cmdevent' => "subcmd",
 				'dependson' => strtolower(explode(" ", $new)[0]),
 			]);
-		if (!$updated) {
-			$logger->warning("Command {$old} not found");
-		}
 		$db->table(CommandManager::DB_TABLE_PERMS)
 			->where('cmd', $old)
 			->update(['cmd' => $new]);
