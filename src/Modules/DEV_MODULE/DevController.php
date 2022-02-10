@@ -96,6 +96,9 @@ class DevController extends ModuleInstance {
 		if (!isset($context->permissionSet)) {
 			return;
 		}
+		if (isset($cmd) && ($alias = $this->commandAlias->get($cmd)) !== null) {
+			$cmd = $alias->cmd;
+		}
 		// get all command handlers
 		$handlers = $this->getAllCommandHandlers($cmd, $context->permissionSet);
 
@@ -115,10 +118,13 @@ class DevController extends ModuleInstance {
 			[]
 		);
 
+		$this->commandManager->sortCalls($calls);
+
 		// get regexes for calls
 		$regexes = [];
 		foreach ($calls as $call) {
 			[$name, $method] = explode(".", $call);
+			[$method, $line] = explode(":", $method);
 			$instance = Registry::getInstance($name);
 			if (!isset($instance)) {
 				continue;
@@ -178,15 +184,15 @@ class DevController extends ModuleInstance {
 			$cmds = (array)$command;
 		}
 		foreach ($cmds as $cmd) {
-			if (isset($this->commandManager->commands[$channel][$cmd])) {
-				$handlers []= $this->commandManager->commands[$channel][$cmd];
-			}
 			if (isset($this->subcommandManager->subcommands[$cmd])) {
 				foreach ($this->subcommandManager->subcommands[$cmd] as $handler) {
 					if (isset($handler->permissions[$channel])) {
 						$handlers []= new CommandHandler($handler->permissions[$channel]->access_level, ...explode(",", $handler->file));
 					}
 				}
+			}
+			if (isset($this->commandManager->commands[$channel][$cmd])) {
+				$handlers []= $this->commandManager->commands[$channel][$cmd];
 			}
 		}
 		return $handlers;

@@ -468,6 +468,7 @@ class CommandManager implements MessageEmitter {
 			return true;
 		}
 		[$name, $method] = explode(".", $handler);
+		[$method, $line] = explode(":", $method);
 		$instance = Registry::getInstance($name);
 		if ($instance === null) {
 			$this->logger->error("Could not find instance for name '$name'");
@@ -654,6 +655,7 @@ class CommandManager implements MessageEmitter {
 
 		foreach ($commandHandler->files as $handler) {
 			[$name, $method] = explode(".", $handler);
+			[$method, $line] = explode(":", $method);
 			$instance = Registry::getInstance($name);
 			if ($instance === null) {
 				$this->logger->error("Could not find instance for name '$name'");
@@ -766,7 +768,22 @@ class CommandManager implements MessageEmitter {
 				}
 			}
 		}
+		$this->sortCalls($handler->files);
 		return $handler;
+	}
+
+	/** @param string[] $calls */
+	public function sortCalls(array &$calls): void {
+		usort($calls, function (string $call1, string $call2): int {
+			/** @phpstan-var array{array{string,int}, array{string,int}} */
+			$refs = [];
+			foreach ([$call1, $call2] as $call) {
+				[$class, $method] = explode(".", $call);
+				[$method, $line] = explode(":", $method);
+				$refs []= [$class, (int)$line];
+			}
+			return strcmp($refs[0][0], $refs[1][0]) ?: $refs[0][1] <=> $refs[1][1];
+		});
 	}
 
 	public function isCommandActive(string $cmd, string $permissionSet): bool {
@@ -805,6 +822,7 @@ class CommandManager implements MessageEmitter {
 
 	protected function getRefMethodForHandler(string $handler): ?ReflectionMethod {
 		[$name, $method] = explode(".", $handler);
+		[$method, $line] = explode(":", $method);
 		$instance = Registry::getInstance($name);
 		if ($instance === null) {
 			$this->logger->error("Could not find instance for name '$name'");
