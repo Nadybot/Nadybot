@@ -431,6 +431,7 @@ class DB {
 		$builder = new SchemaBuilder($schema);
 		$builder->nadyDB = $this;
 		$builder->logger = new LoggerWrapper("Core/QueryBuilder");
+		Registry::injectDependencies($builder->logger);
 		return $builder;
 	}
 
@@ -452,6 +453,7 @@ class DB {
 		}
 		$myBuilder->nadyDB = $this;
 		$myBuilder->logger = new LoggerWrapper("Core/QueryBuilder");
+		Registry::injectDependencies($myBuilder->logger);
 		return $myBuilder;
 	}
 
@@ -470,6 +472,7 @@ class DB {
 		}
 		$builder->nadyDB = $this;
 		$builder->logger = new LoggerWrapper("Core/QueryBuilder");
+		Registry::injectDependencies($builder->logger);
 		return $builder;
 	}
 
