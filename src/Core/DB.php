@@ -51,21 +51,9 @@ class DB {
 	private Capsule $capsule;
 
 	/**
-	 * The name of the bot
-	 */
-	private string $botname;
-
-	/**
-	 * The dimension
-	 */
-	private int $dim;
-
-	/**
 	 * The database name
 	 */
 	protected string $dbName;
-
-	private string $guild;
 
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
