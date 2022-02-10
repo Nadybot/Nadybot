@@ -8,6 +8,7 @@ class DBRow {
 		$trace = $backtrace[1];
 		$trace2 = $backtrace[0];
 		$logger = new LoggerWrapper('Core/DB');
+		Registry::injectDependencies($logger);
 		$logger->log('WARN', "Tried to get value '$value' from row that doesn't exist: " . var_export($this, true));
 		$class = "";
 		if (isset($trace['class'])) {

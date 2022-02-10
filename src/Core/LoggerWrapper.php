@@ -10,7 +10,6 @@ use Throwable;
 
 /**
  * A wrapper class to monolog
- *
  */
 #[NCA\Instance("logger")]
 class LoggerWrapper {
@@ -18,6 +17,9 @@ class LoggerWrapper {
 	 * The actual Monolog logger
 	 */
 	private Logger $logger;
+
+	#[NCA\Inject]
+	public ConfigFile $config;
 
 	/**
 	 * The actual Monolog logger for tag CHAT
@@ -95,8 +97,7 @@ class LoggerWrapper {
 	 * @return void
 	 */
 	public function logChat(string $channel, string|int $sender, string $message): void {
-		global $vars;
-		if ($vars['show_aoml_markup'] == 0) {
+		if (!$this->config->showAomlMarkup) {
 			$message = preg_replace("|<font.*?>|", "", $message);
 			$message = preg_replace("|</font>|", "", $message);
 			$message = preg_replace("|<a\\s+href=\".+?\">|s", "[link]", $message);
