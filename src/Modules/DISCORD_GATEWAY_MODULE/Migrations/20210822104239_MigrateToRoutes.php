@@ -62,7 +62,6 @@ class MigrateToRoutes implements SchemaMigration {
 		$tagColor = $this->getColor($db, "discord_color_channel");
 		$textColor = $this->getColor($db, "discord_color_guild", "discord_color_priv");
 		$this->saveColor($db, Source::DISCORD_PRIV, $tagColor, $textColor);
-		$this->messageHub->loadTagColor();
 
 		$relayChannel = $this->getSetting($db, "discord_relay_channel");
 		$relayWhat = $this->getSetting($db, "discord_relay");

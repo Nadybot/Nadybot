@@ -50,6 +50,5 @@ class MoveSettingsToHopColors implements SchemaMigration {
 			$hop->hop = Source::ORG . "({$this->config->orgName})";
 			$hop->id = $db->insert(MessageHub::DB_TABLE_COLORS, $hop);
 		}
-		$this->messageHub->loadTagColor();
 	}
 }

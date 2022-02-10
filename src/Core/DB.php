@@ -221,7 +221,7 @@ class DB {
 					if (!$errorShown) {
 						$this->logger->error(
 							"Cannot connect to the PostgreSQL db at {$host}: ".
-							trim($e->errorInfo[2])
+							trim($e->errorInfo[2] ?? $e->getMessage())
 						);
 						$this->logger->notice(
 							"Will keep retrying until the db is back up again"
