@@ -17,6 +17,7 @@ use Nadybot\Modules\WEBSERVER_MODULE\Collector\{
 	BuddylistOffline,
 	BuddylistOnline,
 	BuddylistSize,
+	CmdStats,
 	MemoryPeakUsage,
 	MemoryRealUsage,
 	MemoryUsage,
@@ -73,6 +74,7 @@ class StatsController extends ModuleInstance {
 		$aoPackets = new Aopackets("ao_packets");
 		Registry::injectDependencies($aoPackets);
 		$this->registerDataset($aoPackets, "ao_packets");
+		$this->registerDataset(new CmdStats("cmd_times"), "cmd_times");
 		$this->settingManager->registerChangeListener("prometheus_enabled", [$this, "changePrometheusStatus"]);
 	}
 

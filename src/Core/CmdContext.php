@@ -7,6 +7,11 @@ use Nadybot\Core\DBSchema\CmdPermSetMapping;
 use Nadybot\Core\Routing\Character;
 
 class CmdContext implements CommandReply {
+	/**
+	 * @var array<array<int|float>>
+	 * @phpstan-var array{int,float}[]
+	 */
+	public static array $cmdStats = [];
 	public string $message = "";
 	public ?string $permissionSet = null;
 	public ?string $source = null;
@@ -21,8 +26,11 @@ class CmdContext implements CommandReply {
 	/** @var array<Closure> */
 	public array $shutdownFunctions = [];
 
+	private float $started;
+
 	public function __construct(string $charName, ?int $charId=null) {
 		$this->char = new Character($charName, $charId);
+		$this->started = microtime(true);
 	}
 
 	public function setIsDM(bool $isDM=true): self {
@@ -47,6 +55,12 @@ class CmdContext implements CommandReply {
 	}
 
 	public function __destruct() {
+		static::$cmdStats = array_values(
+			array_filter(static::$cmdStats, function (array $stats): bool {
+				return time() - $stats[0] <= 600;
+			})
+		);
+		static::$cmdStats []= [time(), (microtime(true)-$this->started) * 1000];
 		foreach ($this->shutdownFunctions as $callback) {
 			$callback();
 		}
