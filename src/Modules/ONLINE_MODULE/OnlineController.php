@@ -20,6 +20,7 @@ use Nadybot\Core\{
 	Modules\PLAYER_LOOKUP\PlayerManager,
 	Nadybot,
 	QueryBuilder,
+	Registry,
 	SettingManager,
 	StopExecutionException,
 	Text,
@@ -32,9 +33,10 @@ use Nadybot\Modules\{
 	RELAY_MODULE\RelayController,
 	RELAY_MODULE\Relay,
 	WEBSERVER_MODULE\ApiResponse,
+	WEBSERVER_MODULE\HttpProtocolWrapper,
 	WEBSERVER_MODULE\Request,
 	WEBSERVER_MODULE\Response,
-	WEBSERVER_MODULE\HttpProtocolWrapper,
+	WEBSERVER_MODULE\StatsController,
 };
 
 /**
@@ -101,6 +103,9 @@ class OnlineController extends ModuleInstance {
 
 	#[NCA\Inject]
 	public AltsController $altsController;
+
+	#[NCA\Inject]
+	public StatsController $statsController;
 
 	#[NCA\Inject]
 	public Text $text;
@@ -237,6 +242,12 @@ class OnlineController extends ModuleInstance {
 
 		$this->commandAlias->register($this->moduleName, "online", "o");
 		$this->commandAlias->register($this->moduleName, "online", "sm");
+		$onlineOrg = new OnlineOrgStats();
+		$onlinePriv = new OnlinePrivStats();
+		Registry::injectDependencies($onlineOrg);
+		Registry::injectDependencies($onlinePriv);
+		$this->statsController->registerProvider($onlineOrg, "online");
+		$this->statsController->registerProvider($onlinePriv, "online");
 	}
 
 	public function buildOnlineQuery(string $sender, string $channelType): QueryBuilder {

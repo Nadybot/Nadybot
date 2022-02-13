@@ -161,6 +161,13 @@ class AOChat {
 	protected string $readBuffer = "";
 	protected string $writeBuffer = "";
 
+	/** @var array<int,int> */
+	public array $packetsOut = [];
+	/** @var array<int,int> */
+	public array $packetsIn = [];
+	public int $numBytesOut = 0;
+	public int $numBytesIn = 0;
+
 	public function __construct() {
 		$this->disconnect();
 		$this->mmdbParser = new MMDBParser();
@@ -294,6 +301,7 @@ class AOChat {
 			]);
 			die();
 		}
+		$this->numBytesOut += $written;
 		$this->logger->debug("Wrote {written} bytes in {duration}ms", [
 			"written" => $written,
 			"duration" => number_format(($end-$start)*1000, 3),
@@ -334,6 +342,7 @@ class AOChat {
 				]);
 				die();
 			}
+			$this->numBytesIn += $bytesRead;
 			if ($bytesRead === 0) {
 				$this->logger->error("Chat server or proxy terminated the connection. Someone else logged in on to same account?");
 				die();
@@ -374,6 +383,8 @@ class AOChat {
 			$this->logger->debug("Partial package received, waiting for more");
 			return null;
 		}
+		$this->packetsIn[$type] ??= 0;
+		$this->packetsIn[$type]++;
 
 		$packet = new AOChatPacket("in", (int)$type, substr($this->readBuffer, 4));
 		$this->readBuffer = "";
@@ -458,6 +469,8 @@ class AOChat {
 	 * Send a packet
 	 */
 	public function sendPacket(AOChatPacket $packet, bool $sync=false): bool {
+		$this->packetsOut[$packet->type] ??= 0;
+		$this->packetsOut[$packet->type]++;
 		$data = \Safe\pack("n2", $packet->type, strlen($packet->data)) . $packet->data;
 
 		if ($this->logger->isHandling(Logger::DEBUG)) {
@@ -486,6 +499,7 @@ class AOChat {
 		}
 		if ($sync === true) {
 			socket_write($this->socket, $data, strlen($data));
+			$this->numBytesOut += strlen($data);
 		} else {
 			$this->writeBuffer .= $data;
 		}

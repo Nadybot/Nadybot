@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\WEBSERVER_MODULE;
 
+use Closure;
 use ReflectionClass;
 use DateTime;
 use Exception;
@@ -22,6 +23,7 @@ use Nadybot\Core\{
 	Socket\AsyncSocket,
 };
 use ReflectionAttribute;
+use ReflectionFunction;
 use Safe\Exceptions\FilesystemException;
 use Safe\Exceptions\StreamException;
 
@@ -500,9 +502,9 @@ class WebserverController extends ModuleInstance {
 */
 
 	/**
-	 * @return array<array<callable|string[]>>
-	 * @phpstan-return array<array{callable,string[]}>
-	 * @psalm-return array<array{callable,string[]}>
+	 * @return array<array<Closure|string[]>>
+	 * @phpstan-return array<array{Closure,string[]}>
+	 * @psalm-return array<array{Closure,string[]}>
 	 */
 	public function getHandlersForRequest(Request $request): array {
 		$result = [];
@@ -510,7 +512,7 @@ class WebserverController extends ModuleInstance {
 			if (preg_match("|$mask|", $request->path, $parts)) {
 				array_shift($parts);
 				foreach ($handlers as $handler) {
-					$result []= [$handler, $parts];
+					$result []= [Closure::fromCallable($handler), $parts];
 				}
 			}
 		}
@@ -532,7 +534,15 @@ class WebserverController extends ModuleInstance {
 		)
 	]
 	public function getRequest(HttpEvent $event, HttpProtocolWrapper $server): void {
-		if (!isset($event->request->authenticatedAs)) {
+		$handlers = $this->getHandlersForRequest($event->request);
+		$needAuth = true;
+		if (count($handlers) === 1) {
+			$ref = new ReflectionFunction($handlers[0][0]);
+			if (count($ref->getAttributes(NCA\HttpOwnAuth::class))) {
+				$needAuth = false;
+			}
+		}
+		if ($needAuth && !isset($event->request->authenticatedAs)) {
 			$authType = $this->settingManager->getString('webserver_auth');
 			if ($authType === static::AUTH_BASIC) {
 				$server->httpError(new Response(

@@ -15,6 +15,7 @@ use Nadybot\Core\{
 	MessageHub,
 	Modules\ALTS\AltsController,
 	Nadybot,
+	Registry,
 	Routing\RoutableMessage,
 	Routing\Source,
 	SettingManager,
@@ -22,6 +23,7 @@ use Nadybot\Core\{
 	UserStateEvent,
 	Util,
 };
+use Nadybot\Modules\WEBSERVER_MODULE\StatsController;
 
 /**
  * @author Tyrence (RK2)
@@ -68,6 +70,9 @@ class CloakController extends ModuleInstance implements MessageEmitter {
 	#[NCA\Inject]
 	public CityWaveController $cityWaveController;
 
+	#[NCA\Inject]
+	public StatsController $statsController;
+
 	#[NCA\Setup]
 	public function setup(): void {
 		$this->settingManager->add(
@@ -91,6 +96,9 @@ class CloakController extends ModuleInstance implements MessageEmitter {
 		);
 
 		$this->messageHub->registerMessageEmitter($this);
+		$cloakStats = new CloakStatsCollector();
+		Registry::injectDependencies($cloakStats);
+		$this->statsController->registerProvider($cloakStats, "states");
 	}
 
 	public function getChannelName(): string {
