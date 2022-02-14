@@ -245,7 +245,10 @@ class WebUiController extends ModuleInstance implements MessageEmitter {
 		}
 		$schema = "http"; /*$this->settingManager->getBool('webserver_tls') ? "https" : "http";*/
 		$port = $this->settingManager->getInt('webserver_port');
-		$superUser = $this->config->superAdmin;
+		if (empty($this->config->superAdmins)) {
+			return;
+		}
+		$superUser = $this->config->superAdmins[0];
 		$uuid = $this->webserverController->authenticate($superUser, 6 * 3600);
 		$this->logger->notice(
 			">>> You can now configure this bot at {$schema}://127.0.0.1:{$port}/"

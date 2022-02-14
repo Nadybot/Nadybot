@@ -258,12 +258,14 @@ class ExportController extends ModuleInstance {
 			];
 			$exported[$member->name] = true;
 		}
-		if (!isset($exported[$this->config->superAdmin])) {
-			$result []= (object)[
-				"character" => $this->toChar($this->config->superAdmin),
-				"autoInvite" => false,
-				"rank" => "superadmin",
-			];
+		foreach ($this->config->superAdmins as $superAdmin) {
+			if (!isset($exported[$superAdmin])) {
+				$result []= (object)[
+					"character" => $this->toChar($superAdmin),
+					"autoInvite" => false,
+					"rank" => "superadmin",
+				];
+			}
 		}
 		foreach ($result as &$datum) {
 			$datum->rank ??= $this->accessManager->getSingleAccessLevel($datum->character->name);

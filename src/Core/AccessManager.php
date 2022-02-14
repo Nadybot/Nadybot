@@ -194,7 +194,9 @@ class AccessManager {
 	 * Returns the access level of $sender, ignoring guild admin and inheriting access level from main
 	 */
 	public function getSingleAccessLevel(string $sender): string {
-		if ($this->config->superAdmin === $sender) {
+		if (in_array($sender, $this->config->superAdmins, true)) {
+			return "superadmin";
+		} elseif (empty($this->config->superAdmins) && $sender === "<no superadmin set>") {
 			return "superadmin";
 		}
 		/** @var array<string,int> */

@@ -55,13 +55,15 @@ class AdminManager implements AccessLevelProvider {
 	 * Load the bot admins from database into $admins
 	 */
 	public function uploadAdmins(): void {
-		$this->db->table(self::DB_TABLE)->upsert(
-			[
-				"adminlevel" => 4,
-				"name" => $this->config->superAdmin,
-			],
-			"name"
-		);
+		foreach ($this->config->superAdmins as $superAdmin) {
+			$this->db->table(self::DB_TABLE)->upsert(
+				[
+					"adminlevel" => 4,
+					"name" => $superAdmin,
+				],
+				"name"
+			);
+		}
 
 		$this->db->table(self::DB_TABLE)
 			->asObj(Admin::class)

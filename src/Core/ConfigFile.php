@@ -28,13 +28,16 @@ class ConfigFile extends DataTransferObject {
 
 	public ?int $orgId = null;
 
-	// 6 for Live (new), 5 for Live (old), 4 for Test.
+	/** 6 for Live (new), 5 for Live (old), 4 for Test. */
 	public int $dimension = 5;
 
-	// Character name of the Super Administrator.
+	/**
+	 * Character name of the Super Administrator.
+	 * @var string[]
+	 */
 	#[MapFrom('SuperAdmin')]
 	#[MapTo('SuperAdmin')]
-	public string $superAdmin;
+	public array $superAdmins;
 
 	/** What type of database should be used? ('sqlite' or 'mysql') */
 	#[MapFrom('DB Type')]
@@ -146,8 +149,12 @@ class ConfigFile extends DataTransferObject {
 		$args["logsfolder"] ??= "./logs/";
 		$args["enable_console_client"] ??= 0;
 		$args["enable_package_module"] ??= 0;
+		$args["SuperAdmin"] = empty($args["SuperAdmin"]??"")
+			? [] : (array)$args["SuperAdmin"];
 		parent::__construct($args);
-		$this->superAdmin = ucfirst(strtolower($this->superAdmin));
+		$this->superAdmins = array_map(function (string $char): string {
+			return ucfirst(strtolower($char));
+		}, $this->superAdmins);
 		$this->name = ucfirst(strtolower($this->name));
 	}
 

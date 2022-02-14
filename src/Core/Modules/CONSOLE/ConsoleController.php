@@ -190,7 +190,7 @@ class ConsoleController extends ModuleInstance {
 			\Safe\readline_callback_handler_install('> ', [$this, 'processLine']);
 		}
 
-		$context = new CmdContext($this->config->superAdmin);
+		$context = new CmdContext($this->config->superAdmins[0]??"<no superadmin set>");
 		$context->message = $line;
 		$context->source = "console";
 		$context->sendto = new ConsoleCommandReply($this->chatBot);
