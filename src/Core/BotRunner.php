@@ -331,25 +331,14 @@ class BotRunner {
 	 * Get a message describing the bot's codebase
 	 */
 	private function getInitialInfoMessage(): string {
-		$version = substr(sprintf("%-23s", self::getVersion()), 0, 23);
+		$version = self::getVersion();
+
 		return
-			"+------------------------------------------------------------------+".PHP_EOL.
-			'|                                                                  |'.PHP_EOL.
-			'| 888b    888               888          888               888     |'.PHP_EOL.
-			'| 8888b   888               888          888               888     |'.PHP_EOL.
-			'| 88888b  888               888          888               888     |'.PHP_EOL.
-			'| 888Y88b 888  8888b.   .d88888 888  888 88888b.   .d88b.  888888  |'.PHP_EOL.
-			'| 888 Y88b888     "88b d88" 888 888  888 888 "88b d88""88b 888     |'.PHP_EOL.
-			'| 888  Y88888 .d888888 888  888 888  888 888  888 888  888 888     |'.PHP_EOL.
-			'| 888   Y8888 888  888 Y88b 888 Y88b 888 888 d88P Y88..88P Y88b.   |'.PHP_EOL.
-			'| 888    Y888 "Y888888  "Y88888  "Y88888 88888P"   "Y88P"   "Y888  |'.PHP_EOL.
-			'|                                    888                           |'.PHP_EOL.
-			'|                               Y8b d88P                           |'.PHP_EOL.
-			'| Nadybot ' . $version .        ' Y88P"                            |'.PHP_EOL.
-			'|                                                                  |'.PHP_EOL.
-			'| Project Site:     https://github.com/Nadybot/Nadybot             |'.PHP_EOL.
-			'| In-Game Contact:  Nadyita                                        |'.PHP_EOL.
-			'+------------------------------------------------------------------+'.PHP_EOL.
+			" _   _  __     ".PHP_EOL.
+			"| \ | |/ /_    Nadybot version  {$version}".PHP_EOL.
+			"|  \| | '_ \   Project Site:    https://github.com/Nadybot/Nadybot".PHP_EOL.
+			"| |\  | (_) |  In-Game Contact: Nady".PHP_EOL.
+			"|_| \_|\___/   Discord:         https://discord.gg/aDR9UBxRfg".PHP_EOL.
 			PHP_EOL;
 	}
 
