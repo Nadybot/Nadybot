@@ -3,6 +3,8 @@
 namespace Nadybot\Core\Modules\SYSTEM;
 
 use function Safe\unpack;
+
+use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	AccessManager,
 	Attributes as NCA,
@@ -301,10 +303,7 @@ class SystemController extends ModuleInstance implements MessageEmitter {
 		$basicInfo->org_id = $this->config->orgId;
 		$basicInfo->php_version = phpversion();
 		$basicInfo->os = php_uname('s') . ' ' . php_uname('r') . ' ' . php_uname('m');
-		/** @psalm-suppress DocblockTypeContradiction */
-		$basicInfo->superadmin = strlen($this->config->superAdmin)
-			? $this->config->superAdmin
-			: null;
+		$basicInfo->superadmins = $this->config->superAdmins;
 
 		$info->memory = $memory = new MemoryInformation();
 		$memory->current_usage = memory_get_usage();
@@ -366,10 +365,12 @@ class SystemController extends ModuleInstance implements MessageEmitter {
 
 		$blob = "<header2>Basic Info<end>\n";
 		$blob .= "<tab>Name: <highlight>{$info->basic->bot_name}<end>\n";
-		if (isset($info->basic->superadmin)) {
-			$blob .= "<tab>SuperAdmin: <highlight>{$info->basic->superadmin}<end>\n";
-		} else {
+		if (empty($info->basic->superadmins)) {
 			$blob .= "<tab>SuperAdmin: - <highlight>none<end> -\n";
+		} else {
+			$blob .= "<tab>SuperAdmin: <highlight>".
+				(new Collection($info->basic->superadmins))->join("<end>, <highlight>", "<end> and <highlight>").
+				"<end>\n";
 		}
 		if (isset($info->basic->org)) {
 			$blob .= "<tab>Guild: <highlight>'{$info->basic->org}' ({$info->basic->org_id})<end>\n";
