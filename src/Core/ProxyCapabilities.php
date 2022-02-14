@@ -2,6 +2,8 @@
 
 namespace Nadybot\Core;
 
+use Nadybot\Core\Attributes\JSON;
+
 class ProxyCapabilities extends ProxyReply {
 	public const SEND_ROUND_ROBIN = "round-robin";
 	public const SEND_BY_CHARID = "by-charid";
@@ -20,41 +22,41 @@ class ProxyCapabilities extends ProxyReply {
 
 	/**
 	 * Modes the proxy supports for sending messages
-	 * @json:name=send-modes
 	 * @var string[]
 	 */
+	#[JSON\Name("send-modes")]
 	public array $send_modes = [];
 
 	/**
 	 * Modes the proxy supports for adding buddies
-	 * @json:name=buddy-modes
 	 * @var string[]
 	 */
+	#[JSON\Name("buddy-modes")]
 	public array $buddy_modes = [];
 
 	/**
 	 * Commands the proxy supports in general
-	 * @json:name=supported-cmds
 	 * @var string[]
 	 */
+	#[JSON\Name("supported-cmds")]
 	public array $supported_cmds = [];
 
 	/**
 	 * Set when the proxy enforces rate-limits
-	 * @json:name=rate-limited
 	 */
+	#[JSON\Name("rate-limited")]
 	public bool $rate_limited = false;
 
 	/**
 	 * The mode the proxy will use when sending proxy-default
-	 * @json:name=default-mode
 	 */
+	#[JSON\Name("default-mode")]
 	public ?string $default_mode;
 
 	/**
 	 * Unix timestamp when the proxy was started
-	 * @json:name=started-at
 	 */
+	#[JSON\Name("started-at")]
 	public ?int $started_at;
 
 	/**

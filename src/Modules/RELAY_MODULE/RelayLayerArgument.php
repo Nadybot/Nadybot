@@ -3,18 +3,19 @@
 namespace Nadybot\Modules\RELAY_MODULE;
 
 use Nadybot\Core\DBRow;
+use Nadybot\Core\Attributes\JSON;
 
 class RelayLayerArgument extends DBRow {
 	/**
 	 * The id of the argument
-	 * @json:ignore
 	 */
+	#[JSON\Ignore]
 	public int $id;
 
 	/**
 	 * The id of the layer where this argument belongs to
-	 * @json:ignore
 	 */
+	#[JSON\Ignore]
 	public int $layer_id;
 
 	/** The name of the argument */

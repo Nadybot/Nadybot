@@ -3,12 +3,13 @@
 namespace Nadybot\Core\DBSchema;
 
 use Nadybot\Core\DBRow;
+use Nadybot\Core\Attributes\JSON;
 
 class RouteHopFormat extends DBRow {
 	/**
 	 * Internal primary key
-	 * @json:ignore
 	 */
+	#[JSON\Ignore]
 	public int $id;
 
 	/** The hop mask (discord, *, aopriv, ...) */
