@@ -2,16 +2,20 @@
 
 namespace Nadybot\Modules\RELAY_MODULE\RelayProtocol;
 
-use Nadybot\Core\Attributes as NCA;
 use Exception;
 use JsonException;
-use Nadybot\Core\EventManager;
-use Nadybot\Core\LoggerWrapper;
-use Nadybot\Core\Routing\RoutableEvent;
-use Nadybot\Core\SyncEvent;
-use Nadybot\Modules\RELAY_MODULE\Relay;
-use Nadybot\Modules\RELAY_MODULE\RelayMessage;
-use Nadybot\Modules\WEBSERVER_MODULE\JsonImporter;
+use Nadybot\Core\{
+	Attributes as NCA,
+	EventManager,
+	LoggerWrapper,
+	Routing\RoutableEvent,
+	SyncEvent,
+};
+use Nadybot\Modules\{
+	RELAY_MODULE\Relay,
+	RELAY_MODULE\RelayMessage,
+	WEBSERVER_MODULE\JsonImporter,
+};
 
 class BossTimers implements RelayProtocolInterface {
 	protected Relay $relay;

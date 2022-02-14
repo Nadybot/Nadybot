@@ -27,12 +27,12 @@ use Nadybot\Modules\ITEMS_MODULE\ItemsController;
 	NCA\HasMigrations("Migrations/Weapons"),
 	NCA\DefineCommand(
 		command: "bio",
-		accessLevel: "all",
+		accessLevel: "guest",
 		description: "Identifies Solid Clump of Kyr'Ozch Bio-Material",
 	),
 	NCA\DefineCommand(
 		command: "bioinfo",
-		accessLevel: "all",
+		accessLevel: "guest",
 		description: "Shows info about a particular bio type",
 	)
 ]

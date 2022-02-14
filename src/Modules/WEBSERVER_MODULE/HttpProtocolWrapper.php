@@ -2,10 +2,10 @@
 
 namespace Nadybot\Modules\WEBSERVER_MODULE;
 
-use Nadybot\Core\Attributes as NCA;
 use Safe\DateTime;
 use Exception;
 use Nadybot\Core\{
+	Attributes as NCA,
 	EventManager,
 	LoggerWrapper,
 	SettingManager,

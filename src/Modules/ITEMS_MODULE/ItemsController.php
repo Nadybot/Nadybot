@@ -21,18 +21,18 @@ use Nadybot\Core\{
 	NCA\HasMigrations("Migrations/Items"),
 	NCA\DefineCommand(
 		command: "items",
-		accessLevel: "all",
+		accessLevel: "guest",
 		description: "Searches for an item using the default items db",
 		alias: "i"
 	),
 	NCA\DefineCommand(
 		command: "itemid",
-		accessLevel: "all",
+		accessLevel: "guest",
 		description: "Searches for an item by id",
 	),
 	NCA\DefineCommand(
 		command: "id",
-		accessLevel: "all",
+		accessLevel: "guest",
 		description: "Searches for an itemid by name",
 	)
 ]

@@ -2,12 +2,14 @@
 
 namespace Nadybot\Modules\RELAY_MODULE\Layer;
 
-use Nadybot\Core\Attributes as NCA;
 use Exception;
+use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\LoggerWrapper;
-use Nadybot\Modules\RELAY_MODULE\Relay;
-use Nadybot\Modules\RELAY_MODULE\RelayLayerInterface;
-use Nadybot\Modules\RELAY_MODULE\RelayMessage;
+use Nadybot\Modules\RELAY_MODULE\{
+	Relay,
+	RelayLayerInterface,
+	RelayMessage,
+};
 
 /**
  *	on every message, so even if one was cracked, the rest is still secure.

@@ -41,8 +41,13 @@ use Nadybot\Modules\WEBSERVER_MODULE\StatsController;
 	NCA\Instance,
 	NCA\DefineCommand(
 		command: "gaubuff",
-		accessLevel: "all",
-		description: "Handles timer for gauntlet buff",
+		accessLevel: "guest",
+		description: "Show timer for gauntlet buff",
+	),
+	NCA\DefineCommand(
+		command: "gaubuff set/update",
+		accessLevel: "member",
+		description: "Set/update timer for gauntlet buff",
 	),
 	NCA\ProvidesEvent(
 		event: "sync(gaubuff)",
@@ -344,7 +349,7 @@ class GauntletBuffController extends ModuleInstance implements MessageEmitter {
 	/**
 	 * Set the Gauntlet buff timer for your default faction or the given one
 	 */
-	#[NCA\HandlesCommand("gaubuff")]
+	#[NCA\HandlesCommand("gaubuff set/update")]
 	#[NCA\Help\Example("<symbol>gaubuff 14h")]
 	#[NCA\Help\Example("<symbol>gaubuff clan 10h15m")]
 	public function gaubuffSetCommand(

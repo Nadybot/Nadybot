@@ -2,9 +2,11 @@
 
 namespace Nadybot\Modules\WEBSERVER_MODULE\Collector;
 
-use Nadybot\Core\AOChatPacket;
-use Nadybot\Core\Attributes as NCA;
-use Nadybot\Core\Nadybot;
+use Nadybot\Core\{
+	AOChatPacket,
+	Attributes as NCA,
+	Nadybot,
+};
 use Nadybot\Modules\WEBSERVER_MODULE\Dataset;
 use ReflectionClass;
 use ReflectionClassConstant;

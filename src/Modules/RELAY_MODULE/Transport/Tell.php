@@ -2,18 +2,22 @@
 
 namespace Nadybot\Modules\RELAY_MODULE\Transport;
 
-use Nadybot\Core\Attributes as NCA;
 use Exception;
-use Nadybot\Core\AOChatEvent;
-use Nadybot\Core\BuddylistManager;
-use Nadybot\Core\EventManager;
-use Nadybot\Core\Nadybot;
-use Nadybot\Core\PacketEvent;
-use Nadybot\Core\Registry;
-use Nadybot\Core\StopExecutionException;
-use Nadybot\Core\UserStateEvent;
-use Nadybot\Modules\RELAY_MODULE\Relay;
-use Nadybot\Modules\RELAY_MODULE\RelayMessage;
+use Nadybot\Core\{
+	Attributes as NCA,
+	AOChatEvent,
+	BuddylistManager,
+	EventManager,
+	Nadybot,
+	PacketEvent,
+	Registry,
+	StopExecutionException,
+	UserStateEvent,
+};
+use Nadybot\Modules\RELAY_MODULE\{
+	Relay,
+	RelayMessage,
+};
 
 #[
 	NCA\RelayTransport(

@@ -2,8 +2,8 @@
 
 namespace Nadybot\Modules\DEV_MODULE;
 
-use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{
+	Attributes as NCA,
 	CmdContext,
 	CommandManager,
 	ModuleInstance,
@@ -14,7 +14,7 @@ use Nadybot\Core\{
 	NCA\Instance,
 	NCA\DefineCommand(
 		command: "demo",
-		accessLevel: "all",
+		accessLevel: "guest",
 		description: "Execute a command so that links will execute in the same channel",
 	)
 ]

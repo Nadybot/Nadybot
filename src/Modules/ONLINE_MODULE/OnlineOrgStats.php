@@ -2,10 +2,12 @@
 
 namespace Nadybot\Modules\ONLINE_MODULE;
 
-use Nadybot\Core\Attributes as NCA;
-use Nadybot\Core\BuddylistEntry;
-use Nadybot\Core\BuddylistManager;
-use Nadybot\Core\ConfigFile;
+use Nadybot\Core\{
+	Attributes as NCA,
+	BuddylistEntry,
+	BuddylistManager,
+	ConfigFile,
+};
 use Nadybot\Modules\WEBSERVER_MODULE\Interfaces\GaugeProvider;
 
 class OnlineOrgStats implements GaugeProvider {

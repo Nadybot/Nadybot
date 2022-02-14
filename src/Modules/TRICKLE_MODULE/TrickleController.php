@@ -20,7 +20,7 @@ use Nadybot\Core\{
 	NCA\HasMigrations,
 	NCA\DefineCommand(
 		command: "trickle",
-		accessLevel: "all",
+		accessLevel: "guest",
 		description: "Shows how much skills you will gain by increasing an ability",
 	)
 ]

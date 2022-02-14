@@ -19,7 +19,7 @@ use Nadybot\Core\{
 	NCA\Instance,
 	NCA\DefineCommand(
 		command: "topic",
-		accessLevel: "all",
+		accessLevel: "guest",
 		description: "Shows Topic",
 	),
 	NCA\DefineCommand(

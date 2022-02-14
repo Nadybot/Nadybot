@@ -18,7 +18,7 @@ use Nadybot\Core\{
 	NCA\Instance,
 	NCA\DefineCommand(
 		command: "implant",
-		accessLevel: "all",
+		accessLevel: "guest",
 		description: "Get information about the QL of an implant",
 	)
 ]

@@ -19,48 +19,48 @@ use Nadybot\Core\{
 	NCA\HasMigrations,
 	NCA\DefineCommand(
 		command: "beer",
-		accessLevel: "all",
+		accessLevel: "guest",
 		description: "Shows a random beer message",
 	),
 	NCA\DefineCommand(
 		command: "brain",
-		accessLevel: "all",
+		accessLevel: "guest",
 		description: "Shows a random pinky and the brain quote",
 		alias: "pinky"
 	),
 	NCA\DefineCommand(
 		command: "chuck",
-		accessLevel: "all",
+		accessLevel: "guest",
 		description: "Shows a random Chuck Norris joke",
 	),
 	NCA\DefineCommand(
 		command: "cybor",
-		accessLevel: "all",
+		accessLevel: "guest",
 		description: "Shows a random cybor message",
 	),
 	NCA\DefineCommand(
 		command: "dwight",
-		accessLevel: "all",
+		accessLevel: "guest",
 		description: "Shows a random Dwight quote",
 	),
 	NCA\DefineCommand(
 		command: "fc",
-		accessLevel: "all",
+		accessLevel: "guest",
 		description: "Shows a random FC quote",
 	),
 	NCA\DefineCommand(
 		command: "homer",
-		accessLevel: "all",
+		accessLevel: "guest",
 		description: "Shows a random homer quote",
 	),
 	NCA\DefineCommand(
 		command: "pirates",
-		accessLevel: "all",
+		accessLevel: "guest",
 		description: "Shows a random Pirates of the Caribbean quote",
 	),
 	NCA\DefineCommand(
 		command: "compliment",
-		accessLevel: "all",
+		accessLevel: "guest",
 		description: "Shows a random compliment",
 	)
 ]

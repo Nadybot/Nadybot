@@ -2,14 +2,16 @@
 
 namespace Nadybot\Modules\RELAY_MODULE\Layer;
 
-use Nadybot\Core\Attributes as NCA;
 use Safe\Exceptions\JsonException;
+use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\LoggerWrapper;
-use Nadybot\Modules\RELAY_MODULE\Relay;
-use Nadybot\Modules\RELAY_MODULE\RelayLayerInterface;
-use Nadybot\Modules\RELAY_MODULE\RelayMessage;
-use Nadybot\Modules\RELAY_MODULE\RelayStatus;
-use Nadybot\Modules\RELAY_MODULE\StatusProvider;
+use Nadybot\Modules\RELAY_MODULE\{
+	Relay,
+	RelayLayerInterface,
+	RelayMessage,
+	RelayStatus,
+	StatusProvider,
+};
 
 #[
 	NCA\RelayStackMember(

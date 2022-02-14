@@ -18,7 +18,7 @@ use Nadybot\Core\{
 	NCA\Instance,
 	NCA\DefineCommand(
 		command: "ding",
-		accessLevel: "all",
+		accessLevel: "guest",
 		description: "Shows a random ding gratz message",
 	)
 ]

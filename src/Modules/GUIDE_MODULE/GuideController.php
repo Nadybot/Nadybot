@@ -22,7 +22,7 @@ use Safe\Exceptions\FilesystemException;
 	NCA\Instance,
 	NCA\DefineCommand(
 		command: "guides",
-		accessLevel: "all",
+		accessLevel: "guest",
 		description: "Guides for AO",
 		alias: "guide"
 	)

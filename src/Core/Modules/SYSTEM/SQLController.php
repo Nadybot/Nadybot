@@ -2,9 +2,9 @@
 
 namespace Nadybot\Core\Modules\SYSTEM;
 
-use Nadybot\Core\Attributes as NCA;
 use Illuminate\Database\Capsule\Manager as Capsule;
 use Nadybot\Core\{
+	Attributes as NCA,
 	AccessManager,
 	CmdContext,
 	CommandManager,

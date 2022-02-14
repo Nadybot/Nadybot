@@ -35,7 +35,7 @@ use Nadybot\Modules\{
 	NCA\Instance,
 	NCA\DefineCommand(
 		command: "loot",
-		accessLevel: "all",
+		accessLevel: "guest",
 		description: "Show the loot list",
 	),
 	NCA\DefineCommand(
@@ -60,13 +60,13 @@ use Nadybot\Modules\{
 	),
 	NCA\DefineCommand(
 		command: "add",
-		accessLevel: "all",
+		accessLevel: "guest",
 		description: "Add yourself to a roll slot",
 	),
 	NCA\DefineCommand(
 		command: "rem",
-		accessLevel: "all",
-		description: "Remove yoruself from a roll slot",
+		accessLevel: "guest",
+		description: "Remove yourself from a roll slot",
 	)
 ]
 class LootController extends ModuleInstance {

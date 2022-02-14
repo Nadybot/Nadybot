@@ -24,7 +24,7 @@ use Nadybot\Core\{
 	NCA\HasMigrations,
 	NCA\DefineCommand(
 		command: "quote",
-		accessLevel: "all",
+		accessLevel: "guest",
 		description: "Add/Remove/View Quotes",
 	)
 ]

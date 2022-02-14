@@ -22,12 +22,12 @@ use Nadybot\Core\{
 	NCA\HasMigrations("Migrations/Roll"),
 	NCA\DefineCommand(
 		command: "random",
-		accessLevel: "all",
+		accessLevel: "guest",
 		description: "Randomize a list of names/items",
 	),
 	NCA\DefineCommand(
 		command: "roll",
-		accessLevel: "all",
+		accessLevel: "guest",
 		description: "Roll a random number",
 	),
 	NCA\DefineCommand(

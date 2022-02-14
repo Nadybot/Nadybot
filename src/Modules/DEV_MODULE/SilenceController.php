@@ -25,12 +25,12 @@ use Nadybot\Core\{
 	NCA\DefineCommand(
 		command: "silence",
 		accessLevel: "mod",
-		description: "Silence commands in a particular channel",
+		description: "Silence commands in a particular permission set",
 	),
 	NCA\DefineCommand(
 		command: "unsilence",
 		accessLevel: "mod",
-		description: "Unsilence commands in a particular channel",
+		description: "Unsilence commands in a particular permission set",
 	)
 ]
 class SilenceController extends ModuleInstance {

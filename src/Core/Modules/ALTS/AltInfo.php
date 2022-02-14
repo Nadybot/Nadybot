@@ -2,17 +2,18 @@
 
 namespace Nadybot\Core\Modules\ALTS;
 
-use Nadybot\Core\Attributes as NCA;
 use Illuminate\Support\Collection;
-use Nadybot\Core\BuddylistManager;
-use Nadybot\Core\DB;
-use Nadybot\Core\DBSchema\Alt;
-use Nadybot\Core\DBSchema\Player;
-use Nadybot\Core\Modules\PLAYER_LOOKUP\PlayerManager;
-use Nadybot\Core\Nadybot;
-use Nadybot\Core\SettingManager;
-use Nadybot\Core\Text;
-use Nadybot\Core\Util;
+use Nadybot\Core\{
+	Attributes as NCA,
+	BuddylistManager,
+	DB,
+	DBSchema\Player,
+	Modules\PLAYER_LOOKUP\PlayerManager,
+	Nadybot,
+	SettingManager,
+	Text,
+	Util,
+};
 use Nadybot\Modules\ONLINE_MODULE\OnlineController;
 
 class AltInfo {

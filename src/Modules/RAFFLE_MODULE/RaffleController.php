@@ -30,12 +30,12 @@ use Nadybot\Modules\RAID_MODULE\RaidController;
 	NCA\HasMigrations,
 	NCA\DefineCommand(
 		command: "raffle",
-		accessLevel: "all",
+		accessLevel: "guest",
 		description: "Join or leave raffles",
 	),
 	NCA\DefineCommand(
 		command: RaffleController::CMD_RAFFLE_MANAGE,
-		accessLevel: "all",
+		accessLevel: "guest",
 		description: "Raffle off items to players",
 	),
 	NCA\ProvidesEvent("raffle(start)"),

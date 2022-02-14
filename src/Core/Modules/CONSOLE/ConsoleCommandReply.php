@@ -2,16 +2,18 @@
 
 namespace Nadybot\Core\Modules\CONSOLE;
 
-use Nadybot\Core\Attributes as NCA;
-use Nadybot\Core\CommandReply;
-use Nadybot\Core\ConfigFile;
-use Nadybot\Core\MessageEmitter;
-use Nadybot\Core\MessageHub;
-use Nadybot\Core\Nadybot;
-use Nadybot\Core\Routing\Character;
-use Nadybot\Core\Routing\RoutableMessage;
-use Nadybot\Core\Routing\Source;
-use Nadybot\Core\SettingManager;
+use Nadybot\Core\{
+	Attributes as NCA,
+	CommandReply,
+	ConfigFile,
+	MessageEmitter,
+	MessageHub,
+	Nadybot,
+	Routing\Character,
+	Routing\RoutableMessage,
+	Routing\Source,
+	SettingManager,
+};
 
 class ConsoleCommandReply implements CommandReply, MessageEmitter {
 	private Nadybot $chatBot;

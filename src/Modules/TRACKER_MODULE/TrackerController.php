@@ -48,7 +48,7 @@ use Throwable;
 	NCA\HasMigrations,
 	NCA\DefineCommand(
 		command: "track",
-		accessLevel: "all",
+		accessLevel: "member",
 		description: "Show and manage tracked players",
 	),
 	NCA\ProvidesEvent("tracker(logon)"),

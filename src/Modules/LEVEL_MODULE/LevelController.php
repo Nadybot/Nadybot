@@ -21,18 +21,18 @@ use Nadybot\Core\{
 	NCA\HasMigrations,
 	NCA\DefineCommand(
 		command: "level",
-		accessLevel: "all",
+		accessLevel: "guest",
 		description: "Show level ranges",
 	),
 	NCA\DefineCommand(
 		command: "missions",
-		accessLevel: "all",
+		accessLevel: "guest",
 		description: "Shows what ql missions a character can roll",
 		alias: "mission"
 	),
 	NCA\DefineCommand(
 		command: "xp",
-		accessLevel: "all",
+		accessLevel: "guest",
 		description: "Show xp/sk needed for specified level(s)",
 		alias: "sk"
 	)

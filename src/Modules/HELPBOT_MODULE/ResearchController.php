@@ -19,7 +19,7 @@ use Nadybot\Core\{
 	NCA\HasMigrations("Migrations/Research"),
 	NCA\DefineCommand(
 		command: "research",
-		accessLevel: "all",
+		accessLevel: "guest",
 		description: "Show info on Research",
 	)
 ]

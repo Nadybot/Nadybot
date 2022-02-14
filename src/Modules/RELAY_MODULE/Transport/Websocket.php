@@ -2,9 +2,9 @@
 
 namespace Nadybot\Modules\RELAY_MODULE\Transport;
 
-use Nadybot\Core\Attributes as NCA;
 use Exception;
 use Nadybot\Core\{
+	Attributes as NCA,
 	LoggerWrapper,
 	Nadybot,
 	Timer,

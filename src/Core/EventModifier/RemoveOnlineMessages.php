@@ -2,9 +2,11 @@
 
 namespace Nadybot\Core\EventModifier;
 
-use Nadybot\Core\Attributes as NCA;
-use Nadybot\Core\Routing\Events\Online;
-use Nadybot\Core\Routing\Source;
+use Nadybot\Core\{
+	Attributes as NCA,
+	Routing\Events\Online,
+	Routing\Source,
+};
 
 #[
 	NCA\EventModifier(

@@ -30,7 +30,7 @@ use Nadybot\Modules\ORGLIST_MODULE\OrglistController;
 	NCA\HasMigrations("Migrations/RankMapping"),
 	NCA\DefineCommand(
 		command: "ranks",
-		accessLevel: "all",
+		accessLevel: "guest",
 		description: "Show a list of all available org ranks",
 	),
 	NCA\DefineCommand(

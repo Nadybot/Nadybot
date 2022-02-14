@@ -26,7 +26,7 @@ use Safe\Exceptions\DatetimeException;
 	NCA\HasMigrations("Migrations/Arbiter"),
 	NCA\DefineCommand(
 		command: "arbiter",
-		accessLevel: "all",
+		accessLevel: "guest",
 		description: "Show current arbiter mission",
 		alias: "icc",
 	),

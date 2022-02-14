@@ -22,7 +22,7 @@ use Nadybot\Core\{
 	NCA\Instance,
 	NCA\DefineCommand(
 		command: "cmdsearch",
-		accessLevel: "all",
+		accessLevel: "guest",
 		description: "Finds commands based on key words",
 		defaultStatus: 1,
 		alias: "searchcmd"

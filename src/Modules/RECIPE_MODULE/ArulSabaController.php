@@ -30,7 +30,7 @@ use Nadybot\Modules\ITEMS_MODULE\{
 	NCA\HasMigrations("Migrations/ArulSaba"),
 	NCA\DefineCommand(
 		command: "arulsaba",
-		accessLevel: "all",
+		accessLevel: "guest",
 		description: "Get recipe for Arul Saba bracers",
 		alias: "aruls"
 	)

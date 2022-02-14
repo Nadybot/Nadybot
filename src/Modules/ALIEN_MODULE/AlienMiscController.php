@@ -2,17 +2,17 @@
 
 namespace Nadybot\Modules\ALIEN_MODULE;
 
-use Nadybot\Core\Attributes as NCA;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
+	Attributes as NCA,
 	CmdContext,
 	DB,
 	ModuleInstance,
 	LoggerWrapper,
+	ParamClass\PWord,
 	Text,
 	Util,
 };
-use Nadybot\Core\ParamClass\PWord;
 use Nadybot\Modules\ITEMS_MODULE\ItemsController;
 
 /**
@@ -27,23 +27,23 @@ use Nadybot\Modules\ITEMS_MODULE\ItemsController;
 	NCA\HasMigrations("Migrations/Misc"),
 	NCA\DefineCommand(
 		command: "leprocs",
-		accessLevel: "all",
+		accessLevel: "guest",
 		description: "Shows each profession's LE procs",
 		alias: "leproc"
 	),
 	NCA\DefineCommand(
 		command: "ofabarmor",
-		accessLevel: "all",
+		accessLevel: "guest",
 		description: "Shows ofab armors available to a given profession and their VP cost",
 	),
 	NCA\DefineCommand(
 		command: "ofabweapons",
-		accessLevel: "all",
+		accessLevel: "guest",
 		description: "Shows Ofab weapons, their marks, and VP cost",
 	),
 	NCA\DefineCommand(
 		command: "aigen",
-		accessLevel: "all",
+		accessLevel: "guest",
 		description: "Shows info about Alien City Generals",
 	)
 ]

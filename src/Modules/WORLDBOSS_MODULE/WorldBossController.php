@@ -34,12 +34,12 @@ use Nadybot\Core\{
 	NCA\HasMigrations,
 	NCA\DefineCommand(
 		command: "wb",
-		accessLevel: "all",
+		accessLevel: "guest",
 		description: "Show next spawntime(s)",
 	),
 	NCA\DefineCommand(
 		command: "tara",
-		accessLevel: "all",
+		accessLevel: "guest",
 		description: "Show next Tarasque spawntime(s)",
 	),
 	NCA\DefineCommand(
@@ -49,7 +49,7 @@ use Nadybot\Core\{
 	),
 	NCA\DefineCommand(
 		command: "reaper",
-		accessLevel: "all",
+		accessLevel: "guest",
 		description: "Show next Reaper spawntime(s)",
 	),
 	NCA\DefineCommand(
@@ -59,7 +59,7 @@ use Nadybot\Core\{
 	),
 	NCA\DefineCommand(
 		command: "loren",
-		accessLevel: "all",
+		accessLevel: "guest",
 		description: "Show next Loren Warr spawntime(s)",
 	),
 	NCA\DefineCommand(
@@ -69,7 +69,7 @@ use Nadybot\Core\{
 	),
 	NCA\DefineCommand(
 		command: "gauntlet",
-		accessLevel: "all",
+		accessLevel: "guest",
 		description: "shows timer of Gauntlet",
 	),
 	NCA\DefineCommand(
@@ -79,7 +79,7 @@ use Nadybot\Core\{
 	),
 	NCA\DefineCommand(
 		command: "father",
-		accessLevel: "all",
+		accessLevel: "guest",
 		description: "shows timer of Father Time",
 	),
 	NCA\DefineCommand(

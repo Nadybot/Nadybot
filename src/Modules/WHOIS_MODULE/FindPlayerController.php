@@ -18,7 +18,7 @@ use Nadybot\Core\{
 	NCA\Instance,
 	NCA\DefineCommand(
 		command: "findplayer",
-		accessLevel: "all",
+		accessLevel: "guest",
 		description: "Find a player by name",
 	)
 ]

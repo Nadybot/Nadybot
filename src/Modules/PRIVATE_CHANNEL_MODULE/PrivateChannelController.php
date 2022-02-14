@@ -59,7 +59,7 @@ use Safe\Exceptions\FilesystemException;
 	NCA\HasMigrations,
 	NCA\DefineCommand(
 		command: "members",
-		accessLevel: "all",
+		accessLevel: "member",
 		description: "Member list",
 	),
 	NCA\DefineCommand(
@@ -86,7 +86,7 @@ use Safe\Exceptions\FilesystemException;
 	),
 	NCA\DefineCommand(
 		command: "count",
-		accessLevel: "all",
+		accessLevel: "guest",
 		description: "Shows how many characters are in the private channel",
 	),
 	NCA\DefineCommand(

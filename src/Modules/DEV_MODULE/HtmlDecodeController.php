@@ -16,7 +16,7 @@ use Nadybot\Core\{
 	NCA\Instance,
 	NCA\DefineCommand(
 		command: "htmldecode",
-		accessLevel: "all",
+		accessLevel: "guest",
 		description: "Execute a command by first decoding html entities",
 	)
 ]

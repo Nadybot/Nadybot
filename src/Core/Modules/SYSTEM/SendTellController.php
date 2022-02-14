@@ -2,8 +2,8 @@
 
 namespace Nadybot\Core\Modules\SYSTEM;
 
-use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{
+	Attributes as NCA,
 	CmdContext,
 	ModuleInstance,
 	LoggerWrapper,

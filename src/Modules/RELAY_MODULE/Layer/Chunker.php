@@ -3,15 +3,19 @@
 namespace Nadybot\Modules\RELAY_MODULE\Layer;
 
 use InvalidArgumentException;
-use Nadybot\Core\Attributes as NCA;
-use Nadybot\Core\LoggerWrapper;
-use Nadybot\Core\Timer;
-use Nadybot\Core\TimerEvent;
-use Nadybot\Core\Util;
-use Nadybot\Modules\RELAY_MODULE\Layer\Chunker\Chunk;
-use Nadybot\Modules\RELAY_MODULE\Relay;
-use Nadybot\Modules\RELAY_MODULE\RelayLayerInterface;
-use Nadybot\Modules\RELAY_MODULE\RelayMessage;
+use Nadybot\Core\{
+	Attributes as NCA,
+	LoggerWrapper,
+	Timer,
+	TimerEvent,
+	Util,
+};
+use Nadybot\Modules\RELAY_MODULE\{
+	Layer\Chunker\Chunk,
+	Relay,
+	RelayLayerInterface,
+	RelayMessage,
+};
 use Throwable;
 
 #[

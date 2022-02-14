@@ -2,10 +2,12 @@
 
 namespace Nadybot\Modules\DEV_MODULE;
 
-use Nadybot\Core\Attributes as NCA;
-use Nadybot\Core\CmdContext;
-use Nadybot\Core\ModuleInstance;
-use Nadybot\Core\Util;
+use Nadybot\Core\{
+	Attributes as NCA,
+	CmdContext,
+	ModuleInstance,
+	Util,
+};
 
 /**
  * @author Tyrence (RK2)
@@ -14,7 +16,7 @@ use Nadybot\Core\Util;
 	NCA\Instance,
 	NCA\DefineCommand(
 		command: "unixtime",
-		accessLevel: "all",
+		accessLevel: "guest",
 		description: "Show the date and time for a unix timestamp",
 	)
 ]

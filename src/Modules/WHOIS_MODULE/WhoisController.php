@@ -33,12 +33,12 @@ use Nadybot\Modules\COMMENT_MODULE\CommentController;
 	NCA\HasMigrations,
 	NCA\DefineCommand(
 		command: "whois",
-		accessLevel: "member",
+		accessLevel: "guest",
 		description: "Show character info, online status, and name history",
 	),
 	NCA\DefineCommand(
 		command: "lookup",
-		accessLevel: "all",
+		accessLevel: "guest",
 		description: "Find the charId for a character",
 	)
 ]

@@ -32,7 +32,7 @@ use Nadybot\Core\{
 	NCA\HasMigrations,
 	NCA\DefineCommand(
 		command: "radio",
-		accessLevel: "all",
+		accessLevel: "guest",
 		description: "List what is currently playing on GridStream",
 		alias: "gsp"
 	),

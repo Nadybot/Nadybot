@@ -16,7 +16,7 @@ use Nadybot\Core\{
 	NCA\Instance,
 	NCA\DefineCommand(
 		command: "axp",
-		accessLevel: "all",
+		accessLevel: "guest",
 		description: "Show axp needed for specified level(s)",
 	)
 ]

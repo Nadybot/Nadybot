@@ -25,7 +25,7 @@ use Nadybot\Modules\ITEMS_MODULE\{
 	NCA\HasMigrations("Migrations/Premade"),
 	NCA\DefineCommand(
 		command: "premade",
-		accessLevel: "all",
+		accessLevel: "guest",
 		description: "Searches for implants out of the premade implants booths",
 	)
 ]

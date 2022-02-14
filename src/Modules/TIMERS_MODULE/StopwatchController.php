@@ -20,7 +20,7 @@ use Nadybot\Core\{
 	NCA\Instance,
 	NCA\DefineCommand(
 		command: "stopwatch",
-		accessLevel: "all",
+		accessLevel: "guest",
 		description: "stop time difference(s)",
 		alias: "sw"
 	)

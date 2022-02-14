@@ -2,19 +2,23 @@
 
 namespace Nadybot\Modules\WEBSOCKET_MODULE;
 
-use Nadybot\Core\Attributes as NCA;
-use Nadybot\Core\CommandReply;
-use Nadybot\Core\EventManager;
-use Nadybot\Core\MessageEmitter;
-use Nadybot\Core\MessageHub;
-use Nadybot\Core\Nadybot;
-use Nadybot\Core\Routing\Character;
-use Nadybot\Core\Routing\RoutableMessage;
-use Nadybot\Core\Routing\Source;
-use Nadybot\Core\SettingManager;
-use Nadybot\Modules\WEBSERVER_MODULE\AOWebChatEvent;
-use Nadybot\Modules\WEBSERVER_MODULE\WebChatConverter;
-use Nadybot\Modules\WEBSERVER_MODULE\WebSource;
+use Nadybot\Core\{
+	Attributes as NCA,
+	CommandReply,
+	EventManager,
+	MessageEmitter,
+	MessageHub,
+	Nadybot,
+	Routing\Character,
+	Routing\RoutableMessage,
+	Routing\Source,
+	SettingManager,
+};
+use Nadybot\Modules\WEBSERVER_MODULE\{
+	AOWebChatEvent,
+	WebChatConverter,
+	WebSource,
+};
 
 class WebsocketCommandReply implements CommandReply, MessageEmitter {
 	#[NCA\Inject]

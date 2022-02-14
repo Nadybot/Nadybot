@@ -35,12 +35,12 @@ use Nadybot\Core\{
 	NCA\HasMigrations,
 	NCA\DefineCommand(
 		command: "vote",
-		accessLevel: "all",
+		accessLevel: "member",
 		description: "Vote in polls",
 	),
 	NCA\DefineCommand(
 		command: "poll",
-		accessLevel: "all",
+		accessLevel: "member",
 		description: "Create, view or delete polls",
 		alias: 'polls'
 	),

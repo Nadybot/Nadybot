@@ -19,11 +19,11 @@ use Nadybot\Core\{
 	Util,
 };
 use Nadybot\Modules\ITEMS_MODULE\{
+	ExtBuff,
+	ItemsController,
 	Skill,
 	WhatBuffsController,
 };
-use Nadybot\Modules\ITEMS_MODULE\ExtBuff;
-use Nadybot\Modules\ITEMS_MODULE\ItemsController;
 use Nadybot\Modules\NANO_MODULE\NanoController;
 use Throwable;
 
@@ -36,7 +36,7 @@ use Throwable;
 	NCA\HasMigrations("Migrations/Perks"),
 	NCA\DefineCommand(
 		command: "perks",
-		accessLevel: "all",
+		accessLevel: "guest",
 		description: "Show buff perks",
 	)
 ]

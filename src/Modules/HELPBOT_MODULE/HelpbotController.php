@@ -23,17 +23,17 @@ use Nadybot\Core\{
 	NCA\HasMigrations("Migrations/Dyna"),
 	NCA\DefineCommand(
 		command: "dyna",
-		accessLevel: "all",
+		accessLevel: "guest",
 		description: "Search for RK Dynabosses",
 	),
 	NCA\DefineCommand(
 		command: "oe",
-		accessLevel: "all",
+		accessLevel: "guest",
 		description: "Over-equipped calculation",
 	),
 	NCA\DefineCommand(
 		command: "calc",
-		accessLevel: "all",
+		accessLevel: "guest",
 		description: "Calculator",
 	)
 ]

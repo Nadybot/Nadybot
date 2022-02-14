@@ -37,27 +37,27 @@ use Nadybot\Modules\{
 	NCA\HasMigrations,
 	NCA\DefineCommand(
 		command: "alb",
-		accessLevel: "all",
+		accessLevel: "guest",
 		description: "Shows possible Albtraum loots",
 	),
 	NCA\DefineCommand(
 		command: "db1",
-		accessLevel: "all",
+		accessLevel: "guest",
 		description: "Shows possible DB1 Armor/NCUs/Programs",
 	),
 	NCA\DefineCommand(
 		command: "db2",
-		accessLevel: "all",
+		accessLevel: "guest",
 		description: "Shows possible DB2 Armor",
 	),
 	NCA\DefineCommand(
 		command: "db3",
-		accessLevel: "all",
+		accessLevel: "guest",
 		description: "Shows possible DB3 Loot",
 	),
 	NCA\DefineCommand(
 		command: "7",
-		accessLevel: "all",
+		accessLevel: "guest",
 		description: "Shows the Sector 7 loot list",
 	),
 	NCA\DefineCommand(
@@ -77,57 +77,57 @@ use Nadybot\Modules\{
 	),
 	NCA\DefineCommand(
 		command: "apf",
-		accessLevel: "all",
+		accessLevel: "guest",
 		description: "Shows what drops off APF Bosses",
 	),
 	NCA\DefineCommand(
 		command: "beast",
-		accessLevel: "all",
+		accessLevel: "guest",
 		description: "Shows Beast loot",
 	),
 	NCA\DefineCommand(
 		command: "pande",
-		accessLevel: "all",
+		accessLevel: "guest",
 		description: "Shows Pandemonium bosses and loot categories",
 	),
 	NCA\DefineCommand(
 		command: "vortexx",
-		accessLevel: "all",
+		accessLevel: "guest",
 		description: "Shows possible Vortexx Loot",
 	),
 	NCA\DefineCommand(
 		command: "mitaar",
-		accessLevel: "all",
+		accessLevel: "guest",
 		description: "Shows possible Mitaar Hero Loot",
 	),
 	NCA\DefineCommand(
 		command: "12m",
-		accessLevel: "all",
+		accessLevel: "guest",
 		description: "Shows possible 12 man Loot",
 	),
 	NCA\DefineCommand(
 		command: "poh",
-		accessLevel: "all",
+		accessLevel: "guest",
 		description: "Shows possible Pyramid of Home loot",
 	),
 	NCA\DefineCommand(
 		command: "totw",
-		accessLevel: "all",
+		accessLevel: "guest",
 		description: "Shows possible TOTW 201+ loot",
 	),
 	NCA\DefineCommand(
 		command: "halloween",
-		accessLevel: "all",
+		accessLevel: "guest",
 		description: "Shows possible Halloween loot",
 	),
 	NCA\DefineCommand(
 		command: "subway",
-		accessLevel: "all",
+		accessLevel: "guest",
 		description: "Shows possible Subway 201+",
 	),
 	NCA\DefineCommand(
 		command: "lox",
-		accessLevel: "all",
+		accessLevel: "guest",
 		description: "Shows Legacy of the Xan loot categories",
 	)
 ]

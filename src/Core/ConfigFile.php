@@ -4,9 +4,11 @@ namespace Nadybot\Core;
 
 use Exception;
 use Nadybot\Core\Attributes\Instance;
-use Spatie\DataTransferObject\Attributes\MapFrom;
-use Spatie\DataTransferObject\Attributes\MapTo;
-use Spatie\DataTransferObject\DataTransferObject;
+use Spatie\DataTransferObject\{
+	Attributes\MapFrom,
+	Attributes\MapTo,
+	DataTransferObject,
+};
 
 /**
  * The ConfigFile class provides convenient interface for reading and saving

@@ -28,7 +28,7 @@ use Nadybot\Core\{
 	NCA\Instance,
 	NCA\DefineCommand(
 		command: "orglist",
-		accessLevel: "guild",
+		accessLevel: "member",
 		description: "Check an org roster",
 	)
 ]

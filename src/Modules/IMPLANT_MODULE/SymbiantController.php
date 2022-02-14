@@ -27,12 +27,12 @@ use Nadybot\Modules\ITEMS_MODULE\{
 	NCA\Instance,
 	NCA\DefineCommand(
 		command: "bestsymbiants",
-		accessLevel: "all",
+		accessLevel: "guest",
 		description: "Shows the best symbiants for the slots",
 	),
 	NCA\DefineCommand(
 		command: "symbcompare",
-		accessLevel: "all",
+		accessLevel: "guest",
 		description: "Compare symbiants with each other",
 	)
 ]

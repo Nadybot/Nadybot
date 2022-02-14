@@ -2,21 +2,23 @@
 
 namespace Nadybot\Modules\DISCORD_GATEWAY_MODULE\Migrations;
 
-use Nadybot\Core\Attributes as NCA;
 use Exception;
-use Nadybot\Core\ConfigFile;
-use Nadybot\Core\DB;
-use Nadybot\Core\DBSchema\Route;
-use Nadybot\Core\DBSchema\RouteHopColor;
-use Nadybot\Core\DBSchema\RouteModifier;
-use Nadybot\Core\DBSchema\Setting;
-use Nadybot\Core\LoggerWrapper;
-use Nadybot\Core\MessageHub;
-use Nadybot\Core\Modules\DISCORD\DiscordChannel;
-use Nadybot\Core\Modules\DISCORD\DiscordController;
-use Nadybot\Core\Routing\Source;
-use Nadybot\Core\SchemaMigration;
-use Nadybot\Core\SettingManager;
+use Nadybot\Core\{
+	Attributes as NCA,
+	ConfigFile,
+	DB,
+	DBSchema\Route,
+	DBSchema\RouteHopColor,
+	DBSchema\RouteModifier,
+	DBSchema\Setting,
+	LoggerWrapper,
+	MessageHub,
+	Modules\DISCORD\DiscordChannel,
+	Modules\DISCORD\DiscordController,
+	Routing\Source,
+	SchemaMigration,
+	SettingManager,
+};
 
 class MigrateToRoutes implements SchemaMigration {
 	#[NCA\Inject]

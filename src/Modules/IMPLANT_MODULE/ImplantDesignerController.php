@@ -22,7 +22,7 @@ use Nadybot\Core\{
 	NCA\HasMigrations("Migrations/Designer"),
 	NCA\DefineCommand(
 		command: "implantdesigner",
-		accessLevel: "all",
+		accessLevel: "guest",
 		description: "Implant Designer",
 		alias: "impdesign"
 	)

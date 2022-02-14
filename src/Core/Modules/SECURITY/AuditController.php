@@ -2,10 +2,10 @@
 
 namespace Nadybot\Core\Modules\SECURITY;
 
-use Nadybot\Core\Attributes as NCA;
 use DateTime;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
+	Attributes as NCA,
 	AccessManager,
 	CmdContext,
 	DB,

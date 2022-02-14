@@ -2,16 +2,18 @@
 
 namespace Nadybot\Modules\PRIVATE_CHANNEL_MODULE\Migrations;
 
-use Nadybot\Core\Attributes as NCA;
-use Nadybot\Core\ConfigFile;
-use Nadybot\Core\DB;
-use Nadybot\Core\DBSchema\RouteHopColor;
-use Nadybot\Core\DBSchema\Setting;
-use Nadybot\Core\LoggerWrapper;
-use Nadybot\Core\MessageHub;
-use Nadybot\Core\Routing\Source;
-use Nadybot\Core\SchemaMigration;
-use Nadybot\Core\SettingManager;
+use Nadybot\Core\{
+	Attributes as NCA,
+	ConfigFile,
+	DB,
+	DBSchema\RouteHopColor,
+	DBSchema\Setting,
+	LoggerWrapper,
+	MessageHub,
+	Routing\Source,
+	SchemaMigration,
+	SettingManager,
+};
 
 class MoveSettingsToHopColors implements SchemaMigration {
 	#[NCA\Inject]

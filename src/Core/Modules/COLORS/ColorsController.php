@@ -2,9 +2,11 @@
 
 namespace Nadybot\Core\Modules\COLORS;
 
-use Nadybot\Core\Attributes as NCA;
-use Nadybot\Core\ModuleInstance;
-use Nadybot\Core\SettingManager;
+use Nadybot\Core\{
+	Attributes as NCA,
+	ModuleInstance,
+	SettingManager,
+};
 
 #[NCA\Instance]
 class ColorsController extends ModuleInstance {

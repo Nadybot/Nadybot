@@ -4,9 +4,9 @@ namespace Nadybot\Modules\RELAY_MODULE\RelayProtocol;
 
 use Closure;
 use JsonMapper;
-use Nadybot\Core\Attributes as NCA;
 use Safe\Exceptions\JsonException;
 use Nadybot\Core\{
+	Attributes as NCA,
 	ConfigFile,
 	EventManager,
 	LoggerWrapper,

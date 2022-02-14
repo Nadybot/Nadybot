@@ -2,8 +2,8 @@
 
 namespace Nadybot\Core\Modules\LIMITS;
 
-use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{
+	Attributes as NCA,
 	AccessManager,
 	CmdEvent,
 	CommandHandler,

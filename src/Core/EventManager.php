@@ -4,14 +4,16 @@ namespace Nadybot\Core;
 
 use Exception;
 use Closure;
-use Nadybot\Core\Attributes as NCA;
-use Nadybot\Core\DBSchema\EventCfg;
-use Nadybot\Core\Modules\MESSAGES\MessageHubController;
 use ReflectionFunction;
 use ReflectionFunctionAbstract;
 use ReflectionMethod;
 use ReflectionNamedType;
 use Throwable;
+use Nadybot\Core\{
+	Attributes as NCA,
+	DBSchema\EventCfg,
+	Modules\MESSAGES\MessageHubController,
+};
 
 #[NCA\Instance]
 class EventManager {

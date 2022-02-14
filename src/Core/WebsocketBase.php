@@ -2,11 +2,13 @@
 
 namespace Nadybot\Core;
 
-use Nadybot\Core\Attributes as NCA;
 use Exception;
 use InvalidArgumentException;
-use Nadybot\Core\Socket\ShutdownRequest;
-use Nadybot\Core\Socket\WriteClosureInterface;
+use Nadybot\Core\{
+	Attributes as NCA,
+	Socket\ShutdownRequest,
+	Socket\WriteClosureInterface,
+};
 
 class WebsocketBase {
 	public const GUID            = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
