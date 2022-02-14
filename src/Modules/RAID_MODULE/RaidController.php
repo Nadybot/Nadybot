@@ -21,6 +21,7 @@ use Nadybot\Core\{
 	Nadybot,
 	ParamClass\PCharacter,
 	ParamClass\PWord,
+	Registry,
 	SettingManager,
 	Text,
 	Timer,
@@ -31,6 +32,7 @@ use Nadybot\Modules\{
 	COMMENT_MODULE\CommentCategory,
 	COMMENT_MODULE\CommentController,
 	ONLINE_MODULE\OnlineController,
+	WEBSERVER_MODULE\StatsController,
 };
 
 /**
@@ -114,6 +116,9 @@ class RaidController extends ModuleInstance {
 
 	#[NCA\Inject]
 	public ChatAssistController $chatAssistController;
+
+	#[NCA\Inject]
+	public StatsController $statsController;
 
 	/**
 	 * The currently running raid or null if none running
@@ -206,6 +211,12 @@ class RaidController extends ModuleInstance {
 			accessLevel: 'raid_admin_2'
 		);
 		$this->timer->callLater(0, [$this, 'resumeRaid']);
+		$stateStats = new RaidStateStats();
+		Registry::injectDependencies($stateStats);
+		$this->statsController->registerProvider($stateStats, "states");
+		$raidStats = new RaidMemberStats("raid");
+		Registry::injectDependencies($raidStats);
+		$this->statsController->registerDataset($raidStats, "raid");
 	}
 
 	public function getRaidCategory(): CommentCategory {

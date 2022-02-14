@@ -23,6 +23,7 @@ class WebsocketBase {
 	public const ON_CLOSE = "close";
 	public const ON_PING = "ping";
 	public const ON_ERROR = "error";
+	public const ON_WRITE = "write";
 
 	public const ALLOWED_EVENTS = [
 		self::ON_CONNECT,
@@ -30,6 +31,7 @@ class WebsocketBase {
 		self::ON_BINARY,
 		self::ON_CLOSE,
 		self::ON_PING,
+		self::ON_WRITE,
 		self::ON_ERROR,
 	];
 
@@ -200,6 +202,9 @@ class WebsocketBase {
 	}
 
 	protected function write(string $data): bool {
+		$event = $this->getEvent();
+		$event->data = $data;
+		$this->fireEvent(self::ON_WRITE, $event);
 		$uri = ($this->uri ?? $this->peerName);
 		if (strlen($data) === 0 || !is_resource($this->socket)) {
 			return true;

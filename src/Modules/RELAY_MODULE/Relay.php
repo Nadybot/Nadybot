@@ -21,6 +21,7 @@ use Nadybot\Modules\{
 	ONLINE_MODULE\OnlinePlayer,
 	RELAY_MODULE\RelayProtocol\RelayProtocolInterface,
 	RELAY_MODULE\Transport\TransportInterface,
+	WEBSERVER_MODULE\StatsController,
 };
 
 class Relay implements MessageReceiver {
@@ -46,8 +47,14 @@ class Relay implements MessageReceiver {
 	#[NCA\Inject]
 	public Timer $timer;
 
+	#[NCA\Inject]
+	public StatsController $statsController;
+
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
+
+	private RelayPacketsStats $inboundPackets;
+	private RelayPacketsStats $outboundPackets;
 
 	/** Name of this relay */
 	protected string $name;
@@ -222,6 +229,11 @@ class Relay implements MessageReceiver {
 		$this->transport = $transport;
 		$this->relayProtocol = $relayProtocol;
 		$this->stack = $stack;
+		$basename = basename(str_replace('\\', '/', get_class($relayProtocol)));
+		$this->inboundPackets = new RelayPacketsStats($basename, $this->getName(), "in");
+		$this->outboundPackets = new RelayPacketsStats($basename, $this->getName(), "out");
+		$this->statsController->registerProvider($this->inboundPackets, "relay");
+		$this->statsController->registerProvider($this->outboundPackets, "relay");
 	}
 
 	public function deinit(?callable $callback=null, int $index=0): void {
@@ -333,6 +345,7 @@ class Relay implements MessageReceiver {
 	 * Handle data received from the transport layer
 	 */
 	public function receiveFromTransport(RelayMessage $data): void {
+		$this->inboundPackets->inc();
 		foreach ($this->stack as $stackMember) {
 			$data = $stackMember->receive($data);
 			if (!isset($data)) {
@@ -384,6 +397,7 @@ class Relay implements MessageReceiver {
 		for ($i = count($this->stack); $i--;) {
 			$data = $this->stack[$i]->send($data);
 		}
+		$this->outboundPackets->inc(count($data));
 		return empty($this->transport->send($data));
 	}
 
@@ -400,6 +414,7 @@ class Relay implements MessageReceiver {
 		for ($j = $i; $j--;) {
 			$data = $this->stack[$j]->send($data);
 		}
+		$this->outboundPackets->inc(count($data));
 		$this->transport->send($data);
 	}
 
