@@ -2,9 +2,11 @@
 
 namespace Nadybot\Core;
 
-use Nadybot\Core\Attributes as NCA;
-use Nadybot\Core\Modules\CONFIG\ConfigController;
-use Nadybot\Core\DBSchema\HelpTopic;
+use Nadybot\Core\{
+	Attributes as NCA,
+	Modules\CONFIG\ConfigController,
+	DBSchema\HelpTopic,
+};
 
 #[NCA\Instance]
 class HelpManager {

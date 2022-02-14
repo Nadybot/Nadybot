@@ -32,12 +32,12 @@ use Nadybot\Modules\SKILLS_MODULE\{
 	NCA\HasMigrations("Migrations/Buff"),
 	NCA\DefineCommand(
 		command: "whatbuffs",
-		accessLevel: "all",
+		accessLevel: "guest",
 		description: "Find items or nanos that buff an ability or skill",
 	),
 	NCA\DefineCommand(
 		command: "whatbuffsfroob",
-		accessLevel: "all",
+		accessLevel: "guest",
 		description: "Find froob-friendly items or nanos that buff an ability or skill",
 		alias: "wbf"
 	)

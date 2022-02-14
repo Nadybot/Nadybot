@@ -2,8 +2,8 @@
 
 namespace Nadybot\Modules\WORLDBOSS_MODULE\Migrations\Gauntlet;
 
-use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{
+	Attributes as NCA,
 	DB,
 	DBSchema\Route,
 	LoggerWrapper,
@@ -11,9 +11,11 @@ use Nadybot\Core\{
 	Routing\Character,
 	SchemaMigration,
 };
-use Nadybot\Modules\TIMERS_MODULE\TimerController;
-use Nadybot\Modules\WORLDBOSS_MODULE\GauntletInventoryController;
-use Nadybot\Modules\WORLDBOSS_MODULE\WorldBossController;
+use Nadybot\Modules\{
+	TIMERS_MODULE\TimerController,
+	WORLDBOSS_MODULE\GauntletInventoryController,
+	WORLDBOSS_MODULE\WorldBossController,
+};
 use stdClass;
 
 class MigrateGauntletData implements SchemaMigration {

@@ -21,13 +21,13 @@ use Nadybot\Core\{
 	NCA\HasMigrations("Migrations/Pocketboss"),
 	NCA\DefineCommand(
 		command: "pocketboss",
-		accessLevel: "all",
+		accessLevel: "guest",
 		description: "Shows what symbiants a pocketboss drops",
 		alias: "pb"
 	),
 	NCA\DefineCommand(
 		command: "symbiant",
-		accessLevel: "all",
+		accessLevel: "guest",
 		description: "Shows which pocketbosses drop a symbiant",
 		alias: "symb"
 	)

@@ -24,7 +24,7 @@ use Nadybot\Modules\ITEMS_MODULE\Skill;
 	NCA\HasMigrations,
 	NCA\DefineCommand(
 		command: "whatlocks",
-		accessLevel: "all",
+		accessLevel: "guest",
 		description: "List skills locked by using items",
 	)
 ]

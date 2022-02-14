@@ -2,18 +2,20 @@
 
 namespace Nadybot\Core;
 
-use Nadybot\Core\Attributes as NCA;
 use Exception;
 use Illuminate\Support\Collection;
 use JsonException;
-use Nadybot\Core\DBSchema\Route;
-use Nadybot\Core\Routing\RoutableEvent;
-use Nadybot\Core\Routing\Source;
-use Nadybot\Core\DBSchema\RouteHopColor;
-use Nadybot\Core\DBSchema\RouteHopFormat;
 use ReflectionException;
 use ReflectionMethod;
 use Throwable;
+use Nadybot\Core\{
+	Attributes as NCA,
+	DBSchema\Route,
+	Routing\RoutableEvent,
+	Routing\Source,
+	DBSchema\RouteHopColor,
+	DBSchema\RouteHopFormat,
+};
 
 #[NCA\Instance]
 class MessageHub {

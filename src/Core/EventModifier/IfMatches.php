@@ -2,10 +2,12 @@
 
 namespace Nadybot\Core\EventModifier;
 
-use Nadybot\Core\Attributes as NCA;
 use Exception;
-use Nadybot\Core\EventModifier;
-use Nadybot\Core\Routing\RoutableEvent;
+use Nadybot\Core\{
+	Attributes as NCA,
+	EventModifier,
+	Routing\RoutableEvent,
+};
 
 #[
 	NCA\EventModifier(

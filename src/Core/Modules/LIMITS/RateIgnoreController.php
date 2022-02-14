@@ -24,7 +24,7 @@ use Nadybot\Core\{
 	NCA\HasMigrations,
 	NCA\DefineCommand(
 		command: "rateignore",
-		accessLevel: "all",
+		accessLevel: "mod",
 		description: "Add players to the rate limit ignore list to bypass limits check",
 		defaultStatus: 1
 	)

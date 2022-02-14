@@ -20,7 +20,7 @@ use Nadybot\Core\{
 	NCA\HasMigrations("Migrations/Base"),
 	NCA\DefineCommand(
 		command: "ladder",
-		accessLevel: "all",
+		accessLevel: "guest",
 		description: "Show sequence of laddering implants for maximum ability or treatment",
 	)
 ]

@@ -2,7 +2,6 @@
 
 namespace Nadybot\Core;
 
-use Nadybot\Core\Attributes as NCA;
 use DateTime;
 use PDO;
 use PDOException;
@@ -10,16 +9,20 @@ use Exception;
 use GlobIterator;
 use ReflectionClass;
 use ReflectionProperty;
-use Illuminate\Database\Capsule\Manager as Capsule;
-use Illuminate\Database\Connection;
-use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Collection;
-use Nadybot\Core\Attributes\HasMigrations;
-use Nadybot\Core\CSV\Reader;
-use Nadybot\Core\DBSchema\Migration;
-use Nadybot\Core\Migration as CoreMigration;
 use Safe\Exceptions\FilesystemException;
 use Throwable;
+use Illuminate\Support\Collection;
+use Illuminate\Database\{
+	Capsule\Manager as Capsule,
+	Connection,
+	Schema\Blueprint,
+};
+use Nadybot\Core\{
+	Attributes as NCA,
+	CSV\Reader,
+	DBSchema\Migration,
+	Migration as CoreMigration,
+};
 
 #[NCA\Instance]
 #[NCA\HasMigrations(module: "Core")]
@@ -489,11 +492,11 @@ class DB {
 	private function getMigrationFiles(object $instance): Collection {
 		$migrations = new Collection();
 		$ref = new ReflectionClass($instance);
-		$attrs = $ref->getAttributes(HasMigrations::class);
+		$attrs = $ref->getAttributes(NCA\HasMigrations::class);
 		if (empty($attrs)) {
 			return $migrations;
 		}
-		/** @var ?HasMigrations */
+		/** @var ?NCA\HasMigrations */
 		$migDir = $attrs[0]->newInstance();
 		if (!isset($migDir)) {
 			return new Collection();

@@ -27,7 +27,7 @@ use Nadybot\Modules\ITEMS_MODULE\{
 	NCA\Instance,
 	NCA\DefineCommand(
 		command: "aou",
-		accessLevel: "all",
+		accessLevel: "guest",
 		description: "Search for or view a guide from AO-Universe",
 	)
 ]

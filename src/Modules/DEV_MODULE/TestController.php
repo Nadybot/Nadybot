@@ -21,13 +21,13 @@ use Nadybot\Core\{
 	ParamClass\PFaction,
 	ParamClass\PPlayfield,
 	ParamClass\PTowerSite,
+	ParamClass\PWord,
 	Registry,
 	SettingManager,
 	Text,
 	Timer,
 	Util,
 };
-use Nadybot\Core\ParamClass\PWord;
 use Nadybot\Modules\DISCORD_GATEWAY_MODULE\DiscordMessageEvent;
 use Nadybot\Modules\HELPBOT_MODULE\PlayfieldController;
 use Nadybot\Modules\TOWER_MODULE\TowerController;
@@ -45,7 +45,7 @@ use Safe\Exceptions\FilesystemException;
 	),
 	NCA\DefineCommand(
 		command: "msginfo",
-		accessLevel: "all",
+		accessLevel: "guest",
 		description: "Show number of characters in response and the time it took to process",
 	),
 ]

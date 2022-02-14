@@ -2,21 +2,24 @@
 
 namespace Nadybot\Modules\RELAY_MODULE\RelayProtocol;
 
-use Nadybot\Core\Attributes as NCA;
 use JsonException;
+use Throwable;
 use Nadybot\Core\{
+	Attributes as NCA,
 	ConfigFile,
 	LoggerWrapper,
 	Nadybot,
 	Routing\Character,
+	Routing\Events\Online,
 	Routing\RoutableEvent,
 	Routing\Source,
 	SettingManager,
 };
-use Nadybot\Core\Routing\Events\Online;
 use Nadybot\Modules\ONLINE_MODULE\OnlineController;
-use Nadybot\Modules\RELAY_MODULE\Relay;
-use Nadybot\Modules\RELAY_MODULE\RelayMessage;
+use Nadybot\Modules\RELAY_MODULE\{
+	Relay,
+	RelayMessage,
+};
 use Nadybot\Modules\RELAY_MODULE\RelayProtocol\Tyrbot\{
 	BasePacket,
 	Logoff,
@@ -25,7 +28,6 @@ use Nadybot\Modules\RELAY_MODULE\RelayProtocol\Tyrbot\{
 	OnlineList,
 	OnlineListRequest,
 };
-use Throwable;
 
 #[
 	NCA\RelayProtocol(

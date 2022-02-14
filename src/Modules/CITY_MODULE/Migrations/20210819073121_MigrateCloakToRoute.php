@@ -2,8 +2,8 @@
 
 namespace Nadybot\Modules\CITY_MODULE\Migrations;
 
-use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{
+	Attributes as NCA,
 	DB,
 	DBSchema\Route,
 	LoggerWrapper,

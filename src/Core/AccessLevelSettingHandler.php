@@ -2,8 +2,8 @@
 
 namespace Nadybot\Core;
 
-use Nadybot\Core\Attributes as NCA;
 use Exception;
+use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\Modules\CONFIG\ConfigController;
 
 /**

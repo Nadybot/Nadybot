@@ -19,7 +19,7 @@ use Nadybot\Core\{
 	NCA\Instance,
 	NCA\DefineCommand(
 		command: "mdb",
-		accessLevel: "all",
+		accessLevel: "guest",
 		description: "Search for values in the MDB file",
 	)
 ]

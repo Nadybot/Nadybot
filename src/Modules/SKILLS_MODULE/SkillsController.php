@@ -30,57 +30,57 @@ use Nadybot\Modules\ITEMS_MODULE\{
 	NCA\HasMigrations("Migrations/Weapons"),
 	NCA\DefineCommand(
 		command: "aggdef",
-		accessLevel: "all",
+		accessLevel: "guest",
 		description: "Agg/Def: Calculates weapon inits for your Agg/Def bar",
 	),
 	NCA\DefineCommand(
 		command: "aimshot",
-		accessLevel: "all",
+		accessLevel: "guest",
 		description: "Aim Shot: Calculates Aimed Shot",
 	),
 	NCA\DefineCommand(
 		command: "nanoinit",
-		accessLevel: "all",
+		accessLevel: "guest",
 		description: "Nanoinit: Calculates Nano Init",
 	),
 	NCA\DefineCommand(
 		command: "fullauto",
-		accessLevel: "all",
+		accessLevel: "guest",
 		description: "Fullauto: Calculates Full Auto recharge",
 	),
 	NCA\DefineCommand(
 		command: "burst",
-		accessLevel: "all",
+		accessLevel: "guest",
 		description: "Burst: Calculates Burst",
 	),
 	NCA\DefineCommand(
 		command: "fling",
-		accessLevel: "all",
+		accessLevel: "guest",
 		description: "Fling: Calculates Fling",
 	),
 	NCA\DefineCommand(
 		command: "mafist",
-		accessLevel: "all",
+		accessLevel: "guest",
 		description: "MA Fist: Calculates your fist speed",
 	),
 	NCA\DefineCommand(
 		command: "dimach",
-		accessLevel: "all",
+		accessLevel: "guest",
 		description: "Dimach: Calculates dimach facts",
 	),
 	NCA\DefineCommand(
 		command: "brawl",
-		accessLevel: "all",
+		accessLevel: "guest",
 		description: "Brawl: Calculates brawl facts",
 	),
 	NCA\DefineCommand(
 		command: "fastattack",
-		accessLevel: "all",
+		accessLevel: "guest",
 		description: "Fastattack: Calculates Fast Attack recharge",
 	),
 	NCA\DefineCommand(
 		command: "weapon",
-		accessLevel: "all",
+		accessLevel: "guest",
 		description: "Shows weapon info (skill cap specials recycle and aggdef positions)",
 	)
 ]

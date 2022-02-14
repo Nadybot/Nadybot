@@ -2,25 +2,29 @@
 
 namespace Nadybot\Modules\RELAY_MODULE\Migrations;
 
-use Nadybot\Core\Attributes as NCA;
-use Nadybot\Core\ConfigFile;
-use Nadybot\Core\DB;
-use Nadybot\Core\DBSchema\Route;
-use Nadybot\Core\DBSchema\RouteModifier;
-use Nadybot\Core\DBSchema\RouteModifierArgument;
-use Nadybot\Core\DBSchema\Setting;
-use Nadybot\Core\EventManager;
-use Nadybot\Core\LoggerWrapper;
-use Nadybot\Core\MessageHub;
-use Nadybot\Core\Modules\CONFIG\ConfigController;
-use Nadybot\Core\Nadybot;
-use Nadybot\Core\Routing\Source;
-use Nadybot\Core\SchemaMigration;
-use Nadybot\Core\SettingManager;
-use Nadybot\Modules\RELAY_MODULE\RelayConfig;
-use Nadybot\Modules\RELAY_MODULE\RelayController;
-use Nadybot\Modules\RELAY_MODULE\RelayLayer;
-use Nadybot\Modules\RELAY_MODULE\RelayLayerArgument;
+use Nadybot\Core\{
+	Attributes as NCA,
+	ConfigFile,
+	DB,
+	DBSchema\Route,
+	DBSchema\RouteModifier,
+	DBSchema\RouteModifierArgument,
+	DBSchema\Setting,
+	EventManager,
+	LoggerWrapper,
+	MessageHub,
+	Modules\CONFIG\ConfigController,
+	Nadybot,
+	Routing\Source,
+	SchemaMigration,
+	SettingManager,
+};
+use Nadybot\Modules\RELAY_MODULE\{
+	RelayConfig,
+	RelayController,
+	RelayLayer,
+	RelayLayerArgument,
+};
 
 class MigrateToRelayTable implements SchemaMigration {
 	#[NCA\Inject]

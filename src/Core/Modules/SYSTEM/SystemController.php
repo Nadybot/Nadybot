@@ -56,7 +56,7 @@ use Nadybot\Modules\WEBSERVER_MODULE\{
 	),
 	NCA\DefineCommand(
 		command: "macro",
-		accessLevel: "all",
+		accessLevel: "guest",
 		description: "Execute multiple commands at once",
 	),
 	NCA\DefineCommand(
@@ -83,7 +83,7 @@ use Nadybot\Modules\WEBSERVER_MODULE\{
 	),
 	NCA\DefineCommand(
 		command: "showconfig",
-		accessLevel: "superadmin",
+		accessLevel: "admin",
 		description: "Show a cleaned up version of your current config file",
 		defaultStatus: 1
 	)

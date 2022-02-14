@@ -3,9 +3,11 @@
 namespace Nadybot\Core;
 
 use Illuminate\Support\Collection;
-use Nadybot\Core\Attributes as NCA;
-use Nadybot\Core\DBSchema\CmdCfg;
-use Nadybot\Core\DBSchema\CmdPermission;
+use Nadybot\Core\{
+	Attributes as NCA,
+	DBSchema\CmdCfg,
+	DBSchema\CmdPermission,
+};
 
 #[NCA\Instance]
 class SubcommandManager {

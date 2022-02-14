@@ -28,7 +28,7 @@ use Nadybot\Core\{
 	NCA\HasMigrations,
 	NCA\DefineCommand(
 		command: "events",
-		accessLevel: "all",
+		accessLevel: "guest",
 		description: "View/Join/Leave events",
 		alias: 'event',
 	),

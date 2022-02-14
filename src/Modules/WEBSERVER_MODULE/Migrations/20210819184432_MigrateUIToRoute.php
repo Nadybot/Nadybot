@@ -2,14 +2,16 @@
 
 namespace Nadybot\Modules\WEBSERVER_MODULE\Migrations;
 
-use Nadybot\Core\Attributes as NCA;
-use Nadybot\Core\ConfigFile;
-use Nadybot\Core\DB;
-use Nadybot\Core\DBSchema\Route;
-use Nadybot\Core\LoggerWrapper;
-use Nadybot\Core\MessageHub;
-use Nadybot\Core\Routing\Source;
-use Nadybot\Core\SchemaMigration;
+use Nadybot\Core\{
+	Attributes as NCA,
+	ConfigFile,
+	DB,
+	DBSchema\Route,
+	LoggerWrapper,
+	MessageHub,
+	Routing\Source,
+	SchemaMigration,
+};
 
 class MigrateUIToRoute implements SchemaMigration {
 	#[NCA\Inject]

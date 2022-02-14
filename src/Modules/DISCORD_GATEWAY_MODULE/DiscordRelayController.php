@@ -23,9 +23,11 @@ use Nadybot\Core\Modules\{
 	PLAYER_LOOKUP\PlayerManager,
 	PREFERENCES\Preferences,
 };
-use Nadybot\Modules\GUILD_MODULE\GuildController;
-use Nadybot\Modules\PRIVATE_CHANNEL_MODULE\PrivateChannelController;
-use Nadybot\Modules\RELAY_MODULE\RelayController;
+use Nadybot\Modules\{
+	GUILD_MODULE\GuildController,
+	PRIVATE_CHANNEL_MODULE\PrivateChannelController,
+	RELAY_MODULE\RelayController,
+};
 
 /**
  * @author Nadyite (RK5)

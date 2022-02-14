@@ -3,9 +3,11 @@
 namespace Nadybot\Core;
 
 use Exception;
-use Nadybot\Core\Attributes as NCA;
-use Nadybot\Core\DBSchema\Audit;
-use Nadybot\Core\Modules\ALTS\AltsController;
+use Nadybot\Core\{
+	Attributes as NCA,
+	DBSchema\Audit,
+	Modules\ALTS\AltsController,
+};
 use SplObjectStorage;
 
 /**

@@ -3,10 +3,12 @@
 namespace Nadybot\Api;
 
 use Exception;
-use Nadybot\Core\Attributes as NCA;
-use Nadybot\Core\BotRunner;
-use Nadybot\Core\DBRow;
-use Nadybot\Core\Registry;
+use Nadybot\Core\{
+	Attributes as NCA,
+	BotRunner,
+	DBRow,
+	Registry,
+};
 use ReflectionClass;
 use ReflectionMethod;
 use ReflectionNamedType;

@@ -52,12 +52,12 @@ use Nadybot\Modules\{
 	NCA\HasMigrations,
 	NCA\DefineCommand(
 		command: "towerstats",
-		accessLevel: "member",
+		accessLevel: "guest",
 		description: "Show how many towers each faction has lost",
 	),
 	NCA\DefineCommand(
 		command: "attacks",
-		accessLevel: "member",
+		accessLevel: "guest",
 		description: "Show the last Tower Attack messages",
 		alias: "battles"
 	),
@@ -99,19 +99,19 @@ use Nadybot\Modules\{
 	),
 	NCA\DefineCommand(
 		command: "victory",
-		accessLevel: "member",
+		accessLevel: "guest",
 		description: "Show the last Tower Battle results",
 		alias: "victories"
 	),
 	NCA\DefineCommand(
 		command: "towertype",
-		accessLevel: "member",
+		accessLevel: "guest",
 		description: "Show the level ranges for tower types",
 		alias: "towertypes"
 	),
 	NCA\DefineCommand(
 		command: "towerqty",
-		accessLevel: "member",
+		accessLevel: "guest",
 		description: "Show how many towers each level is allowed to plant",
 		alias: "numtowers"
 	),

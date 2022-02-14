@@ -2,16 +2,16 @@
 
 namespace Nadybot\Core\Modules\SYSTEM;
 
-use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{
+	Attributes as NCA,
 	AccessManager,
 	CmdContext,
 	CommandManager,
 	ModuleInstance,
 	Nadybot,
+	ParamClass\PCharacter,
+	Routing\Character,
 };
-use Nadybot\Core\ParamClass\PCharacter;
-use Nadybot\Core\Routing\Character;
 
 /**
  * @author Tyrence (RK2)

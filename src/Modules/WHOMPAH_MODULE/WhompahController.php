@@ -21,7 +21,7 @@ use Nadybot\Core\{
 	NCA\HasMigrations,
 	NCA\DefineCommand(
 		command: "whompah",
-		accessLevel: "all",
+		accessLevel: "guest",
 		description: "Shows the whompah route from one city to another",
 	)
 ]

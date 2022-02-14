@@ -2,11 +2,13 @@
 
 namespace Nadybot\Core\EventModifier;
 
-use Nadybot\Core\Attributes as NCA;
-use Nadybot\Core\EventModifier;
-use Nadybot\Core\Routing\Events\Base;
-use Nadybot\Core\Routing\RoutableEvent;
-use Nadybot\Core\Text;
+use Nadybot\Core\{
+	Attributes as NCA,
+	EventModifier,
+	Routing\Events\Base,
+	Routing\RoutableEvent,
+	Text,
+};
 
 #[
 	NCA\EventModifier(

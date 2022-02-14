@@ -2,30 +2,30 @@
 
 namespace Nadybot\Core\Modules\BAN;
 
-use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{
+	Attributes as NCA,
 	Event,
 	AccessManager,
 	CmdContext,
 	CommandReply,
+	DBSchema\Audit,
 	DBSchema\Player,
 	ModuleInstance,
 	Modules\ALTS\AltsController,
 	Modules\PLAYER_LOOKUP\PlayerManager,
+	Modules\PLAYER_LOOKUP\Guild,
 	Modules\PLAYER_LOOKUP\GuildManager,
 	Util,
 	Nadybot,
+	ParamClass\PCharacter,
+	ParamClass\PDuration,
+	ParamClass\PRemove,
 	SettingManager,
 	Text,
 	DB,
 	DBSchema\BanEntry,
 	SQLException,
 };
-use Nadybot\Core\DBSchema\Audit;
-use Nadybot\Core\Modules\PLAYER_LOOKUP\Guild;
-use Nadybot\Core\ParamClass\PCharacter;
-use Nadybot\Core\ParamClass\PDuration;
-use Nadybot\Core\ParamClass\PRemove;
 
 #[
 	NCA\Instance,

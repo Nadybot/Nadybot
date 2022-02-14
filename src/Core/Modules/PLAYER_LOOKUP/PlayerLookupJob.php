@@ -2,15 +2,17 @@
 
 namespace Nadybot\Core\Modules\PLAYER_LOOKUP;
 
-use Nadybot\Core\Attributes as NCA;
 use Illuminate\Support\Collection;
-use Nadybot\Core\DB;
-use Nadybot\Core\DBSchema\Player;
-use Nadybot\Core\LoggerWrapper;
-use Nadybot\Core\Nadybot;
-use Nadybot\Core\QueryBuilder;
-use Nadybot\Core\SettingManager;
-use Nadybot\Core\Timer;
+use Nadybot\Core\{
+	Attributes as NCA,
+	DB,
+	DBSchema\Player,
+	LoggerWrapper,
+	Nadybot,
+	QueryBuilder,
+	SettingManager,
+	Timer,
+};
 
 class PlayerLookupJob {
 	#[NCA\Inject]

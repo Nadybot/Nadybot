@@ -22,7 +22,7 @@ use Nadybot\Modules\HELPBOT_MODULE\PlayfieldController;
 	NCA\HasMigrations,
 	NCA\DefineCommand(
 		command: "whereis",
-		accessLevel: "all",
+		accessLevel: "guest",
 		description: "Shows where places and NPCs are",
 	)
 ]

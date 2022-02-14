@@ -21,7 +21,7 @@ use Nadybot\Core\{
 	NCA\Instance,
 	NCA\DefineCommand(
 		command: "history",
-		accessLevel: "all",
+		accessLevel: "guest",
 		description: "Show history of a player",
 	)
 ]

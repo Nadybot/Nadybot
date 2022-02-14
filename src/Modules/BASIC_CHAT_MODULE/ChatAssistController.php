@@ -21,7 +21,7 @@ use Nadybot\Core\{
 	NCA\Instance,
 	NCA\DefineCommand(
 		command: "assist",
-		accessLevel: "all",
+		accessLevel: "guest",
 		description: "Shows the assist macro",
 		alias: "callers"
 	),

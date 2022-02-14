@@ -2,10 +2,10 @@
 
 namespace Nadybot\Core\Socket;
 
-use Nadybot\Core\Attributes as NCA;
 use Exception;
 use InvalidArgumentException;
 use Nadybot\Core\{
+	Attributes as NCA,
 	LoggerWrapper,
 	SocketManager,
 	SocketNotifier,

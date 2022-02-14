@@ -2,10 +2,12 @@
 
 namespace Nadybot\Modules\COMMENT_MODULE\Migrations;
 
-use Nadybot\Core\Attributes as NCA;
-use Nadybot\Core\DB;
-use Nadybot\Core\LoggerWrapper;
-use Nadybot\Core\SchemaMigration;
+use Nadybot\Core\{
+	Attributes as NCA,
+	DB,
+	LoggerWrapper,
+	SchemaMigration,
+};
 use Nadybot\Modules\COMMENT_MODULE\ReputationController;
 use Throwable;
 

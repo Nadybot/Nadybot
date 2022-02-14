@@ -19,8 +19,8 @@ use Nadybot\Core\{
 	NCA\Instance,
 	NCA\DefineCommand(
 		command: "leader",
-		accessLevel: "all",
-		description: "Sets the Leader of the raid",
+		accessLevel: "guest",
+		description: "Become the Leader of the raid",
 	),
 	NCA\DefineCommand(
 		command: ChatLeaderController::CMD_LEADER_SET,

@@ -26,24 +26,24 @@ use Nadybot\Core\{
 	NCA\HasMigrations,
 	NCA\DefineCommand(
 		command: "nano",
-		accessLevel: "all",
+		accessLevel: "guest",
 		description: "Searches for a nano and tells you were to get it",
 	),
 	NCA\DefineCommand(
 		command: "nanolines",
-		accessLevel: "all",
+		accessLevel: "guest",
 		description: "Shows nanos based on nanoline",
 		alias: "nl"
 	),
 	NCA\DefineCommand(
 		command: "nanolinesfroob",
-		accessLevel: "all",
+		accessLevel: "guest",
 		description: "Shows nanos for froobs based on nanoline ",
 		alias: "nlf"
 	),
 	NCA\DefineCommand(
 		command: "nanoloc",
-		accessLevel: "all",
+		accessLevel: "guest",
 		description: "Browse nanos by location",
 	)
 ]

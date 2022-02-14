@@ -26,12 +26,12 @@ use Nadybot\Modules\WHEREIS_MODULE\{
 	NCA\HasMigrations("Migrations/Boss"),
 	NCA\DefineCommand(
 		command: "boss",
-		accessLevel: "all",
+		accessLevel: "guest",
 		description: "Shows bosses and their loot",
 	),
 	NCA\DefineCommand(
 		command: "bossloot",
-		accessLevel: "all",
+		accessLevel: "guest",
 		description: "Finds which boss drops certain loot",
 	)
 ]

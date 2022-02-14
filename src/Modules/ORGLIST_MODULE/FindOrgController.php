@@ -29,7 +29,7 @@ use Nadybot\Core\{
 	NCA\HasMigrations,
 	NCA\DefineCommand(
 		command: "findorg",
-		accessLevel: "all",
+		accessLevel: "guest",
 		description: "Find orgs by name",
 	)
 ]

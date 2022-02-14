@@ -17,7 +17,7 @@ use Nadybot\Core\{
 	NCA\Instance,
 	NCA\DefineCommand(
 		command: "gautrade",
-		accessLevel: "all",
+		accessLevel: "guest",
 		description: "Gauntlet tradeskills",
 	)
 ]

@@ -3,21 +3,25 @@
 namespace Nadybot\Modules\RELAY_MODULE\RelayProtocol;
 
 use Closure;
-use Nadybot\Core\Attributes as NCA;
-use Nadybot\Core\DBSchema\Player;
-use Nadybot\Core\Modules\PLAYER_LOOKUP\PlayerManager;
-use Nadybot\Core\Nadybot;
-use Nadybot\Core\Routing\Character;
-use Nadybot\Core\Routing\Events\Online;
-use Nadybot\Core\Routing\RoutableEvent;
-use Nadybot\Core\Routing\RoutableMessage;
-use Nadybot\Core\Routing\Source;
-use Nadybot\Core\SettingManager;
-use Nadybot\Core\Util;
-use Nadybot\Core\Text;
-use Nadybot\Modules\ONLINE_MODULE\OnlineController;
-use Nadybot\Modules\RELAY_MODULE\Relay;
-use Nadybot\Modules\RELAY_MODULE\RelayMessage;
+use Nadybot\Core\{
+	Attributes as NCA,
+	DBSchema\Player,
+	Modules\PLAYER_LOOKUP\PlayerManager,
+	Nadybot,
+	Routing\Character,
+	Routing\Events\Online,
+	Routing\RoutableEvent,
+	Routing\RoutableMessage,
+	Routing\Source,
+	SettingManager,
+	Util,
+	Text,
+};
+use Nadybot\Modules\{
+	ONLINE_MODULE\OnlineController,
+	RELAY_MODULE\Relay,
+	RELAY_MODULE\RelayMessage,
+};
 
 #[
 	NCA\RelayProtocol(

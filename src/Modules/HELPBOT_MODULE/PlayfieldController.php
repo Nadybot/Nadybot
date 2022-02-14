@@ -21,13 +21,13 @@ use Nadybot\Core\{
 	NCA\HasMigrations("Migrations/Playfields"),
 	NCA\DefineCommand(
 		command: "playfields",
-		accessLevel: "all",
+		accessLevel: "guest",
 		description: "Show playfield ids, long names, and short names",
 		alias: "playfield"
 	),
 	NCA\DefineCommand(
 		command: "waypoint",
-		accessLevel: "all",
+		accessLevel: "guest",
 		description: "Create a waypoint link",
 	)
 ]

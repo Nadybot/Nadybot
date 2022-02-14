@@ -22,7 +22,7 @@ use Nadybot\Core\{
 	NCA\Instance,
 	NCA\DefineCommand(
 		command: "orgmembers",
-		accessLevel: "guild",
+		accessLevel: "member",
 		description: "Show guild members sorted by name",
 	)
 ]

@@ -19,7 +19,7 @@ use Nadybot\Core\{
 	NCA\Instance,
 	NCA\DefineCommand(
 		command: "fight",
-		accessLevel: "all",
+		accessLevel: "guest",
 		description: "Let two people fight against each other",
 	)
 ]

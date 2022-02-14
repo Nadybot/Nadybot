@@ -2,9 +2,11 @@
 
 namespace Nadybot\Modules\WEBSERVER_MODULE;
 
-use Nadybot\Core\Attributes as NCA;
-use Nadybot\Core\CommandReply;
-use Nadybot\Core\EventManager;
+use Nadybot\Core\{
+	Attributes as NCA,
+	CommandReply,
+	EventManager,
+};
 
 class EventCommandReply implements CommandReply {
 	#[NCA\Inject]

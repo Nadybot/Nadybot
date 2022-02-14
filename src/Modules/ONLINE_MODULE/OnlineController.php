@@ -49,7 +49,7 @@ use Nadybot\Modules\{
 	NCA\HasMigrations,
 	NCA\DefineCommand(
 		command: "online",
-		accessLevel: "member",
+		accessLevel: "guest",
 		description: "Shows who is online",
 	),
 	NCA\ProvidesEvent("online(org)"),

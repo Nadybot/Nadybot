@@ -15,7 +15,7 @@ use Nadybot\Core\{
 	NCA\Instance,
 	NCA\DefineCommand(
 		command: "check",
-		accessLevel: "all",
+		accessLevel: "guest",
 		description: "Checks who of the raidgroup is in the area",
 	)
 ]

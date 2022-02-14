@@ -19,7 +19,7 @@ use Nadybot\Core\{
 	NCA\Instance,
 	NCA\DefineCommand(
 		command: "weather",
-		accessLevel: "all",
+		accessLevel: "guest",
 		description: "View Weather",
 	)
 ]

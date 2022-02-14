@@ -2,27 +2,35 @@
 
 namespace Nadybot\Modules\RELAY_MODULE\Transport;
 
-use Nadybot\Core\Attributes as NCA;
 use ErrorException;
 use Exception;
-use Nadybot\Core\EventLoop;
-use Nadybot\Core\EventManager;
-use Nadybot\Core\LoggerWrapper;
-use Nadybot\Core\Nadybot;
-use Nadybot\Modules\RELAY_MODULE\Relay;
-use Nadybot\Modules\RELAY_MODULE\RelayMessage;
-use Nadybot\Modules\RELAY_MODULE\RelayStatus;
-use Nadybot\Modules\RELAY_MODULE\StatusProvider;
-use PhpAmqpLib\Channel\AMQPChannel;
-use PhpAmqpLib\Connection\AMQPStreamConnection;
-use PhpAmqpLib\Exception\AMQPConnectionClosedException;
-use PhpAmqpLib\Exception\AMQPIOException;
-use PhpAmqpLib\Exception\AMQPProtocolChannelException;
-use PhpAmqpLib\Exception\AMQPRuntimeException;
-use PhpAmqpLib\Exception\AMQPTimeoutException;
-use PhpAmqpLib\Exchange\AMQPExchangeType;
-use PhpAmqpLib\Message\AMQPMessage;
 use Throwable;
+use Nadybot\Core\{
+	Attributes as NCA,
+	EventLoop,
+	EventManager,
+	LoggerWrapper,
+	Nadybot,
+};
+use Nadybot\Modules\RELAY_MODULE\{
+	Relay,
+	RelayMessage,
+	RelayStatus,
+	StatusProvider,
+};
+use PhpAmqpLib\{
+	Channel\AMQPChannel,
+	Connection\AMQPStreamConnection,
+	Exchange\AMQPExchangeType,
+	Message\AMQPMessage,
+};
+use PhpAmqpLib\Exception\{
+	AMQPConnectionClosedException,
+	AMQPIOException,
+	AMQPProtocolChannelException,
+	AMQPRuntimeException,
+	AMQPTimeoutException,
+};
 
 #[
 	NCA\RelayTransport(

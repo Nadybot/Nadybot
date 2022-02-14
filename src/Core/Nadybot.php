@@ -4,9 +4,21 @@ namespace Nadybot\Core;
 
 use function Safe\json_encode;
 use ReflectionClass;
-use Nadybot\Core\Modules\BAN\BanController;
-use Nadybot\Core\Modules\LIMITS\LimitsController;
-use Nadybot\Modules\RELAY_MODULE\RelayController;
+use Exception;
+use Throwable;
+use Nadybot\Core\{
+	Attributes as NCA,
+	Channels\OrgChannel,
+	Channels\PrivateChannel,
+	Channels\PublicChannel,
+	Channels\PrivateMessage,
+	Routing\Character,
+	Routing\RoutableMessage,
+	Routing\Source,
+	SettingHandler as CoreSettingHandler,
+	Modules\BAN\BanController,
+	Modules\LIMITS\LimitsController,
+};
 use Nadybot\Core\DBSchema\{
 	Audit,
 	CmdCfg,
@@ -15,17 +27,6 @@ use Nadybot\Core\DBSchema\{
 	Setting,
 };
 use Nadybot\Modules\WEBSERVER_MODULE\JsonImporter;
-use Exception;
-use Nadybot\Core\Attributes as NCA;
-use Nadybot\Core\Channels\OrgChannel;
-use Nadybot\Core\Channels\PrivateChannel;
-use Nadybot\Core\Channels\PublicChannel;
-use Nadybot\Core\Channels\PrivateMessage;
-use Nadybot\Core\Routing\Character;
-use Nadybot\Core\Routing\RoutableMessage;
-use Nadybot\Core\Routing\Source;
-use Nadybot\Core\SettingHandler as CoreSettingHandler;
-use Throwable;
 
 /**
  * Ignore non-camelCaps named methods as a lot of external calls rely on
@@ -76,9 +77,6 @@ class Nadybot extends AOChat {
 
 	#[NCA\Inject]
 	public BuddylistManager $buddylistManager;
-
-	#[NCA\Inject]
-	public RelayController $relayController;
 
 	#[NCA\Inject]
 	public MessageHub $messageHub;

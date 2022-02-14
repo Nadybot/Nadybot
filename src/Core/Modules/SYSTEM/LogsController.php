@@ -2,15 +2,18 @@
 
 namespace Nadybot\Core\Modules\SYSTEM;
 
-use Nadybot\Core\Attributes as NCA;
 use Exception;
-use Monolog\Formatter\JsonFormatter;
-use Monolog\Handler\AbstractHandler;
-use Monolog\Handler\StreamHandler;
-use Monolog\Logger;
-use Monolog\Processor\IntrospectionProcessor;
-use Monolog\Processor\PsrLogMessageProcessor;
+use Safe\Exceptions\FilesystemException;
+use Monolog\{
+	Formatter\JsonFormatter,
+	Handler\AbstractHandler,
+	Handler\StreamHandler,
+	Logger,
+	Processor\IntrospectionProcessor,
+	Processor\PsrLogMessageProcessor,
+};
 use Nadybot\Core\{
+	Attributes as NCA,
 	BotRunner,
 	CmdContext,
 	CommandManager,
@@ -21,14 +24,13 @@ use Nadybot\Core\{
 	LegacyLogger,
 	LoggerWrapper,
 	Nadybot,
+	ParamClass\PFilename,
+	ParamClass\PWord,
 	SettingManager,
 	Text,
 	Timer,
 	Util,
 };
-use Nadybot\Core\ParamClass\PFilename;
-use Nadybot\Core\ParamClass\PWord;
-use Safe\Exceptions\FilesystemException;
 
 /**
  * @author Tyrence (RK2)

@@ -2,11 +2,13 @@
 
 namespace Nadybot\Core\Channels;
 
-use Nadybot\Core\Attributes as NCA;
-use Nadybot\Core\MessageHub;
-use Nadybot\Core\Modules\CONSOLE\ConsoleCommandReply;
-use Nadybot\Core\Routing\RoutableEvent;
-use Nadybot\Core\Routing\Source;
+use Nadybot\Core\{
+	Attributes as NCA,
+	MessageHub,
+	Modules\CONSOLE\ConsoleCommandReply,
+	Routing\RoutableEvent,
+	Routing\Source,
+};
 
 class ConsoleChannel extends Base {
 	#[NCA\Inject]

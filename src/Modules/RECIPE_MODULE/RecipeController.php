@@ -28,7 +28,7 @@ use Safe\Exceptions\DirException;
 	NCA\HasMigrations("Migrations/Recipes"),
 	NCA\DefineCommand(
 		command: "recipe",
-		accessLevel: "all",
+		accessLevel: "guest",
 		description: "Search for a recipe",
 	)
 ]

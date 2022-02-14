@@ -19,7 +19,7 @@ use Nadybot\Core\{
 	NCA\Instance,
 	NCA\DefineCommand(
 		command: "cluster",
-		accessLevel: "all",
+		accessLevel: "guest",
 		description: "Find which clusters buff a specified skill",
 	)
 ]

@@ -2,11 +2,13 @@
 
 namespace Nadybot\Modules\HELPBOT_MODULE\Migrations\Arbiter;
 
-use Nadybot\Core\Attributes as NCA;
 use Illuminate\Database\Schema\Blueprint;
-use Nadybot\Core\DB;
-use Nadybot\Core\LoggerWrapper;
-use Nadybot\Core\SchemaMigration;
+use Nadybot\Core\{
+	Attributes as NCA,
+	DB,
+	LoggerWrapper,
+	SchemaMigration,
+};
 use Nadybot\Modules\HELPBOT_MODULE\ArbiterController;
 
 class MigrateArbiterToDB implements SchemaMigration {

@@ -18,7 +18,7 @@ use Nadybot\Core\{
 	NCA\Instance,
 	NCA\DefineCommand(
 		command: "bestql",
-		accessLevel: "all",
+		accessLevel: "guest",
 		description: "Find breakpoints for bonuses",
 		alias: "breakpoints"
 	)

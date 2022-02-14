@@ -2,11 +2,13 @@
 
 namespace Nadybot\Core\Channels;
 
-use Nadybot\Core\Attributes as NCA;
-use Nadybot\Core\MessageHub;
-use Nadybot\Core\Nadybot;
-use Nadybot\Core\Routing\RoutableEvent;
-use Nadybot\Core\Routing\Source;
+use Nadybot\Core\{
+	Attributes as NCA,
+	MessageHub,
+	Nadybot,
+	Routing\RoutableEvent,
+	Routing\Source,
+};
 
 class PrivateChannel extends Base {
 	#[NCA\Inject]

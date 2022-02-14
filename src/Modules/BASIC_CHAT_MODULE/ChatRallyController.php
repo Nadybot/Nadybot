@@ -23,7 +23,7 @@ use Nadybot\Modules\HELPBOT_MODULE\PlayfieldController;
 	NCA\Instance,
 	NCA\DefineCommand(
 		command: "rally",
-		accessLevel: "all",
+		accessLevel: "guest",
 		description: "Shows the rally waypoint",
 	),
 	NCA\DefineCommand(

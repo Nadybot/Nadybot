@@ -2,17 +2,21 @@
 
 namespace Nadybot\Modules\RELAY_MODULE\RelayProtocol;
 
-use Nadybot\Core\Attributes as NCA;
-use Nadybot\Core\MessageHub;
-use Nadybot\Core\Routing\Character;
-use Nadybot\Core\Routing\Events\Base;
-use Nadybot\Core\Routing\RoutableEvent;
-use Nadybot\Core\Routing\RoutableMessage;
-use Nadybot\Core\Routing\Source;
-use Nadybot\Core\Text;
-use Nadybot\Core\Util;
-use Nadybot\Modules\RELAY_MODULE\Relay;
-use Nadybot\Modules\RELAY_MODULE\RelayMessage;
+use Nadybot\Core\{
+	Attributes as NCA,
+	MessageHub,
+	Routing\Character,
+	Routing\Events\Base,
+	Routing\RoutableEvent,
+	Routing\RoutableMessage,
+	Routing\Source,
+	Text,
+	Util,
+};
+use Nadybot\Modules\RELAY_MODULE\{
+	Relay,
+	RelayMessage,
+};
 
 #[
 	NCA\RelayProtocol(

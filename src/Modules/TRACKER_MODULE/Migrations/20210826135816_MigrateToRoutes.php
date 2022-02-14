@@ -2,19 +2,21 @@
 
 namespace Nadybot\Modules\TRACKER_MODULE\Migrations;
 
-use Nadybot\Core\Attributes as NCA;
 use Exception;
-use Nadybot\Core\ConfigFile;
-use Nadybot\Core\Modules\DISCORD\DiscordChannel;
-use Nadybot\Core\DB;
-use Nadybot\Core\DBSchema\Route;
-use Nadybot\Core\DBSchema\Setting;
-use Nadybot\Core\LoggerWrapper;
-use Nadybot\Core\MessageHub;
-use Nadybot\Core\Modules\DISCORD\DiscordAPIClient;
-use Nadybot\Core\Routing\Source;
-use Nadybot\Core\SchemaMigration;
-use Nadybot\Core\SettingManager;
+use Nadybot\Core\{
+	Attributes as NCA,
+	ConfigFile,
+	Modules\DISCORD\DiscordChannel,
+	DB,
+	DBSchema\Route,
+	DBSchema\Setting,
+	LoggerWrapper,
+	MessageHub,
+	Modules\DISCORD\DiscordAPIClient,
+	Routing\Source,
+	SchemaMigration,
+	SettingManager,
+};
 use Nadybot\Modules\TRACKER_MODULE\TrackerController;
 
 class MigrateToRoutes implements SchemaMigration {

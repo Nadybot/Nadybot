@@ -21,7 +21,7 @@ use Nadybot\Core\{
 	NCA\HasMigrations,
 	NCA\DefineCommand(
 		command: "disc",
-		accessLevel: "all",
+		accessLevel: "guest",
 		description: "Show which nano a disc will turn into",
 	)
 ]

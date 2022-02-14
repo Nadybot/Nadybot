@@ -2,8 +2,8 @@
 
 namespace Nadybot\Core\Modules\ADMIN;
 
-use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{
+	Attributes as NCA,
 	AccessManager,
 	AdminManager,
 	BuddylistManager,
@@ -11,18 +11,18 @@ use Nadybot\Core\{
 	CommandAlias,
 	CommandReply,
 	DB,
+	DBSchema\Admin,
 	Event,
 	ModuleInstance,
 	LoggerWrapper,
+	Modules\ALTS\AltEvent,
+	Modules\ALTS\AltsController,
 	Nadybot,
+	ParamClass\PCharacter,
+	ParamClass\PRemove,
 	SettingManager,
 	Text,
-	Modules\ALTS\AltsController,
 };
-use Nadybot\Core\DBSchema\Admin;
-use Nadybot\Core\Modules\ALTS\AltEvent;
-use Nadybot\Core\ParamClass\PCharacter;
-use Nadybot\Core\ParamClass\PRemove;
 
 #[
 	NCA\Instance,

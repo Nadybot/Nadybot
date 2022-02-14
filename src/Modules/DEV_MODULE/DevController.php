@@ -56,7 +56,7 @@ use ReflectionException;
 	),
 	NCA\DefineCommand(
 		command: "makeitem",
-		accessLevel: "admin",
+		accessLevel: "guest",
 		description: "Creates an item link",
 	)
 ]

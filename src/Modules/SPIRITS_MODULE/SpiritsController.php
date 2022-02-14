@@ -26,7 +26,7 @@ use Nadybot\Modules\{
 	NCA\HasMigrations,
 	NCA\DefineCommand(
 		command: "spirits",
-		accessLevel: "all",
+		accessLevel: "guest",
 		description: "Search for spirits",
 	)
 ]

@@ -2,19 +2,21 @@
 
 namespace Nadybot\Core\Channels;
 
-use Nadybot\Core\Attributes as NCA;
-use Nadybot\Core\AccessManager;
-use Nadybot\Core\MessageHub;
-use Nadybot\Core\MessageReceiver;
-use Nadybot\Core\Modules\DISCORD\DiscordAPIClient;
-use Nadybot\Core\Modules\DISCORD\DiscordController;
-use Nadybot\Core\Nadybot;
-use Nadybot\Core\Routing\Events\Base;
-use Nadybot\Core\Routing\Events\Online;
-use Nadybot\Core\Routing\RoutableEvent;
-use Nadybot\Core\Routing\Source;
-use Nadybot\Core\SettingManager;
-use Nadybot\Core\Text;
+use Nadybot\Core\{
+	Attributes as NCA,
+	AccessManager,
+	MessageHub,
+	MessageReceiver,
+	Modules\DISCORD\DiscordAPIClient,
+	Modules\DISCORD\DiscordController,
+	Nadybot,
+	Routing\Events\Base,
+	Routing\Events\Online,
+	Routing\RoutableEvent,
+	Routing\Source,
+	SettingManager,
+	Text,
+};
 
 class DiscordMsg implements MessageReceiver {
 	#[NCA\Inject]

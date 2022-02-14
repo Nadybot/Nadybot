@@ -26,7 +26,7 @@ use Nadybot\Modules\ONLINE_MODULE\OnlineController;
 	NCA\Instance,
 	NCA\DefineCommand(
 		command: "whoisorg",
-		accessLevel: "all",
+		accessLevel: "guest",
 		description: "Display org info",
 	)
 ]

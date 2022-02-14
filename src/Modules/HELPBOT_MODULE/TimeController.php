@@ -18,7 +18,7 @@ use Nadybot\Core\{
 	NCA\Instance,
 	NCA\DefineCommand(
 		command: "time",
-		accessLevel: "all",
+		accessLevel: "guest",
 		description: "Show the time in the different timezones",
 	)
 ]
