@@ -1459,8 +1459,8 @@ class CommandManager implements MessageEmitter {
 					->where("permission_set", $name)
 					->update(["permission_set" => $data->name]);
 				$this->db->table(self::DB_TABLE_PERMS)
-					->where("name", $name)
-					->update(["name" => $data->name]);
+					->where("permission_set", $name)
+					->update(["permission_set" => $data->name]);
 			}
 		} catch (Exception $e) {
 			$this->db->rollback();
@@ -1480,7 +1480,7 @@ class CommandManager implements MessageEmitter {
 	 */
 	public function clonePermissionSet(string $oldName, string $name, string $letter): void {
 		$perms = $this->db->table(self::DB_TABLE_PERMS)
-			->where("name", $oldName)
+			->where("permission_set", $oldName)
 			->asObj(CmdPermission::class)
 			->toArray();
 		$this->insertPermissionSet($name, $letter, ...$perms);
