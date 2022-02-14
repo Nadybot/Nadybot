@@ -47,6 +47,7 @@ use Nadybot\Modules\DISCORD_GATEWAY_MODULE\Model\{
 	UpdateStatus,
 	VoiceState,
 };
+use Nadybot\Modules\WEBSERVER_MODULE\StatsController;
 use stdClass;
 
 /**
@@ -113,6 +114,9 @@ class DiscordGatewayController extends ModuleInstance {
 	#[NCA\Inject]
 	public Nadybot $chatBot;
 
+	#[NCA\Inject]
+	public StatsController $statsController;
+
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
@@ -126,6 +130,8 @@ class DiscordGatewayController extends ModuleInstance {
 	protected ?string $sessionId = null;
 	/** @var array<string,Guild> */
 	protected array $guilds = [];
+	private DiscordPacketsStats $inStats;
+	private DiscordPacketsStats $outStats;
 
 	/**
 	 * Get a list of all guilds this bot is a member of
@@ -202,6 +208,10 @@ class DiscordGatewayController extends ModuleInstance {
 		);
 		$this->settingManager->registerChangeListener('discord_bot_token', [$this, "tokenChanged"]);
 		$this->settingManager->registerChangeListener('discord_activity_name', [$this, "updatePresence"]);
+		$this->inStats = new DiscordPacketsStats("in");
+		$this->outStats = new DiscordPacketsStats("out");
+		$this->statsController->registerProvider($this->inStats, "discord");
+		$this->statsController->registerProvider($this->outStats, "discord");
 	}
 
 	public function updatePresence(string $settingName, string $oldValue, string $newValue): void {
@@ -253,6 +263,7 @@ class DiscordGatewayController extends ModuleInstance {
 			->withTimeout(30)
 			->on(WebsocketClient::ON_CLOSE, [$this, "processWebsocketClose"])
 			->on(WebsocketClient::ON_TEXT, [$this, "processWebsocketMessage"])
+			->on(WebsocketClient::ON_WRITE, [$this, "processWebsocketWrite"])
 			->on(WebsocketClient::ON_ERROR, [$this, "processWebsocketError"]);
 	}
 
@@ -273,6 +284,10 @@ class DiscordGatewayController extends ModuleInstance {
 		$this->timer->callLater($this->heartbeatInterval, [$this, __FUNCTION__]);
 	}
 
+	public function processWebsocketWrite(WebsocketCallback $event): void {
+		$this->outStats->inc();
+	}
+
 	public function processWebsocketError(WebsocketCallback $event): void {
 		$this->logger->error("[$event->code] $event->data");
 		if ($event->code === WebsocketError::CONNECT_TIMEOUT && isset($this->client)) {
@@ -281,6 +296,7 @@ class DiscordGatewayController extends ModuleInstance {
 	}
 
 	public function processWebsocketMessage(WebsocketCallback $event): void {
+		$this->inStats->inc();
 		$this->logger->debug("Received discord message", ["message" => $event->data]);
 		$payload = new Payload();
 		try {

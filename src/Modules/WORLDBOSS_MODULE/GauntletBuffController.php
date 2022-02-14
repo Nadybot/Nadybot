@@ -31,6 +31,7 @@ use Nadybot\Modules\TIMERS_MODULE\{
 	Timer,
 	TimerController,
 };
+use Nadybot\Modules\WEBSERVER_MODULE\StatsController;
 
 /**
  * @author Equi
@@ -82,6 +83,9 @@ class GauntletBuffController extends ModuleInstance implements MessageEmitter {
 	#[NCA\Inject]
 	public TimerController $timerController;
 
+	#[NCA\Inject]
+	public StatsController $statsController;
+
 	public function getChannelName(): string {
 		return Source::SYSTEM . "(gauntlet-buff)";
 	}
@@ -124,6 +128,8 @@ class GauntletBuffController extends ModuleInstance implements MessageEmitter {
 			"gaubuff_times",
 			[$this, "validateGaubuffTimes"]
 		);
+		$this->statsController->registerProvider(new GauntletBuffStats($this, "clan"), "states");
+		$this->statsController->registerProvider(new GauntletBuffStats($this, "omni"), "states");
 	}
 
 	#[NCA\Event(
@@ -437,5 +443,10 @@ class GauntletBuffController extends ModuleInstance implements MessageEmitter {
 			return null;
 		}
 		return join("", $msgs);
+	}
+
+	public function getIsActive(string $faction): bool {
+			$timer = $this->timerController->get("Gaubuff_{$faction}");
+			return ($timer !== null && isset($timer->endtime));
 	}
 }

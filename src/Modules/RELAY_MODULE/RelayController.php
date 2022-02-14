@@ -47,6 +47,7 @@ use Nadybot\Modules\{
 	WEBSERVER_MODULE\JsonImporter,
 	WEBSERVER_MODULE\Request,
 	WEBSERVER_MODULE\Response,
+	WEBSERVER_MODULE\StatsController,
 };
 
 /**
@@ -120,6 +121,9 @@ class RelayController extends ModuleInstance {
 	public PlayerManager $playerManager;
 
 	#[NCA\Inject]
+	public StatsController $statsController;
+
+	#[NCA\Inject]
 	public CommandAlias $commandAlias;
 
 	#[NCA\Inject]
@@ -178,6 +182,9 @@ class RelayController extends ModuleInstance {
 		);
 		$this->loadStackComponents();
 		$this->settingManager->registerChangeListener("relay_queue_size", [$this, "adaptQueueSize"]);
+		$relayStats = new OnlineRelayStats();
+		Registry::injectDependencies($relayStats);
+		$this->statsController->registerProvider($relayStats, "online");
 	}
 
 	public function adaptQueueSize(string $setting, string $old, string $new): void {

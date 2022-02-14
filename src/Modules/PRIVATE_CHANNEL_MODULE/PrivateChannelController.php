@@ -33,6 +33,7 @@ use Nadybot\Core\{
 	Modules\BAN\BanController,
 	ParamClass\PCharacter,
 	ParamClass\PRemove,
+	Registry,
 	Routing\Character,
 	Routing\Events\Online,
 	Routing\RoutableEvent,
@@ -44,6 +45,7 @@ use Nadybot\Modules\{
 	ONLINE_MODULE\OnlineController,
 	ONLINE_MODULE\OnlineEvent,
 	ONLINE_MODULE\OnlinePlayer,
+	WEBSERVER_MODULE\StatsController,
 };
 use Safe\Exceptions\FilesystemException;
 
@@ -160,6 +162,9 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 	public OnlineController $onlineController;
 
 	#[NCA\Inject]
+	public StatsController $statsController;
+
+	#[NCA\Inject]
 	public Timer $timer;
 
 	#[NCA\Inject]
@@ -268,6 +273,9 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 			"welcome_msg_string",
 			[$this, "validateWelcomeMsg"]
 		);
+		$lockStats = new PrivLockStats();
+		Registry::injectDependencies($lockStats);
+		$this->statsController->registerProvider($lockStats, "states");
 	}
 
 	public function getSingleAccessLevel(string $sender): ?string {
@@ -733,7 +741,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 	#[NCA\HandlesCommand("unlock")]
 	#[NCA\Help\Group("lock")]
 	public function unlockCommand(CmdContext $context): void {
-		if (!isset($this->lockReason)) {
+		if (!$this->isLocked()) {
 			$context->reply("The private channel is currently not locked.");
 			return;
 		}
@@ -751,7 +759,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 		description: "Send reminder if the private channel is locked"
 	)]
 	public function remindOfLock(): void {
-		if (!isset($this->lockReason)) {
+		if (!$this->isLocked()) {
 			return;
 		}
 		$msg = "Reminder: the private channel is currently <red>locked<end>!";
@@ -1149,6 +1157,13 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 		$audit->value = (string)$this->accessManager->getAccessLevels()["member"];
 		$this->accessManager->addAudit($audit);
 		return "<highlight>$name<end> has been removed as a member of this bot.";
+	}
+
+	/**
+	 * Check if the private channel is currently locked
+	 */
+	public function isLocked(): bool {
+		return isset($this->lockReason);
 	}
 
 	/**
