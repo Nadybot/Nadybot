@@ -6,8 +6,11 @@ class BasicSystemInformation {
 	/** Name of the bot character in AO */
 	public string $bot_name;
 
-	/** Name of the character running the bot, null if not set */
-	public ?string $superadmin;
+	/**
+	 * Name(s) of the character(s) running the bot, empty if not set
+	 * @var string[]
+	 */
+	public array $superadmins;
 
 	/** Name of the org this bot is in or null if not in an org */
 	public ?string $org;

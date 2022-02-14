@@ -137,8 +137,9 @@ class Setup {
 
 		$msg = "Enter the Administrator for this bot: ";
 		do {
-			$this->configFile->superAdmin = $this->readInput($msg);
-		} while ($this->configFile->superAdmin === "");
+			$superAdmin = $this->readInput($msg);
+		} while ($superAdmin === "");
+		$this->configFile->superAdmins = [$superAdmin];
 		$this->queryDatabaseInstallation();
 	}
 
