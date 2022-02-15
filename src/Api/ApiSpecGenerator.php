@@ -250,15 +250,15 @@ class ApiSpecGenerator {
 	 */
 	protected function getNameAndType(ReflectionProperty $refProperty): ?array {
 		$docComment = $refProperty->getDocComment();
-		if ($docComment === false) {
-			return $this->getRegularNameAndType($refProperty);
-		}
-		if (preg_match('/@json:ignore/', $docComment)) {
+		if (count($refProperty->getAttributes(NCA\JSON\Ignore::class))) {
 			return null;
 		}
-		$description = $this->getDescriptionFromComment($docComment);
-		if (preg_match('/@json:name=([^\s]+)/', $docComment, $matches)) {
-			return [$matches[1], $this->getRegularNameAndType($refProperty)[1], $description];
+		$description = $this->getDescriptionFromComment($docComment ?: "");
+		$nameAttr = $refProperty->getAttributes(NCA\JSON\Name::class);
+		if (count($nameAttr) > 0) {
+			/** @var NCA\JSON\Name */
+			$nameObj = $nameAttr[0]->newInstance();
+			return [$nameObj->name, $this->getRegularNameAndType($refProperty)[1], $description];
 		}
 		return [...$this->getRegularNameAndType($refProperty), $description];
 	}

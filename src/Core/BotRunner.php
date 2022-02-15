@@ -14,7 +14,7 @@ class BotRunner {
 	/**
 	 * Nadybot's current version
 	 */
-	public const VERSION = "5.3.2";
+	public const VERSION = "6.0.0";
 
 	/**
 	 * The command line arguments
@@ -80,6 +80,9 @@ class BotRunner {
 			$latestTag = static::getLatestTag();
 			if (!isset($latestTag)) {
 				return $branch;
+			}
+			if (strncmp(static::VERSION, $latestTag, strlen(static::VERSION)) === 1) {
+				$latestTag = static::VERSION;
 			}
 			if ($branch !== 'stable') {
 				return "{$latestTag}@{$branch}";

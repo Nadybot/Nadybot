@@ -8,14 +8,14 @@ use Nadybot\Core\DBRow;
 class RelayLayer extends DBRow {
 	/**
 	 * The id of the relay layer. Lower id means higher priority
-	 * @json:ignore
 	 */
+	#[NCA\JSON\Ignore]
 	public int $id;
 
 	/**
 	 * The id of the relay where this layer belongs to
-	 * @json:ignore
 	 */
+	#[NCA\JSON\Ignore]
 	public int $relay_id;
 
 	/** Which relay stack layer does this represent? */

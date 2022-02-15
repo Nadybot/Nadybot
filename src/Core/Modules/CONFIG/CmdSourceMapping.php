@@ -3,12 +3,13 @@
 namespace Nadybot\Core\Modules\CONFIG;
 
 use Nadybot\Core\DBSchema\CmdPermSetMapping;
+use Nadybot\Core\Attributes\JSON;
 
 class CmdSourceMapping {
 	/**
 	 * The name of this command source
-	 * @json:ignore
 	 */
+	#[JSON\Ignore]
 	public string $source;
 
 	/** The value for the sub-source, or null if none */

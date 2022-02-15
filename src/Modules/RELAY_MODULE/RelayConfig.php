@@ -8,8 +8,8 @@ use Nadybot\Core\DBRow;
 class RelayConfig extends DBRow {
 	/**
 	 * The unique ID of this relay config
-	 * @json:ignore
 	 */
+	#[NCA\JSON\Ignore]
 	public int $id;
 
 	/** The name of this relay */

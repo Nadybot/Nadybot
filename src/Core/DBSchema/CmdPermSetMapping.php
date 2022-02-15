@@ -3,9 +3,10 @@
 namespace Nadybot\Core\DBSchema;
 
 use Nadybot\Core\DBRow;
+use Nadybot\Core\Attributes\JSON;
 
 class CmdPermSetMapping extends DBRow {
-	/** @json:ignore */
+	#[JSON\Ignore]
 	public ?int $id = null;
 
 	/** The permission set to map $source to */
