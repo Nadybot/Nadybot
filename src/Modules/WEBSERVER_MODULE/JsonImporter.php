@@ -6,6 +6,7 @@ use Exception;
 use ReflectionClass;
 use ReflectionNamedType;
 use ReflectionProperty;
+use Nadybot\Core\Attributes\JSON;
 
 class JsonImporter {
 	public static function expandClassname(string $class): ?string {
@@ -111,14 +112,17 @@ class JsonImporter {
 	}
 
 	public static function castFromRefprop(object $result, ReflectionProperty $refProp, object $obj): void {
-		$docComment = $refProp->getDocComment();
 		$name = $refProp->getName();
-		if ($docComment !== false && preg_match('/@json:ignore/', $docComment)) {
+		if (count($refProp->getAttributes(JSON\Ignore::class)) > 0) {
 			return;
 		}
-		if ($docComment !== false && preg_match('/@json:name=([^\s]+)/', $docComment, $matches)) {
-			$name = $matches[1];
+		$nameAttr = $refProp->getAttributes(JSON\Name::class);
+		if (count($nameAttr) > 0) {
+			/** @var JSON\Name */
+			$nameObj = $nameAttr[0]->newInstance();
+			$name = $nameObj->name;
 		}
+		$docComment = $refProp->getDocComment();
 		if ($docComment !== false && preg_match('/@var\s+([^\s]+)/', $docComment, $matches)) {
 			$type = $matches[1];
 		} else {

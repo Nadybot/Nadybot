@@ -7,6 +7,7 @@ use InvalidArgumentException;
 use ReflectionFunction;
 use ReflectionNamedType;
 use ReflectionUnionType;
+use Nadybot\Core\Attributes\JSON;
 
 class NewsTile {
 	/** The name of this news tile */
@@ -20,8 +21,8 @@ class NewsTile {
 
 	/**
 	 * The callback that returns the news tile data
-	 * @json:ignore
 	 */
+	#[JSON\Ignore]
 	public Closure $callback;
 
 	public function __construct(string $name, callable $callback) {

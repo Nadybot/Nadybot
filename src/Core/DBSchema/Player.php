@@ -3,6 +3,7 @@
 namespace Nadybot\Core\DBSchema;
 
 use Nadybot\Core\DBRow;
+use Nadybot\Core\Attributes\JSON;
 
 /**
  * This represents the data the bot stores about a player in the cache and database
@@ -16,8 +17,8 @@ class Player extends DBRow {
 
 	/**
 	 * The character's first name (the name before $name)
-	 * @json:name=first_name
 	 */
+	#[JSON\Name("first_name")]
 	public string $firstname = '';
 
 	/**
@@ -27,8 +28,8 @@ class Player extends DBRow {
 
 	/**
 	 * The character's last name (the name after $name)
-	 * @json:name=last_name
 	 */
+	#[JSON\Name("last_name")]
 	public string $lastname = '';
 
 	/**
@@ -75,27 +76,27 @@ class Player extends DBRow {
 
 	/**
 	 * The id of the org this player is in or null if none or unknown
-	 * @json:name=org_id
 	 */
+	#[JSON\Name("org_id")]
 	public ?int $guild_id = null;
 
 	/**
 	 * The name of the org this player is in or null if none/unknown
-	 * @json:name=org
 	 */
+	#[JSON\Name("org")]
 	public ?string $guild = '';
 
 	/**
 	 * The name of the rank the player has in their org (Veteran, Apprentice) or null if not in an org
 	 * or unknown
-	 * @json:name=org_rank
 	 */
+	#[JSON\Name("org_rank")]
 	public ?string $guild_rank = '';
 
 	/**
 	 * The numeric rank of the player in their org or null if not in an org/unknown
-	 * @json:name=org_rank_id
 	 */
+	#[JSON\Name("org_rank_id")]
 	public ?int $guild_rank_id = null;
 
 	/**
@@ -119,7 +120,7 @@ class Player extends DBRow {
 	 */
 	public ?string $pvp_title = null;
 
-	/** @json:ignore */
+	#[JSON\Ignore]
 	public string $source = '';
 
 	/**

@@ -7,7 +7,7 @@
 			"name": "GPL3",
 			"url": "https://www.gnu.org/licenses/gpl-3.0.en.html"
 		},
-		"version": "5.3.3"
+		"version": "6.0.0"
 	},
 	"servers": [
 		{
@@ -257,10 +257,6 @@
 					"description": {
 						"type": "string"
 					},
-					"help": {
-						"type": "string",
-						"nullable": true
-					},
 					"permissions": {
 						"type": "array",
 						"items": {
@@ -419,6 +415,10 @@
 							"id": {
 								"type": "integer",
 								"description": "The internal ID of this news entry"
+							},
+							"uuid": {
+								"type": "string",
+								"description": "The UUID of this news entry"
 							}
 						}
 					}
@@ -816,10 +816,12 @@
 						"type": "string",
 						"description": "Name of the bot character in AO"
 					},
-					"superadmin": {
-						"type": "string",
-						"nullable": true,
-						"description": "Name of the character running the bot, null if not set"
+					"superadmins": {
+						"type": "array",
+						"description": "Name(s) of the character(s) running the bot, empty if not set",
+						"items": {
+							"type": "string"
+						}
 					},
 					"org": {
 						"type": "string",
