@@ -446,7 +446,7 @@ class TowerController {
 		}
 
 		$msg = $this->makeBlob(
-			"All unplanted sites ({$result->count})",
+			"All unplanted sites (" . count($sites) . ")",
 			$blob
 		);
 		$sendto->reply($msg);
