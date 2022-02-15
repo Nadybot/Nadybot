@@ -48,6 +48,8 @@ use Nadybot\Modules\DISCORD_GATEWAY_MODULE\Model\{
 	VoiceState,
 };
 use Nadybot\Modules\WEBSERVER_MODULE\StatsController;
+use ReflectionClass;
+use ReflectionClassConstant;
 use stdClass;
 
 /**
@@ -259,7 +261,7 @@ class DiscordGatewayController extends ModuleInstance {
 			return;
 		}
 		$this->client = $this->websocket->createClient()
-			->withURI("wss://gateway.discord.gg/?v=9&encoding=json")
+			->withURI("wss://gateway.discord.gg/?v=10&encoding=json")
 			->withTimeout(30)
 			->on(WebsocketClient::ON_CLOSE, [$this, "processWebsocketClose"])
 			->on(WebsocketClient::ON_TEXT, [$this, "processWebsocketMessage"])
@@ -374,7 +376,8 @@ class DiscordGatewayController extends ModuleInstance {
 			| Intent::DIRECT_MESSAGES
 			| Intent::GUILD_MEMBERS
 			| Intent::GUILDS
-			| Intent::GUILD_VOICE_STATES;
+			| Intent::GUILD_VOICE_STATES
+			| Intent::MESSAGE_CONTENT;
 		$login = new Payload();
 		$login->op = Opcode::IDENTIFY;
 		$login->d = $identify;
@@ -508,11 +511,28 @@ class DiscordGatewayController extends ModuleInstance {
 			$this->mustReconnect = false;
 			$this->timer->callLater($this->reconnectDelay, [$this->client, 'connect']);
 			$this->reconnectDelay = max($this->reconnectDelay * 2, 5);
+		} elseif ($event->code === CloseEvents::DISALLOWED_INTENT) {
+			$this->logger->error(
+				"Your bot doesn't have all the intents it needs. Please go to {url}, then ".
+				"choose this bot's application, then choose \"Bot\" on the left and ".
+				"activate \"Server members intent\" and \"Message content intent\" under ".
+				"\"Privileged Gateway Intents\".",
+				["url" => "https://discord.com/developers"]
+			);
 		} else {
+			$ref = new ReflectionClass(CloseEvents::class);
+			$lookup = array_flip($ref->getConstants(ReflectionClassConstant::IS_PUBLIC));
+			$this->logger->error(
+				"Discord server closed connection with code {code} ({text})",
+				[
+					"code" => $event->code ?? "unknown",
+					"text" => $lookup[$event->code] ?? "unknown",
+				]
+			);
 			$this->guilds = [];
 		}
 	}
-	#
+
 	#[NCA\Event(
 		name: "discord(guild_members_chunk)",
 		description: "Handle discord server members",

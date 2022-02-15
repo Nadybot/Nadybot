@@ -80,7 +80,10 @@ class DiscordMessageCommandReply implements CommandReply, MessageEmitter {
 		foreach ($msg as $msgPack) {
 			$messageObj = $this->discordController->formatMessage($msgPack);
 			if (isset($this->message)) {
-				$messageObj->message_reference = (object)["message_id" => $this->message->id];
+				$messageObj->message_reference = (object)[
+					"message_id" => $this->message->id,
+					"channel_id" => $this->channelId,
+				];
 			}
 			$this->discordAPIClient->queueToChannel($this->channelId, $messageObj->toJSON());
 		}
