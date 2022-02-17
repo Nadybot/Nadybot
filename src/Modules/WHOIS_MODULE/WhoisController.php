@@ -6,7 +6,6 @@ use Nadybot\Core\{
 	Attributes as NCA,
 	BuddylistManager,
 	CmdContext,
-	CommandAlias,
 	CommandReply,
 	ConfigFile,
 	Event,
@@ -35,6 +34,7 @@ use Nadybot\Modules\COMMENT_MODULE\CommentController;
 		command: "whois",
 		accessLevel: "guest",
 		description: "Show character info, online status, and name history",
+		alias: ['w', 'is'],
 	),
 	NCA\DefineCommand(
 		command: "lookup",
@@ -68,9 +68,6 @@ class WhoisController extends ModuleInstance {
 	public BuddylistManager $buddylistManager;
 
 	#[NCA\Inject]
-	public CommandAlias $commandAlias;
-
-	#[NCA\Inject]
 	public CommentController $commentController;
 
 	#[NCA\Inject]
@@ -97,9 +94,6 @@ class WhoisController extends ModuleInstance {
 			intoptions: '1;0',
 			accessLevel: 'mod'
 		);
-
-		$this->commandAlias->register($this->moduleName, "whois", "w");
-		$this->commandAlias->register($this->moduleName, "whois", "is");
 	}
 
 	#[NCA\Event(

@@ -59,6 +59,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Introduce a new access level "guest" for people in the private chat or Discord chat
 - Modules can now register themselves as AccessLevelProvider, so modules can
   manage their own access levels. The highest one (lowest numeric) will always be chosen.
+- The (sub-)command declararion can now define multiple aliases at once
 
 ### Removed
 

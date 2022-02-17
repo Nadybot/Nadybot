@@ -202,12 +202,6 @@ class AuctionController extends ModuleInstance {
 			intoptions: '1;2;3;4;5;6'
 		);
 		$this->commandAlias->register($this->moduleName, "bid history", "bh");
-		// $this->commandAlias->register($this->moduleName, "auction start", "bid start");
-		// $this->commandAlias->register($this->moduleName, "auction end", "bid end");
-		// $this->commandAlias->register($this->moduleName, "auction cancel", "bid cancel");
-		// $this->commandAlias->register($this->moduleName, "auction reimburse", "bid reimburse");
-		// $this->commandAlias->register($this->moduleName, "auction reimburse", "bid payback");
-		// $this->commandAlias->register($this->moduleName, "auction reimburse", "bid refund");
 	}
 
 	/** Auction an item */

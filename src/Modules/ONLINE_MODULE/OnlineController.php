@@ -9,7 +9,6 @@ use Nadybot\Core\{
 	Attributes as NCA,
 	BuddylistManager,
 	CmdContext,
-	CommandAlias,
 	ConfigFile,
 	DB,
 	Event,
@@ -51,6 +50,7 @@ use Nadybot\Modules\{
 		command: "online",
 		accessLevel: "guest",
 		description: "Shows who is online",
+		alias: ['o', 'sm'],
 	),
 	NCA\ProvidesEvent("online(org)"),
 	NCA\ProvidesEvent("offline(org)")
@@ -112,9 +112,6 @@ class OnlineController extends ModuleInstance {
 
 	#[NCA\Inject]
 	public Util $util;
-
-	#[NCA\Inject]
-	public CommandAlias $commandAlias;
 
 	#[NCA\Inject]
 	public PlayerManager $playerManager;
@@ -240,8 +237,6 @@ class OnlineController extends ModuleInstance {
 			intoptions: "1;0"
 		);
 
-		$this->commandAlias->register($this->moduleName, "online", "o");
-		$this->commandAlias->register($this->moduleName, "online", "sm");
 		$onlineOrg = new OnlineOrgStats();
 		$onlinePriv = new OnlinePrivStats();
 		Registry::injectDependencies($onlineOrg);
