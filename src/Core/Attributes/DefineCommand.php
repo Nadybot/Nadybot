@@ -9,11 +9,11 @@ class DefineCommand {
 	public function __construct(
 		public string $command,
 		public string $description,
-		public ?string $channels=null,
 		public ?string $accessLevel=null,
 		public ?string $help=null,
 		public ?int $defaultStatus=null,
-		public ?string $alias=null
+		/** @var null|string|string[] */
+		public null|string|array $alias=null
 	) {
 	}
 }

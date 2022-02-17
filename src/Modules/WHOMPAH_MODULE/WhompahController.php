@@ -6,7 +6,6 @@ use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
-	CommandAlias,
 	DB,
 	ModuleInstance,
 	ParamClass\PWord,
@@ -23,6 +22,7 @@ use Nadybot\Core\{
 		command: "whompah",
 		accessLevel: "guest",
 		description: "Shows the whompah route from one city to another",
+		alias: ['whompahs', 'whompa', 'whompas'],
 	)
 ]
 class WhompahController extends ModuleInstance {
@@ -32,17 +32,10 @@ class WhompahController extends ModuleInstance {
 	#[NCA\Inject]
 	public Text $text;
 
-	#[NCA\Inject]
-	public CommandAlias $commandAlias;
-
 	#[NCA\Setup]
 	public function setup(): void {
 		$this->db->loadCSVFile($this->moduleName, __DIR__ . "/whompah_cities.csv");
 		$this->db->loadCSVFile($this->moduleName, __DIR__ . "/whompah_cities_rel.csv");
-
-		$this->commandAlias->register($this->moduleName, 'whompah', 'whompahs');
-		$this->commandAlias->register($this->moduleName, 'whompah', 'whompa');
-		$this->commandAlias->register($this->moduleName, 'whompah', 'whompas');
 	}
 
 	/**

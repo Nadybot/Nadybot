@@ -6,7 +6,6 @@ use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
-	CommandAlias,
 	DB,
 	ModuleInstance,
 };
@@ -23,6 +22,7 @@ use Nadybot\Core\{
 		command: "level",
 		accessLevel: "guest",
 		description: "Show level ranges",
+		alias: ['pvp', 'lvl'],
 	),
 	NCA\DefineCommand(
 		command: "missions",
@@ -41,15 +41,9 @@ class LevelController extends ModuleInstance {
 	#[NCA\Inject]
 	public DB $db;
 
-	#[NCA\Inject]
-	public CommandAlias $commandAlias;
-
 	#[NCA\Setup]
 	public function setup(): void {
 		$this->db->loadCSVFile($this->moduleName, __DIR__ . "/levels.csv");
-
-		$this->commandAlias->register($this->moduleName, "level", "pvp");
-		$this->commandAlias->register($this->moduleName, "level", "lvl");
 	}
 
 	/** Show information and level ranges for a character level */
