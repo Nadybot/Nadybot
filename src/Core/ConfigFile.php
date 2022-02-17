@@ -10,6 +10,8 @@ use Spatie\DataTransferObject\{
 	DataTransferObject,
 };
 
+use function Safe\json_encode;
+
 /**
  * The ConfigFile class provides convenient interface for reading and saving
  * config files located in conf-subdirectory.
@@ -192,7 +194,9 @@ class ConfigFile extends DataTransferObject {
 		}
 		foreach ($lines as $key => $line) {
 			if (preg_match("/^(.+)vars\[('|\")(.+)('|\")](.*)=(.*)\"(.*)\";(.*)$/si", $line, $arr)) {
-				$lines[$key] = "$arr[1]vars['$arr[3]']$arr[5]=$arr[6]\"{$vars[$arr[3]]}\";$arr[8]";
+				$lines[$key] = "$arr[1]vars['$arr[3]']$arr[5]=$arr[6]".
+					json_encode($vars[$arr[3]], JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE).
+					";$arr[8]";
 				unset($vars[$arr[3]]);
 			} elseif (preg_match("/^(.+)vars\[('|\")(.+)('|\")](.*)=([ 	]+)([0-9]+);(.*)$/si", $line, $arr)) {
 				$lines[$key] = "$arr[1]vars['$arr[3]']$arr[5]=$arr[6]{$vars[$arr[3]]};$arr[8]";
@@ -210,8 +214,11 @@ class ConfigFile extends DataTransferObject {
 				$lines []= "<?php\n";
 			}
 			foreach ($vars as $name => $value) {
+var_dump($value);
 				if (is_string($value)) {
 					$lines []= "\$vars['$name'] = \"$value\";\n";
+				} elseif (is_array($value)) {
+					$lines []= "\$vars['$name'] = " . json_encode($value) . ";\n";
 				} else {
 					$lines []= "\$vars['$name'] = $value;\n";
 				}
