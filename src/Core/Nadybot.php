@@ -1247,7 +1247,6 @@ class Nadybot extends AOChat {
 			$attribute = $attribute->newInstance();
 			$command = $attribute->command;
 			$definition = [
-				'channels'      => $attribute->channels,
 				'defaultStatus' => $attribute->defaultStatus,
 				'accessLevel'   => $attribute->accessLevel??"mod",
 				'description'   => $attribute->description,
@@ -1262,8 +1261,10 @@ class Nadybot extends AOChat {
 				$commands[$command] = $definition;
 			}
 			// register command alias if defined
-			if ($attribute->alias) {
-				$this->commandAlias->register($moduleName, $command, $attribute->alias);
+			if (isset($attribute->alias)) {
+				foreach ((array)$attribute->alias as $alias) {
+					$this->commandAlias->register($moduleName, $command, $alias);
+				}
 			}
 		}
 

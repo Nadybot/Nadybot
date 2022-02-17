@@ -37,6 +37,7 @@ use Nadybot\Modules\{
 		command: "loot",
 		accessLevel: "guest",
 		description: "Show the loot list",
+		alias: 'list',
 	),
 	NCA\DefineCommand(
 		command: LootController::CMD_LOOT_MANAGE,
@@ -57,6 +58,7 @@ use Nadybot\Modules\{
 		command: "flatroll",
 		accessLevel: "rl",
 		description: "Roll the loot list",
+		alias: ['rollloot', 'result', 'win'],
 	),
 	NCA\DefineCommand(
 		command: "add",
@@ -135,11 +137,7 @@ class LootController extends ModuleInstance {
 			intoptions: '1;0'
 		);
 
-		$this->commandAlias->register($this->moduleName, "flatroll", "rollloot");
-		$this->commandAlias->register($this->moduleName, "flatroll", "result");
-		$this->commandAlias->register($this->moduleName, "flatroll", "win");
 		$this->commandAlias->register($this->moduleName, "loot addmulti", "multiloot");
-		$this->commandAlias->register($this->moduleName, "loot", "list");
 	}
 
 	#[NCA\Event(

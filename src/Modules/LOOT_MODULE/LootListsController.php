@@ -104,6 +104,7 @@ use Nadybot\Modules\{
 		command: "12m",
 		accessLevel: "guest",
 		description: "Shows possible 12 man Loot",
+		alias: ['12man', '12-man'],
 	),
 	NCA\DefineCommand(
 		command: "poh",
@@ -129,6 +130,7 @@ use Nadybot\Modules\{
 		command: "lox",
 		accessLevel: "guest",
 		description: "Shows Legacy of the Xan loot categories",
+		alias: 'xan',
 	)
 ]
 class LootListsController extends ModuleInstance {
@@ -179,9 +181,6 @@ class LootListsController extends ModuleInstance {
 			intoptions: '1;0'
 		);
 		$aliases = [
-			'12man' => "12m",
-			'12-man' => "12m",
-			'xan' => "lox",
 			'beastarmor' => "pande Beast Armor",
 			'beastweaps' => "pande Beast Weapons",
 			'beastweapons' => "pande Beast Weapons",

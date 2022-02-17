@@ -6,7 +6,6 @@ use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
-	CommandAlias,
 	DB,
 	Http,
 	ModuleInstance,
@@ -37,6 +36,7 @@ use Nadybot\Modules\ITEMS_MODULE\{
 		command: "aimshot",
 		accessLevel: "guest",
 		description: "Aim Shot: Calculates Aimed Shot",
+		alias: ['as', 'aimedshot'],
 	),
 	NCA\DefineCommand(
 		command: "nanoinit",
@@ -82,6 +82,7 @@ use Nadybot\Modules\ITEMS_MODULE\{
 		command: "weapon",
 		accessLevel: "guest",
 		description: "Shows weapon info (skill cap specials recycle and aggdef positions)",
+		alias: ['specials', 'inits'],
 	)
 ]
 class SkillsController extends ModuleInstance {
@@ -100,17 +101,9 @@ class SkillsController extends ModuleInstance {
 	#[NCA\Inject]
 	public ItemsController $itemsController;
 
-	#[NCA\Inject]
-	public CommandAlias $commandAlias;
-
 	#[NCA\Setup]
 	public function setup(): void {
 		$this->db->loadCSVFile($this->moduleName, __DIR__ . "/weapon_attributes.csv");
-
-		$this->commandAlias->register($this->moduleName, "weapon", "specials");
-		$this->commandAlias->register($this->moduleName, "weapon", "inits");
-		$this->commandAlias->register($this->moduleName, "aimshot", "as");
-		$this->commandAlias->register($this->moduleName, "aimshot", "aimedshot");
 	}
 
 	/** Find out where to set your aggdef slider to be 1/1 */

@@ -9,7 +9,6 @@ use Nadybot\Core\{
 	BuddylistManager,
 	CmdContext,
 	ColorSettingHandler,
-	CommandAlias,
 	ConfigFile,
 	DB,
 	ModuleInstance,
@@ -38,14 +37,12 @@ use Nadybot\Modules\COMMENT_MODULE\CommentController;
 		command: "tradecolor",
 		accessLevel: "mod",
 		description: "Define colors for tradebot tags",
+		alias: 'tradecolors',
 	)
 ]
 class TradebotController extends ModuleInstance {
 	public const NONE = 'None';
 	public const DB_TABLE = "tradebot_colors_<myname>";
-
-	#[NCA\Inject]
-	public CommandAlias $commandAlias;
 
 	#[NCA\Inject]
 	public ConfigFile $config;
@@ -92,7 +89,6 @@ class TradebotController extends ModuleInstance {
 
 	#[NCA\Setup]
 	public function setup(): void {
-		$this->commandAlias->register($this->moduleName, "tradecolor", "tradecolors");
 		$this->settingManager->add(
 			module: $this->moduleName,
 			name: 'tradebot',

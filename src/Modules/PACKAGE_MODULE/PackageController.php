@@ -16,7 +16,6 @@ use Nadybot\Core\{
 	CacheManager,
 	CacheResult,
 	CmdContext,
-	CommandAlias,
 	ConfigFile,
 	DB,
 	Http,
@@ -39,6 +38,7 @@ use Nadybot\Modules\WEBSERVER_MODULE\JsonImporter;
 		command: "package",
 		accessLevel: "admin",
 		description: "Install or update external packages",
+		alias: ['packages', 'module'],
 	)
 ]
 class PackageController extends ModuleInstance {
@@ -64,9 +64,6 @@ class PackageController extends ModuleInstance {
 	public Http $http;
 
 	#[NCA\Inject]
-	public CommandAlias $commandAlias;
-
-	#[NCA\Inject]
 	public CacheManager $cacheManager;
 
 	#[NCA\Logger]
@@ -75,8 +72,6 @@ class PackageController extends ModuleInstance {
 	#[NCA\Setup]
 	public function setup(): void {
 		$this->scanForUnregisteredExtraModules();
-		$this->commandAlias->register($this->moduleName, "package", "packages");
-		$this->commandAlias->register($this->moduleName, "package", "module");
 	}
 
 	/**
