@@ -214,7 +214,6 @@ class ConfigFile extends DataTransferObject {
 				$lines []= "<?php\n";
 			}
 			foreach ($vars as $name => $value) {
-var_dump($value);
 				if (is_string($value)) {
 					$lines []= "\$vars['$name'] = \"$value\";\n";
 				} elseif (is_array($value)) {
