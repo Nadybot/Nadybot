@@ -5,6 +5,70 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Changed
+
+- Moved from PHPDoc annotations to PHP 8 attributes, greatly increasing parsing speed
+- Change the start-up banner to be more concise
+- Change a lot of the default permissions that were using "all" or "member" to "guest"
+- Remove all global variables
+- Sub-commands are no longer regular expressions, but rather user-friendly names.
+  Sub-commands are only used to group permissions now and can be chosen freely.
+  All existing sub-command-rights are being migrated automatically
+- Replace the huge banner with a smaller one for N6
+- Help for commands is now created from the source file and no longer from
+  separate help files. A new `!help syntax` explains the syntax and is linked
+  to from every help page, unless turned off.
+- The `!help` command is now a central landing page for getting help and no longer
+  a list of commands
+- Moved `!adminhelp` from guides to help, so it's part of core
+- Instead of having 3 fixed "channels", there is now an unlimited number of
+  permission sets. By default, they have the same names as the old channels and
+  the same short letter symbols (T|G|P). These permission sets can be managed
+  with the `!permset` command and mapped to a command source via the
+  `!cmdmap` command. The command prefix is now also part of this mapping, so
+  you can have different prefixes for org, private chat, discord and so on.
+- After authenticating, the socket to the AO chat server is now non-blocking.
+  That also means that AO-packets aren't prioritized higher than others anymore.
+  In the past, if one packet was ready to be read, *all* of he packets would be
+  read in one go. This is no longer the case.
+- Migrations are no longer executed manually during setup, but automatically
+  when registered with #[HasMigrations]. The order in which they are executed
+  is now predictable and strictly timed.
+- No module accesses another module's database tables directly anymore, only
+  via exposed functions from the other module
+- The configuration is now parsed into an instanced object (ConfigFile), that
+  can be injected, instead of using a global variable `$vars`
+- Where it makes sense, function calls have been converted from positional
+  to by-name
+- The #[Inject]/@Inject annotation used to determine the name of the instance to
+  inject by the variable name. This has been changed to the class name.
+  Thus, it is no longer possible to inject into untyped properties.
+  Example: `DB $database` will now inject the "db" instance, not the "database".
+- The way commands have to be declared has completely changed
+- Everything is now constantly checked against psalm and phpstan
+
+### Added
+
+- Allow having more than 1 superadmin
+- Add a Prometheus-compatible metrics-endpoint to /metrics
+- New command `!showconfig` to get your current configuration, minus sensitive data
+- The console is now reporting in as a source, so you can actually use it for
+  chatting. In order to do that, you should not make the command prefix optional.
+- Introduce a new access level "guest" for people in the private chat or Discord chat
+- Modules can now register themselves as AccessLevelProvider, so modules can
+  manage their own access levels. The highest one (lowest numeric) will always be chosen.
+
+### Removed
+
+- Remove all deprecated DB calls (query, queryRow, etc.)
+- You can no longer inject into untyped properties
+- Command help files are no more
+- The old `/** @ */` annotations are no more,use attributes
+- The old command-syntax with a fixed amount of parameters is gone
+- PHP 7 is no longer supported
+
 ## [5.3.2] - 2021-12-23
 
 ### Fixed
