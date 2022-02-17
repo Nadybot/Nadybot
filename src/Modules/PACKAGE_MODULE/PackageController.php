@@ -217,12 +217,13 @@ class PackageController extends ModuleInstance {
 		}
 		$packages = $packages->filter(function(Package $package): bool {
 			return $package->bot_type === "Nadybot";
-		})->values();
-		/** @var Package[] $packages */
-		foreach ($packages as $package) {
+		})
+		->each(function (Package $package): void {
 			$package->compatible = $this->isVersionCompatible($package->bot_version);
 			$package->state = $this->getInstalledModuleType($package->name);
-		}
+		})
+		->values()
+		->toArray();
 		$callback($packages, ...$args);
 	}
 
