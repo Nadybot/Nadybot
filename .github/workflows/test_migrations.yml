@@ -5,6 +5,7 @@ jobs:
   setup:
     name: Setup database migrations
     runs-on: self-hosted
+
     steps:
       - name: Checkout sources
         uses: actions/checkout@v2
@@ -21,6 +22,7 @@ jobs:
     name: Test SQLite migrations
     needs: setup
 
+    steps:
       - name: Migrate from Budabot 4.0.0 with SQLite
         shell: bash
         run: |
@@ -37,6 +39,7 @@ jobs:
     name: Test MySQL migrations
     needs: setup
 
+    steps:
       - name: Migrate from Budabot 4.0.0 with MariaDB 10.5
         shell: bash
         run: |
@@ -82,6 +85,7 @@ jobs:
     name: Test PostgreSQL migrations
     needs: setup
 
+    steps:
       - name: Migrate from Nadybot 5.1.0 with PostgreSQL
         shell: bash
         run: |
