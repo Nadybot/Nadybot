@@ -87,7 +87,9 @@ class BotRunner {
 			if (!isset($latestTag)) {
 				return $branch;
 			}
-			if (strncmp(static::VERSION, $latestTag, strlen(static::VERSION)) === 1) {
+			if ($latestTag === '') {
+				$latestTag = static::VERSION;
+			} elseif (strncmp(static::VERSION, $latestTag, strlen(static::VERSION)) === 1) {
 				$latestTag = static::VERSION;
 			}
 			if ($branch !== 'stable') {
