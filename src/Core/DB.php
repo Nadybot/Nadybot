@@ -175,9 +175,7 @@ class DB {
 				'prefix' => ''
 			]);
 			$this->sql = $this->capsule->getConnection()->getPdo();
-			if (BotRunner::isWindows()) {
-				$this->maxPlaceholders = 999;
-			}
+			$this->maxPlaceholders = 999;
 
 			$sqliteVersion = $this->sql->getAttribute(PDO::ATTR_SERVER_VERSION);
 			if (version_compare($sqliteVersion, static::SQLITE_MIN_VERSION, "<")) {

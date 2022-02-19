@@ -1,0 +1,30 @@
+name: Test Windows
+on: [push]
+
+jobs:
+  tests:
+    name: Test windows run
+    runs-on: windows-latest
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v2
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.1'
+          coverage: none
+          extensions: sqlite3, sockets, pdo_sqlite, pdo_mysql
+
+      - name: Install dependencies
+        run: composer install
+
+      - name: Write config file
+        uses: joutvhu/write-file@v1
+        with:
+          path: conf/config.php
+          contents: ${{ secrets.WINDOWS_CONFIG }}
+          write_mode: overwrite
+
+      - name: Run Nadybot
+        run: php main.php --setup-only
