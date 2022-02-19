@@ -46,7 +46,7 @@ jobs:
         shell: bash
         run: |
           podman rm --force maria_db &>/dev/null || true
-          podman run --network host --rm -d --name nady_db -e MYSQL_ROOT_PASSWORD=e9oCsyKLgwhv8s7Q2d8s -e MYSQL_DATABASE=budabot -e MYSQL_USER=budabot -e MYSQL_PASSWORD=123456 docker.io/library/mariadb:10.5
+          podman run --network host --rm -d --name maria_db -e MYSQL_ROOT_PASSWORD=e9oCsyKLgwhv8s7Q2d8s -e MYSQL_DATABASE=budabot -e MYSQL_USER=budabot -e MYSQL_PASSWORD=123456 docker.io/library/mariadb:10.5
           while ! nc -z -w 1 127.0.0.1 3306 &>/dev/null; do sleep 1; done
           mysql -h 127.0.0.1 -u budabot -p123456 budabot < /etc/nadybot/budabot4.mysql
           php80 main.php --setup-only /etc/nadybot/mysql.php
@@ -56,7 +56,7 @@ jobs:
         shell: bash
         run: |
           podman rm --force maria_db &>/dev/null || true
-          podman run --network host --rm -d --name nady_db -e MYSQL_ROOT_PASSWORD=e9oCsyKLgwhv8s7Q2d8s -e MYSQL_DATABASE=budabot -e MYSQL_USER=budabot -e MYSQL_PASSWORD=123456 docker.io/library/mariadb:10.5
+          podman run --network host --rm -d --name maria_db -e MYSQL_ROOT_PASSWORD=e9oCsyKLgwhv8s7Q2d8s -e MYSQL_DATABASE=budabot -e MYSQL_USER=budabot -e MYSQL_PASSWORD=123456 docker.io/library/mariadb:10.5
           while ! nc -z -w 1 127.0.0.1 3306 &>/dev/null; do sleep 1; done
           mysql -h 127.0.0.1 -u budabot -p123456 budabot < /etc/nadybot/nadybot5.0.0.mysql
           php80 main.php --setup-only /etc/nadybot/mysql.php
@@ -66,7 +66,7 @@ jobs:
         shell: bash
         run: |
           podman rm --force mysql_db &>/dev/null || true
-          podman run --network host --rm -d --name nady_db -e MYSQL_ROOT_PASSWORD=e9oCsyKLgwhv8s7Q2d8s -e MYSQL_DATABASE=budabot -e MYSQL_USER=budabot -e MYSQL_PASSWORD=123456 docker.io/library/mysql:5.5
+          podman run --network host --rm -d --name mysql_db -e MYSQL_ROOT_PASSWORD=e9oCsyKLgwhv8s7Q2d8s -e MYSQL_DATABASE=budabot -e MYSQL_USER=budabot -e MYSQL_PASSWORD=123456 docker.io/library/mysql:5.5
           while ! nc -z -w 1 127.0.0.1 3306 &>/dev/null; do sleep 1; done
           mysql -h 127.0.0.1 -u budabot -p123456 budabot < /etc/nadybot/budabot4.mysql
           php80 main.php --setup-only /etc/nadybot/mysql.php
@@ -77,7 +77,7 @@ jobs:
         shell: bash
         run: |
           podman rm --force mysql_db &>/dev/null || true
-          podman run --network host --rm -d --name nady_db -e MYSQL_ROOT_PASSWORD=e9oCsyKLgwhv8s7Q2d8s -e MYSQL_DATABASE=budabot -e MYSQL_USER=budabot -e MYSQL_PASSWORD=123456 docker.io/library/mysql:5.5
+          podman run --network host --rm -d --name mysql_db -e MYSQL_ROOT_PASSWORD=e9oCsyKLgwhv8s7Q2d8s -e MYSQL_DATABASE=budabot -e MYSQL_USER=budabot -e MYSQL_PASSWORD=123456 docker.io/library/mysql:5.5
           while ! nc -z -w 1 127.0.0.1 3306 &>/dev/null; do sleep 1; done
           mysql -h 127.0.0.1 -u budabot -p123456 budabot < /etc/nadybot/nadybot5.0.0.mysql
           php80 main.php --setup-only /etc/nadybot/mysql.php
@@ -93,7 +93,7 @@ jobs:
         shell: bash
         run: |
           podman rm --force pg_db &>/dev/null || true
-          podman run --rm --name nady_db -it -d --net host -e POSTGRES_DB=budabot -e POSTGRES_USER=budabot -e POSTGRES_PASSWORD=123456 docker.io/library/postgres:9
+          podman run --rm --name pg_db -it -d --net host -e POSTGRES_DB=budabot -e POSTGRES_USER=budabot -e POSTGRES_PASSWORD=123456 docker.io/library/postgres:9
           until psql -h 127.0.0.1 -U budabot -d budabot -c "select 1" &>/dev/null; do
             sleep 1
           done
