@@ -12,7 +12,9 @@ jobs:
       - name: Install dependencies
         shell: bash
         run: |
-          curl -sSLq -o /tmp/composer https://getcomposer.org/download/latest-stable/composer.phar
+          if ! test -e /tmp/composer; then
+            curl --retry 10 -sSLq -o /tmp/composer https://getcomposer.org/download/latest-stable/composer.phar
+          fi
           php80 /tmp/composer install
 
       - name: Migrate from Budabot 4.0.0 with SQLite
