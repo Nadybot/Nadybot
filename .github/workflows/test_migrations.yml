@@ -50,17 +50,15 @@ jobs:
           while ! nc -z -w 1 127.0.0.1 3306 &>/dev/null; do sleep 1; done
           mysql -h 127.0.0.1 -u budabot -p123456 budabot < /etc/nadybot/budabot4.mysql
           php80 main.php --setup-only /etc/nadybot/mysql.php
-          podman rm --force maria_db &>/dev/null || true
 
       - name: Migrate from Nadybot 5.0.0 with MariaDB 10.5
         shell: bash
         run: |
-          podman rm --force maria_db &>/dev/null || true
-          podman run --network host --rm -d --name maria_db -e MYSQL_ROOT_PASSWORD=e9oCsyKLgwhv8s7Q2d8s -e MYSQL_DATABASE=budabot -e MYSQL_USER=budabot -e MYSQL_PASSWORD=123456 docker.io/library/mariadb:10.5
+          mysql -h 127.0.0.1 -u budabot -p123456 budabot <<<"DROP DATABASE budabot; CREATE DATABASE budabot;"
           while ! nc -z -w 1 127.0.0.1 3306 &>/dev/null; do sleep 1; done
           mysql -h 127.0.0.1 -u budabot -p123456 budabot < /etc/nadybot/nadybot5.0.0.mysql
           php80 main.php --setup-only /etc/nadybot/mysql.php
-          podman rm --force maria_db &>/dev/null || true
+          podman stop maria_db &>/dev/null || true
 
       - name: Migrate from Budabot 4.0.0 with MySQL 5.5
         shell: bash
@@ -70,18 +68,16 @@ jobs:
           while ! nc -z -w 1 127.0.0.1 3306 &>/dev/null; do sleep 1; done
           mysql -h 127.0.0.1 -u budabot -p123456 budabot < /etc/nadybot/budabot4.mysql
           php80 main.php --setup-only /etc/nadybot/mysql.php
-          podman rm --force mysql_db &>/dev/null || true
 
 
       - name: Migrate from Nadybot 5.0.0 with MySQL 5.5
         shell: bash
         run: |
-          podman rm --force mysql_db &>/dev/null || true
-          podman run --network host --rm -d --name mysql_db -e MYSQL_ROOT_PASSWORD=e9oCsyKLgwhv8s7Q2d8s -e MYSQL_DATABASE=budabot -e MYSQL_USER=budabot -e MYSQL_PASSWORD=123456 docker.io/library/mysql:5.5
+          mysql -h 127.0.0.1 -u budabot -p123456 budabot <<<"DROP DATABASE budabot; CREATE DATABASE budabot;"
           while ! nc -z -w 1 127.0.0.1 3306 &>/dev/null; do sleep 1; done
           mysql -h 127.0.0.1 -u budabot -p123456 budabot < /etc/nadybot/nadybot5.0.0.mysql
           php80 main.php --setup-only /etc/nadybot/mysql.php
-          podman rm --force mysql_db &>/dev/null || true
+          podman stop mysql_db &>/dev/null || true
 
   pgsql:
     name: Test PostgreSQL migrations
