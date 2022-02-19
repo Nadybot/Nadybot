@@ -13,7 +13,7 @@ jobs:
         run: composer install
 
       - name: Write config file
-        uses: DamianReeves/write-file-action
+        uses: DamianReeves/write-file-action@v1
         with:
           path: conf/config.php
           contents: ${{ secrets.WINDOWS_CONFIG }}
