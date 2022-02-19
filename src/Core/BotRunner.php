@@ -23,6 +23,12 @@ class BotRunner {
 	 */
 	private array $argv = [];
 
+	/**
+	 * The parsed command line arguments
+	 * @var array<string,mixed>
+	 */
+	public static array $arguments = [];
+
 	private ?ConfigFile $configFile;
 
 	public ClassLoader $classLoader;
@@ -81,7 +87,9 @@ class BotRunner {
 			if (!isset($latestTag)) {
 				return $branch;
 			}
-			if (strncmp(static::VERSION, $latestTag, strlen(static::VERSION)) === 1) {
+			if ($latestTag === '') {
+				$latestTag = static::VERSION;
+			} elseif (strncmp(static::VERSION, $latestTag, strlen(static::VERSION)) === 1) {
 				$latestTag = static::VERSION;
 			}
 			if ($branch !== 'stable') {
@@ -240,10 +248,32 @@ class BotRunner {
 		}
 	}
 
+	private function parseOptions(): void {
+		$options = getopt(
+			"c:v",
+			[
+				"migrate-only",
+				"setup-only",
+			],
+			$restPos
+		);
+		if ($options === false) {
+			\Safe\fwrite(STDERR, "Unable to parse arguments passed to the bot.\n");
+			\Safe\sleep(5);
+			exit(1);
+		}
+		$argv = array_slice($this->argv, $restPos);
+		static::$arguments = $options;
+		if (count($argv) > 0) {
+			static::$arguments["c"] = array_shift($argv);
+		}
+	}
+
 	/**
 	 * Run the bot in an endless loop
 	 */
 	public function run(): void {
+		$this->parseOptions();
 		// set default timezone
 		date_default_timezone_set("UTC");
 
@@ -292,14 +322,21 @@ class BotRunner {
 		$this->uninstallCtrlCHandler($signalHandler);
 
 		$this->runUpgradeScripts();
+		if ((static::$arguments["migrate-only"]??true) === false) {
+			exit(0);
+		}
 
 		[$server, $port] = $this->getServerAndPort($config);
 
 		/** @var Nadybot */
 		$chatBot = Registry::getInstance(Nadybot::class);
 
-		// startup core systems and load modules
+		// startup core systems, load modules and call setup methods
 		$chatBot->init($this);
+
+		if ((static::$arguments["setup-only"]??true) === false) {
+			exit(0);
+		}
 
 		// connect to ao chat server
 		$chatBot->connectAO($config->login, $config->password, (string)$server, (int)$port);
@@ -349,7 +386,7 @@ class BotRunner {
 		if (isset($this->configFile)) {
 			return $this->configFile;
 		}
-		$configFilePath = $this->argv[1] ?? "conf/config.php";
+		$configFilePath = static::$arguments["c"] ?? "conf/config.php";
 		return $this->configFile = ConfigFile::loadFromFile($configFilePath);
 	}
 

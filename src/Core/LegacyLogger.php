@@ -87,6 +87,12 @@ class LegacyLogger {
 			}
 		);
 		static::$logLevels = [];
+		$verbose = BotRunner::$arguments["v"] ?? true;
+		if ($verbose === false) {
+			static::$logLevels []= ["*", "info"];
+		} elseif (is_array($verbose) && count($verbose) > 1) {
+			static::$logLevels []= ["*", "debug"];
+		}
 		foreach ($channels as $channel => $logLevel) {
 			static::$logLevels []= [(string)$channel, (string)$logLevel];
 		}
