@@ -18,68 +18,63 @@ jobs:
       - name: Migrate from Budabot 4.0.0 with SQLite
         shell: bash
         run: |
-          cp -f /etc/nadybot/sqlite.php conf/config.php
           cp -f /etc/nadybot/budabot4.db data/nadybot.db
-          php80 main.php --setup-only conf/config.php
+          php80 main.php --setup-only /etc/nadybot/sqlite.php
 
       - name: Migrate from Nadybot 5.0.0 with SQLite
         shell: bash
         run: |
-          cp -f /etc/nadybot/sqlite.php conf/config.php
           cp -f /etc/nadybot/nadybot5.0.0.db data/nadybot.db
-          php80 main.php --setup-only conf/config.php
+          php80 main.php --setup-only /etc/nadybot/sqlite.php
 
       - name: Migrate from Budabot 4.0.0 with MariaDB 10.5
         shell: bash
         run: |
-          cp -f /etc/nadybot/mysql.php conf/config.php
           podman rm --force nady_db &>/dev/null || true
           podman run --network host --rm -d --name nady_db -e MYSQL_ROOT_PASSWORD=e9oCsyKLgwhv8s7Q2d8s -e MYSQL_DATABASE=budabot -e MYSQL_USER=budabot -e MYSQL_PASSWORD=123456 docker.io/library/mariadb:10.5
           while ! nc -z -w 1 127.0.0.1 3306 &>/dev/null; do sleep 1; done
           mysql -h 127.0.0.1 -u budabot -p123456 budabot < /etc/nadybot/budabot4.mysql
-          php80 main.php --setup-only conf/config.php
+          php80 main.php --setup-only /etc/nadybot/mysql.php
           podman rm --force nady_db &>/dev/null || true
 
       - name: Migrate from Budabot 4.0.0 with MySQL 5.5
         shell: bash
         run: |
-          cp -f /etc/nadybot/mysql.php conf/config.php
           podman rm --force nady_db &>/dev/null || true
           podman run --network host --rm -d --name nady_db -e MYSQL_ROOT_PASSWORD=e9oCsyKLgwhv8s7Q2d8s -e MYSQL_DATABASE=budabot -e MYSQL_USER=budabot -e MYSQL_PASSWORD=123456 docker.io/library/mysql:5.5
           while ! nc -z -w 1 127.0.0.1 3306 &>/dev/null; do sleep 1; done
           mysql -h 127.0.0.1 -u budabot -p123456 budabot < /etc/nadybot/budabot4.mysql
-          php80 main.php --setup-only conf/config.php
+          php80 main.php --setup-only /etc/nadybot/mysql.php
           podman rm --force nady_db &>/dev/null || true
 
       - name: Migrate from Nadybot 5.0.0 with MariaDB 10.5
         shell: bash
         run: |
-          cp -f /etc/nadybot/mysql.php conf/config.php
           podman rm --force nady_db &>/dev/null || true
           podman run --network host --rm -d --name nady_db -e MYSQL_ROOT_PASSWORD=e9oCsyKLgwhv8s7Q2d8s -e MYSQL_DATABASE=budabot -e MYSQL_USER=budabot -e MYSQL_PASSWORD=123456 docker.io/library/mariadb:10.5
           while ! nc -z -w 1 127.0.0.1 3306 &>/dev/null; do sleep 1; done
           mysql -h 127.0.0.1 -u budabot -p123456 budabot < /etc/nadybot/nadybot5.0.0.mysql
-          php80 main.php --setup-only conf/config.php
+          php80 main.php --setup-only /etc/nadybot/mysql.php
           podman rm --force nady_db &>/dev/null || true
 
       - name: Migrate from Nadybot 5.0.0 with MySQL 5.5
         shell: bash
         run: |
-          cp -f /etc/nadybot/mysql.php conf/config.php
           podman rm --force nady_db &>/dev/null || true
           podman run --network host --rm -d --name nady_db -e MYSQL_ROOT_PASSWORD=e9oCsyKLgwhv8s7Q2d8s -e MYSQL_DATABASE=budabot -e MYSQL_USER=budabot -e MYSQL_PASSWORD=123456 docker.io/library/mysql:5.5
           while ! nc -z -w 1 127.0.0.1 3306 &>/dev/null; do sleep 1; done
           mysql -h 127.0.0.1 -u budabot -p123456 budabot < /etc/nadybot/nadybot5.0.0.mysql
-          php80 main.php --setup-only conf/config.php
+          php80 main.php --setup-only /etc/nadybot/mysql.php
           podman rm --force nady_db &>/dev/null || true
 
       - name: Migrate from Nadybot 5.1.0 with PostgreSQL
         shell: bash
         run: |
-          cp -f /etc/nadybot/postgresql.php conf/config.php
           podman rm --force nady_db &>/dev/null || true
           podman run --rm --name nady_db -it -d --net host -e POSTGRES_DB=budabot -e POSTGRES_USER=budabot -e POSTGRES_PASSWORD=123456 docker.io/library/postgres:9
-          while ! nc -z -w 1 127.0.0.1 5432 &>/dev/null; do sleep 1; done
+          until psql -h 127.0.0.1 -U budabot -d budabot -c "select 1" &>/dev/null; do
+            sleep 1
+          done
           psql -h 127.0.0.1 -U budabot budabot < /etc/nadybot/nadybot5.1.0.pgsql
-          php80 main.php --setup-only conf/config.php
+          php80 main.php --setup-only /etc/nadybot/postgresql.php
           podman rm --force nady_db &>/dev/null || true
