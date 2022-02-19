@@ -20,6 +20,7 @@ jobs:
 
   sqlite:
     name: Test SQLite migrations
+    runs-on: self-hosted
     needs: setup
 
     steps:
@@ -37,6 +38,7 @@ jobs:
 
   mysql:
     name: Test MySQL migrations
+    runs-on: self-hosted
     needs: setup
 
     steps:
@@ -83,6 +85,7 @@ jobs:
 
   pgsql:
     name: Test PostgreSQL migrations
+    runs-on: self-hosted
     needs: setup
 
     steps:
