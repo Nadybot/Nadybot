@@ -173,6 +173,16 @@ exit 0
 %endif
 
 %changelog
+* Sun Feb 20 2022 Nadyita <nadyita@hodorraid.org> 5.3.3-1
+- Number of unplanted sites is now correct when manually scouting
+- Fix "!online <prof>"
+- Fix penalty time
+- Error properly when running an unsupported SQLite version
+- Allow syncing news via nadynative
+- Handle the LOGIN_ERROR packet and display meaningful error messages
+- Add a configurable cool-down to mass-messages/-invites
+- Add a setting to limit command execution to a single discord channel
+
 * Thu Dec 23 2021 Nadyita <nadyita@hodorraid.org> 5.3.2-1
 - Websocket-based relays will once again reconnect
   if the websocket server restarts

@@ -278,13 +278,13 @@ class OnlineController {
 		})->leftJoin("alts AS a2", "a2.main", $query->colFunc("COALESCE", ["a.main", "o.name"]))
 		->leftJoin("players AS p", function (JoinClause $join) use ($query) {
 			$join->on("a2.alt", "p.name")
-				->orWhere($query->colFunc("COALESCE", ["a.main", "o.name"]), "p.name");
+				->orWhere("p.name", $query->colFunc("COALESCE", ["a.main", "o.name"]));
 		})
 		->leftJoin("online AS o2", "p.name", "o2.name")
 		->where("p.profession", $profession)
-		->orderByRaw($query->colFunc("COALESCE", ["a.main", "o.name"]))
+		->orderByRaw($query->colFunc("COALESCE", ["a2.main", "o.name"]))
 		->select("p.*", "o.afk")
-		->addSelect($query->colFunc("COALESCE", ["a.main", "p.name"], "pmain"))
+		->addSelect($query->colFunc("COALESCE", ["a2.main", "p.name"], "pmain"))
 		->selectRaw(
 			"(CASE WHEN " . $query->grammar->wrap("o2.name") . " IS NULL ".
 			"THEN 0 ELSE 1 END) AS " . $query->grammar->wrap("online")

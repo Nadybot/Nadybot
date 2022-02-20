@@ -26,7 +26,7 @@ use Throwable;
  */
 class DB {
 
-	public const SQLITE_MIN_VERSION = "3.23.0";
+	public const SQLITE_MIN_VERSION = "3.24.0";
 
 	/** @Inject */
 	public SettingManager $settingManager;
@@ -186,19 +186,20 @@ class DB {
 			}
 
 			$sqliteVersion = $this->sql->getAttribute(PDO::ATTR_SERVER_VERSION);
+			if (version_compare($sqliteVersion, static::SQLITE_MIN_VERSION, "<")) {
+				$this->logger->critical(
+					"You need at least SQLite {minVersion} for Nadybot. ".
+					"Your system is using {version}.",
+					[
+						"minVersion" => static::SQLITE_MIN_VERSION,
+						"version" => $sqliteVersion,
+					]
+				);
+				exit(1);
+			}
 			$this->sqlCreateReplacements[" AUTO_INCREMENT"] = " AUTOINCREMENT";
 			$this->sqlCreateReplacements[" INT "] = " INTEGER ";
 			$this->sqlCreateReplacements[" INT,"] = " INTEGER,";
-			if (version_compare($sqliteVersion, static::SQLITE_MIN_VERSION, "<")) {
-				$this->sqlCreateReplacements[" DEFAULT TRUE"] = " DEFAULT 1";
-				$this->sqlCreateReplacements[" DEFAULT FALSE"] = " DEFAULT 0";
-				$this->sqlReplacements[" IS TRUE"] = "=1";
-				$this->sqlReplacements[" IS NOT TRUE"] = "!=1";
-				$this->sqlReplacements[" IS FALSE"] = "=0";
-				$this->sqlReplacements[" IS NOT FALSE"] = "!=0";
-				$this->sqlRegexpReplacements["/(?<=[( ,])true(?=[) ,])/i"] = "1";
-				$this->sqlRegexpReplacements["/(?<=[( ,])false(?=[) ,])/i"] = "0";
-			}
 		} elseif ($this->type === self::POSTGRESQL) {
 			do {
 				try {

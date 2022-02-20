@@ -1,3 +1,19 @@
+nadybot (5.3.3-1+ubuntu1) bionic; urgency=medium
+  Bugfixes:
+  - Number of unplanted sites is now correct when manually scouting
+  - Fix "!online <prof>"
+  - Fix penalty time
+
+  Other:
+  - Error properly when running an unsupported SQLite version
+
+  Features:
+  - Allow syncing news via nadynative
+  - Handle the LOGIN_ERROR packet and display meaningful error messages
+  - Add a configurable cool-down to mass-messages/-invites
+  - Add a setting to limit command execution to a single discord channel
+ -- Nadyita <nadyita@hodorraid.org>  Sun, 20 Feb 2022 09:00:00 +0100
+
 nadybot (5.3.2-1+ubuntu1) bionic; urgency=medium
   Bugfixes:
   - Websocket-based relays will once again reconnect

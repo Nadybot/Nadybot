@@ -446,7 +446,7 @@ class TowerController {
 		}
 
 		$msg = $this->makeBlob(
-			"All unplanted sites ({$result->count})",
+			"All unplanted sites (" . count($sites) . ")",
 			$blob
 		);
 		$sendto->reply($msg);
@@ -2012,14 +2012,24 @@ class TowerController {
 				"y_coords" => $attack->yCoords,
 			]) ? 1 : 0;
 		$this->eventManager->fireEvent($event);
-		// Mark all of this org's sites as in penalty for 2h
+		// Mark all of this org's sites as in penalty
 		if (isset($whois->guild)) {
 			$this->db->table("scout_info")
 				->where("org_name", $whois->guild)
-				->update([
-					"penalty_duration" => 7200,
-					"penalty_until" => time() + 7200,
-				]);
+				->asObj(ScoutInfo::class)
+				->each(function (ScoutInfo $info): void {
+					if (!isset($info->close_time)) {
+						return;
+					}
+					$duration = 3600 + $info->close_time % 3600;
+					$this->db->table("scout_info")
+						->where("playfield_id", $info->playfield_id)
+						->where("site_number", $info->site_number)
+						->update([
+							"penalty_duration" => $duration,
+							"penalty_until" => time() + $duration,
+						]);
+				});
 		}
 
 		return $result;
