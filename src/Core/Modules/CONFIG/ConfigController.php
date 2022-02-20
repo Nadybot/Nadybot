@@ -239,7 +239,7 @@ class ConfigController extends ModuleInstance {
 	#[NCA\HandlesCommand("config")]
 	public function toggleCommandChannelCommand(
 		CmdContext $context,
-		#[NCA\Str("cmd", "subcmd")] string $type,
+		#[NCA\StrChoice("cmd", "subcmd")] string $type,
 		string $cmd,
 		bool $enable,
 		#[NCA\PWord] #[NCA\Str("all")] string $permissionSet,
@@ -444,7 +444,7 @@ class ConfigController extends ModuleInstance {
 	#[NCA\HandlesCommand("config")]
 	public function setAccessLevelOfChannelCommand(
 		CmdContext $context,
-		#[NCA\Str("subcmd", "cmd")] string $category,
+		#[NCA\StrChoice("subcmd", "cmd")] string $category,
 		string $cmd,
 		#[NCA\Str("admin")] string $admin,
 		#[NCA\PWord] #[NCA\Str("all")] string $permissionSet,

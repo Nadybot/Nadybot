@@ -6,6 +6,7 @@ use Exception;
 use Illuminate\Support\Collection;
 use InvalidArgumentException;
 use Throwable;
+use ReflectionAttribute;
 use ReflectionException;
 use ReflectionClass;
 use ReflectionMethod;
@@ -21,6 +22,7 @@ use Nadybot\Core\{
 	DBSchema\ExtCmdPermissionSet,
 	Modules\BAN\BanController,
 	Modules\CONFIG\CommandSearchController,
+	Modules\HELP\HelpController,
 	Modules\LIMITS\LimitsController,
 	Modules\PREFERENCES\Preferences,
 	Modules\USAGE\UsageController,
@@ -28,8 +30,6 @@ use Nadybot\Core\{
 	Routing\RoutableMessage,
 	Routing\Source,
 };
-use Nadybot\Core\Modules\HELP\HelpController;
-use ReflectionAttribute;
 
 #[
 	NCA\Instance,
@@ -1380,17 +1380,24 @@ class CommandManager implements MessageEmitter {
 			$perm->permission_set = $name;
 			$inserts []= (array)$perm;
 		}
-		$this->db->beginTransaction();
+		$inTransaction = $this->db->inTransaction();
+		if (!$inTransaction) {
+			$this->db->beginTransaction();
+		}
 		try {
 			$this->db->table(self::DB_TABLE_PERM_SET)
 				->insert(["name" => $name, "letter" => $letter]);
 			$this->db->table(self::DB_TABLE_PERMS)
 				->chunkInsert($inserts);
 		} catch (Exception $e) {
-			$this->db->rollback();
+			if (!$inTransaction) {
+				$this->db->rollback();
+			}
 			throw new Exception("There was an unknown error saving the new permission set.", 0, $e);
 		}
-		$this->db->commit();
+		if (!$inTransaction) {
+			$this->db->commit();
+		}
 		$this->loadCommands();
 		$this->subcommandManager->loadSubcommands();
 	}
