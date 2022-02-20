@@ -3,11 +3,16 @@
 namespace Nadybot\Core\Modules\PROFILE;
 
 use function Safe\file_get_contents;
+use function Safe\json_decode;
+use function Safe\json_encode;
+use function Safe\preg_replace;
+
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
 	CommandAlias,
 	CommandManager,
+	CommandReply,
 	ConfigFile,
 	DB,
 	EventManager,
@@ -19,6 +24,7 @@ use Nadybot\Core\{
 	ParamClass\PRemove,
 	Routing\Source,
 	SettingManager,
+	SubcommandManager,
 	Text,
 	Util,
 };
@@ -27,8 +33,9 @@ use Illuminate\Support\Collection;
 use Nadybot\Core\DBSchema\{
 	CmdAlias,
 	CmdCfg,
+	CmdPermSetMapping,
 	EventCfg,
-	CmdPermission,
+	ExtCmdPermissionSet,
 	RouteHopColor,
 	RouteHopFormat,
 };
@@ -64,6 +71,9 @@ class ProfileController extends ModuleInstance {
 
 	#[NCA\Inject]
 	public CommandManager $commandManager;
+	#
+	#[NCA\Inject]
+	public SubcommandManager $subcommandManager;
 
 	#[NCA\Inject]
 	public MessageHub $messageHub;
@@ -159,6 +169,7 @@ class ProfileController extends ModuleInstance {
 		$blob = htmlspecialchars(file_get_contents($filename));
 		$blob = preg_replace("/^([^#])/m", "<tab>$1", $blob);
 		$blob = preg_replace("/^# (.+)$/m", "<header2>$1<end>", $blob);
+		/** @var string $blob */
 		$msg = $this->text->makeBlob("Profile $profileName", $blob);
 		$context->reply($msg);
 	}
@@ -181,7 +192,14 @@ class ProfileController extends ModuleInstance {
 		if (@file_exists($filename)) {
 			throw new Exception("Profile <highlight>$profileName<end> already exists.");
 		}
-		$contents = "# Settings\n";
+		$contents = "# Permission maps\n";
+		$sets = $this->commandManager->getExtPermissionSets();
+		$setData = json_encode($sets, JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE);
+		$setData = preg_replace("/\"id\":\d+,/", "", $setData);
+		/** @var string $setData */
+		$contents .= "!permissions {$setData}\n";
+
+		$contents .= "\n# Settings\n";
 		foreach ($this->settingManager->settings as $name => $value) {
 			if ($name !== "botid" && $name !== "version" && !$this->util->endsWith($name, "_db_version")) {
 				$contents .= "!settings save $name {$value->value}\n";
@@ -199,11 +217,12 @@ class ProfileController extends ModuleInstance {
 		}
 		$contents .= "\n# Commands\n";
 		/** @var Collection<CmdCfg> */
-		$data = $this->commandManager->getAll();
+		$data = $this->commandManager->getAll(true);
 		foreach ($data as $row) {
 			foreach ($row->permissions as $channel => $permissions) {
 				$status = $permissions->enabled ? "enable" : "disable";
 				$contents .= "!config {$row->cmdevent} {$row->cmd} {$status} {$channel}\n";
+				$contents .= "!config {$row->cmdevent} {$row->cmd} admin {$channel} {$permissions->access_level}\n";
 			}
 		}
 		$contents .= "\n# Aliases\n";
@@ -322,27 +341,32 @@ class ProfileController extends ModuleInstance {
 						continue;
 					}
 				} elseif (preg_match("/^!config (cmd|subcmd) (.+) (enable|disable) ([^ ]+)$/", $line, $parts)) {
-					/** @var CmdPermission|null $data */
-					$data = $this->db->table(CommandManager::DB_TABLE_PERMS)
+					$exists = $this->db->table(CommandManager::DB_TABLE_PERMS)
 						->where("cmd", $parts[2])
 						->where("permission_set", $parts[4])
-						->asObj(CmdPermission::class)
-						->first();
-					if (isset($data) && ($data->enabled === ($parts[3] === 'enable'))) {
+						->where("enabled", $parts[3] === 'enable')
+						->exists();
+					if ($exists) {
+						$numSkipped++;
+						continue;
+					}
+				} elseif (preg_match("/^!config (cmd|subcmd) (.+) admin ([^ ]+) ([^ ]+)$/", $line, $parts)) {
+					$exists = $this->db->table(CommandManager::DB_TABLE_PERMS)
+						->where("cmd", $parts[2])
+						->where("permission_set", $parts[3])
+						->where("access_level", $parts[4])
+						->exists();
+					if ($exists) {
 						$numSkipped++;
 						continue;
 					}
 				} elseif (preg_match("/^!config event (.+) ([^ ]+) (enable|disable) ([^ ]+)$/", $line, $parts)) {
-					/** @var EventCfg $data */
-					$data = $this->db->table(EventManager::DB_TABLE)
+					$exists = $this->db->table(EventManager::DB_TABLE)
 						->where("type", $parts[1])
 						->where("file", $parts[2])
-						->asObj(EventCfg::class)
-						->first();
-					if (
-							($data->status === 1 && $parts[3] === 'enable')
-						||	($data->status === 0 && $parts[3] === 'disable')
-					) {
+						->where("status", ($parts[3] === 'enable') ? 1 : 0)
+						->exists();
+					if ($exists) {
 						$numSkipped++;
 						continue;
 					}
@@ -367,7 +391,11 @@ class ProfileController extends ModuleInstance {
 						}
 					}
 				}
-				if ($line[0] === "!") {
+				if (preg_match("/^!permissions (.+)$/", $line, $matches)) {
+					$profileSendTo->reply("<pagebreak><orange>{$line}<end>");
+					$this->loadPermissions($matches[1], $profileSendTo);
+					$profileSendTo->reply("");
+				} elseif ($line[0] === "!") {
 					$profileSendTo->reply("<pagebreak><orange>{$line}<end>");
 					$line = substr($line, 1);
 					$context->message = $line;
@@ -388,5 +416,41 @@ class ProfileController extends ModuleInstance {
 			$this->db->rollback();
 			return null;
 		}
+	}
+
+	private function loadPermissions(string $export, CommandReply $reply): void {
+		$sets = json_decode($export);
+		$this->db->table(CommandManager::DB_TABLE_PERMS)->delete();
+		$this->db->table(CommandManager::DB_TABLE_PERM_SET)->delete();
+		$this->db->table(CommandManager::DB_TABLE_MAPPING)->delete();
+		$reply->reply("All permissions reset");
+		/** @var ExtCmdPermissionSet[] $sets */
+		$this->commandManager->commands = [];
+		$this->subcommandManager->subcommands = [];
+		foreach ($sets as $set) {
+			$this->commandManager->createPermissionSet($set->name, $set->letter);
+			$reply->reply(
+				"Created permission set <highlight>{$set->name}<end> ".
+				"with letter <highlight>{$set->letter}<end>."
+			);
+			foreach ($set->mappings as $mapping) {
+				$map = new CmdPermSetMapping();
+				foreach (get_object_vars($mapping) as $key => $value) {
+					$map->{$key} = $value;
+				}
+				$map->permission_set = $set->name;
+				$map->id = $this->db->insert(CommandManager::DB_TABLE_MAPPING, $map);
+				$reply->reply(
+					"Mapped <highlight>{$map->source}<end> ".
+					"to <highlight>{$map->permission_set}<end> ".
+					"with " . ($map->symbol_optional ? "optional " :"").
+					"prefix <highlight>{$map->symbol}<end>, ".
+					($map->feedback ? "" : "not ") . "giving unknown command errors."
+				);
+			}
+		}
+		$this->commandManager->loadPermsetMappings();
+		$this->commandManager->loadCommands();
+		$this->subcommandManager->loadSubcommands();
 	}
 }
