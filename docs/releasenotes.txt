@@ -1,7 +1,26 @@
 *****************************
+	Version 5.3.3
+*****************************
+5.3.x This is the last version to support PHP7.
+
+Bugfixes:
+- Number of unplanted sites is now correct when manually scouting
+- Fix "!online <prof>"
+- Fix penalty time
+
+Other:
+- Error properly when running an unsupported SQLite version
+
+Features:
+- Allow syncing news via nadynative
+- Handle the LOGIN_ERROR packet and display meaningful error messages
+- Add a configurable cool-down to mass-messages/-invites
+- Add a setting to limit command execution to a single discord channel
+
+*****************************
 	Version 5.3.2
 *****************************
-5.3.x This is the last version support PHP7.
+5.3.x This is the last version to support PHP7.
 
 Bugfixes:
 - Websocket-based relays will once again reconnect
