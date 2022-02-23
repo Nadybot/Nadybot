@@ -634,6 +634,9 @@ class DB {
 				$this->logger->info("Running migration {$class}");
 				$obj->migrate($this->logger, $this);
 			} catch (Throwable $e) {
+				if (isset(BotRunner::$arguments["migration-errors-fatal"])) {
+					throw $e;
+				}
 				$this->logger->error(
 					"Error executing {$class}::migrate(): ".
 						$e->getMessage(),
