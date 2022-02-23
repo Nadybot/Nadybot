@@ -10,8 +10,23 @@
             <div class="text-end col-9">{{ info.basic.bot_name }}</div>
           </li>
           <li class="list-group-item">
-            <div class="col-3">Superadmin:</div>
-            <div class="text-end col-9">{{ info.basic.superadmin }}</div>
+            <div class="col-3">Superadmins:</div>
+            <div class="text-end col-9">
+              <ul class="list-inline">
+                <li
+                  v-for="(superadmin, index) in info.basic.superadmins"
+                  :key="superadmin"
+                  class="list-inline-item"
+                >
+                  <span v-if="index + 1 < info.basic.superadmins.length">
+                    {{ superadmin }},
+                  </span>
+                  <span v-else>
+                    {{ superadmin }}
+                  </span>
+                </li>
+              </ul>
+            </div>
           </li>
           <li class="list-group-item" v-if="info.basic.org">
             <div class="col-3">Org:</div>
