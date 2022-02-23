@@ -77,8 +77,7 @@ class EventManager {
 	}
 
 	/**
-	 * @name: register
-	 * @description: Registers an event on the bot so it can be configured
+	 *  Registers an event on the bot so it can be configured
 	 */
 	public function register(string $module, string $type, string $filename, string $description='none', ?string $help='', ?int $defaultStatus=null): void {
 		$type = strtolower($type);

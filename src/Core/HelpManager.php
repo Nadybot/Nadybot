@@ -34,8 +34,7 @@ class HelpManager {
 	public LoggerWrapper $logger;
 
 	/**
-	 * @name: register
-	 * @description: Registers a help command
+	 * Register a help command
 	 */
 	public function register(string $module, string $command, string $filename, string $admin, string $description): void {
 		$this->logger->info("Registering $module:help($command) Helpfile:($filename)");

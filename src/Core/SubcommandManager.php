@@ -33,8 +33,7 @@ class SubcommandManager {
 	private array $cmdDefaultPermissions = [];
 
 	/**
-	 * @name: register
-	 * @description: Registers a subcommand
+	 * Register a subcommand
 	 */
 	public function register(
 		string $module,
@@ -105,8 +104,7 @@ class SubcommandManager {
 	}
 
 	/**
-	 * @name: loadSubcommands
-	 * @description: Loads the active subcommands into memory and activates them
+	 * Load the active subcommands into memory and activates them
 	 */
 	public function loadSubcommands(): void {
 		$this->logger->info("Loading enabled subcommands");

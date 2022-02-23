@@ -10,7 +10,6 @@ use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
 	DB,
-	Event,
 	EventManager,
 	ModuleInstance,
 	Modules\ALTS\AltsController,
@@ -473,7 +472,7 @@ class NewsController extends ModuleInstance {
 	#[
 		NCA\Api("/news"),
 		NCA\POST,
-		NCA\AccessLevelFrom("news .+"),
+		NCA\AccessLevelFrom(self::CMD_NEWS_MANAGE),
 		NCA\RequestBody(class: "NewNews", desc: "The item to create", required: true),
 		NCA\ApiResult(code: 204, desc: "The news item was created successfully")
 	]
@@ -517,7 +516,7 @@ class NewsController extends ModuleInstance {
 	#[
 		NCA\Api("/news/%d"),
 		NCA\PATCH,
-		NCA\AccessLevelFrom("news .+"),
+		NCA\AccessLevelFrom(self::CMD_NEWS_MANAGE),
 		NCA\RequestBody(class: "NewNews", desc: "The new data for the item", required: true),
 		NCA\ApiResult(code: 200, class: "News", desc: "The news item it is now")
 	]
@@ -588,10 +587,10 @@ class NewsController extends ModuleInstance {
 		$callback($blob);
 	}
 
-	/**
-	 * @Event("sync(news)")
-	 * @Description("Sync external news created or modified")
-	 */
+	#[NCA\Event(
+		name: "sync(news)",
+		description: "Sync external news created or modified"
+	)]
 	public function processNewsSyncEvent(SyncNewsEvent $event): void {
 		if ($event->isLocal()) {
 			return;
@@ -600,10 +599,10 @@ class NewsController extends ModuleInstance {
 			->upsert($event->toData(), "uuid", $event->toData());
 	}
 
-	/**
-	 * @Event("sync(news-delete)")
-	 * @Description("Sync external news being deleted")
-	 */
+	#[NCA\Event(
+		name: "sync(news-delete)",
+		description: "Sync external news being deleted"
+	)]
 	public function processNewsDeleteSyncEvent(SyncNewsDeleteEvent $event): void {
 		if (!$event->isLocal()) {
 			$this->db->table("news")->where("uuid", $event->uuid)->update(["deleted" => 1]);

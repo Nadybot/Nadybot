@@ -331,14 +331,6 @@ class DB {
 	}
 
 	/**
-	 * Returns the ID of the last inserted row or sequence value
-	 * @deprecated Will be removed in Nadybot 6.0
-	 */
-	public function lastInsertId(): int {
-		return (int)$this->sql->lastInsertId();
-	}
-
-	/**
 	 * Format SQL code by replacing placeholders like <myname>
 	 */
 	public function formatSql(string $sql): string {

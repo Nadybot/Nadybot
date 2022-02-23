@@ -6,7 +6,7 @@ use Closure;
 use Illuminate\Database\Schema\Builder;
 
 /**
- * This is a wrapper class for the Illuminate Schem Builder
+ * This is a wrapper class for the Illuminate Schema Builder
  *
  * This is needed, so we can handle Nadybot's special <myname> table names
  * without too much hassle.
