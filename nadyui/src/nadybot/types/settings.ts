@@ -78,7 +78,6 @@ export interface ModuleSubcommand {
   // A short description of the command
   readonly description: string;
   readonly permissions: Array<PermissionSet>;
-  readonly help: string | null;
 }
 
 export interface ModuleCommand extends ModuleSubcommand {
@@ -191,7 +190,6 @@ const moduleSubcommandDecoderMapping = {
   cmd: JsonDecoder.string,
   description: JsonDecoder.string,
   permissions: JsonDecoder.array(permissionSetDecoder, "PermissionSetArray"),
-  help: JsonDecoder.nullable(JsonDecoder.string),
 };
 
 const moduleSubcommandDecoder = JsonDecoder.objectStrict<ModuleSubcommand>(

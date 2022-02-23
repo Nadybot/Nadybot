@@ -11,7 +11,7 @@ export interface BasicSystemInformation {
   // Name of the bot character in AO
   readonly bot_name: string;
   // Name of the character running the bot, null if not set
-  readonly superadmin: string | null;
+  readonly superadmins: Array<string>;
   // Name of the org this bot is in or null if not in an org
   readonly org: string | null;
   // ID of the org this bot is in or null if not in an org
@@ -117,7 +117,7 @@ const databaseTypeDecoder = JsonDecoder.enumeration<DatabaseType>(
 
 const basicSystemInformationDecoderMapping = {
   bot_name: JsonDecoder.string,
-  superadmin: JsonDecoder.nullable(JsonDecoder.string),
+  superadmins: JsonDecoder.array(JsonDecoder.string, "SuperAdminsArray"),
   org: JsonDecoder.nullable(JsonDecoder.string),
   org_id: JsonDecoder.nullable(JsonDecoder.number),
   bot_version: JsonDecoder.string,
