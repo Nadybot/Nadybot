@@ -45,9 +45,18 @@ class WhereisController extends ModuleInstance {
 	}
 
 	/** @return Collection<WhereisResult> */
-	public function getByName(string $name): Collection {
+	public function getByName(string ...$name): Collection {
 		return $this->db->table("whereis AS w")
-			->where("name", $name)
+			->whereIn("name", $name)
+			->asObj(WhereisResult::class)
+			->each(function (WhereisResult $wi): void {
+				$wi->pf = $this->pfController->getPlayfieldById($wi->playfield_id);
+			});
+	}
+
+	/** @return Collection<WhereisResult> */
+	public function getAll(): Collection {
+		return $this->db->table("whereis AS w")
 			->asObj(WhereisResult::class)
 			->each(function (WhereisResult $wi): void {
 				$wi->pf = $this->pfController->getPlayfieldById($wi->playfield_id);
