@@ -137,7 +137,7 @@ class TestController extends ModuleInstance {
 
 	protected function sendOrgMsg(string $message): void {
 		$gid = $this->chatBot->get_gid('Org Msg');
-		if (!$gid) {
+		if (!isset($gid)) {
 			$this->chatBot->gid["sicrit"] = 'Org Msg';
 			$this->chatBot->gid["Org Msg"] = 'sicrit';
 			$gid = 'sicrit';
@@ -198,7 +198,7 @@ class TestController extends ModuleInstance {
 
 	protected function sendTowerMsg(string $msg): void {
 		$gid = $this->chatBot->get_gid('All Towers');
-		if (!$gid) {
+		if (!isset($gid)) {
 			$this->chatBot->gid["sicrit"] = 'All Towers';
 			$this->chatBot->gid["All Towers"] = 'sicrit';
 			$gid = 'sicrit';

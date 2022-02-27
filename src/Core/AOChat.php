@@ -102,7 +102,7 @@ class AOChat {
 	/**
 	 * A lookup cache for group name => id and id => group name
 	 *
-	 * @var array<int|string,int|string> $gid
+	 * @var array<string,string> $gid
 	 */
 	public array $gid;
 
@@ -124,7 +124,7 @@ class AOChat {
 	 * 	group ip => group status
 	 * )
 	 *
-	 * @var array<int,int> $grp
+	 * @var array<string,int> $grp
 	 */
 	public array $grp;
 
@@ -432,8 +432,9 @@ class AOChat {
 
 			case AOChatPacket::GROUP_ANNOUNCE:
 				[$gid, $name, $status] = $packet->args;
-				$this->grp[$gid] = $status;
-				$this->gid[$gid] = $name;
+				/** @var int $status */
+				$this->grp[(string)$gid] = (int)$status;
+				$this->gid[(string)$gid] = $name;
 				$this->gid[strtolower($name)] = $gid;
 				break;
 
@@ -733,12 +734,12 @@ class AOChat {
 	/**
 	 * Lookup the group id of a group
 	 */
-	public function lookup_group(int|string $arg, int $type=0): null|int|string {
+	public function lookup_group(string $arg, int $type=0): ?string {
 		if ($type && ($isGid = (strlen((string)$arg) === 5 && (ord(((string)$arg)[0])&~0x80) < 0x10))) {
 			return $arg;
 		}
 		if (!isset($isGid) || !$isGid) {
-			$arg = strtolower((string)$arg);
+			$arg = strtolower($arg);
 		}
 		return $this->gid[$arg] ?? null;
 	}
@@ -746,24 +747,24 @@ class AOChat {
 	/**
 	 * Get the group id of a group
 	 *
-	 * @param string $g Name of the group
-	 * @return int|string|false Either the group id or false if not found
+	 * @param string $groupName Name of the group
+	 * @return null|string Either the group id or null if not found
 	 */
-	public function get_gid(string $g): int|string|false {
-		return $this->lookup_group($g, 1) ?? false;
+	public function get_gid(string $groupName): ?string {
+		return $this->lookup_group($groupName, 1);
 	}
 
 	/**
 	 * Get the group name of a group id
 	 *
-	 * @param int|string $g The group id
-	 * @return int|string|false The group name or false if not found
+	 * @param string $groupId The group id
+	 * @return string|null The group name or null if not found
 	 */
-	public function get_gname(int|string $g): int|string|false {
-		if (($gid = $this->lookup_group($g, 1)) === null) {
-			return false;
+	public function get_gname(string $groupId): ?string {
+		if (($gid = $this->lookup_group($groupId, 1)) === null) {
+			return null;
 		}
-		return $this->gid[$gid];
+		return $this->gid[$gid] ?? null;
 	}
 
 	/**
@@ -819,7 +820,7 @@ class AOChat {
 	 * @param string $group    The channel id or channel name to send to
 	 */
 	public function send_group(string $group, string $msg, string $blob="\0", int $priority=null): bool {
-		if (($gid = $this->get_gid($group)) === false) {
+		if (($gid = $this->get_gid($group)) === null) {
 			$this->logger->warning("Trying to send into unknown group \"{$group}\".");
 			return false;
 		}
@@ -837,11 +838,11 @@ class AOChat {
 	 * @param string $group Channel id or channel name to join
 	 */
 	public function group_join(string $group): bool {
-		if (($gid = $this->get_gid($group)) === false) {
+		if (($gid = $this->get_gid($group)) === null) {
 			return false;
 		}
 
-		return $this->sendPacket(new AOChatPacket("out", AOChatPacket::GROUP_DATA_SET, [$gid, $this->grp[(int)$gid] & ~self::AOC_GROUP_MUTE, "\0"]));
+		return $this->sendPacket(new AOChatPacket("out", AOChatPacket::GROUP_DATA_SET, [$gid, $this->grp[$gid] & ~self::AOC_GROUP_MUTE, "\0"]));
 	}
 
 	/**
@@ -850,11 +851,11 @@ class AOChat {
 	 * @param string $group Channel id or channel name to leave
 	 */
 	public function group_leave(string $group): bool {
-		if (($gid = $this->get_gid($group)) === false) {
+		if (($gid = $this->get_gid($group)) === null) {
 			return false;
 		}
 
-		return $this->sendPacket(new AOChatPacket("out", AOChatPacket::GROUP_DATA_SET, [$gid, $this->grp[(int)$gid] | self::AOC_GROUP_MUTE, "\0"]));
+		return $this->sendPacket(new AOChatPacket("out", AOChatPacket::GROUP_DATA_SET, [$gid, $this->grp[$gid] | self::AOC_GROUP_MUTE, "\0"]));
 	}
 
 	/**
@@ -863,11 +864,11 @@ class AOChat {
 	 * @param string $group The group id or group name
 	 */
 	public function group_status(string $group): ?int {
-		if (($gid = $this->get_gid($group)) === false) {
+		if (($gid = $this->get_gid($group)) === null) {
 			return null;
 		}
 
-		return $this->grp[(int)$gid];
+		return $this->grp[$gid];
 	}
 
 	/**

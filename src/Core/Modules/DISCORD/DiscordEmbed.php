@@ -19,7 +19,7 @@ class DiscordEmbed extends JSONDataModel {
 	public ?object $provider = null;
 	public ?object $author = null;
 	/**
-	 * @var array<object|array<string,string>>
+	 * @var null|DiscordEmbedField[]
 	 */
 	public ?array $fields = null;
 }
