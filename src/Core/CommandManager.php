@@ -855,6 +855,7 @@ class CommandManager implements MessageEmitter {
 			$lookup[$headline] ??= [];
 			$lookup[$headline] []= $m;
 		}
+		/** @psalm-suppress RedundantFunctionCall */
 		return new Collection(array_merge(array_values($lookup), array_values($empty)));
 	}
 

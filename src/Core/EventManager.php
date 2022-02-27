@@ -209,6 +209,7 @@ class EventManager {
 			if (!isset($this->dynamicEvents[$type])) {
 				return;
 			}
+			/** @psalm-suppress RedundantFunctionCall */
 			$this->dynamicEvents[$type] = array_values(
 				array_filter(
 					$this->dynamicEvents[$type],

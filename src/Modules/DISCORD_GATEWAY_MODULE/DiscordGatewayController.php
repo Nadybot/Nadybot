@@ -657,9 +657,6 @@ class DiscordGatewayController extends ModuleInstance {
 			$blob .= DiscordRelayController::formatMessage($embed->description) . "\n\n";
 		}
 		foreach ($embed->fields??[] as $field) {
-			if (!is_object($field) || !isset($field->name) || !isset($field->value)) {
-				continue;
-			}
 			$blob .= "<header2>".
 				DiscordRelayController::formatMessage($field->name).
 				"<end>\n".

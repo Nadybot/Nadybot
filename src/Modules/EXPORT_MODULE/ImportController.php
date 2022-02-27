@@ -256,6 +256,7 @@ class ImportController extends ModuleInstance {
 				$ranks[$poll->minRankToVote] = true;
 			}
 		}
+		// @phpstan-ignore-next-line
 		return array_keys($ranks);
 	}
 

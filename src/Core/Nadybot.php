@@ -982,7 +982,7 @@ class Nadybot extends AOChat {
 	 */
 	public function processPublicChannelMessage(string $channelId, int $senderId, string $message): void {
 		$channel = $this->get_gname($channelId);
-		if (!is_string($channel)) {
+		if (!isset($channel)) {
 			$this->logger->info("Invalid channel ID received: {$channelId}");
 			return;
 		}

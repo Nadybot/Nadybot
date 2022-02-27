@@ -131,7 +131,10 @@ class AesGcmEncryption implements RelayLayerInterface {
 		$ivLength = $this->ivLength;
 		[$micro, $secs] = explode(" ", microtime());
 		$iv = \Safe\pack("NN", $secs, (float)$micro*100000000);
-		$iv .= random_bytes($ivLength - strlen($iv));
+		$fillLength = $ivLength - strlen($iv);
+		if ($fillLength >= 1) {
+			$iv .= random_bytes($fillLength);
+		}
 		if (
 			function_exists('sodium_crypto_aead_aes256gcm_is_available')
 			&& sodium_crypto_aead_aes256gcm_is_available()

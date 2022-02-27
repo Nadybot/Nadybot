@@ -14,7 +14,12 @@ class DBRow {
 		if (isset($trace['class'])) {
 			$class = $trace['class'] . "::";
 		}
-		$logger->log('WARN', "Called by {$class}{$trace['function']}() in {$trace2['file']} line {$trace2['line']}");
+		$logger->warning("Called by {class}{function}() in {file} line {line}", [
+			"class" => $class,
+			"function" => $trace['function'],
+			"file" => $trace2['file'] ?? "unknown",
+			"line" => $trace2['line'] ?? "unknown",
+		]);
 		return null;
 	}
 }

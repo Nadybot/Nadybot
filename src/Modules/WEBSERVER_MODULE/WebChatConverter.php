@@ -182,7 +182,6 @@ class WebChatConverter extends ModuleInstance {
 			"/(\r?\n[-*][^\r\n]+){2,}/s",
 			function (array $matches): string {
 				$text = preg_replace("/(\r?\n)[-*]\s+([^\r\n]+)/s", "<li>$2</li>", $matches[0]);
-				// @phpstan-ignore-next-line
 				return "\n<ul>{$text}</ul>";
 			},
 			$message
@@ -244,7 +243,6 @@ class WebChatConverter extends ModuleInstance {
 			"/<a\s+href\s*=\s*([\"'])text:\/\/(.+?)\\1>(.*?)<\/a>/s",
 			function (array $matches) use (&$parts, &$id): string {
 				$parts["ao-" . ++$id] = $this->formatMsg(
-					// @phpstan-ignore-next-line
 					preg_replace(
 						"/^<font.*?>(<\/font>|<end>)?/",
 						"",

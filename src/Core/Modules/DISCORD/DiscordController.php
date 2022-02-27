@@ -225,18 +225,20 @@ class DiscordController extends ModuleInstance {
 		};
 		for ($i = 1; $i < count($fields); $i+=2) {
 			$embed->fields ??= [];
-			$field = [
-				"name"  => $fix($fields[$i]),
-				"value" => $fix($fields[$i+1]),
-			];
-			$field["name"] = preg_replace("/\[(.+?)\]\(.*?\)/", "$1", $field["name"]);
-			if (strlen($field["value"]) > 1024) {
-				$parts = preg_split("/(.{1,1024})\n/s", $field["value"], -1, PREG_SPLIT_DELIM_CAPTURE);
-				$field["value"] = $parts[1];
+			$field = new DiscordEmbedField();
+			$field->name = $fix($fields[$i]);
+			$field->value = $fix($fields[$i+1]);
+
+			$field->name = preg_replace("/\[(.+?)\]\(.*?\)/", "$1", $field->name);
+			if (strlen($field->value) > 1024) {
+				$parts = preg_split("/(.{1,1024})\n/s", $field->value, -1, PREG_SPLIT_DELIM_CAPTURE);
+				$field->value = $parts[1];
 				$embed->fields []= $field;
-				$field["name"] .= " (continued)";
+				$field = clone $field;
+				$field->name .= " (continued)";
 				for ($j = 3; $j < count($parts); $j += 2) {
-					$field["value"] = $parts[$j];
+					$field = clone $field;
+					$field->value = $parts[$j];
 					$embed->fields []= $field;
 				}
 			} else {
@@ -244,7 +246,6 @@ class DiscordController extends ModuleInstance {
 			}
 		}
 		$embed->description = $fix($fields[0]);
-		// $embed->description = htmlspecialchars_decode(strip_tags($matches[1], ENT_QUOTES|ENT_HTML401));
 		if (strlen($embed->description) > 4096) {
 			$embed->description = substr($embed->description, 0, 4095) . "…";
 		}

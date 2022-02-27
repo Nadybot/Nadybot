@@ -399,9 +399,7 @@ class Util {
 			} else {
 				$arr1 []= "{$file}";
 			}
-			if (isset($obj['function'])) {
-				$arr2 []= "{$obj['function']}()";
-			}
+			$arr2 []= "{$obj['function']}()";
 		}
 
 		array_shift($arr2);
@@ -671,6 +669,9 @@ class Util {
 	 * Create a cryptographically secure password
 	 */
 	public function getPassword(int $length=16): string {
+		if ($length < 1) {
+			throw new InvalidArgumentException("Parameter \$length to getPassword() must be > 0");
+		}
 		$password = base64_encode(random_bytes($length+4));
 		return substr(rtrim($password, "="), 0, $length);
 	}

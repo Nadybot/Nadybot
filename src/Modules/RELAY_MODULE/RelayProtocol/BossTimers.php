@@ -16,6 +16,7 @@ use Nadybot\Modules\{
 	RELAY_MODULE\RelayMessage,
 	WEBSERVER_MODULE\JsonImporter,
 };
+use stdClass;
 
 class BossTimers implements RelayProtocolInterface {
 	protected Relay $relay;
@@ -36,14 +37,15 @@ class BossTimers implements RelayProtocolInterface {
 		}
 		$serialized = array_shift($message->packages);
 		try {
+			/** @var stdClass */
 			$data = \Safe\json_decode($serialized, false, 10, JSON_UNESCAPED_SLASHES|JSON_INVALID_UTF8_SUBSTITUTE|JSON_THROW_ON_ERROR);
 			if (!isset($data->sourceDimension) || !isset($data->type)) {
 				throw new Exception("Incomplete data received.");
 			}
 		} catch (JsonException $e) {
 			$this->logger->error(
-				'Invalid data received via bosstimer protocol: ' . ($data??"null"),
-				["exception" => $e]
+				'Invalid data received via bosstimer protocol: {data}',
+				["exception" => $e, "data" => $serialized]
 			);
 			return null;
 		}
