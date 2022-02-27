@@ -94,6 +94,7 @@ class DiscordAPIClient extends ModuleInstance {
 		}
 		$this->queueProcessing = true;
 		$params = array_shift($this->outQueue);
+		/** @psalm-suppress TooFewArguments */
 		$this->immediatelySendToChannel(...$params);
 	}
 

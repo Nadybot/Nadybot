@@ -74,7 +74,7 @@ class LadderController extends ModuleInstance {
 
 		$blob = "Starting $type: $value\n\n-------------------\n\n";
 
-		if ($type == 'treatment') {
+		if ($type === 'treatment') {
 			if ($value < 11) {
 				$context->reply("Base treatment must be at least <highlight>11<end>.");
 				return;
@@ -156,7 +156,7 @@ class LadderController extends ModuleInstance {
 
 		$blob .= "-------------------\n\nEnding $type: $value";
 		$blob .= "\n\n<highlight>Inspired by a command written by Lucier of the same name<end>";
-		$msg = $this->text->makeBlob("Laddering from $startingValue to $value " . ucfirst(strtolower($type)), $blob);
+		$msg = $this->text->makeBlob("Laddering from $startingValue to $value " . ucfirst($type), $blob);
 
 		$context->reply($msg);
 	}

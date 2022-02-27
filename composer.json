@@ -46,8 +46,8 @@
 	},
 	"autoload": {
 		"psr-4": {
-			"Nadybot\\": "src/",
-			"Nadybot\\User\\Modules\\": "extra/"
+			"Nadybot\\User\\Modules\\": "extras/",
+			"Nadybot\\": "src/"
 		}
 	},
 	"config": {

@@ -286,7 +286,7 @@ class AccessManager {
 
 		$accessLevels = $this->getAccessLevels();
 		if (isset($accessLevels[$accessLevel])) {
-			return strtolower($accessLevel);
+			return $accessLevel;
 		}
 		throw new Exception("Invalid access level '$accessLevel'.");
 	}

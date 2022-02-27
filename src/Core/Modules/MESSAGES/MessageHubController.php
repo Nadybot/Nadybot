@@ -695,7 +695,7 @@ class MessageHubController extends ModuleInstance {
 			$this->messageHub->loadTagColor();
 		}
 		$context->reply(
-			ucfirst(strtolower($type)) . " color for ".
+			ucfirst($type) . " color for ".
 			"<highlight>{$name}<end> set to ".
 			"<font color='#{$color}'>#{$color}</font>."
 		);
