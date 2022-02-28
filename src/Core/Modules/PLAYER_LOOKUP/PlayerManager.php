@@ -60,8 +60,7 @@ class PlayerManager extends ModuleInstance {
 			mode: "edit",
 			type: "options",
 			value: "0",
-			options: "Off;1;2;3;4;5;10",
-			intoptions: "0;1;2;3;4;5;10"
+			options: ["Off" => 0, 1, 2, 3, 4, 5, 10],
 		);
 	}
 

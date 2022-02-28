@@ -70,10 +70,11 @@ class SettingManager {
 	 * @param string $mode 'edit' or 'noedit'
 	 * @param string $type 'color', 'number', 'text', 'options', or 'time'
 	 * @param mixed  $value
-	 * @param string $options An optional list of values that the setting can be, semi-colon delimited
-	 * @param string $intoptions Int values corresponding to $options; if empty, the values from $options will be what is stored in the database (optional)
-	 * @param string $accessLevel The permission level needed to change this setting (default: mod) (optional)
-	 * @param string $help A help file for this setting; if blank, will use a help topic with the same name as this setting if it exists (optional)
+	 * @param null|string|array<string|int,int|string> $options An optional list of values that the setting can be, semi-colon delimited.
+	 *                                                          Alternatively, use an associative array [label => value], where label is optional.
+	 * @param ?string $intoptions Int values corresponding to $options; if empty, the values from $options will be what is stored in the database (optional)
+	 * @param ?string $accessLevel The permission level needed to change this setting (default: mod) (optional)
+	 * @param ?string $help A help file for this setting; if blank, will use a help topic with the same name as this setting if it exists (optional)
 	 * @return void
 	 * @throws SQLException if the setting causes SQL errors (text too long, etc.)
 	 */
@@ -84,7 +85,7 @@ class SettingManager {
 		string $mode,
 		string $type,
 		$value,
-		?string $options='',
+		null|string|array $options='',
 		?string $intoptions='',
 		?string $accessLevel='mod',
 		?string $help=''
@@ -109,6 +110,17 @@ class SettingManager {
 				$this->logger->error("Error in registering Setting $module:setting($name). Invalid time: '{$oldvalue}'.");
 				return;
 			}
+		}
+		if (is_array($options)) {
+			$kv = [];
+			foreach ($options as $key => $value) {
+				if (is_int($key)) {
+					$key = (string)$value;
+				}
+				$kv[$key] = (string)$value;
+			}
+			$intoptions = join(";", array_values($kv));
+			$options = join(";", array_keys($kv));
 		}
 
 		if (!empty($help)) {
