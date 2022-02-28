@@ -92,7 +92,7 @@ jobs:
           until psql -h 127.0.0.1 -U budabot -d budabot -c "select 1" &>/dev/null; do
             sleep 1
           done
-          psql -h 127.0.0.1 -U budabot budabot < /etc/nadybot/nadybot5.1.0.pgsql
+          psql -o /dev/null -h 127.0.0.1 -U budabot budabot < /etc/nadybot/nadybot5.1.0.pgsql
           php80 main.php --setup-only --migration-errors-fatal /etc/nadybot/postgresql.php
           podman stop nady_db &>/dev/null || true
           podman rm --force nady_db &>/dev/null || true
