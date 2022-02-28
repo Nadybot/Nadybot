@@ -144,8 +144,6 @@ class SystemController extends ModuleInstance implements MessageEmitter {
 
 		$this->helpManager->register($this->moduleName, "budatime", "budatime.txt", "all", "Format for budatime");
 
-		$name = $this->config->name;
-
 		$this->settingManager->add(
 			module: $this->moduleName,
 			name: "symbol",
