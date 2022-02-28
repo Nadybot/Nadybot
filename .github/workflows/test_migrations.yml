@@ -37,6 +37,7 @@ jobs:
           while ! nc -z -w 1 127.0.0.1 3306 &>/dev/null; do sleep 1; done
           mysql -h 127.0.0.1 -u budabot -p123456 budabot < /etc/nadybot/budabot4.mysql
           php80 main.php --setup-only --migration-errors-fatal /etc/nadybot/mysql.php
+          podman stop nady_db &>/dev/null || true
           podman rm --force nady_db &>/dev/null || true
 
       - name: Migrate from Budabot 4.0.0 with MySQL 5.5
@@ -47,6 +48,7 @@ jobs:
           while ! nc -z -w 1 127.0.0.1 3306 &>/dev/null; do sleep 1; done
           mysql -h 127.0.0.1 -u budabot -p123456 budabot < /etc/nadybot/budabot4.mysql
           php80 main.php --setup-only --migration-errors-fatal /etc/nadybot/mysql.php
+          podman stop nady_db &>/dev/null || true
           podman rm --force nady_db &>/dev/null || true
 
       - name: Migrate from Nadybot 5.0.0 with MariaDB 10.5
@@ -57,6 +59,7 @@ jobs:
           while ! nc -z -w 1 127.0.0.1 3306 &>/dev/null; do sleep 1; done
           mysql -h 127.0.0.1 -u budabot -p123456 budabot < /etc/nadybot/nadybot5.0.0.mysql
           php80 main.php --setup-only --migration-errors-fatal /etc/nadybot/mysql.php
+          podman stop nady_db &>/dev/null || true
           podman rm --force nady_db &>/dev/null || true
 
       - name: Migrate from Nadybot 5.0.0 with MySQL 5.5
@@ -67,6 +70,7 @@ jobs:
           while ! nc -z -w 1 127.0.0.1 3306 &>/dev/null; do sleep 1; done
           mysql -h 127.0.0.1 -u budabot -p123456 budabot < /etc/nadybot/nadybot5.0.0.mysql
           php80 main.php --setup-only --migration-errors-fatal /etc/nadybot/mysql.php
+          podman stop nady_db &>/dev/null || true
           podman rm --force nady_db &>/dev/null || true
 
       - name: Migrate Hodorraid with MariaDB 10.5
@@ -77,6 +81,7 @@ jobs:
           while ! nc -z -w 1 127.0.0.1 3306 &>/dev/null; do sleep 1; done
           sed -e 's/`\([^`]*\)_hodorraid`/`\1_piggythrbs30`/g; s/`\([^`]*\)_hodorraid_\([^`].*\)`/`\1_piggythrbs30_\2`/g' /etc/nadybot/hodorraid.mysql | mysql -h 127.0.0.1 -u budabot -p123456 budabot
           php80 main.php --setup-only --migration-errors-fatal /etc/nadybot/mysql.php
+          podman stop nady_db &>/dev/null || true
           podman rm --force nady_db &>/dev/null || true
 
       - name: Migrate from Nadybot 5.1.0 with PostgreSQL
@@ -89,4 +94,5 @@ jobs:
           done
           psql -h 127.0.0.1 -U budabot budabot < /etc/nadybot/nadybot5.1.0.pgsql
           php80 main.php --setup-only --migration-errors-fatal /etc/nadybot/postgresql.php
+          podman stop nady_db &>/dev/null || true
           podman rm --force nady_db &>/dev/null || true
