@@ -116,21 +116,6 @@ class AltInfo {
 		return $alts;
 	}
 
-	/**
-	 * Get the altlist of this character as a string to display
-	 *
-	 * @param bool $firstPageOnly Only show the first page (login alt-list)
-	 * @return string|string[]
-	 */
-	public function getAltsBlob(bool $firstPageOnly=false): string|array {
-		if (count($this->alts) === 0) {
-			return "No registered alts.";
-		}
-
-		$player = $this->playerManager->getByName($this->main);
-		return $this->getAltsBlobForPlayer($player, $firstPageOnly);
-	}
-
 	/** @psalm-param callable(string|list<string>) $callback */
 	public function getAltsBlobAsync(callable $callback, bool $firstPageOnly=false): void {
 		if (count($this->alts) === 0) {

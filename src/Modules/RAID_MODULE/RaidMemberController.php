@@ -441,7 +441,7 @@ class RaidMemberController extends ModuleInstance {
 			}
 			$activeNames []= $raider->player;
 		}
-		$this->playerManager->massGetByNameAsync(
+		$this->playerManager->massGetByName(
 			function(array $result) use ($sendto): void {
 				$this->sendRaidCheckBlobResult($result, $sendto);
 			},

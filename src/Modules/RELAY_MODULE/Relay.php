@@ -131,7 +131,7 @@ class Relay implements MessageReceiver {
 			$player->charid = $uid;
 		}
 		$this->onlineChars[$where][$character] = $player;
-		$this->playerManager->getByNameCallback(
+		$this->playerManager->getByNameAsync(
 			function(?Player $player) use ($where, $character, $clientId): void {
 				if (!isset($player) || !isset($this->onlineChars[$where][$character])) {
 					return;
@@ -141,7 +141,6 @@ class Relay implements MessageReceiver {
 					$this->onlineChars[$where][$character]->{$key} = $value;
 				}
 			},
-			false,
 			$character,
 			$dimension
 		);

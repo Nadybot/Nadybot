@@ -631,7 +631,7 @@ class RaidController extends ModuleInstance {
 			$context->reply("Everyone is in the raid.");
 			return;
 		}
-		$this->playerManager->massGetByNameAsync(
+		$this->playerManager->massGetByName(
 			function(array $result) use ($context) {
 				$this->reportNotInResult($result, $context);
 			},
@@ -908,7 +908,7 @@ class RaidController extends ModuleInstance {
 		foreach ($duals as $name => $alts) {
 			$toLookup = [...$toLookup, $name, ...array_keys($alts)];
 		}
-		$this->playerManager->massGetByNameAsync(
+		$this->playerManager->massGetByName(
 			function (array $lookup) use ($duals, $context): void {
 				$blob = "";
 				foreach ($duals as $name => $alts) {

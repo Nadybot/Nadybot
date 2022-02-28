@@ -135,7 +135,7 @@ class GcrProtocol implements RelayProtocolInterface {
 		if (!isset($character) || !$this->util->isValidSender($character->name??-1)) {
 			return [];
 		}
-		$this->playerManager->getByNameCallback(
+		$this->playerManager->getByNameAsync(
 			function(?Player $player) use ($event): void {
 				if (!isset($player)) {
 					return;
@@ -151,7 +151,6 @@ class GcrProtocol implements RelayProtocolInterface {
 					$this->relay->receiveFromMember($this, $send);
 				}
 			},
-			false,
 			$character->name
 		);
 		return [];
@@ -303,7 +302,7 @@ class GcrProtocol implements RelayProtocolInterface {
 			$callback = ($matches['status'] === '1')
 				? Closure::fromCallable([$this->relay, "setOnline"])
 				: Closure::fromCallable([$this->relay, "setOffline"]);
-			$this->playerManager->getByNameCallback(
+			$this->playerManager->getByNameAsync(
 				function(?Player $player) use ($matches, $callback): void {
 					if (!isset($player)) {
 						return;
@@ -318,11 +317,10 @@ class GcrProtocol implements RelayProtocolInterface {
 						$matches['char']
 					);
 				},
-				false,
 				$sender
 			);
 		} elseif (preg_match("/^online (.+)$/", $text, $matches)) {
-			$this->playerManager->getByNameCallback(
+			$this->playerManager->getByNameAsync(
 				function(?Player $player) use ($matches): void {
 					if (!isset($player)) {
 						return;
@@ -344,7 +342,6 @@ class GcrProtocol implements RelayProtocolInterface {
 						);
 					}
 				},
-				false,
 				$sender
 			);
 		} elseif (preg_match("/^onlinereq$/", $text, $matches)) {

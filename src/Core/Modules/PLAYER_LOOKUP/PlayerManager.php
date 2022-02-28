@@ -87,25 +87,11 @@ class PlayerManager extends ModuleInstance {
 		});
 	}
 
-	public function getByName(string $name, int $dimension=null, bool $forceUpdate=false): ?Player {
-		$result = null;
-		$this->getByNameCallback(
-			function(?Player $player) use (&$result): void {
-				$result = $player;
-			},
-			true,
-			$name,
-			$dimension,
-			$forceUpdate
-		);
-		return $result;
-	}
-
 	/**
 	 * @psalm-param callable(array<string,?Player>) $callback
 	 * @param string[] $names
 	 */
-	public function massGetByNameAsync(callable $callback, array $names, int $dimension=null, bool $forceUpdate=false): void {
+	public function massGetByName(callable $callback, array $names, int $dimension=null, bool $forceUpdate=false): void {
 		/** @var array<string,?Player> */
 		$result = [];
 		$left = count($names);
@@ -130,37 +116,28 @@ class PlayerManager extends ModuleInstance {
 	}
 
 	/** @psalm-param callable(?Player) $callback */
-	public function getByNameAsync(callable $callback, string $name, int $dimension=null, bool $forceUpdate=false): void {
-		$this->getByNameCallback($callback, false, $name, $dimension, $forceUpdate);
-	}
-
-	/** @psalm-param callable(?Player) $callback */
-	public function getByNameCallback(callable $callback, bool $sync, string $name, ?int $dimension=null, bool $forceUpdate=false): void {
+	public function getByNameAsync(callable $callback, string $name, ?int $dimension=null, bool $forceUpdate=false): void {
 		$dimension ??= $this->config->dimension;
 
 		$name = ucfirst(strtolower($name));
 
-		$charid = '';
 		if (!preg_match("/^[A-Z][a-z0-9-]{3,11}$/", $name)) {
 			$callback(null);
 			return;
 		}
+		$charid = null;
 		if ($dimension === $this->config->dimension) {
-			$charid = $this->chatBot->get_uid($name);
+			$this->chatBot->getUid($name, \Closure::fromCallable([$this, "getByNameAsync2"]), $callback, $name, $dimension, $forceUpdate);
+			return;
 		}
+		$this->getByNameAsync2($charid, $callback, $name, $dimension, $forceUpdate);
+	}
 
+	protected function getByNameAsync2(?int $charid, callable $callback, string $name, int $dimension, bool $forceUpdate): void {
 		$player = $this->findInDb($name, $dimension);
-		$lookup = [$this, "lookupAsync"];
-		if ($sync) {
-			/** @psalm-param callable(?Player) $handler */
-			$lookup = function(string $name, int $dimension, callable $handler): void {
-				$player = $this->lookup($name, $dimension);
-				$handler($player);
-			};
-		}
 
 		if ($player === null || $forceUpdate) {
-			$lookup(
+			$this->lookupAsync(
 				$name,
 				$dimension,
 				function(?Player $player) use ($charid, $callback): void {
@@ -173,7 +150,7 @@ class PlayerManager extends ModuleInstance {
 			);
 		} elseif ($player->last_update < (time() - static::CACHE_GRACE_TIME)) {
 			// We cache for 24h plus 10 minutes grace for Funcom
-			$lookup(
+			$this->lookupAsync(
 				$name,
 				$dimension,
 				function(?Player $player2) use ($charid, $callback, $player): void {
@@ -248,25 +225,10 @@ class PlayerManager extends ModuleInstance {
 		return  $player;
 	}
 
-	public function lookup(string $name, int $dimension): ?Player {
-		$obj = $this->lookupUrl("http://people.anarchy-online.com/character/bio/d/$dimension/name/$name/bio.xml?data_type=json");
-		if (isset($obj) && $obj->name === $name) {
-			$obj->source = 'people.anarchy-online.com';
-			$obj->dimension = $dimension;
-			return $obj;
-		}
-		$this->logger->info("No char information found about {character} on RK{dimension}", [
-			"character" => $name,
-			"dimension" => $dimension,
-		]);
-
-		return null;
-	}
-
 	/** @psalm-param callable(?Player, mixed...) $callback */
 	public function lookupAsync(string $name, int $dimension, callable $callback, mixed ...$args): void {
 		$this->lookupUrlAsync(
-			"http://people.anarchy-online.com/character/bio/d/$dimension/name/$name/bio.xml?data_type=json",
+			"http://people.anarchy-online.com/character/bio/d/{$dimension}/name/{$name}/bio.xml?data_type=json",
 			function (?Player $player) use ($dimension, $name, $callback, $args): void {
 				if (isset($player) && $player->name === $name) {
 					$player->source = 'people.anarchy-online.com';
@@ -280,11 +242,6 @@ class PlayerManager extends ModuleInstance {
 				$callback($player, ...$args);
 			}
 		);
-	}
-
-	private function lookupUrl(string $url): ?Player {
-		$response = $this->http->get($url)->waitAndReturnResponse();
-		return $this->parsePlayerFromLookup($response);
 	}
 
 	/** @psalm-param callable(?Player) $callback */

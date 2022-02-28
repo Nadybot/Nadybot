@@ -275,7 +275,9 @@ class PackageController extends ModuleInstance {
 					->where("module", $package->name)
 					->max("version");
 			}
-			if (isset($pGroup->highest_supported) && $package->state !== static::BUILT_INT) {
+			if (in_array($package->name, ['GAUNTLET_MODULE', 'BIGBOSS_MODULE', 'IMPQL_MODULE'])) {
+				$installLink = "<i>Included in Nadybot now</i>";
+			} elseif (isset($pGroup->highest_supported) && $package->state !== static::BUILT_INT) {
 				// @phpstan-ignore-next-line
 				if ($pGroup->highest_supported && isset($installedVersion) && $installedVersion !== "") {
 					if (SemanticVersion::compareUsing($installedVersion, $pGroup->highest_supported->version, '<')) {
