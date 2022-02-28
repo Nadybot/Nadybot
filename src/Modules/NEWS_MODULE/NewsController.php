@@ -95,8 +95,10 @@ class NewsController extends ModuleInstance {
 			mode: "edit",
 			type: "options",
 			value: "1",
-			options: "Last date;Latest news",
-			intoptions: "1;2"
+			options: [
+				'Last date' => 1,
+				'Latest news' => 2,
+			]
 		);
 		$this->settingManager->add(
 			module: $this->moduleName,

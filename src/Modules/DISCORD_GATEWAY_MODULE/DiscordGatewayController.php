@@ -205,8 +205,12 @@ class DiscordGatewayController extends ModuleInstance {
 			mode: "edit",
 			type: "options",
 			value: "0",
-			options: "off;priv;org;priv+org",
-			intoptions: "0;1;2;3"
+			options: [
+				'off' => 0,
+				'priv' => 1,
+				'org' => 2,
+				'priv+org' => 3,
+			]
 		);
 		$this->settingManager->registerChangeListener('discord_bot_token', [$this, "tokenChanged"]);
 		$this->settingManager->registerChangeListener('discord_activity_name', [$this, "updatePresence"]);

@@ -82,8 +82,11 @@ class CloakController extends ModuleInstance implements MessageEmitter {
 			mode: "edit",
 			type: "options",
 			value: "1",
-			options: "Never;When cloak is down;Always",
-			intoptions: "0;1;2"
+			options: [
+				'Never' => 0,
+				'When cloak is down' => 1,
+				'Always' => 2,
+			]
 		);
 		$this->settingManager->add(
 			module: $this->moduleName,

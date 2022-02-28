@@ -72,7 +72,6 @@ class SettingManager {
 	 * @param mixed  $value
 	 * @param null|string|array<string|int,int|string> $options An optional list of values that the setting can be, semi-colon delimited.
 	 *                                                          Alternatively, use an associative array [label => value], where label is optional.
-	 * @param ?string $intoptions Int values corresponding to $options; if empty, the values from $options will be what is stored in the database (optional)
 	 * @param ?string $accessLevel The permission level needed to change this setting (default: mod) (optional)
 	 * @param ?string $help A help file for this setting; if blank, will use a help topic with the same name as this setting if it exists (optional)
 	 * @return void
@@ -86,7 +85,6 @@ class SettingManager {
 		string $type,
 		$value,
 		null|string|array $options='',
-		?string $intoptions='',
 		?string $accessLevel='mod',
 		?string $help=''
 	): void {
@@ -111,6 +109,7 @@ class SettingManager {
 				return;
 			}
 		}
+		$intoptions = '';
 		if (is_array($options)) {
 			$kv = [];
 			foreach ($options as $key => $value) {

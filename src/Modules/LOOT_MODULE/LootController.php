@@ -122,8 +122,11 @@ class LootController extends ModuleInstance {
 			mode: "edit",
 			type: "options",
 			value: "2",
-			options: "tells;privatechat;privatechat and tells",
-			intoptions: '1;2;3',
+			options: [
+				'tells' => 1,
+				'privatechat' => 2,
+				'privatechat and tells' => 3,
+			],
 		);
 		$this->settingManager->add(
 			module: $this->moduleName,

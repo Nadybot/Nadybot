@@ -134,8 +134,10 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 			mode: 'edit',
 			type: 'options',
 			value: '0',
-			options: 'TRACK: "info" logged on/off.;+/- "info"',
-			intoptions: '0;1',
+			options: [
+				'TRACK: "info" logged on/off.' => 0,
+				'+/- "info"' => 1,
+			],
 		);
 		$this->settingManager->add(
 			module: $this->moduleName,
@@ -176,8 +178,11 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 			mode: "edit",
 			type: "options",
 			value: "1",
-			options: "do not group;title level;profession",
-			intoptions: "0;1;2"
+			options: [
+				'do not group' => 0,
+				'title level' => 1,
+				'profession' => 2,
+			]
 		);
 		$this->settingManager->add(
 			module: $this->moduleName,
@@ -186,18 +191,18 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 			mode: "edit",
 			type: "options",
 			value: "0",
-			options:
-				"Off".
-				";Attacking my own org's tower fields".
-				";Attacking tower fields of bot members".
-				";Attacking Clan fields".
-				";Attacking Omni fields".
-				";Attacking Neutral fields".
-				";Attacking Non-Clan fields".
-				";Attacking Non-Omni fields".
-				";Attacking Non-Neutral fields".
-				";All",
-			intoptions: "0;1;2;4;8;16;24;20;12;28"
+			options: [
+				"Off" => 0,
+				"Attacking my own org's tower fields" => 1,
+				"Attacking tower fields of bot members" => 2,
+				"Attacking Clan fields" => 4,
+				"Attacking Omni fields" => 8,
+				"Attacking Neutral fields" => 16,
+				"Attacking Non-Clan fields" => 24,
+				"Attacking Non-Omni fields" => 20,
+				"Attacking Non-Neutral fields" => 12,
+				"All" => 28,
+			],
 		);
 		$this->messageHub->registerMessageEmitter($this);
 	}

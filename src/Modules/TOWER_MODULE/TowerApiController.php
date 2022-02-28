@@ -49,8 +49,15 @@ class TowerApiController extends ModuleInstance {
 			mode: "edit",
 			type: "options",
 			value: "600",
-			options: "1 min;5 min;10 min;15 min;30 min;1 hour;2 hours",
-			intoptions: "60;300;600;900;1800;3600;7200"
+			options: [
+				'1 min' => 60,
+				'5 min' => 300,
+				'10 min' => 600,
+				'15 min' => 900,
+				'30 min' => 1800,
+				'1 hour' => 3600,
+				'2 hours' => 7200,
+			]
 		);
 		$this->settingManager->registerChangeListener(
 			static::TOWER_API,

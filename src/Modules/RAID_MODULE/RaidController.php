@@ -192,11 +192,11 @@ class RaidController extends ModuleInstance {
 			mode: 'edit',
 			type: 'options',
 			value: '0',
-			options:
-				"Kick everyone not in the raid".
-				";Kick all, except those who've been in the raid before".
-				";Don't kick on raid lock",
-			intoptions: '2;1;0',
+			options: [
+				"Kick everyone not in the raid" => 2,
+				"Kick all, except those who've been in the raid before" => 1,
+				"Don't kick on raid lock" => 0,
+			],
 			accessLevel: 'raid_admin_2'
 		);
 		$this->timer->callLater(0, [$this, 'resumeRaid']);

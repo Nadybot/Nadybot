@@ -108,8 +108,14 @@ class AltsController extends ModuleInstance {
 			mode: 'edit',
 			type: 'options',
 			value: '1',
-			options: 'off;icon;short;full;icon+short;icon+full',
-			intoptions: '0;1;2;4;3;5',
+			options: [
+				'off' => 0,
+				'icon' => 1,
+				'short' => 2,
+				'full' => 3,
+				'icon+short' => 4,
+				'icon+full' => 5,
+			],
 		);
 		$this->settingManager->add(
 			module: $this->moduleName,

@@ -125,8 +125,13 @@ class RaffleController extends ModuleInstance {
 			mode: "edit",
 			type: "options",
 			value: '0',
-			options: "0;1;2;5;10",
-			intoptions: "0;1;2;5;10",
+			options: [
+				'0' => 0,
+				'1' => 1,
+				'2' => 2,
+				'5' => 5,
+				'10' => 10,
+			],
 		);
 		$this->settingManager->add(
 			module: $this->moduleName,

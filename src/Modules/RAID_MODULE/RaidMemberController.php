@@ -88,8 +88,12 @@ class RaidMemberController extends ModuleInstance {
 			mode: 'edit',
 			type: 'options',
 			value: '3',
-			options: 'Do not announce;Private channel;Tell;Priv+Tell',
-			intoptions: '0;1;2;3',
+			options: [
+				'Do not announce' => 0,
+				'Private channel' => 1,
+				'Tell' => 2,
+				'Priv+Tell' => 3,
+			],
 		);
 		$this->settingManager->add(
 			module: $this->moduleName,

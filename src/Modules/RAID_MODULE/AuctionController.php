@@ -182,8 +182,13 @@ class AuctionController extends ModuleInstance {
 			mode: 'edit',
 			type: 'options',
 			value: '2',
-			options: 'Simple;Yellow border;Yellow header;Pink border;Rainbow border',
-			intoptions: '1;2;3;4;5'
+			options: [
+				'Simple' => 1,
+				'Yellow border' => 2,
+				'Yellow header' => 3,
+				'Pink border' => 4,
+				'Rainbow border' => 5,
+			]
 		);
 		$this->settingManager->add(
 			module: $this->moduleName,
@@ -192,8 +197,14 @@ class AuctionController extends ModuleInstance {
 			mode: 'edit',
 			type: 'options',
 			value: '1',
-			options: 'Simple;Yellow border;Yellow header;Pink border;Rainbow border;Gratulations',
-			intoptions: '1;2;3;4;5;6'
+			options: [
+				'Simple' => 1,
+				'Yellow border' => 2,
+				'Yellow header' => 3,
+				'Pink border' => 4,
+				'Rainbow border' => 5,
+				'Gratulations' => 6,
+			]
 		);
 		$this->commandAlias->register($this->moduleName, "bid history", "bh");
 	}

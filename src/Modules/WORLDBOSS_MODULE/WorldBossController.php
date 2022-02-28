@@ -205,11 +205,11 @@ class WorldBossController extends ModuleInstance {
 			mode: "edit",
 			type: "options",
 			value: "1",
-			options:
-				"Show as if the worldboss had actually spawned.".
-				";Show 'should have' messages.".
-				";Only show spawn and vulnerability events if set by global events. Don't repeat the timer unless set by a global event.",
-			intoptions: "1;2;3",
+			options: [
+				"Show as if the worldboss had actually spawned." => 1,
+				"Show 'should have' messages." => 2,
+				"Only show spawn and vulnerability events if set by global events. Don't repeat the timer unless set by a global event." => 3,
+			],
 		);
 		$this->commandAlias->register(
 			$this->moduleName,

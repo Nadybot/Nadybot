@@ -141,8 +141,11 @@ class StartpageController extends ModuleInstance {
 			mode: "edit",
 			type: "options",
 			value: "2",
-			options: "Do not show to non-org-members;When Logging in;When joining the private channel",
-			intoptions: "0;1;2",
+			options: [
+				'Do not show to non-org-members' => 0,
+				'When Logging in' => 1,
+				'When joining the private channel' => 2,
+			],
 		);
 	}
 
