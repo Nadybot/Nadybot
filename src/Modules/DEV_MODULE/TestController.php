@@ -97,20 +97,16 @@ class TestController extends ModuleInstance {
 			name: "show_test_commands",
 			description: "Show test commands as they are executed",
 			mode: "edit",
-			type: "options",
-			value: "0",
-			options: "true;false",
-			intoptions: "1;0"
+			type: "bool",
+			value: "0"
 		);
 		$this->settingManager->add(
 			module: $this->moduleName,
 			name: "show_test_results",
 			description: "Show test results from test commands",
 			mode: "edit",
-			type: "options",
-			value: "0",
-			options: "true;false",
-			intoptions: "1;0"
+			type: "bool",
+			value: "0"
 		);
 	}
 

@@ -96,9 +96,7 @@ class TradebotController extends ModuleInstance {
 			mode: "edit",
 			type: "text",
 			value: static::NONE,
-			options: static::NONE . ";" . implode(';', array_keys(self::BOT_DATA)),
-			intoptions: '',
-			accessLevel: "mod",
+			options: [static::NONE, ...array_keys(self::BOT_DATA)],
 			help: "tradebot.txt"
 		);
 		$this->settingManager->add(
@@ -108,7 +106,7 @@ class TradebotController extends ModuleInstance {
 			mode: "edit",
 			type: "text",
 			value: "*",
-			options: "None;*"
+			options: ["None", "*"]
 		);
 
 		$this->settingManager->add(
@@ -116,11 +114,8 @@ class TradebotController extends ModuleInstance {
 			name: 'tradebot_add_comments',
 			description: 'Add link to comments if found',
 			mode: 'edit',
-			type: 'options',
+			type: 'bool',
 			value: '1',
-			options: 'true;false',
-			intoptions: '1;0',
-			accessLevel: 'mod'
 		);
 
 		$this->settingManager->add(
@@ -128,11 +123,8 @@ class TradebotController extends ModuleInstance {
 			name: 'tradebot_custom_colors',
 			description: 'Use custom colors for tradebots',
 			mode: 'edit',
-			type: 'options',
+			type: 'bool',
 			value: '0',
-			options: 'true;false',
-			intoptions: '1;0',
-			accessLevel: 'mod'
 		);
 
 		$this->settingManager->add(

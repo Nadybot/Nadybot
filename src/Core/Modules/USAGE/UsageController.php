@@ -69,10 +69,8 @@ class UsageController extends ModuleInstance {
 			name: "record_usage_stats",
 			description: "Record usage stats",
 			mode: "edit",
-			type: "options",
-			value: "1",
-			options: "true;false",
-			intoptions: "1;0"
+			type: "bool",
+			value: "1"
 		);
 		$this->settingManager->add(
 			module: $this->moduleName,

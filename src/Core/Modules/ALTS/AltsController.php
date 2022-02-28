@@ -90,22 +90,16 @@ class AltsController extends ModuleInstance {
 			name: 'alts_require_confirmation',
 			description: 'Adding alt requires confirmation from alt',
 			mode: 'edit',
-			type: 'options',
+			type: 'bool',
 			value: '1',
-			options: 'true;false',
-			intoptions: '1;0',
-			accessLevel: 'mod'
 		);
 		$this->settingManager->add(
 			module: $this->moduleName,
 			name: 'alts_show_org',
 			description: 'Show the org in the altlist',
 			mode: 'edit',
-			type: 'options',
+			type: 'bool',
 			value: '1',
-			options: 'true;false',
-			intoptions: '1;0',
-			accessLevel: 'mod'
 		);
 		$this->settingManager->add(
 			module: $this->moduleName,
@@ -114,9 +108,14 @@ class AltsController extends ModuleInstance {
 			mode: 'edit',
 			type: 'options',
 			value: '1',
-			options: 'off;icon;short;full;icon+short;icon+full',
-			intoptions: '0;1;2;4;3;5',
-			accessLevel: 'mod'
+			options: [
+				'off' => 0,
+				'icon' => 1,
+				'short' => 2,
+				'full' => 3,
+				'icon+short' => 4,
+				'icon+full' => 5,
+			],
 		);
 		$this->settingManager->add(
 			module: $this->moduleName,
@@ -125,9 +124,7 @@ class AltsController extends ModuleInstance {
 			mode: 'edit',
 			type: 'options',
 			value: 'level',
-			options: 'level;name',
-			intoptions: '',
-			accessLevel: 'mod'
+			options: ["level", "name"],
 		);
 		$this->cacheAlts();
 	}

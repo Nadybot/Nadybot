@@ -65,7 +65,7 @@ class BankController extends ModuleInstance {
 			mode: 'edit',
 			type: 'number',
 			value: '50',
-			options: '20;50;100'
+			options: ["20", "50", "100"]
 		);
 	}
 

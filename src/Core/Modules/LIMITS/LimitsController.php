@@ -92,7 +92,7 @@ class LimitsController extends ModuleInstance {
 			mode: "edit",
 			type: "number",
 			value: "0",
-			options: "0;10;50;100;150;190;205;215"
+			options: ["0", "10", "50", "100", "150", "190", "205", "215"]
 		);
 		$this->settingManager->add(
 			module: $this->moduleName,
@@ -101,7 +101,7 @@ class LimitsController extends ModuleInstance {
 			mode: "edit",
 			type: "options",
 			value: "all",
-			options: "all;Omni;Neutral;Clan;not Omni;not Neutral;not Clan"
+			options: ["all", "Omni", "Neutral", "Clan", "not Omni", "not Neutral", "not Clan"]
 		);
 		$this->settingManager->add(
 			module: $this->moduleName,
@@ -110,9 +110,7 @@ class LimitsController extends ModuleInstance {
 			mode: "edit",
 			type: "time",
 			value: "1s",
-			options: "1s;7days;14days;1month;2months;6months;1year;2years",
-			intoptions: '',
-			accessLevel: 'mod',
+			options: ["1s", "7days", "14days", "1month", "2months", "6months", "1year", "2years"],
 			help: 'limits.txt'
 		);
 		$this->settingManager->add(
@@ -122,8 +120,11 @@ class LimitsController extends ModuleInstance {
 			mode: "edit",
 			type: "options",
 			value: "2",
-			options: "Specific;Generic;None",
-			intoptions: "2;1;0"
+			options: [
+				'Specific' => 2,
+				'Generic' => 1,
+				'None' => 0,
+			]
 		);
 		$this->settingManager->add(
 			module: $this->moduleName,
@@ -132,8 +133,12 @@ class LimitsController extends ModuleInstance {
 			mode: "edit",
 			type: "options",
 			value: "0",
-			options: "All;Only errors/denied;Only successes;None",
-			intoptions: "3;2;1;0"
+			options: [
+				'All' => 3,
+				'Only errors/denied' => 2,
+				'Only successes' => 1,
+				'None' => 0,
+			]
 		);
 		$this->settingManager->add(
 			module: $this->moduleName,
@@ -142,8 +147,12 @@ class LimitsController extends ModuleInstance {
 			mode: "edit",
 			type: "options",
 			value: "5",
-			options: "5s;10s;30s;1m",
-			intoptions: "5;10;30;60"
+			options: [
+				'5s' => 5,
+				'10s' => 10,
+				'30s' => 30,
+				'1m' => 60,
+			]
 		);
 		$this->settingManager->add(
 			module: $this->moduleName,
@@ -152,8 +161,7 @@ class LimitsController extends ModuleInstance {
 			mode: "edit",
 			type: "number",
 			value: "5",
-			options: "off;2;3;4;5;6;7;8;9;10",
-			intoptions: "0;2;3;4;5;6;7;8;9;10"
+			options: ["off" => 0, 2, 3, 4, 5, 6, 7, 8, 9, 10],
 		);
 		$this->settingManager->add(
 			module: $this->moduleName,
@@ -162,8 +170,13 @@ class LimitsController extends ModuleInstance {
 			mode: "edit",
 			type: "options",
 			value: "4",
-			options: "Kick;Temp. ban;Kick+Temp. ban;Temp. ignore;Kick+Temp. ignore",
-			intoptions: "1;2;3;4;5"
+			options: [
+				"Kick" => 1,
+				"Temp. ban" => 2,
+				"Kick+Temp. ban" => 3,
+				"Temp. ignore" => 4,
+				"Kick+Temp. ignore" => 5,
+			],
 		);
 		$this->settingManager->add(
 			module: $this->moduleName,
@@ -172,7 +185,7 @@ class LimitsController extends ModuleInstance {
 			mode: "edit",
 			type: "time",
 			value: "5m",
-			options: "1m;2m;5m;10m;30m;1h;6h",
+			options: ["1m", "2m", "5m", "10m", "30m", "1h", "6h"],
 		);
 		$this->settingManager->add(
 			module: $this->moduleName,

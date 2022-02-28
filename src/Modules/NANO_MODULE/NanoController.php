@@ -74,19 +74,15 @@ class NanoController extends ModuleInstance {
 			mode: 'edit',
 			type: "number",
 			value: '40',
-			options: '30;40;50;60',
-			intoptions: "",
-			accessLevel: "mod"
+			options: ["30", "40", "50", "60"],
 		);
 		$this->settingManager->add(
 			module: $this->moduleName,
 			name: "shownanolineicons",
 			description: "Show icons for the nanolines",
 			mode: "edit",
-			type: "options",
-			value: "0",
-			options: "true;false",
-			intoptions: "1;0"
+			type: "bool",
+			value: "0"
 		);
 		$this->nanolines = $this->db->table("nano_lines")
 			->asObj(Nanoline::class)

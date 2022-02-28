@@ -45,10 +45,8 @@ class StatsController extends ModuleInstance {
 			name: 'prometheus_enabled',
 			description: 'Enable Prometheus endpoint at /metrics',
 			mode: 'edit',
-			type: 'options',
+			type: 'bool',
 			value: '1',
-			options: 'true;false',
-			intoptions: '1;0',
 			accessLevel: 'admin'
 		);
 		$this->settingManager->add(

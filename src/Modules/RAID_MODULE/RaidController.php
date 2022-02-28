@@ -135,10 +135,8 @@ class RaidController extends ModuleInstance {
 			name: 'raid_announcement',
 			description: 'Announce the raid periodically',
 			mode: 'edit',
-			type: 'options',
+			type: 'bool',
 			value: '1',
-			options: 'true;false',
-			intoptions: '1;0',
 			accessLevel: 'raid_admin_2'
 		);
 		$this->settingManager->add(
@@ -148,8 +146,7 @@ class RaidController extends ModuleInstance {
 			mode: 'edit',
 			type: 'time',
 			value: '90s',
-			options: '30s;60s;90s;120s;150s;180s',
-			intoptions: '',
+			options: ["30s", "60s", "90s", "120s", "150s", "180s"],
 			accessLevel: 'raid_admin_2'
 		);
 		$this->settingManager->add(
@@ -157,10 +154,8 @@ class RaidController extends ModuleInstance {
 			name: 'raid_points_for_time',
 			description: 'Give raid points based on duration of participation',
 			mode: 'edit',
-			type: 'options',
+			type: 'bool',
 			value: '0',
-			options: 'true;false',
-			intoptions: '1;0',
 			accessLevel: 'raid_admin_2'
 		);
 		$this->settingManager->add(
@@ -170,8 +165,6 @@ class RaidController extends ModuleInstance {
 			mode: 'edit',
 			type: 'time',
 			value: '5m',
-			options: '',
-			intoptions: '',
 			accessLevel: 'raid_admin_2'
 		);
 		$this->settingManager->add(
@@ -179,10 +172,8 @@ class RaidController extends ModuleInstance {
 			name: 'raid_auto_add_creator',
 			description: 'Add raid initiator to the raid',
 			mode: 'edit',
-			type: 'options',
+			type: 'bool',
 			value: '1',
-			options: 'true;false',
-			intoptions: '1;0',
 			accessLevel: 'raid_admin_2'
 		);
 		$this->settingManager->add(
@@ -190,10 +181,8 @@ class RaidController extends ModuleInstance {
 			name: 'raid_stop_clears_callers',
 			description: 'Stopping the raid clears the callers',
 			mode: 'edit',
-			type: 'options',
+			type: 'bool',
 			value: '0',
-			options: 'true;false',
-			intoptions: '1;0',
 			accessLevel: 'raid_admin_2'
 		);
 		$this->settingManager->add(
@@ -203,11 +192,11 @@ class RaidController extends ModuleInstance {
 			mode: 'edit',
 			type: 'options',
 			value: '0',
-			options:
-				"Kick everyone not in the raid".
-				";Kick all, except those who've been in the raid before".
-				";Don't kick on raid lock",
-			intoptions: '2;1;0',
+			options: [
+				"Kick everyone not in the raid" => 2,
+				"Kick all, except those who've been in the raid before" => 1,
+				"Don't kick on raid lock" => 0,
+			],
 			accessLevel: 'raid_admin_2'
 		);
 		$this->timer->callLater(0, [$this, 'resumeRaid']);

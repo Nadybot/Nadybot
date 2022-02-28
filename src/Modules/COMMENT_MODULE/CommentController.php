@@ -75,42 +75,37 @@ class CommentController extends ModuleInstance {
 	public function setup(): void {
 		$sm = $this->settingManager;
 		$sm->add(
-			$this->moduleName,
-			"comment_cooldown",
-			"How long is the cooldown between leaving 2 comments for the same character",
-			"edit",
-			"time",
-			"6h",
-			"1s;1h;6h;24h",
-			'',
-			"mod"
+			module: $this->moduleName,
+			name: "comment_cooldown",
+			description: "How long is the cooldown between leaving 2 comments for the same character",
+			mode: "edit",
+			type: "time",
+			value: "6h",
+			options: ["1s", "1h", "6h", "24h"],
 		);
 		$sm->add(
-			$this->moduleName,
-			"share_comments",
-			"Share comments between bots on same database",
-			"edit",
-			"options",
-			"0",
-			"true;false",
-			'1;0',
-			"mod"
+			module: $this->moduleName,
+			name: "share_comments",
+			description: "Share comments between bots on same database",
+			mode: "edit",
+			type: "bool",
+			value: "0",
 		);
 		$sm->add(
-			$this->moduleName,
-			"table_name_comments",
-			"Database table for comments",
-			"noedit",
-			"text",
-			"comments_<myname>",
+			module: $this->moduleName,
+			name: "table_name_comments",
+			description: "Database table for comments",
+			mode: "noedit",
+			type: "text",
+			value: "comments_<myname>",
 		);
 		$sm->add(
-			$this->moduleName,
-			"table_name_comment_categories",
-			"Database table for comment categories",
-			"noedit",
-			"text",
-			"comment_categories_<myname>",
+			module: $this->moduleName,
+			name: "table_name_comment_categories",
+			description: "Database table for comment categories",
+			mode: "noedit",
+			type: "text",
+			value: "comment_categories_<myname>",
 		);
 		$this->db->registerTableName("comments", $sm->getString("table_name_comments")??"");
 		$this->db->registerTableName("comment_categories", $sm->getString("table_name_comment_categories")??"");

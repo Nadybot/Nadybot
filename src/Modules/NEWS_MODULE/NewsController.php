@@ -86,7 +86,7 @@ class NewsController extends ModuleInstance {
 			mode: "edit",
 			type: "number",
 			value: "10",
-			options: "5;10;15;20"
+			options: ["5", "10", "15", "20"]
 		);
 		$this->settingManager->add(
 			module: $this->moduleName,
@@ -95,18 +95,18 @@ class NewsController extends ModuleInstance {
 			mode: "edit",
 			type: "options",
 			value: "1",
-			options: "Last date;Latest news",
-			intoptions: "1;2"
+			options: [
+				'Last date' => 1,
+				'Latest news' => 2,
+			]
 		);
 		$this->settingManager->add(
 			module: $this->moduleName,
 			name: "news_confirmed_for_all_alts",
 			description: "Confirmed news count for all alts",
 			mode: "edit",
-			type: "options",
-			value: "1",
-			options: "true;false",
-			intoptions: "1;0"
+			type: "bool",
+			value: "1"
 		);
 	}
 

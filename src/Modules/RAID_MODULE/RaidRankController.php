@@ -177,8 +177,13 @@ class RaidRankController extends ModuleInstance implements AccessLevelProvider {
 			mode: 'edit',
 			type: 'options',
 			value: '2592000',
-			options: 'Off;1 Month;3 Months;6 Months;1 Year',
-			intoptions: '0;2592000;7776000;15552000;31536000'
+			options: [
+				'Off' => 0,
+				'1 Month' => 2592000,
+				'3 Months' => 7776000,
+				'6 Months' => 15552000,
+				'1 Year' => 31536000,
+			]
 		);
 		$this->commandAlias->register($this->moduleName, "raidadmin", "raid admin");
 		$this->commandAlias->register($this->moduleName, "raidleader", "raid leader");

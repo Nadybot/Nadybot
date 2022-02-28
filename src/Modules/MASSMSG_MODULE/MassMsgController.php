@@ -97,13 +97,13 @@ class MassMsgController extends ModuleInstance {
 			value: "<font color='#FF9999'>",
 		);
 		$this->settingManager->add(
-			$this->moduleName,
-			"massmsg_cooldown",
-			"Cooldown between sending 2 mass-messages/-invites",
-			"edit",
-			"time",
-			"1s",
-			"1s;30s;1m;5m;15m"
+			module: $this->moduleName,
+			name: "massmsg_cooldown",
+			description: "Cooldown between sending 2 mass-messages/-invites",
+			mode: "edit",
+			type: "time",
+			value: "1s",
+			options: ["1s", "30s", "1m", "5m", "15m"],
 		);
 	}
 

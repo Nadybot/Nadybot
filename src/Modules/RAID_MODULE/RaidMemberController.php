@@ -88,20 +88,20 @@ class RaidMemberController extends ModuleInstance {
 			mode: 'edit',
 			type: 'options',
 			value: '3',
-			options: 'Do not announce;Private channel;Tell;Priv+Tell',
-			intoptions: '0;1;2;3',
-			accessLevel: 'mod'
+			options: [
+				'Do not announce' => 0,
+				'Private channel' => 1,
+				'Tell' => 2,
+				'Priv+Tell' => 3,
+			],
 		);
 		$this->settingManager->add(
 			module: $this->moduleName,
 			name: 'raid_allow_multi_joining',
 			description: 'Allow people to join the raids on more than one character',
 			mode: 'edit',
-			type: 'options',
+			type: 'bool',
 			value: '1',
-			options: 'true;false',
-			intoptions: '1;0',
-			accessLevel: 'mod',
 			help: 'multijoin.txt'
 		);
 	}

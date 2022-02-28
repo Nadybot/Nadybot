@@ -77,10 +77,8 @@ class GuildRankController extends ModuleInstance implements AccessLevelProvider 
 			name: "map_org_ranks_to_bot_ranks",
 			description: "Map org ranks to bot ranks",
 			mode: "edit",
-			type: "options",
-			value: "0",
-			options: "true;false",
-			intoptions: "1;0"
+			type: "bool",
+			value: "0"
 		);
 	}
 

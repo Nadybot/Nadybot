@@ -67,8 +67,11 @@ class ArulSabaController extends ModuleInstance {
 			mode: "edit",
 			type: "options",
 			value: "2",
-			options: "yes, with links;yes;no",
-			intoptions: "2;1;0"
+			options: [
+				'yes, with links' => 2,
+				'yes' => 1,
+				'no' => 0,
+			]
 		);
 	}
 

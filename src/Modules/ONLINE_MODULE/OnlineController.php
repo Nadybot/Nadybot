@@ -132,9 +132,7 @@ class OnlineController extends ModuleInstance {
 			mode: "edit",
 			type: "time",
 			value: "15m",
-			options: "2m;5m;10m;15m;20m",
-			intoptions: '',
-			accessLevel: "mod"
+			options: ["2m", "5m", "10m", "15m", "20m"],
 		);
 		$this->settingManager->add(
 			module: $this->moduleName,
@@ -143,8 +141,11 @@ class OnlineController extends ModuleInstance {
 			mode: "edit",
 			type: "options",
 			value: "0",
-			options: "No;Always;In a separate message",
-			intoptions: "0;1;2"
+			options: [
+				'No' => 0,
+				'Always' => 1,
+				'In a separate message' => 2,
+			]
 		);
 		$this->settingManager->add(
 			module: $this->moduleName,
@@ -153,8 +154,12 @@ class OnlineController extends ModuleInstance {
 			mode: "edit",
 			type: "options",
 			value: "1",
-			options: "Show org and rank;Show rank only;Show org only;Show no org info",
-			intoptions: "2;1;3;0"
+			options: [
+				'Show org and rank' => 2,
+				'Show rank only' => 1,
+				'Show org only' => 3,
+				'Show no org info' => 0,
+			]
 		);
 		$this->settingManager->add(
 			module: $this->moduleName,
@@ -163,8 +168,12 @@ class OnlineController extends ModuleInstance {
 			mode: "edit",
 			type: "options",
 			value: "0",
-			options: "Show org and rank;Show rank only;Show org only;Show no org info",
-			intoptions: "2;1;3;0"
+			options: [
+				'Show org and rank' => 2,
+				'Show rank only' => 1,
+				'Show org only' => 3,
+				'Show no org info' => 0,
+			]
 		);
 		$this->settingManager->add(
 			module: $this->moduleName,
@@ -173,18 +182,20 @@ class OnlineController extends ModuleInstance {
 			mode: "edit",
 			type: "options",
 			value: "2",
-			options: "Show org and rank;Show rank only;Show org only;Show no org info",
-			intoptions: "2;1;3;0"
+			options: [
+				'Show org and rank' => 2,
+				'Show rank only' => 1,
+				'Show org only' => 3,
+				'Show no org info' => 0,
+			]
 		);
 		$this->settingManager->add(
 			module: $this->moduleName,
 			name: "online_admin",
 			description: "Show admin levels in online list",
 			mode: "edit",
-			type: "options",
-			value: "0",
-			options: "true;false",
-			intoptions: "1;0"
+			type: "bool",
+			value: "0"
 		);
 		$this->settingManager->add(
 			module: $this->moduleName,
@@ -193,8 +204,13 @@ class OnlineController extends ModuleInstance {
 			mode: "edit",
 			type: "options",
 			value: "0",
-			options: "off;in raid;not in raid;both;both, but compact",
-			intoptions: "0;1;2;3;7"
+			options: [
+				'off' => 0,
+				'in raid' => 1,
+				'not in raid' => 2,
+				'both' => 3,
+				'both, but compact' => 7,
+			]
 		);
 		$this->settingManager->add(
 			module: $this->moduleName,
@@ -203,8 +219,12 @@ class OnlineController extends ModuleInstance {
 			mode: "edit",
 			type: "options",
 			value: "1",
-			options: "do not group;player;profession;faction",
-			intoptions: "0;1;2;3"
+			options: [
+				'do not group' => 0,
+				'player' => 1,
+				'profession' => 2,
+				'faction' => 3,
+			]
 		);
 		$this->settingManager->add(
 			module: $this->moduleName,
@@ -213,28 +233,27 @@ class OnlineController extends ModuleInstance {
 			mode: "edit",
 			type: "options",
 			value: "1",
-			options: "do not group;org;profession",
-			intoptions: "0;1;2"
+			options: [
+				'do not group' => 0,
+				'org' => 1,
+				'profession' => 2,
+			]
 		);
 		$this->settingManager->add(
 			module: $this->moduleName,
 			name: "online_show_discord",
 			description: "Show players in discord voice channels",
 			mode: "edit",
-			type: "options",
-			value: "0",
-			options: "true;false",
-			intoptions: "1;0"
+			type: "bool",
+			value: "0"
 		);
 		$this->settingManager->add(
 			module: $this->moduleName,
 			name: "afk_brb_without_symbol",
 			description: "React to afk and brb even without command prefix",
 			mode: "edit",
-			type: "options",
-			value: "1",
-			options: "true;false",
-			intoptions: "1;0"
+			type: "bool",
+			value: "1"
 		);
 
 		$onlineOrg = new OnlineOrgStats();

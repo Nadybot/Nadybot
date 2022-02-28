@@ -144,16 +144,13 @@ class SystemController extends ModuleInstance implements MessageEmitter {
 
 		$this->helpManager->register($this->moduleName, "budatime", "budatime.txt", "all", "Format for budatime");
 
-		$name = $this->config->name;
-
 		$this->settingManager->add(
 			module: $this->moduleName,
 			name: "symbol",
 			description: "Default command prefix symbol",
 			mode: "edit",
 			type: "text",
-			options: "!;#;*;@;$;+;-",
-			accessLevel: "mod",
+			options: ["!", "#", "*", "@", "$", "+", "-"],
 			value: "!",
 		);
 
@@ -163,8 +160,7 @@ class SystemController extends ModuleInstance implements MessageEmitter {
 			description: "Max chars for a window",
 			mode: "edit",
 			type: "number",
-			options: "4500;6000;7500;9000;10500;12000",
-			accessLevel: "mod",
+			options: ["4500", "6000", "7500", "9000", "10500", "12000"],
 			help: "max_blob_size.txt",
 			value: "7500",
 		);
@@ -175,8 +171,7 @@ class SystemController extends ModuleInstance implements MessageEmitter {
 			description: "Max time to wait for response from making http queries",
 			mode: "edit",
 			type: "time",
-			options: "1s;2s;5s;10s;30s",
-			accessLevel: "mod",
+			options: ["1s", "2s", "5s", "10s", "30s"],
 			value: "10s",
 		);
 
@@ -185,10 +180,7 @@ class SystemController extends ModuleInstance implements MessageEmitter {
 			name: "guild_channel_status",
 			description: "Enable the guild channel",
 			mode: "edit",
-			type: "options",
-			options: "true;false",
-			intoptions: "1;0",
-			accessLevel: "mod",
+			type: "bool",
 			value: "1",
 		);
 
@@ -198,7 +190,6 @@ class SystemController extends ModuleInstance implements MessageEmitter {
 			description: "Database version",
 			mode: "noedit",
 			type: "text",
-			accessLevel: "mod",
 			value: "0",
 		);
 
@@ -207,10 +198,7 @@ class SystemController extends ModuleInstance implements MessageEmitter {
 			name: "allow_mass_tells",
 			description: "When using the proxy, allow sending tells via the workers",
 			mode: "edit",
-			type: "options",
-			options: "true;false",
-			intoptions: "1;0",
-			accessLevel: "mod",
+			type: "bool",
 			value: "1",
 		);
 
@@ -219,10 +207,7 @@ class SystemController extends ModuleInstance implements MessageEmitter {
 			name: "force_mass_tells",
 			description: "When using the proxy, always send tells via the workers",
 			mode: "edit",
-			type: "options",
-			options: "true;false",
-			intoptions: "1;0",
-			accessLevel: "mod",
+			type: "bool",
 			value: "0",
 		);
 
@@ -231,10 +216,7 @@ class SystemController extends ModuleInstance implements MessageEmitter {
 			name: "reply_on_same_worker",
 			description: "When using the proxy, always reply via the worker that sent the tell",
 			mode: "edit",
-			type: "options",
-			options: "true;false",
-			intoptions: "1;0",
-			accessLevel: "mod",
+			type: "bool",
 			value: "0",
 		);
 
@@ -243,10 +225,7 @@ class SystemController extends ModuleInstance implements MessageEmitter {
 			name: "paging_on_same_worker",
 			description: "When using the proxy, always send multi-page replies via one worker ",
 			mode: "edit",
-			type: "options",
-			options: "true;false",
-			intoptions: "1;0",
-			accessLevel: "mod",
+			type: "bool",
 			value: "1",
 		);
 

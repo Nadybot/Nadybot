@@ -91,20 +91,15 @@ class RaffleController extends ModuleInstance {
 			mode: "edit",
 			type: "time",
 			value: '3m',
-			options: '1m;2m;3m;4m;5m',
-			intoptions: '',
-			accessLevel: 'mod',
+			options: ["1m", "2m", "3m", "4m", "5m"],
 		);
 		$this->settingManager->add(
 			module: $this->moduleName,
 			name: "raffle_ends_automatically",
 			description: "Should raffles end automatically after some time?",
 			mode: "edit",
-			type: "options",
+			type: "bool",
 			value: '1',
-			options: 'true;false',
-			intoptions: '1;0',
-			accessLevel: 'mod',
 		);
 		$this->settingManager->add(
 			module: $this->moduleName,
@@ -113,20 +108,15 @@ class RaffleController extends ModuleInstance {
 			mode: "edit",
 			type: "time",
 			value: '30s',
-			options: '10s;20s;30s;45s;1m;2m;3m;4m;5m;10m',
-			intoptions: '',
-			accessLevel: 'mod',
+			options: ["10s", "20s", "30s", "45s", "1m", "2m", "3m", "4m", "5m", "10m"],
 		);
 		$this->settingManager->add(
 			module: $this->moduleName,
 			name: "raffle_announce_participants",
 			description: "Announce whenever someone joins or leaves the raffle",
 			mode: "edit",
-			type: "options",
+			type: "bool",
 			value: '1',
-			options: "true;false",
-			intoptions: "1;0",
-			accessLevel: 'mod',
 		);
 		$this->settingManager->add(
 			module: $this->moduleName,
@@ -135,31 +125,29 @@ class RaffleController extends ModuleInstance {
 			mode: "edit",
 			type: "options",
 			value: '0',
-			options: "0;1;2;5;10",
-			intoptions: "0;1;2;5;10",
-			accessLevel: 'mod',
+			options: [
+				'0' => 0,
+				'1' => 1,
+				'2' => 2,
+				'5' => 5,
+				'10' => 10,
+			],
 		);
 		$this->settingManager->add(
 			module: $this->moduleName,
 			name: "share_raffle_bonus_on_alts",
 			description: "Share raffle bonus points between alts",
 			mode: "edit",
-			type: "options",
+			type: "bool",
 			value: '1',
-			options: "true;false",
-			intoptions: "1;0",
-			accessLevel: 'mod',
 		);
 		$this->settingManager->add(
 			module: $this->moduleName,
 			name: "raffle_allow_only_raiders",
 			description: "If a raid is running, only raiders may join the raffle",
 			mode: "edit",
-			type: "options",
+			type: "bool",
 			value: '0',
-			options: "true;false",
-			intoptions: "1;0",
-			accessLevel: 'mod'
 		);
 		$this->settingManager->add(
 			module: $this->moduleName,

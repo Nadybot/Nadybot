@@ -109,10 +109,7 @@ class BanController extends ModuleInstance {
 			name: "notify_banned_player",
 			description: "Notify character when banned from bot",
 			mode: "edit",
-			type: "options",
-			options: "true;false",
-			intoptions: "1;0",
-			accessLevel: "mod",
+			type: "bool",
 			value: "1"
 		);
 
@@ -121,10 +118,7 @@ class BanController extends ModuleInstance {
 			name: "ban_all_alts",
 			description: "Always ban all alts, not just 1 char",
 			mode: "edit",
-			type: "options",
-			options: "true;false",
-			intoptions: "1;0",
-			accessLevel: "mod",
+			type: "bool",
 			value: "0"
 		);
 

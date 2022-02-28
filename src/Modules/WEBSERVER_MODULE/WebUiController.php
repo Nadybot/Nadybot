@@ -82,7 +82,7 @@ class WebUiController extends ModuleInstance implements MessageEmitter {
 			mode: "edit",
 			type: "options",
 			value: "stable",
-			options: join(";", $uiBranches)
+			options: $uiBranches,
 		);
 		$this->settingManager->registerChangeListener(
 			"nadyui_channel",

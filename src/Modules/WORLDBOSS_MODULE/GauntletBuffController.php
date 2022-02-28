@@ -104,9 +104,7 @@ class GauntletBuffController extends ModuleInstance implements MessageEmitter {
 			mode: 'edit',
 			type: 'text',
 			value: '30m 10m',
-			options: '30m 10m',
-			intoptions: '',
-			accessLevel: 'mod',
+			options: ["30m 10m"],
 			help: 'gau_times.txt'
 		);
 		$this->settingManager->add(
@@ -114,10 +112,8 @@ class GauntletBuffController extends ModuleInstance implements MessageEmitter {
 			name: "gaubuff_logon",
 			description: "Show gaubuff timer on logon",
 			mode: "edit",
-			type: "options",
-			value: "1",
-			options: "true;false",
-			intoptions: "1;0"
+			type: "bool",
+			value: "1"
 		);
 		$this->settingManager->add(
 			module: $this->moduleName,
@@ -126,7 +122,7 @@ class GauntletBuffController extends ModuleInstance implements MessageEmitter {
 			mode: "edit",
 			type: "options",
 			value: "none",
-			options: "none;clan;omni"
+			options: ["none", "clan", "omni"]
 		);
 		$this->messageHub->registerMessageEmitter($this);
 		$this->settingManager->registerChangeListener(

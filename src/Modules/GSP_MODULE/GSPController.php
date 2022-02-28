@@ -92,10 +92,8 @@ class GSPController extends ModuleInstance implements MessageEmitter {
 			name: "gsp_show_logon",
 			description: "Show on logon if there is a running GSP show",
 			mode: "edit",
-			type: "options",
-			value: "1",
-			options: "true;false",
-			intoptions: "1;0"
+			type: "bool",
+			value: "1"
 		);
 		$this->messageHub->registerMessageEmitter($this);
 	}

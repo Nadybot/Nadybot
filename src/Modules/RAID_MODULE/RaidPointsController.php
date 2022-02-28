@@ -119,10 +119,8 @@ class RaidPointsController extends ModuleInstance {
 			name: "raid_share_points",
 			description: "Share raid points across all alts",
 			mode: "edit",
-			type: "options",
-			value: "1",
-			options: "true;false",
-			intoptions: "1;0"
+			type: "bool",
+			value: "1"
 		);
 		$this->settingManager->add(
 			module: $this->moduleName,

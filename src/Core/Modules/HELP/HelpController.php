@@ -83,10 +83,7 @@ class HelpController extends ModuleInstance {
 			name: "help_show_al",
 			description: 'Show mods the required access level for each command',
 			mode: 'edit',
-			type: "options",
-			options: "true;false",
-			intoptions: "1;0",
-			accessLevel: "mod",
+			type: "bool",
 			value: "1",
 		);
 

@@ -104,9 +104,11 @@ class NotesController extends ModuleInstance {
 			mode: "edit",
 			type: "options",
 			value: "2",
-			options: "off;compact;verbose",
-			intoptions: '0;1;2',
-			accessLevel: "mod"
+			options: [
+				'off' => 0,
+				'compact' => 1,
+				'verbose' => 2,
+			],
 		);
 	}
 

@@ -169,16 +169,16 @@ class RelayController extends ModuleInstance {
 			mode: 'edit',
 			type: 'text',
 			value: 'none',
-			options: 'none'
+			options: ["none"]
 		);
 		$this->settingManager->add(
-			$this->moduleName,
-			'relay_queue_size',
-			'How many messages to queue when relay is offline',
-			'edit',
-			'number',
-			'10',
-			'10;20;50'
+			module: $this->moduleName,
+			name: 'relay_queue_size',
+			description: 'How many messages to queue when relay is offline',
+			mode: 'edit',
+			type: 'number',
+			value: '10',
+			options: ["10", "20", "50"],
 		);
 		$this->loadStackComponents();
 		$this->settingManager->registerChangeListener("relay_queue_size", [$this, "adaptQueueSize"]);

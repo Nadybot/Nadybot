@@ -60,8 +60,11 @@ class CountdownController extends ModuleInstance {
 			mode: 'edit',
 			type: "options",
 			value: "1",
-			options: "Priv;Guild;Priv+Guild",
-			intoptions: "1;2;3"
+			options: [
+				'Priv' => 1,
+				'Guild' => 2,
+				'Priv+Guild' => 3,
+			]
 		);
 		$this->settingManager->add(
 			module: $this->moduleName,
@@ -78,9 +81,7 @@ class CountdownController extends ModuleInstance {
 			mode: "edit",
 			type: "time",
 			value: "30s",
-			options: "6s;15s;30s;1m;5m",
-			intoptions: '',
-			accessLevel: "mod"
+			options: ["6s", "15s", "30s", "1m", "5m"],
 		);
 	}
 

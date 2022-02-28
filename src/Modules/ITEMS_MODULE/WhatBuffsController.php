@@ -88,8 +88,11 @@ class WhatBuffsController extends ModuleInstance {
 			mode: 'edit',
 			type: 'options',
 			value: '2',
-			options: 'Do not mark;L/R;L-Wrist/R-Wrist',
-			intoptions: '0;1;2',
+			options: [
+				'Do not mark' => 0,
+				'L/R' => 1,
+				'L-Wrist/R-Wrist' => 2,
+			],
 		);
 		$this->settingManager->add(
 			module: $this->moduleName,
@@ -98,8 +101,11 @@ class WhatBuffsController extends ModuleInstance {
 			mode: 'edit',
 			type: 'options',
 			value: '2',
-			options: 'Do not mark;U;Unique',
-			intoptions: '0;1;2',
+			options: [
+				'Do not mark' => 0,
+				'U' => 1,
+				'Unique' => 2,
+			],
 		);
 		$this->settingManager->add(
 			module: $this->moduleName,
@@ -108,8 +114,11 @@ class WhatBuffsController extends ModuleInstance {
 			mode: 'edit',
 			type: 'options',
 			value: '0',
-			options: 'Do not mark;ND;Nodrop',
-			intoptions: '0;1;2',
+			options: [
+				'Do not mark' => 0,
+				'ND' => 1,
+				'Nodrop' => 2,
+			],
 		);
 	}
 

@@ -659,7 +659,7 @@ class ConfigController extends ModuleInstance {
 			$blob .= "<tab>" . ($row->getData()->description ?? "");
 
 			if ($row->isEditable() && $this->accessManager->checkAccess($context->char->name, $row->getData()->admin??"superadmin")) {
-				$blob .= " [" . $this->text->makeChatcmd("modify", "/tell <myname> settings change " . $row->getData()->name) . "]";
+				$blob .= " [" . $row->getModifyLink() . "]";
 			}
 
 			$blob .= ": " . $row->displayValue($context->char->name) . "\n";

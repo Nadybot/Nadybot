@@ -125,9 +125,7 @@ class GuildController extends ModuleInstance {
 			mode: "edit",
 			type: "number",
 			value: "200",
-			options: "100;200;300;400",
-			intoptions: '',
-			accessLevel: "mod"
+			options: ["100", "200", "300", "400"],
 		);
 		$this->settingManager->add(
 			module: $this->moduleName,
@@ -136,39 +134,31 @@ class GuildController extends ModuleInstance {
 			mode: "edit",
 			type: "number",
 			value: "200",
-			options: "100;200;300;400",
-			intoptions: '',
-			accessLevel: "mod"
+			options: ["100", "200", "300", "400"],
 		);
 		$this->settingManager->add(
 			module: $this->moduleName,
 			name: "first_and_last_alt_only",
 			description: "Show logon/logoff for first/last alt only",
 			mode: "edit",
-			type: "options",
-			value: "0",
-			options: "true;false",
-			intoptions: "1;0"
+			type: "bool",
+			value: "0"
 		);
 		$this->settingManager->add(
 			module: $this->moduleName,
 			name: "map_org_ranks_to_bot_ranks",
 			description: "Map org ranks to bot ranks",
 			mode: "edit",
-			type: "options",
-			value: "0",
-			options: "true;false",
-			intoptions: "1;0"
+			type: "bool",
+			value: "0"
 		);
 		$this->settingManager->add(
 			module: $this->moduleName,
 			name: "org_suppress_alt_list",
 			description: "Do not show the altlist on logon, just the name of the main",
 			mode: "edit",
-			type: "options",
-			value: "0",
-			options: "true;false",
-			intoptions: "1;0"
+			type: "bool",
+			value: "0"
 		);
 		$this->loadGuildMembers();
 	}

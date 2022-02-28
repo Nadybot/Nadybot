@@ -26,6 +26,10 @@ abstract class SettingHandler {
 		return $this->row;
 	}
 
+	public function getModifyLink(): string {
+		return $this->text->makeChatcmd("modify", "/tell <myname> settings change " . $this->row->name);
+	}
+
 	/**
 	 * Get a displayable representation of the setting
 	 */

@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Adding settings now requires "options" to be an array, not a string,
+  plus there are no more "intoptions". If you need "intoptions", use an associative
+  array for "options".
 - Moved from PHPDoc annotations to PHP 8 attributes, greatly increasing parsing speed
 - Change the start-up banner to be more concise
 - Change a lot of the default permissions that were using "all" or "member" to "guest"
@@ -65,12 +68,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 
+- Sync name-lookups from PORK are gone
 - Remove all deprecated DB calls (query, queryRow, etc.)
 - You can no longer inject into untyped properties
 - Command help files are no more
-- The old `/** @ */` annotations are no more,use attributes
+- The old `/** @ */` annotations are no more, please use attributes
 - The old command-syntax with a fixed amount of parameters is gone
 - PHP 7 is no longer supported
+
+## [5.3.3] - 2022-02-20
+
+### Fixed
+
+- Number of unplanted sites is now correct when manually scouting
+- Fix `!online <prof>`
+- Fix penalty time
+
+### Changed
+
+- Error properly when running an unsupported SQLite version
+
+### Added
+
+- Allow syncing news via nadynative
+- Handle the LOGIN_ERROR packet and display meaningful error messages
+- Add a configurable cool-down to mass-messages/-invites
+- Add a setting to limit command execution to a single discord channel
 
 ## [5.3.2] - 2021-12-23
 

@@ -89,10 +89,8 @@ class ApiController extends ModuleInstance {
 			name: 'api',
 			description: 'Enable REST API',
 			mode: 'edit',
-			type: 'options',
+			type: 'bool',
 			value: '1',
-			options: 'true;false',
-			intoptions: '1;0'
 		);
 
 		$this->scanApiAttributes();

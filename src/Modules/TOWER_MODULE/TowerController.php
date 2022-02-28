@@ -223,8 +223,11 @@ class TowerController extends ModuleInstance {
 			mode: "edit",
 			type: "options",
 			value: "2",
-			options: "off;compact;normal",
-			intoptions: "0;1;2",
+			options: [
+				'off' => 0,
+				'compact' => 1,
+				'normal' => 2,
+			],
 		);
 
 		$this->settingManager->add(
@@ -234,8 +237,13 @@ class TowerController extends ModuleInstance {
 			mode: "edit",
 			type: "options",
 			value: "15",
-			options: "5;10;15;20;25",
-			intoptions: "5;10;15;20;25",
+			options: [
+				'5' => 5,
+				'10' => 10,
+				'15' => 15,
+				'20' => 20,
+				'25' => 25,
+			],
 		);
 
 		$this->settingManager->add(
@@ -245,8 +253,11 @@ class TowerController extends ModuleInstance {
 			mode: "edit",
 			type: "options",
 			value: "0",
-			options: "off;priv;org",
-			intoptions: "0;1;2",
+			options: [
+				'off' => 0,
+				'priv' => 1,
+				'org' => 2,
+			],
 		);
 
 		$this->settingManager->add(
@@ -256,9 +267,11 @@ class TowerController extends ModuleInstance {
 			mode: "edit",
 			type: "options",
 			value: "1",
-			options: "Playfield;Title level;Org",
-			intoptions: "1;2;3",
-			accessLevel: "mod",
+			options: [
+				'Playfield' => 1,
+				'Title level' => 2,
+				'Org' => 3,
+			],
 		);
 
 		$this->settingManager->add(
@@ -268,7 +281,7 @@ class TowerController extends ModuleInstance {
 			mode: "edit",
 			type: "text",
 			value: "@here Our field in {location} is being attacked by {player}",
-			options: "off;@here Our field in {location} is being attacked by {player}",
+			options: ["off", "@here Our field in {location} is being attacked by {player}"],
 		);
 
 		$attack = new class implements MessageEmitter {

@@ -130,10 +130,8 @@ class WebserverController extends ModuleInstance {
 			name: 'webserver',
 			description: 'Enable webserver',
 			mode: 'edit',
-			type: 'options',
+			type: 'bool',
 			value: '1',
-			options: 'true;false',
-			intoptions: '1;0',
 			accessLevel: 'superadmin'
 		);
 
@@ -145,8 +143,6 @@ class WebserverController extends ModuleInstance {
 			mode: 'edit',
 			type: 'text',
 			value: '',
-			options: '',
-			intoptions: '',
 			accessLevel: 'superadmin'
 		);
 */
@@ -158,8 +154,6 @@ class WebserverController extends ModuleInstance {
 			mode: 'edit',
 			type: 'number',
 			value: '8080',
-			options: '',
-			intoptions: '',
 			accessLevel: 'superadmin'
 		);
 		$this->settingManager->add(
@@ -169,8 +163,7 @@ class WebserverController extends ModuleInstance {
 			mode: 'edit',
 			type: 'text',
 			value: '127.0.0.1',
-			options: '127.0.0.1;0.0.0.0',
-			intoptions: '',
+			options: ["127.0.0.1", "0.0.0.0"],
 			accessLevel: 'superadmin'
 		);
 
@@ -180,10 +173,8 @@ class WebserverController extends ModuleInstance {
 			name: 'webserver_tls',
 			description: 'Use SSL/TLS for the webserver',
 			mode: 'edit',
-			type: 'options',
+			type: 'bool',
 			value: '0',
-			options: 'true;false',
-			intoptions: '1;0',
 			accessLevel: 'superadmin'
 		);
 */
@@ -195,8 +186,7 @@ class WebserverController extends ModuleInstance {
 			mode: 'edit',
 			type: 'options',
 			value: static::AUTH_BASIC,
-			options: join(";", [static::AUTH_BASIC, static::AUTH_AOAUTH]),
-			intoptions: "",
+			options: [static::AUTH_BASIC, static::AUTH_AOAUTH],
 			accessLevel: "superadmin"
 		);
 
@@ -207,8 +197,7 @@ class WebserverController extends ModuleInstance {
 			mode: 'edit',
 			type: 'text',
 			value: 'default',
-			options: 'default',
-			intoptions: '',
+			options: ["default"],
 			accessLevel: 'admin',
 			help: 'webserver_base_url.txt'
 		);
@@ -220,8 +209,7 @@ class WebserverController extends ModuleInstance {
 			mode: 'edit',
 			type: 'text',
 			value: 'https://aoauth.org',
-			options: 'https://aoauth.org',
-			intoptions: "",
+			options: ["https://aoauth.org"],
 			accessLevel: "superadmin"
 		);
 
