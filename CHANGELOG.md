@@ -68,10 +68,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 
+- Sync name-lookups from PORK are gone
 - Remove all deprecated DB calls (query, queryRow, etc.)
 - You can no longer inject into untyped properties
 - Command help files are no more
-- The old `/** @ */` annotations are no more,use attributes
+- The old `/** @ */` annotations are no more, please use attributes
 - The old command-syntax with a fixed amount of parameters is gone
 - PHP 7 is no longer supported
 
