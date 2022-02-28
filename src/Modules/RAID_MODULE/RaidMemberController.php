@@ -90,7 +90,6 @@ class RaidMemberController extends ModuleInstance {
 			value: '3',
 			options: 'Do not announce;Private channel;Tell;Priv+Tell',
 			intoptions: '0;1;2;3',
-			accessLevel: 'mod'
 		);
 		$this->settingManager->add(
 			module: $this->moduleName,
@@ -99,7 +98,6 @@ class RaidMemberController extends ModuleInstance {
 			mode: 'edit',
 			type: 'bool',
 			value: '1',
-			accessLevel: 'mod',
 			help: 'multijoin.txt'
 		);
 	}

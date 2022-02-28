@@ -92,8 +92,6 @@ class RaffleController extends ModuleInstance {
 			type: "time",
 			value: '3m',
 			options: '1m;2m;3m;4m;5m',
-			intoptions: '',
-			accessLevel: 'mod',
 		);
 		$this->settingManager->add(
 			module: $this->moduleName,
@@ -102,7 +100,6 @@ class RaffleController extends ModuleInstance {
 			mode: "edit",
 			type: "bool",
 			value: '1',
-			accessLevel: 'mod',
 		);
 		$this->settingManager->add(
 			module: $this->moduleName,
@@ -112,8 +109,6 @@ class RaffleController extends ModuleInstance {
 			type: "time",
 			value: '30s',
 			options: '10s;20s;30s;45s;1m;2m;3m;4m;5m;10m',
-			intoptions: '',
-			accessLevel: 'mod',
 		);
 		$this->settingManager->add(
 			module: $this->moduleName,
@@ -122,7 +117,6 @@ class RaffleController extends ModuleInstance {
 			mode: "edit",
 			type: "bool",
 			value: '1',
-			accessLevel: 'mod',
 		);
 		$this->settingManager->add(
 			module: $this->moduleName,
@@ -133,7 +127,6 @@ class RaffleController extends ModuleInstance {
 			value: '0',
 			options: "0;1;2;5;10",
 			intoptions: "0;1;2;5;10",
-			accessLevel: 'mod',
 		);
 		$this->settingManager->add(
 			module: $this->moduleName,
@@ -142,7 +135,6 @@ class RaffleController extends ModuleInstance {
 			mode: "edit",
 			type: "bool",
 			value: '1',
-			accessLevel: 'mod',
 		);
 		$this->settingManager->add(
 			module: $this->moduleName,
@@ -151,7 +143,6 @@ class RaffleController extends ModuleInstance {
 			mode: "edit",
 			type: "bool",
 			value: '0',
-			accessLevel: 'mod'
 		);
 		$this->settingManager->add(
 			module: $this->moduleName,

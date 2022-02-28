@@ -126,8 +126,6 @@ class GuildController extends ModuleInstance {
 			type: "number",
 			value: "200",
 			options: "100;200;300;400",
-			intoptions: '',
-			accessLevel: "mod"
 		);
 		$this->settingManager->add(
 			module: $this->moduleName,
@@ -137,8 +135,6 @@ class GuildController extends ModuleInstance {
 			type: "number",
 			value: "200",
 			options: "100;200;300;400",
-			intoptions: '',
-			accessLevel: "mod"
 		);
 		$this->settingManager->add(
 			module: $this->moduleName,

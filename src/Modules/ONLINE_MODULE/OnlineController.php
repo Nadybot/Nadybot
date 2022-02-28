@@ -133,8 +133,6 @@ class OnlineController extends ModuleInstance {
 			type: "time",
 			value: "15m",
 			options: "2m;5m;10m;15m;20m",
-			intoptions: '',
-			accessLevel: "mod"
 		);
 		$this->settingManager->add(
 			module: $this->moduleName,

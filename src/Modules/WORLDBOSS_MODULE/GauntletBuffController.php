@@ -105,8 +105,6 @@ class GauntletBuffController extends ModuleInstance implements MessageEmitter {
 			type: 'text',
 			value: '30m 10m',
 			options: '30m 10m',
-			intoptions: '',
-			accessLevel: 'mod',
 			help: 'gau_times.txt'
 		);
 		$this->settingManager->add(

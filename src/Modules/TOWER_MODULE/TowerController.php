@@ -258,7 +258,6 @@ class TowerController extends ModuleInstance {
 			value: "1",
 			options: "Playfield;Title level;Org",
 			intoptions: "1;2;3",
-			accessLevel: "mod",
 		);
 
 		$this->settingManager->add(

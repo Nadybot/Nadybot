@@ -111,8 +111,6 @@ class LimitsController extends ModuleInstance {
 			type: "time",
 			value: "1s",
 			options: "1s;7days;14days;1month;2months;6months;1year;2years",
-			intoptions: '',
-			accessLevel: 'mod',
 			help: 'limits.txt'
 		);
 		$this->settingManager->add(

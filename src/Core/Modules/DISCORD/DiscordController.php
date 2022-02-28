@@ -46,7 +46,6 @@ class DiscordController extends ModuleInstance {
 			type: 'discord_bot_token',
 			value: 'off',
 			options: 'off',
-			intoptions: '',
 			accessLevel: 'superadmin'
 		);
 		$this->settingManager->add(
@@ -56,8 +55,6 @@ class DiscordController extends ModuleInstance {
 			mode: "edit",
 			type: "discord_channel",
 			value: "off",
-			options: "",
-			intoptions: "",
 			accessLevel: "admin"
 		);
 	}

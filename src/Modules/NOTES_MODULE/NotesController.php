@@ -106,7 +106,6 @@ class NotesController extends ModuleInstance {
 			value: "2",
 			options: "off;compact;verbose",
 			intoptions: '0;1;2',
-			accessLevel: "mod"
 		);
 	}
 

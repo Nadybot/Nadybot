@@ -124,7 +124,6 @@ class LootController extends ModuleInstance {
 			value: "2",
 			options: "tells;privatechat;privatechat and tells",
 			intoptions: '1;2;3',
-			accessLevel: "mod"
 		);
 		$this->settingManager->add(
 			module: $this->moduleName,

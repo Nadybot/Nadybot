@@ -136,7 +136,6 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 			value: '0',
 			options: 'TRACK: "info" logged on/off.;+/- "info"',
 			intoptions: '0;1',
-			accessLevel: 'mod',
 		);
 		$this->settingManager->add(
 			module: $this->moduleName,
@@ -145,7 +144,6 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 			mode: 'edit',
 			type: 'bool',
 			value: '0',
-			accessLevel: 'mod',
 		);
 		$this->settingManager->add(
 			module: $this->moduleName,
@@ -154,7 +152,6 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 			mode: 'edit',
 			type: 'bool',
 			value: '0',
-			accessLevel: 'mod',
 		);
 		$this->settingManager->add(
 			module: $this->moduleName,
@@ -163,7 +160,6 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 			mode: 'edit',
 			type: 'bool',
 			value: '0',
-			accessLevel: 'mod',
 		);
 		$this->settingManager->add(
 			module: $this->moduleName,
@@ -172,7 +168,6 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 			mode: 'edit',
 			type: 'bool',
 			value: '0',
-			accessLevel: 'mod',
 		);
 		$this->settingManager->add(
 			module: $this->moduleName,

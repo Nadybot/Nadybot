@@ -110,7 +110,6 @@ class BanController extends ModuleInstance {
 			description: "Notify character when banned from bot",
 			mode: "edit",
 			type: "bool",
-			accessLevel: "mod",
 			value: "1"
 		);
 
@@ -120,7 +119,6 @@ class BanController extends ModuleInstance {
 			description: "Always ban all alts, not just 1 char",
 			mode: "edit",
 			type: "bool",
-			accessLevel: "mod",
 			value: "0"
 		);
 

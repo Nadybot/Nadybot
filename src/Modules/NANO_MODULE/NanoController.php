@@ -75,8 +75,6 @@ class NanoController extends ModuleInstance {
 			type: "number",
 			value: '40',
 			options: '30;40;50;60',
-			intoptions: "",
-			accessLevel: "mod"
 		);
 		$this->settingManager->add(
 			module: $this->moduleName,

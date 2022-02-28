@@ -210,7 +210,6 @@ class WorldBossController extends ModuleInstance {
 				";Show 'should have' messages.".
 				";Only show spawn and vulnerability events if set by global events. Don't repeat the timer unless set by a global event.",
 			intoptions: "1;2;3",
-			accessLevel: "mod"
 		);
 		$this->commandAlias->register(
 			$this->moduleName,

@@ -97,8 +97,6 @@ class TradebotController extends ModuleInstance {
 			type: "text",
 			value: static::NONE,
 			options: static::NONE . ";" . implode(';', array_keys(self::BOT_DATA)),
-			intoptions: '',
-			accessLevel: "mod",
 			help: "tradebot.txt"
 		);
 		$this->settingManager->add(
@@ -118,7 +116,6 @@ class TradebotController extends ModuleInstance {
 			mode: 'edit',
 			type: 'bool',
 			value: '1',
-			accessLevel: 'mod'
 		);
 
 		$this->settingManager->add(
@@ -128,7 +125,6 @@ class TradebotController extends ModuleInstance {
 			mode: 'edit',
 			type: 'bool',
 			value: '0',
-			accessLevel: 'mod'
 		);
 
 		$this->settingManager->add(

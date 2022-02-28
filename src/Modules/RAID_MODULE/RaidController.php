@@ -147,7 +147,6 @@ class RaidController extends ModuleInstance {
 			type: 'time',
 			value: '90s',
 			options: '30s;60s;90s;120s;150s;180s',
-			intoptions: '',
 			accessLevel: 'raid_admin_2'
 		);
 		$this->settingManager->add(
@@ -166,8 +165,6 @@ class RaidController extends ModuleInstance {
 			mode: 'edit',
 			type: 'time',
 			value: '5m',
-			options: '',
-			intoptions: '',
 			accessLevel: 'raid_admin_2'
 		);
 		$this->settingManager->add(

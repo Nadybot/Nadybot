@@ -21,7 +21,6 @@ class ColorsController extends ModuleInstance {
 			description: "default guild color",
 			mode: "edit",
 			type: "color",
-			accessLevel: "mod",
 			value: "<font color='#89D2E8'>",
 		);
 
@@ -31,7 +30,6 @@ class ColorsController extends ModuleInstance {
 			description: "default private channel color",
 			mode: "edit",
 			type: "color",
-			accessLevel: "mod",
 			value: "<font color='#89D2E8'>",
 		);
 
@@ -41,7 +39,6 @@ class ColorsController extends ModuleInstance {
 			description: "default window color",
 			mode: "edit",
 			type: "color",
-			accessLevel: "mod",
 			value: "<font color='#89D2E8'>",
 		);
 
@@ -51,7 +48,6 @@ class ColorsController extends ModuleInstance {
 			description: "default tell color",
 			mode: "edit",
 			type: "color",
-			accessLevel: "mod",
 			value: "<font color='#89D2E8'>",
 		);
 
@@ -61,7 +57,6 @@ class ColorsController extends ModuleInstance {
 			description: "default routed system color",
 			mode: "edit",
 			type: "color",
-			accessLevel: "mod",
 			value: "<font color='#89D2E8'>",
 		);
 
@@ -71,7 +66,6 @@ class ColorsController extends ModuleInstance {
 			description: "default highlight color",
 			mode: "edit",
 			type: "color",
-			accessLevel: "mod",
 			value: "<font color='#FFFFFF'>",
 		);
 
@@ -81,7 +75,6 @@ class ColorsController extends ModuleInstance {
 			description: "default header color",
 			mode: "edit",
 			type: "color",
-			accessLevel: "mod",
 			value: "<font color='#FFFF00'>",
 		);
 
@@ -91,7 +84,6 @@ class ColorsController extends ModuleInstance {
 			description: "default header2 color",
 			mode: "edit",
 			type: "color",
-			accessLevel: "mod",
 			value: "<font color='#FCA712'>",
 		);
 
@@ -101,7 +93,6 @@ class ColorsController extends ModuleInstance {
 			description: "default clan color",
 			mode: "edit",
 			type: "color",
-			accessLevel: "mod",
 			value: "<font color='#F79410'>",
 		);
 
@@ -111,7 +102,6 @@ class ColorsController extends ModuleInstance {
 			description: "default omni color",
 			mode: "edit",
 			type: "color",
-			accessLevel: "mod",
 			value: "<font color='#00FFFF'>",
 		);
 
@@ -121,7 +111,6 @@ class ColorsController extends ModuleInstance {
 			description: "default neut color",
 			mode: "edit",
 			type: "color",
-			accessLevel: "mod",
 			value: "<font color='#E6E1A6'>",
 		);
 
@@ -131,7 +120,6 @@ class ColorsController extends ModuleInstance {
 			description: "default unknown color",
 			type: "color",
 			mode: "edit",
-			accessLevel: "mod",
 			value: "<font color='#FF0000'>"
 		);
 	}

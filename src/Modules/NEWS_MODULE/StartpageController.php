@@ -132,9 +132,6 @@ class StartpageController extends ModuleInstance {
 			mode: "edit",
 			type: "text",
 			value: "Welcome, {name}!",
-			options: "",
-			intoptions: "",
-			accessLevel: "mod",
 			help: "startpage_startmsg.txt"
 		);
 		$this->settingManager->add(

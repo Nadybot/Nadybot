@@ -143,8 +143,6 @@ class WebserverController extends ModuleInstance {
 			mode: 'edit',
 			type: 'text',
 			value: '',
-			options: '',
-			intoptions: '',
 			accessLevel: 'superadmin'
 		);
 */
@@ -156,8 +154,6 @@ class WebserverController extends ModuleInstance {
 			mode: 'edit',
 			type: 'number',
 			value: '8080',
-			options: '',
-			intoptions: '',
 			accessLevel: 'superadmin'
 		);
 		$this->settingManager->add(
@@ -168,7 +164,6 @@ class WebserverController extends ModuleInstance {
 			type: 'text',
 			value: '127.0.0.1',
 			options: '127.0.0.1;0.0.0.0',
-			intoptions: '',
 			accessLevel: 'superadmin'
 		);
 
@@ -192,7 +187,6 @@ class WebserverController extends ModuleInstance {
 			type: 'options',
 			value: static::AUTH_BASIC,
 			options: join(";", [static::AUTH_BASIC, static::AUTH_AOAUTH]),
-			intoptions: "",
 			accessLevel: "superadmin"
 		);
 
@@ -204,7 +198,6 @@ class WebserverController extends ModuleInstance {
 			type: 'text',
 			value: 'default',
 			options: 'default',
-			intoptions: '',
 			accessLevel: 'admin',
 			help: 'webserver_base_url.txt'
 		);
@@ -217,7 +210,6 @@ class WebserverController extends ModuleInstance {
 			type: 'text',
 			value: 'https://aoauth.org',
 			options: 'https://aoauth.org',
-			intoptions: "",
 			accessLevel: "superadmin"
 		);
 

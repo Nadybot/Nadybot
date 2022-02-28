@@ -82,8 +82,6 @@ class CommentController extends ModuleInstance {
 			type: "time",
 			value: "6h",
 			options: "1s;1h;6h;24h",
-			intoptions: '',
-			accessLevel: "mod"
 		);
 		$sm->add(
 			module: $this->moduleName,
@@ -92,7 +90,6 @@ class CommentController extends ModuleInstance {
 			mode: "edit",
 			type: "bool",
 			value: "0",
-			accessLevel: "mod"
 		);
 		$sm->add(
 			module: $this->moduleName,

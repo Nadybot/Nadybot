@@ -79,8 +79,6 @@ class CountdownController extends ModuleInstance {
 			type: "time",
 			value: "30s",
 			options: "6s;15s;30s;1m;5m",
-			intoptions: '',
-			accessLevel: "mod"
 		);
 	}
 

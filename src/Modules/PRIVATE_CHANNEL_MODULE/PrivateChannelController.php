@@ -231,8 +231,6 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 			type: "text",
 			value: "<link>Welcome to <myname></link>!",
 			options: "<link>Welcome to <myname></link>!;Welcome to <myname>! Here is some <link>information to get you started</link>.",
-			intoptions: "",
-			accessLevel: "mod",
 			help: "welcome_msg.txt"
 		);
 		$this->settingManager->add(
@@ -242,8 +240,6 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 			mode: "edit",
 			type: "rank",
 			value: "superadmin",
-			options: "",
-			intoptions: "",
 			accessLevel: "superadmin"
 		);
 		$this->commandAlias->register(

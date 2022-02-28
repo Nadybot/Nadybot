@@ -90,7 +90,6 @@ class WhoisController extends ModuleInstance {
 			mode: 'edit',
 			type: 'bool',
 			value: '1',
-			accessLevel: 'mod'
 		);
 	}
 

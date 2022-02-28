@@ -92,7 +92,6 @@ class AltsController extends ModuleInstance {
 			mode: 'edit',
 			type: 'bool',
 			value: '1',
-			accessLevel: 'mod'
 		);
 		$this->settingManager->add(
 			module: $this->moduleName,
@@ -101,7 +100,6 @@ class AltsController extends ModuleInstance {
 			mode: 'edit',
 			type: 'bool',
 			value: '1',
-			accessLevel: 'mod'
 		);
 		$this->settingManager->add(
 			module: $this->moduleName,
@@ -112,7 +110,6 @@ class AltsController extends ModuleInstance {
 			value: '1',
 			options: 'off;icon;short;full;icon+short;icon+full',
 			intoptions: '0;1;2;4;3;5',
-			accessLevel: 'mod'
 		);
 		$this->settingManager->add(
 			module: $this->moduleName,
@@ -122,8 +119,6 @@ class AltsController extends ModuleInstance {
 			type: 'options',
 			value: 'level',
 			options: 'level;name',
-			intoptions: '',
-			accessLevel: 'mod'
 		);
 		$this->cacheAlts();
 	}
