@@ -60,7 +60,7 @@ class RandomController extends ModuleInstance {
 			description: "How much time is required between rolls from the same person",
 			mode: "edit",
 			type: "time",
-			options: "10s;30s;60s;90s",
+			options: ["10s", "30s", "60s", "90s"],
 			value: "30s",
 		);
 

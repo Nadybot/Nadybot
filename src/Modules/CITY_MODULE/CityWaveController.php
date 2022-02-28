@@ -76,7 +76,7 @@ class CityWaveController extends ModuleInstance implements MessageEmitter {
 			mode: 'edit',
 			type: 'text',
 			value: '105s 150s 90s 120s 120s 120s 120s 120s 120s',
-			options: '105s 150s 90s 120s 120s 120s 120s 120s 120s',
+			options: ["105s 150s 90s 120s 120s 120s 120s 120s 120s"],
 			help: 'city_wave_times.txt'
 		);
 		$this->settingManager->registerChangeListener(

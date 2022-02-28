@@ -45,7 +45,7 @@ class DiscordController extends ModuleInstance {
 			mode: 'edit',
 			type: 'discord_bot_token',
 			value: 'off',
-			options: 'off',
+			options: ["off"],
 			accessLevel: 'superadmin'
 		);
 		$this->settingManager->add(

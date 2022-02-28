@@ -81,7 +81,7 @@ class CountdownController extends ModuleInstance {
 			mode: "edit",
 			type: "time",
 			value: "30s",
-			options: "6s;15s;30s;1m;5m",
+			options: ["6s", "15s", "30s", "1m", "5m"],
 		);
 	}
 

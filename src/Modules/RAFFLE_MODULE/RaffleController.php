@@ -91,7 +91,7 @@ class RaffleController extends ModuleInstance {
 			mode: "edit",
 			type: "time",
 			value: '3m',
-			options: '1m;2m;3m;4m;5m',
+			options: ["1m", "2m", "3m", "4m", "5m"],
 		);
 		$this->settingManager->add(
 			module: $this->moduleName,
@@ -108,7 +108,7 @@ class RaffleController extends ModuleInstance {
 			mode: "edit",
 			type: "time",
 			value: '30s',
-			options: '10s;20s;30s;45s;1m;2m;3m;4m;5m;10m',
+			options: ["10s", "20s", "30s", "45s", "1m", "2m", "3m", "4m", "5m", "10m"],
 		);
 		$this->settingManager->add(
 			module: $this->moduleName,

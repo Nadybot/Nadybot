@@ -169,7 +169,7 @@ class RelayController extends ModuleInstance {
 			mode: 'edit',
 			type: 'text',
 			value: 'none',
-			options: 'none'
+			options: ["none"]
 		);
 		$this->settingManager->add(
 			module: $this->moduleName,
@@ -178,7 +178,7 @@ class RelayController extends ModuleInstance {
 			mode: 'edit',
 			type: 'number',
 			value: '10',
-			options: '10;20;50',
+			options: ["10", "20", "50"],
 		);
 		$this->loadStackComponents();
 		$this->settingManager->registerChangeListener("relay_queue_size", [$this, "adaptQueueSize"]);

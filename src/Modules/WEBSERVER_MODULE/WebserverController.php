@@ -163,7 +163,7 @@ class WebserverController extends ModuleInstance {
 			mode: 'edit',
 			type: 'text',
 			value: '127.0.0.1',
-			options: '127.0.0.1;0.0.0.0',
+			options: ["127.0.0.1", "0.0.0.0"],
 			accessLevel: 'superadmin'
 		);
 
@@ -186,7 +186,7 @@ class WebserverController extends ModuleInstance {
 			mode: 'edit',
 			type: 'options',
 			value: static::AUTH_BASIC,
-			options: join(";", [static::AUTH_BASIC, static::AUTH_AOAUTH]),
+			options: [static::AUTH_BASIC, static::AUTH_AOAUTH],
 			accessLevel: "superadmin"
 		);
 
@@ -197,7 +197,7 @@ class WebserverController extends ModuleInstance {
 			mode: 'edit',
 			type: 'text',
 			value: 'default',
-			options: 'default',
+			options: ["default"],
 			accessLevel: 'admin',
 			help: 'webserver_base_url.txt'
 		);
@@ -209,7 +209,7 @@ class WebserverController extends ModuleInstance {
 			mode: 'edit',
 			type: 'text',
 			value: 'https://aoauth.org',
-			options: 'https://aoauth.org',
+			options: ["https://aoauth.org"],
 			accessLevel: "superadmin"
 		);
 

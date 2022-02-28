@@ -74,7 +74,7 @@ class ItemsController extends ModuleInstance {
 			mode: 'edit',
 			type: 'number',
 			value: '40',
-			options: '30;40;50;60'
+			options: ["30", "40", "50", "60"]
 		);
 		$this->skills = $this->db->table("skills")
 			->asObj(Skill::class)

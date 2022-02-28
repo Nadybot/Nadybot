@@ -114,7 +114,7 @@ class TimerController extends ModuleInstance implements MessageEmitter {
 			mode: 'edit',
 			type: 'text',
 			value: '1h 15m 1m',
-			options: '1h 15m 1m',
+			options: ["1h 15m 1m"],
 			help: 'timer_alert_times.txt'
 		);
 		$this->settingManager->registerChangeListener(

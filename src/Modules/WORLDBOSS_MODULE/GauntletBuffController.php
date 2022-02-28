@@ -104,7 +104,7 @@ class GauntletBuffController extends ModuleInstance implements MessageEmitter {
 			mode: 'edit',
 			type: 'text',
 			value: '30m 10m',
-			options: '30m 10m',
+			options: ["30m 10m"],
 			help: 'gau_times.txt'
 		);
 		$this->settingManager->add(
@@ -122,7 +122,7 @@ class GauntletBuffController extends ModuleInstance implements MessageEmitter {
 			mode: "edit",
 			type: "options",
 			value: "none",
-			options: "none;clan;omni"
+			options: ["none", "clan", "omni"]
 		);
 		$this->messageHub->registerMessageEmitter($this);
 		$this->settingManager->registerChangeListener(

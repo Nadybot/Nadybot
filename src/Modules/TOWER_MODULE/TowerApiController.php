@@ -40,7 +40,7 @@ class TowerApiController extends ModuleInstance {
 			mode: "edit",
 			type: "text",
 			value: static::API_TYRENCE,
-			options: static::API_NONE . ";" . static::API_TYRENCE
+			options: [static::API_NONE, static::API_TYRENCE],
 		);
 		$this->settingManager->add(
 			module: $this->moduleName,

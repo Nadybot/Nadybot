@@ -71,7 +71,7 @@ class EventsController extends ModuleInstance {
 			mode: "edit",
 			type: "number",
 			value: "5",
-			options: "5;10;15;20"
+			options: ["5", "10", "15", "20"]
 		);
 	}
 

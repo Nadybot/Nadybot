@@ -81,7 +81,7 @@ class CommentController extends ModuleInstance {
 			mode: "edit",
 			type: "time",
 			value: "6h",
-			options: "1s;1h;6h;24h",
+			options: ["1s", "1h", "6h", "24h"],
 		);
 		$sm->add(
 			module: $this->moduleName,

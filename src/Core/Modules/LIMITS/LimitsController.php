@@ -92,7 +92,7 @@ class LimitsController extends ModuleInstance {
 			mode: "edit",
 			type: "number",
 			value: "0",
-			options: "0;10;50;100;150;190;205;215"
+			options: ["0", "10", "50", "100", "150", "190", "205", "215"]
 		);
 		$this->settingManager->add(
 			module: $this->moduleName,
@@ -101,7 +101,7 @@ class LimitsController extends ModuleInstance {
 			mode: "edit",
 			type: "options",
 			value: "all",
-			options: "all;Omni;Neutral;Clan;not Omni;not Neutral;not Clan"
+			options: ["all", "Omni", "Neutral", "Clan", "not Omni", "not Neutral", "not Clan"]
 		);
 		$this->settingManager->add(
 			module: $this->moduleName,
@@ -110,7 +110,7 @@ class LimitsController extends ModuleInstance {
 			mode: "edit",
 			type: "time",
 			value: "1s",
-			options: "1s;7days;14days;1month;2months;6months;1year;2years",
+			options: ["1s", "7days", "14days", "1month", "2months", "6months", "1year", "2years"],
 			help: 'limits.txt'
 		);
 		$this->settingManager->add(
@@ -185,7 +185,7 @@ class LimitsController extends ModuleInstance {
 			mode: "edit",
 			type: "time",
 			value: "5m",
-			options: "1m;2m;5m;10m;30m;1h;6h",
+			options: ["1m", "2m", "5m", "10m", "30m", "1h", "6h"],
 		);
 		$this->settingManager->add(
 			module: $this->moduleName,

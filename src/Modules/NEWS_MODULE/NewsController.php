@@ -86,7 +86,7 @@ class NewsController extends ModuleInstance {
 			mode: "edit",
 			type: "number",
 			value: "10",
-			options: "5;10;15;20"
+			options: ["5", "10", "15", "20"]
 		);
 		$this->settingManager->add(
 			module: $this->moduleName,

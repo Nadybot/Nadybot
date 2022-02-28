@@ -69,10 +69,10 @@ class SettingManager {
 	 * @param string $description A description for the setting (will appear in the config)
 	 * @param string $mode 'edit' or 'noedit'
 	 * @param string $type 'color', 'number', 'text', 'options', or 'time'
-	 * @param mixed  $value
-	 * @param null|string|array<string|int,int|string> $options An optional list of values that the setting can be, semi-colon delimited.
-	 *                                                          Alternatively, use an associative array [label => value], where label is optional.
-	 * @param ?string $accessLevel The permission level needed to change this setting (default: mod) (optional)
+	 * @param int|float|string  $value
+	 * @param array<string|int,int|string> $options An optional list of values that the setting can be, semi-colon delimited.
+	 *                                              Alternatively, use an associative array [label => value], where label is optional.
+	 * @param string $accessLevel The permission level needed to change this setting (default: mod) (optional)
 	 * @param ?string $help A help file for this setting; if blank, will use a help topic with the same name as this setting if it exists (optional)
 	 * @return void
 	 * @throws SQLException if the setting causes SQL errors (text too long, etc.)
@@ -83,43 +83,53 @@ class SettingManager {
 		string $description,
 		string $mode,
 		string $type,
-		$value,
-		null|string|array $options='',
-		?string $accessLevel='mod',
-		?string $help=''
+		int|float|string $value,
+		array $options=[],
+		string $accessLevel='mod',
+		?string $help=null,
 	): void {
 		$value = $this->getHardcoded($name) ?? $value;
 		$name = strtolower($name);
 		$type = strtolower($type);
 
-		if ($accessLevel == '') {
+		if ($accessLevel === '') {
 			$accessLevel = 'mod';
 		}
-		$accessLevel = $this->accessManager->getAccessLevel($accessLevel??"all");
+		$accessLevel = $this->accessManager->getAccessLevel($accessLevel);
 
-		if (!in_array($type, ['color', 'number', 'text', 'options', 'time', 'discord_channel', 'discord_bot_token', 'rank', 'bool'])) {
-			$this->logger->error("Error in registering Setting $module:setting($name). Type should be one of: 'color', 'number', 'text', 'options', 'time'. Actual: '$type'.");
+		if (!isset($this->settingHandlers[$type])) {
+			$this->logger->error(
+				"Error in registering Setting {module}:{name}. ".
+				"Invalid type '{type}'. Allowed are: {allowed_types}.",
+				[
+					"allowed_types" => join(", ", array_keys($this->settingHandlers)),
+					"type" => $type,
+					"module" => $module,
+					"name" => $name,
+				]
+			);
 		}
 
-		if ($type == 'time') {
+		if ($type === 'time') {
 			$oldvalue = $value;
-			$value = $this->util->parseTime($value);
+			$value = $this->util->parseTime((string)$value);
 			if ($value < 1) {
 				$this->logger->error("Error in registering Setting $module:setting($name). Invalid time: '{$oldvalue}'.");
 				return;
 			}
 		}
-		$intoptions = '';
-		if (is_array($options)) {
-			$kv = [];
-			foreach ($options as $key => $value) {
-				if (is_int($key)) {
-					$key = (string)$value;
-				}
-				$kv[$key] = (string)$value;
+
+		$kv = [];
+		foreach ($options as $key => $value) {
+			if (is_int($key)) {
+				$key = (string)$value;
 			}
-			$intoptions = join(";", array_values($kv));
-			$options = join(";", array_keys($kv));
+			$kv[$key] = (string)$value;
+		}
+		$intoptions = join(";", array_values($kv));
+		$options = join(";", array_keys($kv));
+		if ($options === $intoptions) {
+			$intoptions = null;
 		}
 
 		if (!empty($help)) {

@@ -124,7 +124,7 @@ class AltsController extends ModuleInstance {
 			mode: 'edit',
 			type: 'options',
 			value: 'level',
-			options: 'level;name',
+			options: ["level", "name"],
 		);
 		$this->cacheAlts();
 	}

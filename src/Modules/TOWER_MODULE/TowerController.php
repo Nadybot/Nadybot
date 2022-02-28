@@ -281,7 +281,7 @@ class TowerController extends ModuleInstance {
 			mode: "edit",
 			type: "text",
 			value: "@here Our field in {location} is being attacked by {player}",
-			options: "off;@here Our field in {location} is being attacked by {player}",
+			options: ["off", "@here Our field in {location} is being attacked by {player}"],
 		);
 
 		$attack = new class implements MessageEmitter {

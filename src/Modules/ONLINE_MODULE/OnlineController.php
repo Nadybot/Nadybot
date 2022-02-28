@@ -132,7 +132,7 @@ class OnlineController extends ModuleInstance {
 			mode: "edit",
 			type: "time",
 			value: "15m",
-			options: "2m;5m;10m;15m;20m",
+			options: ["2m", "5m", "10m", "15m", "20m"],
 		);
 		$this->settingManager->add(
 			module: $this->moduleName,

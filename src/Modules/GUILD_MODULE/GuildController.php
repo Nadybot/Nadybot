@@ -125,7 +125,7 @@ class GuildController extends ModuleInstance {
 			mode: "edit",
 			type: "number",
 			value: "200",
-			options: "100;200;300;400",
+			options: ["100", "200", "300", "400"],
 		);
 		$this->settingManager->add(
 			module: $this->moduleName,
@@ -134,7 +134,7 @@ class GuildController extends ModuleInstance {
 			mode: "edit",
 			type: "number",
 			value: "200",
-			options: "100;200;300;400",
+			options: ["100", "200", "300", "400"],
 		);
 		$this->settingManager->add(
 			module: $this->moduleName,

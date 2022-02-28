@@ -74,7 +74,7 @@ class NanoController extends ModuleInstance {
 			mode: 'edit',
 			type: "number",
 			value: '40',
-			options: '30;40;50;60',
+			options: ["30", "40", "50", "60"],
 		);
 		$this->settingManager->add(
 			module: $this->moduleName,

@@ -205,7 +205,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 			mode: "edit",
 			type: "options",
 			value: "all",
-			options: "all;Omni;Neutral;Clan;not Omni;not Neutral;not Clan"
+			options: ["all", "Omni", "Neutral", "Clan", "not Omni", "not Neutral", "not Clan"]
 		);
 		$this->settingManager->add(
 			module: $this->moduleName,
@@ -230,7 +230,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 			mode: "edit",
 			type: "text",
 			value: "<link>Welcome to <myname></link>!",
-			options: "<link>Welcome to <myname></link>!;Welcome to <myname>! Here is some <link>information to get you started</link>.",
+			options: ["<link>Welcome to <myname></link>!", "Welcome to <myname>! Here is some <link>information to get you started</link>."],
 			help: "welcome_msg.txt"
 		);
 		$this->settingManager->add(

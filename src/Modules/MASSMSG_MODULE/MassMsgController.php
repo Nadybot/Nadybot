@@ -103,7 +103,7 @@ class MassMsgController extends ModuleInstance {
 			mode: "edit",
 			type: "time",
 			value: "1s",
-			options: "1s;30s;1m;5m;15m",
+			options: ["1s", "30s", "1m", "5m", "15m"],
 		);
 	}
 

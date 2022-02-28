@@ -96,7 +96,7 @@ class TradebotController extends ModuleInstance {
 			mode: "edit",
 			type: "text",
 			value: static::NONE,
-			options: static::NONE . ";" . implode(';', array_keys(self::BOT_DATA)),
+			options: [static::NONE, ...array_keys(self::BOT_DATA)],
 			help: "tradebot.txt"
 		);
 		$this->settingManager->add(
@@ -106,7 +106,7 @@ class TradebotController extends ModuleInstance {
 			mode: "edit",
 			type: "text",
 			value: "*",
-			options: "None;*"
+			options: ["None", "*"]
 		);
 
 		$this->settingManager->add(

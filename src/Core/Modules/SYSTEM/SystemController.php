@@ -150,7 +150,7 @@ class SystemController extends ModuleInstance implements MessageEmitter {
 			description: "Default command prefix symbol",
 			mode: "edit",
 			type: "text",
-			options: "!;#;*;@;$;+;-",
+			options: ["!", "#", "*", "@", "$", "+", "-"],
 			value: "!",
 		);
 
@@ -160,7 +160,7 @@ class SystemController extends ModuleInstance implements MessageEmitter {
 			description: "Max chars for a window",
 			mode: "edit",
 			type: "number",
-			options: "4500;6000;7500;9000;10500;12000",
+			options: ["4500", "6000", "7500", "9000", "10500", "12000"],
 			help: "max_blob_size.txt",
 			value: "7500",
 		);
@@ -171,7 +171,7 @@ class SystemController extends ModuleInstance implements MessageEmitter {
 			description: "Max time to wait for response from making http queries",
 			mode: "edit",
 			type: "time",
-			options: "1s;2s;5s;10s;30s",
+			options: ["1s", "2s", "5s", "10s", "30s"],
 			value: "10s",
 		);
 
