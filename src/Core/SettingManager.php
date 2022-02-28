@@ -120,16 +120,19 @@ class SettingManager {
 		}
 
 		$kv = [];
+		$needIntOptions = array_keys($options) !== range(0, count($options) - 1);
 		foreach ($options as $key => $value) {
-			if (is_int($key)) {
+			if (!$needIntOptions) {
+				$key = (string)$value;
+			} elseif (is_int($key)) {
 				$key = (string)$value;
 			}
 			$kv[$key] = (string)$value;
 		}
-		$intoptions = join(";", array_values($kv));
 		$options = join(";", array_keys($kv));
-		if ($options === $intoptions) {
-			$intoptions = null;
+		$intoptions = null;
+		if ($needIntOptions) {
+			$intoptions = join(";", array_values($kv));
 		}
 
 		if (!empty($help)) {
