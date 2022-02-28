@@ -65,20 +65,16 @@ class ConsoleController extends ModuleInstance {
 			name: "console_color",
 			description: "Use ANSI colors",
 			mode: "edit",
-			type: "options",
-			value: "0",
-			options: "true;false",
-			intoptions: "1;0"
+			type: "bool",
+			value: "0"
 		);
 		$this->settingManager->add(
 			module: $this->moduleName,
 			name: "console_bg_color",
 			description: "Set background color",
 			mode: "edit",
-			type: "options",
-			value: "0",
-			options: "true;false",
-			intoptions: "1;0"
+			type: "bool",
+			value: "0"
 		);
 		if ($this->config->enableConsoleClient &&!BotRunner::isWindows()) {
 			$this->commandManager->registerSource("console");

@@ -47,10 +47,8 @@ class AuditController extends ModuleInstance {
 			name: "audit_enabled",
 			description: "Log all security-relevant data",
 			mode: "edit",
-			type: "options",
+			type: "bool",
 			value: "0",
-			options: "true;false",
-			intoptions: "1;0",
 			accessLevel: "superadmin"
 		);
 	}

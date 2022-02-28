@@ -63,10 +63,8 @@ class ChatLeaderController extends ModuleInstance implements AccessLevelProvider
 			name: "leaderecho",
 			description: "Repeat the text of the leader",
 			mode: "edit",
-			type: "options",
-			value: "1",
-			options: "true;false",
-			intoptions: "1;0"
+			type: "bool",
+			value: "1"
 		);
 		$this->settingManager->add(
 			module: $this->moduleName,

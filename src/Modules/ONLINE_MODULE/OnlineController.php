@@ -181,10 +181,8 @@ class OnlineController extends ModuleInstance {
 			name: "online_admin",
 			description: "Show admin levels in online list",
 			mode: "edit",
-			type: "options",
-			value: "0",
-			options: "true;false",
-			intoptions: "1;0"
+			type: "bool",
+			value: "0"
 		);
 		$this->settingManager->add(
 			module: $this->moduleName,
@@ -221,20 +219,16 @@ class OnlineController extends ModuleInstance {
 			name: "online_show_discord",
 			description: "Show players in discord voice channels",
 			mode: "edit",
-			type: "options",
-			value: "0",
-			options: "true;false",
-			intoptions: "1;0"
+			type: "bool",
+			value: "0"
 		);
 		$this->settingManager->add(
 			module: $this->moduleName,
 			name: "afk_brb_without_symbol",
 			description: "React to afk and brb even without command prefix",
 			mode: "edit",
-			type: "options",
-			value: "1",
-			options: "true;false",
-			intoptions: "1;0"
+			type: "bool",
+			value: "1"
 		);
 
 		$onlineOrg = new OnlineOrgStats();

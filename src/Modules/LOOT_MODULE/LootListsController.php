@@ -175,10 +175,8 @@ class LootListsController extends ModuleInstance {
 			name: 'show_raid_loot_pics',
 			description: 'Show pictures in loot lists',
 			mode: 'edit',
-			type: 'options',
-			value: '0',
-			options: 'true;false',
-			intoptions: '1;0'
+			type: 'bool',
+			value: '0'
 		);
 		$aliases = [
 			'beastarmor' => "pande Beast Armor",

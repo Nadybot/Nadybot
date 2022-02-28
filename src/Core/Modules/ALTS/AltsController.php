@@ -90,10 +90,8 @@ class AltsController extends ModuleInstance {
 			name: 'alts_require_confirmation',
 			description: 'Adding alt requires confirmation from alt',
 			mode: 'edit',
-			type: 'options',
+			type: 'bool',
 			value: '1',
-			options: 'true;false',
-			intoptions: '1;0',
 			accessLevel: 'mod'
 		);
 		$this->settingManager->add(
@@ -101,10 +99,8 @@ class AltsController extends ModuleInstance {
 			name: 'alts_show_org',
 			description: 'Show the org in the altlist',
 			mode: 'edit',
-			type: 'options',
+			type: 'bool',
 			value: '1',
-			options: 'true;false',
-			intoptions: '1;0',
 			accessLevel: 'mod'
 		);
 		$this->settingManager->add(

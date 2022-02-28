@@ -187,20 +187,16 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 			name: "add_member_on_join",
 			description: "Automatically add player as member when they join",
 			mode: "edit",
-			type: "options",
-			value: "0",
-			options: "true;false",
-			intoptions: "1;0"
+			type: "bool",
+			value: "0"
 		);
 		$this->settingManager->add(
 			module: $this->moduleName,
 			name: "autoinvite_default",
 			description: "Enable autoinvite for new members by default",
 			mode: "edit",
-			type: "options",
-			value: "1",
-			options: "true;false",
-			intoptions: "1;0"
+			type: "bool",
+			value: "1"
 		);
 		$this->settingManager->add(
 			module: $this->moduleName,
@@ -216,20 +212,16 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 			name: "priv_suppress_alt_list",
 			description: "Do not show the altlist on join, just the name of the main",
 			mode: "edit",
-			type: "options",
-			value: "0",
-			options: "true;false",
-			intoptions: "1;0"
+			type: "bool",
+			value: "0"
 		);
 		$this->settingManager->add(
 			module: $this->moduleName,
 			name: "invite_banned_chars",
 			description: "Should the bot allow inviting banned characters?",
 			mode: "edit",
-			type: "options",
-			value: "0",
-			options: "true;false",
-			intoptions: "1;0"
+			type: "bool",
+			value: "0"
 		);
 		$this->settingManager->add(
 			module: $this->moduleName,

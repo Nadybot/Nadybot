@@ -143,10 +143,8 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 			name: 'tracker_use_faction_color',
 			description: "Use faction color for the name of the tracked person",
 			mode: 'edit',
-			type: 'options',
+			type: 'bool',
 			value: '0',
-			options: 'true;false',
-			intoptions: '1;0',
 			accessLevel: 'mod',
 		);
 		$this->settingManager->add(
@@ -154,10 +152,8 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 			name: 'tracker_show_level',
 			description: "Show the tracked person's level",
 			mode: 'edit',
-			type: 'options',
+			type: 'bool',
 			value: '0',
-			options: 'true;false',
-			intoptions: '1;0',
 			accessLevel: 'mod',
 		);
 		$this->settingManager->add(
@@ -165,10 +161,8 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 			name: 'tracker_show_prof',
 			description: "Show the tracked person's profession",
 			mode: 'edit',
-			type: 'options',
+			type: 'bool',
 			value: '0',
-			options: 'true;false',
-			intoptions: '1;0',
 			accessLevel: 'mod',
 		);
 		$this->settingManager->add(
@@ -176,10 +170,8 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 			name: 'tracker_show_org',
 			description: "Show the tracked person's org",
 			mode: 'edit',
-			type: 'options',
+			type: 'bool',
 			value: '0',
-			options: 'true;false',
-			intoptions: '1;0',
 			accessLevel: 'mod',
 		);
 		$this->settingManager->add(

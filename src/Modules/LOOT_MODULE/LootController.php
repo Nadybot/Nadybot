@@ -131,10 +131,8 @@ class LootController extends ModuleInstance {
 			name: 'show_loot_pics',
 			description: 'Show pictures in loot-command',
 			mode: 'edit',
-			type: 'options',
-			value: '1',
-			options: 'true;false',
-			intoptions: '1;0'
+			type: 'bool',
+			value: '1'
 		);
 
 		$this->commandAlias->register($this->moduleName, "loot addmulti", "multiloot");

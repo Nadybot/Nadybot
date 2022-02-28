@@ -99,7 +99,7 @@ class SettingManager {
 		}
 		$accessLevel = $this->accessManager->getAccessLevel($accessLevel??"all");
 
-		if (!in_array($type, ['color', 'number', 'text', 'options', 'time', 'discord_channel', 'discord_bot_token', 'rank'])) {
+		if (!in_array($type, ['color', 'number', 'text', 'options', 'time', 'discord_channel', 'discord_bot_token', 'rank', 'bool'])) {
 			$this->logger->error("Error in registering Setting $module:setting($name). Type should be one of: 'color', 'number', 'text', 'options', 'time'. Actual: '$type'.");
 		}
 

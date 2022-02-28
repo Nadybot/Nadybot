@@ -130,10 +130,8 @@ class WebserverController extends ModuleInstance {
 			name: 'webserver',
 			description: 'Enable webserver',
 			mode: 'edit',
-			type: 'options',
+			type: 'bool',
 			value: '1',
-			options: 'true;false',
-			intoptions: '1;0',
 			accessLevel: 'superadmin'
 		);
 
@@ -180,10 +178,8 @@ class WebserverController extends ModuleInstance {
 			name: 'webserver_tls',
 			description: 'Use SSL/TLS for the webserver',
 			mode: 'edit',
-			type: 'options',
+			type: 'bool',
 			value: '0',
-			options: 'true;false',
-			intoptions: '1;0',
 			accessLevel: 'superadmin'
 		);
 */

@@ -66,10 +66,8 @@ class WebsocketController extends ModuleInstance {
 			name: 'websocket',
 			description: 'Enable the websocket handler',
 			mode: 'edit',
-			type: 'options',
-			value: '1',
-			options: 'true;false',
-			intoptions: '1;0'
+			type: 'bool',
+			value: '1'
 		);
 		$this->settingManager->registerChangeListener("websocket", [$this, "changeWebsocketStatus"]);
 		if ($this->settingManager->getBool("websocket")) {

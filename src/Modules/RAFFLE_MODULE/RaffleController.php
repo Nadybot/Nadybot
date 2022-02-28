@@ -100,10 +100,8 @@ class RaffleController extends ModuleInstance {
 			name: "raffle_ends_automatically",
 			description: "Should raffles end automatically after some time?",
 			mode: "edit",
-			type: "options",
+			type: "bool",
 			value: '1',
-			options: 'true;false',
-			intoptions: '1;0',
 			accessLevel: 'mod',
 		);
 		$this->settingManager->add(
@@ -122,10 +120,8 @@ class RaffleController extends ModuleInstance {
 			name: "raffle_announce_participants",
 			description: "Announce whenever someone joins or leaves the raffle",
 			mode: "edit",
-			type: "options",
+			type: "bool",
 			value: '1',
-			options: "true;false",
-			intoptions: "1;0",
 			accessLevel: 'mod',
 		);
 		$this->settingManager->add(
@@ -144,10 +140,8 @@ class RaffleController extends ModuleInstance {
 			name: "share_raffle_bonus_on_alts",
 			description: "Share raffle bonus points between alts",
 			mode: "edit",
-			type: "options",
+			type: "bool",
 			value: '1',
-			options: "true;false",
-			intoptions: "1;0",
 			accessLevel: 'mod',
 		);
 		$this->settingManager->add(
@@ -155,10 +149,8 @@ class RaffleController extends ModuleInstance {
 			name: "raffle_allow_only_raiders",
 			description: "If a raid is running, only raiders may join the raffle",
 			mode: "edit",
-			type: "options",
+			type: "bool",
 			value: '0',
-			options: "true;false",
-			intoptions: "1;0",
 			accessLevel: 'mod'
 		);
 		$this->settingManager->add(

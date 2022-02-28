@@ -135,10 +135,8 @@ class RaidController extends ModuleInstance {
 			name: 'raid_announcement',
 			description: 'Announce the raid periodically',
 			mode: 'edit',
-			type: 'options',
+			type: 'bool',
 			value: '1',
-			options: 'true;false',
-			intoptions: '1;0',
 			accessLevel: 'raid_admin_2'
 		);
 		$this->settingManager->add(
@@ -157,10 +155,8 @@ class RaidController extends ModuleInstance {
 			name: 'raid_points_for_time',
 			description: 'Give raid points based on duration of participation',
 			mode: 'edit',
-			type: 'options',
+			type: 'bool',
 			value: '0',
-			options: 'true;false',
-			intoptions: '1;0',
 			accessLevel: 'raid_admin_2'
 		);
 		$this->settingManager->add(
@@ -179,10 +175,8 @@ class RaidController extends ModuleInstance {
 			name: 'raid_auto_add_creator',
 			description: 'Add raid initiator to the raid',
 			mode: 'edit',
-			type: 'options',
+			type: 'bool',
 			value: '1',
-			options: 'true;false',
-			intoptions: '1;0',
 			accessLevel: 'raid_admin_2'
 		);
 		$this->settingManager->add(
@@ -190,10 +184,8 @@ class RaidController extends ModuleInstance {
 			name: 'raid_stop_clears_callers',
 			description: 'Stopping the raid clears the callers',
 			mode: 'edit',
-			type: 'options',
+			type: 'bool',
 			value: '0',
-			options: 'true;false',
-			intoptions: '1;0',
 			accessLevel: 'raid_admin_2'
 		);
 		$this->settingManager->add(

@@ -116,10 +116,8 @@ class TradebotController extends ModuleInstance {
 			name: 'tradebot_add_comments',
 			description: 'Add link to comments if found',
 			mode: 'edit',
-			type: 'options',
+			type: 'bool',
 			value: '1',
-			options: 'true;false',
-			intoptions: '1;0',
 			accessLevel: 'mod'
 		);
 
@@ -128,10 +126,8 @@ class TradebotController extends ModuleInstance {
 			name: 'tradebot_custom_colors',
 			description: 'Use custom colors for tradebots',
 			mode: 'edit',
-			type: 'options',
+			type: 'bool',
 			value: '0',
-			options: 'true;false',
-			intoptions: '1;0',
 			accessLevel: 'mod'
 		);
 

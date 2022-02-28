@@ -103,10 +103,8 @@ class NewsController extends ModuleInstance {
 			name: "news_confirmed_for_all_alts",
 			description: "Confirmed news count for all alts",
 			mode: "edit",
-			type: "options",
-			value: "1",
-			options: "true;false",
-			intoptions: "1;0"
+			type: "bool",
+			value: "1"
 		);
 	}
 

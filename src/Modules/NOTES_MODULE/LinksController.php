@@ -47,10 +47,8 @@ class LinksController extends ModuleInstance {
 			name: 'showfullurls',
 			description: 'Enable full urls in the link list output',
 			mode: 'edit',
-			type: "options",
-			value: "0",
-			options: "true;false",
-			intoptions: "1;0"
+			type: "bool",
+			value: "0"
 		);
 	}
 

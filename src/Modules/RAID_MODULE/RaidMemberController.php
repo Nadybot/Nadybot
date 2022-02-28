@@ -97,10 +97,8 @@ class RaidMemberController extends ModuleInstance {
 			name: 'raid_allow_multi_joining',
 			description: 'Allow people to join the raids on more than one character',
 			mode: 'edit',
-			type: 'options',
+			type: 'bool',
 			value: '1',
-			options: 'true;false',
-			intoptions: '1;0',
 			accessLevel: 'mod',
 			help: 'multijoin.txt'
 		);

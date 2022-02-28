@@ -83,10 +83,8 @@ class NanoController extends ModuleInstance {
 			name: "shownanolineicons",
 			description: "Show icons for the nanolines",
 			mode: "edit",
-			type: "options",
-			value: "0",
-			options: "true;false",
-			intoptions: "1;0"
+			type: "bool",
+			value: "0"
 		);
 		$this->nanolines = $this->db->table("nano_lines")
 			->asObj(Nanoline::class)

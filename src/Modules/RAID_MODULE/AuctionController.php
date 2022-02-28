@@ -105,10 +105,8 @@ class AuctionController extends ModuleInstance {
 			name: 'auctions_only_for_raid',
 			description: 'Allow auctions only for people in the raid',
 			mode: 'edit',
-			type: 'options',
+			type: 'bool',
 			value: '0',
-			options: 'true;false',
-			intoptions: '1;0',
 			accessLevel: 'raid_admin_2'
 		);
 		$this->settingManager->add(
@@ -116,10 +114,8 @@ class AuctionController extends ModuleInstance {
 			name: 'auctions_show_max_bidder',
 			description: 'Show the name of the top bidder during the auction',
 			mode: 'edit',
-			type: 'options',
+			type: 'bool',
 			value: '1',
-			options: 'true;false',
-			intoptions: '1;0',
 			accessLevel: 'raid_admin_2'
 		);
 		$this->settingManager->add(
@@ -127,10 +123,8 @@ class AuctionController extends ModuleInstance {
 			name: 'auctions_show_rival_bidders',
 			description: 'Show the names of the rival bidders',
 			mode: 'edit',
-			type: 'options',
+			type: 'bool',
 			value: '0',
-			options: 'true;false',
-			intoptions: '1;0',
 			accessLevel: 'raid_admin_2'
 		);
 		$this->settingManager->add(

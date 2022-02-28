@@ -114,10 +114,8 @@ class GauntletBuffController extends ModuleInstance implements MessageEmitter {
 			name: "gaubuff_logon",
 			description: "Show gaubuff timer on logon",
 			mode: "edit",
-			type: "options",
-			value: "1",
-			options: "true;false",
-			intoptions: "1;0"
+			type: "bool",
+			value: "1"
 		);
 		$this->settingManager->add(
 			module: $this->moduleName,

@@ -83,6 +83,10 @@ class ModuleSetting {
 				$this->type = static::TYPE_DISCORD_CHANNEL;
 				$this->value = (string)$setting->value;
 				break;
+			case 'bool':
+				$this->type = static::TYPE_BOOL;
+				$this->value = (bool)$setting->value;
+				break;
 			case 'options':
 				if ($this->type === static::TYPE_BOOL) {
 					$this->value = (bool)$setting->value;
