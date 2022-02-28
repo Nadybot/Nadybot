@@ -11,7 +11,7 @@ class CreatePerkLevelTable implements SchemaMigration {
 	public function migrate(LoggerWrapper $logger, DB $db): void {
 		$table = "perk_level";
 		$db->schema()->dropIfExists($table);
-		$db->schema()->create($table, function(Blueprint $table) {
+		$db->schema()->create($table, function(Blueprint $table): void {
 			$table->id();
 			$table->integer("aoid")->nullable();
 			$table->integer("perk_id")->index();

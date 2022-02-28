@@ -6,9 +6,9 @@ use stdClass;
 
 class AOMsg {
 	public string $message;
-	public object $popups;
+	public stdClass $popups;
 
-	public function __construct(string $message, object $popups=null) {
+	public function __construct(string $message, stdClass $popups=null) {
 		$this->message = $message;
 		$this->popups = $popups ?? new stdClass();
 	}

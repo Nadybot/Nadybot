@@ -3,32 +3,35 @@
 namespace Nadybot\Modules\TOWER_MODULE\Migrations;
 
 use Exception;
-use Nadybot\Core\Annotations\Setting;
-use Nadybot\Core\Modules\DISCORD\DiscordChannel;
-use Nadybot\Core\DB;
-use Nadybot\Core\DBSchema\Route;
-use Nadybot\Core\DBSchema\RouteHopColor;
-use Nadybot\Core\DBSchema\RouteHopFormat;
-use Nadybot\Core\LoggerWrapper;
-use Nadybot\Core\MessageHub;
-use Nadybot\Core\Modules\DISCORD\DiscordAPIClient;
-use Nadybot\Core\Nadybot;
-use Nadybot\Core\Routing\Source;
-use Nadybot\Core\SchemaMigration;
-use Nadybot\Core\SettingManager;
+use Nadybot\Core\{
+	Attributes as NCA,
+	ConfigFile,
+	Modules\DISCORD\DiscordChannel,
+	DB,
+	DBSchema\Route,
+	DBSchema\RouteHopColor,
+	DBSchema\RouteHopFormat,
+	DBSchema\Setting,
+	LoggerWrapper,
+	MessageHub,
+	Modules\DISCORD\DiscordAPIClient,
+	Routing\Source,
+	SchemaMigration,
+	SettingManager,
+};
 use Nadybot\Modules\TOWER_MODULE\TowerController;
 
 class MigrateToRoutes implements SchemaMigration {
-	/** @Inject */
-	public Nadybot $chatBot;
+	#[NCA\Inject]
+	public ConfigFile $config;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public DiscordAPIClient $discordAPIClient;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public TowerController $towerController;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public MessageHub $messageHub;
 
 	protected function getSetting(DB $db, string $name): ?Setting {
@@ -41,7 +44,7 @@ class MigrateToRoutes implements SchemaMigration {
 	public function migrate(LoggerWrapper $logger, DB $db): void {
 		$towerColor = $this->getSetting($db, "tower_spam_color");
 		if (isset($towerColor)
-			&& preg_match("/#([0-9A-F]{6})/", $towerColor->value, $matches)
+			&& preg_match("/#([0-9A-F]{6})/", $towerColor->value??"", $matches)
 		) {
 			$towerColor = $matches[1];
 		} else {
@@ -59,13 +62,12 @@ class MigrateToRoutes implements SchemaMigration {
 		$hopFormat->render = true;
 		$db->insert(Source::DB_TABLE, $hopFormat);
 
-		$this->messageHub->loadTagColor();
 		$this->messageHub->loadTagFormat();
 
 		$table = MessageHub::DB_TABLE_ROUTES;
 		$showWhere = $this->getSetting($db, "tower_spam_target");
 		if (!isset($showWhere)) {
-			if (strlen($this->chatBot->vars['my_guild']??"")) {
+			if (strlen($this->config->orgName)) {
 				$showWhere = 2;
 			} else {
 				$showWhere = 1;
@@ -74,7 +76,7 @@ class MigrateToRoutes implements SchemaMigration {
 			$showWhere = (int)$showWhere->value;
 		}
 		$map = [
-			1 => Source::PRIV . "({$this->chatBot->vars['name']})",
+			1 => Source::PRIV . "({$this->config->name})",
 			2 => Source::ORG,
 		];
 		foreach ($map as $flag => $dest) {
@@ -89,7 +91,7 @@ class MigrateToRoutes implements SchemaMigration {
 			}
 		}
 		$notifyChannel = $this->getSetting($db, "discord_notify_channel");
-		if (!isset($notifyChannel) || $notifyChannel->value === "off") {
+		if (!isset($notifyChannel) || !isset($notifyChannel->value) || $notifyChannel->value === "off") {
 			return;
 		}
 		$this->discordAPIClient->getChannel(

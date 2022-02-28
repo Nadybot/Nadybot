@@ -2,39 +2,48 @@
 
 namespace Nadybot\Modules\RELAY_MODULE\Migrations;
 
-use Nadybot\Core\DB;
-use Nadybot\Core\DBSchema\Route;
-use Nadybot\Core\DBSchema\RouteModifier;
-use Nadybot\Core\DBSchema\RouteModifierArgument;
-use Nadybot\Core\DBSchema\Setting;
-use Nadybot\Core\EventManager;
-use Nadybot\Core\LoggerWrapper;
-use Nadybot\Core\MessageHub;
-use Nadybot\Core\Modules\CONFIG\ConfigController;
-use Nadybot\Core\Nadybot;
-use Nadybot\Core\Routing\Source;
-use Nadybot\Core\SchemaMigration;
-use Nadybot\Core\SettingManager;
-use Nadybot\Modules\RELAY_MODULE\RelayConfig;
-use Nadybot\Modules\RELAY_MODULE\RelayController;
-use Nadybot\Modules\RELAY_MODULE\RelayLayer;
-use Nadybot\Modules\RELAY_MODULE\RelayLayerArgument;
+use Nadybot\Core\{
+	Attributes as NCA,
+	ConfigFile,
+	DB,
+	DBSchema\Route,
+	DBSchema\RouteModifier,
+	DBSchema\RouteModifierArgument,
+	DBSchema\Setting,
+	EventManager,
+	LoggerWrapper,
+	MessageHub,
+	Modules\CONFIG\ConfigController,
+	Nadybot,
+	Routing\Source,
+	SchemaMigration,
+	SettingManager,
+};
+use Nadybot\Modules\RELAY_MODULE\{
+	RelayConfig,
+	RelayController,
+	RelayLayer,
+	RelayLayerArgument,
+};
 
 class MigrateToRelayTable implements SchemaMigration {
-	/** @Inject */
+	#[NCA\Inject]
 	public RelayController $relayController;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public MessageHub $messageHub;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public SettingManager $settingManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public ConfigController $configController;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Nadybot $chatBot;
+
+	#[NCA\Inject]
+	public ConfigFile $config;
 
 	protected string $prefix = "";
 
@@ -67,6 +76,7 @@ class MigrateToRelayTable implements SchemaMigration {
 		return $db->insert($this->messageHub::DB_TABLE_ROUTE_MODIFIER, $mod);
 	}
 
+	/** @param array<string,mixed> $kv */
 	protected function addArgs(DB $db, int $modId, array $kv): void {
 		foreach ($kv as $name => $value) {
 			$arg = new RouteModifierArgument();
@@ -116,15 +126,6 @@ class MigrateToRelayTable implements SchemaMigration {
 				$transport->layer = "private-channel";
 				$transportArgs["channel"] = $relayBot->value;
 				break;
-			case 3:
-				$transport->layer = "amqp";
-				$transportArgs["server"] = $this->chatBot->vars["amqp_server"] ?? "127.0.0.1";
-				$transportArgs["port"] = $this->chatBot->vars["amqp_port"] ?? "5672";
-				$transportArgs["vhost"] = $this->chatBot->vars["amqp_vhost"] ?? "/";
-				$transportArgs["user"] = $this->chatBot->vars["amqp_user"] ?? "guest";
-				$transportArgs["password"] = $this->chatBot->vars["amqp_password"] ?? "guest";
-				$transportArgs["exchange"] = $relayBot->value;
-				break;
 			default:
 				$db->table($this->relayController::DB_TABLE)->delete($relay->id);
 				return null;
@@ -159,10 +160,10 @@ class MigrateToRelayTable implements SchemaMigration {
 		if (isset($guestRelay) && (int)$guestRelay->value) {
 			$route = new Route();
 			$route->source = Source::RELAY . "({$relay->name})";
-			$route->destination = Source::PRIV . "({$this->chatBot->vars['name']})";
+			$route->destination = Source::PRIV . "({$this->config->name})";
 			$routeInPriv = $db->insert($this->messageHub::DB_TABLE_ROUTES, $route);
 			$route = new Route();
-			$route->source = Source::PRIV . "({$this->chatBot->vars['name']})";
+			$route->source = Source::PRIV . "({$this->config->name})";
 			$route->destination = Source::RELAY . "({$relay->name})";
 			$routesOut []= $db->insert($this->messageHub::DB_TABLE_ROUTES, $route);
 		}

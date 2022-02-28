@@ -10,7 +10,7 @@ use Nadybot\Core\SchemaMigration;
 class IndexFunTable implements SchemaMigration {
 	public function migrate(LoggerWrapper $logger, DB $db): void {
 		$table = "fun";
-		$db->schema()->table($table, function(Blueprint $table) {
+		$db->schema()->table($table, function(Blueprint $table): void {
 			$table->string("type", 10)->index()->change();
 		});
 	}

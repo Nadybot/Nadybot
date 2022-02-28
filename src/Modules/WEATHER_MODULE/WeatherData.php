@@ -3,9 +3,10 @@
 namespace Nadybot\Modules\WEATHER_MODULE;
 
 use Nadybot\Core\JSONDataModel;
+use stdClass;
 
 class WeatherData extends JSONDataModel {
 	public Instant $instant;
-	public object $next_1_hours;
-	public object $next_6_hours;
+	public stdClass $next_1_hours;
+	public stdClass $next_6_hours;
 }

@@ -10,8 +10,6 @@ use Exception;
  * This class is used as a callback-provider when installing or updating
  * composer packages.
  *
- * - For Addendum, we need to patch it to support multi-line annotations
- *   and be PHP 8.1 compatible without deprecation warnings.
  * - PHP Codesniffer gets a default config to use the Nadybot styleguide.
  *   deprecation warnings.
  */
@@ -22,13 +20,13 @@ class Patcher {
 	 * @param \Composer\Installer\PackageEvent $event
 	 * @return void
 	 */
-	public static function patch(PackageEvent $event) {
+	public static function patch(PackageEvent $event): void {
 		$vendorDir = $event->getComposer()->getConfig()->get('vendor-dir');
 		$operation = $event->getOperation();
 		if (method_exists($operation, 'getJobType')) {
 			$operationType = $operation->getJobType();
 		} elseif (defined(get_class($operation) . '::TYPE')) {
-			$operationType = $operation::TYPE;
+			$operationType = constant(get_class($operation) . '::TYPE');
 		} else {
 			throw new Exception('You are using an unsupported version of Composer');
 		}
@@ -40,65 +38,8 @@ class Patcher {
 			$package = $operation->getTargetPackage();
 		}
 		/** @var \Composer\Package\Package $package */
-		if ($package->getName() === 'niktux/addendum') {
-			static::patchAddendum($vendorDir, $package);
-		} elseif ($package->getName() === 'squizlabs/php_codesniffer') {
+		if ($package->getName() === 'squizlabs/php_codesniffer') {
 			static::patchCodesniffer($vendorDir, $package);
-		}
-	}
-
-	/**
-	 * Patch Addendum to support multi-line annotations
-	 *
-	 * @param string $vendorDir The installation basepath
-	 * @param \Composer\Package\Package $package The package being installed
-	 * @return void
-	 */
-	public static function patchAddendum($vendorDir, Package $package) {
-		$file = $vendorDir . '/' . $package->getName() . '/lib/Addendum/Addendum.php';
-		$oldContent = file_get_contents($file);
-		$newContent = <<<'EOD'
-    public static function getDocComment($reflection) {
-        $value = false;
-        if(self::checkRawDocCommentParsingNeeded()) {
-            $docComment = new DocComment();
-            $value = $docComment->get($reflection);
-        } else {
-            $value = $reflection->getDocComment();
-        }
-        if ($value) {
-            // get rid of useless '*' and white space from line's start
-            // this will allow dividing of one annotation to multiple lines
-            $value = preg_replace('/^[\\s*]*/m', '', $value);
-        }
-        return $value;
-    }
-EOD;
-		$data = preg_replace(
-			'/public static function getDocComment\(\$reflection\)'.
-			'.+?return \$reflection->getDocComment\(\);'.
-			'\s+}/s',
-			trim($newContent),
-			$oldContent
-		);
-		file_put_contents($file, $data);
-
-		foreach ([
-			"ReflectionAnnotatedClass.php",
-			"ReflectionAnnotatedProperty.php",
-			"ReflectionAnnotatedMethod.php"
-		] as $file) {
-			$file = $vendorDir . '/' . $package->getName() . '/lib/Addendum/' . $file;
-			$oldContent = file_get_contents($file);
-			if ($oldContent === false || strpos($oldContent, "ReturnTypeWillChange") !== false) {
-				continue;
-			}
-			$newContent = str_replace(
-				'public function',
-				"#[\\ReturnTypeWillChange]\n    public function",
-				$oldContent
-			);
-			file_put_contents($file, $newContent);
 		}
 	}
 
@@ -109,9 +50,12 @@ EOD;
 	 * @param \Composer\Package\Package $package The package being installed
 	 * @return void
 	 */
-	public static function patchCodesniffer($vendorDir, Package $package) {
+	public static function patchCodesniffer($vendorDir, Package $package): void {
 		$file = $vendorDir . '/' . $package->getName() . '/CodeSniffer.conf.dist';
 		$oldContent = file_get_contents($file);
+		if ($oldContent === false) {
+			return;
+		}
 		$newContent = "__DIR__.'/../../../style/Nadybot/ruleset.xml'";
 		$data = preg_replace("/'PSR2'/", $newContent, $oldContent);
 		$data = preg_replace("/(?<='show_warnings' => ')0/", "1", $data);

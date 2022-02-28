@@ -3,60 +3,56 @@
 namespace Nadybot\Core\Modules\LIMITS;
 
 use Nadybot\Core\{
+	Attributes as NCA,
 	CmdContext,
 	DB,
+	DBSchema\RateIgnoreList,
+	ModuleInstance,
 	Nadybot,
+	ParamClass\PCharacter,
+	ParamClass\PRemove,
 	SQLException,
 	Text,
 	Util,
 };
-use Nadybot\Core\DBSchema\RateIgnoreList;
-use Nadybot\Core\ParamClass\PCharacter;
-use Nadybot\Core\ParamClass\PRemove;
 
 /**
  * @author Tyrence (RK2)
- *
- * @Instance
- *
- * Commands this class contains:
- *	@DefineCommand(
- *		command       = 'rateignore',
- *		accessLevel   = 'all',
- *		description   = 'Add players to the rate limit ignore list to bypass limits check',
- *		help          = 'rateignore.txt',
- *		defaultStatus = '1'
- *	)
  */
-class RateIgnoreController {
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
-
-	/** @Inject */
+#[
+	NCA\Instance,
+	NCA\HasMigrations,
+	NCA\DefineCommand(
+		command: "rateignore",
+		accessLevel: "mod",
+		description: "Add players to the rate limit ignore list to bypass limits check",
+		defaultStatus: 1
+	)
+]
+class RateIgnoreController extends ModuleInstance {
+	#[NCA\Inject]
 	public DB $db;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Text $text;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Util $util;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Nadybot $chatBot;
 
-	/**
-	 * @Setup
-	 */
+	#[NCA\Setup]
 	public function setup(): void {
-		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations");
 	}
 
-	/**
-	 * @HandlesCommand("rateignore")
-	 */
+	/** See a list of characters on the rate ignore list */
+	#[NCA\HandlesCommand("rateignore")]
+	#[NCA\Help\Prologue(
+		"The rate ignore list is a list of characters/bots that should be able to\n".
+		"access the bot, but would normally not be able to due to limits being set.\n".
+		"See <a href='chatcmd:///tell <myname> help limits'><symbol>limits</a>"
+	)]
 	public function rateignoreCommand(CmdContext $context): void {
 		$list = $this->all();
 		if (count($list) === 0) {
@@ -73,24 +69,20 @@ class RateIgnoreController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @HandlesCommand("rateignore")
-	 * @Mask $action add
-	 */
-	public function rateignoreAddCommand(CmdContext $context, string $action, PCharacter $who): void {
+	/** Add a character to the rate ignore list */
+	#[NCA\HandlesCommand("rateignore")]
+	public function rateignoreAddCommand(CmdContext $context, #[NCA\Str("add")] string $action, PCharacter $who): void {
 		$context->reply($this->add($who(), $context->char->name));
 	}
 
-	/**
-	 * @HandlesCommand("rateignore")
-	 */
+	/** Remove a character from the rate ignore list */
+	#[NCA\HandlesCommand("rateignore")]
 	public function rateignoreRemoveCommand(CmdContext $context, PRemove $rem, PCharacter $who): void {
 		$context->reply($this->remove($who()));
 	}
 
 	/**
 	 * Add someone to the RateIgnoreList
-	 *
 	 * @param string $user Person to add
 	 * @param string $sender Name of the person that adds
 	 * @return string Message of success or failure
@@ -118,7 +110,6 @@ class RateIgnoreController {
 
 	/**
 	 * Remove someone from the rate-limit ignore list
-	 *
 	 * @param string $user Who to remove
 	 * @return string Message with success or failure
 	 * @throws SQLException
@@ -145,7 +136,6 @@ class RateIgnoreController {
 
 	/**
 	 * Get all rateignorelist entries
-	 *
 	 * @return RateIgnoreList[]
 	 * @throws SQLException
 	 */

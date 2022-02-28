@@ -3,13 +3,12 @@
 namespace Nadybot\Core;
 
 if (!defined("AOC_PRIORITY_HIGH")) {
-	define('AOC_PRIORITY_HIGH', 1000);
-	define('AOC_PRIORITY_MED',   500);
-	define('AOC_PRIORITY_LOW',   100);
+	\Safe\define('AOC_PRIORITY_HIGH', 1000);
+	\Safe\define('AOC_PRIORITY_MED',   500);
+	\Safe\define('AOC_PRIORITY_LOW',   100);
 }
 
 class LeakyBucket implements QueueInterface {
-
 	/**
 	 * The packet queue for each priority (low, med, high)
 	 *
@@ -53,8 +52,8 @@ class LeakyBucket implements QueueInterface {
 	/**
 	 * Create a new Chat Queue with a burst of $limit messages and $increment seconds between messages after burst
 	 *
-	 * @param int $limit     How many messages can be sent before rate limit kicks in
-	 * @param int $increment How long to wait between messages when rate limit is active
+	 * @param int $bucketSize      How many messages can be sent before rate limit kicks in
+	 * @param int $refillIntervall How long to wait between messages when rate limit is active
 	 */
 	public function __construct(int $bucketSize, int $refillIntervall) {
 		$this->bucketFill = (float)$bucketSize;
@@ -65,12 +64,23 @@ class LeakyBucket implements QueueInterface {
 		$this->queueSize = 0;
 	}
 
+	public function getSize(): int {
+		return count(array_merge(...array_values($this->queue)));
+	}
+
+	public function clear(): int {
+		$size = $this->queueSize;
+		$this->queue = [];
+		$this->queueSize = 0;
+		return $size;
+	}
+
 	/**
 	 * Add a packet to the end of the chat queue with priority $priority
 	 */
 	public function push(int $priority, AOChatPacket $item): void {
 		if (isset($this->queue[$priority])) {
-			$this->queue[$priority][] = $item;
+			$this->queue[$priority] []= $item;
 		} else {
 			$this->queue[$priority] = [$item];
 			krsort($this->queue);

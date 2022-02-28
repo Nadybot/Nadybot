@@ -1,3 +1,0 @@
-To find all items that lock an ability or skill:
-<highlight><tab><symbol>whatlocks<end>
-<highlight><tab><symbol>whatlocks 'skill'<end>

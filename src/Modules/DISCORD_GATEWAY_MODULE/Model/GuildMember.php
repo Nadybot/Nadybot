@@ -7,9 +7,9 @@ use Nadybot\Core\JSONDataModel;
 use Nadybot\Core\Modules\DISCORD\DiscordUser;
 
 class GuildMember extends JSONDataModel {
-	public ?DiscordUser $user;
+	public ?DiscordUser $user = null;
 	/** this users guild nickname */
-	public ?string $nick;
+	public ?string $nick = null;
 	/**
 	 * array of role object ids
 	 * @var string[]
@@ -18,7 +18,7 @@ class GuildMember extends JSONDataModel {
 	/** when the user joined the guild */
 	public DateTime $joined_at;
 	/** when the user started boosting the guild */
-	public ?DateTime $premium_since;
+	public ?DateTime $premium_since = null;
 	/** whether the user is deafened in voice channels */
 	public bool $deaf;
 	/** whether the user is muted in voice channels */

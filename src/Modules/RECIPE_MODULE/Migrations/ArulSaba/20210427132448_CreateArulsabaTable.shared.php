@@ -13,7 +13,7 @@ class CreateArulsabaTable implements SchemaMigration {
 		if ($db->schema()->hasTable($table)) {
 			return;
 		}
-		$db->schema()->create($table, function(Blueprint $table) {
+		$db->schema()->create($table, function(Blueprint $table): void {
 			$table->string("name", 20)->primary();
 			$table->string("lesser_prefix", 10);
 			$table->string("regular_prefix", 20);

@@ -2,38 +2,42 @@
 
 namespace Nadybot\Core\Channels;
 
-use Nadybot\Core\AccessManager;
-use Nadybot\Core\MessageHub;
-use Nadybot\Core\MessageReceiver;
-use Nadybot\Core\Modules\DISCORD\DiscordAPIClient;
-use Nadybot\Core\Modules\DISCORD\DiscordController;
-use Nadybot\Core\Nadybot;
-use Nadybot\Core\Routing\Events\Online;
-use Nadybot\Core\Routing\RoutableEvent;
-use Nadybot\Core\Routing\Source;
-use Nadybot\Core\SettingManager;
-use Nadybot\Core\Text;
+use Nadybot\Core\{
+	Attributes as NCA,
+	AccessManager,
+	MessageHub,
+	MessageReceiver,
+	Modules\DISCORD\DiscordAPIClient,
+	Modules\DISCORD\DiscordController,
+	Nadybot,
+	Routing\Events\Base,
+	Routing\Events\Online,
+	Routing\RoutableEvent,
+	Routing\Source,
+	SettingManager,
+	Text,
+};
 
 class DiscordMsg implements MessageReceiver {
-	/** @Inject */
+	#[NCA\Inject]
 	public Nadybot $chatBot;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public DiscordAPIClient $discordAPIClient;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public MessageHub $messageHub;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public DiscordController $discordController;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public AccessManager $accessManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public SettingManager $settingManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Text $text;
 
 	protected string $channel;
@@ -46,12 +50,13 @@ class DiscordMsg implements MessageReceiver {
 	public function receive(RoutableEvent $event, string $destination): bool {
 		$renderPath = true;
 		if ($event->getType() !== $event::TYPE_MESSAGE) {
-			if (!is_object($event->data) || !is_string($event->data->message??null)) {
+			$baseEvent = $event->data??null;
+			if (!isset($baseEvent) || !($baseEvent instanceof Base) || !isset($baseEvent->message)) {
 				return false;
 			}
-			$msg = $event->data->message;
-			$renderPath = $event->data->renderPath;
-			if (isset($msg) && $event->data->type === Online::TYPE) {
+			$msg = $baseEvent->message;
+			$renderPath = $baseEvent->renderPath;
+			if ($baseEvent->type === Online::TYPE) {
 				$msg = $this->text->removePopups($msg);
 			}
 		} else {

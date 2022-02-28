@@ -13,7 +13,7 @@ class CreateNewsConfirmedTable implements SchemaMigration {
 		if ($db->schema()->hasTable($table)) {
 			return;
 		}
-		$db->schema()->create($table, function(Blueprint $table) {
+		$db->schema()->create($table, function(Blueprint $table): void {
 			$table->integer("id")->index();
 			$table->string("player", 20)->index();
 			$table->integer("time");

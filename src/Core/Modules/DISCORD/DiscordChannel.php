@@ -26,7 +26,10 @@ class DiscordChannel extends JSONDataModel {
 	public ?string $guild_id = null;
 	/** sorting position of the channel */
 	public ?int $position = null;
-	/** explicit permission overwrites for members and roles */
+	/**
+	 * explicit permission overwrites for members and roles
+	 * @var array<mixed>
+	 */
 	public ?array $permission_overwrites = null;
 	/** the name of the channel (2-100 characters) */
 	public ?string $name = null;
@@ -51,7 +54,7 @@ class DiscordChannel extends JSONDataModel {
 	public ?int $rate_limit_per_user = null;
 	/**
 	 * the recipients of the DM
-	 * @var \Nadybot\Modules\DISCORD_GATEWAY_MODULE\Model\User[]
+	 * @var \Nadybot\Core\Modules\DISCORD\DiscordUser[]
 	 */
 	public ?array $recipients = null;
 	/** icon hash */

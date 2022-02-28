@@ -4,90 +4,78 @@ namespace Nadybot\Modules\BANK_MODULE;
 
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
+	Attributes as NCA,
 	CmdContext,
-	CommandReply,
 	DB,
+	ModuleInstance,
+	ParamClass\PCharacter,
 	SettingManager,
 	Text,
 	Util,
 };
-use Nadybot\Core\ParamClass\PCharacter;
+use Safe\Exceptions\FilesystemException;
 
 /**
  * @author Tyrence (RK2)
  * @author Marebone (RK2)
- *
- * @Instance
- *
- * Commands this controller contains:
- *	@DefineCommand(
- *		command     = 'bank',
- *		accessLevel = 'guild',
- *		description = 'Browse and search the bank characters',
- *		help        = 'bank.txt'
- *	)
- *	@DefineCommand(
- *		command     = 'bank update',
- *		accessLevel = 'admin',
- *		description = 'Reloads the bank database from the AO Items Assistant file',
- *		help        = 'bank.txt',
- *		alias		= 'updatebank'
- *	)
  */
-class BankController {
-
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
-
-	/** @Inject */
+#[
+	NCA\Instance,
+	NCA\HasMigrations,
+	NCA\DefineCommand(
+		command: "bank",
+		accessLevel: "guild",
+		description: "Browse and search the bank characters",
+	),
+	NCA\DefineCommand(
+		command: "bank update",
+		accessLevel: "admin",
+		description: "Reloads the bank database from the AO Items Assistant file",
+		alias: "updatebank"
+	)
+]
+class BankController extends ModuleInstance {
+	#[NCA\Inject]
 	public DB $db;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Text $text;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Util $util;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public SettingManager $settingManager;
 
-	/**
-	 * @Setup
-	 */
+	#[NCA\Setup]
 	public function setup(): void {
-		$this->db->loadMigrations($this->moduleName, __DIR__ . '/Migrations');
 
 		$this->settingManager->add(
-			$this->moduleName,
-			'bank_file_location',
-			'Location of the AO Items Assistant csv dump file',
-			'edit',
-			'text',
-			'./src/Modules/BANK_MODULE/import.csv'
+			module: $this->moduleName,
+			name: 'bank_file_location',
+			description: 'Location of the AO Items Assistant csv dump file',
+			mode: 'edit',
+			type: 'text',
+			value: './src/Modules/BANK_MODULE/import.csv'
 		);
 		$this->settingManager->add(
-			$this->moduleName,
-			'max_bank_items',
-			'Number of items shown in search results',
-			'edit',
-			'number',
-			'50',
-			'20;50;100'
+			module: $this->moduleName,
+			name: 'max_bank_items',
+			description: 'Number of items shown in search results',
+			mode: 'edit',
+			type: 'number',
+			value: '50',
+			options: ["20", "50", "100"]
 		);
 	}
 
-	/**
-	 * @HandlesCommand("bank")
-	 * @Mask $action browse
-	 */
-	public function bankBrowseCommand(CmdContext $context, string $action): void {
+	/** List the bank characters in the database: */
+	#[NCA\HandlesCommand("bank")]
+	public function bankBrowseCommand(CmdContext $context, #[NCA\Str("browse")] string $action): void {
 		$characters = $this->db->table("bank")
 			->orderBy("player")
 			->select("player")->distinct()
-			->asObj()->pluck("player");
+			->pluckAs("player", "string");
 		if ($characters->isEmpty()) {
 			$context->reply("No bank characters found.");
 			return;
@@ -102,18 +90,20 @@ class BankController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @HandlesCommand("bank")
-	 * @Mask $action browse
-	 */
-	public function bankBrowsePlayerCommand(CmdContext $context, string $action, PCharacter $char): void {
+	/** List the containers of a given bank character: */
+	#[NCA\HandlesCommand("bank")]
+	public function bankBrowsePlayerCommand(
+		CmdContext $context,
+		#[NCA\Str("browse")] string $action,
+		PCharacter $char
+	): void {
 		$name = $char();
 
+		/** @var Collection<Bank> */
 		$data = $this->db->table("bank")
 			->where("player", $name)
 			->orderBy("container")
-			->select("container_id", "container", "player")
-			->asObj();
+			->asObj(Bank::class);
 		if ($data->count() === 0) {
 			$msg = "Could not find bank character <highlight>$name<end>.";
 			$context->reply($msg);
@@ -129,11 +119,9 @@ class BankController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @HandlesCommand("bank")
-	 * @Mask $action browse
-	 */
-	public function bankBrowseContainerCommand(CmdContext $context, string $action, PCharacter $char, int $containerId): void {
+	/** See the contents of a container on a bank character */
+	#[NCA\HandlesCommand("bank")]
+	public function bankBrowseContainerCommand(CmdContext $context, #[NCA\Str("browse")] string $action, PCharacter $char, int $containerId): void {
 		$name = $char();
 		$limit = $this->settingManager->getInt('max_bank_items') ?? 50;
 
@@ -160,11 +148,9 @@ class BankController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @HandlesCommand("bank")
-	 * @Mask $action search
-	 */
-	public function bankSearchCommand(CmdContext $context, string $action, string $search): void {
+	/** Search for an item on all bank characters */
+	#[NCA\HandlesCommand("bank")]
+	public function bankSearchCommand(CmdContext $context, #[NCA\Str("search")] string $action, string $search): void {
 		$search = htmlspecialchars_decode($search);
 		$words = explode(' ', $search);
 		$limit = $this->settingManager->getInt('max_bank_items') ?? 50;
@@ -192,15 +178,15 @@ class BankController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @HandlesCommand("bank update")
-	 * @Mask $action update
-	 */
-	public function bankUpdateCommand(CmdContext $context, string $action): void {
-		$lines = @file($this->settingManager->getString('bank_file_location')??"");
-
-		if ($lines === false) {
-			$msg = "Could not open file: '" . ($this->settingManager->getString('bank_file_location')??"") . "'";
+	/** Reload the bank database from the file specified with the <a href='chatcmd:///tell <myname> settings change bank_file_location'>bank_file_location</a> setting */
+	#[NCA\HandlesCommand("bank update")]
+	public function bankUpdateCommand(CmdContext $context, #[NCA\Str("update")] string $action): void {
+		try {
+			$lines = \Safe\file($this->settingManager->getString('bank_file_location')??"");
+		} catch (FilesystemException $e) {
+			$msg = "Could not open file '".
+				($this->settingManager->getString('bank_file_location')??"") . "': ".
+				$e->getMessage();
 			$context->reply($msg);
 			return;
 		}

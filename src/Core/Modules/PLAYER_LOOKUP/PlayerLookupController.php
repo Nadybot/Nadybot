@@ -2,29 +2,15 @@
 
 namespace Nadybot\Core\Modules\PLAYER_LOOKUP;
 
-use Nadybot\Core\DB;
+use Nadybot\Core\Attributes as NCA;
+use Nadybot\Core\ModuleInstance;
 
 /**
  * @author Tyrence (RK2)
- *
- * @Instance
  */
-class PlayerLookupController {
-
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
-
-	/** @Inject */
-	public DB $db;
-
-	/**
-	 * @Setup
-	 * This handler is called on bot startup.
-	 */
-	public function setup(): void {
-		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations");
-	}
+#[
+	NCA\Instance,
+	NCA\HasMigrations
+]
+class PlayerLookupController extends ModuleInstance {
 }

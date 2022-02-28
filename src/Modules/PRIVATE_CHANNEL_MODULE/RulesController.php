@@ -2,52 +2,53 @@
 
 namespace Nadybot\Modules\PRIVATE_CHANNEL_MODULE;
 
-use Nadybot\Core\AOChatEvent;
-use Nadybot\Core\CmdContext;
-use Nadybot\Core\Nadybot;
-use Nadybot\Core\Text;
+use Nadybot\Core\{
+	Attributes as NCA,
+	AOChatEvent,
+	CmdContext,
+	ConfigFile,
+	ModuleInstance,
+	Nadybot,
+	Text,
+};
+use Safe\Exceptions\FilesystemException;
 
 /**
  * @author Nadyita (RK5)
- *
- * @Instance
- *
- * Commands this controller contains:
- *	@DefineCommand(
- *		command     = 'rules',
- *		accessLevel = 'all',
- *		description = "Rules of this bot",
- *		help        = 'rules.txt'
- *	)
  */
-class RulesController {
-
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
-
-	/** @Inject */
+#[
+	NCA\Instance,
+	NCA\DefineCommand(
+		command: "rules",
+		accessLevel: "all",
+		description: "Rules of this bot",
+	)
+]
+class RulesController extends ModuleInstance {
+	#[NCA\Inject]
 	public Text $text;
 
-	/**
-	 * @var \Nadybot\Core\Nadybot $chatBot
-	 * @Inject
-	 */
+	#[NCA\Inject]
 	public Nadybot $chatBot;
 
-	/**
-	 * @HandlesCommand("rules")
-	 */
+	#[NCA\Inject]
+	public ConfigFile $config;
+
+	/** See the rules for this bot */
+	#[NCA\HandlesCommand("rules")]
+	#[NCA\Help\Epilogue(
+		"To set up rules for this bot, put a file into\n".
+		"<tab><highlight>data/rules.txt<end>"
+	)]
 	public function rulesCommand(CmdContext $context): void {
-		$dataPath = $this->chatBot->vars["datafolder"] ?? "./data";
+		$dataPath = $this->config->dataFolder;
 		if (!@file_exists("{$dataPath}/rules.txt")) {
 			$context->reply("This bot does not have any rules defined yet.");
 			return;
 		}
-		$content = @file_get_contents("{$dataPath}/rules.txt");
-		if ($content === false) {
+		try {
+			$content = \Safe\file_get_contents("{$dataPath}/rules.txt");
+		} catch (FilesystemException) {
 			$context->reply("This bot has rules defined, but I was unable to read them.");
 			return;
 		}
@@ -55,17 +56,18 @@ class RulesController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @Event("joinPriv")
-	 * @Description("If you defined rules, send them to people joining the private channel")
-	 */
+	#[NCA\Event(
+		name: "joinPriv",
+		description: "If you defined rules, send them to people joining the private channel"
+	)]
 	public function joinPrivateChannelShowRulesEvent(AOChatEvent $eventObj): void {
-		$dataPath = $this->chatBot->vars["datafolder"] ?? "./data";
-		if (
-			!is_string($eventObj->sender)
-			|| !@file_exists("{$dataPath}/rules.txt")
-			|| ($content = @file_get_contents("{$dataPath}/rules.txt")) === false
-		) {
+		$dataPath = $this->config->dataFolder;
+		if (!is_string($eventObj->sender) || !@file_exists("{$dataPath}/rules.txt")) {
+			return;
+		}
+		try {
+			$content = \Safe\file_get_contents("{$dataPath}/rules.txt");
+		} catch (FilesystemException) {
 			return;
 		}
 		$msg = $this->text->makeBlob("<myname>'s rules", $content);

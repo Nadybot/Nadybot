@@ -11,11 +11,10 @@ use ReflectionClass;
 use ReflectionException;
 
 class BotRunner {
-
 	/**
 	 * Nadybot's current version
 	 */
-	public const VERSION = "5.3.3";
+	public const VERSION = "6.0.0";
 
 	/**
 	 * The command line arguments
@@ -23,6 +22,12 @@ class BotRunner {
 	 * @var string[] $argv
 	 */
 	private array $argv = [];
+
+	/**
+	 * The parsed command line arguments
+	 * @var array<string,mixed>
+	 */
+	public static array $arguments = [];
 
 	private ?ConfigFile $configFile;
 
@@ -36,12 +41,10 @@ class BotRunner {
 
 	/**
 	 * Create a new instance
+	 * @param string[] $argv
 	 */
 	public function __construct(array $argv) {
 		$this->argv = $argv;
-
-		global $version;
-		$version = self::getVersion();
 	}
 
 	/**
@@ -61,7 +64,7 @@ class BotRunner {
 
 	/** Get the base directory of the bot */
 	public static function getBasedir(): string {
-		return realpath(dirname(dirname(__DIR__)));
+		return \Safe\realpath(dirname(dirname(__DIR__)));
 	}
 
 	/**
@@ -74,15 +77,20 @@ class BotRunner {
 		if (!@file_exists("{$baseDir}/.git")) {
 			return static::VERSION;
 		}
-		set_error_handler(function(int $num, string $str, string $file, int $line) {
+		set_error_handler(function(int $num, string $str, string $file, int $line): void {
 			throw new ErrorException($str, 0, $num, $file, $line);
 		});
 		try {
-			$ref = explode(": ", trim(@file_get_contents("{$baseDir}/.git/HEAD")), 2)[1];
+			$ref = explode(": ", trim(\Safe\file_get_contents("{$baseDir}/.git/HEAD")), 2)[1];
 			$branch = explode("/", $ref, 3)[2];
 			$latestTag = static::getLatestTag();
 			if (!isset($latestTag)) {
 				return $branch;
+			}
+			if ($latestTag === '') {
+				$latestTag = static::VERSION;
+			} elseif (strncmp(static::VERSION, $latestTag, strlen(static::VERSION)) === 1) {
+				$latestTag = static::VERSION;
 			}
 			if ($branch !== 'stable') {
 				return "{$latestTag}@{$branch}";
@@ -107,10 +115,10 @@ class BotRunner {
 		if ($pid === false) {
 			return null;
 		}
-		fclose($pipes[0]);
-		$gitDescribe = trim(stream_get_contents($pipes[1]));
-		fclose($pipes[1]);
-		fclose($pipes[2]);
+		\Safe\fclose($pipes[0]);
+		$gitDescribe = trim(\Safe\stream_get_contents($pipes[1])?:"");
+		\Safe\fclose($pipes[1]);
+		\Safe\fclose($pipes[2]);
 		proc_close($pid);
 		return $gitDescribe;
 	}
@@ -131,10 +139,10 @@ class BotRunner {
 		if ($pid === false) {
 			return static::$latestTag = null;
 		}
-		fclose($pipes[0]);
-		$tags = explode("\n", trim(stream_get_contents($pipes[1])));
-		fclose($pipes[1]);
-		fclose($pipes[2]);
+		\Safe\fclose($pipes[0]);
+		$tags = explode("\n", trim(\Safe\stream_get_contents($pipes[1])?:""));
+		\Safe\fclose($pipes[1]);
+		\Safe\fclose($pipes[2]);
 		proc_close($pid);
 
 		$tags = array_map(
@@ -157,8 +165,8 @@ class BotRunner {
 	public function checkRequiredPackages(): void {
 		try {
 			new ReflectionClass("Monolog\\Logger");
-		} catch (ReflectionException $e) {
-			fwrite(
+		} catch (ReflectionException $e) { // @phpstan-ignore-line
+			\Safe\fwrite(
 				STDERR,
 				"Nadybot cannot find all the required composer modules in 'vendor'.\n".
 				"Please run 'composer install' to install all missing modules\n".
@@ -168,32 +176,17 @@ class BotRunner {
 				"See https://github.com/Nadybot/Nadybot/wiki/Running#cloning-the-repository\n".
 				"for more information.\n"
 			);
-			sleep(5);
+			\Safe\sleep(5);
 			exit(1);
-		}
-		$racFile = dirname(dirname(__DIR__)) . "/vendor/niktux/addendum/lib/Addendum/ReflectionAnnotatedClass.php";
-		if (version_compare(PHP_VERSION, '8.1.0') >= 0 && @file_exists($racFile)) {
-			$racContent = file_get_contents($racFile);
-			if ($racContent !== false && strpos($racContent, "ReturnTypeWillChange") === false) {
-				fwrite(
-					STDERR,
-					"Nadybot cannot find properly patched versions of the modules\n".
-					"it requires in 'vendor'.\n".
-					"Please run 'composer reinstall niktux/addendum'\n".
-					"to apply all required patches or download one of the Nadybot\n".
-					"bundles and copy the 'vendor' directory from the zip-file into\n".
-					"the Nadybot main directory.\n".
-					"\n".
-					"See https://github.com/Nadybot/Nadybot/wiki/Running#cloning-the-repository\n".
-					"for more information.\n"
-				);
-				sleep(5);
-				exit(1);
-			}
 		}
 	}
 
 	public function checkRequiredModules(): void {
+		if (version_compare(PHP_VERSION, "8.0.0", "<")) {
+			\Safe\fwrite(STDERR, "Nadybot 6 needs at least PHP version 8 to run, you have " . PHP_VERSION . "\n");
+			\Safe\sleep(5);
+			exit(1);
+		}
 		$missing = [];
 		$requiredModules = [
 			["bcmath", "gmp"],
@@ -209,13 +202,6 @@ class BotRunner {
 			"Reflection",
 			"sockets",
 		];
-		$configFile = $this->getConfigFile();
-		if (strlen($configFile->getVar('amqp_server')??"")
-			&& strlen($configFile->getVar('amqp_user')??"")
-			&& strlen($configFile->getVar('amqp_password')??"")
-		) {
-			$requiredModules []= "mbstring";
-		}
 		foreach ($requiredModules as $requiredModule) {
 			if (is_string($requiredModule) && !extension_loaded($requiredModule)) {
 				$missing []= $requiredModule;
@@ -228,8 +214,8 @@ class BotRunner {
 		if (!count($missing)) {
 			return;
 		}
-		fwrite(STDERR, "Nadybot needs the following missing PHP-extensions: " . join(", ", $missing) . ".\n");
-		sleep(5);
+		\Safe\fwrite(STDERR, "Nadybot needs the following missing PHP-extensions: " . join(", ", $missing) . ".\n");
+		\Safe\sleep(5);
 		exit(1);
 	}
 
@@ -240,10 +226,10 @@ class BotRunner {
 			exit;
 		};
 		if (function_exists('sapi_windows_set_ctrl_handler')) {
-			sapi_windows_set_ctrl_handler($signalHandler, true);
+			\Safe\sapi_windows_set_ctrl_handler($signalHandler, true);
 		} elseif (function_exists('pcntl_signal')) {
-			pcntl_signal(SIGINT, $signalHandler);
-			pcntl_signal(SIGTERM, $signalHandler);
+			\Safe\pcntl_signal(SIGINT, $signalHandler);
+			\Safe\pcntl_signal(SIGTERM, $signalHandler);
 			pcntl_async_signals(true);
 		} else {
 			$this->logger->error('You need to have the pcntl extension on Linux');
@@ -255,10 +241,32 @@ class BotRunner {
 	/** Uninstall a previously installed signal handler */
 	protected function uninstallCtrlCHandler(Closure $signalHandler): void {
 		if (function_exists('sapi_windows_set_ctrl_handler')) {
-			sapi_windows_set_ctrl_handler($signalHandler, false);
+			\Safe\sapi_windows_set_ctrl_handler($signalHandler, false);
 		} elseif (function_exists('pcntl_signal')) {
-			pcntl_signal(SIGINT, SIG_DFL);
-			pcntl_signal(SIGTERM, SIG_DFL);
+			\Safe\pcntl_signal(SIGINT, SIG_DFL);
+			\Safe\pcntl_signal(SIGTERM, SIG_DFL);
+		}
+	}
+
+	private function parseOptions(): void {
+		$options = getopt(
+			"c:v",
+			[
+				"migrate-only",
+				"setup-only",
+				"migration-errors-fatal",
+			],
+			$restPos
+		);
+		if ($options === false) {
+			\Safe\fwrite(STDERR, "Unable to parse arguments passed to the bot.\n");
+			\Safe\sleep(5);
+			exit(1);
+		}
+		$argv = array_slice($this->argv, $restPos);
+		static::$arguments = $options;
+		if (count($argv) > 0) {
+			static::$arguments["c"] = array_shift($argv);
 		}
 	}
 
@@ -266,12 +274,12 @@ class BotRunner {
 	 * Run the bot in an endless loop
 	 */
 	public function run(): void {
+		$this->parseOptions();
 		// set default timezone
 		date_default_timezone_set("UTC");
 
-		// load $vars
-		global $vars;
-		$vars = $this->getConfigVars();
+		$config = $this->getConfigFile();
+		Registry::setInstance("configfile", $config);
 		$this->checkRequiredModules();
 		$this->checkRequiredPackages();
 		$this->createMissingDirs();
@@ -280,71 +288,73 @@ class BotRunner {
 
 		// these must happen first since the classes that are loaded may be used by processes below
 		$this->loadPhpLibraries();
-		if (isset($vars['timezone']) && @date_default_timezone_set($vars['timezone']) === false) {
-			die("Invalid timezone: \"{$vars['timezone']}\"\n");
+		if (isset($config->timezone) && @date_default_timezone_set($config->timezone) === false) {
+			die("Invalid timezone: \"{$config->timezone}\"\n");
 		}
-		$logFolderName = rtrim($vars["logsfolder"] ?? "./logs/", "/");
-		$logFolderName = "{$logFolderName}/{$vars['name']}.{$vars['dimension']}";
+		$logFolderName = "{$config->logsFolder}/{$config->name}.{$config->dimension}";
 
 		$this->setErrorHandling($logFolderName);
 		$this->logger = new LoggerWrapper("Core/BotRunner");
+		Registry::injectDependencies($this->logger);
 
-		$this->showSetupDialog();
-		$this->canonicalizeBotCharacterName();
-
-		$this->setWindowTitle();
+		if ($this->showSetupDialog()) {
+			$config = $this->getConfigFile();
+		}
+		$this->setWindowTitle($config);
 
 		$version = self::getVersion();
 		$this->logger->notice(
 			"Starting {name} {version} on RK{dimension} using PHP {phpVersion} and {dbType}...",
 			[
-				"name" => $vars['name'],
+				"name" => $config->name,
 				"version" => $version,
-				"dimension" => $vars['dimension'],
+				"dimension" => $config->dimension,
 				"phpVersion" => phpversion(),
-				"dbType" => $vars['DB Type'],
+				"dbType" => $config->dbType,
 			]
 		);
 
-		$this->classLoader = new ClassLoader($vars['module_load_paths']);
+		$this->classLoader = new ClassLoader($config->moduleLoadPaths);
 		Registry::injectDependencies($this->classLoader);
 		$this->classLoader->loadInstances();
 
 		$signalHandler = $this->installCtrlCHandler();
 		$this->connectToDatabase();
-		$this->clearDatabaseInformation();
 		$this->uninstallCtrlCHandler($signalHandler);
 
 		$this->runUpgradeScripts();
+		if ((static::$arguments["migrate-only"]??true) === false) {
+			exit(0);
+		}
 
-		[$server, $port] = $this->getServerAndPort($vars);
+		[$server, $port] = $this->getServerAndPort($config);
 
 		/** @var Nadybot */
-		$chatBot = Registry::getInstance('chatBot');
+		$chatBot = Registry::getInstance(Nadybot::class);
 
-		// startup core systems and load modules
-		$chatBot->init($this, $vars);
+		// startup core systems, load modules and call setup methods
+		$chatBot->init($this);
+
+		if ((static::$arguments["setup-only"]??true) === false) {
+			exit(0);
+		}
 
 		// connect to ao chat server
-		$chatBot->connectAO($vars['login'], $vars['password'], (string)$server, (int)$port);
-
-		// clear login credentials
-		unset($vars['login']);
-		unset($vars['password']);
+		$chatBot->connectAO($config->login, $config->password, (string)$server, (int)$port);
 
 		// pass control to Nadybot class
 		$chatBot->run();
 	}
 
 	protected function createMissingDirs(): void {
-		$dirVars = ["cachefolder", "htmlfolder", "datafolder"];
+		$dirVars = ["cacheFolder", "htmlFolder", "dataFolder"];
 		foreach ($dirVars as $var) {
-			$dir = $this->getConfigFile()->getVar($var);
+			$dir = $this->getConfigFile()->{$var};
 			if (is_string($dir) && !@file_exists($dir)) {
 				@mkdir($dir, 0700);
 			}
 		}
-		foreach ($this->getConfigFile()->getVar("module_load_paths") as $dir) {
+		foreach ($this->getConfigFile()->moduleLoadPaths as $dir) {
 			if (is_string($dir) && !@file_exists($dir)) {
 				@mkdir($dir, 0700);
 			}
@@ -362,25 +372,14 @@ class BotRunner {
 	 * Get a message describing the bot's codebase
 	 */
 	private function getInitialInfoMessage(): string {
-		$version = substr(sprintf("%-23s", self::getVersion()), 0, 23);
+		$version = self::getVersion();
+
 		return
-			"+------------------------------------------------------------------+".PHP_EOL.
-			'|                                                                  |'.PHP_EOL.
-			'| 888b    888               888          888               888     |'.PHP_EOL.
-			'| 8888b   888               888          888               888     |'.PHP_EOL.
-			'| 88888b  888               888          888               888     |'.PHP_EOL.
-			'| 888Y88b 888  8888b.   .d88888 888  888 88888b.   .d88b.  888888  |'.PHP_EOL.
-			'| 888 Y88b888     "88b d88" 888 888  888 888 "88b d88""88b 888     |'.PHP_EOL.
-			'| 888  Y88888 .d888888 888  888 888  888 888  888 888  888 888     |'.PHP_EOL.
-			'| 888   Y8888 888  888 Y88b 888 Y88b 888 888 d88P Y88..88P Y88b.   |'.PHP_EOL.
-			'| 888    Y888 "Y888888  "Y88888  "Y88888 88888P"   "Y88P"   "Y888  |'.PHP_EOL.
-			'|                                    888                           |'.PHP_EOL.
-			'|                               Y8b d88P                           |'.PHP_EOL.
-			'| Nadybot ' . $version .        ' Y88P"                            |'.PHP_EOL.
-			'|                                                                  |'.PHP_EOL.
-			'| Project Site:     https://github.com/Nadybot/Nadybot             |'.PHP_EOL.
-			'| In-Game Contact:  Nadyita                                        |'.PHP_EOL.
-			'+------------------------------------------------------------------+'.PHP_EOL.
+			" _   _  __     ".PHP_EOL.
+			"| \ | |/ /_    Nadybot version  {$version}".PHP_EOL.
+			"|  \| | '_ \   Project Site:    https://github.com/Nadybot/Nadybot".PHP_EOL.
+			"| |\  | (_) |  In-Game Contact: Nady".PHP_EOL.
+			"|_| \_|\___/   Discord:         https://discord.gg/aDR9UBxRfg".PHP_EOL.
 			PHP_EOL;
 	}
 
@@ -388,20 +387,8 @@ class BotRunner {
 		if (isset($this->configFile)) {
 			return $this->configFile;
 		}
-		$configFilePath = $this->argv[1] ?? "conf/config.php";
-		global $configFile;
-		$this->configFile = new ConfigFile($configFilePath);
-		$this->configFile->load();
-		return $configFile = $this->configFile;
-	}
-
-	/**
-	 * Parse and load our configuration and return it
-	 *
-	 * @return array<string,mixed>
-	 */
-	protected function getConfigVars(): array {
-		return $this->getConfigFile()->getVars();
+		$configFilePath = static::$arguments["c"] ?? "conf/config.php";
+		return $this->configFile = ConfigFile::loadFromFile($configFilePath);
 	}
 
 	/**
@@ -409,110 +396,85 @@ class BotRunner {
 	 */
 	private function setErrorHandling(string $logFolderName): void {
 		error_reporting(E_ALL & ~E_STRICT & ~E_WARNING & ~E_NOTICE);
-		ini_set("log_errors", "1");
-		ini_set('display_errors', "1");
-		ini_set("error_log", "${logFolderName}/php_errors.log");
+		\Safe\ini_set("log_errors", "1");
+		\Safe\ini_set('display_errors', "1");
+		\Safe\ini_set("error_log", "${logFolderName}/php_errors.log");
 	}
 
 	/**
 	 * Load external classes that we need
 	 */
 	private function loadPhpLibraries(): void {
-		foreach (glob(__DIR__ . "/Annotations/*.php") as $file) {
-			require_once $file;
-		}
 	}
 
 	/**
 	 * Guide customer through setup if needed
 	 */
-	private function showSetupDialog(): void {
+	private function showSetupDialog(): bool {
 		if (!$this->shouldShowSetup()) {
-			return;
+			return false;
 		}
 		$setup = new Setup($this->getConfigFile());
 		$setup->showIntro();
 		$this->logger->notice("Reloading configuration and testing your settings.");
-		unset($this->configFile);
-		global $vars;
-		$vars = $this->getConfigVars();
+		return true;
 	}
 
 	/**
 	 * Is information missing to run the bot?
 	 */
 	private function shouldShowSetup(): bool {
-		global $vars;
-		return $vars['login'] == "" || $vars['password'] == "" || $vars['name'] == "";
-	}
-
-	/**
-	 * Canonicaize the botname: starts with capital letter, rest lowercase
-	 */
-	private function canonicalizeBotCharacterName(): void {
-		global $vars;
-		$vars["name"] = ucfirst(strtolower($vars["name"]));
+		return empty($this->configFile->login) || empty($this->configFile->password) || empty($this->configFile->name);
 	}
 
 	/**
 	 * Set the title of the command prompt window in Windows
 	 */
-	private function setWindowTitle(): void {
+	private function setWindowTitle(ConfigFile $config): void {
 		if ($this->isWindows() === false) {
 			return;
 		}
-		global $vars;
-		system("title {$vars['name']} - Nadybot");
+		\Safe\system("title {$config->name} - Nadybot");
 	}
 
 	/**
 	 * Connect to the database
 	 */
 	private function connectToDatabase(): void {
-		global $vars;
-		$db = Registry::getInstance('db');
+		/** @var ?DB */
+		$db = Registry::getInstance(DB::class);
 		if (!isset($db)) {
 			throw new Exception("Cannot find DB instance.");
 		}
-		$db->connect($vars["DB Type"], $vars["DB Name"], $vars["DB Host"], $vars["DB username"], $vars["DB password"]);
-	}
-
-	/**
-	 * Delete all database-related information from memory
-	 */
-	private function clearDatabaseInformation(): void {
-		global $vars;
-		unset($vars["DB Type"]);
-		unset($vars["DB Name"]);
-		unset($vars["DB Host"]);
-		unset($vars["DB username"]);
-		unset($vars["DB password"]);
+		$config = $this->getConfigFile();
+		$db->connect($config->dbType, $config->dbName, $config->dbHost, $config->dbUsername, $config->dbPassword);
 	}
 
 	/** Run migration scripts to keep the SQL schema up-to-date */
 	private function runUpgradeScripts(): void {
 		/** @var DB */
-		$db = Registry::getInstance('db');
-		$db->loadMigrations("Core", __DIR__ . "/Migrations");
+		$db = Registry::getInstance(DB::class);
+		$db->createDatabaseSchema();
 	}
 
 	/**
 	 * Get AO's chat server hostname and port
 	 * @return (string|int)[] [(string)Server, (int)Port]
+	 * @phpstan-return array{string,int}
 	 */
-	protected function getServerAndPort(array $vars): array {
+	protected function getServerAndPort(ConfigFile $config): array {
 		// Choose server
-		if ($vars['use_proxy'] == 1) {
+		if ($config->useProxy) {
 			// For use with the AO chat proxy ONLY!
-			$server = $vars['proxy_server'];
-			$port = $vars['proxy_port'];
-		} elseif ($vars["dimension"] == 4) {
+			$server = $config->proxyServer;
+			$port = $config->proxyPort;
+		} elseif ($config->dimension === 4) {
 			$server = "chat.dt.funcom.com";
 			$port = 7109;
-		} elseif ($vars["dimension"] == 5) {
+		} elseif ($config->dimension === 5) {
 			$server = "chat.d1.funcom.com";
 			$port = 7105;
-		} elseif ($vars["dimension"] == 6) {
+		} elseif ($config->dimension === 6) {
 			$server = "chat.d1.funcom.com";
 			$port = 7106;
 		} else {

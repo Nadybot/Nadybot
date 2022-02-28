@@ -2,38 +2,38 @@
 
 namespace Nadybot\Modules\DEV_MODULE;
 
-use JsonException;
-use Nadybot\Core\CmdContext;
-use Nadybot\Core\Http;
-use Nadybot\Core\HttpResponse;
-use Nadybot\Core\Text;
+use Safe\Exceptions\JsonException;
+use Nadybot\Core\{
+	Attributes as NCA,
+	CmdContext,
+	Http,
+	HttpResponse,
+	ModuleInstance,
+	Text,
+};
 
 /**
  * @author Nadyita
- *
- * @Instance
- *
- * Commands this controller contains:
- *	@DefineCommand(
- *		command     = 'httprequest',
- *		accessLevel = 'mod',
- *		description = 'Test http/https requests'
- *	)
  */
-class HttpRequestController {
-	public string $moduleName;
-
-	/** @Inject */
+#[
+	NCA\Instance,
+	NCA\DefineCommand(
+		command: "httprequest",
+		accessLevel: "mod",
+		description: "Test http/https requests"
+	)
+]
+class HttpRequestController extends ModuleInstance {
+	#[NCA\Inject]
 	public Http $http;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Text $text;
 
-	/**
-	 * @HandlesCommand("httprequest")
-	 */
+	/** Load the given URL and show the result */
+	#[NCA\HandlesCommand("httprequest")]
 	public function httprequestCommand(CmdContext $context, string $url): void {
-		$parts = parse_url(html_entity_decode($url));
+		$parts = \Safe\parse_url(html_entity_decode($url));
 		if (!is_array($parts)) {
 			$context->reply("<highlight>{$url}<end> is not a valid URL.");
 			return;
@@ -71,11 +71,11 @@ class HttpRequestController {
 		$blob .= "\n<pagebreak><header2>Body<end>";
 		$response->body ??= "The body is empty";
 		try {
-			$decoded = json_decode($response->body, false, 512, JSON_THROW_ON_ERROR);
-			$response->body = json_encode($decoded, JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES);
+			$decoded = \Safe\json_decode($response->body, false, 512, JSON_THROW_ON_ERROR);
+			$response->body = \Safe\json_encode($decoded, JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES);
 		} catch (JsonException $e) {
 		}
-		$lines = preg_split("/\r?\n/", htmlspecialchars($response->body));
+		$lines = \Safe\preg_split("/\r?\n/", htmlspecialchars($response->body));
 		foreach ($lines as $line) {
 			if (strlen($line) > 500) {
 				$blob .= "\n<pagebreak><tab>" . wordwrap($line, 75, "\n<tab>", true);

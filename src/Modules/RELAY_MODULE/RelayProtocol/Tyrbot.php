@@ -3,18 +3,23 @@
 namespace Nadybot\Modules\RELAY_MODULE\RelayProtocol;
 
 use JsonException;
+use Throwable;
 use Nadybot\Core\{
+	Attributes as NCA,
+	ConfigFile,
 	LoggerWrapper,
 	Nadybot,
 	Routing\Character,
+	Routing\Events\Online,
 	Routing\RoutableEvent,
 	Routing\Source,
 	SettingManager,
 };
-use Nadybot\Core\Routing\Events\Online;
 use Nadybot\Modules\ONLINE_MODULE\OnlineController;
-use Nadybot\Modules\RELAY_MODULE\Relay;
-use Nadybot\Modules\RELAY_MODULE\RelayMessage;
+use Nadybot\Modules\RELAY_MODULE\{
+	Relay,
+	RelayMessage,
+};
 use Nadybot\Modules\RELAY_MODULE\RelayProtocol\Tyrbot\{
 	BasePacket,
 	Logoff,
@@ -23,16 +28,23 @@ use Nadybot\Modules\RELAY_MODULE\RelayProtocol\Tyrbot\{
 	OnlineList,
 	OnlineListRequest,
 };
-use Throwable;
 
-/**
- * @RelayProtocol("tyrbot")
- * @Description("This is the enhanced protocol of Tyrbot. If your
- * 	relay consists only of Nadybots and Tyrbots, use this one.
- * 	It allows sharing of online users as well as fully customized
- * 	colors.")
- * @Param(name='sync-online', description='Sync the online list with the other bots of this relay', type='bool', required=false)
- */
+#[
+	NCA\RelayProtocol(
+		name: "tyrbot",
+		description:
+			"This is the enhanced protocol of Tyrbot. If your\n".
+			"relay consists only of Nadybots and Tyrbots, use this one.\n".
+			"It allows sharing of online users as well as fully customized\n".
+			"colors."
+	),
+	NCA\Param(
+		name: "sync-online",
+		type: "bool",
+		description: "Sync the online list with the other bots of this relay",
+		required: false
+	)
+]
 class Tyrbot implements RelayProtocolInterface {
 	protected static int $supportedFeatures = self::F_ONLINE_SYNC;
 
@@ -41,16 +53,19 @@ class Tyrbot implements RelayProtocolInterface {
 	/** Do we want to sync online users? */
 	protected bool $syncOnline = true;
 
-	/** @Logger */
+	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Nadybot $chatBot;
 
-	/** @Inject */
+	#[NCA\Inject]
+	public ConfigFile $config;
+
+	#[NCA\Inject]
 	public OnlineController $onlineController;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public SettingManager $settingManager;
 
 	public function __construct(bool $syncOnline=true) {
@@ -92,6 +107,7 @@ class Tyrbot implements RelayProtocolInterface {
 		return [$data];
 	}
 
+	/** @return array<string,mixed> */
 	protected function nadyPathToTyr(RoutableEvent $event): array {
 		$source = [
 			"name" => $event->path[0]->name,
@@ -120,8 +136,8 @@ class Tyrbot implements RelayProtocolInterface {
 		$event = clone $event;
 		if (is_string($event->data)) {
 			$event->data = str_replace("<myname>", $this->chatBot->char->name, $event->data);
-		} elseif (is_object($event->data) && is_string($event->data->message)) {
-			$event->data = str_replace("<myname>", $this->chatBot->char->name, $event->data->message);
+		} elseif (is_object($event->data) && is_string($event->data->message??null)) {
+			$event->data = str_replace("<myname>", $this->chatBot->char->name, $event->data->message??"");
 		} else {
 			return [];
 		}
@@ -162,7 +178,7 @@ class Tyrbot implements RelayProtocolInterface {
 		]);
 		$serialized = array_shift($message->packages);
 		try {
-			$data = json_decode($serialized, true, 10, JSON_UNESCAPED_SLASHES|JSON_INVALID_UTF8_SUBSTITUTE|JSON_THROW_ON_ERROR);
+			$data = \Safe\json_decode($serialized, true, 10, JSON_UNESCAPED_SLASHES|JSON_INVALID_UTF8_SUBSTITUTE|JSON_THROW_ON_ERROR);
 			$identify = new BasePacket($data);
 			return $this->decodeAndHandlePacket($message->sender, $identify, $data);
 		} catch (JsonException $e) {
@@ -178,10 +194,9 @@ class Tyrbot implements RelayProtocolInterface {
 			);
 			return null;
 		}
-
-		return null;
 	}
 
+	/** @param array<mixed> $data */
 	protected function decodeAndHandlePacket(?string $sender, BasePacket $identify, array $data): ?RoutableEvent {
 		switch ($identify->type) {
 			case $identify::MESSAGE:
@@ -263,10 +278,11 @@ class Tyrbot implements RelayProtocolInterface {
 			"online" => []
 		];
 		$onlineOrg = $this->onlineController->getPlayers('guild', $this->chatBot->char->name);
-		if (strlen($this->chatBot->vars["my_guild"]??"")) {
+		/** @psalm-suppress DocblockTypeContradiction */
+		if (strlen($this->config->orgName)) {
 			$orgSource = [
-				"name" => $this->chatBot->vars["my_guild"],
-				"server" => (int)$this->chatBot->vars["dimension"],
+				"name" => $this->config->orgName,
+				"server" => $this->config->dimension,
 			];
 			$orgLabel = $this->settingManager->getString("relay_guild_abbreviation");
 			if (strlen($orgLabel??"") && $orgLabel !== "none") {
@@ -289,9 +305,10 @@ class Tyrbot implements RelayProtocolInterface {
 		$onlinePriv = $this->onlineController->getPlayers('priv', $this->chatBot->char->name);
 		$privSource = [
 			"name" => $this->chatBot->char->name,
-			"server" => (int)$this->chatBot->vars["dimension"],
+			"server" => $this->config->dimension,
 		];
-		if (strlen($this->chatBot->vars["my_guild"]??"")) {
+		/** @psalm-suppress DocblockTypeContradiction */
+		if (strlen($this->config->orgName)) {
 			if (isset($orgLabel) && $orgLabel !== "none") {
 				$privSource['label'] = $orgLabel;
 			}
@@ -415,8 +432,8 @@ class Tyrbot implements RelayProtocolInterface {
 		$this->relay = $relay;
 	}
 
-	protected function jsonEncode($data): string {
-		return json_encode($data, JSON_UNESCAPED_SLASHES|JSON_INVALID_UTF8_SUBSTITUTE|JSON_THROW_ON_ERROR);
+	protected function jsonEncode(mixed $data): string {
+		return \Safe\json_encode($data, JSON_UNESCAPED_SLASHES|JSON_INVALID_UTF8_SUBSTITUTE|JSON_THROW_ON_ERROR);
 	}
 
 	public static function supportsFeature(int $feature): bool {

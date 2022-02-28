@@ -11,7 +11,7 @@ class CreateLevelsTable implements SchemaMigration {
 	public function migrate(LoggerWrapper $logger, DB $db): void {
 		$table = "levels";
 		$db->schema()->dropIfExists($table);
-		$db->schema()->create($table, function(Blueprint $table) {
+		$db->schema()->create($table, function(Blueprint $table): void {
 			$table->smallInteger("level")->primary();
 			$table->smallInteger("teamMin");
 			$table->smallInteger("teamMax");

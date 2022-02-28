@@ -2,14 +2,14 @@
 
 namespace Nadybot\Core;
 
+use Nadybot\Core\Attributes as NCA;
 use Exception;
 
 /**
  * Class to represent a setting with a color value for NadyBot
- * @SettingHandler("color")
  */
+#[NCA\SettingHandler("color")]
 class ColorSettingHandler extends SettingHandler {
-
 	/**
 	 * Get a displayable representation of the setting
 	 */
@@ -32,6 +32,7 @@ class ColorSettingHandler extends SettingHandler {
 		return $msg;
 	}
 
+	/** @return array<string,string> */
 	public static function getExampleColors(): array {
 		$examples = [
 			"#FF0000" => "Red",

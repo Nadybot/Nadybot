@@ -7,7 +7,7 @@
 			"name": "GPL3",
 			"url": "https://www.gnu.org/licenses/gpl-3.0.en.html"
 		},
-		"version": "5.3.3"
+		"version": "6.0.0"
 	},
 	"servers": [
 		{
@@ -26,13 +26,12 @@
 					"value": {
 						"oneOf": [
 							{
-								"type": "integer"
+								"type": "string"
 							},
 							{
-								"type": "string"
+								"type": "integer"
 							}
 						],
-						"nullable": true,
 						"description": "Which value does this option represent?"
 					}
 				}
@@ -85,6 +84,51 @@
 					"time": {
 						"type": "integer",
 						"description": "time when it happened"
+					}
+				}
+			},
+			"CmdSourceMapping": {
+				"type": "object",
+				"properties": {
+					"sub_source": {
+						"type": "string",
+						"nullable": true,
+						"description": "The value for the sub-source, or null if none"
+					},
+					"permission_set": {
+						"type": "string",
+						"description": "The permission set to map $source to"
+					},
+					"cmd_prefix": {
+						"type": "string",
+						"description": "The prefix that triggers a command if it's the first letter"
+					},
+					"cmd_prefix_optional": {
+						"type": "boolean",
+						"description": "Is the prefix required to interpret the msg as command or optional"
+					},
+					"unknown_cmd_feedback": {
+						"type": "boolean",
+						"description": "Shall we report an error if the command doesn't exist"
+					}
+				}
+			},
+			"CmdSource": {
+				"type": "object",
+				"properties": {
+					"source": {
+						"type": "string",
+						"description": "The name/mask of this command source If the name contains an asterisk wildcard, it represents a mask of possible sources, e.g. aotell(*)"
+					},
+					"has_sub_sources": {
+						"type": "boolean"
+					},
+					"mappings": {
+						"type": "array",
+						"description": "A list of permission set mappings this command source maps to",
+						"items": {
+							"$ref": "#/components/schemas/CmdSourceMapping"
+						}
 					}
 				}
 			},
@@ -187,50 +231,50 @@
 					}
 				}
 			},
-			"ModuleSubcommandChannel": {
+			"CmdPermission": {
 				"type": "object",
 				"properties": {
+					"permission_set": {
+						"type": "string",
+						"description": "The name of the permission-set"
+					},
 					"access_level": {
 						"type": "string",
-						"description": "The access level you need to have in order to be allowed to use this command in this channel"
+						"description": "The access-level (member,admin,guest,all,etc)"
 					},
 					"enabled": {
 						"type": "boolean",
-						"description": "Can this command be used in this channel?"
+						"description": "Is the (sub-)command enabled on this permission-set"
+					}
+				}
+			},
+			"CmdCfg": {
+				"type": "object",
+				"properties": {
+					"cmd": {
+						"type": "string"
+					},
+					"description": {
+						"type": "string"
+					},
+					"permissions": {
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/CmdPermission"
+						}
 					}
 				}
 			},
 			"ModuleSubcommand": {
-				"type": "object",
-				"properties": {
-					"command": {
-						"type": "string",
-						"description": "The string or regexp that has to match this command"
+				"allOf": [
+					{
+						"$ref": "#/components/schemas/CmdCfg"
 					},
-					"type": {
-						"type": "string",
-						"description": "Either \"cmd\" or \"subcmd\""
-					},
-					"description": {
-						"type": "string",
-						"description": "A short description of the command"
-					},
-					"msg": {
-						"$ref": "#/components/schemas/ModuleSubcommandChannel",
-						"nullable": true,
-						"description": "Settings for tells"
-					},
-					"priv": {
-						"$ref": "#/components/schemas/ModuleSubcommandChannel",
-						"nullable": true,
-						"description": "Settings for private channel"
-					},
-					"org": {
-						"$ref": "#/components/schemas/ModuleSubcommandChannel",
-						"nullable": true,
-						"description": "Settings for org channel"
+					{
+						"type": "object",
+						"properties": []
 					}
-				}
+				]
 			},
 			"ModuleCommand": {
 				"allOf": [
@@ -250,6 +294,19 @@
 						}
 					}
 				]
+			},
+			"ModuleSubcommandChannel": {
+				"type": "object",
+				"properties": {
+					"access_level": {
+						"type": "string",
+						"description": "The access level you need to have in order to be allowed to use this command in this channel"
+					},
+					"enabled": {
+						"type": "boolean",
+						"description": "Can this command be used in this channel?"
+					}
+				}
 			},
 			"ModuleEventConfig": {
 				"type": "object",
@@ -286,16 +343,16 @@
 					"value": {
 						"oneOf": [
 							{
-								"type": "null"
+								"type": "string"
 							},
 							{
 								"type": "integer"
 							},
 							{
-								"type": "string"
+								"type": "boolean"
 							},
 							{
-								"type": "boolean"
+								"type": "null"
 							}
 						],
 						"nullable": true,
@@ -358,6 +415,10 @@
 							"id": {
 								"type": "integer",
 								"description": "The internal ID of this news entry"
+							},
+							"uuid": {
+								"type": "string",
+								"description": "The UUID of this news entry"
 							}
 						}
 					}
@@ -544,6 +605,60 @@
 					}
 				}
 			},
+			"CmdPermSetMapping": {
+				"type": "object",
+				"properties": {
+					"permission_set": {
+						"type": "string",
+						"description": "The permission set to map $source to"
+					},
+					"source": {
+						"type": "string",
+						"description": "The command source to map"
+					},
+					"symbol": {
+						"type": "string",
+						"description": "The symbol that triggers a command if it's the first letter"
+					},
+					"symbol_optional": {
+						"type": "boolean",
+						"description": "Is the symbol required to interpret the msg as command or optional"
+					},
+					"feedback": {
+						"type": "boolean",
+						"description": "Shall we report an error if the command doesn't exist"
+					}
+				}
+			},
+			"CmdPermissionSet": {
+				"type": "object",
+				"properties": {
+					"name": {
+						"type": "string"
+					},
+					"letter": {
+						"type": "string"
+					}
+				}
+			},
+			"ExtCmdPermissionSet": {
+				"allOf": [
+					{
+						"$ref": "#/components/schemas/CmdPermissionSet"
+					},
+					{
+						"type": "object",
+						"properties": {
+							"mappings": {
+								"type": "array",
+								"items": {
+									"$ref": "#/components/schemas/CmdPermSetMapping"
+								}
+							}
+						}
+					}
+				]
+			},
 			"EventType": {
 				"type": "object",
 				"properties": {
@@ -701,10 +816,12 @@
 						"type": "string",
 						"description": "Name of the bot character in AO"
 					},
-					"superadmin": {
-						"type": "string",
-						"nullable": true,
-						"description": "Name of the character running the bot, null if not set"
+					"superadmins": {
+						"type": "array",
+						"description": "Name(s) of the character(s) running the bot, empty if not set",
+						"items": {
+							"type": "string"
+						}
 					},
 					"org": {
 						"type": "string",
@@ -845,20 +962,28 @@
 					}
 				}
 			},
+			"ChannelCommandStats": {
+				"type": "object",
+				"properties": {
+					"name": {
+						"type": "string",
+						"description": "Name of the channel"
+					},
+					"active_commands": {
+						"type": "integer",
+						"description": "Number of active commands in this channel"
+					}
+				}
+			},
 			"ConfigStatistics": {
 				"type": "object",
 				"properties": {
-					"active_tell_commands": {
-						"type": "integer",
-						"description": "Number of commands activated for use with /tell"
-					},
-					"active_priv_commands": {
-						"type": "integer",
-						"description": "Number of commands activated for use in the private channel"
-					},
-					"active_org_commands": {
-						"type": "integer",
-						"description": "Number of commands activated for use in the org channel"
+					"active_commands": {
+						"type": "array",
+						"description": "Number of commands activated for each channel",
+						"items": {
+							"$ref": "#/components/schemas/ChannelCommandStats"
+						}
 					},
 					"active_subcommands": {
 						"type": "integer",
@@ -972,7 +1097,7 @@
 						"basicAuth": []
 					}
 				],
-				"description": "Get a list of available events for a module",
+				"description": "Get a list of configured access levels",
 				"responses": {
 					"200": {
 						"description": "A list of all access levels",
@@ -1118,6 +1243,256 @@
 			},
 			"parameters": []
 		},
+		"/cmd_source": {
+			"get": {
+				"security": [
+					{
+						"basicAuth": []
+					}
+				],
+				"description": "Get a list of command sources",
+				"responses": {
+					"200": {
+						"description": "A list of command sources and their mappings",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "array",
+									"items": {
+										"$ref": "#/components/schemas/CmdSource"
+									}
+								}
+							}
+						}
+					}
+				},
+				"tags": [
+					"config"
+				]
+			},
+			"parameters": []
+		},
+		"/cmd_source/{source}": {
+			"get": {
+				"security": [
+					{
+						"basicAuth": []
+					}
+				],
+				"description": "Get details for a specific command source",
+				"responses": {
+					"200": {
+						"description": "The command source and its mappings",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/CmdSource"
+								}
+							}
+						}
+					}
+				},
+				"tags": [
+					"config"
+				]
+			},
+			"parameters": [
+				{
+					"name": "source",
+					"required": true,
+					"in": "path",
+					"schema": {
+						"type": "string"
+					}
+				}
+			]
+		},
+		"/cmd_source/{source}/mappings": {
+			"get": {
+				"security": [
+					{
+						"basicAuth": []
+					}
+				],
+				"description": "Get mappings for a specific command source",
+				"responses": {
+					"200": {
+						"description": "The command source's mappings",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "array",
+									"items": {
+										"$ref": "#/components/schemas/CmdSourceMapping"
+									}
+								}
+							}
+						}
+					}
+				},
+				"tags": [
+					"config"
+				]
+			},
+			"post": {
+				"security": [
+					{
+						"basicAuth": []
+					}
+				],
+				"description": "Create a new mapping",
+				"responses": {
+					"204": {
+						"description": "A new command mapping was created"
+					}
+				},
+				"requestBody": {
+					"description": "The new mapping",
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/CmdSourceMapping"
+							}
+						}
+					}
+				},
+				"tags": [
+					"config"
+				]
+			},
+			"put": {
+				"security": [
+					{
+						"basicAuth": []
+					}
+				],
+				"description": "Modify mapping for a specific command source",
+				"responses": {
+					"200": {
+						"description": "The new, modified source mapping",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/CmdSourceMapping"
+								}
+							}
+						}
+					}
+				},
+				"tags": [
+					"config"
+				]
+			},
+			"delete": {
+				"security": [
+					{
+						"basicAuth": []
+					}
+				],
+				"description": "Delete mapping for a specific command source",
+				"responses": {
+					"204": {
+						"description": "The source mapping was deleted successfully"
+					}
+				},
+				"tags": [
+					"config"
+				]
+			},
+			"parameters": [
+				{
+					"name": "source",
+					"required": true,
+					"in": "path",
+					"schema": {
+						"type": "string"
+					}
+				}
+			]
+		},
+		"/cmd_source/{source}/mappings/{subSource}": {
+			"get": {
+				"security": [
+					{
+						"basicAuth": []
+					}
+				],
+				"description": "Get mappings for a specific command source",
+				"responses": {
+					"200": {
+						"description": "The command's sub-source mapping",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/CmdSourceMapping"
+								}
+							}
+						}
+					}
+				},
+				"tags": [
+					"config"
+				]
+			},
+			"put": {
+				"security": [
+					{
+						"basicAuth": []
+					}
+				],
+				"description": "Modify mapping for a specific command source",
+				"responses": {
+					"200": {
+						"description": "The new, modified source mapping",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/CmdSourceMapping"
+								}
+							}
+						}
+					}
+				},
+				"tags": [
+					"config"
+				]
+			},
+			"delete": {
+				"security": [
+					{
+						"basicAuth": []
+					}
+				],
+				"description": "Delete mapping for a specific command sub-source",
+				"responses": {
+					"204": {
+						"description": "The sub-source mapping was deleted successfully"
+					}
+				},
+				"tags": [
+					"config"
+				]
+			},
+			"parameters": [
+				{
+					"name": "source",
+					"required": true,
+					"in": "path",
+					"schema": {
+						"type": "string"
+					}
+				},
+				{
+					"name": "subSource",
+					"required": true,
+					"in": "path",
+					"schema": {
+						"type": "string"
+					}
+				}
+			]
+		},
 		"/execute/{uuid}": {
 			"post": {
 				"security": [
@@ -1134,7 +1509,7 @@
 						"description": "Invalid UUID provided"
 					},
 					"422": {
-						"description": "Unparseable data received"
+						"description": "Unparsable data received"
 					}
 				},
 				"requestBody": {
@@ -2110,6 +2485,131 @@
 						"type": "integer"
 					},
 					"description": "Show only entries from after the given timestamp"
+				}
+			]
+		},
+		"/permission_set": {
+			"get": {
+				"security": [
+					{
+						"basicAuth": []
+					}
+				],
+				"description": "Get a list of permission sets",
+				"responses": {
+					"200": {
+						"description": "A list of permission sets",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "array",
+									"items": {
+										"$ref": "#/components/schemas/ExtCmdPermissionSet"
+									}
+								}
+							}
+						}
+					}
+				},
+				"tags": [
+					"config"
+				]
+			},
+			"post": {
+				"security": [
+					{
+						"basicAuth": []
+					}
+				],
+				"description": "Create a new permission set",
+				"responses": {
+					"204": {
+						"description": "Permission Set created successfully"
+					}
+				},
+				"requestBody": {
+					"description": "The new permission set",
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/CmdPermissionSet"
+							}
+						}
+					}
+				},
+				"tags": [
+					"config"
+				]
+			},
+			"parameters": []
+		},
+		"/permission_set/{name}": {
+			"get": {
+				"security": [
+					{
+						"basicAuth": []
+					}
+				],
+				"description": "Get a permission set by its name",
+				"responses": {
+					"200": {
+						"description": "A permission set",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ExtCmdPermissionSet"
+								}
+							}
+						}
+					}
+				},
+				"tags": [
+					"config"
+				]
+			},
+			"patch": {
+				"security": [
+					{
+						"basicAuth": []
+					}
+				],
+				"description": "Change a permission set",
+				"responses": {
+					"204": {
+						"description": "Permission Set changed successfully",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ExtCmdPermissionSet"
+								}
+							}
+						}
+					}
+				},
+				"requestBody": {
+					"description": "The new permission set data",
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/CmdPermissionSet"
+							}
+						}
+					}
+				},
+				"tags": [
+					"config"
+				]
+			},
+			"parameters": [
+				{
+					"name": "name",
+					"required": true,
+					"in": "path",
+					"schema": {
+						"type": "string"
+					}
 				}
 			]
 		},

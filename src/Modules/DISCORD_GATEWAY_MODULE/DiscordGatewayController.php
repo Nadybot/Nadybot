@@ -4,13 +4,19 @@ namespace Nadybot\Modules\DISCORD_GATEWAY_MODULE;
 
 use JsonException;
 use Nadybot\Core\{
+	Attributes as NCA,
+	Channels\DiscordChannel as RoutedChannel,
+	Channels\DiscordMsg,
 	CommandManager,
-	Event,
 	EventManager,
+	ModuleInstance,
 	LoggerWrapper,
 	MessageHub,
 	Nadybot,
 	Registry,
+	Routing\Character,
+	Routing\RoutableMessage,
+	Routing\Source,
 	SettingManager,
 	Text,
 	Timer,
@@ -26,91 +32,94 @@ use Nadybot\Core\Modules\DISCORD\{
 	DiscordMessageIn,
 	DiscordUser,
 };
-use Nadybot\Core\Routing\Character;
-use Nadybot\Core\Routing\RoutableMessage;
-use Nadybot\Core\Routing\Source;
-use Nadybot\Core\Channels\DiscordChannel as RoutedChannel;
-use Nadybot\Core\Channels\DiscordMsg;
 use Nadybot\Modules\DISCORD_GATEWAY_MODULE\Model\{
 	Activity,
 	CloseEvents,
 	Guild,
 	GuildMember,
+	GuildMemberChunk,
 	IdentifyPacket,
 	Intent,
 	Opcode,
 	Payload,
+	RequestGuildMembers,
 	ResumePacket,
 	UpdateStatus,
 	VoiceState,
 };
+use Nadybot\Modules\WEBSERVER_MODULE\StatsController;
+use ReflectionClass;
+use ReflectionClassConstant;
 use stdClass;
 
 /**
  * @author Nadyita (RK5)
- *
- * @Instance
- * @ProvidesEvent("discordmsg")
- * @ProvidesEvent("discordpriv")
- * @ProvidesEvent("discord(0)")
- * @ProvidesEvent("discord(7)")
- * @ProvidesEvent("discord(9)")
- * @ProvidesEvent("discord(10)")
- * @ProvidesEvent("discord(11)")
- * @ProvidesEvent("discord(ready)")
- * @ProvidesEvent("discord(resumed)")
- * @ProvidesEvent("discord(guild_create)")
- * @ProvidesEvent("discord(guild_update)")
- * @ProvidesEvent("discord(guild_update_delete)")
- * @ProvidesEvent("discord(guild_role_create)")
- * @ProvidesEvent("discord(guild_role_update)")
- * @ProvidesEvent("discord(guild_role_update_delete)")
- * @ProvidesEvent("discord(message_create)")
- * @ProvidesEvent("discord(message_update)")
- * @ProvidesEvent("discord(message_delete)")
- * @ProvidesEvent("discord(message_delete_bulk)")
- * @ProvidesEvent("discord(channel_create)")
- * @ProvidesEvent("discord(channel_update)")
- * @ProvidesEvent("discord(channel_delete)")
- * @ProvidesEvent("discord(channel_pins_update)")
- * @ProvidesEvent("discord(voice_state_update)")
- * @ProvidesEvent("discord_voice_join")
- * @ProvidesEvent("discord_voice_leave")
  */
-class DiscordGatewayController {
-	public string $moduleName;
-
-	/** @Inject */
+#[
+	NCA\Instance,
+	NCA\ProvidesEvent("discordmsg"),
+	NCA\ProvidesEvent("discordpriv"),
+	NCA\ProvidesEvent("discord(0)"),
+	NCA\ProvidesEvent("discord(7)"),
+	NCA\ProvidesEvent("discord(9)"),
+	NCA\ProvidesEvent("discord(10)"),
+	NCA\ProvidesEvent("discord(11)"),
+	NCA\ProvidesEvent("discord(ready)"),
+	NCA\ProvidesEvent("discord(resumed)"),
+	NCA\ProvidesEvent("discord(guild_create)"),
+	NCA\ProvidesEvent("discord(guild_update)"),
+	NCA\ProvidesEvent("discord(guild_update_delete)"),
+	NCA\ProvidesEvent("discord(guild_role_create)"),
+	NCA\ProvidesEvent("discord(guild_role_update)"),
+	NCA\ProvidesEvent("discord(guild_role_update_delete)"),
+	NCA\ProvidesEvent("discord(guild_members_chunk)"),
+	NCA\ProvidesEvent("discord(message_create)"),
+	NCA\ProvidesEvent("discord(message_update)"),
+	NCA\ProvidesEvent("discord(message_delete)"),
+	NCA\ProvidesEvent("discord(message_delete_bulk)"),
+	NCA\ProvidesEvent("discord(channel_create)"),
+	NCA\ProvidesEvent("discord(channel_update)"),
+	NCA\ProvidesEvent("discord(channel_delete)"),
+	NCA\ProvidesEvent("discord(channel_pins_update)"),
+	NCA\ProvidesEvent("discord(voice_state_update)"),
+	NCA\ProvidesEvent("discord_voice_join"),
+	NCA\ProvidesEvent("discord_voice_leave")
+]
+class DiscordGatewayController extends ModuleInstance {
+	#[NCA\Inject]
 	public SettingManager $settingManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public EventManager $eventManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Websocket $websocket;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Timer $timer;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Text $text;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public DiscordAPIClient $discordAPIClient;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public DiscordGatewayCommandHandler $discordGatewayCommandHandler;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public CommandManager $commandManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public MessageHub $messageHub;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Nadybot $chatBot;
 
-	/** @Logger */
+	#[NCA\Inject]
+	public StatsController $statsController;
+
+	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
 	protected ?int $lastSequenceNumber = null;
@@ -123,6 +132,8 @@ class DiscordGatewayController {
 	protected ?string $sessionId = null;
 	/** @var array<string,Guild> */
 	protected array $guilds = [];
+	private DiscordPacketsStats $inStats;
+	private DiscordPacketsStats $outStats;
 
 	/**
 	 * Get a list of all guilds this bot is a member of
@@ -177,28 +188,36 @@ class DiscordGatewayController {
 		);
 	}
 
-	/** @Setup */
+	#[NCA\Setup]
 	public function setup(): void {
 		$this->settingManager->add(
-			$this->moduleName,
-			"discord_activity_name",
-			"Game the bot is shown to play on Discord",
-			"edit",
-			"text",
-			"Anarchy Online",
+			module: $this->moduleName,
+			name: "discord_activity_name",
+			description: "Game the bot is shown to play on Discord",
+			mode: "edit",
+			type: "text",
+			value: "Anarchy Online",
 		);
 		$this->settingManager->add(
-			$this->moduleName,
-			"discord_notify_voice_changes",
-			"Show people joining or leaving voice channels",
-			"edit",
-			"options",
-			"0",
-			"off;priv;org;priv+org",
-			"0;1;2;3"
+			module: $this->moduleName,
+			name: "discord_notify_voice_changes",
+			description: "Show people joining or leaving voice channels",
+			mode: "edit",
+			type: "options",
+			value: "0",
+			options: [
+				'off' => 0,
+				'priv' => 1,
+				'org' => 2,
+				'priv+org' => 3,
+			]
 		);
 		$this->settingManager->registerChangeListener('discord_bot_token', [$this, "tokenChanged"]);
 		$this->settingManager->registerChangeListener('discord_activity_name', [$this, "updatePresence"]);
+		$this->inStats = new DiscordPacketsStats("in");
+		$this->outStats = new DiscordPacketsStats("out");
+		$this->statsController->registerProvider($this->inStats, "discord");
+		$this->statsController->registerProvider($this->outStats, "discord");
 	}
 
 	public function updatePresence(string $settingName, string $oldValue, string $newValue): void {
@@ -216,7 +235,7 @@ class DiscordGatewayController {
 		} else {
 			$packet->d->activities = [];
 		}
-		$this->client->send(json_encode($packet));
+		$this->client->send(\Safe\json_encode($packet));
 	}
 
 	/**
@@ -232,10 +251,10 @@ class DiscordGatewayController {
 		}
 	}
 
-	/**
-	 * @Event("connect")
-	 * @Description("Connects to the Discord server")
-	 */
+	#[NCA\Event(
+		name: "connect",
+		description: "Connects to the Discord server"
+	)]
 	public function connectToDiscordgateway(): void {
 		$this->connect();
 	}
@@ -246,10 +265,11 @@ class DiscordGatewayController {
 			return;
 		}
 		$this->client = $this->websocket->createClient()
-			->withURI("wss://gateway.discord.gg/?v=9&encoding=json")
+			->withURI("wss://gateway.discord.gg/?v=10&encoding=json")
 			->withTimeout(30)
 			->on(WebsocketClient::ON_CLOSE, [$this, "processWebsocketClose"])
 			->on(WebsocketClient::ON_TEXT, [$this, "processWebsocketMessage"])
+			->on(WebsocketClient::ON_WRITE, [$this, "processWebsocketWrite"])
 			->on(WebsocketClient::ON_ERROR, [$this, "processWebsocketError"]);
 	}
 
@@ -265,26 +285,31 @@ class DiscordGatewayController {
 			return;
 		}
 		$this->lastHeartbeat = time();
-		$this->client->send(json_encode(["op" => 1, "d" => $this->lastSequenceNumber]), "text");
+		$this->client->send(\Safe\json_encode(["op" => 1, "d" => $this->lastSequenceNumber]), "text");
 		$this->logger->info("Sending heartbeat");
 		$this->timer->callLater($this->heartbeatInterval, [$this, __FUNCTION__]);
 	}
 
+	public function processWebsocketWrite(WebsocketCallback $event): void {
+		$this->outStats->inc();
+	}
+
 	public function processWebsocketError(WebsocketCallback $event): void {
 		$this->logger->error("[$event->code] $event->data");
-		if ($event->code === WebsocketError::CONNECT_TIMEOUT) {
+		if ($event->code === WebsocketError::CONNECT_TIMEOUT && isset($this->client)) {
 			$this->timer->callLater(30, [$this->client, 'connect']);
 		}
 	}
 
 	public function processWebsocketMessage(WebsocketCallback $event): void {
+		$this->inStats->inc();
 		$this->logger->debug("Received discord message", ["message" => $event->data]);
 		$payload = new Payload();
 		try {
 			if (!isset($event->data)) {
 				throw new JsonException("null message received.");
 			}
-			$payload->fromJSON(json_decode($event->data, false, 512, JSON_THROW_ON_ERROR));
+			$payload->fromJSON(\Safe\json_decode($event->data, false, 512, JSON_THROW_ON_ERROR));
 		} catch (JsonException $e) {
 			$this->logger->error("Invalid JSON data received from Discord: {error}", [
 				"error" => $e->getMessage(),
@@ -296,6 +321,7 @@ class DiscordGatewayController {
 			}
 			return;
 		}
+		$this->logger->debug("Packet received", ["packet" => $payload]);
 		$opcodeToName = [
 			 0 => "Dispatch",
 			 1 => "Heartbeat",
@@ -324,14 +350,14 @@ class DiscordGatewayController {
 		$this->eventManager->fireEvent($eventObj);
 	}
 
-	/**
-	 * @Event("discord(10)")
-	 * @Description("Authorize to discord gateway")
-	 * @DefaultStatus("1")
-	 */
+	#[NCA\Event(
+		name: "discord(10)",
+		description: "Authorize to discord gateway",
+		defaultStatus: 1
+	)]
 	public function processGatewayHello(DiscordGatewayEvent $event): void {
 		$payload = $event->payload;
-		/** @var object $payload->d */
+		/** @var stdClass $payload->d */
 		$this->heartbeatInterval = intdiv($payload->d->heartbeat_interval, 1000);
 		$this->timer->callLater($this->heartbeatInterval, [$this, "sendWebsocketHeartbeat"]);
 		$this->logger->info("Setting Discord heartbeat interval to ".$this->heartbeatInterval."sec");
@@ -349,15 +375,18 @@ class DiscordGatewayController {
 		$this->logger->notice("Logging into Discord gateway");
 		$identify = new IdentifyPacket();
 		$identify->token = $this->settingManager->getString('discord_bot_token') ?? "off";
+		$identify->large_threshold = 250;
 		$identify->intents = Intent::GUILD_MESSAGES
 			| Intent::DIRECT_MESSAGES
+			| Intent::GUILD_MEMBERS
 			| Intent::GUILDS
-			| Intent::GUILD_VOICE_STATES;
+			| Intent::GUILD_VOICE_STATES
+			| Intent::MESSAGE_CONTENT;
 		$login = new Payload();
 		$login->op = Opcode::IDENTIFY;
 		$login->d = $identify;
 		if (isset($this->client)) {
-			$this->client->send(json_encode($login));
+			$this->client->send(\Safe\json_encode($login));
 		}
 	}
 
@@ -375,15 +404,25 @@ class DiscordGatewayController {
 		$payload->op = Opcode::RESUME;
 		$payload->d = $resume;
 		if (isset($this->client)) {
-			$this->client->send(json_encode($payload));
+			$this->client->send(\Safe\json_encode($payload));
 		}
 	}
 
-	/**
-	 * @Event("discord(0)")
-	 * @Description("Handle discord gateway intents")
-	 * @DefaultStatus("1")
-	 */
+	protected function sendRequestGuildMembers(string $guildId): void {
+		$request = new RequestGuildMembers($guildId);
+		$payload = new Payload();
+		$payload->op = Opcode::REQUEST_GUILD_MEMBERS;
+		$payload->d = $request;
+		if (isset($this->client)) {
+			$this->client->send(\Safe\json_encode($payload));
+		}
+	}
+
+	#[NCA\Event(
+		name: "discord(0)",
+		description: "Handle discord gateway intents",
+		defaultStatus: 1
+	)]
 	public function processGatewayEvents(DiscordGatewayEvent $event): void {
 		$payload = $event->payload;
 		if ($payload->t === null) {
@@ -396,11 +435,11 @@ class DiscordGatewayController {
 		$this->eventManager->fireEvent($newEvent);
 	}
 
-	/**
-	 * @Event("discord(7)")
-	 * @Description("Reconnect to discord gateway if requested")
-	 * @DefaultStatus("1")
-	 */
+	#[NCA\Event(
+		name: "discord(7)",
+		description: "Reconnect to discord gateway if requested",
+		defaultStatus: 1
+	)]
 	public function processGatewayReconnectRequest(DiscordGatewayEvent $event): void {
 		$this->logger->info("Discord Gateway requests reconnect");
 		$this->mustReconnect = true;
@@ -410,14 +449,13 @@ class DiscordGatewayController {
 		}
 	}
 
-	/**
-	 * @Event("discord(9)")
-	 * @Description("Handle invalid session answers")
-	 * @DefaultStatus("1")
-	 */
+	#[NCA\Event(
+		name: "discord(9)",
+		description: "Handle invalid session answers",
+		defaultStatus: 1
+	)]
 	public function processGatewayInvalidSession(DiscordGatewayEvent $event): void {
 		$payload = $event->payload;
-		/** @var bool $payload->d */
 		if ($payload->d === true) {
 			$this->logger->info("Session invalid, trying to resume");
 			$this->sendResume();
@@ -469,23 +507,76 @@ class DiscordGatewayController {
 			$this->sessionId = null;
 		}
 		if (
-			(($event->code ?? null) === 1000 && $this->mustReconnect)
-			|| $this->shouldReconnect($event->code ?? null)
+			((($event->code ?? null) === 1000 && $this->mustReconnect)
+			|| $this->shouldReconnect($event->code ?? null))
+			&& isset($this->client)
 		) {
 			$this->logger->notice("Reconnecting to Discord gateway in {$this->reconnectDelay}s.");
 			$this->mustReconnect = false;
 			$this->timer->callLater($this->reconnectDelay, [$this->client, 'connect']);
 			$this->reconnectDelay = max($this->reconnectDelay * 2, 5);
+		} elseif ($event->code === CloseEvents::DISALLOWED_INTENT) {
+			$this->logger->error(
+				"Your bot doesn't have all the intents it needs. Please go to {url}, then ".
+				"choose this bot's application, then choose \"Bot\" on the left and ".
+				"activate \"Server members intent\" and \"Message content intent\" under ".
+				"\"Privileged Gateway Intents\".",
+				["url" => "https://discord.com/developers"]
+			);
 		} else {
+			$ref = new ReflectionClass(CloseEvents::class);
+			$lookup = array_flip($ref->getConstants(ReflectionClassConstant::IS_PUBLIC));
+			$this->logger->error(
+				"Discord server closed connection with code {code} ({text})",
+				[
+					"code" => $event->code ?? "unknown",
+					"text" => $lookup[$event->code] ?? "unknown",
+				]
+			);
 			$this->guilds = [];
 		}
 	}
 
-	/**
-	 * @Event("discord(message_create)")
-	 * @Description("Handle discord gateway messages")
-	 * @DefaultStatus("1")
-	 */
+	#[NCA\Event(
+		name: "discord(guild_members_chunk)",
+		description: "Handle discord server members",
+		defaultStatus: 1
+	)]
+	public function processDiscordMembersChunk(DiscordGatewayEvent $event): void {
+		if (!isset($event->payload->d) || !is_object($event->payload->d)) {
+			return;
+		}
+		$chunk = new GuildMemberChunk();
+		$chunk->fromJSON($event->payload->d);
+		$this->logger->debug("Processing incoming discord members chunk", [
+			"message" => $chunk,
+		]);
+		$oldMembers = [];
+		$guild = $this->guilds[$chunk->guild_id] ?? null;
+		if (!isset($guild)) {
+			return;
+		}
+		$guild->members ??= [];
+		foreach ($guild->members as $member) {
+			if (!isset($member->user)) {
+				continue;
+			}
+			$oldMembers[$member->user->id] = $member;
+		}
+		foreach ($chunk->members as $member) {
+			if (!isset($member->user) || isset($oldMembers[$member->user->id])) {
+				continue;
+			}
+			$this->discordAPIClient->cacheGuildMember($guild->id, $member);
+			$guild->members []= $member;
+		}
+	}
+
+	#[NCA\Event(
+		name: "discord(message_create)",
+		description: "Handle discord gateway messages",
+		defaultStatus: 1
+	)]
 	public function processDiscordMessage(DiscordGatewayEvent $event): void {
 		$message = new DiscordMessageIn();
 		/** @var stdClass $event->payload->d */
@@ -496,7 +587,7 @@ class DiscordGatewayController {
 		if (!isset($message->author)) {
 			return;
 		}
-		if ($message->author->id === $this->me->id ?? null) {
+		if ($message->author->id === $this->me?->id) {
 			return;
 		}
 
@@ -635,17 +726,25 @@ class DiscordGatewayController {
 		);
 	}
 
-	/**
-	 * @Event("discord(guild_create)")
-	 * @Event("discord(guild_update)")
-	 * @Description("Handle discord guild changes")
-	 * @DefaultStatus("1")
-	 */
+	#[
+		NCA\Event(
+			name: [
+				"discord(guild_create)",
+				"discord(guild_update)",
+			],
+			description: "Handle discord guild changes",
+			defaultStatus: 1
+		),
+	]
 	public function processDiscordGuildMessages(DiscordGatewayEvent $event): void {
 		$guild = new Guild();
-		/** @var object $event->payload->d */
+		/** @var stdClass $event->payload->d */
 		$guild->fromJSON($event->payload->d);
 		$this->guilds[(string)$guild->id] = $guild;
+		$this->sendRequestGuildMembers((string)$guild->id);
+		// $this->discordAPIClient->getGuildMembers((string)$guild->id, function(array $members) use ($guild): void {
+		// 	$guild->members = $members;
+		// });
 		foreach ($guild->voice_states as $voiceState) {
 			if (!isset($voiceState->user_id)) {
 				continue;
@@ -676,16 +775,20 @@ class DiscordGatewayController {
 			->registerMessageEmitter($dm);
 	}
 
-	/**
-	 * @Event("discord(channel_create)")
-	 * @Event("discord(channel_update)")
-	 * @Event("discord(channel_delete)")
-	 * @Description("Handle discord channel changes")
-	 * @DefaultStatus("1")
-	 */
+	#[
+		NCA\Event(
+			name: [
+				"discord(channel_create)",
+				"discord(channel_update)",
+				"discord(channel_delete)",
+			],
+			description: "Handle discord channel changes",
+			defaultStatus: 1
+		),
+	]
 	public function processDiscordChannelMessages(DiscordGatewayEvent $event): void {
 		$channel = new DiscordChannel();
-		/** @var object $event->payload->d */
+		/** @var stdClass $event->payload->d */
 		$channel->fromJSON($event->payload->d);
 		// Not a guild-channel? Must be a DM channel which we don't cache anyway
 		if (!isset($channel->guild_id)) {
@@ -748,14 +851,14 @@ class DiscordGatewayController {
 		}
 	}
 
-	/**
-	 * @Event("discord(ready)")
-	 * @Description("Handle discord READY event")
-	 * @DefaultStatus("1")
-	 */
+	#[NCA\Event(
+		name: "discord(ready)",
+		description: "Handle discord READY event",
+		defaultStatus: 1
+	)]
 	public function processDiscordReady(DiscordGatewayEvent $event): void {
 		$payload = $event->payload;
-		/** @var object $payload->d */
+		/** @var stdClass $payload->d */
 		$this->sessionId = $payload->d->session_id;
 		$user = new DiscordUser();
 		$user->fromJSON($payload->d->user);
@@ -767,11 +870,11 @@ class DiscordGatewayController {
 		$this->reconnectDelay = 5;
 	}
 
-	/**
-	 * @Event("discord(resumed)")
-	 * @Description("Handle discord RESUMED event")
-	 * @DefaultStatus("1")
-	 */
+	#[NCA\Event(
+		name: "discord(resumed)",
+		description: "Handle discord RESUMED event",
+		defaultStatus: 1
+	)]
 	public function processDiscordResumed(DiscordGatewayEvent $event): void {
 		if (!isset($this->me)) {
 			return;
@@ -782,15 +885,15 @@ class DiscordGatewayController {
 		);
 	}
 
-	/**
-	 * @Event("discord(voice_state_update)")
-	 * @Description("Keep track of people in the voice chat")
-	 * @DefaultStatus("1")
-	 */
+	#[NCA\Event(
+		name: "discord(voice_state_update)",
+		description: "Keep track of people in the voice chat",
+		defaultStatus: 1
+	)]
 	public function trackVoiceStateChanges(DiscordGatewayEvent $event): void {
 		$payload = $event->payload;
 		$voiceState = new VoiceState();
-		/** @var object $payload->d */
+		/** @var stdClass $payload->d */
 		$voiceState->fromJSON($payload->d);
 		if (!isset($voiceState->channel_id) || $voiceState->channel_id === "") {
 			$this->handleVoiceChannelLeave($voiceState);
@@ -810,7 +913,7 @@ class DiscordGatewayController {
 		$this->guilds[$oldState->guild_id]->voice_states = array_values(
 			array_filter(
 				$this->guilds[$oldState->guild_id]->voice_states ?? [],
-				function (VoiceState $state) use ($oldState) {
+				function (VoiceState $state) use ($oldState): bool {
 					return $state->user_id !== $oldState->user_id;
 				}
 			)
@@ -839,7 +942,7 @@ class DiscordGatewayController {
 		$this->discordAPIClient->getGuildMember(
 			$guildId,
 			$voiceState->user_id,
-			function (GuildMember $member) use ($oldState) {
+			function (GuildMember $member) use ($oldState): void {
 				if (!isset($oldState->channel_id)) {
 					return;
 				}
@@ -911,7 +1014,7 @@ class DiscordGatewayController {
 		$this->discordAPIClient->getGuildMember(
 			$voiceState->guild_id,
 			$voiceState->user_id,
-			function (GuildMember $member, DiscordChannel $channel) {
+			function (GuildMember $member, DiscordChannel $channel): void {
 				$event = new DiscordVoiceEvent();
 				$event->type = "discord_voice_join";
 				$event->discord_channel = $channel;
@@ -922,11 +1025,15 @@ class DiscordGatewayController {
 		);
 	}
 
-	/**
-	 * @Event("discord_voice_leave")
-	 * @Event("discord_voice_join")
-	 * @Description("Announce if people join or leave voice chat")
-	 */
+	#[
+		NCA\Event(
+			name: [
+				"discord_voice_join",
+				"discord_voice_leave",
+			],
+			description: "Announce if people join or leave voice chat"
+		)
+	]
 	public function announceVoiceStateChange(DiscordVoiceEvent $event): void {
 		$showChanges = $this->settingManager->getInt('discord_notify_voice_changes') ?? 0;
 		if ($showChanges === 0) {

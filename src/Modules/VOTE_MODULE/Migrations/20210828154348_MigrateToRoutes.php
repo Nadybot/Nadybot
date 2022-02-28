@@ -2,23 +2,30 @@
 
 namespace Nadybot\Modules\VOTE_MODULE\Migrations;
 
-use Nadybot\Core\DB;
-use Nadybot\Core\DBSchema\Route;
-use Nadybot\Core\DBSchema\Setting;
-use Nadybot\Core\LoggerWrapper;
-use Nadybot\Core\MessageHub;
-use Nadybot\Core\Nadybot;
-use Nadybot\Core\Routing\Source;
-use Nadybot\Core\SchemaMigration;
-use Nadybot\Core\SettingManager;
+use Nadybot\Core\{
+	Attributes as NCA,
+	ConfigFile,
+	DB,
+	DBSchema\Route,
+	DBSchema\Setting,
+	LoggerWrapper,
+	MessageHub,
+	Nadybot,
+	Routing\Source,
+	SchemaMigration,
+	SettingManager,
+};
 use Nadybot\Modules\VOTE_MODULE\VoteController;
 
 class MigrateToRoutes implements SchemaMigration {
-	/** @Inject */
+	#[NCA\Inject]
 	public VoteController $voteController;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Nadybot $chatBot;
+
+	#[NCA\Inject]
+	public ConfigFile $config;
 
 	protected function getSetting(DB $db, string $name): ?Setting {
 		return $db->table(SettingManager::DB_TABLE)
@@ -31,7 +38,7 @@ class MigrateToRoutes implements SchemaMigration {
 		$table = MessageHub::DB_TABLE_ROUTES;
 		$showWhere = $this->getSetting($db, "vote_channel_spam");
 		if (!isset($showWhere)) {
-			if (strlen($this->chatBot->vars['my_guild']??"")) {
+			if (strlen($this->config->orgName)) {
 				$showWhere = 2;
 			} else {
 				$showWhere = 0;

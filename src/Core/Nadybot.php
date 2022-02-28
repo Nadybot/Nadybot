@@ -2,11 +2,23 @@
 
 namespace Nadybot\Core;
 
-use Addendum\ReflectionAnnotatedClass;
-use Nadybot\Core\Annotations\DefineCommand;
-use Nadybot\Core\Modules\BAN\BanController;
-use Nadybot\Core\Modules\LIMITS\LimitsController;
-use Nadybot\Modules\RELAY_MODULE\RelayController;
+use function Safe\json_encode;
+use ReflectionClass;
+use Exception;
+use Throwable;
+use Nadybot\Core\{
+	Attributes as NCA,
+	Channels\OrgChannel,
+	Channels\PrivateChannel,
+	Channels\PublicChannel,
+	Channels\PrivateMessage,
+	Routing\Character,
+	Routing\RoutableMessage,
+	Routing\Source,
+	SettingHandler as CoreSettingHandler,
+	Modules\BAN\BanController,
+	Modules\LIMITS\LimitsController,
+};
 use Nadybot\Core\DBSchema\{
 	Audit,
 	CmdCfg,
@@ -15,16 +27,6 @@ use Nadybot\Core\DBSchema\{
 	Setting,
 };
 use Nadybot\Modules\WEBSERVER_MODULE\JsonImporter;
-use Exception;
-use InvalidArgumentException;
-use Nadybot\Core\Channels\OrgChannel;
-use Nadybot\Core\Channels\PrivateChannel;
-use Nadybot\Core\Channels\PublicChannel;
-use Nadybot\Core\Channels\PrivateMessage;
-use Nadybot\Core\Routing\Character;
-use Nadybot\Core\Routing\RoutableMessage;
-use Nadybot\Core\Routing\Source;
-use Throwable;
 
 /**
  * Ignore non-camelCaps named methods as a lot of external calls rely on
@@ -33,62 +35,56 @@ use Throwable;
  * phpcs:disable PSR1.Methods.CamelCapsMethodName.NotCamelCaps
  */
 
-/**
- * @Instance("chatBot")
- */
+#[NCA\Instance]
 class Nadybot extends AOChat {
-
 	public const PING_IDENTIFIER = "Nadybot";
 
-	/** @Inject */
+	#[NCA\Inject]
 	public DB $db;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public CommandManager $commandManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public SubcommandManager $subcommandManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public CommandAlias $commandAlias;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public AccessManager $accessManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public EventManager $eventManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public HelpManager $helpManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public SettingManager $settingManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public BanController $banController;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Text $text;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Util $util;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public LimitsController $limitsController;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public BuddylistManager $buddylistManager;
 
-	/** @Inject */
-	public RelayController $relayController;
-
-	/** @Inject */
-	public SettingObject $setting;
-
-	/** @Inject */
+	#[NCA\Inject]
 	public MessageHub $messageHub;
 
-	/** @Logger */
+	#[NCA\Inject]
+	public ConfigFile $config;
+
+	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
 	public BotRunner $runner;
@@ -107,7 +103,7 @@ class Nadybot extends AOChat {
 	 **/
 	public array $privateChats = [];
 
-	/** @var array<string,array<string,bool>> */
+	/** @var array<string,bool> */
 	public array $existing_subcmds = [];
 
 	/** @var array<string,array<string,bool>> */
@@ -126,13 +122,8 @@ class Nadybot extends AOChat {
 	 */
 	public array $guildmembers = [];
 
-	/**
-	 * The configuration variables of this bot as given in the config file
-	 * [(string)var => (mixed)value]
-	 *
-	 * @var array<string,mixed> $vars
-	 */
-	public array $vars;
+	/** Time the bot was started */
+	public int $startup;
 
 	/**
 	 * How many buddies can this bot hold
@@ -160,17 +151,14 @@ class Nadybot extends AOChat {
 
 	/**
 	 * Initialize the bot
-	 *
-	 * @param array<string,mixed> $vars The configuration variables of the bot
 	 */
-	public function init(BotRunner $runner, array &$vars): void {
+	public function init(BotRunner $runner): void {
 		$this->started = time();
 		$this->runner = $runner;
-		$this->vars = $vars;
 		$this->proxyCapabilities = new ProxyCapabilities();
 
 		// Set startup time
-		$this->vars["startup"] = time();
+		$this->startup = time();
 
 		$this->logger->info('Initializing bot');
 
@@ -182,24 +170,26 @@ class Nadybot extends AOChat {
 		$this->db->table(EventManager::DB_TABLE)->where("type", "setup")->update(["verify" => 1]);
 
 		// To reduce queries load core items into memory
-		$this->db->table(CommandManager::DB_TABLE)->where("cmdevent", "subcmd")->asObj(CmdCfg::class)
-			->each(function(CmdCfg $row) {
-				$this->existing_subcmds[$row->type][$row->cmd] = true;
+		$this->db->table(CommandManager::DB_TABLE)
+			->where("cmdevent", "subcmd")
+			->asObj(CmdCfg::class)
+			->each(function(CmdCfg $row): void {
+				$this->existing_subcmds[$row->cmd] = true;
 			});
 
 		$this->db->table(EventManager::DB_TABLE)->asObj(EventCfg::class)
-			->each(function(EventCfg $row) {
+			->each(function(EventCfg $row): void {
 				$this->existing_events[$row->type??""][$row->file??""] = true;
 			});
 
 		$this->db->table(HelpManager::DB_TABLE)->asObj(HlpCfg::class)
-			->each(function(HlpCfg $row) {
+			->each(function(HlpCfg $row): void {
 				$this->existing_helps[$row->name] = true;
 			});
 
 		$this->existing_settings = [];
 		$this->db->table(SettingManager::DB_TABLE)->asObj(Setting::class)
-			->each(function(Setting $row) {
+			->each(function(Setting $row): void {
 				$this->existing_settings[$row->name] = true;
 			});
 
@@ -212,7 +202,7 @@ class Nadybot extends AOChat {
 		$this->db->commit();
 		$this->db->beginTransaction();
 		foreach (Registry::getAllInstances() as $name => $instance) {
-			if (isset($instance->moduleName)) {
+			if ($instance instanceof ModuleInstanceInterface && $instance->getModuleName() !== "") {
 				$this->registerInstance($name, $instance);
 			} else {
 				$this->callSetupMethod($name, $instance);
@@ -243,31 +233,44 @@ class Nadybot extends AOChat {
 		$this->logger->notice("Connecting to AO Server...({$server}:{$port})");
 		if (!$this->connect($server, $port)) {
 			$this->logger->critical("Connection failed! Please check your Internet connection and firewall.");
-			sleep(10);
-			exit(1);
+			\Safe\sleep(10);
+			die();
 		}
 
 		$this->logger->notice("Authenticate login data...");
 		if (null === $this->authenticate($login, $password)) {
 			$this->logger->critical("Login failed.");
-			sleep(10);
+			\Safe\sleep(10);
 			exit(1);
 		}
 
-		$this->logger->notice("Logging in {$this->vars["name"]}...");
-		if (false === $this->login($this->vars["name"])) {
+		$this->logger->notice("Logging in {$this->config->name}...");
+		if (false === $this->login($this->config->name)) {
 			$this->logger->critical("Character selection failed.");
-			sleep(10);
+			\Safe\sleep(10);
 			exit(1);
 		}
+		if (!isset($this->socket)) {
+			die();
+		}
 
-		if (($this->vars["use_proxy"]??0) == 1) {
+		if (socket_set_nonblock($this->socket)) {
+			$this->logger->notice("Connection with AO switched to non-blocking");
+		} else {
+			$this->logger->warning("Unable to switch the AO-connection to non-blocking");
+		}
+		if ($this->config->useProxy) {
 			$this->queryProxyFeatures();
 		}
 
 		$this->buddyListSize += 1000;
-		$this->logger->notice("All Systems ready!");
-		$pc = new PrivateChannel($this->vars["name"]);
+		$this->logger->notice("Successfully logged in", [
+			"name" => $this->config->name,
+			"login" => $login,
+			"server" => $server,
+			"port" => $port,
+		]);
+		$pc = new PrivateChannel($this->config->name);
 		Registry::injectDependencies($pc);
 		$this->messageHub
 			->registerMessageReceiver($pc)
@@ -278,6 +281,9 @@ class Nadybot extends AOChat {
 		$this->messageHub
 			->registerMessageReceiver($pm)
 			->registerMessageEmitter($pm);
+		$this->commandManager->registerSource(Source::PRIV . "(*)");
+		$this->commandManager->registerSource(Source::ORG);
+		$this->commandManager->registerSource(Source::TELL . "(*)");
 	}
 
 	/**
@@ -293,10 +299,10 @@ class Nadybot extends AOChat {
 			$continue = false;
 		};
 		if (function_exists('sapi_windows_set_ctrl_handler')) {
-			sapi_windows_set_ctrl_handler($signalHandler, true);
+			\Safe\sapi_windows_set_ctrl_handler($signalHandler, true);
 		} elseif (function_exists('pcntl_signal')) {
-			pcntl_signal(SIGINT, $signalHandler);
-			pcntl_signal(SIGTERM, $signalHandler);
+			\Safe\pcntl_signal(SIGINT, $signalHandler);
+			\Safe\pcntl_signal(SIGTERM, $signalHandler);
 		} else {
 			$this->logger->error('You need to have the pcntl extension on Linux');
 			exit(1);
@@ -310,7 +316,7 @@ class Nadybot extends AOChat {
 		while ($continue) {
 			$loop->execSingleLoop();
 			if ($callDispatcher && function_exists('pcntl_signal_dispatch')) {
-				pcntl_signal_dispatch();
+				\Safe\pcntl_signal_dispatch();
 			}
 		}
 		$this->logger->notice('Graceful shutdown.');
@@ -335,10 +341,12 @@ class Nadybot extends AOChat {
 		if ($packet) {
 			$this->process_packet($packet);
 			return true;
-		} else {
+		}
+		if (!strlen($this->readBuffer) && !strlen($this->writeBuffer)) {
 			$this->ready = true;
 			return false;
 		}
+		return true;
 	}
 
 	/**
@@ -358,7 +366,7 @@ class Nadybot extends AOChat {
 		}
 
 		if ($group === null) {
-			$group = $this->setting->default_private_channel;
+			$group = $this->char->name;
 		}
 
 		$message = $this->text->formatMessage($origMsg = $message);
@@ -372,13 +380,13 @@ class Nadybot extends AOChat {
 		$event->type = "sendpriv";
 		$event->channel = $group;
 		$event->message = $origMsg;
-		$event->sender = $this->vars["name"];
+		$event->sender = $this->config->name;
 		$this->eventManager->fireEvent($event, $disableRelay);
 		if (!$disableRelay) {
 			$rMessage = new RoutableMessage($origMsg);
 			$rMessage->setCharacter(new Character($this->char->name, $this->char->id));
 			$label = null;
-			if (isset($this->vars["my_guild"]) && strlen($this->vars["my_guild"])) {
+			if (strlen($this->config->orgName)) {
 				$label = "Guest";
 			}
 			$rMessage->prependPath(new Source(Source::PRIV, $this->char->name, $label));
@@ -418,9 +426,9 @@ class Nadybot extends AOChat {
 		$this->send_guild($guildColor.$message, "\0", $priority);
 		$event = new AOChatEvent();
 		$event->type = "sendguild";
-		$event->channel = $this->vars["my_guild"];
+		$event->channel = $this->config->orgName;
 		$event->message = $origMsg;
-		$event->sender = $this->vars["name"];
+		$event->sender = $this->config->name;
 		$this->eventManager->fireEvent($event, $disableRelay);
 
 		if ($disableRelay) {
@@ -431,7 +439,7 @@ class Nadybot extends AOChat {
 		$abbr = $this->settingManager->getString('relay_guild_abbreviation');
 		$rMessage->prependPath(new Source(
 			Source::ORG,
-			$this->vars["my_guild"],
+			$this->config->orgName,
 			($abbr === 'none') ? null : $abbr
 		));
 		$this->messageHub->handle($rMessage);
@@ -447,7 +455,7 @@ class Nadybot extends AOChat {
 	 * @return void
 	 */
 	public function sendTell($message, string $character, int $priority=null, bool $formatMessage=true): void {
-		if ( ($this->vars["use_proxy"]??0) == 1
+		if ($this->config->useProxy
 			&& $this->settingManager->getBool('force_mass_tells')
 			&& $this->settingManager->getBool('allow_mass_tells')
 		) {
@@ -491,7 +499,7 @@ class Nadybot extends AOChat {
 		$priority ??= $this->chatqueue::PRIORITY_HIGH;
 
 		// If we're not using a chat proxy or mass tells are disabled, this doesn't do anything
-		if (($this->vars["use_proxy"]??0) == 0
+		if (!$this->config->useProxy
 			|| !$this->settingManager->getBool('allow_mass_tells')) {
 			$this->sendTell($message, $character, $priority, $formatMessage);
 			return;
@@ -559,33 +567,6 @@ class Nadybot extends AOChat {
 		$this->messageHub->handle($rMessage);
 
 		$this->send_group($channel, $guildColor.$message, "\0", $priority);
-	}
-
-	/**
-	 * Returns a command type in the proper format
-	 *
-	 * @param null|string|string[] $type A space-separate list of any combination of "msg", "priv" and "guild"
-	 * @param string|string[] $admin A space-separate list of access rights needed
-	 */
-	public function processCommandArgs(&$type, &$admin): bool {
-		if ($type === null || $type === "") {
-			$type = ["msg", "priv", "guild"];
-		} elseif (is_string($type)) {
-			$type = explode(' ', $type);
-		}
-
-		if (!is_string($admin)) {
-			throw new InvalidArgumentException("Wrong parameter type 2 to " .__FUNCTION__);
-		}
-
-		$admin = explode(' ', $admin);
-		if (count($admin) === 1) {
-			$admin = array_fill(0, count($type), $admin[0]);
-		} elseif (count($admin) != count($type)) {
-			$this->logger->error("The number of type arguments does not equal the number of admin arguments for command/subcommand registration");
-			return false;
-		}
-		return true;
 	}
 
 	/**
@@ -659,7 +640,7 @@ class Nadybot extends AOChat {
 		$orgId = $this->getOrgId($groupId);
 		$this->logger->info("AOChatPacket::GROUP_ANNOUNCE => name: '$groupName'");
 		if ($orgId) {
-			$this->vars["my_guild_id"] = $orgId;
+			$this->config->orgId = $orgId;
 		}
 	}
 
@@ -810,7 +791,7 @@ class Nadybot extends AOChat {
 
 		$worker = 0;
 		try {
-			$payload = json_decode($extra, false, 512, JSON_THROW_ON_ERROR);
+			$payload = \Safe\json_decode($extra, false, 512, JSON_THROW_ON_ERROR);
 			$worker = $payload->id ?? 0;
 		} catch (Throwable $e) {
 		}
@@ -885,7 +866,7 @@ class Nadybot extends AOChat {
 		$eventObj->message = $message;
 		if ($extra !== "\0") {
 			try {
-				$extraData = json_decode($extra, false, 512, JSON_THROW_ON_ERROR);
+				$extraData = \Safe\json_decode($extra, false, 512, JSON_THROW_ON_ERROR);
 				if (isset($extraData) && is_object($extraData) && isset($extraData->id)) {
 					$eventObj->worker = $extraData->id;
 				}
@@ -916,7 +897,7 @@ class Nadybot extends AOChat {
 
 		$rMsg = new RoutableMessage($message);
 		$rMsg->appendPath(new Source(Source::TELL, $sender));
-		$rMsg->setCharacter(new Character($sender, $senderId, (int)$this->vars['dimension']));
+		$rMsg->setCharacter(new Character($sender, $senderId, $this->config->dimension));
 		if ($this->messageHub->handle($rMsg) !== $this->messageHub::EVENT_NOT_ROUTED) {
 			return;
 		}
@@ -926,21 +907,16 @@ class Nadybot extends AOChat {
 			function(int $senderId, AOChatEvent $eventObj, string $message, string $sender, string $type): void {
 				$this->eventManager->fireEvent($eventObj);
 
-				// remove the symbol if there is one
-				if ($message[0] == $this->settingManager->get("symbol") && strlen($message) > 1) {
-					$message = substr($message, 1);
-				}
-
-				// check tell limits
 				$context = new CmdContext($sender, $senderId);
-				$context->channel = $type;
 				$context->message = $message;
+				$context->source = Source::TELL . "({$sender})";
 				$context->sendto = new PrivateMessageCommandReply($this, $sender, $eventObj->worker ?? null);
+				$context->setIsDM();
 				$this->limitsController->checkAndExecute(
 					$sender,
 					$message,
 					function(CmdContext $context): void {
-						$this->commandManager->processCmd($context);
+						$this->commandManager->checkAndHandleCmd($context);
 					},
 					$context
 				);
@@ -976,7 +952,7 @@ class Nadybot extends AOChat {
 		$this->logger->info("AOChatPacket::PRIVGRP_MESSAGE => sender: '$sender' channel: '$channel' message: '$message'");
 		$this->logger->logChat($channel, $sender, $message);
 
-		if ($sender == $this->vars["name"]) {
+		if ($sender == $this->config->name) {
 			return;
 		}
 		if ($this->isDefaultPrivateChannel($channel)) {
@@ -989,30 +965,16 @@ class Nadybot extends AOChat {
 		$rMessage = new RoutableMessage($message);
 		$rMessage->setCharacter(new Character($sender, $senderId));
 		$label = null;
-		if (isset($this->vars["my_guild"]) && strlen($this->vars["my_guild"])) {
+		if (strlen($this->config->orgName)) {
 			$label = "Guest";
 		}
 		$rMessage->prependPath(new Source(Source::PRIV, $channel, $label));
 		$this->messageHub->handle($rMessage);
-		if ($message[0] !== $this->settingManager->get("symbol")
-			|| strlen($message) <= 1
-			|| !$this->isDefaultPrivateChannel($channel)
-		) {
-			return;
-		}
-
 		$context = new CmdContext($sender, $senderId);
-		$context->channel = $type;
-		$context->message = substr($message, 1);
+		$context->message = $message;
+		$context->source = Source::PRIV . "({$channel})";
 		$context->sendto = new PrivateChannelCommandReply($this, $channel);
-		$this->banController->handleBan(
-			$senderId,
-			function (int $senderId, CmdContext $context): void {
-				$this->commandManager->processCmd($context);
-			},
-			null,
-			$context
-		);
+		$this->commandManager->checkAndHandleCmd($context);
 	}
 
 	/**
@@ -1020,7 +982,7 @@ class Nadybot extends AOChat {
 	 */
 	public function processPublicChannelMessage(string $channelId, int $senderId, string $message): void {
 		$channel = $this->get_gname($channelId);
-		if (!is_string($channel)) {
+		if (!isset($channel)) {
 			$this->logger->info("Invalid channel ID received: {$channelId}");
 			return;
 		}
@@ -1040,7 +1002,7 @@ class Nadybot extends AOChat {
 		$orgId = $this->getOrgId($channelId);
 
 		// Route public messages not from the bot itself
-		if ($sender !== $this->vars["name"]) {
+		if ($sender !== $this->config->name) {
 			if (!$orgId || $this->settingManager->getBool('guild_channel_status')) {
 				$rMessage = new RoutableMessage($message);
 				if ($this->util->isValidSender($sender)) {
@@ -1072,7 +1034,7 @@ class Nadybot extends AOChat {
 
 		if ($this->util->isValidSender($sender)) {
 			// ignore messages that are sent from the bot self
-			if ($sender == $this->vars["name"]) {
+			if ($sender == $this->config->name) {
 				return;
 			}
 		}
@@ -1091,21 +1053,11 @@ class Nadybot extends AOChat {
 			$eventObj->type = $type;
 
 			$this->eventManager->fireEvent($eventObj);
-
-			if ($message[0] == $this->settingManager->get("symbol") && strlen($message) > 1) {
-				$context = new CmdContext($sender, $senderId);
-				$context->channel = "guild";
-				$context->message = substr($message, 1);
-				$context->sendto = new GuildChannelCommandReply($this);
-				$this->banController->handleBan(
-					$senderId,
-					function (int $senderId, CmdContext $context): void {
-						$this->commandManager->processCmd($context);
-					},
-					null,
-					$context
-				);
-			}
+			$context = new CmdContext($sender, $senderId);
+			$context->source = Source::ORG;
+			$context->message = $message;
+			$context->sendto = new GuildChannelCommandReply($this);
+			$this->commandManager->checkAndHandleCmd($context);
 		}
 	}
 
@@ -1140,7 +1092,7 @@ class Nadybot extends AOChat {
 			return;
 		}
 		try {
-			$obj = json_decode($reply, false, 512, JSON_THROW_ON_ERROR);
+			$obj = \Safe\json_decode($reply, false, 512, JSON_THROW_ON_ERROR);
 			if (!is_object($obj) || !isset($obj->type) || !isset($classMapping[$obj->type])) {
 				throw new Exception();
 			}
@@ -1247,28 +1199,27 @@ class Nadybot extends AOChat {
 		);
 	}
 
+	/** @phpstan-param class-string $class */
 	public function registerEvents(string $class): void {
-		$reflection = new ReflectionAnnotatedClass($class);
+		$reflection = new ReflectionClass($class);
 
-		if (!$reflection->hasAnnotation('ProvidesEvent')) {
-			return;
-		}
-		foreach ($reflection->getAllAnnotations('ProvidesEvent') as $eventAnnotation) {
-			$this->eventManager->addEventType($eventAnnotation->value, $eventAnnotation->desc??null);
+		foreach ($reflection->getAttributes(NCA\ProvidesEvent::class) as $eventAttr) {
+			/** @var NCA\ProvidesEvent */
+			$eventObj = $eventAttr->newInstance();
+			$this->eventManager->addEventType($eventObj->event, $eventObj->desc);
 		}
 	}
 
 	public function registerSettingHandlers(string $class): void {
-		if (!is_subclass_of($class, SettingHandler::class)) {
+		if (!is_subclass_of($class, CoreSettingHandler::class)) {
 			return;
 		}
-		$reflection = new ReflectionAnnotatedClass($class);
+		$reflection = new ReflectionClass($class);
 
-		if (!$reflection->hasAnnotation('SettingHandler')) {
-			return;
-		}
-		foreach ($reflection->getAllAnnotations('SettingHandler') as $settingAnnotation) {
-			$this->settingManager->registerSettingHandler($settingAnnotation->value, $class);
+		foreach ($reflection->getAttributes(NCA\SettingHandler::class) as $settingAttr) {
+			/** @var NCA\SettingHandler */
+			$AttrObj = $settingAttr->newInstance();
+			$this->settingManager->registerSettingHandler($AttrObj->name, $class);
 		}
 	}
 
@@ -1278,90 +1229,75 @@ class Nadybot extends AOChat {
 	 * In order to later easily find a module, it registers here
 	 * and other modules can get the instance by querying for $name
 	 */
-	public function registerInstance(string $name, object $obj): void {
-		$this->logger->info("Registering instance name '$name' for module '{$obj->moduleName}'");
-		$moduleName = $obj->moduleName;
+	public function registerInstance(string $name, ModuleInstanceInterface $obj): void {
+		$moduleName = $obj->getModuleName();
+		$this->logger->info("Registering instance name '{name}' for module '{moduleName}'", [
+			"name" => $name,
+			"moduleName" => $moduleName,
+		]);
 
 		// register settings annotated on the class
-		$reflection = new ReflectionAnnotatedClass($obj);
-		foreach ($reflection->getProperties() as $property) {
-			/** @var \Addendum\ReflectionAnnotatedProperty $property */
-			if ($property->hasAnnotation('Setting')) {
-				$this->settingManager->add(
-					$moduleName,
-					$property->getAnnotation('Setting')->value,
-					$property->getAnnotation('Description')->value,
-					$property->getAnnotation('Visibility')->value,
-					$property->getAnnotation('Type')->value,
-					$obj->{$property->name},
-					@$property->getAnnotation('Options')->value,
-					@$property->getAnnotation('Intoptions')->value,
-					@$property->getAnnotation('AccessLevel')->value,
-					@$property->getAnnotation('Help')->value
-				);
-			}
-		}
+		$reflection = new ReflectionClass($obj);
 
 		// register commands, subcommands, and events annotated on the class
 		$commands = [];
 		$subcommands = [];
-		foreach ($reflection->getAllAnnotations() as $annotation) {
-			if ($annotation instanceof DefineCommand) {
-				if (!isset($annotation->command)) {
-					$this->logger->warning("Cannot parse @DefineCommand annotation in '$name'.");
-					continue;
-				}
-				$command = $annotation->command;
-				$definition = [
-					'channels'      => $annotation->channels,
-					'defaultStatus' => $annotation->defaultStatus,
-					'accessLevel'   => $annotation->accessLevel??"mod",
-					'description'   => $annotation->description,
-					'help'          => $annotation->help,
-					'handlers'      => []
-				];
-				[$parentCommand, $subCommand] = explode(" ", $command . " ", 2);
-				if ($subCommand !== "") {
-					$definition['parentCommand'] = $parentCommand;
-					$subcommands[$command] = $definition;
-				} else {
-					$commands[$command] = $definition;
-				}
-				// register command alias if defined
-				if ($annotation->alias) {
-					$this->commandAlias->register($moduleName, $command, $annotation->alias);
+		foreach ($reflection->getAttributes(NCA\DefineCommand::class) as $attribute) {
+			/** @var NCA\DefineCommand */
+			$attribute = $attribute->newInstance();
+			$command = $attribute->command;
+			$definition = [
+				'defaultStatus' => $attribute->defaultStatus,
+				'accessLevel'   => $attribute->accessLevel??"mod",
+				'description'   => $attribute->description,
+				'help'          => $attribute->help,
+				'handlers'      => []
+			];
+			[$parentCommand, $subCommand] = explode(" ", $command . " ", 2);
+			if ($subCommand !== "") {
+				$definition['parentCommand'] = $parentCommand;
+				$subcommands[$command] = $definition;
+			} else {
+				$commands[$command] = $definition;
+			}
+			// register command alias if defined
+			if (isset($attribute->alias)) {
+				foreach ((array)$attribute->alias as $alias) {
+					$this->commandAlias->register($moduleName, $command, $alias);
 				}
 			}
 		}
 
 		foreach ($reflection->getMethods() as $method) {
-			/** @var \Addendum\ReflectionAnnotatedMethod $method */
-			if ($method->hasAnnotation('Setup')) {
-				if (call_user_func([$obj, $method->name]) === false) {
+			if (count($method->getAttributes(NCA\Setup::class))) {
+				if ($method->invoke($obj) === false) {
 					$this->logger->error("Failed to call setup handler for '$name'");
 				}
-			} elseif ($method->hasAnnotation('HandlesCommand')) {
-				foreach ($method->getAllAnnotations('HandlesCommand') as $command) {
-					$commandName = $command->value;
-					$handlerName = "{$name}.{$method->name}";
-					if (isset($commands[$commandName])) {
-						$commands[$commandName]['handlers'][] = $handlerName;
-					} elseif (isset($subcommands[$commandName])) {
-						$subcommands[$commandName]['handlers'][] = $handlerName;
-					} else {
-						$this->logger->warning("Cannot handle command '$commandName' as it is not defined with @DefineCommand in '$name'.");
-					}
+			}
+			foreach ($method->getAttributes(NCA\HandlesCommand::class) as $command) {
+				/** @var NCA\HandlesCommand */
+				$command = $command->newInstance();
+				$commandName = $command->command;
+				$handlerName = "{$name}.{$method->name}:".$method->getStartLine();
+				if (isset($commands[$commandName])) {
+					$commands[$commandName]['handlers'][] = $handlerName;
+				} elseif (isset($subcommands[$commandName])) {
+					$subcommands[$commandName]['handlers'][] = $handlerName;
+				} else {
+					$this->logger->warning("Cannot handle command '$commandName' as it is not defined with #[DefineCommand] in '$name'.");
 				}
-			} elseif ($method->hasAnnotation('Event')) {
-				foreach ($method->getAllAnnotations('Event') as $eventAnnotation) {
-					$defaultStatus = @$method->getAnnotation('DefaultStatus')->value;
+			}
+			foreach ($method->getAttributes(NCA\Event::class) as $eventAnnotation) {
+				/** @var NCA\Event */
+				$event = $eventAnnotation->newInstance();
+				foreach ((array)$event->name as $eventName) {
 					$this->eventManager->register(
 						$moduleName,
-						$eventAnnotation->value,
+						$eventName,
 						$name . '.' . $method->name,
-						@$method->getAnnotation('Description')->value ?? "none",
-						@$method->getAnnotation('Help')->value,
-						isset($defaultStatus) ? (int)$defaultStatus : null
+						$event->description,
+						$event->help,
+						$event->defaultStatus
 					);
 				}
 			}
@@ -1374,12 +1310,10 @@ class Nadybot extends AOChat {
 			}
 			$this->commandManager->register(
 				$moduleName,
-				$definition['channels'],
 				implode(',', $definition['handlers']),
 				(string)$command,
 				$definition['accessLevel'],
-				$definition['description']??"No description given",
-				$definition['help'],
+				$definition['description'],
 				$definition['defaultStatus']
 			);
 		}
@@ -1391,13 +1325,11 @@ class Nadybot extends AOChat {
 			}
 			$this->subcommandManager->register(
 				$moduleName,
-				$definition['channels'],
 				implode(',', $definition['handlers']),
 				$subcommand,
 				$definition['accessLevel'],
 				$definition['parentCommand'],
 				$definition['description'],
-				$definition['help'],
 				$definition['defaultStatus']
 			);
 		}
@@ -1407,13 +1339,13 @@ class Nadybot extends AOChat {
 	 * Call the setup method for an object
 	 */
 	public function callSetupMethod(string $name, object $obj): void {
-		$reflection = new ReflectionAnnotatedClass($obj);
+		$reflection = new ReflectionClass($obj);
 		foreach ($reflection->getMethods() as $method) {
-			/** @var \Addendum\ReflectionAnnotatedMethod $method */
-			if ($method->hasAnnotation('Setup')) {
-				if (call_user_func([$obj, $method->name]) === false) {
-					$this->logger->error("Failed to call setup handler for '$name'");
-				}
+			if (empty($method->getAttributes(NCA\Setup::class))) {
+				continue;
+			}
+			if ($method->invoke($obj) === false) {
+				$this->logger->error("Failed to call setup handler for '$name'");
 			}
 		}
 	}
@@ -1429,7 +1361,7 @@ class Nadybot extends AOChat {
 	 * Get the OrgID for a ChannelID or null if not an org channel
 	 */
 	public function getOrgId(string $channelId): ?int {
-		$b = unpack("Ctype/Nid", $channelId);
+		$b = \Safe\unpack("Ctype/Nid", $channelId);
 		if ($b['type'] === 3) {
 			return $b['id'];
 		}
@@ -1447,7 +1379,7 @@ class Nadybot extends AOChat {
 	 * Check if a private channel is this bot's private channel
 	 */
 	public function isDefaultPrivateChannel(string $channel): bool {
-		return $channel == $this->setting->default_private_channel;
+		return $channel === $this->char->name;
 	}
 
 	public function getUptime(): int {
@@ -1481,12 +1413,12 @@ class Nadybot extends AOChat {
 		return null;
 	}
 
-	public function getPacket(): ?AOChatPacket {
-		$result = parent::getPacket();
+	public function getPacket(bool $blocking=false): ?AOChatPacket {
+		$result = parent::getPacket($blocking);
 		if (!isset($result) || $result->type !== AOChatPacket::GROUP_ANNOUNCE) {
 			return $result;
 		}
-		$data = unpack("Ctype/Nid", (string)$result->args[0]);
+		$data = \Safe\unpack("Ctype/Nid", (string)$result->args[0]);
 		if ($data["type"] !== 3) { // guild channel
 			$pc = new PublicChannel($result->args[1]);
 			Registry::injectDependencies($pc);

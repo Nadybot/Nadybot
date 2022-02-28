@@ -2,50 +2,48 @@
 
 namespace Nadybot\Modules\WHOIS_MODULE;
 
-use Nadybot\Core\CmdContext;
-use Nadybot\Core\CommandReply;
-use Nadybot\Core\Modules\PLAYER_LOOKUP\PlayerHistory;
-use Nadybot\Core\Modules\PLAYER_LOOKUP\PlayerHistoryManager;
-use Nadybot\Core\Nadybot;
-use Nadybot\Core\ParamClass\PCharacter;
-use Nadybot\Core\Text;
+use Nadybot\Core\{
+	Attributes as NCA,
+	CmdContext,
+	CommandReply,
+	ConfigFile,
+	ModuleInstance,
+	Modules\PLAYER_LOOKUP\PlayerHistory,
+	Modules\PLAYER_LOOKUP\PlayerHistoryManager,
+	ParamClass\PCharacter,
+	Text,
+};
 
 /**
  * @author Tyrence (RK2)
- *
- * @Instance
- *
- * Commands this controller contains:
- *	@DefineCommand(
- *		command     = 'history',
- *		accessLevel = 'all',
- *		description = 'Show history of a player',
- *		help        = 'history.txt'
- *	)
  */
-class PlayerHistoryController {
+#[
+	NCA\Instance,
+	NCA\DefineCommand(
+		command: "history",
+		accessLevel: "guest",
+		description: "Show history of a player",
+	)
+]
+class PlayerHistoryController extends ModuleInstance {
+	#[NCA\Inject]
+	public ConfigFile $config;
 
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
-
-	/** @Inject */
-	public Nadybot $chatBot;
-
-	/** @Inject */
+	#[NCA\Inject]
 	public Text $text;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public PlayerHistoryManager $playerHistoryManager;
 
 	/**
-	 * @HandlesCommand("history")
+	 * Show the history of a player on this dimension or &lt;dimension&gt;
+	 *
+	 * Valid dimensions are 1 (Atlantean), 2 (Rimor), and 5 (New server)
 	 */
+	#[NCA\HandlesCommand("history")]
 	public function playerHistoryCommand(CmdContext $context, PCharacter $char, ?int $dimension): void {
 		$name = $char();
-		$dimension ??= (int)$this->chatBot->vars['dimension'];
+		$dimension ??= $this->config->dimension;
 
 		$this->playerHistoryManager->asyncLookup($name, $dimension, [$this, "servePlayerHistory"], $name, $dimension, $context);
 	}

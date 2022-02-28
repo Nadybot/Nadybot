@@ -3,31 +3,34 @@
 namespace Nadybot\Core\Modules\PLAYER_LOOKUP;
 
 use Illuminate\Support\Collection;
-use Nadybot\Core\DB;
-use Nadybot\Core\DBSchema\Player;
-use Nadybot\Core\LoggerWrapper;
-use Nadybot\Core\Nadybot;
-use Nadybot\Core\QueryBuilder;
-use Nadybot\Core\SettingManager;
-use Nadybot\Core\Timer;
+use Nadybot\Core\{
+	Attributes as NCA,
+	DB,
+	DBSchema\Player,
+	LoggerWrapper,
+	Nadybot,
+	QueryBuilder,
+	SettingManager,
+	Timer,
+};
 
 class PlayerLookupJob {
-	/** @Inject */
+	#[NCA\Inject]
 	public DB $db;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Nadybot $chatBot;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public PlayerManager $playerManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public SettingManager $settingManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Timer $timer;
 
-	/** @Logger */
+	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
 	/** @var Collection<Player> */
@@ -55,8 +58,7 @@ class PlayerLookupJob {
 				$query->from("players")
 					->whereColumn("alts.alt", "players.name");
 			})->select("alt")
-			->asObj()
-			->pluck("alt")
+			->pluckAs("alt", "string")
 			->map(function (string $alt): Player {
 				$result = new Player();
 				$result->name = $alt;
@@ -65,8 +67,11 @@ class PlayerLookupJob {
 			});
 	}
 
-	/** Start the lookup job and call the callback when done */
-	public function run(callable $callback, ...$args): void {
+	/**
+	 * Start the lookup job and call the callback when done
+	 * @psalm-param callable(mixed...) $callback
+	 */
+	public function run(callable $callback, mixed ...$args): void {
 		$numJobs = $this->settingManager->getInt('lookup_jobs');
 		if ($numJobs === 0) {
 			$callback(...$args);
@@ -82,7 +87,10 @@ class PlayerLookupJob {
 		}
 	}
 
-	public function startThread(int $threadNum, callable $callback, ...$args): void {
+	/**
+	 * @psalm-param callable(mixed...) $callback
+	 */
+	public function startThread(int $threadNum, callable $callback, mixed ...$args): void {
 		if ($this->toUpdate->isEmpty()) {
 			$this->logger->debug("[Thread #{$threadNum}] Queue empty, stopping thread.");
 			$this->numActiveThreads--;
@@ -105,7 +113,10 @@ class PlayerLookupJob {
 		);
 	}
 
-	public function asyncPlayerLookup(?int $uid, int $threadNum, Player $todo, callable $callback, ...$args): void {
+	/**
+	 * @psalm-param callable(mixed...) $callback
+	 */
+	public function asyncPlayerLookup(?int $uid, int $threadNum, Player $todo, callable $callback, mixed ...$args): void {
 		if ($uid === null) {
 			$this->logger->debug("[Thread #{$threadNum}] Player " . $todo->name . ' is inactive, not updating.');
 			$this->timer->callLater(0, [$this, "startThread"], $threadNum, $callback, ...$args);

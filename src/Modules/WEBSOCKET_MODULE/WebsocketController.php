@@ -7,8 +7,11 @@ use Throwable;
 use TypeError;
 
 use Nadybot\Core\{
+	Attributes as NCA,
+	Channels\WebChannel,
 	Event,
 	EventManager,
+	ModuleInstance,
 	LoggerWrapper,
 	MessageHub,
 	PacketEvent,
@@ -18,7 +21,6 @@ use Nadybot\Core\{
 	WebsocketCallback,
 	WebsocketServer,
 };
-use Nadybot\Core\Channels\WebChannel;
 use Nadybot\Modules\WEBSERVER_MODULE\{
 	CommandReplyEvent,
 	HttpProtocolWrapper,
@@ -30,49 +32,42 @@ use Nadybot\Modules\WEBSERVER_MODULE\{
 
 /**
  * @author Nadyita (RK5) <nadyita@hodorraid.org>
- *
- * @Instance
- * @ProvidesEvent("websocket(subscribe)")
- * @ProvidesEvent("websocket(request)")
- * @ProvidesEvent("websocket(response)")
- * @ProvidesEvent("websocket(event)")
  */
-class WebsocketController {
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
-
-	/** @Inject */
+#[
+	NCA\Instance,
+	NCA\ProvidesEvent("websocket(subscribe)"),
+	NCA\ProvidesEvent("websocket(request)"),
+	NCA\ProvidesEvent("websocket(response)"),
+	NCA\ProvidesEvent("websocket(event)")
+]
+class WebsocketController extends ModuleInstance {
+	#[NCA\Inject]
 	public EventManager $eventManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public WebChatConverter $webChatConverter;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public SettingManager $settingManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public MessageHub $messageHub;
 
-	/** @Logger */
+	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
 	/** @var array<string,WebsocketServer> */
 	protected array $clients = [];
 
-	/** @Setup */
+	#[NCA\Setup]
 	public function setup(): void {
 		$this->settingManager->add(
-			$this->moduleName,
-			'websocket',
-			'Enable the websocket handler',
-			'edit',
-			'options',
-			'1',
-			'true;false',
-			'1;0'
+			module: $this->moduleName,
+			name: 'websocket',
+			description: 'Enable the websocket handler',
+			mode: 'edit',
+			type: 'bool',
+			value: '1'
 		);
 		$this->settingManager->registerChangeListener("websocket", [$this, "changeWebsocketStatus"]);
 		if ($this->settingManager->getBool("websocket")) {
@@ -80,7 +75,7 @@ class WebsocketController {
 		}
 	}
 
-	public function changeWebsocketStatus(string $setting, string $oldValue, string $newValue, $extraData): void {
+	public function changeWebsocketStatus(string $setting, string $oldValue, string $newValue, mixed $extraData): void {
 		if ($newValue === "1") {
 			$this->registerWebChat();
 		} else {
@@ -104,10 +99,9 @@ class WebsocketController {
 			->unregisterMessageReceiver($wc->getChannelName());
 	}
 
-	/**
-	 * @HttpGet("/events")
-	 * @DefaultStatus("1")
-	 */
+	#[
+		NCA\HttpGet("/events"),
+	]
 	public function handleWebsocketStart(Request $request, HttpProtocolWrapper $server): void {
 		if (!$this->settingManager->getBool('websocket')) {
 			return;
@@ -159,12 +153,12 @@ class WebsocketController {
 		}
 		$key = $request->headers["sec-websocket-key"];
 		if (isset($request->headers["sec-websocket-protocol"])
-			&& !in_array("nadybot", preg_split("/\s*,\s*/", $request->headers["sec-websocket-protocol"]))) {
+			&& !in_array("nadybot", \Safe\preg_split("/\s*,\s*/", $request->headers["sec-websocket-protocol"]))) {
 			return $errorResponse;
 		}
 
 		/** @todo Validate key length and base 64 */
-		$responseKey = base64_encode(pack('H*', sha1($key . WebsocketBase::GUID)));
+		$responseKey = base64_encode(\Safe\pack('H*', sha1($key . WebsocketBase::GUID)));
 		return new Response(
 			Response::SWITCHING_PROTOCOLS,
 			[
@@ -201,7 +195,7 @@ class WebsocketController {
 			if (!is_string($event->data)) {
 				throw new Exception();
 			}
-			$data = json_decode($event->data, false, 512, JSON_THROW_ON_ERROR);
+			$data = \Safe\json_decode($event->data, false, 512, JSON_THROW_ON_ERROR);
 			$command = new WebsocketCommand();
 			$command->fromJSON($data);
 			if (!in_array($command->command, $command::ALLOWED_COMMANDS)) {
@@ -235,13 +229,16 @@ class WebsocketController {
 		$this->eventManager->fireEvent($newEvent, $event->websocket);
 	}
 
-	/**
-	 * @Event("websocket(subscribe)")
-	 * @Description("Handle Websocket event subscriptions")
-	 * @DefaultStatus("1")
-	 */
+	#[NCA\Event(
+		name: "websocket(subscribe)",
+		description: "Handle Websocket event subscriptions",
+		defaultStatus: 1
+	)]
 	public function handleSubscriptions(WebsocketSubscribeEvent $event, WebsocketServer $server): void {
 		try {
+			if (!isset($event->data->events) || !is_array($event->data->events)) {
+				return;
+			}
 			$server->subscribe(...$event->data->events);
 			$this->logger->info('Websocket subscribed to ' . join(",", $event->data->events));
 		} catch (TypeError $e) {
@@ -251,19 +248,19 @@ class WebsocketController {
 		}
 	}
 
-	/**
-	 * @Event("websocket(request)")
-	 * @Description("Handle API requests")
-	 */
+	#[NCA\Event(
+		name: "websocket(request)",
+		description: "Handle API requests"
+	)]
 	public function handleRequests(WebsocketRequestEvent $event, WebsocketServer $server): void {
 		// Not implemented yet
 	}
 
-	/**
-	 * @Event("*")
-	 * @Description("Distribute events to Websocket clients")
-	 * @DefaultStatus("1")
-	 */
+	#[NCA\Event(
+		name: "*",
+		description: "Distribute events to Websocket clients",
+		defaultStatus: 1
+	)]
 	public function displayEvent(Event $event): void {
 		$isPrivatPacket = $event->type === 'msg'
 			|| $event instanceof PacketEvent
@@ -272,9 +269,6 @@ class WebsocketController {
 		if ($isPrivatPacket) {
 			return;
 		}
-		$parts = explode("\\", get_class($event));
-		$class = end($parts);
-		$event->class = $class;
 		$packet = new WebsocketCommand();
 		$packet->command = $packet::EVENT;
 		$packet->data = $event;
@@ -286,7 +280,10 @@ class WebsocketController {
 				if ($subscription === $event->type
 					|| fnmatch($subscription, $event->type)) {
 					$client->send(JsonExporter::encode($packet), 'text');
-					$this->logger->info("Sending {$class} to Websocket client");
+					$this->logger->info("Sending {class} to Websocket client", [
+						"class" => get_class($event),
+						"packet" => $packet
+					]);
 				}
 			}
 		}

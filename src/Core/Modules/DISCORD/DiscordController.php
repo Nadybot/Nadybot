@@ -2,8 +2,12 @@
 
 namespace Nadybot\Core\Modules\DISCORD;
 
+use function Safe\preg_split;
 use Nadybot\Core\{
+	Attributes as NCA,
+	ConfigFile,
 	Http,
+	ModuleInstance,
 	LoggerWrapper,
 	Nadybot,
 	SettingManager,
@@ -11,58 +15,47 @@ use Nadybot\Core\{
 
 /**
  * @author Nadyita (RK5)
- *
- * @Instance
  */
-class DiscordController {
-
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
-
-	/** @Inject */
+#[NCA\Instance]
+class DiscordController extends ModuleInstance {
+	#[NCA\Inject]
 	public Nadybot $chatBot;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public SettingManager $settingManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Http $http;
 
-	/** @Inject */
+	#[NCA\Inject]
+	public ConfigFile $config;
+
+	#[NCA\Inject]
 	public DiscordAPIClient $discordAPIClient;
 
-	/** @Logger */
+	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
-	/**
-	 * @Setup
-	 * This handler is called on bot startup.
-	 */
+	#[NCA\Setup]
 	public function setup(): void {
 		$this->settingManager->add(
-			$this->moduleName,
-			'discord_bot_token',
-			'The Discord bot token to send messages with',
-			'edit',
-			'discord_bot_token',
-			'off',
-			'off',
-			'',
-			'superadmin'
+			module: $this->moduleName,
+			name: 'discord_bot_token',
+			description: 'The Discord bot token to send messages with',
+			mode: 'edit',
+			type: 'discord_bot_token',
+			value: 'off',
+			options: ["off"],
+			accessLevel: 'superadmin'
 		);
 		$this->settingManager->add(
-			$this->moduleName,
-			"discord_notify_channel",
-			"Discord channel to send notifications to",
-			"edit",
-			"discord_channel",
-			"off",
-			"",
-			"",
-			"admin"
+			module: $this->moduleName,
+			name: "discord_notify_channel",
+			description: "Discord channel to send notifications to",
+			mode: "edit",
+			type: "discord_channel",
+			value: "off",
+			accessLevel: "admin"
 		);
 	}
 
@@ -120,8 +113,8 @@ class DiscordController {
 		$text = preg_replace('/((?:\d{4}-\d{2}-\d{2} )?\d+(?::\d+)+)/s', "`$1`", $text);
 		$text = preg_replace('/<(highlight|black|white|yellow|blue|green|red|orange|grey|cyan|violet|neutral|omni|clan|unknown|font [^>]*)><end>/s', '', $text);
 		$text = preg_replace('/<highlight>(.*?)<end>/s', '**$1**', $text);
-		$text = str_replace("<myname>", $this->chatBot->vars["name"], $text);
-		$text = str_replace("<myguild>", $this->chatBot->vars["my_guild"], $text);
+		$text = str_replace("<myname>", $this->chatBot->char->name, $text);
+		$text = str_replace("<myguild>", $this->config->orgName, $text);
 		$text = str_replace("<symbol>", $this->settingManager->getString("symbol")??"!", $text);
 		$text = str_replace("<br>", "\n", $text);
 		$text = str_replace("<tab>", "_ _  ", $text);
@@ -149,6 +142,7 @@ class DiscordController {
 			-1,
 			$linksReplaced
 		);
+		$linksReplaced2 = 0;
 		$text = preg_replace(
 			"|<a [^>]*?href=['\"]itemid://53019/(\d+)['\"]>(.+?)</a>|s",
 			"[$2](https://aoitems.com/item/$1)",
@@ -170,7 +164,7 @@ class DiscordController {
 
 		$text = strip_tags($text);
 		$text = str_replace(["&lt;", "&gt;"], ["<", ">"], $text);
-		if (!count($embeds) && $linksReplaced > 0) {
+		if (!count($embeds) && $linksReplaced !== 0) {
 			$embed = new DiscordEmbed();
 			$embed->description = $text;
 			$text = "";
@@ -185,8 +179,9 @@ class DiscordController {
 
 	/**
 	 * Send a message to the configured Discord channel (if configured)
+	 * @param string|string[] $text
 	 */
-	public function sendDiscord($text, $allowGroupMentions=false): void {
+	public function sendDiscord(string|array $text, bool $allowGroupMentions=false): void {
 		$discordBotToken = $this->settingManager->getString('discord_bot_token');
 		if ($discordBotToken === "" || $discordBotToken === 'off') {
 			return;
@@ -212,6 +207,7 @@ class DiscordController {
 		}
 	}
 
+	/** @param string[] $matches */
 	protected function parsePopupToEmbed(array $matches): DiscordEmbed {
 		$embed = new DiscordEmbed();
 		$embed->title = $matches[2];
@@ -226,18 +222,20 @@ class DiscordController {
 		};
 		for ($i = 1; $i < count($fields); $i+=2) {
 			$embed->fields ??= [];
-			$field = [
-				"name"  => $fix($fields[$i]),
-				"value" => $fix($fields[$i+1]),
-			];
-			$field["name"] = preg_replace("/\[(.+?)\]\(.*?\)/", "$1", $field["name"]);
-			if (strlen($field["value"]) > 1024) {
-				$parts = preg_split("/(.{1,1024})\n/s", $field["value"], -1, PREG_SPLIT_DELIM_CAPTURE);
-				$field["value"] = $parts[1];
+			$field = new DiscordEmbedField();
+			$field->name = $fix($fields[$i]);
+			$field->value = $fix($fields[$i+1]);
+
+			$field->name = preg_replace("/\[(.+?)\]\(.*?\)/", "$1", $field->name);
+			if (strlen($field->value) > 1024) {
+				$parts = preg_split("/(.{1,1024})\n/s", $field->value, -1, PREG_SPLIT_DELIM_CAPTURE);
+				$field->value = $parts[1];
 				$embed->fields []= $field;
-				$field["name"] .= " (continued)";
+				$field = clone $field;
+				$field->name .= " (continued)";
 				for ($j = 3; $j < count($parts); $j += 2) {
-					$field["value"] = $parts[$j];
+					$field = clone $field;
+					$field->value = $parts[$j];
 					$embed->fields []= $field;
 				}
 			} else {
@@ -245,7 +243,6 @@ class DiscordController {
 			}
 		}
 		$embed->description = $fix($fields[0]);
-		// $embed->description = htmlspecialchars_decode(strip_tags($matches[1], ENT_QUOTES|ENT_HTML401));
 		if (strlen($embed->description) > 4096) {
 			$embed->description = substr($embed->description, 0, 4095) . "…";
 		}

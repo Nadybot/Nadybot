@@ -5,18 +5,19 @@ namespace Nadybot\Core;
 use Exception;
 use Illuminate\Support\Collection;
 use JsonException;
-use Nadybot\Core\DBSchema\Route;
-use Nadybot\Core\Routing\RoutableEvent;
-use Nadybot\Core\Routing\Source;
-use Nadybot\Core\DBSchema\RouteHopColor;
-use Nadybot\Core\DBSchema\RouteHopFormat;
 use ReflectionException;
 use ReflectionMethod;
 use Throwable;
+use Nadybot\Core\{
+	Attributes as NCA,
+	DBSchema\Route,
+	Routing\RoutableEvent,
+	Routing\Source,
+	DBSchema\RouteHopColor,
+	DBSchema\RouteHopFormat,
+};
 
-/**
- * @Instance
- */
+#[NCA\Instance]
 class MessageHub {
 	public const EVENT_NOT_ROUTED = 0;
 	public const EVENT_DISCARDED = 1;
@@ -39,38 +40,41 @@ class MessageHub {
 	/** @var array<string,ClassSpec> */
 	public array $modifiers = [];
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Text $text;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public BuddylistManager $buddyListManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public SettingManager $settingManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Util $util;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Nadybot $chatBot;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public DB $db;
 
-	/** @Logger */
+	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
 	/** @var Collection<RouteHopColor> */
 	public static Collection $colors;
 
-	/** @Setup */
+	#[NCA\Setup]
 	public function setup(): void {
-		$modifierFiles = glob(__DIR__ . "/EventModifier/*.php");
+		$modifierFiles = \Safe\glob(__DIR__ . "/EventModifier/*.php");
 		foreach ($modifierFiles as $file) {
 			require_once $file;
 			$className = basename($file, '.php');
 			$fullClass = __NAMESPACE__ . "\\EventModifier\\{$className}";
-			$spec = $this->util->getClassSpecFromClass($fullClass, 'EventModifier');
+			if (!class_exists($fullClass)) {
+				continue;
+			}
+			$spec = $this->util->getClassSpecFromClass($fullClass, NCA\EventModifier::class);
 			if (isset($spec)) {
 				$this->registerEventModifier($spec);
 			}
@@ -97,8 +101,6 @@ class MessageHub {
 
 	/**
 	 * Register an event modifier for public use
-	 * @param string $name Name of the modifier
-	 * @param FunctionParameter[] $params Name and position of the constructor arguments
 	 */
 	public function registerEventModifier(ClassSpec $spec): void {
 		$name = strtolower($spec->name);
@@ -341,7 +343,7 @@ class MessageHub {
 		try {
 			$this->logger->info(
 				"Trying to route {$type} - ".
-				json_encode($event, JSON_UNESCAPED_SLASHES|JSON_INVALID_UTF8_SUBSTITUTE|JSON_THROW_ON_ERROR)
+				\Safe\json_encode($event, JSON_UNESCAPED_SLASHES|JSON_INVALID_UTF8_SUBSTITUTE|JSON_THROW_ON_ERROR)
 			);
 		} catch (JsonException $e) {
 			// Ignore
@@ -480,7 +482,10 @@ class MessageHub {
 		return array_values($allRoutes);
 	}
 
-	/** Get a list of commands to re-create all routes */
+	/**
+	 * Get a list of commands to re-create all routes
+	 * @return string[]
+	 */
 	public function getRouteDump(bool $useForce=false): array {
 		$routes = $this->getRoutes();
 		$cmd = $useForce ? "addforce" : "add";

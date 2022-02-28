@@ -3,59 +3,49 @@
 namespace Nadybot\Modules\GUILD_MODULE;
 
 use Illuminate\Support\Collection;
-use Nadybot\Core\AOChatEvent;
-use Nadybot\Core\CmdContext;
-use Nadybot\Core\DB;
-use Nadybot\Core\ParamClass\PCharacter;
-use Nadybot\Core\Text;
-use Nadybot\Core\Util;
-use Nadybot\Modules\WEBSERVER_MODULE\ApiResponse;
-use Nadybot\Modules\WEBSERVER_MODULE\HttpProtocolWrapper;
-use Nadybot\Modules\WEBSERVER_MODULE\Request;
-use Nadybot\Modules\WEBSERVER_MODULE\Response;
+use Nadybot\Core\{
+	Attributes as NCA,
+	AOChatEvent,
+	CmdContext,
+	DB,
+	ModuleInstance,
+	ParamClass\PCharacter,
+	Text,
+	Util,
+};
+use Nadybot\Modules\WEBSERVER_MODULE\{
+	ApiResponse,
+	HttpProtocolWrapper,
+	Request,
+	Response,
+};
 
 /**
  * @author Tyrence (RK2)
- *
- * @Instance
- *
- * Commands this controller contains:
- *	@DefineCommand(
- *		command     = "orghistory",
- *		accessLevel = "guild",
- *		description = "Shows the org history (invites and kicks and leaves) for a character",
- *		help        = "orghistory.txt"
- *	)
  */
-class OrgHistoryController {
-
+#[
+	NCA\Instance,
+	NCA\HasMigrations("Migrations/History"),
+	NCA\DefineCommand(
+		command: "orghistory",
+		accessLevel: "guild",
+		description: "Shows the org history (invites and kicks and leaves) for a character",
+	)
+]
+class OrgHistoryController extends ModuleInstance {
 	public const DB_TABLE = "org_history";
 
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
-
-	/** @Inject */
+	#[NCA\Inject]
 	public DB $db;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Text $text;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Util $util;
 
-	/**
-	 * @Setup
-	 */
-	public function setup(): void {
-		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations/History");
-	}
-
-	/**
-	 * @HandlesCommand("orghistory")
-	 */
+	/** Show the last org actions (invite, kick, leave) */
+	#[NCA\HandlesCommand("orghistory")]
 	public function orgHistoryCommand(CmdContext $context, ?int $page): void {
 		$page ??= 1;
 		$pageSize = 40;
@@ -84,9 +74,8 @@ class OrgHistoryController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @HandlesCommand("orghistory")
-	 */
+	/** Show all actions (invite, kick, leave) performed on or by a character */
+	#[NCA\HandlesCommand("orghistory")]
 	public function orgHistoryPlayerCommand(CmdContext $context, PCharacter $char): void {
 		$player = $char();
 
@@ -105,7 +94,7 @@ class OrgHistoryController {
 
 		/** @var Collection<OrgHistory> */
 		$data = $this->db->table(self::DB_TABLE)
-			->whereIlike("action", $player)
+			->whereIlike("actor", $player)
 			->orderByDesc("time")
 			->asObj(OrgHistory::class);
 		$count = $data->count();
@@ -130,10 +119,10 @@ class OrgHistoryController {
 		return"<highlight>$row->actor<end> $row->action <highlight>$row->actee<end>. [$row->organization] {$time}\n";
 	}
 
-	/**
-	 * @Event("orgmsg")
-	 * @Description("Capture Org Invite/Kick/Leave messages for orghistory")
-	 */
+	#[NCA\Event(
+		name: "orgmsg",
+		description: "Capture Org Invite/Kick/Leave messages for orghistory"
+	)]
 	public function captureOrgMessagesEvent(AOChatEvent $eventObj): void {
 		$message = $eventObj->message;
 		if (
@@ -155,19 +144,21 @@ class OrgHistoryController {
 
 	/**
 	 * Query entries from the org history log
-	 * @Api("/org/history")
-	 * @GET
-	 * @QueryParam(name='limit', type='integer', desc='No more than this amount of entries will be returned. Default is 50', required=false)
-	 * @QueryParam(name='offset', type='integer', desc='How many entries to skip before beginning to return entries', required=false)
-	 * @QueryParam(name='actor', type='string', desc='Show only entries of this actor', required=false)
-	 * @QueryParam(name='actee', type='string', desc='Show only entries with this actee', required=false)
-	 * @QueryParam(name='action', type='string', desc='Show only entries with this action', required=false)
-	 * @QueryParam(name='before', type='integer', desc='Show only entries from before the given timestamp', required=false)
-	 * @QueryParam(name='after', type='integer', desc='Show only entries from after the given timestamp', required=false)
-	 * @AccessLevel("mod")
-	 * @ApiTag("audit")
-	 * @ApiResult(code=200, class='OrgHistory[]', desc='The org history log entries')
 	 */
+	#[
+		NCA\Api("/org/history"),
+		NCA\GET,
+		NCA\QueryParam(name: "limit", desc: "No more than this amount of entries will be returned. Default is 50", type: "integer"),
+		NCA\QueryParam(name: "offset", desc: "How many entries to skip before beginning to return entries", type: "integer"),
+		NCA\QueryParam(name: "actor", desc: "Show only entries of this actor"),
+		NCA\QueryParam(name: "actee", desc: "Show only entries with this actee"),
+		NCA\QueryParam(name: "action", desc: "Show only entries with this action"),
+		NCA\QueryParam(name: "before", desc: "Show only entries from before the given timestamp", type: "integer"),
+		NCA\QueryParam(name: "after", desc: "Show only entries from after the given timestamp", type: "integer"),
+		NCA\AccessLevel("mod"),
+		NCA\ApiTag("audit"),
+		NCA\ApiResult(code: 200, class: "OrgHistory[]", desc: "The org history log entries")
+	]
 	public function historyGetListEndpoint(Request $request, HttpProtocolWrapper $server): Response {
 		$query = $this->db->table(static::DB_TABLE)
 			->orderByDesc("time")

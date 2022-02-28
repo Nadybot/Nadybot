@@ -2,43 +2,42 @@
 
 namespace Nadybot\Modules\WEBSERVER_MODULE;
 
-use Addendum\ReflectionAnnotatedClass;
+use Closure;
+use ReflectionClass;
 use DateTime;
 use Exception;
-use Nadybot\Core\Annotations\HttpGet;
-use Nadybot\Core\Annotations\HttpPost;
 use Nadybot\Core\{
 	AsyncHttp,
+	Attributes as NCA,
 	CmdContext,
+	ConfigFile,
 	DB,
 	Http,
 	HttpResponse,
+	ModuleInstance,
 	LoggerWrapper,
-	Nadybot,
 	Registry,
 	SettingManager,
 	Socket,
 	Timer,
 	Socket\AsyncSocket,
 };
+use ReflectionAttribute;
+use ReflectionFunction;
+use Safe\Exceptions\FilesystemException;
+use Safe\Exceptions\StreamException;
 
-/**
- * Commands this controller contains:
- *	@DefineCommand(
- *		command     = 'webauth',
- *		accessLevel = 'mod',
- *		description = 'Pre-authorize Websocket connections',
- *		help        = 'webauth.txt'
- *	)
- *
- * @Instance
- */
-class WebserverController {
+#[
+	NCA\DefineCommand(
+		command: "webauth",
+		accessLevel: "mod",
+		description: "Pre-authorize Websocket connections",
+	),
+	NCA\Instance
+]
+class WebserverController extends ModuleInstance {
 	public const AUTH_AOAUTH = "aoauth";
 	public const AUTH_BASIC = "webauth";
-
-	/** Set by the registry */
-	public string $moduleName;
 
 	/**
 	 * @var ?resource
@@ -46,30 +45,39 @@ class WebserverController {
 	 */
 	protected $serverSocket = null;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public SettingManager $settingManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Socket $socket;
 
-	/** @Inject */
-	public Nadybot $chatBot;
+	#[NCA\Inject]
+	public ConfigFile $config;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Timer $timer;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Http $http;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public DB $db;
 
-	/** @Logger */
+	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
-	protected array $routes = ['get' => [], 'post' => [], 'put' => [], 'delete' => []];
+	/** @var array<string,array<string,callable[]>> */
+	protected array $routes = [
+		'get' => [],
+		'post' => [],
+		'put' => [],
+		'delete' => []
+	];
 
-	/** @var array */
+	/**
+	 * @var array<string,array<int|string>>
+	 * @phpstan-var array<string,array{string,int}>
+	 */
 	protected array $authentications = [];
 
 	protected AsyncSocket $asyncSocket;
@@ -77,10 +85,10 @@ class WebserverController {
 	protected ?string $aoAuthPubKey = null;
 	protected AsyncHttp $aoAuthPubKeyRequest;
 
-	/**
-	 * @Event("connect")
-	 * @Description("Download aoauth public key")
-	 */
+	#[NCA\Event(
+		name: "connect",
+		description: "Download aoauth public key"
+	)]
 	public function downloadPublicKey(): void {
 		if ($this->settingManager->getString('webserver_auth') !== static::AUTH_AOAUTH) {
 			return;
@@ -115,109 +123,97 @@ class WebserverController {
 		$this->aoAuthPubKey = $response->body;
 	}
 
-	/** @Setup */
+	#[NCA\Setup]
 	public function setup(): void {
 		$this->settingManager->add(
-			$this->moduleName,
-			'webserver',
-			'Enable webserver',
-			'edit',
-			'options',
-			'1',
-			'true;false',
-			'1;0',
-			'superadmin'
+			module: $this->moduleName,
+			name: 'webserver',
+			description: 'Enable webserver',
+			mode: 'edit',
+			type: 'bool',
+			value: '1',
+			accessLevel: 'superadmin'
 		);
 
 /*
 		$this->settingManager->add(
-			$this->moduleName,
-			'webserver_certificate',
-			'Path to the SSL/TLS certificate',
-			'edit',
-			'text',
-			'',
-			'',
-			'',
-			'superadmin'
+			module: $this->moduleName,
+			name: 'webserver_certificate',
+			description: 'Path to the SSL/TLS certificate',
+			mode: 'edit',
+			type: 'text',
+			value: '',
+			accessLevel: 'superadmin'
 		);
 */
 
 		$this->settingManager->add(
-			$this->moduleName,
-			'webserver_port',
-			'On which port does the HTTP server listen',
-			'edit',
-			'number',
-			'8080',
-			'',
-			'',
-			'superadmin'
+			module: $this->moduleName,
+			name: 'webserver_port',
+			description: 'On which port does the HTTP server listen',
+			mode: 'edit',
+			type: 'number',
+			value: '8080',
+			accessLevel: 'superadmin'
 		);
 		$this->settingManager->add(
-			$this->moduleName,
-			'webserver_addr',
-			'Where to listen for HTTP requests',
-			'edit',
-			'text',
-			'127.0.0.1',
-			'127.0.0.1;0.0.0.0',
-			'',
-			'superadmin'
+			module: $this->moduleName,
+			name: 'webserver_addr',
+			description: 'Where to listen for HTTP requests',
+			mode: 'edit',
+			type: 'text',
+			value: '127.0.0.1',
+			options: ["127.0.0.1", "0.0.0.0"],
+			accessLevel: 'superadmin'
 		);
 
 /*
 		$this->settingManager->add(
-			$this->moduleName,
-			'webserver_tls',
-			'Use SSL/TLS for the webserver',
-			'edit',
-			'options',
-			'0',
-			'true;false',
-			'1;0',
-			'superadmin'
+			module: $this->moduleName,
+			name: 'webserver_tls',
+			description: 'Use SSL/TLS for the webserver',
+			mode: 'edit',
+			type: 'bool',
+			value: '0',
+			accessLevel: 'superadmin'
 		);
 */
 
 		$this->settingManager->add(
-			$this->moduleName,
-			'webserver_auth',
-			'How to authenticate against the webserver',
-			'edit',
-			'options',
-			static::AUTH_BASIC,
-			join(";", [static::AUTH_BASIC, static::AUTH_AOAUTH]),
-			"",
-			"superadmin"
+			module: $this->moduleName,
+			name: 'webserver_auth',
+			description: 'How to authenticate against the webserver',
+			mode: 'edit',
+			type: 'options',
+			value: static::AUTH_BASIC,
+			options: [static::AUTH_BASIC, static::AUTH_AOAUTH],
+			accessLevel: "superadmin"
 		);
 
 		$this->settingManager->add(
-			$this->moduleName,
-			'webserver_base_url',
-			'Which is the base URL for the webserver? This is where aoauth redirects to',
-			'edit',
-			'text',
-			'default',
-			'default',
-			'',
-			'admin',
-			'webserver_base_url.txt'
+			module: $this->moduleName,
+			name: 'webserver_base_url',
+			description: 'Which is the base URL for the webserver? This is where aoauth redirects to',
+			mode: 'edit',
+			type: 'text',
+			value: 'default',
+			options: ["default"],
+			accessLevel: 'admin',
+			help: 'webserver_base_url.txt'
 		);
 
 		$this->settingManager->add(
-			$this->moduleName,
-			'webserver_aoauth_url',
-			'If you are using aoauth to authenticate: URL of the server',
-			'edit',
-			'text',
-			'https://aoauth.org',
-			'https://aoauth.org',
-			"",
-			"superadmin"
+			module: $this->moduleName,
+			name: 'webserver_aoauth_url',
+			description: 'If you are using aoauth to authenticate: URL of the server',
+			mode: 'edit',
+			type: 'text',
+			value: 'https://aoauth.org',
+			options: ["https://aoauth.org"],
+			accessLevel: "superadmin"
 		);
 
-		$this->scanRouteAnnotations();
+		$this->scanRouteAttributes();
 		if ($this->settingManager->getBool('webserver')) {
 			$this->listen();
 		}
@@ -273,8 +269,12 @@ class WebserverController {
 	}
 
 	/**
-	 * @HandlesCommand("webauth")
+	 * Authenticate as an admin so you can login to the webserver
+	 *
+	 * You will get a token in return which you can use as a password together
+	 * with your character name to login to the built-in webserver.
 	 */
+	#[NCA\HandlesCommand("webauth")]
 	public function webauthCommand(CmdContext $context): void {
 		$uuid = $this->authenticate($context->char->name, 3600);
 		$msg = "You can now authenticate to the Webserver for 1h with the ".
@@ -283,27 +283,24 @@ class WebserverController {
 	}
 
 	/**
-	 * Scan all Instances for @HttpHet or @HttpPost annotations and register them
+	 * Scan all Instances for #[HttpGet] or #[HttpPost] attributes and register them
 	 * @return void
 	 */
-	public function scanRouteAnnotations(): void {
+	public function scanRouteAttributes(): void {
 		$instances = Registry::getAllInstances();
 		foreach ($instances as $instance) {
-			$reflection = new ReflectionAnnotatedClass($instance);
+			$reflection = new ReflectionClass($instance);
 			foreach ($reflection->getMethods() as $method) {
-				/** @var \Addendum\ReflectionAnnotatedMethod $method */
-				foreach (["HttpGet", "HttpPost", "HttpPut", "HttpDelete", "HttpPatch"] as $annoName) {
-					if (!$method->hasAnnotation($annoName)) {
-						continue;
-					}
-					foreach ($method->getAllAnnotations($annoName) as $annotation) {
-						/** @var HttpGet|HttpPost|HttpPut|HttpDelete|HttpPatch $annotation */
-						if (isset($annotation->value)) {
-							$closure = $method->getClosure($instance);
-							if (isset($closure)) {
-								$this->addRoute($annotation->type, $annotation->value, $closure);
-							}
-						}
+				$attrs = $method->getAttributes(NCA\HttpVerb::class, ReflectionAttribute::IS_INSTANCEOF);
+				if (empty($attrs)) {
+					continue;
+				}
+				foreach ($attrs as $attribute) {
+					/** @var NCA\HttpVerb */
+					$attrObj = $attribute->newInstance();
+					$closure = $method->getClosure($instance);
+					if (isset($closure)) {
+						$this->addRoute($attrObj->type, $attrObj->path, $closure);
 					}
 				}
 			}
@@ -336,7 +333,7 @@ class WebserverController {
 	 * Convert the route notation /foo/%s/bar into a regexp
 	 */
 	public function routeToRegExp(string $route): string {
-		$match = preg_split("/(%[sd])/", $route, 0, PREG_SPLIT_DELIM_CAPTURE|PREG_SPLIT_NO_EMPTY);
+		$match = \Safe\preg_split("/(%[sd])/", $route, 0, PREG_SPLIT_DELIM_CAPTURE|PREG_SPLIT_NO_EMPTY);
 		$newMask = array_reduce(
 			$match,
 			function(string $carry, string $part): string {
@@ -362,11 +359,16 @@ class WebserverController {
 		if (!is_resource($lowSock)) {
 			return;
 		}
-		$newSocket = stream_socket_accept($lowSock, 0, $peerName);
-		if ($newSocket === false) {
+		try {
+			$newSocket = \Safe\stream_socket_accept($lowSock, 0, $peerName);
+		} catch (StreamException $e) {
+			$this->logger->info('Error accepting client connection: {error}', [
+				"error" => $e->getMessage(),
+				"exception" => $e,
+			]);
 			return;
 		}
-		$this->logger->info('New client connected from ' . $peerName);
+		$this->logger->info('New client connected from ' . ($peerName??"Unknown location"));
 		$wrapper = $this->socket->wrap($newSocket);
 		$wrapper->on(AsyncSocket::CLOSE, [$this, "handleClientDisconnect"]);
 /*
@@ -394,7 +396,7 @@ class WebserverController {
 		$port = $this->settingManager->getInt('webserver_port');
 		$addr = $this->settingManager->getString('webserver_addr');
 		$context = stream_context_create();
-/*
+		/*
 		$tls = $this->settingManager->getBool('webserver_tls');
 		if ($tls) {
 			$certPath = $this->settingManager->get('webserver_certificate');
@@ -406,17 +408,21 @@ class WebserverController {
 			stream_context_set_option($context, 'ssl', 'verify_peer', false);
 		}
 */
-		$serverSocket = @stream_socket_server(
-			"tcp://{$addr}:{$port}",
-			$errno,
-			$errstr,
-			STREAM_SERVER_BIND|STREAM_SERVER_LISTEN,
-			$context
-		);
-
-		if ($serverSocket === false) {
-			$error = "Could not listen on {$addr} port {$port}: {$errstr} ({$errno})";
-			$this->logger->error($error);
+		try {
+			$serverSocket = \Safe\stream_socket_server(
+				"tcp://{$addr}:{$port}",
+				$errno,
+				$errstr,
+				STREAM_SERVER_BIND | STREAM_SERVER_LISTEN,
+				$context
+			);
+		} catch (StreamException $e) {
+			$error = "Could not listen on {addr} port {port}: {error}";
+			$this->logger->error($error, [
+				"addr" => $addr,
+				"port" => $port,
+				"error" => $e->getMessage(),
+			]);
 			return false;
 		}
 		$this->serverSocket = $serverSocket;
@@ -461,10 +467,10 @@ class WebserverController {
 			"countryName" => "XX",
 			"localityName" => "Anarchy Online",
 			"commonName" => gethostname(),
-			"organizationName" => $this->chatBot->vars['name'],
+			"organizationName" => $this->config->name,
 		];
-		if (!empty($this->chatBot->vars['my_guild'])) {
-			$dn["organizationName"] = $this->chatBot->vars['my_guild'];
+		if (!empty($this->config->orgName)) {
+			$dn["organizationName"] = $this->config->orgName;
 		}
 
 		$privKey = openssl_pkey_new();
@@ -483,36 +489,53 @@ class WebserverController {
 	}
 */
 
+	/**
+	 * @return array<array<Closure|string[]>>
+	 * @phpstan-return array<array{Closure,string[]}>
+	 * @psalm-return array<array{Closure,string[]}>
+	 */
 	public function getHandlersForRequest(Request $request): array {
 		$result = [];
 		foreach ($this->routes[$request->method] as $mask => $handlers) {
 			if (preg_match("|$mask|", $request->path, $parts)) {
 				array_shift($parts);
 				foreach ($handlers as $handler) {
-					$result []= [$handler, $parts];
+					$result []= [Closure::fromCallable($handler), $parts];
 				}
 			}
 		}
 		return $result;
 	}
 
-	/**
-	 * @Event("http(get)")
-	 * @Event("http(head)")
-	 * @Event("http(post)")
-	 * @Event("http(put)")
-	 * @Event("http(delete)")
-	 * @Event("http(patch)")
-	 * @Description("Call handlers for HTTP GET requests")
-	 * @DefaultStatus("1")
-	 */
+	#[
+		NCA\Event(
+			name: [
+				"http(get)",
+				"http(head)",
+				"http(post)",
+				"http(put)",
+				"http(delete)",
+				"http(patch)",
+			],
+			description: "Call handlers for HTTP GET requests",
+			defaultStatus: 1
+		)
+	]
 	public function getRequest(HttpEvent $event, HttpProtocolWrapper $server): void {
-		if (!isset($event->request->authenticatedAs)) {
+		$handlers = $this->getHandlersForRequest($event->request);
+		$needAuth = true;
+		if (count($handlers) === 1) {
+			$ref = new ReflectionFunction($handlers[0][0]);
+			if (count($ref->getAttributes(NCA\HttpOwnAuth::class))) {
+				$needAuth = false;
+			}
+		}
+		if ($needAuth && !isset($event->request->authenticatedAs)) {
 			$authType = $this->settingManager->getString('webserver_auth');
 			if ($authType === static::AUTH_BASIC) {
 				$server->httpError(new Response(
 					Response::UNAUTHORIZED,
-					["WWW-Authenticate" => "Basic realm=\"{$this->chatBot->vars['name']}\""],
+					["WWW-Authenticate" => "Basic realm=\"{$this->config->name}\""],
 				));
 			} elseif ($authType === static::AUTH_AOAUTH) {
 				$baseUrl = $this->settingManager->getString('webserver_base_url')??"";
@@ -579,14 +602,15 @@ class WebserverController {
 	}
 
 	protected function serveStaticFile(Request $request): Response {
-		$path = $this->chatBot->vars["htmlfolder"] ?? "./html";
-		$realFile = realpath("{$path}/{$request->path}");
-		$realBaseDir = realpath("{$path}/");
-		if (
-			$realFile === false
-			|| (
-				$realFile !== $realBaseDir
-				&& strncmp($realFile, $realBaseDir.DIRECTORY_SEPARATOR, strlen($realBaseDir)+1) !== 0)
+		$path = $this->config->htmlFolder;
+		try {
+			$realFile = \Safe\realpath("{$path}/{$request->path}");
+			$realBaseDir = \Safe\realpath("{$path}/");
+		} catch (FilesystemException) {
+			return new Response(Response::NOT_FOUND);
+		}
+		if ($realFile !== $realBaseDir
+			&& strncmp($realFile, $realBaseDir.DIRECTORY_SEPARATOR, strlen($realBaseDir)+1) !== 0
 		) {
 			return new Response(Response::NOT_FOUND);
 		}
@@ -596,7 +620,7 @@ class WebserverController {
 		if (!@file_exists($realFile)) {
 			return new Response(Response::NOT_FOUND);
 		}
-		$body = file_get_contents($realFile);
+		$body = \Safe\file_get_contents($realFile);
 		if (!is_string($body)) {
 			$body = "";
 		}
@@ -605,13 +629,11 @@ class WebserverController {
 			['Content-Type' => $this->guessContentType($realFile)],
 			$body
 		);
-		if ($response->body === false) {
-			return new Response(Response::FORBIDDEN);
-		}
-		$lastmodified = @filemtime($realFile);
-		if ($lastmodified !== false) {
+		try {
+			$lastmodified = \Safe\filemtime($realFile);
 			$modifiedDate = (new DateTime())->setTimestamp($lastmodified)->format(DateTime::RFC7231);
 			$response->headers['Last-Modified'] = $modifiedDate;
+		} catch (FilesystemException) {
 		}
 		$response->headers['Cache-Control'] = 'private, max-age=3600';
 		$response->headers['ETag'] = '"' . dechex(crc32($body)) . '"';
@@ -637,7 +659,7 @@ class WebserverController {
 				return "image/svg+xml";
 			default:
 				if (extension_loaded("fileinfo")) {
-					return mime_content_type($file);
+					return \Safe\mime_content_type($file);
 				}
 				return "application/octet-stream";
 		}
@@ -682,11 +704,12 @@ class WebserverController {
 		if ($key->last_sequence_nr >= $sequence) {
 			return null;
 		}
-		$decodedSig = base64_decode($signature);
+		$decodedSig = \Safe\base64_decode($signature);
+		// @phpstan-ignore-next-line
 		if ($decodedSig === false) {
 			return null;
 		}
-		if (openssl_verify($sequence, $decodedSig, $key->pubkey, $algorithm) !== 1) {
+		if (\Safe\openssl_verify($sequence, $decodedSig, $key->pubkey, $algorithm) !== 1) {
 			return null;
 		}
 		$key->last_sequence_nr = (int)$sequence;
@@ -732,11 +755,11 @@ class WebserverController {
 		return $payload->sub->name??null;
 	}
 
-	/**
-	 * @Event("timer(10min)")
-	 * @Description("Remove expired authentications")
-	 * @DefaultStatus("1")
-	 */
+	#[NCA\Event(
+		name: "timer(10min)",
+		description: "Remove expired authentications",
+		defaultStatus: 1
+	)]
 	public function clearExpiredAuthentications(): void {
 		foreach ($this->authentications as $user => $data) {
 			if ($data[1] < time()) {

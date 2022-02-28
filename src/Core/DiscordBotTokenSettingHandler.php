@@ -2,26 +2,26 @@
 
 namespace Nadybot\Core;
 
+use Nadybot\Core\Attributes as NCA;
 use Exception;
 use Nadybot\Core\Modules\DISCORD\DiscordAPIClient;
 use Nadybot\Modules\DISCORD_GATEWAY_MODULE\DiscordGatewayController;
 
 /**
  * Class to represent a discord bot token setting
- * @SettingHandler("discord_bot_token")
  */
+#[NCA\SettingHandler("discord_bot_token")]
 class DiscordBotTokenSettingHandler extends SettingHandler {
-
-	/** @Inject */
+	#[NCA\Inject]
 	public Http $http;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public SettingManager $settingManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public DiscordGatewayController $discordGatewayController;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public AccessManager $accessManager;
 
 	/**

@@ -5,10 +5,12 @@ namespace Nadybot\Core\Modules\SECURITY;
 use DateTime;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
+	Attributes as NCA,
 	AccessManager,
 	CmdContext,
 	DB,
 	DBSchema\Audit,
+	ModuleInstance,
 	QueryBuilder,
 	SettingManager,
 	Text,
@@ -20,51 +22,40 @@ use Nadybot\Modules\WEBSERVER_MODULE\{
 	Response,
 };
 
-/**
- * @Instance
- *
- * Commands this controller contains:
- *	@DefineCommand(
- *		command     = 'audit',
- *		accessLevel = 'admin',
- *		description = 'View security audit logs',
- *		help        = 'audit.txt'
- *	)
- */
-class AuditController {
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
-
-	/** @Inject */
+#[
+	NCA\Instance,
+	NCA\DefineCommand(
+		command: "audit",
+		accessLevel: "admin",
+		description: "View security audit logs",
+	)
+]
+class AuditController extends ModuleInstance {
+	#[NCA\Inject]
 	public DB $db;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public SettingManager $settingManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Text $text;
 
-	/**
-	 * This handler is called on bot startup.
-	 * @Setup
-	 */
+	#[NCA\Setup]
 	public function setup(): void {
 		$this->settingManager->add(
-			$this->moduleName,
-			"audit_enabled",
-			"Log all security-relevant data",
-			"edit",
-			"options",
-			"0",
-			"true;false",
-			"1;0",
-			"superadmin"
+			module: $this->moduleName,
+			name: "audit_enabled",
+			description: "Log all security-relevant data",
+			mode: "edit",
+			type: "bool",
+			value: "0",
+			accessLevel: "superadmin"
 		);
 	}
 
+	/**
+	 * @param array<mixed> $params
+	 */
 	protected function parseParams(QueryBuilder $query, string $args, array &$params): ?string {
 		$keys = [
 			"limit", "offset", "before", "after", "actor", "actee", "action"
@@ -117,12 +108,19 @@ class AuditController {
 
 		$action = $params["action"]??null;
 		if (isset($action)) {
-			$query->whereIn("action", preg_split("/\s*,\s*/", strtolower($action)));
+			$query->whereIn("action", \Safe\preg_split("/\s*,\s*/", strtolower($action)));
 		}
 
 		return null;
 	}
 
+	/**
+	 * @param Collection<mixed> $data
+	 * @param array<string,mixed> $params
+	 * @return string[]
+	 * @psalm-return array{0: ?string, 1: ?string}
+	 * @phpstan-return array{0: ?string, 1: ?string}
+	 */
 	protected function getPrevNextLinks(Collection $data, array $params): array {
 		$prevLink = $nextLink = null;
 		if ($params["offset"] > 0) {
@@ -149,8 +147,21 @@ class AuditController {
 	}
 
 	/**
-	 * @HandlesCommand("audit")
+	 * See the most recent audit entries in the database, optionally filtered
+	 *
+	 * The filter key can be any of 'action', 'actor', 'actee', 'before' or 'after'
 	 */
+	#[NCA\HandlesCommand("audit")]
+	#[NCA\Help\Prologue("If you have enabled audit logging, you can query the data with this command.")]
+	#[NCA\Help\Epilogue(
+		"To navigate around the results, use <highlight>limit<end> and <highlight>offset<end>\n".
+		"<tab><highlight><symbol>audit limit=200<end>\n".
+		"<tab><highlight><symbol>audit limit=200 offset=1000<end>"
+	)]
+	#[NCA\Help\Example("<symbol>audit actor=Nady after=after=2020-08-20 before=before=2020-08-27")]
+	#[NCA\Help\Example("<symbol>audit actor=Nady action=set-rank")]
+	#[NCA\Help\Example("<symbol>audit actor=Nady action=set-rank after=last week")]
+	#[NCA\Help\Example("<symbol>audit action=action=invite,join,leave after=2021-08-01 20:17:55 CEST")]
 	public function auditListCommand(CmdContext $context, ?string $filter): void {
 		$query = $this->db->table(AccessManager::DB_TABLE)
 			->orderByDesc("time")
@@ -190,19 +201,21 @@ class AuditController {
 
 	/**
 	 * Query entries from the audit log
-	 * @Api("/audit")
-	 * @GET
-	 * @QueryParam(name='limit', type='integer', desc='No more than this amount of entries will be returned. Default is 50', required=false)
-	 * @QueryParam(name='offset', type='integer', desc='How many entries to skip before beginning to return entries', required=false)
-	 * @QueryParam(name='actor', type='string', desc='Show only entries of this actor', required=false)
-	 * @QueryParam(name='actee', type='string', desc='Show only entries with this actee', required=false)
-	 * @QueryParam(name='action', type='string', desc='Show only entries with this action', required=false)
-	 * @QueryParam(name='before', type='integer', desc='Show only entries from before the given timestamp', required=false)
-	 * @QueryParam(name='after', type='integer', desc='Show only entries from after the given timestamp', required=false)
-	 * @AccessLevel("mod")
-	 * @ApiTag("audit")
-	 * @ApiResult(code=200, class='Audit[]', desc='The audit log entries')
 	 */
+	#[
+		NCA\Api("/audit"),
+		NCA\GET,
+		NCA\QueryParam(name: "limit", desc: "No more than this amount of entries will be returned. Default is 50", type: "integer"),
+		NCA\QueryParam(name: "offset", desc: "How many entries to skip before beginning to return entries", type: "integer"),
+		NCA\QueryParam(name: "actor", desc: "Show only entries of this actor"),
+		NCA\QueryParam(name: "actee", desc: "Show only entries with this actee"),
+		NCA\QueryParam(name: "action", desc: "Show only entries with this action"),
+		NCA\QueryParam(name: "before", desc: "Show only entries from before the given timestamp", type: "integer"),
+		NCA\QueryParam(name: "after", desc: "Show only entries from after the given timestamp", type: "integer"),
+		NCA\AccessLevel("mod"),
+		NCA\ApiTag("audit"),
+		NCA\ApiResult(code: 200, class: "Audit[]", desc: "The audit log entries")
+	]
 	public function auditGetListEndpoint(Request $request, HttpProtocolWrapper $server): Response {
 		$query = $this->db->table(AccessManager::DB_TABLE)
 			->orderByDesc("time")

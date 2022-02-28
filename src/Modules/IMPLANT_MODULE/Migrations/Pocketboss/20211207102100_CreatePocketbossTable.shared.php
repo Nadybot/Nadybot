@@ -11,7 +11,7 @@ class CreatePocketbossTable implements SchemaMigration {
 	public function migrate(LoggerWrapper $logger, DB $db): void {
 		$table = "pocketboss";
 		$db->schema()->dropIfExists($table);
-		$db->schema()->create($table, function(Blueprint $table) {
+		$db->schema()->create($table, function(Blueprint $table): void {
 			$table->integer("id")->primary();
 			$table->string("pb", 30)->index();
 			$table->string("pb_location", 30);

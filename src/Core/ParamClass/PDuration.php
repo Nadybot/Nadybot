@@ -17,7 +17,7 @@ class PDuration extends Base {
 		if (is_numeric($this->value)) {
 			return (int)$this->value;
 		}
-		$util = Registry::getInstance('util');
+		$util = Registry::getInstance(Util::class);
 		if (isset($util) && $util instanceof Util) {
 			return $util->parseTime($this->value);
 		}

@@ -2,21 +2,24 @@
 
 namespace Nadybot\Modules\PRIVATE_CHANNEL_MODULE\Migrations;
 
-use Nadybot\Core\DB;
-use Nadybot\Core\DBSchema\RouteHopColor;
-use Nadybot\Core\DBSchema\Setting;
-use Nadybot\Core\LoggerWrapper;
-use Nadybot\Core\MessageHub;
-use Nadybot\Core\Nadybot;
-use Nadybot\Core\Routing\Source;
-use Nadybot\Core\SchemaMigration;
-use Nadybot\Core\SettingManager;
+use Nadybot\Core\{
+	Attributes as NCA,
+	ConfigFile,
+	DB,
+	DBSchema\RouteHopColor,
+	DBSchema\Setting,
+	LoggerWrapper,
+	MessageHub,
+	Routing\Source,
+	SchemaMigration,
+	SettingManager,
+};
 
 class MoveSettingsToHopColors implements SchemaMigration {
-	/** @Inject */
-	public Nadybot $chatBot;
+	#[NCA\Inject]
+	public ConfigFile $config;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public MessageHub $messageHub;
 
 	protected function getSettingColor(DB $db, string $name): ?string {
@@ -38,16 +41,16 @@ class MoveSettingsToHopColors implements SchemaMigration {
 		$hop = new RouteHopColor();
 		$hop->tag_color = $this->getSettingColor($db, "guest_color_channel") ?? "C3C3C3";
 		$hop->text_color = $this->getSettingColor($db, "guest_color_guild") ?? "C3C3C3";
-		$hop->hop = Source::PRIV . "(" . $this->chatBot->vars["name"] . ")";
+		$hop->hop = Source::PRIV . "(" . $this->config->name . ")";
 		$hop->id = $db->insert(MessageHub::DB_TABLE_COLORS, $hop);
 
-		if (strlen($this->chatBot->vars["my_guild"] ?? "")) {
+		/** @psalm-suppress DocblockTypeContradiction */
+		if (strlen($this->config->orgName)) {
 			$hop = new RouteHopColor();
 			$hop->tag_color = $this->getSettingColor($db, "guest_color_channel") ?? "C3C3C3";
 			$hop->text_color = $this->getSettingColor($db, "guest_color_guest") ?? "C3C3C3";
-			$hop->hop = Source::ORG . "({$this->chatBot->vars['my_guild']})";
+			$hop->hop = Source::ORG . "({$this->config->orgName})";
 			$hop->id = $db->insert(MessageHub::DB_TABLE_COLORS, $hop);
 		}
-		$this->messageHub->loadTagColor();
 	}
 }

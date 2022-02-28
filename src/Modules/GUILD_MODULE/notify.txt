@@ -1,5 +1,0 @@
-To manually add a player to the notify list:
-<highlight><tab><symbol>notify on 'player'<end>
-
-To manually remove a player from the notify list:
-<highlight><tab><symbol>notify off 'player'<end>

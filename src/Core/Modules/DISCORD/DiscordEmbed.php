@@ -18,5 +18,8 @@ class DiscordEmbed extends JSONDataModel {
 	public ?object $video = null;
 	public ?object $provider = null;
 	public ?object $author = null;
+	/**
+	 * @var null|DiscordEmbedField[]
+	 */
 	public ?array $fields = null;
 }

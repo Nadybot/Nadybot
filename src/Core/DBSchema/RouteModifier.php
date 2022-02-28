@@ -2,6 +2,7 @@
 
 namespace Nadybot\Core\DBSchema;
 
+use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\DBRow;
 
 class RouteModifier extends DBRow {
@@ -15,9 +16,9 @@ class RouteModifier extends DBRow {
 	public string $modifier;
 
 	/**
-	 * @db:ignore
 	 * @var RouteModifierArgument[]
 	 */
+	#[NCA\DB\Ignore]
 	public array $arguments = [];
 
 	public function toString(bool $asLink=false): string {

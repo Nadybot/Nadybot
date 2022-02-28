@@ -3,59 +3,55 @@
 namespace Nadybot\Modules\IMPLANT_MODULE;
 
 use Nadybot\Core\{
+	Attributes as NCA,
 	CmdContext,
 	DB,
+	ModuleInstance,
 	QueryBuilder,
 	Text,
 	Util,
 };
-use Nadybot\Modules\ITEMS_MODULE\Skill;
-use Nadybot\Modules\ITEMS_MODULE\WhatBuffsController;
+use Nadybot\Modules\ITEMS_MODULE\{
+	Skill,
+	WhatBuffsController,
+};
 
 /**
  * @author Tyrence (RK2)
- *
- * @Instance
- *
  * Commands this class contains:
- *	@DefineCommand(
- *		command     = 'premade',
- *		accessLevel = 'all',
- *		description = 'Searches for implants out of the premade implants booths',
- *		help        = 'premade.txt'
- *	)
  */
-class PremadeImplantController {
-
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
-
-	/** @Inject */
+#[
+	NCA\Instance,
+	NCA\HasMigrations("Migrations/Premade"),
+	NCA\DefineCommand(
+		command: "premade",
+		accessLevel: "guest",
+		description: "Searches for implants out of the premade implants booths",
+	)
+]
+class PremadeImplantController extends ModuleInstance {
+	#[NCA\Inject]
 	public DB $db;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Text $text;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public WhatBuffsController $whatBuffsController;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Util $util;
 
-	/**
-	 * @Setup
-	 */
+	#[NCA\Setup]
 	public function setup(): void {
-		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations/Premade");
 		$this->db->loadCSVFile($this->moduleName, __DIR__ . "/premade_implant.csv");
 	}
 
-	/**
-	 * @HandlesCommand("premade")
-	 */
+	/** Search for implants by profession, slot, or modifier in the premade implant booth */
+	#[NCA\HandlesCommand("premade")]
+	#[NCA\Help\Example("<symbol>premade agent")]
+	#[NCA\Help\Example("<symbol>premade cl")]
+	#[NCA\Help\Example("<symbol>premade rwrist")]
 	public function premadeCommand(CmdContext $context, string $search): void {
 		$searchTerms = strtolower($search);
 		$results = null;

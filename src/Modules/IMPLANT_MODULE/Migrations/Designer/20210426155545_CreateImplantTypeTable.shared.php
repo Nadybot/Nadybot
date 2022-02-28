@@ -11,7 +11,7 @@ class CreateImplantTypeTable implements SchemaMigration {
 	public function migrate(LoggerWrapper $logger, DB $db): void {
 		$table = "ImplantType";
 		$db->schema()->dropIfExists($table);
-		$db->schema()->create($table, function(Blueprint $table) {
+		$db->schema()->create($table, function(Blueprint $table): void {
 			$table->integer("ImplantTypeID")->primary();
 			$table->string("Name", 20);
 			$table->string("ShortName", 10);

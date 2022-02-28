@@ -28,7 +28,7 @@ class RaffleItem {
 					$ql = $matches[3][$i];
 				} else {
 					/** @var DB */
-					$db = Registry::getInstance('db');
+					$db = Registry::getInstance(DB::class);
 					/** @var null|DBRow */
 					$hasItemGroup = $db->table("item_groups")
 						->where("item_id", $matches[1][$i])

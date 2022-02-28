@@ -3,21 +3,23 @@
 namespace Nadybot\Modules\NEWS_MODULE;
 
 use Exception;
+use Throwable;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	AOChatEvent,
+	Attributes as NCA,
 	CmdContext,
 	DB,
-	Event,
 	EventManager,
+	ModuleInstance,
+	Modules\ALTS\AltsController,
 	Nadybot,
+	ParamClass\PRemove,
 	SettingManager,
 	Text,
 	UserStateEvent,
 	Util,
 };
-use Nadybot\Core\Modules\ALTS\AltsController;
-use Nadybot\Core\ParamClass\PRemove;
 use Nadybot\Modules\WEBSERVER_MODULE\{
 	ApiResponse,
 	HttpProtocolWrapper,
@@ -25,91 +27,86 @@ use Nadybot\Modules\WEBSERVER_MODULE\{
 	Request,
 	Response,
 };
-use Throwable;
 
 /**
- * @Instance
- *
  * Commands this class contains:
- *	@DefineCommand(
- *		command     = 'news',
- *		accessLevel = 'member',
- *		description = 'Shows news',
- *		help        = 'news.txt'
- *	)
- *	@DefineCommand(
- *		command     = 'news confirm .+',
- *		accessLevel = 'member',
- *		description = 'Mark news as read',
- *		help        = 'news.txt'
- *	)
- *	@DefineCommand(
- *		command     = 'news .+',
- *		accessLevel = 'mod',
- *		description = 'Adds, removes, pins or unpins a news entry',
- *		help        = 'news.txt'
- *	)
- *  @ProvidesEvent(value="sync(news)", desc="Triggered whenever someone creates or modifies a news entry")
- *  @ProvidesEvent(value="sync(news-delete)", desc="Triggered when deleting a news entry")
  */
-class NewsController {
-	/** @Inject */
+#[
+	NCA\Instance,
+	NCA\HasMigrations,
+	NCA\DefineCommand(
+		command: "news",
+		accessLevel: "member",
+		description: "Shows news",
+	),
+	NCA\DefineCommand(
+		command: NewsController::CMD_NEWS_MANAGE,
+		accessLevel: "mod",
+		description: "Adds, removes, pins or unpins a news entry",
+	),
+	NCA\ProvidesEvent(
+		event: "sync(news)",
+		desc: "Triggered whenever someone creates or modifies a news entry"
+	),
+	NCA\ProvidesEvent(
+		event: "sync(news-delete)",
+		desc: "Triggered when deleting a news entry"
+	)
+]
+class NewsController extends ModuleInstance {
+	public const CMD_NEWS_MANAGE = "news add/change/delete";
+
+	#[NCA\Inject]
 	public DB $db;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Nadybot $chatBot;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public AltsController $altsController;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public SettingManager $settingManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public EventManager $eventManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Text $text;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Util $util;
 
-	public string $moduleName;
-
-	/**
-	 * @Setup
-	 */
+	#[NCA\Setup]
 	public function setup(): void {
-		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations");
-
 		$this->settingManager->add(
-			$this->moduleName,
-			"num_news_shown",
-			"Maximum number of news items shown",
-			"edit",
-			"number",
-			"10",
-			"5;10;15;20"
+			module: $this->moduleName,
+			name: "num_news_shown",
+			description: "Maximum number of news items shown",
+			mode: "edit",
+			type: "number",
+			value: "10",
+			options: ["5", "10", "15", "20"]
 		);
 		$this->settingManager->add(
-			$this->moduleName,
-			"news_announcement_layout",
-			"Layout of the news announcement",
-			"edit",
-			"options",
-			"1",
-			"Last date;Latest news",
-			"1;2"
+			module: $this->moduleName,
+			name: "news_announcement_layout",
+			description: "Layout of the news announcement",
+			mode: "edit",
+			type: "options",
+			value: "1",
+			options: [
+				'Last date' => 1,
+				'Latest news' => 2,
+			]
 		);
 		$this->settingManager->add(
-			$this->moduleName,
-			"news_confirmed_for_all_alts",
-			"Confirmed news count for all alts",
-			"edit",
-			"options",
-			"1",
-			"true;false",
-			"1;0"
+			module: $this->moduleName,
+			name: "news_confirmed_for_all_alts",
+			description: "Confirmed news count for all alts",
+			mode: "edit",
+			type: "bool",
+			value: "1"
 		);
 	}
 
@@ -118,7 +115,7 @@ class NewsController {
 	 */
 	public function getNewsItems(string $player): Collection {
 		if ($this->settingManager->getBool('news_confirmed_for_all_alts')) {
-			$player = $this->altsController->getAltInfo($player)->main;
+			$player = $this->altsController->getMainOf($player);
 		}
 		$query = $this->db->table("news AS n")
 			->where("deleted", 0)
@@ -139,7 +136,7 @@ class NewsController {
 	/**
 	 * @return string|string[]|null
 	 */
-	public function getNews(string $player, bool $onlyUnread=true) {
+	public function getNews(string $player, bool $onlyUnread=true): null|string|array {
 		$news = $this->getNewsItems($player);
 		if ($onlyUnread) {
 			$news = $news->where("confirmed", false);
@@ -209,10 +206,10 @@ class NewsController {
 		return $msg;
 	}
 
-	/**
-	 * @Event("logOn")
-	 * @Description("Sends news to org members logging in")
-	 */
+	#[NCA\Event(
+		name: "logOn",
+		description: "Sends news to org members logging in"
+	)]
 	public function logonEvent(UserStateEvent $eventObj): void {
 		$sender = $eventObj->sender;
 
@@ -229,10 +226,10 @@ class NewsController {
 		}
 	}
 
-	/**
-	 * @Event("joinPriv")
-	 * @Description("Sends news to players joining private channel")
-	 */
+	#[NCA\Event(
+		name: "joinPriv",
+		description: "Sends news to players joining private channel"
+	)]
 	public function privateChannelJoinEvent(AOChatEvent $eventObj): void {
 		if (!is_string($eventObj->sender)
 			|| !$this->hasRecentNews($eventObj->sender)
@@ -256,10 +253,9 @@ class NewsController {
 	}
 
 	/**
-	 * This command handler shows latest news.
-	 *
-	 * @HandlesCommand("news")
+	 * Show the latest news entries
 	 */
+	#[NCA\HandlesCommand("news")]
 	public function newsCommand(CmdContext $context): void {
 		$msg = $this->getNews($context->char->name, false);
 
@@ -267,12 +263,14 @@ class NewsController {
 	}
 
 	/**
-	 * This command handler confirms a news entry.
-	 *
-	 * @HandlesCommand("news confirm .+")
-	 * @Mask $action confirm
+	 * Confirm having read a news entry
 	 */
-	public function newsconfirmCommand(CmdContext $context, string $action, int $id): void {
+	#[NCA\HandlesCommand("news")]
+	public function newsconfirmCommand(
+		CmdContext $context,
+		#[NCA\Str("confirm")] string $action,
+		int $id
+	): void {
 		$row = $this->getNewsItem($id);
 		if ($row === null) {
 			$msg = "No news entry found with the ID <highlight>{$id}<end>.";
@@ -280,7 +278,7 @@ class NewsController {
 			return;
 		}
 		if ($this->settingManager->getBool('news_confirmed_for_all_alts')) {
-			$sender = $this->altsController->getAltInfo($context->char->name)->main;
+			$sender = $this->altsController->getMainOf($context->char->name);
 		}
 
 		if ($this->db->table("news_confirmed")
@@ -303,12 +301,14 @@ class NewsController {
 	}
 
 	/**
-	 * This command handler adds a news entry.
-	 *
-	 * @HandlesCommand("news .+")
-	 * @Mask $action add
+	 * Add a news entry
 	 */
-	public function newsAddCommand(CmdContext $context, string $action, string $news): void {
+	#[NCA\HandlesCommand(self::CMD_NEWS_MANAGE)]
+	public function newsAddCommand(
+		CmdContext $context,
+		#[NCA\Str("add")] string $action,
+		string $news
+	): void {
 		$entry = [
 			"time" => time(),
 			"name" => $context->char->name,
@@ -333,11 +333,14 @@ class NewsController {
 	}
 
 	/**
-	 * This command handler removes a news entry.
-	 *
-	 * @HandlesCommand("news .+")
+	 * Remove a news entry by ID
 	 */
-	public function newsRemCommand(CmdContext $context, PRemove $action, int $id): void {
+	#[NCA\HandlesCommand(self::CMD_NEWS_MANAGE)]
+	public function newsRemCommand(
+		CmdContext $context,
+		PRemove $action,
+		int $id
+	): void {
 		$row = $this->getNewsItem($id);
 		if ($row === null) {
 			$msg = "No news entry found with the ID <highlight>{$id}<end>.";
@@ -356,12 +359,14 @@ class NewsController {
 	}
 
 	/**
-	 * This command handler pins a news entry.
-	 *
-	 * @HandlesCommand("news .+")
-	 * @Mask $action pin
+	 * Pin a news entry to the top
 	 */
-	public function newsPinCommand(CmdContext $context, string $action, int $id): void {
+	#[NCA\HandlesCommand(self::CMD_NEWS_MANAGE)]
+	public function newsPinCommand(
+		CmdContext $context,
+		#[NCA\Str("pin")] string $action,
+		int $id
+	): void {
 		$row = $this->getNewsItem($id);
 
 		if (!isset($row)) {
@@ -386,12 +391,14 @@ class NewsController {
 	}
 
 	/**
-	 * This command handler unpins a news entry.
-	 *
-	 * @HandlesCommand("news .+")
-	 * @Mask $action unpin
+	 * Unpin a news entry from the top
 	 */
-	public function newsUnpinCommand(CmdContext $context, string $action, int $id): void {
+	#[NCA\HandlesCommand(self::CMD_NEWS_MANAGE)]
+	public function newsUnpinCommand(
+		CmdContext $context,
+		#[NCA\Str("unpin")] string $action,
+		int $id
+	): void {
 		$row = $this->getNewsItem($id);
 
 		if (!isset($row)) {
@@ -425,11 +432,13 @@ class NewsController {
 
 	/**
 	 * Get a list of all news
-	 * @Api("/news")
-	 * @GET
-	 * @AccessLevelFrom("news")
-	 * @ApiResult(code=200, class='News[]', desc='A list of news items')
 	 */
+	#[
+		NCA\Api("/news"),
+		NCA\GET,
+		NCA\AccessLevelFrom("news"),
+		NCA\ApiResult(code: 200, class: "News[]", desc: "A list of news items")
+	]
 	public function apiNewsEndpoint(Request $request, HttpProtocolWrapper $server): Response {
 		/** @var News[] */
 		$result = $this->db->table("news")
@@ -441,12 +450,14 @@ class NewsController {
 
 	/**
 	 * Get a single news item by id
-	 * @Api("/news/%d")
-	 * @GET
-	 * @AccessLevelFrom("news")
-	 * @ApiResult(code=200, class='News', desc='The requested news item')
-	 * @ApiResult(code=404, desc='Given news id not found')
 	 */
+	#[
+		NCA\Api("/news/%d"),
+		NCA\GET,
+		NCA\AccessLevelFrom("news"),
+		NCA\ApiResult(code: 200, class: "News", desc: "The requested news item"),
+		NCA\ApiResult(code: 404, desc: "Given news id not found")
+	]
 	public function apiNewsIdEndpoint(Request $request, HttpProtocolWrapper $server, int $id): Response {
 		$result = $this->getNewsItem($id);
 		if (!isset($result)) {
@@ -457,12 +468,14 @@ class NewsController {
 
 	/**
 	 * Create a new news item
-	 * @Api("/news")
-	 * @POST
-	 * @AccessLevelFrom("news .+")
-	 * @RequestBody(class='NewNews', desc='The item to create', required=true)
-	 * @ApiResult(code=204, desc='The news item was created successfully')
 	 */
+	#[
+		NCA\Api("/news"),
+		NCA\POST,
+		NCA\AccessLevelFrom(self::CMD_NEWS_MANAGE),
+		NCA\RequestBody(class: "NewNews", desc: "The item to create", required: true),
+		NCA\ApiResult(code: 204, desc: "The news item was created successfully")
+	]
 	public function apiNewsCreateEndpoint(Request $request, HttpProtocolWrapper $server): Response {
 		$news = $request->decodedBody;
 		try {
@@ -474,6 +487,7 @@ class NewsController {
 		} catch (Throwable $e) {
 			return new Response(Response::UNPROCESSABLE_ENTITY);
 		}
+		$decoded = News::fromNewNews($decoded);
 		unset($decoded->id);
 		$decoded->time ??= time();
 		$decoded->name = $request->authenticatedAs??"_";
@@ -498,12 +512,14 @@ class NewsController {
 
 	/**
 	 * Modify an existing news item
-	 * @Api("/news/%d")
-	 * @PATCH
-	 * @AccessLevelFrom("news .+")
-	 * @RequestBody(class='NewNews', desc='The new data for the item', required=true)
-	 * @ApiResult(code=200, class='News', desc='The news item it is now')
 	 */
+	#[
+		NCA\Api("/news/%d"),
+		NCA\PATCH,
+		NCA\AccessLevelFrom(self::CMD_NEWS_MANAGE),
+		NCA\RequestBody(class: "NewNews", desc: "The new data for the item", required: true),
+		NCA\ApiResult(code: 200, class: "News", desc: "The news item it is now")
+	]
 	public function apiNewsModifyEndpoint(Request $request, HttpProtocolWrapper $server, int $id): Response {
 		$result = $this->getNewsItem($id);
 		if (!isset($result)) {
@@ -519,9 +535,10 @@ class NewsController {
 		} catch (Throwable $e) {
 			return new Response(Response::UNPROCESSABLE_ENTITY);
 		}
+		$decoded = News::fromNewNews($decoded);
 		$decoded->id = $id;
 		$decoded->name = $request->authenticatedAs??"_";
-		foreach ($decoded as $attr => $value) {
+		foreach (get_object_vars($decoded) as $attr => $value) {
 			if (isset($value)) {
 				$result->{$attr} = $value;
 			}
@@ -539,12 +556,15 @@ class NewsController {
 		return new ApiResponse($this->getNewsItem($id));
 	}
 
-	/**
-	 * @NewsTile("news")
-	 * @Description("Show excerpts of unread news")
-	 * @Example("<header2>News [<u>see more</u>]<end>
-	 * <tab><highlight>2021-Oct-18<end>: We have a new tower site...")
-	 */
+	#[
+		NCA\NewsTile(
+			name: "news",
+			description: "Show excerpts of unread news",
+			example:
+				"<header2>News [<u>see more</u>]<end>\n".
+				"<tab><highlight>2021-Oct-18<end>: We have a new tower site..."
+		)
+	]
 	public function newsTile(string $sender, callable $callback): void {
 		$thirtyDays = time() - (86400 * 30);
 		$news = $this->getNewsItems($sender);
@@ -559,7 +579,7 @@ class NewsController {
 		$blobLines = [];
 		foreach ($unreadNews as $news) {
 			$firstLine = explode("\n", $news->news)[0];
-			$firstWords = array_slice(preg_split("/\s+/", $firstLine), 0, 5);
+			$firstWords = array_slice(\Safe\preg_split("/\s+/", $firstLine), 0, 5);
 			$blobLines []= "<tab><highlight>" . $this->util->date($news->time).
 				"<end>: " . join(" ", $firstWords) . "...";
 		}
@@ -567,10 +587,10 @@ class NewsController {
 		$callback($blob);
 	}
 
-	/**
-	 * @Event("sync(news)")
-	 * @Description("Sync external news created or modified")
-	 */
+	#[NCA\Event(
+		name: "sync(news)",
+		description: "Sync external news created or modified"
+	)]
 	public function processNewsSyncEvent(SyncNewsEvent $event): void {
 		if ($event->isLocal()) {
 			return;
@@ -579,10 +599,10 @@ class NewsController {
 			->upsert($event->toData(), "uuid", $event->toData());
 	}
 
-	/**
-	 * @Event("sync(news-delete)")
-	 * @Description("Sync external news being deleted")
-	 */
+	#[NCA\Event(
+		name: "sync(news-delete)",
+		description: "Sync external news being deleted"
+	)]
 	public function processNewsDeleteSyncEvent(SyncNewsDeleteEvent $event): void {
 		if (!$event->isLocal()) {
 			$this->db->table("news")->where("uuid", $event->uuid)->update(["deleted" => 1]);

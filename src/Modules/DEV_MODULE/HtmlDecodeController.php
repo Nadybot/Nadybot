@@ -2,36 +2,35 @@
 
 namespace Nadybot\Modules\DEV_MODULE;
 
-use Nadybot\Core\CmdContext;
-use Nadybot\Core\CommandManager;
+use Nadybot\Core\{
+	Attributes as NCA,
+	CmdContext,
+	CommandManager,
+	ModuleInstance,
+};
 
 /**
  * @author Tyrence (RK2)
- *
- * @Instance
- *
- * Commands this controller contains:
- *	@DefineCommand(
- *		command     = 'htmldecode',
- *		accessLevel = 'all',
- *		description = 'Execute a command by first decoding html entities',
- *		help        = 'htmldecode.txt'
- *	)
  */
-class HtmlDecodeController {
-
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
-
-	/** @Inject */
+#[
+	NCA\Instance,
+	NCA\DefineCommand(
+		command: "htmldecode",
+		accessLevel: "guest",
+		description: "Execute a command by first decoding html entities",
+	)
+]
+class HtmlDecodeController extends ModuleInstance {
+	#[NCA\Inject]
 	public CommandManager $commandManager;
 
 	/**
-	 * @HandlesCommand("htmldecode")
+	 * Run a command by first decoding html entities
+	 *
+	 * This is especially useful you need to send special characters to a command but
+	 * otherwise can't because the client is encoding them.
 	 */
+	#[NCA\HandlesCommand("htmldecode")]
 	public function htmldecodeCommand(CmdContext $context, string $command): void {
 		$context->message = html_entity_decode($command, ENT_QUOTES);
 		$this->commandManager->processCmd($context);

@@ -6,6 +6,8 @@ use Nadybot\Core\DBRow;
 
 class Level extends DBRow {
 	public int $level;
+	public int $mob_min;
+	public int $mob_max;
 	public int $teamMin;
 	public int $teamMax;
 	public int $pvpMin;

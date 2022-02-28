@@ -1,2 +1,0 @@
-To get a list of all your org's ranks:
-<tab><highlight><symbol>ranks<end>

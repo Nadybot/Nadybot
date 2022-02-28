@@ -2,54 +2,58 @@
 
 namespace Nadybot\Modules\IMPLANT_MODULE;
 
-use Nadybot\Core\CmdContext;
-use Nadybot\Core\DB;
-use Nadybot\Core\Text;
-use Nadybot\Core\Util;
+use Nadybot\Core\{
+	Attributes as NCA,
+	CmdContext,
+	DB,
+	ModuleInstance,
+	Text,
+	Util,
+};
 
 /**
  * @author Tyrence (RK2)
  * @author Imoutochan (RK1)
- *
- * @Instance
- *
- * Commands this class contains:
- *	@DefineCommand(
- *		command     = 'ladder',
- *		accessLevel = 'all',
- *		description = 'Show sequence of laddering implants for maximum ability or treatment',
- *		help        = 'ladder.txt'
- *	)
  */
-class LadderController {
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
-
-	/** @Inject */
+#[
+	NCA\Instance,
+	NCA\HasMigrations("Migrations/Base"),
+	NCA\DefineCommand(
+		command: "ladder",
+		accessLevel: "guest",
+		description: "Show sequence of laddering implants for maximum ability or treatment",
+	)
+]
+class LadderController extends ModuleInstance {
+	#[NCA\Inject]
 	public DB $db;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public ImplantController $implantController;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Text $text;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Util $util;
 
-	/** @Setup */
+	#[NCA\Setup]
 	public function setup(): void {
-		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations/Base");
 		$this->db->loadCSVFile($this->moduleName, __DIR__ . "/implant_requirements.csv");
 	}
 
-	/**
-	 * @HandlesCommand("ladder")
-	 */
-	public function ladderCommand(CmdContext $context, string $type, int $startingValue): void {
+	/** Show sequence of laddering implants for an ability or treatment */
+	#[NCA\HandlesCommand("ladder")]
+	#[NCA\Help\Epilogue(
+		"The base amount should be the treatment or ability you have with all nano buffs, ".
+		"perks, and items-buffing equipment equipped, but minus any implants you have ".
+		"equipped."
+	)]
+	public function ladderCommand(
+		CmdContext $context,
+		#[NCA\StrChoice("treatment", "ability")] string $type,
+		int $startingValue
+	): void {
 		$type = strtolower($type);
 
 		if ($type === 'treat') {
@@ -70,7 +74,7 @@ class LadderController {
 
 		$blob = "Starting $type: $value\n\n-------------------\n\n";
 
-		if ($type == 'treatment') {
+		if ($type === 'treatment') {
 			if ($value < 11) {
 				$context->reply("Base treatment must be at least <highlight>11<end>.");
 				return;
@@ -152,7 +156,7 @@ class LadderController {
 
 		$blob .= "-------------------\n\nEnding $type: $value";
 		$blob .= "\n\n<highlight>Inspired by a command written by Lucier of the same name<end>";
-		$msg = $this->text->makeBlob("Laddering from $startingValue to $value " . ucfirst(strtolower($type)), $blob);
+		$msg = $this->text->makeBlob("Laddering from $startingValue to $value " . ucfirst($type), $blob);
 
 		$context->reply($msg);
 	}
@@ -182,43 +186,21 @@ class LadderController {
 		$this->setHighestAndLowestQls($obj, 'skillShiny');
 		$this->setHighestAndLowestQls($obj, 'skillBright');
 		$this->setHighestAndLowestQls($obj, 'skillFaded');
-
-		$obj->abilityTotal = $obj->abilityShiny + $obj->abilityBright + $obj->abilityFaded;
-		$obj->skillTotal = $obj->skillShiny + $obj->skillBright + $obj->skillFaded;
-
-		$obj->minShinyClusterQl = $this->implantController->getClusterMinQl($obj->ql, 'shiny');
-		$obj->minBrightClusterQl = $this->implantController->getClusterMinQl($obj->ql, 'bright');
-		$obj->minFadedClusterQl = $this->implantController->getClusterMinQl($obj->ql, 'faded');
-
-		// if implant QL is 201+, then clusters must be refined and must be QL 201+ also
-		if ($obj->ql >= 201) {
-			if ($obj->minShinyClusterQl < 201) {
-				$obj->minShinyClusterQl = 201;
-			}
-			if ($obj->minBrightClusterQl < 201) {
-				$obj->minBrightClusterQl = 201;
-			}
-			if ($obj->minFadedClusterQl < 201) {
-				$obj->minFadedClusterQl = 201;
-			}
-		}
 	}
 
 	public function setHighestAndLowestQls(LadderRequirements $obj, string $var): void {
 		$varValue = $obj->$var;
 
-		$query = $this->db->table("implant_requirements")
-			->where($var, $varValue);
-		$query->select($query->colFunc("MAX", "ql", "max"))
-			->addSelect($query->colFunc("MIN", "ql", "min"));
-		$row = $query->asObj()->first();
-
+		$min = $this->db->table("implant_requirements")
+			->where($var, $varValue)->min("ql");
+		$max = $this->db->table("implant_requirements")
+			->where($var, $varValue)->max("ql");
 		// camel case var name
 		$tempNameVar = ucfirst($var);
 		$tempHighestName = "highest$tempNameVar";
 		$tempLowestName = "lowest$tempNameVar";
 
-		$obj->$tempLowestName = $row->min;
-		$obj->$tempHighestName = $row->max;
+		$obj->$tempLowestName = (int)$min;
+		$obj->$tempHighestName = (int)$max;
 	}
 }

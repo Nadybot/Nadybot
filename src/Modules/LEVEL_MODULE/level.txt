@@ -1,2 +1,0 @@
-To show information about a player level:
-<highlight><tab><symbol>level 'level'<end>

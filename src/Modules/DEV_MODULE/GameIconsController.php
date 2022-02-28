@@ -3,36 +3,29 @@
 namespace Nadybot\Modules\DEV_MODULE;
 
 use Nadybot\Core\{
+	Attributes as NCA,
 	CmdContext,
+	ModuleInstance,
 	Text,
 };
 
 /**
  * @author Nadyita (RK5)
- *
- * @Instance
- *
- * Commands this controller contains:
- *	@DefineCommand(
- *		command     = 'gameicons',
- *		accessLevel = 'mod',
- *		description = "List all game icons with their name"
- *	)
  */
-class GameIconsController {
-
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
-
-	/** @Inject */
+#[
+	NCA\Instance,
+	NCA\DefineCommand(
+		command: "gameicons",
+		accessLevel: "mod",
+		description: "List all game icons with their name"
+	)
+]
+class GameIconsController extends ModuleInstance {
+	#[NCA\Inject]
 	public Text $text;
 
-	/**
-	 * @HandlesCommand("gameicons")
-	 */
+	/** List all game icons with their name */
+	#[NCA\HandlesCommand("gameicons")]
 	public function gameIconsCommand(CmdContext $context): void {
 		$icons = [
 			"GFX_FONT_CHAT9",

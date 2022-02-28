@@ -2,44 +2,46 @@
 
 namespace Nadybot\Modules\FUN_MODULE;
 
-use Nadybot\Core\CmdContext;
-use Nadybot\Core\ParamClass\PCharacter;
-use Nadybot\Core\Text;
-use Nadybot\Core\Util;
+use Nadybot\Core\{
+	Attributes as NCA,
+	CmdContext,
+	ModuleInstance,
+	ParamClass\PCharacter,
+	Text,
+	Util,
+};
 
 /**
  * @author Tyrence (RK2)
  * @author Mdkdoc420 (RK2)
- *
- * @Instance
- *
- * Commands this controller contains:
- *	@DefineCommand(
- *		command     = 'fight',
- *		accessLevel = 'all',
- *		description = 'Let two people fight against each other',
- *		help        = 'fun_module.txt'
- *	)
  */
-class FightController {
-
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
-
-	/** @Inject */
+#[
+	NCA\Instance,
+	NCA\DefineCommand(
+		command: "fight",
+		accessLevel: "guest",
+		description: "Let two people fight against each other",
+	)
+]
+class FightController extends ModuleInstance {
+	#[NCA\Inject]
 	public Text $text;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Util $util;
 
 	/**
-	 * @HandlesCommand("fight")
-	 * @Mask $vs vs
+	 * Let 2 people fight against each other
+	 *
+	 * Note: Chuck Norris never loses
 	 */
-	public function fightCommand(CmdContext $context, PCharacter $player1, ?string $vs, PCharacter $player2): void {
+	#[NCA\HandlesCommand("fight")]
+	public function fightCommand(
+		CmdContext $context,
+		PCharacter $player1,
+		#[NCA\Str("vs")] ?string $vs,
+		PCharacter $player2
+	): void {
 		$player1 = $player1();
 		$player2 = $player2();
 
@@ -85,7 +87,7 @@ class FightController {
 		$context->reply($msg);
 	}
 
-	public function getFighter($name): Fighter {
+	public function getFighter(string $name): Fighter {
 		$weaponNames = [
 			"with a nerfstick" => "nerfed damage",
 			"with bad breath" => "disease damage",

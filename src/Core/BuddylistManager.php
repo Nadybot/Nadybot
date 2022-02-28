@@ -2,19 +2,18 @@
 
 namespace Nadybot\Core;
 
-/**
- * @Instance
- */
+use Nadybot\Core\Attributes as NCA;
+
+#[NCA\Instance]
 class BuddylistManager {
-	/**
-	 * @Inject
-	 */
+	#[NCA\Inject]
 	public Nadybot $chatBot;
 
-	/**
-	 * @Logger
-	 */
+	#[NCA\Logger]
 	public LoggerWrapper $logger;
+
+	#[NCA\Inject]
+	public ConfigFile $config;
 
 	/**
 	 * List of all players on the friendlist, real or just queued up
@@ -42,7 +41,7 @@ class BuddylistManager {
 	 * @return bool|null null when online status is unknown, true when buddy is online, false when buddy is offline
 	 */
 	public function isOnline(string $name): ?bool {
-		if (strtolower($this->chatBot->vars['name']) === strtolower($name)) {
+		if (strtolower($this->config->name) === strtolower($name)) {
 			return true;
 		}
 		$buddy = $this->getBuddy($name);
@@ -126,7 +125,7 @@ class BuddylistManager {
 		$name = (string)($this->chatBot->id[$uid] ?? $uid);
 		if (!isset($this->buddyList[$uid])) {
 			$this->logger->info("$name buddy added");
-			if ($this->chatBot->vars['use_proxy'] != 1 && count($this->buddyList) > 999) {
+			if (!$this->config->useProxy && count($this->buddyList) > 999) {
 				$this->logger->error("Error adding '$name' to buddy list--buddy list is full");
 			}
 			$this->chatBot->buddy_add($uid);

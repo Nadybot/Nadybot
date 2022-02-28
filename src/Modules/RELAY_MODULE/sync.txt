@@ -1,6 +1,0 @@
-To force syncing a command via all supporting relays
-<tab><highlight><symbol>sync 'command'<end>
-
-Note: This only overrides the default setting that relays
-don't relay outgoing sync events. It does not automatically
-allow receiving of these events on the other relayh end.

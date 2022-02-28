@@ -1,2 +1,0 @@
-To force an update of the org roster:
-<highlight><tab><symbol>updateorg<end>

@@ -2,9 +2,9 @@
 
 namespace Nadybot\Modules\WORLDBOSS_MODULE;
 
-use Spatie\DataTransferObject\FlexibleDataTransferObject;
+use Spatie\DataTransferObject\DataTransferObject;
 
-class ApiGauntletBuff extends FlexibleDataTransferObject {
+class ApiGauntletBuff extends DataTransferObject {
 	public string $faction;
 	public int $expires;
 }

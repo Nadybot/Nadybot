@@ -5,6 +5,9 @@ namespace Nadybot\Modules\RECIPE_MODULE;
 use ArrayIterator;
 use IteratorIterator;
 
+/**
+ * @extends IteratorIterator<int,Ingredient,ArrayIterator>
+ */
 class Ingredients extends IteratorIterator {
 	public function __construct(Ingredient ...$ingredients) {
 		parent::__construct(new ArrayIterator($ingredients));
@@ -15,19 +18,19 @@ class Ingredients extends IteratorIterator {
 	}
 
 	public function add(Ingredient $ingredient): void {
-		/** @var ArrayIterator */
+		/** @var ArrayIterator<int,Ingredient> */
 		$inner = $this->getInnerIterator();
 		$inner->append($ingredient);
 	}
 
 	public function count(): int {
-		/** @var ArrayIterator */
+		/** @var ArrayIterator<int,Ingredient> */
 		$inner = $this->getInnerIterator();
 		return $inner->count();
 	}
 
 	public function last(): ?Ingredient {
-		/** @var ArrayIterator */
+		/** @var ArrayIterator<int,Ingredient> */
 		$inner = $this->getInnerIterator();
 		return $inner->offsetGet($this->count()-1);
 	}

@@ -5,57 +5,56 @@ namespace Nadybot\Modules\TRACKER_MODULE;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	AccessManager,
-	AdminManager,
+	Attributes as NCA,
 	BuddylistManager,
 	CmdContext,
+	ConfigFile,
 	DB,
 	DBSchema\Player,
 	Event,
 	EventManager,
+	ModuleInstance,
 	LoggerWrapper,
 	MessageEmitter,
 	MessageHub,
 	Modules\DISCORD\DiscordController,
+	Modules\PLAYER_LOOKUP\Guild,
+	Modules\PLAYER_LOOKUP\GuildManager,
 	Modules\PLAYER_LOOKUP\PlayerManager,
 	Nadybot,
+	ParamClass\PCharacter,
+	ParamClass\PNonNumber,
+	ParamClass\PRemove,
+	Routing\RoutableMessage,
+	Routing\Source,
 	SettingManager,
 	Text,
 	UserStateEvent,
 	Util,
 };
-use Nadybot\Core\Modules\PLAYER_LOOKUP\Guild;
-use Nadybot\Core\Modules\PLAYER_LOOKUP\GuildManager;
-use Nadybot\Core\ParamClass\PCharacter;
-use Nadybot\Core\ParamClass\PNonNumber;
-use Nadybot\Core\ParamClass\PRemove;
-use Nadybot\Core\Routing\RoutableMessage;
-use Nadybot\Core\Routing\Source;
 use Nadybot\Modules\{
 	ONLINE_MODULE\OnlineController,
-	ONLINE_MODULE\OnlinePlayer,
-	PRIVATE_CHANNEL_MODULE\PrivateChannelController,
+	ORGLIST_MODULE\FindOrgController,
+	ORGLIST_MODULE\Organization,
 	TOWER_MODULE\TowerAttackEvent,
 };
-use Nadybot\Modules\ORGLIST_MODULE\FindOrgController;
-use Nadybot\Modules\ORGLIST_MODULE\Organization;
 use Throwable;
 
 /**
  * @author Tyrence (RK2)
- *
- * @Instance
- *
- * Commands this controller contains:
- *	@DefineCommand(
- *		command     = 'track',
- *		accessLevel = 'all',
- *		description = 'Show and manage tracked players',
- *		help        = 'track.txt'
- *	)
- *	@ProvidesEvent("tracker(logon)")
- *	@ProvidesEvent("tracker(logoff)")
  */
-class TrackerController implements MessageEmitter {
+#[
+	NCA\Instance,
+	NCA\HasMigrations,
+	NCA\DefineCommand(
+		command: "track",
+		accessLevel: "member",
+		description: "Show and manage tracked players",
+	),
+	NCA\ProvidesEvent("tracker(logon)"),
+	NCA\ProvidesEvent("tracker(logoff)")
+]
+class TrackerController extends ModuleInstance implements MessageEmitter {
 	public const DB_TABLE = "tracked_users_<myname>";
 	public const DB_TRACKING = "tracking_<myname>";
 	public const DB_ORG = "tracking_org_<myname>";
@@ -78,154 +77,140 @@ class TrackerController implements MessageEmitter {
 	public const ATT_OMNI = 8;
 	public const ATT_NEUTRAL = 16;
 
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
-
-	/** @Inject */
+	#[NCA\Inject]
 	public Text $text;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Util $util;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public DB $db;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Nadybot $chatBot;
 
-	/** @Inject */
+	#[NCA\Inject]
+	public ConfigFile $config;
+
+	#[NCA\Inject]
 	public SettingManager $settingManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public EventManager $eventManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public GuildManager $guildManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public DiscordController $discordController;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public BuddylistManager $buddylistManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public MessageHub $messageHub;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public PlayerManager $playerManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public OnlineController $onlineController;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public FindOrgController $findOrgController;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public AccessManager $accessManager;
 
-	/** @Logger */
+	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
-	/**
-	 * @Setup
-	 */
+	#[NCA\Setup]
 	public function setup(): void {
-		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations");
-
 		$this->settingManager->add(
-			$this->moduleName,
-			'tracker_layout',
-			'How to show if a tracked person logs on/off',
-			'edit',
-			'options',
-			'0',
-			'TRACK: "info" logged on/off.;+/- "info"',
-			'0;1',
-			'mod',
+			module: $this->moduleName,
+			name: 'tracker_layout',
+			description: 'How to show if a tracked person logs on/off',
+			mode: 'edit',
+			type: 'options',
+			value: '0',
+			options: [
+				'TRACK: "info" logged on/off.' => 0,
+				'+/- "info"' => 1,
+			],
 		);
 		$this->settingManager->add(
-			$this->moduleName,
-			'tracker_use_faction_color',
-			"Use faction color for the name of the tracked person",
-			'edit',
-			'options',
-			'0',
-			'true;false',
-			'1;0',
-			'mod',
+			module: $this->moduleName,
+			name: 'tracker_use_faction_color',
+			description: "Use faction color for the name of the tracked person",
+			mode: 'edit',
+			type: 'bool',
+			value: '0',
 		);
 		$this->settingManager->add(
-			$this->moduleName,
-			'tracker_show_level',
-			"Show the tracked person's level",
-			'edit',
-			'options',
-			'0',
-			'true;false',
-			'1;0',
-			'mod',
+			module: $this->moduleName,
+			name: 'tracker_show_level',
+			description: "Show the tracked person's level",
+			mode: 'edit',
+			type: 'bool',
+			value: '0',
 		);
 		$this->settingManager->add(
-			$this->moduleName,
-			'tracker_show_prof',
-			"Show the tracked person's profession",
-			'edit',
-			'options',
-			'0',
-			'true;false',
-			'1;0',
-			'mod',
+			module: $this->moduleName,
+			name: 'tracker_show_prof',
+			description: "Show the tracked person's profession",
+			mode: 'edit',
+			type: 'bool',
+			value: '0',
 		);
 		$this->settingManager->add(
-			$this->moduleName,
-			'tracker_show_org',
-			"Show the tracked person's org",
-			'edit',
-			'options',
-			'0',
-			'true;false',
-			'1;0',
-			'mod',
+			module: $this->moduleName,
+			name: 'tracker_show_org',
+			description: "Show the tracked person's org",
+			mode: 'edit',
+			type: 'bool',
+			value: '0',
 		);
 		$this->settingManager->add(
-			$this->moduleName,
-			"tracker_group_by",
-			"Group online list by",
-			"edit",
-			"options",
-			"1",
-			"do not group;title level;profession",
-			"0;1;2"
+			module: $this->moduleName,
+			name: "tracker_group_by",
+			description: "Group online list by",
+			mode: "edit",
+			type: "options",
+			value: "1",
+			options: [
+				'do not group' => 0,
+				'title level' => 1,
+				'profession' => 2,
+			]
 		);
 		$this->settingManager->add(
-			$this->moduleName,
-			"tracker_add_attackers",
-			"Automatically track tower field attackers",
-			"edit",
-			"options",
-			"0",
-			"Off".
-				";Attacking my own org's tower fields".
-				";Attacking tower fields of bot members".
-				";Attacking Clan fields".
-				";Attacking Omni fields".
-				";Attacking Neutral fields".
-				";Attacking Non-Clan fields".
-				";Attacking Non-Omni fields".
-				";Attacking Non-Neutral fields".
-				";All",
-			"0;1;2;4;8;16;24;20;12;28"
+			module: $this->moduleName,
+			name: "tracker_add_attackers",
+			description: "Automatically track tower field attackers",
+			mode: "edit",
+			type: "options",
+			value: "0",
+			options: [
+				"Off" => 0,
+				"Attacking my own org's tower fields" => 1,
+				"Attacking tower fields of bot members" => 2,
+				"Attacking Clan fields" => 4,
+				"Attacking Omni fields" => 8,
+				"Attacking Neutral fields" => 16,
+				"Attacking Non-Clan fields" => 24,
+				"Attacking Non-Omni fields" => 20,
+				"Attacking Non-Neutral fields" => 12,
+				"All" => 28,
+			],
 		);
 		$this->messageHub->registerMessageEmitter($this);
 	}
 
-	/**
-	 * @Event("connect")
-	 * @Description("Adds all players on the track list to the buddy list")
-	 */
+	#[NCA\Event(
+		name: "connect",
+		description: "Adds all players on the track list to the buddy list"
+	)]
 	public function trackedUsersConnectEvent(Event $eventObj): void {
 		$this->db->table(self::DB_TABLE)
 			->asObj(TrackedUser::class)
@@ -243,10 +228,10 @@ class TrackerController implements MessageEmitter {
 		return Source::SYSTEM . "(tracker)";
 	}
 
-	/**
-	 * @Event("timer(24hrs)")
-	 * @Description("Download all tracked orgs' information")
-	 */
+	#[NCA\Event(
+		name: "timer(24hrs)",
+		description: "Download all tracked orgs' information"
+	)]
 	public function downloadOrgRostersEvent(Event $eventObj): void {
 		$this->logger->notice("Starting Tracker Roster update");
 		/** @var Collection<TrackingOrg> */
@@ -258,7 +243,7 @@ class TrackerController implements MessageEmitter {
 			// Get the org info
 			$this->guildManager->getByIdAsync(
 				$org->org_id,
-				$this->chatBot->vars["dimension"],
+				$this->config->dimension,
 				true,
 				[$this, "updateRosterForOrg"],
 				function() use (&$i) {
@@ -270,10 +255,10 @@ class TrackerController implements MessageEmitter {
 		}
 	}
 
-	/**
-	 * @Event("tower(attack)")
-	 * @Description("Automatically track tower field attackers")
-	 */
+	#[NCA\Event(
+		name: "tower(attack)",
+		description: "Automatically track tower field attackers"
+	)]
 	public function trackTowerAttacks(TowerAttackEvent $eventObj): void {
 		$attacker = $eventObj->attacker;
 		if ($this->accessManager->checkAccess($attacker->name, "member")) {
@@ -287,7 +272,7 @@ class TrackerController implements MessageEmitter {
 			return;
 		}
 		if ($trackWho === self::ATT_OWN_ORG ) {
-			$attackingMyOrg = isset($defGuild) && $defGuild === $this->chatBot->vars["my_guild"];
+			$attackingMyOrg = isset($defGuild) && $defGuild === $this->config->orgName;
 			if (!$attackingMyOrg) {
 				return;
 			}
@@ -296,14 +281,14 @@ class TrackerController implements MessageEmitter {
 			if (!isset($defGuild)) {
 				return;
 			}
-			$isOurGuild = $this->db->table(PrivateChannelController::DB_TABLE, "m")
-				->join("players AS p", "m.name", "p.name")
-				->where("p.guild", $defGuild)
-				->exists() ||
-			$this->db->table(AdminManager::DB_TABLE, "a")
-				->join("players AS p", "a.name", "p.name")
-				->where("p.guild", $defGuild)
-				->exists();
+			$isOurGuild = $this->playerManager->searchByColumn(
+				$this->config->dimension,
+				"guild",
+				$defGuild
+			)->contains(function (Player $player): bool {
+				return $this->accessManager->getAccessLevelForCharacter($player->name) !== "all";
+			});
+
 			if (!$isOurGuild) {
 				return;
 			}
@@ -319,13 +304,21 @@ class TrackerController implements MessageEmitter {
 				return;
 			}
 		}
-		$this->trackUid($attacker->charid, $attacker->name);
+		if (isset($attacker->charid)) {
+			$this->trackUid($attacker->charid, $attacker->name);
+			return;
+		}
+		$this->chatBot->getUid($attacker->name, function (?int $uid) use ($attacker): void {
+			if (isset($uid)) {
+				$this->trackUid($uid, $attacker->name);
+			}
+		});
 	}
 
-	/**
-	 * @Event("logOn")
-	 * @Description("Records a tracked user logging on")
-	 */
+	#[NCA\Event(
+		name: "logOn",
+		description: "Records a tracked user logging on"
+	)]
 	public function trackLogonEvent(UserStateEvent $eventObj): void {
 		if (!$this->chatBot->isReady() || !is_string($eventObj->sender)) {
 			return;
@@ -409,10 +402,10 @@ class TrackerController implements MessageEmitter {
 		return sprintf($format, $info);
 	}
 
-	/**
-	 * @Event("logOff")
-	 * @Description("Records a tracked user logging off")
-	 */
+	#[NCA\Event(
+		name: "logOff",
+		description: "Records a tracked user logging off"
+	)]
 	public function trackLogoffEvent(UserStateEvent $eventObj): void {
 		if (!$this->chatBot->isReady() || !is_string($eventObj->sender)) {
 			return;
@@ -472,9 +465,8 @@ class TrackerController implements MessageEmitter {
 		return sprintf($format, $info);
 	}
 
-	/**
-	 * @HandlesCommand("track")
-	 */
+	/** See the list of users on the track list */
+	#[NCA\HandlesCommand("track")]
 	public function trackListCommand(CmdContext $context): void {
 		/** @var Collection<TrackedUser> */
 		$users = $this->db->table(self::DB_TABLE)
@@ -520,10 +512,13 @@ class TrackerController implements MessageEmitter {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @HandlesCommand("track")
-	 */
-	public function trackRemoveNameCommand(CmdContext $context, PRemove $action, PCharacter $char): void {
+	/** Remove a player from the track list */
+	#[NCA\HandlesCommand("track")]
+	public function trackRemoveNameCommand(
+		CmdContext $context,
+		PRemove $action,
+		PCharacter $char
+	): void {
 		$this->chatBot->getUid(
 			$char(),
 			function(?int $uid, string $name) use ($context): void {
@@ -538,10 +533,13 @@ class TrackerController implements MessageEmitter {
 		);
 	}
 
-	/**
-	 * @HandlesCommand("track")
-	 */
-	public function trackRemoveUidCommand(CmdContext $context, PRemove $action, int $uid): void {
+	/** Remove a player from the track list */
+	#[NCA\HandlesCommand("track")]
+	public function trackRemoveUidCommand(
+		CmdContext $context,
+		PRemove $action,
+		int $uid
+	): void {
 		$this->chatBot->getName($uid, function(?string $char) use ($uid, $context): void {
 			$this->trackRemoveCommand($context, $char ?? "UID {$uid}", $uid);
 		});
@@ -580,11 +578,18 @@ class TrackerController implements MessageEmitter {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @HandlesCommand("track")
-	 * @Mask $action add
-	 */
-	public function trackAddCommand(CmdContext $context, string $action, PCharacter $char): void {
+	/** Add a player to the track list */
+	#[NCA\HandlesCommand("track")]
+	#[NCA\Help\Epilogue(
+		"Tracked characters are announced via the source 'system(tracker)'\n".
+		"Make sure you have routes in place to display these messages\n".
+		"where you want to see them. See <a href='chatcmd:///tell <myname> help route'><symbol>help route</a> for more information."
+	)]
+	public function trackAddCommand(
+		CmdContext $context,
+		#[NCA\Str("add")] string $action,
+		PCharacter $char
+	): void {
 		$this->chatBot->getUid($char(), function(?int $uid) use ($context, $char): void {
 			if (!isset($uid)) {
 				$msg = "Character <highlight>{$char}<end> does not exist.";
@@ -602,11 +607,13 @@ class TrackerController implements MessageEmitter {
 		});
 	}
 
-	/**
-	 * @HandlesCommand("track")
-	 * @Mask $action addorg
-	 */
-	public function trackAddOrgIdCommand(CmdContext $context, string $action, int $orgId): void {
+	/** Add a whole organization to the track list */
+	#[NCA\HandlesCommand("track")]
+	public function trackAddOrgIdCommand(
+		CmdContext $context,
+		#[NCA\Str("addorg")] string $action,
+		int $orgId
+	): void {
 		if (!$this->findOrgController->isReady()) {
 			$this->findOrgController->sendNotReadyError($context);
 			return;
@@ -629,7 +636,7 @@ class TrackerController implements MessageEmitter {
 		$context->reply("Adding <" . strtolower($org->faction) . ">{$org->name}<end> to the tracker.");
 		$this->guildManager->getByIdAsync(
 			$orgId,
-			(int)$this->chatBot->vars["dimension"],
+			$this->config->dimension,
 			true,
 			[$this, "updateRosterForOrg"],
 			[$context, "reply"],
@@ -637,11 +644,13 @@ class TrackerController implements MessageEmitter {
 		);
 	}
 
-	/**
-	 * @HandlesCommand("track")
-	 * @Mask $action addorg
-	 */
-	public function trackAddOrgNameCommand(CmdContext $context, string $action, PNonNumber $orgName): void {
+	/** Add a whole organization to the track list */
+	#[NCA\HandlesCommand("track")]
+	public function trackAddOrgNameCommand(
+		CmdContext $context,
+		#[NCA\Str("addorg")] string $action,
+		PNonNumber $orgName
+	): void {
 		if (!$this->findOrgController->isReady()) {
 			$this->findOrgController->sendNotReadyError($context);
 			return;
@@ -652,16 +661,13 @@ class TrackerController implements MessageEmitter {
 			$context->reply("No matches found.");
 			return;
 		}
-		$blob = $this->formatOrglist($orgs);
+		$blob = $this->formatOrglist(...$orgs->toArray());
 		$msg = $this->text->makeBlob("Org Search Results for '{$orgName}' ($count)", $blob);
 		$context->reply($msg);
 	}
 
-	/**
-	 * @param Collection<Organization> $orgs
-	 */
-	public function formatOrglist(Collection $orgs): string {
-		$orgs = $orgs->sortBy("name");
+	public function formatOrglist(Organization ...$orgs): string {
+		$orgs = (new Collection($orgs))->sortBy("name");
 		$blob = "<header2>Matching orgs<end>\n";
 		foreach ($orgs as $org) {
 			$addLink = $this->text->makeChatcmd('track', "/tell <myname> track addorg {$org->id}");
@@ -672,11 +678,13 @@ class TrackerController implements MessageEmitter {
 		return $blob;
 	}
 
-	/**
-	 * @HandlesCommand("track")
-	 * @Mask $action ((?:rem|del)org)
-	 */
-	public function trackRemOrgCommand(CmdContext $context, string $action, int $orgId): void {
+	/** Remove an organization from the track list */
+	#[NCA\HandlesCommand("track")]
+	public function trackRemOrgCommand(
+		CmdContext $context,
+		#[NCA\Regexp("(?:rem|del)org", example: "remorg")] string $action,
+		int $orgId
+	): void {
 		if (!$this->findOrgController->isReady()) {
 			$this->findOrgController->sendNotReadyError($context);
 			return;
@@ -710,33 +718,48 @@ class TrackerController implements MessageEmitter {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @HandlesCommand("track")
-	 * @Mask $action (orgs?)
-	 * @Mask $subAction list
-	 */
-	public function trackListOrgsCommand(CmdContext $context, string $action, ?string $subAction): void {
-		$orgs = $this->db->table(static::DB_ORG, "to")
-			->join("organizations AS o", "o.id", "to.org_id")
-			->orderBy("name")
-			->asObj(Organization::class);
-		if ($orgs->isEmpty()) {
+	/** List the organizations on the track list */
+	#[NCA\HandlesCommand("track")]
+	public function trackListOrgsCommand(
+		CmdContext $context,
+		#[NCA\Regexp("orgs?", example: "orgs")] string $action,
+		#[NCA\Str("list")] ?string $subAction
+	): void {
+		$orgs = $this->db->table(static::DB_ORG)
+			->asObj(TrackingOrg::class);
+		$orgIds = $orgs->pluck("org_id")->filter()->toArray();
+		$orgsByID = $this->findOrgController->getOrgsById(...$orgIds)
+			->keyBy("id");
+		$orgs = $orgs->each(function(TrackingOrg $o) use ($orgsByID): void {
+			$o->org = $orgsByID->get($o->org_id);
+		})->sort(function (TrackingOrg $o1, TrackingOrg $o2): int {
+			return strcasecmp($o1->org?->name??"", $o2->org?->name??"");
+		});
+
+		$lines = $orgs->map(function(TrackingOrg $o): ?string {
+			if (!isset($o->org)) {
+				return null;
+			}
+			$delLink = $this->text->makeChatcmd("remove", "/tell <myname> track remorg {$o->org->id}");
+			return "<tab>{$o->org->name} (<" . strtolower($o->org->faction) . ">{$o->org->faction}<end>) - ".
+				"<highlight>{$o->org->num_members}<end> members, added by <highlight>{$o->added_by}<end> ".
+				"[{$delLink}]";
+		})->filter();
+		if ($lines->isEmpty()) {
 			$context->reply("There are currently no orgs being tracked.");
 			return;
 		}
-		$lines = $orgs->map(function(Organization $o): string {
-			$delLink = $this->text->makeChatcmd("remove", "/tell <myname> track remorg {$o->id}");
-			return "<tab>{$o->name} (<" . strtolower($o->faction) . ">{$o->faction}<end>) - ".
-				"<highlight>{$o->num_members}<end> members, added by <highlight>{$o->added_by}<end> ".
-				"[{$delLink}]";
-		});
 		$blob = "<header2>Orgs being tracked<end>\n".
 			$lines->join("\n");
 		$msg = $this->text->makeBlob("Tracked orgs(" . $lines->count() . ")", $blob);
 		$context->reply($msg);
 	}
 
-	public function updateRosterForOrg(?Guild $org, ?callable $callback, ...$args): void {
+	/**
+	 *
+	 * @psalm-param null|callable(mixed ...) $callback
+	 */
+	public function updateRosterForOrg(?Guild $org, ?callable $callback, mixed ...$args): void {
 		// Check if JSON file was downloaded properly
 		if ($org === null) {
 			$this->logger->error("Error downloading the guild roster JSON file");
@@ -830,37 +853,51 @@ class TrackerController implements MessageEmitter {
 	}
 
 	/**
-	 * @HandlesCommand("track")
-	 * @Mask $action online
-	 * @Mask $all all
-	 * @Mask $edit --edit
+	 * Show a nice online list of everyone on your track list
+	 *
+	 * By default, this will not show chars hidden via '<symbol>track hide', unless you give 'all'
+	 * To get links for removing and hiding/unhiding characters, add '--edit'
 	 */
-	public function trackOnlineCommand(CmdContext $context, string $action, ?string $all, ?string $edit): void {
-		$data2 = $this->db->table(self::DB_ORG_MEMBER, "tu")
-			->join("players AS p", "tu.name", "p.name")
-			->where("p.dimension", $this->db->getDim())
-			->orderBy("p.name")
-			->select("p.*", "p.name AS pmain", "tu.hidden");
+	#[NCA\HandlesCommand("track")]
+	public function trackOnlineCommand(
+		CmdContext $context,
+		#[NCA\Str("online")] string $action,
+		#[NCA\Str("all")] ?string $all,
+		#[NCA\Str("--edit")] ?string $edit
+	): void {
+		$hiddenChars = $this->db->table(self::DB_ORG_MEMBER)
+			->select("name")
+			->where("hidden", true)
+			->union(
+				$this->db->table(self::DB_TABLE)
+					->select("name")
+					->where("hidden", true)
+			)->pluckAs("name", "string")
+			->unique()
+			->mapToDictionary(fn (string $s): array => [$s => true])
+			->toArray();
+		$data1 = $this->db->table(self::DB_ORG_MEMBER)->select("name");
+		$data2 = $this->db->table(self::DB_TABLE)->select("name");
 		if (!isset($all)) {
-			$data2->where("tu.hidden", false);
+			$data1->where("hidden", false);
+			$data2->where("hidden", false);
 		}
-		$sql = $this->db->table(self::DB_TABLE, "tu")
-			->join("players AS p", "tu.name", "p.name")
-			->where("p.dimension", $this->db->getDim())
-			->orderBy("p.name")
-			->select("p.*", "p.name AS pmain", "tu.hidden");
-		if (!isset($all)) {
-			$sql->where("tu.hidden", false);
-		}
-		/** @var OnlinePlayer[] */
-		$data = $sql
+		$trackedUsers = $data1
 			->union($data2)
-			->asObj(OnlinePlayer::class)
-			->each(function (OnlinePlayer $player): void {
-				$player->afk = "";
-				$player->online = true;
-			})->filter(function(OnlinePlayer $player): bool {
-				return $this->buddylistManager->isOnline($player->name) === true;
+			->pluckAs("name", "string")
+			->unique()
+			->filter(function (string $name): bool {
+				return $this->buddylistManager->isOnline($name) ?? false;
+			})
+			->toArray();
+		$data = $this->playerManager->searchByNames($this->config->dimension, ...$trackedUsers)
+			->sortBy("name")
+			->map(function (Player $p) use ($hiddenChars): OnlineTrackedUser {
+				$op = OnlineTrackedUser::fromPlayer($p);
+				$op->pmain ??= $op->name;
+				$op->online = true;
+				$op->hidden = isset($hiddenChars[$op->name]);
+				return $op;
 			})->toArray();
 		if (!count($data)) {
 			$context->reply("No tracked players are currently online.");
@@ -898,7 +935,7 @@ class TrackerController implements MessageEmitter {
 
 	/**
 	 * Get the blob with details about the tracked players currently online
-	 * @param OnlinePlayer[] $players
+	 * @param OnlineTrackedUser[] $players
 	 * @return string The blob
 	 */
 	public function renderOnlineList(array $players, bool $edit): string {
@@ -922,7 +959,7 @@ class TrackerController implements MessageEmitter {
 				$groups[$prof]->members []= $player;
 			}
 		} else {
-			$groups["all"] ??= (object)['title' => "All tracked players", 'members' => $players, 'sort' => 0];
+			$groups["all"] = (object)['title' => "All tracked players", 'members' => $players, 'sort' => 0];
 		}
 		usort($groups, function(object $a, object $b): int {
 			return $a->sort <=> $b->sort;
@@ -938,17 +975,17 @@ class TrackerController implements MessageEmitter {
 
 	/**
 	 * Return the content of the online list for one player group
-	 * @param OnlinePlayer[] $players The list of players in that group
+	 * @param OnlineTrackedUser[] $players The list of players in that group
 	 * @return string The blob for this group
 	 */
 	public function renderPlayerGroup(array $players, int $groupBy, bool $edit): string {
-		usort($players, function(OnlinePlayer $p1, OnlinePlayer $p2): int {
+		usort($players, function(OnlineTrackedUser $p1, OnlineTrackedUser $p2): int {
 			return strnatcmp($p1->name, $p2->name);
 		});
 		return "<tab>" . join(
 			"\n<tab>",
 			array_map(
-				function(OnlinePlayer $player) use ($groupBy, $edit) {
+				function(OnlineTrackedUser $player) use ($groupBy, $edit) {
 					return $this->renderPlayerLine($player, $groupBy, $edit);
 				},
 				$players
@@ -958,11 +995,11 @@ class TrackerController implements MessageEmitter {
 
 	/**
 	 * Render a single online-line of a player
-	 * @param OnlinePlayer $player The player to render
+	 * @param OnlineTrackedUser $player The player to render
 	 * @param int $groupBy Which grouping method to use. When grouping by prof, we don't show the prof icon
 	 * @return string A single like without newlines
 	 */
-	public function renderPlayerLine(OnlinePlayer $player, int $groupBy, bool $edit): string {
+	public function renderPlayerLine(OnlineTrackedUser $player, int $groupBy, bool $edit): string {
 		$faction = strtolower($player->faction);
 		$blob = "";
 		if ($groupBy !== static::GROUP_PROF) {
@@ -998,21 +1035,25 @@ class TrackerController implements MessageEmitter {
 		return $blob;
 	}
 
-	/**
-	 * @HandlesCommand("track")
-	 * @Mask $action hide
-	 */
-	public function trackHideUidCommand(CmdContext $context, string $action, int $uid): void {
+	/** Hide a character from the '<symbol>track online' list */
+	#[NCA\HandlesCommand("track")]
+	public function trackHideUidCommand(
+		CmdContext $context,
+		#[NCA\Str("hide")] string $action,
+		int $uid
+	): void {
 		$this->chatBot->getName($uid, function(?string $name) use ($context, $uid): void {
 			$this->trackHideCommand($context, $name ?? "UID {$uid}", $uid);
 		});
 	}
 
-	/**
-	 * @HandlesCommand("track")
-	 * @Mask $action hide
-	 */
-	public function trackHideNameCommand(CmdContext $context, string $action, PCharacter $char): void {
+	/** Hide a character from the '<symbol>track online' list */
+	#[NCA\HandlesCommand("track")]
+	public function trackHideNameCommand(
+		CmdContext $context,
+		#[NCA\Str("hide")] string $action,
+		PCharacter $char
+	): void {
 		$this->chatBot->getUid($char(), function(?int $uid) use ($context, $char): void {
 			if (!isset($uid)) {
 				$msg = "Character <highlight>{$char}<end> does not exist.";
@@ -1039,21 +1080,25 @@ class TrackerController implements MessageEmitter {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @HandlesCommand("track")
-	 * @Mask $action unhide
-	 */
-	public function trackUnhideUidCommand(CmdContext $context, string $action, int $uid): void {
+	/** Show a hidden a character on the '<symbol>track online' list again */
+	#[NCA\HandlesCommand("track")]
+	public function trackUnhideUidCommand(
+		CmdContext $context,
+		#[NCA\Str("unhide")] string $action,
+		int $uid
+	): void {
 		$this->chatBot->getName($uid, function(?string $name) use ($context, $uid): void {
 			$this->trackUnhideCommand($context, $name ?? "UID {$uid}", $uid);
 		});
 	}
 
-	/**
-	 * @HandlesCommand("track")
-	 * @Mask $action unhide
-	 */
-	public function trackUnhideNameCommand(CmdContext $context, string $action, PCharacter $char): void {
+	/** Show a hidden a character on the '<symbol>track online' list again */
+	#[NCA\HandlesCommand("track")]
+	public function trackUnhideNameCommand(
+		CmdContext $context,
+		#[NCA\Str("unhide")] string $action,
+		PCharacter $char
+	): void {
 		$this->chatBot->getUid($char(), function(?int $uid) use ($context, $char): void {
 			if (!isset($uid)) {
 				$msg = "Character <highlight>{$char}<end> does not exist.";
@@ -1081,11 +1126,13 @@ class TrackerController implements MessageEmitter {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @HandlesCommand("track")
-	 * @Mask $action (show|view)
-	 */
-	public function trackShowCommand(CmdContext $context, string $action, PCharacter $char): void {
+	/** See the track history of a given character */
+	#[NCA\HandlesCommand("track")]
+	public function trackShowCommand(
+		CmdContext $context,
+		#[NCA\Str("show", "view")] string $action,
+		PCharacter $char
+	): void {
 		$this->chatBot->getUid($char(), function(?int $uid) use ($context, $char): void {
 			if (!isset($uid)) {
 				$msg = "<highlight>{$char}<end> does not exist.";

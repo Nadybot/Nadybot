@@ -3,28 +3,31 @@
 namespace Nadybot\Modules\DISCORD_GATEWAY_MODULE\Migrations;
 
 use Exception;
-use Nadybot\Core\DB;
-use Nadybot\Core\DBSchema\Route;
-use Nadybot\Core\DBSchema\RouteHopColor;
-use Nadybot\Core\DBSchema\RouteModifier;
-use Nadybot\Core\DBSchema\Setting;
-use Nadybot\Core\LoggerWrapper;
-use Nadybot\Core\MessageHub;
-use Nadybot\Core\Modules\DISCORD\DiscordChannel;
-use Nadybot\Core\Modules\DISCORD\DiscordController;
-use Nadybot\Core\Nadybot;
-use Nadybot\Core\Routing\Source;
-use Nadybot\Core\SchemaMigration;
-use Nadybot\Core\SettingManager;
+use Nadybot\Core\{
+	Attributes as NCA,
+	ConfigFile,
+	DB,
+	DBSchema\Route,
+	DBSchema\RouteHopColor,
+	DBSchema\RouteModifier,
+	DBSchema\Setting,
+	LoggerWrapper,
+	MessageHub,
+	Modules\DISCORD\DiscordChannel,
+	Modules\DISCORD\DiscordController,
+	Routing\Source,
+	SchemaMigration,
+	SettingManager,
+};
 
 class MigrateToRoutes implements SchemaMigration {
-	/** @Inject */
+	#[NCA\Inject]
 	public DiscordController $discordController;
 
-	/** @Inject */
-	public Nadybot $chatBot;
+	#[NCA\Inject]
+	public ConfigFile $config;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public MessageHub $messageHub;
 
 	protected function getSetting(DB $db, string $name): ?Setting {
@@ -61,7 +64,6 @@ class MigrateToRoutes implements SchemaMigration {
 		$tagColor = $this->getColor($db, "discord_color_channel");
 		$textColor = $this->getColor($db, "discord_color_guild", "discord_color_priv");
 		$this->saveColor($db, Source::DISCORD_PRIV, $tagColor, $textColor);
-		$this->messageHub->loadTagColor();
 
 		$relayChannel = $this->getSetting($db, "discord_relay_channel");
 		$relayWhat = $this->getSetting($db, "discord_relay");
@@ -94,7 +96,7 @@ class MigrateToRoutes implements SchemaMigration {
 			$this->addRoute(
 				$db,
 				Source::DISCORD_PRIV . "({$channel->name})",
-				Source::PRIV . "({$this->chatBot->vars['name']})",
+				Source::PRIV . "({$this->config->name})",
 				$relayCommands->value === "1"
 			);
 		}

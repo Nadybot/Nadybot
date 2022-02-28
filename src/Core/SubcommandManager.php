@@ -2,51 +2,50 @@
 
 namespace Nadybot\Core;
 
-use Nadybot\Core\DBSchema\CmdCfg;
+use Illuminate\Support\Collection;
+use Nadybot\Core\{
+	Attributes as NCA,
+	DBSchema\CmdCfg,
+	DBSchema\CmdPermission,
+};
 
-/**
- * @Instance
- */
+#[NCA\Instance]
 class SubcommandManager {
-
-	/** @Inject */
+	#[NCA\Inject]
 	public DB $db;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Nadybot $chatBot;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Util $util;
 
-	/** @Logger */
+	#[NCA\Inject]
+	public ConfigFile $config;
+
+	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
 	/** @var array<string,CmdCfg[]> */
 	public array $subcommands = [];
 
+	/** @var array<string,CmdPermission> */
+	private array $cmdDefaultPermissions = [];
+
 	/**
-	 * @name: register
-	 * @description: Registers a subcommand
+	 * Register a subcommand
 	 */
 	public function register(
 		string $module,
-		?string $channel,
 		string $filename,
 		string $command,
-		string $admin,
-		string $parent_command,
+		string $accessLevel,
+		string $parentCommand,
 		?string $description='none',
-		?string $help='',
 		?int $defaultStatus=null
 	): void {
 		$command = strtolower($command);
 		$module = strtoupper($module);
-
-		if (!$this->chatBot->processCommandArgs($channel, $admin)) {
-			$this->logger->error("Invalid args for $module:subcommand($command)");
-			return;
-		}
-		/** @var string[] $channel */
 
 		$name = explode(".", $filename)[0];
 		if (!Registry::instanceExists($name)) {
@@ -55,7 +54,7 @@ class SubcommandManager {
 		}
 
 		if ($defaultStatus === null) {
-			if ($this->chatBot->vars['default_module_status'] == 1) {
+			if ($this->config->defaultModuleStatus === 1) {
 				$status = 1;
 			} else {
 				$status = 0;
@@ -64,53 +63,69 @@ class SubcommandManager {
 			$status = $defaultStatus;
 		}
 
-		for ($i = 0; $i < count($channel); $i++) {
-			$this->logger->info("Adding Subcommand to list:($command) File:($filename) Rights:(" . join(", ", (array)$admin).") Channel:({$channel[$i]})");
+		$defaultPerms = new CmdPermission();
+		$defaultPerms->access_level = $accessLevel;
+		$defaultPerms->enabled = (bool)$status;
+		$defaultPerms->cmd = $command;
+		$defaultPerms->permission_set = "default";
+		$this->cmdDefaultPermissions[$command] = $defaultPerms;
 
-			if ($this->chatBot->existing_subcmds[$channel[$i]][$command] == true) {
-				$this->db->table(CommandManager::DB_TABLE)
-					->where("cmd", $command)
-					->where("type", $channel[$i])
-					->update([
-						"module" => $module,
-						"verify" => 1,
-						"file" => $filename,
-						"description" => $description,
-						"dependson" => $parent_command,
-						"help" => $help,
-					]);
-			} else {
-				$this->db->table(CommandManager::DB_TABLE)
-					->insert([
-						"module" => $module,
-						"type" => $channel[$i],
+		$this->logger->info("Adding Subcommand to list:($command) File:($filename)");
+		$this->db->table(CommandManager::DB_TABLE)
+			->upsert(
+				[
+					"module" => $module,
+					"verify" => 1,
+					"file" => $filename,
+					"description" => $description,
+					"cmd" => $command,
+					"dependson" => $parentCommand,
+					"cmdevent" => "subcmd",
+				],
+				["cmd"],
+				["module", "verify", "file", "description"]
+			);
+		if (isset($this->chatBot->existing_subcmds[$command])) {
+			return;
+		}
+		$permSets = $this->db->table(CommandManager::DB_TABLE_PERM_SET)
+			->select("name")->pluckAs("name", "string");
+		foreach ($permSets as $permSet) {
+			$this->db->table(CommandManager::DB_TABLE_PERMS)
+				->insertOrIgnore(
+					[
+						"permission_set" => $permSet,
+						"access_level" => $accessLevel,
 						"cmd" => $command,
-						"cmdevent" => "subcmd",
-						"admin" => $admin[$i],
-						"verify" => 1,
-						"status" => $status,
-						"file" => $filename,
-						"description" => $description,
-						"dependson" => $parent_command,
-						"help" => $help,
-					]);
-			}
+						"enabled" => (bool)$status,
+					],
+				);
 		}
 	}
 
 	/**
-	 * @name: loadSubcommands
-	 * @description: Loads the active subcommands into memory and activates them
+	 * Load the active subcommands into memory and activates them
 	 */
 	public function loadSubcommands(): void {
 		$this->logger->info("Loading enabled subcommands");
 
 		$this->subcommands = [];
 
+		$permissions = $this->db->table(CommandManager::DB_TABLE_PERMS)
+			->where("enabled", true)
+			->asObj(CmdPermission::class)
+			->groupBy("cmd");
+
 		$this->db->table(CommandManager::DB_TABLE)
-			->where("status", 1)
 			->where("cmdevent", "subcmd")
 			->asObj(CmdCfg::class)
+			->each(function (CmdCfg $row) use ($permissions): void {
+				$row->permissions = $permissions->get($row->cmd, new Collection())
+					->keyBy("permission_set")->toArray();
+			})
+			->filter(function (CmdCfg $cfg): bool {
+				return count($cfg->permissions) > 0;
+			})
 			->sort(function (CmdCfg $row1, CmdCfg $row2): int {
 				$len1 = strlen($row1->cmd);
 				$len2 = strlen($row2->cmd);
@@ -118,8 +133,12 @@ class SubcommandManager {
 				$has2 = (strpos($row2->cmd, '.') === false) ? 0 : 1;
 				return ($len2 <=> $len1) ?: ($has1 <=> $has2);
 			})
-			->each(function(CmdCfg $row) {
+			->each(function(CmdCfg $row): void {
 				$this->subcommands[$row->dependson] []= $row;
 			});
+	}
+
+	public function getDefaultPermissions(string $cmd): ?CmdPermission {
+		return $this->cmdDefaultPermissions[$cmd] ?? null;
 	}
 }

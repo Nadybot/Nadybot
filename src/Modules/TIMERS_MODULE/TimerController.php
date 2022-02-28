@@ -6,110 +6,98 @@ use Exception;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	AccessManager,
+	Attributes as NCA,
 	CmdContext,
 	DB,
 	EventManager,
+	ModuleInstance,
 	LoggerWrapper,
 	MessageHub,
 	MessageEmitter,
 	Modules\DISCORD\DiscordController,
 	Nadybot,
+	ParamClass\PDuration,
+	ParamClass\PRemove,
 	Registry,
 	Routing\RoutableMessage,
 	Routing\Source,
 	SettingManager,
-	SettingObject,
 	SQLException,
 	Text,
 	Util,
 };
-use Nadybot\Core\ParamClass\PDuration;
-use Nadybot\Core\ParamClass\PRemove;
 
 /**
  * @author Tyrence (RK2)
- *
- * @Instance
- *
- * Commands this class contains:
- *	@DefineCommand(
- *		command     = 'rtimer',
- *		accessLevel = 'guild',
- *		description = 'Adds a repeating timer',
- *		help        = 'timers.txt'
- *	)
- *	@DefineCommand(
- *		command     = 'timers',
- *		accessLevel = 'guild',
- *		description = 'Sets and shows timers',
- *		help        = 'timers.txt',
- *		alias       = 'timer'
- *	)
- * @ProvidesEvent("timer(start)")
- * @ProvidesEvent("timer(end)")
- * @ProvidesEvent("timer(del)")
- * @ProvidesEvent(value="sync(timer)", desc="Triggered when a new timer is created with the timer command")
  */
-class TimerController implements MessageEmitter {
-
+#[
+	NCA\Instance,
+	NCA\HasMigrations,
+	NCA\DefineCommand(
+		command: "rtimer",
+		accessLevel: "guild",
+		description: "Adds a repeating timer",
+	),
+	NCA\DefineCommand(
+		command: "timers",
+		accessLevel: "guild",
+		description: "Sets and shows timers",
+		alias: "timer"
+	),
+	NCA\ProvidesEvent("timer(start)"),
+	NCA\ProvidesEvent("timer(end)"),
+	NCA\ProvidesEvent("timer(del)"),
+	NCA\ProvidesEvent(
+		event: "sync(timer)",
+		desc: "Triggered when a new timer is created with the timer command",
+	)
+]
+class TimerController extends ModuleInstance implements MessageEmitter {
 	public const DB_TABLE = "timers_<myname>";
 
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
-
-	/** @Inject */
+	#[NCA\Inject]
 	public DB $db;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Nadybot $chatBot;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public AccessManager $accessManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public MessageHub $messageHub;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Text $text;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Util $util;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public DiscordController $discordController;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public SettingManager $settingManager;
 
-	/** @Inject */
-	public SettingObject $setting;
-
-	/** @Inject */
+	#[NCA\Inject]
 	public EventManager $eventManager;
 
-	/** @Logger */
+	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
-	/** @var Timer[] */
+	/** @var array<string,Timer> */
 	private $timers = [];
 
 	public function getChannelName(): string {
 		return Source::SYSTEM . "(timers)";
 	}
 
-	/**
-	 * @Setup
-	 */
+	#[NCA\Setup]
 	public function setup(): void {
-		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations");
-
 		$this->timers = [];
 		/** @var Collection<Timer> */
 		$data = $this->readAllTimers();
-		$data->each(function (Timer $timer) {
+		$data->each(function (Timer $timer): void {
 			// remove alerts that have already passed
 			// leave 1 alert so that owner can be notified of timer finishing
 			while (count($timer->alerts) > 1 && $timer->alerts[0]->time <= time()) {
@@ -120,16 +108,14 @@ class TimerController implements MessageEmitter {
 		});
 
 		$this->settingManager->add(
-			$this->moduleName,
-			'timer_alert_times',
-			'Times to display timer alerts',
-			'edit',
-			'text',
-			'1h 15m 1m',
-			'1h 15m 1m',
-			'',
-			'mod',
-			'timer_alert_times.txt'
+			module: $this->moduleName,
+			name: 'timer_alert_times',
+			description: 'Times to display timer alerts',
+			mode: 'edit',
+			type: 'text',
+			value: '1h 15m 1m',
+			options: ["1h 15m 1m"],
+			help: 'timer_alert_times.txt'
 		);
 		$this->settingManager->registerChangeListener(
 			'timer_alert_times',
@@ -143,22 +129,12 @@ class TimerController implements MessageEmitter {
 		/** @var Collection<Timer> */
 		$data = $this->db->table(static::DB_TABLE)
 			->select("id", "name", "owner", "mode", "endtime", "settime", "origin")
-			->addSelect("callback", "data", "alerts AS alerts_raw")
+			->addSelect("callback", "data", "alerts")
 			->asObj(Timer::class);
-		foreach ($data as $row) {
-			$alertsData = json_decode($row->alerts_raw);
-			foreach ($alertsData as $alertData) {
-				$alert = new Alert();
-				foreach ($alertData as $key => $value) {
-					$alert->{$key} = $value;
-				}
-				$row->alerts []= $alert;
-			}
-		}
 		return $data;
 	}
 
-	public function changeTimerAlertTimes(string $settingName, string $oldValue, $newValue, $data): void {
+	public function changeTimerAlertTimes(string $settingName, string $oldValue, string $newValue, mixed $data): void {
 		$alertTimes = array_reverse(explode(' ', $newValue));
 		$oldTime = 0;
 		foreach ($alertTimes as $alertTime) {
@@ -174,10 +150,10 @@ class TimerController implements MessageEmitter {
 		}
 	}
 
-	/**
-	 * @Event("timer(1sec)")
-	 * @Description("Checks timers and periodically updates chat with time left")
-	 */
+	#[NCA\Event(
+		name: "timer(1sec)",
+		description: "Checks timers and periodically updates chat with time left"
+	)]
 	public function checkTimers(): void {
 		$time = time();
 
@@ -226,7 +202,7 @@ class TimerController implements MessageEmitter {
 			return;
 		}
 		$endTime = (int)$timer->data + $alert->time;
-		$alerts = $this->generateAlerts($timer->owner, $timer->name, $endTime, explode(' ', $this->setting->timer_alert_times));
+		$alerts = $this->generateAlerts($timer->owner, $timer->name, $endTime, explode(' ', $this->settingManager->getString("timer_alert_times")??""));
 		$this->remove($timer->id);
 		$this->add($timer->name, $timer->owner, $timer->mode, $alerts, $timer->callback, $timer->data, $timer->origin);
 	}
@@ -278,19 +254,18 @@ class TimerController implements MessageEmitter {
 	}
 
 	/**
-	 * This command handler adds a repeating timer.
-	 *
-	 * @HandlesCommand("rtimer")
-	 * @Mask $action add
+	 * Create a new repeating timer, repeating every &lt;interval&gt; after &lt;initial&gt;
 	 */
+	#[NCA\HandlesCommand("rtimer")]
+	#[NCA\Help\Group("timers")]
 	public function rtimerCommand(
 		CmdContext $context,
-		?string $action,
-		PDuration $initial,
+		#[NCA\Str("add")] ?string $action,
+		PDuration $duration,
 		PDuration $interval,
 		string $name
 	): void {
-		$alertChannel = $this->getTimerAlertChannel($context->channel);
+		$alertChannel = $this->getTimerAlertChannel($context);
 
 		$timer = $this->get($name);
 		if ($timer !== null) {
@@ -299,7 +274,7 @@ class TimerController implements MessageEmitter {
 			return;
 		}
 
-		$initialRunTime = $initial->toSecs();
+		$initialRunTime = $duration->toSecs();
 		$runTime = $interval->toSecs();
 
 		if ($runTime < 1) {
@@ -316,7 +291,7 @@ class TimerController implements MessageEmitter {
 
 		$endTime = time() + $initialRunTime;
 
-		$alerts = $this->generateAlerts($context->char->name, $name, $endTime, explode(' ', $this->setting->timer_alert_times));
+		$alerts = $this->generateAlerts($context->char->name, $name, $endTime, explode(' ', $this->settingManager->getString("timer_alert_times")??""));
 
 		$sendto = $context->sendto;
 		$origin = ($sendto instanceof MessageEmitter) ? $sendto->getChannelName() : null;
@@ -338,11 +313,10 @@ class TimerController implements MessageEmitter {
 		$this->eventManager->fireEvent($sTimer);
 	}
 
-	/**
-	 * @HandlesCommand("timers")
-	 * @Mask $action view
-	 */
-	public function timersViewCommand(CmdContext $context, string $action, string $id): void {
+	/** Show a specific timer */
+	#[NCA\HandlesCommand("timers")]
+	#[NCA\Help\Group("timers")]
+	public function timersViewCommand(CmdContext $context, #[NCA\Str("view")] string $action, string $id): void {
 		$timer = $this->get($id);
 		if ($timer === null) {
 			if (preg_match("/^\d+$/", $id)) {
@@ -364,8 +338,12 @@ class TimerController implements MessageEmitter {
 	}
 
 	/**
-	 * @HandlesCommand("timers")
+	 * Remove a timer
+	 *
+	 * You can only remove other peoples' timers if you are a moderator or higher
 	 */
+	#[NCA\HandlesCommand("timers")]
+	#[NCA\Help\Group("timers")]
 	public function timersRemoveCommand(CmdContext $context, PRemove $action, int $id): void {
 		$timer = $this->get($id);
 		if ($timer === null) {
@@ -383,28 +361,27 @@ class TimerController implements MessageEmitter {
 		$context->reply($msg);
 	}
 
-	protected function getTimerAlertChannel(string ...$channels): string {
+	protected function getTimerAlertChannel(CmdContext $context): string {
 		// Timers via tell always create tell alerts only
-		if ($channels === ["msg"]) {
+		if (isset($context->source) && strncmp($context->source, "aotell(", 7) === 0) {
 			return "msg";
 		}
 		return "";
 	}
 
-	/**
-	 * @HandlesCommand("timers")
-	 * @Mask $action add
-	 */
+	/** Add a new timer that triggers after &lt;duration&gt; */
+	#[NCA\HandlesCommand("timers")]
+	#[NCA\Help\Group("timers")]
 	public function timersAddCommand(
 		CmdContext $context,
-		?string $action,
+		#[NCA\Str("add")] ?string $action,
 		PDuration $duration,
 		?string $name
 	): void {
 		$name ??= $context->char->name;
 
 		$runTime = $duration->toSecs();
-		$alertChannel = $this->getTimerAlertChannel($context->channel);
+		$alertChannel = $this->getTimerAlertChannel($context);
 
 		$sendto = $context->sendto;
 		$origin = ($sendto instanceof MessageEmitter) ? $sendto->getChannelName() : null;
@@ -415,16 +392,16 @@ class TimerController implements MessageEmitter {
 			$sTimer->name = $name;
 			$sTimer->endtime = time() + $runTime;
 			$sTimer->settime = time();
-			$sTimer->interval;
+			$sTimer->interval = null;
 			$sTimer->owner = $context->char->name;
 			$sTimer->forceSync = $context->forceSync;
 			$this->eventManager->fireEvent($sTimer);
 		}
 	}
 
-	/**
-	 * @HandlesCommand("timers")
-	 */
+	/** Show all currently running timers and repeating timers */
+	#[NCA\HandlesCommand("timers")]
+	#[NCA\Help\Group("timers")]
 	public function timersListCommand(CmdContext $context): void {
 		$timers = $this->getAllTimers();
 		$count = count($timers);
@@ -464,7 +441,6 @@ class TimerController implements MessageEmitter {
 
 	/**
 	 * Generate alerts out of an alert specification
-	 *
 	 * @param string $sender Name of the player
 	 * @param string $name Name of the alert
 	 * @param int $endTime When to trigger the timer
@@ -501,7 +477,6 @@ class TimerController implements MessageEmitter {
 
 	/**
 	 * Add a timer
-	 *
 	 * @param string $sender Name of the creator
 	 * @param string $name Name of the timer
 	 * @param int $runTime When to trigger
@@ -530,7 +505,7 @@ class TimerController implements MessageEmitter {
 		$endTime = time() + $runTime;
 
 		if ($alerts === null) {
-			$alerts = $this->generateAlerts($sender, $name, $endTime, explode(' ', $this->setting->timer_alert_times));
+			$alerts = $this->generateAlerts($sender, $name, $endTime, explode(' ', $this->settingManager->getString("timer_alert_times")??""));
 		}
 
 		$this->add($name, $sender, $channel, $alerts, 'timercontroller.timerCallback', null, $origin);
@@ -550,7 +525,9 @@ class TimerController implements MessageEmitter {
 		$timer = new Timer();
 		$timer->name = $name;
 		$timer->owner = $owner;
-		$timer->endtime = end($alerts)->time;
+		/** @var Alert */
+		$lastAlert = (new Collection($alerts))->last();
+		$timer->endtime = $lastAlert->time;
 		$timer->settime = time();
 		$timer->callback = $callback;
 		$timer->data = $data;
@@ -572,7 +549,7 @@ class TimerController implements MessageEmitter {
 				"settime" => $timer->settime,
 				"callback" => $callback,
 				"data" => $data,
-				"alerts" => json_encode($alerts),
+				"alerts" => \Safe\json_encode($alerts),
 			]);
 
 		$this->timers[strtolower($name)] = $timer;
@@ -580,24 +557,24 @@ class TimerController implements MessageEmitter {
 		return $timer->id;
 	}
 
-	public function remove($name): void {
+	public function remove(string|int $name): void {
 		if (is_string($name)) {
 			$this->db->table(static::DB_TABLE)
 				->whereIlike("name", $name)
 				->delete();
 			unset($this->timers[strtolower($name)]);
-		} elseif (is_int($name)) {
-			$this->db->table(static::DB_TABLE)->delete($name);
-			foreach ($this->timers as $tName => $timer) {
-				if ($timer->id === $name) {
-					unset($this->timers[$tName]);
-					return;
-				}
+			return;
+		}
+		$this->db->table(static::DB_TABLE)->delete($name);
+		foreach ($this->timers as $tName => $timer) {
+			if ($timer->id === $name) {
+				unset($this->timers[$tName]);
+				return;
 			}
 		}
 	}
 
-	public function get($name): ?Timer {
+	public function get(string|int $name): ?Timer {
 		$timer = $this->timers[strtolower((string)$name)] ?? null;
 		if (isset($timer)) {
 			return $timer;
@@ -620,10 +597,10 @@ class TimerController implements MessageEmitter {
 		return $this->timers;
 	}
 
-	/**
-	 * @Event("sync(timer)")
-	 * @Description("Sync external timers to local timers")
-	 */
+	#[NCA\Event(
+		name: "sync(timer)",
+		description: "Sync external timers to local timers"
+	)]
 	public function syncExtTimers(SyncTimerEvent $event): void {
 		if ($event->isLocal()) {
 			return;
@@ -635,7 +612,7 @@ class TimerController implements MessageEmitter {
 		}
 		$event->name = $timerName;
 
-		$alerts = $this->generateAlerts($event->owner, $event->name, $event->endtime, explode(' ', $this->setting->timer_alert_times));
+		$alerts = $this->generateAlerts($event->owner, $event->name, $event->endtime, explode(' ', $this->settingManager->getString("timer_alert_times")??""));
 		if (isset($event->interval)) {
 			$this->add($event->name, $event->owner, null, $alerts, "timercontroller.repeatingTimerCallback", (string)$event->interval);
 		} else {

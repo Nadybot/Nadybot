@@ -14,7 +14,7 @@ class CreateOrgCityTable implements SchemaMigration {
 		if ($db->schema()->hasTable($table)) {
 			return;
 		}
-		$db->schema()->create($table, function(Blueprint $table) {
+		$db->schema()->create($table, function(Blueprint $table): void {
 			$table->integer("time")->nullable();
 			$table->string("action", 10)->nullable();
 			$table->string("player", 25)->nullable();

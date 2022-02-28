@@ -7,4 +7,5 @@ use Nadybot\Modules\DISCORD_GATEWAY_MODULE\Model\Payload;
 
 class DiscordGatewayEvent extends Event {
 	public Payload $payload;
+	public ?string $message = null;
 }

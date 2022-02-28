@@ -2,7 +2,10 @@
 
 namespace Nadybot\Modules\ITEMS_MODULE;
 
-class BossLootdb extends AODBEntry {
+use Nadybot\Core\Attributes as NCA;
+use Nadybot\Core\DBRow;
+
+class BossLootdb extends DBRow {
 	/** The internal ID of the boss for this loot */
 	public int $bossid;
 
@@ -11,4 +14,7 @@ class BossLootdb extends AODBEntry {
 
 	/** The internal ID of this item */
 	public int $aoid;
+
+	#[NCA\DB\Ignore]
+	public ?AODBEntry $item = null;
 }

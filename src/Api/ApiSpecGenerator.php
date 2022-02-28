@@ -2,88 +2,81 @@
 
 namespace Nadybot\Api;
 
-use Addendum\ReflectionAnnotatedClass;
-use Addendum\ReflectionAnnotatedMethod;
 use Exception;
-use Nadybot\Core\Annotations\ApiResult;
-use Nadybot\Core\Annotations\ApiTag;
-use Nadybot\Core\Annotations\DELETE;
-use Nadybot\Core\Annotations\GET;
-use Nadybot\Core\Annotations\PATCH;
-use Nadybot\Core\Annotations\POST;
-use Nadybot\Core\Annotations\PUT;
-use Nadybot\Core\Annotations\QueryParam;
-use Nadybot\Core\Annotations\RequestBody;
-use Nadybot\Core\BotRunner;
-use Nadybot\Core\DBRow;
-use Nadybot\Core\Registry;
+use Nadybot\Core\{
+	Attributes as NCA,
+	BotRunner,
+	DBRow,
+	Registry,
+};
 use ReflectionClass;
 use ReflectionMethod;
 use ReflectionNamedType;
 use ReflectionParameter;
 use ReflectionProperty;
+use ReflectionUnionType;
 
 class ApiSpecGenerator {
 	public function loadClasses(): void {
-		foreach (glob(__DIR__ . "/../Core/Annotations/*.php") as $file) {
+		foreach (\Safe\glob(__DIR__ . "/../Core/DBSchema/*.php")?:[] as $file) {
 			require_once $file;
 		}
-		foreach (glob(__DIR__ . "/../Core/DBSchema/*.php") as $file) {
+		foreach (\Safe\glob(__DIR__ . "/../Core/Modules/*/*.php")?:[] as $file) {
 			require_once $file;
 		}
-		foreach (glob(__DIR__ . "/../Core/Modules/*/*.php") as $file) {
+		foreach (\Safe\glob(__DIR__ . "/../Core/*.php")?:[] as $file) {
 			require_once $file;
 		}
-		foreach (glob(__DIR__ . "/../Core/*.php") as $file) {
-			require_once $file;
-		}
-		foreach (glob(__DIR__ . "/../Modules/*/*.php") as $file) {
+		foreach (\Safe\glob(__DIR__ . "/../Modules/*/*.php")?:[] as $file) {
 			require_once $file;
 		}
 	}
 
 	/**
-	 * Return an array of [instancename => full class name] for all @Instances
+	 * Return an array of [instancename => full class name] for all #[Instance]s
 	 * @return array<string,string>
+	 * @phpstan-return array<string,class-string>
 	 */
 	public function getInstances(): array {
 		$classes = get_declared_classes();
 		$instances = [];
 		foreach ($classes as $className) {
-			$reflection = new ReflectionAnnotatedClass($className);
-			if ($reflection->hasAnnotation('Instance')) {
-				if ($reflection->getAnnotation('Instance')->value !== null) {
-					$name = $reflection->getAnnotation('Instance')->value;
-				} else {
-					$name = Registry::formatName($className);
-				}
-				$instances[$name] = $className;
+			$reflection = new ReflectionClass($className);
+			$instanceAttrs = $reflection->getAttributes(NCA\Instance::class);
+			if (empty($instanceAttrs)) {
+				continue;
 			}
+			/** @var NCA\Instance */
+			$instanceObj = $instanceAttrs[0]->newInstance();
+			$name = $instanceObj->name ?? Registry::formatName($className);
+			$instances[$name] = $className;
 		}
 		return $instances;
 	}
 
+	/** @return array<string,ReflectionMethod[]> */
 	public function getPathMapping(): array {
 		$instances = $this->getInstances();
 		$paths = [];
 		foreach ($instances as $short => $className) {
-			$reflection = new ReflectionAnnotatedClass($className);
-			/** @var ReflectionAnnotatedMethod[] $methods */
+			$reflection = new ReflectionClass($className);
 			$methods = $reflection->getMethods(ReflectionMethod::IS_PUBLIC);
 			foreach ($methods as $method) {
-				if (!$method->hasAnnotation("Api")) {
+				$apiAttrs = $method->getAttributes(NCA\Api::class);
+				if (empty($apiAttrs)) {
 					continue;
 				}
-				$apiAnnotation = $method->getAnnotation("Api");
+				/** @var NCA\Api */
+				$apiAttr = $apiAttrs[0]->newInstance();
 				/** @var ReflectionParameter[] $params */
 				$params = array_slice($method->getParameters(), 2);
 				$path = preg_replace_callback(
 					"/%[ds]/",
-					function(array $matches) use (&$params) {
+					function(array $matches) use (&$params): string {
 						$param = array_shift($params);
 						return '{' . $param->getName() . '}';
 					},
-					$apiAnnotation->value
+					$apiAttr->path
 				);
 				$paths[$path] ??= [];
 				$paths[$path] []= $method;
@@ -98,10 +91,11 @@ class ApiSpecGenerator {
 		return $paths;
 	}
 
+	/** @phpstan-return null|class-string */
 	public function getFullClass(string $className): ?string {
 		$classes = get_declared_classes();
 		foreach ($classes as $class) {
-			if (is_subclass_of($class, \Addendum\Annotation::class)) {
+			if (is_subclass_of($class, \Attribute::class)) {
 				continue;
 			}
 			if ($class === $className || preg_match("/^Nadybot\\\\.*?\\\\\Q$className\E$/", $class)) {
@@ -111,9 +105,10 @@ class ApiSpecGenerator {
 		return null;
 	}
 
+	/** @param array<string,array<mixed>> $result */
 	public function addSchema(array &$result, string $className): void {
 		$className = preg_replace("/\[\]$/", "", $className);
-		if (isset($result[$className])) {
+		if (!is_string($className) || isset($result[$className])) {
 			return;
 		}
 		$class = $this->getFullClass($className);
@@ -162,7 +157,7 @@ class ApiSpecGenerator {
 			if (!$refType || $refType->allowsNull()) {
 				$newResult["properties"][$nameAndType[0]]["nullable"] = true;
 			}
-			if (count($nameAndType) > 2 && strlen($nameAndType[2])) {
+			if (isset($nameAndType[2]) && strlen($nameAndType[2])) {
 				$newResult["properties"][$nameAndType[0]]["description"] = $nameAndType[2];
 			}
 			if ($nameAndType[1] === 'array') {
@@ -170,10 +165,11 @@ class ApiSpecGenerator {
 				if ($docBlock === false) {
 					throw new Exception("Untyped array found at {$class}::\$" . $refProp->name);
 				}
-				if (!preg_match("/@var\s+(.+?)\[\]/", $docBlock, $matches)) {
+				if (!preg_match("/@json-var\s+(.+?)\[\]/", $docBlock, $matches)
+					&& !preg_match("/@var\s+(.+?)\[\]/", $docBlock, $matches)) {
 					throw new Exception("Untyped array found at {$class}::\$" . $refProp->name);
 				}
-				$parts = explode("\\", $matches[1]);
+				$parts = explode("\\", $matches[1]??"");
 				$newResult["properties"][$nameAndType[0]]["items"] = $this->getSimpleClassRef(end($parts));
 				$this->addSchema($result, end($parts));
 			}
@@ -202,10 +198,10 @@ class ApiSpecGenerator {
 		$propName = $refProp->getName();
 		if (!$refProp->hasType()) {
 			$comment = $refProp->getDocComment();
-			if (!preg_match("/@var ([^\s]+)/s", $comment, $matches)) {
+			if ($comment === false || !preg_match("/@var ([^\s]+)/s", $comment, $matches)) {
 				return [$propName, "mixed"];
 			}
-			$types = explode("|", $matches[1]);
+			$types = explode("|", $matches[1]??"");
 			foreach ($types as &$type) {
 				if ($type === "int") {
 					$type = "integer";
@@ -215,40 +211,59 @@ class ApiSpecGenerator {
 			}
 			return [$propName, $types];
 		}
-		/** @var ReflectionNamedType */
+		$refTypes = [];
 		$refType = $refProp->getType();
-		if ($refType->isBuiltin()) {
-			if ($refType->getName() === "int") {
-				return [$propName, "integer"];
-			}
-			if ($refType->getName() === "bool") {
-				return [$propName, "boolean"];
-			}
-			return [$propName, $refType->getName()];
+		if ($refType instanceof ReflectionUnionType) {
+			$refTypes = $refType->getTypes();
+		} elseif ($refType instanceof ReflectionNamedType) {
+			$refTypes = [$refType];
+		} else {
+			throw new Exception("Unknown ReflectionClass");
 		}
-		if ($refType->getName() === "DateTime") {
-			return [$propName, "integer"];
+		$types = [];
+		foreach ($refTypes as $refType) {
+			if ($refType->isBuiltin()) {
+				if ($refType->getName() === "int") {
+					$types []= "integer";
+				} elseif ($refType->getName() === "bool") {
+					$types []= "boolean";
+				} else {
+					$types []= $refType->getName();
+				}
+			} elseif ($refType->getName() === "DateTime") {
+				$types []= "integer";
+			} else {
+				$name = explode("\\", $refType->getName());
+				$types []= "#/components/schemas/" . end($name);
+			}
 		}
-		$name = explode("\\", $refType->getName());
-
-		return [$propName, "#/components/schemas/" . end($name)];
+		if (count($types) === 1) {
+			return [$propName, $types[0]];
+		}
+		return [$propName, $types];
 	}
 
+	/**
+	 * @return null|array<mixed>
+	 * @psalm-return null|array{0: string, 1: string|string[], 2?: string}
+	 * @phpstan-return null|array{0: string, 1: string|string[], 2?: string}
+	 */
 	protected function getNameAndType(ReflectionProperty $refProperty): ?array {
 		$docComment = $refProperty->getDocComment();
-		if ($docComment === false) {
-			return $this->getRegularNameAndType($refProperty);
-		}
-		if (preg_match('/@json:ignore/', $docComment)) {
+		if (count($refProperty->getAttributes(NCA\JSON\Ignore::class))) {
 			return null;
 		}
-		$description = $this->getDescriptionFromComment($docComment);
-		if (preg_match('/@json:name=([^\s]+)/', $docComment, $matches)) {
-			return [$matches[1], $this->getRegularNameAndType($refProperty)[1], $description];
+		$description = $this->getDescriptionFromComment($docComment ?: "");
+		$nameAttr = $refProperty->getAttributes(NCA\JSON\Name::class);
+		if (count($nameAttr) > 0) {
+			/** @var NCA\JSON\Name */
+			$nameObj = $nameAttr[0]->newInstance();
+			return [$nameObj->name, $this->getRegularNameAndType($refProperty)[1], $description];
 		}
 		return [...$this->getRegularNameAndType($refProperty), $description];
 	}
 
+	/** @return array<string,mixed> */
 	public function getInfoSpec(): array {
 		return [
 			'title' => 'Nadybot API',
@@ -261,7 +276,10 @@ class ApiSpecGenerator {
 		];
 	}
 
-	/** @param array<string,ReflectionAnnotatedMethod> $mapping */
+	/**
+	 * @param array<string,ReflectionMethod[]> $mapping
+	 * @return array<string,mixed>
+	 */
 	public function getSpec(array $mapping): array {
 		$result = [
 			"openapi" => "3.0.0",
@@ -325,7 +343,12 @@ class ApiSpecGenerator {
 		return $result;
 	}
 
-	public function getParamDocs(string $path, ReflectionAnnotatedMethod $method): array {
+	/**
+	 * @return array<int,array<string,mixed>>
+	 * @psalm-return list<array{"name": string, "required": bool, "in": string, "schema": array{"type": string}, "description"?: string}>
+	 * @phpstan-return list<array{"name": string, "required": bool, "in": string, "schema": array{"type": string}, "description"?: string}>
+	 */
+	public function getParamDocs(string $path, ReflectionMethod $method): array {
 		$result = [];
 		if (preg_match_all('/\{(.+?)\}/', $path, $matches)) {
 			foreach ($matches[1] as $param) {
@@ -351,30 +374,31 @@ class ApiSpecGenerator {
 				if ($refType->getName() === "bool") {
 					$paramResult["schema"]["type"] = "boolean";
 				}
-				if (preg_match("/@param.*?\\$\Q$param\E\s+(.+)$/m", $method->getDocComment(), $matches)) {
+				if (preg_match("/@param.*?\\$\Q$param\E\s+(.+)$/m", $method->getDocComment()?:"", $matches)) {
 					$matches[1] = preg_replace("/\*\//", "", $matches[1]);
-					if ($matches[1]) {
+					if (is_string($matches[1])) {
 						$paramResult["description"] = trim($matches[1]);
 					}
 				}
 				$result []= $paramResult;
 			}
 		}
-		$annos = $method->getAllAnnotations();
-		foreach ($annos as $anno) {
-			if ($anno instanceof QueryParam && isset($anno->name)) {
-				$result []= [
-					"name" => $anno->name,
-					"required" => $anno->required,
-					"in" => $anno->in,
-					"schema" => ["type" => $anno->type],
-					"description" => $anno->desc,
-				];
-			}
+		$qParamAttrs = $method->getAttributes(NCA\QueryParam::class);
+		foreach ($qParamAttrs as $qParamAttr) {
+			/** @var NCA\QueryParam */
+			$qParam = $qParamAttr->newInstance();
+			$result []= [
+				"name" => $qParam->name,
+				"required" => $qParam->required,
+				"in" => $qParam->in,
+				"schema" => ["type" => $qParam->type],
+				"description" => $qParam->desc,
+			];
 		}
 		return $result;
 	}
 
+	/** @psalm-suppress PossiblyInvalidArgument */
 	public function getDescriptionFromComment(string $comment): string {
 		$comment = trim(preg_replace("|^/\*\*(.*)\*/$|s", '$1', $comment));
 		$comment = preg_replace("|^\s*\*\s*|m", '', $comment);
@@ -383,44 +407,47 @@ class ApiSpecGenerator {
 		return $comment;
 	}
 
-	public function getMethodDoc(ReflectionAnnotatedMethod $method): PathDoc {
+	public function getMethodDoc(ReflectionMethod $method): PathDoc {
 		$doc = new PathDoc();
 		$comment = $method->getDocComment();
-		$doc->description = $this->getDescriptionFromComment($comment);
+		$doc->description = $comment ? $this->getDescriptionFromComment($comment) : "No documentation provided";
 
-		if (!$method->hasAnnotation("ApiResult")) {
-			throw new Exception("Method " . $method->getDeclaringClass()->getName() . '::' . $method->getName() . "() has no @ApiResult() defined");
+		$apiResultAttrs = $method->getAttributes(NCA\ApiResult::class);
+		if (empty($apiResultAttrs)) {
+			throw new Exception("Method " . $method->getDeclaringClass()->getName() . '::' . $method->getName() . "() has no #[ApiResult] defined");
 		}
-		$dir = dirname($method->getFileName());
+		if (($fileName = $method->getFileName()) === false) {
+			throw new Exception("Cannot determine file for" . $method->getDeclaringClass()->getName());
+		}
+		$dir = dirname($fileName);
 		if (preg_match("{(?:/|^)([A-Z_]+)(?:/|$)}", $dir, $matches)) {
 			$doc->tags = [strtolower(preg_replace("/_MODULE/", "", $matches[1]))];
 		}
-		foreach ($method->getAllAnnotations() as $anno) {
-			if ($anno instanceof ApiResult) {
-				if (!isset($anno->code)) {
-					throw new Exception("{$method->class}::{$method->name}() has invalid @ApiResult annotation");
-				}
-				$doc->responses[$anno->code] = $anno;
-			} elseif ($anno instanceof ApiTag) {
-				$doc->tags []= $anno->value;
-			} elseif ($anno instanceof RequestBody) {
-				$doc->requestBody = $anno;
-			} elseif ($anno instanceof GET) {
-				$doc->methods []= "get";
-			} elseif ($anno instanceof POST) {
-				$doc->methods []= "post";
-			} elseif ($anno instanceof PUT) {
-				$doc->methods []= "put";
-			} elseif ($anno instanceof DELETE) {
-				$doc->methods []= "delete";
-			} elseif ($anno instanceof PATCH) {
-				$doc->methods []= "patch";
+		foreach ($method->getAttributes() as $attr) {
+			$attr = $attr->newInstance();
+			if ($attr instanceof NCA\ApiResult) {
+				/** @var NCA\ApiResult $attr */
+				$doc->responses[$attr->code] = $attr;
+			} elseif ($attr instanceof NCA\ApiTag) {
+				/** @var NCA\ApiTag $attr */
+				$doc->tags []= $attr->tag;
+			} elseif ($attr instanceof NCA\RequestBody) {
+				/** @var NCA\RequestBody $attr */
+				$doc->requestBody = $attr;
+			} elseif ($attr instanceof NCA\VERB) {
+				/** @var NCA\VERB $attr */
+				$doc->methods []= strtolower(class_basename($attr));
 			}
 		}
 		return $doc;
 	}
 
-	public function getRequestBodyDefinition(RequestBody $requestBody): array {
+	/**
+	 * @return array<string,mixed>
+	 * @phpstan-return array{"description"?: string, "required"?: bool, "content": array{"application/json": array{"schema": string|array<mixed>}}}
+	 * @psalm-return array{"description"?: string, "required"?: bool, "content": array{"application/json": array{"schema": string|array<mixed>}}}
+	 */
+	public function getRequestBodyDefinition(NCA\RequestBody $requestBody): array {
 		$result = [];
 		if (isset($requestBody->desc)) {
 			$result["description"] = $requestBody->desc;
@@ -445,6 +472,11 @@ class ApiSpecGenerator {
 		return $result;
 	}
 
+	/**
+	 * @return array<string,string|array<string,string>>
+	 * @phpstan-return array{"type"?: string, "$ref"?: string}|array{"type": "array", "items":array{"type"?: string, "$ref"?: string}}
+	 * @psalm-return array{"type"?: string, "$ref"?: string}|array{"type": "array", "items":array{"type"?: string, "$ref"?: string}}
+	 */
 	protected function getClassRef(string $class): array {
 		if (substr($class, -2) === '[]') {
 			return ["type" => "array", "items" => $this->getSimpleClassRef(substr($class, 0, -2))];
@@ -452,6 +484,11 @@ class ApiSpecGenerator {
 		return $this->getSimpleClassRef($class);
 	}
 
+	/**
+	 * @return array<string,string>
+	 * @phpstan-return array{"type"?: string, "$ref"?: string}
+	 * @psalm-return array{"type"?: string, "$ref"?: string}
+	 */
 	protected function getSimpleClassRef(string $class): array {
 		if (in_array($class, ["string", "bool", "int", "float"])) {
 			return ["type" => str_replace(["int", "bool"], ["integer", "boolean"], $class)];

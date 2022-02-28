@@ -6,35 +6,40 @@ use Closure;
 use DateInterval;
 use DateTime;
 use DateTimeZone;
-use JsonException;
+use Safe\Exceptions\JsonException;
 use Nadybot\Core\{
+	Attributes as NCA,
 	CacheManager,
 	CacheResult,
+	ConfigFile,
 	DB,
+	DBSchema\Player,
 	EventManager,
+	ModuleInstance,
 	Nadybot,
 };
-use Nadybot\Core\DBSchema\Player;
 
 /**
  * @author Tyrence (RK2)
- *
- * @Instance
  */
-class GuildManager {
-	/** @Inject */
+#[NCA\Instance]
+class GuildManager extends ModuleInstance {
+	#[NCA\Inject]
 	public Nadybot $chatBot;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public DB $db;
 
-	/** @Inject */
+	#[NCA\Inject]
+	public ConfigFile $config;
+
+	#[NCA\Inject]
 	public CacheManager $cacheManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public EventManager $eventManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public PlayerManager $playerManager;
 
 	protected function getJsonValidator(): Closure {
@@ -43,7 +48,7 @@ class GuildManager {
 				if ($data === null) {
 					return false;
 				}
-				$result = json_decode($data, false, 512, JSON_THROW_ON_ERROR);
+				$result = \Safe\json_decode($data, false, 512, JSON_THROW_ON_ERROR);
 				return $result !== null;
 			} catch (JsonException $e) {
 				return false;
@@ -51,10 +56,12 @@ class GuildManager {
 		};
 	}
 
-	/** @psalm-param callable(?Guild, mixed...) $callback */
-	public function getByIdAsync(int $guildID, ?int $dimension, bool $forceUpdate, callable $callback, ...$args): void {
+	/**
+	 * @psalm-param callable(?Guild, mixed...) $callback
+	 */
+	public function getByIdAsync(int $guildID, ?int $dimension, bool $forceUpdate, callable $callback, mixed ...$args): void {
 		// if no server number is specified use the one on which the bot is logged in
-		$dimension ??= (int)$this->chatBot->vars["dimension"];
+		$dimension ??= $this->config->dimension;
 
 		$url = "http://people.anarchy-online.com/org/stats/d/$dimension/name/$guildID/basicstats.xml?data_type=json";
 		$maxCacheAge = 86400;
@@ -79,16 +86,13 @@ class GuildManager {
 
 	public function getById(int $guildID, int $dimension=null, bool $forceUpdate=false): ?Guild {
 		// if no server number is specified use the one on which the bot is logged in
-		$dimension ??= (int)$this->chatBot->vars["dimension"];
+		$dimension ??= $this->config->dimension;
 
 		$url = "http://people.anarchy-online.com/org/stats/d/$dimension/name/$guildID/basicstats.xml?data_type=json";
 		$groupName = "guild_roster";
 		$filename = "$guildID.$dimension.json";
 		$maxCacheAge = 86400;
-		if (
-			isset($this->chatBot->vars["my_guild_id"])
-			&& $this->chatBot->vars["my_guild_id"] === $guildID
-		) {
+		if ($this->isMyGuild($guildID)) {
 			$maxCacheAge = 21600;
 		}
 		$cb = $this->getJsonValidator();
@@ -110,12 +114,12 @@ class GuildManager {
 	 * Check if $guildId is the bot's guild id
 	 */
 	public function isMyGuild(int $guildId): bool {
-		return isset($this->chatBot->vars["my_guild_id"])
-			&& $this->chatBot->vars["my_guild_id"] === $guildId;
+		return isset($this->config->orgId)
+			&& $this->config->orgId === $guildId;
 	}
 
 	/** @psalm-param callable(?Guild, mixed...) $callback */
-	public function handleGuildLookup(CacheResult $cacheResult, int $guildID, int $dimension, callable $callback, ...$args): void {
+	public function handleGuildLookup(CacheResult $cacheResult, int $guildID, int $dimension, callable $callback, mixed ...$args): void {
 
 		// if there is still no valid data available give an error back
 		if ($cacheResult->success !== true) {
@@ -123,7 +127,7 @@ class GuildManager {
 			return;
 		}
 
-		[$orgInfo, $members, $lastUpdated] = json_decode($cacheResult->data??"");
+		[$orgInfo, $members, $lastUpdated] = \Safe\json_decode($cacheResult->data??"");
 
 		if ($orgInfo->NAME === null) {
 			$callback(null, ...$args);
@@ -158,6 +162,7 @@ class GuildManager {
 		}
 
 		foreach ($members as $member) {
+			/** @var string */
 			$name = $member->NAME;
 			$charid = $member->CHAR_INSTANCE ?? $this->chatBot->get_uid($name);
 			if ($charid === null || $charid === false) {

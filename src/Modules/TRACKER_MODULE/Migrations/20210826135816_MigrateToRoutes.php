@@ -3,30 +3,33 @@
 namespace Nadybot\Modules\TRACKER_MODULE\Migrations;
 
 use Exception;
-use Nadybot\Core\Annotations\Setting;
-use Nadybot\Core\Modules\DISCORD\DiscordChannel;
-use Nadybot\Core\DB;
-use Nadybot\Core\DBSchema\Route;
-use Nadybot\Core\LoggerWrapper;
-use Nadybot\Core\MessageHub;
-use Nadybot\Core\Modules\DISCORD\DiscordAPIClient;
-use Nadybot\Core\Nadybot;
-use Nadybot\Core\Routing\Source;
-use Nadybot\Core\SchemaMigration;
-use Nadybot\Core\SettingManager;
+use Nadybot\Core\{
+	Attributes as NCA,
+	ConfigFile,
+	Modules\DISCORD\DiscordChannel,
+	DB,
+	DBSchema\Route,
+	DBSchema\Setting,
+	LoggerWrapper,
+	MessageHub,
+	Modules\DISCORD\DiscordAPIClient,
+	Routing\Source,
+	SchemaMigration,
+	SettingManager,
+};
 use Nadybot\Modules\TRACKER_MODULE\TrackerController;
 
 class MigrateToRoutes implements SchemaMigration {
-	/** @Inject */
-	public Nadybot $chatBot;
+	#[NCA\Inject]
+	public ConfigFile $config;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public DiscordAPIClient $discordAPIClient;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public TrackerController $trackerController;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public MessageHub $messageHub;
 
 	protected function getSetting(DB $db, string $name): ?Setting {
@@ -40,7 +43,7 @@ class MigrateToRoutes implements SchemaMigration {
 		$table = MessageHub::DB_TABLE_ROUTES;
 		$showWhere = $this->getSetting($db, "show_tracker_events");
 		if (!isset($showWhere)) {
-			if (strlen($this->chatBot->vars['my_guild']??"")) {
+			if (strlen($this->config->orgName)) {
 				$showWhere = 2;
 			} else {
 				$showWhere = 1;
@@ -49,7 +52,7 @@ class MigrateToRoutes implements SchemaMigration {
 			$showWhere = (int)$showWhere->value;
 		}
 		$map = [
-			1 => Source::PRIV . "({$this->chatBot->vars['name']})",
+			1 => Source::PRIV . "({$this->config->name})",
 			2 => Source::ORG,
 		];
 		foreach ($map as $flag => $dest) {
@@ -61,7 +64,7 @@ class MigrateToRoutes implements SchemaMigration {
 			}
 		}
 		$notifyChannel = $this->getSetting($db, "discord_notify_channel");
-		if (!isset($notifyChannel) || $notifyChannel->value === "off") {
+		if (!isset($notifyChannel) || !isset($notifyChannel->value) || $notifyChannel->value === "off") {
 			return;
 		}
 		if ($showWhere & 4) {

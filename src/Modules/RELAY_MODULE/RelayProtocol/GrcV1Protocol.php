@@ -2,36 +2,55 @@
 
 namespace Nadybot\Modules\RELAY_MODULE\RelayProtocol;
 
-use Nadybot\Core\MessageHub;
-use Nadybot\Core\Routing\Character;
-use Nadybot\Core\Routing\RoutableEvent;
-use Nadybot\Core\Routing\RoutableMessage;
-use Nadybot\Core\Routing\Source;
-use Nadybot\Core\Text;
-use Nadybot\Core\Util;
-use Nadybot\Modules\RELAY_MODULE\Relay;
-use Nadybot\Modules\RELAY_MODULE\RelayMessage;
+use Nadybot\Core\{
+	Attributes as NCA,
+	MessageHub,
+	Routing\Character,
+	Routing\Events\Base,
+	Routing\RoutableEvent,
+	Routing\RoutableMessage,
+	Routing\Source,
+	Text,
+	Util,
+};
+use Nadybot\Modules\RELAY_MODULE\{
+	Relay,
+	RelayMessage,
+};
 
-/**
- * @RelayProtocol("grc")
- * @Description("This is the old BudaBot protocol.
- * 	It only supports relaying messages - no sharing of online lists
- * 	or any form of colorization beyond org or guest chat.")
- * @Param(name='command', description='The command we send with each packet', type='string', required=false)
- * @Param(name='prefix', description='The prefix we send with each packet, e.g. "!" or ""', type='string', required=false)
- */
+#[
+	NCA\RelayProtocol(
+		name: "grc",
+		description:
+			"This is the old BudaBot protocol.\n".
+			"It only supports relaying messages - no sharing of online lists\n".
+			"or any form of colorization beyond org or guest chat."
+	),
+	NCA\Param(
+		name: "command",
+		type: "string",
+		description: "The command we send with each packet",
+		required: false
+	),
+	NCA\Param(
+		name: "prefix",
+		type: "string",
+		description: "The prefix we send with each packet, e.g. \"!\" or \"\"",
+		required: false
+	)
+]
 class GrcV1Protocol implements RelayProtocolInterface {
 	protected static int $supportedFeatures = self::F_NONE;
 
 	protected Relay $relay;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Util $util;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Text $text;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public MessageHub $messageHub;
 
 	protected string $command = "grc";
@@ -44,7 +63,7 @@ class GrcV1Protocol implements RelayProtocolInterface {
 
 	public function send(RoutableEvent $event): array {
 		if ($event->getType() !== RoutableEvent::TYPE_MESSAGE) {
-			if (!is_object($event->data) || !strlen($event->data->message??"")) {
+			if (!isset($event->data) || !($event->data instanceof Base) || !strlen($event->data->message??"")) {
 				return [];
 			}
 			$event2 = clone $event;

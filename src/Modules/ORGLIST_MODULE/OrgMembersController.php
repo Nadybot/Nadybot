@@ -3,46 +3,41 @@
 namespace Nadybot\Modules\ORGLIST_MODULE;
 
 use Illuminate\Support\Collection;
-use Nadybot\Core\CmdContext;
-use Nadybot\Core\CommandReply;
-use Nadybot\Core\DB;
-use Nadybot\Core\DBSchema\Player;
-use Nadybot\Core\Modules\PLAYER_LOOKUP\Guild;
-use Nadybot\Core\Modules\PLAYER_LOOKUP\GuildManager;
-use Nadybot\Core\Text;
+use Nadybot\Core\{
+	Attributes as NCA,
+	CmdContext,
+	CommandReply,
+	DB,
+	DBSchema\Player,
+	ModuleInstance,
+	Modules\PLAYER_LOOKUP\Guild,
+	Modules\PLAYER_LOOKUP\GuildManager,
+	Text,
+};
 
 /**
  * @author Tyrence (RK2)
- *
- * @Instance
- *
- * Commands this controller contains:
- *	@DefineCommand(
- *		command     = 'orgmembers',
- *		accessLevel = 'guild',
- *		description = 'Show guild members sorted by name',
- *		help        = 'orgmembers.txt'
- *	)
  */
-class OrgMembersController {
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
-
-	/** @Inject */
+#[
+	NCA\Instance,
+	NCA\DefineCommand(
+		command: "orgmembers",
+		accessLevel: "member",
+		description: "Show guild members sorted by name",
+	)
+]
+class OrgMembersController extends ModuleInstance {
+	#[NCA\Inject]
 	public DB $db;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Text $text;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public GuildManager $guildManager;
 
-	/**
-	 * @HandlesCommand("orgmembers")
-	 */
+	/** Show the members of an organization, sorted by name */
+	#[NCA\HandlesCommand("orgmembers")]
 	public function orgmembers2Command(CmdContext $context, int $orgId): void {
 		$context->reply("Getting org info...");
 

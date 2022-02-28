@@ -2,24 +2,27 @@
 
 namespace Nadybot\Core;
 
+use Nadybot\Core\Attributes as NCA;
 use Exception;
 
 /**
  * Read-through cache to URLs
- * @Instance
  */
+#[NCA\Instance]
 class CacheManager {
-
-	/** @Inject */
+	#[NCA\Inject]
 	public Nadybot $chatBot;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Http $http;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Util $util;
 
-	/** @Logger */
+	#[NCA\Inject]
+	public ConfigFile $config;
+
+	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
 	/**
@@ -29,14 +32,14 @@ class CacheManager {
 
 	/**
 	 * Initialize the cache on disk
-	 * @Setup
 	 */
+	#[NCA\Setup]
 	public function init(): void {
-		$this->cacheDir = $this->chatBot->vars["cachefolder"];
+		$this->cacheDir = $this->config->cacheFolder;
 
 		//Making sure that the cache folder exists
 		if (!@is_dir($this->cacheDir)) {
-			mkdir($this->cacheDir, 0777);
+			\Safe\mkdir($this->cacheDir, 0777);
 		}
 	}
 
@@ -94,7 +97,7 @@ class CacheManager {
 	 * @psalm-param callable(?string): bool $isValidCallback
 	 * @psalm-param callable(CacheResult, mixed...) $callback
 	 */
-	public function handleCacheLookup(HttpResponse $response, string $groupName, string $filename, callable $isValidCallback, callable $callback, ...$args): void {
+	public function handleCacheLookup(HttpResponse $response, string $groupName, string $filename, callable $isValidCallback, callable $callback, mixed ...$args): void {
 		if ($response->error) {
 			$this->logger->warning($response->error);
 		}
@@ -142,7 +145,6 @@ class CacheManager {
 
 	/**
 	 * Lookup information in the cache or retrieve it when outdated
-	 *
 	 * @param string $url               The URL to load the data from if the cache is outdate
 	 * @param string $groupName         The "name" of the cache, e.g. "guild_roster"
 	 * @param string $filename          Filename to cache the information in when retrieved
@@ -220,7 +222,7 @@ class CacheManager {
 	 */
 	public function store(string $groupName, string $filename, string $contents): void {
 		if (!dir($this->cacheDir . '/' . $groupName)) {
-			mkdir($this->cacheDir . '/' . $groupName, 0777);
+			\Safe\mkdir($this->cacheDir . '/' . $groupName, 0777);
 		}
 
 		$cacheFile = "$this->cacheDir/$groupName/$filename";
@@ -229,9 +231,11 @@ class CacheManager {
 		// not sure why that is the case -tyrence
 		@unlink($cacheFile);
 
-		$fp = fopen($cacheFile, "w");
-		fwrite($fp, $contents);
-		fclose($fp);
+		$fp = \Safe\fopen($cacheFile, "w");
+		if (is_resource($fp)) {
+			\Safe\fwrite($fp, $contents);
+			\Safe\fclose($fp);
+		}
 	}
 
 	/**
@@ -240,10 +244,10 @@ class CacheManager {
 	public function retrieve(string $groupName, string $filename): ?string {
 		$cacheFile = "{$this->cacheDir}/$groupName/$filename";
 
-		if (@file_exists($cacheFile)) {
-			return file_get_contents($cacheFile);
+		if (!@file_exists($cacheFile)) {
+			return null;
 		}
-		return null;
+		return \Safe\file_get_contents($cacheFile);
 	}
 
 	/**
@@ -253,7 +257,7 @@ class CacheManager {
 		$cacheFile = "$this->cacheDir/$groupName/$filename";
 
 		if (@file_exists($cacheFile)) {
-			return time() - filemtime($cacheFile);
+			return time() - \Safe\filemtime($cacheFile);
 		}
 		return null;
 	}
@@ -270,15 +274,13 @@ class CacheManager {
 	/**
 	 * Delete a cache
 	 */
-	public function remove(string $groupName, string $filename): bool {
+	public function remove(string $groupName, string $filename): void {
 		$cacheFile = "$this->cacheDir/$groupName/$filename";
-
-		return @unlink($cacheFile);
+		\Safe\unlink($cacheFile);
 	}
 
 	/**
 	 * Get a list of all files with cached information that belong to a group
-	 *
 	 * @param string $groupName The "name" of the cache, e.g. "guild_roster"
 	 * @return string[]
 	 */
@@ -290,7 +292,6 @@ class CacheManager {
 
 	/**
 	 * Get a list of all existing cache groups
-	 *
 	 * @return string[]
 	 */
 	public function getGroups(): array {

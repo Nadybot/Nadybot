@@ -2,13 +2,16 @@
 
 namespace Nadybot\Core\Channels;
 
-use Nadybot\Core\MessageHub;
-use Nadybot\Core\Modules\CONSOLE\ConsoleCommandReply;
-use Nadybot\Core\Routing\RoutableEvent;
-use Nadybot\Core\Routing\Source;
+use Nadybot\Core\{
+	Attributes as NCA,
+	MessageHub,
+	Modules\CONSOLE\ConsoleCommandReply,
+	Routing\RoutableEvent,
+	Routing\Source,
+};
 
 class ConsoleChannel extends Base {
-	/** @Inject */
+	#[NCA\Inject]
 	public MessageHub $messageHub;
 
 	protected ConsoleCommandReply $sendto;
@@ -26,7 +29,7 @@ class ConsoleChannel extends Base {
 		if (!isset($message)) {
 			return false;
 		}
-		$this->sendto->reply($message);
+		$this->sendto->replyOnly($message);
 		return true;
 	}
 }

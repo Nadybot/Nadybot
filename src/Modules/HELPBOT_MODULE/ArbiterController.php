@@ -7,28 +7,36 @@ use DateTime;
 use DateTimeZone;
 use Exception;
 use Nadybot\Core\{
+	Attributes as NCA,
 	CmdContext,
 	CommandAlias,
 	DB,
+	ModuleInstance,
+	ParamClass\PWord,
 	Text,
 	Util,
 };
-use Nadybot\Core\ParamClass\PWord;
+use Safe\Exceptions\DatetimeException;
 
 /**
  * @author Nadyita (RK5)
- *
- * @Instance
- *
- * Commands this controller contains:
- *	@DefineCommand(
- *		command     = 'arbiter',
- *		accessLevel = 'all',
- *		description = 'Show current arbiter mission',
- *		help        = 'arbiter.txt'
- *	)
  */
-class ArbiterController {
+#[
+	NCA\Instance,
+	NCA\HasMigrations("Migrations/Arbiter"),
+	NCA\DefineCommand(
+		command: "arbiter",
+		accessLevel: "guest",
+		description: "Show current arbiter mission",
+		alias: "icc",
+	),
+	NCA\DefineCommand(
+		command: "arbiter change",
+		accessLevel: "member",
+		description: "Change current arbiter mission",
+	)
+]
+class ArbiterController extends ModuleInstance {
 	public const DIO = "dio";
 	public const AI = "ai";
 	public const BS = "bs";
@@ -36,29 +44,17 @@ class ArbiterController {
 
 	public const DB_TABLE = "icc_arbiter";
 
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
-
-	/** @Inject */
+	#[NCA\Inject]
 	public CommandAlias $commandAlias;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Util $util;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Text $text;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public DB $db;
-
-	/** @Setup */
-	public function setup(): void {
-		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations/Arbiter");
-		$this->commandAlias->register($this->moduleName, "arbiter", "icc");
-	}
 
 	/**
 	 * Calculate the next (or current) times for an event
@@ -128,32 +124,35 @@ class ArbiterController {
 	}
 
 	/**
-	 * @HandlesCommand("arbiter")
-	 * @Mask $action set
-	 * @Mask $ends ends
+	 * Once in a while, the arbiter takes a break and doesn't come to the ICC.
+	 * In that case, you can manually set which week you are currently in
+	 *
+	 * When setting the arbiter week on a Sunday, we don't know for sure which
+	 * Sunday this is - the first or the last day of the period.
+	 * By default, we will assume that this is the first Sunday of the
+	 * event, but you can add 'ends' to the command like so:
+	 * <tab>'<symbol>arbiter set bs ends'
+	 * This will set that today is the last day of the PvP week.
 	 */
-	public function arbiterSetCommand(CmdContext $context, string $action, ?PWord $setWeek, ?string $ends): void {
-		if (isset($setWeek)) {
-			$setWeek = strtolower($setWeek());
-		}
+	#[NCA\HandlesCommand("arbiter change")]
+	public function arbiterSetCommand(
+		CmdContext $context,
+		#[NCA\Str("set")] string $action,
+		#[NCA\StrChoice("ai", "bs", "dio")] string $setWeek,
+		#[NCA\Str("ends")] ?string $ends
+	): void {
+		$setWeek = strtolower($setWeek);
 		$validTypes = [static::AI, static::BS, static::DIO];
-		if (!isset($setWeek) || !is_int($pos = array_search($setWeek, $validTypes))) {
-			$context->reply(
-				"Allowed current arbiter weeks are ".
-				$this->text->enumerate(
-					...$this->text->arraySprintf(
-						"<highlight>%s<end>",
-						...$validTypes
-					)
-				)
-			);
+		$pos = array_search($setWeek, $validTypes);
+		if ($pos === false) {
 			return;
 		}
+		/** @var string $setWeek */
 		$this->db->beginTransaction();
 		$day = (new DateTime("now", new DateTimeZone("UTC")))->format("N");
 		$startsToday = ($day === "7") && !isset($ends);
-		$start =  strtotime($startsToday ? "today" : "last sunday");
-		$end = strtotime($startsToday ? "monday + 7 days" : "next monday");
+		$start =  \Safe\strtotime($startsToday ? "today" : "last sunday");
+		$end = \Safe\strtotime($startsToday ? "monday + 7 days" : "next monday");
 		try {
 			$this->db->table(static::DB_TABLE)->truncate();
 			for ($i = 0; $i < 3; $i++) {
@@ -182,14 +181,17 @@ class ArbiterController {
 		);
 	}
 
-	/**
-	 * @HandlesCommand("arbiter")
-	 */
+	/** Check what's the current mission from Arbiter Vincenzo Palmiero */
+	#[NCA\HandlesCommand("arbiter")]
+	#[NCA\Help\Example("<symbol>arbiter june 6th 2025")]
+	#[NCA\Help\Example("<symbol>arbiter next week")]
+	#[NCA\Help\Example("<symbol>arbiter saturday")]
 	public function arbiterCommand(CmdContext $context, ?string $timeGiven): void {
 		$time = time();
 		if (isset($timeGiven)) {
-			$time = strtotime($timeGiven);
-			if ($time === false) {
+			try {
+				$time = \Safe\strtotime($timeGiven);
+			} catch (DatetimeException) {
 				$context->reply("Unable to parse <highlight>{$timeGiven}<end> into a date.");
 				return;
 			}
@@ -251,12 +253,15 @@ class ArbiterController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @NewsTile("arbiter")
-	 * @Description("Shows the current ICC arbiter week - if any")
-	 * @Example("<header2>Arbiter<end>
-	 * <tab>It's currently <highlight>DIO week<end>.")
-	 */
+	#[
+		NCA\NewsTile(
+			name: "arbiter",
+			description: "Shows the current ICC arbiter week - if any",
+			example:
+				"<header2>Arbiter<end>\n".
+				"<tab>It's currently <highlight>DIO week<end>."
+		)
+	]
 	public function arbiterNewsTile(string $sender, callable $callback): void {
 		/** @var ArbiterEvent[] */
 		$upcomingEvents = [
@@ -282,13 +287,16 @@ class ArbiterController {
 		$callback($msg);
 	}
 
-	/**
-	 * @NewsTile("arbiter-force")
-	 * @Description("Shows the current ICC arbiter week or what the next one will be")
-	 * @Example("<header2>Arbiter<end>
-	 * <tab>The arbiter is currently not here.
-	 * <tab>DIO week starts in <highlight>3 days 17 hrs 4 mins<end>.")
-	 */
+	#[
+		NCA\NewsTile(
+			name: "arbiter-force",
+			description: "Shows the current ICC arbiter week or what the next one will be",
+			example:
+				"<header2>Arbiter<end>\n".
+				"<tab>The arbiter is currently not here.\n".
+				"<tab>DIO week starts in <highlight>3 days 17 hrs 4 mins<end>."
+		)
+	]
 	public function arbiterNewsForceTile(string $sender, callable $callback): void {
 		/** @var ArbiterEvent[] */
 		$upcomingEvents = [

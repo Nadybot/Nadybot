@@ -2,76 +2,90 @@
 
 namespace Nadybot\Modules\ITEMS_MODULE;
 
-use Illuminate\Database\Query\JoinClause;
 use Illuminate\Support\Collection;
-use Nadybot\Core\CmdContext;
-use Nadybot\Core\DB;
-use Nadybot\Core\LoggerWrapper;
-use Nadybot\Core\Text;
-use Nadybot\Core\Util;
-use Nadybot\Modules\WHEREIS_MODULE\WhereisResult;
+use Nadybot\Core\{
+	Attributes as NCA,
+	CmdContext,
+	DB,
+	ModuleInstance,
+	LoggerWrapper,
+	Text,
+	Util,
+};
+use Nadybot\Modules\WHEREIS_MODULE\{
+	WhereisController,
+	WhereisResult,
+};
 
 /**
  * Bossloot Module Ver 1.1
- * Written By Jaqueme
- * For Budabot
- * Database Adapted From One Originally Compiled by Malosar For BeBot
- * Boss Drop Table Database Module
- * Written 5/11/07
- * Last Modified 5/14/07
- *
- * @Instance
- *
- * Commands this controller contains:
- *	@DefineCommand(
- *		command     = 'boss',
- *		accessLevel = 'all',
- *		description = 'Shows bosses and their loot',
- *		help        = 'boss.txt'
- *	)
- *	@DefineCommand(
- *		command     = 'bossloot',
- *		accessLevel = 'all',
- *		description = 'Finds which boss drops certain loot',
- *		help        = 'boss.txt'
- *	)
+ * Originally written By Jaqueme for Budabot
  */
-class BosslootController {
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
-
-	/** @Inject */
+#[
+	NCA\Instance,
+	NCA\HasMigrations("Migrations/Boss"),
+	NCA\DefineCommand(
+		command: "boss",
+		accessLevel: "guest",
+		description: "Shows bosses and their loot",
+	),
+	NCA\DefineCommand(
+		command: "bossloot",
+		accessLevel: "guest",
+		description: "Finds which boss drops certain loot",
+	)
+]
+class BosslootController extends ModuleInstance {
+	#[NCA\Inject]
 	public DB $db;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Text $text;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Util $util;
 
-	/** @Logger */
+	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
-	/** @Setup */
+	#[NCA\Inject]
+	public WhereisController $whereisController;
+
+	#[NCA\Inject]
+	public ItemsController $itemsController;
+
+	#[NCA\Setup]
 	public function setup(): void {
-		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations/Boss");
 		$this->db->loadCSVFile($this->moduleName, __DIR__ ."/boss_namedb.csv");
 		$this->db->loadCSVFile($this->moduleName, __DIR__ ."/boss_lootdb.csv");
 	}
 
+	/** @param Collection<BossLootdb> $data */
+	private function addItemsToLoot(Collection $data): void {
+		$itemsByName = $this->itemsController
+			->getByNames(...$data->whereNull("aoid")->pluck("itemname")->toArray())
+			->keyBy("name");
+		$itemsByAoid = $this->itemsController
+			->getByIDs(...$data->whereNotNull("aoid")->pluck("aoid")->toArray())
+			->keyBy("aoid");
+		$data->each(function (BossLootdb $loot) use ($itemsByName, $itemsByAoid): void {
+			if (isset($loot->aoid)) {
+				$loot->item = $itemsByAoid->get($loot->aoid);
+			} else {
+				$loot->item = $itemsByName->get($loot->itemname);
+			}
+		});
+	}
+
 	/**
-	 * This command handler shows bosses and their loot.
-	 *
-	 * @HandlesCommand("boss")
+	 * See the drop table for a boss
 	 */
-	public function bossCommand(CmdContext $context, string $search): void {
-		$search = strtolower($search);
+	#[NCA\HandlesCommand("boss")]
+	public function bossCommand(CmdContext $context, string $bossName): void {
+		$bossName = strtolower($bossName);
 
 		$query = $this->db->table("boss_namedb");
-		$this->db->addWhereFromParams($query, explode(' ', $search), 'bossname');
+		$this->db->addWhereFromParams($query, explode(' ', $bossName), 'bossname');
 
 		/** @var Collection<BossNamedb> */
 		$bosses = $query->asObj(BossNamedb::class);
@@ -83,7 +97,7 @@ class BosslootController {
 			return;
 		}
 		if ($count > 1) {
-			$blob = "Results of Search for '$search'\n\n";
+			$blob = "Results of Search for '$bossName'\n\n";
 			//If multiple matches found output list of bosses
 			foreach ($bosses as $row) {
 				$blob .= $this->getBossLootOutput($row);
@@ -96,10 +110,35 @@ class BosslootController {
 		$row = $bosses[0];
 		$blob = "";
 
-		$locations = $this->db->table("whereis AS w")
-			->leftJoin("playfields AS p", "w.playfield_id", "p.id")
-			->where("name", $row->bossname)
-			->asObj(WhereisResult::class)
+		$locations = $this->getBossLocations($row->bossname);
+		if ($locations->isNotEmpty()) {
+			$blob .= "<header2>Location<end>\n";
+			$blob .= "<tab>" . $locations->join("\n<tab>") . "\n\n";
+		}
+
+		$blob .= "<header2>Loot<end>\n";
+
+		/** @var Collection<BossLootdb> */
+		$data = $this->db->table("boss_lootdb")
+			->where("bossid", $row->bossid)
+			->asObj(BossLootdb::class);
+		$this->addItemsToLoot($data);
+		foreach ($data as $row2) {
+			if (!isset($row2->item)) {
+				$this->logger->error("Missing item in AODB: {$row2->itemname}.");
+				continue;
+			}
+			$blob .= "<tab>" . $this->text->makeImage($row2->item->icon) . "\n";
+			$blob .= "<tab>" . $row2->item->getLink($row2->item->highql, $row2->itemname) . "\n\n";
+		}
+		$output = $this->text->makeBlob($row->bossname, $blob);
+		$context->reply($output);
+	}
+
+	/** @return Collection<string> */
+	private function getBossLocations(string $bossName): Collection {
+		/** @var Collection<string> */
+		$locations = $this->whereisController->getByName($bossName)
 			->map(function (WhereisResult $npc): string {
 				if ($npc->playfield_id === 0 || ($npc->xcoord === 0 && $npc->ycoord === 0)) {
 					return $npc->answer;
@@ -108,51 +147,23 @@ class BosslootController {
 					$npc->answer,
 					"/waypoint {$npc->xcoord} {$npc->ycoord} {$npc->playfield_id}"
 				);
-			})->toArray();
-		if (count($locations)) {
-			$blob .= "<header2>Location<end>\n";
-			$blob .= "<tab>" . join("\n<tab>", $locations) . "\n\n";
-		}
-
-		$blob .= "<header2>Loot<end>\n";
-
-		/** @var Collection<BossLootdb> */
-		$data = $this->db->table("boss_lootdb AS b")
-			->leftJoin("aodb AS a", function (JoinClause $join) {
-				$join->on("b.aoid", "a.lowid")
-					->orOn(function (JoinClause $join) {
-						$join->whereNull("b.aoid")
-							->whereColumn("b.itemname", "a.name");
-					});
-			})
-			->where("b.bossid", $row->bossid)
-			->asObj(BossLootdb::class);
-		foreach ($data as $row2) {
-			if (!isset($row2->icon)) {
-				$this->logger->error("Missing item in AODB: {$row2->itemname}.");
-				continue;
-			}
-			$blob .= "<tab>" . $this->text->makeImage($row2->icon) . "\n";
-			$blob .= "<tab>" . $this->text->makeItem($row2->lowid, $row2->highid, $row2->highql, $row2->itemname) . "\n\n";
-		}
-		$output = $this->text->makeBlob($row->bossname, $blob);
-		$context->reply($output);
+			});
+		return $locations;
 	}
 
 	/**
-	 * This command handler finds which boss drops certain loot.
-	 *
-	 * @HandlesCommand("bossloot")
+	 * Search for the boss dropping the item
 	 */
-	public function bosslootCommand(CmdContext $context, string $search): void {
-		$search = strtolower($search);
+	#[NCA\HandlesCommand("bossloot")]
+	public function bosslootCommand(CmdContext $context, string $item): void {
+		$item = strtolower($item);
 
-		$blob = "Bosses that drop items matching '$search':\n\n";
+		$blob = "Bosses that drop items matching '$item':\n\n";
 
 		$query = $this->db->table("boss_lootdb AS b1")
 			->join("boss_namedb AS b2", "b2.bossid", "b1.bossid")
 			->select("b2.bossid", "b2.bossname")->distinct();
-		$this->db->addWhereFromParams($query, explode(' ', $search), 'b1.itemname');
+		$this->db->addWhereFromParams($query, explode(' ', $item), 'b1.itemname');
 
 		/** @var Collection<BossNamedb> */
 		$loot = $query->asObj(BossNamedb::class);
@@ -161,7 +172,7 @@ class BosslootController {
 		$output = "There were no matches for your search.";
 		if ($count !== 0) {
 			foreach ($loot as $row) {
-				$blob .= $this->getBossLootOutput($row, $search);
+				$blob .= $this->getBossLootOutput($row, $item);
 			}
 			$output = $this->text->makeBlob("Bossloot Search Results ($count)", $blob);
 		}
@@ -169,42 +180,28 @@ class BosslootController {
 	}
 
 	public function getBossLootOutput(BossNamedb $row, ?string $search=null): string {
-		$query = $this->db->table("boss_lootdb AS b")
-			->leftJoin("aodb AS a", "b.itemname", "a.name")
-			->where("b.bossid", $row->bossid);
+		$query = $this->db->table("boss_lootdb")
+			->where("bossid", $row->bossid);
 		if (isset($search)) {
-			$this->db->addWhereFromParams($query, explode(' ', $search), 'b.itemname');
+			$this->db->addWhereFromParams($query, explode(' ', $search), 'itemname');
 		}
 		/** @var Collection<BossLootdb> */
 		$data = $query->asObj(BossLootdb::class);
+		$this->addItemsToLoot($data);
 
 		$blob = "<pagebreak><header2>{$row->bossname} [" . $this->text->makeChatcmd("details", "/tell <myname> boss $row->bossname") . "]<end>\n";
-		$locations = $this->db->table("whereis AS w")
-			->leftJoin("playfields AS p", "w.playfield_id", "p.id")
-			->where("name", $row->bossname)
-			->asObj(WhereisResult::class)
-			->map(function (WhereisResult $npc): string {
-				if ($npc->playfield_id === 0 || ($npc->xcoord === 0 && $npc->ycoord === 0)) {
-					return "<highlight>{$npc->answer}<end>";
-				}
-				return $this->text->makeChatcmd(
-					$npc->answer,
-					"/waypoint {$npc->xcoord} {$npc->ycoord} {$npc->playfield_id}"
-				);
-			});
+		$locations = $this->getBossLocations($row->bossname);
 		if ($locations->count()) {
 			$blob .= "<tab>Location: " . $locations->join(", ") . "\n";
 		}
 		$blob .= "<tab>Loot: ";
-		$lootItems = [];
-		foreach ($data as $row2) {
-			$item = $this->text->makeItem($row2->lowid, $row2->highid, $row2->highql, $row2->itemname);
-			$lootItems []= $item;
-		}
+		$lootItems = $data->map(function(BossLootdb $loot): ?string {
+			return $loot->item?->getLink($loot->item->highql) ?? null;
+		})->filter();
 		if (isset($search)) {
-			$blob .= join("\n<tab><black>Loot: <end>", $lootItems) . "\n\n";
+			$blob .= $lootItems->join("\n<tab><black>Loot: <end>") . "\n\n";
 		} else {
-			$blob .= join(", ", $lootItems) . "\n\n";
+			$blob .= $lootItems->join(", ") . "\n\n";
 		}
 		return $blob;
 	}

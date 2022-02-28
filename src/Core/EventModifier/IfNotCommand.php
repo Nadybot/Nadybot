@@ -2,21 +2,27 @@
 
 namespace Nadybot\Core\EventModifier;
 
-use Nadybot\Core\EventModifier;
-use Nadybot\Core\Nadybot;
-use Nadybot\Core\Routing\RoutableEvent;
-use Nadybot\Core\SettingManager;
+use Nadybot\Core\{
+	Attributes as NCA,
+	EventModifier,
+	Nadybot,
+	Routing\RoutableEvent,
+	SettingManager,
+};
 
-/**
- * @EventModifier("if-not-command")
- * @Description("This modifier will only route messages that are
- *	not a command or a reply to a command.")
- */
+#[
+	NCA\EventModifier(
+		name: "if-not-command",
+		description:
+			"This modifier will only route messages that are\n".
+			"not a command or a reply to a command."
+	)
+]
 class IfNotCommand implements EventModifier {
-	/** @Inject */
+	#[NCA\Inject]
 	public Nadybot $chatBot;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public SettingManager $settingManager;
 
 	public function modify(?RoutableEvent $event=null): ?RoutableEvent {

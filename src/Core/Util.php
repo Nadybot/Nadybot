@@ -2,18 +2,17 @@
 
 namespace Nadybot\Core;
 
-use Addendum\ReflectionAnnotatedClass;
+use ReflectionClass;
 use Exception;
+use InvalidArgumentException;
+use Nadybot\Core\Attributes as NCA;
 
-/**
- * @Instance
- */
+#[NCA\Instance]
 class Util {
+	#[NCA\Inject]
+	public ConfigFile $config;
 
-	/** @Inject */
-	public Nadybot $chatBot;
-
-	/** @Logger */
+	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
 	/** @var string */
@@ -303,7 +302,7 @@ class Util {
 		$filename = str_replace("\\", "/", $filename);
 
 		//check if the file exists
-		foreach (array_reverse($this->chatBot->vars['module_load_paths']) as $modulePath) {
+		foreach (array_reverse($this->config->moduleLoadPaths) as $modulePath) {
 			if (file_exists("$modulePath/$filename")) {
 				return "$modulePath/$filename";
 			}
@@ -353,10 +352,9 @@ class Util {
 
 	/**
 	 * Randomly get a value from an array
-	 *
-	 * @return mixed A random element
+	 * @param array<mixed> $array
 	 */
-	public function randomArrayValue(array $array) {
+	public function randomArrayValue(array $array): mixed {
 		return $array[array_rand($array)];
 	}
 
@@ -364,10 +362,8 @@ class Util {
 	 * Checks to see if the $sender is valid
 	 *
 	 * Invalid values: -1 on 32bit and 4294967295  on 64bit
-	 *
-	 * @param int|string $sender
 	 */
-	public function isValidSender($sender): bool {
+	public function isValidSender(int|string $sender): bool {
 		$isValid = !in_array(
 			$sender,
 			[(string)0xFFFFFFFF, (int)0xFFFFFFFF, 0xFFFFFFFF, "-1", -1],
@@ -397,8 +393,12 @@ class Util {
 		$arr1 = [];
 		$arr2 = [];
 		foreach ($trace as $obj) {
-			$file = str_replace(getcwd() . "/", "", $obj['file']);
-			$arr1 []= "{$file}({$obj['line']})";
+			$file = str_replace(\Safe\getcwd() . "/", "", ($obj['file'] ?? "{Closure}"));
+			if (isset($obj['line'])) {
+				$arr1 []= "{$file}({$obj['line']})";
+			} else {
+				$arr1 []= "{$file}";
+			}
 			$arr2 []= "{$obj['function']}()";
 		}
 
@@ -406,8 +406,11 @@ class Util {
 
 		$str = "";
 		for ($i = 0; $i < count($arr1); $i++) {
-			if ($arr1[$i] !== "()") {
-				$str .= "$arr1[$i] : ";
+			if ($arr1[$i] !== "{Closure}") {
+				$str .= $arr1[$i];
+				if (isset($arr2[$i])) {
+					$str .= ": ";
+				}
 			}
 			$str .= "$arr2[$i]\n";
 		}
@@ -418,7 +421,7 @@ class Util {
 	 * Convert UNIX timestamp to date and time
 	 */
 	public function date(int $unixtime): string {
-		return date(self::DATETIME, $unixtime);
+		return \Safe\date(self::DATETIME, $unixtime);
 	}
 
 	/**
@@ -494,8 +497,8 @@ class Util {
 		}
 		// Split the array in half
 		$halfway = count($array) / 2;
-		$array1 = array_slice($array, 0, $halfway);
-		$array2 = array_slice($array, $halfway);
+		$array1 = array_slice($array, 0, (int)$halfway);
+		$array2 = array_slice($array, (int)$halfway);
 		// Recurse to sort the two halves
 		$this->mergesort($array1, $cmp_function);
 		$this->mergesort($array2, $cmp_function);
@@ -538,20 +541,6 @@ class Util {
 	}
 
 	/**
-	 * Run a function over an associative array and glue the results together with $glue
-	 */
-	public function mapFilterCombine(array $arr, string $glue, callable $func): string {
-		$newArr = [];
-		foreach ($arr as $key => $value) {
-			$result = call_user_func($func, $key, $value);
-			if ($result !== null) {
-				$newArr []= $result;
-			}
-		}
-		return implode($glue, $newArr);
-	}
-
-	/**
 	 * Get an array with all files (not dirs) in a directory
 	 *
 	 * @return string[] An array of file names in that directory
@@ -584,7 +573,7 @@ class Util {
 	/**
 	 * Test if $input only consists of digits
 	 */
-	public function isInteger($input): bool {
+	public function isInteger(mixed $input): bool {
 		return(ctype_digit(strval($input)));
 	}
 
@@ -611,35 +600,37 @@ class Util {
 		return 7;
 	}
 
-	public function getClassSpecFromClass(string $class, string $annotation): ?ClassSpec {
-		$reflection = new ReflectionAnnotatedClass($class);
-		if (!$reflection->hasAnnotation($annotation)) {
+	/** @phpstan-param class-string $class */
+	public function getClassSpecFromClass(string $class, string $attrName): ?ClassSpec {
+		if (!is_subclass_of($attrName, NCA\ClassSpec::class)) {
+			throw new InvalidArgumentException("{$attrName} is not a class spec");
+		}
+		$reflection = new ReflectionClass($class);
+		$attrs = $reflection->getAttributes($attrName);
+		if (empty($attrs)) {
 			return null;
 		}
-		$name = $reflection->getAnnotation($annotation)->value;
-		$descriptionAnno = $reflection->getAnnotation('Description');
-		if (isset($descriptionAnno)) {
-			$description = $descriptionAnno->value;
-		}
+		/** @var NCA\ClassSpec */
+		$attrObj = $attrs[0]->newInstance();
+		/** @phpstan-var class-string */
+		$name = $attrObj->name;
 		/** @var FunctionParameter[] */
 		$params = [];
 		$i = 1;
-		foreach ($reflection->getAllAnnotations('Param') as $paramAnnotation) {
-			/** @var Param $paramAnnotation */
+		foreach ($reflection->getAttributes(NCA\Param::class) as $paramAttr) {
+			/** @var NCA\Param */
+			$paramObj = $paramAttr->newInstance();
 			$param = new FunctionParameter();
-			if (!isset($paramAnnotation->name)) {
-				throw new Exception("Missing \"name\" for {$class} @Param #{$i}.");
-			}
-			$param->name = $paramAnnotation->name;
-			$param->description = $paramAnnotation->description??null;
-			$param->required = $paramAnnotation->required ?: false;
-			switch ($paramAnnotation->type) {
+			$param->name = $paramObj->name;
+			$param->description = $paramObj->description??null;
+			$param->required = $paramObj->required ?: false;
+			switch ($paramObj->type) {
 				case $param::TYPE_BOOL:
 				case $param::TYPE_SECRET:
 				case $param::TYPE_STRING:
 				case $param::TYPE_INT:
 				case $param::TYPE_STRING_ARRAY:
-					$param->type = $paramAnnotation->type;
+					$param->type = $paramObj->type;
 					break;
 				case "integer":
 					$param->type = $param::TYPE_INT;
@@ -648,14 +639,14 @@ class Util {
 					$param->type = $param::TYPE_BOOL;
 					break;
 				default:
-					throw new Exception("Unknown parameter type {$paramAnnotation->type} in {$class}");
+					throw new Exception("Unknown parameter type {$paramObj->type} in {$class}");
 			}
 			$params []= $param;
 			$i++;
 		}
 		$spec = new ClassSpec($name, $class);
 		$spec->setParameters(...$params);
-		$spec->setDescription($description??null);
+		$spec->setDescription($attrObj->description);
 		return $spec;
 	}
 
@@ -678,6 +669,9 @@ class Util {
 	 * Create a cryptographically secure password
 	 */
 	public function getPassword(int $length=16): string {
+		if ($length < 1) {
+			throw new InvalidArgumentException("Parameter \$length to getPassword() must be > 0");
+		}
 		$password = base64_encode(random_bytes($length+4));
 		return substr(rtrim($password, "="), 0, $length);
 	}

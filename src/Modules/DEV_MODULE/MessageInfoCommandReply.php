@@ -20,10 +20,10 @@ class MessageInfoCommandReply implements CommandReply {
 		}
 
 		foreach ($msg as $page) {
-			$elapsed = round($endTime - $this->startTime, 4);
+			$elapsed = round(($endTime - $this->startTime)*1000, 2);
 			$this->sendto->reply($page);
-			$this->sendto->reply("Size: " . strlen($page));
-			$this->sendto->reply("Time: $elapsed seconds");
+			$this->sendto->reply("Size: " . strlen($page) . " characters");
+			$this->sendto->reply("Time: {$elapsed} ms");
 		}
 	}
 }

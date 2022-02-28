@@ -2,107 +2,113 @@
 
 namespace Nadybot\Core\Modules\PROFILE;
 
+use function Safe\file_get_contents;
+use function Safe\json_decode;
+use function Safe\json_encode;
+use function Safe\preg_replace;
+
 use Nadybot\Core\{
+	Attributes as NCA,
 	CmdContext,
 	CommandAlias,
 	CommandManager,
+	CommandReply,
+	ConfigFile,
 	DB,
 	EventManager,
+	ModuleInstance,
 	LoggerWrapper,
 	MessageHub,
 	Nadybot,
+	ParamClass\PFilename,
+	ParamClass\PRemove,
+	Routing\Source,
 	SettingManager,
+	SubcommandManager,
 	Text,
 	Util,
 };
 use Exception;
+use Illuminate\Support\Collection;
 use Nadybot\Core\DBSchema\{
 	CmdAlias,
 	CmdCfg,
+	CmdPermSetMapping,
 	EventCfg,
+	ExtCmdPermissionSet,
 	RouteHopColor,
 	RouteHopFormat,
 };
-use Nadybot\Core\ParamClass\PFilename;
-use Nadybot\Core\ParamClass\PRemove;
-use Nadybot\Core\Routing\Source;
 use Nadybot\Modules\RELAY_MODULE\RelayController;
+use Safe\Exceptions\FilesystemException;
 
 /**
  * @author Tyrence (RK2)
- *
- * @Instance
- *
- * Commands this controller contains:
- *	@DefineCommand(
- *		command     = 'profile',
- *		accessLevel = 'admin',
- *		description = 'View, add, remove, and load profiles',
- *		help        = 'profile.txt',
- *		alias       = 'profiles'
- *	)
  */
-class ProfileController {
+#[
+	NCA\Instance,
+	NCA\DefineCommand(
+		command: "profile",
+		accessLevel: "admin",
+		description: "View, add, remove, and load profiles",
+		alias: "profiles"
+	)
+]
+class ProfileController extends ModuleInstance {
 	public const FILE_EXT = ".txt";
 
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
-
-	/** @Inject */
+	#[NCA\Inject]
 	public DB $db;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public SettingManager $settingManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Text $text;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Util $util;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public CommandManager $commandManager;
+	#
+	#[NCA\Inject]
+	public SubcommandManager $subcommandManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public MessageHub $messageHub;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Nadybot $chatBot;
 
-	/** @Logger */
+	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public RelayController $relayController;
+
+	#[NCA\Inject]
+	public ConfigFile $config;
 
 	private string $path;
 
-	/**
-	 * This handler is called on bot startup.
-	 * @Setup
-	 */
+	#[NCA\Setup]
 	public function setup(): void {
-		$dataPath = $this->chatBot->vars["datafolder"] ?? "./data";
+		$dataPath = $this->config->dataFolder;
 		$this->path = "{$dataPath}/profiles/";
 
 		// make sure that the profile folder exists
 		if (!@is_dir($this->path)) {
-			mkdir($this->path, 0777);
+			\Safe\mkdir($this->path, 0777);
 		}
 	}
 
 	/**
 	 * Get a list of all stored profiles
-	 *
 	 * @return string[]
 	 */
 	public function getProfileList(): array {
-		if (($handle = opendir($this->path)) === false) {
-			throw new Exception("Could not open profiles directory.");
-		}
+		$handle = \Safe\opendir($this->path);
 		$profileList = [];
 
 		while (false !== ($fileName = readdir($handle))) {
@@ -118,9 +124,13 @@ class ProfileController {
 		return $profileList;
 	}
 
-	/**
-	 * @HandlesCommand("profile")
-	 */
+	/** See the list of available profiles */
+	#[NCA\HandlesCommand("profile")]
+	#[NCA\Help\Epilogue(
+		"Note: Profiles are stored in ./data/profiles. ".
+		"Only lines that start with '!' will be executed and all other lines will ".
+		"be ignored. Feel free to add or edit profiles as you wish."
+	)]
 	public function profileListCommand(CmdContext $context): void {
 		try {
 			$profileList = $this->getProfileList();
@@ -146,11 +156,9 @@ class ProfileController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @HandlesCommand("profile")
-	 * @Mask $action view
-	 */
-	public function profileViewCommand(CmdContext $context, string $action, PFilename $profileName): void {
+	/** View a profile */
+	#[NCA\HandlesCommand("profile")]
+	public function profileViewCommand(CmdContext $context, #[NCA\Str("view")] string $action, PFilename $profileName): void {
 		$profileName = $profileName();
 		$filename = $this->getFilename($profileName);
 		if (!@file_exists($filename)) {
@@ -161,22 +169,21 @@ class ProfileController {
 		$blob = htmlspecialchars(file_get_contents($filename));
 		$blob = preg_replace("/^([^#])/m", "<tab>$1", $blob);
 		$blob = preg_replace("/^# (.+)$/m", "<header2>$1<end>", $blob);
+		/** @var string $blob */
 		$msg = $this->text->makeBlob("Profile $profileName", $blob);
 		$context->reply($msg);
 	}
 
-	/**
-	 * @HandlesCommand("profile")
-	 * @Mask $action save
-	 */
-	public function profileSaveCommand(CmdContext $context, string $action, PFilename $fileName): void {
-		$fileName = $fileName();
+	/** Save the current configuration as a profile */
+	#[NCA\HandlesCommand("profile")]
+	public function profileSaveCommand(CmdContext $context, #[NCA\Str("save")] string $action, PFilename $profileName): void {
+		$profileName = $profileName();
 		try {
-			$this->saveProfile($fileName);
+			$this->saveProfile($profileName);
 		} catch (Exception $e) {
 			$context->reply($e->getMessage());
 		}
-		$msg = "Profile <highlight>{$fileName}<end> has been saved.";
+		$msg = "Profile <highlight>{$profileName}<end> has been saved.";
 		$context->reply($msg);
 	}
 
@@ -185,7 +192,14 @@ class ProfileController {
 		if (@file_exists($filename)) {
 			throw new Exception("Profile <highlight>$profileName<end> already exists.");
 		}
-		$contents = "# Settings\n";
+		$contents = "# Permission maps\n";
+		$sets = $this->commandManager->getExtPermissionSets();
+		$setData = json_encode($sets, JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE);
+		$setData = preg_replace("/\"id\":\d+,/", "", $setData);
+		/** @var string $setData */
+		$contents .= "!permissions {$setData}\n";
+
+		$contents .= "\n# Settings\n";
 		foreach ($this->settingManager->settings as $name => $value) {
 			if ($name !== "botid" && $name !== "version" && !$this->util->endsWith($name, "_db_version")) {
 				$contents .= "!settings save $name {$value->value}\n";
@@ -202,16 +216,14 @@ class ProfileController {
 			$contents .= "!config event {$row->type} {$row->file} {$status} all\n";
 		}
 		$contents .= "\n# Commands\n";
-		/** @var CmdCfg[] */
-		$data = $this->db->table(CommandManager::DB_TABLE)
-			->asObj(CmdCfg::class)
-			->toArray();
+		/** @var Collection<CmdCfg> */
+		$data = $this->commandManager->getAll(true);
 		foreach ($data as $row) {
-			$status = "disable";
-			if ($row->status === 1) {
-				$status = "enable";
+			foreach ($row->permissions as $channel => $permissions) {
+				$status = $permissions->enabled ? "enable" : "disable";
+				$contents .= "!config {$row->cmdevent} {$row->cmd} {$status} {$channel}\n";
+				$contents .= "!config {$row->cmdevent} {$row->cmd} admin {$channel} {$permissions->access_level}\n";
 			}
-			$contents .= "!config {$row->cmdevent} {$row->cmd} {$status} {$row->type}\n";
 		}
 		$contents .= "\n# Aliases\n";
 		/** @var CmdAlias[] */
@@ -261,34 +273,33 @@ class ProfileController {
 			$contents .= "!route format display {$row->hop} {$row->format}\n";
 		}
 
-		return file_put_contents($filename, $contents) !== false;
+		return \Safe\file_put_contents($filename, $contents) !== false;
 	}
 
-	/**
-	 * @HandlesCommand("profile")
-	 */
-	public function profileRemCommand(CmdContext $context, PRemove $action, PFilename $fileName): void {
-		$profileName = $fileName();
+	/** Remove a profile */
+	#[NCA\HandlesCommand("profile")]
+	public function profileRemCommand(CmdContext $context, PRemove $action, PFilename $profileName): void {
+		$profileName = $profileName();
 		$filename = $this->getFilename($profileName);
 		if (!@file_exists($filename)) {
 			$msg = "Profile <highlight>{$profileName}<end> does not exist.";
 			$context->reply($msg);
 			return;
 		}
-		if (@unlink($filename) === false) {
-			$msg = "Unable to delete the profile <highlight>{$profileName}<end>.";
-		} else {
+		try {
+			\Safe\unlink($filename);
 			$msg = "Profile <highlight>{$profileName}<end> has been deleted.";
+		} catch (FilesystemException $e) {
+			$msg = "Unable to delete the profile <highlight>{$profileName}<end>: ".
+				$e->getMessage();
 		}
 		$context->reply($msg);
 	}
 
-	/**
-	 * @HandlesCommand("profile")
-	 * @Mask $action load
-	 */
-	public function profileLoadCommand(CmdContext $context, string $action, PFilename $fileName): void {
-		$profileName = $fileName();
+	/** Load a profile, replacing all your settings with the profile's */
+	#[NCA\HandlesCommand("profile")]
+	public function profileLoadCommand(CmdContext $context, #[NCA\Str("load")] string $action, PFilename $profileName): void {
+		$profileName = $profileName();
 		$filename = $this->getFilename($profileName);
 
 		if (!@file_exists($filename)) {
@@ -319,7 +330,7 @@ class ProfileController {
 			$context = new CmdContext($sender);
 			$context->char->id = $this->chatBot->get_uid($sender) ?: null;
 			$context->sendto = $profileSendTo;
-			$context->channel = "msg";
+			$context->permissionSet = $this->commandManager->getPermissionSets()->firstOrFail()->name;
 			$numSkipped = 0;
 			for ($profileRow=0; $profileRow < count($lines); $profileRow++) {
 				$line = $lines[$profileRow];
@@ -330,33 +341,32 @@ class ProfileController {
 						continue;
 					}
 				} elseif (preg_match("/^!config (cmd|subcmd) (.+) (enable|disable) ([^ ]+)$/", $line, $parts)) {
-					/** @var CmdCfg|null $data */
-					$data = $this->db->table(CommandManager::DB_TABLE)
-						->where("cmdevent", $parts[1])
+					$exists = $this->db->table(CommandManager::DB_TABLE_PERMS)
 						->where("cmd", $parts[2])
-						->where("type", $parts[4])
-						->asObj(CmdCfg::class)
-						->first();
-					if (isset($data)
-						&& (
-								($data->status === 1 && $parts[3] === 'enable')
-							||	($data->status === 0 && $parts[3] === 'disable')
-						)
-					) {
+						->where("permission_set", $parts[4])
+						->where("enabled", $parts[3] === 'enable')
+						->exists();
+					if ($exists) {
+						$numSkipped++;
+						continue;
+					}
+				} elseif (preg_match("/^!config (cmd|subcmd) (.+) admin ([^ ]+) ([^ ]+)$/", $line, $parts)) {
+					$exists = $this->db->table(CommandManager::DB_TABLE_PERMS)
+						->where("cmd", $parts[2])
+						->where("permission_set", $parts[3])
+						->where("access_level", $parts[4])
+						->exists();
+					if ($exists) {
 						$numSkipped++;
 						continue;
 					}
 				} elseif (preg_match("/^!config event (.+) ([^ ]+) (enable|disable) ([^ ]+)$/", $line, $parts)) {
-					/** @var EventCfg $data */
-					$data = $this->db->table(EventManager::DB_TABLE)
+					$exists = $this->db->table(EventManager::DB_TABLE)
 						->where("type", $parts[1])
 						->where("file", $parts[2])
-						->asObj(EventCfg::class)
-						->first();
-					if (
-							($data->status === 1 && $parts[3] === 'enable')
-						||	($data->status === 0 && $parts[3] === 'disable')
-					) {
+						->where("status", ($parts[3] === 'enable') ? 1 : 0)
+						->exists();
+					if ($exists) {
 						$numSkipped++;
 						continue;
 					}
@@ -381,7 +391,11 @@ class ProfileController {
 						}
 					}
 				}
-				if ($line[0] === "!") {
+				if (preg_match("/^!permissions (.+)$/", $line, $matches)) {
+					$profileSendTo->reply("<pagebreak><orange>{$line}<end>");
+					$this->loadPermissions($matches[1], $profileSendTo);
+					$profileSendTo->reply("");
+				} elseif ($line[0] === "!") {
 					$profileSendTo->reply("<pagebreak><orange>{$line}<end>");
 					$line = substr($line, 1);
 					$context->message = $line;
@@ -402,5 +416,41 @@ class ProfileController {
 			$this->db->rollback();
 			return null;
 		}
+	}
+
+	private function loadPermissions(string $export, CommandReply $reply): void {
+		$sets = json_decode($export);
+		$this->db->table(CommandManager::DB_TABLE_PERMS)->delete();
+		$this->db->table(CommandManager::DB_TABLE_PERM_SET)->delete();
+		$this->db->table(CommandManager::DB_TABLE_MAPPING)->delete();
+		$reply->reply("All permissions reset");
+		/** @var ExtCmdPermissionSet[] $sets */
+		$this->commandManager->commands = [];
+		$this->subcommandManager->subcommands = [];
+		foreach ($sets as $set) {
+			$this->commandManager->createPermissionSet($set->name, $set->letter);
+			$reply->reply(
+				"Created permission set <highlight>{$set->name}<end> ".
+				"with letter <highlight>{$set->letter}<end>."
+			);
+			foreach ($set->mappings as $mapping) {
+				$map = new CmdPermSetMapping();
+				foreach (get_object_vars($mapping) as $key => $value) {
+					$map->{$key} = $value;
+				}
+				$map->permission_set = $set->name;
+				$map->id = $this->db->insert(CommandManager::DB_TABLE_MAPPING, $map);
+				$reply->reply(
+					"Mapped <highlight>{$map->source}<end> ".
+					"to <highlight>{$map->permission_set}<end> ".
+					"with " . ($map->symbol_optional ? "optional " :"").
+					"prefix <highlight>{$map->symbol}<end>, ".
+					($map->feedback ? "" : "not ") . "giving unknown command errors."
+				);
+			}
+		}
+		$this->commandManager->loadPermsetMappings();
+		$this->commandManager->loadCommands();
+		$this->subcommandManager->loadSubcommands();
 	}
 }

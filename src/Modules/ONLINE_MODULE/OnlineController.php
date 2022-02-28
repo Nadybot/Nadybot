@@ -2,20 +2,24 @@
 
 namespace Nadybot\Modules\ONLINE_MODULE;
 
-use Illuminate\Database\Query\JoinClause;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	AccessManager,
 	AOChatEvent,
+	Attributes as NCA,
 	BuddylistManager,
 	CmdContext,
-	CommandAlias,
+	ConfigFile,
 	DB,
 	Event,
 	EventManager,
+	ModuleInstance,
 	LoggerWrapper,
+	Modules\ALTS\AltsController,
+	Modules\PLAYER_LOOKUP\PlayerManager,
 	Nadybot,
 	QueryBuilder,
+	Registry,
 	SettingManager,
 	StopExecutionException,
 	Text,
@@ -28,29 +32,30 @@ use Nadybot\Modules\{
 	RELAY_MODULE\RelayController,
 	RELAY_MODULE\Relay,
 	WEBSERVER_MODULE\ApiResponse,
+	WEBSERVER_MODULE\HttpProtocolWrapper,
 	WEBSERVER_MODULE\Request,
 	WEBSERVER_MODULE\Response,
-	WEBSERVER_MODULE\HttpProtocolWrapper,
+	WEBSERVER_MODULE\StatsController,
 };
 
 /**
  * @author Tyrence (RK2)
  * @author Mindrila (RK1)
  * @author Naturarum (Paradise, RK2)
- *
- * @Instance
- *
- * Commands this class contains:
- *	@DefineCommand(
- *		command     = 'online',
- *		accessLevel = 'member',
- *		description = 'Shows who is online',
- *		help        = 'online.txt'
- *	)
- * @ProvidesEvent("online(org)")
- * @ProvidesEvent("offline(org)")
  */
-class OnlineController {
+#[
+	NCA\Instance,
+	NCA\HasMigrations,
+	NCA\DefineCommand(
+		command: "online",
+		accessLevel: "guest",
+		description: "Shows who is online",
+		alias: ['o', 'sm'],
+	),
+	NCA\ProvidesEvent("online(org)"),
+	NCA\ProvidesEvent("offline(org)")
+]
+class OnlineController extends ModuleInstance {
 	protected const GROUP_OFF = 0;
 	protected const GROUP_BY_MAIN = 1;
 	protected const GROUP_BY_ORG = 1;
@@ -66,172 +71,197 @@ class OnlineController {
 	protected const RAID_NOT_IN = 2;
 	protected const RAID_COMPACT = 4;
 
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
-
-	/** @Inject */
+	#[NCA\Inject]
 	public DB $db;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Nadybot $chatBot;
 
-	/** @Inject */
+	#[NCA\Inject]
+	public ConfigFile $config;
+
+	#[NCA\Inject]
 	public SettingManager $settingManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public EventManager $eventManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public AccessManager $accessManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public BuddylistManager $buddylistManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public DiscordGatewayController $discordGatewayController;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public RaidController $raidController;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public RelayController $relayController;
 
-	/** @Inject */
+	#[NCA\Inject]
+	public AltsController $altsController;
+
+	#[NCA\Inject]
+	public StatsController $statsController;
+
+	#[NCA\Inject]
 	public Text $text;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Util $util;
 
-	/** @Inject */
-	public CommandAlias $commandAlias;
+	#[NCA\Inject]
+	public PlayerManager $playerManager;
 
-	/** @Logger */
+	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
-	/** @Setup */
+	#[NCA\Setup]
 	public function setup(): void {
-		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations");
 		$this->db->table("online")
 			->where("added_by", $this->db->getBotname())
 			->delete();
 
 		$this->settingManager->add(
-			$this->moduleName,
-			"online_expire",
-			"How long to wait before clearing online list",
-			"edit",
-			"time",
-			"15m",
-			"2m;5m;10m;15m;20m",
-			'',
-			"mod"
+			module: $this->moduleName,
+			name: "online_expire",
+			description: "How long to wait before clearing online list",
+			mode: "edit",
+			type: "time",
+			value: "15m",
+			options: ["2m", "5m", "10m", "15m", "20m"],
 		);
 		$this->settingManager->add(
-			$this->moduleName,
-			"online_show_relay",
-			"Include players from your relay(s) by default",
-			"edit",
-			"options",
-			"0",
-			"No;Always;In a separate message",
-			"0;1;2"
+			module: $this->moduleName,
+			name: "online_show_relay",
+			description: "Include players from your relay(s) by default",
+			mode: "edit",
+			type: "options",
+			value: "0",
+			options: [
+				'No' => 0,
+				'Always' => 1,
+				'In a separate message' => 2,
+			]
 		);
 		$this->settingManager->add(
-			$this->moduleName,
-			"online_show_org_guild",
-			"Show org/rank for players in guild channel",
-			"edit",
-			"options",
-			"1",
-			"Show org and rank;Show rank only;Show org only;Show no org info",
-			"2;1;3;0"
+			module: $this->moduleName,
+			name: "online_show_org_guild",
+			description: "Show org/rank for players in guild channel",
+			mode: "edit",
+			type: "options",
+			value: "1",
+			options: [
+				'Show org and rank' => 2,
+				'Show rank only' => 1,
+				'Show org only' => 3,
+				'Show no org info' => 0,
+			]
 		);
 		$this->settingManager->add(
-			$this->moduleName,
-			"online_show_org_guild_relay",
-			"Show org/rank for players in your relays",
-			"edit",
-			"options",
-			"0",
-			"Show org and rank;Show rank only;Show org only;Show no org info",
-			"2;1;3;0"
+			module: $this->moduleName,
+			name: "online_show_org_guild_relay",
+			description: "Show org/rank for players in your relays",
+			mode: "edit",
+			type: "options",
+			value: "0",
+			options: [
+				'Show org and rank' => 2,
+				'Show rank only' => 1,
+				'Show org only' => 3,
+				'Show no org info' => 0,
+			]
 		);
 		$this->settingManager->add(
-			$this->moduleName,
-			"online_show_org_priv",
-			"Show org/rank for players in private channel",
-			"edit",
-			"options",
-			"2",
-			"Show org and rank;Show rank only;Show org only;Show no org info",
-			"2;1;3;0"
+			module: $this->moduleName,
+			name: "online_show_org_priv",
+			description: "Show org/rank for players in private channel",
+			mode: "edit",
+			type: "options",
+			value: "2",
+			options: [
+				'Show org and rank' => 2,
+				'Show rank only' => 1,
+				'Show org only' => 3,
+				'Show no org info' => 0,
+			]
 		);
 		$this->settingManager->add(
-			$this->moduleName,
-			"online_admin",
-			"Show admin levels in online list",
-			"edit",
-			"options",
-			"0",
-			"true;false",
-			"1;0"
+			module: $this->moduleName,
+			name: "online_admin",
+			description: "Show admin levels in online list",
+			mode: "edit",
+			type: "bool",
+			value: "0"
 		);
 		$this->settingManager->add(
-			$this->moduleName,
-			"online_raid",
-			"Show raid participation in online list",
-			"edit",
-			"options",
-			"0",
-			"off;in raid;not in raid;both;both, but compact",
-			"0;1;2;3;7"
+			module: $this->moduleName,
+			name: "online_raid",
+			description: "Show raid participation in online list",
+			mode: "edit",
+			type: "options",
+			value: "0",
+			options: [
+				'off' => 0,
+				'in raid' => 1,
+				'not in raid' => 2,
+				'both' => 3,
+				'both, but compact' => 7,
+			]
 		);
 		$this->settingManager->add(
-			$this->moduleName,
-			"online_group_by",
-			"Group online list by",
-			"edit",
-			"options",
-			"1",
-			"do not group;player;profession;faction",
-			"0;1;2;3"
+			module: $this->moduleName,
+			name: "online_group_by",
+			description: "Group online list by",
+			mode: "edit",
+			type: "options",
+			value: "1",
+			options: [
+				'do not group' => 0,
+				'player' => 1,
+				'profession' => 2,
+				'faction' => 3,
+			]
 		);
 		$this->settingManager->add(
-			$this->moduleName,
-			"online_relay_group_by",
-			"Group relay online list by",
-			"edit",
-			"options",
-			"1",
-			"do not group;org;profession",
-			"0;1;2"
+			module: $this->moduleName,
+			name: "online_relay_group_by",
+			description: "Group relay online list by",
+			mode: "edit",
+			type: "options",
+			value: "1",
+			options: [
+				'do not group' => 0,
+				'org' => 1,
+				'profession' => 2,
+			]
 		);
 		$this->settingManager->add(
-			$this->moduleName,
-			"online_show_discord",
-			"Show players in discord voice channels",
-			"edit",
-			"options",
-			"0",
-			"true;false",
-			"1;0"
+			module: $this->moduleName,
+			name: "online_show_discord",
+			description: "Show players in discord voice channels",
+			mode: "edit",
+			type: "bool",
+			value: "0"
 		);
 		$this->settingManager->add(
-			$this->moduleName,
-			"afk_brb_without_symbol",
-			"React to afk and brb even without command prefix",
-			"edit",
-			"options",
-			"1",
-			"true;false",
-			"1;0"
+			module: $this->moduleName,
+			name: "afk_brb_without_symbol",
+			description: "React to afk and brb even without command prefix",
+			mode: "edit",
+			type: "bool",
+			value: "1"
 		);
 
-		$this->commandAlias->register($this->moduleName, "online", "o");
-		$this->commandAlias->register($this->moduleName, "online", "sm");
+		$onlineOrg = new OnlineOrgStats();
+		$onlinePriv = new OnlinePrivStats();
+		Registry::injectDependencies($onlineOrg);
+		Registry::injectDependencies($onlinePriv);
+		$this->statsController->registerProvider($onlineOrg, "online");
+		$this->statsController->registerProvider($onlinePriv, "online");
 	}
 
 	public function buildOnlineQuery(string $sender, string $channelType): QueryBuilder {
@@ -241,26 +271,22 @@ class OnlineController {
 			->where("added_by", $this->db->getBotname());
 	}
 
-	/**
-	 * @HandlesCommand("online")
-	 */
+	/** Show a full list of players online with their alts */
+	#[NCA\HandlesCommand("online")]
 	public function onlineCommand(CmdContext $context): void {
 		$msg = $this->getOnlineList();
 		$context->reply($msg);
 	}
 
-	/**
-	 * @HandlesCommand("online")
-	 * @Mask $action all
-	 */
-	public function onlineAllCommand(CmdContext $context, string $action): void {
+	/** Show a full list of players online, including other bots you share online list with */
+	#[NCA\HandlesCommand("online")]
+	public function onlineAllCommand(CmdContext $context, #[NCA\Str("all")] string $action): void {
 		$msg = $this->getOnlineList(1);
 		$context->reply($msg);
 	}
 
-	/**
-	 * @HandlesCommand("online")
-	 */
+	/** Show a list of players that have the specified profession as an alt */
+	#[NCA\HandlesCommand("online")]
 	public function onlineProfCommand(CmdContext $context, string $profName): void {
 		$profession = $this->util->getProfessionName($profName);
 		if (empty($profession)) {
@@ -269,28 +295,29 @@ class OnlineController {
 			return;
 		}
 
-		$query = $this->db->table("online AS o");
-		/** @psalm-suppress ImplicitToStringCast */
-		$query->leftJoin("alts AS a", function (JoinClause $join) {
-			$join->on("o.name", "a.alt")
-				->where("a.validated_by_main", true)
-				->where("a.validated_by_alt", true);
-		})->leftJoin("alts AS a2", "a2.main", $query->colFunc("COALESCE", ["a.main", "o.name"]))
-		->leftJoin("players AS p", function (JoinClause $join) use ($query) {
-			$join->on("a2.alt", "p.name")
-				->orWhere("p.name", $query->colFunc("COALESCE", ["a.main", "o.name"]));
-		})
-		->leftJoin("online AS o2", "p.name", "o2.name")
-		->where("p.profession", $profession)
-		->orderByRaw($query->colFunc("COALESCE", ["a2.main", "o.name"]))
-		->select("p.*", "o.afk")
-		->addSelect($query->colFunc("COALESCE", ["a2.main", "p.name"], "pmain"))
-		->selectRaw(
-			"(CASE WHEN " . $query->grammar->wrap("o2.name") . " IS NULL ".
-			"THEN 0 ELSE 1 END) AS " . $query->grammar->wrap("online")
-		);
+		$onlineChars = $this->db->table("online")->asObj(Online::class);
+		$onlineByName = $onlineChars->keyBy("name");
+		/** @var Collection<string> */
+		$mains = $onlineChars->map(function (Online $online): string {
+			return $this->altsController->getMainOf($online->name);
+		})->unique();
 		/** @var Collection<OnlinePlayer> */
-		$players = $query->asObj(OnlinePlayer::class);
+		$players = new Collection();
+		foreach ($mains as $main) {
+			$alts = $this->altsController->getAltsOf($main);
+			$chars = $this->playerManager->searchByNames($this->db->getDim(), ...$alts)
+				->where("profession", $profession);
+			if ($chars->isEmpty()) {
+				continue;
+			}
+			foreach ($chars as $char) {
+				$onlineChar = OnlinePlayer::fromPlayer($char, $onlineByName->get($char->name));
+				$onlineChar->pmain = $main;
+				$players->push($onlineChar);
+			}
+		}
+		$players = $players->sortBy("name")->sortBy("pmain");
+
 		$count = $players->count();
 		$mainCount = 0;
 		$currentMain = "";
@@ -330,16 +357,16 @@ class OnlineController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @Event("logOn")
-	 * @Description("Records an org member login in db")
-	 */
+	#[NCA\Event(
+		name: "logOn",
+		description: "Records an org member login in db"
+	)]
 	public function recordLogonEvent(UserStateEvent $eventObj): void {
 		$sender = $eventObj->sender;
 		if (!isset($this->chatBot->guildmembers[$sender]) || !is_string($sender)) {
 			return;
 		}
-		$player = $this->addPlayerToOnlineList($sender, $this->chatBot->vars['my_guild'], 'guild');
+		$player = $this->addPlayerToOnlineList($sender, $this->config->orgName, 'guild');
 		if ($player === null) {
 			return;
 		}
@@ -350,10 +377,10 @@ class OnlineController {
 		$this->eventManager->fireEvent($event);
 	}
 
-	/**
-	 * @Event("logOff")
-	 * @Description("Records an org member logoff in db")
-	 */
+	#[NCA\Event(
+		name: "logOff",
+		description: "Records an org member logoff in db"
+	)]
 	public function recordLogoffEvent(UserStateEvent $eventObj): void {
 		$sender = $eventObj->sender;
 		if (!isset($this->chatBot->guildmembers[$sender]) || !is_string($sender)) {
@@ -367,10 +394,10 @@ class OnlineController {
 		$this->eventManager->fireEvent($event);
 	}
 
-	/**
-	 * @Event("logOn")
-	 * @Description("Sends a tell to players on logon showing who is online in org")
-	 */
+	#[NCA\Event(
+		name: "logOn",
+		description: "Sends a tell to players on logon showing who is online in org"
+	)]
 	public function showOnlineOnLogonEvent(UserStateEvent $eventObj): void {
 		$sender = $eventObj->sender;
 		if (!isset($this->chatBot->guildmembers[$sender])
@@ -383,17 +410,17 @@ class OnlineController {
 		$this->chatBot->sendMassTell($msg, $sender);
 	}
 
-	/**
-	 * @Event("timer(10mins)")
-	 * @Description("Online check")
-	 */
+	#[NCA\Event(
+		name: "timer(10mins)",
+		description: "Online check"
+	)]
 	public function onlineCheckEvent(Event $eventObj): void {
 		if (!$this->chatBot->isReady()) {
 			return;
 		}
+		/** @var Collection<Online> */
 		$data = $this->db->table("online")
-			->select("name", "channel_type")
-			->asObj();
+			->asObj(Online::class);
 
 		$guildArray = [];
 		$privArray = [];
@@ -455,29 +482,35 @@ class OnlineController {
 			->delete();
 	}
 
-	/**
-	 * @Event("priv")
-	 * @Description("Afk check")
-	 * @Help("afk")
-	 */
+	#[
+		NCA\Event(
+			name: "priv",
+			description: "Afk check",
+			help: "afk"
+		),
+	]
 	public function afkCheckPrivateChannelEvent(AOChatEvent $eventObj): void {
 		$this->afkCheck($eventObj->sender, $eventObj->message, $eventObj->type);
 	}
 
-	/**
-	 * @Event("guild")
-	 * @Description("Afk check")
-	 * @Help("afk")
-	 */
+	#[
+		NCA\Event(
+			name: "guild",
+			description: "Afk check",
+			help: "afk"
+		),
+	]
 	public function afkCheckGuildChannelEvent(AOChatEvent $eventObj): void {
 		$this->afkCheck($eventObj->sender, $eventObj->message, $eventObj->type);
 	}
 
-	/**
-	 * @Event("priv")
-	 * @Description("Sets a member afk")
-	 * @Help("afk")
-	 */
+	#[
+		NCA\Event(
+			name: "priv",
+			description: "Sets a member afk",
+			help: "afk"
+		),
+	]
 	public function afkPrivateChannelEvent(AOChatEvent $eventObj): void {
 		if (!is_string($eventObj->sender)) {
 			return;
@@ -485,11 +518,13 @@ class OnlineController {
 		$this->afk($eventObj->sender, $eventObj->message, $eventObj->type);
 	}
 
-	/**
-	 * @Event("guild")
-	 * @Description("Sets a member afk")
-	 * @Help("afk")
-	 */
+	#[
+		NCA\Event(
+			name: "guild",
+			description: "Sets a member afk",
+			help: "afk"
+		),
+	]
 	public function afkGuildChannelEvent(AOChatEvent $eventObj): void {
 		if (!is_string($eventObj->sender)) {
 			return;
@@ -500,9 +535,9 @@ class OnlineController {
 	/**
 	 * Set someone back from afk if needed
 	 */
-	public function afkCheck($sender, string $message, string $type): void {
+	public function afkCheck(int|string $sender, string $message, string $type): void {
 		// to stop raising and lowering the cloak messages from triggering afk check
-		if (!$this->util->isValidSender($sender)) {
+		if (!is_string($sender) || !$this->util->isValidSender($sender)) {
 			return;
 		}
 
@@ -510,14 +545,15 @@ class OnlineController {
 		if (preg_match("/^\Q$symbol\E?afk(.*)$/i", $message)) {
 			return;
 		}
-		$row = $this->buildOnlineQuery($sender, $type)
+		/** @var ?string */
+		$afk = $this->buildOnlineQuery($sender, $type)
 			->select("afk")
-			->asObj()->first();
+			->pluckAs("afk", "string")->first();
 
-		if ($row === null || $row->afk === '') {
+		if ($afk === null || $afk === '') {
 			return;
 		}
-		$time = explode('|', $row->afk)[0];
+		$time = explode('|', $afk)[0];
 		$timeString = $this->util->unixtimeToReadable(time() - (int)$time);
 		// $sender is back
 		$this->buildOnlineQuery($sender, $type)
@@ -567,31 +603,26 @@ class OnlineController {
 	}
 
 	public function addPlayerToOnlineList(string $sender, string $channel, string $channelType): ?OnlinePlayer {
-		$data = $this->buildOnlineQuery($sender, $channelType)
-			->select("name")
-			->asObj()->toArray();
-
-		if (count($data) === 0) {
+		$exists = $this->buildOnlineQuery($sender, $channelType)->exists();
+		if (!$exists) {
 			$this->db->table("online")
 				->insert([
 					"name" => $sender,
-					"channel" => $channelType,
+					"channel" => $channel,
 					"channel_type" => $channelType,
 					"added_by" => $this->db->getBotname(),
 					"dt" => time()
 				]);
 		}
-		$query = $this->db->table("online AS o")
-			->leftJoin("alts AS a", function (JoinClause $join) {
-				$join->on("o.name", "a.alt")
-					->where("a.validated_by_main", true)
-					->where("a.validated_by_alt", true);
-			})->leftJoin("players AS p", "o.name", "p.name")
-			->where("o.channel_type", $channelType)
-			->where("o.name", $sender)
-			->select("p.*", "o.name", "o.afk");
-		$query->addSelect($query->colFunc("COALESCE", ["a.main", "o.name"], "pmain"));
-		$op = $query->asObj(OnlinePlayer::class)->first();
+		$op = new OnlinePlayer();
+		$player = $this->playerManager->findInDb($sender, $this->config->dimension);
+		if (isset($player)) {
+			foreach (get_object_vars($player) as $key => $value) {
+				$op->{$key} = $value;
+			}
+		}
+		$op->online = true;
+		$op->pmain = $this->altsController->getMainOf($sender);
 		return $op;
 	}
 
@@ -601,7 +632,6 @@ class OnlineController {
 
 	/**
 	 * Group the relay online list as configured
-	 *
 	 * @param array<string,Relay> $relays
 	 * @return array<string,OnlinePlayer[]>
 	 */
@@ -791,6 +821,11 @@ class OnlineController {
 		return "";
 	}
 
+	/**
+	 * @return string[]
+	 * @psalm-return array{0: string, 1: string}
+	 * @phpstan-return array{0: string, 1: string}
+	 */
 	public function getRaidInfo(string $name, string $fancyColon): array {
 		$mode = $this->settingManager->getInt("online_raid")??0;
 		if ($mode === 0) {
@@ -910,31 +945,33 @@ class OnlineController {
 	 */
 	public function getPlayers(string $channelType, ?string $limitToBot=null): array {
 		$query = $this->db->table("online AS o")
-			->leftJoin("alts AS a", function (JoinClause $join) {
-				$join->on("o.name", "a.alt")
-					->where("a.validated_by_main", true)
-					->where("a.validated_by_alt", true);
-			})->leftJoin("players AS p", "o.name", "p.name")
-			->where("o.channel_type", $channelType)
-			->select("p.*", "o.name", "o.afk");
+			->where("o.channel_type", $channelType);
 		if (isset($limitToBot)) {
 			$query->where("o.added_by", strtolower($limitToBot));
 		}
-		$query->addSelect($query->colFunc("COALESCE", ["a.main", "o.name"], "pmain"));
+		$online = $query->asObj(Online::class);
+		$playersByName = $this->playerManager->searchByNames(
+			$this->config->dimension,
+			...$online->pluck("name")->toArray()
+		)->keyBy("name");
+		$op = $online->map(function (Online $o) use ($playersByName): OnlinePlayer {
+			$p = $playersByName->get($o->name);
+			$op = OnlinePlayer::fromPlayer($p, $o);
+			$op->pmain = $this->altsController->getMainOf($o->name);
+			return $op;
+		});
+
 		$groupBy = $this->settingManager->getInt('online_group_by');
 		if ($groupBy === static::GROUP_BY_MAIN) {
-			$query->orderByRaw($query->colFunc("COALESCE", ["a.main", "o.name"])->getValue());
+			$op = $op->sortBy("pmain");
 		} elseif ($groupBy === static::GROUP_BY_PROFESSION) {
-			$query->orderByRaw(
-				"COALESCE(" . $query->grammar->wrap("p.profession") . ", ?) asc",
-				['Unknown']
-			)->orderBy("o.name");
+			$op = $op->sortBy("name")->sortBy("profession");
 		} elseif ($groupBy === static::GROUP_BY_FACTION) {
-			$query->orderBy("p.faction")->orderBy("o.name");
+			$op = $op->sortBy("name")->sortBy("faction");
 		} else {
-			$query->orderByRaw("o.name");
+			$op = $op->sortBy("name");
 		}
-		return $query->asObj(OnlinePlayer::class)->toArray();
+		return $op->toArray();
 	}
 
 	public function getProfessionId(string $profession): ?int {
@@ -959,11 +996,13 @@ class OnlineController {
 
 	/**
 	 * Get a list of all people online in all linked channels
-	 * @Api("/online")
-	 * @GET
-	 * @AccessLevelFrom("online")
-	 * @ApiResult(code=200, class='OnlinePlayers', desc='A list of online players')
 	 */
+	#[
+		NCA\Api("/online"),
+		NCA\GET,
+		NCA\AccessLevelFrom("online"),
+		NCA\ApiResult(code: 200, class: "OnlinePlayers", desc: "A list of online players")
+	]
 	public function apiOnlineEndpoint(Request $request, HttpProtocolWrapper $server): Response {
 		$result = new OnlinePlayers();
 		$result->org = $this->getPlayers('guild');

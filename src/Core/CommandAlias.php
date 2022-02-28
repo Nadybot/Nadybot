@@ -2,24 +2,24 @@
 
 namespace Nadybot\Core;
 
+use Illuminate\Support\Collection;
+use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\DBSchema\CmdAlias;
 
-/**
- * @Instance
- */
+#[NCA\Instance]
 class CommandAlias {
 	public const DB_TABLE = "cmd_alias_<myname>";
 
-	/** @Inject */
+	#[NCA\Inject]
 	public DB $db;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Nadybot $chatBot;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public CommandManager $commandManager;
 
-	/** @Logger */
+	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
 	public const ALIAS_HANDLER = "CommandAlias.process";
@@ -33,7 +33,7 @@ class CommandAlias {
 		$this->db->table(self::DB_TABLE)
 			->where("status", 1)
 			->asObj(CmdAlias::class)
-			->each(function (CmdAlias $row) {
+			->each(function (CmdAlias $row): void {
 				$this->activate($row->cmd, $row->alias);
 			});
 	}
@@ -75,9 +75,9 @@ class CommandAlias {
 
 		$this->logger->info("Activate Command Alias command:($command) alias:($alias)");
 
-		$this->commandManager->activate('msg', self::ALIAS_HANDLER, $alias, 'all');
-		$this->commandManager->activate('priv', self::ALIAS_HANDLER, $alias, 'all');
-		$this->commandManager->activate('guild', self::ALIAS_HANDLER, $alias, 'all');
+		foreach ($this->commandManager->getPermissionSets() as $set) {
+			$this->commandManager->activate($set->name, self::ALIAS_HANDLER, $alias, 'all');
+		}
 	}
 
 	/**
@@ -88,9 +88,9 @@ class CommandAlias {
 
 		$this->logger->info("Deactivate Command Alias:($alias)");
 
-		$this->commandManager->deactivate('msg', self::ALIAS_HANDLER, $alias);
-		$this->commandManager->deactivate('priv', self::ALIAS_HANDLER, $alias);
-		$this->commandManager->deactivate('guild', self::ALIAS_HANDLER, $alias);
+		foreach ($this->commandManager->getPermissionSets() as $set) {
+			$this->commandManager->deactivate($set->name, self::ALIAS_HANDLER, $alias);
+		}
 	}
 
 	/**
@@ -137,8 +137,8 @@ class CommandAlias {
 		$cmd = preg_replace_callback(
 			"/\{(\d+)(:.*?)?\}/",
 			function (array $matches) use ($aliasParams): string {
-				if (isset($aliasParams[$matches[1]])) {
-					return $aliasParams[$matches[1]];
+				if (isset($aliasParams[(int)$matches[1]])) {
+					return $aliasParams[(int)$matches[1]];
 				}
 				if (count($matches) < 3) {
 					return $matches[0];
@@ -159,7 +159,7 @@ class CommandAlias {
 	/**
 	 * Adds a command alias to the db
 	 */
-	public function add(object $row): int {
+	public function add(CmdAlias $row): int {
 		$this->logger->info("Adding alias: '{$row->alias}' for command: '{$row->cmd}'");
 		return $this->db->table(self::DB_TABLE)->insert([
 			"module" => $row->module,
@@ -172,8 +172,8 @@ class CommandAlias {
 	/**
 	 * Updates a command alias in the db
 	 */
-	public function update(object $row): int {
-		$this->logger->info("Updating alias :($row->alias)");
+	public function update(CmdAlias $row): int {
+		$this->logger->info("Updating alias :({$row->alias})");
 		return $this->db->table(self::DB_TABLE)
 			->where("alias", $row->alias)
 			->update([
@@ -210,13 +210,12 @@ class CommandAlias {
 	 * Find all aliases for a command
 	 *
 	 * @param string $command The command to check
-	 * @return CmdAlias[]
+	 * @return Collection<CmdAlias>
 	 */
-	public function findAliasesByCommand(string $command): array {
+	public function findAliasesByCommand(string $command): Collection {
 		return $this->db->table(self::DB_TABLE)
 			->whereIlike("cmd", $command)
-			->asObj(CmdAlias::class)
-			->toArray();
+			->asObj(CmdAlias::class);
 	}
 
 	/**

@@ -3,53 +3,44 @@
 namespace Nadybot\Modules\GUIDE_MODULE;
 
 use Nadybot\Core\{
+	Attributes as NCA,
 	CmdContext,
 	CommandAlias,
+	ModuleInstance,
+	ParamClass\PFilename,
 	Text,
 	Util,
 };
-use Nadybot\Core\ParamClass\PFilename;
+use Safe\Exceptions\DirException;
+use Safe\Exceptions\FilesystemException;
 
 /**
  * @author Tyrence (RK2)
- *
  * Guides compiled by Plugsz (RK1)
- *
- * @Instance
- *
- * Commands this controller contains:
- *	@DefineCommand(
- *		command     = 'guides',
- *		alias       = 'guide',
- *		accessLevel = 'all',
- *		description = 'Guides for AO',
- *		help        = 'guides.txt'
- *	)
  */
-class GuideController {
-
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
-
-	/** @Inject */
+#[
+	NCA\Instance,
+	NCA\DefineCommand(
+		command: "guides",
+		accessLevel: "guest",
+		description: "Guides for AO",
+		alias: "guide"
+	)
+]
+class GuideController extends ModuleInstance {
+	#[NCA\Inject]
 	public Text $text;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Util $util;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public CommandAlias $commandAlias;
 
 	private string $path;
 	private const FILE_EXT = ".txt";
 
-	/**
-	 * This handler is called on bot startup.
-	 * @Setup
-	 */
+	#[NCA\Setup]
 	public function setup(): void {
 		$this->commandAlias->register($this->moduleName, "guides healdelta", "healdelta");
 		$this->commandAlias->register($this->moduleName, "guides lag", "lag");
@@ -62,18 +53,18 @@ class GuideController {
 		$this->commandAlias->register($this->moduleName, "guides gos", "gos");
 		$this->commandAlias->register($this->moduleName, "guides gos", "faction");
 		$this->commandAlias->register($this->moduleName, "guides gos", "guardian");
-		$this->commandAlias->register($this->moduleName, "guides adminhelp", "adminhelp");
 		$this->commandAlias->register($this->moduleName, "guides light", "light");
 
 		$this->path = __DIR__ . "/guides/";
 	}
 
-	/**
-	 * @HandlesCommand("guides")
-	 */
+	/** See a list of all the guides in alphabetical order */
+	#[NCA\HandlesCommand("guides")]
 	public function guidesListCommand(CmdContext $context): void {
-		if (($handle = opendir($this->path)) === false) {
-			$msg = "Error reading topics.";
+		try {
+			$handle = \Safe\opendir($this->path);
+		} catch (DirException $e) {
+			$msg = "Error reading topics: " . $e->getMessage();
 			$context->reply($msg);
 			return;
 		}
@@ -83,7 +74,7 @@ class GuideController {
 		while (($fileName = readdir($handle)) !== false) {
 			// if file has the correct extension, it's a topic file
 			if ($this->util->endsWith($fileName, self::FILE_EXT)) {
-				$firstLine = strip_tags(trim(file($this->path . '/' . $fileName)[0]));
+				$firstLine = strip_tags(trim(\Safe\file($this->path . '/' . $fileName)[0]));
 				$topicList[$firstLine] = basename($fileName, self::FILE_EXT);
 			}
 		}
@@ -106,22 +97,44 @@ class GuideController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @HandlesCommand("guides")
-	 */
-	public function guidesShowCommand(CmdContext $context, PFilename $fileName): void {
+	/** See a specific guide */
+	#[NCA\HandlesCommand("guides")]
+	#[NCA\Help\Epilogue(
+		"<header2>Common guides<end>\n\n".
+		"To see information about the different breeds:\n".
+		"<highlight><tab><symbol>guides breed<end>\n".
+		"<highlight><tab><symbol>breed<end>\n\n".
+		"To see information about healdelta:\n".
+		"<highlight><tab><symbol>guides healdelta<end>\n".
+		"<highlight><tab><symbol>healdelta<end>\n\n".
+		"To see information about nanodelta:\n".
+		"<highlight><tab><symbol>guides nanodelta<end>\n".
+		"<highlight><tab><symbol>nanodelta<end>\n\n".
+		"To see options for reducing client-side lag:\n".
+		"<highlight><tab><symbol>guides lag<end>\n".
+		"<highlight><tab><symbol>lag<end>\n\n".
+		"To see hidden character stats:\n".
+		"<highlight><tab><symbol>guides stats<end>\n".
+		"<highlight><tab><symbol>stats<end>\n\n".
+		"To see nanos and items that buff abilities and common skills:\n".
+		"<highlight><tab><symbol>guides buffs<end>\n".
+		"<highlight><tab><symbol>buffs<end>\n\n".
+		"To see information about title levels:\n".
+		"<highlight><tab><symbol>guides title<end>\n".
+		"<highlight><tab><symbol>title<end>\n"
+	)]
+	public function guidesShowCommand(CmdContext $context, PFilename $guideName): void {
 		// get the filename and read in the file
-		$fileName = strtolower($fileName());
+		$fileName = strtolower($guideName());
 		$file = $this->path . $fileName . self::FILE_EXT;
-		$info = @file_get_contents($file);
-
-		if ($info === false) {
-			$msg = "No guide named <highlight>$fileName<end> was found.";
-		} else {
+		try {
+			$info = \Safe\file_get_contents($file);
 			$lines = explode("\n", $info);
 			$firstLine = preg_replace("/<header>(.+)<end>/", "$1", array_shift($lines));
 			$info = trim(implode("\n", $lines));
 			$msg = $this->text->makeBlob('Guide for "' . $firstLine . '"', $info, $firstLine);
+		} catch (FilesystemException) {
+			$msg = "No guide named <highlight>{$fileName}<end> was found.";
 		}
 		$context->reply($msg);
 	}

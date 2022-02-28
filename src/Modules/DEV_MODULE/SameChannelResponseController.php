@@ -3,41 +3,38 @@
 namespace Nadybot\Modules\DEV_MODULE;
 
 use Nadybot\Core\{
+	Attributes as NCA,
 	CmdContext,
 	CommandManager,
+	ModuleInstance,
 	Nadybot,
 };
 
-/**
- * @Instance
- *
- * Commands this controller contains:
- *	@DefineCommand(
- *		command     = 'demo',
- *		accessLevel = 'all',
- *		description = 'Execute a command so that links will execute in the same channel',
- *		help        = 'demo.txt'
- *	)
- */
-class SameChannelResponseController {
-
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
-
-	/** @Inject */
+#[
+	NCA\Instance,
+	NCA\DefineCommand(
+		command: "demo",
+		accessLevel: "guest",
+		description: "Execute a command so that links will execute in the same channel",
+	)
+]
+class SameChannelResponseController extends ModuleInstance {
+	#[NCA\Inject]
 	public CommandManager $commandManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Nadybot $chatBot;
 
 	/**
-	 * @HandlesCommand("demo")
+	 * Run a command and have the bot create all links so they open in the same source
+	 * where the '<symbol>demo'-command was run. Only works in orgchat and private channels
 	 */
+	#[NCA\HandlesCommand("demo")]
 	public function demoCommand(CmdContext $context, string $commandString): void {
-		$context->sendto = new DemoResponseCommandReply($context->channel, $context->sendto, $this->chatBot->char->name);
+		if (!isset($context->source)) {
+			return;
+		}
+		$context->sendto = new DemoResponseCommandReply($context->source, $context->sendto, $this->chatBot->char->name);
 		$context->message = $commandString;
 		$this->commandManager->processCmd($context);
 	}

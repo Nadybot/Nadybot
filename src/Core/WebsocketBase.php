@@ -4,6 +4,11 @@ namespace Nadybot\Core;
 
 use Exception;
 use InvalidArgumentException;
+use Nadybot\Core\{
+	Attributes as NCA,
+	Socket\ShutdownRequest,
+	Socket\WriteClosureInterface,
+};
 
 class WebsocketBase {
 	public const GUID            = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
@@ -20,6 +25,7 @@ class WebsocketBase {
 	public const ON_CLOSE = "close";
 	public const ON_PING = "ping";
 	public const ON_ERROR = "error";
+	public const ON_WRITE = "write";
 
 	public const ALLOWED_EVENTS = [
 		self::ON_CONNECT,
@@ -27,6 +33,7 @@ class WebsocketBase {
 		self::ON_BINARY,
 		self::ON_CLOSE,
 		self::ON_PING,
+		self::ON_WRITE,
 		self::ON_ERROR,
 	];
 
@@ -38,6 +45,8 @@ class WebsocketBase {
 		'ping'         => self::OP_PING,
 		'pong'         => self::OP_PONG,
 	];
+
+	protected const FRAMESIZE = 4096;
 
 	/** @var array<string,callable> */
 	protected array $eventCallbacks = [];
@@ -52,11 +61,10 @@ class WebsocketBase {
 	protected $socket;
 	protected string $peerName = "Unknown websocket";
 	protected int $timeout = 55;
-	protected int $frameSize = 4096;
 	protected bool $isClosing = false;
 	protected ?string $lastOpcode = null;
 	protected ?int $closeStatus = null;
-	/** @var string[] */
+	/** @var array<WriteClosureInterface|ShutdownRequest|string> */
 	protected array $sendQueue = [];
 	protected string $receiveBuffer = "";
 	public ?SocketNotifier $notifier = null;
@@ -68,13 +76,13 @@ class WebsocketBase {
 	protected string $uri;
 	protected ?int $lastWriteTime = null;
 
-	/** @Logger */
+	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Timer $timer;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public SocketManager $socketManager;
 
 	public function connect(): bool {
@@ -96,13 +104,13 @@ class WebsocketBase {
 		return $this;
 	}
 
-	protected function fireEvent($eventName, WebsocketCallback $event): void {
+	protected function fireEvent(string $eventName, WebsocketCallback $event): void {
 		if (isset($this->eventCallbacks[$eventName])) {
 			$this->eventCallbacks[$eventName]($event);
 		}
 	}
 
-	protected function getEvent($eventName=null): WebsocketCallback {
+	protected function getEvent(?string $eventName=null): WebsocketCallback {
 		$eventName ??= $this->lastOpcode ?? "unknown";
 		$event = new WebsocketCallback();
 		$event->eventName = $eventName;
@@ -165,16 +173,16 @@ class WebsocketBase {
 	}
 
 	protected function toFrame(bool $final, string $data, string $opcode, bool $masked): string {
-		$frame= pack("C", ((int)$final << 7)
+		$frame= \Safe\pack("C", ((int)$final << 7)
 			+ (static::ALLOWED_OPCODES[$opcode]))[0];
 		$maskedBit = 128 * (int)$masked;
 		$dataLength = strlen($data);
 		if ($dataLength > 65535) {
-			$frame.= pack("CJ", 127 + $maskedBit, $dataLength);
+			$frame.= \Safe\pack("CJ", 127 + $maskedBit, $dataLength);
 		} elseif ($dataLength > 125) {
-			$frame.= pack("Cn", 126 + $maskedBit, $dataLength);
+			$frame.= \Safe\pack("Cn", 126 + $maskedBit, $dataLength);
 		} else {
-			$frame.= pack("C", $dataLength + $maskedBit);
+			$frame.= \Safe\pack("C", $dataLength + $maskedBit);
 		}
 
 		if ($masked) {
@@ -196,6 +204,9 @@ class WebsocketBase {
 	}
 
 	protected function write(string $data): bool {
+		$event = $this->getEvent();
+		$event->data = $data;
+		$this->fireEvent(self::ON_WRITE, $event);
 		$uri = ($this->uri ?? $this->peerName);
 		if (strlen($data) === 0 || !is_resource($this->socket)) {
 			return true;
@@ -262,7 +273,7 @@ class WebsocketBase {
 			return;
 		}
 		$uri = ($this->uri ?? $this->peerName);
-		$this->receiveBuffer .= $response[0];
+		$this->receiveBuffer .= $response[0]??"";
 		// Not a complete package yet
 		if (!$response[1]) {
 			$this->logger->debug("[Websocket {uri}] fragment received", [
@@ -285,11 +296,16 @@ class WebsocketBase {
 		$event = $this->getEvent();
 		$event->data = $this->receiveBuffer;
 		$this->receiveBuffer = "";
-		if ($this->lastOpcode !== "close") {
+		if (isset($this->lastOpcode) && $this->lastOpcode !== "close") {
 			$this->fireEvent($this->lastOpcode, $event);
 		}
 	}
 
+	/**
+	 * @return array<null|int|string>
+	 * @psalm-return array{0:null|string, 1:bool}
+	 * @phpstan-return array{0:null|string, 1:bool}
+	 */
 	protected function receiveFragment(): array {
 		$data = $this->read(2);
 
@@ -329,13 +345,13 @@ class WebsocketBase {
 		if ($payloadLength > 125) {
 			if ($payloadLength === 126) {
 				$data = $this->read(2); // 126: Payload is a 16-bit unsigned int
-				$payloadLength = unpack("n", $data)[1];
+				$payloadLength = \Safe\unpack("n", $data)[1];
 			} else {
 				$data = $this->read(8); // 127: Payload is a 64-bit unsigned int
 				if (PHP_INT_SIZE < 8) {
-					$payloadLength = unpack("N", substr($data, 4))[1];
+					$payloadLength = \Safe\unpack("N", substr($data, 4))[1];
 				} else {
-					$payloadLength = unpack("J", $data)[1];
+					$payloadLength = \Safe\unpack("J", $data)[1];
 				}
 			}
 		}
@@ -399,7 +415,7 @@ class WebsocketBase {
 			$this->logger->debug("[Websocket {uri}] Closing socket", [
 				"uri" => $uri
 			]);
-			stream_socket_shutdown($this->socket, STREAM_SHUT_RDWR);
+			\Safe\stream_socket_shutdown($this->socket, STREAM_SHUT_RDWR);
 		}
 
 		// Closing should not return message.
@@ -416,6 +432,7 @@ class WebsocketBase {
 		}
 		$uri = ($this->uri ?? $this->peerName);
 		while (strlen($data) < $length) {
+			// @phpstan-ignore-next-line
 			$buffer = fread($this->socket, $length - strlen($data));
 			$meta = stream_get_meta_data($this->socket);
 			if ($buffer === false) {
@@ -449,12 +466,12 @@ class WebsocketBase {
 		return $data;
 	}
 
-	public function close($status=1000, $message='kthxbye'): void {
+	public function close(int $status=1000, string $message='kthxbye'): void {
 		if (!$this->isConnected()) {
 			return;
 		}
 		$uri = ($this->uri ?? $this->peerName);
-		$statusString = pack("n", $status);
+		$statusString = \Safe\pack("n", $status);
 		$this->isClosing = true;
 		$this->send($statusString . $message, 'close');
 		$this->logger->info("[Websocket {uri}] Closing with status: {status}", [
@@ -486,10 +503,7 @@ class WebsocketBase {
 			throw new Exception("Bad opcode '$opcode'.");
 		}
 
-		$dataChunks = str_split($data, $this->frameSize);
-		if ($dataChunks === false) {
-			throw new Exception("Cannot chunk Websocket data into frames");
-		}
+		$dataChunks = str_split($data, self::FRAMESIZE);
 
 		while (count($dataChunks)) {
 			$chunk = array_shift($dataChunks);
@@ -534,6 +548,9 @@ class WebsocketBase {
 			$callback = $this->notifier->getCallback();
 			$this->socketManager->removeSocketNotifier($this->notifier);
 		}
+		if (!is_resource($this->socket)) {
+			return;
+		}
 		$this->notifier = new SocketNotifier(
 			$this->socket,
 			SocketNotifier::ACTIVITY_READ,
@@ -548,6 +565,9 @@ class WebsocketBase {
 			$callback = $this->notifier->getCallback();
 			$this->socketManager->removeSocketNotifier($this->notifier);
 		}
+		if (!is_resource($this->socket)) {
+			return;
+		}
 		$this->notifier = new SocketNotifier(
 			$this->socket,
 			SocketNotifier::ACTIVITY_READ | SocketNotifier::ACTIVITY_WRITE,
@@ -560,6 +580,9 @@ class WebsocketBase {
 		if (isset($this->notifier)) {
 			$this->socketManager->removeSocketNotifier($this->notifier);
 		}
+		if (!is_resource($this->socket)) {
+			return;
+		}
 		$this->notifier = new SocketNotifier(
 			$this->socket,
 			SocketNotifier::ACTIVITY_READ | SocketNotifier::ACTIVITY_WRITE,
@@ -568,12 +591,11 @@ class WebsocketBase {
 		$this->socketManager->addSocketNotifier($this->notifier);
 	}
 
-	public function setTag(string $key, $value): void {
+	public function setTag(string $key, mixed $value): void {
 		$this->tags[$key] = $value;
 	}
 
-	/** @return mixed */
-	public function getTag(string $key) {
+	public function getTag(string $key): mixed {
 		return $this->tags[$key];
 	}
 }

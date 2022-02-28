@@ -2,6 +2,7 @@
 
 namespace Nadybot\Core\Modules\BAN;
 
+use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\DBRow;
 
 class BannedOrg extends DBRow {
@@ -10,8 +11,8 @@ class BannedOrg extends DBRow {
 
 	/**
 	 * The name of the org that is or was banned
-	 * @db:ignore
 	 */
+	#[NCA\DB\Ignore]
 	public string $org_name;
 
 	/** Name of the person banning the org */

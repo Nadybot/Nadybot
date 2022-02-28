@@ -10,14 +10,14 @@ use Nadybot\Core\SchemaMigration;
 class CreateBossDBs implements SchemaMigration {
 	public function migrate(LoggerWrapper $logger, DB $db): void {
 		$db->schema()->dropIfExists("boss_lootdb");
-		$db->schema()->create("boss_lootdb", function(Blueprint $table) {
+		$db->schema()->create("boss_lootdb", function(Blueprint $table): void {
 			$table->integer("bossid")->index();
 			$table->string("itemname", 100);
 			$table->integer("aoid")->nullable();
 		});
 
 		$db->schema()->dropIfExists("boss_namedb");
-		$db->schema()->create("boss_namedb", function(Blueprint $table) {
+		$db->schema()->create("boss_namedb", function(Blueprint $table): void {
 			$table->integer("bossid")->primary();
 			$table->string("bossname", 50)->index();
 		});

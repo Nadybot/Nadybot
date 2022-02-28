@@ -8,6 +8,11 @@ mainloop.php
 *.bat
 docs
 tools
+debian
+packages
+cache
+data
+!data/text.mdb
 composer_install.bat
 conf/*.php
 src/Modules/GIT_MODULE

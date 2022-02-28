@@ -3,78 +3,78 @@
 namespace Nadybot\Core\Modules\LIMITS;
 
 use Nadybot\Core\{
+	Attributes as NCA,
 	AccessManager,
 	CmdEvent,
 	CommandHandler,
+	ConfigFile,
+	DBSchema\Audit,
+	DBSchema\Player,
 	LoggerWrapper,
 	MessageHub,
+	ModuleInstance,
+	Modules\BAN\BanController,
+	Modules\CONFIG\ConfigController,
 	Nadybot,
+	Routing\RoutableMessage,
+	Routing\Source,
 	SettingManager,
 	Timer,
 	Util,
 };
-use Nadybot\Core\DBSchema\Audit;
-use Nadybot\Core\DBSchema\Player;
-use Nadybot\Core\Modules\BAN\BanController;
-use Nadybot\Core\Modules\CONFIG\ConfigController;
 use Nadybot\Core\Modules\PLAYER_LOOKUP\{
 	PlayerHistory,
 	PlayerHistoryData,
 	PlayerHistoryManager,
 	PlayerManager,
 };
-use Nadybot\Core\Routing\RoutableMessage;
-use Nadybot\Core\Routing\Source;
 
 /**
  * @author Tyrence (RK2)
- *
- * @Instance
  */
-class LimitsController {
+#[NCA\Instance]
+class LimitsController extends ModuleInstance {
 	public const ALL = 3;
 	public const FAILURE = 2;
 	public const SUCCESS = 1;
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public SettingManager $settingManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Nadybot $chatBot;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public AccessManager $accessManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public MessageHub $messageHub;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public PlayerManager $playerManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public PlayerHistoryManager $playerHistoryManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Util $util;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Timer $timer;
 
-	/** @Inject */
+	#[NCA\Inject]
+	public ConfigFile $config;
+
+	#[NCA\Inject]
 	public RateIgnoreController $rateIgnoreController;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public ConfigController $configController;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public BanController $banController;
 
-	/** @Logger */
+	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
 	/** @var array<string,int[]> */
@@ -83,106 +83,117 @@ class LimitsController {
 	/** @var array<string,int> */
 	public array $ignoreList = [];
 
-	/**
-	 * @Setup
-	 */
+	#[NCA\Setup]
 	public function setup(): void {
 		$this->settingManager->add(
-			$this->moduleName,
-			"tell_req_lvl",
-			"Minimum level required to send tell to bot",
-			"edit",
-			"number",
-			"0",
-			"0;10;50;100;150;190;205;215"
+			module: $this->moduleName,
+			name: "tell_req_lvl",
+			description: "Minimum level required to send tell to bot",
+			mode: "edit",
+			type: "number",
+			value: "0",
+			options: ["0", "10", "50", "100", "150", "190", "205", "215"]
 		);
 		$this->settingManager->add(
-			$this->moduleName,
-			"tell_req_faction",
-			"Faction required to send tell to bot",
-			"edit",
-			"options",
-			"all",
-			"all;Omni;Neutral;Clan;not Omni;not Neutral;not Clan"
+			module: $this->moduleName,
+			name: "tell_req_faction",
+			description: "Faction required to send tell to bot",
+			mode: "edit",
+			type: "options",
+			value: "all",
+			options: ["all", "Omni", "Neutral", "Clan", "not Omni", "not Neutral", "not Clan"]
 		);
 		$this->settingManager->add(
-			$this->moduleName,
-			"tell_min_player_age",
-			"Minimum age of player to send tell to bot",
-			"edit",
-			"time",
-			"1s",
-			"1s;7days;14days;1month;2months;6months;1year;2years",
-			'',
-			'mod',
-			'limits.txt'
+			module: $this->moduleName,
+			name: "tell_min_player_age",
+			description: "Minimum age of player to send tell to bot",
+			mode: "edit",
+			type: "time",
+			value: "1s",
+			options: ["1s", "7days", "14days", "1month", "2months", "6months", "1year", "2years"],
+			help: 'limits.txt'
 		);
 		$this->settingManager->add(
-			$this->moduleName,
-			"tell_error_msg_type",
-			"How to show error messages when limit requirements are not met?",
-			"edit",
-			"options",
-			"2",
-			"Specific;Generic;None",
-			"2;1;0"
+			module: $this->moduleName,
+			name: "tell_error_msg_type",
+			description: "How to show error messages when limit requirements are not met?",
+			mode: "edit",
+			type: "options",
+			value: "2",
+			options: [
+				'Specific' => 2,
+				'Generic' => 1,
+				'None' => 0,
+			]
 		);
 		$this->settingManager->add(
-			$this->moduleName,
-			"limits_cmd_type",
-			"Ratelimit: Which commands to account for?",
-			"edit",
-			"options",
-			"0",
-			"All;Only errors/denied;Only successes;None",
-			"3;2;1;0"
+			module: $this->moduleName,
+			name: "limits_cmd_type",
+			description: "Ratelimit: Which commands to account for?",
+			mode: "edit",
+			type: "options",
+			value: "0",
+			options: [
+				'All' => 3,
+				'Only errors/denied' => 2,
+				'Only successes' => 1,
+				'None' => 0,
+			]
 		);
 		$this->settingManager->add(
-			$this->moduleName,
-			"limits_window",
-			"Ratelimit: Which time window to check?",
-			"edit",
-			"options",
-			"5",
-			"5s;10s;30s;1m",
-			"5;10;30;60"
+			module: $this->moduleName,
+			name: "limits_window",
+			description: "Ratelimit: Which time window to check?",
+			mode: "edit",
+			type: "options",
+			value: "5",
+			options: [
+				'5s' => 5,
+				'10s' => 10,
+				'30s' => 30,
+				'1m' => 60,
+			]
 		);
 		$this->settingManager->add(
-			$this->moduleName,
-			"limits_threshold",
-			"Ratelimit: How many commands per time window trigger actions?",
-			"edit",
-			"number",
-			"5",
-			"off;2;3;4;5;6;7;8;9;10",
-			"0;2;3;4;5;6;7;8;9;10"
+			module: $this->moduleName,
+			name: "limits_threshold",
+			description: "Ratelimit: How many commands per time window trigger actions?",
+			mode: "edit",
+			type: "number",
+			value: "5",
+			options: ["off" => 0, 2, 3, 4, 5, 6, 7, 8, 9, 10],
 		);
 		$this->settingManager->add(
-			$this->moduleName,
-			"limits_overrate_action",
-			"Ratelimit: Action when players exceed the allowed command rate",
-			"edit",
-			"options",
-			"4",
-			"Kick;Temp. ban;Kick+Temp. ban;Temp. ignore;Kick+Temp. ignore",
-			"1;2;3;4;5"
+			module: $this->moduleName,
+			name: "limits_overrate_action",
+			description: "Ratelimit: Action when players exceed the allowed command rate",
+			mode: "edit",
+			type: "options",
+			value: "4",
+			options: [
+				"Kick" => 1,
+				"Temp. ban" => 2,
+				"Kick+Temp. ban" => 3,
+				"Temp. ignore" => 4,
+				"Kick+Temp. ignore" => 5,
+			],
 		);
 		$this->settingManager->add(
-			$this->moduleName,
-			"limits_ignore_duration",
-			"Ratelimit: How long to temporarily ban or ignore?",
-			"edit",
-			"time",
-			"5m",
-			"1m;2m;5m;10m;30m;1h;6h",
+			module: $this->moduleName,
+			name: "limits_ignore_duration",
+			description: "Ratelimit: How long to temporarily ban or ignore?",
+			mode: "edit",
+			type: "time",
+			value: "5m",
+			options: ["1m", "2m", "5m", "10m", "30m", "1h", "6h"],
 		);
 		$this->settingManager->add(
-			$this->moduleName,
-			"limits_exempt_rank",
-			"Ratelimit: Ignore ratelimit for everyone of this rank or higher",
-			"edit",
-			"rank",
-			"mod"
+			module: $this->moduleName,
+			name: "limits_exempt_rank",
+			description: "Ratelimit: Ignore ratelimit for everyone of this rank or higher",
+			mode: "edit",
+			type: "rank",
+			value: "mod"
 		);
 	}
 
@@ -190,7 +201,6 @@ class LimitsController {
 	 * Check if this is a command that doesn't fall under any limits
 	 * Reason is that some command should always be allowed to be
 	 * executed, regardless of your access rights or faction/level
-	 *
 	 * @param string $message The command including parameters
 	 * @return bool true if limits are ignored, erlse false
 	 */
@@ -206,8 +216,10 @@ class LimitsController {
 
 	/**
 	 * Check if $sender is allowed to send $message
+	 * @phpstan-param callable(mixed...):mixed $callback
+	 * @psalm-param callable(mixed...) $callback
 	 */
-	public function checkAndExecute(string $sender, string $message, callable $callback, ...$args): void {
+	public function checkAndExecute(string $sender, string $message, callable $callback, mixed ...$args): void {
 		if (
 			$this->commandIgnoresLimits($message)
 			|| $this->rateIgnoreController->check($sender)
@@ -252,7 +264,13 @@ class LimitsController {
 		}
 	}
 
-	protected function handleLevelAndFactionRequirements(?Player $whois, callable $errorHandler, callable $successHandler, ...$args): void {
+	/**
+	 * @phpstan-param callable(string):void $errorHandler
+	 * @psalm-param callable(string):void $errorHandler
+	 * @phpstan-param callable(mixed...):mixed $successHandler
+	 * @psalm-param callable(mixed...) $successHandler
+	 */
+	protected function handleLevelAndFactionRequirements(?Player $whois, callable $errorHandler, callable $successHandler, mixed ...$args): void {
 		if ($whois === null) {
 			$errorHandler("Error! Unable to get your character info for limit checks. Please try again later.");
 			return;
@@ -286,8 +304,13 @@ class LimitsController {
 
 	/**
 	 * Check if $sender is allowed to run commands on the bot
+	 *
+	 * @phpstan-param callable(string):void $errorHandler
+	 * @psalm-param callable(string):void $errorHandler
+	 * @phpstan-param callable(mixed...):mixed $successHandler
+	 * @psalm-param callable(mixed...) $successHandler
 	 */
-	public function checkAccessError(string $sender, callable $errorHandler, callable $successHandler, ...$args): void {
+	public function checkAccessError(string $sender, callable $errorHandler, callable $successHandler, mixed ...$args): void {
 		$minAgeCheck = function() use ($sender, $errorHandler, $successHandler, $args): void {
 			if ($this->settingManager->getInt("tell_min_player_age") <= 1) {
 				$successHandler(...$args);
@@ -295,7 +318,7 @@ class LimitsController {
 			}
 			$this->playerHistoryManager->asyncLookup(
 				$sender,
-				(int)$this->chatBot->vars['dimension'],
+				$this->config->dimension,
 				/** @param mixed $args */
 				function(?PlayerHistory $history, callable $errorHandler, callable $successHandler, ...$args): void {
 					$this->handleMinAgeRequirements($history, $errorHandler, $successHandler, ...$args);
@@ -324,7 +347,13 @@ class LimitsController {
 		$minAgeCheck();
 	}
 
-	protected function handleMinAgeRequirements(?PlayerHistory $history, callable $errorHandler, callable $successHandler, ...$args): void {
+	/**
+	 * @phpstan-param callable(string):void $errorHandler
+	 * @psalm-param callable(string):void $errorHandler
+	 * @phpstan-param callable(mixed...):mixed $successHandler
+	 * @psalm-param callable(mixed...) $successHandler
+	 */
+	protected function handleMinAgeRequirements(?PlayerHistory $history, callable $errorHandler, callable $successHandler, mixed ...$args): void {
 		if ($history === null) {
 			$errorHandler("Error! Unable to get your character history for limit checks. Please try again later.");
 			return;
@@ -343,10 +372,10 @@ class LimitsController {
 		$successHandler(...$args);
 	}
 
-	/**
-	 * @Event("command(*)")
-	 * @Description("Enforce rate limits")
-	 */
+	#[NCA\Event(
+		name: "command(*)",
+		description: "Enforce rate limits"
+	)]
 	public function accountCommandExecution(CmdEvent $event): void {
 		if ($event->cmdHandler && !$this->commandHandlerCounts($event->cmdHandler)) {
 			return;
@@ -401,7 +430,7 @@ class LimitsController {
 	 * Aliases for example do not count, because else they would count twice.
 	 */
 	public function commandHandlerCounts(CommandHandler $ch): bool {
-		if ($ch->file === "CommandAlias.process") {
+		if ($ch->files === ["CommandAlias.process"]) {
 			return false;
 		}
 		return true;
@@ -456,11 +485,11 @@ class LimitsController {
 		return $ignoredUntil !== null && $ignoredUntil >= time();
 	}
 
-	/**
-	 * @Event("timer(1min)")
-	 * @Description("Check ignores to see if they have expired")
-	 * @DefaultStatus("1")
-	 */
+	#[NCA\Event(
+		name: "timer(1min)",
+		description: "Check ignores to see if they have expired",
+		defaultStatus: 1
+	)]
 	public function expireIgnores(): void {
 		$now = time();
 		foreach ($this->ignoreList as $name => $expires) {
@@ -471,11 +500,11 @@ class LimitsController {
 		}
 	}
 
-	/**
-	 * @Event("timer(10min)")
-	 * @Description("Cleanup expired command counts")
-	 * @DefaultStatus("1")
-	 */
+	#[NCA\Event(
+		name: "timer(10min)",
+		description: "Cleanup expired command counts",
+		defaultStatus: 1
+	)]
 	public function expireBuckets(): void {
 		$now = time();
 		$timeWindow = $this->settingManager->getInt('limits_window')??5;

@@ -3,6 +3,7 @@
 namespace Nadybot\Modules\CITY_MODULE\Migrations;
 
 use Nadybot\Core\{
+	Attributes as NCA,
 	DB,
 	DBSchema\Route,
 	LoggerWrapper,
@@ -13,7 +14,7 @@ use Nadybot\Core\{
 use Nadybot\Modules\CITY_MODULE\CloakController;
 
 class MigrateCloakToRoute implements SchemaMigration {
-	/** @Inject */
+	#[NCA\Inject]
 	public CloakController $cloakController;
 
 	public function migrate(LoggerWrapper $logger, DB $db): void {

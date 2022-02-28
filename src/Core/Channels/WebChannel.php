@@ -2,30 +2,31 @@
 
 namespace Nadybot\Core\Channels;
 
-use Nadybot\Core\AOChatEvent;
+use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\EventManager;
 use Nadybot\Core\MessageHub;
 use Nadybot\Core\MessageReceiver;
 use Nadybot\Core\Nadybot;
 use Nadybot\Core\Routing\RoutableEvent;
 use Nadybot\Core\Routing\Source;
+use Nadybot\Modules\WEBSERVER_MODULE\AOWebChatEvent;
 use Nadybot\Modules\WEBSERVER_MODULE\WebChatConverter;
 use Nadybot\Modules\WEBSOCKET_MODULE\WebsocketController;
 
 class WebChannel implements MessageReceiver {
-	/** @Inject */
+	#[NCA\Inject]
 	public Nadybot $chatBot;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public WebChatConverter $webChatConverter;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public EventManager $eventManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public WebsocketController $websocketController;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public MessageHub $messageHub;
 
 	public function getChannelName(): string {
@@ -36,7 +37,7 @@ class WebChannel implements MessageReceiver {
 		if ($event->getType() !== $event::TYPE_MESSAGE) {
 			return false;
 		}
-		$webEvent = new AOChatEvent();
+		$webEvent = new AOWebChatEvent();
 		$webEvent->path = $this->webChatConverter->convertPath($event->getPath());
 		$webEvent->color = $this->messageHub->getTextColor($event, $this->getChannelName());
 		if (preg_match("/#([A-Fa-f0-9]{6})/", $webEvent->color, $matches)) {

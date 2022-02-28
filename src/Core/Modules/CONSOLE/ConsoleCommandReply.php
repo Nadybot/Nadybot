@@ -2,13 +2,30 @@
 
 namespace Nadybot\Core\Modules\CONSOLE;
 
-use Nadybot\Core\CommandReply;
-use Nadybot\Core\MessageEmitter;
-use Nadybot\Core\Nadybot;
-use Nadybot\Core\Routing\Source;
+use Nadybot\Core\{
+	Attributes as NCA,
+	CommandReply,
+	ConfigFile,
+	MessageEmitter,
+	MessageHub,
+	Nadybot,
+	Routing\Character,
+	Routing\RoutableMessage,
+	Routing\Source,
+	SettingManager,
+};
 
 class ConsoleCommandReply implements CommandReply, MessageEmitter {
 	private Nadybot $chatBot;
+
+	#[NCA\Inject]
+	public SettingManager $settingManager;
+
+	#[NCA\Inject]
+	public MessageHub $messageHub;
+
+	#[NCA\Inject]
+	public ConfigFile $config;
 
 	public function __construct(Nadybot $chatBot) {
 		$this->chatBot = $chatBot;
@@ -20,8 +37,20 @@ class ConsoleCommandReply implements CommandReply, MessageEmitter {
 
 	public function reply($msg): void {
 		foreach ((array)$msg as $text) {
+			$rMessage = new RoutableMessage($text);
+			$rMessage->setCharacter(new Character($this->chatBot->char->name, $this->chatBot->char->id));
+			$rMessage->prependPath(new Source(Source::CONSOLE, "Console"));
+			$this->messageHub->handle($rMessage);
 			$text = $this->formatMsg($text);
-			echo("{$this->chatBot->vars["name"]}: {$text}\n");
+			echo("{$this->chatBot->char->name}: {$text}\n");
+		}
+	}
+
+	/** @param string|string[] $msg */
+	public function replyOnly(string|array $msg): void {
+		foreach ((array)$msg as $text) {
+			$text = $this->formatMsg($text);
+			echo("{$this->chatBot->char->name}: {$text}\n");
 		}
 	}
 
@@ -194,8 +223,8 @@ class ConsoleCommandReply implements CommandReply, MessageEmitter {
 
 	public function formatMsg(string $message): string {
 		$array = [
-			"<myname>" => $this->chatBot->vars["name"],
-			"<myguild>" => $this->chatBot->vars["my_guild"],
+			"<myname>" => $this->config->name,
+			"<myguild>" => $this->config->orgName,
 			"<tab>" => "    ",
 			"<symbol>" => "",
 			"<center>" => "",
@@ -284,7 +313,7 @@ class ConsoleCommandReply implements CommandReply, MessageEmitter {
 
 	protected function parseAnsiColors(string $text): string {
 		$text = $this->replaceColorNamesWithCodes($text);
-		$sm = $this->chatBot->settingManager;
+		$sm = $this->settingManager;
 		$array = [
 			"<header>" => str_replace("'", "", $sm->getString('default_header_color')??""),
 			"<header2>" => str_replace("'", "", $sm->getString('default_header2_color')??""),
@@ -315,7 +344,7 @@ class ConsoleCommandReply implements CommandReply, MessageEmitter {
 	}
 
 	public function handleColors(string $text, bool $clearEOL): string {
-		$sm = $this->chatBot->settingManager;
+		$sm = $this->settingManager;
 		if (!$sm->getBool("console_color")) {
 			return $this->parseBasicAnsi($text);
 		}
@@ -342,7 +371,7 @@ class ConsoleCommandReply implements CommandReply, MessageEmitter {
 			},
 			$text
 		);
-		if ($this->chatBot->settingManager->getBool("console_bg_color")) {
+		if ($sm->getBool("console_bg_color")) {
 			$text = $this->bgHexToAnsi("222222") . $text;
 		}
 		$text = str_replace("\r\n", "\n", $text);

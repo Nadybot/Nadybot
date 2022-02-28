@@ -1,0 +1,98 @@
+name: Test migrations
+on: [push]
+
+jobs:
+  tests:
+    name: Test database migrations
+    runs-on: self-hosted
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v2
+
+      - name: Install dependencies
+        shell: bash
+        run: |
+          if ! test -e /tmp/composer; then
+            curl --retry 10 -sSLq -o /tmp/composer https://getcomposer.org/download/latest-stable/composer.phar
+          fi
+          php80 /tmp/composer install
+
+      - name: Migrate from Budabot 4.0.0 with SQLite
+        shell: bash
+        run: |
+          cp -f /etc/nadybot/budabot4.db data/nadybot.db
+          php80 main.php --setup-only --migration-errors-fatal /etc/nadybot/sqlite.php
+
+      - name: Migrate from Nadybot 5.0.0 with SQLite
+        shell: bash
+        run: |
+          cp -f /etc/nadybot/nadybot5.0.0.db data/nadybot.db
+          php80 main.php --setup-only --migration-errors-fatal /etc/nadybot/sqlite.php
+
+      - name: Migrate from Budabot 4.0.0 with MariaDB 10.5
+        shell: bash
+        run: |
+          podman rm --force nady_db &>/dev/null || true
+          podman run --network host --rm -d --name nady_db -e MYSQL_ROOT_PASSWORD=e9oCsyKLgwhv8s7Q2d8s -e MYSQL_DATABASE=budabot -e MYSQL_USER=budabot -e MYSQL_PASSWORD=123456 docker.io/library/mariadb:10.5
+          while ! nc -z -w 1 127.0.0.1 3306 &>/dev/null; do sleep 1; done
+          mysql -h 127.0.0.1 -u budabot -p123456 budabot < /etc/nadybot/budabot4.mysql
+          php80 main.php --setup-only --migration-errors-fatal /etc/nadybot/mysql.php
+          podman stop nady_db &>/dev/null || true
+          podman rm --force nady_db &>/dev/null || true
+
+      - name: Migrate from Budabot 4.0.0 with MySQL 5.5
+        shell: bash
+        run: |
+          podman rm --force nady_db &>/dev/null || true
+          podman run --network host --rm -d --name nady_db -e MYSQL_ROOT_PASSWORD=e9oCsyKLgwhv8s7Q2d8s -e MYSQL_DATABASE=budabot -e MYSQL_USER=budabot -e MYSQL_PASSWORD=123456 docker.io/library/mysql:5.5
+          while ! nc -z -w 1 127.0.0.1 3306 &>/dev/null; do sleep 1; done
+          mysql -h 127.0.0.1 -u budabot -p123456 budabot < /etc/nadybot/budabot4.mysql
+          php80 main.php --setup-only --migration-errors-fatal /etc/nadybot/mysql.php
+          podman stop nady_db &>/dev/null || true
+          podman rm --force nady_db &>/dev/null || true
+
+      - name: Migrate from Nadybot 5.0.0 with MariaDB 10.5
+        shell: bash
+        run: |
+          podman rm --force nady_db &>/dev/null || true
+          podman run --network host --rm -d --name nady_db -e MYSQL_ROOT_PASSWORD=e9oCsyKLgwhv8s7Q2d8s -e MYSQL_DATABASE=budabot -e MYSQL_USER=budabot -e MYSQL_PASSWORD=123456 docker.io/library/mariadb:10.5
+          while ! nc -z -w 1 127.0.0.1 3306 &>/dev/null; do sleep 1; done
+          mysql -h 127.0.0.1 -u budabot -p123456 budabot < /etc/nadybot/nadybot5.0.0.mysql
+          php80 main.php --setup-only --migration-errors-fatal /etc/nadybot/mysql.php
+          podman stop nady_db &>/dev/null || true
+          podman rm --force nady_db &>/dev/null || true
+
+      - name: Migrate from Nadybot 5.0.0 with MySQL 5.5
+        shell: bash
+        run: |
+          podman rm --force nady_db &>/dev/null || true
+          podman run --network host --rm -d --name nady_db -e MYSQL_ROOT_PASSWORD=e9oCsyKLgwhv8s7Q2d8s -e MYSQL_DATABASE=budabot -e MYSQL_USER=budabot -e MYSQL_PASSWORD=123456 docker.io/library/mysql:5.5
+          while ! nc -z -w 1 127.0.0.1 3306 &>/dev/null; do sleep 1; done
+          mysql -h 127.0.0.1 -u budabot -p123456 budabot < /etc/nadybot/nadybot5.0.0.mysql
+          php80 main.php --setup-only --migration-errors-fatal /etc/nadybot/mysql.php
+          podman stop nady_db &>/dev/null || true
+          podman rm --force nady_db &>/dev/null || true
+
+      - name: Migrate Hodorraid with MariaDB 10.5
+        shell: bash
+        run: |
+          podman rm --force nady_db &>/dev/null || true
+          podman run --network host --rm -d --name nady_db -e MYSQL_ROOT_PASSWORD=e9oCsyKLgwhv8s7Q2d8s -e MYSQL_DATABASE=budabot -e MYSQL_USER=budabot -e MYSQL_PASSWORD=123456 docker.io/library/mariadb:10.5
+          while ! nc -z -w 1 127.0.0.1 3306 &>/dev/null; do sleep 1; done
+          sed -e 's/`\([^`]*\)_hodorraid`/`\1_piggythrbs30`/g; s/`\([^`]*\)_hodorraid_\([^`].*\)`/`\1_piggythrbs30_\2`/g' /etc/nadybot/hodorraid.mysql | mysql -h 127.0.0.1 -u budabot -p123456 budabot
+          php80 main.php --setup-only --migration-errors-fatal /etc/nadybot/mysql.php
+          podman stop nady_db &>/dev/null || true
+          podman rm --force nady_db &>/dev/null || true
+
+      - name: Migrate from Nadybot 5.1.0 with PostgreSQL
+        shell: bash
+        run: |
+          podman rm --force nady_db &>/dev/null || true
+          podman run --rm --name nady_db -it -d --net host -e POSTGRES_DB=budabot -e POSTGRES_USER=budabot -e POSTGRES_PASSWORD=123456 docker.io/library/postgres:9
+          until psql -h 127.0.0.1 -U budabot -d budabot -c "select 1" &>/dev/null; do
+            sleep 1
+          done
+          psql -o /dev/null -h 127.0.0.1 -U budabot budabot < /etc/nadybot/nadybot5.1.0.pgsql
+          php80 main.php --setup-only --migration-errors-fatal /etc/nadybot/postgresql.php
+          podman stop nady_db &>/dev/null || true
+          podman rm --force nady_db &>/dev/null || true

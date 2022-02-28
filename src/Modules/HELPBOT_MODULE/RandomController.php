@@ -3,9 +3,11 @@
 namespace Nadybot\Modules\HELPBOT_MODULE;
 
 use Nadybot\Core\{
+	Attributes as NCA,
 	CmdContext,
 	CommandAlias,
 	DB,
+	ModuleInstance,
 	SettingManager,
 	SQLException,
 	Text,
@@ -14,67 +16,53 @@ use Nadybot\Core\{
 
 /**
  * @author Tyrence (RK2)
- *
- * @Instance
- *
- * Commands this controller contains:
- *	@DefineCommand(
- *		command     = 'random',
- *		accessLevel = 'all',
- *		description = 'Randomize a list of names/items',
- *		help        = 'random.txt'
- *	)
- *	@DefineCommand(
- *		command     = 'roll',
- *		accessLevel = 'all',
- *		description = 'Roll a random number',
- *		help        = 'roll.txt'
- *	)
- *	@DefineCommand(
- *		command     = 'verify',
- *		accessLevel = 'all',
- *		description = 'Verifies a roll',
- *		help        = 'roll.txt'
- *	)
  */
-class RandomController {
-
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
-
-	/** @Inject */
+#[
+	NCA\Instance,
+	NCA\HasMigrations("Migrations/Roll"),
+	NCA\DefineCommand(
+		command: "random",
+		accessLevel: "guest",
+		description: "Randomize a list of names/items",
+	),
+	NCA\DefineCommand(
+		command: "roll",
+		accessLevel: "guest",
+		description: "Roll a random number",
+	),
+	NCA\DefineCommand(
+		command: "verify",
+		accessLevel: "all",
+		description: "Verifies a roll",
+	)
+]
+class RandomController extends ModuleInstance {
+	#[NCA\Inject]
 	public DB $db;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Text $text;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Util $util;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public SettingManager $settingManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public CommandAlias $commandAlias;
 
-	/**
-	 * @Setting("time_between_rolls")
-	 * @Description("How much time is required between rolls from the same person")
-	 * @Visibility("edit")
-	 * @Type("time")
-	 * @Options("10s;30s;60s;90s")
-	 */
-	public string $defaultTimeBetweenRolls = "30s";
-
-	/**
-	 * This handler is called on bot startup.
-	 * @Setup
-	 */
+	#[NCA\Setup]
 	public function setup(): void {
-		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations/Roll");
+		$this->settingManager->add(
+			module: $this->moduleName,
+			name: "time_between_rolls",
+			description: "How much time is required between rolls from the same person",
+			mode: "edit",
+			type: "time",
+			options: ["10s", "30s", "60s", "90s"],
+			value: "30s",
+		);
 
 		$this->commandAlias->register($this->moduleName, "roll heads tails", "flip");
 	}
@@ -86,14 +74,17 @@ class RandomController {
 			->exists() === false;
 	}
 
-	/**
-	 * @HandlesCommand("random")
-	 */
-	public function randomCommand(CmdContext $context, string $string): void {
-		$items = preg_split("/(,\s+|\s+|,)/", trim($string));
+	/** Randomly order a list of elements, separated by comma or space */
+	#[NCA\HandlesCommand("random")]
+	#[NCA\Help\Example("<symbol>random one two three")]
+	#[NCA\Help\Example("<symbol>random one,two,three")]
+	#[NCA\Help\Example("<symbol>random one, two, three")]
+	public function randomCommand(CmdContext $context, string $elements): void {
+		$items = \Safe\preg_split("/(,\s+|\s+|,)/", trim($elements));
 		$list = [];
 		while (count($items)) {
 			// Pick a random item from $items and remove it
+			// @phpstan-ignore-next-line
 			$elem = array_splice($items, array_rand($items, 1), 1)[0];
 			$list []= $elem;
 		}
@@ -107,9 +98,10 @@ class RandomController {
 		));
 	}
 
-	/**
-	 * @HandlesCommand("roll")
-	 */
+	/** Roll a number between &lt;num1&gt; and &lt;num2&gt; or just 1 and &lt;num1&gt; */
+	#[NCA\HandlesCommand("roll")]
+	#[NCA\Help\Example("<symbol>roll 100")]
+	#[NCA\Help\Example("<symbol>roll 20 30")]
 	public function rollNumericCommand(CmdContext $context, int $num1, ?int $num2): void {
 		if (isset($num2)) {
 			$min = $num1;
@@ -146,11 +138,14 @@ class RandomController {
 		));
 	}
 
-	/**
-	 * @HandlesCommand("roll")
-	 * @Mask $amount ((?:\d+)[x*])
-	 */
-	public function rollMultipleNamesCommand(CmdContext $context, string $amount, string $names): void {
+	/** Roll multiple random values from a list */
+	#[NCA\HandlesCommand("roll")]
+	#[NCA\Help\Example("<symbol>roll 2x Andy Tim Agnes Burkhard Zara Sam")]
+	public function rollMultipleNamesCommand(
+		CmdContext $context,
+		#[NCA\Regexp("(?:\d+)[x*]", example: "&lt;amount&gt;x")] string $amount,
+		string $listOfNames
+	): void {
 		$amount = (int)$amount;
 		$timeBetweenRolls = $this->settingManager->getInt('time_between_rolls')??30;
 		if (!$this->canRoll($context->char->name, $timeBetweenRolls)) {
@@ -158,7 +153,7 @@ class RandomController {
 			$context->reply($msg);
 			return;
 		}
-		$options = preg_split("/(,\s+|\s+|,)/", $names);
+		$options = \Safe\preg_split("/(,\s+|\s+|,)/", $listOfNames);
 		if ($amount > count($options)) {
 			$msg = "Cannot pick more items than are on the list.";
 			$context->reply($msg);
@@ -183,17 +178,16 @@ class RandomController {
 		));
 	}
 
-	/**
-	 * @HandlesCommand("roll")
-	 */
-	public function rollNamesCommand(CmdContext $context, string $names): void {
+	/** Roll a random value from a list of names */
+	#[NCA\HandlesCommand("roll")]
+	public function rollNamesCommand(CmdContext $context, string $listofNames): void {
 		$timeBetweenRolls = $this->settingManager->getInt('time_between_rolls')??30;
 		if (!$this->canRoll($context->char->name, $timeBetweenRolls)) {
 			$msg = "You can only roll once every $timeBetweenRolls seconds.";
 			$context->reply($msg);
 			return;
 		}
-		$options = preg_split("/(,\s+|\s+|,)/", $names);
+		$options = \Safe\preg_split("/(,\s+|\s+|,)/", $listofNames);
 		[$rollNumber, $result] = $this->roll($context->char->name, $options);
 		$msg = "The roll is <highlight>$result<end> out of the possible options ".
 			$this->joinOptions($options, "highlight") . ". To verify do /tell <myname> verify $rollNumber";
@@ -227,17 +221,16 @@ class RandomController {
 		return "{$startTag}" . join("{$endTag} and {$startTag}", [...$options, $lastOption]) . "{$endTag}";
 	}
 
-	/**
-	 * @HandlesCommand("verify")
-	 */
-	public function verifyCommand(CmdContext $context, int $id): void {
+	/** Verify a roll */
+	#[NCA\HandlesCommand("verify")]
+	public function verifyCommand(CmdContext $context, int $rollId): void {
 		/** @var ?Roll */
 		$row = $this->db->table("roll")
-			->where("id", $id)
+			->where("id", $rollId)
 			->asObj(Roll::class)
 			->first();
 		if ($row === null) {
-			$msg = "Roll number <highlight>$id<end> does not exist.";
+			$msg = "Roll number <highlight>$rollId<end> does not exist.";
 		} else {
 			$options = isset($row->options) ? explode("|", $row->options) : ["&lt;none&gt;"];
 			$result = isset($row->result) ? explode("|", $row->result) : ["&lt;none&gt;"];
@@ -259,6 +252,8 @@ class RandomController {
 	 * @param string $sender Name of the person rolling
 	 * @param string[] $options The options to roll between
 	 * @return array An array with the roll number and the chosen option
+	 * @psalm-return array{0:int, 1:string}
+	 * @phpstan-return array{0:int, 1:string}
 	 * @throws SQLException on SQL errors
 	 */
 	public function roll(string $sender, array $options, int $amount=1): array {

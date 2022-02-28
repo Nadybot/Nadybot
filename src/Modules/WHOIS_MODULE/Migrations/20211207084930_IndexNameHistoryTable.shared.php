@@ -10,7 +10,7 @@ use Nadybot\Core\SchemaMigration;
 class IndexNameHistoryTable implements SchemaMigration {
 	public function migrate(LoggerWrapper $logger, DB $db): void {
 		$table = "name_history";
-		$db->schema()->table($table, function(Blueprint $table) {
+		$db->schema()->table($table, function(Blueprint $table): void {
 			$table->index(["dimension", "name"]);
 		});
 	}

@@ -2,24 +2,28 @@
 
 namespace Nadybot\Modules\RELAY_MODULE\Migrations;
 
-use Nadybot\Core\DB;
-use Nadybot\Core\DBSchema\RouteHopColor;
-use Nadybot\Core\DBSchema\Setting;
-use Nadybot\Core\LoggerWrapper;
-use Nadybot\Core\MessageHub;
-use Nadybot\Core\Modules\CONFIG\ConfigController;
-use Nadybot\Core\Routing\Source;
-use Nadybot\Core\SchemaMigration;
-use Nadybot\Core\SettingManager;
+use Nadybot\Core\{
+	Attributes as NCA,
+	CommandManager,
+	DB,
+	DBSchema\RouteHopColor,
+	DBSchema\Setting,
+	LoggerWrapper,
+	MessageHub,
+	Modules\CONFIG\ConfigController,
+	Routing\Source,
+	SchemaMigration,
+	SettingManager,
+};
 
 class MigrateRelayColors implements SchemaMigration {
-	/** @Inject */
+	#[NCA\Inject]
 	public SettingManager $settingManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public MessageHub $messageHub;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public ConfigController $configController;
 
 	protected function getSetting(DB $db, string $name): ?Setting {
@@ -64,8 +68,9 @@ class MigrateRelayColors implements SchemaMigration {
 			$this->migrateAllianceRelayModuleColors($db);
 		}
 
-		$this->messageHub->loadTagColor();
-		if ($this->configController->toggleModule("ALLIANCE_RELAY_MODULE", "all", false)) {
+		if ($db->table(CommandManager::DB_TABLE)
+			->where("module", "ALLIANCE_RELAY_MODULE")
+			->update(["status" => 0])) {
 			$logger->log(
 				'WARN',
 				"Found the ALLIANCE_RELAY_MODULE, converted all settings and ".

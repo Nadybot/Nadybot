@@ -4,14 +4,15 @@ namespace Nadybot\Modules\ALIEN_MODULE;
 
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
+	Attributes as NCA,
 	CmdContext,
 	DB,
-	DBRow,
+	ModuleInstance,
 	LoggerWrapper,
+	ParamClass\PWord,
 	Text,
 	Util,
 };
-use Nadybot\Core\ParamClass\PWord;
 use Nadybot\Modules\ITEMS_MODULE\ItemsController;
 
 /**
@@ -20,64 +21,51 @@ use Nadybot\Modules\ITEMS_MODULE\ItemsController;
  * @author Wolfbiter (RK1)
  * @author Gatester (RK2)
  * @author Marebone (RK2)
- *
- * @Instance
- *
- * Commands this controller contains:
- *	@DefineCommand(
- *		command     = 'leprocs',
- *		accessLevel = 'all',
- *		description = "Shows each profession's LE procs",
- *		help        = 'leprocs.txt',
- *		alias       = 'leproc'
- *	)
- *	@DefineCommand(
- *		command     = 'ofabarmor',
- *		accessLevel = 'all',
- *		description = 'Shows ofab armors available to a given profession and their VP cost',
- *		help        = 'ofabarmor.txt'
- *	)
- *	@DefineCommand(
- *		command     = 'ofabweapons',
- *		accessLevel = 'all',
- *		description = 'Shows Ofab weapons, their marks, and VP cost',
- *		help        = 'ofabweapons.txt'
- *	)
- *	@DefineCommand(
- *		command     = 'aigen',
- *		accessLevel = 'all',
- *		description = 'Shows info about Alien City Generals',
- *		help        = 'aigen.txt'
- *	)
  */
-class AlienMiscController {
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
-
-	/** @Inject */
+#[
+	NCA\Instance,
+	NCA\HasMigrations("Migrations/Misc"),
+	NCA\DefineCommand(
+		command: "leprocs",
+		accessLevel: "guest",
+		description: "Shows each profession's LE procs",
+		alias: "leproc"
+	),
+	NCA\DefineCommand(
+		command: "ofabarmor",
+		accessLevel: "guest",
+		description: "Shows ofab armors available to a given profession and their VP cost",
+	),
+	NCA\DefineCommand(
+		command: "ofabweapons",
+		accessLevel: "guest",
+		description: "Shows Ofab weapons, their marks, and VP cost",
+	),
+	NCA\DefineCommand(
+		command: "aigen",
+		accessLevel: "guest",
+		description: "Shows info about Alien City Generals",
+	)
+]
+class AlienMiscController extends ModuleInstance {
+	#[NCA\Inject]
 	public DB $db;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Text $text;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Util $util;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public ItemsController $itemsController;
 
-	/** @Logger */
+	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
-	/**
-	 * @Setup
-	 */
+	#[NCA\Setup]
 	public function setup(): void {
 		// load database tables from .sql-files
-		$this->db->loadMigrations($this->moduleName, __DIR__ . '/Migrations/Misc');
 		$this->db->loadCSVFile($this->moduleName, __DIR__ . '/leprocs.csv');
 		$this->db->loadCSVFile($this->moduleName, __DIR__ . '/ofabarmor.csv');
 		$this->db->loadCSVFile($this->moduleName, __DIR__ . '/ofabarmortype.csv');
@@ -87,20 +75,19 @@ class AlienMiscController {
 	}
 
 	/**
-	 * This command handler shows menu of each profession's LE procs.
-	 *
-	 * @HandlesCommand("leprocs")
+	 * See a list of professions that have LE procs
 	 */
+	#[NCA\HandlesCommand("leprocs")]
 	public function leprocsCommand(CmdContext $context): void {
 		$blob = "<header2>Choose a profession<end>\n";
 		$blob = $this->db->table("leprocs")
 			->orderBy("profession")
 			->select("profession")
 			->distinct()
-			->asObj()
+			->pluckAs("profession", "string")
 			->reduce(
-				function (string $blob, DBRow $row) {
-					$professionLink = $this->text->makeChatcmd($row->profession, "/tell <myname> leprocs $row->profession");
+				function (string $blob, string $profession): string {
+					$professionLink = $this->text->makeChatcmd($profession, "/tell <myname> leprocs {$profession}");
 					return "{$blob}<tab>$professionLink\n";
 				},
 				$blob
@@ -111,10 +98,9 @@ class AlienMiscController {
 	}
 
 	/**
-	 * This command handler shows the LE procs for a particular profession.
-	 *
-	 * @HandlesCommand("leprocs")
+	 * Shows the LE procs for a specific profession
 	 */
+	#[NCA\HandlesCommand("leprocs")]
 	public function leprocsInfoCommand(CmdContext $context, string $prof): void {
 		$profession = $this->util->getProfessionName($prof);
 		if (empty($profession)) {
@@ -156,17 +142,21 @@ class AlienMiscController {
 	}
 
 	/**
-	 * This command handler shows Ofab armors and VP cost.
-	 *
-	 * @HandlesCommand("ofabarmor")
+	 * Show a list of professions and their LE bio types
 	 */
+	#[NCA\HandlesCommand("ofabarmor")]
+	#[NCA\Help\Epilogue(
+		"Valid QLs are:\n".
+		"<tab>1, 25, 50, 75, 100, 125, 150, 175, 200, 225, 250, 275, and 300."
+	)]
 	public function ofabarmorCommand(CmdContext $context): void {
 		/** @var int[] */
 		$qls = $this->db->table("ofabarmorcost")
 			->orderBy("ql")
 			->select("ql")
 			->distinct()
-			->asObj()->pluck("ql")->toArray();
+			->pluckAs("ql", "int")
+			->toArray();
 		$blob = $this->db->table("ofabarmortype")
 			->orderBy("profession")
 			->asObj(OfabArmorType::class)
@@ -187,19 +177,17 @@ class AlienMiscController {
 	}
 
 	/**
-	 * This command handler shows list of ofab armors available to a given profession.
-	 *
-	 * @HandlesCommand("ofabarmor")
+	 * Show Ofab armor for a specific profession at a certain ql
 	 */
+	#[NCA\HandlesCommand("ofabarmor")]
 	public function ofabarmorInfoCommand2(CmdContext $context, string $prof, int $ql): void {
 		$this->ofabarmorInfoCommand($context, $ql, $prof);
 	}
 
 	/**
-	 * This command handler shows list of ofab armors available to a given profession.
-	 *
-	 * @HandlesCommand("ofabarmor")
+	 * Show Ofab armor for a specific profession at a certain ql
 	 */
+	#[NCA\HandlesCommand("ofabarmor")]
 	public function ofabarmorInfoCommand(CmdContext $context, ?int $ql, string $prof): void {
 		$ql ??= 300;
 
@@ -213,17 +201,23 @@ class AlienMiscController {
 
 		$type = $this->db->table("ofabarmortype")
 			->where("profession", $profession)
-			->asObj()
-			->first()->type;
+			->pluckAs("type", "int")
+			->first();
 
-		$data = $this->db->table("ofabarmor AS o1")
-			->leftJoin("ofabarmorcost AS o2", "o1.slot", "o2.slot")
-			->where("o1.profession", $profession)
-			->where("o2.ql", $ql)
+		/** @var Collection<OfabArmor> */
+		$armors = $this->db->table("ofabarmor")
+			->where("profession", $profession)
 			->orderBy("upgrade")
 			->orderBy("name")
-			->asObj();
-		if ($data->count() === 0) {
+			->asObj(OfabArmor::class);
+
+		/** @var Collection<OfabArmorCost> */
+		$costBySlot = $this->db->table("ofabarmorcost")
+			->where("ql", $ql)
+			->asObj(OfabArmorCost::class)
+			->keyBy("slot");
+
+		if ($armors->count() === 0 || $costBySlot->count() === 0) {
 			$msg = "Could not find any OFAB armor for {$profession} in QL {$ql}.";
 			$context->reply($msg);
 			return;
@@ -234,24 +228,28 @@ class AlienMiscController {
 		$typeQl = round(.8 * $ql);
 		$blob .= "Upgrade with $typeLink (minimum QL {$typeQl})\n\n";
 
-		/** @var Collection<DBRow> */
+		/** @var Collection<int> */
 		$qls = $this->db->table("ofabarmorcost")
 			->orderBy("ql")
 			->select("ql")->distinct()
-			->asObj();
-		foreach ($qls as $row2) {
-			if ($row2->ql === $ql) {
-				$blob .= "<yellow>[<end>{$row2->ql}<yellow>]<end> ";
+			->pluckAs("ql", "int");
+		foreach ($qls as $currQL) {
+			if ($currQL === $ql) {
+				$blob .= "<yellow>[<end>{$currQL}<yellow>]<end> ";
 			} else {
-				$ql_link = $this->text->makeChatcmd((string)$row2->ql, "/tell <myname> ofabarmor {$profession} {$row2->ql}");
-				$blob .= "[{$ql_link}] ";
+				$qlLink = $this->text->makeChatcmd((string)$currQL, "/tell <myname> ofabarmor {$profession} {$currQL}");
+				$blob .= "[{$qlLink}] ";
 			}
 		}
 		$blob .= "\n";
 
 		$currentUpgrade = null;
 		$fullSetVP = 0;
-		foreach ($data as $row) {
+		foreach ($armors as $row) {
+			if (!$costBySlot->has($row->slot)) {
+				continue;
+			}
+			$vp = $costBySlot->get($row->slot)->vp ?? 0;
 			if ($currentUpgrade !== $row->upgrade) {
 				$currentUpgrade = $row->upgrade;
 				$blob .= "\n<header2>";
@@ -267,8 +265,8 @@ class AlienMiscController {
 			$blob .= "<tab>" . $this->text->makeItem($row->lowid, $row->highid, $ql, $row->name);
 
 			if ($row->upgrade === 0 || $row->upgrade === 3) {
-				$blob .= "  (<highlight>{$row->vp}<end> VP)";
-				$fullSetVP += $row->vp;
+				$blob .= "  (<highlight>{$vp}<end> VP)";
+				$fullSetVP += $vp;
 			}
 			$blob .= "\n";
 		}
@@ -279,16 +277,19 @@ class AlienMiscController {
 	}
 
 	/**
-	 * This command handler shows Ofab weapons and VP cost.
-	 *
-	 * @HandlesCommand("ofabweapons")
+	 * Show a list of Ofab weapons and the type needed to upgrade
 	 */
+	#[NCA\HandlesCommand("ofabweapons")]
+	#[NCA\Help\Epilogue(
+		"Valid QLs are:\n".
+		"<tab>1, 25, 50, 75, 100, 125, 150, 175, 200, 225, 250, 275, and 300."
+	)]
 	public function ofabweaponsCommand(CmdContext $context): void {
 		/** @var int[] */
 		$qls = $this->db->table("ofabweaponscost")
 			->orderBy("ql")
 			->select("ql")->distinct()
-			->asObj()->pluck("ql");
+			->pluckAs("ql", "int")->toArray();
 		$blob = $this->db->table("ofabweapons")
 			->orderBy("name")
 			->asObj(OfabWeapon::class)
@@ -312,20 +313,19 @@ class AlienMiscController {
 	}
 
 	/**
-	 * This command handler shows all six marks of the Ofab weapon.
-	 *
-	 * @HandlesCommand("ofabweapons")
+	 * Show all 6 marks for a particular Ofab weapon at ql 300, or &lt;search ql&gt;
 	 */
+	#[NCA\HandlesCommand("ofabweapons")]
 	public function ofabweaponsInfoCommand(CmdContext $context, PWord $weapon, ?int $searchQL): void {
 		$weapon = ucfirst($weapon());
 		$searchQL ??= 300;
 
-		/** @var DBRow|null */
+		/** @var OfabWeaponWithCost|null */
 		$row = $this->db->table("ofabweapons AS w")
 			->crossJoin("ofabweaponscost AS c")
 			->where("w.name", $weapon)
 			->where("c.ql", $searchQL)
-			->asObj()->first();
+			->asObj(OfabWeaponWithCost::class)->first();
 		if ($row === null) {
 			$msg = "Could not find any OFAB weapon <highlight>{$weapon}<end> in QL <highlight>{$searchQL}<end>.";
 			$context->reply($msg);
@@ -340,7 +340,7 @@ class AlienMiscController {
 		$blob = $this->db->table("ofabweaponscost")
 			->orderBy("ql")
 			->select("ql")->distinct()
-			->asObj()->pluck("ql")
+			->pluckAs("ql", "int")
 			->reduce(
 				function(string $blob, int $ql) use ($searchQL, $weapon): string {
 					if ($ql === $searchQL) {
@@ -372,12 +372,13 @@ class AlienMiscController {
 	}
 
 	/**
-	 * This command handler shows info about Alien City Generals.
-	 *
-	 * @HandlesCommand("aigen")
-	 * @Mask $general (ankari|ilari|rimah|jaax|xoch|cha)
+	 * Show info about the Alien City Generals
 	 */
-	public function aigenCommand(CmdContext $context, string $general): void {
+	#[NCA\HandlesCommand("aigen")]
+	public function aigenCommand(
+		CmdContext $context,
+		#[NCA\StrChoice("ankari", "ilari", "rimah", "jaax", "xoch", "cha")] string $general
+	): void {
 		$gen = ucfirst(strtolower($general));
 
 		$blob = '';

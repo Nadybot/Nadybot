@@ -11,7 +11,7 @@ use Nadybot\Modules\WEBSERVER_MODULE\ApiController;
 class CreateApiKeyTable implements SchemaMigration {
 	public function migrate(LoggerWrapper $logger, DB $db): void {
 		$table = ApiController::DB_TABLE;
-		$db->schema()->create($table, function(Blueprint $table) {
+		$db->schema()->create($table, function(Blueprint $table): void {
 			$table->id();
 			$table->string("character", 12)->index();
 			$table->string("token", 8)->unique();

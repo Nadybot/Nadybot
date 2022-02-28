@@ -1,2 +1,0 @@
-To show members of a guild sorted by name:
-<highlight><tab><symbol>orgmembers 'guild id'<end>

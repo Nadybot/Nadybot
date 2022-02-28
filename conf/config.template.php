@@ -4,6 +4,7 @@
 /* Configuration file for Nadybot.              */
 /* ********************************************	*/
 
+$vars = [];
 // Account information.
 $vars['login']      = "";
 $vars['password']   = "";
@@ -51,13 +52,6 @@ $vars['enable_package_module'] = 1;
 $vars['use_proxy']    = 0;
 $vars['proxy_server'] = "127.0.0.1";
 $vars['proxy_port']   = 9993;
-
-// Using an AMQP server like RabbitMQ?
-$vars['amqp_server']   = "127.0.0.1";
-$vars['amqp_port']     = 5672;
-$vars['amqp_user']     = "";
-$vars['amqp_password'] = "";
-$vars['amqp_vhost']    = "/";
 
 // Define additional paths from where Nadybot should load modules at startup
 $vars['module_load_paths'] = [

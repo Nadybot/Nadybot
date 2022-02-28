@@ -2,18 +2,17 @@
 
 namespace Nadybot\Core;
 
-/**
- * @Instance
- */
+use Nadybot\Core\Attributes as NCA;
+
+#[NCA\Instance]
 class Text {
+	#[NCA\Inject]
+	public ConfigFile $config;
 
-	/** @Inject */
-	public Nadybot $chatBot;
-
-	/** @Inject */
+	#[NCA\Inject]
 	public SettingManager $settingManager;
 
-	/** @Logger */
+	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
 	/**
@@ -38,7 +37,7 @@ class Text {
 	 * @param string|null $after The optional string after the blob
 	 * @return string[]
 	 */
-	public function blobWrap(string $before, $blob, ?string $after=""): array {
+	public function blobWrap(string $before, string|array $blob, ?string $after=""): array {
 		$blob = (array)$blob;
 		foreach ($blob as &$page) {
 			$page = "{$before}{$page}{$after}";
@@ -54,7 +53,7 @@ class Text {
 	 * @param string|null $header If set, use $header as header, otherwise $name
 	 * @return string|string[] The string with link and reference or an array of strings if the message would be too big
 	 */
-	public function makeBlob(string $name, string $content, ?string $header=null, ?string $permanentHeader="") {
+	public function makeBlob(string $name, string $content, ?string $header=null, ?string $permanentHeader=""): string|array {
 		$header ??= $name;
 		$permanentHeader ??= "";
 
@@ -100,7 +99,7 @@ class Text {
 	 * @param string $content The content of the info window
 	 * @return string|string[] The string with link and reference or an array of strings if the message would be too big
 	 */
-	public function makeLegacyBlob(string $name, string $content) {
+	public function makeLegacyBlob(string $name, string $content): string|array {
 		// escape double quotes
 		$content = str_replace('"', '&quot;', $content);
 
@@ -138,7 +137,7 @@ class Text {
 	 * @return string[] An array of strings with the resulting pages
 	 */
 	public function paginate(string $input, int $maxLength, array $symbols): array {
-		if (count($symbols) == 0) {
+		if (count($symbols) === 0) {
 			$this->logger->error("Could not successfully page blob due to lack of paging symbols");
 			return (array)$input;
 		}
@@ -147,7 +146,12 @@ class Text {
 		$currentPage = '';
 		$result = [];
 		$symbol = array_shift($symbols);
+		if (!strlen($symbol)) {
+			$this->logger->error("Could not successfully page blob due to lack of paging symbols");
+			return (array)$input;
+		}
 
+		// @phpstan-ignore-next-line
 		$lines = explode($symbol, $input);
 		foreach ($lines as $line) {
 			// retain new lines and spaces in output
@@ -206,7 +210,7 @@ class Text {
 	 * providing you with a menu of options (ignore etc.)
 	 * (see 18.1 AO patchnotes)
 	 *
-	 * @param string $name The name of the user to create a link for
+	 * @param string $user The name of the user to create a link for
 	 * @param string $style (optional) any styling you want applied to the link, e.g. color="..."
 	 * @return string The link to the user
 	 */
@@ -267,8 +271,8 @@ class Text {
 			"<clan>" => $this->settingManager->getString('default_clan_color')??"",
 			"<unknown>" => $this->settingManager->getString('default_unknown_color')??"",
 
-			"<myname>" => $this->chatBot->vars["name"],
-			"<myguild>" => $this->chatBot->vars["my_guild"],
+			"<myname>" => $this->config->name,
+			"<myguild>" => $this->config->orgName,
 			"<tab>" => "    ",
 			"<end>" => "</font>",
 			"<symbol>" => $this->settingManager->getString("symbol")??"!",
@@ -310,7 +314,7 @@ class Text {
 
 	/**
 	 * Convert a list of string into a 1, 2, 3, 4 and 5 enumeration
-	 * @param string[] $words The words to enumerate
+	 * @param string $words The words to enumerate
 	 * @return string The enumerated string
 	 */
 	public function enumerate(string ...$words): string {
@@ -325,7 +329,7 @@ class Text {
 	/**
 	 * Run an sprintf format on an array of strings
 	 * @param string $format The sprintf-style format
-	 * @param string[] $strings The words to change
+	 * @param string $strings The words to change
 	 * @return string[] The formatted array
 	 */
 	public function arraySprintf(string $format, string ...$strings): array {

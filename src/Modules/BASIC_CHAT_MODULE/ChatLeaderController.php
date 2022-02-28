@@ -3,56 +3,51 @@
 namespace Nadybot\Modules\BASIC_CHAT_MODULE;
 
 use Nadybot\Core\{
+	AccessLevelProvider,
 	AccessManager,
 	AOChatEvent,
+	Attributes as NCA,
 	CmdContext,
-	Event,
 	EventManager,
+	ModuleInstance,
 	Nadybot,
+	ParamClass\PCharacter,
 	SettingManager,
 };
-use Nadybot\Core\ParamClass\PCharacter;
 
-/**
- * @Instance
- *
- * Commands this controller contains:
- *	@DefineCommand(
- *		command     = 'leader',
- *		accessLevel = 'all',
- *		description = 'Sets the Leader of the raid',
- *		help        = 'leader.txt'
- *	)
- *	@DefineCommand(
- *		command     = 'leader (.+)',
- *		accessLevel = 'rl',
- *		description = 'Sets a specific Leader',
- *		help        = 'leader.txt'
- *	)
- *	@DefineCommand(
- *		command     = 'leaderecho',
- *		accessLevel = 'rl',
- *		description = 'Set if the text of the leader will be repeated',
- *		help        = 'leader.txt'
- *	)
- *	@ProvidesEvent("leader(clear)")
- *	@ProvidesEvent("leader(set)")
- */
+#[
+	NCA\Instance,
+	NCA\DefineCommand(
+		command: "leader",
+		accessLevel: "guest",
+		description: "Become the Leader of the raid",
+	),
+	NCA\DefineCommand(
+		command: ChatLeaderController::CMD_LEADER_SET,
+		accessLevel: "rl",
+		description: "Sets a specific Leader",
+	),
+	NCA\DefineCommand(
+		command: "leaderecho",
+		accessLevel: "rl",
+		description: "Set if the text of the leader will be repeated",
+	),
+	NCA\ProvidesEvent("leader(clear)"),
+	NCA\ProvidesEvent("leader(set)")
+]
+class ChatLeaderController extends ModuleInstance implements AccessLevelProvider {
+	public const CMD_LEADER_SET = "leader set leader";
 
-class ChatLeaderController {
-
-	public string $moduleName;
-
-	/** @Inject */
+	#[NCA\Inject]
 	public Nadybot $chatBot;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public SettingManager $settingManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public AccessManager $accessManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public EventManager $eventManager;
 
 	/**
@@ -60,32 +55,38 @@ class ChatLeaderController {
 	 */
 	private ?string $leader = null;
 
-	/** @Setup */
+	#[NCA\Setup]
 	public function setup(): void {
+		$this->accessManager->registerProvider($this);
 		$this->settingManager->add(
-			$this->moduleName,
-			"leaderecho",
-			"Repeat the text of the leader",
-			"edit",
-			"options",
-			"1",
-			"true;false",
-			"1;0"
+			module: $this->moduleName,
+			name: "leaderecho",
+			description: "Repeat the text of the leader",
+			mode: "edit",
+			type: "bool",
+			value: "1"
 		);
 		$this->settingManager->add(
-			$this->moduleName,
-			"leaderecho_color",
-			"Color for leader echo",
-			"edit",
-			"color",
-			"<font color=#FFFF00>",
+			module: $this->moduleName,
+			name: "leaderecho_color",
+			description: "Color for leader echo",
+			mode: "edit",
+			type: "color",
+			value: "<font color=#FFFF00>",
 		);
 	}
 
+	public function getSingleAccessLevel(string $sender): ?string {
+		if ($this->getLeader() === $sender) {
+			return "rl";
+		}
+		return null;
+	}
+
 	/**
-	 * This command handler sets the leader of the raid.
-	 * @HandlesCommand("leader")
+	 * Sets the leader of the raid, granting special access
 	 */
+	#[NCA\HandlesCommand("leader")]
 	public function leaderCommand(CmdContext $context): void {
 		if ($this->leader === $context->char->name) {
 			$this->leader = null;
@@ -102,11 +103,11 @@ class ChatLeaderController {
 	}
 
 	/**
-	 * This command handler sets a specific leader.
-	 * @HandlesCommand("leader (.+)")
+	 * Set someone to be raid leader
 	 */
-	public function leaderSetCommand(CmdContext $context, PCharacter $leader): void {
-		$msg = $this->setLeader($leader(), $context->char->name);
+	#[NCA\HandlesCommand(self::CMD_LEADER_SET)]
+	public function leaderSetCommand(CmdContext $context, PCharacter $newLeader): void {
+		$msg = $this->setLeader($newLeader(), $context->char->name);
 		if ($msg !== null) {
 			$context->reply($msg);
 		}
@@ -136,9 +137,9 @@ class ChatLeaderController {
 	}
 
 	/**
-	 * This command handler enables leader echoing in private channel.
-	 * @HandlesCommand("leaderecho")
+	 * Enable or disable leader echoing in the private channel
 	 */
+	#[NCA\HandlesCommand("leaderecho")]
 	public function leaderEchoOnCommand(CmdContext $context, bool $on): void {
 		if (!$this->checkLeaderAccess($context->char->name)) {
 			$context->reply("You must be Raid Leader to use this command.");
@@ -149,9 +150,9 @@ class ChatLeaderController {
 	}
 
 	/**
-	 * This command handler shows current echoing state.
-	 * @HandlesCommand("leaderecho")
+	 * Shows the current echoing state
 	 */
+	#[NCA\HandlesCommand("leaderecho")]
 	public function leaderEchoCommand(CmdContext $context): void {
 		if (!$this->checkLeaderAccess($context->char->name)) {
 			$context->reply("You must be Raid Leader to use this command.");
@@ -160,10 +161,10 @@ class ChatLeaderController {
 		$this->chatBot->sendPrivate("Leader echo is currently " . $this->getEchoStatusText());
 	}
 
-	/**
-	 * @Event("priv")
-	 * @Description("Repeats what the leader says in the color of leaderecho_color setting")
-	 */
+	#[NCA\Event(
+		name: "priv",
+		description: "Repeats what the leader says in the color of leaderecho_color setting"
+	)]
 	public function privEvent(AOChatEvent $eventObj): void {
 		if (!$this->settingManager->getBool("leaderecho")
 			|| $this->leader !== $eventObj->sender
@@ -174,10 +175,10 @@ class ChatLeaderController {
 		$this->chatBot->sendPrivate($msg);
 	}
 
-	/**
-	 * @Event("leavePriv")
-	 * @Description("Removes leader when the leader leaves the channel")
-	 */
+	#[NCA\Event(
+		name: "leavePriv",
+		description: "Removes leader when the leader leaves the channel"
+	)]
 	public function leavePrivEvent(AOChatEvent $eventObj): void {
 		if ($this->leader !== $eventObj->sender) {
 			return;

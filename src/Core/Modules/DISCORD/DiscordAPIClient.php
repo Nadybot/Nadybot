@@ -2,13 +2,16 @@
 
 namespace Nadybot\Core\Modules\DISCORD;
 
+use function Safe\json_encode;
 use Closure;
-use JsonException;
+use Safe\Exceptions\JsonException;
 use stdClass;
 use Nadybot\Core\{
 	AsyncHttp,
+	Attributes as NCA,
 	Http,
 	HttpResponse,
+	ModuleInstance,
 	JSONDataModel,
 	LoggerWrapper,
 	SettingManager,
@@ -18,21 +21,25 @@ use Nadybot\Modules\DISCORD_GATEWAY_MODULE\Model\GuildMember;
 
 /**
  * A Discord API-client
- * @Instance
  */
-class DiscordAPIClient {
-	/** @Inject */
+#[NCA\Instance]
+class DiscordAPIClient extends ModuleInstance {
+	#[NCA\Inject]
 	public SettingManager $settingManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Http $http;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Timer $timer;
 
-	/** @Logger */
+	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
+	/**
+	 * @phpstan-var array{0: string, 1: string, 2: ?callable}[]
+	 * @psalm-var array{0: string, 1: string, 2: ?callable}[]
+	 */
 	protected array $outQueue = [];
 	protected bool $queueProcessing = false;
 
@@ -42,7 +49,7 @@ class DiscordAPIClient {
 	/** @var array<string,DiscordUser> */
 	protected $userCache = [];
 
-	public const DISCORD_API = "https://discord.com/api/v9";
+	public const DISCORD_API = "https://discord.com/api/v10";
 
 	public function get(string $uri): AsyncHttp {
 		$botToken = $this->settingManager->getString('discord_bot_token');
@@ -64,7 +71,7 @@ class DiscordAPIClient {
 		$this->logger->info("Adding discord message to end of channel queue {channel}", [
 			"channel" => $channel,
 		]);
-		$this->outQueue []= func_get_args();
+		$this->outQueue []= [$channel, $message, $callback];
 		if ($this->queueProcessing === false) {
 			$this->processQueue();
 		}
@@ -74,7 +81,7 @@ class DiscordAPIClient {
 		$this->logger->info("Adding discord message to front of channel queue {channel}", [
 			"channel" => $channel,
 		]);
-		array_unshift($this->outQueue, func_get_args());
+		array_unshift($this->outQueue, [$channel, $message, $callback]);
 		if ($this->queueProcessing === false) {
 			$this->processQueue();
 		}
@@ -87,6 +94,7 @@ class DiscordAPIClient {
 		}
 		$this->queueProcessing = true;
 		$params = array_shift($this->outQueue);
+		/** @psalm-suppress TooFewArguments */
 		$this->immediatelySendToChannel(...$params);
 	}
 
@@ -136,7 +144,7 @@ class DiscordAPIClient {
 	}
 
 	/** @psalm-param null|callable(DiscordUser, mixed...) $callback */
-	public function cacheUserLookup(DiscordUser $user, ?callable $callback, ...$args): void {
+	public function cacheUserLookup(DiscordUser $user, ?callable $callback, mixed ...$args): void {
 		$this->cacheUser($user);
 		if (isset($callback)) {
 			$callback($user, ...$args);
@@ -144,7 +152,7 @@ class DiscordAPIClient {
 	}
 
 	/** @psalm-param callable(DiscordChannel, mixed...) $callback */
-	public function getChannel(string $channelId, callable $callback, ...$args): void {
+	public function getChannel(string $channelId, callable $callback, mixed ...$args): void {
 		$this->logger->info("Looking up discord channel {channelId}", [
 			"channelId" => $channelId,
 		]);
@@ -160,7 +168,7 @@ class DiscordAPIClient {
 	}
 
 	/** @psalm-param callable(DiscordUser, mixed...) $callback */
-	public function getUser(string $userId, callable $callback, ...$args): void {
+	public function getUser(string $userId, callable $callback, mixed ...$args): void {
 		$this->logger->info("Looking up discord user {userId}", [
 			"userId" => $userId,
 		]);
@@ -190,7 +198,65 @@ class DiscordAPIClient {
 		}
 	}
 
-	public function getGuildMember(string $guildId, string $userId, callable $callback, ...$args): void {
+	public function getGuildMembers(string $guildId, callable $callback, mixed ...$args): void {
+		$this->getGuildMembersLowlevel($guildId, 2, null, [], $callback, ...$args);
+	}
+
+	/**
+	 * @param stdClass[] $carry
+	 */
+	protected function getGuildMembersLowlevel(string $guildId, int $limit, ?string $after, array $carry, callable $callback, mixed ...$args): void {
+		$this->logger->info("Looking up discord guild {guildId} members", [
+			"guildId" => $guildId,
+			"limit" => $limit,
+			"after" => $after,
+		]);
+		$params = ["limit" => $limit];
+		if (isset($after)) {
+			$params["after"] = $after;
+		}
+		$this->get(
+			self::DISCORD_API . "/guilds/{$guildId}/members"
+		)->withQueryParams($params)
+		->withCallback(
+			$this->getErrorWrapper(
+				null,
+				Closure::fromCallable([$this, "handleGuildMembers"]),
+				$guildId,
+				$limit,
+				$after,
+				$carry,
+				$callback,
+				...$args
+			)
+		);
+	}
+
+	/**
+	 * @param stdClass[] $members
+	 * @param stdClass[] $carry
+	 */
+	protected function handleGuildMembers(array $members, string $guildId, int $limit, ?string $after, array $carry, callable $callback, mixed ...$args): void {
+		$carry = array_merge($carry, $members);
+		if (count($members) === $limit) {
+			$lastMember = $members[count($members)-1]->user?->id ?? null;
+			$this->getGuildMembersLowlevel($guildId, $limit, $lastMember, $carry, $callback, ...$args);
+			return;
+		}
+		$result = [];
+		foreach ($carry as $member) {
+			$o = new GuildMember();
+			$o->fromJSON($member);
+			if (!isset($o->user)) {
+				continue;
+			}
+			$this->guildMemberCache[$guildId][$o->user->id] = $o;
+			$result []= $o;
+		}
+		$callback($result, ...$args);
+	}
+
+	public function getGuildMember(string $guildId, string $userId, callable $callback, mixed ...$args): void {
 		$this->logger->info("Looking up discord guild {guildId} member {userId}", [
 			"guildId" => $guildId,
 			"userId" => $userId,
@@ -215,14 +281,14 @@ class DiscordAPIClient {
 		);
 	}
 
-	protected function cacheGuildMemberLookup(GuildMember $member, string $guildId, ?callable $callback, ...$args): void {
+	protected function cacheGuildMemberLookup(GuildMember $member, string $guildId, ?callable $callback, mixed ...$args): void {
 		$this->cacheGuildMember($guildId, $member);
 		if (isset($callback)) {
 			$callback($member, ...$args);
 		}
 	}
 
-	protected function getErrorWrapper(?JSONDataModel $o, ?callable $callback, ...$args): Closure {
+	protected function getErrorWrapper(?JSONDataModel $o, ?callable $callback, mixed ...$args): Closure {
 		return function(HttpResponse $response) use ($o, $callback, $args) {
 			if (isset($response->error)) {
 				$this->logger->error("Error from discord server: {error}", [
@@ -260,7 +326,7 @@ class DiscordAPIClient {
 				return;
 			}
 			try {
-				$reply = json_decode($response->body??"null", false, 512, JSON_THROW_ON_ERROR);
+				$reply = \Safe\json_decode($response->body??"null", false, 512, JSON_THROW_ON_ERROR);
 			} catch (JsonException $e) {
 				$this->logger->error('Error decoding JSON response from Discord-Server: {error}', [
 					"error" => $e->getMessage(),

@@ -2,10 +2,13 @@
 
 namespace Nadybot\Modules\ITEMS_MODULE;
 
+use Illuminate\Support\Collection;
 use Nadybot\Core\{
+	Attributes as NCA,
 	CmdContext,
 	DB,
 	Http,
+	ModuleInstance,
 	LoggerWrapper,
 	Nadybot,
 	SettingManager,
@@ -13,94 +16,134 @@ use Nadybot\Core\{
 	Util,
 };
 
-/**
- * @Instance
- *
- * Commands this controller contains:
- *	@DefineCommand(
- *		command     = 'items',
- *		accessLevel = 'all',
- *		description = 'Searches for an item using the default items db',
- *		help        = 'items.txt',
- *		alias		= 'i'
- *	)
- *	@DefineCommand(
- *		command     = 'itemid',
- *		accessLevel = 'all',
- *		description = 'Searches for an item by id',
- *		help        = 'items.txt'
- *	)
- *	@DefineCommand(
- *		command     = 'id',
- *		accessLevel = 'all',
- *		description = 'Searches for an itemid by name',
- *		help        = 'items.txt'
- *	)
- */
-class ItemsController {
-
-	public string $moduleName;
-
-	/** @Inject */
+#[
+	NCA\Instance,
+	NCA\HasMigrations("Migrations/Items"),
+	NCA\DefineCommand(
+		command: "items",
+		accessLevel: "guest",
+		description: "Searches for an item using the default items db",
+		alias: "i"
+	),
+	NCA\DefineCommand(
+		command: "itemid",
+		accessLevel: "guest",
+		description: "Searches for an item by id",
+	),
+	NCA\DefineCommand(
+		command: "id",
+		accessLevel: "guest",
+		description: "Searches for an itemid by name",
+	)
+]
+class ItemsController extends ModuleInstance {
+	#[NCA\Inject]
 	public DB $db;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Nadybot $chatBot;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Http $http;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public SettingManager $settingManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Text $text;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Util $util;
 
-	/** @Logger */
+	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
-	/** @Setup */
+	/** @var array<int,Skill> */
+	private array $skills = [];
+
+	#[NCA\Setup]
 	public function setup(): void {
-		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations/Items");
 		$this->db->loadCSVFile($this->moduleName, __DIR__ . "/aodb.csv");
 		$this->db->loadCSVFile($this->moduleName, __DIR__ . "/item_groups.csv");
 		$this->db->loadCSVFile($this->moduleName, __DIR__ . "/item_group_names.csv");
 
 		$this->settingManager->add(
-			$this->moduleName,
-			'maxitems',
-			'Number of items shown on the list',
-			'edit',
-			'number',
-			'40',
-			'30;40;50;60'
+			module: $this->moduleName,
+			name: 'maxitems',
+			description: 'Number of items shown on the list',
+			mode: 'edit',
+			type: 'number',
+			value: '40',
+			options: ["30", "40", "50", "60"]
 		);
+		$this->skills = $this->db->table("skills")
+			->asObj(Skill::class)
+			->keyBy("id")
+			->toArray();
 	}
 
 	/**
-	 * @HandlesCommand("items")
+	 * Search for an item by name, optionally in a specific QL.
+	 * You can also use '-&lt;search&gt;' to exclude those matching the term
 	 */
+	#[NCA\HandlesCommand("items")]
+	#[NCA\Help\Example("<symbol>items first tier nano")]
+	#[NCA\Help\Example("<symbol>items 133 first tier nano")]
+	#[NCA\Help\Example("<symbol>items panther -ofab")]
 	public function itemsCommand(CmdContext $context, ?int $ql, string $search): void {
 		$msg = $this->findItems($ql, $search);
 		$context->reply($msg);
 	}
 
-	/**
-	 * @HandlesCommand("itemid")
-	 */
+	/** Show information about an item id */
+	#[NCA\HandlesCommand("itemid")]
+	#[NCA\Help\Example("<symbol>itemid 244718", "Show Burden of Competence")]
 	public function itemIdCommand(CmdContext $context, int $id): void {
-		$row = $this->findById($id);
+		$row = ItemSearchResult::fromItem($this->findById($id));
 		if ($row === null) {
 			$msg = "No item found with id <highlight>$id<end>.";
 			$context->reply($msg);
 			return;
 		}
 		$blob = "";
-		foreach ($row as $key => $value) {
-			$blob .= "$key: <highlight>$value<end>\n";
+		$types = $this->db->table("item_types")
+			->where("item_id", $id)
+			->select("item_type")
+			->pluckAs("item_type", "string")
+			->toArray();
+		foreach (get_object_vars($row) as $key => $value) {
+			if ($key === "numExactMatches") {
+				continue;
+			}
+			$key = str_replace("_", " ", $key);
+			if ($key === "flags") {
+				$blob .= "$key: <highlight>" . join(", ", $this->flagsToText((int)$value)) . "<end>\n";
+			} elseif ($key === "slot") {
+				$slots = $this->slotToText((int)$value);
+				if (count(array_diff($types, ["Util", "Hud", "Deck", "Weapon"]))) {
+					$slots = array_diff($slots, [
+						"UTILS1", "UTILS2", "UTILS3",
+						"HUD1", "HUD2", "HUD3", "DECK", "LHAND", "RHAND"
+					]);
+				}
+				if (count(array_diff($types, [
+					"Arms", "Back", "Chest", "Feet", "Fingers", "Head", "Legs",
+					"Neck", "Shoulders", "Hands", "Wrists"
+				]))) {
+					$slots = array_diff($slots, [
+						"NECK", "HEAD", "BACK", "RSHOULDER", "BODY", "LSHOULDER",
+						"RARM", "HANDS", "LARM", "RWRIST", "LEGS", "LWRIST",
+						"RFINGER", "FEET", "LFINGER",
+					]);
+				}
+				if (count($slots)) {
+					$blob .= "$key: <highlight>" . join(", ", $slots) . "<end>\n";
+				} else {
+					$blob .= "$key: <highlight>&lt;none&gt;<end>\n";
+				}
+			} else {
+				$blob .= "$key: <highlight>" . (is_bool($value) ? ($value ? "yes" : "no") : ($value??"<empty>")) . "<end>\n";
+			}
 		}
 		$row->ql = $row->highql;
 		if ($row->lowid === $id) {
@@ -116,6 +159,32 @@ class ItemsController {
 		$context->reply($msg);
 	}
 
+	/** @return string[] */
+	protected function flagsToText(int $flags): array {
+		$result = [];
+		$refClass = new \ReflectionClass(Flag::class);
+		$constants = $refClass->getConstants();
+		foreach ($constants as $name => $value) {
+			if ($flags & $value) {
+				$result []= $name;
+			}
+		}
+		return $result;
+	}
+
+	/** @return string[] */
+	protected function slotToText(int $flags): array {
+		$result = [];
+		$refClass = new \ReflectionClass(Slot::class);
+		$constants = $refClass->getConstants();
+		foreach ($constants as $name => $value) {
+			if ($flags & $value) {
+				$result []= $name;
+			}
+		}
+		return $result;
+	}
+
 	public function findById(int $id): ?AODBEntry {
 		return $this->db->table("aodb")
 			->where("lowid", $id)
@@ -129,14 +198,57 @@ class ItemsController {
 	}
 
 	/**
-	 * @HandlesCommand("id")
+	 * Get 1 or more items by their IDs
+	 *
+	 * @return Collection<AODBEntry>
 	 */
+	public function getByIDs(int ...$ids): Collection {
+		return $this->db->table("aodb")
+			->whereIn("lowid", $ids)
+			->union(
+				$this->db->table("aodb")
+					->whereIn("highid", $ids)
+			)
+			->asObj(AODBEntry::class);
+	}
+
+	/**
+	 * Get 1 or more items by their names
+	 *
+	 * @return Collection<AODBEntry>
+	 */
+	public function getByNames(string ...$names): Collection {
+		return $this->db->table("aodb")
+			->whereIn("name", $names)
+			->asObj(AODBEntry::class);
+	}
+
+	/**
+	 * Get 1 or more items by a name search
+	 *
+	 * @return Collection<AODBEntry>
+	 */
+	public function getBySearch(string $search, ?int $ql=null): Collection {
+		$query = $this->db->table("aodb");
+		$tmp = explode(" ", $search);
+		$this->db->addWhereFromParams($query, $tmp, "name");
+
+		if ($ql !== null) {
+			$query->where("a.lowql", "<=", $ql)
+				->where("a.highql", ">=", $ql);
+		}
+		return $query->asObj(AODBEntry::class);
+	}
+
+	/** Search the item id of an item */
+	#[NCA\HandlesCommand("id")]
 	public function idCommand(CmdContext $context, string $search): void {
 		$query = $this->db->table("aodb AS a")
 			->leftJoin("item_groups AS g", "g.item_id", "a.lowid")
 			->leftJoin("item_group_names AS gn", "g.group_id", "gn.group_id")
 			->orderByColFunc("COALESCE", ["gn.name", "a.name"])
 			->orderBy("a.lowql")
+			->select("a.*")
 			->limit($this->settingManager->getInt('maxitems')??40);
 		$tmp = explode(" ", $search);
 		$this->db->addWhereFromParams($query, $tmp, "a.name");
@@ -164,10 +276,9 @@ class ItemsController {
 	}
 
 	/**
-	 * @param array $args
 	 * @return string|string[]
 	 */
-	public function findItems(?int $ql, string $search) {
+	public function findItems(?int $ql, string $search): string|array {
 		if (isset($ql)) {
 			if ($ql < 1 || $ql > 500) {
 				return "QL must be between 1 and 500.";
@@ -183,7 +294,7 @@ class ItemsController {
 		$footer = "QLs between <red>[<end>brackets<red>]<end> denote items matching your name search\n".
 			"Item DB rips created using the $aoiaPlusLink tool.";
 
-		$msg = $this->createItemsBlob($data, $search, $ql, $this->settingManager->getString('aodb_db_version')??"unknown", 'local', $footer);
+		$msg = $this->createItemsBlob($data, $search, $ql, $this->settingManager->getString('aodb_db_version')??"unknown", $footer);
 
 		return $msg;
 	}
@@ -237,12 +348,11 @@ class ItemsController {
 	 * @param string $search
 	 * @param null|int $ql
 	 * @param string $version
-	 * @param string $server
 	 * @param string $footer
 	 * @param mixed|null $elapsed
 	 * @return string|string[]
 	 */
-	public function createItemsBlob(array $data, string $search, ?int $ql, string $version, string $server, string $footer, $elapsed=null) {
+	public function createItemsBlob(array $data, string $search, ?int $ql, string $version, string $footer, mixed $elapsed=null): string|array {
 		$numItems = count($data);
 		$groups = count(
 			array_unique(
@@ -275,7 +385,6 @@ class ItemsController {
 		} else {
 			$blob .= "Search: <highlight>$search<end>\n";
 		}
-		$blob .= "Server: <highlight>" . $server . "<end>\n";
 		if ($elapsed) {
 			$blob .= "Time: <highlight>" . round($elapsed, 2) . "s<end>\n";
 		}
@@ -303,7 +412,7 @@ class ItemsController {
 				$numExactMatches = 100;
 				continue;
 			}
-			$itemKeywords = preg_split("/\s/", $row->name);
+			$itemKeywords = \Safe\preg_split("/\s/", $row->name);
 			$numExactMatches = 0;
 			foreach ($itemKeywords as $keyword) {
 				foreach ($searchTerms as $searchWord) {
@@ -335,12 +444,12 @@ class ItemsController {
 	 * @param bool $showImages
 	 * @return string
 	 */
-	public function formatSearchResults(array $data, ?int $ql, bool $showImages, ?string $search=null) {
+	public function formatSearchResults(array $data, ?int $ql, bool $showImages, ?string $search=null): string {
 		$list = '';
 		$oldGroup = null;
 		for ($itemNum = 0; $itemNum < count($data); $itemNum++) {
 			$row = $data[$itemNum];
-			$row->origName = $row->name;
+			$origName = $row->name;
 			$newGroup = false;
 			if (!isset($row->group_id) && $ql && $ql !== $row->ql) {
 				continue;
@@ -399,7 +508,7 @@ class ItemsController {
 				} else {
 					$list .= ", ";
 				}
-				if (isset($search) && $this->itemNameMatchesSearch($row->origName, $search)) {
+				if (isset($search) && $this->itemNameMatchesSearch($origName, $search)) {
 					if (!isset($nameMatches)) {
 						$list .= "<red>[<end>";
 						$nameMatches = true;
@@ -457,7 +566,7 @@ class ItemsController {
 		if (!isset($search)) {
 			return false;
 		}
-		$tokens = preg_split("/\s+/", $search);
+		$tokens = \Safe\preg_split("/\s+/", $search);
 		foreach ($tokens as $token) {
 			if (substr($token, 0, 1) === "-"
 				&& stripos($itemName, substr($token, 1)) !== false) {
@@ -509,10 +618,8 @@ class ItemsController {
 
 	/**
 	 * Get the longest common string of 2 strings
-	 *
 	 * The LCS of "Cheap Caterwaul X-17" and "Exceptional Caterwaul X-17"
 	 * would be " Caterwaul X-17", so mind the included space!
-	 *
 	 * @param string $first  The first word to compare
 	 * @param string $second The second word to compare
 	 * @return string The longest common string of $first and $second
@@ -554,17 +661,18 @@ class ItemsController {
 
 	/**
 	 * Get the longest common string of X words
-	 *
 	 * The LCS of
 	 *  "Cheap Caterwaul X-17"
 	 *  "Exceptional Caterwaul X-17"
 	 *  and "Crappy Caterwaul"
 	 * would be "Caterwaul", without the leading space!
-	 *
 	 * @param string[] $words The words to compare
 	 * @return string  The longest common string of all given words
 	 */
 	public function getLongestCommonStringOfWords(array $words): string {
+		if (empty($words)) {
+			return "";
+		}
 		return trim(
 			array_reduce(
 				$words,
@@ -572,5 +680,74 @@ class ItemsController {
 				array_shift($words)
 			)
 		);
+	}
+
+	/** @return ?Skill */
+	public function getSkillByID(int $id): ?Skill {
+		return $this->skills[$id] ?? null;
+	}
+
+	/** @return Collection<Skill> */
+	public function getSkillByIDs(int ...$ids): Collection {
+		return $this->db->table("skills")
+			->whereIn("id", $ids)
+			->asObj(Skill::class);
+	}
+
+	/** @return Collection<Skill> */
+	public function searchForSkill(string $skillName): Collection {
+		// check for exact match first, in order to disambiguate
+		// between Bow and Bow special attack
+		$query = $this->db->table("skills");
+		/**
+		 * @psalm-suppress ImplicitToStringCast
+		 * @phpstan-ignore-next-line
+		 * @var Collection<Skill>
+		 */
+		$results = $query->where($query->colFunc("LOWER", "name"), strtolower($skillName))
+			->select("*")->distinct()
+			->asObj(Skill::class);
+		if ($results->containsOneItem()) {
+			return $results;
+		}
+
+		$query = $this->db->table("skills")->select("*")->distinct();
+
+		$tmp = explode(" ", $skillName);
+		$this->db->addWhereFromParams($query, $tmp, "name");
+
+		return $query->asObj(Skill::class);
+	}
+
+	/** @return Collection<ItemWithBuffs> */
+	public function addBuffs(AODBEntry ...$items): Collection {
+		$buffs = $this->db->table("item_buffs")
+			->whereIn("item_id", array_unique([...array_column($items, "highid"), ...array_column($items, "lowid")]))
+			->asObj(ItemBuff::class);
+		$skills = $this->getSkillByIDs(...$buffs->pluck("attribute_id")->unique()->toArray())
+			->keyBy("id");
+			/** @param Collection<ItemBuff> $buffs */
+		$buffs = $buffs->groupBy("item_id")
+			->map(function (Collection $iBuffs, int $itemId) use ($skills): array {
+				return $iBuffs->map(function (ItemBuff $buff) use ($skills): ExtBuff {
+					$res = new ExtBuff();
+					$res->skill = $skills->get($buff->attribute_id);
+					$res->amount = $buff->amount;
+					return $res;
+				})->toArray();
+			});
+		$result = new Collection();
+		foreach ($items as $item) {
+			$new = new ItemWithBuffs();
+			foreach (get_object_vars($item) as $key => $value) {
+				$new->{$key} = $value;
+			}
+			$new->buffs = $buffs->get($new->lowid, []);
+			if ($new->lowid !== $new->highid) {
+				$new->buffs = array_merge($new->buffs, $buffs->get($new->highid, []));
+			}
+			$result->push($new);
+		}
+		return $result;
 	}
 }

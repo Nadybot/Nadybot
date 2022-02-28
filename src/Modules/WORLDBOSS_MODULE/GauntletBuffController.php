@@ -7,15 +7,18 @@ use Exception;
 use JsonException;
 use Nadybot\Core\{
 	AOChatEvent,
+	Attributes as NCA,
 	CmdContext,
 	EventManager,
 	Http,
 	HttpResponse,
+	ModuleInstance,
 	LoggerWrapper,
 	MessageEmitter,
 	MessageHub,
 	Modules\ALTS\AltsController,
 	Nadybot,
+	ParamClass\PDuration,
 	Routing\RoutableMessage,
 	Routing\Source,
 	SettingManager,
@@ -23,116 +26,117 @@ use Nadybot\Core\{
 	UserStateEvent,
 	Util,
 };
-use Nadybot\Core\ParamClass\PDuration;
-use Nadybot\Modules\TIMERS_MODULE\Alert;
-use Nadybot\Modules\TIMERS_MODULE\Timer;
-use Nadybot\Modules\TIMERS_MODULE\TimerController;
+use Nadybot\Modules\TIMERS_MODULE\{
+	Alert,
+	Timer,
+	TimerController,
+};
+use Nadybot\Modules\WEBSERVER_MODULE\StatsController;
 
 /**
  * @author Equi
  * @author Nadyita (RK5) <nadyita@hodorraid.org>
- * @Instance
- *
- * Commands this controller contains:
- *	@DefineCommand(
- *		command     = 'gaubuff',
- *		accessLevel = 'all',
- *		description = 'Handles timer for gauntlet buff',
- *		help        = 'gaubuff.txt'
- *	)
- *	@ProvidesEvent(value="sync(gaubuff)", desc="Triggered when someone sets the gauntlet buff for either side")
  */
-class GauntletBuffController implements MessageEmitter {
+#[
+	NCA\Instance,
+	NCA\DefineCommand(
+		command: "gaubuff",
+		accessLevel: "guest",
+		description: "Show timer for gauntlet buff",
+	),
+	NCA\DefineCommand(
+		command: "gaubuff set/update",
+		accessLevel: "member",
+		description: "Set/update timer for gauntlet buff",
+	),
+	NCA\ProvidesEvent(
+		event: "sync(gaubuff)",
+		desc: "Triggered when someone sets the gauntlet buff for either side",
+	)
+]
+class GauntletBuffController extends ModuleInstance implements MessageEmitter {
 	public const SIDE_NONE = 'none';
 	public const GAUNTLET_API = "https://timers.aobots.org/api/v1.0/gaubuffs";
 
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
-
-	/** @Inject */
+	#[NCA\Inject]
 	public Text $text;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public SettingManager $settingManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public MessageHub $messageHub;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Nadybot $chatBot;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public EventManager $eventManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Http $http;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Util $util;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public AltsController $altsController;
 
-	/** @Logger */
+	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public TimerController $timerController;
+
+	#[NCA\Inject]
+	public StatsController $statsController;
 
 	public function getChannelName(): string {
 		return Source::SYSTEM . "(gauntlet-buff)";
 	}
 
-	/**
-	 * @Setup
-	 * This handler is called on bot startup.
-	 */
+	#[NCA\Setup]
 	public function setup(): void {
 		$this->settingManager->add(
-			$this->moduleName,
-			'gaubuff_times',
-			'Times to display gaubuff timer alerts',
-			'edit',
-			'text',
-			'30m 10m',
-			'30m 10m',
-			'',
-			'mod',
-			'gau_times.txt'
+			module: $this->moduleName,
+			name: 'gaubuff_times',
+			description: 'Times to display gaubuff timer alerts',
+			mode: 'edit',
+			type: 'text',
+			value: '30m 10m',
+			options: ["30m 10m"],
+			help: 'gau_times.txt'
 		);
 		$this->settingManager->add(
-			$this->moduleName,
-			"gaubuff_logon",
-			"Show gaubuff timer on logon",
-			"edit",
-			"options",
-			"1",
-			"true;false",
-			"1;0"
+			module: $this->moduleName,
+			name: "gaubuff_logon",
+			description: "Show gaubuff timer on logon",
+			mode: "edit",
+			type: "bool",
+			value: "1"
 		);
 		$this->settingManager->add(
-			$this->moduleName,
-			"gaubuff_default_side",
-			"Gauntlet buff side if none specified for gaubuff",
-			"edit",
-			"options",
-			"none",
-			"none;clan;omni"
+			module: $this->moduleName,
+			name: "gaubuff_default_side",
+			description: "Gauntlet buff side if none specified for gaubuff",
+			mode: "edit",
+			type: "options",
+			value: "none",
+			options: ["none", "clan", "omni"]
 		);
 		$this->messageHub->registerMessageEmitter($this);
 		$this->settingManager->registerChangeListener(
 			"gaubuff_times",
 			[$this, "validateGaubuffTimes"]
 		);
+		$this->statsController->registerProvider(new GauntletBuffStats($this, "clan"), "states");
+		$this->statsController->registerProvider(new GauntletBuffStats($this, "omni"), "states");
 	}
 
-	/**
-	 * @Event("connect")
-	 * @Description("Get active Gauntlet buffs from API")
-	 */
+	#[NCA\Event(
+		name: "connect",
+		description: "Get active Gauntlet buffs from API"
+	)]
 	public function loadGauntletBuffsFromAPI(): void {
 		$this->http->get(static::GAUNTLET_API)
 			->withCallback([$this, "handleGauntletBuffsFromApi"]);
@@ -149,7 +153,7 @@ class GauntletBuffController implements MessageEmitter {
 		/** @var ApiGauntletBuff[] */
 		$buffs = [];
 		try {
-			$data = json_decode($response->body, true, 512, JSON_THROW_ON_ERROR);
+			$data = \Safe\json_decode($response->body, true, 512, JSON_THROW_ON_ERROR);
 			if (!is_array($data)) {
 				throw new JsonException();
 			}
@@ -251,7 +255,7 @@ class GauntletBuffController implements MessageEmitter {
 			"",
 			$alerts,
 			"GauntletBuffController.gaubuffcallback",
-			json_encode($data)
+			\Safe\json_encode($data)
 		);
 	}
 
@@ -283,10 +287,10 @@ class GauntletBuffController implements MessageEmitter {
 		$this->chatBot->sendMassTell(join("\n", $msgs), $sender);
 	}
 
-	/**
-	 * @Event("logOn")
-	 * @Description("Sends gaubuff message on logon")
-	 */
+	#[NCA\Event(
+		name: "logOn",
+		description: "Sends gaubuff message on logon"
+	)]
 	public function gaubufflogonEvent(UserStateEvent $eventObj): void {
 		$sender = $eventObj->sender;
 		if (!$this->chatBot->isReady()
@@ -298,10 +302,10 @@ class GauntletBuffController implements MessageEmitter {
 		$this->showGauntletBuff($sender);
 	}
 
-	/**
-	 * @Event("joinPriv")
-	 * @Description("Sends gaubuff message on join")
-	 */
+	#[NCA\Event(
+		name: "joinPriv",
+		description: "Sends gaubuff message on join"
+	)]
 	public function privateChannelJoinEvent(AOChatEvent $eventObj): void {
 		$sender = $eventObj->sender;
 		if ($this->settingManager->getBool('gaubuff_logon') && is_string($sender)) {
@@ -310,12 +314,13 @@ class GauntletBuffController implements MessageEmitter {
 	}
 
 	/**
-	 * This command handler shows when all known gauntlet buffs
-	 *
-	 * @HandlesCommand("gaubuff")
-	 * @Mask $buffSide (clan|omni)
+	 * Show the current Gauntlet buff timer, optionally for a given faction only
 	 */
-	public function gaubuffCommand(CmdContext $context, ?string $buffSide): void {
+	#[NCA\HandlesCommand("gaubuff")]
+	public function gaubuffCommand(
+		CmdContext $context,
+		#[NCA\StrChoice("clan", "omni")] ?string $buffSide
+	): void {
 		$sides = $this->getSidesToShowBuff($buffSide);
 		$msgs = [];
 		foreach ($sides as $side) {
@@ -338,41 +343,45 @@ class GauntletBuffController implements MessageEmitter {
 	}
 
 	/**
-	 * This command sets a gauntlet buff timer
-	 *
-	 * @HandlesCommand("gaubuff")
-	 * @Mask $side (clan|omni)
+	 * Set the Gauntlet buff timer for your default faction or the given one
 	 */
-	public function gaubuffSetCommand(CmdContext $context, ?string $side, PDuration $time): void {
+	#[NCA\HandlesCommand("gaubuff set/update")]
+	#[NCA\Help\Example("<symbol>gaubuff 14h")]
+	#[NCA\Help\Example("<symbol>gaubuff clan 10h15m")]
+	public function gaubuffSetCommand(
+		CmdContext $context,
+		#[NCA\StrChoice("clan", "omni")] ?string $faction,
+		PDuration $duration
+	): void {
 		$defaultSide = $this->settingManager->getString('gaubuff_default_side') ?? "none";
-		$side = $side ?? $defaultSide;
-		if ($side === static::SIDE_NONE) {
+		$faction = $faction ?? $defaultSide;
+		if ($faction === static::SIDE_NONE) {
 			$msg = "You have to specify for which side the buff is: omni or clan";
 			$context->reply($msg);
 			return;
 		}
-		$buffEnds = $time->toSecs();
+		$buffEnds = $duration->toSecs();
 		if ($buffEnds < 1) {
-			$msg = "<highlight>" . $time() . "<end> is not a valid budatime string.";
+			$msg = "<highlight>" . $duration() . "<end> is not a valid budatime string.";
 			$context->reply($msg);
 			return;
 		}
 		$buffEnds += time();
-		$this->setGaubuff($side, $buffEnds, $context->char->name, time());
-		$msg = "Gauntletbuff timer for <{$side}>{$side}<end> has been set and expires at <highlight>".$this->tmTime($buffEnds)."<end>.";
+		$this->setGaubuff($faction, $buffEnds, $context->char->name, time());
+		$msg = "Gauntletbuff timer for <{$faction}>{$faction}<end> has been set and expires at <highlight>".$this->tmTime($buffEnds)."<end>.";
 		$context->reply($msg);
 		$event = new SyncGaubuffEvent();
 		$event->expires = $buffEnds;
-		$event->faction = strtolower($side);
+		$event->faction = strtolower($faction);
 		$event->sender = $context->char->name;
 		$event->forceSync = $context->forceSync;
 		$this->eventManager->fireEvent($event);
 	}
 
-	/**
-	 * @Event("sync(gaubuff)")
-	 * @Description("Sync external gauntlet buff events")
-	 */
+	#[NCA\Event(
+		name: "sync(gaubuff)",
+		description: "Sync external gauntlet buff events"
+	)]
 	public function syncExtGaubuff(SyncGaubuffEvent $event): void {
 		if ($event->isLocal()) {
 			return;
@@ -402,12 +411,15 @@ class GauntletBuffController implements MessageEmitter {
 		return [$side];
 	}
 
-	/**
-	 * @NewsTile("gauntlet-buff")
-	 * @Description("Show the remaining time of the currently popped Gauntlet buff(s) - if any")
-	 * @Example("<header2>Gauntlet buff<end>
-	 * <tab><omni>Omni Gauntlet buff<end> runs out in <highlight>4 hrs 59 mins 31 secs<end>.")
-	 */
+	#[
+		NCA\NewsTile(
+			name: "gauntlet-buff",
+			description: "Show the remaining time of the currently popped Gauntlet buff(s) - if any",
+			example:
+				"<header2>Gauntlet buff<end>\n".
+				"<tab><omni>Omni Gauntlet buff<end> runs out in <highlight>4 hrs 59 mins 31 secs<end>."
+		)
+	]
 	public function gauntletBuffNewsTile(string $sender, callable $callback): void {
 		$buffLine = $this->getGauntletBuffLine();
 		if (isset($buffLine)) {
@@ -432,5 +444,10 @@ class GauntletBuffController implements MessageEmitter {
 			return null;
 		}
 		return join("", $msgs);
+	}
+
+	public function getIsActive(string $faction): bool {
+			$timer = $this->timerController->get("Gaubuff_{$faction}");
+			return ($timer !== null && isset($timer->endtime));
 	}
 }

@@ -2,10 +2,11 @@
 
 namespace Nadybot\Core;
 
+use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\DBSchema\Setting;
 
 abstract class SettingHandler {
-	/** @Inject */
+	#[NCA\Inject]
 	public Text $text;
 
 	protected Setting $row;
@@ -23,6 +24,10 @@ abstract class SettingHandler {
 
 	public function getData(): Setting {
 		return $this->row;
+	}
+
+	public function getModifyLink(): string {
+		return $this->text->makeChatcmd("modify", "/tell <myname> settings change " . $this->row->name);
 	}
 
 	/**
@@ -51,7 +56,7 @@ abstract class SettingHandler {
 		}
 		if (strlen($this->row->intoptions??'')) {
 			$intoptions = explode(";", $this->row->intoptions??"");
-			$options_map = array_combine($intoptions, $options??[]);
+			$options_map = \Safe\array_combine($intoptions, $options??[]);
 		}
 		if (!empty($options)) {
 			$msg = "<header2>Predefined Options<end>\n";

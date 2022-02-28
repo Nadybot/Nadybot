@@ -3,53 +3,49 @@
 namespace Nadybot\Core\Modules\CONFIG;
 
 use Nadybot\Core\{
+	Attributes as NCA,
 	CmdContext,
+	DBSchema\EventCfg,
+	ModuleInstance,
 	Text,
 	DB,
 	EventManager,
 };
-use Nadybot\Core\DBSchema\EventCfg;
 
-/**
- * @Instance
- *
- * Commands this controller contains:
- *	@DefineCommand(
- *		command       = 'eventlist',
- *		accessLevel   = 'guild',
- *		description   = 'Shows a list of all events on the bot',
- *		help          = 'eventlist.txt',
- *		defaultStatus = '1'
- *	)
- */
-class EventlistController {
-
-	/** @Inject */
+#[
+	NCA\Instance,
+	NCA\DefineCommand(
+		command: "eventlist",
+		accessLevel: "guild",
+		description: "Shows a list of all events on the bot",
+		defaultStatus: 1
+	)
+]
+class EventlistController extends ModuleInstance {
+	#[NCA\Inject]
 	public Text $text;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public DB $db;
 
 	/**
-	 * This command handler shows a list of all events on the bot.
-	 * Additionally, event type can be provided to show only events of that type.
-	 *
-	 * @HandlesCommand("eventlist")
+	 * Show a list of all events on the bot. Give &lt;event type&gt; to show only events matching a string
 	 */
-	public function eventlistCommand(CmdContext $context, ?string $type): void {
+	#[NCA\HandlesCommand("eventlist")]
+	public function eventlistCommand(CmdContext $context, ?string $eventType): void {
 		$query = $this->db->table(EventManager::DB_TABLE)
 			->select("type", "description", "module", "file", "status")
 			->orderBy("type")
 			->orderBy("module");
-		if (isset($type)) {
-			$query->whereIlike("type", "%{$type}%");
+		if (isset($eventType)) {
+			$query->whereIlike("type", "%{$eventType}%");
 		}
 		/** @var EventCfg[] $data */
 		$data = $query->asObj(EventCfg::class)->toArray();
 		$count = count($data);
 
 		if ($count === 0) {
-			$msg = "No events of type <highlight>{$type}<end> found.";
+			$msg = "No events of type <highlight>{$eventType}<end> found.";
 			$context->reply($msg);
 			return;
 		}

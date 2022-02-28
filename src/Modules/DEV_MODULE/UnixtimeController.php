@@ -2,36 +2,30 @@
 
 namespace Nadybot\Modules\DEV_MODULE;
 
-use Nadybot\Core\CmdContext;
-use Nadybot\Core\Util;
+use Nadybot\Core\{
+	Attributes as NCA,
+	CmdContext,
+	ModuleInstance,
+	Util,
+};
 
 /**
  * @author Tyrence (RK2)
- *
- * @Instance
- *
- * Commands this controller contains:
- *	@DefineCommand(
- *		command     = 'unixtime',
- *		accessLevel = 'all',
- *		description = 'Show the date and time for a unix timestamp',
- *		help        = 'unixtime.txt'
- *	)
  */
-class UnixtimeController {
-
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
-
-	/** @Inject */
+#[
+	NCA\Instance,
+	NCA\DefineCommand(
+		command: "unixtime",
+		accessLevel: "guest",
+		description: "Show the date and time for a unix timestamp",
+	)
+]
+class UnixtimeController extends ModuleInstance {
+	#[NCA\Inject]
 	public Util $util;
 
-	/**
-	 * @HandlesCommand("unixtime")
-	 */
+	/** Show the date and time for a unix time stamp */
+	#[NCA\HandlesCommand("unixtime")]
 	public function reloadinstanceAllCommand(CmdContext $context, int $time): void {
 		$msg = "$time is <highlight>" . $this->util->date($time) . "<end>.";
 		$context->reply($msg);

@@ -3,7 +3,9 @@
 namespace Nadybot\Modules\DEV_MODULE;
 
 use Nadybot\Core\{
+	Attributes as NCA,
 	CmdContext,
+	ModuleInstance,
 	Nadybot,
 	Text,
 	Util,
@@ -11,41 +13,28 @@ use Nadybot\Core\{
 
 /**
  * @author Tyrence
- *
  * Read values from the MDB file
- *
- * @Instance
- *
- * Commands this controller contains:
- *	@DefineCommand(
- *		command     = 'mdb',
- *		accessLevel = 'all',
- *		description = 'Search for values in the MDB file',
- *		help        = 'mdb.txt'
- *	)
  */
-class MdbController {
-
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
-
-	/**
-	 * @Inject
-	 */
+#[
+	NCA\Instance,
+	NCA\DefineCommand(
+		command: "mdb",
+		accessLevel: "guest",
+		description: "Search for values in the MDB file",
+	)
+]
+class MdbController extends ModuleInstance {
+	#[NCA\Inject]
 	public Nadybot $chatBot;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Util $util;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Text $text;
 
-	/**
-	 * @HandlesCommand("mdb")
-	 */
+	/** Get a list of categories from the MDB */
+	#[NCA\HandlesCommand("mdb")]
 	public function mdbCommand(CmdContext $context): void {
 		$categories = $this->chatBot->mmdbParser->getCategories();
 		if (!isset($categories)) {
@@ -63,9 +52,8 @@ class MdbController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @HandlesCommand("mdb")
-	 */
+	/** Get a list of instances for an MDB category */
+	#[NCA\HandlesCommand("mdb")]
 	public function mdbCategoryCommand(CmdContext $context, int $categoryId): void {
 		$instances = $this->chatBot->mmdbParser->findAllInstancesInCategory($categoryId);
 		if (!isset($instances)) {
@@ -83,9 +71,8 @@ class MdbController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @HandlesCommand("mdb")
-	 */
+	/** See an MDB by category and instance */
+	#[NCA\HandlesCommand("mdb")]
 	public function mdbInstanceCommand(CmdContext $context, int $categoryId, int $instanceId): void {
 		$messageString = $this->chatBot->mmdbParser->getMessageString($categoryId, $instanceId);
 		$msg = "Unable to find MDB string category <highlight>{$categoryId}<end>, ".

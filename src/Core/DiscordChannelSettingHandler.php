@@ -2,23 +2,23 @@
 
 namespace Nadybot\Core;
 
+use Nadybot\Core\Attributes as NCA;
 use Exception;
-use JsonException;
+use Safe\Exceptions\JsonException;
 use Nadybot\Modules\DISCORD_GATEWAY_MODULE\DiscordGatewayController;
 
 /**
  * Class to represent a setting with a discord channel value for NadyBot
- * @SettingHandler("discord_channel")
  */
+#[NCA\SettingHandler("discord_channel")]
 class DiscordChannelSettingHandler extends SettingHandler {
-
-	/** @Inject */
+	#[NCA\Inject]
 	public Http $http;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public SettingManager $settingManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public DiscordGatewayController $discordGatewayController;
 
 	/**
@@ -65,7 +65,7 @@ class DiscordChannelSettingHandler extends SettingHandler {
 			->waitAndReturnResponse();
 		if ($response->headers["status-code"] !== "200" && isset($response->body)) {
 			try {
-				$reply = json_decode($response->body, false, 512, JSON_THROW_ON_ERROR);
+				$reply = \Safe\json_decode($response->body, true, 512, JSON_THROW_ON_ERROR);
 			} catch (JsonException $e) {
 				throw new Exception("Cannot use <highlight>{$newValue}<end> as value.");
 			}
@@ -103,7 +103,7 @@ class DiscordChannelSettingHandler extends SettingHandler {
 			return $newValue;
 		}
 		try {
-			$reply = json_decode($response->body, true, 512, JSON_THROW_ON_ERROR);
+			$reply = \Safe\json_decode($response->body, true, 512, JSON_THROW_ON_ERROR);
 		} catch (JsonException $e) {
 			return $newValue;
 		}

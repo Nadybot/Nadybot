@@ -3,13 +3,16 @@
 namespace Nadybot\Modules\ORGLIST_MODULE;
 
 use Exception;
+use Illuminate\Support\Collection;
 use Nadybot\Core\{
+	Attributes as NCA,
 	CmdContext,
 	Event,
 	CommandReply,
 	DB,
 	Http,
 	HttpResponse,
+	ModuleInstance,
 	LoggerWrapper,
 	Nadybot,
 	SQLException,
@@ -20,56 +23,49 @@ use Nadybot\Core\{
 
 /**
  * @author Tyrence (RK2)
- *
- * @Instance
- *
- * Commands this controller contains:
- *	@DefineCommand(
- *		command     = 'findorg',
- *		accessLevel = 'all',
- *		description = 'Find orgs by name',
- *		help        = 'findorg.txt'
- *	)
  */
-class FindOrgController {
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
-
-	/** @Inject */
+#[
+	NCA\Instance,
+	NCA\HasMigrations,
+	NCA\DefineCommand(
+		command: "findorg",
+		accessLevel: "guest",
+		description: "Find orgs by name",
+	)
+]
+class FindOrgController extends ModuleInstance {
+	#[NCA\Inject]
 	public DB $db;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Nadybot $chatBot;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Text $text;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Util $util;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Http $http;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Timer $timer;
 
-	/** @Logger */
+	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
 	protected bool $ready = false;
 
+	/** @var string[] */
 	private array $searches = [
 		'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm',
 		'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z',
 		'others'
 	];
 
-	/** @Setup */
+	#[NCA\Setup]
 	public function setup(): void {
-		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations");
 		$this->ready = $this->db->table("organizations")
 			->where("index", "others")
 			->exists();
@@ -95,9 +91,8 @@ class FindOrgController {
 			->first();
 	}
 
-	/**
-	 * @HandlesCommand("findorg")
-	 */
+	/** Find an organization by its name */
+	#[NCA\HandlesCommand("findorg")]
 	public function findOrgCommand(CmdContext $context, string $search): void {
 		if (!$this->isReady()) {
 			$this->sendNotReadyError($context);
@@ -221,10 +216,10 @@ class FindOrgController {
 		}
 	}
 
-	/**
-	 * @Event("timer(24hrs)")
-	 * @Description("Parses all orgs from People of Rubi Ka")
-	 */
+	#[NCA\Event(
+		name: "timer(24hrs)",
+		description: "Parses all orgs from People of Rubi Ka"
+	)]
 	public function parseAllOrgsEvent(Event $eventObj): void {
 		$this->downloadOrglist();
 	}
@@ -244,5 +239,25 @@ class FindOrgController {
 				->withCallback(function(HttpResponse $response) use ($url, $searchIndex) {
 					$this->handleOrglistResponse($url, $searchIndex, $response);
 				});
+	}
+
+	/** @return Collection<Organization> */
+	public function getOrgsByName(string ...$names): Collection {
+		if (empty($names)) {
+			return new Collection();
+		}
+		return $this->db->table("organizations")
+			->whereIn("name", $names)
+			->asObj(Organization::class);
+	}
+
+	/** @return Collection<Organization> */
+	public function getOrgsById(int ...$ids): Collection {
+		if (empty($ids)) {
+			return new Collection();
+		}
+		return $this->db->table("organizations")
+			->whereIn("id", $ids)
+			->asObj(Organization::class);
 	}
 }

@@ -4,77 +4,79 @@ namespace Nadybot\Modules\RECIPE_MODULE;
 
 use Exception;
 use Illuminate\Support\Collection;
-use Nadybot\Core\CmdContext;
-use Nadybot\Core\DB;
-use Nadybot\Core\ParamClass\PWord;
-use Nadybot\Core\SettingManager;
-use Nadybot\Core\Util;
-use Nadybot\Core\Text;
-use Nadybot\Modules\ITEMS_MODULE\AODBEntry;
-use Nadybot\Modules\ITEMS_MODULE\ItemFlag;
-use Nadybot\Modules\ITEMS_MODULE\ItemsController;
-use Nadybot\Modules\ITEMS_MODULE\Skill;
+use Nadybot\Core\{
+	Attributes as NCA,
+	CmdContext,
+	DB,
+	ModuleInstance,
+	ParamClass\PWord,
+	SettingManager,
+	Util,
+	Text,
+};
+use Nadybot\Modules\ITEMS_MODULE\{
+	AODBItem,
+	ItemFlag,
+	ItemsController,
+	ItemWithBuffs,
+	Skill,
+};
 
 /**
  * @author Nadyita
- * @Instance
- *
- * Commands this controller contains:
- *	@DefineCommand(
- *		command     = 'arulsaba',
- *		accessLevel = 'all',
- *		description = 'Get recipe for Arul Saba bracers',
- *		help        = 'arulsaba.txt',
- *		alias       = 'aruls'
- *	)
  */
-class ArulSabaController {
+#[
+	NCA\Instance,
+	NCA\HasMigrations("Migrations/ArulSaba"),
+	NCA\DefineCommand(
+		command: "arulsaba",
+		accessLevel: "guest",
+		description: "Get recipe for Arul Saba bracers",
+		alias: "aruls"
+	)
+]
+class ArulSabaController extends ModuleInstance {
 	public const ME = 125;
 	public const EE = 126;
 	public const AGI = 17;
 
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
-
-	/** @Inject */
+	#[NCA\Inject]
 	public DB $db;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Util $util;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Text $text;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public ItemsController $itemsController;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public SettingManager $settingManager;
 
-	/** @Setup */
+	#[NCA\Setup]
 	public function setup(): void {
-		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations/ArulSaba");
 		$this->db->loadCSVFile($this->moduleName, __DIR__ . "/arulsaba.csv");
 		$this->db->loadCSVFile($this->moduleName, __DIR__ . "/arulsaba_buffs.csv");
 		$this->db->loadCSVFile($this->moduleName, __DIR__ . "/ingredient.csv");
 		$this->settingManager->add(
-			$this->moduleName,
-			'arulsaba_show_images',
-			"Show images for the Arul Saba steps",
-			"edit",
-			"options",
-			"2",
-			"yes, with links;yes;no",
-			"2;1;0"
+			module: $this->moduleName,
+			name: 'arulsaba_show_images',
+			description: "Show images for the Arul Saba steps",
+			mode: "edit",
+			type: "options",
+			value: "2",
+			options: [
+				'yes, with links' => 2,
+				'yes' => 1,
+				'no' => 0,
+			]
 		);
 	}
 
-	/**
-	 * @HandlesCommand("arulsaba")
-	 */
+	/** Get a list of all Arul Saba bracelets */
+	#[NCA\HandlesCommand("arulsaba")]
 	public function arulSabaListCommand(CmdContext $context): void {
 		$blob = "<header2>Choose the type of bracer<end>\n";
 		$blob = $this->db->table("arulsaba")
@@ -92,9 +94,9 @@ class ArulSabaController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @HandlesCommand("arulsaba")
-	 */
+	/** See the different types of a specific Arul Saba bracelet */
+	#[NCA\HandlesCommand("arulsaba")]
+	#[NCA\Help\Example("<symbol>arulsaba desert")]
 	public function arulSabaChooseQLCommand(CmdContext $context, PWord $name): void {
 		/** @var Collection<ArulSabaBuffs> */
 		$aruls = $this->db->table("arulsaba_buffs")
@@ -108,21 +110,18 @@ class ArulSabaController {
 		$blob = '';
 		$gems = 0;
 		foreach ($aruls as $arul) {
-			$buffs = $this->db->table("item_buffs AS ib")
-				->join("skills AS s", "ib.attribute_id", "s.id")
-				->where("ib.item_id", $arul->left_aoid)
-				->select("s.name", "ib.amount", "s.unit")
-				->asObj();
 			$item = $this->itemsController->findById($arul->left_aoid);
 			if (!isset($item)) {
 				$context->reply("Cannot find item #{$arul->left_aoid} in bot's item database.");
 				return;
 			}
+			/** @var ItemWithBuffs */
+			$item = $this->itemsController->addBuffs($item)->firstOrFail();
 			$shortName = preg_replace("/^.*\((.+?) - Left\)$/", "$1", $item->name);
 			$blob .= "<header2>{$shortName}<end>\n".
 				"<tab>Min level: <highlight>{$arul->min_level}<end>\n";
-			foreach ($buffs as $buff) {
-				$blob .= "<tab>{$buff->name}: <highlight>+{$buff->amount}{$buff->unit}<end>\n";
+			foreach ($item->buffs as $buff) {
+				$blob .= "<tab>{$buff->skill->name}: <highlight>+{$buff->amount}{$buff->skill->unit}<end>\n";
 			}
 			$leftLink = $this->text->makeChatcmd("Left", "/tell <myname> arulsaba {$arul->name} {$gems} left");
 			$rightLink = $this->text->makeChatcmd("Right", "/tell <myname> arulsaba {$arul->name} {$gems} right");
@@ -142,7 +141,7 @@ class ArulSabaController {
 		if (!isset($ing->aoid)) {
 			return $ing;
 		}
-		$ing->item = $this->itemsController->findById($ing->aoid);
+		$ing->item = AODBItem::fromEntry($this->itemsController->findById($ing->aoid));
 		if (isset($ing->item)) {
 			$ql ??= $ing->item->lowql;
 			$ing->item->ql = $ql;
@@ -180,11 +179,15 @@ class ArulSabaController {
 		return $this->enrichIngredient($ing, $amount, $ql, $qlCanBeHigher);
 	}
 
-	/**
-	 * @HandlesCommand("arulsaba")
-	 * @Mask $side (left|right)
-	 */
-	public function arulSabaRecipeCommand(CmdContext $context, PWord $type, int $numGems, string $side): void {
+	/** See the recipe for a specific Arul Sabe bracelet */
+	#[NCA\HandlesCommand("arulsaba")]
+	#[NCA\Help\Example("<symbol>arulsaba desert 5 left")]
+	public function arulSabaRecipeCommand(
+		CmdContext $context,
+		PWord $type,
+		int $numGems,
+		#[NCA\StrChoice("left", "right")] string $side
+	): void {
 		$type = ucfirst(strtolower($type()));
 		$reqGems = max(1, $numGems);
 		$side = strtolower($side);
@@ -352,13 +355,13 @@ class ArulSabaController {
 		$blob = $this->renderIngredients($ingredients);
 
 		$blob .= "<pagebreak><header2>Balancing the blueprint<end>\n".
-			$this->renderStep($adjuster, $bPrint, $bbPrint, [static::ME => "*3", static::EE => "*3.2"]);
-		$liqSilver         = $this->itemsController->findByName("Liquid Silver", $ingot->ql);
-		$silFilWire        = $this->itemsController->findByName("Silver Filigree Wire", $ingot->ql);
-		$silNaCircWire     = $this->itemsController->findByName("Silver Nano Circuitry Filigree Wire", $ingot->ql);
-		$nanoSensor        = $this->itemsController->findById(150923);
-		$intNanoSensor     = $this->itemsController->findById(150926);
-		$circuitry         = $this->itemsController->findByName("Bracelet Circuitry", $ingot->ql);
+			$this->renderStep($adjuster, $bPrint, $bbPrint, [self::ME => "*3", self::EE => "*3.2"]);
+		$liqSilver         = AODBItem::fromEntry($this->itemsController->findByName("Liquid Silver", $ingot->ql));
+		$silFilWire        = AODBItem::fromEntry($this->itemsController->findByName("Silver Filigree Wire", $ingot->ql));
+		$silNaCircWire     = AODBItem::fromEntry($this->itemsController->findByName("Silver Nano Circuitry Filigree Wire", $ingot->ql));
+		$nanoSensor        = AODBItem::fromEntry($this->itemsController->findById(150923));
+		$intNanoSensor     = AODBItem::fromEntry($this->itemsController->findById(150926));
+		$circuitry         = AODBItem::fromEntry($this->itemsController->findByName("Bracelet Circuitry", $ingot->ql));
 		if (!isset($liqSilver)
 			|| !isset($silFilWire)
 			|| !isset($silNaCircWire)
@@ -377,12 +380,12 @@ class ArulSabaController {
 		$circuitry->ql     = $silNaCircWire->ql;
 
 		$blob .= "\n<pagebreak><header2>Bracelet circuitry ({$reqGems}x)<end>\n".
-			$this->renderStep($furnace, $ingot, $liqSilver, [static::ME => "*3"]).
-			$this->renderStep($wireMachine, $liqSilver, $silFilWire, [static::ME => "*4.5"]).
-			$this->renderStep($wire, $silFilWire, $silNaCircWire, [static::ME => "*4",    static::AGI => "*1.7"]).
+			$this->renderStep($furnace, $ingot, $liqSilver, [self::ME => "*3"]).
+			$this->renderStep($wireMachine, $liqSilver, $silFilWire, [self::ME => "*4.5"]).
+			$this->renderStep($wire, $silFilWire, $silNaCircWire, [self::ME => "*4",    self::AGI => "*1.7"]).
 			$this->renderStep($screwdriver, $junk, $nanoSensor).
-			$this->renderStep($wire, $nanoSensor, $intNanoSensor, [static::ME => "*3.5",  static::EE  => "*4.25"]).
-			$this->renderStep($intNanoSensor, $silNaCircWire, $circuitry, [static::ME => "*4.25", static::EE  => "*4.8", static::AGI => "*1.8"]);
+			$this->renderStep($wire, $nanoSensor, $intNanoSensor, [self::ME => "*3.5",  self::EE  => "*4.25"]).
+			$this->renderStep($intNanoSensor, $silNaCircWire, $circuitry, [self::ME => "*4.25", self::EE  => "*4.8", self::AGI => "*1.8"]);
 
 		$socket = ($reqGems > 1) ? "{$reqGems} sockets" : "a socket";
 		$blob .= "\n<pagebreak><header2>Add {$socket} to the bracelet<end>\n";
@@ -394,7 +397,7 @@ class ArulSabaController {
 			$result->name = "Unfinished Bracelet of Arul Saba";
 
 			$result->ql = $result->lowql;
-			$blob .= $this->renderStep($circuitry, $target, $result, [static::ME => "*4", static::EE => "*4.2"]);
+			$blob .= $this->renderStep($circuitry, $target, $result, [self::ME => "*4", self::EE => "*4.2"]);
 			$target = $result;
 		}
 		if (!isset($result)) {
@@ -402,12 +405,12 @@ class ArulSabaController {
 			return;
 		}
 
-		/** @var AODBEntry $result */
+		/** @var AODBItem $result */
 		$coated = clone($result);
 		$coated->lowid = $coated->highid = $finished[$numGems][$side];
 		$coated->name = "Bracelet of Arul Saba";
 		$blob .= "\n<pagebreak><header2>Add silver coating<end>\n".
-			$this->renderStep($furnace, $ingot, $liqSilver, [static::ME => "*3"]).
+			$this->renderStep($furnace, $ingot, $liqSilver, [self::ME => "*3"]).
 			$this->renderStep($liqSilver, $result, $coated);
 
 		$blob .= "\n<pagebreak><header2>Add the gems<end>\n";
@@ -417,13 +420,13 @@ class ArulSabaController {
 			$resultName = "Bracelet of Arul Saba ({$prefix} {$arul->name} - ".
 				($i + 1) . "/{$reqGems} - ".
 				ucfirst($side) . ")";
-			$result = $this->itemsController->findByName($resultName);
+			$result = AODBItem::fromEntry($this->itemsController->findByName($resultName));
 			if (!isset($result)) {
 				$context->reply("Unable to find the item {$resultName} in your bot's item database.");
 				return;
 			}
 			$result->ql = $result->lowql;
-			$blob .= $this->renderStep($gem, $target, $result, [static::ME => $gemGrades[$i][2], static::EE => $gemGrades[$i][3]]);
+			$blob .= $this->renderStep($gem, $target, $result, [self::ME => $gemGrades[$i][2], self::EE => $gemGrades[$i][3]]);
 			$target = $result;
 		}
 
@@ -440,17 +443,20 @@ class ArulSabaController {
 		$context->reply($msg);
 	}
 
-	protected function renderStep(AODBEntry $source, AODBEntry $dest, AODBEntry $result, array $skillReqs=[]): string {
+	/**
+	 * @param array<int,string|int> $skillReqs
+	 */
+	protected function renderStep(AODBItem $source, AODBItem $dest, AODBItem $result, array $skillReqs=[]): string {
 		$showImages = $this->settingManager->getInt('arulsaba_show_images');
-		$sLink = $this->text->makeItem($source->lowid, $source->highid, $source->ql, $source->name);
+		$sLink = $source->getLink();
 		$sIcon = $this->text->makeImage($source->icon);
-		$sIconLink = $this->text->makeItem($source->lowid, $source->highid, $source->ql, $sIcon);
-		$dLink = $this->text->makeItem($dest->lowid, $dest->highid, $dest->ql, $dest->name);
+		$sIconLink = $source->getLink(name: $sIcon);
+		$dLink = $dest->getLink();
 		$dIcon = $this->text->makeImage($dest->icon);
-		$dIconLink = $this->text->makeItem($dest->lowid, $dest->highid, $dest->ql, $dIcon);
-		$rLink = $this->text->makeItem($result->lowid, $result->highid, $result->ql, $result->name);
+		$dIconLink = $dest->getLink(name: $dIcon);
+		$rLink = $result->getLink();
 		$rIcon = $this->text->makeImage($result->icon);
-		$rIconLink = $this->text->makeItem($result->lowid, $result->highid, $result->ql, $rIcon);
+		$rIconLink = $result->getLink(name: $rIcon);
 
 		$line = "";
 

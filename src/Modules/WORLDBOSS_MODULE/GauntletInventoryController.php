@@ -3,7 +3,9 @@
 namespace Nadybot\Modules\WORLDBOSS_MODULE;
 
 use Nadybot\Core\{
+	Attributes as NCA,
 	CmdContext,
+	ModuleInstance,
 	Modules\ALTS\AltsController,
 	Modules\PREFERENCES\Preferences,
 	ParamClass\PCharacter,
@@ -14,36 +16,27 @@ use Nadybot\Core\{
 /**
  * @author Equi
  * @author Nadyita (RK5) <nadyita@hodorraid.org>
- * @Instance
- *
- * Commands this controller contains:
- *
- *	@DefineCommand(
- *		command     = 'gaulist',
- *		accessLevel = 'member',
- *		description = 'Manage the stuff you got and need from the Gauntlet',
- *		help        = 'gaulist.txt'
- *	)
  */
-class GauntletInventoryController {
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
-
-	/** @Inject */
+#[
+	NCA\Instance,
+	NCA\DefineCommand(
+		command: "gaulist",
+		accessLevel: "member",
+		description: "Manage the stuff you got and need from the Gauntlet",
+	)
+]
+class GauntletInventoryController extends ModuleInstance {
+	#[NCA\Inject]
 	public Text $text;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public AltsController $altsController;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Preferences $preferences;
 
 	/**
 	 * (ref , image, need) 17 items without basic armor
-	 *
 	 * @var int[][]
 	 * @psalm-var list<array{0: int, 1: int, 2: int}>
 	 */
@@ -55,17 +48,19 @@ class GauntletInventoryController {
 		[292517, 292762, 3]
 	];
 
+	/** @return int[] */
 	public function getData(string $name): array {
 		$data = $this->preferences->get($name, 'gauntlet');
 		if (isset($data)) {
-			return json_decode($data);
+			return \Safe\json_decode($data);
 		} else {
 			return array_fill(0, 17, 0);
 		}
 	}
 
+	/** @param int[] $inv */
 	public function saveData(string $sender, array $inv): void {
-		$this->preferences->save($sender, 'gauntlet', json_encode($inv));
+		$this->preferences->save($sender, 'gauntlet', \Safe\json_encode($inv));
 	}
 
 	/**
@@ -119,10 +114,13 @@ class GauntletInventoryController {
 		return $blob;
 	}
 
-	/**
-	 * @HandlesCommand("gaulist")
-	 */
-	public function gaulistExtraCommand(CmdContext $context, ?PCharacter $name, ?int $numArmors): void {
+	/** Show the Gauntlet inventory for you or someone else, wanting to make &lt;num armors&gt; */
+	#[NCA\HandlesCommand("gaulist")]
+	public function gaulistExtraCommand(
+		CmdContext $context,
+		?PCharacter $name,
+		?int $numArmors
+	): void {
 		$name = isset($name) ? $name() : $context->char->name;
 		$numArmors ??= 1;
 		$msg = $this->renderBastionInventory($name, $numArmors);
@@ -138,11 +136,15 @@ class GauntletInventoryController {
 		return true;
 	}
 
-	/**
-	 * @HandlesCommand("gaulist")
-	 * @Mask $action add
-	 */
-	public function gaulistAddCommand(CmdContext $context, string $action, PCharacter $name, int $pos): void {
+	/** Add the item &lt;pos&gt; to &lt;name&gt;'s Gauntlet inventory */
+	#[NCA\HandlesCommand("gaulist")]
+	#[NCA\Help\Hide()]
+	public function gaulistAddCommand(
+		CmdContext $context,
+		#[NCA\Str("add")] string $action,
+		PCharacter $name,
+		int $pos
+	): void {
 		$name = $name();
 		// Check and increase item
 		if ($this->altCheck($context, $context->char->name, $name) === false) {
@@ -160,10 +162,15 @@ class GauntletInventoryController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @HandlesCommand("gaulist")
-	 */
-	public function gaulistDelCommand(CmdContext $context, PRemove $action, PCharacter $name, int $pos): void {
+	/** Remove the item &lt;pos&gt; from &lt;name&gt;'s Gauntlet inventory */
+	#[NCA\HandlesCommand("gaulist")]
+	#[NCA\Help\Hide()]
+	public function gaulistDelCommand(
+		CmdContext $context,
+		PRemove $action,
+		PCharacter $name,
+		int $pos
+	): void {
 		$name = $name();
 		// Check and increase item
 		if ($this->altCheck($context, $context->char->name, $name) === false) {

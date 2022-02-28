@@ -10,7 +10,7 @@ use Nadybot\Core\SchemaMigration;
 class LengthenLongDescr implements SchemaMigration {
 	public function migrate(LoggerWrapper $logger, DB $db): void {
 		$table = "playfields";
-		$db->schema()->table($table, function(Blueprint $table) {
+		$db->schema()->table($table, function(Blueprint $table): void {
 			$table->string("long_name", 30)->change();
 		});
 	}

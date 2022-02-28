@@ -2,34 +2,37 @@
 
 namespace Nadybot\Modules\DISCORD_GATEWAY_MODULE;
 
-use Nadybot\Core\Channels\DiscordChannel as ChannelsDiscordChannel;
-use Nadybot\Core\CommandReply;
-use Nadybot\Core\MessageEmitter;
-use Nadybot\Core\MessageHub;
-use Nadybot\Core\Modules\DISCORD\DiscordAPIClient;
-use Nadybot\Core\Modules\DISCORD\DiscordChannel;
-use Nadybot\Core\Modules\DISCORD\DiscordController;
-use Nadybot\Core\Modules\DISCORD\DiscordMessageIn;
-use Nadybot\Core\Nadybot;
-use Nadybot\Core\Routing\Character;
-use Nadybot\Core\Routing\RoutableMessage;
-use Nadybot\Core\Routing\Source;
+use Nadybot\Core\{
+	Attributes as NCA,
+	Channels\DiscordChannel as ChannelsDiscordChannel,
+	CommandReply,
+	MessageEmitter,
+	MessageHub,
+	Modules\DISCORD\DiscordAPIClient,
+	Modules\DISCORD\DiscordChannel,
+	Modules\DISCORD\DiscordController,
+	Modules\DISCORD\DiscordMessageIn,
+	Nadybot,
+	Routing\Character,
+	Routing\RoutableMessage,
+	Routing\Source,
+};
 use Nadybot\Modules\DISCORD_GATEWAY_MODULE\Model\GuildMember;
 
 class DiscordMessageCommandReply implements CommandReply, MessageEmitter {
-	/** @Inject */
+	#[NCA\Inject]
 	public DiscordAPIClient $discordAPIClient;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public DiscordController $discordController;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public DiscordGatewayController $discordGatewayController;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public MessageHub $messageHub;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Nadybot $chatBot;
 
 	protected string $channelId;
@@ -62,7 +65,7 @@ class DiscordMessageCommandReply implements CommandReply, MessageEmitter {
 			$msg = [$msg];
 		}
 		$fakeGM = new GuildMember();
-		$fakeGM->nick = $this->chatBot->vars["name"];
+		$fakeGM->nick = $this->chatBot->char->name;
 		if (!$this->isDirectMsg) {
 			$this->discordGatewayController->lookupChannel(
 				$this->channelId,
@@ -77,7 +80,10 @@ class DiscordMessageCommandReply implements CommandReply, MessageEmitter {
 		foreach ($msg as $msgPack) {
 			$messageObj = $this->discordController->formatMessage($msgPack);
 			if (isset($this->message)) {
-				$messageObj->message_reference = (object)["message_id" => $this->message->id];
+				$messageObj->message_reference = (object)[
+					"message_id" => $this->message->id,
+					"channel_id" => $this->channelId,
+				];
 			}
 			$this->discordAPIClient->queueToChannel($this->channelId, $messageObj->toJSON());
 		}

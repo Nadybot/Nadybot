@@ -16,24 +16,24 @@ class CreateRaidPointsLogTable implements SchemaMigration {
 			if ($db->schema()->hasColumn($table, "individual")) {
 				return;
 			}
-			$db->schema()->table($table, function(Blueprint $table) {
+			$db->schema()->table($table, function(Blueprint $table): void {
 				$table->boolean("individual")->default(true)->index()->change();
 			});
-			$db->table($table)->asObj()->each(function(stdClass $log) use ($db, $table) {
+			$db->table($table)->get()->each(function(stdClass $log) use ($db, $table) {
 				$db->table($table)
-					->where("time", $log->time)
-					->where("username", $log->username)
-					->where("changed_by", $log->changed_by)
-					->where("delta", $log->delta)
-					->where("reason", $log->reason)
-					->where("ticker", $log->ticker)
+					->where("time", (int)$log->time)
+					->where("username", (string)$log->username)
+					->where("changed_by", (string)$log->changed_by)
+					->where("delta", (int)$log->delta)
+					->where("reason", (string)$log->reason)
+					->where("ticker", (int)$log->ticker)
 					->update([
-						"individual" => !$log->ticker && !in_array($log->reason, ["reward", "penalty"])
+						"individual" => !$log->ticker && !in_array((string)$log->reason, ["reward", "penalty"])
 					]);
 			});
 			return;
 		}
-		$db->schema()->create($table, function(Blueprint $table) {
+		$db->schema()->create($table, function(Blueprint $table): void {
 			$table->string("username", 20)->index();
 			$table->integer("delta");
 			$table->integer("time")->index();

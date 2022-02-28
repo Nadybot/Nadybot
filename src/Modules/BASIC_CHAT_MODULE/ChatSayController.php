@@ -2,59 +2,57 @@
 
 namespace Nadybot\Modules\BASIC_CHAT_MODULE;
 
-use Nadybot\Core\CmdContext;
-use Nadybot\Core\EventManager;
-use Nadybot\Core\Nadybot;
+use Nadybot\Core\{
+	Attributes as NCA,
+	CmdContext,
+	EventManager,
+	ModuleInstance,
+	Nadybot,
+};
 
 /**
- * @Instance
- *
  * @author Legendadv (RK2)
  * @author Derroylo (RK2)
  * @author Marebone (RK2)
  *
- * The ChatSayController class allows user to send messages to either org
+ * The ChatSayController class allows users to send messages to either org
  * channel or to private (guest) channel.
- *
- * Commands this class contains:
- *	@DefineCommand(
- *		command     = 'say',
- *		accessLevel = 'rl',
- *		description = 'Sends message to org chat or private chat',
- *		help        = 'say.txt'
- *	)
- *	@DefineCommand(
- *		command     = 'tell',
- *		accessLevel = 'rl',
- *		description = 'Repeats a message 3 times',
- *      help        = 'tell.txt'
- *	)
- *	@DefineCommand(
- *		command     = 'cmd',
- *		accessLevel = 'rl',
- *		description = 'Creates a highly visible message',
- *      help        = 'cmd.txt'
- *	)
- *	@ProvidesEvent("leadersay")
- *	@ProvidesEvent("leadercmd")
  */
-class ChatSayController {
-
-	/** @Inject */
+#[
+	NCA\Instance,
+	NCA\DefineCommand(
+		command: "say",
+		accessLevel: "rl",
+		description: "Sends message to org chat or private chat",
+	),
+	NCA\DefineCommand(
+		command: "tell",
+		accessLevel: "rl",
+		description: "Repeats a message 3 times",
+	),
+	NCA\DefineCommand(
+		command: "cmd",
+		accessLevel: "rl",
+		description: "Creates a highly visible message",
+	),
+	NCA\ProvidesEvent("leadersay"),
+	NCA\ProvidesEvent("leadercmd")
+]
+class ChatSayController extends ModuleInstance {
+	#[NCA\Inject]
 	public Nadybot $chatBot;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public ChatLeaderController $chatLeaderController;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public EventManager $eventManager;
 
 	/**
-	 * This command handler sends message to org chat.
-	 * @HandlesCommand("say")
-	 * @Mask $channel org
+	 * Have the bot say something in the org channel
 	 */
-	public function sayOrgCommand(CmdContext $context, string $channel, string $message): void {
+	#[NCA\HandlesCommand("say")]
+	public function sayOrgCommand(CmdContext $context, #[NCA\Str("org")] string $channel, string $message): void {
 		if (!$this->chatLeaderController->checkLeaderAccess($context->char->name)) {
 			$context->reply("You must be Raid Leader to use this command.");
 			return;
@@ -68,11 +66,10 @@ class ChatSayController {
 	}
 
 	/**
-	 * This command handler sends message to private channel.
-	 * @HandlesCommand("say")
-	 * @Mask $channel priv
+	 * Have the bot say something in the private channel
 	 */
-	public function sayPrivCommand(CmdContext $context, string $channel, string $message): void {
+	#[NCA\HandlesCommand("say")]
+	public function sayPrivCommand(CmdContext $context, #[NCA\Str("priv")] string $channel, string $message): void {
 		if (!$this->chatLeaderController->checkLeaderAccess($context->char->name)) {
 			$context->reply("You must be Raid Leader to use this command.");
 			return;
@@ -86,9 +83,10 @@ class ChatSayController {
 	}
 
 	/**
-	 * This command handler creates a highly visible message.
-	 * @HandlesCommand("cmd")
+	 * Show a highly visible message
 	 */
+	#[NCA\HandlesCommand("cmd")]
+	#[NCA\Help\Group("cmd")]
 	public function cmdCommand(CmdContext $context, string $message): void {
 		if (!$this->chatLeaderController->checkLeaderAccess($context->char->name)) {
 			$context->reply("You must be Raid Leader to use this command.");
@@ -113,9 +111,10 @@ class ChatSayController {
 	}
 
 	/**
-	 * This command handler repeats a message 3 times.
-	 * @HandlesCommand("tell")
+	 * Repeat a message 3 times
 	 */
+	#[NCA\HandlesCommand("tell")]
+	#[NCA\Help\Group("cmd")]
 	public function tellCommand(CmdContext $context, string $message): void {
 		if (!$this->chatLeaderController->checkLeaderAccess($context->char->name)) {
 			$context->reply("You must be Raid Leader to use this command.");

@@ -1,8 +1,0 @@
-To show the current topic:
-<highlight><tab><symbol>topic<end>
-
-To set the topic:
-<highlight><tab><symbol>topic 'text'<end>
-
-To clear the topic:
-<highlight><tab><symbol>topic clear<end>

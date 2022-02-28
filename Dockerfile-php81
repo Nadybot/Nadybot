@@ -1,0 +1,62 @@
+FROM quay.io/nadyita/alpine:3.15
+ARG VERSION
+
+LABEL maintainer="nadyita@hodorraid.org" \
+      description="self-sustaining docker image to run latest Nadybot" \
+      org.opencontainers.image.source="https://github.com/Nadybot/Nadybot"
+
+ENTRYPOINT ["/sbin/tini", "-g", "--"]
+
+CMD ["/nadybot/docker-entrypoint.sh"]
+
+RUN apk --no-cache --repository http://dl-3.alpinelinux.org/alpine/edge/testing/ add \
+    php81-cli \
+    php81-sqlite3 \
+    php81-phar \
+    php81-curl \
+    php81-sockets \
+    php81-pdo \
+    php81-pdo_sqlite \
+    php81-pdo_mysql \
+    php81-mbstring \
+    php81-ctype \
+    php81-bcmath \
+    php81-json \
+    php81-posix \
+    php81-simplexml \
+    php81-dom \
+    php81-pcntl \
+    php81-zip \
+    php81-opcache \
+    php81-fileinfo \
+	tini \
+    && \
+    adduser -h /nadybot -s /bin/false -D -H nadybot
+
+COPY --chown=nadybot:nadybot . /nadybot
+
+RUN wget -O /usr/bin/composer https://getcomposer.org/composer-2.phar && \
+    chmod +x /usr/bin/composer && \
+    apk --no-cache add \
+        sudo \
+        jq \
+    && \
+    cd /nadybot && \
+    mkdir -p data/db cache && \
+    sudo -u nadybot jq 'del(."require-dev")' composer.json > composer.php8.json && \
+    mv composer.php8.json composer.json && \
+    sudo -u nadybot php81 /usr/bin/composer update --no-dev --no-interaction --no-progress && \
+    sudo -u nadybot php81 /usr/bin/composer install --no-dev --no-interaction --no-progress && \
+    sudo -u nadybot php81 /usr/bin/composer dumpautoload --no-dev --optimize --no-interaction 2>&1 | grep -v "/20[0-9]\{12\}_.*autoload" && \
+    sudo -u nadybot php81 /usr/bin/composer clear-cache && \
+    rm -f /usr/bin/composer && \
+    jq 'del(.monolog.handlers.logs)' conf/logging.json > conf/logging.json.2 && \
+    mv conf/logging.json.2 conf/logging.json && \
+    apk del --no-cache sudo jq && \
+    if [ "x${VERSION}" != "x" ]; then \
+        sed -i -e "s/public const VERSION = \"[^\"]*\";/public const VERSION = \"${VERSION:-4.0}\";/g" src/Core/BotRunner.php; \
+    fi
+
+USER nadybot
+
+WORKDIR /nadybot

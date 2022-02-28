@@ -11,7 +11,7 @@ class CreateImplantRequirementsTable implements SchemaMigration {
 	public function migrate(LoggerWrapper $logger, DB $db): void {
 		$table = "implant_requirements";
 		$db->schema()->dropIfExists($table);
-		$db->schema()->create($table, function(Blueprint $table) {
+		$db->schema()->create($table, function(Blueprint $table): void {
 			$table->integer("ql")->primary();
 			$table->integer("treatment");
 			$table->integer("ability");

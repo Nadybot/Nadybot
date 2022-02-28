@@ -2,9 +2,9 @@
 
 namespace Nadybot\Core;
 
-/**
- * @Instance
- */
+use Nadybot\Core\Attributes as NCA;
+
+#[NCA\Instance]
 class Timer {
 	/**
 	 * Array of waiting timer events.
@@ -15,10 +15,8 @@ class Timer {
 
 	/**
 	 * Execute all timer events that are due now
-	 *
-	 * @return void
 	 */
-	public function executeTimerEvents() {
+	public function executeTimerEvents(): void {
 		// execute timer events
 		$time = time();
 		while (count($this->timerEvents) > 0 && $this->timerEvents[0]->time <= $time) {
@@ -37,12 +35,12 @@ class Timer {
 	 *  * ... - optional values which are same as given as arguments to this method.
 	 *
 	 * Example usage:
-	 * <code>
+	 *
 	 * $this->util->callLater(5, fn($message) => print $message, 'Hello World');
-	 * </code>
+	 *
 	 * Prints 'Hello World' after 5 seconds.
 	 */
-	public function callLater(int $delay, callable $callback, ...$additionalArgs): TimerEvent {
+	public function callLater(int $delay, callable $callback, mixed ...$additionalArgs): TimerEvent {
 		return $this->addTimerEvent($delay, $callback, $additionalArgs);
 	}
 
@@ -67,8 +65,8 @@ class Timer {
 
 	/**
 	 * Adds a new timer event.
-	 *
 	 * $callback will be called with arguments $args array after $delay seconds.
+	 * @param mixed[] $args
 	 */
 	private function addTimerEvent(int $delay, callable $callback, array $args): TimerEvent {
 		$event = new TimerEvent(time() + $delay, $delay, $callback, $args);

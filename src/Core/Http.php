@@ -2,12 +2,11 @@
 
 namespace Nadybot\Core;
 
-/**
- * @Instance
- */
-class Http {
+use Nadybot\Core\Attributes as NCA;
 
-	/** @Inject */
+#[NCA\Instance]
+class Http {
+	#[NCA\Inject]
 	public Timer $timer;
 
 	/**

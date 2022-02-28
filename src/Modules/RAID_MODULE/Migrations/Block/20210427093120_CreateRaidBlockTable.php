@@ -14,7 +14,7 @@ class CreateRaidBlockTable implements SchemaMigration {
 		if ($db->schema()->hasTable($table)) {
 			return;
 		}
-		$db->schema()->create($table, function(Blueprint $table) {
+		$db->schema()->create($table, function(Blueprint $table): void {
 			$table->string("player", 15)->index();
 			$table->string("blocked_from", 20);
 			$table->string("blocked_by", 15);

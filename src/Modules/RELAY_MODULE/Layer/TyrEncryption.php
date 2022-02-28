@@ -2,12 +2,21 @@
 
 namespace Nadybot\Modules\RELAY_MODULE\Layer;
 
+use Nadybot\Core\Attributes as NCA;
 
-/**
- * @RelayStackMember("tyr-encryption")
- * @Description('This adds tyrbot-compatible encryption to the relay-stack.')
- * @Param(name='password', description='The password to encrypt with', type='secret', required=true)
- */
+
+#[
+	NCA\RelayStackMember(
+		name: "tyr-encryption",
+		description: "This adds tyrbot-compatible encryption to the relay-stack."
+	),
+	NCA\Param(
+		name: "password",
+		type: "secret",
+		description: "The password to encrypt with",
+		required: true
+	)
+]
 class TyrEncryption extends Fernet {
 	public function __construct(string $password) {
 		parent::__construct($password, "tyrbot", "sha256", 10000);

@@ -4,70 +4,58 @@ namespace Nadybot\Modules\DEV_MODULE;
 
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
+	Attributes as NCA,
 	CmdContext,
 	CommandManager,
 	Event,
-	CommandReply,
 	DB,
 	DBSchema\CmdCfg,
+	ModuleInstance,
 	LoggerWrapper,
+	ParamClass\PWord,
 	Text,
 };
-use Nadybot\Core\ParamClass\PWord;
 
 /**
  * @author Tyrence (RK2)
- *
- * @Instance
- *
- * Commands this controller contains:
- *	@DefineCommand(
- *		command     = 'silence',
- *		accessLevel = 'mod',
- *		description = 'Silence commands in a particular channel',
- *		help        = 'silence.txt'
- *	)
- *	@DefineCommand(
- *		command     = 'unsilence',
- *		accessLevel = 'mod',
- *		description = 'Unsilence commands in a particular channel',
- *		help        = 'silence.txt'
- *	)
  */
-class SilenceController {
-
+#[
+	NCA\Instance,
+	NCA\HasMigrations,
+	NCA\DefineCommand(
+		command: "silence",
+		accessLevel: "mod",
+		description: "Silence commands in a particular permission set",
+	),
+	NCA\DefineCommand(
+		command: "unsilence",
+		accessLevel: "mod",
+		description: "Unsilence commands in a particular permission set",
+	)
+]
+class SilenceController extends ModuleInstance {
 	public const DB_TABLE = "silence_cmd_<myname>";
 
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
-
-	/** @Inject */
+	#[NCA\Inject]
 	public DB $db;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Text $text;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public CommandManager $commandManager;
 
-	/** @Logger */
+	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
 	public const NULL_COMMAND_HANDLER = "SilenceController.nullCommand";
 
-	/**
-	 * @Setup
-	 */
+	#[NCA\Setup]
 	public function setup(): void {
-		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations");
 	}
 
-	/**
-	 * @HandlesCommand("silence")
-	 */
+	/** Get a list of all commands that have been silenced */
+	#[NCA\HandlesCommand("silence")]
 	public function silenceCommand(CmdContext $context): void {
 		/** @var Collection<SilenceCmd> */
 		$data = $this->db->table(self::DB_TABLE)
@@ -87,90 +75,81 @@ class SilenceController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @HandlesCommand("silence")
-	 */
-	public function silenceAddCommand(CmdContext $context, string $command, PWord $channel): void {
+	/** Silence a command for a specific permission set */
+	#[NCA\HandlesCommand("silence")]
+	public function silenceAddCommand(CmdContext $context, string $command, PWord $permissionSet): void {
 		$command = strtolower($command);
-		$channel = strtolower($channel());
-		if ($channel === "org") {
-			$channel = "guild";
-		} elseif ($channel === "tell") {
-			$channel = "msg";
-		}
+		$permissionSet = strtolower($permissionSet());
 
-		$data = $this->commandManager->get($command, $channel);
-		if (count($data) === 0) {
-			$msg = "Could not find command <highlight>$command<end> for channel <highlight>$channel<end>.";
-		} elseif ($this->isSilencedCommand($data[0])) {
-			$msg = "Command <highlight>$command<end> for channel <highlight>$channel<end> has already been silenced.";
+		$cmdCfg = $this->commandManager->get($command);
+		if (!isset($cmdCfg) || !isset($cmdCfg->permissions[$permissionSet]) || !$cmdCfg->permissions[$permissionSet]->enabled) {
+			$msg = "Could not find command <highlight>{$command}<end> for channel <highlight>{$permissionSet}<end>.";
+		} elseif ($this->isSilencedCommand($cmdCfg, $permissionSet)) {
+			$msg = "Command <highlight>{$command}<end> for channel <highlight>{$permissionSet}<end> has already been silenced.";
 		} else {
-			$this->addSilencedCommand($data[0]);
-			$msg = "Command <highlight>$command<end> for channel <highlight>$channel<end> has been silenced.";
+			$this->addSilencedCommand($cmdCfg, $permissionSet);
+			$msg = "Command <highlight>{$command}<end> for channel <highlight>{$permissionSet}<end> has been silenced.";
 		}
 		$context->reply($msg);
 	}
 
-	/**
-	 * @HandlesCommand("unsilence")
-	 */
-	public function unsilenceAddCommand(CmdContext $context, string $command, PWord $channel): void {
+	/** Unsilence a command for a specific permission set */
+	#[NCA\HandlesCommand("unsilence")]
+	public function unsilenceAddCommand(CmdContext $context, string $command, PWord $permissionSet): void {
 		$command = strtolower($command);
-		$channel = strtolower($channel());
-		if ($channel === "org") {
-			$channel = "guild";
-		} elseif ($channel === "tell") {
-			$channel = "msg";
-		}
+		$permissionSet = strtolower($permissionSet());
 
-		$data = $this->commandManager->get($command, $channel);
-		if (count($data) === 0) {
-			$msg = "Could not find command <highlight>$command<end> for channel <highlight>$channel<end>.";
-		} elseif (!$this->isSilencedCommand($data[0])) {
-			$msg = "Command <highlight>$command<end> for channel <highlight>$channel<end> has not been silenced.";
+		$cmdCfg = $this->commandManager->get($command);
+		if (!isset($cmdCfg) || !isset($cmdCfg->permissions[$permissionSet]) || !$cmdCfg->permissions[$permissionSet]->enabled) {
+			$msg = "Could not find command <highlight>{$command}<end> for channel <highlight>{$permissionSet}<end>.";
+		} elseif (!$this->isSilencedCommand($cmdCfg, $permissionSet)) {
+			$msg = "Command <highlight>$command<end> for channel <highlight>$permissionSet<end> has not been silenced.";
 		} else {
-			$this->removeSilencedCommand($data[0]);
-			$msg = "Command <highlight>$command<end> for channel <highlight>$channel<end> has been unsilenced.";
+			$this->removeSilencedCommand($cmdCfg, $permissionSet);
+			$msg = "Command <highlight>$command<end> for channel <highlight>$permissionSet<end> has been unsilenced.";
 		}
 		$context->reply($msg);
 	}
 
 	public function nullCommand(CmdContext $context): void {
-		$this->logger->info("Silencing command '{$context->message}' for channel '{$context->channel}'");
+		$this->logger->info("Silencing command '{command}' for permission set '{permission_set}'", [
+			"command" => $context->message,
+			"permission_set" => $context->permissionSet ?? "<all>"
+		]);
 	}
 
-	public function addSilencedCommand(CmdCfg $row): void {
-		$this->commandManager->activate($row->type, self::NULL_COMMAND_HANDLER, $row->cmd, 'all');
+	public function addSilencedCommand(CmdCfg $row, string $channel): void {
+		$this->commandManager->activate($channel, self::NULL_COMMAND_HANDLER, $row->cmd, 'all');
 		$this->db->table(self::DB_TABLE)
 			->insert([
 				"cmd" => $row->cmd,
-				"channel" => $row->type,
+				"channel" => $channel,
 			]);
 	}
 
-	public function isSilencedCommand(CmdCfg $row): bool {
+	public function isSilencedCommand(CmdCfg $row, string $channel): bool {
 		return $this->db->table(self::DB_TABLE)
 			->where("cmd", $row->cmd)
-			->where("channel", $row->type)
+			->where("channel", $channel)
 			->exists();
 	}
 
-	public function removeSilencedCommand(CmdCfg $row): void {
-		$this->commandManager->activate($row->type, $row->file, $row->cmd, $row->admin);
+	public function removeSilencedCommand(CmdCfg $row, string $channel): void {
+		$this->commandManager->activate($channel, $row->file, $row->cmd, $row->permissions[$channel]->access_level);
 		$this->db->table(self::DB_TABLE)
 			->where("cmd", $row->cmd)
-			->where("channel", $row->type)
+			->where("channel", $channel)
 			->delete();
 	}
 
-	/**
-	 * @Event("connect")
-	 * @Description("Overwrite command handlers for silenced commands")
-	 */
+	#[NCA\Event(
+		name: "connect",
+		description: "Overwrite command handlers for silenced commands"
+	)]
 	public function overwriteCommandHandlersEvent(Event $eventObj): void {
 		$this->db->table(self::DB_TABLE)
 			->asObj(SilenceCmd::class)
-			->each(function (SilenceCmd $row) {
+			->each(function (SilenceCmd $row): void {
 				$this->commandManager->activate($row->channel, self::NULL_COMMAND_HANDLER, $row->cmd, 'all');
 			});
 	}

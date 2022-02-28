@@ -3,18 +3,18 @@
 namespace Nadybot\Core;
 
 use Exception;
-use Nadybot\Core\DBSchema\Audit;
-use Nadybot\Modules\BASIC_CHAT_MODULE\ChatLeaderController;
-use Nadybot\Modules\RAID_MODULE\RaidRankController;
-use Nadybot\Core\Modules\ALTS\AltsController;
-use Nadybot\Modules\GUILD_MODULE\GuildRankController;
-use Nadybot\Modules\PRIVATE_CHANNEL_MODULE\PrivateChannelController;
+use Nadybot\Core\{
+	Attributes as NCA,
+	DBSchema\Audit,
+	Modules\ALTS\AltsController,
+};
+use SplObjectStorage;
 
 /**
  * The AccessLevel class provides functionality for checking a player's access level.
  *
- * @Instance
  */
+#[NCA\Instance]
 class AccessManager {
 	public const DB_TABLE = "audit_<myname>";
 	public const ADD_RANK = "add-rank";
@@ -51,38 +51,46 @@ class AccessManager {
 		// 'raid_level_1'  => 13,
 		'member'        => 14,
 		'rl'            => 15,
-		'all'           => 16,
+		'guest'         => 16,
+		'all'           => 17,
 	];
 
-	/** @Inject */
+	#[NCA\Inject]
 	public DB $db;
 
-	/** @Inject */
-	public SettingObject $setting;
-
-	/** @Inject */
+	#[NCA\Inject]
 	public Nadybot $chatBot;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public AdminManager $adminManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public SettingManager $settingManager;
 
-	/** @Logger */
+	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public AltsController $altsController;
 
-	/** @Inject */
-	public ChatLeaderController $chatLeaderController;
+	#[NCA\Inject]
+	public ConfigFile $config;
 
-	/** @Inject */
-	public GuildRankController $guildRankController;
+	/** @var SplObjectStorage<AccessLevelProvider,AccessLevelProvider> */
+	private SplObjectStorage $providers;
 
-	/** @Inject */
-	public RaidRankController $raidRankController;
+	public function __construct() {
+		$this->providers = new SplObjectStorage();
+	}
+
+	/**
+	 * Registers the given AccessLevelProvider to be queried for the
+	 * access level it provides every time we are calculating a character's
+	 * access level.
+	 */
+	public function registerProvider(AccessLevelProvider $provider): void {
+		$this->providers->attach($provider);
+	}
 
 	/**
 	 * This method checks if given $sender has at least $accessLevel rights.
@@ -182,58 +190,28 @@ class AccessManager {
 		return $displayName;
 	}
 
-	public function highestRank(string $al1, string $al2): string {
-		$cmd = $this->compareAccessLevels($al1, $al2);
-		return ($cmd > 0) ? $al1 : $al2;
-	}
-
 	/**
 	 * Returns the access level of $sender, ignoring guild admin and inheriting access level from main
 	 */
 	public function getSingleAccessLevel(string $sender): string {
-		$orgRank = "all";
-		if (isset($this->chatBot->guildmembers[$sender])
-			&& $this->settingManager->getBool('map_org_ranks_to_bot_ranks')) {
-			$orgRank = $this->guildRankController->getEffectiveAccessLevel(
-				$this->chatBot->guildmembers[$sender]
-			);
-		}
-		if ($this->chatBot->vars["SuperAdmin"] == $sender) {
+		if (in_array($sender, $this->config->superAdmins, true)) {
+			return "superadmin";
+		} elseif (empty($this->config->superAdmins) && $sender === "<no superadmin set>") {
 			return "superadmin";
 		}
-		if (isset($this->adminManager->admins[$sender])) {
-			$level = $this->adminManager->admins[$sender]["level"];
-			if ($level >= 4) {
-				return $this->highestRank($orgRank, "admin");
+		/** @var array<string,int> */
+		$ranks = [];
+		foreach ($this->providers as $provider) {
+			$rank = $provider->getSingleAccessLevel($sender);
+			if (isset($rank)) {
+				$ranks[$rank] = self::$ACCESS_LEVELS[$rank] ?? self::$ACCESS_LEVELS["all"];
 			}
-			if ($level >= 3) {
-				return $this->highestRank($orgRank, "mod");
-			}
 		}
-		if (isset($this->raidRankController->ranks[$sender])) {
-			$rank = $this->raidRankController->ranks[$sender]->rank;
-			if ($rank >= 7) {
-				return $this->highestRank("raid_admin_" . ($rank-6), $orgRank);
-			}
-			if ($rank >= 4) {
-				return $this->highestRank("raid_leader_" . ($rank-3), $orgRank);
-			}
-			return $this->highestRank("raid_level_{$rank}", $orgRank);
+		if (empty($ranks)) {
+			return "all";
 		}
-		if ($this->chatLeaderController !== null && $this->chatLeaderController->getLeader() == $sender) {
-			return $this->highestRank("rl", $orgRank);
-		}
-		if (isset($this->chatBot->guildmembers[$sender])) {
-			return $this->highestRank("guild", $orgRank);
-		}
-
-		if ($this->db->table(PrivateChannelController::DB_TABLE)
-			->where("name", $sender)
-			->exists()
-		) {
-			return "member";
-		}
-		return "all";
+		asort($ranks);
+		return array_keys($ranks)[0];
 	}
 
 	/**
@@ -308,7 +286,7 @@ class AccessManager {
 
 		$accessLevels = $this->getAccessLevels();
 		if (isset($accessLevels[$accessLevel])) {
-			return strtolower($accessLevel);
+			return $accessLevel;
 		}
 		throw new Exception("Invalid access level '$accessLevel'.");
 	}
@@ -316,7 +294,7 @@ class AccessManager {
 	/**
 	 * Return all allowed and known access levels
 	 *
-	 * @return int[] All access levels with the name as key and the number as value
+	 * @return array<string,int> All access levels with the name as key and the number as value
 	 */
 	public function getAccessLevels(): array {
 		return self::$ACCESS_LEVELS;

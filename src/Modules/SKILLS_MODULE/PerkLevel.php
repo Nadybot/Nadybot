@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\SKILLS_MODULE;
 
+use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\DBRow;
 
 class PerkLevel extends DBRow {
@@ -19,35 +20,35 @@ class PerkLevel extends DBRow {
 	/** Required character level to perk this perk level */
 	public int $required_level;
 	/**
-	 * @db:ignore
 	 * @var string[]
 	 */
+	#[NCA\DB\Ignore]
 	public array $professions = [];
 
 	/**
-	 * @db:ignore
 	 * @var array<int,int>
 	 */
+	#[NCA\DB\Ignore]
 	public array $buffs = [];
 
 	/**
-	 * @db:ignore
-	 * @var PerkLevelBuff[]
+	 * @var ExtPerkLevelBuff[]
 	 */
+	#[NCA\DB\Ignore]
 	public array $perk_buffs = [];
 
 	/**
-	 * @db:ignore
 	 * @var array<int,int>
 	 */
+	#[NCA\DB\Ignore]
 	public array $resistances = [];
 
 	/**
-	 * @db:ignore
 	 * @var PerkLevelResistance[]
 	 */
+	#[NCA\DB\Ignore]
 	public array $perk_resistances = [];
 
-	/** @db:ignore */
+	#[NCA\DB\Ignore]
 	public ?PerkLevelAction $action = null;
 }

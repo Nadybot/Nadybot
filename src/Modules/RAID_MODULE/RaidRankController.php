@@ -4,210 +4,226 @@ namespace Nadybot\Modules\RAID_MODULE;
 
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
+	AccessLevelProvider,
 	AccessManager,
 	AdminManager,
+	Attributes as NCA,
 	BuddylistManager,
 	CmdContext,
 	CommandAlias,
 	CommandReply,
 	DB,
 	DBSchema\Audit,
+	ModuleInstance,
 	LoggerWrapper,
 	Modules\ALTS\AltEvent,
 	Modules\ALTS\AltsController,
 	Nadybot,
+	ParamClass\PCharacter,
 	SettingManager,
 	Text,
 };
-use Nadybot\Core\ParamClass\PCharacter;
 
-/**
- * @Instance
- * Commands this controller contains:
- * @DefineCommand(
- *     command       = 'raidadmin',
- *     accessLevel   = 'raid_admin_2',
- *     description   = 'Promote/demote someone to/from raid admin',
- *     help          = 'raidranks.txt'
- * )
- * @DefineCommand(
- *     command       = 'raidleader',
- *     accessLevel   = 'raid_admin_1',
- *     description   = 'Promote/demote someone to/from raid leader',
- *     help          = 'raidranks.txt'
- * )
- *	@DefineCommand(
- *		command       = 'leaderlist',
- *		accessLevel   = 'all',
- *		description   = 'Shows the list of raid leaders and admins',
- *		help          = 'leaderlist.txt',
- *		alias         = 'leaders',
- *		defaultStatus = '1'
- *	)
- */
-class RaidRankController {
+#[
+	NCA\Instance,
+	NCA\HasMigrations("Migrations/Ranks"),
+	NCA\DefineCommand(
+		command: "raidadmin",
+		accessLevel: "raid_admin_2",
+		description: "Promote/demote someone to/from raid admin",
+	),
+	NCA\DefineCommand(
+		command: "raidleader",
+		accessLevel: "raid_admin_1",
+		description: "Promote/demote someone to/from raid leader",
+	),
+	NCA\DefineCommand(
+		command: "leaderlist",
+		accessLevel: "all",
+		description: "Shows the list of raid leaders and admins",
+		defaultStatus: 1,
+		alias: "leaders"
+	)
+]
+class RaidRankController extends ModuleInstance implements AccessLevelProvider {
 	public const DB_TABLE = "raid_rank_<myname>";
-
-	public string $moduleName;
-
-	/** @Inject */
+	#[NCA\Inject]
 	public SettingManager $settingManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public AdminManager $adminManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public AccessManager $accessManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public AltsController $altsController;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public CommandAlias $commandAlias;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public BuddylistManager $buddylistManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Nadybot $chatBot;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public DB $db;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Text $text;
 
-	/** @Logger */
+	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
 	/** @var array<string,RaidRank> */
 	public array $ranks = [];
 
 	/**
-	 * @Setup
 	 * @todo: Add support for the raid levels
 	 */
+	#[NCA\Setup]
 	public function setup(): void {
+		$this->accessManager->registerProvider($this);
 		/**
 		$this->settingManager->add(
-			$this->moduleName,
-			'name_raid_level_1',
-			'Name of the raid points rank 1',
-			'edit',
-			'text',
-			'Experienced Raider'
+			module: $this->moduleName,
+			name: 'name_raid_level_1',
+			description: 'Name of the raid points rank 1',
+			mode: 'edit',
+			type: 'text',
+			value: 'Experienced Raider'
 		);
 		$this->settingManager->add(
-			$this->moduleName,
-			'name_raid_level_2',
-			'Name of the raid points rank 2',
-			'edit',
-			'text',
-			'Veteran Raider'
+			module: $this->moduleName,
+			name: 'name_raid_level_2',
+			description: 'Name of the raid points rank 2',
+			mode: 'edit',
+			type: 'text',
+			value: 'Veteran Raider'
 		);
 		$this->settingManager->add(
-			$this->moduleName,
-			'name_raid_level_3',
-			'Name of the raid points rank 3',
-			'edit',
-			'text',
-			'Elite Raider'
+			module: $this->moduleName,
+			name: 'name_raid_level_3',
+			description: 'Name of the raid points rank 3',
+			mode: 'edit',
+			type: 'text',
+			value: 'Elite Raider'
 		);
 		*/
 
 		$this->settingManager->add(
-			$this->moduleName,
-			'raid_rank_promotion_distance',
-			'Number of raid ranks below your own you can manage',
-			'edit',
-			'number',
-			'1'
+			module: $this->moduleName,
+			name: 'raid_rank_promotion_distance',
+			description: 'Number of raid ranks below your own you can manage',
+			mode: 'edit',
+			type: 'number',
+			value: '1'
 		);
 		$this->settingManager->add(
-			$this->moduleName,
-			'name_raid_leader_1',
-			'Name of the raid leader rank 1',
-			'edit',
-			'text',
-			'Apprentice Leader'
+			module: $this->moduleName,
+			name: 'name_raid_leader_1',
+			description: 'Name of the raid leader rank 1',
+			mode: 'edit',
+			type: 'text',
+			value: 'Apprentice Leader'
 		);
 		$this->settingManager->add(
-			$this->moduleName,
-			'name_raid_leader_2',
-			'Name of the raid leader rank 2',
-			'edit',
-			'text',
-			'Leader'
+			module: $this->moduleName,
+			name: 'name_raid_leader_2',
+			description: 'Name of the raid leader rank 2',
+			mode: 'edit',
+			type: 'text',
+			value: 'Leader'
 		);
 		$this->settingManager->add(
-			$this->moduleName,
-			'name_raid_leader_3',
-			'Name of the raid leader rank 3',
-			'edit',
-			'text',
-			'Veteran Leader'
+			module: $this->moduleName,
+			name: 'name_raid_leader_3',
+			description: 'Name of the raid leader rank 3',
+			mode: 'edit',
+			type: 'text',
+			value: 'Veteran Leader'
 		);
 
 		$this->settingManager->add(
-			$this->moduleName,
-			'name_raid_admin_1',
-			'Name of the raid admin rank 1',
-			'edit',
-			'text',
-			'Apprentice Raid Admin'
+			module: $this->moduleName,
+			name: 'name_raid_admin_1',
+			description: 'Name of the raid admin rank 1',
+			mode: 'edit',
+			type: 'text',
+			value: 'Apprentice Raid Admin'
 		);
 		$this->settingManager->add(
-			$this->moduleName,
-			'name_raid_admin_2',
-			'Name of the raid admin rank 2',
-			'edit',
-			'text',
-			'Raid Admin'
+			module: $this->moduleName,
+			name: 'name_raid_admin_2',
+			description: 'Name of the raid admin rank 2',
+			mode: 'edit',
+			type: 'text',
+			value: 'Raid Admin'
 		);
 		$this->settingManager->add(
-			$this->moduleName,
-			'name_raid_admin_3',
-			'Name of the raid admin rank 3',
-			'edit',
-			'text',
-			'Veteran Raid Admin'
+			module: $this->moduleName,
+			name: 'name_raid_admin_3',
+			description: 'Name of the raid admin rank 3',
+			mode: 'edit',
+			type: 'text',
+			value: 'Veteran Raid Admin'
 		);
 		$this->settingManager->add(
-			$this->moduleName,
-			'raid_duration_recently',
-			'Duration considered "recent" in raid stats for leaders command',
-			'edit',
-			'options',
-			'2592000',
-			'Off;1 Month;3 Months;6 Months;1 Year',
-			'0;2592000;7776000;15552000;31536000'
+			module: $this->moduleName,
+			name: 'raid_duration_recently',
+			description: 'Duration considered "recent" in raid stats for leaders command',
+			mode: 'edit',
+			type: 'options',
+			value: '2592000',
+			options: [
+				'Off' => 0,
+				'1 Month' => 2592000,
+				'3 Months' => 7776000,
+				'6 Months' => 15552000,
+				'1 Year' => 31536000,
+			]
 		);
 		$this->commandAlias->register($this->moduleName, "raidadmin", "raid admin");
 		$this->commandAlias->register($this->moduleName, "raidleader", "raid leader");
 	}
 
-	/**
-	 * @Event("connect")
-	 * @Description("Add raid leader and admins to the buddy list")
-	 * @DefaultStatus("1")
-	 */
+	public function getSingleAccessLevel(string $sender): ?string {
+		if (!isset($this->ranks[$sender])) {
+			return null;
+		}
+		$rank = $this->ranks[$sender]->rank;
+		if ($rank >= 7) {
+			return "raid_admin_" . ($rank-6);
+		}
+		if ($rank >= 4) {
+			return "raid_leader_" . ($rank-3);
+		}
+		return "raid_level_{$rank}";
+	}
+
+	#[NCA\Event(
+		name: "connect",
+		description: "Add raid leader and admins to the buddy list",
+		defaultStatus: 1
+	)]
 	public function checkRaidRanksEvent(): void {
 		$this->db->table(self::DB_TABLE)
 			->asObj(RaidRank::class)
-			->each(function (RaidRank $row) {
+			->each(function (RaidRank $row): void {
 				$this->buddylistManager->add($row->name, 'raidrank');
 			});
 	}
 
 	/**
 	 * Load the raid leaders, admins and veterans from the database into $ranks
-	 * @Setup
 	 */
+	#[NCA\Setup]
 	public function uploadRaidRanks(): void {
-		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations/Ranks");
 		$this->db->table(self::DB_TABLE)
 			->asObj(RaidRank::class)
-			->each(function (RaidRank $row) {
+			->each(function (RaidRank $row): void {
 				$this->ranks[$row->name] = $row;
 			});
 	}
@@ -234,7 +250,6 @@ class RaidRankController {
 
 	/**
 	 * Set the raid rank of a user
-	 *
 	 * @return string Either "demoted" or "promoted"
 	 */
 	public function addToLists(string $who, string $sender, int $rank): string {
@@ -360,6 +375,7 @@ class RaidRankController {
 		return true;
 	}
 
+	/** @param int[] $ranks */
 	public function remove(string $who, string $sender, CommandReply $sendto, array $ranks, string $rankName): bool {
 		if (!in_array($this->ranks[$who]->rank ?? null, $ranks)) {
 			$sendto->reply("<highlight>$who<end> is not $rankName.");
@@ -383,11 +399,15 @@ class RaidRankController {
 		return true;
 	}
 
-	/**
-	 * @HandlesCommand("raidadmin")
-	 * @Mask $action (add|promote)
-	 */
-	public function raidAdminAddCommand(CmdContext $context, string $action, PCharacter $char, ?int $rank): void {
+	/** Promote someone to raid admin */
+	#[NCA\HandlesCommand("raidadmin")]
+	#[NCA\Help\Group("raid-ranks")]
+	public function raidAdminAddCommand(
+		CmdContext $context,
+		#[NCA\Str("add", "promote")] string $action,
+		PCharacter $char,
+		?int $rank
+	): void {
 		$rank ??= 1;
 		if ($rank < 1 || $rank > 3) {
 			$context->reply("The admin rank must be a number between 1 and 3");
@@ -398,21 +418,28 @@ class RaidRankController {
 		$this->add($char(), $context->char->name, $context, $rank+6, $rankName, "raid_admin_$rank");
 	}
 
-	/**
-	 * @HandlesCommand("raidadmin")
-	 * @Mask $action (remove|rem|del|rm|demote)
-	 */
-	public function raidAdminRemoveCommand(CmdContext $context, string $action, PCharacter $char): void {
+	/** Demote someone from raid admin */
+	#[NCA\HandlesCommand("raidadmin")]
+	#[NCA\Help\Group("raid-ranks")]
+	public function raidAdminRemoveCommand(
+		CmdContext $context,
+		#[NCA\Str("remove", "rem", "del", "rm", "demote")] string $action,
+		PCharacter $char
+	): void {
 		$rank = 'a raid admin';
 
 		$this->remove($char(), $context->char->name, $context, [7, 8, 9], $rank);
 	}
 
-	/**
-	 * @HandlesCommand("raidleader")
-	 * @Mask $action (add|promote)
-	 */
-	public function raidLeaderAddCommand(CmdContext $context, string $action, PCharacter $char, ?int $rank): void {
+	/** Promote someone to raid leader */
+	#[NCA\HandlesCommand("raidleader")]
+	#[NCA\Help\Group("raid-ranks")]
+	public function raidLeaderAddCommand(
+		CmdContext $context,
+		#[NCA\Str("add", "promote")] string $action,
+		PCharacter $char,
+		?int $rank
+	): void {
 		$rank ??= 1;
 		if ($rank < 1 || $rank > 3) {
 			$context->reply("The leader rank must be a number between 1 and 3");
@@ -423,35 +450,44 @@ class RaidRankController {
 		$this->add($char(), $context->char->name, $context, $rank+3, $rankName, "raid_leader_$rank");
 	}
 
-	/**
-	 * @HandlesCommand("raidleader")
-	 * @Mask $action (rem|del|rm|demote)
-	 */
-	public function raidLeaderRemoveCommand(CmdContext $context, string $action, PCharacter $char): void {
+	/** Demote someone from raid leader */
+	#[NCA\HandlesCommand("raidleader")]
+	#[NCA\Help\Group("raid-ranks")]
+	public function raidLeaderRemoveCommand(
+		CmdContext $context,
+		#[NCA\Str("rem", "del", "rm", "demote")] string $action,
+		PCharacter $char
+	): void {
 		$rank = 'a raid leader';
 
 		$this->remove($char(), $context->char->name, $context, [4, 5, 6], $rank);
 	}
 
+	/** @return Collection<RaidStat> */
 	protected function getRaidsByStarter(): Collection {
 		$query = $this->db->table(RaidController::DB_TABLE, "r")
 			->join(RaidMemberController::DB_TABLE . " AS rm", "r.raid_id", "rm.raid_id")
-			->leftJoin("alts AS a", "r.started_by", "a.alt")
 			->groupBy("r.raid_id", "r.started_by", "r.started");
-		$query = $query->havingRaw("COUNT(*) >= 5")
+		return $query->havingRaw("COUNT(*) >= 5")
 			->select(
 				"r.raid_id",
 				"r.started",
-				$query->colFunc("COALESCE", ["a.main", "r.started_by"], "main"),
-				$query->colFunc("COUNT", "*", "count")
-			);
-		return $query->asObj();
+				"r.started_by",
+				$query->colFunc("COUNT", "*", "num_raiders")
+			)
+			->asObj(RaidStat::class)
+			->each(function (RaidStat $stat): void {
+				$stat->starter_main = $this->altsController->getMainOf($stat->started_by);
+			});
 	}
 
+	/**
+	 * @param Collection<RaidStat> $stats
+	 */
 	protected function renderLeaders(bool $showStats, bool $showOfflineAlts, Collection $stats, string ...$names): string {
 		sort($names);
 		$output = [];
-		$raids = $stats->groupBy("main");
+		$raids = $stats->groupBy("starter_main");
 		foreach ($names as $who) {
 			$line = "<tab>{$who}" . $this->getOnlineStatus($who);
 			if ($showStats) {
@@ -474,11 +510,9 @@ class RaidRankController {
 		return join("", $output) . "\n";
 	}
 
-	/**
-	 * @HandlesCommand("leaderlist")
-	 * @Mask $all all
-	 */
-	public function leaderlistCommand(CmdContext $context, ?string $all): void {
+	/** See the list of raid leaders/admins, 'all' to include all offline alts */
+	#[NCA\HandlesCommand("leaderlist")]
+	public function leaderlistCommand(CmdContext $context, #[NCA\Str("all")] ?string $all): void {
 		$showOfflineAlts = isset($all);
 
 		$blob = "";
@@ -555,10 +589,10 @@ class RaidRankController {
 		return $blob;
 	}
 
-	/**
-	 * @Event("alt(newmain)")
-	 * @Description("Move raid rank to new main")
-	 */
+	#[NCA\Event(
+		name: "alt(newmain)",
+		description: "Move raid rank to new main"
+	)]
 	public function moveRaidRanks(AltEvent $event): void {
 		$oldRank = $this->ranks[$event->alt] ?? null;
 		if ($oldRank === null) {

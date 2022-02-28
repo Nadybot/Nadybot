@@ -3,80 +3,74 @@
 namespace Nadybot\Modules\WHOIS_MODULE;
 
 use Nadybot\Core\{
+	Attributes as NCA,
 	BuddylistManager,
 	CmdContext,
-	CommandAlias,
 	CommandReply,
+	ConfigFile,
 	Event,
 	DB,
 	DBSchema\Player,
+	ModuleInstance,
 	Modules\ALTS\AltsController,
 	Modules\PLAYER_LOOKUP\PlayerManager,
 	Nadybot,
 	PacketEvent,
+	ParamClass\PCharacter,
 	SettingManager,
 	Text,
 	UserStateEvent,
 	Util,
 };
-use Nadybot\Core\ParamClass\PCharacter;
 use Nadybot\Modules\COMMENT_MODULE\CommentController;
 
 /**
  * @author Tyrence (RK2)
- *
- * @Instance
- *
- * Commands this controller contains:
- *	@DefineCommand(
- *		command     = 'whois',
- *		accessLevel = 'member',
- *		description = 'Show character info, online status, and name history',
- *		help        = 'whois.txt'
- *	)
- *	@DefineCommand(
- *		command     = 'lookup',
- *		accessLevel = 'all',
- *		description = 'Find the charId for a character',
- *		help        = 'lookup.txt'
- *	)
  */
-class WhoisController {
-
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
-
-	/** @Inject */
+#[
+	NCA\Instance,
+	NCA\HasMigrations,
+	NCA\DefineCommand(
+		command: "whois",
+		accessLevel: "guest",
+		description: "Show character info, online status, and name history",
+		alias: ['w', 'is'],
+	),
+	NCA\DefineCommand(
+		command: "lookup",
+		accessLevel: "guest",
+		description: "Find the charId for a character",
+	)
+]
+class WhoisController extends ModuleInstance {
+	#[NCA\Inject]
 	public DB $db;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Nadybot $chatBot;
 
-	/** @Inject */
+	#[NCA\Inject]
+	public ConfigFile $config;
+
+	#[NCA\Inject]
 	public Text $text;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Util $util;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public AltsController $altsController;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public PlayerManager $playerManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public BuddylistManager $buddylistManager;
 
-	/** @Inject */
-	public CommandAlias $commandAlias;
-
-	/** @Inject */
+	#[NCA\Inject]
 	public CommentController $commentController;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public SettingManager $settingManager;
 
 	/** @var CharData[] */
@@ -87,30 +81,22 @@ class WhoisController {
 	 */
 	private $replyInfo = [];
 
-	/** @Setup */
+	#[NCA\Setup]
 	public function setup(): void {
-		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations");
-
 		$this->settingManager->add(
-			$this->moduleName,
-			'whois_add_comments',
-			'Add link to comments if found',
-			'edit',
-			'options',
-			'1',
-			'true;false',
-			'1;0',
-			'mod'
+			module: $this->moduleName,
+			name: 'whois_add_comments',
+			description: 'Add link to comments if found',
+			mode: 'edit',
+			type: 'bool',
+			value: '1',
 		);
-
-		$this->commandAlias->register($this->moduleName, "whois", "w");
-		$this->commandAlias->register($this->moduleName, "whois", "is");
 	}
 
-	/**
-	 * @Event("timer(1min)")
-	 * @Description("Save cache of names and charIds to database")
-	 */
+	#[NCA\Event(
+		name: "timer(1min)",
+		description: "Save cache of names and charIds to database"
+	)]
 	public function saveCharIds(Event $eventObj): void {
 		if (empty($this->nameHistoryCache) || $this->db->inTransaction()) {
 			return;
@@ -148,11 +134,12 @@ class WhoisController {
 		$this->nameHistoryCache = [];
 	}
 
-	/**
-	 * @Event("packet(20)")
-	 * @Event("packet(21)")
-	 * @Description("Records names and charIds")
-	 */
+	#[
+		NCA\Event(
+			name: ["packet(20)", "packet(21)"],
+			description: "Records names and charIds"
+		)
+	]
 	public function recordCharIds(PacketEvent $eventObj): void {
 		$packet = $eventObj->packet;
 		if (!$this->util->isValidSender($packet->args[0])) {
@@ -167,9 +154,8 @@ class WhoisController {
 		$this->nameHistoryCache []= $charData;
 	}
 
-	/**
-	 * @HandlesCommand("lookup")
-	 */
+	/** Show the name(s) for a character id */
+	#[NCA\HandlesCommand("lookup")]
 	public function lookupIdCommand(CmdContext $context, int $charID): void {
 		$this->chatBot->getName($charID, function(?string $name) use ($context, $charID): void {
 			if (isset($name)) {
@@ -201,9 +187,8 @@ class WhoisController {
 		});
 	}
 
-	/**
-	 * @HandlesCommand("lookup")
-	 */
+	/** Show the character id for a character */
+	#[NCA\HandlesCommand("lookup")]
 	public function lookupNameCommand(CmdContext $context, PCharacter $char): void {
 		$name = $char();
 
@@ -252,13 +237,12 @@ class WhoisController {
 		return $blob;
 	}
 
-	/**
-	 * @HandlesCommand("whois")
-	 */
+	/** Show character info, online status, and name history for a character */
+	#[NCA\HandlesCommand("whois")]
 	public function whoisNameCommand(CmdContext $context, PCharacter $char): void {
 		$name = $char();
 		$this->chatBot->getUid($name, function(?int $uid) use ($context, $name): void {
-			$dimension = (int)$this->chatBot->vars['dimension'];
+			$dimension = $this->config->dimension;
 			if (isset($uid)) {
 				$online = $this->buddylistManager->isOnline($name);
 				if ($online === null) {
@@ -303,7 +287,7 @@ class WhoisController {
 				$blob .= "Character ID: <highlight>{$charID}<end> {$lookupCharIdLink}\n\n";
 			}
 			if (is_int($charID)) {
-				$blob .= $this->getNameHistory($charID, $this->chatBot->vars['dimension']);
+				$blob .= $this->getNameHistory($charID, $this->config->dimension);
 			}
 
 			$msg = $this->text->makeBlob("Basic Info for $name", $blob);
@@ -342,7 +326,7 @@ class WhoisController {
 		$blob .= "Source: <highlight>{$whois->source}<end>\n\n";
 
 		if ($charID !== false) {
-			$blob .= $this->getNameHistory($charID, $this->chatBot->vars['dimension']);
+			$blob .= $this->getNameHistory($charID, $this->config->dimension);
 		}
 
 		$msg = $this->playerManager->getInfo($whois);
@@ -404,10 +388,10 @@ class WhoisController {
 		return $msg;
 	}
 
-	/**
-	 * @Event("logOn")
-	 * @Description("Gets online status of character")
-	 */
+	#[NCA\Event(
+		name: "logOn",
+		description: "Gets online status of character"
+	)]
 	public function logonEvent(UserStateEvent $eventObj): void {
 		$name = (string)$eventObj->sender;
 		if (!isset($this->replyInfo[$name])) {
@@ -425,10 +409,10 @@ class WhoisController {
 		);
 	}
 
-	/**
-	 * @Event("logOff")
-	 * @Description("Gets offline status of character")
-	 */
+	#[NCA\Event(
+		name: "logOff",
+		description: "Gets offline status of character"
+	)]
 	public function logoffEvent(UserStateEvent $eventObj): void {
 		$name = (string)$eventObj->sender;
 		if (!isset($this->replyInfo[$name])) {
