@@ -2,6 +2,7 @@
 
 namespace Nadybot\Core\Modules\CONSOLE;
 
+use Exception;
 use Nadybot\Core\{
 	Attributes as NCA,
 	BotRunner,
@@ -100,16 +101,38 @@ class ConsoleController extends ModuleInstance {
 	public function loadHistory(): void {
 		$file = $this->getCacheFile();
 		if (@file_exists($file)) {
-			\Safe\readline_read_history($file);
+			try {
+				\Safe\readline_read_history($file);
+			} catch (Exception $e) {
+				$this->logger->warning(
+					"Unable to read the readline history file {file}: {error}",
+					[
+						"file" => $file,
+						"error" => $e->getMessage(),
+						"exception" => $e,
+					]
+				);
+			}
 		}
 	}
 
 	public function saveHistory(): void {
 		$file = $this->getCacheFile();
 		if (!@file_exists($file)) {
-			\Safe\mkdir(dirname($file), 0700, true);
+			@mkdir(dirname($file), 0700, true);
 		}
-		\Safe\readline_write_history($file);
+		try {
+			\Safe\readline_write_history($file);
+		} catch (Exception $e) {
+			$this->logger->warning(
+				"Unable to write the readline history file {file}: {error}",
+				[
+					"file" => $file,
+					"error" => $e->getMessage(),
+					"exception" => $e,
+				]
+			);
+		}
 	}
 
 	/**
