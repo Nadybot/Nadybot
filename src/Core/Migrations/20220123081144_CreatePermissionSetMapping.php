@@ -87,11 +87,13 @@ class CreatePermissionSetMapping implements SchemaMigration {
 			],
 		];
 		if ($this->getSettingValue($db, "discord_process_commands") === "1") {
+			$discordChannel = $this->getSettingValue($db, "discord_process_commands_only_in") ?? "off";
+			if ($discordChannel === "off") {
+				$discordChannel = "*";
+			}
 			$inserts []= [
-				"name" => "prod",
-				"source" => "discordpriv(".
-					($this->getSettingValue($db, "discord_process_commands_only_in") ?? "*").
-				")",
+				"name" => "priv",
+				"source" => "discordpriv({$discordChannel})",
 				"symbol_optional" => false,
 				"symbol" => $discordSymbol,
 				"feedback" => (bool)($this->getSettingValue($db, "discord_unknown_cmd_errors") ?? "1"),
