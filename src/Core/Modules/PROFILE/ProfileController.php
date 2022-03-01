@@ -99,7 +99,15 @@ class ProfileController extends ModuleInstance {
 
 		// make sure that the profile folder exists
 		if (!@is_dir($this->path)) {
-			\Safe\mkdir($this->path, 0777);
+			try {
+				\Safe\mkdir($this->path, 0777);
+			} catch (Exception $e) {
+				$this->logger->warning("Unable to create profile directory {dir}: {error}", [
+					"dir" => $this->path,
+					"error" => $e->getMessage(),
+					"exception" => $e
+				]);
+			}
 		}
 	}
 
@@ -181,7 +189,10 @@ class ProfileController extends ModuleInstance {
 		try {
 			$this->saveProfile($profileName);
 		} catch (Exception $e) {
-			$context->reply($e->getMessage());
+			$context->reply(
+				"Error saving the profile: <highlight>" . $e->getMessage() . "<end>"
+			);
+			return;
 		}
 		$msg = "Profile <highlight>{$profileName}<end> has been saved.";
 		$context->reply($msg);
