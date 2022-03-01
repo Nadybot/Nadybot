@@ -3,6 +3,7 @@
 namespace Nadybot\Core;
 
 use Directory;
+use Exception;
 use Nadybot\Core\Attributes as NCA;
 use ReflectionClass;
 
@@ -128,7 +129,12 @@ class ClassLoader {
 			}
 		}
 
-		$newInstances = $this->getNewInstancesInDir("{$baseDir}/{$moduleName}");
+		try {
+			$newInstances = $this->getNewInstancesInDir("{$baseDir}/{$moduleName}");
+		} catch (Exception $e) {
+			$this->logger->error("Could not load module {$moduleName}. Parse error in " . $e->getMessage());
+			return;
+		}
 		foreach ($newInstances as $name => $class) {
 			$className = $class->className;
 			if (!class_exists($className) || !is_subclass_of($className, ModuleInstanceInterface::class)) {
@@ -155,19 +161,54 @@ class ClassLoader {
 	 *
 	 * @return array<string,ClassInstance> A mapping [module name => class info]
 	 */
-	public static function getNewInstancesInDir(string $path): array {
+	public function getNewInstancesInDir(string $path): array {
 		$original = get_declared_classes();
+		$files = [];
+		$isExtraModule = !str_contains($path, "/src/Core")
+			&& strncmp($path, "./src/", 6) !== 0;
+		$checkCode = extension_loaded("pcntl") && $isExtraModule;
 		if ($dir = dir($path)) {
 			while (($file = $dir->read()) !== false) {
-				if (!is_dir($path . '/' . $file) && preg_match("/\\.php$/i", $file)) {
-					require_once "{$path}/{$file}";
+				$fileName = "{$path}/{$file}";
+				if (is_dir($fileName) || !preg_match("/\\.php$/i", $file)) {
+					continue;
 				}
+				if ($checkCode && !$this->checkFileLoads($fileName)) {
+					throw new Exception($fileName);
+				}
+				$files []= $fileName;
 			}
 			$dir->close();
+		}
+		foreach ($files as $file) {
+			require_once "$file";
 		}
 		$new = array_diff(get_declared_classes(), $original);
 
 		return static::getInstancesOfClasses(...$new);
+	}
+
+	/**
+	 * Check if $fileName contains no parsing errors and a require would work
+	 */
+	private function checkFileLoads(string $fileName): bool {
+		if (!extension_loaded("pcntl")) {
+			return true;
+		}
+		$pid = pcntl_fork();
+		if ($pid === 0) {
+			// The child merely closes all pipes
+			fclose($fd = STDOUT);
+			fclose($fd = STDERR);
+			// If this gives an error, the child will exit with != 0
+			require_once "{$fileName}";
+			exit(0);
+		} elseif ($pid > 0) {
+			pcntl_waitpid($pid, $status);
+			return $status === 0;
+		}
+		// Error forking
+		return true;
 	}
 
 	/**
