@@ -526,6 +526,7 @@ class WebserverController extends ModuleInstance {
 		$needAuth = true;
 		if (count($handlers) === 1) {
 			$ref = new ReflectionFunction($handlers[0][0]);
+			/** @psalm-suppress InvalidAttribute */
 			if (count($ref->getAttributes(NCA\HttpOwnAuth::class))) {
 				$needAuth = false;
 			}
