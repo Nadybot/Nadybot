@@ -17,8 +17,17 @@ export default function createWebSocketPlugin() {
 
     client.onmessage = async function (e: MessageEvent<string>) {
       const data = JSON.parse(e.data);
+
       if (data.command == "event") {
-        store.dispatch(data.data.class, data.data);
+        if (data.data.type == "cmdreply") {
+          store.dispatch("HandleCommandReply", data.data);
+        } else if (data.data.type == "chat(web)") {
+          store.dispatch("HandleChatMessage", data.data);
+        } else if (data.data.type.startsWith("offline(")) {
+          store.dispatch("HandleOffline", data.data);
+        } else if (data.data.type.startsWith("online(")) {
+          store.dispatch("HandleOnline", data.data);
+        }
       } else if (data.command == "uuid") {
         store.dispatch("websocketUuidUpdate", data.data);
       }

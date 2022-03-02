@@ -199,16 +199,16 @@
             <tr class="table-head-light">
               <th scope="col" class="text-nowrap">Command</th>
               <th scope="col" class="desc">Description</th>
-              <th scope="col">Org</th>
-              <th scope="col">Priv</th>
-              <th scope="col">Tell</th>
+              <th
+                v-for="permission_set in selected_commands[0].permissions"
+                :key="permission_set.name"
+              >
+                {{ titleCase(permission_set.permission_set) }}
+              </th>
             </tr>
           </thead>
           <tbody>
-            <template
-              v-for="command in selected_commands"
-              :key="command.command"
-            >
+            <template v-for="command in selected_commands" :key="command.cmd">
               <tr>
                 <td
                   :class="{
@@ -220,36 +220,38 @@
                   <fa
                     v-if="command.subcommands.length > 0"
                     :icon="
-                      selected_command &&
-                      command.command == selected_command.command
+                      selected_command && command.cmd == selected_command.cmd
                         ? 'chevron-down'
                         : 'chevron-right'
                     "
                     :invert="10"
                   ></fa>
-                  {{ command.command }}
+                  {{ command.cmd }}
                 </td>
                 <td>{{ command.description }}</td>
-                <td>
-                  <div class="input-group" v-if="command.org">
+                <td
+                  v-for="permission_set in command.permissions"
+                  :key="permission_set.name"
+                >
+                  <div class="input-group">
                     <div class="input-group-text">
                       <input
                         type="checkbox"
-                        :value="command.org.enabled"
-                        v-model="command.org.enabled"
-                        @change="toggleCommand(command, 'org', command.org)"
+                        :value="permission_set.enabled"
+                        v-model="permission_set.enabled"
+                        @change="toggleCommand(command, permission_set)"
                       />
                     </div>
                     <select
                       class="form-select form-select-sm"
-                      v-model="command.org.access_level"
-                      @change="toggleCommand(command, 'org', command.org)"
+                      v-model="permission_set.access_level"
+                      @change="toggleCommand(command, permission_set)"
                     >
                       <option
                         v-for="access_level in access_levels"
                         :key="access_level.name"
                         :selected="
-                          access_level.value == command.org.access_level
+                          access_level.value == permission_set.access_level
                         "
                         :disabled="!access_level.enabled"
                         :value="access_level.value"
@@ -258,108 +260,43 @@
                       </option>
                     </select>
                   </div>
-                  <template v-else>Unavailable</template>
-                </td>
-                <td>
-                  <div class="input-group" v-if="command.priv">
-                    <div class="input-group-text">
-                      <input
-                        type="checkbox"
-                        :value="command.priv.enabled"
-                        v-model="command.priv.enabled"
-                        @change="toggleCommand(command, 'priv', command.priv)"
-                      />
-                    </div>
-                    <select
-                      class="form-select form-select-sm"
-                      v-model="command.priv.access_level"
-                      @change="toggleCommand(command, 'priv', command.priv)"
-                    >
-                      <option
-                        v-for="access_level in access_levels"
-                        :key="access_level.name"
-                        :selected="
-                          access_level.value == command.priv.access_level
-                        "
-                        :disabled="!access_level.enabled"
-                        :value="access_level.value"
-                      >
-                        {{ access_level.name }}
-                      </option>
-                    </select>
-                  </div>
-                  <template v-else>Unavailable</template>
-                </td>
-                <td>
-                  <div class="input-group" v-if="command.msg">
-                    <div class="input-group-text">
-                      <input
-                        type="checkbox"
-                        :value="command.msg.enabled"
-                        v-model="command.msg.enabled"
-                        @change="toggleCommand(command, 'msg', command.msg)"
-                      />
-                    </div>
-                    <select
-                      class="form-select form-select-sm"
-                      v-model="command.msg.access_level"
-                      @change="toggleCommand(command, 'msg', command.msg)"
-                    >
-                      <option
-                        v-for="access_level in access_levels"
-                        :key="access_level.name"
-                        :selected="
-                          access_level.value == command.msg.access_level
-                        "
-                        :disabled="!access_level.enabled"
-                        :value="access_level.value"
-                      >
-                        {{ access_level.name }}
-                      </option>
-                    </select>
-                  </div>
-                  <template v-else>Unavailable</template>
                 </td>
               </tr>
 
               <template
-                v-if="
-                  selected_command &&
-                  command.command == selected_command.command
-                "
+                v-if="selected_command && command.cmd == selected_command.cmd"
               >
                 <tr
                   v-for="subcommand in command.subcommands"
-                  :key="subcommand.command"
+                  :key="subcommand.cmd"
                 >
                   <td class="pad-left border-left-thick">
-                    {{ subcommand.command }}
+                    {{ subcommand.cmd }}
                   </td>
                   <td>{{ subcommand.description }}</td>
-                  <td>
-                    <div class="input-group" v-if="subcommand.org">
+                  <td
+                    v-for="permission_set in subcommand.permissions"
+                    :key="permission_set.name"
+                  >
+                    <div class="input-group">
                       <div class="input-group-text">
                         <input
                           type="checkbox"
-                          :value="subcommand.org.enabled"
-                          v-model="subcommand.org.enabled"
-                          @change="
-                            toggleCommand(subcommand, 'org', subcommand.org)
-                          "
+                          :value="permission_set.enabled"
+                          v-model="permission_set.enabled"
+                          @change="toggleCommand(subcommand, permission_set)"
                         />
                       </div>
                       <select
                         class="form-select form-select-sm"
-                        v-model="subcommand.org.access_level"
-                        @change="
-                          toggleCommand(subcommand, 'org', subcommand.org)
-                        "
+                        v-model="permission_set.access_level"
+                        @change="toggleCommand(subcommand, permission_set)"
                       >
                         <option
                           v-for="access_level in access_levels"
                           :key="access_level.name"
                           :selected="
-                            access_level.value == subcommand.org.access_level
+                            access_level.value == permission_set.access_level
                           "
                           :disabled="!access_level.enabled"
                           :value="access_level.value"
@@ -368,75 +305,6 @@
                         </option>
                       </select>
                     </div>
-                    <template v-else>Unavailable</template>
-                  </td>
-                  <td>
-                    <div class="input-group" v-if="subcommand.priv">
-                      <div class="input-group-text">
-                        <input
-                          type="checkbox"
-                          :value="subcommand.priv.enabled"
-                          v-model="subcommand.priv.enabled"
-                          @change="
-                            toggleCommand(subcommand, 'priv', subcommand.priv)
-                          "
-                        />
-                      </div>
-                      <select
-                        class="form-select form-select-sm"
-                        v-model="subcommand.priv.access_level"
-                        @change="
-                          toggleCommand(subcommand, 'priv', subcommand.priv)
-                        "
-                      >
-                        <option
-                          v-for="access_level in access_levels"
-                          :key="access_level.name"
-                          :selected="
-                            access_level.value == subcommand.priv.access_level
-                          "
-                          :disabled="!access_level.enabled"
-                          :value="access_level.value"
-                        >
-                          {{ access_level.name }}
-                        </option>
-                      </select>
-                    </div>
-                    <template v-else>Unavailable</template>
-                  </td>
-                  <td>
-                    <div class="input-group" v-if="subcommand.msg">
-                      <div class="input-group-text">
-                        <input
-                          type="checkbox"
-                          :value="subcommand.msg.enabled"
-                          v-model="subcommand.msg.enabled"
-                          @change="
-                            toggleCommand(subcommand, 'msg', subcommand.msg)
-                          "
-                        />
-                      </div>
-                      <select
-                        class="form-select form-select-sm"
-                        v-model="subcommand.msg.access_level"
-                        @change="
-                          toggleCommand(subcommand, 'msg', subcommand.msg)
-                        "
-                      >
-                        <option
-                          v-for="access_level in access_levels"
-                          :key="access_level.name"
-                          :selected="
-                            access_level.value == subcommand.msg.access_level
-                          "
-                          :disabled="!access_level.enabled"
-                          :value="access_level.value"
-                        >
-                          {{ access_level.name }}
-                        </option>
-                      </select>
-                    </div>
-                    <template v-else>Unavailable</template>
                   </td>
                 </tr>
               </template>
@@ -560,7 +428,7 @@ import {
   ModuleCommand,
   ModuleEventConfig,
   ModuleSetting,
-  ModuleSubcommandChannel,
+  PermissionSet,
 } from "@/nadybot/types/settings";
 import { parseXml } from "@/nadybot/message";
 
@@ -578,6 +446,9 @@ export default defineComponent({
   name: "Settings",
 
   methods: {
+    titleCase: function (input: string): string {
+      return `${input.charAt(0).toUpperCase()}${input.slice(1)}`;
+    },
     getClassForModule: function (module: ConfigModule): string {
       if (
         module.num_commands_disabled == 0 &&
@@ -622,10 +493,7 @@ export default defineComponent({
       return null;
     },
     selectCommand: function (command: ModuleCommand): void {
-      if (
-        this.selected_command &&
-        this.selected_command.command == command.command
-      ) {
+      if (this.selected_command && this.selected_command.cmd == command.cmd) {
         this.selected_command = null;
       } else {
         this.selected_command = command;
@@ -661,14 +529,13 @@ export default defineComponent({
     },
     toggleCommand: async function (
       command: ModuleCommand,
-      channel: string,
-      config: ModuleSubcommandChannel
+      config: PermissionSet
     ): Promise<void> {
       if (this.selected) {
         await toggleCommand(
           this.selected.name,
-          command.command,
-          channel,
+          command.cmd,
+          config.permission_set,
           config.access_level,
           config.enabled
         );

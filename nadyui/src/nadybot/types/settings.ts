@@ -64,12 +64,8 @@ export interface ModuleEventConfig {
   enabled: boolean;
 }
 
-export enum CommandType {
-  Command = "cmd",
-  Subcommand = "subcmd",
-}
-
-export interface ModuleSubcommandChannel {
+export interface PermissionSet {
+  permission_set: string;
   // The access level you need to have in order to be allowed to use this command in this channel
   access_level: string;
   // Can this command be used in this channel?
@@ -78,17 +74,10 @@ export interface ModuleSubcommandChannel {
 
 export interface ModuleSubcommand {
   // The string or regexp that has to match this command
-  readonly command: string;
+  readonly cmd: string;
   // A short description of the command
   readonly description: string;
-  // Either "cmd" or "subcmd"
-  readonly type: CommandType;
-  // Settings for tells
-  msg: ModuleSubcommandChannel | null;
-  // Settings for private channel
-  priv: ModuleSubcommandChannel | null;
-  // Settings for org channel
-  org: ModuleSubcommandChannel | null;
+  readonly permissions: Array<PermissionSet>;
 }
 
 export interface ModuleCommand extends ModuleSubcommand {
@@ -148,10 +137,6 @@ const settingTypeDecoder = JsonDecoder.enumeration<SettingType>(
   SettingType,
   "SettingType"
 );
-const commandTypeDecoder = JsonDecoder.enumeration<CommandType>(
-  CommandType,
-  "CommandType"
-);
 
 const moduleSettingDecoderMapping = {
   type: settingTypeDecoder,
@@ -190,24 +175,21 @@ export const moduleEventConfigArrayDecoder = JsonDecoder.array(
   "ModuleEventConfigArray"
 );
 
-const moduleSubcommandChannelDecoderMapping = {
+const permissionSetDecoderMapping = {
+  permission_set: JsonDecoder.string,
   access_level: JsonDecoder.string,
   enabled: JsonDecoder.boolean,
 };
 
-const moduleSubcommandChannelDecoder =
-  JsonDecoder.objectStrict<ModuleSubcommandChannel>(
-    moduleSubcommandChannelDecoderMapping,
-    "ModuleSubcommandChannel"
-  );
+const permissionSetDecoder = JsonDecoder.objectStrict<PermissionSet>(
+  permissionSetDecoderMapping,
+  "PermissionSet"
+);
 
 const moduleSubcommandDecoderMapping = {
-  command: JsonDecoder.string,
+  cmd: JsonDecoder.string,
   description: JsonDecoder.string,
-  type: commandTypeDecoder,
-  msg: JsonDecoder.nullable(moduleSubcommandChannelDecoder),
-  priv: JsonDecoder.nullable(moduleSubcommandChannelDecoder),
-  org: JsonDecoder.nullable(moduleSubcommandChannelDecoder),
+  permissions: JsonDecoder.array(permissionSetDecoder, "PermissionSetArray"),
 };
 
 const moduleSubcommandDecoder = JsonDecoder.objectStrict<ModuleSubcommand>(
