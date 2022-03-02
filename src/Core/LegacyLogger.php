@@ -67,9 +67,10 @@ class LegacyLogger {
 		if (!empty(static::$config) && !$noCache) {
 			return static::$config;
 		}
-		$json = \Safe\file_get_contents("./conf/logging.json");
+		$configFile = BotRunner::$arguments["log-config"] ?? "./conf/logging.json";
+		$json = @\Safe\file_get_contents($configFile);
 		try {
-			$logStruct = \Safe\json_decode($json, true, 512, JSON_THROW_ON_ERROR);
+			$logStruct = \Safe\json_decode($json, true, 512);
 		} catch (JsonException $e) {
 			throw new RuntimeException("Unable to parse logging config", 0, $e);
 		}

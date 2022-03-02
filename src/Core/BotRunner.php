@@ -254,6 +254,7 @@ class BotRunner {
 			[
 				"migrate-only",
 				"setup-only",
+				"log-config:",
 				"migration-errors-fatal",
 			],
 			$restPos
