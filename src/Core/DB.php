@@ -158,7 +158,7 @@ class DB {
 				try {
 					\Safe\touch($dbName);
 				} catch (FilesystemException $e) {
-					$this->logger->error(
+					$this->logger->alert(
 						"Unable to create the dababase \"{$dbName}\": {error}. Check that the directory ".
 						"exists and is writable by the current user.",
 						[

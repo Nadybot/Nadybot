@@ -26,48 +26,102 @@ class LoggerWrapper {
 	 */
 	private ?Logger $chatLogger = null;
 
+	protected static bool $errorGiven = false;
+
 	public function __construct(string $tag) {
 		$this->logger = LegacyLogger::fromConfig($tag);
 	}
 
-	/** @param array<string,mixed> $context */
+	/**
+	 * Detailed debug information, including data like traces
+	 * @param array<string,mixed> $context
+	 */
 	public function debug(string $message, array $context=[]): void {
-		$this->logger->debug($message, $context);
+		$this->passthru(Logger::DEBUG, $message, $context);
 	}
 
-	/** @param array<string,mixed> $context */
+	/**
+	 * Information that describes what's generally been done right now
+	 * @param array<string,mixed> $context
+	 */
 	public function info(string $message, array $context=[]): void {
-		$this->logger->info($message, $context);
+		$this->passthru(Logger::INFO, $message, $context);
 	}
 
-	/** @param array<string,mixed> $context */
+	/**
+	 * Something important, like a milestone, has been reached,
+	 * or generally something the bot admin should always see
+	 * @param array<string,mixed> $context
+	 */
 	public function notice(string $message, array $context=[]): void {
-		$this->logger->notice($message, $context);
+		$this->passthru(Logger::NOTICE, $message, $context);
 	}
 
-	/** @param array<string,mixed> $context */
+	/**
+	 * Exceptional occurrences that are not errors.
+	 * Examples:
+	 * Use of deprecated APIs,
+	 * poor use of an API,
+	 * undesirable things that are not necessarily wrong.
+	 * @param array<string,mixed> $context
+	 */
 	public function warning(string $message, array $context=[]): void {
-		$this->logger->warning($message, $context);
+		$this->passthru(Logger::WARNING, $message, $context);
 	}
 
-	/** @param array<string,mixed> $context */
+	/**
+	 * Runtime errors that the bot can ignore and continue
+	 * @param array<string,mixed> $context
+	 */
 	public function error(string $message, array $context=[]): void {
-		$this->logger->error($message, $context);
+		$this->passthru(Logger::ERROR, $message, $context);
 	}
 
-	/** @param array<string,mixed> $context */
+	/**
+	 * Urgent alerts that should not be ignored
+	 * @param array<string,mixed> $context
+	 */
 	public function critical(string $message, array $context=[]): void {
-		$this->logger->critical($message, $context);
+		$this->passthru(Logger::CRITICAL, $message, $context);
 	}
 
-	/** @param array<string,mixed> $context */
+	/**
+	 * Action must be taken immediately.
+	 * Examples:
+	 * Bot down,
+	 * database unavailable,
+	 * things that should trigger an sms alert and wake you up.
+	 * @param array<string,mixed> $context
+	 */
 	public function alert(string $message, array $context=[]): void {
-		$this->logger->alert($message, $context);
+		$this->passthru(Logger::ALERT, $message, $context);
 	}
 
-	/** @param array<string,mixed> $context */
+	/**
+	 * Urgent alert
+	 * @param array<string,mixed> $context
+	 */
 	public function emergency(string $message, array $context=[]): void {
-		$this->logger->emergency($message, $context);
+		$this->passthru(Logger::EMERGENCY, $message, $context);
+	}
+
+	/**
+	 * @phpstan-param 100|200|250|300|400|500|550|600 $logLevel
+	 * @param array<string,mixed> $context
+	 */
+	private function passthru(int $logLevel, string $message, array $context): void {
+		try {
+			$this->logger->log($logLevel, $message, $context);
+		} catch (Exception $e) {
+			if (static::$errorGiven === true) {
+				return;
+			}
+			static::$errorGiven = true;
+			$this->passthru(Logger::ERROR, "Error logging: {error}", [
+				"error" => $e->getMessage(),
+				"exception" => $e
+			]);
+		}
 	}
 
 	/**
