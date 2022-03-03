@@ -16,6 +16,7 @@ use Nadybot\Modules\{
 	BASIC_CHAT_MODULE\ChatTopicController,
 	EVENTS_MODULE\EventsController,
 	LOOT_MODULE\LootController,
+	NEWS_MODULE\NewsController,
 	RAFFLE_MODULE\RaffleController,
 	RAID_MODULE\AuctionController,
 	RAID_MODULE\RaidBlockController,
@@ -94,6 +95,7 @@ class MigrateSubCmds implements SchemaMigration {
 			"loren .+" => WorldBossController::CMD_LOREN_UPDATE,
 			"gauntlet .+" => WorldBossController::CMD_GAUNTLET_UPDATE,
 			"reaper .+" => WorldBossController::CMD_REAPER_UPDATE,
+			"news .+" => NewsController::CMD_NEWS_MANAGE,
 		];
 
 		foreach ($deletedAliases as $alias) {
