@@ -958,6 +958,17 @@ class RaidController extends ModuleInstance {
 	}
 
 	#[NCA\Event(
+		name: "priv",
+		description: "Track when someone sends messages on priv"
+	)]
+	public function trackPrivChannelMessages(AOChatEvent $event): void {
+		if (!isset($this->raid) || $event->channel !== $this->chatBot->char->name) {
+			return;
+		}
+		$this->raid->we_are_most_recent_message = false;
+	}
+
+	#[NCA\Event(
 		name: "timer(30s)",
 		description: "Announce the running raid"
 	)]
