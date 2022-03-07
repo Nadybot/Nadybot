@@ -9,13 +9,7 @@ jobs:
       matrix:
         os: [ubuntu-latest]
         php: [8.0, 8.1]
-        from: []
-        db: []
-        include:
-          - from: [budabot4.db]
-            db: [sqlite]
-          - from: [budabot4.mysql]
-            db: [mysql]
+        from: [budabot4.db budabot4.mysql]
 
     steps:
       - name: Checkout sources
@@ -32,7 +26,7 @@ jobs:
         run: composer install
 
       - name: Migrate SQLite
-        if: matrix.db == 'sqlite'
+        if: endsWith(matrix.db, 'db')
         shell: bash
         run: |
           curl --user "github:${{ secrets.CONFIG_PASSWORD }}" "https://confs.nadybot.org/${{ matrix.from }}" -o data/nadybot.db
@@ -40,7 +34,7 @@ jobs:
           php main.php --setup-only --migration-errors-fatal conf/config.php
 
       - uses: mirromutth/mysql-action@v1.1
-        if: matrix.db == 'mysql'
+        if: endsWith(matrix.db, 'mysql')
         name: Start MySQL server
         with:
           mysql version: '5.6' # Optional, default value is "latest". The version of the MySQL
@@ -49,7 +43,7 @@ jobs:
           mysql password: '123456'
 
       - name: Migrate MySQL
-        if: matrix.db == 'mysql'
+        if: endsWith(matrix.db, 'mysql')
         shell: bash
         run: |
           curl --user "github:${{ secrets.CONFIG_PASSWORD }}" https://confs.nadybot.org/${{ matrix.from }} -o data/nadybot.sql
