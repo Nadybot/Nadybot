@@ -8,7 +8,6 @@ use RecursiveIteratorIterator;
 use Safe\Exceptions\DirException;
 use Safe\Exceptions\FilesystemException;
 use SplFileInfo;
-use Throwable;
 use ZipArchive;
 use Nadybot\Core\{
 	Attributes as NCA,
@@ -28,6 +27,7 @@ use Nadybot\Core\{
 	Text,
 };
 use Nadybot\Modules\WEBSERVER_MODULE\JsonImporter;
+use Safe\Exceptions\JsonException;
 
 /**
  * @author Nadyita (RK5)
@@ -154,8 +154,8 @@ class PackageController extends ModuleInstance {
 			return false;
 		}
 		try {
-			$data = \Safe\json_decode($data, false, 512, JSON_THROW_ON_ERROR);
-		} catch (Throwable $e) {
+			$data = \Safe\json_decode($data, false, 512);
+		} catch (JsonException $e) {
 			return false;
 		}
 		return true;
@@ -202,8 +202,8 @@ class PackageController extends ModuleInstance {
 			return;
 		}
 		try {
-			$data = \Safe\json_decode($response->data, false, 512, JSON_THROW_ON_ERROR);
-		} catch (Throwable $e) {
+			$data = \Safe\json_decode($response->data, false, 512);
+		} catch (JsonException $e) {
 			$callback(null, ...$args);
 			return;
 		}
@@ -214,7 +214,7 @@ class PackageController extends ModuleInstance {
 		/** @var Collection<Package> */
 		$packages = new Collection();
 		foreach ($data as $pack) {
-			$packages[]= JsonImporter::convert(Package::class, $pack);
+			$packages []= JsonImporter::convert(Package::class, $pack);
 		}
 		$packages = $packages->filter(function(Package $package): bool {
 			return $package->bot_type === "Nadybot";
@@ -469,6 +469,9 @@ class PackageController extends ModuleInstance {
 		$ourVersion = BotRunner::getVersion();
 
 		foreach ($parts as $part) {
+			if (preg_match("/^<\d+\.0\.0$/", $part)) {
+				$part .= "-0";
+			}
 			if (!preg_match("/^([!=<>^]+)(.+)$/", $part, $matches)) {
 				return false;
 			}
