@@ -8,7 +8,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest]
+        os: [ubuntu-latest, windows-latest]
         php: [8.0, 8.1]
         from: [budabot4.db, nadybot5.0.0.db]
 
@@ -26,11 +26,23 @@ jobs:
       - name: Install dependencies
         run: composer install
 
-      - name: Migrate SQLite
+      - name: Write config file
+        if: matrix.os == 'windows-latest'
+        uses: joutvhu/write-file@v1
+        with:
+          path: conf/config.php
+          contents: ${{ secrets.WINDOWS_CONFIG }}
+          write_mode: overwrite
+
+      - name: Write config
+        if: matrix.os == 'ubuntu-latest'
         shell: bash
         run: |
-          curl -s -S -q --user "github:${{ secrets.CONFIG_PASSWORD }}" "https://confs.nadybot.org/${{ matrix.from }}" -o data/nadybot.db
           curl -s -S -q --user "github:${{ secrets.CONFIG_PASSWORD }}" "https://confs.nadybot.org/sqlite.php" -o conf/config.php
+
+      - name: Migrate SQLite
+        run: |
+          curl -s -S -q --user "github:${{ secrets.CONFIG_PASSWORD }}" "https://confs.nadybot.org/${{ matrix.from }}" -o data/nadybot.db
           php main.php --setup-only --migration-errors-fatal conf/config.php
 
   mysql_tests:
