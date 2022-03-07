@@ -3,9 +3,10 @@
 namespace Nadybot\Core;
 
 use Directory;
-use Exception;
 use Nadybot\Core\Attributes as NCA;
 use ReflectionClass;
+
+use function Safe\preg_split;
 
 class ClassLoader {
 	#[NCA\Logger]
@@ -131,8 +132,20 @@ class ClassLoader {
 
 		try {
 			$newInstances = $this->getNewInstancesInDir("{$baseDir}/{$moduleName}");
-		} catch (Exception $e) {
-			$this->logger->error("Could not load module {$moduleName}. Parse error in " . $e->getMessage());
+		} catch (InvalidCodeException $e) {
+			$this->logger->error("Could not load module {module}: {error}", [
+				"module" => $moduleName,
+				"error" => "Parse error in " . $e->getMessage(). ".",
+			]);
+			return;
+		} catch (InvalidVersionException $e) {
+			$this->logger->warning(
+				"Not enabling module {module}, because it's not compatible with Nadybot {version}.",
+				[
+					"version" => BotRunner::getVersion(false),
+					"module" => $moduleName,
+				]
+			);
 			return;
 		}
 		foreach ($newInstances as $name => $class) {
@@ -156,10 +169,45 @@ class ClassLoader {
 		$this->registeredModules[$moduleName] = "{$baseDir}/{$moduleName}";
 	}
 
+	private function versionRangeCompatible(string $spec): bool {
+		$parts = preg_split("/\s*,\s*/", $spec);
+		foreach ($parts as $part) {
+			if (!preg_match("/^([!=<>^]+)(.+)$/", $part, $matches)) {
+				return false;
+			}
+			if (!SemanticVersion::compareUsing(BotRunner::getVersion(false), $matches[2], $matches[1])) {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	/**
+	 * Check if the module in $path is compatble with this Nadybot version
+	 *
+	 * @param string $path
+	 * @return bool
+	 */
+	private function isModuleCompatible(string $path): bool {
+		if (!@file_exists("{$path}/aopkg.toml")) {
+			return true;
+		}
+		$toml = @file_get_contents("{$path}/aopkg.toml");
+		if ($toml === false) {
+			return true;
+		}
+		if (!preg_match("/^\s*bot_version\s*=\s*(['\"])(.+)\\1\s*$/m", $toml, $matches)) {
+			return true;
+		}
+		return $this->versionRangeCompatible($matches[2]);
+	}
+
 	/**
 	 * Get a list of all module which provide an #[Instance] for a directory
 	 *
 	 * @return array<string,ClassInstance> A mapping [module name => class info]
+	 * @throws InvalidVersionException If the module is not compatible
+	 * @throws InvalidCodeException If the module doesn't parse
 	 */
 	public function getNewInstancesInDir(string $path): array {
 		$original = get_declared_classes();
@@ -167,6 +215,9 @@ class ClassLoader {
 		$isExtraModule = !str_contains($path, "/src/Core")
 			&& strncmp($path, "./src/", 6) !== 0;
 		$checkCode = extension_loaded("pcntl") && $isExtraModule;
+		if (!$this->isModuleCompatible($path)) {
+			throw new InvalidVersionException();
+		}
 		if ($dir = dir($path)) {
 			while (($file = $dir->read()) !== false) {
 				$fileName = "{$path}/{$file}";
@@ -174,7 +225,7 @@ class ClassLoader {
 					continue;
 				}
 				if ($checkCode && !$this->checkFileLoads($fileName)) {
-					throw new Exception($fileName);
+					throw new InvalidCodeException($fileName);
 				}
 				$files []= $fileName;
 			}
