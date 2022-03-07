@@ -9,16 +9,12 @@ jobs:
       matrix:
         os: [ubuntu-latest]
         php: [8.0, 8.1]
-        from: [budabot4.db]
-        db: [sqlite]
+        from: []
+        db: []
         include:
-          - os: ubuntu-latest
-            php: [8.0, 8.1]
-            from: [budabot4.db]
+          - from: [budabot4.db]
             db: [sqlite]
-          - os: ubuntu-latest
-            php: [8.0, 8.1]
-            from: [budabot4.mysql]
+          - from: [budabot4.mysql]
             db: [mysql]
 
     steps:
@@ -39,8 +35,8 @@ jobs:
         if: matrix.db == 'sqlite'
         shell: bash
         run: |
-          curl --user "github:${{ secrets.CONFIG_PASSWORD }}" https://confs.nadybot.org/${{ matrix.from }} -o data/nadybot.db
-          curl --user "github:${{ secrets.CONFIG_PASSWORD }}"  https://confs.nadybot.org/${{ matrix.db }}.conf -o conf/config.php
+          curl --user "github:${{ secrets.CONFIG_PASSWORD }}" "https://confs.nadybot.org/${{ matrix.from }}" -o data/nadybot.db
+          curl --user "github:${{ secrets.CONFIG_PASSWORD }}" "https://confs.nadybot.org/${{ matrix.db }}.conf" -o conf/config.php
           php main.php --setup-only --migration-errors-fatal conf/config.php
 
       - uses: mirromutth/mysql-action@v1.1
