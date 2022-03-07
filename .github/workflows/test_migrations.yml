@@ -78,5 +78,6 @@ jobs:
           curl -s -S -q --user "github:${{ secrets.CONFIG_PASSWORD }}" "https://confs.nadybot.org/${{ matrix.from }}" -o data/nadybot.sql
           curl -s -S -q --user "github:${{ secrets.CONFIG_PASSWORD }}" "https://confs.nadybot.org/postgresql.php" -o conf/config.php
           echo "127.0.0.1:5432:budabot:budabot:123456" > ~/.pgpass
+          chmod 0600 ~/.pgpass
           psql -o /dev/null -h 127.0.0.1 -U budabot budabot < data/nadybot.sql
           php main.php --setup-only --migration-errors-fatal conf/config.php
