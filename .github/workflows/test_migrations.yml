@@ -26,22 +26,9 @@ jobs:
       - name: Install dependencies
         run: composer install
 
-      - name: Write config file
-        if: matrix.os == 'windows-latest'
-        uses: joutvhu/write-file@v1
-        with:
-          path: conf/config.php
-          contents: ${{ secrets.WINDOWS_CONFIG }}
-          write_mode: overwrite
-
-      - name: Write config
-        if: matrix.os == 'ubuntu-latest'
-        shell: bash
-        run: |
-          curl -s -S -q --user "github:${{ secrets.CONFIG_PASSWORD }}" "https://confs.nadybot.org/sqlite.php" -o conf/config.php
-
       - name: Migrate SQLite
         run: |
+          curl -s -S -q --user "github:${{ secrets.CONFIG_PASSWORD }}" "https://confs.nadybot.org/sqlite.php" -o conf/config.php
           curl -s -S -q --user "github:${{ secrets.CONFIG_PASSWORD }}" "https://confs.nadybot.org/${{ matrix.from }}" -o data/nadybot.db
           php main.php --setup-only --migration-errors-fatal conf/config.php
 
