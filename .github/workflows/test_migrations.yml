@@ -26,7 +26,7 @@ jobs:
         run: composer install
 
       - name: Migrate SQLite
-        if: endsWith(matrix.db, 'db')
+        if: endsWith(matrix.from, '.db')
         shell: bash
         run: |
           curl --user "github:${{ secrets.CONFIG_PASSWORD }}" "https://confs.nadybot.org/${{ matrix.from }}" -o data/nadybot.db
@@ -34,7 +34,7 @@ jobs:
           php main.php --setup-only --migration-errors-fatal conf/config.php
 
       - uses: mirromutth/mysql-action@v1.1
-        if: endsWith(matrix.db, 'mysql')
+        if: endsWith(matrix.from, '.mysql')
         name: Start MySQL server
         with:
           mysql version: '5.6' # Optional, default value is "latest". The version of the MySQL
@@ -43,7 +43,7 @@ jobs:
           mysql password: '123456'
 
       - name: Migrate MySQL
-        if: endsWith(matrix.db, 'mysql')
+        if: endsWith(matrix.from, '.mysql')
         shell: bash
         run: |
           curl --user "github:${{ secrets.CONFIG_PASSWORD }}" https://confs.nadybot.org/${{ matrix.from }} -o data/nadybot.sql
