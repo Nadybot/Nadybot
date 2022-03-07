@@ -2,97 +2,177 @@ name: Test migrations
 on: [push]
 
 jobs:
-  tests:
-    name: Test database migrations
-    runs-on: self-hosted
+  sqlite_tests:
+    name: Test SQLite migrations
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        php: [8.0, 8.1]
+        from: [budabot4.db, nadybot5.0.0.db]
+
     steps:
       - name: Checkout sources
         uses: actions/checkout@v2
 
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          coverage: none
+          extensions: sqlite3, sockets, pdo_sqlite, pdo_mysql
+
       - name: Install dependencies
-        shell: bash
-        run: |
-          if ! test -e /tmp/composer; then
-            curl --retry 10 -sSLq -o /tmp/composer https://getcomposer.org/download/latest-stable/composer.phar
-          fi
-          php80 /tmp/composer install
+        run: composer install
 
-      - name: Migrate from Budabot 4.0.0 with SQLite
-        shell: bash
+      - name: Migrate SQLite
         run: |
-          cp -f /etc/nadybot/budabot4.db data/nadybot.db
-          php80 main.php --setup-only --migration-errors-fatal /etc/nadybot/sqlite.php
+          curl -s -S -q --user "github:${{ secrets.CONFIG_PASSWORD }}" "https://confs.nadybot.org/sqlite.php" -o conf/config.php
+          curl -s -S -q --user "github:${{ secrets.CONFIG_PASSWORD }}" "https://confs.nadybot.org/${{ matrix.from }}" -o data/nadybot.db
+          php main.php --setup-only --migration-errors-fatal conf/config.php
 
-      - name: Migrate from Nadybot 5.0.0 with SQLite
-        shell: bash
-        run: |
-          cp -f /etc/nadybot/nadybot5.0.0.db data/nadybot.db
-          php80 main.php --setup-only --migration-errors-fatal /etc/nadybot/sqlite.php
+  mysql_tests:
+    name: Test MySQL migrations
+    services:
+      mysql:
+        image: mysql:5.7
+        env:
+          MYSQL_ROOT_PASSWORD: 123456
+          MYSQL_USER: budabot
+          MYSQL_DATABASE: budabot
+          MYSQL_PASSWORD: '123456'
+        options: >-
+          --health-cmd "mysqladmin ping -h localhost"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 3306:3306
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest]
+        php: [8.0, 8.1]
+        from: [budabot4.mysql, nadybot5.0.0.mysql]
 
-      - name: Migrate from Budabot 4.0.0 with MariaDB 10.5
-        shell: bash
-        run: |
-          podman rm --force nady_db &>/dev/null || true
-          podman run --network host --rm -d --name nady_db -e MYSQL_ROOT_PASSWORD=e9oCsyKLgwhv8s7Q2d8s -e MYSQL_DATABASE=budabot -e MYSQL_USER=budabot -e MYSQL_PASSWORD=123456 docker.io/library/mariadb:10.5
-          while ! nc -z -w 1 127.0.0.1 3306 &>/dev/null; do sleep 1; done
-          mysql -h 127.0.0.1 -u budabot -p123456 budabot < /etc/nadybot/budabot4.mysql
-          php80 main.php --setup-only --migration-errors-fatal /etc/nadybot/mysql.php
-          podman stop nady_db &>/dev/null || true
-          podman rm --force nady_db &>/dev/null || true
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v2
 
-      - name: Migrate from Budabot 4.0.0 with MySQL 5.5
-        shell: bash
-        run: |
-          podman rm --force nady_db &>/dev/null || true
-          podman run --network host --rm -d --name nady_db -e MYSQL_ROOT_PASSWORD=e9oCsyKLgwhv8s7Q2d8s -e MYSQL_DATABASE=budabot -e MYSQL_USER=budabot -e MYSQL_PASSWORD=123456 docker.io/library/mysql:5.5
-          while ! nc -z -w 1 127.0.0.1 3306 &>/dev/null; do sleep 1; done
-          mysql -h 127.0.0.1 -u budabot -p123456 budabot < /etc/nadybot/budabot4.mysql
-          php80 main.php --setup-only --migration-errors-fatal /etc/nadybot/mysql.php
-          podman stop nady_db &>/dev/null || true
-          podman rm --force nady_db &>/dev/null || true
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          coverage: none
+          extensions: sqlite3, sockets, pdo_sqlite, pdo_mysql
 
-      - name: Migrate from Nadybot 5.0.0 with MariaDB 10.5
-        shell: bash
-        run: |
-          podman rm --force nady_db &>/dev/null || true
-          podman run --network host --rm -d --name nady_db -e MYSQL_ROOT_PASSWORD=e9oCsyKLgwhv8s7Q2d8s -e MYSQL_DATABASE=budabot -e MYSQL_USER=budabot -e MYSQL_PASSWORD=123456 docker.io/library/mariadb:10.5
-          while ! nc -z -w 1 127.0.0.1 3306 &>/dev/null; do sleep 1; done
-          mysql -h 127.0.0.1 -u budabot -p123456 budabot < /etc/nadybot/nadybot5.0.0.mysql
-          php80 main.php --setup-only --migration-errors-fatal /etc/nadybot/mysql.php
-          podman stop nady_db &>/dev/null || true
-          podman rm --force nady_db &>/dev/null || true
+      - name: Install dependencies
+        run: composer install
 
-      - name: Migrate from Nadybot 5.0.0 with MySQL 5.5
+      - name: Migrate MySQL
         shell: bash
         run: |
-          podman rm --force nady_db &>/dev/null || true
-          podman run --network host --rm -d --name nady_db -e MYSQL_ROOT_PASSWORD=e9oCsyKLgwhv8s7Q2d8s -e MYSQL_DATABASE=budabot -e MYSQL_USER=budabot -e MYSQL_PASSWORD=123456 docker.io/library/mysql:5.5
-          while ! nc -z -w 1 127.0.0.1 3306 &>/dev/null; do sleep 1; done
-          mysql -h 127.0.0.1 -u budabot -p123456 budabot < /etc/nadybot/nadybot5.0.0.mysql
-          php80 main.php --setup-only --migration-errors-fatal /etc/nadybot/mysql.php
-          podman stop nady_db &>/dev/null || true
-          podman rm --force nady_db &>/dev/null || true
+          curl -s -S -q --user "github:${{ secrets.CONFIG_PASSWORD }}" "https://confs.nadybot.org/${{ matrix.from }}" -o data/nadybot.sql
+          curl -s -S -q --user "github:${{ secrets.CONFIG_PASSWORD }}" "https://confs.nadybot.org/mysql.php" -o conf/config.php
+          mysql -h 127.0.0.1 -u budabot -p123456 budabot < data/nadybot.sql
+          rm -f data/nadybot.sql
+          php main.php --setup-only --migration-errors-fatal conf/config.php
 
-      - name: Migrate Hodorraid with MariaDB 10.5
-        shell: bash
-        run: |
-          podman rm --force nady_db &>/dev/null || true
-          podman run --network host --rm -d --name nady_db -e MYSQL_ROOT_PASSWORD=e9oCsyKLgwhv8s7Q2d8s -e MYSQL_DATABASE=budabot -e MYSQL_USER=budabot -e MYSQL_PASSWORD=123456 docker.io/library/mariadb:10.5
-          while ! nc -z -w 1 127.0.0.1 3306 &>/dev/null; do sleep 1; done
-          sed -e 's/`\([^`]*\)_hodorraid`/`\1_piggythrbs30`/g; s/`\([^`]*\)_hodorraid_\([^`].*\)`/`\1_piggythrbs30_\2`/g' /etc/nadybot/hodorraid.mysql | mysql -h 127.0.0.1 -u budabot -p123456 budabot
-          php80 main.php --setup-only --migration-errors-fatal /etc/nadybot/mysql.php
-          podman stop nady_db &>/dev/null || true
-          podman rm --force nady_db &>/dev/null || true
+  mariadb_tests:
+    name: Test MariaDB migrations
+    services:
+      mysql:
+        image: mariadb:10.5
+        env:
+          MYSQL_ROOT_PASSWORD: 123456
+          MYSQL_USER: budabot
+          MYSQL_DATABASE: budabot
+          MYSQL_PASSWORD: '123456'
+        options: >-
+          --health-cmd "mysqladmin ping -h localhost"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 3306:3306
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest]
+        php: [8.0, 8.1]
+        from: [budabot4.mysql, hodorraid.mysql, nadybot5.0.0.mysql]
 
-      - name: Migrate from Nadybot 5.1.0 with PostgreSQL
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v2
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          coverage: none
+          extensions: sqlite3, sockets, pdo_sqlite, pdo_mysql
+
+      - name: Install dependencies
+        run: composer install
+
+      - name: Migrate MySQL
         shell: bash
         run: |
-          podman rm --force nady_db &>/dev/null || true
-          podman run --rm --name nady_db -it -d --net host -e POSTGRES_DB=budabot -e POSTGRES_USER=budabot -e POSTGRES_PASSWORD=123456 docker.io/library/postgres:9
-          until psql -h 127.0.0.1 -U budabot -d budabot -c "select 1" &>/dev/null; do
-            sleep 1
-          done
-          psql -o /dev/null -h 127.0.0.1 -U budabot budabot < /etc/nadybot/nadybot5.1.0.pgsql
-          php80 main.php --setup-only --migration-errors-fatal /etc/nadybot/postgresql.php
-          podman stop nady_db &>/dev/null || true
-          podman rm --force nady_db &>/dev/null || true
+          curl -s -S -q --user "github:${{ secrets.CONFIG_PASSWORD }}" "https://confs.nadybot.org/${{ matrix.from }}" -o data/nadybot.sql
+          curl -s -S -q --user "github:${{ secrets.CONFIG_PASSWORD }}" "https://confs.nadybot.org/mysql.php" -o conf/config.php
+          mysql -h 127.0.0.1 -u budabot -p123456 budabot < data/nadybot.sql
+          rm -f data/nadybot.sql
+          php main.php --setup-only --migration-errors-fatal conf/config.php
+
+  pgsql_tests:
+    name: Test PostgreSQL migrations
+    services:
+      postgres:
+        image: postgres:9
+        env:
+          POSTGRES_PASSWORD: 123456
+          POSTGRES_USER: budabot
+          POSTGRES_DB: budabot
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest]
+        php: [8.0, 8.1]
+        from: [nadybot5.1.0.pgsql]
+
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v2
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          coverage: none
+          extensions: sqlite3, sockets, pdo_sqlite, pdo_mysql
+
+      - name: Install dependencies
+        run: composer install
+
+      - name: Migrate PostgreSQL
+        shell: bash
+        run: |
+          curl -s -S -q --user "github:${{ secrets.CONFIG_PASSWORD }}" "https://confs.nadybot.org/${{ matrix.from }}" -o data/nadybot.sql
+          curl -s -S -q --user "github:${{ secrets.CONFIG_PASSWORD }}" "https://confs.nadybot.org/postgresql.php" -o conf/config.php
+          echo "127.0.0.1:5432:budabot:budabot:123456" > ~/.pgpass
+          chmod 0600 ~/.pgpass
+          psql -o /dev/null -h 127.0.0.1 -U budabot budabot < data/nadybot.sql
+          rm -f data/nadybot.sql
+          php main.php --setup-only --migration-errors-fatal conf/config.php
