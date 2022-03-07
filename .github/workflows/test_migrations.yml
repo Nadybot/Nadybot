@@ -7,7 +7,7 @@ jobs:
       postgres:
         image: postgres:9
         env:
-          POSTGRES_PASSWORD: '123456'
+          POSTGRES_PASSWORD: 123456
           POSTGRES_USER: budabot
           POSTGRES_DB: budabot
         options: >-
@@ -20,7 +20,7 @@ jobs:
       mysql:
         image: mysql:5.7
         env:
-          MYSQL_ROOT_PASSWORD: '123456'
+          MYSQL_ROOT_PASSWORD: 123456
           MYSQL_USER: budabot
           MYSQL_DATABASE: budabot
           MYSQL_PASSWORD: '123456'
@@ -34,6 +34,7 @@ jobs:
     name: Test database migrations
     runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: false
       matrix:
         os: [ubuntu-latest]
         php: [8.0, 8.1]
