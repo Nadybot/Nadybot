@@ -5,6 +5,7 @@ jobs:
   tests:
     services:
       postgres:
+        if: endsWith(matrix.from, '.pgsql')
         image: postgres:9
         env:
           POSTGRES_PASSWORD: 123456
@@ -18,6 +19,7 @@ jobs:
         ports:
           - 5432:5432
       mysql:
+        if: endsWith(matrix.from, '.mysql')
         image: mysql:5.7
         env:
           MYSQL_ROOT_PASSWORD: 123456
@@ -77,5 +79,6 @@ jobs:
         run: |
           curl -s -S -q --user "github:${{ secrets.CONFIG_PASSWORD }}" "https://confs.nadybot.org/${{ matrix.from }}" -o data/nadybot.sql
           curl -s -S -q --user "github:${{ secrets.CONFIG_PASSWORD }}" "https://confs.nadybot.org/postgresql.php" -o conf/config.php
+          echo "127.0.0.1:5432:budabot:budabot:123456" > ~/.pgpass
           psql -o /dev/null -h 127.0.0.1 -U budabot budabot < data/nadybot.sql
           php main.php --setup-only --migration-errors-fatal conf/config.php
