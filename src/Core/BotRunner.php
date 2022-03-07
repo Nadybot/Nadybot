@@ -6,7 +6,6 @@ use Closure;
 use ErrorException;
 use Exception;
 use Nadybot\Core\Modules\SETUP\Setup;
-use Nadybot\Modules\PACKAGE_MODULE\SemanticVersion;
 use ReflectionClass;
 use ReflectionException;
 

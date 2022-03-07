@@ -3,6 +3,7 @@
 namespace Nadybot\Modules\PACKAGE_MODULE;
 
 use Nadybot\Core\CommandReply;
+use Nadybot\Core\SemanticVersion;
 
 class PackageAction {
 	public const INSTALL = 1;

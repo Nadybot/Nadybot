@@ -1,6 +1,6 @@
 <?php declare(strict_types=1);
 
-namespace Nadybot\Modules\PACKAGE_MODULE;
+namespace Nadybot\Core;
 
 class SemanticVersion {
 	protected string $origVersion;
@@ -32,7 +32,6 @@ class SemanticVersion {
 			$version .= "1";
 		}
 		$version = preg_replace("/[^a-z0-9.]+/i", ".", $version);
-		$version = preg_replace("/([a-z]+)(?!\.|$)/i", "$1.", $version);
 		$version = preg_replace("/^(\d+)\.(?!\d)/", "$1.0.0.", $version);
 		$version = preg_replace("/^(\d+\.\d+)\.(?!\d)/", "$1.0.", $version);
 		return $version;
@@ -43,15 +42,22 @@ class SemanticVersion {
 		$v2 = explode(".", static::normalizeVersion($version2));
 
 		for ($i = 0; $i < max(count($v1), count($v2)); $i++) {
-			$t1 = $v1[$i] ?? "0";
-			$t2 = $v2[$i] ?? "0";
-			if (!ctype_digit($t1) && !ctype_digit($t2)) {
-				$t1 = ord(substr($t1, 0, 1));
-				$t2 = ord(substr($t2, 0, 1));
-			} elseif (!ctype_digit($t1)) {
-				return -1;
-			} elseif (!ctype_digit($t2)) {
+			$t1 = $v1[$i] ?? null;
+			$t2 = $v2[$i] ?? null;
+			if ($t1 === null) {
 				return 1;
+			} elseif ($t2 === null) {
+				return -1;
+			}
+			if (!ctype_digit($t1) && !ctype_digit($t2)) {
+				if ($t1 === $t2) {
+					continue;
+				}
+				return strcmp($t1, $t2);
+			} elseif (!ctype_digit($t1)) {
+				return 1;
+			} elseif (!ctype_digit($t2)) {
+				return -1;
 			}
 			if (($cmp = ($t1 <=> $t2)) === 0) {
 				continue;
@@ -78,6 +84,9 @@ class SemanticVersion {
 				return $cmp > 0;
 			case ">=":
 				return $cmp >= 0;
+			case "^":
+				$upperLimit = ((int)explode(".", $version2)[0] + 1) . ".0.0-0";
+				return $cmp >= 0 && static::compareUsing($version1, $upperLimit, "<");
 		}
 		return false;
 	}

@@ -24,6 +24,7 @@ use Nadybot\Core\{
 	LoggerWrapper,
 	Nadybot,
 	ParamClass\PWord,
+	SemanticVersion,
 	Text,
 };
 use Nadybot\Modules\WEBSERVER_MODULE\JsonImporter;
@@ -468,7 +469,7 @@ class PackageController extends ModuleInstance {
 		$ourVersion = BotRunner::getVersion();
 
 		foreach ($parts as $part) {
-			if (!preg_match("/^([!=<>]+)(.+)$/", $part, $matches)) {
+			if (!preg_match("/^([!=<>^]+)(.+)$/", $part, $matches)) {
 				return false;
 			}
 			if (!SemanticVersion::compareUsing($ourVersion, $matches[2], $matches[1])) {
