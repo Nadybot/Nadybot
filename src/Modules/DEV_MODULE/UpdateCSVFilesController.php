@@ -79,9 +79,9 @@ class UpdateCSVFilesController extends ModuleInstance {
 		if ($response->headers["status-code"] !== "200") {
 			$error = $response->error ?: $response->body ?? 'null';
 			try {
-				$error = \Safe\json_decode($error, false, 512, JSON_THROW_ON_ERROR);
+				$error = \Safe\json_decode($error);
 				$error = $error->message;
-			} catch (Throwable $e) {
+			} catch (Throwable) {
 				// Ignore it if not json
 			}
 			$context->reply("Error downloading the file list: {$error}");
@@ -91,11 +91,11 @@ class UpdateCSVFilesController extends ModuleInstance {
 			if (!isset($response->body)) {
 				throw new Exception();
 			}
-			$data = \Safe\json_decode($response->body, false, 512, JSON_THROW_ON_ERROR);
+			$data = \Safe\json_decode($response->body);
 			if (!is_object($data) || !isset($data->tree)) {
 				throw new Exception();
 			}
-		} catch (Throwable $e) {
+		} catch (Throwable) {
 			$context->reply("Invalid data received from GitHub");
 			return;
 		}
@@ -173,8 +173,8 @@ class UpdateCSVFilesController extends ModuleInstance {
 			if (!isset($response->body)) {
 				throw new Exception();
 			}
-			$data = \Safe\json_decode($response->body, false, 512, JSON_THROW_ON_ERROR);
-		} catch (Throwable $e) {
+			$data = \Safe\json_decode($response->body);
+		} catch (Throwable) {
 			$callback($file, "Error decoding the JSON data from GitHub for {$file}.");
 			return;
 		}

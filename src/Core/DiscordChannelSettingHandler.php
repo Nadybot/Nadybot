@@ -65,7 +65,7 @@ class DiscordChannelSettingHandler extends SettingHandler {
 			->waitAndReturnResponse();
 		if ($response->headers["status-code"] !== "200" && isset($response->body)) {
 			try {
-				$reply = \Safe\json_decode($response->body, true, 512, JSON_THROW_ON_ERROR);
+				$reply = \Safe\json_decode($response->body);
 			} catch (JsonException $e) {
 				throw new Exception("Cannot use <highlight>{$newValue}<end> as value.");
 			}
@@ -103,7 +103,7 @@ class DiscordChannelSettingHandler extends SettingHandler {
 			return $newValue;
 		}
 		try {
-			$reply = \Safe\json_decode($response->body, true, 512, JSON_THROW_ON_ERROR);
+			$reply = \Safe\json_decode($response->body, true);
 		} catch (JsonException $e) {
 			return $newValue;
 		}

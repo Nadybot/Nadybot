@@ -144,7 +144,7 @@ class TowerApiController extends ModuleInstance {
 			return;
 		}
 		try {
-			$data = \Safe\json_decode($response->body, true, 512, JSON_THROW_ON_ERROR);
+			$data = \Safe\json_decode($response->body, true);
 			$result = new ApiResult($data);
 		} catch (Throwable $e) {
 			$callback(null, ...$args);

@@ -71,7 +71,7 @@ class HttpRequestController extends ModuleInstance {
 		$blob .= "\n<pagebreak><header2>Body<end>";
 		$response->body ??= "The body is empty";
 		try {
-			$decoded = \Safe\json_decode($response->body, false, 512, JSON_THROW_ON_ERROR);
+			$decoded = \Safe\json_decode($response->body);
 			$response->body = \Safe\json_encode($decoded, JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES);
 		} catch (JsonException $e) {
 		}

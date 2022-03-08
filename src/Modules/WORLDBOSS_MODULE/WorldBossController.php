@@ -3,7 +3,7 @@
 namespace Nadybot\Modules\WORLDBOSS_MODULE;
 
 use DateTime;
-use JsonException;
+use Safe\Exceptions\JsonException;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
@@ -262,14 +262,14 @@ class WorldBossController extends ModuleInstance {
 		/** @var ApiSpawnData[] */
 		$timers = [];
 		try {
-			$data = \Safe\json_decode($response->body, true, 512, JSON_THROW_ON_ERROR);
+			$data = \Safe\json_decode($response->body, true);
 			if (!is_array($data)) {
 				throw new JsonException();
 			}
 			foreach ($data as $timerData) {
 				$timers []= new ApiSpawnData($timerData);
 			}
-		} catch (JsonException $e) {
+		} catch (JsonException) {
 			$this->logger->error("Worldboss API sent invalid json.", [
 				"json" => $response->body
 			]);

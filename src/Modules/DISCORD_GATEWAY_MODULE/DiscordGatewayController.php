@@ -2,7 +2,7 @@
 
 namespace Nadybot\Modules\DISCORD_GATEWAY_MODULE;
 
-use JsonException;
+use Safe\Exceptions\JsonException;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Channels\DiscordChannel as RoutedChannel,
@@ -309,7 +309,7 @@ class DiscordGatewayController extends ModuleInstance {
 			if (!isset($event->data)) {
 				throw new JsonException("null message received.");
 			}
-			$payload->fromJSON(\Safe\json_decode($event->data, false, 512, JSON_THROW_ON_ERROR));
+			$payload->fromJSON(\Safe\json_decode($event->data));
 		} catch (JsonException $e) {
 			$this->logger->error("Invalid JSON data received from Discord: {error}", [
 				"error" => $e->getMessage(),

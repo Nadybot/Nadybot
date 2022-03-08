@@ -465,7 +465,7 @@ class HttpProtocolWrapper {
 		}
 		if (\Safe\preg_split("/;\s*/", $this->request->headers['content-type'])[0] === 'application/json') {
 			try {
-				$this->request->decodedBody = \Safe\json_decode($this->request->body, false, 512, JSON_THROW_ON_ERROR);
+				$this->request->decodedBody = \Safe\json_decode($this->request->body);
 				return null;
 			} catch (Throwable $error) {
 				return new Response(Response::BAD_REQUEST, [], "Invalid JSON given: ".$error->getMessage());

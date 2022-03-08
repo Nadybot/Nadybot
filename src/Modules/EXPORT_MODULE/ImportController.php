@@ -100,7 +100,7 @@ class ImportController extends ModuleInstance {
 		}
 		$this->logger->notice("Decoding the JSON data");
 		try {
-			$import = \Safe\json_decode(\Safe\file_get_contents($fileName), false, 512, JSON_THROW_ON_ERROR);
+			$import = \Safe\json_decode(\Safe\file_get_contents($fileName));
 		} catch (Throwable $e) {
 			$sendto->reply("Error decoding <highlight>{$fileName}<end>.");
 			return null;

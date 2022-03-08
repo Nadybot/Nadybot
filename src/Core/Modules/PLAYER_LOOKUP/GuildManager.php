@@ -48,7 +48,7 @@ class GuildManager extends ModuleInstance {
 				if ($data === null) {
 					return false;
 				}
-				$result = \Safe\json_decode($data, false, 512, JSON_THROW_ON_ERROR);
+				$result = \Safe\json_decode($data);
 				return $result !== null;
 			} catch (JsonException $e) {
 				return false;

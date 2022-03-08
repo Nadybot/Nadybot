@@ -195,7 +195,7 @@ class WebsocketController extends ModuleInstance {
 			if (!is_string($event->data)) {
 				throw new Exception();
 			}
-			$data = \Safe\json_decode($event->data, false, 512, JSON_THROW_ON_ERROR);
+			$data = \Safe\json_decode($event->data);
 			$command = new WebsocketCommand();
 			$command->fromJSON($data);
 			if (!in_array($command->command, $command::ALLOWED_COMMANDS)) {

@@ -88,7 +88,7 @@ class NadyNative implements RelayProtocolInterface {
 			$event->data->message = str_replace("<myname>", $this->chatBot->char->name, $event->data->message??"");
 		}
 		try {
-			$data = \Safe\json_encode($event, JSON_UNESCAPED_SLASHES|JSON_INVALID_UTF8_SUBSTITUTE|JSON_THROW_ON_ERROR);
+			$data = \Safe\json_encode($event, JSON_UNESCAPED_SLASHES|JSON_INVALID_UTF8_SUBSTITUTE);
 		} catch (JsonException $e) {
 			$this->logger->error(
 				'Cannot send event via Nadynative protocol: '.
@@ -110,7 +110,7 @@ class NadyNative implements RelayProtocolInterface {
 		}
 		$serialized = array_shift($message->packages);
 		try {
-			$data = \Safe\json_decode($serialized, false, 10, JSON_UNESCAPED_SLASHES|JSON_INVALID_UTF8_SUBSTITUTE|JSON_THROW_ON_ERROR);
+			$data = \Safe\json_decode($serialized, false, 10, JSON_UNESCAPED_SLASHES|JSON_INVALID_UTF8_SUBSTITUTE);
 		} catch (JsonException $e) {
 			$this->logger->error(
 				'Invalid data received via Nadynative protocol',

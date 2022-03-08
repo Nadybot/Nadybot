@@ -170,15 +170,16 @@ class Highway implements RelayLayerInterface, StatusProvider {
 					"relay" => $this->relay->getName(),
 					"message" => $data,
 				]);
-				$json = \Safe\json_decode($data, false, 512, JSON_THROW_ON_ERROR);
+				$json = \Safe\json_decode($data);
 			} catch (JsonException $e) {
 				$this->status = new RelayStatus(
 					RelayStatus::ERROR,
 					"Unable to decode highway message: " . $e->getMessage()
 				);
-				$this->logger->error("Unable to decode highway message on {relay}: {message}", [
+				$this->logger->error("Unable to decode highway message on {relay}: {error}", [
 					"relay" => $this->relay->getName(),
-					"message" => $e->getMessage(),
+					"message" => $data,
+					"error" => $e->getMessage(),
 					"exception" => $e,
 				]);
 				$data = null;

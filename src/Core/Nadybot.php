@@ -791,7 +791,7 @@ class Nadybot extends AOChat {
 
 		$worker = 0;
 		try {
-			$payload = \Safe\json_decode($extra, false, 512, JSON_THROW_ON_ERROR);
+			$payload = \Safe\json_decode($extra);
 			$worker = $payload->id ?? 0;
 		} catch (Throwable $e) {
 		}
@@ -866,7 +866,7 @@ class Nadybot extends AOChat {
 		$eventObj->message = $message;
 		if ($extra !== "\0") {
 			try {
-				$extraData = \Safe\json_decode($extra, false, 512, JSON_THROW_ON_ERROR);
+				$extraData = \Safe\json_decode($extra);
 				if (isset($extraData) && is_object($extraData) && isset($extraData->id)) {
 					$eventObj->worker = $extraData->id;
 				}
@@ -1092,7 +1092,7 @@ class Nadybot extends AOChat {
 			return;
 		}
 		try {
-			$obj = \Safe\json_decode($reply, false, 512, JSON_THROW_ON_ERROR);
+			$obj = \Safe\json_decode($reply);
 			if (!is_object($obj) || !isset($obj->type) || !isset($classMapping[$obj->type])) {
 				throw new Exception();
 			}

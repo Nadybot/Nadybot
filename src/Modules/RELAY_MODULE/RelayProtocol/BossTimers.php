@@ -3,7 +3,7 @@
 namespace Nadybot\Modules\RELAY_MODULE\RelayProtocol;
 
 use Exception;
-use JsonException;
+use Safe\Exceptions\JsonException;
 use Nadybot\Core\{
 	Attributes as NCA,
 	EventManager,
@@ -38,7 +38,7 @@ class BossTimers implements RelayProtocolInterface {
 		$serialized = array_shift($message->packages);
 		try {
 			/** @var stdClass */
-			$data = \Safe\json_decode($serialized, false, 10, JSON_UNESCAPED_SLASHES|JSON_INVALID_UTF8_SUBSTITUTE|JSON_THROW_ON_ERROR);
+			$data = \Safe\json_decode($serialized, false, 10, JSON_UNESCAPED_SLASHES|JSON_INVALID_UTF8_SUBSTITUTE);
 			if (!isset($data->sourceDimension) || !isset($data->type)) {
 				throw new Exception("Incomplete data received.");
 			}
