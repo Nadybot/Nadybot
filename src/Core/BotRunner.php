@@ -6,8 +6,6 @@ use Closure;
 use ErrorException;
 use Exception;
 use Nadybot\Core\Modules\SETUP\Setup;
-use ReflectionClass;
-use ReflectionException;
 
 class BotRunner {
 	/**

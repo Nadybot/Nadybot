@@ -122,7 +122,7 @@ class ImplantController extends ModuleInstance {
 	 * @phpstan-return non-empty-array<int,int> An associative array in the form [QL => bonus/requirement]
 	 */
 	protected function getBreakpoints(string $type, int $position): array {
-	 	/** @phpstan-var non-empty-array<int,int> */
+		/** @phpstan-var non-empty-array<int,int> */
 		$breakPoints = array_map(
 			function(array $item) use ($position) {
 				return $item[$position];

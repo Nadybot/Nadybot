@@ -1239,7 +1239,10 @@ class Nadybot extends AOChat {
 		// register settings annotated on the class
 		$reflection = new ReflectionClass($obj);
 
-		// register commands, subcommands, and events annotated on the class
+		/**
+		 * register commands, subcommands, and events annotated on the class
+		 * @var array<string,mixed>
+		 */
 		$commands = [];
 		$subcommands = [];
 		foreach ($reflection->getAttributes(NCA\DefineCommand::class) as $attribute) {
@@ -1311,7 +1314,7 @@ class Nadybot extends AOChat {
 			$this->commandManager->register(
 				$moduleName,
 				implode(',', $definition['handlers']),
-				$command,
+				(string)$command,
 				$definition['accessLevel'],
 				$definition['description'],
 				$definition['defaultStatus']
