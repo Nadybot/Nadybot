@@ -29,7 +29,6 @@
         <RedundantCast errorLevel="suppress" />
         <RedundantCondition errorLevel="suppress" />
         <UnresolvableInclude errorLevel="suppress" />
-        <UndefinedPropertyAssignment errorLevel="suppress" />
         <MoreSpecificReturnType errorLevel="suppress" />
         <ArgumentTypeCoercion errorLevel="suppress" />
         <RedundantConditionGivenDocblockType errorLevel="suppress" />

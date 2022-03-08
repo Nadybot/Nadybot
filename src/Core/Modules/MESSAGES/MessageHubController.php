@@ -913,7 +913,7 @@ class MessageHubController extends ModuleInstance {
 			$_ignore = sprintf($format, "text");
 		}
 		$spec = Source::$format->first(fn(RouteHopFormat $x) => $x->hop === $hop);
-		/** @var RouteHopFormat $format */
+		/** @var ?RouteHopFormat $spec */
 		$update = true;
 		if (!isset($spec)) {
 			$spec = new RouteHopFormat();

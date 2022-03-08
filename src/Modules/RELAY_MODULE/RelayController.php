@@ -1356,6 +1356,7 @@ class RelayController extends ModuleInstance {
 		if (!is_array($events)) {
 			return new Response(Response::UNPROCESSABLE_ENTITY);
 		}
+		/** @var stdClass[] $events */
 		try {
 			foreach ($events as &$event) {
 				/** @var RelayEvent */
@@ -1364,6 +1365,7 @@ class RelayController extends ModuleInstance {
 		} catch (Throwable $e) {
 			return new Response(Response::UNPROCESSABLE_ENTITY);
 		}
+		/** @var RelayEvent[] $events */
 		$this->db->beginTransaction();
 		$oldEvents = $relay->events;
 		try {
