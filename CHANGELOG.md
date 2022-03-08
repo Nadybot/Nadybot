@@ -5,10 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [6.0.0-alpha.1] - 2022-03-08
 
 ### Changed
 
+- Check extra modules for compile errors and compatibility with this bot
+  version before loading. Treat `<X.0.0` as `<X.0.0-0` to work around a bug.
 - Adding settings now requires "options" to be an array, not a string,
   plus there are no more "intoptions". If you need "intoptions", use an associative
   array for "options".
