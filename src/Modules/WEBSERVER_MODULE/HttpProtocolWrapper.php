@@ -412,13 +412,13 @@ class HttpProtocolWrapper {
 		if (!isset($this->request->headers["authorization"])) {
 			return null;
 		}
-		$parts = \Safe\preg_split("/\s+/", $this->request->headers["authorization"]);
-		if (count($parts) !== 2 || strtolower($parts[0]) !== 'basic') {
-			return null;
-		}
-		$userPassString = \Safe\base64_decode($parts[1]);
-		// @phpstan-ignore-next-line
-		if ($userPassString === false) {
+		try {
+			$parts = \Safe\preg_split("/\s+/", $this->request->headers["authorization"]);
+			if (count($parts) !== 2 || strtolower($parts[0]) !== 'basic') {
+				return null;
+			}
+			$userPassString = \Safe\base64_decode($parts[1]);
+		} catch (Exception) {
 			return null;
 		}
 		$userPass = explode(":", $userPassString, 2);

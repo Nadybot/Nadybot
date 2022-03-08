@@ -138,7 +138,6 @@ class LoggerWrapper {
 		if (isset($throwable)) {
 			$context["exception"] = $throwable;
 		}
-		// @phpstan-ignore-next-line
 		$this->logger->log($level, $message, $context);
 	}
 
@@ -207,10 +206,10 @@ class LoggerWrapper {
 	 * Check if logging is enabled for a given level
 	 *
 	 * @param int $level The log level (Logger::DEBUG, etc.)
+	 * @phpstan-param 100|200|250|300|400|500|550|600 $level
 	 * @return boolean
 	 */
 	public function isHandling(int $level): bool {
-		// @phpstan-ignore-next-line
 		return $this->logger->isHandling($level);
 	}
 }

@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\HELPBOT_MODULE;
 
+use InvalidArgumentException;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
@@ -257,8 +258,12 @@ class RandomController extends ModuleInstance {
 	 * @throws SQLException on SQL errors
 	 */
 	public function roll(string $sender, array $options, int $amount=1): array {
+		$revOptions = array_flip($options);
+		if (empty($revOptions)) {
+			throw new InvalidArgumentException("\$options to roll() must not be empty");
+		}
 		mt_srand();
-		$result = (array)array_rand(array_flip($options), $amount);
+		$result = (array)array_rand($revOptions, $amount);
 		$result = implode("|", $result);
 		$id = $this->db->table("roll")
 			->insertGetId([

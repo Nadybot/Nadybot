@@ -45,7 +45,7 @@ class JsonExporter {
 	}
 
 	public static function encode(mixed $data): string {
-		if ($data === null || is_resource($data) || (is_object($data) && get_class($data) === "Socket")) {
+		if ($data === null || is_resource($data) || (is_object($data) && $data instanceof \Socket)) {
 			return 'null';
 		}
 		if (is_scalar($data)) {

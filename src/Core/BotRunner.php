@@ -162,9 +162,7 @@ class BotRunner {
 	}
 
 	public function checkRequiredPackages(): void {
-		try {
-			new ReflectionClass("Monolog\\Logger");
-		} catch (ReflectionException $e) { // @phpstan-ignore-line
+		if (!class_exists("Monolog\\Logger")) {
 			\Safe\fwrite(
 				STDERR,
 				"Nadybot cannot find all the required composer modules in 'vendor'.\n".

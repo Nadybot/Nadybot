@@ -11,6 +11,7 @@ use UnexpectedValueException;
 use DateTime;
 use Exception;
 use Safe\Exceptions\DatetimeException;
+use Safe\Exceptions\UrlException;
 use stdClass;
 
 /**
@@ -209,9 +210,9 @@ class JWT {
 			$padlen = 4 - $remainder;
 			$input .= str_repeat('=', $padlen);
 		}
-		$decoded = \Safe\base64_decode(strtr($input, '-_', '+/'));
-		// @phpstan-ignore-next-line
-		if ($decoded === false) {
+		try {
+			$decoded = \Safe\base64_decode(strtr($input, '-_', '+/'));
+		} catch (UrlException) {
 			return null;
 		}
 		return $decoded;

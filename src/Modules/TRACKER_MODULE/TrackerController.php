@@ -1007,7 +1007,7 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 				$blob .= "? ";
 			} else {
 				$blob .= "<img src=tdb://id:GFX_GUI_ICON_PROFESSION_".
-					($this->onlineController->getProfessionId($player->profession??"_")??0) . "> ";
+					($this->onlineController->getProfessionId($player->profession)??0) . "> ";
 			}
 		}
 		if ($this->settingManager->getBool('tracker_use_faction_color')) {
@@ -1026,7 +1026,7 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 			$hideLink = $this->text->makeChatcmd("hide", "/tell <myname> track hide {$player->charid}");
 			$unhideLink = $this->text->makeChatcmd("unhide", "/tell <myname> track unhide {$player->charid}");
 			$blob .= " [{$removeLink}] [{$historyLink}]";
-			if ($player->hidden??false) {
+			if ($player->hidden) {
 				$blob .= " [{$unhideLink}]";
 			} else {
 				$blob .= " [{$hideLink}]";

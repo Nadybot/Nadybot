@@ -410,7 +410,7 @@ class WorldBossController extends ModuleInstance {
 		$spawntimes = (array)$this->text->makeBlob("Spawntimes for {$timer->mob_name}", $nextSpawnsMessage);
 		if (isset($timer->next_spawn) && time() < $timer->next_spawn) {
 			if ($timer->mob_name === static::VIZARESH) {
-				$secsDead = time() - (($timer->next_spawn??0) - 61200);
+				$secsDead = time() - ($timer->next_spawn - 61200);
 				if ($secsDead < 6*60 + 30) {
 					$portalOpen = 6*60 + 30 - $secsDead;
 					$portalOpenTime = $this->util->unixtimeToReadable($portalOpen);

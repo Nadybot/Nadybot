@@ -17,20 +17,15 @@
     </projectFiles>
     <issueHandlers>
         <PropertyNotSetInConstructor errorLevel="suppress" />
-        <UndefinedDocblockClass errorLevel="suppress" />
         <TooManyTemplateParams errorLevel="suppress" />
-        <MissingParamType errorLevel="suppress" />
         <NoInterfaceProperties errorLevel="suppress" />
         <RawObjectIteration errorLevel="suppress" />
-        <DeprecatedMethod errorLevel="suppress" />
         <RedundantCastGivenDocblockType errorLevel="suppress" />
         <TypeDoesNotContainType errorLevel="suppress" />
         <RedundantPropertyInitializationCheck errorLevel="suppress" />
         <RedundantCast errorLevel="suppress" />
         <RedundantCondition errorLevel="suppress" />
         <UnresolvableInclude errorLevel="suppress" />
-        <MoreSpecificReturnType errorLevel="suppress" />
-        <ArgumentTypeCoercion errorLevel="suppress" />
         <RedundantConditionGivenDocblockType errorLevel="suppress" />
     </issueHandlers>
 </psalm>

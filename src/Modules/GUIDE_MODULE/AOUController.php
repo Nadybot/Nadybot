@@ -47,9 +47,10 @@ class AOUController extends ModuleInstance {
 	public const AOU_URL = "https://www.ao-universe.com/mobile/parser.php?bot=nadybot";
 
 	public function isValidXML(?string $data): bool {
-		if (!isset($data)) {
+		if (!isset($data) || !strlen($data)) {
 			return false;
 		}
+		/** @phpstan-var non-empty-string $data */
 		try {
 			$dom = new DOMDocument();
 			return $dom->loadXML($data) !== false;
@@ -81,11 +82,12 @@ class AOUController extends ModuleInstance {
 	}
 
 	public function displayAOUGuide(CacheResult $result, int $guideId, CmdContext $sendto): void {
-		if (!$result->success || !isset($result->data)) {
+		if (!$result->success || !isset($result->data) || !strlen($result->data)) {
 			$msg = "An error occurred while trying to retrieve AOU guide with id <highlight>$guideId<end>.";
 			$sendto->reply($msg);
 			return;
 		}
+		/** @phpstan-var non-empty-string */
 		$guide = $result->data;
 		$dom = new DOMDocument();
 		$dom->loadXML($guide);
@@ -157,12 +159,13 @@ class AOUController extends ModuleInstance {
 	}
 
 	public function showAOUSearchResult(HttpResponse $response, bool $searchGuideText, string $search, CmdContext $context): void {
-		if ($response->headers["status-code"] !== "200" || !isset($response->body)) {
+		if ($response->headers["status-code"] !== "200" || !isset($response->body) || !strlen($response->body)) {
 			$msg = "An error occurred while trying to talk to AOU Universe.";
 			$context->reply($msg);
 			return;
 		}
 		$searchTerms = explode(" ", $search);
+		/** @phpstan-var non-empty-string */
 		$results = $response->body;
 
 		$dom = new DOMDocument();

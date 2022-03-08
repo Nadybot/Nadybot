@@ -135,6 +135,7 @@ class BestQLController extends ModuleInstance {
 		for ($i = 1; $i < count($specPairs); $i += 2) {
 			$itemSpecs[(int)$specPairs[$i-1]] = (int)$specPairs[$i];
 		}
+		/** @phpstan-var non-empty-array<int,int> $itemSpecs */
 
 		ksort($itemSpecs);
 

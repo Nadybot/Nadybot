@@ -3,6 +3,7 @@
 namespace Nadybot\Modules\IMPLANT_MODULE;
 
 use Exception;
+use InvalidArgumentException;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
@@ -98,8 +99,10 @@ class ImplantController extends ModuleInstance {
 	 * @return int The lowest QL that gives that bonus
 	 */
 	public function findBestQLForBonus(int $bonus, array $itemSpecs): int {
+		if (empty($itemSpecs)) {
+			throw new InvalidArgumentException("\$itemSpecs to findBestQLForBonus() must not be empty");
+		}
 		for ($searchedQL = min(array_keys($itemSpecs)); $searchedQL <= max(array_keys($itemSpecs)); $searchedQL++) {
-			// @phpstan-ignore-next-line
 			$value = $this->calcStatFromQL($itemSpecs, $searchedQL);
 			if ($value === null) {
 				continue;
@@ -116,14 +119,17 @@ class ImplantController extends ModuleInstance {
 	 * @param string $type     The name of the breakpoint ("abilities", "reqRegular", ...)
 	 * @param int    $position The position in the list (usually 0, 1 or 2)
 	 * @return array<int,int> An associative array in the form [QL => bonus/requirement]
+	 * @phpstan-return non-empty-array<int,int> An associative array in the form [QL => bonus/requirement]
 	 */
 	protected function getBreakpoints(string $type, int $position): array {
-		return array_map(
+	 	/** @phpstan-var non-empty-array<int,int> */
+		$breakPoints = array_map(
 			function(array $item) use ($position) {
 				return $item[$position];
 			},
 			$this->implantBreakpoints[$type]
 		);
+		return $breakPoints;
 	}
 
 	/**

@@ -42,6 +42,7 @@ class LegacyLogger {
 
 	/**
 	 * Get the Monolog log level for a Nadybot logging category
+	 * @phpstan-return 100|200|250|300|400|500|550|600
 	 */
 	public static function getLoggerLevel(string $category): int {
 		switch (strtolower($category)) {
@@ -119,7 +120,10 @@ class LegacyLogger {
 			if (!fnmatch($logLevelConf[0], $logger->getName(), FNM_CASEFOLD)) {
 				continue;
 			}
-			// @phpstan-ignore-next-line
+			/**
+			 * @phpstan-ignore-next-line
+			 * @psalm-suppress ArgumentTypeCoercion
+			 */
 			$newLevel = $logger->toMonologLevel($logLevelConf[1]);
 			foreach ($handlers as $name => $handler) {
 				if ($handler instanceof AbstractHandler) {
