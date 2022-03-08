@@ -439,7 +439,7 @@ class BanController extends ModuleInstance {
 	public function add(int $charId, string $sender, ?int $length, ?string $reason): bool {
 		$banEnd = 0;
 		if ($length !== null) {
-			$banEnd = time() + (int)$length;
+			$banEnd = time() + $length;
 		}
 
 		$inserted = $this->db->table(self::DB_TABLE)

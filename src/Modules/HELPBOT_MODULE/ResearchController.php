@@ -88,7 +88,7 @@ class ResearchController extends ModuleInstance {
 		}
 
 		$xp = number_format($row->totalsk * 1000);
-		$sk = number_format((int)$row->totalsk);
+		$sk = number_format($row->totalsk);
 
 		$blob = "You must be <highlight>Level $row->levelcap<end> to reach Research Level <highlight>$hiLevel.<end>\n";
 		$blob .= "It takes <highlight>$sk SK<end> to go from Research Level <highlight>$loLevel<end> to Research Level <highlight>$hiLevel<end> per research line.\n\n";

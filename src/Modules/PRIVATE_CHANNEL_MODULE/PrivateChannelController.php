@@ -602,7 +602,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 				(int)round($org->numPlayers * 100 / $online->count(), 0),
 				3
 			);
-			$avg_level = round((float)$org->avgLevel, 1);
+			$avg_level = round($org->avgLevel, 1);
 			return "<tab>{$percent}% <highlight>{$guild}<end> - {$org->numPlayers} member(s), average level {$avg_level}";
 		});
 		$blob = "<header2>Org statistics<end>\n" . $lines->join("\n");

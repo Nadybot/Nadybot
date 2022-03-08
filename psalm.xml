@@ -23,7 +23,6 @@
         <RedundantCastGivenDocblockType errorLevel="suppress" />
         <TypeDoesNotContainType errorLevel="suppress" />
         <RedundantPropertyInitializationCheck errorLevel="suppress" />
-        <RedundantCast errorLevel="suppress" />
         <RedundantCondition errorLevel="suppress" />
         <UnresolvableInclude errorLevel="suppress" />
         <RedundantConditionGivenDocblockType errorLevel="suppress" />

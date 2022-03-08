@@ -77,7 +77,7 @@ class JsonExporter {
 			if (!static::processAnnotations($refClass, $data, $name, $value)) {
 				continue;
 			}
-			$result []= static::jsonEncode((string)$name) . ':' . static::encode($value);
+			$result []= static::jsonEncode($name) . ':' . static::encode($value);
 		}
 		return '{' . join(",", $result) . '}';
 	}

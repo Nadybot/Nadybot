@@ -145,7 +145,7 @@ class ImplantController extends ModuleInstance {
 		$bestAttribQL = $this->findBestQLForBonus($attributeLevel, $attributeBreakpoints);
 		$bestTreatmentQL = $this->findBestQLForBonus($treatmentLevel, $treatmentBreakpoints);
 
-		return (int)min($bestAttribQL, $bestTreatmentQL);
+		return min($bestAttribQL, $bestTreatmentQL);
 	}
 
 	/**

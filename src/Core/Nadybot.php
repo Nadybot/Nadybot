@@ -1165,7 +1165,7 @@ class Nadybot extends AOChat {
 		$this->getUid($dummyName, function(?int $null) use ($dummyName, $uid, $callback, $args): void {
 			unset($this->id[$dummyName]);
 			$this->buddylistManager->removeId($uid, "name_lookup");
-			$name = $this->id[(int)$uid] ?? null;
+			$name = $this->id[$uid] ?? null;
 			if (!is_string($name) || $name === '4294967295') {
 				$name = null;
 			}
@@ -1311,7 +1311,7 @@ class Nadybot extends AOChat {
 			$this->commandManager->register(
 				$moduleName,
 				implode(',', $definition['handlers']),
-				(string)$command,
+				$command,
 				$definition['accessLevel'],
 				$definition['description'],
 				$definition['defaultStatus']

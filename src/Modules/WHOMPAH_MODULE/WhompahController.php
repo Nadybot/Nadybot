@@ -196,7 +196,7 @@ class WhompahController extends ModuleInstance {
 			->asObj(WhompahCityRel::class)
 			->each(function(WhompahCityRel $city) use ($whompahs) {
 				$whompahs[$city->city1_id]->connections ??= [];
-				$whompahs[$city->city1_id]->connections[] = (int)$city->city2_id;
+				$whompahs[$city->city1_id]->connections[] = $city->city2_id;
 			});
 
 		return $whompahs;

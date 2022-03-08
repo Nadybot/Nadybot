@@ -138,7 +138,7 @@ class TestController extends ModuleInstance {
 			$this->chatBot->gid["Org Msg"] = 'sicrit';
 			$gid = 'sicrit';
 		}
-		$testArgs = [$gid, (int)0xFFFFFFFF, $message];
+		$testArgs = [$gid, 0xFFFFFFFF, $message];
 		$packet = new AOChatPacket("in", AOChatPacket::LOGIN_OK, "");
 		$packet->type = AOChatPacket::GROUP_MESSAGE;
 		$packet->args = $testArgs;
@@ -380,7 +380,7 @@ class TestController extends ModuleInstance {
 		}
 		$testArgs = [
 			$gid,
-			(int)0xFFFFFFFF,
+			0xFFFFFFFF,
 			"{$context->char->name} turned the cloaking device in your city off.",
 		];
 		$packet = new AOChatPacket("in", AOChatPacket::LOGIN_OK, "");
@@ -407,7 +407,7 @@ class TestController extends ModuleInstance {
 		}
 		$testArgs = [
 			$gid,
-			(int)0xFFFFFFFF,
+			0xFFFFFFFF,
 			"{$context->char->name} turned the cloaking device in your city on.",
 		];
 		$packet = new AOChatPacket("in", AOChatPacket::LOGIN_OK, "");
