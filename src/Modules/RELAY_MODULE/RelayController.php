@@ -1356,7 +1356,7 @@ class RelayController extends ModuleInstance {
 		if (!is_array($events)) {
 			return new Response(Response::UNPROCESSABLE_ENTITY);
 		}
-		/** @var stdClass[] $events */
+		/** @var \stdClass[] $events */
 		try {
 			foreach ($events as &$event) {
 				/** @var RelayEvent */
