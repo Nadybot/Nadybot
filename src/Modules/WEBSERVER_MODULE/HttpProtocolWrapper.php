@@ -412,13 +412,13 @@ class HttpProtocolWrapper {
 		if (!isset($this->request->headers["authorization"])) {
 			return null;
 		}
-		$parts = \Safe\preg_split("/\s+/", $this->request->headers["authorization"]);
-		if (count($parts) !== 2 || strtolower($parts[0]) !== 'basic') {
-			return null;
-		}
-		$userPassString = \Safe\base64_decode($parts[1]);
-		// @phpstan-ignore-next-line
-		if ($userPassString === false) {
+		try {
+			$parts = \Safe\preg_split("/\s+/", $this->request->headers["authorization"]);
+			if (count($parts) !== 2 || strtolower($parts[0]) !== 'basic') {
+				return null;
+			}
+			$userPassString = \Safe\base64_decode($parts[1]);
+		} catch (Exception) {
 			return null;
 		}
 		$userPass = explode(":", $userPassString, 2);
@@ -465,7 +465,7 @@ class HttpProtocolWrapper {
 		}
 		if (\Safe\preg_split("/;\s*/", $this->request->headers['content-type'])[0] === 'application/json') {
 			try {
-				$this->request->decodedBody = \Safe\json_decode($this->request->body, false, 512, JSON_THROW_ON_ERROR);
+				$this->request->decodedBody = \Safe\json_decode($this->request->body);
 				return null;
 			} catch (Throwable $error) {
 				return new Response(Response::BAD_REQUEST, [], "Invalid JSON given: ".$error->getMessage());

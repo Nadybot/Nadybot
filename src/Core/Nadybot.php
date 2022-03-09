@@ -791,7 +791,7 @@ class Nadybot extends AOChat {
 
 		$worker = 0;
 		try {
-			$payload = \Safe\json_decode($extra, false, 512, JSON_THROW_ON_ERROR);
+			$payload = \Safe\json_decode($extra);
 			$worker = $payload->id ?? 0;
 		} catch (Throwable $e) {
 		}
@@ -866,7 +866,7 @@ class Nadybot extends AOChat {
 		$eventObj->message = $message;
 		if ($extra !== "\0") {
 			try {
-				$extraData = \Safe\json_decode($extra, false, 512, JSON_THROW_ON_ERROR);
+				$extraData = \Safe\json_decode($extra);
 				if (isset($extraData) && is_object($extraData) && isset($extraData->id)) {
 					$eventObj->worker = $extraData->id;
 				}
@@ -1092,7 +1092,7 @@ class Nadybot extends AOChat {
 			return;
 		}
 		try {
-			$obj = \Safe\json_decode($reply, false, 512, JSON_THROW_ON_ERROR);
+			$obj = \Safe\json_decode($reply);
 			if (!is_object($obj) || !isset($obj->type) || !isset($classMapping[$obj->type])) {
 				throw new Exception();
 			}
@@ -1165,7 +1165,7 @@ class Nadybot extends AOChat {
 		$this->getUid($dummyName, function(?int $null) use ($dummyName, $uid, $callback, $args): void {
 			unset($this->id[$dummyName]);
 			$this->buddylistManager->removeId($uid, "name_lookup");
-			$name = $this->id[(int)$uid] ?? null;
+			$name = $this->id[$uid] ?? null;
 			if (!is_string($name) || $name === '4294967295') {
 				$name = null;
 			}
@@ -1239,7 +1239,10 @@ class Nadybot extends AOChat {
 		// register settings annotated on the class
 		$reflection = new ReflectionClass($obj);
 
-		// register commands, subcommands, and events annotated on the class
+		/**
+		 * register commands, subcommands, and events annotated on the class
+		 * @var array<string,mixed>
+		 */
 		$commands = [];
 		$subcommands = [];
 		foreach ($reflection->getAttributes(NCA\DefineCommand::class) as $attribute) {

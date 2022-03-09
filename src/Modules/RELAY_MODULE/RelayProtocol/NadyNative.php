@@ -84,11 +84,11 @@ class NadyNative implements RelayProtocolInterface {
 		}
 		if (is_string($event->data)) {
 			$event->data = str_replace("<myname>", $this->chatBot->char->name, $event->data);
-		} elseif (is_object($event->data) && is_string($event->data->message??null)) {
+		} elseif (is_object($event->data) && !($event->data instanceof SyncEvent) && is_string($event->data->message??null)) {
 			$event->data->message = str_replace("<myname>", $this->chatBot->char->name, $event->data->message??"");
 		}
 		try {
-			$data = \Safe\json_encode($event, JSON_UNESCAPED_SLASHES|JSON_INVALID_UTF8_SUBSTITUTE|JSON_THROW_ON_ERROR);
+			$data = \Safe\json_encode($event, JSON_UNESCAPED_SLASHES|JSON_INVALID_UTF8_SUBSTITUTE);
 		} catch (JsonException $e) {
 			$this->logger->error(
 				'Cannot send event via Nadynative protocol: '.
@@ -110,7 +110,7 @@ class NadyNative implements RelayProtocolInterface {
 		}
 		$serialized = array_shift($message->packages);
 		try {
-			$data = \Safe\json_decode($serialized, false, 10, JSON_UNESCAPED_SLASHES|JSON_INVALID_UTF8_SUBSTITUTE|JSON_THROW_ON_ERROR);
+			$data = \Safe\json_decode($serialized, false, 10, JSON_UNESCAPED_SLASHES|JSON_INVALID_UTF8_SUBSTITUTE);
 		} catch (JsonException $e) {
 			$this->logger->error(
 				'Invalid data received via Nadynative protocol',
@@ -276,7 +276,6 @@ class NadyNative implements RelayProtocolInterface {
 		$onlineList = new OnlineList();
 		$onlineOrg = $this->onlineController->getPlayers('guild', $this->chatBot->char->name);
 		$isOrg = strlen($this->config->orgName);
-		/** @psalm-suppress DocblockTypeContradiction */
 		if ($isOrg) {
 			$block = new OnlineBlock();
 			$orgLabel = $this->settingManager->getString("relay_guild_abbreviation");

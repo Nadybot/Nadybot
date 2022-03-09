@@ -9,7 +9,7 @@
 
     <!-- Code MUST follow all rules outlined in PSR-1. -->
     <rule ref="PSR1">
-      <exclude name="PSR1.Files.SideEffects.FoundWithSymbols"/>
+        <exclude name="PSR1.Files.SideEffects.FoundWithSymbols"/>
     </rule>
 
     <!-- The term 'StudlyCaps' in PSR-1 MUST be interpreted as PascalCase where the first letter of each word is capitalized including the very first letter. -->
@@ -133,9 +133,9 @@
     <!-- Closing braces MUST be on their own line and MUST NOT be preceded by a blank line. -->
     <!-- Lists of implements and, in the case of interfaces, extends MAY be split across multiple lines, where each subsequent line is indented once. When doing so, the first item in the list MUST be on the next line, and there MUST be only one interface per line. -->
     <rule ref="PSR2.Classes.ClassDeclaration">
-      <exclude name="Squiz.Functions.MultiLineFunctionDeclaration.BraceOnSameLine" />
-      <exclude name="PSR1.Classes.ClassDeclaration.MultipleClasses" />
-      <exclude name="PSR2.Classes.ClassDeclaration.OpenBraceNewLine" />
+        <exclude name="Squiz.Functions.MultiLineFunctionDeclaration.BraceOnSameLine" />
+        <exclude name="PSR1.Classes.ClassDeclaration.MultipleClasses" />
+        <exclude name="PSR2.Classes.ClassDeclaration.OpenBraceNewLine" />
     </rule>
     <rule ref="Generic.Functions.OpeningFunctionBraceKernighanRitchie" />
     <rule ref="Generic.Classes.OpeningBraceSameLine" />
@@ -179,8 +179,8 @@
     <!-- Method and function names MUST NOT be declared with space after the method name. The opening brace MUST go on its own line, and the closing brace MUST go on the next line following the body. There MUST NOT be a space after the opening parenthesis, and there MUST NOT be a space before the closing parenthesis. -->
     <rule ref="PSR2.Methods.FunctionClosingBrace"/>
     <rule ref="Squiz.Functions.FunctionDeclaration">
-      <exclude name="Squiz.Functions.MultiLineFunctionDeclaration.SpaceAfterFunction" />
-      <exclude name="Squiz.Functions.MultiLineFunctionDeclaration.Indent" />
+        <exclude name="Squiz.Functions.MultiLineFunctionDeclaration.SpaceAfterFunction" />
+        <exclude name="Squiz.Functions.MultiLineFunctionDeclaration.Indent" />
     </rule>
     <rule ref="Squiz.Functions.LowercaseFunctionKeywords"/>
 
@@ -282,7 +282,7 @@
 
     <!-- The case statement MUST be indented once from switch, and the break keyword (or other terminating keywords) MUST be indented at the same level as the case body. There MUST be a comment such as // no break when fall-through is intentional in a non-empty case body. -->
     <rule ref="PSR2.ControlStructures.SwitchDeclaration">
-      <exclude name="PSR2.ControlStructures.SwitchDeclaration.BreakIndent" />
+        <exclude name="PSR2.ControlStructures.SwitchDeclaration.BreakIndent" />
     </rule>
 
     <!-- Expressions in parentheses MAY be split across multiple lines, where each subsequent line is indented at least once. When doing so, the first condition MUST be on the next line. The closing parenthesis and opening brace MUST be placed together on their own line with one space between them. Boolean operators between conditions MUST always be at the beginning or at the end of the line, not a mix of both. -->

@@ -2,7 +2,7 @@
 
 namespace Nadybot\Modules\DISCORD_GATEWAY_MODULE;
 
-use JsonException;
+use Safe\Exceptions\JsonException;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Channels\DiscordChannel as RoutedChannel,
@@ -309,7 +309,7 @@ class DiscordGatewayController extends ModuleInstance {
 			if (!isset($event->data)) {
 				throw new JsonException("null message received.");
 			}
-			$payload->fromJSON(\Safe\json_decode($event->data, false, 512, JSON_THROW_ON_ERROR));
+			$payload->fromJSON(\Safe\json_decode($event->data));
 		} catch (JsonException $e) {
 			$this->logger->error("Invalid JSON data received from Discord: {error}", [
 				"error" => $e->getMessage(),
@@ -740,17 +740,14 @@ class DiscordGatewayController extends ModuleInstance {
 		$guild = new Guild();
 		/** @var stdClass $event->payload->d */
 		$guild->fromJSON($event->payload->d);
-		$this->guilds[(string)$guild->id] = $guild;
-		$this->sendRequestGuildMembers((string)$guild->id);
-		// $this->discordAPIClient->getGuildMembers((string)$guild->id, function(array $members) use ($guild): void {
-		// 	$guild->members = $members;
-		// });
+		$this->guilds[$guild->id] = $guild;
+		$this->sendRequestGuildMembers($guild->id);
 		foreach ($guild->voice_states as $voiceState) {
 			if (!isset($voiceState->user_id)) {
 				continue;
 			}
 			$this->discordAPIClient->getGuildMember(
-				(string)$guild->id,
+				$guild->id,
 				$voiceState->user_id,
 				function(GuildMember $member, VoiceState $voiceState) {
 					$voiceState->member = $member;
@@ -842,7 +839,7 @@ class DiscordGatewayController extends ModuleInstance {
 				->unregisterMessageEmitter($fullName)
 				->unregisterMessageReceiver($fullName);
 
-			$dc = new RoutedChannel($channel->name??(string)$channel->id, $channel->id);
+			$dc = new RoutedChannel($channel->name??$channel->id, $channel->id);
 			Registry::injectDependencies($dc);
 			$this->messageHub
 				->registerMessageReceiver($dc)

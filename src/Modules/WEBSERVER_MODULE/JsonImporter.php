@@ -188,12 +188,4 @@ class JsonImporter {
 		}
 		return $result;
 	}
-
-	public static function decode(string $class, ?string $data): ?object {
-		if ($data === null) {
-			return null;
-		}
-		$obj = \Safe\json_decode($data, false, 512, JSON_THROW_ON_ERROR);
-		return static::convert($class, $obj);
-	}
 }

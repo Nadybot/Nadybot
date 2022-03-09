@@ -45,7 +45,7 @@ class JsonExporter {
 	}
 
 	public static function encode(mixed $data): string {
-		if ($data === null || is_resource($data) || (is_object($data) && get_class($data) === "Socket")) {
+		if ($data === null || is_resource($data) || (is_object($data) && $data instanceof \Socket)) {
 			return 'null';
 		}
 		if (is_scalar($data)) {
@@ -77,7 +77,7 @@ class JsonExporter {
 			if (!static::processAnnotations($refClass, $data, $name, $value)) {
 				continue;
 			}
-			$result []= static::jsonEncode((string)$name) . ':' . static::encode($value);
+			$result []= static::jsonEncode($name) . ':' . static::encode($value);
 		}
 		return '{' . join(",", $result) . '}';
 	}

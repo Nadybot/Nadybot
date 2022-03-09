@@ -660,7 +660,7 @@ class WhatBuffsController extends ModuleInstance {
 				$item->amount = $this->util->interpolate($item->lowql, $item->highql, $item->low_amount??$item->amount, $item->amount, 250);
 				$item->highql = 250;
 			}
-			$maxBuff = (int)max($maxBuff, abs($item->amount));
+			$maxBuff = max($maxBuff, abs($item->amount));
 			if ($item->lowid === $item->highid) {
 				$itemMapping[$item->lowid] = $item;
 			}

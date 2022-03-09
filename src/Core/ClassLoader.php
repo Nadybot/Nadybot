@@ -43,7 +43,6 @@ class ClassLoader {
 		unset($newInstances["configfile"]);
 		$newInstances = array_merge($newInstances, $this->getNewInstancesInDir(__DIR__));
 		foreach ($newInstances as $name => $class) {
-			/** @psalm-suppress UnsafeInstantiation */
 			Registry::setInstance($name, new $class->className);
 		}
 
@@ -153,7 +152,6 @@ class ClassLoader {
 			if (!class_exists($className) || !is_subclass_of($className, ModuleInstanceInterface::class)) {
 				continue;
 			}
-			/** @psalm-suppress UnsafeInstantiation */
 			$obj = new $className();
 			$obj->setModuleName($moduleName);
 			if (Registry::instanceExists($name) && !$class->overwrite) {

@@ -188,8 +188,8 @@ class ExportController extends ModuleInstance {
 			$data[$alt->main] ??= [];
 			$data[$alt->main] []= (object)[
 				"alt" => $this->toChar($alt->alt),
-				"validatedByMain" => (bool)($alt->validated_by_main ?? true),
-				"validatedByAlt" => (bool)($alt->validated_by_alt ?? true),
+				"validatedByMain" => $alt->validated_by_main ?? true,
+				"validatedByAlt" => $alt->validated_by_alt ?? true,
 			];
 		}
 		$result = [];
@@ -519,8 +519,8 @@ class ExportController extends ModuleInstance {
 				"time" => $datum->time,
 				"givenBy" => $this->toChar($datum->changed_by),
 				"reason" => $datum->reason,
-				"givenByTick" => (bool)$datum->ticker,
-				"givenIndividually" => (bool)$datum->individual,
+				"givenByTick" => $datum->ticker,
+				"givenIndividually" => $datum->individual,
 			];
 			if (isset($datum->raid_id)) {
 				$raidLog->raidId = $datum->raid_id;
@@ -603,7 +603,7 @@ class ExportController extends ModuleInstance {
 				"item" => $auction->item,
 				"startedBy" => $this->toChar($auction->auctioneer),
 				"timeEnd" => $auction->end,
-				"reimbursed" => (bool)$auction->reimbursed
+				"reimbursed" => $auction->reimbursed
 			];
 			if (isset($auction->winner)) {
 				$auctionObj->winner = $this->toChar($auction->winner);

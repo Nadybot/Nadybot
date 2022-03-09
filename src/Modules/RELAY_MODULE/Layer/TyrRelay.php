@@ -72,7 +72,7 @@ class TyrRelay implements RelayLayerInterface, StatusProvider {
 	public function receive(RelayMessage $msg): ?RelayMessage {
 		foreach ($msg->packages as &$data) {
 			try {
-				$json = \Safe\json_decode($data, false, 512, JSON_THROW_ON_ERROR);
+				$json = \Safe\json_decode($data);
 			} catch (JsonException $e) {
 				$this->status = new RelayStatus(
 					RelayStatus::ERROR,

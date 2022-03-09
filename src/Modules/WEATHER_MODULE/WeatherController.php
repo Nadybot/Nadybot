@@ -80,7 +80,7 @@ class WeatherController extends ModuleInstance {
 			return;
 		}
 		try {
-			$data = \Safe\json_decode($response->body, false, 512, JSON_THROW_ON_ERROR);
+			$data = \Safe\json_decode($response->body);
 		} catch (JsonException $e) {
 			$context->reply(
 				"Invalid JSON received from Location provider: ".
@@ -130,7 +130,7 @@ class WeatherController extends ModuleInstance {
 			return;
 		}
 		try {
-			$data = \Safe\json_decode($response->body, false, 512, JSON_THROW_ON_ERROR);
+			$data = \Safe\json_decode($response->body);
 		} catch (JsonException $e) {
 			$context->reply(
 				"Invalid JSON received from Weather provider: ".

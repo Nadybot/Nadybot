@@ -489,16 +489,18 @@ class LootController extends ModuleInstance {
 			} else {
 				$list .= "Winners: ";
 			}
-			if ($numUsers == 0) {
+			if ($numUsers === 0) {
 				$list .= "<highlight>No one added.<end>\n\n";
 				$this->residual[$resnum] = $item;
 				$resnum++;
 			} else {
+				/** @psalm-var non-empty-array<string, bool> */
+				$users = $item->users;
 				if ($item->multiloot > 1) {
 					$arrolnum = min($item->multiloot, $numUsers);
 
-					// Get $arrolnum random values from $item->users
-					$winners = (array)array_rand($item->users, $arrolnum);
+					// Get $arrolnum random values from $users
+					$winners = (array)array_rand($users, $arrolnum);
 					$item->users = [];
 					$list .= join(
 						", ",
@@ -517,7 +519,7 @@ class LootController extends ModuleInstance {
 						$resnum++;
 					}
 				} else {
-					$winner = array_rand($item->users, 1);
+					$winner = array_rand($users, 1);
 					$list .= "<green>$winner<end>";
 				}
 				$list .= "\n\n";

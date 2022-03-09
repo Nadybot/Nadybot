@@ -3,8 +3,8 @@
 namespace Nadybot\Modules\GSP_MODULE;
 
 use Safe\DateTime;
+use Safe\Exceptions\JsonException;
 use DateTimeZone;
-use JsonException;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
@@ -150,7 +150,7 @@ class GSPController extends ModuleInstance implements MessageEmitter {
 		}
 		$show = new Show();
 		try {
-			$show->fromJSON(\Safe\json_decode($response->body, false, 512, JSON_THROW_ON_ERROR));
+			$show->fromJSON(\Safe\json_decode($response->body));
 		} catch (JsonException $e) {
 			return;
 		}

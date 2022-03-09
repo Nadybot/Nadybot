@@ -16,6 +16,7 @@ use Nadybot\Core\{
 	ModuleInstance,
 	SettingManager,
 };
+use Safe\Exceptions\ExecException;
 use Safe\Exceptions\FilesystemException;
 
 /**
@@ -58,9 +59,12 @@ class UpdateCSVFilesController extends ModuleInstance {
 	#[NCA\HandlesCommand("updatecsv")]
 	public function updateCsvCommand(CmdContext $context): void {
 		$checkCmd = BotRunner::isWindows() ? "where" : "command -v";
-		/** @psalm-suppress ForbiddenCode */
-		$gitPath = \Safe\shell_exec("{$checkCmd} git");
-		$hasGit = is_string($gitPath) && is_executable(rtrim($gitPath));
+		try {
+			$gitPath = \Safe\shell_exec("{$checkCmd} git");
+			$hasGit = is_string($gitPath) && is_executable(rtrim($gitPath));
+		} catch (ExecException) {
+			$hasGit = false;
+		}
 		if (!$hasGit) {
 			$context->reply(
 				"In order to check if any files can be updated, you need ".
@@ -79,9 +83,9 @@ class UpdateCSVFilesController extends ModuleInstance {
 		if ($response->headers["status-code"] !== "200") {
 			$error = $response->error ?: $response->body ?? 'null';
 			try {
-				$error = \Safe\json_decode($error, false, 512, JSON_THROW_ON_ERROR);
+				$error = \Safe\json_decode($error);
 				$error = $error->message;
-			} catch (Throwable $e) {
+			} catch (Throwable) {
 				// Ignore it if not json
 			}
 			$context->reply("Error downloading the file list: {$error}");
@@ -91,11 +95,11 @@ class UpdateCSVFilesController extends ModuleInstance {
 			if (!isset($response->body)) {
 				throw new Exception();
 			}
-			$data = \Safe\json_decode($response->body, false, 512, JSON_THROW_ON_ERROR);
+			$data = \Safe\json_decode($response->body);
 			if (!is_object($data) || !isset($data->tree)) {
 				throw new Exception();
 			}
-		} catch (Throwable $e) {
+		} catch (Throwable) {
 			$context->reply("Invalid data received from GitHub");
 			return;
 		}
@@ -173,8 +177,8 @@ class UpdateCSVFilesController extends ModuleInstance {
 			if (!isset($response->body)) {
 				throw new Exception();
 			}
-			$data = \Safe\json_decode($response->body, false, 512, JSON_THROW_ON_ERROR);
-		} catch (Throwable $e) {
+			$data = \Safe\json_decode($response->body);
+		} catch (Throwable) {
 			$callback($file, "Error decoding the JSON data from GitHub for {$file}.");
 			return;
 		}

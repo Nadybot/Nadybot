@@ -4,7 +4,7 @@ namespace Nadybot\Modules\WORLDBOSS_MODULE;
 
 use DateTime;
 use Exception;
-use JsonException;
+use Safe\Exceptions\JsonException;
 use Nadybot\Core\{
 	AOChatEvent,
 	Attributes as NCA,
@@ -153,14 +153,14 @@ class GauntletBuffController extends ModuleInstance implements MessageEmitter {
 		/** @var ApiGauntletBuff[] */
 		$buffs = [];
 		try {
-			$data = \Safe\json_decode($response->body, true, 512, JSON_THROW_ON_ERROR);
+			$data = \Safe\json_decode($response->body, true);
 			if (!is_array($data)) {
 				throw new JsonException();
 			}
 			foreach ($data as $gauntletData) {
 				$buffs []= new ApiGauntletBuff($gauntletData);
 			}
-		} catch (JsonException $e) {
+		} catch (JsonException) {
 			$this->logger->error("Gauntlet buff API sent invalid json.");
 			return;
 		}

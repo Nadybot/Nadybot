@@ -366,7 +366,7 @@ class Util {
 	public function isValidSender(int|string $sender): bool {
 		$isValid = !in_array(
 			$sender,
-			[(string)0xFFFFFFFF, (int)0xFFFFFFFF, 0xFFFFFFFF, "-1", -1],
+			[(string)0xFFFFFFFF, 0xFFFFFFFF, "-1", -1],
 			true
 		);
 		return $isValid;
@@ -497,8 +497,8 @@ class Util {
 		}
 		// Split the array in half
 		$halfway = count($array) / 2;
-		$array1 = array_slice($array, 0, (int)$halfway);
-		$array2 = array_slice($array, (int)$halfway);
+		$array1 = array_slice($array, 0, (int)floor($halfway));
+		$array2 = array_slice($array, (int)floor($halfway));
 		// Recurse to sort the two halves
 		$this->mergesort($array1, $cmp_function);
 		$this->mergesort($array2, $cmp_function);

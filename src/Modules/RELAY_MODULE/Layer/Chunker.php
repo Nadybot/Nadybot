@@ -123,7 +123,7 @@ class Chunker implements RelayLayerInterface {
 	public function receive(RelayMessage $msg): ?RelayMessage {
 		foreach ($msg->packages as &$data) {
 			try {
-				$json = \Safe\json_decode($data, true, 512, JSON_THROW_ON_ERROR);
+				$json = \Safe\json_decode($data, true);
 				$chunk = new Chunk($json);
 			} catch (Throwable $e) {
 				// Chunking is optional

@@ -2,7 +2,7 @@
 
 namespace Nadybot\Modules\RELAY_MODULE\RelayProtocol;
 
-use JsonException;
+use Safe\Exceptions\JsonException;
 use Throwable;
 use Nadybot\Core\{
 	Attributes as NCA,
@@ -178,7 +178,7 @@ class Tyrbot implements RelayProtocolInterface {
 		]);
 		$serialized = array_shift($message->packages);
 		try {
-			$data = \Safe\json_decode($serialized, true, 10, JSON_UNESCAPED_SLASHES|JSON_INVALID_UTF8_SUBSTITUTE|JSON_THROW_ON_ERROR);
+			$data = \Safe\json_decode($serialized, true, 10, JSON_UNESCAPED_SLASHES|JSON_INVALID_UTF8_SUBSTITUTE);
 			$identify = new BasePacket($data);
 			return $this->decodeAndHandlePacket($message->sender, $identify, $data);
 		} catch (JsonException $e) {
@@ -278,7 +278,6 @@ class Tyrbot implements RelayProtocolInterface {
 			"online" => []
 		];
 		$onlineOrg = $this->onlineController->getPlayers('guild', $this->chatBot->char->name);
-		/** @psalm-suppress DocblockTypeContradiction */
 		if (strlen($this->config->orgName)) {
 			$orgSource = [
 				"name" => $this->config->orgName,
@@ -307,7 +306,6 @@ class Tyrbot implements RelayProtocolInterface {
 			"name" => $this->chatBot->char->name,
 			"server" => $this->config->dimension,
 		];
-		/** @psalm-suppress DocblockTypeContradiction */
 		if (strlen($this->config->orgName)) {
 			if (isset($orgLabel) && $orgLabel !== "none") {
 				$privSource['label'] = $orgLabel;
@@ -433,7 +431,7 @@ class Tyrbot implements RelayProtocolInterface {
 	}
 
 	protected function jsonEncode(mixed $data): string {
-		return \Safe\json_encode($data, JSON_UNESCAPED_SLASHES|JSON_INVALID_UTF8_SUBSTITUTE|JSON_THROW_ON_ERROR);
+		return \Safe\json_encode($data, JSON_UNESCAPED_SLASHES|JSON_INVALID_UTF8_SUBSTITUTE);
 	}
 
 	public static function supportsFeature(int $feature): bool {

@@ -270,7 +270,6 @@ class AOChat {
 		$a = [$this->socket];
 		$b = [];
 		$c = [];
-		/** @psalm-suppress InvalidArgument */
 		if (!socket_select($a, $b, $c, $time)) {
 			return null;
 		}
@@ -735,7 +734,7 @@ class AOChat {
 	 * Lookup the group id of a group
 	 */
 	public function lookup_group(string $arg, int $type=0): ?string {
-		if ($type && ($isGid = (strlen((string)$arg) === 5 && (ord(((string)$arg)[0])&~0x80) < 0x10))) {
+		if ($type && ($isGid = (strlen($arg) === 5 && (ord(($arg)[0])&~0x80) < 0x10))) {
 			return $arg;
 		}
 		if (!isset($isGid) || !$isGid) {

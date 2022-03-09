@@ -281,7 +281,6 @@ class AMQP implements TransportInterface, StatusProvider {
 		$this->lastConnectTry = time();
 		$this->status = new RelayStatus(RelayStatus::INIT, "Connecting");
 		try {
-			/** @psalm-suppress InvalidScalarArgument */
 			$connection = new AMQPStreamConnection(
 				$this->server,
 				$this->port,

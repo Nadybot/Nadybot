@@ -12,7 +12,6 @@ use Nadybot\Core\{
 	CommandAlias,
 	DB,
 	ModuleInstance,
-	ParamClass\PWord,
 	Text,
 	Util,
 };

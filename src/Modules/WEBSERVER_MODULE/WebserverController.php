@@ -25,7 +25,9 @@ use Nadybot\Core\{
 use ReflectionAttribute;
 use ReflectionFunction;
 use Safe\Exceptions\FilesystemException;
+use Safe\Exceptions\OpensslException;
 use Safe\Exceptions\StreamException;
+use Safe\Exceptions\UrlException;
 
 #[
 	NCA\DefineCommand(
@@ -621,8 +623,9 @@ class WebserverController extends ModuleInstance {
 		if (!@file_exists($realFile)) {
 			return new Response(Response::NOT_FOUND);
 		}
-		$body = \Safe\file_get_contents($realFile);
-		if (!is_string($body)) {
+		try {
+			$body = \Safe\file_get_contents($realFile);
+		} catch (FilesystemException) {
 			$body = "";
 		}
 		$response = new Response(
@@ -705,12 +708,16 @@ class WebserverController extends ModuleInstance {
 		if ($key->last_sequence_nr >= $sequence) {
 			return null;
 		}
-		$decodedSig = \Safe\base64_decode($signature);
-		// @phpstan-ignore-next-line
-		if ($decodedSig === false) {
+		try {
+			$decodedSig = \Safe\base64_decode($signature);
+		} catch (UrlException) {
 			return null;
 		}
-		if (\Safe\openssl_verify($sequence, $decodedSig, $key->pubkey, $algorithm) !== 1) {
+		try {
+			if (\Safe\openssl_verify($sequence, $decodedSig, $key->pubkey, $algorithm) !== 1) {
+				return null;
+			}
+		} catch (OpensslException) {
 			return null;
 		}
 		$key->last_sequence_nr = (int)$sequence;

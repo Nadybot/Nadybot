@@ -398,7 +398,6 @@ class ApiSpecGenerator {
 		return $result;
 	}
 
-	/** @psalm-suppress PossiblyInvalidArgument */
 	public function getDescriptionFromComment(string $comment): string {
 		$comment = trim(preg_replace("|^/\*\*(.*)\*/$|s", '$1', $comment));
 		$comment = preg_replace("|^\s*\*\s*|m", '', $comment);

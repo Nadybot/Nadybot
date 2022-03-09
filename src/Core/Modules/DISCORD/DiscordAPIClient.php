@@ -326,7 +326,7 @@ class DiscordAPIClient extends ModuleInstance {
 				return;
 			}
 			try {
-				$reply = \Safe\json_decode($response->body??"null", false, 512, JSON_THROW_ON_ERROR);
+				$reply = \Safe\json_decode($response->body??"null");
 			} catch (JsonException $e) {
 				$this->logger->error('Error decoding JSON response from Discord-Server: {error}', [
 					"error" => $e->getMessage(),

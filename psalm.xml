@@ -2,7 +2,7 @@
 <psalm
     phpVersion="8.1"
     errorLevel="8"
-    findUnusedPsalmSuppress="false"
+    findUnusedPsalmSuppress="true"
     resolveFromConfigFile="true"
     allowStringToStandInForClass="true"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -17,21 +17,13 @@
     </projectFiles>
     <issueHandlers>
         <PropertyNotSetInConstructor errorLevel="suppress" />
-        <UndefinedDocblockClass errorLevel="suppress" />
         <TooManyTemplateParams errorLevel="suppress" />
-        <MissingParamType errorLevel="suppress" />
         <NoInterfaceProperties errorLevel="suppress" />
-        <RawObjectIteration errorLevel="suppress" />
-        <DeprecatedMethod errorLevel="suppress" />
         <RedundantCastGivenDocblockType errorLevel="suppress" />
         <TypeDoesNotContainType errorLevel="suppress" />
         <RedundantPropertyInitializationCheck errorLevel="suppress" />
-        <RedundantCast errorLevel="suppress" />
         <RedundantCondition errorLevel="suppress" />
         <UnresolvableInclude errorLevel="suppress" />
-        <UndefinedPropertyAssignment errorLevel="suppress" />
-        <MoreSpecificReturnType errorLevel="suppress" />
-        <ArgumentTypeCoercion errorLevel="suppress" />
         <RedundantConditionGivenDocblockType errorLevel="suppress" />
     </issueHandlers>
 </psalm>
