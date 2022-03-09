@@ -4,6 +4,7 @@ namespace Nadybot\Core;
 
 use Nadybot\Core\Attributes as NCA;
 use Exception;
+use Safe\Exceptions\FilesystemException;
 
 /**
  * Read-through cache to URLs
@@ -38,8 +39,17 @@ class CacheManager {
 		$this->cacheDir = $this->config->cacheFolder;
 
 		//Making sure that the cache folder exists
-		if (!@is_dir($this->cacheDir)) {
+		if (@is_dir($this->cacheDir)) {
+			return;
+		}
+		try {
 			\Safe\mkdir($this->cacheDir, 0777);
+		} catch (FilesystemException $e) {
+			$this->logger->warning("Unable to create the cache directory {dir}: {error}", [
+				"dir" => $this->cacheDir,
+				"error" => $e->getMessage(),
+				"exception" => $e,
+			]);
 		}
 	}
 
@@ -221,20 +231,27 @@ class CacheManager {
 	 * Store content in the cache
 	 */
 	public function store(string $groupName, string $filename, string $contents): void {
-		if (!dir($this->cacheDir . '/' . $groupName)) {
-			\Safe\mkdir($this->cacheDir . '/' . $groupName, 0777);
-		}
-
 		$cacheFile = "$this->cacheDir/$groupName/$filename";
+		try {
+			if (!dir($this->cacheDir . '/' . $groupName)) {
+				\Safe\mkdir($this->cacheDir . '/' . $groupName, 0777);
+			}
 
-		// at least in windows, modification timestamp will not change unless this is done
-		// not sure why that is the case -tyrence
-		@unlink($cacheFile);
+			// at least in windows, modification timestamp will not change unless this is done
+			// not sure why that is the case -tyrence
+			@unlink($cacheFile);
 
-		$fp = \Safe\fopen($cacheFile, "w");
-		if (is_resource($fp)) {
-			\Safe\fwrite($fp, $contents);
-			\Safe\fclose($fp);
+			$fp = \Safe\fopen($cacheFile, "w");
+			if (is_resource($fp)) {
+				\Safe\fwrite($fp, $contents);
+				\Safe\fclose($fp);
+			}
+		} catch (FilesystemException $e) {
+			$this->logger->warning("Unable to store cache {file}: {error}", [
+				"file" => $cacheFile,
+				"error" => $e->getMessage(),
+				"exception" => $e,
+			]);
 		}
 	}
 
