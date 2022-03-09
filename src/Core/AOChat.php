@@ -270,7 +270,6 @@ class AOChat {
 		$a = [$this->socket];
 		$b = [];
 		$c = [];
-		/** @psalm-suppress InvalidArgument */
 		if (!socket_select($a, $b, $c, $time)) {
 			return null;
 		}

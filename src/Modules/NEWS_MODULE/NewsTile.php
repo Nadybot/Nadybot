@@ -49,7 +49,6 @@ class NewsTile {
 			if ($type instanceof ReflectionNamedType) {
 				$typeNames =[$type->getName()];
 			} elseif ($type instanceof ReflectionUnionType) {
-				/** @psalm-suppress UndefinedMethod */
 				$typeNames = array_map(fn(ReflectionNamedType $type) => $type->getName(), $type->getTypes());
 			}
 			if (!in_array("string", $typeNames??[])) {
@@ -64,7 +63,6 @@ class NewsTile {
 			if ($type instanceof ReflectionNamedType) {
 				$typeNames =[$type->getName()];
 			} elseif ($type instanceof ReflectionUnionType) {
-				/** @psalm-suppress UndefinedMethod */
 				$typeNames = array_map(fn(ReflectionNamedType $type) => $type->getName(), $type->getTypes());
 			}
 			if (!in_array("callable", $typeNames??[])) {

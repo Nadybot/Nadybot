@@ -276,7 +276,6 @@ class NadyNative implements RelayProtocolInterface {
 		$onlineList = new OnlineList();
 		$onlineOrg = $this->onlineController->getPlayers('guild', $this->chatBot->char->name);
 		$isOrg = strlen($this->config->orgName);
-		/** @psalm-suppress DocblockTypeContradiction */
 		if ($isOrg) {
 			$block = new OnlineBlock();
 			$orgLabel = $this->settingManager->getString("relay_guild_abbreviation");

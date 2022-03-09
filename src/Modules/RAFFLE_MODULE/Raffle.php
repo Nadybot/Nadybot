@@ -69,7 +69,6 @@ class Raffle {
 		return array_reduce(
 			$this->slots,
 			function(array $carry, RaffleSlot $slot): array {
-				/** @psalm-suppress DuplicateArrayKey */
 				return array_unique([...$carry, ...$slot->participants]);
 			},
 			[]

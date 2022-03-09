@@ -255,7 +255,6 @@ class WebsocketBase {
 			return;
 		}
 		$packet = array_shift($this->sendQueue);
-		/** @psalm-suppress DocblockTypeContradiction */
 		if (!is_string($packet)) {
 			$this->logger->error("[Websocket {uri}] Illegal item found in send queue", [
 				"uri" => $uri,

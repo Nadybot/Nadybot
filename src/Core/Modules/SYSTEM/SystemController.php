@@ -275,7 +275,6 @@ class SystemController extends ModuleInstance implements MessageEmitter {
 		$basicInfo->bot_name = $this->chatBot->char->name;
 		$basicInfo->bot_version = $this->chatBot->runner::getVersion();
 		$basicInfo->db_type = $this->db->getType();
-		/** @psalm-suppress DocblockTypeContradiction */
 		$basicInfo->org = strlen($this->config->orgName)
 			? $this->config->orgName
 			: null;

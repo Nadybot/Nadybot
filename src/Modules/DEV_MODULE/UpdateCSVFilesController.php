@@ -16,6 +16,7 @@ use Nadybot\Core\{
 	ModuleInstance,
 	SettingManager,
 };
+use Safe\Exceptions\ExecException;
 use Safe\Exceptions\FilesystemException;
 
 /**
@@ -58,9 +59,12 @@ class UpdateCSVFilesController extends ModuleInstance {
 	#[NCA\HandlesCommand("updatecsv")]
 	public function updateCsvCommand(CmdContext $context): void {
 		$checkCmd = BotRunner::isWindows() ? "where" : "command -v";
-		/** @psalm-suppress ForbiddenCode */
-		$gitPath = \Safe\shell_exec("{$checkCmd} git");
-		$hasGit = is_string($gitPath) && is_executable(rtrim($gitPath));
+		try {
+			$gitPath = \Safe\shell_exec("{$checkCmd} git");
+			$hasGit = is_string($gitPath) && is_executable(rtrim($gitPath));
+		} catch (ExecException) {
+			$hasGit = false;
+		}
 		if (!$hasGit) {
 			$context->reply(
 				"In order to check if any files can be updated, you need ".
