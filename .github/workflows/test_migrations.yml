@@ -24,7 +24,7 @@ jobs:
           extensions: sqlite3, sockets, pdo_sqlite, pdo_mysql
 
       - name: Install dependencies
-        run: composer install
+        run: composer install -q --no-dev
 
       - name: Migrate SQLite
         run: |
@@ -69,7 +69,7 @@ jobs:
           extensions: sqlite3, sockets, pdo_sqlite, pdo_mysql
 
       - name: Install dependencies
-        run: composer install
+        run: composer install -q --no-dev
 
       - name: Migrate MySQL
         shell: bash
@@ -117,7 +117,7 @@ jobs:
           extensions: sqlite3, sockets, pdo_sqlite, pdo_mysql
 
       - name: Install dependencies
-        run: composer install
+        run: composer install -q --no-dev
 
       - name: Migrate MySQL
         shell: bash
@@ -164,7 +164,7 @@ jobs:
           extensions: sqlite3, sockets, pdo_sqlite, pdo_mysql
 
       - name: Install dependencies
-        run: composer install
+        run: composer install -q --no-dev
 
       - name: Migrate PostgreSQL
         shell: bash
