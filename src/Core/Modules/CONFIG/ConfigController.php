@@ -146,6 +146,8 @@ class ConfigController extends ModuleInstance {
 	 * Turn a permission set for all modules on or off
 	 */
 	#[NCA\HandlesCommand("config")]
+	#[NCA\Help\Example("<symbol>config cmd enable all")]
+	#[NCA\Help\Example("<symbol>config cmd disable guild")]
 	public function toggleChannelOfAllModulesCommand(
 		CmdContext $context,
 		#[NCA\Str("cmd")] string $cmd,
@@ -202,6 +204,8 @@ class ConfigController extends ModuleInstance {
 	 * Turn one or all permission sets of a single module on or off
 	 */
 	#[NCA\HandlesCommand("config")]
+	#[NCA\Help\Example("<symbol>config mod WEBSERVER_MODULE disable all")]
+	#[NCA\Help\Example("<symbol>config mod GUILD_MODULE enable guild")]
 	public function toggleModuleChannelCommand(
 		CmdContext $context,
 		#[NCA\Str("mod")] string $action,
@@ -237,6 +241,8 @@ class ConfigController extends ModuleInstance {
 	 * Turn one or all permission set of a single command on or off
 	 */
 	#[NCA\HandlesCommand("config")]
+	#[NCA\Help\Example("<symbol>config cmd raid enable all")]
+	#[NCA\Help\Example("<symbol>config subcmd points see other enable msg")]
 	public function toggleCommandChannelCommand(
 		CmdContext $context,
 		#[NCA\StrChoice("cmd", "subcmd")] string $type,
@@ -442,6 +448,8 @@ class ConfigController extends ModuleInstance {
 	 * Sets a command's access level for one or all permission sets
 	 */
 	#[NCA\HandlesCommand("config")]
+	#[NCA\Help\Example("<symbol>config cmd raid admin all member")]
+	#[NCA\Help\Example("<symbol>config subcmd points modify admin msg mod")]
 	public function setAccessLevelOfChannelCommand(
 		CmdContext $context,
 		#[NCA\StrChoice("subcmd", "cmd")] string $category,
