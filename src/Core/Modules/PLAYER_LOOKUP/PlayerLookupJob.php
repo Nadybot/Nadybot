@@ -79,6 +79,11 @@ class PlayerLookupJob {
 		}
 		$this->toUpdate = $this->getMissingAlts()
 			->concat($this->getOudatedCharacters());
+		if ($this->toUpdate->isEmpty()) {
+			$this->logger->info("No outdate player information found.");
+			$callback(...$args);
+			return;
+		}
 		$this->logger->info($this->toUpdate->count() . " missing / outdated characters found.");
 		for ($i = 0; $i < $numJobs; $i++) {
 			$this->numActiveThreads++;
@@ -129,7 +134,7 @@ class PlayerLookupJob {
 					"[Thread #{$threadNum}] PORK lookup for " . $todo->name . ' done, '.
 					(isset($player) ? 'data updated' : 'no data found')
 				);
-				$this->timer->callLater(1, [$this, "startThread"], $threadNum, $callback, ...$args);
+				$this->timer->callLater(0, [$this, "startThread"], $threadNum, $callback, ...$args);
 			},
 			$todo->name,
 			$todo->dimension

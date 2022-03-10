@@ -4,6 +4,7 @@ namespace Nadybot\Core;
 
 use Nadybot\Core\Attributes as NCA;
 use Exception;
+use Safe\Exceptions\StreamException;
 
 /**
  * The AsyncHttp class provides means to make HTTP and HTTPS requests.
@@ -243,7 +244,7 @@ class AsyncHttp {
 			$this->notifier = null;
 		}
 		if (isset($this->stream) && is_resource($this->stream)) {
-			\Safe\fclose($this->stream);
+			@fclose($this->stream);
 		}
 	}
 
@@ -283,9 +284,22 @@ class AsyncHttp {
 
 		$this->timeoutEvent = $this->timer->callLater(
 			$this->timeout,
-			[$this, 'abortWithMessage'],
-			"Timeout error after waiting {$this->timeout} seconds"
+			\Closure::fromCallable([$this, 'timeout']),
 		);
+	}
+
+	private function timeout(): void {
+		if ($this->retriesLeft === 0 || $this->method !== 'get') {
+			$this->abortWithMessage("Timeout error after waiting {$this->timeout} seconds");
+			return;
+		}
+		$this->logger->info("Request to {uri} timed out after {timeout}s, retrying", [
+			"uri" => $this->uri,
+			"timeout" => $this->timeout ?? "<unknown>",
+		]);
+		$this->retriesLeft--;
+		$this->close();
+		$this->execute();
 	}
 
 	/**
@@ -293,14 +307,23 @@ class AsyncHttp {
 	 */
 	private function createStream(): bool {
 		$streamUri = $this->getStreamUri();
-		$this->stream = \Safe\stream_socket_client(
-			$streamUri,
-			$errno,
-			$errstr,
-			0,
-			$this->getStreamFlags()
-		);
-		\Safe\stream_set_blocking($this->stream, false);
+		try {
+			$this->stream = \Safe\stream_socket_client(
+				$streamUri,
+				$errno,
+				$errstr,
+				0,
+				$this->getStreamFlags()
+			);
+			\Safe\stream_set_blocking($this->stream, false);
+		} catch (StreamException $e) {
+			$this->logger->error("Unable to connect to {uri}: {error}", [
+				"uri" => $streamUri,
+				"error" => $errstr ?? $e->getMessage(),
+				"exception" => $e,
+			]);
+			return false;
+		}
 		$this->logger->info("Stream for {$streamUri} created", ["uri" => $this->uri]);
 		return true;
 	}
