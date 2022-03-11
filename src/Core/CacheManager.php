@@ -264,7 +264,16 @@ class CacheManager {
 		if (!@file_exists($cacheFile)) {
 			return null;
 		}
-		return \Safe\file_get_contents($cacheFile);
+		try {
+			return \Safe\file_get_contents($cacheFile);
+		} catch (FilesystemException $e) {
+			$this->logger->warning("Unable to read {file}: {error}", [
+				"file" => $cacheFile,
+				"error" => $e->getMessage(),
+				"exception" => $e,
+			]);
+			return null;
+		}
 	}
 
 	/**
