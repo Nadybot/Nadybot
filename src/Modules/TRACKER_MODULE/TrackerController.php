@@ -32,6 +32,7 @@ use Nadybot\Core\{
 	UserStateEvent,
 	Util,
 };
+use Nadybot\Core\ParamClass\PProfession;
 use Nadybot\Modules\{
 	ONLINE_MODULE\OnlineController,
 	ORGLIST_MODULE\FindOrgController,
@@ -872,9 +873,13 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 	 * To get links for removing and hiding/unhiding characters, add '--edit'
 	 */
 	#[NCA\HandlesCommand("track")]
+	#[NCA\Help\Example("<symbol>track online")]
+	#[NCA\Help\Example("<symbol>track online doc")]
+	#[NCA\Help\Example("<symbol>track all --edit")]
 	public function trackOnlineCommand(
 		CmdContext $context,
 		#[NCA\Str("online")] string $action,
+		?PProfession $profession,
 		#[NCA\Str("all")] ?string $all,
 		#[NCA\Str("--edit")] ?string $edit
 	): void {
@@ -911,23 +916,28 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 				$op->online = true;
 				$op->hidden = isset($hiddenChars[$op->name]);
 				return $op;
-			})->toArray();
-		if (!count($data)) {
+			});
+		if (isset($profession)) {
+			$data = $data->where("profession", $profession());
+		}
+		if ($data->isEmpty()) {
 			$context->reply("No tracked players are currently online.");
 			return;
 		}
+		$data = $data->toArray();
 		$blob = $this->renderOnlineList($data, isset($edit));
 		$footNotes = [];
 		if (!isset($all)) {
+			$prof = isset($profession) ? $profession() . " " : "";
 			if (!isset($edit)) {
 				$allLink = $this->text->makeChatcmd(
-					"<symbol>track online all",
-					"/tell <myname> track online all"
+					"<symbol>track online {$prof}all",
+					"/tell <myname> track online {$prof}all"
 				);
 			} else {
 				$allLink = $this->text->makeChatcmd(
-					"<symbol>track online all --edit",
-					"/tell <myname> track online all --edit"
+					"<symbol>track online {$prof}all --edit",
+					"/tell <myname> track online {$prof}all --edit"
 				);
 			}
 			$footNotes []= "<i>Use {$allLink} to see hidden characters.</i>";

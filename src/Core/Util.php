@@ -169,6 +169,7 @@ class Util {
 			case "adventurer":
 				$prof = "Adventurer";
 				break;
+			case "age":
 			case "agent":
 				$prof = "Agent";
 				break;
@@ -227,6 +228,7 @@ class Util {
 			case "trader":
 				$prof = "Trader";
 				break;
+			case "sha":
 			case "shade":
 				$prof = "Shade";
 				break;
