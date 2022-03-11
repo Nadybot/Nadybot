@@ -14,7 +14,7 @@ class PProfession extends Base {
 		"|eng([iy]|ineer)?".
 		"|fix(er)?".
 		"|keep(er)?".
-		"|ma(rtial( ?artist))?".
+		"|ma(rtial( ?artist)?)?".
 		"|mp|meta(-?physicist)?".
 		"|nt|nano(-?technician)?".
 		"|sol(d|dier)?".
