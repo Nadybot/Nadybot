@@ -23,9 +23,13 @@ class PProfession extends Base {
 	protected string $value;
 
 	public function __construct(string $value) {
-		/** @var Util */
+		/** @var ?Util */
 		$util = Registry::getInstance(Util::class);
-		$this->value = $util->getProfessionName($value);
+		if (isset($util)) {
+			$this->value = $util->getProfessionName($value);
+		} else {
+			$this->value = $value;
+		}
 	}
 
 	public function __invoke(): string {
