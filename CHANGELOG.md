@@ -5,6 +5,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- Allow grouping of `!track online` lists by faction, org, gender and breed
+
+### Changed
+
+- Automatically retry timed out get-requests up to 5 times, without logging
+  an error.
+
+### Fixed
+
+- Make the cache work on docker again
+- The default setting was ignored and the last option was always chosen
+
 ## [6.0.0-alpha.1] - 2022-03-08
 
 ### Changed
