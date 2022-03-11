@@ -69,6 +69,14 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 	public const GROUP_TL = 1;
 	/** Group by profession */
 	public const GROUP_PROF = 2;
+	/** Group by faction */
+	public const GROUP_FACTION = 3;
+	/** Group by org */
+	public const GROUP_ORG = 4;
+	/** Group by breed */
+	public const GROUP_BREED = 5;
+	/** Group by gender */
+	public const GROUP_GENDER = 6;
 
 	public const ATT_NONE = 0;
 	public const ATT_OWN_ORG = 1;
@@ -177,11 +185,15 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 			description: "Group online list by",
 			mode: "edit",
 			type: "options",
-			value: "1",
+			value: self::GROUP_NONE,
 			options: [
-				'do not group' => 0,
-				'title level' => 1,
-				'profession' => 2,
+				'do not group' => self::GROUP_NONE,
+				'title level' => self::GROUP_TL,
+				'profession' => self::GROUP_PROF,
+				'faction' => self::GROUP_FACTION,
+				'org' => self::GROUP_ORG,
+				'breed' => self::GROUP_BREED,
+				'gender' => self::GROUP_GENDER,
 			]
 		);
 		$this->settingManager->add(
@@ -431,6 +443,7 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 		$orgMember = $this->db->table(self::DB_ORG_MEMBER, "om")
 			->join(self::DB_ORG . " AS o", "om.org_id", "=", "o.org_id")
 			->where("om.uid", $uid)
+			->select("o.*")
 			->asObj(TrackingOrg::class)
 			->first();
 		if (isset($orgMember) && (time() - $orgMember->added_dt->getTimestamp()) < 60) {
@@ -939,12 +952,16 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 	 * @return string The blob
 	 */
 	public function renderOnlineList(array $players, bool $edit): string {
-		$groupBy = $this->settingManager->getInt('tracker_group_by') ?? 1;
+		$groupBy = $this->settingManager->getInt('tracker_group_by') ?? self::GROUP_NONE;
 		$groups = [];
 		if ($groupBy === static::GROUP_TL) {
 			foreach ($players as $player) {
 				$tl = $this->util->levelToTL($player->level??1);
-				$groups[$tl] ??= (object)['title' => 'TL'.$tl, 'members' => [], 'sort' => $tl];
+				$groups[$tl] ??= (object)[
+					'title' => 'TL'.$tl,
+					'members' => [],
+					'sort' => $tl
+				];
 				$groups[$tl]->members []= $player;
 			}
 		} elseif ($groupBy === static::GROUP_PROF) {
@@ -958,8 +975,55 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 				];
 				$groups[$prof]->members []= $player;
 			}
+		} elseif ($groupBy === static::GROUP_FACTION) {
+			foreach ($players as $player) {
+				$faction = $player->faction;
+				$groups[$faction] ??= (object)[
+					'title' => $faction,
+					'members' => [],
+					'sort' => $faction,
+				];
+				$groups[$faction]->members []= $player;
+			}
+		} elseif ($groupBy === static::GROUP_ORG) {
+			foreach ($players as $player) {
+				$org = $player->guild;
+				if ($org === null || $org === '') {
+					$org = '&lt;None&gt;';
+				}
+				$groups[$org] ??= (object)[
+					'title' => $org,
+					'members' => [],
+					'sort' => $org,
+				];
+				$groups[$org]->members []= $player;
+			}
+		} elseif ($groupBy === static::GROUP_BREED) {
+			foreach ($players as $player) {
+				$breed = $player->breed;
+				$groups[$breed] ??= (object)[
+					'title' => $breed,
+					'members' => [],
+					'sort' => $breed,
+				];
+				$groups[$breed]->members []= $player;
+			}
+		} elseif ($groupBy === static::GROUP_GENDER) {
+			foreach ($players as $player) {
+				$gender = $player->gender;
+				$groups[$gender] ??= (object)[
+					'title' => $gender,
+					'members' => [],
+					'sort' => $gender,
+				];
+				$groups[$gender]->members []= $player;
+			}
 		} else {
-			$groups["all"] = (object)['title' => "All tracked players", 'members' => $players, 'sort' => 0];
+			$groups["all"] = (object)[
+				'title' => "All tracked players",
+				'members' => $players,
+				'sort' => 0
+			];
 		}
 		usort($groups, function(object $a, object $b): int {
 			return $a->sort <=> $b->sort;
