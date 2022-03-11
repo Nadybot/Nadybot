@@ -15,6 +15,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Automatically retry timed out get-requests up to 5 times, without logging
   an error.
+- Download the orglists via the cache-module, so we speed them up and remove
+  some needless strain from the Funcom servers.
 
 ### Fixed
 
