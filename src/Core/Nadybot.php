@@ -807,10 +807,11 @@ class Nadybot extends AOChat {
 				$remUid = array_shift($this->buddyQueue);
 			}
 		}
+		$inRebalance = $this->buddylistManager->isRebalancing($userId);
 		$this->buddylistManager->update($userId, (bool)$status, $worker);
 
 		// Ignore Logon/Logoff from other bots or phantom logon/offs
-		if ($sender === "") {
+		if ($inRebalance || $sender === "") {
 			return;
 		}
 

@@ -22,6 +22,12 @@ class BuddylistManager {
 	public array $buddyList = [];
 
 	/**
+	 * List of all characters currently queued for rebalancing
+	 * @var array<int,bool>
+	 */
+	public array $inRebalance = [];
+
+	/**
 	 * Get the number of definitively used up buddy slots
 	 */
 	public function getUsedBuddySlots(): int {
@@ -33,6 +39,13 @@ class BuddylistManager {
 				}
 			)
 		);
+	}
+
+	/**
+	 * Check if we are currently rebalancing the given uid
+	 */
+	public function isRebalancing(int $uid): bool {
+		return isset($this->inRebalance[$uid]);
 	}
 
 	/**
@@ -191,6 +204,9 @@ class BuddylistManager {
 	 * Update the cached information in the friendlist
 	 */
 	public function update(int $userId, bool $status, int $worker=0): void {
+		if ($this->isRebalancing($userId)) {
+			unset($this->inRebalance[$userId]);
+		}
 		$sender = $this->chatBot->lookup_user($userId);
 
 		// store buddy info
@@ -206,7 +222,18 @@ class BuddylistManager {
 	 * Forcefully delete cached information in the friendlist
 	 */
 	public function updateRemoved(int $uid): void {
+		if ($this->isRebalancing($uid)) {
+			return;
+		}
 		unset($this->buddyList[$uid]);
+	}
+
+	public function rebalance(): void {
+		foreach ($this->buddyList as $uid => $buddy) {
+			$this->inRebalance[$uid] = true;
+			$this->chatBot->buddy_remove($uid);
+			$this->chatBot->buddy_add($uid);
+		}
 	}
 
 	/**
