@@ -5,10 +5,11 @@ namespace Nadybot\Core\Modules\BUDDYLIST;
 use Nadybot\Core\{
 	Attributes as NCA,
 	BuddylistEntry,
-	Nadybot,
 	BuddylistManager,
 	CmdContext,
+	ConfigFile,
 	ModuleInstance,
+	Nadybot,
 	Text,
 	ParamClass\PCharacter,
 	ParamClass\PRemove,
@@ -37,10 +38,14 @@ class BuddylistController extends ModuleInstance {
 	#[NCA\Inject]
 	public Text $text;
 
+	#[NCA\Inject]
+	public ConfigFile $config;
+
 	/** Show all characters currently on the buddylist */
 	#[NCA\HandlesCommand("buddylist")]
 	public function buddylistShowCommand(CmdContext $context): void {
 		$orphanCount = 0;
+		$dupeCount = 0;
 		if (count($this->buddylistManager->buddyList) === 0) {
 			$msg = "There are no players on the buddy list.";
 			$context->reply($msg);
@@ -59,12 +64,26 @@ class BuddylistController extends ModuleInstance {
 			if (count($value->types ?? []) === 0) {
 				$orphanCount++;
 			}
+			if (count($value->worker) > 1) {
+				$dupeCount++;
+			}
 			$blob .= $this->renderBuddyLine($value, $removed);
 		}
 
-		$blob .= "\n\nUnknown: ($orphanCount) ";
+		$blob .= "\n";
 		if ($orphanCount > 0) {
-			$blob .= $this->text->makeChatcmd('Remove Orphans', '/tell <myname> <symbol>buddylist clean');
+			$blob .= "\nUnknown: {$orphanCount} [";
+			$blob .= $this->text->makeChatcmd(
+				'remove orphans',
+				'/tell <myname> <symbol>buddylist clean'
+			) . "]";
+		}
+		if ($dupeCount > 0) {
+			$blob .= "\nDuplicates: {$dupeCount} [";
+			$blob .= $this->text->makeChatcmd(
+				'remove duplicates',
+				'/tell <myname> <symbol>buddylist rebalance'
+			) . "]";
 		}
 		$msg = $this->text->makeBlob("Buddy list ($count)", $blob);
 		$context->reply($msg);
@@ -116,7 +135,12 @@ class BuddylistController extends ModuleInstance {
 	 * It's displayed on the '<symbol>buddylist' command in square brackets.
 	 */
 	#[NCA\HandlesCommand("buddylist")]
-	public function buddylistAddCommand(CmdContext $context, #[NCA\Str("add")] string $action, PCharacter $who, PWord $type): void {
+	public function buddylistAddCommand(
+		CmdContext $context,
+		#[NCA\Str("add")] string $action,
+		PCharacter $who,
+		PWord $type
+	): void {
 		$name = $who();
 
 		if ($this->buddylistManager->add($name, $type())) {
@@ -132,7 +156,11 @@ class BuddylistController extends ModuleInstance {
 	 * Remove all characters from the buddylist. Use with caution.
 	 */
 	#[NCA\HandlesCommand("buddylist")]
-	public function buddylistRemAllCommand(CmdContext $context, PRemove $rem, #[NCA\Str("all")] string $all): void {
+	public function buddylistRemAllCommand(
+		CmdContext $context,
+		PRemove $rem,
+		#[NCA\Str("all")] string $all
+	): void {
 		foreach ($this->buddylistManager->buddyList as $uid => $buddy) {
 			$this->chatBot->buddy_remove($uid);
 		}
@@ -147,7 +175,12 @@ class BuddylistController extends ModuleInstance {
 	 * It's displayed on the '<symbol>buddylist' command in square brackets.
 	 */
 	#[NCA\HandlesCommand("buddylist")]
-	public function buddylistRemCommand(CmdContext $context, PRemove $rem, PCharacter $who, PWord $type): void {
+	public function buddylistRemCommand(
+		CmdContext $context,
+		PRemove $action,
+		PCharacter $who,
+		PWord $type
+	): void {
 		$name = $who();
 
 		if ($this->buddylistManager->remove($name, $type())) {
@@ -167,6 +200,9 @@ class BuddylistController extends ModuleInstance {
 		} else {
 			$blob .= " [-]";
 		}
+		if ($this->config->useProxy && count($entry->worker) > 1) {
+			$blob .= " Worker " . join("+", array_keys($entry->worker));
+		}
 		return "{$blob}\n";
 	}
 
@@ -174,7 +210,11 @@ class BuddylistController extends ModuleInstance {
 	 * Search for characters on the buddylist containing &lt;search&gt;
 	 */
 	#[NCA\HandlesCommand("buddylist")]
-	public function buddylistSearchCommand(CmdContext $context, #[NCA\Str("search")] string $action, string $search): void {
+	public function buddylistSearchCommand(
+		CmdContext $context,
+		#[NCA\Str("search")] string $action,
+		string $search
+	): void {
 		if (count($this->buddylistManager->buddyList) === 0) {
 			$msg = "There are no characters on the buddy list.";
 			$context->reply($msg);
@@ -195,6 +235,28 @@ class BuddylistController extends ModuleInstance {
 			$msg = "No characters on the buddy list found containing '$search'";
 		}
 		$context->reply($msg);
+	}
+
+	/**
+	 * Rebalance the buddies on the workers by removing and re-adding all of them
+	 */
+	#[NCA\HandlesCommand("buddylist")]
+	public function buddylistRebalanceCommand(
+		CmdContext $context,
+		#[NCA\Str("rebalance")] string $action,
+	): void {
+		if (count($this->buddylistManager->buddyList) === 0) {
+			$context->reply("There are no characters on the buddy list.");
+			return;
+		}
+		if ($this->buddylistManager->isRebalancing()) {
+			$context->reply("There is already a rebalance in progress.");
+			return;
+		}
+		$this->buddylistManager->rebalance($context);
+		$context->reply(
+			"Rebalancing all " . count($this->buddylistManager->buddyList) . " buddies..."
+		);
 	}
 
 	/**

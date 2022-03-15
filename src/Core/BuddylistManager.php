@@ -15,11 +15,28 @@ class BuddylistManager {
 	#[NCA\Inject]
 	public ConfigFile $config;
 
+	#[NCA\Inject]
+	public Timer $timer;
+
 	/**
 	 * List of all players on the friendlist, real or just queued up
 	 * @var array<int,BuddylistEntry>
 	 */
 	public array $buddyList = [];
+
+	/**
+	 * List of all characters currently queued for rebalancing
+	 * @var array<int,bool>
+	 */
+	private array $inRebalance = [];
+
+	/**
+	 * List of all characters currently removed for rebalancing
+	 * @var array<int,array<int,bool>>
+	 */
+	private array $pendingRebalance = [];
+
+	private ?CommandReply $rebalancingCallback = null;
 
 	/**
 	 * Get the number of definitively used up buddy slots
@@ -33,6 +50,16 @@ class BuddylistManager {
 				}
 			)
 		);
+	}
+
+	/**
+	 * Check if we are currently rebalancing (the given uid)
+	 */
+	public function isRebalancing(?int $uid=null): bool {
+		if (isset($uid)) {
+			return isset($this->pendingRebalance[$uid]);
+		}
+		return count($this->pendingRebalance) > 0 || count($this->inRebalance) > 0;
 	}
 
 	/**
@@ -191,6 +218,23 @@ class BuddylistManager {
 	 * Update the cached information in the friendlist
 	 */
 	public function update(int $userId, bool $status, int $worker=0): void {
+		if ($this->isRebalancing($userId)) {
+			unset($this->pendingRebalance[$userId]);
+			$this->logger->info("{$userId} is now on worker {$worker}");
+			if (!empty($this->inRebalance)) {
+				$uid = array_rand($this->inRebalance);
+				$this->pendingRebalance[$uid] = $this->buddyList[$uid]->worker;
+				unset($this->inRebalance[$uid]);
+				$this->logger->info("Rebalancing {$uid}");
+				$this->chatBot->buddy_remove($uid);
+			} elseif (empty($this->pendingRebalance)) {
+				$this->logger->notice("Rebalancing buddylist done.");
+				if (isset($this->rebalancingCallback)) {
+					$this->rebalancingCallback->reply("Rebalancing buddylist done.");
+					$this->rebalancingCallback = null;
+				}
+			}
+		}
 		$sender = $this->chatBot->lookup_user($userId);
 
 		// store buddy info
@@ -199,14 +243,55 @@ class BuddylistManager {
 		$this->buddyList[$userId]->name = (string)$sender;
 		$this->buddyList[$userId]->online = $status;
 		$this->buddyList[$userId]->known = true;
-		$this->buddyList[$userId]->worker = $worker;
+		$this->buddyList[$userId]->worker ??= [];
+		$this->buddyList[$userId]->worker[$worker] = true;
 	}
 
 	/**
 	 * Forcefully delete cached information in the friendlist
 	 */
 	public function updateRemoved(int $uid): void {
+		$this->logger->info("UID {uid} removed from buddylist", ["uid" => $uid]);
+		if ($this->isRebalancing($uid)) {
+			$worker = array_rand($this->pendingRebalance[$uid]);
+			unset($this->pendingRebalance[$uid][$worker]);
+			unset($this->buddyList[$uid]->worker[$worker]);
+			if (!empty($this->pendingRebalance[$uid])) {
+				return;
+			}
+			$this->logger->info("Re-adding {uid} to buddylist for rebalance", [
+				"uid" => $uid,
+			]);
+			$this->chatBot->buddy_add($uid);
+			return;
+		}
 		unset($this->buddyList[$uid]);
+	}
+
+	public function rebalance(CommandReply $callback): void {
+		foreach ($this->buddyList as $uid => $buddy) {
+			if ($buddy->known) {
+				$this->inRebalance[$uid] = true;
+			}
+		}
+		if (empty($this->inRebalance)) {
+			return;
+		}
+		$this->rebalancingCallback = $callback;
+		$parallel = (int)floor($this->chatBot->getBuddyListSize() / 100);
+		for ($i = 0; $i < $parallel; $i++) {
+			if (empty($this->inRebalance)) {
+				return;
+			}
+			$uid = array_rand($this->inRebalance);
+			foreach ($this->buddyList[$uid]->worker as $wid => $true) {
+				$this->pendingRebalance[$uid] ??= [];
+				$this->pendingRebalance[$uid][$wid] = true;
+			}
+			unset($this->inRebalance[$uid]);
+			$this->logger->info("Rebalancing {$uid}");
+			$this->chatBot->buddy_remove($uid);
+		}
 	}
 
 	/**
