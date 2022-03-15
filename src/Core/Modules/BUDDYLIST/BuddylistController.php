@@ -5,10 +5,11 @@ namespace Nadybot\Core\Modules\BUDDYLIST;
 use Nadybot\Core\{
 	Attributes as NCA,
 	BuddylistEntry,
-	Nadybot,
 	BuddylistManager,
 	CmdContext,
+	ConfigFile,
 	ModuleInstance,
+	Nadybot,
 	Text,
 	ParamClass\PCharacter,
 	ParamClass\PRemove,
@@ -37,10 +38,14 @@ class BuddylistController extends ModuleInstance {
 	#[NCA\Inject]
 	public Text $text;
 
+	#[NCA\Inject]
+	public ConfigFile $config;
+
 	/** Show all characters currently on the buddylist */
 	#[NCA\HandlesCommand("buddylist")]
 	public function buddylistShowCommand(CmdContext $context): void {
 		$orphanCount = 0;
+		$dupeCount = 0;
 		if (count($this->buddylistManager->buddyList) === 0) {
 			$msg = "There are no players on the buddy list.";
 			$context->reply($msg);
@@ -59,12 +64,26 @@ class BuddylistController extends ModuleInstance {
 			if (count($value->types ?? []) === 0) {
 				$orphanCount++;
 			}
+			if (count($value->worker) > 1) {
+				$dupeCount++;
+			}
 			$blob .= $this->renderBuddyLine($value, $removed);
 		}
 
-		$blob .= "\n\nUnknown: ($orphanCount) ";
+		$blob .= "\n";
 		if ($orphanCount > 0) {
-			$blob .= $this->text->makeChatcmd('Remove Orphans', '/tell <myname> <symbol>buddylist clean');
+			$blob .= "\nUnknown: {$orphanCount} [";
+			$blob .= $this->text->makeChatcmd(
+				'remove orphans',
+				'/tell <myname> <symbol>buddylist clean'
+			) . "]";
+		}
+		if ($dupeCount > 0) {
+			$blob .= "\nDuplicates: {$dupeCount} [";
+			$blob .= $this->text->makeChatcmd(
+				'remove duplicates',
+				'/tell <myname> <symbol>buddylist rebalance'
+			) . "]";
 		}
 		$msg = $this->text->makeBlob("Buddy list ($count)", $blob);
 		$context->reply($msg);
@@ -181,6 +200,9 @@ class BuddylistController extends ModuleInstance {
 		} else {
 			$blob .= " [-]";
 		}
+		if ($this->config->useProxy && count($entry->worker) > 1) {
+			$blob .= " Worker " . join("+", array_keys($entry->worker));
+		}
 		return "{$blob}\n";
 	}
 
@@ -227,9 +249,9 @@ class BuddylistController extends ModuleInstance {
 			$context->reply("There are no characters on the buddy list.");
 			return;
 		}
-		$this->buddylistManager->rebalance();
+		$this->buddylistManager->rebalance($context);
 		$context->reply(
-			"Rebalanced all " . count($this->buddylistManager->buddyList) . " buddies"
+			"Rebalancing all " . count($this->buddylistManager->buddyList) . " buddies..."
 		);
 	}
 
