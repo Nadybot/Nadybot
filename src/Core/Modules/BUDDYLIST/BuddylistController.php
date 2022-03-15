@@ -249,6 +249,10 @@ class BuddylistController extends ModuleInstance {
 			$context->reply("There are no characters on the buddy list.");
 			return;
 		}
+		if ($this->buddylistManager->isRebalancing()) {
+			$context->reply("There is already a rebalance in progress.");
+			return;
+		}
 		$this->buddylistManager->rebalance($context);
 		$context->reply(
 			"Rebalancing all " . count($this->buddylistManager->buddyList) . " buddies..."

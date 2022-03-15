@@ -53,10 +53,13 @@ class BuddylistManager {
 	}
 
 	/**
-	 * Check if we are currently rebalancing the given uid
+	 * Check if we are currently rebalancing (the given uid)
 	 */
-	public function isRebalancing(int $uid): bool {
-		return isset($this->pendingRebalance[$uid]);
+	public function isRebalancing(?int $uid=null): bool {
+		if (isset($uid)) {
+			return isset($this->pendingRebalance[$uid]);
+		}
+		return count($this->pendingRebalance) > 0 || count($this->inRebalance) > 0;
 	}
 
 	/**
