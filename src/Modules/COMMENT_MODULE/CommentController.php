@@ -39,7 +39,31 @@ use Nadybot\Core\{
 		command: "comment categories",
 		accessLevel: "mod",
 		description: "Manage comment categories",
-	)
+	),
+
+	NCA\Setting\Time(
+		name: "comment_cooldown",
+		description: "How long is the cooldown between leaving 2 comments for the same character",
+		defaultValue: "6h",
+		options: ["1s", "1h", "6h", "24h"],
+	),
+	NCA\Setting\Boolean(
+		name: "share_comments",
+		description: "Share comments between bots on same database",
+		defaultValue: false,
+	),
+	NCA\Setting\Text(
+		name: "table_name_comments",
+		description: "Database table for comments",
+		mode: "noedit",
+		defaultValue: "comments_<myname>",
+	),
+	NCA\Setting\Text(
+		name: "table_name_comment_categories",
+		description: "Database table for comment categories",
+		mode: "noedit",
+		defaultValue: "comment_categories_<myname>",
+	),
 ]
 class CommentController extends ModuleInstance {
 	#[NCA\Inject]
@@ -74,44 +98,11 @@ class CommentController extends ModuleInstance {
 	#[NCA\Setup]
 	public function setup(): void {
 		$sm = $this->settingManager;
-		$sm->add(
-			module: $this->moduleName,
-			name: "comment_cooldown",
-			description: "How long is the cooldown between leaving 2 comments for the same character",
-			mode: "edit",
-			type: "time",
-			value: "6h",
-			options: ["1s", "1h", "6h", "24h"],
-		);
-		$sm->add(
-			module: $this->moduleName,
-			name: "share_comments",
-			description: "Share comments between bots on same database",
-			mode: "edit",
-			type: "bool",
-			value: "0",
-		);
-		$sm->add(
-			module: $this->moduleName,
-			name: "table_name_comments",
-			description: "Database table for comments",
-			mode: "noedit",
-			type: "text",
-			value: "comments_<myname>",
-		);
-		$sm->add(
-			module: $this->moduleName,
-			name: "table_name_comment_categories",
-			description: "Database table for comment categories",
-			mode: "noedit",
-			type: "text",
-			value: "comment_categories_<myname>",
-		);
 		$this->db->registerTableName("comments", $sm->getString("table_name_comments")??"");
 		$this->db->registerTableName("comment_categories", $sm->getString("table_name_comment_categories")??"");
-		$sm->registerChangeListener("share_comments", [$this, "changeTableSharing"]);
 	}
 
+	#[NCA\SettingChangeHandler("share_comments")]
 	public function changeTableSharing(string $settingName, string $oldValue, string $newValue, mixed $data): void {
 		if ($oldValue === $newValue) {
 			return;

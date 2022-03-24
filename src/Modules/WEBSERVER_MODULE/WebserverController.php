@@ -30,12 +30,53 @@ use Safe\Exceptions\StreamException;
 use Safe\Exceptions\UrlException;
 
 #[
+	NCA\Instance,
 	NCA\DefineCommand(
 		command: "webauth",
 		accessLevel: "mod",
 		description: "Pre-authorize Websocket connections",
 	),
-	NCA\Instance
+	NCA\Setting\Boolean(
+		name: 'webserver',
+		description: 'Enable webserver',
+		defaultValue: true,
+		accessLevel: 'superadmin'
+	),
+	NCA\Setting\Number(
+		name: 'webserver_port',
+		description: 'On which port does the HTTP server listen',
+		defaultValue: 8080,
+		accessLevel: 'superadmin'
+	),
+	NCA\Setting\Text(
+		name: 'webserver_addr',
+		description: 'Where to listen for HTTP requests',
+		defaultValue: '127.0.0.1',
+		options: ["127.0.0.1", "0.0.0.0"],
+		accessLevel: 'superadmin'
+	),
+	NCA\Setting\Options(
+		name: 'webserver_auth',
+		description: 'How to authenticate against the webserver',
+		defaultValue: self::AUTH_BASIC,
+		options: [self::AUTH_BASIC, self::AUTH_AOAUTH],
+		accessLevel: "superadmin"
+	),
+	NCA\Setting\Text(
+		name: 'webserver_base_url',
+		description: 'Which is the base URL for the webserver? This is where aoauth redirects to',
+		defaultValue: 'default',
+		options: ["default"],
+		accessLevel: 'admin',
+		help: 'webserver_base_url.txt',
+	),
+	NCA\Setting\Text(
+		name: 'webserver_aoauth_url',
+		description: 'If you are using aoauth to authenticate: URL of the server',
+		defaultValue: 'https://aoauth.org',
+		options: ["https://aoauth.org"],
+		accessLevel: "superadmin"
+	),
 ]
 class WebserverController extends ModuleInstance {
 	public const AUTH_AOAUTH = "aoauth";
@@ -127,103 +168,11 @@ class WebserverController extends ModuleInstance {
 
 	#[NCA\Setup]
 	public function setup(): void {
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: 'webserver',
-			description: 'Enable webserver',
-			mode: 'edit',
-			type: 'bool',
-			value: '1',
-			accessLevel: 'superadmin'
-		);
-
-/*
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: 'webserver_certificate',
-			description: 'Path to the SSL/TLS certificate',
-			mode: 'edit',
-			type: 'text',
-			value: '',
-			accessLevel: 'superadmin'
-		);
-*/
-
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: 'webserver_port',
-			description: 'On which port does the HTTP server listen',
-			mode: 'edit',
-			type: 'number',
-			value: '8080',
-			accessLevel: 'superadmin'
-		);
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: 'webserver_addr',
-			description: 'Where to listen for HTTP requests',
-			mode: 'edit',
-			type: 'text',
-			value: '127.0.0.1',
-			options: ["127.0.0.1", "0.0.0.0"],
-			accessLevel: 'superadmin'
-		);
-
-/*
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: 'webserver_tls',
-			description: 'Use SSL/TLS for the webserver',
-			mode: 'edit',
-			type: 'bool',
-			value: '0',
-			accessLevel: 'superadmin'
-		);
-*/
-
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: 'webserver_auth',
-			description: 'How to authenticate against the webserver',
-			mode: 'edit',
-			type: 'options',
-			value: static::AUTH_BASIC,
-			options: [static::AUTH_BASIC, static::AUTH_AOAUTH],
-			accessLevel: "superadmin"
-		);
-
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: 'webserver_base_url',
-			description: 'Which is the base URL for the webserver? This is where aoauth redirects to',
-			mode: 'edit',
-			type: 'text',
-			value: 'default',
-			options: ["default"],
-			accessLevel: 'admin',
-			help: 'webserver_base_url.txt'
-		);
-
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: 'webserver_aoauth_url',
-			description: 'If you are using aoauth to authenticate: URL of the server',
-			mode: 'edit',
-			type: 'text',
-			value: 'https://aoauth.org',
-			options: ["https://aoauth.org"],
-			accessLevel: "superadmin"
-		);
 
 		$this->scanRouteAttributes();
 		if ($this->settingManager->getBool('webserver')) {
 			$this->listen();
 		}
-		$this->settingManager->registerChangeListener('webserver', [$this, "webserverMainSettingChanged"]);
-		$this->settingManager->registerChangeListener('webserver_port', [$this, "webserverSettingChanged"]);
-		$this->settingManager->registerChangeListener('webserver_addr', [$this, "webserverSettingChanged"]);
-		$this->settingManager->registerChangeListener('webserver_auth', [$this, "downloadNewPublicKey"]);
-		$this->settingManager->registerChangeListener('webserver_aoauth_url', [$this, "downloadNewPublicKey"]);
 /*
 		$this->settingManager->registerChangeListener('webserver_tls', [$this, "webserverSettingChanged"]);
 		$this->settingManager->registerChangeListener('webserver_certificate', [$this, "webserverSettingChanged"]);
@@ -233,6 +182,8 @@ class WebserverController extends ModuleInstance {
 	/**
 	 * Start or stop the webserver if the setting changed
 	 */
+	#[NCA\SettingChangeHandler("webserver_auth")]
+	#[NCA\SettingChangeHandler("webserver_aoauth_url")]
 	public function downloadNewPublicKey(string $settingName, string $oldValue, string $newValue): void {
 		$this->timer->callLater(0, [$this, "downloadPublicKey"]);
 	}
@@ -240,6 +191,7 @@ class WebserverController extends ModuleInstance {
 	/**
 	 * Start or stop the webserver if the setting changed
 	 */
+	#[NCA\SettingChangeHandler("webserver")]
 	public function webserverMainSettingChanged(string $settingName, string $oldValue, string $newValue): void {
 		if ($newValue === '1') {
 			$this->listen();
@@ -251,6 +203,8 @@ class WebserverController extends ModuleInstance {
 	/**
 	 * Restart the webserver on the new port if the setting changed
 	 */
+	#[NCA\SettingChangeHandler("webserver_port")]
+	#[NCA\SettingChangeHandler("webserver_addr")]
 	public function webserverSettingChanged(string $settingName, string $oldValue, string $newValue): void {
 		if (!$this->settingManager->getBool('webserver')) {
 			return;

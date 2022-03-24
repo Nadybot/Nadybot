@@ -36,6 +36,13 @@ use Nadybot\Modules\TIMERS_MODULE\{
 		accessLevel: "guild",
 		description: "Shows/Starts/Stops the current city wave",
 	),
+	NCA\Setting\Text(
+		name: 'city_wave_times',
+		description: 'Times to display timer alerts',
+		defaultValue: '105s 150s 90s 120s 120s 120s 120s 120s 120s',
+		options: ["105s 150s 90s 120s 120s 120s 120s 120s 120s"],
+		help: 'city_wave_times.txt'
+	),
 	NCA\ProvidesEvent("cityraid(start)"),
 	NCA\ProvidesEvent("cityraid(wave)"),
 	NCA\ProvidesEvent("cityraid(end)")
@@ -69,20 +76,6 @@ class CityWaveController extends ModuleInstance implements MessageEmitter {
 		$this->commandAlias->register($this->moduleName, "citywave start", "startwave");
 		$this->commandAlias->register($this->moduleName, "citywave stop", "stopwave");
 
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: 'city_wave_times',
-			description: 'Times to display timer alerts',
-			mode: 'edit',
-			type: 'text',
-			value: '105s 150s 90s 120s 120s 120s 120s 120s 120s',
-			options: ["105s 150s 90s 120s 120s 120s 120s 120s 120s"],
-			help: 'city_wave_times.txt'
-		);
-		$this->settingManager->registerChangeListener(
-			'city_wave_times',
-			[$this, 'changeWaveTimes']
-		);
 		$this->messageHub->registerMessageEmitter($this);
 	}
 
@@ -99,6 +92,7 @@ class CityWaveController extends ModuleInstance implements MessageEmitter {
 		$this->messageHub->handle($e);
 	}
 
+	#[NCA\SettingChangeHandler("city_wave_times")]
 	public function changeWaveTimes(string $settingName, string $oldValue, string $newValue, mixed $data): void {
 		$alertTimes = explode(' ', $newValue);
 		if (count($alertTimes) !== 9) {

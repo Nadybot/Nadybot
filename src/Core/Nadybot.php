@@ -3,6 +3,7 @@
 namespace Nadybot\Core;
 
 use function Safe\json_encode;
+
 use ReflectionClass;
 use Exception;
 use Throwable;
@@ -1321,6 +1322,14 @@ class Nadybot extends AOChat {
 						$event->defaultStatus
 					);
 				}
+			}
+			foreach ($method->getAttributes(NCA\SettingChangeHandler::class) as $changeAnnotation) {
+				/** @var NCA\SettingChangeHandler */
+				$change = $changeAnnotation->newInstance();
+				$this->settingManager->registerChangeListener(
+					$change->setting,
+					$method->getClosure($obj)
+				);
 			}
 		}
 
