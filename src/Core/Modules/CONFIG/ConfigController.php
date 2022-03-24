@@ -35,7 +35,6 @@ use Nadybot\Core\DBSchema\{
 	CmdPermissionSet,
 	Setting,
 };
-use Safe\DateTime;
 
 #[
 	NCA\DefineCommand(
