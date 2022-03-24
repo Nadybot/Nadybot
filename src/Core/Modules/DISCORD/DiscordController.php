@@ -16,7 +16,24 @@ use Nadybot\Core\{
 /**
  * @author Nadyita (RK5)
  */
-#[NCA\Instance]
+#[
+	NCA\Instance,
+	NCA\DefineSetting(
+		name: 'discord_bot_token',
+		description: 'The Discord bot token to send messages with',
+		type: 'discord_bot_token',
+		defaultValue: 'off',
+		options: ["off"],
+		accessLevel: 'superadmin'
+	),
+	NCA\DefineSetting(
+		name: "discord_notify_channel",
+		description: "Discord channel to send notifications to",
+		type: "discord_channel",
+		defaultValue: "off",
+		accessLevel: "admin"
+	),
+]
 class DiscordController extends ModuleInstance {
 	#[NCA\Inject]
 	public Nadybot $chatBot;
@@ -35,29 +52,6 @@ class DiscordController extends ModuleInstance {
 
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
-
-	#[NCA\Setup]
-	public function setup(): void {
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: 'discord_bot_token',
-			description: 'The Discord bot token to send messages with',
-			mode: 'edit',
-			type: 'discord_bot_token',
-			value: 'off',
-			options: ["off"],
-			accessLevel: 'superadmin'
-		);
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: "discord_notify_channel",
-			description: "Discord channel to send notifications to",
-			mode: "edit",
-			type: "discord_channel",
-			value: "off",
-			accessLevel: "admin"
-		);
-	}
 
 	protected function aoIconsToEmojis(string $text): string {
 		$mapping = [

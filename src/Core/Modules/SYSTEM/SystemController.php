@@ -88,7 +88,58 @@ use Nadybot\Modules\WEBSERVER_MODULE\{
 		accessLevel: "admin",
 		description: "Show a cleaned up version of your current config file",
 		defaultStatus: 1
-	)
+	),
+
+	NCA\Setting\Text(
+		name: "symbol",
+		description: "Default command prefix symbol",
+		options: ["!", "#", "*", "@", "$", "+", "-"],
+		defaultValue: "!",
+	),
+	NCA\Setting\Number(
+		name: "max_blob_size",
+		description: "Max chars for a window",
+		options: [4500, 6000, 7500, 9000, 10500, 12000],
+		help: "max_blob_size.txt",
+		defaultValue: 7500,
+	),
+	NCA\Setting\Time(
+		name: "http_timeout",
+		description: "Max time to wait for response from making http queries",
+		options: ["1s", "2s", "5s", "10s", "30s"],
+		defaultValue: "10s",
+	),
+	NCA\Setting\Boolean(
+		name: "guild_channel_status",
+		description: "Enable the guild channel",
+		defaultValue: true,
+	),
+	NCA\Setting\Text(
+		name: "version",
+		mode: "noedit",
+		description: "Database version",
+		defaultValue: "0",
+	),
+	NCA\Setting\Boolean(
+		name: "allow_mass_tells",
+		description: "When using the proxy, allow sending tells via the workers",
+		defaultValue: true,
+	),
+	NCA\Setting\Boolean(
+		name: "force_mass_tells",
+		description: "When using the proxy, always send tells via the workers",
+		defaultValue: false,
+	),
+	NCA\Setting\Boolean(
+		name: "reply_on_same_worker",
+		description: "When using the proxy, always reply via the worker that sent the tell",
+		defaultValue: false,
+	),
+	NCA\Setting\Boolean(
+		name: "paging_on_same_worker",
+		description: "When using the proxy, always send multi-page replies via one worker ",
+		defaultValue: true,
+	),
 ]
 class SystemController extends ModuleInstance implements MessageEmitter {
 	#[NCA\Inject]
@@ -141,93 +192,7 @@ class SystemController extends ModuleInstance implements MessageEmitter {
 
 	#[NCA\Setup]
 	public function setup(): void {
-
 		$this->helpManager->register($this->moduleName, "budatime", "budatime.txt", "all", "Format for budatime");
-
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: "symbol",
-			description: "Default command prefix symbol",
-			mode: "edit",
-			type: "text",
-			options: ["!", "#", "*", "@", "$", "+", "-"],
-			value: "!",
-		);
-
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: "max_blob_size",
-			description: "Max chars for a window",
-			mode: "edit",
-			type: "number",
-			options: ["4500", "6000", "7500", "9000", "10500", "12000"],
-			help: "max_blob_size.txt",
-			value: "7500",
-		);
-
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: "http_timeout",
-			description: "Max time to wait for response from making http queries",
-			mode: "edit",
-			type: "time",
-			options: ["1s", "2s", "5s", "10s", "30s"],
-			value: "10s",
-		);
-
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: "guild_channel_status",
-			description: "Enable the guild channel",
-			mode: "edit",
-			type: "bool",
-			value: "1",
-		);
-
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: "version",
-			description: "Database version",
-			mode: "noedit",
-			type: "text",
-			value: "0",
-		);
-
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: "allow_mass_tells",
-			description: "When using the proxy, allow sending tells via the workers",
-			mode: "edit",
-			type: "bool",
-			value: "1",
-		);
-
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: "force_mass_tells",
-			description: "When using the proxy, always send tells via the workers",
-			mode: "edit",
-			type: "bool",
-			value: "0",
-		);
-
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: "reply_on_same_worker",
-			description: "When using the proxy, always reply via the worker that sent the tell",
-			mode: "edit",
-			type: "bool",
-			value: "0",
-		);
-
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: "paging_on_same_worker",
-			description: "When using the proxy, always send multi-page replies via one worker ",
-			mode: "edit",
-			type: "bool",
-			value: "1",
-		);
 
 		$this->settingManager->save('version', $this->chatBot->runner::getVersion());
 

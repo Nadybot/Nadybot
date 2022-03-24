@@ -32,7 +32,89 @@ use Nadybot\Core\Modules\PLAYER_LOOKUP\{
 /**
  * @author Tyrence (RK2)
  */
-#[NCA\Instance]
+#[
+	NCA\Instance,
+	NCA\Setting\Number(
+		name: "tell_req_lvl",
+		description: "Minimum level required to send tell to bot",
+		defaultValue: 0,
+		options: [0, 10, 50, 100, 150, 190, 205, 215]
+	),
+	NCA\Setting\Options(
+		name: "tell_req_faction",
+		description: "Faction required to send tell to bot",
+		defaultValue: "all",
+		options: ["all", "Omni", "Neutral", "Clan", "not Omni", "not Neutral", "not Clan"]
+	),
+	NCA\Setting\Time(
+		name: "tell_min_player_age",
+		description: "Minimum age of player to send tell to bot",
+		defaultValue: "1s",
+		options: ["1s", "7days", "14days", "1month", "2months", "6months", "1year", "2years"],
+		help: 'limits.txt'
+	),
+	NCA\Setting\Options(
+		name: "tell_error_msg_type",
+		description: "How to show error messages when limit requirements are not met?",
+		defaultValue: 2,
+		options: [
+			'Specific' => 2,
+			'Generic' => 1,
+			'None' => 0,
+		]
+	),
+	NCA\Setting\Options(
+		name: "limits_cmd_type",
+		description: "Ratelimit: Which commands to account for?",
+		defaultValue: 0,
+		options: [
+			'All' => 3,
+			'Only errors/denied' => 2,
+			'Only successes' => 1,
+			'None' => 0,
+		]
+	),
+	NCA\Setting\Options(
+		name: "limits_window",
+		description: "Ratelimit: Which time window to check?",
+		defaultValue: 5,
+		options: [
+			'5s' => 5,
+			'10s' => 10,
+			'30s' => 30,
+			'1m' => 60,
+		]
+	),
+	NCA\Setting\Number(
+		name: "limits_threshold",
+		description: "Ratelimit: How many commands per time window trigger actions?",
+		defaultValue: 5,
+		options: ["off" => 0, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+	),
+	NCA\Setting\Options(
+		name: "limits_overrate_action",
+		description: "Ratelimit: Action when players exceed the allowed command rate",
+		defaultValue: 4,
+		options: [
+			"Kick" => 1,
+			"Temp. ban" => 2,
+			"Kick+Temp. ban" => 3,
+			"Temp. ignore" => 4,
+			"Kick+Temp. ignore" => 5,
+		],
+	),
+	NCA\Setting\Time(
+		name: "limits_ignore_duration",
+		description: "Ratelimit: How long to temporarily ban or ignore?",
+		defaultValue: "5m",
+		options: ["1m", "2m", "5m", "10m", "30m", "1h", "6h"],
+	),
+	NCA\Setting\Rank(
+		name: "limits_exempt_rank",
+		description: "Ratelimit: Ignore ratelimit for everyone of this rank or higher",
+		defaultValue: "mod"
+	),
+]
 class LimitsController extends ModuleInstance {
 	public const ALL = 3;
 	public const FAILURE = 2;
@@ -82,120 +164,6 @@ class LimitsController extends ModuleInstance {
 
 	/** @var array<string,int> */
 	public array $ignoreList = [];
-
-	#[NCA\Setup]
-	public function setup(): void {
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: "tell_req_lvl",
-			description: "Minimum level required to send tell to bot",
-			mode: "edit",
-			type: "number",
-			value: "0",
-			options: ["0", "10", "50", "100", "150", "190", "205", "215"]
-		);
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: "tell_req_faction",
-			description: "Faction required to send tell to bot",
-			mode: "edit",
-			type: "options",
-			value: "all",
-			options: ["all", "Omni", "Neutral", "Clan", "not Omni", "not Neutral", "not Clan"]
-		);
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: "tell_min_player_age",
-			description: "Minimum age of player to send tell to bot",
-			mode: "edit",
-			type: "time",
-			value: "1s",
-			options: ["1s", "7days", "14days", "1month", "2months", "6months", "1year", "2years"],
-			help: 'limits.txt'
-		);
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: "tell_error_msg_type",
-			description: "How to show error messages when limit requirements are not met?",
-			mode: "edit",
-			type: "options",
-			value: "2",
-			options: [
-				'Specific' => 2,
-				'Generic' => 1,
-				'None' => 0,
-			]
-		);
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: "limits_cmd_type",
-			description: "Ratelimit: Which commands to account for?",
-			mode: "edit",
-			type: "options",
-			value: "0",
-			options: [
-				'All' => 3,
-				'Only errors/denied' => 2,
-				'Only successes' => 1,
-				'None' => 0,
-			]
-		);
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: "limits_window",
-			description: "Ratelimit: Which time window to check?",
-			mode: "edit",
-			type: "options",
-			value: "5",
-			options: [
-				'5s' => 5,
-				'10s' => 10,
-				'30s' => 30,
-				'1m' => 60,
-			]
-		);
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: "limits_threshold",
-			description: "Ratelimit: How many commands per time window trigger actions?",
-			mode: "edit",
-			type: "number",
-			value: "5",
-			options: ["off" => 0, 2, 3, 4, 5, 6, 7, 8, 9, 10],
-		);
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: "limits_overrate_action",
-			description: "Ratelimit: Action when players exceed the allowed command rate",
-			mode: "edit",
-			type: "options",
-			value: "4",
-			options: [
-				"Kick" => 1,
-				"Temp. ban" => 2,
-				"Kick+Temp. ban" => 3,
-				"Temp. ignore" => 4,
-				"Kick+Temp. ignore" => 5,
-			],
-		);
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: "limits_ignore_duration",
-			description: "Ratelimit: How long to temporarily ban or ignore?",
-			mode: "edit",
-			type: "time",
-			value: "5m",
-			options: ["1m", "2m", "5m", "10m", "30m", "1h", "6h"],
-		);
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: "limits_exempt_rank",
-			description: "Ratelimit: Ignore ratelimit for everyone of this rank or higher",
-			mode: "edit",
-			type: "rank",
-			value: "mod"
-		);
-	}
 
 	/**
 	 * Check if this is a command that doesn't fall under any limits

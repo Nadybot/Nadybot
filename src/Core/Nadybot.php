@@ -27,6 +27,7 @@ use Nadybot\Core\DBSchema\{
 	Setting,
 };
 use Nadybot\Modules\WEBSERVER_MODULE\JsonImporter;
+use ReflectionAttribute;
 
 /**
  * Ignore non-camelCaps named methods as a lot of external calls rely on
@@ -1270,6 +1271,22 @@ class Nadybot extends AOChat {
 					$this->commandAlias->register($moduleName, $command, $alias);
 				}
 			}
+		}
+
+		foreach ($reflection->getAttributes(NCA\DefineSetting::class, ReflectionAttribute::IS_INSTANCEOF) as $attribute) {
+			/** @var NCA\DefineSetting */
+			$attribute = $attribute->newInstance();
+			$this->settingManager->add(
+				module: $moduleName,
+				name: $attribute->name,
+				description: $attribute->description,
+				mode: $attribute->mode,
+				type: $attribute->type,
+				value: $attribute->defaultValue,
+				options: $attribute->options,
+				accessLevel: $attribute->accessLevel,
+				help: $attribute->help,
+			);
 		}
 
 		foreach ($reflection->getMethods() as $method) {

@@ -709,7 +709,7 @@ class DB {
 		$this->settingManager->add(
 			module: $module,
 			name: $settingName,
-			description: $settingName,
+			description: "DB version of {$fileBase}",
 			mode: 'noedit',
 			type: 'text',
 			value: "0"

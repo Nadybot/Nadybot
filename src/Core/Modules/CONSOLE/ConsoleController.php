@@ -23,7 +23,19 @@ use Nadybot\Core\{
 	Timer,
 };
 
-#[NCA\Instance]
+#[
+	NCA\Instance,
+	NCA\Setting\Boolean(
+		name: "console_color",
+		description: "Use ANSI colors",
+		defaultValue: false,
+	),
+	NCA\Setting\Boolean(
+		name: "console_bg_color",
+		description: "Set background color",
+		defaultValue: false,
+	),
+]
 class ConsoleController extends ModuleInstance {
 	#[NCA\Inject]
 	public SocketManager $socketManager;
@@ -61,31 +73,16 @@ class ConsoleController extends ModuleInstance {
 
 	#[NCA\Setup]
 	public function setup(): void {
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: "console_color",
-			description: "Use ANSI colors",
-			mode: "edit",
-			type: "bool",
-			value: "0"
-		);
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: "console_bg_color",
-			description: "Set background color",
-			mode: "edit",
-			type: "bool",
-			value: "0"
-		);
-		if ($this->config->enableConsoleClient &&!BotRunner::isWindows()) {
-			$this->commandManager->registerSource("console");
-			$handler = new ConsoleCommandReply($this->chatBot);
-			Registry::injectDependencies($handler);
-			$channel = new ConsoleChannel($handler);
-			Registry::injectDependencies($channel);
-			$this->messageHub->registerMessageReceiver($channel)
-				->registerMessageEmitter($channel);
+		if (!$this->config->enableConsoleClient || BotRunner::isWindows()) {
+			return;
 		}
+		$this->commandManager->registerSource("console");
+		$handler = new ConsoleCommandReply($this->chatBot);
+		Registry::injectDependencies($handler);
+		$channel = new ConsoleChannel($handler);
+		Registry::injectDependencies($channel);
+		$this->messageHub->registerMessageReceiver($channel)
+			->registerMessageEmitter($channel);
 	}
 
 	public function getCacheFile(): string {

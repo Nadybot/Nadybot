@@ -36,10 +36,29 @@ use stdClass;
 		accessLevel: "guild",
 		description: "Shows usage stats",
 		defaultStatus: 1
-	)
+	),
+
+	NCA\Setting\Boolean(
+		name: "record_usage_stats",
+		description: "Record usage stats",
+		defaultValue: true,
+	),
+	NCA\Setting\Text(
+		name: 'botid',
+		description: 'Botid',
+		mode: 'noedit',
+		defaultValue: '',
+	),
+	NCA\Setting\Text(
+		name: 'last_submitted_stats',
+		description: 'last_submitted_stats',
+		mode: 'noedit',
+		defaultValue: '0',
+	),
 ]
 class UsageController extends ModuleInstance {
 	public const DB_TABLE = "usage_<myname>";
+
 	#[NCA\Inject]
 	public DB $db;
 
@@ -63,31 +82,6 @@ class UsageController extends ModuleInstance {
 
 	#[NCA\Setup]
 	public function setup(): void {
-
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: "record_usage_stats",
-			description: "Record usage stats",
-			mode: "edit",
-			type: "bool",
-			value: "1"
-		);
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: 'botid',
-			description: 'Botid',
-			mode: 'noedit',
-			type: 'text',
-			value: ''
-		);
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: 'last_submitted_stats',
-			description: 'last_submitted_stats',
-			mode: 'noedit',
-			type: 'text',
-			value: '0'
-		);
 	}
 
 	/** Show usage stats for the past 7 days or &lt;duration&gt; for a given character */

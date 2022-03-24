@@ -26,6 +26,7 @@ use Nadybot\Core\{
 	SettingManager,
 	SubcommandManager,
 	Text,
+	Util,
 };
 use Nadybot\Core\DBSchema\{
 	EventCfg,
@@ -34,6 +35,7 @@ use Nadybot\Core\DBSchema\{
 	CmdPermissionSet,
 	Setting,
 };
+use Safe\DateTime;
 
 #[
 	NCA\DefineCommand(
@@ -47,6 +49,9 @@ use Nadybot\Core\DBSchema\{
 class ConfigController extends ModuleInstance {
 	#[NCA\Inject]
 	public Text $text;
+
+	#[NCA\Inject]
+	public Util $util;
 
 	#[NCA\Inject]
 	public DB $db;
@@ -670,7 +675,14 @@ class ConfigController extends ModuleInstance {
 				$blob .= " [" . $row->getModifyLink() . "]";
 			}
 
-			$blob .= ": " . $row->displayValue($context->char->name) . "\n";
+			$displayValue = $row->displayValue($context->char->name);
+			if (str_ends_with($row->getData()->name, "_db_version")) {
+				$unixTime = $row->getData()->value??"0";
+				if (preg_match("/^\d+$/", $unixTime)) {
+					$displayValue = "<highlight>" . $this->util->date((int)$unixTime) . "<end>";
+				}
+			}
+			$blob .= ": {$displayValue}\n";
 		}
 
 		$data = $this->commandManager->getAll(true)->where("module", $module);

@@ -53,7 +53,18 @@ use Nadybot\Core\{
 		accessLevel: "mod",
 		description: "Ban or unban a whole org",
 		alias: "orgbans"
-	)
+	),
+
+	NCA\Setting\Boolean(
+		name: "notify_banned_player",
+		description: "Notify character when banned from bot",
+		defaultValue: true,
+	),
+	NCA\Setting\Boolean(
+		name: "ban_all_alts",
+		description: "Always ban all alts, not just 1 char",
+		defaultValue: false,
+	),
 ]
 class BanController extends ModuleInstance {
 	public const DB_TABLE = "banlist_<myname>";
@@ -103,24 +114,6 @@ class BanController extends ModuleInstance {
 		if ($this->db->schema()->hasTable("players")) {
 			$this->uploadBanlist();
 		}
-
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: "notify_banned_player",
-			description: "Notify character when banned from bot",
-			mode: "edit",
-			type: "bool",
-			value: "1"
-		);
-
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: "ban_all_alts",
-			description: "Always ban all alts, not just 1 char",
-			mode: "edit",
-			type: "bool",
-			value: "0"
-		);
 
 		$this->uploadOrgBanlist();
 	}
