@@ -38,7 +38,36 @@ use Nadybot\Modules\COMMENT_MODULE\CommentController;
 		accessLevel: "mod",
 		description: "Define colors for tradebot tags",
 		alias: 'tradecolors',
-	)
+	),
+
+	NCA\Setting\Text(
+		name: 'tradebot',
+		description: "Name of the bot whose channel to join",
+		defaultValue: self::NONE,
+		options: [self::NONE, 'Darknet', 'Lightnet'],
+		help: "tradebot.txt",
+	),
+	NCA\Setting\Text(
+		name: "tradebot_channels",
+		description: "Show only the following channels (comma-separated)",
+		defaultValue: "*",
+		options: ["None", "*"]
+	),
+	NCA\Setting\Boolean(
+		name: 'tradebot_add_comments',
+		description: 'Add link to comments if found',
+		defaultValue: true,
+	),
+	NCA\Setting\Boolean(
+		name: 'tradebot_custom_colors',
+		description: 'Use custom colors for tradebots',
+		defaultValue: false,
+	),
+	NCA\Setting\Color(
+		name: 'tradebot_text_color',
+		description: 'Custom color for tradebot message body',
+		defaultValue: "#89D2E8"
+	),
 ]
 class TradebotController extends ModuleInstance {
 	public const NONE = 'None';
@@ -87,61 +116,6 @@ class TradebotController extends ModuleInstance {
 		]
 	];
 
-	#[NCA\Setup]
-	public function setup(): void {
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: 'tradebot',
-			description: "Name of the bot whose channel to join",
-			mode: "edit",
-			type: "text",
-			value: static::NONE,
-			options: [static::NONE, ...array_keys(self::BOT_DATA)],
-			help: "tradebot.txt"
-		);
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: "tradebot_channels",
-			description: "Show only the following channels (comma-separated)",
-			mode: "edit",
-			type: "text",
-			value: "*",
-			options: ["None", "*"]
-		);
-
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: 'tradebot_add_comments',
-			description: 'Add link to comments if found',
-			mode: 'edit',
-			type: 'bool',
-			value: '1',
-		);
-
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: 'tradebot_custom_colors',
-			description: 'Use custom colors for tradebots',
-			mode: 'edit',
-			type: 'bool',
-			value: '0',
-		);
-
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: 'tradebot_text_color',
-			description: 'Custom color for tradebot message body',
-			mode: 'edit',
-			type: 'color',
-			value: "<font color='#89D2E8'>"
-		);
-
-		$this->settingManager->registerChangeListener(
-			'tradebot',
-			[$this, 'changeTradebot']
-		);
-	}
-
 	#[NCA\Event(
 		name: "Connect",
 		description: "Add active tradebots to buddylist"
@@ -178,6 +152,7 @@ class TradebotController extends ModuleInstance {
 	 * @param string $newValue New value of that setting
 	 * @return void
 	 */
+	#[NCA\SettingChangeHandler('tradebot')]
 	public function changeTradebot(string $setting, string $oldValue, string $newValue): void {
 		if ($setting !== 'tradebot') {
 			return;

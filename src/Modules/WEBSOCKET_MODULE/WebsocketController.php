@@ -35,6 +35,11 @@ use Nadybot\Modules\WEBSERVER_MODULE\{
  */
 #[
 	NCA\Instance,
+	NCA\Setting\Boolean(
+		name: 'websocket',
+		description: 'Enable the websocket handler',
+		defaultValue: true,
+	),
 	NCA\ProvidesEvent("websocket(subscribe)"),
 	NCA\ProvidesEvent("websocket(request)"),
 	NCA\ProvidesEvent("websocket(response)"),
@@ -61,20 +66,12 @@ class WebsocketController extends ModuleInstance {
 
 	#[NCA\Setup]
 	public function setup(): void {
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: 'websocket',
-			description: 'Enable the websocket handler',
-			mode: 'edit',
-			type: 'bool',
-			value: '1'
-		);
-		$this->settingManager->registerChangeListener("websocket", [$this, "changeWebsocketStatus"]);
 		if ($this->settingManager->getBool("websocket")) {
 			$this->registerWebChat();
 		}
 	}
 
+	#[NCA\SettingChangeHandler('websocket')]
 	public function changeWebsocketStatus(string $setting, string $oldValue, string $newValue, mixed $extraData): void {
 		if ($newValue === "1") {
 			$this->registerWebChat();

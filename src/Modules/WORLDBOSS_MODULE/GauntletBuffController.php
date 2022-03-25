@@ -49,6 +49,25 @@ use Nadybot\Modules\WEBSERVER_MODULE\StatsController;
 		accessLevel: "member",
 		description: "Set/update timer for gauntlet buff",
 	),
+
+	NCA\Setting\Text(
+		name: 'gaubuff_times',
+		description: 'Times to display gaubuff timer alerts',
+		defaultValue: '30m 10m',
+		options: ["30m 10m"],
+		help: 'gau_times.txt',
+	),
+	NCA\Setting\Boolean(
+		name: "gaubuff_logon",
+		description: "Show gaubuff timer on logon",
+		defaultValue: true,
+	),
+	NCA\Setting\Options(
+		name: "gaubuff_default_side",
+		description: "Gauntlet buff side if none specified for gaubuff",
+		defaultValue: "none",
+		options: ["none", "clan", "omni"],
+	),
 	NCA\ProvidesEvent(
 		event: "sync(gaubuff)",
 		desc: "Triggered when someone sets the gauntlet buff for either side",
@@ -97,38 +116,7 @@ class GauntletBuffController extends ModuleInstance implements MessageEmitter {
 
 	#[NCA\Setup]
 	public function setup(): void {
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: 'gaubuff_times',
-			description: 'Times to display gaubuff timer alerts',
-			mode: 'edit',
-			type: 'text',
-			value: '30m 10m',
-			options: ["30m 10m"],
-			help: 'gau_times.txt'
-		);
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: "gaubuff_logon",
-			description: "Show gaubuff timer on logon",
-			mode: "edit",
-			type: "bool",
-			value: "1"
-		);
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: "gaubuff_default_side",
-			description: "Gauntlet buff side if none specified for gaubuff",
-			mode: "edit",
-			type: "options",
-			value: "none",
-			options: ["none", "clan", "omni"]
-		);
 		$this->messageHub->registerMessageEmitter($this);
-		$this->settingManager->registerChangeListener(
-			"gaubuff_times",
-			[$this, "validateGaubuffTimes"]
-		);
 		$this->statsController->registerProvider(new GauntletBuffStats($this, "clan"), "states");
 		$this->statsController->registerProvider(new GauntletBuffStats($this, "omni"), "states");
 	}
@@ -199,6 +187,7 @@ class GauntletBuffController extends ModuleInstance implements MessageEmitter {
 		);
 	}
 
+	#[NCA\SettingChangeHandler('gaubuff_times')]
 	public function validateGaubuffTimes(string $setting, string $old, string $new): void {
 		$lastTime = null;
 		foreach (explode(' ', $new) as $utime) {

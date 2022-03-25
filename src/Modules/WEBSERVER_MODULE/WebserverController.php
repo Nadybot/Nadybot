@@ -168,15 +168,10 @@ class WebserverController extends ModuleInstance {
 
 	#[NCA\Setup]
 	public function setup(): void {
-
 		$this->scanRouteAttributes();
 		if ($this->settingManager->getBool('webserver')) {
 			$this->listen();
 		}
-/*
-		$this->settingManager->registerChangeListener('webserver_tls', [$this, "webserverSettingChanged"]);
-		$this->settingManager->registerChangeListener('webserver_certificate', [$this, "webserverSettingChanged"]);
-*/
 	}
 
 	/**

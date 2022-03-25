@@ -212,14 +212,13 @@ class DiscordGatewayController extends ModuleInstance {
 				'priv+org' => 3,
 			]
 		);
-		$this->settingManager->registerChangeListener('discord_bot_token', [$this, "tokenChanged"]);
-		$this->settingManager->registerChangeListener('discord_activity_name', [$this, "updatePresence"]);
 		$this->inStats = new DiscordPacketsStats("in");
 		$this->outStats = new DiscordPacketsStats("out");
 		$this->statsController->registerProvider($this->inStats, "discord");
 		$this->statsController->registerProvider($this->outStats, "discord");
 	}
 
+	#[NCA\SettingChangeHandler('discord_activity_name')]
 	public function updatePresence(string $settingName, string $oldValue, string $newValue): void {
 		if (!isset($this->client)) {
 			$this->timer->callLater(1, [$this, __FUNCTION__], ...func_get_args());
@@ -241,6 +240,7 @@ class DiscordGatewayController extends ModuleInstance {
 	/**
 	 * Start, stop or restart the websocket connection if the token changes
 	 */
+	#[NCA\SettingChangeHandler('discord_bot_token')]
 	public function tokenChanged(string $settingName, string $oldValue, string $newValue): void {
 		if ($oldValue !== "" && $oldValue !== 'off' && isset($this->client)) {
 			$this->logger->notice("Closing Discord gateway connection.");

@@ -117,10 +117,6 @@ class TimerController extends ModuleInstance implements MessageEmitter {
 			options: ["1h 15m 1m"],
 			help: 'timer_alert_times.txt'
 		);
-		$this->settingManager->registerChangeListener(
-			'timer_alert_times',
-			[$this, 'changeTimerAlertTimes']
-		);
 		$this->messageHub->registerMessageEmitter($this);
 	}
 
@@ -134,6 +130,7 @@ class TimerController extends ModuleInstance implements MessageEmitter {
 		return $data;
 	}
 
+	#[NCA\SettingChangeHandler('timer_alert_times')]
 	public function changeTimerAlertTimes(string $settingName, string $oldValue, string $newValue, mixed $data): void {
 		$alertTimes = array_reverse(explode(' ', $newValue));
 		$oldTime = 0;

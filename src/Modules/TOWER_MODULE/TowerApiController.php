@@ -13,7 +13,29 @@ use Nadybot\Core\{
 	SettingManager,
 };
 
-#[NCA\Instance]
+#[
+	NCA\Instance,
+	NCA\Setting\Text(
+		name: self::TOWER_API,
+		description: "Which API to use for querying tower infos",
+		defaultValue: self::API_TYRENCE,
+		options: [self::API_NONE, self::API_TYRENCE],
+	),
+	NCA\Setting\Options(
+		name: "tower_cache_duration",
+		description: "How long to cache data from the Tower API",
+		defaultValue: 600,
+		options: [
+			'1 min' => 60,
+			'5 min' => 300,
+			'10 min' => 600,
+			'15 min' => 900,
+			'30 min' => 1800,
+			'1 hour' => 3600,
+			'2 hours' => 7200,
+		]
+	),
+]
 class TowerApiController extends ModuleInstance {
 	public const TOWER_API = "tower_api";
 	public const API_TYRENCE = "https://tower-api.jkbff.com/v1/api/towers";
@@ -31,44 +53,11 @@ class TowerApiController extends ModuleInstance {
 	/** @var array<string,ApiCache> */
 	protected array $cache = [];
 
-	#[NCA\Setup]
-	public function setup(): void {
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: static::TOWER_API,
-			description: "Which API to use for querying tower infos",
-			mode: "edit",
-			type: "text",
-			value: static::API_TYRENCE,
-			options: [static::API_NONE, static::API_TYRENCE],
-		);
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: "tower_cache_duration",
-			description: "How long to cache data from the Tower API",
-			mode: "edit",
-			type: "options",
-			value: "600",
-			options: [
-				'1 min' => 60,
-				'5 min' => 300,
-				'10 min' => 600,
-				'15 min' => 900,
-				'30 min' => 1800,
-				'1 hour' => 3600,
-				'2 hours' => 7200,
-			]
-		);
-		$this->settingManager->registerChangeListener(
-			static::TOWER_API,
-			[$this, "verifyTowerAPI"]
-		);
-	}
-
 	public function isActive(): bool {
 		return $this->settingManager->getString(static::TOWER_API) !== static::API_NONE;
 	}
 
+	#[NCA\SettingChangeHandler(self::TOWER_API)]
 	public function verifyTowerAPI(string $settingName, string $oldValue, string $newValue, mixed $data): void {
 		if ($newValue === static::API_NONE) {
 			return;

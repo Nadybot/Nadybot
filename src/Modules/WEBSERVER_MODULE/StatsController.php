@@ -73,9 +73,9 @@ class StatsController extends ModuleInstance {
 		Registry::injectDependencies($aoPackets);
 		$this->registerDataset($aoPackets, "ao_packets");
 		$this->registerDataset(new CmdStats("cmd_times"), "cmd_times");
-		$this->settingManager->registerChangeListener("prometheus_enabled", [$this, "changePrometheusStatus"]);
 	}
 
+	#[NCA\SettingChangeHandler('prometheus_enabled')]
 	public function changePrometheusStatus(string $settingName, string $oldValue, string $newValue, mixed $data): void {
 		if ($oldValue === $newValue) {
 			return;

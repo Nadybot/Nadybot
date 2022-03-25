@@ -257,10 +257,6 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 			"member del",
 			"remuser"
 		);
-		$this->settingManager->registerChangeListener(
-			"welcome_msg_string",
-			[$this, "validateWelcomeMsg"]
-		);
 		$lockStats = new PrivLockStats();
 		Registry::injectDependencies($lockStats);
 		$this->statsController->registerProvider($lockStats, "states");
@@ -279,6 +275,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 		return null;
 	}
 
+	#[NCA\SettingChangeHandler('welcome_msg_string')]
 	public function validateWelcomeMsg(string $setting, string $old, string $new): void {
 		if (preg_match("|&lt;link&gt;.+?&lt;/link&gt;|", $new)) {
 			throw new Exception(

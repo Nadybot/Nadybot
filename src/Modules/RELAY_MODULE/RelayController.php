@@ -181,12 +181,12 @@ class RelayController extends ModuleInstance {
 			options: ["10", "20", "50"],
 		);
 		$this->loadStackComponents();
-		$this->settingManager->registerChangeListener("relay_queue_size", [$this, "adaptQueueSize"]);
 		$relayStats = new OnlineRelayStats();
 		Registry::injectDependencies($relayStats);
 		$this->statsController->registerProvider($relayStats, "online");
 	}
 
+	#[NCA\SettingChangeHandler('relay_queue_size')]
 	public function adaptQueueSize(string $setting, string $old, string $new): void {
 		if ($new < 0) {
 			throw new Exception("The queue length cannot be negative.");

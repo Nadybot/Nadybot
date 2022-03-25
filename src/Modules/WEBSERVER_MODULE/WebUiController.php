@@ -84,10 +84,6 @@ class WebUiController extends ModuleInstance implements MessageEmitter {
 			value: "stable",
 			options: $uiBranches,
 		);
-		$this->settingManager->registerChangeListener(
-			"nadyui_channel",
-			[$this, "changeNadyUiChannel"]
-		);
 		$this->messageHub->registerMessageEmitter($this);
 	}
 
@@ -95,6 +91,7 @@ class WebUiController extends ModuleInstance implements MessageEmitter {
 		return Source::SYSTEM . '(webui)';
 	}
 
+	#[NCA\SettingChangeHandler('nadyui_channel')]
 	public function changeNadyUiChannel(string $setting, string $old, string $new): void {
 		if (empty($new) || $new === "off") {
 			return;
