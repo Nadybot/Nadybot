@@ -30,10 +30,6 @@ use Nadybot\Core\{
 	)
 ]
 class CountdownController extends ModuleInstance {
-	public const CONF_CD_TELL_LOCATION = 'cd_tell_location';
-	public const CONF_CD_DEFAULT_TEXT = 'cd_default_text';
-	public const CONF_CD_COOLDOWN = 'cd_cooldown';
-
 	public const LOC_PRIV = 1;
 	public const LOC_ORG = 2;
 
@@ -49,40 +45,26 @@ class CountdownController extends ModuleInstance {
 	#[NCA\Inject]
 	public Timer $timer;
 
+	/** Where to display countdowns received via tells */
+	#[NCA\Setting\Options(options: [
+		'Private channel' => self::LOC_PRIV,
+		'Org channel' => self::LOC_ORG,
+		'Private and Org channel' => self::LOC_PRIV|self::LOC_ORG,
+	])]
+	public int $cdTellLocation = self::LOC_PRIV;
+
+	/** Default text to say at the end of a countdown */
+	#[NCA\Setting\Text]
+	public string $cdDefaultText = "GO";
+
+	/** How long is the cooldown between starting 2 countdowns */
+	#[NCA\Setting\Time(options: ["6s", "15s", "30s", "1m", "5m"])]
+	public int $cdCooldown = 30;
+
 	private int $lastCountdown = 0;
 
 	#[NCA\Setup]
 	public function setup(): void {
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: self::CONF_CD_TELL_LOCATION,
-			description: 'Where to display countdowns received via tells',
-			mode: 'edit',
-			type: "options",
-			value: "1",
-			options: [
-				'Priv' => 1,
-				'Guild' => 2,
-				'Priv+Guild' => 3,
-			]
-		);
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: self::CONF_CD_DEFAULT_TEXT,
-			description: 'Default text to say at the end of a countdown',
-			mode: 'edit',
-			type: "text",
-			value: "GO",
-		);
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: self::CONF_CD_COOLDOWN,
-			description: "How long is the cooldown between starting 2 countdowns",
-			mode: "edit",
-			type: "time",
-			value: "30s",
-			options: ["6s", "15s", "30s", "1m", "5m"],
-		);
 	}
 
 	/** Start a 5s countdown timer with an optional custom message */
@@ -91,8 +73,8 @@ class CountdownController extends ModuleInstance {
 		"By default, this command can only be run once every 30s"
 	)]
 	public function countdownCommand(CmdContext $context, ?string $message): void {
-		$message ??= $this->settingManager->getString(self::CONF_CD_DEFAULT_TEXT)??"GO";
-		$cooldown = $this->settingManager->getInt(self::CONF_CD_COOLDOWN)??30;
+		$message ??= $this->cdDefaultText;
+		$cooldown = $this->cdCooldown;
 
 		if ($this->lastCountdown >= (time() - $cooldown)) {
 			$msg = "You can only start a countdown once every {$cooldown} seconds.";
@@ -114,10 +96,10 @@ class CountdownController extends ModuleInstance {
 
 	protected function getDmCallback(): Closure {
 		return function(string $text): void {
-			if (($this->settingManager->getInt(self::CONF_CD_TELL_LOCATION)??1) & self::LOC_PRIV) {
+			if ($this->cdTellLocation & self::LOC_PRIV) {
 				$this->chatBot->sendPrivate($text, true);
 			}
-			if (($this->settingManager->getInt(self::CONF_CD_TELL_LOCATION)??1) & self::LOC_ORG) {
+			if ($this->cdTellLocation & self::LOC_ORG) {
 				$this->chatBot->sendGuild($text, true);
 			}
 		};

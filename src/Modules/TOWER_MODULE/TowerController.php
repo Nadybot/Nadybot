@@ -25,7 +25,6 @@ use Nadybot\Core\{
 	QueryBuilder,
 	Routing\RoutableMessage,
 	Routing\Source,
-	SettingManager,
 	Text,
 	Util,
 };
@@ -159,9 +158,6 @@ class TowerController extends ModuleInstance {
 	public Text $text;
 
 	#[NCA\Inject]
-	public SettingManager $settingManager;
-
-	#[NCA\Inject]
 	public Nadybot $chatBot;
 
 	#[NCA\Inject]
@@ -194,6 +190,47 @@ class TowerController extends ModuleInstance {
 	#[NCA\Inject]
 	public TimerController $timerController;
 
+	/** Layout types when displaying tower attacks */
+	#[NCA\Setting\Options(options: [
+		'off' => 0,
+		'compact' => 1,
+		'normal' => 2,
+	])]
+	public int $towerAttackSpam = 2;
+
+	/** Number of results to display for victory/attacks */
+	#[NCA\Setting\Options(options: [
+		'5' => 5,
+		'10' => 10,
+		'15' => 15,
+		'20' => 20,
+		'25' => 25,
+	])]
+	public int $towerPageSize = 15;
+
+	/** Start a timer for planting whenever a tower site goes down */
+	#[NCA\Setting\Options(options: [
+		'off' => 0,
+		'priv' => 1,
+		'org' => 2,
+	])]
+	public int $towerPlantTimer = 0;
+
+	/** By what to group hot/penaltized sites */
+	#[NCA\Setting\Options(options: [
+		'Playfield' => 1,
+		'Title level' => 2,
+		'Org' => 3,
+	])]
+	public int $towerHotGroup = 1;
+
+	/** Message for system(tower-attack-own) when the own field is being attacked */
+	#[NCA\Setting\Text(options: [
+		"off",
+		"@here Our field in {location} is being attacked by {player}"
+	])]
+	public string $discordNotifyOrgAttacks = "@here Our field in {location} is being attacked by {player}";
+
 	/** @var AttackListener[] */
 	protected array $attackListeners = [];
 
@@ -215,74 +252,6 @@ class TowerController extends ModuleInstance {
 	public function setup(): void {
 		$this->db->loadCSVFile($this->moduleName, __DIR__ . '/tower_site.csv');
 		$this->db->loadCSVFile($this->moduleName, __DIR__ . '/tower_site_bounds.csv');
-
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: "tower_attack_spam",
-			description: "Layout types when displaying tower attacks",
-			mode: "edit",
-			type: "options",
-			value: "2",
-			options: [
-				'off' => 0,
-				'compact' => 1,
-				'normal' => 2,
-			],
-		);
-
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: "tower_page_size",
-			description: "Number of results to display for victory/attacks",
-			mode: "edit",
-			type: "options",
-			value: "15",
-			options: [
-				'5' => 5,
-				'10' => 10,
-				'15' => 15,
-				'20' => 20,
-				'25' => 25,
-			],
-		);
-
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: "tower_plant_timer",
-			description: "Start a timer for planting whenever a tower site goes down",
-			mode: "edit",
-			type: "options",
-			value: "0",
-			options: [
-				'off' => 0,
-				'priv' => 1,
-				'org' => 2,
-			],
-		);
-
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: "tower_hot_group",
-			description: "By what to group hot/penaltized sites",
-			mode: "edit",
-			type: "options",
-			value: "1",
-			options: [
-				'Playfield' => 1,
-				'Title level' => 2,
-				'Org' => 3,
-			],
-		);
-
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: "discord_notify_org_attacks",
-			description: "Message for system(tower-attack-own) when the own field is being attacked",
-			mode: "edit",
-			type: "text",
-			value: "@here Our field in {location} is being attacked by {player}",
-			options: ["off", "@here Our field in {location} is being attacked by {player}"],
-		);
 
 		$attack = new class implements MessageEmitter {
 			public function getChannelName(): string {
@@ -1302,7 +1271,7 @@ class TowerController extends ModuleInstance {
 				|| ($site->penalty_until >= $time);
 		});
 		$result->count = $sites->count();
-		$grouping = $this->settingManager->getInt('tower_hot_group');
+		$grouping = $this->towerHotGroup;
 		if ($grouping === 1) {
 			$sites = $sites->sortBy("site_number");
 			$grouped = $sites->groupBy("playfield_long_name");
@@ -1511,7 +1480,7 @@ class TowerController extends ModuleInstance {
 		) {
 			return;
 		}
-		$discordMessage = $this->settingManager->getString('discord_notify_org_attacks');
+		$discordMessage = $this->discordNotifyOrgAttacks;
 		if (empty($discordMessage) || $discordMessage === "off") {
 			return;
 		}
@@ -1713,7 +1682,7 @@ class TowerController extends ModuleInstance {
 		}
 		$msg .= " attacked $targetOrg";
 
-		$s = $this->settingManager->getInt("tower_attack_spam");
+		$s = $this->towerAttackSpam;
 		// tower_attack_spam >= 2 (normal) includes attacker stats
 		if ($s >= 2 && $type !== 'npc' && !$likelyFake) {
 			$msg .= " - ".preg_replace(
@@ -1760,7 +1729,7 @@ class TowerController extends ModuleInstance {
 		$alerts []= $alert;
 
 		$countdown = [5, 4, 3, 2, 1];
-		if ($this->settingManager->getInt('tower_plant_timer') === 2) {
+		if ($this->towerPlantTimer === 2) {
 			$countdown = [5];
 		}
 		foreach ($countdown as $remaining) {
@@ -1778,7 +1747,7 @@ class TowerController extends ModuleInstance {
 		$this->timerController->add(
 			"Plant " . strip_tags($timerLocation),
 			$this->chatBot->char->name,
-			$this->settingManager->getInt('tower_plant_timer') === 1 ? "priv": "guild",
+			$this->towerPlantTimer === 1 ? "priv": "guild",
 			$alerts,
 			'timercontroller.timerCallback'
 		);
@@ -1845,7 +1814,7 @@ class TowerController extends ModuleInstance {
 			$timerLocation = "unknown field in {$playfield->short_name}";
 		}
 
-		if ($this->settingManager->getInt('tower_plant_timer') !== 0) {
+		if ($this->towerPlantTimer !== 0) {
 			$this->setPlantTimer($timerLocation);
 		}
 
@@ -1881,7 +1850,7 @@ class TowerController extends ModuleInstance {
 			return;
 		}
 
-		$pageSize = $this->settingManager->getInt('tower_page_size') ?? 15;
+		$pageSize = $this->towerPageSize;
 		$startRow = ($pageLabel - 1) * $pageSize;
 
 		$query = $this->db->table(self::DB_TOWER_ATTACK)
@@ -1978,7 +1947,7 @@ class TowerController extends ModuleInstance {
 			return;
 		}
 
-		$pageSize = $this->settingManager->getInt('tower_page_size') ?? 15;
+		$pageSize = $this->towerPageSize;
 		$startRow = ($pageLabel - 1) * $pageSize;
 
 		$query = $this->db->table(self::DB_TOWER_VICTORY, "v")

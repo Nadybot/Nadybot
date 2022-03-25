@@ -24,7 +24,6 @@ use Nadybot\Core\{
 	LoggerWrapper,
 	MessageHub,
 	Nadybot,
-	SettingManager,
 	Text,
 	Util,
 	Websocket,
@@ -97,9 +96,6 @@ class RelayController extends ModuleInstance {
 	public ConfigFile $config;
 
 	#[NCA\Inject]
-	public SettingManager $settingManager;
-
-	#[NCA\Inject]
 	public QuickRelayController $quickRelayController;
 
 	#[NCA\Inject]
@@ -141,6 +137,14 @@ class RelayController extends ModuleInstance {
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
+	/** Abbreviation to use for org name */
+	#[NCA\Setting\Text(options: ["none"])]
+	public string $relayGuildAbbreviation = "none";
+
+	/** How many messages to queue when relay is offline */
+	#[NCA\Setting\Number(options: ["10", "20", "50"])]
+	public int $relayQueueSize = 10;
+
 	#[NCA\Event(
 		name: "connect",
 		description: "Load relays from database"
@@ -162,24 +166,6 @@ class RelayController extends ModuleInstance {
 
 	#[NCA\Setup]
 	public function setup(): void {
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: 'relay_guild_abbreviation',
-			description: 'Abbreviation to use for org name',
-			mode: 'edit',
-			type: 'text',
-			value: 'none',
-			options: ["none"]
-		);
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: 'relay_queue_size',
-			description: 'How many messages to queue when relay is offline',
-			mode: 'edit',
-			type: 'number',
-			value: '10',
-			options: ["10", "20", "50"],
-		);
 		$this->loadStackComponents();
 		$relayStats = new OnlineRelayStats();
 		Registry::injectDependencies($relayStats);
@@ -247,7 +233,7 @@ class RelayController extends ModuleInstance {
 	}
 
 	public function getGuildAbbreviation(): string {
-		$abbr = $this->settingManager->getString('relay_guild_abbreviation') ?? 'none';
+		$abbr = $this->relayGuildAbbreviation;
 		if ($abbr !== 'none') {
 			return $abbr;
 		} else {
@@ -1090,7 +1076,7 @@ class RelayController extends ModuleInstance {
 		if (isset($this->relays[$relay->getName()])) {
 			return false;
 		}
-		$relay->setMessageQueueSize($this->settingManager->getInt("relay_queue_size")??10);
+		$relay->setMessageQueueSize($this->relayQueueSize);
 		$this->relays[$relay->getName()] = $relay;
 		return true;
 	}

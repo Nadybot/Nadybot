@@ -10,7 +10,6 @@ use Nadybot\Core\{
 	DB,
 	ModuleInstance,
 	ParamClass\PWord,
-	SettingManager,
 	Util,
 	Text,
 };
@@ -52,27 +51,19 @@ class ArulSabaController extends ModuleInstance {
 	#[NCA\Inject]
 	public ItemsController $itemsController;
 
-	#[NCA\Inject]
-	public SettingManager $settingManager;
+	/** Show images for the Arul Saba steps */
+	#[NCA\Setting\Options(options: [
+		'yes, with links' => 2,
+		'yes' => 1,
+		'no' => 0,
+	])]
+	public int $arulsabaShowImages = 2;
 
 	#[NCA\Setup]
 	public function setup(): void {
 		$this->db->loadCSVFile($this->moduleName, __DIR__ . "/arulsaba.csv");
 		$this->db->loadCSVFile($this->moduleName, __DIR__ . "/arulsaba_buffs.csv");
 		$this->db->loadCSVFile($this->moduleName, __DIR__ . "/ingredient.csv");
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: 'arulsaba_show_images',
-			description: "Show images for the Arul Saba steps",
-			mode: "edit",
-			type: "options",
-			value: "2",
-			options: [
-				'yes, with links' => 2,
-				'yes' => 1,
-				'no' => 0,
-			]
-		);
 	}
 
 	/** Get a list of all Arul Saba bracelets */
@@ -447,7 +438,7 @@ class ArulSabaController extends ModuleInstance {
 	 * @param array<int,string|int> $skillReqs
 	 */
 	protected function renderStep(AODBItem $source, AODBItem $dest, AODBItem $result, array $skillReqs=[]): string {
-		$showImages = $this->settingManager->getInt('arulsaba_show_images');
+		$showImages = $this->arulsabaShowImages;
 		$sLink = $source->getLink();
 		$sIcon = $this->text->makeImage($source->icon);
 		$sIconLink = $source->getLink(name: $sIcon);

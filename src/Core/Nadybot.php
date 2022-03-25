@@ -1411,11 +1411,15 @@ class Nadybot extends AOChat {
 					$attribute->name = strtolower(
 						preg_replace(
 							"/([A-Z][a-z])/",
-							"_$1$2",
+							'_$1',
 							preg_replace(
-								"/([A-Z])([A-Z]+)(?=[A-Z][a-z]|$)/",
-								"_$1$2",
-								$property->getName()
+								"/([A-Z]{2,})(?=[A-Z][a-z]|$)/",
+								'_$1',
+								preg_replace(
+									"/(\d+)$/",
+									'_$1',
+									$property->getName()
+								)
 							)
 						)
 					);

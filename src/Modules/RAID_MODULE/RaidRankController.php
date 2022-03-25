@@ -47,6 +47,7 @@ use Nadybot\Core\{
 ]
 class RaidRankController extends ModuleInstance implements AccessLevelProvider {
 	public const DB_TABLE = "raid_rank_<myname>";
+
 	#[NCA\Inject]
 	public SettingManager $settingManager;
 
@@ -77,6 +78,44 @@ class RaidRankController extends ModuleInstance implements AccessLevelProvider {
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
+	/** Number of raid ranks below your own you can manage */
+	#[NCA\Setting\Number]
+	public int $raidRankPromotionDistance = 1;
+
+	/** Name of the raid leader rank 1 */
+	#[NCA\Setting\Text]
+	public string $nameRaidLeader1 = "Apprentice Leader";
+
+	/** Name of the raid leader rank 2 */
+	#[NCA\Setting\Text]
+	public string $nameRaidLeader2 = "Leader";
+
+	/** Name of the raid leader rank 3 */
+	#[NCA\Setting\Text]
+	public string $nameRaidLeader3 = "Veteran Leader";
+
+	/** Name of the raid admin rank 1 */
+	#[NCA\Setting\Text]
+	public string $nameRaidAdmin1 = "Apprentice Raid Admin";
+
+	/** Name of the raid admin rank 2 */
+	#[NCA\Setting\Text]
+	public string $nameRaidAdmin2 = "Raid Admin";
+
+	/** Name of the raid admin rank 3 */
+	#[NCA\Setting\Text]
+	public string $nameRaidAdmin3 = "Veteran Raid Admin";
+
+	/** Duration considered "recent" in raid stats for leaders command */
+	#[NCA\Setting\Options(options: [
+		'Off' => 0,
+		'1 Month' => 2592000,
+		'3 Months' => 7776000,
+		'6 Months' => 15552000,
+		'1 Year' => 31536000,
+	])]
+	public int $raidDurationRecently = 2592000;
+
 	/** @var array<string,RaidRank> */
 	public array $ranks = [];
 
@@ -86,105 +125,7 @@ class RaidRankController extends ModuleInstance implements AccessLevelProvider {
 	#[NCA\Setup]
 	public function setup(): void {
 		$this->accessManager->registerProvider($this);
-		/**
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: 'name_raid_level_1',
-			description: 'Name of the raid points rank 1',
-			mode: 'edit',
-			type: 'text',
-			value: 'Experienced Raider'
-		);
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: 'name_raid_level_2',
-			description: 'Name of the raid points rank 2',
-			mode: 'edit',
-			type: 'text',
-			value: 'Veteran Raider'
-		);
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: 'name_raid_level_3',
-			description: 'Name of the raid points rank 3',
-			mode: 'edit',
-			type: 'text',
-			value: 'Elite Raider'
-		);
-		*/
 
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: 'raid_rank_promotion_distance',
-			description: 'Number of raid ranks below your own you can manage',
-			mode: 'edit',
-			type: 'number',
-			value: '1'
-		);
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: 'name_raid_leader_1',
-			description: 'Name of the raid leader rank 1',
-			mode: 'edit',
-			type: 'text',
-			value: 'Apprentice Leader'
-		);
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: 'name_raid_leader_2',
-			description: 'Name of the raid leader rank 2',
-			mode: 'edit',
-			type: 'text',
-			value: 'Leader'
-		);
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: 'name_raid_leader_3',
-			description: 'Name of the raid leader rank 3',
-			mode: 'edit',
-			type: 'text',
-			value: 'Veteran Leader'
-		);
-
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: 'name_raid_admin_1',
-			description: 'Name of the raid admin rank 1',
-			mode: 'edit',
-			type: 'text',
-			value: 'Apprentice Raid Admin'
-		);
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: 'name_raid_admin_2',
-			description: 'Name of the raid admin rank 2',
-			mode: 'edit',
-			type: 'text',
-			value: 'Raid Admin'
-		);
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: 'name_raid_admin_3',
-			description: 'Name of the raid admin rank 3',
-			mode: 'edit',
-			type: 'text',
-			value: 'Veteran Raid Admin'
-		);
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: 'raid_duration_recently',
-			description: 'Duration considered "recent" in raid stats for leaders command',
-			mode: 'edit',
-			type: 'options',
-			value: '2592000',
-			options: [
-				'Off' => 0,
-				'1 Month' => 2592000,
-				'3 Months' => 7776000,
-				'6 Months' => 15552000,
-				'1 Year' => 31536000,
-			]
-		);
 		$this->commandAlias->register($this->moduleName, "raidadmin", "raid admin");
 		$this->commandAlias->register($this->moduleName, "raidleader", "raid leader");
 	}
@@ -310,7 +251,7 @@ class RaidRankController extends ModuleInstance implements AccessLevelProvider {
 			$sendto->reply("You must have a higher access level than <highlight>$who<end> in order to change their access level.");
 			return false;
 		}
-		$reqDistance = $this->settingManager->getInt('raid_rank_promotion_distance') ?? 1;
+		$reqDistance = $this->raidRankPromotionDistance;
 		$accessLevels = $this->accessManager->getAccessLevels();
 		$senderAccessLevel = $this->accessManager->getAccessLevel(
 			$this->accessManager->getAccessLevelForCharacter($sender)
@@ -493,7 +434,7 @@ class RaidRankController extends ModuleInstance implements AccessLevelProvider {
 			if ($showStats) {
 				$myRaids = $raids->get($who, new Collection());
 				$numRaids = $myRaids->count();
-				$recentlyDuration = $this->settingManager->getInt('raid_duration_recently');
+				$recentlyDuration = $this->raidDurationRecently;
 				if ($recentlyDuration > 0) {
 					$numRaidsRecently = $myRaids->where("started", ">", time() - $recentlyDuration)->count();
 				}

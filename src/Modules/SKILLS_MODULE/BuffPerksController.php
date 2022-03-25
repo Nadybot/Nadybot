@@ -74,19 +74,15 @@ class BuffPerksController extends ModuleInstance {
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
+	/** DB version of perks */
+	#[NCA\Setting\Text(mode: 'noedit')]
+	public string $perksDBVersion = "0";
+
 	/** @var Collection<Perk> */
 	public Collection $perks;
 
 	#[NCA\Setup]
 	public function setup(): void {
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: "perks_db_version",
-			description: "perks_db_version",
-			mode: 'noedit',
-			type: 'text',
-			value: "0"
-		);
 		$this->timer->callLater(0, [$this, "initPerksDatabase"]);
 	}
 
