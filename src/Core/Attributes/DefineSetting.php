@@ -4,7 +4,7 @@ namespace Nadybot\Core\Attributes;
 
 use Attribute;
 
-#[Attribute(Attribute::TARGET_CLASS|Attribute::IS_REPEATABLE)]
+#[Attribute(Attribute::TARGET_CLASS|Attribute::TARGET_PROPERTY|Attribute::IS_REPEATABLE)]
 class DefineSetting {
 	/**
 	 * Register a setting for this module
@@ -12,7 +12,7 @@ class DefineSetting {
 	 * @param string $name The name of the setting
 	 * @param string $description A description for the setting (will appear in the config)
 	 * @param string $type 'color', 'number', 'text', 'options', or 'time'
-	 * @param int|float|string  $defaultValue
+	 * @param null|int|float|string|bool  $defaultValue
 	 * @param string $mode 'edit' or 'noedit'
 	 * @param array<string|int,int|string> $options An optional list of values that the setting can be, semi-colon delimited.
 	 *                                              Alternatively, use an associative array [label => value], where label is optional.
@@ -23,7 +23,7 @@ class DefineSetting {
 		public string $name,
 		public string $description,
 		public string $type,
-		public int|float|string|bool $defaultValue,
+		public null|int|float|string|bool $defaultValue=null,
 		public string $mode='edit',
 		public array $options=[],
 		public string $accessLevel='mod',

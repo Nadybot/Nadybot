@@ -4,8 +4,12 @@ namespace Nadybot\Core;
 
 use function Safe\json_encode;
 
+use ReflectionAttribute;
 use ReflectionClass;
+use ReflectionNamedType;
+use ReflectionProperty;
 use Exception;
+use InvalidArgumentException;
 use Throwable;
 use Nadybot\Core\{
 	Attributes as NCA,
@@ -28,7 +32,6 @@ use Nadybot\Core\DBSchema\{
 	Setting,
 };
 use Nadybot\Modules\WEBSERVER_MODULE\JsonImporter;
-use ReflectionAttribute;
 
 /**
  * Ignore non-camelCaps named methods as a lot of external calls rely on
@@ -1277,6 +1280,11 @@ class Nadybot extends AOChat {
 		foreach ($reflection->getAttributes(NCA\DefineSetting::class, ReflectionAttribute::IS_INSTANCEOF) as $attribute) {
 			/** @var NCA\DefineSetting */
 			$attribute = $attribute->newInstance();
+			if (!isset($attribute->defaultValue)) {
+				throw new InvalidArgumentException(
+					"Class-bound setting {$attribute->name} requires a defaultValue"
+				);
+			}
 			$this->settingManager->add(
 				module: $moduleName,
 				name: $attribute->name,
@@ -1288,6 +1296,38 @@ class Nadybot extends AOChat {
 				accessLevel: $attribute->accessLevel,
 				help: $attribute->help,
 			);
+		}
+
+		foreach ($reflection->getProperties() as $property) {
+			foreach ($property->getAttributes(NCA\DefineSetting::class, ReflectionAttribute::IS_INSTANCEOF) as $attr) {
+				/** @var NCA\DefineSetting */
+				$attribute = $attr->newInstance();
+				if (!$property->isInitialized($obj)) {
+					throw new Exception(
+						"Trying to bind setting {$attribute->name} to uninitialized ".
+						"variable " . $property->getDeclaringClass()->getName().
+						'::$' . $property->getName()
+					);
+				}
+				$this->settingManager->add(
+					module: $moduleName,
+					name: $attribute->name,
+					description: $attribute->description,
+					mode: $attribute->mode,
+					type: $attribute->type,
+					value: $property->getValue($obj),
+					options: $attribute->options,
+					accessLevel: $attribute->accessLevel,
+					help: $attribute->help,
+				);
+				$this->updateTypedProperty($obj, $property, $this->settingManager->settings[$attribute->name]->value);
+				$this->eventManager->subscribe(
+					"setting({$attribute->name})",
+					function (SettingEvent $e) use ($obj, $property): void {
+						$this->updateTypedProperty($obj, $property, $e->newValue->value);
+					}
+				);
+			}
 		}
 
 		foreach ($reflection->getMethods() as $method) {
@@ -1362,6 +1402,42 @@ class Nadybot extends AOChat {
 				$definition['description'],
 				$definition['defaultStatus']
 			);
+		}
+	}
+
+	/** Update the property bound to a setting to $value */
+	private function updateTypedProperty(ModuleInstanceInterface $obj, ReflectionProperty $property, mixed $value): void {
+		$type = $property->getType();
+		if ($type === null) {
+			$property->setValue($obj, $value);
+			return;
+		}
+		if (!($type instanceof ReflectionNamedType)) {
+			throw new Exception(
+				"Invalid type for ".
+				$property->getDeclaringClass()->getName() . '::$' . $property->getName().
+				" - cannot be bound to setting."
+			);
+		}
+		switch ($type->getName()) {
+			case 'int':
+				$property->setValue($obj, (int)$value);
+				return;
+			case 'float':
+				$property->setValue($obj, (float)$value);
+				return;
+			case 'bool':
+				$property->setValue($obj, (bool)$value);
+				return;
+			case 'string':
+				$property->setValue($obj, (string)$value);
+				return;
+			default:
+				throw new Exception(
+					"Invalid type " . $type->getName() . " for ".
+					$property->getDeclaringClass()->getName() . '::$' . $property->getName().
+					" - cannot be bound to setting."
+				);
 		}
 	}
 
