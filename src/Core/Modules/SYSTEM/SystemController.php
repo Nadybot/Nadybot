@@ -89,57 +89,6 @@ use Nadybot\Modules\WEBSERVER_MODULE\{
 		description: "Show a cleaned up version of your current config file",
 		defaultStatus: 1
 	),
-
-	NCA\Setting\Text(
-		name: "symbol",
-		description: "Default command prefix symbol",
-		options: ["!", "#", "*", "@", "$", "+", "-"],
-		defaultValue: "!",
-	),
-	NCA\Setting\Number(
-		name: "max_blob_size",
-		description: "Max chars for a window",
-		options: [4500, 6000, 7500, 9000, 10500, 12000],
-		help: "max_blob_size.txt",
-		defaultValue: 7500,
-	),
-	NCA\Setting\Time(
-		name: "http_timeout",
-		description: "Max time to wait for response from making http queries",
-		options: ["1s", "2s", "5s", "10s", "30s"],
-		defaultValue: "10s",
-	),
-	NCA\Setting\Boolean(
-		name: "guild_channel_status",
-		description: "Enable the guild channel",
-		defaultValue: true,
-	),
-	NCA\Setting\Text(
-		name: "version",
-		mode: "noedit",
-		description: "Database version",
-		defaultValue: "0",
-	),
-	NCA\Setting\Boolean(
-		name: "allow_mass_tells",
-		description: "When using the proxy, allow sending tells via the workers",
-		defaultValue: true,
-	),
-	NCA\Setting\Boolean(
-		name: "force_mass_tells",
-		description: "When using the proxy, always send tells via the workers",
-		defaultValue: false,
-	),
-	NCA\Setting\Boolean(
-		name: "reply_on_same_worker",
-		description: "When using the proxy, always reply via the worker that sent the tell",
-		defaultValue: false,
-	),
-	NCA\Setting\Boolean(
-		name: "paging_on_same_worker",
-		description: "When using the proxy, always send multi-page replies via one worker ",
-		defaultValue: true,
-	),
 ]
 class SystemController extends ModuleInstance implements MessageEmitter {
 	#[NCA\Inject]
@@ -189,6 +138,45 @@ class SystemController extends ModuleInstance implements MessageEmitter {
 
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
+
+	/** Default command prefix symbol */
+	#[NCA\Setting\Text(options: ["!", "#", "*", "@", "$", "+", "-"])]
+	public string $symbol = "!";
+
+	/** Max chars for a window */
+	#[NCA\Setting\Number(
+		options: [4500, 6000, 7500, 9000, 10500, 12000],
+		help: "max_blob_size.txt",
+	)]
+	public int $maxBlobSize = 7500;
+
+	/** Max time to wait for response from making http queries */
+	#[NCA\Setting\Time(options: ["1s", "2s", "5s", "10s", "30s"])]
+	public int $httpTimeout = 10;
+
+	/** Enable the guild channel */
+	#[NCA\Setting\Boolean]
+	public bool $guildChannelStatus = true;
+
+	/** Database version */
+	#[NCA\Setting\Text(mode: "noedit")]
+	public string $version = "0";
+
+	/** When using the proxy, allow sending tells via the workers */
+	#[NCA\Setting\Boolean]
+	public bool $allowMassTells = true;
+
+	/** When using the proxy, always send tells via the workers */
+	#[NCA\Setting\Boolean]
+	public bool $forceMassTells = false;
+
+	/** When using the proxy, always reply via the worker that sent the tell */
+	#[NCA\Setting\Boolean]
+	public bool $replyOnSameWorker = false;
+
+	/** When using the proxy, always send multi-page replies via one worker */
+	#[NCA\Setting\Boolean]
+	public bool $pagingOnSameWorker = true;
 
 	#[NCA\Setup]
 	public function setup(): void {

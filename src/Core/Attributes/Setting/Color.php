@@ -9,10 +9,12 @@ use Nadybot\Core\Attributes\DefineSetting;
 class Color extends DefineSetting {
 	/**
 	 * @inheritDoc
+	 * @param array<string|int,int|string> $options An optional list of values that the setting can be, semi-colon delimited.
+	 *                                              Alternatively, use an associative array [label => value], where label is optional.
 	 */
 	public function __construct(
-		public string $name,
-		public string $description,
+		public ?string $description=null,
+		public ?string $name=null,
 		public null|int|float|string|bool $defaultValue=null,
 		public string $type='color',
 		public string $mode='edit',
@@ -21,8 +23,13 @@ class Color extends DefineSetting {
 		public ?string $help=null,
 	) {
 		$this->type = 'color';
-		if (preg_match("/^#?([0-9a-f]{6})$/i", (string)$defaultValue, $matches)) {
-			$this->defaultValue = "<font color='#{$matches[1]}'>";
+	}
+
+	public function getValue(): int|float|string|bool {
+		$value = parent::getValue();
+		if (preg_match("/^#?([0-9a-f]{6})$/i", (string)$value, $matches)) {
+			return $this->defaultValue = "<font color='#{$matches[1]}'>";
 		}
+		return $value;
 	}
 }

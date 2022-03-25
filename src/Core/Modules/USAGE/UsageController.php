@@ -37,24 +37,6 @@ use stdClass;
 		description: "Shows usage stats",
 		defaultStatus: 1
 	),
-
-	NCA\Setting\Boolean(
-		name: "record_usage_stats",
-		description: "Record usage stats",
-		defaultValue: true,
-	),
-	NCA\Setting\Text(
-		name: 'botid',
-		description: 'Botid',
-		mode: 'noedit',
-		defaultValue: '',
-	),
-	NCA\Setting\Text(
-		name: 'last_submitted_stats',
-		description: 'last_submitted_stats',
-		mode: 'noedit',
-		defaultValue: '0',
-	),
 ]
 class UsageController extends ModuleInstance {
 	public const DB_TABLE = "usage_<myname>";
@@ -80,9 +62,13 @@ class UsageController extends ModuleInstance {
 	#[NCA\Inject]
 	public Nadybot $chatBot;
 
-	#[NCA\Setup]
-	public function setup(): void {
-	}
+	/** Record usage stats */
+	#[NCA\Setting\Boolean]
+	public bool $recordUsageStats = true;
+
+	/** Botid */
+	#[NCA\Setting\Text(mode: 'noedit')]
+	public string $botid = "";
 
 	/** Show usage stats for the past 7 days or &lt;duration&gt; for a given character */
 	#[NCA\HandlesCommand("usage")]
@@ -278,7 +264,7 @@ class UsageController extends ModuleInstance {
 	}
 
 	public function getUsageInfo(int $lastSubmittedStats, int $now, bool $debug=false): UsageStats {
-		$botid = $this->settingManager->getString('botid')??"";
+		$botid = $this->botid;
 		if ($botid === '') {
 			$botid = $this->util->genRandomString(20);
 			$this->settingManager->save('botid', $botid);

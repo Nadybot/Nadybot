@@ -1245,90 +1245,8 @@ class Nadybot extends AOChat {
 		// register settings annotated on the class
 		$reflection = new ReflectionClass($obj);
 
-		/**
-		 * register commands, subcommands, and events annotated on the class
-		 * @var array<string,mixed>
-		 */
-		$commands = [];
-		$subcommands = [];
-		foreach ($reflection->getAttributes(NCA\DefineCommand::class) as $attribute) {
-			/** @var NCA\DefineCommand */
-			$attribute = $attribute->newInstance();
-			$command = $attribute->command;
-			$definition = [
-				'defaultStatus' => $attribute->defaultStatus,
-				'accessLevel'   => $attribute->accessLevel??"mod",
-				'description'   => $attribute->description,
-				'help'          => $attribute->help,
-				'handlers'      => []
-			];
-			[$parentCommand, $subCommand] = explode(" ", $command . " ", 2);
-			if ($subCommand !== "") {
-				$definition['parentCommand'] = $parentCommand;
-				$subcommands[$command] = $definition;
-			} else {
-				$commands[$command] = $definition;
-			}
-			// register command alias if defined
-			if (isset($attribute->alias)) {
-				foreach ((array)$attribute->alias as $alias) {
-					$this->commandAlias->register($moduleName, $command, $alias);
-				}
-			}
-		}
-
-		foreach ($reflection->getAttributes(NCA\DefineSetting::class, ReflectionAttribute::IS_INSTANCEOF) as $attribute) {
-			/** @var NCA\DefineSetting */
-			$attribute = $attribute->newInstance();
-			if (!isset($attribute->defaultValue)) {
-				throw new InvalidArgumentException(
-					"Class-bound setting {$attribute->name} requires a defaultValue"
-				);
-			}
-			$this->settingManager->add(
-				module: $moduleName,
-				name: $attribute->name,
-				description: $attribute->description,
-				mode: $attribute->mode,
-				type: $attribute->type,
-				value: $attribute->defaultValue,
-				options: $attribute->options,
-				accessLevel: $attribute->accessLevel,
-				help: $attribute->help,
-			);
-		}
-
-		foreach ($reflection->getProperties() as $property) {
-			foreach ($property->getAttributes(NCA\DefineSetting::class, ReflectionAttribute::IS_INSTANCEOF) as $attr) {
-				/** @var NCA\DefineSetting */
-				$attribute = $attr->newInstance();
-				if (!$property->isInitialized($obj)) {
-					throw new Exception(
-						"Trying to bind setting {$attribute->name} to uninitialized ".
-						"variable " . $property->getDeclaringClass()->getName().
-						'::$' . $property->getName()
-					);
-				}
-				$this->settingManager->add(
-					module: $moduleName,
-					name: $attribute->name,
-					description: $attribute->description,
-					mode: $attribute->mode,
-					type: $attribute->type,
-					value: $property->getValue($obj),
-					options: $attribute->options,
-					accessLevel: $attribute->accessLevel,
-					help: $attribute->help,
-				);
-				$this->updateTypedProperty($obj, $property, $this->settingManager->settings[$attribute->name]->value);
-				$this->eventManager->subscribe(
-					"setting({$attribute->name})",
-					function (SettingEvent $e) use ($obj, $property): void {
-						$this->updateTypedProperty($obj, $property, $e->newValue->value);
-					}
-				);
-			}
-		}
+		[$commands, $subcommands] = $this->parseInstanceCommands($moduleName, $obj);
+		$this->parseInstanceSettings($moduleName, $obj);
 
 		foreach ($reflection->getMethods() as $method) {
 			if (count($method->getAttributes(NCA\Setup::class))) {
@@ -1342,9 +1260,9 @@ class Nadybot extends AOChat {
 				$commandName = $command->command;
 				$handlerName = "{$name}.{$method->name}:".$method->getStartLine();
 				if (isset($commands[$commandName])) {
-					$commands[$commandName]['handlers'][] = $handlerName;
+					$commands[$commandName]->handlers []= $handlerName;
 				} elseif (isset($subcommands[$commandName])) {
-					$subcommands[$commandName]['handlers'][] = $handlerName;
+					$subcommands[$commandName]->handlers []= $handlerName;
 				} else {
 					$this->logger->warning("Cannot handle command '$commandName' as it is not defined with #[DefineCommand] in '$name'.");
 				}
@@ -1366,42 +1284,178 @@ class Nadybot extends AOChat {
 			foreach ($method->getAttributes(NCA\SettingChangeHandler::class) as $changeAnnotation) {
 				/** @var NCA\SettingChangeHandler */
 				$change = $changeAnnotation->newInstance();
-				$this->settingManager->registerChangeListener(
-					$change->setting,
-					$method->getClosure($obj)
-				);
+				$closure = $method->getClosure($obj);
+				if (!isset($closure)) {
+					continue;
+				}
+				$this->settingManager->registerChangeListener($change->setting, $closure);
 			}
 		}
 
 		foreach ($commands as $command => $definition) {
-			if (count($definition['handlers']) === 0) {
+			if (count($definition->handlers) === 0) {
 				$this->logger->error("No handlers defined for command '$command' in module '$moduleName'.");
 				continue;
 			}
 			$this->commandManager->register(
 				$moduleName,
-				implode(',', $definition['handlers']),
+				implode(',', $definition->handlers),
 				(string)$command,
-				$definition['accessLevel'],
-				$definition['description'],
-				$definition['defaultStatus']
+				$definition->accessLevel,
+				$definition->description,
+				$definition->defaultStatus,
 			);
 		}
 
 		foreach ($subcommands as $subcommand => $definition) {
-			if (count($definition['handlers']) == 0) {
+			if (count($definition->handlers) == 0) {
 				$this->logger->error("No handlers defined for subcommand '$subcommand' in module '$moduleName'.");
+				continue;
+			}
+			if (!isset($definition->parentCommand)) {
 				continue;
 			}
 			$this->subcommandManager->register(
 				$moduleName,
-				implode(',', $definition['handlers']),
+				implode(',', $definition->handlers),
 				$subcommand,
-				$definition['accessLevel'],
-				$definition['parentCommand'],
-				$definition['description'],
-				$definition['defaultStatus']
+				$definition->accessLevel,
+				$definition->parentCommand,
+				$definition->description,
+				$definition->defaultStatus,
 			);
+		}
+	}
+
+	/**
+	 * Parse all defined commands of the class and return them
+	 *
+	 * @param string $moduleName
+	 * @param ModuleInstanceInterface $obj
+	 * @return array<array<string,CmdDef>>
+	 * @phpstan-return array{array<string,CmdDef>,array<string,CmdDef>}
+	 */
+	private function parseInstanceCommands(string $moduleName, ModuleInstanceInterface $obj): array {
+		/**
+		 * register commands, subcommands, and events annotated on the class
+		 * @var array<string,CmdDef>
+		 */
+		$commands = [];
+		/** @var array<string,CmdDef> */
+		$subcommands = [];
+		$reflection = new ReflectionClass($obj);
+		foreach ($reflection->getAttributes(NCA\DefineCommand::class) as $attribute) {
+			/** @var NCA\DefineCommand */
+			$attribute = $attribute->newInstance();
+			$command = $attribute->command;
+			$definition = new CmdDef(
+				defaultStatus: $attribute->defaultStatus,
+				accessLevel: $attribute->accessLevel??"mod",
+				description: $attribute->description,
+				help: $attribute->help,
+			);
+			[$parentCommand, $subCommand] = explode(" ", $command . " ", 2);
+			if ($subCommand !== "") {
+				$definition->parentCommand = $parentCommand;
+				$subcommands[$command] = $definition;
+			} else {
+				$commands[$command] = $definition;
+			}
+			// register command alias if defined
+			if (isset($attribute->alias)) {
+				foreach ((array)$attribute->alias as $alias) {
+					$this->commandAlias->register($moduleName, $command, $alias);
+				}
+			}
+		}
+		return [$commands, $subcommands];
+	}
+
+	private function parseInstanceSettings(string $moduleName, ModuleInstanceInterface $obj): void {
+		$reflection = new ReflectionClass($obj);
+		foreach ($reflection->getAttributes(NCA\DefineSetting::class, ReflectionAttribute::IS_INSTANCEOF) as $attribute) {
+			/** @var NCA\DefineSetting */
+			$attribute = $attribute->newInstance();
+			if (!isset($attribute->name)) {
+				throw new InvalidArgumentException(
+					"Class-bound settings require a name"
+				);
+			}
+			if (!isset($attribute->defaultValue)) {
+				throw new InvalidArgumentException(
+					"Class-bound setting {$attribute->name} requires a defaultValue"
+				);
+			}
+			if (!isset($attribute->description)) {
+				throw new InvalidArgumentException(
+					"Class-bound setting {$attribute->name} requires a description"
+				);
+			}
+			$this->settingManager->add(
+				module: $moduleName,
+				name: $attribute->name,
+				description: $attribute->description,
+				mode: $attribute->mode,
+				type: $attribute->type,
+				value: $attribute->getValue(),
+				options: $attribute->options,
+				accessLevel: $attribute->accessLevel,
+				help: $attribute->help,
+			);
+		}
+		foreach ($reflection->getProperties() as $property) {
+			foreach ($property->getAttributes(NCA\DefineSetting::class, ReflectionAttribute::IS_INSTANCEOF) as $attr) {
+				/** @var NCA\DefineSetting */
+				$attribute = $attr->newInstance();
+				if (!isset($attribute->name)) {
+					$attribute->name = strtolower(
+						preg_replace(
+							"/([A-Z][a-z])/",
+							"_$1$2",
+							preg_replace(
+								"/([A-Z])([A-Z]+)(?=[A-Z][a-z]|$)/",
+								"_$1$2",
+								$property->getName()
+							)
+						)
+					);
+				}
+				if (!$property->isInitialized($obj)) {
+					throw new Exception(
+						"Trying to bind setting {$attribute->name} to uninitialized ".
+						"variable " . $property->getDeclaringClass()->getName().
+						'::$' . $property->getName()
+					);
+				}
+				$attribute->defaultValue = $property->getValue($obj);
+				if (!isset($attribute->description)) {
+					$comment = $property->getDocComment();
+					if ($comment === false) {
+						throw new Exception("Missing description for setting {$attribute->name}");
+					}
+					$comment = trim(preg_replace("|^/\*\*(.*)\*/|s", '$1', $comment));
+					$comment = preg_replace("/^[ \t]*\*[ \t]*/m", '', $comment);
+					$attribute->description = trim(preg_replace("/^@.*/m", '', $comment));
+				}
+				$this->settingManager->add(
+					module: $moduleName,
+					name: $attribute->name,
+					description: $attribute->description,
+					mode: $attribute->mode,
+					type: $attribute->type,
+					value: $attribute->getValue(),
+					options: $attribute->options,
+					accessLevel: $attribute->accessLevel,
+					help: $attribute->help,
+				);
+				$this->updateTypedProperty($obj, $property, $this->settingManager->settings[$attribute->name]->value);
+				$this->eventManager->subscribe(
+					"setting({$attribute->name})",
+					function (SettingEvent $e) use ($obj, $property): void {
+						$this->updateTypedProperty($obj, $property, $e->newValue->value);
+					}
+				);
+			}
 		}
 	}
 

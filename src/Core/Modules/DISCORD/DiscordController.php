@@ -16,24 +16,7 @@ use Nadybot\Core\{
 /**
  * @author Nadyita (RK5)
  */
-#[
-	NCA\Instance,
-	NCA\DefineSetting(
-		name: 'discord_bot_token',
-		description: 'The Discord bot token to send messages with',
-		type: 'discord_bot_token',
-		defaultValue: 'off',
-		options: ["off"],
-		accessLevel: 'superadmin'
-	),
-	NCA\DefineSetting(
-		name: "discord_notify_channel",
-		description: "Discord channel to send notifications to",
-		type: "discord_channel",
-		defaultValue: "off",
-		accessLevel: "admin"
-	),
-]
+#[NCA\Instance]
 class DiscordController extends ModuleInstance {
 	#[NCA\Inject]
 	public Nadybot $chatBot;
@@ -52,6 +35,18 @@ class DiscordController extends ModuleInstance {
 
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
+
+	/** The Discord bot token to send messages with */
+	#[NCA\DefineSetting(
+		type: 'discord_bot_token',
+		options: ["off"],
+		accessLevel: 'superadmin'
+	)]
+	public string $discordBotToken = "off";
+
+	/** Discord channel to send notifications to */
+	#[NCA\DefineSetting(type: "discord_channel", accessLevel: "admin")]
+	public string $discordNotifyChannel = "off";
 
 	protected function aoIconsToEmojis(string $text): string {
 		$mapping = [
@@ -176,12 +171,10 @@ class DiscordController extends ModuleInstance {
 	 * @param string|string[] $text
 	 */
 	public function sendDiscord(string|array $text, bool $allowGroupMentions=false): void {
-		$discordBotToken = $this->settingManager->getString('discord_bot_token');
-		if ($discordBotToken === "" || $discordBotToken === 'off') {
+		if ($this->discordBotToken === "" || $this->discordBotToken === 'off') {
 			return;
 		}
-		$discordChannel = $this->settingManager->getString('discord_notify_channel')??"off";
-		if ($discordChannel === 'off') {
+		if ($this->discordNotifyChannel === 'off') {
 			return;
 		}
 		if (!is_array($text)) {
@@ -197,7 +190,10 @@ class DiscordController extends ModuleInstance {
 				$message->allowed_mentions->parse []= ["here"];
 				$message->allowed_mentions->parse []= ["everyone"];
 			}
-			$this->discordAPIClient->sendToChannel($discordChannel, $message->toJSON());
+			$this->discordAPIClient->sendToChannel(
+				$this->discordNotifyChannel,
+				$message->toJSON()
+			);
 		}
 	}
 

@@ -25,16 +25,6 @@ use Nadybot\Core\{
 
 #[
 	NCA\Instance,
-	NCA\Setting\Boolean(
-		name: "console_color",
-		description: "Use ANSI colors",
-		defaultValue: false,
-	),
-	NCA\Setting\Boolean(
-		name: "console_bg_color",
-		description: "Set background color",
-		defaultValue: false,
-	),
 ]
 class ConsoleController extends ModuleInstance {
 	#[NCA\Inject]
@@ -60,6 +50,12 @@ class ConsoleController extends ModuleInstance {
 
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
+
+	/** Use ANSI colors */
+	#[NCA\Setting\Boolean] public bool $consoleColor = false;
+
+	/** Set background color */
+	#[NCA\Setting\Boolean] public bool $consoleBGColor = false;
 
 	public SocketNotifier $notifier;
 

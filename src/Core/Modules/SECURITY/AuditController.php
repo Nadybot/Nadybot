@@ -29,13 +29,6 @@ use Nadybot\Modules\WEBSERVER_MODULE\{
 		accessLevel: "admin",
 		description: "View security audit logs",
 	),
-
-	NCA\Setting\Boolean(
-		name: "audit_enabled",
-		description: "Log all security-relevant data",
-		defaultValue: false,
-		accessLevel: "superadmin"
-	),
 ]
 class AuditController extends ModuleInstance {
 	#[NCA\Inject]
@@ -46,6 +39,10 @@ class AuditController extends ModuleInstance {
 
 	#[NCA\Inject]
 	public Text $text;
+
+	/** Log all security-relevant data */
+	#[NCA\Setting\Boolean(accessLevel: "superadmin")]
+	public bool $auditEnabled = false;
 
 	/**
 	 * @param array<mixed> $params

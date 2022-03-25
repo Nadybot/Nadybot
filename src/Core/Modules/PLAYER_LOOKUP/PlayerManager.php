@@ -24,15 +24,7 @@ use Nadybot\Core\{
 /**
  * @author Tyrence (RK2)
  */
-#[
-	NCA\Instance,
-	NCA\Setting\Options(
-		name: "lookup_jobs",
-		description: "How many jobs in parallel to run to lookup missing character data",
-		defaultValue: 0,
-		options: ["Off" => 0, 1, 2, 3, 4, 5, 10],
-	)
-]
+#[NCA\Instance]
 class PlayerManager extends ModuleInstance {
 	public const CACHE_GRACE_TIME = 87000;
 
@@ -57,6 +49,10 @@ class PlayerManager extends ModuleInstance {
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
+	/** How many jobs in parallel to run to lookup missing character data */
+	#[NCA\Setting\Options(options: ["Off" => 0, 1, 2, 3, 4, 5, 10])]
+	public int $lookupJobs = 0;
+
 	public ?PlayerLookupJob $playerLookupJob = null;
 
 	#[NCA\Event(
@@ -65,7 +61,7 @@ class PlayerManager extends ModuleInstance {
 		defaultStatus: 1
 	)]
 	public function lookupMissingCharacterData(): void {
-		if ($this->settingManager->getInt('lookup_jobs') === 0) {
+		if ($this->lookupJobs === 0) {
 			return;
 		}
 		if (isset($this->playerLookupJob)) {

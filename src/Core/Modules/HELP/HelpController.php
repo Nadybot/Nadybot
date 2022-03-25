@@ -37,12 +37,6 @@ use Nadybot\Core\{
 		description: "Show admin help topics",
 		defaultStatus: 1
 	),
-
-	NCA\Setting\Boolean(
-		name: "help_show_al",
-		description: 'Show mods the required access level for each command',
-		defaultValue: true,
-	),
 ]
 class HelpController extends ModuleInstance {
 	public const LEGEND_PREF = "help_legend";
@@ -73,6 +67,9 @@ class HelpController extends ModuleInstance {
 
 	#[NCA\Inject]
 	public Text $text;
+
+	/** Show mods the required access level for each command */
+	#[NCA\Setting\Boolean] public bool $helpShowAL = true;
 
 	#[NCA\Setup]
 	public function setup(): void {
