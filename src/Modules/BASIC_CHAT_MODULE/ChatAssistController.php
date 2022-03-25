@@ -30,6 +30,11 @@ use Nadybot\Core\{
 		accessLevel: "rl",
 		description: "Set, add or clear assists",
 	),
+	NCA\Setting\Number(
+		name: "callers_undo_steps",
+		description: "Max stored undo steps",
+		defaultValue: 5
+	),
 	NCA\ProvidesEvent("assist(clear)"),
 	NCA\ProvidesEvent("assist(set)"),
 	NCA\ProvidesEvent("assist(add)")
@@ -69,18 +74,6 @@ class ChatAssistController extends ModuleInstance {
 	 * @var CallerBackup[]
 	 */
 	protected array $lastCallers = [];
-
-	#[NCA\Setup]
-	public function setup(): void {
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: "callers_undo_steps",
-			description: "Max stored undo steps",
-			mode: "edit",
-			type: "number",
-			value: "5"
-		);
-	}
 
 	/** Store a caller backup */
 	protected function storeBackup(CallerBackup $backup): void {

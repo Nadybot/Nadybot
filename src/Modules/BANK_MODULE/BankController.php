@@ -32,7 +32,19 @@ use Safe\Exceptions\FilesystemException;
 		accessLevel: "admin",
 		description: "Reloads the bank database from the AO Items Assistant file",
 		alias: "updatebank"
-	)
+	),
+
+	NCA\Setting\Text(
+		name: 'bank_file_location',
+		description: 'Location of the AO Items Assistant csv dump file',
+		defaultValue: './src/Modules/BANK_MODULE/import.csv',
+	),
+	NCA\Setting\Number(
+		name: 'max_bank_items',
+		description: 'Number of items shown in search results',
+		defaultValue: 50,
+		options: [20, 50, 100]
+	),
 ]
 class BankController extends ModuleInstance {
 	#[NCA\Inject]
@@ -46,28 +58,6 @@ class BankController extends ModuleInstance {
 
 	#[NCA\Inject]
 	public SettingManager $settingManager;
-
-	#[NCA\Setup]
-	public function setup(): void {
-
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: 'bank_file_location',
-			description: 'Location of the AO Items Assistant csv dump file',
-			mode: 'edit',
-			type: 'text',
-			value: './src/Modules/BANK_MODULE/import.csv'
-		);
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: 'max_bank_items',
-			description: 'Number of items shown in search results',
-			mode: 'edit',
-			type: 'number',
-			value: '50',
-			options: ["20", "50", "100"]
-		);
-	}
 
 	/** List the bank characters in the database: */
 	#[NCA\HandlesCommand("bank")]

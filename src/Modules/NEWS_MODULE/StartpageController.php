@@ -48,7 +48,30 @@ use Nadybot\Modules\WEBSERVER_MODULE\{
 		command: "start",
 		accessLevel: "member",
 		description: "Shows your personal startpage",
-	)
+	),
+
+	NCA\Setting\Text(
+		name: "startpage_layout",
+		description: "The tiles to show on the startpage",
+		mode: "noedit",
+		defaultValue: "",
+	),
+	NCA\Setting\Text(
+		name: "startpage_startmsg",
+		description: "The message when sending the startpage to people",
+		defaultValue: "Welcome, {name}!",
+		help: "startpage_startmsg.txt",
+	),
+	NCA\Setting\Options(
+		name: "startpage_show_members",
+		description: "When to show non-org-members the startpage",
+		defaultValue: 2,
+		options: [
+			'Do not show to non-org-members' => 0,
+			'When Logging in' => 1,
+			'When joining the private channel' => 2,
+		],
+	),
 ]
 class StartpageController extends ModuleInstance {
 	#[NCA\Inject]
@@ -117,36 +140,6 @@ class StartpageController extends ModuleInstance {
 				$this->parseRefMethod($instance, $method);
 			}
 		}
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: "startpage_layout",
-			description: "The tiles to show on the startpage",
-			mode: "noedit",
-			type: "text",
-			value: ""
-		);
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: "startpage_startmsg",
-			description: "The message when sending the startpage to people",
-			mode: "edit",
-			type: "text",
-			value: "Welcome, {name}!",
-			help: "startpage_startmsg.txt"
-		);
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: "startpage_show_members",
-			description: "When to show non-org-members the startpage",
-			mode: "edit",
-			type: "options",
-			value: "2",
-			options: [
-				'Do not show to non-org-members' => 0,
-				'When Logging in' => 1,
-				'When joining the private channel' => 2,
-			],
-		);
 	}
 
 	/**

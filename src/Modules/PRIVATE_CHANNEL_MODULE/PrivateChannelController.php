@@ -114,6 +114,47 @@ use Safe\Exceptions\FilesystemException;
 		accessLevel: "superadmin",
 		description: "Allow people to join the private channel again",
 	),
+
+	NCA\Setting\Boolean(
+		name: "add_member_on_join",
+		description: "Automatically add player as member when they join",
+		defaultValue: false,
+	),
+	NCA\Setting\Boolean(
+		name: "autoinvite_default",
+		description: "Enable autoinvite for new members by default",
+		defaultValue: true,
+	),
+	NCA\Setting\Options(
+		name: "only_allow_faction",
+		description: "Faction allowed on the bot - autoban everything else",
+		defaultValue: "all",
+		options: ["all", "Omni", "Neutral", "Clan", "not Omni", "not Neutral", "not Clan"]
+	),
+	NCA\Setting\Boolean(
+		name: "priv_suppress_alt_list",
+		description: "Do not show the altlist on join, just the name of the main",
+		defaultValue: false,
+	),
+	NCA\Setting\Boolean(
+		name: "invite_banned_chars",
+		description: "Should the bot allow inviting banned characters?",
+		defaultValue: false,
+	),
+	NCA\Setting\Text(
+		name: "welcome_msg_string",
+		description: "Message to send when welcoming new members",
+		defaultValue: "<link>Welcome to <myname></link>!",
+		options: ["<link>Welcome to <myname></link>!", "Welcome to <myname>! Here is some <link>information to get you started</link>."],
+		help: "welcome_msg.txt"
+	),
+	NCA\Setting\Rank(
+		name: "lock_minrank",
+		description: "Minimum rank allowed to join private channel during a lock",
+		defaultValue: "superadmin",
+		accessLevel: "superadmin",
+	),
+
 	NCA\ProvidesEvent("online(priv)"),
 	NCA\ProvidesEvent("offline(priv)"),
 	NCA\ProvidesEvent("member(add)"),
@@ -182,66 +223,6 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 	#[NCA\Setup]
 	public function setup(): void {
 		$this->accessManager->registerProvider($this);
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: "add_member_on_join",
-			description: "Automatically add player as member when they join",
-			mode: "edit",
-			type: "bool",
-			value: "0"
-		);
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: "autoinvite_default",
-			description: "Enable autoinvite for new members by default",
-			mode: "edit",
-			type: "bool",
-			value: "1"
-		);
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: "only_allow_faction",
-			description: "Faction allowed on the bot - autoban everything else",
-			mode: "edit",
-			type: "options",
-			value: "all",
-			options: ["all", "Omni", "Neutral", "Clan", "not Omni", "not Neutral", "not Clan"]
-		);
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: "priv_suppress_alt_list",
-			description: "Do not show the altlist on join, just the name of the main",
-			mode: "edit",
-			type: "bool",
-			value: "0"
-		);
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: "invite_banned_chars",
-			description: "Should the bot allow inviting banned characters?",
-			mode: "edit",
-			type: "bool",
-			value: "0"
-		);
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: "welcome_msg_string",
-			description: "Message to send when welcoming new members",
-			mode: "edit",
-			type: "text",
-			value: "<link>Welcome to <myname></link>!",
-			options: ["<link>Welcome to <myname></link>!", "Welcome to <myname>! Here is some <link>information to get you started</link>."],
-			help: "welcome_msg.txt"
-		);
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: "lock_minrank",
-			description: "Minimum rank allowed to join private channel during a lock",
-			mode: "edit",
-			type: "rank",
-			value: "superadmin",
-			accessLevel: "superadmin"
-		);
 		$this->commandAlias->register(
 			$this->moduleName,
 			"member add",

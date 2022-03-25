@@ -31,6 +31,12 @@ use Nadybot\Modules\HELPBOT_MODULE\PlayfieldController;
 		accessLevel: "rl",
 		description: "Sets the rally waypoint",
 	),
+	NCA\Setting\Text(
+		name: "rally",
+		description: "Rally waypoint for topic",
+		mode: "noedit",
+		defaultValue: "",
+	),
 	NCA\ProvidesEvent(
 		event: "sync(rally-set)",
 		desc: "Triggered when a rally point is set",
@@ -60,18 +66,6 @@ class ChatRallyController extends ModuleInstance {
 
 	#[NCA\Inject]
 	public ChatLeaderController $chatLeaderController;
-
-	#[NCA\Setup]
-	public function setup(): void {
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: "rally",
-			description: "Rally waypoint for topic",
-			mode: "noedit",
-			type: "text",
-			value: ""
-		);
-	}
 
 	/**
 	 * Display the current rally location

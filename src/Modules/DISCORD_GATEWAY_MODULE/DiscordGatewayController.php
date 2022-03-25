@@ -57,6 +57,22 @@ use stdClass;
  */
 #[
 	NCA\Instance,
+	NCA\Setting\Text(
+		name: "discord_activity_name",
+		description: "Game the bot is shown to play on Discord",
+		defaultValue: "Anarchy Online",
+	),
+	NCA\Setting\Options(
+		name: "discord_notify_voice_changes",
+		description: "Show people joining or leaving voice channels",
+		defaultValue: 0,
+		options: [
+			'off' => 0,
+			'priv' => 1,
+			'org' => 2,
+			'priv+org' => 3,
+		]
+	),
 	NCA\ProvidesEvent("discordmsg"),
 	NCA\ProvidesEvent("discordpriv"),
 	NCA\ProvidesEvent("discord(0)"),
@@ -190,28 +206,6 @@ class DiscordGatewayController extends ModuleInstance {
 
 	#[NCA\Setup]
 	public function setup(): void {
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: "discord_activity_name",
-			description: "Game the bot is shown to play on Discord",
-			mode: "edit",
-			type: "text",
-			value: "Anarchy Online",
-		);
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: "discord_notify_voice_changes",
-			description: "Show people joining or leaving voice channels",
-			mode: "edit",
-			type: "options",
-			value: "0",
-			options: [
-				'off' => 0,
-				'priv' => 1,
-				'org' => 2,
-				'priv+org' => 3,
-			]
-		);
 		$this->inStats = new DiscordPacketsStats("in");
 		$this->outStats = new DiscordPacketsStats("out");
 		$this->statsController->registerProvider($this->inStats, "discord");

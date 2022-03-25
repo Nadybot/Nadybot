@@ -37,7 +37,12 @@ use Nadybot\Modules\ORGLIST_MODULE\OrglistController;
 		command: "maprank",
 		accessLevel: "admin",
 		description: "Define how org ranks map to bot ranks",
-	)
+	),
+	NCA\Setting\Boolean(
+		name: "map_org_ranks_to_bot_ranks",
+		description: "Map org ranks to bot ranks",
+		defaultValue: false,
+	),
 ]
 class GuildRankController extends ModuleInstance implements AccessLevelProvider {
 	public const DB_TABLE = "org_rank_mapping_<myname>";
@@ -72,14 +77,6 @@ class GuildRankController extends ModuleInstance implements AccessLevelProvider 
 	#[NCA\Setup]
 	public function setup(): void {
 		$this->accessManager->registerProvider($this);
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: "map_org_ranks_to_bot_ranks",
-			description: "Map org ranks to bot ranks",
-			mode: "edit",
-			type: "bool",
-			value: "0"
-		);
 	}
 
 	public function getSingleAccessLevel(string $sender): ?string {

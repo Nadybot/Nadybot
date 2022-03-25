@@ -38,6 +38,57 @@ use Nadybot\Modules\RAID_MODULE\RaidController;
 		accessLevel: "guest",
 		description: "Raffle off items to players",
 	),
+
+	NCA\Setting\Time(
+		name: "defaultraffletime",
+		description: "Time after which a raffle ends automatically (if enabled)",
+		defaultValue: '3m',
+		options: ["1m", "2m", "3m", "4m", "5m"],
+	),
+	NCA\Setting\Boolean(
+		name: "raffle_ends_automatically",
+		description: "Should raffles end automatically after some time?",
+		defaultValue: true,
+	),
+	NCA\Setting\Time(
+		name: "raffle_announce_frequency",
+		description: "How much time between each raffle announcement",
+		defaultValue: '30s',
+		options: ["10s", "20s", "30s", "45s", "1m", "2m", "3m", "4m", "5m", "10m"],
+	),
+	NCA\Setting\Boolean(
+		name: "raffle_announce_participants",
+		description: "Announce whenever someone joins or leaves the raffle",
+		defaultValue: true,
+	),
+	NCA\Setting\Options(
+		name: "raffle_bonus_per_loss",
+		description: "Bonus to next roll for a lost raffle",
+		defaultValue: 0,
+		options: [
+			'0' => 0,
+			'1' => 1,
+			'2' => 2,
+			'5' => 5,
+			'10' => 10,
+		],
+	),
+	NCA\Setting\Boolean(
+		name: "share_raffle_bonus_on_alts",
+		description: "Share raffle bonus points between alts",
+		defaultValue: true,
+	),
+	NCA\Setting\Boolean(
+		name: "raffle_allow_only_raiders",
+		description: "If a raid is running, only raiders may join the raffle",
+		defaultValue: false,
+	),
+	NCA\Setting\Rank(
+		name: "raffle_cancelother_rank",
+		description: "Rank required to cancel other people's raffle",
+		defaultValue: 'mod'
+	),
+
 	NCA\ProvidesEvent("raffle(start)"),
 	NCA\ProvidesEvent("raffle(cancel)"),
 	NCA\ProvidesEvent("raffle(end)"),
@@ -81,83 +132,6 @@ class RaffleController extends ModuleInstance {
 	public Util $util;
 
 	public ?Raffle $raffle = null;
-
-	#[NCA\Setup]
-	public function setup(): void {
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: "defaultraffletime",
-			description: "Time after which a raffle ends automatically (if enabled)",
-			mode: "edit",
-			type: "time",
-			value: '3m',
-			options: ["1m", "2m", "3m", "4m", "5m"],
-		);
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: "raffle_ends_automatically",
-			description: "Should raffles end automatically after some time?",
-			mode: "edit",
-			type: "bool",
-			value: '1',
-		);
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: "raffle_announce_frequency",
-			description: "How much time between each raffle announcement",
-			mode: "edit",
-			type: "time",
-			value: '30s',
-			options: ["10s", "20s", "30s", "45s", "1m", "2m", "3m", "4m", "5m", "10m"],
-		);
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: "raffle_announce_participants",
-			description: "Announce whenever someone joins or leaves the raffle",
-			mode: "edit",
-			type: "bool",
-			value: '1',
-		);
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: "raffle_bonus_per_loss",
-			description: "Bonus to next roll for a lost raffle",
-			mode: "edit",
-			type: "options",
-			value: '0',
-			options: [
-				'0' => 0,
-				'1' => 1,
-				'2' => 2,
-				'5' => 5,
-				'10' => 10,
-			],
-		);
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: "share_raffle_bonus_on_alts",
-			description: "Share raffle bonus points between alts",
-			mode: "edit",
-			type: "bool",
-			value: '1',
-		);
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: "raffle_allow_only_raiders",
-			description: "If a raid is running, only raiders may join the raffle",
-			mode: "edit",
-			type: "bool",
-			value: '0',
-		);
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: "raffle_cancelother_rank",
-			description: "Rank required to cancel other people's raffle",
-			mode: "edit",
-			type: "rank",
-			value: 'mod'
-		);
-	}
 
 	protected function fancyFrame(string $text): string {
 		return "<yellow>" . str_repeat("-", 70) . "<end>\n".

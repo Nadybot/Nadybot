@@ -36,6 +36,11 @@ use Nadybot\Core\{
 		description: "List what is currently playing on GridStream",
 		alias: "gsp"
 	),
+	NCA\Setting\Boolean(
+		name: "gsp_show_logon",
+		description: "Show on logon if there is a running GSP show",
+		defaultValue: true,
+	),
 	NCA\ProvidesEvent("gsp(show_start)"),
 	NCA\ProvidesEvent("gsp(show_end)")
 ]
@@ -87,14 +92,6 @@ class GSPController extends ModuleInstance implements MessageEmitter {
 
 	#[NCA\Setup]
 	public function setup(): void {
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: "gsp_show_logon",
-			description: "Show on logon if there is a running GSP show",
-			mode: "edit",
-			type: "bool",
-			value: "1"
-		);
 		$this->messageHub->registerMessageEmitter($this);
 	}
 

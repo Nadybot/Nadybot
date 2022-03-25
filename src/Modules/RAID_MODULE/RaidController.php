@@ -57,6 +57,56 @@ use Nadybot\Modules\{
 		accessLevel: "raid_leader_2",
 		description: "Change the raid points ticker",
 	),
+
+	NCA\Setting\Boolean(
+		name: 'raid_announcement',
+		description: 'Announce the raid periodically',
+		defaultValue: true,
+		accessLevel: 'raid_admin_2',
+	),
+	NCA\Setting\Time(
+		name: 'raid_announcement_interval',
+		description: 'Announcement interval',
+		defaultValue: '90s',
+		options: ["30s", "60s", "90s", "120s", "150s", "180s"],
+		accessLevel: 'raid_admin_2',
+	),
+	NCA\Setting\Boolean(
+		name: 'raid_points_for_time',
+		description: 'Give raid points based on duration of participation',
+		defaultValue: false,
+		accessLevel: 'raid_admin_2',
+	),
+	NCA\Setting\Time(
+		name: 'raid_points_interval',
+		description: 'Point rate, in seconds',
+		defaultValue: '5m',
+		accessLevel: 'raid_admin_2',
+	),
+	NCA\Setting\Boolean(
+		name: 'raid_auto_add_creator',
+		description: 'Add raid initiator to the raid',
+		defaultValue: true,
+		accessLevel: 'raid_admin_2',
+	),
+	NCA\Setting\Boolean(
+		name: 'raid_stop_clears_callers',
+		description: 'Stopping the raid clears the callers',
+		defaultValue: false,
+		accessLevel: 'raid_admin_2',
+	),
+	NCA\Setting\Options(
+		name: 'raid_kick_notin_on_lock',
+		description: 'Locking the raid kicks players not in the raid',
+		defaultValue: 0,
+		options: [
+			"Kick everyone not in the raid" => 2,
+			"Kick all, except those who've been in the raid before" => 1,
+			"Don't kick on raid lock" => 0,
+		],
+		accessLevel: 'raid_admin_2',
+	),
+
 	NCA\ProvidesEvent("raid(start)"),
 	NCA\ProvidesEvent("raid(stop)"),
 	NCA\ProvidesEvent("raid(changed)"),
@@ -130,75 +180,6 @@ class RaidController extends ModuleInstance {
 
 	#[NCA\Setup]
 	public function setup(): void {
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: 'raid_announcement',
-			description: 'Announce the raid periodically',
-			mode: 'edit',
-			type: 'bool',
-			value: '1',
-			accessLevel: 'raid_admin_2'
-		);
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: 'raid_announcement_interval',
-			description: 'Announcement interval',
-			mode: 'edit',
-			type: 'time',
-			value: '90s',
-			options: ["30s", "60s", "90s", "120s", "150s", "180s"],
-			accessLevel: 'raid_admin_2'
-		);
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: 'raid_points_for_time',
-			description: 'Give raid points based on duration of participation',
-			mode: 'edit',
-			type: 'bool',
-			value: '0',
-			accessLevel: 'raid_admin_2'
-		);
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: 'raid_points_interval',
-			description: 'Point rate, in seconds',
-			mode: 'edit',
-			type: 'time',
-			value: '5m',
-			accessLevel: 'raid_admin_2'
-		);
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: 'raid_auto_add_creator',
-			description: 'Add raid initiator to the raid',
-			mode: 'edit',
-			type: 'bool',
-			value: '1',
-			accessLevel: 'raid_admin_2'
-		);
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: 'raid_stop_clears_callers',
-			description: 'Stopping the raid clears the callers',
-			mode: 'edit',
-			type: 'bool',
-			value: '0',
-			accessLevel: 'raid_admin_2'
-		);
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: 'raid_kick_notin_on_lock',
-			description: 'Locking the raid kicks players not in the raid',
-			mode: 'edit',
-			type: 'options',
-			value: '0',
-			options: [
-				"Kick everyone not in the raid" => 2,
-				"Kick all, except those who've been in the raid before" => 1,
-				"Don't kick on raid lock" => 0,
-			],
-			accessLevel: 'raid_admin_2'
-		);
 		$this->timer->callLater(0, [$this, 'resumeRaid']);
 		$stateStats = new RaidStateStats();
 		Registry::injectDependencies($stateStats);

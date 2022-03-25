@@ -34,7 +34,13 @@ use Nadybot\Core\{
 		command: "id",
 		accessLevel: "guest",
 		description: "Searches for an itemid by name",
-	)
+	),
+	NCA\Setting\Number(
+		name: 'maxitems',
+		description: 'Number of items shown on the list',
+		defaultValue: 40,
+		options: [30, 40, 50, 60],
+	),
 ]
 class ItemsController extends ModuleInstance {
 	#[NCA\Inject]
@@ -67,15 +73,6 @@ class ItemsController extends ModuleInstance {
 		$this->db->loadCSVFile($this->moduleName, __DIR__ . "/item_groups.csv");
 		$this->db->loadCSVFile($this->moduleName, __DIR__ . "/item_group_names.csv");
 
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: 'maxitems',
-			description: 'Number of items shown on the list',
-			mode: 'edit',
-			type: 'number',
-			value: '40',
-			options: ["30", "40", "50", "60"]
-		);
 		$this->skills = $this->db->table("skills")
 			->asObj(Skill::class)
 			->keyBy("id")

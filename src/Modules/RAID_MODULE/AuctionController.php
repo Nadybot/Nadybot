@@ -45,6 +45,81 @@ use Nadybot\Modules\RAFFLE_MODULE\RaffleItem;
 		accessLevel: "raid_leader_1",
 		description: "Give back points for an auction",
 	),
+
+	NCA\Setting\Boolean(
+		name: 'auctions_only_for_raid',
+		description: 'Allow auctions only for people in the raid',
+		defaultValue: false,
+		accessLevel: 'raid_admin_2'
+	),
+	NCA\Setting\Boolean(
+		name: 'auctions_show_max_bidder',
+		description: 'Show the name of the top bidder during the auction',
+		defaultValue: true,
+		accessLevel: 'raid_admin_2'
+	),
+	NCA\Setting\Boolean(
+		name: 'auctions_show_rival_bidders',
+		description: 'Show the names of the rival bidders',
+		defaultValue: false,
+		accessLevel: 'raid_admin_2'
+	),
+	NCA\Setting\Time(
+		name: 'auction_duration',
+		description: 'Duration for auctions',
+		defaultValue: '50s',
+	),
+	NCA\Setting\Time(
+		name: 'auction_min_time_after_bid',
+		description: 'Bidding grace period',
+		defaultValue: '5s',
+	),
+	NCA\Setting\Number(
+		name: 'auction_refund_tax',
+		description: 'Refund tax in percent',
+		defaultValue: 10,
+	),
+	NCA\Setting\Number(
+		name: 'auction_refund_min_tax',
+		description: 'Refund minimum tax in points',
+		defaultValue: 0,
+	),
+	NCA\Setting\Number(
+		name: 'auction_refund_max_tax',
+		description: 'Refund maximum tax in points',
+		defaultValue: 0,
+	),
+	NCA\Setting\Time(
+		name: 'auction_refund_max_time',
+		description: 'Refund maximum age of auction',
+		defaultValue: '1h',
+	),
+	NCA\Setting\Options(
+		name: 'auction_announcement_layout',
+		description: 'Layout of the auction announcement',
+		defaultValue: 2,
+		options: [
+			'Simple' => 1,
+			'Yellow border' => 2,
+			'Yellow header' => 3,
+			'Pink border' => 4,
+			'Rainbow border' => 5,
+		]
+	),
+	NCA\Setting\Options(
+		name: 'auction_winner_announcement',
+		description: 'Layout of the winner announcement',
+		defaultValue: 1,
+		options: [
+			'Simple' => 1,
+			'Yellow border' => 2,
+			'Yellow header' => 3,
+			'Pink border' => 4,
+			'Rainbow border' => 5,
+			'Gratulations' => 6,
+		]
+	),
+
 	NCA\ProvidesEvent("auction(start)"),
 	NCA\ProvidesEvent("auction(end)"),
 	NCA\ProvidesEvent("auction(cancel)"),
@@ -100,112 +175,6 @@ class AuctionController extends ModuleInstance {
 
 	#[NCA\Setup]
 	public function setup(): void {
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: 'auctions_only_for_raid',
-			description: 'Allow auctions only for people in the raid',
-			mode: 'edit',
-			type: 'bool',
-			value: '0',
-			accessLevel: 'raid_admin_2'
-		);
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: 'auctions_show_max_bidder',
-			description: 'Show the name of the top bidder during the auction',
-			mode: 'edit',
-			type: 'bool',
-			value: '1',
-			accessLevel: 'raid_admin_2'
-		);
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: 'auctions_show_rival_bidders',
-			description: 'Show the names of the rival bidders',
-			mode: 'edit',
-			type: 'bool',
-			value: '0',
-			accessLevel: 'raid_admin_2'
-		);
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: 'auction_duration',
-			description: 'Duration for auctions',
-			mode: 'edit',
-			type: 'time',
-			value: '50s',
-		);
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: 'auction_min_time_after_bid',
-			description: 'Bidding grace period',
-			mode: 'edit',
-			type: 'time',
-			value: '5s',
-		);
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: 'auction_refund_tax',
-			description: 'Refund tax in percent',
-			mode: 'edit',
-			type: 'number',
-			value: '10',
-		);
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: 'auction_refund_min_tax',
-			description: 'Refund minimum tax in points',
-			mode: 'edit',
-			type: 'number',
-			value: '0',
-		);
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: 'auction_refund_max_tax',
-			description: 'Refund maximum tax in points',
-			mode: 'edit',
-			type: 'number',
-			value: '0',
-		);
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: 'auction_refund_max_time',
-			description: 'Refund maximum age of auction',
-			mode: 'edit',
-			type: 'time',
-			value: '1h',
-		);
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: 'auction_announcement_layout',
-			description: 'Layout of the auction announcement',
-			mode: 'edit',
-			type: 'options',
-			value: '2',
-			options: [
-				'Simple' => 1,
-				'Yellow border' => 2,
-				'Yellow header' => 3,
-				'Pink border' => 4,
-				'Rainbow border' => 5,
-			]
-		);
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: 'auction_winner_announcement',
-			description: 'Layout of the winner announcement',
-			mode: 'edit',
-			type: 'options',
-			value: '1',
-			options: [
-				'Simple' => 1,
-				'Yellow border' => 2,
-				'Yellow header' => 3,
-				'Pink border' => 4,
-				'Rainbow border' => 5,
-				'Gratulations' => 6,
-			]
-		);
 		$this->commandAlias->register($this->moduleName, "bid history", "bh");
 	}
 

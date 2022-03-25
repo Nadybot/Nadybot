@@ -37,6 +37,13 @@ use Nadybot\Core\{
 		accessLevel: "mod",
 		description: "Add/change or delete an event",
 	),
+
+	NCA\Setting\Number(
+		name: "num_events_shown",
+		description: "Maximum number of events shown",
+		defaultValue: 5,
+		options: [5, 10, 15, 20],
+	),
 ]
 class EventsController extends ModuleInstance {
 	public const CMD_EVENT_MANAGE = "events add/change/delete";
@@ -61,19 +68,6 @@ class EventsController extends ModuleInstance {
 
 	#[NCA\Inject]
 	public AltsController $altsController;
-
-	#[NCA\Setup]
-	public function setup(): void {
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: "num_events_shown",
-			description: "Maximum number of events shown",
-			mode: "edit",
-			type: "number",
-			value: "5",
-			options: ["5", "10", "15", "20"]
-		);
-	}
 
 	/** Show the five closest past and upcoming events */
 	#[NCA\HandlesCommand("events")]

@@ -48,6 +48,17 @@ use Safe\Exceptions\FilesystemException;
 		accessLevel: "guest",
 		description: "Show number of characters in response and the time it took to process",
 	),
+
+	NCA\Setting\Boolean(
+		name: "show_test_commands",
+		description: "Show test commands as they are executed",
+		defaultValue: false,
+	),
+	NCA\Setting\Boolean(
+		name: "show_test_results",
+		description: "Show test results from test commands",
+		defaultValue: false,
+	),
 ]
 class TestController extends ModuleInstance {
 	#[NCA\Inject]
@@ -86,29 +97,7 @@ class TestController extends ModuleInstance {
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
-	public string $path;
-
-	#[NCA\Setup]
-	public function setup(): void {
-		$this->path = __DIR__ . "/tests/";
-
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: "show_test_commands",
-			description: "Show test commands as they are executed",
-			mode: "edit",
-			type: "bool",
-			value: "0"
-		);
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: "show_test_results",
-			description: "Show test results from test commands",
-			mode: "edit",
-			type: "bool",
-			value: "0"
-		);
-	}
+	public string $path = __DIR__ . "/tests/";
 
 	/** @param string[] $commands */
 	public function runTests(array $commands, CmdContext $context, string $logFile): void {

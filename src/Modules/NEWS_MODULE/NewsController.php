@@ -44,6 +44,28 @@ use Nadybot\Modules\WEBSERVER_MODULE\{
 		accessLevel: "mod",
 		description: "Adds, removes, pins or unpins a news entry",
 	),
+
+	NCA\Setting\Number(
+		name: "num_news_shown",
+		description: "Maximum number of news items shown",
+		defaultValue: 10,
+		options: [5, 10, 15, 20],
+	),
+	NCA\Setting\Options(
+		name: "news_announcement_layout",
+		description: "Layout of the news announcement",
+		defaultValue: 1,
+		options: [
+			'Last date' => 1,
+			'Latest news' => 2,
+		]
+	),
+	NCA\Setting\Boolean(
+		name: "news_confirmed_for_all_alts",
+		description: "Confirmed news count for all alts",
+		defaultValue: true,
+	),
+
 	NCA\ProvidesEvent(
 		event: "sync(news)",
 		desc: "Triggered whenever someone creates or modifies a news entry"
@@ -76,39 +98,6 @@ class NewsController extends ModuleInstance {
 
 	#[NCA\Inject]
 	public Util $util;
-
-	#[NCA\Setup]
-	public function setup(): void {
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: "num_news_shown",
-			description: "Maximum number of news items shown",
-			mode: "edit",
-			type: "number",
-			value: "10",
-			options: ["5", "10", "15", "20"]
-		);
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: "news_announcement_layout",
-			description: "Layout of the news announcement",
-			mode: "edit",
-			type: "options",
-			value: "1",
-			options: [
-				'Last date' => 1,
-				'Latest news' => 2,
-			]
-		);
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: "news_confirmed_for_all_alts",
-			description: "Confirmed news count for all alts",
-			mode: "edit",
-			type: "bool",
-			value: "1"
-		);
-	}
 
 	/**
 	 * @return Collection<INews>

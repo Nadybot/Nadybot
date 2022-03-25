@@ -46,7 +46,18 @@ use Nadybot\Core\{
 		command: "reminderformat",
 		accessLevel: "guild",
 		description: "Displays or changes the reminder format for oneself",
-	)
+	),
+
+	NCA\Setting\Options(
+		name: "reminder_format",
+		description: "How to display reminder-links in notes",
+		defaultValue: 2,
+		options: [
+			'off' => 0,
+			'compact' => 1,
+			'verbose' => 2,
+		],
+	),
 ]
 class NotesController extends ModuleInstance {
 	public const FORMAT_GROUPED = 'grouped';
@@ -97,19 +108,6 @@ class NotesController extends ModuleInstance {
 	#[NCA\Setup]
 	public function setup(): void {
 		$this->commandAlias->register($this->moduleName, "notes rem", "reminders rem");
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: "reminder_format",
-			description: "How to display reminder-links in notes",
-			mode: "edit",
-			type: "options",
-			value: "2",
-			options: [
-				'off' => 0,
-				'compact' => 1,
-				'verbose' => 2,
-			],
-		);
 	}
 
 	/** Show all your notes */

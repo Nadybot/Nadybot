@@ -32,6 +32,16 @@ use Nadybot\Core\{
 		accessLevel: "rl",
 		description: "Set if the text of the leader will be repeated",
 	),
+	NCA\Setting\Boolean(
+		name: "leaderecho",
+		description: "Repeat the text of the leader",
+		defaultValue: true,
+	),
+	NCA\Setting\Color(
+		name: "leaderecho_color",
+		description: "Color for leader echo",
+		defaultValue: "#FFFF00",
+	),
 	NCA\ProvidesEvent("leader(clear)"),
 	NCA\ProvidesEvent("leader(set)")
 ]
@@ -58,22 +68,6 @@ class ChatLeaderController extends ModuleInstance implements AccessLevelProvider
 	#[NCA\Setup]
 	public function setup(): void {
 		$this->accessManager->registerProvider($this);
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: "leaderecho",
-			description: "Repeat the text of the leader",
-			mode: "edit",
-			type: "bool",
-			value: "1"
-		);
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: "leaderecho_color",
-			description: "Color for leader echo",
-			mode: "edit",
-			type: "color",
-			value: "<font color=#FFFF00>",
-		);
 	}
 
 	public function getSingleAccessLevel(string $sender): ?string {

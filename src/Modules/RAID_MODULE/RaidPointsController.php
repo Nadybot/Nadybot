@@ -67,7 +67,23 @@ use Nadybot\Core\{
 		command: RaidPointsController::CMD_REWARD_EDIT,
 		accessLevel: "raid_admin_1",
 		description: "Create, Edit and Remove raid reward entries",
-	)
+	),
+
+	NCA\Setting\Boolean(
+		name: "raid_share_points",
+		description: "Share raid points across all alts",
+		defaultValue: true,
+	),
+	NCA\Setting\Number(
+		name: "raid_top_amount",
+		description: "How many raiders to show in top list",
+		defaultValue: 25,
+	),
+	NCA\Setting\Number(
+		name: "raid_points_reason_min_length",
+		description: "Minimum length required for points add/rem",
+		defaultValue: 10,
+	),
 ]
 class RaidPointsController extends ModuleInstance {
 	public const DB_TABLE = "raid_points_<myname>";
@@ -111,34 +127,6 @@ class RaidPointsController extends ModuleInstance {
 
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
-
-	#[NCA\Setup]
-	public function setup(): void {
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: "raid_share_points",
-			description: "Share raid points across all alts",
-			mode: "edit",
-			type: "bool",
-			value: "1"
-		);
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: "raid_top_amount",
-			description: "How many raiders to show in top list",
-			mode: "edit",
-			type: "number",
-			value: "25"
-		);
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: "raid_points_reason_min_length",
-			description: "Minimum length required for points add/rem",
-			mode: "edit",
-			type: "number",
-			value: "10"
-		);
-	}
 
 	/**
 	 * Give points when the ticker is enabled

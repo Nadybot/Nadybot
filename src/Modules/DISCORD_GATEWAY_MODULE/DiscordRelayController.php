@@ -38,7 +38,12 @@ use Nadybot\Modules\{
 		command: "discord",
 		accessLevel: "mod",
 		description: "Information about the discord link",
-	)
+	),
+	NCA\Setting\Rank(
+		name: "discord_relay_mention_rank",
+		description: "Minimum ranks allowed to use @here and @everyone",
+		defaultValue: "mod"
+	),
 ]
 class DiscordRelayController extends ModuleInstance {
 	#[NCA\Inject]
@@ -91,18 +96,6 @@ class DiscordRelayController extends ModuleInstance {
 
 	#[NCA\Inject]
 	public Nadybot $chatBot;
-
-	#[NCA\Setup]
-	public function setup(): void {
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: "discord_relay_mention_rank",
-			description: "Minimum ranks allowed to use @here and @everyone",
-			mode: "edit",
-			type: "rank",
-			value: "mod"
-		);
-	}
 
 	/**
 	 * Gives a list of all channels we have access to

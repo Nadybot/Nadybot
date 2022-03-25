@@ -27,6 +27,25 @@ use Nadybot\Core\{
 		accessLevel: "rl",
 		description: "Changes Topic",
 	),
+
+	NCA\Setting\Text(
+		name: "topic",
+		description: "Topic for Private Channel",
+		mode: "noedit",
+		defaultValue: "",
+	),
+	NCA\Setting\Text(
+		name: "topic_setby",
+		description: "Character who set the topic",
+		mode: "noedit",
+		defaultValue: "",
+	),
+	NCA\Setting\Number(
+		name: "topic_time",
+		description: "Time the topic was set",
+		mode: "noedit",
+		defaultValue: 0,
+	),
 	NCA\ProvidesEvent("topic(set)"),
 	NCA\ProvidesEvent("topic(clear)")
 ]
@@ -54,33 +73,6 @@ class ChatTopicController extends ModuleInstance {
 	#[NCA\Inject]
 	public EventManager $eventManager;
 
-	#[NCA\Setup]
-	public function setup(): void {
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: "topic",
-			description: "Topic for Private Channel",
-			mode: "noedit",
-			type: "text",
-			value: ""
-		);
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: "topic_setby",
-			description: "Character who set the topic",
-			mode: "noedit",
-			type: "text",
-			value: ""
-		);
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: "topic_time",
-			description: "Time the topic was set",
-			mode: "noedit",
-			type: "number",
-			value: "0"
-		);
-	}
 	/**
 	 * Show the current topic
 	 */

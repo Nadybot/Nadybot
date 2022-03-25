@@ -34,6 +34,25 @@ use Nadybot\Modules\ONLINE_MODULE\OnlineController;
 		accessLevel: "raid_leader_1",
 		description: "Add or remove someone from/to the raid",
 	),
+
+	NCA\Setting\Options(
+		name: 'raid_announce_raidmember_loc',
+		description: 'Where to announce leaders add/rem people to/from the raid',
+		defaultValue: 3,
+		options: [
+			'Do not announce' => self::ANNOUNCE_OFF,
+			'Private channel' => self::ANNOUNCE_PRIV,
+			'Tell' => self::ANNOUNCE_TELL,
+			'Priv+Tell' => self::ANNOUNCE_PRIV|self::ANNOUNCE_TELL,
+		],
+	),
+	NCA\Setting\Boolean(
+		name: 'raid_allow_multi_joining',
+		description: 'Allow people to join the raids on more than one character',
+		defaultValue: true,
+		help: 'multijoin.txt'
+	),
+
 	NCA\ProvidesEvent("raid(join)"),
 	NCA\ProvidesEvent("raid(leave)")
 ]
@@ -78,33 +97,6 @@ class RaidMemberController extends ModuleInstance {
 	public const ANNOUNCE_OFF = 0;
 	public const ANNOUNCE_PRIV = 1;
 	public const ANNOUNCE_TELL = 2;
-
-	#[NCA\Setup]
-	public function setup(): void {
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: 'raid_announce_raidmember_loc',
-			description: 'Where to announce leaders add/rem people to/from the raid',
-			mode: 'edit',
-			type: 'options',
-			value: '3',
-			options: [
-				'Do not announce' => 0,
-				'Private channel' => 1,
-				'Tell' => 2,
-				'Priv+Tell' => 3,
-			],
-		);
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: 'raid_allow_multi_joining',
-			description: 'Allow people to join the raids on more than one character',
-			mode: 'edit',
-			type: 'bool',
-			value: '1',
-			help: 'multijoin.txt'
-		);
-	}
 
 	/**
 	 * Resume an old raid after a bot restart

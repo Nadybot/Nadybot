@@ -69,7 +69,24 @@ use Nadybot\Modules\{
 		command: "rem",
 		accessLevel: "guest",
 		description: "Remove yourself from a roll slot",
-	)
+	),
+
+	NCA\Setting\Options(
+		name: "add_on_loot",
+		description: "Confirmation messages for adding to loot",
+		defaultValue: 2,
+		options: [
+			'tells' => 1,
+			'privatechat' => 2,
+			'privatechat and tells' => 3,
+		],
+	),
+	NCA\Setting\Boolean(
+		name: 'show_loot_pics',
+		description: 'Show pictures in loot-command',
+		defaultValue: true,
+	),
+
 ]
 class LootController extends ModuleInstance {
 	public const CMD_LOOT_MANAGE = "loot add/change/delete";
@@ -115,28 +132,6 @@ class LootController extends ModuleInstance {
 
 	#[NCA\Setup]
 	public function setup(): void {
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: "add_on_loot",
-			description: "Confirmation messages for adding to loot",
-			mode: "edit",
-			type: "options",
-			value: "2",
-			options: [
-				'tells' => 1,
-				'privatechat' => 2,
-				'privatechat and tells' => 3,
-			],
-		);
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: 'show_loot_pics',
-			description: 'Show pictures in loot-command',
-			mode: 'edit',
-			type: 'bool',
-			value: '1'
-		);
-
 		$this->commandAlias->register($this->moduleName, "loot addmulti", "multiloot");
 	}
 

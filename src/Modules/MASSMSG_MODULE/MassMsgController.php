@@ -45,7 +45,19 @@ use Nadybot\Core\{
 		accessLevel: "mod",
 		description: "Send invites with a message to all bot members online",
 		alias: "massinvite"
-	)
+	),
+
+	NCA\Setting\Color(
+		name: "massmsg_color",
+		description: "Color for mass messages/invites",
+		defaultValue: "#FF9999",
+	),
+	NCA\Setting\Time(
+		name: "massmsg_cooldown",
+		description: "Cooldown between sending 2 mass-messages/-invites",
+		defaultValue: "1s",
+		options: ["1s", "30s", "1m", "5m", "15m"],
+	),
 ]
 class MassMsgController extends ModuleInstance {
 	public const BLOCKED = 'blocked';
@@ -85,27 +97,6 @@ class MassMsgController extends ModuleInstance {
 
 	/** date and time when the last mass message was sent */
 	public ?DateTime $lastMessage;
-
-	#[NCA\Setup]
-	public function setup(): void {
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: "massmsg_color",
-			description: "Color for mass messages/invites",
-			mode: "edit",
-			type: "color",
-			value: "<font color='#FF9999'>",
-		);
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: "massmsg_cooldown",
-			description: "Cooldown between sending 2 mass-messages/-invites",
-			mode: "edit",
-			type: "time",
-			value: "1s",
-			options: ["1s", "30s", "1m", "5m", "15m"],
-		);
-	}
 
 	protected function getMassMsgOptInOutBlob(): string {
 		$msgOnLink      = $this->text->makeChatcmd("On", "/tell <myname> massmsgs on");

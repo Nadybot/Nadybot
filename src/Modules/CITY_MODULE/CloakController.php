@@ -37,6 +37,24 @@ use Nadybot\Modules\WEBSERVER_MODULE\StatsController;
 		description: "Show the status of the city cloak",
 		alias: "city"
 	),
+
+	NCA\Setting\Options(
+		name: "showcloakstatus",
+		description: "Show cloak status to players at logon",
+		defaultValue: 1,
+		options: [
+			'Never' => 0,
+			'When cloak is down' => 1,
+			'Always' => 2,
+		],
+	),
+	NCA\Setting\Time(
+		name: "cloak_reminder_interval",
+		description: "How often to spam guild channel when cloak is down",
+		defaultValue: "5m",
+		options: ["2m", "5m", "10m", "15m", "20m"]
+	),
+
 	NCA\ProvidesEvent("cloak(raise)"),
 	NCA\ProvidesEvent("cloak(lower)")
 ]
@@ -75,29 +93,6 @@ class CloakController extends ModuleInstance implements MessageEmitter {
 
 	#[NCA\Setup]
 	public function setup(): void {
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: "showcloakstatus",
-			description: "Show cloak status to players at logon",
-			mode: "edit",
-			type: "options",
-			value: "1",
-			options: [
-				'Never' => 0,
-				'When cloak is down' => 1,
-				'Always' => 2,
-			]
-		);
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: "cloak_reminder_interval",
-			description: "How often to spam guild channel when cloak is down",
-			mode: "edit",
-			type: "time",
-			value: "5m",
-			options: ["2m", "5m", "10m", "15m", "20m"]
-		);
-
 		$this->messageHub->registerMessageEmitter($this);
 		$cloakStats = new CloakStatsCollector();
 		Registry::injectDependencies($cloakStats);

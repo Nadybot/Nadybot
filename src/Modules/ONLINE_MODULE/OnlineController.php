@@ -52,6 +52,105 @@ use Nadybot\Modules\{
 		description: "Shows who is online",
 		alias: ['o', 'sm'],
 	),
+
+	NCA\Setting\Time(
+		name: "online_expire",
+		description: "How long to wait before clearing online list",
+		defaultValue: "15m",
+		options: ["2m", "5m", "10m", "15m", "20m"],
+	),
+	NCA\Setting\Options(
+		name: "online_show_relay",
+		description: "Include players from your relay(s) by default",
+		defaultValue: 0,
+		options: [
+			'No' => 0,
+			'Always' => 1,
+			'In a separate message' => 2,
+		]
+	),
+	NCA\Setting\Options(
+		name: "online_show_org_guild",
+		description: "Show org/rank for players in guild channel",
+		defaultValue: 1,
+		options: [
+			'Show org and rank' => 2,
+			'Show rank only' => 1,
+			'Show org only' => 3,
+			'Show no org info' => 0,
+		]
+	),
+	NCA\Setting\Options(
+		name: "online_show_org_guild_relay",
+		description: "Show org/rank for players in your relays",
+		defaultValue: 0,
+		options: [
+			'Show org and rank' => 2,
+			'Show rank only' => 1,
+			'Show org only' => 3,
+			'Show no org info' => 0,
+		]
+	),
+	NCA\Setting\Options(
+		name: "online_show_org_priv",
+		description: "Show org/rank for players in private channel",
+		defaultValue: 2,
+		options: [
+			'Show org and rank' => 2,
+			'Show rank only' => 1,
+			'Show org only' => 3,
+			'Show no org info' => 0,
+		]
+	),
+	NCA\Setting\Boolean(
+		name: "online_admin",
+		description: "Show admin levels in online list",
+		defaultValue: false,
+	),
+	NCA\Setting\Options(
+		name: "online_raid",
+		description: "Show raid participation in online list",
+		defaultValue: 0,
+		options: [
+			'off' => 0,
+			'in raid' => 1,
+			'not in raid' => 2,
+			'both' => 3,
+			'both, but compact' => 7,
+		]
+	),
+	NCA\Setting\Options(
+		name: "online_group_by",
+		description: "Group online list by",
+		defaultValue: 1,
+		options: [
+			'do not group' => 0,
+			'player' => 1,
+			'profession' => 2,
+			'faction' => 3,
+		]
+	),
+	NCA\Setting\Options(
+		name: "online_relay_group_by",
+		description: "Group relay online list by",
+		defaultValue: 1,
+		options: [
+			'do not group' => 0,
+			'org' => 1,
+			'profession' => 2,
+		]
+	),
+	NCA\Setting\Boolean(
+		name: "online_show_discord",
+		description: "Show players in discord voice channels",
+		defaultValue: false,
+	),
+	NCA\Setting\Boolean(
+		name: "afk_brb_without_symbol",
+		description: "React to afk and brb even without command prefix",
+		defaultValue: true,
+	),
+
 	NCA\ProvidesEvent("online(org)"),
 	NCA\ProvidesEvent("offline(org)")
 ]
@@ -124,137 +223,6 @@ class OnlineController extends ModuleInstance {
 		$this->db->table("online")
 			->where("added_by", $this->db->getBotname())
 			->delete();
-
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: "online_expire",
-			description: "How long to wait before clearing online list",
-			mode: "edit",
-			type: "time",
-			value: "15m",
-			options: ["2m", "5m", "10m", "15m", "20m"],
-		);
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: "online_show_relay",
-			description: "Include players from your relay(s) by default",
-			mode: "edit",
-			type: "options",
-			value: "0",
-			options: [
-				'No' => 0,
-				'Always' => 1,
-				'In a separate message' => 2,
-			]
-		);
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: "online_show_org_guild",
-			description: "Show org/rank for players in guild channel",
-			mode: "edit",
-			type: "options",
-			value: "1",
-			options: [
-				'Show org and rank' => 2,
-				'Show rank only' => 1,
-				'Show org only' => 3,
-				'Show no org info' => 0,
-			]
-		);
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: "online_show_org_guild_relay",
-			description: "Show org/rank for players in your relays",
-			mode: "edit",
-			type: "options",
-			value: "0",
-			options: [
-				'Show org and rank' => 2,
-				'Show rank only' => 1,
-				'Show org only' => 3,
-				'Show no org info' => 0,
-			]
-		);
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: "online_show_org_priv",
-			description: "Show org/rank for players in private channel",
-			mode: "edit",
-			type: "options",
-			value: "2",
-			options: [
-				'Show org and rank' => 2,
-				'Show rank only' => 1,
-				'Show org only' => 3,
-				'Show no org info' => 0,
-			]
-		);
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: "online_admin",
-			description: "Show admin levels in online list",
-			mode: "edit",
-			type: "bool",
-			value: "0"
-		);
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: "online_raid",
-			description: "Show raid participation in online list",
-			mode: "edit",
-			type: "options",
-			value: "0",
-			options: [
-				'off' => 0,
-				'in raid' => 1,
-				'not in raid' => 2,
-				'both' => 3,
-				'both, but compact' => 7,
-			]
-		);
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: "online_group_by",
-			description: "Group online list by",
-			mode: "edit",
-			type: "options",
-			value: "1",
-			options: [
-				'do not group' => 0,
-				'player' => 1,
-				'profession' => 2,
-				'faction' => 3,
-			]
-		);
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: "online_relay_group_by",
-			description: "Group relay online list by",
-			mode: "edit",
-			type: "options",
-			value: "1",
-			options: [
-				'do not group' => 0,
-				'org' => 1,
-				'profession' => 2,
-			]
-		);
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: "online_show_discord",
-			description: "Show players in discord voice channels",
-			mode: "edit",
-			type: "bool",
-			value: "0"
-		);
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: "afk_brb_without_symbol",
-			description: "React to afk and brb even without command prefix",
-			mode: "edit",
-			type: "bool",
-			value: "1"
-		);
 
 		$onlineOrg = new OnlineOrgStats();
 		$onlinePriv = new OnlinePrivStats();

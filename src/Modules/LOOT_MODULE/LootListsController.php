@@ -131,7 +131,13 @@ use Nadybot\Modules\{
 		accessLevel: "guest",
 		description: "Shows Legacy of the Xan loot categories",
 		alias: 'xan',
-	)
+	),
+
+	NCA\Setting\Boolean(
+		name: 'show_raid_loot_pics',
+		description: 'Show pictures in loot lists',
+		defaultValue: false,
+	),
 ]
 class LootListsController extends ModuleInstance {
 	#[NCA\Inject]
@@ -170,14 +176,6 @@ class LootListsController extends ModuleInstance {
 	#[NCA\Setup]
 	public function setup(): void {
 		$this->db->loadCSVFile($this->moduleName, __DIR__ . "/raid_loot.csv");
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: 'show_raid_loot_pics',
-			description: 'Show pictures in loot lists',
-			mode: 'edit',
-			type: 'bool',
-			value: '0'
-		);
 		$aliases = [
 			'beastarmor' => "pande Beast Armor",
 			'beastweaps' => "pande Beast Weapons",

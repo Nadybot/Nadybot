@@ -35,7 +35,13 @@ use Nadybot\Core\{
 		command: "verify",
 		accessLevel: "all",
 		description: "Verifies a roll",
-	)
+	),
+	NCA\Setting\Time(
+		name: "time_between_rolls",
+		description: "How much time is required between rolls from the same person",
+		defaultValue: "30s",
+		options: ["10s", "30s", "60s", "90s"],
+	),
 ]
 class RandomController extends ModuleInstance {
 	#[NCA\Inject]
@@ -55,16 +61,6 @@ class RandomController extends ModuleInstance {
 
 	#[NCA\Setup]
 	public function setup(): void {
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: "time_between_rolls",
-			description: "How much time is required between rolls from the same person",
-			mode: "edit",
-			type: "time",
-			options: ["10s", "30s", "60s", "90s"],
-			value: "30s",
-		);
-
 		$this->commandAlias->register($this->moduleName, "roll heads tails", "flip");
 	}
 

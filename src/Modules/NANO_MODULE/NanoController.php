@@ -45,7 +45,19 @@ use Nadybot\Core\{
 		command: "nanoloc",
 		accessLevel: "guest",
 		description: "Browse nanos by location",
-	)
+	),
+
+	NCA\Setting\Number(
+		name: 'maxnano',
+		description: 'Number of Nanos shown on the list',
+		defaultValue: 40,
+		options: [30, 40, 50, 60],
+	),
+	NCA\Setting\Boolean(
+		name: "shownanolineicons",
+		description: "Show icons for the nanolines",
+		defaultValue: false,
+	),
 ]
 class NanoController extends ModuleInstance {
 	#[NCA\Inject]
@@ -67,23 +79,6 @@ class NanoController extends ModuleInstance {
 		$this->db->loadCSVFile($this->moduleName, __DIR__ . "/nanos.csv");
 		$this->db->loadCSVFile($this->moduleName, __DIR__ . "/nano_lines.csv");
 
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: 'maxnano',
-			description: 'Number of Nanos shown on the list',
-			mode: 'edit',
-			type: "number",
-			value: '40',
-			options: ["30", "40", "50", "60"],
-		);
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: "shownanolineicons",
-			description: "Show icons for the nanolines",
-			mode: "edit",
-			type: "bool",
-			value: "0"
-		);
 		$this->nanolines = $this->db->table("nano_lines")
 			->asObj(Nanoline::class)
 			->keyBy("strain_id")

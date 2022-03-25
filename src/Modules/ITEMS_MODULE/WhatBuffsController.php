@@ -40,7 +40,38 @@ use Nadybot\Modules\SKILLS_MODULE\{
 		accessLevel: "guest",
 		description: "Find froob-friendly items or nanos that buff an ability or skill",
 		alias: "wbf"
-	)
+	),
+
+	NCA\Setting\Options(
+		name: 'whatbuffs_display',
+		description: 'How to mark if an item can only be equipped left or right',
+		defaultValue: 2,
+		options: [
+			'Do not mark' => 0,
+			'L/R' => 1,
+			'L-Wrist/R-Wrist' => 2,
+		],
+	),
+	NCA\Setting\Options(
+		name: 'whatbuffs_show_unique',
+		description: 'How to mark unique items',
+		defaultValue: 2,
+		options: [
+			'Do not mark' => 0,
+			'U' => 1,
+			'Unique' => 2,
+		],
+	),
+	NCA\Setting\Options(
+		name: 'whatbuffs_show_nodrop',
+		description: 'How to mark nodrop items',
+		defaultValue: 0,
+		options: [
+			'Do not mark' => 0,
+			'ND' => 1,
+			'Nodrop' => 2,
+		],
+	),
 ]
 class WhatBuffsController extends ModuleInstance {
 	#[NCA\Inject]
@@ -80,46 +111,6 @@ class WhatBuffsController extends ModuleInstance {
 		$this->db->loadCSVFile($this->moduleName, __DIR__ . "/skill_alias.csv");
 		$this->db->loadCSVFile($this->moduleName, __DIR__ . "/item_types.csv");
 		$this->db->loadCSVFile($this->moduleName, __DIR__ . "/buffs.csv");
-
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: 'whatbuffs_display',
-			description: 'How to mark if an item can only be equipped left or right',
-			mode: 'edit',
-			type: 'options',
-			value: '2',
-			options: [
-				'Do not mark' => 0,
-				'L/R' => 1,
-				'L-Wrist/R-Wrist' => 2,
-			],
-		);
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: 'whatbuffs_show_unique',
-			description: 'How to mark unique items',
-			mode: 'edit',
-			type: 'options',
-			value: '2',
-			options: [
-				'Do not mark' => 0,
-				'U' => 1,
-				'Unique' => 2,
-			],
-		);
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: 'whatbuffs_show_nodrop',
-			description: 'How to mark nodrop items',
-			mode: 'edit',
-			type: 'options',
-			value: '0',
-			options: [
-				'Do not mark' => 0,
-				'ND' => 1,
-				'Nodrop' => 2,
-			],
-		);
 	}
 
 	/** Show a list of attributes and skills that are being buffed */
