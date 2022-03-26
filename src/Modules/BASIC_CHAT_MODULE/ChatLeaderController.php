@@ -32,16 +32,6 @@ use Nadybot\Core\{
 		accessLevel: "rl",
 		description: "Set if the text of the leader will be repeated",
 	),
-	NCA\Setting\Boolean(
-		name: "leaderecho",
-		description: "Repeat the text of the leader",
-		defaultValue: true,
-	),
-	NCA\Setting\Color(
-		name: "leaderecho_color",
-		description: "Color for leader echo",
-		defaultValue: "#FFFF00",
-	),
 	NCA\ProvidesEvent("leader(clear)"),
 	NCA\ProvidesEvent("leader(set)")
 ]
@@ -59,6 +49,14 @@ class ChatLeaderController extends ModuleInstance implements AccessLevelProvider
 
 	#[NCA\Inject]
 	public EventManager $eventManager;
+
+	/** Repeat the text of the leader */
+	#[NCA\Setting\Boolean(mode: "noedit")]
+	public bool $leaderecho = true;
+
+	/** Color for leader echo */
+	#[NCA\Setting\Color]
+	public string $leaderechoColor = "#FFFF00";
 
 	/**
 	 * Name of the leader character.
@@ -160,12 +158,12 @@ class ChatLeaderController extends ModuleInstance implements AccessLevelProvider
 		description: "Repeats what the leader says in the color of leaderecho_color setting"
 	)]
 	public function privEvent(AOChatEvent $eventObj): void {
-		if (!$this->settingManager->getBool("leaderecho")
+		if (!$this->leaderecho
 			|| $this->leader !== $eventObj->sender
 			|| $eventObj->message[0] === $this->settingManager->get("symbol")) {
 			return;
 		}
-		$msg = ($this->settingManager->getString("leaderecho_color")??"<font>") . $eventObj->message . "<end>";
+		$msg = "{$this->leaderechoColor}{$eventObj->message}<end>";
 		$this->chatBot->sendPrivate($msg);
 	}
 
@@ -186,7 +184,7 @@ class ChatLeaderController extends ModuleInstance implements AccessLevelProvider
 	 * Returns echo's status message based on 'leaderecho' setting.
 	 */
 	private function getEchoStatusText(): string {
-		if ($this->settingManager->getBool("leaderecho")) {
+		if ($this->leaderecho) {
 			$status = "<green>Enabled<end>";
 		} else {
 			$status = "<red>Disabled<end>";
@@ -198,7 +196,7 @@ class ChatLeaderController extends ModuleInstance implements AccessLevelProvider
 	 * Returns current leader and echo's current status.
 	 */
 	private function getLeaderStatusText(): string {
-		$cmd = $this->settingManager->getBool("leaderecho") ? "off": "on";
+		$cmd = $this->leaderecho ? "off": "on";
 		$status = $this->getEchoStatusText();
 		$msg = "{$this->leader} is now Raid Leader. Leader echo is currently {$status}. You can change it with <symbol>leaderecho {$cmd}";
 		return $msg;

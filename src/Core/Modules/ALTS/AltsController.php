@@ -19,7 +19,6 @@ use Nadybot\Core\{
 	ParamClass\PRemove,
 	QueryBuilder,
 	Registry,
-	SettingManager,
 	SQLException,
 	Text,
 	UserStateEvent,
@@ -46,35 +45,6 @@ use Nadybot\Core\{
 		description: "Declines being the alt of someone else",
 	),
 
-	NCA\Setting\Boolean(
-		name: 'alts_require_confirmation',
-		description: 'Adding alt requires confirmation from alt',
-		defaultValue: true,
-	),
-	NCA\Setting\Boolean(
-		name: 'alts_show_org',
-		description: 'Show the org in the altlist',
-		defaultValue: true,
-	),
-	NCA\Setting\Options(
-		name: 'alts_profession_display',
-		description: 'How to show profession in alts list',
-		defaultValue: 1,
-		options: [
-			'off' => 0,
-			'icon' => 1,
-			'short' => 2,
-			'full' => 3,
-			'icon+short' => 4,
-			'icon+full' => 5,
-		],
-	),
-	NCA\Setting\Options(
-		name: 'alts_sort',
-		description: 'By what to sort the alts list',
-		defaultValue: 'level',
-		options: ["level", "name"],
-	),
 	NCA\ProvidesEvent("alt(add)"),
 	NCA\ProvidesEvent("alt(del)"),
 	NCA\ProvidesEvent("alt(validate)"),
@@ -88,9 +58,6 @@ class AltsController extends ModuleInstance {
 
 	#[NCA\Inject]
 	public Nadybot $chatBot;
-
-	#[NCA\Inject]
-	public SettingManager $settingManager;
 
 	#[NCA\Inject]
 	public PlayerManager $playerManager;
@@ -109,6 +76,29 @@ class AltsController extends ModuleInstance {
 
 	#[NCA\Inject]
 	public Text $text;
+
+	/** Adding alt requires confirmation from alt */
+	#[NCA\Setting\Boolean]
+	public bool $altsRequireConfirmation = true;
+
+	/** Show the org in the altlist */
+	#[NCA\Setting\Boolean]
+	public bool $altsShowOrg = true;
+
+	/** How to show profession in alts list */
+	#[NCA\Setting\Options(options: [
+		'off' => 0,
+		'icon' => 1,
+		'short' => 2,
+		'full' => 3,
+		'icon+short' => 4,
+		'icon+full' => 5,
+	])]
+	public int $altsProfessionDisplay = 1;
+
+	/** By what to sort the alts list */
+	#[NCA\Setting\Options(options: ["level", "name"])]
+	public string $altsSort = 'level';
 
 	/** @var array<string,string> */
 	private array $alts = [];
@@ -188,7 +178,7 @@ class AltsController extends ModuleInstance {
 			$context->reply("You can only add alts from a main or validated alt.");
 			return;
 		}
-		$validated = $this->settingManager->getBool('alts_require_confirmation') === false;
+		$validated = $this->altsRequireConfirmation === false;
 
 		$success = 0;
 

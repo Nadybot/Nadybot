@@ -12,12 +12,12 @@ use Nadybot\Core\{
 	CommandManager,
 	DB,
 	EventManager,
-	ModuleInstance,
 	LoggerWrapper,
+	Modules\SYSTEM\SystemController,
+	ModuleInstance,
 	Nadybot,
 	ParamClass\PRemove,
 	Registry,
-	SettingManager,
 	SubcommandManager,
 	Text,
 	Util,
@@ -46,7 +46,7 @@ class ApiController extends ModuleInstance {
 	public WebserverController $webserverController;
 
 	#[NCA\Inject]
-	public SettingManager $settingManager;
+	public SystemController $systemController;
 
 	#[NCA\Inject]
 	public CommandManager $commandManager;
@@ -78,20 +78,16 @@ class ApiController extends ModuleInstance {
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
+	/** Enable REST API */
+	#[NCA\Setting\Boolean]
+	public bool $api = true;
+
 	/** @var array<array<string,ApiHandler>> */
 	protected array $routes = [];
 
 	#[NCA\Setup]
 	public function setup(): void {
 		$this->commandManager->registerSource("api");
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: 'api',
-			description: 'Enable REST API',
-			mode: 'edit',
-			type: 'bool',
-			value: '1',
-		);
 
 		$this->scanApiAttributes();
 	}
@@ -455,7 +451,7 @@ class ApiController extends ModuleInstance {
 		NCA\HttpPatch("/api/%s"),
 	]
 	public function apiRequest(Request $request, HttpProtocolWrapper $server, string $path): void {
-		if (!$this->settingManager->getBool('api')) {
+		if (!$this->api) {
 			return;
 		}
 		$handler = $this->getHandlerForRequest($request);
@@ -530,7 +526,7 @@ class ApiController extends ModuleInstance {
 			return new Response(Response::UNPROCESSABLE_ENTITY);
 		}
 		$msg = $request->decodedBody;
-		if (substr($msg, 0, 1) === $this->settingManager->getString('symbol')) {
+		if (substr($msg, 0, 1) === $this->systemController->symbol) {
 			$msg = substr($msg, 1);
 		}
 		if ($this->websocketController->clientExists($uuid) === false) {

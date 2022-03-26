@@ -21,7 +21,6 @@ use Nadybot\Core\{
 	Routing\Character,
 	Routing\RoutableMessage,
 	Routing\Source,
-	SettingManager,
 	Text,
 	Util,
 };
@@ -155,9 +154,6 @@ class WorldBossController extends ModuleInstance {
 	public Text $text;
 
 	#[NCA\Inject]
-	public SettingManager $settingManager;
-
-	#[NCA\Inject]
 	public CommandAlias $commandAlias;
 
 	#[NCA\Inject]
@@ -181,6 +177,15 @@ class WorldBossController extends ModuleInstance {
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
+
+	/** How to show spawn and vulnerability events */
+	#[NCA\Setting\Options(options: [
+		"Show as if the worldboss had actually spawned." => 1,
+		"Show 'should have' messages." => 2,
+		"Only show spawn and vulnerability events if set by global events. Don't repeat the timer unless set by a global event." => 3,
+	])]
+	public int $worldbossShowSpawn = 1;
+
 	/**
 	 * @var WorldBossTimer[]
 	 */
@@ -198,19 +203,6 @@ class WorldBossController extends ModuleInstance {
 
 	#[NCA\Setup]
 	public function setup(): void {
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: "worldboss_show_spawn",
-			description: "How to show spawn and vulnerability events",
-			mode: "edit",
-			type: "options",
-			value: "1",
-			options: [
-				"Show as if the worldboss had actually spawned." => 1,
-				"Show 'should have' messages." => 2,
-				"Only show spawn and vulnerability events if set by global events. Don't repeat the timer unless set by a global event." => 3,
-			],
-		);
 		$this->commandAlias->register(
 			$this->moduleName,
 			"gauntlet update",
@@ -324,7 +316,7 @@ class WorldBossController extends ModuleInstance {
 	 * @param WorldBossTimer[] $timers
 	 */
 	protected function addNextDates(array $timers): void {
-		$showSpawn = $this->settingManager->getInt("worldboss_show_spawn") ?? static::SPAWN_SHOW;
+		$showSpawn = $this->worldbossShowSpawn;
 		foreach ($timers as $timer) {
 			$invulnerableTime = $timer->killable - $timer->spawn;
 			$timer->next_killable = $timer->killable;
@@ -405,7 +397,7 @@ class WorldBossController extends ModuleInstance {
 	}
 
 	public function formatWorldBossMessage(WorldBossTimer $timer, bool $short=true): string {
-		$showSpawn = $this->settingManager->getInt("worldboss_show_spawn") ?? 1;
+		$showSpawn = $this->worldbossShowSpawn;
 		$nextSpawnsMessage = $this->getNextSpawnsMessage($timer);
 		$spawntimes = (array)$this->text->makeBlob("Spawntimes for {$timer->mob_name}", $nextSpawnsMessage);
 		if (isset($timer->next_spawn) && time() < $timer->next_spawn) {
@@ -637,7 +629,7 @@ class WorldBossController extends ModuleInstance {
 	public function checkTimerEvent(Event $eventObj, int $interval, bool $manual=false): void {
 		$timers = $this->getWorldBossTimers();
 		$triggered = false;
-		$showSpawn = $this->settingManager->getInt("worldboss_show_spawn") ?? 1;
+		$showSpawn = $this->worldbossShowSpawn;
 		foreach ($timers as $timer) {
 			$invulnerableTime = $timer->killable - $timer->spawn;
 			if ($timer->next_spawn === time()+15*60) {

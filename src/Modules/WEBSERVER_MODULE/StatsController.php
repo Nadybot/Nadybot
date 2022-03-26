@@ -35,29 +35,22 @@ class StatsController extends ModuleInstance {
 	#[NCA\Inject]
 	public Util $util;
 
+	/** Enable Prometheus endpoint at /metrics */
+	#[NCA\Setting\Boolean(accessLevel: "admin")]
+	public bool $prometheusEnabled = true;
+
+	/** Auth token for Prometheus endpoint */
+	#[NCA\Setting\Text(accessLevel: "admin")]
+	public string $prometheusAuthToken = "";
+
 	/** @var array<string,Dataset> */
 	private array $dataSets = [];
 
 	#[NCA\Setup]
 	public function setup(): void {
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: 'prometheus_enabled',
-			description: 'Enable Prometheus endpoint at /metrics',
-			mode: 'edit',
-			type: 'bool',
-			value: '1',
-			accessLevel: 'admin'
-		);
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: 'prometheus_auth_token',
-			description: 'Auth token for Prometheus endpoint',
-			mode: 'noedit',
-			type: 'text',
-			value: $this->util->getPassword(16),
-			accessLevel: 'admin'
-		);
+		if ($this->prometheusAuthToken === "") {
+			$this->assignRandomAuthToken();
+		}
 		$collectors = [
 			"ao_data" => [new AoDataInbound(), new AoDataOutbound],
 			"buddylist" => [new BuddylistSize(), new BuddylistOnline(), new BuddylistOffline()],
@@ -75,13 +68,17 @@ class StatsController extends ModuleInstance {
 		$this->registerDataset(new CmdStats("cmd_times"), "cmd_times");
 	}
 
+	private function assignRandomAuthToken(): void {
+		$this->settingManager->save("prometheus_auth_token", $this->util->getPassword(16));
+	}
+
 	#[NCA\SettingChangeHandler('prometheus_enabled')]
 	public function changePrometheusStatus(string $settingName, string $oldValue, string $newValue, mixed $data): void {
 		if ($oldValue === $newValue) {
 			return;
 		}
 		if ($newValue === "1") {
-			$this->settingManager->save("prometheus_auth_token", $this->util->getPassword(16));
+			$this->assignRandomAuthToken();
 		} else {
 			$this->settingManager->save("prometheus_auth_token", "<none>");
 		}
@@ -115,7 +112,7 @@ class StatsController extends ModuleInstance {
 		$authHeader = $request->headers["authorization"] ?? null;
 		if (
 			!isset($authHeader)
-			|| !preg_match("/^([bB]earer +)?" . preg_quote($this->settingManager->getString('prometheus_auth_token') ?? '') . '$/', $authHeader)
+			|| !preg_match("/^([bB]earer +)?" . preg_quote($this->prometheusAuthToken) . '$/', $authHeader)
 		) {
 			$server->httpError(new Response(
 				Response::UNAUTHORIZED,
