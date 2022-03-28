@@ -16,6 +16,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Database table versions are displayed with a date and time (if possible)
 - Changed the Core module settings to using attributes
 
+### Fixed
+
+- The deduplication-handler for logging should no longer run out of memory
+
 ## [6.0.0-beta.1] - 2022-03-22
 
 ### Added
