@@ -52,7 +52,7 @@ class CommandManager implements MessageEmitter {
 	public Nadybot $chatBot;
 
 	#[NCA\Inject]
-	public SettingManager $settingManager;
+	public HelpController $helpController;
 
 	#[NCA\Inject]
 	public AccessManager $accessManager;
@@ -616,7 +616,7 @@ class CommandManager implements MessageEmitter {
 
 		try {
 			// record usage stats (in try/catch block in case there is an error)
-			if ($this->settingManager->getBool('record_usage_stats') && isset($handler)) {
+			if ($this->usageController->recordUsageStats && isset($handler)) {
 				$this->usageController->record($context->permissionSet, $cmd, $context->char->name, $handler);
 			}
 		} catch (Exception $e) {
@@ -960,7 +960,7 @@ class CommandManager implements MessageEmitter {
 		});
 		$grouped = $this->groupRefMethods($methods->filter());
 		$groupedByCmd = $this->groupBySubcmd($grouped);
-		$showRights = ($this->settingManager->getBool('help_show_al') ?? true)
+		$showRights = $this->helpController->helpShowAL
 			&& $this->accessManager->checkSingleAccess($context->char->name, 'mod');
 		/** @var string $cmdName */
 		foreach ($groupedByCmd as $cmdName => $refGroups) {
