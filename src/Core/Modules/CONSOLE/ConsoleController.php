@@ -23,9 +23,7 @@ use Nadybot\Core\{
 	Timer,
 };
 
-#[
-	NCA\Instance,
-]
+#[NCA\Instance]
 class ConsoleController extends ModuleInstance {
 	#[NCA\Inject]
 	public SocketManager $socketManager;
