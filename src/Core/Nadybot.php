@@ -231,7 +231,6 @@ class Nadybot extends AOChat {
 			});
 		$this->db->table(CommandManager::DB_TABLE)->where("verify", 0)->delete();
 		$this->db->table(EventManager::DB_TABLE)->where("verify", 0)->delete();
-		$this->db->table(SettingManager::DB_TABLE)->where("verify", 0)->delete();
 		$this->db->table(SettingManager::DB_TABLE)->where("verify", 0)
 			->asObj(Setting::class)
 			->each(function(Setting $row): void {
@@ -244,6 +243,7 @@ class Nadybot extends AOChat {
 				);
 			});
 		$this->db->table(HelpManager::DB_TABLE)->where("verify", 0)->delete();
+		$this->db->table(SettingManager::DB_TABLE)->where("verify", 0)->delete();
 
 		$this->commandManager->loadCommands();
 		$this->subcommandManager->loadSubcommands();
