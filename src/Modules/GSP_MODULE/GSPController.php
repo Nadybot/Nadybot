@@ -64,10 +64,8 @@ class GSPController extends ModuleInstance implements MessageEmitter {
 	#[NCA\Inject]
 	public SettingManager $settingManager;
 
-	#[NCA\Setting\Boolean(
-		name: "gsp_show_logon",
-		description: "Show on logon if there is a running GSP show",
-	)]
+	/** Show on logon if there is a running GSP show */
+	#[NCA\Setting\Boolean]
 	public bool $gspShowLogon = true;
 
 	/**

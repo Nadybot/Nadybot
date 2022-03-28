@@ -5,7 +5,7 @@ namespace Nadybot\Core\Attributes\Setting;
 use Attribute;
 use Nadybot\Core\Attributes\DefineSetting;
 
-#[Attribute(Attribute::TARGET_CLASS|Attribute::TARGET_PROPERTY|Attribute::IS_REPEATABLE)]
+#[Attribute(Attribute::TARGET_PROPERTY)]
 class Rank extends DefineSetting {
 	/**
 	 * @inheritDoc
@@ -13,10 +13,9 @@ class Rank extends DefineSetting {
 	 *                                              Alternatively, use an associative array [label => value], where label is optional.
 	 */
 	public function __construct(
-		public ?string $description=null,
+		public string $type='rank',
 		public ?string $name=null,
 		public null|int|float|string|bool $defaultValue=null,
-		public string $type='rank',
 		public string $mode='edit',
 		public array $options=[],
 		public string $accessLevel='mod',

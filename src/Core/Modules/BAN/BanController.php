@@ -98,7 +98,8 @@ class BanController extends ModuleInstance {
 	 */
 	private $orgbanlist = [];
 
-	#[NCA\Setting\Boolean(description: "Notify character when banned from bot")]
+	/** Notify character when banned from bot */
+	#[NCA\Setting\Boolean]
 	public bool $notifyBannedPlayer = true;
 
 	#[NCA\Setup]

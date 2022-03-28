@@ -47,17 +47,12 @@ class BankController extends ModuleInstance {
 	#[NCA\Inject]
 	public SettingManager $settingManager;
 
-	#[NCA\Setting\Text(
-		name: 'bank_file_location',
-		description: 'Location of the AO Items Assistant csv dump file',
-	)]
+	/** Location of the AO Items Assistant csv dump file */
+	#[NCA\Setting\Text]
 	public string $bankFileLocation = './src/Modules/BANK_MODULE/import.csv';
 
-	#[NCA\Setting\Number(
-		name: 'max_bank_items',
-		description: 'Number of items shown in search results',
-		options: [20, 50, 100]
-	)]
+	/** Number of items shown in search results */
+	#[NCA\Setting\Number(options: [20, 50, 100])]
 	public int $maxBankItems = 50;
 
 	/** List the bank characters in the database: */

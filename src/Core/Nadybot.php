@@ -9,7 +9,6 @@ use ReflectionClass;
 use ReflectionNamedType;
 use ReflectionProperty;
 use Exception;
-use InvalidArgumentException;
 use Throwable;
 use Nadybot\Core\{
 	Attributes as NCA,
@@ -1373,36 +1372,6 @@ class Nadybot extends AOChat {
 
 	private function parseInstanceSettings(string $moduleName, ModuleInstanceInterface $obj): void {
 		$reflection = new ReflectionClass($obj);
-		foreach ($reflection->getAttributes(NCA\DefineSetting::class, ReflectionAttribute::IS_INSTANCEOF) as $attribute) {
-			/** @var NCA\DefineSetting */
-			$attribute = $attribute->newInstance();
-			if (!isset($attribute->name)) {
-				throw new InvalidArgumentException(
-					"Class-bound settings require a name"
-				);
-			}
-			if (!isset($attribute->defaultValue)) {
-				throw new InvalidArgumentException(
-					"Class-bound setting {$attribute->name} requires a defaultValue"
-				);
-			}
-			if (!isset($attribute->description)) {
-				throw new InvalidArgumentException(
-					"Class-bound setting {$attribute->name} requires a description"
-				);
-			}
-			$this->settingManager->add(
-				module: $moduleName,
-				name: $attribute->name,
-				description: $attribute->description,
-				mode: $attribute->mode,
-				type: $attribute->type,
-				value: $attribute->getValue(),
-				options: $attribute->options,
-				accessLevel: $attribute->accessLevel,
-				help: $attribute->help,
-			);
-		}
 		foreach ($reflection->getProperties() as $property) {
 			foreach ($property->getAttributes(NCA\DefineSetting::class, ReflectionAttribute::IS_INSTANCEOF) as $attr) {
 				/** @var NCA\DefineSetting */
@@ -1432,19 +1401,17 @@ class Nadybot extends AOChat {
 					);
 				}
 				$attribute->defaultValue = $property->getValue($obj);
-				if (!isset($attribute->description)) {
-					$comment = $property->getDocComment();
-					if ($comment === false) {
-						throw new Exception("Missing description for setting {$attribute->name}");
-					}
-					$comment = trim(preg_replace("|^/\*\*(.*)\*/|s", '$1', $comment));
-					$comment = preg_replace("/^[ \t]*\*[ \t]*/m", '', $comment);
-					$attribute->description = trim(preg_replace("/^@.*/m", '', $comment));
+				$comment = $property->getDocComment();
+				if ($comment === false) {
+					throw new Exception("Missing description for setting {$attribute->name}");
 				}
+				$comment = trim(preg_replace("|^/\*\*(.*)\*/|s", '$1', $comment));
+				$comment = preg_replace("/^[ \t]*\*[ \t]*/m", '', $comment);
+				$description = trim(preg_replace("/^@.*/m", '', $comment));
 				$this->settingManager->add(
 					module: $moduleName,
 					name: $attribute->name,
-					description: $attribute->description,
+					description: $description,
 					mode: $attribute->mode,
 					type: $attribute->type,
 					value: $attribute->getValue(),
