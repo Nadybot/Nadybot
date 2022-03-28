@@ -17,7 +17,6 @@ use Nadybot\Core\{
 	Registry,
 	Routing\RoutableMessage,
 	Routing\Source,
-	SettingManager,
 	SocketManager,
 	SocketNotifier,
 	Timer,
@@ -30,9 +29,6 @@ class ConsoleController extends ModuleInstance {
 
 	#[NCA\Inject]
 	public CommandManager $commandManager;
-
-	#[NCA\Inject]
-	public SettingManager $settingManager;
 
 	#[NCA\Inject]
 	public Nadybot $chatBot;
