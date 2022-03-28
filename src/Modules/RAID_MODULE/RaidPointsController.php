@@ -21,7 +21,6 @@ use Nadybot\Core\{
 	ParamClass\PNonNumberWord,
 	ParamClass\PRemove,
 	ParamClass\PWord,
-	SettingManager,
 	Text,
 	Timer,
 };
@@ -68,22 +67,6 @@ use Nadybot\Core\{
 		accessLevel: "raid_admin_1",
 		description: "Create, Edit and Remove raid reward entries",
 	),
-
-	NCA\Setting\Boolean(
-		name: "raid_share_points",
-		description: "Share raid points across all alts",
-		defaultValue: true,
-	),
-	NCA\Setting\Number(
-		name: "raid_top_amount",
-		description: "How many raiders to show in top list",
-		defaultValue: 25,
-	),
-	NCA\Setting\Number(
-		name: "raid_points_reason_min_length",
-		description: "Minimum length required for points add/rem",
-		defaultValue: 10,
-	),
 ]
 class RaidPointsController extends ModuleInstance {
 	public const DB_TABLE = "raid_points_<myname>";
@@ -114,9 +97,6 @@ class RaidPointsController extends ModuleInstance {
 	public AltsController $altsController;
 
 	#[NCA\Inject]
-	public SettingManager $settingManager;
-
-	#[NCA\Inject]
 	public Text $text;
 
 	#[NCA\Inject]
@@ -127,6 +107,18 @@ class RaidPointsController extends ModuleInstance {
 
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
+
+	/** Share raid points across all alts */
+	#[NCA\Setting\Boolean]
+	public bool $raidSharePoints = true;
+
+	/** How many raiders to show in top list */
+	#[NCA\Setting\Number]
+	public int $raidTopAmount = 25;
+
+	/** Minimum length required for points add/rem */
+	#[NCA\Setting\Number]
+	public int $raidPointsReasonMinLength = 10;
 
 	/**
 	 * Give points when the ticker is enabled
@@ -161,7 +153,7 @@ class RaidPointsController extends ModuleInstance {
 	 */
 	public function giveTickPoint(string $player, Raid $raid): string {
 		$pointsChar = ucfirst(strtolower($player));
-		$sharePoints = $this->settingManager->getBool('raid_share_points');
+		$sharePoints = $this->raidSharePoints;
 		if ($sharePoints) {
 			$pointsChar = $this->altsController->getMainOf($pointsChar);
 		}
@@ -198,7 +190,7 @@ class RaidPointsController extends ModuleInstance {
 	 */
 	public function modifyRaidPoints(string $player, int $delta, bool $individual, string $reason, string $changedBy, ?Raid $raid): string {
 		$pointsChar = ucfirst(strtolower($player));
-		$sharePoints = $this->settingManager->getBool('raid_share_points');
+		$sharePoints = $this->raidSharePoints;
 		if ($sharePoints) {
 			$pointsChar = $this->altsController->getMainOf($pointsChar);
 		}
@@ -283,7 +275,7 @@ class RaidPointsController extends ModuleInstance {
 	 */
 	public function getRaidPoints(string $player): ?int {
 		$pointsChar = ucfirst(strtolower($player));
-		$sharePoints = $this->settingManager->getBool('raid_share_points');
+		$sharePoints = $this->raidSharePoints;
 		if ($sharePoints) {
 			$pointsChar = $this->altsController->getMainOf($pointsChar);
 		}
@@ -393,7 +385,7 @@ class RaidPointsController extends ModuleInstance {
 		/** @var RaidPoints[] */
 		$topRaiders = $this->db->table(self::DB_TABLE)
 			->orderByDesc("points")
-			->limit($this->settingManager->getInt('raid_top_amount')??25)
+			->limit($this->raidTopAmount)
 			->asObj(RaidPoints::class)
 			->toArray();
 		if (count($topRaiders) === 0) {
@@ -588,7 +580,7 @@ class RaidPointsController extends ModuleInstance {
 			$context->reply("The player <highlight>{$receiver}<end> does not exist.");
 			return;
 		}
-		if (strlen($reason) < $this->settingManager->getInt('raid_points_reason_min_length')) {
+		if (strlen($reason) < $this->raidPointsReasonMinLength) {
 			$context->reply("Please give a more detailed description.");
 			return;
 		}
@@ -635,7 +627,7 @@ class RaidPointsController extends ModuleInstance {
 			$context->reply("The player <highlight>{$receiver}<end> does not exist.");
 			return;
 		}
-		if (strlen($reason) < $this->settingManager->getInt('raid_points_reason_min_length')) {
+		if (strlen($reason) < $this->raidPointsReasonMinLength) {
 			$context->reply("Please give a more detailed description.");
 			return;
 		}
@@ -658,7 +650,7 @@ class RaidPointsController extends ModuleInstance {
 		if ($event->validated === false) {
 			return;
 		}
-		if (!$this->settingManager->getBool('raid_share_points')) {
+		if (!$this->raidSharePoints) {
 			return;
 		}
 		$altsPoints = $this->getThisAltsRaidPoints($event->alt);
@@ -825,7 +817,7 @@ class RaidPointsController extends ModuleInstance {
 		description: "Move raid points to new main"
 	)]
 	public function moveRaidPoints(AltEvent $event): void {
-		$sharePoints = $this->settingManager->getBool('raid_share_points');
+		$sharePoints = $this->raidSharePoints;
 		if (!$sharePoints) {
 			return;
 		}

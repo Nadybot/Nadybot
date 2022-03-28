@@ -20,7 +20,6 @@ use Nadybot\Core\{
 	ParamClass\PRemove,
 	Routing\RoutableMessage,
 	Routing\Source,
-	SettingManager,
 	StopExecutionException,
 	Text,
 	UserStateEvent,
@@ -39,35 +38,6 @@ use Nadybot\Modules\COMMENT_MODULE\CommentController;
 		description: "Define colors for tradebot tags",
 		alias: 'tradecolors',
 	),
-
-	NCA\Setting\Text(
-		name: 'tradebot',
-		description: "Name of the bot whose channel to join",
-		defaultValue: self::NONE,
-		options: [self::NONE, 'Darknet', 'Lightnet'],
-		help: "tradebot.txt",
-	),
-	NCA\Setting\Text(
-		name: "tradebot_channels",
-		description: "Show only the following channels (comma-separated)",
-		defaultValue: "*",
-		options: ["None", "*"]
-	),
-	NCA\Setting\Boolean(
-		name: 'tradebot_add_comments',
-		description: 'Add link to comments if found',
-		defaultValue: true,
-	),
-	NCA\Setting\Boolean(
-		name: 'tradebot_custom_colors',
-		description: 'Use custom colors for tradebots',
-		defaultValue: false,
-	),
-	NCA\Setting\Color(
-		name: 'tradebot_text_color',
-		description: 'Custom color for tradebot message body',
-		defaultValue: "#89D2E8"
-	),
 ]
 class TradebotController extends ModuleInstance {
 	public const NONE = 'None';
@@ -83,9 +53,6 @@ class TradebotController extends ModuleInstance {
 	public BuddylistManager $buddylistManager;
 
 	#[NCA\Inject]
-	public SettingManager $settingManager;
-
-	#[NCA\Inject]
 	public MessageHub $messageHub;
 
 	#[NCA\Logger]
@@ -99,6 +66,29 @@ class TradebotController extends ModuleInstance {
 
 	#[NCA\Inject]
 	public DB $db;
+
+	/** Name of the bot whose channel to join */
+	#[NCA\Setting\Text(
+		options: [self::NONE, 'Darknet', 'Lightnet'],
+		help: "tradebot.txt",
+	)]
+	public string $tradebot = self::NONE;
+
+	/** Show only the following channels (comma-separated) */
+	#[NCA\Setting\Text(options: ["None", "*"])]
+	public string $tradebotChannels = "*";
+
+	/** Add link to comments if found */
+	#[NCA\Setting\Boolean]
+	public bool $tradebotAddComments = true;
+
+	/** Use custom colors for tradebots */
+	#[NCA\Setting\Boolean]
+	public bool $tradebotCustomColors = false;
+
+	/** Custom color for tradebot message body */
+	#[NCA\Setting\Color]
+	public string $tradebotTextColor = "#89D2E8";
 
 	/** @var array<string,array<string,mixed>> */
 	private const BOT_DATA = [
@@ -121,7 +111,7 @@ class TradebotController extends ModuleInstance {
 		description: "Add active tradebots to buddylist"
 	)]
 	public function addTradebotsAsBuddies(): void {
-		$activeBots = $this->normalizeBotNames($this->settingManager->getString('tradebot')??static::NONE);
+		$activeBots = $this->normalizeBotNames($this->tradebot);
 		foreach ($activeBots as $botName) {
 			$this->buddylistManager->add($botName, "tradebot");
 		}
@@ -219,7 +209,7 @@ class TradebotController extends ModuleInstance {
 	 * Check if the given name is one of the configured tradebots
 	 */
 	public function isTradebot(string $botName): bool {
-		$tradebotNames = $this->normalizeBotNames($this->settingManager->getString('tradebot')??static::NONE);
+		$tradebotNames = $this->normalizeBotNames($this->tradebot);
 		foreach ($tradebotNames as $tradebotName) {
 			if (preg_match("/^\Q$tradebotName\E\d*$/", $botName)) {
 				return true;
@@ -283,10 +273,10 @@ class TradebotController extends ModuleInstance {
 			|| !$this->isSubscribedTo($matches[1])) {
 			return;
 		}
-		if ($this->settingManager->getBool('tradebot_custom_colors')) {
+		if ($this->tradebotCustomColors) {
 			$message = $this->colorizeMessage($sender, $message);
 		}
-		if ($this->settingManager->getBool('tradebot_add_comments')) {
+		if ($this->tradebotAddComments) {
 			$message = $this->addCommentsToMessage($message);
 		}
 		$rMessage = new RoutableMessage($message);
@@ -302,7 +292,7 @@ class TradebotController extends ModuleInstance {
 		$tag = strip_tags($matches[1]);
 		/** @var string */
 		$text = preg_replace("/^(\s|<\/?font.*?>)*/s", "", $matches[2]);
-		$textColor = $this->settingManager->getString('tradebot_text_color');
+		$textColor = $this->tradebotTextColor;
 		$tagColor = $this->getTagColor($tradeBot, $tag);
 		$tagColor = isset($tagColor) ? "<font color='#{$tagColor->color}'>" : "";
 		return "{$tagColor}[{$tag}]<end> {$textColor}{$text}";
@@ -341,7 +331,7 @@ class TradebotController extends ModuleInstance {
 	 * Check if the message is from a tradenet channel that we are subscribed to
 	 */
 	protected function isSubscribedTo(string $channel): bool {
-		$channelString = $this->settingManager->getString('tradebot_channels') ?? "*";
+		$channelString = $this->tradebotChannels;
 		if ($channelString === static::NONE) {
 			return false;
 		}

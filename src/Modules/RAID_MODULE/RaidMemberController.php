@@ -16,7 +16,6 @@ use Nadybot\Core\{
 	Modules\ALTS\AltsController,
 	Nadybot,
 	ParamClass\PCharacter,
-	SettingManager,
 	Text,
 };
 use Nadybot\Modules\ONLINE_MODULE\OnlineController;
@@ -35,24 +34,6 @@ use Nadybot\Modules\ONLINE_MODULE\OnlineController;
 		description: "Add or remove someone from/to the raid",
 	),
 
-	NCA\Setting\Options(
-		name: 'raid_announce_raidmember_loc',
-		description: 'Where to announce leaders add/rem people to/from the raid',
-		defaultValue: 3,
-		options: [
-			'Do not announce' => self::ANNOUNCE_OFF,
-			'Private channel' => self::ANNOUNCE_PRIV,
-			'Tell' => self::ANNOUNCE_TELL,
-			'Priv+Tell' => self::ANNOUNCE_PRIV|self::ANNOUNCE_TELL,
-		],
-	),
-	NCA\Setting\Boolean(
-		name: 'raid_allow_multi_joining',
-		description: 'Allow people to join the raids on more than one character',
-		defaultValue: true,
-		help: 'multijoin.txt'
-	),
-
 	NCA\ProvidesEvent("raid(join)"),
 	NCA\ProvidesEvent("raid(leave)")
 ]
@@ -61,14 +42,15 @@ class RaidMemberController extends ModuleInstance {
 	public const CMD_RAID_JOIN_LEAVE = "raid join/leave";
 	public const CMD_RAID_KICK_ADD = "raid kick/add";
 
+	public const ANNOUNCE_OFF = 0;
+	public const ANNOUNCE_PRIV = 1;
+	public const ANNOUNCE_TELL = 2;
+
 	#[NCA\Inject]
 	public DB $db;
 
 	#[NCA\Inject]
 	public EventManager $eventManager;
-
-	#[NCA\Inject]
-	public SettingManager $settingManager;
 
 	#[NCA\Inject]
 	public PlayerManager $playerManager;
@@ -94,9 +76,18 @@ class RaidMemberController extends ModuleInstance {
 	#[NCA\Inject]
 	public Nadybot $chatBot;
 
-	public const ANNOUNCE_OFF = 0;
-	public const ANNOUNCE_PRIV = 1;
-	public const ANNOUNCE_TELL = 2;
+	/** Where to announce leaders add/rem people to/from the raid */
+	#[NCA\Setting\Options(options: [
+		'Do not announce' => self::ANNOUNCE_OFF,
+		'Private channel' => self::ANNOUNCE_PRIV,
+		'Tell' => self::ANNOUNCE_TELL,
+		'Priv+Tell' => self::ANNOUNCE_PRIV|self::ANNOUNCE_TELL,
+	])]
+	public int $raidAnnounceRaidmemberLoc = self::ANNOUNCE_TELL|self::ANNOUNCE_PRIV;
+
+	/** Allow people to join the raids on more than one character */
+	#[NCA\Setting\Boolean(help: 'multijoin.txt')]
+	public bool $raidAllowMultiJoining = true;
 
 	/**
 	 * Resume an old raid after a bot restart
@@ -138,7 +129,7 @@ class RaidMemberController extends ModuleInstance {
 			$msg = "You are currently blocked from joining raids.";
 			return $msg;
 		}
-		if (!$this->settingManager->getBool('raid_allow_multi_joining')) {
+		if (!$this->raidAllowMultiJoining) {
 			$alts = $this->altsController->getAltInfo($player)->getAllValidated($player);
 			foreach ($alts as $alt) {
 				if (isset($raid->raiders[$alt])
@@ -177,7 +168,7 @@ class RaidMemberController extends ModuleInstance {
 				"joined" => time(),
 			]);
 		if ($force) {
-			$announceLoc = $this->settingManager->getInt('raid_announce_raidmember_loc') ?? 3;
+			$announceLoc = $this->raidAnnounceRaidmemberLoc;
 			if ($announceLoc & static::ANNOUNCE_PRIV) {
 				$this->chatBot->sendPrivate("<highlight>{$player}<end> was <green>added<end> to the raid by {$sender}.");
 			}
@@ -223,7 +214,7 @@ class RaidMemberController extends ModuleInstance {
 			->whereNull("left")
 			->update(["left" => $raid->raiders[$player]->left]);
 		if ($sender !== $player) {
-			$announceLoc = $this->settingManager->getInt('raid_announce_raidmember_loc') ?? 3;
+			$announceLoc = $this->raidAnnounceRaidmemberLoc;
 			if ($announceLoc & static::ANNOUNCE_PRIV) {
 				$this->chatBot->sendPrivate("<highlight>{$player}<end> was <red>removed<end> from the raid.");
 			}
@@ -318,7 +309,7 @@ class RaidMemberController extends ModuleInstance {
 	public function sendNotInRaidWarning(Raid $raid): array {
 		/** @var string[] */
 		$notInRaid = [];
-		$allowMultilog = $this->settingManager->getBool('raid_allow_multi_joining');
+		$allowMultilog = $this->raidAllowMultiJoining;
 		foreach ($this->chatBot->chatlist as $player => $online) {
 			$alts = [$player];
 			if (!$allowMultilog) {

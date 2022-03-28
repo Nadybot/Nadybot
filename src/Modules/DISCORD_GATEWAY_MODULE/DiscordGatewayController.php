@@ -57,22 +57,6 @@ use stdClass;
  */
 #[
 	NCA\Instance,
-	NCA\Setting\Text(
-		name: "discord_activity_name",
-		description: "Game the bot is shown to play on Discord",
-		defaultValue: "Anarchy Online",
-	),
-	NCA\Setting\Options(
-		name: "discord_notify_voice_changes",
-		description: "Show people joining or leaving voice channels",
-		defaultValue: 0,
-		options: [
-			'off' => 0,
-			'priv' => 1,
-			'org' => 2,
-			'priv+org' => 3,
-		]
-	),
 	NCA\ProvidesEvent("discordmsg"),
 	NCA\ProvidesEvent("discordpriv"),
 	NCA\ProvidesEvent("discord(0)"),
@@ -137,6 +121,19 @@ class DiscordGatewayController extends ModuleInstance {
 
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
+
+	/** Game the bot is shown to play on Discord */
+	#[NCA\Setting\Text]
+	public string $discordActivityName = "Anarchy Online";
+
+	/** Show people joining or leaving voice channels */
+	#[NCA\Setting\Options(options: [
+		'off' => 0,
+		'priv' => 1,
+		'org' => 2,
+		'priv+org' => 3,
+	])]
+	public int $discordNotifyVoiceChanges = 0;
 
 	protected ?int $lastSequenceNumber = null;
 	protected ?WebsocketClient $client = null;
@@ -1026,7 +1023,7 @@ class DiscordGatewayController extends ModuleInstance {
 		)
 	]
 	public function announceVoiceStateChange(DiscordVoiceEvent $event): void {
-		$showChanges = $this->settingManager->getInt('discord_notify_voice_changes') ?? 0;
+		$showChanges = $this->discordNotifyVoiceChanges;
 		if ($showChanges === 0) {
 			return;
 		}

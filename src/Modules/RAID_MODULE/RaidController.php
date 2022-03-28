@@ -22,7 +22,6 @@ use Nadybot\Core\{
 	ParamClass\PCharacter,
 	ParamClass\PWord,
 	Registry,
-	SettingManager,
 	Text,
 	Timer,
 	Util,
@@ -58,55 +57,6 @@ use Nadybot\Modules\{
 		description: "Change the raid points ticker",
 	),
 
-	NCA\Setting\Boolean(
-		name: 'raid_announcement',
-		description: 'Announce the raid periodically',
-		defaultValue: true,
-		accessLevel: 'raid_admin_2',
-	),
-	NCA\Setting\Time(
-		name: 'raid_announcement_interval',
-		description: 'Announcement interval',
-		defaultValue: '90s',
-		options: ["30s", "60s", "90s", "120s", "150s", "180s"],
-		accessLevel: 'raid_admin_2',
-	),
-	NCA\Setting\Boolean(
-		name: 'raid_points_for_time',
-		description: 'Give raid points based on duration of participation',
-		defaultValue: false,
-		accessLevel: 'raid_admin_2',
-	),
-	NCA\Setting\Time(
-		name: 'raid_points_interval',
-		description: 'Point rate, in seconds',
-		defaultValue: '5m',
-		accessLevel: 'raid_admin_2',
-	),
-	NCA\Setting\Boolean(
-		name: 'raid_auto_add_creator',
-		description: 'Add raid initiator to the raid',
-		defaultValue: true,
-		accessLevel: 'raid_admin_2',
-	),
-	NCA\Setting\Boolean(
-		name: 'raid_stop_clears_callers',
-		description: 'Stopping the raid clears the callers',
-		defaultValue: false,
-		accessLevel: 'raid_admin_2',
-	),
-	NCA\Setting\Options(
-		name: 'raid_kick_notin_on_lock',
-		description: 'Locking the raid kicks players not in the raid',
-		defaultValue: 0,
-		options: [
-			"Kick everyone not in the raid" => 2,
-			"Kick all, except those who've been in the raid before" => 1,
-			"Don't kick on raid lock" => 0,
-		],
-		accessLevel: 'raid_admin_2',
-	),
-
 	NCA\ProvidesEvent("raid(start)"),
 	NCA\ProvidesEvent("raid(stop)"),
 	NCA\ProvidesEvent("raid(changed)"),
@@ -133,9 +83,6 @@ class RaidController extends ModuleInstance {
 
 	#[NCA\Inject]
 	public EventManager $eventManager;
-
-	#[NCA\Inject]
-	public SettingManager $settingManager;
 
 	#[NCA\Inject]
 	public PlayerManager $playerManager;
@@ -169,6 +116,44 @@ class RaidController extends ModuleInstance {
 
 	#[NCA\Inject]
 	public StatsController $statsController;
+
+	/** Announce the raid periodically */
+	#[NCA\Setting\Boolean(accessLevel: 'raid_admin_2')]
+	public bool $raidAnnouncement = true;
+
+	/** Announcement interval */
+	#[NCA\Setting\Time(
+		options: ["30s", "60s", "90s", "120s", "150s", "180s"],
+		accessLevel: 'raid_admin_2',
+	)]
+	public int $raidAnnouncementInterval = 90;
+
+	/** Give raid points based on duration of participation */
+	#[NCA\Setting\Boolean(accessLevel: 'raid_admin_2')]
+	public bool $raidPointsForTime = false;
+
+	/** Point rate, in seconds */
+	#[NCA\Setting\Time(accessLevel: 'raid_admin_2')]
+	public int $raidPointsInterval = 5 * 60; // 5 mins
+
+	/** Add raid initiator to the raid */
+	#[NCA\Setting\Boolean(accessLevel: 'raid_admin_2')]
+	public bool $raidAutoAddCreator = true;
+
+	/** Stopping the raid clears the callers */
+	#[NCA\Setting\Boolean(accessLevel: 'raid_admin_2')]
+	public bool $raidStopClearsCallers = false;
+
+	/** Locking the raid kicks players not in the raid */
+	#[NCA\Setting\Options(
+		options: [
+			"Kick everyone not in the raid" => 2,
+			"Kick all, except those who've been in the raid before" => 1,
+			"Don't kick on raid lock" => 0,
+		],
+		accessLevel: 'raid_admin_2',
+	)]
+	public int $raidKickNotinOnLock = 0;
 
 	/**
 	 * The currently running raid or null if none running
@@ -247,7 +232,7 @@ class RaidController extends ModuleInstance {
 				$this->util->unixtimeToReadable($this->raid->seconds_per_point).
 				"<end>\n";
 		} else {
-			$sppDefault = $this->settingManager->getInt('raid_points_interval');
+			$sppDefault = $this->raidPointsInterval;
 			$blob .= "<highlight>Given by the raid leader(s)<end>";
 			if ($sppDefault > 0) {
 				$blob .= " [".
@@ -276,7 +261,7 @@ class RaidController extends ModuleInstance {
 				$this->text->makeChatcmd(
 					"Enable",
 					"/tell <myname> raid announce ".
-					($this->settingManager->getInt('raid_announcement_interval')??90)
+					$this->raidAnnouncementInterval
 				).
 				"]\n";
 		} else {
@@ -359,14 +344,14 @@ class RaidController extends ModuleInstance {
 		$raid = new Raid();
 		$raid->started_by = $context->char->name;
 		$raid->description = $description;
-		if ($this->settingManager->getBool('raid_announcement')) {
-			$raid->announce_interval = $this->settingManager->getInt('raid_announcement_interval')??90;
+		if ($this->raidAnnouncement) {
+			$raid->announce_interval = $this->raidAnnouncementInterval;
 		}
-		if ($this->settingManager->getBool('raid_points_for_time')) {
-			$raid->seconds_per_point = $this->settingManager->getInt('raid_points_interval')??300;
+		if ($this->raidPointsForTime) {
+			$raid->seconds_per_point = $this->raidPointsInterval;
 		}
 		$this->startRaid($raid);
-		if ($this->settingManager->getBool('raid_auto_add_creator')) {
+		if ($this->raidAutoAddCreator) {
 			$this->raidMemberController->joinRaid($context->char->name, $context->char->name, $context->source, false);
 		}
 		$this->chatBot->sendTell(
@@ -500,7 +485,7 @@ class RaidController extends ModuleInstance {
 		$event->type = "raid(lock)";
 		$event->player = $context->char->name;
 		$this->eventManager->fireEvent($event);
-		$notInKick = $this->settingManager->getInt('raid_kick_notin_on_lock')??0;
+		$notInKick = $this->raidKickNotinOnLock;
 		if ($notInKick !== 0) {
 			$this->raidMemberController->kickNotInRaid($this->raid, $notInKick === 2);
 		}
@@ -1047,7 +1032,7 @@ class RaidController extends ModuleInstance {
 				"stopped_by" => $raid->stopped_by,
 			]);
 		$this->raid = null;
-		if ($this->settingManager->getBool('raid_stop_clears_callers')) {
+		if ($this->raidStopClearsCallers) {
 			$this->chatAssistController->clearCallers($sender, "raid stop");
 		}
 		$event = new RaidEvent($raid);

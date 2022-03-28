@@ -20,7 +20,6 @@ use Nadybot\Core\{
 	ParamClass\PCharacter,
 	ParamClass\PDuration,
 	ParamClass\PRemove,
-	SettingManager,
 	Text,
 	DB,
 	DBSchema\BanEntry,
@@ -54,12 +53,6 @@ use Nadybot\Core\{
 		description: "Ban or unban a whole org",
 		alias: "orgbans"
 	),
-
-	NCA\Setting\Boolean(
-		name: "ban_all_alts",
-		description: "Always ban all alts, not just 1 char",
-		defaultValue: false,
-	),
 ]
 class BanController extends ModuleInstance {
 	public const DB_TABLE = "banlist_<myname>";
@@ -84,13 +77,14 @@ class BanController extends ModuleInstance {
 	public Nadybot $chatBot;
 
 	#[NCA\Inject]
-	public SettingManager $settingManager;
-
-	#[NCA\Inject]
 	public Text $text;
 
 	#[NCA\Inject]
 	public DB $db;
+
+	/** Always ban all alts, not just 1 char */
+	#[NCA\Setting\Boolean]
+	public bool $banAllAlts = false;
 
 	/**
 	 * List of all banned players, indexed by UID
@@ -367,7 +361,7 @@ class BanController extends ModuleInstance {
 	 */
 	private function banPlayer(string $who, string $sender, ?int $length, ?string $reason, CommandReply $sendto): bool {
 		$toBan = [$who];
-		if ($this->settingManager->getBool('ban_all_alts')) {
+		if ($this->banAllAlts) {
 			$altInfo = $this->altsController->getAltInfo($who);
 			$toBan = [$altInfo->main, ...$altInfo->getAllValidatedAlts()];
 		}

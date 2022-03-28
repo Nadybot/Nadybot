@@ -15,7 +15,6 @@ use Nadybot\Core\{
 	Nadybot,
 	Routing\RoutableMessage,
 	Routing\Source,
-	SettingManager,
 	Util,
 };
 use Nadybot\Modules\TIMERS_MODULE\{
@@ -36,13 +35,6 @@ use Nadybot\Modules\TIMERS_MODULE\{
 		accessLevel: "guild",
 		description: "Shows/Starts/Stops the current city wave",
 	),
-	NCA\Setting\Text(
-		name: 'city_wave_times',
-		description: 'Times to display timer alerts',
-		defaultValue: '105s 150s 90s 120s 120s 120s 120s 120s 120s',
-		options: ["105s 150s 90s 120s 120s 120s 120s 120s 120s"],
-		help: 'city_wave_times.txt'
-	),
 	NCA\ProvidesEvent("cityraid(start)"),
 	NCA\ProvidesEvent("cityraid(wave)"),
 	NCA\ProvidesEvent("cityraid(end)")
@@ -61,13 +53,17 @@ class CityWaveController extends ModuleInstance implements MessageEmitter {
 	public MessageHub $messageHub;
 
 	#[NCA\Inject]
-	public SettingManager $settingManager;
-
-	#[NCA\Inject]
 	public EventManager $eventManager;
 
 	#[NCA\Inject]
 	public Util $util;
+
+	/** Times to display timer alerts */
+	#[NCA\Setting\Text(
+		options: ["105s 150s 90s 120s 120s 120s 120s 120s 120s"],
+		help: 'city_wave_times.txt'
+	)]
+	public string $cityWaveTimes = '105s 150s 90s 120s 120s 120s 120s 120s 120s';
 
 	public const TIMER_NAME = "City Raid";
 
@@ -191,7 +187,7 @@ class CityWaveController extends ModuleInstance implements MessageEmitter {
 		$lastTime = time();
 		$wave = 1;
 		$alerts = [];
-		$alertTimes = explode(' ', $this->settingManager->getString("city_wave_times")??"");
+		$alertTimes = explode(' ', $this->cityWaveTimes);
 		foreach ($alertTimes as $alertTime) {
 			$time = $this->util->parseTime($alertTime);
 			$lastTime += $time;

@@ -17,7 +17,6 @@ use Nadybot\Core\{
 	ModuleInstance,
 	LoggerWrapper,
 	Registry,
-	SettingManager,
 	Socket,
 	Timer,
 	Socket\AsyncSocket,
@@ -36,47 +35,6 @@ use Safe\Exceptions\UrlException;
 		accessLevel: "mod",
 		description: "Pre-authorize Websocket connections",
 	),
-	NCA\Setting\Boolean(
-		name: 'webserver',
-		description: 'Enable webserver',
-		defaultValue: true,
-		accessLevel: 'superadmin'
-	),
-	NCA\Setting\Number(
-		name: 'webserver_port',
-		description: 'On which port does the HTTP server listen',
-		defaultValue: 8080,
-		accessLevel: 'superadmin'
-	),
-	NCA\Setting\Text(
-		name: 'webserver_addr',
-		description: 'Where to listen for HTTP requests',
-		defaultValue: '127.0.0.1',
-		options: ["127.0.0.1", "0.0.0.0"],
-		accessLevel: 'superadmin'
-	),
-	NCA\Setting\Options(
-		name: 'webserver_auth',
-		description: 'How to authenticate against the webserver',
-		defaultValue: self::AUTH_BASIC,
-		options: [self::AUTH_BASIC, self::AUTH_AOAUTH],
-		accessLevel: "superadmin"
-	),
-	NCA\Setting\Text(
-		name: 'webserver_base_url',
-		description: 'Which is the base URL for the webserver? This is where aoauth redirects to',
-		defaultValue: 'default',
-		options: ["default"],
-		accessLevel: 'admin',
-		help: 'webserver_base_url.txt',
-	),
-	NCA\Setting\Text(
-		name: 'webserver_aoauth_url',
-		description: 'If you are using aoauth to authenticate: URL of the server',
-		defaultValue: 'https://aoauth.org',
-		options: ["https://aoauth.org"],
-		accessLevel: "superadmin"
-	),
 ]
 class WebserverController extends ModuleInstance {
 	public const AUTH_AOAUTH = "aoauth";
@@ -87,9 +45,6 @@ class WebserverController extends ModuleInstance {
 	 * @psalm-var null|resource|closed-resource
 	 */
 	protected $serverSocket = null;
-
-	#[NCA\Inject]
-	public SettingManager $settingManager;
 
 	#[NCA\Inject]
 	public Socket $socket;
@@ -108,6 +63,43 @@ class WebserverController extends ModuleInstance {
 
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
+
+	/** Enable webserver */
+	#[NCA\Setting\Boolean(accessLevel: 'superadmin')]
+	public bool $webserver = true;
+
+	/** On which port does the HTTP server listen */
+	#[NCA\Setting\Number(accessLevel: 'superadmin')]
+	public int $webserverPort = 8080;
+
+	/** Where to listen for HTTP requests */
+	#[NCA\Setting\Text(
+		options: ["127.0.0.1", "0.0.0.0"],
+		accessLevel: 'superadmin'
+	)]
+	public string $webserverAddr = '127.0.0.1';
+
+	/** How to authenticate against the webserver */
+	#[NCA\Setting\Options(
+		options: [self::AUTH_BASIC, self::AUTH_AOAUTH],
+		accessLevel: "superadmin"
+	)]
+	public string $webserverAuth = self::AUTH_BASIC;
+
+	/** Which is the base URL for the webserver? This is where aoauth redirects to */
+	#[NCA\Setting\Text(
+		options: ["default"],
+		accessLevel: 'admin',
+		help: 'webserver_base_url.txt',
+	)]
+	public string $webserverBaseUrl = 'default';
+
+	/** If you are using aoauth to authenticate: URL of the server */
+	#[NCA\Setting\Text(
+		options: ["https://aoauth.org"],
+		accessLevel: "superadmin"
+	)]
+	public string $webserverAoauthUrl = 'https://aoauth.org';
 
 	/** @var array<string,array<string,callable[]>> */
 	protected array $routes = [
@@ -133,13 +125,10 @@ class WebserverController extends ModuleInstance {
 		description: "Download aoauth public key"
 	)]
 	public function downloadPublicKey(): void {
-		if ($this->settingManager->getString('webserver_auth') !== static::AUTH_AOAUTH) {
+		if ($this->webserverAuth !== static::AUTH_AOAUTH) {
 			return;
 		}
-		$aoAuthKeyUrl = rtrim(
-			$this->settingManager->getString('webserver_aoauth_url')??"https://aoauth.org",
-			'/'
-		) . '/key';
+		$aoAuthKeyUrl = rtrim($this->webserverAoauthUrl, '/') . '/key';
 		if (isset($this->aoAuthPubKeyRequest)) {
 			$this->aoAuthPubKeyRequest->abortWithMessage("Not needed anymore");
 		}
@@ -169,7 +158,7 @@ class WebserverController extends ModuleInstance {
 	#[NCA\Setup]
 	public function setup(): void {
 		$this->scanRouteAttributes();
-		if ($this->settingManager->getBool('webserver')) {
+		if ($this->webserver) {
 			$this->listen();
 		}
 	}
@@ -201,7 +190,7 @@ class WebserverController extends ModuleInstance {
 	#[NCA\SettingChangeHandler("webserver_port")]
 	#[NCA\SettingChangeHandler("webserver_addr")]
 	public function webserverSettingChanged(string $settingName, string $oldValue, string $newValue): void {
-		if (!$this->settingManager->getBool('webserver')) {
+		if (!$this->webserver) {
 			return;
 		}
 		$this->shutdown();
@@ -322,12 +311,6 @@ class WebserverController extends ModuleInstance {
 		$this->logger->info('New client connected from ' . ($peerName??"Unknown location"));
 		$wrapper = $this->socket->wrap($newSocket);
 		$wrapper->on(AsyncSocket::CLOSE, [$this, "handleClientDisconnect"]);
-/*
-		if ($this->settingManager->getBool('webserver_tls')) {
-			$this->logger->info("Queueing TLS handshake");
-			$wrapper->writeClosureInterface(new TlsServerStart());
-		}
-*/
 		$httpWrapper = new HttpProtocolWrapper();
 		Registry::injectDependencies($httpWrapper);
 		$httpWrapper->wrapAsyncSocket($wrapper);
@@ -344,21 +327,9 @@ class WebserverController extends ModuleInstance {
 	 * Start listening for incoming TCP connections on the configured port
 	 */
 	public function listen(): bool {
-		$port = $this->settingManager->getInt('webserver_port');
-		$addr = $this->settingManager->getString('webserver_addr');
+		$port = $this->webserverPort;
+		$addr = $this->webserverAddr;
 		$context = stream_context_create();
-		/*
-		$tls = $this->settingManager->getBool('webserver_tls');
-		if ($tls) {
-			$certPath = $this->settingManager->get('webserver_certificate');
-			if (empty($certPath)) {
-				$certPath = $this->generateCertificate();
-			}
-			stream_context_set_option($context, 'ssl', 'local_cert', $certPath);
-			stream_context_set_option($context, 'ssl', 'allow_self_signed', true);
-			stream_context_set_option($context, 'ssl', 'verify_peer', false);
-		}
-*/
 		try {
 			$serverSocket = \Safe\stream_socket_server(
 				"tcp://{$addr}:{$port}",
@@ -483,14 +454,14 @@ class WebserverController extends ModuleInstance {
 			}
 		}
 		if ($needAuth && !isset($event->request->authenticatedAs)) {
-			$authType = $this->settingManager->getString('webserver_auth');
+			$authType = $this->webserverAuth;
 			if ($authType === static::AUTH_BASIC) {
 				$server->httpError(new Response(
 					Response::UNAUTHORIZED,
 					["WWW-Authenticate" => "Basic realm=\"{$this->config->name}\""],
 				));
 			} elseif ($authType === static::AUTH_AOAUTH) {
-				$baseUrl = $this->settingManager->getString('webserver_base_url')??"";
+				$baseUrl = $this->webserverBaseUrl;
 				if ($baseUrl === 'default') {
 					$baseUrl = 'http://' . $event->request->headers['host'];
 				}
@@ -499,8 +470,7 @@ class WebserverController extends ModuleInstance {
 				if (strlen($queryString = http_build_query($event->request->query))) {
 					$redirectUrl .= "?{$queryString}";
 				}
-				$aoAuthUrl = rtrim($this->settingManager->getString('webserver_aoauth_url')??"https://aoauth.org", '/').
-					'/auth';
+				$aoAuthUrl = rtrim($this->webserverAoauthUrl, '/') . '/auth';
 				$server->sendResponse(new Response(
 					Response::TEMPORARY_REDIRECT,
 					[

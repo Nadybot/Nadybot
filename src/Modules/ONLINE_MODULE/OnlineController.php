@@ -53,104 +53,6 @@ use Nadybot\Modules\{
 		alias: ['o', 'sm'],
 	),
 
-	NCA\Setting\Time(
-		name: "online_expire",
-		description: "How long to wait before clearing online list",
-		defaultValue: "15m",
-		options: ["2m", "5m", "10m", "15m", "20m"],
-	),
-	NCA\Setting\Options(
-		name: "online_show_relay",
-		description: "Include players from your relay(s) by default",
-		defaultValue: 0,
-		options: [
-			'No' => 0,
-			'Always' => 1,
-			'In a separate message' => 2,
-		]
-	),
-	NCA\Setting\Options(
-		name: "online_show_org_guild",
-		description: "Show org/rank for players in guild channel",
-		defaultValue: 1,
-		options: [
-			'Show org and rank' => 2,
-			'Show rank only' => 1,
-			'Show org only' => 3,
-			'Show no org info' => 0,
-		]
-	),
-	NCA\Setting\Options(
-		name: "online_show_org_guild_relay",
-		description: "Show org/rank for players in your relays",
-		defaultValue: 0,
-		options: [
-			'Show org and rank' => 2,
-			'Show rank only' => 1,
-			'Show org only' => 3,
-			'Show no org info' => 0,
-		]
-	),
-	NCA\Setting\Options(
-		name: "online_show_org_priv",
-		description: "Show org/rank for players in private channel",
-		defaultValue: 2,
-		options: [
-			'Show org and rank' => 2,
-			'Show rank only' => 1,
-			'Show org only' => 3,
-			'Show no org info' => 0,
-		]
-	),
-	NCA\Setting\Boolean(
-		name: "online_admin",
-		description: "Show admin levels in online list",
-		defaultValue: false,
-	),
-	NCA\Setting\Options(
-		name: "online_raid",
-		description: "Show raid participation in online list",
-		defaultValue: 0,
-		options: [
-			'off' => 0,
-			'in raid' => 1,
-			'not in raid' => 2,
-			'both' => 3,
-			'both, but compact' => 7,
-		]
-	),
-	NCA\Setting\Options(
-		name: "online_group_by",
-		description: "Group online list by",
-		defaultValue: 1,
-		options: [
-			'do not group' => 0,
-			'player' => 1,
-			'profession' => 2,
-			'faction' => 3,
-		]
-	),
-	NCA\Setting\Options(
-		name: "online_relay_group_by",
-		description: "Group relay online list by",
-		defaultValue: 1,
-		options: [
-			'do not group' => 0,
-			'org' => 1,
-			'profession' => 2,
-		]
-	),
-	NCA\Setting\Boolean(
-		name: "online_show_discord",
-		description: "Show players in discord voice channels",
-		defaultValue: false,
-	),
-	NCA\Setting\Boolean(
-		name: "afk_brb_without_symbol",
-		description: "React to afk and brb even without command prefix",
-		defaultValue: true,
-	),
-
 	NCA\ProvidesEvent("online(org)"),
 	NCA\ProvidesEvent("offline(org)")
 ]
@@ -217,6 +119,84 @@ class OnlineController extends ModuleInstance {
 
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
+
+	/** How long to wait before clearing online list */
+	#[NCA\Setting\Time(options: ["2m", "5m", "10m", "15m", "20m"])]
+	public int $onlineExpire = 15*60;
+
+	/** Include players from your relay(s) by default */
+	#[NCA\Setting\Options(options: [
+		'No' => 0,
+		'Always' => 1,
+		'In a separate message' => 2,
+	])]
+	public int $onlineShowRelay = 0;
+
+	/** Show org/rank for players in guild channel */
+	#[NCA\Setting\Options(options: [
+		'Show org and rank' => 2,
+		'Show rank only' => 1,
+		'Show org only' => 3,
+		'Show no org info' => 0,
+	])]
+	public int $onlineShowOrgGuild = 1;
+
+	/** Show org/rank for players in your relays */
+	#[NCA\Setting\Options(options: [
+		'Show org and rank' => 2,
+		'Show rank only' => 1,
+		'Show org only' => 3,
+		'Show no org info' => 0,
+	])]
+	public int $onlineShowOrgGuildRelay = 0;
+
+	/** Show org/rank for players in private channel */
+	#[NCA\Setting\Options(options: [
+		'Show org and rank' => 2,
+		'Show rank only' => 1,
+		'Show org only' => 3,
+		'Show no org info' => 0,
+	])]
+	public int $onlineShowOrgPriv = 2;
+
+	/** Show admin levels in online list */
+	#[NCA\Setting\Boolean]
+	public bool $onlineAdmin = false;
+
+	/** Show raid participation in online list */
+	#[NCA\Setting\Options(options: [
+		'off' => 0,
+		'in raid' => 1,
+		'not in raid' => 2,
+		'both' => 3,
+		'both, but compact' => 7,
+	])]
+	public int $onlineRaid = 0;
+
+	/** Group online list by */
+	#[NCA\Setting\Options(options: [
+		'do not group' => 0,
+		'player' => 1,
+		'profession' => 2,
+		'faction' => 3,
+	])]
+	public int $onlineGroupBy = 1;
+
+	/** Group relay online list by */
+	#[NCA\Setting\Options(options: [
+		'do not group' => 0,
+		'org' => 1,
+		'profession' => 2,
+	])]
+	public int $onlineRelayGroupBy = 1;
+
+	/** Show players in discord voice channels */
+	#[NCA\Setting\Boolean]
+	public bool $onlineShowDiscord = false;
+
+	/** React to afk and brb even without command prefix */
+	#[NCA\Setting\Boolean]
+	public bool $afkBrbWithoutSymbol = true;
 
 	#[NCA\Setup]
 	public function setup(): void {
@@ -446,7 +426,7 @@ class OnlineController extends ModuleInstance {
 			->where(function(QueryBuilder $query) use ($time) {
 				$query->where("dt", "<", $time)
 					->where("added_by", $this->db->getBotname());
-			})->orWhere("dt", "<", $time - ($this->settingManager->getInt('online_expire')??900))
+			})->orWhere("dt", "<", $time - $this->onlineExpire)
 			->delete();
 	}
 
@@ -539,7 +519,7 @@ class OnlineController extends ModuleInstance {
 		$msg = null;
 		$symbol = $this->settingManager->getString('symbol');
 		$symbolModifier = "";
-		if ($this->settingManager->getBool('afk_brb_without_symbol')) {
+		if ($this->afkBrbWithoutSymbol) {
 			$symbolModifier = "?";
 		}
 		if (preg_match("/^\Q$symbol\E${symbolModifier}afk$/i", $message)) {
@@ -604,7 +584,7 @@ class OnlineController extends ModuleInstance {
 	 * @return array<string,OnlinePlayer[]>
 	 */
 	protected function groupRelayList(array $relays): array {
-		$groupBy = $this->settingManager->getInt('online_relay_group_by')??self::GROUP_BY_ORG;
+		$groupBy = $this->onlineRelayGroupBy;
 		if ($groupBy === self::GROUP_OFF) {
 			$key = 'Alliance';
 		}
@@ -662,23 +642,23 @@ class OnlineController extends ModuleInstance {
 	 * @return string[]
 	 */
 	public function getOnlineList(int $includeRelay=null): array {
-		$includeRelay ??= $this->settingManager->getInt("online_show_relay");
+		$includeRelay ??= $this->onlineShowRelay;
 		$orgData = $this->getPlayers('guild');
-		$orgList = $this->formatData($orgData, $this->settingManager->getInt("online_show_org_guild")??1);
+		$orgList = $this->formatData($orgData, $this->onlineShowOrgGuild);
 
 		$privData = $this->getPlayers('priv');
-		$privList = $this->formatData($privData, $this->settingManager->getInt("online_show_org_priv")??2);
+		$privList = $this->formatData($privData, $this->onlineShowOrgPriv);
 
 		$relayGrouped = $this->groupRelayList($this->relayController->relays);
 		/** @var array<string,OnlineList> */
 		$relayList = [];
-		$relayOrgInfo = $this->settingManager->getInt("online_show_org_guild_relay")??0;
+		$relayOrgInfo = $this->onlineShowOrgGuildRelay;
 		foreach ($relayGrouped as $group => $chars) {
 			$relayList[$group] = $this->formatData($chars, $relayOrgInfo, static::GROUP_OFF);
 		}
 
 		$discData = [];
-		if ($this->settingManager->getBool("online_show_discord")) {
+		if ($this->onlineShowDiscord) {
 			$discData = $this->discordGatewayController->getPlayersInVoiceChannels();
 		}
 
@@ -765,7 +745,7 @@ class OnlineController extends ModuleInstance {
 	}
 
 	public function getAdminInfo(string $name, string $fancyColon): string {
-		if (!$this->settingManager->getBool("online_admin")) {
+		if (!$this->onlineAdmin) {
 			return "";
 		}
 
@@ -795,7 +775,7 @@ class OnlineController extends ModuleInstance {
 	 * @phpstan-return array{0: string, 1: string}
 	 */
 	public function getRaidInfo(string $name, string $fancyColon): array {
-		$mode = $this->settingManager->getInt("online_raid")??0;
+		$mode = $this->onlineRaid;
 		if ($mode === 0) {
 			return ["", ""];
 		}
@@ -848,7 +828,7 @@ class OnlineController extends ModuleInstance {
 		if ($list->count === 0) {
 			return $list;
 		}
-		$groupBy ??= $this->settingManager->getInt('online_group_by');
+		$groupBy ??= $this->onlineGroupBy;
 		$factions = [];
 		if ($groupBy === static::GROUP_BY_FACTION) {
 			foreach ($players as $player) {
@@ -929,7 +909,7 @@ class OnlineController extends ModuleInstance {
 			return $op;
 		});
 
-		$groupBy = $this->settingManager->getInt('online_group_by');
+		$groupBy = $this->onlineGroupBy;
 		if ($groupBy === static::GROUP_BY_MAIN) {
 			$op = $op->sortBy("pmain");
 		} elseif ($groupBy === static::GROUP_BY_PROFESSION) {

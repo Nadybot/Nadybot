@@ -13,7 +13,6 @@ use Nadybot\Core\{
 	DB,
 	ModuleInstance,
 	Nadybot,
-	SettingManager,
 	Text,
 	Util,
 };
@@ -132,12 +131,6 @@ use Nadybot\Modules\{
 		description: "Shows Legacy of the Xan loot categories",
 		alias: 'xan',
 	),
-
-	NCA\Setting\Boolean(
-		name: 'show_raid_loot_pics',
-		description: 'Show pictures in loot lists',
-		defaultValue: false,
-	),
 ]
 class LootListsController extends ModuleInstance {
 	#[NCA\Inject]
@@ -151,9 +144,6 @@ class LootListsController extends ModuleInstance {
 
 	#[NCA\Inject]
 	public Util $util;
-
-	#[NCA\Inject]
-	public SettingManager $settingManager;
 
 	#[NCA\Inject]
 	public LootController $lootController;
@@ -172,6 +162,10 @@ class LootListsController extends ModuleInstance {
 
 	#[NCA\Inject]
 	public CommandManager $commandManager;
+
+	/** Show pictures in loot lists */
+	#[NCA\Setting\Boolean]
+	public bool $showRaidLootPics = false;
 
 	#[NCA\Setup]
 	public function setup(): void {
@@ -790,7 +784,7 @@ class LootListsController extends ModuleInstance {
 		}
 
 		$blob = "\n<pagebreak><header2>{$category}<end>\n\n";
-		$showLootPics = $this->settingManager->get('show_raid_loot_pics');
+		$showLootPics = $this->showRaidLootPics;
 		foreach ($loot as $row) {
 			$actions = [];
 			if ($lootEnabled) {

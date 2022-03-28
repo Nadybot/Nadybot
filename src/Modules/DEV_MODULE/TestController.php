@@ -48,17 +48,6 @@ use Safe\Exceptions\FilesystemException;
 		accessLevel: "guest",
 		description: "Show number of characters in response and the time it took to process",
 	),
-
-	NCA\Setting\Boolean(
-		name: "show_test_commands",
-		description: "Show test commands as they are executed",
-		defaultValue: false,
-	),
-	NCA\Setting\Boolean(
-		name: "show_test_results",
-		description: "Show test results from test commands",
-		defaultValue: false,
-	),
 ]
 class TestController extends ModuleInstance {
 	#[NCA\Inject]
@@ -97,6 +86,14 @@ class TestController extends ModuleInstance {
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
+	/** Show test commands as they are executed */
+	#[NCA\Setting\Boolean]
+	public bool $showTestCommands = false;
+
+	/** Show test results from test commands */
+	#[NCA\Setting\Boolean]
+	public bool $showTestResults = false;
+
 	public string $path = __DIR__ . "/tests/";
 
 	/** @param string[] $commands */
@@ -108,7 +105,7 @@ class TestController extends ModuleInstance {
 			return;
 		}
 		$testContext = clone $context;
-		if ($this->settingManager->getBool('show_test_commands')) {
+		if ($this->showTestCommands) {
 			$this->chatBot->sendTell($line, $context->char->name);
 		} else {
 			$this->logger->notice($line);

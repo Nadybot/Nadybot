@@ -11,7 +11,6 @@ use Nadybot\Core\{
 	ModuleInstance,
 	ParamClass\PRemove,
 	ParamClass\PWord,
-	SettingManager,
 	Text,
 };
 
@@ -26,24 +25,20 @@ use Nadybot\Core\{
 		accessLevel: "guild",
 		description: "Displays, adds, or removes links from the org link list",
 	),
-	NCA\Setting\Boolean(
-		name: 'showfullurls',
-		description: 'Enable full urls in the link list output',
-		defaultValue: false,
-	),
 ]
 class LinksController extends ModuleInstance {
 	#[NCA\Inject]
 	public DB $db;
 
 	#[NCA\Inject]
-	public SettingManager $settingManager;
-
-	#[NCA\Inject]
 	public Text $text;
 
 	#[NCA\Inject]
 	public AccessManager $accessManager;
+
+	/** Enable full urls in the link list output */
+	#[NCA\Setting\Boolean]
+	public bool $showfullurls = false;
 
 	/** Show all links */
 	#[NCA\HandlesCommand("links")]
@@ -61,7 +56,7 @@ class LinksController extends ModuleInstance {
 		$blob = "<header2>All my links<end>\n";
 		foreach ($links as $link) {
 			$remove = $this->text->makeChatcmd('remove', "/tell <myname> links rem {$link->id}");
-			if ($this->settingManager->getBool('showfullurls')) {
+			if ($this->showfullurls) {
 				$website = $this->text->makeChatcmd($link->website, "/start {$link->website}");
 			} else {
 				$website = "[" . $this->text->makeChatcmd('visit', "/start {$link->website}") . "]";

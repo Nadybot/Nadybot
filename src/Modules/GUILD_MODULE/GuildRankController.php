@@ -17,7 +17,6 @@ use Nadybot\Core\{
 	Nadybot,
 	ParamClass\PRemove,
 	ParamClass\PWord,
-	SettingManager,
 	Text,
 };
 use Nadybot\Modules\ORGLIST_MODULE\OrglistController;
@@ -38,11 +37,6 @@ use Nadybot\Modules\ORGLIST_MODULE\OrglistController;
 		accessLevel: "admin",
 		description: "Define how org ranks map to bot ranks",
 	),
-	NCA\Setting\Boolean(
-		name: "map_org_ranks_to_bot_ranks",
-		description: "Map org ranks to bot ranks",
-		defaultValue: false,
-	),
 ]
 class GuildRankController extends ModuleInstance implements AccessLevelProvider {
 	public const DB_TABLE = "org_rank_mapping_<myname>";
@@ -60,19 +54,20 @@ class GuildRankController extends ModuleInstance implements AccessLevelProvider 
 	public AccessManager $accessManager;
 
 	#[NCA\Inject]
-	public SettingManager $settingManager;
-
+	public GuildController $guildController;
+	#
 	#[NCA\Inject]
 	public GuildManager $guildManager;
-
-	#[NCA\Inject]
-	public GuildController $guildController;
 
 	#[NCA\Inject]
 	public OrglistController $orglistController;
 
 	#[NCA\Inject]
 	public Text $text;
+
+	/** Map org ranks to bot ranks */
+	#[NCA\Setting\Boolean]
+	public bool $mapOrgRanksToBotRanks = false;
 
 	#[NCA\Setup]
 	public function setup(): void {
@@ -83,7 +78,7 @@ class GuildRankController extends ModuleInstance implements AccessLevelProvider 
 		if (!isset($this->chatBot->guildmembers[$sender])) {
 			return null;
 		}
-		if (!$this->settingManager->getBool('map_org_ranks_to_bot_ranks')) {
+		if (!$this->mapOrgRanksToBotRanks) {
 			return "guild";
 		}
 		return $this->getEffectiveAccessLevel($this->chatBot->guildmembers[$sender]);

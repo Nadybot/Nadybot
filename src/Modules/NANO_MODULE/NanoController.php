@@ -46,18 +46,6 @@ use Nadybot\Core\{
 		accessLevel: "guest",
 		description: "Browse nanos by location",
 	),
-
-	NCA\Setting\Number(
-		name: 'maxnano',
-		description: 'Number of Nanos shown on the list',
-		defaultValue: 40,
-		options: [30, 40, 50, 60],
-	),
-	NCA\Setting\Boolean(
-		name: "shownanolineicons",
-		description: "Show icons for the nanolines",
-		defaultValue: false,
-	),
 ]
 class NanoController extends ModuleInstance {
 	#[NCA\Inject]
@@ -71,6 +59,14 @@ class NanoController extends ModuleInstance {
 
 	#[NCA\Inject]
 	public Util $util;
+
+	/** Number of Nanos shown on the list */
+	#[NCA\Setting\Number(options: [30, 40, 50, 60])]
+	public int $maxnano = 40;
+
+	/** Show icons for the nanolines */
+	#[NCA\Setting\Boolean]
+	public bool $shownanolineicons = false;
 
 	/** @var array<int,Nanoline> */
 	public array $nanolines = [];
@@ -94,7 +90,7 @@ class NanoController extends ModuleInstance {
 			->orderBy("strain")
 			->orderBy("sub_strain")
 			->orderBy("sort_order")
-			->limit($this->settingManager->getInt("maxnano")??40);
+			->limit($this->maxnano);
 		$tmp = explode(" ", $search);
 		$this->db->addWhereFromParams($query, $tmp, "nano_name");
 

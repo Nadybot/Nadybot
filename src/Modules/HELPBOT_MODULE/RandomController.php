@@ -9,7 +9,6 @@ use Nadybot\Core\{
 	CommandAlias,
 	DB,
 	ModuleInstance,
-	SettingManager,
 	SQLException,
 	Text,
 	Util,
@@ -36,12 +35,6 @@ use Nadybot\Core\{
 		accessLevel: "all",
 		description: "Verifies a roll",
 	),
-	NCA\Setting\Time(
-		name: "time_between_rolls",
-		description: "How much time is required between rolls from the same person",
-		defaultValue: "30s",
-		options: ["10s", "30s", "60s", "90s"],
-	),
 ]
 class RandomController extends ModuleInstance {
 	#[NCA\Inject]
@@ -54,10 +47,11 @@ class RandomController extends ModuleInstance {
 	public Util $util;
 
 	#[NCA\Inject]
-	public SettingManager $settingManager;
-
-	#[NCA\Inject]
 	public CommandAlias $commandAlias;
+
+	/** How much time is required between rolls from the same person */
+	#[NCA\Setting\Time(options: ["10s", "30s", "60s", "90s"])]
+	public int $timeBetweenRolls = 30;
 
 	#[NCA\Setup]
 	public function setup(): void {
@@ -113,7 +107,7 @@ class RandomController extends ModuleInstance {
 			$context->reply($msg);
 			return;
 		}
-		$timeBetweenRolls = $this->settingManager->getInt('time_between_rolls')??30;
+		$timeBetweenRolls = $this->timeBetweenRolls;
 		if (!$this->canRoll($context->char->name, $timeBetweenRolls)) {
 			$msg = "You can only roll once every $timeBetweenRolls seconds.";
 			$context->reply($msg);
@@ -144,7 +138,7 @@ class RandomController extends ModuleInstance {
 		string $listOfNames
 	): void {
 		$amount = (int)$amount;
-		$timeBetweenRolls = $this->settingManager->getInt('time_between_rolls')??30;
+		$timeBetweenRolls = $this->timeBetweenRolls;
 		if (!$this->canRoll($context->char->name, $timeBetweenRolls)) {
 			$msg = "You can only roll once every $timeBetweenRolls seconds.";
 			$context->reply($msg);
@@ -178,7 +172,7 @@ class RandomController extends ModuleInstance {
 	/** Roll a random value from a list of names */
 	#[NCA\HandlesCommand("roll")]
 	public function rollNamesCommand(CmdContext $context, string $listofNames): void {
-		$timeBetweenRolls = $this->settingManager->getInt('time_between_rolls')??30;
+		$timeBetweenRolls = $this->timeBetweenRolls;
 		if (!$this->canRoll($context->char->name, $timeBetweenRolls)) {
 			$msg = "You can only roll once every $timeBetweenRolls seconds.";
 			$context->reply($msg);

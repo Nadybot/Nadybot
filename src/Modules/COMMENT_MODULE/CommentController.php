@@ -40,30 +40,6 @@ use Nadybot\Core\{
 		accessLevel: "mod",
 		description: "Manage comment categories",
 	),
-
-	NCA\Setting\Time(
-		name: "comment_cooldown",
-		description: "How long is the cooldown between leaving 2 comments for the same character",
-		defaultValue: "6h",
-		options: ["1s", "1h", "6h", "24h"],
-	),
-	NCA\Setting\Boolean(
-		name: "share_comments",
-		description: "Share comments between bots on same database",
-		defaultValue: false,
-	),
-	NCA\Setting\Text(
-		name: "table_name_comments",
-		description: "Database table for comments",
-		mode: "noedit",
-		defaultValue: "comments_<myname>",
-	),
-	NCA\Setting\Text(
-		name: "table_name_comment_categories",
-		description: "Database table for comment categories",
-		mode: "noedit",
-		defaultValue: "comment_categories_<myname>",
-	),
 ]
 class CommentController extends ModuleInstance {
 	#[NCA\Inject]
@@ -92,6 +68,22 @@ class CommentController extends ModuleInstance {
 
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
+
+	/** How long is the cooldown between leaving 2 comments for the same character */
+	#[NCA\Setting\Time(options: ["1s", "1h", "6h", "24h"])]
+	public int $commentCooldown = 6 * 3600;
+
+	/** Share comments between bots on same database */
+	#[NCA\Setting\Boolean]
+	public bool $shareComments = false;
+
+	/** Database table for comments */
+	#[NCA\Setting\Text(mode: "noedit")]
+	public string $tableNameComments = "comments_<myname>";
+
+	/** Database table for comment categories */
+	#[NCA\Setting\Text(mode: "noedit")]
+	public string $tableNameCommentCategories = "comment_categories_<myname>";
 
 	public const ADMIN = "admin";
 

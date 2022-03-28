@@ -39,11 +39,6 @@ use Nadybot\Modules\{
 		accessLevel: "mod",
 		description: "Information about the discord link",
 	),
-	NCA\Setting\Rank(
-		name: "discord_relay_mention_rank",
-		description: "Minimum ranks allowed to use @here and @everyone",
-		defaultValue: "mod"
-	),
 ]
 class DiscordRelayController extends ModuleInstance {
 	#[NCA\Inject]
@@ -96,6 +91,10 @@ class DiscordRelayController extends ModuleInstance {
 
 	#[NCA\Inject]
 	public Nadybot $chatBot;
+
+	/** Minimum ranks allowed to use @here and @everyone */
+	#[NCA\Setting\Rank]
+	public string $discordRelayMentionRank = "mod";
 
 	/**
 	 * Gives a list of all channels we have access to
