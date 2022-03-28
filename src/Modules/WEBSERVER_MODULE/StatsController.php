@@ -40,7 +40,7 @@ class StatsController extends ModuleInstance {
 	public bool $prometheusEnabled = true;
 
 	/** Auth token for Prometheus endpoint */
-	#[NCA\Setting\Text(accessLevel: "admin")]
+	#[NCA\Setting\Text(accessLevel: "admin", mode: 'noedit')]
 	public string $prometheusAuthToken = "";
 
 	/** @var array<string,Dataset> */

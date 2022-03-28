@@ -77,7 +77,7 @@ class RaffleController extends ModuleInstance {
 	#[NCA\Inject]
 	public Util $util;
 
-	/** Should raffles end automatically after some time */
+	/** Should raffles end automatically after some time? */
 	#[NCA\Setting\Boolean]
 	public bool $raffleEndsAutomatically = true;
 
