@@ -90,8 +90,8 @@ class CommentController extends ModuleInstance {
 	#[NCA\Setup]
 	public function setup(): void {
 		$sm = $this->settingManager;
-		$this->db->registerTableName("comments", $sm->getString("table_name_comments")??"");
-		$this->db->registerTableName("comment_categories", $sm->getString("table_name_comment_categories")??"");
+		$this->db->registerTableName("comments", $this->tableNameComments);
+		$this->db->registerTableName("comment_categories", $this->tableNameCommentCategories);
 	}
 
 	#[NCA\SettingChangeHandler("share_comments")]
@@ -100,8 +100,8 @@ class CommentController extends ModuleInstance {
 			return;
 		}
 		$this->logger->info("Comment sharing changed");
-		$oldCommentTable = $this->settingManager->getString("table_name_comments");
-		$oldCategoryTable = $this->settingManager->getString("table_name_comment_categories");
+		$oldCommentTable = $this->tableNameComments;
+		$oldCategoryTable = $this->tableNameCommentCategories;
 		$this->db->beginTransaction();
 		try {
 			// read all current entries
@@ -168,8 +168,8 @@ class CommentController extends ModuleInstance {
 		} catch (SQLException $e) {
 			$this->logger->error("Error changing comment tables: " . $e->getMessage(), ["exception" => $e]);
 			$this->db->rollback();
-			$this->db->registerTableName("comments", $oldCommentTable??"");
-			$this->db->registerTableName("comment_categories", $oldCategoryTable??"");
+			$this->db->registerTableName("comments", $oldCommentTable);
+			$this->db->registerTableName("comment_categories", $oldCategoryTable);
 			throw new Exception("There was an error copying the comments in the database");
 		}
 		$this->db->commit();
@@ -403,7 +403,7 @@ class CommentController extends ModuleInstance {
 		if ($comment->created_by === $this->chatBot->char->name) {
 			return 0;
 		}
-		$cooldown = $this->settingManager->getInt("comment_cooldown") ?? 1;
+		$cooldown = $this->commentCooldown;
 		// Get all comments about that same character
 		$comments = $this->getComments(null, $comment->character);
 		// Only keep those that were created by the same person creating one now
