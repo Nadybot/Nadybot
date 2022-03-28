@@ -8,18 +8,21 @@ use Nadybot\Core\{
 	ConfigFile,
 	MessageEmitter,
 	MessageHub,
+	Modules\COLORS\ColorsController,
 	Nadybot,
 	Routing\Character,
 	Routing\RoutableMessage,
 	Routing\Source,
-	SettingManager,
 };
 
 class ConsoleCommandReply implements CommandReply, MessageEmitter {
 	private Nadybot $chatBot;
 
 	#[NCA\Inject]
-	public SettingManager $settingManager;
+	public ConsoleController $consoleController;
+
+	#[NCA\Inject]
+	public ColorsController $colors;
 
 	#[NCA\Inject]
 	public MessageHub $messageHub;
@@ -313,11 +316,10 @@ class ConsoleCommandReply implements CommandReply, MessageEmitter {
 
 	protected function parseAnsiColors(string $text): string {
 		$text = $this->replaceColorNamesWithCodes($text);
-		$sm = $this->settingManager;
 		$array = [
-			"<header>" => str_replace("'", "", $sm->getString('default_header_color')??""),
-			"<header2>" => str_replace("'", "", $sm->getString('default_header2_color')??""),
-			"<highlight>" => str_replace("'", "", $sm->getString('default_highlight_color')??""),
+			"<header>" => str_replace("'", "", $this->colors->defaultHeaderColor),
+			"<header2>" => str_replace("'", "", $this->colors->defaultHeader2Color),
+			"<highlight>" => str_replace("'", "", $this->colors->defaultHighlightColor),
 			"<link>" => "\e[4m<font color=#219CFF>",
 			"</link>" => "</font>\e[24m",
 			"<black>" => "<font color=#000000>",
@@ -331,21 +333,20 @@ class ConsoleCommandReply implements CommandReply, MessageEmitter {
 			"<cyan>" => "<font color=#00FFFF>",
 			"<violet>" => "<font color=#8F00FF>",
 
-			"<neutral>" => $sm->getString('default_neut_color')??"",
-			"<omni>" => $sm->getString('default_omni_color')??"",
-			"<clan>" => $sm->getString('default_clan_color')??"",
-			"<unknown>" => $sm->getString('default_unknown_color')??"",
+			"<neutral>" => $this->colors->defaultNeutColor,
+			"<omni>" => $this->colors->defaultOmniColor,
+			"<clan>" => $this->colors->defaultClanColor,
+			"<unknown>" => $this->colors->defaultUnknownColor,
 
 			"<end>" => "</font>",
 		];
-		$defaultColor = $sm->getString('default_priv_color')??"";
+		$defaultColor = $this->colors->defaultPrivColor;
 		$text = $defaultColor . str_ireplace(array_keys($array), array_values($array), $text);
 		return $text;
 	}
 
 	public function handleColors(string $text, bool $clearEOL): string {
-		$sm = $this->settingManager;
-		if (!$sm->getBool("console_color")) {
+		if (!$this->consoleController->consoleColor) {
 			return $this->parseBasicAnsi($text);
 		}
 		$text = $this->parseAnsiColors($text);
@@ -371,7 +372,7 @@ class ConsoleCommandReply implements CommandReply, MessageEmitter {
 			},
 			$text
 		);
-		if ($sm->getBool("console_bg_color")) {
+		if ($this->consoleController->consoleBGColor) {
 			$text = $this->bgHexToAnsi("222222") . $text;
 		}
 		$text = str_replace("\r\n", "\n", $text);
