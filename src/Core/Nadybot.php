@@ -218,9 +218,31 @@ class Nadybot extends AOChat {
 		$this->db->commit();
 
 		//Delete old entries in the DB
+		$this->db->table(CommandManager::DB_TABLE)->where("verify", 0)
+			->asObj(CmdCfg::class)
+			->each(function(CmdCfg $row): void {
+				$this->logger->notice(
+					"Deleting removed command '{command}' from module {module}",
+					[
+						"command" => $row->cmd,
+						"module" => $row->module,
+					]
+				);
+			});
 		$this->db->table(CommandManager::DB_TABLE)->where("verify", 0)->delete();
 		$this->db->table(EventManager::DB_TABLE)->where("verify", 0)->delete();
 		$this->db->table(SettingManager::DB_TABLE)->where("verify", 0)->delete();
+		$this->db->table(SettingManager::DB_TABLE)->where("verify", 0)
+			->asObj(Setting::class)
+			->each(function(Setting $row): void {
+				$this->logger->notice(
+					"Deleting removed setting '{setting}' from module {module}",
+					[
+						"setting" => $row->name,
+						"module" => $row->module,
+					]
+				);
+			});
 		$this->db->table(HelpManager::DB_TABLE)->where("verify", 0)->delete();
 
 		$this->commandManager->loadCommands();
@@ -1373,77 +1395,86 @@ class Nadybot extends AOChat {
 	private function parseInstanceSettings(string $moduleName, ModuleInstanceInterface $obj): void {
 		$reflection = new ReflectionClass($obj);
 		foreach ($reflection->getProperties() as $property) {
-			foreach ($property->getAttributes(NCA\DefineSetting::class, ReflectionAttribute::IS_INSTANCEOF) as $attr) {
-				/** @var NCA\DefineSetting */
-				$attribute = $attr->newInstance();
-				if (!isset($attribute->name)) {
-					$attribute->name = strtolower(
+			$attrs = $property->getAttributes(NCA\DefineSetting::class, ReflectionAttribute::IS_INSTANCEOF);
+			if (empty($attrs)) {
+				continue;
+			}
+			/** @var NCA\DefineSetting */
+			$attribute = $attrs[0]->newInstance();
+			$attribute->name ??= strtolower(
+				preg_replace(
+					"/([A-Z][a-z])/",
+					'_$1',
+					preg_replace(
+						"/([A-Z]{2,})(?=[A-Z][a-z]|$)/",
+						'_$1',
 						preg_replace(
-							"/([A-Z][a-z])/",
+							"/(\d+)$/",
 							'_$1',
-							preg_replace(
-								"/([A-Z]{2,})(?=[A-Z][a-z]|$)/",
-								'_$1',
-								preg_replace(
-									"/(\d+)$/",
-									'_$1',
-									$property->getName()
-								)
-							)
+							$property->getName()
 						)
-					);
-				}
-				if (!$property->isInitialized($obj)) {
-					throw new Exception(
-						"Trying to bind setting {$attribute->name} to uninitialized ".
-						"variable " . $property->getDeclaringClass()->getName().
-						'::$' . $property->getName()
-					);
-				}
-				$attribute->defaultValue = $property->getValue($obj);
-				$comment = $property->getDocComment();
-				if ($comment === false) {
-					throw new Exception("Missing description for setting {$attribute->name}");
-				}
-				$comment = trim(preg_replace("|^/\*\*(.*)\*/|s", '$1', $comment));
-				$comment = preg_replace("/^[ \t]*\*[ \t]*/m", '', $comment);
-				$description = trim(preg_replace("/^@.*/m", '', $comment));
-				$this->settingManager->add(
-					module: $moduleName,
-					name: $attribute->name,
-					description: $description,
-					mode: $attribute->mode,
-					type: $attribute->type,
-					value: $attribute->getValue(),
-					options: $attribute->options,
-					accessLevel: $attribute->accessLevel,
-					help: $attribute->help,
-				);
-				$this->updateTypedProperty($obj, $property, $this->settingManager->settings[$attribute->name]->value);
-				$this->eventManager->subscribe(
-					"setting({$attribute->name})",
-					function (SettingEvent $e) use ($obj, $property): void {
-						$this->updateTypedProperty($obj, $property, $e->newValue->value);
-					}
+					)
+				)
+			);
+
+			$type = $property->getType();
+			if ($type === null) {
+				throw new Exception(
+					"Cannot bind untyped property ".
+					$property->getDeclaringClass()->getName() . '::$' . $property->getName().
+					" to {$attribute->name}."
 				);
 			}
+			if (!($type instanceof ReflectionNamedType)) {
+				throw new Exception(
+					"Invalid data type of ".
+					$property->getDeclaringClass()->getName() . '::$' . $property->getName().
+					" for {$attribute->name} setting."
+				);
+			}
+			if (!$property->isInitialized($obj)) {
+				throw new Exception(
+					"Trying to bind setting {$attribute->name} to uninitialized ".
+					"variable " . $property->getDeclaringClass()->getName().
+					'::$' . $property->getName()
+				);
+			}
+			$attribute->defaultValue = $property->getValue($obj);
+			$comment = $property->getDocComment();
+			if ($comment === false) {
+				throw new Exception("Missing description for setting {$attribute->name}");
+			}
+			$comment = trim(preg_replace("|^/\*\*(.*)\*/|s", '$1', $comment));
+			$comment = preg_replace("/^[ \t]*\*[ \t]*/m", '', $comment);
+			$description = trim(preg_replace("/^@.*/m", '', $comment));
+			$this->settingManager->add(
+				module: $moduleName,
+				name: $attribute->name,
+				description: $description,
+				mode: $attribute->mode,
+				type: $attribute->type,
+				value: $attribute->getValue(),
+				options: $attribute->options,
+				accessLevel: $attribute->accessLevel,
+				help: $attribute->help,
+			);
+			$this->updateTypedProperty($obj, $property, $this->settingManager->settings[$attribute->name]->value);
+			$this->eventManager->subscribe(
+				"setting({$attribute->name})",
+				function (SettingEvent $e) use ($obj, $property): void {
+					$this->updateTypedProperty($obj, $property, $e->newValue->value);
+				}
+			);
 		}
 	}
 
 	/** Update the property bound to a setting to $value */
 	private function updateTypedProperty(ModuleInstanceInterface $obj, ReflectionProperty $property, mixed $value): void {
 		$type = $property->getType();
-		if ($type === null) {
-			$property->setValue($obj, $value);
+		if ($type === null || !($type instanceof ReflectionNamedType)) {
 			return;
 		}
-		if (!($type instanceof ReflectionNamedType)) {
-			throw new Exception(
-				"Invalid type for ".
-				$property->getDeclaringClass()->getName() . '::$' . $property->getName().
-				" - cannot be bound to setting."
-			);
-		}
+
 		switch ($type->getName()) {
 			case 'int':
 				$property->setValue($obj, (int)$value);
