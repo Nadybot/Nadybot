@@ -12,7 +12,6 @@ use Nadybot\Core\{
 	DBSchema\Audit,
 	ModuleInstance,
 	QueryBuilder,
-	SettingManager,
 	Text,
 };
 use Nadybot\Modules\WEBSERVER_MODULE\{
@@ -33,9 +32,6 @@ use Nadybot\Modules\WEBSERVER_MODULE\{
 class AuditController extends ModuleInstance {
 	#[NCA\Inject]
 	public DB $db;
-
-	#[NCA\Inject]
-	public SettingManager $settingManager;
 
 	#[NCA\Inject]
 	public Text $text;
