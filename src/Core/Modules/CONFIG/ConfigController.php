@@ -675,12 +675,6 @@ class ConfigController extends ModuleInstance {
 			}
 
 			$displayValue = $row->displayValue($context->char->name);
-			if (str_ends_with($row->getData()->name, "_db_version")) {
-				$unixTime = $row->getData()->value??"0";
-				if (preg_match("/^\d+$/", $unixTime)) {
-					$displayValue = "<highlight>" . $this->util->date((int)$unixTime) . "<end>";
-				}
-			}
 			$blob .= ": {$displayValue}\n";
 		}
 

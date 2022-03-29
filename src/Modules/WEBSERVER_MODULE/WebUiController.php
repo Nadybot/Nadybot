@@ -68,7 +68,7 @@ class WebUiController extends ModuleInstance implements MessageEmitter {
 	public LoggerWrapper $logger;
 
 	/** The currently installed NadyUI version */
-	#[NCA\Setting\Number(mode: 'noedit')]
+	#[NCA\Setting\Timestamp(mode: 'noedit')]
 	public int $nadyuiVersion = 0;
 
 	#[NCA\Setup]

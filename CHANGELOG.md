@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Database table versions are displayed with a date and time (if possible)
 - Changed the Core module settings to using attributes
 - Text settings with empty strings are now marked as &lt;empty&gt;
+- New 'timestamp' setting type
 
 ### Removed
 

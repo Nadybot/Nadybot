@@ -64,7 +64,7 @@ class ChatTopicController extends ModuleInstance {
 	public string $topicSetby = "";
 
 	/** Time the topic was set */
-	#[NCA\Setting\Number(mode: "noedit")]
+	#[NCA\Setting\Timestamp(mode: "noedit")]
 	public int $topicTime = 0;
 
 	/**
