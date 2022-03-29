@@ -55,7 +55,7 @@ class GuildRankController extends ModuleInstance implements AccessLevelProvider 
 
 	#[NCA\Inject]
 	public GuildController $guildController;
-	#
+
 	#[NCA\Inject]
 	public GuildManager $guildManager;
 
