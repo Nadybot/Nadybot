@@ -26,6 +26,7 @@ use Nadybot\Core\Routing\Source;
  */
 #[
 	NCA\Instance,
+	NCA\HasMigrations,
 	NCA\DefineCommand(
 		command: "massmsg",
 		accessLevel: "mod",
@@ -146,12 +147,10 @@ class MassMsgController extends ModuleInstance {
 		}
 		$message = "<highlight>Message from {$context->char->name}<end>: ".
 			"{$this->massmsgColor}{$message}<end>";
-		$this->chatBot->sendPrivate($message, true);
-		$this->chatBot->sendGuild($message, true);
 		$rMessage = new RoutableMessage($message);
 		$rMessage->prependPath(new Source(
-			MassChannel::TYPE,
-			"message",
+			Source::SYSTEM,
+			"mass-message",
 			'Mass Message'
 		));
 		$this->messageHub->handle($rMessage);
@@ -180,12 +179,10 @@ class MassMsgController extends ModuleInstance {
 		}
 		$message = "<highlight>Invite from {$context->char->name}<end>: ".
 			"{$this->massmsgColor}{$message}<end>";
-		$this->chatBot->sendPrivate($message, true);
-		$this->chatBot->sendGuild($message, true);
 		$rMessage = new RoutableMessage($message);
 		$rMessage->prependPath(new Source(
-			MassChannel::TYPE,
-			'invite',
+			Source::SYSTEM,
+			"mass-invite",
 			'Mass Invite'
 		));
 		$this->messageHub->handle($rMessage);

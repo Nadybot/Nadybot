@@ -3,17 +3,13 @@
 namespace Nadybot\Modules\MASSMSG_MODULE;
 
 use Nadybot\Core\MessageEmitter;
+use Nadybot\Core\Routing\Source;
 
 class MassChannel implements MessageEmitter {
-	public const TYPE = "mass";
-
-	protected string $channel;
-
-	public function __construct(string $channel) {
-		$this->channel = $channel;
+	public function __construct(protected string $channel) {
 	}
 
 	public function getChannelName(): string {
-		return self::TYPE . "({$this->channel})";
+		return Source::SYSTEM . "(mass-{$this->channel})";
 	}
 }
