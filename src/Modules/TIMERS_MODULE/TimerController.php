@@ -21,7 +21,6 @@ use Nadybot\Core\{
 	Registry,
 	Routing\RoutableMessage,
 	Routing\Source,
-	SettingManager,
 	SQLException,
 	Text,
 	Util,
@@ -77,13 +76,17 @@ class TimerController extends ModuleInstance implements MessageEmitter {
 	public DiscordController $discordController;
 
 	#[NCA\Inject]
-	public SettingManager $settingManager;
-
-	#[NCA\Inject]
 	public EventManager $eventManager;
 
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
+
+	/** Times to display timer alerts */
+	#[NCA\Setting\Text(
+		options: ["1h 15m 1m"],
+		help: 'timer_alert_times.txt',
+	)]
+	public string $timerAlertTimes = '1h 15m 1m';
 
 	/** @var array<string,Timer> */
 	private $timers = [];
@@ -107,20 +110,6 @@ class TimerController extends ModuleInstance implements MessageEmitter {
 			$this->timers[strtolower($timer->name)] = $timer;
 		});
 
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: 'timer_alert_times',
-			description: 'Times to display timer alerts',
-			mode: 'edit',
-			type: 'text',
-			value: '1h 15m 1m',
-			options: ["1h 15m 1m"],
-			help: 'timer_alert_times.txt'
-		);
-		$this->settingManager->registerChangeListener(
-			'timer_alert_times',
-			[$this, 'changeTimerAlertTimes']
-		);
 		$this->messageHub->registerMessageEmitter($this);
 	}
 
@@ -134,6 +123,7 @@ class TimerController extends ModuleInstance implements MessageEmitter {
 		return $data;
 	}
 
+	#[NCA\SettingChangeHandler('timer_alert_times')]
 	public function changeTimerAlertTimes(string $settingName, string $oldValue, string $newValue, mixed $data): void {
 		$alertTimes = array_reverse(explode(' ', $newValue));
 		$oldTime = 0;
@@ -202,7 +192,7 @@ class TimerController extends ModuleInstance implements MessageEmitter {
 			return;
 		}
 		$endTime = (int)$timer->data + $alert->time;
-		$alerts = $this->generateAlerts($timer->owner, $timer->name, $endTime, explode(' ', $this->settingManager->getString("timer_alert_times")??""));
+		$alerts = $this->generateAlerts($timer->owner, $timer->name, $endTime, explode(' ', $this->timerAlertTimes));
 		$this->remove($timer->id);
 		$this->add($timer->name, $timer->owner, $timer->mode, $alerts, $timer->callback, $timer->data, $timer->origin);
 	}
@@ -291,7 +281,7 @@ class TimerController extends ModuleInstance implements MessageEmitter {
 
 		$endTime = time() + $initialRunTime;
 
-		$alerts = $this->generateAlerts($context->char->name, $name, $endTime, explode(' ', $this->settingManager->getString("timer_alert_times")??""));
+		$alerts = $this->generateAlerts($context->char->name, $name, $endTime, explode(' ', $this->timerAlertTimes));
 
 		$sendto = $context->sendto;
 		$origin = ($sendto instanceof MessageEmitter) ? $sendto->getChannelName() : null;
@@ -505,7 +495,7 @@ class TimerController extends ModuleInstance implements MessageEmitter {
 		$endTime = time() + $runTime;
 
 		if ($alerts === null) {
-			$alerts = $this->generateAlerts($sender, $name, $endTime, explode(' ', $this->settingManager->getString("timer_alert_times")??""));
+			$alerts = $this->generateAlerts($sender, $name, $endTime, explode(' ', $this->timerAlertTimes));
 		}
 
 		$this->add($name, $sender, $channel, $alerts, 'timercontroller.timerCallback', null, $origin);
@@ -612,7 +602,7 @@ class TimerController extends ModuleInstance implements MessageEmitter {
 		}
 		$event->name = $timerName;
 
-		$alerts = $this->generateAlerts($event->owner, $event->name, $event->endtime, explode(' ', $this->settingManager->getString("timer_alert_times")??""));
+		$alerts = $this->generateAlerts($event->owner, $event->name, $event->endtime, explode(' ', $this->timerAlertTimes));
 		if (isset($event->interval)) {
 			$this->add($event->name, $event->owner, null, $alerts, "timercontroller.repeatingTimerCallback", (string)$event->interval);
 		} else {

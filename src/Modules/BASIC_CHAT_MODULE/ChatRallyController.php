@@ -61,17 +61,9 @@ class ChatRallyController extends ModuleInstance {
 	#[NCA\Inject]
 	public ChatLeaderController $chatLeaderController;
 
-	#[NCA\Setup]
-	public function setup(): void {
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: "rally",
-			description: "Rally waypoint for topic",
-			mode: "noedit",
-			type: "text",
-			value: ""
-		);
-	}
+	/** Rally waypoint for topic */
+	#[NCA\Setting\Text(mode: "noedit")]
+	public string $rally = "";
 
 	/**
 	 * Display the current rally location
@@ -233,7 +225,7 @@ class ChatRallyController extends ModuleInstance {
 	}
 
 	public function get(): string {
-		$data = $this->settingManager->getString("rally")??"";
+		$data = $this->rally;
 		if (strpos($data, ":") === false) {
 			return "";
 		}
@@ -268,7 +260,7 @@ class ChatRallyController extends ModuleInstance {
 		)
 	]
 	public function rallyTile(string $sender, callable $callback): void {
-		$data = $this->settingManager->getString("rally")??"";
+		$data = $this->rally;
 		if (strpos($data, ":") === false) {
 			$callback(null);
 			return;

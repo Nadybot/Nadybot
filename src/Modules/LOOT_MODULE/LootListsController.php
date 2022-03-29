@@ -13,7 +13,6 @@ use Nadybot\Core\{
 	DB,
 	ModuleInstance,
 	Nadybot,
-	SettingManager,
 	Text,
 	Util,
 };
@@ -131,7 +130,7 @@ use Nadybot\Modules\{
 		accessLevel: "guest",
 		description: "Shows Legacy of the Xan loot categories",
 		alias: 'xan',
-	)
+	),
 ]
 class LootListsController extends ModuleInstance {
 	#[NCA\Inject]
@@ -145,9 +144,6 @@ class LootListsController extends ModuleInstance {
 
 	#[NCA\Inject]
 	public Util $util;
-
-	#[NCA\Inject]
-	public SettingManager $settingManager;
 
 	#[NCA\Inject]
 	public LootController $lootController;
@@ -167,17 +163,13 @@ class LootListsController extends ModuleInstance {
 	#[NCA\Inject]
 	public CommandManager $commandManager;
 
+	/** Show pictures in loot lists */
+	#[NCA\Setting\Boolean]
+	public bool $showRaidLootPics = false;
+
 	#[NCA\Setup]
 	public function setup(): void {
 		$this->db->loadCSVFile($this->moduleName, __DIR__ . "/raid_loot.csv");
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: 'show_raid_loot_pics',
-			description: 'Show pictures in loot lists',
-			mode: 'edit',
-			type: 'bool',
-			value: '0'
-		);
 		$aliases = [
 			'beastarmor' => "pande Beast Armor",
 			'beastweaps' => "pande Beast Weapons",
@@ -792,7 +784,7 @@ class LootListsController extends ModuleInstance {
 		}
 
 		$blob = "\n<pagebreak><header2>{$category}<end>\n\n";
-		$showLootPics = $this->settingManager->get('show_raid_loot_pics');
+		$showLootPics = $this->showRaidLootPics;
 		foreach ($loot as $row) {
 			$actions = [];
 			if ($lootEnabled) {

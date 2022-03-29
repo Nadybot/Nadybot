@@ -15,7 +15,6 @@ use Nadybot\Core\{
 	ParamClass\PItem,
 	ParamClass\PQuantity,
 	ParamClass\PRemove,
-	SettingManager,
 	Text,
 	Modules\PLAYER_LOOKUP\PlayerManager,
 };
@@ -69,7 +68,7 @@ use Nadybot\Modules\{
 		command: "rem",
 		accessLevel: "guest",
 		description: "Remove yourself from a roll slot",
-	)
+	),
 ]
 class LootController extends ModuleInstance {
 	public const CMD_LOOT_MANAGE = "loot add/change/delete";
@@ -79,9 +78,6 @@ class LootController extends ModuleInstance {
 
 	#[NCA\Inject]
 	public Nadybot $chatBot;
-
-	#[NCA\Inject]
-	public SettingManager $settingManager;
 
 	#[NCA\Inject]
 	public PlayerManager $playerManager;
@@ -101,6 +97,18 @@ class LootController extends ModuleInstance {
 	#[NCA\Inject]
 	public ChatLeaderController $chatLeaderController;
 
+	/** Confirmation messages for adding to loot */
+	#[NCA\Setting\Options(options: [
+		'tells' => 1,
+		'privatechat' => 2,
+		'privatechat and tells' => 3,
+	])]
+	public int $addOnLoot = 2;
+
+	/** Show pictures in loot-command */
+	#[NCA\Setting\Boolean]
+	public bool $showLootPics = true;
+
 	/**
 	 * The currently rolled items
 	 * @var LootItem[]
@@ -115,28 +123,6 @@ class LootController extends ModuleInstance {
 
 	#[NCA\Setup]
 	public function setup(): void {
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: "add_on_loot",
-			description: "Confirmation messages for adding to loot",
-			mode: "edit",
-			type: "options",
-			value: "2",
-			options: [
-				'tells' => 1,
-				'privatechat' => 2,
-				'privatechat and tells' => 3,
-			],
-		);
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: 'show_loot_pics',
-			description: 'Show pictures in loot-command',
-			mode: 'edit',
-			type: 'bool',
-			value: '1'
-		);
-
 		$this->commandAlias->register($this->moduleName, "loot addmulti", "multiloot");
 	}
 
@@ -587,10 +573,10 @@ class LootController extends ModuleInstance {
 			$tellMsg = "You changedto <highlight>\"{$this->loot[$slot]->name}\"<end>.";
 		}
 
-		if (($this->settingManager->getInt('add_on_loot')??2) & 1) {
+		if ($this->addOnLoot & 1) {
 			$this->chatBot->sendMassTell($tellMsg, $context->char->name);
 		}
-		if (($this->settingManager->getInt('add_on_loot')??2) & 2) {
+		if ($this->addOnLoot & 2) {
 			$this->chatBot->sendPrivate($privMsg);
 		}
 	}
@@ -621,10 +607,10 @@ class LootController extends ModuleInstance {
 					$privMsg = "{$context->char->name} removed himself from all rolls.";
 				}
 				$tellMsg = "You removed yourself from all rolls.";
-				if (($this->settingManager->getInt('add_on_loot')??2) & 1) {
+				if ($this->addOnLoot & 1) {
 					$this->chatBot->sendMassTell($tellMsg, $context->char->name);
 				}
-				if (($this->settingManager->getInt('add_on_loot')??2) & 2) {
+				if ($this->addOnLoot & 2) {
 					$this->chatBot->sendPrivate($privMsg);
 				}
 			},
@@ -652,7 +638,7 @@ class LootController extends ModuleInstance {
 			$added_players = count($item->users);
 			$players += $added_players;
 
-			if ($item->icon !== null && $this->settingManager->getBool('show_loot_pics')) {
+			if ($item->icon !== null && $this->showLootPics) {
 				$list .= $this->text->makeImage($item->icon) . "\n";
 			}
 

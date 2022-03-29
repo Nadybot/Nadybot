@@ -10,7 +10,6 @@ use Nadybot\Core\{
 	LoggerWrapper,
 	Nadybot,
 	QueryBuilder,
-	SettingManager,
 	Timer,
 };
 
@@ -23,9 +22,6 @@ class PlayerLookupJob {
 
 	#[NCA\Inject]
 	public PlayerManager $playerManager;
-
-	#[NCA\Inject]
-	public SettingManager $settingManager;
 
 	#[NCA\Inject]
 	public Timer $timer;
@@ -72,7 +68,7 @@ class PlayerLookupJob {
 	 * @psalm-param callable(mixed...) $callback
 	 */
 	public function run(callable $callback, mixed ...$args): void {
-		$numJobs = $this->settingManager->getInt('lookup_jobs');
+		$numJobs = $this->playerManager->lookupJobs;
 		if ($numJobs === 0) {
 			$callback(...$args);
 			return;

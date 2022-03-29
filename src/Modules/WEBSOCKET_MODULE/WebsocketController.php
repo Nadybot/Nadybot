@@ -16,7 +16,6 @@ use Nadybot\Core\{
 	MessageHub,
 	PacketEvent,
 	Registry,
-	SettingManager,
 	WebsocketBase,
 	WebsocketCallback,
 	WebsocketServer,
@@ -48,33 +47,26 @@ class WebsocketController extends ModuleInstance {
 	public WebChatConverter $webChatConverter;
 
 	#[NCA\Inject]
-	public SettingManager $settingManager;
-
-	#[NCA\Inject]
 	public MessageHub $messageHub;
 
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
+
+	/** Enable the websocket handler */
+	#[NCA\Setting\Boolean]
+	public bool $websocket = true;
 
 	/** @var array<string,WebsocketServer> */
 	protected array $clients = [];
 
 	#[NCA\Setup]
 	public function setup(): void {
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: 'websocket',
-			description: 'Enable the websocket handler',
-			mode: 'edit',
-			type: 'bool',
-			value: '1'
-		);
-		$this->settingManager->registerChangeListener("websocket", [$this, "changeWebsocketStatus"]);
-		if ($this->settingManager->getBool("websocket")) {
+		if ($this->websocket) {
 			$this->registerWebChat();
 		}
 	}
 
+	#[NCA\SettingChangeHandler('websocket')]
 	public function changeWebsocketStatus(string $setting, string $oldValue, string $newValue, mixed $extraData): void {
 		if ($newValue === "1") {
 			$this->registerWebChat();
@@ -103,7 +95,7 @@ class WebsocketController extends ModuleInstance {
 		NCA\HttpGet("/events"),
 	]
 	public function handleWebsocketStart(Request $request, HttpProtocolWrapper $server): void {
-		if (!$this->settingManager->getBool('websocket')) {
+		if (!$this->websocket) {
 			return;
 		}
 		$response = $this->getResponseForWebsocketRequest($request);

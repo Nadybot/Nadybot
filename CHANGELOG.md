@@ -7,9 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Allow adding settings via Attributes
+
+### Changed
+
+- Database table versions are displayed with a date and time (if possible)
+- Changed the Core module settings to using attributes
+- Text settings with empty strings are now marked as &lt;empty&gt;
+- New 'timestamp' setting type
+
+### Removed
+
+- Removed unused setting "Show icons for the nanolines"
+
 ### Fixed
 
 - The deduplication-handler for logging should no longer run out of memory
+- The "Show test results" setting once again has an effect
+- The "Confirmed news count for all alts" setting now works again
 
 ## [6.0.0-beta.1] - 2022-03-22
 

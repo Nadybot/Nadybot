@@ -4,123 +4,45 @@ namespace Nadybot\Core\Modules\COLORS;
 
 use Nadybot\Core\{
 	Attributes as NCA,
+	Attributes\Setting\Color,
 	ModuleInstance,
-	SettingManager,
 };
 
 #[NCA\Instance]
 class ColorsController extends ModuleInstance {
-	#[NCA\Inject]
-	public SettingManager $settingManager;
+	/** default guild color */
+	#[Color] public string $defaultGuildColor = "#89D2E8";
 
-	#[NCA\Setup]
-	public function setup(): void {
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: "default_guild_color",
-			description: "default guild color",
-			mode: "edit",
-			type: "color",
-			value: "<font color='#89D2E8'>",
-		);
+	/** default private channel color */
+	#[Color] public string $defaultPrivColor = "#89D2E8";
 
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: "default_priv_color",
-			description: "default private channel color",
-			mode: "edit",
-			type: "color",
-			value: "<font color='#89D2E8'>",
-		);
+	/** default window color */
+	#[Color] public string $defaultWindowColor = "#89D2E8";
 
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: "default_window_color",
-			description: "default window color",
-			mode: "edit",
-			type: "color",
-			value: "<font color='#89D2E8'>",
-		);
+	/** default tell color */
+	#[Color] public string $defaultTellColor = "#89D2E8";
 
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: "default_tell_color",
-			description: "default tell color",
-			mode: "edit",
-			type: "color",
-			value: "<font color='#89D2E8'>",
-		);
+	/** default routed system color */
+	#[Color] public string $defaultRoutedSysColor = "#89D2E8";
 
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: "default_routed_sys_color",
-			description: "default routed system color",
-			mode: "edit",
-			type: "color",
-			value: "<font color='#89D2E8'>",
-		);
+	/** default highlight color */
+	#[Color] public string $defaultHighlightColor = "#FFFFFF";
 
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: "default_highlight_color",
-			description: "default highlight color",
-			mode: "edit",
-			type: "color",
-			value: "<font color='#FFFFFF'>",
-		);
+	/** default header color */
+	#[Color] public string $defaultHeaderColor = "#FFFF00";
 
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: "default_header_color",
-			description: "default header color",
-			mode: "edit",
-			type: "color",
-			value: "<font color='#FFFF00'>",
-		);
+	/** default header2 color */
+	#[Color] public string $defaultHeader2Color = "#FCA712";
 
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: "default_header2_color",
-			description: "default header2 color",
-			mode: "edit",
-			type: "color",
-			value: "<font color='#FCA712'>",
-		);
+	/** default clan color */
+	#[Color] public string $defaultClanColor = "#F79410";
 
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: "default_clan_color",
-			description: "default clan color",
-			mode: "edit",
-			type: "color",
-			value: "<font color='#F79410'>",
-		);
+	/** default omni color */
+	#[Color] public string $defaultOmniColor = "#00FFFF";
 
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: "default_omni_color",
-			description: "default omni color",
-			mode: "edit",
-			type: "color",
-			value: "<font color='#00FFFF'>",
-		);
+	/** default neut color */
+	#[Color] public string $defaultNeutColor = "#E6E1A6";
 
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: "default_neut_color",
-			description: "default neut color",
-			mode: "edit",
-			type: "color",
-			value: "<font color='#E6E1A6'>",
-		);
-
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: "default_unknown_color",
-			description: "default unknown color",
-			type: "color",
-			mode: "edit",
-			value: "<font color='#FF0000'>"
-		);
-	}
+	/** default unknown color */
+	#[Color] public string $defaultUnknownColor = "#FF0000";
 }

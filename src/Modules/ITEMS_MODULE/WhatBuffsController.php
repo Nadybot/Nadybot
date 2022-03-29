@@ -16,7 +16,6 @@ use Nadybot\Core\{
 	LoggerWrapper,
 	QueryBuilder,
 	ParamClass\PWord,
-	SettingManager,
 	Text,
 	Util,
 };
@@ -40,7 +39,7 @@ use Nadybot\Modules\SKILLS_MODULE\{
 		accessLevel: "guest",
 		description: "Find froob-friendly items or nanos that buff an ability or skill",
 		alias: "wbf"
-	)
+	),
 ]
 class WhatBuffsController extends ModuleInstance {
 	#[NCA\Inject]
@@ -59,9 +58,6 @@ class WhatBuffsController extends ModuleInstance {
 	public CommandManager $commandManager;
 
 	#[NCA\Inject]
-	public SettingManager $settingManager;
-
-	#[NCA\Inject]
 	public ItemsController $itemsController;
 
 	#[NCA\Inject]
@@ -73,6 +69,30 @@ class WhatBuffsController extends ModuleInstance {
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
+	/** How to mark if an item can only be equipped left or right */
+	#[NCA\Setting\Options(options: [
+		'Do not mark' => 0,
+		'L/R' => 1,
+		'L-Wrist/R-Wrist' => 2,
+	])]
+	public int $whatbuffsDisplay = 2;
+
+	/** How to mark unique items */
+	#[NCA\Setting\Options(options: [
+		'Do not mark' => 0,
+		'U' => 1,
+		'Unique' => 2,
+	])]
+	public int $whatbuffsShowUnique = 2;
+
+	/** How to mark nodrop items */
+	#[NCA\Setting\Options(options: [
+		'Do not mark' => 0,
+		'ND' => 1,
+		'Nodrop' => 2,
+	])]
+	public int $whatbuffsShowNodrop = 0;
+
 	#[NCA\Setup]
 	public function setup(): void {
 		$this->db->loadCSVFile($this->moduleName, __DIR__ . "/item_buffs.csv");
@@ -80,46 +100,6 @@ class WhatBuffsController extends ModuleInstance {
 		$this->db->loadCSVFile($this->moduleName, __DIR__ . "/skill_alias.csv");
 		$this->db->loadCSVFile($this->moduleName, __DIR__ . "/item_types.csv");
 		$this->db->loadCSVFile($this->moduleName, __DIR__ . "/buffs.csv");
-
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: 'whatbuffs_display',
-			description: 'How to mark if an item can only be equipped left or right',
-			mode: 'edit',
-			type: 'options',
-			value: '2',
-			options: [
-				'Do not mark' => 0,
-				'L/R' => 1,
-				'L-Wrist/R-Wrist' => 2,
-			],
-		);
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: 'whatbuffs_show_unique',
-			description: 'How to mark unique items',
-			mode: 'edit',
-			type: 'options',
-			value: '2',
-			options: [
-				'Do not mark' => 0,
-				'U' => 1,
-				'Unique' => 2,
-			],
-		);
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: 'whatbuffs_show_nodrop',
-			description: 'How to mark nodrop items',
-			mode: 'edit',
-			type: 'options',
-			value: '0',
-			options: [
-				'Do not mark' => 0,
-				'ND' => 1,
-				'Nodrop' => 2,
-			],
-		);
 	}
 
 	/** Show a list of attributes and skills that are being buffed */
@@ -636,8 +616,8 @@ class WhatBuffsController extends ModuleInstance {
 	 * @psalm-return array{0: int, 1:string}
 	 */
 	public function formatItems(array $items, Skill $skill, string $category): array {
-		$showUniques = $this->settingManager->getInt('whatbuffs_show_unique');
-		$showNodrops = $this->settingManager->getInt('whatbuffs_show_nodrop');
+		$showUniques = $this->whatbuffsShowUnique;
+		$showNodrops = $this->whatbuffsShowNodrop;
 		$blob = "<header2>" . ucfirst($this->locationToItem($category)) . " that buff {$skill->name}<end>\n";
 		$maxBuff = 0;
 		$itemMapping = [];
@@ -719,7 +699,7 @@ class WhatBuffsController extends ModuleInstance {
 	}
 
 	protected function getSlotPrefix(ItemBuffSearchResult $item, string $category): string {
-		$markSetting = $this->settingManager->getInt('whatbuffs_display');
+		$markSetting = $this->whatbuffsDisplay;
 		$result = "";
 		if ($item->multi_m !== null || $item->multi_r !== null) {
 			$handsMask = Slot::LHAND|Slot::RHAND;

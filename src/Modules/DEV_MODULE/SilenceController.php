@@ -50,10 +50,6 @@ class SilenceController extends ModuleInstance {
 
 	public const NULL_COMMAND_HANDLER = "SilenceController.nullCommand";
 
-	#[NCA\Setup]
-	public function setup(): void {
-	}
-
 	/** Get a list of all commands that have been silenced */
 	#[NCA\HandlesCommand("silence")]
 	public function silenceCommand(CmdContext $context): void {

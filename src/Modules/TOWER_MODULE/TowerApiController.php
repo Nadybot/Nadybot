@@ -10,7 +10,6 @@ use Nadybot\Core\{
 	Http,
 	HttpResponse,
 	ModuleInstance,
-	SettingManager,
 };
 
 #[NCA\Instance]
@@ -23,52 +22,32 @@ class TowerApiController extends ModuleInstance {
 	public Http $http;
 
 	#[NCA\Inject]
-	public SettingManager $settingManager;
-
-	#[NCA\Inject]
 	public TowerController $towerController;
+
+	/** Which API to use for querying tower infos */
+	#[NCA\Setting\Text(options: [self::API_NONE, self::API_TYRENCE])]
+	public string $towerApi = self::API_TYRENCE;
+
+	/** How long to cache data from the Tower API */
+	#[NCA\Setting\Options(options: [
+		'1 min' => 60,
+		'5 min' => 300,
+		'10 min' => 600,
+		'15 min' => 900,
+		'30 min' => 1800,
+		'1 hour' => 3600,
+		'2 hours' => 7200,
+	])]
+	public int $towerCacheDuration = 10 * 60; // 10 mins
 
 	/** @var array<string,ApiCache> */
 	protected array $cache = [];
 
-	#[NCA\Setup]
-	public function setup(): void {
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: static::TOWER_API,
-			description: "Which API to use for querying tower infos",
-			mode: "edit",
-			type: "text",
-			value: static::API_TYRENCE,
-			options: [static::API_NONE, static::API_TYRENCE],
-		);
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: "tower_cache_duration",
-			description: "How long to cache data from the Tower API",
-			mode: "edit",
-			type: "options",
-			value: "600",
-			options: [
-				'1 min' => 60,
-				'5 min' => 300,
-				'10 min' => 600,
-				'15 min' => 900,
-				'30 min' => 1800,
-				'1 hour' => 3600,
-				'2 hours' => 7200,
-			]
-		);
-		$this->settingManager->registerChangeListener(
-			static::TOWER_API,
-			[$this, "verifyTowerAPI"]
-		);
-	}
-
 	public function isActive(): bool {
-		return $this->settingManager->getString(static::TOWER_API) !== static::API_NONE;
+		return $this->towerApi !== static::API_NONE;
 	}
 
+	#[NCA\SettingChangeHandler(self::TOWER_API)]
 	public function verifyTowerAPI(string $settingName, string $oldValue, string $newValue, mixed $data): void {
 		if ($newValue === static::API_NONE) {
 			return;
@@ -107,7 +86,7 @@ class TowerApiController extends ModuleInstance {
 	 * @psalm-param callable(?ApiResult, mixed...) $callback
 	 */
 	public function call(array $params, callable $callback, mixed ...$args): void {
-		$roundTo = $this->settingManager->getInt('tower_cache_duration') ?? 600;
+		$roundTo = $this->towerCacheDuration;
 		if (isset($params["min_close_time"])) {
 			$params["min_close_time"] -= $params["min_close_time"] % $roundTo;
 		}
@@ -123,7 +102,7 @@ class TowerApiController extends ModuleInstance {
 				return;
 			}
 		}
-		$apiURL = $this->settingManager->getString(static::TOWER_API) ?? static::API_TYRENCE;
+		$apiURL = $this->towerApi;
 		if ($apiURL === static::API_NONE) {
 			$apiURL = static::API_TYRENCE;
 		}
@@ -151,7 +130,7 @@ class TowerApiController extends ModuleInstance {
 			return;
 		}
 		$apiCache = new ApiCache();
-		$apiCache->validUntil = time() + ($this->settingManager->getInt('tower_cache_duration') ?? 600);
+		$apiCache->validUntil = time() + $this->towerCacheDuration;
 		$apiCache->result = $result;
 		$this->cache[$cacheKey] = $apiCache;
 		$callback($result, ...$args);

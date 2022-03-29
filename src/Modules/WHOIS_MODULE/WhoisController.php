@@ -17,7 +17,6 @@ use Nadybot\Core\{
 	Nadybot,
 	PacketEvent,
 	ParamClass\PCharacter,
-	SettingManager,
 	Text,
 	UserStateEvent,
 	Util,
@@ -70,8 +69,9 @@ class WhoisController extends ModuleInstance {
 	#[NCA\Inject]
 	public CommentController $commentController;
 
-	#[NCA\Inject]
-	public SettingManager $settingManager;
+	/** Add link to comments if found */
+	#[NCA\Setting\Boolean]
+	public bool $whoisAddComments = true;
 
 	/** @var CharData[] */
 	private array $nameHistoryCache = [];
@@ -80,18 +80,6 @@ class WhoisController extends ModuleInstance {
 	 * @var array<string,CommandReply>
 	 */
 	private $replyInfo = [];
-
-	#[NCA\Setup]
-	public function setup(): void {
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: 'whois_add_comments',
-			description: 'Add link to comments if found',
-			mode: 'edit',
-			type: 'bool',
-			value: '1',
-		);
-	}
 
 	#[NCA\Event(
 		name: "timer(1min)",
@@ -338,7 +326,7 @@ class WhoisController extends ModuleInstance {
 			$msg .= " :: <red>Offline<end>";
 		}
 		$msg .= " :: " . ((array)$this->text->makeBlob("More Info", $blob, "Detailed Info for {$name}"))[0];
-		if ($this->settingManager->getBool('whois_add_comments')) {
+		if ($this->whoisAddComments) {
 			$numComments = $this->commentController->countComments(null, $whois->name);
 			if ($numComments) {
 				$comText = ($numComments > 1) ? "$numComments Comments" : "1 Comment";

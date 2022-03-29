@@ -34,7 +34,7 @@ use Nadybot\Core\{
 		command: "id",
 		accessLevel: "guest",
 		description: "Searches for an itemid by name",
-	)
+	),
 ]
 class ItemsController extends ModuleInstance {
 	#[NCA\Inject]
@@ -58,6 +58,10 @@ class ItemsController extends ModuleInstance {
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
+	/** Number of items shown on the list */
+	#[NCA\Setting\Number(options: [30, 40, 50, 60])]
+	public int $maxitems = 40;
+
 	/** @var array<int,Skill> */
 	private array $skills = [];
 
@@ -67,15 +71,6 @@ class ItemsController extends ModuleInstance {
 		$this->db->loadCSVFile($this->moduleName, __DIR__ . "/item_groups.csv");
 		$this->db->loadCSVFile($this->moduleName, __DIR__ . "/item_group_names.csv");
 
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: 'maxitems',
-			description: 'Number of items shown on the list',
-			mode: 'edit',
-			type: 'number',
-			value: '40',
-			options: ["30", "40", "50", "60"]
-		);
 		$this->skills = $this->db->table("skills")
 			->asObj(Skill::class)
 			->keyBy("id")
@@ -249,7 +244,7 @@ class ItemsController extends ModuleInstance {
 			->orderByColFunc("COALESCE", ["gn.name", "a.name"])
 			->orderBy("a.lowql")
 			->select("a.*")
-			->limit($this->settingManager->getInt('maxitems')??40);
+			->limit($this->maxitems);
 		$tmp = explode(" ", $search);
 		$this->db->addWhereFromParams($query, $tmp, "a.name");
 		/** @var AODBEntry[] */
@@ -268,8 +263,8 @@ class ItemsController extends ModuleInstance {
 				"         " . (($item->highid === $item->lowid) ? "         <black>|<end>" : $this->text->alignNumber($item->highql, 3) . "    ").
 				$item->name . "\n";
 		}
-		if (count($items) === ($this->settingManager->getInt('maxitems')??40)) {
-			$blob .= "\n\n<highlight>*Results have been limited to the first " . ($this->settingManager->getInt("maxitems")??40) . " results.<end>";
+		if (count($items) === $this->maxitems) {
+			$blob .= "\n\n<highlight>*Results have been limited to the first {$this->maxitems} results.<end>";
 		}
 		$msg = $this->text->makeBlob("Items matching \"{$search}\" (" . count($items) . ")", $blob);
 		$context->reply($msg);
@@ -320,7 +315,7 @@ class ItemsController extends ModuleInstance {
 			->groupBy("a.icon", "a.froob_friendly", "a.slot", "a.flags", "g.group_id")
 			->orderBy("a.name")
 			->orderByDesc("a.highql")
-			->limit($this->settingManager->getInt('maxitems')??40)
+			->limit($this->maxitems)
 			->select("a.*", "g.group_id");
 		$query = $this->db->fromSub($innerQuery, "foo")
 			->leftJoin("item_groups AS g", "foo.group_id", "g.group_id")
@@ -390,8 +385,8 @@ class ItemsController extends ModuleInstance {
 		}
 		$blob .= "\n";
 		$blob .= $this->formatSearchResults($data, $ql, true, $search);
-		if ($numItems === $this->settingManager->getInt('maxitems')) {
-			$blob .= "\n\n<highlight>*Results have been limited to the first " . ($this->settingManager->getInt("maxitems")??40) . " results.<end>";
+		if ($numItems === $this->maxitems) {
+			$blob .= "\n\n<highlight>*Results have been limited to the first {$this->maxitems} results.<end>";
 		}
 		$blob .= "\n\n" . $footer;
 		$link = $this->text->makeBlob("Item Search Results ($numItems)", $blob);

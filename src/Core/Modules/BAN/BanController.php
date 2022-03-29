@@ -20,7 +20,6 @@ use Nadybot\Core\{
 	ParamClass\PCharacter,
 	ParamClass\PDuration,
 	ParamClass\PRemove,
-	SettingManager,
 	Text,
 	DB,
 	DBSchema\BanEntry,
@@ -53,7 +52,7 @@ use Nadybot\Core\{
 		accessLevel: "mod",
 		description: "Ban or unban a whole org",
 		alias: "orgbans"
-	)
+	),
 ]
 class BanController extends ModuleInstance {
 	public const DB_TABLE = "banlist_<myname>";
@@ -78,13 +77,14 @@ class BanController extends ModuleInstance {
 	public Nadybot $chatBot;
 
 	#[NCA\Inject]
-	public SettingManager $settingManager;
-
-	#[NCA\Inject]
 	public Text $text;
 
 	#[NCA\Inject]
 	public DB $db;
+
+	/** Always ban all alts, not just 1 char */
+	#[NCA\Setting\Boolean]
+	public bool $banAllAlts = false;
 
 	/**
 	 * List of all banned players, indexed by UID
@@ -98,29 +98,15 @@ class BanController extends ModuleInstance {
 	 */
 	private $orgbanlist = [];
 
+	/** Notify character when banned from bot */
+	#[NCA\Setting\Boolean]
+	public bool $notifyBannedPlayer = true;
+
 	#[NCA\Setup]
 	public function setup(): void {
 		if ($this->db->schema()->hasTable("players")) {
 			$this->uploadBanlist();
 		}
-
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: "notify_banned_player",
-			description: "Notify character when banned from bot",
-			mode: "edit",
-			type: "bool",
-			value: "1"
-		);
-
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: "ban_all_alts",
-			description: "Always ban all alts, not just 1 char",
-			mode: "edit",
-			type: "bool",
-			value: "0"
-		);
 
 		$this->uploadOrgBanlist();
 	}
@@ -157,7 +143,7 @@ class BanController extends ModuleInstance {
 
 		$timeString = $this->util->unixtimeToReadable($length);
 		$context->reply("You have banned <highlight>{$who}<end> from this bot for {$timeString}.");
-		if (!$this->settingManager->getBool('notify_banned_player')) {
+		if (!$this->notifyBannedPlayer) {
 			return;
 		}
 		$this->chatBot->sendMassTell(
@@ -183,7 +169,7 @@ class BanController extends ModuleInstance {
 
 		$timeString = $this->util->unixtimeToReadable($length);
 		$context->reply("You have banned <highlight>{$who}<end> from this bot for {$timeString}.");
-		if (!$this->settingManager->getBool('notify_banned_player')) {
+		if (!$this->notifyBannedPlayer) {
 			return;
 		}
 		$this->chatBot->sendMassTell(
@@ -211,7 +197,7 @@ class BanController extends ModuleInstance {
 		}
 
 		$context->reply("You have permanently banned <highlight>{$who}<end> from this bot.");
-		if (!$this->settingManager->getBool('notify_banned_player')) {
+		if (!$this->notifyBannedPlayer) {
 			return;
 		}
 		$this->chatBot->sendMassTell(
@@ -235,7 +221,7 @@ class BanController extends ModuleInstance {
 		}
 
 		$context->reply("You have permanently banned <highlight>{$who}<end> from this bot.");
-		if (!$this->settingManager->getBool('notify_banned_player')) {
+		if (!$this->notifyBannedPlayer) {
 			return;
 		}
 		$this->chatBot->sendMassTell(
@@ -309,7 +295,7 @@ class BanController extends ModuleInstance {
 		}
 
 		$context->reply("You have unbanned <highlight>{$who}<end> and all their alts from this bot.");
-		if ($this->settingManager->getBool('notify_banned_player')) {
+		if ($this->notifyBannedPlayer) {
 			$this->chatBot->sendMassTell("You have been unbanned from this bot by {$context->char->name}.", $who);
 		}
 	}
@@ -335,7 +321,7 @@ class BanController extends ModuleInstance {
 		$this->remove($charId);
 
 		$context->reply("You have unbanned <highlight>{$who}<end> from this bot.");
-		if ($this->settingManager->getBool('notify_banned_player')) {
+		if ($this->notifyBannedPlayer) {
 			$this->chatBot->sendMassTell("You have been unbanned from this bot by {$context->char->name}.", $who);
 		}
 	}
@@ -376,7 +362,7 @@ class BanController extends ModuleInstance {
 	 */
 	private function banPlayer(string $who, string $sender, ?int $length, ?string $reason, CommandReply $sendto): bool {
 		$toBan = [$who];
-		if ($this->settingManager->getBool('ban_all_alts')) {
+		if ($this->banAllAlts) {
 			$altInfo = $this->altsController->getAltInfo($who);
 			$toBan = [$altInfo->main, ...$altInfo->getAllValidatedAlts()];
 		}

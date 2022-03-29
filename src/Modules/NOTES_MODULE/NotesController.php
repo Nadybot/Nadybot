@@ -18,7 +18,6 @@ use Nadybot\Core\{
 	Modules\PREFERENCES\Preferences,
 	Nadybot,
 	ParamClass\PRemove,
-	SettingManager,
 	Text,
 	UserStateEvent,
 };
@@ -46,7 +45,7 @@ use Nadybot\Core\{
 		command: "reminderformat",
 		accessLevel: "guild",
 		description: "Displays or changes the reminder format for oneself",
-	)
+	),
 ]
 class NotesController extends ModuleInstance {
 	public const FORMAT_GROUPED = 'grouped';
@@ -83,9 +82,6 @@ class NotesController extends ModuleInstance {
 	public CommandManager $commandManager;
 
 	#[NCA\Inject]
-	public SettingManager $settingManager;
-
-	#[NCA\Inject]
 	public BuddylistManager $buddylistManager;
 
 	#[NCA\Inject]
@@ -94,22 +90,17 @@ class NotesController extends ModuleInstance {
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
+	/** How to display reminder-links in notes */
+	#[NCA\Setting\Options(options: [
+		'off' => 0,
+		'compact' => 1,
+		'verbose' => 2,
+	])]
+	public int $reminderFormat = 2;
+
 	#[NCA\Setup]
 	public function setup(): void {
 		$this->commandAlias->register($this->moduleName, "notes rem", "reminders rem");
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: "reminder_format",
-			description: "How to display reminder-links in notes",
-			mode: "edit",
-			type: "options",
-			value: "2",
-			options: [
-				'off' => 0,
-				'compact' => 1,
-				'verbose' => 2,
-			],
-		);
 	}
 
 	/** Show all your notes */
@@ -195,7 +186,7 @@ class NotesController extends ModuleInstance {
 	protected function renderNotes(array $notes, string $sender): string {
 		$blob = '';
 		$current = '';
-		$format = $this->settingManager->getInt('reminder_format') ?? 2;
+		$format = $this->reminderFormat;
 		if (!$this->commandManager->cmdExecutable('reminders', $sender)) {
 			$format = 0;
 		}

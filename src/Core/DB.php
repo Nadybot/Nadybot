@@ -709,9 +709,9 @@ class DB {
 		$this->settingManager->add(
 			module: $module,
 			name: $settingName,
-			description: $settingName,
+			description: "DB version of {$fileBase}",
 			mode: 'noedit',
-			type: 'text',
+			type: (is_int($version) || preg_match('/^\d+$/', $version)) ? 'timestamp' : 'text',
 			value: "0"
 		);
 

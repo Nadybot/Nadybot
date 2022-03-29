@@ -49,20 +49,11 @@ class PlayerManager extends ModuleInstance {
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
-	public ?PlayerLookupJob $playerLookupJob = null;
+	/** How many jobs in parallel to run to lookup missing character data */
+	#[NCA\Setting\Options(options: ["Off" => 0, 1, 2, 3, 4, 5, 10])]
+	public int $lookupJobs = 0;
 
-	#[NCA\Setup]
-	public function setup(): void {
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: "lookup_jobs",
-			description: "How many jobs in parallel to run to lookup missing character data",
-			mode: "edit",
-			type: "options",
-			value: "0",
-			options: ["Off" => 0, 1, 2, 3, 4, 5, 10],
-		);
-	}
+	public ?PlayerLookupJob $playerLookupJob = null;
 
 	#[NCA\Event(
 		name: "timer(1h)",
@@ -70,7 +61,7 @@ class PlayerManager extends ModuleInstance {
 		defaultStatus: 1
 	)]
 	public function lookupMissingCharacterData(): void {
-		if ($this->settingManager->getInt('lookup_jobs') === 0) {
+		if ($this->lookupJobs === 0) {
 			return;
 		}
 		if (isset($this->playerLookupJob)) {

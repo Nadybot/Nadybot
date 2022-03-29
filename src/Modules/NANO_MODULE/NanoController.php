@@ -45,7 +45,7 @@ use Nadybot\Core\{
 		command: "nanoloc",
 		accessLevel: "guest",
 		description: "Browse nanos by location",
-	)
+	),
 ]
 class NanoController extends ModuleInstance {
 	#[NCA\Inject]
@@ -60,6 +60,10 @@ class NanoController extends ModuleInstance {
 	#[NCA\Inject]
 	public Util $util;
 
+	/** Number of Nanos shown on the list */
+	#[NCA\Setting\Number(options: [30, 40, 50, 60])]
+	public int $maxnano = 40;
+
 	/** @var array<int,Nanoline> */
 	public array $nanolines = [];
 	#[NCA\Setup]
@@ -67,23 +71,6 @@ class NanoController extends ModuleInstance {
 		$this->db->loadCSVFile($this->moduleName, __DIR__ . "/nanos.csv");
 		$this->db->loadCSVFile($this->moduleName, __DIR__ . "/nano_lines.csv");
 
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: 'maxnano',
-			description: 'Number of Nanos shown on the list',
-			mode: 'edit',
-			type: "number",
-			value: '40',
-			options: ["30", "40", "50", "60"],
-		);
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: "shownanolineicons",
-			description: "Show icons for the nanolines",
-			mode: "edit",
-			type: "bool",
-			value: "0"
-		);
 		$this->nanolines = $this->db->table("nano_lines")
 			->asObj(Nanoline::class)
 			->keyBy("strain_id")
@@ -99,7 +86,7 @@ class NanoController extends ModuleInstance {
 			->orderBy("strain")
 			->orderBy("sub_strain")
 			->orderBy("sort_order")
-			->limit($this->settingManager->getInt("maxnano")??40);
+			->limit($this->maxnano);
 		$tmp = explode(" ", $search);
 		$this->db->addWhereFromParams($query, $tmp, "nano_name");
 

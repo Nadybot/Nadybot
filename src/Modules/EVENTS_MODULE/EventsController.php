@@ -10,7 +10,6 @@ use Nadybot\Core\{
 	DB,
 	ModuleInstance,
 	Nadybot,
-	SettingManager,
 	Text,
 	Util,
 	Modules\ALTS\AltsController,
@@ -48,9 +47,6 @@ class EventsController extends ModuleInstance {
 	public Nadybot $chatBot;
 
 	#[NCA\Inject]
-	public SettingManager $settingManager;
-
-	#[NCA\Inject]
 	public PlayerManager $playerManager;
 
 	#[NCA\Inject]
@@ -62,18 +58,9 @@ class EventsController extends ModuleInstance {
 	#[NCA\Inject]
 	public AltsController $altsController;
 
-	#[NCA\Setup]
-	public function setup(): void {
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: "num_events_shown",
-			description: "Maximum number of events shown",
-			mode: "edit",
-			type: "number",
-			value: "5",
-			options: ["5", "10", "15", "20"]
-		);
-	}
+	/** Maximum number of events shown */
+	#[NCA\Setting\Number(options: [5, 10, 15, 20])]
+	public int $numEventsShown = 5;
 
 	/** Show the five closest past and upcoming events */
 	#[NCA\HandlesCommand("events")]
@@ -268,7 +255,7 @@ class EventsController extends ModuleInstance {
 		/** @var Collection<EventModel> */
 		$data = $this->db->table("events")
 			->orderByDesc("event_date")
-			->limit($this->settingManager->getInt('num_events_shown')??5)
+			->limit($this->numEventsShown)
 			->asObj(EventModel::class);
 		if ($data->count() === 0) {
 			return null;
@@ -386,7 +373,7 @@ class EventsController extends ModuleInstance {
 			->whereNull("event_date")
 			->orWhere("event_date", ">", time())
 			->orderBy("event_date")
-			->limit($this->settingManager->getInt('num_events_shown')??5)
+			->limit($this->numEventsShown)
 			->asObj(EventModel::class);
 		if ($data->count() === 0) {
 			$callback(null);

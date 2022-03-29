@@ -21,7 +21,6 @@ use Nadybot\Core\{
 	ParamClass\PDuration,
 	Routing\RoutableMessage,
 	Routing\Source,
-	SettingManager,
 	Text,
 	UserStateEvent,
 	Util,
@@ -62,9 +61,6 @@ class GauntletBuffController extends ModuleInstance implements MessageEmitter {
 	public Text $text;
 
 	#[NCA\Inject]
-	public SettingManager $settingManager;
-
-	#[NCA\Inject]
 	public MessageHub $messageHub;
 
 	#[NCA\Inject]
@@ -91,44 +87,28 @@ class GauntletBuffController extends ModuleInstance implements MessageEmitter {
 	#[NCA\Inject]
 	public StatsController $statsController;
 
+	/** Times to display gaubuff timer alerts */
+	#[NCA\Setting\Text(
+		options: ["30m 10m"],
+		help: 'gau_times.txt',
+	)]
+	public string $gaubuffTimes = "30m 10m";
+
+	/** Show gaubuff timer on logon */
+	#[NCA\Setting\Boolean]
+	public bool $gaubuffLogon = true;
+
+	/** Gauntlet buff side if none specified for gaubuff */
+	#[NCA\Setting\Options(options: ["none", "clan", "omni"])]
+	public string $gaubuffDefaultSide = "none";
+
 	public function getChannelName(): string {
 		return Source::SYSTEM . "(gauntlet-buff)";
 	}
 
 	#[NCA\Setup]
 	public function setup(): void {
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: 'gaubuff_times',
-			description: 'Times to display gaubuff timer alerts',
-			mode: 'edit',
-			type: 'text',
-			value: '30m 10m',
-			options: ["30m 10m"],
-			help: 'gau_times.txt'
-		);
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: "gaubuff_logon",
-			description: "Show gaubuff timer on logon",
-			mode: "edit",
-			type: "bool",
-			value: "1"
-		);
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: "gaubuff_default_side",
-			description: "Gauntlet buff side if none specified for gaubuff",
-			mode: "edit",
-			type: "options",
-			value: "none",
-			options: ["none", "clan", "omni"]
-		);
 		$this->messageHub->registerMessageEmitter($this);
-		$this->settingManager->registerChangeListener(
-			"gaubuff_times",
-			[$this, "validateGaubuffTimes"]
-		);
 		$this->statsController->registerProvider(new GauntletBuffStats($this, "clan"), "states");
 		$this->statsController->registerProvider(new GauntletBuffStats($this, "omni"), "states");
 	}
@@ -199,6 +179,7 @@ class GauntletBuffController extends ModuleInstance implements MessageEmitter {
 		);
 	}
 
+	#[NCA\SettingChangeHandler('gaubuff_times')]
 	public function validateGaubuffTimes(string $setting, string $old, string $new): void {
 		$lastTime = null;
 		foreach (explode(' ', $new) as $utime) {
@@ -222,11 +203,9 @@ class GauntletBuffController extends ModuleInstance implements MessageEmitter {
 	public function setGaubuff(string $side, int $time, string $creator, int $createtime): void {
 		$alerts = [];
 		$alertTimes = [];
-		$gaubuffTimes = $this->settingManager->getString('gaubuff_times');
-		if (isset($gaubuffTimes)) {
-			foreach (explode(' ', $gaubuffTimes) as $utime) {
-				$alertTimes [] = $this->util->parseTime($utime);
-			}
+		$gaubuffTimes = $this->gaubuffTimes;
+		foreach (explode(' ', $gaubuffTimes) as $utime) {
+			$alertTimes [] = $this->util->parseTime($utime);
 		}
 		$alertTimes []= 0; //timer runs out
 		foreach ($alertTimes as $alertTime) {
@@ -296,7 +275,8 @@ class GauntletBuffController extends ModuleInstance implements MessageEmitter {
 		if (!$this->chatBot->isReady()
 			|| !is_string($sender)
 			|| (!isset($this->chatBot->guildmembers[$sender]))
-			|| (!$this->settingManager->getBool('gaubuff_logon'))) {
+			|| !$this->gaubuffLogon
+		) {
 			return;
 		}
 		$this->showGauntletBuff($sender);
@@ -308,7 +288,7 @@ class GauntletBuffController extends ModuleInstance implements MessageEmitter {
 	)]
 	public function privateChannelJoinEvent(AOChatEvent $eventObj): void {
 		$sender = $eventObj->sender;
-		if ($this->settingManager->getBool('gaubuff_logon') && is_string($sender)) {
+		if ($this->gaubuffLogon && is_string($sender)) {
 			$this->showGauntletBuff($sender);
 		}
 	}
@@ -353,7 +333,7 @@ class GauntletBuffController extends ModuleInstance implements MessageEmitter {
 		#[NCA\StrChoice("clan", "omni")] ?string $faction,
 		PDuration $duration
 	): void {
-		$defaultSide = $this->settingManager->getString('gaubuff_default_side') ?? "none";
+		$defaultSide = $this->gaubuffDefaultSide;
 		$faction = $faction ?? $defaultSide;
 		if ($faction === static::SIDE_NONE) {
 			$msg = "You have to specify for which side the buff is: omni or clan";
@@ -403,7 +383,7 @@ class GauntletBuffController extends ModuleInstance implements MessageEmitter {
 	 * @return string[]
 	 */
 	protected function getSidesToShowBuff(?string $side=null): array {
-		$defaultSide = $this->settingManager->getString('gaubuff_default_side') ?? "none";
+		$defaultSide = $this->gaubuffDefaultSide;
 		$side ??= $defaultSide;
 		if ($side === static::SIDE_NONE) {
 			return ['clan', 'omni'];
@@ -429,7 +409,7 @@ class GauntletBuffController extends ModuleInstance implements MessageEmitter {
 	}
 
 	public function getGauntletBuffLine(): ?string {
-		$defaultSide = $this->settingManager->getString('gaubuff_default_side');
+		$defaultSide = $this->gaubuffDefaultSide;
 		$sides = $this->getSidesToShowBuff(($defaultSide === "none") ? null : $defaultSide);
 		$msgs = [];
 		foreach ($sides as $side) {

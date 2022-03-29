@@ -74,19 +74,15 @@ class BuffPerksController extends ModuleInstance {
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
+	/** DB version of perks */
+	#[NCA\Setting\Timestamp(mode: 'noedit')]
+	public int $perksDBVersion = 0;
+
 	/** @var Collection<Perk> */
 	public Collection $perks;
 
 	#[NCA\Setup]
 	public function setup(): void {
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: "perks_db_version",
-			description: "perks_db_version",
-			mode: 'noedit',
-			type: 'text',
-			value: "0"
-		);
 		$this->timer->callLater(0, [$this, "initPerksDatabase"]);
 	}
 
@@ -97,10 +93,7 @@ class BuffPerksController extends ModuleInstance {
 		}
 		$path = __DIR__ . "/perks.csv";
 		$mtime = @filemtime($path);
-		$dbVersion = 0;
-		if ($this->settingManager->exists("perks_db_version")) {
-			$dbVersion = (int)$this->settingManager->get("perks_db_version");
-		}
+		$dbVersion = $this->perksDBVersion;
 		$perkInfo = $this->getPerkInfo();
 		$this->perks = new Collection($perkInfo);
 		$empty = !$this->db->table("perk")->exists();

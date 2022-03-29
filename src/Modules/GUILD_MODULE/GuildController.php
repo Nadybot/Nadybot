@@ -72,7 +72,7 @@ use Nadybot\Core\{
 		command: "updateorg",
 		accessLevel: "mod",
 		description: "Force an update of the org roster",
-	)
+	),
 ]
 class GuildController extends ModuleInstance {
 	public const DB_TABLE = "org_members_<myname>";
@@ -116,50 +116,24 @@ class GuildController extends ModuleInstance {
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
+	/** Maximum characters a logon message can have */
+	#[NCA\Setting\Number(options: [100, 200, 300, 400])]
+	public int $maxLogonMsgSize = 200;
+
+	/** Maximum characters a logoff message can have */
+	#[NCA\Setting\Number(options: [100, 200, 300, 400])]
+	public int $maxLogoffMsgSize = 200;
+
+	/** Show logon/logoff for first/last alt only */
+	#[NCA\Setting\Boolean]
+	public bool $firstAndLastAltOnly = false;
+
+	/** Do not show the altlist on logon, just the name of the main */
+	#[NCA\Setting\Boolean]
+	public bool $orgSuppressAltList = false;
+
 	#[NCA\Setup]
 	public function setup(): void {
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: "max_logon_msg_size",
-			description: "Maximum characters a logon message can have",
-			mode: "edit",
-			type: "number",
-			value: "200",
-			options: ["100", "200", "300", "400"],
-		);
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: "max_logoff_msg_size",
-			description: "Maximum characters a logoff message can have",
-			mode: "edit",
-			type: "number",
-			value: "200",
-			options: ["100", "200", "300", "400"],
-		);
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: "first_and_last_alt_only",
-			description: "Show logon/logoff for first/last alt only",
-			mode: "edit",
-			type: "bool",
-			value: "0"
-		);
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: "map_org_ranks_to_bot_ranks",
-			description: "Map org ranks to bot ranks",
-			mode: "edit",
-			type: "bool",
-			value: "0"
-		);
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: "org_suppress_alt_list",
-			description: "Do not show the altlist on logon, just the name of the main",
-			mode: "edit",
-			type: "bool",
-			value: "0"
-		);
 		$this->loadGuildMembers();
 	}
 
@@ -204,11 +178,13 @@ class GuildController extends ModuleInstance {
 		if ($logonMessage === 'clear') {
 			$this->preferences->save($context->char->name, 'logon_msg', '');
 			$msg = "Your logon message has been cleared.";
-		} elseif (strlen($logonMessage) <= ($this->settingManager->getInt('max_logon_msg_size')??200)) {
+		} elseif (strlen($logonMessage) <= $this->maxLogonMsgSize) {
 			$this->preferences->save($context->char->name, 'logon_msg', $logonMessage);
 			$msg = "Your logon message has been set.";
 		} else {
-			$msg = "Your logon message is too large. Your logon message may contain a maximum of " . ($this->settingManager->getInt('max_logon_msg_size')??200) . " characters.";
+			$msg = "Your logon message is too large. ".
+				"Your logon message may contain a maximum of ".
+				"{$this->maxLogonMsgSize} characters.";
 		}
 		$context->reply($msg);
 	}
@@ -232,11 +208,13 @@ class GuildController extends ModuleInstance {
 		if ($logoffMessage == 'clear') {
 			$this->preferences->save($context->char->name, 'logoff_msg', '');
 			$msg = "Your logoff message has been cleared.";
-		} elseif (strlen($logoffMessage) <= $this->settingManager->getInt('max_logoff_msg_size')) {
+		} elseif (strlen($logoffMessage) <= $this->maxLogoffMsgSize) {
 			$this->preferences->save($context->char->name, 'logoff_msg', $logoffMessage);
 			$msg = "Your logoff message has been set.";
 		} else {
-			$msg = "Your logoff message is too large. Your logoff message may contain a maximum of " . ($this->settingManager->getInt('max_logoff_msg_size')??200) . " characters.";
+			$msg = "Your logoff message is too large. ".
+				"Your logoff message may contain a maximum of ".
+				"{$this->maxLogoffMsgSize} characters.";
 		}
 		$context->reply($msg);
 	}
@@ -680,7 +658,7 @@ class GuildController extends ModuleInstance {
 	}
 
 	public function getLogonMessageAsync(string $player, bool $suppressAltList, callable $callback): void {
-		if ($this->settingManager->getBool('first_and_last_alt_only')) {
+		if ($this->firstAndLastAltOnly) {
 			// if at least one alt/main is already online, don't show logon message
 			$altInfo = $this->altsController->getAltInfo($player);
 			if (count($altInfo->getOnlineAlts()) > 1) {
@@ -707,7 +685,7 @@ class GuildController extends ModuleInstance {
 			|| !is_string($sender)) {
 			return;
 		}
-		$suppressAltList = $this->settingManager->getBool('org_suppress_alt_list') ?? false;
+		$suppressAltList = $this->orgSuppressAltList;
 		$this->getLogonMessageAsync($sender, $suppressAltList, function(string $msg) use ($sender): void {
 			$this->chatBot->getUid($sender, function(?int $uid, string $msg, string $sender): void {
 				$e = new Online();
@@ -721,7 +699,7 @@ class GuildController extends ModuleInstance {
 	}
 
 	public function getLogoffMessage(string $player): ?string {
-		if ($this->settingManager->getBool('first_and_last_alt_only')) {
+		if ($this->firstAndLastAltOnly) {
 			// if at least one alt/main is still online, don't show logoff message
 			$altInfo = $this->altsController->getAltInfo($player);
 			if (count($altInfo->getOnlineAlts()) > 0) {

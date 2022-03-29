@@ -7,6 +7,7 @@ use Nadybot\Core\{
 	Attributes as NCA,
 	DBSchema\Audit,
 	Modules\ALTS\AltsController,
+	Modules\SECURITY\AuditController,
 };
 use SplObjectStorage;
 
@@ -63,6 +64,9 @@ class AccessManager {
 
 	#[NCA\Inject]
 	public AdminManager $adminManager;
+
+	#[NCA\Inject]
+	public AuditController $auditController;
 
 	#[NCA\Inject]
 	public SettingManager $settingManager;
@@ -301,7 +305,7 @@ class AccessManager {
 	}
 
 	public function addAudit(Audit $audit): void {
-		if (!$this->settingManager->getBool('audit_enabled')) {
+		if (!$this->auditController->auditEnabled) {
 			return;
 		}
 		if (isset($audit->value) && in_array($audit->action, [static::ADD_RANK, static::DEL_RANK])) {

@@ -114,6 +114,7 @@ use Safe\Exceptions\FilesystemException;
 		accessLevel: "superadmin",
 		description: "Allow people to join the private channel again",
 	),
+
 	NCA\ProvidesEvent("online(priv)"),
 	NCA\ProvidesEvent("offline(priv)"),
 	NCA\ProvidesEvent("member(add)"),
@@ -176,72 +177,48 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
+	/** Automatically add player as member when they join */
+	#[NCA\Setting\Boolean]
+	public bool $addMemberOnJoin = false;
+
+	/** Enable autoinvite for new members by default */
+	#[NCA\Setting\Boolean]
+	public bool $autoinviteDefault = true;
+
+	/** Faction allowed on the bot - autoban everything else */
+	#[NCA\Setting\Options(options: [
+		"all", "Omni", "Neutral", "Clan", "not Omni", "not Neutral", "not Clan"
+	])]
+	public string $onlyAllowFaction = "all";
+
+	/** Do not show the altlist on join, just the name of the main */
+	#[NCA\Setting\Boolean]
+	public bool $privSuppressAltList  = false;
+
+	/** Should the bot allow inviting banned characters? */
+	#[NCA\Setting\Boolean]
+	public bool $inviteBannedChars = false;
+
+	/** Message to send when welcoming new members */
+	#[NCA\Setting\Text(
+		options: [
+			"<link>Welcome to <myname></link>!",
+			"Welcome to <myname>! Here is some <link>information to get you started</link>."
+		],
+		help: "welcome_msg.txt"
+	)]
+	public string $welcomeMsgString = "<link>Welcome to <myname></link>!";
+
+	/** Minimum rank allowed to join private channel during a lock */
+	#[NCA\Setting\Rank(accessLevel: "superadmin")]
+	public string $lockMinrank = "superadmin";
+
 	/** If set, the private channel is currently locked for a reason */
 	protected ?string $lockReason = null;
 
 	#[NCA\Setup]
 	public function setup(): void {
 		$this->accessManager->registerProvider($this);
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: "add_member_on_join",
-			description: "Automatically add player as member when they join",
-			mode: "edit",
-			type: "bool",
-			value: "0"
-		);
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: "autoinvite_default",
-			description: "Enable autoinvite for new members by default",
-			mode: "edit",
-			type: "bool",
-			value: "1"
-		);
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: "only_allow_faction",
-			description: "Faction allowed on the bot - autoban everything else",
-			mode: "edit",
-			type: "options",
-			value: "all",
-			options: ["all", "Omni", "Neutral", "Clan", "not Omni", "not Neutral", "not Clan"]
-		);
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: "priv_suppress_alt_list",
-			description: "Do not show the altlist on join, just the name of the main",
-			mode: "edit",
-			type: "bool",
-			value: "0"
-		);
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: "invite_banned_chars",
-			description: "Should the bot allow inviting banned characters?",
-			mode: "edit",
-			type: "bool",
-			value: "0"
-		);
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: "welcome_msg_string",
-			description: "Message to send when welcoming new members",
-			mode: "edit",
-			type: "text",
-			value: "<link>Welcome to <myname></link>!",
-			options: ["<link>Welcome to <myname></link>!", "Welcome to <myname>! Here is some <link>information to get you started</link>."],
-			help: "welcome_msg.txt"
-		);
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: "lock_minrank",
-			description: "Minimum rank allowed to join private channel during a lock",
-			mode: "edit",
-			type: "rank",
-			value: "superadmin",
-			accessLevel: "superadmin"
-		);
 		$this->commandAlias->register(
 			$this->moduleName,
 			"member add",
@@ -256,10 +233,6 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 			$this->moduleName,
 			"member del",
 			"remuser"
-		);
-		$this->settingManager->registerChangeListener(
-			"welcome_msg_string",
-			[$this, "validateWelcomeMsg"]
 		);
 		$lockStats = new PrivLockStats();
 		Registry::injectDependencies($lockStats);
@@ -279,6 +252,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 		return null;
 	}
 
+	#[NCA\SettingChangeHandler('welcome_msg_string')]
 	public function validateWelcomeMsg(string $setting, string $old, string $new): void {
 		if (preg_match("|&lt;link&gt;.+?&lt;/link&gt;|", $new)) {
 			throw new Exception(
@@ -413,7 +387,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 
 			$context->reply($msg);
 		};
-		if ($this->settingManager->getBool('invite_banned_chars')) {
+		if ($this->inviteBannedChars) {
 			$invitation();
 			return;
 		}
@@ -670,13 +644,13 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 			return;
 		}
 		$this->chatBot->privategroup_invite($context->char->name);
-		if (!$this->settingManager->getBool('add_member_on_join')) {
+		if (!$this->addMemberOnJoin) {
 			return;
 		}
 		if ($this->db->table(self::DB_TABLE)->where("name", $context->char->name)->exists()) {
 			return;
 		}
-		$autoInvite = $this->settingManager->getBool('autoinvite_default');
+		$autoInvite = $this->autoinviteDefault;
 		$this->db->table(self::DB_TABLE)
 			->insert([
 				"name" => $context->char->name,
@@ -710,7 +684,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 		}
 		$this->lockReason = trim($reason);
 		$this->chatBot->sendPrivate("The private chat has been <red>locked<end> by {$context->char->name}: <highlight>{$this->lockReason}<end>");
-		$alRequired = $this->settingManager->getString('lock_minrank')??"superadmin";
+		$alRequired = $this->lockMinrank;
 		foreach ($this->chatBot->chatlist as $char => $online) {
 			$alChar = $this->accessManager->getAccessLevelForCharacter($char);
 			if ($this->accessManager->compareAccessLevels($alChar, $alRequired) < 0) {
@@ -877,7 +851,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 			return;
 		}
 		$sender = $eventObj->sender;
-		$suppressAltList = $this->settingManager->getBool('priv_suppress_alt_list')??false;
+		$suppressAltList = $this->privSuppressAltList;
 
 		$this->getLogonMessageAsync($sender, $suppressAltList, function(string $msg) use ($sender): void {
 			$this->chatBot->getUid(
@@ -920,7 +894,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 		description: "Autoban players of unwanted factions when they join the bot"
 	)]
 	public function autobanOnJoin(AOChatEvent $eventObj): void {
-		$reqFaction = $this->settingManager->getString('only_allow_faction') ?? "all";
+		$reqFaction = $this->onlyAllowFaction;
 		if ($reqFaction === 'all' || !is_String($eventObj->sender)) {
 			return;
 		}
@@ -937,7 +911,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 		if (!isset($whois)) {
 			return;
 		}
-		$reqFaction = $this->settingManager->getString('only_allow_faction');
+		$reqFaction = $this->onlyAllowFaction;
 		if ($reqFaction === 'all') {
 			return;
 		}
@@ -1068,7 +1042,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 	}
 
 	public function addUser(string $name, string $sender): string {
-		$autoInvite = $this->settingManager->getBool('autoinvite_default');
+		$autoInvite = $this->autoinviteDefault;
 		$name = ucfirst(strtolower($name));
 		$uid = $this->chatBot->get_uid($name);
 		if ($this->chatBot->char->name == $name) {
@@ -1115,7 +1089,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 			$this->logger->error("Error reading {$dataPath}/welcome.txt: " . $e->getMessage());
 			return;
 		}
-		$msg = $this->settingManager->getString("welcome_msg_string")??"<link>Welcome</link>!";
+		$msg = $this->welcomeMsgString;
 		if (preg_match("/^(.*)<link>(.*?)<\/link>(.*)$/", $msg, $matches)) {
 			$msg = (array)$this->text->makeBlob($matches[2], $content);
 			foreach ($msg as &$part) {
@@ -1162,7 +1136,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 			return false;
 		}
 		$alSender = $this->accessManager->getAccessLevelForCharacter($sender);
-		$alRequired = $this->settingManager->getString('lock_minrank')??"superadmin";
+		$alRequired = $this->lockMinrank;
 		return $this->accessManager->compareAccessLevels($alSender, $alRequired) < 0;
 	}
 }

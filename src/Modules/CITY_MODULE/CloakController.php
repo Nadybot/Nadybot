@@ -18,7 +18,6 @@ use Nadybot\Core\{
 	Registry,
 	Routing\RoutableMessage,
 	Routing\Source,
-	SettingManager,
 	Text,
 	UserStateEvent,
 	Util,
@@ -37,6 +36,7 @@ use Nadybot\Modules\WEBSERVER_MODULE\StatsController;
 		description: "Show the status of the city cloak",
 		alias: "city"
 	),
+
 	NCA\ProvidesEvent("cloak(raise)"),
 	NCA\ProvidesEvent("cloak(lower)")
 ]
@@ -45,9 +45,6 @@ class CloakController extends ModuleInstance implements MessageEmitter {
 
 	#[NCA\Inject]
 	public Nadybot $chatBot;
-
-	#[NCA\Inject]
-	public SettingManager $settingManager;
 
 	#[NCA\Inject]
 	public EventManager $eventManager;
@@ -73,31 +70,20 @@ class CloakController extends ModuleInstance implements MessageEmitter {
 	#[NCA\Inject]
 	public StatsController $statsController;
 
+	/** Show cloak status to players at logon */
+	#[NCA\Setting\Options(options: [
+		'Never' => 0,
+		'When cloak is down' => 1,
+		'Always' => 2,
+	])]
+	public int $showcloakstatus = 1;
+
+	/** How often to spam guild channel when cloak is down */
+	#[NCA\Setting\Time(options: ["2m", "5m", "10m", "15m", "20m"])]
+	public int $cloakReminderInterval = 300; // 5m
+
 	#[NCA\Setup]
 	public function setup(): void {
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: "showcloakstatus",
-			description: "Show cloak status to players at logon",
-			mode: "edit",
-			type: "options",
-			value: "1",
-			options: [
-				'Never' => 0,
-				'When cloak is down' => 1,
-				'Always' => 2,
-			]
-		);
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: "cloak_reminder_interval",
-			description: "How often to spam guild channel when cloak is down",
-			mode: "edit",
-			type: "time",
-			value: "5m",
-			options: ["2m", "5m", "10m", "15m", "20m"]
-		);
-
 		$this->messageHub->registerMessageEmitter($this);
 		$cloakStats = new CloakStatsCollector();
 		Registry::injectDependencies($cloakStats);
@@ -238,7 +224,7 @@ class CloakController extends ModuleInstance implements MessageEmitter {
 		if ($row->action === "off") {
 			// send message to org chat every 5 minutes that the cloaking device is
 			// disabled past the the time that the cloaking device could be enabled.
-			$interval = $this->settingManager->getInt('cloak_reminder_interval') ?? 300;
+			$interval = $this->cloakReminderInterval;
 			// @phpstan-ignore-next-line
 			if ($timeSinceChange >= 60*60 && ($timeSinceChange % $interval >= 0 && $timeSinceChange % $interval <= 60 )) {
 				$timeString = $this->util->unixtimeToReadable(time() - $row->time, false);
@@ -305,7 +291,7 @@ class CloakController extends ModuleInstance implements MessageEmitter {
 		}
 		[$case, $msg] = $data;
 
-		if ($case <= $this->settingManager->getInt("showcloakstatus")) {
+		if ($case <= $this->showcloakstatus) {
 			$this->chatBot->sendMassTell($msg, $eventObj->sender);
 		}
 	}

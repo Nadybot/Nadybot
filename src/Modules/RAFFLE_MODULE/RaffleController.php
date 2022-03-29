@@ -16,7 +16,6 @@ use Nadybot\Core\{
 	ParamClass\PDuration,
 	PrivateChannelCommandReply,
 	QueueInterface,
-	SettingManager,
 	Text,
 	Util,
 };
@@ -38,6 +37,7 @@ use Nadybot\Modules\RAID_MODULE\RaidController;
 		accessLevel: "guest",
 		description: "Raffle off items to players",
 	),
+
 	NCA\ProvidesEvent("raffle(start)"),
 	NCA\ProvidesEvent("raffle(cancel)"),
 	NCA\ProvidesEvent("raffle(end)"),
@@ -49,9 +49,6 @@ class RaffleController extends ModuleInstance {
 	public const NO_RAFFLE_ERROR = "There is no active raffle.";
 
 	public const CMD_RAFFLE_MANAGE = "raffle manage";
-
-	#[NCA\Inject]
-	public SettingManager $settingManager;
 
 	#[NCA\Inject]
 	public AccessManager $accessManager;
@@ -80,84 +77,47 @@ class RaffleController extends ModuleInstance {
 	#[NCA\Inject]
 	public Util $util;
 
-	public ?Raffle $raffle = null;
+	/** Should raffles end automatically after some time? */
+	#[NCA\Setting\Boolean]
+	public bool $raffleEndsAutomatically = true;
 
-	#[NCA\Setup]
-	public function setup(): void {
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: "defaultraffletime",
-			description: "Time after which a raffle ends automatically (if enabled)",
-			mode: "edit",
-			type: "time",
-			value: '3m',
-			options: ["1m", "2m", "3m", "4m", "5m"],
-		);
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: "raffle_ends_automatically",
-			description: "Should raffles end automatically after some time?",
-			mode: "edit",
-			type: "bool",
-			value: '1',
-		);
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: "raffle_announce_frequency",
-			description: "How much time between each raffle announcement",
-			mode: "edit",
-			type: "time",
-			value: '30s',
-			options: ["10s", "20s", "30s", "45s", "1m", "2m", "3m", "4m", "5m", "10m"],
-		);
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: "raffle_announce_participants",
-			description: "Announce whenever someone joins or leaves the raffle",
-			mode: "edit",
-			type: "bool",
-			value: '1',
-		);
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: "raffle_bonus_per_loss",
-			description: "Bonus to next roll for a lost raffle",
-			mode: "edit",
-			type: "options",
-			value: '0',
-			options: [
-				'0' => 0,
-				'1' => 1,
-				'2' => 2,
-				'5' => 5,
-				'10' => 10,
-			],
-		);
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: "share_raffle_bonus_on_alts",
-			description: "Share raffle bonus points between alts",
-			mode: "edit",
-			type: "bool",
-			value: '1',
-		);
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: "raffle_allow_only_raiders",
-			description: "If a raid is running, only raiders may join the raffle",
-			mode: "edit",
-			type: "bool",
-			value: '0',
-		);
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: "raffle_cancelother_rank",
-			description: "Rank required to cancel other people's raffle",
-			mode: "edit",
-			type: "rank",
-			value: 'mod'
-		);
-	}
+	/** Time after which a raffle ends automatically (if enabled) */
+	#[NCA\Setting\Time(options: ["1m", "2m", "3m", "4m", "5m"])]
+	public int $defaultraffletime = 3 * 60;
+
+	/** How much time between each raffle announcement */
+	#[NCA\Setting\Time(options: [
+		"10s", "20s", "30s", "45s", "1m", "2m", "3m", "4m", "5m", "10m"
+	])]
+	public int $raffleAnnounceFrequency = 30;
+
+	/** Announce whenever someone joins or leaves the raffle */
+	#[NCA\Setting\Boolean]
+	public bool $raffleAnnounceParticipants = true;
+
+	/** Bonus to next roll for a lost raffle */
+	#[NCA\Setting\Options(options: [
+		'0' => 0,
+		'1' => 1,
+		'2' => 2,
+		'5' => 5,
+		'10' => 10,
+	])]
+	public int $raffleBonusPerLoss = 0;
+
+	/** Share raffle bonus points between alts */
+	#[NCA\Setting\Boolean]
+	public bool $shareRaffleBonusOnAlts = true;
+
+	/** If a raid is running, only raiders may join the raffle */
+	#[NCA\Setting\Boolean]
+	public bool $raffleAllowOnlyRaiders = false;
+
+	/** Rank required to cancel other people's raffle */
+	#[NCA\Setting\Rank]
+	public string $raffleCancelotherRank = "mod";
+
+	public ?Raffle $raffle = null;
 
 	protected function fancyFrame(string $text): string {
 		return "<yellow>" . str_repeat("-", 70) . "<end>\n".
@@ -213,8 +173,8 @@ class RaffleController extends ModuleInstance {
 		}
 
 		$duration = null;
-		if ($this->settingManager->getBool('raffle_ends_automatically')) {
-			$duration = $this->settingManager->getInt("defaultraffletime") ?? 180;
+		if ($this->raffleEndsAutomatically) {
+			$duration = $this->defaultraffletime;
 		}
 		$maybeDuration = explode(" ", $raffleString)[0];
 		if (($raffleTime = $this->util->parseTime($maybeDuration)) > 0) {
@@ -226,7 +186,7 @@ class RaffleController extends ModuleInstance {
 		$this->raffle->raffler = $context->char->name;
 		$this->raffle->end = isset($duration) ? $this->raffle->start + $duration : null;
 		$this->raffle->sendto = $context;
-		$this->raffle->announceInterval = $this->settingManager->getInt('raffle_announce_frequency');
+		$this->raffle->announceInterval = $this->raffleAnnounceFrequency;
 		if ($context->isDM()) {
 			$this->raffle->sendto = new PrivateChannelCommandReply(
 				$this->chatBot,
@@ -265,7 +225,7 @@ class RaffleController extends ModuleInstance {
 	}
 
 	protected function getJoinLeaveBlob(): string {
-		$bonusPerLoss = $this->settingManager->getInt("raffle_bonus_per_loss");
+		$bonusPerLoss = $this->raffleBonusPerLoss;
 		$blob = "";
 		if ($bonusPerLoss > 0) {
 			$blob = "This raffle uses the bonus points system.\n".
@@ -316,7 +276,7 @@ class RaffleController extends ModuleInstance {
 			return;
 		}
 
-		$cancelMinRank = $this->settingManager->getString('raffle_cancelother_rank') ?? "mod";
+		$cancelMinRank = $this->raffleCancelotherRank;
 		if (($this->raffle->raffler !== $context->char->name) && !$this->accessManager->checkAccess($context->char->name, $cancelMinRank)) {
 			$requiredRank = $this->accessManager->getDisplayName($cancelMinRank);
 			$msg = "Only the owner or a {$requiredRank} may cancel the raffle.";
@@ -421,7 +381,7 @@ class RaffleController extends ModuleInstance {
 			$context->reply(static::NO_RAFFLE_ERROR);
 			return;
 		}
-		$allowOnlyRaiders = $this->settingManager->getBool('raffle_allow_only_raiders');
+		$allowOnlyRaiders = $this->raffleAllowOnlyRaiders;
 		$raid = $this->raidController->raid;
 		if ($allowOnlyRaiders && isset($raid)) {
 			if (!isset($raid->raiders[$context->char->name]) || isset($raid->raiders[$context->char->name]->left)) {
@@ -459,7 +419,7 @@ class RaffleController extends ModuleInstance {
 		$event->player = $context->char->name;
 		$this->eventManager->fireEvent($event);
 
-		if ($this->settingManager->getBool("raffle_announce_participants")) {
+		if ($this->raffleAnnounceParticipants) {
 			$msg = "<highlight>{$context->char->name}<end> <green>joined<end> the raffle";
 			if (count($this->raffle->slots) > 1) {
 				$msg .= " for " . $this->raffle->slots[$slot]->toString();
@@ -501,7 +461,7 @@ class RaffleController extends ModuleInstance {
 			$event->type = "raffle(leave)";
 			$event->player = $context->char->name;
 			$this->eventManager->fireEvent($event);
-			if ($this->settingManager->getBool("raffle_announce_participants")) {
+			if ($this->raffleAnnounceParticipants) {
 				$this->raffle->sendto->reply(
 					"<highlight>{$context->char->name}<end> left the raffle."
 				);
@@ -530,7 +490,7 @@ class RaffleController extends ModuleInstance {
 		$event->type = "raffle(leave)";
 		$event->player = $context->char->name;
 		$this->eventManager->fireEvent($event);
-		if ($this->settingManager->getBool("raffle_announce_participants")) {
+		if ($this->raffleAnnounceParticipants) {
 			$msg = "<highlight>{$context->char->name}<end> <red>left<end> the raffle";
 			if (count($this->raffle->slots) > 1) {
 				$msg .= " for " . $this->raffle->slots[$slot]->toString();
@@ -595,7 +555,7 @@ class RaffleController extends ModuleInstance {
 	}
 
 	protected function getBonusPoints(string $player): int {
-		if ($this->settingManager->getBool('share_raffle_bonus_on_alts')) {
+		if ($this->shareRaffleBonusOnAlts) {
 			$player = $this->altsController->getMainOf($player);
 		}
 		return $this->db->table(self::DB_TABLE)
@@ -690,14 +650,14 @@ class RaffleController extends ModuleInstance {
 	 * and reset the bonus for all winners
 	 */
 	public function adjustBonusPoints(Raffle $raffle): void {
-		$bonusPerLoss = $this->settingManager->getInt("raffle_bonus_per_loss")??0;
+		$bonusPerLoss = $this->raffleBonusPerLoss;
 		if ($bonusPerLoss === 0) {
 			return;
 		}
 		$participants = $raffle->getParticipantNames();
 		$winners = $raffle->getWinnerNames();
 		$losers = array_values(array_diff($participants, $winners));
-		if ($this->settingManager->getBool('share_raffle_bonus_on_alts')) {
+		if ($this->shareRaffleBonusOnAlts) {
 			$winners = $this->getMainCharacters(...$winners);
 			$losers = $this->getMainCharacters(...$losers);
 		}
@@ -731,7 +691,7 @@ class RaffleController extends ModuleInstance {
 	}
 
 	public function announceRaffleResults(Raffle $raffle): void {
-		$bonusPoints = $this->settingManager->getInt("raffle_bonus_per_loss");
+		$bonusPoints = $this->raffleBonusPerLoss;
 		$showBonus = $bonusPoints > 0;
 		$blob = "";
 		if ($bonusPoints > 0) {

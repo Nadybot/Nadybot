@@ -39,7 +39,7 @@ use Nadybot\Core\{
 		command: "comment categories",
 		accessLevel: "mod",
 		description: "Manage comment categories",
-	)
+	),
 ]
 class CommentController extends ModuleInstance {
 	#[NCA\Inject]
@@ -69,56 +69,39 @@ class CommentController extends ModuleInstance {
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
+	/** How long is the cooldown between leaving 2 comments for the same character */
+	#[NCA\Setting\Time(options: ["1s", "1h", "6h", "24h"])]
+	public int $commentCooldown = 6 * 3600;
+
+	/** Share comments between bots on same database */
+	#[NCA\Setting\Boolean]
+	public bool $shareComments = false;
+
+	/** Database table for comments */
+	#[NCA\Setting\Text(mode: "noedit")]
+	public string $tableNameComments = "comments_<myname>";
+
+	/** Database table for comment categories */
+	#[NCA\Setting\Text(mode: "noedit")]
+	public string $tableNameCommentCategories = "comment_categories_<myname>";
+
 	public const ADMIN = "admin";
 
 	#[NCA\Setup]
 	public function setup(): void {
 		$sm = $this->settingManager;
-		$sm->add(
-			module: $this->moduleName,
-			name: "comment_cooldown",
-			description: "How long is the cooldown between leaving 2 comments for the same character",
-			mode: "edit",
-			type: "time",
-			value: "6h",
-			options: ["1s", "1h", "6h", "24h"],
-		);
-		$sm->add(
-			module: $this->moduleName,
-			name: "share_comments",
-			description: "Share comments between bots on same database",
-			mode: "edit",
-			type: "bool",
-			value: "0",
-		);
-		$sm->add(
-			module: $this->moduleName,
-			name: "table_name_comments",
-			description: "Database table for comments",
-			mode: "noedit",
-			type: "text",
-			value: "comments_<myname>",
-		);
-		$sm->add(
-			module: $this->moduleName,
-			name: "table_name_comment_categories",
-			description: "Database table for comment categories",
-			mode: "noedit",
-			type: "text",
-			value: "comment_categories_<myname>",
-		);
-		$this->db->registerTableName("comments", $sm->getString("table_name_comments")??"");
-		$this->db->registerTableName("comment_categories", $sm->getString("table_name_comment_categories")??"");
-		$sm->registerChangeListener("share_comments", [$this, "changeTableSharing"]);
+		$this->db->registerTableName("comments", $this->tableNameComments);
+		$this->db->registerTableName("comment_categories", $this->tableNameCommentCategories);
 	}
 
+	#[NCA\SettingChangeHandler("share_comments")]
 	public function changeTableSharing(string $settingName, string $oldValue, string $newValue, mixed $data): void {
 		if ($oldValue === $newValue) {
 			return;
 		}
 		$this->logger->info("Comment sharing changed");
-		$oldCommentTable = $this->settingManager->getString("table_name_comments");
-		$oldCategoryTable = $this->settingManager->getString("table_name_comment_categories");
+		$oldCommentTable = $this->tableNameComments;
+		$oldCategoryTable = $this->tableNameCommentCategories;
 		$this->db->beginTransaction();
 		try {
 			// read all current entries
@@ -185,8 +168,8 @@ class CommentController extends ModuleInstance {
 		} catch (SQLException $e) {
 			$this->logger->error("Error changing comment tables: " . $e->getMessage(), ["exception" => $e]);
 			$this->db->rollback();
-			$this->db->registerTableName("comments", $oldCommentTable??"");
-			$this->db->registerTableName("comment_categories", $oldCategoryTable??"");
+			$this->db->registerTableName("comments", $oldCommentTable);
+			$this->db->registerTableName("comment_categories", $oldCategoryTable);
 			throw new Exception("There was an error copying the comments in the database");
 		}
 		$this->db->commit();
@@ -420,7 +403,7 @@ class CommentController extends ModuleInstance {
 		if ($comment->created_by === $this->chatBot->char->name) {
 			return 0;
 		}
-		$cooldown = $this->settingManager->getInt("comment_cooldown") ?? 1;
+		$cooldown = $this->commentCooldown;
 		// Get all comments about that same character
 		$comments = $this->getComments(null, $comment->character);
 		// Only keep those that were created by the same person creating one now

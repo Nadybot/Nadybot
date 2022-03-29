@@ -88,7 +88,7 @@ use Nadybot\Modules\WEBSERVER_MODULE\{
 		accessLevel: "admin",
 		description: "Show a cleaned up version of your current config file",
 		defaultStatus: 1
-	)
+	),
 ]
 class SystemController extends ModuleInstance implements MessageEmitter {
 	#[NCA\Inject]
@@ -139,95 +139,48 @@ class SystemController extends ModuleInstance implements MessageEmitter {
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
+	/** Default command prefix symbol */
+	#[NCA\Setting\Text(options: ["!", "#", "*", "@", "$", "+", "-"])]
+	public string $symbol = "!";
+
+	/** Max chars for a window */
+	#[NCA\Setting\Number(
+		options: [4500, 6000, 7500, 9000, 10500, 12000],
+		help: "max_blob_size.txt",
+	)]
+	public int $maxBlobSize = 7500;
+
+	/** Max time to wait for response from making http queries */
+	#[NCA\Setting\Time(options: ["1s", "2s", "5s", "10s", "30s"])]
+	public int $httpTimeout = 10;
+
+	/** Enable the guild channel */
+	#[NCA\Setting\Boolean]
+	public bool $guildChannelStatus = true;
+
+	/** Database version */
+	#[NCA\Setting\Text(mode: "noedit")]
+	public string $version = "0";
+
+	/** When using the proxy, allow sending tells via the workers */
+	#[NCA\Setting\Boolean]
+	public bool $allowMassTells = true;
+
+	/** When using the proxy, always send tells via the workers */
+	#[NCA\Setting\Boolean]
+	public bool $forceMassTells = false;
+
+	/** When using the proxy, always reply via the worker that sent the tell */
+	#[NCA\Setting\Boolean]
+	public bool $replyOnSameWorker = false;
+
+	/** When using the proxy, always send multi-page replies via one worker */
+	#[NCA\Setting\Boolean]
+	public bool $pagingOnSameWorker = true;
+
 	#[NCA\Setup]
 	public function setup(): void {
-
 		$this->helpManager->register($this->moduleName, "budatime", "budatime.txt", "all", "Format for budatime");
-
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: "symbol",
-			description: "Default command prefix symbol",
-			mode: "edit",
-			type: "text",
-			options: ["!", "#", "*", "@", "$", "+", "-"],
-			value: "!",
-		);
-
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: "max_blob_size",
-			description: "Max chars for a window",
-			mode: "edit",
-			type: "number",
-			options: ["4500", "6000", "7500", "9000", "10500", "12000"],
-			help: "max_blob_size.txt",
-			value: "7500",
-		);
-
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: "http_timeout",
-			description: "Max time to wait for response from making http queries",
-			mode: "edit",
-			type: "time",
-			options: ["1s", "2s", "5s", "10s", "30s"],
-			value: "10s",
-		);
-
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: "guild_channel_status",
-			description: "Enable the guild channel",
-			mode: "edit",
-			type: "bool",
-			value: "1",
-		);
-
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: "version",
-			description: "Database version",
-			mode: "noedit",
-			type: "text",
-			value: "0",
-		);
-
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: "allow_mass_tells",
-			description: "When using the proxy, allow sending tells via the workers",
-			mode: "edit",
-			type: "bool",
-			value: "1",
-		);
-
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: "force_mass_tells",
-			description: "When using the proxy, always send tells via the workers",
-			mode: "edit",
-			type: "bool",
-			value: "0",
-		);
-
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: "reply_on_same_worker",
-			description: "When using the proxy, always reply via the worker that sent the tell",
-			mode: "edit",
-			type: "bool",
-			value: "0",
-		);
-
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: "paging_on_same_worker",
-			description: "When using the proxy, always send multi-page replies via one worker ",
-			mode: "edit",
-			type: "bool",
-			value: "1",
-		);
 
 		$this->settingManager->save('version', $this->chatBot->runner::getVersion());
 

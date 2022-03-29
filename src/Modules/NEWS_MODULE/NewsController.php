@@ -15,7 +15,6 @@ use Nadybot\Core\{
 	Modules\ALTS\AltsController,
 	Nadybot,
 	ParamClass\PRemove,
-	SettingManager,
 	Text,
 	UserStateEvent,
 	Util,
@@ -44,6 +43,7 @@ use Nadybot\Modules\WEBSERVER_MODULE\{
 		accessLevel: "mod",
 		description: "Adds, removes, pins or unpins a news entry",
 	),
+
 	NCA\ProvidesEvent(
 		event: "sync(news)",
 		desc: "Triggered whenever someone creates or modifies a news entry"
@@ -66,9 +66,6 @@ class NewsController extends ModuleInstance {
 	public AltsController $altsController;
 
 	#[NCA\Inject]
-	public SettingManager $settingManager;
-
-	#[NCA\Inject]
 	public EventManager $eventManager;
 
 	#[NCA\Inject]
@@ -77,51 +74,33 @@ class NewsController extends ModuleInstance {
 	#[NCA\Inject]
 	public Util $util;
 
-	#[NCA\Setup]
-	public function setup(): void {
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: "num_news_shown",
-			description: "Maximum number of news items shown",
-			mode: "edit",
-			type: "number",
-			value: "10",
-			options: ["5", "10", "15", "20"]
-		);
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: "news_announcement_layout",
-			description: "Layout of the news announcement",
-			mode: "edit",
-			type: "options",
-			value: "1",
-			options: [
-				'Last date' => 1,
-				'Latest news' => 2,
-			]
-		);
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: "news_confirmed_for_all_alts",
-			description: "Confirmed news count for all alts",
-			mode: "edit",
-			type: "bool",
-			value: "1"
-		);
-	}
+	/** Maximum number of news items shown */
+	#[NCA\Setting\Number(options: [5, 10, 15, 20])]
+	public int $numNewsShown = 10;
+
+	/** Layout of the news announcement */
+	#[NCA\Setting\Options(options: [
+		'Last date' => 1,
+		'Latest news' => 2,
+	])]
+	public int $newsAnnouncementLayout = 1;
+
+	/** Confirmed news count for all alts */
+	#[NCA\Setting\Boolean]
+	public bool $newsConfirmedForAllAlts = true;
 
 	/**
 	 * @return Collection<INews>
 	 */
 	public function getNewsItems(string $player): Collection {
-		if ($this->settingManager->getBool('news_confirmed_for_all_alts')) {
+		if ($this->newsConfirmedForAllAlts) {
 			$player = $this->altsController->getMainOf($player);
 		}
 		$query = $this->db->table("news AS n")
 			->where("deleted", 0)
 			->orderByDesc("sticky")
 			->orderByDesc("time")
-			->limit($this->settingManager->getInt('num_news_shown')??10)
+			->limit($this->numNewsShown)
 			->select("n.*")
 			->selectSub(
 				$this->db->table("news_confirmed AS c")
@@ -189,7 +168,7 @@ class NewsController extends ModuleInstance {
 		if (!isset($item)) {
 			return null;
 		}
-		$layout = $this->settingManager->getInt('news_announcement_layout')??1;
+		$layout = $this->newsAnnouncementLayout;
 		if ($layout === 1) {
 			$msg = $this->text->makeBlob(
 				"News [Last updated at " . $this->util->date($item->time) . "]",
@@ -277,13 +256,14 @@ class NewsController extends ModuleInstance {
 			$context->reply($msg);
 			return;
 		}
-		if ($this->settingManager->getBool('news_confirmed_for_all_alts')) {
+		$sender = $context->char->name;
+		if ($this->newsConfirmedForAllAlts) {
 			$sender = $this->altsController->getMainOf($context->char->name);
 		}
 
 		if ($this->db->table("news_confirmed")
 			->where("id", $row->id)
-			->where("player", $context->char->name)
+			->where("player", $sender)
 			->exists()
 		) {
 			$msg = "You've already confirmed these news.";
@@ -293,7 +273,7 @@ class NewsController extends ModuleInstance {
 		$this->db->table("news_confirmed")
 			->insert([
 				"id" => $row->id,
-				"player" => $context->char->name,
+				"player" => $sender,
 				"time" => time(),
 			]);
 		$msg = "News confirmed, it won't be shown to you again.";

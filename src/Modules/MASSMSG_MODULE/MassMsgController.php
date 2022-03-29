@@ -12,7 +12,6 @@ use Nadybot\Core\{
 	ModuleInstance,
 	Modules\BAN\BanController,
 	Nadybot,
-	SettingManager,
 	Text,
 	Util,
 	Modules\PREFERENCES\Preferences,
@@ -45,7 +44,7 @@ use Nadybot\Core\{
 		accessLevel: "mod",
 		description: "Send invites with a message to all bot members online",
 		alias: "massinvite"
-	)
+	),
 ]
 class MassMsgController extends ModuleInstance {
 	public const BLOCKED = 'blocked';
@@ -66,9 +65,6 @@ class MassMsgController extends ModuleInstance {
 	public Util $util;
 
 	#[NCA\Inject]
-	public SettingManager $settingManager;
-
-	#[NCA\Inject]
 	public AccessManager $accessManager;
 
 	#[NCA\Inject]
@@ -83,29 +79,16 @@ class MassMsgController extends ModuleInstance {
 	#[NCA\Inject]
 	public Nadybot $chatBot;
 
+	/** Color for mass messages/invites */
+	#[NCA\Setting\Color]
+	public string $massmsgColor = "#FF9999";
+
+	/** Cooldown between sending 2 mass-messages/-invites */
+	#[NCA\Setting\Time(options: ["1s", "30s", "1m", "5m", "15m"])]
+	public int $massmsgCooldown = 1;
+
 	/** date and time when the last mass message was sent */
 	public ?DateTime $lastMessage;
-
-	#[NCA\Setup]
-	public function setup(): void {
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: "massmsg_color",
-			description: "Color for mass messages/invites",
-			mode: "edit",
-			type: "color",
-			value: "<font color='#FF9999'>",
-		);
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: "massmsg_cooldown",
-			description: "Cooldown between sending 2 mass-messages/-invites",
-			mode: "edit",
-			type: "time",
-			value: "1s",
-			options: ["1s", "30s", "1m", "5m", "15m"],
-		);
-	}
 
 	protected function getMassMsgOptInOutBlob(): string {
 		$msgOnLink      = $this->text->makeChatcmd("On", "/tell <myname> massmsgs on");
@@ -122,7 +105,7 @@ class MassMsgController extends ModuleInstance {
 	}
 
 	protected function massMsgRateLimitCheck(): ?string {
-		$cooldown = $this->settingManager->getInt("massmsg_cooldown") ?? 1;
+		$cooldown = $this->massmsgCooldown;
 		$message = null;
 		if (isset($this->lastMessage)) {
 			$notAllowedBefore = $this->lastMessage->getTimestamp() + $cooldown;
@@ -149,7 +132,7 @@ class MassMsgController extends ModuleInstance {
 			return;
 		}
 		$message = "<highlight>Message from {$context->char->name}<end>: ".
-			($this->settingManager->getString('massmsg_color')??"<font>") . $message . "<end>";
+			"{$this->massmsgColor}{$message}<end>";
 		$this->chatBot->sendPrivate($message, true);
 		$this->chatBot->sendGuild($message, true);
 		$message .= " :: " . $this->getMassMsgOptInOutBlob();
@@ -175,7 +158,7 @@ class MassMsgController extends ModuleInstance {
 			return;
 		}
 		$message = "<highlight>Invite from {$context->char->name}<end>: ".
-			($this->settingManager->getString('massmsg_color')??"<font>") . $message . "<end>";
+			"{$this->massmsgColor}{$message}<end>";
 		$this->chatBot->sendPrivate($message, true);
 		$this->chatBot->sendGuild($message, true);
 		$message .= " :: " . $this->getMassMsgOptInOutBlob();

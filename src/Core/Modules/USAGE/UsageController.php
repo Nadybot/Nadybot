@@ -36,10 +36,11 @@ use stdClass;
 		accessLevel: "guild",
 		description: "Shows usage stats",
 		defaultStatus: 1
-	)
+	),
 ]
 class UsageController extends ModuleInstance {
 	public const DB_TABLE = "usage_<myname>";
+
 	#[NCA\Inject]
 	public DB $db;
 
@@ -61,34 +62,13 @@ class UsageController extends ModuleInstance {
 	#[NCA\Inject]
 	public Nadybot $chatBot;
 
-	#[NCA\Setup]
-	public function setup(): void {
+	/** Record usage stats */
+	#[NCA\Setting\Boolean]
+	public bool $recordUsageStats = true;
 
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: "record_usage_stats",
-			description: "Record usage stats",
-			mode: "edit",
-			type: "bool",
-			value: "1"
-		);
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: 'botid',
-			description: 'Botid',
-			mode: 'noedit',
-			type: 'text',
-			value: ''
-		);
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: 'last_submitted_stats',
-			description: 'last_submitted_stats',
-			mode: 'noedit',
-			type: 'text',
-			value: '0'
-		);
-	}
+	/** Botid */
+	#[NCA\Setting\Text(mode: 'noedit')]
+	public string $botid = "";
 
 	/** Show usage stats for the past 7 days or &lt;duration&gt; for a given character */
 	#[NCA\HandlesCommand("usage")]
@@ -284,7 +264,7 @@ class UsageController extends ModuleInstance {
 	}
 
 	public function getUsageInfo(int $lastSubmittedStats, int $now, bool $debug=false): UsageStats {
-		$botid = $this->settingManager->getString('botid')??"";
+		$botid = $this->botid;
 		if ($botid === '') {
 			$botid = $this->util->genRandomString(20);
 			$this->settingManager->save('botid', $botid);

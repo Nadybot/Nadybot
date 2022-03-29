@@ -15,7 +15,6 @@ use Nadybot\Core\{
 	LoggerWrapper,
 	Nadybot,
 	ParamClass\PCharacter,
-	SettingManager,
 	Text,
 	Timer,
 	TimerEvent,
@@ -45,6 +44,7 @@ use Nadybot\Modules\RAFFLE_MODULE\RaffleItem;
 		accessLevel: "raid_leader_1",
 		description: "Give back points for an auction",
 	),
+
 	NCA\ProvidesEvent("auction(start)"),
 	NCA\ProvidesEvent("auction(end)"),
 	NCA\ProvidesEvent("auction(cancel)"),
@@ -78,9 +78,6 @@ class AuctionController extends ModuleInstance {
 	public CommandAlias $commandAlias;
 
 	#[NCA\Inject]
-	public SettingManager $settingManager;
-
-	#[NCA\Inject]
 	public Text $text;
 
 	#[NCA\Inject]
@@ -95,117 +92,68 @@ class AuctionController extends ModuleInstance {
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
+	/** Allow auctions only for people in the raid */
+	#[NCA\Setting\Boolean(accessLevel: 'raid_admin_2')]
+	public bool $auctionsOnlyForRaid = false;
+
+	/** Show the name of the top bidder during the auction */
+	#[NCA\Setting\Boolean(accessLevel: 'raid_admin_2')]
+	public bool $auctionsShowMaxBidder = true;
+
+	/** Show the names of the rival bidders */
+	#[NCA\Setting\Boolean(accessLevel: 'raid_admin_2')]
+	public bool $auctionsShowRivalBidders = false;
+
+	/** Duration for auctions */
+	#[NCA\Setting\Time]
+	public int $auctionDuration = 50;
+
+	/** Bidding grace period */
+	#[NCA\Setting\Time]
+	public int $auctionMinTimeAfterBid = 5;
+
+	/** Refund tax in percent */
+	#[NCA\Setting\Number]
+	public int $auctionRefundTax = 10;
+
+	/** Refund minimum tax in points */
+	#[NCA\Setting\Number]
+	public int $auctionRefundMinTax = 0;
+
+	/** Refund maximum tax in points */
+	#[NCA\Setting\Number]
+	public int $auctionRefundMaxTax = 0;
+
+	/** Refund maximum age of auction */
+	#[NCA\Setting\Time]
+	public int $auctionRefundMaxTime = 3600; // 1h
+
+	/** Layout of the auction announcement */
+	#[NCA\Setting\Options(options: [
+		'Simple' => 1,
+		'Yellow border' => 2,
+		'Yellow header' => 3,
+		'Pink border' => 4,
+		'Rainbow border' => 5,
+	])]
+	public int $auctionAnnouncementLayout = 2;
+
+	/** Layout of the winner announcement */
+	#[NCA\Setting\Options(options: [
+		'Simple' => 1,
+		'Yellow border' => 2,
+		'Yellow header' => 3,
+		'Pink border' => 4,
+		'Rainbow border' => 5,
+		'Gratulations' => 6,
+	])]
+	public int $auctionWinnerAnnouncement = 1;
+
 	public ?Auction $auction = null;
 	protected ?TimerEvent $auctionTimer = null;
 
 	#[NCA\Setup]
 	public function setup(): void {
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: 'auctions_only_for_raid',
-			description: 'Allow auctions only for people in the raid',
-			mode: 'edit',
-			type: 'bool',
-			value: '0',
-			accessLevel: 'raid_admin_2'
-		);
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: 'auctions_show_max_bidder',
-			description: 'Show the name of the top bidder during the auction',
-			mode: 'edit',
-			type: 'bool',
-			value: '1',
-			accessLevel: 'raid_admin_2'
-		);
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: 'auctions_show_rival_bidders',
-			description: 'Show the names of the rival bidders',
-			mode: 'edit',
-			type: 'bool',
-			value: '0',
-			accessLevel: 'raid_admin_2'
-		);
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: 'auction_duration',
-			description: 'Duration for auctions',
-			mode: 'edit',
-			type: 'time',
-			value: '50s',
-		);
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: 'auction_min_time_after_bid',
-			description: 'Bidding grace period',
-			mode: 'edit',
-			type: 'time',
-			value: '5s',
-		);
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: 'auction_refund_tax',
-			description: 'Refund tax in percent',
-			mode: 'edit',
-			type: 'number',
-			value: '10',
-		);
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: 'auction_refund_min_tax',
-			description: 'Refund minimum tax in points',
-			mode: 'edit',
-			type: 'number',
-			value: '0',
-		);
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: 'auction_refund_max_tax',
-			description: 'Refund maximum tax in points',
-			mode: 'edit',
-			type: 'number',
-			value: '0',
-		);
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: 'auction_refund_max_time',
-			description: 'Refund maximum age of auction',
-			mode: 'edit',
-			type: 'time',
-			value: '1h',
-		);
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: 'auction_announcement_layout',
-			description: 'Layout of the auction announcement',
-			mode: 'edit',
-			type: 'options',
-			value: '2',
-			options: [
-				'Simple' => 1,
-				'Yellow border' => 2,
-				'Yellow header' => 3,
-				'Pink border' => 4,
-				'Rainbow border' => 5,
-			]
-		);
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: 'auction_winner_announcement',
-			description: 'Layout of the winner announcement',
-			mode: 'edit',
-			type: 'options',
-			value: '1',
-			options: [
-				'Simple' => 1,
-				'Yellow border' => 2,
-				'Yellow header' => 3,
-				'Pink border' => 4,
-				'Rainbow border' => 5,
-				'Gratulations' => 6,
-			]
-		);
 		$this->commandAlias->register($this->moduleName, "bid history", "bh");
 	}
 
@@ -216,7 +164,7 @@ class AuctionController extends ModuleInstance {
 		#[NCA\Str("start")] string $action,
 		string $item
 	): void {
-		if ($this->settingManager->getBool('auctions_only_for_raid') && !isset($this->raidController->raid)) {
+		if ($this->auctionsOnlyForRaid && !isset($this->raidController->raid)) {
 			$context->reply(RaidController::ERR_NO_RAID);
 			return;
 		}
@@ -228,7 +176,7 @@ class AuctionController extends ModuleInstance {
 		$auction->item = new RaffleItem();
 		$auction->item->fromString($item);
 		$auction->auctioneer = $context->char->name;
-		$auction->end = time() + ($this->settingManager->getInt('auction_duration') ?? 50);
+		$auction->end = time() + $this->auctionDuration;
 		$this->startAuction($auction);
 	}
 
@@ -299,7 +247,7 @@ class AuctionController extends ModuleInstance {
 			);
 			return;
 		}
-		$maxAge = $this->settingManager->getInt('auction_refund_max_time') ?? 3600;
+		$maxAge = $this->auctionRefundMaxTime;
 		if (time() - $lastAuction->end > $maxAge) {
 			$context->reply(
 				"<highlight>{$lastAuction->item}<end> was auctioned longer than ".
@@ -315,9 +263,9 @@ class AuctionController extends ModuleInstance {
 			);
 			return;
 		}
-		$minPenalty = $this->settingManager->getInt('auction_refund_min_tax')??0;
-		$maxPenalty = $this->settingManager->getInt('auction_refund_max_tax')??0;
-		$penalty = $this->settingManager->getInt('auction_refund_tax')??10;
+		$minPenalty = $this->auctionRefundMinTax;
+		$maxPenalty = $this->auctionRefundMaxTax;
+		$penalty = $this->auctionRefundTax;
 		$percentualPenalty = (int)ceil(($lastAuction->cost??0) * $penalty / 100);
 		if ($maxPenalty > 0) {
 			$giveBack = max(
@@ -412,7 +360,7 @@ class AuctionController extends ModuleInstance {
 			return;
 		}
 		if (
-			$this->settingManager->getBool('auctions_only_for_raid')
+			$this->auctionsOnlyForRaid
 			&& (
 				!isset($this->raidController->raid->raiders[$context->char->name])
 				|| isset($this->raidController->raid->raiders[$context->char->name]->left)
@@ -567,20 +515,17 @@ class AuctionController extends ModuleInstance {
 		if ($offer === $this->auction->max_bid) {
 			// If both bid the same, the oldest offer has priority
 			$this->auction->bid = $offer;
-			if ($this->settingManager->getBool('auctions_show_rival_bidders')) {
+			if ($this->auctionsShowRivalBidders) {
 				$this->chatBot->sendPrivate("{$sender}'s bid was not high enough.");
 			}
 		} elseif ($offer < $this->auction->max_bid) {
 			// If the new bidder bid less, than old bidder bids one more than them
 			$this->auction->bid = $offer+1;
-			if ($this->settingManager->getBool('auctions_show_rival_bidders')) {
+			if ($this->auctionsShowRivalBidders) {
 				$this->chatBot->sendPrivate("{$sender}'s bid was not high enough.");
 			}
 		} else {
-			if (
-				!$this->settingManager->getBool('auctions_show_max_bidder')
-				&& isset($this->auction->top_bidder)
-			) {
+			if (!$this->auctionsShowMaxBidder && isset($this->auction->top_bidder)) {
 				$this->chatBot->sendMassTell(
 					"You are no longer the top bidder.",
 					$this->auction->top_bidder
@@ -593,7 +538,7 @@ class AuctionController extends ModuleInstance {
 			$sendto->reply("You are now the top bidder.");
 		}
 
-		$minTime = $this->settingManager->getInt('auction_min_time_after_bid') ?? 5;
+		$minTime = $this->auctionMinTimeAfterBid;
 		// When something changes, make sure people have at least
 		// $minTime seconds to place new bids
 		if (isset($this->auctionTimer)) {
@@ -682,9 +627,8 @@ class AuctionController extends ModuleInstance {
 			"To place a bid, use\n".
 			"<tab><highlight>/tell " . $this->chatBot->char->name . " bid &lt;points&gt;<end>\n".
 			"<i>(Replace &lt;points&gt; with the number of points you would like to bid)</i>\n\n".
-			"The auction ends after " . ($this->settingManager->getInt('auction_duration')??50).
-			"s, or " . ($this->settingManager->getInt('auction_min_time_after_bid')??5) . "s after ".
-			"the last bid was placed.\n\n".
+			"The auction ends after {$this->auctionDuration}s, or ".
+			"{$this->auctionMinTimeAfterBid}s after the last bid was placed.\n\n".
 			"<header2>How it works<end>\n".
 			"Bidding works like ebay: You bid the maximum number of points you would like ".
 			"to spend on an item.\n".
@@ -702,7 +646,7 @@ class AuctionController extends ModuleInstance {
 	 * @phpstan-return array{0:string, 1:string}
 	 */
 	public function getAnnouncementBorders(): array {
-		$layout = $this->settingManager->getInt('auction_announcement_layout');
+		$layout = $this->auctionAnnouncementLayout;
 		$shortDash = str_repeat("-", 25);
 		$longDash = str_repeat("-", 65);
 		switch ($layout) {
@@ -762,7 +706,7 @@ class AuctionController extends ModuleInstance {
 			return;
 		}
 		$points = "point" . (($event->auction->bid > 1) ? "s" : "");
-		$layout = $this->settingManager->getInt('auction_winner_announcement') ?? 1;
+		$layout = $this->auctionWinnerAnnouncement;
 		$msg = sprintf(
 			$this->getAuctionWinnerLayout($layout),
 			$event->auction->top_bidder,
@@ -830,7 +774,7 @@ class AuctionController extends ModuleInstance {
 
 	public function getRunningAuctionInfo(Auction $auction): string {
 		$msg = "The highest offer is currently ";
-		if ($this->settingManager->getBool('auctions_show_max_bidder')) {
+		if ($this->auctionsShowMaxBidder) {
 			$msg = "<highlight>{$auction->top_bidder}<end> leads with ";
 		}
 		$msg .= "<highlight>{$auction->bid}<end> point" . ($auction->bid > 1 ? "s" : "") . ". ".

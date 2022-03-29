@@ -12,7 +12,6 @@ use Nadybot\Core\{
 	ParamClass\PCharacter,
 	ParamClass\PRemove,
 	ParamClass\PWord,
-	SettingManager,
 	Text,
 	Util,
 };
@@ -50,13 +49,14 @@ class ChatAssistController extends ModuleInstance {
 	public ChatLeaderController $chatLeaderController;
 
 	#[NCA\Inject]
-	public SettingManager $settingManager;
-
-	#[NCA\Inject]
 	public EventManager $eventManager;
 
 	#[NCA\Inject]
 	public BuddylistManager $buddylistManager;
+
+	/** Max stored undo steps */
+	#[NCA\Setting\Number]
+	public int $callersUndoSteps = 5;
 
 	/**
 	 * Names of all callers
@@ -70,24 +70,12 @@ class ChatAssistController extends ModuleInstance {
 	 */
 	protected array $lastCallers = [];
 
-	#[NCA\Setup]
-	public function setup(): void {
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: "callers_undo_steps",
-			description: "Max stored undo steps",
-			mode: "edit",
-			type: "number",
-			value: "5"
-		);
-	}
-
 	/** Store a caller backup */
 	protected function storeBackup(CallerBackup $backup): void {
 		$this->lastCallers []= $backup;
 		$this->lastCallers = array_slice(
 			$this->lastCallers,
-			-1 * ($this->settingManager->getInt('callers_undo_steps')??5)
+			-1 * $this->callersUndoSteps
 		);
 	}
 

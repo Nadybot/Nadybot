@@ -32,7 +32,7 @@ use Safe\Exceptions\FilesystemException;
 		accessLevel: "admin",
 		description: "Reloads the bank database from the AO Items Assistant file",
 		alias: "updatebank"
-	)
+	),
 ]
 class BankController extends ModuleInstance {
 	#[NCA\Inject]
@@ -47,27 +47,13 @@ class BankController extends ModuleInstance {
 	#[NCA\Inject]
 	public SettingManager $settingManager;
 
-	#[NCA\Setup]
-	public function setup(): void {
+	/** Location of the AO Items Assistant csv dump file */
+	#[NCA\Setting\Text]
+	public string $bankFileLocation = './src/Modules/BANK_MODULE/import.csv';
 
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: 'bank_file_location',
-			description: 'Location of the AO Items Assistant csv dump file',
-			mode: 'edit',
-			type: 'text',
-			value: './src/Modules/BANK_MODULE/import.csv'
-		);
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: 'max_bank_items',
-			description: 'Number of items shown in search results',
-			mode: 'edit',
-			type: 'number',
-			value: '50',
-			options: ["20", "50", "100"]
-		);
-	}
+	/** Number of items shown in search results */
+	#[NCA\Setting\Number(options: [20, 50, 100])]
+	public int $maxBankItems = 50;
 
 	/** List the bank characters in the database: */
 	#[NCA\HandlesCommand("bank")]
@@ -123,7 +109,7 @@ class BankController extends ModuleInstance {
 	#[NCA\HandlesCommand("bank")]
 	public function bankBrowseContainerCommand(CmdContext $context, #[NCA\Str("browse")] string $action, PCharacter $char, int $containerId): void {
 		$name = $char();
-		$limit = $this->settingManager->getInt('max_bank_items') ?? 50;
+		$limit = $this->maxBankItems;
 
 		$data = $this->db->table("bank")
 			->where("player", $name)
@@ -153,7 +139,7 @@ class BankController extends ModuleInstance {
 	public function bankSearchCommand(CmdContext $context, #[NCA\Str("search")] string $action, string $search): void {
 		$search = htmlspecialchars_decode($search);
 		$words = explode(' ', $search);
-		$limit = $this->settingManager->getInt('max_bank_items') ?? 50;
+		$limit = $this->maxBankItems;
 		$query = $this->db->table("bank")
 			->orderBy("name")
 			->orderBy("ql")
@@ -182,11 +168,9 @@ class BankController extends ModuleInstance {
 	#[NCA\HandlesCommand("bank update")]
 	public function bankUpdateCommand(CmdContext $context, #[NCA\Str("update")] string $action): void {
 		try {
-			$lines = \Safe\file($this->settingManager->getString('bank_file_location')??"");
+			$lines = \Safe\file($this->bankFileLocation);
 		} catch (FilesystemException $e) {
-			$msg = "Could not open file '".
-				($this->settingManager->getString('bank_file_location')??"") . "': ".
-				$e->getMessage();
+			$msg = "Could not open file '{$this->bankFileLocation}': " . $e->getMessage();
 			$context->reply($msg);
 			return;
 		}

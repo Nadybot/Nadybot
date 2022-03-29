@@ -17,7 +17,6 @@ use Nadybot\Core\{
 	Registry,
 	Routing\RoutableMessage,
 	Routing\Source,
-	SettingManager,
 	SocketManager,
 	SocketNotifier,
 	Timer,
@@ -30,9 +29,6 @@ class ConsoleController extends ModuleInstance {
 
 	#[NCA\Inject]
 	public CommandManager $commandManager;
-
-	#[NCA\Inject]
-	public SettingManager $settingManager;
 
 	#[NCA\Inject]
 	public Nadybot $chatBot;
@@ -49,6 +45,12 @@ class ConsoleController extends ModuleInstance {
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
+	/** Use ANSI colors */
+	#[NCA\Setting\Boolean] public bool $consoleColor = false;
+
+	/** Set background color */
+	#[NCA\Setting\Boolean] public bool $consoleBGColor = false;
+
 	public SocketNotifier $notifier;
 
 	/**
@@ -61,31 +63,16 @@ class ConsoleController extends ModuleInstance {
 
 	#[NCA\Setup]
 	public function setup(): void {
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: "console_color",
-			description: "Use ANSI colors",
-			mode: "edit",
-			type: "bool",
-			value: "0"
-		);
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: "console_bg_color",
-			description: "Set background color",
-			mode: "edit",
-			type: "bool",
-			value: "0"
-		);
-		if ($this->config->enableConsoleClient &&!BotRunner::isWindows()) {
-			$this->commandManager->registerSource("console");
-			$handler = new ConsoleCommandReply($this->chatBot);
-			Registry::injectDependencies($handler);
-			$channel = new ConsoleChannel($handler);
-			Registry::injectDependencies($channel);
-			$this->messageHub->registerMessageReceiver($channel)
-				->registerMessageEmitter($channel);
+		if (!$this->config->enableConsoleClient || BotRunner::isWindows()) {
+			return;
 		}
+		$this->commandManager->registerSource("console");
+		$handler = new ConsoleCommandReply($this->chatBot);
+		Registry::injectDependencies($handler);
+		$channel = new ConsoleChannel($handler);
+		Registry::injectDependencies($channel);
+		$this->messageHub->registerMessageReceiver($channel)
+			->registerMessageEmitter($channel);
 	}
 
 	public function getCacheFile(): string {

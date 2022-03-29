@@ -128,10 +128,6 @@ class RecipeController extends ModuleInstance {
 		return $recipe;
 	}
 
-	#[NCA\Setup]
-	public function setup(): void {
-	}
-
 	/**
 	 * This is an Event("connect") instead of Setup since it depends on the items db being loaded
 	 */

@@ -64,6 +64,10 @@ class GSPController extends ModuleInstance implements MessageEmitter {
 	#[NCA\Inject]
 	public SettingManager $settingManager;
 
+	/** Show on logon if there is a running GSP show */
+	#[NCA\Setting\Boolean]
+	public bool $gspShowLogon = true;
+
 	/**
 	 * 1 if a GSP show is currently running, otherwise 0
 	 */
@@ -87,14 +91,6 @@ class GSPController extends ModuleInstance implements MessageEmitter {
 
 	#[NCA\Setup]
 	public function setup(): void {
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: "gsp_show_logon",
-			description: "Show on logon if there is a running GSP show",
-			mode: "edit",
-			type: "bool",
-			value: "1"
-		);
 		$this->messageHub->registerMessageEmitter($this);
 	}
 
@@ -195,7 +191,7 @@ class GSPController extends ModuleInstance implements MessageEmitter {
 		if (
 			!$this->chatBot->isReady()
 			|| !isset($this->chatBot->guildmembers[$sender])
-			|| !$this->settingManager->getBool('gsp_show_logon')
+			|| !$this->gspShowLogon
 			|| !$this->showRunning
 			|| !is_string($sender)
 		) {

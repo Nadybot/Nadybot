@@ -15,7 +15,6 @@ use Nadybot\Core\{
 	Nadybot,
 	Routing\RoutableMessage,
 	Routing\Source,
-	SettingManager,
 	Util,
 };
 use Nadybot\Modules\TIMERS_MODULE\{
@@ -54,13 +53,17 @@ class CityWaveController extends ModuleInstance implements MessageEmitter {
 	public MessageHub $messageHub;
 
 	#[NCA\Inject]
-	public SettingManager $settingManager;
-
-	#[NCA\Inject]
 	public EventManager $eventManager;
 
 	#[NCA\Inject]
 	public Util $util;
+
+	/** Times to display timer alerts */
+	#[NCA\Setting\Text(
+		options: ["105s 150s 90s 120s 120s 120s 120s 120s 120s"],
+		help: 'city_wave_times.txt'
+	)]
+	public string $cityWaveTimes = '105s 150s 90s 120s 120s 120s 120s 120s 120s';
 
 	public const TIMER_NAME = "City Raid";
 
@@ -69,20 +72,6 @@ class CityWaveController extends ModuleInstance implements MessageEmitter {
 		$this->commandAlias->register($this->moduleName, "citywave start", "startwave");
 		$this->commandAlias->register($this->moduleName, "citywave stop", "stopwave");
 
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: 'city_wave_times',
-			description: 'Times to display timer alerts',
-			mode: 'edit',
-			type: 'text',
-			value: '105s 150s 90s 120s 120s 120s 120s 120s 120s',
-			options: ["105s 150s 90s 120s 120s 120s 120s 120s 120s"],
-			help: 'city_wave_times.txt'
-		);
-		$this->settingManager->registerChangeListener(
-			'city_wave_times',
-			[$this, 'changeWaveTimes']
-		);
 		$this->messageHub->registerMessageEmitter($this);
 	}
 
@@ -99,6 +88,7 @@ class CityWaveController extends ModuleInstance implements MessageEmitter {
 		$this->messageHub->handle($e);
 	}
 
+	#[NCA\SettingChangeHandler("city_wave_times")]
 	public function changeWaveTimes(string $settingName, string $oldValue, string $newValue, mixed $data): void {
 		$alertTimes = explode(' ', $newValue);
 		if (count($alertTimes) !== 9) {
@@ -197,7 +187,7 @@ class CityWaveController extends ModuleInstance implements MessageEmitter {
 		$lastTime = time();
 		$wave = 1;
 		$alerts = [];
-		$alertTimes = explode(' ', $this->settingManager->getString("city_wave_times")??"");
+		$alertTimes = explode(' ', $this->cityWaveTimes);
 		foreach ($alertTimes as $alertTime) {
 			$time = $this->util->parseTime($alertTime);
 			$lastTime += $time;

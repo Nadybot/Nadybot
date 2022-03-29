@@ -12,7 +12,6 @@ use Nadybot\Core\{
 	DBSchema\Audit,
 	ModuleInstance,
 	QueryBuilder,
-	SettingManager,
 	Text,
 };
 use Nadybot\Modules\WEBSERVER_MODULE\{
@@ -28,30 +27,18 @@ use Nadybot\Modules\WEBSERVER_MODULE\{
 		command: "audit",
 		accessLevel: "admin",
 		description: "View security audit logs",
-	)
+	),
 ]
 class AuditController extends ModuleInstance {
 	#[NCA\Inject]
 	public DB $db;
 
 	#[NCA\Inject]
-	public SettingManager $settingManager;
-
-	#[NCA\Inject]
 	public Text $text;
 
-	#[NCA\Setup]
-	public function setup(): void {
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: "audit_enabled",
-			description: "Log all security-relevant data",
-			mode: "edit",
-			type: "bool",
-			value: "0",
-			accessLevel: "superadmin"
-		);
-	}
+	/** Log all security-relevant data */
+	#[NCA\Setting\Boolean(accessLevel: "superadmin")]
+	public bool $auditEnabled = false;
 
 	/**
 	 * @param array<mixed> $params

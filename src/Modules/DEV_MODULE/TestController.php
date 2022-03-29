@@ -14,7 +14,6 @@ use Nadybot\Core\{
 	EventManager,
 	ModuleInstance,
 	LoggerWrapper,
-	Modules\BUDDYLIST\BuddylistController,
 	Modules\DISCORD\DiscordMessageIn,
 	Nadybot,
 	ParamClass\PCharacter,
@@ -72,9 +71,6 @@ class TestController extends ModuleInstance {
 	public CommandManager $commandManager;
 
 	#[NCA\Inject]
-	public BuddylistController $buddylistController;
-
-	#[NCA\Inject]
 	public PlayfieldController $playfieldController;
 
 	#[NCA\Inject]
@@ -86,29 +82,15 @@ class TestController extends ModuleInstance {
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
-	public string $path;
+	/** Show test commands as they are executed */
+	#[NCA\Setting\Boolean]
+	public bool $showTestCommands = false;
 
-	#[NCA\Setup]
-	public function setup(): void {
-		$this->path = __DIR__ . "/tests/";
+	/** Show test results from test commands */
+	#[NCA\Setting\Boolean]
+	public bool $showTestResults = false;
 
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: "show_test_commands",
-			description: "Show test commands as they are executed",
-			mode: "edit",
-			type: "bool",
-			value: "0"
-		);
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: "show_test_results",
-			description: "Show test results from test commands",
-			mode: "edit",
-			type: "bool",
-			value: "0"
-		);
-	}
+	public string $path = __DIR__ . "/tests/";
 
 	/** @param string[] $commands */
 	public function runTests(array $commands, CmdContext $context, string $logFile): void {
@@ -119,12 +101,14 @@ class TestController extends ModuleInstance {
 			return;
 		}
 		$testContext = clone $context;
-		if ($this->settingManager->getBool('show_test_commands')) {
+		if ($this->showTestCommands) {
 			$this->chatBot->sendTell($line, $context->char->name);
 		} else {
 			$this->logger->notice($line);
-			$testContext->sendto = new MockCommandReply($line, $logFile);
-			$testContext->sendto->logger = $this->logger;
+			if (!$this->showTestResults) {
+				$testContext->sendto = new MockCommandReply($line, $logFile);
+				$testContext->sendto->logger = $this->logger;
+			}
 		}
 		$testContext->message = substr($line, 1);
 		$this->commandManager->processCmd($testContext);
@@ -639,8 +623,6 @@ class TestController extends ModuleInstance {
 		#[NCA\Str("all")] string $action
 	): void {
 		$testContext = clone $context;
-		$testContext->sendto = new MockCommandReply("buddylist clear");
-		$this->buddylistController->buddylistClearCommand($testContext, "clear");
 
 		$files = $this->util->getFilesInDirectory($this->path);
 		$context->reply("Starting tests...");

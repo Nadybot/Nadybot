@@ -48,7 +48,7 @@ use Nadybot\Modules\WEBSERVER_MODULE\{
 		command: "start",
 		accessLevel: "member",
 		description: "Shows your personal startpage",
-	)
+	),
 ]
 class StartpageController extends ModuleInstance {
 	#[NCA\Inject]
@@ -77,6 +77,22 @@ class StartpageController extends ModuleInstance {
 
 	#[NCA\Inject]
 	public WebChatConverter $webChatConverter;
+
+	/** The tiles to show on the startpage */
+	#[NCA\Setting\Text(mode: "noedit")]
+	public string $startpageLayout = "";
+
+	/** The message when sending the startpage to people */
+	#[NCA\Setting\Text(help: "startpage_startmsg.txt")]
+	public string $startpageStartmsg = "Welcome, {name}!";
+
+	/** When to show non-org-members the startpage */
+	#[NCA\Setting\Options(options: [
+		'Do not show to non-org-members' => 0,
+		'When Logging in' => 1,
+		'When joining the private channel' => 2,
+	])]
+	public int $startpageShowMembers = 2;
 
 	/** @var array<string,NewsTile> */
 	protected array $tiles = [];
@@ -117,36 +133,6 @@ class StartpageController extends ModuleInstance {
 				$this->parseRefMethod($instance, $method);
 			}
 		}
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: "startpage_layout",
-			description: "The tiles to show on the startpage",
-			mode: "noedit",
-			type: "text",
-			value: ""
-		);
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: "startpage_startmsg",
-			description: "The message when sending the startpage to people",
-			mode: "edit",
-			type: "text",
-			value: "Welcome, {name}!",
-			help: "startpage_startmsg.txt"
-		);
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: "startpage_show_members",
-			description: "When to show non-org-members the startpage",
-			mode: "edit",
-			type: "options",
-			value: "2",
-			options: [
-				'Do not show to non-org-members' => 0,
-				'When Logging in' => 1,
-				'When joining the private channel' => 2,
-			],
-		);
 	}
 
 	/**
@@ -183,7 +169,7 @@ class StartpageController extends ModuleInstance {
 		if ($uid === false) {
 			return;
 		}
-		if ($this->settingManager->getInt("startpage_show_members") !== 1) {
+		if ($this->startpageShowMembers !== 1) {
 			return;
 		}
 		if ($this->accessManager->getAccessLevelForCharacter($sender) === "all") {
@@ -208,7 +194,7 @@ class StartpageController extends ModuleInstance {
 		if (!$this->chatBot->isReady() || !is_string($sender) || isset($this->chatBot->guildmembers[$sender])) {
 			return;
 		}
-		if ($this->settingManager->getInt("startpage_show_members") !== 2) {
+		if ($this->startpageShowMembers !== 2) {
 			return;
 		}
 		$this->showStartpage($sender, $this->getMassTell($sender));
@@ -268,7 +254,7 @@ class StartpageController extends ModuleInstance {
 	 * @return array<string,NewsTile>
 	 */
 	public function getActiveLayout(): array {
-		$tileString = $this->settingManager->getString("startpage_layout")??"";
+		$tileString = $this->startpageLayout;
 		if ($tileString === "") {
 			return [];
 		}
@@ -289,7 +275,7 @@ class StartpageController extends ModuleInstance {
 	}
 
 	public function getStartpageString(string $sender): string {
-		$msg = $this->settingManager->getString("startpage_startmsg")??"";
+		$msg = $this->startpageStartmsg;
 		$repl = [
 			"{name}" => $sender,
 			"{myname}" => "<myname>",

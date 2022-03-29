@@ -24,15 +24,14 @@ use Nadybot\Core\{
 	Nadybot,
 	ParamClass\PCharacter,
 	ParamClass\PNonNumber,
+	ParamClass\PProfession,
 	ParamClass\PRemove,
 	Routing\RoutableMessage,
 	Routing\Source,
-	SettingManager,
 	Text,
 	UserStateEvent,
 	Util,
 };
-use Nadybot\Core\ParamClass\PProfession;
 use Nadybot\Modules\{
 	ONLINE_MODULE\OnlineController,
 	ORGLIST_MODULE\FindOrgController,
@@ -102,9 +101,6 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 	public ConfigFile $config;
 
 	#[NCA\Inject]
-	public SettingManager $settingManager;
-
-	#[NCA\Inject]
 	public EventManager $eventManager;
 
 	#[NCA\Inject]
@@ -134,89 +130,58 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
+	/** How to show if a tracked person logs on/off */
+	#[NCA\Setting\Options(options: [
+		'TRACK: "info" logged on/off.' => 0,
+		'+/- "info"' => 1,
+	])]
+	public int $trackerLayout = 0;
+
+	/** Use faction color for the name of the tracked person */
+	#[NCA\Setting\Boolean]
+	public bool $trackerUseFactionColor = false;
+
+	/** Show the tracked person's level */
+	#[NCA\Setting\Boolean]
+	public bool $trackerShowLevel = false;
+
+	/** Show the tracked person's profession */
+	#[NCA\Setting\Boolean]
+	public bool $trackerShowProf = false;
+
+	/** Show the tracked person's org */
+	#[NCA\Setting\Boolean]
+	public bool $trackerShowOrg = false;
+
+	/** Group online list by */
+	#[NCA\Setting\Options(options: [
+		'do not group' => self::GROUP_NONE,
+		'title level' => self::GROUP_TL,
+		'profession' => self::GROUP_PROF,
+		'faction' => self::GROUP_FACTION,
+		'org' => self::GROUP_ORG,
+		'breed' => self::GROUP_BREED,
+		'gender' => self::GROUP_GENDER,
+	])]
+	public int $trackerGroupBy = self::GROUP_NONE;
+
+	/** Automatically track tower field attackers */
+	#[NCA\Setting\Options(options: [
+		"Off" => self::ATT_NONE,
+		"Attacking my own org's tower fields" => self::ATT_OWN_ORG,
+		"Attacking tower fields of bot members" => self::ATT_MEMBER_ORG,
+		"Attacking Clan fields" => self::ATT_CLAN,
+		"Attacking Omni fields" => self::ATT_OMNI,
+		"Attacking Neutral fields" => self::ATT_NEUTRAL,
+		"Attacking Non-Clan fields" => self::ATT_NEUTRAL|self::ATT_OMNI,
+		"Attacking Non-Omni fields" => self::ATT_NEUTRAL|self::ATT_CLAN,
+		"Attacking Non-Neutral fields" => self::ATT_CLAN|self::ATT_OMNI,
+		"All" => self::ATT_NEUTRAL|self::ATT_CLAN|self::ATT_OMNI,
+	])]
+	public int $trackerAddAttackers = self::ATT_NONE;
+
 	#[NCA\Setup]
 	public function setup(): void {
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: 'tracker_layout',
-			description: 'How to show if a tracked person logs on/off',
-			mode: 'edit',
-			type: 'options',
-			value: '0',
-			options: [
-				'TRACK: "info" logged on/off.' => 0,
-				'+/- "info"' => 1,
-			],
-		);
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: 'tracker_use_faction_color',
-			description: "Use faction color for the name of the tracked person",
-			mode: 'edit',
-			type: 'bool',
-			value: '0',
-		);
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: 'tracker_show_level',
-			description: "Show the tracked person's level",
-			mode: 'edit',
-			type: 'bool',
-			value: '0',
-		);
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: 'tracker_show_prof',
-			description: "Show the tracked person's profession",
-			mode: 'edit',
-			type: 'bool',
-			value: '0',
-		);
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: 'tracker_show_org',
-			description: "Show the tracked person's org",
-			mode: 'edit',
-			type: 'bool',
-			value: '0',
-		);
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: "tracker_group_by",
-			description: "Group online list by",
-			mode: "edit",
-			type: "options",
-			value: self::GROUP_NONE,
-			options: [
-				'do not group' => self::GROUP_NONE,
-				'title level' => self::GROUP_TL,
-				'profession' => self::GROUP_PROF,
-				'faction' => self::GROUP_FACTION,
-				'org' => self::GROUP_ORG,
-				'breed' => self::GROUP_BREED,
-				'gender' => self::GROUP_GENDER,
-			]
-		);
-		$this->settingManager->add(
-			module: $this->moduleName,
-			name: "tracker_add_attackers",
-			description: "Automatically track tower field attackers",
-			mode: "edit",
-			type: "options",
-			value: "0",
-			options: [
-				"Off" => 0,
-				"Attacking my own org's tower fields" => 1,
-				"Attacking tower fields of bot members" => 2,
-				"Attacking Clan fields" => 4,
-				"Attacking Omni fields" => 8,
-				"Attacking Neutral fields" => 16,
-				"Attacking Non-Clan fields" => 24,
-				"Attacking Non-Omni fields" => 20,
-				"Attacking Non-Neutral fields" => 12,
-				"All" => 28,
-			],
-		);
 		$this->messageHub->registerMessageEmitter($this);
 	}
 
@@ -280,7 +245,7 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 		}
 		$defGuild = $eventObj->defender->org ?? null;
 		$defFaction = $eventObj->defender->faction ?? null;
-		$trackWho = $this->settingManager->getInt('tracker_add_attackers') ?? 0;
+		$trackWho = $this->trackerAddAttackers;
 		if ($trackWho === self::ATT_NONE) {
 			return;
 		}
@@ -367,9 +332,8 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 	}
 
 	public function getTrackerLayout(bool $online): string {
-		$style = $this->settingManager->getInt('tracker_layout');
 		$color = $online ? "<green>" : "<red>";
-		switch ($style) {
+		switch ($this->trackerLayout) {
 			case 0:
 				return "TRACK: %s logged {$color}" . ($online ? "on" : "off") . "<end>.";
 			case 1:
@@ -389,15 +353,15 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 			return sprintf($format, $info);
 		}
 		$faction = strtolower($player->faction);
-		if ($this->settingManager->getBool('tracker_use_faction_color')) {
+		if ($this->trackerUseFactionColor) {
 			$info = "<{$faction}>{$name}<end>";
 		} else {
 			$info = "<highlight>{$name}<end>";
 		}
 		$bracketed = [];
-		$showLevel = $this->settingManager->getBool('tracker_show_level');
-		$showProf = $this->settingManager->getBool('tracker_show_prof');
-		$showOrg = $this->settingManager->getBool('tracker_show_org');
+		$showLevel = $this->trackerShowLevel;
+		$showProf = $this->trackerShowProf;
+		$showOrg = $this->trackerShowOrg;
 		if ($showLevel) {
 			$bracketed []= "<highlight>{$player->level}<end>/<green>{$player->ai_level}<end>";
 		}
@@ -470,7 +434,7 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 	 */
 	public function getLogoffMessage(?Player $player, string $name): string {
 		$format = $this->getTrackerLayout(false);
-		if ($player === null || !$this->settingManager->getBool('tracker_use_faction_color')) {
+		if ($player === null || !$this->trackerUseFactionColor) {
 			$info = "<highlight>{$name}<end>";
 		} else {
 			$faction = strtolower($player->faction);
@@ -962,7 +926,7 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 	 * @return string The blob
 	 */
 	public function renderOnlineList(array $players, bool $edit): string {
-		$groupBy = $this->settingManager->getInt('tracker_group_by') ?? self::GROUP_NONE;
+		$groupBy = $this->trackerGroupBy;
 		$groups = [];
 		if ($groupBy === static::GROUP_TL) {
 			foreach ($players as $player) {
@@ -1084,7 +1048,7 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 					($this->onlineController->getProfessionId($player->profession)??0) . "> ";
 			}
 		}
-		if ($this->settingManager->getBool('tracker_use_faction_color')) {
+		if ($this->trackerUseFactionColor) {
 			$blob .= "<{$faction}>{$player->name}<end>";
 		} else {
 			$blob .= "<highlight>{$player->name}<end>";

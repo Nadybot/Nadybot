@@ -67,6 +67,10 @@ class WebUiController extends ModuleInstance implements MessageEmitter {
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
+	/** The currently installed NadyUI version */
+	#[NCA\Setting\Timestamp(mode: 'noedit')]
+	public int $nadyuiVersion = 0;
+
 	#[NCA\Setup]
 	public function setup(): void {
 		$uiBranches = ["off", "stable", "unstable"];
@@ -84,10 +88,6 @@ class WebUiController extends ModuleInstance implements MessageEmitter {
 			value: "stable",
 			options: $uiBranches,
 		);
-		$this->settingManager->registerChangeListener(
-			"nadyui_channel",
-			[$this, "changeNadyUiChannel"]
-		);
 		$this->messageHub->registerMessageEmitter($this);
 	}
 
@@ -95,6 +95,7 @@ class WebUiController extends ModuleInstance implements MessageEmitter {
 		return Source::SYSTEM . '(webui)';
 	}
 
+	#[NCA\SettingChangeHandler('nadyui_channel')]
 	public function changeNadyUiChannel(string $setting, string $old, string $new): void {
 		if (empty($new) || $new === "off") {
 			return;
@@ -176,18 +177,7 @@ class WebUiController extends ModuleInstance implements MessageEmitter {
 				->withCallback([$this, "processArtifact"], $sendto, $callback);
 			return;
 		}
-		$settingName = "nadyui_version";
-		if (!$this->settingManager->exists($settingName)) {
-			$this->settingManager->add(
-				module: $this->moduleName,
-				name: $settingName,
-				description: $settingName,
-				mode: 'noedit',
-				type: 'number',
-				value: "0"
-			);
-		}
-		$currentVersion = $this->settingManager->getInt($settingName) ?? 0;
+		$currentVersion = $this->nadyuiVersion;
 		$lastModified = DateTime::createFromFormat(DateTime::RFC7231, $response->headers["last-modified"]);
 		if ($lastModified === false) {
 			$msg = "Cannot parse last modification date, assuming now";
@@ -228,7 +218,7 @@ class WebUiController extends ModuleInstance implements MessageEmitter {
 		} else {
 			$action = "<green>downgraded<end> to version";
 		}
-		$this->settingManager->save($settingName, (string)$dlVersion);
+		$this->settingManager->save("nadyui_version", (string)$dlVersion);
 		if (isset($sendto)) {
 			$msg = "Webfrontend NadyUI {$action} <highlight>" . $lastModified->format("Y-m-d H:i:s") . "<end>";
 			$sendto->reply($msg);
