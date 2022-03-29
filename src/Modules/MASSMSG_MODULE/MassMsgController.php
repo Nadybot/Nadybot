@@ -9,7 +9,6 @@ use Nadybot\Core\{
 	BuddylistManager,
 	CmdContext,
 	DB,
-	MessageEmitter,
 	MessageHub,
 	ModuleInstance,
 	Modules\BAN\BanController,
