@@ -180,11 +180,12 @@ class WorldBossController extends ModuleInstance {
 
 	/** How to show spawn and vulnerability events */
 	#[NCA\Setting\Options(options: [
-		"Show as if the worldboss had actually spawned." => 1,
-		"Show 'should have' messages." => 2,
-		"Only show spawn and vulnerability events if set by global events. Don't repeat the timer unless set by a global event." => 3,
+		"Show as if the worldboss had actually spawned" => self::SPAWN_SHOW,
+		"Show 'should have' messages" => self::SPAWN_SHOULD,
+		"Only show spawn and vulnerability events if set by global events and ".
+		"don't repeat the timer unless set by a global event" => self::SPAWN_EVENT,
 	])]
-	public int $worldbossShowSpawn = 1;
+	public int $worldbossShowSpawn = self::SPAWN_SHOW;
 
 	/**
 	 * @var WorldBossTimer[]
