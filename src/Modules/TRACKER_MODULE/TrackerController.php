@@ -24,6 +24,7 @@ use Nadybot\Core\{
 	Nadybot,
 	ParamClass\PCharacter,
 	ParamClass\PNonNumber,
+	ParamClass\PProfession,
 	ParamClass\PRemove,
 	Routing\RoutableMessage,
 	Routing\Source,
@@ -31,7 +32,6 @@ use Nadybot\Core\{
 	UserStateEvent,
 	Util,
 };
-use Nadybot\Core\ParamClass\PProfession;
 use Nadybot\Modules\{
 	ONLINE_MODULE\OnlineController,
 	ORGLIST_MODULE\FindOrgController,
@@ -167,18 +167,18 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 
 	/** Automatically track tower field attackers */
 	#[NCA\Setting\Options(options: [
-		"Off" => 0,
-		"Attacking my own org's tower fields" => 1,
-		"Attacking tower fields of bot members" => 2,
-		"Attacking Clan fields" => 4,
-		"Attacking Omni fields" => 8,
-		"Attacking Neutral fields" => 16,
-		"Attacking Non-Clan fields" => 24,
-		"Attacking Non-Omni fields" => 20,
-		"Attacking Non-Neutral fields" => 12,
-		"All" => 28,
+		"Off" => self::ATT_NONE,
+		"Attacking my own org's tower fields" => self::ATT_OWN_ORG,
+		"Attacking tower fields of bot members" => self::ATT_MEMBER_ORG,
+		"Attacking Clan fields" => self::ATT_CLAN,
+		"Attacking Omni fields" => self::ATT_OMNI,
+		"Attacking Neutral fields" => self::ATT_NEUTRAL,
+		"Attacking Non-Clan fields" => self::ATT_NEUTRAL|self::ATT_OMNI,
+		"Attacking Non-Omni fields" => self::ATT_NEUTRAL|self::ATT_CLAN,
+		"Attacking Non-Neutral fields" => self::ATT_CLAN|self::ATT_OMNI,
+		"All" => self::ATT_NEUTRAL|self::ATT_CLAN|self::ATT_OMNI,
 	])]
-	public int $trackerAddAttackers = 0;
+	public int $trackerAddAttackers = self::ATT_NONE;
 
 	#[NCA\Setup]
 	public function setup(): void {
