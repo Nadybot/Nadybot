@@ -26,7 +26,6 @@ use Nadybot\Core\{
 	SettingManager,
 	SubcommandManager,
 	Text,
-	Util,
 };
 use Nadybot\Core\DBSchema\{
 	EventCfg,
@@ -48,9 +47,6 @@ use Nadybot\Core\DBSchema\{
 class ConfigController extends ModuleInstance {
 	#[NCA\Inject]
 	public Text $text;
-
-	#[NCA\Inject]
-	public Util $util;
 
 	#[NCA\Inject]
 	public DB $db;
@@ -674,8 +670,7 @@ class ConfigController extends ModuleInstance {
 				$blob .= " [" . $row->getModifyLink() . "]";
 			}
 
-			$displayValue = $row->displayValue($context->char->name);
-			$blob .= ": {$displayValue}\n";
+			$blob .= ": " . $row->displayValue($context->char->name) . "\n";
 		}
 
 		$data = $this->commandManager->getAll(true)->where("module", $module);
