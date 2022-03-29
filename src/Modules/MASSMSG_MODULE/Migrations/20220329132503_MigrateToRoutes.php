@@ -2,7 +2,6 @@
 
 namespace Nadybot\Modules\MASSMSG_MODULE\Migrations;
 
-use Illuminate\Database\Schema\Blueprint;
 use Nadybot\Core\DB;
 use Nadybot\Core\DBSchema\Route;
 use Nadybot\Core\LoggerWrapper;
