@@ -64,10 +64,6 @@ class NanoController extends ModuleInstance {
 	#[NCA\Setting\Number(options: [30, 40, 50, 60])]
 	public int $maxnano = 40;
 
-	/** Show icons for the nanolines */
-	#[NCA\Setting\Boolean]
-	public bool $shownanolineicons = false;
-
 	/** @var array<int,Nanoline> */
 	public array $nanolines = [];
 	#[NCA\Setup]
