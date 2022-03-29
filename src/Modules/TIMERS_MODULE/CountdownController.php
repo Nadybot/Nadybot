@@ -63,10 +63,6 @@ class CountdownController extends ModuleInstance {
 
 	private int $lastCountdown = 0;
 
-	#[NCA\Setup]
-	public function setup(): void {
-	}
-
 	/** Start a 5s countdown timer with an optional custom message */
 	#[NCA\HandlesCommand("countdown")]
 	#[NCA\Help\Epilogue(

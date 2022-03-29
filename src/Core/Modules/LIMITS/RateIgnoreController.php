@@ -42,10 +42,6 @@ class RateIgnoreController extends ModuleInstance {
 	#[NCA\Inject]
 	public Nadybot $chatBot;
 
-	#[NCA\Setup]
-	public function setup(): void {
-	}
-
 	/** See a list of characters on the rate ignore list */
 	#[NCA\HandlesCommand("rateignore")]
 	#[NCA\Help\Prologue(
