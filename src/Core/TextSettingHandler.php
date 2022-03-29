@@ -31,4 +31,15 @@ class TextSettingHandler extends SettingHandler {
 		}
 		return $newValue;
 	}
+
+	/**
+	 * Get a displayable representation of the setting
+	 */
+	public function displayValue(string $sender): string {
+		$displayValue = parent::displayValue($sender);
+		if ($displayValue === "<highlight><end>") {
+			$displayValue = "<highlight>&lt;empty&gt;<end>";
+		}
+		return $displayValue;
+	}
 }

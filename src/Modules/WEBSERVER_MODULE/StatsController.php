@@ -48,7 +48,7 @@ class StatsController extends ModuleInstance {
 
 	#[NCA\Setup]
 	public function setup(): void {
-		if ($this->prometheusAuthToken === "") {
+		if ($this->prometheusAuthToken === "" &&  $this->prometheusEnabled) {
 			$this->assignRandomAuthToken();
 		}
 		$collectors = [
@@ -72,6 +72,10 @@ class StatsController extends ModuleInstance {
 		$this->settingManager->save("prometheus_auth_token", $this->util->getPassword(16));
 	}
 
+	private function assignEmptyAuthToken(): void {
+		$this->settingManager->save("prometheus_auth_token", "");
+	}
+
 	#[NCA\SettingChangeHandler('prometheus_enabled')]
 	public function changePrometheusStatus(string $settingName, string $oldValue, string $newValue, mixed $data): void {
 		if ($oldValue === $newValue) {
@@ -80,7 +84,7 @@ class StatsController extends ModuleInstance {
 		if ($newValue === "1") {
 			$this->assignRandomAuthToken();
 		} else {
-			$this->settingManager->save("prometheus_auth_token", "<none>");
+			$this->assignEmptyAuthToken();
 		}
 	}
 
@@ -112,7 +116,7 @@ class StatsController extends ModuleInstance {
 		$authHeader = $request->headers["authorization"] ?? null;
 		if (
 			!isset($authHeader)
-			|| !preg_match("/^([bB]earer +)?" . preg_quote($this->prometheusAuthToken) . '$/', $authHeader)
+			|| !preg_match("/^([bB]earer +)?" . preg_quote($this->prometheusAuthToken, "/") . '$/', $authHeader)
 		) {
 			$server->httpError(new Response(
 				Response::UNAUTHORIZED,
