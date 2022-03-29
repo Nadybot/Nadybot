@@ -14,7 +14,6 @@ use Nadybot\Core\{
 	EventManager,
 	ModuleInstance,
 	LoggerWrapper,
-	Modules\BUDDYLIST\BuddylistController,
 	Modules\DISCORD\DiscordMessageIn,
 	Nadybot,
 	ParamClass\PCharacter,
@@ -72,9 +71,6 @@ class TestController extends ModuleInstance {
 	public CommandManager $commandManager;
 
 	#[NCA\Inject]
-	public BuddylistController $buddylistController;
-
-	#[NCA\Inject]
 	public PlayfieldController $playfieldController;
 
 	#[NCA\Inject]
@@ -109,8 +105,10 @@ class TestController extends ModuleInstance {
 			$this->chatBot->sendTell($line, $context->char->name);
 		} else {
 			$this->logger->notice($line);
-			$testContext->sendto = new MockCommandReply($line, $logFile);
-			$testContext->sendto->logger = $this->logger;
+			if (!$this->showTestResults) {
+				$testContext->sendto = new MockCommandReply($line, $logFile);
+				$testContext->sendto->logger = $this->logger;
+			}
 		}
 		$testContext->message = substr($line, 1);
 		$this->commandManager->processCmd($testContext);
@@ -625,8 +623,6 @@ class TestController extends ModuleInstance {
 		#[NCA\Str("all")] string $action
 	): void {
 		$testContext = clone $context;
-		$testContext->sendto = new MockCommandReply("buddylist clear");
-		$this->buddylistController->buddylistClearCommand($testContext, "clear");
 
 		$files = $this->util->getFilesInDirectory($this->path);
 		$context->reply("Starting tests...");
