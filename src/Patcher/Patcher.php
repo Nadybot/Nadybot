@@ -23,7 +23,9 @@ class Patcher {
 	public static function patch(PackageEvent $event): void {
 		$vendorDir = $event->getComposer()->getConfig()->get('vendor-dir');
 		$operation = $event->getOperation();
-		if (method_exists($operation, 'getJobType')) {
+		if (method_exists($operation, 'getOperationType')) {
+			$operationType = $operation->getOperationType();
+		} elseif (method_exists($operation, 'getJobType')) {
 			$operationType = $operation->getJobType();
 		} elseif (defined(get_class($operation) . '::TYPE')) {
 			$operationType = constant(get_class($operation) . '::TYPE');
