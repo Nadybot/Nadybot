@@ -13,6 +13,7 @@ use Nadybot\Core\{
 	EventManager,
 	ModuleInstance,
 	LoggerWrapper,
+	MessageHub,
 	Nadybot,
 	ParamClass\PCharacter,
 	Text,
@@ -20,6 +21,8 @@ use Nadybot\Core\{
 	TimerEvent,
 	Util,
 };
+use Nadybot\Core\Routing\RoutableMessage;
+use Nadybot\Core\Routing\Source;
 use Nadybot\Modules\RAFFLE_MODULE\RaffleItem;
 
 /**
@@ -48,7 +51,14 @@ use Nadybot\Modules\RAFFLE_MODULE\RaffleItem;
 	NCA\ProvidesEvent("auction(start)"),
 	NCA\ProvidesEvent("auction(end)"),
 	NCA\ProvidesEvent("auction(cancel)"),
-	NCA\ProvidesEvent("auction(bid)")
+	NCA\ProvidesEvent("auction(bid)"),
+
+	NCA\EmitsMessages("auction", "start"),
+	NCA\EmitsMessages("auction", "end"),
+	NCA\EmitsMessages("auction", "cancel"),
+	NCA\EmitsMessages("auction", "bid"),
+	NCA\EmitsMessages("auction", "bid-too-low"),
+	NCA\EmitsMessages("auction", "reimburse"),
 ]
 class AuctionController extends ModuleInstance {
 	public const CMD_BID_AUCTION = "bid auction";
@@ -85,6 +95,9 @@ class AuctionController extends ModuleInstance {
 
 	#[NCA\Inject]
 	public Timer $timer;
+
+	#[NCA\Inject]
+	public MessageHub $messageHub;
 
 	#[NCA\Inject]
 	public Nadybot $chatBot;
@@ -155,6 +168,12 @@ class AuctionController extends ModuleInstance {
 	#[NCA\Setup]
 	public function setup(): void {
 		$this->commandAlias->register($this->moduleName, "bid history", "bh");
+	}
+
+	protected function routeMessage(string $type, string $message): void {
+		$rMessage = new RoutableMessage($message);
+		$rMessage->prependPath(new Source("auction", $type));
+		$this->messageHub->handle($rMessage);
 	}
 
 	/** Auction an item */
@@ -310,19 +329,22 @@ class AuctionController extends ModuleInstance {
 			->where("id", $lastAuction->id)
 			->update(["reimbursed" => true]);
 		if ($minPenalty > $percentualPenalty) {
-			$this->chatBot->sendPrivate(
+			$this->routeMessage(
+				"reimburse",
 				"<highlight>{$lastAuction->winner}<end> was reimbursed <highlight>{$giveBack}<end> point".
 				(($giveBack > 1) ? "s" : "") . " ({$lastAuction->cost} - {$minPenalty} points min penalty) for ".
 				$lastAuction->item . "."
 			);
 		} elseif ($maxPenalty > 0 && $maxPenalty < $percentualPenalty) {
-			$this->chatBot->sendPrivate(
+			$this->routeMessage(
+				"reimburse",
 				"<highlight>{$lastAuction->winner}<end> was reimbursed <highlight>{$giveBack}<end> point".
 				(($giveBack > 1) ? "s" : "") . " ({$lastAuction->cost} - {$maxPenalty} points max penalty) for ".
 				$lastAuction->item . "."
 			);
 		} else {
-			$this->chatBot->sendPrivate(
+			$this->routeMessage(
+				"reimburse",
 				"<highlight>{$lastAuction->winner}<end> was reimbursed <highlight>{$giveBack}<end> point".
 				(($giveBack > 1) ? "s" : "") . " ({$lastAuction->cost} - {$penalty}% penalty) for ".
 				$lastAuction->item . "."
@@ -516,13 +538,13 @@ class AuctionController extends ModuleInstance {
 			// If both bid the same, the oldest offer has priority
 			$this->auction->bid = $offer;
 			if ($this->auctionsShowRivalBidders) {
-				$this->chatBot->sendPrivate("{$sender}'s bid was not high enough.");
+				$this->routeMessage("bid-too-low", "{$sender}'s bid was not high enough.");
 			}
 		} elseif ($offer < $this->auction->max_bid) {
 			// If the new bidder bid less, than old bidder bids one more than them
 			$this->auction->bid = $offer+1;
 			if ($this->auctionsShowRivalBidders) {
-				$this->chatBot->sendPrivate("{$sender}'s bid was not high enough.");
+				$this->routeMessage("bid-too-low", "{$sender}'s bid was not high enough.");
 			}
 		} else {
 			if (!$this->auctionsShowMaxBidder && isset($this->auction->top_bidder)) {
@@ -693,7 +715,7 @@ class AuctionController extends ModuleInstance {
 		description: "Announce a new auction"
 	)]
 	public function announceAuction(AuctionEvent $event): void {
-		$this->chatBot->sendPrivate($this->getAuctionAnnouncement($event->auction));
+		$this->routeMessage("start", $this->getAuctionAnnouncement($event->auction));
 	}
 
 	#[NCA\Event(
@@ -702,7 +724,7 @@ class AuctionController extends ModuleInstance {
 	)]
 	public function announceAuctionWinner(AuctionEvent $event): void {
 		if ($event->auction->top_bidder === null) {
-			$this->chatBot->sendPrivate("Auction is over. No one placed any bids. Do not loot it.");
+			$this->routeMessage("end", "Auction is over. No one placed any bids. Do not loot it.");
 			return;
 		}
 		$points = "point" . (($event->auction->bid > 1) ? "s" : "");
@@ -714,7 +736,7 @@ class AuctionController extends ModuleInstance {
 			$event->auction->bid,
 			$points
 		);
-		$this->chatBot->sendPrivate($msg);
+		$this->routeMessage("end", $msg);
 	}
 
 	protected function rainbow(string $text, int $length=1): string {
@@ -769,7 +791,7 @@ class AuctionController extends ModuleInstance {
 		description: "Announce the cancellation of an auction"
 	)]
 	public function announceAuctionCancellation(AuctionEvent $event): void {
-		$this->chatBot->sendPrivate("The auction was cancelled.");
+		$this->routeMessage("cancel", "The auction was cancelled.");
 	}
 
 	public function getRunningAuctionInfo(Auction $auction): string {
@@ -788,6 +810,6 @@ class AuctionController extends ModuleInstance {
 		description: "Announce a new bid"
 	)]
 	public function announceAuctionBid(AuctionEvent $event): void {
-		$this->chatBot->sendPrivate($this->getRunningAuctionInfo($event->auction));
+		$this->routeMessage("bid", $this->getRunningAuctionInfo($event->auction));
 	}
 }

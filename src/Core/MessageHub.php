@@ -16,6 +16,7 @@ use Nadybot\Core\{
 	DBSchema\RouteHopColor,
 	DBSchema\RouteHopFormat,
 };
+use ReflectionClass;
 
 #[NCA\Instance]
 class MessageHub {
@@ -66,6 +67,7 @@ class MessageHub {
 
 	#[NCA\Setup]
 	public function setup(): void {
+		$this->parseMessageEmitters();
 		$modifierFiles = \Safe\glob(__DIR__ . "/EventModifier/*.php");
 		foreach ($modifierFiles as $file) {
 			require_once $file;
@@ -81,6 +83,17 @@ class MessageHub {
 		}
 		$this->loadTagFormat();
 		$this->loadTagColor();
+	}
+
+	public function parseMessageEmitters(): void {
+		$instances = Registry::getAllInstances();
+		foreach ($instances as $instance) {
+			$refClass = new ReflectionClass($instance);
+			foreach ($refClass->getAttributes(NCA\EmitsMessages::class) as $attr) {
+				$obj = $attr->newInstance();
+				$this->registerMessageEmitter($obj);
+			}
+		}
 	}
 
 	public function loadTagFormat(): void {
