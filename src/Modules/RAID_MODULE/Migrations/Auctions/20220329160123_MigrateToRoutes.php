@@ -5,6 +5,7 @@ namespace Nadybot\Modules\RAID_MODULE\Migrations\Auctions;
 use Nadybot\Core\{
 	DB,
 	DBSchema\Route,
+	DBSchema\RouteHopFormat,
 	LoggerWrapper,
 	MessageHub,
 	Routing\Source,
@@ -17,5 +18,10 @@ class MigrateToRoutes implements SchemaMigration {
 		$route->source = "auction(*)";
 		$route->destination = Source::PRIV . "(" . $db->getMyname() . ")";
 		$db->insert(MessageHub::DB_TABLE_ROUTES, $route);
+
+		$format = new RouteHopFormat();
+		$format->render = false;
+		$format->hop = 'auction';
+		$db->insert(Source::DB_TABLE, $format);
 	}
 }

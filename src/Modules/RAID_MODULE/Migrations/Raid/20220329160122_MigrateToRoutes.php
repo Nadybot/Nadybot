@@ -5,6 +5,7 @@ namespace Nadybot\Modules\RAID_MODULE\Migrations\Raid;
 use Nadybot\Core\{
 	DB,
 	DBSchema\Route,
+	DBSchema\RouteHopFormat,
 	DBSchema\Setting,
 	LoggerWrapper,
 	MessageHub,
@@ -26,6 +27,11 @@ class MigrateToRoutes implements SchemaMigration {
 		$route->source = "raid(*)";
 		$route->destination = Source::PRIV . "(" . $db->getMyname() . ")";
 		$db->insert(MessageHub::DB_TABLE_ROUTES, $route);
+
+		$format = new RouteHopFormat();
+		$format->render = false;
+		$format->hop = 'raid';
+		$db->insert(Source::DB_TABLE, $format);
 
 		$raidAnnounceRaidmemberLoc = $this->getSetting($db, 'raid_announce_raidmember_loc');
 		if (!isset($raidAnnounceRaidmemberLoc)) {
