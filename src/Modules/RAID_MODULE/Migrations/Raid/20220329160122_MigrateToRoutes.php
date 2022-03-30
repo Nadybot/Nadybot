@@ -30,12 +30,11 @@ class MigrateToRoutes implements SchemaMigration {
 			return;
 		}
 		$raidInformMemberOfLocChange = ((int)($raidAnnounceRaidmemberLoc->value??3) & 2) === 2;
-		$logger->notice("New value: {$raidInformMemberOfLocChange}");
 		$db->table(SettingManager::DB_TABLE)
 			->where("name", $raidAnnounceRaidmemberLoc->name)
 			->update([
 				"name" => "raid_inform_member_of_loc_change",
-				"value" => (string)$raidInformMemberOfLocChange,
+				"value" => $raidInformMemberOfLocChange ? "1" : "0",
 				"type" => 'bool',
 			]);
 	}
