@@ -49,10 +49,6 @@ class RaidMemberController extends ModuleInstance {
 	public const CMD_RAID_JOIN_LEAVE = "raid join/leave";
 	public const CMD_RAID_KICK_ADD = "raid kick/add";
 
-	public const ANNOUNCE_OFF = 0;
-	public const ANNOUNCE_PRIV = 1;
-	public const ANNOUNCE_TELL = 2;
-
 	#[NCA\Inject]
 	public DB $db;
 
