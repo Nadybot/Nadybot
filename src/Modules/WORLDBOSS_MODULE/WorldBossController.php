@@ -614,10 +614,14 @@ class WorldBossController extends ModuleInstance {
 		} elseif ($step === 3) {
 			$event = 'vulnerable';
 		}
+		$bossName = static::BOSS_MAP[$boss];
+		if ($bossName === 'vizaresh') {
+			$bossName = 'gauntlet';
+		}
 		$rMsg = new RoutableMessage($msg);
 		$rMsg->appendPath(new Source(
 			"spawn",
-			static::BOSS_MAP[$boss] . "-{$event}",
+			"{$bossName}-{$event}",
 			join("-", array_map("ucfirst", explode("-", static::BOSS_MAP[$boss])))
 		));
 		$this->messageHub->handle($rMsg);
