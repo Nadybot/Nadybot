@@ -84,7 +84,7 @@ class RaidMemberController extends ModuleInstance {
 
 	/** Send a tell to people being added/removed to/from the raid */
 	#[NCA\Setting\Boolean]
-	public bool $raidInformMemberOfLocChange = true;
+	public bool $raidInformMemberBeingAdded = true;
 
 	/** Allow people to join the raids on more than one character */
 	#[NCA\Setting\Boolean(help: 'multijoin.txt')]
@@ -175,7 +175,7 @@ class RaidMemberController extends ModuleInstance {
 				"joined" => time(),
 			]);
 		if ($force) {
-			if ($this->raidInformMemberOfLocChange) {
+			if ($this->raidInformMemberBeingAdded) {
 				$this->chatBot->sendMassTell("You were <green>added<end> to the raid by {$sender}.", $player);
 			}
 			$routed = $this->routeMessage("join", "<highlight>{$player}<end> was <green>added<end> to the raid by {$sender}.");
@@ -219,7 +219,7 @@ class RaidMemberController extends ModuleInstance {
 			->whereNull("left")
 			->update(["left" => $raid->raiders[$player]->left]);
 		if ($sender !== $player) {
-			if ($this->raidInformMemberOfLocChange && isset($sender)) {
+			if ($this->raidInformMemberBeingAdded && isset($sender)) {
 				$this->chatBot->sendMassTell("You were <red>removed<end> from the raid by {$sender}.", $player);
 			}
 			$routed = $this->routeMessage("kick", "<highlight>{$player}<end> was <red>removed<end> from the raid.");
