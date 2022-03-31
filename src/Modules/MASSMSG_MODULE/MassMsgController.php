@@ -13,13 +13,12 @@ use Nadybot\Core\{
 	ModuleInstance,
 	Modules\BAN\BanController,
 	Nadybot,
+	Routing\RoutableMessage,
+	Routing\Source,
 	Text,
 	Util,
 	Modules\PREFERENCES\Preferences,
 };
-use Nadybot\Core\Attributes\EmitsMessages;
-use Nadybot\Core\Routing\RoutableMessage;
-use Nadybot\Core\Routing\Source;
 
 /**
  * This class contains all functions necessary for mass messaging
@@ -51,8 +50,8 @@ use Nadybot\Core\Routing\Source;
 		alias: "massinvite"
 	),
 
-	EmitsMessages("system", "mass-message"),
-	EmitsMessages("system", "mass-invite"),
+	NCA\EmitsMessages("system", "mass-message"),
+	NCA\EmitsMessages("system", "mass-invite"),
 ]
 class MassMsgController extends ModuleInstance {
 	public const BLOCKED = 'blocked';
