@@ -222,7 +222,8 @@ class RaidMemberController extends ModuleInstance {
 			if ($this->raidInformMemberBeingAdded && isset($sender)) {
 				$this->chatBot->sendMassTell("You were <red>removed<end> from the raid by {$sender}.", $player);
 			}
-			$routed = $this->routeMessage("kick", "<highlight>{$player}<end> was <red>removed<end> from the raid.");
+			$leaveType = (isset($sender) && ($sender !== $player)) ? "kick" : "leave";
+			$routed = $this->routeMessage($leaveType, "<highlight>{$player}<end> was <red>removed<end> from the raid.");
 			if ($routed !== MessageHub::EVENT_DELIVERED) {
 				return "<highlight>{$player}<end> was <red>removed<end> to the raid.";
 			}
