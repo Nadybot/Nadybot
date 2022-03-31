@@ -10,13 +10,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Allow adding settings via Attributes
+- New 'timestamp' setting type
 
 ### Changed
 
 - Database table versions are displayed with a date and time (if possible)
-- Changed the Core module settings to using attributes
+- Changed all module settings to use attributes (if possible)
 - Text settings with empty strings are now marked as &lt;empty&gt;
-- New 'timestamp' setting type
+- Mass-messages and -invites are now a system route source.
+  By default, `system(mass-message)` and `system(mass-invite)` will be routed
+  to `aoorg` and `aopriv`, but you can also route them to Discord.
+- All messages from the RAID_MODULE are no longer hardcoded to being
+  sent to the bot's private channel. Instead, there are now a bunch of
+  new routing sources `raid(*)` and `auction(*)` which are routed to
+  `aopriv` by default. This allows for routing of `raid(start)` or
+  `raid(points-modified)` to Discord channels.
 
 ### Removed
 
@@ -47,14 +55,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   an error.
 - Download the orglists via the cache-module, so we speed them up and remove
   some needless strain from the Funcom servers.
-- Mass-messages and -invites are now a system route source.
-  By default, `system(mass-message)` and `system(mass-invite)` will be routed
-  to `aoorg` and `aopriv`, but you can also route them to Discord.
-- All messages from the RAID_MODULE are no longer hardcodedly being
-  sent to the bot's private channel. Instead, there are now a bunch of
-  new routing sources `raid(*)` and `auction(*)` which are routed to
-  `aopriv` by default. This allows for routing of `raid(start)` or
-  `raid(points-modified)` to Discord channels.
 
 ### Fixed
 
