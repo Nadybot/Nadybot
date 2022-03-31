@@ -17,6 +17,7 @@ use Nadybot\Core\{
 	Util,
 	Modules\PREFERENCES\Preferences,
 };
+use Nadybot\Core\Attributes\EmitsMessages;
 use Nadybot\Core\Routing\RoutableMessage;
 use Nadybot\Core\Routing\Source;
 
@@ -49,6 +50,9 @@ use Nadybot\Core\Routing\Source;
 		description: "Send invites with a message to all bot members online",
 		alias: "massinvite"
 	),
+
+	EmitsMessages("system", "mass-message"),
+	EmitsMessages("system", "mass-invite"),
 ]
 class MassMsgController extends ModuleInstance {
 	public const BLOCKED = 'blocked';
@@ -96,13 +100,6 @@ class MassMsgController extends ModuleInstance {
 
 	/** date and time when the last mass message was sent */
 	public ?DateTime $lastMessage;
-
-	#[NCA\Setup]
-	public function setup(): void {
-		$this->messageHub
-			->registerMessageEmitter(new MassChannel("message"))
-			->registerMessageEmitter(new MassChannel("invite"));
-	}
 
 	protected function getMassMsgOptInOutBlob(): string {
 		$msgOnLink      = $this->text->makeChatcmd("On", "/tell <myname> massmsgs on");
