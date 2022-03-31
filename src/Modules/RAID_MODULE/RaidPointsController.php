@@ -13,6 +13,7 @@ use Nadybot\Core\{
 	DB,
 	ModuleInstance,
 	LoggerWrapper,
+	MessageHub,
 	Modules\ALTS\AltsController,
 	Modules\ALTS\AltEvent,
 	Nadybot,
@@ -21,6 +22,8 @@ use Nadybot\Core\{
 	ParamClass\PNonNumberWord,
 	ParamClass\PRemove,
 	ParamClass\PWord,
+	Routing\RoutableMessage,
+	Routing\Source,
 	Text,
 	Timer,
 };
@@ -67,6 +70,9 @@ use Nadybot\Core\{
 		accessLevel: "raid_admin_1",
 		description: "Create, Edit and Remove raid reward entries",
 	),
+
+	NCA\EmitsMessages("raid", "reward"),
+	NCA\EmitsMessages("raid", "points-modified"),
 ]
 class RaidPointsController extends ModuleInstance {
 	public const DB_TABLE = "raid_points_<myname>";
@@ -80,6 +86,9 @@ class RaidPointsController extends ModuleInstance {
 
 	#[NCA\Inject]
 	public DB $db;
+
+	#[NCA\Inject]
+	public MessageHub $messageHub;
 
 	#[NCA\Inject]
 	public RaidController $raidController;
@@ -119,6 +128,12 @@ class RaidPointsController extends ModuleInstance {
 	/** Minimum length required for points add/rem */
 	#[NCA\Setting\Number]
 	public int $raidPointsReasonMinLength = 10;
+
+	protected function routeMessage(string $type, string $message): void {
+		$rMessage = new RoutableMessage($message);
+		$rMessage->prependPath(new Source("raid", $type));
+		$this->messageHub->handle($rMessage);
+	}
 
 	/**
 	 * Give points when the ticker is enabled
@@ -332,8 +347,8 @@ class RaidPointsController extends ModuleInstance {
 		$pointsGiven .= " to all raiders (<highlight>{$numRecipients}<end>) by {$context->char->name} :: ";
 		foreach ($msgs as &$blob) {
 			$blob = "$pointsGiven $blob";
+			$this->routeMessage("reward", $blob);
 		}
-		$this->chatBot->sendPrivate($msgs);
 	}
 
 	/** Remove raidpoints from everyone in the raid */
@@ -359,8 +374,8 @@ class RaidPointsController extends ModuleInstance {
 		$pointsGiven .= " from all raiders ($numRecipients) by <highligh>{$context->char->name}<end> :: ";
 		foreach ($msgs as &$blob) {
 			$blob = "$pointsGiven $blob";
+			$this->routeMessage("reward", $blob);
 		}
-		$this->chatBot->sendPrivate($msgs);
 	}
 
 	/** Check how many raid points you have */
@@ -586,8 +601,11 @@ class RaidPointsController extends ModuleInstance {
 		}
 		$raid = $this->raidController->raid ?? null;
 		$this->modifyRaidPoints($receiver, $points, true, $reason, $context->char->name, $raid);
-		$this->chatBot->sendPrivate("<highlight>{$context->char->name}<end> added <highlight>{$points}<end> points to ".
-			"<highlight>{$receiver}'s<end> account: <highlight>{$reason}<end>.");
+		$this->routeMessage(
+			"points-modified",
+			"<highlight>{$context->char->name}<end> added <highlight>{$points}<end> points to ".
+			"<highlight>{$receiver}'s<end> account: <highlight>{$reason}<end>."
+		);
 		$this->chatBot->sendTell(
 			"Added <highlight>{$points}<end> raid points to <highlight>{$receiver}'s<end> account.",
 			$context->char->name
@@ -633,8 +651,11 @@ class RaidPointsController extends ModuleInstance {
 		}
 		$raid = $this->raidController->raid ?? null;
 		$this->modifyRaidPoints($receiver, -1 * $points, true, $reason, $context->char->name, $raid);
-		$this->chatBot->sendPrivate("<highlight>{$context->char->name}<end> removed <highlight>{$points}<end> points from ".
-			"<highlight>{$receiver}'s<end> account: <highlight>{$reason}<end>.");
+		$this->routeMessage(
+			"points-modified",
+			"<highlight>{$context->char->name}<end> removed <highlight>{$points}<end> points from ".
+			"<highlight>{$receiver}'s<end> account: <highlight>{$reason}<end>."
+		);
 	}
 
 	/**

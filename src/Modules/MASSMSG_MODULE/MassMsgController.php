@@ -9,9 +9,12 @@ use Nadybot\Core\{
 	BuddylistManager,
 	CmdContext,
 	DB,
+	MessageHub,
 	ModuleInstance,
 	Modules\BAN\BanController,
 	Nadybot,
+	Routing\RoutableMessage,
+	Routing\Source,
 	Text,
 	Util,
 	Modules\PREFERENCES\Preferences,
@@ -23,6 +26,7 @@ use Nadybot\Core\{
  */
 #[
 	NCA\Instance,
+	NCA\HasMigrations,
 	NCA\DefineCommand(
 		command: "massmsg",
 		accessLevel: "mod",
@@ -45,6 +49,9 @@ use Nadybot\Core\{
 		description: "Send invites with a message to all bot members online",
 		alias: "massinvite"
 	),
+
+	NCA\EmitsMessages("system", "mass-message"),
+	NCA\EmitsMessages("system", "mass-invite"),
 ]
 class MassMsgController extends ModuleInstance {
 	public const BLOCKED = 'blocked';
@@ -75,6 +82,9 @@ class MassMsgController extends ModuleInstance {
 
 	#[NCA\Inject]
 	public Preferences $preferences;
+
+	#[NCA\Inject]
+	public MessageHub $messageHub;
 
 	#[NCA\Inject]
 	public Nadybot $chatBot;
@@ -133,8 +143,14 @@ class MassMsgController extends ModuleInstance {
 		}
 		$message = "<highlight>Message from {$context->char->name}<end>: ".
 			"{$this->massmsgColor}{$message}<end>";
-		$this->chatBot->sendPrivate($message, true);
-		$this->chatBot->sendGuild($message, true);
+		$rMessage = new RoutableMessage($message);
+		$rMessage->prependPath(new Source(
+			Source::SYSTEM,
+			"mass-message",
+			'Mass Message'
+		));
+		$this->messageHub->handle($rMessage);
+
 		$message .= " :: " . $this->getMassMsgOptInOutBlob();
 		$result = $this->massCallback([
 			self::PREF_MSGS => function(string $name) use ($message): void {
@@ -159,8 +175,13 @@ class MassMsgController extends ModuleInstance {
 		}
 		$message = "<highlight>Invite from {$context->char->name}<end>: ".
 			"{$this->massmsgColor}{$message}<end>";
-		$this->chatBot->sendPrivate($message, true);
-		$this->chatBot->sendGuild($message, true);
+		$rMessage = new RoutableMessage($message);
+		$rMessage->prependPath(new Source(
+			Source::SYSTEM,
+			"mass-invite",
+			'Mass Invite'
+		));
+		$this->messageHub->handle($rMessage);
 		$message .= " :: " . $this->getMassMsgOptInOutBlob();
 		$result = $this->massCallback([
 			self::PREF_MSGS => function(string $name) use ($message): void {

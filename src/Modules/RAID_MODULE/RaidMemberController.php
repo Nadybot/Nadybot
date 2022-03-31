@@ -11,11 +11,14 @@ use Nadybot\Core\{
 	DB,
 	DBSchema\Player,
 	EventManager,
+	MessageHub,
 	ModuleInstance,
 	Modules\PLAYER_LOOKUP\PlayerManager,
 	Modules\ALTS\AltsController,
 	Nadybot,
 	ParamClass\PCharacter,
+	Routing\RoutableMessage,
+	Routing\Source,
 	Text,
 };
 use Nadybot\Modules\ONLINE_MODULE\OnlineController;
@@ -35,16 +38,16 @@ use Nadybot\Modules\ONLINE_MODULE\OnlineController;
 	),
 
 	NCA\ProvidesEvent("raid(join)"),
-	NCA\ProvidesEvent("raid(leave)")
+	NCA\ProvidesEvent("raid(leave)"),
+
+	NCA\EmitsMessages("raid", "join"),
+	NCA\EmitsMessages("raid", "leave"),
+	NCA\EmitsMessages("raid", "kick"),
 ]
 class RaidMemberController extends ModuleInstance {
 	public const DB_TABLE = "raid_member_<myname>";
 	public const CMD_RAID_JOIN_LEAVE = "raid join/leave";
 	public const CMD_RAID_KICK_ADD = "raid kick/add";
-
-	public const ANNOUNCE_OFF = 0;
-	public const ANNOUNCE_PRIV = 1;
-	public const ANNOUNCE_TELL = 2;
 
 	#[NCA\Inject]
 	public DB $db;
@@ -54,6 +57,9 @@ class RaidMemberController extends ModuleInstance {
 
 	#[NCA\Inject]
 	public PlayerManager $playerManager;
+
+	#[NCA\Inject]
+	public MessageHub $messageHub;
 
 	#[NCA\Inject]
 	public AltsController $altsController;
@@ -76,18 +82,19 @@ class RaidMemberController extends ModuleInstance {
 	#[NCA\Inject]
 	public Nadybot $chatBot;
 
-	/** Where to announce leaders add/rem people to/from the raid */
-	#[NCA\Setting\Options(options: [
-		'Do not announce' => self::ANNOUNCE_OFF,
-		'Private channel' => self::ANNOUNCE_PRIV,
-		'Tell' => self::ANNOUNCE_TELL,
-		'Priv+Tell' => self::ANNOUNCE_PRIV|self::ANNOUNCE_TELL,
-	])]
-	public int $raidAnnounceRaidmemberLoc = self::ANNOUNCE_TELL|self::ANNOUNCE_PRIV;
+	/** Send a tell to people being added/removed to/from the raid */
+	#[NCA\Setting\Boolean]
+	public bool $raidInformMemberBeingAdded = true;
 
 	/** Allow people to join the raids on more than one character */
 	#[NCA\Setting\Boolean(help: 'multijoin.txt')]
 	public bool $raidAllowMultiJoining = true;
+
+	protected function routeMessage(string $type, string $message): int {
+		$rMessage = new RoutableMessage($message);
+		$rMessage->prependPath(new Source("raid", $type));
+		return $this->messageHub->handle($rMessage);
+	}
 
 	/**
 	 * Resume an old raid after a bot restart
@@ -168,18 +175,16 @@ class RaidMemberController extends ModuleInstance {
 				"joined" => time(),
 			]);
 		if ($force) {
-			$announceLoc = $this->raidAnnounceRaidmemberLoc;
-			if ($announceLoc & static::ANNOUNCE_PRIV) {
-				$this->chatBot->sendPrivate("<highlight>{$player}<end> was <green>added<end> to the raid by {$sender}.");
-			}
-			if ($announceLoc & static::ANNOUNCE_TELL) {
+			if ($this->raidInformMemberBeingAdded) {
 				$this->chatBot->sendMassTell("You were <green>added<end> to the raid by {$sender}.", $player);
 			}
-			if ($announceLoc === static::ANNOUNCE_OFF) {
+			$routed = $this->routeMessage("join", "<highlight>{$player}<end> was <green>added<end> to the raid by {$sender}.");
+			if ($routed !== MessageHub::EVENT_DELIVERED) {
 				return "<highlight>{$player}<end> was <green>added<end> to the raid.";
 			}
 		} else {
-			$this->chatBot->sendPrivate(
+			$this->routeMessage(
+				"join",
 				"<highlight>{$player}<end> has <green>joined<end> the raid :: ".
 				((array)$this->text->makeBlob(
 					"click to join",
@@ -214,20 +219,16 @@ class RaidMemberController extends ModuleInstance {
 			->whereNull("left")
 			->update(["left" => $raid->raiders[$player]->left]);
 		if ($sender !== $player) {
-			$announceLoc = $this->raidAnnounceRaidmemberLoc;
-			if ($announceLoc & static::ANNOUNCE_PRIV) {
-				$this->chatBot->sendPrivate("<highlight>{$player}<end> was <red>removed<end> from the raid.");
+			if ($this->raidInformMemberBeingAdded && isset($sender)) {
+				$this->chatBot->sendMassTell("You were <red>removed<end> from the raid by {$sender}.", $player);
 			}
-			if ($announceLoc & static::ANNOUNCE_TELL) {
-				if (isset($sender)) {
-					$this->chatBot->sendMassTell("You were <red>removed<end> from the raid by {$sender}.", $player);
-				}
-			}
-			if ($announceLoc === static::ANNOUNCE_OFF) {
+			$leaveType = (isset($sender) && ($sender !== $player)) ? "kick" : "leave";
+			$routed = $this->routeMessage($leaveType, "<highlight>{$player}<end> was <red>removed<end> from the raid.");
+			if ($routed !== MessageHub::EVENT_DELIVERED) {
 				return "<highlight>{$player}<end> was <red>removed<end> to the raid.";
 			}
 		} else {
-			$this->chatBot->sendPrivate("<highlight>{$player}<end> <red>left<end> the raid.");
+			$this->routeMessage("leave", "<highlight>{$player}<end> <red>left<end> the raid.");
 		}
 		return null;
 	}

@@ -15,6 +15,7 @@ use Nadybot\Core\{
 	DB,
 	DBSchema\Player,
 	EventManager,
+	MessageHub,
 	ModuleInstance,
 	Modules\ALTS\AltsController,
 	Modules\PLAYER_LOOKUP\PlayerManager,
@@ -22,6 +23,8 @@ use Nadybot\Core\{
 	ParamClass\PCharacter,
 	ParamClass\PWord,
 	Registry,
+	Routing\RoutableMessage,
+	Routing\Source,
 	Text,
 	Timer,
 	Util,
@@ -61,7 +64,13 @@ use Nadybot\Modules\{
 	NCA\ProvidesEvent("raid(stop)"),
 	NCA\ProvidesEvent("raid(changed)"),
 	NCA\ProvidesEvent("raid(lock)"),
-	NCA\ProvidesEvent("raid(unlock)")
+	NCA\ProvidesEvent("raid(unlock)"),
+
+	NCA\EmitsMessages("raid", "announce"),
+	NCA\EmitsMessages("raid", "lock"),
+	NCA\EmitsMessages("raid", "unlock"),
+	NCA\EmitsMessages("raid", "start"),
+	NCA\EmitsMessages("raid", "stop"),
 ]
 class RaidController extends ModuleInstance {
 	public const DB_TABLE = "raid_<myname>";
@@ -92,6 +101,9 @@ class RaidController extends ModuleInstance {
 
 	#[NCA\Inject]
 	public RaidMemberController $raidMemberController;
+
+	#[NCA\Inject]
+	public MessageHub $messageHub;
 
 	#[NCA\Inject]
 	public AltsController $altsController;
@@ -172,6 +184,12 @@ class RaidController extends ModuleInstance {
 		$raidStats = new RaidMemberStats("raid");
 		Registry::injectDependencies($raidStats);
 		$this->statsController->registerDataset($raidStats, "raid");
+	}
+
+	protected function routeMessage(string $type, string $message): void {
+		$rMessage = new RoutableMessage($message);
+		$rMessage->prependPath(new Source("raid", $type));
+		$this->messageHub->handle($rMessage);
 	}
 
 	public function getRaidCategory(): CommentCategory {
@@ -480,7 +498,7 @@ class RaidController extends ModuleInstance {
 		}
 		$this->raid->locked = true;
 		$this->logRaidChanges($this->raid);
-		$this->chatBot->sendPrivate("{$context->char->name} <red>locked<end> the raid.");
+		$this->routeMessage("lock", "{$context->char->name} <red>locked<end> the raid.");
 		$event = new RaidEvent($this->raid);
 		$event->type = "raid(lock)";
 		$event->player = $context->char->name;
@@ -509,7 +527,7 @@ class RaidController extends ModuleInstance {
 		}
 		$this->raid->locked = false;
 		$this->logRaidChanges($this->raid);
-		$this->chatBot->sendPrivate("{$context->char->name} <green>unlocked<end> the raid.");
+		$this->routeMessage("unlock", "{$context->char->name} <green>unlocked<end> the raid.");
 		$event = new RaidEvent($this->raid);
 		$event->type = "raid(unlock)";
 		$event->player = $context->char->name;
@@ -948,7 +966,8 @@ class RaidController extends ModuleInstance {
 		if ($this->raid->we_are_most_recent_message) {
 			return;
 		}
-		$this->chatBot->sendPrivate(
+		$this->routeMessage(
+			"announce",
 			$this->raid->getAnnounceMessage(
 				((array)$this->text->makeBlob(
 					"click to join",
@@ -969,7 +988,8 @@ class RaidController extends ModuleInstance {
 		description: "Announce when a raid was started"
 	)]
 	public function announceRaidStart(RaidEvent $event): void {
-		$this->chatBot->sendPrivate(
+		$this->routeMessage(
+			"start",
 			"<highlight>{$event->raid->started_by}<end> started a raid: ".
 			"<highlight>{$event->raid->description}<end> :: ".
 			((array)$this->text->makeBlob(
@@ -988,7 +1008,7 @@ class RaidController extends ModuleInstance {
 		description: "Announce when a raid is stopped"
 	)]
 	public function announceRaidStop(RaidEvent $event): void {
-		$this->chatBot->sendPrivate("<highlight>{$event->player}<end> has stopped the raid.");
+		$this->routeMessage("stop", "<highlight>{$event->player}<end> has stopped the raid.");
 	}
 
 	/**
