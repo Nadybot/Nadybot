@@ -15,15 +15,17 @@ use Nadybot\Core\{
 	Nadybot,
 	Registry,
 	Routing\Character,
+	Routing\Events\Online,
+	Routing\RoutableEvent,
 	Routing\RoutableMessage,
 	Routing\Source,
 	SettingManager,
 	Text,
 	Timer,
 	Websocket,
+	WebsocketCallback,
 	WebsocketClient,
 	WebsocketError,
-	WebsocketCallback,
 };
 use Nadybot\Core\Modules\DISCORD\{
 	DiscordAPIClient,
@@ -125,15 +127,6 @@ class DiscordGatewayController extends ModuleInstance {
 	/** Game the bot is shown to play on Discord */
 	#[NCA\Setting\Text]
 	public string $discordActivityName = "Anarchy Online";
-
-	/** Show people joining or leaving voice channels */
-	#[NCA\Setting\Options(options: [
-		'off' => 0,
-		'priv' => 1,
-		'org' => 2,
-		'priv+org' => 3,
-	])]
-	public int $discordNotifyVoiceChanges = 0;
 
 	protected ?int $lastSequenceNumber = null;
 	protected ?WebsocketClient $client = null;
@@ -747,14 +740,23 @@ class DiscordGatewayController extends ModuleInstance {
 			);
 		}
 		foreach ($guild->channels as $channel) {
-			if ($channel->type !== $channel::GUILD_TEXT || !isset($channel->name)) {
+			if (!isset($channel->name)) {
 				continue;
 			}
-			$dc = new RoutedChannel($channel->name, $channel->id);
-			Registry::injectDependencies($dc);
-			$this->messageHub
-				->registerMessageReceiver($dc)
-				->registerMessageEmitter($dc);
+			if ($channel->type === $channel::GUILD_TEXT) {
+				$dc = new RoutedChannel($channel->name, $channel->id);
+				Registry::injectDependencies($dc);
+				$this->messageHub
+					->registerMessageReceiver($dc)
+					->registerMessageEmitter($dc);
+			} elseif ($channel->type === $channel::GUILD_VOICE) {
+				$dc = new RoutedChannel("< {$channel->name}", $channel->id);
+				Registry::injectDependencies($dc);
+				$this->messageHub
+					->registerMessageEmitter($dc);
+			} else {
+				continue;
+			}
 		}
 		$dm = new DiscordMsg();
 		Registry::injectDependencies($dm);
@@ -1023,27 +1025,30 @@ class DiscordGatewayController extends ModuleInstance {
 		)
 	]
 	public function announceVoiceStateChange(DiscordVoiceEvent $event): void {
-		$showChanges = $this->discordNotifyVoiceChanges;
-		if ($showChanges === 0) {
-			return;
-		}
+		$e = new Online();
+		$e->char = new Character($event->member->getName());
+		$chanName = $event->discord_channel->name ?? $event->discord_channel->id;
 		if ($event->type === 'discord_voice_leave') {
-			$msg = $event->member->getName().
-				" has left the voice channel <highlight>".
-				($event->discord_channel->name ?? $event->discord_channel->id).
-				"<end>.";
+			$msg = $e->char->name.
+				" has left the voice channel <highlight>{$chanName}<end>.";
+			$e->online = false;
 		} else {
-			$msg = $event->member->getName().
-				" has entered the voice channel <highlight>".
-				($event->discord_channel->name ?? $event->discord_channel->id).
-				"<end>.";
+			$msg = $e->char->name.
+				" has entered the voice channel <highlight>{$chanName}<end>.";
+			$e->online = true;
 		}
-		if ($showChanges & 1) {
-			$this->chatBot->sendPrivate($msg, true);
-		}
-		if ($showChanges & 2) {
-			$this->chatBot->sendGuild($msg, true);
-		}
+		$e->message = $msg;
+		$rEvent = new RoutableEvent();
+		$rEvent->setType(RoutableEvent::TYPE_EVENT);
+		$rEvent->prependPath(new Source(
+			Source::DISCORD_PRIV,
+			isset($event->discord_channel->name)
+				? "< {$event->discord_channel->name}"
+				: $event->discord_channel->id
+		));
+		$rEvent->setData($e);
+
+		$this->messageHub->handle($rEvent);
 	}
 
 	protected function getCurrentVoiceState(string $userId): ?VoiceState {

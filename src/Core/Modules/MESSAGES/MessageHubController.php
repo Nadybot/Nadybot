@@ -97,7 +97,7 @@ class MessageHubController extends ModuleInstance {
 
 	protected function fixDiscordChannelName(string $name): string {
 		if (!preg_match("/^discordpriv\((\d+?)\)$/", $name, $matches)) {
-			return $name;
+			return str_replace(["&lt;", "&gt;"], ["<", ">"], $name);
 		}
 		$emitters = $this->messageHub->getEmitters();
 		foreach ($emitters as $emitter) {
@@ -1016,7 +1016,7 @@ class MessageHubController extends ModuleInstance {
 	public function renderEmitterGroup(Collection $values, string $group): string {
 		return "<header2>{$group}<end>\n<tab>".
 			$values->map(function(MessageEmitter $emitter): string {
-				$name = $emitter->getChannelName();
+				$name = htmlentities($emitter->getChannelName());
 				if ($emitter instanceof DiscordChannel) {
 					if (!preg_match("/^[[:graph:]]+$/s", $name)) {
 						$name .= " or discordpriv(" . $emitter->getChannelID() . ")";
