@@ -5,5 +5,5 @@ and to Discord/org/private chat with the !route command
 (e.g.!route add discordpriv(*) &lt;-&gt; aoorg,
 see https://github.com/Nadybot/Nadybot/wiki/Routing for details).
 
-You can also configure whether to react on commands
-sent from Discord with the discord_process_commands setting.
+If you want your bot to react to commands from Discord, use
+the '<symbol>cmdmap' command to assign a permission set.
