@@ -29,15 +29,13 @@ class MigrateVoiceStateToRoutes implements SchemaMigration {
 		if ((int)$setting->value & 1) {
 			$route = new Route();
 			$route->source = Source::DISCORD_PRIV . "(< *)";
-			$route->destination = Source::PRIV . "(" . $db->getMyguild() . ")";
-			$route->two_way = false;
+			$route->destination = Source::PRIV . "(" . $db->getBotname() . ")";
 			$db->insert(MessageHub::DB_TABLE_ROUTES, $route);
 		}
 		if ((int)$setting->value & 2) {
 			$route = new Route();
 			$route->source = Source::DISCORD_PRIV . "(< *)";
 			$route->destination = Source::ORG;
-			$route->two_way = false;
 			$db->insert(MessageHub::DB_TABLE_ROUTES, $route);
 		}
 	}
