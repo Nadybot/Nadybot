@@ -37,6 +37,9 @@ use Nadybot\Core\{
 	ParamClass\PWord,
 	Registry,
 };
+use Nadybot\Core\Routing\Character;
+use Nadybot\Core\Routing\RoutableMessage;
+use Nadybot\Core\Routing\Source;
 use Nadybot\Modules\{
 	GUILD_MODULE\GuildController,
 	RELAY_MODULE\RelayProtocol\RelayProtocolInterface,
@@ -626,7 +629,7 @@ class RelayController extends ModuleInstance {
 	}
 
 	/**
-	 * Get the command that will create the relay #id
+	 * Get the command that will create the relay
 	 *
 	 * You can use this to create the relay on another bot, or save it as backup
 	 */
@@ -640,7 +643,7 @@ class RelayController extends ModuleInstance {
 	}
 
 	/**
-	 * Get the command that will create the relay &lt;name&gt;
+	 * Get the command that will create the relay
 	 *
 	 * You can use this to create the relay on another bot, or save it as backup
 	 */
@@ -693,43 +696,7 @@ class RelayController extends ModuleInstance {
 		}
 		$blobs = [];
 		foreach ($relays as $relay) {
-			$blob = "<header2>{$relay->name}<end>\n";
-			if (isset($this->transports[$relay->layers[0]->layer])) {
-				$secrets = $this->transports[$relay->layers[0]->layer]->getSecrets();
-				$blob .= "<tab>Transport: <highlight>" . $relay->layers[0]->toString("transport", $secrets) . "<end>\n";
-			} else {
-				$blob .= "<tab>Transport: <highlight>{$relay->layers[0]->layer}(<red>error<end>)<end>\n";
-			}
-			for ($i = 1; $i < count($relay->layers)-1; $i++) {
-				if (isset($this->stackElements[$relay->layers[$i]->layer])) {
-					$secrets = $this->stackElements[$relay->layers[$i]->layer]->getSecrets();
-					$blob .= "<tab>Layer: <highlight>" . $relay->layers[$i]->toString("layer", $secrets) . "<end>\n";
-				} else {
-					$blob .= "<tab>Layer: <highlight>{$relay->layers[$i]->layer}(<red>error<end>)<end>\n";
-				}
-			}
-			$layerName = $relay->layers[count($relay->layers)-1]->layer;
-			if (isset($this->relayProtocols[$layerName])) {
-				$secrets = $this->relayProtocols[$relay->layers[count($relay->layers)-1]->layer]->getSecrets();
-				$blob .= "<tab>Protocol: <highlight>" . $relay->layers[count($relay->layers)-1]->toString("protocol", $secrets) . "<end>\n";
-			} else {
-				$blob .= "<tab>Protocol: <highlight>{$layerName}(<red>error<end>)<end>\n";
-			}
-			$live = $this->relays[$relay->name] ?? null;
-			if (isset($live)) {
-				$blob .= "<tab>Status: " . $live->getStatus()->toString();
-			} else {
-				$blob .= "<tab>Status: <red>error<end>";
-			}
-			$delLink = $this->text->makeChatcmd(
-				"delete",
-				"/tell <myname> relay rem {$relay->id}"
-			);
-			$desclLink = $this->text->makeChatcmd(
-				"describe",
-				"/tell <myname> relay describe {$relay->id}"
-			);
-			$blobs []= $blob . " [{$delLink}] [{$desclLink}]";
+			$blobs []= $this->renderRelay($relay);
 		}
 		$msg = $this->text->makeBlob(
 			"Relays (" . count($relays) . ")",
@@ -738,13 +705,93 @@ class RelayController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
-	/** Delete a relay by its id */
+	/** Return the textualrepresentation with status for a single relay */
+	private function renderRelay(RelayConfig $relay): string {
+		$blob = "<header2>{$relay->name}<end>\n";
+		if (isset($this->transports[$relay->layers[0]->layer])) {
+			$secrets = $this->transports[$relay->layers[0]->layer]->getSecrets();
+			$blob .= "<tab>Transport: <highlight>" . $relay->layers[0]->toString("transport", $secrets) . "<end>\n";
+		} else {
+			$blob .= "<tab>Transport: <highlight>{$relay->layers[0]->layer}(<red>error<end>)<end>\n";
+		}
+		for ($i = 1; $i < count($relay->layers)-1; $i++) {
+			if (isset($this->stackElements[$relay->layers[$i]->layer])) {
+				$secrets = $this->stackElements[$relay->layers[$i]->layer]->getSecrets();
+				$blob .= "<tab>Layer: <highlight>" . $relay->layers[$i]->toString("layer", $secrets) . "<end>\n";
+			} else {
+				$blob .= "<tab>Layer: <highlight>{$relay->layers[$i]->layer}(<red>error<end>)<end>\n";
+			}
+		}
+		$layerName = $relay->layers[count($relay->layers)-1]->layer;
+		if (isset($this->relayProtocols[$layerName])) {
+			$secrets = $this->relayProtocols[$relay->layers[count($relay->layers)-1]->layer]->getSecrets();
+			$blob .= "<tab>Protocol: <highlight>" . $relay->layers[count($relay->layers)-1]->toString("protocol", $secrets) . "<end>\n";
+		} else {
+			$blob .= "<tab>Protocol: <highlight>{$layerName}(<red>error<end>)<end>\n";
+		}
+		$live = $this->relays[$relay->name] ?? null;
+		if (isset($live)) {
+			$blob .= "<tab>Status: " . $live->getStatus()->toString();
+		} else {
+			$blob .= "<tab>Status: <red>error<end>";
+		}
+		$delLink = $this->text->makeChatcmd(
+			"delete",
+			"/tell <myname> relay rem {$relay->id}"
+		);
+		$descrLink = $this->text->makeChatcmd(
+			"describe",
+			"/tell <myname> relay describe {$relay->id}"
+		);
+		$blob .= " [{$delLink}] [{$descrLink}]\n";
+
+		$blob .= "<tab>Colors:\n";
+		$blob .= "<tab><tab>" . $this->getExampleMessage(
+			$relay,
+			[new Source(Source::ORG, "example", "ORG", 5)]
+		) . "\n";
+		$blob .= "<tab><tab>" . $this->getExampleMessage(
+			$relay,
+			[
+				new Source(Source::ORG, "example", "ORG", 5),
+				new Source(Source::PRIV, "example", "Guest", 5)
+			]
+		) . "\n";
+		return $blob;
+	}
+
+	/**
+	 * @param Source[] $source
+	 * @phpstan-param non-empty-array<Source> $source
+	 */
+	private function getExampleMessage(RelayConfig $relay, array $source): string {
+		$rEvent = new RoutableMessage("xxx");
+		$rEvent->setCharacter(new Character("Nady"));
+		$rEvent->path = [
+			new Source(Source::RELAY, $relay->name),
+			...$source,
+		];
+		$lastHop = $source[count($source)-1];
+		$renderedPath = $this->messageHub->renderPath($rEvent, "*", true);
+		$msgColor = $this->messageHub->getTextColor($rEvent, Source::ORG);
+		$tagLink = $this->text->makeChatcmd(
+			"{$lastHop->label}-tag color",
+			"/tell <myname> route color tag pick {$lastHop->type} via relay({$relay->name})"
+		);
+		$textLink = $this->text->makeChatcmd(
+			"text color",
+			"/tell <myname> route color text pick {$lastHop->type} via relay({$relay->name})"
+		);
+		return "{$renderedPath}{$msgColor}This is what a message looks like.<end> [{$tagLink}] [{$textLink}]";
+	}
+
+	/** Delete a relay */
 	#[NCA\HandlesCommand("relay")]
 	public function relayRemIdCommand(CmdContext $context, PRemove $action, int $id): void {
 		$this->relayRemCommand($context, $id, null);
 	}
 
-	/** Delete a relay by its name */
+	/** Delete a relay */
 	#[NCA\HandlesCommand("relay")]
 	public function relayRemNameCommand(CmdContext $context, PRemove $action, PNonNumber $name): void {
 		$this->relayRemCommand($context, null, $name());
@@ -780,13 +827,13 @@ class RelayController extends ModuleInstance {
 		$context->reply("<highlight>{$numDeleted}<end> relays deleted.");
 	}
 
-	/** Configure a relay by its id. Only supported for nadynative */
+	/** Configure a relay. Only supported for nadynative */
 	#[NCA\HandlesCommand("relay")]
 	public function relayConfigIdCommand(CmdContext $context, #[NCA\Str("config")] string $action, int $id): void {
 		$this->relayConfigCommand($context, $id, null);
 	}
 
-	/** Configure a relay by its name. Only supported for nadynative */
+	/** Configure a relay. Only supported for nadynative */
 	#[NCA\HandlesCommand("relay")]
 	public function relayConfigNameCommand(CmdContext $context, #[NCA\Str("config")] string $action, PNonNumberWord $name): void {
 		$this->relayConfigCommand($context, null, $name());
