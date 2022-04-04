@@ -1014,14 +1014,19 @@ class AOChat {
 	 * Raise an arbitrary precision number to another, reduced by a specified modulus
 	 */
 	public function bcmath_powm(string $base, string $exp, string $mod): string {
-		$base = $this->bighexdec($base);
-		$exp  = $this->bighexdec($exp);
-		$mod  = $this->bighexdec($mod);
-		if (!is_numeric($base) || !is_numeric($exp) || !is_numeric($mod)) {
-			throw new Exception("Invalid numeric string encountered: {$base}^{$exp}%{$mod}");
-		}
+		if (function_exists("gmp_powm") && function_exists("gmp_strval")) {
+			$r = gmp_powm($base, $exp, $mod);
+			$r = gmp_strval($r);
+		} else {
+			$base = $this->bighexdec($base);
+			$exp  = $this->bighexdec($exp);
+			$mod  = $this->bighexdec($mod);
+			if (!is_numeric($base) || !is_numeric($exp) || !is_numeric($mod)) {
+				throw new Exception("Invalid numeric string encountered: {$base}^{$exp}%{$mod}");
+			}
 
-		$r = bcpowmod($base, $exp, $mod);
+			$r = bcpowmod($base, $exp, $mod);
+		}
 		if (!is_string($r)) {
 			throw new Exception("Error in AO encryption");
 		}
