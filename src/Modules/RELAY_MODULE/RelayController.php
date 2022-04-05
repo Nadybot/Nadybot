@@ -782,7 +782,9 @@ class RelayController extends ModuleInstance {
 			"text color",
 			"/tell <myname> route color text pick {$lastHop->type} via relay({$relay->name})"
 		);
-		return "{$renderedPath}{$msgColor}This is what a message looks like.<end> [{$tagLink}] [{$textLink}]";
+		return "{$renderedPath}{$msgColor}This is what text from the ".
+			strtolower($lastHop->label).
+			"-chat looks like.<end> [{$tagLink}] [{$textLink}]";
 	}
 
 	/** Delete a relay */
