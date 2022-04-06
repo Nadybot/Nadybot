@@ -698,10 +698,15 @@ class RelayController extends ModuleInstance {
 		foreach ($relays as $relay) {
 			$blobs []= $this->renderRelay($relay);
 		}
-		$msg = $this->text->makeBlob(
-			"Relays (" . count($relays) . ")",
-			join("\n\n", $blobs)
+		$blob = join("\n\n", $blobs);
+		$wikiLink = $this->text->makeChatcmd(
+			"Nadybot WIKI",
+			"/start https://github.com/Nadybot/Nadybot/wiki/Routing#colors"
 		);
+		$blob .= "\n\n\n".
+			"<i>For more information about how to color the individual tags and ".
+			"texts, see the {$wikiLink}.</i>";
+		$msg = $this->text->makeBlob("Relays (" . count($relays) . ")", $blob);
 		$context->reply($msg);
 	}
 
@@ -774,6 +779,13 @@ class RelayController extends ModuleInstance {
 		$lastHop = $source[count($source)-1];
 		$renderedPath = $this->messageHub->renderPath($rEvent, "*", true);
 		$msgColor = $this->messageHub->getTextColor($rEvent, Source::ORG);
+		if (strlen($msgColor)) {
+			$example = "{$msgColor}This is what text from the ".
+				strtolower($lastHop->label) . "-chat looks like.<end>";
+		} else {
+			$example = "Text from the " . strtolower($lastHop->label).
+				"-chat has no color set.";
+		}
 		$tagLink = $this->text->makeChatcmd(
 			"{$lastHop->label}-tag color",
 			"/tell <myname> route color tag pick {$lastHop->type} via relay({$relay->name})"
@@ -782,9 +794,8 @@ class RelayController extends ModuleInstance {
 			"text color",
 			"/tell <myname> route color text pick {$lastHop->type} via relay({$relay->name})"
 		);
-		return "{$renderedPath}{$msgColor}This is what text from the ".
-			strtolower($lastHop->label).
-			"-chat looks like.<end> [{$tagLink}] [{$textLink}]";
+		$blob = "{$renderedPath}{$example} [{$tagLink}] [{$textLink}]";
+		return $blob;
 	}
 
 	/** Delete a relay */
