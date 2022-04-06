@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Defining the colors for relays is now possible directly in the
+  `!relay`-window, including examples what the current config
+  looks like.
 - Use the GMP module (if installed) for a faster login
 
 ### Changed
