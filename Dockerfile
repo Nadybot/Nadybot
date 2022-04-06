@@ -25,6 +25,7 @@ RUN apk --no-cache add \
     php8-posix \
     php8-simplexml \
     php8-dom \
+    php8-gmp \
     php8-pcntl \
     php8-zip \
     php8-opcache \

@@ -12,12 +12,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Defining the colors for relays is now possible directly in the
   `!relay`-window, including examples what the current config
   looks like.
+- Use the GMP module (if installed) for a faster login
 
 ### Changed
 
 - Replaced the 'discord_notify_voice_changes'-setting with
   routes. All Discord voice-channels now appear as routing sources
-  with a `<` before their name. Routing `discordpriv(< *)` will now
+  with a `<` before their name. Routing `discordpriv(<*)` will now
   route the online/offline-events of all discord-channels, or only
   a selected few.
 
