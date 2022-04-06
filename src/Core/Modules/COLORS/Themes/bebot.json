@@ -1,0 +1,11 @@
+{
+	"description": "The original theme of BeBot",
+	"window_color": "#66AA66",
+	"priv_color": "#DEDE42",
+	"tell_color": "#DEDE42",
+	"guild_color": "#DEDE42",
+	"routed_sys_color": "#DEDE42",
+	"header_color": "#DEDE42",
+	"header2_color": "#DEDE42",
+	"highlight_color": "#FFFFFF"
+}

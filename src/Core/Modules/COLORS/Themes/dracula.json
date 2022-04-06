@@ -1,0 +1,11 @@
+{
+	"description": "A theme based on the popular vim-theme Dracula",
+	"window_color": "#F3F3EE",
+	"highlight_color": "#FF79C6",
+	"header_color": "#F1FA8C",
+	"header2_color": "#50FA7B",
+	"priv_color": "#F3F3EE",
+	"tell_color": "#F3F3EE",
+	"guild_color": "#F3F3EE",
+	"routed_sys_color": "#F3F3EE"
+}

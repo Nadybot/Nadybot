@@ -1,0 +1,11 @@
+{
+	"description": "The old Budabot color-scheme",
+	"window_color": "#84FFFF",
+	"priv_color": "#84FFFF",
+	"routed_sys_color": "#84FFFF",
+	"tell_color": "#DDDDDD",
+	"guild_color": "#84FFFF",
+	"header_color": "#FFFF00",
+	"header2_color": "#FCA712",
+	"highlight_color": "#9CC6E7"
+}

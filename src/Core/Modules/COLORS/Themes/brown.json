@@ -1,0 +1,11 @@
+{
+	"description": "A dark, brownish theme",
+	"window_color": "#A88054",
+	"highlight_color": "#FFDFBB",
+	"header_color": "#F2E61A",
+	"header2_color": "#E3BA6B",
+	"routed_sys_color": "#BFB08C",
+	"priv_color": "#BFB08C",
+	"tell_color": "#BFB08C",
+	"guild_color": "#BFB08C"
+}
