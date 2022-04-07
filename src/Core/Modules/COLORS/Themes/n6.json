@@ -1,0 +1,11 @@
+{
+	"description": "The new Nadybot 6 theme",
+	"window_color": "#97ACC9",
+	"priv_color": "#869EC8",
+	"tell_color": "#869EC8",
+	"guild_color": "#869EC8",
+	"routed_sys_color": "#869EC8",
+	"header_color": "#E49F6E",
+	"header2_color": "#E4BA6E",
+	"highlight_color": "#B7E2DC"
+}
