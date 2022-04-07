@@ -22,8 +22,13 @@ use function Safe\json_decode;
 	NCA\Instance,
 	NCA\DefineCommand(
 		command: "theme",
-		description: "Change the bot's theme",
+		description: "View installed color theme",
+		accessLevel: "member",
 		alias: "themes",
+	),
+	NCA\DefineCommand(
+		command: "theme change",
+		description: "Change the bot's color theme",
 	)
 ]
 class ColorsController extends ModuleInstance {
@@ -69,17 +74,23 @@ class ColorsController extends ModuleInstance {
 	/** default unknown color */
 	#[Color] public string $defaultUnknownColor = "#FF0000";
 
+	/** Where to search for themes - separate with colons for multiple paths */
+	#[NCA\Setting\Text(options: ["./Themes"])] public string $themePath = "./Themes";
+
 	/** Get a list of color themes for the bot */
 	#[NCA\HandlesCommand("theme")]
 	public function cmdThemeList(CmdContext $context): void {
 		$themes = $this->getThemeList();
 		$blobs = [];
 		foreach ($themes as $theme) {
-			$link = $this->text->makeChatcmd(
+			$link = "[" . $this->text->makeChatcmd(
 				"apply",
 				"/tell <myname> theme apply {$theme->name}"
-			);
-			$blobs []= "[{$link}] <highlight>{$theme->name}<end>: {$theme->description}";
+			) . "]";
+			if ($this->isThemeActive($theme)) {
+				$link = "<black>[apply]<end>";
+			}
+			$blobs []= "{$link} <highlight>{$theme->name}<end>: {$theme->description}";
 		}
 		$blob = join("\n", $blobs);
 		$count = count($themes);
@@ -109,6 +120,35 @@ class ColorsController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
+	/** Apply a color theme for the bot */
+	#[NCA\HandlesCommand("theme change")]
+	public function cmdApplyTheme(
+		CmdContext $context,
+		#[NCA\Str("apply")] string $action,
+		PFilename $themeName
+	): void {
+		$paths = explode(":", $this->themePath);
+		$files = new Collection();
+		foreach ($paths as $path) {
+			$files->push(...glob(__DIR__ . "/" . $path . "/*.json"));
+		}
+		$files = $files->filter(function(string $path) use ($themeName): bool {
+			return basename($path, ".json") === $themeName();
+		});
+		try {
+			$theme = $this->loadTheme($files->firstOrFail());
+			if (!isset($theme)) {
+				throw new Exception("Theme not found.");
+			}
+		} catch (Exception $e) {
+			$context->reply("No theme <highlight>{$themeName}<end> found.");
+			return;
+		}
+		$this->applyTheme($theme);
+		$context->reply("Theme changed to <highlight>{$themeName}<end>.");
+	}
+
+	/** Get a rendered preview of a theme */
 	private function getThemePreview(Theme $theme): string {
 		$blob = "<font color={$theme->window_color}>".
 			"<header>Page header<end>\n".
@@ -133,31 +173,41 @@ class ColorsController extends ModuleInstance {
 		return $blob;
 	}
 
-	/** Apply a color theme for the bot */
-	#[NCA\HandlesCommand("theme")]
-	public function cmdApplyTheme(
-		CmdContext $context,
-		#[NCA\Str("apply")] string $action,
-		PFilename $themeName
-	): void {
-		$theme = $this->loadTheme(__DIR__ . "/Themes/{$themeName}.json");
-		if (!isset($theme)) {
-			$context->reply("No theme <highlight>{$themeName}<end> found.");
-			return;
-		}
-		$this->applyTheme($theme);
-		$context->reply("Theme changed to <highlight>{$themeName}<end>.");
+	/** @return string[] */
+	private function getColorAttributes(): array {
+		$attributes = [
+			"window_color",
+			"priv_color",
+			"tell_color",
+			"guild_color",
+			"routed_sys_color",
+			"header_color",
+			"header2_color",
+			"highlight_color",
+			"clan_color",
+			"omni_color",
+			"neut_color",
+			"unknown_color",
+		];
+		return $attributes;
 	}
 
 	/** @return Theme[] */
 	public function getThemeList(): array {
-		$files = new Collection(glob(__DIR__ . "/Themes/*.json"));
+		$paths = explode(":", $this->themePath);
+		$files = new Collection();
+		foreach ($paths as $path) {
+			$files->push(...glob(__DIR__ . "/" . $path . "/*.json"));
+		}
 		$themes = $files->map(function (string $file): ?Theme {
 			return $this->loadTheme($file);
-		})->filter()->values();
+		})->filter()
+		->sortBy("name")
+		->values();
 		return $themes->toArray();
 	}
 
+	/** Load a theme from a file and return the parsed theme or null */
 	public function loadTheme(string $filename): ?Theme {
 		try {
 			$json = file_get_contents($filename);
@@ -169,20 +219,9 @@ class ColorsController extends ModuleInstance {
 		return new Theme($data);
 	}
 
+	/** Activate all colors of the given theme */
 	public function applyTheme(Theme $theme): void {
-		$attributes = [
-			"window_color",
-			"priv_color",
-			"tell_color",
-			"guild_color",
-			"header_color",
-			"header2_color",
-			"highlight_color",
-			"clan_color",
-			"omni_color",
-			"neut_color",
-			"unknown_color",
-		];
+		$attributes = $this->getColorAttributes();
 		foreach ($attributes as $attr) {
 			$value = $theme->{$attr};
 			if (!isset($value)) {
@@ -194,5 +233,25 @@ class ColorsController extends ModuleInstance {
 			}
 			$this->settingManager->save($setting, $value);
 		}
+	}
+
+	/** Check if the given theme is the same that's currently in use */
+	private function isThemeActive(Theme $theme): bool {
+		$attributes = $this->getColorAttributes();
+		foreach ($attributes as $attr) {
+			$value = $theme->{$attr};
+			if (!isset($value)) {
+				continue;
+			}
+			if (preg_match("/^#([0-9a-f]{6})$/i", $value)) {
+				$value = "<font color='$value'>";
+			}
+			$setting = "default" . join("", array_map("ucfirst", explode("_", $attr)));
+			$currValue = $this->{$setting};
+			if (($this->{$setting} ?? null) !== $value) {
+				return false;
+			}
+		}
+		return true;
 	}
 }
