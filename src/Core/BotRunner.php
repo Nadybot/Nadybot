@@ -11,7 +11,7 @@ class BotRunner {
 	/**
 	 * Nadybot's current version
 	 */
-	public const VERSION = "6.0.0-beta.2";
+	public const VERSION = "6.0.0-rc.1";
 
 	/**
 	 * The command line arguments
@@ -84,9 +84,10 @@ class BotRunner {
 			if (!isset($latestTag)) {
 				return $branch;
 			}
+
 			if ($latestTag === '') {
 				$latestTag = static::VERSION;
-			} elseif (strncmp(static::VERSION, $latestTag, strlen(static::VERSION)) === 1) {
+			} elseif (strncmp(static::VERSION, $latestTag, min(strlen(static::VERSION), strlen($latestTag))) > 0) {
 				$latestTag = static::VERSION;
 			}
 			if ($branch !== 'stable') {
