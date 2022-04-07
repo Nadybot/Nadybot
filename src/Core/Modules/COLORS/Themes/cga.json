@@ -1,0 +1,11 @@
+{
+	"description": "Based on the vast CGA color palette",
+	"window_color": "#FFFFFF",
+	"priv_color": "#FFFFFF",
+	"tell_color": "#FFFFFF",
+	"guild_color": "#FFFFFF",
+	"routed_sys_color": "#FFFFFF",
+	"header_color": "#55FFFF",
+	"header2_color": "#55FFFF",
+	"highlight_color": "#FF55FF"
+}
