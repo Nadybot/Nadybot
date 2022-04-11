@@ -67,6 +67,15 @@ class DiscordAPIClient extends ModuleInstance {
 			->withHeader('Content-Type', 'application/json');
 	}
 
+	public function patch(string $uri, string $data): AsyncHttp {
+		$botToken = $this->settingManager->getString('discord_bot_token');
+		return $this->http
+			->patch($uri)
+			->withPostData($data)
+			->withHeader('Authorization', "Bot $botToken")
+			->withHeader('Content-Type', 'application/json');
+	}
+
 	public function queueToChannel(string $channel, string $message, ?callable $callback=null): void {
 		$this->logger->info("Adding discord message to end of channel queue {channel}", [
 			"channel" => $channel,
