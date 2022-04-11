@@ -26,6 +26,7 @@ use Nadybot\Core\{
 	UserStateEvent,
 	Util,
 };
+use Nadybot\Core\ParamClass\PRemove;
 use Nadybot\Modules\{
 	DISCORD_GATEWAY_MODULE\DiscordGatewayController,
 	RAID_MODULE\RaidController,
@@ -52,6 +53,11 @@ use Nadybot\Modules\{
 		description: "Shows who is online",
 		alias: ['o', 'sm'],
 	),
+	NCA\DefineCommand(
+		command: "online hide",
+		accessLevel: "mod",
+		description: "Hide characters from the online list",
+	),
 
 	NCA\ProvidesEvent("online(org)"),
 	NCA\ProvidesEvent("offline(org)")
@@ -71,6 +77,8 @@ class OnlineController extends ModuleInstance {
 	protected const RAID_IN = 1;
 	protected const RAID_NOT_IN = 2;
 	protected const RAID_COMPACT = 4;
+
+	public const DB_TABLE_HIDE = "online_hide_<myname>";
 
 	#[NCA\Inject]
 	public DB $db;
@@ -217,6 +225,97 @@ class OnlineController extends ModuleInstance {
 			->where("name", $sender)
 			->where("channel_type", $channelType)
 			->where("added_by", $this->db->getBotname());
+	}
+
+	/** Show a list of hidden character masks */
+	#[NCA\HandlesCommand("online hide")]
+	public function onlineShowHiddenCommand(
+		CmdContext $context,
+		#[NCA\Str("hide")] string $action
+	): void {
+		/** @var Collection<OnlineHide> */
+		$masks = new Collection($this->getHiddenPlayerMasks());
+		$masks = $masks->sortBy("created_on");
+		$blobs = new Collection();
+		foreach ($masks as $mask) {
+			$delLink = $this->text->makeChatcmd("remove", "/tell <myname> online hide del {$mask->id}");
+			$blob = $mask->created_on->format("d-M-Y").
+				" - <highlight>{$mask->mask}<end> (added by {$mask->created_by})".
+				" [{$delLink}]";
+			$blobs->push($blob);
+		}
+		if ($blobs->isEmpty()) {
+			$context->reply("Currently, no characters are hidden.");
+			return;
+		}
+		$blob = "<header2>Hidden characters<end>\n".
+			$blobs->join("\n");
+		$context->reply(
+			$this->text->makeBlob(
+				"Hidden characters (" . $blobs->count() . ")",
+				$blob
+			)
+		);
+	}
+
+	/** Add a character/character mask to the list of hidden character masks */
+	#[NCA\HandlesCommand("online hide")]
+	public function onlineAddHiddenCommand(
+		CmdContext $context,
+		#[NCA\Str("hide")] string $action,
+		#[NCA\Str("add")] string $subAction,
+		string $mask
+	): void {
+		$mask = strtolower($mask);
+		/** @var Collection<OnlineHide> */
+		$masks = new Collection($this->getHiddenPlayerMasks());
+		if ($masks->where("mask", $mask)->isNotEmpty()) {
+			$context->reply("The mask <highlight>{$mask}<end> is already hidden.");
+			return;
+		}
+		if (strlen($mask) > 100) {
+			$context->reply("The mask <highlight>{$mask}<end> is too long.");
+			return;
+		}
+		$hidden = new OnlineHide();
+		$hidden->mask = $mask;
+		$hidden->created_by = $context->char->name;
+		$this->db->insert(self::DB_TABLE_HIDE, $hidden);
+		$context->reply("<highlight>{$mask}<end> added to the online hidden mask list.");
+	}
+
+	/** Remove a character/character mask from the list of hidden character masks */
+	#[NCA\HandlesCommand("online hide")]
+	public function onlineDelHiddenByIDCommand(
+		CmdContext $context,
+		#[NCA\Str("hide")] string $action,
+		PRemove $subAction,
+		int $id
+	): void {
+		if ($this->db->table(self::DB_TABLE_HIDE)->delete($id) === 0) {
+			$context->reply("The mask <highlight>#{$id}<end> is not hidden.");
+		} else {
+			$context->reply("<highlight>#{$id}<end> removed from the online hidden mask list.");
+		}
+	}
+
+	/** Remove a character/character mask from the list of hidden character masks */
+	#[NCA\HandlesCommand("online hide")]
+	public function onlineDelHiddenCommand(
+		CmdContext $context,
+		#[NCA\Str("hide")] string $action,
+		PRemove $subAction,
+		string $mask
+	): void {
+		$mask = strtolower($mask);
+		if ($this->db->table(self::DB_TABLE_HIDE)
+			->where("mask", $mask)
+			->delete() === 0
+		) {
+			$context->reply("The mask <highlight>{$mask}<end> is not hidden.");
+		} else {
+			$context->reply("<highlight>{$mask}<end> removed from the online hidden mask list.");
+		}
 	}
 
 	/** Show a full list of players online with their alts */
@@ -637,16 +736,62 @@ class OnlineController extends ModuleInstance {
 		return $result;
 	}
 
+	/** @return OnlineHide[] */
+	public function getHiddenPlayerMasks(): array {
+		return $this->db->table(self::DB_TABLE_HIDE)
+			->asObj(OnlineHide::class)
+			->toArray();
+	}
+
+	/**
+	 * Remove all hidden characters from the list
+	 *
+	 * @param OnlinePlayer[] $characters
+	 * @return OnlinePlayer[]
+	 */
+	public function filterHiddenCharacters(array $characters): array {
+		$hiddenMasks = $this->getHiddenPlayerMasks();
+		$visibleCharacters = [];
+		foreach ($characters as $char) {
+			if (!$this->charOnHiddenList($char, $hiddenMasks)) {
+				$visibleCharacters []= $char;
+			}
+		}
+		return $visibleCharacters;
+	}
+
+	/**
+	 * @param OnlineHide[] $hiddenMasks
+	 */
+	private function charOnHiddenList(OnlinePlayer $char, array $hiddenMasks): bool {
+		foreach ($hiddenMasks as $mask) {
+			$fullName = $char->name;
+			if (str_contains($mask->mask, ".") && isset($char->guild)) {
+				$fullName = "{$char->guild}.{$fullName}";
+			}
+			$matches = fnmatch($mask->mask, $fullName, FNM_CASEFOLD);
+			$this->logger->notice("Checking mask {mask} against {fullName}: {result}", [
+				"mask" => $mask->mask,
+				"fullName" => $fullName,
+				"result" => $matches ? "match" : "no match"
+			]);
+			if ($matches) {
+				return true;
+			}
+		}
+		return false;
+	}
+
 	/**
 	 * Get a page or multiple pages with the online list
 	 * @return string[]
 	 */
 	public function getOnlineList(int $includeRelay=null): array {
 		$includeRelay ??= $this->onlineShowRelay;
-		$orgData = $this->getPlayers('guild');
+		$orgData = $this->filterHiddenCharacters($this->getPlayers('guild'));
 		$orgList = $this->formatData($orgData, $this->onlineShowOrgGuild);
 
-		$privData = $this->getPlayers('priv');
+		$privData = $this->filterHiddenCharacters($this->getPlayers('priv'));
 		$privList = $this->formatData($privData, $this->onlineShowOrgPriv);
 
 		$relayGrouped = $this->groupRelayList($this->relayController->relays);
@@ -654,6 +799,7 @@ class OnlineController extends ModuleInstance {
 		$relayList = [];
 		$relayOrgInfo = $this->onlineShowOrgGuildRelay;
 		foreach ($relayGrouped as $group => $chars) {
+			$chars = $this->filterHiddenCharacters($chars);
 			$relayList[$group] = $this->formatData($chars, $relayOrgInfo, static::GROUP_OFF);
 		}
 
