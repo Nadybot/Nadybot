@@ -76,6 +76,18 @@ class DiscordAPIClient extends ModuleInstance {
 			->withHeader('Content-Type', 'application/json');
 	}
 
+	public function getGateway(callable $callback, mixed ...$args): void {
+		$this->get(
+			self::DISCORD_API . "/gateway/bot"
+		)->withCallback(
+			$this->getErrorWrapper(
+				new DiscordGateway(),
+				$callback,
+				...$args
+			)
+		);
+	}
+
 	public function queueToChannel(string $channel, string $message, ?callable $callback=null): void {
 		$this->logger->info("Adding discord message to end of channel queue {channel}", [
 			"channel" => $channel,

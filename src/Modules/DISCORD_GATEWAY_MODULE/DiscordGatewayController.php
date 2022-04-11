@@ -28,6 +28,7 @@ use Nadybot\Core\{
 	SettingManager,
 	Text,
 	Timer,
+	Util,
 	Websocket,
 	WebsocketCallback,
 	WebsocketClient,
@@ -40,6 +41,7 @@ use Nadybot\Core\Modules\DISCORD\{
 	DiscordChannelInvite,
 	DiscordController,
 	DiscordEmbed,
+	DiscordGateway,
 	DiscordMessageIn,
 	DiscordUser,
 };
@@ -131,6 +133,9 @@ class DiscordGatewayController extends ModuleInstance {
 
 	#[NCA\Inject]
 	public Text $text;
+
+	#[NCA\Inject]
+	public Util $util;
 
 	#[NCA\Inject]
 	public DiscordAPIClient $discordAPIClient;
@@ -296,8 +301,30 @@ class DiscordGatewayController extends ModuleInstance {
 		if (empty($botToken) || $botToken === 'off') {
 			return;
 		}
+		$this->discordAPIClient->getGateway(
+			Closure::fromCallable([$this, "connectUsingGateway"])
+		);
+	}
+
+	protected function connectUsingGateway(DiscordGateway $gateway): void {
+		$this->logger->info("{remaining} Discord connections out of {total} remaining", [
+			"remaining" => $gateway->session_start_limit->remaining,
+			"total" => $gateway->session_start_limit->total,
+		]);
+		if ($gateway->session_start_limit->remaining < 2) {
+			$resetDelay = (int)ceil($gateway->session_start_limit->reset_after / 1000);
+			$this->logger->warning(
+				"The bot used up all its allowed connections to the Discord API. ".
+				"Will try in {delay}",
+				[
+					"delay" => $this->util->unixtimeToReadable($resetDelay),
+				]
+			);
+			$this->timer->callLater($resetDelay, [$this, "connect"]);
+			return;
+		}
 		$this->client = $this->websocket->createClient()
-			->withURI("wss://gateway.discord.gg/?v=10&encoding=json")
+			->withURI($gateway->url . "/?v=10&encoding=json")
 			->withTimeout(30)
 			->on(WebsocketClient::ON_CLOSE, [$this, "processWebsocketClose"])
 			->on(WebsocketClient::ON_TEXT, [$this, "processWebsocketMessage"])
