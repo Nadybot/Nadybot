@@ -2,12 +2,15 @@
 
 namespace Nadybot\Modules\DISCORD_GATEWAY_MODULE;
 
+use Closure;
 use Safe\Exceptions\JsonException;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Channels\DiscordChannel as RoutedChannel,
 	Channels\DiscordMsg,
+	CmdContext,
 	CommandManager,
+	DB,
 	EventManager,
 	ModuleInstance,
 	LoggerWrapper,
@@ -27,9 +30,12 @@ use Nadybot\Core\{
 	WebsocketClient,
 	WebsocketError,
 };
+use Nadybot\Core\Attributes\HandlesCommand;
 use Nadybot\Core\Modules\DISCORD\{
 	DiscordAPIClient,
 	DiscordChannel,
+	DiscordChannelInvite,
+	DiscordController,
 	DiscordEmbed,
 	DiscordMessageIn,
 	DiscordUser,
@@ -85,9 +91,17 @@ use stdClass;
 	NCA\ProvidesEvent("discord(channel_pins_update)"),
 	NCA\ProvidesEvent("discord(voice_state_update)"),
 	NCA\ProvidesEvent("discord_voice_join"),
-	NCA\ProvidesEvent("discord_voice_leave")
+	NCA\ProvidesEvent("discord_voice_leave"),
+
+	NCA\DefineCommand(
+		command: "discord",
+		accessLevel: "mod",
+		description: "Information about the discord link",
+	),
 ]
 class DiscordGatewayController extends ModuleInstance {
+	public const DB_TABLE = "discord_invite_<myname>";
+
 	#[NCA\Inject]
 	public SettingManager $settingManager;
 
@@ -99,6 +113,9 @@ class DiscordGatewayController extends ModuleInstance {
 
 	#[NCA\Inject]
 	public Timer $timer;
+
+	#[NCA\Inject]
+	public DB $db;
 
 	#[NCA\Inject]
 	public Text $text;
@@ -117,6 +134,9 @@ class DiscordGatewayController extends ModuleInstance {
 
 	#[NCA\Inject]
 	public Nadybot $chatBot;
+
+	#[NCA\Inject]
+	public DiscordController $discordController;
 
 	#[NCA\Inject]
 	public StatsController $statsController;
@@ -140,6 +160,9 @@ class DiscordGatewayController extends ModuleInstance {
 	protected array $guilds = [];
 	private DiscordPacketsStats $inStats;
 	private DiscordPacketsStats $outStats;
+
+	/** @var array<string,DiscordChannelInvite[]> */
+	public array $invites = [];
 
 	/**
 	 * Get a list of all guilds this bot is a member of
@@ -710,6 +733,11 @@ class DiscordGatewayController extends ModuleInstance {
 		);
 	}
 
+	/** @param DiscordChannelInvite[] $invites */
+	protected function cacheInvites(string $guildId, array $invites): void {
+		$this->invites[$guildId] = $invites;
+	}
+
 	#[
 		NCA\Event(
 			name: [
@@ -726,6 +754,7 @@ class DiscordGatewayController extends ModuleInstance {
 		$guild->fromJSON($event->payload->d);
 		$this->guilds[$guild->id] = $guild;
 		$this->sendRequestGuildMembers($guild->id);
+		$this->discordAPIClient->getGuildInvites($guild->id, Closure::fromCallable([$this, "cacheInvites"]));
 		foreach ($guild->voice_states as $voiceState) {
 			if (!isset($voiceState->user_id)) {
 				continue;
@@ -1061,5 +1090,53 @@ class DiscordGatewayController extends ModuleInstance {
 			}
 		}
 		return null;
+	}
+
+	/** Request an invite to the org's Discord server */
+	#[HandlesCommand("discord")]
+	public function requestDiscordInvite(CmdContext $context): void {
+		if ($this->discordController->discordBotToken === 'off') {
+			$context->reply("This bot isn't configured to connect to Discord yet.");
+			return;
+		}
+
+		$guildIds = array_keys($this->guilds);
+		if (count($guildIds) === 0) {
+			$context->reply("Please wait until the Discord connection is established.");
+			return;
+		}
+		$guildIds = array_keys($this->invites);
+		if (count($guildIds) > 1) {
+			$context->reply("This command only works if your bot is only connected to 1 Discord server");
+			return;
+		}
+		if (count($guildIds) === 0) {
+			$context->reply(
+				"Your Discord bot does not have the required rights ".
+				"(MANAGE_GUILD and CREATE_INSTANT_INVITE) to manage ".
+				"invites."
+			);
+			return;
+		}
+		$guild = $this->guilds[$guildIds[0]];
+		$this->discordAPIClient->createChannelInvite(
+			$guild->system_channel_id,
+			3600,
+			1,
+			Closure::fromCallable([$this, "registerDiscordChannelInvite"]),
+			$context,
+		);
+	}
+
+	protected function registerDiscordChannelInvite(DiscordChannelInvite $invite, CmdContext $context): void {
+		$this->db->table(self::DB_TABLE)->insert([
+			"token" => $invite->code,
+			"character" => $context->char->name,
+			"expires" => $invite->expires_at?->getTimestamp() ?? null,
+		]);
+		$guildName = $invite->guild?->name ?? "Discord server";
+		$joinLink = $this->text->makeChatcmd("this link", "/start https://discord.gg/{$invite->code}");
+		$blob = "Use {$joinLink} to join " . htmlentities($guildName) . ".";
+		$context->reply($this->text->makeBlob("Join {$guildName}", $blob));
 	}
 }

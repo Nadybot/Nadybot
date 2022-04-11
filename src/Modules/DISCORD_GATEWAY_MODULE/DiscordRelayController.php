@@ -5,7 +5,6 @@ namespace Nadybot\Modules\DISCORD_GATEWAY_MODULE;
 use Nadybot\Core\{
 	AccessManager,
 	Attributes as NCA,
-	CmdContext,
 	ModuleInstance,
 	Nadybot,
 	SettingManager,
@@ -18,7 +17,6 @@ use Nadybot\Core\Modules\{
 	CONFIG\ConfigController,
 	CONFIG\SettingOption,
 	DISCORD\DiscordAPIClient,
-	DISCORD\DiscordChannel,
 	DISCORD\DiscordController,
 	PLAYER_LOOKUP\PlayerManager,
 	PREFERENCES\Preferences,
@@ -32,14 +30,7 @@ use Nadybot\Modules\{
 /**
  * @author Nadyite (RK5)
  */
-#[
-	NCA\Instance,
-	NCA\DefineCommand(
-		command: "discord",
-		accessLevel: "mod",
-		description: "Information about the discord link",
-	),
-]
+#[NCA\Instance]
 class DiscordRelayController extends ModuleInstance {
 	#[NCA\Inject]
 	public DiscordGatewayController $discordGatewayController;
@@ -127,128 +118,6 @@ class DiscordRelayController extends ModuleInstance {
 			}
 		}
 		return $result;
-	}
-
-	/**
-	 * @return array<bool|string>
-	 * @psalm-return array{0: bool, 1:string}
-	 * @phpstan-return array{0: bool, 1:string}
-	 */
-	protected function getChannelTree(?callable $callback=null): array {
-		if (!$this->discordGatewayController->isConnected()) {
-			return [false, "The bot is not (yet) connected to discord."];
-		}
-		$guilds = $this->discordGatewayController->getGuilds();
-		if (empty($guilds)) {
-			return [false, "Your Discord bot is currently not member of any guild"];
-		}
-		$blob = "";
-		foreach ($guilds as $guildId => $guild) {
-			$blob .= "<pagebreak><header2>{$guild->name}<end>\n";
-			foreach ($guild->channels as $channel) {
-				if ($channel->type !== $channel::GUILD_CATEGORY) {
-					continue;
-				}
-				$blob .= "<tab><highlight>{$channel->name}<end>\n";
-				foreach ($guild->channels as $subchannel) {
-					if (($subchannel->parent_id??null) !== $channel->id) {
-						continue;
-					}
-					$text = "{$subchannel->name}";
-					if ($subchannel->type === $subchannel::GUILD_TEXT) {
-						$text = "#{$subchannel->name}";
-					}
-					if ($callback) {
-						$text = $callback($subchannel);
-					}
-					$blob .= "<tab><tab>$text\n";
-				}
-			}
-			$blob .= "\n\n";
-		}
-		return [true, $blob];
-	}
-
-	/**
-	 * List the discord channels of all guilds
-	 */
-	#[NCA\HandlesCommand("discord")]
-	public function discordChannelsCommand(CmdContext $context, #[NCA\Str("channels")] string $action): void {
-		[$success, $blob] = $this->getChannelTree();
-		if (!$success) {
-			$context->reply($blob);
-			return;
-		}
-		$msg = $this->text->makeBlob("List of all Discord channels", $blob);
-		$context->reply($msg);
-	}
-
-	/**
-	 * List the discord channels of all guilds and allow to pick one for notifications
-	 */
-	#[NCA\HandlesCommand("discord")]
-	public function discordNotifyCommand(CmdContext $context, #[NCA\Str("notify")] string $action): void {
-		[$success, $blob] = $this->getChannelTree([$this, "channelNotifyPicker"]);
-		if (!$success) {
-			$context->reply($blob);
-			return;
-		}
-		$msg = $this->text->makeBlob("List of all Discord channels", $blob);
-		$context->reply($msg);
-	}
-
-	/**
-	 * Returns a channel name with a link to pick that one as notifications target
-	 */
-	protected function channelnotifyPicker(DiscordChannel $channel): string {
-		$name = $channel->name ?? $channel->id;
-		if ($channel->type === $channel::GUILD_TEXT) {
-			$name = "#{$name}";
-		}
-		if ($channel->type !== $channel::GUILD_TEXT) {
-			return $name;
-		}
-		return "$name [".
-			$this->text->makeChatcmd("relay here", "/tell <myname> discord notify {$channel->id}").
-			"]";
-	}
-
-	/**
-	 * Pick a discord channel for notifications
-	 */
-	#[NCA\HandlesCommand("discord")]
-	public function discordNotifyChannelCommand(CmdContext $context, #[NCA\Str("notify")] string $action, string $channelId): void {
-		if ($channelId === 'off') {
-			$this->settingManager->save('discord_notify_channel', 'off');
-			$msg = "Discord notifications turned off.";
-			$context->reply($msg);
-			return;
-		}
-		if (!$this->discordGatewayController->isConnected()) {
-			$msg = "The bot is not (yet) connected to discord.";
-			$context->reply($msg);
-			return;
-		}
-		$channel = $this->discordGatewayController->getChannel($channelId);
-		if ($channel === null) {
-			$msg = "The channel with the id <highlight>{$channelId}<end> does not exist.";
-			$context->reply($msg);
-			return;
-		}
-		if ($channel->type !== $channel::GUILD_TEXT) {
-			$msg = "I can only send notifications into text channels.";
-			$context->reply($msg);
-			return;
-		}
-		$this->settingManager->save('discord_notify_channel', $channelId);
-		$guilds = $this->discordGatewayController->getGuilds();
-		if (isset($channel->guild_id)) {
-			$guild = $guilds[$channel->guild_id];
-			$msg = "Now sending notifications into <highlight>{$guild->name}<end>\<highlight>#{$channel->name}<end> (ID {$channelId})";
-		} else {
-			$msg = "Now sending notifications into <highlight>#{$channel->name}<end> (ID {$channelId})";
-		}
-		$context->reply($msg);
 	}
 
 	public static function formatMessage(string $text): string {

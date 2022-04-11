@@ -288,6 +288,58 @@ class DiscordAPIClient extends ModuleInstance {
 		}
 	}
 
+	/**
+	 * Create a new channel invite
+	 * @phpstan-param callable(DiscordChannelInvite, mixed...):void $callback
+	 */
+	public function createChannelInvite(string $channelId, int $maxAge, int $maxUses, callable $callback, mixed ...$args): void {
+		$this->post(
+			self::DISCORD_API . "/channels/{$channelId}/invites",
+			json_encode((object)[
+				"max_age" => $maxAge,
+				"max_uses" => $maxUses,
+				"unique" => true,
+			])
+		)->withCallback(
+			$this->getErrorWrapper(
+				new DiscordChannelInvite(),
+				$callback,
+				...$args
+			)
+		);
+	}
+
+	/**
+	 * Get all currently valid guild invites for $guildId
+	 * @phpstan-param callable(string, DiscordChannelInvite[], mixed...):void $callback
+	 */
+	public function getGuildInvites(string $guildId, callable $callback, mixed ...$args): void {
+		$this->get(
+			self::DISCORD_API . "/guilds/{$guildId}/invites"
+		)->withCallback(
+			$this->getErrorWrapper(
+				null,
+				Closure::fromCallable([$this, "handleChannelInvites"]),
+				$guildId,
+				$callback,
+				...$args
+			)
+		);
+	}
+
+	/**
+	 * @param stdClass[] $invites
+	 */
+	protected function handleChannelInvites(array $invites, string $guildId, callable $callback, mixed ...$args): void {
+		$result = [];
+		foreach ($invites as $invite) {
+			$invObj = new DiscordChannelInvite();
+			$invObj->fromJSON($invite);
+			$result []= $invObj;
+		}
+		$callback($guildId, $result, ...$args);
+	}
+
 	protected function getErrorWrapper(?JSONDataModel $o, ?callable $callback, mixed ...$args): Closure {
 		return function(HttpResponse $response) use ($o, $callback, $args) {
 			if (isset($response->error)) {
