@@ -22,8 +22,6 @@ use Nadybot\Core\{
 	Text,
 };
 
-use function Safe\json_encode;
-
 /**
  * @author Nadyita (RK5)
  */
@@ -139,16 +137,9 @@ class DiscordGatewayCommandHandler extends ModuleInstance implements AccessLevel
 				"confirmed" => time(),
 				"token" => null
 			]);
-		if ($this->discordGatewayController->discordRenameUsers !== $this->discordGatewayController::RENAME_OFF) {
-			$guilds = $this->discordGatewayController->getGuilds();
-			$guild = $guilds[array_keys($guilds)[0]] ?? null;
-			if (isset($guild)) {
-				$this->discordAPIClient->patch(
-					$this->discordAPIClient::DISCORD_API . "/guilds/{$guild->id}/members/{$data->discord_id}",
-					json_encode((object)["nick" => $this->discordGatewayController->formatDiscordNick($context->char->name)])
-				);
-			}
-		}
+		$guilds = $this->discordGatewayController->getGuilds();
+		$guild = $guilds[array_keys($guilds)[0]] ?? null;
+		$this->discordGatewayController->handleAccountLinking($guild->id, $data->discord_id, $context->char->name);
 		$msg = "You have linked your accounts successfully.";
 		$context->reply($msg);
 	}

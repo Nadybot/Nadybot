@@ -101,7 +101,7 @@ use stdClass;
 	NCA\DefineCommand(
 		command: "discord",
 		accessLevel: "member",
-		description: "Information about the discord link",
+		description: "Create a Discord invite link",
 	),
 ]
 class DiscordGatewayController extends ModuleInstance {
@@ -168,6 +168,10 @@ class DiscordGatewayController extends ModuleInstance {
 		"{name} [{org}]",
 	])]
 	public string $discordRenameUsers = self::RENAME_OFF;
+
+	/** ID of the Discord role to automatically assign to registered users */
+	#[NCA\Setting\Text]
+	public string $discordAssignRole = "";
 
 	protected ?int $lastSequenceNumber = null;
 	protected ?WebsocketClient $client = null;
@@ -1178,12 +1182,7 @@ class DiscordGatewayController extends ModuleInstance {
 				"character" => $invite->character,
 			]
 		);
-		if ($this->discordRenameUsers !== self::RENAME_OFF) {
-			$this->discordAPIClient->patch(
-				$this->discordAPIClient::DISCORD_API . "/guilds/{$guildId}/members/{$userId}",
-				json_encode((object)["nick" => $this->formatDiscordNick($invite->character)])
-			);
-		}
+		$this->handleAccountLinking($guildId, $userId, $invite->character);
 		/** @var ?DiscordMapping */
 		$data = $this->db->table(self::DB_TABLE)
 			->where("discord_id", $userId)
@@ -1211,6 +1210,33 @@ class DiscordGatewayController extends ModuleInstance {
 			"userId" => $mapping->discord_id,
 			"aoChar" => $mapping->name,
 		]);
+	}
+
+	/** Rename/assign ranks to linked Discord <-> Ao Accounts */
+	public function handleAccountLinking(string $guildId, string $userId, string $aoName): void {
+		$discordNick = $this->formatDiscordNick($aoName);
+		$discordRole = $this->discordAssignRole;
+		if (isset($discordNick) || $discordRole !== "") {
+			$data = [];
+			if (isset($discordNick)) {
+				$data["nick"] = $discordNick;
+				$this->logger->info("Renaming Discord ID {userId} to {aoChar}", [
+					"userId" => $userId,
+					"aoChar" => $aoName,
+				]);
+			}
+			if (strlen($discordRole)) {
+				$data["roles"] = explode(":", $discordRole);
+				$this->logger->info("Assigning Discord ID {userId} role(s) {role}", [
+					"userId" => $userId,
+					"role" => $discordRole,
+				]);
+			}
+			$this->discordAPIClient->patch(
+				$this->discordAPIClient::DISCORD_API . "/guilds/{$guildId}/members/{$userId}",
+				json_encode($data)
+			);
+		}
 	}
 
 	protected function getCurrentVoiceState(string $userId): ?VoiceState {
