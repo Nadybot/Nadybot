@@ -5,6 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [6.0.0-rc.2] - 2022-04-12
+
+### Added
+
+- Nadybot now supports color-themes and ships with 16 of these to make
+  customizing your bot even easier. Just try `!themes`
+
+### Changed
+
+- Failure to initiate an SSL-connection will now be retried automatically.
+- Bots with AO Chat Proxies will now wait longer before they mark themselves
+  ready. This solves some issues with long buddylists.
+- Add retries to the worldboss and Gauntlet buff APIs
+- Querying the buddylist if a buddy is online will not trigger a UID-lookup
+  anymore. If you are tracking whole orgs with lots of inactive characters,
+  then the `!track online` could hang and even crash the bot.
+
 ## [6.0.0-rc.1] - 2022-04-07
 
 ### Added
