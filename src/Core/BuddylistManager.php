@@ -185,10 +185,10 @@ class BuddylistManager {
 	public function remove(string $name, string $type=''): bool {
 		/** Never trigger an actual ID lookup. If we don't have a buddy's ID, it's inactive */
 		$uid = $this->chatBot->id[ucfirst(strtolower($name))] ?? false;
-		if ($uid === false || is_string($uid)) {
+		if ($uid === false) {
 			return false;
 		}
-		return $this->removeId($uid, $type);
+		return $this->removeId((int)$uid, $type);
 	}
 
 	/**
