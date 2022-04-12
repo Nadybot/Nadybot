@@ -106,10 +106,11 @@ class BuddylistManager {
 	/**
 	 * Get information stored about a friend
 	 *
-	 * @param int|string $name
+	 * @param string $name
 	 */
-	public function getBuddy($name): ?BuddylistEntry {
-		$uid = $this->chatBot->get_uid($name);
+	public function getBuddy(string $name): ?BuddylistEntry {
+		/** Never trigger an actual ID lookup. If we don't have a buddy's ID, it's inactive */
+		$uid = $this->chatBot->id[ucfirst(strtolower($name))] ?? false;
 		if ($uid === false || !isset($this->buddyList[$uid])) {
 			return null;
 		}
@@ -182,8 +183,9 @@ class BuddylistManager {
 	 * @return bool true on success, otherwise false
 	 */
 	public function remove(string $name, string $type=''): bool {
-		$uid = $this->chatBot->get_uid($name);
-		if ($uid === false) {
+		/** Never trigger an actual ID lookup. If we don't have a buddy's ID, it's inactive */
+		$uid = $this->chatBot->id[ucfirst(strtolower($name))] ?? false;
+		if ($uid === false || is_string($uid)) {
 			return false;
 		}
 		return $this->removeId($uid, $type);
