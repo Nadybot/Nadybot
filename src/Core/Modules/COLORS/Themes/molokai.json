@@ -1,0 +1,11 @@
+{
+	"description": "A theme based on the popular vim-theme Molokai",
+	"window_color": "#F8F8F2",
+	"highlight_color": "#91E22C",
+	"header_color": "#FD841F",
+	"header2_color": "#66D9EF",
+	"priv_color": "#F8F8F2",
+	"tell_color": "#F8F8F2",
+	"guild_color": "#F8F8F2",
+	"routed_sys_color": "#F8F8F2"
+}

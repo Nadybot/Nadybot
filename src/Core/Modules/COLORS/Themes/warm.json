@@ -1,0 +1,11 @@
+{
+	"description": "A warm, welcoming color theme that's easy on the eyes",
+	"window_color": "#FFE4A1",
+	"priv_color": "#E4C26E",
+	"tell_color": "#E4C26E",
+	"guild_color": "#E4C26E",
+	"routed_sys_color": "#E4C26E",
+	"header_color": "#E4AB6E",
+	"header2_color": "#7EB0C3",
+	"highlight_color": "#E4836E"
+}

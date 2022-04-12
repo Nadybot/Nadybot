@@ -1,0 +1,11 @@
+{
+	"description": "A pinky-pie inspired color-theme",
+	"window_color": "#FF93AC",
+	"priv_color": "#FF93AC",
+	"tell_color": "#FF93AC",
+	"guild_color": "#FF93AC",
+	"routed_sys_color": "#FF93AC",
+	"header_color": "#FF6289",
+	"header2_color": "#FF1131",
+	"highlight_color": "#FFE6E6"
+}

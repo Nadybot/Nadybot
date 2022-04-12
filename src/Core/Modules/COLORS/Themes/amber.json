@@ -1,0 +1,11 @@
+{
+	"description": "Inspired by old amber monitors - warm and retro",
+	"window_color": "#FF8503",
+	"priv_color": "#FEB204",
+	"tell_color": "#FEB204",
+	"guild_color": "#FEB204",
+	"routed_sys_color": "#FEB204",
+	"header_color": "#FFFF00",
+	"header2_color": "#FFFF00",
+	"highlight_color": "#FFD22B"
+}

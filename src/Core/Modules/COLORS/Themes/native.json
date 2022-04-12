@@ -1,0 +1,11 @@
+{
+	"description": "A schema using only the native colors of AO",
+	"window_color": "#63AD63",
+	"priv_color": "#FFE7A5",
+	"tell_color": "#FFE7A5",
+	"guild_color": "#FFE7A5",
+	"routed_sys_color": "#FFE7A5",
+	"header_color": "#DEDE42",
+	"header2_color": "#F7AD63",
+	"highlight_color": "#00DE42"
+}

@@ -1,0 +1,11 @@
+{
+	"description": "The Tyrbot color-scheme",
+	"window_color": "#FFFFFF",
+	"priv_color": "#89D2E8",
+	"tell_color": "#89D2E8",
+	"guild_color": "#89D2E8",
+	"routed_sys_color": "#89D2E8",
+	"header_color": "#FFFF00",
+	"header2_color": "#FCA712",
+	"highlight_color": "#00BFFF"
+}

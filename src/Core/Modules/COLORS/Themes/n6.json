@@ -1,0 +1,11 @@
+{
+	"description": "The new Nadybot 6 theme - like N5, just darker",
+	"window_color": "#A6C0D9",
+	"priv_color": "#A6C0D9",
+	"tell_color": "#A6C0D9",
+	"guild_color": "#A6C0D9",
+	"routed_sys_color": "#A6C0D9",
+	"header_color": "#E49F6E",
+	"header2_color": "#E4BA6E",
+	"highlight_color": "#BFECE6"
+}

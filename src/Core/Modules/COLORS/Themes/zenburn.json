@@ -1,0 +1,11 @@
+{
+	"description": "A theme based on the popular vim-theme Zenburn",
+	"window_color": "#DEDEDE",
+	"highlight_color": "#FBD7AD",
+	"header_color": "#85AF81",
+	"header2_color": "#FFFC98",
+	"priv_color": "#DEDEDE",
+	"tell_color": "#DEDEDE",
+	"guild_color": "#DEDEDE",
+	"routed_sys_color": "#DEDEDE"
+}

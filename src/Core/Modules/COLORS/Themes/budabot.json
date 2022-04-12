@@ -1,0 +1,11 @@
+{
+	"description": "The original Budabot/Nadybot color scheme",
+	"window_color": "#89D2E8",
+	"priv_color": "#89D2E8",
+	"tell_color": "#89D2E8",
+	"guild_color": "#89D2E8",
+	"routed_sys_color": "#89D2E8",
+	"header_color": "#FFFF00",
+	"header2_color": "#FCA712",
+	"highlight_color": "#FFFFFF"
+}
