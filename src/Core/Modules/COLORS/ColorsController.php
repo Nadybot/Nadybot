@@ -92,7 +92,7 @@ class ColorsController extends ModuleInstance {
 			}
 			$blobs []= "{$link} <highlight>{$theme->name}<end>: {$theme->description}";
 		}
-		$blob = join("\n", $blobs);
+		$blob = join("\n<pagebreak>", $blobs);
 		$count = count($themes);
 		$msg = $this->text->makeBlob("Themes ({$count})", $blob);
 		$context->reply($msg);
@@ -114,7 +114,7 @@ class ColorsController extends ModuleInstance {
 			$blobs []= "[{$link}] <highlight>{$theme->name}<end>: {$theme->description}\n".
 				"<tab><grey>|<end>\n<tab><grey>|<end> " . implode("\n<tab><grey>|<end> ", explode("\n", $this->getThemePreview($theme)));
 		}
-		$blob = join("\n\n", $blobs);
+		$blob = join("\n\n<pagebreak>", $blobs);
 		$count = count($themes);
 		$msg = $this->text->makeBlob("Themes ({$count})", $blob);
 		$context->reply($msg);
