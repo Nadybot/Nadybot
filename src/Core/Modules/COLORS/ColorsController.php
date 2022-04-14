@@ -8,11 +8,15 @@ use Nadybot\Core\{
 	Attributes as NCA,
 	Attributes\Setting\Color,
 	CmdContext,
+	DB,
+	DBSchema\RouteHopColor,
+	MessageHub,
 	ModuleInstance,
+	Modules\MESSAGES\MessageHubController,
+	ParamClass\PFilename,
 	SettingManager,
 	Text,
 };
-use Nadybot\Core\ParamClass\PFilename;
 
 use function Safe\file_get_contents;
 use function Safe\glob;
@@ -37,6 +41,15 @@ class ColorsController extends ModuleInstance {
 
 	#[NCA\Inject]
 	public Text $text;
+
+	#[NCA\Inject]
+	public DB $db;
+
+	#[NCA\Inject]
+	public MessageHubController $msgHubCtrl;
+
+	#[NCA\Inject]
+	public MessageHub $msgHub;
 
 	/** default guild color */
 	#[Color] public string $defaultGuildColor = "#89D2E8";
@@ -229,10 +242,37 @@ class ColorsController extends ModuleInstance {
 			}
 			$setting = "default_{$attr}";
 			if (preg_match("/^#([0-9a-f]{6})$/i", $value)) {
+				$value = strtoupper($value);
 				$value = "<font color='$value'>";
 			}
 			$this->settingManager->save($setting, $value);
 		}
+		$sysColor = $theme->routed_sys_color ?? null;
+		if (isset($sysColor) && preg_match("/^#([0-9a-f]{6})$/i", $sysColor)) {
+			$this->setRoutedSysColor(substr(strtoupper($sysColor), 1));
+		}
+	}
+
+	private function setRoutedSysColor(string $color): bool {
+		$colorDef = $this->msgHubCtrl->getHopColor("system", null, null);
+		if (!isset($colorDef)) {
+			$colorDef = new RouteHopColor();
+			$colorDef->hop = "system";
+		}
+		$colorDef->text_color = $color;
+		$table = $this->msgHub::DB_TABLE_COLORS;
+		try {
+			if (isset($colorDef->id)) {
+				$success = $this->db->update($table, "id", $colorDef) > 0;
+			} else {
+				$colorDef->id = $this->db->insert($table, $colorDef);
+				$success = $colorDef->id > 0;
+			}
+			$this->msgHub->loadTagColor();
+		} catch (Exception) {
+			$success = false;
+		}
+		return $success;
 	}
 
 	/** Check if the given theme is the same that's currently in use */
@@ -247,8 +287,8 @@ class ColorsController extends ModuleInstance {
 				$value = "<font color='$value'>";
 			}
 			$setting = "default" . join("", array_map("ucfirst", explode("_", $attr)));
-			$currValue = $this->{$setting};
-			if (($this->{$setting} ?? null) !== $value) {
+			$currValue = $this->{$setting} ?? null;
+			if ($currValue !== $value) {
 				return false;
 			}
 		}
