@@ -1,4 +1,4 @@
-# ![N](img/nadybot64.png)adybot #
+# ![N](img/nadybot64.png)adybot 6
 
 [![Docker Repository on Quay](https://quay.io/repository/nadyita/nadybot/status "Docker Repository on Quay")](https://quay.io/repository/nadyita/nadybot)
 [![COPR build](https://copr.fedorainfracloud.org/coprs/nadybot/Nadybot/package/nadybot/status_image/last_build.png)](https://copr.fedorainfracloud.org/coprs/nadybot/Nadybot/)
