@@ -1,4 +1,5 @@
 #!/bin/bash
+set -euo pipefail
 if [ "$#" -ne 1 ]; then
   echo "Syntax: $0 <release>"
   exit 1
