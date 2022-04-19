@@ -7,7 +7,7 @@ Name:       nadybot
 Version:    {{{ nadybot_version }}}
 
 # This can be useful later for adding downstream patches
-Release:    2%{?dist}
+Release:    5%{?dist}
 
 BuildArch: noarch
 
@@ -35,29 +35,60 @@ Source:     {{{ git_dir_pack path="$(git rev-parse --show-toplevel)" source_name
 %define php_exec php80
 %endif
 BuildRequires: %{php_prefix}php-cli >= 8.0
-BuildRequires: %{php_prefix}php-json
 BuildRequires: curl
 BuildRequires: sed
 BuildRequires: %{php_prefix}php-pdo
+%if 0%{?suse_version}
+BuildRequires: %{php_prefix}php-mysql
+BuildRequires: %{php_prefix}php-ctype
+BuildRequires: %{php_prefix}php-pcntl
+BuildRequires: %{php_prefix}php-dom
+BuildRequires: %{php_prefix}php-sqlite
+BuildRequires: %{php_prefix}php-sockets
+BuildRequires: %{php_prefix}php-curl
+BuildRequires: %{php_prefix}php-openssl
+BuildRequires: %{php_prefix}php-phar
+BuildRequires: %{php_prefix}php-zip
+BuildRequires: %{php_prefix}php-zlib
+%else
 BuildRequires: %{php_prefix}php-mysqlnd
+BuildRequires: %{php_prefix}php-json
+BuildRequires: %{php_prefix}php-xml
+%endif
 BuildRequires: %{php_prefix}php-bcmath
 BuildRequires: %{php_prefix}php-mbstring
-BuildRequires: %{php_prefix}php-xml
 %if 0%{?rhel} < 8
 BuildRequires: systemd
 %else
 BuildRequires: systemd-rpm-macros
 %endif
 
+%if 0%{?suse_version}
+Requires(pre): shadow
+%else
 Requires(pre): shadow-utils
+%endif
 Requires: %{php_prefix}php-cli >= 8.0
-Requires: %{php_prefix}php-json
 Requires: %{php_prefix}php-pdo
+%if 0%{?suse_version}
+Requires: %{php_prefix}php-mysql
+Requires: %{php_prefix}php-ctype
+Requires: %{php_prefix}php-pcntl
+Requires: %{php_prefix}php-dom
+Requires: %{php_prefix}php-sqlite
+Requires: %{php_prefix}php-sockets
+Requires: %{php_prefix}php-curl
+Requires: %{php_prefix}php-openssl
+Requires: %{php_prefix}php-zip
+Requires: %{php_prefix}php-zlib
+%else
 Requires: %{php_prefix}php-mysqlnd
+Requires: %{php_prefix}php-xml
+Requires: %{php_prefix}php-json
+Requires: %{php_prefix}php-pecl-zip
+%endif
 Requires: %{php_prefix}php-bcmath
 Requires: %{php_prefix}php-mbstring
-Requires: %{php_prefix}php-xml
-Requires: %{php_prefix}php-pecl-zip
 Requires: dialog
 
 %global debug_package %{nil}
