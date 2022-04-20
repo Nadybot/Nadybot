@@ -29,7 +29,7 @@ jobs:
       - name: Migrate SQLite
         run: |
           curl -s -S -q --user "github:${{ secrets.CONFIG_PASSWORD }}" "https://confs.nadybot.org/sqlite.php" -o conf/config.php
-          if [ "${{ matrix.from}}" != "null" ]; then
+          if [ "${{ matrix.from }}" != "" ]; then
             curl -s -S -q --user "github:${{ secrets.CONFIG_PASSWORD }}" "https://confs.nadybot.org/${{ matrix.from }}" -o data/nadybot.db
           else
             rm -f data/nadybot.db
