@@ -40,10 +40,10 @@ class CreateRouteHopColorTable implements SchemaMigration {
 		} elseif (isset($matches)) {
 			$sysColor = $matches[1];
 		}
-		$sysHop = new RouteHopColor();
-		$sysHop->hop = Source::SYSTEM;
-		$sysHop->text_color = $sysColor;
-		$db->insert($table, $sysHop);
+		$db->table($table)->insert([
+			"hop" => Source::SYSTEM,
+			"text_color" => $sysColor,
+		]);
 		if (!strlen($db->getMyguild())) {
 			return;
 		}
@@ -58,10 +58,10 @@ class CreateRouteHopColorTable implements SchemaMigration {
 		if ($privSysColor === $sysColor) {
 			return;
 		}
-		$sysHop = new RouteHopColor();
-		$sysHop->hop = Source::SYSTEM;
-		$sysHop->where = Source::PRIV . "(" . $db->getMyname() . ")";
-		$sysHop->text_color = $matches[1]??"";
-		$db->insert($table, $sysHop);
+		$db->table($table)->insert([
+			"hop" => Source::SYSTEM,
+			"where" => Source::PRIV . "(" . $db->getMyname() . ")",
+			"text_color" => $matches[1]??"",
+		]);
 	}
 }

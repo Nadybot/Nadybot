@@ -38,18 +38,20 @@ class MoveSettingsToHopColors implements SchemaMigration {
 	}
 
 	public function migrate(LoggerWrapper $logger, DB $db): void {
-		$hop = new RouteHopColor();
-		$hop->tag_color = $this->getSettingColor($db, "guest_color_channel") ?? "C3C3C3";
-		$hop->text_color = $this->getSettingColor($db, "guest_color_guild") ?? "C3C3C3";
-		$hop->hop = Source::PRIV . "(" . $this->config->name . ")";
-		$hop->id = $db->insert(MessageHub::DB_TABLE_COLORS, $hop);
+		$hop = [
+			"tag_color" => $this->getSettingColor($db, "guest_color_channel") ?? "C3C3C3",
+			"text_color" => $this->getSettingColor($db, "guest_color_guild") ?? "C3C3C3",
+			"hop" => Source::PRIV . "(" . $this->config->name . ")",
+		];
+		$db->table(MessageHub::DB_TABLE_COLORS)->insert($hop);
 
 		if (strlen($this->config->orgName)) {
-			$hop = new RouteHopColor();
-			$hop->tag_color = $this->getSettingColor($db, "guest_color_channel") ?? "C3C3C3";
-			$hop->text_color = $this->getSettingColor($db, "guest_color_guest") ?? "C3C3C3";
-			$hop->hop = Source::ORG . "({$this->config->orgName})";
-			$hop->id = $db->insert(MessageHub::DB_TABLE_COLORS, $hop);
+			$hop = [
+				"tag_color" => $this->getSettingColor($db, "guest_color_channel") ?? "C3C3C3",
+				"text_color" => $this->getSettingColor($db, "guest_color_guest") ?? "C3C3C3",
+				"hop" => Source::ORG . "({$this->config->orgName})",
+			];
+			$db->table(MessageHub::DB_TABLE_COLORS)->insert($hop);
 		}
 	}
 }

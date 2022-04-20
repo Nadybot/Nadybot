@@ -50,17 +50,19 @@ class MigrateToRoutes implements SchemaMigration {
 		} else {
 			$towerColor = "F06AED";
 		}
-		$hopColor = new RouteHopColor();
-		$hopColor->hop = Source::SYSTEM . "(tower-*)";
-		$hopColor->tag_color = $towerColor;
-		$hopColor->text_color = null;
-		$db->insert(MessageHub::DB_TABLE_COLORS, $hopColor);
+		$hopColor = [
+			"hop" => Source::SYSTEM . "(tower-*)",
+			"tag_color" => $towerColor,
+			"text_color" => null,
+		];
+		$db->table(MessageHub::DB_TABLE_COLORS)->insert($hopColor);
 
-		$hopFormat = new RouteHopFormat();
-		$hopFormat->hop = Source::SYSTEM . "(tower-*)";
-		$hopFormat->format = "TOWER";
-		$hopFormat->render = true;
-		$db->insert(Source::DB_TABLE, $hopFormat);
+		$hopFormat = [
+			"hop" => Source::SYSTEM . "(tower-*)",
+			"format" => "TOWER",
+			"render" => true,
+		];
+		$db->table(Source::DB_TABLE)->insert($hopFormat);
 
 		$this->messageHub->loadTagFormat();
 
