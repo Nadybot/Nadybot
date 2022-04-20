@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Allow hiding arbitrary characters from the online list, so you don't see
   other orgs' bots or can even hide their whole guest channel.
 - Support openSUSE tumbleweed packages
+- Warn when the buddylist is full
 
 ## [6.0.0] - 2022-04-19
 
