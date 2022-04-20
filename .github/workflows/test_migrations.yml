@@ -159,7 +159,7 @@ jobs:
       matrix:
         os: [ubuntu-latest]
         php: [8.0, 8.1]
-        from: [nadybot5.1.0.pgsql]
+        from: [null, nadybot5.1.0.pgsql]
 
     steps:
       - name: Checkout sources
