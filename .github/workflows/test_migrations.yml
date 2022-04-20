@@ -31,6 +31,8 @@ jobs:
           curl -s -S -q --user "github:${{ secrets.CONFIG_PASSWORD }}" "https://confs.nadybot.org/sqlite.php" -o conf/config.php
           if [ "${{ matrix.from}}" != "null" ]; then
             curl -s -S -q --user "github:${{ secrets.CONFIG_PASSWORD }}" "https://confs.nadybot.org/${{ matrix.from }}" -o data/nadybot.db
+          else
+            touch data/nadybot.db
           fi
           php main.php --setup-only --migration-errors-fatal conf/config.php
 
