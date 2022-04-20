@@ -60,7 +60,7 @@ jobs:
       matrix:
         os: [ubuntu-latest]
         php: [8.0, 8.1]
-        from: [budabot4.mysql, nadybot5.0.0.mysql]
+        from: [null, budabot4.mysql, nadybot5.0.0.mysql]
 
     steps:
       - name: Checkout sources
@@ -79,10 +79,12 @@ jobs:
       - name: Migrate MySQL
         shell: bash
         run: |
-          curl -s -S -q --user "github:${{ secrets.CONFIG_PASSWORD }}" "https://confs.nadybot.org/${{ matrix.from }}" -o data/nadybot.sql
           curl -s -S -q --user "github:${{ secrets.CONFIG_PASSWORD }}" "https://confs.nadybot.org/mysql.php" -o conf/config.php
-          mysql -h 127.0.0.1 -u budabot -p123456 budabot < data/nadybot.sql
-          rm -f data/nadybot.sql
+          if [ "${{ matrix.from }}" != "" ]; then
+            curl -s -S -q --user "github:${{ secrets.CONFIG_PASSWORD }}" "https://confs.nadybot.org/${{ matrix.from }}" -o data/nadybot.sql
+            mysql -h 127.0.0.1 -u budabot -p123456 budabot < data/nadybot.sql
+            rm -f data/nadybot.sql
+          fi
           php main.php --setup-only --migration-errors-fatal conf/config.php
 
   mariadb_tests:
@@ -108,7 +110,7 @@ jobs:
       matrix:
         os: [ubuntu-latest]
         php: [8.0, 8.1]
-        from: [budabot4.mysql, hodorraid.mysql, nadybot5.0.0.mysql]
+        from: [null, budabot4.mysql, hodorraid.mysql, nadybot5.0.0.mysql]
 
     steps:
       - name: Checkout sources
@@ -127,10 +129,12 @@ jobs:
       - name: Migrate MySQL
         shell: bash
         run: |
-          curl -s -S -q --user "github:${{ secrets.CONFIG_PASSWORD }}" "https://confs.nadybot.org/${{ matrix.from }}" -o data/nadybot.sql
           curl -s -S -q --user "github:${{ secrets.CONFIG_PASSWORD }}" "https://confs.nadybot.org/mysql.php" -o conf/config.php
-          mysql -h 127.0.0.1 -u budabot -p123456 budabot < data/nadybot.sql
-          rm -f data/nadybot.sql
+          if [ "${{ matrix.from }}" != "" ]; then
+            curl -s -S -q --user "github:${{ secrets.CONFIG_PASSWORD }}" "https://confs.nadybot.org/${{ matrix.from }}" -o data/nadybot.sql
+            mysql -h 127.0.0.1 -u budabot -p123456 budabot < data/nadybot.sql
+            rm -f data/nadybot.sql
+          fi
           php main.php --setup-only --migration-errors-fatal conf/config.php
 
   pgsql_tests:
@@ -174,10 +178,12 @@ jobs:
       - name: Migrate PostgreSQL
         shell: bash
         run: |
-          curl -s -S -q --user "github:${{ secrets.CONFIG_PASSWORD }}" "https://confs.nadybot.org/${{ matrix.from }}" -o data/nadybot.sql
           curl -s -S -q --user "github:${{ secrets.CONFIG_PASSWORD }}" "https://confs.nadybot.org/postgresql.php" -o conf/config.php
-          echo "127.0.0.1:5432:budabot:budabot:123456" > ~/.pgpass
-          chmod 0600 ~/.pgpass
-          psql -o /dev/null -h 127.0.0.1 -U budabot budabot < data/nadybot.sql
-          rm -f data/nadybot.sql
+          if [ "${{ matrix.from }}" != "" ]; then
+            curl -s -S -q --user "github:${{ secrets.CONFIG_PASSWORD }}" "https://confs.nadybot.org/${{ matrix.from }}" -o data/nadybot.sql
+            echo "127.0.0.1:5432:budabot:budabot:123456" > ~/.pgpass
+            chmod 0600 ~/.pgpass
+            psql -o /dev/null -h 127.0.0.1 -U budabot budabot < data/nadybot.sql
+            rm -f data/nadybot.sql
+          fi
           php main.php --setup-only --migration-errors-fatal conf/config.php
