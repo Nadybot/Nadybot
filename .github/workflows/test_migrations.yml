@@ -10,7 +10,7 @@ jobs:
       matrix:
         os: [ubuntu-latest, windows-latest]
         php: [8.0, 8.1]
-        from: [budabot4.db, nadybot5.0.0.db]
+        from: [null, budabot4.db, nadybot5.0.0.db]
 
     steps:
       - name: Checkout sources
@@ -29,7 +29,9 @@ jobs:
       - name: Migrate SQLite
         run: |
           curl -s -S -q --user "github:${{ secrets.CONFIG_PASSWORD }}" "https://confs.nadybot.org/sqlite.php" -o conf/config.php
-          curl -s -S -q --user "github:${{ secrets.CONFIG_PASSWORD }}" "https://confs.nadybot.org/${{ matrix.from }}" -o data/nadybot.db
+          if [ "${{ matrix.from}}" != "null" ]; then
+            curl -s -S -q --user "github:${{ secrets.CONFIG_PASSWORD }}" "https://confs.nadybot.org/${{ matrix.from }}" -o data/nadybot.db
+          fi
           php main.php --setup-only --migration-errors-fatal conf/config.php
 
   mysql_tests:
