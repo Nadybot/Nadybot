@@ -781,9 +781,9 @@ class RelayController extends ModuleInstance {
 		$msgColor = $this->messageHub->getTextColor($rEvent, Source::ORG);
 		if (strlen($msgColor)) {
 			$example = "{$msgColor}This is what text from the ".
-				strtolower($lastHop->label) . "-chat looks like.<end>";
+				strtolower($lastHop->label ?? "test") . "-chat looks like.<end>";
 		} else {
-			$example = "Text from the " . strtolower($lastHop->label).
+			$example = "Text from the " . strtolower($lastHop->label ?? "test").
 				"-chat has no color set.";
 		}
 		$tagLink = $this->text->makeChatcmd(

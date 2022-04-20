@@ -102,6 +102,8 @@ class GauntletBuffController extends ModuleInstance implements MessageEmitter {
 	#[NCA\Setting\Options(options: ["none", "clan", "omni"])]
 	public string $gaubuffDefaultSide = "none";
 
+	private int $apiRetriesLeft = 3;
+
 	public function getChannelName(): string {
 		return Source::SYSTEM . "(gauntlet-buff)";
 	}
@@ -126,7 +128,15 @@ class GauntletBuffController extends ModuleInstance implements MessageEmitter {
 	 * Parse the Gauntlet buff timer API result and handle each running buff
 	 */
 	public function handleGauntletBuffsFromApi(HttpResponse $response): void {
-		if ($response->headers["status-code"] !== "200" || !isset($response->body)) {
+		$code = $response->headers["status-code"] ?? "204";
+		if ($code >= 500 && $code < 600 && --$this->apiRetriesLeft) {
+			$this->logger->warning('Gauntlet buff API sent a {code}, retrying', [
+				"code" => $code
+			]);
+			$this->loadGauntletBuffsFromAPI();
+			return;
+		}
+		if ($code !== "200" || !isset($response->body)) {
 			$this->logger->error('Gauntlet buff API did not send correct data.');
 			return;
 		}

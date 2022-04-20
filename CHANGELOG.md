@@ -11,6 +11,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Allow hiding arbitrary characters from the online list, so you don't see
   other orgs' bots or can even hide their whole guest channel.
+- Support openSUSE tumbleweed packages
+
+## [6.0.0] - 2022-04-19
+
+### Changed
+
+- Updated .deb and .rpm build instructions
+
+## [6.0.0-rc.2] - 2022-04-12
+
+### Added
+
+- Nadybot now supports color-themes and ships with 16 of these to make
+  customizing your bot even easier. Just try `!themes`
+
+### Changed
+
+- Failure to initiate an SSL-connection will now be retried automatically.
+- Bots with AO Chat Proxies will now wait longer before they mark themselves
+  ready. This solves some issues with long buddylists.
+- Add retries to the worldboss and Gauntlet buff APIs
+- Querying the buddylist if a buddy is online will not trigger a UID-lookup
+  anymore. If you are tracking whole orgs with lots of inactive characters,
+  then the `!track online` could hang and even crash the bot.
 
 ## [6.0.0-rc.1] - 2022-04-07
 

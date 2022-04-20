@@ -144,9 +144,11 @@ class WebserverController extends ModuleInstance {
 		if (isset($response->error) || $response->headers['status-code'] !== "200") {
 			if (isset($response->request)) {
 				$this->logger->error(
-					'Error downloading aoauth pubkey from'.
-					$response->request->getURI() . ": ".
-					($response->error ?? $response->headers['status-code'] ?? "")
+					'Error downloading aoauth pubkey from {uri}: {error}',
+					[
+						"uri" => $response->request->getURI(),
+						"error" => ($response->error ?? $response->headers['status-code'] ?? ""),
+					]
 				);
 			}
 			return;

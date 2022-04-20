@@ -26,7 +26,7 @@ jobs:
           shell: bash
           run: |
             SRC_VERSION=$(grep -o -P '(?<=const VERSION = ")([^"]+)' src/Core/BotRunner.php)
-            TAG=$((git tag -l; echo "${SRC_VERSION}") | sort -V | tail -n 1)
+            TAG=$((git tag -l; echo "${SRC_VERSION}") | sed '/-/!{s/$/_/}'| sort -V | sed 's/_$//' | tail -n 1)
             BRANCH="$(git rev-parse --abbrev-ref HEAD)"
             if [ "${BRANCH}" != "stable" ]; then
               VERSION="${TAG}@${BRANCH}"

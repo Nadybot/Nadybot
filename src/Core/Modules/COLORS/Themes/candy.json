@@ -1,0 +1,11 @@
+{
+	"description": "A neutral theme with candy-colored accents",
+	"window_color": "#CFD4C5",
+	"priv_color": "#CFD4C5",
+	"tell_color": "#CFD4C5",
+	"guild_color": "#CFD4C5",
+	"routed_sys_color": "#CFD4C5",
+	"header_color": "#99FF00",
+	"header2_color": "#A491D3",
+	"highlight_color": "#DB2763"
+}

@@ -493,7 +493,7 @@ class CommandManager implements MessageEmitter {
 			/** @var NCA\HandlesCommand */
 			$handlesCmdObj = $handlesAttr->newInstance();
 			$baseCmd = explode(" ", $handlesCmdObj->command)[0];
-			if ($baseCmd !== explode(" ", $context->message)[0]) {
+			if ($baseCmd !== strtolower(explode(" ", $context->message)[0])) {
 				continue;
 			}
 			$cmdCfg = $this->get($handlesCmdObj->command, $context->permissionSet);
@@ -748,7 +748,7 @@ class CommandManager implements MessageEmitter {
 		$parts = explode(" ", $message);
 		// Only consider aliases like "raid add" and not "raid"
 		while (count($parts) > 1) {
-			$command = join(" ", $parts);
+			$command = strtolower(join(" ", $parts));
 			$handler = $this->commands[$permissionSet][$command] ?? null;
 			if ($handler instanceof CommandHandler) {
 				return clone $handler;

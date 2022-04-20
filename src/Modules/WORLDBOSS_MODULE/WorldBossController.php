@@ -202,6 +202,8 @@ class WorldBossController extends ModuleInstance {
 	/** @var array<string,array<int,int>> */
 	private array $sentNotifications = [];
 
+	private int $timerRetriesLeft = 3;
+
 	#[NCA\Setup]
 	public function setup(): void {
 		$this->commandAlias->register(
@@ -245,7 +247,15 @@ class WorldBossController extends ModuleInstance {
 	 * timers if the data is valid.
 	 */
 	public function handleTimersFromApi(HttpResponse $response): void {
-		if ($response->headers["status-code"] !== "200" || !isset($response->body)) {
+		$code = $response->headers["status-code"] ?? "204";
+		if ($code >= 500 && $code < 600 && --$this->timerRetriesLeft) {
+			$this->logger->warning('Worldboss API sent a {code}, retrying', [
+				"code" => $code
+			]);
+			$this->loadTimersFromAPI();
+			return;
+		}
+		if ($code !== "200" || !isset($response->body)) {
 			$this->logger->error('Worldboss API did not send correct data.', [
 				"headers" => $response->headers,
 				"body" => $response->body,

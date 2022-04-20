@@ -39,6 +39,6 @@ class TimestampSettingHandler extends SettingHandler {
 		if ($unixTime === 0) {
 			return "<grey>&lt;empty&gt;<end>";
 		}
-		return "<highlight>" . $this->util->date((int)$unixTime) . "<end>";
+		return "<highlight>" . $this->util->date($unixTime) . "<end>";
 	}
 }

@@ -208,7 +208,12 @@ class AsyncHttp {
 	 * @internal
 	 */
 	public function abortWithMessage(string $errorString): void {
-		$this->setError($errorString . " for uri: '" . $this->uri . "' with params: '" . http_build_query($this->queryParams) . "'");
+		$query = http_build_query($this->queryParams);
+		if (strlen($query)) {
+			$query = "?{$query}";
+		}
+		$message = "{$errorString} for uri: '{$this->uri}{$query}'";
+		$this->setError($message);
 		$this->finish();
 	}
 
@@ -377,6 +382,16 @@ class AsyncHttp {
 			$this->logger->info("TLS crypto activated successfully", ["uri" => $this->uri]);
 			$this->setupStreamNotify();
 		} elseif ($sslResult === false) {
+			if (isset($this->notifier)) {
+				$this->socketManager->removeSocketNotifier($this->notifier);
+			}
+			$this->logger->info("TLS crypto failed to activate", ["uri" => $this->uri]);
+			if ($this->retriesLeft > 0) {
+				$this->retriesLeft--;
+				$this->close();
+				$this->timer->callLater(0, [$this, "execute"]);
+				return;
+			}
 			$this->abortWithMessage(
 				"Failed to activate TLS for the connection to ".
 				$this->getStreamUri()
@@ -422,6 +437,7 @@ class AsyncHttp {
 				try {
 					$this->processRequest();
 				} catch (HttpRetryException $e) {
+					$this->close();
 					$this->execute();
 					return;
 				}
@@ -440,6 +456,7 @@ class AsyncHttp {
 		try {
 			$this->responseData .= $this->readAllFromSocket();
 		} catch (HttpRetryException $e) {
+			$this->close();
 			$this->execute();
 			return;
 		}
