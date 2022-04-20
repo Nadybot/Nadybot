@@ -1,0 +1,11 @@
+{
+	"description": "Seasonal fun in green and red",
+	"window_color": "#1E792C",
+	"priv_color": "#1E792C",
+	"tell_color": "#1E792C",
+	"guild_color": "#1E792C",
+	"routed_sys_color": "#1E792C",
+	"header_color": "#E5E5E5",
+	"header2_color": "#FFD700",
+	"highlight_color": "#FF0F16"
+}
