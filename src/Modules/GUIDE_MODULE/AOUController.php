@@ -4,57 +4,53 @@ namespace Nadybot\Modules\GUIDE_MODULE;
 
 use DOMDocument;
 use DOMElement;
+use Throwable;
 use Nadybot\Core\{
+	Attributes as NCA,
 	CacheManager,
 	CacheResult,
 	CmdContext,
-	DBRow,
 	Http,
 	HttpResponse,
+	ModuleInstance,
 	Text,
 };
-use Nadybot\Modules\ITEMS_MODULE\ItemsController;
-use Throwable;
+use Nadybot\Modules\ITEMS_MODULE\{
+	AODBEntry,
+	ItemsController,
+};
 
 /**
  * @author Tyrence (RK2)
- *
- * @Instance
- *
- * Commands this controller contains:
- *	@DefineCommand(
- *		command     = 'aou',
- *		accessLevel = 'all',
- *		description = 'Search for or view a guide from AO-Universe.com',
- *		help        = 'aou.txt'
- *	)
  */
-class AOUController {
-
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
-
-	/** @Inject */
+#[
+	NCA\Instance,
+	NCA\DefineCommand(
+		command: "aou",
+		accessLevel: "guest",
+		description: "Search for or view a guide from AO-Universe",
+	)
+]
+class AOUController extends ModuleInstance {
+	#[NCA\Inject]
 	public Text $text;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public ItemsController $itemsController;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public CacheManager $cacheManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Http $http;
 
 	public const AOU_URL = "https://www.ao-universe.com/mobile/parser.php?bot=nadybot";
 
 	public function isValidXML(?string $data): bool {
-		if (!isset($data)) {
+		if (!isset($data) || !strlen($data)) {
 			return false;
 		}
+		/** @phpstan-var non-empty-string $data */
 		try {
 			$dom = new DOMDocument();
 			return $dom->loadXML($data) !== false;
@@ -64,10 +60,9 @@ class AOUController {
 	}
 
 	/**
-	 * View an AO-U guide.
-	 *
-	 * @HandlesCommand("aou")
+	 * View a specific guide on AO-Universe
 	 */
+	#[NCA\HandlesCommand("aou")]
 	public function aouView(CmdContext $context, int $guideId): void {
 		$params = [
 			'mode' => 'view',
@@ -87,11 +82,12 @@ class AOUController {
 	}
 
 	public function displayAOUGuide(CacheResult $result, int $guideId, CmdContext $sendto): void {
-		if (!$result->success || !isset($result->data)) {
+		if (!$result->success || !isset($result->data) || !strlen($result->data)) {
 			$msg = "An error occurred while trying to retrieve AOU guide with id <highlight>$guideId<end>.";
 			$sendto->reply($msg);
 			return;
 		}
+		/** @phpstan-var non-empty-string */
 		$guide = $result->data;
 		$dom = new DOMDocument();
 		$dom->loadXML($guide);
@@ -105,13 +101,13 @@ class AOUController {
 
 		$content = $dom->getElementsByTagName('content')->item(0);
 		if ($content == null || !($content instanceof DOMElement)) {
-			$msg = "Error retrieving guide <highlight>$guideId<end> from AO-Universe.com";
+			$msg = "Error retrieving guide <highlight>$guideId<end> from AO-Universe";
 			$sendto->reply($msg);
 			return;
 		}
 		$title = $content->getElementsByTagName('name')->item(0)->nodeValue;
 
-		$blob = $this->text->makeChatcmd("Guide on AO-Universe.com", "/start https://www.ao-universe.com/main.php?site=knowledge&id={$guideId}") . "\n\n";
+		$blob = $this->text->makeChatcmd("Guide on AO-Universe", "/start https://www.ao-universe.com/main.php?site=knowledge&id={$guideId}") . "\n\n";
 
 		$blob .= "Updated: <highlight>" . $content->getElementsByTagName('update')->item(0)->nodeValue . "<end>\n";
 		$blob .= "Profession: <highlight>" . $content->getElementsByTagName('class')->item(0)->nodeValue . "<end>\n";
@@ -121,27 +117,28 @@ class AOUController {
 
 		$blob .= $this->processInput($content->getElementsByTagName('text')->item(0)->nodeValue);
 
-		$blob .= "\n\n<highlight>Powered by<end> " . $this->text->makeChatcmd("AO-Universe.com", "/start https://www.ao-universe.com");
+		$blob .= "\n\n<i>Powered by " . $this->text->makeChatcmd("AO-Universe", "/start https://www.ao-universe.com") . "</i>";
 
 		$msg = $this->text->makeBlob($title, $blob);
 		$sendto->reply($msg);
 	}
 
 	/**
-	 * Search for an AO-U guide and include guides that have the search terms in the guide text.
+	 * Search for an AO-Universe guide and include guides that have the search terms in the guide text
 	 *
-	 * @HandlesCommand("aou")
-	 * @Mask $action all
+	 * Note: this will search the name, category, and description as well as the guide body for matches.
 	 */
-	public function aouAllSearch(CmdContext $context, string $action, string $search): void {
+	#[NCA\HandlesCommand("aou")]
+	public function aouAllSearch(CmdContext $context, #[NCA\Str("all")] string $action, string $search): void {
 		$this->searchAndShowAOUGuide($search, true, $context);
 	}
 
 	/**
-	 * Search for an AO-U guide.
+	 * Search for an AO-Universe guide
 	 *
-	 * @HandlesCommand("aou")
+	 * Note: this will search the name, category, and description for matches
 	 */
+	#[NCA\HandlesCommand("aou")]
 	public function aouSearch(CmdContext $context, string $search): void {
 		$this->searchAndShowAOUGuide($search, false, $context);
 	}
@@ -162,12 +159,13 @@ class AOUController {
 	}
 
 	public function showAOUSearchResult(HttpResponse $response, bool $searchGuideText, string $search, CmdContext $context): void {
-		if ($response->headers["status-code"] !== "200" || !isset($response->body)) {
+		if ($response->headers["status-code"] !== "200" || !isset($response->body) || !strlen($response->body)) {
 			$msg = "An error occurred while trying to talk to AOU Universe.";
 			$context->reply($msg);
 			return;
 		}
 		$searchTerms = explode(" ", $search);
+		/** @phpstan-var non-empty-string */
 		$results = $response->body;
 
 		$dom = new DOMDocument();
@@ -200,13 +198,13 @@ class AOUController {
 			}
 		}
 
-		$blob .= "\n<highlight>Powered by<end> " . $this->text->makeChatcmd("AO-Universe.com", "/start https://www.ao-universe.com");
+		$blob .= "\n<i>Powered by " . $this->text->makeChatcmd("AO-Universe.com", "/start https://www.ao-universe.com") . "</i>";
 
 		if ($count > 0) {
 			if ($searchGuideText) {
-				$title = "All AO-U Guides containing '$search' ($count)";
+				$title = "All AO-Universe Guides containing '$search' ($count)";
 			} else {
-				$title = "AO-U Guides containing '$search' ($count)";
+				$title = "AO-Universe Guides containing '$search' ($count)";
 			}
 			$msg = $this->text->makeBlob($title, $blob);
 		} else {
@@ -219,7 +217,6 @@ class AOUController {
 	}
 
 	/**
-	 *
 	 * @param string $haystack
 	 * @param string[] $needles
 	 * @return bool
@@ -250,6 +247,7 @@ class AOUController {
 		return $obj;
 	}
 
+	/** @param string[] $arr */
 	private function replaceItem(array $arr): string {
 		$type = $arr[1];
 		$id = (int)$arr[3];
@@ -265,6 +263,7 @@ class AOUController {
 		return $output;
 	}
 
+	/** @param string[] $arr */
 	private function replaceWaypoint(array $arr): string {
 		$label = $arr[2];
 		$params = explode(" ", $arr[1]);
@@ -277,6 +276,7 @@ class AOUController {
 		return $this->text->makeChatcmd($label . " ({$wp['x']}x{$wp['y']})", "/waypoint {$wp['x']} {$wp['y']} {$wp['pf']}");
 	}
 
+	/** @param string[] $arr */
 	private function replaceGuideLinks(array $arr): string {
 		$url = $arr[2];
 		$label = $arr[3];
@@ -302,7 +302,7 @@ class AOUController {
 		$input = str_replace(["[b]", "[/b]"], ["<highlight>", "<end>"], $input);
 
 		$pattern = "/(\[.+?\])/";
-		$matches = preg_split($pattern, $input, -1, PREG_SPLIT_DELIM_CAPTURE | PREG_SPLIT_NO_EMPTY);
+		$matches = \Safe\preg_split($pattern, $input, -1, PREG_SPLIT_DELIM_CAPTURE | PREG_SPLIT_NO_EMPTY);
 
 		$output = '';
 		foreach ($matches as $match) {
@@ -332,7 +332,7 @@ class AOUController {
 		return $tag;
 	}
 
-	private function generateItemMarkup(string $type, DBRow $obj): string {
+	private function generateItemMarkup(string $type, AODBEntry $obj): string {
 		$output = '';
 		if ($type === "item" || $type === "itemicon") {
 			$output .= $this->text->makeImage($obj->icon);

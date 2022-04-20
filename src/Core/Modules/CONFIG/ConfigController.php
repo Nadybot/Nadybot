@@ -2,20 +2,25 @@
 
 namespace Nadybot\Core\Modules\CONFIG;
 
+use function Safe\file_get_contents;
+use function Safe\glob;
 use Exception;
+use Illuminate\Support\Collection;
 use ReflectionClass;
 use Nadybot\Core\{
 	AccessManager,
+	Attributes as NCA,
 	CmdContext,
 	CommandAlias,
 	CommandManager,
 	DB,
 	EventManager,
 	HelpManager,
+	ModuleInstance,
 	InsufficientAccessException,
 	LoggerWrapper,
 	Nadybot,
-	QueryBuilder,
+	ParamClass\PWord,
 	Registry,
 	SettingHandler,
 	SettingManager,
@@ -25,67 +30,56 @@ use Nadybot\Core\{
 use Nadybot\Core\DBSchema\{
 	EventCfg,
 	CmdCfg,
+	CmdPermission,
+	CmdPermissionSet,
 	Setting,
 };
-use Nadybot\Core\ParamClass\PWord;
 
-/**
- *	@DefineCommand(
- *		command       = 'config',
- *		accessLevel   = 'mod',
- *		description   = 'Configure bot settings',
- *		help          = 'config.txt',
- *		defaultStatus = '1'
- *	)
- * @Instance
- */
-class ConfigController {
-
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
-
-	/** @Inject */
+#[
+	NCA\DefineCommand(
+		command: "config",
+		accessLevel: "mod",
+		description: "Configure bot settings",
+		defaultStatus: 1
+	),
+	NCA\Instance
+]
+class ConfigController extends ModuleInstance {
+	#[NCA\Inject]
 	public Text $text;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public DB $db;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public CommandManager $commandManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public EventManager $eventManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public SubcommandManager $subcommandManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public CommandAlias $commandAlias;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public HelpManager $helpManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public SettingManager $settingManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public AccessManager $accessManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Nadybot $chatBot;
 
-	/** @Logger */
+	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
-	/**
-	 * @Setup
-	 * This handler is called on bot startup.
-	 */
+	#[NCA\Setup]
 	public function setup(): void {
-
 		// construct list of command handlers
 		$filename = [];
 		$reflectedClass = new ReflectionClass($this);
@@ -97,30 +91,24 @@ class ConfigController {
 		}
 		$filename = implode(',', $filename);
 
-		$this->commandManager->activate("msg", $filename, "config", "mod");
-		$this->commandManager->activate("guild", $filename, "config", "mod");
-		$this->commandManager->activate("priv", $filename, "config", "mod");
-
-		$this->helpManager->register($this->moduleName, "config", "config.txt", "mod", "Configure Commands/Events");
+		foreach ($this->commandManager->getPermissionSets() as $set) {
+			$this->commandManager->activate($set->name, $filename, "config", "mod");
+		}
 	}
 
 	/**
-	 * This command handler lists list of modules which can be configured.
-	 *
-	 * @HandlesCommand("config")
+	 * Get a list of modules which can be configured
 	 */
+	#[NCA\HandlesCommand("config")]
 	public function configCommand(CmdContext $context): void {
+		$permSets = $this->commandManager->getPermissionSets();
 		$blob = "<header2>Quick config<end>\n".
-			"<tab>Org Commands [" .
-				$this->text->makeChatcmd('enable all', '/tell <myname> config cmd enable guild') . "] [" .
-				$this->text->makeChatcmd('disable all', '/tell <myname> config cmd disable guild') . "]\n" .
-			"<tab>Private Channel Commands [" .
-				$this->text->makeChatcmd('enable all', '/tell <myname> config cmd enable priv') . "] [" .
-				$this->text->makeChatcmd('disable all', '/tell <myname> config cmd disable priv') . "]\n" .
-			"<tab>Private Message Commands [" .
-				$this->text->makeChatcmd('enable all', '/tell <myname> config cmd enable msg') . "] [" .
-				$this->text->makeChatcmd('disable all', '/tell <myname> config cmd disable msg') . "]\n" .
-			"<tab>ALL Commands [" .
+			$permSets->map(function (CmdPermissionSet $set): string {
+				return "<tab>" . ucfirst(strtolower($set->name)) . " Commands [" .
+					$this->text->makeChatcmd('enable all', '/tell <myname> config cmd enable ' . $set->name) . "] [" .
+					$this->text->makeChatcmd('disable all', '/tell <myname> config cmd disable ' . $set->name) . "]";
+			})->join("\n").
+			"\n<tab>ALL Commands [" .
 				$this->text->makeChatcmd('enable all', '/tell <myname> config cmd enable all') . "] [" .
 				$this->text->makeChatcmd('disable all', '/tell <myname> config cmd disable all') . "]\n\n\n";
 		$modules = $this->getModules();
@@ -155,109 +143,125 @@ class ConfigController {
 	}
 
 	/**
-	 * This command handler turns a channel of all modules on or off.
-	 *
-	 * @HandlesCommand("config")
-	 * @Mask $cmd cmd
-	 * @Mask $channel (all|guild|priv|msg)
+	 * Turn a permission set for all modules on or off
 	 */
+	#[NCA\HandlesCommand("config")]
+	#[NCA\Help\Example("<symbol>config cmd enable all")]
+	#[NCA\Help\Example("<symbol>config cmd disable guild")]
 	public function toggleChannelOfAllModulesCommand(
 		CmdContext $context,
-		string $cmd,
+		#[NCA\Str("cmd")] string $cmd,
 		bool $status,
-		string $channel
+		#[NCA\PWord] #[NCA\Str("all")] string $permissionSet,
 	): void {
-		$updQuery = $this->db->table(CommandManager::DB_TABLE)
-			->whereIn("cmdevent", ["cmd", "subcmd"])
-			->where("cmd", "!=", "config");
+		$permissionSet = strtolower($permissionSet);
+		if ($permissionSet !== "all" && !$this->commandManager->hasPermissionSet($permissionSet)) {
+			$context->reply("No such permission set '<highlight>{$permissionSet}<end>'.");
+			return;
+		}
+		$permQuery = $this->db->table(CommandManager::DB_TABLE_PERMS);
 		$query = $this->db->table(CommandManager::DB_TABLE)
 			->where("cmdevent", "cmd")
 			->where("cmd", "!=", "config");
 		$confirmString = "all";
-		if ($channel === "all") {
-			$query->whereIn("type", ["guild", "priv", "msg"]);
-			$updQuery->whereIn("type", ["guild", "priv", "msg"]);
-		} else {
-			$query->where("type", $channel);
-			$updQuery->where("type", $channel);
-			$confirmString = "all " . $channel;
+		if ($permissionSet !== "all") {
+			$permQuery->where("permission_set", $permissionSet);
+			$confirmString = "all " . $permissionSet;
 		}
 
-		$data = $query->asObj(CmdCfg::class)->toArray();
+		/** @var Collection<CmdCfg> */
+		$data = $query->asObj(CmdCfg::class);
+		$permissions = $permQuery->whereIn("cmd", $data->pluck("cmd")->toArray())
+			->asObj(CmdPermission::class)
+			->groupBy("cmd");
+		$updated = [];
 
 		foreach ($data as $row) {
-			if (!$this->accessManager->checkAccess($context->char->name, $row->admin)) {
-				continue;
-			}
-			if ($status) {
-				$this->commandManager->activate($row->type, $row->file, $row->cmd, $row->admin);
-			} else {
-				$this->commandManager->deactivate($row->type, $row->file, $row->cmd);
+			/** @var Collection<CmdPermission> */
+			$cmdPerms = $permissions->get($row->cmd, new Collection());
+			foreach ($cmdPerms as $perm) {
+				if (!$this->accessManager->checkAccess($context->char->name, $perm->access_level)) {
+					continue;
+				}
+				$updated []= $perm->id;
+				if ($status) {
+					$this->commandManager->activate($perm->permission_set, $row->file, $row->cmd, $perm->access_level);
+				} else {
+					$this->commandManager->deactivate($perm->permission_set, $row->file, $row->cmd);
+				}
 			}
 		}
 
-		$updQuery->update(["status" => (int)$status]);
+		$this->db->table(CommandManager::DB_TABLE_PERMS)
+			->whereIn("id", $updated)
+			->update(["enabled" => $status]);
 
-		$msg = "Successfully <highlight>" . ($status ? "enabled" : "disabled") . "<end> $confirmString commands.";
+		$msg = "Successfully " . ($status ? "<green>enabled" : "<red>disabled") . "<end> $confirmString commands.";
 		$context->reply($msg);
 	}
 
 	/**
-	 * This command handler turns one or all channels of a single module on or off
-	 *
-	 * @HandlesCommand("config")
-	 * @Mask $action mod
-	 * @Mask $channel (priv|msg|guild|all)
+	 * Turn one or all permission sets of a single module on or off
 	 */
+	#[NCA\HandlesCommand("config")]
+	#[NCA\Help\Example("<symbol>config mod WEBSERVER_MODULE disable all")]
+	#[NCA\Help\Example("<symbol>config mod GUILD_MODULE enable guild")]
 	public function toggleModuleChannelCommand(
 		CmdContext $context,
-		string $action,
+		#[NCA\Str("mod")] string $action,
 		string $module,
 		bool $enable,
-		string $channel
+		#[NCA\PWord] #[NCA\Str("all")] string $permissionSet,
 	): void {
-		$channel = strtolower($channel);
-		if (!$this->toggleModule($module, $channel, $enable)) {
-			if ($channel === "all") {
+		$permissionSet = strtolower($permissionSet);
+		if ($permissionSet !== "all" && !$this->commandManager->hasPermissionSet($permissionSet)) {
+			$context->reply("No such permission set '<highlight>{$permissionSet}<end>'.");
+			return;
+		}
+		if (!$this->toggleModule($module, $permissionSet, $enable)) {
+			if ($permissionSet === "all") {
 				$msg = "Could not find Module <highlight>{$module}<end>.";
 			} else {
-				$msg = "Could not find module <highlight>{$module}<end> for channel <highlight>{$channel}<end>.";
+				$msg = "Could not find module <highlight>{$module}<end> for permission set <highlight>{$permissionSet}<end>.";
 			}
 			$context->reply($msg);
 			return;
 		}
 		$color = $enable ? "green" : "red";
 		$status = $enable ? "enable" : "disable";
-		if ($channel === "all") {
+		if ($permissionSet === "all") {
 			$msg = "Updated status of module <highlight>{$module}<end> to <{$color}>{$status}d<end>.";
 		} else {
-			$msg = "Updated status of module <highlight>{$module}<end> in channel <highlight>{$channel}<end> to <{$color}>{$status}d<end>.";
+			$msg = "Updated status of module <highlight>{$module}<end> in permission set <highlight>{$permissionSet}<end> to <{$color}>{$status}d<end>.";
 		}
 		$context->reply($msg);
 	}
 
 	/**
-	 * This command handler turns one or all channels of a single command on or off
-	 *
-	 * @HandlesCommand("config")
-	 * @Mask $type (cmd|subcmd)
-	 * @Mask $channel (priv|msg|guild|all)
+	 * Turn one or all permission set of a single command on or off
 	 */
+	#[NCA\HandlesCommand("config")]
+	#[NCA\Help\Example("<symbol>config cmd raid enable all")]
+	#[NCA\Help\Example("<symbol>config subcmd points see other enable msg")]
 	public function toggleCommandChannelCommand(
 		CmdContext $context,
-		string $type,
+		#[NCA\StrChoice("cmd", "subcmd")] string $type,
 		string $cmd,
 		bool $enable,
-		string $channel
+		#[NCA\PWord] #[NCA\Str("all")] string $permissionSet,
 	): void {
 		$type = strtolower($type);
-		$channel = strtolower($channel);
+		$permissionSet = strtolower($permissionSet);
+		if ($permissionSet !== "all" && !$this->commandManager->hasPermissionSet($permissionSet)) {
+			$context->reply("No such permission set '<highlight>{$permissionSet}<end>'.");
+			return;
+		}
 		try {
 			$result = $this->toggleCmd(
 				$context->char->name,
 				$type === "subcmd",
 				$cmd,
-				$channel,
+				$permissionSet,
 				$enable
 			);
 		} catch (InsufficientAccessException $e) {
@@ -266,9 +270,9 @@ class ConfigController {
 		}
 		$type = str_replace("cmd", "command", $type);
 		if (!$result) {
-			if ($channel !== "all") {
+			if ($permissionSet !== "all") {
 				$msg = "Could not find {$type} <highlight>{$cmd}<end> ".
-					"for channel <highlight>{$channel}<end>.";
+					"for permission set <highlight>{$permissionSet}<end>.";
 			} else {
 				$msg = "Could not find {$type} <highlight>{$cmd}<end>.";
 			}
@@ -277,76 +281,65 @@ class ConfigController {
 		}
 		$color = $enable ? "green" : "red";
 		$status = $enable ? "enable" : "disable";
-		if ($channel === "all") {
+		if ($permissionSet === "all") {
 			$msg = "Updated status of {$type} <highlight>{$cmd}<end> ".
 				"to <{$color}>{$status}d<end>.";
 		} else {
 			$msg = "Updated status of {$type} <highlight>{$cmd}<end> ".
-				"to <{$color}>{$status}d<end> in channel <highlight>{$channel}<end>.";
+				"to <{$color}>{$status}d<end> in permission set <highlight>{$permissionSet}<end>.";
 		}
 		$context->reply($msg);
 	}
 
 	/**
-	 * This command handler turns one or all channels of a single event on or off
-	 *
-	 * @HandlesCommand("config")
-	 * @Mask $type event
-	 * @Mask $channel (priv|msg|guild|all)
+	 * Turn one or all permission sets of a single event on or off
 	 */
+	#[NCA\HandlesCommand("config")]
 	public function toggleEventCommand(
 		CmdContext $context,
-		string $type,
-		string $event,
+		#[NCA\Str("event")] string $type,
+		PWord $event,
+		string $eventHandler,
 		bool $enable,
-		string $channel
+		#[NCA\PWord] #[NCA\Str("all")] string $permissionSet,
 	): void {
-		$channel = strtolower($channel);
-		$temp = explode(" ", $event);
-		$eventType = strtolower($temp[0]);
-		$file = $temp[1] ?? "";
+		$permissionSet = strtolower($permissionSet);
+		if ($permissionSet !== "all" && !$this->commandManager->hasPermissionSet($permissionSet)) {
+			$context->reply("No such permission set '<highlight>{$permissionSet}<end>'.");
+			return;
+		}
 
-		if ( !$this->toggleEvent($eventType, $file, $enable) ) {
-			$msg = "Could not find event <highlight>{$eventType}<end> for handler <highlight>{$file}<end>.";
+		if ( !$this->toggleEvent($event(), $eventHandler, $enable) ) {
+			$msg = "Could not find event <highlight>{$event}<end> for handler <highlight>{$eventHandler}<end>.";
 			$context->reply($msg);
 			return;
 		}
 
 		$color = $enable ? "green" : "red";
 		$status = $enable ? "enable" : "disable";
-		$msg = "Updated status of event <highlight>{$eventType}<end> to <{$color}>{$status}d<end>.";
+		$msg = "Updated status of event <highlight>{$event}<end> to <{$color}>{$status}d<end>.";
 
 		$context->reply($msg);
 	}
 
 	/**
-	 * Enable or disable a command or subcommand for one or all channels
+	 * Enable or disable a command or subcommand for one or all permission sets
 	 */
-	public function toggleCmd(string $sender, bool $subCmd, string $cmd, string $type, bool $enable): bool {
+	public function toggleCmd(string $sender, bool $subCmd, string $cmd, string $permSet, bool $enable): bool {
 		$cmdEvent = $subCmd ? "subcmd" : "cmd";
-		$query = $this->db->table(CommandManager::DB_TABLE)
-			->where("cmd", $cmd)
-			->where("cmd", "!=", "config")
-			->where("cmdevent", $cmdEvent);
-		if ($type !== "all") {
-			$query->where("type", $type);
-		}
-
-		/** @var CmdCfg[] $data */
-		$data = $query->asObj(CmdCfg::class)->toArray();
-
-		if (!$this->checkCommandAccessLevels($data, $sender)) {
-			throw new InsufficientAccessException("You do not have the required access level to change this command.");
-		}
-
-		if (count($data) === 0) {
+		$cfg = $this->commandManager->get($cmd, ($permSet === "all") ? null : $permSet);
+		if (!isset($cfg) || $cmd === "config" || $cfg->cmdevent !== $cmdEvent) {
 			return false;
 		}
 
-		foreach ($data as $row) {
-			$this->toggleCmdCfg($row, $enable);
+		if (!$this->checkCommandAccessLevels($cfg, $sender)) {
+			throw new InsufficientAccessException("You do not have the required access level to change this command.");
 		}
-		$query->update(["status" => (int)$enable]);
+
+		$this->toggleCmdCfg($cfg, $enable);
+		$this->db->table(CommandManager::DB_TABLE_PERMS)
+			->whereIn("id", array_column($cfg->permissions, "id"))
+			->update(["enabled" => $enable]);
 
 		// for subcommands which are handled differently
 		$this->subcommandManager->loadSubcommands();
@@ -363,19 +356,12 @@ class ConfigController {
 		$query = $this->db->table(EventManager::DB_TABLE)
 			->where("file", $file)
 			->where("type", $eventType)
-			->where("type", "!=", "setup")
 			->select("*");
-		$query->selectRaw($query->grammar->quoteString("event") . $query->as("cmdevent"));
-		/** @var CmdCfg[] $data */
-		$data = $query->asObj(CmdCfg::class)->toArray();
-
-		if (count($data) === 0) {
-			return false;
-		}
-
-		foreach ($data as $row) {
-			$this->toggleCmdCfg($row, $enable);
-		}
+		/** @var Collection<EventCfg> */
+		$data = $query->asObj(EventCfg::class);
+		$data->each(function (EventCfg $cfg) use ($enable): void {
+			$this->toggleEventCfg($cfg, $enable);
+		});
 
 		$query->update(["status" => (int)$enable]);
 
@@ -385,41 +371,45 @@ class ConfigController {
 	/**
 	 * Enable or disable all commands and events for a module
 	 * @param string $module Name of the module
-	 * @param string $channel msg, priv, guild or all
+	 * @param string $permissionSet msg, priv, guild or all
 	 * @param bool $enable true for enabling, false for disabling
 	 * @return bool True for success, False if the module doesn't exist
 	 */
-	public function toggleModule(string $module, string $channel, bool $enable): bool {
-		$cmdQuery = $this->db->table(CommandManager::DB_TABLE)
-			->where("module", $module)
-			->where("cmd", "!=", "config")
-			->select("status", "type", "file", "cmd", "admin", "cmdevent");
-		$eventQuery = $this->db->table(EventManager::DB_TABLE)
-			->where("module", $module)
-			->where("type", "!=", "setup")
-			->select("status", "type", "file");
-		$eventQuery->selectRaw($eventQuery->grammar->quoteString('') . $eventQuery->as("cmd"));
-		$eventQuery->selectRaw($eventQuery->grammar->quoteString('') . $eventQuery->as("admin"));
-		$eventQuery->selectRaw($eventQuery->grammar->quoteString('event') . $eventQuery->as("cmdevent"));
-		if ($channel !== "all") {
-			$cmdQuery->where("type", $channel);
-			$eventQuery->where("type", $channel);
+	public function toggleModule(string $module, string $permissionSet, bool $enable): bool {
+		$commands = $this->commandManager->getAllForModule($module, true)
+			->where("cmd", "!=", "config");
+		$events = new Collection();
+		if ($permissionSet === "all") {
+			$eventQuery = $this->db->table(EventManager::DB_TABLE)
+				->where("module", $module);
+			$events = $eventQuery->asObj(EventCfg::class);
+		}
+		if ($permissionSet !== "all") {
+			$commands = $commands->filter(function (CmdCfg $cfg) use ($permissionSet): bool {
+				$cfg->permissions = (new Collection($cfg->permissions))
+					->where("permission_set", $permissionSet)->toArray();
+				if (empty($cfg->permissions)) {
+					return false;
+				}
+				return true;
+			});
 		}
 
-		$query = clone $cmdQuery;
-		/** @var CmdCfg[] $data */
-		$data = $query->union(clone $eventQuery)->asObj(CmdCfg::class)->toArray();
-
-		if (count($data) === 0) {
-			return false;
+		$ids = [];
+		foreach ($commands as $cmd) {
+			$ids = array_merge($ids, array_column($cmd->permissions, "id"));
+			$this->toggleCmdCfg($cmd, $enable);
+		}
+		foreach ($events as $event) {
+			$this->toggleEventCfg($event, $enable);
 		}
 
-		foreach ($data as $row) {
-			$this->toggleCmdCfg($row, $enable);
+		$this->db->table(CommandManager::DB_TABLE_PERMS)
+			->whereIn("id", $ids)
+			->update(["enabled" => $enable]);
+		if ($events->isNotEmpty() && isset($eventQuery)) {
+			$eventQuery->update(["status" => (int)$enable]);
 		}
-
-		$cmdQuery->update(["status" => (int)$enable]);
-		$eventQuery->update(["status" => (int)$enable]);
 
 		// for subcommands which are handled differently
 		$this->subcommandManager->loadSubcommands();
@@ -427,54 +417,62 @@ class ConfigController {
 	}
 
 	public function toggleCmdCfg(CmdCfg $cfg, bool $enable): void {
+		foreach ($cfg->permissions as $perm) {
+			if ($perm->enabled === $enable) {
+				continue;
+			}
+			if ($cfg->cmdevent === "cmd") {
+				if ($enable) {
+					$this->commandManager->activate($perm->permission_set, $cfg->file, $cfg->cmd, $perm->access_level);
+				} else {
+					$this->commandManager->deactivate($perm->permission_set, $cfg->file, $cfg->cmd);
+				}
+			}
+		}
+	}
+
+	public function toggleEventCfg(EventCfg $cfg, bool $enable): void {
 		if ((bool)$cfg->status === $enable) {
 			return;
 		}
-		if ($cfg->cmdevent === "event") {
-			if ($cfg->verify !== 0) {
-				if ($enable) {
-					$this->eventManager->activate($cfg->type, $cfg->file);
-				} else {
-					$this->eventManager->deactivate($cfg->type, $cfg->file);
-				}
-			}
-		} elseif ($cfg->cmdevent === "cmd") {
+		if ($cfg->verify !== 0) {
 			if ($enable) {
-				$this->commandManager->activate($cfg->type, $cfg->file, $cfg->cmd, $cfg->admin);
+				$this->eventManager->activate($cfg->type, $cfg->file);
 			} else {
-				$this->commandManager->deactivate($cfg->type, $cfg->file, $cfg->cmd);
+				$this->eventManager->deactivate($cfg->type, $cfg->file);
 			}
 		}
 	}
 
 	/**
-	 * This command handler sets command's access level on a particular channel.
-	 * Note: This handler has not been not registered, only activated.
-	 *
-	 * @HandlesCommand("config")
-	 * @Mask $category (subcmd|cmd)
-	 * @Mask $admin admin
-	 * @Mask $channel (msg|priv|guild|all)
+	 * Sets a command's access level for one or all permission sets
 	 */
+	#[NCA\HandlesCommand("config")]
+	#[NCA\Help\Example("<symbol>config cmd raid admin all member")]
+	#[NCA\Help\Example("<symbol>config subcmd points modify admin msg mod")]
 	public function setAccessLevelOfChannelCommand(
 		CmdContext $context,
-		string $category,
+		#[NCA\StrChoice("subcmd", "cmd")] string $category,
 		string $cmd,
-		string $admin,
-		string $channel,
+		#[NCA\Str("admin")] string $admin,
+		#[NCA\PWord] #[NCA\Str("all")] string $permissionSet,
 		string $accessLevel
 	): void {
 		$category = strtolower($category);
 		$command = strtolower($cmd);
-		$channel = strtolower($channel);
+		$permissionSet = strtolower($permissionSet);
+		if ($permissionSet !== "all" && !$this->commandManager->hasPermissionSet($permissionSet)) {
+			$context->reply("No such permission set '<highlight>{$permissionSet}<end>'.");
+			return;
+		}
 
 		$type = "command";
 		try {
 			if ($category === "cmd") {
-				$result = $this->changeCommandAL($context->char->name, $command, $channel, $accessLevel);
+				$result = $this->changeCommandAL($context->char->name, $command, $permissionSet, $accessLevel);
 			} else {
 				$type = "subcommand";
-				$result = $this->changeSubcommandAL($context->char->name, $command, $channel, $accessLevel);
+				$result = $this->changeSubcommandAL($context->char->name, $command, $permissionSet, $accessLevel);
 			}
 		} catch (InsufficientAccessException $e) {
 			$msg = "You do not have the required access level to change this {$type}.";
@@ -486,10 +484,10 @@ class ConfigController {
 		}
 
 		if ($result === 0) {
-			if ($channel === "all") {
+			if ($permissionSet === "all") {
 				$msg = "Could not find {$type} <highlight>{$command}<end>.";
 			} else {
-				$msg = "Could not find {$type} <highlight>{$command}<end> for channel <highlight>{$channel}<end>.";
+				$msg = "Could not find {$type} <highlight>{$command}<end> for permission set <highlight>{$permissionSet}<end>.";
 			}
 			$context->reply($msg);
 			return;
@@ -499,67 +497,53 @@ class ConfigController {
 			$context->reply($msg);
 			return;
 		}
-		if ($channel === "all") {
+		if ($permissionSet === "all") {
 			$msg = "Updated access of {$type} <highlight>{$command}<end> to <highlight>{$accessLevel}<end>.";
 		} else {
-			$msg = "Updated access of {$type} <highlight>{$command}<end> in channel <highlight>{$channel}<end> to <highlight>{$accessLevel}<end>.";
+			$msg = "Updated access of {$type} <highlight>{$command}<end> in permission set <highlight>{$permissionSet}<end> to <highlight>{$accessLevel}<end>.";
 		}
 		$context->reply($msg);
 	}
 
-	public function changeCommandAL(string $sender, string $command, string $channel, string $accessLevel): int {
+	public function changeCommandAL(string $sender, string $command, string $permSet, string $accessLevel): int {
 		$accessLevel = $this->accessManager->getAccessLevel($accessLevel);
 
-		$query = $this->db->table(CommandManager::DB_TABLE)
-			->where("cmd", $command)
-			->where("cmdevent", "cmd");
-		if ($channel !== "all") {
-			$query->where("type", $channel);
-		}
-		/** @var CmdCfg[] $data */
-		$data = $query->asObj(CmdCfg::class)->toArray();
+		$cfg = $this->commandManager->get($command, ($permSet === "all") ? null : $permSet);
 
-		if (count($data) === 0) {
+		if (!isset($cfg)) {
 			return 0;
-		} elseif (!$this->checkCommandAccessLevels($data, $sender)) {
+		} elseif (!$this->checkCommandAccessLevels($cfg, $sender)) {
 			throw new InsufficientAccessException("You do not have the required access level to change this command.");
 		} elseif (!$this->accessManager->checkAccess($sender, $accessLevel)) {
 			return -1;
 		}
-		$this->commandManager->updateStatus($channel, $command, null, 1, $accessLevel);
+		$this->commandManager->updateStatus($permSet, $command, null, 1, $accessLevel);
 		return 1;
 	}
 
-	public function changeSubcommandAL(string $sender, string $command, string $channel, string $accessLevel): int {
+	public function changeSubcommandAL(string $sender, string $command, string $permSet, string $accessLevel): int {
+		$cfg = $this->commandManager->get($command, $permSet);
 		$accessLevel = $this->accessManager->getAccessLevel($accessLevel);
-		$query = $this->db->table(CommandManager::DB_TABLE)
-			->where("type", $channel)
-			->where("cmdevent", "subcmd")
-			->where("cmd", $command);
-		/** @var CmdCfg[] $data */
-		$data = $query->asObj(CmdCfg::class)->toArray();
-		if (count($data) === 0) {
+		if (!isset($cfg)) {
 			return 0;
-		} elseif (!$this->checkCommandAccessLevels($data, $sender)) {
+		} elseif (!$this->checkCommandAccessLevels($cfg, $sender)) {
 			throw new InsufficientAccessException("You do not have the required access level to change this subcommand.");
 		} elseif (!$this->accessManager->checkAccess($sender, $accessLevel)) {
 			return -1;
 		}
-		$query->update(["admin" => $accessLevel]);
+		$this->db->table(CommandManager::DB_TABLE_PERMS)
+			->whereIn("id", array_column($cfg->permissions, "id"))
+			->update(["access_level" => $accessLevel]);
 		$this->subcommandManager->loadSubcommands();
 		return 1;
 	}
 
 	/**
 	 * Check if sender has access to all commands in $data
-	 *
-	 * @param CmdCfg[] $data
-	 * @param string $sender
-	 * @return bool
 	 */
-	public function checkCommandAccessLevels(array $data, string $sender): bool {
-		foreach ($data as $row) {
-			if (!$this->accessManager->checkAccess($sender, $row->admin)) {
+	public function checkCommandAccessLevels(CmdCfg $data, string $sender): bool {
+		foreach ($data->permissions as $permission) {
+			if (!$this->accessManager->checkAccess($sender, $permission->access_level)) {
 				return false;
 			}
 		}
@@ -567,13 +551,14 @@ class ConfigController {
 	}
 
 	/**
-	 * This command handler shows information and controls of a command in
-	 * each channel.
-	 *
-	 * @HandlesCommand("config")
-	 * @Mask $action cmd
+	 * Show information and permissions of a command, detailed by permission set
 	 */
-	public function configCommandCommand(CmdContext $context, string $action, PWord $cmd): void {
+	#[NCA\HandlesCommand("config")]
+	public function configCommandCommand(
+		CmdContext $context,
+		#[NCA\Str("cmd")] string $action,
+		PWord $cmd
+	): void {
 		$cmd = strtolower($cmd());
 
 		$aliasCmd = $this->commandAlias->getBaseCommandForAlias($cmd);
@@ -581,50 +566,30 @@ class ConfigController {
 			$cmd = $aliasCmd;
 		}
 
-		$query = $this->db->table(CommandManager::DB_TABLE)
-			->where("cmd", $cmd)
-			->where("cmd", "!=", "config");
-		if (!$query->exists()) {
+		$cfg = $this->commandManager->get($cmd);
+		if (!isset($cfg) || $cmd === "config") {
 			$msg = "Could not find command <highlight>{$cmd}<end>.";
 			$context->reply($msg);
 			return;
 		}
+		$permSets = $this->commandManager->getPermissionSets();
 		$blob = '';
-
-		$blob .= "<header2>Tells:<end> ";
-		$blob .= $this->getCommandInfo($cmd, 'msg');
-		$blob .= "\n\n";
-
-		$blob .= "<header2>Private Channel:<end> ";
-		$blob .= $this->getCommandInfo($cmd, 'priv');
-		$blob .= "\n\n";
-
-		$blob .= "<header2>Guild Channel:<end> ";
-		$blob .= $this->getCommandInfo($cmd, 'guild');
-		$blob .= "\n\n";
-
-		$subcmd_list = '';
-		$output = $this->getSubCommandInfo($cmd, 'msg');
-		if ($output) {
-			$subcmd_list .= "<header>Available Subcommands in tells<end>\n\n";
-			$subcmd_list .= $output;
+		foreach ($permSets as $permSet) {
+			$blob .= "<header2>" . ucfirst(strtolower($permSet->name)) . "<end> ".
+				$this->getCommandInfo($cmd, $permSet->name).
+				"\n\n";
 		}
 
-		$output = $this->getSubCommandInfo($cmd, 'priv');
-		if ($output) {
-			$subcmd_list .= "<header>Available Subcommands in Private Channel<end>\n\n";
-			$subcmd_list .= $output;
+		$subcmdList = '';
+		foreach ($permSets as $permSet) {
+			$output = $this->getSubCommandInfo($cmd, $permSet->name);
+			if ($output) {
+				$subcmdList .= "<header>Available Subcommands in {$permSet->name}<end>\n\n";
+				$subcmdList .= $output;
+			}
 		}
 
-		$output = $this->getSubCommandInfo($cmd, 'guild');
-		if ($output) {
-			$subcmd_list .= "<header>Available Subcommands in Guild Channel<end>\n\n";
-			$subcmd_list .= $output;
-		}
-
-		if ($subcmd_list) {
-			$blob .= $subcmd_list;
-		}
+		$blob .= $subcmdList;
 
 		$help = $this->helpManager->find($cmd, $context->char->name);
 		if ($help !== null) {
@@ -639,20 +604,13 @@ class ConfigController {
 	 * Get a blob like "Aliases: alias1, alias2" for command $cmd
 	 */
 	public function getAliasInfo(string $cmd): string {
-		$aliases = $this->commandAlias->findAliasesByCommand($cmd);
-		$aliasesList = [];
-		foreach ($aliases as $row) {
-			if ($row->status === 1) {
-				$aliasesList []= "<highlight>{$row->alias}<end>";
-			}
+		$aliases = $this->commandAlias->findAliasesByCommand($cmd)
+			->where("status", 1)
+			->pluck("alias");
+		if ($aliases->isEmpty()) {
+			return "";
 		}
-		$aliasesBlob = join(", ", $aliasesList);
-
-		$blob = '';
-		if (count($aliasesList) > 0) {
-			$blob .= "Aliases: $aliasesBlob\n\n";
-		}
-		return $blob;
+		return "Aliases: <highlight>" . $aliases->join("<end>, <highlight>") . "<end>\n\n";
 	}
 
 	public function getModuleDescription(string $module): ?string {
@@ -662,7 +620,7 @@ class ConfigController {
 			return null;
 		}
 		$files = array_values(array_filter(
-			glob("{$path}/*", GLOB_NOSORT),
+			glob("{$path}/*", GLOB_NOSORT) ?: [],
 			function (string $file): bool {
 				return strtolower(basename($file)) === "readme.txt";
 			}
@@ -675,10 +633,9 @@ class ConfigController {
 
 
 	/**
-	 * This command handler shows configuration and controls for a single module.
-	 *
-	 * @HandlesCommand("config")
+	 * Show configuration and controls for a single module
 	 */
+	#[NCA\HandlesCommand("config")]
 	public function configModuleCommand(CmdContext $context, PWord $module): void {
 		$module = strtoupper($module());
 		$found = false;
@@ -710,67 +667,65 @@ class ConfigController {
 			$blob .= "<tab>" . ($row->getData()->description ?? "");
 
 			if ($row->isEditable() && $this->accessManager->checkAccess($context->char->name, $row->getData()->admin??"superadmin")) {
-				$blob .= " [" . $this->text->makeChatcmd("modify", "/tell <myname> settings change " . $row->getData()->name) . "]";
+				$blob .= " [" . $row->getModifyLink() . "]";
 			}
 
 			$blob .= ": " . $row->displayValue($context->char->name) . "\n";
 		}
 
-		$data = $this->getAllRegisteredCommands($module);
-		if (count($data) > 0) {
+		$data = $this->commandManager->getAll(true)->where("module", $module);
+		if ($data->isNotEmpty()) {
 			$found = true;
 			$blob .= "\n<header2>Commands<end>\n";
-			usort($data, function (CmdCfg $a, CmdCfg $b): int {
+			$data = $data->sort(function (CmdCfg $a, CmdCfg $b): int {
 				return strcmp($a->cmd, $b->cmd);
 			});
 		}
+		$permissionSets = $this->commandManager->getPermissionSets()->keyBy("name");
 		foreach ($data as $row) {
-			$guild = '';
-			$priv = '';
-			$msg = '';
-
 			$cmdNameLink = "";
+			$statusLinks = [];
 			if ($row->cmdevent === 'cmd') {
-				$on = $this->text->makeChatcmd("ON", "/tell <myname> config cmd $row->cmd enable all");
-				$off = $this->text->makeChatcmd("OFF", "/tell <myname> config cmd $row->cmd disable all");
-				$cmdNameLink = $this->text->makeChatcmd($row->cmd, "/tell <myname> config cmd $row->cmd");
+				$enabled = array_column($row->permissions, "enabled");
+				if (in_array(false, $enabled, true)) {
+					$statusLinks []= $this->text->makeChatcmd("enable", "/tell <myname> config cmd {$row->cmd} enable all");
+				}
+				if (in_array(true, $enabled, true)) {
+					$statusLinks []= $this->text->makeChatcmd("disable", "/tell <myname> config cmd {$row->cmd} disable all");
+				}
+				$cmdNameLink = $this->text->makeChatcmd($row->cmd, "/tell <myname> config cmd {$row->cmd}");
 			} elseif ($row->cmdevent === 'subcmd') {
-				$on = $this->text->makeChatcmd("ON", "/tell <myname> config subcmd $row->cmd enable all");
-				$off = $this->text->makeChatcmd("OFF", "/tell <myname> config subcmd $row->cmd disable all");
-				$cmdNameLink = "<tab>{$row->cmd}";
+				$enabled = array_column($row->permissions, "enabled");
+				if (in_array(false, $enabled, true)) {
+					$statusLinks []= $this->text->makeChatcmd("enable", "/tell <myname> config subcmd {$row->cmd} enable all");
+				}
+				if (in_array(true, $enabled, true)) {
+					$statusLinks []= $this->text->makeChatcmd("disable", "/tell <myname> config subcmd {$row->cmd} disable all");
+				}
+				$cmdNameLink = "<tab>" . explode(" ", $row->cmd, 2)[1];
 			}
 
-			$tell = "<red>T<end>";
-			if ($row->msg_avail == 0) {
-				$tell = "|_";
-			} elseif ($row->msg_status === 1) {
-				$tell = "<green>T<end>";
+			$status = [];
+			foreach ($permissionSets as $set) {
+				if (!isset($row->permissions[$set->name])) {
+					$status []= "_";
+				} elseif ($row->permissions[$set->name]->enabled) {
+					$status []= "<green>" . strtoupper($set->letter) . "<end>";
+				} else {
+					$status []= "<red>" . strtoupper($set->letter) . "<end>";
+				}
 			}
 
-			$guild = "|<red>G<end>";
-			if ($row->guild_avail === 0) {
-				$guild = "|_";
-			} elseif ($row->guild_status === 1) {
-				$guild = "|<green>G<end>";
-			}
-
-			$priv = "|<red>P<end>";
-			if ($row->priv_avail === 0) {
-				$priv = "|_";
-			} elseif ($row->priv_status === 1) {
-				$priv = "|<green>P<end>";
-			}
-
+			$blob .= "<tab>$cmdNameLink (" . join("|", $status) . "): [" . join("] [", $statusLinks) . "]";
 			if ($row->description !== null && $row->description !== "") {
-				$blob .= "<tab>$cmdNameLink ($tell$guild$priv): $on  $off - ($row->description)\n";
+				$blob .= " - ($row->description)\n";
 			} else {
-				$blob .= "<tab>$cmdNameLink - ($tell$guild$priv): $on  $off\n";
+				$blob .= "\n";
 			}
 		}
 
 		/** @var EventCfg[] */
 		$data = $this->db->table(EventManager::DB_TABLE)
-			->where("type", "!=", "setup")
 			->where("module", $module)
 			->orderBy("type")
 			->asObj(EventCfg::class)
@@ -780,8 +735,11 @@ class ConfigController {
 			$blob .= "\n<header2>Events<end>\n";
 		}
 		foreach ($data as $row) {
-			$on = $this->text->makeChatcmd("ON", "/tell <myname> config event ".$row->type." ".$row->file." enable all");
-			$off = $this->text->makeChatcmd("OFF", "/tell <myname> config event ".$row->type." ".$row->file." disable all");
+			if ($row->status) {
+				$statusLink = $this->text->makeChatcmd("disable", "/tell <myname> config event ".$row->type." ".$row->file." disable all");
+			} else {
+				$statusLink = $this->text->makeChatcmd("enable", "/tell <myname> config event ".$row->type." ".$row->file." enable all");
+			}
 
 			if ($row->status == 1) {
 				$status = "<green>Enabled<end>";
@@ -790,9 +748,9 @@ class ConfigController {
 			}
 
 			if ($row->description !== null && $row->description !== "none") {
-				$blob .= "<tab><highlight>$row->type<end> ($row->description) - ($status): $on  $off \n";
+				$blob .= "<tab><highlight>$row->type<end> ($row->description) - ($status): [{$statusLink}]\n";
 			} else {
-				$blob .= "<tab><highlight>$row->type<end> - ($status): $on  $off \n";
+				$blob .= "<tab><highlight>$row->type<end> - ($status): [{$statusLink}]\n";
 			}
 		}
 
@@ -815,39 +773,33 @@ class ConfigController {
 	/**
 	 * This helper method builds information and controls for given command.
 	 */
-	private function getCommandInfo(string $cmd, string $type): string {
+	private function getCommandInfo(string $cmd, string $permSet): string {
 		$msg = "";
-		/** @var CmdCfg[] $data */
-		$data = $this->db->table(CommandManager::DB_TABLE)
-			->where("cmd", $cmd)
-			->where("type", $type)
-			->asObj(CmdCfg::class)
-			->toArray();
-		if (count($data) == 0) {
+		$cfg = $this->commandManager->get($cmd, $permSet);
+		if (!isset($cfg) || !isset($cfg->permissions[$permSet])) {
 			$msg .= "<red>Unused<end>\n";
-		} elseif (count($data) > 1) {
-			$this->logger->error("Multiple rows exists for cmd: '$cmd' and type: '$type'");
-			return $msg;
-		}
-		$row = $data[0];
-
-		$row->admin = $this->getAdminDescription($row->admin);
-
-		if ($row->status === 1) {
-			$status = "<green>Enabled<end>";
 		} else {
-			$status = "<red>Disabled<end>";
-		}
+			$perm = $cfg->permissions[$permSet];
 
-		$msg .= "$status (Access: $row->admin) \n";
+			$perm->access_level = $this->getAdminDescription($perm->access_level);
+
+			if ($perm->enabled) {
+				$status = "<green>Enabled<end>";
+			} else {
+				$status = "<red>Disabled<end>";
+			}
+
+			$msg .= "$status (Access: $perm->access_level)\n";
+		}
 		$msg .= "Set status: [";
-		$msg .= $this->text->makeChatcmd("enabled", "/tell <myname> config cmd {$cmd} enable {$type}") . "] [";
-		$msg .= $this->text->makeChatcmd("disabled", "/tell <myname> config cmd {$cmd} disable {$type}") . "]\n";
+		$msg .= $this->text->makeChatcmd("enabled", "/tell <myname> config cmd {$cmd} enable {$permSet}") . "] [";
+		$msg .= $this->text->makeChatcmd("disabled", "/tell <myname> config cmd {$cmd} disable {$permSet}") . "]\n";
 
 		$msg .= "Set access level: ";
-		$showRaidAL = $this->db->table(CommandManager::DB_TABLE)
-			->where("module", "RAID_MODULE")
-			->where("status", 1)
+		$showRaidAL = $this->db->table(CommandManager::DB_TABLE, "c")
+			->join(CommandManager::DB_TABLE_PERMS . " as p", "c.cmd", "p.cmd")
+			->where("c.module", "RAID_MODULE")
+			->where("p.enabled", true)
 			->exists();
 		foreach ($this->accessManager->getAccessLevels() as $accessLevel => $level) {
 			if ($accessLevel === 'none') {
@@ -857,7 +809,7 @@ class ConfigController {
 				continue;
 			}
 			$alName = $this->getAdminDescription($accessLevel);
-			$msg .= $this->text->makeChatcmd("{$alName}", "/tell <myname> config cmd {$cmd} admin {$type} $accessLevel") . "  ";
+			$msg .= $this->text->makeChatcmd("{$alName}", "/tell <myname> config cmd {$cmd} admin {$permSet} $accessLevel") . "  ";
 		}
 		$msg .= "\n";
 		return $msg;
@@ -866,39 +818,52 @@ class ConfigController {
 	/**
 	 * This helper method builds information and controls for given subcommand.
 	 */
-	private function getSubCommandInfo($cmd, $type): string {
-		$subcmd_list = '';
-		/** @var CmdCfg[] $data */
-		$data = $this->db->table(CommandManager::DB_TABLE)
+	private function getSubCommandInfo(string $cmd, string $permSet): string {
+		$subcmdList = '';
+		/** @var Collection<CmdCfg> */
+		$commands = $this->db->table(CommandManager::DB_TABLE)
 			->where("dependson", $cmd)
-			->where("type", $type)
 			->where("cmdevent", "subcmd")
-			->asObj(CmdCfg::class)
-			->toArray();
-		$showRaidAL = $this->db->table(CommandManager::DB_TABLE)
-			->where("module", "RAID_MODULE")
-			->where("status", 1)
+			->asObj(CmdCfg::class);
+		$permissions = $this->db->table(CommandManager::DB_TABLE_PERMS)
+			->where("permission_set", $permSet)
+			->whereIn("cmd", $commands->pluck("cmd")->toArray())
+			->asObj(CmdPermission::class)
+			->groupBy("cmd");
+		$commands->each(function (CmdCfg $row) use ($permissions): void {
+			$row->permissions = $permissions->get($row->cmd, new Collection())
+				->keyBy("permission_set")->toArray();
+		});
+
+		$showRaidAL = $this->db->table(CommandManager::DB_TABLE, "c")
+			->join(CommandManager::DB_TABLE_PERMS . " as p", "c.cmd", "p.cmd")
+			->where("c.module", "RAID_MODULE")
+			->where("p.enabled", true)
 			->exists();
-		foreach ($data as $row) {
-			$subcmd_list .= "<pagebreak><header2>$row->cmd<end> ($type)\n";
-			if ($row->description != "") {
-				$subcmd_list .= "<tab>Description: <highlight>$row->description<end>\n";
+		foreach ($commands as $command) {
+			$perms = $command->permissions[$permSet] ?? null;
+			if (!isset($perms)) {
+				continue;
+			}
+			$subcmdList .= "<pagebreak><header2>{$command->cmd}<end> ({$permSet})\n";
+			if ($command->description != "") {
+				$subcmdList .= "<tab>Description: <highlight>{$command->description}<end>\n";
 			}
 
-			$row->admin = $this->getAdminDescription($row->admin);
+			$perms->access_level = $this->getAdminDescription($perms->access_level);
 
-			if ($row->status == 1) {
+			if ($perms->enabled) {
 				$status = "<green>Enabled<end>";
 			} else {
 				$status = "<red>Disabled<end>";
 			}
 
-			$subcmd_list .= "<tab>Current Status: $status (Access: $row->admin) \n";
-			$subcmd_list .= "<tab>Set status: [";
-			$subcmd_list .= $this->text->makeChatcmd("enabled", "/tell <myname> config subcmd {$row->cmd} enable {$type}") . "] [";
-			$subcmd_list .= $this->text->makeChatcmd("disabled", "/tell <myname> config subcmd {$row->cmd} disable {$type}") . "]\n";
+			$subcmdList .= "<tab>Current Status: $status (Access: {$perms->access_level}) \n";
+			$subcmdList .= "<tab>Set status: [";
+			$subcmdList .= $this->text->makeChatcmd("enabled", "/tell <myname> config subcmd {$command->cmd} enable {$permSet}") . "] [";
+			$subcmdList .= $this->text->makeChatcmd("disabled", "/tell <myname> config subcmd {$command->cmd} disable {$permSet}") . "]\n";
 
-			$subcmd_list .= "<tab>Set access level: ";
+			$subcmdList .= "<tab>Set access level: ";
 			foreach ($this->accessManager->getAccessLevels() as $accessLevel => $level) {
 				if ($accessLevel == 'none') {
 					continue;
@@ -907,11 +872,11 @@ class ConfigController {
 					continue;
 				}
 				$alName = $this->getAdminDescription($accessLevel);
-				$subcmd_list .= $this->text->makeChatcmd($alName, "/tell <myname> config subcmd {$row->cmd} admin {$type} $accessLevel") . "  ";
+				$subcmdList .= $this->text->makeChatcmd($alName, "/tell <myname> config subcmd {$command->cmd} admin {$permSet} $accessLevel") . "  ";
 			}
-			$subcmd_list .= "\n\n";
+			$subcmdList .= "\n\n";
 		}
-		return $subcmd_list;
+		return $subcmdList;
 	}
 
 	/**
@@ -919,31 +884,20 @@ class ConfigController {
 	 * @return ConfigModule[]
 	 */
 	public function getModules(): array {
-		$cmdQuery = $this->db->table(CommandManager::DB_TABLE)
-			->where("cmdevent", "cmd")
-			->select("module", "status");
 		$eventQuery = $this->db->table(EventManager::DB_TABLE)
 			->select("module");
-		$eventQuery->selectRaw($eventQuery->grammar->wrap("status") . "+2");
+		$eventQuery->selectRaw($eventQuery->grammar->wrap("status") . "+2 " . $eventQuery->as("status"));
 		$settingsQuery = $this->db->table(SettingManager::DB_TABLE)
 			->select("module");
-		$settingsQuery->selectRaw("4");
+		$settingsQuery->selectRaw("4 " . $settingsQuery->as("status"));
 
 		$outerQuery = $this->db->fromSub(
-			$cmdQuery->unionAll($eventQuery)->unionAll($settingsQuery),
+			$eventQuery->unionAll($settingsQuery),
 			"t"
 		)->groupBy("t.module")
 		->orderBy("module")
 		->select("t.module");
 		$stat = $outerQuery->grammar->wrap("status");
-		$outerQuery->selectRaw(
-			"SUM(CASE WHEN {$stat} = 0 then 1 ELSE 0 END)".
-			$outerQuery->as("count_cmd_disabled")
-		);
-		$outerQuery->selectRaw(
-			"SUM(CASE WHEN {$stat} = 1 then 1 ELSE 0 END)".
-			$outerQuery->as("count_cmd_enabled")
-		);
 		$outerQuery->selectRaw(
 			"SUM(CASE WHEN {$stat} = 2 then 1 ELSE 0 END)".
 			$outerQuery->as("count_events_disabled")
@@ -956,14 +910,30 @@ class ConfigController {
 			"SUM(CASE WHEN {$stat} = 4 then 1 ELSE 0 END)".
 			$outerQuery->as("count_settings")
 		);
-		$data = $outerQuery->asObj()->toArray();
+		/** @var Collection<ModuleStats> */
+		$data = $outerQuery->asObj(ModuleStats::class);
+		/** @var Collection<string,Collection<CmdCfg>> */
+		$commands = $this->commandManager->getAll()
+			->groupBy("module");
 		$result = [];
 		foreach ($data as $row) {
+			/** @var Collection<CmdCfg> */
+			$moduleCmds = $commands->get($row->module, new Collection());
 			$config = new ConfigModule();
 			$config->name = $row->module;
 			$config->description = $this->getModuleDescription($config->name);
-			$config->num_commands_enabled = (int)$row->count_cmd_enabled;
-			$config->num_commands_disabled = (int)$row->count_cmd_disabled;
+			$config->num_commands_enabled = 0;
+			$config->num_commands_disabled = 0;
+			if ($moduleCmds->isNotEmpty()) {
+				$config->num_commands_enabled = $moduleCmds
+					->reduce(function (int $enabled, CmdCfg $cfg): int {
+						return $enabled + (new Collection($cfg->permissions))->where("enabled", true)->count();
+					}, 0);
+				$config->num_commands_disabled = $moduleCmds
+					->reduce(function (int $disabled, CmdCfg $cfg): int {
+						return $disabled + (new Collection($cfg->permissions))->where("enabled", false)->count();
+					}, 0);
+			}
 			$config->num_events_disabled = (int)$row->count_events_disabled;
 			$config->num_events_enabled = (int)$row->count_events_enabled;
 			$config->num_settings = (int)$row->count_settings;
@@ -1010,55 +980,10 @@ class ConfigController {
 			->orderBy("mode")
 			->orderBy("description")
 			->asObj(Setting::class)
-			->map(function (Setting $setting) {
+			->map(function (Setting $setting): ?SettingHandler {
 				return $this->settingManager->getSettingHandler($setting);
 			})
 			->filter()
 			->toArray();
-	}
-
-	protected function getRegisteredCommandsQuery(): QueryBuilder {
-		$query = $this->db->table(CommandManager::DB_TABLE)
-			->whereIn("cmdevent", ["cmd", "subcmd"])
-			->groupBy("module", "cmdevent", "file", "cmd", "description", "verify", "dependson", "help")
-			->select("module", "cmdevent", "file", "cmd", "description", "verify", "dependson", "help");
-		$query->addSelect($query->colFunc("MAX", "status", "status"));
-		$type = $query->grammar->wrap("type");
-		$status = $query->grammar->wrap("status");
-		$admin = $query->grammar->wrap("admin");
-		foreach (["guild", "priv", "msg"] as $channel) {
-			$qChannel = $query->grammar->quoteString($channel);
-			$query->selectRaw(
-				"SUM(CASE WHEN {$type} = {$qChannel} THEN 1 ELSE 0 END)".
-				$query->as("{$channel}_avail")
-			);
-			$query->selectRaw(
-				"SUM(CASE WHEN {$type} = {$qChannel} AND {$status} = 1 THEN 1 ELSE 0 END)".
-				$query->as("{$channel}_status")
-			);
-			$query->selectRaw(
-				"MAX(CASE WHEN {$type} = {$qChannel} THEN {$admin} ELSE null END)".
-				$query->as("{$channel}_al")
-			);
-		}
-		return $query;
-	}
-
-	/**
-	 * @return CmdCfg[]
-	 */
-	public function getAllRegisteredCommands(string $module): array {
-		$query = $this->getRegisteredCommandsQuery();
-		$query->where("module", $module);
-		$query->where("cmd", "!=", "config");
-		return $query->asObj(CmdCfg::class)->toArray();
-	}
-
-	public function getRegisteredCommand(string $module, string $command): ?CmdCfg {
-		$query = $this->getRegisteredCommandsQuery();
-		$query->where("module", $module);
-		$query->where("cmd", $command);
-		$query->where("cmd", "!=", "config");
-		return $query->asObj(CmdCfg::class)->first();
 	}
 }

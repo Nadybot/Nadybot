@@ -2,24 +2,29 @@
 
 namespace Nadybot\Modules\RELAY_MODULE\Layer;
 
-use JsonException;
+use Safe\Exceptions\JsonException;
+use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\LoggerWrapper;
-use Nadybot\Modules\RELAY_MODULE\Relay;
-use Nadybot\Modules\RELAY_MODULE\RelayLayerInterface;
-use Nadybot\Modules\RELAY_MODULE\RelayMessage;
-use Nadybot\Modules\RELAY_MODULE\RelayStatus;
-use Nadybot\Modules\RELAY_MODULE\StatusProvider;
+use Nadybot\Modules\RELAY_MODULE\{
+	Relay,
+	RelayLayerInterface,
+	RelayMessage,
+	RelayStatus,
+	StatusProvider,
+};
 
-/**
- * @RelayStackMember("tyr-relay")
- * @Description("This is the protocol spoken by Tyrence's websocket-server")
- */
+#[
+	NCA\RelayStackMember(
+		name: "tyr-relay",
+		description: "This is the protocol spoken by Tyrence's websocket-server"
+	)
+]
 class TyrRelay implements RelayLayerInterface, StatusProvider {
 	protected Relay $relay;
 
 	protected ?RelayStatus $status = null;
 
-	/** @Logger */
+	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
 	/** @var ?callable */
@@ -51,7 +56,7 @@ class TyrRelay implements RelayLayerInterface, StatusProvider {
 				"payload" => $packet,
 			];
 			try {
-				$encoded []= json_encode($json, JSON_THROW_ON_ERROR|JSON_UNESCAPED_SLASHES|JSON_INVALID_UTF8_SUBSTITUTE);
+				$encoded []= \Safe\json_encode($json, JSON_THROW_ON_ERROR|JSON_UNESCAPED_SLASHES|JSON_INVALID_UTF8_SUBSTITUTE);
 			} catch (JsonException $e) {
 				$this->logger->error(
 					"Unable to encode the relay data into tyr-relay protocol: ".
@@ -67,7 +72,7 @@ class TyrRelay implements RelayLayerInterface, StatusProvider {
 	public function receive(RelayMessage $msg): ?RelayMessage {
 		foreach ($msg->packages as &$data) {
 			try {
-				$json = json_decode($data, false, 512, JSON_THROW_ON_ERROR);
+				$json = \Safe\json_decode($data);
 			} catch (JsonException $e) {
 				$this->status = new RelayStatus(
 					RelayStatus::ERROR,

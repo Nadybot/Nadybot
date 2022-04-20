@@ -1,0 +1,11 @@
+{
+	"description": "A theme based on the popular Solarized themes",
+	"window_color": "#93A1A1",
+	"highlight_color": "#2AA198",
+	"header_color": "#6C71C4",
+	"header2_color": "#D33682",
+	"priv_color": "#EEE8D5",
+	"tell_color": "#EEE8D5",
+	"guild_color": "#EEE8D5",
+	"routed_sys_color": "#EEE8D5"
+}

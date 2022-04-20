@@ -4,6 +4,7 @@ namespace Nadybot\Modules\DISCORD_GATEWAY_MODULE\Model;
 
 use Nadybot\Core\JSONDataModel;
 use Nadybot\Core\Registry;
+use Nadybot\Core\SettingManager;
 
 class UpdateStatus extends JSONDataModel {
 	public const STATUS_ONLINE = "online";
@@ -27,7 +28,7 @@ class UpdateStatus extends JSONDataModel {
 
 	public function __construct() {
 		/** @var SettingManager */
-		$sm = Registry::getInstance('settingManager');
+		$sm = Registry::getInstance(SettingManager::class);
 		$activityName = $sm->getString("discord_activity_name");
 		if (isset($activityName) && strlen($activityName)) {
 			$activity = new Activity();

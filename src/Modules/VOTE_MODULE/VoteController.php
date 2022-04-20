@@ -4,94 +4,88 @@ namespace Nadybot\Modules\VOTE_MODULE;
 
 use Nadybot\Core\{
 	AccessManager,
+	Attributes as NCA,
 	CmdContext,
 	CommandAlias,
 	DB,
 	Event,
 	EventManager,
+	ModuleInstance,
 	LoggerWrapper,
 	MessageEmitter,
 	MessageHub,
 	Nadybot,
+	ParamClass\PDuration,
+	ParamClass\PRemove,
+	Routing\RoutableMessage,
+	Routing\Source,
 	SettingManager,
 	Text,
 	Timer,
 	Util,
 };
-use Nadybot\Core\ParamClass\PDuration;
-use Nadybot\Core\ParamClass\PRemove;
-use Nadybot\Core\Routing\RoutableMessage;
-use Nadybot\Core\Routing\Source;
 
 /**
  * @author Nadyita (RK5)
  * @author Lucier (RK1)
  * @author Tyrence (RK2)
- *
- * @Instance
- *
- * Commands this controller contains:
- *	@DefineCommand(
- *		command     = 'vote',
- *		accessLevel = 'all',
- *		description = 'Vote in polls',
- *		help        = 'vote.txt'
- *	)
- *	@DefineCommand(
- *		command     = 'poll',
- *		accessLevel = 'all',
- *		description = 'Create, view or delete polls',
- *		help        = 'vote.txt'
- *	)
- *	@ProvidesEvent("poll(start)")
- *	@ProvidesEvent("poll(end)")
- *	@ProvidesEvent("poll(del)")
- *	@ProvidesEvent("vote(cast)")
- *	@ProvidesEvent("vote(del)")
- *	@ProvidesEvent("vote(change)")
  */
-class VoteController implements MessageEmitter {
-
+#[
+	NCA\Instance,
+	NCA\HasMigrations,
+	NCA\DefineCommand(
+		command: "vote",
+		accessLevel: "member",
+		description: "Vote in polls",
+	),
+	NCA\DefineCommand(
+		command: "poll",
+		accessLevel: "member",
+		description: "Create, view or delete polls",
+		alias: 'polls'
+	),
+	NCA\ProvidesEvent("poll(start)"),
+	NCA\ProvidesEvent("poll(end)"),
+	NCA\ProvidesEvent("poll(del)"),
+	NCA\ProvidesEvent("vote(cast)"),
+	NCA\ProvidesEvent("vote(del)"),
+	NCA\ProvidesEvent("vote(change)")
+]
+class VoteController extends ModuleInstance implements MessageEmitter {
 	public const DB_POLLS = "polls_<myname>";
 	public const DB_VOTES = "votes_<myname>";
 
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
-
-	/** @Inject */
+	#[NCA\Inject]
 	public Text $text;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public DB $db;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Nadybot $chatBot;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Util $util;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public SettingManager $settingManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public AccessManager $accessManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public CommandAlias $commandAlias;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public EventManager $eventManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Timer $timer;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public MessageHub $messageHub;
 
-	/** @Logger */
+	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
 	/** @var array<int,Poll> */
@@ -107,13 +101,8 @@ class VoteController implements MessageEmitter {
 	public const STATUS_60_SECONDS_LEFT = 4;
 	public const STATUS_ENDED = 9;
 
-	/**
-	 * This handler is called on bot startup.
-	 * @Setup
-	 */
+	#[NCA\Setup]
 	public function setup(): void {
-		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations");
-		$this->commandAlias->register($this->moduleName, "poll", "polls");
 		$this->cacheVotes();
 		$this->messageHub->registerMessageEmitter($this);
 	}
@@ -126,8 +115,8 @@ class VoteController implements MessageEmitter {
 		$this->db->table(self::DB_POLLS)
 			->where("status", "!=", self::STATUS_ENDED)
 			->asObj(Poll::class)
-			->each(function (Poll $topic) {
-				$topic->answers = json_decode($topic->possible_answers, false);
+			->each(function (Poll $topic): void {
+				$topic->answers = \Safe\json_decode($topic->possible_answers, false);
 				$this->polls[$topic->id] = $topic;
 			});
 	}
@@ -142,16 +131,17 @@ class VoteController implements MessageEmitter {
 		if ($topic === null) {
 			return null;
 		}
-		$topic->answers = json_decode($topic->possible_answers);
+		$topic->answers = \Safe\json_decode($topic->possible_answers);
 		return $topic;
 	}
 
 	/**
 	 * This event handler checks for polls ending.
-	 *
-	 * @Event("timer(2sec)")
-	 * @Description("Checks polls and periodically updates chat with time left")
 	 */
+	#[NCA\Event(
+		name: "timer(2sec)",
+		description: "Checks polls and periodically updates chat with time left"
+	)]
 	public function checkVote(Event $eventObj): void {
 		if (count($this->polls) === 0) {
 			return;
@@ -188,6 +178,7 @@ class VoteController implements MessageEmitter {
 					$mstatus = self::STATUS_60_SECONDS_LEFT;
 				}
 				$this->polls[$id]->status = $mstatus;
+			// @phpstan-ignore-next-line
 			} elseif ($timeleft <= 60 && $timeleft > 0 && $poll->status !== self::STATUS_60_SECONDS_LEFT) {
 				$title = "60 seconds left: $poll->question";
 				$this->polls[$id]->status = self::STATUS_60_SECONDS_LEFT;
@@ -219,10 +210,10 @@ class VoteController implements MessageEmitter {
 	}
 
 	/**
-	 * This command handler shows votes.
-	 *
-	 * @HandlesCommand("poll")
+	 * Show all the polls
 	 */
+	#[NCA\HandlesCommand("poll")]
+	#[NCA\Help\Group("voting")]
 	public function pollCommand(CmdContext $context): void {
 		/** @var Poll[] */
 		$topics = $this->db->table(self::DB_POLLS)
@@ -261,10 +252,10 @@ class VoteController implements MessageEmitter {
 	}
 
 	/**
-	 * This command handler deletes polls.
-	 *
-	 * @HandlesCommand("poll")
+	 * Delete a poll
 	 */
+	#[NCA\HandlesCommand("poll")]
+	#[NCA\Help\Group("voting")]
 	public function pollKillCommand(CmdContext $context, PRemove $action, int $pollId): void {
 		$owner = null;
 		if (!$this->accessManager->checkAccess($context->char->name, "moderator")) {
@@ -290,10 +281,10 @@ class VoteController implements MessageEmitter {
 	}
 
 	/**
-	 * This command handler removes someones vote from a running vote.
-	 *
-	 * @HandlesCommand("vote")
+	 * Remove your vote from a running poll
 	 */
+	#[NCA\HandlesCommand("vote")]
+	#[NCA\Help\Group("voting")]
 	public function voteRemoveCommand(CmdContext $context, PRemove $action, int $pollId): void {
 		if (!isset($this->polls[$pollId])) {
 			$msg = "There is no active poll Nr. <highlight>{$pollId}<end>.";
@@ -320,12 +311,11 @@ class VoteController implements MessageEmitter {
 	}
 
 	/**
-	 * This command handler ends a running vote.
-	 *
-	 * @HandlesCommand("poll")
-	 * @Mask $action end
+	 * End a poll (voting will end in 60 seconds)
 	 */
-	public function pollEndCommand(CmdContext $context, string $action, int $pollId): void {
+	#[NCA\HandlesCommand("poll")]
+	#[NCA\Help\Group("voting")]
+	public function pollEndCommand(CmdContext $context, #[NCA\Str("end")] string $action, int $pollId): void {
 		$topic = $this->getPoll($pollId);
 
 		if ($topic === null) {
@@ -350,11 +340,10 @@ class VoteController implements MessageEmitter {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @HandlesCommand("poll")
-	 * @Mask $action (show|view)
-	 */
-	public function voteShowCommand(CmdContext $context, ?string $action, int $id): void {
+	/** View a specific poll */
+	#[NCA\HandlesCommand("poll")]
+	#[NCA\Help\Group("voting")]
+	public function voteShowCommand(CmdContext $context, #[NCA\Str("show", "view")] ?string $action, int $id): void {
 		$topic = $this->getPoll($id);
 		if ($topic === null) {
 			$context->reply("There is no poll Nr. <highlight>{$id}<end>.");
@@ -384,9 +373,9 @@ class VoteController implements MessageEmitter {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @HandlesCommand("vote")
-	 */
+	/** Vote for a poll */
+	#[NCA\HandlesCommand("vote")]
+	#[NCA\Help\Group("voting")]
 	public function voteCommand(CmdContext $context, int $pollId, string $answer): void {
 		$topic = $this->getPoll($pollId);
 		if ($topic === null) {
@@ -439,16 +428,20 @@ class VoteController implements MessageEmitter {
 	}
 
 	/**
-	 * @HandlesCommand("poll")
-	 * @Mask $action (add|create|new)
+	 * Create a new poll
+	 * The poll will be active for &lt;duration&gt;
+	 * The format of &lt;definition&gt; is &lt;topic&gt;|&lt;option1&gt;|&lt;option2&gt;...
 	 */
+	#[NCA\HandlesCommand("poll")]
+	#[NCA\Help\Group("voting")]
+	#[NCA\Help\Example("<symbol>poll create 4d3h2m1s WHAT... Is your favorite color?!?|Blue|Yellow")]
 	public function pollCreateCommand(
 		CmdContext $context,
-		string $action,
+		#[NCA\Str("add", "create", "new")] string $action,
 		PDuration $duration,
 		string $definition
 	): void {
-		$answers = preg_split("/\s*\Q" . self::DELIMITER . "\E\s*/", $definition);
+		$answers = \Safe\preg_split("/\s*\Q" . self::DELIMITER . "\E\s*/", $definition);
 		$question = array_shift($answers);
 		$duration = $duration->toSecs();
 
@@ -468,7 +461,7 @@ class VoteController implements MessageEmitter {
 		$topic->started = time();
 		$topic->duration = $duration;
 		$topic->answers = $answers;
-		$topic->possible_answers = json_encode($answers);
+		$topic->possible_answers = \Safe\json_encode($answers);
 		$topic->status = self::STATUS_CREATED;
 
 		$topic->id = $this->db->insert(self::DB_POLLS, $topic);
@@ -553,13 +546,16 @@ class VoteController implements MessageEmitter {
 		return $blob;
 	}
 
-	/**
-	 * @NewsTile("polls")
-	 * @Description("Shows currently running polls - if any")
-	 * @Example("<header2>Polls<end>
-	 * <tab>Shall we use startpage instead of news? [<u>show</u>]
-	 * <tab>New logo for Discord [<u>show</u>]")
-	 */
+	#[
+		NCA\NewsTile(
+			name: "polls",
+			description: "Shows currently running polls - if any",
+			example:
+				"<header2>Polls<end>\n".
+				"<tab>Shall we use startpage instead of news? [<u>show</u>]\n".
+				"<tab>New logo for Discord [<u>show</u>]"
+		)
+	]
 	public function pollsNewsTile(string $sender, callable $callback): void {
 		/** @var Poll[] */
 		$topics = $this->db->table(self::DB_POLLS)

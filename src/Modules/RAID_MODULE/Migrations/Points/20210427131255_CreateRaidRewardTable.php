@@ -12,12 +12,12 @@ class CreateRaidRewardTable implements SchemaMigration {
 	public function migrate(LoggerWrapper $logger, DB $db): void {
 		$table = RaidPointsController::DB_TABLE_REWARD;
 		if ($db->schema()->hasTable($table)) {
-			$db->schema()->table($table, function(Blueprint $table) {
+			$db->schema()->table($table, function(Blueprint $table): void {
 				$table->integer("id")->change();
 			});
 			return;
 		}
-		$db->schema()->create($table, function(Blueprint $table) {
+		$db->schema()->create($table, function(Blueprint $table): void {
 			$table->integer("id")->primary();
 			$table->string("name", 20)->index();
 			$table->integer("points");

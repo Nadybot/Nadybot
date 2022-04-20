@@ -4,7 +4,9 @@ namespace Nadybot\Modules\DISCORD_GATEWAY_MODULE;
 
 use Nadybot\Core\{
 	AccessManager,
+	Attributes as NCA,
 	CmdContext,
+	ModuleInstance,
 	Nadybot,
 	SettingManager,
 	Text,
@@ -12,97 +14,87 @@ use Nadybot\Core\{
 	Util,
 };
 use Nadybot\Core\Modules\{
+	ALTS\AltsController,
 	CONFIG\ConfigController,
+	CONFIG\SettingOption,
 	DISCORD\DiscordAPIClient,
 	DISCORD\DiscordChannel,
 	DISCORD\DiscordController,
+	PLAYER_LOOKUP\PlayerManager,
+	PREFERENCES\Preferences,
 };
-use Nadybot\Core\Modules\ALTS\AltsController;
-use Nadybot\Core\Modules\CONFIG\SettingOption;
-use Nadybot\Core\Modules\PLAYER_LOOKUP\PlayerManager;
-use Nadybot\Core\Modules\PREFERENCES\Preferences;
-use Nadybot\Modules\GUILD_MODULE\GuildController;
-use Nadybot\Modules\PRIVATE_CHANNEL_MODULE\PrivateChannelController;
-use Nadybot\Modules\RELAY_MODULE\RelayController;
+use Nadybot\Modules\{
+	GUILD_MODULE\GuildController,
+	PRIVATE_CHANNEL_MODULE\PrivateChannelController,
+	RELAY_MODULE\RelayController,
+};
 
 /**
  * @author Nadyite (RK5)
- *
- * @Instance
- *
- * Commands this controller contains:
- *	@DefineCommand(
- *		command     = 'discord',
- *		accessLevel = 'mod',
- *		description = 'Information about the discord link',
- *		help        = 'discord.txt'
- *	)
  */
-class DiscordRelayController {
-	public string $moduleName;
-
-	/** @Inject */
+#[
+	NCA\Instance,
+	NCA\DefineCommand(
+		command: "discord",
+		accessLevel: "mod",
+		description: "Information about the discord link",
+	),
+]
+class DiscordRelayController extends ModuleInstance {
+	#[NCA\Inject]
 	public DiscordGatewayController $discordGatewayController;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Text $text;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public SettingManager $settingManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public RelayController $relayController;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public DiscordAPIClient $discordAPIClient;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public DiscordController $discordController;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public GuildController $guildController;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public PrivateChannelController $privateChannelController;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public ConfigController $configController;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public PlayerManager $playerManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public AccessManager $accessManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Preferences $preferences;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public AltsController $altsController;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Timer $timer;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Util $util;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public DiscordGatewayCommandHandler $discordGatewayCommandHandler;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Nadybot $chatBot;
 
-	/** @Setup */
-	public function setup(): void {
-		$this->settingManager->add(
-			$this->moduleName,
-			"discord_relay_mention_rank",
-			"Minimum ranks allowed to use @here and @everyone",
-			"edit",
-			"rank",
-			"mod"
-		);
-	}
+	/** Minimum ranks allowed to use @here and @everyone */
+	#[NCA\Setting\Rank]
+	public string $discordRelayMentionRank = "mod";
 
 	/**
 	 * Gives a list of all channels we have access to
@@ -137,6 +129,11 @@ class DiscordRelayController {
 		return $result;
 	}
 
+	/**
+	 * @return array<bool|string>
+	 * @psalm-return array{0: bool, 1:string}
+	 * @phpstan-return array{0: bool, 1:string}
+	 */
 	protected function getChannelTree(?callable $callback=null): array {
 		if (!$this->discordGatewayController->isConnected()) {
 			return [false, "The bot is not (yet) connected to discord."];
@@ -174,11 +171,9 @@ class DiscordRelayController {
 
 	/**
 	 * List the discord channels of all guilds
-	 *
-	 * @HandlesCommand("discord")
-	 * @Mask $action channels
 	 */
-	public function discordChannelsCommand(CmdContext $context, string $action): void {
+	#[NCA\HandlesCommand("discord")]
+	public function discordChannelsCommand(CmdContext $context, #[NCA\Str("channels")] string $action): void {
 		[$success, $blob] = $this->getChannelTree();
 		if (!$success) {
 			$context->reply($blob);
@@ -190,11 +185,9 @@ class DiscordRelayController {
 
 	/**
 	 * List the discord channels of all guilds and allow to pick one for notifications
-	 *
-	 * @HandlesCommand("discord")
-	 * @Mask $action notify
 	 */
-	public function discordNotifyCommand(CmdContext $context, string $action): void {
+	#[NCA\HandlesCommand("discord")]
+	public function discordNotifyCommand(CmdContext $context, #[NCA\Str("notify")] string $action): void {
 		[$success, $blob] = $this->getChannelTree([$this, "channelNotifyPicker"]);
 		if (!$success) {
 			$context->reply($blob);
@@ -222,11 +215,9 @@ class DiscordRelayController {
 
 	/**
 	 * Pick a discord channel for notifications
-	 *
-	 * @HandlesCommand("discord")
-	 * @Mask $action notify
 	 */
-	public function discordNotifyChannelCommand(CmdContext $context, string $action, string $channelId): void {
+	#[NCA\HandlesCommand("discord")]
+	public function discordNotifyChannelCommand(CmdContext $context, #[NCA\Str("notify")] string $action, string $channelId): void {
 		if ($channelId === 'off') {
 			$this->settingManager->save('discord_notify_channel', 'off');
 			$msg = "Discord notifications turned off.";

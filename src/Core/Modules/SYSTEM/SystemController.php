@@ -2,277 +2,188 @@
 
 namespace Nadybot\Core\Modules\SYSTEM;
 
+use function Safe\unpack;
+
+use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	AccessManager,
+	Attributes as NCA,
 	AdminManager,
 	BuddylistManager,
 	CmdContext,
 	CommandAlias,
 	CommandManager,
+	ConfigFile,
 	DB,
 	DBSchema\Setting,
 	Event,
 	EventManager,
 	HelpManager,
+	ModuleInstance,
 	LoggerWrapper,
 	MessageEmitter,
 	MessageHub,
 	Nadybot,
+	ParamClass\PCharacter,
 	PrivateMessageCommandReply,
+	Routing\RoutableMessage,
+	Routing\Source,
 	SettingManager,
 	SubcommandManager,
 	Text,
 	Util,
 };
-use Nadybot\Core\ParamClass\PCharacter;
-use Nadybot\Core\Routing\RoutableMessage;
-use Nadybot\Core\Routing\Source;
-use Nadybot\Modules\WEBSERVER_MODULE\ApiResponse;
-use Nadybot\Modules\WEBSERVER_MODULE\HttpProtocolWrapper;
-use Nadybot\Modules\WEBSERVER_MODULE\Request;
-use Nadybot\Modules\WEBSERVER_MODULE\Response;
+use Nadybot\Modules\WEBSERVER_MODULE\{
+	ApiResponse,
+	HttpProtocolWrapper,
+	Request,
+	Response,
+};
 
 /**
  * @author Sebuda (RK2)
  * @author Tyrence (RK2)
- *
- * @Instance
- *
- * Commands this controller contains:
- *	@DefineCommand(
- *		command       = 'checkaccess',
- *		accessLevel   = 'all',
- *		description   = 'Check effective access level of a character',
- *		help          = 'checkaccess.txt'
- *	)
- *	@DefineCommand(
- *		command       = 'clearqueue',
- *		accessLevel   = 'mod',
- *		description   = 'Clear outgoing chatqueue from all pending messages',
- *		help          = 'clearqueue.txt'
- *	)
- *	@DefineCommand(
- *		command       = 'macro',
- *		accessLevel   = 'all',
- *		description   = 'Execute multiple commands at once',
- *		help          = 'macro.txt'
- *	)
- *	@DefineCommand(
- *		command       = 'showcommand',
- *		accessLevel   = 'mod',
- *		description   = 'Execute a command and have output sent to another player',
- *		help          = 'showcommand.txt'
- *	)
- *	@DefineCommand(
- *		command       = 'system',
- *		accessLevel   = 'mod',
- *		description   = 'Show detailed information about the bot',
- *		help          = 'system.txt'
- *	)
- *	@DefineCommand(
- *		command       = 'restart',
- *		accessLevel   = 'admin',
- *		description   = 'Restart the bot',
- *		help          = 'system.txt',
- *      defaultStatus = '1'
- *	)
- *	@DefineCommand(
- *		command       = 'shutdown',
- *		accessLevel   = 'admin',
- *		description   = 'Shutdown the bot',
- *		help          = 'system.txt',
- *		defaultStatus = '1'
- *	)
  */
-class SystemController implements MessageEmitter {
-
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
-
-	/** @Inject */
+#[
+	NCA\Instance,
+	NCA\DefineCommand(
+		command: "checkaccess",
+		accessLevel: "all",
+		description: "Check effective access level of a character",
+	),
+	NCA\DefineCommand(
+		command: "clearqueue",
+		accessLevel: "mod",
+		description: "Clear outgoing chatqueue from all pending messages",
+	),
+	NCA\DefineCommand(
+		command: "macro",
+		accessLevel: "guest",
+		description: "Execute multiple commands at once",
+	),
+	NCA\DefineCommand(
+		command: "showcommand",
+		accessLevel: "mod",
+		description: "Execute a command and have output sent to another player",
+	),
+	NCA\DefineCommand(
+		command: "system",
+		accessLevel: "mod",
+		description: "Show detailed information about the bot",
+	),
+	NCA\DefineCommand(
+		command: "restart",
+		accessLevel: "admin",
+		description: "Restart the bot",
+		defaultStatus: 1
+	),
+	NCA\DefineCommand(
+		command: "shutdown",
+		accessLevel: "admin",
+		description: "Shutdown the bot",
+		defaultStatus: 1
+	),
+	NCA\DefineCommand(
+		command: "showconfig",
+		accessLevel: "admin",
+		description: "Show a cleaned up version of your current config file",
+		defaultStatus: 1
+	),
+]
+class SystemController extends ModuleInstance implements MessageEmitter {
+	#[NCA\Inject]
 	public AccessManager $accessManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public AdminManager $adminManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Nadybot $chatBot;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public DB $db;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public CommandManager $commandManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public EventManager $eventManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public CommandAlias $commandAlias;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public SubcommandManager $subcommandManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public HelpManager $helpManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public BuddylistManager $buddylistManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public SettingManager $settingManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Text $text;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Util $util;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public MessageHub $messageHub;
 
-	/** @Logger */
+	#[NCA\Inject]
+	public ConfigFile $config;
+
+	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
-	/**
-	 * @Setting("symbol")
-	 * @Description("Command prefix symbol")
-	 * @Visibility("edit")
-	 * @Type("text")
-	 * @Options("!;#;*;@;$;+;-")
-	 * @AccessLevel("mod")
-	 */
-	public string $defaultSymbol = "!";
+	/** Default command prefix symbol */
+	#[NCA\Setting\Text(options: ["!", "#", "*", "@", "$", "+", "-"])]
+	public string $symbol = "!";
 
-	/**
-	 * @Setting("max_blob_size")
-	 * @Description("Max chars for a window")
-	 * @Visibility("edit")
-	 * @Type("number")
-	 * @Options("4500;6000;7500;9000;10500;12000")
-	 * @AccessLevel("mod")
-	 * @Help("max_blob_size.txt")
-	 */
-	public string $defaultMaxBlobSize = "7500";
+	/** Max chars for a window */
+	#[NCA\Setting\Number(
+		options: [4500, 6000, 7500, 9000, 10500, 12000],
+		help: "max_blob_size.txt",
+	)]
+	public int $maxBlobSize = 7500;
 
-	/**
-	 * @Setting("http_timeout")
-	 * @Description("Max time to wait for response from making http queries")
-	 * @Visibility("edit")
-	 * @Type("time")
-	 * @Options("1s;2s;5s;10s;30s")
-	 * @AccessLevel("mod")
-	 */
-	public string $defaultHttpTimeout = "10s";
+	/** Max time to wait for response from making http queries */
+	#[NCA\Setting\Time(options: ["1s", "2s", "5s", "10s", "30s"])]
+	public int $httpTimeout = 10;
 
-	/**
-	 * @Setting("guild_channel_status")
-	 * @Description("Enable the guild channel")
-	 * @Visibility("edit")
-	 * @Type("options")
-	 * @Options("true;false")
-	 * @Intoptions("1;0")
-	 * @AccessLevel("mod")
-	 */
-	public string $defaultGuildChannelStatus = "1";
+	/** Enable the guild channel */
+	#[NCA\Setting\Boolean]
+	public bool $guildChannelStatus = true;
 
-	/**
-	 * @Setting("guild_channel_cmd_feedback")
-	 * @Description("Show message on invalid command in guild channel")
-	 * @Visibility("edit")
-	 * @Type("options")
-	 * @Options("true;false")
-	 * @Intoptions("1;0")
-	 * @AccessLevel("mod")
-	 */
-	public string $defaultGuildChannelCmdFeedback = "1";
+	/** Database version */
+	#[NCA\Setting\Text(mode: "noedit")]
+	public string $version = "0";
 
-	/**
-	 * @Setting("private_channel_cmd_feedback")
-	 * @Description("Show message on invalid command in private channel")
-	 * @Visibility("edit")
-	 * @Type("options")
-	 * @Options("true;false")
-	 * @Intoptions("1;0")
-	 * @AccessLevel("mod")
-	 */
-	public string $defaultPrivateChannelCmdFeedback = "1";
+	/** When using the proxy, allow sending tells via the workers */
+	#[NCA\Setting\Boolean]
+	public bool $allowMassTells = true;
 
-	/**
-	 * @Setting("version")
-	 * @Description("Database version")
-	 * @Visibility("noedit")
-	 * @Type("text")
-	 * @AccessLevel("mod")
-	 */
-	public string $defaultVersion = "0";
+	/** When using the proxy, always send tells via the workers */
+	#[NCA\Setting\Boolean]
+	public bool $forceMassTells = false;
 
-	/**
-	 * @Setting("allow_mass_tells")
-	 * @Description("When using the proxy, allow sending tells via the workers")
-	 * @Visibility("edit")
-	 * @Type("options")
-	 * @Options("true;false")
-	 * @Intoptions("1;0")
-	 * @AccessLevel("mod")
-	 */
-	public string $allowMassTells = "1";
+	/** When using the proxy, always reply via the worker that sent the tell */
+	#[NCA\Setting\Boolean]
+	public bool $replyOnSameWorker = false;
 
-	/**
-	 * @Setting("force_mass_tells")
-	 * @Description("When using the proxy, always send tells via the workers")
-	 * @Visibility("edit")
-	 * @Type("options")
-	 * @Options("true;false")
-	 * @Intoptions("1;0")
-	 * @AccessLevel("mod")
-	 */
-	public string $forceMassTells = "0";
+	/** When using the proxy, always send multi-page replies via one worker */
+	#[NCA\Setting\Boolean]
+	public bool $pagingOnSameWorker = true;
 
-	/**
-	 * @Setting("reply_on_same_worker")
-	 * @Description("When using the proxy, always reply via the worker that sent the tell")
-	 * @Visibility("edit")
-	 * @Type("options")
-	 * @Options("true;false")
-	 * @Intoptions("1;0")
-	 * @AccessLevel("mod")
-	 */
-	public string $replyOnSameWorker = "0";
-
-	/**
-	 * @Setting("paging_on_same_worker")
-	 * @Description("When using the proxy, always send multi-page replies via one worker ")
-	 * @Visibility("edit")
-	 * @Type("options")
-	 * @Options("true;false")
-	 * @Intoptions("1;0")
-	 * @AccessLevel("mod")
-	 */
-	public string $pagingOnSameWorker = "1";
-
-	/**
-	 * @Setup
-	 * This handler is called on bot startup.
-	 */
+	#[NCA\Setup]
 	public function setup(): void {
-		$this->settingManager->save('version', $this->chatBot->runner::getVersion());
-
 		$this->helpManager->register($this->moduleName, "budatime", "budatime.txt", "all", "Format for budatime");
 
-		$name = $this->chatBot->vars['name'];
-		$this->settingManager->add(
-			$this->moduleName,
-			"default_private_channel",
-			"Private channel to process commands from",
-			"edit",
-			"text",
-			$name,
-			$name
-		);
+		$this->settingManager->save('version', $this->chatBot->runner::getVersion());
+
 		$this->messageHub->registerMessageEmitter($this);
 	}
 
@@ -280,9 +191,9 @@ class SystemController implements MessageEmitter {
 		return Source::SYSTEM . "(status)";
 	}
 
-	/**
-	 * @HandlesCommand("restart")
-	 */
+	/** Restart the bot */
+	#[NCA\HandlesCommand("restart")]
+	#[NCA\Help\Group("restart")]
 	public function restartCommand(CmdContext $context): void {
 		$msg = "Bot is restarting.";
 		$this->chatBot->sendTell($msg, $context->char->name);
@@ -295,9 +206,9 @@ class SystemController implements MessageEmitter {
 		exit(-1);
 	}
 
-	/**
-	 * @HandlesCommand("shutdown")
-	 */
+	/** Shutdown the bot. Configured properly, it won't start again */
+	#[NCA\HandlesCommand("shutdown")]
+	#[NCA\Help\Group("restart")]
 	public function shutdownCommand(CmdContext $context): void {
 		$msg = "The Bot is shutting down.";
 		$this->chatBot->sendTell($msg, $context->char->name);
@@ -314,18 +225,16 @@ class SystemController implements MessageEmitter {
 		$info = new SystemInformation();
 
 		$info->basic = $basicInfo = new BasicSystemInformation();
-		$basicInfo->bot_name = $this->chatBot->vars["name"];
+		$basicInfo->bot_name = $this->chatBot->char->name;
 		$basicInfo->bot_version = $this->chatBot->runner::getVersion();
 		$basicInfo->db_type = $this->db->getType();
-		$basicInfo->org = strlen($this->chatBot->vars['my_guild']??"")
-			? $this->chatBot->vars['my_guild']
+		$basicInfo->org = strlen($this->config->orgName)
+			? $this->config->orgName
 			: null;
-		$basicInfo->org_id = $this->chatBot->vars['my_guild_id'] ?? null;
+		$basicInfo->org_id = $this->config->orgId;
 		$basicInfo->php_version = phpversion();
 		$basicInfo->os = php_uname('s') . ' ' . php_uname('r') . ' ' . php_uname('m');
-		$basicInfo->superadmin = strlen($this->chatBot->vars["SuperAdmin"]??"")
-			? $this->chatBot->vars["SuperAdmin"]
-			: null;
+		$basicInfo->superadmins = $this->config->superAdmins;
 
 		$info->memory = $memory = new MemoryInformation();
 		$memory->current_usage = memory_get_usage();
@@ -334,8 +243,8 @@ class SystemController implements MessageEmitter {
 		$memory->peak_usage_real = memory_get_peak_usage(true);
 
 		$info->misc = $misc = new MiscSystemInformation();
-		$misc->uptime = time() - $this->chatBot->vars['startup'];
-		$misc->using_chat_proxy = ($this->chatBot->vars['use_proxy'] == 1);
+		$misc->uptime = time() - $this->chatBot->startup;
+		$misc->using_chat_proxy = ($this->config->useProxy === 1);
 		if ($misc->using_chat_proxy) {
 			$misc->proxy_capabilities = $this->chatBot->proxyCapabilities;
 		}
@@ -345,18 +254,18 @@ class SystemController implements MessageEmitter {
 		foreach ($this->eventManager->events as $type => $events) {
 			$config->active_events += count($events);
 		}
-		$config->active_tell_commands = (count($this->commandManager->commands['msg']) - $numAliases);
-		$config->active_priv_commands = (count($this->commandManager->commands['priv']) - $numAliases);
-		$config->active_org_commands = (count($this->commandManager->commands['guild']) - $numAliases);
+		foreach ($this->commandManager->commands as $channel => $commands) {
+			$chanStat = new ChannelCommandStats();
+			$chanStat->name = $channel;
+			$chanStat->active_commands = count($commands) - $numAliases;
+			$config->active_commands []= $chanStat;
+		}
 		$config->active_subcommands = count($this->subcommandManager->subcommands);
 		$config->active_help_commands = count($this->helpManager->getAllHelpTopics(null));
 
 		$info->stats = $stats = new SystemStats();
 
-		$query = $this->db->table("players");
-		$row = $query->select($query->rawFunc("COUNT", "*", "count"))
-			->asObj()->first();
-		$stats->charinfo_cache_size = (int)$row->count;
+		$stats->charinfo_cache_size = $this->db->table("players")->count();
 
 		$stats->buddy_list_size = $this->buddylistManager->countConfirmedBuddies();
 		$stats->max_buddy_list_size = $this->chatBot->getBuddyListSize();
@@ -364,7 +273,7 @@ class SystemController implements MessageEmitter {
 		$stats->org_size = count($this->chatBot->guildmembers);
 		$stats->chatqueue_length = 0;
 		if (isset($this->chatBot->chatqueue)) {
-			$stats->chatqueue_length = count($this->chatBot->chatqueue->queue);
+			$stats->chatqueue_length = $this->chatBot->chatqueue->getSize();
 		}
 
 		foreach ($this->chatBot->grp as $gid => $status) {
@@ -380,18 +289,19 @@ class SystemController implements MessageEmitter {
 		return $info;
 	}
 
-	/**
-	 * @HandlesCommand("system")
-	 */
+	/** Get an overview of the bot system */
+	#[NCA\HandlesCommand("system")]
 	public function systemCommand(CmdContext $context): void {
 		$info = $this->getSystemInfo();
 
 		$blob = "<header2>Basic Info<end>\n";
 		$blob .= "<tab>Name: <highlight>{$info->basic->bot_name}<end>\n";
-		if (isset($info->basic->superadmin)) {
-			$blob .= "<tab>SuperAdmin: <highlight>{$info->basic->superadmin}<end>\n";
-		} else {
+		if (empty($info->basic->superadmins)) {
 			$blob .= "<tab>SuperAdmin: - <highlight>none<end> -\n";
+		} else {
+			$blob .= "<tab>SuperAdmin: <highlight>".
+				(new Collection($info->basic->superadmins))->join("<end>, <highlight>", "<end> and <highlight>").
+				"<end>\n";
 		}
 		if (isset($info->basic->org)) {
 			$blob .= "<tab>Guild: <highlight>'{$info->basic->org}' ({$info->basic->org_id})<end>\n";
@@ -437,9 +347,9 @@ class SystemController implements MessageEmitter {
 		$blob .= "<tab>Bot Uptime: <highlight>$date_string<end>\n\n";
 
 		$blob .= "<header2>Configuration<end>\n";
-		$blob .= "<tab>Active tell commands: <highlight>{$info->config->active_tell_commands}<end>\n";
-		$blob .= "<tab>Active private channel commands: <highlight>{$info->config->active_priv_commands}<end>\n";
-		$blob .= "<tab>Active org channel commands: <highlight>{$info->config->active_org_commands}<end>\n";
+		foreach ($info->config->active_commands as $cmdChannelStats) {
+			$blob .= "<tab>Active {$cmdChannelStats->name} commands: <highlight>{$cmdChannelStats->active_commands}<end>\n";
+		}
 		$blob .= "<tab>Active subcommands: <highlight>{$info->config->active_subcommands}<end>\n";
 		$blob .= "<tab>Active command aliases: <highlight>{$info->config->active_aliases}<end>\n";
 		$blob .= "<tab>Active events: <highlight>{$info->config->active_events}<end>\n";
@@ -465,9 +375,8 @@ class SystemController implements MessageEmitter {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @HandlesCommand("checkaccess")
-	 */
+	/** Show which access level you currently have */
+	#[NCA\HandlesCommand("checkaccess")]
 	public function checkaccessSelfCommand(CmdContext $context): void {
 		$accessLevel = $this->accessManager->getDisplayName($this->accessManager->getAccessLevelForCharacter($context->char->name));
 
@@ -477,52 +386,49 @@ class SystemController implements MessageEmitter {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @HandlesCommand("checkaccess")
-	 */
-	public function checkaccessOtherCommand(CmdContext $context, PCharacter $name): void {
+	/** Show which access level &lt;character&gt; currently has */
+	#[NCA\HandlesCommand("checkaccess")]
+	public function checkaccessOtherCommand(CmdContext $context, PCharacter $character): void {
 		$this->chatBot->getUid(
-			$name(),
-			function (?int $uid, CmdContext $context, string $name): void {
+			$character(),
+			function (?int $uid, CmdContext $context, string $character): void {
 				if (!isset($uid)) {
-					$context->reply("Character <highlight>{$name}<end> does not exist.");
+					$context->reply("Character <highlight>{$character}<end> does not exist.");
 					return;
 				}
-				$accessLevel = $this->accessManager->getDisplayName($this->accessManager->getAccessLevelForCharacter($name));
-				$msg = "Access level for <highlight>{$name}<end> (ID {$uid}) is <highlight>$accessLevel<end>.";
+				$accessLevel = $this->accessManager->getDisplayName($this->accessManager->getAccessLevelForCharacter($character));
+				$msg = "Access level for <highlight>{$character}<end> (ID {$uid}) is <highlight>$accessLevel<end>.";
 				$context->reply($msg);
 				return;
 			},
 			$context,
-			$name()
+			$character()
 		);
 		return;
 	}
 
 	/**
-	 * This command handler clears outgoing chatqueue from all pending messages.
-	 *
-	 * @HandlesCommand("clearqueue")
+	 * Clears the outgoing chatqueue from all pending messages
 	 */
+	#[NCA\HandlesCommand("clearqueue")]
 	public function clearqueueCommand(CmdContext $context): void {
 		if (!isset($this->chatBot->chatqueue)) {
 			$context->reply("There is currently no Chat queue set up.");
 			return;
 		}
-		$num = 0;
-		foreach ($this->chatBot->chatqueue->queue as $priority) {
-			$num += count($priority);
-		}
-		$this->chatBot->chatqueue->queue = [];
+		$num = $this->chatBot->chatqueue->clear();
 
 		$context->reply("Chat queue has been cleared of <highlight>{$num}<end> messages.");
 	}
 
 	/**
-	 * This command handler execute multiple commands at once, separated by pipes.
-	 *
-	 * @HandlesCommand("macro")
+	 * Execute multiple commands at once, separated by pipes.
 	 */
+	#[NCA\HandlesCommand("macro")]
+	#[NCA\Help\Example(
+		command: "<symbol>macro cmd That's all!|raid stop|kickall"
+	)]
+	#[NCA\Help\Epilogue("This command works especially well with aliases")]
 	public function macroCommand(CmdContext $context, string $command): void {
 		$commands = explode("|", $command);
 		foreach ($commands as $commandString) {
@@ -531,11 +437,11 @@ class SystemController implements MessageEmitter {
 		}
 	}
 
-	/**
-	 * @Event("timer(1hr)")
-	 * @Description("This event handler is called every hour to keep MySQL connection active")
-	 * @DefaultStatus("1")
-	 */
+	#[NCA\Event(
+		name: "timer(1hr)",
+		description: "This event handler is called every hour to keep MySQL connection active",
+		defaultStatus: 1
+	)]
 	public function refreshMySQLConnectionEvent(Event $eventObj): void {
 		// if the bot doesn't query the mysql database for 8 hours the db connection is closed
 		$this->logger->info("Pinging database");
@@ -545,11 +451,11 @@ class SystemController implements MessageEmitter {
 			->first();
 	}
 
-	/**
-	 * @Event("connect")
-	 * @Description("Notify private channel, guild channel, and admins that bot is online")
-	 * @DefaultStatus("1")
-	 */
+	#[NCA\Event(
+		name: "connect",
+		description: "Notify private channel, guild channel, and admins that bot is online",
+		defaultStatus: 1
+	)]
 	public function onConnectEvent(Event $eventObj): void {
 		// send Admin(s) a tell that the bot is online
 		foreach ($this->adminManager->admins as $name => $info) {
@@ -567,9 +473,12 @@ class SystemController implements MessageEmitter {
 		$this->messageHub->handle($rMsg);
 	}
 
-	/**
-	 * @HandlesCommand("showcommand")
-	 */
+	/** Show  the output of &lt;cmd&gt; to &lt;name&gt; */
+	#[NCA\HandlesCommand("showcommand")]
+	#[NCA\Help\Example(
+		command: "<symbol>showcommand Tyrence online",
+		description: "Show the online list to Tyrence"
+	)]
 	public function showCommandCommand(CmdContext $context, PCharacter $name, string $cmd): void {
 		$this->chatBot->getUid($name(), [$this, "showCommandUid"], $context, $name(), $cmd);
 	}
@@ -585,19 +494,36 @@ class SystemController implements MessageEmitter {
 		$newContext = new CmdContext($context->char->name, $context->char->id);
 		$newContext->sendto = $showSendto;
 		$newContext->message = $cmd;
-		$newContext->channel = "msg";
+		$newContext->source = $context->source;
+		$newContext->permissionSet = $context->permissionSet;
 		$this->commandManager->processCmd($newContext);
 
 		$context->reply("Command <highlight>{$cmd}<end> has been sent to <highlight>{$name}<end>.");
 	}
 
+	/** Show your current config file with sensitive information removed */
+	#[NCA\HandlesCommand("showconfig")]
+	public function showConfigCommand(CmdContext $context): void {
+		$json = \Safe\json_encode(
+			$this->config
+				->except("password", "DB username", "DB password")
+				->toArray(),
+			JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE
+		);
+		$context->reply(
+			$this->text->makeBlob("Your config", $json)
+		);
+	}
+
 	/**
 	 * Get system information
-	 * @Api("/sysinfo")
-	 * @GET
-	 * @AccessLevel("all")
-	 * @ApiResult(code=200, class='SystemInformation', desc='Some basic system information')
 	 */
+	#[
+		NCA\Api("/sysinfo"),
+		NCA\GET,
+		NCA\AccessLevel("all"),
+		NCA\ApiResult(code: 200, class: "SystemInformation", desc: "Some basic system information")
+	]
 	public function apiSysinfoGetEndpoint(Request $request, HttpProtocolWrapper $server): Response {
 		return new ApiResponse($this->getSystemInfo());
 	}

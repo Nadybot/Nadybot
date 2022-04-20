@@ -2,6 +2,7 @@
 
 namespace Nadybot\Core\DBSchema;
 
+use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\DBRow;
 
 class BanEntry extends DBRow {
@@ -20,6 +21,6 @@ class BanEntry extends DBRow {
 	/** Unix timestamp when the ban ends, or null/0 if never */
 	public ?int $banend;
 
-	/** @db:ignore */
+	#[NCA\DB\Ignore]
 	public string $name;
 }

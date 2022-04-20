@@ -3,38 +3,41 @@
 namespace Nadybot\Core;
 
 use Exception;
-use Addendum\ReflectionAnnotatedMethod;
 use Closure;
-use Nadybot\Core\DBSchema\EventCfg;
-use Nadybot\Core\Modules\MESSAGES\MessageHubController;
 use ReflectionFunction;
 use ReflectionFunctionAbstract;
 use ReflectionMethod;
 use ReflectionNamedType;
 use Throwable;
+use Nadybot\Core\{
+	Attributes as NCA,
+	DBSchema\EventCfg,
+	Modules\MESSAGES\MessageHubController,
+};
 
-/**
- * @Instance
- */
+#[NCA\Instance]
 class EventManager {
 	public const DB_TABLE = "eventcfg_<myname>";
 
-	/** @Inject */
+	#[NCA\Inject]
 	public DB $db;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Nadybot $chatBot;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public SettingManager $settingManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Util $util;
 
-	/** @Inject */
+	#[NCA\Inject]
+	public ConfigFile $config;
+
+	#[NCA\Inject]
 	public MessageHubController $messageHubController;
 
-	/** @Logger */
+	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
 	/** @var array<string,string[]> */
@@ -52,7 +55,10 @@ class EventManager {
 	private int $lastCronTime = 0;
 	private bool $areConnectEventsFired = false;
 	protected bool $eventsReady = false;
-	/** Events that were disabled before eventhandler was initialized */
+	/**
+	 * Events that were disabled before eventhandler was initialized
+	 * @var array<string,array<string,bool>>
+	 */
 	protected array $dontActivateEvents = [];
 	public const PACKET_TYPE_REGEX = '/packet\(\d+\)/';
 	public const TIMER_EVENT_REGEX = '/timer\(([0-9a-z]+)\)/';
@@ -71,8 +77,7 @@ class EventManager {
 	}
 
 	/**
-	 * @name: register
-	 * @description: Registers an event on the bot so it can be configured
+	 *  Registers an event on the bot so it can be configured
 	 */
 	public function register(string $module, string $type, string $filename, string $description='none', ?string $help='', ?int $defaultStatus=null): void {
 		$type = strtolower($type);
@@ -104,7 +109,7 @@ class EventManager {
 				return;
 			}
 			if ($defaultStatus === null) {
-				if ($this->chatBot->vars['default_module_status'] == 1) {
+				if ($this->config->defaultModuleStatus) {
 					$status = 1;
 				} else {
 					$status = 0;
@@ -204,6 +209,7 @@ class EventManager {
 			if (!isset($this->dynamicEvents[$type])) {
 				return;
 			}
+			/** @psalm-suppress RedundantFunctionCall */
 			$this->dynamicEvents[$type] = array_values(
 				array_filter(
 					$this->dynamicEvents[$type],
@@ -337,9 +343,13 @@ class EventManager {
 	}
 
 	public function getEventTypeByMethod(object $obj, string $methodName): ?string {
-		$method = new ReflectionAnnotatedMethod($obj, $methodName);
-		if ($method->hasAnnotation('Event')) {
-			return strtolower($method->getAnnotation('Event')->value);
+		$method = new ReflectionMethod($obj, $methodName);
+		foreach ($method->getAttributes(NCA\Event::class) as $event) {
+			/** @var NCA\Event */
+			$eventObj = $event->newInstance();
+			foreach ((array)$eventObj->name as $eventName) {
+				return strtolower($eventName);
+			}
 		}
 		return null;
 	}
@@ -362,7 +372,7 @@ class EventManager {
 		$this->db->table(self::DB_TABLE)
 			->where("status", 1)
 			->asObj(EventCfg::class)
-			->each(function(EventCfg $row) {
+			->each(function(EventCfg $row): void {
 				if (isset($this->dontActivateEvents[$row->type][$row->file])) {
 					unset($this->dontActivateEvents[$row->type][$row->file]);
 				} elseif (isset($row->type) && isset($row->file)) {
@@ -450,7 +460,7 @@ class EventManager {
 		return 0;
 	}
 
-	public function fireEvent(Event $eventObj, ...$args): void {
+	public function fireEvent(Event $eventObj, mixed ...$args): void {
 		foreach ($this->events as $type => $handlers) {
 			if ($eventObj->type !== $type && !fnmatch($type, $eventObj->type, FNM_CASEFOLD)) {
 				continue;
@@ -492,6 +502,7 @@ class EventManager {
 			return $eventObj;
 		}
 		try {
+			// @phpstan-ignore-next-line
 			$typedEvent = $class::fromSyncEvent($eventObj);
 		} catch (Throwable $e) {
 			return null;
@@ -500,6 +511,7 @@ class EventManager {
 	}
 
 	/**
+	 * @param mixed[] $args
 	 * @throws StopExecutionException
 	 */
 	public function callEventHandler(Event $eventObj, string $handler, array $args): void {

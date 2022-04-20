@@ -2,30 +2,32 @@
 
 namespace Nadybot\Modules\RELAY_MODULE;
 
+use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\DBRow;
 
 class RelayLayer extends DBRow {
 	/**
 	 * The id of the relay layer. Lower id means higher priority
-	 * @json:ignore
 	 */
+	#[NCA\JSON\Ignore]
 	public int $id;
 
 	/**
 	 * The id of the relay where this layer belongs to
-	 * @json:ignore
 	 */
+	#[NCA\JSON\Ignore]
 	public int $relay_id;
 
 	/** Which relay stack layer does this represent? */
 	public string $layer;
 
 	/**
-	 * @db:ignore
 	 * @var RelayLayerArgument[]
 	 */
+	#[NCA\DB\Ignore]
 	public array $arguments = [];
 
+	/** @param string[] $secrets */
 	public function toString(?string $linkType=null, array $secrets=[]): string {
 		$arguments = array_map(
 			function(RelayLayerArgument $argument) use ($secrets): string {

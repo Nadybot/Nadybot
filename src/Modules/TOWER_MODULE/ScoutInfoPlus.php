@@ -9,7 +9,7 @@ class ScoutInfoPlus extends ScoutInfo {
 	public int $max_ql;
 	public int $x_coord;
 	public int $y_coord;
-	public int $org_id;
+	public ?int $org_id;
 	public string $site_name;
 	public int $enabled = 1;
 }

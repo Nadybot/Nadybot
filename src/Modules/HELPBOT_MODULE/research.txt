@@ -1,5 +1,0 @@
-To show information about a specified research level:
-<highlight><tab><symbol>research 'level'<end>
-
-To show the amount of SK needed from one research level to another:
-<highlight><tab><symbol>research 'start level' 'end level'<end>

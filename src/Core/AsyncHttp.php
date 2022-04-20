@@ -2,7 +2,9 @@
 
 namespace Nadybot\Core;
 
+use Nadybot\Core\Attributes as NCA;
 use Exception;
+use Safe\Exceptions\StreamException;
 
 /**
  * The AsyncHttp class provides means to make HTTP and HTTPS requests.
@@ -12,17 +14,16 @@ use Exception;
  * AsyncHttp class.
  */
 class AsyncHttp {
+	#[NCA\Inject]
+	public SettingManager $settingManager;
 
-	/** @Inject */
-	public SettingObject $setting;
-
-	/** @Inject */
+	#[NCA\Inject]
 	public SocketManager $socketManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Timer $timer;
 
-	/** @Logger */
+	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
 	/**
@@ -76,8 +77,8 @@ class AsyncHttp {
 	/**
 	 * The socket to communicate with
 	 *
-	 * @var null|false|resource
-	 * @psalm-var null|false|resource|closed-resource
+	 * @var null|resource
+	 * @psalm-var null|resource|closed-resource
 	 */
 	private $stream = null;
 
@@ -207,7 +208,12 @@ class AsyncHttp {
 	 * @internal
 	 */
 	public function abortWithMessage(string $errorString): void {
-		$this->setError($errorString . " for uri: '" . $this->uri . "' with params: '" . http_build_query($this->queryParams) . "'");
+		$query = http_build_query($this->queryParams);
+		if (strlen($query)) {
+			$query = "?{$query}";
+		}
+		$message = "{$errorString} for uri: '{$this->uri}{$query}'";
+		$this->setError($message);
 		$this->finish();
 	}
 
@@ -243,7 +249,7 @@ class AsyncHttp {
 			$this->notifier = null;
 		}
 		if (isset($this->stream) && is_resource($this->stream)) {
-			fclose($this->stream);
+			@fclose($this->stream);
 		}
 	}
 
@@ -278,14 +284,27 @@ class AsyncHttp {
 	 */
 	private function initTimeout(): void {
 		if ($this->timeout === null) {
-			$this->timeout = (int)$this->setting->http_timeout;
+			$this->timeout = $this->settingManager->getInt("http_timeout") ?? 10;
 		}
 
 		$this->timeoutEvent = $this->timer->callLater(
 			$this->timeout,
-			[$this, 'abortWithMessage'],
-			"Timeout error after waiting {$this->timeout} seconds"
+			\Closure::fromCallable([$this, 'timeout']),
 		);
+	}
+
+	private function timeout(): void {
+		if ($this->retriesLeft === 0 || $this->method !== 'get') {
+			$this->abortWithMessage("Timeout error after waiting {$this->timeout} seconds");
+			return;
+		}
+		$this->logger->info("Request to {uri} timed out after {timeout}s, retrying", [
+			"uri" => $this->uri,
+			"timeout" => $this->timeout ?? "<unknown>",
+		]);
+		$this->retriesLeft--;
+		$this->close();
+		$this->execute();
 	}
 
 	/**
@@ -293,18 +312,23 @@ class AsyncHttp {
 	 */
 	private function createStream(): bool {
 		$streamUri = $this->getStreamUri();
-		$this->stream = stream_socket_client(
-			$streamUri,
-			$errno,
-			$errstr,
-			0,
-			$this->getStreamFlags()
-		);
-		if ($this->stream === false) {
-			$this->abortWithMessage("Failed to create socket stream, reason: $errstr ($errno)");
+		try {
+			$this->stream = \Safe\stream_socket_client(
+				$streamUri,
+				$errno,
+				$errstr,
+				0,
+				$this->getStreamFlags()
+			);
+			\Safe\stream_set_blocking($this->stream, false);
+		} catch (StreamException $e) {
+			$this->logger->error("Unable to connect to {uri}: {error}", [
+				"uri" => $streamUri,
+				"error" => $errstr ?? $e->getMessage(),
+				"exception" => $e,
+			]);
 			return false;
 		}
-		stream_set_blocking($this->stream, false);
 		$this->logger->info("Stream for {$streamUri} created", ["uri" => $this->uri]);
 		return true;
 	}
@@ -332,6 +356,10 @@ class AsyncHttp {
 	 * Turn on TLS as soon as we can write and then continue processing as usual
 	 */
 	private function activateTLS(): void {
+		if (!is_resource($this->stream)) {
+			$this->logger->info("Activating TLS not possible for closed stream", ["uri" => $this->uri]);
+			return;
+		}
 		$this->notifier = new SocketNotifier(
 			$this->stream,
 			SocketNotifier::ACTIVITY_WRITE,
@@ -354,6 +382,16 @@ class AsyncHttp {
 			$this->logger->info("TLS crypto activated successfully", ["uri" => $this->uri]);
 			$this->setupStreamNotify();
 		} elseif ($sslResult === false) {
+			if (isset($this->notifier)) {
+				$this->socketManager->removeSocketNotifier($this->notifier);
+			}
+			$this->logger->info("TLS crypto failed to activate", ["uri" => $this->uri]);
+			if ($this->retriesLeft > 0) {
+				$this->retriesLeft--;
+				$this->close();
+				$this->timer->callLater(0, [$this, "execute"]);
+				return;
+			}
 			$this->abortWithMessage(
 				"Failed to activate TLS for the connection to ".
 				$this->getStreamUri()
@@ -368,6 +406,10 @@ class AsyncHttp {
 	 * Setup the event loop to notify us when something happens in the stream
 	 */
 	private function setupStreamNotify(): void {
+		if (!is_resource($this->stream)) {
+			$this->logger->info("Setting up stream notification not possible for closed stream", ["uri" => $this->uri]);
+			return;
+		}
 		$this->notifier = new SocketNotifier(
 			$this->stream,
 			SocketNotifier::ACTIVITY_READ | SocketNotifier::ACTIVITY_WRITE | SocketNotifier::ACTIVITY_ERROR,
@@ -395,6 +437,7 @@ class AsyncHttp {
 				try {
 					$this->processRequest();
 				} catch (HttpRetryException $e) {
+					$this->close();
 					$this->execute();
 					return;
 				}
@@ -413,6 +456,7 @@ class AsyncHttp {
 		try {
 			$this->responseData .= $this->readAllFromSocket();
 		} catch (HttpRetryException $e) {
+			$this->close();
 			$this->execute();
 			return;
 		}
@@ -542,6 +586,7 @@ class AsyncHttp {
 
 	/**
 	 * Parse the received headers into an associative array [header => value]
+	 * @return array<string,string>
 	 */
 	private function extractHeadersFromHeaderData(string $data): array {
 		$headers = [];
@@ -600,9 +645,8 @@ class AsyncHttp {
 
 	/**
 	 * Set a headers to be send with the request
-	 * @param mixed $value
 	 */
-	public function withHeader(string $header, $value): self {
+	public function withHeader(string $header, mixed $value): self {
 		$this->headers[$header] = $value;
 		return $this;
 	}

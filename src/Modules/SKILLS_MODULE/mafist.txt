@@ -1,6 +1,0 @@
-To calculate the damage of your fist attacks:
-<tab><highlight><symbol>mafist 'ma skill'<end>
-
-Example:
-<tab>You have <highlight>750<end> MA Skill:
-<tab><a href='chatcmd:///tell <myname> <symbol>mafist 750'>/tell <myname> <symbol>mafist 750</a>

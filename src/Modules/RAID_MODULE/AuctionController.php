@@ -2,224 +2,188 @@
 
 namespace Nadybot\Modules\RAID_MODULE;
 
-use DateTime;
-use Exception;
+use Safe\DateTime;
+use InvalidArgumentException;
 use Nadybot\Core\{
+	Attributes as NCA,
 	CmdContext,
 	CommandAlias,
 	CommandReply,
 	DB,
 	EventManager,
+	ModuleInstance,
 	LoggerWrapper,
+	MessageHub,
 	Nadybot,
-	SettingManager,
+	ParamClass\PCharacter,
+	Routing\RoutableMessage,
+	Routing\Source,
 	Text,
 	Timer,
 	TimerEvent,
 	Util,
 };
-use Nadybot\Core\ParamClass\PCharacter;
 use Nadybot\Modules\RAFFLE_MODULE\RaffleItem;
 
 /**
  * This class contains all functions necessary to deal with points in a raid
- *
- * @Instance
  * @package Nadybot\Modules\RAID_MODULE
- *
- * @DefineCommand(
- *     command       = 'bid',
- *     accessLevel   = 'member',
- *     description   = 'Bid points for an auctioned item',
- *     help          = 'auctions.txt'
- * )
- *
- * @DefineCommand(
- *     command       = 'auction',
- *     accessLevel   = 'raid_leader_1',
- *     description   = 'Manage auctions',
- *     help          = 'auctions.txt'
- * )
-
- * @DefineCommand(
- *     command       = 'auction reimburse .+',
- *     accessLevel   = 'raid_leader_1',
- *     description   = 'Give back points for an auction',
- *     help          = 'auctions.txt'
- * )
- *
- * @ProvidesEvent("auction(start)")
- * @ProvidesEvent("auction(end)")
- * @ProvidesEvent("auction(cancel)")
- * @ProvidesEvent("auction(bid)")
  */
-class AuctionController {
+#[
+	NCA\Instance,
+	NCA\HasMigrations("Migrations/Auctions"),
+	NCA\DefineCommand(
+		command: "bid",
+		accessLevel: "member",
+		description: "Bid points for an auctioned item",
+	),
+	NCA\DefineCommand(
+		command: AuctionController::CMD_BID_AUCTION,
+		accessLevel: "raid_leader_1",
+		description: "Manage auctions",
+	),
+	NCA\DefineCommand(
+		command: AuctionController::CMD_BID_REIMBURSE,
+		accessLevel: "raid_leader_1",
+		description: "Give back points for an auction",
+	),
+
+	NCA\ProvidesEvent("auction(start)"),
+	NCA\ProvidesEvent("auction(end)"),
+	NCA\ProvidesEvent("auction(cancel)"),
+	NCA\ProvidesEvent("auction(bid)"),
+
+	NCA\EmitsMessages("auction", "start"),
+	NCA\EmitsMessages("auction", "end"),
+	NCA\EmitsMessages("auction", "cancel"),
+	NCA\EmitsMessages("auction", "bid"),
+	NCA\EmitsMessages("auction", "bid-too-low"),
+	NCA\EmitsMessages("auction", "reimburse"),
+]
+class AuctionController extends ModuleInstance {
+	public const CMD_BID_AUCTION = "bid auction";
+	public const CMD_BID_REIMBURSE = "bid reimburse";
 	public const DB_TABLE = "auction_<myname>";
 	public const ERR_NO_AUCTION = "There's currently nothing being auctioned.";
 
-	public string $moduleName;
-
-	/** @Inject */
+	#[NCA\Inject]
 	public DB $db;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public RaidController $raidController;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public RaidMemberController $raidMemberController;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public RaidPointsController $raidPointsController;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public RaidBlockController $raidBlockController;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public EventManager $eventManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public CommandAlias $commandAlias;
 
-	/** @Inject */
-	public SettingManager $settingManager;
-
-	/** @Inject */
+	#[NCA\Inject]
 	public Text $text;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Util $util;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Timer $timer;
 
-	/** @Inject */
+	#[NCA\Inject]
+	public MessageHub $messageHub;
+
+	#[NCA\Inject]
 	public Nadybot $chatBot;
 
-	/** @Logger */
+	#[NCA\Logger]
 	public LoggerWrapper $logger;
+
+	/** Allow auctions only for people in the raid */
+	#[NCA\Setting\Boolean(accessLevel: 'raid_admin_2')]
+	public bool $auctionsOnlyForRaid = false;
+
+	/** Show the name of the top bidder during the auction */
+	#[NCA\Setting\Boolean(accessLevel: 'raid_admin_2')]
+	public bool $auctionsShowMaxBidder = true;
+
+	/** Show the names of the rival bidders */
+	#[NCA\Setting\Boolean(accessLevel: 'raid_admin_2')]
+	public bool $auctionsShowRivalBidders = false;
+
+	/** Duration for auctions */
+	#[NCA\Setting\Time]
+	public int $auctionDuration = 50;
+
+	/** Bidding grace period */
+	#[NCA\Setting\Time]
+	public int $auctionMinTimeAfterBid = 5;
+
+	/** Refund tax in percent */
+	#[NCA\Setting\Number]
+	public int $auctionRefundTax = 10;
+
+	/** Refund minimum tax in points */
+	#[NCA\Setting\Number]
+	public int $auctionRefundMinTax = 0;
+
+	/** Refund maximum tax in points */
+	#[NCA\Setting\Number]
+	public int $auctionRefundMaxTax = 0;
+
+	/** Refund maximum age of auction */
+	#[NCA\Setting\Time]
+	public int $auctionRefundMaxTime = 3600; // 1h
+
+	/** Layout of the auction announcement */
+	#[NCA\Setting\Options(options: [
+		'Simple' => 1,
+		'Yellow border' => 2,
+		'Yellow header' => 3,
+		'Pink border' => 4,
+		'Rainbow border' => 5,
+	])]
+	public int $auctionAnnouncementLayout = 2;
+
+	/** Layout of the winner announcement */
+	#[NCA\Setting\Options(options: [
+		'Simple' => 1,
+		'Yellow border' => 2,
+		'Yellow header' => 3,
+		'Pink border' => 4,
+		'Rainbow border' => 5,
+		'Gratulations' => 6,
+	])]
+	public int $auctionWinnerAnnouncement = 1;
 
 	public ?Auction $auction = null;
 	protected ?TimerEvent $auctionTimer = null;
 
-	/** @Setup */
+	#[NCA\Setup]
 	public function setup(): void {
-		$this->settingManager->add(
-			$this->moduleName,
-			'auctions_only_for_raid',
-			'Allow auctions only for people in the raid',
-			'edit',
-			'options',
-			'0',
-			'true;false',
-			'1;0',
-			'raid_admin_2'
-		);
-		$this->settingManager->add(
-			$this->moduleName,
-			'auctions_show_max_bidder',
-			'Show the name of the top bidder during the auction',
-			'edit',
-			'options',
-			'1',
-			'true;false',
-			'1;0',
-			'raid_admin_2'
-		);
-		$this->settingManager->add(
-			$this->moduleName,
-			'auctions_show_rival_bidders',
-			'Show the names of the rival bidders',
-			'edit',
-			'options',
-			'0',
-			'true;false',
-			'1;0',
-			'raid_admin_2'
-		);
-		$this->settingManager->add(
-			$this->moduleName,
-			'auction_duration',
-			'Duration for auctions',
-			'edit',
-			'time',
-			'50s',
-		);
-		$this->settingManager->add(
-			$this->moduleName,
-			'auction_min_time_after_bid',
-			'Bidding grace period',
-			'edit',
-			'time',
-			'5s',
-		);
-		$this->settingManager->add(
-			$this->moduleName,
-			'auction_refund_tax',
-			'Refund tax in percent',
-			'edit',
-			'number',
-			'10',
-		);
-		$this->settingManager->add(
-			$this->moduleName,
-			'auction_refund_min_tax',
-			'Refund minimum tax in points',
-			'edit',
-			'number',
-			'0',
-		);
-		$this->settingManager->add(
-			$this->moduleName,
-			'auction_refund_max_tax',
-			'Refund maximum tax in points',
-			'edit',
-			'number',
-			'0',
-		);
-		$this->settingManager->add(
-			$this->moduleName,
-			'auction_refund_max_time',
-			'Refund maximum age of auction',
-			'edit',
-			'time',
-			'1h',
-		);
-		$this->settingManager->add(
-			$this->moduleName,
-			'auction_announcement_layout',
-			'Layout of the auction announcement',
-			'edit',
-			'options',
-			'2',
-			'Simple;Yellow border;Yellow header;Pink border;Rainbow border',
-			'1;2;3;4;5'
-		);
-		$this->settingManager->add(
-			$this->moduleName,
-			'auction_winner_announcement',
-			'Layout of the winner announcement',
-			'edit',
-			'options',
-			'1',
-			'Simple;Yellow border;Yellow header;Pink border;Rainbow border;Gratulations',
-			'1;2;3;4;5;6'
-		);
-		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations/Auctions");
 		$this->commandAlias->register($this->moduleName, "bid history", "bh");
-		$this->commandAlias->register($this->moduleName, "auction start", "bid start");
-		$this->commandAlias->register($this->moduleName, "auction end", "bid end");
-		$this->commandAlias->register($this->moduleName, "auction cancel", "bid cancel");
-		$this->commandAlias->register($this->moduleName, "auction reimburse", "bid reimburse");
-		$this->commandAlias->register($this->moduleName, "auction reimburse", "bid payback");
-		$this->commandAlias->register($this->moduleName, "auction reimburse", "bid refund");
 	}
 
-	/**
-	 * @HandlesCommand("auction")
-	 * @Mask $action start
-	 */
-	public function bidStartCommand(CmdContext $context, string $action, string $item): void {
-		if ($this->settingManager->getBool('auctions_only_for_raid') && !isset($this->raidController->raid)) {
+	protected function routeMessage(string $type, string $message): void {
+		$rMessage = new RoutableMessage($message);
+		$rMessage->prependPath(new Source("auction", $type));
+		$this->messageHub->handle($rMessage);
+	}
+
+	/** Auction an item */
+	#[NCA\HandlesCommand(self::CMD_BID_AUCTION)]
+	public function bidStartCommand(
+		CmdContext $context,
+		#[NCA\Str("start")] string $action,
+		string $item
+	): void {
+		if ($this->auctionsOnlyForRaid && !isset($this->raidController->raid)) {
 			$context->reply(RaidController::ERR_NO_RAID);
 			return;
 		}
@@ -231,15 +195,17 @@ class AuctionController {
 		$auction->item = new RaffleItem();
 		$auction->item->fromString($item);
 		$auction->auctioneer = $context->char->name;
-		$auction->end = time() + ($this->settingManager->getInt('auction_duration') ?? 50);
+		$auction->end = time() + $this->auctionDuration;
 		$this->startAuction($auction);
 	}
 
-	/**
-	 * @HandlesCommand("auction")
-	 * @Mask $action cancel
-	 */
-	public function bidCancelCommand(CmdContext $context, string $action): void {
+	/** Cancel the running auction */
+	#[NCA\HandlesCommand(self::CMD_BID_AUCTION)]
+	#[NCA\Help\Group("auction")]
+	public function bidCancelCommand(
+		CmdContext $context,
+		#[NCA\Str("cancel")] string $action
+	): void {
 		if (!isset($this->auction)) {
 			$context->reply(static::ERR_NO_AUCTION);
 			return;
@@ -255,11 +221,12 @@ class AuctionController {
 		$this->eventManager->fireEvent($event);
 	}
 
-	/**
-	 * @HandlesCommand("auction")
-	 * @Mask $action end
-	 */
-	public function bidEndCommand(CmdContext $context, string $action): void {
+	/** End the running auction prematurely */
+	#[NCA\HandlesCommand(self::CMD_BID_AUCTION)]
+	public function bidEndCommand(
+		CmdContext $context,
+		#[NCA\Str("end")] string $action
+	): void {
 		if (!isset($this->auction)) {
 			$context->reply(static::ERR_NO_AUCTION);
 			return;
@@ -268,10 +235,23 @@ class AuctionController {
 	}
 
 	/**
-	 * @HandlesCommand("auction reimburse .+")
-	 * @Mask $action (reimburse|payback|refund)
+	 * Refund someone for an accidentally won auction
+	 *
+	 * This will refund &lt;winner&gt; for the last auction they have won.
+	 * It will usually not give them back the full amount, but subtract
+	 * a small "tax", as configured on the bot.
+	 *
+	 * You cannot refund further back than the last auction &lt;winner&gt; has won.
+	 *
+	 * If you want custom refunds or refunds further back than the last
+	 * auction, take a look at the '<symbol>points add' and '<symbol>points rem' commands.
 	 */
-	public function bidReimburseCommand(CmdContext $context, string $action, PCharacter $winner): void {
+	#[NCA\HandlesCommand(self::CMD_BID_REIMBURSE)]
+	public function bidReimburseCommand(
+		CmdContext $context,
+		#[NCA\Str("reimburse", "payback", "refund")] string $action,
+		PCharacter $winner
+	): void {
 		$winner = $winner();
 		/** @var ?DBAuction */
 		$lastAuction = $this->db->table(self::DB_TABLE)
@@ -286,7 +266,7 @@ class AuctionController {
 			);
 			return;
 		}
-		$maxAge = $this->settingManager->getInt('auction_refund_max_time') ?? 3600;
+		$maxAge = $this->auctionRefundMaxTime;
 		if (time() - $lastAuction->end > $maxAge) {
 			$context->reply(
 				"<highlight>{$lastAuction->item}<end> was auctioned longer than ".
@@ -302,9 +282,9 @@ class AuctionController {
 			);
 			return;
 		}
-		$minPenalty = $this->settingManager->getInt('auction_refund_min_tax')??0;
-		$maxPenalty = $this->settingManager->getInt('auction_refund_max_tax')??0;
-		$penalty = $this->settingManager->getInt('auction_refund_tax')??10;
+		$minPenalty = $this->auctionRefundMinTax;
+		$maxPenalty = $this->auctionRefundMaxTax;
+		$penalty = $this->auctionRefundTax;
 		$percentualPenalty = (int)ceil(($lastAuction->cost??0) * $penalty / 100);
 		if ($maxPenalty > 0) {
 			$giveBack = max(
@@ -349,19 +329,22 @@ class AuctionController {
 			->where("id", $lastAuction->id)
 			->update(["reimbursed" => true]);
 		if ($minPenalty > $percentualPenalty) {
-			$this->chatBot->sendPrivate(
+			$this->routeMessage(
+				"reimburse",
 				"<highlight>{$lastAuction->winner}<end> was reimbursed <highlight>{$giveBack}<end> point".
 				(($giveBack > 1) ? "s" : "") . " ({$lastAuction->cost} - {$minPenalty} points min penalty) for ".
 				$lastAuction->item . "."
 			);
 		} elseif ($maxPenalty > 0 && $maxPenalty < $percentualPenalty) {
-			$this->chatBot->sendPrivate(
+			$this->routeMessage(
+				"reimburse",
 				"<highlight>{$lastAuction->winner}<end> was reimbursed <highlight>{$giveBack}<end> point".
 				(($giveBack > 1) ? "s" : "") . " ({$lastAuction->cost} - {$maxPenalty} points max penalty) for ".
 				$lastAuction->item . "."
 			);
 		} else {
-			$this->chatBot->sendPrivate(
+			$this->routeMessage(
+				"reimburse",
 				"<highlight>{$lastAuction->winner}<end> was reimbursed <highlight>{$giveBack}<end> point".
 				(($giveBack > 1) ? "s" : "") . " ({$lastAuction->cost} - {$penalty}% penalty) for ".
 				$lastAuction->item . "."
@@ -370,8 +353,17 @@ class AuctionController {
 	}
 
 	/**
-	 * @HandlesCommand("bid")
+	 * Place a bid for the currently running auction
+	 *
+	 * This is your maximum offer which the bot will use to automatically bid
+	 * against other players bidding on the same item.
+	 * The bot will only use up as much of your maximum offer as necessary to
+	 * win the auction.
+	 *
+	 * You can also use the same command to increase an already given maximum offer,
+	 * but not to lower it.
 	 */
+	#[NCA\HandlesCommand("bid")]
 	public function bidCommand(CmdContext $context, int $bid): void {
 		if (!$context->isDM()) {
 			$context->reply("<red>The <symbol>bid command only works in tells<end>.");
@@ -390,7 +382,7 @@ class AuctionController {
 			return;
 		}
 		if (
-			$this->settingManager->getBool('auctions_only_for_raid')
+			$this->auctionsOnlyForRaid
 			&& (
 				!isset($this->raidController->raid->raiders[$context->char->name])
 				|| isset($this->raidController->raid->raiders[$context->char->name]->left)
@@ -411,11 +403,12 @@ class AuctionController {
 		$this->bid($context->char->name, $bid, $context);
 	}
 
-	/**
-	 * @HandlesCommand("bid")
-	 * @Mask $action history
-	 */
-	public function bidHistoryCommand(CmdContext $context, string $action): void {
+	/** See a list of the last 40 auctions */
+	#[NCA\HandlesCommand("bid")]
+	public function bidHistoryCommand(
+		CmdContext $context,
+		#[NCA\Str("history")] string $action
+	): void {
 		/** @var DBAuction[] */
 		$items = $this->db->table(self::DB_TABLE)
 			->orderByDesc("id")
@@ -434,11 +427,13 @@ class AuctionController {
 		);
 	}
 
-	/**
-	 * @HandlesCommand("bid")
-	 * @Mask $action history
-	 */
-	public function bidHistorySearchCommand(CmdContext $context, string $action, string $search): void {
+	/** Search the bid history for an item */
+	#[NCA\HandlesCommand("bid")]
+	public function bidHistorySearchCommand(
+		CmdContext $context,
+		#[NCA\Str("history")] string $action,
+		string $search
+	): void {
 		$shortcuts = [
 			"boc"  => ["%Burden of Competence%"],
 			"acdc" => ["%Alien Combat Directive Controller%", "%acdc%", "%Invasion Plan%"],
@@ -458,7 +453,7 @@ class AuctionController {
 		} else {
 			$this->db->addWhereFromParams(
 				$query,
-				preg_split('/\s+/', $search),
+				\Safe\preg_split('/\s+/', $search),
 				'item'
 			);
 		}
@@ -493,6 +488,7 @@ class AuctionController {
 		$context->reply($blob);
 	}
 
+	/** @param DBAuction[] $items */
 	public function renderAuctionList(array $items): string {
 		$result = [];
 		foreach ($items as $item) {
@@ -541,20 +537,17 @@ class AuctionController {
 		if ($offer === $this->auction->max_bid) {
 			// If both bid the same, the oldest offer has priority
 			$this->auction->bid = $offer;
-			if ($this->settingManager->getBool('auctions_show_rival_bidders')) {
-				$this->chatBot->sendPrivate("{$sender}'s bid was not high enough.");
+			if ($this->auctionsShowRivalBidders) {
+				$this->routeMessage("bid-too-low", "{$sender}'s bid was not high enough.");
 			}
 		} elseif ($offer < $this->auction->max_bid) {
 			// If the new bidder bid less, than old bidder bids one more than them
 			$this->auction->bid = $offer+1;
-			if ($this->settingManager->getBool('auctions_show_rival_bidders')) {
-				$this->chatBot->sendPrivate("{$sender}'s bid was not high enough.");
+			if ($this->auctionsShowRivalBidders) {
+				$this->routeMessage("bid-too-low", "{$sender}'s bid was not high enough.");
 			}
 		} else {
-			if (
-				!$this->settingManager->getBool('auctions_show_max_bidder')
-				&& isset($this->auction->top_bidder)
-			) {
+			if (!$this->auctionsShowMaxBidder && isset($this->auction->top_bidder)) {
 				$this->chatBot->sendMassTell(
 					"You are no longer the top bidder.",
 					$this->auction->top_bidder
@@ -567,7 +560,7 @@ class AuctionController {
 			$sendto->reply("You are now the top bidder.");
 		}
 
-		$minTime = $this->settingManager->getInt('auction_min_time_after_bid') ?? 5;
+		$minTime = $this->auctionMinTimeAfterBid;
 		// When something changes, make sure people have at least
 		// $minTime seconds to place new bids
 		if (isset($this->auctionTimer)) {
@@ -629,7 +622,7 @@ class AuctionController {
 				$auction->bid * -1,
 				true,
 				$auction->item->toString(),
-				$sender ?? $this->chatBot->vars["name"],
+				$sender ?? $this->chatBot->char->name,
 				$this->raidController->raid ?? null
 			);
 		}
@@ -654,11 +647,10 @@ class AuctionController {
 	public function getBiddingInfo(): string {
 		return "<header2>Placing a bid<end>\n".
 			"To place a bid, use\n".
-			"<tab><highlight>/tell " . $this->chatBot->vars["name"] . " bid &lt;points&gt;<end>\n".
+			"<tab><highlight>/tell " . $this->chatBot->char->name . " bid &lt;points&gt;<end>\n".
 			"<i>(Replace &lt;points&gt; with the number of points you would like to bid)</i>\n\n".
-			"The auction ends after " . ($this->settingManager->getInt('auction_duration')??50).
-			"s, or " . ($this->settingManager->getInt('auction_min_time_after_bid')??5) . "s after ".
-			"the last bid was placed.\n\n".
+			"The auction ends after {$this->auctionDuration}s, or ".
+			"{$this->auctionMinTimeAfterBid}s after the last bid was placed.\n\n".
 			"<header2>How it works<end>\n".
 			"Bidding works like ebay: You bid the maximum number of points you would like ".
 			"to spend on an item.\n".
@@ -670,8 +662,13 @@ class AuctionController {
 			"Slowly increasing your bid might cost you points!";
 	}
 
+	/**
+	 * @return string[]
+	 * @psalm-return array{0:string, 1:string}
+	 * @phpstan-return array{0:string, 1:string}
+	 */
 	public function getAnnouncementBorders(): array {
-		$layout = $this->settingManager->getInt('auction_announcement_layout');
+		$layout = $this->auctionAnnouncementLayout;
 		$shortDash = str_repeat("-", 25);
 		$longDash = str_repeat("-", 65);
 		switch ($layout) {
@@ -698,7 +695,6 @@ class AuctionController {
 			default:
 				return ["", ""];
 		}
-		return ["", ""];
 	}
 
 	public function getAuctionAnnouncement(Auction $auction): string {
@@ -714,25 +710,25 @@ class AuctionController {
 		return $msg;
 	}
 
-	/**
-	 * @Event("auction(start)")
-	 * @Description("Announce a new auction")
-	 */
+	#[NCA\Event(
+		name: "auction(start)",
+		description: "Announce a new auction"
+	)]
 	public function announceAuction(AuctionEvent $event): void {
-		$this->chatBot->sendPrivate($this->getAuctionAnnouncement($event->auction));
+		$this->routeMessage("start", $this->getAuctionAnnouncement($event->auction));
 	}
 
-	/**
-	 * @Event("auction(end)")
-	 * @Description("Announce the winner of an auction")
-	 */
+	#[NCA\Event(
+		name: "auction(end)",
+		description: "Announce the winner of an auction"
+	)]
 	public function announceAuctionWinner(AuctionEvent $event): void {
 		if ($event->auction->top_bidder === null) {
-			$this->chatBot->sendPrivate("Auction is over. No one placed any bids. Do not loot it.");
+			$this->routeMessage("end", "Auction is over. No one placed any bids. Do not loot it.");
 			return;
 		}
 		$points = "point" . (($event->auction->bid > 1) ? "s" : "");
-		$layout = $this->settingManager->getInt('auction_winner_announcement') ?? 1;
+		$layout = $this->auctionWinnerAnnouncement;
 		$msg = sprintf(
 			$this->getAuctionWinnerLayout($layout),
 			$event->auction->top_bidder,
@@ -740,10 +736,13 @@ class AuctionController {
 			$event->auction->bid,
 			$points
 		);
-		$this->chatBot->sendPrivate($msg);
+		$this->routeMessage("end", $msg);
 	}
 
 	protected function rainbow(string $text, int $length=1): string {
+		if ($length < 1) {
+			throw new InvalidArgumentException("Argument\$length to " . __FUNCTION__ . "() cannot be less than 1");
+		}
 		$colors = [
 			"FF0000",
 			"FFa500",
@@ -753,9 +752,6 @@ class AuctionController {
 			"EE82EE",
 		];
 		$chars = str_split($text, $length);
-		if ($chars === false) {
-			throw new Exception("Unknown error drawing a rainbow.");
-		}
 		$result = "";
 		for ($i = 0; $i < count($chars); $i++) {
 			$result .= "<font color=#" . $colors[$i % count($colors)] . ">{$chars[$i]}</font>";
@@ -788,20 +784,19 @@ class AuctionController {
 			default:
 				return $line1;
 		}
-		return "Someone won something. And some admin misconfigured something.";
 	}
 
-	/**
-	 * @Event("auction(cancel)")
-	 * @Description("Announce the cancellation of an auction")
-	 */
+	#[NCA\Event(
+		name: "auction(cancel)",
+		description: "Announce the cancellation of an auction"
+	)]
 	public function announceAuctionCancellation(AuctionEvent $event): void {
-		$this->chatBot->sendPrivate("The auction was cancelled.");
+		$this->routeMessage("cancel", "The auction was cancelled.");
 	}
 
 	public function getRunningAuctionInfo(Auction $auction): string {
 		$msg = "The highest offer is currently ";
-		if ($this->settingManager->getBool('auctions_show_max_bidder')) {
+		if ($this->auctionsShowMaxBidder) {
 			$msg = "<highlight>{$auction->top_bidder}<end> leads with ";
 		}
 		$msg .= "<highlight>{$auction->bid}<end> point" . ($auction->bid > 1 ? "s" : "") . ". ".
@@ -810,11 +805,11 @@ class AuctionController {
 		return $msg;
 	}
 
-	/**
-	 * @Event("auction(bid)")
-	 * @Description("Announce a new bid")
-	 */
+	#[NCA\Event(
+		name: "auction(bid)",
+		description: "Announce a new bid"
+	)]
 	public function announceAuctionBid(AuctionEvent $event): void {
-		$this->chatBot->sendPrivate($this->getRunningAuctionInfo($event->auction));
+		$this->routeMessage("bid", $this->getRunningAuctionInfo($event->auction));
 	}
 }

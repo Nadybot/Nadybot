@@ -2,37 +2,33 @@
 
 namespace Nadybot\Modules\WORLDBOSS_MODULE;
 
-use Nadybot\Core\CmdContext;
-use Nadybot\Core\Text;
+use Nadybot\Core\{
+	Attributes as NCA,
+	CmdContext,
+	ModuleInstance,
+	Text,
+};
 
 /**
  * @author Equi
  * @author Nadyita (RK5) <nadyita@hodorraid.org>
- * @Instance
- *
- * Commands this controller contains:
- *	@DefineCommand(
- *		command     = 'gautrade',
- *		accessLevel = 'all',
- *		description = 'Gauntlet tradeskills',
- *		help        = 'gauntlet.txt'
- *	)
  */
-class GauntletTradeController {
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
-
-	/** @Inject */
+#[
+	NCA\Instance,
+	NCA\DefineCommand(
+		command: "gautrade",
+		accessLevel: "guest",
+		description: "Gauntlet tradeskills",
+	)
+]
+class GauntletTradeController extends ModuleInstance {
+	#[NCA\Inject]
 	public Text $text;
 
-	/**
-	 * @HandlesCommand("gautrade")
-	 */
+	/** Show the Bastion tradeskill process for a single piece */
+	#[NCA\HandlesCommand("gautrade")]
 	public function gautradeCommand(CmdContext $context): void {
-		$info = file_get_contents(__DIR__ . '/gautrade.html');
+		$info = \Safe\file_get_contents(__DIR__ . '/gautrade.html');
 		$msg = $this->text->makeBlob("Gauntlet Tradeskills", $info);
 		$context->reply($msg);
 	}

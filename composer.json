@@ -17,7 +17,7 @@
 	],
 
 	"require": {
-		"php": ">=7.4.0",
+		"php": ">=8.0.0",
 		"ext-sqlite3": "*",
 		"ext-curl": "*",
 		"ext-sockets": "*",
@@ -35,28 +35,32 @@
 		"ext-reflection": "*",
 		"ext-dom": "*",
 		"php-amqplib/php-amqplib": "^3.1.0",
-		"niktux/addendum": "0.4.4",
 		"swaggest/json-schema": "^0.12.31",
 		"illuminate/database": "^8.64",
 		"doctrine/dbal": "^3.0",
 		"kelvinmo/fernet-php": "^1.0",
 		"farafiri/php-parsing-tool": "^2.0",
-		"spatie/data-transfer-object": "^2.8",
-		"monolog/monolog": "^2.3"
+		"spatie/data-transfer-object": "^3.0",
+		"monolog/monolog": "^2.3",
+		"thecodingmachine/safe": "^2.0",
+		"netresearch/jsonmapper": "^v4.0.0"
 	},
 	"autoload": {
 		"psr-4": {
-			"Nadybot\\": "src/",
-			"Nadybot\\User\\Modules\\": "extra/"
+			"Nadybot\\User\\Modules\\": "extras/",
+			"Nadybot\\": "src/"
 		}
 	},
 	"config": {
-		"vendor-dir": "vendor"
+		"vendor-dir": "vendor",
+		"allow-plugins": {
+			"composer/package-versions-deprecated": true
+		}
 	},
 	"require-dev": {
 		"squizlabs/php_codesniffer": "^3.6",
 		"composer/composer": "^1.10.23",
-		"phpstan/phpstan": "^1.1",
+		"phpstan/phpstan": "^1.3",
 		"vimeo/psalm": "^4.12"
 	},
 	"scripts": {

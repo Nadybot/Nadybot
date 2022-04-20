@@ -2,206 +2,151 @@
 
 namespace Nadybot\Modules\GUILD_MODULE;
 
-use Illuminate\Database\Query\JoinClause;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	AOChatEvent,
+	Attributes as NCA,
 	BuddylistManager,
 	CmdContext,
+	ConfigFile,
 	DB,
-	DBRow,
+	DBSchema\Player,
 	Event,
+	ModuleInstance,
 	LoggerWrapper,
 	MessageHub,
 	Modules\ALTS\AltsController,
+	Modules\PLAYER_LOOKUP\Guild,
 	Modules\PLAYER_LOOKUP\GuildManager,
 	Modules\PLAYER_LOOKUP\PlayerManager,
 	Modules\PREFERENCES\Preferences,
 	Nadybot,
+	ParamClass\PCharacter,
+	ParamClass\PDuration,
+	ParamClass\PRemove,
+	Routing\Character,
+	Routing\Events\Base,
+	Routing\Events\Online,
+	Routing\RoutableEvent,
+	Routing\Source,
 	SettingManager,
 	Text,
 	UserStateEvent,
 	Util,
 };
-use Nadybot\Core\DBSchema\Player;
-use Nadybot\Core\Modules\PLAYER_LOOKUP\Guild;
-use Nadybot\Core\ParamClass\PCharacter;
-use Nadybot\Core\ParamClass\PDuration;
-use Nadybot\Core\ParamClass\PRemove;
-use Nadybot\Core\Routing\Character;
-use Nadybot\Core\Routing\Events\Base;
-use Nadybot\Core\Routing\Events\Online;
-use Nadybot\Core\Routing\RoutableEvent;
-use Nadybot\Core\Routing\Source;
 
 /**
  * @author Tyrence (RK2)
  * @author Mindrila (RK1)
  * @author Derroylo (RK2)
- *
- * @Instance
- *
- * Commands this controller contains:
- *	@DefineCommand(
- *		command     = "logon",
- *		accessLevel = "guild",
- *		description = "Set logon message",
- *		help        = "logon_msg.txt"
- *	)
- *	@DefineCommand(
- *		command     = "logoff",
- *		accessLevel = "guild",
- *		description = "Set logoff message",
- *		help        = "logoff_msg.txt"
- *	)
- *	@DefineCommand(
- *		command     = "lastseen",
- *		accessLevel = "guild",
- *		description = "Shows the last logoff time of a character",
- *		help        = "lastseen.txt"
- *	)
- *	@DefineCommand(
- *		command     = "recentseen",
- *		accessLevel = "guild",
- *		description = "Shows org members who have logged off recently",
- *		help        = "recentseen.txt"
- *	)
- *	@DefineCommand(
- *		command     = "notify",
- *		accessLevel = "mod",
- *		description = "Adds a character to the notify list manually",
- *		help        = "notify.txt"
- *	)
- *	@DefineCommand(
- *		command     = "updateorg",
- *		accessLevel = "mod",
- *		description = "Force an update of the org roster",
- *		help        = "updateorg.txt"
- *	)
  */
-class GuildController {
-
+#[
+	NCA\Instance,
+	NCA\HasMigrations("Migrations/Base"),
+	NCA\DefineCommand(
+		command: "logon",
+		accessLevel: "guild",
+		description: "Set logon message",
+	),
+	NCA\DefineCommand(
+		command: "logoff",
+		accessLevel: "guild",
+		description: "Set logoff message",
+	),
+	NCA\DefineCommand(
+		command: "lastseen",
+		accessLevel: "guild",
+		description: "Shows the last logoff time of a character",
+	),
+	NCA\DefineCommand(
+		command: "recentseen",
+		accessLevel: "guild",
+		description: "Shows org members who have logged off recently",
+	),
+	NCA\DefineCommand(
+		command: "notify",
+		accessLevel: "mod",
+		description: "Adds a character to the notify list manually",
+	),
+	NCA\DefineCommand(
+		command: "updateorg",
+		accessLevel: "mod",
+		description: "Force an update of the org roster",
+	),
+]
+class GuildController extends ModuleInstance {
 	public const DB_TABLE = "org_members_<myname>";
 
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
-
-	/** @Inject */
+	#[NCA\Inject]
 	public DB $db;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Nadybot $chatBot;
 
-	/** @Inject */
+	#[NCA\Inject]
+	public ConfigFile $config;
+
+	#[NCA\Inject]
 	public SettingManager $settingManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public BuddylistManager $buddylistManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public PlayerManager $playerManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public GuildManager $guildManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public MessageHub $messageHub;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Text $text;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Util $util;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public AltsController $altsController;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Preferences $preferences;
 
-	/** @Logger */
+	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
-	/**
-	 * @Setup
-	 */
-	public function setup(): void {
-		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations/Base");
+	/** Maximum characters a logon message can have */
+	#[NCA\Setting\Number(options: [100, 200, 300, 400])]
+	public int $maxLogonMsgSize = 200;
 
-		$this->settingManager->add(
-			$this->moduleName,
-			"max_logon_msg_size",
-			"Maximum characters a logon message can have",
-			"edit",
-			"number",
-			"200",
-			"100;200;300;400",
-			'',
-			"mod"
-		);
-		$this->settingManager->add(
-			$this->moduleName,
-			"max_logoff_msg_size",
-			"Maximum characters a logoff message can have",
-			"edit",
-			"number",
-			"200",
-			"100;200;300;400",
-			'',
-			"mod"
-		);
-		$this->settingManager->add(
-			$this->moduleName,
-			"first_and_last_alt_only",
-			"Show logon/logoff for first/last alt only",
-			"edit",
-			"options",
-			"0",
-			"true;false",
-			"1;0"
-		);
-		$this->settingManager->add(
-			$this->moduleName,
-			"map_org_ranks_to_bot_ranks",
-			"Map org ranks to bot ranks",
-			"edit",
-			"options",
-			"0",
-			"true;false",
-			"1;0"
-		);
-		$this->settingManager->add(
-			$this->moduleName,
-			"org_suppress_alt_list",
-			"Do not show the altlist on logon, just the name of the main",
-			"edit",
-			"options",
-			"0",
-			"true;false",
-			"1;0"
-		);
+	/** Maximum characters a logoff message can have */
+	#[NCA\Setting\Number(options: [100, 200, 300, 400])]
+	public int $maxLogoffMsgSize = 200;
+
+	/** Show logon/logoff for first/last alt only */
+	#[NCA\Setting\Boolean]
+	public bool $firstAndLastAltOnly = false;
+
+	/** Do not show the altlist on logon, just the name of the main */
+	#[NCA\Setting\Boolean]
+	public bool $orgSuppressAltList = false;
+
+	#[NCA\Setup]
+	public function setup(): void {
 		$this->loadGuildMembers();
 	}
 
 	protected function loadGuildMembers(): void {
 		$this->chatBot->guildmembers = [];
-		$query = $this->db->table(self::DB_TABLE . " AS o")
-			->leftJoin("players AS p", function(JoinClause $join) {
-				$join->on("o.name", "p.name")
-					->where("p.dimension", $this->db->getDim())
-					->where("p.guild", $this->db->getMyguild());
-			})->where("mode", "!=", "del")
-			->select("o.name")
-			->orderBy("o.name");
-		$query->selectRaw(
-			"COALESCE(" . $query->grammar->wrap("p.guild_rank_id") . ", 6)".
-			$query->as("guild_rank_id")
-		);
-		$query->asObj()->each(function(DBRow $row) {
-			$this->chatBot->guildmembers[$row->name] = $row->guild_rank_id;
+		$members = $this->db->table(self::DB_TABLE)
+			->where("mode", "!=", "del")
+			->orderBy("name")
+			->asObj(OrgMember::class);
+		$players = $this->playerManager
+			->searchByNames($this->db->getDim(), ...$members->pluck("name")->toArray());
+		$players->each(function (Player $player): void {
+			$this->chatBot->guildmembers[$player->name] = $player->guild_rank_id ?? 6;
 		});
 	}
 
@@ -214,9 +159,8 @@ class GuildController {
 			->delete();
 	}
 
-	/**
-	 * @HandlesCommand("logon")
-	 */
+	/** See your current logon message */
+	#[NCA\HandlesCommand("logon")]
 	public function logonMessageShowCommand(CmdContext $context): void {
 		$logonMessage = $this->preferences->get($context->char->name, 'logon_msg');
 
@@ -228,25 +172,25 @@ class GuildController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @HandlesCommand("logon")
-	 */
+	/** Set your new logon message. 'clear' to remove it */
+	#[NCA\HandlesCommand("logon")]
 	public function logonMessageSetCommand(CmdContext $context, string $logonMessage): void {
 		if ($logonMessage === 'clear') {
 			$this->preferences->save($context->char->name, 'logon_msg', '');
 			$msg = "Your logon message has been cleared.";
-		} elseif (strlen($logonMessage) <= $this->settingManager->getInt('max_logon_msg_size')??200) {
+		} elseif (strlen($logonMessage) <= $this->maxLogonMsgSize) {
 			$this->preferences->save($context->char->name, 'logon_msg', $logonMessage);
 			$msg = "Your logon message has been set.";
 		} else {
-			$msg = "Your logon message is too large. Your logon message may contain a maximum of " . ($this->settingManager->getInt('max_logon_msg_size')??200) . " characters.";
+			$msg = "Your logon message is too large. ".
+				"Your logon message may contain a maximum of ".
+				"{$this->maxLogonMsgSize} characters.";
 		}
 		$context->reply($msg);
 	}
 
-	/**
-	 * @HandlesCommand("logoff")
-	 */
+	/** See your current logon message */
+	#[NCA\HandlesCommand("logoff")]
 	public function logoffMessageShowCommand(CmdContext $context): void {
 		$logoffMessage = $this->preferences->get($context->char->name, 'logoff_msg');
 
@@ -258,25 +202,25 @@ class GuildController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @HandlesCommand("logoff")
-	 */
+	/** Set your new logoff message. 'clear' to remove it */
+	#[NCA\HandlesCommand("logoff")]
 	public function logoffMessageSetCommand(CmdContext $context, string $logoffMessage): void {
 		if ($logoffMessage == 'clear') {
 			$this->preferences->save($context->char->name, 'logoff_msg', '');
 			$msg = "Your logoff message has been cleared.";
-		} elseif (strlen($logoffMessage) <= $this->settingManager->getInt('max_logoff_msg_size')) {
+		} elseif (strlen($logoffMessage) <= $this->maxLogoffMsgSize) {
 			$this->preferences->save($context->char->name, 'logoff_msg', $logoffMessage);
 			$msg = "Your logoff message has been set.";
 		} else {
-			$msg = "Your logoff message is too large. Your logoff message may contain a maximum of " . ($this->settingManager->getInt('max_logoff_msg_size')??200) . " characters.";
+			$msg = "Your logoff message is too large. ".
+				"Your logoff message may contain a maximum of ".
+				"{$this->maxLogoffMsgSize} characters.";
 		}
 		$context->reply($msg);
 	}
 
-	/**
-	 * @HandlesCommand("lastseen")
-	 */
+	/** Check when a member of your org was last seen online by the bot */
+	#[NCA\HandlesCommand("lastseen")]
 	public function lastSeenCommand(CmdContext $context, PCharacter $name): void {
 		$uid = $this->chatBot->get_uid($name());
 		if (!$uid) {
@@ -320,8 +264,15 @@ class GuildController {
 	}
 
 	/**
-	 * @HandlesCommand("recentseen")
+	 * Show all org members who have logged on within a specified amount of time
+	 *
+	 * This will take into account each member's alts when reporting their last logon time
 	 */
+	#[NCA\HandlesCommand("recentseen")]
+	#[NCA\Help\Example(
+		command: "<symbol>recentseen 1d",
+		description: "List all org members who logged on within 1 day"
+	)]
 	public function recentSeenCommand(CmdContext $context, PDuration $duration): void {
 		if (!$this->isGuildBot()) {
 			$context->reply("The bot must be in an org.");
@@ -338,20 +289,21 @@ class GuildController {
 		$timeString = $this->util->unixtimeToReadable($time, false);
 		$time = time() - $time;
 
-		$query = $this->db->table(self::DB_TABLE . " AS o")
-			->leftJoin("alts AS a", "o.name", "a.alt")
+		/** @var Collection<RecentOrgMember> */
+		$members = $this->db->table(self::DB_TABLE)
 			->where("mode", "!=", "del")
 			->where("logged_off", ">", $time)
-			->orderByDesc("o.logged_off")
-			->orderBy("o.name");
-		$query->selectRaw($query->colFunc("COALESCE", ["a.main", "o.name"], "main")->getValue());
-		$query->addSelect("o.logged_off", "o.name");
-		$data = $query->asObj();
+			->orderByDesc("logged_off")
+			->asObj(RecentOrgMember::class);
+		$members->each(function (RecentOrgMember $member): void {
+			$member->main = $this->altsController->getMainOf($member->name);
+		});
 
-		if ($data->count() === 0) {
+		if ($members->count() === 0) {
 			$context->reply("No members recorded.");
 			return;
 		}
+		$members = $members->groupBy("main");
 
 		$numRecentCount = 0;
 		$highlight = false;
@@ -359,17 +311,20 @@ class GuildController {
 		$blob = "Org members who have logged off within the last <highlight>{$timeString}<end>.\n\n";
 
 		$prevToon = '';
-		foreach ($data as $row) {
-			if ($row->main === $prevToon) {
+		foreach ($members as $main => $memberAlts) {
+			/** @var Collection<RecentOrgMember> $memberAlts */
+			$member = $memberAlts->first();
+			/** @var RecentOrgMember $member */
+			if ($member->main === $prevToon) {
 				continue;
 			}
-			$prevToon = $row->main;
+			$prevToon = $member->main;
 			$numRecentCount++;
-			$alts = $this->text->makeChatcmd("alts", "/tell <myname> alts {$row->main}");
-			$logged = $row->logged_off;
-			$lastToon = $row->name;
+			$alts = $this->text->makeChatcmd("alts", "/tell <myname> alts {$member->main}");
+			$logged = $member->logged_off??time();
+			$lastToon = $member->name;
 
-			$character = "<pagebreak><highlight>{$row->main}<end> [{$alts}]\n".
+			$character = "<pagebreak><highlight>{$member->main}<end> [{$alts}]\n".
 				"<tab>Last seen as $lastToon on ".
 				$this->util->date($logged) . "\n\n";
 			if ($highlight === true) {
@@ -385,11 +340,13 @@ class GuildController {
 	}
 
 	/**
-	 * @HandlesCommand("notify")
-	 * @Mask $action (on|add)
+	 * Manually add a character to the notify list
+	 *
+	 * Do this if someone is an org member, but not in the org roster yet
 	 */
-	public function notifyAddCommand(CmdContext $context, string $action, PCharacter $who): void {
-		$name = $who();
+	#[NCA\HandlesCommand("notify")]
+	public function notifyAddCommand(CmdContext $context, #[NCA\Str("on", "add")] string $action, PCharacter $char): void {
+		$name = $char();
 		$uid = $this->chatBot->get_uid($name);
 
 		if (!$uid) {
@@ -398,12 +355,12 @@ class GuildController {
 			return;
 		}
 
-		$row = $this->db->table(self::DB_TABLE)
+		$mode = $this->db->table(self::DB_TABLE)
 			->where("name", $name)
 			->select("mode")
-			->asObj()->first();
+			->pluckAs("mode", "string")->first();
 
-		if ($row !== null && $row->mode !== "del") {
+		if ($mode !== null && $mode !== "del") {
 			$msg = "<highlight>{$name}<end> is already on the Notify list.";
 			$context->reply($msg);
 			return;
@@ -429,10 +386,11 @@ class GuildController {
 	}
 
 	/**
-	 * @HandlesCommand("notify")
+	 * Manually remove a character from the notify list
 	 */
-	public function notifyRemoveCommand(CmdContext $context, PRemove $action, PCharacter $who): void {
-		$name = $who();
+	#[NCA\HandlesCommand("notify")]
+	public function notifyRemoveCommand(CmdContext $context, PRemove $action, PCharacter $char): void {
+		$name = $char();
 		$uid = $this->chatBot->get_uid($name);
 
 		if (!$uid) {
@@ -441,14 +399,14 @@ class GuildController {
 			return;
 		}
 
-		$row = $this->db->table(self::DB_TABLE)
+		$mode = $this->db->table(self::DB_TABLE)
 			->where("name", $name)
 			->select("mode")
-			->asObj()->first();
+			->pluckAs("mode", "string")->first();
 
-		if ($row === null) {
+		if ($mode === null) {
 			$msg = "<highlight>{$name}<end> is not on the guild roster.";
-		} elseif ($row->mode == "del") {
+		} elseif ($mode == "del") {
 			$msg = "<highlight>{$name}<end> has already been removed from the Notify list.";
 		} else {
 			$this->db->table(self::DB_TABLE)
@@ -463,24 +421,23 @@ class GuildController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @HandlesCommand("updateorg")
-	 */
+	/** Force an update of the org roster */
+	#[NCA\HandlesCommand("updateorg")]
 	public function updateorgCommand(CmdContext $context): void {
 		$context->reply("Starting Roster update");
 		$this->updateOrgRoster([$context, "reply"], "Finished Roster update");
 	}
 
-	public function updateOrgRoster(?callable $callback=null, ...$args): void {
-		if (!$this->isGuildBot()) {
+	public function updateOrgRoster(?callable $callback=null, mixed ...$args): void {
+		if (!$this->isGuildBot() || !isset($this->config->orgId)) {
 			return;
 		}
 		$this->logger->notice("Starting Roster update");
 
 		// Get the guild info
 		$this->guildManager->getByIdAsync(
-			$this->chatBot->vars["my_guild_id"],
-			$this->chatBot->vars["dimension"],
+			$this->config->orgId,
+			$this->config->dimension,
 			true,
 			[$this, "updateRosterForGuild"],
 			$callback,
@@ -488,7 +445,10 @@ class GuildController {
 		);
 	}
 
-	public function updateRosterForGuild(?Guild $org, ?callable $callback, ...$args): void {
+	/**
+	 * @psalm-param null|callable(mixed...) $callback
+	 */
+	public function updateRosterForGuild(?Guild $org, ?callable $callback, mixed ...$args): void {
 		// Check if guild xml file is correct if not abort
 		if ($org === null) {
 			$this->logger->error("Error downloading the guild roster xml file");
@@ -504,6 +464,7 @@ class GuildController {
 		// Save the current org_members table in a var
 		/** @var Collection<OrgMember> */
 		$data = $this->db->table(self::DB_TABLE)->asObj(OrgMember::class);
+		// @phpstan-ignore-next-line
 		if ($data->count() === 0 && (count($org->members) > 0)) {
 			$restart = true;
 		} else {
@@ -523,7 +484,7 @@ class GuildController {
 		// Going through each member of the org and add or update his/her
 		foreach ($org->members as $member) {
 			// don't do anything if $member is the bot itself
-			if (strtolower($member->name) === strtolower($this->chatBot->vars["name"])) {
+			if (strtolower($member->name) === strtolower($this->chatBot->char->name)) {
 				continue;
 			}
 
@@ -590,25 +551,25 @@ class GuildController {
 		$abbr = $this->settingManager->getString('relay_guild_abbreviation');
 		$re->prependPath(new Source(
 			Source::ORG,
-			$this->chatBot->vars["my_guild"],
+			$this->config->orgName,
 			($abbr === "none") ? null : $abbr
 		));
 		$re->setData($event);
 		$this->messageHub->handle($re);
 	}
 
-	/**
-	 * @Event("timer(24hrs)")
-	 * @Description("Download guild roster xml and update guild members")
-	 */
+	#[NCA\Event(
+		name: "timer(24hrs)",
+		description: "Download guild roster xml and update guild members"
+	)]
 	public function downloadOrgRosterEvent(Event $eventObj): void {
 		$this->updateOrgRoster();
 	}
 
-	/**
-	 * @Event("orgmsg")
-	 * @Description("Automatically update guild roster as characters join and leave the guild")
-	 */
+	#[NCA\Event(
+		name: "orgmsg",
+		description: "Automatically update guild roster as characters join and leave the guild"
+	)]
 	public function autoNotifyOrgMembersEvent(AOChatEvent $eventObj): void {
 		$message = $eventObj->message;
 		if (preg_match("/^(.+) invited (.+) to your organization.$/", $message, $arr)) {
@@ -697,7 +658,7 @@ class GuildController {
 	}
 
 	public function getLogonMessageAsync(string $player, bool $suppressAltList, callable $callback): void {
-		if ($this->settingManager->getBool('first_and_last_alt_only')) {
+		if ($this->firstAndLastAltOnly) {
 			// if at least one alt/main is already online, don't show logon message
 			$altInfo = $this->altsController->getAltInfo($player);
 			if (count($altInfo->getOnlineAlts()) > 1) {
@@ -713,10 +674,10 @@ class GuildController {
 		);
 	}
 
-	/**
-	 * @Event("logOn")
-	 * @Description("Shows an org member logon in chat")
-	 */
+	#[NCA\Event(
+		name: "logOn",
+		description: "Shows an org member logon in chat"
+	)]
 	public function orgMemberLogonMessageEvent(UserStateEvent $eventObj): void {
 		$sender = $eventObj->sender;
 		if (!isset($this->chatBot->guildmembers[$sender])
@@ -724,7 +685,7 @@ class GuildController {
 			|| !is_string($sender)) {
 			return;
 		}
-		$suppressAltList = $this->settingManager->getBool('org_suppress_alt_list') ?? false;
+		$suppressAltList = $this->orgSuppressAltList;
 		$this->getLogonMessageAsync($sender, $suppressAltList, function(string $msg) use ($sender): void {
 			$this->chatBot->getUid($sender, function(?int $uid, string $msg, string $sender): void {
 				$e = new Online();
@@ -738,7 +699,7 @@ class GuildController {
 	}
 
 	public function getLogoffMessage(string $player): ?string {
-		if ($this->settingManager->getBool('first_and_last_alt_only')) {
+		if ($this->firstAndLastAltOnly) {
 			// if at least one alt/main is still online, don't show logoff message
 			$altInfo = $this->altsController->getAltInfo($player);
 			if (count($altInfo->getOnlineAlts()) > 0) {
@@ -754,10 +715,10 @@ class GuildController {
 		return $msg;
 	}
 
-	/**
-	 * @Event("logOff")
-	 * @Description("Shows an org member logoff in chat")
-	 */
+	#[NCA\Event(
+		name: "logOff",
+		description: "Shows an org member logoff in chat"
+	)]
 	public function orgMemberLogoffMessageEvent(UserStateEvent $eventObj): void {
 		$sender = $eventObj->sender;
 		if (!isset($this->chatBot->guildmembers[$sender])
@@ -781,10 +742,10 @@ class GuildController {
 		}, $sender);
 	}
 
-	/**
-	 * @Event("logOff")
-	 * @Description("Record org member logoff for lastseen command")
-	 */
+	#[NCA\Event(
+		name: "logOff",
+		description: "Record org member logoff for lastseen command"
+	)]
 	public function orgMemberLogoffRecordEvent(UserStateEvent $eventObj): void {
 		$sender = $eventObj->sender;
 		if (!isset($this->chatBot->guildmembers[$sender])
@@ -799,32 +760,32 @@ class GuildController {
 	}
 
 	public function isGuildBot(): bool {
-		return !empty($this->chatBot->vars["my_guild"])
-			&& !empty($this->chatBot->vars["my_guild_id"]);
+		return !empty($this->config->orgName)
+			&& !empty($this->config->orgId);
 	}
 
-	/**
-	 * @Event("connect")
-	 * @Description("Verifies that org name is correct")
-	 */
+	#[NCA\Event(
+		name: "connect",
+		description: "Verifies that org name is correct"
+	)]
 	public function verifyOrgNameEvent(Event $eventObj): void {
-		if (empty($this->chatBot->vars["my_guild"])) {
+		if (empty($this->config->orgName)) {
 			return;
 		}
-		if (empty($this->chatBot->vars["my_guild_id"])) {
-			$this->logger->warning("Org name '{$this->chatBot->vars["my_guild"]}' specified, but bot does not appear to belong to an org");
+		if (empty($this->config->orgId)) {
+			$this->logger->warning("Org name '{$this->config->orgName}' specified, but bot does not appear to belong to an org");
 			return;
 		}
-		$gid = $this->getOrgChannelIdByOrgId($this->chatBot->vars["my_guild_id"]);
+		$gid = $this->getOrgChannelIdByOrgId($this->config->orgId);
 		$orgChannel = $this->chatBot->gid[$gid]??null;
-		if (isset($orgChannel) && $orgChannel !== "Clan (name unknown)" && $orgChannel !== $this->chatBot->vars["my_guild"]) {
-			$this->logger->warning("Org name '{$this->chatBot->vars["my_guild"]}' specified, but bot belongs to org '$orgChannel'");
+		if (isset($orgChannel) && $orgChannel !== "Clan (name unknown)" && $orgChannel !== $this->config->orgName) {
+			$this->logger->warning("Org name '{$this->config->orgName}' specified, but bot belongs to org '$orgChannel'");
 		}
 	}
 
 	public function getOrgChannelIdByOrgId(int $orgId): ?string {
 		foreach ($this->chatBot->grp as $gid => $status) {
-			$string = unpack("N", substr((string)$gid, 1));
+			$string = \Safe\unpack("N", substr((string)$gid, 1));
 			if (ord(substr((string)$gid, 0, 1)) === 3 && $string[1] == $orgId) {
 				return (string)$gid;
 			}

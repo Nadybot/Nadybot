@@ -23,9 +23,8 @@ class ModuleSetting {
 
 	/**
 	 * The current value
-	 * @var null|int|string|bool
 	 */
-	public $value = null;
+	public null|int|string|bool $value = null;
 
 	/**
 	 * A list of predefined options to pick from
@@ -83,6 +82,10 @@ class ModuleSetting {
 			case 'discord_channel':
 				$this->type = static::TYPE_DISCORD_CHANNEL;
 				$this->value = (string)$setting->value;
+				break;
+			case 'bool':
+				$this->type = static::TYPE_BOOL;
+				$this->value = (bool)$setting->value;
 				break;
 			case 'options':
 				if ($this->type === static::TYPE_BOOL) {

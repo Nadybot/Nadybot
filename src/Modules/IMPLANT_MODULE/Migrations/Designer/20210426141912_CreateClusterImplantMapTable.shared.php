@@ -11,7 +11,7 @@ class CreateClusterImplantMapTable implements SchemaMigration {
 	public function migrate(LoggerWrapper $logger, DB $db): void {
 		$table = "ClusterImplantMap";
 		$db->schema()->dropIfExists($table);
-		$db->schema()->create($table, function(Blueprint $table) {
+		$db->schema()->create($table, function(Blueprint $table): void {
 			$table->integer("ImplantTypeID");
 			$table->integer("ClusterID");
 			$table->integer("ClusterTypeID");

@@ -10,5 +10,5 @@ class PremadeSearchResult extends DBRow {
 	public string $ability;
 	public string $shiny;
 	public string $bright;
-	public string $fade;
+	public string $faded;
 }

@@ -13,7 +13,7 @@ jobs:
       - name: Install dependencies
         shell: bash
         run: |
-          composer install --no-dev --no-suggest
+          composer install --no-dev
           rm -rf "$(composer config vendor-dir)/niktux/addendum/Tests"
           rm -f "$(composer config vendor-dir)/niktux/addendum/composer.phar"
           composer dumpautoload --no-dev --optimize

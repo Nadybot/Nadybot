@@ -2,22 +2,26 @@
 
 namespace Nadybot\Core;
 
+use Nadybot\Core\Attributes as NCA;
+use RuntimeException;
+use Safe\Exceptions\StreamException;
+
 class WebsocketClient extends WebsocketBase {
 	protected string $uri;
 	/** @var array<string,string> */
 	protected array $headers = [];
 	protected bool $isSSL = false;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public SocketManager $socketManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Util $util;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Timer $timer;
 
-	/** @Logger */
+	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
 	public function __destruct() {
@@ -52,11 +56,6 @@ class WebsocketClient extends WebsocketBase {
 
 	public function withTimeout(int $timeout): self {
 		$this->timeout = $timeout;
-		return $this;
-	}
-
-	public function withframeSize(int $frameSize): self {
-		$this->frameSize = $frameSize;
 		return $this;
 	}
 
@@ -111,27 +110,36 @@ class WebsocketClient extends WebsocketBase {
 		$errno = null;
 		$errstr = null;
 		$this->timeoutChecker = $this->timer->callLater($this->timeout, [$this, "checkTimeout"]);
-		$socket = @stream_socket_client(
-			"$streamUri:$port",
-			$errno,
-			$errstr,
-			0,
-			STREAM_CLIENT_CONNECT|STREAM_CLIENT_ASYNC_CONNECT,
-			$context
-		);
-		if ($socket === false) {
+		try {
+			$socket = \Safe\stream_socket_client(
+				"$streamUri:$port",
+				$errno,
+				$errstr,
+				0,
+				STREAM_CLIENT_CONNECT|STREAM_CLIENT_ASYNC_CONNECT,
+				$context
+			);
+		} catch (StreamException $e) {
 			$this->throwError(
 				WebsocketError::CONNECT_ERROR,
-				$errstr
+				$e->getMessage()
 			);
 			return false;
 		}
 		$this->socket = $socket;
-		$this->notifier = new SocketNotifier(
-			$this->socket,
-			SocketNotifier::ACTIVITY_WRITE,
-			[$this, $this->isSSL ? 'enableTLS' : 'upgradeToWebsocket']
-		);
+		if ($this->isSSL) {
+			$this->notifier = new SocketNotifier(
+				$this->socket,
+				SocketNotifier::ACTIVITY_WRITE,
+				[$this, 'enableTLS']
+			);
+		} else {
+			$this->notifier = new SocketNotifier(
+				$this->socket,
+				SocketNotifier::ACTIVITY_WRITE,
+				[$this, 'upgradeToWebsocket']
+			);
+		}
 		$this->socketManager->addSocketNotifier($this->notifier);
 		return true;
 	}
@@ -177,6 +185,9 @@ class WebsocketClient extends WebsocketBase {
 			$this->socketManager->removeSocketNotifier($this->notifier);
 		}
 		$urlParts = parse_url($this->uri);
+		if (!is_array($urlParts)) {
+			throw new RuntimeException("Error parsing {$this->uri}");
+		}
 		$port = $urlParts['port'] ?? (($urlParts["scheme"]??null) === 'wss' ? 443 : 80);
 		$path = ($urlParts["path"] ?? "/").
 			(isset($urlParts["query"]) ? "?" . $urlParts["query"] : "").
@@ -205,7 +216,7 @@ class WebsocketClient extends WebsocketBase {
 
 		$headers = array_merge($headers, $this->headers);
 		$headerStrings =  array_map(
-			function (string $key, string $value) {
+			function (string $key, string $value): string {
 				return "$key: $value";
 			},
 			array_keys($headers),
@@ -219,10 +230,13 @@ class WebsocketClient extends WebsocketBase {
 			"uri" => $this->uri,
 			"header" => $header,
 		]);
+		if (!is_resource($this->socket)) {
+			return;
+		}
 		$this->notifier = new SocketNotifier(
 			$this->socket,
 			SocketNotifier::ACTIVITY_READ,
-			function() use ($key) {
+			function() use ($key): void {
 				$this->validateWebsocketUpgradeReply($key);
 			}
 		);
@@ -230,7 +244,7 @@ class WebsocketClient extends WebsocketBase {
 		$this->socketManager->addSocketNotifier($this->notifier);
 	}
 
-	public function validateWebsocketUpgradeReply($key): bool {
+	public function validateWebsocketUpgradeReply(string $key): bool {
 		if (isset($this->notifier)) {
 			$this->socketManager->removeSocketNotifier($this->notifier);
 		}
@@ -238,11 +252,12 @@ class WebsocketClient extends WebsocketBase {
 			return false;
 		}
 		// Server response headers must be terminated with double CR+LF
-		$response = stream_get_line($this->socket, 4096, "\r\n\r\n");
-		if ($response === false) {
+		try {
+			$response = \Safe\stream_get_line($this->socket, 4096, "\r\n\r\n");
+		} catch (StreamException $e) {
 			$this->throwError(
 				WebsocketError::UNKNOWN_ERROR,
-				"Unknown error reading websocket upgrade reply"
+				"Error reading websocket upgrade reply: " . $e->getMessage()
 			);
 			return false;
 		}
@@ -252,6 +267,9 @@ class WebsocketClient extends WebsocketBase {
 		]);
 
 		$urlParts = parse_url($this->uri);
+		if (!is_array($urlParts)) {
+			throw new RuntimeException("Unable to parse {$this->uri}");
+		}
 		$path = ($urlParts["path"] ?? "/").
 			(isset($urlParts["query"]) ? "?" . $urlParts["query"] : "").
 			(isset($urlParts["fragment"]) ? "#" . $urlParts["fragment"] : "");
@@ -265,12 +283,12 @@ class WebsocketClient extends WebsocketBase {
 		}
 
 		$keyAccept = trim($matches[1]);
-		$expectedResonse = base64_encode(pack('H*', sha1($key . static::GUID)));
+		$expectedResonse = base64_encode(\Safe\pack('H*', sha1($key . static::GUID)));
 
 		if ($keyAccept !== $expectedResonse) {
 			$this->throwError(
 				WebsocketError::INVALID_UPGRADE_RESPONSE,
-				'Server sent bad upgrade response.'
+				"Server sent bad upgrade response '{$keyAccept}' instead of '{$expectedResonse}'."
 			);
 			return false;
 		}

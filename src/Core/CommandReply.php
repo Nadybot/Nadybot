@@ -12,5 +12,5 @@ interface CommandReply {
 	 * @param string|string[] $msg
 	 * @return void
 	 */
-	public function reply($msg): void;
+	public function reply(string|array $msg): void;
 }

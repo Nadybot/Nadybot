@@ -2,14 +2,16 @@
 
 namespace Nadybot\Modules\WEBSERVER_MODULE;
 
-use DateTime;
+use Safe\DateTime;
 use Exception;
 use Nadybot\Core\{
+	Attributes as NCA,
 	EventManager,
 	LoggerWrapper,
 	SettingManager,
 	Socket\AsyncSocket,
 };
+use Safe\Exceptions\FilesystemException;
 use stdClass;
 use Throwable;
 
@@ -17,13 +19,15 @@ use Throwable;
  * A convenient wrapper around AsyncSockets that emits
  * http(get) and http(post) events
  *
- * @ProvidesEvent("http(get)")
- * @ProvidesEvent("http(head)")
- * @ProvidesEvent("http(post)")
- * @ProvidesEvent("http(put)")
- * @ProvidesEvent("http(delete)")
- * @ProvidesEvent("http(patch)")
  */
+#[
+	NCA\ProvidesEvent("http(get)"),
+	NCA\ProvidesEvent("http(head)"),
+	NCA\ProvidesEvent("http(post)"),
+	NCA\ProvidesEvent("http(put)"),
+	NCA\ProvidesEvent("http(delete)"),
+	NCA\ProvidesEvent("http(patch)")
+]
 class HttpProtocolWrapper {
 	public const EXPECT_REQUEST = 1;
 	public const EXPECT_HEADER = 2;
@@ -34,16 +38,16 @@ class HttpProtocolWrapper {
 	protected AsyncSocket $asyncSocket;
 	protected Request $request;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public WebserverController $webserverController;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public EventManager $eventManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public SettingManager $settingManager;
 
-	/** @Logger */
+	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
 	protected string $readQueue = "";
@@ -86,7 +90,7 @@ class HttpProtocolWrapper {
 			throw new Exception("Webserver out-of-sync");
 		}
 		if ($this->asyncSocket->getState() !== $this->asyncSocket::STATE_READY) {
-			fread($sock, 4096);
+			\Safe\fread($sock, 4096);
 			return;
 		}
 		switch ($this->nextPart) {
@@ -246,7 +250,7 @@ class HttpProtocolWrapper {
 			}
 		}
 		if (isset($this->request->headers['if-none-match']) && isset($response->headers['ETag'])) {
-			$tags = preg_split("/\s*,\s*/", $this->request->headers['if-none-match']);
+			$tags = \Safe\preg_split("/\s*,\s*/", $this->request->headers['if-none-match']);
 			foreach ($tags as $tag) {
 				if ($tag === '*' || $tag === $response->headers['ETag']) {
 					return false;
@@ -284,7 +288,7 @@ class HttpProtocolWrapper {
 			$this->httpError(new Response(Response::NOT_IMPLEMENTED));
 			return;
 		}
-		$parts = parse_url($matches[2]);
+		$parts = \Safe\parse_url($matches[2]);
 		if (!is_array($parts)) {
 			$this->httpError(new Response(Response::BAD_REQUEST));
 			$this->nextPart = static::EXPECT_IGNORE;
@@ -317,7 +321,7 @@ class HttpProtocolWrapper {
 			return;
 		}
 		if ($line !== '') {
-			$parts = preg_split("/\s*:\s*/", $line, 2);
+			$parts = \Safe\preg_split("/\s*:\s*/", $line, 2);
 			if (count($parts) !== 2) {
 				$this->httpError(new Response(Response::BAD_REQUEST));
 				return;
@@ -361,9 +365,10 @@ class HttpProtocolWrapper {
 			$socket->close();
 			return;
 		}
-		$buffer = fread($sock, $readChunk);
-		if ($buffer === false) {
-			$this->logger->info("Error reading body from socket: " . (error_get_last()["message"]??""));
+		try {
+			$buffer = \Safe\fread($sock, $readChunk);
+		} catch (FilesystemException $e) {
+			$this->logger->info("Error reading body from socket: " . $e->getMessage());
 			$socket->close();
 			return;
 		}
@@ -407,12 +412,13 @@ class HttpProtocolWrapper {
 		if (!isset($this->request->headers["authorization"])) {
 			return null;
 		}
-		$parts = preg_split("/\s+/", $this->request->headers["authorization"]);
-		if (count($parts) !== 2 || strtolower($parts[0]) !== 'basic') {
-			return null;
-		}
-		$userPassString = base64_decode($parts[1]);
-		if ($userPassString === false) {
+		try {
+			$parts = \Safe\preg_split("/\s+/", $this->request->headers["authorization"]);
+			if (count($parts) !== 2 || strtolower($parts[0]) !== 'basic') {
+				return null;
+			}
+			$userPassString = \Safe\base64_decode($parts[1]);
+		} catch (Exception) {
 			return null;
 		}
 		$userPass = explode(":", $userPassString, 2);
@@ -457,15 +463,15 @@ class HttpProtocolWrapper {
 		if (!isset($this->request->headers['content-type'])) {
 			return new Response(Response::UNSUPPORTED_MEDIA_TYPE);
 		}
-		if (preg_split("/;\s*/", $this->request->headers['content-type'])[0] === 'application/json') {
+		if (\Safe\preg_split("/;\s*/", $this->request->headers['content-type'])[0] === 'application/json') {
 			try {
-				$this->request->decodedBody = json_decode($this->request->body, false, 512, JSON_THROW_ON_ERROR);
+				$this->request->decodedBody = \Safe\json_decode($this->request->body);
 				return null;
 			} catch (Throwable $error) {
 				return new Response(Response::BAD_REQUEST, [], "Invalid JSON given: ".$error->getMessage());
 			}
 		}
-		if (preg_split("/;\s*/", $this->request->headers['content-type'])[0] === 'application/x-www-form-urlencoded') {
+		if (\Safe\preg_split("/;\s*/", $this->request->headers['content-type'])[0] === 'application/x-www-form-urlencoded') {
 			$parts = explode("&", $this->request->body);
 			$result = new stdClass();
 			foreach ($parts as $part) {

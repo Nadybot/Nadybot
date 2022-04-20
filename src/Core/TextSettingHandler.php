@@ -2,14 +2,14 @@
 
 namespace Nadybot\Core;
 
+use Nadybot\Core\Attributes as NCA;
 use Exception;
 
 /**
  * Class to represent a setting with a text value for NadyBot
- * @SettingHandler("text")
  */
+#[NCA\SettingHandler("text")]
 class TextSettingHandler extends SettingHandler {
-
 	/**
 	 * @inheritDoc
 	 */
@@ -30,5 +30,16 @@ class TextSettingHandler extends SettingHandler {
 			throw new Exception("Your text can not be longer than 255 characters.");
 		}
 		return $newValue;
+	}
+
+	/**
+	 * Get a displayable representation of the setting
+	 */
+	public function displayValue(string $sender): string {
+		$displayValue = parent::displayValue($sender);
+		if ($displayValue === "<highlight><end>") {
+			$displayValue = "<grey>&lt;empty&gt;<end>";
+		}
+		return $displayValue;
 	}
 }

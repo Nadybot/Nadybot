@@ -5,6 +5,7 @@ namespace Nadybot\Core\Socket;
 use Exception;
 use InvalidArgumentException;
 use Nadybot\Core\{
+	Attributes as NCA,
 	LoggerWrapper,
 	SocketManager,
 	SocketNotifier,
@@ -33,15 +34,16 @@ class AsyncSocket {
 	 */
 	protected $socket = null;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public SocketManager $socketManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Timer $timer;
 
-	/** @Logger("Core/AsyncSocket") */
+	#[NCA\Logger("Core/AsyncSocket")]
 	public LoggerWrapper $logger;
 
+	/** @var array<WriteClosureInterface|ShutdownRequest|string> */
 	protected array $writeQueue = [];
 
 	/** @var array<string,callable[]> */
@@ -60,10 +62,13 @@ class AsyncSocket {
 	protected int $timeout = 5;
 	protected int $state = self::STATE_READY;
 
+	/**
+	 * @param resource $socket
+	 */
 	public function __construct($socket) {
 		try {
 			$this->socket = $socket;
-			stream_set_blocking($this->socket, false);
+			\Safe\stream_set_blocking($this->socket, false);
 		} catch (Throwable $e) {
 			throw new InvalidArgumentException("Argument 1 to " . get_class() . "::__construct() must be a socket.");
 		}
@@ -78,6 +83,7 @@ class AsyncSocket {
 		return $this->socket;
 	}
 
+	/** @return array<WriteClosureInterface|ShutdownRequest|string> */
 	public function getWriteQueue(): array {
 		return $this->writeQueue;
 	}
@@ -85,7 +91,7 @@ class AsyncSocket {
 	public function setTimeout(int $timeout): self {
 		$this->timeout = $timeout;
 		if ($timeout > 0 && is_resource($this->socket)) {
-			stream_set_timeout($this->socket, $timeout);
+			\Safe\stream_set_timeout($this->socket, $timeout);
 		}
 		return $this;
 	}
@@ -172,7 +178,7 @@ class AsyncSocket {
 	}
 
 	protected function initNotifier(): void {
-		if (isset($this->notifier) || $this->state === static::STATE_CLOSED) {
+		if (isset($this->notifier) || $this->state === static::STATE_CLOSED || !is_resource($this->socket)) {
 			return;
 		}
 		$this->notifier = new SocketNotifier(
@@ -204,7 +210,7 @@ class AsyncSocket {
 	/**
 	 * Trigger an event and call all registered callbacks
 	 */
-	protected function trigger(string $event, ...$params): void {
+	protected function trigger(string $event, mixed ...$params): void {
 		foreach ($this->callbacks[$event] as $callback) {
 			$callback($this, ...$params);
 		}
@@ -346,7 +352,7 @@ class AsyncSocket {
 				return;
 			}
 			$this->logger->info('Closing socket');
-			if (!is_resource($this->socket) || @stream_socket_shutdown($this->socket, STREAM_SHUT_WR) === false) {
+			if (!is_resource($this->socket) || @\stream_socket_shutdown($this->socket, STREAM_SHUT_WR) === false) {
 				$this->forceClose();
 				return;
 			}
@@ -416,7 +422,7 @@ class AsyncSocket {
 				'"'
 			);
 		}
-		$written = is_resource($this->socket) ? fwrite($this->socket, $data, 4096) : false;
+		$written = is_resource($this->socket) ? \Safe\fwrite($this->socket, $data, 4096) : false;
 		if ($written === false) {
 			$this->forceClose();
 			return false;

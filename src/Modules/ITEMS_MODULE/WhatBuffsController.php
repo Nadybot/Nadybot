@@ -2,118 +2,113 @@
 
 namespace Nadybot\Modules\ITEMS_MODULE;
 
+use Closure;
 use Illuminate\Database\Query\JoinClause;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
+	Attributes as NCA,
 	CmdContext,
 	CommandManager,
 	CommandReply,
 	DB,
-	DBRow,
 	Http,
+	ModuleInstance,
 	LoggerWrapper,
 	QueryBuilder,
-	SettingManager,
+	ParamClass\PWord,
 	Text,
 	Util,
 };
-use Nadybot\Core\ParamClass\PWord;
+use Nadybot\Modules\SKILLS_MODULE\{
+	BuffPerksController,
+	Perk,
+	PerkLevelBuff,
+	SkillsController,
+};
 
-/**
- * @Instance
- *
- * Commands this controller contains:
- *	@DefineCommand(
- *		command     = 'whatbuffs',
- *		accessLevel = 'all',
- *		description = 'Find items or nanos that buff an ability or skill',
- *		help        = 'whatbuffs.txt'
- *	)
- *	@DefineCommand(
- *		command     = 'whatbuffsfroob',
- *		accessLevel = 'all',
- *		alias       = 'wbf',
- *		description = 'Find froob-friendly items or nanos that buff an ability or skill',
- *		help        = 'whatbuffs.txt'
- *	)
- */
-class WhatBuffsController {
-
-	public string $moduleName;
-
-	/** @Inject */
+#[
+	NCA\Instance,
+	NCA\HasMigrations("Migrations/Buff"),
+	NCA\DefineCommand(
+		command: "whatbuffs",
+		accessLevel: "guest",
+		description: "Find items or nanos that buff an ability or skill",
+	),
+	NCA\DefineCommand(
+		command: "whatbuffsfroob",
+		accessLevel: "guest",
+		description: "Find froob-friendly items or nanos that buff an ability or skill",
+		alias: "wbf"
+	),
+]
+class WhatBuffsController extends ModuleInstance {
+	#[NCA\Inject]
 	public Http $http;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Text $text;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public DB $db;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Util $util;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public CommandManager $commandManager;
 
-	/** @Inject */
-	public SettingManager $settingManager;
-
-	/** @Inject */
+	#[NCA\Inject]
 	public ItemsController $itemsController;
 
-	/** @Logger */
+	#[NCA\Inject]
+	public BuffPerksController $buffPerksController;
+
+	#[NCA\Inject]
+	public SkillsController $skillsController;
+
+	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
-	/** @Setup */
+	/** How to mark if an item can only be equipped left or right */
+	#[NCA\Setting\Options(options: [
+		'Do not mark' => 0,
+		'L/R' => 1,
+		'L-Wrist/R-Wrist' => 2,
+	])]
+	public int $whatbuffsDisplay = 2;
+
+	/** How to mark unique items */
+	#[NCA\Setting\Options(options: [
+		'Do not mark' => 0,
+		'U' => 1,
+		'Unique' => 2,
+	])]
+	public int $whatbuffsShowUnique = 2;
+
+	/** How to mark nodrop items */
+	#[NCA\Setting\Options(options: [
+		'Do not mark' => 0,
+		'ND' => 1,
+		'Nodrop' => 2,
+	])]
+	public int $whatbuffsShowNodrop = 0;
+
+	#[NCA\Setup]
 	public function setup(): void {
-		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations/Buff");
 		$this->db->loadCSVFile($this->moduleName, __DIR__ . "/item_buffs.csv");
 		$this->db->loadCSVFile($this->moduleName, __DIR__ . "/skills.csv");
 		$this->db->loadCSVFile($this->moduleName, __DIR__ . "/skill_alias.csv");
 		$this->db->loadCSVFile($this->moduleName, __DIR__ . "/item_types.csv");
 		$this->db->loadCSVFile($this->moduleName, __DIR__ . "/buffs.csv");
-
-		$this->settingManager->add(
-			$this->moduleName,
-			'whatbuffs_display',
-			'How to mark if an item can only be equipped left or right',
-			'edit',
-			'options',
-			'2',
-			'Do not mark;L/R;L-Wrist/R-Wrist',
-			'0;1;2',
-		);
-		$this->settingManager->add(
-			$this->moduleName,
-			'whatbuffs_show_unique',
-			'How to mark unique items',
-			'edit',
-			'options',
-			'2',
-			'Do not mark;U;Unique',
-			'0;1;2',
-		);
-		$this->settingManager->add(
-			$this->moduleName,
-			'whatbuffs_show_nodrop',
-			'How to mark nodrop items',
-			'edit',
-			'options',
-			'0',
-			'Do not mark;ND;Nodrop',
-			'0;1;2',
-		);
 	}
 
-	/** @HandlesCommand("whatbuffs") */
+	/** Show a list of attributes and skills that are being buffed */
+	#[NCA\HandlesCommand("whatbuffs")]
+	#[NCA\HandlesCommand("whatbuffsfroob")]
 	public function whatbuffsCommand(CmdContext $context): void {
-		$this->showSkillChoice($context, false);
-	}
-
-	/** @HandlesCommand("whatbuffsfroob") */
-	public function whatbuffsFroobCommand(CmdContext $context): void {
-		$this->showSkillChoice($context, true);
+		$command = explode(" ", $context->message)[0];
+		$froobFriendly = strtolower($command) === "whatbuffsfroob";
+		$this->showSkillChoice($context, $froobFriendly);
 	}
 
 	public function showSkillChoice(CommandReply $sendto, bool $froobFriendly): void {
@@ -124,7 +119,7 @@ class WhatBuffsController {
 		$skills = $this->db->table('skills')
 			->join('item_buffs', 'item_buffs.attribute_id', '=', 'skills.id')
 			->orderBy('skills.name')
-			->select('skills.name')
+			->select('skills.*')
 			->distinct()
 			->asObj(Skill::class);
 		foreach ($skills as $skill) {
@@ -135,10 +130,11 @@ class WhatBuffsController {
 		$sendto->reply($msg);
 	}
 
-	/**
-	 * @HandlesCommand("whatbuffs")
-	 * @HandlesCommand("whatbuffsfroob")
-	 */
+	/** Search for buff items for a slot or skill/attribute */
+	#[
+		NCA\HandlesCommand("whatbuffs"),
+		NCA\HandlesCommand("whatbuffsfroob")
+	]
 	public function whatbuffsOneWordCommand(CmdContext $context, PWord $search): void {
 		$command = explode(" ", $context->message)[0];
 		$froobFriendly = strtolower($command) === "whatbuffsfroob";
@@ -176,29 +172,42 @@ class WhatBuffsController {
 			if ($froobFriendly) {
 				$query->where('buffs.froob_friendly', '=', true);
 			}
-			$data = $query->asObj();
+			$data = $query->asObj(SkillBuffItemCount::class);
 		} elseif ($type === 'Perk') {
 			if ($froobFriendly) {
 				$sendto->reply("Froobs don't have perks.");
 				return;
 			}
-			$query = $this->db->table('perk');
-			$query
-				->join("perk_level", "perk_level.perk_id", "=", "perk.id")
-				->join("perk_level_buffs", "perk_level_buffs.perk_level_id", "=", "perk_level.id")
-				->join('skills', 'perk_level_buffs.skill_id', '=', 'skills.id')
-				->where(function(QueryBuilder $query) {
-					$query->whereIn('skills.name', ['SkillLockModifier', '% Add. Nano Cost'])
-						->orWhere('perk_level_buffs.amount', '>', 0);
-				})
-				->groupBy('skills.name')
-				->havingRaw($query->rawFunc('COUNT', 1) . " > 0")
-				->orderBy('skills.name')
-				->select([
-					"skills.name AS skill",
-					$query->rawFunc('COUNT', 1, 'num')
-				]);
-			$data = $query->asObj();
+			$perkBuffs = $this->buffPerksController->perks->reduce(
+				function(Collection $result, Perk $perk): Collection {
+					$skills = [];
+					foreach ($perk->levels as $perkLevel) {
+						foreach ($perkLevel->buffs as $skillId => $amount) {
+							if (in_array($skillId, [382, 318]) ? $amount < 0 : $amount > 0) {
+								$skills[$skillId] = true;
+							}
+						}
+					}
+					foreach ($skills as $skillId => $true) {
+						$result->put($skillId, $result->get($skillId, 0)+1);
+					}
+					return $result;
+				},
+				new Collection()
+			);
+			/** @var Collection<int,Skill> */
+			$skillsById = $this->db->table("skills")
+				->asObj(Skill::class)
+				->keyBy("id");
+			$data = $perkBuffs->map(function (int $buff, int $skillId) use ($skillsById): ?SkillBuffItemCount {
+				$result = new SkillBuffItemCount();
+				if ($skillsById->get($skillId) === null) {
+					return null;
+				}
+				$result->skill = $skillsById->get($skillId)->name;
+				$result->num = $buff;
+				return $result;
+			})->filter()->sortBy("skill");
 		} else {
 			$query = $this->db->table('aodb');
 			$query
@@ -217,11 +226,17 @@ class WhatBuffsController {
 			if ($froobFriendly) {
 				$query->where('aodb.froob_friendly', '=', true);
 			}
-			$data = $query->asObj();
+			$data = $query->asObj(SkillBuffItemCount::class);
 		}
+		/** @var SkillBuffItemCount[] $data */
 		$blob = "<header2>Choose the skill to buff<end>\n";
 		foreach ($data as $row) {
-			$blob .= "<tab>" . $this->text->makeChatcmd(ucfirst($row->skill), "/tell <myname> {$command} $type $row->skill") . " ($row->num)\n";
+			$blob .= "<tab>".
+				$this->text->makeChatcmd(
+					ucfirst($row->skill),
+					"/tell <myname> {$command} {$type} {$row->skill}"
+				).
+				" ({$row->num})\n";
 		}
 		$blob .= "\nItem Extraction Info provided by AOIA+";
 		$suffix = $froobFriendly ? "Froob" : "";
@@ -229,18 +244,38 @@ class WhatBuffsController {
 		$sendto->reply($msg);
 	}
 
-	/**
-	 * @HandlesCommand("whatbuffs")
-	 */
+	/** Search for a slot and or skill/attribute to buff */
+	#[NCA\HandlesCommand("whatbuffs")]
+	#[NCA\HandlesCommand("whatbuffsfroob")]
+	#[NCA\Help\Example("<symbol>whatbuffs cl nanoprogram")]
+	#[NCA\Help\Example("<symbol>whatbuffs legs agility")]
 	public function whatbuffs5Command(CmdContext $context, string $search): void {
-		$this->handleOtherComandline(false, $context, $search);
+		$command = explode(" ", $context->message)[0];
+		$froobFriendly = strtolower($command) === "whatbuffsfroob";
+		$this->handleOtherComandline($froobFriendly, $context, $search);
 	}
 
-	/**
-	 * @HandlesCommand("whatbuffsfroob")
-	 */
-	public function whatbuffsfroob5Command(CmdContext $context, string $search): void {
-		$this->handleOtherComandline(true, $context, $search);
+	public function filterGoodPerkBuffs(PerkLevelBuff $buff): bool {
+		return in_array($buff->skill_id, [382, 318])
+			? $buff->amount < 0
+			: $buff->amount > 0;
+	}
+
+	public function createPerkFilter(int $skillId): Closure {
+		return function (Perk $perk, string $perkName) use ($skillId): bool {
+			foreach ($perk->levels as $level => $perkLevel) {
+				if (!isset($perkLevel->buffs[$skillId])) {
+					continue;
+				}
+				$matches = in_array($skillId, [382, 318])
+					? $perkLevel->buffs[$skillId] < 0
+					: $perkLevel->buffs[$skillId] > 0;
+				if ($matches) {
+					return true;
+				}
+			}
+			return false;
+		};
 	}
 
 	public function handleOtherComandline(bool $froobFriendly, CmdContext $context, string $search): void {
@@ -311,37 +346,27 @@ class WhatBuffsController {
 					' AS ' . $nanoQuery->grammar->wrap('item_type')
 				)
 			);
-		$perkQuery = $this->db->table('perk_level_buffs');
-		$perkQuery
-			->join('perk_level', 'perk_level.id', '=', 'perk_level_buffs.perk_level_id')
-			->join('perk', 'perk.id', '=', 'perk_level.perk_id')
-			->join('skills', 'skills.id', '=', 'perk_level_buffs.skill_id')
-			->where(function(QueryBuilder $query) {
-				$query->whereIn('skills.name', ['SkillLockModifier', '% Add. Nano Cost'])
-					->orWhere('perk_level_buffs.amount', '>', 0);
-			})
-			->groupBy('perk.name')
-			->select(
-				$perkQuery->raw(
-					$perkQuery->grammar->quoteString('Perk').
-					' AS ' . $perkQuery->grammar->wrap('item_type')
-				)
-			);
 		if ($froobFriendly) {
 			$itemQuery->where('aodb.froob_friendly', '=', true);
 			$nanoQuery->where('buffs.froob_friendly', '=', true);
 		}
 		$innerQuery = $itemQuery
 			->unionAll($nanoQuery);
-		if (!$froobFriendly) {
-			$innerQuery->unionAll($perkQuery);
-		}
 		$query = $this->db->fromSub($innerQuery, "foo");
 		$query
 			->groupBy('foo.item_type')
 			->orderBy('foo.item_type')
 			->select(['foo.item_type', $query->rawFunc('COUNT', '*', 'num')]);
-		$data = $query->asObj();
+		$data = $query->asObj(SkillBuffTypeCount::class);
+		if (!$froobFriendly) {
+			$numPerks = $this->buffPerksController->perks->filter(
+				$this->createPerkFilter($skillId)
+			)->count();
+			$perkCount = new SkillBuffTypeCount();
+			$perkCount->item_type = "Perk";
+			$perkCount->num = $numPerks;
+			$data = $data->push($perkCount)->sortBy("item_type");
+		}
 		if (count($data) === 0) {
 			$msg = "There are currently no known items or nanos buffing <highlight>{$skillName}<end>";
 			$context->reply($msg);
@@ -360,7 +385,7 @@ class WhatBuffsController {
 	 * Gives a blob with all items buffing $skill in slot $category
 	 * @return string|string[]
 	 */
-	public function getSearchResults(string $category, Skill $skill, bool $froobFriendly) {
+	public function getSearchResults(string $category, Skill $skill, bool $froobFriendly): string|array {
 		$suffix = $froobFriendly ? "Froob" : "";
 		if ($category === 'Nanoprogram') {
 			$query = $this->db->table('buffs AS b');
@@ -396,33 +421,27 @@ class WhatBuffsController {
 			if ($froobFriendly) {
 				return "Froobs don't have perks.";
 			}
-			$query = $this->db->table('perk AS p');
-			/** @var Collection<PerkBuffSearchResult> */
-			$data = $query
-				->join('perk_level AS pl', 'pl.perk_id', 'p.id')
-				->join('perk_level_prof AS plp', 'plp.perk_level_id', 'pl.id')
-				->join('perk_level_buffs AS plb', 'plb.perk_level_id', 'pl.id')
-				->join('skills AS s', 's.id', 'plb.skill_id')
-				->where('s.id', $skill->id)
-				->where(function(QueryBuilder $query) {
-					$query->whereIn("s.name", ['SkillLockModifier', '% Add. Nano Cost'])
-						->orWhere("plb.amount", ">", 0);
-				})->groupBy("p.name", "p.expansion", "pl.perk_level", "s.unit", "pl.id")
-				->orderBy("p.name")
-				->orderBy("pl.perk_level")
-				->select("p.name", "p.expansion", "pl.perk_level", "pl.id", "s.unit")
-				->addSelect($query->colFunc("MIN", "plb.amount", "amount"))
-				->asObj(PerkBuffSearchResult::class)
-				->each(function(PerkBuffSearchResult $result) {
-					$result->profs = $this->db->table("perk_level_prof")
-						->where("perk_level_id", $result->id)
-						->select("profession")
-						->orderBy("profession")
-						->asObj()
-						->pluck("profession")
-						->join(",");
-				});
-			$data = $this->generatePerkBufflist($data->toArray());
+
+			$perks = $this->buffPerksController->perks->filter(
+				$this->createPerkFilter($skill->id)
+			);
+			$data = [];
+			$perks->each(function (Perk $perk, string $perkName) use (&$data, $skill): void {
+				foreach ($perk->levels as $perkLevel) {
+					if (!isset($perkLevel->buffs[$skill->id])) {
+						continue;
+					}
+					$result = new PerkBuffSearchResult();
+					$result->name = $perk->name;
+					$result->amount = $perkLevel->buffs[$skill->id];
+					$result->expansion = $perk->expansion;
+					$result->perk_level = $perkLevel->perk_level;
+					$result->profs = join(",", $perkLevel->professions);
+					$result->unit = $skill->unit;
+					$data []= $result;
+				}
+			});
+			$data = $this->generatePerkBufflist($data);
 			$result = $this->formatPerkBuffs($data, $skill);
 		} else {
 			$query = $this->db->table("aodb AS a");
@@ -430,7 +449,6 @@ class WhatBuffsController {
 				->join("item_types AS i", "i.item_id", "a.highid")
 				->join("item_buffs AS b", "b.item_id", "a.highid")
 				->leftJoin("item_buffs AS b2", "b2.item_id", "a.lowid")
-				->leftJoin("weapon_attributes AS wa", "wa.id", "a.highid")
 				->join("skills AS s", function(JoinClause $join) {
 					$join->on("b.attribute_id", "s.id")
 						->on("b2.attribute_id", "s.id");
@@ -440,20 +458,30 @@ class WhatBuffsController {
 					$query->whereIn("s.name", ['SkillLockModifier', '% Add. Nano Cost'])
 						->orWhere("b.amount", ">", 0);
 				})->groupBy([
-					"a.name", "a.lowql", "a.highql", "b.amount", "b2.amount",
-					"wa.multi_m", "wa.multi_r", "a.lowid", "a.highid", "a.icon",
-					"a.froob_friendly", "a.slot", "a.flags", "s.unit"
+					"a.name", "a.lowql", "a.highql", "b.amount", "b2.amount", "a.lowid",
+					"a.highid", "a.icon", "a.froob_friendly", "a.slot", "a.flags", "s.unit"
 				])->orderByDesc($query->colFunc("ABS", "b.amount"))
 				->orderByDesc("name")
 				->select([
-					"a.*", "b.amount", "b2.amount AS low_amount",
-					"wa.multi_m", "wa.multi_r", "s.unit"
+					"a.*", "b.amount", "b2.amount AS low_amount", "s.unit"
 				]);
 			if ($froobFriendly) {
 				$query->where("a.froob_friendly", true);
 			}
 			/** @var Collection<ItemBuffSearchResult> */
 			$data = $query->asObj(ItemBuffSearchResult::class);
+			$specialsById = $this->skillsController->getWeaponAttributes(
+				aoid: $data->pluck("highid")->toArray()
+			)->keyBy("id");
+			$data->each(function (ItemBuffSearchResult $item) use ($specialsById): void {
+				if (($specials = $specialsById->get($item->highid)) === null) {
+					$item->multi_m = null;
+					$item->multi_r = null;
+					return;
+				}
+				$item->multi_m = $specials->multi_m;
+				$item->multi_r = $specials->multi_r;
+			});
 			if ($data->isNotEmpty() && $data->last()->amount < 0) {
 				$data = $data->reverse();
 			}
@@ -470,10 +498,17 @@ class WhatBuffsController {
 		return $msg;
 	}
 
+	/**
+	 * @param PerkBuffSearchResult[] $data
+	 * @return PerkBuffSearchResult[]
+	 */
 	protected function generatePerkBufflist(array $data): array {
 		/** @var array<string,PerkBuffSearchResult> */
 		$result = [];
 		foreach ($data as $perk) {
+			if (!isset($perk->name)) {
+				continue;
+			}
 			if (!isset($result[$perk->name])) {
 				$result[$perk->name] = $perk;
 			} else {
@@ -524,7 +559,6 @@ class WhatBuffsController {
 
 	/**
 	 * Search for all skills and skill aliases matching $skill
-	 *
 	 * @return Skill[]
 	 */
 	public function searchForSkill(string $skill): array {
@@ -533,39 +567,45 @@ class WhatBuffsController {
 		/** @var Collection<Skill> */
 		$results = $this->db->table('skills')
 			->whereIlike('name', $skill)
-			->select(['id', 'name'])
+			->select(['id', 'name', 'unit'])
 			->distinct()
 			->union(
 				$this->db->table('skill_alias')
 					->join('skills', 'skills.id', 'skill_alias.id')
 					->whereIlike('skill_alias.name', $skill)
-					->select(['skill_alias.id', 'skills.name'])
+					->select(['skill_alias.id', 'skills.name', 'skills.unit'])
 					->distinct()
 			)->asObj(Skill::class);
 		if ($results->count() === 1) {
 			return $results->toArray();
 		}
 
-		$skillsQuery = $this->db->table('skills')->select(['id', 'name'])->distinct();
-		$aliasQuery = $this->db->table('skill_alias')->select(['id', 'name'])->distinct();
+		$skillsQuery = $this->db->table('skills')
+			->select(['id', 'name', 'unit'])
+			->distinct();
+		$aliasQuery = $this->db->table('skill_alias', 'a')
+			->join('skills AS s', 'a.id', 's.id')
+			->select(['s.id', 's.name', 's.unit'])
+			->distinct();
 
 		$tmp = explode(" ", $skill);
 		$this->db->addWhereFromParams($skillsQuery, $tmp, 'name');
-		$this->db->addWhereFromParams($aliasQuery, $tmp, 'name');
+		$this->db->addWhereFromParams($aliasQuery, $tmp, 'a.name');
 
-		return $this->db
+		$skills = $this->db
 			->fromSub(
 				$skillsQuery->union($aliasQuery),
 				"foo"
 			)
-			->groupBy("id", "name")
+			->groupBy("id", "name", "unit")
 			->orderBy("name")
-			->select(["id", "name"])
+			->select(["id", "name", "unit"])
 			->asObj(Skill::class)
 			->toArray();
+		return $skills;
 	}
 
-	public function showItemLink(DBRow $item, $ql): string {
+	public function showItemLink(AODBEntry $item, int $ql): string {
 		return $this->text->makeItem($item->lowid, $item->highid, $ql, $item->name);
 	}
 
@@ -573,21 +613,24 @@ class WhatBuffsController {
 	 * Format a list of item buff search results
 	 * @param ItemBuffSearchResult[] $items The items that matched the search
 	 * @return (int|string)[]
+	 * @psalm-return array{0: int, 1:string}
 	 */
-	public function formatItems(array $items, Skill $skill, string $category) {
-		$showUniques = $this->settingManager->getInt('whatbuffs_show_unique');
-		$showNodrops = $this->settingManager->getInt('whatbuffs_show_nodrop');
+	public function formatItems(array $items, Skill $skill, string $category): array {
+		$showUniques = $this->whatbuffsShowUnique;
+		$showNodrops = $this->whatbuffsShowNodrop;
 		$blob = "<header2>" . ucfirst($this->locationToItem($category)) . " that buff {$skill->name}<end>\n";
 		$maxBuff = 0;
 		$itemMapping = [];
+		$maxQL = [];
+		$maxAmount = [];
 		foreach ($items as $item) {
 			if ($item->amount === $item->low_amount) {
 				$item->highql = $item->lowql;
 			}
 			// Some items are not in game with the maximum possible QL
 			// Replace the shown QL with the maximum possible QL
-			$item->maxql = $item->highql;
-			$item->maxamount = $item->amount;
+			$maxQL[$item->lowid] = $item->highql;
+			$maxAmount[$item->lowid] = $item->amount;
 			if (
 				$item->highql > 250 && (
 					strpos($item->name, " Filigree Ring set with a ") !== false ||
@@ -597,7 +640,7 @@ class WhatBuffsController {
 				$item->amount = $this->util->interpolate($item->lowql, $item->highql, $item->low_amount??$item->amount, $item->amount, 250);
 				$item->highql = 250;
 			}
-			$maxBuff = (int)max($maxBuff, abs($item->amount));
+			$maxBuff = max($maxBuff, abs($item->amount));
 			if ($item->lowid === $item->highid) {
 				$itemMapping[$item->lowid] = $item;
 			}
@@ -632,13 +675,13 @@ class WhatBuffsController {
 			$blob .= $this->showItemLink($item, $item->highql);
 			if ($item->amount > $item->low_amount) {
 				$blob .= " ($item->low_amount - $item->amount)";
-				$bestQlCommands = $this->commandManager->get('bestql', 'msg');
-				if ($bestQlCommands && $bestQlCommands[0]->status) {
+				if ($this->commandManager->cmdEnabled('bestql')) {
 					$link = $this->text->makeItem($item->lowid, $item->highid, 0, $item->name);
 					$blob .= " " . $this->text->makeChatcmd(
 						"Breakpoints",
-						"/tell <myname> bestql $item->lowql $item->low_amount $item->maxql $item->maxamount ".
-						$link
+						"/tell <myname> bestql $item->lowql $item->low_amount ".
+							$maxQL[$item->lowid] . " " . $maxAmount[$item->lowid].
+							" {$link}"
 					);
 				}
 			}
@@ -656,7 +699,7 @@ class WhatBuffsController {
 	}
 
 	protected function getSlotPrefix(ItemBuffSearchResult $item, string $category): string {
-		$markSetting = $this->settingManager->getInt('whatbuffs_display');
+		$markSetting = $this->whatbuffsDisplay;
 		$result = "";
 		if ($item->multi_m !== null || $item->multi_r !== null) {
 			$handsMask = Slot::LHAND|Slot::RHAND;
@@ -738,8 +781,9 @@ class WhatBuffsController {
 	/**
 	 * @param PerkBuffSearchResult[] $perks
 	 * @return (int|string)[]
+	 * @psalm-return array{0: int, 1:string}
 	 */
-	public function formatPerkBuffs(array $perks, Skill $skill) {
+	public function formatPerkBuffs(array $perks, Skill $skill): array {
 		$blob = "<header2>Perks that buff {$skill->name}<end>\n";
 		$maxBuff = 0;
 		foreach ($perks as $perk) {
@@ -771,8 +815,9 @@ class WhatBuffsController {
 	/**
 	 * @param NanoBuffSearchResult[] $items
 	 * @return (int|string)[]
+	 * @psalm-return array{0: int, 1: string}
 	 */
-	public function formatBuffs(array $items, Skill $skill) {
+	public function formatBuffs(array $items, Skill $skill): array {
 		$items = array_values(
 			array_filter(
 				$items,
@@ -813,7 +858,7 @@ class WhatBuffsController {
 	 * Show what buffs $skillName in slot $category
 	 * @return string|string[]
 	 */
-	public function showSearchResults(string $category, string $skillName, bool $froobFriendly) {
+	public function showSearchResults(string $category, string $skillName, bool $froobFriendly): string|array {
 		$category = ucfirst(strtolower($category));
 
 		$skills = $this->searchForSkill($skillName);

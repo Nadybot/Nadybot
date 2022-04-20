@@ -11,6 +11,6 @@ jobs:
       - name: Run style checker
         shell: bash
         run: |
-          composer install --no-suggest -q
+          composer install -q
           composer dumpautoload
           "$(composer config vendor-dir)/bin/phpstan" --no-progress -n --no-ansi

@@ -4,67 +4,75 @@ namespace Nadybot\Modules\WEBSERVER_MODULE;
 
 use DateTime;
 use Exception;
-use Nadybot\Core\BotRunner;
-use Nadybot\Core\CmdContext;
-use Nadybot\Core\CommandReply;
-use Nadybot\Core\DB;
-use Nadybot\Core\EventManager;
-use Nadybot\Core\Http;
-use Nadybot\Core\HttpResponse;
-use Nadybot\Core\LoggerWrapper;
-use Nadybot\Core\MessageEmitter;
-use Nadybot\Core\MessageHub;
-use Nadybot\Core\Nadybot;
-use Nadybot\Core\Routing\Source;
-use Nadybot\Core\SettingManager;
-use Nadybot\Core\Timer;
+use Nadybot\Core\{
+	Attributes as NCA,
+	BotRunner,
+	CmdContext,
+	CommandReply,
+	ConfigFile,
+	DB,
+	EventManager,
+	Http,
+	HttpResponse,
+	ModuleInstance,
+	LoggerWrapper,
+	MessageEmitter,
+	MessageHub,
+	Nadybot,
+	Routing\Source,
+	SettingManager,
+	Timer,
+};
+use Safe\Exceptions\FilesystemException;
 use Throwable;
 use ZipArchive;
 
-/**
- * Commands this controller contains:
- *	@DefineCommand(
- *		command     = 'webui',
- *		accessLevel = 'mod',
- *		description = 'Install or upgrade the NadyUI',
- *		help        = 'webui.txt'
- *	)
- *
- * @Instance
- */
-class WebUiController implements MessageEmitter {
-	public string $moduleName;
-
-	/** @Inject */
+#[
+	NCA\DefineCommand(
+		command: "webui",
+		accessLevel: "mod",
+		description: "Install or upgrade the NadyUI",
+	),
+	NCA\Instance,
+	NCA\HasMigrations
+]
+class WebUiController extends ModuleInstance implements MessageEmitter {
+	#[NCA\Inject]
 	public Http $http;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public SettingManager $settingManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public EventManager $eventManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public WebserverController $webserverController;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public MessageHub $messageHub;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Nadybot $chatBot;
 
-	/** @Inject */
+	#[NCA\Inject]
+	public ConfigFile $config;
+
+	#[NCA\Inject]
 	public DB $db;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Timer $timer;
 
-	/** @Logger */
+	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
-	/** @Setup */
+	/** The currently installed NadyUI version */
+	#[NCA\Setting\Timestamp(mode: 'noedit')]
+	public int $nadyuiVersion = 0;
+
+	#[NCA\Setup]
 	public function setup(): void {
-		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations");
 		$uiBranches = ["off", "stable", "unstable"];
 		if (preg_match("/@(?<branch>.+)$/", BotRunner::getVersion(), $matches)) {
 			if (!in_array($matches['branch'], $uiBranches)) {
@@ -72,17 +80,13 @@ class WebUiController implements MessageEmitter {
 			}
 		}
 		$this->settingManager->add(
-			$this->moduleName,
-			"nadyui_channel",
-			"Which NadyUI webfrontend version to subscribe to",
-			"edit",
-			"options",
-			"stable",
-			join(";", $uiBranches)
-		);
-		$this->settingManager->registerChangeListener(
-			"nadyui_channel",
-			[$this, "changeNadyUiChannel"]
+			module: $this->moduleName,
+			name: "nadyui_channel",
+			description: "Which NadyUI webfrontend version to subscribe to",
+			mode: "edit",
+			type: "options",
+			value: "stable",
+			options: $uiBranches,
 		);
 		$this->messageHub->registerMessageEmitter($this);
 	}
@@ -91,6 +95,7 @@ class WebUiController implements MessageEmitter {
 		return Source::SYSTEM . '(webui)';
 	}
 
+	#[NCA\SettingChangeHandler('nadyui_channel')]
 	public function changeNadyUiChannel(string $setting, string $old, string $new): void {
 		if (empty($new) || $new === "off") {
 			return;
@@ -98,11 +103,11 @@ class WebUiController implements MessageEmitter {
 		$this->timer->callLater(0, [$this, "updateWebUI"]);
 	}
 
-	/**
-	 * @Event("timer(24hrs)")
-	 * @Description("Automatically upgrade NadyUI")
-	 * @DefaultStatus("1")
-	 */
+	#[NCA\Event(
+		name: "timer(24hrs)",
+		description: "Automatically upgrade NadyUI",
+		defaultStatus: 1
+	)]
 	public function updateWebUI(): void {
 		$channel = $this->settingManager->getString('nadyui_channel');
 		if (empty($channel) || $channel === 'off') {
@@ -172,11 +177,7 @@ class WebUiController implements MessageEmitter {
 				->withCallback([$this, "processArtifact"], $sendto, $callback);
 			return;
 		}
-		$settingName = "nadyui_version";
-		if (!$this->settingManager->exists($settingName)) {
-			$this->settingManager->add($this->moduleName, $settingName, $settingName, 'noedit', 'number', "0");
-		}
-		$currentVersion = $this->settingManager->getInt($settingName) ?? 0;
+		$currentVersion = $this->nadyuiVersion;
 		$lastModified = DateTime::createFromFormat(DateTime::RFC7231, $response->headers["last-modified"]);
 		if ($lastModified === false) {
 			$msg = "Cannot parse last modification date, assuming now";
@@ -217,7 +218,7 @@ class WebUiController implements MessageEmitter {
 		} else {
 			$action = "<green>downgraded<end> to version";
 		}
-		$this->settingManager->save($settingName, (string)$dlVersion);
+		$this->settingManager->save("nadyui_version", (string)$dlVersion);
 		if (isset($sendto)) {
 			$msg = "Webfrontend NadyUI {$action} <highlight>" . $lastModified->format("Y-m-d H:i:s") . "<end>";
 			$sendto->reply($msg);
@@ -234,7 +235,10 @@ class WebUiController implements MessageEmitter {
 		}
 		$schema = "http"; /*$this->settingManager->getBool('webserver_tls') ? "https" : "http";*/
 		$port = $this->settingManager->getInt('webserver_port');
-		$superUser = $this->chatBot->vars['SuperAdmin'];
+		if (empty($this->config->superAdmins)) {
+			return;
+		}
+		$superUser = $this->config->superAdmins[0];
 		$uuid = $this->webserverController->authenticate($superUser, 6 * 3600);
 		$this->logger->notice(
 			">>> You can now configure this bot at {$schema}://127.0.0.1:{$port}/"
@@ -255,23 +259,25 @@ class WebUiController implements MessageEmitter {
 		if ($updateDB && $this->settingManager->exists("nadyui_version")) {
 			$this->settingManager->save("nadyui_version", "0");
 		}
-		$path = $this->chatBot->vars["htmlfolder"] ?? "./html";
-		return (realpath("{$path}/css") ? $this->recursiveRemoveDirectory(realpath("{$path}/css")) : true)
-			&& (realpath("{$path}/img") ? $this->recursiveRemoveDirectory(realpath("{$path}/img")) : true)
-			&& (realpath("{$path}/js")  ? $this->recursiveRemoveDirectory(realpath("{$path}/js")) : true)
-			&& (realpath("{$path}/index.html") ? unlink(realpath("{$path}/index.html")) : true)
-			&& (realpath("{$path}/favicon.ico") ? unlink(realpath("{$path}/favicon.ico")) : true);
+		$path = $this->config->htmlFolder;
+		return (realpath("{$path}/css") ? $this->recursiveRemoveDirectory(\Safe\realpath("{$path}/css")) : true)
+			&& (realpath("{$path}/img") ? $this->recursiveRemoveDirectory(\Safe\realpath("{$path}/img")) : true)
+			&& (realpath("{$path}/js")  ? $this->recursiveRemoveDirectory(\Safe\realpath("{$path}/js")) : true)
+			&& (realpath("{$path}/index.html") ? unlink(\Safe\realpath("{$path}/index.html")) : true)
+			&& (realpath("{$path}/favicon.ico") ? unlink(\Safe\realpath("{$path}/favicon.ico")) : true);
 	}
 
 	/**
 	 * Delete a directory and all its subdirectories
 	 */
 	public function recursiveRemoveDirectory(string $directory): bool {
-		foreach (glob("{$directory}/*") as $file) {
+		foreach (\Safe\glob("{$directory}/*") as $file) {
 			if (is_dir($file)) {
 				$this->recursiveRemoveDirectory($file);
 			} else {
-				if (unlink($file) === false) {
+				try {
+					\Safe\unlink($file);
+				} catch (FilesystemException) {
 					return false;
 				}
 			}
@@ -289,18 +295,19 @@ class WebUiController implements MessageEmitter {
 	public function installNewRelease(HttpResponse $response): void {
 		try {
 			$oldMask = umask(0027);
-			$file = tmpfile();
+			$file = \Safe\tmpfile();
 			$archiveName = stream_get_meta_data($file)['uri'];
-			if (!isset($response->body) || fwrite($file, $response->body) === false) {
+			if (!isset($response->body)) {
 				throw new Exception("Cannot write to temp file {$archiveName}.");
 			}
+			\Safe\fwrite($file, $response->body) ;
 			$extractor = new ZipArchive();
 			$openResult = $extractor->open($archiveName);
 			if ($openResult !== true) {
 				throw new Exception("Error opening {$archiveName}. Code {$openResult}.");
 			}
-			$path = realpath($this->chatBot->vars["htmlfolder"] ?? "./html");
-			if ($path === false || $extractor->extractTo($path) === false) {
+			$path = \Safe\realpath($this->config->htmlFolder);
+			if ($extractor->extractTo($path) === false) {
 				throw new Exception("Error extracting {$archiveName}.");
 			}
 		} catch (Throwable $e) {
@@ -319,20 +326,27 @@ class WebUiController implements MessageEmitter {
 		}
 	}
 
-	/**
-	 * @HandlesCommand("webui")
-	 * @Mask $action install
-	 */
-	public function webUiInstallCommand(CmdContext $context, string $action, string $channel): void {
+	/** Manually install the WebUI "NadyUI" */
+	#[NCA\HandlesCommand("webui")]
+	#[NCA\Help\Epilogue(
+		"You should only use these commands for debugging. The regular way to install\n".
+		"the WebUI is via the ".
+		"<a href='chatcmd:///tell <myname> settings change nadyui_channel'>nadyui_channel</a> setting."
+	)]
+	#[NCA\Help\Example("<symbol>webui install stable")]
+	#[NCA\Help\Example("<symbol>webui install unstable")]
+	public function webUiInstallCommand(
+		CmdContext $context,
+		#[NCA\Str("install")] string $action,
+		string $channel
+	): void {
 		$this->processNadyUIRelease($channel, $context, function() {
 		});
 	}
 
-	/**
-	 * @HandlesCommand("webui")
-	 * @Mask $action uninstall
-	 */
-	public function webUiUninstallCommand(CmdContext $context, string $action): void {
+	/** Completely remove the WebUI installation */
+	#[NCA\HandlesCommand("webui")]
+	public function webUiUninstallCommand(CmdContext $context, #[NCA\Str("uninstall")] string $action): void {
 		$msg = "There was an error removig the old files from NadyUI, please clean up manually.";
 		if ($this->uninstallNadyUi(true)) {
 			$msg = "NadyUI successfully uninstalled.";

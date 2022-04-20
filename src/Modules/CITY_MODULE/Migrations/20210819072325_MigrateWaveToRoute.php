@@ -2,18 +2,21 @@
 
 namespace Nadybot\Modules\CITY_MODULE\Migrations;
 
-use Nadybot\Core\DB;
-use Nadybot\Core\DBSchema\Route;
-use Nadybot\Core\DBSchema\Setting;
-use Nadybot\Core\LoggerWrapper;
-use Nadybot\Core\MessageHub;
-use Nadybot\Core\Routing\Source;
-use Nadybot\Core\SchemaMigration;
-use Nadybot\Core\SettingManager;
+use Nadybot\Core\{
+	Attributes as NCA,
+	DB,
+	DBSchema\Route,
+	DBSchema\Setting,
+	LoggerWrapper,
+	MessageHub,
+	Routing\Source,
+	SchemaMigration,
+	SettingManager,
+};
 use Nadybot\Modules\CITY_MODULE\CityWaveController;
 
 class MigrateWaveToRoute implements SchemaMigration {
-	/** @Inject */
+	#[NCA\Inject]
 	public CityWaveController $cityWaveController;
 
 	protected function getSetting(DB $db, string $name): ?Setting {

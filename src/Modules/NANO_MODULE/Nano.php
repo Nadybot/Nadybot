@@ -18,4 +18,5 @@ class Nano extends DBRow {
 	public string $location;
 	public int $nano_cost;
 	public bool $froob_friendly;
+	public int $sort_order;
 }

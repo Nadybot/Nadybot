@@ -89,4 +89,7 @@ class Intent {
 
 	/** - TYPING_START */
 	public const DIRECT_MESSAGE_TYPING = 1 << 14;
+
+	/** - MESSAGE_CONTENT */
+	public const MESSAGE_CONTENT = 1 << 15;
 }

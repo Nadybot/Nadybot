@@ -13,7 +13,7 @@ class CreateBankTable implements SchemaMigration {
 		if ($db->schema()->hasTable($table)) {
 			return;
 		}
-		$db->schema()->create($table, function(Blueprint $table) {
+		$db->schema()->create($table, function(Blueprint $table): void {
 			$table->string("name", 150)->nullable();
 			$table->integer("lowid")->nullable();
 			$table->integer("highid")->nullable();

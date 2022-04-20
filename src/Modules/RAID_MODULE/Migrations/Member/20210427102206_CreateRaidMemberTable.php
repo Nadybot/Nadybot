@@ -14,7 +14,7 @@ class CreateRaidMemberTable implements SchemaMigration {
 		if ($db->schema()->hasTable($table)) {
 			return;
 		}
-		$db->schema()->create($table, function(Blueprint $table) {
+		$db->schema()->create($table, function(Blueprint $table): void {
 			$table->integer("raid_id")->index();
 			$table->string("player", 20)->index();
 			$table->integer("joined")->nullable();

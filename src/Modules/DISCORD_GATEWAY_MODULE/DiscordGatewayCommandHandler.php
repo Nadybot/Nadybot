@@ -2,105 +2,93 @@
 
 namespace Nadybot\Modules\DISCORD_GATEWAY_MODULE;
 
+use Closure;
 use Nadybot\Core\{
+	Attributes as NCA,
+	AccessLevelProvider,
+	AccessManager,
 	CmdContext,
 	CommandManager,
 	DB,
+	ModuleInstance,
 	LoggerWrapper,
+	Modules\DISCORD\DiscordAPIClient,
+	Modules\DISCORD\DiscordUser,
 	Nadybot,
+	ParamClass\PCharacter,
+	Routing\Source,
 	Registry,
 	SettingManager,
 	Text,
 };
-use Nadybot\Core\Modules\DISCORD\DiscordAPIClient;
-use Nadybot\Core\Modules\DISCORD\DiscordUser;
-use Nadybot\Core\ParamClass\PCharacter;
 
 /**
  * @author Nadyita (RK5)
- *
- * @Instance
- *
- * Commands this controller contains:
- *	@DefineCommand(
- *		command       = 'extauth',
- *		accessLevel   = 'all',
- *		description   = 'Link an AO account with a Discord user',
- *		help          = 'extauth.txt'
- *	)
  */
-class DiscordGatewayCommandHandler {
+#[
+	NCA\Instance,
+	NCA\HasMigrations,
+	NCA\DefineCommand(
+		command: "extauth",
+		accessLevel: "all",
+		description: "Link an AO account with a Discord user",
+	)
+]
+class DiscordGatewayCommandHandler extends ModuleInstance implements AccessLevelProvider {
 	public const DB_TABLE = "discord_mapping_<myname>";
-
-	public string $moduleName;
-
-	/** @Inject */
+	#[NCA\Inject]
 	public DB $db;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Nadybot $chatBot;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Text $text;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public SettingManager $settingManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public CommandManager $commandManager;
 
-	/** @Inject */
+	#[NCA\Inject]
+	public AccessManager $accessManager;
+
+	#[NCA\Inject]
 	public DiscordAPIClient $discordAPIClient;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public DiscordGatewayController $discordGatewayController;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public DiscordRelayController $discordRelayController;
 
-	/** @Logger */
+	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
-	/** @Setup */
+	#[NCA\Setup]
 	public function setup(): void {
-		$this->settingManager->add(
-			$this->moduleName,
-			"discord_process_commands",
-			"Process commands sent on Discord",
-			"edit",
-			"options",
-			"0",
-			"true;false",
-			"1;0"
-		);
-		$this->settingManager->add(
-			$this->moduleName,
-			"discord_process_commands_only_in",
-			"Limit command execution to a specific channel",
-			"edit",
-			"discord_channel",
-			"off",
-		);
-		$this->settingManager->add(
-			$this->moduleName,
-			"discord_unknown_cmd_errors",
-			"Show a message for unknown commands on Discord",
-			"edit",
-			"options",
-			"1",
-			"true;false",
-			"1;0"
-		);
-		$this->settingManager->add(
-			$this->moduleName,
-			"discord_symbol",
-			"Discord command prefix symbol",
-			"edit",
-			"text",
-			"!",
-			"!;#;*;@;$;+;-",
-		);
-		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations");
+		$this->accessManager->registerProvider($this);
+		$this->commandManager->registerSource(Source::DISCORD_MSG . "(*)");
+		$this->commandManager->registerSource(Source::DISCORD_PRIV . "(*)");
+	}
+
+	public function getSingleAccessLevel(string $sender): ?string {
+		if (!ctype_digit($sender)) {
+			return null;
+		}
+		$guilds = $this->discordGatewayController->getGuilds();
+		foreach ($guilds as $guild) {
+			foreach ($guild->members as $member) {
+				if (!isset($member->user)) {
+					continue;
+				}
+				if ($member->user->id === $sender) {
+					return "guest";
+				}
+			}
+		}
+		return null;
 	}
 
 	public function getNameForDiscordId(string $discordId): ?string {
@@ -113,11 +101,9 @@ class DiscordGatewayCommandHandler {
 		return $data ? $data->name : null;
 	}
 
-	/**
-	 * @HandlesCommand("extauth")
-	 * @Mask $action accept
-	 */
-	public function extAuthAccept(CmdContext $context, string $action, string $uid): void {
+	/** Accept to be linked with a Discord account */
+	#[NCA\HandlesCommand("extauth")]
+	public function extAuthAccept(CmdContext $context, #[NCA\Str("accept")] string $action, string $uid): void {
 		if (!$context->isDM()) {
 			return;
 		}
@@ -154,11 +140,9 @@ class DiscordGatewayCommandHandler {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @HandlesCommand("extauth")
-	 * @Mask $action reject
-	 */
-	public function extAuthRejectCommand(CmdContext $context, string $action, string $uid): void {
+	/** Reject to be linked with a Discord account */
+	#[NCA\HandlesCommand("extauth")]
+	public function extAuthRejectCommand(CmdContext $context, #[NCA\Str("reject")] string $action, string $uid): void {
 		if (!$context->isDM()) {
 			return;
 		}
@@ -172,10 +156,17 @@ class DiscordGatewayCommandHandler {
 	}
 
 	/**
-	 * @HandlesCommand("extauth")
-	 * @Mask $action request
+	 * Request to be linked with an AO character &lt;char&gt;
+	 *
+	 * Follow the instructions you received on your AO character
 	 */
-	public function extAuthCommand(CmdContext $context, string $action, PCharacter $char): void {
+	#[NCA\HandlesCommand("extauth")]
+	#[NCA\Help\Epilogue(
+		"<header2>Be careful:<end>\n\n".
+		"Linking your Discord user with an AO character effectively\n".
+		"gives the Discord user the same rights!"
+	)]
+	public function extAuthCommand(CmdContext $context, #[NCA\Str("request")] string $action, PCharacter $char): void {
 		$discordUserId = $context->char->name;
 		if (($authedAs = $this->getNameForDiscordId($discordUserId)) !== null) {
 			$msg = "You are already linked to <highlight>$authedAs<end>.";
@@ -222,8 +213,8 @@ class DiscordGatewayCommandHandler {
 		}
 		$this->discordAPIClient->getUser(
 			$discordUserId,
-			function(DiscordUser $user) use ($context, $name, $discordUserId, $uid) {
-				$context->char->name = $user ? $user->username . "#" . $user->discriminator : $discordUserId;
+			function(DiscordUser $user) use ($context, $name, $uid) {
+				$context->char->name = $user->username . "#" . $user->discriminator;
 				$blob = "The Discord user <highlight>{$context->char->name}<end> has requested to be linked with your ".
 					"game account. If you confirm the link, that discord user will be linked ".
 					"with this account, be able to run the same commands and have the same rights ".
@@ -249,91 +240,66 @@ class DiscordGatewayCommandHandler {
 
 	/**
 	 * Handle an incoming discord private message
-	 *
-	 * @Event("discordmsg")
-	 * @Description("Handle commands from Discord private messages")
 	 */
+	#[NCA\Event(
+		name: "discordmsg",
+		description: "Handle commands from Discord private messages"
+	)]
 	public function processDiscordDirectMessage(DiscordMessageEvent $event): void {
-		$isCommand = substr($event->message??"", 0, 1) === $this->settingManager->get("discord_symbol");
-		if ( $isCommand ) {
-			$event->message = substr($event->message??"", 1);
-		}
-		$sendto = new DiscordMessageCommandReply(
-			$event->channel,
-			true,
-			$event->discord_message,
-		);
-		Registry::injectDependencies($sendto);
 		$discordUserId = $event->discord_message->author->id ?? (string)$event->sender;
 		$context = new CmdContext($discordUserId);
-		$context->channel = "msg";
+		$context->source = Source::DISCORD_MSG . "({$discordUserId})";
 		$context->message = $event->message;
-		$context->sendto = $sendto;
-		if (preg_match("/^extauth\s+request/si", $event->message)) {
-			$this->commandManager->processCmd($context);
-			return;
-		}
-		$userId = $this->getNameForDiscordId($discordUserId);
-		if (!isset($userId)) {
-			$this->commandManager->processCmd($context);
-			return;
-		}
-		$context->char->name = $userId;
-		$this->chatBot->getUid($userId, function(?int $uid, CmdContext $context): void {
-			$context->char->id = $uid;
-			$this->commandManager->processCmd($context);
-		}, $context);
+		$this->processDiscordMessage($event, $context);
 	}
 
 	/**
 	 * Handle an incoming discord channel message
-	 *
-	 * @Event("discordpriv")
-	 * @Description("Handle commands from Discord channel messages")
 	 */
+	#[NCA\Event(
+		name: "discordpriv",
+		description: "Handle commands from Discord channel messages"
+	)]
 	public function processDiscordChannelMessage(DiscordMessageEvent $event): void {
 		$discordUserId = $event->discord_message->author->id ?? (string)$event->sender;
-		$isCommand = substr($event->message, 0, 1) === $this->settingManager->getString("discord_symbol");
-		if (
-			!$isCommand
-			|| strlen($event->message) < 2
-			|| !$this->settingManager->getBool('discord_process_commands')
-		) {
-			return;
-		}
-		$cmdChannel = $this->settingManager->getString('discord_process_commands_only_in') ?? "off";
-		if ($cmdChannel !== "off" && $event->discord_message->channel_id !== $cmdChannel) {
-			return;
-		}
-		$cmd = strtolower(explode(" ", substr($event->message, 1))[0]);
-		$commandHandler = $this->commandManager->getActiveCommandHandler($cmd, "priv", substr($event->message, 1));
-		if ($commandHandler === null && !$this->settingManager->getBool('discord_unknown_cmd_errors')) {
-			return;
-		}
+		$context = new CmdContext($discordUserId);
+		$context->source = Source::DISCORD_PRIV . "({$event->discord_message->channel_id})";
+		$context->message = $event->message;
+		$this->processDiscordMessage($event, $context);
+	}
+
+	protected function processDiscordMessage(DiscordMessageEvent $event, CmdContext $context): void {
+		$discordUserId = $event->discord_message->author->id ?? (string)$event->sender;
 		$sendto = new DiscordMessageCommandReply(
 			$event->channel,
 			false,
 			$event->discord_message,
 		);
-		Registry::injectDependencies($sendto);
-		$discordUserId = $event->discord_message->author->id ?? (string)$event->sender;
-		$context = new CmdContext($discordUserId);
-		$context->channel = "priv";
-		$context->message = substr($event->message, 1);
 		$context->sendto = $sendto;
-		if (preg_match("/^extauth\s+request/si", $event->message)) {
-			$this->commandManager->processCmd($context);
-			return;
+		Registry::injectDependencies($sendto);
+		if (!preg_match("/^.?extauth\s+request/si", $event->message)) {
+			$userId = $this->getNameForDiscordId($discordUserId);
 		}
-		$userId = $this->getNameForDiscordId($discordUserId);
+		$execCmd = function() use ($context, $sendto): void {
+			if ($this->commandManager->checkAndHandleCmd($context)) {
+				return;
+			}
+			$context->source = $sendto->getChannelName();
+			$this->commandManager->checkAndHandleCmd($context);
+		};
 		if (!isset($userId)) {
-			$this->commandManager->processCmd($context);
+			$execCmd();
 			return;
 		}
 		$context->char->name = $userId;
-		$this->chatBot->getUid($userId, function(?int $uid, CmdContext $context): void {
-			$context->char->id = $uid;
-			$this->commandManager->processCmd($context);
-		}, $context);
+		$this->chatBot->getUid(
+			$userId,
+			function(?int $uid, CmdContext $context, Closure $execCmd): void {
+				$context->char->id = $uid;
+				$execCmd();
+			},
+			$context,
+			$execCmd
+		);
 	}
 }

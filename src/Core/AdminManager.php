@@ -2,27 +2,33 @@
 
 namespace Nadybot\Core;
 
-use Nadybot\Core\DBSchema\Admin;
-use Nadybot\Core\DBSchema\Audit;
+use Nadybot\Core\{
+	Attributes as NCA,
+	DBSchema\Admin,
+	DBSchema\Audit,
+};
 
 /**
- * @Instance
  * Manage the bot admins
  */
-class AdminManager {
+#[NCA\Instance]
+class AdminManager implements AccessLevelProvider {
 	public const DB_TABLE = "admin_<myname>";
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Nadybot $chatBot;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public DB $db;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public BuddylistManager $buddylistManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public AccessManager $accessManager;
+
+	#[NCA\Inject]
+	public ConfigFile $config;
 
 	/**
 	 * Admin access levels of our admin users
@@ -30,23 +36,38 @@ class AdminManager {
 	 */
 	public array $admins = [];
 
+	public function getSingleAccessLevel(string $sender): ?string {
+		$level = $this->admins[$sender]["level"] ?? 0;
+		if ($level >= 4) {
+			return "admin";
+		} elseif ($level >= 3) {
+			return "mod";
+		}
+		return null;
+	}
+
+	#[NCA\Setup]
+	public function setup(): void {
+		$this->accessManager->registerProvider($this);
+	}
+
 	/**
 	 * Load the bot admins from database into $admins
 	 */
 	public function uploadAdmins(): void {
-		$this->chatBot->vars["SuperAdmin"] = ucfirst(strtolower($this->chatBot->vars["SuperAdmin"]));
-
-		$this->db->table(self::DB_TABLE)->upsert(
-			[
-				"adminlevel" => 4,
-				"name" => $this->chatBot->vars["SuperAdmin"],
-			],
-			"name"
-		);
+		foreach ($this->config->superAdmins as $superAdmin) {
+			$this->db->table(self::DB_TABLE)->upsert(
+				[
+					"adminlevel" => 4,
+					"name" => $superAdmin,
+				],
+				"name"
+			);
+		}
 
 		$this->db->table(self::DB_TABLE)
 			->asObj(Admin::class)
-			->each(function(Admin $row) {
+			->each(function(Admin $row): void {
 				if (isset($row->adminlevel)) {
 					$this->admins[$row->name] = ["level" => $row->adminlevel];
 				}

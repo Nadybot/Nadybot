@@ -3,14 +3,17 @@
 namespace Nadybot\Modules\NEWS_MODULE\Migrations;
 
 use Illuminate\Database\Schema\Blueprint;
-use Nadybot\Core\DB;
-use Nadybot\Core\LoggerWrapper;
-use Nadybot\Core\SchemaMigration;
-use Nadybot\Core\Util;
+use Nadybot\Core\{
+	Attributes as NCA,
+	DB,
+	LoggerWrapper,
+	SchemaMigration,
+	Util,
+};
 use stdClass;
 
 class AddUuidColumn implements SchemaMigration {
-	/** @Inject */
+	#[NCA\Inject]
 	public Util $util;
 
 	public function migrate(LoggerWrapper $logger, DB $db): void {

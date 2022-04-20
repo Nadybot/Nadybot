@@ -7,7 +7,7 @@ Name:       nadybot
 Version:    {{{ nadybot_version }}}
 
 # This can be useful later for adding downstream patches
-Release:    2%{?dist}
+Release:    5%{?dist}
 
 BuildArch: noarch
 
@@ -31,33 +31,64 @@ Source:     {{{ git_dir_pack path="$(git rev-parse --show-toplevel)" source_name
 %define php_prefix %{nil}
 %define php_exec php
 %if 0%{?rhel} > 1
-%define php_prefix php74-
-%define php_exec php74
+%define php_prefix php80-
+%define php_exec php80
 %endif
-BuildRequires: %{php_prefix}php-cli >= 7.4
-BuildRequires: %{php_prefix}php-json
+BuildRequires: %{php_prefix}php-cli >= 8.0
 BuildRequires: curl
 BuildRequires: sed
 BuildRequires: %{php_prefix}php-pdo
+%if 0%{?suse_version}
+BuildRequires: %{php_prefix}php-mysql
+BuildRequires: %{php_prefix}php-ctype
+BuildRequires: %{php_prefix}php-pcntl
+BuildRequires: %{php_prefix}php-dom
+BuildRequires: %{php_prefix}php-sqlite
+BuildRequires: %{php_prefix}php-sockets
+BuildRequires: %{php_prefix}php-curl
+BuildRequires: %{php_prefix}php-openssl
+BuildRequires: %{php_prefix}php-phar
+BuildRequires: %{php_prefix}php-zip
+BuildRequires: %{php_prefix}php-zlib
+%else
 BuildRequires: %{php_prefix}php-mysqlnd
+BuildRequires: %{php_prefix}php-json
+BuildRequires: %{php_prefix}php-xml
+%endif
 BuildRequires: %{php_prefix}php-bcmath
 BuildRequires: %{php_prefix}php-mbstring
-BuildRequires: %{php_prefix}php-xml
 %if 0%{?rhel} < 8
 BuildRequires: systemd
 %else
 BuildRequires: systemd-rpm-macros
 %endif
 
+%if 0%{?suse_version}
+Requires(pre): shadow
+%else
 Requires(pre): shadow-utils
-Requires: %{php_prefix}php-cli >= 7.4
-Requires: %{php_prefix}php-json
+%endif
+Requires: %{php_prefix}php-cli >= 8.0
 Requires: %{php_prefix}php-pdo
+%if 0%{?suse_version}
+Requires: %{php_prefix}php-mysql
+Requires: %{php_prefix}php-ctype
+Requires: %{php_prefix}php-pcntl
+Requires: %{php_prefix}php-dom
+Requires: %{php_prefix}php-sqlite
+Requires: %{php_prefix}php-sockets
+Requires: %{php_prefix}php-curl
+Requires: %{php_prefix}php-openssl
+Requires: %{php_prefix}php-zip
+Requires: %{php_prefix}php-zlib
+%else
 Requires: %{php_prefix}php-mysqlnd
+Requires: %{php_prefix}php-xml
+Requires: %{php_prefix}php-json
+Requires: %{php_prefix}php-pecl-zip
+%endif
 Requires: %{php_prefix}php-bcmath
 Requires: %{php_prefix}php-mbstring
-Requires: %{php_prefix}php-xml
-Requires: %{php_prefix}php-pecl-zip
 Requires: dialog
 
 %global debug_package %{nil}
@@ -173,6 +204,114 @@ exit 0
 %endif
 
 %changelog
+* Tue Apr 19 2022 Nadyita <nadyita@hodorraid.org> 6.0.0-1
+- Allow having more than 1 superadmin
+- Add a Prometheus-compatible metrics-endpoint to /metrics
+- New command "!showconfig" to get your current configuration, minus sensitive data
+- The console is now reporting in as a source, so you can actually use it for
+  chatting. In order to do that, you should not make the command prefix optional.
+- Introduce a new access level "guest" for people in the private chat or Discord chat
+- Modules can now register themselves as AccessLevelProvider, so modules can
+  manage their own access levels. The highest one (lowest numeric) will always be chosen.
+- The (sub-)command declaration can now define multiple aliases at once
+- Officially support Windows
+- Allow increased logging with -v and -v -v
+- Allow grouping of "!track online" lists by faction, org, gender and breed
+- Add "!buddylist rebalance" to rebalance your buddies across your proxies
+- Allow adding settings via Attributes
+- New 'timestamp' setting type
+- Defining the colors for relays is now possible directly in the
+  "!relay"-window, including examples what the current config
+  looks like.
+- Use the GMP module (if installed) for a faster login
+- Nadybot now supports color-themes and ships with 16 of these to make
+  customizing your bot even easier. Just try "!themes"
+- Check extra modules for compile errors and compatibility with this bot
+  version before loading. Treat "<X.0.0" as "<X.0.0-0" to work around a bug.
+- Adding settings now requires "options" to be an array, not a string,
+  plus there are no more "intoptions". If you need "intoptions", use an associative
+  array for "options".
+- Moved from PHPDoc annotations to PHP 8 attributes, greatly increasing parsing speed
+- Change the start-up banner to be more concise
+- Change a lot of the default permissions that were using "all" or "member" to "guest"
+- Remove all global variables
+- Sub-commands are no longer regular expressions, but rather user-friendly names.
+  Sub-commands are only used to group permissions now and can be chosen freely.
+  All existing sub-command-rights are being migrated automatically
+- Replace the huge banner with a smaller one for N6
+- Help for commands is now created from the source file and no longer from
+  separate help files. A new "!help syntax" explains the syntax and is linked
+  to from every help page, unless turned off.
+- The "!help" command is now a central landing page for getting help and no longer
+  a list of commands
+- Moved "!adminhelp" from guides to help, so it's part of core
+- Instead of having 3 fixed "channels", there is now an unlimited number of
+  permission sets. By default, they have the same names as the old channels and
+  the same short letter symbols (T|G|P). These permission sets can be managed
+  with the "!permset" command and mapped to a command source via the
+  "!cmdmap" command. The command prefix is now also part of this mapping, so
+  you can have different prefixes for org, private chat, discord and so on.
+- After authenticating, the socket to the AO chat server is now non-blocking.
+  That also means that AO-packets aren't prioritized higher than others anymore.
+  In the past, if one packet was ready to be read, *all* of he packets would be
+  read in one go. This is no longer the case.
+- Migrations are no longer executed manually during setup, but automatically
+  when registered with #[HasMigrations]. The order in which they are executed
+  is now predictable and strictly timed.
+- No module accesses another module's database tables directly anymore, only
+  via exposed functions from the other module
+- The configuration is now parsed into an instanced object (ConfigFile), that
+  can be injected, instead of using a global variable "$vars"
+- Where it makes sense, function calls have been converted from positional
+  to by-name
+- The #[Inject]/@Inject annotation used to determine the name of the instance to
+  inject by the variable name. This has been changed to the class name.
+  Thus, it is no longer possible to inject into untyped properties.
+  Example: "DB $database" will now inject the "db" instance, not the "database".
+- The way commands have to be declared has completely changed
+- Everything is now constantly checked against psalm and phpstan
+- Automatically retry timed out get-requests up to 5 times, without logging
+  an error.
+- Download the orglists via the cache-module, so we speed them up and remove
+  some needless strain from the Funcom servers.
+- Database table versions are displayed with a date and time (if possible)
+- Changed all module settings to use attributes (if possible)
+- Text settings with empty strings are now marked as &lt;empty&gt;
+- Mass-messages and -invites are now a system route source.
+  By default, "system(mass-message)" and "system(mass-invite)" will be routed
+  to "aoorg" and "aopriv", but you can also route them to Discord.
+- All messages from the RAID_MODULE are no longer hardcoded to being
+  sent to the bot's private channel. Instead, there are now a bunch of
+  new routing sources "raid(*)" and "auction(*)" which are routed to
+  "aopriv" by default. This allows for routing of "raid(start)" or
+  "raid(points-modified)" to Discord channels.
+- Replaced the 'discord_notify_voice_changes'-setting with
+  routes. All Discord voice-channels now appear as routing sources
+  with a "<" before their name. Routing "discordpriv(<*)" will now
+  route the online/offline-events of all discord-channels, or only
+  a selected few.
+- Failure to initiate an SSL-connection will now be retried automatically.
+- Bots with AO Chat Proxies will now wait longer before they mark themselves
+  ready. This solves some issues with long buddylists.
+- Add retries to the worldboss and Gauntlet buff APIs
+- Querying the buddylist if a buddy is online will not trigger a UID-lookup
+  anymore. If you are tracking whole orgs with lots of inactive characters,
+  then the "!track online" could hang and even crash the bot.
+- Sync name-lookups from PORK are gone
+- Remove all deprecated DB calls (query, queryRow, etc.)
+- You can no longer inject into untyped properties
+- Command help files are no more
+- The old "/** @ */" annotations are no more, please use attributes
+- The old command-syntax with a fixed amount of parameters is gone
+- PHP 7 is no longer supported
+- Removed unused setting "Show icons for the nanolines"
+- Make the cache work on docker again
+- The default setting was ignored and the last option was always chosen
+- The deduplication-handler for logging should no longer run out of memory
+- The "Show test results" setting once again has an effect
+- The "Confirmed news count for all alts" setting now works again
+- Routing "spawn(gauntlet-*)"-messages works again
+
 * Sun Feb 20 2022 Nadyita <nadyita@hodorraid.org> 5.3.3-1
 - Number of unplanted sites is now correct when manually scouting
 - Fix "!online <prof>"

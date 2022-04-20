@@ -12,14 +12,14 @@ use Nadybot\Core\SchemaMigration;
 class AddViaToRoute implements SchemaMigration {
 	public function migrate(LoggerWrapper $logger, DB $db): void {
 		$table = MessageHub::DB_TABLE_COLORS;
-		$db->schema()->table($table, function(Blueprint $table) {
+		$db->schema()->table($table, function(Blueprint $table): void {
 			$table->string("via", 50)->nullable(true);
 			$table->dropUnique(["hop", "where"]);
 			$table->unique(["hop", "where", "via"]);
 		});
 
 		$table = Source::DB_TABLE;
-		$db->schema()->table($table, function(Blueprint $table) {
+		$db->schema()->table($table, function(Blueprint $table): void {
 			$table->string("via", 50)->nullable(true);
 			$table->dropUnique(["hop", "where"]);
 			$table->unique(["hop", "where", "via"]);

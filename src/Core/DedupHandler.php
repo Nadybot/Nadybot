@@ -8,7 +8,8 @@ use Monolog\Handler\AbstractHandler;
  * Dedup
  */
 class DedupHandler extends AbstractHandler {
-	private ?string $lastLog = null;
+	/** @var null|array<string,mixed> */
+	private ?array $lastRecord = null;
 
 	/**
 	 * {@inheritDoc}
@@ -16,11 +17,30 @@ class DedupHandler extends AbstractHandler {
 	public function handle(array $record): bool {
 		$rec = $record;
 		unset($rec["datetime"]);
-		$serialized = var_export($rec, true);
-		if (isset($this->lastLog) && $this->lastLog === $serialized) {
-			return true;
+		if (!isset($this->lastRecord)) {
+			$this->lastRecord = $rec;
+			return false;
 		}
-		$this->lastLog = $serialized;
-		return false;
+		$keys = array_unique(array_merge(array_keys($rec), array_keys($this->lastRecord)));
+		foreach ($keys as $key) {
+			$new = ($rec[$key]??null);
+			$old = ($this->lastRecord[$key]??null);
+			if ($new === $old) {
+				continue;
+			}
+			if (!is_array($new) || !is_array($old)) {
+				$this->lastRecord = $rec;
+				return false;
+			}
+			$subKeys = array_unique(array_merge(array_keys($new), array_keys($old)));
+			foreach ($subKeys as $subKey) {
+				if (($new[$subKey]??null) === ($old[$subKey]??null)) {
+					continue;
+				}
+				$this->lastRecord = $rec;
+				return false;
+			}
+		}
+		return true;
 	}
 }

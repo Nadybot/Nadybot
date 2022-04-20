@@ -3,13 +3,16 @@
 namespace Nadybot\Modules\ORGLIST_MODULE;
 
 use Exception;
+use Illuminate\Support\Collection;
 use Nadybot\Core\{
+	Attributes as NCA,
 	CmdContext,
 	Event,
 	CommandReply,
 	DB,
-	Http,
-	HttpResponse,
+	CacheManager,
+	CacheResult,
+	ModuleInstance,
 	LoggerWrapper,
 	Nadybot,
 	SQLException,
@@ -20,56 +23,49 @@ use Nadybot\Core\{
 
 /**
  * @author Tyrence (RK2)
- *
- * @Instance
- *
- * Commands this controller contains:
- *	@DefineCommand(
- *		command     = 'findorg',
- *		accessLevel = 'all',
- *		description = 'Find orgs by name',
- *		help        = 'findorg.txt'
- *	)
  */
-class FindOrgController {
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
-
-	/** @Inject */
+#[
+	NCA\Instance,
+	NCA\HasMigrations,
+	NCA\DefineCommand(
+		command: "findorg",
+		accessLevel: "guest",
+		description: "Find orgs by name",
+	)
+]
+class FindOrgController extends ModuleInstance {
+	#[NCA\Inject]
 	public DB $db;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Nadybot $chatBot;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Text $text;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Util $util;
 
-	/** @Inject */
-	public Http $http;
+	#[NCA\Inject]
+	public CacheManager $cacheManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Timer $timer;
 
-	/** @Logger */
+	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
 	protected bool $ready = false;
 
+	/** @var string[] */
 	private array $searches = [
 		'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm',
 		'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z',
 		'others'
 	];
 
-	/** @Setup */
+	#[NCA\Setup]
 	public function setup(): void {
-		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations");
 		$this->ready = $this->db->table("organizations")
 			->where("index", "others")
 			->exists();
@@ -95,9 +91,8 @@ class FindOrgController {
 			->first();
 	}
 
-	/**
-	 * @HandlesCommand("findorg")
-	 */
+	/** Find an organization by its name */
+	#[NCA\HandlesCommand("findorg")]
 	public function findOrgCommand(CmdContext $context, string $search): void {
 		if (!$this->isReady()) {
 			$this->sendNotReadyError($context);
@@ -156,75 +151,97 @@ class FindOrgController {
 		return $blob;
 	}
 
-	public function handleOrglistResponse(string $url, int $searchIndex, HttpResponse $response): void {
+	public function handleOrglistResponse(CacheResult $result, string $url, int $searchIndex): void {
 		if ($this->db->inTransaction()) {
 			$this->timer->callLater(1, [$this, __FUNCTION__], ...func_get_args());
 			return;
 		}
-		if ($response->headers["status-code"] !== "200" || !isset($response->body)) {
+		if (!isset($result->data) || !$result->success) {
+			$retry = 5;
+			$this->logger->warning(
+				"Error downloading orglist for letter {letter}, retrying in {retry}s",
+				[
+					"letter" => $this->searches[$searchIndex],
+					"retry" => $retry,
+				]
+			);
+			$this->timer->callLater(
+				$retry,
+				function() use ($url, $searchIndex): void {
+					$this->downloadOrglistLetter($url, $searchIndex);
+				}
+			);
+			return;
+		}
+		if (!$result->usedCache || !$this->isReady()) {
+			$search = $this->searches[$searchIndex];
+			$pattern = '@<tr>\s*'.
+				'<td align="left">\s*'.
+					'<a href="(?:https?:)?//people.anarchy-online.com/org/stats/d/(\d+)/name/(\d+)">\s*'.
+						'([^<]+)'.
+					'</a>'.
+				'</td>\s*'.
+				'<td align="right">(\d+)</td>\s*'.
+				'<td align="right">(\d+)</td>\s*'.
+				'<td align="left">([^<]+)</td>\s*'.
+				'<td align="left">([^<]+)</td>\s*'.
+				'<td align="left" class="dim">RK\d+</td>\s*'.
+				'</tr>@s';
+
+			try {
+				preg_match_all($pattern, $result->data, $arr, PREG_SET_ORDER);
+				$this->logger->info("Updating orgs starting with $search");
+				$inserts = [];
+				foreach ($arr as $match) {
+					$obj = new Organization();
+					$obj->id = (int)$match[2];
+					$obj->name = trim($match[3]);
+					$obj->num_members = (int)$match[4];
+					$obj->faction = $match[6];
+					$obj->index = $search;
+					$obj->governing_form = $match[7];
+					$inserts []= get_object_vars($obj);
+				}
+				$this->db->beginTransaction();
+				$this->db->table("organizations")
+					->where("index", $search)
+					->delete();
+				$this->db->table("organizations")
+					->chunkInsert($inserts);
+				$this->db->commit();
+			} catch (Exception $e) {
+				$this->logger->error("Error downloading orgs: " . $e->getMessage(), ["exception" => $e]);
+				$this->db->rollback();
+				$this->ready = true;
+			}
+		}
+		$searchIndex++;
+		if ($searchIndex >= count($this->searches)) {
+			$this->logger->notice("Finished downloading orglists");
 			$this->ready = true;
 			return;
 		}
-		$search = $this->searches[$searchIndex];
-		$pattern = '@<tr>\s*'.
-			'<td align="left">\s*'.
-				'<a href="(?:https?:)?//people.anarchy-online.com/org/stats/d/(\d+)/name/(\d+)">\s*'.
-					'([^<]+)'.
-				'</a>'.
-			'</td>\s*'.
-			'<td align="right">(\d+)</td>\s*'.
-			'<td align="right">(\d+)</td>\s*'.
-			'<td align="left">([^<]+)</td>\s*'.
-			'<td align="left">([^<]+)</td>\s*'.
-			'<td align="left" class="dim">RK\d+</td>\s*'.
-			'</tr>@s';
-
-		try {
-			preg_match_all($pattern, $response->body, $arr, PREG_SET_ORDER);
-			$this->logger->info("Updating orgs starting with $search");
-			$inserts = [];
-			foreach ($arr as $match) {
-				$obj = new Organization();
-				//$obj->server = $match[1]; unused
-				$obj->id = (int)$match[2];
-				$obj->name = trim($match[3]);
-				$obj->num_members = (int)$match[4];
-				$obj->faction = $match[6];
-				$obj->index = $search;
-				$obj->governing_form = $match[7];
-				$inserts []= get_object_vars($obj);
-			}
-			$this->db->beginTransaction();
-			$this->db->table("organizations")
-				->where("index", $search)
-				->delete();
-			$this->db->table("organizations")
-				->chunkInsert($inserts);
-			$this->db->commit();
-			$searchIndex++;
-			if ($searchIndex >= count($this->searches)) {
-				$this->logger->notice("Finished downloading orglists");
-				$this->ready = true;
-				return;
-			}
-			$this->http
-				->get($url)
-				->withQueryParams(['l' => $this->searches[$searchIndex]])
-				->withTimeout(60)
-				->withCallback(function(HttpResponse $response) use ($url, $searchIndex) {
-					$this->handleOrglistResponse($url, $searchIndex, $response);
-				});
-		} catch (Exception $e) {
-			$this->logger->error("Error downloading orgs: " . $e->getMessage(), ["exception" => $e]);
-			$this->db->rollback();
-			$this->ready = true;
-		}
+		$this->downloadOrglistLetter($url, $searchIndex);
 	}
 
-	/**
-	 * @Event("timer(24hrs)")
-	 * @Description("Parses all orgs from People of Rubi Ka")
-	 */
+	protected function downloadOrglistLetter(string $url, int $searchIndex): void {
+		$this->cacheManager->asyncLookup(
+			$url . "?" . http_build_query(['l' => $this->searches[$searchIndex]]),
+			"orglist",
+			$this->searches[$searchIndex] . ".html",
+			[$this, "isValidOrglist"],
+			24 * 3600,
+			false,
+			[$this, "handleOrglistResponse"],
+			$url,
+			$searchIndex,
+		);
+	}
+
+	#[NCA\Event(
+		name: "timer(24hrs)",
+		description: "Parses all orgs from People of Rubi Ka"
+	)]
 	public function parseAllOrgsEvent(Event $eventObj): void {
 		$this->downloadOrglist();
 	}
@@ -236,13 +253,30 @@ class FindOrgController {
 			->where("index", "others")
 			->exists();
 		$this->logger->info("Downloading all orgs from '$url'");
-			$searchIndex = 0;
-			$this->http
-				->get($url)
-				->withQueryParams(['l' => $this->searches[$searchIndex]])
-				->withTimeout(60)
-				->withCallback(function(HttpResponse $response) use ($url, $searchIndex) {
-					$this->handleOrglistResponse($url, $searchIndex, $response);
-				});
+		$this->downloadOrglistLetter($url, 0);
+	}
+
+	public function isValidOrglist(?string $html): bool {
+		return isset($html) && str_contains($html, "ORGS BEGIN");
+	}
+
+	/** @return Collection<Organization> */
+	public function getOrgsByName(string ...$names): Collection {
+		if (empty($names)) {
+			return new Collection();
+		}
+		return $this->db->table("organizations")
+			->whereIn("name", $names)
+			->asObj(Organization::class);
+	}
+
+	/** @return Collection<Organization> */
+	public function getOrgsById(int ...$ids): Collection {
+		if (empty($ids)) {
+			return new Collection();
+		}
+		return $this->db->table("organizations")
+			->whereIn("id", $ids)
+			->asObj(Organization::class);
 	}
 }

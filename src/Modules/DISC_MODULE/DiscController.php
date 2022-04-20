@@ -3,60 +3,49 @@
 namespace Nadybot\Modules\DISC_MODULE;
 
 use Nadybot\Core\{
+	Attributes as NCA,
 	CmdContext,
 	DB,
-	DBRow,
+	ModuleInstance,
 	Nadybot,
+	ParamClass\PItem,
 	Text,
 	Util,
 };
-use Nadybot\Core\ParamClass\PItem;
 
 /**
  * @author Nadyita (RK5) <nadyita@hodorraid.org>
- *
- * @Instance
- *
- * Commands this controller contains:
- *	@DefineCommand(
- *		command     = 'disc',
- *		accessLevel = 'all',
- *		description = 'Show which nano a disc will turn into',
- *		help        = 'disc.txt'
- *	)
  */
-class DiscController {
-
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 * @var string $moduleName
-	 */
-	public string $moduleName;
-
-	/** @Inject */
+#[
+	NCA\Instance,
+	NCA\HasMigrations,
+	NCA\DefineCommand(
+		command: "disc",
+		accessLevel: "guest",
+		description: "Show which nano a disc will turn into",
+	)
+]
+class DiscController extends ModuleInstance {
+	#[NCA\Inject]
 	public Nadybot $chatBot;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Util $util;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Text $text;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public DB $db;
 
-	/** @Setup This handler is called on bot startup.
-	 */
+	#[NCA\Setup]
 	public function setup(): void {
 		// load database tables from .sql-files
-		$this->db->loadMigrations($this->moduleName, __DIR__ . '/Migrations');
 		$this->db->loadCSVFile($this->moduleName, __DIR__ . '/discs.csv');
 	}
 
 	/**
 	 * Get the instruction disc from its name and return an array with results
-	 *
 	 * @return Disc[] An array of database entries that matched
 	 */
 	public function getDiscsByName(string $discName): array {
@@ -76,10 +65,10 @@ class DiscController {
 	}
 
 	/**
-	 * Command to show what nano a disc will turn into
-	 *
-	 * @HandlesCommand("disc")
+	 * Show what nano a disc will turn into
 	 */
+	#[NCA\HandlesCommand("disc")]
+	#[NCA\Help\Example("<symbol>disc <a href=itemref://163410/163410/139>Instruction Disc (Tranquility of the Vale)</a>")]
 	public function discByItemCommand(CmdContext $context, PItem $item): void {
 		$disc = $this->getDiscById($item->lowID);
 		if (!isset($disc)) {
@@ -92,16 +81,16 @@ class DiscController {
 	}
 
 	/**
-	 * Command to show what nano a disc will turn into
-	 *
-	 * @HandlesCommand("disc")
+	 * Show what nano a disc will turn into
 	 */
-	public function discByNameCommand(CmdContext $context, string $item): void {
+	#[NCA\HandlesCommand("disc")]
+	#[NCA\Help\Example("<symbol>disc tranquility vale")]
+	public function discByNameCommand(CmdContext $context, string $search): void {
 		// If only a name was given, lookup the disc's ID
-		$discs = $this->getDiscsByName($item);
+		$discs = $this->getDiscsByName($search);
 		// Not found? Cannot be made into a nano anymore or simply mistyped
 		if (empty($discs)) {
-			$msg = "Either <highlight>{$item}<end> was mistyped or it cannot be turned into a nano anymore.";
+			$msg = "Either <highlight>{$search}<end> was mistyped or it cannot be turned into a nano anymore.";
 			$context->reply($msg);
 			return;
 		}
@@ -140,18 +129,18 @@ class DiscController {
 	/**
 	 * Get additional information about the nano of a disc
 	 */
-	public function getNanoDetails(Disc $disc): ?DBRow {
+	public function getNanoDetails(Disc $disc): ?NanoDetails {
 		return $this->db->table("nanos")
 			->where("crystal_id", $disc->crystal_id)
 			->select("location", "professions", "strain AS nanoline_name")
-			->asObj()
+			->asObj(NanoDetails::class)
 			->first();
 	}
 
 	/**
 	 * Generate a choice dialogue if multiple discs match the search criteria
-	 *
 	 * @param Disc[] $discs The discs that matched the search
+	 * @return string[]
 	 */
 	public function getDiscChoiceDialogue(array $discs): array {
 		$blob = [];

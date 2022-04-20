@@ -2,33 +2,33 @@
 
 namespace Nadybot\Modules\LEVEL_MODULE;
 
-use Nadybot\Core\CmdContext;
-use Nadybot\Core\Text;
+use Nadybot\Core\{
+	Attributes as NCA,
+	CmdContext,
+	ModuleInstance,
+	Text,
+};
 
 /**
  * @author Tyrence (RK2)
- *
- * @Instance
- *
- * Commands this controller contains:
- *	@DefineCommand(
- *		command     = 'axp',
- *		accessLevel = 'all',
- *		description = 'Show axp needed for specified level(s)',
- *		help        = 'xp.txt'
- *	)
  */
-class AXPController {
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
-
-	/** @Inject */
+#[
+	NCA\Instance,
+	NCA\DefineCommand(
+		command: "axp",
+		accessLevel: "guest",
+		description: "Show axp needed for specified level(s)",
+	)
+]
+class AXPController extends ModuleInstance {
+	#[NCA\Inject]
 	public Text $text;
 
-	/** @var array<array> */
+	/**
+	 * @var array<array<int|string>>
+	 * @psalm-var array{0:int, 1:int, 2:string}[]
+	 * @phpstan-var array{0:int, 1:int, 2:string}[]
+	 */
 	private array $aiRanks = [
 		[    1_500,   5, "Fledgling"],
 		[    9_000,  15, "Amateur"],
@@ -62,9 +62,9 @@ class AXPController {
 		[5_968_409, 200, "Vindicator"],
 	];
 
-	/**
-	 * @HandlesCommand("axp")
-	 */
+	/** See a list of all Alien Levels */
+	#[NCA\HandlesCommand("axp")]
+	#[NCA\Help\Group("xp")]
 	public function axpListCommand(CmdContext $context): void {
 		$blob = "<u>AI Lvl | Lvl Req |          AXP  |  Rank         </u>\n";
 		for ($aiRank = 0; $aiRank < count($this->aiRanks); $aiRank++) {
@@ -80,9 +80,9 @@ class AXPController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @HandlesCommand("axp")
-	 */
+	/** See needed XP to level up for a single Alien Level */
+	#[NCA\HandlesCommand("axp")]
+	#[NCA\Help\Group("xp")]
 	public function axpSingleCommand(CmdContext $context, int $level): void {
 		if ($level > 30) {
 			$msg = "AI level must be between 0 and 30.";
@@ -94,9 +94,9 @@ class AXPController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @HandlesCommand("axp")
-	 */
+	/** See how much AXP is needed from one level to another */
+	#[NCA\HandlesCommand("axp")]
+	#[NCA\Help\Group("xp")]
 	public function axpDoubleCommand(CmdContext $context, int $startLevel, int $endLevel): void {
 		if ($startLevel > 30 || $endLevel > 30) {
 			$msg = "AI level must be between 0 and 30.";

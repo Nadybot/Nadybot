@@ -3,8 +3,9 @@
 namespace Nadybot\Modules\WORLDBOSS_MODULE;
 
 use DateTime;
-use JsonException;
+use Safe\Exceptions\JsonException;
 use Nadybot\Core\{
+	Attributes as NCA,
 	CmdContext,
 	CommandAlias,
 	DB,
@@ -12,6 +13,7 @@ use Nadybot\Core\{
 	EventManager,
 	Http,
 	HttpResponse,
+	ModuleInstance,
 	LoggerWrapper,
 	MessageHub,
 	ParamClass\PDuration,
@@ -19,87 +21,87 @@ use Nadybot\Core\{
 	Routing\Character,
 	Routing\RoutableMessage,
 	Routing\Source,
-	SettingManager,
 	Text,
 	Util,
 };
 
 /**
  * @author Nadyita (RK5) <nadyita@hodorraid.org>
- *
- * @Instance
- *
- * Commands this controller contains:
- *	@DefineCommand(
- *		command     = 'wb',
- *		accessLevel = 'all',
- *		description = 'Show next spawntime(s)',
- *		help        = 'wb.txt'
- *	)
- *	@DefineCommand(
- *		command     = 'tara',
- *		accessLevel = 'all',
- *		description = 'Show next Tarasque spawntime(s)',
- *		help        = 'tara.txt'
- *	)
- *	@DefineCommand(
- *		command     = 'tara .+',
- *		accessLevel = 'member',
- *		description = 'Update, set or delete Tarasque killtimer',
- *		help        = 'tara.txt'
- *	)
- *	@DefineCommand(
- *		command     = 'reaper',
- *		accessLevel = 'all',
- *		description = 'Show next Reaper spawntime(s)',
- *		help        = 'reaper.txt'
- *	)
- *	@DefineCommand(
- *		command     = 'reaper .+',
- *		accessLevel = 'member',
- *		description = 'Update, set or delete Reaper killtimer',
- *		help        = 'reaper.txt'
- *	)
- *	@DefineCommand(
- *		command     = 'loren',
- *		accessLevel = 'all',
- *		description = 'Show next Loren Warr spawntime(s)',
- *		help        = 'loren.txt'
- *	)
- *	@DefineCommand(
- *		command     = 'loren .+',
- *		accessLevel = 'member',
- *		description = 'Update, set or delete Loren Warr killtimer',
- *		help        = 'loren.txt'
- *	)
- *	@DefineCommand(
- *		command     = 'gauntlet',
- *		accessLevel = 'all',
- *		description = 'shows timer of Gauntlet',
- *		help        = 'gauntlet.txt'
- *	)
- *	@DefineCommand(
- *		command     = 'gauntlet .+',
- *		accessLevel = 'member',
- *		description = 'Update or set Gaunlet timer',
- *		help        = 'gauntlet.txt'
- *	)
- *	@DefineCommand(
- *		command     = 'father',
- *		accessLevel = 'all',
- *		description = 'shows timer of Father Time',
- *		help        = 'father.txt'
- *	)
- *	@DefineCommand(
- *		command     = 'father .+',
- *		accessLevel = 'member',
- *		description = 'Update or set Father Time timer',
- *		help        = 'father.txt'
- *	)
- *	@ProvidesEvent(value="sync(worldboss)", desc="Triggered when the spawntime of a worldboss is set manually")
- *	@ProvidesEvent(value="sync(worldboss-delete)", desc="Triggered when the timer for a worldboss is deleted")
  */
-class WorldBossController {
+#[
+	NCA\Instance,
+	NCA\HasMigrations,
+	NCA\DefineCommand(
+		command: "wb",
+		accessLevel: "guest",
+		description: "Show next spawntime(s)",
+	),
+	NCA\DefineCommand(
+		command: "tara",
+		accessLevel: "guest",
+		description: "Show next Tarasque spawntime(s)",
+	),
+	NCA\DefineCommand(
+		command: WorldBossController::CMD_TARA_UPDATE,
+		accessLevel: "member",
+		description: "Update, set or delete Tarasque killtimer",
+	),
+	NCA\DefineCommand(
+		command: "reaper",
+		accessLevel: "guest",
+		description: "Show next Reaper spawntime(s)",
+	),
+	NCA\DefineCommand(
+		command: WorldBossController::CMD_REAPER_UPDATE,
+		accessLevel: "member",
+		description: "Update, set or delete Reaper killtimer",
+	),
+	NCA\DefineCommand(
+		command: "loren",
+		accessLevel: "guest",
+		description: "Show next Loren Warr spawntime(s)",
+	),
+	NCA\DefineCommand(
+		command: WorldBossController::CMD_LOREN_UPDATE,
+		accessLevel: "member",
+		description: "Update, set or delete Loren Warr killtimer",
+	),
+	NCA\DefineCommand(
+		command: "gauntlet",
+		accessLevel: "guest",
+		description: "shows timer of Gauntlet",
+	),
+	NCA\DefineCommand(
+		command: WorldBossController::CMD_GAUNTLET_UPDATE,
+		accessLevel: "member",
+		description: "Update or set Gaunlet timer",
+	),
+	NCA\DefineCommand(
+		command: "father",
+		accessLevel: "guest",
+		description: "shows timer of Father Time",
+	),
+	NCA\DefineCommand(
+		command: WorldBossController::CMD_FATHER_UPDATE,
+		accessLevel: "member",
+		description: "Update or set Father Time timer",
+	),
+	NCA\ProvidesEvent(
+		event: "sync(worldboss)",
+		desc: "Triggered when the spawntime of a worldboss is set manually",
+	),
+	NCA\ProvidesEvent(
+		event: "sync(worldboss-delete)",
+		desc: "Triggered when the timer for a worldboss is deleted",
+	)
+]
+class WorldBossController extends ModuleInstance {
+	public const CMD_TARA_UPDATE = "tara set/delete";
+	public const CMD_FATHER_UPDATE = "father set/delete";
+	public const CMD_GAUNTLET_UPDATE = "gauntlet set/delete";
+	public const CMD_LOREN_UPDATE = "loren set/delete";
+	public const CMD_REAPER_UPDATE = "reaper set/delete";
+
 	public const WORLDBOSS_API = "https://timers.aobots.org/api/v1.0/bosses";
 
 	public const DB_TABLE = "worldboss_timers_<myname>";
@@ -148,41 +150,42 @@ class WorldBossController {
 	public const SPAWN_SHOULD = 2;
 	public const SPAWN_EVENT = 3;
 
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
-
-	/** @Inject */
+	#[NCA\Inject]
 	public Text $text;
 
-	/** @Inject */
-	public SettingManager $settingManager;
-
-	/** @Inject */
+	#[NCA\Inject]
 	public CommandAlias $commandAlias;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public EventManager $eventManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Http $http;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Util $util;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public DB $db;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public GauntletBuffController $gauntletBuffController;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public MessageHub $messageHub;
 
-	/** @Logger */
+	#[NCA\Logger]
 	public LoggerWrapper $logger;
+
+
+	/** How to show spawn and vulnerability events */
+	#[NCA\Setting\Options(options: [
+		"Show as if the worldboss had actually spawned" => self::SPAWN_SHOW,
+		"Show 'should have' messages" => self::SPAWN_SHOULD,
+		"Only show spawn and vulnerability events if set by global events and ".
+		"don't repeat the timer unless set by a global event" => self::SPAWN_EVENT,
+	])]
+	public int $worldbossShowSpawn = self::SPAWN_SHOW;
 
 	/**
 	 * @var WorldBossTimer[]
@@ -192,29 +195,17 @@ class WorldBossController {
 	/**
 	 * Keep track whether the last spawn was manually
 	 * set or via world event (true), or just calculated (false)
-	 *
 	 * @var array<string,bool>
 	 */
 	private array $lastSpawnPrecise = [];
 
+	/** @var array<string,array<int,int>> */
 	private array $sentNotifications = [];
 
-	/** @Setup */
+	private int $timerRetriesLeft = 3;
+
+	#[NCA\Setup]
 	public function setup(): void {
-		$this->db->loadMigrations($this->moduleName, __DIR__ . '/Migrations');
-		$this->settingManager->add(
-			$this->moduleName,
-			"worldboss_show_spawn",
-			"How to show spawn and vulnerability events",
-			"edit",
-			"options",
-			"1",
-			"Show as if the worldboss had actually spawned.".
-				";Show 'should have' messages.".
-				";Only show spawn and vulnerability events if set by global events. Don't repeat the timer unless set by a global event.",
-			"1;2;3",
-			"mod"
-		);
 		$this->commandAlias->register(
 			$this->moduleName,
 			"gauntlet update",
@@ -242,10 +233,10 @@ class WorldBossController {
 		$this->reloadWorldBossTimers();
 	}
 
-	/**
-	 * @Event("connect")
-	 * @Description("Get boss timers from timer API")
-	 */
+	#[NCA\Event(
+		name: "connect",
+		description: "Get boss timers from timer API"
+	)]
 	public function loadTimersFromAPI(): void {
 		$this->http->get(static::WORLDBOSS_API)
 			->withCallback([$this, "handleTimersFromApi"]);
@@ -256,22 +247,35 @@ class WorldBossController {
 	 * timers if the data is valid.
 	 */
 	public function handleTimersFromApi(HttpResponse $response): void {
-		if ($response->headers["status-code"] !== "200" || !isset($response->body)) {
-			$this->logger->error('Worldboss API did not send correct data.');
+		$code = $response->headers["status-code"] ?? "204";
+		if ($code >= 500 && $code < 600 && --$this->timerRetriesLeft) {
+			$this->logger->warning('Worldboss API sent a {code}, retrying', [
+				"code" => $code
+			]);
+			$this->loadTimersFromAPI();
+			return;
+		}
+		if ($code !== "200" || !isset($response->body)) {
+			$this->logger->error('Worldboss API did not send correct data.', [
+				"headers" => $response->headers,
+				"body" => $response->body,
+			]);
 			return;
 		}
 		/** @var ApiSpawnData[] */
 		$timers = [];
 		try {
-			$data = json_decode($response->body, true, 512, JSON_THROW_ON_ERROR);
+			$data = \Safe\json_decode($response->body, true);
 			if (!is_array($data)) {
 				throw new JsonException();
 			}
 			foreach ($data as $timerData) {
 				$timers []= new ApiSpawnData($timerData);
 			}
-		} catch (JsonException $e) {
-			$this->logger->error("Worldboss API sent invalid json.");
+		} catch (JsonException) {
+			$this->logger->error("Worldboss API sent invalid json.", [
+				"json" => $response->body
+			]);
 			return;
 		}
 		foreach ($timers as $timer) {
@@ -323,7 +327,7 @@ class WorldBossController {
 	 * @param WorldBossTimer[] $timers
 	 */
 	protected function addNextDates(array $timers): void {
-		$showSpawn = $this->settingManager->getInt("worldboss_show_spawn") ?? static::SPAWN_SHOW;
+		$showSpawn = $this->worldbossShowSpawn;
 		foreach ($timers as $timer) {
 			$invulnerableTime = $timer->killable - $timer->spawn;
 			$timer->next_killable = $timer->killable;
@@ -404,12 +408,12 @@ class WorldBossController {
 	}
 
 	public function formatWorldBossMessage(WorldBossTimer $timer, bool $short=true): string {
-		$showSpawn = $this->settingManager->getInt("worldboss_show_spawn") ?? 1;
+		$showSpawn = $this->worldbossShowSpawn;
 		$nextSpawnsMessage = $this->getNextSpawnsMessage($timer);
 		$spawntimes = (array)$this->text->makeBlob("Spawntimes for {$timer->mob_name}", $nextSpawnsMessage);
 		if (isset($timer->next_spawn) && time() < $timer->next_spawn) {
 			if ($timer->mob_name === static::VIZARESH) {
-				$secsDead = time() - (($timer->next_spawn??0) - 61200);
+				$secsDead = time() - ($timer->next_spawn - 61200);
 				if ($secsDead < 6*60 + 30) {
 					$portalOpen = 6*60 + 30 - $secsDead;
 					$portalOpenTime = $this->util->unixtimeToReadable($portalOpen);
@@ -508,9 +512,9 @@ class WorldBossController {
 		$this->eventManager->fireEvent($event);
 	}
 
-	/**
-	 * @HandlesCommand("wb")
-	 */
+	/** Show all upcoming world boss spawn timers in the correct order */
+	#[NCA\HandlesCommand("wb")]
+	#[NCA\Help\Group("worldboss")]
 	public function bossCommand(CmdContext $context): void {
 		$timers = $this->getWorldBossTimers();
 		if (!count($timers)) {
@@ -534,26 +538,29 @@ class WorldBossController {
 		return $mobs[explode(" ", strtolower($context->message))[0]];
 	}
 
-	/**
-	 * @HandlesCommand("tara")
-	 * @HandlesCommand("loren")
-	 * @HandlesCommand("reaper")
-	 * @HandlesCommand("gauntlet")
-	 * @HandlesCommand("father")
-	 */
+	/** Show the next spawn time(s) for a world boss */
+	#[
+		NCA\HandlesCommand("tara"),
+		NCA\HandlesCommand("loren"),
+		NCA\HandlesCommand("reaper"),
+		NCA\HandlesCommand("gauntlet"),
+		NCA\HandlesCommand("father"),
+		NCA\Help\Group("worldboss")
+	]
 	public function bossSpawnCommand(CmdContext $context): void {
 		$context->reply($this->getWorldBossMessage($this->getMobFromContext($context)));
 	}
 
-	/**
-	 * @HandlesCommand("tara .+")
-	 * @HandlesCommand("loren .+")
-	 * @HandlesCommand("reaper .+")
-	 * @HandlesCommand("gauntlet .+")
-	 * @HandlesCommand("father .+")
-	 * @Mask $action kill
-	 */
-	public function bossKillCommand(CmdContext $context, string $action): void {
+	/** Mark a worldboss as killed, setting a new timer for it */
+	#[
+		NCA\HandlesCommand(self::CMD_TARA_UPDATE),
+		NCA\HandlesCommand(self::CMD_LOREN_UPDATE),
+		NCA\HandlesCommand(self::CMD_REAPER_UPDATE),
+		NCA\HandlesCommand(self::CMD_GAUNTLET_UPDATE),
+		NCA\HandlesCommand(self::CMD_FATHER_UPDATE),
+		NCA\Help\Group("worldboss")
+	]
+	public function bossKillCommand(CmdContext $context, #[NCA\Str("kill")] string $action): void {
 		$boss = $this->getMobFromContext($context);
 		$this->worldBossUpdate($context->char, $boss, 0);
 		$msg = "The timer for <highlight>{$boss}<end> has been updated.";
@@ -563,28 +570,35 @@ class WorldBossController {
 		$this->sendSyncEvent($context->char->name, $boss, 0, $context->forceSync);
 	}
 
-	/**
-	 * @HandlesCommand("tara .+")
-	 * @HandlesCommand("loren .+")
-	 * @HandlesCommand("reaper .+")
-	 * @HandlesCommand("gauntlet .+")
-	 * @HandlesCommand("father .+")
-	 * @Mask $action update
-	 */
-	public function bossUpdateCommand(CmdContext $context, string $action, PDuration $duration): void {
+	/** Manually update a worldboss's timer by giving the time until it is vulnerable */
+	#[
+		NCA\HandlesCommand(self::CMD_TARA_UPDATE),
+		NCA\HandlesCommand(self::CMD_LOREN_UPDATE),
+		NCA\HandlesCommand(self::CMD_REAPER_UPDATE),
+		NCA\HandlesCommand(self::CMD_GAUNTLET_UPDATE),
+		NCA\HandlesCommand(self::CMD_FATHER_UPDATE),
+		NCA\Help\Group("worldboss")
+	]
+	public function bossUpdateCommand(
+		CmdContext $context,
+		#[NCA\Str("update")] string $action,
+		PDuration $durationUntilVulnerable
+	): void {
 		$boss = $this->getMobFromContext($context);
-		$this->worldBossUpdate($context->char, $boss, $duration->toSecs());
+		$this->worldBossUpdate($context->char, $boss, $durationUntilVulnerable->toSecs());
 		$msg = "The timer for <highlight>{$boss}<end> has been updated.";
 		$context->reply($msg);
-		$this->sendSyncEvent($context->char->name, $boss, $duration->toSecs(), $context->forceSync);
+		$this->sendSyncEvent($context->char->name, $boss, $durationUntilVulnerable->toSecs(), $context->forceSync);
 	}
 
-	/**
-	 * @HandlesCommand("tara .+")
-	 * @HandlesCommand("loren .+")
-	 * @HandlesCommand("reaper .+")
-	 * @HandlesCommand("father .+")
-	 */
+	/** Completely remove a worldboss's timer, because you are not interested in it */
+	#[
+		NCA\HandlesCommand(self::CMD_TARA_UPDATE),
+		NCA\HandlesCommand(self::CMD_LOREN_UPDATE),
+		NCA\HandlesCommand(self::CMD_REAPER_UPDATE),
+		NCA\HandlesCommand(self::CMD_FATHER_UPDATE),
+		NCA\Help\Group("worldboss")
+	]
 	public function bossDeleteCommand(CmdContext $context, PRemove $action): void {
 		$boss = $this->getMobFromContext($context);
 		$msg = $this->worldBossDeleteCommand($context->char, $boss);
@@ -594,7 +608,6 @@ class WorldBossController {
 
 	/**
 	 * Announce an event
-	 *
 	 * @param string $msg The message to send
 	 * @param int $step 1 => spawns soon, 2 => has spawned, 3 => vulnerable
 	 * @return void
@@ -611,23 +624,27 @@ class WorldBossController {
 		} elseif ($step === 3) {
 			$event = 'vulnerable';
 		}
+		$bossName = static::BOSS_MAP[$boss];
+		if ($bossName === 'vizaresh') {
+			$bossName = 'gauntlet';
+		}
 		$rMsg = new RoutableMessage($msg);
 		$rMsg->appendPath(new Source(
 			"spawn",
-			static::BOSS_MAP[$boss] . "-{$event}",
+			"{$bossName}-{$event}",
 			join("-", array_map("ucfirst", explode("-", static::BOSS_MAP[$boss])))
 		));
 		$this->messageHub->handle($rMsg);
 	}
 
-	/**
-	 * @Event("timer(1sec)")
-	 * @Description("Check timer to announce big boss events")
-	 */
+	#[NCA\Event(
+		name: "timer(1sec)",
+		description: "Check timer to announce big boss events"
+	)]
 	public function checkTimerEvent(Event $eventObj, int $interval, bool $manual=false): void {
 		$timers = $this->getWorldBossTimers();
 		$triggered = false;
-		$showSpawn = $this->settingManager->getInt("worldboss_show_spawn") ?? 1;
+		$showSpawn = $this->worldbossShowSpawn;
 		foreach ($timers as $timer) {
 			$invulnerableTime = $timer->killable - $timer->spawn;
 			if ($timer->next_spawn === time()+15*60) {
@@ -682,10 +699,10 @@ class WorldBossController {
 		$this->addNextDates($this->timers);
 	}
 
-	/**
-	 * @Event("sync(worldboss)")
-	 * @Description("Sync external worldboss timers")
-	 */
+	#[NCA\Event(
+		name: "sync(worldboss)",
+		description: "Sync external worldboss timers"
+	)]
 	public function syncExtWorldbossTimers(SyncWorldbossEvent $event): void {
 		if ($event->isLocal()) {
 			return;
@@ -706,10 +723,10 @@ class WorldBossController {
 		$this->checkTimerEvent(new Event(), 1, true);
 	}
 
-	/**
-	 * @Event("sync(worldboss-delete)")
-	 * @Description("Sync external worldboss timer deletes")
-	 */
+	#[NCA\Event(
+		name: "sync(worldboss-delete)",
+		description: "Sync external worldboss timer deletes"
+	)]
 	public function syncExtWorldbossDeletes(SyncWorldbossDeleteEvent $event): void {
 		if ($event->isLocal()) {
 			return;
@@ -725,14 +742,17 @@ class WorldBossController {
 		$this->worldBossDeleteCommand(new Character($event->sender), $mobName);
 	}
 
-	/**
-	 * @NewsTile("boss-timers")
-	 * @Description("A list of upcoming boss spawn timers")
-	 * @Example("<header2>Boss timers<end>
-	 * <tab>The Hollow Reaper spawns in <highlight>8 hrs 18 mins 26 secs<end>.
-	 * <tab>Tarasque spawns in <highlight>8 hrs 1 min 48 secs<end>.
-	 * <tab>The Gauntlet portal will be open for <highlight>5 mins 9 secs<end>.")
-	 */
+	#[
+		NCA\NewsTile(
+			name: "boss-timers",
+			description: "A list of upcoming boss spawn timers",
+			example:
+				"<header2>Boss timers<end>\n".
+				"<tab>The Hollow Reaper spawns in <highlight>8 hrs 18 mins 26 secs<end>.\n".
+				"<tab>Tarasque spawns in <highlight>8 hrs 1 min 48 secs<end>.\n".
+				"<tab>The Gauntlet portal will be open for <highlight>5 mins 9 secs<end>."
+		)
+	]
 	public function bossTimersNewsTile(string $sender, callable $callback): void {
 		$timers = $this->getWorldBossTimers();
 		if (!count($timers)) {
@@ -746,12 +766,15 @@ class WorldBossController {
 		$callback($blob);
 	}
 
-	/**
-	 * @NewsTile("tara-timer")
-	 * @Description("The current tara timer")
-	 * @Example("<header2>Tara timer<end>
-	 * <tab>Tarasque spawns in <highlight>8 hrs 1 min 48 secs<end>.")
-	 */
+	#[
+		NCA\NewsTile(
+			name: "tara-timer",
+			description: "The current tara timer",
+			example:
+				"<header2>Tara timer<end>\n".
+				"<tab>Tarasque spawns in <highlight>8 hrs 1 min 48 secs<end>."
+		)
+	]
 	public function taraTimerNewsTile(string $sender, callable $callback): void {
 		$timer = $this->getWorldBossTimer(static::TARA);
 		if (!isset($timer)) {
@@ -763,12 +786,15 @@ class WorldBossController {
 		$callback($blob);
 	}
 
-	/**
-	 * @NewsTile("gauntlet-timer")
-	 * @Description("Show when Vizaresh spawns/is vulnerable")
-	 * @Example("<header2>Gauntlet<end>
-	 * <tab>The Gauntlet portal will be open for <highlight>5 mins 9 secs<end>.")
-	 */
+	#[
+		NCA\NewsTile(
+			name: "gauntlet-timer",
+			description: "Show when Vizaresh spawns/is vulnerable",
+			example:
+				"<header2>Gauntlet<end>\n".
+				"<tab>The Gauntlet portal will be open for <highlight>5 mins 9 secs<end>."
+		)
+	]
 	public function gauntletTimerNewsTile(string $sender, callable $callback): void {
 		$timer = $this->getWorldBossTimer(static::VIZARESH);
 		if (!isset($timer)) {
@@ -780,13 +806,16 @@ class WorldBossController {
 		$callback($blob);
 	}
 
-	/**
-	 * @NewsTile("gauntlet")
-	 * @Description("Show when Vizaresh spawns/is vulnerable")
-	 * @Example("<header2>Gauntlet<end>
-	 * <tab>The Gauntlet portal will be open for <highlight>5 mins 9 secs<end>.
-	 * <tab><omni>Omni Gauntlet buff<end> runs out in <highlight>4 hrs 59 mins 31 secs<end>.")
-	 */
+	#[
+		NCA\NewsTile(
+			name: "gauntlet",
+			description: "Show when Vizaresh spawns/is vulnerable",
+			example:
+				"<header2>Gauntlet<end>\n".
+				"<tab>The Gauntlet portal will be open for <highlight>5 mins 9 secs<end>.\n".
+				"<tab><omni>Omni Gauntlet buff<end> runs out in <highlight>4 hrs 59 mins 31 secs<end>."
+		)
+	]
 	public function gauntletNewsTile(string $sender, callable $callback): void {
 		$timer = $this->getWorldBossTimer(static::VIZARESH);
 		$buffLine = $this->gauntletBuffController->getGauntletBuffLine();

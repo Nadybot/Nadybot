@@ -3,40 +3,36 @@
 namespace Nadybot\Modules\TIMERS_MODULE;
 
 use DateTime;
-use Nadybot\Core\CmdContext;
-use Nadybot\Core\LoggerWrapper;
-use Nadybot\Core\Text;
-use Nadybot\Core\Util;
+use Nadybot\Core\{
+	Attributes as NCA,
+	CmdContext,
+	ModuleInstance,
+	LoggerWrapper,
+	Text,
+	Util,
+};
 
 /**
  * A stopwatch controller with start, stop and lap
- *
  * @author Nadyita (RK5) <nadyita@hodorraid.org>
- * @Instance
- *
- * Commands this controller contains:
- *	@DefineCommand(
- *		command     = 'stopwatch',
- *		accessLevel = 'all',
- *		description = 'stop time difference(s)',
- *		alias       = 'sw',
- *		help        = 'stopwatch.txt'
- *	)
  */
-class StopwatchController {
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
-
-	/** @Inject */
+#[
+	NCA\Instance,
+	NCA\DefineCommand(
+		command: "stopwatch",
+		accessLevel: "guest",
+		description: "stop time difference(s)",
+		alias: "sw"
+	)
+]
+class StopwatchController extends ModuleInstance {
+	#[NCA\Inject]
 	public Text $text;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Util $util;
 
-	/** @Logger */
+	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
 	/**
@@ -45,12 +41,10 @@ class StopwatchController {
 	public array $stopwatches = [];
 
 	/**
-	 * Start a new stopwatch
-	 *
-	 * @HandlesCommand("stopwatch")
-	 * @Mask $action start
+	 * Start a new stopwatch for yourself
 	 */
-	public function startStopwatchCommand(CmdContext $context, string $action): void {
+	#[NCA\HandlesCommand("stopwatch")]
+	public function startStopwatchCommand(CmdContext $context, #[NCA\Str("start")] string $action): void {
 		if (array_key_exists($context->char->name, $this->stopwatches)) {
 			$msg = "You already have a stopwatch running. ".
 				"Use <highlight><symbol>stopwatch stop<end> to stop it.";
@@ -63,12 +57,10 @@ class StopwatchController {
 	}
 
 	/**
-	 * Stop a user's stopwatch
-	 *
-	 * @HandlesCommand("stopwatch")
-	 * @Mask $action stop
+	 * Stop your stopwatch and show the time elapsed and the laps
 	 */
-	public function stopStopwatchCommand(CmdContext $context, string $action): void {
+	#[NCA\HandlesCommand("stopwatch")]
+	public function stopStopwatchCommand(CmdContext $context, #[NCA\Str("stop")] string $action): void {
 		if (!array_key_exists($context->char->name, $this->stopwatches)) {
 			$msg = "You don't have a stopwatch running.";
 			$context->reply($msg);
@@ -82,12 +74,10 @@ class StopwatchController {
 	}
 
 	/**
-	 * Command to add a lap to the stopwatch
-	 *
-	 * @HandlesCommand("stopwatch")
-	 * @Mask $action lap
+	 * Add a lap with an optional name to your stopwatch
 	 */
-	public function stopwatchLapCommand(CmdContext $context, string $action, ?string $lapName): void {
+	#[NCA\HandlesCommand("stopwatch")]
+	public function stopwatchLapCommand(CmdContext $context, #[NCA\Str("lap")] string $action, ?string $lapName): void {
 		if (!array_key_exists($context->char->name, $this->stopwatches)) {
 			$msg = "You don't have a stopwatch running.";
 			$context->reply($msg);
@@ -103,12 +93,10 @@ class StopwatchController {
 	}
 
 	/**
-	 * Show a user's stopwatch
-	 *
-	 * @HandlesCommand("stopwatch")
-	 * @Mask $action (view|show)
+	 * View the current times on your stopwatch without stopping it
 	 */
-	public function showStopwatchCommand(CmdContext $context, string $action): void {
+	#[NCA\HandlesCommand("stopwatch")]
+	public function showStopwatchCommand(CmdContext $context, #[NCA\Str("view", "show")] string $action): void {
 		if (!array_key_exists($context->char->name, $this->stopwatches)) {
 			$msg = "You don't have a stopwatch running.";
 			$context->reply($msg);

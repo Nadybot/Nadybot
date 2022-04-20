@@ -3,7 +3,7 @@
 namespace Nadybot\Modules\WEBSERVER_MODULE;
 
 class ApiResponse extends Response {
-	public function __construct($args=null) {
+	public function __construct(mixed $args=null) {
 		if (isset($args)) {
 			$this->body = JsonExporter::encode($args);
 		}

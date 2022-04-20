@@ -5,101 +5,89 @@ namespace Nadybot\Modules\CITY_MODULE;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	AOChatEvent,
+	Attributes as NCA,
 	CmdContext,
 	DB,
 	Event,
 	EventManager,
+	ModuleInstance,
 	MessageEmitter,
 	MessageHub,
 	Modules\ALTS\AltsController,
 	Nadybot,
+	Registry,
 	Routing\RoutableMessage,
 	Routing\Source,
-	SettingManager,
 	Text,
 	UserStateEvent,
 	Util,
 };
+use Nadybot\Modules\WEBSERVER_MODULE\StatsController;
 
 /**
  * @author Tyrence (RK2)
- *
- * @Instance
- *
- * Commands this class contains:
- *	@DefineCommand(
- *		command     = 'cloak',
- *		accessLevel = 'guild',
- *		description = 'Show the status of the city cloak',
- *		help        = 'cloak.txt',
- *		alias		= 'city'
- *	)
- *	@ProvidesEvent("cloak(raise)")
- *	@ProvidesEvent("cloak(lower)")
  */
-class CloakController implements MessageEmitter {
+#[
+	NCA\Instance,
+	NCA\HasMigrations,
+	NCA\DefineCommand(
+		command: "cloak",
+		accessLevel: "guild",
+		description: "Show the status of the city cloak",
+		alias: "city"
+	),
+
+	NCA\ProvidesEvent("cloak(raise)"),
+	NCA\ProvidesEvent("cloak(lower)")
+]
+class CloakController extends ModuleInstance implements MessageEmitter {
 	public const DB_TABLE = "org_city_<myname>";
 
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
-
-	/** @Inject */
+	#[NCA\Inject]
 	public Nadybot $chatBot;
 
-	/** @Inject */
-	public SettingManager $settingManager;
-
-	/** @Inject */
+	#[NCA\Inject]
 	public EventManager $eventManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public MessageHub $messageHub;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public DB $db;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Text $text;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Util $util;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public AltsController $altsController;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public CityWaveController $cityWaveController;
 
-	/**
-	 * @Setup
-	 */
+	#[NCA\Inject]
+	public StatsController $statsController;
+
+	/** Show cloak status to players at logon */
+	#[NCA\Setting\Options(options: [
+		'Never' => 0,
+		'When cloak is down' => 1,
+		'Always' => 2,
+	])]
+	public int $showcloakstatus = 1;
+
+	/** How often to spam guild channel when cloak is down */
+	#[NCA\Setting\Time(options: ["2m", "5m", "10m", "15m", "20m"])]
+	public int $cloakReminderInterval = 300; // 5m
+
+	#[NCA\Setup]
 	public function setup(): void {
-		$this->db->loadMigrations($this->moduleName, __DIR__ . '/Migrations');
-
-		$this->settingManager->add(
-			$this->moduleName,
-			"showcloakstatus",
-			"Show cloak status to players at logon",
-			"edit",
-			"options",
-			"1",
-			"Never;When cloak is down;Always",
-			"0;1;2"
-		);
-		$this->settingManager->add(
-			$this->moduleName,
-			"cloak_reminder_interval",
-			"How often to spam guild channel when cloak is down",
-			"edit",
-			"time",
-			"5m",
-			"2m;5m;10m;15m;20m"
-		);
-
 		$this->messageHub->registerMessageEmitter($this);
+		$cloakStats = new CloakStatsCollector();
+		Registry::injectDependencies($cloakStats);
+		$this->statsController->registerProvider($cloakStats, "states");
 	}
 
 	public function getChannelName(): string {
@@ -107,8 +95,11 @@ class CloakController implements MessageEmitter {
 	}
 
 	/**
-	 * @HandlesCommand("cloak")
+	 * Show the current status of the city cloak
+	 *
+	 * An asterisk (*) will appear next to the person's name if they manually set the cloak to on.
 	 */
+	#[NCA\HandlesCommand("cloak")]
 	public function cloakCommand(CmdContext $context): void {
 		/** @var Collection<OrgCity> */
 		$data = $this->db->table(self::DB_TABLE)
@@ -154,11 +145,9 @@ class CloakController implements MessageEmitter {
 		$context->reply($blob);
 	}
 
-	/**
-	 * @HandlesCommand("cloak")
-	 * @Mask $action (raise|on)
-	 */
-	public function cloakRaiseCommand(CmdContext $context, string $action): void {
+	/** Manually set the cloak status to on (in case the bot was offline when it was raised) */
+	#[NCA\HandlesCommand("cloak")]
+	public function cloakRaiseCommand(CmdContext $context, #[NCA\Str("raise", "on")] string $action): void {
 		/** @var ?OrgCity */
 		$row = $this->getLastOrgEntry(true);
 
@@ -181,10 +170,10 @@ class CloakController implements MessageEmitter {
 		$this->eventManager->fireEvent($event);
 	}
 
-	/**
-	 * @Event("guild")
-	 * @Description("Records when the cloak is raised or lowered")
-	 */
+	#[NCA\Event(
+		name: "guild",
+		description: "Records when the cloak is raised or lowered"
+	)]
 	public function recordCloakChangesEvent(AOChatEvent $eventObj): void {
 		if ($this->util->isValidSender($eventObj->sender)
 			|| !preg_match("/^(.+) turned the cloaking device in your city (on|off).$/i", $eventObj->message, $arr)
@@ -203,7 +192,7 @@ class CloakController implements MessageEmitter {
 		$this->eventManager->fireEvent($event);
 	}
 
-	public function getLastOrgEntry($cloakOnly=false): ?OrgCity {
+	public function getLastOrgEntry(bool $cloakOnly=false): ?OrgCity {
 		$query = $this->db->table(self::DB_TABLE)
 			->orderByDesc("time")
 			->limit(1);
@@ -222,10 +211,10 @@ class CloakController implements MessageEmitter {
 		$this->messageHub->handle($e);
 	}
 
-	/**
-	 * @Event("timer(1min)")
-	 * @Description("Checks timer to see if cloak can be raised or lowered")
-	 */
+	#[NCA\Event(
+		name: "timer(1min)",
+		description: "Checks timer to see if cloak can be raised or lowered"
+	)]
 	public function checkTimerEvent(Event $eventObj): void {
 		$row = $this->getLastOrgEntry();
 		if ($row === null) {
@@ -235,7 +224,8 @@ class CloakController implements MessageEmitter {
 		if ($row->action === "off") {
 			// send message to org chat every 5 minutes that the cloaking device is
 			// disabled past the the time that the cloaking device could be enabled.
-			$interval = $this->settingManager->getInt('cloak_reminder_interval') ?? 300;
+			$interval = $this->cloakReminderInterval;
+			// @phpstan-ignore-next-line
 			if ($timeSinceChange >= 60*60 && ($timeSinceChange % $interval >= 0 && $timeSinceChange % $interval <= 60 )) {
 				$timeString = $this->util->unixtimeToReadable(time() - $row->time, false);
 				$this->sendCloakMessage("The cloaking device was disabled by <highlight>{$row->player}<end> $timeString ago. It is possible to enable it.");
@@ -247,10 +237,10 @@ class CloakController implements MessageEmitter {
 		}
 	}
 
-	/**
-	 * @Event("timer(1min)")
-	 * @Description("Reminds the player who lowered cloak to raise it")
-	 */
+	#[NCA\Event(
+		name: "timer(1min)",
+		description: "Reminds the player who lowered cloak to raise it"
+	)]
 	public function cloakReminderEvent(Event $eventObj): void {
 		$row = $this->getLastOrgEntry(true);
 		if ($row === null || $row->action === "on") {
@@ -267,6 +257,7 @@ class CloakController implements MessageEmitter {
 		} elseif ($timeSinceChange >= 58*60 && $timeSinceChange <= 59*60) {
 			// 1 minute before send tell to player
 			$msg = "The cloaking device is <orange>disabled<end>. It is possible in $timeString to enable it.";
+		// @phpstan-ignore-next-line
 		} elseif ($timeSinceChange >= 59*60 && ($timeSinceChange % (60*5) >= 0 && $timeSinceChange % (60*5) <= 60 )) {
 			// when cloak can be raised, send tell to player and
 			// every 5 minutes after, send tell to player
@@ -282,10 +273,10 @@ class CloakController implements MessageEmitter {
 		}
 	}
 
-	/**
-	 * @Event("logOn")
-	 * @Description("Show cloak status to guild members logging in")
-	 */
+	#[NCA\Event(
+		name: "logOn",
+		description: "Show cloak status to guild members logging in"
+	)]
 	public function cityGuildLogonEvent(UserStateEvent $eventObj): void {
 		if (!$this->chatBot->isReady()
 			|| !isset($this->chatBot->guildmembers[$eventObj->sender])
@@ -300,11 +291,16 @@ class CloakController implements MessageEmitter {
 		}
 		[$case, $msg] = $data;
 
-		if ($case <= $this->settingManager->getInt("showcloakstatus")) {
+		if ($case <= $this->showcloakstatus) {
 			$this->chatBot->sendMassTell($msg, $eventObj->sender);
 		}
 	}
 
+	/**
+	 * @return null|array<int|string>
+	 * @psalm-return null|array{0:int,1:string}
+	 * @phpstan-return null|array{0:int,1:string}
+	 */
 	protected function getCloakStatus(): ?array {
 		$row = $this->getLastOrgEntry(true);
 
@@ -339,13 +335,17 @@ class CloakController implements MessageEmitter {
 		return [1, "Unknown status on city cloak!"];
 	}
 
-	/**
-	 * @NewsTile("cloak-status")
-	 * @Description("Shows the current status of the city cloak, if and when
-	 * new raids can be initiated")
-	 * @Example("<header2>City<end>
-	 * <tab>The cloaking device is <green>enabled<end>. It is possible to disable it.")
-	 */
+	#[
+		NCA\NewsTile(
+			name: "cloak-status",
+			description:
+				"Shows the current status of the city cloak, if and when\n".
+				"new raids can be initiated",
+			example:
+				"<header2>City<end>\n".
+				"<tab>The cloaking device is <green>enabled<end>. It is possible to disable it."
+		)
+	]
 	public function cloakStatusTile(string $sender, callable $callback): void {
 		$data = $this->getCloakStatus();
 		if (!isset($data)) {

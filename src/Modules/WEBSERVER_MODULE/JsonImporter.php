@@ -6,6 +6,7 @@ use Exception;
 use ReflectionClass;
 use ReflectionNamedType;
 use ReflectionProperty;
+use Nadybot\Core\Attributes\JSON;
 
 class JsonImporter {
 	public static function expandClassname(string $class): ?string {
@@ -22,11 +23,11 @@ class JsonImporter {
 		return null;
 	}
 
-	protected static function isAssocArray($value): bool {
+	protected static function isAssocArray(mixed $value): bool {
 		return is_array($value) && array_diff_key($value, array_keys(array_keys($value)));
 	}
 
-	protected static function hasIntervalType(string $checkType, $value): bool {
+	protected static function hasIntervalType(string $checkType, mixed $value): bool {
 		if ($checkType === "string" && is_string($value)) {
 			return true;
 		}
@@ -45,7 +46,7 @@ class JsonImporter {
 		return false;
 	}
 
-	public static function matchesType(string $type, &$value): bool {
+	public static function matchesType(string $type, mixed &$value): bool {
 		if (substr($type, 0, 1) === "?") {
 			if ($value === null) {
 				return true;
@@ -111,14 +112,17 @@ class JsonImporter {
 	}
 
 	public static function castFromRefprop(object $result, ReflectionProperty $refProp, object $obj): void {
-		$docComment = $refProp->getDocComment();
 		$name = $refProp->getName();
-		if ($docComment !== false && preg_match('/@json:ignore/', $docComment)) {
+		if (count($refProp->getAttributes(JSON\Ignore::class)) > 0) {
 			return;
 		}
-		if ($docComment !== false && preg_match('/@json:name=([^\s]+)/', $docComment, $matches)) {
-			$name = $matches[1];
+		$nameAttr = $refProp->getAttributes(JSON\Name::class);
+		if (count($nameAttr) > 0) {
+			/** @var JSON\Name */
+			$nameObj = $nameAttr[0]->newInstance();
+			$name = $nameObj->name;
 		}
+		$docComment = $refProp->getDocComment();
 		if ($docComment !== false && preg_match('/@var\s+([^\s]+)/', $docComment, $matches)) {
 			$type = $matches[1];
 		} else {
@@ -171,7 +175,7 @@ class JsonImporter {
 		throw new Exception("Invalid type found: {$type}");
 	}
 
-	public static function convert(string $class, object $obj): ?object {
+	public static function convert(string $class, object $obj): object {
 		$class = static::expandClassname($class);
 		if ($class === null) {
 			throw new Exception("Cannot find class $class");
@@ -183,13 +187,5 @@ class JsonImporter {
 			static::castFromRefprop($result, $refProp, $obj);
 		}
 		return $result;
-	}
-
-	public static function decode(string $class, ?string $data): ?object {
-		if ($data === null) {
-			return null;
-		}
-		$obj = json_decode($data, false, 512, JSON_THROW_ON_ERROR);
-		return static::convert($class, $obj);
 	}
 }

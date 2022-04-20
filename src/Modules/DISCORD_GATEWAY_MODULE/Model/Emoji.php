@@ -7,6 +7,7 @@ use Nadybot\Core\JSONDataModel;
 class Emoji extends JSONDataModel {
 	public ?string $id = null;
 	public ?string $name = null;
+	/** @var mixed[] */
 	public ?array $roles;
 	public ?object $user;
 	public ?bool $require_colors;

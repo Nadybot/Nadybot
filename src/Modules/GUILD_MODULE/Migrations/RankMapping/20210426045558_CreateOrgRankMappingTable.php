@@ -14,7 +14,7 @@ class CreateOrgRankMappingTable implements SchemaMigration {
 		if ($db->schema()->hasTable($table)) {
 			return;
 		}
-		$db->schema()->create($table, function(Blueprint $table) {
+		$db->schema()->create($table, function(Blueprint $table): void {
 			$table->string("access_level", 15)->primary();
 			$table->integer("min_rank")->unique();
 		});

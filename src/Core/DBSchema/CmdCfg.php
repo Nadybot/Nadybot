@@ -3,17 +3,27 @@
 namespace Nadybot\Core\DBSchema;
 
 use Nadybot\Core\DBRow;
+use Nadybot\Core\Attributes as NCA;
 
 class CmdCfg extends DBRow {
+	#[NCA\JSON\Ignore]
 	public string $module;
+	#[NCA\JSON\Ignore]
 	public string $cmdevent;
-	public string $type;
+	#[NCA\JSON\Ignore]
 	public string $file;
 	public string $cmd;
-	public string $admin;
 	public string $description='none';
+	#[NCA\JSON\Ignore]
 	public int $verify=0;
-	public int $status=0;
+	#[NCA\JSON\Ignore]
 	public string $dependson='none';
-	public ?string $help=null;
+
+	/**
+	 * @var array<string,CmdPermission>
+	 * @json-var CmdPermission[]
+	 */
+	#[NCA\DB\Ignore]
+	#[NCA\JSON\Map("array_values")]
+	public array $permissions = [];
 }

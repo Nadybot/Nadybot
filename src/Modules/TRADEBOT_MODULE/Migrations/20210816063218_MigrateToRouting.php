@@ -2,22 +2,25 @@
 
 namespace Nadybot\Modules\TRADEBOT_MODULE\Migrations;
 
-use Nadybot\Core\DB;
-use Nadybot\Core\DBSchema\Route;
-use Nadybot\Core\DBSchema\Setting;
-use Nadybot\Core\LoggerWrapper;
-use Nadybot\Core\MessageHub;
-use Nadybot\Core\Nadybot;
-use Nadybot\Core\Routing\Source;
-use Nadybot\Core\SchemaMigration;
-use Nadybot\Core\SettingManager;
+use Nadybot\Core\{
+	Attributes as NCA,
+	ConfigFile,
+	DB,
+	DBSchema\Route,
+	DBSchema\Setting,
+	LoggerWrapper,
+	MessageHub,
+	Routing\Source,
+	SchemaMigration,
+	SettingManager,
+};
 
 class MigrateToRouting implements SchemaMigration {
-	/** @Inject */
+	#[NCA\Inject]
 	public MessageHub $messageHub;
 
-	/** @Inject */
-	public Nadybot $chatBot;
+	#[NCA\Inject]
+	public ConfigFile $config;
 
 	protected function getSetting(DB $db, string $name): ?Setting {
 		return $db->table(SettingManager::DB_TABLE)
@@ -39,7 +42,7 @@ class MigrateToRouting implements SchemaMigration {
 		if ((int)$channels->value & 1) {
 			$route = new Route();
 			$route->source = Source::TRADEBOT;
-			$route->destination = Source::PRIV . "({$this->chatBot->vars['name']})";
+			$route->destination = Source::PRIV . "({$this->config->name})";
 			$db->insert($table, $route);
 		}
 		if ((int)$channels->value & 2) {

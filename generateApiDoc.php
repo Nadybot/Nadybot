@@ -26,7 +26,7 @@ echo(
 	preg_replace_callback(
 		"/^((?:    )+)/m",
 		function(array $matches): string {
-			return str_repeat("\t", strlen($matches[1]) / 4);
+			return str_repeat("\t", (int)floor(strlen($matches[1]) / 4));
 		},
 		json_encode($spec, JSON_UNESCAPED_SLASHES|JSON_PRETTY_PRINT)
 	)

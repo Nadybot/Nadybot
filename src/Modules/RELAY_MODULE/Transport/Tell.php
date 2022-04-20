@@ -3,35 +3,48 @@
 namespace Nadybot\Modules\RELAY_MODULE\Transport;
 
 use Exception;
-use Nadybot\Core\AOChatEvent;
-use Nadybot\Core\BuddylistManager;
-use Nadybot\Core\EventManager;
-use Nadybot\Core\Nadybot;
-use Nadybot\Core\PacketEvent;
-use Nadybot\Core\Registry;
-use Nadybot\Core\StopExecutionException;
-use Nadybot\Core\UserStateEvent;
-use Nadybot\Modules\RELAY_MODULE\Relay;
-use Nadybot\Modules\RELAY_MODULE\RelayMessage;
+use Nadybot\Core\{
+	Attributes as NCA,
+	AOChatEvent,
+	BuddylistManager,
+	EventManager,
+	Nadybot,
+	PacketEvent,
+	Registry,
+	StopExecutionException,
+	UserStateEvent,
+};
+use Nadybot\Modules\RELAY_MODULE\{
+	Relay,
+	RelayMessage,
+};
 
-/**
- * @RelayTransport("tell")
- * @Description("This is the Anarchy Online private message (tell) protocol.
- * 	You can use this to relay messages internally inside Anarchy Online
- * 	via sending tells. This is the simplest form of relaying messages.
- * 	Be aware though, that tells are rate-limited and will very likely
- * 	lag a lot. It is also not possible to setup a relay with more
- * 	then 2 bots this way.")
- * @Param(name='bot', description='The name of the other bot', type='string', required=true)
- */
+#[
+	NCA\RelayTransport(
+		name: "tell",
+		description:
+			"This is the Anarchy Online private message (tell) protocol.\n".
+			"You can use this to relay messages internally inside Anarchy Online\n".
+			"via sending tells. This is the simplest form of relaying messages.\n".
+			"Be aware though, that tells are rate-limited and will very likely\n".
+			"lag a lot. It is also not possible to setup a relay with more\n".
+			"then 2 bots this way."
+	),
+	NCA\Param(
+		name: "bot",
+		type: "string",
+		description: "The name of the other bot",
+		required: true
+	)
+]
 class Tell implements TransportInterface {
-	/** @Inject */
+	#[NCA\Inject]
 	public Nadybot $chatBot;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public EventManager $eventManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public BuddylistManager $buddylistManager;
 
 	protected Relay $relay;
@@ -44,7 +57,7 @@ class Tell implements TransportInterface {
 	public function __construct(string $bot) {
 		$bot = ucfirst(strtolower($bot));
 		/** @var Nadybot */
-		$chatBot = Registry::getInstance('chatBot');
+		$chatBot = Registry::getInstance(Nadybot::class);
 		if ($chatBot->get_uid($bot) === false) {
 			throw new Exception("Unknown user <highlight>{$bot}<end>.");
 		}
@@ -130,7 +143,7 @@ class Tell implements TransportInterface {
 			$waitForRemoval = function (PacketEvent $event) use ($callback, &$waitForRemoval): void {
 				$uid = $event->packet->args[0];
 				$name = $this->chatBot->lookup_user($uid);
-				if ($name === $this->bot) {
+				if ($name === $this->bot && is_int($uid)) {
 					$this->buddylistManager->updateRemoved($uid);
 					$this->eventManager->unsubscribe("packet(41)", $waitForRemoval);
 					$callback();

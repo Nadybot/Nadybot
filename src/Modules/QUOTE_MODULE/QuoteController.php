@@ -3,9 +3,12 @@
 namespace Nadybot\Modules\QUOTE_MODULE;
 
 use Nadybot\Core\{
+	Attributes as NCA,
 	AccessManager,
 	CmdContext,
+	ConfigFile,
 	DB,
+	ModuleInstance,
 	Nadybot,
 	ParamClass\PRemove,
 	Text,
@@ -15,56 +18,46 @@ use Nadybot\Core\{
 /**
  * @author Lucier (RK1)
  * @author Tyrence (RK2)
- *
- * @Instance
- *
- * Commands this controller contains:
- *	@DefineCommand(
- *		command     = 'quote',
- *		accessLevel = 'all',
- *		description = 'Add/Remove/View Quotes',
- *		help        = 'quote.txt'
- *	)
  */
-class QuoteController {
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
-
-	/** @Inject */
+#[
+	NCA\Instance,
+	NCA\HasMigrations,
+	NCA\DefineCommand(
+		command: "quote",
+		accessLevel: "guest",
+		description: "Add/Remove/View Quotes",
+	)
+]
+class QuoteController extends ModuleInstance {
+	#[NCA\Inject]
 	public DB $db;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public AccessManager $accessManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Text $text;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Util $util;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Nadybot $chatBot;
 
-	/**
-	 * This handler is called on bot startup.
-	 * @Setup
-	 */
-	public function setup(): void {
-		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations");
-	}
+	#[NCA\Inject]
+	public ConfigFile $config;
 
-	/**
-	 * @HandlesCommand("quote")
-	 * @Mask $action add
-	 */
-	public function quoteAddCommand(CmdContext $context, string $action, string $quote): void {
+	/** Add a quote */
+	#[NCA\HandlesCommand("quote")]
+	public function quoteAddCommand(
+		CmdContext $context,
+		#[NCA\Str("add")] string $action,
+		string $quote
+	): void {
 		$quoteMsg = trim($quote);
 		$row = $this->db->table("quote")
 			->whereIlike("msg", $quoteMsg)
-			->asObj()->first();
+			->asObj(Quote::class)->first();
 		if (isset($row)) {
 			$msg = "This quote has already been added as quote <highlight>{$row->id}<end>.";
 			$context->reply($msg);
@@ -87,10 +80,13 @@ class QuoteController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @HandlesCommand("quote")
-	 */
-	public function quoteRemoveCommand(CmdContext $context, PRemove $action, int $id): void {
+	/** Remove a quote */
+	#[NCA\HandlesCommand("quote")]
+	public function quoteRemoveCommand(
+		CmdContext $context,
+		PRemove $action,
+		int $id
+	): void {
 		/** @var ?Quote */
 		$row = $this->db->table("quote")
 			->where("id", $id)
@@ -115,11 +111,13 @@ class QuoteController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @HandlesCommand("quote")
-	 * @Mask $action search
-	 */
-	public function quoteSearchCommand(CmdContext $context, string $action, string $search): void {
+	/** Search for a quote of a specific author/victim/text */
+	#[NCA\HandlesCommand("quote")]
+	public function quoteSearchCommand(
+		CmdContext $context,
+		#[NCA\Str("search")] string $action,
+		string $search
+	): void {
 		$searchParam = "%{$search}%";
 		$msg = "";
 
@@ -161,11 +159,13 @@ class QuoteController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @HandlesCommand("quote")
-	 * @Mask $channel (org|priv)
-	 */
-	public function quoteShowCommand(CmdContext $context, ?string $channel, int $id): void {
+	/** Show a given quote, optionally to the org or private channel */
+	#[NCA\HandlesCommand("quote")]
+	public function quoteShowCommand(
+		CmdContext $context,
+		#[NCA\StrChoice("org", "priv")] ?string $channel,
+		int $id
+	): void {
 		$result = $this->getQuoteInfo($id);
 
 		if ($result === null) {
@@ -185,9 +185,8 @@ class QuoteController {
 		}
 	}
 
-	/**
-	 * @HandlesCommand("quote")
-	 */
+	/** Show a random quote */
+	#[NCA\HandlesCommand("quote")]
 	public function quoteShowRandomCommand(CmdContext $context): void {
 		// choose a random quote to show
 		$result = $this->getQuoteInfo(null);
@@ -205,7 +204,7 @@ class QuoteController {
 	}
 
 	/** @return null|string|string[] */
-	public function getQuoteInfo(int $id=null) {
+	public function getQuoteInfo(int $id=null): null|string|array {
 		$count = $this->getMaxId();
 
 		if ($count === 0) {
@@ -235,7 +234,7 @@ class QuoteController {
 		$msg .= "Date: <highlight>" . $this->util->date($row->dt) . "<end>\n";
 		$msg .= "Quote: <highlight>$quoteMsg<end>\n";
 		$msg .= "Action:";
-		if (!empty($this->chatBot->vars["my_guild"])) {
+		if (!empty($this->config->orgName)) {
 			$msg .= " [".
 				$this->text->makeChatcmd("To orgchat", "/tell <myname> quote org {$row->id}").
 			"]";
@@ -248,7 +247,7 @@ class QuoteController {
 		$idList = $this->db->table("quote")
 			->where("poster", $poster)
 			->asObj(Quote::class)
-			->map(function (Quote $row) {
+			->map(function (Quote $row): string {
 				return $this->text->makeChatcmd(
 					(string)$row->id,
 					"/tell <myname> quote {$row->id}"
@@ -263,12 +262,15 @@ class QuoteController {
 		);
 	}
 
-	/**
-	 * @NewsTile("quote")
-	 * @Description("Displays a random quote from your quote database")
-	 * @Example("» [Team] This is a random quote from Player 1
-	 * » [Team] And a witty response from Player 2")
-	 */
+	#[
+		NCA\NewsTile(
+			name: "quote",
+			description: "Displays a random quote from your quote database",
+			example:
+				"» [Team] This is a random quote from Player 1\n".
+				"» [Team] And a witty response from Player 2"
+		)
+	]
 	public function quoteTile(string $sender, callable $callback): void {
 		/** @var ?Quote */
 		$row = $this->db->table("quote")
@@ -280,7 +282,7 @@ class QuoteController {
 			return;
 		}
 		$result = [];
-		$lines = preg_split("/ (?=(?:\(\d{2}:\d{2}\) )?\[[a-zA-Z 0-9-]+\])/", $row->msg);
+		$lines = \Safe\preg_split("/ (?=(?:\(\d{2}:\d{2}\) )?\[[a-zA-Z 0-9-]+\])/", $row->msg);
 		foreach ($lines as $line) {
 			$result = [...$result, ...explode("\n", $line)];
 		}

@@ -1,5 +1,0 @@
-To create a single blob with the specified size:
-<highlight><tab><symbol>createblob 'size'<end>
-
-To create multiple blobs with the specified size:
-<highlight><tab><symbol>createblob 'size' 'number of blobs'<end>

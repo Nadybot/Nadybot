@@ -3,69 +3,67 @@
 namespace Nadybot\Modules\RAID_MODULE;
 
 use Nadybot\Core\{
+	Attributes as NCA,
 	CmdContext,
-	CommandReply,
 	DB,
+	ModuleInstance,
+	Modules\ALTS\AltsController,
 	Nadybot,
+	ParamClass\PCharacter,
+	ParamClass\PDuration,
+	ParamClass\PRemove,
 	Text,
 	Util,
 };
-use Nadybot\Core\Modules\ALTS\AltsController;
-use Nadybot\Core\ParamClass\PCharacter;
-use Nadybot\Core\ParamClass\PDuration;
-use Nadybot\Core\ParamClass\PRemove;
 
 /**
  * This class contains all functions necessary to deal with temporary raid blocks
- *
- * @Instance
  * @package Nadybot\Modules\RAID_MODULE
- *
- * @DefineCommand(
- *     command       = 'raidblock',
- *     accessLevel   = 'member',
- *     description   = 'Check your raid blocks',
- *     help          = 'raidblock.txt'
- * )
- *
- * @DefineCommand(
- *     command       = 'raidblock .+',
- *     accessLevel   = 'raid_leader_1',
- *     description   = 'Temporarily block raiders',
- *     help          = 'raidblock.txt'
- * )
  */
-class RaidBlockController {
+#[
+	NCA\Instance,
+	NCA\HasMigrations("Migrations/Block"),
+	NCA\DefineCommand(
+		command: "raidblock",
+		accessLevel: "member",
+		description: "Check your raid blocks",
+	),
+	NCA\DefineCommand(
+		command: RaidBlockController::CMD_RAIDBLOCK_EDIT,
+		accessLevel: "raid_leader_1",
+		description: "Temporarily block raiders",
+	)
+]
+class RaidBlockController extends ModuleInstance {
 	public const DB_TABLE = "raid_block_<myname>";
 	public const POINTS_GAIN = "points";
 	public const JOIN_RAIDS = "join";
 	public const AUCTION_BIDS = "bid";
 
-	public string $moduleName;
+	public const CMD_RAIDBLOCK_EDIT = "raidblock add/remove";
 
 	public int $lastExpiration = 0;
 
 	/** @var array<string,array<string,RaidBlock>> */
 	public array $blocks = [];
 
-	/** @Inject */
+	#[NCA\Inject]
 	public DB $db;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Nadybot $chatBot;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public AltsController $altsController;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Util $util;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Text $text;
 
-	/** @Setup */
+	#[NCA\Setup]
 	public function setup(): void {
-		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations/Block");
 		$this->loadBlocks();
 	}
 
@@ -108,7 +106,7 @@ class RaidBlockController {
 	 * Check if a player is blocked from a certain raid activity
 	 */
 	public function isBlocked(string $player, string $activity): bool {
-		$player = $this->altsController->getAltInfo($player)->main;
+		$player = $this->altsController->getMainOf($player);
 		$this->expireBans();
 		return isset($this->blocks[ucfirst(strtolower($player))][$activity]);
 	}
@@ -126,25 +124,28 @@ class RaidBlockController {
 	}
 
 	/**
-	 * @HandlesCommand("raidblock .+")
-	 * @Mask $blockFrom (points|join|bid)
+	 * Block a player from attending aspects of the raids
+	 *
+	 * If &lt;duration&gt; is given, then the block is only temporary.
+	 * Permanent blocks can only be lifted manually.
 	 */
+	#[NCA\HandlesCommand(self::CMD_RAIDBLOCK_EDIT)]
 	public function raidBlockAddCommand(
 		CmdContext $context,
-		string $blockFrom,
-		PCharacter $player,
+		#[NCA\StrChoice("points", "join", "bid")] string $blockFrom,
+		PCharacter $character,
 		?PDuration $duration,
 		string $reason
 	): void {
-		$player = $player();
-		if ($this->isBlocked($player, $blockFrom)) {
-			$context->reply("<highlight>{$player}<end> is already blocked on <highlight>{$blockFrom}<end>.");
+		$character = $character();
+		if ($this->isBlocked($character, $blockFrom)) {
+			$context->reply("<highlight>{$character}<end> is already blocked on <highlight>{$blockFrom}<end>.");
 			return;
 		}
-		if (!$this->chatBot->get_uid($player)) {
-			$context->reply("<highlight>{$player}<end> doesn't exist.");
+		if (!$this->chatBot->get_uid($character)) {
+			$context->reply("<highlight>{$character}<end> doesn't exist.");
 		}
-		$player = $this->altsController->getAltInfo($player)->main;
+		$character = $this->altsController->getMainOf($character);
 		if (isset($duration)) {
 			$duration = $duration->toSecs();
 			$expiration = time() + $duration;
@@ -153,15 +154,15 @@ class RaidBlockController {
 		$block->blocked_by = $context->char->name;
 		$block->blocked_from = $blockFrom;
 		$block->expiration = $expiration??null;
-		$block->player = $player;
+		$block->player = $character;
 		$block->reason = $reason;
 		$block->time = time();
-		$this->blocks[$player] ??= [];
-		$this->blocks[$player][$blockFrom] = $block;
+		$this->blocks[$character] ??= [];
+		$this->blocks[$character][$blockFrom] = $block;
 		$this->db->insert(self::DB_TABLE, $block, null);
-		$msg = "<highlight>{$player}<end> is now blocked from <highlight>".
+		$msg = "<highlight>{$character}<end> is now blocked from <highlight>".
 			$this->blockToString($blockFrom) . "<end> ";
-		if ($duration > 0) {
+		if (is_int($duration) && $duration > 0) {
 			$msg .= "for <highlight>" . $this->util->unixtimeToReadable($duration) . "<end>.";
 		} else {
 			$msg .= "until someone removes the block.";
@@ -169,12 +170,11 @@ class RaidBlockController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @HandlesCommand("raidblock")
-	 */
+	/** Check if you are blocked from some raid aspects and for how long */
+	#[NCA\HandlesCommand("raidblock")]
 	public function raidBlockCommand(CmdContext $context): void {
 		$this->expireBans();
-		$player = $this->altsController->getAltInfo($context->char->name)->main;
+		$player = $this->altsController->getMainOf($context->char->name);
 		if (!isset($this->blocks[$player])) {
 			$context->reply("You are currently not blocked from any part of raiding.");
 			return;
@@ -192,12 +192,11 @@ class RaidBlockController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @HandlesCommand("raidblock .+")
-	 */
+	/** Check another character's blocks */
+	#[NCA\HandlesCommand(self::CMD_RAIDBLOCK_EDIT)]
 	public function raidBlockShowCommand(CmdContext $context, PCharacter $char): void {
 		$player = $char();
-		$player = $this->altsController->getAltInfo($player)->main;
+		$player = $this->altsController->getMainOf($player);
 		$this->expireBans();
 		if (!isset($this->blocks[$player])) {
 			$context->reply("<highlight>{$player}<end> is currently not blocked from any part of raiding.");
@@ -218,18 +217,16 @@ class RaidBlockController {
 		$context->reply($this->text->makeBlob($msg, $blob));
 	}
 
-	/**
-	 * @HandlesCommand("raidblock .+")
-	 * @Mask $blockFrom (points|join|bid)
-	 */
+	/** Lift all or just one raid block from a character */
+	#[NCA\HandlesCommand(self::CMD_RAIDBLOCK_EDIT)]
 	public function raidBlockLiftCommand(
 		CmdContext $context,
 		PRemove $action,
 		PCharacter $char,
-		?string $blockFrom
+		#[NCA\StrChoice("points", "join", "bid")] ?string $blockFrom
 	): void {
 		$player = $char();
-		$player = $this->altsController->getAltInfo($player)->main;
+		$player = $this->altsController->getMainOf($player);
 		$this->expireBans();
 		if (!isset($this->blocks[$player])) {
 			$context->reply("<highlight>{$player}<end> is currently not blocked from any part of raiding.");

@@ -14,9 +14,9 @@ class StopwatchLap {
 
 	public ?string $name;
 
-	public function __construct($name=null) {
+	public function __construct(?string $name=null) {
 		$this->time = new DateTime();
-		$this->name = strlen($name) ? $name : null;
+		$this->name = strlen($name??"") ? $name : null;
 	}
 
 	/**

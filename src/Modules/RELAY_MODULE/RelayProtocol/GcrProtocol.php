@@ -2,54 +2,82 @@
 
 namespace Nadybot\Modules\RELAY_MODULE\RelayProtocol;
 
-use Nadybot\Core\DBSchema\Player;
-use Nadybot\Core\Event;
-use Nadybot\Core\Modules\PLAYER_LOOKUP\PlayerManager;
-use Nadybot\Core\Nadybot;
-use Nadybot\Core\Routing\Character;
-use Nadybot\Core\Routing\Events\Online;
-use Nadybot\Core\Routing\RoutableEvent;
-use Nadybot\Core\Routing\RoutableMessage;
-use Nadybot\Core\Routing\Source;
-use Nadybot\Core\SettingManager;
-use Nadybot\Core\Util;
-use Nadybot\Core\Text;
-use Nadybot\Modules\ONLINE_MODULE\OnlineController;
-use Nadybot\Modules\RELAY_MODULE\Relay;
-use Nadybot\Modules\RELAY_MODULE\RelayMessage;
+use Closure;
+use Nadybot\Core\{
+	Attributes as NCA,
+	DBSchema\Player,
+	Modules\PLAYER_LOOKUP\PlayerManager,
+	Nadybot,
+	Routing\Character,
+	Routing\Events\Online,
+	Routing\RoutableEvent,
+	Routing\RoutableMessage,
+	Routing\Source,
+	SettingManager,
+	Util,
+	Text,
+};
+use Nadybot\Modules\{
+	ONLINE_MODULE\OnlineController,
+	RELAY_MODULE\Relay,
+	RELAY_MODULE\RelayMessage,
+};
 
-/**
- * @RelayProtocol("gcr")
- * @Description("This is the protocol that BeBot speaks natively.
- * 	It supports sharing online lists and basic colorization.
- * 	Nadybot only support colorization of messages from the
- * 	org and guest chat and not the BeBot native encryption.")
- * @Param(name='command', description='The command we send with each packet', type='string', required=false)
- * @Param(name='prefix', description='The prefix we send with each packet, e.g. "!" or ""', type='string', required=false)
- * @Param(name='sync-online', description='Sync the online list with the other bots of this relay', type='bool', required=false)
- * @Param(name='send-logon', description='Send messages that people in your org go online or offline', type='bool', required=false)
- */
+#[
+	NCA\RelayProtocol(
+		name: "gcr",
+		description:
+			"This is the protocol that BeBot speaks natively.\n".
+			"It supports sharing online lists and basic colorization.\n".
+			"Nadybot only support colorization of messages from the\n".
+			"org and guest chat and not the BeBot native encryption."
+	),
+	NCA\Param(
+		name: "command",
+		type: "string",
+		description: "The command we send with each packet",
+		required: false
+	),
+	NCA\Param(
+		name: "prefix",
+		type: "string",
+		description: "The prefix we send with each packet, e.g. \"!\" or \"\"",
+		required: false
+	),
+	NCA\Param(
+		name: "sync-online",
+		type: "bool",
+		description: "Sync the online list with the other bots of this relay",
+		required: false
+	),
+	NCA\Param(
+		name: "send-logon",
+		type: "bool",
+		description: "Send messages that people in your org go online or offline",
+		required: false
+	)
+]
 class GcrProtocol implements RelayProtocolInterface {
 	protected static int $supportedFeatures = self::F_ONLINE_SYNC;
 
 	protected Relay $relay;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Util $util;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Text $text;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public SettingManager $settingManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public PlayerManager $playerManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public OnlineController $onlineController;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Nadybot $chatBot;
 
 	protected string $command = "gcr";
@@ -69,15 +97,16 @@ class GcrProtocol implements RelayProtocolInterface {
 			return $this->renderMessage($event);
 		}
 		if ($event->getType() === RoutableEvent::TYPE_EVENT) {
-			/** @var Event $llEvent */
+			/** @var object $llEvent */
 			$llEvent = $event->getData();
-			if ($llEvent->type??null === Online::TYPE) {
+			if (isset($llEvent->type) && ($llEvent->type === Online::TYPE)) {
 				return $this->renderUserState($event);
 			}
 		}
 		return [];
 	}
 
+	/** @return string[] */
 	public function renderMessage(RoutableEvent $event): array {
 		$path = $event->getPath();
 		$hops = [];
@@ -100,12 +129,13 @@ class GcrProtocol implements RelayProtocolInterface {
 		];
 	}
 
+	/** @return string[] */
 	public function renderUserState(RoutableEvent $event): array {
 		$character = $event->getData()->char ?? null;
 		if (!isset($character) || !$this->util->isValidSender($character->name??-1)) {
 			return [];
 		}
-		$this->playerManager->getByNameCallback(
+		$this->playerManager->getByNameAsync(
 			function(?Player $player) use ($event): void {
 				if (!isset($player)) {
 					return;
@@ -121,7 +151,6 @@ class GcrProtocol implements RelayProtocolInterface {
 					$this->relay->receiveFromMember($this, $send);
 				}
 			},
-			false,
 			$character->name
 		);
 		return [];
@@ -271,9 +300,9 @@ class GcrProtocol implements RelayProtocolInterface {
 		}
 		if (preg_match("/^buddy (?<status>\d) (?<char>.+?) (?<where>[^ ]+)( \d+)?$/", $text, $matches)) {
 			$callback = ($matches['status'] === '1')
-				? [$this->relay, "setOnline"]
-				: [$this->relay, "setOffline"];
-			$this->playerManager->getByNameCallback(
+				? Closure::fromCallable([$this->relay, "setOnline"])
+				: Closure::fromCallable([$this->relay, "setOffline"]);
+			$this->playerManager->getByNameAsync(
 				function(?Player $player) use ($matches, $callback): void {
 					if (!isset($player)) {
 						return;
@@ -288,18 +317,20 @@ class GcrProtocol implements RelayProtocolInterface {
 						$matches['char']
 					);
 				},
-				false,
 				$sender
 			);
 		} elseif (preg_match("/^online (.+)$/", $text, $matches)) {
-			$this->playerManager->getByNameCallback(
+			$this->playerManager->getByNameAsync(
 				function(?Player $player) use ($matches): void {
 					if (!isset($player)) {
 						return;
 					}
 					$chars = explode(";", $matches[1]);
 					foreach ($chars as $char) {
-						[$name,$where,$rank] = [...explode(",", $char), null, null];
+						[$name, $where, $rank] = [...explode(",", $char), null, null];
+						if (!isset($name)) {
+							continue;
+						}
 						$this->relay->setOnline(
 							$player->name,
 							(!empty($player->guild))
@@ -311,16 +342,18 @@ class GcrProtocol implements RelayProtocolInterface {
 						);
 					}
 				},
-				false,
 				$sender
 			);
 		} elseif (preg_match("/^onlinereq$/", $text, $matches)) {
 			$onlineList = $this->getOnlineList();
 			if (isset($onlineList)) {
-				$this->relay->receiveFromMember(
-					$this,
-					[$this->getOnlineList()]
-				);
+				$data = $this->getOnlineList();
+				if (isset($data)) {
+					$this->relay->receiveFromMember(
+						$this,
+						[$data]
+					);
+				}
 			}
 		}
 		return null;

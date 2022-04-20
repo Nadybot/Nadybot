@@ -3,9 +3,12 @@
 namespace Nadybot\Modules\ORGLIST_MODULE;
 
 use Nadybot\Core\{
+	Attributes as NCA,
 	CmdContext,
+	ConfigFile,
 	DB,
 	DBSchema\Player,
+	ModuleInstance,
 	Modules\PLAYER_LOOKUP\Guild,
 	Modules\PLAYER_LOOKUP\GuildManager,
 	Modules\PLAYER_LOOKUP\PlayerManager,
@@ -18,59 +21,52 @@ use Nadybot\Modules\ONLINE_MODULE\OnlineController;
 
 /**
  * @author Tyrence (RK2)
- *
- * @Instance
- *
- * Commands this controller contains:
- *	@DefineCommand(
- *		command     = 'whoisorg',
- *		accessLevel = 'all',
- *		description = 'Display org info',
- *		help        = 'whoisorg.txt'
- *	)
  */
-class WhoisOrgController {
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
-
-	/** @Inject */
+#[
+	NCA\Instance,
+	NCA\DefineCommand(
+		command: "whoisorg",
+		accessLevel: "guest",
+		description: "Display org info",
+	)
+]
+class WhoisOrgController extends ModuleInstance {
+	#[NCA\Inject]
 	public DB $db;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Nadybot $chatBot;
 
-	/** @Inject */
+	#[NCA\Inject]
+	public ConfigFile $config;
+
+	#[NCA\Inject]
 	public Text $text;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Util $util;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public PlayerManager $playerManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public GuildManager $guildManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public OnlineController $onlineController;
 
-	/**
-	 * @HandlesCommand("whoisorg")
-	 */
+	/** Show information about an organization */
+	#[NCA\HandlesCommand("whoisorg")]
 	public function whoisorgIdCommand(CmdContext $context, int $orgId, ?int $dimension): void {
-		$dimension ??= (int)$this->chatBot->vars['dimension'];
+		$dimension ??= $this->config->dimension;
 		$this->sendOrgIdInfo($orgId, $context, $dimension);
 		return;
 	}
 
-	/**
-	 * @HandlesCommand("whoisorg")
-	 */
+	/** Show information about a character's org */
+	#[NCA\HandlesCommand("whoisorg")]
 	public function whoisorgCommand(CmdContext $context, PCharacter $char, ?int $dimension): void {
-		$dimension ??= (int)$this->chatBot->vars['dimension'];
+		$dimension ??= $this->config->dimension;
 		$name = $char();
 		$this->playerManager->getByNameAsync(
 			function(?Player $whois) use ($name, $context, $dimension): void {

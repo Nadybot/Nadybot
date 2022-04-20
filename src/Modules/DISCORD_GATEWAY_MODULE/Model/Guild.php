@@ -44,7 +44,7 @@ class Guild extends JSONDataModel {
 	public array $roles = [];
 	/**
 	 * custom guild emojis
-	 * @var Nadybot\Modules\DISCORD_GATEWAY_MODULE\Model\Emoji[]
+	 * @var \Nadybot\Modules\DISCORD_GATEWAY_MODULE\Model\Emoji[]
 	 */
 	public array $emojis = [];
 	/**
@@ -89,7 +89,10 @@ class Guild extends JSONDataModel {
 	 * @var \Nadybot\Core\Modules\DISCORD\DiscordChannel[]
 	 */
 	public array $channels = [];
-	/** presences of the members in the guild, will only include non-offline members if the size is greater than large threshold */
+	/**
+	 * presences of the members in the guild, will only include non-offline members if the size is greater than large threshold
+	 * @var mixed[]
+	 */
 	public array $presences;
 	/** the maximum number of presences for the guild (the default value, currently 25000, is in effect when null is returned) */
 	public ?int $max_presences = 25000;

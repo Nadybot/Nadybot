@@ -4,8 +4,10 @@ namespace Nadybot\Modules\BASIC_CHAT_MODULE;
 
 use Nadybot\Core\{
 	AOChatEvent,
+	Attributes as NCA,
 	CmdContext,
 	EventManager,
+	ModuleInstance,
 	Nadybot,
 	SettingManager,
 	Text,
@@ -13,87 +15,64 @@ use Nadybot\Core\{
 	Util,
 };
 
-/**
- * @Instance
- *
- * Commands this controller contains:
- *	@DefineCommand(
- *		command     = 'topic',
- *		accessLevel = 'all',
- *		description = 'Shows Topic',
- *		help        = 'topic.txt'
- *	)
- *	@DefineCommand(
- *		command     = 'topic .+',
- *		accessLevel = 'rl',
- *		description = 'Changes Topic',
- *		help        = 'topic.txt'
- *	)
- *	@ProvidesEvent("topic(set)")
- *	@ProvidesEvent("topic(clear)")
- */
-class ChatTopicController {
+#[
+	NCA\Instance,
+	NCA\DefineCommand(
+		command: "topic",
+		accessLevel: "guest",
+		description: "Shows Topic",
+	),
+	NCA\DefineCommand(
+		command: ChatTopicController::CMD_TOPIC_SET,
+		accessLevel: "rl",
+		description: "Changes Topic",
+	),
 
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
+	NCA\ProvidesEvent("topic(set)"),
+	NCA\ProvidesEvent("topic(clear)")
+]
+class ChatTopicController extends ModuleInstance {
+	public const CMD_TOPIC_SET = "topic set/clear";
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Nadybot $chatBot;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public SettingManager $settingManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Util $util;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Text $text;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public ChatRallyController $chatRallyController;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public ChatLeaderController $chatLeaderController;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public EventManager $eventManager;
 
-	/** @Setup */
-	public function setup(): void {
-		$this->settingManager->add(
-			$this->moduleName,
-			"topic",
-			"Topic for Private Channel",
-			"noedit",
-			"text",
-			""
-		);
-		$this->settingManager->add(
-			$this->moduleName,
-			"topic_setby",
-			"Character who set the topic",
-			"noedit",
-			"text",
-			""
-		);
-		$this->settingManager->add(
-			$this->moduleName,
-			"topic_time",
-			"Time the topic was set",
-			"noedit",
-			"number",
-			"0"
-		);
-	}
+	/** Topic for Private Channel */
+	#[NCA\Setting\Text(mode: "noedit")]
+	public string $topic = "";
+
+	/** Character who set the topic */
+	#[NCA\Setting\Text(mode: "noedit")]
+	public string $topicSetby = "";
+
+	/** Time the topic was set */
+	#[NCA\Setting\Timestamp(mode: "noedit")]
+	public int $topicTime = 0;
+
 	/**
-	 * This command handler shows topic.
-	 * @HandlesCommand("topic")
+	 * Show the current topic
 	 */
+	#[NCA\HandlesCommand("topic")]
 	public function topicCommand(CmdContext $context): void {
-		if ($this->settingManager->getString('topic') === '') {
+		if ($this->topic === '') {
 			$msg = 'No topic set.';
 		} else {
 			$msg = $this->buildTopicMessage();
@@ -103,11 +82,10 @@ class ChatTopicController {
 	}
 
 	/**
-	 * This command handler clears topic.
-	 * @HandlesCommand("topic .+")
-	 * @Mask $action clear
+	 * Clear the topic
 	 */
-	public function topicClearCommand(CmdContext $context, string $action): void {
+	#[NCA\HandlesCommand(self::CMD_TOPIC_SET)]
+	public function topicClearCommand(CmdContext $context, #[NCA\Str("clear")] string $action): void {
 		if (!$this->chatLeaderController->checkLeaderAccess($context->char->name)) {
 			$context->reply("You must be Raid Leader to use this command.");
 			return;
@@ -123,9 +101,9 @@ class ChatTopicController {
 	}
 
 	/**
-	 * This command handler sets topic.
-	 * @HandlesCommand("topic .+")
+	 * Set a new topic
 	 */
+	#[NCA\HandlesCommand(self::CMD_TOPIC_SET)]
 	public function topicSetCommand(CmdContext $context, string $topic): void {
 		if (!$this->chatLeaderController->checkLeaderAccess($context->char->name)) {
 			$context->reply("You must be Raid Leader to use this command.");
@@ -142,12 +120,12 @@ class ChatTopicController {
 		$this->eventManager->fireEvent($event);
 	}
 
-	/**
-	 * @Event("logOn")
-	 * @Description("Shows topic on logon of members")
-	 */
+	#[NCA\Event(
+		name: "logOn",
+		description: "Shows topic on logon of members"
+	)]
 	public function logonEvent(UserStateEvent $eventObj): void {
-		if ($this->settingManager->getString('topic') === ''
+		if ($this->topic === ''
 			|| !isset($this->chatBot->guildmembers[$eventObj->sender])
 			|| !$this->chatBot->isReady()
 			|| !is_string($eventObj->sender)
@@ -158,12 +136,12 @@ class ChatTopicController {
 		$this->chatBot->sendMassTell($msg, $eventObj->sender);
 	}
 
-	/**
-	 * @Event("joinPriv")
-	 * @Description("Shows topic when someone joins the private channel")
-	 */
+	#[NCA\Event(
+		name: "joinPriv",
+		description: "Shows topic when someone joins the private channel"
+	)]
 	public function joinPrivEvent(AOChatEvent $eventObj): void {
-		if ($this->settingManager->getString('topic') === '' || !is_string($eventObj->sender)) {
+		if ($this->topic === '' || !is_string($eventObj->sender)) {
 			return;
 		}
 		$msg = $this->buildTopicMessage();
@@ -184,9 +162,9 @@ class ChatTopicController {
 	 * Builds current topic information message and returns it.
 	 */
 	public function buildTopicMessage(): string {
-		$topicAge = $this->util->unixtimeToReadable(time() - ($this->settingManager->getInt('topic_time')??0), false);
-		$topic = $this->settingManager->getString('topic') ?? "&lt;none&gt;";
-		$topicCreator = $this->settingManager->getString('topic_setby') ?? "&lt;unknown&gt;";
+		$topicAge = $this->util->unixtimeToReadable(time() - $this->topicTime, false);
+		$topic = $this->topic;
+		$topicCreator = $this->topicSetby;
 		$msg = "Topic: <red>{$topic}<end> (set by ".
 			$this->text->makeUserlink($topicCreator).
 			", <highlight>{$topicAge} ago<end>)";

@@ -3,30 +3,36 @@
 namespace Nadybot\Modules\RELAY_MODULE\Layer;
 
 use Exception;
-use JsonException;
+use Safe\Exceptions\JsonException;
+use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\LoggerWrapper;
-use Nadybot\Modules\RELAY_MODULE\Relay;
-use Nadybot\Modules\RELAY_MODULE\RelayLayerInterface;
-use Nadybot\Modules\RELAY_MODULE\RelayMessage;
-use Nadybot\Modules\RELAY_MODULE\RelayStatus;
-use Nadybot\Modules\RELAY_MODULE\StatusProvider;
+use Nadybot\Modules\RELAY_MODULE\{
+	Relay,
+	RelayLayerInterface,
+	RelayMessage,
+	RelayStatus,
+	StatusProvider,
+};
 
-/**
- * @RelayStackMember("highway")
- * @Description("This is the highway protocol, spoken by the highway websocket-server.
- * 	It will broadcast incoming messages to all clients in the same room.
- * 	Room names can be picked freely as long as they are at least 32 characters
- * 	long. They should be as random as possible to prevent unauthorized
- *	access to messages.
- *	Shorter room names are system rooms and by definition read-only.
- *	For further security, using an encryption layer is recommended.")
- * @Param(
- * 	name='room',
- * 	description='The room(s) to join. Must be at least 32 characters long if you want to be able to send.',
- * 	type='string[]',
- * 	required=true
- * )
- */
+#[
+	NCA\RelayStackMember(
+		name: "highway",
+		description:
+			"This is the highway protocol, spoken by the highway websocket-server.\n".
+			"It will broadcast incoming messages to all clients in the same room.\n".
+			"Room names can be picked freely as long as they are at least 32 characters\n".
+			"long. They should be as random as possible to prevent unauthorized\n".
+			"access to messages.\n".
+			"Shorter room names are system rooms and by definition read-only.\n".
+			"For further security, using an encryption layer is recommended."
+	),
+	NCA\Param(
+		name: "room",
+		type: "string[]",
+		description: "The room(s) to join. Must be at least 32 characters long if you want to be able to send.",
+		required: true
+	)
+]
 class Highway implements RelayLayerInterface, StatusProvider {
 	public const TYPE_MESSAGE = "message";
 	public const TYPE_JOIN = "join";
@@ -43,7 +49,7 @@ class Highway implements RelayLayerInterface, StatusProvider {
 
 	protected ?RelayStatus $status = null;
 
-	/** @Logger */
+	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
 	/** @var ?callable */
@@ -52,6 +58,7 @@ class Highway implements RelayLayerInterface, StatusProvider {
 	/** @var ?callable */
 	protected $deInitCallback = null;
 
+	/** @param string[] $rooms */
 	public function __construct(array $rooms) {
 		foreach ($rooms as $room) {
 			if (strlen($room) < 32) {
@@ -77,7 +84,7 @@ class Highway implements RelayLayerInterface, StatusProvider {
 				"room" => $room,
 			];
 			try {
-				$encoded = json_encode($json, JSON_THROW_ON_ERROR|JSON_UNESCAPED_SLASHES|JSON_INVALID_UTF8_SUBSTITUTE);
+				$encoded = \Safe\json_encode($json, JSON_THROW_ON_ERROR|JSON_UNESCAPED_SLASHES|JSON_INVALID_UTF8_SUBSTITUTE);
 			} catch (JsonException $e) {
 				$this->status = new RelayStatus(
 					RelayStatus::ERROR,
@@ -105,7 +112,7 @@ class Highway implements RelayLayerInterface, StatusProvider {
 				"room" => $room,
 			];
 			try {
-				$encoded = json_encode($json, JSON_THROW_ON_ERROR|JSON_UNESCAPED_SLASHES|JSON_INVALID_UTF8_SUBSTITUTE);
+				$encoded = \Safe\json_encode($json, JSON_THROW_ON_ERROR|JSON_UNESCAPED_SLASHES|JSON_INVALID_UTF8_SUBSTITUTE);
 			} catch (JsonException $e) {
 				$this->status = new RelayStatus(
 					RelayStatus::ERROR,
@@ -135,7 +142,7 @@ class Highway implements RelayLayerInterface, StatusProvider {
 					"body" => $packet,
 				];
 				try {
-					$encoded []= json_encode($json, JSON_THROW_ON_ERROR|JSON_UNESCAPED_SLASHES|JSON_INVALID_UTF8_SUBSTITUTE);
+					$encoded []= \Safe\json_encode($json, JSON_THROW_ON_ERROR|JSON_UNESCAPED_SLASHES|JSON_INVALID_UTF8_SUBSTITUTE);
 				} catch (JsonException $e) {
 					$this->logger->error(
 						"Unable to encode the relay data into highway protocol: ".
@@ -163,15 +170,16 @@ class Highway implements RelayLayerInterface, StatusProvider {
 					"relay" => $this->relay->getName(),
 					"message" => $data,
 				]);
-				$json = json_decode($data, false, 512, JSON_THROW_ON_ERROR);
+				$json = \Safe\json_decode($data);
 			} catch (JsonException $e) {
 				$this->status = new RelayStatus(
 					RelayStatus::ERROR,
 					"Unable to decode highway message: " . $e->getMessage()
 				);
-				$this->logger->error("Unable to decode highway message on {relay}: {message}", [
+				$this->logger->error("Unable to decode highway message on {relay}: {error}", [
 					"relay" => $this->relay->getName(),
-					"message" => $e->getMessage(),
+					"message" => $data,
+					"error" => $e->getMessage(),
 					"exception" => $e,
 				]);
 				$data = null;
@@ -210,9 +218,12 @@ class Highway implements RelayLayerInterface, StatusProvider {
 			if ($json->type === static::TYPE_ERROR) {
 				$this->logger->error("Highway error on {relay}: {message}", [
 					"relay" => $this->relay->getName(),
-					"message" => $json->message,
+					"message" => isset($json->message) ? $json->message : null,
 				]);
-				$this->status = new RelayStatus(RelayStatus::ERROR, $json->message);
+				$this->status = new RelayStatus(
+					RelayStatus::ERROR,
+					isset($json->message) ? $json->message : "Unknown highway error"
+				);
 				$data = null;
 				continue;
 			}

@@ -11,7 +11,7 @@ class CreateNanosTable implements SchemaMigration {
 	public function migrate(LoggerWrapper $logger, DB $db): void {
 		$table = "nanos";
 		$db->schema()->dropIfExists($table);
-		$db->schema()->create($table, function(Blueprint $table) {
+		$db->schema()->create($table, function(Blueprint $table): void {
 			$table->unsignedInteger("crystal_id")->nullable()->index();
 			$table->unsignedInteger("nano_id")->primary();
 			$table->unsignedInteger("ql");

@@ -1,0 +1,16 @@
+name: Check code with psalm
+on: [push, pull_request]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v2
+      - name: Run style checker
+        shell: bash
+        run: |
+          composer install -q
+          composer dumpautoload
+          "$(composer config vendor-dir)/bin/psalm" --no-cache --no-reflection-cache --no-file-cache --show-info=true --no-progress --threads=4 --output-format=github src

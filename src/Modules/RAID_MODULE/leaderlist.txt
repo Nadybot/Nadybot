@@ -1,5 +1,0 @@
-To see the list of raid leaders/admins
-<tab><highlight><symbol>leaders<end>
-
-To see the list of raid leaders/admins including all offline alts:
-<tab><highlight><symbol>leaders all<end>

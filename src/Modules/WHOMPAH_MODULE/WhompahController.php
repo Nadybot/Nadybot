@@ -3,64 +3,50 @@
 namespace Nadybot\Modules\WHOMPAH_MODULE;
 
 use Illuminate\Support\Collection;
-use Nadybot\Core\CmdContext;
-use Nadybot\Core\CommandAlias;
-use Nadybot\Core\DB;
-use Nadybot\Core\ParamClass\PWord;
-use Nadybot\Core\Text;
+use Nadybot\Core\{
+	Attributes as NCA,
+	CmdContext,
+	DB,
+	ModuleInstance,
+	ParamClass\PWord,
+	Text,
+};
 
 /**
  * @author Tyrence (RK2)
- *
- * @Instance
- *
- * Commands this controller contains:
- *	@DefineCommand(
- *		command     = 'whompah',
- *		accessLevel = 'all',
- *		description = 'Shows the whompah route from one city to another',
- *		help        = 'whompah.txt'
- *	)
  */
-class WhompahController {
-
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
-
-	/** @Inject */
+#[
+	NCA\Instance,
+	NCA\HasMigrations,
+	NCA\DefineCommand(
+		command: "whompah",
+		accessLevel: "guest",
+		description: "Shows the whompah route from one city to another",
+		alias: ['whompahs', 'whompa', 'whompas'],
+	)
+]
+class WhompahController extends ModuleInstance {
+	#[NCA\Inject]
 	public DB $db;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Text $text;
 
-	/** @Inject */
-	public CommandAlias $commandAlias;
-
-	/**
-	 * This handler is called on bot startup.
-	 * @Setup
-	 */
+	#[NCA\Setup]
 	public function setup(): void {
-		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations");
 		$this->db->loadCSVFile($this->moduleName, __DIR__ . "/whompah_cities.csv");
 		$this->db->loadCSVFile($this->moduleName, __DIR__ . "/whompah_cities_rel.csv");
-
-		$this->commandAlias->register($this->moduleName, 'whompah', 'whompahs');
-		$this->commandAlias->register($this->moduleName, 'whompah', 'whompa');
-		$this->commandAlias->register($this->moduleName, 'whompah', 'whompas');
 	}
 
 	/**
-	 * Shows a list of known cities
-	 *
-	 * @HandlesCommand("whompah")
+	 * Shows a list of whompah cities
 	 */
+	#[NCA\HandlesCommand("whompah")]
 	public function whompahListCommand(CmdContext $context): void {
 		/** @var Collection<WhompahCity> */
-		$data = $this->db->table("whompah_cities")->orderBy("city_name")->asObj();
+		$data = $this->db->table("whompah_cities")
+			->orderBy("city_name")
+			->asObj(WhompahCity::class);
 
 		$blob = "<header2>All known cities with Whom-Pahs<end>\n";
 		foreach ($data as $row) {
@@ -75,10 +61,9 @@ class WhompahController {
 	}
 
 	/**
-	 * Searches for a whompah-route from start to end
-	 *
-	 * @HandlesCommand("whompah")
+	 * Searches a whompah-route from one location to another
 	 */
+	#[NCA\HandlesCommand("whompah")]
 	public function whompahTravelCommand(CmdContext $context, PWord $start, PWord $end): void {
 		$startCity = $this->findCity($start());
 		$endCity   = $this->findCity($end());
@@ -117,10 +102,9 @@ class WhompahController {
 	}
 
 	/**
-	 * Shows all whompah-connections of a city
-	 *
-	 * @HandlesCommand("whompah")
+	 * Show all whompah-connections of a city
 	 */
+	#[NCA\HandlesCommand("whompah")]
 	public function whompahDestinationsCommand(CmdContext $context, string $cityName): void {
 		$city = $this->findCity($cityName);
 
@@ -209,9 +193,10 @@ class WhompahController {
 			->keyBy("id")->toArray();
 
 		$this->db->table("whompah_cities_rel")->orderBy("city1_id")
-			->each(function(object $city) use ($whompahs) {
+			->asObj(WhompahCityRel::class)
+			->each(function(WhompahCityRel $city) use ($whompahs) {
 				$whompahs[$city->city1_id]->connections ??= [];
-				$whompahs[$city->city1_id]->connections[] = (int)$city->city2_id;
+				$whompahs[$city->city1_id]->connections[] = $city->city2_id;
 			});
 
 		return $whompahs;

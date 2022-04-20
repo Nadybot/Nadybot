@@ -2,51 +2,54 @@
 
 namespace Nadybot\Core\Modules\CONSOLE;
 
+use Exception;
 use Nadybot\Core\{
+	Attributes as NCA,
 	BotRunner,
+	Channels\ConsoleChannel,
 	CmdContext,
 	CommandManager,
+	ConfigFile,
+	ModuleInstance,
 	LoggerWrapper,
 	MessageHub,
 	Nadybot,
 	Registry,
-	SettingManager,
+	Routing\RoutableMessage,
+	Routing\Source,
 	SocketManager,
 	SocketNotifier,
 	Timer,
 };
-use Nadybot\Core\Channels\ConsoleChannel;
 
-/**
- * @Instance
- */
-class ConsoleController {
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
-
-	/** @Inject */
+#[NCA\Instance]
+class ConsoleController extends ModuleInstance {
+	#[NCA\Inject]
 	public SocketManager $socketManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public CommandManager $commandManager;
 
-	/** @Inject */
-	public SettingManager $settingManager;
-
-	/** @Inject */
+	#[NCA\Inject]
 	public Nadybot $chatBot;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Timer $timer;
 
-	/** @Inject */
+	#[NCA\Inject]
+	public ConfigFile $config;
+
+	#[NCA\Inject]
 	public MessageHub $messageHub;
 
-	/** @Logger */
+	#[NCA\Logger]
 	public LoggerWrapper $logger;
+
+	/** Use ANSI colors */
+	#[NCA\Setting\Boolean] public bool $consoleColor = false;
+
+	/** Set background color */
+	#[NCA\Setting\Boolean] public bool $consoleBGColor = false;
 
 	public SocketNotifier $notifier;
 
@@ -58,34 +61,18 @@ class ConsoleController {
 
 	public bool $useReadline = false;
 
-	/** @Setup */
+	#[NCA\Setup]
 	public function setup(): void {
-		$this->settingManager->add(
-			$this->moduleName,
-			"console_color",
-			"Use ANSI colors",
-			"edit",
-			"options",
-			"0",
-			"true;false",
-			"1;0"
-		);
-		$this->settingManager->add(
-			$this->moduleName,
-			"console_bg_color",
-			"Set background color",
-			"edit",
-			"options",
-			"0",
-			"true;false",
-			"1;0"
-		);
-		if ($this->chatBot->vars["enable_console_client"] &&!BotRunner::isWindows()) {
-			$handler = new ConsoleCommandReply($this->chatBot);
-			$channel = new ConsoleChannel($handler);
-			Registry::injectDependencies($channel);
-			$this->messageHub->registerMessageReceiver($channel);
+		if (!$this->config->enableConsoleClient || BotRunner::isWindows()) {
+			return;
 		}
+		$this->commandManager->registerSource("console");
+		$handler = new ConsoleCommandReply($this->chatBot);
+		Registry::injectDependencies($handler);
+		$channel = new ConsoleChannel($handler);
+		Registry::injectDependencies($channel);
+		$this->messageHub->registerMessageReceiver($channel)
+			->registerMessageEmitter($channel);
 	}
 
 	public function getCacheFile(): string {
@@ -98,34 +85,54 @@ class ConsoleController {
 		return sys_get_temp_dir() . "/Nadybot/readline.history";
 	}
 
-	public function loadHistory(): bool {
+	public function loadHistory(): void {
 		$file = $this->getCacheFile();
-		if (!@file_exists($file)) {
-			return false;
-		}
-		return readline_read_history($file);
-	}
-
-	public function saveHistory(): bool {
-		$file = $this->getCacheFile();
-		if (!@file_exists($file)) {
-			if (!@mkdir(dirname($file), 0700, true)) {
-				return false;
+		if (@file_exists($file)) {
+			try {
+				\Safe\readline_read_history($file);
+			} catch (Exception $e) {
+				$this->logger->warning(
+					"Unable to read the readline history file {file}: {error}",
+					[
+						"file" => $file,
+						"error" => $e->getMessage(),
+						"exception" => $e,
+					]
+				);
 			}
 		}
-		return readline_write_history($file);
+	}
+
+	public function saveHistory(): void {
+		$file = $this->getCacheFile();
+		if (!@file_exists($file)) {
+			@mkdir(dirname($file), 0700, true);
+		}
+		try {
+			\Safe\readline_write_history($file);
+		} catch (Exception $e) {
+			$this->logger->warning(
+				"Unable to write the readline history file {file}: {error}",
+				[
+					"file" => $file,
+					"error" => $e->getMessage(),
+					"exception" => $e,
+				]
+			);
+		}
 	}
 
 	/**
-	 * @Event("connect")
-	 * @Description("Initializes the console")
-	 * @DefaultStatus("1")
-	 *
 	 * This is an Event("connect") instead of Setup since you cannot use the console
 	 * before the bot is fully ready anyway
 	 */
+	#[NCA\Event(
+		name: "connect",
+		description: "Initializes the console",
+		defaultStatus: 1
+	)]
 	public function setupConsole(): void {
-		if (!$this->chatBot->vars["enable_console_client"]) {
+		if (!$this->config->enableConsoleClient) {
 			return;
 		}
 		if (BotRunner::isWindows()) {
@@ -152,7 +159,7 @@ class ConsoleController {
 			$this->logger->notice("StdIn console activated, accepting commands");
 			$this->socketManager->addSocketNotifier($this->notifier);
 			if ($this->useReadline) {
-				readline_callback_handler_install('> ', [$this, 'processLine']);
+				\Safe\readline_callback_handler_install('> ', [$this, 'processLine']);
 			} else {
 				echo("> ");
 			}
@@ -183,24 +190,25 @@ class ConsoleController {
 		if ($line === null || trim($line) === '') {
 			return;
 		}
-		if (substr($line, 0, 1) === $this->settingManager->getString('symbol')) {
-			$line = substr($line, 1);
-			if (trim($line) === '') {
-				return;
-			}
-		}
 		if ($this->useReadline) {
-			readline_add_history($line);
+			\Safe\readline_add_history($line);
 			$this->saveHistory();
-			readline_callback_handler_install('> ', [$this, 'processLine']);
+			\Safe\readline_callback_handler_install('> ', [$this, 'processLine']);
 		}
-		$context = new CmdContext($this->chatBot->vars["SuperAdmin"]);
-		$context->channel = "msg";
+
+		$context = new CmdContext($this->config->superAdmins[0]??"<no superadmin set>");
 		$context->message = $line;
+		$context->source = "console";
 		$context->sendto = new ConsoleCommandReply($this->chatBot);
+		Registry::injectDependencies($context->sendto);
 		$this->chatBot->getUid($context->char->name, function (?int $uid, CmdContext $context): void {
 			$context->char->id = $uid;
-			$this->commandManager->processCmd($context);
+			$rMessage = new RoutableMessage($context->message);
+			$rMessage->setCharacter($context->char);
+			$rMessage->prependPath(new Source(Source::CONSOLE, "Console"));
+			$this->messageHub->handle($rMessage);
+
+			$this->commandManager->checkAndHandleCmd($context);
 		}, $context);
 	}
 }

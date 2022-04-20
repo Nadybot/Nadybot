@@ -18,7 +18,7 @@ class RaffleSlot {
 		} elseif (preg_match("/loot\s*order/i", $text)) {
 			$this->amount = 0;
 		}
-		$items = preg_split("/\s*\+\s*/", $text);
+		$items = \Safe\preg_split("/\s*\+\s*/", $text);
 		foreach ($items as $item) {
 			$itemObj = new RaffleItem();
 			$itemObj->fromString($item);

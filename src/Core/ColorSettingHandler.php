@@ -2,14 +2,15 @@
 
 namespace Nadybot\Core;
 
+use Nadybot\Core\Attributes as NCA;
+use Nadybot\Core\Modules\COLORS\ColorsController;
 use Exception;
 
 /**
  * Class to represent a setting with a color value for NadyBot
- * @SettingHandler("color")
  */
+#[NCA\SettingHandler("color")]
 class ColorSettingHandler extends SettingHandler {
-
 	/**
 	 * Get a displayable representation of the setting
 	 */
@@ -32,6 +33,7 @@ class ColorSettingHandler extends SettingHandler {
 		return $msg;
 	}
 
+	/** @return array<string,string> */
 	public static function getExampleColors(): array {
 		$examples = [
 			"#FF0000" => "Red",
@@ -58,6 +60,27 @@ class ColorSettingHandler extends SettingHandler {
 			"#000080" => "Navy Blue",
 			"#FF8C00" => "Dark Orange",
 		];
+		$colors = Registry::getInstance(ColorsController::class);
+		if (!isset($colors) || !($colors instanceof ColorsController)) {
+			return $examples;
+		}
+		$themeColors = [
+			$colors->defaultHeaderColor => "Theme Header Color",
+			$colors->defaultHeader2Color => "Theme Sub-header Color",
+			$colors->defaultRoutedSysColor => "Theme System Color",
+			$colors->defaultWindowColor => "Theme Default Color",
+			$colors->defaultHighlightColor => "Theme Highlight Color",
+		];
+		foreach ($themeColors as $color => $name) {
+			if (!preg_match("/(#[a-f0-9]{6})/i", $color, $matches)) {
+				continue;
+			}
+			$color = strtoupper($matches[1]);
+			if (isset($examples[$color])) {
+				continue;
+			}
+			$examples[$color] = $name;
+		}
 		return $examples;
 	}
 

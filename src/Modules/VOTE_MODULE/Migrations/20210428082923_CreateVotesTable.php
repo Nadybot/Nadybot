@@ -14,7 +14,7 @@ class CreateVotesTable implements SchemaMigration {
 		if ($db->schema()->hasTable($table)) {
 			return;
 		}
-		$db->schema()->create($table, function(Blueprint $table) {
+		$db->schema()->create($table, function(Blueprint $table): void {
 			$table->integer("poll_id");
 			$table->string("author", 20);
 			$table->text("answer")->nullable();

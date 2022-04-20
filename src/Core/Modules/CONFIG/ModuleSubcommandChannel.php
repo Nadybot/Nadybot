@@ -3,7 +3,6 @@
 namespace Nadybot\Core\Modules\CONFIG;
 
 class ModuleSubcommandChannel {
-
 	/**
 	 * The access level you need to have
 	 * in order to be allowed to use this command in this channel

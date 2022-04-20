@@ -3,61 +3,96 @@
 namespace Nadybot\Core\Modules\CONFIG;
 
 use Nadybot\Core\{
+	Attributes as NCA,
 	CmdContext,
 	CommandAlias,
 	CommandManager,
+	DBSchema\CmdAlias,
+	ModuleInstance,
+	ParamClass\PRemove,
+	ParamClass\PWord,
 	Text,
 };
-use Nadybot\Core\DBSchema\CmdAlias;
-use Nadybot\Core\ParamClass\PRemove;
-use Nadybot\Core\ParamClass\PWord;
 
-/**
- * @Instance
- *
- * Commands this controller contains:
- *	@DefineCommand(
- *		command       = 'alias',
- *		accessLevel   = 'mod',
- *		description   = 'Manage command aliases',
- *		help          = 'alias.txt',
- *		defaultStatus = '1'
- *	)
- */
-class AliasController {
-
-	/** @Inject */
+#[
+	NCA\Instance,
+	NCA\DefineCommand(
+		command: "alias",
+		accessLevel: "mod",
+		description: "Manage command aliases",
+		defaultStatus: 1
+	)
+]
+class AliasController extends ModuleInstance {
+	#[NCA\Inject]
 	public CommandAlias $commandAlias;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public CommandManager $commandManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Text $text;
 
-	/**
-	 * @HandlesCommand("alias")
-	 * @Mask $action add
-	 * @Mask $alias ("[a-z 0-9]+")
-	 */
-	public function aliasAddCommand1(CmdContext $context, string $action, string $alias, string $command): void {
+	/** Add a new alias with spaces for a command */
+	#[NCA\HandlesCommand("alias")]
+	public function aliasAddCommand1(
+		CmdContext $context,
+		#[NCA\Str("add")] string $action,
+		#[NCA\Regexp("\"[a-z 0-9]+\"", example: '&lt;"alias with spaces"&gt;')] string $alias,
+		string $command
+	): void {
+		$this->aliasAddCommand($context, substr($alias, 1, -1), $command);
+	}
+
+	/** Add a new alias with spaces for a command */
+	#[NCA\HandlesCommand("alias")]
+	#[NCA\Help\Example(
+		command: "<symbol>alias add 'raid shutdown' macro cmd That is all for today folks!|raid stop|kickall",
+	)]
+	public function aliasAddCommand2(
+		CmdContext $context,
+		#[NCA\Str("add")] string $action,
+		#[NCA\Regexp("'[a-z 0-9]+'", example: "&lt;'alias with spaces'&gt;")] string $alias,
+		string $command
+	): void {
 		$this->aliasAddCommand($context, substr($alias, 1, -1), $command);
 	}
 
 	/**
-	 * @HandlesCommand("alias")
-	 * @Mask $action add
-	 * @Mask $alias ('[a-z 0-9]+')
+	 * Add a new alias for a command
+	 *
+	 * You can refer to the parameters of your command with a numeric placeholder {1} to whatever
+	 * you want to go. The alias will throw an error, though, when you do not give enough
+	 * arguments to the alias. If an alias defines a placeholder {4}, then you have to give
+	 * at least 4 parameters. The highest parameter will always get all remaining parameters
+	 * given to the alias and you can define default values like {3:Default value} if the
+	 * parameter is not given. The placeholder {0} always contains all arguments as one.
 	 */
-	public function aliasAddCommand2(CmdContext $context, string $action, string $alias, string $command): void {
-		$this->aliasAddCommand($context, substr($alias, 1, -1), $command);
-	}
-
-	/**
-	 * @HandlesCommand("alias")
-	 * @Mask $action add
-	 */
-	public function aliasAddCommand3(CmdContext $context, string $action, PWord $alias, string $command): void {
+	#[NCA\HandlesCommand("alias")]
+	#[NCA\Help\Example(
+		command: "<symbol>alias add o online",
+		description: "Lets you use <symbol>o instead of <symbol>online"
+	)]
+	#[NCA\Help\Example(
+		command: "<symbol>alias add orgwins victory org Nadybot Testers",
+		description: "Lets you use <highlight><symbol>orgwins<end> instead of ".
+			"<highlight><symbol>victory org Nadybot Testers<end> ".
+			"to see recent tower victories of your org"
+	)]
+	#[NCA\Help\Example(
+		command: "<symbol>alias add c cmd !!! {0} !!!",
+		description: "Encapsulate your commands into exclamation marks"
+	)]
+	#[NCA\Help\Example(
+		command: "<symbol>alias add c cmd !!! {0:Party on guys} !!!",
+		description: "Same, but with a default text"
+	)]
+	public function aliasAddCommand3(
+		CmdContext $context,
+		#[NCA\Str("add")] string $action,
+		PWord $alias,
+		string $command
+	): void {
 		$this->aliasAddCommand($context, $alias(), $command);
 	}
 
@@ -70,12 +105,14 @@ class AliasController {
 		$aliasObj->alias = $alias;
 		$aliasObj->status = 1;
 
-		$commands = $this->commandManager->get($alias);
+		$command = $this->commandManager->get($alias);
 		$enabled = false;
-		foreach ($commands as $command) {
-			if ($command->status == 1) {
-				$enabled = true;
-				break;
+		if (isset($command)) {
+			foreach ($command->permissions as $permission) {
+				if ($permission->enabled) {
+					$enabled = true;
+					break;
+				}
 			}
 		}
 		$row = $this->commandAlias->get($alias);
@@ -98,12 +135,10 @@ class AliasController {
 	}
 
 	/**
-	 * This command handler list all aliases.
-	 *
-	 * @HandlesCommand("alias")
-	 * @Mask $action list
+	 * List all currently defined aliases
 	 */
-	public function aliasListCommand(CmdContext $context, string $action): void {
+	#[NCA\HandlesCommand("alias")]
+	public function aliasListCommand(CmdContext $context, #[NCA\Str("list")] string $action): void {
 		$blob = "";
 		/** @var array<string,CmdAlias[]> */
 		$grouped = [];
@@ -133,10 +168,9 @@ class AliasController {
 	}
 
 	/**
-	 * This command handler remove a command alias.
-	 *
-	 * @HandlesCommand("alias")
+	 * Remove a command alias
 	 */
+	#[NCA\HandlesCommand("alias")]
 	public function aliasRemCommand(CmdContext $context, PRemove $rem, string $alias): void {
 		$alias = strtolower($alias);
 

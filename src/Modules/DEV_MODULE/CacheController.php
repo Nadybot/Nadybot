@@ -3,8 +3,11 @@
 namespace Nadybot\Modules\DEV_MODULE;
 
 use Nadybot\Core\{
+	Attributes as NCA,
 	CacheManager,
 	CmdContext,
+	ConfigFile,
+	ModuleInstance,
 	Nadybot,
 	ParamClass\PFilename,
 	ParamClass\PRemove,
@@ -14,39 +17,33 @@ use Nadybot\Core\{
 
 /**
  * @author Tyrence (RK2)
- *
- * @Instance
- *
- * Commands this controller contains:
- *	@DefineCommand(
- *		command     = 'cache',
- *		accessLevel = 'superadmin',
- *		description = "Manage cached files",
- *		help        = 'cache.txt'
- *	)
  */
-class CacheController {
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
-
-	/** @Inject */
+#[
+	NCA\Instance,
+	NCA\DefineCommand(
+		command: "cache",
+		accessLevel: "superadmin",
+		description: "Manage cached files",
+	)
+]
+class CacheController extends ModuleInstance {
+	#[NCA\Inject]
 	public CacheManager $cacheManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Text $text;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Util $util;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Nadybot $chatBot;
 
-	/**
-	 * @HandlesCommand("cache")
-	 */
+	#[NCA\Inject]
+	public ConfigFile $config;
+
+	/** View a list of cache categories */
+	#[NCA\HandlesCommand("cache")]
 	public function cacheCommand(CmdContext $context): void {
 		$blob = '';
 		foreach ($this->cacheManager->getGroups() as $group) {
@@ -56,17 +53,21 @@ class CacheController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @HandlesCommand("cache")
-	 * @Mask $action browse
-	 * @Mask $group ([a-z0-9_-]+)
-	 */
-	public function cacheBrowseCommand(CmdContext $context, string $action, string $group): void {
-		$path = $this->chatBot->vars['cachefolder'] . $group;
+	/** View a list of files in a cache category */
+	#[NCA\HandlesCommand("cache")]
+	public function cacheBrowseCommand(
+		CmdContext $context,
+		#[NCA\Str("browse")] string $action,
+		#[NCA\Regexp("[a-z0-9_-]+")] string $group
+	): void {
+		$path = $this->config->cacheFolder . $group;
 
 		$blob = '';
 		foreach ($this->cacheManager->getFilesInGroup($group) as $file) {
 			$fileInfo = stat($path . "/" . $file);
+			if ($fileInfo === false) {
+				continue;
+			}
 			$blob .= "<highlight>$file<end>  " . $this->util->bytesConvert($fileInfo['size']) . " - Last modified " . $this->util->date($fileInfo['mtime']);
 			$blob .= "  [" . $this->text->makeChatcmd("View", "/tell <myname> cache view $group $file") . "]";
 			$blob .= "  [" . $this->text->makeChatcmd("Delete", "/tell <myname> cache rem $group $file") . "]\n";
@@ -75,11 +76,14 @@ class CacheController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @HandlesCommand("cache")
-	 * @Mask $group ([a-z0-9_-]+)
-	 */
-	public function cacheRemCommand(CmdContext $context, PRemove $action, string $group, PFilename $file): void {
+	/** Delete a cache file from a cache category */
+	#[NCA\HandlesCommand("cache")]
+	public function cacheRemCommand(
+		CmdContext $context,
+		PRemove $action,
+		#[NCA\Regexp("[a-z0-9_-]+")] string $group,
+		PFilename $file
+	): void {
 		$file = $file();
 
 		if ($this->cacheManager->cacheExists($group, $file)) {
@@ -91,18 +95,20 @@ class CacheController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @HandlesCommand("cache")
-	 * @Mask $action view
-	 * @Mask $group ([a-z0-9_-]+)
-	 */
-	public function cacheViewCommand(CmdContext $context, string $action, string $group, PFilename $file): void {
+	/** View the contents of a cache file */
+	#[NCA\HandlesCommand("cache")]
+	public function cacheViewCommand(
+		CmdContext $context,
+		#[NCA\Str("view")] string $action,
+		#[NCA\Regexp("[a-z0-9_-]+")] string $group,
+		PFilename $file
+	): void {
 		$file = $file();
 
 		if ($this->cacheManager->cacheExists($group, $file)) {
 			$contents = $this->cacheManager->retrieve($group, $file)??'null';
 			if (preg_match("/\.json$/", $file)) {
-				$contents = json_encode(json_decode($contents), JSON_PRETTY_PRINT);
+				$contents = \Safe\json_encode(\Safe\json_decode($contents), JSON_PRETTY_PRINT);
 			}
 			$msg = $this->text->makeBlob("Cache File: $group $file", htmlspecialchars($contents));
 		} else {

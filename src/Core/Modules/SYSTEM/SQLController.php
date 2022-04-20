@@ -2,86 +2,102 @@
 
 namespace Nadybot\Core\Modules\SYSTEM;
 
+use Illuminate\Database\Capsule\Manager as Capsule;
 use Nadybot\Core\{
+	Attributes as NCA,
 	AccessManager,
 	CmdContext,
 	CommandManager,
 	DB,
+	ModuleInstance,
 	SQLException,
 	Text,
 };
+use ReflectionClass;
 
 /**
  * @author Tyrence (RK2)
- *
- * @Instance
- *
- * Commands this controller contains:
- *	@DefineCommand(
- *		command       = 'querysql',
- *		accessLevel   = 'superadmin',
- *		description   = 'Run an SQL query and see the results'
- *	)
- *	@DefineCommand(
- *		command       = 'executesql',
- *		accessLevel   = 'superadmin',
- *		description   = 'Execute an SQL statement'
- *	)
  */
-class SQLController {
-
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
-
-	/** @Inject */
+#[
+	NCA\Instance,
+	NCA\DefineCommand(
+		command: "querysql",
+		accessLevel: "superadmin",
+		description: "Run an SQL query and see the results"
+	),
+	NCA\DefineCommand(
+		command: "executesql",
+		accessLevel: "superadmin",
+		description: "Execute an SQL statement"
+	)
+]
+class SQLController extends ModuleInstance {
+	#[NCA\Inject]
 	public AccessManager $accessManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public DB $db;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public CommandManager $commandManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Text $text;
 
-	/**
-	 * @HandlesCommand("executesql")
-	 */
+	/** Execute a non-select SQL command */
+	#[NCA\HandlesCommand("executesql")]
+	#[NCA\Help\Group("sql")]
 	public function executesqlCommand(CmdContext $context, string $sql): void {
 		$sql = htmlspecialchars_decode($sql);
+		// I don't want to expose the API in any other way, so yeah...
+		$refDB = new ReflectionClass($this->db);
+		$refCap = $refDB->getProperty("capsule");
+		$refCap->setAccessible(true);
+		/** @var Capsule */
+		$capsule = $refCap->getValue($this->db);
 
 		try {
-			$num_rows = $this->db->exec($sql);
-			$msg = "$num_rows rows affected.";
+			$success = $capsule->getConnection()->unprepared($sql);
+			if ($success) {
+				$msg = "Query run successfully.";
+			} else {
+				$msg = "Query run successfully, but no rows affected.";
+			}
 		} catch (SQLException $e) {
 			$msg = $this->text->makeBlob("SQL Error", $e->getMessage());
 		}
 		$context->reply($msg);
 	}
 
-	/**
-	 * @HandlesCommand("querysql")
-	 */
+	/** Execute a select SQL query */
+	#[NCA\HandlesCommand("querysql")]
+	#[NCA\Help\Group("sql")]
 	public function querysqlCommand(CmdContext $context, string $sql): void {
+		// I don't want to expose the API in any other way, so yeah...
+		$refDB = new ReflectionClass($this->db);
+		$refCap = $refDB->getProperty("capsule");
+		$refCap->setAccessible(true);
+		/** @var Capsule */
+		$capsule = $refCap->getValue($this->db);
 		$sql = htmlspecialchars_decode($sql);
 
 		try {
-			$data = $this->db->query($sql);
+			$data = $capsule->getConnection()->select($sql);
 			$count = count($data);
 
 			$blob = "";
 			foreach ($data as $row) {
 				$blob .= "<pagebreak><header2>Entry<end>\n";
 				foreach ($row as $key => $value) {
-					$blob .= "<tab><highlight>$key:<end> ".json_encode($value, JSON_UNESCAPED_SLASHES)."\n";
+					$blob .= "<tab><highlight>$key:<end> ".\Safe\json_encode($value, JSON_UNESCAPED_SLASHES)."\n";
 				}
 				$blob .= "\n";
 			}
-			$msg = $this->text->makeBlob("Results ($count)", $blob);
+			if (empty($data)) {
+				$msg = "Results ($count)";
+			} else {
+				$msg = $this->text->makeBlob("Results ($count)", $blob);
+			}
 		} catch (SQLException $e) {
 			$msg = $this->text->makeBlob("SQL Error", $e->getMessage());
 		}

@@ -4,96 +4,64 @@ namespace Nadybot\Modules\TRICKLE_MODULE;
 
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
+	Attributes as NCA,
 	CmdContext,
 	DB,
+	ModuleInstance,
 	Text,
 	Util,
 };
 
 /**
  * @author Tyrence (RK2)
- *
- * @Instance
- *
- * Commands this controller contains:
- *	@DefineCommand(
- *		command     = 'trickle',
- *		accessLevel = 'all',
- *		description = 'Shows how much skills you will gain by increasing an ability',
- *		help        = 'trickle.txt'
- *	)
  */
-class TrickleController {
-
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
-
-	/** @Inject */
+#[
+	NCA\Instance,
+	NCA\HasMigrations,
+	NCA\DefineCommand(
+		command: "trickle",
+		accessLevel: "guest",
+		description: "Shows how much skills you will gain by increasing an ability",
+	)
+]
+class TrickleController extends ModuleInstance {
+	#[NCA\Inject]
 	public Text $text;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Util $util;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public DB $db;
 
-	/**
-	 * This handler is called on bot startup.
-	 * @Setup
-	 */
+	#[NCA\Setup]
 	public function setup(): void {
-		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations");
 		$this->db->loadCSVFile($this->moduleName, __DIR__ . "/trickle.csv");
 	}
 
 	/**
-	 * View trickle skills
+	 * Show which and how much your skills will increase by increasing an ability:
 	 *
-	 * @HandlesCommand("trickle")
-	 * @Mask $pairs (\w+\s+\d+(\s+\w+\s+\d+){0,5})
+	 * Valid abilities are: agi, int, psy, sta, str, sen
 	 */
-	public function trickle1Command(CmdContext $context, string $pairs): void {
+	#[NCA\HandlesCommand("trickle")]
+	#[NCA\Help\Example("<symbol>trickle agi 4 str 4")]
+	public function trickle1Command(
+		CmdContext $context,
+		#[NCA\Regexp("\w+\s+\d+", example: "&lt;ability&gt; &lt;amount&gt;")] string ...$pairs
+	): void {
 		$abilities = new AbilityConfig();
 
-		$array = preg_split("/\s+/", $pairs);
-		for ($i = 0; isset($array[$i]); $i += 2) {
-			$ability = $this->util->getAbility($array[$i]);
-			if ($ability === null) {
-				$msg = "Unknown ability <highlight>{$array[$i]}<end>.";
-				$context->reply($msg);
-				return;
-			}
-
-			$abilities->$ability += (int)$array[1 + $i];
-		}
-
-		$msg = $this->processAbilities($abilities);
-		$context->reply($msg);
-	}
-
-	/**
-	 * View trickle skills
-	 *
-	 * @HandlesCommand("trickle")
-	 * @Mask $pairs (\d+\s+\w+(\s+\d+\s+\w+){0,5})
-	 */
-	public function trickle2Command(CmdContext $context, string $pairs): void {
-		$abilities = new AbilityConfig();
-
-		$array = preg_split("/\s+/", $pairs);
-		for ($i = 0; isset($array[$i]); $i += 2) {
-			$shortAbility = $this->util->getAbility($array[1 + $i]);
+		foreach ($pairs as $pair) {
+			[$ability, $amount] = \Safe\preg_split("/\s+/", $pair);
+			$shortAbility = $this->util->getAbility($ability);
 			if ($shortAbility === null) {
-				$i++;
-				$msg = "Unknown ability <highlight>{$array[$i]}<end>.";
+				$msg = "Unknown ability <highlight>{$ability}<end>.";
 				$context->reply($msg);
 				return;
 			}
 
-			$abilities->$shortAbility += $array[$i];
+			$abilities->$shortAbility += $amount;
 		}
 
 		$msg = $this->processAbilities($abilities);
@@ -101,16 +69,45 @@ class TrickleController {
 	}
 
 	/**
-	 * @HandlesCommand("trickle")
+	 * Show which and how much your skills will increase by increasing an ability:
+	 *
+	 * Valid abilities are: agi, int, psy, sta, str, sen
 	 */
-	public function trickleSkillCommand(CmdContext $context, string $search): void {
+	#[NCA\HandlesCommand("trickle")]
+	#[NCA\Help\Example("<symbol>trickle 5 str 10 sen")]
+	public function trickle2Command(
+		CmdContext $context,
+		#[NCA\Regexp("\d+\s+\w+", "&lt;amount&gt; &lt;ability&gt;")] string ...$pairs
+	): void {
+		$abilities = new AbilityConfig();
+
+		foreach ($pairs as $pair) {
+			[$amount, $ability] = \Safe\preg_split("/\s+/", $pair);
+			$shortAbility = $this->util->getAbility($ability);
+			if ($shortAbility === null) {
+				$msg = "Unknown ability <highlight>{$ability}<end>.";
+				$context->reply($msg);
+				return;
+			}
+
+			$abilities->$shortAbility += $amount;
+		}
+
+		$msg = $this->processAbilities($abilities);
+		$context->reply($msg);
+	}
+
+	/** See how much of each ability is needed to trickle a skill by 1 point */
+	#[NCA\HandlesCommand("trickle")]
+	#[NCA\Help\Example("<symbol>trickle treatment")]
+	public function trickleSkillCommand(CmdContext $context, string $skill): void {
 		/** @var Collection<Trickle> */
 		$data = $this->db->table("trickle")
-			->whereIlike("name", "%" . str_replace(" ", "%", $search) . "%")
+			->whereIlike("name", "%" . str_replace(" ", "%", $skill) . "%")
 			->asObj(Trickle::class);
 		$count = $data->count();
 		if ($count === 0) {
-			$msg = "Could not find any skills for search '$search'";
+			$msg = "Could not find any skills for search '$skill'";
 		} elseif ($count === 1) {
 			$msg = "To trickle 1 skill point into <highlight>{$data[0]->name}<end>, ".
 				"you need " . $this->getTrickleAmounts($data[0]);
@@ -120,7 +117,7 @@ class TrickleController {
 				$blob .= "<tab><highlight>{$row->name}<end>: ".
 					$this->getTrickleAmounts($row) . "\n";
 			}
-			$msg = $this->text->makeBlob("Trickle Info: $search", $blob);
+			$msg = $this->text->makeBlob("Trickle Info: $skill", $blob);
 		}
 
 		$context->reply($msg);
@@ -146,7 +143,7 @@ class TrickleController {
 	 */
 	private function processAbilities(AbilityConfig $abilities): array {
 		$headerParts = [];
-		foreach ($abilities as $short => $bonus) {
+		foreach (get_object_vars($abilities) as $short => $bonus) {
 			if ($bonus > 0) {
 				$headerParts []= ($this->util->getAbility($short, true) ?? "Unknown ability").
 					": <highlight>$bonus<end>";
@@ -168,7 +165,7 @@ class TrickleController {
 			->orderBy("id")
 			->select("*")
 			->asObj(Trickle::class)
-			->filter(function (Trickle $row) use ($abilities) {
+			->filter(function (Trickle $row) use ($abilities): bool {
 				$row->amount = $row->amountAgi * $abilities->agi
 					+ $row->amountInt * $abilities->int
 					+ $row->amountPsy * $abilities->psy

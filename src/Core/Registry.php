@@ -2,16 +2,23 @@
 
 namespace Nadybot\Core;
 
-use Addendum\ReflectionAnnotatedClass;
+use Nadybot\Core\Attributes as NCA;
+use ReflectionClass;
+use ReflectionNamedType;
+use RuntimeException;
 
 class Registry {
 	/** @var array<string,object> */
-	private static array $repo = [];
+	protected static array $repo = [];
 
 	protected static ?LoggerWrapper $logger = null;
 
 	protected static function getLogger(): LoggerWrapper {
+		if (isset(static::$logger)) {
+			return static::$logger;
+		}
 		static::$logger ??= new LoggerWrapper("Core/Registry");
+		// static::injectDependencies(static::$logger);
 		return static::$logger;
 	}
 
@@ -43,7 +50,7 @@ class Registry {
 	 * Get the instance for the name $name or null if  none registered yet
 	 */
 	public static function getInstance(string $name, bool $reload=false): ?object {
-		$name = strtolower($name);
+		$name = static::formatName($name);
 
 		$instance = Registry::$repo[$name]??null;
 		if ($instance === null) {
@@ -54,18 +61,23 @@ class Registry {
 	}
 
 	/**
-	 * Inject all fields marked with \@Inject in an object with the corresponding object instances
+	 * Inject all fields marked with #[Inject] in an object with the corresponding object instances
 	 */
 	public static function injectDependencies(object $instance): void {
-		// inject other instances that are annotated with @Inject
-		$reflection = new ReflectionAnnotatedClass($instance);
+		// inject other instances that have the #[Inject] attribute
+		$reflection = new ReflectionClass($instance);
 		foreach ($reflection->getProperties() as $property) {
-			/** @var \Addendum\ReflectionAnnotatedProperty $property */
-			if ($property->hasAnnotation('Inject')) {
-				if ($property->getAnnotation('Inject')->value != '') {
-					$dependencyName = $property->getAnnotation('Inject')->value;
-				} else {
-					$dependencyName = $property->name;
+			$injectAttrs = $property->getAttributes(NCA\Inject::class);
+			if (count($injectAttrs)) {
+				/** @var NCA\Inject */
+				$injectAttr = $injectAttrs[0]->newInstance();
+				$dependencyName = $injectAttr->instance;
+				if (!isset($dependencyName)) {
+					$type = $property->getType();
+					if (!($type instanceof ReflectionNamedType)) {
+						throw new RuntimeException("Cannot determine type of {$reflection->getName()}::\${$property->getName()}");
+					}
+					$dependencyName = static::formatName($type->getName());
 				}
 				$dependency = Registry::getInstance($dependencyName);
 				if ($dependency === null) {
@@ -73,9 +85,15 @@ class Registry {
 				} else {
 					$instance->{$property->name} = $dependency;
 				}
-			} elseif ($property->hasAnnotation('Logger')) {
-				if (@$property->getAnnotation('Logger')->value != '') {
-					$tag = $property->getAnnotation('Logger')->value;
+				continue;
+			}
+
+			$loggerAttrs = $property->getAttributes(NCA\Logger::class);
+			if (count($loggerAttrs)) {
+				/** @var NCA\Logger */
+				$loggerAttr = $loggerAttrs[0]->newInstance();
+				if (isset($loggerAttr->tag)) {
+					$tag = $loggerAttr->tag;
 				} else {
 					$array = explode("\\", $reflection->name);
 					if (preg_match("/^Nadybot\\\\Modules\\\\/", $reflection->name)) {
@@ -87,6 +105,7 @@ class Registry {
 					}
 				}
 				$instance->{$property->name} = new LoggerWrapper($tag);
+				static::injectDependencies($instance->{$property->name});
 			}
 		}
 	}

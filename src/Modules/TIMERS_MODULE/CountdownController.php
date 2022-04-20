@@ -4,8 +4,10 @@ namespace Nadybot\Modules\TIMERS_MODULE;
 
 use Closure;
 use Nadybot\Core\{
+	Attributes as NCA,
 	CmdContext,
 	EventManager,
+	ModuleInstance,
 	Nadybot,
 	SettingManager,
 	Timer,
@@ -13,89 +15,62 @@ use Nadybot\Core\{
 
 /**
  * @author Tyrence (RK2)
- *
- * @Instance
- *
- * Commands this class contains:
- *	@DefineCommand(
- *		command     = 'countdown',
- *		accessLevel = 'rl',
- *		description = 'Start a 5-second countdown',
- *		help        = 'countdown.txt',
- *		alias		= 'cd'
- *	)
- *	@ProvidesEvent(value="sync(cd)", desc="Triggered when someone starts a countdown")
  */
-class CountdownController {
-
-	public const CONF_CD_TELL_LOCATION = 'cd_tell_location';
-	public const CONF_CD_DEFAULT_TEXT = 'cd_default_text';
-	public const CONF_CD_COOLDOWN = 'cd_cooldown';
-
+#[
+	NCA\Instance,
+	NCA\DefineCommand(
+		command: "countdown",
+		accessLevel: "rl",
+		description: "Start a 5-second countdown",
+		alias: "cd"
+	),
+	NCA\ProvidesEvent(
+		event: "sync(cd)",
+		desc: "Triggered when someone starts a countdown",
+	)
+]
+class CountdownController extends ModuleInstance {
 	public const LOC_PRIV = 1;
 	public const LOC_ORG = 2;
 
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
-
-	/** @Inject */
+	#[NCA\Inject]
 	public SettingManager $settingManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Nadybot $chatBot;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public EventManager $eventManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Timer $timer;
+
+	/** Where to display countdowns received via tells */
+	#[NCA\Setting\Options(options: [
+		'Private channel' => self::LOC_PRIV,
+		'Org channel' => self::LOC_ORG,
+		'Private and Org channel' => self::LOC_PRIV|self::LOC_ORG,
+	])]
+	public int $cdTellLocation = self::LOC_PRIV;
+
+	/** Default text to say at the end of a countdown */
+	#[NCA\Setting\Text]
+	public string $cdDefaultText = "GO";
+
+	/** How long is the cooldown between starting 2 countdowns */
+	#[NCA\Setting\Time(options: ["6s", "15s", "30s", "1m", "5m"])]
+	public int $cdCooldown = 30;
 
 	private int $lastCountdown = 0;
 
-	/**
-	 * @Setup
-	 */
-	public function setup(): void {
-		$this->settingManager->add(
-			$this->moduleName,
-			self::CONF_CD_TELL_LOCATION,
-			'Where to display countdowns received via tells',
-			'edit',
-			"options",
-			"1",
-			"Priv;Guild;Priv+Guild",
-			"1;2;3"
-		);
-		$this->settingManager->add(
-			$this->moduleName,
-			self::CONF_CD_DEFAULT_TEXT,
-			'Default text to say at the end of a countdown',
-			'edit',
-			"text",
-			"GO",
-		);
-		$this->settingManager->add(
-			$this->moduleName,
-			self::CONF_CD_COOLDOWN,
-			"How long is the cooldown between starting 2 countdowns",
-			"edit",
-			"time",
-			"30s",
-			"6s;15s;30s;1m;5m",
-			'',
-			"mod"
-		);
-	}
-
-	/**
-	 * @HandlesCommand("countdown")
-	 */
+	/** Start a 5s countdown timer with an optional custom message */
+	#[NCA\HandlesCommand("countdown")]
+	#[NCA\Help\Epilogue(
+		"By default, this command can only be run once every 30s"
+	)]
 	public function countdownCommand(CmdContext $context, ?string $message): void {
-		$message ??= $this->settingManager->getString(self::CONF_CD_DEFAULT_TEXT)??"GO";
-		$cooldown = $this->settingManager->getInt(self::CONF_CD_COOLDOWN)??30;
+		$message ??= $this->cdDefaultText;
+		$cooldown = $this->cdCooldown;
 
 		if ($this->lastCountdown >= (time() - $cooldown)) {
 			$msg = "You can only start a countdown once every {$cooldown} seconds.";
@@ -117,10 +92,10 @@ class CountdownController {
 
 	protected function getDmCallback(): Closure {
 		return function(string $text): void {
-			if (($this->settingManager->getInt(self::CONF_CD_TELL_LOCATION)??1) & self::LOC_PRIV) {
+			if ($this->cdTellLocation & self::LOC_PRIV) {
 				$this->chatBot->sendPrivate($text, true);
 			}
-			if (($this->settingManager->getInt(self::CONF_CD_TELL_LOCATION)??1) & self::LOC_ORG) {
+			if ($this->cdTellLocation & self::LOC_ORG) {
 				$this->chatBot->sendGuild($text, true);
 			}
 		};
@@ -146,10 +121,10 @@ class CountdownController {
 		$this->timer->callLater(6, $callback, $msg);
 	}
 
-	/**
-	 * @Event("sync(cd)")
-	 * @Description("Process externally started countdowns")
-	 */
+	#[NCA\Event(
+		name: "sync(cd)",
+		description: "Process externally started countdowns"
+	)]
 	public function syncCountdown(SyncCdEvent $event): void {
 		if (time() - $this->lastCountdown < 7) {
 			return;

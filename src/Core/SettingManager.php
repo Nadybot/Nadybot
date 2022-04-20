@@ -2,34 +2,38 @@
 
 namespace Nadybot\Core;
 
+use Nadybot\Core\Attributes as NCA;
 use Exception;
 use Nadybot\Core\DBSchema\Setting;
 
-/**
- * @Instance
- * @ProvidesEvent("setting(*)")
- */
+#[
+	NCA\Instance,
+	NCA\ProvidesEvent("setting(*)")
+]
 class SettingManager {
 	public const DB_TABLE = "settings_<myname>";
-	/** @Inject */
+	#[NCA\Inject]
 	public DB $db;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Nadybot $chatBot;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Util $util;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public HelpManager $helpManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public AccessManager $accessManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public EventManager $eventManager;
 
-	/** @Logger */
+	#[NCA\Inject]
+	public ConfigFile $config;
+
+	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
 	/** @var array<string,SettingValue> $settings */
@@ -44,8 +48,8 @@ class SettingManager {
 	/**
 	 * Return the hardcoded value for a setting or a given default
 	 */
-	public function getHardcoded(string $setting, $default=null): ?string {
-		$value = $this->chatBot->vars["settings"][$setting]??$default;
+	public function getHardcoded(string $setting, bool|int|string|null $default=null): ?string {
+		$value = $this->config->settings[$setting]??$default;
 		if (is_bool($value)) {
 			return $value ? "1" : "0";
 		} elseif (is_int($value)) {
@@ -64,12 +68,12 @@ class SettingManager {
 	 * @param string $name The name of the setting
 	 * @param string $description A description for the setting (will appear in the config)
 	 * @param string $mode 'edit' or 'noedit'
+	 * @param int|float|string|bool  $value
 	 * @param string $type 'color', 'number', 'text', 'options', or 'time'
-	 * @param mixed  $value
-	 * @param string $options An optional list of values that the setting can be, semi-colon delimited
-	 * @param string $intoptions Int values corresponding to $options; if empty, the values from $options will be what is stored in the database (optional)
+	 * @param array<string|int,int|string> $options An optional list of values that the setting can be, semi-colon delimited.
+	 *                                              Alternatively, use an associative array [label => value], where label is optional.
 	 * @param string $accessLevel The permission level needed to change this setting (default: mod) (optional)
-	 * @param string $help A help file for this setting; if blank, will use a help topic with the same name as this setting if it exists (optional)
+	 * @param ?string $help A help file for this setting; if blank, will use a help topic with the same name as this setting if it exists (optional)
 	 * @return void
 	 * @throws SQLException if the setting causes SQL errors (text too long, etc.)
 	 */
@@ -78,33 +82,57 @@ class SettingManager {
 		string $name,
 		string $description,
 		string $mode,
+		int|float|string|bool $value,
 		string $type,
-		$value,
-		?string $options='',
-		?string $intoptions='',
-		?string $accessLevel='mod',
-		?string $help=''
+		array $options=[],
+		string $accessLevel='mod',
+		?string $help=null,
 	): void {
 		$value = $this->getHardcoded($name) ?? $value;
 		$name = strtolower($name);
 		$type = strtolower($type);
 
-		if ($accessLevel == '') {
+		if ($accessLevel === '') {
 			$accessLevel = 'mod';
 		}
-		$accessLevel = $this->accessManager->getAccessLevel($accessLevel??"all");
+		$accessLevel = $this->accessManager->getAccessLevel($accessLevel);
 
-		if (!in_array($type, ['color', 'number', 'text', 'options', 'time', 'discord_channel', 'discord_bot_token', 'rank'])) {
-			$this->logger->error("Error in registering Setting $module:setting($name). Type should be one of: 'color', 'number', 'text', 'options', 'time'. Actual: '$type'.");
+		if (!isset($this->settingHandlers[$type])) {
+			$this->logger->error(
+				"Error in registering Setting {module}:{name}. ".
+				"Invalid type '{type}'. Allowed are: {allowed_types}.",
+				[
+					"allowed_types" => join(", ", array_keys($this->settingHandlers)),
+					"type" => $type,
+					"module" => $module,
+					"name" => $name,
+				]
+			);
 		}
 
-		if ($type == 'time') {
+		if ($type === 'time') {
 			$oldvalue = $value;
-			$value = $this->util->parseTime($value);
+			$value = $this->util->parseTime((string)$value);
 			if ($value < 1) {
 				$this->logger->error("Error in registering Setting $module:setting($name). Invalid time: '{$oldvalue}'.");
 				return;
 			}
+		}
+
+		$kv = [];
+		$needIntOptions = array_keys($options) !== range(0, count($options) - 1);
+		foreach ($options as $key => $optVal) {
+			if (!$needIntOptions) {
+				$key = (string)$optVal;
+			} elseif (is_int($key)) {
+				$key = (string)$optVal;
+			}
+			$kv[$key] = (string)$optVal;
+		}
+		$options = join(";", array_keys($kv));
+		$intoptions = null;
+		if ($needIntOptions) {
+			$intoptions = join(";", array_values($kv));
 		}
 
 		if (!empty($help)) {
@@ -179,7 +207,7 @@ class SettingManager {
 	 * @param string $name name of the setting to read
 	 * @return null|string|int|false the value of the setting, or false if a setting with that name does not exist
 	 */
-	public function get(string $name) {
+	public function get(string $name): null|string|int|false {
 		$name = strtolower($name);
 		if ($this->exists($name)) {
 			return $this->settings[$name]->value;
@@ -191,7 +219,7 @@ class SettingManager {
 	/**
 	 * @return int|bool|string|null
 	 */
-	public function getTyped(string $name) {
+	public function getTyped(string $name): int|bool|string|null {
 		$name = strtolower($name);
 		if ($this->exists($name)) {
 			return $this->settings[$name]->typed();
@@ -237,7 +265,7 @@ class SettingManager {
 	 * @param string|int $value The new value to set the setting to
 	 * @return bool false if the setting with that name does not exist, true otherwise
 	 */
-	public function save(string $name, $value): bool {
+	public function save(string $name, string|int $value): bool {
 		$name = strtolower($name);
 
 		if (!$this->exists($name)) {
@@ -308,7 +336,7 @@ class SettingManager {
 	 * @param callable $callback    the callback function to call
 	 * @param mixed    $data        any data which will be passed to to the callback (optional)
 	 */
-	public function registerChangeListener(string $settingName, callable $callback, $data=null): void {
+	public function registerChangeListener(string $settingName, callable $callback, mixed $data=null): void {
 		if (!is_callable($callback)) {
 			$this->logger->error('Given callback is not valid.');
 			return;

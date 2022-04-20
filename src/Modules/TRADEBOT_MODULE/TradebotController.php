@@ -4,77 +4,91 @@ namespace Nadybot\Modules\TRADEBOT_MODULE;
 
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
+	Attributes as NCA,
 	AOChatEvent,
 	BuddylistManager,
 	CmdContext,
 	ColorSettingHandler,
-	CommandAlias,
+	ConfigFile,
 	DB,
-	Event,
+	ModuleInstance,
 	LoggerWrapper,
 	MessageHub,
-	StopExecutionException,
 	Nadybot,
-	SettingManager,
+	ParamClass\PCharacter,
+	ParamClass\PColor,
+	ParamClass\PRemove,
+	Routing\RoutableMessage,
+	Routing\Source,
+	StopExecutionException,
 	Text,
 	UserStateEvent,
 };
-use Nadybot\Core\ParamClass\PCharacter;
-use Nadybot\Core\ParamClass\PColor;
-use Nadybot\Core\ParamClass\PRemove;
-use Nadybot\Core\Routing\RoutableMessage;
-use Nadybot\Core\Routing\Source;
 use Nadybot\Modules\COMMENT_MODULE\CommentController;
 
 /**
  * @author Nadyita (RK5) <nadyita@hodorraid.org>
- *
- * @Instance
- *
- * Commands this controller contains:
- *	@DefineCommand(
- *		command     = 'tradecolor',
- *		accessLevel = 'mod',
- *		description = 'Define colors for tradebot tags',
- *		help        = 'tradecolor.txt'
- *	)
  */
-class TradebotController {
+#[
+	NCA\Instance,
+	NCA\HasMigrations,
+	NCA\DefineCommand(
+		command: "tradecolor",
+		accessLevel: "mod",
+		description: "Define colors for tradebot tags",
+		alias: 'tradecolors',
+	),
+]
+class TradebotController extends ModuleInstance {
 	public const NONE = 'None';
 	public const DB_TABLE = "tradebot_colors_<myname>";
 
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
+	#[NCA\Inject]
+	public ConfigFile $config;
 
-	/** @Inject */
-	public CommandAlias $commandAlias;
-
-	/** @Inject */
+	#[NCA\Inject]
 	public Nadybot $chatBot;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public BuddylistManager $buddylistManager;
 
-	/** @Inject */
-	public SettingManager $settingManager;
-
-	/** @Inject */
+	#[NCA\Inject]
 	public MessageHub $messageHub;
 
-	/** @Logger */
+	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public CommentController $commentController;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Text $text;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public DB $db;
+
+	/** Name of the bot whose channel to join */
+	#[NCA\Setting\Text(
+		options: [self::NONE, 'Darknet', 'Lightnet'],
+		help: "tradebot.txt",
+	)]
+	public string $tradebot = self::NONE;
+
+	/** Show only the following channels (comma-separated) */
+	#[NCA\Setting\Text(options: ["None", "*"])]
+	public string $tradebotChannels = "*";
+
+	/** Add link to comments if found */
+	#[NCA\Setting\Boolean]
+	public bool $tradebotAddComments = true;
+
+	/** Use custom colors for tradebots */
+	#[NCA\Setting\Boolean]
+	public bool $tradebotCustomColors = false;
+
+	/** Custom color for tradebot message body */
+	#[NCA\Setting\Color]
+	public string $tradebotTextColor = "#89D2E8";
 
 	/** @var array<string,array<string,mixed>> */
 	private const BOT_DATA = [
@@ -92,78 +106,12 @@ class TradebotController {
 		]
 	];
 
-	/** @Setup */
-	public function setup(): void {
-		$this->commandAlias->register($this->moduleName, "tradecolor", "tradecolors");
-		$this->settingManager->add(
-			$this->moduleName,
-			'tradebot',
-			"Name of the bot whose channel to join",
-			"edit",
-			"text",
-			static::NONE,
-			static::NONE . ";" . implode(';', array_keys(self::BOT_DATA)),
-			'',
-			"mod",
-			"tradebot.txt"
-		);
-		$this->settingManager->add(
-			$this->moduleName,
-			"tradebot_channels",
-			"Show only the following channels (comma-separated)",
-			"edit",
-			"text",
-			"*",
-			"None;*"
-		);
-
-		$this->settingManager->add(
-			$this->moduleName,
-			'tradebot_add_comments',
-			'Add link to comments if found',
-			'edit',
-			'options',
-			'1',
-			'true;false',
-			'1;0',
-			'mod'
-		);
-
-		$this->settingManager->add(
-			$this->moduleName,
-			'tradebot_custom_colors',
-			'Use custom colors for tradebots',
-			'edit',
-			'options',
-			'0',
-			'true;false',
-			'1;0',
-			'mod'
-		);
-
-		$this->settingManager->add(
-			$this->moduleName,
-			'tradebot_text_color',
-			'Custom color for tradebot message body',
-			'edit',
-			'color',
-			"<font color='#89D2E8'>"
-		);
-
-		$this->settingManager->registerChangeListener(
-			'tradebot',
-			[$this, 'changeTradebot']
-		);
-
-		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations");
-	}
-
-	/**
-	 * @Event("Connect")
-	 * @Description("Add active tradebots to buddylist")
-	 */
+	#[NCA\Event(
+		name: "Connect",
+		description: "Add active tradebots to buddylist"
+	)]
 	public function addTradebotsAsBuddies(): void {
-		$activeBots = $this->normalizeBotNames($this->settingManager->getString('tradebot')??static::NONE);
+		$activeBots = $this->normalizeBotNames($this->tradebot);
 		foreach ($activeBots as $botName) {
 			$this->buddylistManager->add($botName, "tradebot");
 		}
@@ -171,7 +119,6 @@ class TradebotController {
 
 	/**
 	 * Convert the colon-separated list of botnames into a proper array
-	 *
 	 * @param string $botNames Colon-separated list of botnames
 	 * @return string[]
 	 */
@@ -190,12 +137,12 @@ class TradebotController {
 
 	/**
 	 * (un)subscribe from tradebot(s) when they get activated or deactivated
-	 *
 	 * @param string $setting Name of the setting that gets changed
 	 * @param string $oldValue Old value of that setting
 	 * @param string $newValue New value of that setting
 	 * @return void
 	 */
+	#[NCA\SettingChangeHandler('tradebot')]
 	public function changeTradebot(string $setting, string $oldValue, string $newValue): void {
 		if ($setting !== 'tradebot') {
 			return;
@@ -233,7 +180,7 @@ class TradebotController {
 			$msg = "Please make sure to use <highlight><symbol>route add tradebot(*) -&gt; aopriv<end> ".
 				"or <highlight><symbol>route add tradebot(*) -&gt; aoorg<end> to ".
 				"set up message routing between the tradebot and your org- and/or private channel.";
-			if (strlen($this->chatBot->vars["my_guild"]??"")) {
+			if (strlen($this->config->orgName)) {
 				$this->chatBot->sendGuild($msg, true);
 			} else {
 				$this->chatBot->sendPrivate($msg, true);
@@ -241,10 +188,10 @@ class TradebotController {
 		}
 	}
 
-	/**
-	 * @Event("logOn")
-	 * @Description("Join tradebot private channels")
-	 */
+	#[NCA\Event(
+		name: "logOn",
+		description: "Join tradebot private channels"
+	)]
 	public function tradebotOnlineEvent(UserStateEvent $eventObj): void {
 		if (is_string($eventObj->sender) && $this->isTradebot($eventObj->sender)) {
 			$this->joinPrivateChannel($eventObj->sender);
@@ -262,7 +209,7 @@ class TradebotController {
 	 * Check if the given name is one of the configured tradebots
 	 */
 	public function isTradebot(string $botName): bool {
-		$tradebotNames = $this->normalizeBotNames($this->settingManager->getString('tradebot')??static::NONE);
+		$tradebotNames = $this->normalizeBotNames($this->tradebot);
 		foreach ($tradebotNames as $tradebotName) {
 			if (preg_match("/^\Q$tradebotName\E\d*$/", $botName)) {
 				return true;
@@ -272,11 +219,12 @@ class TradebotController {
 	}
 
 	/**
-	 * @Event("extPriv")
-	 * @Description("Relay messages from the tradebot to org/private channel")
-	 *
 	 * @throws StopExecutionException
 	 */
+	#[NCA\Event(
+		name: "extPriv",
+		description: "Relay messages from the tradebot to org/private channel"
+	)]
 	public function receiveRelayMessageExtPrivEvent(AOChatEvent $eventObj): void {
 		if (!$this->isTradebot($eventObj->channel)
 			|| !is_string($eventObj->sender)
@@ -287,10 +235,10 @@ class TradebotController {
 		throw new StopExecutionException();
 	}
 
-	/**
-	 * @Event("msg")
-	 * @Description("Relay incoming tells from the tradebots to org/private channel")
-	 */
+	#[NCA\Event(
+		name: "msg",
+		description: "Relay incoming tells from the tradebots to org/private channel"
+	)]
 	public function receiveMessageEvent(AOChatEvent $eventObj): void {
 		if (!is_string($eventObj->sender) || !$this->isTradebot($eventObj->sender)) {
 			return;
@@ -325,10 +273,10 @@ class TradebotController {
 			|| !$this->isSubscribedTo($matches[1])) {
 			return;
 		}
-		if ($this->settingManager->getBool('tradebot_custom_colors')) {
+		if ($this->tradebotCustomColors) {
 			$message = $this->colorizeMessage($sender, $message);
 		}
-		if ($this->settingManager->getBool('tradebot_add_comments')) {
+		if ($this->tradebotAddComments) {
 			$message = $this->addCommentsToMessage($message);
 		}
 		$rMessage = new RoutableMessage($message);
@@ -342,8 +290,9 @@ class TradebotController {
 			return $message;
 		}
 		$tag = strip_tags($matches[1]);
+		/** @var string */
 		$text = preg_replace("/^(\s|<\/?font.*?>)*/s", "", $matches[2]);
-		$textColor = $this->settingManager->getString('tradebot_text_color');
+		$textColor = $this->tradebotTextColor;
 		$tagColor = $this->getTagColor($tradeBot, $tag);
 		$tagColor = isset($tagColor) ? "<font color='#{$tagColor->color}'>" : "";
 		return "{$tagColor}[{$tag}]<end> {$textColor}{$text}";
@@ -382,7 +331,7 @@ class TradebotController {
 	 * Check if the message is from a tradenet channel that we are subscribed to
 	 */
 	protected function isSubscribedTo(string $channel): bool {
-		$channelString = $this->settingManager->getString('tradebot_channels') ?? "*";
+		$channelString = $this->tradebotChannels;
 		if ($channelString === static::NONE) {
 			return false;
 		}
@@ -395,10 +344,10 @@ class TradebotController {
 		return false;
 	}
 
-	/**
-	 * @Event("extJoinPrivRequest")
-	 * @Description("Accept private channel join invitation from the trade bots")
-	 */
+	#[NCA\Event(
+		name: "extJoinPrivRequest",
+		description: "Accept private channel join invitation from the trade bots"
+	)]
 	public function acceptPrivJoinEvent(AOChatEvent $eventObj): void {
 		$sender = $eventObj->sender;
 		if (!is_string($sender) || !$this->isTradebot($sender)) {
@@ -413,8 +362,9 @@ class TradebotController {
 	}
 
 	/**
-	 * @HandlesCommand("tradecolor")
+	 * List the currently custom defined colors
 	 */
+	#[NCA\HandlesCommand("tradecolor")]
 	public function listTradecolorsCommand(CmdContext $context): void {
 		/** @var Collection<TradebotColors> */
 		$colors = $this->db->table(self::DB_TABLE)
@@ -451,9 +401,8 @@ class TradebotController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @HandlesCommand("tradecolor")
-	 */
+	/** Remove a custom defined color */
+	#[NCA\HandlesCommand("tradecolor")]
 	public function remTradecolorCommand(CmdContext $context, PRemove $action, int $id): void {
 		if (!$this->db->table(self::DB_TABLE)->delete($id)) {
 			$context->reply("Tradebot color <highlight>#{$id}<end> doesn't exist.");
@@ -462,11 +411,29 @@ class TradebotController {
 		$context->reply("Tradebot color <highlight>#{$id}<end> deleted.");
 	}
 
-	/**
-	 * @HandlesCommand("tradecolor")
-	 * @Mask $action (add|set)
-	 */
-	public function addTradecolorCommand(CmdContext $context, string $action, PCharacter $tradeBot, string $tag, PColor $color): void {
+	/** Configure the tag-colors, based on the channel and the tradebot */
+	#[NCA\HandlesCommand("tradecolor")]
+	#[NCA\Help\Example("<symbol>tradecolor set Darknet lootrights #FFFFFF")]
+	#[NCA\Help\Example("<symbol>tradecolor set Darknet pv? #0000FF")]
+	#[NCA\Help\Example("<symbol>tradecolor set Darknet * #9900FF")]
+	#[NCA\Help\Epilogue(
+		"<header2>Wildcards<end>\n\n".
+		"<highlight>&lt;tag&gt;<end> can use the following placeholders:\n".
+		"<tab><highlight>*<end> (any number of any character)\n".
+		"<tab><highlight>?<end> (any single character).\n\n".
+		"<header2>Settings<end>\n\n".
+		"To be able to define your own colors, you first have to ".
+		"<a href='chatcmd:///tell <myname> settings save tradebot_custom_colors 1'>enable custom colors</a>.\n".
+		"To configure the main text color, ".
+		"<a href='chatcmd:///tell <myname> settings change tradebot_text_color'>change this setting</a>"
+	)]
+	public function addTradecolorCommand(
+		CmdContext $context,
+		#[NCA\Str("set", "add")] string $action,
+		PCharacter $tradeBot,
+		string $tag,
+		PColor $color
+	): void {
 		$tag = strtolower($tag);
 		$color = $color->getCode();
 		if (!array_key_exists($tradeBot(), self::BOT_DATA)) {
@@ -494,11 +461,14 @@ class TradebotController {
 		);
 	}
 
-	/**
-	 * @HandlesCommand("tradecolor")
-	 * @Mask $action pick
-	 */
-	public function pickTradecolorCommand(CmdContext $context, string $action, PCharacter $tradeBot, string $tag): void {
+	/** Pick a tag-color, based on the channel and the tradebot */
+	#[NCA\HandlesCommand("tradecolor")]
+	public function pickTradecolorCommand(
+		CmdContext $context,
+		#[NCA\Str("pick")] string $action,
+		PCharacter $tradeBot,
+		string $tag
+	): void {
 		$tag = strtolower($tag);
 		if (!array_key_exists($tradeBot(), self::BOT_DATA)) {
 			$context->reply("{$tradeBot} is not a supported tradebot.");

@@ -3,11 +3,14 @@
 namespace Nadybot\Core\Modules\MESSAGES;
 
 use Exception;
-use JsonException;
+use Safe\Exceptions\JsonException;
 use ReflectionClass;
+use ReflectionException;
 use Throwable;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
+	Attributes as NCA,
+	Channels\DiscordChannel,
 	CmdContext,
 	ColorSettingHandler,
 	DB,
@@ -16,61 +19,53 @@ use Nadybot\Core\{
 	DBSchema\RouteHopFormat,
 	DBSchema\RouteModifier,
 	DBSchema\RouteModifierArgument,
+	ModuleInstance,
 	LoggerWrapper,
 	MessageEmitter,
 	MessageHub,
 	MessageRoute,
 	Nadybot,
+	ParamClass\PColor,
+	ParamClass\PRemove,
 	SettingManager,
 	Text,
 	Util,
 	Routing\Source,
 };
-use Nadybot\Core\Channels\DiscordChannel;
-use Nadybot\Core\ParamClass\PColor;
-use Nadybot\Core\ParamClass\PRemove;
-use ReflectionException;
 
 /**
  * @author Nadyita (RK5)
- *
- * @Instance
- *
  * Commands this class contains:
- *	@DefineCommand(
- *		command       = 'route',
- *		accessLevel   = 'mod',
- *		description   = 'Set which message are routed from where to where',
- *		help          = 'route.txt',
- *		defaultStatus = '1'
- *	)
  */
-class MessageHubController {
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
-
-	/** @Inject */
+#[
+	NCA\Instance,
+	NCA\DefineCommand(
+		command: "route",
+		accessLevel: "mod",
+		description: "Set which message are routed from where to where",
+		defaultStatus: 1
+	)
+]
+class MessageHubController extends ModuleInstance {
+	#[NCA\Inject]
 	public SettingManager $settingManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public MessageHub $messageHub;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Nadybot $chatBot;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Util $util;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Text $text;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public DB $db;
 
-	/** @Logger */
+	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
 	/** Load defined routes from the database and activate them */
@@ -102,7 +97,7 @@ class MessageHubController {
 
 	protected function fixDiscordChannelName(string $name): string {
 		if (!preg_match("/^discordpriv\((\d+?)\)$/", $name, $matches)) {
-			return $name;
+			return str_replace(["&lt;", "&gt;"], ["<", ">"], $name);
 		}
 		$emitters = $this->messageHub->getEmitters();
 		foreach ($emitters as $emitter) {
@@ -114,15 +109,33 @@ class MessageHubController {
 		return $name;
 	}
 
-	/**
-	 * @HandlesCommand("route")
-	 * @Mask $action (add|addforce)
-	 * @Mask $fromConst from
-	 */
+	/** Create a new route from &lt;from&gt; to &lt;to&gt; with optional modifiers */
+	#[NCA\HandlesCommand("route")]
+	#[NCA\Help\Example(
+		"<symbol>route add system(*) -&gt; web",
+		"Route all system messages to the web interface"
+	)]
+	#[NCA\Help\Example(
+		"<symbol>route add aopriv &lt;-&gt; aoorg if-has-prefix(prefix=\"-\")",
+		"Relay between org and private channel by using a dash prefix"
+	)]
+	#[NCA\Help\Example(
+		"<symbol>route add tradebot -&gt; aotell(Nady) if-matches(text=machi case-sensitive=false)",
+		"Send all messages from Darknet containing \"machi\" to Nady"
+	)]
+	#[NCA\Help\Prologue(
+		"Routes define from which source to which destination\n".
+		"messages will be forwarded. They consist of a source,\n".
+		"a destination and any number of modifiers, where modifiers\n".
+		"can either modify or completely drop a message.\n"
+	)]
+	#[NCA\Help\Epilogue(
+		"For more information, see the <a href='chatcmd:///start https://github.com/Nadybot/Nadybot/wiki/Routing'>Nadybot WIKI</a>"
+	)]
 	public function routeAddCommand(
 		CmdContext $context,
-		string $action,
-		?string $fromConst,
+		#[NCA\Str("add", "addforce")] string $action,
+		#[NCA\Str("from")] ?string $fromConst,
 		PSource $from,
 		PDirection $direction,
 		PSource $to,
@@ -142,7 +155,7 @@ class MessageHubController {
 			$context->reply("Unknown target <highlight>{$to}<end>.");
 			return;
 		}
-		/** @Collection<MessageEmitter> */
+		/** @var Collection<MessageEmitter> */
 		$senders = new Collection($this->messageHub->getEmitters());
 		$hasSender = $senders->first(function(MessageEmitter $e) use ($from) {
 			return fnmatch($e->getChannelName(), $from, FNM_CASEFOLD)
@@ -172,6 +185,7 @@ class MessageHubController {
 				return;
 			}
 		}
+		/** @var null|RouteModifier[] $modifiers */
 		$transactionRunning = false;
 		try {
 			$this->db->beginTransaction();
@@ -229,12 +243,13 @@ class MessageHubController {
 		);
 	}
 
-	/**
-	 * @HandlesCommand("route")
-	 * @Mask $action list
-	 * @Mask $subAction (from|sources?|src)
-	 */
-	public function routeListFromCommand(CmdContext $context, string $action, string $subAction): void {
+	/** List all route sources */
+	#[NCA\HandlesCommand("route")]
+	public function routeListFromCommand(
+		CmdContext $context,
+		#[NCA\Str("list")] string $action,
+		#[NCA\Regexp("from|sources?|src", example: "src")] string $subAction
+	): void {
 		$emitters = $this->messageHub->getEmitters();
 		$count = count($emitters);
 		ksort($emitters);
@@ -246,12 +261,13 @@ class MessageHubController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @HandlesCommand("route")
-	 * @Mask $action list
-	 * @Mask $subAction (to|dsts?|dests?|destinations?)
-	 */
-	public function routeListToCommand(CmdContext $context, string $action, string $subAction): void {
+	/** List all route destinations */
+	#[NCA\HandlesCommand("route")]
+	public function routeListToCommand(
+		CmdContext $context,
+		#[NCA\Str("list")] string $action,
+		#[NCA\Regexp("to|dsts?|dests?|destinations?", example: "dst")] string $subAction
+	): void {
 		$receivers = $this->messageHub->getReceivers();
 		$count = count($receivers);
 		ksort($receivers);
@@ -263,12 +279,13 @@ class MessageHubController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @HandlesCommand("route")
-	 * @Mask $action list
-	 * @Mask $subAction (mods?|modifiers?)
-	 */
-	public function routeListModifiersCommand(CmdContext $context, string $action, string $subAction): void {
+	/** List all route modifiers */
+	#[NCA\HandlesCommand("route")]
+	public function routeListModifiersCommand(
+		CmdContext $context,
+		#[NCA\Str("list")] string $action,
+		#[NCA\Regexp("mods?|modifiers?", example: "mods")] string $subAction
+	): void {
 		$mods = $this->messageHub->modifiers;
 		$count = count($mods);
 		if (!$count) {
@@ -290,15 +307,12 @@ class MessageHubController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @HandlesCommand("route")
-	 * @Mask $action list
-	 * @Mask $subAction (mods?|modifiers?)
-	 */
+	/** Get detailed information about a route modifier */
+	#[NCA\HandlesCommand("route")]
 	public function routeListModifierCommand(
 		CmdContext $context,
-		string $action,
-		string $subAction,
+		#[NCA\Str("list")] string $action,
+		#[NCA\Regexp("mods?|modifiers?", example: "mod")] string $subAction,
 		string $modifier
 	): void {
 		$mod = $this->messageHub->modifiers[$modifier]??null;
@@ -306,12 +320,7 @@ class MessageHubController {
 			$context->reply("No message modifier <highlight>{$modifier}<end> found.");
 			return;
 		}
-		try {
-			$refClass = new ReflectionClass($mod->class);
-		} catch (ReflectionException $e) {
-			$context->reply("The modifier <highlight>{$modifier}<end> cannot be initialized.");
-			return;
-		}
+		$refClass = new ReflectionClass($mod->class);
 		try {
 			$refConstr = $refClass->getMethod("__construct");
 			$refParams = $refConstr->getParameters();
@@ -332,7 +341,7 @@ class MessageHubController {
 					if (isset($refParams[$parNum]) && $refParams[$parNum]->isDefaultValueAvailable()) {
 						try {
 							$blob .= " (optional, default=".
-								json_encode(
+								\Safe\json_encode(
 									$refParams[$parNum]->getDefaultValue(),
 									JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR|JSON_INVALID_UTF8_SUBSTITUTE
 								) . ")";
@@ -353,9 +362,8 @@ class MessageHubController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @HandlesCommand("route")
-	 */
+	/** Delete a route by its ID */
+	#[NCA\HandlesCommand("route")]
 	public function routeDel(CmdContext $context, PRemove $action, int $id): void {
 		$route = $this->getRoute($id);
 		if (!isset($route)) {
@@ -392,11 +400,9 @@ class MessageHubController {
 		}
 	}
 
-	/**
-	 * @HandlesCommand("route")
-	 * @Mask $action list
-	 */
-	public function routeList(CmdContext $context, string $action): void {
+	/** Get a list view of all defined routes */
+	#[NCA\HandlesCommand("route")]
+	public function routeList(CmdContext $context, #[NCA\Str("list")] string $action): void {
 		$routes = $this->messageHub->getRoutes();
 		if (empty($routes)) {
 			$context->reply("There are no routes defined.");
@@ -416,12 +422,9 @@ class MessageHubController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @HandlesCommand("route")
-	 * @Mask $tree tree
-	 * @Mask $all all
-	 */
-	public function routeTree(CmdContext $context, ?string $tree, ?string $all): void {
+	/** Get a tree view of all defined routes. If 'all' is given, it will include system routes as well */
+	#[NCA\HandlesCommand("route")]
+	public function routeTree(CmdContext $context, #[NCA\Str("tree")] ?string $tree, #[NCA\Str("all")] ?string $all): void {
 		$routes = $this->messageHub->getRoutes();
 		if (empty($routes)) {
 			$context->reply("There are no routes defined.");
@@ -498,11 +501,9 @@ class MessageHubController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @HandlesCommand("route")
-	 * @Mask $action color
-	 */
-	public function routeListColorConfigCommand(CmdContext $context, string $action): void {
+	/** Show the current colors for all sources and routes */
+	#[NCA\HandlesCommand("route")]
+	public function routeListColorConfigCommand(CmdContext $context, #[NCA\Str("color")] string $action): void {
 		$colors = $this->messageHub::$colors;
 		if ($colors->isEmpty()) {
 			$context->reply("No colors have been defined yet.");
@@ -573,15 +574,12 @@ class MessageHubController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @HandlesCommand("route")
-	 * @Mask $action color
-	 * @Mask $type (tag|text)
-	 */
+	/** Remove the tag or text color definition for a source or route */
+	#[NCA\HandlesCommand("route")]
 	public function routeTagColorRemCommand(
 		CmdContext $context,
-		string $action,
-		string $type,
+		#[NCA\Str("color")] string $action,
+		#[NCA\StrChoice("tag", "text")] string $type,
 		PRemove $subAction,
 		PSource $tag,
 		?PWhere $where,
@@ -591,9 +589,11 @@ class MessageHubController {
 		if (isset($where)) {
 			$where = $this->fixDiscordChannelName($where());
 		}
+		/** @var ?string $where */
 		if (isset($via)) {
 			$via = $this->fixDiscordChannelName($via());
 		}
+		/** @var ?string $via */
 		$color = $this->getHopColor($tag, $where??null, $via??null);
 		$name = $tag;
 		if (isset($where)) {
@@ -626,29 +626,22 @@ class MessageHubController {
 		$context->reply("Color definition for <highlight>{$name}<end> deleted.");
 	}
 
-	/**
-	 * @HandlesCommand("route")
-	 * @Mask $action color
-	 * @Mask $subAction remall
-	 */
-	public function routeTagColorRemAllCommand(CmdContext $context, string $action, string $subAction): void {
+	/** Remove all color definitions for tags and texts */
+	#[NCA\HandlesCommand("route")]
+	public function routeTagColorRemAllCommand(CmdContext $context, #[NCA\Str("color")] string $action, #[NCA\Str("remall")] string $subAction): void {
 		$this->db->table($this->messageHub::DB_TABLE_COLORS)
 			->truncate();
 		$this->messageHub->loadTagColor();
 		$context->reply("All route color definitions deleted.");
 	}
 
-	/**
-	 * @HandlesCommand("route")
-	 * @Mask $action color
-	 * @Mask $type (tag|text)
-	 * @Mask $subAction set
-	 */
+	/** Set the tag or text color for a source or route */
+	#[NCA\HandlesCommand("route")]
 	public function routeSetColorCommand(
 		CmdContext $context,
-		string $action,
-		string $type,
-		string $subAction,
+		#[NCA\Str("color")] string $action,
+		#[NCA\StrChoice("tag", "text")] string $type,
+		#[NCA\Str("set")] string $subAction,
 		PSource $tag,
 		?PWhere $where,
 		?PVia $via,
@@ -702,23 +695,19 @@ class MessageHubController {
 			$this->messageHub->loadTagColor();
 		}
 		$context->reply(
-			ucfirst(strtolower($type)) . " color for ".
+			ucfirst($type) . " color for ".
 			"<highlight>{$name}<end> set to ".
 			"<font color='#{$color}'>#{$color}</font>."
 		);
 	}
 
-	/**
-	 * @HandlesCommand("route")
-	 * @Mask $action color
-	 * @Mask $type (tag|text)
-	 * @Mask $subAction pick
-	 */
+	/** Pick the tag or text color for a source or route */
+	#[NCA\HandlesCommand("route")]
 	public function routePickColorCommand(
 		CmdContext $context,
-		string $action,
-		string $type,
-		string $subAction,
+		#[NCA\Str("color")] string $action,
+		#[NCA\StrChoice("tag", "text")] string $type,
+		#[NCA\Str("pick")] string $subAction,
 		PSource $tag,
 		?PWhere $where,
 		?PVia $via
@@ -768,11 +757,9 @@ class MessageHubController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @HandlesCommand("route")
-	 * @Mask $action format
-	 */
-	public function routeListFormatCommand(CmdContext $context, string $action): void {
+	/** Show how the hops of a route are rendered */
+	#[NCA\HandlesCommand("route")]
+	public function routeListFormatCommand(CmdContext $context, #[NCA\Str("format")] string $action): void {
 		$formats = Source::$format;
 		if ($formats->isEmpty()) {
 			$context->reply("No formats have been defined yet.");
@@ -819,13 +806,11 @@ class MessageHubController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @HandlesCommand("route")
-	 * @Mask $action format
-	 */
+	/** Reset the rendering of a hop to the default */
+	#[NCA\HandlesCommand("route")]
 	public function routeFormatClearCommand(
 		CmdContext $context,
-		string $action,
+		#[NCA\Str("format")] string $action,
 		PRemove $subAction,
 		PSource $hop
 	): void {
@@ -837,26 +822,20 @@ class MessageHubController {
 		$context->reply("Format cleared for <highlight>{$hop}<end>.");
 	}
 
-	/**
-	 * @HandlesCommand("route")
-	 * @Mask $action format
-	 * @Mask $subAction remall
-	 */
-	public function routeFormatRemAllCommand(CmdContext $context, string $action, string $subAction): void {
+	/** Reset the rendering of all hops to their default */
+	#[NCA\HandlesCommand("route")]
+	public function routeFormatRemAllCommand(CmdContext $context, #[NCA\Str("format")] string $action, #[NCA\Str("remall")] string $subAction): void {
 		$this->db->table(Source::DB_TABLE)->truncate();
 		$this->messageHub->loadTagFormat();
 		$context->reply("All route format definitions deleted.");
 	}
 
-	/**
-	 * @HandlesCommand("route")
-	 * @Mask $action format
-	 * @Mask $subAction render
-	 */
+	/** Switch the displaying of a hop's name on or off */
+	#[NCA\HandlesCommand("route")]
 	public function routeFormatChangeRenderCommand(
 		CmdContext $context,
-		string $action,
-		string $subAction,
+		#[NCA\Str("format")] string $action,
+		#[NCA\Str("render")] string $subAction,
 		PSource $hop,
 		bool $render
 	): void {
@@ -869,15 +848,12 @@ class MessageHubController {
 		$context->reply("Format saved.");
 	}
 
-	/**
-	 * @HandlesCommand("route")
-	 * @Mask $action format
-	 * @Mask $subAction display
-	 */
+	/** Change the display text format of a hop's name */
+	#[NCA\HandlesCommand("route")]
 	public function routeFormatChangeDisplayCommand(
 		CmdContext $context,
-		string $action,
-		string $subAction,
+		#[NCA\Str("format")] string $action,
+		#[NCA\Str("display")] string $subAction,
 		PSource $hop,
 		string $format
 	): void {
@@ -899,11 +875,9 @@ class MessageHubController {
 		$context->reply("Display format saved.");
 	}
 
-	/**
-	 * @HandlesCommand("route")
-	 * @Mask $action remall
-	 */
-	public function routeRemAllCommand(CmdContext $context, string $action): void {
+	/** Remove all routes. Do not use unless you know what you are doing */
+	#[NCA\HandlesCommand("route")]
+	public function routeRemAllCommand(CmdContext $context, #[NCA\Str("remall")] string $action): void {
 		try {
 			$numDeleted = $this->messageHub->deleteAllRoutes();
 		} catch (Exception $e) {
@@ -935,11 +909,11 @@ class MessageHubController {
 
 	/** Define how to render a specific hop */
 	public function setHopDisplay(string $hop, string $format): void {
-		if (preg_match("/%[^%]/", $format) && @sprintf($format, "text") === false) {
-			throw new Exception("Invalid format string given.");
+		if (preg_match("/%[^%]/", $format)) {
+			$_ignore = sprintf($format, "text");
 		}
 		$spec = Source::$format->first(fn(RouteHopFormat $x) => $x->hop === $hop);
-		/** @var RouteHopFormat $format */
+		/** @var ?RouteHopFormat $spec */
 		$update = true;
 		if (!isset($spec)) {
 			$spec = new RouteHopFormat();
@@ -1035,11 +1009,14 @@ class MessageHubController {
 		return substr($type, 0, $bracket);
 	}
 
-	/** Render a blob for an emitter group */
+	/**
+	 * Render a blob for an emitter group
+	 * @param Collection<MessageEmitter> $values
+	 */
 	public function renderEmitterGroup(Collection $values, string $group): string {
 		return "<header2>{$group}<end>\n<tab>".
 			$values->map(function(MessageEmitter $emitter): string {
-				$name = $emitter->getChannelName();
+				$name = htmlentities($emitter->getChannelName());
 				if ($emitter instanceof DiscordChannel) {
 					if (!preg_match("/^[[:graph:]]+$/s", $name)) {
 						$name .= " or discordpriv(" . $emitter->getChannelID() . ")";

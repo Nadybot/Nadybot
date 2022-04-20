@@ -3,76 +3,57 @@
 namespace Nadybot\Modules\TOWER_MODULE;
 
 use Exception;
-use Nadybot\Core\BotRunner;
-use Nadybot\Core\Http;
-use Nadybot\Core\HttpResponse;
-use Nadybot\Core\SettingManager;
 use Throwable;
+use Nadybot\Core\{
+	Attributes as NCA,
+	BotRunner,
+	Http,
+	HttpResponse,
+	ModuleInstance,
+};
 
-/**
- * @Instance
- */
-class TowerApiController {
-
+#[NCA\Instance]
+class TowerApiController extends ModuleInstance {
 	public const TOWER_API = "tower_api";
 	public const API_TYRENCE = "https://tower-api.jkbff.com/v1/api/towers";
 	public const API_NONE = "none";
 
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
-
-	/** @Inject */
+	#[NCA\Inject]
 	public Http $http;
 
-	/** @Inject */
-	public SettingManager $settingManager;
-
-	/** @Inject */
+	#[NCA\Inject]
 	public TowerController $towerController;
+
+	/** Which API to use for querying tower infos */
+	#[NCA\Setting\Text(options: [self::API_NONE, self::API_TYRENCE])]
+	public string $towerApi = self::API_TYRENCE;
+
+	/** How long to cache data from the Tower API */
+	#[NCA\Setting\Options(options: [
+		'1 min' => 60,
+		'5 min' => 300,
+		'10 min' => 600,
+		'15 min' => 900,
+		'30 min' => 1800,
+		'1 hour' => 3600,
+		'2 hours' => 7200,
+	])]
+	public int $towerCacheDuration = 10 * 60; // 10 mins
 
 	/** @var array<string,ApiCache> */
 	protected array $cache = [];
 
-	/** @Setup */
-	public function setup(): void {
-		$this->settingManager->add(
-			$this->moduleName,
-			static::TOWER_API,
-			"Which API to use for querying tower infos",
-			"edit",
-			"text",
-			static::API_TYRENCE,
-			static::API_NONE . ";" . static::API_TYRENCE
-		);
-		$this->settingManager->add(
-			$this->moduleName,
-			"tower_cache_duration",
-			"How long to cache data from the Tower API",
-			"edit",
-			"options",
-			"600",
-			"1 min;5 min;10 min;15 min;30 min;1 hour;2 hours",
-			"60;300;600;900;1800;3600;7200"
-		);
-		$this->settingManager->registerChangeListener(
-			static::TOWER_API,
-			[$this, "verifyTowerAPI"]
-		);
-	}
-
 	public function isActive(): bool {
-		return $this->settingManager->getString(static::TOWER_API) !== static::API_NONE;
+		return $this->towerApi !== static::API_NONE;
 	}
 
-	public function verifyTowerAPI(string $settingName, string $oldValue, string $newValue, $data): void {
+	#[NCA\SettingChangeHandler(self::TOWER_API)]
+	public function verifyTowerAPI(string $settingName, string $oldValue, string $newValue, mixed $data): void {
 		if ($newValue === static::API_NONE) {
 			return;
 		}
 		$parsed = parse_url($newValue);
-		if ($parsed === false) {
+		if (!is_array($parsed)) {
 			throw new Exception("<highlight>{$newValue}<end> is not a valid URL.");
 		}
 		if (!isset($parsed["scheme"]) ||!isset($parsed["host"])) {
@@ -83,10 +64,10 @@ class TowerApiController {
 		}
 	}
 
-	/**
-	 * @Event("timer(5m)")
-	 * @Description("Clean API Cache")
-	 */
+	#[NCA\Event(
+		name: "timer(5m)",
+		description: "Clean API Cache"
+	)]
 	public function cleanApiCache(): void {
 		$keys = array_keys($this->cache);
 		foreach ($keys as $key) {
@@ -100,8 +81,12 @@ class TowerApiController {
 		$this->cache = [];
 	}
 
-	public function call(array $params, callable $callback, ...$args): void {
-		$roundTo = $this->settingManager->getInt('tower_cache_duration') ?? 600;
+	/**
+	 * @param array<string,mixed> $params
+	 * @psalm-param callable(?ApiResult, mixed...) $callback
+	 */
+	public function call(array $params, callable $callback, mixed ...$args): void {
+		$roundTo = $this->towerCacheDuration;
 		if (isset($params["min_close_time"])) {
 			$params["min_close_time"] -= $params["min_close_time"] % $roundTo;
 		}
@@ -117,7 +102,7 @@ class TowerApiController {
 				return;
 			}
 		}
-		$apiURL = $this->settingManager->getString(static::TOWER_API) ?? static::API_TYRENCE;
+		$apiURL = $this->towerApi;
 		if ($apiURL === static::API_NONE) {
 			$apiURL = static::API_TYRENCE;
 		}
@@ -128,20 +113,24 @@ class TowerApiController {
 			->withCallback([$this, "handleResult"], $params, $cacheKey, $callback, ...$args);
 	}
 
-	public function handleResult(HttpResponse $response, array $params, string $cacheKey, callable $callback, ...$args): void {
+	/**
+	 * @param array<string,mixed> $params
+	 * @psalm-param callable(?ApiResult, mixed...) $callback
+	 */
+	public function handleResult(HttpResponse $response, array $params, string $cacheKey, callable $callback, mixed ...$args): void {
 		if (!isset($response->body) || ($response->headers["status-code"]??"0") !== "200") {
 			$callback(null, ...$args);
 			return;
 		}
 		try {
-			$data = json_decode($response->body, true, 512, JSON_THROW_ON_ERROR);
+			$data = \Safe\json_decode($response->body, true);
 			$result = new ApiResult($data);
 		} catch (Throwable $e) {
 			$callback(null, ...$args);
 			return;
 		}
 		$apiCache = new ApiCache();
-		$apiCache->validUntil = time() + ($this->settingManager->getInt('tower_cache_duration') ?? 600);
+		$apiCache->validUntil = time() + $this->towerCacheDuration;
 		$apiCache->result = $result;
 		$this->cache[$cacheKey] = $apiCache;
 		$callback($result, ...$args);

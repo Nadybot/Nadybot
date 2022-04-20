@@ -14,7 +14,7 @@ class CreateTrackedUsersTable implements SchemaMigration {
 		if ($db->schema()->hasTable($table)) {
 			return;
 		}
-		$db->schema()->create($table, function(Blueprint $table) {
+		$db->schema()->create($table, function(Blueprint $table): void {
 			$table->bigInteger("uid")->primary();
 			$table->string("name", 25);
 			$table->string("added_by", 25);

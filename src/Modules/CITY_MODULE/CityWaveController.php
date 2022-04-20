@@ -5,18 +5,18 @@ namespace Nadybot\Modules\CITY_MODULE;
 use Exception;
 use Nadybot\Core\{
 	AOChatEvent,
+	Attributes as NCA,
 	CmdContext,
 	CommandAlias,
-	Event,
 	EventManager,
+	ModuleInstance,
 	MessageEmitter,
 	MessageHub,
 	Nadybot,
-	SettingManager,
+	Routing\RoutableMessage,
+	Routing\Source,
 	Util,
 };
-use Nadybot\Core\Routing\RoutableMessage;
-use Nadybot\Core\Routing\Source;
 use Nadybot\Modules\TIMERS_MODULE\{
 	Alert,
 	TimerController,
@@ -26,73 +26,52 @@ use Nadybot\Modules\TIMERS_MODULE\{
 /**
  * @author Funkman (RK2)
  * @author Tyrence (RK2)
- *
- * @Instance
- *
  * Commands this class contains:
- *	@DefineCommand(
- *		command     = 'citywave',
- *		accessLevel = 'guild',
- *		description = 'Shows/Starts/Stops the current city wave',
- *		help        = 'wavecounter.txt'
- *	)
- *	@ProvidesEvent("cityraid(start)")
- *	@ProvidesEvent("cityraid(wave)")
- *	@ProvidesEvent("cityraid(end)")
  */
-class CityWaveController implements MessageEmitter {
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
-
-	/** @Inject */
+#[
+	NCA\Instance,
+	NCA\DefineCommand(
+		command: "citywave",
+		accessLevel: "guild",
+		description: "Shows/Starts/Stops the current city wave",
+	),
+	NCA\ProvidesEvent("cityraid(start)"),
+	NCA\ProvidesEvent("cityraid(wave)"),
+	NCA\ProvidesEvent("cityraid(end)")
+]
+class CityWaveController extends ModuleInstance implements MessageEmitter {
+	#[NCA\Inject]
 	public Nadybot $chatBot;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public CommandAlias $commandAlias;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public TimerController $timerController;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public MessageHub $messageHub;
 
-	/** @Inject */
-	public SettingManager $settingManager;
-
-	/** @Inject */
+	#[NCA\Inject]
 	public EventManager $eventManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Util $util;
+
+	/** Times to display timer alerts */
+	#[NCA\Setting\Text(
+		options: ["105s 150s 90s 120s 120s 120s 120s 120s 120s"],
+		help: 'city_wave_times.txt'
+	)]
+	public string $cityWaveTimes = '105s 150s 90s 120s 120s 120s 120s 120s 120s';
 
 	public const TIMER_NAME = "City Raid";
 
-	/**
-	 * @Setup
-	 */
+	#[NCA\Setup]
 	public function setup(): void {
 		$this->commandAlias->register($this->moduleName, "citywave start", "startwave");
 		$this->commandAlias->register($this->moduleName, "citywave stop", "stopwave");
 
-		$this->settingManager->add(
-			$this->moduleName,
-			'city_wave_times',
-			'Times to display timer alerts',
-			'edit',
-			'text',
-			'105s 150s 90s 120s 120s 120s 120s 120s 120s',
-			'105s 150s 90s 120s 120s 120s 120s 120s 120s',
-			'',
-			'mod',
-			'city_wave_times.txt'
-		);
-		$this->settingManager->registerChangeListener(
-			'city_wave_times',
-			[$this, 'changeWaveTimes']
-		);
 		$this->messageHub->registerMessageEmitter($this);
 	}
 
@@ -109,7 +88,8 @@ class CityWaveController implements MessageEmitter {
 		$this->messageHub->handle($e);
 	}
 
-	public function changeWaveTimes(string $settingName, string $oldValue, string $newValue, $data): void {
+	#[NCA\SettingChangeHandler("city_wave_times")]
+	public function changeWaveTimes(string $settingName, string $oldValue, string $newValue, mixed $data): void {
 		$alertTimes = explode(' ', $newValue);
 		if (count($alertTimes) !== 9) {
 			throw new Exception("Error saving setting: must have 9 spawn times. For more info type !help city_wave_times.");
@@ -123,11 +103,13 @@ class CityWaveController implements MessageEmitter {
 		}
 	}
 
-	/**
-	 * @HandlesCommand("citywave")
-	 * @Mask $action start
-	 */
-	public function citywaveStartCommand(CmdContext $context, string $action): void {
+	/** Manually start the wave timer */
+	#[NCA\HandlesCommand("citywave")]
+	#[NCA\Help\Epilogue(
+		"Note: the Wave Counter will start and stop automatically under normal circumstances, ".
+		"but the start and stop functions are provided just in case."
+	)]
+	public function citywaveStartCommand(CmdContext $context, #[NCA\Str("start")] string $action): void {
 		$wave = $this->getWave();
 		if ($wave !== null) {
 			$context->reply("A raid is already in progress.");
@@ -136,11 +118,9 @@ class CityWaveController implements MessageEmitter {
 		}
 	}
 
-	/**
-	 * @HandlesCommand("citywave")
-	 * @Mask $action stop
-	 */
-	public function citywaveStopCommand(CmdContext $context, string $action): void {
+	/** Manually stop the wave timer */
+	#[NCA\HandlesCommand("citywave")]
+	public function citywaveStopCommand(CmdContext $context, #[NCA\Str("stop")] string $action): void {
 		$wave = $this->getWave();
 		if ($wave === null) {
 			$msg = "There is no raid in progress at this time.";
@@ -151,9 +131,8 @@ class CityWaveController implements MessageEmitter {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @HandlesCommand("citywave")
-	 */
+	/** Show the current wave */
+	#[NCA\HandlesCommand("citywave")]
 	public function citywaveCommand(CmdContext $context): void {
 		$wave = $this->getWave();
 		if ($wave === null) {
@@ -166,10 +145,10 @@ class CityWaveController implements MessageEmitter {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @Event("guild")
-	 * @Description("Starts a wave counter when cloak is lowered")
-	 */
+	#[NCA\Event(
+		name: "guild",
+		description: "Starts a wave counter when cloak is lowered"
+	)]
 	public function autoStartWaveCounterEvent(AOChatEvent $eventObj): void {
 		if (preg_match("/^Your city in (.+) has been targeted by hostile forces.$/i", $eventObj->message)) {
 			$this->startWaveCounter();
@@ -208,7 +187,7 @@ class CityWaveController implements MessageEmitter {
 		$lastTime = time();
 		$wave = 1;
 		$alerts = [];
-		$alertTimes = explode(' ', $this->settingManager->getString("city_wave_times")??"");
+		$alertTimes = explode(' ', $this->cityWaveTimes);
 		foreach ($alertTimes as $alertTime) {
 			$time = $this->util->parseTime($alertTime);
 			$lastTime += $time;

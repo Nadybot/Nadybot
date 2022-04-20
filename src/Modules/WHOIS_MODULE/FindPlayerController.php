@@ -2,48 +2,42 @@
 
 namespace Nadybot\Modules\WHOIS_MODULE;
 
-use Nadybot\Core\CmdContext;
-use Nadybot\Core\Modules\PLAYER_LOOKUP\PlayerManager;
-use Nadybot\Core\Nadybot;
-use Nadybot\Core\Text;
+use Nadybot\Core\{
+	Attributes as NCA,
+	CmdContext,
+	ConfigFile,
+	ModuleInstance,
+	Modules\PLAYER_LOOKUP\PlayerManager,
+	Text,
+};
 
 /**
  * @author Tyrence (RK2)
- *
- * @Instance
- *
- * Commands this controller contains:
- *	@DefineCommand(
- *		command     = 'findplayer',
- *		accessLevel = 'all',
- *		description = 'Find a player by name',
- *		help        = 'findplayer.txt'
- *	)
  */
-class FindPlayerController {
+#[
+	NCA\Instance,
+	NCA\DefineCommand(
+		command: "findplayer",
+		accessLevel: "guest",
+		description: "Find a player by name",
+	)
+]
+class FindPlayerController extends ModuleInstance {
+	#[NCA\Inject]
+	public ConfigFile $config;
 
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
-
-	/** @Inject */
-	public Nadybot $chatBot;
-
-	/** @Inject */
+	#[NCA\Inject]
 	public Text $text;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public PlayerManager $playerManager;
 
-	/**
-	 * @HandlesCommand("findplayer")
-	 */
+	/** Find a player by name in the local database */
+	#[NCA\HandlesCommand("findplayer")]
 	public function findplayerCommand(CmdContext $context, string $search): void {
 		$players = $this->playerManager->searchForPlayers(
 			$search,
-			(int)$this->chatBot->vars['dimension']
+			$this->config->dimension
 		);
 		$count = count($players);
 

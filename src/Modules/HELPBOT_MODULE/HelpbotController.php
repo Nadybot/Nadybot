@@ -2,83 +2,74 @@
 
 namespace Nadybot\Modules\HELPBOT_MODULE;
 
+use ParseError;
+use Illuminate\Support\Collection;
 use Nadybot\Core\{
+	Attributes as NCA,
 	CmdContext,
 	DB,
+	ModuleInstance,
 	Text,
 	Util,
 };
-use ParseError;
 
 /**
  * @author Tyrence (RK2)
  * @author Neksus (RK2)
  * @author Mdkdoc420 (RK2)
- *
- * @Instance
- *
- * Commands this controller contains:
- *	@DefineCommand(
- *		command     = 'dyna',
- *		accessLevel = 'all',
- *		description = 'Search for RK Dynabosses',
- *		help        = 'dyna.txt'
- *	)
- *	@DefineCommand(
- *		command     = 'oe',
- *		accessLevel = 'all',
- *		description = 'Over-equipped calculation',
- *		help        = 'oe.txt'
- *	)
- *	@DefineCommand(
- *		command     = 'calc',
- *		accessLevel = 'all',
- *		description = 'Calculator',
- *		help        = 'calculator.txt'
- *	)
  */
-class HelpbotController {
-
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
-
-	/** @Inject */
+#[
+	NCA\Instance,
+	NCA\HasMigrations("Migrations/Dyna"),
+	NCA\DefineCommand(
+		command: "dyna",
+		accessLevel: "guest",
+		description: "Search for RK Dynabosses",
+	),
+	NCA\DefineCommand(
+		command: "oe",
+		accessLevel: "guest",
+		description: "Over-equipped calculation",
+	),
+	NCA\DefineCommand(
+		command: "calc",
+		accessLevel: "guest",
+		description: "Calculator",
+	)
+]
+class HelpbotController extends ModuleInstance {
+	#[NCA\Inject]
 	public DB $db;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Text $text;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Util $util;
 
-	/**
-	 * This handler is called on bot startup.
-	 * @Setup
-	 */
+	#[NCA\Inject]
+	public PlayfieldController $pfController;
+
+	#[NCA\Setup]
 	public function setup(): void {
-		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations/Dyna");
 		$this->db->loadCSVFile($this->moduleName, __DIR__ . '/dynadb.csv');
 	}
 
-	/**
-	 * @HandlesCommand("dyna")
-	 */
-	public function dynaLevelCommand(CmdContext $context, int $search): void {
-		$range1 = (int)floor($search - $search / 10);
-		$range2 = (int)ceil($search + $search / 10);
-		/** @var DynaDB[] */
+	/** Return a list of dyna camps within -25 and +25 of QL */
+	#[NCA\HandlesCommand("dyna")]
+	public function dynaLevelCommand(CmdContext $context, int $ql): void {
+		$range1 = (int)floor($ql - $ql / 10);
+		$range2 = (int)ceil($ql + $ql / 10);
+		/** @var Collection<DynaDBSearch> */
 		$data = $this->db->table("dynadb AS d")
-			->join("playfields AS p", "d.playfield_id", "p.id")
 			->where("max_ql", ">=", $range1)
 			->where("min_ql", "<=", $range2)
-			->orderBy("p.long_name")
 			->orderBy("min_ql")
-			->asObj(DynaDBSearch::class)->toArray();
-		$count = count($data);
-		if (!$count) {
+			->asObj(DynaDBSearch::class)
+			->each(function (DynaDBSearch $ql): void {
+				$ql->pf = $this->pfController->getPlayfieldById($ql->playfield_id);
+			});
+		if ($data->isEmpty()) {
 			$context->reply(
 				"No dynacamps found between level <highlight>{$range1}<end> ".
 				"and <highlight>{$range2}<end>."
@@ -86,32 +77,37 @@ class HelpbotController {
 			return;
 		}
 
-		$blob = "Results of Dynacams level <highlight>{$range1}<end>-<highlight>{$range2}<end>\n\n";
+		$blob = "Results of Dynacamps level <highlight>{$range1}<end>-<highlight>{$range2}<end>\n\n";
 
 		$blob .= $this->formatResults($data);
 
-		$msg = $this->text->makeBlob("Dynacamps ($count)", $blob);
+		$msg = $this->text->makeBlob("Dynacamps (" . $data->count() . ")", $blob);
 		$context->reply($msg);
 	}
 
 	/**
-	 * @HandlesCommand("dyna")
+	 * Return a list of all dyna camps that either
+	 * consist of mobs of type &lt;search&gt; or
+	 * are in the playfield &lt;search&gt;
 	 */
-	public function dynaNameCommand(CmdContext $context, string $dyna): void {
-		$search = str_replace(" ", "%", $dyna);
+	#[NCA\HandlesCommand("dyna")]
+	public function dynaNameCommand(CmdContext $context, string $search): void {
+		$dbSearch = str_replace(" ", "%", $search);
+		$playfields = $this->pfController->searchPlayfieldsByName("%{$dbSearch}%");
 		$data = $this->db->table("dynadb AS d")
-			->join("playfields AS p", "d.playfield_id", "p.id")
-			->whereIlike("long_name", "%{$search}%")
-			->orWhereIlike("short_name", "%{$search}%")
-			->orWhereIlike("mob", "%{$search}%")
-			->asObj(DynaDBSearch::class)->toArray();
+			->whereIn("playfield_id", $playfields->pluck("id")->toArray())
+			->orWhereIlike("mob", "%{$dbSearch}%")
+			->asObj(DynaDBSearch::class)
+			->each(function (DynaDBSearch $search): void {
+				$search->pf = $this->pfController->getPlayfieldById($search->playfield_id);
+			});
 		$count = count($data);
 
 		if (!$count) {
-			$context->reply("No dyna names or locations matched <highlight>{$dyna}<end>.");
+			$context->reply("No dyna names or locations matched <highlight>{$search}<end>.");
 			return;
 		}
-		$blob = "Results of Dynacamp Search for <highlight>{$dyna}<end>\n\n";
+		$blob = "Results of Dynacamp Search for <highlight>{$search}<end>\n\n";
 
 		$blob .= $this->formatResults($data);
 
@@ -121,52 +117,57 @@ class HelpbotController {
 
 	/**
 	 * Format the dynacamp results as a blob for a popup
-	 * @param DynaDBSearch[] $data
+	 * @param Collection<DynaDBSearch> $data
 	 */
-	private function formatResults(array $data): string {
+	private function formatResults(Collection $data): string {
 		$blob = '';
-		$lastPF = '';
-		foreach ($data as $row) {
-			if ($lastPF !== $row->long_name) {
-				if ($lastPF !== '') {
-					$blob .= "\n";
+		/** @var Collection<string,Collection<DynaDBSearch>> */
+		$data = $data->filter(fn (DynaDBSearch $search): bool => isset($search->pf))
+			->groupBy("pf.long_name")
+			->sortKeys();
+
+		foreach ($data as $pfName => $rows) {
+			$blob .= "\n<pagebreak><header2>{$pfName}<end>\n";
+			foreach ($rows as $row) {
+				$coordLink = $this->text->makeChatcmd(
+					"{$row->x_coord}x{$row->y_coord}",
+					"/waypoint {$row->x_coord} {$row->y_coord} {$row->playfield_id}"
+				);
+				$range = "{$row->min_ql}-{$row->max_ql}";
+				if (strlen($range) < 7) {
+					$range = "<black>" . str_repeat("_", 7 - strlen($range)) . "<end>{$range}";
 				}
-				$blob .= "<pagebreak><header2>{$row->long_name}<end>\n";
-				$lastPF = $row->long_name;
+				$blob .= "<tab>{$range}: <highlight>{$row->mob}<end> at {$coordLink}\n";
 			}
-			$coordLink = $this->text->makeChatcmd(
-				"{$row->x_coord}x{$row->y_coord}",
-				"/waypoint {$row->x_coord} {$row->y_coord} {$row->playfield_id}"
-			);
-			$range = "{$row->min_ql}-{$row->max_ql}";
-			if (strlen($range) < 7) {
-				$range = "<black>" . str_repeat("_", 7 - strlen($range)) . "<end>{$range}";
-			}
-			$blob .= "<tab>{$range}: <highlight>{$row->mob}<end> at {$coordLink}\n";
 		}
-		return $blob;
+		return trim($blob);
 	}
 
-	/**
-	 * @HandlesCommand("oe")
-	 */
-	public function oeCommand(CmdContext $context, int $oe): void {
-		$oe100 = (int)floor($oe / 0.8);
-		$lowOE100 = (int)floor($oe * 0.8);
-		$oe75 = (int)floor($oe / 0.6);
-		$lowOE75 = (int)floor($oe * 0.6);
-		$oe50 = (int)floor($oe / 0.4);
-		$lowOE50 = (int)floor($oe * 0.4);
-		$oe25 = (int)floor($oe / 0.2);
-		$lowOE25 = (int)floor($oe * 0.2);
+	/** See the over-equip ranges for a skill requirement */
+	#[NCA\HandlesCommand("oe")]
+	#[NCA\Help\Epilogue(
+		"For example: you have 112 Pistol and wanna check what the max Pistol requirement is you can wear without going oe:\n".
+		"<tab><highlight><symbol>oe 112<end>\n\n".
+		"Another Example: your favorite Weapon needs 1200 Pistol and you wanna know how much pistol you need to not OE do:\n".
+		"<tab><highlight><symbol>oe 1200<end>"
+	)]
+	public function oeCommand(CmdContext $context, int $skillRequirement): void {
+		$oe100 = (int)floor($skillRequirement / 0.8);
+		$lowOE100 = (int)floor($skillRequirement * 0.8);
+		$oe75 = (int)floor($skillRequirement / 0.6);
+		$lowOE75 = (int)floor($skillRequirement * 0.6);
+		$oe50 = (int)floor($skillRequirement / 0.4);
+		$lowOE50 = (int)floor($skillRequirement * 0.4);
+		$oe25 = (int)floor($skillRequirement / 0.2);
+		$lowOE25 = (int)floor($skillRequirement * 0.2);
 
-		$blob = "With a skill requirement of <highlight>$oe<end>, you will be\n".
+		$blob = "With a skill requirement of <highlight>{$skillRequirement}<end>, you will be\n".
 			"Out of OE: <highlight>$lowOE100<end> or higher\n".
 			"75%: <highlight>$lowOE75<end> - <highlight>" .($lowOE100 - 1). "<end>\n".
 			"50%: <highlight>" .($lowOE50 + 1). "<end> - <highlight>" .($lowOE75 - 1). "<end>\n".
 			"25%: <highlight>" .($lowOE25 + 1). "<end> - <highlight>$lowOE50<end>\n".
 			"<black>0<end>0%: <highlight>$lowOE25<end> or lower\n\n".
-			"With a personal skill of <highlight>$oe<end>, you can use up to and be\n".
+			"With a personal skill of <highlight>$skillRequirement<end>, you can use up to and be\n".
 			"Out of OE: <highlight>$oe100<end> or lower\n".
 			"75%: <highlight>" .($oe100 + 1). "<end> - <highlight>$oe75<end>\n".
 			"50%: <highlight>" .($oe75 + 1). "<end> - <highlight>" .($oe50 - 1). "<end>\n".
@@ -175,18 +176,19 @@ class HelpbotController {
 			"WARNING: May be plus/minus 1 point!";
 
 		$msg = $this->text->blobWrap(
-			"<highlight>{$lowOE100}<end> - {$oe} - <highlight>{$oe100}<end> ",
+			"<highlight>{$lowOE100}<end> - {$skillRequirement} - <highlight>{$oe100}<end> ",
 			$this->text->makeBlob('More info', $blob, 'Over-equipped Calculation')
 		);
 
 		$context->reply($msg);
 	}
 
-	/**
-	 * @HandlesCommand("calc")
-	 */
-	public function calcCommand(CmdContext $context, string $param): void {
-		$calc = strtolower($param);
+	/** Use a calculator */
+	#[NCA\HandlesCommand("calc")]
+	#[NCA\Help\Example("<symbol>calc 1+1")]
+	#[NCA\Help\Example("<symbol>calc 2^16")]
+	public function calcCommand(CmdContext $context, string $formula): void {
+		$calc = strtolower($formula);
 
 		// check if the calc string includes not allowed chars
 		$numValidChars = strspn($calc, "0123456789.+^-*%()/\\ ");
@@ -198,7 +200,7 @@ class HelpbotController {
 		$calc = str_replace("^", "**", $calc);
 		try {
 			$result = 0;
-			$calc = "\$result = ".$calc.";";
+			$calc = "\$result = {$calc};";
 			eval($calc);
 
 			$result = preg_replace("/\.?0+$/", "", number_format(round($result, 4), 4));
@@ -207,7 +209,7 @@ class HelpbotController {
 			$context->reply("Cannot compute.");
 			return;
 		}
-		preg_match_all("{(\d*\.?\d+|[+%()/^-]|\*+)}", $param, $matches);
+		preg_match_all("{(\d*\.?\d+|[+%()/^-]|\*+)}", $formula, $matches);
 		$expression = join(" ", $matches[1]);
 		$expression = str_replace(["* *", "( ", " )", "*"], ["^", "(", ")", "×"], $expression);
 		$expression = preg_replace("/(\d+)/", "<cyan>$1<end>", $expression);

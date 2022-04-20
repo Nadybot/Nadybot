@@ -2,23 +2,23 @@
 
 namespace Nadybot\Core;
 
+use Nadybot\Core\Attributes as NCA;
 use Throwable;
 
 class EventLoop {
-
-	/** @Inject */
+	#[NCA\Inject]
 	public Nadybot $chatBot;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public EventManager $eventManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public SocketManager $socketManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Timer $timer;
 
-	/** @Logger */
+	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
 	/** @var array<int,callable> */
@@ -26,7 +26,7 @@ class EventLoop {
 
 	public function execSingleLoop(): void {
 		try {
-			$this->chatBot->processAllPackets();
+			$aoActivity = $this->chatBot->processNextPacket();
 
 			if ($this->chatBot->isReady()) {
 				$socketActivity = $this->socketManager->checkMonitoredSockets();
@@ -40,7 +40,7 @@ class EventLoop {
 				}
 				$this->eventManager->crons();
 
-				if (!$socketActivity) {
+				if (!$socketActivity && !$aoActivity) {
 					usleep(10000);
 				} else {
 					usleep(200);

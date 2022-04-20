@@ -2,21 +2,24 @@
 
 namespace Nadybot\Modules\PRIVATE_CHANNEL_MODULE\Migrations;
 
-use Nadybot\Core\DB;
-use Nadybot\Core\DBSchema\Route;
-use Nadybot\Core\DBSchema\RouteModifier;
-use Nadybot\Core\DBSchema\RouteModifierArgument;
-use Nadybot\Core\DBSchema\Setting;
-use Nadybot\Core\LoggerWrapper;
-use Nadybot\Core\MessageHub;
-use Nadybot\Core\Nadybot;
-use Nadybot\Core\Routing\Source;
-use Nadybot\Core\SchemaMigration;
-use Nadybot\Core\SettingManager;
+use Nadybot\Core\{
+	Attributes as NCA,
+	ConfigFile,
+	DB,
+	DBSchema\Route,
+	DBSchema\RouteModifier,
+	DBSchema\RouteModifierArgument,
+	DBSchema\Setting,
+	LoggerWrapper,
+	MessageHub,
+	Routing\Source,
+	SchemaMigration,
+	SettingManager,
+};
 
 class MoveSettingsToRoutes implements SchemaMigration {
-	/** @Inject */
-	public Nadybot $chatBot;
+	#[NCA\Inject]
+	public ConfigFile $config;
 
 	protected function getSetting(DB $db, string $name): ?Setting {
 		return $db->table(SettingManager::DB_TABLE)
@@ -38,7 +41,7 @@ class MoveSettingsToRoutes implements SchemaMigration {
 			&& (!isset($relayFilter) || !strlen($relayFilter->value??""));
 
 		$route = new Route();
-		$route->source = Source::PRIV . "({$this->chatBot->vars['name']})";
+		$route->source = Source::PRIV . "({$this->config->name})";
 		$route->destination = Source::ORG;
 		$route->two_way = $unfiltered;
 		$route->id = $db->insert(MessageHub::DB_TABLE_ROUTES, $route);
@@ -48,7 +51,7 @@ class MoveSettingsToRoutes implements SchemaMigration {
 		}
 		$route = new Route();
 		$route->source = Source::ORG;
-		$route->destination = Source::PRIV . "({$this->chatBot->vars['name']})";
+		$route->destination = Source::PRIV . "({$this->config->name})";
 		$route->two_way = false;
 		$route->id = $db->insert(MessageHub::DB_TABLE_ROUTES, $route);
 		$this->addCommandFilter($db, $relayCommands, $route->id);

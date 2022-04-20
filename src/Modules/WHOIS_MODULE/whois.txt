@@ -1,2 +1,0 @@
-To show character info, online status, and name history for a character:
-<highlight><tab><symbol>whois 'character'<end>

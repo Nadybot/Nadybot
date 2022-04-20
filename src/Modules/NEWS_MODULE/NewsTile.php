@@ -6,6 +6,8 @@ use Closure;
 use InvalidArgumentException;
 use ReflectionFunction;
 use ReflectionNamedType;
+use ReflectionUnionType;
+use Nadybot\Core\Attributes\JSON;
 
 class NewsTile {
 	/** The name of this news tile */
@@ -19,8 +21,8 @@ class NewsTile {
 
 	/**
 	 * The callback that returns the news tile data
-	 * @json:ignore
 	 */
+	#[JSON\Ignore]
 	public Closure $callback;
 
 	public function __construct(string $name, callable $callback) {
@@ -46,8 +48,7 @@ class NewsTile {
 			$type = $params[0]->getType();
 			if ($type instanceof ReflectionNamedType) {
 				$typeNames =[$type->getName()];
-			} elseif (is_object($type)) {
-				/** @psalm-suppress UndefinedMethod */
+			} elseif ($type instanceof ReflectionUnionType) {
 				$typeNames = array_map(fn(ReflectionNamedType $type) => $type->getName(), $type->getTypes());
 			}
 			if (!in_array("string", $typeNames??[])) {
@@ -61,8 +62,7 @@ class NewsTile {
 			$type = $params[1]->getType();
 			if ($type instanceof ReflectionNamedType) {
 				$typeNames =[$type->getName()];
-			} elseif (is_object($type)) {
-				/** @psalm-suppress UndefinedMethod */
+			} elseif ($type instanceof ReflectionUnionType) {
 				$typeNames = array_map(fn(ReflectionNamedType $type) => $type->getName(), $type->getTypes());
 			}
 			if (!in_array("callable", $typeNames??[])) {

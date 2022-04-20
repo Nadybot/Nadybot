@@ -3,11 +3,18 @@
 namespace Nadybot\Core;
 
 class CommandHandler {
-	public string $file;
-	public string $admin;
+	/** @var string[] */
+	public array $files;
 
-	public function __construct(string $fileName, string $accessLevel) {
-		$this->file = $fileName;
-		$this->admin = $accessLevel;
+	public string $access_level;
+
+	public function __construct(string $admin, string ...$fileName) {
+		$this->access_level = $admin;
+		$this->files = $fileName;
+	}
+
+	public function addFile(string ...$file): self {
+		$this->files = array_merge($this->files, $file);
+		return $this;
 	}
 }

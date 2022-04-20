@@ -14,15 +14,15 @@ Vcs-Browser: https://github.com/Nadybot/Nadybot
 Package: nadybot
 Architecture: all
 Depends:
- php7.4-cli,
- php7.4-json,
- php7.4-pdo,
- php7.4-mysqlnd,
- php7.4-bcmath,
- php7.4-mbstring,
- php7.4-xml,
- php7.4-curl,
- php7.4-sqlite3,
- php7.4-zip,
+ php8.0-cli,
+ php8.0-json,
+ php8.0-pdo,
+ php8.0-mysqlnd,
+ php8.0-bcmath,
+ php8.0-mbstring,
+ php8.0-xml,
+ php8.0-curl,
+ php8.0-sqlite3,
+ php8.0-zip,
  dialog
 Description: This is a chat bot for the MMORPG Anarchy Online by Funcom

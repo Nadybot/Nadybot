@@ -5,108 +5,138 @@ namespace Nadybot\Modules\EVENTS_MODULE;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	AOChatEvent,
+	Attributes as NCA,
 	CmdContext,
 	DB,
-	Event,
+	ModuleInstance,
 	Nadybot,
-	SettingManager,
 	Text,
 	Util,
 	Modules\ALTS\AltsController,
 	Modules\PLAYER_LOOKUP\PlayerManager,
+	ParamClass\PRemove,
 	UserStateEvent,
 };
-use Nadybot\Core\ParamClass\PRemove;
 
 /**
  * @author Legendadv (RK2)
  * @author Tyrence (RK2)
- *
- * @Instance
- *
- * Commands this controller contains:
- *	@DefineCommand(
- *		command     = 'events',
- *		accessLevel = 'all',
- *		description = 'View/Join/Leave events',
- *		help        = 'events.txt'
- *	)
- *	@DefineCommand(
- *		command     = 'events add .+',
- *		accessLevel = 'mod',
- *		description = 'Add an event',
- *		help        = 'events.txt'
- *	)
- *	@DefineCommand(
- *		command     = 'events (rem|del) .+',
- *		accessLevel = 'mod',
- *		description = 'Remove an event',
- *		help        = 'events.txt'
- *	)
- *	@DefineCommand(
- *		command     = 'events setdesc .+',
- *		accessLevel = 'mod',
- *		description = 'Change or set the description for an event',
- *		help        = 'events.txt'
- *	)
- *	@DefineCommand(
- *		command     = 'events setdate .+',
- *		accessLevel = 'mod',
- *		description = 'Change or set the date for an event',
- *		help        = 'events.txt'
- *	)
  */
-class EventsController {
+#[
+	NCA\Instance,
+	NCA\HasMigrations,
+	NCA\DefineCommand(
+		command: "events",
+		accessLevel: "guest",
+		description: "View/Join/Leave events",
+		alias: 'event',
+	),
+	NCA\DefineCommand(
+		command: EventsController::CMD_EVENT_MANAGE,
+		accessLevel: "mod",
+		description: "Add/change or delete an event",
+	),
+]
+class EventsController extends ModuleInstance {
+	public const CMD_EVENT_MANAGE = "events add/change/delete";
 
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
-
-	/** @Inject */
+	#[NCA\Inject]
 	public DB $db;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Nadybot $chatBot;
 
-	/** @Inject */
-	public SettingManager $settingManager;
-
-	/** @Inject */
+	#[NCA\Inject]
 	public PlayerManager $playerManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Text $text;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Util $util;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public AltsController $altsController;
 
-	/** @Setup */
-	public function setup(): void {
-		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations");
+	/** Maximum number of events shown */
+	#[NCA\Setting\Number(options: [5, 10, 15, 20])]
+	public int $numEventsShown = 5;
 
-		$this->settingManager->add(
-			$this->moduleName,
-			"num_events_shown",
-			"Maximum number of events shown",
-			"edit",
-			"number",
-			"5",
-			"5;10;15;20"
-		);
-	}
-
-	/**
-	 * @HandlesCommand("events")
-	 */
+	/** Show the five closest past and upcoming events */
+	#[NCA\HandlesCommand("events")]
 	public function eventsCommand(CmdContext $context): void {
 		$msg = $this->getEvents();
 		if ($msg === null) {
 			$msg = "No events entered yet.";
+		}
+		$context->reply($msg);
+	}
+
+	/**
+	 * Add a new event
+	 *
+	 * An event ID is returned when you submit an event.
+	 * This is the ID you will use to change data regarding that event.
+	 */
+	#[NCA\HandlesCommand(self::CMD_EVENT_MANAGE)]
+	public function eventsAddCommand(CmdContext $context, #[NCA\Str("add")] string $action, string $eventName): void {
+		$eventId = $this->db->table("events")
+			->insertGetId([
+				"time_submitted" => time(),
+				"submitter_name" => $context->char->name,
+				"event_name" => $eventName,
+				"event_date" => null,
+			]);
+		$msg = "Event: '$eventName' was added [Event ID $eventId].";
+		$context->reply($msg);
+	}
+
+	/** Delete an event */
+	#[NCA\HandlesCommand(self::CMD_EVENT_MANAGE)]
+	public function eventsRemoveCommand(CmdContext $context, PRemove $action, int $id): void {
+		$row = $this->getEvent($id);
+		if ($row === null) {
+			$msg = "Could not find an event with id $id.";
+		} else {
+			$this->db->table("events")->where("id", $id)->delete();
+			$msg = "Event with id {$id} has been deleted.";
+		}
+		$context->reply($msg);
+	}
+
+	/** Change the description of an event */
+	#[NCA\HandlesCommand(self::CMD_EVENT_MANAGE)]
+	public function eventsSetDescCommand(CmdContext $context, #[NCA\Str("setdesc")] string $action, int $id, string $description): void {
+		$row = $this->getEvent($id);
+		if ($row === null) {
+			$msg = "Could not find an event with id $id.";
+		} else {
+			$this->db->table("events")
+				->where("id", $id)
+				->update(["event_desc" => $description]);
+			$msg = "Description for event with id $id has been updated.";
+		}
+		$context->reply($msg);
+	}
+
+	/** Change the date of an event */
+	#[NCA\HandlesCommand(self::CMD_EVENT_MANAGE)]
+	public function eventsSetDateCommand(
+		CmdContext $context,
+		#[NCA\Str("setdate")] string $action,
+		int $id,
+		#[NCA\Regexp("\d{4}-(?:0?[1-9]|1[012])-(?:0?[1-9]|[12]\d|3[01])\s+(?:[0-1]?\d|[2][0-3]):(?:[0-5]\d)(?::([0-5]\d))?")] string $date
+	): void {
+		$row = $this->getEvent($id);
+		if ($row === null) {
+			$msg = "Could not find an event with id $id.";
+		} else {
+			// yyyy-dd-mm hh:mm:ss
+			$eventDate = \Safe\strtotime($date);
+			$this->db->table("events")
+				->where("id", $id)
+				->update(["event_date" => $eventDate]);
+			$msg = "Date/Time for event with id $id has been updated.";
 		}
 		$context->reply($msg);
 	}
@@ -118,11 +148,9 @@ class EventsController {
 			->first();
 	}
 
-	/**
-	 * @HandlesCommand("events")
-	 * @Mask $action join
-	 */
-	public function eventsJoinCommand(CmdContext $context, string $action, int $id): void {
+	/** Join event #id */
+	#[NCA\HandlesCommand("events")]
+	public function eventsJoinCommand(CmdContext $context, #[NCA\Str("join")] string $action, int $id): void {
 		$row = $this->getEvent($id);
 		if ($row === null) {
 			$msg = "There is no event with id <highlight>$id<end>.";
@@ -149,11 +177,9 @@ class EventsController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @HandlesCommand("events")
-	 * @Mask $action leave
-	 */
-	public function eventsLeaveCommand(CmdContext $context, string $action, int $id): void {
+	/** Leave event #id */
+	#[NCA\HandlesCommand("events")]
+	public function eventsLeaveCommand(CmdContext $context, #[NCA\Str("leave")] string $action, int $id): void {
 		$row = $this->getEvent($id);
 		if ($row === null) {
 			$msg = "There is no event with id <highlight>{$id}<end>.";
@@ -179,11 +205,9 @@ class EventsController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @HandlesCommand("events")
-	 * @Mask $action list
-	 */
-	public function eventsListCommand(CmdContext $context, string $action, int $id): void {
+	/** List all characters marked as joining event #id */
+	#[NCA\HandlesCommand("events")]
+	public function eventsListCommand(CmdContext $context, #[NCA\Str("list")] string $action, int $id): void {
 		$row = $this->getEvent($id);
 		if ($row === null) {
 			$msg = "Could not find event with id <highlight>$id<end>.";
@@ -226,83 +250,12 @@ class EventsController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @HandlesCommand("events add .+")
-	 * @Mask $action add
-	 */
-	public function eventsAddCommand(CmdContext $context, string $action, string $eventName): void {
-		$eventId = $this->db->table("events")
-			->insertGetId([
-				"time_submitted" => time(),
-				"submitter_name" => $context->char->name,
-				"event_name" => $eventName,
-				"event_date" => null,
-			]);
-		$msg = "Event: '$eventName' was added [Event ID $eventId].";
-		$context->reply($msg);
-	}
-
-	/**
-	 * @HandlesCommand("events (rem|del) .+")
-	 */
-	public function eventsRemoveCommand(CmdContext $context, PRemove $action, int $id): void {
-		$row = $this->getEvent($id);
-		if ($row === null) {
-			$msg = "Could not find an event with id $id.";
-		} else {
-			$this->db->table("events")->where("id", $id)->delete();
-			$msg = "Event with id {$id} has been deleted.";
-		}
-		$context->reply($msg);
-	}
-
-	/**
-	 * @HandlesCommand("events setdesc .+")
-	 * @Mask $action setdesc
-	 */
-	public function eventsSetDescCommand(CmdContext $context, string $action, int $id, string $description): void {
-		$row = $this->getEvent($id);
-		if ($row === null) {
-			$msg = "Could not find an event with id $id.";
-		} else {
-			$this->db->table("events")
-				->where("id", $id)
-				->update(["event_desc" => $description]);
-			$msg = "Description for event with id $id has been updated.";
-		}
-		$context->reply($msg);
-	}
-
-	/**
-	 * @HandlesCommand("events setdate .+")
-	 * @Mask $action setdate
-	 * @Mask $date (\d{4}-(?:0?[1-9]|1[012])-(?:0?[1-9]|[12]\d|3[01])\s+(?:[0-1]?\d|[2][0-3]):(?:[0-5]\d)(?::([0-5]\d))?)
-	 */
-	public function eventsSetDateCommand(
-		CmdContext $context,
-		string $action,
-		int $id,
-		string $date
-	): void {
-		$row = $this->getEvent($id);
-		if ($row === null) {
-			$msg = "Could not find an event with id $id.";
-		} else {
-			// yyyy-dd-mm hh:mm:ss
-			$eventDate = strtotime($date);
-			$this->db->table("events")
-				->where("id", $id)
-				->update(["event_date" => $eventDate]);
-			$msg = "Date/Time for event with id $id has been updated.";
-		}
-		$context->reply($msg);
-	}
-
+	/** @return null|string[] */
 	public function getEvents(): ?array {
 		/** @var Collection<EventModel> */
 		$data = $this->db->table("events")
 			->orderByDesc("event_date")
-			->limit($this->settingManager->getInt('num_events_shown')??5)
+			->limit($this->numEventsShown)
 			->asObj(EventModel::class);
 		if ($data->count() === 0) {
 			return null;
@@ -360,10 +313,10 @@ class EventsController {
 		return (array)$this->text->makeBlob("Events" . " [Last updated " . $this->util->date($updated)."]", $link);
 	}
 
-	/**
-	 * @Event("logOn")
-	 * @Description("Show events to org members logging on")
-	 */
+	#[NCA\Event(
+		name: "logOn",
+		description: "Show events to org members logging on"
+	)]
 	public function logonEvent(UserStateEvent $eventObj): void {
 		$sender = $eventObj->sender;
 		if (!is_string($sender)
@@ -379,10 +332,10 @@ class EventsController {
 		}
 	}
 
-	/**
-	 * @Event("joinPriv")
-	 * @Description("Show events to characters joining the private channel")
-	 */
+	#[NCA\Event(
+		name: "joinPriv",
+		description: "Show events to characters joining the private channel"
+	)]
 	public function joinPrivEvent(AOChatEvent $eventObj): void {
 		$sender = $eventObj->sender;
 		if (!is_string($sender) || !$this->hasRecentEvents()) {
@@ -403,19 +356,24 @@ class EventsController {
 	}
 
 	/**
-	 * @NewsTile("events")
-	 * @Description("Shows upcoming events - if any")
-	 * @Example("<header2>Events [<u>see more</u>]<end>
-	 * <tab>2021-10-31 <highlight>GSP Halloween Party<end>")
 	 * @psalm-param callable(?string) $callback
 	 */
+	#[
+		NCA\NewsTile(
+			name: "events",
+			description: "Shows upcoming events - if any",
+			example:
+				"<header2>Events [<u>see more</u>]<end>\n".
+				"<tab>2021-10-31 <highlight>GSP Halloween Party<end>"
+		)
+	]
 	public function eventsTile(string $sender, callable $callback): void {
 		/** @var Collection<EventModel> */
 		$data = $this->db->table("events")
 			->whereNull("event_date")
 			->orWhere("event_date", ">", time())
 			->orderBy("event_date")
-			->limit($this->settingManager->getInt('num_events_shown')??5)
+			->limit($this->numEventsShown)
 			->asObj(EventModel::class);
 		if ($data->count() === 0) {
 			$callback(null);

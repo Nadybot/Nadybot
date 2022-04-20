@@ -2,20 +2,174 @@
 
 namespace Nadybot\Core;
 
+use Exception;
+use Nadybot\Core\Attributes\Instance;
+use Spatie\DataTransferObject\{
+	Attributes\MapFrom,
+	Attributes\MapTo,
+	DataTransferObject,
+};
+
+use function Safe\json_encode;
+
 /**
  * The ConfigFile class provides convenient interface for reading and saving
  * config files located in conf-subdirectory.
  */
-class ConfigFile {
-
+#[Instance]
+class ConfigFile extends DataTransferObject {
 	private string $filePath;
-	private array $vars = [];
+
+	public string $login;
+	public string $password;
+	public string $name;
+
+	#[MapFrom('my_guild')]
+	#[MapTo('my_guild')]
+	public string $orgName;
+
+	public ?int $orgId = null;
+
+	/** 6 for Live (new), 5 for Live (old), 4 for Test. */
+	public int $dimension = 5;
+
+	/**
+	 * Character name of the Super Administrator.
+	 * @var string[]
+	 */
+	#[MapFrom('SuperAdmin')]
+	#[MapTo('SuperAdmin')]
+	public array $superAdmins;
+
+	/** What type of database should be used? ('sqlite' or 'mysql') */
+	#[MapFrom('DB Type')]
+	#[MapTo('DB Type')]
+	public string $dbType = DB::SQLITE;
+
+	/** Name of the database */
+	#[MapFrom('DB Name')]
+	#[MapTo('DB Name')]
+	public string $dbName = "nadybot.db";
+
+	/** Hostname or sqlite file location */
+	#[MapFrom('DB Host')]
+	#[MapTo('DB Host')]
+	public string $dbHost = "./data/";
+
+	/** MySQL or PostgreSQL username */
+	#[MapFrom('DB username')]
+	#[MapTo('DB username')]
+	public ?string $dbUsername = null;
+
+	/** MySQL or PostgreSQL password */
+	#[MapFrom('DB password')]
+	#[MapTo('DB password')]
+	public ?string $dbPassword = null;
+
+	/** Show AOML markup in logs/console? 1 for enabled, 0 for disabled. */
+	#[MapFrom('show_aoml_markup')]
+	#[MapTo('show_aoml_markup')]
+	public int $showAomlMarkup = 0;
+
+	/** Cache folder for storing organization XML files. */
+	#[MapFrom('cachefolder')]
+	#[MapTo('cachefolder')]
+	public string $cacheFolder = "./cache/";
+
+	/** Folder for storing HTML files of the webserver */
+	#[MapFrom('htmlfolder')]
+	#[MapTo('htmlfolder')]
+	public string $htmlFolder = "./html/";
+
+	/** Folder for storing data files */
+	#[MapFrom('datafolder')]
+	#[MapTo('datafolder')]
+	public string $dataFolder = "./data/";
+
+	/**Folder for storing log files */
+	#[MapFrom('logsfolder')]
+	#[MapTo('logsfolder')]
+	public string $logsFolder = "./logs/";
+
+	/** Default status for new modules? 1 for enabled, 0 for disabled. */
+	#[MapFrom('default_module_status')]
+	#[MapTo('default_module_status')]
+	public int $defaultModuleStatus = 0;
+
+	/** Enable the readline-based console interface to the bot? */
+	#[MapFrom('enable_console_client')]
+	#[MapTo('enable_console_client')]
+	public int $enableConsoleClient = 1;
+
+	/** Enable the module to install other modules from within the bot */
+	#[MapFrom('enable_package_module')]
+	#[MapTo('enable_package_module')]
+	public int $enablePackageModule = 1;
+
+	/** Use AO Chat Proxy? 1 for enabled, 0 for disabled. */
+	#[MapFrom('use_proxy')]
+	#[MapTo('use_proxy')]
+	public int $useProxy = 0;
+
+	#[MapFrom('proxy_server')]
+	#[MapTo('proxy_server')]
+	public string $proxyServer = "127.0.0.1";
+
+	#[MapFrom('proxy_port')]
+	#[MapTo('proxy_port')]
+	public int $proxyPort = 9993;
+
+	/**
+	 * Define additional paths from where Nadybot should load modules at startup
+	 * @var string[]
+	 */
+	#[MapFrom('module_load_paths')]
+	#[MapTo('module_load_paths')]
+	public array $moduleLoadPaths = [
+		'./src/Modules',
+		'./extras'
+	];
+
+	/**
+	 * Define settings values which will be immutable
+	 *
+	 * @var array<string,mixed>
+	 */
+	public array $settings = [];
+
+	public ?string $timezone = null;
+
+	/**
+	 * @param array<string,mixed> $args
+	 */
+	public function __construct(array $args) {
+		unset($args["my_guild_id"]);
+		$args["my_guild"] ??= "";
+		$args["cachefolder"] ??= "./cache/";
+		$args["htmlfolder"] ??= "./html/";
+		$args["datafolder"] ??= "./data/";
+		$args["logsfolder"] ??= "./logs/";
+		$args["enable_console_client"] ??= 0;
+		$args["enable_package_module"] ??= 0;
+		$args["SuperAdmin"] = empty($args["SuperAdmin"]??"")
+			? [] : (array)$args["SuperAdmin"];
+		parent::__construct($args);
+		$this->superAdmins = array_map(function (string $char): string {
+			return ucfirst(strtolower($char));
+		}, $this->superAdmins);
+		$this->name = ucfirst(strtolower($this->name));
+	}
 
 	/**
 	 * Constructor method.
 	 */
-	public function __construct(string $filePath) {
-		$this->filePath = $filePath;
+	public static function loadFromFile(string $filePath): self {
+		self::copyFromTemplateIfNeeded($filePath);
+		$vars = [];
+		require $filePath;
+		$config = new self($vars);
+		$config->filePath = $filePath;
+		return $config;
 	}
 
 	/**
@@ -26,26 +180,23 @@ class ConfigFile {
 	}
 
 	/**
-	 * Loads the config file, creating the file if it doesn't exist yet.
-	 * @psalm-suppress UndefinedVariable
-	 */
-	public function load(): void {
-		$this->copyFromTemplateIfNeeded();
-		$vars = [];
-		require $this->filePath;
-		$this->vars = $vars;
-	}
-
-	/**
 	 * Saves the config file, creating the file if it doesn't exist yet.
 	 */
 	public function save(): void {
-		$vars = $this->vars;
-		$this->copyFromTemplateIfNeeded();
-		$lines = file($this->filePath);
+		$vars = $this->except("filePath", "orgId")->toArray();
+		$vars = array_filter($vars, function (mixed $value): bool {
+			return isset($value);
+		});
+		self::copyFromTemplateIfNeeded($this->getFilePath());
+		$lines = \Safe\file($this->filePath);
+		if (!is_array($lines)) {
+			throw new Exception("Cannot load {$this->filePath}");
+		}
 		foreach ($lines as $key => $line) {
 			if (preg_match("/^(.+)vars\[('|\")(.+)('|\")](.*)=(.*)\"(.*)\";(.*)$/si", $line, $arr)) {
-				$lines[$key] = "$arr[1]vars['$arr[3]']$arr[5]=$arr[6]\"{$vars[$arr[3]]}\";$arr[8]";
+				$lines[$key] = "$arr[1]vars['$arr[3]']$arr[5]=$arr[6]".
+					json_encode($vars[$arr[3]], JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE).
+					";$arr[8]";
 				unset($vars[$arr[3]]);
 			} elseif (preg_match("/^(.+)vars\[('|\")(.+)('|\")](.*)=([ 	]+)([0-9]+);(.*)$/si", $line, $arr)) {
 				$lines[$key] = "$arr[1]vars['$arr[3]']$arr[5]=$arr[6]{$vars[$arr[3]]};$arr[8]";
@@ -65,6 +216,8 @@ class ConfigFile {
 			foreach ($vars as $name => $value) {
 				if (is_string($value)) {
 					$lines []= "\$vars['$name'] = \"$value\";\n";
+				} elseif (is_array($value)) {
+					$lines []= "\$vars['$name'] = " . json_encode($value) . ";\n";
 				} else {
 					$lines []= "\$vars['$name'] = $value;\n";
 				}
@@ -72,51 +225,17 @@ class ConfigFile {
 			// $lines []= "\n";
 		}
 
-		file_put_contents($this->filePath, $lines);
-	}
-
-	/**
-	 * Returns the $vars variable's contents from the config file.
-	 */
-	public function getVars(): array {
-		return $this->vars;
-	}
-
-	/**
-	 * Returns var from the config file.
-	 *
-	 * @param string $name name of the var
-	 * @return mixed
-	 */
-	public function getVar(string $name) {
-		return $this->vars[$name] ?? null;
-	}
-
-	/**
-	 * Inserts the $vars array's contents. Any existing indexes are replaced
-	 * with the new values.
-	 */
-	public function insertVars(array $vars): void {
-		$this->vars = array_merge($this->vars, $vars);
-	}
-
-	/**
-	 * Sets var to the config file.
-	 */
-	public function setVar(string $name, $value): void {
-		$this->vars[$name] = $value;
+		\Safe\file_put_contents($this->filePath, $lines);
 	}
 
 	/**
 	 * Copies config.template.php to this config file if it doesn't exist yet.
 	 */
-	private function copyFromTemplateIfNeeded(): void {
-		if (file_exists($this->filePath)) {
+	private static function copyFromTemplateIfNeeded(string $filePath): void {
+		if (@file_exists($filePath)) {
 			return;
 		}
 		$templatePath = __DIR__ . '/../../conf/config.template.php';
-		if (copy($templatePath, $this->filePath) === false) {
-			LegacyLogger::log('ERROR', 'Core/ConfigFile', "could not create config file: {$this->filePath}");
-		}
+		\Safe\copy($templatePath, $filePath);
 	}
 }

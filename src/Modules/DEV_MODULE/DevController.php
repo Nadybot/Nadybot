@@ -2,15 +2,16 @@
 
 namespace Nadybot\Modules\DEV_MODULE;
 
-use Addendum\ReflectionAnnotatedMethod;
+use ReflectionMethod;
 use Nadybot\Core\{
 	AccessManager,
+	Attributes as NCA,
 	CmdContext,
 	CommandAlias,
 	CommandHandler,
 	CommandManager,
-	CommandReply,
 	DB,
+	ModuleInstance,
 	Registry,
 	SubcommandManager,
 	Text,
@@ -20,123 +21,123 @@ use ReflectionException;
 
 /**
  * @author Tyrence (RK2)
- *
- * @Instance
- *
- * Commands this controller contains:
- *	@DefineCommand(
- *		command     = 'showcmdregex',
- *		accessLevel = 'admin',
- *		description = "Test the bot commands",
- *		help        = 'test.txt'
- *	)
- *	@DefineCommand(
- *		command     = 'intransaction',
- *		accessLevel = 'admin',
- *		description = "Test the bot commands",
- *		help        = 'test.txt'
- *	)
- *	@DefineCommand(
- *		command     = 'rollbacktransaction',
- *		accessLevel = 'admin',
- *		description = "Test the bot commands",
- *		help        = 'test.txt'
- *	)
- *	@DefineCommand(
- *		command     = 'stacktrace',
- *		accessLevel = 'admin',
- *		description = "Test the bot commands",
- *		help        = 'test.txt'
- *	)
- *	@DefineCommand(
- *		command     = 'cmdhandlers',
- *		accessLevel = 'admin',
- *		description = "Show command handlers for a command",
- *		help        = 'cmdhandlers.txt'
- *	)
- *	@DefineCommand(
- *		command     = 'createblob',
- *		accessLevel = 'admin',
- *		description = "Creates a blob of random characters",
- *		help        = 'createblob.txt'
- *	)
- *	@DefineCommand(
- *		command     = 'makeitem',
- *		accessLevel = 'admin',
- *		description = "Creates an item link",
- *		help        = 'makeitem.txt'
- *	)
  */
-class DevController {
-
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
-
-	/** @Inject */
+#[
+	NCA\Instance,
+	NCA\DefineCommand(
+		command: "showcmdregex",
+		accessLevel: "admin",
+		description: "View regex masks used to match commands",
+	),
+	NCA\DefineCommand(
+		command: "intransaction",
+		accessLevel: "admin",
+		description: "Check if a DB transaction is open",
+	),
+	NCA\DefineCommand(
+		command: "rollbacktransaction",
+		accessLevel: "admin",
+		description: "Rollback an open DB transaction",
+	),
+	NCA\DefineCommand(
+		command: "stacktrace",
+		accessLevel: "admin",
+		description: "Show a stacktrace",
+	),
+	NCA\DefineCommand(
+		command: "cmdhandlers",
+		accessLevel: "admin",
+		description: "Show command handlers for a command",
+	),
+	NCA\DefineCommand(
+		command: "createblob",
+		accessLevel: "admin",
+		description: "Creates a blob of random characters",
+	),
+	NCA\DefineCommand(
+		command: "makeitem",
+		accessLevel: "guest",
+		description: "Creates an item link",
+	)
+]
+class DevController extends ModuleInstance {
+	#[NCA\Inject]
 	public AccessManager $accessManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public CommandManager $commandManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public CommandAlias $commandAlias;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public SubcommandManager $subcommandManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public DB $db;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Util $util;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Text $text;
 
-	/**
-	 * @Setup
-	 */
+	#[NCA\Setup]
 	public function setup(): void {
 		$this->commandAlias->register($this->moduleName, "querysql select", "select");
 	}
 
 	/**
-	 * @HandlesCommand("showcmdregex")
+	 * Get a list of regular expressions for either all commands
+	 * or only the command and sub-commands of &lt;cmd&gt;
 	 */
+	#[NCA\HandlesCommand("showcmdregex")]
 	public function showcmdregexCommand(CmdContext $context, ?string $cmd): void {
+		if (!isset($context->permissionSet)) {
+			return;
+		}
+		if (isset($cmd) && ($alias = $this->commandAlias->get($cmd)) !== null) {
+			$cmd = $alias->cmd;
+		}
 		// get all command handlers
-		$handlers = $this->getAllCommandHandlers($cmd, $context->channel);
+		$handlers = $this->getAllCommandHandlers($cmd, $context->permissionSet);
 
 		// filter command handlers by access level
 		$accessManager = $this->accessManager;
-		$handlers = array_filter($handlers, function (CommandHandler $handler) use ($context, $accessManager) {
-			return $accessManager->checkAccess($context->char->name, $handler->admin);
+		$handlers = array_filter($handlers, function (CommandHandler $handler) use ($context, $accessManager): bool {
+			return $accessManager->checkAccess($context->char->name, $handler->access_level);
 		});
 
 		// get calls for handlers
 		/** @var string[] */
 		$calls = array_reduce(
 			$handlers,
-			function (array $handlers, CommandHandler $handler) {
-				return array_merge($handlers, explode(',', $handler->file));
+			function (array $handlers, CommandHandler $handler): array {
+				return array_merge($handlers, $handler->files);
 			},
 			[]
 		);
+
+		$this->commandManager->sortCalls($calls);
 
 		// get regexes for calls
 		$regexes = [];
 		foreach ($calls as $call) {
 			[$name, $method] = explode(".", $call);
+			[$method, $line] = explode(":", $method);
 			$instance = Registry::getInstance($name);
+			if (!isset($instance)) {
+				continue;
+			}
 			try {
-				$reflectedMethod = new ReflectionAnnotatedMethod($instance, $method);
-				$command = $reflectedMethod->getAnnotation("HandlesCommand")->value;
-				if (!isset($command)) {
+				$reflectedMethod = new ReflectionMethod($instance, $method);
+				$commands = $reflectedMethod->getAttributes(NCA\HandlesCommand::class);
+				if (empty($commands)) {
 					continue;
 				}
+				/** @var NCA\HandlesCommand */
+				$commandObj = $commands[0]->newInstance();
+				$command = $commandObj->command;
 				$command = explode(" ", $command)[0];
 				$regexes[$command] ??= [];
 				$regexes[$command] = array_merge($regexes[$command], $this->commandManager->retrieveRegexes($reflectedMethod));
@@ -183,23 +184,22 @@ class DevController {
 			$cmds = (array)$command;
 		}
 		foreach ($cmds as $cmd) {
-			if (isset($this->commandManager->commands[$channel][$cmd])) {
-				$handlers []= $this->commandManager->commands[$channel][$cmd];
-			}
 			if (isset($this->subcommandManager->subcommands[$cmd])) {
 				foreach ($this->subcommandManager->subcommands[$cmd] as $handler) {
-					if ($handler->type == $channel) {
-						$handlers []= new CommandHandler($handler->file, $handler->admin);
+					if (isset($handler->permissions[$channel])) {
+						$handlers []= new CommandHandler($handler->permissions[$channel]->access_level, ...explode(",", $handler->file));
 					}
 				}
+			}
+			if (isset($this->commandManager->commands[$channel][$cmd])) {
+				$handlers []= $this->commandManager->commands[$channel][$cmd];
 			}
 		}
 		return $handlers;
 	}
 
-	/**
-	 * @HandlesCommand("intransaction")
-	 */
+	/** Check if there is currently a open database transaction */
+	#[NCA\HandlesCommand("intransaction")]
 	public function inTransactionCommand(CmdContext $context): void {
 		if ($this->db->inTransaction()) {
 			$msg = "There is an active transaction.";
@@ -209,9 +209,8 @@ class DevController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @HandlesCommand("rollbacktransaction")
-	 */
+	/** Rollback the currently open database transaction (if any) */
+	#[NCA\HandlesCommand("rollbacktransaction")]
 	public function rollbackTransactionCommand(CmdContext $context): void {
 		$this->db->rollback();
 
@@ -219,9 +218,8 @@ class DevController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @HandlesCommand("stacktrace")
-	 */
+	/** Print a stacktrace */
+	#[NCA\HandlesCommand("stacktrace")]
 	public function stacktraceCommand(CmdContext $context): void {
 		$stacktrace = trim($this->util->getStackTrace());
 		$lines = explode("\n", $stacktrace);
@@ -235,9 +233,8 @@ class DevController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @HandlesCommand("cmdhandlers")
-	 */
+	/** Print all command handlers for a command, grouped by permission set */
+	#[NCA\HandlesCommand("cmdhandlers")]
 	public function cmdhandlersCommand(CmdContext $context, string $command): void {
 		$cmdArray = explode(" ", $command, 2);
 		$cmd = $cmdArray[0];
@@ -248,14 +245,16 @@ class DevController {
 		foreach ($this->commandManager->commands as $channelName => $channel) {
 			if (isset($channel[$cmd])) {
 				$blob .= "<header2>$channelName ($cmd)<end>\n";
-				$blob .= $channel[$cmd]->file . "\n\n";
+				$blob .= join(", ", $channel[$cmd]->files) . "\n\n";
 			}
 		}
 
 		// subcommand
 		foreach ($this->subcommandManager->subcommands[$cmd] as $row) {
-			$blob .= "<header2>$row->type ($row->cmd)<end>\n";
-			$blob .= $row->file . "\n\n";
+			foreach ($row->permissions as $permission) {
+				$blob .= "<header2>{$permission->permission_set} ($row->cmd)<end>\n";
+				$blob .= $row->file . "\n\n";
+			}
 		}
 
 		$msg = $this->text->makeBlob("Command Handlers for '$cmd'", $blob);
@@ -263,16 +262,14 @@ class DevController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @HandlesCommand("makeitem")
-	 */
+	/** Create a custom item link */
+	#[NCA\HandlesCommand("makeitem")]
 	public function makeItemCommand(CmdContext $context, int $lowId, int $highId, int $ql, string $name): void {
 		$context->reply($this->text->makeItem($lowId, $highId, $ql, $name));
 	}
 
-	/**
-	 * @HandlesCommand("createblob")
-	 */
+	/** Create 1 or &lt;num blobs&gt; blobs of &lt;length&gt; characters */
+	#[NCA\HandlesCommand("createblob")]
 	public function createBlobCommand(CmdContext $context, int $length, ?int $numBlobs): void {
 		$numBlobs ??= 1;
 

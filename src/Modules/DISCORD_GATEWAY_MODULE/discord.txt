@@ -1,7 +1,0 @@
-To show all channels on all discord servers the bot has joined:
-<tab><highlight><symbol>discord channels<end> or
-<tab><highlight><symbol>route list src<end>
-
-To have a Discord channel relay messages to and from priv/org-chat:
-<tab><highlight><symbol>route add discordpriv(channel name) &lt;-&gt; aoorg<end> or
-<tab><highlight><symbol>route add discordpriv(channel name) &lt;-&gt; aopriv<end>

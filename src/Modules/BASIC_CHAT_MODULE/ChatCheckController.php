@@ -4,44 +4,41 @@ namespace Nadybot\Modules\BASIC_CHAT_MODULE;
 
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
+	Attributes as NCA,
 	CmdContext,
 	DB,
+	ModuleInstance,
 	Text,
 };
 
-/**
- * @Instance
- *
- * Commands this class contains:
- *	@DefineCommand(
- *		command     = 'check',
- *		accessLevel = 'all',
- *		description = 'Checks who of the raidgroup is in the area',
- *      help        = 'check.txt'
- *	)
- */
-class ChatCheckController {
-
-	/** @Inject */
+#[
+	NCA\Instance,
+	NCA\DefineCommand(
+		command: "check",
+		accessLevel: "guest",
+		description: "Checks who of the raidgroup is in the area",
+	)
+]
+class ChatCheckController extends ModuleInstance {
+	#[NCA\Inject]
 	public DB $db;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Text $text;
 
 	public const CHANNEL_TYPE = "priv";
 
 	/**
-	 * This command handler checks who of the raidgroup is in the area.
-	 * @HandlesCommand("check")
+	 * Checks who in the private channel is in the area
 	 */
+	#[NCA\HandlesCommand("check")]
 	public function checkAllCommand(CmdContext $context): void {
 		/** @var Collection<string> */
 		$data = $this->db->table("online")
 			->where("added_by", $this->db->getBotname())
 			->where("channel_type", self::CHANNEL_TYPE)
 			->select("name")
-			->asObj()
-			->pluck("name");
+			->pluckAs("name", "string");
 		$content = "";
 		if ($data->count() === 0) {
 			$msg = "There's no one to check online.";

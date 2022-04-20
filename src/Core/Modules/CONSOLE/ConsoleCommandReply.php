@@ -2,13 +2,33 @@
 
 namespace Nadybot\Core\Modules\CONSOLE;
 
-use Nadybot\Core\CommandReply;
-use Nadybot\Core\MessageEmitter;
-use Nadybot\Core\Nadybot;
-use Nadybot\Core\Routing\Source;
+use Nadybot\Core\{
+	Attributes as NCA,
+	CommandReply,
+	ConfigFile,
+	MessageEmitter,
+	MessageHub,
+	Modules\COLORS\ColorsController,
+	Nadybot,
+	Routing\Character,
+	Routing\RoutableMessage,
+	Routing\Source,
+};
 
 class ConsoleCommandReply implements CommandReply, MessageEmitter {
 	private Nadybot $chatBot;
+
+	#[NCA\Inject]
+	public ConsoleController $consoleController;
+
+	#[NCA\Inject]
+	public ColorsController $colors;
+
+	#[NCA\Inject]
+	public MessageHub $messageHub;
+
+	#[NCA\Inject]
+	public ConfigFile $config;
 
 	public function __construct(Nadybot $chatBot) {
 		$this->chatBot = $chatBot;
@@ -20,8 +40,20 @@ class ConsoleCommandReply implements CommandReply, MessageEmitter {
 
 	public function reply($msg): void {
 		foreach ((array)$msg as $text) {
+			$rMessage = new RoutableMessage($text);
+			$rMessage->setCharacter(new Character($this->chatBot->char->name, $this->chatBot->char->id));
+			$rMessage->prependPath(new Source(Source::CONSOLE, "Console"));
+			$this->messageHub->handle($rMessage);
 			$text = $this->formatMsg($text);
-			echo("{$this->chatBot->vars["name"]}: {$text}\n");
+			echo("{$this->chatBot->char->name}: {$text}\n");
+		}
+	}
+
+	/** @param string|string[] $msg */
+	public function replyOnly(string|array $msg): void {
+		foreach ((array)$msg as $text) {
+			$text = $this->formatMsg($text);
+			echo("{$this->chatBot->char->name}: {$text}\n");
 		}
 	}
 
@@ -194,8 +226,8 @@ class ConsoleCommandReply implements CommandReply, MessageEmitter {
 
 	public function formatMsg(string $message): string {
 		$array = [
-			"<myname>" => $this->chatBot->vars["name"],
-			"<myguild>" => $this->chatBot->vars["my_guild"],
+			"<myname>" => $this->config->name,
+			"<myguild>" => $this->config->orgName,
 			"<tab>" => "    ",
 			"<symbol>" => "",
 			"<center>" => "",
@@ -284,11 +316,10 @@ class ConsoleCommandReply implements CommandReply, MessageEmitter {
 
 	protected function parseAnsiColors(string $text): string {
 		$text = $this->replaceColorNamesWithCodes($text);
-		$sm = $this->chatBot->settingManager;
 		$array = [
-			"<header>" => str_replace("'", "", $sm->getString('default_header_color')??""),
-			"<header2>" => str_replace("'", "", $sm->getString('default_header2_color')??""),
-			"<highlight>" => str_replace("'", "", $sm->getString('default_highlight_color')??""),
+			"<header>" => str_replace("'", "", $this->colors->defaultHeaderColor),
+			"<header2>" => str_replace("'", "", $this->colors->defaultHeader2Color),
+			"<highlight>" => str_replace("'", "", $this->colors->defaultHighlightColor),
 			"<link>" => "\e[4m<font color=#219CFF>",
 			"</link>" => "</font>\e[24m",
 			"<black>" => "<font color=#000000>",
@@ -302,21 +333,20 @@ class ConsoleCommandReply implements CommandReply, MessageEmitter {
 			"<cyan>" => "<font color=#00FFFF>",
 			"<violet>" => "<font color=#8F00FF>",
 
-			"<neutral>" => $sm->getString('default_neut_color')??"",
-			"<omni>" => $sm->getString('default_omni_color')??"",
-			"<clan>" => $sm->getString('default_clan_color')??"",
-			"<unknown>" => $sm->getString('default_unknown_color')??"",
+			"<neutral>" => $this->colors->defaultNeutColor,
+			"<omni>" => $this->colors->defaultOmniColor,
+			"<clan>" => $this->colors->defaultClanColor,
+			"<unknown>" => $this->colors->defaultUnknownColor,
 
 			"<end>" => "</font>",
 		];
-		$defaultColor = $sm->getString('default_priv_color')??"";
+		$defaultColor = $this->colors->defaultPrivColor;
 		$text = $defaultColor . str_ireplace(array_keys($array), array_values($array), $text);
 		return $text;
 	}
 
 	public function handleColors(string $text, bool $clearEOL): string {
-		$sm = $this->chatBot->settingManager;
-		if (!$sm->getBool("console_color")) {
+		if (!$this->consoleController->consoleColor) {
 			return $this->parseBasicAnsi($text);
 		}
 		$text = $this->parseAnsiColors($text);
@@ -342,7 +372,7 @@ class ConsoleCommandReply implements CommandReply, MessageEmitter {
 			},
 			$text
 		);
-		if ($this->chatBot->settingManager->getBool("console_bg_color")) {
+		if ($this->consoleController->consoleBGColor) {
 			$text = $this->bgHexToAnsi("222222") . $text;
 		}
 		$text = str_replace("\r\n", "\n", $text);

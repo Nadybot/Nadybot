@@ -22,7 +22,7 @@ class CreateRouteHopColorTable implements SchemaMigration {
 
 	public function migrate(LoggerWrapper $logger, DB $db): void {
 		$table = MessageHub::DB_TABLE_COLORS;
-		$db->schema()->create($table, function(Blueprint $table) {
+		$db->schema()->create($table, function(Blueprint $table): void {
 			$table->id();
 			$table->string("hop", 50)->default('*');
 			$table->string("where", 50)->nullable(true);
@@ -54,14 +54,14 @@ class CreateRouteHopColorTable implements SchemaMigration {
 		if (!preg_match("/#([0-9a-f]{6})/i", $privSysColor->value??"", $matches)) {
 			return;
 		}
-		$privSysColor = $matches[1];
+		$privSysColor = $matches[1]??"";
 		if ($privSysColor === $sysColor) {
 			return;
 		}
 		$sysHop = new RouteHopColor();
 		$sysHop->hop = Source::SYSTEM;
 		$sysHop->where = Source::PRIV . "(" . $db->getMyname() . ")";
-		$sysHop->text_color = $matches[1];
+		$sysHop->text_color = $matches[1]??"";
 		$db->insert($table, $sysHop);
 	}
 }

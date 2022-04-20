@@ -4,13 +4,15 @@ namespace Nadybot\Modules\ALIEN_MODULE;
 
 use Exception;
 use Nadybot\Core\{
+	Attributes as NCA,
 	CmdContext,
 	DB,
+	ModuleInstance,
 	LoggerWrapper,
+	ParamClass\PItem,
+	ParamClass\PWord,
 	Text,
 };
-use Nadybot\Core\ParamClass\PItem;
-use Nadybot\Core\ParamClass\PWord;
 use Nadybot\Modules\ITEMS_MODULE\ItemsController;
 
 /**
@@ -19,42 +21,32 @@ use Nadybot\Modules\ITEMS_MODULE\ItemsController;
  * @author Wolfbiter (RK1)
  * @author Gatester (RK2)
  * @author Marebone (RK2)
- *
- * @Instance
- *
- * Commands this controller contains:
- *	@DefineCommand(
- *		command     = 'bio',
- *		accessLevel = 'all',
- *		description = "Identifies Solid Clump of Kyr'Ozch Bio-Material",
- *		help        = 'bio.txt'
- *	)
- *	@DefineCommand(
- *		command     = 'bioinfo',
- *      alias       = 'biotype',
- *		accessLevel = 'all',
- *		description = 'Shows info about a particular bio type',
- *		help        = 'bioinfo.txt'
- *	)
  */
-class AlienBioController {
-
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
-
-	/** @Inject */
+#[
+	NCA\Instance,
+	NCA\HasMigrations("Migrations/Weapons"),
+	NCA\DefineCommand(
+		command: "bio",
+		accessLevel: "guest",
+		description: "Identifies Solid Clump of Kyr'Ozch Bio-Material",
+	),
+	NCA\DefineCommand(
+		command: "bioinfo",
+		accessLevel: "guest",
+		description: "Shows info about a particular bio type",
+	)
+]
+class AlienBioController extends ModuleInstance {
+	#[NCA\Inject]
 	public DB $db;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Text $text;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public ItemsController $itemsController;
 
-	/** @Logger */
+	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
 	private const LE_ARMOR_TYPES  = [64, 295, 468, 935];
@@ -62,24 +54,19 @@ class AlienBioController {
 	private const AI_ARMOR_TYPES  = ['mutated', 'pristine'];
 	private const AI_WEAPON_TYPES = [1, 2, 3, 4, 5, 12, 13, 48, 76, 112, 240, 880, 992];
 
-	/**
-	 * This handler is called on bot startup.
-	 * @Setup
-	 */
+	#[NCA\Setup]
 	public function setup(): void {
 		// load database tables from .sql-files
-		$this->db->loadMigrations($this->moduleName, __DIR__ . '/Migrations/Weapons');
 		$this->db->loadCSVFile($this->moduleName, __DIR__ . '/alienweapons.csv');
 		$this->db->loadCSVFile($this->moduleName, __DIR__ . '/alienweaponspecials.csv');
 	}
 
 	/**
-	 * This command handler identifies Solid Clump of Kyr'Ozch Bio-Material.
-	 *
-	 * @HandlesCommand("bio")
-	 * @SpaceOptional $clumps
+	 * Identify a "Solid Clump of Kyr'Ozch Bio-Material"
 	 */
-	public function bioCommand(CmdContext $context, PItem ...$clumps): void {
+	#[NCA\HandlesCommand("bio")]
+	#[NCA\Help\Epilogue("Just drag and drop biomaterials into the chat as parameters.")]
+	public function bioCommand(CmdContext $context, #[NCA\SpaceOptional] PItem ...$clumps): void {
 		$blob = '';
 		$bioinfo = "";
 		$name = "Unknown Bio-Material";
@@ -197,9 +184,8 @@ class AlienBioController {
 		}
 	}
 
-	/**
-	 * @HandlesCommand("bioinfo")
-	 */
+	/** See all bio material types */
+	#[NCA\HandlesCommand("bioinfo")]
 	public function bioinfoListCommand(CmdContext $context): void {
 		$blob  = "<header2>OFAB Armor Types<end>\n";
 		$blob .= $this->getTypeBlob(self::LE_ARMOR_TYPES);
@@ -229,9 +215,9 @@ class AlienBioController {
 	}
 
 	/**
-	 * This command handler shows info about a particular bio type.
-	 * @HandlesCommand("bioinfo")
+	 * Show info about a particular bio type
 	 */
+	#[NCA\HandlesCommand("bioinfo")]
 	public function bioinfoIDCommand(CmdContext $context, int $bio, ?int $ql): void {
 		$ql ??= 300;
 		$ql = min(300, max(1, $ql));
@@ -250,8 +236,8 @@ class AlienBioController {
 
 	/**
 	 * This command handler shows info about a particular bio type.
-	 * @HandlesCommand("bioinfo")
 	 */
+	#[NCA\HandlesCommand("bioinfo")]
 	public function bioinfoCommand(CmdContext $context, PWord $bio, ?int $ql): void {
 		$bio = strtolower($bio());
 		$ql ??= 300;
@@ -353,12 +339,12 @@ class AlienBioController {
 
 		$requiredEEandCL = (int)floor($ql * 4.5);
 
-		$row = $this->db->table("alienweaponspecials")
+		$specials = $this->db->table("alienweaponspecials")
 			->where("type", $type)
 			->select("specials")
 			->limit(1)
-			->asObj()->first();
-		$specials = $row->specials;
+			->pluckAs("specials", "string")
+			->first();
 
 		$blob = $item . "\n\n";
 		$blob .= "It will take <highlight>$requiredEEandCL<end> EE & CL (<highlight>4.5 * QL<end>) to analyze the Bio-Material.\n\n";

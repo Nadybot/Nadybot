@@ -23,4 +23,8 @@ class PTowerSite extends Base {
 	public function __toString(): string {
 		return $this->value;
 	}
+
+	public static function getExample(): ?string {
+		return "&lt;tower site&gt;";
+	}
 }

@@ -2,65 +2,63 @@
 
 namespace Nadybot\Modules\HELPBOT_MODULE;
 
-use Nadybot\Core\CmdContext;
-use Nadybot\Core\CommandAlias;
-use Nadybot\Core\DB;
-use Nadybot\Core\Text;
-use Nadybot\Core\Util;
+use Illuminate\Support\Collection;
+use Nadybot\Core\{
+	Attributes as NCA,
+	CmdContext,
+	CommandAlias,
+	DB,
+	ModuleInstance,
+	Text,
+	Util,
+};
 
 /**
  * @author Tyrence (RK2)
- *
- * @Instance
- *
- * Commands this controller contains:
- *	@DefineCommand(
- *		command     = 'playfields',
- *		accessLevel = 'all',
- *		description = 'Show playfield ids, long names, and short names',
- *		help        = 'waypoint.txt'
- *	)
- *	@DefineCommand(
- *		command     = 'waypoint',
- *		accessLevel = 'all',
- *		description = 'Create a waypoint link',
- *		help        = 'waypoint.txt'
- *	)
  */
-class PlayfieldController {
-
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
-
-	/** @Inject */
+#[
+	NCA\Instance,
+	NCA\HasMigrations("Migrations/Playfields"),
+	NCA\DefineCommand(
+		command: "playfields",
+		accessLevel: "guest",
+		description: "Show playfield ids, long names, and short names",
+		alias: "playfield"
+	),
+	NCA\DefineCommand(
+		command: "waypoint",
+		accessLevel: "guest",
+		description: "Create a waypoint link",
+	)
+]
+class PlayfieldController extends ModuleInstance {
+	#[NCA\Inject]
 	public DB $db;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public CommandAlias $commandAlias;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Text $text;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Util $util;
 
-	/**
-	 * This handler is called on bot startup.
-	 * @Setup
-	 */
+	/** @var array<int,Playfield> */
+	private array $playfields = [];
+
+	#[NCA\Setup]
 	public function setup(): void {
-		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations/Playfields");
 		$this->db->loadCSVFile($this->moduleName, __DIR__ . '/playfields.csv');
 
-		$this->commandAlias->register($this->moduleName, "playfields", "playfield");
+		$this->playfields = $this->db->table("playfields")
+			->asObj(Playfield::class)
+			->keyBy("id")
+			->toArray();
 	}
 
-	/**
-	 * @HandlesCommand("playfields")
-	 */
+	/** Show a list of playfields, including their id, short name, and long name */
+	#[NCA\HandlesCommand("playfields")]
 	public function playfieldListCommand(CmdContext $context): void {
 		$blob = $this->db->table("playfields")
 			->orderBy("long_name")
@@ -73,9 +71,8 @@ class PlayfieldController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @HandlesCommand("playfields")
-	 */
+	/** Search for a playfields by its short or long name */
+	#[NCA\HandlesCommand("playfields")]
 	public function playfieldShowCommand(CmdContext $context, string $search): void {
 		$search = strtolower($search);
 		$query = $this->db->table("playfields");
@@ -103,12 +100,11 @@ class PlayfieldController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @HandlesCommand("waypoint")
-	 * @Mask $action Pos:
-	 */
-	public function waypoint1Command(CmdContext $context, string $action, string $pos): void {
-		if (!preg_match("/^([0-9\\.]+), ([0-9\\.]+), ([0-9\\.]+), Area: ([a-zA-Z ]+)$/i", $pos, $args)) {
+	/** Create a waypoint link in the chat */
+	#[NCA\HandlesCommand("waypoint")]
+	#[NCA\Help\Example("<symbol>waypoint Pos: 17.5, 28.1, 100.2, Area: Perpetual Wastelands")]
+	public function waypoint1Command(CmdContext $context, #[NCA\Str("Pos:")] string $action, string $posString): void {
+		if (!preg_match("/^([0-9\\.]+), ([0-9\\.]+), ([0-9\\.]+), Area: ([a-zA-Z ]+)$/i", $posString, $args)) {
 			$context->reply("Wrong waypoint format.");
 			return;
 		}
@@ -126,19 +122,20 @@ class PlayfieldController {
 		$context->reply($this->processWaypointCommand($xCoords, $yCoords, $playfield->short_name??"UNKNOWN", $playfield->id));
 	}
 
-	/**
-	 * @HandlesCommand("waypoint")
-	 */
-	public function waypoint2Command(CmdContext $context, string $pos): void {
-		if (preg_match("/^\(?([0-9.]+) ([0-9.]+) y ([0-9.]+) ([0-9]+)\)?$/i", $pos, $args)) {
+	/** Create a waypoint link in the chat */
+	#[NCA\HandlesCommand("waypoint")]
+	#[NCA\Help\Example("<symbol>waypoint 17 28 100 PW")]
+	#[NCA\Help\Example("<symbol>waypoint (10.9 30.0 y 20.1 550)")]
+	public function waypoint2Command(CmdContext $context, string $pasteFromF9): void {
+		if (preg_match("/^\(?([0-9.]+) ([0-9.]+) y ([0-9.]+) ([0-9]+)\)?$/i", $pasteFromF9, $args)) {
 			$xCoords = $args[1];
 			$yCoords = $args[2];
 			$playfieldId = (int)$args[4];
-		} elseif (preg_match("/^([0-9.]+)([x,. ]+)([0-9.]+)([x,. ]+)([0-9]+)$/i", $pos, $args)) {
+		} elseif (preg_match("/^([0-9.]+)([x,. ]+)([0-9.]+)([x,. ]+)([0-9]+)$/i", $pasteFromF9, $args)) {
 			$xCoords = $args[1];
 			$yCoords = $args[3];
 			$playfieldId = (int)$args[5];
-		} elseif (preg_match("/^([0-9\\.]+)([x,. ]+)([0-9\\.]+)([x,. ]+)(.+)$/i", $pos, $args)) {
+		} elseif (preg_match("/^([0-9\\.]+)([x,. ]+)([0-9\\.]+)([x,. ]+)(.+)$/i", $pasteFromF9, $args)) {
 			$xCoords = $args[1];
 			$yCoords = $args[3];
 			$playfieldName = $args[5];
@@ -168,6 +165,7 @@ class PlayfieldController {
 		$context->reply($this->processWaypointCommand($xCoords, $yCoords, $playfieldName??(string)$playfieldId, $playfieldId));
 	}
 
+	/** @return string[] */
 	private function processWaypointCommand(string $xCoords, string $yCoords, string $playfieldName, int $playfieldId): array {
 		$link = $this->text->makeChatcmd("waypoint: {$xCoords}x{$yCoords} {$playfieldName}", "/waypoint {$xCoords} {$yCoords} {$playfieldId}");
 		$blob = "Click here to use waypoint: $link";
@@ -184,9 +182,25 @@ class PlayfieldController {
 	}
 
 	public function getPlayfieldById(int $playfieldId): ?Playfield {
+		return $this->playfields[$playfieldId] ?? null;
+	}
+
+	/**
+	 * @return Collection<Playfield>
+	 */
+	public function searchPlayfieldsByName(string $playfieldName): Collection {
 		return $this->db->table("playfields")
-			->where("id", $playfieldId)
-			->asObj(Playfield::class)
-			->first();
+			->whereIlike("long_name", $playfieldName)
+			->orWhereIlike("short_name", $playfieldName)
+			->asObj(Playfield::class);
+	}
+
+	/**
+	 * @return Collection<Playfield>
+	 */
+	public function searchPlayfieldsByIds(int ...$ids): Collection {
+		return $this->db->table("playfields")
+			->whereIn("id", $ids)
+			->asObj(Playfield::class);
 	}
 }

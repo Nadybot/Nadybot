@@ -2,38 +2,32 @@
 
 namespace Nadybot\Modules\FUN_MODULE;
 
-use Nadybot\Core\CmdContext;
-use Nadybot\Core\Util;
+use Nadybot\Core\{
+	Attributes as NCA,
+	CmdContext,
+	ModuleInstance,
+	Util,
+};
 
 /**
  * @author Neksus (RK2)
  * @author Mdkdoc420 (RK2)
  * @author Tyrence (RK2)
- *
- * @Instance
- *
- * Commands this controller contains:
- *	@DefineCommand(
- *		command     = 'ding',
- *		accessLevel = 'all',
- *		description = 'Shows a random ding gratz message',
- *		help        = 'fun_module.txt'
- *	)
  */
-class DingController {
-
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
-
-	/** @Inject */
+#[
+	NCA\Instance,
+	NCA\DefineCommand(
+		command: "ding",
+		accessLevel: "guest",
+		description: "Shows a random ding gratz message",
+	)
+]
+class DingController extends ModuleInstance {
+	#[NCA\Inject]
 	public Util $util;
 
-	/**
-	 * @HandlesCommand("ding")
-	 */
+	/** Show a random ding gratz message */
+	#[NCA\HandlesCommand("ding")]
 	public function ding1Command(CmdContext $context): void {
 		$dingText = [
 			"Yeah yeah gratz, I would give you a better response but you didn't say what level you dinged.",
@@ -45,19 +39,17 @@ class DingController {
 		$context->reply($this->util->randomArrayValue($dingText));
 	}
 
-	/**
-	 * @HandlesCommand("ding")
-	 * @Mask $action dong
-	 */
-	public function dingDongCommand(CmdContext $context, string $action): void {
+	/** Show a cheesy ding reply */
+	#[NCA\HandlesCommand("ding")]
+	#[NCA\Help\Hide()]
+	public function dingDongCommand(CmdContext $context, #[NCA\Str("dong")] string $action): void {
 		$msg =	"Ditch, Bitch!";
 		$context->reply($msg);
 	}
 
-	/**
-	 * @HandlesCommand("ding")
-	 */
-	public function ding3Command(CmdContext $context, int $level, ?string $ignore): void {
+	/** Show a ding gratz message for dinging &lt;level&gt; */
+	#[NCA\HandlesCommand("ding")]
+	public function ding3Command(CmdContext $context, int $level, ?string $ignoredText): void {
 		if ($level <= 0) {
 			$lvl = (int)round(220 - $level);
 			$dingText = [

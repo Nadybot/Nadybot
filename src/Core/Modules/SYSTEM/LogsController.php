@@ -3,90 +3,83 @@
 namespace Nadybot\Core\Modules\SYSTEM;
 
 use Exception;
-use Monolog\Formatter\JsonFormatter;
-use Monolog\Handler\AbstractHandler;
-use Monolog\Handler\StreamHandler;
-use Monolog\Logger;
-use Monolog\Processor\IntrospectionProcessor;
-use Monolog\Processor\PsrLogMessageProcessor;
+use Safe\Exceptions\FilesystemException;
+use Monolog\{
+	Formatter\JsonFormatter,
+	Handler\AbstractHandler,
+	Handler\StreamHandler,
+	Logger,
+	Processor\IntrospectionProcessor,
+	Processor\PsrLogMessageProcessor,
+};
 use Nadybot\Core\{
+	Attributes as NCA,
 	BotRunner,
 	CmdContext,
 	CommandManager,
 	DedupHandler,
 	Http,
 	HttpResponse,
+	ModuleInstance,
 	LegacyLogger,
 	LoggerWrapper,
 	Nadybot,
+	ParamClass\PFilename,
+	ParamClass\PWord,
 	SettingManager,
 	Text,
 	Timer,
 	Util,
 };
-use Nadybot\Core\ParamClass\PFilename;
-use Nadybot\Core\ParamClass\PWord;
 
 /**
  * @author Tyrence (RK2)
- *
- * @Instance
- *
- * Commands this controller contains:
- *	@DefineCommand(
- *		command       = 'logs',
- *		accessLevel   = 'admin',
- *		description   = 'View bot logs',
- *		help          = 'logs.txt'
- *	)
- *	@DefineCommand(
- *		command       = 'loglevel',
- *		accessLevel   = 'admin',
- *		description   = 'Change loglevel for debugging',
- *		help          = 'debug.txt'
- *	)
- *	@DefineCommand(
- *		command       = 'debug',
- *		accessLevel   = 'admin',
- *		description   = 'Create debug logs for a command',
- *		help          = 'debug.txt'
- *	)
  */
-class LogsController {
-
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
-
-	/** @Inject */
+#[
+	NCA\Instance,
+	NCA\DefineCommand(
+		command: "logs",
+		accessLevel: "admin",
+		description: "View bot logs",
+	),
+	NCA\DefineCommand(
+		command: "loglevel",
+		accessLevel: "admin",
+		description: "Change loglevel for debugging",
+	),
+	NCA\DefineCommand(
+		command: "debug",
+		accessLevel: "admin",
+		description: "Create debug logs for a command",
+	)
+]
+class LogsController extends ModuleInstance {
+	#[NCA\Inject]
 	public CommandManager $commandManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public SettingManager $settingManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Nadybot $chatBot;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Http $http;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Timer $timer;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Text $text;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Util $util;
 
-	/** @Logger */
+	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
-	/**
-	 * @HandlesCommand("logs")
-	 */
+	/** View a list of log files */
+	#[NCA\HandlesCommand("logs")]
 	public function logsCommand(CmdContext $context): void {
 		$files = $this->util->getFilesInDirectory(
 			$this->logger->getLoggingDirectory()
@@ -105,8 +98,11 @@ class LogsController {
 	}
 
 	/**
-	 * @HandlesCommand("logs")
+	 * View the content of a log file, optionally serching for text
+	 *
+	 * &lt;search&gt; is a regular expression (without delimiters) and case-insensitive
 	 */
+	#[NCA\HandlesCommand("logs")]
 	public function logsFileCommand(CmdContext $context, PFilename $file, ?string $search): void {
 		$filename = $this->logger->getLoggingDirectory() . DIRECTORY_SEPARATOR . $file();
 		$readsize = ($this->settingManager->getInt('max_blob_size')??10000) - 500;
@@ -151,9 +147,8 @@ class LogsController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @HandlesCommand("loglevel")
-	 */
+	/** View the current log levels */
+	#[NCA\HandlesCommand("loglevel")]
 	public function loglevelCommand(CmdContext $context): void {
 		$loggers = LegacyLogger::getLoggers();
 		$names = [];
@@ -180,13 +175,11 @@ class LogsController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @HandlesCommand("loglevel")
-	 * @Mask $action reset
-	 */
+	/** Reset your temporarily changed loglevels back to your configuration */
+	#[NCA\HandlesCommand("loglevel")]
 	public function loglevelResetCommand(
 		CmdContext $context,
-		string $action
+		#[NCA\Str("reset")] string $action
 	): void {
 		$loggers = LegacyLogger::getLoggers();
 		LegacyLogger::getConfig(true);
@@ -217,14 +210,16 @@ class LogsController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @HandlesCommand("loglevel")
-	 * @Mask $loglevel (debug|info|notice|warning|error|emergency|alert)
-	 */
+	/** Temporarily change the log level of the loggers matching &lt;mask&gt; */
+	#[NCA\HandlesCommand("loglevel")]
+	#[NCA\Help\Example("<symbol>loglevel * warning")]
+	#[NCA\Help\Example("<symbol>loglevel RELAY_MODULE/* debug")]
+	#[NCA\Help\Example("<symbol>loglevel RELAY_MODULE/RelayProtocol/* debug")]
+	#[NCA\Help\Example("<symbol>loglevel Core/Nadybot info")]
 	public function loglevelFileCommand(
 		CmdContext $context,
 		PWord $mask,
-		string $logLevel
+		#[NCA\StrChoice("debug", "info", "notice", "warning", "error", "emergency", "alert")] string $logLevel
 	): void {
 		$logLevel = strtoupper($logLevel);
 		$loggers = LegacyLogger::getLoggers();
@@ -257,9 +252,9 @@ class LogsController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @HandlesCommand("debug")
-	 */
+	/** Debug a single command execution and upload the logs for inspection */
+	#[NCA\HandlesCommand("debug")]
+	#[NCA\Help\Example("<symbol>debug whois nady")]
 	public function debugCommand(
 		CmdContext $context,
 		string $command
@@ -294,9 +289,10 @@ class LogsController {
 	}
 
 	public function uploadDebugLog(CmdContext $context, string $filename): void {
-		$content = file_get_contents($filename);
-		if ($content === false) {
-			$context->reply("Unable to open <highlight>{$filename}<end>.");
+		try {
+			$content = \Safe\file_get_contents($filename);
+		} catch (FilesystemException $e) {
+			$context->reply("Unable to open <highlight>{$filename}<end>: " . $e->getMessage() . ".");
 			return;
 		}
 		$content = str_replace('"' . BotRunner::getBasedir() . "/", "", $content);
@@ -310,8 +306,7 @@ class LogsController {
 				"Content-Type: application/json\r\n\r\n".
 				$content . "\r\n".
 				"--{$boundary}--\r\n"
-			)
-			->withCallback([$this, "handleDebugLogUpload"], $context);
+			)->withCallback([$this, "handleDebugLogUpload"], $context);
 			@unlink($filename);
 	}
 

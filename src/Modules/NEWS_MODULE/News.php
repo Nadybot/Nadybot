@@ -8,4 +8,12 @@ class News extends NewNews {
 
 	/** The UUID of this news entry */
 	public string $uuid;
+
+	public static function fromNewNews(NewNews $news): self {
+		$result = new self();
+		foreach (get_object_vars($news) as $key => $value) {
+			$result->{$key} = $value;
+		}
+		return $result;
+	}
 }

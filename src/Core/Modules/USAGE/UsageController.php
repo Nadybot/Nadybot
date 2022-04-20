@@ -4,105 +4,78 @@ namespace Nadybot\Core\Modules\USAGE;
 
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
+	Attributes as NCA,
 	BotRunner,
 	CmdContext,
+	ConfigFile,
 	DB,
 	EventManager,
+	ModuleInstance,
 	Nadybot,
+	ParamClass\PCharacter,
+	ParamClass\PDuration,
+	ParamClass\PWord,
 	SettingManager,
 	SQLException,
 	Text,
 	Util,
 };
-use Nadybot\Core\ParamClass\PCharacter;
-use Nadybot\Core\ParamClass\PDuration;
-use Nadybot\Core\ParamClass\PWord;
 use Nadybot\Modules\RELAY_MODULE\RelayController;
 use Nadybot\Modules\RELAY_MODULE\RelayLayer;
 use stdClass;
 
 /**
  * @author Tyrence (RK2)
- *
- * @Instance
- *
  * Commands this class contains:
- *	@DefineCommand(
- *		command       = 'usage',
- *		accessLevel   = 'guild',
- *		description   = 'Shows usage stats',
- *		help          = 'usage.txt',
- *		defaultStatus = '1'
- *	)
  */
-class UsageController {
+#[
+	NCA\Instance,
+	NCA\HasMigrations,
+	NCA\DefineCommand(
+		command: "usage",
+		accessLevel: "guild",
+		description: "Shows usage stats",
+		defaultStatus: 1
+	),
+]
+class UsageController extends ModuleInstance {
 	public const DB_TABLE = "usage_<myname>";
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public DB $db;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public SettingManager $settingManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public EventManager $eventManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Util $util;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Text $text;
 
-	/** @Inject */
+	#[NCA\Inject]
+	public ConfigFile $config;
+
+	#[NCA\Inject]
 	public Nadybot $chatBot;
 
-	/**
-	 * @Setup
-	 */
-	public function setup(): void {
-		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations");
+	/** Record usage stats */
+	#[NCA\Setting\Boolean]
+	public bool $recordUsageStats = true;
 
-		$this->settingManager->add(
-			$this->moduleName,
-			"record_usage_stats",
-			"Record usage stats",
-			"edit",
-			"options",
-			"1",
-			"true;false",
-			"1;0"
-		);
-		$this->settingManager->add(
-			$this->moduleName,
-			'botid',
-			'Botid',
-			'noedit',
-			'text',
-			''
-		);
-		$this->settingManager->add(
-			$this->moduleName,
-			'last_submitted_stats',
-			'last_submitted_stats',
-			'noedit',
-			'text',
-			'0'
-		);
-	}
+	/** Botid */
+	#[NCA\Setting\Text(mode: 'noedit')]
+	public string $botid = "";
 
-	/**
-	 * @HandlesCommand("usage")
-	 * @Mask $action player
-	 */
-	public function usagePlayerCommand(
+	/** Show usage stats for the past 7 days or &lt;duration&gt; for a given character */
+	#[NCA\HandlesCommand("usage")]
+	public function usageCharacterCommand(
 		CmdContext $context,
-		string $action,
-		PCharacter $player,
+		#[NCA\Str("char", "character", "player")] string $action,
+		PCharacter $character,
 		?PDuration $duration
 	): void {
 		$time = 604800;
@@ -119,13 +92,13 @@ class UsageController {
 		$time = time() - $time;
 
 		$query = $this->db->table(self::DB_TABLE)
-			->where("sender", $player())
+			->where("sender", $character())
 			->where("dt", ">", $time)
 			->groupBy("command")
 			->select("command");
 		$query->orderByRaw($query->colFunc("COUNT", "command")->getValue())
 			->selectRaw($query->colFunc("COUNT", "command", "count")->getValue());
-		$data = $query->asObj();
+		$data = $query->asObj(CommandUsageStats::class);
 		$count = $data->count();
 
 		if ($count > 0) {
@@ -134,20 +107,18 @@ class UsageController {
 				$blob .= $this->text->alignNumber($row->count, 3) . " <highlight>{$row->command}<end>\n";
 			}
 
-			$msg = $this->text->makeBlob("Usage for $player - $timeString ($count)", $blob);
+			$msg = $this->text->makeBlob("Usage for $character - $timeString ($count)", $blob);
 		} else {
-			$msg = "No usage statistics found for <highlight>{$player}<end>.";
+			$msg = "No usage statistics found for <highlight>{$character}<end>.";
 		}
 		$context->reply($msg);
 	}
 
-	/**
-	 * @HandlesCommand("usage")
-	 * @Mask $action cmd
-	 */
+	/** Show usage stats for the past 7 days or &lt;duration&gt; for a given command */
+	#[NCA\HandlesCommand("usage")]
 	public function usageCmdCommand(
 		CmdContext $context,
-		string $action,
+		#[NCA\Str("cmd")] string $action,
 		PWord $cmd,
 		?PDuration $duration
 	): void {
@@ -172,7 +143,7 @@ class UsageController {
 			->groupBy("sender");
 		$query->orderByColFunc("COUNT", "sender", "desc")
 			->select("sender", $query->colFunc("COUNT", "command", "count"));
-		$data = $query->asObj()->toArray();
+		$data = $query->asObj(PlayerUsageStats::class)->toArray();
 		$count = count($data);
 
 		if ($count > 0) {
@@ -188,23 +159,20 @@ class UsageController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @HandlesCommand("usage")
-	 * @Mask $action info
-	 */
-	public function usageInfoCommand(CmdContext $context, string $action): void {
+	/** Show the internal usage data that used to be sent to the Budabot stats server */
+	#[NCA\HandlesCommand("usage")]
+	public function usageInfoCommand(CmdContext $context, #[NCA\Str("info")] string $action): void {
 		$info = $this->getUsageInfo(time() - 7*24*3600, time());
-		$blob = json_encode(
+		$blob = \Safe\json_encode(
 			$info,
-			JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES
+			JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR
 		);
 		$msg = $this->text->makeBlob("Collected usage info", $blob);
 		$context->reply($msg);
 	}
 
-	/**
-	 * @HandlesCommand("usage")
-	 */
+	/** Show usage stats for the past 7 days or &lt;duration&gt; */
+	#[NCA\HandlesCommand("usage")]
 	public function usageCommand(CmdContext $context, ?PDuration $duration): void {
 		$time = 604800;
 		if (isset($duration)) {
@@ -225,19 +193,14 @@ class UsageController {
 			->where("dt", ">", $time)
 			->groupBy("type")
 			->orderBy("type")
-			->select("type");
-		$query->selectRaw($query->colFunc("COUNT", "type", "cnt")->getValue());
-		$data = $query->asObj()->toArray();
+			->select("type AS channel");
+		$query->selectRaw($query->colFunc("COUNT", "type", "count")->getValue());
+		/** @var ChannelUsageStats[] */
+		$data = $query->asObj(ChannelUsageStats::class)->toArray();
 
 		$blob = "<header2>Channel Usage<end>\n";
 		foreach ($data as $row) {
-			if ($row->type === "msg") {
-				$blob .= "<tab>Number of commands executed in tells: <highlight>$row->cnt<end>\n";
-			} elseif ($row->type === "priv") {
-				$blob .= "<tab>Number of commands executed in private channel: <highlight>$row->cnt<end>\n";
-			} elseif ($row->type === "guild") {
-				$blob .= "<tab>Number of commands executed in guild channel: <highlight>$row->cnt<end>\n";
-			}
+			$blob .= "<tab>Number of commands executed in {$row->channel}: <highlight>{$row->count}<end>\n";
 		}
 		$blob .= "\n";
 
@@ -249,7 +212,8 @@ class UsageController {
 			->limit($limit)
 			->select("command");
 		$query->selectRaw($query->colFunc("COUNT", "command", "count")->getValue());
-		$data = $query->asObj()->toArray();
+		/** @var CommandUsageStats[] */
+		$data = $query->asObj(CommandUsageStats::class)->toArray();
 
 		$blob .= "<header2>$limit Most Used Commands<end>\n";
 		foreach ($data as $row) {
@@ -266,7 +230,8 @@ class UsageController {
 			->limit($limit)
 			->select("sender");
 		$query->selectRaw($query->colFunc("COUNT", "sender", "count")->getValue());
-		$data = $query->asObj()->toArray();
+		/** @var PlayerUsageStats[] */
+		$data = $query->asObj(PlayerUsageStats::class)->toArray();
 
 		$blob .= "\n<header2>$limit Most Active Users<end>\n";
 		foreach ($data as $row) {
@@ -299,9 +264,7 @@ class UsageController {
 	}
 
 	public function getUsageInfo(int $lastSubmittedStats, int $now, bool $debug=false): UsageStats {
-		global $version;
-
-		$botid = $this->settingManager->getString('botid')??"";
+		$botid = $this->botid;
 		if ($botid === '') {
 			$botid = $this->util->genRandomString(20);
 			$this->settingManager->save('botid', $botid);
@@ -313,18 +276,19 @@ class UsageController {
 			->groupBy("command")
 			->select("command");
 		$query->selectRaw($query->rawFunc("COUNT", "*", "count")->getValue());
-		$commands = $query->asObj()->reduce(function(stdClass $carry, object $entry) {
-			$carry->{$entry->command} = $entry->count;
-			return $carry;
-		}, new stdClass());
+		$commands = $query->asObj(CommandUsageStats::class)
+			->reduce(function(stdClass $carry, CommandUsageStats $entry) {
+				$carry->{$entry->command} = $entry->count;
+				return $carry;
+			}, new stdClass());
 
 		$settings = new SettingsUsageStats();
-		$settings->dimension               = (int)$this->chatBot->vars['dimension'];
-		$settings->is_guild_bot            = strlen($this->chatBot->vars['my_guild']??'') > 0;
+		$settings->dimension               = $this->config->dimension;
+		$settings->is_guild_bot            = strlen($this->config->orgName) > 0;
 		$settings->guildsize               = $this->getGuildSizeClass(count($this->chatBot->guildmembers));
-		$settings->using_chat_proxy        = (bool)$this->chatBot->vars['use_proxy'];
+		$settings->using_chat_proxy        = (bool)$this->config->useProxy;
 		$settings->db_type                 = $this->db->getType();
-		$settings->bot_version             = $version;
+		$settings->bot_version             = BotRunner::getVersion();
 		$settings->using_git               = @file_exists(BotRunner::getBasedir() . "/.git");
 		$settings->os                      = BotRunner::isWindows() ? 'Windows' : php_uname("s");
 		$settings->symbol                  = $this->settingManager->getString('symbol')??"!";
@@ -345,7 +309,7 @@ class UsageController {
 		$settings->http_server_enable      = $this->eventManager->getKeyForCronEvent(60, "httpservercontroller.startHTTPServer") !== null;
 
 		$obj = new UsageStats();
-		$obj->id       = sha1($botid . $this->chatBot->char->name . $this->chatBot->vars['dimension']);
+		$obj->id       = sha1($botid . $this->chatBot->char->name . $this->config->dimension);
 		$obj->version  = 2;
 		$obj->debug    = $debug;
 		$obj->commands = $commands;
@@ -376,31 +340,35 @@ class UsageController {
 		return $guildClass;
 	}
 
-	/**
-	 * @NewsTile("popular-commands")
-	 * @Description("A player's 4 most used commands in the last 7 days")
-	 * @Example("<header2>Popular commands<end>
-	 * <tab>hot
-	 * <tab>startpage
-	 * <tab>config
-	 * <tab>time")
-	 */
+	#[
+		NCA\NewsTile(
+			name: "popular-commands",
+			description: "A player's 4 most used commands in the last 7 days",
+			example:
+				"<header2>Popular commands<end>\n".
+				"<tab>hot\n".
+				"<tab>startpage\n".
+				"<tab>config\n".
+				"<tab>time"
+		)
+	]
 	public function usageNewsTile(string $sender, callable $callback): void {
-		$data = $this->db->table(self::DB_TABLE)
+		/** @var Collection<string> */
+		$commands = $this->db->table(self::DB_TABLE)
 			->where("sender", $sender)
 			->where("dt", ">", time() - 7*24*3600)
 			->groupBy("command")
 			->orderByColFunc("COUNT", "command", "desc")
 			->addSelect("command")
 			->limit(4)
-			->asObj();
-		if ($data->isEmpty()) {
+			->pluckAs("command", "string");
+		if ($commands->isEmpty()) {
 			$callback(null);
 			return;
 		}
 		$blob = "<header2>Popular commands<end>\n";
-		foreach ($data as $cmdSpec) {
-			$blob .= "<tab>{$cmdSpec->command}\n";
+		foreach ($commands as $command) {
+			$blob .= "<tab>{$command}\n";
 		}
 		$callback($blob);
 	}

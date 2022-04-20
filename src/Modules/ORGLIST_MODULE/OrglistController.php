@@ -3,65 +3,58 @@
 namespace Nadybot\Modules\ORGLIST_MODULE;
 
 use Nadybot\Core\{
+	Attributes as NCA,
 	BuddylistManager,
 	CmdContext,
 	CommandReply,
 	DB,
+	DBSchema\Player,
 	Event,
+	ModuleInstance,
+	Modules\PLAYER_LOOKUP\Guild,
+	Modules\PLAYER_LOOKUP\GuildManager,
+	Modules\PLAYER_LOOKUP\PlayerManager,
 	Nadybot,
 	Text,
 	UserStateEvent,
 	Util,
 };
-use Nadybot\Core\Modules\PLAYER_LOOKUP\GuildManager;
-use Nadybot\Core\Modules\PLAYER_LOOKUP\PlayerManager;
-use Nadybot\Core\DBSchema\Player;
-use Nadybot\Core\Modules\PLAYER_LOOKUP\Guild;
 
 /**
  * @author Tyrence (RK2)
  * @author Lucier (RK1)
- *
- * @Instance
- *
- * Commands this controller contains:
- *	@DefineCommand(
- *		command     = 'orglist',
- *		accessLevel = 'guild',
- *		description = 'Check an org roster',
- *		help        = 'orglist.txt'
- *	)
  */
-class OrglistController {
-
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
-
-	/** @Inject */
+#[
+	NCA\Instance,
+	NCA\DefineCommand(
+		command: "orglist",
+		accessLevel: "member",
+		description: "Check an org roster",
+	)
+]
+class OrglistController extends ModuleInstance {
+	#[NCA\Inject]
 	public DB $db;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Nadybot $chatBot;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public BuddylistManager $buddylistManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public GuildManager $guildManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Text $text;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Util $util;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public PlayerManager $playerManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public FindOrgController $findOrgController;
 
 	protected ?Orglist $orglist = null;
@@ -76,16 +69,17 @@ class OrglistController {
 		"Department" => ["President", "General",      "Squad Commander", "Unit Commander", "Unit Leader", "Unit Member", "Applicant"],
 	];
 
-	/** Get a hierarchical array of all the ranks in the goven governing form */
+	/**
+	 * Get a hierarchical array of all the ranks in the goven governing form
+	 * @return string[]
+	 */
 	public function getOrgRanks(string $governingForm): array {
 		return $this->orgrankmap[ucfirst(strtolower($governingForm))] ?? [];
 	}
 
-	/**
-	 * @HandlesCommand("orglist")
-	 * @Mask $action end
-	 */
-	public function orglistEndCommand(CmdContext $context, string $action): void {
+	/** Stop a running orglist lookup */
+	#[NCA\HandlesCommand("orglist")]
+	public function orglistEndCommand(CmdContext $context, #[NCA\Str("end")] string $action): void {
 		if (isset($this->orglist)) {
 			$this->orglistEnd();
 		} else {
@@ -94,8 +88,13 @@ class OrglistController {
 	}
 
 	/**
-	 * @HandlesCommand("orglist")
+	 * Show who is online in an org / a player's org
+	 *
+	 * You can use '%' as a wildcard in the org name
 	 */
+	#[NCA\HandlesCommand("orglist")]
+	#[NCA\Help\Example("<symbol>orglist Team Rainbow")]
+	#[NCA\Help\Example("<symbol>orglist Nadyita")]
 	public function orglistCommand(CmdContext $context, string $search): void {
 		if (preg_match("/^\d+$/", $search)) {
 			$this->checkOrglist((int)$search, $context);
@@ -267,7 +266,7 @@ class OrglistController {
 			$buddyOnlineStatus = $this->buddylistManager->isUidOnline($member->charid);
 			if ($buddyOnlineStatus !== null) {
 				$this->orglist->result[$member->name]->online = $buddyOnlineStatus;
-			} elseif ($this->chatBot->vars["name"] === $member->name) {
+			} elseif ($this->chatBot->char->name === $member->name) {
 				$this->orglist->result[$member->name]->online = true;
 			} else {
 				$this->orglist->check[$member->name] = true;
@@ -275,6 +274,7 @@ class OrglistController {
 		}
 	}
 
+	/** @param array<string,int> $uidLookup */
 	public function addOrgMembersToBuddylist(array $uidLookup=[]): void {
 		if (!isset($this->orglist)) {
 			return;
@@ -335,6 +335,7 @@ class OrglistController {
 	}
 
 	/**
+	 * @param array<string,string> $orgcolor
 	 * @return string[]
 	 */
 	public function orgmatesformat(Orglist $memberlist, array $orgcolor, int $timestart): array {
@@ -398,11 +399,12 @@ class OrglistController {
 		return (array)$this->text->makeBlob("Orglist for '{$memberlist->org}' ($totalonline / $totalcount)", $blob);
 	}
 
-	/**
-	 * @Event("logOn")
-	 * @Event("logOff")
-	 * @Description("Records online status of org members")
-	 */
+	#[
+		NCA\Event(
+			name: ["logOn", "logOff"],
+			description: "Records online status of org members"
+		)
+	]
 	public function orgMemberLogonEvent(UserStateEvent $eventObj): void {
 		if (!is_string($eventObj->sender)) {
 			return;
@@ -410,10 +412,10 @@ class OrglistController {
 		$this->updateOrglist($eventObj->sender, $eventObj->type);
 	}
 
-	/**
-	 * @Event("packet(41)")
-	 * @Description("Records online status of org members")
-	 */
+	#[NCA\Event(
+		name: "packet(41)",
+		description: "Records online status of org members"
+	)]
 	public function buddyRemovedEvent(Event $eventObj): void {
 		if (isset($this->orglist)) {
 			$this->addOrgMembersToBuddylist();

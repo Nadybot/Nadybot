@@ -11,12 +11,12 @@ class CreateEventsTable implements SchemaMigration {
 	public function migrate(LoggerWrapper $logger, DB $db): void {
 		$table = "events";
 		if ($db->schema()->hasTable($table)) {
-			$db->schema()->table($table, function(Blueprint $table) {
+			$db->schema()->table($table, function(Blueprint $table): void {
 				$table->id("id")->change();
 			});
 			return;
 		}
-		$db->schema()->create($table, function(Blueprint $table) {
+		$db->schema()->create($table, function(Blueprint $table): void {
 			$table->id();
 			$table->integer("time_submitted");
 			$table->string("submitter_name", 25);

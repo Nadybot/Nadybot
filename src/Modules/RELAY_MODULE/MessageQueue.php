@@ -7,8 +7,12 @@ use InvalidArgumentException;
 use Iterator;
 use Nadybot\Core\Routing\RoutableEvent;
 
+/**
+ * @implements Iterator<RoutableEvent>
+ */
 class MessageQueue implements Iterator, Countable {
 	private int $maxLength = 10;
+	/** @var RoutableEvent[] */
 	private array $msgs = [];
 
 	public function __construct(?int $maxLength=null) {

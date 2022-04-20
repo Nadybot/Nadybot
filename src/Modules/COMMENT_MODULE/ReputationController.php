@@ -3,63 +3,57 @@
 namespace Nadybot\Modules\COMMENT_MODULE;
 
 use Nadybot\Core\{
+	Attributes as NCA,
 	CmdContext,
 	DB,
+	ModuleInstance,
 	LoggerWrapper,
 	Nadybot,
+	ParamClass\PCharacter,
+	ParamClass\PWord,
 	SettingManager,
 	Text,
 	Timer,
 	Util,
 };
-use Nadybot\Core\ParamClass\PCharacter;
-use Nadybot\Core\ParamClass\PWord;
 
 /**
  * @author Tyrence (RK2)
  * @author Nadyita (RK5)
- *
- * @Instance
- *
- * Commands this controller contains:
- *	@DefineCommand(
- *		command     = 'reputation',
- *		accessLevel = 'guild',
- *		description = 'Allows people to see and add reputation of other players',
- *		help        = 'reputation.txt'
- *	)
  */
-class ReputationController {
+#[
+	NCA\Instance,
+	NCA\DefineCommand(
+		command: "reputation",
+		accessLevel: "guild",
+		description: "Allows people to see and add reputation of other players",
+	)
+]
+class ReputationController extends ModuleInstance {
 	public const CAT_REPUTATION = "reputation";
 
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
-
-	/** @Inject */
+	#[NCA\Inject]
 	public DB $db;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Nadybot $chatBot;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Text $text;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Util $util;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public SettingManager $settingManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public CommentController $commentController;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Timer $timer;
 
-	/** @Logger */
+	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
 	public function getReputationCategory(): CommentCategory {
@@ -69,7 +63,7 @@ class ReputationController {
 		}
 		$repCat = new CommentCategory();
 		$repCat->name = static::CAT_REPUTATION;
-		$repCat->created_by = $this->chatBot->vars["name"];
+		$repCat->created_by = $this->chatBot->char->name;
 		$repCat->min_al_read = "guild";
 		$repCat->min_al_write = "guild";
 		$repCat->user_managed = false;
@@ -77,9 +71,8 @@ class ReputationController {
 		return $repCat;
 	}
 
-	/**
-	 * @HandlesCommand("reputation")
-	 */
+	/** See a list of characters that have reputation */
+	#[NCA\HandlesCommand("reputation")]
 	public function reputationListCommand(CmdContext $context): void {
 		$cat = $this->getReputationCategory();
 		$comments = $this->commentController->readCategoryComments($cat);
@@ -124,14 +117,12 @@ class ReputationController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @HandlesCommand("reputation")
-	 * @Mask $action (\+1|\-1)
-	 */
+	/** Add positive or negative reputation to a character */
+	#[NCA\HandlesCommand("reputation")]
 	public function reputationAddCommand(
 		CmdContext $context,
 		PCharacter $char,
-		string $action,
+		#[NCA\StrChoice("+1", "-1")] string $action,
 		string $comment
 	): void {
 		$this->commentController->addCommentCommand(
@@ -144,10 +135,16 @@ class ReputationController {
 	}
 
 	/**
-	 * @HandlesCommand("reputation")
-	 * @Mask $action all
+	 * See the reputation for a character
+	 * If 'all' is given, print more than just the last 10 entries
 	 */
-	public function reputationViewCommand(CmdContext $context, PCharacter $char, ?string $all): void {
+	#[NCA\HandlesCommand("reputation")]
+	public function reputationViewCommand(
+		CmdContext $context,
+		PCharacter $char,
+		#[NCA\Str("all")]
+		?string $all
+	): void {
 		$name = $char();
 		$comments = $this->commentController->getComments($this->getReputationCategory(), $name);
 		$numComments = count($comments);

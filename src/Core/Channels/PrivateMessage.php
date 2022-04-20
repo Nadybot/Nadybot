@@ -2,24 +2,27 @@
 
 namespace Nadybot\Core\Channels;
 
-use Nadybot\Core\BuddylistManager;
-use Nadybot\Core\MessageHub;
-use Nadybot\Core\Nadybot;
-use Nadybot\Core\Routing\RoutableEvent;
-use Nadybot\Core\Routing\Source;
-use Nadybot\Core\Text;
+use Nadybot\Core\{
+	Attributes as NCA,
+	BuddylistManager,
+	MessageHub,
+	Nadybot,
+	Routing\RoutableEvent,
+	Routing\Source,
+	Text,
+};
 
 class PrivateMessage extends Base {
-	/** @Inject */
+	#[NCA\Inject]
 	public BuddylistManager $buddyListManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Text $text;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public MessageHub $messageHub;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Nadybot $chatBot;
 
 	public function getChannelName(): string {

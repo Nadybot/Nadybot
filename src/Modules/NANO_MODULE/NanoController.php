@@ -1,11 +1,15 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace Nadybot\Modules\NANO_MODULE;
 
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
+	Attributes as NCA,
 	CmdContext,
 	DB,
+	ModuleInstance,
 	SettingManager,
 	Text,
 	Util,
@@ -16,99 +20,73 @@ use Nadybot\Core\{
  * @author Tyrence (RK2)
  * @author Healnjoo (RK2)
  * @author Mdkdoc420 (RK2)
- *
- * @Instance
- *
- * Commands this controller contains:
- *	@DefineCommand(
- *		command     = 'nano',
- *		accessLevel = 'all',
- *		description = 'Searches for a nano and tells you were to get it',
- *		help        = 'nano.txt'
- *	)
- *	@DefineCommand(
- *		command     = 'nanolines',
- *		accessLevel = 'all',
- *		description = 'Shows nanos based on nanoline',
- *		help        = 'nanolines.txt',
- *		alias		= 'nl'
- *	)
- *	@DefineCommand(
- *		command     = 'nanolinesfroob',
- *		accessLevel = 'all',
- *		description = 'Shows nanos for froobs based on nanoline ',
- *		help        = 'nanolinesfroob.txt',
- *		alias		= 'nlf'
- *	)
- *	@DefineCommand(
- *		command     = 'nanoloc',
- *		accessLevel = 'all',
- *		description = 'Browse nanos by location',
- *		help        = 'nano.txt'
- *	)
  */
-class NanoController {
-
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
-
-	/** @Inject */
+#[
+	NCA\Instance,
+	NCA\HasMigrations,
+	NCA\DefineCommand(
+		command: "nano",
+		accessLevel: "guest",
+		description: "Searches for a nano and tells you were to get it",
+	),
+	NCA\DefineCommand(
+		command: "nanolines",
+		accessLevel: "guest",
+		description: "Shows nanos based on nanoline",
+		alias: "nl"
+	),
+	NCA\DefineCommand(
+		command: "nanolinesfroob",
+		accessLevel: "guest",
+		description: "Shows nanos for froobs based on nanoline ",
+		alias: "nlf"
+	),
+	NCA\DefineCommand(
+		command: "nanoloc",
+		accessLevel: "guest",
+		description: "Browse nanos by location",
+	),
+]
+class NanoController extends ModuleInstance {
+	#[NCA\Inject]
 	public DB $db;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public SettingManager $settingManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Text $text;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Util $util;
 
-	/**
-	 * This handler is called on bot startup.
-	 * @Setup
-	 */
+	/** Number of Nanos shown on the list */
+	#[NCA\Setting\Number(options: [30, 40, 50, 60])]
+	public int $maxnano = 40;
+
+	/** @var array<int,Nanoline> */
+	public array $nanolines = [];
+	#[NCA\Setup]
 	public function setup(): void {
-		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations");
 		$this->db->loadCSVFile($this->moduleName, __DIR__ . "/nanos.csv");
 		$this->db->loadCSVFile($this->moduleName, __DIR__ . "/nano_lines.csv");
 
-		$this->settingManager->add(
-			$this->moduleName,
-			'maxnano',
-			'Number of Nanos shown on the list',
-			'edit',
-			"number",
-			'40',
-			'30;40;50;60',
-			"",
-			"mod"
-		);
-		$this->settingManager->add(
-			$this->moduleName,
-			"shownanolineicons",
-			"Show icons for the nanolines",
-			"edit",
-			"options",
-			"0",
-			"true;false",
-			"1;0"
-		);
+		$this->nanolines = $this->db->table("nano_lines")
+			->asObj(Nanoline::class)
+			->keyBy("strain_id")
+			->toArray();
 	}
 
-	/**
-	 * @HandlesCommand("nano")
-	 */
+	/** Search for a nano by name */
+	#[NCA\HandlesCommand("nano")]
+	#[NCA\Help\Group("nano")]
 	public function nanoCommand(CmdContext $context, string $search): void {
 		$search = htmlspecialchars_decode($search);
 		$query = $this->db->table("nanos")
 			->orderBy("strain")
 			->orderBy("sub_strain")
 			->orderBy("sort_order")
-			->limit($this->settingManager->getInt("maxnano")??40);
+			->limit($this->maxnano);
 		$tmp = explode(" ", $search);
 		$this->db->addWhereFromParams($query, $tmp, "nano_name");
 
@@ -161,25 +139,24 @@ class NanoController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @HandlesCommand("nanolines")
-	 */
+	/** Show all professions that have nanolines */
+	#[NCA\HandlesCommand("nanolines")]
+	#[NCA\Help\Group("nanolines")]
 	public function nanolinesListProfsCommand(CmdContext $context): void {
 		$this->listNanolineProfs($context, false);
 	}
 
-	/**
-	 * @HandlesCommand("nanolinesfroob")
-	 */
+	/** Show all froob professions that have nanolines */
+	#[NCA\HandlesCommand("nanolinesfroob")]
+	#[NCA\Help\Group("nanolines")]
 	public function nanolinesFroobListProfsCommand(CmdContext $context): void {
 		$this->listNanolineProfs($context, true);
 	}
 
 	/**
 	 * List all professions for which nanolines exist
-	 *
 	 * @param CmdContext $context Where to send the reply to
-	 * @param bool $froobObly Is set, only show professions a froob can play
+	 * @param bool $froobOnly Is set, only show professions a froob can play
 	 * @return void
 	 */
 	public function listNanolineProfs(CmdContext $context, bool $froobOnly): void {
@@ -190,12 +167,13 @@ class NanoController {
 		if ($froobOnly) {
 			$query->whereNotIn("professions", ["Keeper", "Shade"]);
 		}
-		$data = $query->asObj();
+		/** @var Collection<string> */
+		$profs = $query->pluckAs("professions", "string");
 
 		$blob = "<header2>Choose a profession<end>\n";
 		$command = $froobOnly ? "nanolinesfroob" : "nanolines";
-		foreach ($data as $row) {
-			$blob .= "<tab>" . $this->text->makeChatcmd($row->professions, "/tell <myname> $command $row->professions");
+		foreach ($profs as $prof) {
+			$blob .= "<tab>" . $this->text->makeChatcmd($prof, "/tell <myname> {$command} {$prof}");
 			$blob .= "\n";
 		}
 		$blob .= $this->getFooter();
@@ -204,18 +182,18 @@ class NanoController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @HandlesCommand("nanolines")
-	 */
-	public function nanolinesListCommand(CmdContext $context, string $arg): void {
-		$this->listNanolines($context, false, $arg);
+	/** Show all nanos in a given nano line */
+	#[NCA\HandlesCommand("nanolines")]
+	#[NCA\Help\Group("nanolines")]
+	public function nanolinesListCommand(CmdContext $context, string $nanoLine): void {
+		$this->listNanolines($context, false, $nanoLine);
 	}
 
-	/**
-	 * @HandlesCommand("nanolinesfroob")
-	 */
-	public function nanolinesFroobListCommand(CmdContext $context, string $arg): void {
-		$this->listNanolines($context, true, $arg);
+	/** Show all froob-usable nanos in a given nano line */
+	#[NCA\HandlesCommand("nanolinesfroob")]
+	#[NCA\Help\Group("nanolines")]
+	public function nanolinesFroobListCommand(CmdContext $context, string $nanoLine): void {
+		$this->listNanolines($context, true, $nanoLine);
 	}
 
 	public function listNanolines(CmdContext $context, bool $froobOnly, string $arg): void {
@@ -289,7 +267,6 @@ class NanoController {
 
 	/**
 	 * List all nanolines for a profession, grouped by school
-	 *
 	 * @param string $profession The full name of the profession
 	 * @param bool   $froobOnly  If true, only show nanolines containing nanos a froob can use
 	 * @param CmdContext $context Object to send the reply to
@@ -309,7 +286,8 @@ class NanoController {
 			}
 			$query->where("froob_friendly", true);
 		}
-		$data = $query->asObj()->toArray();
+		/** @var SchoolAndStrain[] */
+		$data = $query->asObj(SchoolAndStrain::class)->toArray();
 
 		$shortProf = $profession;
 		if ($profession !== 'General') {
@@ -339,24 +317,26 @@ class NanoController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @HandlesCommand("nanoloc")
-	 */
+	/** Show a list of nano locations */
+	#[NCA\HandlesCommand("nanoloc")]
+	#[NCA\Help\Group("nano")]
 	public function nanolocListCommand(CmdContext $context): void {
 		$query = $this->db->table("nanos")
 			->groupBy("location")
 			->orderBy("location")
 			->select("location");
 		$query->addSelect($query->colFunc("COUNT", "location", "count"));
-		$data = $query->asObj();
+		/** @var Collection<LocationCount> */
+		$data = $query->asObj(LocationCount::class);
 		$nanoCount = [];
 		foreach ($data as $row) {
-			$locations = preg_split("/\s*\/\s*/", $row->location);
+			$locations = \Safe\preg_split("/\s*\/\s*/", $row->location);
 			foreach ($locations as $loc) {
 				$nanoCount[$loc] = ($nanoCount[$loc]??0) + $row->count;
 			}
 		}
 		ksort($nanoCount);
+		/** @var array<string,int> $nanoCount */
 
 		$blob = "<header2>All nano locations<end>\n";
 		foreach ($nanoCount as $loc => $count) {
@@ -370,9 +350,9 @@ class NanoController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @HandlesCommand("nanoloc")
-	 */
+	/** Search for a nano by location */
+	#[NCA\HandlesCommand("nanoloc")]
+	#[NCA\Help\Group("nano")]
 	public function nanolocViewCommand(CmdContext $context, string $location): void {
 		$nanos = $this->db->table("nanos")
 			->whereIlike("location", $location)
@@ -421,5 +401,16 @@ class NanoController {
 	 */
 	public function makeNanoLink(Nano $nano): string {
 		return "<a href='itemid://53019/{$nano->nano_id}'>{$nano->nano_name}</a>";
+	}
+
+	/** @return Collection<Nanoline> */
+	public function getNanoLinesByIds(int ...$ids): Collection {
+		return $this->db->table("nano_lines")
+			->whereIn("strain_id", $ids)
+			->asObj(Nanoline::class);
+	}
+
+	public function getNanoLineById(int $id): ?Nanoline {
+		return $this->nanolines[$id] ?? null;
 	}
 }

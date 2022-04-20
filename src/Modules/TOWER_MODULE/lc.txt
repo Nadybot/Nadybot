@@ -1,8 +1,0 @@
-To see a list of all the tower playfields:
-<highlight><tab><symbol>lc<end>
-
-To see info about all sites in a playfield:
-<highlight><tab><symbol>lc 'playfield'<end>
-
-To see a info about a specific site:
-<highlight><tab><symbol>lc 'playfield' 'site number'<end>

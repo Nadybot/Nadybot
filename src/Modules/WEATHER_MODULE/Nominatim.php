@@ -3,6 +3,7 @@
 namespace Nadybot\Modules\WEATHER_MODULE;
 
 use Nadybot\Core\JSONDataModel;
+use stdClass;
 
 class Nominatim extends JSONDataModel {
 	public string $lat;
@@ -14,9 +15,9 @@ class Nominatim extends JSONDataModel {
 	public string $licence;
 	public string $osm_type;
 	public int $osm_id;
-	public object $namedetails;
+	public stdClass $namedetails;
 	public string $type;
 	public string $category;
 	public NominatimAddress $address;
-	public object $extratags;
+	public stdClass $extratags;
 }

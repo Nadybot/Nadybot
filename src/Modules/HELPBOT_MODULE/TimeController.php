@@ -3,39 +3,34 @@
 namespace Nadybot\Modules\HELPBOT_MODULE;
 
 use DateTime;
-use Nadybot\Core\CmdContext;
-use Nadybot\Core\Text;
-use Nadybot\Core\Util;
+use Nadybot\Core\{
+	Attributes as NCA,
+	CmdContext,
+	ModuleInstance,
+	Text,
+	Util,
+};
 
 /**
  * @author Tyrence (RK2)
- *
- * @Instance
- *
- * Commands this controller contains:
- *	@DefineCommand(
- *		command     = 'time',
- *		accessLevel = 'all',
- *		description = 'Show the time in the different timezones',
- *		help        = 'time.txt'
- *	)
  */
-class TimeController {
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
-
-	/** @Inject */
+#[
+	NCA\Instance,
+	NCA\DefineCommand(
+		command: "time",
+		accessLevel: "guest",
+		description: "Show the time in the different timezones",
+	)
+]
+class TimeController extends ModuleInstance {
+	#[NCA\Inject]
 	public Util $util;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Text $text;
 
-	/**
-	 * @HandlesCommand("time")
-	 */
+	/** Show the current time in a list of time zones */
+	#[NCA\HandlesCommand("time")]
 	public function timeListCommand(CmdContext $context): void {
 		$link  = "<header2>Australia<end>\n";
 		$link .= "<tab><highlight>Western Australia<end>\n";
@@ -106,14 +101,15 @@ class TimeController {
 		));
 	}
 
-	/**
-	 * @HandlesCommand("time")
-	 */
-	public function timeShowCommand(CmdContext $context, string $zone): void {
-		$zone = strtoupper($zone);
-		$timezone = $this->getTimezone($zone);
-		if ($timezone !== null) {
-			$msg = "{$timezone->name} is <highlight>{$timezone->time}<end>";
+	/** Show the current time in a given time zones */
+	#[NCA\HandlesCommand("time")]
+	#[NCA\Help\Example("<symbol>time MST")]
+	#[NCA\Help\Example("<symbol>time CET")]
+	public function timeShowCommand(CmdContext $context, string $timeZone): void {
+		$timeZone = strtoupper($timeZone);
+		$timeZone = $this->getTimezone($timeZone);
+		if ($timeZone !== null) {
+			$msg = "{$timeZone->name} is <highlight>{$timeZone->time}<end>";
 		} else {
 			$msg = "Unknown timezone.";
 		}
@@ -121,7 +117,7 @@ class TimeController {
 		$context->reply($msg);
 	}
 
-	public function safeGetTimezone($tz): Timezone {
+	public function safeGetTimezone(string $tz): Timezone {
 		$obj = $this->getTimezone($tz);
 		if (isset($obj)) {
 			return $obj;
@@ -133,10 +129,10 @@ class TimeController {
 		return $obj;
 	}
 
-	public function getTimezone($tz): ?Timezone {
+	public function getTimezone(string $tz): ?Timezone {
 		$date = new DateTime();
 		$time = time() - $date->getOffset();
-		$time_format = "dS M, H:i";
+		$time_format = "F j, Y, H:i";
 
 		switch ($tz) {
 			case "CST":
@@ -275,7 +271,7 @@ class TimeController {
 		$obj = new Timezone();
 		$obj->name = $name;
 		$obj->offset = $offset;
-		$obj->time = date($time_format, (int)($time + $offset));
+		$obj->time = \Safe\date($time_format, (int)($time + $offset));
 		return $obj;
 	}
 }

@@ -2,26 +2,46 @@
 
 namespace Nadybot\Modules\RELAY_MODULE\Layer;
 
-use Nadybot\Core\LoggerWrapper;
-use Nadybot\Core\Timer;
-use Nadybot\Core\TimerEvent;
-use Nadybot\Core\Util;
-use Nadybot\Modules\RELAY_MODULE\Layer\Chunker\Chunk;
-use Nadybot\Modules\RELAY_MODULE\Relay;
-use Nadybot\Modules\RELAY_MODULE\RelayLayerInterface;
-use Nadybot\Modules\RELAY_MODULE\RelayMessage;
+use InvalidArgumentException;
+use Nadybot\Core\{
+	Attributes as NCA,
+	LoggerWrapper,
+	Timer,
+	TimerEvent,
+	Util,
+};
+use Nadybot\Modules\RELAY_MODULE\{
+	Layer\Chunker\Chunk,
+	Relay,
+	RelayLayerInterface,
+	RelayMessage,
+};
 use Throwable;
 
-/**
- * @RelayStackMember("chunker")
- * @Description("This adds the ability to chunk and re-assemble
- * 	long messages on the fly, so we can send large payloads
- * 	over a medium that only has a limited package size.
- * 	Of course this only works if all Bots use this chunker.")
- * @Param(name='length', description='The maximum supported chunk size', type='int', required=true)
- * @Param(name='timeout', description='How many seconds to wait for all packets to arrive', type='int', required=false)
- */
+#[
+	NCA\RelayStackMember(
+		name: "chunker",
+		description:
+			"This adds the ability to chunk and re-assemble\n".
+			"long messages on the fly, so we can send large payloads\n".
+			"over a medium that only has a limited package size.\n".
+			"Of course this only works if all Bots use this chunker."
+	),
+	NCA\Param(
+		name: "length",
+		type: "int",
+		description: "The maximum supported chunk size",
+		required: true
+	),
+	NCA\Param(
+		name: "timeout",
+		type: "int",
+		description: "How many seconds to wait for all packets to arrive",
+		required: false
+	)
+]
 class Chunker implements RelayLayerInterface {
+	/** @psalm-var positive-int */
 	protected int $chunkSize = 50000;
 	protected int $timeout = 60;
 
@@ -30,18 +50,21 @@ class Chunker implements RelayLayerInterface {
 	/** @var array<string,array<int,Chunk>> */
 	protected $queue = [];
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Timer $timer;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Util $util;
 
 	protected TimerEvent $timerEvent;
 
-	/** @Logger */
+	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
 	public function __construct(int $chunkSize, int $timeout=60) {
+		if ($chunkSize < 1) {
+			throw new InvalidArgumentException("length cannot be less than 1");
+		}
 		$this->chunkSize = $chunkSize;
 		$this->timeout = $timeout;
 	}
@@ -77,9 +100,6 @@ class Chunker implements RelayLayerInterface {
 			return [$packet];
 		}
 		$chunks = str_split($packet, $this->chunkSize);
-		if ($chunks === false) {
-			return [$packet];
-		}
 		$result = [];
 		$uuid = $this->util->createUUID();
 		$part = 1;
@@ -92,9 +112,9 @@ class Chunker implements RelayLayerInterface {
 				"sent" => $created,
 				"data" => $chunk,
 			]);
-			$json = json_encode($msg, JSON_UNESCAPED_SLASHES|JSON_INVALID_UTF8_SUBSTITUTE);
+			$json = \Safe\json_encode($msg, JSON_UNESCAPED_SLASHES|JSON_INVALID_UTF8_SUBSTITUTE);
 			if ($json !== false) {
-				$result []= json_encode($msg, JSON_UNESCAPED_SLASHES|JSON_INVALID_UTF8_SUBSTITUTE);
+				$result []= \Safe\json_encode($msg, JSON_UNESCAPED_SLASHES|JSON_INVALID_UTF8_SUBSTITUTE);
 			}
 		}
 		return $result;
@@ -103,7 +123,7 @@ class Chunker implements RelayLayerInterface {
 	public function receive(RelayMessage $msg): ?RelayMessage {
 		foreach ($msg->packages as &$data) {
 			try {
-				$json = json_decode($data, true, 512, JSON_THROW_ON_ERROR);
+				$json = \Safe\json_decode($data, true);
 				$chunk = new Chunk($json);
 			} catch (Throwable $e) {
 				// Chunking is optional

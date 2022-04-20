@@ -6,135 +6,102 @@ use Exception;
 use Illuminate\Database\Schema\Blueprint;
 use Nadybot\Core\{
 	AccessManager,
+	Attributes as NCA,
 	CmdContext,
 	CommandAlias,
 	DB,
+	ModuleInstance,
 	LoggerWrapper,
+	Modules\ALTS\AltsController,
 	Nadybot,
+	ParamClass\PCharacter,
+	ParamClass\PRemove,
+	ParamClass\PWord,
 	SettingManager,
 	SQLException,
 	Text,
 	Util,
 };
-use Nadybot\Core\Modules\ALTS\AltsController;
-use Nadybot\Core\ParamClass\PCharacter;
-use Nadybot\Core\ParamClass\PRemove;
-use Nadybot\Core\ParamClass\PWord;
 
 /**
  * @author Nadyita (RK5) <nadyita@hodorraid.org>
- *
- * @Instance
- *
- * Commands this controller contains:
- *	@DefineCommand(
- *		command     = 'comment',
- *		accessLevel = 'member',
- *		description = 'read/write comments about players',
- *		help        = 'comment.txt'
- *	)
- *	@DefineCommand(
- *		command     = 'commentcategories',
- *		accessLevel = 'mod',
- *		description = 'Manage comment categories',
- *		help        = 'comment-categories.txt'
- *	)
  */
-class CommentController {
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
-
-	/** @Inject */
+#[
+	NCA\Instance,
+	NCA\HasMigrations,
+	NCA\DefineCommand(
+		command: "comment",
+		accessLevel: "member",
+		description: "read/write comments about players",
+		alias: 'comments',
+	),
+	NCA\DefineCommand(
+		command: "comment categories",
+		accessLevel: "mod",
+		description: "Manage comment categories",
+	),
+]
+class CommentController extends ModuleInstance {
+	#[NCA\Inject]
 	public CommandAlias $commandAlias;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public AltsController $altsController;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public AccessManager $accessManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public SettingManager $settingManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Nadybot $chatBot;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public DB $db;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Util $util;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Text $text;
 
-	/** @Logger */
+	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
-	public const ADMIN="admin";
+	/** How long is the cooldown between leaving 2 comments for the same character */
+	#[NCA\Setting\Time(options: ["1s", "1h", "6h", "24h"])]
+	public int $commentCooldown = 6 * 3600;
 
-	/**
-	 * @Setup
-	 */
+	/** Share comments between bots on same database */
+	#[NCA\Setting\Boolean]
+	public bool $shareComments = false;
+
+	/** Database table for comments */
+	#[NCA\Setting\Text(mode: "noedit")]
+	public string $tableNameComments = "comments_<myname>";
+
+	/** Database table for comment categories */
+	#[NCA\Setting\Text(mode: "noedit")]
+	public string $tableNameCommentCategories = "comment_categories_<myname>";
+
+	public const ADMIN = "admin";
+
+	#[NCA\Setup]
 	public function setup(): void {
-		$this->commandAlias->register($this->moduleName, "commentcategories", "comment categories");
-		$this->commandAlias->register($this->moduleName, "commentcategories", "comment category");
-		$this->commandAlias->register($this->moduleName, "comment", "comments");
 		$sm = $this->settingManager;
-		$sm->add(
-			$this->moduleName,
-			"comment_cooldown",
-			"How long is the cooldown between leaving 2 comments for the same character",
-			"edit",
-			"time",
-			"6h",
-			"1s;1h;6h;24h",
-			'',
-			"mod"
-		);
-		$sm->add(
-			$this->moduleName,
-			"share_comments",
-			"Share comments between bots on same database",
-			"edit",
-			"options",
-			"0",
-			"true;false",
-			'1;0',
-			"mod"
-		);
-		$sm->add(
-			$this->moduleName,
-			"table_name_comments",
-			"Database table for comments",
-			"noedit",
-			"text",
-			"comments_<myname>",
-		);
-		$sm->add(
-			$this->moduleName,
-			"table_name_comment_categories",
-			"Database table for comment categories",
-			"noedit",
-			"text",
-			"comment_categories_<myname>",
-		);
-		$this->db->registerTableName("comments", $sm->getString("table_name_comments")??"");
-		$this->db->registerTableName("comment_categories", $sm->getString("table_name_comment_categories")??"");
-		$sm->registerChangeListener("share_comments", [$this, "changeTableSharing"]);
-		$this->db->loadMigrations($this->moduleName, __DIR__ . '/Migrations');
+		$this->db->registerTableName("comments", $this->tableNameComments);
+		$this->db->registerTableName("comment_categories", $this->tableNameCommentCategories);
 	}
 
-	public function changeTableSharing(string $settingName, string $oldValue, string $newValue, $data): void {
+	#[NCA\SettingChangeHandler("share_comments")]
+	public function changeTableSharing(string $settingName, string $oldValue, string $newValue, mixed $data): void {
 		if ($oldValue === $newValue) {
 			return;
 		}
 		$this->logger->info("Comment sharing changed");
-		$oldCommentTable = $this->settingManager->getString("table_name_comments");
-		$oldCategoryTable = $this->settingManager->getString("table_name_comment_categories");
+		$oldCommentTable = $this->tableNameComments;
+		$oldCategoryTable = $this->tableNameCommentCategories;
 		$this->db->beginTransaction();
 		try {
 			// read all current entries
@@ -148,7 +115,7 @@ class CommentController {
 				$newCategoryTable = "comment_categories";
 				if (!$this->db->schema()->hasTable("comments")) {
 					$this->logger->notice('Creating table comments');
-					$this->db->schema()->create("comments", function(Blueprint $table) {
+					$this->db->schema()->create("comments", function(Blueprint $table): void {
 						$table->id();
 						$table->string("character", 15)->index();
 						$table->string("created_by", 15);
@@ -158,7 +125,7 @@ class CommentController {
 					});
 				}
 				if (!$this->db->schema()->hasTable("comment_categories")) {
-					$this->db->schema()->create("comment_categories", function(Blueprint $table) {
+					$this->db->schema()->create("comment_categories", function(Blueprint $table): void {
 						$table->string("name", 20)->primary();
 						$table->string("created_by", 15);
 						$table->integer("created_at");
@@ -201,8 +168,8 @@ class CommentController {
 		} catch (SQLException $e) {
 			$this->logger->error("Error changing comment tables: " . $e->getMessage(), ["exception" => $e]);
 			$this->db->rollback();
-			$this->db->registerTableName("comments", $oldCommentTable??"");
-			$this->db->registerTableName("comment_categories", $oldCategoryTable??"");
+			$this->db->registerTableName("comments", $oldCommentTable);
+			$this->db->registerTableName("comment_categories", $oldCategoryTable);
 			throw new Exception("There was an error copying the comments in the database");
 		}
 		$this->db->commit();
@@ -225,7 +192,6 @@ class CommentController {
 
 	/**
 	 * Delete a single category by its name
-	 *
 	 * @return int|null Number of deleted comments or null if the category didn't exist
 	 */
 	public function deleteCategory(string $category): ?int {
@@ -239,11 +205,13 @@ class CommentController {
 	}
 
 	/**
-	 * Command to list all categories
-	 *
-	 * @HandlesCommand("commentcategories")
+	 * Get a list of all defined comment categories
 	 */
-	public function listCategoriesCommand(CmdContext $context): void {
+	#[NCA\HandlesCommand("comment categories")]
+	public function listCategoriesCommand(
+		CmdContext $context,
+		#[NCA\Str("category", "categories")] string $action,
+	): void {
 		/** @var CommentCategory[] */
 		$categories = $this->db->table("<table:comment_categories>")
 			->asObj(CommentCategory::class)->toArray();
@@ -278,11 +246,17 @@ class CommentController {
 	}
 
 	/**
-	 * Command to delete a category
+	 * Delete a category and all comments within it
 	 *
-	 * @HandlesCommand("commentcategories")
+	 * You can only delete categories to which you have the access level for reading and writing
 	 */
-	public function deleteCategoryCommand(CmdContext $context, PRemove $action, string $category): void {
+	#[NCA\HandlesCommand("comment categories")]
+	public function deleteCategoryCommand(
+		CmdContext $context,
+		#[NCA\Str("category", "categories")] string $action,
+		PRemove $subAction,
+		string $category
+	): void {
 		$cat = $this->getCategory($category);
 		if (isset($cat)) {
 			if ($cat->user_managed === false) {
@@ -318,14 +292,14 @@ class CommentController {
 	}
 
 	/**
-	 * Command to add a new category
-	 *
-	 * @HandlesCommand("commentcategories")
-	 * @Mask $action (add|create|new|edit|change)
+	 * Add a new comment category with a minimum access level of
+	 * &lt;al for reading&gt; and optionally a &lt;al for writing&gt;
 	 */
+	#[NCA\HandlesCommand("comment categories")]
 	public function addCategoryCommand(
 		CmdContext $context,
-		string $action,
+		#[NCA\Str("category", "categories")] string $action,
+		#[NCA\Str("add", "create", "new", "edit", "change")] string $subAction,
 		PWord $category,
 		PWord $alForReading,
 		?PWord $alForWriting
@@ -365,14 +339,19 @@ class CommentController {
 	}
 
 	/**
-	 * Command to add a new comment
-	 *
-	 * @HandlesCommand("comment")
-	 * @Mask $action (add|create|new)
+	 * Add a new comment &lt;comment text&lt; about &lt;char&gt; in the category &lt;category&gt;
 	 */
+	#[NCA\HandlesCommand("comment")]
+	#[NCA\Help\Epilogue(
+		"<header2>Customization<end>\n\n".
+		"In order to simulate the old kill-on-sight list (kos), you could do:\n".
+		"<tab>1. <highlight><symbol>alias add kos comment list kos<end>\n".
+		"<tab>2. <highlight><symbol>alias add \"kos add\" comment add {1} kos {2:Kill on sight}<end>\n".
+		"<tab>3. <highlight><symbol>comment category add kos guild<end>\n"
+	)]
 	public function addCommentCommand(
 		CmdContext $context,
-		string $action,
+		#[NCA\Str("add", "create", "new")] string $action,
 		PCharacter $char,
 		PWord $category,
 		string $commentText
@@ -396,7 +375,7 @@ class CommentController {
 			);
 			return;
 		}
-		if ($this->altsController->getAltInfo($context->char->name)->main === $this->altsController->getAltInfo($character)->main) {
+		if ($this->altsController->getMainOf($context->char->name) === $this->altsController->getMainOf($character)) {
 			$context->reply("You cannot comment on yourself.");
 			return;
 		}
@@ -421,10 +400,10 @@ class CommentController {
 	 * about the same character again.
 	 */
 	protected function getCommentCooldown(Comment $comment): int {
-		if ($comment->created_by === $this->chatBot->vars["name"]) {
+		if ($comment->created_by === $this->chatBot->char->name) {
 			return 0;
 		}
-		$cooldown = $this->settingManager->getInt("comment_cooldown") ?? 1;
+		$cooldown = $this->commentCooldown;
 		// Get all comments about that same character
 		$comments = $this->getComments(null, $comment->character);
 		// Only keep those that were created by the same person creating one now
@@ -463,14 +442,13 @@ class CommentController {
 	}
 
 	/**
-	 * Command to read comments about a player
-	 *
-	 * @HandlesCommand("comment")
-	 * @Mask $action (get|search|find)
+	 * Get a list of all comments about a character and their alts.
+	 * If &lt;category&gt; is given, limit the list to this category
 	 */
+	#[NCA\HandlesCommand("comment")]
 	public function searchCommentCommand(
 		CmdContext $context,
-		string $action,
+		#[NCA\Str("get", "search", "find")] string $action,
 		PCharacter $char,
 		?PWord $category
 	): void {
@@ -495,7 +473,8 @@ class CommentController {
 				return;
 			}
 		}
-		/** @var Comment[] */
+		/** @var ?CommentCategory $category */
+		/** @var Comment[] $comments */
 		$comments = $this->getComments($category, $character);
 		$comments = $this->filterInaccessibleComments($comments, $context->char->name);
 		if (!count($comments)) {
@@ -513,12 +492,14 @@ class CommentController {
 	}
 
 	/**
-	 * Command to read comments about a player
-	 *
-	 * @HandlesCommand("comment")
-	 * @Mask $action list
+	 * Get a list of all comments of category &lt;category&gt; about all characters
 	 */
-	public function listCommentsCommand(CmdContext $context, string $action, PWord $categoryName): void {
+	#[NCA\HandlesCommand("comment")]
+	public function listCommentsCommand(
+		CmdContext $context,
+		#[NCA\Str("list")] string $action,
+		PWord $categoryName
+	): void {
 		$category = $this->getCategory($categoryName());
 		if ($category === null) {
 			$context->reply("The category <highlight>{$categoryName}<end> does not exist.");
@@ -550,6 +531,8 @@ class CommentController {
 
 	/**
 	 * Remove all comments from $comments that $sender does not have permission to read
+	 * @param Comment[] $comments
+	 * @return Comment[]
 	 */
 	public function filterInaccessibleComments(array $comments, string $sender): array {
 		$accessCache = [];
@@ -589,7 +572,7 @@ class CommentController {
 		if ($groupByMain) {
 			$grouped = [];
 			foreach ($chars as $char => $comments) {
-				$main = $this->altsController->getAltInfo($char)->main;
+				$main = $this->altsController->getMainOf($char);
 				$grouped[$main] ??= [];
 				$grouped[$main] = [...$grouped[$main], ...$comments];
 			}
@@ -624,11 +607,14 @@ class CommentController {
 	}
 
 	/**
-	 * Command to delete a comment about a player
-	 *
-	 * @HandlesCommand("comment")
+	 * Delete a comment about a player by its ID
 	 */
-	public function deleteCommentCommand(CmdContext $context, PRemove $action, int $id): void {
+	#[NCA\HandlesCommand("comment")]
+	public function deleteCommentCommand(
+		CmdContext $context,
+		PRemove $action,
+		int $id
+	): void {
 		/** @var ?Comment */
 		$comment = $this->db->table("<table:comments>")
 			->where("id", $id)
@@ -655,7 +641,6 @@ class CommentController {
 
 	/**
 	 * Read all comments about a list of players or their alts/main, optionally limited to a category
-	 *
 	 * @return Comment[]
 	 */
 	public function getComments(?CommentCategory $category, string ...$characters): array {
@@ -676,12 +661,10 @@ class CommentController {
 
 	/**
 	 * Count all comments about a list of players or their alts/main, optionally limited to a category
-	 *
 	 * @return int
 	 */
 	public function countComments(?CommentCategory $category, string ...$characters): int {
 		$query = $this->db->table("<table:comments>");
-		$query->select($query->rawFunc("COUNT", "*", "num"));
 		$chars = [];
 		foreach ($characters as $character) {
 			$altInfo = $this->altsController->getAltInfo($character);
@@ -691,12 +674,11 @@ class CommentController {
 		if (isset($category)) {
 			$query->where("category", $category->name);
 		}
-		return (int)$query->asObj()->first()->num;
+		return $query->count();
 	}
 
 	/**
 	 * Read all comments about of a category
-	 *
 	 * @return Comment[]
 	 */
 	public function readCategoryComments(CommentCategory $category): array {

@@ -3,6 +3,8 @@
 namespace Nadybot\Modules\RELAY_MODULE;
 
 use Nadybot\Core\{
+	Attributes as NCA,
+	ConfigFile,
 	DBSchema\Player,
 	LoggerWrapper,
 	MessageHub,
@@ -19,6 +21,7 @@ use Nadybot\Modules\{
 	ONLINE_MODULE\OnlinePlayer,
 	RELAY_MODULE\RelayProtocol\RelayProtocolInterface,
 	RELAY_MODULE\Transport\TransportInterface,
+	WEBSERVER_MODULE\StatsController,
 };
 
 class Relay implements MessageReceiver {
@@ -26,23 +29,32 @@ class Relay implements MessageReceiver {
 	public const ALLOW_IN = 1;
 	public const ALLOW_OUT = 2;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public MessageHub $messageHub;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Nadybot $chatBot;
 
-	/** @Inject */
+	#[NCA\Inject]
+	public ConfigFile $config;
+
+	#[NCA\Inject]
 	public SettingManager $settingManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public PlayerManager $playerManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Timer $timer;
 
-	/** @Logger */
+	#[NCA\Inject]
+	public StatsController $statsController;
+
+	#[NCA\Logger]
 	public LoggerWrapper $logger;
+
+	private RelayPacketsStats $inboundPackets;
+	private RelayPacketsStats $outboundPackets;
 
 	/** Name of this relay */
 	protected string $name;
@@ -119,17 +131,16 @@ class Relay implements MessageReceiver {
 			$player->charid = $uid;
 		}
 		$this->onlineChars[$where][$character] = $player;
-		$this->playerManager->getByNameCallback(
+		$this->playerManager->getByNameAsync(
 			function(?Player $player) use ($where, $character, $clientId): void {
 				if (!isset($player) || !isset($this->onlineChars[$where][$character])) {
 					return;
 				}
 				$player->source = $clientId;
-				foreach ($player as $key => $value) {
+				foreach (get_object_vars($player) as $key => $value) {
 					$this->onlineChars[$where][$character]->{$key} = $value;
 				}
 			},
-			false,
 			$character,
 			$dimension
 		);
@@ -213,9 +224,15 @@ class Relay implements MessageReceiver {
 		RelayProtocolInterface $relayProtocol,
 		RelayLayerInterface ...$stack
 	): void {
+		/** @var RelayLayerInterface[] $stack */
 		$this->transport = $transport;
 		$this->relayProtocol = $relayProtocol;
 		$this->stack = $stack;
+		$basename = basename(str_replace('\\', '/', get_class($relayProtocol)));
+		$this->inboundPackets = new RelayPacketsStats($basename, $this->getName(), "in");
+		$this->outboundPackets = new RelayPacketsStats($basename, $this->getName(), "out");
+		$this->statsController->registerProvider($this->inboundPackets, "relay");
+		$this->statsController->registerProvider($this->outboundPackets, "relay");
 	}
 
 	public function deinit(?callable $callback=null, int $index=0): void {
@@ -327,6 +344,7 @@ class Relay implements MessageReceiver {
 	 * Handle data received from the transport layer
 	 */
 	public function receiveFromTransport(RelayMessage $data): void {
+		$this->inboundPackets->inc();
 		foreach ($this->stack as $stackMember) {
 			$data = $stackMember->receive($data);
 			if (!isset($data)) {
@@ -352,12 +370,12 @@ class Relay implements MessageReceiver {
 	 * when we send data, so it can always be traced to us
 	 */
 	protected function prependMainHop(RoutableEvent $event): void {
-		$isOrgBot = strlen($this->chatBot->vars["my_guild"]??"") > 0;
+		$isOrgBot = strlen($this->config->orgName) > 0;
 		if (!empty($event->path) && $event->path[0]->type !== Source::ORG && $isOrgBot) {
 			$abbr = $this->settingManager->getString("relay_guild_abbreviation");
 			$event->prependPath(new Source(
 				Source::ORG,
-				$this->chatBot->vars["my_guild"],
+				$this->config->orgName,
 				($abbr === "none") ? null : $abbr
 			));
 		} elseif (!empty($event->path) && $event->path[0]->type !== Source::PRIV && !$isOrgBot) {
@@ -378,9 +396,11 @@ class Relay implements MessageReceiver {
 		for ($i = count($this->stack); $i--;) {
 			$data = $this->stack[$i]->send($data);
 		}
+		$this->outboundPackets->inc(count($data));
 		return empty($this->transport->send($data));
 	}
 
+	/** @param string[] $data */
 	public function receiveFromMember(RelayStackMemberInterface $member, array $data): void {
 		$i = count($this->stack);
 		if ($member !== $this->relayProtocol) {
@@ -393,6 +413,7 @@ class Relay implements MessageReceiver {
 		for ($j = $i; $j--;) {
 			$data = $this->stack[$j]->send($data);
 		}
+		$this->outboundPackets->inc(count($data));
 		$this->transport->send($data);
 	}
 
@@ -412,6 +433,7 @@ class Relay implements MessageReceiver {
 		return $allow->outgoing;
 	}
 
+	/** @param RelayEvent[] $events */
 	public function setEvents(array $events): void {
 		$this->events = [];
 		foreach ($events as $event) {

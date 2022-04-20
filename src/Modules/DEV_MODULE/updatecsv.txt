@@ -1,2 +1,0 @@
-To update all your CSV files and thus static database content, use
-<highlight><tab><symbol>updatecsv<end>

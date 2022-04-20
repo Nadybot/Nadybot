@@ -10,6 +10,7 @@ class MockCommandReply implements CommandReply {
 
 	public ?string $logFile;
 	public string $command;
+	/** @var string[] */
 	public array $output = [];
 
 	public function __construct(string $command, ?string $logFile=null) {
@@ -17,7 +18,8 @@ class MockCommandReply implements CommandReply {
 		$this->command = $command;
 	}
 
-	public function reply($msg): void {
+	/** @param string|string[] $msg */
+	public function reply(string|array $msg): void {
 		foreach ((array)$msg as $result) {
 			if (isset($this->logger)) {
 				$this->logger->notice($result);
@@ -39,9 +41,9 @@ class MockCommandReply implements CommandReply {
 		if (!isset($this->logFile)) {
 			return;
 		}
-		file_put_contents(
+		\Safe\file_put_contents(
 			$this->logFile,
-			json_encode([
+			\Safe\json_encode([
 				"command" => $this->command,
 				"output" => $this->output,
 			], JSON_UNESCAPED_SLASHES|JSON_INVALID_UTF8_SUBSTITUTE|JSON_UNESCAPED_UNICODE) . PHP_EOL,

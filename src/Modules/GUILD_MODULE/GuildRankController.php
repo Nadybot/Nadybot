@@ -4,87 +4,84 @@ namespace Nadybot\Modules\GUILD_MODULE;
 
 use Exception;
 use Nadybot\Core\{
+	AccessLevelProvider,
 	AccessManager,
+	Attributes as NCA,
 	CmdContext,
 	CommandReply,
+	ConfigFile,
 	DB,
+	ModuleInstance,
+	Modules\PLAYER_LOOKUP\Guild,
+	Modules\PLAYER_LOOKUP\GuildManager,
 	Nadybot,
-	SettingManager,
+	ParamClass\PRemove,
+	ParamClass\PWord,
 	Text,
 };
-use Nadybot\Core\Modules\PLAYER_LOOKUP\Guild;
-use Nadybot\Core\Modules\PLAYER_LOOKUP\GuildManager;
-use Nadybot\Core\ParamClass\PRemove;
-use Nadybot\Core\ParamClass\PWord;
 use Nadybot\Modules\ORGLIST_MODULE\OrglistController;
 
 /**
  * @author Nadyita (RK5)
- *
- * @Instance
- *
- * Commands this controller contains:
- *	@DefineCommand(
- *		command     = "ranks",
- *		accessLevel = "all",
- *		description = "Show a list of all available org ranks",
- *		help        = "ranks.txt"
- *	)
- *	@DefineCommand(
- *		command     = "maprank",
- *		accessLevel = "admin",
- *		description = "Define how org ranks map to bot ranks",
- *		help        = "maprank.txt"
- *	)
  */
-class GuildRankController {
-
+#[
+	NCA\Instance,
+	NCA\HasMigrations("Migrations/RankMapping"),
+	NCA\DefineCommand(
+		command: "ranks",
+		accessLevel: "guest",
+		description: "Show a list of all available org ranks",
+	),
+	NCA\DefineCommand(
+		command: "maprank",
+		accessLevel: "admin",
+		description: "Define how org ranks map to bot ranks",
+	),
+]
+class GuildRankController extends ModuleInstance implements AccessLevelProvider {
 	public const DB_TABLE = "org_rank_mapping_<myname>";
 
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
-
-	/** @Inject */
+	#[NCA\Inject]
 	public DB $db;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Nadybot $chatBot;
 
-	/** @Inject */
+	#[NCA\Inject]
+	public ConfigFile $config;
+
+	#[NCA\Inject]
 	public AccessManager $accessManager;
 
-	/** @Inject */
-	public SettingManager $settingManager;
-
-	/** @Inject */
-	public GuildManager $guildManager;
-
-	/** @Inject */
+	#[NCA\Inject]
 	public GuildController $guildController;
 
-	/** @Inject */
+	#[NCA\Inject]
+	public GuildManager $guildManager;
+
+	#[NCA\Inject]
 	public OrglistController $orglistController;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Text $text;
 
-	/** @Setup */
-	public function setup(): void {
-		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations/RankMapping");
+	/** Map org ranks to bot ranks */
+	#[NCA\Setting\Boolean]
+	public bool $mapOrgRanksToBotRanks = false;
 
-		$this->settingManager->add(
-			$this->moduleName,
-			"map_org_ranks_to_bot_ranks",
-			"Map org ranks to bot ranks",
-			"edit",
-			"options",
-			"0",
-			"true;false",
-			"1;0"
-		);
+	#[NCA\Setup]
+	public function setup(): void {
+		$this->accessManager->registerProvider($this);
+	}
+
+	public function getSingleAccessLevel(string $sender): ?string {
+		if (!isset($this->chatBot->guildmembers[$sender])) {
+			return null;
+		}
+		if (!$this->mapOrgRanksToBotRanks) {
+			return "guild";
+		}
+		return $this->getEffectiveAccessLevel($this->chatBot->guildmembers[$sender]);
 	}
 
 	/**
@@ -109,16 +106,16 @@ class GuildRankController {
 		return $rank ? $rank->access_level : "guild";
 	}
 
-	/**
-	 * @HandlesCommand("maprank")
-	 */
+	/** Get a list of all your defined mappings of org rank to bot access level */
+	#[NCA\HandlesCommand("maprank")]
+	#[NCA\Help\Group("org-ranks")]
 	public function maprankListCommand(CmdContext $context): void {
 		if (!$this->guildController->isGuildBot()) {
 			$context->reply("The bot must be in an org.");
 			return;
 		}
 		$this->guildManager->getByIdAsync(
-			$this->chatBot->vars["my_guild_id"],
+			$this->config->orgId??0,
 			null,
 			false,
 			[$this, "displayRankMappings"],
@@ -162,21 +159,31 @@ class GuildRankController {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @HandlesCommand("maprank")
-	 * @Mask $to to
-	 */
-	public function maprankCommand(CmdContext $context, int $rank, ?string $to, PWord $accessLevel): void {
+	/** Give &lt;access level&gt; rights to every org member rank &lt;rank id&gt; or higher */
+	#[NCA\HandlesCommand("maprank")]
+	#[NCA\Help\Group("org-ranks")]
+	#[NCA\Help\Example(
+		command: "<symbol>maprank 0 to admin",
+		description: "Give admin rights to org rank 0 (President, Monarch, Lorg, etc.)"
+	)]
+	#[NCA\Help\Example(
+		command: "<symbol>maprank 1 to mod",
+		description: "Give mod rights to org rank 1 (Knight, Advisor, Board Member, etc.) or higher",
+	)]
+	#[NCA\Help\Epilogue(
+		"Use <a href='chatcmd:///tell <myname> ranks'><symbol>ranks</a> to get the numeric rank IDs of your org"
+	)]
+	public function maprankCommand(CmdContext $context, int $rankId, #[NCA\Str("to")] ?string $to, PWord $accessLevel): void {
 		if (!$this->guildController->isGuildBot()) {
 			$context->reply("The bot must be in an org.");
 			return;
 		}
 		$this->guildManager->getByIdAsync(
-			$this->chatBot->vars["my_guild_id"],
+			$this->config->orgId??0,
 			null,
 			false,
 			[$this, "setRankMapping"],
-			$rank,
+			$rankId,
 			$accessLevel(),
 			$context->char->name,
 			$context
@@ -247,16 +254,16 @@ class GuildRankController {
 		$sendto->reply("Every <highlight>{$rankName}<end> or higher will now be mapped to <highlight>{$alName}<end>.");
 	}
 
-	/**
-	 * @HandlesCommand("maprank")
-	 */
+	/** Remove the special rights for an org rank */
+	#[NCA\HandlesCommand("maprank")]
+	#[NCA\Help\Group("org-ranks")]
 	public function maprankDelCommand(CmdContext $context, PRemove $action, int $rankId): void {
 		if (!$this->guildController->isGuildBot()) {
 			$context->reply("The bot must be in an org.");
 			return;
 		}
 		$this->guildManager->getByIdAsync(
-			$this->chatBot->vars["my_guild_id"],
+			$this->config->orgId??0,
 			null,
 			false,
 			[$this, "delRankMapping"],
@@ -301,16 +308,16 @@ class GuildRankController {
 		);
 	}
 
-	/**
-	 * @HandlesCommand("ranks")
-	 */
+	/** Get a list of all your org's ranks */
+	#[NCA\HandlesCommand("ranks")]
+	#[NCA\Help\Group("org-ranks")]
 	public function ranksCommand(CmdContext $context): void {
 		if (!$this->guildController->isGuildBot()) {
 			$context->reply("The bot must be in an org.");
 			return;
 		}
 		$this->guildManager->getByIdAsync(
-			$this->chatBot->vars["my_guild_id"],
+			$this->config->orgId??0,
 			null,
 			false,
 			[$this, "displayGuildRanks"],

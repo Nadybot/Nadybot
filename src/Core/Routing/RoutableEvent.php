@@ -4,6 +4,8 @@ namespace Nadybot\Core\Routing;
 
 use Nadybot\Core\Event;
 use Nadybot\Core\Routing\Events\Base;
+use Nadybot\Core\SyncEvent;
+use stdClass;
 
 class RoutableEvent extends Event {
 	public const TYPE_MESSAGE = "message";
@@ -13,8 +15,7 @@ class RoutableEvent extends Event {
 	/** @var Source[] */
 	public array $path = [];
 
-	/** @var string|Base|null */
-	public $data = null;
+	public string|Base|SyncEvent|stdClass|null $data = null;
 
 	public function getType(): string {
 		return $this->type;
@@ -49,12 +50,11 @@ class RoutableEvent extends Event {
 		return $this;
 	}
 
-	/** @return mixed */
-	public function getData() {
+	public function getData(): mixed {
 		return $this->data;
 	}
 
-	public function setData($data): self {
+	public function setData(mixed $data): self {
 		$this->data = $data;
 		return $this;
 	}

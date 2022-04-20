@@ -2,24 +2,22 @@
 
 namespace Nadybot\Modules\WATCHDOG_MODULE;
 
-use Nadybot\Core\Event;
-use Nadybot\Core\EventManager;
+use Socket;
+use Nadybot\Core\{
+	Attributes as NCA,
+	Event,
+	EventManager,
+	ModuleInstance,
+};
 
 /**
  * Authors:
  *  - Nadyita (RK5)
- *
- * @Instance
  */
 
-class SystemdController {
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
-
-	/** @Inject */
+#[NCA\Instance]
+class SystemdController extends ModuleInstance {
+	#[NCA\Inject]
 	public EventManager $eventManager;
 
 	public const EINVAL = 22;
@@ -28,7 +26,7 @@ class SystemdController {
 	protected int $watchdogInterval = 0;
 	protected int $lastPing = 0;
 
-	/** @Setup */
+	#[NCA\Setup]
 	public function setup(): void {
 		$usec = 0;
 		$this->enabled = $this->isSystemdWatchdogEnabled(false, $usec) === 1;
@@ -40,11 +38,11 @@ class SystemdController {
 		}
 	}
 
-	/**
-	 * @Event("timer(1sec)")
-	 * @Description("Handle SystemD watchdog")
-	 * @DefaultStatus("0")
-	 */
+	#[NCA\Event(
+		name: "timer(1sec)",
+		description: "Handle SystemD watchdog",
+		defaultStatus: 0
+	)]
 	public function watchdogPing(Event $event): void {
 		if (!$this->enabled || $this->lastPing + $this->watchdogInterval > time()) {
 			return;
@@ -55,7 +53,6 @@ class SystemdController {
 
 	/**
 	 * sd_notify PHP implementation
-	 *
 	 * @link https://www.freedesktop.org/software/systemd/man/sd_notify.html
 	 */
 	public function notify(bool $unsetEnvironment, string $state): int {
@@ -64,22 +61,27 @@ class SystemdController {
 
 	/**
 	 * sd_pid_notify_with_fds PHP implementation
-	 *
 	 * @link https://github.com/systemd/systemd/blob/master/src/libsystemd/sd-daemon/sd-daemon.c
+	 * @param int[] $fds
 	 */
 	public function notifyWithFDs(int $pid, bool $unsetEnvironment, string $state, array $fds): int {
 		[$fd, $result] = $this->sdPidNotifyWithFDs($pid, $state, $fds);
-		if (isset($fd) && $fd) {
+		if (isset($fd) && $fd instanceof Socket) {
 			socket_close($fd);
 		}
 
 		if ($unsetEnvironment) {
-			putenv('NOTIFY_SOCKET');
+			\Safe\putenv('NOTIFY_SOCKET');
 		}
 
 		return $result;
 	}
 
+	/**
+	 * @param int[] $fds
+	 * @return array<null|bool|int|Socket>
+	 * @phpstan-return array{null|bool|Socket,int}
+	 */
 	public function sdPidNotifyWithFDs(int $pid, string $state, array $fds): array {
 		$state = trim($state);
 
@@ -118,7 +120,7 @@ class SystemdController {
 			$messageHeader['name'][0] = "\x00";
 		}
 
-		$havePID = $pid && getmypid() !== $pid;
+		$havePID = $pid && \Safe\getmypid() !== $pid;
 
 		if (count($fds) > 0 || $havePID) {
 			if (count($fds)) {
@@ -135,8 +137,8 @@ class SystemdController {
 					'type' => SCM_CREDENTIALS,
 					'data' => [
 						'pid' => $pid,
-						'uid' => getmyuid(),
-						'gid' => getmygid()
+						'uid' => \Safe\getmyuid(),
+						'gid' => \Safe\getmygid()
 					]
 				];
 			}
@@ -164,16 +166,15 @@ class SystemdController {
 
 	/**
 	 * sd_watchdog_enabled PHP implementation
-	 *
 	 * @link https://github.com/systemd/systemd/blob/master/src/libsystemd/sd-daemon/sd-daemon.c
 	 */
 	public function isSystemdWatchdogEnabled(bool $unsetEnvironment, int &$usec): int {
 		$result = $this->systemdWatchdogEnabled($usec);
 		if ($unsetEnvironment && getenv('WATCHDOG_USEC') !== false) {
-			putenv('WATCHDOG_USEC');
+			\Safe\putenv('WATCHDOG_USEC');
 		}
 		if ($unsetEnvironment && getenv('WATCHDOG_PID') !== false) {
-			putenv('WATCHDOG_PID');
+			\Safe\putenv('WATCHDOG_PID');
 		}
 
 		return $result;
@@ -205,7 +206,7 @@ class SystemdController {
 		}
 
 		// Is this for us?
-		if (getmypid() !== $pid) {
+		if (\Safe\getmypid() !== $pid) {
 			return 0;
 		}
 

@@ -1,0 +1,15 @@
+Welcome to Nadybot <version>, running <highlight>PHP <php_version><end> and <highlight><database><end>!
+
+<header2>Start<end>
+
+Want help for a command? Use <highlight><symbol>help &lt;command&gt;<end>, e.g. <a href='chatcmd:///tell <myname> help help'><symbol>help notes</a>.
+No idea what all this &lt;command&gt;, [all] or [&lt;nonsense&gt;] means? See <a href='chatcmd:///tell <myname> help syntax'><symbol>help syntax</a>
+Need personal help from the community? <a href='chatcmd:///start https://discord.gg/aDR9UBxRfg'>Join Nadybot Discord</a> or <a href='chatcmd:///start https://discord.gg/2x9WesJ'>Join AOBots Discord</a>.
+Need an introduction how to run and manage the bot? Use <a href='chatcmd:///tell <myname> adminhelp'><symbol>adminhelp</a>
+
+<header2>Further information<end>
+
+<a href='chatcmd:///tell <myname> help topics'><symbol>help topics</a> for a full list of every help topic
+<a href='chatcmd:///tell <myname> help modules'><symbol>help modules</a> for a list of all modules the bot has
+<a href='chatcmd:///tell <myname> cmdlist'><symbol>cmdlist</a> for a full list of all commands and sub-commands
+<a href='chatcmd:///start https://github.com/Nadybot/Nadybot/wiki'>The Nadybot WIKI</a> has a whole lot of very detailed information about running and managing the bot and explains some of the concepts much better than the bot could do in game.

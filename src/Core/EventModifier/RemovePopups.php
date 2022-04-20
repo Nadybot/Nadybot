@@ -2,23 +2,30 @@
 
 namespace Nadybot\Core\EventModifier;
 
-use Nadybot\Core\EventModifier;
-use Nadybot\Core\Routing\RoutableEvent;
-use Nadybot\Core\Text;
+use Nadybot\Core\{
+	Attributes as NCA,
+	EventModifier,
+	Routing\Events\Base,
+	Routing\RoutableEvent,
+	Text,
+};
 
-/**
- * @EventModifier("remove-popups")
- * @Description("This modifier will remove all popups and only
- *	leave the link name.")
- * @Param(
- *	name='remove-links',
- *	type='bool',
- *	description='Also try to remove the text of the link to the popup',
- *	required=false
- * )
- */
+#[
+	NCA\EventModifier(
+		name: "remove-popups",
+		description:
+			"This modifier will remove all popups and only\n".
+			"leave the link name."
+	),
+	NCA\Param(
+		name: "remove-links",
+		type: "bool",
+		description: "Also try to remove the text of the link to the popup",
+		required: false
+	)
+]
 class RemovePopups implements EventModifier {
-	/** @Inject */
+	#[NCA\Inject]
 	public Text $text;
 
 	protected bool $removeLinks = false;
@@ -38,7 +45,7 @@ class RemovePopups implements EventModifier {
 			}
 			$message = $this->text->removePopups($message, $this->removeLinks);
 			$modifiedEvent = clone $event;
-			if (is_object($modifiedEvent->data)) {
+			if (isset($modifiedEvent->data) && ($modifiedEvent->data instanceof Base)) {
 				$modifiedEvent->data->message = $message;
 			}
 			return $modifiedEvent;

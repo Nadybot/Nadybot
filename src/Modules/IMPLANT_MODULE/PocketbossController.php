@@ -3,61 +3,52 @@
 namespace Nadybot\Modules\IMPLANT_MODULE;
 
 use Illuminate\Support\Collection;
-use Nadybot\Core\CmdContext;
-use Nadybot\Core\DB;
-use Nadybot\Core\ParamClass\PWord;
-use Nadybot\Core\Text;
-use Nadybot\Core\Util;
+use Nadybot\Core\{
+	Attributes as NCA,
+	CmdContext,
+	DB,
+	ModuleInstance,
+	ParamClass\PWord,
+	Text,
+	Util,
+};
 
 /**
  * @author Tyrence (RK2)
- *
- * @Instance
- *
- * Commands this controller contains:
- *	@DefineCommand(
- *		command     = 'pocketboss',
- *		accessLevel = 'all',
- *		description = 'Shows what symbiants a pocketboss drops',
- *		help        = 'pocketboss.txt',
- *		alias       = 'pb'
- *	)
- *	@DefineCommand(
- *		command     = 'symbiant',
- *		accessLevel = 'all',
- *		description = 'Shows which pocketbosses drop a symbiant',
- *		help        = 'symbiant.txt',
- *		alias       = 'symb'
- *	)
  */
-class PocketbossController {
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
-
-	/** @Inject */
+#[
+	NCA\Instance,
+	NCA\HasMigrations("Migrations/Pocketboss"),
+	NCA\DefineCommand(
+		command: "pocketboss",
+		accessLevel: "guest",
+		description: "Shows what symbiants a pocketboss drops",
+		alias: "pb"
+	),
+	NCA\DefineCommand(
+		command: "symbiant",
+		accessLevel: "guest",
+		description: "Shows which pocketbosses drop a symbiant",
+		alias: "symb"
+	)
+]
+class PocketbossController extends ModuleInstance {
+	#[NCA\Inject]
 	public Text $text;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Util $util;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public DB $db;
 
-	/**
-	 * This handler is called on bot startup.
-	 * @Setup
-	 */
+	#[NCA\Setup]
 	public function setup(): void {
-		$this->db->loadMigrations($this->moduleName, __DIR__ . "/Migrations/Pocketboss");
 		$this->db->loadCSVFile($this->moduleName, __DIR__ . "/pocketboss.csv");
 	}
 
-	/**
-	 * @HandlesCommand("pocketboss")
-	 */
+	/** Show a list of Symbiants that a Pocketboss drops */
+	#[NCA\HandlesCommand("pocketboss")]
 	public function pocketbossCommand(CmdContext $context, string $search): void {
 		$data = $this->pbSearchResults($search);
 		$numrows = count($data);
@@ -133,8 +124,67 @@ class PocketbossController {
 	}
 
 	/**
-	 * @HandlesCommand("symbiant")
+	 * Show a list of symbiants and which pocketboss drops it
+	 *
+	 * The arguments are either a slot name (rhand), a type (artillery) or a line (living).
+	 * You can use 1, 2 or 3 of these arguments or their abbreviations in any order to search.
 	 */
+	#[NCA\HandlesCommand("symbiant")]
+	#[NCA\Help\Example("<symbol>symbiant brain alpha arti")]
+	#[NCA\Help\Example("<symbol>symbiant alpha rhand")]
+	#[NCA\Help\Example("<symbol>symbiant inf")]
+	#[NCA\Help\Example("<symbol>symbiant inf living")]
+	#[NCA\Help\Example("<symbol>symbiant beta control")]
+	#[NCA\Help\Epilogue(
+		"<header2>Slot names<end>\n\n".
+		"<tab>- eye\n".
+		"<tab>- head\n".
+		"<tab>- ear\n".
+		"<tab>- rarm\n".
+		"<tab>- chest\n".
+		"<tab>- larm\n".
+		"<tab>- rwrist\n".
+		"<tab>- waist\n".
+		"<tab>- lwrist\n".
+		"<tab>- rhand\n".
+		"<tab>- legs\n".
+		"<tab>- lhand\n".
+		"<tab>- feet\n\n".
+		"<header2>Types<end>\n\n".
+		"<tab>- support\n".
+		"<tab>- control\n".
+		"<tab>- infantry\n".
+		"<tab>- artillery\n".
+		"<tab>- extermination\n\n".
+		"<header2>Lines<end>\n\n".
+		"<tab>- Alert\n".
+		"<tab>- Cognizant\n".
+		"<tab>- Vital\n".
+		"<tab>- Excited\n".
+		"<tab>- Effective\n".
+		"<tab>- Vigorous\n".
+		"<tab>- Persisting\n".
+		"<tab>- Living\n".
+		"<tab>- Growing\n".
+		"<tab>- Enduring\n".
+		"<tab>- Awakened\n".
+		"<tab>- Active\n".
+		"<tab>- Working\n".
+		"<tab>- Surviving\n".
+		"<tab>- Running\n".
+		"<tab>- Residing\n".
+		"<tab>- Prevailing\n".
+		"<tab>- Operative\n".
+		"<tab>- Breathing\n".
+		"<tab>- Vibrating\n".
+		"<tab>- Moving\n".
+		"<tab>- Animated\n".
+		"<tab>- Lulled\n".
+		"<tab>- Sluggish\n".
+		"<tab>- Sleeping\n".
+		"<tab>- Neglectful\n".
+		"<tab>- Lethargic\n"
+	)]
 	public function symbiantCommand(
 		CmdContext $context,
 		PWord $arg1,
@@ -142,6 +192,7 @@ class PocketbossController {
 		?PWord $arg3
 	): void {
 		$args = $context->args;
+		/** @var string[] */
 		$args = array_filter([$args[1], $args[2]??null, $args[3]??null]);
 		$paramCount = count($args);
 
@@ -149,8 +200,9 @@ class PocketbossController {
 		$symbtype = '%';
 		$line = '%';
 
+		/** @var string[] */
 		$lines = $this->db->table("pocketboss")->select("line")->distinct()
-			->asObj()->pluck("line")->toArray();
+			->pluckAs("line", "string")->toArray();
 
 		for ($i = 0; $i < $paramCount; $i++) {
 			switch (strtolower($args[$i])) {

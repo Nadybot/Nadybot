@@ -11,7 +11,7 @@ class CreateTowerSiteTable implements SchemaMigration {
 	public function migrate(LoggerWrapper $logger, DB $db): void {
 		$table = "tower_site";
 		$db->schema()->dropIfExists($table);
-		$db->schema()->create($table, function(Blueprint $table) {
+		$db->schema()->create($table, function(Blueprint $table): void {
 			$table->integer("playfield_id")->index();
 			$table->smallInteger("site_number")->index();
 			$table->smallInteger("min_ql");

@@ -10,12 +10,12 @@ use Nadybot\Core\SchemaMigration;
 class IndexAlienWeaponTables implements SchemaMigration {
 	public function migrate(LoggerWrapper $logger, DB $db): void {
 		$table = "alienweapons";
-		$db->schema()->table($table, function(Blueprint $table) {
+		$db->schema()->table($table, function(Blueprint $table): void {
 			$table->integer("type")->index()->change();
 		});
 
 		$table = "alienweaponspecials";
-		$db->schema()->table($table, function(Blueprint $table) {
+		$db->schema()->table($table, function(Blueprint $table): void {
 			$table->integer("type")->index()->change();
 		});
 	}

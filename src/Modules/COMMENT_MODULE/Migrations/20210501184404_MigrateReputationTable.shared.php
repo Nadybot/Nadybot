@@ -2,21 +2,24 @@
 
 namespace Nadybot\Modules\COMMENT_MODULE\Migrations;
 
-use Nadybot\Core\DB;
-use Nadybot\Core\LoggerWrapper;
-use Nadybot\Core\SchemaMigration;
+use Nadybot\Core\{
+	Attributes as NCA,
+	DB,
+	LoggerWrapper,
+	SchemaMigration,
+};
 use Nadybot\Modules\COMMENT_MODULE\ReputationController;
 use Throwable;
 
 class MigrateReputationTable implements SchemaMigration {
-	/** @Inject */
+	#[NCA\Inject]
 	public ReputationController $reputationController;
 
 	public function migrate(LoggerWrapper $logger, DB $db): void {
 		if (!$db->schema()->hasTable("reputation")) {
 			return;
 		};
-		$oldData = $db->table("reputation")->asObj();
+		$oldData = $db->table("reputation")->get();
 		if ($oldData->count() === 0) {
 			$logger->log("INFO", "Reputation table empty, no need to convert anything");
 			$db->schema()->dropIfExists("reputation");
@@ -32,10 +35,10 @@ class MigrateReputationTable implements SchemaMigration {
 				$db->table("<table:comments>")
 					->insert([
 						"category" => $cat->name,
-						"character" => $row->name,
+						"character" => (string)$row->name,
 						"comment" => "{$row->reputation} {$row->comment}",
-						"created_at" => $row->dt,
-						"created_by" => $row->by
+						"created_at" => (int)$row->dt,
+						"created_by" => (string)$row->by
 					]);
 			}
 		} catch (Throwable $e) {

@@ -6,300 +6,93 @@ use Exception;
 use Nadybot\Core\{
 	AOChatEvent,
 	AOChatPacket,
+	Attributes as NCA,
 	CmdContext,
 	CommandManager,
+	ConfigFile,
 	Event,
 	EventManager,
+	ModuleInstance,
 	LoggerWrapper,
+	Modules\DISCORD\DiscordMessageIn,
 	Nadybot,
+	ParamClass\PCharacter,
+	ParamClass\PFaction,
+	ParamClass\PPlayfield,
+	ParamClass\PTowerSite,
+	ParamClass\PWord,
 	Registry,
 	SettingManager,
 	Text,
 	Timer,
 	Util,
 };
-use Nadybot\Core\Modules\BUDDYLIST\BuddylistController;
-use Nadybot\Core\Modules\DISCORD\DiscordMessageIn;
-use Nadybot\Core\ParamClass\PCharacter;
-use Nadybot\Core\ParamClass\PFaction;
-use Nadybot\Core\ParamClass\PPlayfield;
-use Nadybot\Core\ParamClass\PTowerSite;
 use Nadybot\Modules\DISCORD_GATEWAY_MODULE\DiscordMessageEvent;
 use Nadybot\Modules\HELPBOT_MODULE\PlayfieldController;
 use Nadybot\Modules\TOWER_MODULE\TowerController;
+use Safe\Exceptions\FilesystemException;
 
 /**
  * @author Tyrence (RK2)
- *
- * @Instance
- *
- * Commands this controller contains:
- *	@DefineCommand(
- *		command     = 'test',
- *		accessLevel = 'admin',
- *		description = "Test the bot commands",
- *		help        = 'test.txt'
- *	)
- *	@DefineCommand(
- *		command     = 'testorgjoin',
- *		accessLevel = 'admin',
- *		description = "Test the bot commands",
- *		help        = 'test.txt'
- *	)
- *	@DefineCommand(
- *		command     = 'testorgkick',
- *		accessLevel = 'admin',
- *		description = "Test the bot commands",
- *		help        = 'test.txt'
- *	)
- *	@DefineCommand(
- *		command     = 'testorgleave',
- *		accessLevel = 'admin',
- *		description = "Test the bot commands",
- *		help        = 'test.txt'
- *	)
- *	@DefineCommand(
- *		command     = 'testtowerattack',
- *		accessLevel = 'admin',
- *		description = "Test the bot commands",
- *		help        = 'test.txt'
- *	)
- *	@DefineCommand(
- *		command     = 'testtowerattackorgless',
- *		accessLevel = 'admin',
- *		description = "Test the bot commands",
- *		help        = 'test.txt'
- *	)
- *	@DefineCommand(
- *		command     = 'testtowervictory',
- *		accessLevel = 'admin',
- *		description = "Test the bot commands",
- *		help        = 'test.txt'
- *	)
- *	@DefineCommand(
- *		command     = 'testtowerabandon',
- *		accessLevel = 'admin',
- *		description = "Test the bot commands",
- *		help        = 'test.txt'
- *	)
- *	@DefineCommand(
- *		command     = 'testorgattack',
- *		accessLevel = 'admin',
- *		description = "Test the bot commands",
- *		help        = 'test.txt'
- *	)
- *	@DefineCommand(
- *		command     = 'testorgattackprep',
- *		accessLevel = 'admin',
- *		description = "Test the bot commands",
- *		help        = 'test.txt'
- *	)
- *	@DefineCommand(
- *		command     = 'testos',
- *		accessLevel = 'admin',
- *		description = "Test the bot commands",
- *		help        = 'test.txt'
- *	)
- *	@DefineCommand(
- *		command     = 'testevent',
- *		accessLevel = 'admin',
- *		description = "Test the bot commands",
- *		help        = 'testevent.txt'
- *	)
- *	@DefineCommand(
- *		command     = 'testcloaklower',
- *		accessLevel = 'admin',
- *		description = "Test the bot commands",
- *		help        = 'test.txt'
- *	)
- *	@DefineCommand(
- *		command     = 'testcloakraise',
- *		accessLevel = 'admin',
- *		description = "Test the bot commands",
- *		help        = 'test.txt'
- *	)
- *	@DefineCommand(
- *		command     = 'msginfo',
- *		accessLevel = 'all',
- *		description = "Show number of characters in response and the time it took to process",
- *		help        = 'msginfo.txt'
- *	)
- *	@DefineCommand(
- *		command     = 'testtradebotmsg',
- *		accessLevel = 'admin',
- *		description = "Test a tradebot message",
- *		help        = 'test.txt'
- *	)
- *	@DefineCommand(
- *		command     = 'testdiscordpriv',
- *		accessLevel = 'admin',
- *		description = "Test a discord channel message",
- *		help        = 'test.txt'
- *	)
- *	@DefineCommand(
- *		command     = 'testlogon',
- *		accessLevel = 'admin',
- *		description = "Test a logon event",
- *		help        = 'test.txt'
- *	)
- *	@DefineCommand(
- *		command     = 'testlogoff',
- *		accessLevel = 'admin',
- *		description = "Test a logoff event",
- *		help        = 'test.txt'
- *	)
- *	@DefineCommand(
- *		command     = 'testjoin',
- *		accessLevel = 'admin',
- *		description = "Test a priv channel join event",
- *		help        = 'test.txt'
- *	)
- *	@DefineCommand(
- *		command     = 'testleave',
- *		accessLevel = 'admin',
- *		description = "Test a priv channel leave event",
- *		help        = 'test.txt'
- *	)
- *	@DefineCommand(
- *		command     = 'testsleep',
- *		accessLevel = 'admin',
- *		description = "Sleep for a give time in seconds",
- *		help        = 'test.txt'
- *	)
  */
-class TestController {
-
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
-
-	/** @Inject */
+#[
+	NCA\Instance,
+	NCA\DefineCommand(
+		command: "test",
+		accessLevel: "admin",
+		description: "Test the bot commands",
+	),
+	NCA\DefineCommand(
+		command: "msginfo",
+		accessLevel: "guest",
+		description: "Show number of characters in response and the time it took to process",
+	),
+]
+class TestController extends ModuleInstance {
+	#[NCA\Inject]
 	public SettingManager $settingManager;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Util $util;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Text $text;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Nadybot $chatBot;
 
-	/** @Inject */
+	#[NCA\Inject]
+	public ConfigFile $config;
+
+	#[NCA\Inject]
 	public Timer $timer;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public CommandManager $commandManager;
 
-	/** @Inject */
-	public BuddylistController $buddylistController;
-
-	/** @Inject */
+	#[NCA\Inject]
 	public PlayfieldController $playfieldController;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public TowerController $towerController;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public EventManager $eventManager;
 
-	/** @Logger */
+	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
-	public string $path;
+	/** Show test commands as they are executed */
+	#[NCA\Setting\Boolean]
+	public bool $showTestCommands = false;
 
-	/**
-	 * @Setup
-	 */
-	public function setup(): void {
-		$this->path = __DIR__ . "/tests/";
+	/** Show test results from test commands */
+	#[NCA\Setting\Boolean]
+	public bool $showTestResults = false;
 
-		$this->settingManager->add(
-			$this->moduleName,
-			"show_test_commands",
-			"Show test commands as they are executed",
-			"edit",
-			"options",
-			"0",
-			"true;false",
-			"1;0"
-		);
-		$this->settingManager->add(
-			$this->moduleName,
-			"show_test_results",
-			"Show test results from test commands",
-			"edit",
-			"options",
-			"0",
-			"true;false",
-			"1;0"
-		);
-	}
+	public string $path = __DIR__ . "/tests/";
 
-	/**
-	 * @HandlesCommand("test")
-	 */
-	public function testListCommand(CmdContext $context): void {
-		$files = $this->util->getFilesInDirectory($this->path);
-		$count = count($files);
-		sort($files);
-		$blob = $this->text->makeChatcmd("All Tests", "/tell <myname> test all") . "\n";
-		foreach ($files as $file) {
-			$name = str_replace(".txt", "", $file);
-			$blob .= $this->text->makeChatcmd($name, "/tell <myname> test $name") . "\n";
-		}
-		$msg = $this->text->makeBlob("Tests Available ($count)", $blob);
-		$context->reply($msg);
-	}
-
-	/**
-	 * @HandlesCommand("test")
-	 * @Mask $action all
-	 */
-	public function testAllCommand(CmdContext $context, string $action): void {
-		$testContext = clone $context;
-		$testContext->channel = "msg";
-		$testContext->sendto = new MockCommandReply("buddylist clear");
-		$this->buddylistController->buddylistShowCommand($testContext, "clear");
-
-		$files = $this->util->getFilesInDirectory($this->path);
-		$context->reply("Starting tests...");
-		$logFile = ($this->chatBot->vars["datafolder"] ?? "./data").
-			"/tests-" . date("YmdHis", time()) . ".json";
-		$testLines = [];
-		foreach ($files as $file) {
-			$lines = file($this->path . $file, \FILE_IGNORE_NEW_LINES);
-			$testLines = [...$testLines, ...$lines];
-		}
-		$this->runTests($testLines, $testContext, $logFile);
-		$context->reply("Tests queued.");
-	}
-
-	/**
-	 * @HandlesCommand("test")
-	 */
-	public function testModuleCommand(CmdContext $context, string $file): void {
-		$file = "{$file}.txt";
-
-		$testContext = clone $context;
-		$testContext->channel = "msg";
-
-		$lines = file($this->path . $file, FILE_IGNORE_NEW_LINES);
-		if ($lines === false) {
-			$context->reply("Could not find test <highlight>$file<end> to run.");
-		} else {
-			$starttime = time();
-			$logFile = ($this->chatBot->vars["datafolder"] ?? "./data").
-				"/tests-" . date("YmdHis", $starttime) . ".json";
-			$context->reply("Starting test $file...");
-			$this->runTests($lines, $testContext, $logFile);
-			$time = $this->util->unixtimeToReadable(time() - $starttime);
-			$context->reply("Finished test $file. Time: $time");
-		}
-	}
-
+	/** @param string[] $commands */
 	public function runTests(array $commands, CmdContext $context, string $logFile): void {
 		do {
 			$line = array_shift($commands);
@@ -308,12 +101,14 @@ class TestController {
 			return;
 		}
 		$testContext = clone $context;
-		if ($this->settingManager->getBool('show_test_commands')) {
+		if ($this->showTestCommands) {
 			$this->chatBot->sendTell($line, $context->char->name);
 		} else {
 			$this->logger->notice($line);
-			$testContext->sendto = new MockCommandReply($line, $logFile);
-			$testContext->sendto->logger = $this->logger;
+			if (!$this->showTestResults) {
+				$testContext->sendto = new MockCommandReply($line, $logFile);
+				$testContext->sendto->logger = $this->logger;
+			}
 		}
 		$testContext->message = substr($line, 1);
 		$this->commandManager->processCmd($testContext);
@@ -322,12 +117,12 @@ class TestController {
 
 	protected function sendOrgMsg(string $message): void {
 		$gid = $this->chatBot->get_gid('Org Msg');
-		if (!$gid) {
+		if (!isset($gid)) {
 			$this->chatBot->gid["sicrit"] = 'Org Msg';
 			$this->chatBot->gid["Org Msg"] = 'sicrit';
 			$gid = 'sicrit';
 		}
-		$testArgs = [$gid, (int)0xFFFFFFFF, $message];
+		$testArgs = [$gid, 0xFFFFFFFF, $message];
 		$packet = new AOChatPacket("in", AOChatPacket::LOGIN_OK, "");
 		$packet->type = AOChatPacket::GROUP_MESSAGE;
 		$packet->args = $testArgs;
@@ -335,28 +130,37 @@ class TestController {
 		$this->chatBot->process_packet($packet);
 	}
 
-	/**
-	 * @HandlesCommand("testorgjoin")
-	 */
-	public function testOrgJoinCommand(CmdContext $context, PCharacter $char): void {
+	/** Pretend that &lt;char&gt; joins your org */
+	#[NCA\HandlesCommand("test")]
+	public function testOrgJoinCommand(
+		CmdContext $context,
+		#[NCA\Str("orgjoin")] string $action,
+		PCharacter $char
+	): void {
 		$this->sendOrgMsg(
 			"{$context->char->name} invited {$char} to your organization."
 		);
 	}
 
-	/**
-	 * @HandlesCommand("testorgkick")
-	 */
-	public function testOrgKickCommand(CmdContext $context, PCharacter $char): void {
+	/** Pretend that &lt;char&gt; was kicked from your org */
+	#[NCA\HandlesCommand("test")]
+	public function testOrgKickCommand(
+		CmdContext $context,
+		#[NCA\Str("orgkick")] string $action,
+		PCharacter $char
+	): void {
 		$this->sendOrgMsg(
 			"{$context->char->name} kicked {$char} from your organization."
 		);
 	}
 
-	/**
-	 * @HandlesCommand("testorgleave")
-	 */
-	public function testOrgLeaveCommand(CmdContext $context, PCharacter $char): void {
+	/** Pretend that &lt;char&gt; left your org */
+	#[NCA\HandlesCommand("test")]
+	public function testOrgLeaveCommand(
+		CmdContext $context,
+		#[NCA\Str("orgleave")] string $action,
+		PCharacter $char
+	): void {
 		$this->sendOrgMsg("{$char} just left your organization.");
 	}
 
@@ -374,7 +178,7 @@ class TestController {
 
 	protected function sendTowerMsg(string $msg): void {
 		$gid = $this->chatBot->get_gid('All Towers');
-		if (!$gid) {
+		if (!isset($gid)) {
 			$this->chatBot->gid["sicrit"] = 'All Towers';
 			$this->chatBot->gid["All Towers"] = 'sicrit';
 			$gid = 'sicrit';
@@ -387,14 +191,14 @@ class TestController {
 		$this->chatBot->process_packet($packet);
 	}
 
-	/**
-	 * @HandlesCommand("testtowerattack")
-	 */
+	/** Run a fictional tower attack by another org */
+	#[NCA\HandlesCommand("test")]
 	public function testTowerAttackCommand(
 		CmdContext $context,
+		#[NCA\Str("towerattack")] string $action,
 		PFaction $attFaction,
 		string $attOrg,
-		PCharacter $attChar,
+		PCharacter $attacker,
 		PFaction $defFaction,
 		string $defOrg,
 		PTowerSite $site
@@ -406,17 +210,17 @@ class TestController {
 		}
 		$this->sendTowerMsg(
 			"The {$attFaction} organization {$attOrg} just ".
-			"entered a state of war! {$attChar} attacked the ".
+			"entered a state of war! {$attacker} attacked the ".
 			"{$defFaction} organization {$defOrg}'s tower in {$towerLocation}."
 		);
 	}
 
-	/**
-	 * @HandlesCommand("testtowerattackorgless")
-	 */
+	/** Run a fictional tower attack by an orgless attacker */
+	#[NCA\HandlesCommand("test")]
 	public function testTowerAttackOrglessCommand(
 		CmdContext $context,
-		PCharacter $attChar,
+		#[NCA\Str("towerattackorgless")] string $action,
+		PCharacter $attacker,
 		PFaction $defFaction,
 		string $defOrg,
 		PTowerSite $site
@@ -427,16 +231,16 @@ class TestController {
 			return;
 		}
 		$this->sendTowerMsg(
-			"{$attChar} just attacked the {$defFaction} ".
+			"{$attacker} just attacked the {$defFaction} ".
 			"organization {$defOrg}'s tower in {$towerLocation}."
 		);
 	}
 
-	/**
-	 * @HandlesCommand("testtowerabandon")
-	 */
+	/** Pretend an org /terminates a Control Tower */
+	#[NCA\HandlesCommand("test")]
 	public function testTowerAbandonCommand(
 		CmdContext $context,
+		#[NCA\Str("towerabandon")] string $action,
 		PFaction $faction,
 		string $orgName,
 		PPlayfield $playfield
@@ -452,21 +256,29 @@ class TestController {
 		);
 	}
 
-	/**
-	 * @HandlesCommand("testorgattack")
-	 */
-	public function testOrgAttackCommand(CmdContext $context, PCharacter $attName, string $orgName): void {
+	/** Simulate your own Control Tower being attacked */
+	#[NCA\HandlesCommand("test")]
+	public function testOrgAttackCommand(
+		CmdContext $context,
+		#[NCA\Str("orgattack")] string $action,
+		PCharacter $attacker,
+		string $orgName
+	): void {
 		$this->sendOrgMsg(
 			"The tower Control Tower - Neutral in Broken Shores was just ".
-			"reduced to 75 % health by {$attName} from the {$orgName} ".
+			"reduced to 75 % health by {$attacker} from the {$orgName} ".
 			"organization!"
 		);
 	}
 
-	/**
-	 * @HandlesCommand("testorgattackprep")
-	 */
-	public function testOrgAttackPrepCommand(CmdContext $context, PCharacter $attName, string $orgName): void {
+	/** Simulate your own Control Tower gets the defense shield disabled */
+	#[NCA\HandlesCommand("test")]
+	public function testOrgAttackPrepCommand(
+		CmdContext $context,
+		#[NCA\Str("orgattackprep")] string $action,
+		PCharacter $attName,
+		string $orgName
+	): void {
 		$this->sendOrgMsg(
 			"Your controller tower in Southern Forest of Xzawkaz in ".
 			"Deep Artery Valley has had its defense shield disabled by ".
@@ -475,11 +287,11 @@ class TestController {
 		);
 	}
 
-	/**
-	 * @HandlesCommand("testtowervictory")
-	 */
+	/** Pretend &lt;att org&gt; won the attack against &lt;def org&gt; */
+	#[NCA\HandlesCommand("test")]
 	public function testTowerVictoryCommand(
 		CmdContext $context,
+		#[NCA\Str("towervictory")] string $action,
 		PFaction $attFaction,
 		string $attOrg,
 		PFaction $defFaction,
@@ -498,19 +310,29 @@ class TestController {
 		);
 	}
 
-	/**
-	 * @HandlesCommand("testos")
-	 */
-	public function testOSCommand(CmdContext $context, PCharacter $launcher): void {
+	/** Pretend &lt;launcher&gt; just launched an orbital strike */
+	#[NCA\HandlesCommand("test")]
+	public function testOSCommand(
+		CmdContext $context,
+		#[NCA\Str("os")] string $action,
+		PCharacter $launcher
+	): void {
 		$this->sendOrgMsg(
 			"Blammo! {$launcher} has launched an orbital attack!"
 		);
 	}
 
 	/**
-	 * @HandlesCommand("testevent")
+	 * Call the given event. Format is &lt;instance&gt;.&lt;method&gt;
+	 *
+	 * Note that the $eventObj will be null, so this typically only works for cron events
 	 */
-	public function testEventCommand(CmdContext $context, string $event): void {
+	#[NCA\HandlesCommand("test")]
+	public function testEventCommand(
+		CmdContext $context,
+		#[NCA\Str("event")] string $action,
+		string $event
+	): void {
 		[$instanceName, $methodName] = explode(".", $event);
 		$instance = Registry::getInstance($instanceName);
 		if ($instance === null) {
@@ -525,10 +347,12 @@ class TestController {
 		}
 	}
 
-	/**
-	 * @HandlesCommand("testcloaklower")
-	 */
-	public function testCloakLowerCommand(CmdContext $context): void {
+	/** Pretend you just lowered your city cloak */
+	#[NCA\HandlesCommand("test")]
+	public function testCloakLowerCommand(
+		CmdContext $context,
+		#[NCA\Str("cloaklower")] string $action
+	): void {
 		foreach ($this->chatBot->grp as $gid => $status) {
 			if (ord(substr((string)$gid, 0, 1)) === 3) {
 				break;
@@ -540,7 +364,7 @@ class TestController {
 		}
 		$testArgs = [
 			$gid,
-			(int)0xFFFFFFFF,
+			0xFFFFFFFF,
 			"{$context->char->name} turned the cloaking device in your city off.",
 		];
 		$packet = new AOChatPacket("in", AOChatPacket::LOGIN_OK, "");
@@ -550,10 +374,12 @@ class TestController {
 		$this->chatBot->process_packet($packet);
 	}
 
-	/**
-	 * @HandlesCommand("testcloakraise")
-	 */
-	public function testCloakRaiseCommand(CmdContext $context): void {
+	/** Pretend you just raised your city cloak */
+	#[NCA\HandlesCommand("test")]
+	public function testCloakRaiseCommand(
+		CmdContext $context,
+		#[NCA\Str("cloakraise")] string $action
+	): void {
 		foreach ($this->chatBot->grp as $gid => $status) {
 			if (ord(substr((string)$gid, 0, 1)) === 3) {
 				break;
@@ -565,7 +391,7 @@ class TestController {
 		}
 		$testArgs = [
 			$gid,
-			(int)0xFFFFFFFF,
+			0xFFFFFFFF,
 			"{$context->char->name} turned the cloaking device in your city on.",
 		];
 		$packet = new AOChatPacket("in", AOChatPacket::LOGIN_OK, "");
@@ -576,18 +402,22 @@ class TestController {
 	}
 
 	/**
-	 * @HandlesCommand("msginfo")
+	 * See how many characters are contained in a command response
+	 * and how long it took to process the command
 	 */
+	#[NCA\HandlesCommand("msginfo")]
 	public function msgInfoCommand(CmdContext $context, string $cmd): void {
 		$context->message = $cmd;
-		$context->sendto = new MessageInfoCommandReply($context);
+		$context->sendto = new MessageInfoCommandReply($context->sendto);
 		$this->commandManager->processCmd($context);
 	}
 
-	/**
-	 * @HandlesCommand("testtradebotmsg")
-	 */
-	public function testTradebotMessageCommand(CmdContext $context): void {
+	/** Receive a dummy message from a tradebot */
+	#[NCA\HandlesCommand("test")]
+	public function testTradebotMessageCommand(
+		CmdContext $context,
+		#[NCA\Str("tradebotmsg")] string $action
+	): void {
 		$eventObj = new AOChatEvent();
 		$tradebot = $this->settingManager->getString('tradebot') ?? "Darknet";
 		$eventObj->sender = $tradebot;
@@ -634,13 +464,17 @@ class TestController {
 		}
 	}
 
-	/**
-	 * @HandlesCommand("testdiscordpriv")
-	 */
-	public function testDiscordMessageCommand(CmdContext $context, PCharacter $nick, string $content): void {
+	/** Receive a discord message from &lt;nick&gt; */
+	#[NCA\HandlesCommand("test")]
+	public function testDiscordMessageCommand(
+		CmdContext $context,
+		#[NCA\Str("discordpriv")] string $action,
+		PCharacter $nick,
+		string $content
+	): void {
 		$event = new DiscordMessageEvent();
 		$message = new DiscordMessageIn();
-		$payload = json_decode(
+		$payload = \Safe\json_decode(
 			'{'.
 				'"type":0,'.
 				'"tts":false,'.
@@ -653,7 +487,7 @@ class TestController {
 				'"mention_everyone":false,'.
 				'"member":{'.
 					'"roles":["731589704247410729"],'.
-					'"nick":' . json_encode($nick()) . ','.
+					'"nick":' . \Safe\json_encode($nick()) . ','.
 					'"mute":false,'.
 					'"joined_at":"2020-07-11T16:46:42.205000+00:00",'.
 					'"hoisted_role":null,'.
@@ -663,11 +497,11 @@ class TestController {
 				'"flags":0,'.
 				'"embeds":[],'.
 				'"edited_timestamp":null,'.
-				'"content":' . json_encode($content) . ','.
+				'"content":' . \Safe\json_encode($content) . ','.
 				'"components":[],'.
 				'"channel_id":"731553649184211064",'.
 				'"author":{'.
-					'"username":' . json_encode($nick()) . ','.
+					'"username":' . \Safe\json_encode($nick()) . ','.
 					'"public_flags":0,'.
 					'"id":"356025105371103232",'.
 					'"discriminator":"9062",'.
@@ -687,78 +521,142 @@ class TestController {
 		$this->eventManager->fireEvent($event);
 	}
 
-	/**
-	 * @HandlesCommand("testlogon")
-	 */
-	public function testLogonCommand(CmdContext $context, PCharacter $who): void {
-		$uid = $this->chatBot->get_uid($who());
+	/** Simulate &lt;char&gt; logging on */
+	#[NCA\HandlesCommand("test")]
+	public function testLogonCommand(
+		CmdContext $context,
+		#[NCA\Str("logon")] string $action,
+		PCharacter $char
+	): void {
+		$uid = $this->chatBot->get_uid($char());
 		if ($uid === false) {
-			$context->reply("The character <highlight>{$who}<end> does not exist.");
+			$context->reply("The character <highlight>{$char}<end> does not exist.");
 			return;
 		}
-		$packet = new AOChatPacket("in", AOChatPacket::BUDDY_ADD, pack("NNn", $uid, 1, 0));
+		$packet = new AOChatPacket("in", AOChatPacket::BUDDY_ADD, \Safe\pack("NNn", $uid, 1, 0));
 
 		$this->chatBot->process_packet($packet);
 	}
 
-	/**
-	 * @HandlesCommand("testlogoff")
-	 */
-	public function testLogoffCommand(CmdContext $context, PCharacter $who): void {
-		$uid = $this->chatBot->get_uid($who());
+	/** Simulate &lt;char&gt; logging off */
+	#[NCA\HandlesCommand("test")]
+	public function testLogoffCommand(
+		CmdContext $context,
+		#[NCA\Str("logoff")] string $action,
+		PCharacter $char
+	): void {
+		$uid = $this->chatBot->get_uid($char());
 		if ($uid === false) {
-			$context->reply("The character <highlight>{$who}<end> does not exist.");
+			$context->reply("The character <highlight>{$char}<end> does not exist.");
 			return;
 		}
-		$packet = new AOChatPacket("in", AOChatPacket::BUDDY_ADD, pack("NNn", $uid, 0, 0));
+		$packet = new AOChatPacket("in", AOChatPacket::BUDDY_ADD, \Safe\pack("NNn", $uid, 0, 0));
 
 		$this->chatBot->process_packet($packet);
 	}
 
-	/**
-	 * @HandlesCommand("testjoin")
-	 */
-	public function testJoinCommand(CmdContext $context, PCharacter $who): void {
-		$uid = $this->chatBot->get_uid($who());
+	/** Simulate &lt;char&gt; joining the private channel */
+	#[NCA\HandlesCommand("test")]
+	public function testJoinCommand(
+		CmdContext $context,
+		#[NCA\Str("join")] string $action,
+		PCharacter $char
+	): void {
+		$uid = $this->chatBot->get_uid($char());
 		if ($uid === false) {
-			$context->reply("The character <highlight>{$who}<end> does not exist.");
+			$context->reply("The character <highlight>{$char}<end> does not exist.");
 			return;
 		}
-		$channel = $this->settingManager->getString("default_private_channel") ?? $this->chatBot->char->name;
-		$channelUid = $this->chatBot->get_uid($channel);
-		if ($channelUid === false) {
-			$context->reply("Cannot determine this bot's private channel.");
-			return;
-		}
-		$packet = new AOChatPacket("in", AOChatPacket::PRIVGRP_CLIJOIN, pack("NN", $channelUid, $uid));
+		$channelUid = $this->chatBot->char->id;
+		$packet = new AOChatPacket("in", AOChatPacket::PRIVGRP_CLIJOIN, \Safe\pack("NN", $channelUid, $uid));
 
 		$this->chatBot->process_packet($packet);
 	}
 
-	/**
-	 * @HandlesCommand("testleave")
-	 */
-	public function testLeaveCommand(CmdContext $context, PCharacter $who): void {
-		$uid = $this->chatBot->get_uid($who());
+	/** Simulate &lt;char&gt; leaving the private channel */
+	#[NCA\HandlesCommand("test")]
+	public function testLeaveCommand(
+		CmdContext $context,
+		#[NCA\Str("leave")] string $action,
+		PCharacter $char
+	): void {
+		$uid = $this->chatBot->get_uid($char());
 		if ($uid === false) {
-			$context->reply("The character <highlight>{$who}<end> does not exist.");
+			$context->reply("The character <highlight>{$char}<end> does not exist.");
 			return;
 		}
-		$channel = $this->settingManager->getString("default_private_channel") ?? $this->chatBot->char->name;
-		$channelUid = $this->chatBot->get_uid($channel);
-		if ($channelUid === false) {
-			$context->reply("Cannot determine this bot's private channel.");
-			return;
-		}
-		$packet = new AOChatPacket("in", AOChatPacket::PRIVGRP_CLIPART, pack("NN", $channelUid, $uid));
+		$channelUid = $this->chatBot->char->id;
+		$packet = new AOChatPacket("in", AOChatPacket::PRIVGRP_CLIPART, \Safe\pack("NN", $channelUid, $uid));
 
 		$this->chatBot->process_packet($packet);
 	}
 
-	/**
-	 * @HandlesCommand("testsleep")
-	 */
-	public function testSleepCommand(CmdContext $context, int $duration): void {
-		sleep($duration);
+	/** Sleep for &lt;duration&gt; seconds. This can lead to lots of timeouts */
+	#[NCA\HandlesCommand("test")]
+	public function testSleepCommand(
+		CmdContext $context,
+		#[NCA\Str("sleep")] string $action,
+		int $duration
+	): void {
+		\Safe\sleep($duration);
+	}
+
+	/** Get a list of all tests the bot has */
+	#[NCA\HandlesCommand("test")]
+	public function testListCommand(CmdContext $context): void {
+		$files = $this->util->getFilesInDirectory($this->path);
+		$count = count($files);
+		sort($files);
+		$blob = $this->text->makeChatcmd("All Tests", "/tell <myname> test all") . "\n";
+		foreach ($files as $file) {
+			$name = str_replace(".txt", "", $file);
+			$blob .= $this->text->makeChatcmd($name, "/tell <myname> test $name") . "\n";
+		}
+		$msg = $this->text->makeBlob("Tests Available ($count)", $blob);
+		$context->reply($msg);
+	}
+
+	/** Run absolutely all bot tests */
+	#[NCA\HandlesCommand("test")]
+	public function testAllCommand(
+		CmdContext $context,
+		#[NCA\Str("all")] string $action
+	): void {
+		$testContext = clone $context;
+
+		$files = $this->util->getFilesInDirectory($this->path);
+		$context->reply("Starting tests...");
+		$logFile = $this->config->dataFolder.
+			"/tests-" . \Safe\date("YmdHis", time()) . ".json";
+		$testLines = [];
+		foreach ($files as $file) {
+			$lines = \Safe\file($this->path . $file, \FILE_IGNORE_NEW_LINES);
+			$testLines = array_merge($testLines, $lines);
+		}
+		$this->runTests($testLines, $testContext, $logFile);
+		$context->reply("Tests queued.");
+	}
+
+	/** Run all bot tests of a given file */
+	#[NCA\HandlesCommand("test")]
+	public function testModuleCommand(CmdContext $context, PWord $file): void {
+		$file = "{$file}.txt";
+
+		$testContext = clone $context;
+		$testContext->permissionSet = "msg";
+
+		try {
+			$lines = \Safe\file($this->path . $file, FILE_IGNORE_NEW_LINES);
+		} catch (FilesystemException) {
+			$context->reply("Could not find test <highlight>$file<end> to run.");
+			return;
+		}
+		$starttime = time();
+		$logFile = $this->config->dataFolder.
+			"/tests-" . \Safe\date("YmdHis", $starttime) . ".json";
+		$context->reply("Starting test $file...");
+		$this->runTests($lines, $testContext, $logFile);
+		$time = $this->util->unixtimeToReadable(time() - $starttime);
+		$context->reply("Finished test $file. Time: $time");
 	}
 }

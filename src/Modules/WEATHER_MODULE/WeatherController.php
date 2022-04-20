@@ -2,44 +2,49 @@
 
 namespace Nadybot\Modules\WEATHER_MODULE;
 
-use JsonException;
+use Safe\Exceptions\JsonException;
 use Nadybot\Core\{
+	Attributes as NCA,
 	CmdContext,
 	Http,
 	HttpResponse,
+	ModuleInstance,
 	Text,
 };
 
 /**
  * @author Nadyita (RK5)
- *
- * @Instance
- *
- * Commands this controller contains:
- *	@DefineCommand(
- *		command     = 'weather',
- *		accessLevel = 'all',
- *		description = 'View Weather',
- *		help        = 'weather.txt'
- *	)
  */
-class WeatherController {
-
-	/**
-	 * Name of the module.
-	 * Set automatically by module loader.
-	 */
-	public string $moduleName;
-
-	/** @Inject */
+#[
+	NCA\Instance,
+	NCA\DefineCommand(
+		command: "weather",
+		accessLevel: "guest",
+		description: "View Weather",
+	)
+]
+class WeatherController extends ModuleInstance {
+	#[NCA\Inject]
 	public Text $text;
 
-	/** @Inject */
+	#[NCA\Inject]
 	public Http $http;
 
 	/**
-	 * @HandlesCommand("weather")
+	 * Lookup the weather for a given location
+	 *
+	 * If the location found is not the right one, try adding country codes or other
+	 * information like state, region, or zip, separated by a comma.
+	 * You can search for anything in any language, down to house numbers, streets
+	 * and objects, but also for countries, states and so on.
 	 */
+	#[NCA\HandlesCommand("weather")]
+	#[NCA\Help\Example("<symbol>weather uk")]
+	#[NCA\Help\Example("<symbol>weather london")]
+	#[NCA\Help\Example("<symbol>weather westminster")]
+	#[NCA\Help\Example("<symbol>weather hannover,us")]
+	#[NCA\Help\Example("<symbol>weather cologne cathedral")]
+	#[NCA\Help\Example("<symbol>weather athens,ga")]
 	public function weatherCommand(CmdContext $context, string $location): void {
 		$this->lookupLocation($location, [$this, "getWeatherForLocationResponse"], $context);
 	}
@@ -75,7 +80,7 @@ class WeatherController {
 			return;
 		}
 		try {
-			$data = json_decode($response->body, false, 512, JSON_THROW_ON_ERROR);
+			$data = \Safe\json_decode($response->body);
 		} catch (JsonException $e) {
 			$context->reply(
 				"Invalid JSON received from Location provider: ".
@@ -125,7 +130,7 @@ class WeatherController {
 			return;
 		}
 		try {
-			$data = json_decode($response->body, false, 512, JSON_THROW_ON_ERROR);
+			$data = \Safe\json_decode($response->body);
 		} catch (JsonException $e) {
 			$context->reply(
 				"Invalid JSON received from Weather provider: ".
@@ -237,7 +242,6 @@ class WeatherController {
 
 	/**
 	 * Return a link to OpenStreetMap at the given coordinates
-	 *
 	 * @param \Nadybot\Modules\WEATHER_MODULE\Nominatim $nominatim The location object
 	 * @return string The URL to OSM
 	 */
@@ -251,7 +255,6 @@ class WeatherController {
 
 	/**
 	 * Convert the written temperature unit to short
-	 *
 	 * @param string $name Name of the unit ("celsius", "fahrenheit")
 	 * @return string
 	 */
@@ -264,7 +267,6 @@ class WeatherController {
 
 	/**
 	 * Convert a forecast icon (e.g. "heavysnowshowersandthunder") into a sentence
-	 *
 	 * @param string $icon The icon name
 	 * @return string A forecast summary
 	 */
