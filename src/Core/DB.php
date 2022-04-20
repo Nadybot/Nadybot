@@ -591,7 +591,7 @@ class DB {
 				if ($this->inTransaction()) {
 					$this->rollback();
 				}
-				exit;
+				exit(1);
 			}
 		}
 		$end = microtime(true);
