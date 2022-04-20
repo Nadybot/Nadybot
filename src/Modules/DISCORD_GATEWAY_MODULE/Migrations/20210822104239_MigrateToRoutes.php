@@ -8,7 +8,6 @@ use Nadybot\Core\{
 	ConfigFile,
 	DB,
 	DBSchema\Route,
-	DBSchema\RouteHopColor,
 	DBSchema\RouteModifier,
 	DBSchema\Setting,
 	LoggerWrapper,

@@ -6,7 +6,6 @@ use Nadybot\Core\{
 	Attributes as NCA,
 	ConfigFile,
 	DB,
-	DBSchema\RouteHopColor,
 	DBSchema\Setting,
 	LoggerWrapper,
 	MessageHub,

@@ -9,8 +9,6 @@ use Nadybot\Core\{
 	Modules\DISCORD\DiscordChannel,
 	DB,
 	DBSchema\Route,
-	DBSchema\RouteHopColor,
-	DBSchema\RouteHopFormat,
 	DBSchema\Setting,
 	LoggerWrapper,
 	MessageHub,
