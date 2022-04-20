@@ -27,6 +27,7 @@ jobs:
         run: composer install -q --no-dev
 
       - name: Migrate SQLite
+        shell: bash
         run: |
           curl -s -S -q --user "github:${{ secrets.CONFIG_PASSWORD }}" "https://confs.nadybot.org/sqlite.php" -o conf/config.php
           if [ "${{ matrix.from }}" != "" ]; then
