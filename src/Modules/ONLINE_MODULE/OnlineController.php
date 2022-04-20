@@ -26,7 +26,6 @@ use Nadybot\Core\{
 	UserStateEvent,
 	Util,
 };
-use Nadybot\Core\ParamClass\PRemove;
 use Nadybot\Modules\{
 	DISCORD_GATEWAY_MODULE\DiscordGatewayController,
 	RAID_MODULE\RaidController,
@@ -54,15 +53,16 @@ use Nadybot\Modules\{
 		alias: ['o', 'sm'],
 	),
 	NCA\DefineCommand(
-		command: "online hide",
+		command: OnlineController::CMD_MANAGE_HIDDEN,
 		accessLevel: "mod",
-		description: "Hide characters from the online list",
+		description: "Manage hidden characters from the online list",
 	),
 
 	NCA\ProvidesEvent("online(org)"),
 	NCA\ProvidesEvent("offline(org)")
 ]
 class OnlineController extends ModuleInstance {
+	public const CMD_MANAGE_HIDDEN = "online manage hidden users";
 	protected const GROUP_OFF = 0;
 	protected const GROUP_BY_MAIN = 1;
 	protected const GROUP_BY_ORG = 1;
@@ -227,20 +227,21 @@ class OnlineController extends ModuleInstance {
 			->where("added_by", $this->db->getBotname());
 	}
 
-	/** Show a list of hidden character masks */
-	#[NCA\HandlesCommand("online hide")]
+	/** Show a list of hidden characters */
+	#[NCA\HandlesCommand(self::CMD_MANAGE_HIDDEN)]
 	public function onlineShowHiddenCommand(
 		CmdContext $context,
-		#[NCA\Str("hide")] string $action
+		#[NCA\Str("hidden", "hide")] string $action
 	): void {
 		/** @var Collection<OnlineHide> */
 		$masks = new Collection($this->getHiddenPlayerMasks());
-		$masks = $masks->sortBy("created_on");
+		$masks = $masks->sortBy("mask");
 		$blobs = new Collection();
 		foreach ($masks as $mask) {
 			$delLink = $this->text->makeChatcmd("remove", "/tell <myname> online hide del {$mask->id}");
-			$blob = $mask->created_on->format("d-M-Y").
-				" - <highlight>{$mask->mask}<end> (added by {$mask->created_by})".
+			$dateAdded = $mask->created_on->format("d-M-Y");
+			$blob = "<tab><highlight>{$mask->mask}<end> ".
+				"(added by {$mask->created_by} on {$dateAdded})".
 				" [{$delLink}]";
 			$blobs->push($blob);
 		}
@@ -258,12 +259,19 @@ class OnlineController extends ModuleInstance {
 		);
 	}
 
-	/** Add a character/character mask to the list of hidden character masks */
-	#[NCA\HandlesCommand("online hide")]
+	/**
+	 * Add a character/character mask to the list of hidden characters
+	 * You can use * as a wildcard that matches anything and the dot (.)
+	 * if you only want to match a character in a specific org/private chat.
+	 */
+	#[NCA\HandlesCommand(self::CMD_MANAGE_HIDDEN)]
+	#[NCA\Help\Example("<symbol>online hide nady")]
+	#[NCA\Help\Example("<symbol>online hide nady*", "Hide all characters starting with nady")]
+	#[NCA\Help\Example("<symbol>online hide troet.nady", "Hide Nady when he's on Troet")]
+	#[NCA\Help\Example("<symbol>online hide nbt guest.*", "Hide the whole NBT Guest channel")]
 	public function onlineAddHiddenCommand(
 		CmdContext $context,
 		#[NCA\Str("hide")] string $action,
-		#[NCA\Str("add")] string $subAction,
 		string $mask
 	): void {
 		$mask = strtolower($mask);
@@ -284,12 +292,11 @@ class OnlineController extends ModuleInstance {
 		$context->reply("<highlight>{$mask}<end> added to the online hidden mask list.");
 	}
 
-	/** Remove a character/character mask from the list of hidden character masks */
-	#[NCA\HandlesCommand("online hide")]
+	/** Remove a character/character mask from the list of hidden characters */
+	#[NCA\HandlesCommand(self::CMD_MANAGE_HIDDEN)]
 	public function onlineDelHiddenByIDCommand(
 		CmdContext $context,
-		#[NCA\Str("hide")] string $action,
-		PRemove $subAction,
+		#[NCA\Str("show", "unhide")] string $action,
 		int $id
 	): void {
 		if ($this->db->table(self::DB_TABLE_HIDE)->delete($id) === 0) {
@@ -299,12 +306,11 @@ class OnlineController extends ModuleInstance {
 		}
 	}
 
-	/** Remove a character/character mask from the list of hidden character masks */
-	#[NCA\HandlesCommand("online hide")]
+	/** Remove a character/character mask from the list of hidden characters */
+	#[NCA\HandlesCommand(self::CMD_MANAGE_HIDDEN)]
 	public function onlineDelHiddenCommand(
 		CmdContext $context,
-		#[NCA\Str("hide")] string $action,
-		PRemove $subAction,
+		#[NCA\Str("show", "unhide")] string $action,
 		string $mask
 	): void {
 		$mask = strtolower($mask);
@@ -749,11 +755,11 @@ class OnlineController extends ModuleInstance {
 	 * @param OnlinePlayer[] $characters
 	 * @return OnlinePlayer[]
 	 */
-	public function filterHiddenCharacters(array $characters): array {
+	public function filterHiddenCharacters(array $characters, string $group): array {
 		$hiddenMasks = $this->getHiddenPlayerMasks();
 		$visibleCharacters = [];
 		foreach ($characters as $char) {
-			if (!$this->charOnHiddenList($char, $hiddenMasks)) {
+			if (!$this->charOnHiddenList($group, $char, $hiddenMasks)) {
 				$visibleCharacters []= $char;
 			}
 		}
@@ -763,14 +769,14 @@ class OnlineController extends ModuleInstance {
 	/**
 	 * @param OnlineHide[] $hiddenMasks
 	 */
-	private function charOnHiddenList(OnlinePlayer $char, array $hiddenMasks): bool {
+	private function charOnHiddenList(string $group, OnlinePlayer $char, array $hiddenMasks): bool {
 		foreach ($hiddenMasks as $mask) {
 			$fullName = $char->name;
 			if (str_contains($mask->mask, ".") && isset($char->guild)) {
-				$fullName = "{$char->guild}.{$fullName}";
+				$fullName = "{$group}.{$fullName}";
 			}
 			$matches = fnmatch($mask->mask, $fullName, FNM_CASEFOLD);
-			$this->logger->notice("Checking mask {mask} against {fullName}: {result}", [
+			$this->logger->info("Checking mask {mask} against {fullName}: {result}", [
 				"mask" => $mask->mask,
 				"fullName" => $fullName,
 				"result" => $matches ? "match" : "no match"
@@ -788,10 +794,10 @@ class OnlineController extends ModuleInstance {
 	 */
 	public function getOnlineList(int $includeRelay=null): array {
 		$includeRelay ??= $this->onlineShowRelay;
-		$orgData = $this->filterHiddenCharacters($this->getPlayers('guild'));
+		$orgData = $this->filterHiddenCharacters($this->getPlayers('guild'), $this->config->orgName);
 		$orgList = $this->formatData($orgData, $this->onlineShowOrgGuild);
 
-		$privData = $this->filterHiddenCharacters($this->getPlayers('priv'));
+		$privData = $this->filterHiddenCharacters($this->getPlayers('priv'), $this->config->name);
 		$privList = $this->formatData($privData, $this->onlineShowOrgPriv);
 
 		$relayGrouped = $this->groupRelayList($this->relayController->relays);
@@ -799,7 +805,7 @@ class OnlineController extends ModuleInstance {
 		$relayList = [];
 		$relayOrgInfo = $this->onlineShowOrgGuildRelay;
 		foreach ($relayGrouped as $group => $chars) {
-			$chars = $this->filterHiddenCharacters($chars);
+			$chars = $this->filterHiddenCharacters($chars, $group);
 			$relayList[$group] = $this->formatData($chars, $relayOrgInfo, static::GROUP_OFF);
 		}
 
