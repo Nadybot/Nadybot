@@ -3,12 +3,13 @@
 namespace Nadybot\Core\Migrations;
 
 use Illuminate\Database\Schema\Blueprint;
-use Nadybot\Core\DB;
-use Nadybot\Core\DBSchema\Route;
-use Nadybot\Core\LoggerWrapper;
-use Nadybot\Core\MessageHub;
-use Nadybot\Core\Routing\Source;
-use Nadybot\Core\SchemaMigration;
+use Nadybot\Core\{
+	DB,
+	LoggerWrapper,
+	MessageHub,
+	Routing\Source,
+	SchemaMigration,
+};
 
 class CreateRouteTable implements SchemaMigration {
 	public function migrate(LoggerWrapper $logger, DB $db): void {
@@ -20,15 +21,19 @@ class CreateRouteTable implements SchemaMigration {
 			$table->boolean("two_way")->default(false);
 		});
 		if (strlen($db->getMyguild())) {
-			$route = new Route();
-			$route->source = Source::SYSTEM . "(status)";
-			$route->destination = Source::ORG;
-			$db->insert($table, $route);
+			$route = [
+				"source" => Source::SYSTEM . "(status)",
+				"destination" => Source::ORG,
+				"two_way" => false,
+			];
+			$db->table($table)->insert($route);
 		}
 
-		$route = new Route();
-		$route->source = Source::SYSTEM . "(status)";
-		$route->destination = Source::PRIV . "(" . $db->getMyname() . ")";
-		$db->insert($table, $route);
+		$route = [
+			"source" => Source::SYSTEM . "(status)",
+			"destination" => Source::PRIV . "(" . $db->getMyname() . ")",
+			"two_way" => false,
+		];
+		$db->table($table)->insert($route);
 	}
 }

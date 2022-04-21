@@ -14,6 +14,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Support openSUSE tumbleweed packages
 - Warn when the buddylist is full
 
+### Fixed
+
+- Fix database creation from scratch
+
 ## [6.0.0] - 2022-04-19
 
 ### Changed

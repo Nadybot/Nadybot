@@ -5,7 +5,6 @@ namespace Nadybot\Modules\GSP_MODULE\Migrations;
 use Nadybot\Core\{
 	Attributes as NCA,
 	DB,
-	DBSchema\Route,
 	DBSchema\Setting,
 	LoggerWrapper,
 	MessageHub,
@@ -40,10 +39,12 @@ class MigrateToRoute implements SchemaMigration {
 			if (((int)$channel->value & $old) === 0) {
 				continue;
 			}
-			$route = new Route();
-			$route->source = $this->gspController->getChannelName();
-			$route->destination = $new;
-			$db->insert(MessageHub::DB_TABLE_ROUTES, $route);
+			$route = [
+				"source" => $this->gspController->getChannelName(),
+				"destination" => $new,
+				"two_way" => false,
+			];
+			$db->table(MessageHub::DB_TABLE_ROUTES)->insert($route);
 		}
 	}
 }

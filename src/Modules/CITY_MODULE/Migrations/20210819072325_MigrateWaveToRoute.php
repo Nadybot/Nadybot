@@ -5,7 +5,6 @@ namespace Nadybot\Modules\CITY_MODULE\Migrations;
 use Nadybot\Core\{
 	Attributes as NCA,
 	DB,
-	DBSchema\Route,
 	DBSchema\Setting,
 	LoggerWrapper,
 	MessageHub,
@@ -41,10 +40,12 @@ class MigrateWaveToRoute implements SchemaMigration {
 			if (!isset($new)) {
 				continue;
 			}
-			$route = new Route();
-			$route->source = $this->cityWaveController->getChannelName();
-			$route->destination = $new;
-			$db->insert(MessageHub::DB_TABLE_ROUTES, $route);
+			$route = [
+				"source" => $this->cityWaveController->getChannelName(),
+				"destination" => $new,
+				"two_way" => false,
+			];
+			$db->table(MessageHub::DB_TABLE_ROUTES)->insert($route);
 		}
 	}
 }

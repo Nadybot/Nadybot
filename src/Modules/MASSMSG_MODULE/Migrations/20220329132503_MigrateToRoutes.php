@@ -4,7 +4,6 @@ namespace Nadybot\Modules\MASSMSG_MODULE\Migrations;
 
 use Nadybot\Core\{
 	DB,
-	DBSchema\Route,
 	LoggerWrapper,
 	MessageHub,
 	Routing\Source,
@@ -19,10 +18,12 @@ class MigrateToRoutes implements SchemaMigration {
 		$types = ["mass-message", "mass-invite"];
 		foreach ($channels as $channel) {
 			foreach ($types as $type) {
-				$route = new Route();
-				$route->source = Source::SYSTEM . "({$type})";
-				$route->destination = $channel;
-				$db->insert(MessageHub::DB_TABLE_ROUTES, $route);
+				$route = [
+					"source" => Source::SYSTEM . "({$type})",
+					"destination" => $channel,
+					"two_way" => false,
+				];
+				$db->table(MessageHub::DB_TABLE_ROUTES)->insert($route);
 			}
 		}
 	}

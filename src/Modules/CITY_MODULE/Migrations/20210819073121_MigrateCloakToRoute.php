@@ -5,7 +5,6 @@ namespace Nadybot\Modules\CITY_MODULE\Migrations;
 use Nadybot\Core\{
 	Attributes as NCA,
 	DB,
-	DBSchema\Route,
 	LoggerWrapper,
 	MessageHub,
 	Routing\Source,
@@ -18,9 +17,11 @@ class MigrateCloakToRoute implements SchemaMigration {
 	public CloakController $cloakController;
 
 	public function migrate(LoggerWrapper $logger, DB $db): void {
-		$route = new Route();
-		$route->source = $this->cloakController->getChannelName();
-		$route->destination = Source::ORG;
-		$db->insert(MessageHub::DB_TABLE_ROUTES, $route);
+		$route = [
+			"source" => $this->cloakController->getChannelName(),
+			"destination" => Source::ORG,
+			"two_way" => false,
+		];
+		$db->table(MessageHub::DB_TABLE_ROUTES)->insert($route);
 	}
 }

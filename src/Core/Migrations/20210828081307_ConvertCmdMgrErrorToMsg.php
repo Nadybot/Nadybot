@@ -5,7 +5,6 @@ namespace Nadybot\Core\Migrations;
 use Nadybot\Core\{
 	Attributes as NCA,
 	DB,
-	DBSchema\Route,
 	DBSchema\Setting,
 	LoggerWrapper,
 	MessageHub,
@@ -34,16 +33,20 @@ class ConvertCmdMgrErrorToMsg implements SchemaMigration {
 
 		$botName = $db->getMyname();
 		if ($toOrg) {
-			$route = new Route();
-			$route->source = Source::SYSTEM . "(access-denied)";
-			$route->destination = Source::ORG;
-			$db->insert($table, $route);
+			$route = [
+				"source" => Source::SYSTEM . "(access-denied)",
+				"destination" => Source::ORG,
+				"two_way" => false,
+			];
+			$db->table($table)->insert($route);
 		}
 		if ($toPriv) {
-			$route = new Route();
-			$route->source = Source::SYSTEM . "(access-denied)";
-			$route->destination = Source::PRIV . "({$botName})";
-			$db->insert($table, $route);
+			$route = [
+				"source" => Source::SYSTEM . "(access-denied)",
+				"destination" => Source::PRIV . "({$botName})",
+				"two_way" => false,
+			];
+			$db->table($table)->insert($route);
 		}
 	}
 }

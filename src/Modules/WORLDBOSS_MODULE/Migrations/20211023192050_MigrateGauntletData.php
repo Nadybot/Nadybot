@@ -5,7 +5,6 @@ namespace Nadybot\Modules\WORLDBOSS_MODULE\Migrations\Gauntlet;
 use Nadybot\Core\{
 	Attributes as NCA,
 	DB,
-	DBSchema\Route,
 	LoggerWrapper,
 	MessageHub,
 	Routing\Character,
@@ -63,17 +62,21 @@ class MigrateGauntletData implements SchemaMigration {
 			$channels = ["aoorg", "aopriv(" . $db->getMyname() . ")"];
 			if (!$db->schema()->hasTable("bigboss_timers")) {
 				foreach ($channels as $channel) {
-					$route = new Route();
-					$route->source = "spawn(*)";
-					$route->destination = $channel;
-					$db->insert(MessageHub::DB_TABLE_ROUTES, $route);
+					$route = [
+						"source" => "spawn(*)",
+						"destination" => $channel,
+						"two_way" => false,
+					];
+					$db->table(MessageHub::DB_TABLE_ROUTES)->insert($route);
 				}
 			}
 			foreach ($channels as $channel) {
-				$route = new Route();
-				$route->source = "system(gauntlet-buff)";
-				$route->destination = $channel;
-				$db->insert(MessageHub::DB_TABLE_ROUTES, $route);
+				$route = [
+					"source" => "system(gauntlet-buff)",
+					"destination" => $channel,
+					"two_way" => false,
+				];
+				$db->table(MessageHub::DB_TABLE_ROUTES)->insert($route);
 			}
 			return;
 		}

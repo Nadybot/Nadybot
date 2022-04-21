@@ -57,10 +57,12 @@ class MigrateToRoutes implements SchemaMigration {
 		];
 		foreach ($map as $flag => $dest) {
 			if ($showWhere & $flag) {
-				$route = new Route();
-				$route->source = $this->trackerController->getChannelName();
-				$route->destination = $dest;
-				$db->insert($table, $route);
+				$route = [
+					"source" => $this->trackerController->getChannelName(),
+					"destination" => $dest,
+					"two_way" => false,
+				];
+				$db->table($table)->insert($route);
 			}
 		}
 		$notifyChannel = $this->getSetting($db, "discord_notify_channel");
