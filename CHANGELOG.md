@@ -13,6 +13,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   other orgs' bots or can even hide their whole guest channel.
 - Support openSUSE tumbleweed packages
 - Warn when the buddylist is full
+- Add `system(mass-message)` and `system(mass-invite)` as route destinations,
+  so you can finally route your tara/reaper spawns directly to mass invites.
 
 ### Fixed
 
