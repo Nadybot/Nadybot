@@ -4,7 +4,6 @@ namespace Nadybot\Modules\DISCORD_GATEWAY_MODULE\Migrations;
 
 use Nadybot\Core\{
 	DB,
-	DBSchema\Route,
 	DBSchema\Setting,
 	LoggerWrapper,
 	MessageHub,
@@ -27,16 +26,20 @@ class MigrateVoiceStateToRoutes implements SchemaMigration {
 			return;
 		}
 		if ((int)$setting->value & 1) {
-			$route = new Route();
-			$route->source = Source::DISCORD_PRIV . "(< *)";
-			$route->destination = Source::PRIV . "(" . $db->getBotname() . ")";
-			$db->insert(MessageHub::DB_TABLE_ROUTES, $route);
+			$route = [
+				"source" => Source::DISCORD_PRIV . "(< *)",
+				"destination" => Source::PRIV . "(" . $db->getBotname() . ")",
+				"two_way" => false,
+			];
+			$db->table(MessageHub::DB_TABLE_ROUTES)->insert($route);
 		}
 		if ((int)$setting->value & 2) {
-			$route = new Route();
-			$route->source = Source::DISCORD_PRIV . "(< *)";
-			$route->destination = Source::ORG;
-			$db->insert(MessageHub::DB_TABLE_ROUTES, $route);
+			$route = [
+				"source" => Source::DISCORD_PRIV . "(< *)",
+				"destination" => Source::ORG,
+				"two_way" => false,
+			];
+			$db->table(MessageHub::DB_TABLE_ROUTES)->insert($route);
 		}
 	}
 }

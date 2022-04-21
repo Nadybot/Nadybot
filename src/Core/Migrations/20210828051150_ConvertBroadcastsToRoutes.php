@@ -3,14 +3,15 @@
 namespace Nadybot\Core\Migrations;
 
 use Illuminate\Support\Collection;
-use Nadybot\Core\DB;
-use Nadybot\Core\DBSchema\Route;
-use Nadybot\Core\DBSchema\Setting;
-use Nadybot\Core\LoggerWrapper;
-use Nadybot\Core\MessageHub;
-use Nadybot\Core\Routing\Source;
-use Nadybot\Core\SchemaMigration;
-use Nadybot\Core\SettingManager;
+use Nadybot\Core\{
+	DB,
+	DBSchema\Setting,
+	LoggerWrapper,
+	MessageHub,
+	Routing\Source,
+	SchemaMigration,
+	SettingManager,
+};
 
 class ConvertBroadcastsToRoutes implements SchemaMigration {
 	protected function getSetting(DB $db, string $name): ?Setting {
@@ -41,16 +42,20 @@ class ConvertBroadcastsToRoutes implements SchemaMigration {
 		$name = ucfirst(strtolower($broadcast));
 		$botName = $db->getMyname();
 		if ($org) {
-			$route = new Route();
-			$route->source = Source::TELL . "({$name})";
-			$route->destination = Source::ORG;
-			$db->insert(MessageHub::DB_TABLE_ROUTES, $route);
+			$route = [
+				"source" => Source::TELL . "({$name})",
+				"destination" => Source::ORG,
+				"two_way" => false,
+			];
+			$db->table(MessageHub::DB_TABLE_ROUTES)->insert($route);
 		}
 		if ($priv) {
-			$route = new Route();
-			$route->source = Source::TELL . "({$name})";
-			$route->destination = Source::PRIV . "({$botName})";
-			$db->insert(MessageHub::DB_TABLE_ROUTES, $route);
+			$route = [
+				"source" => Source::TELL . "({$name})",
+				"destination" => Source::PRIV . "({$botName})",
+				"two_way" => false,
+			];
+			$db->table(MessageHub::DB_TABLE_ROUTES)->insert($route);
 		}
 	}
 }

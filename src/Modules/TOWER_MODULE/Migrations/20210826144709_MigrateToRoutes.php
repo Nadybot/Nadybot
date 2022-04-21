@@ -84,10 +84,12 @@ class MigrateToRoutes implements SchemaMigration {
 				continue;
 			}
 			foreach (["tower-attack", "tower-victory"] as $type) {
-				$route = new Route();
-				$route->source = Source::SYSTEM . "({$type})";
-				$route->destination = $dest;
-				$db->insert($table, $route);
+				$route = [
+					"source" => Source::SYSTEM . "({$type})",
+					"destination" => $dest,
+					"two_way" => false,
+				];
+				$db->table($table)->insert($route);
 			}
 		}
 		$notifyChannel = $this->getSetting($db, "discord_notify_channel");

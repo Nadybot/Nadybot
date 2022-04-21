@@ -6,7 +6,6 @@ use Nadybot\Core\{
 	Attributes as NCA,
 	ConfigFile,
 	DB,
-	DBSchema\Route,
 	DBSchema\Setting,
 	LoggerWrapper,
 	MessageHub,
@@ -40,16 +39,20 @@ class MigrateToRouting implements SchemaMigration {
 			return;
 		}
 		if ((int)$channels->value & 1) {
-			$route = new Route();
-			$route->source = Source::TRADEBOT;
-			$route->destination = Source::PRIV . "({$this->config->name})";
-			$db->insert($table, $route);
+			$route = [
+				"source" => Source::TRADEBOT,
+				"destination" => Source::PRIV . "({$this->config->name})",
+				"two_way" => false,
+			];
+			$db->table($table)->insert($route);
 		}
 		if ((int)$channels->value & 2) {
-			$route = new Route();
-			$route->source = Source::TRADEBOT;
-			$route->destination = Source::ORG;
-			$db->insert($table, $route);
+			$route = [
+				"source" => Source::TRADEBOT,
+				"destination" => Source::ORG,
+				"two_way" => false,
+			];
+			$db->table($table)->insert($route);
 		}
 	}
 }

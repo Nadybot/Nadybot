@@ -6,7 +6,6 @@ use Nadybot\Core\{
 	Attributes as NCA,
 	ConfigFile,
 	DB,
-	DBSchema\Route,
 	DBSchema\Setting,
 	LoggerWrapper,
 	MessageHub,
@@ -47,16 +46,20 @@ class MigrateToRoutes implements SchemaMigration {
 			$showWhere = (int)$showWhere->value;
 		}
 		if (in_array($showWhere, [0, 2])) {
-			$route = new Route();
-			$route->source = $this->voteController->getChannelName();
-			$route->destination = Source::PRIV . "(" . $db->getMyname() . ")";
-			$db->insert($table, $route);
+			$route = [
+				"source" => $this->voteController->getChannelName(),
+				"destination" => Source::PRIV . "(" . $db->getMyname() . ")",
+				"two_way" => false,
+			];
+			$db->table($table)->insert($route);
 		}
 		if (in_array($showWhere, [1, 2])) {
-			$route = new Route();
-			$route->source = $this->voteController->getChannelName();
-			$route->destination = Source::ORG;
-			$db->insert($table, $route);
+			$route = [
+				"source" => $this->voteController->getChannelName(),
+				"destination" => Source::ORG,
+				"two_way" => false,
+			];
+			$db->table($table)->insert($route);
 		}
 	}
 }
