@@ -14,7 +14,6 @@ use Nadybot\Core\{
 	ModuleInstance,
 	JSONDataModel,
 	LoggerWrapper,
-	SettingManager,
 	Timer,
 };
 use Nadybot\Modules\DISCORD_GATEWAY_MODULE\Model\GuildMember;
@@ -25,13 +24,13 @@ use Nadybot\Modules\DISCORD_GATEWAY_MODULE\Model\GuildMember;
 #[NCA\Instance]
 class DiscordAPIClient extends ModuleInstance {
 	#[NCA\Inject]
-	public SettingManager $settingManager;
-
-	#[NCA\Inject]
 	public Http $http;
 
 	#[NCA\Inject]
 	public Timer $timer;
+
+	#[NCA\Inject]
+	public DiscordController $discordCtrl;
 
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
@@ -52,14 +51,14 @@ class DiscordAPIClient extends ModuleInstance {
 	public const DISCORD_API = "https://discord.com/api/v10";
 
 	public function get(string $uri): AsyncHttp {
-		$botToken = $this->settingManager->getString('discord_bot_token');
+		$botToken = $this->discordCtrl->discordBotToken;
 		return $this->http
 			->get($uri)
 			->withHeader('Authorization', "Bot $botToken");
 	}
 
 	public function post(string $uri, string $data): AsyncHttp {
-		$botToken = $this->settingManager->getString('discord_bot_token');
+		$botToken = $this->discordCtrl->discordBotToken;
 		return $this->http
 			->post($uri)
 			->withPostData($data)
@@ -68,7 +67,7 @@ class DiscordAPIClient extends ModuleInstance {
 	}
 
 	public function patch(string $uri, string $data): AsyncHttp {
-		$botToken = $this->settingManager->getString('discord_bot_token');
+		$botToken = $this->discordCtrl->discordBotToken;
 		return $this->http
 			->patch($uri)
 			->withPostData($data)
@@ -76,14 +75,32 @@ class DiscordAPIClient extends ModuleInstance {
 			->withHeader('Content-Type', 'application/json');
 	}
 
-	public function getGateway(callable $callback, mixed ...$args): void {
+	public function delete(string $uri): AsyncHttp {
+		$botToken = $this->discordCtrl->discordBotToken;
+		return $this->http
+			->delete($uri)
+			->withHeader('Authorization', "Bot $botToken");
+	}
+
+	public function getGateway(callable $callback): void {
 		$this->get(
 			self::DISCORD_API . "/gateway/bot"
 		)->withCallback(
 			$this->getErrorWrapper(
 				new DiscordGateway(),
 				$callback,
-				...$args
+			)
+		);
+	}
+
+	public function leaveGuild(string $guildId, callable $success, callable $failure): void {
+		$this->delete(
+			self::DISCORD_API . "/users/@me/guilds/{$guildId}"
+		)->withCallback(
+			$this->getErrorWrapper(
+				null,
+				$success,
+				$failure,
 			)
 		);
 	}
@@ -153,9 +170,9 @@ class DiscordAPIClient extends ModuleInstance {
 		)->withCallback(
 			$this->getErrorWrapper(
 				new DiscordChannel(),
-				[$this, "parseSendToUserReply"],
-				$message->toJSON(),
-				$callback
+				function (DiscordChannel $channel) use ($message, $callback): void {
+					$this->parseSendToUserReply($channel, $message->toJSON(), $callback);
+				}
 			)
 		);
 	}
@@ -182,8 +199,9 @@ class DiscordAPIClient extends ModuleInstance {
 		)->withCallback(
 			$this->getErrorWrapper(
 				new DiscordChannel(),
-				$callback,
-				...$args
+				function (DiscordChannel $channel) use ($callback, $args): void {
+					$callback($channel, ...$args);
+				}
 			)
 		);
 	}
@@ -205,9 +223,9 @@ class DiscordAPIClient extends ModuleInstance {
 		)->withCallback(
 			$this->getErrorWrapper(
 				new DiscordUser(),
-				[$this, "cacheUserLookup"],
-				$callback,
-				...$args
+				function (DiscordUser $user) use ($callback, $args): void {
+					$this->cacheUserLookup($user, $callback, ...$args);
+				}
 			)
 		);
 	}
@@ -242,13 +260,9 @@ class DiscordAPIClient extends ModuleInstance {
 		->withCallback(
 			$this->getErrorWrapper(
 				null,
-				Closure::fromCallable([$this, "handleGuildMembers"]),
-				$guildId,
-				$limit,
-				$after,
-				$carry,
-				$callback,
-				...$args
+				function (array $members) use ($guildId, $limit, $after, $carry, $callback, $args): void {
+					$this->handleGuildMembers($members, $guildId, $limit, $after, $carry, $callback, ...$args);
+				}
 			)
 		);
 	}
@@ -294,10 +308,9 @@ class DiscordAPIClient extends ModuleInstance {
 		)->withCallback(
 			$this->getErrorWrapper(
 				new GuildMember(),
-				[$this, "cacheGuildMemberLookup"],
-				$guildId,
-				$callback,
-				...$args
+				function (GuildMember $member) use ($guildId, $callback, $args): void {
+					$this->cacheGuildMemberLookup($member, $guildId, $callback, ...$args);
+				}
 			)
 		);
 	}
@@ -324,45 +337,52 @@ class DiscordAPIClient extends ModuleInstance {
 		)->withCallback(
 			$this->getErrorWrapper(
 				new DiscordChannelInvite(),
-				$callback,
-				...$args
+				function (DiscordChannelInvite $invite) use ($callback, $args): void {
+					$callback($invite, ...$args);
+				}
 			)
 		);
 	}
 
 	/**
 	 * Get all currently valid guild invites for $guildId
-	 * @phpstan-param callable(string, DiscordChannelInvite[], mixed...):void $callback
+	 * @phpstan-param callable(string, DiscordChannelInvite[]):void $success
+	 * @phpstan-param null|callable(HttpResponse):bool $failure
 	 */
-	public function getGuildInvites(string $guildId, callable $callback, mixed ...$args): void {
+	public function getGuildInvites(string $guildId, callable $success, ?callable $failure=null): void {
 		$this->get(
 			self::DISCORD_API . "/guilds/{$guildId}/invites"
 		)->withCallback(
 			$this->getErrorWrapper(
 				null,
-				Closure::fromCallable([$this, "handleChannelInvites"]),
-				$guildId,
-				$callback,
-				...$args
+				function (array $invites) use ($guildId, $success): void {
+					$this->handleChannelInvites($invites, $guildId, $success);
+				},
+				$failure
 			)
 		);
 	}
 
 	/**
 	 * @param stdClass[] $invites
+	 * @phpstan-param callable(string, DiscordChannelInvite[]):void $callback
 	 */
-	protected function handleChannelInvites(array $invites, string $guildId, callable $callback, mixed ...$args): void {
+	protected function handleChannelInvites(array $invites, string $guildId, callable $callback): void {
 		$result = [];
 		foreach ($invites as $invite) {
 			$invObj = new DiscordChannelInvite();
 			$invObj->fromJSON($invite);
 			$result []= $invObj;
 		}
-		$callback($guildId, $result, ...$args);
+		$callback($guildId, $result);
 	}
 
-	protected function getErrorWrapper(?JSONDataModel $o, ?callable $callback, mixed ...$args): Closure {
-		return function(HttpResponse $response) use ($o, $callback, $args) {
+	/**
+	 * @phpstan-param callable(mixed): void $success
+	 * @phpstan-param callable(HttpResponse): bool $failure
+	 */
+	protected function getErrorWrapper(?JSONDataModel $o, ?callable $success, ?callable $failure=null): Closure {
+		return function(HttpResponse $response) use ($o, $success, $failure) {
 			if (isset($response->error)) {
 				$this->logger->error("Error from discord server: {error}", [
 					"error" => $response->error,
@@ -371,6 +391,12 @@ class DiscordAPIClient extends ModuleInstance {
 				return;
 			}
 			if (substr($response->headers['status-code'], 0, 1) !== "2") {
+				if (isset($failure)) {
+					$handled = $failure($response);
+					if ($handled) {
+						return;
+					}
+				}
 				$this->logger->error(
 					'Error received while sending message to Discord. ".
 					"Status-Code: {statusCode}, Content: {content}, URL: {url}',
@@ -383,8 +409,8 @@ class DiscordAPIClient extends ModuleInstance {
 				return;
 			}
 			if ((int)$response->headers['status-code'] === 204) {
-				if (isset($callback)) {
-					$callback(new stdClass(), ...$args);
+				if (isset($success)) {
+					$success(new stdClass());
 				}
 				return;
 			}
@@ -416,12 +442,12 @@ class DiscordAPIClient extends ModuleInstance {
 				]);
 				$reply = $o;
 			}
-			if (isset($callback)) {
+			if (isset($success)) {
 				$this->logger->info("Decoded discord reply into {class}", [
 					"class" => "stdClass",
 					"object" => $reply,
 				]);
-				$callback($reply, ...$args);
+				$success($reply);
 			}
 		};
 	}

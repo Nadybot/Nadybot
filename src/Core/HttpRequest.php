@@ -156,7 +156,7 @@ class HttpRequest {
 			parse_str($queryStr, $queryArray);
 			$queryArray = array_merge($queryArray, $this->queryParams);
 			$queryStr = http_build_query($queryArray);
-		} elseif (!in_array($this->method, ['post', 'put', 'patch'], true)) {
+		} elseif (!in_array($this->method, ['post', 'put', 'patch', 'delete'], true)) {
 			throw new InvalidHttpRequest("Invalid http method: '{$this->method}'");
 		}
 
