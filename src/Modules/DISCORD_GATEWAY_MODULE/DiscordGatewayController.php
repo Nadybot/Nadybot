@@ -117,7 +117,7 @@ use stdClass;
 	),
 	NCA\DefineCommand(
 		command: "discord see invites",
-		accessLevel: "member",
+		accessLevel: "mod",
 		description: "See all invites on all Discord servers",
 	),
 	NCA\DefineCommand(
@@ -1399,7 +1399,7 @@ class DiscordGatewayController extends ModuleInstance {
 		if ($canRunJoin && !$isLinked && isset($this->invites[$guild->id])) {
 			$joinLink = " [" . $this->text->makeChatcmd(
 				"request invite",
-				"/tell <myname> discord join"
+				"/tell <myname> discord join {$guild->id}"
 			) . "]";
 		}
 		$lines = [];
@@ -1495,6 +1495,13 @@ class DiscordGatewayController extends ModuleInstance {
 			return;
 		}
 		if (isset($discordServer)) {
+			if (!preg_match("/^\d+$/", $discordServer)) {
+				foreach ($this->guilds as $guildId => $guild) {
+					if (strcasecmp($guild->name, $discordServer) === 0) {
+						$discordServer = $guild->id;
+					}
+				}
+			}
 			$guild = $this->guilds[$discordServer] ?? null;
 			if (!isset($guild)) {
 				$context->reply(
@@ -1515,7 +1522,24 @@ class DiscordGatewayController extends ModuleInstance {
 		} else {
 			$guildIds = array_keys($this->invites);
 			if (count($guildIds) > 1) {
-				$context->reply("This command only works if your bot is only connected to 1 Discord server");
+				$blobs = ["<header2>Available Discord servers<end>"];
+				foreach ($this->invites as $guildId => $guildInvites) {
+					$guild = $this->guilds[$guildId] ?? null;
+					if (!isset($guild)) {
+						continue;
+					}
+					$joinLink = $this->text->makeChatcmd(
+						"request invite",
+						"/tell <myname> discord invite {$guild->id}"
+					);
+					$blobs []= "<tab>[{$joinLink}] <highlight>{$guild->name}<end> (ID {$guild->id})";
+				}
+				$context->reply(
+					$this->text->makeBlob(
+						"Choose which Discord server to join",
+						join("\n", $blobs)
+					)
+				);
 				return;
 			}
 			if (count($guildIds) === 0) {
