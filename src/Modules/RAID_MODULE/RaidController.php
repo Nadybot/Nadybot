@@ -456,6 +456,33 @@ class RaidController extends ModuleInstance {
 	}
 
 	/**
+	 * Change the raid's maximum number of members
+	 */
+	#[NCA\HandlesCommand(self::CMD_RAID_MANAGE)]
+	public function raidChangeMaxMembersCommand(
+		CmdContext $context,
+		#[NCA\Str("limit")] string $action,
+		#[NCA\Regexp("\d+|off", example: "&lt;max members&gt;|off")] string $maxMembers
+	): void {
+		if (!isset($this->raid)) {
+			$context->reply(static::ERR_NO_RAID);
+			return;
+		}
+		$noLimit = in_array(strtolower($maxMembers), ["0", "off"]);
+		$this->raid->max_members = $noLimit ? null : (int)$maxMembers;
+		$this->logRaidChanges($this->raid);
+		if ($noLimit) {
+			$context->reply("Raid member limit removed.");
+		} else {
+			$context->reply("Maximum raid members set to <highlight>{$maxMembers}<end>.");
+		}
+		$event = new RaidEvent($this->raid);
+		$event->type = "raid(change)";
+		$event->player = $context->char->name;
+		$this->eventManager->fireEvent($event);
+	}
+
+	/**
 	 * Change the interval for getting a participation raid point, 'off' to turn it off
 	 */
 	#[NCA\HandlesCommand(self::CMD_RAID_TICKER)]

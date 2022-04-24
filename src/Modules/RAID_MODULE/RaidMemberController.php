@@ -163,8 +163,15 @@ class RaidMemberController extends ModuleInstance {
 				}
 			}
 		}
-		if ($raid->locked && $sender === $player && !$force) {
-			$msg = "The raid is currently <red>locked<end>.";
+		$numRaiders = $raid->numActiveRaiders();
+		$raidIsFull = $raid->max_members > 0 && $numRaiders >= $raid->max_members;
+		if (($raid->locked || $raidIsFull) && $sender === $player && !$force) {
+			if ($raid->locked) {
+				$msg = "The raid is currently <red>locked<end>.";
+			} else {
+				$msg = "The raid is currently <red>full<end> ".
+					"with {$numRaiders}/{$raid->max_members} players.";
+			}
 			if (isset($source) && strncmp($source, 'aopriv', 6) === 0) {
 				$msg .= " [" . ((array)$this->text->makeBlob(
 					"admin",
@@ -172,12 +179,6 @@ class RaidMemberController extends ModuleInstance {
 					"Admin controls"
 				))[0] . "]";
 			}
-			return $msg;
-		}
-		$numRaiders = $raid->numActiveRaiders();
-		if ($raid->max_members > 0 && $numRaiders >= $raid->max_members) {
-			$msg = "The raid is currently <red>full<end> ".
-				"with {$numRaiders}/{$raid->max_members} players.";
 			return $msg;
 		}
 		if (!isset($raid->raiders[$player])) {
