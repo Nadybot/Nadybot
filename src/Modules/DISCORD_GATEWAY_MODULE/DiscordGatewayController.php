@@ -1369,8 +1369,8 @@ class DiscordGatewayController extends ModuleInstance {
 			->whereNull("token")
 			->whereNotNull("confirmed")
 			->exists();
-		$canRunJoin = $this->commandManager->couldRunCommand($context, "discord join");
-		if ($canRunJoin && !$isLinked) {
+		$canRunJoin = $this->commandManager->couldRunCommand($context, "discord join {$guild->id}");
+		if ($canRunJoin && !$isLinked && isset($this->invites[$guild->id])) {
 			$joinLink = " [" . $this->text->makeChatcmd(
 				"request invite",
 				"/tell <myname> discord join"
@@ -1449,6 +1449,7 @@ class DiscordGatewayController extends ModuleInstance {
 	public function requestDiscordInvite(
 		CmdContext $context,
 		#[NCA\Str("join")] string $action,
+		?string $discordServer,
 	): void {
 		if (!$context->isDM()) {
 			$context->reply(
@@ -1467,18 +1468,38 @@ class DiscordGatewayController extends ModuleInstance {
 			$context->reply("Please wait until the Discord connection is established.");
 			return;
 		}
-		$guildIds = array_keys($this->invites);
-		if (count($guildIds) > 1) {
-			$context->reply("This command only works if your bot is only connected to 1 Discord server");
-			return;
-		}
-		if (count($guildIds) === 0) {
-			$context->reply(
-				"Your Discord bot does not have the required rights ".
-				"(MANAGE_GUILD and CREATE_INSTANT_INVITE) to manage ".
-				"invites."
-			);
-			return;
+		if (isset($discordServer)) {
+			$guild = $this->guilds[$discordServer] ?? null;
+			if (!isset($guild)) {
+				$context->reply(
+					"The bot is not a member of the Discord server ".
+					"<highlight>{$discordServer}<end>."
+				);
+				return;
+			}
+			if (!isset($this->invites[$discordServer])) {
+				$context->reply(
+					"Your Discord bot does not have the required rights ".
+					"(MANAGE_GUILD and CREATE_INSTANT_INVITE) to manage ".
+					"invites for {$guild->name}."
+				);
+				return;
+			}
+			$guildIds = [$discordServer];
+		} else {
+			$guildIds = array_keys($this->invites);
+			if (count($guildIds) > 1) {
+				$context->reply("This command only works if your bot is only connected to 1 Discord server");
+				return;
+			}
+			if (count($guildIds) === 0) {
+				$context->reply(
+					"Your Discord bot does not have the required rights ".
+					"(MANAGE_GUILD and CREATE_INSTANT_INVITE) to manage ".
+					"invites."
+				);
+				return;
+			}
 		}
 
 		$aoChar = $this->altsController->getMainOf($context->char->name);
