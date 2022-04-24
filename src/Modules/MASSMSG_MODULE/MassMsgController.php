@@ -18,6 +18,7 @@ use Nadybot\Core\{
 	Text,
 	Util,
 	Modules\PREFERENCES\Preferences,
+	Registry,
 };
 
 /**
@@ -100,7 +101,18 @@ class MassMsgController extends ModuleInstance {
 	/** date and time when the last mass message was sent */
 	public ?DateTime $lastMessage;
 
-	protected function getMassMsgOptInOutBlob(): string {
+	#[NCA\Setup]
+	public function setup(): void {
+		$massInviteReceiver = new MassMsgReceiver();
+		Registry::injectDependencies($massInviteReceiver);
+		$this->messageHub->registerMessageReceiver($massInviteReceiver);
+
+		$massInviteReceiver = new MassInviteReceiver();
+		Registry::injectDependencies($massInviteReceiver);
+		$this->messageHub->registerMessageReceiver($massInviteReceiver);
+	}
+
+	public function getMassMsgOptInOutBlob(): string {
 		$msgOnLink      = $this->text->makeChatcmd("On", "/tell <myname> massmsgs on");
 		$msgOffLink     = $this->text->makeChatcmd("Off", "/tell <myname> massmsgs off");
 		$invitesOnLink  = $this->text->makeChatcmd("On", "/tell <myname> massinvites on");
@@ -114,7 +126,7 @@ class MassMsgController extends ModuleInstance {
 		return "[{$prefLink}]";
 	}
 
-	protected function massMsgRateLimitCheck(): ?string {
+	public function massMsgRateLimitCheck(): ?string {
 		$cooldown = $this->massmsgCooldown;
 		$message = null;
 		if (isset($this->lastMessage)) {
@@ -260,7 +272,7 @@ class MassMsgController extends ModuleInstance {
 	 * @phpstan-param array<string,callable(string):void> $callback
 	 * @return array<string,string> array(name => status)
 	 */
-	protected function massCallback(array $callback): array {
+	public function massCallback(array $callback): array {
 		$online = $this->buddylistManager->getOnline();
 		$result = [];
 		foreach ($online as $name) {

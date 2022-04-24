@@ -6,7 +6,6 @@ use Nadybot\Core\{
 	Attributes as NCA,
 	ConfigFile,
 	DB,
-	DBSchema\Route,
 	LoggerWrapper,
 	MessageHub,
 	Routing\Source,
@@ -22,16 +21,18 @@ class CreateDefaultRouting implements SchemaMigration {
 
 	public function migrate(LoggerWrapper $logger, DB $db): void {
 		$table = $this->messageHub::DB_TABLE_ROUTES;
-		$route = new Route();
-		$route->source = "web";
-		$route->destination = Source::PRIV . "(" . $this->config->name . ")";
-		$route->two_way = true;
-		$db->insert($table, $route);
+		$route = [
+			"source" => "web",
+			"destination" => Source::PRIV . "(" . $this->config->name . ")",
+			"two_way" => true,
+		];
+		$db->table($table)->insert($route);
 
-		$route = new Route();
-		$route->source = "web";
-		$route->destination = Source::ORG;
-		$route->two_way = true;
-		$db->insert($table, $route);
+		$route = [
+			"source" => "web",
+			"destination" => Source::ORG,
+			"two_way" => true,
+		];
+		$db->table($table)->insert($route);
 	}
 }

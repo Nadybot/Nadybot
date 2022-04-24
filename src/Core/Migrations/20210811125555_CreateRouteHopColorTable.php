@@ -3,14 +3,15 @@
 namespace Nadybot\Core\Migrations;
 
 use Illuminate\Database\Schema\Blueprint;
-use Nadybot\Core\DB;
-use Nadybot\Core\DBSchema\RouteHopColor;
-use Nadybot\Core\DBSchema\Setting;
-use Nadybot\Core\LoggerWrapper;
-use Nadybot\Core\MessageHub;
-use Nadybot\Core\Routing\Source;
-use Nadybot\Core\SchemaMigration;
-use Nadybot\Core\SettingManager;
+use Nadybot\Core\{
+	DB,
+	DBSchema\Setting,
+	LoggerWrapper,
+	MessageHub,
+	Routing\Source,
+	SchemaMigration,
+	SettingManager,
+};
 
 class CreateRouteHopColorTable implements SchemaMigration {
 	protected function getSetting(DB $db, string $name): ?Setting {
@@ -40,10 +41,10 @@ class CreateRouteHopColorTable implements SchemaMigration {
 		} elseif (isset($matches)) {
 			$sysColor = $matches[1];
 		}
-		$sysHop = new RouteHopColor();
-		$sysHop->hop = Source::SYSTEM;
-		$sysHop->text_color = $sysColor;
-		$db->insert($table, $sysHop);
+		$db->table($table)->insert([
+			"hop" => Source::SYSTEM,
+			"text_color" => $sysColor,
+		]);
 		if (!strlen($db->getMyguild())) {
 			return;
 		}
@@ -58,10 +59,10 @@ class CreateRouteHopColorTable implements SchemaMigration {
 		if ($privSysColor === $sysColor) {
 			return;
 		}
-		$sysHop = new RouteHopColor();
-		$sysHop->hop = Source::SYSTEM;
-		$sysHop->where = Source::PRIV . "(" . $db->getMyname() . ")";
-		$sysHop->text_color = $matches[1]??"";
-		$db->insert($table, $sysHop);
+		$db->table($table)->insert([
+			"hop" => Source::SYSTEM,
+			"where" => Source::PRIV . "(" . $db->getMyname() . ")",
+			"text_color" => $matches[1]??"",
+		]);
 	}
 }

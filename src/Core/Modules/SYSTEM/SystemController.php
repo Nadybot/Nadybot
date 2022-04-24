@@ -187,6 +187,26 @@ class SystemController extends ModuleInstance implements MessageEmitter {
 		$this->messageHub->registerMessageEmitter($this);
 	}
 
+	#[NCA\Event(
+		name: "timer(1h)",
+		description: "Warn if the buddylist is full",
+		defaultStatus: 1,
+	)]
+	public function checkBuddylistFull(): void {
+		$numBuddies = $this->buddylistManager->getUsedBuddySlots();
+		$maxBuddies = $this->chatBot->getBuddyListSize();
+		if ($numBuddies < $maxBuddies) {
+			return;
+		}
+		$msg = new RoutableMessage(
+			"The bot's buddylist is full ({$numBuddies}/{$maxBuddies}). ".
+			"You need to setup AOChatProxy (https://github.com/Nadybot/aochatproxy) ".
+			"to support more than 1000 buddies."
+		);
+		$msg->appendPath(new Source(Source::SYSTEM, "status"));
+		$this->messageHub->handle($msg);
+	}
+
 	public function getChannelName(): string {
 		return Source::SYSTEM . "(status)";
 	}

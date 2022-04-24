@@ -1,3 +1,21 @@
+nadybot (6.0.1-1+ubuntu1) bionic; urgency=medium
+  Added:
+  - Allow hiding arbitrary characters from the online list, so you don't see
+    other orgs' bots or can even hide their whole guest channel.
+  - Support openSUSE tumbleweed packages
+  - Warn when the buddylist is full
+  - Add system(mass-message) and system(mass-invite) as route destinations,
+    so you can finally route your tara/reaper spawns directly to mass invites.
+
+  Fixed:
+
+  - Fix database creation from scratch
+
+  Security:
+
+  - Fix GHSA-x7cr-6qr6-2hh6 / CVE-2022-24828 vulnerability
+ -- Nadyita <nadyita@hodorraid.org>  Sun, 24 Apr 2022 22:40:00 +0200
+
 nadybot (6.0.0-1+ubuntu1) bionic; urgency=medium
   Added:
   - Allow having more than 1 superadmin

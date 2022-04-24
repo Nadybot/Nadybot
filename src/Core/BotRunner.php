@@ -11,7 +11,7 @@ class BotRunner {
 	/**
 	 * Nadybot's current version
 	 */
-	public const VERSION = "6.0.0";
+	public const VERSION = "6.0.1";
 
 	/**
 	 * The command line arguments
@@ -248,6 +248,7 @@ class BotRunner {
 		$options = getopt(
 			"c:v",
 			[
+				"help",
 				"migrate-only",
 				"setup-only",
 				"log-config:",
@@ -265,6 +266,29 @@ class BotRunner {
 		if (count($argv) > 0) {
 			static::$arguments["c"] = array_shift($argv);
 		}
+		if (isset(static::$arguments["help"])) {
+			$this->showSyntaxHelp();
+			exit(0);
+		}
+	}
+
+	private function showSyntaxHelp(): void {
+		echo(
+			"Usage: " . PHP_BINARY . " " . $_SERVER["argv"][0].
+			" [options] [-c] <config file>\n\n".
+			"positional arguments:\n".
+			"  <config file>         A Nadybot configuration file, usually conf/config.php\n".
+			"\n".
+			"options:\n".
+			"  --help                Show this help message and exit\n".
+			"  --migrate-only        Only run the database migration and then exit\n".
+			"  --setup-only          Stop the bot after the setup handlers have been called\n".
+			"  --log-config=<file>   Use an alternative config file for the logger. The default\n".
+			"                        configuration is in conf/logging.json\n".
+			"  --migration-errors-fatal\n".
+			"                        Stop the bot startup if any of the database migrations fails\n".
+			"  -v                    Enable logging INFO. Use -v -v to also log DEBUG\n"
+		);
 	}
 
 	/**

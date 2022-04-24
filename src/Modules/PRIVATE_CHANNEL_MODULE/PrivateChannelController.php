@@ -1050,6 +1050,14 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 		} elseif (!$uid || $uid < 0) {
 			return "Character <highlight>$name<end> does not exist.";
 		}
+		$maxBuddies = $this->chatBot->getBuddyListSize();
+		$numBuddies = $this->buddylistManager->getUsedBuddySlots();
+		if ($autoInvite && $numBuddies >= $maxBuddies) {
+			return "The buddylist already contains ".
+				"{$numBuddies}/{$maxBuddies} characters. ".
+				"In order to be able to add more members, you need ".
+				"to setup AOChatProxy (https://github.com/Nadybot/aochatproxy).";
+		}
 		// always add in case they were removed from the buddy list for some reason
 		$this->buddylistManager->add($name, 'member');
 		if ($this->db->table(self::DB_TABLE)->where("name", $name)->exists()) {
