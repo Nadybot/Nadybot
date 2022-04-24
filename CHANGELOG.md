@@ -15,6 +15,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Warn when the buddylist is full
 - Add `system(mass-message)` and `system(mass-invite)` as route destinations,
   so you can finally route your tara/reaper spawns directly to mass invites.
+- Add new property to raids that allows to limit the maximum number of
+  raiders. Can be set with either `!raid start <description> limit <max members>`
+  or `!raid limit <max members>`
 
 ### Fixed
 
