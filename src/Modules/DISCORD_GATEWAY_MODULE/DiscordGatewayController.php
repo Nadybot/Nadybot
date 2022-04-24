@@ -189,7 +189,7 @@ class DiscordGatewayController extends ModuleInstance {
 		"[{org}] {name}",
 		"{name} [{org}]",
 	])]
-	public string $discordRenameUsers = self::RENAME_OFF;
+	public string $discordRenameUsers = "{name}";
 
 	/** ID of the Discord role to automatically assign to registered users */
 	#[NCA\Setting\Text]
