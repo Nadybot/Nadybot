@@ -462,7 +462,7 @@ class RaidController extends ModuleInstance {
 	public function raidChangeMaxMembersCommand(
 		CmdContext $context,
 		#[NCA\Str("limit")] string $action,
-		#[NCA\Regexp("\d+|off", example: "&lt;max members&gt;|off")] string $maxMembers
+		#[NCA\PNumber] #[NCA\Str("off")] string $maxMembers
 	): void {
 		if (!isset($this->raid)) {
 			$context->reply(static::ERR_NO_RAID);
