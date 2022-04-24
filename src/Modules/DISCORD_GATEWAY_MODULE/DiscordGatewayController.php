@@ -1385,7 +1385,7 @@ class DiscordGatewayController extends ModuleInstance {
 		$leaveLink = "";
 		if ($this->commandManager->couldRunCommand($context, "discord leave {$guild->id}")) {
 			$leaveLink = " [" . $this->text->makeChatcmd(
-				"disconnect bot",
+				"kick bot",
 				"/tell <myname> discord leave {$guild->id}"
 			) . "]";
 		}

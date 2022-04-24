@@ -16,6 +16,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add `system(mass-message)` and `system(mass-invite)` as route destinations,
   so you can finally route your tara/reaper spawns directly to mass invites.
 
+### Changed
+
+- The `!discord`-command got completely changed. It now acts as the central
+  command to manage the discord connection, manage Discord invites, see
+  invites and leave Discord servers. To get people a Discord link, just
+  have them `!discord join` and click the link, the bot will automatically
+  rename the Discord user to match the main AO character and optionally
+  also assign one or more Discord roles.
+
 ### Fixed
 
 - Fix database creation from scratch
