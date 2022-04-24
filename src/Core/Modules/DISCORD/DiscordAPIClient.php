@@ -93,7 +93,7 @@ class DiscordAPIClient extends ModuleInstance {
 		);
 	}
 
-	public function leaveGuild(string $guildId, callable $success, callable $failure): void {
+	public function leaveGuild(string $guildId, ?callable $success, ?callable $failure): void {
 		$this->delete(
 			self::DISCORD_API . "/users/@me/guilds/{$guildId}"
 		)->withCallback(

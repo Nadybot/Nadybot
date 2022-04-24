@@ -80,6 +80,7 @@ use stdClass;
 	NCA\ProvidesEvent("discord(ready)"),
 	NCA\ProvidesEvent("discord(resumed)"),
 	NCA\ProvidesEvent("discord(guild_create)"),
+	NCA\ProvidesEvent("discord(guild_delete)"),
 	NCA\ProvidesEvent("discord(guild_update)"),
 	NCA\ProvidesEvent("discord(guild_update_delete)"),
 	NCA\ProvidesEvent("discord(guild_member_add)"),
@@ -887,6 +888,31 @@ class DiscordGatewayController extends ModuleInstance {
 
 	#[
 		NCA\Event(
+			name: "discord(guild_delete)",
+			description: "Handle discord guild leave",
+			defaultStatus: 1
+		),
+	]
+	public function processDiscordGuildDeleteMessages(DiscordGatewayEvent $event): void {
+		$guildId = $event->payload->d?->id ?? null;
+		if (is_string($guildId)) {
+			$guild = $this->guilds[$guildId] ?? null;
+			if (isset($guild)) {
+				$this->logger->notice("Left Discord server {serverName}", [
+					"serverName" => $guild->name
+				]);
+			} else {
+				$this->logger->notice("Left Discord server id {guildId}", [
+					"guildId" => $guildId,
+				]);
+			}
+			unset($this->guilds[$guildId]);
+			unset($this->invites[$guildId]);
+		}
+	}
+
+	#[
+		NCA\Event(
 			name: [
 				"discord(channel_create)",
 				"discord(channel_update)",
@@ -1624,17 +1650,32 @@ class DiscordGatewayController extends ModuleInstance {
 			);
 			return;
 		}
+		$informDelete = function (DiscordGatewayEvent $event) use ($context, $guild, &$informDelete): void {
+			$guildId = $event->payload->d?->id ?? null;
+			if ($guildId !== $guild->id) {
+				return;
+			}
+			$context->reply(
+				"Successfully left the Discord server ".
+				"<highlight>{$guild->name}<end>."
+			);
+			$this->eventManager->unsubscribe(
+				"discord(guild_delete)",
+				$informDelete
+			);
+		};
+		$this->eventManager->subscribe(
+			"discord(guild_delete)",
+			$informDelete
+		);
 		$this->discordAPIClient->leaveGuild(
 			$guildId,
-			function() use ($context, $guild): void {
-				$context->reply(
-					"Successfully left the Discord server ".
-					"<highlight>{$guild->name}<end>."
+			null,
+			function() use ($context, $guild, $informDelete): bool {
+				$this->eventManager->unsubscribe(
+					"discord(guild_delete)",
+					$informDelete
 				);
-				unset($this->guilds[$guild->id]);
-				return;
-			},
-			function() use ($context, $guild): bool {
 				$context->reply(
 					"There was an error leaving the Discord server ".
 					"<highlight>{$guild->name}<end>. ".
