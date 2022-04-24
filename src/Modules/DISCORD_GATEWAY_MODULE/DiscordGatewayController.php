@@ -1339,7 +1339,7 @@ class DiscordGatewayController extends ModuleInstance {
 		}
 		$guildBlobs = [];
 		foreach ($this->guilds as $guildId => $guild) {
-			$guildBlobs []= $this->renderGuild($guild);
+			$guildBlobs []= $this->renderGuild($context, $guild);
 		}
 		$blob = join("\n\n", $guildBlobs);
 		$context->reply(
@@ -1354,13 +1354,30 @@ class DiscordGatewayController extends ModuleInstance {
 		);
 	}
 
-	protected function renderGuild(Guild $guild): string {
-		$leaveLink = $this->text->makeChatcmd(
-			"leave",
-			"/tell <myname> discord leave {$guild->id}"
-		);
+	protected function renderGuild(CmdContext $context, Guild $guild): string {
+		$joinLink = "";
+		$leaveLink = "";
+		if ($this->commandManager->couldRunCommand($context, "discord leave {$guild->id}")) {
+			$leaveLink = " [" . $this->text->makeChatcmd(
+				"disconnect bot",
+				"/tell <myname> discord leave {$guild->id}"
+			) . "]";
+		}
+		$aoChar = $this->altsController->getMainOf($context->char->name);
+		$isLinked = $this->db->table(DiscordGatewayCommandHandler::DB_TABLE)
+			->whereIn("name", [$aoChar, $context->char->name])
+			->whereNull("token")
+			->whereNotNull("confirmed")
+			->exists();
+		$canRunJoin = $this->commandManager->couldRunCommand($context, "discord join");
+		if ($canRunJoin && !$isLinked) {
+			$joinLink = " [" . $this->text->makeChatcmd(
+				"request invite",
+				"/tell <myname> discord join"
+			) . "]";
+		}
 		$lines = [];
-		$lines []= "<header2>{$guild->name}<end> [{$leaveLink}]";
+		$lines []= "<header2>{$guild->name}<end>{$leaveLink}{$joinLink}";
 		foreach ($guild->channels as $channel) {
 			if (isset($channel->parent_id)) {
 				continue;
