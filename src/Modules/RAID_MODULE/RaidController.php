@@ -29,6 +29,7 @@ use Nadybot\Core\{
 	Timer,
 	Util,
 };
+use Nadybot\Core\ParamClass\PNonGreedy;
 use Nadybot\Modules\{
 	BASIC_CHAT_MODULE\ChatAssistController,
 	COMMENT_MODULE\CommentCategory,
@@ -214,17 +215,28 @@ class RaidController extends ModuleInstance {
 		if (!isset($this->raid)) {
 			return "";
 		}
+		$numRaiders = $this->raid->numActiveRaiders();
+		if ($this->raid->locked) {
+			$status = "<red>locked<end>";
+		} elseif ($this->raid->max_members > 0 && $this->raid->max_members <= $numRaiders) {
+			$status = "<red>full<end>";
+		} else {
+			$status = "<green>open<end>";
+		}
 		$blob = "<header2>Current raid<end>\n".
 			"<tab>Description: <highlight>{$this->raid->description}<end>\n".
 			"<tab>Duration: running for <highlight>".
 			$this->util->unixtimeToReadable(time() - $this->raid->started) . "<end>.\n".
-			"<tab>Status: " . ($this->raid->locked ? "<red>locked" : "<green>open") . "<end>\n";
+			"<tab>Status: {$status}\n";
 		if ($this->raid->seconds_per_point > 0) {
 			$blob .= "<tab>Points: <highlight>1 raid point every ".
 				$this->util->unixtimeToReadable($this->raid->seconds_per_point).
 				"<end>\n";
 		} else {
 			$blob .= "<tab>Points: <highlight>Given for each kill by the raid leader(s)<end>\n";
+		}
+		if ($this->raid->max_members > 0) {
+			$blob .= "<tab>Max members: <highlight>{$this->raid->max_members}<end>\n";
 		}
 		$blob .= "\n".
 			$this->text->makeChatcmd("Join", "/tell <myname> raid join").
@@ -262,11 +274,17 @@ class RaidController extends ModuleInstance {
 			}
 			$blob .= "\n";
 		}
+		if ($this->raid->max_members > 0) {
+			$blob .= "Max members: <highlight>{$this->raid->max_members}<end>\n";
+		}
 		$blob .= "Raid State: <highlight>";
+		$numRaiders = $this->raid->numActiveRaiders();
 		if ($this->raid->locked) {
 			$blob .= "locked<end> [".
 				$this->text->makeChatcmd("Unlock", "/tell <myname> raid unlock").
 				"]\n";
+		} elseif ($numRaiders >= $this->raid->max_members) {
+			$blob .= "full<end> ({$numRaiders}/{$this->raid->max_members})\n";
 		} else {
 			$blob .= "open<end> [".
 				$this->text->makeChatcmd("Lock", "/tell <myname> raid lock").
@@ -350,18 +368,40 @@ class RaidController extends ModuleInstance {
 	 * Start a raid with a given description
 	 */
 	#[NCA\HandlesCommand(self::CMD_RAID_MANAGE)]
+	public function raidStartWithLimitsCommand(
+		CmdContext $context,
+		#[NCA\Str("start", "run", "create")] string $action,
+		PNonGreedy $description,
+		#[NCA\Str("limit")] string $subAction,
+		int $maxMembers,
+	): void {
+		$raid = new Raid();
+		$raid->started_by = $context->char->name;
+		$raid->max_members = $maxMembers;
+		$raid->description = $description();
+		$this->startNewRaid($context, $raid);
+	}
+
+	/**
+	 * Start a raid with a given description
+	 */
+	#[NCA\HandlesCommand(self::CMD_RAID_MANAGE)]
 	public function raidStartCommand(
 		CmdContext $context,
 		#[NCA\Str("start", "run", "create")] string $action,
 		string $description
 	): void {
+		$raid = new Raid();
+		$raid->started_by = $context->char->name;
+		$raid->description = $description;
+		$this->startNewRaid($context, $raid);
+	}
+
+	protected function startNewRaid(CmdContext $context, Raid $raid): void {
 		if (isset($this->raid)) {
 			$context->reply("There's already a raid running.");
 			return;
 		}
-		$raid = new Raid();
-		$raid->started_by = $context->char->name;
-		$raid->description = $description;
 		if ($this->raidAnnouncement) {
 			$raid->announce_interval = $this->raidAnnouncementInterval;
 		}
@@ -692,6 +732,9 @@ class RaidController extends ModuleInstance {
 				"by <highlight>{$raid->stopped_by}<end>\n";
 		}
 		$blob .= "<tab>Description: <highlight>{$raid->description}<end>\n";
+		if ($this->raid->max_members > 0) {
+			$blob .= "<tab>Max members: <highlight>{$raid->max_members}<end>\n";
+		}
 		$blob .= "<tab>Raid points: ";
 		if ($raid->seconds_per_point === 0) {
 			$blob .= "<highlight>Given per kill<end>\n";
@@ -1026,6 +1069,7 @@ class RaidController extends ModuleInstance {
 				"started" => $raid->started,
 				"started_by" => $raid->started_by,
 				"announce_interval" => $raid->announce_interval,
+				"max_members" => $raid->max_members,
 			], "raid_id");
 		$this->raid = $raid;
 		$event = new RaidEvent($raid);

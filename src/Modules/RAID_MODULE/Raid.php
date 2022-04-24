@@ -62,7 +62,13 @@ class Raid extends DBRow {
 	/**
 	 * Name of the raidleader who stopped the raid
 	 */
-	public ?string $stopped_by;
+	public ?string $stopped_by = null;
+
+	/**
+	 * Maximum number of allowed characters in the raid
+	 * If 0 or NULL, this is not limited
+	 */
+	public ?int $max_members = null;
 
 	/**
 	 * List of all players who are or were in the raid
@@ -87,10 +93,24 @@ class Raid extends DBRow {
 		$this->last_award_from_ticker = time();
 	}
 
+	public function numActiveRaiders(): int {
+		$numRaiders = 0;
+		foreach ($this->raiders as $name => $raider) {
+			if (isset($raider->left)) {
+				continue;
+			}
+			$numRaiders++;
+		}
+		return $numRaiders;
+	}
+
 	public function getAnnounceMessage(?string $joinMessage=null): string {
 		$msg = "Raid is running: <highlight>{$this->description}<end> :: ";
+		$numRaiders = $this->numActiveRaiders();
 		if ($this->locked) {
-			$msg .= "<red>raid is locked<end>.";
+			$msg .= "<red>raid is locked<end>";
+		} elseif ($this->max_members > 0 && $this->max_members <= $numRaiders) {
+			$msg .= "<red>raid is full<end>";
 		} elseif ($joinMessage !== null) {
 			$msg .= $joinMessage;
 		}
