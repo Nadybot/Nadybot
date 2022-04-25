@@ -165,6 +165,10 @@ class RaidMemberController extends ModuleInstance {
 		}
 		$numRaiders = $raid->numActiveRaiders();
 		$raidIsFull = $raid->max_members > 0 && $numRaiders >= $raid->max_members;
+		$countMsg = "";
+		if ($raid->max_members > 0) {
+			$countMsg = " (" . ($numRaiders + 1) . "/{$raid->max_members} slots)";
+		}
 		if (($raid->locked || $raidIsFull) && $sender === $player && !$force) {
 			if ($raid->locked) {
 				$msg = "The raid is currently <red>locked<end>.";
@@ -201,14 +205,14 @@ class RaidMemberController extends ModuleInstance {
 			if ($this->raidInformMemberBeingAdded) {
 				$this->chatBot->sendMassTell("You were <green>added<end> to the raid by {$sender}.", $player);
 			}
-			$routed = $this->routeMessage("join", "<highlight>{$player}<end> was <green>added<end> to the raid by {$sender}.");
+			$routed = $this->routeMessage("join", "<highlight>{$player}<end> was <green>added<end> to the raid by {$sender}{$countMsg}.");
 			if ($routed !== MessageHub::EVENT_DELIVERED) {
-				$msg = "<highlight>{$player}<end> was <green>added<end> to the raid.";
+				$msg = "<highlight>{$player}<end> was <green>added<end> to the raid{$countMsg}.";
 			}
 		} else {
 			$this->routeMessage(
 				"join",
-				"<highlight>{$player}<end> has <green>joined<end> the raid :: ".
+				"<highlight>{$player}<end> has <green>joined<end> the raid{$countMsg} :: ".
 				((array)$this->text->makeBlob(
 					"click to join",
 					$this->raidController->getRaidJoinLink(),
@@ -247,6 +251,10 @@ class RaidMemberController extends ModuleInstance {
 			return "You are currently not in the raid.";
 		}
 		$numRaiders = $raid->numActiveRaiders();
+		$countMsg = "";
+		if ($raid->max_members > 0) {
+			$countMsg = " (" . ($numRaiders - 1) . "/{$raid->max_members} slots)";
+		}
 		$raid->raiders[$player]->left = time();
 		$this->db->table(self::DB_TABLE)
 			->where("raid_id", $raid->raid_id)
@@ -259,12 +267,12 @@ class RaidMemberController extends ModuleInstance {
 				$this->chatBot->sendMassTell("You were <red>removed<end> from the raid by {$sender}.", $player);
 			}
 			$leaveType = (isset($sender) && ($sender !== $player)) ? "kick" : "leave";
-			$routed = $this->routeMessage($leaveType, "<highlight>{$player}<end> was <red>removed<end> from the raid.");
+			$routed = $this->routeMessage($leaveType, "<highlight>{$player}<end> was <red>removed<end> from the raid{$countMsg}.");
 			if ($routed !== MessageHub::EVENT_DELIVERED) {
-				$msg = "<highlight>{$player}<end> was <red>removed<end> to the raid.";
+				$msg = "<highlight>{$player}<end> was <red>removed<end> to the raid{$countMsg}.";
 			}
 		} else {
-			$this->routeMessage("leave", "<highlight>{$player}<end> <red>left<end> the raid.");
+			$this->routeMessage("leave", "<highlight>{$player}<end> has <red>left<end> the raid{$countMsg}.");
 		}
 		if ($numRaiders === $raid->max_members && ($this->raidAnnounceFull & self::ANNOUNCE_RAID_OPEN)) {
 			$openMsg = "The raid is <green>no longer full<end>!";
