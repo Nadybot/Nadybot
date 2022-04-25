@@ -206,7 +206,9 @@ class ConsoleController extends ModuleInstance {
 			$rMessage = new RoutableMessage($context->message);
 			$rMessage->setCharacter($context->char);
 			$rMessage->prependPath(new Source(Source::CONSOLE, "Console"));
-			$this->messageHub->handle($rMessage);
+			if ($this->messageHub->handle($rMessage) !== $this->messageHub::EVENT_DELIVERED) {
+				$context->setIsDM(true);
+			}
 
 			$this->commandManager->checkAndHandleCmd($context);
 		}, $context);

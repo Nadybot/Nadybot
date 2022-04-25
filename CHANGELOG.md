@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- The `!discord`-command got completely changed. It now acts as the central
+  command to manage the discord connection, manage Discord invites, see
+  invites and leave Discord servers. To get people a Discord link, just
+  have them `!discord join` and click the link, the bot will automatically
+  rename the Discord user to match the main AO character and optionally
+  also assign one or more Discord roles.
+
+## [6.0.1] - 2022-04-24
+
 ### Added
 
 - Allow hiding arbitrary characters from the online list, so you don't see
@@ -22,6 +33,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Fix database creation from scratch
+
+### Security
+
+- Fix `GHSA-x7cr-6qr6-2hh6` / `CVE-2022-24828` vulnerability
 
 ## [6.0.0] - 2022-04-19
 
