@@ -1359,6 +1359,10 @@ class DiscordGatewayController extends ModuleInstance {
 	/** See statistics about the current Discord connection */
 	#[NCA\HandlesCommand("discord")]
 	public function seeDiscordStats(CmdContext $context): void {
+		if ($this->discordController->discordBotToken === 'off') {
+			$context->reply("This bot isn't configured to connect to Discord yet.");
+			return;
+		}
 		if (!$this->isConnected()) {
 			$context->reply("The bot is currently not connected to Discord.");
 			return;
@@ -1582,6 +1586,14 @@ class DiscordGatewayController extends ModuleInstance {
 		CmdContext $context,
 		#[NCA\Str("invites", "invitations")] string $action
 	): void {
+		if ($this->discordController->discordBotToken === 'off') {
+			$context->reply("This bot isn't configured to connect to Discord yet.");
+			return;
+		}
+		if (!$this->isConnected()) {
+			$context->reply("The bot is currently not connected to Discord.");
+			return;
+		}
 		$awaiting = 0;
 		foreach ($this->guilds as $guildId => $guild) {
 			$awaiting++;
@@ -1662,6 +1674,10 @@ class DiscordGatewayController extends ModuleInstance {
 		#[NCA\Str("leave")] string $action,
 		string $guildId,
 	): void {
+		if ($this->discordController->discordBotToken === 'off') {
+			$context->reply("This bot isn't configured to connect to Discord yet.");
+			return;
+		}
 		if (!$this->isConnected()) {
 			$context->reply("The bot is currently not connected to Discord.");
 			return;
