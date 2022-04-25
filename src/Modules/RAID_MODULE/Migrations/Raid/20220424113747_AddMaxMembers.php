@@ -14,5 +14,10 @@ class AddMaxMembers implements SchemaMigration {
 		$db->schema()->table($table, function(Blueprint $table) {
 			$table->unsignedInteger("max_members")->nullable(true);
 		});
+
+		$table = RaidController::DB_TABLE_LOG;
+		$db->schema()->table($table, function(Blueprint $table) {
+			$table->unsignedInteger("max_members")->nullable(true);
+		});
 	}
 }
