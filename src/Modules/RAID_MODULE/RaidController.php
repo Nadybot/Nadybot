@@ -21,6 +21,7 @@ use Nadybot\Core\{
 	Modules\PLAYER_LOOKUP\PlayerManager,
 	Nadybot,
 	ParamClass\PCharacter,
+	ParamClass\PNonGreedy,
 	ParamClass\PWord,
 	Registry,
 	Routing\RoutableMessage,
@@ -29,7 +30,6 @@ use Nadybot\Core\{
 	Timer,
 	Util,
 };
-use Nadybot\Core\ParamClass\PNonGreedy;
 use Nadybot\Modules\{
 	BASIC_CHAT_MODULE\ChatAssistController,
 	COMMENT_MODULE\CommentCategory,
