@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Add a new command `!assist random <number>` to pick `<number>` random
+  callers from the currently running raid.
+  You can exclude professions from this random pick by changing the
+  `never_auto_callers` setting, default excludes docs and crats.
+
 ### Changed
 
 - The `!discord`-command got completely changed. It now acts as the central
