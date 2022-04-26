@@ -384,10 +384,10 @@ class OrglistController extends ModuleInstance {
 
 			$blob .= "\n<header2>" . $map[$rankid] . "<end> ({$rank_online} / {$rank_total})\n";
 
-			if ($onlinelist != "") {
+			if ($onlinelist !== "") {
 				$blob .= $onlinelist;
 			}
-			if ($offlinelist != "") {
+			if ($offlinelist !== "<tab>") {
 				$blob .= $orgcolor["offline"] . $offlinelist . "<end>\n";
 			}
 			$blob .= "\n";

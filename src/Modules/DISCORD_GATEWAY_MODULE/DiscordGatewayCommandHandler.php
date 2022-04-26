@@ -139,7 +139,9 @@ class DiscordGatewayCommandHandler extends ModuleInstance implements AccessLevel
 			]);
 		$guilds = $this->discordGatewayController->getGuilds();
 		$guild = $guilds[array_keys($guilds)[0]] ?? null;
-		$this->discordGatewayController->handleAccountLinking($guild->id, $data->discord_id, $context->char->name);
+		if (isset($guild)) {
+			$this->discordGatewayController->handleAccountLinking($guild->id, $data->discord_id, $context->char->name);
+		}
 		$msg = "You have linked your accounts successfully.";
 		$context->reply($msg);
 	}

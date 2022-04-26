@@ -5,3 +5,5 @@ parameters:
   parallel:
     maximumNumberOfProcesses: 6
   phpVersion: 80100
+includes:
+    - vendor/phpstan/phpstan-deprecation-rules/rules.neon

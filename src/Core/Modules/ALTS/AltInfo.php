@@ -192,11 +192,11 @@ class AltInfo {
 		$count = $alts->count() + 1;
 		foreach ($alts as $row) {
 			$online = $this->buddylistManager->isOnline($row->alt);
-			$blob .= $this->text->alignNumber($row->player?->level??0, 3, "highlight");
+			$blob .= $this->text->alignNumber($row->player->level??0, 3, "highlight");
 			$blob .= " ";
-			$blob .= $this->text->alignNumber($row->player?->ai_level??0, 2, "green");
+			$blob .= $this->text->alignNumber($row->player->ai_level??0, 2, "green");
 			$blob .= " ";
-			if ($profDisplay & 1 && $row->player?->profession !== null) {
+			if ($profDisplay & 1 && $row->player->profession !== null) {
 				// @phpstan-ignore-next-line
 				$profId = $this->onlineController->getProfessionId($row->player?->profession??"");
 				if (isset($profId)) {

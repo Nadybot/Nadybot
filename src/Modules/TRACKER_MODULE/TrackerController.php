@@ -711,7 +711,7 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 		$orgs = $orgs->each(function(TrackingOrg $o) use ($orgsByID): void {
 			$o->org = $orgsByID->get($o->org_id);
 		})->sort(function (TrackingOrg $o1, TrackingOrg $o2): int {
-			return strcasecmp($o1->org?->name??"", $o2->org?->name??"");
+			return strcasecmp($o1->org->name??"", $o2->org->name??"");
 		});
 
 		$lines = $orgs->map(function(TrackingOrg $o): ?string {
