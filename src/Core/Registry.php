@@ -46,6 +46,13 @@ class Registry {
 		return isset(Registry::$repo[$name]);
 	}
 
+	/** Check if an instance for $name is registered */
+	public static function hasInstance(string $name): bool {
+		$name = static::formatName($name);
+
+		return isset(Registry::$repo[$name]);
+	}
+
 	/**
 	 * Get the instance for the name $name or null if  none registered yet
 	 */

@@ -5,6 +5,8 @@ namespace Nadybot\Core;
 use Exception;
 use Nadybot\Core\Attributes as NCA;
 use Monolog\Logger;
+use Nadybot\Core\Routing\RoutableMessage;
+use Nadybot\Core\Routing\Source;
 use Safe\Exceptions\FilesystemException;
 use Throwable;
 
@@ -20,6 +22,8 @@ class LoggerWrapper {
 
 	#[NCA\Inject]
 	public ConfigFile $config;
+
+	protected static bool $routeErrors = true;
 
 	/**
 	 * The actual Monolog logger for tag CHAT
@@ -121,6 +125,31 @@ class LoggerWrapper {
 				"error" => $e->getMessage(),
 				"exception" => $e
 			]);
+		}
+		if ($logLevel < Logger::NOTICE) {
+			return;
+		}
+		if (!static::$routeErrors) {
+			return;
+		}
+		if (!Registry::hasInstance(MessageHub::class)) {
+			return;
+		}
+		static::$routeErrors = false;
+		try {
+			$msgHub = Registry::getInstance(MessageHub::class);
+			if (!isset($msgHub) || !($msgHub instanceof MessageHub)) {
+				return;
+			}
+			$rMessage = new RoutableMessage($message);
+			$loggingCategory = LegacyLogger::getLoggingCategory($logLevel);
+			$rMessage->appendPath(
+				new Source(Source::LOG, $loggingCategory)
+			);
+			$msgHub->handle($rMessage);
+		} catch (Throwable) {
+		} finally {
+			static::$routeErrors = true;
 		}
 	}
 

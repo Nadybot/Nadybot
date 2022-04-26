@@ -93,6 +93,7 @@ class MessageHubController extends ModuleInstance {
 					$this->logger->error($e->getMessage(), ["exception" => $e]);
 				}
 			});
+		$this->messageHub->routingLoaded = true;
 	}
 
 	protected function fixDiscordChannelName(string $name): string {

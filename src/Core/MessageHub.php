@@ -65,6 +65,11 @@ class MessageHub {
 	/** @var Collection<RouteHopColor> */
 	public static Collection $colors;
 
+	public bool $routingLoaded = false;
+
+	/** @var RoutableEvent[] */
+	public array $eventQueue = [];
+
 	#[NCA\Setup]
 	public function setup(): void {
 		$this->parseMessageEmitters();
@@ -360,6 +365,13 @@ class MessageHub {
 			);
 		} catch (JsonException $e) {
 			// Ignore
+		}
+		if ($this->routingLoaded === false) {
+			$this->eventQueue []= $event;
+			return static::EVENT_NOT_ROUTED;
+		}
+		if (($queued = array_pop($this->eventQueue)) !== null) {
+			$this->handle($queued);
 		}
 		$returnStatus = static::EVENT_NOT_ROUTED;
 		foreach ($this->routes as $source => $dest) {

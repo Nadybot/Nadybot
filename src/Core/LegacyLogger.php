@@ -2,6 +2,8 @@
 
 namespace Nadybot\Core;
 
+use Nadybot\Core\Attributes as NCA;
+use Nadybot\Core\Routing\Source;
 use Safe\Exceptions\JsonException;
 use Monolog\Formatter\FormatterInterface;
 use Monolog\Handler\AbstractHandler;
@@ -13,6 +15,14 @@ use RuntimeException;
 /**
  * A compatibility layer for logging
  */
+#[
+	NCA\EmitsMessages(Source::LOG, "emergency"),
+	NCA\EmitsMessages(Source::LOG, "alert"),
+	NCA\EmitsMessages(Source::LOG, "critical"),
+	NCA\EmitsMessages(Source::LOG, "error"),
+	NCA\EmitsMessages(Source::LOG, "warning"),
+	NCA\EmitsMessages(Source::LOG, "notice"),
+]
 class LegacyLogger {
 	/** @var array<string,Logger> */
 	public static array $loggers = [];
@@ -60,6 +70,33 @@ class LegacyLogger {
 			case 'info':
 			default:
 				return Logger::NOTICE;
+		}
+	}
+
+	/**
+	 * Get the Nadybot logging category for the given Monolog log level
+	 * @phpstan-param 100|200|250|300|400|500|550|600 $logLevel
+	 */
+	public static function getLoggingCategory(int $logLevel): string {
+		switch ($logLevel) {
+			case Logger::DEBUG:
+				return 'debug';
+			case Logger::INFO:
+				return 'info';
+			case Logger::NOTICE:
+				return 'notice';
+			case Logger::WARNING:
+				return 'warning';
+			case Logger::ERROR:
+				return 'error';
+			case Logger::CRITICAL:
+				return 'critical';
+			case Logger::ALERT:
+				return 'alert';
+			case Logger::EMERGENCY:
+				return 'emergency';
+			default:
+				return 'notice';
 		}
 	}
 
@@ -206,5 +243,13 @@ class LegacyLogger {
 			$result[$name] = $obj;
 		}
 		return $result;
+	}
+
+	public static function registerMessageEmitters(MessageHub $hub): void {
+		$refClass = new \ReflectionClass(self::class);
+		foreach ($refClass->getAttributes(NCA\EmitsMessages::class) as $attr) {
+			$obj = $attr->newInstance();
+			$hub->registerMessageEmitter($obj);
+		}
 	}
 }
