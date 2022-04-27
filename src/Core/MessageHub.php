@@ -361,7 +361,10 @@ class MessageHub {
 		$type = strtolower("{$path[0]->type}({$path[0]->name})");
 		$eventLogLevel = null;
 		if ($path[0]->type === Source::LOG) {
-			/** @phpstan-ignore-next-line */
+			/**
+			 * @phpstan-ignore-next-line
+			 * @psalm-suppress ArgumentTypeCoercion
+			 */
 			$eventLogLevel = Logger::toMonologLevel($path[0]->name);
 		}
 		try {
@@ -388,6 +391,7 @@ class MessageHub {
 				&& preg_match("/^" . preg_quote(Source::LOG, "/") . "\(([a-z]+)\)$/i", $source, $matches)
 			) {
 				try {
+					/** @psalm-suppress ArgumentTypeCoercion */
 					$srcLevel = Logger::toMonologLevel($matches[1]);
 					if ($eventLogLevel < $srcLevel) {
 						continue;

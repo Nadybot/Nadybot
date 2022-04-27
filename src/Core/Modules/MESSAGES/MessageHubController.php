@@ -1023,6 +1023,7 @@ class MessageHubController extends ModuleInstance {
 					$l1 = 0;
 				} else {
 					try {
+						/** @psalm-suppress ArgumentTypeCoercion */
 						$l1 = Logger::toMonologLevel($matches[1]);
 					} catch (Exception) {
 						$l1 = 0;
@@ -1032,6 +1033,7 @@ class MessageHubController extends ModuleInstance {
 					$l2 = 0;
 				} else {
 					try {
+						/** @psalm-suppress ArgumentTypeCoercion */
 						$l2 = Logger::toMonologLevel($matches[1]);
 					} catch (Exception) {
 						$l2 = 0;
