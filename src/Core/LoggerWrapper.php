@@ -142,7 +142,7 @@ class LoggerWrapper {
 				return;
 			}
 			$rMessage = new RoutableMessage($message);
-			$loggingCategory = LegacyLogger::getLoggingCategory($logLevel);
+			$loggingCategory = Logger::getLevelName($logLevel);
 			$rMessage->appendPath(
 				new Source(Source::LOG, $loggingCategory)
 			);

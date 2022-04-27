@@ -73,33 +73,6 @@ class LegacyLogger {
 		}
 	}
 
-	/**
-	 * Get the Nadybot logging category for the given Monolog log level
-	 * @phpstan-param 100|200|250|300|400|500|550|600 $logLevel
-	 */
-	public static function getLoggingCategory(int $logLevel): string {
-		switch ($logLevel) {
-			case Logger::DEBUG:
-				return 'debug';
-			case Logger::INFO:
-				return 'info';
-			case Logger::NOTICE:
-				return 'notice';
-			case Logger::WARNING:
-				return 'warning';
-			case Logger::ERROR:
-				return 'error';
-			case Logger::CRITICAL:
-				return 'critical';
-			case Logger::ALERT:
-				return 'alert';
-			case Logger::EMERGENCY:
-				return 'emergency';
-			default:
-				return 'notice';
-		}
-	}
-
 	/** @return array<string,mixed> */
 	public static function getConfig(bool $noCache=false): array {
 		if (!empty(static::$config) && !$noCache) {

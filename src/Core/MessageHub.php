@@ -5,6 +5,7 @@ namespace Nadybot\Core;
 use Exception;
 use Illuminate\Support\Collection;
 use JsonException;
+use Monolog\Logger;
 use ReflectionException;
 use ReflectionMethod;
 use Throwable;
@@ -358,6 +359,11 @@ class MessageHub {
 			return static::EVENT_NOT_ROUTED;
 		}
 		$type = strtolower("{$path[0]->type}({$path[0]->name})");
+		$eventLogLevel = null;
+		if ($path[0]->type === Source::LOG) {
+			/** @phpstan-ignore-next-line */
+			$eventLogLevel = Logger::toMonologLevel($path[0]->name);
+		}
 		try {
 			$this->logger->info(
 				"Trying to route {$type} - ".
@@ -378,7 +384,18 @@ class MessageHub {
 			if (!strpos($source, '(')) {
 				$source .= '(*)';
 			}
-			if (!fnmatch($source, $type, FNM_CASEFOLD)) {
+			if (isset($eventLogLevel)
+				&& preg_match("/^" . preg_quote(Source::LOG, "/") . "\(([a-z]+)\)$/i", $source, $matches)
+			) {
+				try {
+					$srcLevel = Logger::toMonologLevel($matches[1]);
+					if ($eventLogLevel < $srcLevel) {
+						continue;
+					}
+				} catch (Exception $e) {
+					continue;
+				}
+			} elseif (!fnmatch($source, $type, FNM_CASEFOLD)) {
 				continue;
 			}
 			foreach ($dest as $destName => $routes) {
