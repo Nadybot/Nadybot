@@ -3,7 +3,9 @@
 namespace Nadybot\Core;
 
 use Exception;
+use Monolog\DateTimeImmutable;
 use Monolog\Logger;
+use Monolog\Processor\PsrLogMessageProcessor;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Routing\RoutableMessage,
@@ -27,6 +29,8 @@ class LoggerWrapper {
 
 	protected static bool $routeErrors = true;
 
+	protected static PsrLogMessageProcessor $logProcessor;
+
 	/**
 	 * The actual Monolog logger for tag CHAT
 	 */
@@ -36,6 +40,9 @@ class LoggerWrapper {
 
 	public function __construct(string $tag) {
 		$this->logger = LegacyLogger::fromConfig($tag);
+		if (!isset(self::$logProcessor)) {
+			self::$logProcessor = new PsrLogMessageProcessor(null, true);
+		}
 	}
 
 	/**
@@ -143,8 +150,17 @@ class LoggerWrapper {
 			if (!isset($msgHub) || !($msgHub instanceof MessageHub)) {
 				return;
 			}
-			$rMessage = new RoutableMessage($message);
 			$loggingCategory = Logger::getLevelName($logLevel);
+			$renderedMessage = (self::$logProcessor)([
+				'message' => $message,
+				'context' => $context,
+				'level' => $logLevel,
+				'level_name' => $loggingCategory,
+				'channel' => $loggingCategory,
+				'datetime' => new DateTimeImmutable(false),
+				'extra' => [],
+			]);
+			$rMessage = new RoutableMessage($renderedMessage["message"]);
 			$rMessage->appendPath(
 				new Source(Source::LOG, $loggingCategory)
 			);
