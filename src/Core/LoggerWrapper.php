@@ -3,10 +3,12 @@
 namespace Nadybot\Core;
 
 use Exception;
-use Nadybot\Core\Attributes as NCA;
 use Monolog\Logger;
-use Nadybot\Core\Routing\RoutableMessage;
-use Nadybot\Core\Routing\Source;
+use Nadybot\Core\{
+	Attributes as NCA,
+	Routing\RoutableMessage,
+	Routing\Source,
+};
 use Safe\Exceptions\FilesystemException;
 use Throwable;
 

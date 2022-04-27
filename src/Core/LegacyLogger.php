@@ -2,15 +2,17 @@
 
 namespace Nadybot\Core;
 
+use Monolog\{
+	Formatter\FormatterInterface,
+	Handler\AbstractHandler,
+	Handler\AbstractProcessingHandler,
+	Logger,
+	Processor\PsrLogMessageProcessor,
+};
 use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\Routing\Source;
-use Safe\Exceptions\JsonException;
-use Monolog\Formatter\FormatterInterface;
-use Monolog\Handler\AbstractHandler;
-use Monolog\Handler\AbstractProcessingHandler;
-use Monolog\Logger;
-use Monolog\Processor\PsrLogMessageProcessor;
 use RuntimeException;
+use Safe\Exceptions\JsonException;
 
 /**
  * A compatibility layer for logging

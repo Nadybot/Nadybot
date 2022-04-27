@@ -6,6 +6,7 @@ use Exception;
 use Illuminate\Support\Collection;
 use JsonException;
 use Monolog\Logger;
+use ReflectionClass;
 use ReflectionException;
 use ReflectionMethod;
 use Throwable;
@@ -17,7 +18,6 @@ use Nadybot\Core\{
 	DBSchema\RouteHopColor,
 	DBSchema\RouteHopFormat,
 };
-use ReflectionClass;
 
 #[NCA\Instance]
 class MessageHub {
