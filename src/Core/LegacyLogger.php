@@ -13,6 +13,7 @@ use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\Routing\Source;
 use RuntimeException;
 use Safe\Exceptions\JsonException;
+use SplObjectStorage;
 
 /**
  * A compatibility layer for logging
@@ -38,6 +39,9 @@ class LegacyLogger {
 	 * @psalm-var list<array{0:string, 1:string}>
 	 */
 	public static array $logLevels = [];
+
+	/** @var SplObjectStorage<AbstractHandler,null> */
+	public static SplObjectStorage $dynamicHandlers;
 
 	/** @return array<string,Logger> */
 	public static function getLoggers(?string $mask=null): array {
@@ -77,6 +81,11 @@ class LegacyLogger {
 
 	/** @return array<string,mixed> */
 	public static function getConfig(bool $noCache=false): array {
+		if (!isset(static::$dynamicHandlers)) {
+			/** @var SplObjectStorage<AbstractHandler,null> */
+			$dynamicHandlers = new SplObjectStorage();
+			static::$dynamicHandlers = $dynamicHandlers;
+		}
 		if (!empty(static::$config) && !$noCache) {
 			return static::$config;
 		}
@@ -139,9 +148,11 @@ class LegacyLogger {
 			$newLevel = $logger->toMonologLevel($logLevelConf[1]);
 			foreach ($handlers as $name => $handler) {
 				if ($handler instanceof AbstractHandler) {
-					$oldLevel = $logger->getLevelName($handler->getLevel());
-					$handler->setLevel($newLevel);
-					$setLevel = $logger->getLevelName($newLevel);
+					if (static::$dynamicHandlers->contains($handler)) {
+						$oldLevel = $logger->getLevelName($handler->getLevel());
+						$handler->setLevel($newLevel);
+						$setLevel = $logger->getLevelName($newLevel);
+					}
 				}
 			}
 			if (!isset($oldLevel) || !isset($setLevel) || $oldLevel === $setLevel) {
@@ -183,8 +194,16 @@ class LegacyLogger {
 			if (isset($config["options"]["fileName"])) {
 				$config["options"]["fileName"] = LoggerWrapper::getLoggingDirectory() . "/" . $config["options"]["fileName"];
 			}
+			$dynamic = false;
+			if (isset($config["options"]["level"]) && $config["options"]["level"] === "default") {
+				$config["options"]["level"] = "notice";
+				$dynamic = true;
+			}
 			/** @var AbstractProcessingHandler */
 			$obj = new $class(...array_values($config["options"]));
+			if ($dynamic) {
+				static::$dynamicHandlers->attach($obj);
+			}
 			foreach ($config["calls"]??[] as $func => $params) {
 				$obj->{$func}(...array_values($params));
 			}

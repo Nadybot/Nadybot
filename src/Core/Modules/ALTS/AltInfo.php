@@ -197,8 +197,7 @@ class AltInfo {
 			$blob .= $this->text->alignNumber($row->player->ai_level??0, 2, "green");
 			$blob .= " ";
 			if ($profDisplay & 1 && $row->player->profession !== null) {
-				// @phpstan-ignore-next-line
-				$profId = $this->onlineController->getProfessionId($row->player?->profession??"");
+				$profId = $this->onlineController->getProfessionId($row->player->profession??"");
 				if (isset($profId)) {
 					$blob .= "<img src=tdb://id:GFX_GUI_ICON_PROFESSION_{$profId}> ";
 				}

@@ -22,6 +22,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   have them `!discord join` and click the link, the bot will automatically
   rename the Discord user to match the main AO character and optionally
   also assign one or more Discord roles.
+- The loglevel of handlers used to always be ignored and scaled with the
+  configuration option of channels. This has been changed so that the new
+  log level "default" will now automatically scale, while explicitly given
+  ones like "error" will always stay on error. This allows you to log
+  error output into separate files.
 
 ## [6.0.1] - 2022-04-24
 
