@@ -1019,24 +1019,20 @@ class MessageHubController extends ModuleInstance {
 		if ($group === Source::LOG) {
 			// Log group is sorted by severity, descending
 			$values = $values->sort(function(MessageEmitter $e1, MessageEmitter $e2): int {
-				if (!preg_match("/\((.+)\)$/", $e1->getChannelName(), $matches)) {
-					$l1 = 0;
-				} else {
+				$l1 = 0;
+				if (preg_match("/\((.+)\)$/", $e1->getChannelName(), $matches)) {
 					try {
 						/** @psalm-suppress ArgumentTypeCoercion */
 						$l1 = Logger::toMonologLevel($matches[1]);
 					} catch (Exception) {
-						$l1 = 0;
 					}
 				}
-				if (!preg_match("/\((.+)\)$/", $e2->getChannelName(), $matches)) {
-					$l2 = 0;
-				} else {
+				$l2 = 0;
+				if (preg_match("/\((.+)\)$/", $e2->getChannelName(), $matches)) {
 					try {
 						/** @psalm-suppress ArgumentTypeCoercion */
 						$l2 = Logger::toMonologLevel($matches[1]);
 					} catch (Exception) {
-						$l2 = 0;
 					}
 				}
 				return $l2 <=> $l1;
