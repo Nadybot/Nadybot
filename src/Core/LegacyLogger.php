@@ -2,17 +2,29 @@
 
 namespace Nadybot\Core;
 
-use Safe\Exceptions\JsonException;
-use Monolog\Formatter\FormatterInterface;
-use Monolog\Handler\AbstractHandler;
-use Monolog\Handler\AbstractProcessingHandler;
-use Monolog\Logger;
-use Monolog\Processor\PsrLogMessageProcessor;
+use Monolog\{
+	Formatter\FormatterInterface,
+	Handler\AbstractHandler,
+	Handler\AbstractProcessingHandler,
+	Logger,
+	Processor\PsrLogMessageProcessor,
+};
+use Nadybot\Core\Attributes as NCA;
+use Nadybot\Core\Routing\Source;
 use RuntimeException;
+use Safe\Exceptions\JsonException;
 
 /**
  * A compatibility layer for logging
  */
+#[
+	NCA\EmitsMessages(Source::LOG, "emergency"),
+	NCA\EmitsMessages(Source::LOG, "alert"),
+	NCA\EmitsMessages(Source::LOG, "critical"),
+	NCA\EmitsMessages(Source::LOG, "error"),
+	NCA\EmitsMessages(Source::LOG, "warning"),
+	NCA\EmitsMessages(Source::LOG, "notice"),
+]
 class LegacyLogger {
 	/** @var array<string,Logger> */
 	public static array $loggers = [];
@@ -206,5 +218,13 @@ class LegacyLogger {
 			$result[$name] = $obj;
 		}
 		return $result;
+	}
+
+	public static function registerMessageEmitters(MessageHub $hub): void {
+		$refClass = new \ReflectionClass(self::class);
+		foreach ($refClass->getAttributes(NCA\EmitsMessages::class) as $attr) {
+			$obj = $attr->newInstance();
+			$hub->registerMessageEmitter($obj);
+		}
 	}
 }

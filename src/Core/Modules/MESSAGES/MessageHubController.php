@@ -8,6 +8,7 @@ use ReflectionClass;
 use ReflectionException;
 use Throwable;
 use Illuminate\Support\Collection;
+use Monolog\Logger;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Channels\DiscordChannel,
@@ -93,6 +94,7 @@ class MessageHubController extends ModuleInstance {
 					$this->logger->error($e->getMessage(), ["exception" => $e]);
 				}
 			});
+		$this->messageHub->routingLoaded = true;
 	}
 
 	protected function fixDiscordChannelName(string $name): string {
@@ -1014,6 +1016,28 @@ class MessageHubController extends ModuleInstance {
 	 * @param Collection<MessageEmitter> $values
 	 */
 	public function renderEmitterGroup(Collection $values, string $group): string {
+		if ($group === Source::LOG) {
+			// Log group is sorted by severity, descending
+			$values = $values->sort(function(MessageEmitter $e1, MessageEmitter $e2): int {
+				$l1 = 0;
+				if (preg_match("/\((.+)\)$/", $e1->getChannelName(), $matches)) {
+					try {
+						/** @psalm-suppress ArgumentTypeCoercion */
+						$l1 = Logger::toMonologLevel($matches[1]);
+					} catch (Exception) {
+					}
+				}
+				$l2 = 0;
+				if (preg_match("/\((.+)\)$/", $e2->getChannelName(), $matches)) {
+					try {
+						/** @psalm-suppress ArgumentTypeCoercion */
+						$l2 = Logger::toMonologLevel($matches[1]);
+					} catch (Exception) {
+					}
+				}
+				return $l2 <=> $l1;
+			});
+		}
 		return "<header2>{$group}<end>\n<tab>".
 			$values->map(function(MessageEmitter $emitter): string {
 				$name = htmlentities($emitter->getChannelName());

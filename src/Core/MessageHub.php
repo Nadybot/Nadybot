@@ -5,6 +5,8 @@ namespace Nadybot\Core;
 use Exception;
 use Illuminate\Support\Collection;
 use JsonException;
+use Monolog\Logger;
+use ReflectionClass;
 use ReflectionException;
 use ReflectionMethod;
 use Throwable;
@@ -16,7 +18,6 @@ use Nadybot\Core\{
 	DBSchema\RouteHopColor,
 	DBSchema\RouteHopFormat,
 };
-use ReflectionClass;
 
 #[NCA\Instance]
 class MessageHub {
@@ -64,6 +65,11 @@ class MessageHub {
 
 	/** @var Collection<RouteHopColor> */
 	public static Collection $colors;
+
+	public bool $routingLoaded = false;
+
+	/** @var RoutableEvent[] */
+	public array $eventQueue = [];
 
 	#[NCA\Setup]
 	public function setup(): void {
@@ -353,6 +359,14 @@ class MessageHub {
 			return static::EVENT_NOT_ROUTED;
 		}
 		$type = strtolower("{$path[0]->type}({$path[0]->name})");
+		$eventLogLevel = null;
+		if ($path[0]->type === Source::LOG) {
+			/**
+			 * @phpstan-ignore-next-line
+			 * @psalm-suppress ArgumentTypeCoercion
+			 */
+			$eventLogLevel = Logger::toMonologLevel($path[0]->name);
+		}
 		try {
 			$this->logger->info(
 				"Trying to route {$type} - ".
@@ -361,12 +375,31 @@ class MessageHub {
 		} catch (JsonException $e) {
 			// Ignore
 		}
+		if ($this->routingLoaded === false) {
+			$this->eventQueue []= $event;
+			return static::EVENT_NOT_ROUTED;
+		}
+		if (($queued = array_pop($this->eventQueue)) !== null) {
+			$this->handle($queued);
+		}
 		$returnStatus = static::EVENT_NOT_ROUTED;
 		foreach ($this->routes as $source => $dest) {
 			if (!strpos($source, '(')) {
 				$source .= '(*)';
 			}
-			if (!fnmatch($source, $type, FNM_CASEFOLD)) {
+			if (isset($eventLogLevel)
+				&& preg_match("/^" . preg_quote(Source::LOG, "/") . "\(([a-z]+)\)$/i", $source, $matches)
+			) {
+				try {
+					/** @psalm-suppress ArgumentTypeCoercion */
+					$srcLevel = Logger::toMonologLevel($matches[1]);
+					if ($eventLogLevel < $srcLevel) {
+						continue;
+					}
+				} catch (Exception $e) {
+					continue;
+				}
+			} elseif (!fnmatch($source, $type, FNM_CASEFOLD)) {
 				continue;
 			}
 			foreach ($dest as $destName => $routes) {
