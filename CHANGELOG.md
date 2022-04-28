@@ -18,17 +18,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add a new command `!assist random <number>` to pick `<number>` random callers from the currently running raid. You can exclude professions from this random pick by changing the `never_auto_callers` setting, default excludes docs and crats.
 - `!raid punish` now also accepts the name of a pre-defined reward, analogue to `!raid reward`.
 - The loglevel of handlers used to always be ignored and scaled with the configuration option of channels. This has been changed so that the new log level "default" will now automatically scale, while explicitly given ones like "error" will always stay on error. This allows you to log error output into separate files.
+- Retries for 502 Http results are now delayed by 5s, in order not to hammer the webserver
 
 ## [6.0.1] - 2022-04-24
 
 ### Added
 
-- Allow hiding arbitrary characters from the online list, so you don't see
-  other orgs' bots or can even hide their whole guest channel.
+- Allow hiding arbitrary characters from the online list, so you don't see other orgs' bots or can even hide their whole guest channel.
 - Support openSUSE tumbleweed packages
 - Warn when the buddylist is full
-- Add `system(mass-message)` and `system(mass-invite)` as route destinations,
-  so you can finally route your tara/reaper spawns directly to mass invites.
+- Add `system(mass-message)` and `system(mass-invite)` as route destinations, so you can finally route your tara/reaper spawns directly to mass invites.
 
 ### Fixed
 
@@ -48,35 +47,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Nadybot now supports color-themes and ships with 16 of these to make
-  customizing your bot even easier. Just try `!themes`
+- Nadybot now supports color-themes and ships with 16 of these to make customizing your bot even easier. Just try `!themes`
 
 ### Changed
 
 - Failure to initiate an SSL-connection will now be retried automatically.
-- Bots with AO Chat Proxies will now wait longer before they mark themselves
-  ready. This solves some issues with long buddylists.
+- Bots with AO Chat Proxies will now wait longer before they mark themselves ready. This solves some issues with long buddylists.
 - Add retries to the worldboss and Gauntlet buff APIs
-- Querying the buddylist if a buddy is online will not trigger a UID-lookup
-  anymore. If you are tracking whole orgs with lots of inactive characters,
-  then the `!track online` could hang and even crash the bot.
+- Querying the buddylist if a buddy is online will not trigger a UID-lookup anymore. If you are tracking whole orgs with lots of inactive characters, then the `!track online` could hang and even crash the bot.
 
 ## [6.0.0-rc.1] - 2022-04-07
 
 ### Added
 
-- Defining the colors for relays is now possible directly in the
-  `!relay`-window, including examples what the current config
-  looks like.
+- Defining the colors for relays is now possible directly in the `!relay`-window, including examples what the current config looks like.
 - Use the GMP module (if installed) for a faster login
 
 ### Changed
 
-- Replaced the 'discord_notify_voice_changes'-setting with
-  routes. All Discord voice-channels now appear as routing sources
-  with a `<` before their name. Routing `discordpriv(<*)` will now
-  route the online/offline-events of all discord-channels, or only
-  a selected few.
+- Replaced the 'discord_notify_voice_changes'-setting with routes. All Discord voice-channels now appear as routing sources with a `<` before their name. Routing `discordpriv(<*)` will now route the online/offline-events of all discord-channels, or only a selected few.
 
 ## [6.0.0-beta.2] - 2022-04-01
 
@@ -90,14 +79,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Database table versions are displayed with a date and time (if possible)
 - Changed all module settings to use attributes (if possible)
 - Text settings with empty strings are now marked as &lt;empty&gt;
-- Mass-messages and -invites are now a system route source.
-  By default, `system(mass-message)` and `system(mass-invite)` will be routed
-  to `aoorg` and `aopriv`, but you can also route them to Discord.
-- All messages from the RAID_MODULE are no longer hardcoded to being
-  sent to the bot's private channel. Instead, there are now a bunch of
-  new routing sources `raid(*)` and `auction(*)` which are routed to
-  `aopriv` by default. This allows for routing of `raid(start)` or
-  `raid(points-modified)` to Discord channels.
+- Mass-messages and -invites are now a system route source. By default, `system(mass-message)` and `system(mass-invite)` will be routed to `aoorg` and `aopriv`, but you can also route them to Discord.
+- All messages from the RAID_MODULE are no longer hardcoded to being sent to the bot's private channel. Instead, there are now a bunch of new routing sources `raid(*)` and `auction(*)` which are routed to `aopriv` by default. This allows for routing of `raid(start)` or `raid(points-modified)` to Discord channels.
 
 ### Removed
 
@@ -124,10 +107,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Automatically retry timed out get-requests up to 5 times, without logging
-  an error.
-- Download the orglists via the cache-module, so we speed them up and remove
-  some needless strain from the Funcom servers.
+- Automatically retry timed out get-requests up to 5 times, without logging an error.
+- Download the orglists via the cache-module, so we speed them up and remove some needless strain from the Funcom servers.
 
 ### Fixed
 
@@ -138,11 +119,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Check extra modules for compile errors and compatibility with this bot
-  version before loading. Treat `<X.0.0` as `<X.0.0-0` to work around a bug.
-- Adding settings now requires "options" to be an array, not a string,
-  plus there are no more "intoptions". If you need "intoptions", use an associative
-  array for "options".
+- Check extra modules for compile errors and compatibility with this bot version before loading. Treat `<X.0.0` as `<X.0.0-0` to work around a bug.
+- Adding settings now requires "options" to be an array, not a string, plus there are no more "intoptions". If you need "intoptions", use an associative array for "options".
 - Moved from PHPDoc annotations to PHP 8 attributes, greatly increasing parsing speed
 - Change the start-up banner to be more concise
 - Change a lot of the default permissions that were using "all" or "member" to "guest"
@@ -151,34 +129,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   Sub-commands are only used to group permissions now and can be chosen freely.
   All existing sub-command-rights are being migrated automatically
 - Replace the huge banner with a smaller one for N6
-- Help for commands is now created from the source file and no longer from
-  separate help files. A new `!help syntax` explains the syntax and is linked
-  to from every help page, unless turned off.
-- The `!help` command is now a central landing page for getting help and no longer
-  a list of commands
+- Help for commands is now created from the source file and no longer from separate help files. A new `!help syntax` explains the syntax and is linked to from every help page, unless turned off.
+- The `!help` command is now a central landing page for getting help and no longer a list of commands
 - Moved `!adminhelp` from guides to help, so it's part of core
-- Instead of having 3 fixed "channels", there is now an unlimited number of
-  permission sets. By default, they have the same names as the old channels and
-  the same short letter symbols (T|G|P). These permission sets can be managed
-  with the `!permset` command and mapped to a command source via the
-  `!cmdmap` command. The command prefix is now also part of this mapping, so
-  you can have different prefixes for org, private chat, discord and so on.
+- Instead of having 3 fixed "channels", there is now an unlimited number of permission sets. By default, they have the same names as the old channels and the same short letter symbols (T|G|P). These permission sets can be managed with the `!permset` command and mapped to a command source via the `!cmdmap` command. The command prefix is now also part of this mapping, so you can have different prefixes for org, private chat, discord and so on.
 - After authenticating, the socket to the AO chat server is now non-blocking.
   That also means that AO-packets aren't prioritized higher than others anymore.
-  In the past, if one packet was ready to be read, *all* of he packets would be
-  read in one go. This is no longer the case.
-- Migrations are no longer executed manually during setup, but automatically
-  when registered with #[HasMigrations]. The order in which they are executed
-  is now predictable and strictly timed.
-- No module accesses another module's database tables directly anymore, only
-  via exposed functions from the other module
-- The configuration is now parsed into an instanced object (ConfigFile), that
-  can be injected, instead of using a global variable `$vars`
-- Where it makes sense, function calls have been converted from positional
-  to by-name
-- The #[Inject]/@Inject annotation used to determine the name of the instance to
-  inject by the variable name. This has been changed to the class name.
-  Thus, it is no longer possible to inject into untyped properties.
+  In the past, if one packet was ready to be read, *all* of he packets would be read in one go. This is no longer the case.
+- Migrations are no longer executed manually during setup, but automatically when registered with #[HasMigrations]. The order in which they are executed is now predictable and strictly timed.
+- No module accesses another module's database tables directly anymore, only via exposed functions from the other module
+- The configuration is now parsed into an instanced object (ConfigFile), that can be injected, instead of using a global variable `$vars`
+- Where it makes sense, function calls have been converted from positional to by-name
+- The #[Inject]/@Inject annotation used to determine the name of the instance to inject by the variable name. This has been changed to the class name. Thus, it is no longer possible to inject into untyped properties.
   Example: `DB $database` will now inject the "db" instance, not the "database".
 - The way commands have to be declared has completely changed
 - Everything is now constantly checked against psalm and phpstan
@@ -188,11 +150,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Allow having more than 1 superadmin
 - Add a Prometheus-compatible metrics-endpoint to /metrics
 - New command `!showconfig` to get your current configuration, minus sensitive data
-- The console is now reporting in as a source, so you can actually use it for
-  chatting. In order to do that, you should not make the command prefix optional.
+- The console is now reporting in as a source, so you can actually use it for chatting. In order to do that, you should not make the command prefix optional.
 - Introduce a new access level "guest" for people in the private chat or Discord chat
-- Modules can now register themselves as AccessLevelProvider, so modules can
-  manage their own access levels. The highest one (lowest numeric) will always be chosen.
+- Modules can now register themselves as AccessLevelProvider, so modules can manage their own access levels. The highest one (lowest numeric) will always be chosen.
 - The (sub-)command declaration can now define multiple aliases at once
 - Officially support Windows
 - Allow increased logging with -v and -v -v

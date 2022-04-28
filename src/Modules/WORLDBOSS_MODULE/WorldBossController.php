@@ -22,6 +22,7 @@ use Nadybot\Core\{
 	Routing\RoutableMessage,
 	Routing\Source,
 	Text,
+	Timer,
 	Util,
 };
 
@@ -169,6 +170,9 @@ class WorldBossController extends ModuleInstance {
 	public DB $db;
 
 	#[NCA\Inject]
+	public Timer $timer;
+
+	#[NCA\Inject]
 	public GauntletBuffController $gauntletBuffController;
 
 	#[NCA\Inject]
@@ -249,10 +253,10 @@ class WorldBossController extends ModuleInstance {
 	public function handleTimersFromApi(HttpResponse $response): void {
 		$code = $response->headers["status-code"] ?? "204";
 		if ($code >= 500 && $code < 600 && --$this->timerRetriesLeft) {
-			$this->logger->warning('Worldboss API sent a {code}, retrying', [
+			$this->logger->warning('Worldboss API sent a {code}, retrying in 5s', [
 				"code" => $code
 			]);
-			$this->loadTimersFromAPI();
+			$this->timer->callLater(5, [$this, "loadTimersFromAPI"]);
 			return;
 		}
 		if ($code !== "200" || !isset($response->body)) {
