@@ -701,7 +701,7 @@ class LootController extends ModuleInstance {
 		foreach ($data as $row) {
 			$lootItem = new LootItem();
 			$lootItem->comment = $row->comment;
-			$lootItem->icon = $row->item?->icon ?? null;
+			$lootItem->icon = $row->item->icon ?? null;
 			$lootItem->multiloot = $row->multiloot;
 			$lootItem->name = $row->name;
 			$item = $row->name;

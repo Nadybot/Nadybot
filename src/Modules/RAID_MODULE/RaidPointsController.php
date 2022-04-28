@@ -351,6 +351,27 @@ class RaidPointsController extends ModuleInstance {
 		}
 	}
 
+	/** Remove accidentally given raidpoints for a pre-defined reward for &lt;mob&gt; */
+	#[NCA\HandlesCommand(self::CMD_RAID_REWARD_PUNISH)]
+	#[NCA\Help\Group("raid-points")]
+	public function raidPunishPredefCommand(
+		CmdContext $context,
+		#[NCA\Str("punish")] string $action,
+		PNonNumber $mob
+	): void {
+		$reward = $this->getRaidReward($mob());
+		if (!isset($reward)) {
+			$context->reply("No predefined reward named <highlight>{$mob}<end> found.");
+			return;
+		}
+		$this->raidPunishCommand(
+			$context,
+			$action,
+			$reward->points,
+			"Accidentally rewarded \"{$reward->reason}\""
+		);
+	}
+
 	/** Remove raidpoints from everyone in the raid */
 	#[NCA\HandlesCommand(self::CMD_RAID_REWARD_PUNISH)]
 	#[NCA\Help\Group("raid-points")]

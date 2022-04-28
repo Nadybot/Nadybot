@@ -1359,7 +1359,11 @@ class DiscordGatewayController extends ModuleInstance {
 	/** See statistics about the current Discord connection */
 	#[NCA\HandlesCommand("discord")]
 	public function seeDiscordStats(CmdContext $context): void {
-		if (!$this->isConnected()) {
+		if ($this->discordController->discordBotToken === 'off') {
+			$context->reply("This bot isn't configured to connect to Discord yet.");
+			return;
+		}
+		if (!$this->isConnected() || !isset($this->me)) {
 			$context->reply("The bot is currently not connected to Discord.");
 			return;
 		}
@@ -1431,7 +1435,7 @@ class DiscordGatewayController extends ModuleInstance {
 			default:
 				$prefix = "";
 		}
-		return $prefix . $channel->name;
+		return $prefix . ($channel->name ?? "UNKNOWN");
 	}
 
 	/** Let the bot connect to Discord. Only needed in case of errors. */
@@ -1461,7 +1465,7 @@ class DiscordGatewayController extends ModuleInstance {
 		CmdContext $context,
 		#[NCA\Str("disconnect")] string $action,
 	): void {
-		if (!$this->isConnected()) {
+		if (!$this->isConnected() || !isset($this->client)) {
 			$context->reply("The bot is already disconnected from Discord.");
 			return;
 		}
@@ -1566,7 +1570,10 @@ class DiscordGatewayController extends ModuleInstance {
 			$this->sendInviteReply($invite, $context);
 			return;
 		}
-		$guild = $this->guilds[$guildIds[0]];
+		$guild = $this->guilds[$guildIds[0]] ?? null;
+		if (!isset($guild) || !isset($guild->system_channel_id)) {
+			return;
+		}
 		$this->discordAPIClient->createChannelInvite(
 			$guild->system_channel_id,
 			3600,
@@ -1582,6 +1589,14 @@ class DiscordGatewayController extends ModuleInstance {
 		CmdContext $context,
 		#[NCA\Str("invites", "invitations")] string $action
 	): void {
+		if ($this->discordController->discordBotToken === 'off') {
+			$context->reply("This bot isn't configured to connect to Discord yet.");
+			return;
+		}
+		if (!$this->isConnected()) {
+			$context->reply("The bot is currently not connected to Discord.");
+			return;
+		}
 		$awaiting = 0;
 		foreach ($this->guilds as $guildId => $guild) {
 			$awaiting++;
@@ -1662,6 +1677,10 @@ class DiscordGatewayController extends ModuleInstance {
 		#[NCA\Str("leave")] string $action,
 		string $guildId,
 	): void {
+		if ($this->discordController->discordBotToken === 'off') {
+			$context->reply("This bot isn't configured to connect to Discord yet.");
+			return;
+		}
 		if (!$this->isConnected()) {
 			$context->reply("The bot is currently not connected to Discord.");
 			return;
@@ -1717,12 +1736,14 @@ class DiscordGatewayController extends ModuleInstance {
 			"character" => $aoChar,
 			"expires" => $invite->expires_at?->getTimestamp() ?? null,
 		]);
-		$this->invites[$invite->guild->id] []= $invite;
+		if (isset($invite->guild)) {
+			$this->invites[$invite->guild->id] []= $invite;
+		}
 		$this->sendInviteReply($invite, $context);
 	}
 
 	private function sendInviteReply(DiscordChannelInvite $invite, CmdContext $context): void {
-		$guildName = $invite->guild?->name ?? "Discord server";
+		$guildName = $invite->guild->name ?? "Discord server";
 		$joinLink = $this->text->makeChatcmd("this link", "/start https://discord.gg/{$invite->code}");
 		$blob = "<header2>Join Discord<end>\n\n".
 			"Use {$joinLink} to join " . htmlentities($guildName) . ", or use the ".

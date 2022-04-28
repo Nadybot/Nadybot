@@ -338,6 +338,10 @@ class BotRunner {
 		$this->classLoader = new ClassLoader($config->moduleLoadPaths);
 		Registry::injectDependencies($this->classLoader);
 		$this->classLoader->loadInstances();
+		$msgHub = Registry::getInstance(MessageHub::class);
+		if (isset($msgHub) && $msgHub instanceof MessageHub) {
+			LegacyLogger::registerMessageEmitters($msgHub);
+		}
 
 		$signalHandler = $this->installCtrlCHandler();
 		$this->connectToDatabase();

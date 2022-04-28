@@ -2,12 +2,16 @@
 
 namespace Nadybot\Modules\BASIC_CHAT_MODULE;
 
+use Exception;
 use Nadybot\Core\{
 	Attributes as NCA,
 	BuddylistManager,
 	CmdContext,
+	ConfigFile,
+	DBSchema\Player,
 	EventManager,
 	ModuleInstance,
+	Modules\PLAYER_LOOKUP\PlayerManager,
 	Nadybot,
 	ParamClass\PCharacter,
 	ParamClass\PRemove,
@@ -15,6 +19,7 @@ use Nadybot\Core\{
 	Text,
 	Util,
 };
+use Nadybot\Modules\RAID_MODULE\RaidController;
 
 #[
 	NCA\Instance,
@@ -54,6 +59,15 @@ class ChatAssistController extends ModuleInstance {
 	#[NCA\Inject]
 	public BuddylistManager $buddylistManager;
 
+	#[NCA\Inject]
+	public RaidController $raidController;
+
+	#[NCA\Inject]
+	public PlayerManager $playerManager;
+
+	#[NCA\Inject]
+	public ConfigFile $config;
+
 	/** Max stored undo steps */
 	#[NCA\Setting\Number]
 	public int $callersUndoSteps = 5;
@@ -69,6 +83,27 @@ class ChatAssistController extends ModuleInstance {
 	 * @var CallerBackup[]
 	 */
 	protected array $lastCallers = [];
+
+	/** List of classes never to pick as random callers */
+	#[NCA\Setting\Text(options: [
+		"doc",
+		"crat",
+		"enforcer",
+		"doc:crat",
+		"doc:crat:enforcer",
+	])]
+	public string $neverAutoCallers = "doc:crat:enforcer";
+
+	#[NCA\SettingChangeHandler("never_auto_callers")]
+	public function validateNeverAutoCallers(string $setting, string $old, string $new): void {
+		$profs = explode(":", $new);
+		foreach ($profs as $prof) {
+			$fullProf = $this->util->getProfessionName($prof);
+			if ($fullProf === "") {
+				throw new Exception("<highlight>{$prof}<end> is not a recognized profession");
+			}
+		}
+	}
 
 	/** Store a caller backup */
 	protected function storeBackup(CallerBackup $backup): void {
@@ -497,5 +532,95 @@ class ChatAssistController extends ModuleInstance {
 				$this->text->makeBlob("assist {$name}", $blob, "Quick assist macro for {$name}")
 			)
 		);
+	}
+
+	/**
+	 * From a list of character names, return only those whose profession
+	 * is not in the never_auto_callers profession list
+	 *
+	 * @return string[]
+	 */
+	protected function removeNeverCallers(string ...$members): array {
+		$forbiddenProfs = array_map(
+			[$this->util, "getProfessionName"],
+			explode(":", $this->neverAutoCallers)
+		);
+		$players = $this->playerManager->searchByNames(
+			$this->config->dimension,
+			...$members
+		);
+		return $players->filter(function (Player $member) use ($forbiddenProfs): bool {
+			return !isset($member->profession)
+				|| !in_array($member->profession, $forbiddenProfs);
+		})->pluck("name")
+		->values()
+		->toArray();
+	}
+
+	/** Set a given number of random raid members to be callers */
+	#[NCA\HandlesCommand(ChatAssistController::CMD_SET_ADD_CLEAR)]
+	public function assistRandomCommand(
+		CmdContext $context,
+		#[NCA\Str("random")] string $action,
+		int $numCallers
+	): void {
+		if (!$this->chatLeaderController->checkLeaderAccess($context->char->name)) {
+			$context->reply("You must be Raid Leader to use this command.");
+			return;
+		}
+		if (!isset($this->raidController->raid)) {
+			$context->reply("Picking random callers only works in raids.");
+			return;
+		}
+		if ($numCallers < 1) {
+			$context->reply("You have to pick at least 1 caller.");
+			return;
+		}
+		$potentialCallers = [];
+		foreach ($this->raidController->raid->raiders as $name => $raider) {
+			if (!isset($raider->left)) {
+				$potentialCallers []= $raider->player;
+			}
+		}
+		if (empty($potentialCallers)) {
+			$context->reply("There is no one in the raid right now.");
+			return;
+		}
+		$potentialCallers = $this->removeNeverCallers(...$potentialCallers);
+		if (empty($potentialCallers)) {
+			$context->reply("There are no potential callers in the raid.");
+			return;
+		}
+		$pickedCallerIDs = (array)array_rand(
+			$potentialCallers,
+			min($numCallers, count($potentialCallers))
+		);
+		$pickedCallers = [];
+		$callerNames = [];
+		foreach ($pickedCallerIDs as $callerID) {
+			$callerNames []= $potentialCallers[$callerID];
+			$pickedCallers []= new Caller($potentialCallers[$callerID], $context->char->name);
+		}
+
+		$backup = $this->backupCallers($context->char->name, $context->message);
+		$this->callers = [];
+		$this->callers[""] = new CallerList();
+		$this->callers[""]->creator = $context->char->name;
+		$this->callers[""]->name = "";
+		$this->callers[""]->callers = $pickedCallers;
+		$callers = $this->text->arraySprintf("<highlight>%s<end>", ...$callerNames);
+		$msg = "Set " . $this->text->enumerate(...$callers) . " to be the new callers";
+		$this->storeBackup($backup);
+
+		$blob = $this->getAssistMessage();
+		$msg = $this->text->blobWrap(
+			"{$msg}. ",
+			$this->text->makeBlob("List of callers", $blob)
+		);
+		$context->reply($msg);
+		$event = new AssistEvent();
+		$event->type = "assist(set)";
+		$event->lists = array_values($this->callers);
+		$this->eventManager->fireEvent($event);
 	}
 }
