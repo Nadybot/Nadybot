@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Add a new property to raids, that allows to limit the maximum number of raiders. Can be set with either `!raid start <description> limit <max members>` or `!raid limit <max members>`.
+- New command `!orgnote` to manage org-wide notes that can also be shared via Nadynative protocol.
 
 ### Changed
 
