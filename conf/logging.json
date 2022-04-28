@@ -44,7 +44,7 @@
 				"formatter": "console",
 				"options": {
 					"stream": "php://stderr",
-					"level": "notice"
+					"level": "default"
 				}
 			},
 			"logs": {
@@ -53,7 +53,7 @@
 				"options": {
 					"fileName": "nadybot.log",
 					"maxFiles": 0,
-					"level": "notice"
+					"level": "default"
 				},
 				"calls": {
 					"setFilenameFormat": {

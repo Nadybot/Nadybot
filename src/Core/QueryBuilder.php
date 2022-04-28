@@ -177,10 +177,6 @@ class QueryBuilder extends Builder {
 				return $this->convertToClass($ps, $className, $values);
 			}
 		);
-		if ($data === false) {
-			$this->logger->critical("Unknown error converting data from the database");
-			die();
-		}
 		return $data;
 	}
 
@@ -200,7 +196,6 @@ class QueryBuilder extends Builder {
 	 *
 	 * @param string $column
 	 * @param string $type
-	 * @phpstan-ignore-next-line
 	 * @return \Illuminate\Support\Collection
 	 */
 	public function pluckAs(string $column, string $type): Collection {

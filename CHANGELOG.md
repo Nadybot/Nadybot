@@ -9,19 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Add a new command `!assist random <number>` to pick `<number>` random
-  callers from the currently running raid.
-  You can exclude professions from this random pick by changing the
-  `never_auto_callers` setting, default excludes docs and crats.
+- Add a new property to raids, that allows to limit the maximum number of raiders. Can be set with either `!raid start <description> limit <max members>` or `!raid limit <max members>`.
 
 ### Changed
 
-- The `!discord`-command got completely changed. It now acts as the central
-  command to manage the discord connection, manage Discord invites, see
-  invites and leave Discord servers. To get people a Discord link, just
-  have them `!discord join` and click the link, the bot will automatically
-  rename the Discord user to match the main AO character and optionally
-  also assign one or more Discord roles.
+- The `!discord`-command got completely changed. It now acts as the central command to manage the discord connection, manage Discord invites, see invites and leave Discord servers. To get people a Discord link, just have them `!discord join` and click the link, the bot will automatically rename the Discord user to match the main AO character and optionally also assign one or more Discord roles.
+- Add a new command `!assist random <number>` to pick `<number>` random callers from the currently running raid. You can exclude professions from this random pick by changing the `never_auto_callers` setting, default excludes docs and crats.
+- `!raid punish` now also accepts the name of a pre-defined reward, analogue to `!raid reward`.
+- The loglevel of handlers used to always be ignored and scaled with the configuration option of channels. This has been changed so that the new log level "default" will now automatically scale, while explicitly given ones like "error" will always stay on error. This allows you to log error output into separate files.
 
 ## [6.0.1] - 2022-04-24
 

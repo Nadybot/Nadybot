@@ -479,11 +479,6 @@ class AMQP implements TransportInterface, StatusProvider {
 					RelayStatus::ERROR,
 					'AMQP server timed out'
 				);
-			} catch (ErrorException $e) {
-				$this->status = new RelayStatus(
-					RelayStatus::ERROR,
-					'Error receiving AMQP message: ' . $e->getMessage()
-				);
 			} catch (Throwable $e) {
 				$this->status = new RelayStatus(
 					RelayStatus::ERROR,

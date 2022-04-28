@@ -20,6 +20,7 @@ class Source {
 	public const DISCORD_MSG = "discordmsg";
 	public const TRADEBOT = "tradebot";
 	public const IRC = "irc";
+	public const LOG = "log";
 	public const SYSTEM = "system";
 	public const CONSOLE = "console";
 

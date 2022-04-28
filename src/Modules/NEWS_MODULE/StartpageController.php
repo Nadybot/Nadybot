@@ -460,7 +460,6 @@ class StartpageController extends ModuleInstance {
 			$context->reply("<highlight>{$tileName}<end> is currently not on your startpage.");
 			return;
 		}
-		// @phpstan-ignore-next-line
 		$newPos = $oldPos + $delta;
 		if ($newPos < 0 || $newPos >= count($tileKeys)) {
 			$context->reply("Cannot move <highlight>{$tileName}<end> further.");

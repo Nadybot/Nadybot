@@ -1084,7 +1084,7 @@ class TowerController extends ModuleInstance {
 			}
 			/** @var ?Organization */
 			$org = $orgs->get($scout->org_name);
-			$scout->org_id = $org?->id ?? null;
+			$scout->org_id = $org->id ?? null;
 		}
 	}
 

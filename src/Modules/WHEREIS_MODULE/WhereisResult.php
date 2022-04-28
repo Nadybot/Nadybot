@@ -9,7 +9,7 @@ class WhereisResult extends Whereis {
 
 	public function toWaypoint(?string $name=null): string {
 		$name ??= "{$this->xcoord}x{$this->ycoord} ".
-			($this->pf?->short_name ?? "UNKNOWN");
+			($this->pf->short_name ?? "UNKNOWN");
 		$coords = "{$this->xcoord} {$this->ycoord} {$this->playfield_id}";
 		return "<a href='chatcmd:///waypoint {$coords}'>{$name}</a>";
 	}

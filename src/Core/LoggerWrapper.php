@@ -3,8 +3,14 @@
 namespace Nadybot\Core;
 
 use Exception;
-use Nadybot\Core\Attributes as NCA;
+use Monolog\DateTimeImmutable;
 use Monolog\Logger;
+use Monolog\Processor\PsrLogMessageProcessor;
+use Nadybot\Core\{
+	Attributes as NCA,
+	Routing\RoutableMessage,
+	Routing\Source,
+};
 use Safe\Exceptions\FilesystemException;
 use Throwable;
 
@@ -21,6 +27,16 @@ class LoggerWrapper {
 	#[NCA\Inject]
 	public ConfigFile $config;
 
+	protected static bool $routeErrors = true;
+
+	protected static PsrLogMessageProcessor $logProcessor;
+
+	/**
+	 * @var array<array>
+	 * @phpstan-var array<array{100|200|250|300|400|500|550|600,string,array<string,mixed>}>
+	 */
+	protected static array $routingQueue = [];
+
 	/**
 	 * The actual Monolog logger for tag CHAT
 	 */
@@ -30,6 +46,9 @@ class LoggerWrapper {
 
 	public function __construct(string $tag) {
 		$this->logger = LegacyLogger::fromConfig($tag);
+		if (!isset(self::$logProcessor)) {
+			self::$logProcessor = new PsrLogMessageProcessor(null, true);
+		}
 	}
 
 	/**
@@ -121,6 +140,49 @@ class LoggerWrapper {
 				"error" => $e->getMessage(),
 				"exception" => $e
 			]);
+		}
+		if ($logLevel < Logger::NOTICE) {
+			return;
+		}
+		if (!static::$routeErrors) {
+			return;
+		}
+		if (!Registry::hasInstance(MessageHub::class)) {
+			self::$routingQueue []= [$logLevel, $message, $context];
+			return;
+		}
+		$msgHub = Registry::getInstance(MessageHub::class);
+		if (!isset($msgHub) || !($msgHub instanceof MessageHub)) {
+			return;
+		}
+		if (!$msgHub->routingLoaded) {
+			self::$routingQueue []= [$logLevel, $message, $context];
+			return;
+		}
+		self::$routingQueue []= [$logLevel, $message, $context];
+		while (count(self::$routingQueue) > 0) {
+			[$logLevel, $message, $context] = array_shift(self::$routingQueue);
+			static::$routeErrors = false;
+			try {
+				$loggingCategory = Logger::getLevelName($logLevel);
+				$renderedMessage = (self::$logProcessor)([
+					'message' => $message,
+					'context' => $context,
+					'level' => $logLevel,
+					'level_name' => $loggingCategory,
+					'channel' => $loggingCategory,
+					'datetime' => new DateTimeImmutable(false),
+					'extra' => [],
+				]);
+				$rMessage = new RoutableMessage($renderedMessage["message"]);
+				$rMessage->appendPath(
+					new Source(Source::LOG, $loggingCategory)
+				);
+				$msgHub->handle($rMessage);
+			} catch (Throwable) {
+			} finally {
+				static::$routeErrors = true;
+			}
 		}
 	}
 
