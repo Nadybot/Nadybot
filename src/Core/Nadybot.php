@@ -697,6 +697,7 @@ class Nadybot extends AOChat {
 			$this->logger->info("Invalid sender ID received: {$userId}");
 			return;
 		}
+		$this->setUserState($userId, $sender, true);
 		$eventObj->channel = $channel;
 		$eventObj->sender = $sender;
 
@@ -759,6 +760,7 @@ class Nadybot extends AOChat {
 			$this->logger->info("Invalid sender ID received: {$userId}");
 			return;
 		}
+		$this->setUserState($userId, $sender, true);
 		$eventObj->channel = $channel;
 		$eventObj->sender = $sender;
 
@@ -812,6 +814,25 @@ class Nadybot extends AOChat {
 		$this->eventManager->fireEvent($eventObj);
 	}
 
+	public function setUserState(int $userId, string $charName, bool $online=true): void {
+		if ($online === false || $userId === $this->char->id) {
+			return;
+		}
+		$this->logger->info("Register user {name} (ID {id}) as online", [
+			"name" => $charName,
+			"id" => $userId,
+		]);
+		$this->db->table("last_online")
+			->upsert(
+				[
+					"uid" => $userId,
+					"name" => $charName,
+					"dt" => time(),
+				],
+				["uid"],
+			);
+	}
+
 	/**
 	 * Handle logon/logoff events of friends
 	 */
@@ -821,6 +842,7 @@ class Nadybot extends AOChat {
 			$this->logger->info("Invalid user ID received: {$userId}");
 			return;
 		}
+		$this->setUserState($userId, $sender, $status === 1);
 
 		$eventObj = new UserStateEvent();
 		$eventObj->sender = $sender;
@@ -885,6 +907,7 @@ class Nadybot extends AOChat {
 			$this->logger->info("Invalid sener ID received: {$senderId}");
 			return;
 		}
+		$this->setUserState($senderId, $sender, true);
 
 		$this->logger->info("AOChatPacket::MSG_PRIVATE => sender: '$sender' message: '$message'");
 
@@ -982,6 +1005,7 @@ class Nadybot extends AOChat {
 			$this->logger->info("Invalid sender ID received: {$senderId}");
 			return;
 		}
+		$this->setUserState($senderId, $sender, true);
 
 		$eventObj = new AOChatEvent();
 		$eventObj->sender = $sender;
@@ -1030,6 +1054,7 @@ class Nadybot extends AOChat {
 			$this->logger->info("Invalid sender ID received: {$senderId}");
 			return;
 		}
+		$this->setUserState($senderId, $sender, true);
 
 		$eventObj = new AOChatEvent();
 		$eventObj->sender = $sender;
