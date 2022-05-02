@@ -54,7 +54,8 @@ DONE
 
 sed -e "s/\"\*\": \"notice\"/\"*\": \"${CONFIG_LOG_LEVEL:-notice}\"/" conf/logging.json > /tmp/logging.json
 
-if [ "${CONFIG_USE_PROXY:-0}" = "1" ] \
+if [ -e /proxy/aochatproxy ] \
+	&& [ "${CONFIG_USE_PROXY:-0}" = "1" ] \
 	&& [ -n "${PROXY_CHARNAME_1:-}" ] \
 	&& [ -n "${PROXY_USERNAME_1:-}" ] \
 	&& [ -n "${PROXY_PASSWORD_1:-}" ]; then
