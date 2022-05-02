@@ -256,11 +256,22 @@ class Nadybot extends AOChat {
 	 */
 	public function connectAO(string $login, string $password, string $server, int $port): void {
 		// Begin the login process
-		$this->logger->notice("Connecting to AO Server...({$server}:{$port})");
-		if (!$this->connect($server, $port)) {
-			$this->logger->critical("Connection failed! Please check your Internet connection and firewall.");
-			\Safe\sleep(10);
-			die();
+		$this->logger->notice("Connecting to {type} {server}:{port}", [
+			"type" => $this->config->useProxy ? "AO Chat Proxy" : "AO Server",
+			"server" => $server,
+			"port" => $port,
+		]);
+		$try = 1;
+		while (!$this->connect($server, $port, $try === 1)) {
+			if ($this->config->useProxy) {
+				$this->logger->notice("Waiting for proxy to be available...");
+				usleep(250000);
+				$try++;
+			} else {
+				$this->logger->critical("Connection failed! Please check your Internet connection and firewall.");
+				\Safe\sleep(10);
+				die();
+			}
 		}
 
 		$this->logger->notice("Authenticate login data...");
