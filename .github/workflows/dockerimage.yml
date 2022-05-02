@@ -4,7 +4,6 @@ on:
     branches:
       - unstable
       - stable
-      - docker-with-proxy
     tags:
       - '*'
 jobs:
