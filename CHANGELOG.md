@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `!raid punish` now also accepts the name of a pre-defined reward, analogue to `!raid reward`.
 - The loglevel of handlers used to always be ignored and scaled with the configuration option of channels. This has been changed so that the new log level "default" will now automatically scale, while explicitly given ones like "error" will always stay on error. This allows you to log error output into separate files.
 - Retries for 502 Http results are now delayed by 5s, in order not to hammer the webserver
+- If audits are enabled (`!settings save audit_enabled 1`), `!whois <name>` will now show information from the audit when and by whom the person was added to the bot.
 
 ## [6.0.1] - 2022-04-24
 
