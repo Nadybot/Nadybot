@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add a new property to raids, that allows to limit the maximum number of raiders. Can be set with either `!raid start <description> limit <max members>` or `!raid limit <max members>`.
 - New command `!orgnote` to manage org-wide notes that can also be shared via Nadynative protocol.
 - New Docker image `nadybot-big` which includes the AOChatProxy, so only 1 container is needed to run bots with more than 1000 members.
+- New command `members inactive` to list members who haven't logged in for a given amount of time.
 
 ### Changed
 

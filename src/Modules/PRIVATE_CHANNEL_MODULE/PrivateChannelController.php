@@ -66,7 +66,7 @@ use Safe\Exceptions\FilesystemException;
 	),
 	NCA\DefineCommand(
 		command: "members inactive",
-		accessLevel: "mod",
+		accessLevel: "guild",
 		description: "List members who haven't logged in for some time",
 	),
 	NCA\DefineCommand(
