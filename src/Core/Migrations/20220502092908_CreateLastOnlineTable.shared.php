@@ -12,7 +12,7 @@ class CreateLastOnlineTable implements SchemaMigration {
 		$table = "last_online";
 		$db->schema()->create($table, function(Blueprint $table) {
 			$table->unsignedInteger("uid")->unique();
-			$table->string("name", 12);
+			$table->string("name", 12)->index();
 			$table->unsignedInteger("dt");
 		});
 	}
