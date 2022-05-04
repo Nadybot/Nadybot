@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - New command `members inactive` to list members who haven't logged in for a given amount of time.
 - `!adminlist` now shows the last time the bot has seen each admin and on which alt.
 - Add new option `--strict` to make SQLite checks more strict. This is mainly for development purpose.
+- Add new prometheus metric `states{type="raid_lock"}`
 
 ### Changed
 

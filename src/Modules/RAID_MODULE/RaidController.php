@@ -182,6 +182,9 @@ class RaidController extends ModuleInstance {
 		$stateStats = new RaidStateStats();
 		Registry::injectDependencies($stateStats);
 		$this->statsController->registerProvider($stateStats, "states");
+		$stateLockStats = new RaidLockStats();
+		Registry::injectDependencies($stateLockStats);
+		$this->statsController->registerProvider($stateLockStats, "states");
 		$raidStats = new RaidMemberStats("raid");
 		Registry::injectDependencies($raidStats);
 		$this->statsController->registerDataset($raidStats, "raid");
