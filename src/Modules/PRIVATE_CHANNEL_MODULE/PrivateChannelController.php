@@ -40,6 +40,8 @@ use Nadybot\Core\{
 	Routing\Source,
 	UserStateEvent,
 };
+use Nadybot\Core\DBSchema\LastOnline;
+use Nadybot\Core\ParamClass\PDuration;
 use Nadybot\Modules\{
 	ONLINE_MODULE\OfflineEvent,
 	ONLINE_MODULE\OnlineController,
@@ -61,9 +63,15 @@ use Safe\Exceptions\FilesystemException;
 		command: "members",
 		accessLevel: "member",
 		description: "Member list",
+		alias: 'member',
 	),
 	NCA\DefineCommand(
-		command: "member",
+		command: "members inactive",
+		accessLevel: "guild",
+		description: "List members who haven't logged in for some time",
+	),
+	NCA\DefineCommand(
+		command: "members add/remove",
 		accessLevel: "guild",
 		description: "Adds or removes a player to/from the members list",
 	),
@@ -221,17 +229,17 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 		$this->accessManager->registerProvider($this);
 		$this->commandAlias->register(
 			$this->moduleName,
-			"member add",
+			"members add",
 			"adduser"
 		);
 		$this->commandAlias->register(
 			$this->moduleName,
-			"member del",
+			"members del",
 			"deluser"
 		);
 		$this->commandAlias->register(
 			$this->moduleName,
-			"member del",
+			"members del",
 			"remuser"
 		);
 		$lockStats = new PrivLockStats();
@@ -315,11 +323,96 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 		$context->reply($msg);
 	}
 
+	/** Show members who have not logged on for a specified amount of time */
+	#[NCA\HandlesCommand("members inactive")]
+	#[NCA\Help\Group("private-channel")]
+	public function inactiveMembersCommand(
+		CmdContext $context,
+		#[NCA\Str("inactive")] string $action,
+		?PDuration $duration
+	): void {
+		$duration ??= new PDuration("1y");
+		$time = $duration->toSecs();
+		if ($time < 1) {
+			$msg = "You must enter a valid time parameter.";
+			$context->reply($msg);
+			return;
+		}
+		/** @var Collection<Member> */
+		$members = $this->db->table(self::DB_TABLE)->asObj(Member::class);
+		if ($members->isEmpty()) {
+			$context->reply("This bot has no members.");
+			return;
+		}
+
+		$timeString = $this->util->unixtimeToReadable($time, false);
+		$time = time() - $time;
+
+		/**
+		 * Main char => information about the char last online of the main
+		 * @var Collection<string,LastOnline>
+		 */
+		$lastOnline = $this->db->table("last_online")
+			->orderBy("dt")
+			->asObj(LastOnline::class)
+			->each(function (LastOnline $member): void {
+				$member->main = $this->altsController->getMainOf($member->name);
+			})
+			->keyBy("main")
+			->filter(function (LastOnline $member, string $main): bool {
+				return $this->accessManager->checkSingleAccess($main, "member");
+			});
+		/** @var Collection<InactiveMember> */
+		$inactiveMembers = $members->keyBy(function (Member $member): string {
+			return $this->altsController->getMainOf($member->name);
+		})->map(function (Member $member, string $main) use ($lastOnline): InactiveMember {
+			$result = new InactiveMember();
+			$result->name = $member->name;
+			$result->last_online = $lastOnline->get($main, null);
+			return $result;
+		})->filter(function (InactiveMember $member) use ($time): bool {
+			return $member->last_online?->dt < $time;
+		})->sortKeys()
+		->values();
+
+		if ($inactiveMembers->isEmpty()) {
+			$context->reply("There are no inactive members in the database.");
+			return;
+		}
+
+		$blob = "Members who have not logged on for ".
+			"<highlight>{$timeString}<end>.\n\n".
+			"<header2>Inactive bot members<end>\n";
+
+		$lines = [];
+		foreach ($inactiveMembers as $inactiveMember) {
+			$remLink = $this->text->makeChatcmd(
+				"kick",
+				"/tell <myname> member remall {$inactiveMember->name}",
+			);
+			$line = "<pagebreak><tab>{$inactiveMember->name} - ".
+				"last seen: ";
+			if (isset($inactiveMember->last_online)) {
+				$line .= "<highlight>".
+					$this->util->date($inactiveMember->last_online->dt).
+					"<end> on {$inactiveMember->last_online->name}";
+			} else {
+				$line .= "<highlight>never<end>";
+			}
+			$lines []= $line . " [{$remLink}]";
+		}
+		$msg = $this->text->makeBlob(
+			"Inactive Org Members (" . $inactiveMembers->count() . ")",
+			$blob . join("\n", $lines)
+		);
+		$context->reply($msg);
+	}
+
 	/**
 	 * Make someone a member of this bot
 	 * They will get auto-invited after logging in
 	 */
-	#[NCA\HandlesCommand("member")]
+	#[NCA\HandlesCommand("members add/remove")]
 	#[NCA\Help\Group("private-channel")]
 	public function addUserCommand(
 		CmdContext $context,
@@ -334,7 +427,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 	/**
 	 * Remove someone from the bot's member list
 	 */
-	#[NCA\HandlesCommand("member")]
+	#[NCA\HandlesCommand("members add/remove")]
 	#[NCA\Help\Group("private-channel")]
 	public function remUserCommand(
 		CmdContext $context,
@@ -344,6 +437,32 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 		$msg = $this->removeUser($member(), $context->char->name);
 
 		$context->reply($msg);
+	}
+
+	/**
+	 * Remove someone and all their alts from the bot's member list
+	 */
+	#[NCA\HandlesCommand("members add/remove")]
+	#[NCA\Help\Group("private-channel")]
+	public function remallUserCommand(
+		CmdContext $context,
+		#[NCA\Str("remall", "delall")] string $action,
+		PCharacter $member
+	): void {
+		$main = $this->altsController->getMainOf($member());
+		$alts = $this->altsController->getAltsOf($main);
+		$lines = [];
+		foreach ($alts as $alt) {
+			$lines []= "<tab>- " . $this->removeUser($alt, $context->char->name);
+		}
+
+		$context->reply(
+			$this->text->makeBlob(
+				"Removed alts of {$main} (" . count($alts) . ")",
+				"<header2>Alts of {$main}<end>\n".
+				join("\n", $lines)
+			)
+		);
 	}
 
 	/**
