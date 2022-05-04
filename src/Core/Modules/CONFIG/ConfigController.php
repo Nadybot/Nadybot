@@ -96,6 +96,15 @@ class ConfigController extends ModuleInstance {
 		}
 	}
 
+	/** Check if we need to show the raid access levels */
+	private function showRaidAL(): bool {
+		return $this->db->table(CommandManager::DB_TABLE, "c")
+			->join(CommandManager::DB_TABLE_PERMS . " as p", "c.cmd", "p.cmd")
+			->where("c.module", "RAID_MODULE")
+			->where("p.enabled", true)
+			->exists();
+	}
+
 	/**
 	 * Get a list of modules which can be configured
 	 */
@@ -796,11 +805,7 @@ class ConfigController extends ModuleInstance {
 		$msg .= $this->text->makeChatcmd("disabled", "/tell <myname> config cmd {$cmd} disable {$permSet}") . "]\n";
 
 		$msg .= "Set access level: ";
-		$showRaidAL = $this->db->table(CommandManager::DB_TABLE, "c")
-			->join(CommandManager::DB_TABLE_PERMS . " as p", "c.cmd", "p.cmd")
-			->where("c.module", "RAID_MODULE")
-			->where("p.enabled", true)
-			->exists();
+		$showRaidAL = $this->showRaidAL();
 		foreach ($this->accessManager->getAccessLevels() as $accessLevel => $level) {
 			if ($accessLevel === 'none') {
 				continue;
@@ -835,11 +840,7 @@ class ConfigController extends ModuleInstance {
 				->keyBy("permission_set")->toArray();
 		});
 
-		$showRaidAL = $this->db->table(CommandManager::DB_TABLE, "c")
-			->join(CommandManager::DB_TABLE_PERMS . " as p", "c.cmd", "p.cmd")
-			->where("c.module", "RAID_MODULE")
-			->where("p.enabled", true)
-			->exists();
+		$showRaidAL = $this->showRaidAL();
 		foreach ($commands as $command) {
 			$perms = $command->permissions[$permSet] ?? null;
 			if (!isset($perms)) {
@@ -947,11 +948,8 @@ class ConfigController extends ModuleInstance {
 	 * @return ModuleAccessLevel[]
 	 */
 	public function getValidAccessLevels(): array {
-		$showRaidAL = $this->db->table(CommandManager::DB_TABLE)
-			->where("module", "RAID_MODULE")
-			->where("status", 1)
-			->exists();
 		$result = [];
+		$showRaidAL = $this->showRaidAL();
 		foreach ($this->accessManager->getAccessLevels() as $accessLevel => $level) {
 			if ($accessLevel == 'none') {
 				continue;

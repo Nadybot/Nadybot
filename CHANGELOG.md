@@ -27,6 +27,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - The `!member`-command is now a sub-command of `!members`, so `!members add <who>` now works the same as `!member add`. Access levels are migrated.
 - If audits are enabled (`!settings save audit_enabled 1`), `!whois <name>` will now show information from the audit when and by whom the person was added to the bot.
 
+### Fixed
+
+- Fix `/api/access_levels` endpoint and make settings webfrontend work again.
+
 ## [6.0.1] - 2022-04-24
 
 ### Added
