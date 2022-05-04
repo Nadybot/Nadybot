@@ -63,6 +63,7 @@ use Safe\Exceptions\FilesystemException;
 		command: "members",
 		accessLevel: "member",
 		description: "Member list",
+		alias: 'member',
 	),
 	NCA\DefineCommand(
 		command: "members inactive",
@@ -70,7 +71,7 @@ use Safe\Exceptions\FilesystemException;
 		description: "List members who haven't logged in for some time",
 	),
 	NCA\DefineCommand(
-		command: "member",
+		command: "members add/remove",
 		accessLevel: "guild",
 		description: "Adds or removes a player to/from the members list",
 	),
@@ -228,17 +229,17 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 		$this->accessManager->registerProvider($this);
 		$this->commandAlias->register(
 			$this->moduleName,
-			"member add",
+			"members add",
 			"adduser"
 		);
 		$this->commandAlias->register(
 			$this->moduleName,
-			"member del",
+			"members del",
 			"deluser"
 		);
 		$this->commandAlias->register(
 			$this->moduleName,
-			"member del",
+			"members del",
 			"remuser"
 		);
 		$lockStats = new PrivLockStats();
@@ -411,7 +412,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 	 * Make someone a member of this bot
 	 * They will get auto-invited after logging in
 	 */
-	#[NCA\HandlesCommand("member")]
+	#[NCA\HandlesCommand("members add/remove")]
 	#[NCA\Help\Group("private-channel")]
 	public function addUserCommand(
 		CmdContext $context,
@@ -426,7 +427,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 	/**
 	 * Remove someone from the bot's member list
 	 */
-	#[NCA\HandlesCommand("member")]
+	#[NCA\HandlesCommand("members add/remove")]
 	#[NCA\Help\Group("private-channel")]
 	public function remUserCommand(
 		CmdContext $context,
@@ -441,7 +442,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 	/**
 	 * Remove someone and all their alts from the bot's member list
 	 */
-	#[NCA\HandlesCommand("member")]
+	#[NCA\HandlesCommand("members add/remove")]
 	#[NCA\Help\Group("private-channel")]
 	public function remallUserCommand(
 		CmdContext $context,
