@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - New Docker image `nadybot-big` which includes the AOChatProxy, so only 1 container is needed to run bots with more than 1000 members.
 - New command `members inactive` to list members who haven't logged in for a given amount of time.
 - `!adminlist` now shows the last time the bot has seen each admin and on which alt.
+- Add new option `--strict` to make SQLite checks more strict. This is mainly for development purpose.
 
 ### Changed
 

@@ -251,6 +251,7 @@ class BotRunner {
 				"help",
 				"migrate-only",
 				"setup-only",
+				"strict",
 				"log-config:",
 				"migration-errors-fatal",
 			],

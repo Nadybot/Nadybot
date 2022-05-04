@@ -35,7 +35,7 @@ jobs:
           else
             rm -f data/nadybot.db
           fi
-          php main.php --setup-only --migration-errors-fatal conf/config.php
+          php main.php --strict --setup-only --migration-errors-fatal conf/config.php
 
   mysql_tests:
     name: Test MySQL migrations
@@ -85,7 +85,7 @@ jobs:
             mysql -h 127.0.0.1 -u budabot -p123456 budabot < data/nadybot.sql
             rm -f data/nadybot.sql
           fi
-          php main.php --setup-only --migration-errors-fatal conf/config.php
+          php main.php --strict --setup-only --migration-errors-fatal conf/config.php
 
   mariadb_tests:
     name: Test MariaDB migrations
@@ -135,7 +135,7 @@ jobs:
             mysql -h 127.0.0.1 -u budabot -p123456 budabot < data/nadybot.sql
             rm -f data/nadybot.sql
           fi
-          php main.php --setup-only --migration-errors-fatal conf/config.php
+          php main.php --strict --setup-only --migration-errors-fatal conf/config.php
 
   pgsql_tests:
     name: Test PostgreSQL migrations
@@ -186,4 +186,4 @@ jobs:
             psql -o /dev/null -h 127.0.0.1 -U budabot budabot < data/nadybot.sql
             rm -f data/nadybot.sql
           fi
-          php main.php --setup-only --migration-errors-fatal conf/config.php
+          php main.php --strict --setup-only --migration-errors-fatal conf/config.php
