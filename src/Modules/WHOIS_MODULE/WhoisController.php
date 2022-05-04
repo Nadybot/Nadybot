@@ -2,7 +2,9 @@
 
 namespace Nadybot\Modules\WHOIS_MODULE;
 
+use Illuminate\Support\Collection;
 use Nadybot\Core\{
+	AccessManager,
 	Attributes as NCA,
 	BuddylistManager,
 	CmdContext,
@@ -10,6 +12,7 @@ use Nadybot\Core\{
 	ConfigFile,
 	Event,
 	DB,
+	DBSchema\Audit,
 	DBSchema\Player,
 	ModuleInstance,
 	Modules\ALTS\AltsController,
@@ -68,6 +71,9 @@ class WhoisController extends ModuleInstance {
 
 	#[NCA\Inject]
 	public CommentController $commentController;
+
+	#[NCA\Inject]
+	public AccessManager $accessManager;
 
 	/** Add link to comments if found */
 	#[NCA\Setting\Boolean]
@@ -260,19 +266,59 @@ class WhoisController extends ModuleInstance {
 		$this->getOutputAsync([$sendto, "reply"], $name, false);
 	}
 
+	/**
+	 * Determine the breakpoints where the audits indicate a new member was added/removed
+	 *
+	 * @param Collection<Audit> $audits
+	 * @return Collection<Audit>
+	 */
+	private function getAuditBreakpoints(Collection $audits): Collection {
+		/** @var Collection<string,Collection<Audit>> */
+		$auditGroups = $audits->groupBy(function (Audit $audit): string {
+			return (string)$audit->time->getTimestamp();
+		});
+		$rank = [];
+		/** @var Collection<Audit> */
+		$result = new Collection();
+		foreach ($auditGroups as $time => $audits) {
+			$wasMember = count($rank) > 0;
+			$addAction = null;
+			$delAction = null;
+			foreach ($audits as $audit) {
+				if (!preg_match("/\((.+?)\)/", $audit->value, $matches)) {
+					continue;
+				}
+				if ($audit->action === AccessManager::ADD_RANK) {
+					$rank[$matches[1]] = true;
+					$addAction = $audit;
+				} elseif ($audit->action === AccessManager::DEL_RANK) {
+					unset($rank[$matches[1]]);
+					$delAction = $audit;
+				}
+			}
+			$isMember = count($rank) > 0;
+			if (!$wasMember && $isMember) {
+				$result->push($addAction);
+			} elseif ($wasMember && !$isMember) {
+				$result->push($delAction);
+			}
+		}
+		return $result;
+	}
+
 	/** @psalm-param callable(string|string[]) $callback */
 	private function playerToWhois(callable $callback, ?Player $whois, string $name, bool $online): void {
 		$charID = $this->chatBot->get_uid($name);
-		$lookupNameLink = $this->text->makeChatcmd("Lookup", "/tell <myname> lookup $name");
+		$lookupNameLink = $this->text->makeChatcmd("lookup", "/tell <myname> lookup $name");
 		if ($charID) {
-			$lookupCharIdLink = $this->text->makeChatcmd("Lookup", "/tell <myname> lookup $charID");
+			$lookupCharIdLink = $this->text->makeChatcmd("lookup", "/tell <myname> lookup $charID");
 		}
 
 		if ($whois === null) {
 			$blob = "<orange>Note: Could not retrieve detailed info for character.<end>\n\n";
-			$blob .= "Name: <highlight>{$name}<end> {$lookupNameLink}\n";
+			$blob .= "Name: <highlight>{$name}<end> [{$lookupNameLink}]\n";
 			if (isset($lookupCharIdLink)) {
-				$blob .= "Character ID: <highlight>{$charID}<end> {$lookupCharIdLink}\n\n";
+				$blob .= "Character ID: <highlight>{$charID}<end> [{$lookupCharIdLink}]\n\n";
 			}
 			if (is_int($charID)) {
 				$blob .= $this->getNameHistory($charID, $this->config->dimension);
@@ -283,10 +329,10 @@ class WhoisController extends ModuleInstance {
 			return;
 		}
 
-		$blob = "Name: <highlight>" . $this->getFullName($whois) . "<end> {$lookupNameLink}\n";
+		$blob = "Name: <highlight>" . $this->getFullName($whois) . "<end> [{$lookupNameLink}]\n";
 		if (isset($whois->guild) && $whois->guild !== "") {
-			$orglistLink = $this->text->makeChatcmd("See members", "/tell <myname> orglist $whois->guild_id");
-			$orginfoLink = $this->text->makeChatcmd("Info", "/tell <myname> whoisorg $whois->guild_id");
+			$orglistLink = $this->text->makeChatcmd("see members", "/tell <myname> orglist $whois->guild_id");
+			$orginfoLink = $this->text->makeChatcmd("info", "/tell <myname> whoisorg $whois->guild_id");
 			$blob .= "Org: <highlight>{$whois->guild}<end> (<highlight>{$whois->guild_id}<end>) [$orginfoLink] [$orglistLink]\n";
 			$blob .= "Org Rank: <highlight>{$whois->guild_rank}<end> (<highlight>{$whois->guild_rank_id}<end>)\n";
 		}
@@ -308,13 +354,37 @@ class WhoisController extends ModuleInstance {
 			$blob .= "<red>Offline<end>\n";
 		}
 		if ($charID !== false && isset($lookupCharIdLink)) {
-			$blob .= "Character ID: <highlight>{$whois->charid}<end> {$lookupCharIdLink}\n\n";
+			$blob .= "Character ID: <highlight>{$whois->charid}<end> [{$lookupCharIdLink}]\n\n";
 		}
 
 		$blob .= "Source: <highlight>{$whois->source}<end>\n\n";
 
 		if ($charID !== false) {
 			$blob .= $this->getNameHistory($charID, $this->config->dimension);
+		}
+		$main = $this->altsController->getMainOf($name);
+		if ($main === $name) {
+			/** @var Collection<Audit> */
+			$audits = $this->db->table(AccessManager::DB_TABLE)
+				->where("actee", $name)
+				->whereIn("action", [
+					AccessManager::ADD_RANK,
+					AccessManager::DEL_RANK
+				])
+				->orderBy("time")
+				->orderBy("id")
+				->asObj(Audit::class);
+			$breakPoints = $this->getAuditBreakpoints($audits);
+			if ($breakPoints->isNotEmpty()) {
+				/** @var Audit */
+				$lastAction = $breakPoints->last();
+				$blob .= "\n".
+					(($lastAction->action === AccessManager::ADD_RANK)
+						? "Added to bot"
+						: "Removed from bot"
+					) . ": <highlight>" . $this->util->date($lastAction->time->getTimestamp()).
+					"<end> by <highlight>{$lastAction->actor}<end>";
+			}
 		}
 
 		$msg = $this->playerManager->getInfo($whois);
