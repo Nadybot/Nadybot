@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - New command `!orgnote` to manage org-wide notes that can also be shared via Nadynative protocol.
 - New Docker image `nadybot-big` which includes the AOChatProxy, so only 1 container is needed to run bots with more than 1000 members.
 - New command `members inactive` to list members who haven't logged in for a given amount of time.
+- `!adminlist` now shows the last time the bot has seen each admin and on which alt.
 
 ### Changed
 
@@ -21,6 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `!raid punish` now also accepts the name of a pre-defined reward, analogue to `!raid reward`.
 - The loglevel of handlers used to always be ignored and scaled with the configuration option of channels. This has been changed so that the new log level "default" will now automatically scale, while explicitly given ones like "error" will always stay on error. This allows you to log error output into separate files.
 - Retries for 502 Http results are now delayed by 5s, in order not to hammer the webserver
+- The `!member`-command is now a sub-command of `!members`, so `!members add <who>` now works the same as `!member add`. Access levels are migrated.
 
 ## [6.0.1] - 2022-04-24
 
