@@ -12,6 +12,7 @@ use Nadybot\Core\{
 	CommandReply,
 	DB,
 	DBSchema\Admin,
+	DBSchema\LastOnline,
 	Event,
 	ModuleInstance,
 	LoggerWrapper,
@@ -22,6 +23,7 @@ use Nadybot\Core\{
 	ParamClass\PRemove,
 	SettingManager,
 	Text,
+	Util,
 };
 
 #[
@@ -64,6 +66,9 @@ class AdminController extends ModuleInstance {
 
 	#[NCA\Inject]
 	public Text $text;
+
+	#[NCA\Inject]
+	public Util $util;
 
 	#[NCA\Inject]
 	public DB $db;
@@ -143,29 +148,35 @@ class AdminController extends ModuleInstance {
 	#[NCA\Help\Group("ranks")]
 	public function adminlistCommand(CmdContext $context, #[NCA\Str("all")] ?string $all): void {
 		$showOfflineAlts = isset($all);
-		$blob = "<header2>Administrators<end>\n";
+		$admins = [];
+		$mods = [];
+		$blobs = [];
 		foreach ($this->adminManager->admins as $who => $data) {
-			if ($this->adminManager->admins[$who]["level"] == 4) {
-				if ($who != "") {
-					$blob .= "<tab>$who";
-					if ($this->accessManager->checkAccess($who, 'superadmin')) {
-						$blob .= " (<highlight>Super-administrator<end>) ";
-					}
-					$blob .= $this->getOnlineStatus($who) . "\n" . $this->getAltAdminInfo($who, $showOfflineAlts);
-				}
+			if ($who === '') {
+				continue;
+			}
+			$line = "<tab>$who";
+			if ($this->accessManager->checkAccess($who, 'superadmin')) {
+				$line .= " (<highlight>Super-administrator<end>)";
+			}
+			$line .= $this->getOnlineStatus($who, true) . "\n".
+				$this->getAltAdminInfo($who, $showOfflineAlts);
+			if ($data["level"] === 4) {
+				$admins []= $line;
+			} elseif ($data["level"] === 3) {
+				$mods []= $line;
 			}
 		}
-
-		$blob .= "<header2>Moderators<end>\n";
-		foreach ($this->adminManager->admins as $who => $data) {
-			if ($this->adminManager->admins[$who]["level"] == 3) {
-				if ($who != "") {
-					$blob .= "<tab>$who" . $this->getOnlineStatus($who) . "\n" . $this->getAltAdminInfo($who, $showOfflineAlts);
-				}
-			}
+		if (count($admins)) {
+			$blobs []= "<header2>Administrators<end>\n".
+				join("", $admins);
+		}
+		if (count($mods)) {
+			$blobs []= "<header2>Moderators<end>\n".
+				join("", $mods);
 		}
 
-		$link = $this->text->makeBlob('Bot administrators', $blob);
+		$link = $this->text->makeBlob('Bot administrators', join("\n", $blobs));
 		$context->reply($link);
 	}
 
@@ -186,14 +197,29 @@ class AdminController extends ModuleInstance {
 	 * @param string $who Playername
 	 * @return string " (<green>online<end>)" and so on
 	 */
-	private function getOnlineStatus(string $who): string {
+	private function getOnlineStatus(string $who, bool $showLastSeen=false): string {
 		if ($this->buddylistManager->isOnline($who) && isset($this->chatBot->chatlist[$who])) {
 			return " (<green>Online and in chat<end>)";
 		} elseif ($this->buddylistManager->isOnline($who)) {
 			return " (<green>Online<end>)";
-		} else {
+		}
+		if (!$showLastSeen) {
 			return " (<red>Offline<end>)";
 		}
+		$main = $this->altsController->getMainOf($who);
+		/** @var ?LastOnline */
+		$lastSeen = $this->db->table("last_online")
+			->whereIn("name", $this->altsController->getAltsOf($main))
+			->orderByDesc("dt")
+			->limit(1)
+			->asObj(LastOnline::class)
+			->first();
+		if (!isset($lastSeen)) {
+			return " (<red>Offline<end>)";
+		}
+		return " (<red>Offline<end>, last seen ".
+			$this->util->date($lastSeen->dt, false).
+			" on {$lastSeen->name})";
 	}
 
 	private function getAltAdminInfo(string $who, bool $showOfflineAlts): string {
