@@ -15,6 +15,7 @@ use Nadybot\Core\{
 	ConfigFile,
 	DB,
 	DBSchema\Audit,
+	DBSchema\LastOnline,
 	DBSchema\Member,
 	DBSchema\Player,
 	Event,
@@ -32,6 +33,7 @@ use Nadybot\Core\{
 	Modules\ALTS\AltInfo,
 	Modules\BAN\BanController,
 	ParamClass\PCharacter,
+	ParamClass\PDuration,
 	ParamClass\PRemove,
 	Registry,
 	Routing\Character,
@@ -40,8 +42,6 @@ use Nadybot\Core\{
 	Routing\Source,
 	UserStateEvent,
 };
-use Nadybot\Core\DBSchema\LastOnline;
-use Nadybot\Core\ParamClass\PDuration;
 use Nadybot\Modules\{
 	ONLINE_MODULE\OfflineEvent,
 	ONLINE_MODULE\OnlineController,
@@ -224,6 +224,9 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 	/** If set, the private channel is currently locked for a reason */
 	protected ?string $lockReason = null;
 
+	/** @var array<string,bool> */
+	protected array $members = [];
+
 	#[NCA\Setup]
 	public function setup(): void {
 		$this->accessManager->registerProvider($this);
@@ -245,12 +248,18 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 		$lockStats = new PrivLockStats();
 		Registry::injectDependencies($lockStats);
 		$this->statsController->registerProvider($lockStats, "states");
+		$this->cacheMembers();
+	}
+
+	public function cacheMembers(): void {
+		$this->members = $this->db->table(self::DB_TABLE)
+			->asObj(Member::class)
+			->keyBy("name")
+			->toArray();
 	}
 
 	public function getSingleAccessLevel(string $sender): ?string {
-		$isMember = $this->db->table(PrivateChannelController::DB_TABLE)
-			->where("name", $sender)
-			->exists();
+		$isMember = isset($this->members[$sender]);
 		if ($isMember) {
 			return "member";
 		}
@@ -1187,6 +1196,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 				"name" => $name,
 				"autoinv" => $autoInvite,
 			]);
+		$this->members[$name] = true;
 		$event = new MemberEvent();
 		$event->type = "member(add)";
 		$event->sender = $name;
@@ -1234,6 +1244,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 		if (!$this->db->table(self::DB_TABLE)->where("name", $name)->delete()) {
 			return "<highlight>$name<end> is not a member of this bot.";
 		}
+		unset($this->members[$name]);
 		$this->buddylistManager->remove($name, 'member');
 		$event = new MemberEvent();
 		$event->type = "member(rem)";
