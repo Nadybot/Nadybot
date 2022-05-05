@@ -9,7 +9,8 @@ ENTRYPOINT ["/sbin/tini", "-g", "--"]
 
 CMD ["/nadybot/docker-entrypoint.sh"]
 
-RUN apk --no-cache add \
+RUN apk --no-cache upgrade && \
+    apk --no-cache add \
     php8-cli \
     php8-sqlite3 \
     php8-phar \
