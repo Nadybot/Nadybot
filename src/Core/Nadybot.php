@@ -945,6 +945,8 @@ class Nadybot extends AOChat {
 			return;
 		} elseif (preg_match("|Unknown command or access denied!|si", $message)) {
 			return;
+		} elseif (preg_match("|Unknown command '|si", $message)) {
+			return;
 		} elseif (preg_match("|I am responding|si", $message)) {
 			return;
 		} elseif (preg_match("|I only listen|si", $message)) {
