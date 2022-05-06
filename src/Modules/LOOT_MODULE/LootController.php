@@ -115,6 +115,10 @@ class LootController extends ModuleInstance {
 	#[NCA\Setting\Boolean]
 	public bool $showLootPics = true;
 
+	/** Maximum number of entries for loot history and search */
+	#[NCA\Setting\Number]
+	public int $lootHistoryMaxEntries = 40;
+
 	/**
 	 * The currently rolled items
 	 * @var LootItem[]
@@ -175,7 +179,7 @@ class LootController extends ModuleInstance {
 		$items = $this->db->table(self::DB_TABLE)
 			->orderByDesc("dt")
 			->orderBy("pos")
-			->limit(40)
+			->limit($this->lootHistoryMaxEntries)
 			->asObj(LootHistory::class);
 		if ($items->isEmpty()) {
 			$context->reply("There are not rolls recorded on this bot.");
@@ -269,7 +273,7 @@ class LootController extends ModuleInstance {
 		$items = $this->db->table(self::DB_TABLE)
 			->where("winner", $winner())
 			->orderByDesc("dt")
-			->limit(40)
+			->limit($this->lootHistoryMaxEntries)
 			->asObj(LootHistory::class);
 		if ($items->isEmpty()) {
 			$context->reply("{$winner} hasn't won any items yet.");
@@ -322,7 +326,7 @@ class LootController extends ModuleInstance {
 			->whereIlike("display", "%{$search}%")
 			->orderByDesc("dt")
 			->orderBy("pos")
-			->limit(40)
+			->limit($this->lootHistoryMaxEntries)
 			->asObj(LootHistory::class);
 		if ($items->isEmpty()) {
 			$context->reply(
