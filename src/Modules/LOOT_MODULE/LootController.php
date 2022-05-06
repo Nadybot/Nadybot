@@ -163,7 +163,7 @@ class LootController extends ModuleInstance {
 	}
 
 	/**
-	 * Get a list of the last rolls
+	 * Get a list of the last loot rolls
 	 */
 	#[NCA\HandlesCommand("loot")]
 	#[NCA\Help\Group("loot")]
