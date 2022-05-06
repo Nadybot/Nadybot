@@ -52,6 +52,7 @@ RUN wget -O /usr/bin/composer https://getcomposer.org/composer-2.phar && \
     mv conf/logging.json.2 conf/logging.json && \
     chown nadybot:nadybot conf/logging.json && \
     mkdir -p /proxy && \
+    chown nadybot /proxy && \
     PROXY_URL=$(wget -O - https://api.github.com/repos/nadybot/aochatproxy/releases/latest | jq -r '.assets[] | select(.name=="aochatproxy-linux-x86_64") | .browser_download_url') && \
     wget -O /proxy/aochatproxy "${PROXY_URL}" && \
     chmod +x /proxy/aochatproxy && \
