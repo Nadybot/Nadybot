@@ -31,6 +31,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Fix `/api/access_levels` endpoint and make settings webfrontend work again.
+- Fix for `!raid reward <points> <reason>` and `!raid punish <points> <reason>`. They both work again as expected.
 
 ## [6.0.1] - 2022-04-24
 
