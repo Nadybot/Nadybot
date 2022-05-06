@@ -163,110 +163,13 @@ class LootController extends ModuleInstance {
 	}
 
 	/**
-	 * Search for loot won by &lt;winner&gt;
-	 */
-	#[NCA\HandlesCommand("loot")]
-	#[NCA\Help\Group("loot")]
-	public function lootSearchWinerCommand(
-		CmdContext $context,
-		#[NCA\Str("search")] string $action,
-		#[NCA\Str("winner=")] string $subAction,
-		#[NCA\NoSpace] PCharacter $winner,
-	): void {
-		$items = $this->db->table(self::DB_TABLE)
-			->where("winner", $winner())
-			->orderByDesc("dt")
-			->limit(40)
-			->asObj(LootHistory::class);
-		if ($items->isEmpty()) {
-			$context->reply("{$winner} hasn't won any items yet.");
-			return;
-		}
-		$lines = $items->map(function(LootHistory $item): string {
-			$line = "<tab>".
-				$this->util->date($item->dt).
-				" -";
-			if ($item->amount > 1) {
-				$line .= " 1/{$item->amount}";
-			}
-			$line .= " {$item->display}";
-			if (isset($item->comment) && strlen($item->comment) && strpos($item->display, $item->comment) === false) {
-				$line .= " {$item->comment}";
-			}
-			$line .= " - rolled by {$item->rolled_by}";
-			return $line;
-		});
-		$blob = "<header2>Last items won by {$winner}<end>\n".
-			$lines->join("\n");
-		$context->reply($this->text->makeBlob("Last items won by {$winner}", $blob));
-	}
-
-	/**
-	 * Search for winners of loot matching &lt;search&gt;
-	 */
-	#[NCA\HandlesCommand("loot")]
-	#[NCA\Help\Group("loot")]
-	public function lootSearchNameCommand(
-		CmdContext $context,
-		#[NCA\Str("search")] string $action,
-		#[NCA\Str("last")] ?string $lastOnly,
-		#[NCA\Str("item=")] string $subAction,
-		#[NCA\NoSpace] string $search,
-	): void {
-		$search = trim($search);
-		if (strlen($search) < 1) {
-			$context->reply("You have to give a string to search for.");
-			return;
-		}
-		$query = $this->db->table(self::DB_TABLE)
-			->whereIlike("display", "%{$search}%")
-			->orderByDesc("dt")
-			->orderBy("pos")
-			->limit(40);
-		if (isset($lastOnly)) {
-			$query->where("roll", $this->roll-1);
-		}
-		/** @var Collection<LootHistory> */
-		$items = $query->asObj(LootHistory::class);
-		if ($items->isEmpty()) {
-			$context->reply(
-				"No items were rolled matching your search <highlight>{$search}<end>."
-			);
-			return;
-		}
-
-		$compressedList = $this->compressLootHistory($items);
-
-		$lines = $compressedList->map(function(LootHistory $item): string {
-			$line = "<tab>" . $this->util->date($item->dt)  . " -";
-			if ($item->amount > 1) {
-				$line .= " {$item->amount}x";
-			}
-			$line .= " <highlight>{$item->display}<end>";
-			if (isset($item->comment) && strlen($item->comment) && strpos($item->display, $item->comment) === false) {
-				$line .= " {$item->comment}";
-			}
-			$line .= " - rolled by {$item->rolled_by}\n".
-				"<tab><tab>" . $this->getWinners(...$item->winners);
-
-			return $line;
-		});
-
-		$blob = "<header2>Last rolled items matching '{$search}'<end>\n".
-			$lines->join("\n");
-		$context->reply(
-			$this->text->makeBlob("Last rolled items matching '{$search}'", $blob)
-		);
-	}
-
-	/**
 	 * Get a list of the last rolls
 	 */
 	#[NCA\HandlesCommand("loot")]
 	#[NCA\Help\Group("loot")]
-	public function lootShowRollsCommand(
+	public function lootHistoryCommand(
 		CmdContext $context,
-		#[NCA\Str("show")] string $action,
+		#[NCA\Str("history")] string $action,
 	): void {
 		/** @var Collection<LootHistory> */
 		$items = $this->db->table(self::DB_TABLE)
@@ -283,9 +186,18 @@ class LootController extends ModuleInstance {
 		$lines = $rolls->map(function (Collection $items, int $roll): string {
 			/** @var LootHistory */
 			$firstItem = $items->firstOrFail();
-			return $this->util->date($firstItem->dt) . " - ".
-				$items->count() . " items, rolled by {$firstItem->rolled_by}";
+			$showLink = $this->text->makeChatcmd(
+				$items->count() . " " . $this->text->pluralize("item", $items->count()),
+				"/tell <myname> loot history {$firstItem->roll}"
+			);
+			return "<tab>" . $this->util->date($firstItem->dt) . " - ".
+				"{$showLink}, rolled by {$firstItem->rolled_by}";
 		});
+		$msg = "Last loot rolls (" . $lines->count() . ")";
+		$context->reply($this->text->makeBlob(
+			$msg,
+			"<header2>Last loot rolls<end>\n" . $lines->join("\n")
+		));
 	}
 
 	/**
@@ -293,9 +205,11 @@ class LootController extends ModuleInstance {
 	 */
 	#[NCA\HandlesCommand("loot")]
 	#[NCA\Help\Group("loot")]
+	#[NCA\Help\Example("<symbol>loot show last")]
+	#[NCA\Help\Example("<symbol>loot history 17")]
 	public function lootShowNumberCommand(
 		CmdContext $context,
-		#[NCA\Str("show")] string $action,
+		#[NCA\StrChoice("show", "history")] string $action,
 		#[NCA\PNumber] #[NCA\Str("last")] string $number,
 	): void {
 		if (strtolower($number) === "last") {
@@ -337,6 +251,115 @@ class LootController extends ModuleInstance {
 			"Loot roll #{$roll} (" . $lines->count() . " slots)",
 			$blob
 		));
+	}
+
+	/**
+	 * Search for loot won by &lt;winner&gt;
+	 * If 'last' is set, then only the last loot roll with matching items is shown
+	 */
+	#[NCA\HandlesCommand("loot")]
+	#[NCA\Help\Group("loot")]
+	public function lootSearchWinnerCommand(
+		CmdContext $context,
+		#[NCA\Str("search")] string $action,
+		#[NCA\Str("last")] ?string $lastOnly,
+		#[NCA\Str("winner=")] string $subAction,
+		#[NCA\NoSpace] PCharacter $winner,
+	): void {
+		$items = $this->db->table(self::DB_TABLE)
+			->where("winner", $winner())
+			->orderByDesc("dt")
+			->limit(40)
+			->asObj(LootHistory::class);
+		if ($items->isEmpty()) {
+			$context->reply("{$winner} hasn't won any items yet.");
+			return;
+		}
+		if (isset($lastOnly)) {
+			$items = $items->where("roll", $items->firstOrFail()->roll);
+		}
+		$lines = $items->map(function(LootHistory $item): string {
+			$rollLink = $this->text->makeChatcmd(
+				$this->util->date($item->dt),
+				"/tell <myname> loot history {$item->roll}"
+			);
+			$line = "<tab>{$rollLink} - ";
+			if ($item->amount > 1) {
+				$line .= " 1/{$item->amount}";
+			}
+			$line .= " {$item->display}";
+			if (isset($item->comment) && strlen($item->comment) && strpos($item->display, $item->comment) === false) {
+				$line .= " {$item->comment}";
+			}
+			$line .= " - rolled by {$item->rolled_by}";
+			return $line;
+		});
+		$blob = "<header2>Last items won by {$winner}<end>\n".
+			$lines->join("\n");
+		$context->reply($this->text->makeBlob("Last items won by {$winner}", $blob));
+	}
+
+	/**
+	 * Search for winners of loot matching &lt;search&gt;
+	 * If 'last' is set, then only the last loot roll with matching items is shown
+	 */
+	#[NCA\HandlesCommand("loot")]
+	#[NCA\Help\Group("loot")]
+	public function lootSearchNameCommand(
+		CmdContext $context,
+		#[NCA\Str("search")] string $action,
+		#[NCA\Str("last")] ?string $lastOnly,
+		#[NCA\Str("item=")] string $subAction,
+		#[NCA\NoSpace] string $search,
+	): void {
+		$search = trim($search);
+		if (strlen($search) < 1) {
+			$context->reply("You have to give a string to search for.");
+			return;
+		}
+		/** @var Collection<LootHistory> */
+		$items = $this->db->table(self::DB_TABLE)
+			->whereIlike("display", "%{$search}%")
+			->orderByDesc("dt")
+			->orderBy("pos")
+			->limit(40)
+			->asObj(LootHistory::class);
+		if ($items->isEmpty()) {
+			$context->reply(
+				"No items were rolled matching your search <highlight>{$search}<end>."
+			);
+			return;
+		}
+		if (isset($lastOnly)) {
+			$items = $items->where("roll", $items->firstOrFail()->roll);
+		}
+
+		$compressedList = $this->compressLootHistory($items);
+
+		$lines = $compressedList->map(function(LootHistory $item): string {
+			$rollLink = $this->text->makeChatcmd(
+				$this->util->date($item->dt),
+				"/tell <myname> loot history {$item->roll}"
+			);
+			$line = "<tab>{$rollLink} -";
+			if ($item->amount > 1) {
+				$line .= " {$item->amount}x";
+			}
+			$line .= " <highlight>{$item->display}<end>";
+			if (isset($item->comment) && strlen($item->comment) && strpos($item->display, $item->comment) === false) {
+				$line .= " {$item->comment}";
+			}
+			$line .= " - rolled by {$item->rolled_by}\n".
+				"<tab><tab>" . $this->getWinners(...$item->winners);
+
+			return $line;
+		});
+
+		$blob = "<header2>Last rolled items matching '{$search}'<end>\n".
+			$lines->join("\n");
+		$context->reply(
+			$this->text->makeBlob("Last rolled items matching '{$search}'", $blob)
+		);
 	}
 
 	private function getWinners(string ...$winners): string {
