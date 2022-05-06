@@ -16,8 +16,10 @@ use Nadybot\Core\{
 	ParamClass\PQuantity,
 	ParamClass\PRemove,
 	Text,
+	Util,
 	Modules\PLAYER_LOOKUP\PlayerManager,
 };
+use Nadybot\Core\ParamClass\PCharacter;
 use Nadybot\Modules\{
 	BASIC_CHAT_MODULE\ChatLeaderController,
 	ITEMS_MODULE\AODBEntry,
@@ -72,6 +74,7 @@ use Nadybot\Modules\{
 ]
 class LootController extends ModuleInstance {
 	public const CMD_LOOT_MANAGE = "loot add/change/delete";
+	public const DB_TABLE = "loot_history_<myname>";
 
 	#[NCA\Inject]
 	public DB $db;
@@ -95,6 +98,9 @@ class LootController extends ModuleInstance {
 	public Text $text;
 
 	#[NCA\Inject]
+	public Util $util;
+
+	#[NCA\Inject]
 	public ChatLeaderController $chatLeaderController;
 
 	/** Confirmation messages for adding to loot */
@@ -109,6 +115,10 @@ class LootController extends ModuleInstance {
 	#[NCA\Setting\Boolean]
 	public bool $showLootPics = true;
 
+	/** Maximum number of entries for loot history and search */
+	#[NCA\Setting\Number]
+	public int $lootHistoryMaxEntries = 40;
+
 	/**
 	 * The currently rolled items
 	 * @var LootItem[]
@@ -121,9 +131,12 @@ class LootController extends ModuleInstance {
 	 */
 	private $residual = [];
 
+	private int $roll = 1;
+
 	#[NCA\Setup]
 	public function setup(): void {
 		$this->commandAlias->register($this->moduleName, "loot addmulti", "multiloot");
+		$this->roll = (int)$this->db->table(self::DB_TABLE)->max("roll") + 1;
 	}
 
 	#[NCA\Event(
@@ -151,6 +164,248 @@ class LootController extends ModuleInstance {
 	public function lootCommand(CmdContext $context): void {
 		$msg = $this->getCurrentLootList();
 		$context->reply($msg);
+	}
+
+	/**
+	 * Get a list of the last loot rolls
+	 */
+	#[NCA\HandlesCommand("loot")]
+	#[NCA\Help\Group("loot")]
+	public function lootHistoryCommand(
+		CmdContext $context,
+		#[NCA\Str("history")] string $action,
+	): void {
+		/** @var Collection<LootHistory> */
+		$items = $this->db->table(self::DB_TABLE)
+			->orderByDesc("dt")
+			->orderBy("pos")
+			->limit($this->lootHistoryMaxEntries)
+			->asObj(LootHistory::class);
+		if ($items->isEmpty()) {
+			$context->reply("There are not rolls recorded on this bot.");
+			return;
+		}
+		$compressedList = $this->compressLootHistory($items);
+		$rolls = $compressedList->groupBy("roll");
+		$lines = $rolls->map(function (Collection $items, int $roll): string {
+			/** @var LootHistory */
+			$firstItem = $items->firstOrFail();
+			$showLink = $this->text->makeChatcmd(
+				$items->count() . " " . $this->text->pluralize("item", $items->count()),
+				"/tell <myname> loot history {$firstItem->roll}"
+			);
+			return "<tab>" . $this->util->date($firstItem->dt) . " - ".
+				"{$showLink}, rolled by {$firstItem->rolled_by}";
+		});
+		$msg = "Last loot rolls (" . $lines->count() . ")";
+		$context->reply($this->text->makeBlob(
+			$msg,
+			"<header2>Last loot rolls<end>\n" . $lines->join("\n")
+		));
+	}
+
+	/**
+	 * View what was rolled/won in the given roll
+	 */
+	#[NCA\HandlesCommand("loot")]
+	#[NCA\Help\Group("loot")]
+	#[NCA\Help\Example("<symbol>loot show last")]
+	#[NCA\Help\Example("<symbol>loot history 17")]
+	public function lootShowNumberCommand(
+		CmdContext $context,
+		#[NCA\StrChoice("show", "history")] string $action,
+		#[NCA\PNumber] #[NCA\Str("last")] string $number,
+	): void {
+		if (strtolower($number) === "last") {
+			$number = $this->db->table(self::DB_TABLE)->max("roll");
+			if ($number < 1) {
+				$context->reply("There is no last roll to display.");
+				return;
+			}
+		}
+		$roll = (int)$number;
+		/** @var Collection<LootHistory> */
+		$items = $this->db->table(self::DB_TABLE)
+			->where("roll", $roll)
+			->orderBy("pos")
+			->asObj(LootHistory::class);
+		if ($items->isEmpty()) {
+			$context->reply("There is no loot roll #<highlight>{$number}<end>.");
+			return;
+		}
+		$compressedList = $this->compressLootHistory($items);
+		$lines = $compressedList->map(function(LootHistory $item): string {
+			$line = "<header2>Slot #{$item->pos}:<end>";
+			if ($item->amount > 1) {
+				$line .= " {$item->amount}x";
+			}
+			$line .= " <highlight>{$item->display}<end>";
+			if (isset($item->comment) && strlen($item->comment) && strpos($item->display, $item->comment) === false) {
+				$line .= " {$item->comment}";
+			}
+			$line .= "\n<tab>" . $this->getWinners(...$item->winners);
+
+			return $line;
+		});
+		$rolledBy = $items->firstOrFail()->rolled_by;
+		$rolledTime = $this->util->date($items->firstOrFail()->dt);
+		$blob = "Loot #{$roll} was rolled <highlight>{$rolledTime}<end> by <highlight>{$rolledBy}<end>.\n\n";
+		$blob .= $lines->join("\n\n");
+		$context->reply($this->text->makeBlob(
+			"Loot roll #{$roll} (" . $lines->count() . " slots)",
+			$blob
+		));
+	}
+
+	/**
+	 * Search for loot won by &lt;winner&gt;
+	 * If 'last' is set, then only the last loot roll with matching items is shown
+	 */
+	#[NCA\HandlesCommand("loot")]
+	#[NCA\Help\Group("loot")]
+	public function lootSearchWinnerCommand(
+		CmdContext $context,
+		#[NCA\Str("search")] string $action,
+		#[NCA\Str("last")] ?string $lastOnly,
+		#[NCA\Str("winner=")] string $subAction,
+		#[NCA\NoSpace] PCharacter $winner,
+	): void {
+		$items = $this->db->table(self::DB_TABLE)
+			->where("winner", $winner())
+			->orderByDesc("dt")
+			->limit($this->lootHistoryMaxEntries)
+			->asObj(LootHistory::class);
+		if ($items->isEmpty()) {
+			$context->reply("{$winner} hasn't won any items yet.");
+			return;
+		}
+		if (isset($lastOnly)) {
+			$items = $items->where("roll", $items->firstOrFail()->roll);
+		}
+		$lines = $items->map(function(LootHistory $item): string {
+			$rollLink = $this->text->makeChatcmd(
+				$this->util->date($item->dt),
+				"/tell <myname> loot history {$item->roll}"
+			);
+			$line = "<tab>{$rollLink} - ";
+			if ($item->amount > 1) {
+				$line .= " 1/{$item->amount}";
+			}
+			$line .= " {$item->display}";
+			if (isset($item->comment) && strlen($item->comment) && strpos($item->display, $item->comment) === false) {
+				$line .= " {$item->comment}";
+			}
+			$line .= " - rolled by {$item->rolled_by}";
+			return $line;
+		});
+		$blob = "<header2>Last items won by {$winner}<end>\n".
+			$lines->join("\n");
+		$context->reply($this->text->makeBlob("Last items won by {$winner}", $blob));
+	}
+
+	/**
+	 * Search for winners of loot matching &lt;search&gt;
+	 * If 'last' is set, then only the last loot roll with matching items is shown
+	 */
+	#[NCA\HandlesCommand("loot")]
+	#[NCA\Help\Group("loot")]
+	public function lootSearchNameCommand(
+		CmdContext $context,
+		#[NCA\Str("search")] string $action,
+		#[NCA\Str("last")] ?string $lastOnly,
+		#[NCA\Str("item=")] string $subAction,
+		#[NCA\NoSpace] string $search,
+	): void {
+		$search = trim($search);
+		if (strlen($search) < 1) {
+			$context->reply("You have to give a string to search for.");
+			return;
+		}
+		/** @var Collection<LootHistory> */
+		$items = $this->db->table(self::DB_TABLE)
+			->whereIlike("display", "%{$search}%")
+			->orderByDesc("dt")
+			->orderBy("pos")
+			->limit($this->lootHistoryMaxEntries)
+			->asObj(LootHistory::class);
+		if ($items->isEmpty()) {
+			$context->reply(
+				"No items were rolled matching your search <highlight>{$search}<end>."
+			);
+			return;
+		}
+		if (isset($lastOnly)) {
+			$items = $items->where("roll", $items->firstOrFail()->roll);
+		}
+
+		$compressedList = $this->compressLootHistory($items);
+
+		$lines = $compressedList->map(function(LootHistory $item): string {
+			$rollLink = $this->text->makeChatcmd(
+				$this->util->date($item->dt),
+				"/tell <myname> loot history {$item->roll}"
+			);
+			$line = "<tab>{$rollLink} -";
+			if ($item->amount > 1) {
+				$line .= " {$item->amount}x";
+			}
+			$line .= " <highlight>{$item->display}<end>";
+			if (isset($item->comment) && strlen($item->comment) && strpos($item->display, $item->comment) === false) {
+				$line .= " {$item->comment}";
+			}
+			$line .= " - rolled by {$item->rolled_by}\n".
+				"<tab><tab>" . $this->getWinners(...$item->winners);
+
+			return $line;
+		});
+
+		$blob = "<header2>Last rolled items matching '{$search}'<end>\n".
+			$lines->join("\n");
+		$context->reply(
+			$this->text->makeBlob("Last rolled items matching '{$search}'", $blob)
+		);
+	}
+
+	private function getWinners(string ...$winners): string {
+		$line = "Winner";
+		if (count($winners) !== 1) {
+			$line .= "s";
+		}
+		if (count($winners) === 0) {
+			$line .= ": &lt;No one added&gt;";
+		} else {
+			$winners = $this->text->arraySprintf("<green>%s<end>", ...$winners);
+			$line .= ": " . $this->text->enumerate(...$winners);
+		}
+		return $line;
+	}
+
+	/**
+	 * @param Collection<LootHistory> $items
+	 * @return Collection<LootHistory>
+	*/
+	private function compressLootHistory(Collection $items): Collection {
+		$lastRoll = 0;
+		$lastPos = 0;
+
+		/** @var Collection<LootHistory> */
+		$compressedList = new Collection();
+		foreach ($items as $item) {
+			if ($lastRoll === $item->roll && $lastPos === $item->pos) {
+				if (!isset($item->winner)) {
+					continue;
+				}
+				$compressedList->last()->winners []= $item->winner;
+				continue;
+			}
+			if (isset($item->winner)) {
+				$item->winners = [$item->winner];
+			}
+			$compressedList->push($item);
+			$lastRoll = $item->roll;
+			$lastPos = $item->pos;
+		}
+		return $compressedList;
 	}
 
 	/**
@@ -475,18 +730,34 @@ class LootController extends ModuleInstance {
 			} else {
 				$list .= "Winners: ";
 			}
+			$lootHistory = new LootHistory();
+			$lootHistory->roll = $this->roll;
+			$lootHistory->dt = time();
+			$lootHistory->pos = $key;
+			$lootHistory->amount = $item->multiloot;
+			$lootHistory->added_by = $item->added_by;
+			$lootHistory->icon = $item->icon;
+			$lootHistory->name = $item->name;
+			$lootHistory->display = $item->display;
+			$lootHistory->comment = $item->comment;
+			$lootHistory->rolled_by = $context->char->name;
 			if ($numUsers === 0) {
 				$list .= "<highlight>No one added.<end>\n\n";
 				$this->residual[$resnum] = $item;
 				$resnum++;
+				$lootHistory->winner = null;
+				$this->db->insert(self::DB_TABLE, $lootHistory);
 			} else {
 				/** @psalm-var non-empty-array<string, bool> */
 				$users = $item->users;
 				if ($item->multiloot > 1) {
 					$arrolnum = min($item->multiloot, $numUsers);
-
 					// Get $arrolnum random values from $users
 					$winners = (array)array_rand($users, $arrolnum);
+					foreach ($winners as $winner) {
+						$lootHistory->winner = $winner;
+						$this->db->insert(self::DB_TABLE, $lootHistory);
+					}
 					$item->users = [];
 					$list .= join(
 						", ",
@@ -506,6 +777,8 @@ class LootController extends ModuleInstance {
 					}
 				} else {
 					$winner = array_rand($users, 1);
+					$lootHistory->winner = $winner;
+					$this->db->insert(self::DB_TABLE, $lootHistory);
 					$list .= "<green>$winner<end>";
 				}
 				$list .= "\n\n";
@@ -514,6 +787,7 @@ class LootController extends ModuleInstance {
 
 		//Reset loot
 		$this->loot = [];
+		$this->roll++;
 
 		//Show winner list
 		if (!empty($this->residual)) {
@@ -675,7 +949,7 @@ class LootController extends ModuleInstance {
 	/**
 	 * Add all items from a raid_loot to the loot list
 	 */
-	public function addRaidToLootList(string $raid, string $category): bool {
+	public function addRaidToLootList(string $addedBy, string $raid, string $category): bool {
 		// clear current loot list
 		$this->loot = [];
 		$count = 1;
@@ -704,6 +978,7 @@ class LootController extends ModuleInstance {
 			$lootItem->icon = $row->item->icon ?? null;
 			$lootItem->multiloot = $row->multiloot;
 			$lootItem->name = $row->name;
+			$lootItem->added_by = $addedBy;
 			$item = $row->name;
 			if (isset($row->item)) {
 				$item = $row->item->getLink($row->ql);

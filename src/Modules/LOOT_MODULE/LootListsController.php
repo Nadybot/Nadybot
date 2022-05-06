@@ -280,7 +280,7 @@ class LootListsController extends ModuleInstance {
 			return;
 		}
 
-		$this->addAPFLootToList(13);
+		$this->addAPFLootToList($context->char->name, 13);
 	}
 
 	/**
@@ -294,7 +294,7 @@ class LootListsController extends ModuleInstance {
 			return;
 		}
 
-		$this->addAPFLootToList(28);
+		$this->addAPFLootToList($context->char->name, 28);
 	}
 
 	/**
@@ -308,12 +308,12 @@ class LootListsController extends ModuleInstance {
 			return;
 		}
 
-		$this->addAPFLootToList(35);
+		$this->addAPFLootToList($context->char->name, 35);
 	}
 
-	public function addAPFLootToList(int $sector): void {
+	public function addAPFLootToList(string $addedBy, int $sector): void {
 		// adding apf stuff
-		$this->lootController->addRaidToLootList('APF', "Sector $sector");
+		$this->lootController->addRaidToLootList($addedBy, 'APF', "Sector $sector");
 		$msg = "Sector $sector loot table was added to the loot list.";
 		$this->chatBot->sendPrivate($msg);
 
