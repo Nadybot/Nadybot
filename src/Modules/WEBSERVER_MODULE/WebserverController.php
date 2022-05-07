@@ -7,6 +7,7 @@ use ReflectionClass;
 use DateTime;
 use Exception;
 use Nadybot\Core\{
+	AccessManager,
 	AsyncHttp,
 	Attributes as NCA,
 	CmdContext,
@@ -51,6 +52,9 @@ class WebserverController extends ModuleInstance {
 
 	#[NCA\Inject]
 	public ConfigFile $config;
+
+	#[NCA\Inject]
+	public AccessManager $accessManager;
 
 	#[NCA\Inject]
 	public Timer $timer;
@@ -100,6 +104,10 @@ class WebserverController extends ModuleInstance {
 		accessLevel: "superadmin"
 	)]
 	public string $webserverAoauthUrl = 'https://aoauth.org';
+
+	/** Minimum accesslevel for the bot API and web UI */
+	#[NCA\Setting\Rank]
+	public string $webserverMinAL = "mod";
 
 	/** @var array<string,array<string,callable[]>> */
 	protected array $routes = [
@@ -504,6 +512,14 @@ class WebserverController extends ModuleInstance {
 				), true);
 				return;
 			}
+		}
+		$hasMinAL = !$needAuth || $this->accessManager->checkAccess(
+			$event->request->authenticatedAs ?? "Xxx",
+			$this->webserverMinAL
+		);
+		if (!$hasMinAL) {
+			$server->httpError(new Response(Response::FORBIDDEN));
+			return;
 		}
 
 		$handlers = $this->getHandlersForRequest($event->request);

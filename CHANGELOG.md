@@ -33,6 +33,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix `/api/access_levels` endpoint and make settings webfrontend work again.
 - Fix for `!raid reward <points> <reason>` and `!raid punish <points> <reason>`. They both work again as expected.
 
+### Security
+
+- Add new settings `webserver_min_al` to specify the overall required min access level for interacting with the bot via API or WebUI. Before this, using aoauth authentication would allow you to read the chat via the WebUI, because this target did not have a defined minimum access level.
+
 ## [6.0.1] - 2022-04-24
 
 ### Added
