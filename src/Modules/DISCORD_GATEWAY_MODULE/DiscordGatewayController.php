@@ -522,7 +522,6 @@ class DiscordGatewayController extends ModuleInstance {
 	)]
 	public function processGatewayReconnectRequest(DiscordGatewayEvent $event): void {
 		$this->logger->info("Discord Gateway requests reconnect");
-		$this->mustReconnect = true;
 		$this->reconnectDelay = 1;
 		if (isset($this->client)) {
 			$this->client->close(1000);
@@ -592,7 +591,6 @@ class DiscordGatewayController extends ModuleInstance {
 			&& isset($this->client)
 		) {
 			$this->logger->notice("Reconnecting to Discord gateway in {$this->reconnectDelay}s.");
-			$this->mustReconnect = false;
 			$this->timer->callLater($this->reconnectDelay, [$this->client, 'connect']);
 			$this->reconnectDelay = max($this->reconnectDelay * 2, 5);
 		} elseif ($event->code === CloseEvents::DISALLOWED_INTENT) {
@@ -606,7 +604,7 @@ class DiscordGatewayController extends ModuleInstance {
 		} else {
 			$ref = new ReflectionClass(CloseEvents::class);
 			$lookup = array_flip($ref->getConstants(ReflectionClassConstant::IS_PUBLIC));
-			$this->logger->error(
+			$this->logger->notice(
 				"Discord server closed connection with code {code} ({text})",
 				[
 					"code" => $event->code ?? "unknown",
@@ -1003,6 +1001,7 @@ class DiscordGatewayController extends ModuleInstance {
 			"Successfully logged into Discord Gateway as ".
 			$user->username . "#" . $user->discriminator
 		);
+		$this->mustReconnect = true;
 		$this->reconnectDelay = 5;
 	}
 
@@ -1019,6 +1018,7 @@ class DiscordGatewayController extends ModuleInstance {
 			"Session successfully resumed as ".
 			$this->me->username . "#" . $this->me->discriminator
 		);
+		$this->mustReconnect = true;
 	}
 
 	#[NCA\Event(
@@ -1469,6 +1469,7 @@ class DiscordGatewayController extends ModuleInstance {
 			$context->reply("The bot is already disconnected from Discord.");
 			return;
 		}
+		$this->mustReconnect = false;
 		$this->logger->notice("Closing Discord gateway connection.");
 		$this->client->close();
 		$context->reply("Successfully disconnect from Discord.");
