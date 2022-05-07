@@ -27,6 +27,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Retries for 502 Http results are now delayed by 5s, in order not to hammer the webserver
 - The `!member`-command is now a sub-command of `!members`, so `!members add <who>` now works the same as `!member add`. Access levels are migrated.
 - If audits are enabled (`!settings save audit_enabled 1`), `!whois <name>` will now show information from the audit when and by whom the person was added to the bot.
+- `!auction` is now an alias of `!bid`. The former was removed, because the command `!auction` was originally only added to have separate access levels for auctioneers and bidders and I didn't expect anyone to use `!auction start` over the alias `!bid start` and so on.
 
 ### Fixed
 
