@@ -16,6 +16,11 @@ errorMessage() {
 [ -n "$CONFIG_LOG_LEVEL" ] && ( echo "$CONFIG_LOG_LEVEL" | grep -q -v -i -E '^(DEBUG|INFO|NOTICE|WARNING|ERROR|CRITICAL|ALERT|EMERGENCY)$' ) && errorMessage "You have specified an invalid \$CONFIG_LOG_LEVEL. Allowed values are DEBUG, INFO, NOTICE, WARNING, ERROR, CRITICAL, ALERT and EMERGENCY."
 
 cd /nadybot || exit
+EXTRA_SETTINGS=$(set | grep '^CONFIG_SETTING_' | sed -e 's/^CONFIG_SETTING_//g'| while read -r SETTING; do
+  KEY=$(echo "$SETTING" | cut -d '=' -f 1 | tr '[:upper:]' '[:lower:]')
+  VALUE=$(echo "$SETTING" | cut -d '=' -f 2-)
+  echo "'$KEY' => $VALUE,"
+done)
 cat > /tmp/config.php << DONE
 <?php declare(strict_types=1);
 
@@ -44,6 +49,9 @@ cat > /tmp/config.php << DONE
 \$vars['module_load_paths'] = [
 	'./src/Modules',
 	'./extras',
+];
+\$vars['settings'] = [
+${EXTRA_SETTINGS}
 ];
 \$vars['amqp_server'] = "${CONFIG_AMQP_SERVER}";
 \$vars['amqp_port'] = ${CONFIG_AMQP_PORT:-5672};

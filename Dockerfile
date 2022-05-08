@@ -47,7 +47,7 @@ RUN wget -O /usr/bin/composer https://getcomposer.org/composer-2.phar && \
     sudo -u nadybot php8 /usr/bin/composer dumpautoload --no-dev --optimize --no-interaction 2>&1 | grep -v "/20[0-9]\{12\}_.*autoload" && \
     sudo -u nadybot php8 /usr/bin/composer clear-cache -q && \
     rm -f /usr/bin/composer && \
-    jq 'del(.monolog.handlers.logs)|.monolog.formatters.console.options.format="[%level_name%] %message% %context% %extra%\n"' conf/logging.json > conf/logging.json.2 && \
+    jq 'del(.monolog.handlers.logs)|.monolog.formatters.console.options.format="[%level_name%] %message% %context% %extra%\n"|.monolog.formatters.console += {"calls": {"includeStacktraces": {"include" :true}}}' conf/logging.json > conf/logging.json.2 && \
     mv conf/logging.json.2 conf/logging.json && \
     chown nadybot:nadybot conf/logging.json && \
     apk del --no-cache sudo jq && \
