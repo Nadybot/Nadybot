@@ -163,7 +163,6 @@ class SettingManager {
 						"options" => $options,
 						"intoptions" => $intoptions,
 						"description" => $description,
-						"admin" => $accessLevel,
 						"verify" => 1,
 						"help" => $help,
 					]);

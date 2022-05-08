@@ -772,6 +772,92 @@ class ConfigController extends ModuleInstance {
 	}
 
 	/**
+	 * Gets a setting's access level
+	 */
+	#[NCA\HandlesCommand("config")]
+	#[NCA\Help\Example("<symbol>config setting symbol")]
+	public function getAccessLevelOfSetting(
+		CmdContext $context,
+		#[NCA\StrChoice("setting")] string $category,
+		PWord $setting,
+	): void {
+		$setting = strtolower($setting());
+
+		/** @var ?Setting */
+		$row = $this->db->table(SettingManager::DB_TABLE)
+			->where("name", $setting)
+			->asObj(Setting::class)
+			->first();
+		if ($row === null) {
+			$context->reply("No setting <highlight>{$setting}<end> found.");
+			return;
+		}
+		$context->reply(
+			"The current access level to change the setting <highlight>{$setting}<end> ".
+			"is <highlight>{$row->admin}<end>."
+		);
+	}
+
+	/**
+	 * Sets a setting's access level
+	 */
+	#[NCA\HandlesCommand("config")]
+	#[NCA\Help\Example("<symbol>config setting symbol admin superadmin")]
+	public function setAccessLevelOfSetting(
+		CmdContext $context,
+		#[NCA\StrChoice("setting")] string $category,
+		PWord $setting,
+		#[NCA\Str("admin")] string $admin,
+		string $accessLevel
+	): void {
+		$setting = strtolower($setting());
+
+		try {
+			$accessLevel = $this->accessManager->getAccessLevel($accessLevel);
+			$result = $this->changeSettingAL($context->char->name, $setting, $accessLevel);
+		} catch (InsufficientAccessException $e) {
+			$msg = "You do not have the required access level to change this setting's access level.";
+			$context->reply($msg);
+			return;
+		} catch (Exception $e) {
+			$context->reply($e->getMessage());
+			return;
+		}
+		if ($result === 0) {
+			$context->reply("No setting <highlight>{$setting}<end> found.");
+			return;
+		}
+		$context->reply(
+			"Required access level to change setting <highlight>{$setting}<end> ".
+			"changed to <highlight>{$accessLevel}<end>."
+		);
+	}
+
+	public function changeSettingAL(string $sender, string $setting, string $accessLevel): int {
+		$accessLevel = $this->accessManager->getAccessLevel($accessLevel);
+
+		/** @var ?Setting */
+		$row = $this->db->table(SettingManager::DB_TABLE)
+			->where("name", $setting)
+			->asObj(Setting::class)
+			->first();
+		if ($row === null) {
+			return 0;
+		}
+		$charAL = $this->accessManager->getAccessLevelForCharacter($sender);
+		if ($this->accessManager->compareAccessLevels($charAL, $accessLevel) < 0) {
+			throw new Exception("You cannot change the required access level above your own.");
+		}
+
+		if (!$this->accessManager->checkAccess($sender, $row->admin??"superadmin")) {
+			throw new InsufficientAccessException("You do not have the required access level to change this setting's access level.");
+		}
+		return $this->db->table(SettingManager::DB_TABLE)
+			->where("name", $setting)
+			->update(["admin" => $accessLevel]);
+	}
+
+	/**
 	 * This helper method converts given short access level name to long name.
 	 */
 	private function getAdminDescription(string $admin): string {
