@@ -34,6 +34,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix `/api/access_levels` endpoint and make settings webfrontend work again.
 - Fix for `!raid reward <points> <reason>` and `!raid punish <points> <reason>`. They both work again as expected.
 - Detect if the Discord Cloudflare server restart and also do an automatic reconnect in that case. In fact, make automatic reconnect the default, unless manually disconnected.
+- Websocket timeout detection works properly now and Discord should automatically reconnect after connection is lost.
 
 ### Security
 

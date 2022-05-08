@@ -151,8 +151,7 @@ class WebsocketBase {
 					"pendingPingTime" => (time() - $this->pendingPingTime)
 				]
 			);
-		}
-		if (!isset($this->lastReadTime) || time() - $this->lastReadTime >= 30) {
+		} elseif (!isset($this->lastReadTime) || time() - $this->lastReadTime >= 30) {
 			$this->logger->debug(
 				"[Websocket {uri}] No data received for {noPingTime}s",
 				[
