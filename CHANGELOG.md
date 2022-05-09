@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - All Docker images now support setting fixed settings via setting environment variables `CONFIG_SETTING_<setting>=<value>`, e.g. `CONFIG_SETTING_CONSOLE_COLOR=1`
 - New commands `!config setting <name>` and `!config setting <name> admin <access level>` to change the required access level to change a setting's value.
 - Add new setting `raid_reward_requires_lock` to control if giving points via `!raid reward`/`!raid punish` requires the raid to be lock with `!raid lock`.
+- The Docker image now supports setting multiple superadmins, either separated by comma, space or both. so `CONFIG_SUPERADMIN=Nady,Nadyita` and `CONFIG_SUPERADMIN="Nady Nadyita, Nadyo"` both work.
 
 ### Changed
 

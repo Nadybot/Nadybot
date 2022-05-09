@@ -30,7 +30,7 @@ cat > /tmp/config.php << DONE
 \$vars['name']       = "$CONFIG_BOTNAME";
 \$vars['my_guild']   = "${CONFIG_ORG:-}";
 \$vars['dimension']  = ${CONFIG_DIMENSION:-5};
-\$vars['SuperAdmin'] = "$CONFIG_SUPERADMIN";
+\$vars['SuperAdmin'] = ["$(echo "${CONFIG_SUPERADMIN}" | sed -e 's/[, ]\+/", "/g')"];
 \$vars['DB Type'] = "$CONFIG_DB_TYPE";
 \$vars['DB Name'] = "$CONFIG_DB_NAME";
 \$vars['DB Host'] = "$CONFIG_DB_HOST";
