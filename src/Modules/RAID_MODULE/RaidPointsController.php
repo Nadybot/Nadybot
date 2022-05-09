@@ -121,6 +121,10 @@ class RaidPointsController extends ModuleInstance {
 	#[NCA\Setting\Boolean]
 	public bool $raidSharePoints = true;
 
+	/** Allow raid rewards only when the raid is locked */
+	#[NCA\Setting\Boolean]
+	public bool $raidRewardRequiresLock = false;
+
 	/** How many raiders to show in top list */
 	#[NCA\Setting\Number]
 	public int $raidTopAmount = 25;
@@ -321,6 +325,10 @@ class RaidPointsController extends ModuleInstance {
 			$context->reply(RaidController::ERR_NO_RAID);
 			return;
 		}
+		if ($this->raidRewardRequiresLock && !$this->raidController->raid->locked) {
+			$context->reply("<red>The raid must be locked before you can reward raiders!<end>");
+			return;
+		}
 		$raid = $this->raidController->raid;
 		$numRecipients = $this->awardRaidPoints($raid, $context->char->name, $points, $reason);
 		$msgs = $this->raidMemberController->getRaidListBlob($raid, true);
@@ -362,6 +370,10 @@ class RaidPointsController extends ModuleInstance {
 	): void {
 		if (!isset($this->raidController->raid)) {
 			$context->reply(RaidController::ERR_NO_RAID);
+			return;
+		}
+		if ($this->raidRewardRequiresLock && !$this->raidController->raid->locked) {
+			$context->reply("<red>The raid must be locked before you can punish raiders!<end>");
 			return;
 		}
 		$raid = $this->raidController->raid;
