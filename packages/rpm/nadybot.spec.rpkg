@@ -134,13 +134,13 @@ sed -i'' -e 's|(php |(%{php_exec} |g' packages/nadybot
 %install
 mkdir -p %{buildroot}%{_sysconfdir}/nadybot
 mkdir -p %{buildroot}%{_sharedstatedir}/nadybot
-mkdir -p %{buildroot}%{_sharedstatedir}/nadybot/db
 mkdir -p %{buildroot}%{_sharedstatedir}/nadybot/cache
+mkdir -p %{buildroot}%{_sharedstatedir}/nadybot/data
+mkdir -p %{buildroot}%{_sharedstatedir}/nadybot/db
 mkdir -p %{buildroot}%{_sharedstatedir}/nadybot/extras
 mkdir -p %{buildroot}%{_sharedstatedir}/nadybot/html
-mkdir -p %{buildroot}%{_sharedstatedir}/nadybot/data
 mkdir -p %{buildroot}/opt/nadybot
-mkdir -p %{buildroot}/opt/nadybot/data
+mkdir -p %{buildroot}/opt/nadybot/res
 mkdir -p %{buildroot}/opt/nadybot/conf
 mkdir -p %{buildroot}/var/log/nadybot
 find src -type d -exec install -d %{buildroot}/opt/nadybot/\{\} \;
@@ -148,7 +148,7 @@ find src -type f -exec install -m 644 \{\} %{buildroot}/opt/nadybot/\{\} \;
 find vendor -type d -exec install -d %{buildroot}/opt/nadybot/\{\} \;
 find vendor -type f -exec install -m 644 \{\} %{buildroot}/opt/nadybot/\{\} \;
 install -m 644 main.php %{buildroot}/opt/nadybot/main.php
-install -m 644 data/text.mdb %{buildroot}/opt/nadybot/data/text.mdb
+install -m 644 res/text.mdb %{buildroot}/opt/nadybot/res/text.mdb
 install -m 644 conf/config.template.php %{buildroot}%{_sysconfdir}/nadybot/config.php
 install -m 644 conf/logging.json %{buildroot}/opt/nadybot/conf/logging.json
 install -D -m 644 packages/nadybot.service %{buildroot}%{_unitdir}/nadybot.service

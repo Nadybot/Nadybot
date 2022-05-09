@@ -35,6 +35,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - If no log files are available (Docker), don't show an empty popup.
 - Logging in Docker is now the same format as logfiles - not like console.
 - Locking the private channel is now persistent across bot restarts.
+- Location of the `text.mdb`-file was changed from `data/` to `res/`, so it doesn't collide with user data and makes it easier for containers to just mount a generic data-folder into `/nadybot/data`.
 
 ### Fixed
 

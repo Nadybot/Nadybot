@@ -22,7 +22,7 @@ override_dh_auto_install:
 	mkdir -p debian/nadybot/var/lib/nadybot/html
 	mkdir -p debian/nadybot/var/lib/nadybot/data
 	mkdir -p debian/nadybot/opt/nadybot
-	mkdir -p debian/nadybot/opt/nadybot/data
+	mkdir -p debian/nadybot/opt/nadybot/res
 	mkdir -p debian/nadybot/opt/nadybot/conf
 	mkdir -p debian/nadybot/var/log/nadybot
 	find src -type d -exec install -d debian/nadybot/opt/nadybot/\{\} \;
@@ -30,7 +30,7 @@ override_dh_auto_install:
 	find vendor -type d -exec install -d debian/nadybot/opt/nadybot/\{\} \;
 	find vendor -type f -exec install -m 644 \{\} debian/nadybot/opt/nadybot/\{\} \;
 	install -m 644 main.php debian/nadybot/opt/nadybot/main.php
-	install -m 644 data/text.mdb debian/nadybot/opt/nadybot/data/text.mdb
+	install -m 644 res/text.mdb debian/nadybot/opt/nadybot/res/text.mdb
 	install -m 644 conf/config.template.php.tmp debian/nadybot/etc/nadybot/config.php
 	rm conf/config.template.php.tmp
 	install -m 644 conf/logging.json debian/nadybot/opt/nadybot/conf/logging.json
