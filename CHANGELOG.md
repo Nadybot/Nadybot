@@ -33,7 +33,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - If audits are enabled (`!settings save audit_enabled 1`), `!whois <name>` will now show information from the audit when and by whom the person was added to the bot.
 - `!auction` is now an alias of `!bid`. The former was removed, because the command `!auction` was originally only added to have separate access levels for auctioneers and bidders and I didn't expect anyone to use `!auction start` over the alias `!bid start` and so on.
 - If no log files are available (Docker), don't show an empty popup.
-- Logging in Docker is now the same format as logfiles - not like console
+- Logging in Docker is now the same format as logfiles - not like console.
+- Locking the private channel is now persistent across bot restarts.
 
 ### Fixed
 

@@ -222,7 +222,8 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 	public string $lockMinrank = "superadmin";
 
 	/** If set, the private channel is currently locked for a reason */
-	protected ?string $lockReason = null;
+	#[NCA\Setting\Text(mode: "noedit")]
+	public string $lockReason = "";
 
 	/** @var array<string,bool> */
 	protected array $members = [];
@@ -801,16 +802,24 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 		$this->chatBot->privategroup_kick($context->char->name);
 	}
 
-	/** Lock the private channel, forbidding anyone to join */
+	/**
+	 * Lock the private channel, forbidding anyone to join
+	 *
+	 * Locking the private channel is persistent across bot restarts
+	 */
 	#[NCA\HandlesCommand("lock")]
 	#[NCA\Help\Group("lock")]
-	public function lockCommand(CmdContext $context, string $reason): void {
-		if (isset($this->lockReason)) {
-			$this->lockReason = trim($reason);
-			$context->reply("Lock reason changed.");
-			return;
+	public function lockCommand(CmdContext $context, string $reason): bool {
+		$reason = trim($reason);
+		if (!strlen($reason)) {
+			return false;
 		}
-		$this->lockReason = trim($reason);
+		if (strlen($this->lockReason)) {
+			$this->settingManager->save("lock_reason", trim($reason));
+			$context->reply("Lock reason changed.");
+			return true;
+		}
+		$this->settingManager->save("lock_reason", trim($reason));
 		$this->chatBot->sendPrivate("The private chat has been <red>locked<end> by {$context->char->name}: <highlight>{$this->lockReason}<end>");
 		$alRequired = $this->lockMinrank;
 		foreach ($this->chatBot->chatlist as $char => $online) {
@@ -825,6 +834,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 		$audit->action = AccessManager::LOCK;
 		$audit->value = $this->lockReason;
 		$this->accessManager->addAudit($audit);
+		return true;
 	}
 
 	/** Open the private channel again */
@@ -835,7 +845,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 			$context->reply("The private channel is currently not locked.");
 			return;
 		}
-		unset($this->lockReason);
+		$this->settingManager->save("lock_reason", "");
 		$this->chatBot->sendPrivate("The private chat is now <green>open<end> again.");
 		$context->reply("You <green>unlocked<end> the private channel.");
 		$audit = new Audit();
@@ -1263,14 +1273,14 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 	 * Check if the private channel is currently locked
 	 */
 	public function isLocked(): bool {
-		return isset($this->lockReason);
+		return strlen($this->lockReason) > 0;
 	}
 
 	/**
 	 * Check if the private channel is currently locked for a character
 	 */
 	public function isLockedFor(string $sender): bool {
-		if (!isset($this->lockReason)) {
+		if (!strlen($this->lockReason)) {
 			return false;
 		}
 		$alSender = $this->accessManager->getAccessLevelForCharacter($sender);
