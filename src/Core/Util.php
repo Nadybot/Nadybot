@@ -605,6 +605,33 @@ class Util {
 		return 7;
 	}
 
+	/**
+	 * Calculate the level range from the player's title level
+	 * @return int[]
+	 * @phpstan-return array{int,int}
+	 */
+	public function tlToLevelRange(int $tl): array {
+		if ($tl === 1) {
+			return [1, 14];
+		}
+		if ($tl === 2) {
+			return [15, 49];
+		}
+		if ($tl === 3) {
+			return [50, 99];
+		}
+		if ($tl === 4) {
+			return [100, 149];
+		}
+		if ($tl === 5) {
+			return [150, 189];
+		}
+		if ($tl === 6) {
+			return [190, 204];
+		}
+		return [205, 220];
+	}
+
 	/** @phpstan-param class-string $class */
 	public function getClassSpecFromClass(string $class, string $attrName): ?ClassSpec {
 		if (!is_subclass_of($attrName, NCA\ClassSpec::class)) {

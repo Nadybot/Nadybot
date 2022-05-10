@@ -2,6 +2,8 @@
 
 namespace Nadybot\Modules\TRACKER_MODULE;
 
+use Exception;
+use Throwable;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	AccessManager,
@@ -24,7 +26,6 @@ use Nadybot\Core\{
 	Nadybot,
 	ParamClass\PCharacter,
 	ParamClass\PNonNumber,
-	ParamClass\PProfession,
 	ParamClass\PRemove,
 	Routing\RoutableMessage,
 	Routing\Source,
@@ -38,7 +39,6 @@ use Nadybot\Modules\{
 	ORGLIST_MODULE\Organization,
 	TOWER_MODULE\TowerAttackEvent,
 };
-use Throwable;
 
 /**
  * @author Tyrence (RK2)
@@ -840,6 +840,10 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 
 	/**
 	 * Show a nice online list of everyone on your track list
+	 * You can use any combination of filters to narrow down the list:
+	 * - clan|neutral|omni
+	 * - &lt;profession&gt;
+	 * - tl1|tl2|tl3|tl4|tl5|tl6|tl7
 	 *
 	 * By default, this will not show chars hidden via '<symbol>track hide', unless you give 'all'
 	 * To get links for removing and hiding/unhiding characters, add '--edit'
@@ -847,14 +851,29 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 	#[NCA\HandlesCommand("track")]
 	#[NCA\Help\Example("<symbol>track online")]
 	#[NCA\Help\Example("<symbol>track online doc")]
+	#[NCA\Help\Example("<symbol>track online clan doc crat tl2-4")]
 	#[NCA\Help\Example("<symbol>track all --edit")]
 	public function trackOnlineCommand(
 		CmdContext $context,
 		#[NCA\Str("online")] string $action,
-		?PProfession $profession,
-		#[NCA\Str("all")] ?string $all,
-		#[NCA\Str("--edit")] ?string $edit
-	): void {
+		?string $filter,
+	): bool {
+		$filters = [];
+		if (isset($filter)) {
+			$parser = new TrackerOnlineParser();
+			try {
+				$options = $parser->parse(strtolower($filter));
+			} catch (TrackerOnlineParserException) {
+				return false;
+			} catch (Exception $e) {
+				$context->reply($e->getMessage());
+				return true;
+			}
+			foreach ($options as $option) {
+				$filters[$option->type] ??= [];
+				$filters[$option->type] []= $option->value;
+			}
+		}
 		$hiddenChars = $this->db->table(self::DB_ORG_MEMBER)
 			->select("name")
 			->where("hidden", true)
@@ -868,7 +887,7 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 			->toArray();
 		$data1 = $this->db->table(self::DB_ORG_MEMBER)->select("name");
 		$data2 = $this->db->table(self::DB_TABLE)->select("name");
-		if (!isset($all)) {
+		if (!isset($filters['all'])) {
 			$data1->where("hidden", false);
 			$data2->where("hidden", false);
 		}
@@ -889,32 +908,70 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 				$op->hidden = isset($hiddenChars[$op->name]);
 				return $op;
 			});
-		if (isset($profession)) {
-			$data = $data->where("profession", $profession());
+		if (isset($filters['profession'])) {
+			$professions = [];
+			foreach ($filters['profession'] as $prof) {
+				$professions []= $this->util->getProfessionName($prof);
+			}
+			$data = $data->whereIn("profession", $professions);
+		}
+		if (isset($filters['faction'])) {
+			$factions = [];
+			foreach ($filters['faction'] as $faction) {
+				$faction = ucfirst(strtolower($faction));
+				if ($faction === "Neut") {
+					$faction = "Neutral";
+				}
+				$factions []= $faction;
+			}
+			$data = $data->whereIn("faction", $factions);
+		}
+		if (isset($filters['titleLevelRange'])) {
+			$filters['titleLevel'] ??= [];
+			foreach ($filters['titleLevelRange'] as $range) {
+				$from = (int)substr($range, 2, 1);
+				$to = (int)substr($range, 4, 1);
+				for ($tl = min($from, $to); $tl <= max($from, $to); $tl++) {
+					$filters['titleLevel'] []= "tl{$tl}";
+				}
+			}
+		}
+		if (isset($filters['titleLevel'])) {
+			$ranges = [];
+			foreach ($filters['titleLevel'] as $tl) {
+				$ranges []= $this->util->tlToLevelRange((int)substr($tl, 2));
+			}
+			$data = $data->filter(function (OnlineTrackedUser $user) use ($ranges): bool {
+				if (!isset($user->level)) {
+					return true;
+				}
+				foreach ($ranges as $range) {
+					if ($user->level >= $range[0] && $user->level <= $range[1]) {
+						return true;
+					}
+				}
+				return false;
+			});
 		}
 		if ($data->isEmpty()) {
-			$context->reply("No tracked players are currently online.");
-			return;
+			if (empty($filters)) {
+				$context->reply("No tracked players are currently online.");
+			} else {
+				$context->reply("No tracked players matching your filter are currently online.");
+			}
+			return true;
 		}
 		$data = $data->toArray();
-		$blob = $this->renderOnlineList($data, isset($edit));
+		$blob = $this->renderOnlineList($data, isset($filters['edit']));
 		$footNotes = [];
-		if (!isset($all)) {
-			$prof = isset($profession) ? $profession() . " " : "";
-			if (!isset($edit)) {
-				$allLink = $this->text->makeChatcmd(
-					"<symbol>track online {$prof}all",
-					"/tell <myname> track online {$prof}all"
-				);
-			} else {
-				$allLink = $this->text->makeChatcmd(
-					"<symbol>track online {$prof}all --edit",
-					"/tell <myname> track online {$prof}all --edit"
-				);
-			}
+		if (!isset($filters['all'])) {
+			$allLink = $this->text->makeChatcmd(
+				"<symbol>{$context->message} all",
+				"/tell <myname> {$context->message} all"
+			);
 			$footNotes []= "<i>Use {$allLink} to see hidden characters.</i>";
 		}
-		if (!isset($edit)) {
+		if (!isset($filters['edit'])) {
 			$editLink = $this->text->makeChatcmd(
 				"<symbol>{$context->message} --edit",
 				"/tell <myname> {$context->message} --edit"
@@ -924,8 +981,13 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 		if (!empty($footNotes)) {
 			$blob .= "\n\n" . join("\n", $footNotes);
 		}
-		$msg = $this->text->makeBlob("Online tracked players (" . count($data). ")", $blob);
+		if (empty($filters)) {
+			$msg = $this->text->makeBlob("Online tracked players (" . count($data). ")", $blob);
+		} else {
+			$msg = $this->text->makeBlob("Online tracked players matching your filter (" . count($data). ")", $blob);
+		}
 		$context->reply($msg);
+		return true;
 	}
 
 	/**
