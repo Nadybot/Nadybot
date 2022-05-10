@@ -129,7 +129,7 @@ class HttpRequest {
 
 	public function getData(): string {
 		$data = $this->getHeaderData();
-		if ($this->method == 'post') {
+		if (in_array($this->method, ['post', 'patch', 'put'], true)) {
 			$data .= $this->getPostQueryStr();
 		}
 
@@ -152,11 +152,11 @@ class HttpRequest {
 		$path     = isset($this->uriComponents['path']) ? $this->uriComponents['path'] : '/';
 		$queryStr = isset($this->uriComponents['query']) ? $this->uriComponents['query'] : '';
 
-		if ($this->method == 'get') {
+		if ($this->method === 'get') {
 			parse_str($queryStr, $queryArray);
 			$queryArray = array_merge($queryArray, $this->queryParams);
 			$queryStr = http_build_query($queryArray);
-		} elseif ($this->method !== 'post') {
+		} elseif (!in_array($this->method, ['post', 'put', 'patch', 'delete'], true)) {
 			throw new InvalidHttpRequest("Invalid http method: '{$this->method}'");
 		}
 
@@ -175,7 +175,7 @@ class HttpRequest {
 		$headers = [];
 		$headers['Host'] = $this->streamHost;
 		$headers['User-Agent'] = 'Nadybot ' . BotRunner::getVersion();
-		if ($this->method == 'post') {
+		if (in_array($this->method, ['post', 'put', 'patch'], true)) {
 			if ($this->postData) {
 				$headers['Content-Length'] = (string)strlen($this->postData);
 			} elseif ($this->queryParams) {

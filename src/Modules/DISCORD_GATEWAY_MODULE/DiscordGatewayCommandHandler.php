@@ -119,6 +119,7 @@ class DiscordGatewayCommandHandler extends ModuleInstance implements AccessLevel
 			$context->reply($msg);
 			return;
 		}
+		/** @var ?DiscordMapping */
 		$data = $this->db->table(self::DB_TABLE)
 			->where("name", $context->char->name)
 			->where("token", $uid)
@@ -136,6 +137,11 @@ class DiscordGatewayCommandHandler extends ModuleInstance implements AccessLevel
 				"confirmed" => time(),
 				"token" => null
 			]);
+		$guilds = $this->discordGatewayController->getGuilds();
+		$guild = $guilds[array_keys($guilds)[0]] ?? null;
+		if (isset($guild)) {
+			$this->discordGatewayController->handleAccountLinking($guild->id, $data->discord_id, $context->char->name);
+		}
 		$msg = "You have linked your accounts successfully.";
 		$context->reply($msg);
 	}

@@ -34,6 +34,7 @@ use Nadybot\Modules\RAFFLE_MODULE\RaffleItem;
 	NCA\HasMigrations("Migrations/Auctions"),
 	NCA\DefineCommand(
 		command: "bid",
+		alias: "auction",
 		accessLevel: "member",
 		description: "Bid points for an auctioned item",
 	),

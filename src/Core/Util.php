@@ -18,6 +18,9 @@ class Util {
 	/** @var string */
 	public const DATETIME = "d-M-Y H:i T";
 
+	/** @var string */
+	public const DATE = "d-M-Y";
+
 	/**
 	 * Convert bytes to kB, MB, etc. so it's never more than 1024
 	 */
@@ -422,8 +425,8 @@ class Util {
 	/**
 	 * Convert UNIX timestamp to date and time
 	 */
-	public function date(int $unixtime): string {
-		return \Safe\date(self::DATETIME, $unixtime);
+	public function date(int $unixtime, bool $withTime=true): string {
+		return \Safe\date($withTime ? self::DATETIME : self::DATE, $unixtime);
 	}
 
 	/**

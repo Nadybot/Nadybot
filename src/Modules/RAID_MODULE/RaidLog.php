@@ -22,4 +22,10 @@ class RaidLog extends DBRow {
 
 	/** At which time did the change occur? */
 	public int $time;
+
+	/**
+	 * Maximum number of allowed characters in the raid
+	 * If 0 or NULL, this is not limited
+	 */
+	public ?int $max_members = null;
 }

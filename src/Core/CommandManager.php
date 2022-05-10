@@ -30,6 +30,7 @@ use Nadybot\Core\{
 	Routing\RoutableMessage,
 	Routing\Source,
 };
+use Nadybot\Core\Attributes\NoSpace;
 
 #[
 	NCA\Instance,
@@ -1094,12 +1095,15 @@ class CommandManager implements MessageEmitter {
 						$twos = array_fill(0, substr_count($parMask, "%d"), 2);
 						$niceParam = sprintf($parMask, ...$ones) . " " . sprintf($parMask, ...$twos) . " ...";
 					}
+					if (count($params[$i]->getAttributes(NoSpace::class))) {
+						$niceParam = "\x08{$niceParam}";
+					}
 					$paramText []= $niceParam;
 				}
 				if ($j > 0 && $k === 0) {
 					$lines []= "or";
 				}
-				$lines []= "<tab><highlight>" . join(" ", $paramText) . "<end>";
+				$lines []= "<tab><highlight>" . str_replace(" \x08", "", join(" ", $paramText)) . "<end>";
 			}
 			$examples = $m->getAttributes(NCA\Help\Example::class);
 			foreach ($examples as $exAttr) {
@@ -1261,6 +1265,8 @@ class CommandManager implements MessageEmitter {
 		}
 		if (count($param->getAttributes(NCA\SpaceOptional::class))) {
 			$regexp = new CommandRegexp("\\s*{$new}");
+		} elseif (count($param->getAttributes(NCA\NoSpace::class))) {
+			$regexp = new CommandRegexp($new);
 		} else {
 			$regexp = new CommandRegexp("\\s+{$new}");
 		}

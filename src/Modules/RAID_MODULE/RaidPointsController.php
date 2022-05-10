@@ -121,6 +121,10 @@ class RaidPointsController extends ModuleInstance {
 	#[NCA\Setting\Boolean]
 	public bool $raidSharePoints = true;
 
+	/** Allow raid rewards only when the raid is locked */
+	#[NCA\Setting\Boolean]
+	public bool $raidRewardRequiresLock = false;
+
 	/** How many raiders to show in top list */
 	#[NCA\Setting\Number]
 	public int $raidTopAmount = 25;
@@ -308,22 +312,6 @@ class RaidPointsController extends ModuleInstance {
 			->first();
 	}
 
-	/** Reward everyone in the raid a pre-defined reward for &lt;mob&gt; */
-	#[NCA\HandlesCommand(self::CMD_RAID_REWARD_PUNISH)]
-	#[NCA\Help\Group("raid-points")]
-	public function raidRewardPredefCommand(
-		CmdContext $context,
-		#[NCA\Str("reward")] string $action,
-		PNonNumber $mob
-	): void {
-		$reward = $this->getRaidReward($mob());
-		if (!isset($reward)) {
-			$context->reply("No predefined reward named <highlight>{$mob}<end> found.");
-			return;
-		}
-		$this->raidRewardCommand($context, $action, $reward->points, $reward->reason);
-	}
-
 	/** Reward everyone in the raid points */
 	#[NCA\HandlesCommand(self::CMD_RAID_REWARD_PUNISH)]
 	#[NCA\Help\Group("raid-points")]
@@ -335,6 +323,10 @@ class RaidPointsController extends ModuleInstance {
 	): void {
 		if (!isset($this->raidController->raid)) {
 			$context->reply(RaidController::ERR_NO_RAID);
+			return;
+		}
+		if ($this->raidRewardRequiresLock && !$this->raidController->raid->locked) {
+			$context->reply("<red>The raid must be locked before you can reward raiders!<end>");
 			return;
 		}
 		$raid = $this->raidController->raid;
@@ -351,6 +343,22 @@ class RaidPointsController extends ModuleInstance {
 		}
 	}
 
+	/** Reward everyone in the raid a pre-defined reward for &lt;mob&gt; */
+	#[NCA\HandlesCommand(self::CMD_RAID_REWARD_PUNISH)]
+	#[NCA\Help\Group("raid-points")]
+	public function raidRewardPredefCommand(
+		CmdContext $context,
+		#[NCA\Str("reward")] string $action,
+		PNonNumber $mob
+	): void {
+		$reward = $this->getRaidReward($mob());
+		if (!isset($reward)) {
+			$context->reply("No predefined reward named <highlight>{$mob}<end> found.");
+			return;
+		}
+		$this->raidRewardCommand($context, $action, $reward->points, $reward->reason);
+	}
+
 	/** Remove raidpoints from everyone in the raid */
 	#[NCA\HandlesCommand(self::CMD_RAID_REWARD_PUNISH)]
 	#[NCA\Help\Group("raid-points")]
@@ -362,6 +370,10 @@ class RaidPointsController extends ModuleInstance {
 	): void {
 		if (!isset($this->raidController->raid)) {
 			$context->reply(RaidController::ERR_NO_RAID);
+			return;
+		}
+		if ($this->raidRewardRequiresLock && !$this->raidController->raid->locked) {
+			$context->reply("<red>The raid must be locked before you can punish raiders!<end>");
 			return;
 		}
 		$raid = $this->raidController->raid;
@@ -376,6 +388,27 @@ class RaidPointsController extends ModuleInstance {
 			$blob = "$pointsGiven $blob";
 			$this->routeMessage("reward", $blob);
 		}
+	}
+
+	/** Remove accidentally given raidpoints for a pre-defined reward for &lt;mob&gt; */
+	#[NCA\HandlesCommand(self::CMD_RAID_REWARD_PUNISH)]
+	#[NCA\Help\Group("raid-points")]
+	public function raidPunishPredefCommand(
+		CmdContext $context,
+		#[NCA\Str("punish")] string $action,
+		PNonNumber $mob
+	): void {
+		$reward = $this->getRaidReward($mob());
+		if (!isset($reward)) {
+			$context->reply("No predefined reward named <highlight>{$mob}<end> found.");
+			return;
+		}
+		$this->raidPunishCommand(
+			$context,
+			$action,
+			$reward->points,
+			"Accidentally rewarded \"{$reward->reason}\""
+		);
 	}
 
 	/** Check how many raid points you have */

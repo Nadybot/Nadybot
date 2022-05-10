@@ -22,6 +22,7 @@ use Nadybot\Core\{
 	Routing\RoutableMessage,
 	Routing\Source,
 	Text,
+	Timer as SysTimer,
 	UserStateEvent,
 	Util,
 };
@@ -74,6 +75,9 @@ class GauntletBuffController extends ModuleInstance implements MessageEmitter {
 
 	#[NCA\Inject]
 	public Util $util;
+
+	#[NCA\Inject]
+	public SysTimer $timer;
 
 	#[NCA\Inject]
 	public AltsController $altsController;
@@ -130,10 +134,10 @@ class GauntletBuffController extends ModuleInstance implements MessageEmitter {
 	public function handleGauntletBuffsFromApi(HttpResponse $response): void {
 		$code = $response->headers["status-code"] ?? "204";
 		if ($code >= 500 && $code < 600 && --$this->apiRetriesLeft) {
-			$this->logger->warning('Gauntlet buff API sent a {code}, retrying', [
+			$this->logger->warning('Gauntlet buff API sent a {code}, retrying in 5s', [
 				"code" => $code
 			]);
-			$this->loadGauntletBuffsFromAPI();
+			$this->timer->callLater(5, [$this, "loadGauntletBuffsFromAPI"]);
 			return;
 		}
 		if ($code !== "200" || !isset($response->body)) {

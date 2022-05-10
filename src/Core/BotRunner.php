@@ -11,7 +11,7 @@ class BotRunner {
 	/**
 	 * Nadybot's current version
 	 */
-	public const VERSION = "6.0.1";
+	public const VERSION = "6.0.2";
 
 	/**
 	 * The command line arguments
@@ -251,6 +251,7 @@ class BotRunner {
 				"help",
 				"migrate-only",
 				"setup-only",
+				"strict",
 				"log-config:",
 				"migration-errors-fatal",
 			],
@@ -338,6 +339,10 @@ class BotRunner {
 		$this->classLoader = new ClassLoader($config->moduleLoadPaths);
 		Registry::injectDependencies($this->classLoader);
 		$this->classLoader->loadInstances();
+		$msgHub = Registry::getInstance(MessageHub::class);
+		if (isset($msgHub) && $msgHub instanceof MessageHub) {
+			LegacyLogger::registerMessageEmitters($msgHub);
+		}
 
 		$signalHandler = $this->installCtrlCHandler();
 		$this->connectToDatabase();

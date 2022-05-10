@@ -49,4 +49,30 @@ class Http {
 		$this->timer->callLater(0, [$asyncHttp, 'execute']);
 		return $asyncHttp;
 	}
+
+	/**
+	 * Requests a PATCH request to the given $uri and returns AsyncHttp
+	 * object which has additional methods for controlling how the query is done.
+	 *
+	 * See get() for code example.
+	 */
+	public function patch(string $uri): AsyncHttp {
+		$asyncHttp = new AsyncHttp('patch', $uri);
+		Registry::injectDependencies($asyncHttp);
+		$this->timer->callLater(0, [$asyncHttp, 'execute']);
+		return $asyncHttp;
+	}
+
+	/**
+	 * Requests a DELETE request to the given $uri and returns AsyncHttp
+	 * object which has additional methods for controlling how the query is done.
+	 *
+	 * See get() for code example.
+	 */
+	public function delete(string $uri): AsyncHttp {
+		$asyncHttp = new AsyncHttp('delete', $uri);
+		Registry::injectDependencies($asyncHttp);
+		$this->timer->callLater(0, [$asyncHttp, 'execute']);
+		return $asyncHttp;
+	}
 }

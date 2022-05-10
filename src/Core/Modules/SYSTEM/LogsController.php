@@ -84,6 +84,10 @@ class LogsController extends ModuleInstance {
 		$files = $this->util->getFilesInDirectory(
 			$this->logger->getLoggingDirectory()
 		);
+		if (!count($files)) {
+			$context->reply("Log Files (0)");
+			return;
+		}
 		sort($files);
 		$blob = '';
 		foreach ($files as $file) {
@@ -93,7 +97,7 @@ class LogsController extends ModuleInstance {
 			$blob .= "$fileLink [$errorLink] [$chatLink]\n";
 		}
 
-		$msg = $this->text->makeBlob('Log Files', $blob);
+		$msg = $this->text->makeBlob('Log Files (' . count($files) . ')', $blob);
 		$context->reply($msg);
 	}
 

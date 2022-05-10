@@ -12,7 +12,7 @@ debian
 packages
 cache
 data
-!data/text.mdb
+!data/.keepme
 composer_install.bat
 conf/*.php
 src/Modules/GIT_MODULE

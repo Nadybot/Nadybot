@@ -15,6 +15,7 @@ use Nadybot\Core\{
 	ConfigFile,
 	DB,
 	DBSchema\Audit,
+	DBSchema\LastOnline,
 	DBSchema\Member,
 	DBSchema\Player,
 	Event,
@@ -32,6 +33,7 @@ use Nadybot\Core\{
 	Modules\ALTS\AltInfo,
 	Modules\BAN\BanController,
 	ParamClass\PCharacter,
+	ParamClass\PDuration,
 	ParamClass\PRemove,
 	Registry,
 	Routing\Character,
@@ -61,9 +63,15 @@ use Safe\Exceptions\FilesystemException;
 		command: "members",
 		accessLevel: "member",
 		description: "Member list",
+		alias: 'member',
 	),
 	NCA\DefineCommand(
-		command: "member",
+		command: "members inactive",
+		accessLevel: "guild",
+		description: "List members who haven't logged in for some time",
+	),
+	NCA\DefineCommand(
+		command: "members add/remove",
 		accessLevel: "guild",
 		description: "Adds or removes a player to/from the members list",
 	),
@@ -214,35 +222,45 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 	public string $lockMinrank = "superadmin";
 
 	/** If set, the private channel is currently locked for a reason */
-	protected ?string $lockReason = null;
+	#[NCA\Setting\Text(mode: "noedit")]
+	public string $lockReason = "";
+
+	/** @var array<string,bool> */
+	protected array $members = [];
 
 	#[NCA\Setup]
 	public function setup(): void {
 		$this->accessManager->registerProvider($this);
 		$this->commandAlias->register(
 			$this->moduleName,
-			"member add",
+			"members add",
 			"adduser"
 		);
 		$this->commandAlias->register(
 			$this->moduleName,
-			"member del",
+			"members del",
 			"deluser"
 		);
 		$this->commandAlias->register(
 			$this->moduleName,
-			"member del",
+			"members del",
 			"remuser"
 		);
 		$lockStats = new PrivLockStats();
 		Registry::injectDependencies($lockStats);
 		$this->statsController->registerProvider($lockStats, "states");
+		$this->cacheMembers();
+	}
+
+	public function cacheMembers(): void {
+		$this->members = $this->db->table(self::DB_TABLE)
+			->asObj(Member::class)
+			->keyBy("name")
+			->toArray();
 	}
 
 	public function getSingleAccessLevel(string $sender): ?string {
-		$isMember = $this->db->table(PrivateChannelController::DB_TABLE)
-			->where("name", $sender)
-			->exists();
+		$isMember = isset($this->members[$sender]);
 		if ($isMember) {
 			return "member";
 		}
@@ -315,11 +333,96 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 		$context->reply($msg);
 	}
 
+	/** Show members who have not logged on for a specified amount of time */
+	#[NCA\HandlesCommand("members inactive")]
+	#[NCA\Help\Group("private-channel")]
+	public function inactiveMembersCommand(
+		CmdContext $context,
+		#[NCA\Str("inactive")] string $action,
+		?PDuration $duration
+	): void {
+		$duration ??= new PDuration("1y");
+		$time = $duration->toSecs();
+		if ($time < 1) {
+			$msg = "You must enter a valid time parameter.";
+			$context->reply($msg);
+			return;
+		}
+		/** @var Collection<Member> */
+		$members = $this->db->table(self::DB_TABLE)->asObj(Member::class);
+		if ($members->isEmpty()) {
+			$context->reply("This bot has no members.");
+			return;
+		}
+
+		$timeString = $this->util->unixtimeToReadable($time, false);
+		$time = time() - $time;
+
+		/**
+		 * Main char => information about the char last online of the main
+		 * @var Collection<string,LastOnline>
+		 */
+		$lastOnline = $this->db->table("last_online")
+			->orderBy("dt")
+			->asObj(LastOnline::class)
+			->each(function (LastOnline $member): void {
+				$member->main = $this->altsController->getMainOf($member->name);
+			})
+			->keyBy("main")
+			->filter(function (LastOnline $member, string $main): bool {
+				return $this->accessManager->checkSingleAccess($main, "member");
+			});
+		/** @var Collection<InactiveMember> */
+		$inactiveMembers = $members->keyBy(function (Member $member): string {
+			return $this->altsController->getMainOf($member->name);
+		})->map(function (Member $member, string $main) use ($lastOnline): InactiveMember {
+			$result = new InactiveMember();
+			$result->name = $member->name;
+			$result->last_online = $lastOnline->get($main, null);
+			return $result;
+		})->filter(function (InactiveMember $member) use ($time): bool {
+			return $member->last_online?->dt < $time;
+		})->sortKeys()
+		->values();
+
+		if ($inactiveMembers->isEmpty()) {
+			$context->reply("There are no inactive members in the database.");
+			return;
+		}
+
+		$blob = "Members who have not logged on for ".
+			"<highlight>{$timeString}<end>.\n\n".
+			"<header2>Inactive bot members<end>\n";
+
+		$lines = [];
+		foreach ($inactiveMembers as $inactiveMember) {
+			$remLink = $this->text->makeChatcmd(
+				"kick",
+				"/tell <myname> member remall {$inactiveMember->name}",
+			);
+			$line = "<pagebreak><tab>{$inactiveMember->name} - ".
+				"last seen: ";
+			if (isset($inactiveMember->last_online)) {
+				$line .= "<highlight>".
+					$this->util->date($inactiveMember->last_online->dt).
+					"<end> on {$inactiveMember->last_online->name}";
+			} else {
+				$line .= "<highlight>never<end>";
+			}
+			$lines []= $line . " [{$remLink}]";
+		}
+		$msg = $this->text->makeBlob(
+			"Inactive Org Members (" . $inactiveMembers->count() . ")",
+			$blob . join("\n", $lines)
+		);
+		$context->reply($msg);
+	}
+
 	/**
 	 * Make someone a member of this bot
 	 * They will get auto-invited after logging in
 	 */
-	#[NCA\HandlesCommand("member")]
+	#[NCA\HandlesCommand("members add/remove")]
 	#[NCA\Help\Group("private-channel")]
 	public function addUserCommand(
 		CmdContext $context,
@@ -334,7 +437,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 	/**
 	 * Remove someone from the bot's member list
 	 */
-	#[NCA\HandlesCommand("member")]
+	#[NCA\HandlesCommand("members add/remove")]
 	#[NCA\Help\Group("private-channel")]
 	public function remUserCommand(
 		CmdContext $context,
@@ -344,6 +447,32 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 		$msg = $this->removeUser($member(), $context->char->name);
 
 		$context->reply($msg);
+	}
+
+	/**
+	 * Remove someone and all their alts from the bot's member list
+	 */
+	#[NCA\HandlesCommand("members add/remove")]
+	#[NCA\Help\Group("private-channel")]
+	public function remallUserCommand(
+		CmdContext $context,
+		#[NCA\Str("remall", "delall")] string $action,
+		PCharacter $member
+	): void {
+		$main = $this->altsController->getMainOf($member());
+		$alts = $this->altsController->getAltsOf($main);
+		$lines = [];
+		foreach ($alts as $alt) {
+			$lines []= "<tab>- " . $this->removeUser($alt, $context->char->name);
+		}
+
+		$context->reply(
+			$this->text->makeBlob(
+				"Removed alts of {$main} (" . count($alts) . ")",
+				"<header2>Alts of {$main}<end>\n".
+				join("\n", $lines)
+			)
+		);
 	}
 
 	/**
@@ -673,16 +802,24 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 		$this->chatBot->privategroup_kick($context->char->name);
 	}
 
-	/** Lock the private channel, forbidding anyone to join */
+	/**
+	 * Lock the private channel, forbidding anyone to join
+	 *
+	 * Locking the private channel is persistent across bot restarts
+	 */
 	#[NCA\HandlesCommand("lock")]
 	#[NCA\Help\Group("lock")]
-	public function lockCommand(CmdContext $context, string $reason): void {
-		if (isset($this->lockReason)) {
-			$this->lockReason = trim($reason);
-			$context->reply("Lock reason changed.");
-			return;
+	public function lockCommand(CmdContext $context, string $reason): bool {
+		$reason = trim($reason);
+		if (!strlen($reason)) {
+			return false;
 		}
-		$this->lockReason = trim($reason);
+		if (strlen($this->lockReason)) {
+			$this->settingManager->save("lock_reason", trim($reason));
+			$context->reply("Lock reason changed.");
+			return true;
+		}
+		$this->settingManager->save("lock_reason", trim($reason));
 		$this->chatBot->sendPrivate("The private chat has been <red>locked<end> by {$context->char->name}: <highlight>{$this->lockReason}<end>");
 		$alRequired = $this->lockMinrank;
 		foreach ($this->chatBot->chatlist as $char => $online) {
@@ -697,6 +834,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 		$audit->action = AccessManager::LOCK;
 		$audit->value = $this->lockReason;
 		$this->accessManager->addAudit($audit);
+		return true;
 	}
 
 	/** Open the private channel again */
@@ -707,7 +845,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 			$context->reply("The private channel is currently not locked.");
 			return;
 		}
-		unset($this->lockReason);
+		$this->settingManager->save("lock_reason", "");
 		$this->chatBot->sendPrivate("The private chat is now <green>open<end> again.");
 		$context->reply("You <green>unlocked<end> the private channel.");
 		$audit = new Audit();
@@ -1068,6 +1206,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 				"name" => $name,
 				"autoinv" => $autoInvite,
 			]);
+		$this->members[$name] = true;
 		$event = new MemberEvent();
 		$event->type = "member(add)";
 		$event->sender = $name;
@@ -1115,6 +1254,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 		if (!$this->db->table(self::DB_TABLE)->where("name", $name)->delete()) {
 			return "<highlight>$name<end> is not a member of this bot.";
 		}
+		unset($this->members[$name]);
 		$this->buddylistManager->remove($name, 'member');
 		$event = new MemberEvent();
 		$event->type = "member(rem)";
@@ -1133,14 +1273,14 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 	 * Check if the private channel is currently locked
 	 */
 	public function isLocked(): bool {
-		return isset($this->lockReason);
+		return strlen($this->lockReason) > 0;
 	}
 
 	/**
 	 * Check if the private channel is currently locked for a character
 	 */
 	public function isLockedFor(string $sender): bool {
-		if (!isset($this->lockReason)) {
+		if (!strlen($this->lockReason)) {
 			return false;
 		}
 		$alSender = $this->accessManager->getAccessLevelForCharacter($sender);

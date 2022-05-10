@@ -237,11 +237,9 @@ class ImportController extends ModuleInstance {
 	 */
 	protected function getRanks(object $import): array {
 		$ranks = [];
-		// @phpstan-ignore-next-line
 		foreach ($import->members??[] as $member) {
 			$ranks[$member->rank] = true;
 		}
-		// @phpstan-ignore-next-line
 		foreach ($import->commentCategories??[] as $category) {
 			if (isset($category->minRankToRead)) {
 				$ranks[$category->minRankToRead] = true;
@@ -250,7 +248,6 @@ class ImportController extends ModuleInstance {
 				$ranks[$category->minRankToWrite] = true;
 			}
 		}
-		// @phpstan-ignore-next-line
 		foreach ($import->polls??[] as $poll) {
 			if (isset($poll->minRankToVote)) {
 				$ranks[$poll->minRankToVote] = true;
@@ -943,7 +940,7 @@ class ImportController extends ModuleInstance {
 					continue;
 				}
 				$id = isset($trackedUser->character->id) ? $trackedUser->character->id : $this->chatBot->get_uid($name);
-				if (!isset($id) || $id === false) {
+				if ($id === false) {
 					continue;
 				}
 				$this->db->table(TrackerController::DB_TABLE)

@@ -124,7 +124,7 @@ class MMDBParser {
 	 *
 	 * @return null|resource
 	 */
-	private function openFile(string $filename="data/text.mdb") {
+	private function openFile(string $filename="res/text.mdb") {
 		try {
 			$in = \Safe\fopen($filename, 'rb');
 		} catch (FilesystemException $e) {

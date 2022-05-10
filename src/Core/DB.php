@@ -192,6 +192,49 @@ class DB {
 			$this->sqlCreateReplacements[" AUTO_INCREMENT"] = " AUTOINCREMENT";
 			$this->sqlCreateReplacements[" INT "] = " INTEGER ";
 			$this->sqlCreateReplacements[" INT,"] = " INTEGER,";
+			// SQLite 3.37.0 adds strict tables. These do actual type checking
+			$strictGrammar = new class extends \Illuminate\Database\Schema\Grammars\SQLiteGrammar {
+				public function compileCreate(\Illuminate\Database\Schema\Blueprint $blueprint, \Illuminate\Support\Fluent $command) {
+					return parent::compileCreate($blueprint, $command) . ' strict';
+				}
+
+				protected function typeChar(\Illuminate\Support\Fluent $column) {
+					return 'text';
+				}
+
+				protected function typeString(\Illuminate\Support\Fluent $column) {
+					return 'text';
+				}
+
+				protected function typeFloat(\Illuminate\Support\Fluent $column) {
+					return 'real';
+				}
+
+				protected function typeDouble(\Illuminate\Support\Fluent $column) {
+					return 'real';
+				}
+
+				protected function typeBoolean(\Illuminate\Support\Fluent $column) {
+					return 'integer';
+				}
+
+				protected function typeDecimal(\Illuminate\Support\Fluent $column) {
+					return 'text';
+				}
+			};
+			// Querying non-existing columns throws no error when escaped with ",
+			// so we switch to ` instead, which brings back errors
+			$strictQuery = new class extends \Illuminate\Database\Query\Grammars\SQLiteGrammar {
+				protected function wrapValue($value) {
+					return $value === '*' ? $value : '`' . str_replace('`', '``', $value) . '`';
+				}
+			};
+			if (isset(BotRunner::$arguments['strict'])) {
+				if (version_compare($sqliteVersion, "3.37.0", ">=")) {
+					$this->capsule->getConnection()->setSchemaGrammar($strictGrammar);
+				}
+				$this->capsule->getConnection()->setQueryGrammar($strictQuery);
+			}
 		} elseif ($this->type === self::POSTGRESQL) {
 			do {
 				try {

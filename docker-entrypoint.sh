@@ -16,6 +16,11 @@ errorMessage() {
 [ -n "$CONFIG_LOG_LEVEL" ] && ( echo "$CONFIG_LOG_LEVEL" | grep -q -v -i -E '^(DEBUG|INFO|NOTICE|WARNING|ERROR|CRITICAL|ALERT|EMERGENCY)$' ) && errorMessage "You have specified an invalid \$CONFIG_LOG_LEVEL. Allowed values are DEBUG, INFO, NOTICE, WARNING, ERROR, CRITICAL, ALERT and EMERGENCY."
 
 cd /nadybot || exit
+EXTRA_SETTINGS=$(set | grep '^CONFIG_SETTING_' | sed -e 's/^CONFIG_SETTING_//g'| while read -r SETTING; do
+  KEY=$(echo "$SETTING" | cut -d '=' -f 1 | tr '[:upper:]' '[:lower:]')
+  VALUE=$(echo "$SETTING" | cut -d '=' -f 2-)
+  echo "'$KEY' => $VALUE,"
+done)
 cat > /tmp/config.php << DONE
 <?php declare(strict_types=1);
 
@@ -25,29 +30,28 @@ cat > /tmp/config.php << DONE
 \$vars['name']       = "$CONFIG_BOTNAME";
 \$vars['my_guild']   = "${CONFIG_ORG:-}";
 \$vars['dimension']  = ${CONFIG_DIMENSION:-5};
-\$vars['SuperAdmin'] = "$CONFIG_SUPERADMIN";
-\$vars['DB Type'] = "$CONFIG_DB_TYPE";		// What type of database should be used? ('sqlite' or 'mysql')
-\$vars['DB Name'] = "$CONFIG_DB_NAME";	// Database name
-\$vars['DB Host'] = "$CONFIG_DB_HOST";		// Hostname or file location
-\$vars['DB username'] = "$CONFIG_DB_USER";			// MySQL username
-\$vars['DB password'] = "$CONFIG_DB_PASS";			// MySQL password
-// Show AOML markup in logs/console? 1 for enabled, 0 for disabled.
+\$vars['SuperAdmin'] = ["$(echo "${CONFIG_SUPERADMIN}" | sed -e 's/[, ]\+/", "/g')"];
+\$vars['DB Type'] = "$CONFIG_DB_TYPE";
+\$vars['DB Name'] = "$CONFIG_DB_NAME";
+\$vars['DB Host'] = "$CONFIG_DB_HOST";
+\$vars['DB username'] = "$CONFIG_DB_USER";
+\$vars['DB password'] = "$CONFIG_DB_PASS";
 \$vars['show_aoml_markup'] = ${CONFIG_SHOW_AOML_MARKUP:-0};
-// Cache folder for storing organization XML files.
 \$vars['cachefolder'] = "${CONFIG_CACHEFOLDER:-./cache/}";
-// Default status for new modules? 1 for enabled, 0 for disabled.
 \$vars['default_module_status'] = ${CONFIG_DEFAULT_MODULE_STATUS:-0};
-// Use AO Chat Proxy? 1 for enabled, 0 for disabled.
 \$vars['use_proxy'] = ${CONFIG_USE_PROXY:-0};
 \$vars['enable_console_client'] = ${CONFIG_ENABLE_CONSOLE:-0};
 \$vars['enable_package_module'] = ${CONFIG_ENABLE_PACKAGE_MODULE:-0};
 \$vars['proxy_server'] = "${CONFIG_PROXY_SERVER:-127.0.0.1}";
 \$vars['proxy_port'] = ${CONFIG_PROXY_PORT:-9993};
 \$vars['API Port'] = ${CONFIG_API_PORT:-5250};
-// Define additional paths from where Nadybot should load modules at startup
+
 \$vars['module_load_paths'] = [
 	'./src/Modules',
 	'./extras',
+];
+\$vars['settings'] = [
+${EXTRA_SETTINGS}
 ];
 \$vars['amqp_server'] = "${CONFIG_AMQP_SERVER}";
 \$vars['amqp_port'] = ${CONFIG_AMQP_PORT:-5672};
@@ -57,6 +61,62 @@ cat > /tmp/config.php << DONE
 DONE
 
 sed -e "s/\"\*\": \"notice\"/\"*\": \"${CONFIG_LOG_LEVEL:-notice}\"/" conf/logging.json > /tmp/logging.json
+
+if [ -e /proxy/aochatproxy ] \
+	&& [ "${CONFIG_USE_PROXY:-0}" = "1" ] \
+	&& [ -n "${PROXY_CHARNAME_1:-}" ] \
+	&& [ -n "${PROXY_USERNAME_1:-}" ] \
+	&& [ -n "${PROXY_PASSWORD_1:-}" ]; then
+	FC_PORT=7105
+	if [ "${CONFIG_DIMENSION:-5}" = "4" ]; then
+		FC_PORT=7109
+	elif [ "${CONFIG_DIMENSION:-5}" = "6" ]; then
+		FC_PORT=7106
+	fi
+	SPAM_BOT_SUPPORT="false";
+	[ "${PROXY_SPAM_BOT_SUPPORT:-0}" = "1" ] && SPAM_BOT_SUPPORT="true"
+	SEND_TELLS_OVER_MAIN="true";
+	[ "${PROXY_SEND_TELLS_OVER_MAIN:-1}" = "0" ] && SEND_TELLS_OVER_MAIN="false"
+	RELAY_WORKER_TELLS="true";
+	[ "${PROXY_RELAY_WORKER_TELLS:-1}" = "0" ] && RELAY_WORKER_TELLS="false"
+	cat > /proxy/config.json <<-DONE
+		{
+		    "rust_log": "info",
+		    "port_number": ${CONFIG_PROXY_PORT:-9993},
+		    "server_address": "chat.d1.funcom.com:${FC_PORT}",
+		    "spam_bot_support": ${SPAM_BOT_SUPPORT},
+		    "send_tells_over_main": ${SEND_TELLS_OVER_MAIN},
+		    "relay_worker_tells": ${RELAY_WORKER_TELLS},
+		    "accounts": [
+	DONE
+	SUFFIX=1
+	while [ -n "$(eval echo "\${PROXY_CHARNAME_$SUFFIX:-}")" ]; do
+		if [ -n "$(eval echo "\${PROXY_USERNAME_$SUFFIX:-}")" ]; then
+			LASTUSER=$(eval echo "\${PROXY_USERNAME_$SUFFIX:-}")
+		fi
+		if [ -n "$(eval echo "\${PROXY_PASSWORD_$SUFFIX:-}")" ]; then
+			LASTPASS=$(eval echo "\${PROXY_PASSWORD_$SUFFIX:-}")
+		fi
+		if [ "$SUFFIX" -gt 1 ]; then
+			echo "        ," >> /proxy/config.json
+		fi
+		cat >> /proxy/config.json <<-END
+			        {
+			            "username": "${LASTUSER}",
+			            "password": "${LASTPASS}",
+			            "character": "$(eval echo "\${PROXY_CHARNAME_$SUFFIX:-}")"
+			        }
+		END
+		SUFFIX=$((SUFFIX+1))
+	done
+	cat >> /proxy/config.json <<-DONE
+		    ]
+		}
+	DONE
+	cd /proxy || exit
+	(/proxy/aochatproxy 2>&1| sed -e 's/^[^ ]* \([A-Z]*\) .*\]/[PROXY:\1]/') &
+	cd /nadybot || exit
+fi
 
 PHP=$(which php81 php8 php7 php | head -n 1)
 PARAMS=""
