@@ -130,28 +130,33 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
-	/** How to show if a tracked person logs on/off */
-	#[NCA\Setting\Options(options: [
-		'TRACK: "info" logged on/off.' => 0,
-		'+/- "info"' => 1,
-	])]
-	public int $trackerLayout = 0;
+	/** How to show if a tracked person logs on */
+	#[NCA\DefineSetting(
+		type: "tracker_format",
+		options: [
+			"TRACK: <highlight>{name}<end> logged <green>on<end>.",
+			"TRACK: <{faction}>{name}<end> ({level}, {profession}), <{faction}>{org}<end> logged <green>on<end>.",
+			"<{faction}>{FACTION}<end>: <{faction}>{name}<end>, TL<highlight>{tl}<end> {prof} logged <green>on<end>.",
+			"<green>+<end> <{faction}>{name}<end>",
+			"<green>+<end> <{faction}>{name}<end> ({level}, {prof}), <{faction}>{org}<end>",
+		]
+	)]
+	public string $trackerLogon = "TRACK: <{faction}>{name}<end> ({level}, {profession}), <{faction}>{org}<end> logged <green>on<end>.";
 
-	/** Use faction color for the name of the tracked person */
-	#[NCA\Setting\Boolean]
-	public bool $trackerUseFactionColor = false;
+	/** How to show if a tracked person logs off */
+	#[NCA\DefineSetting(
+		type: "tracker_format",
+		options: [
+			"TRACK: <{faction}>{name}<end> logged <red>off<end>.",
+			"<{faction}>{FACTION}<end>: <{faction}>{name}<end>, TL<highlight>{tl}<end> {prof} logged <red>off<end>",
+			"<red>-<end> <{faction}>{name}<end>",
+		]
+	)]
+	public string $trackerLogoff = "TRACK: <{faction}>{name}<end> logged <red>off<end>.";
 
-	/** Show the tracked person's level */
+	/** Use faction color for the name in the online list*/
 	#[NCA\Setting\Boolean]
-	public bool $trackerShowLevel = false;
-
-	/** Show the tracked person's profession */
-	#[NCA\Setting\Boolean]
-	public bool $trackerShowProf = false;
-
-	/** Show the tracked person's org */
-	#[NCA\Setting\Boolean]
-	public bool $trackerShowOrg = false;
+	public bool $trackerUseFactionColor = true;
 
 	/** Group online list by */
 	#[NCA\Setting\Options(options: [
@@ -331,52 +336,69 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 		$this->eventManager->fireEvent($event);
 	}
 
-	public function getTrackerLayout(bool $online): string {
-		$color = $online ? "<green>" : "<red>";
-		switch ($this->trackerLayout) {
-			case 0:
-				return "TRACK: %s logged {$color}" . ($online ? "on" : "off") . "<end>.";
-			case 1:
-			default:
-				return "{$color}" . ($online ? "+" : "-") . "<end> %s";
-		}
+	/**
+	 * Get the message to show when a tracked player logs on
+	 */
+	public function getLogonMessage(?Player $player, string $name): string {
+		return $this->getLogMessage($player, $name, $this->trackerLogon);
+	}
+
+	/**
+	 * Get the message to show when a tracked player logs off
+	 */
+	public function getLogoffMessage(?Player $player, string $name): string {
+		return $this->getLogMessage($player, $name, $this->trackerLogoff);
 	}
 
 	/**
 	 * Get the message to show when a tracked player logs on
 	 */
-	public function getLogonMessage(?Player $player, string $name): string {
-		$format = $this->getTrackerLayout(true);
-		$info = "";
-		if ($player === null) {
-			$info = "<highlight>{$name}<end>";
-			return sprintf($format, $info);
+	public function getLogMessage(?Player $player, string $name, string $format): string {
+		$replacements = [
+			"faction" => "neutral",
+			"name" => $name,
+			"profession" => "Unknown",
+			"prof" => "???",
+			"level" => "?",
+			"ai_level" => "?",
+			"org" => "&lt;no org&gt;",
+			"breed" => "?",
+			"gender" => "?",
+			"tl" => "?",
+		];
+		if (isset($player)) {
+			$replacements["faction"] = strtolower($player->faction);
+			if (isset($player->profession)) {
+				$replacements["profession"] = $player->profession;
+				$replacements["prof"] = $this->util->getProfessionAbbreviation($player->profession);
+			}
+			$replacements["org"] = $player->guild ?? "&lt;no org&gt;";
+			$replacements["gender"] = strtolower($player->gender);
+			$replacements["org_rank"] = $player->guild_rank ?? "&lt;no rank&gt;";
+			$replacements["breed"] = $player->breed;
+			if (isset($player->level)) {
+				$replacements["level"] = "<highlight>{$player->level}<end>/<green>{$player->ai_level}<end>";
+				$replacements["tl"] = $this->util->levelToTL($player->level ?? 1);
+			}
 		}
-		$faction = strtolower($player->faction);
-		if ($this->trackerUseFactionColor) {
-			$info = "<{$faction}>{$name}<end>";
-		} else {
-			$info = "<highlight>{$name}<end>";
+		$replacements["Gender"] = ucfirst($replacements["gender"]);
+		$replacements["Faction"] = ucfirst($replacements["faction"]);
+		$replacements["FACTION"] = strtoupper($replacements["faction"]);
+		if (!isset($player) || !isset($player->guild) || !strlen($player->guild)) {
+			$format = preg_replace("/(?: of|,)?\s+<[^>]+>\{org\}<end>/", "", $format);
+			$format = preg_replace("/(?: of|,)?\s+\{org\}/", "", $format);
+			$format = preg_replace("/\s+\{org_rank\}/", "", $format);
 		}
-		$bracketed = [];
-		$showLevel = $this->trackerShowLevel;
-		$showProf = $this->trackerShowProf;
-		$showOrg = $this->trackerShowOrg;
-		if ($showLevel) {
-			$bracketed []= "<highlight>{$player->level}<end>/<green>{$player->ai_level}<end>";
+		$subst = [];
+		foreach ($replacements as $key => $value) {
+			$subst ["{" . $key . "}"] = $value;
 		}
-		if ($showProf) {
-			$bracketed []= $player->profession;
-		}
-		if (count($bracketed)) {
-			$info .= " (" . join(", ", $bracketed) . ")";
-		} elseif ($showOrg) {
-			$info .= ", ";
-		}
-		if ($showOrg && $player->guild !== null && strlen($player->guild)) {
-			$info .= " <{$faction}>{$player->guild}<end>";
-		}
-		return sprintf($format, $info);
+
+		return str_replace(
+			array_keys($subst),
+			array_values($subst),
+			$format
+		);
 	}
 
 	#[NCA\Event(
@@ -427,20 +449,6 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 		$event->player = $eventObj->sender;
 		$event->type = "tracker(logoff)";
 		$this->eventManager->fireEvent($event);
-	}
-
-	/**
-	 * Get the message to show when a tracked player logs off
-	 */
-	public function getLogoffMessage(?Player $player, string $name): string {
-		$format = $this->getTrackerLayout(false);
-		if ($player === null || !$this->trackerUseFactionColor) {
-			$info = "<highlight>{$name}<end>";
-		} else {
-			$faction = strtolower($player->faction);
-			$info = "<{$faction}>{$name}<end>";
-		}
-		return sprintf($format, $info);
 	}
 
 	/** See the list of users on the track list */
