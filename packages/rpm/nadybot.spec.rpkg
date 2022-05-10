@@ -7,7 +7,7 @@ Name:       nadybot
 Version:    {{{ nadybot_version }}}
 
 # This can be useful later for adding downstream patches
-Release:    5%{?dist}
+Release:    1%{?dist}
 
 BuildArch: noarch
 
@@ -204,6 +204,38 @@ exit 0
 %endif
 
 %changelog
+* Tue May 10 2022 Nadyita <nadyita@hodorraid.org> 6.0.2-1
+- Add a new property to raids, that allows to limit the maximum number of raiders. Can be set with either "!raid start <description> limit <max members>" or "!raid limit <max members>".
+- New command "!orgnote" to manage org-wide notes that can also be shared via Nadynative protocol.
+- New Docker image "nadybot-big" which includes the AOChatProxy, so only 1 container is needed to run bots with more than 1000 members.
+- New command "members inactive" to list members who haven't logged in for a given amount of time.
+- "!adminlist" now shows the last time the bot has seen each admin and on which alt.
+- Add new option "--strict" to make SQLite checks more strict. This is mainly for development purpose.
+- Add new prometheus metric states{type="raid_lock"}
+- The LOOT_MODULE now keeps a full history of what was rolled when, and who won what on which roll. You can search this history by using "!loot history", "!loot history <number>|last", "!loot search winner=Nady" and "!loot search item=leg".
+- All Docker images now support setting fixed settings via setting environment variables "CONFIG_SETTING_<setting>=<value>", e.g. "CONFIG_SETTING_CONSOLE_COLOR=1"
+- New commands "!config setting <name>" and "!config setting <name> admin <access level>" to change the required access level to change a setting's value.
+- Add new setting "raid_reward_requires_lock" to control if giving points via "!raid reward"/"!raid punish" requires the raid to be lock with "!raid lock".
+- The Docker image now supports setting multiple superadmins, either separated by comma, space or both. so "CONFIG_SUPERADMIN=Nady,Nadyita" and "CONFIG_SUPERADMIN='Nady Nadyita, Nadyo'" both work.
+- The "!discord"-command got completely changed. It now acts as the central command to manage the discord connection, manage Discord invites, see invites and leave Discord servers. To get people a Discord link, just have them "!discord join" and click the link, the bot will automatically rename the Discord user to match the main AO character and optionally also assign one or more Discord roles.
+- Add a new command "!assist random <number>" to pick "<number>" random callers from the currently running raid. You can exclude professions from this random pick by changing the "never_auto_callers" setting, default excludes docs and crats.
+- "!raid punish" now also accepts the name of a pre-defined reward, analogue to "!raid reward".
+- The loglevel of handlers used to always be ignored and scaled with the configuration option of channels. This has been changed so that the new log level "default" will now automatically scale, while explicitly given ones like "error" will always stay on error. This allows you to log error output into separate files.
+- Retries for 502 Http results are now delayed by 5s, in order not to hammer the webserver
+- The "!member"-command is now a sub-command of "!members", so "!members add <who>" now works the same as "!member add". Access levels are migrated.
+- If audits are enabled ("!settings save audit_enabled 1"), "!whois <name>" will now show information from the audit when and by whom the person was added to the bot.
+- "!auction" is now an alias of "!bid". The former was removed, because the command "!auction" was originally only added to have separate access levels for auctioneers and bidders and I didn't expect anyone to use "!auction start" over the alias "!bid start" and so on.
+- If no log files are available (Docker), don't show an empty popup.
+- Logging in Docker is now the same format as logfiles - not like console.
+- Locking the private channel is now persistent across bot restarts.
+- Location of the "text.mdb"-file was changed from "data/" to "res/", so it doesn't collide with user data and makes it easier for containers to just mount a generic data-folder into "/nadybot/data".
+- When configured to use a proxy, don't exit when the proxy isn't reachable, but retry until it is. This fixes cases when the chat proxy has lots of workers and takes longer to accept connection than Nadybot to start to connect.
+- Fix "/api/access_levels" endpoint and make settings webfrontend work again.
+- Fix for "!raid reward <points> <reason>" and "!raid punish <points> <reason>". They both work again as expected.
+- Detect if the Discord Cloudflare server restart and also do an automatic reconnect in that case. In fact, make automatic reconnect the default, unless manually disconnected.
+- Websocket timeout detection works properly now and Discord should automatically reconnect after connection is lost.
+- Add new settings "webserver_min_al" to specify the overall required min access level for interacting with the bot via API or WebUI. Before this, using aoauth authentication would allow you to read the chat via the WebUI, because this target did not have a defined minimum access level.
+
 * Sun Apr 24 2022 Nadyita <nadyita@hodorraid.org> 6.0.1-1
 - Allow hiding arbitrary characters from the online list, so you don't see
   other orgs' bots or can even hide their whole guest channel.

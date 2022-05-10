@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [6.0.2] - 2022-05-10
+
 ### Added
 
 - Add a new property to raids, that allows to limit the maximum number of raiders. Can be set with either `!raid start <description> limit <max members>` or `!raid limit <max members>`.
@@ -36,6 +38,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Logging in Docker is now the same format as logfiles - not like console.
 - Locking the private channel is now persistent across bot restarts.
 - Location of the `text.mdb`-file was changed from `data/` to `res/`, so it doesn't collide with user data and makes it easier for containers to just mount a generic data-folder into `/nadybot/data`.
+- When configured to use a proxy, don't exit when the proxy isn't reachable, but retry until it is. This fixes cases when the chat proxy has lots of workers and takes longer to accept connection than Nadybot to start to connect.
 
 ### Fixed
 
