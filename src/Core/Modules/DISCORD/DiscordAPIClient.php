@@ -93,6 +93,22 @@ class DiscordAPIClient extends ModuleInstance {
 		);
 	}
 
+	public function registerGuildCommand(
+		string $guildId,
+		string $applicationId,
+		object $command,
+		?callable $success=null,
+		?callable $failure=null,
+	): void {
+		$this->post(
+			self::DISCORD_API . "/applications/{$applicationId}/guilds/{$guildId}/commands",
+			\Safe\json_encode($command),
+		)->withCallback(
+			function(HttpResponse $response): void {
+			},
+		);
+	}
+
 	public function leaveGuild(string $guildId, ?callable $success, ?callable $failure): void {
 		$this->delete(
 			self::DISCORD_API . "/users/@me/guilds/{$guildId}"

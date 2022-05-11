@@ -88,6 +88,7 @@ use stdClass;
 	NCA\ProvidesEvent("discord(guild_role_update)"),
 	NCA\ProvidesEvent("discord(guild_role_update_delete)"),
 	NCA\ProvidesEvent("discord(guild_members_chunk)"),
+	NCA\ProvidesEvent("discord(interaction_create)"),
 	NCA\ProvidesEvent("discord(message_create)"),
 	NCA\ProvidesEvent("discord(message_update)"),
 	NCA\ProvidesEvent("discord(message_delete)"),
@@ -845,6 +846,25 @@ class DiscordGatewayController extends ModuleInstance {
 				return false;
 			}
 		);
+		if (isset($this->me)) {
+			$this->discordAPIClient->registerGuildCommand(
+				$guild->id,
+				$this->me->id,
+				\Safe\json_decode('{
+					"name": "whois",
+					"type": 1,
+					"description": "Query information about a character",
+					"options": [
+						{
+							"name": "character",
+							"description": "The name of the character to look up",
+							"type": 3,
+							"required": true
+						}
+					]
+				}')
+			);
+		}
 		foreach ($guild->voice_states as $voiceState) {
 			if (!isset($voiceState->user_id)) {
 				continue;

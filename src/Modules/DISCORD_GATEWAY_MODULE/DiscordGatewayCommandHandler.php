@@ -21,6 +21,7 @@ use Nadybot\Core\{
 	SettingManager,
 	Text,
 };
+use Nadybot\Modules\DISCORD_GATEWAY_MODULE\Model\Interaction;
 
 /**
  * @author Nadyita (RK5)
@@ -291,6 +292,76 @@ class DiscordGatewayCommandHandler extends ModuleInstance implements AccessLevel
 				return;
 			}
 			$context->source = $sendto->getChannelName();
+			$this->commandManager->checkAndHandleCmd($context);
+		};
+		if (!isset($userId)) {
+			$execCmd();
+			return;
+		}
+		$context->char->name = $userId;
+		$this->chatBot->getUid(
+			$userId,
+			function(?int $uid, CmdContext $context, Closure $execCmd): void {
+				$context->char->id = $uid;
+				$execCmd();
+			},
+			$context,
+			$execCmd
+		);
+	}
+
+	/**
+	 * Handle an incoming discord channel message
+	 */
+	#[NCA\Event(
+		name: "discord(interaction_create)",
+		description: "Handle Discord slash commands"
+	)]
+	public function processDiscordSlashCommands(DiscordGatewayEvent $event): void {
+		$interaction = new Interaction();
+		$interaction->fromJSON($event->payload->d);
+		$discordUserId = $interaction->user->id ?? $interaction->member->user->id ?? null;
+		if (!isset($discordUserId)) {
+			return;
+		}
+		$context = new CmdContext($discordUserId);
+		$context->setIsDM(isset($interaction->user));
+		$cmd = $interaction->toCommand();
+		if (!isset($cmd)) {
+			return;
+		}
+		$context->message = $cmd;
+		if (isset($interaction->channel_id)) {
+			$channel = $this->discordGatewayController->getChannel($interaction->channel_id);
+			if (!isset($channel)) {
+				return;
+			}
+			$context->source = Source::DISCORD_PRIV . "({$channel->name})";
+		} else {
+			$context->source = Source::DISCORD_MSG . "({$discordUserId})";
+		}
+		$cmdMap = $this->commandManager->getPermsetMapForSource($context->source);
+		if (!isset($cmdMap)) {
+			return;
+		}
+		$context->message = $cmdMap->symbol . $context->message;
+		$this->processDiscordSlashCommand($interaction, $context);
+	}
+
+	protected function processDiscordSlashCommand(Interaction $interaction, CmdContext $context): void {
+		$discordUserId = $interaction->user->id ?? $interaction->member->user->id ?? null;
+		if ($discordUserId === null) {
+			return;
+		}
+		$sendto = new DiscordSlashCommandReply(
+			$interaction->id,
+			$interaction->token,
+			$context->isDM(),
+		);
+		$context->sendto = $sendto;
+		Registry::injectDependencies($sendto);
+		$userId = $this->getNameForDiscordId($discordUserId);
+		$execCmd = function() use ($context): void {
 			$this->commandManager->checkAndHandleCmd($context);
 		};
 		if (!isset($userId)) {
