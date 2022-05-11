@@ -130,7 +130,7 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
-	/** How to show if a tracked person logs on */
+	/** Tracker logon-message */
 	#[NCA\DefineSetting(
 		type: "tracker_format",
 		options: [
@@ -143,7 +143,7 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 	)]
 	public string $trackerLogon = "TRACK: <{faction}>{name}<end> ({level}, {profession}), <{faction}>{org}<end> logged <green>on<end>.";
 
-	/** How to show if a tracked person logs off */
+	/** Tracker logoff-message */
 	#[NCA\DefineSetting(
 		type: "tracker_format",
 		options: [
@@ -912,11 +912,12 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 				return $op;
 			});
 		$data = $this->filterOnlineList($data, $filters);
+		$hasFilters = array_diff(array_keys($filters), ['all', 'edit']);
 		if ($data->isEmpty()) {
-			if (empty($filters)) {
-				$context->reply("No tracked players are currently online.");
-			} else {
+			if ($hasFilters) {
 				$context->reply("No tracked players matching your filter are currently online.");
+			} else {
+				$context->reply("No tracked players are currently online.");
 			}
 			return true;
 		}
@@ -939,10 +940,10 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 		if (!empty($footNotes)) {
 			$blob .= "\n\n" . join("\n", $footNotes);
 		}
-		if (empty($filters)) {
-			$msg = $this->text->makeBlob("Online tracked players (" . $data->count(). ")", $blob);
-		} else {
+		if ($hasFilters) {
 			$msg = $this->text->makeBlob("Online tracked players matching your filter (" . count($data). ")", $blob);
+		} else {
+			$msg = $this->text->makeBlob("Online tracked players (" . $data->count(). ")", $blob);
 		}
 		$context->reply($msg);
 		return true;
