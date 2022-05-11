@@ -23,7 +23,7 @@ class TrackerOnlineParser {
 		return '
 			start   :=> optionList.
 			optionList :=> option
-			             :=> option optionList.
+			           :=> option optionList.
 			option :=> (titleLevelRange|titleLevel|all|edit|profession|faction).
 			titleLevelRange :=> /tl[123456]-[2-7]/.
 			titleLevel :=> /tl[1234567]/.
@@ -43,24 +43,19 @@ class TrackerOnlineParser {
 		$expr = $parser->parse($input);
 		if ($expr === false) {
 			$error = $parser->getError();
-			$posData = $this->parser::getLineAndCharacterFromOffset($input, $error['index']);
 
-			$expected = implode('<end> or <highlight>', $this->parser->generalizeErrors($error['expected']));
-			$foundLength = 20;
-			$found = substr($input, $error['index']);
-			if (strlen($found) > $foundLength) {
-				$found = substr($found, 0, $foundLength) . '...';
+			$wordStart = strrpos($input, " ", -1 * (strlen($input) - $error['index']));
+			if ($wordStart === false) {
+				$wordStart = -1;
 			}
-
-			$char = substr($input, $posData['char']-1, 1);
-			if ($found !== "") {
-				$found = ", found: <highlight>\"{$found}\"<end>";
+			$wordEnd = strpos($input, " ", $error['index']);
+			if ($wordEnd === false) {
+				$wordEnd = strlen($input) + 1;
 			}
+			$found = substr($input, $wordStart+1, $wordEnd - $wordStart - 1);
 			throw new TrackerOnlineParserException(
-				substr($input, 0, $posData['char']-1).
-				"<red>" . (strlen($char) ? $char : "_") . "<end>".
-				substr($input, $posData['char']) . "\n".
-				"expected: <highlight>{$expected}<end>{$found}."
+				"'<highlight>{$found}<end>' ".
+				"is not a valid filter criteria."
 			);
 		}
 		$layers = $expr->findAll("option");

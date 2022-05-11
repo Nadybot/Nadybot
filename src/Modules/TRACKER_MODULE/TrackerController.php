@@ -863,8 +863,9 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 			$parser = new TrackerOnlineParser();
 			try {
 				$options = $parser->parse(strtolower($filter));
-			} catch (TrackerOnlineParserException) {
-				return false;
+			} catch (TrackerOnlineParserException $e) {
+				$context->reply($e->getMessage());
+				return true;
 			} catch (Exception $e) {
 				$context->reply($e->getMessage());
 				return true;
@@ -899,6 +900,7 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 				return $this->buddylistManager->isOnline($name) ?? false;
 			})
 			->toArray();
+		/** @var Collection<OnlineTrackedUser> */
 		$data = $this->playerManager->searchByNames($this->config->dimension, ...$trackedUsers)
 			->sortBy("name")
 			->map(function (Player $p) use ($hiddenChars): OnlineTrackedUser {
@@ -908,6 +910,49 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 				$op->hidden = isset($hiddenChars[$op->name]);
 				return $op;
 			});
+		$data = $this->filterOnlineList($data, $filters);
+		if ($data->isEmpty()) {
+			if (empty($filters)) {
+				$context->reply("No tracked players are currently online.");
+			} else {
+				$context->reply("No tracked players matching your filter are currently online.");
+			}
+			return true;
+		}
+		$blob = $this->renderOnlineList($data->toArray(), isset($filters['edit']));
+		$footNotes = [];
+		if (!isset($filters['all'])) {
+			$allLink = $this->text->makeChatcmd(
+				"<symbol>{$context->message} all",
+				"/tell <myname> {$context->message} all"
+			);
+			$footNotes []= "<i>Use {$allLink} to see hidden characters.</i>";
+		}
+		if (!isset($filters['edit'])) {
+			$editLink = $this->text->makeChatcmd(
+				"<symbol>{$context->message} --edit",
+				"/tell <myname> {$context->message} --edit"
+			);
+			$footNotes []= "<i>Use {$editLink} to see more options.</i>";
+		}
+		if (!empty($footNotes)) {
+			$blob .= "\n\n" . join("\n", $footNotes);
+		}
+		if (empty($filters)) {
+			$msg = $this->text->makeBlob("Online tracked players (" . $data->count(). ")", $blob);
+		} else {
+			$msg = $this->text->makeBlob("Online tracked players matching your filter (" . count($data). ")", $blob);
+		}
+		$context->reply($msg);
+		return true;
+	}
+
+	/**
+	 * @param Collection<OnlineTrackedUser> $data
+	 * @param array<string,string[]> $filters
+	 * @return Collection<OnlineTrackedUser>
+	*/
+	private function filterOnlineList(Collection $data, array $filters): Collection {
 		if (isset($filters['profession'])) {
 			$professions = [];
 			foreach ($filters['profession'] as $prof) {
@@ -953,41 +998,7 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 				return false;
 			});
 		}
-		if ($data->isEmpty()) {
-			if (empty($filters)) {
-				$context->reply("No tracked players are currently online.");
-			} else {
-				$context->reply("No tracked players matching your filter are currently online.");
-			}
-			return true;
-		}
-		$data = $data->toArray();
-		$blob = $this->renderOnlineList($data, isset($filters['edit']));
-		$footNotes = [];
-		if (!isset($filters['all'])) {
-			$allLink = $this->text->makeChatcmd(
-				"<symbol>{$context->message} all",
-				"/tell <myname> {$context->message} all"
-			);
-			$footNotes []= "<i>Use {$allLink} to see hidden characters.</i>";
-		}
-		if (!isset($filters['edit'])) {
-			$editLink = $this->text->makeChatcmd(
-				"<symbol>{$context->message} --edit",
-				"/tell <myname> {$context->message} --edit"
-			);
-			$footNotes []= "<i>Use {$editLink} to see more options.</i>";
-		}
-		if (!empty($footNotes)) {
-			$blob .= "\n\n" . join("\n", $footNotes);
-		}
-		if (empty($filters)) {
-			$msg = $this->text->makeBlob("Online tracked players (" . count($data). ")", $blob);
-		} else {
-			$msg = $this->text->makeBlob("Online tracked players matching your filter (" . count($data). ")", $blob);
-		}
-		$context->reply($msg);
-		return true;
+		return $data;
 	}
 
 	/**
