@@ -844,6 +844,7 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 	 * - clan|neutral|omni
 	 * - &lt;profession&gt;
 	 * - tl1|tl2|tl3|tl4|tl5|tl6|tl7
+	 * - &lt;level&gt;|&lt;min level&gt;-|-&lt;max level&gt;|&lt;min level&gt;-&lt;max level&gt;
 	 *
 	 * By default, this will not show chars hidden via '<symbol>track hide', unless you give 'all'
 	 * To get links for removing and hiding/unhiding characters, add '--edit'
@@ -972,19 +973,31 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 			$data = $data->whereIn("faction", $factions);
 		}
 		if (isset($filters['titleLevelRange'])) {
-			$filters['titleLevel'] ??= [];
+			$filters['levelRange'] ??= [];
 			foreach ($filters['titleLevelRange'] as $range) {
-				$from = (int)substr($range, 2, 1);
-				$to = (int)substr($range, 4, 1);
-				for ($tl = min($from, $to); $tl <= max($from, $to); $tl++) {
-					$filters['titleLevel'] []= "tl{$tl}";
-				}
+				$from = $this->util->tlToLevelRange((int)substr($range, 2, 1));
+				$to = $this->util->tlToLevelRange((int)substr($range, 4, 1));
+				$filters['levelRange'] []= "{$from[0]}-{$to[1]}";
 			}
 		}
 		if (isset($filters['titleLevel'])) {
-			$ranges = [];
+			$filters['levelRange'] ??= [];
 			foreach ($filters['titleLevel'] as $tl) {
-				$ranges []= $this->util->tlToLevelRange((int)substr($tl, 2));
+				[$from, $to] = $this->util->tlToLevelRange((int)substr($tl, 2));
+				$filters['levelRange'] []= "{$from}-{$to}";
+			}
+		}
+		if (isset($filters['level'])) {
+			$filters['levelRange'] ??= [];
+			foreach ($filters['level'] as $level) {
+				$filters['levelRange'] []= "{$level}-{$level}";
+			}
+		}
+		if (isset($filters['levelRange'])) {
+			$ranges = [];
+			foreach ($filters['levelRange'] as $range) {
+				[$min, $max] = \Safe\preg_split("/\s*-\s*/", $range);
+				$ranges []= [strlen($min) ? (int)$min : 1, strlen($max) ? (int)$max : 220];
 			}
 			$data = $data->filter(function (OnlineTrackedUser $user) use ($ranges): bool {
 				if (!isset($user->level)) {

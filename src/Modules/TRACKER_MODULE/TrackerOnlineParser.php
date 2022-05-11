@@ -24,9 +24,11 @@ class TrackerOnlineParser {
 			start   :=> optionList.
 			optionList :=> option
 			           :=> option optionList.
-			option :=> (titleLevelRange|titleLevel|all|edit|profession|faction).
+			option :=> (titleLevelRange|titleLevel|levelRange|level|all|edit|profession|faction).
 			titleLevelRange :=> /tl[123456]-[2-7]/.
 			titleLevel :=> /tl[1234567]/.
+			levelRange :=> (1..220 "-" 1..220 | 1..220 "-" | "-" 1..220).
+			level :=> 1..220.
 			faction :=> ("omni"|"clan"|"neutral"|"neut").
 			all :=> "all".
 			edit :=> "--edit".
