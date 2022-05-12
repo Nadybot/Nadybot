@@ -46,6 +46,8 @@ use Nadybot\Core\Modules\DISCORD\{
 };
 use Nadybot\Modules\DISCORD_GATEWAY_MODULE\Model\{
 	Activity,
+	ApplicationCommand,
+	ApplicationCommandOption,
 	CloseEvents,
 	Guild,
 	GuildMember,
@@ -214,6 +216,10 @@ class DiscordGatewayController extends ModuleInstance {
 
 	/** @var array<string,bool> */
 	private array $noManageInviteRights = [];
+
+	public function isMe(string $id): bool {
+		return isset($this->me) && $this->me->id === $id;
+	}
 
 	/**
 	 * Get a list of all guilds this bot is a member of
@@ -668,7 +674,7 @@ class DiscordGatewayController extends ModuleInstance {
 		if (!isset($message->author)) {
 			return;
 		}
-		if ($message->author->id === $this->me?->id) {
+		if ($this->isMe($message->author->id)) {
 			return;
 		}
 
@@ -847,22 +853,23 @@ class DiscordGatewayController extends ModuleInstance {
 			}
 		);
 		if (isset($this->me)) {
+			$cmd = new ApplicationCommand();
+			$cmd->type = $cmd::TYPE_CHAT_INPUT;
+			$cmd->name = "whois";
+			$cmd->description = "Query information about a character";
+			$option = new ApplicationCommandOption();
+			$option->name = "character";
+			$option->description = "Name of the character to look up";
+			$option->type = $option::TYPE_STRING;
+			$option->required = true;
+			$cmd->options = [$option];
 			$this->discordAPIClient->registerGuildCommand(
 				$guild->id,
 				$this->me->id,
-				\Safe\json_decode('{
-					"name": "whois",
-					"type": 1,
-					"description": "Query information about a character",
-					"options": [
-						{
-							"name": "character",
-							"description": "The name of the character to look up",
-							"type": 3,
-							"required": true
-						}
-					]
-				}')
+				json_encode($cmd),
+				function (ApplicationCommand $cmd): void {
+					$this->logger->notice("/-command \"{$cmd->name}\" registered successfully.");
+				},
 			);
 		}
 		foreach ($guild->voice_states as $voiceState) {
@@ -1676,7 +1683,7 @@ class DiscordGatewayController extends ModuleInstance {
 					$blob .= " - expires ".
 						$this->util->date($invite->expires_at->getTimestamp());
 				}
-				if (isset($invite->inviter) && $invite->inviter->id !== $this->me?->id) {
+				if (isset($invite->inviter) && !$this->isMe($invite->inviter->id)) {
 					$blob .= " - created by ".
 						$invite->inviter->username.
 						"#" . $invite->inviter->discriminator;

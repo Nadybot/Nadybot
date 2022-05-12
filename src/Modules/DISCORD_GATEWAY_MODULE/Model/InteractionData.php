@@ -55,12 +55,11 @@ class InteractionData extends JSONDataModel {
 	public ?array $components = null;
 
 	public function getOptionString(): ?string {
-		if (!isset($this->options)) {
-			return null;
-		}
-		$parts = [];
-		foreach ($this->options as $option) {
-			$parts []= $option->getOptionString();
+		$parts = [$this->name];
+		if (isset($this->options)) {
+			foreach ($this->options as $option) {
+				$parts []= $option->getOptionString();
+			}
 		}
 		return join(" ", $parts);
 	}

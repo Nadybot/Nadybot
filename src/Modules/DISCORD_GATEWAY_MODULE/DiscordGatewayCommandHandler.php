@@ -320,6 +320,9 @@ class DiscordGatewayCommandHandler extends ModuleInstance implements AccessLevel
 	public function processDiscordSlashCommands(DiscordGatewayEvent $event): void {
 		$interaction = new Interaction();
 		$interaction->fromJSON($event->payload->d);
+		if (!$this->discordGatewayController->isMe($interaction->application_id)) {
+			return;
+		}
 		$discordUserId = $interaction->user->id ?? $interaction->member->user->id ?? null;
 		if (!isset($discordUserId)) {
 			return;

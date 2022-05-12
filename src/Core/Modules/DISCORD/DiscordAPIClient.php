@@ -16,6 +16,7 @@ use Nadybot\Core\{
 	LoggerWrapper,
 	Timer,
 };
+use Nadybot\Modules\DISCORD_GATEWAY_MODULE\Model\ApplicationCommand;
 use Nadybot\Modules\DISCORD_GATEWAY_MODULE\Model\GuildMember;
 
 /**
@@ -96,16 +97,30 @@ class DiscordAPIClient extends ModuleInstance {
 	public function registerGuildCommand(
 		string $guildId,
 		string $applicationId,
-		object $command,
+		string $message,
 		?callable $success=null,
 		?callable $failure=null,
 	): void {
 		$this->post(
 			self::DISCORD_API . "/applications/{$applicationId}/guilds/{$guildId}/commands",
-			\Safe\json_encode($command),
+			$message,
 		)->withCallback(
-			function(HttpResponse $response): void {
-			},
+			$this->getErrorWrapper(new ApplicationCommand(), $success, $failure)
+		);
+	}
+
+	public function sendInteractionResponse(
+		string $interactionId,
+		string $interactionToken,
+		string $message,
+		?callable $success=null,
+		?callable $failure=null
+	): void {
+		$this->post(
+			DiscordAPIClient::DISCORD_API . "/interactions/{$interactionId}/{$interactionToken}/callback",
+			$message,
+		)->withCallback(
+			$this->getErrorWrapper(null, $success, $failure)
 		);
 	}
 
@@ -113,11 +128,7 @@ class DiscordAPIClient extends ModuleInstance {
 		$this->delete(
 			self::DISCORD_API . "/users/@me/guilds/{$guildId}"
 		)->withCallback(
-			$this->getErrorWrapper(
-				null,
-				$success,
-				$failure,
-			)
+			$this->getErrorWrapper(null, $success, $failure)
 		);
 	}
 
