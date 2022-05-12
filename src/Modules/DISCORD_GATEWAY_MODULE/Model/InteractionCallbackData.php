@@ -6,6 +6,11 @@ use Nadybot\Core\JSONDataModel;
 use Nadybot\Core\Modules\DISCORD\DiscordEmbed;
 
 class InteractionCallbackData extends JSONDataModel {
+	/** do not include any embeds when serializing this message */
+	public const SUPPRESS_EMBEDS = 1 << 2;
+	/** this message is only visible to the user who invoked the Interaction */
+	public const EPHEMERAL = 1 << 6;
+
 	/** is the response TTS */
 	public ?bool $tts = null;
 

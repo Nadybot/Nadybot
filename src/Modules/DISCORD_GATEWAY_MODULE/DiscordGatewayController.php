@@ -132,7 +132,12 @@ use stdClass;
 ]
 class DiscordGatewayController extends ModuleInstance {
 	public const DB_TABLE = "discord_invite_<myname>";
+	public const DB_SLASH_TABLE = "discord_slash_command_<myname>";
 	public const RENAME_OFF = "Off";
+
+	public const SLASH_OFF = 0;
+	public const SLASH_REGULAR = 1;
+	public const SLASH_EMPHEMERAL = 2;
 
 	#[NCA\Inject]
 	public RelayController $relayController;
@@ -194,6 +199,14 @@ class DiscordGatewayController extends ModuleInstance {
 		"{name} [{org}]",
 	])]
 	public string $discordRenameUsers = "{name}";
+
+	/** How to handle Discord Slash-commands */
+	#[NCA\Setting\Options(options: [
+		"Disable" => 0,
+		"Treat them like regular commands" => 1,
+		"Make request and reply private" => 2,
+	])]
+	public int $discordSlashCommands = self::SLASH_EMPHEMERAL;
 
 	/** ID of the Discord role to automatically assign to registered users */
 	#[NCA\Setting\Text]
@@ -853,15 +866,6 @@ class DiscordGatewayController extends ModuleInstance {
 				return false;
 			}
 		);
-		if (isset($this->me)) {
-			$this->discordAPIClient->getGuildApplicationCommands(
-				$guild->id,
-				$this->me->id,
-				function (string $guildId, array $commands): void {
-					$this->registerSlashCommands($guildId, $commands);
-				}
-			);
-		}
 		foreach ($guild->voice_states as $voiceState) {
 			if (!isset($voiceState->user_id)) {
 				continue;
@@ -903,6 +907,11 @@ class DiscordGatewayController extends ModuleInstance {
 
 	/** @return ApplicationCommand[] */
 	public function calcSlashCommands(): array {
+		$enabledCommands = $this->db->table(self::DB_SLASH_TABLE)
+			->pluckAs("cmd", "string")->toArray();
+		if ($this->discordSlashCommands === self::SLASH_OFF) {
+			$enabledCommands = [];
+		}
 		/** @var ApplicationCommand[] */
 		$cmds = [];
 		$objs = Registry::getAllInstances();
@@ -912,6 +921,9 @@ class DiscordGatewayController extends ModuleInstance {
 				/** @var NCA\DefineCommand */
 				$cmdObj = $cmd->newInstance();
 				if (strpos($cmdObj->command, " ") !== false) {
+					continue;
+				}
+				if (!in_array($cmdObj->command, $enabledCommands)) {
 					continue;
 				}
 				$cmds []= $this->getApplicationCommandForDefineCommand($cmdObj);
@@ -938,32 +950,44 @@ class DiscordGatewayController extends ModuleInstance {
 	/**
 	 * @param ApplicationCommand[] $registeredCmds
 	 */
-	protected function registerSlashCommands(string $guildId, array $registeredCmds): void {
-		$this->logger->info("{count} /-commands already registered", [
+	protected function registerSlashCommands(array $registeredCmds): void {
+		$this->logger->info("{count} Slash-commands already registered", [
 			"count" => count($registeredCmds),
 		]);
 		$registeredCmds = new Collection($registeredCmds);
-		$commands = new Collection();//new Collection($this->calcSlashCommands());
+		$commands = new Collection($this->calcSlashCommands());
 		$oldCmds = $registeredCmds->keyBy("name");
 		$newCmds = $commands->keyBy("name");
 
 		$regCommands = $commands->filter(function (ApplicationCommand $cmd) use ($oldCmds): bool {
 			return !$oldCmds->has($cmd->name);
 		})->values();
-		$this->logger->info("{count} /-commands need registering", [
+		$this->logger->info("{count} Slash-commands need registering", [
 			"count" => $regCommands->count(),
 		]);
 		$delCommands = $registeredCmds->filter(function (ApplicationCommand $cmd) use ($newCmds): bool {
 			return !$newCmds->has($cmd->name);
 		})->values();
-		$this->logger->info("{count} /-commands need deleting", [
+		$this->logger->info("{count} Slash-commands need deleting", [
 			"count" => $delCommands->count(),
 		]);
 		$this->processSlashCommandDelQueue(
-			$guildId,
 			$delCommands->toArray(),
-			function() use ($guildId, $commands): void {
-				$this->processSlashCommandQueue($guildId, $commands->toArray());
+			function() use ($regCommands): void {
+				$cmds = $regCommands->toArray();
+				if (empty($cmds) || !isset($this->me)) {
+					return;
+				}
+				$this->discordAPIClient->registerGlobalApplicationCommands(
+					$this->me->id,
+					json_encode($cmds),
+					/** @param ApplicationCommand[] $commands */
+					function (array $commands): void {
+						$this->logger->notice(
+							count($commands) . " Slash-commands registered successfully."
+						);
+					},
+				);
 			}
 		);
 	}
@@ -971,21 +995,20 @@ class DiscordGatewayController extends ModuleInstance {
 	/**
 	 * @param ApplicationCommand[] $cmds
 	 */
-	public function processSlashCommandDelQueue(string $guildId, array $cmds, callable $callback): void {
+	public function processSlashCommandDelQueue(array $cmds, callable $callback): void {
 		if (empty($cmds) || !isset($this->me)) {
-			$this->logger->info("No /-commands left to delete");
+			$this->logger->info("No Slash-commands left to delete");
 			$callback();
 			return;
 		}
 		$cmd = array_shift($cmds);
-		$this->logger->notice("Deleting /-command {$cmd->name}");
-		$this->discordAPIClient->deleteGuildApplicationCommand(
-			$guildId,
+		$this->logger->notice("Deleting Slash-command {$cmd->name}");
+		$this->discordAPIClient->deleteGlobalApplicationCommand(
 			$this->me->id,
 			$cmd->id,
-			function () use ($guildId, $cmds, $callback, $cmd): void {
-				$this->logger->notice("/-command \"{$cmd->name}\" deleted successfully.");
-				$this->timer->callLater(0, [$this, "processSlashCommandDelQueue"], $guildId, $cmds, $callback);
+			function () use ($cmds, $callback, $cmd): void {
+				$this->logger->notice("Slash-command \"{$cmd->name}\" deleted successfully.");
+				$this->timer->callLater(0, [$this, "processSlashCommandDelQueue"], $cmds, $callback);
 			},
 		);
 	}
@@ -993,21 +1016,7 @@ class DiscordGatewayController extends ModuleInstance {
 	/**
 	 * @param ApplicationCommand[] $cmds
 	 */
-	public function processSlashCommandQueue(string $guildId, array $cmds): void {
-		if (empty($cmds) || !isset($this->me)) {
-			$this->logger->info("No /-commands left to register");
-			return;
-		}
-		$cmd = array_shift($cmds);
-		$this->discordAPIClient->registerGuildApplicationCommand(
-			$guildId,
-			$this->me->id,
-			json_encode($cmd),
-			function (ApplicationCommand $cmd) use ($cmds, $guildId): void {
-				$this->logger->info("/-command \"{$cmd->name}\" registered successfully.");
-				$this->timer->callLater(0, [$this, "processSlashCommandQueue"], $guildId, $cmds);
-			},
-		);
+	public function processSlashCommandQueue(array $cmds): void {
 	}
 
 	#[
@@ -1129,6 +1138,13 @@ class DiscordGatewayController extends ModuleInstance {
 		);
 		$this->mustReconnect = true;
 		$this->reconnectDelay = 5;
+		$this->discordAPIClient->getGlobalApplicationCommands(
+			$this->me->id,
+			/** @param ApplicationCommand[] $commands */
+			function (array $commands): void {
+				$this->registerSlashCommands($commands);
+			}
+		);
 	}
 
 	#[NCA\Event(

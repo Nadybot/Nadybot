@@ -10,6 +10,7 @@ use Nadybot\Core\{
 	CmdContext,
 	CommandManager,
 	DB,
+	MessageHub,
 	ModuleInstance,
 	LoggerWrapper,
 	Modules\DISCORD\DiscordAPIClient,
@@ -21,6 +22,9 @@ use Nadybot\Core\{
 	SettingManager,
 	Text,
 };
+use Nadybot\Core\Modules\DISCORD\DiscordChannel;
+use Nadybot\Core\Routing\Character;
+use Nadybot\Core\Routing\RoutableMessage;
 use Nadybot\Modules\DISCORD_GATEWAY_MODULE\Model\Interaction;
 
 /**
@@ -42,6 +46,9 @@ class DiscordGatewayCommandHandler extends ModuleInstance implements AccessLevel
 
 	#[NCA\Inject]
 	public Nadybot $chatBot;
+
+	#[NCA\Inject]
+	public MessageHub $messageHub;
 
 	#[NCA\Inject]
 	public Text $text;
@@ -356,14 +363,38 @@ class DiscordGatewayCommandHandler extends ModuleInstance implements AccessLevel
 		if ($discordUserId === null) {
 			return;
 		}
+		$gw = $this->discordGatewayController;
 		$sendto = new DiscordSlashCommandReply(
 			$interaction->id,
 			$interaction->token,
+			$interaction->channel_id,
 			$context->isDM(),
 		);
 		$context->sendto = $sendto;
 		Registry::injectDependencies($sendto);
 		$userId = $this->getNameForDiscordId($discordUserId);
+		if (isset($interaction->channel_id)
+			&& $gw->discordSlashCommands === $gw::SLASH_REGULAR
+		) {
+			$gw->lookupChannel(
+				$interaction->channel_id,
+				function (DiscordChannel $channel, CmdContext $context, string $userId): void {
+					$rMessage = new RoutableMessage("/" . substr($context->message, 1));
+					$rMessage->setCharacter(
+						new Character($userId, null, null)
+					);
+					$rMessage->appendPath(
+						new Source(
+							Source::DISCORD_PRIV,
+							$channel->name ?? $channel->id,
+						),
+					);
+					$this->messageHub->handle($rMessage);
+				},
+				$context,
+				$userId ?? $discordUserId
+			);
+		}
 		$execCmd = function() use ($context): void {
 			$this->commandManager->checkAndHandleCmd($context);
 		};

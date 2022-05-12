@@ -37,6 +37,7 @@ class DiscordSlashCommandReply implements CommandReply {
 	public function __construct(
 		public string $interactionId,
 		public string $interactionToken,
+		public ?string $channelId,
 		public bool $isDirectMsg=false,
 	) {
 	}
@@ -47,10 +48,14 @@ class DiscordSlashCommandReply implements CommandReply {
 		}
 		$fakeGM = new GuildMember();
 		$fakeGM->nick = $this->chatBot->char->name;
-/*
-		if (!$this->isDirectMsg) {
-			$this->discordGatewayController->lookupChannel(
-				$this->interactionId,
+		$gw = $this->discordGatewayController;
+
+		if (!$this->isDirectMsg
+			&& isset($this->channelId)
+			&& $gw->discordSlashCommands === $gw::SLASH_REGULAR
+		) {
+			$gw->lookupChannel(
+				$this->channelId,
 				function (DiscordChannel $channel, array $msg): void {
 					foreach ($msg as $msgPack) {
 						$this->routeToHub($channel, $msgPack);
@@ -59,12 +64,13 @@ class DiscordSlashCommandReply implements CommandReply {
 				$msg
 			);
 		}
-*/
+
 		foreach ($msg as $msgPack) {
 			$messageObj = $this->discordController->formatMessage($msgPack);
 			$response = new InteractionResponse();
 			$response->type = $response::TYPE_CHANNEL_MESSAGE_WITH_SOURCE;
 			$data = new InteractionCallbackData();
+			$data->flags = $gw->discordSlashCommands === $gw::SLASH_EMPHEMERAL ? $data::EPHEMERAL : null;
 			$data->allowed_mentions = $messageObj->allowed_mentions;
 			$data->embeds = $messageObj->embeds;
 			$data->content = $messageObj->content;

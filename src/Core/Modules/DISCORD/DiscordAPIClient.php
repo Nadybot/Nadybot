@@ -76,6 +76,15 @@ class DiscordAPIClient extends ModuleInstance {
 			->withHeader('Content-Type', 'application/json');
 	}
 
+	public function put(string $uri, string $data): AsyncHttp {
+		$botToken = $this->discordCtrl->discordBotToken;
+		return $this->http
+			->put($uri)
+			->withPostData($data)
+			->withHeader('Authorization', "Bot $botToken")
+			->withHeader('Content-Type', 'application/json');
+	}
+
 	public function delete(string $uri): AsyncHttp {
 		$botToken = $this->discordCtrl->discordBotToken;
 		return $this->http
@@ -94,6 +103,28 @@ class DiscordAPIClient extends ModuleInstance {
 		);
 	}
 
+	/** @phpstan-param callable(ApplicationCommand[]):void $success */
+	public function registerGlobalApplicationCommands(
+		string $applicationId,
+		string $message,
+		?callable $success=null,
+		?callable $failure=null,
+	): void {
+		$this->put(
+			self::DISCORD_API . "/applications/{$applicationId}/commands",
+			$message,
+		)->withCallback(
+			$this->getErrorWrapper(
+				null,
+				function (array $commands) use ($success): void {
+					$this->handleApplicationCommands($commands, $success);
+				},
+				$failure
+			)
+		);
+	}
+
+	/** @phpstan-param callable(ApplicationCommand):void $success */
 	public function registerGuildApplicationCommand(
 		string $guildId,
 		string $applicationId,
@@ -123,6 +154,19 @@ class DiscordAPIClient extends ModuleInstance {
 		);
 	}
 
+	public function deleteGlobalApplicationCommand(
+		string $applicationId,
+		string $commandId,
+		?callable $success=null,
+		?callable $failure=null,
+	): void {
+		$this->delete(
+			self::DISCORD_API . "/applications/{$applicationId}/commands/{$commandId}",
+		)->withCallback(
+			$this->getErrorWrapper(null, $success, $failure)
+		);
+	}
+
 	/** @phpstan-param callable(string, ApplicationCommand[]):void $success */
 	public function getGuildApplicationCommands(
 		string $guildId,
@@ -136,7 +180,26 @@ class DiscordAPIClient extends ModuleInstance {
 			$this->getErrorWrapper(
 				null,
 				function (array $commands) use ($guildId, $success): void {
-					$this->handleApplicationCommands($commands, $guildId, $success);
+					$this->handleGuildApplicationCommands($commands, $guildId, $success);
+				},
+				$failure
+			)
+		);
+	}
+
+	/** @phpstan-param callable(ApplicationCommand[]):void $success */
+	public function getGlobalApplicationCommands(
+		string $applicationId,
+		?callable $success=null,
+		?callable $failure=null,
+	): void {
+		$this->get(
+			self::DISCORD_API . "/applications/{$applicationId}/commands",
+		)->withCallback(
+			$this->getErrorWrapper(
+				null,
+				function (array $commands) use ($success): void {
+					$this->handleApplicationCommands($commands, $success);
 				},
 				$failure
 			)
@@ -145,9 +208,25 @@ class DiscordAPIClient extends ModuleInstance {
 
 	/**
 	 * @param stdClass[] $commands
+	 * @phpstan-param callable(ApplicationCommand[]):void $callback
+	 */
+	protected function handleApplicationCommands(array $commands, ?callable $callback=null): void {
+		$result = [];
+		foreach ($commands as $command) {
+			$appCmd = new ApplicationCommand();
+			$appCmd->fromJSON($command);
+			$result []= $appCmd;
+		}
+		if (isset($callback)) {
+			$callback($result);
+		}
+	}
+
+	/**
+	 * @param stdClass[] $commands
 	 * @phpstan-param callable(string, ApplicationCommand[]):void $callback
 	 */
-	protected function handleApplicationCommands(array $commands, string $guildId, ?callable $callback=null): void {
+	protected function handleGuildApplicationCommands(array $commands, string $guildId, ?callable $callback=null): void {
 		$result = [];
 		foreach ($commands as $command) {
 			$appCmd = new ApplicationCommand();
