@@ -3,6 +3,7 @@
 namespace Nadybot\Modules\DISCORD_GATEWAY_MODULE;
 
 use Closure;
+use Illuminate\Support\Collection;
 use Illuminate\Support\ItemNotFoundException;
 use function Safe\json_encode;
 use Safe\Exceptions\JsonException;
@@ -853,23 +854,12 @@ class DiscordGatewayController extends ModuleInstance {
 			}
 		);
 		if (isset($this->me)) {
-			$cmd = new ApplicationCommand();
-			$cmd->type = $cmd::TYPE_CHAT_INPUT;
-			$cmd->name = "whois";
-			$cmd->description = "Query information about a character";
-			$option = new ApplicationCommandOption();
-			$option->name = "character";
-			$option->description = "Name of the character to look up";
-			$option->type = $option::TYPE_STRING;
-			$option->required = true;
-			$cmd->options = [$option];
-			$this->discordAPIClient->registerGuildCommand(
+			$this->discordAPIClient->getGuildApplicationCommands(
 				$guild->id,
 				$this->me->id,
-				json_encode($cmd),
-				function (ApplicationCommand $cmd): void {
-					$this->logger->notice("/-command \"{$cmd->name}\" registered successfully.");
-				},
+				function (string $guildId, array $commands): void {
+					$this->registerSlashCommands($guildId, $commands);
+				}
 			);
 		}
 		foreach ($guild->voice_states as $voiceState) {
@@ -909,6 +899,115 @@ class DiscordGatewayController extends ModuleInstance {
 		$this->messageHub
 			->registerMessageReceiver($dm)
 			->registerMessageEmitter($dm);
+	}
+
+	/** @return ApplicationCommand[] */
+	public function calcSlashCommands(): array {
+		/** @var ApplicationCommand[] */
+		$cmds = [];
+		$objs = Registry::getAllInstances();
+		foreach ($objs as $obj) {
+			$refClass = new ReflectionClass($obj);
+			foreach ($refClass->getAttributes(NCA\DefineCommand::class) as $cmd) {
+				/** @var NCA\DefineCommand */
+				$cmdObj = $cmd->newInstance();
+				if (strpos($cmdObj->command, " ") !== false) {
+					continue;
+				}
+				$cmds []= $this->getApplicationCommandForDefineCommand($cmdObj);
+			}
+		}
+		return $cmds;
+	}
+
+	private function getApplicationCommandForDefineCommand(NCA\DefineCommand $cmdObj): ApplicationCommand {
+		$cmd = new ApplicationCommand();
+		$cmd->type = $cmd::TYPE_CHAT_INPUT;
+		$cmd->name = $cmdObj->command;
+		$cmd->description = $cmdObj->description;
+		$option = new ApplicationCommandOption();
+		$option->name = "parameters";
+		$option->description = "Parameters for this command";
+		$option->type = $option::TYPE_STRING;
+		$option->required = false;
+		$cmd->options = [$option];
+
+		return $cmd;
+	}
+
+	/**
+	 * @param ApplicationCommand[] $registeredCmds
+	 */
+	protected function registerSlashCommands(string $guildId, array $registeredCmds): void {
+		$this->logger->info("{count} /-commands already registered", [
+			"count" => count($registeredCmds),
+		]);
+		$registeredCmds = new Collection($registeredCmds);
+		$commands = new Collection();//new Collection($this->calcSlashCommands());
+		$oldCmds = $registeredCmds->keyBy("name");
+		$newCmds = $commands->keyBy("name");
+
+		$regCommands = $commands->filter(function (ApplicationCommand $cmd) use ($oldCmds): bool {
+			return !$oldCmds->has($cmd->name);
+		})->values();
+		$this->logger->info("{count} /-commands need registering", [
+			"count" => $regCommands->count(),
+		]);
+		$delCommands = $registeredCmds->filter(function (ApplicationCommand $cmd) use ($newCmds): bool {
+			return !$newCmds->has($cmd->name);
+		})->values();
+		$this->logger->info("{count} /-commands need deleting", [
+			"count" => $delCommands->count(),
+		]);
+		$this->processSlashCommandDelQueue(
+			$guildId,
+			$delCommands->toArray(),
+			function() use ($guildId, $commands): void {
+				$this->processSlashCommandQueue($guildId, $commands->toArray());
+			}
+		);
+	}
+
+	/**
+	 * @param ApplicationCommand[] $cmds
+	 */
+	public function processSlashCommandDelQueue(string $guildId, array $cmds, callable $callback): void {
+		if (empty($cmds) || !isset($this->me)) {
+			$this->logger->info("No /-commands left to delete");
+			$callback();
+			return;
+		}
+		$cmd = array_shift($cmds);
+		$this->logger->notice("Deleting /-command {$cmd->name}");
+		$this->discordAPIClient->deleteGuildApplicationCommand(
+			$guildId,
+			$this->me->id,
+			$cmd->id,
+			function () use ($guildId, $cmds, $callback, $cmd): void {
+				$this->logger->notice("/-command \"{$cmd->name}\" deleted successfully.");
+				$this->timer->callLater(0, [$this, "processSlashCommandDelQueue"], $guildId, $cmds, $callback);
+			},
+		);
+	}
+
+	/**
+	 * @param ApplicationCommand[] $cmds
+	 */
+	public function processSlashCommandQueue(string $guildId, array $cmds): void {
+		if (empty($cmds) || !isset($this->me)) {
+			$this->logger->info("No /-commands left to register");
+			return;
+		}
+		$cmd = array_shift($cmds);
+		$this->discordAPIClient->registerGuildApplicationCommand(
+			$guildId,
+			$this->me->id,
+			json_encode($cmd),
+			function (ApplicationCommand $cmd) use ($cmds, $guildId): void {
+				$this->logger->info("/-command \"{$cmd->name}\" registered successfully.");
+				$this->timer->callLater(0, [$this, "processSlashCommandQueue"], $guildId, $cmds);
+			},
+		);
 	}
 
 	#[

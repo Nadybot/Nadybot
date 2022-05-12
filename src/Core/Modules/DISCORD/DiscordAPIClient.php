@@ -94,7 +94,7 @@ class DiscordAPIClient extends ModuleInstance {
 		);
 	}
 
-	public function registerGuildCommand(
+	public function registerGuildApplicationCommand(
 		string $guildId,
 		string $applicationId,
 		string $message,
@@ -107,6 +107,56 @@ class DiscordAPIClient extends ModuleInstance {
 		)->withCallback(
 			$this->getErrorWrapper(new ApplicationCommand(), $success, $failure)
 		);
+	}
+
+	public function deleteGuildApplicationCommand(
+		string $guildId,
+		string $applicationId,
+		string $commandId,
+		?callable $success=null,
+		?callable $failure=null,
+	): void {
+		$this->delete(
+			self::DISCORD_API . "/applications/{$applicationId}/guilds/{$guildId}/commands/{$commandId}",
+		)->withCallback(
+			$this->getErrorWrapper(null, $success, $failure)
+		);
+	}
+
+	/** @phpstan-param callable(string, ApplicationCommand[]):void $success */
+	public function getGuildApplicationCommands(
+		string $guildId,
+		string $applicationId,
+		?callable $success=null,
+		?callable $failure=null,
+	): void {
+		$this->get(
+			self::DISCORD_API . "/applications/{$applicationId}/guilds/{$guildId}/commands",
+		)->withCallback(
+			$this->getErrorWrapper(
+				null,
+				function (array $commands) use ($guildId, $success): void {
+					$this->handleApplicationCommands($commands, $guildId, $success);
+				},
+				$failure
+			)
+		);
+	}
+
+	/**
+	 * @param stdClass[] $commands
+	 * @phpstan-param callable(string, ApplicationCommand[]):void $callback
+	 */
+	protected function handleApplicationCommands(array $commands, string $guildId, ?callable $callback=null): void {
+		$result = [];
+		foreach ($commands as $command) {
+			$appCmd = new ApplicationCommand();
+			$appCmd->fromJSON($command);
+			$result []= $appCmd;
+		}
+		if (isset($callback)) {
+			$callback($guildId, $result);
+		}
 	}
 
 	public function sendInteractionResponse(
@@ -415,6 +465,28 @@ class DiscordAPIClient extends ModuleInstance {
 					"error" => $response->error,
 					"response" => $response
 				]);
+				return;
+			}
+			// If we run into a ratelimit error, retry later
+			if ($response->headers['status-code'] === "429" && isset($response->request)) {
+				$waitFor = (int)ceil((float)$response->headers['x-ratelimit-reset-after']);
+				$this->timer->callLater(
+					$waitFor,
+					function() use ($response, $o, $success, $failure): void {
+						$request = $response->request;
+						$method = strtolower($request->getMethod());
+						if (!method_exists($this, $method)) {
+							return;
+						}
+						$params = [$request->getURI()];
+						if (in_array($method, ["post", "patch"])) {
+							$params []= $request->getPostData()??"";
+						}
+						$this->{$method}(...$params)
+							->withCallback($this->getErrorWrapper($o, $success, $failure));
+					}
+				);
+				$this->logger->notice("Waiting for {$waitFor}s to retry...");
 				return;
 			}
 			if (substr($response->headers['status-code'], 0, 1) !== "2") {

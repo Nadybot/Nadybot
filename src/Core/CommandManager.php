@@ -30,7 +30,6 @@ use Nadybot\Core\{
 	Routing\RoutableMessage,
 	Routing\Source,
 };
-use Nadybot\Core\Attributes\NoSpace;
 
 #[
 	NCA\Instance,
@@ -1095,7 +1094,7 @@ class CommandManager implements MessageEmitter {
 						$twos = array_fill(0, substr_count($parMask, "%d"), 2);
 						$niceParam = sprintf($parMask, ...$ones) . " " . sprintf($parMask, ...$twos) . " ...";
 					}
-					if (count($params[$i]->getAttributes(NoSpace::class))) {
+					if (count($params[$i]->getAttributes(NCA\NoSpace::class))) {
 						$niceParam = "\x08{$niceParam}";
 					}
 					$paramText []= $niceParam;
