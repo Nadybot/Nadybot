@@ -4,6 +4,8 @@ namespace Nadybot\Modules\DISCORD_GATEWAY_MODULE\Model;
 
 use Nadybot\Core\JSONDataModel;
 
+use function Safe\json_encode;
+
 class ApplicationCommand extends JSONDataModel {
 	/** Slash commands; a text-based command that shows up when a user types / */
 	public const TYPE_CHAT_INPUT = 1;
@@ -54,11 +56,20 @@ class ApplicationCommand extends JSONDataModel {
 	public ?string $default_member_permissions = null;
 
 	/** Indicates whether the command is available in DMs with the app, only for globally-scoped commands. By default, commands are visible. */
-	public ?bool $dm_permission = null;
+	public ?bool $dm_permission = true;
 
 	/** Not recommended for use as field will soon be deprecated. Indicates whether the command is enabled by default when the app is added to a guild, defaults to true */
 	public ?bool $default_permission = null;
 
 	/** Autoincrementing version identifier updated during substantial record changes */
 	public string $version;
+
+	public function isSameAs(self $cmd): bool {
+		$cmp = clone $cmd;
+		unset($cmp->id);
+		unset($cmp->application_id);
+		unset($cmp->version);
+		$cmp->default_permission = null;
+		return json_encode($this) === json_encode($cmp);
+	}
 }

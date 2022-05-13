@@ -939,7 +939,7 @@ class DiscordGatewayController extends ModuleInstance {
 		$cmd->description = $cmdObj->description;
 		$option = new ApplicationCommandOption();
 		$option->name = "parameters";
-		$option->description = "Parameters for this command";
+		$option->description = "(Optional) Parameters for this command";
 		$option->type = $option::TYPE_STRING;
 		$option->required = false;
 		$cmd->options = [$option];
@@ -948,47 +948,76 @@ class DiscordGatewayController extends ModuleInstance {
 	}
 
 	/**
+	 * @param Collection<ApplicationCommand> $live
+	 * @param Collection<ApplicationCommand> $set
+	 * @return Collection<ApplicationCommand>
+	 */
+	private function getChangedCommands(Collection $live, Collection $set): Collection {
+		$live = $live->keyBy("name");
+		$changedOrNewCommands = $set->filter(function (ApplicationCommand $cmd) use ($live): bool {
+			return !$live->has($cmd->name)
+				|| !$cmd->isSameAs($live->get($cmd->name));
+		})->values();
+		return $changedOrNewCommands;
+	}
+
+	/**
+	 * @param Collection<ApplicationCommand> $live
+	 * @param Collection<ApplicationCommand> $set
+	 * @return Collection<ApplicationCommand>
+	 */
+	private function getDeletedCommands(Collection $live, Collection $set): Collection {
+		$set = $set->keyBy("name");
+		$deletedCommands = $live->filter(function (ApplicationCommand $cmd) use ($set): bool {
+			return !$set->has($cmd->name);
+		})->values();
+		return $deletedCommands;
+	}
+
+	/**
 	 * @param ApplicationCommand[] $registeredCmds
 	 */
-	protected function registerSlashCommands(array $registeredCmds): void {
+	protected function updateSlashCommands(array $registeredCmds): void {
 		$this->logger->info("{count} Slash-commands already registered", [
 			"count" => count($registeredCmds),
 		]);
 		$registeredCmds = new Collection($registeredCmds);
 		$commands = new Collection($this->calcSlashCommands());
-		$oldCmds = $registeredCmds->keyBy("name");
-		$newCmds = $commands->keyBy("name");
 
-		$regCommands = $commands->filter(function (ApplicationCommand $cmd) use ($oldCmds): bool {
-			return !$oldCmds->has($cmd->name);
-		})->values();
+		$modifiedCommands = $this->getChangedCommands($registeredCmds, $commands);
 		$this->logger->info("{count} Slash-commands need registering", [
-			"count" => $regCommands->count(),
+			"count" => $modifiedCommands->count(),
 		]);
-		$delCommands = $registeredCmds->filter(function (ApplicationCommand $cmd) use ($newCmds): bool {
-			return !$newCmds->has($cmd->name);
-		})->values();
+
+		$delCommands = $this->getDeletedCommands($registeredCmds, $commands);
 		$this->logger->info("{count} Slash-commands need deleting", [
 			"count" => $delCommands->count(),
 		]);
 		$this->processSlashCommandDelQueue(
 			$delCommands->toArray(),
-			function() use ($regCommands): void {
-				$cmds = $regCommands->toArray();
-				if (empty($cmds) || !isset($this->me)) {
-					return;
-				}
-				$this->discordAPIClient->registerGlobalApplicationCommands(
-					$this->me->id,
-					json_encode($cmds),
-					/** @param ApplicationCommand[] $commands */
-					function (array $commands): void {
-						$this->logger->notice(
-							count($commands) . " Slash-commands registered successfully."
-						);
-					},
-				);
+			function() use ($modifiedCommands): void {
+				$this->setSlashCommands($modifiedCommands);
 			}
+		);
+	}
+
+	/**
+	 * @param Collection<ApplicationCommand> $modifiedCommands
+	*/
+	private function setSlashCommands(Collection $modifiedCommands): void {
+		if ($modifiedCommands->isEmpty() || !isset($this->me)) {
+			return;
+		}
+		$cmds = $modifiedCommands->toArray();
+		$this->discordAPIClient->registerGlobalApplicationCommands(
+			$this->me->id,
+			json_encode($cmds),
+			/** @param ApplicationCommand[] $commands */
+			function (array $commands): void {
+				$this->logger->notice(
+					count($commands) . " Slash-commands registered successfully."
+				);
+			},
 		);
 	}
 
@@ -1138,11 +1167,18 @@ class DiscordGatewayController extends ModuleInstance {
 		);
 		$this->mustReconnect = true;
 		$this->reconnectDelay = 5;
+		$this->registerSlashCommands();
+	}
+
+	public function registerSlashCommands(): void {
+		if (!isset($this->me)) {
+			return;
+		}
 		$this->discordAPIClient->getGlobalApplicationCommands(
 			$this->me->id,
 			/** @param ApplicationCommand[] $commands */
 			function (array $commands): void {
-				$this->registerSlashCommands($commands);
+				$this->updateSlashCommands($commands);
 			}
 		);
 	}
