@@ -206,6 +206,26 @@ class OnlineController extends ModuleInstance {
 	#[NCA\Setting\Boolean]
 	public bool $afkBrbWithoutSymbol = true;
 
+	/** Rank color for superadmin */
+	#[NCA\Setting\Color]
+	public string $rankColorSuperadmin = "#FF0000";
+
+	/** Rank color for admin */
+	#[NCA\Setting\Color]
+	public string $rankColorAdmin = "#FF0000";
+
+	/** Rank color for mod */
+	#[NCA\Setting\Color]
+	public string $rankColorMod = "#00DE42";
+
+	/** Rank color for rl */
+	#[NCA\Setting\Color]
+	public string $rankColorRL = "#FCA712";
+
+	/** Rank color for raid leaders/admins */
+	#[NCA\Setting\Color]
+	public string $rankColorRaid = "#FCA712";
+
 	#[NCA\Setup]
 	public function setup(): void {
 		$this->db->table("online")
@@ -905,16 +925,16 @@ class OnlineController extends ModuleInstance {
 		$displayName = ucfirst($this->accessManager->getDisplayName($accessLevel));
 		switch ($accessLevel) {
 			case 'superadmin':
-				return " $fancyColon <red>{$displayName}<end>";
+				return " $fancyColon {$this->rankColorSuperadmin}{$displayName}<end>";
 			case 'admin':
-				return " $fancyColon <red>{$displayName}<end>";
+				return " $fancyColon {$this->rankColorAdmin}{$displayName}<end>";
 			case 'mod':
-				return " $fancyColon <green>{$displayName}<end>";
+				return " $fancyColon {$this->rankColorMod}{$displayName}<end>";
 			case 'rl':
-				return " $fancyColon <orange>{$displayName}<end>";
+				return " $fancyColon {$this->rankColorRL}{$displayName}<end>";
 		}
 		if (substr($accessLevel, 0, 5) === "raid_") {
-			return " $fancyColon <orange>{$displayName}<end>";
+			return " $fancyColon {$this->rankColorRaid}{$displayName}<end>";
 		}
 		return "";
 	}
