@@ -902,21 +902,19 @@ class OnlineController extends ModuleInstance {
 		}
 
 		$accessLevel = $this->accessManager->getAccessLevelForCharacter($name);
+		$displayName = ucfirst($this->accessManager->getDisplayName($accessLevel));
 		switch ($accessLevel) {
 			case 'superadmin':
-				return " $fancyColon <red>SuperAdmin<end>";
+				return " $fancyColon <red>{$displayName}<end>";
 			case 'admin':
-				return " $fancyColon <red>Admin<end>";
+				return " $fancyColon <red>{$displayName}<end>";
 			case 'mod':
-				return " $fancyColon <green>Mod<end>";
+				return " $fancyColon <green>{$displayName}<end>";
 			case 'rl':
-				return " $fancyColon <orange>RL<end>";
+				return " $fancyColon <orange>{$displayName}<end>";
 		}
 		if (substr($accessLevel, 0, 5) === "raid_") {
-			$setName = $this->settingManager->getString("name_{$accessLevel}");
-			if ($setName !== null) {
-				return " $fancyColon <orange>$setName<end>";
-			}
+			return " $fancyColon <orange>{$displayName}<end>";
 		}
 		return "";
 	}

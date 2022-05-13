@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- The name of every access-level-rank can now be changed freely.
+- The `!leaders`-command can now be configured to also show the admins and mods.
+
 ### Changed
 
 - The `!track online`-command got a real parser now and supports filtering by level (ranges), title level (ranges), faction(s) and profession(s).
