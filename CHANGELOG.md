@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - The name of every access-level-rank can now be changed freely.
+- The `!leaders`-command can now be configured to also show the admins and mods.
 
 ### Changed
 

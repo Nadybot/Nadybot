@@ -18,6 +18,7 @@ use Nadybot\Core\{
 	LoggerWrapper,
 	Modules\ALTS\AltEvent,
 	Modules\ALTS\AltsController,
+	Modules\ADMIN\AdminController,
 	Nadybot,
 	ParamClass\PCharacter,
 	SettingManager,
@@ -59,6 +60,9 @@ class RaidRankController extends ModuleInstance implements AccessLevelProvider {
 
 	#[NCA\Inject]
 	public AltsController $altsController;
+
+	#[NCA\Inject]
+	public AdminController $adminController;
 
 	#[NCA\Inject]
 	public CommandAlias $commandAlias;
@@ -115,6 +119,10 @@ class RaidRankController extends ModuleInstance implements AccessLevelProvider {
 		'1 Year' => 31536000,
 	])]
 	public int $raidDurationRecently = 2592000;
+
+	/** Include admins in leaderlist */
+	#[NCA\Setting\Boolean]
+	public bool $leadersIncludeAdmins = false;
 
 	/** @var array<string,RaidRank> */
 	public array $ranks = [];
@@ -455,6 +463,10 @@ class RaidRankController extends ModuleInstance implements AccessLevelProvider {
 	#[NCA\HandlesCommand("leaderlist")]
 	public function leaderlistCommand(CmdContext $context, #[NCA\Str("all")] ?string $all): void {
 		$showOfflineAlts = isset($all);
+		$adminLines = [];
+		if ($this->leadersIncludeAdmins) {
+			$adminLines = $this->adminController->getLeaderList($showOfflineAlts);
+		}
 
 		$blob = "";
 		$admins = array_filter(
@@ -470,9 +482,13 @@ class RaidRankController extends ModuleInstance implements AccessLevelProvider {
 			}
 		);
 
-		if (empty($leaders) && empty($admins)) {
+		if (empty($leaders) && empty($admins) && empty($adminLines)) {
 			$context->reply("<myname> has no raid leaders or raid admins.");
 			return;
+		}
+
+		if (count($adminLines)) {
+			$blob .= join("\n", $adminLines) . "\n";
 		}
 
 		$raidStats = $this->getRaidsByStarter();
@@ -496,7 +512,11 @@ class RaidRankController extends ModuleInstance implements AccessLevelProvider {
 				);
 		}
 
-		$link = $this->text->makeBlob('Raid leaders/admins', $blob);
+		$title = 'Raid leaders/admins';
+		if (count($adminLines)) {
+			$title = "All leaders and admins";
+		}
+		$link = $this->text->makeBlob($title, $blob);
 		$context->reply($link);
 	}
 

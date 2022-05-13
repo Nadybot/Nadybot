@@ -157,7 +157,14 @@ class AdminController extends ModuleInstance {
 	#[NCA\HandlesCommand("adminlist")]
 	#[NCA\Help\Group("ranks")]
 	public function adminlistCommand(CmdContext $context, #[NCA\Str("all")] ?string $all): void {
-		$showOfflineAlts = isset($all);
+		$blobs = $this->getLeaderList(isset($all));
+
+		$link = $this->text->makeBlob('Bot administrators', join("\n", $blobs));
+		$context->reply($link);
+	}
+
+	/** @return string[] */
+	public function getLeaderList(bool $showOfflineAlts): array {
 		$admins = [];
 		$mods = [];
 		$blobs = [];
@@ -191,9 +198,7 @@ class AdminController extends ModuleInstance {
 				"s<end>\n".
 				join("", $mods);
 		}
-
-		$link = $this->text->makeBlob('Bot administrators', join("\n", $blobs));
-		$context->reply($link);
+		return $blobs;
 	}
 
 	#[NCA\Event(
