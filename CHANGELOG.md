@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - The `!track online`-command got a real parser now and supports filtering by level (ranges), title level (ranges), faction(s) and profession(s).
 - The message that's displayed what a tracked character goes on/offline is now completely configurable with {placeholders}. To display this properly, a new setting type `tracker_format` has been introduced that will display rendered and unrendered versions of the setting. There is also logic to remove `{org}` from the message is the character is not member of an org.
 - Gracefully support URLs for bank-CSV location. Download will be async with proper error handling.
+- Raid ranks in online-list are also shown for access-level "guild".
 
 ## [6.0.2] - 2022-05-10
 

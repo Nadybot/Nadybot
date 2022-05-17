@@ -29,6 +29,7 @@ use Nadybot\Core\{
 use Nadybot\Modules\{
 	DISCORD_GATEWAY_MODULE\DiscordGatewayController,
 	RAID_MODULE\RaidController,
+	RAID_MODULE\RaidRankController,
 	RELAY_MODULE\RelayController,
 	RELAY_MODULE\Relay,
 	WEBSERVER_MODULE\ApiResponse,
@@ -106,6 +107,9 @@ class OnlineController extends ModuleInstance {
 
 	#[NCA\Inject]
 	public RaidController $raidController;
+
+	#[NCA\Inject]
+	public RaidRankController $raidRankController;
 
 	#[NCA\Inject]
 	public RelayController $relayController;
@@ -933,7 +937,9 @@ class OnlineController extends ModuleInstance {
 			case 'rl':
 				return " $fancyColon {$this->rankColorRL}{$displayName}<end>";
 		}
-		if (substr($accessLevel, 0, 5) === "raid_") {
+		$raidRank = $this->raidRankController->getSingleAccessLevel($name);
+		if (isset($raidRank)) {
+			$displayName = ucfirst($this->accessManager->getDisplayName($raidRank));
 			return " $fancyColon {$this->rankColorRaid}{$displayName}<end>";
 		}
 		return "";
