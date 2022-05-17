@@ -7,6 +7,11 @@ use Nadybot\Core\Modules\DISCORD\DiscordMessageIn;
 use Nadybot\Core\Modules\DISCORD\DiscordUser;
 
 class Interaction extends JSONDataModel {
+	public const TYPE_PING = 1;
+	public const TYPE_APPLICATION_COMMAND = 2;
+	public const TYPE_MESSAGE_COMPONENT = 3;
+	public const TYPE_APPLICATION_COMMAND_AUTOCOMPLETE = 4;
+	public const TYPE_MODAL_SUBMIT = 5;
 	/** id of the interaction */
 	public string $id;
 
@@ -50,7 +55,12 @@ class Interaction extends JSONDataModel {
 		if (!isset($this->data)) {
 			return null;
 		}
-		$cmdOptions = $this->data->getOptionString();
+		$cmdOptions = null;
+		if ($this->type === self::TYPE_MESSAGE_COMPONENT) {
+			$cmdOptions = $this->data->custom_id ?? null;
+		} elseif ($this->type === self::TYPE_APPLICATION_COMMAND) {
+			$cmdOptions = $this->data->getOptionString();
+		}
 		if (!isset($cmdOptions)) {
 			return null;
 		}
