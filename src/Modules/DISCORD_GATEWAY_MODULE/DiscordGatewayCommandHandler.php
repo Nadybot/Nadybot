@@ -334,6 +334,10 @@ class DiscordGatewayCommandHandler extends ModuleInstance implements AccessLevel
 		if (!isset($discordUserId)) {
 			return;
 		}
+		if ($interaction->type !== $interaction::TYPE_APPLICATION_COMMAND
+			&& $interaction->type !== $interaction::TYPE_MESSAGE_COMPONENT) {
+			return;
+		}
 		$context = new CmdContext($discordUserId);
 		$context->setIsDM(isset($interaction->user));
 		$cmd = $interaction->toCommand();
@@ -347,10 +351,15 @@ class DiscordGatewayCommandHandler extends ModuleInstance implements AccessLevel
 				return;
 			}
 			$context->source = Source::DISCORD_PRIV . "({$channel->name})";
+			$cmdMap = $this->commandManager->getPermsetMapForSource($context->source);
+			if (!isset($cmdMap)) {
+				$context->source = Source::DISCORD_PRIV . "({$channel->id})";
+				$cmdMap = $this->commandManager->getPermsetMapForSource($context->source);
+			}
 		} else {
 			$context->source = Source::DISCORD_MSG . "({$discordUserId})";
+			$cmdMap = $this->commandManager->getPermsetMapForSource($context->source);
 		}
-		$cmdMap = $this->commandManager->getPermsetMapForSource($context->source);
 		if (!isset($cmdMap)) {
 			return;
 		}
