@@ -12,6 +12,8 @@ class DiscordMessageOut {
 	public ?string $file = null;
 	/** @var \Nadybot\Core\Modules\DISCORD\DiscordEmbed[] */
 	public array $embeds = [];
+	/** @var \Nadybot\Core\Modules\DISCORD\DiscordActionRowComponent[] */
+	public array $components = [];
 	public ?object $allowed_mentions = null;
 	public ?object $message_reference = null;
 
