@@ -1045,6 +1045,8 @@ class DiscordGatewayController extends ModuleInstance {
 
 	/**
 	 * @param ApplicationCommand[] $registeredCmds
+	 * @phpstan-param null|callable():void $success
+	 * @phpstan-param null|callable(string):void $failure
 	 */
 	protected function updateSlashCommands(array $registeredCmds, ?callable $success=null, ?callable $failure=null): void {
 		$this->logger->info("{count} Slash-commands already registered", [
@@ -1069,7 +1071,9 @@ class DiscordGatewayController extends ModuleInstance {
 
 	/**
 	 * @param Collection<ApplicationCommand> $modifiedCommands
-	*/
+	 * @phpstan-param null|callable():void $success
+	 * @phpstan-param null|callable(string):void $failure
+	 */
 	private function setSlashCommands(
 		Collection $modifiedCommands,
 		?callable $success=null,
@@ -1246,6 +1250,10 @@ class DiscordGatewayController extends ModuleInstance {
 		$this->registerSlashCommands();
 	}
 
+	/**
+	 * @phpstan-param null|callable():void $success
+	 * @phpstan-param null|callable(string):void $failure
+	 */
 	public function registerSlashCommands(?callable $success=null, ?callable $failure=null): void {
 		if (!isset($this->me)) {
 			return;
