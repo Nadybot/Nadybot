@@ -558,7 +558,7 @@ class DiscordAPIClient extends ModuleInstance {
 							return;
 						}
 						$params = [$request->getURI()];
-						if (in_array($method, ["post", "patch"])) {
+						if (in_array($method, ["post", "patch", "put"])) {
 							$params []= $request->getPostData()??"";
 						}
 						$this->{$method}(...$params)

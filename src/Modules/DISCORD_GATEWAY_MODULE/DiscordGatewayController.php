@@ -3,6 +3,13 @@
 namespace Nadybot\Modules\DISCORD_GATEWAY_MODULE;
 
 use Closure;
+use Exception;
+use ReflectionClass;
+use ReflectionClassConstant;
+use ReflectionMethod;
+use ReflectionNamedType;
+use ReflectionParameter;
+use stdClass;
 use Illuminate\Support\Collection;
 use Illuminate\Support\ItemNotFoundException;
 use function Safe\json_encode;
@@ -21,6 +28,7 @@ use Nadybot\Core\{
 	MessageHub,
 	Modules\ALTS\AltsController,
 	Nadybot,
+	ParamClass\Base,
 	Registry,
 	Routing\Character,
 	Routing\Events\Online,
@@ -64,9 +72,6 @@ use Nadybot\Modules\DISCORD_GATEWAY_MODULE\Model\{
 };
 use Nadybot\Modules\WEBSERVER_MODULE\StatsController;
 use Nadybot\Modules\RELAY_MODULE\RelayController;
-use ReflectionClass;
-use ReflectionClassConstant;
-use stdClass;
 
 /**
  * @author Nadyita (RK5)
@@ -937,14 +942,82 @@ class DiscordGatewayController extends ModuleInstance {
 		$cmd->type = $cmd::TYPE_CHAT_INPUT;
 		$cmd->name = $cmdObj->command;
 		$cmd->description = $cmdObj->description;
+		$objs = Registry::getAllInstances();
+		$types = [];
+		foreach ($objs as $obj) {
+			$refClass = new ReflectionClass($obj);
+			foreach ($refClass->getMethods() as $refMethod) {
+				foreach ($refMethod->getAttributes(NCA\HandlesCommand::class) as $hc) {
+					/** @var NCA\HandlesCommand */
+					$hcObj = $hc->newInstance();
+					if (explode(" ", $hcObj->command)[0] !== $cmd->name) {
+						continue;
+					}
+					$type = $this->getApplicationCommandOptionType($refMethod);
+					if (isset($type)) {
+						$types []= $type;
+					}
+				}
+			}
+		}
+		if (empty($types)) {
+			throw new Exception("No validad handlers found for {$cmdObj->command}.");
+		}
+		if (count($types) === 1 && $types[0] === 0) {
+			return $cmd;
+		}
+
 		$option = new ApplicationCommandOption();
 		$option->name = "parameters";
-		$option->description = "(Optional) Parameters for this command";
+		$option->description = "Parameters for this command";
 		$option->type = $option::TYPE_STRING;
-		$option->required = false;
+		$option->required = min($types) === 2;
 		$cmd->options = [$option];
 
 		return $cmd;
+	}
+
+	private function getApplicationCommandOptionType(ReflectionMethod $refMethod): ?int {
+		$params = $refMethod->getParameters();
+		if (count($params) === 0
+			|| !$params[0]->hasType()) {
+			return null;
+		}
+		$type = $params[0]->getType();
+		if (!($type instanceof ReflectionNamedType)
+			|| ($type->getName() !== CmdContext::class)) {
+			return null;
+		}
+		if (count($params) === 1) {
+			return 0;
+		}
+
+		$type = 1;
+		for ($i = 1; $i < count($params); $i++) {
+			$paramType = $this->getParamOptionType($params[$i], count($params));
+			if ($paramType === null) {
+				return null;
+			}
+			$type = max($type, $paramType);
+		}
+		return $type;
+	}
+
+	private function getParamOptionType(ReflectionParameter $param, int $numParams): ?int {
+		if (!$param->hasType()) {
+			return null;
+		}
+		$type = $param->getType();
+		if (!($type instanceof ReflectionNamedType)) {
+			return null;
+		}
+		if (!$type->isBuiltin() && !is_subclass_of($type->getName(), Base::class)) {
+			return null;
+		}
+		if ($param->allowsNull()) {
+			return 1;
+		}
+		return 2;
 	}
 
 	/**
@@ -1009,6 +1082,10 @@ class DiscordGatewayController extends ModuleInstance {
 			return;
 		}
 		$cmds = $modifiedCommands->toArray();
+		$data = json_encode($cmds);
+		$data = preg_replace('/,"[^"]+":null/', '', $data);
+		$data = preg_replace('/"[^"]+":null,/', '', $data);
+		$data = preg_replace('/"[^"]+":null/', '', $data);
 		$this->discordAPIClient->registerGlobalApplicationCommands(
 			$this->me->id,
 			json_encode($cmds),

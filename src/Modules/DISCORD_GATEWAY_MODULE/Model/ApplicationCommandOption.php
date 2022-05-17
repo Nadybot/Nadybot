@@ -68,7 +68,7 @@ class ApplicationCommandOption extends JSONDataModel {
 	public null|int|float $min_value = null;
 
 	/** If the option is an INTEGER or NUMBER type, the maximum value permitted */
-	public null|int|float $maxvalue = null;
+	public null|int|float $max_value = null;
 
 	/** If autocomplete interactions are enabled for this STRING, INTEGER, or NUMBER type option */
 	public ?bool $autocomplete = null;
