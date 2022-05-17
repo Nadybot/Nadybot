@@ -21,6 +21,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Raid ranks in online-list are also shown for access-level "guild".
 - Joining and leaving voice chats will now display the linked AO character, if available.
 
+### Fix
+
+- Due to a logic error, once a websocket connection timed out, chances were, it would constantly timeout again.
+
 ## [6.0.2] - 2022-05-10
 
 ### Added
