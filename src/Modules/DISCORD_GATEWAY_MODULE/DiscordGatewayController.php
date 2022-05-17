@@ -12,6 +12,8 @@ use ReflectionParameter;
 use stdClass;
 use Illuminate\Support\Collection;
 use Illuminate\Support\ItemNotFoundException;
+
+use function Safe\json_decode;
 use function Safe\json_encode;
 use Safe\Exceptions\JsonException;
 use Nadybot\Core\{
@@ -43,6 +45,7 @@ use Nadybot\Core\{
 	WebsocketClient,
 	WebsocketError,
 };
+use Nadybot\Core\DBSchema\CmdCfg;
 use Nadybot\Core\Modules\DISCORD\{
 	DiscordAPIClient,
 	DiscordChannel,
@@ -53,6 +56,7 @@ use Nadybot\Core\Modules\DISCORD\{
 	DiscordMessageIn,
 	DiscordUser,
 };
+use Nadybot\Core\ParamClass\PRemove;
 use Nadybot\Modules\DISCORD_GATEWAY_MODULE\Model\{
 	Activity,
 	ApplicationCommand,
@@ -118,6 +122,11 @@ use Nadybot\Modules\RELAY_MODULE\RelayController;
 		command: "discord connect/disconnect",
 		accessLevel: "mod",
 		description: "Connect or disconnect the bot from Discord",
+	),
+	NCA\DefineCommand(
+		command: "discord slash-commands",
+		accessLevel: "mod",
+		description: "Manage the exposed Discord slash-commands",
 	),
 	NCA\DefineCommand(
 		command: "discord create invite for yourself",
@@ -917,6 +926,7 @@ class DiscordGatewayController extends ModuleInstance {
 		if ($this->discordSlashCommands === self::SLASH_OFF) {
 			$enabledCommands = [];
 		}
+		$enabledCommands = ["whois", "online"];
 		/** @var ApplicationCommand[] */
 		$cmds = [];
 		$objs = Registry::getAllInstances();
@@ -1023,62 +1033,58 @@ class DiscordGatewayController extends ModuleInstance {
 	/**
 	 * @param Collection<ApplicationCommand> $live
 	 * @param Collection<ApplicationCommand> $set
-	 * @return Collection<ApplicationCommand>
 	 */
-	private function getChangedCommands(Collection $live, Collection $set): Collection {
+	private function getNumChangedSlashCommands(Collection $live, Collection $set): int {
 		$live = $live->keyBy("name");
 		$changedOrNewCommands = $set->filter(function (ApplicationCommand $cmd) use ($live): bool {
 			return !$live->has($cmd->name)
 				|| !$cmd->isSameAs($live->get($cmd->name));
 		})->values();
-		return $changedOrNewCommands;
-	}
-
-	/**
-	 * @param Collection<ApplicationCommand> $live
-	 * @param Collection<ApplicationCommand> $set
-	 * @return Collection<ApplicationCommand>
-	 */
-	private function getDeletedCommands(Collection $live, Collection $set): Collection {
-		$set = $set->keyBy("name");
-		$deletedCommands = $live->filter(function (ApplicationCommand $cmd) use ($set): bool {
-			return !$set->has($cmd->name);
-		})->values();
-		return $deletedCommands;
+		return $changedOrNewCommands->count();
 	}
 
 	/**
 	 * @param ApplicationCommand[] $registeredCmds
 	 */
-	protected function updateSlashCommands(array $registeredCmds): void {
+	protected function updateSlashCommands(array $registeredCmds, ?callable $success=null, ?callable $failure=null): void {
 		$this->logger->info("{count} Slash-commands already registered", [
 			"count" => count($registeredCmds),
 		]);
 		$registeredCmds = new Collection($registeredCmds);
 		$commands = new Collection($this->calcSlashCommands());
 
-		$modifiedCommands = $this->getChangedCommands($registeredCmds, $commands);
-		$this->logger->info("{count} Slash-commands need registering", [
-			"count" => $modifiedCommands->count(),
+		$numModifiedCommands = $this->getNumChangedSlashCommands($registeredCmds, $commands);
+		$this->logger->info("{count} Slash-commands need (re-)registering", [
+			"count" => $numModifiedCommands,
 		]);
 
-		$delCommands = $this->getDeletedCommands($registeredCmds, $commands);
-		$this->logger->info("{count} Slash-commands need deleting", [
-			"count" => $delCommands->count(),
-		]);
-		$this->processSlashCommandDelQueue(
-			$delCommands->toArray(),
-			function() use ($modifiedCommands): void {
-				$this->setSlashCommands($modifiedCommands);
+		if ($registeredCmds->count() === $commands->count() && $numModifiedCommands === 0) {
+			if (isset($success)) {
+				$success();
 			}
-		);
+			return;
+		}
+		$this->setSlashCommands($commands, $success, $failure);
 	}
 
 	/**
 	 * @param Collection<ApplicationCommand> $modifiedCommands
 	*/
-	private function setSlashCommands(Collection $modifiedCommands): void {
-		if ($modifiedCommands->isEmpty() || !isset($this->me)) {
+	private function setSlashCommands(
+		Collection $modifiedCommands,
+		?callable $success=null,
+		?callable $failure=null,
+	): void {
+		if ($modifiedCommands->isEmpty()) {
+			if (isset($success)) {
+				$success();
+			}
+			return;
+		}
+		if (!isset($this->me)) {
+			if (isset($failure)) {
+				$failure("Currently not connected to Discord, try again later.");
+			}
 			return;
 		}
 		$cmds = $modifiedCommands->toArray();
@@ -1088,41 +1094,34 @@ class DiscordGatewayController extends ModuleInstance {
 		$data = preg_replace('/"[^"]+":null/', '', $data);
 		$this->discordAPIClient->registerGlobalApplicationCommands(
 			$this->me->id,
-			json_encode($cmds),
+			$data,
 			/** @param ApplicationCommand[] $commands */
-			function (array $commands): void {
+			function (array $commands) use ($success): void {
 				$this->logger->notice(
 					count($commands) . " Slash-commands registered successfully."
 				);
+				if (isset($success)) {
+					$success();
+				}
 			},
+			function (HttpResponse $response) use ($failure): bool {
+				if (!isset($failure)) {
+					return false;
+				}
+				if ($response->headers["content-type"] !== "application/json") {
+					$failure($response->body??"Unknown error");
+					return true;
+				}
+				try {
+					$json = json_decode($response->body ?? "null");
+				} catch (JsonException) {
+					$failure($response->body??"Unknown error");
+					return true;
+				}
+				$failure($json->message??"Unknown error");
+				return true;
+			}
 		);
-	}
-
-	/**
-	 * @param ApplicationCommand[] $cmds
-	 */
-	public function processSlashCommandDelQueue(array $cmds, callable $callback): void {
-		if (empty($cmds) || !isset($this->me)) {
-			$this->logger->info("No Slash-commands left to delete");
-			$callback();
-			return;
-		}
-		$cmd = array_shift($cmds);
-		$this->logger->notice("Deleting Slash-command {$cmd->name}");
-		$this->discordAPIClient->deleteGlobalApplicationCommand(
-			$this->me->id,
-			$cmd->id,
-			function () use ($cmds, $callback, $cmd): void {
-				$this->logger->notice("Slash-command \"{$cmd->name}\" deleted successfully.");
-				$this->timer->callLater(0, [$this, "processSlashCommandDelQueue"], $cmds, $callback);
-			},
-		);
-	}
-
-	/**
-	 * @param ApplicationCommand[] $cmds
-	 */
-	public function processSlashCommandQueue(array $cmds): void {
 	}
 
 	#[
@@ -1247,15 +1246,15 @@ class DiscordGatewayController extends ModuleInstance {
 		$this->registerSlashCommands();
 	}
 
-	public function registerSlashCommands(): void {
+	public function registerSlashCommands(?callable $success=null, ?callable $failure=null): void {
 		if (!isset($this->me)) {
 			return;
 		}
 		$this->discordAPIClient->getGlobalApplicationCommands(
 			$this->me->id,
 			/** @param ApplicationCommand[] $commands */
-			function (array $commands): void {
-				$this->updateSlashCommands($commands);
+			function (array $commands) use ($success, $failure): void {
+				$this->updateSlashCommands($commands, $success, $failure);
 			}
 		);
 	}
@@ -2009,5 +2008,200 @@ class DiscordGatewayController extends ModuleInstance {
 			"gives the Discord user the same rights. Do not give away your\n".
 			"personal invite code!";
 		$context->reply($this->text->makeBlob("Join {$guildName}", $blob));
+	}
+
+	/** Show all currently exposed Discord slash-commands */
+	#[NCA\HandlesCommand("discord slash-commands")]
+	public function listDiscordSlashCommands(
+		CmdContext $context,
+		#[NCA\Str("slash")] string $action,
+		#[NCA\Str("list")] ?string $subAction
+	): void {
+		$cmds = $this->db->table(self::DB_SLASH_TABLE)
+			->orderBy("cmd")
+			->pluckAs("cmd", "string");
+		$lines = $cmds->map(function (string $cmd): string {
+			$delCommand = $this->text->makeChatcmd(
+				"remove",
+				"/tell <myname> discord slash rem {$cmd}",
+			);
+			return "<tab>{$cmd} [{$delCommand}]";
+		});
+		if ($lines->isEmpty()) {
+			$context->reply("Registered Slash-commands (0)");
+			return;
+		}
+		$blob = "<header2>Currently registered Slash-commands<end>\n".
+			$lines->join("\n");
+		$context->reply($this->text->makeBlob(
+			"Registered Slash-commands (" . $lines->count() . ")",
+			$blob
+		));
+	}
+
+	/** Add one or more commands to the list of Discord slash-commands */
+	#[NCA\HandlesCommand("discord slash-commands")]
+	public function addDiscordSlashCommands(
+		CmdContext $context,
+		#[NCA\Str("slash")] string $action,
+		#[NCA\Str("add")] string $subAction,
+		#[NCA\PWord] string ...$commands,
+	): void {
+		$cmds = $this->db->table(self::DB_SLASH_TABLE)
+			->orderBy("cmd")
+			->pluckAs("cmd", "string")
+			->toArray();
+		$newCommands = (new Collection($commands))
+			->map(function (string $cmd): string {
+				return strtolower($cmd);
+			})
+			->unique()
+			->filter(function (string $cmd) use ($cmds): bool {
+				return !in_array($cmd, $cmds);
+			});
+		$illegalCommands = $newCommands
+			->filter(function (string $cmd): bool {
+				foreach ($this->commandManager->commands as $permSet => $cmds) {
+					if (isset($cmds[$cmd])) {
+						return false;
+					}
+				}
+				return true;
+			});
+		if ($illegalCommands->isNotEmpty()) {
+			$msg = "The following command doesn't exist or is not enabled: %s";
+			if ($illegalCommands->count() !== 1) {
+				$msg = "The following commands don't exist or aren't enabled: %s";
+			}
+			$errors = $this->text->arraySprintf("<highlight>%s<end>", ...$illegalCommands->toArray());
+			$context->reply(sprintf($msg, $this->text->enumerate(...$errors)));
+			return;
+		}
+		if ($newCommands->isEmpty()) {
+			$context->reply("All given commands are already exposed as Slash-commands.");
+			return;
+		}
+		if (count($cmds) + $newCommands->count() > 100) {
+			$context->reply("You can only expose a total of 100 commands.");
+			return;
+		}
+		$cmdText = $newCommands->containsOneItem() ? "command" : "commands";
+		if (!$this->db->table(self::DB_SLASH_TABLE)
+			->insert(
+				$newCommands->map(function(string $cmd): array {
+					return ["cmd" => $cmd];
+				})->toArray()
+			)
+		) {
+			$context->reply("There was an error registering the {$cmdText}.");
+			return;
+		}
+		$context->reply("Trying to add " . $newCommands->count() . " {$cmdText}...");
+		$this->registerSlashCommands(
+			function() use ($newCommands, $context, $cmdText): void {
+				$context->reply(
+					"Successfully registered " . $newCommands->count(). " new ".
+					"Slash-{$cmdText}."
+				);
+			},
+			function(string $errorMsg) use ($newCommands, $context, $cmdText): void {
+				$this->db->table(self::DB_SLASH_TABLE)
+					->whereIn("cmd", $newCommands->toArray())
+					->delete();
+				$context->reply(
+					"Error registering " . $newCommands->count(). " new ".
+					"Slash-{$cmdText}: {$errorMsg}"
+				);
+			}
+		);
+	}
+
+	/** Remove one or more commands from the list of Discord slash-commands */
+	#[NCA\HandlesCommand("discord slash-commands")]
+	public function remDiscordSlashCommands(
+		CmdContext $context,
+		#[NCA\Str("slash")] string $action,
+		PRemove $subAction,
+		#[NCA\PWord] string ...$commands,
+	): void {
+		$cmds = $this->db->table(self::DB_SLASH_TABLE)
+			->orderBy("cmd")
+			->pluckAs("cmd", "string")
+			->toArray();
+		$delCommands = (new Collection($commands))
+			->map(function (string $cmd): string {
+				return strtolower($cmd);
+			})
+			->unique()
+			->filter(function (string $cmd) use ($cmds): bool {
+				return in_array($cmd, $cmds);
+			});
+		if ($delCommands->isEmpty()) {
+			$context->reply("None of the given commands are currently exposed as Slash-commands.");
+			return;
+		}
+		$cmdText = $delCommands->containsOneItem() ? "command" : "commands";
+		$this->db->table(self::DB_SLASH_TABLE)
+			->whereIn("cmd", $delCommands->toArray())
+			->delete();
+		$context->reply("Trying to remove " . $delCommands->count() . " {$cmdText}...");
+		$this->registerSlashCommands(
+			function() use ($delCommands, $context, $cmdText): void {
+				$context->reply(
+					"Successfully removed " . $delCommands->count(). " ".
+					"Slash-{$cmdText}."
+				);
+			},
+			function(string $errorMsg) use ($delCommands, $context, $cmdText): void {
+				$this->db->table(self::DB_SLASH_TABLE)
+					->insert(
+						$delCommands->map(function(string $cmd): array {
+							return ["cmd" => $cmd];
+						})->toArray()
+					);
+				$context->reply(
+					"Error removing " . $delCommands->count(). " ".
+					"Slash-{$cmdText}: {$errorMsg}"
+				);
+			}
+		);
+	}
+
+	/** Pick commands to add to the list of Discord slash-commands */
+	#[NCA\HandlesCommand("discord slash-commands")]
+	public function pickDiscordSlashCommands(
+		CmdContext $context,
+		#[NCA\Str("slash")] string $action,
+		#[NCA\Str("pick")] string $subAction,
+	): void {
+		/** @var string[] */
+		$exposedCmds = $this->db->table(self::DB_SLASH_TABLE)
+			->orderBy("cmd")
+			->pluckAs("cmd", "string")
+			->toArray();
+		/** @var Collection<CmdCfg> */
+		$cmds = new Collection($this->commandManager->getAll(false));
+		/** @var Collection<string> */
+		$parts = $cmds
+			->sortBy("module")
+			->filter(function (CmdCfg $cmd) use ($exposedCmds): bool {
+				return !in_array($cmd->cmd, $exposedCmds);
+			})->groupBy("module")
+			->map(function(Collection $cmds, string $module): string {
+				$lines = $cmds->sortBy("cmd")->map(function(CmdCfg $cmd): string {
+					$addLink = $this->text->makeChatcmd(
+						"add",
+						"/tell <myname> discord slash add {$cmd->cmd}"
+					);
+					return "<tab>[{$addLink}] <highlight>{$cmd->cmd}<end>: {$cmd->description}";
+				});
+				return "<pagebreak><header2>{$module}<end>\n".
+					$lines->join("\n");
+			});
+		$blob = $parts->join("\n\n");
+		$context->reply($this->text->makeBlob(
+			"Pick from available commands (" . $cmds->count() . ")",
+			$blob,
+		));
 	}
 }
