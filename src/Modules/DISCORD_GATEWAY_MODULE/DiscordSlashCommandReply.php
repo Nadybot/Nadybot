@@ -2,10 +2,10 @@
 
 namespace Nadybot\Modules\DISCORD_GATEWAY_MODULE;
 
+use function \Safe\json_encode;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CommandReply,
-	LoggerWrapper,
 	MessageHub,
 	Modules\DISCORD\DiscordAPIClient,
 	Modules\DISCORD\DiscordChannel,
@@ -16,7 +16,6 @@ use Nadybot\Core\{
 	Routing\Source,
 };
 use Nadybot\Modules\DISCORD_GATEWAY_MODULE\Model\{
-	GuildMember,
 	InteractionCallbackData,
 	InteractionResponse,
 };
@@ -29,16 +28,13 @@ class DiscordSlashCommandReply implements CommandReply {
 	public DiscordController $discordController;
 
 	#[NCA\Inject]
-	public DiscordGatewayController $discordGatewayController;
+	public DiscordGatewayController $gw;
 
 	#[NCA\Inject]
 	public MessageHub $messageHub;
 
 	#[NCA\Inject]
 	public Nadybot $chatBot;
-
-	#[NCA\Logger]
-	public LoggerWrapper $logger;
 
 	public function __construct(
 		public string $applicationId,
@@ -49,6 +45,20 @@ class DiscordSlashCommandReply implements CommandReply {
 	) {
 	}
 
+	public function sendStateUpdate(): void {
+		$response = new InteractionResponse();
+		$response->type = $response::TYPE_DEFERRED_CHANNEL_MESSAGE_WITH_SOURCE;
+		$response->data = new InteractionCallbackData();
+		$response->data->flags = $this->gw->discordSlashCommands === $this->gw::SLASH_EPHEMERAL
+			? InteractionCallbackData::EPHEMERAL
+			: null;
+		$this->discordAPIClient->sendInteractionResponse(
+			$this->interactionId,
+			$this->interactionToken,
+			json_encode($response),
+		);
+	}
+
 	public function reply($msg): void {
 		if (!is_array($msg)) {
 			$msg = [$msg];
@@ -56,15 +66,12 @@ class DiscordSlashCommandReply implements CommandReply {
 		if (empty($msg)) {
 			return;
 		}
-		$fakeGM = new GuildMember();
-		$fakeGM->nick = $this->chatBot->char->name;
-		$gw = $this->discordGatewayController;
 
 		if (!$this->isDirectMsg
 			&& isset($this->channelId)
-			&& $gw->discordSlashCommands === $gw::SLASH_REGULAR
+			&& $this->gw->discordSlashCommands === $this->gw::SLASH_REGULAR
 		) {
-			$gw->lookupChannel(
+			$this->gw->lookupChannel(
 				$this->channelId,
 				function (DiscordChannel $channel, array $msg): void {
 					foreach ($msg as $msgPack) {
@@ -74,34 +81,22 @@ class DiscordSlashCommandReply implements CommandReply {
 				$msg
 			);
 		}
-		$messageObj = $this->discordController->formatMessage($msg[0]);
-		$response = new InteractionResponse();
-		$response->type = $response::TYPE_CHANNEL_MESSAGE_WITH_SOURCE;
-		$data = new InteractionCallbackData();
-		$data->flags = $gw->discordSlashCommands === $gw::SLASH_EPHEMERAL ? $data::EPHEMERAL : null;
-		$data->allowed_mentions = $messageObj->allowed_mentions;
-		$data->embeds = $messageObj->embeds;
-		$data->content = $messageObj->content;
-		$data->tts = $messageObj->tts;
-		$response->data = $data;
-		$this->discordAPIClient->sendInteractionResponse(
-			$this->interactionId,
-			$this->interactionToken,
-			\Safe\json_encode($response),
-			function () use ($msg, $gw) {
-				for ($i = 1; $i < count($msg); $i++) {
-					$msgPack = $msg[$i];
-					$messageObj = $this->discordController->formatMessage($msgPack);
-					$messageObj->flags = $gw->discordSlashCommands === $gw::SLASH_EPHEMERAL ? 64 : null;
-					$this->discordAPIClient->queueToWebhook(
-						$this->applicationId,
-						$this->interactionToken,
-						\Safe\json_encode($messageObj),
-					);
-				}
-			},
-			null
-		);
+		$this->sendReplyToDiscord(...$msg);
+	}
+
+	private function sendReplyToDiscord(string ...$msg): void {
+		for ($i = 0; $i < count($msg); $i++) {
+			$msgPack = $msg[$i];
+			$messageObj = $this->discordController->formatMessage($msgPack);
+			$messageObj->flags = $this->gw->discordSlashCommands === $this->gw::SLASH_EPHEMERAL
+				? InteractionCallbackData::EPHEMERAL
+				: null;
+			$this->discordAPIClient->queueToWebhook(
+				$this->applicationId,
+				$this->interactionToken,
+				json_encode($messageObj),
+			);
+		}
 	}
 
 	protected function routeToHub(DiscordChannel $channel, string $message): void {
@@ -109,7 +104,7 @@ class DiscordSlashCommandReply implements CommandReply {
 		$rMessage->setCharacter(
 			new Character($this->chatBot->char->name, $this->chatBot->char->id)
 		);
-		$guilds = $this->discordGatewayController->getGuilds();
+		$guilds = $this->gw->getGuilds();
 		$guild = $guilds[$channel->guild_id] ?? null;
 		$rMessage->prependPath(new Source(
 			Source::DISCORD_PRIV,

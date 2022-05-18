@@ -6,9 +6,9 @@ use Nadybot\Core\JSONDataModel;
 
 class InteractionCallbackData extends JSONDataModel {
 	/** do not include any embeds when serializing this message */
-	public const SUPPRESS_EMBEDS = 1 << 2;
+	public const SUPPRESS_EMBEDS = 4;
 	/** this message is only visible to the user who invoked the Interaction */
-	public const EPHEMERAL = 1 << 6;
+	public const EPHEMERAL = 64;
 
 	/** is the response TTS */
 	public ?bool $tts = null;

@@ -380,8 +380,9 @@ class DiscordGatewayCommandHandler extends ModuleInstance implements AccessLevel
 			$interaction->channel_id,
 			$context->isDM(),
 		);
-		$context->sendto = $sendto;
 		Registry::injectDependencies($sendto);
+		$context->sendto = $sendto;
+		$sendto->sendStateUpdate();
 		$userId = $this->getNameForDiscordId($discordUserId);
 		if (isset($interaction->channel_id)
 			&& $gw->discordSlashCommands === $gw::SLASH_REGULAR
