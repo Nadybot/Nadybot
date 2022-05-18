@@ -5,6 +5,7 @@ namespace Nadybot\Modules\DISCORD_GATEWAY_MODULE;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CommandReply,
+	LoggerWrapper,
 	MessageHub,
 	Modules\DISCORD\DiscordAPIClient,
 	Modules\DISCORD\DiscordChannel,
@@ -14,9 +15,11 @@ use Nadybot\Core\{
 	Routing\RoutableMessage,
 	Routing\Source,
 };
-use Nadybot\Modules\DISCORD_GATEWAY_MODULE\Model\GuildMember;
-use Nadybot\Modules\DISCORD_GATEWAY_MODULE\Model\InteractionCallbackData;
-use Nadybot\Modules\DISCORD_GATEWAY_MODULE\Model\InteractionResponse;
+use Nadybot\Modules\DISCORD_GATEWAY_MODULE\Model\{
+	GuildMember,
+	InteractionCallbackData,
+	InteractionResponse,
+};
 
 class DiscordSlashCommandReply implements CommandReply {
 	#[NCA\Inject]
@@ -34,7 +37,11 @@ class DiscordSlashCommandReply implements CommandReply {
 	#[NCA\Inject]
 	public Nadybot $chatBot;
 
+	#[NCA\Logger]
+	public LoggerWrapper $logger;
+
 	public function __construct(
+		public string $applicationId,
 		public string $interactionId,
 		public string $interactionToken,
 		public ?string $channelId,
@@ -45,6 +52,9 @@ class DiscordSlashCommandReply implements CommandReply {
 	public function reply($msg): void {
 		if (!is_array($msg)) {
 			$msg = [$msg];
+		}
+		if (empty($msg)) {
+			return;
 		}
 		$fakeGM = new GuildMember();
 		$fakeGM->nick = $this->chatBot->char->name;
@@ -64,26 +74,34 @@ class DiscordSlashCommandReply implements CommandReply {
 				$msg
 			);
 		}
-
-		foreach ($msg as $msgPack) {
-			$messageObj = $this->discordController->formatMessage($msgPack);
-			$response = new InteractionResponse();
-			$response->type = $response::TYPE_CHANNEL_MESSAGE_WITH_SOURCE;
-			$data = new InteractionCallbackData();
-			$data->flags = $gw->discordSlashCommands === $gw::SLASH_EMPHEMERAL ? $data::EPHEMERAL : null;
-			$data->allowed_mentions = $messageObj->allowed_mentions;
-			$data->embeds = $messageObj->embeds;
-			$data->content = $messageObj->content;
-			$data->tts = $messageObj->tts;
-			$response->data = $data;
-			$this->discordAPIClient->post(
-				DiscordAPIClient::DISCORD_API . "/interactions/{$this->interactionId}/{$this->interactionToken}/callback",
-				\Safe\json_encode($response)
-			)->withCallback(
-				function(object $response): void {
-				},
-			);
-		}
+		$messageObj = $this->discordController->formatMessage($msg[0]);
+		$response = new InteractionResponse();
+		$response->type = $response::TYPE_CHANNEL_MESSAGE_WITH_SOURCE;
+		$data = new InteractionCallbackData();
+		$data->flags = $gw->discordSlashCommands === $gw::SLASH_EPHEMERAL ? $data::EPHEMERAL : null;
+		$data->allowed_mentions = $messageObj->allowed_mentions;
+		$data->embeds = $messageObj->embeds;
+		$data->content = $messageObj->content;
+		$data->tts = $messageObj->tts;
+		$response->data = $data;
+		$this->discordAPIClient->sendInteractionResponse(
+			$this->interactionId,
+			$this->interactionToken,
+			\Safe\json_encode($response),
+			function () use ($msg, $gw) {
+				for ($i = 1; $i < count($msg); $i++) {
+					$msgPack = $msg[$i];
+					$messageObj = $this->discordController->formatMessage($msgPack);
+					$messageObj->flags = $gw->discordSlashCommands === $gw::SLASH_EPHEMERAL ? 64 : null;
+					$this->discordAPIClient->queueToWebhook(
+						$this->applicationId,
+						$this->interactionToken,
+						\Safe\json_encode($messageObj),
+					);
+				}
+			},
+			null
+		);
 	}
 
 	protected function routeToHub(DiscordChannel $channel, string $message): void {

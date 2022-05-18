@@ -16,6 +16,7 @@ class DiscordMessageOut {
 	public array $components = [];
 	public ?object $allowed_mentions = null;
 	public ?object $message_reference = null;
+	public ?int $flags = null;
 
 	public function __construct(string $content) {
 		$this->content = $content;

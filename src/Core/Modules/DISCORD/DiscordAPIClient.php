@@ -43,6 +43,13 @@ class DiscordAPIClient extends ModuleInstance {
 	protected array $outQueue = [];
 	protected bool $queueProcessing = false;
 
+	/**
+	 * @phpstan-var array{0: string, 1: string, 2:string, 3: ?callable}[]
+	 * @psalm-var array{0: string, 1: string, 2: string, 3: ?callable}[]
+	 */
+	protected array $webhookQueue = [];
+	protected bool $webhookQueueProcessing = false;
+
 	/** @var array<string,array<string,GuildMember>> */
 	protected $guildMemberCache = [];
 
@@ -308,6 +315,50 @@ class DiscordAPIClient extends ModuleInstance {
 					$this->timer->callLater((int)($response->headers["retry-after"]??1), [$this, "processQueue"]);
 				} else {
 					$this->processQueue();
+					$errorHandler(...func_get_args());
+				}
+			},
+			func_get_args()
+		);
+	}
+
+	public function queueToWebhook(string $applicationId, string $interactionToken, string $message, ?callable $callback=null): void {
+		$this->logger->info("Adding discord message to end of webhook queue {interaction}", [
+			"channel" => $interactionToken,
+		]);
+		$this->webhookQueue []= [$applicationId, $interactionToken, $message, $callback];
+		if ($this->webhookQueueProcessing === false) {
+			$this->processWebhookQueue();
+		}
+	}
+
+	public function processWebhookQueue(): void {
+		if (empty($this->webhookQueue)) {
+			$this->webhookQueueProcessing = false;
+			return;
+		}
+		$this->webhookQueueProcessing = true;
+		$params = array_shift($this->webhookQueue);
+		/** @psalm-suppress TooFewArguments */
+		$this->immediatelySendToWebhook(...$params);
+	}
+
+	protected function immediatelySendToWebhook(string $applicationId, string $interactionToken, string $message, ?callable $callback=null): void {
+		$this->logger->info("Sending message to discord webhook {webhook}", [
+			"webhook" => $interactionToken,
+			"message" => $message,
+		]);
+		$errorHandler = $this->getErrorWrapper(new DiscordMessageIn(), $callback);
+		$this->post(
+			self::DISCORD_API . "/webhooks/{$applicationId}/{$interactionToken}",
+			$message
+		)->withCallback(
+			function(HttpResponse $response, array $message) use ($errorHandler): void {
+				if (isset($response->headers) && $response->headers["status-code"] === "429") {
+					array_unshift($this->outQueue, $message);
+					$this->timer->callLater((int)($response->headers["retry-after"]??1), [$this, "processQueue"]);
+				} else {
+					$this->processWebhookQueue();
 					$errorHandler(...func_get_args());
 				}
 			},

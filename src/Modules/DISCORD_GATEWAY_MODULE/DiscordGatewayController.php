@@ -151,7 +151,7 @@ class DiscordGatewayController extends ModuleInstance {
 
 	public const SLASH_OFF = 0;
 	public const SLASH_REGULAR = 1;
-	public const SLASH_EMPHEMERAL = 2;
+	public const SLASH_EPHEMERAL = 2;
 
 	#[NCA\Inject]
 	public RelayController $relayController;
@@ -220,7 +220,7 @@ class DiscordGatewayController extends ModuleInstance {
 		"Treat them like regular commands" => 1,
 		"Make request and reply private" => 2,
 	])]
-	public int $discordSlashCommands = self::SLASH_EMPHEMERAL;
+	public int $discordSlashCommands = self::SLASH_EPHEMERAL;
 
 	/** ID of the Discord role to automatically assign to registered users */
 	#[NCA\Setting\Text]
@@ -308,6 +308,14 @@ class DiscordGatewayController extends ModuleInstance {
 		$this->outStats = new DiscordPacketsStats("out");
 		$this->statsController->registerProvider($this->inStats, "discord");
 		$this->statsController->registerProvider($this->outStats, "discord");
+	}
+
+	#[NCA\SettingChangeHandler('discord_slash_commands')]
+	public function updateSlashCmdsIfRequires(string $settingName, string $oldValue, string $newValue): void {
+		if ((int)$oldValue !== self::SLASH_OFF && (int)$newValue !== self::SLASH_OFF) {
+			return;
+		}
+		$this->registerSlashCommands();
 	}
 
 	#[NCA\SettingChangeHandler('discord_activity_name')]
@@ -926,7 +934,6 @@ class DiscordGatewayController extends ModuleInstance {
 		if ($this->discordSlashCommands === self::SLASH_OFF) {
 			$enabledCommands = [];
 		}
-		$enabledCommands = ["whois", "online"];
 		/** @var ApplicationCommand[] */
 		$cmds = [];
 		$objs = Registry::getAllInstances();

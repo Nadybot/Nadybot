@@ -3,7 +3,6 @@
 namespace Nadybot\Modules\DISCORD_GATEWAY_MODULE\Model;
 
 use Nadybot\Core\JSONDataModel;
-use Nadybot\Core\Modules\DISCORD\DiscordEmbed;
 
 class InteractionCallbackData extends JSONDataModel {
 	/** do not include any embeds when serializing this message */

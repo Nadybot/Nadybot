@@ -374,6 +374,7 @@ class DiscordGatewayCommandHandler extends ModuleInstance implements AccessLevel
 		}
 		$gw = $this->discordGatewayController;
 		$sendto = new DiscordSlashCommandReply(
+			$interaction->application_id,
 			$interaction->id,
 			$interaction->token,
 			$interaction->channel_id,

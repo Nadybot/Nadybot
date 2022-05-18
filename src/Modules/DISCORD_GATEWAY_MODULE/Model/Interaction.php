@@ -12,6 +12,7 @@ class Interaction extends JSONDataModel {
 	public const TYPE_MESSAGE_COMPONENT = 3;
 	public const TYPE_APPLICATION_COMMAND_AUTOCOMPLETE = 4;
 	public const TYPE_MODAL_SUBMIT = 5;
+
 	/** id of the interaction */
 	public string $id;
 
