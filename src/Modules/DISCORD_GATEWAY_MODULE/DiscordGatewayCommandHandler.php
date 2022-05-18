@@ -22,10 +22,6 @@ use Nadybot\Core\{
 	SettingManager,
 	Text,
 };
-use Nadybot\Core\Modules\DISCORD\DiscordChannel;
-use Nadybot\Core\Routing\Character;
-use Nadybot\Core\Routing\RoutableMessage;
-use Nadybot\Modules\DISCORD_GATEWAY_MODULE\Model\Interaction;
 
 /**
  * @author Nadyita (RK5)
@@ -299,114 +295,6 @@ class DiscordGatewayCommandHandler extends ModuleInstance implements AccessLevel
 				return;
 			}
 			$context->source = $sendto->getChannelName();
-			$this->commandManager->checkAndHandleCmd($context);
-		};
-		if (!isset($userId)) {
-			$execCmd();
-			return;
-		}
-		$context->char->name = $userId;
-		$this->chatBot->getUid(
-			$userId,
-			function(?int $uid, CmdContext $context, Closure $execCmd): void {
-				$context->char->id = $uid;
-				$execCmd();
-			},
-			$context,
-			$execCmd
-		);
-	}
-
-	/**
-	 * Handle an incoming discord channel message
-	 */
-	#[NCA\Event(
-		name: "discord(interaction_create)",
-		description: "Handle Discord slash commands"
-	)]
-	public function processDiscordSlashCommands(DiscordGatewayEvent $event): void {
-		$interaction = new Interaction();
-		$interaction->fromJSON($event->payload->d);
-		if (!$this->discordGatewayController->isMe($interaction->application_id)) {
-			return;
-		}
-		$discordUserId = $interaction->user->id ?? $interaction->member->user->id ?? null;
-		if (!isset($discordUserId)) {
-			return;
-		}
-		if ($interaction->type !== $interaction::TYPE_APPLICATION_COMMAND
-			&& $interaction->type !== $interaction::TYPE_MESSAGE_COMPONENT) {
-			return;
-		}
-		$context = new CmdContext($discordUserId);
-		$context->setIsDM(isset($interaction->user));
-		$cmd = $interaction->toCommand();
-		if (!isset($cmd)) {
-			return;
-		}
-		$context->message = $cmd;
-		if (isset($interaction->channel_id)) {
-			$channel = $this->discordGatewayController->getChannel($interaction->channel_id);
-			if (!isset($channel)) {
-				return;
-			}
-			$context->source = Source::DISCORD_PRIV . "({$channel->name})";
-			$cmdMap = $this->commandManager->getPermsetMapForSource($context->source);
-			if (!isset($cmdMap)) {
-				$context->source = Source::DISCORD_PRIV . "({$channel->id})";
-				$cmdMap = $this->commandManager->getPermsetMapForSource($context->source);
-			}
-		} else {
-			$context->source = Source::DISCORD_MSG . "({$discordUserId})";
-			$cmdMap = $this->commandManager->getPermsetMapForSource($context->source);
-		}
-		if (!isset($cmdMap)) {
-			return;
-		}
-		$context->message = $cmdMap->symbol . $context->message;
-		$this->processDiscordSlashCommand($interaction, $context);
-	}
-
-	protected function processDiscordSlashCommand(Interaction $interaction, CmdContext $context): void {
-		$discordUserId = $interaction->user->id ?? $interaction->member->user->id ?? null;
-		if ($discordUserId === null) {
-			return;
-		}
-		$gw = $this->discordGatewayController;
-		$sendto = new DiscordSlashCommandReply(
-			$interaction->application_id,
-			$interaction->id,
-			$interaction->token,
-			$interaction->channel_id,
-			$context->isDM(),
-		);
-		Registry::injectDependencies($sendto);
-		$context->sendto = $sendto;
-		$sendto->sendStateUpdate();
-		$userId = $this->getNameForDiscordId($discordUserId);
-		if (isset($interaction->channel_id)
-			&& $gw->discordSlashCommands === $gw::SLASH_REGULAR
-		) {
-			$gw->lookupChannel(
-				$interaction->channel_id,
-				function (DiscordChannel $channel, CmdContext $context, string $userId): void {
-					$rMessage = new RoutableMessage("/" . substr($context->message, 1));
-					$rMessage->setCharacter(
-						new Character($userId, null, null)
-					);
-					$rMessage->appendPath(
-						new Source(
-							Source::DISCORD_PRIV,
-							$channel->name ?? $channel->id,
-						),
-					);
-					$this->messageHub->handle($rMessage);
-				},
-				$context,
-				$userId ?? $discordUserId
-			);
-		}
-		$execCmd = function() use ($context): void {
 			$this->commandManager->checkAndHandleCmd($context);
 		};
 		if (!isset($userId)) {

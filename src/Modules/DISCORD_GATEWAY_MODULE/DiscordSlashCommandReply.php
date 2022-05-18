@@ -31,6 +31,9 @@ class DiscordSlashCommandReply implements CommandReply {
 	public DiscordGatewayController $gw;
 
 	#[NCA\Inject]
+	public DiscordSlashCommandController $slashCtrl;
+
+	#[NCA\Inject]
 	public MessageHub $messageHub;
 
 	#[NCA\Inject]
@@ -49,7 +52,7 @@ class DiscordSlashCommandReply implements CommandReply {
 		$response = new InteractionResponse();
 		$response->type = $response::TYPE_DEFERRED_CHANNEL_MESSAGE_WITH_SOURCE;
 		$response->data = new InteractionCallbackData();
-		$response->data->flags = $this->gw->discordSlashCommands === $this->gw::SLASH_EPHEMERAL
+		$response->data->flags = $this->slashCtrl->discordSlashCommands === $this->slashCtrl::SLASH_EPHEMERAL
 			? InteractionCallbackData::EPHEMERAL
 			: null;
 		$this->discordAPIClient->sendInteractionResponse(
@@ -69,7 +72,7 @@ class DiscordSlashCommandReply implements CommandReply {
 
 		if (!$this->isDirectMsg
 			&& isset($this->channelId)
-			&& $this->gw->discordSlashCommands === $this->gw::SLASH_REGULAR
+			&& $this->slashCtrl->discordSlashCommands === $this->slashCtrl::SLASH_REGULAR
 		) {
 			$this->gw->lookupChannel(
 				$this->channelId,
@@ -88,7 +91,7 @@ class DiscordSlashCommandReply implements CommandReply {
 		for ($i = 0; $i < count($msg); $i++) {
 			$msgPack = $msg[$i];
 			$messageObj = $this->discordController->formatMessage($msgPack);
-			$messageObj->flags = $this->gw->discordSlashCommands === $this->gw::SLASH_EPHEMERAL
+			$messageObj->flags = $this->slashCtrl->discordSlashCommands === $this->slashCtrl::SLASH_EPHEMERAL
 				? InteractionCallbackData::EPHEMERAL
 				: null;
 			$this->discordAPIClient->queueToWebhook(
