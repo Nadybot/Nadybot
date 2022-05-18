@@ -131,6 +131,8 @@ class WebChatConverter extends ModuleInstance {
 			"cyan"      => "#00FFFF",
 			"violet"    => "#8F00FF",
 
+			"on"        => $this->getColorFromSetting('default_enabled_color'),
+			"off"       => $this->getColorFromSetting('default_disabled_color'),
 			"neutral"   => $this->getColorFromSetting('default_neut_color'),
 			"omni"      => $this->getColorFromSetting('default_omni_color'),
 			"clan"      => $this->getColorFromSetting('default_clan_color'),

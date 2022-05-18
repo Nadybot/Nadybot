@@ -26,11 +26,11 @@ class MigrateToTrackerFormat implements SchemaMigration {
 	public function migrate(LoggerWrapper $logger, DB $db): void {
 		$trackerLayout = (int)($this->getSetting($db, "tracker_layout") ?? 0);
 		if ($trackerLayout === 0) {
-			$trackerLayoutOn = 'TRACK: %s logged <green>on<end>.';
-			$trackerLayoutOff = 'TRACK: %s logged <red>off<end>.';
+			$trackerLayoutOn = 'TRACK: %s logged <on>on<end>.';
+			$trackerLayoutOff = 'TRACK: %s logged <off>off<end>.';
 		} else {
-			$trackerLayoutOn = '<green>+<end> %s';
-			$trackerLayoutOff = '<red>-<end> %s';
+			$trackerLayoutOn = '<on>+<end> %s';
+			$trackerLayoutOff = '<off>-<end> %s';
 		}
 
 		$info = "";

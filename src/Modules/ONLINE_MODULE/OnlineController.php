@@ -424,7 +424,7 @@ class OnlineController extends ModuleInstance {
 				$blob.= "<tab>$profIcon $playerName - $player->level/<green>$player->ai_level<end> $prof";
 			}
 			if ($player->online) {
-				$blob .= " <green>Online<end>";
+				$blob .= " <on>Online<end>";
 			}
 			$blob .= "\n";
 		}

@@ -523,15 +523,15 @@ class RaidRankController extends ModuleInstance implements AccessLevelProvider {
 	/**
 	 * Get the string of the online status
 	 * @param string $who Playername
-	 * @return string " (<green>online<end>)" and so on
+	 * @return string " (<on>online<end>)" and so on
 	 */
 	private function getOnlineStatus(string $who): string {
 		if ($this->buddylistManager->isOnline($who) && isset($this->chatBot->chatlist[$who])) {
-			return " (<green>Online and in chat<end>)";
+			return " (<on>Online and in chat<end>)";
 		} elseif ($this->buddylistManager->isOnline($who)) {
-			return " (<green>Online<end>)";
+			return " (<on>Online<end>)";
 		} else {
-			return " (<red>Offline<end>)";
+			return " (<off>Offline<end>)";
 		}
 	}
 

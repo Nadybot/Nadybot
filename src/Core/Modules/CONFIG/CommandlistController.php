@@ -79,9 +79,9 @@ class CommandlistController extends ModuleInstance {
 				if (!isset($cmd->permissions[$set->name])) {
 					$status []= "<black>{$set->letter}<end>";
 				} elseif ($cmd->permissions[$set->name]->enabled) {
-					$status []= "<green>{$set->letter}<end>";
+					$status []= "<on>{$set->letter}<end>";
 				} else {
-					$status []= "<red>{$set->letter}<end>";
+					$status []= "<off>{$set->letter}<end>";
 				}
 			}
 

@@ -317,11 +317,11 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 		foreach ($members as $member) {
 			$online = $this->buddylistManager->isOnline($member->name);
 			if (isset($this->chatBot->chatlist[$member->name])) {
-				$status = "(<green>Online and in channel<end>)";
+				$status = "(<on>Online and in channel<end>)";
 			} elseif ($online === true) {
-				$status = "(<green>Online<end>)";
+				$status = "(<on>Online<end>)";
 			} elseif ($online === false) {
-				$status = "(<red>Offline<end>)";
+				$status = "(<off>Offline<end>)";
 			} else {
 				$status = "(<orange>Unknown<end>)";
 			}
@@ -500,7 +500,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 			return;
 		}
 		if ($this->isLockedFor($context->char->name)) {
-			$context->reply("The private channel is currently <red>locked<end>: {$this->lockReason}");
+			$context->reply("The private channel is currently <off>locked<end>: {$this->lockReason}");
 			return;
 		}
 		$invitation = function() use ($name, $context): void {
@@ -764,7 +764,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 	#[NCA\Help\Group("private-channel")]
 	public function joinCommand(CmdContext $context): void {
 		if ($this->isLockedFor($context->char->name)) {
-			$context->reply("The private channel is currently <red>locked<end>: {$this->lockReason}");
+			$context->reply("The private channel is currently <off>locked<end>: {$this->lockReason}");
 			return;
 		}
 		if (isset($this->chatBot->chatlist[$context->char->name])) {
@@ -820,7 +820,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 			return true;
 		}
 		$this->settingManager->save("lock_reason", trim($reason));
-		$this->chatBot->sendPrivate("The private chat has been <red>locked<end> by {$context->char->name}: <highlight>{$this->lockReason}<end>");
+		$this->chatBot->sendPrivate("The private chat has been <off>locked<end> by {$context->char->name}: <highlight>{$this->lockReason}<end>");
 		$alRequired = $this->lockMinrank;
 		foreach ($this->chatBot->chatlist as $char => $online) {
 			$alChar = $this->accessManager->getAccessLevelForCharacter($char);
@@ -828,7 +828,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 				$this->chatBot->privategroup_kick($char);
 			}
 		}
-		$context->reply("You <red>locked<end> the private channel: {$this->lockReason}");
+		$context->reply("You <off>locked<end> the private channel: {$this->lockReason}");
 		$audit = new Audit();
 		$audit->actor = $context->char->name;
 		$audit->action = AccessManager::LOCK;
@@ -846,8 +846,8 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 			return;
 		}
 		$this->settingManager->save("lock_reason", "");
-		$this->chatBot->sendPrivate("The private chat is now <green>open<end> again.");
-		$context->reply("You <green>unlocked<end> the private channel.");
+		$this->chatBot->sendPrivate("The private chat is now <on>open<end> again.");
+		$context->reply("You <on>unlocked<end> the private channel.");
 		$audit = new Audit();
 		$audit->actor = $context->char->name;
 		$audit->action = AccessManager::UNLOCK;
@@ -862,7 +862,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 		if (!$this->isLocked()) {
 			return;
 		}
-		$msg = "Reminder: the private channel is currently <red>locked<end>!";
+		$msg = "Reminder: the private channel is currently <off>locked<end>!";
 		$this->chatBot->sendGuild($msg, true);
 		$this->chatBot->sendPrivate($msg, true);
 	}

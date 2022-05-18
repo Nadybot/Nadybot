@@ -87,6 +87,12 @@ class ColorsController extends ModuleInstance {
 	/** default unknown color */
 	#[Color] public string $defaultUnknownColor = "#FF0000";
 
+	/** default enabled color */
+	#[Color] public string $defaultEnabledColor = "#00DE42";
+
+	/** default disabled color */
+	#[Color] public string $defaultDisabledColor = "#FF6666";
+
 	/** Where to search for themes - separate with colons for multiple paths */
 	#[NCA\Setting\Text(options: ["./Themes"])] public string $themePath = "./Themes";
 

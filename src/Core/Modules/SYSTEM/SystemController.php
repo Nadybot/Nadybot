@@ -532,12 +532,12 @@ class SystemController extends ModuleInstance implements MessageEmitter {
 		// send Admin(s) a tell that the bot is online
 		foreach ($this->adminManager->admins as $name => $info) {
 			if ($info["level"] === 4 && $this->buddylistManager->isOnline($name)) {
-				$this->chatBot->sendTell("<myname> is now <green>online<end>.", $name);
+				$this->chatBot->sendTell("<myname> is now <on>online<end>.", $name);
 			}
 		}
 
 		$version = $this->chatBot->runner::getVersion();
-		$msg = "Nadybot <highlight>$version<end> is now <green>online<end>.";
+		$msg = "Nadybot <highlight>$version<end> is now <on>online<end>.";
 
 		// send a message to guild channel
 		$rMsg = new RoutableMessage($msg);

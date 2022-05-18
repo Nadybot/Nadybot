@@ -220,11 +220,11 @@ class RaidController extends ModuleInstance {
 		}
 		$numRaiders = $this->raid->numActiveRaiders();
 		if ($this->raid->locked) {
-			$status = "<red>locked<end>";
+			$status = "<off>locked<end>";
 		} elseif ($this->raid->max_members > 0 && $this->raid->max_members <= $numRaiders) {
-			$status = "<red>full<end>";
+			$status = "<off>full<end>";
 		} else {
-			$status = "<green>open<end>";
+			$status = "<on>open<end>";
 		}
 		$blob = "<header2>Current raid<end>\n".
 			"<tab>Description: <highlight>{$this->raid->description}<end>\n".
@@ -584,7 +584,7 @@ class RaidController extends ModuleInstance {
 		}
 		$this->raid->locked = true;
 		$this->logRaidChanges($this->raid);
-		$this->routeMessage("lock", "{$context->char->name} <red>locked<end> the raid.");
+		$this->routeMessage("lock", "{$context->char->name} <off>locked<end> the raid.");
 		$event = new RaidEvent($this->raid);
 		$event->type = "raid(lock)";
 		$event->player = $context->char->name;
@@ -613,7 +613,7 @@ class RaidController extends ModuleInstance {
 		}
 		$this->raid->locked = false;
 		$this->logRaidChanges($this->raid);
-		$this->routeMessage("unlock", "{$context->char->name} <green>unlocked<end> the raid.");
+		$this->routeMessage("unlock", "{$context->char->name} <on>unlocked<end> the raid.");
 		$event = new RaidEvent($this->raid);
 		$event->type = "raid(unlock)";
 		$event->player = $context->char->name;
