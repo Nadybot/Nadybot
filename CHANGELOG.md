@@ -13,7 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - The `!leaders`-command can now be configured to also show the admins and mods.
 - The colors that `!online` displays for ranks raid_leader and upwards, are now customizable.
 - Make "on"- and "off"-colors a configurable setting in the `COLORS` module
-- Add settings to configure the colors of `!tell` and `!cmd`.
+- Add settings to configure the colors of `!tell`, `!cmd` and `!topic`.
 
 ### Changed
 

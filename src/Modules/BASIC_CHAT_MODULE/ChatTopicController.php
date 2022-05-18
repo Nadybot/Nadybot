@@ -67,6 +67,10 @@ class ChatTopicController extends ModuleInstance {
 	#[NCA\Setting\Timestamp(mode: "noedit")]
 	public int $topicTime = 0;
 
+	/** Color of the topic */
+	#[NCA\Setting\Color]
+	public string $topicColor = "#FF0000";
+
 	/**
 	 * Show the current topic
 	 */
@@ -165,7 +169,7 @@ class ChatTopicController extends ModuleInstance {
 		$topicAge = $this->util->unixtimeToReadable(time() - $this->topicTime, false);
 		$topic = $this->topic;
 		$topicCreator = $this->topicSetby;
-		$msg = "Topic: <red>{$topic}<end> (set by ".
+		$msg = "Topic: {$this->topicColor}{$topic}<end> (set by ".
 			$this->text->makeUserlink($topicCreator).
 			", <highlight>{$topicAge} ago<end>)";
 		return $msg;
