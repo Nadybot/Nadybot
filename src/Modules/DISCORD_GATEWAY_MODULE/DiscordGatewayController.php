@@ -223,6 +223,10 @@ class DiscordGatewayController extends ModuleInstance {
 		return isset($this->me) && $this->me->id === $id;
 	}
 
+	public function getID(): ?string {
+		return $this->me->id ?? null;
+	}
+
 	/**
 	 * Get a list of all guilds this bot is a member of
 	 * @return array<string,Guild>

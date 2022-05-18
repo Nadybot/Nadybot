@@ -3,42 +3,42 @@
 namespace Nadybot\Modules\DISCORD_GATEWAY_MODULE;
 
 use function Safe\json_decode;
-use function \Safe\json_encode;
+use function Safe\json_encode;
 
 use Closure;
 use Exception;
+use ReflectionClass;
+use ReflectionMethod;
+use ReflectionNamedType;
+use ReflectionParameter;
+use Safe\Exceptions\JsonException;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
 	CommandManager,
 	DB,
+	DBSchema\CmdCfg,
 	HttpResponse,
 	LoggerWrapper,
 	MessageHub,
 	ModuleInstance,
+	Modules\DISCORD\DiscordAPIClient,
+	Modules\DISCORD\DiscordChannel,
 	Nadybot,
+	ParamClass\Base,
+	ParamClass\PRemove,
 	Registry,
+	Routing\Character,
+	Routing\RoutableMessage,
+	Routing\Source,
 	Text,
 };
-use Nadybot\Core\DBSchema\CmdCfg;
-use Nadybot\Core\Modules\DISCORD\DiscordAPIClient;
-use Nadybot\Core\Modules\DISCORD\DiscordChannel;
-use Nadybot\Core\ParamClass\Base;
-use Nadybot\Core\ParamClass\PRemove;
-use Nadybot\Core\Routing\Character;
-use Nadybot\Core\Routing\RoutableMessage;
-use Nadybot\Core\Routing\Source;
 use Nadybot\Modules\DISCORD_GATEWAY_MODULE\Model\{
 	ApplicationCommand,
 	ApplicationCommandOption,
 	Interaction,
 };
-use ReflectionClass;
-use ReflectionMethod;
-use ReflectionNamedType;
-use ReflectionParameter;
-use Safe\Exceptions\JsonException;
 
 #[
 	NCA\Instance,
@@ -51,15 +51,18 @@ use Safe\Exceptions\JsonException;
 class DiscordSlashCommandController extends ModuleInstance {
 	public const DB_SLASH_TABLE = "discord_slash_command_<myname>";
 
+	/** Slash-commands are disabled */
 	public const SLASH_OFF = 0;
+	/** Slash-commands are treated like regular commands and shown to everyone */
 	public const SLASH_REGULAR = 1;
+	/** Slash-commands are only shown to the sender */
 	public const SLASH_EPHEMERAL = 2;
 
 	#[NCA\Inject]
-	public CommandManager $commandManager;
+	public CommandManager $cmdManager;
 
 	#[NCA\Inject]
-	public DiscordAPIClient $discordAPIClient;
+	public DiscordAPIClient $api;
 
 	#[NCA\Inject]
 	public DiscordGatewayController $gw;
@@ -103,11 +106,12 @@ class DiscordSlashCommandController extends ModuleInstance {
 	 * @phpstan-param null|callable(string):void $failure
 	 */
 	public function registerSlashCommands(?callable $success=null, ?callable $failure=null): void {
-		if (!isset($this->me)) {
+		$appId = $this->gw->getID();
+		if (!isset($appId)) {
 			return;
 		}
-		$this->discordAPIClient->getGlobalApplicationCommands(
-			$this->me->id,
+		$this->api->getGlobalApplicationCommands(
+			$appId,
 			/** @param ApplicationCommand[] $commands */
 			function (array $commands) use ($success, $failure): void {
 				$this->updateSlashCommands($commands, $success, $failure);
@@ -157,7 +161,8 @@ class DiscordSlashCommandController extends ModuleInstance {
 			}
 			return;
 		}
-		if (!isset($this->me)) {
+		$appId = $this->gw->getID();
+		if (!isset($appId)) {
 			if (isset($failure)) {
 				$failure("Currently not connected to Discord, try again later.");
 			}
@@ -168,8 +173,8 @@ class DiscordSlashCommandController extends ModuleInstance {
 		$data = preg_replace('/,"[^"]+":null/', '', $data);
 		$data = preg_replace('/"[^"]+":null,/', '', $data);
 		$data = preg_replace('/"[^"]+":null/', '', $data);
-		$this->discordAPIClient->registerGlobalApplicationCommands(
-			$this->me->id,
+		$this->api->registerGlobalApplicationCommands(
+			$appId,
 			$data,
 			/** @param ApplicationCommand[] $commands */
 			function (array $commands) use ($success): void {
@@ -374,7 +379,7 @@ class DiscordSlashCommandController extends ModuleInstance {
 			});
 		$illegalCommands = $newCommands
 			->filter(function (string $cmd): bool {
-				foreach ($this->commandManager->commands as $permSet => $cmds) {
+				foreach ($this->cmdManager->commands as $permSet => $cmds) {
 					if (isset($cmds[$cmd])) {
 						return false;
 					}
@@ -493,7 +498,7 @@ class DiscordSlashCommandController extends ModuleInstance {
 			->pluckAs("cmd", "string")
 			->toArray();
 		/** @var Collection<CmdCfg> */
-		$cmds = new Collection($this->commandManager->getAll(false));
+		$cmds = new Collection($this->cmdManager->getAll(false));
 		/** @var Collection<string> */
 		$parts = $cmds
 			->sortBy("module")
@@ -552,14 +557,14 @@ class DiscordSlashCommandController extends ModuleInstance {
 				return;
 			}
 			$context->source = Source::DISCORD_PRIV . "({$channel->name})";
-			$cmdMap = $this->commandManager->getPermsetMapForSource($context->source);
+			$cmdMap = $this->cmdManager->getPermsetMapForSource($context->source);
 			if (!isset($cmdMap)) {
 				$context->source = Source::DISCORD_PRIV . "({$channel->id})";
-				$cmdMap = $this->commandManager->getPermsetMapForSource($context->source);
+				$cmdMap = $this->cmdManager->getPermsetMapForSource($context->source);
 			}
 		} else {
 			$context->source = Source::DISCORD_MSG . "({$discordUserId})";
-			$cmdMap = $this->commandManager->getPermsetMapForSource($context->source);
+			$cmdMap = $this->cmdManager->getPermsetMapForSource($context->source);
 		}
 		if (!isset($cmdMap)) {
 			return;
@@ -608,7 +613,7 @@ class DiscordSlashCommandController extends ModuleInstance {
 			);
 		}
 		$execCmd = function() use ($context): void {
-			$this->commandManager->checkAndHandleCmd($context);
+			$this->cmdManager->checkAndHandleCmd($context);
 		};
 		if (!isset($userId)) {
 			$execCmd();
