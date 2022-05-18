@@ -241,10 +241,10 @@ class VoteController extends ModuleInstance implements MessageEmitter {
 			}
 		}
 		if ($running) {
-			$blob .= "<green>Running polls:<end>\n{$running}\n";
+			$blob .= "<on>Running polls:<end>\n{$running}\n";
 		}
 		if ($over) {
-			$blob .= "<red>Finished polls:<end>\n{$over}";
+			$blob .= "<off>Finished polls:<end>\n{$over}";
 		}
 
 		$msg = $this->text->makeBlob("All voting topics", $blob);
@@ -502,7 +502,7 @@ class VoteController extends ModuleInstance implements MessageEmitter {
 		if ($timeleft > 0) {
 			$blob .= $this->util->unixtimeToReadable($timeleft)." till this poll closes.\n\n";
 		} else {
-			$blob .= "<red>This poll has ended " . $this->util->unixtimeToReadable($timeleft * -1, true) . " ago.<end>\n\n";
+			$blob .= "<off>This poll has ended " . $this->util->unixtimeToReadable($timeleft * -1, true) . " ago.<end>\n\n";
 		}
 
 		$blob .= "<header2>Answers<end>\n";

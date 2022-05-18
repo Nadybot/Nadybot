@@ -347,11 +347,11 @@ class WhoisController extends ModuleInstance {
 		// $blob .= "PVP Title: <highlight>{$whois->pvp_title}<end>\n";
 		$blob .= "Status: ";
 		if ($online) {
-			$blob .= "<green>Online<end>\n";
+			$blob .= "<on>Online<end>\n";
 		} elseif ($charID === false) {
-			$blob .= "<red>Inactive<end>\n";
+			$blob .= "<off>Inactive<end>\n";
 		} else {
-			$blob .= "<red>Offline<end>\n";
+			$blob .= "<off>Offline<end>\n";
 		}
 		if ($charID !== false && isset($lookupCharIdLink)) {
 			$blob .= "Character ID: <highlight>{$whois->charid}<end> [{$lookupCharIdLink}]\n\n";
@@ -389,11 +389,11 @@ class WhoisController extends ModuleInstance {
 
 		$msg = $this->playerManager->getInfo($whois);
 		if ($online) {
-			$msg .= " :: <green>Online<end>";
+			$msg .= " :: <on>Online<end>";
 		} elseif ($charID === false) {
-			$msg .= " :: <red>Inactive<end>";
+			$msg .= " :: <off>Inactive<end>";
 		} else {
-			$msg .= " :: <red>Offline<end>";
+			$msg .= " :: <off>Offline<end>";
 		}
 		$msg .= " :: " . ((array)$this->text->makeBlob("More Info", $blob, "Detailed Info for {$name}"))[0];
 		if ($this->whoisAddComments) {

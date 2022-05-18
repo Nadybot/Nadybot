@@ -134,25 +134,25 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 	#[NCA\DefineSetting(
 		type: "tracker_format",
 		options: [
-			"TRACK: <highlight>{name}<end> logged <green>on<end>.",
-			"TRACK: <{faction}>{name}<end> ({level}, {profession}), <{faction}>{org}<end> logged <green>on<end>.",
-			"<{faction}>{FACTION}<end>: <{faction}>{name}<end>, TL<highlight>{tl}<end> {prof} logged <green>on<end>.",
-			"<green>+<end> <{faction}>{name}<end>",
-			"<green>+<end> <{faction}>{name}<end> ({level}, {prof}), <{faction}>{org}<end>",
+			"TRACK: <highlight>{name}<end> logged <on>on<end>.",
+			"TRACK: <{faction}>{name}<end> ({level}, {profession}), <{faction}>{org}<end> logged <on>on<end>.",
+			"<{faction}>{FACTION}<end>: <{faction}>{name}<end>, TL<highlight>{tl}<end> {prof} logged <on>on<end>.",
+			"<on>+<end> <{faction}>{name}<end>",
+			"<on>+<end> <{faction}>{name}<end> ({level}, {prof}), <{faction}>{org}<end>",
 		]
 	)]
-	public string $trackerLogon = "TRACK: <{faction}>{name}<end> ({level}, {profession}), <{faction}>{org}<end> logged <green>on<end>.";
+	public string $trackerLogon = "TRACK: <{faction}>{name}<end> ({level}, {profession}), <{faction}>{org}<end> logged <on>on<end>.";
 
 	/** Tracker logoff-message */
 	#[NCA\DefineSetting(
 		type: "tracker_format",
 		options: [
-			"TRACK: <{faction}>{name}<end> logged <red>off<end>.",
-			"<{faction}>{FACTION}<end>: <{faction}>{name}<end>, TL<highlight>{tl}<end> {prof} logged <red>off<end>",
-			"<red>-<end> <{faction}>{name}<end>",
+			"TRACK: <{faction}>{name}<end> logged <off>off<end>.",
+			"<{faction}>{FACTION}<end>: <{faction}>{name}<end>, TL<highlight>{tl}<end> {prof} logged <off>off<end>",
+			"<off>-<end> <{faction}>{name}<end>",
 		]
 	)]
-	public string $trackerLogoff = "TRACK: <{faction}>{name}<end> logged <red>off<end>.";
+	public string $trackerLogoff = "TRACK: <{faction}>{name}<end> logged <off>off<end>.";
 
 	/** Use faction color for the name in the online list*/
 	#[NCA\Setting\Boolean]
@@ -480,9 +480,9 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 			}
 
 			if (isset($lastState) && $lastState->event === 'logon') {
-				$status = "<green>logon<end>";
+				$status = "<on>logon<end>";
 			} elseif (isset($lastState) && $lastState->event == 'logoff') {
-				$status = "<orange>logoff<end>";
+				$status = "<off>logoff<end>";
 			} else {
 				$status = "<grey>None<end>";
 			}
@@ -1286,9 +1286,9 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 			$blob = "<header2>All events for {$char}<end>\n";
 			foreach ($events as $event) {
 				if ($event->event == 'logon') {
-					$status = "<green>logon<end>";
+					$status = "<on>logon<end>";
 				} elseif ($event->event == 'logoff') {
-					$status = "<orange>logoff<end>";
+					$status = "<off>logoff<end>";
 				} else {
 					$status = "<grey>unknown<end>";
 				}

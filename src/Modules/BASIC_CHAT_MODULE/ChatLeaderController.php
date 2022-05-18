@@ -185,9 +185,9 @@ class ChatLeaderController extends ModuleInstance implements AccessLevelProvider
 	 */
 	private function getEchoStatusText(): string {
 		if ($this->leaderecho) {
-			$status = "<green>Enabled<end>";
+			$status = "<on>Enabled<end>";
 		} else {
-			$status = "<red>Disabled<end>";
+			$status = "<off>Disabled<end>";
 		}
 		return $status;
 	}

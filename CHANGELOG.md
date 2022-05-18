@@ -12,14 +12,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - The name of every access-level-rank can now be changed freely.
 - The `!leaders`-command can now be configured to also show the admins and mods.
 - The colors that `!online` displays for ranks raid_leader and upwards, are now customizable.
+- Make "on"- and "off"-colors a configurable setting in the `COLORS` module
+- Add settings to configure the colors of `!tell`, `!cmd` and `!topic`.
 
 ### Changed
 
 - The `!track online`-command got a real parser now and supports filtering by level (ranges), title level (ranges), faction(s) and profession(s).
-- The message that's displayed what a tracked character goes on/offline is now completely configurable with {placeholders}. To display this properly, a new setting type `tracker_format` has been introduced that will display rendered and unrendered versions of the setting. There is also logic to remove `{org}` from the message is the character is not member of an org.
+- The message that's displayed when a tracked character goes on/offline is now completely configurable with {placeholders}. To display this properly, a new setting type `tracker_format` has been introduced that will display rendered and unrendered versions of the setting. There is also logic to remove `{org}` from the message is the character is not member of an org.
 - Gracefully support URLs for bank-CSV location. Download will be async with proper error handling.
 - Raid ranks in online-list are also shown for access-level "guild".
 - Joining and leaving voice chats will now display the linked AO character, if available.
+- Change the default "disabled/off"-color to a slightly lighter shade of red.
 
 ### Fix
 

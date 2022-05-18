@@ -128,9 +128,9 @@ class ConfigController extends ModuleInstance {
 			if ($numEnabled > 0 && $numDisabled > 0) {
 				$a = "<yellow>Partial<end>";
 			} elseif ($numDisabled === 0) {
-				$a = "<green>Running<end>";
+				$a = "<on>Running<end>";
 			} else {
-				$a = "<red>Disabled<end>";
+				$a = "<off>Disabled<end>";
 			}
 
 			$c = "[" . $this->text->makeChatcmd("configure", "/tell <myname> config $module->name") . "]";
@@ -205,7 +205,7 @@ class ConfigController extends ModuleInstance {
 			->whereIn("id", $updated)
 			->update(["enabled" => $status]);
 
-		$msg = "Successfully " . ($status ? "<green>enabled" : "<red>disabled") . "<end> $confirmString commands.";
+		$msg = "Successfully " . ($status ? "<on>enabled" : "<off>disabled") . "<end> $confirmString commands.";
 		$context->reply($msg);
 	}
 
@@ -236,7 +236,7 @@ class ConfigController extends ModuleInstance {
 			$context->reply($msg);
 			return;
 		}
-		$color = $enable ? "green" : "red";
+		$color = $enable ? "on" : "off";
 		$status = $enable ? "enable" : "disable";
 		if ($permissionSet === "all") {
 			$msg = "Updated status of module <highlight>{$module}<end> to <{$color}>{$status}d<end>.";
@@ -288,7 +288,7 @@ class ConfigController extends ModuleInstance {
 			$context->reply($msg);
 			return;
 		}
-		$color = $enable ? "green" : "red";
+		$color = $enable ? "on" : "off";
 		$status = $enable ? "enable" : "disable";
 		if ($permissionSet === "all") {
 			$msg = "Updated status of {$type} <highlight>{$cmd}<end> ".
@@ -324,7 +324,7 @@ class ConfigController extends ModuleInstance {
 			return;
 		}
 
-		$color = $enable ? "green" : "red";
+		$color = $enable ? "on" : "off";
 		$status = $enable ? "enable" : "disable";
 		$msg = "Updated status of event <highlight>{$event}<end> to <{$color}>{$status}d<end>.";
 
@@ -719,9 +719,9 @@ class ConfigController extends ModuleInstance {
 				if (!isset($row->permissions[$set->name])) {
 					$status []= "_";
 				} elseif ($row->permissions[$set->name]->enabled) {
-					$status []= "<green>" . strtoupper($set->letter) . "<end>";
+					$status []= "<on>" . strtoupper($set->letter) . "<end>";
 				} else {
-					$status []= "<red>" . strtoupper($set->letter) . "<end>";
+					$status []= "<off>" . strtoupper($set->letter) . "<end>";
 				}
 			}
 
@@ -751,9 +751,9 @@ class ConfigController extends ModuleInstance {
 			}
 
 			if ($row->status == 1) {
-				$status = "<green>Enabled<end>";
+				$status = "<on>Enabled<end>";
 			} else {
-				$status = "<red>Disabled<end>";
+				$status = "<off>Disabled<end>";
 			}
 
 			if ($row->description !== null && $row->description !== "none") {
@@ -872,16 +872,16 @@ class ConfigController extends ModuleInstance {
 		$msg = "";
 		$cfg = $this->commandManager->get($cmd, $permSet);
 		if (!isset($cfg) || !isset($cfg->permissions[$permSet])) {
-			$msg .= "<red>Unused<end>\n";
+			$msg .= "<off>Unused<end>\n";
 		} else {
 			$perm = $cfg->permissions[$permSet];
 
 			$perm->access_level = $this->getAdminDescription($perm->access_level);
 
 			if ($perm->enabled) {
-				$status = "<green>Enabled<end>";
+				$status = "<on>Enabled<end>";
 			} else {
-				$status = "<red>Disabled<end>";
+				$status = "<off>Disabled<end>";
 			}
 
 			$msg .= "$status (Access: $perm->access_level)\n";
@@ -940,9 +940,9 @@ class ConfigController extends ModuleInstance {
 			$perms->access_level = $this->getAdminDescription($perms->access_level);
 
 			if ($perms->enabled) {
-				$status = "<green>Enabled<end>";
+				$status = "<on>Enabled<end>";
 			} else {
-				$status = "<red>Disabled<end>";
+				$status = "<off>Disabled<end>";
 			}
 
 			$subcmdList .= "<tab>Current Status: $status (Access: {$perms->access_level}) \n";

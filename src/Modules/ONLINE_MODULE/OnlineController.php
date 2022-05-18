@@ -424,7 +424,7 @@ class OnlineController extends ModuleInstance {
 				$blob.= "<tab>$profIcon $playerName - $player->level/<green>$player->ai_level<end> $prof";
 			}
 			if ($player->online) {
-				$blob .= " <green>Online<end>";
+				$blob .= " <on>Online<end>";
 			}
 			$blob .= "\n";
 		}
@@ -963,14 +963,14 @@ class OnlineController extends ModuleInstance {
 
 		if (($mode & static::RAID_IN) && $inRaid) {
 			if ($mode & static::RAID_COMPACT) {
-				return ["[<green>R<end>] ", ""];
+				return ["[<on>R<end>] ", ""];
 			}
-			return ["", " $fancyColon <green>in raid<end>"];
+			return ["", " $fancyColon <on>in raid<end>"];
 		} elseif (($mode & static::RAID_NOT_IN) && !$inRaid) {
 			if ($mode & static::RAID_COMPACT) {
-				return ["[<red>R<end>] ", ""];
+				return ["[<off>R<end>] ", ""];
 			}
-			return ["", " $fancyColon <red>not in raid<end>"];
+			return ["", " $fancyColon <off>not in raid<end>"];
 		}
 		return ["", ""];
 	}

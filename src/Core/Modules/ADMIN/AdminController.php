@@ -216,16 +216,16 @@ class AdminController extends ModuleInstance {
 	/**
 	 * Get the string of the online status
 	 * @param string $who Playername
-	 * @return string " (<green>online<end>)" and so on
+	 * @return string " (<on>online<end>)" and so on
 	 */
 	private function getOnlineStatus(string $who, bool $showLastSeen=false): string {
 		if ($this->buddylistManager->isOnline($who) && isset($this->chatBot->chatlist[$who])) {
-			return " (<green>Online and in chat<end>)";
+			return " (<on>Online and in chat<end>)";
 		} elseif ($this->buddylistManager->isOnline($who)) {
-			return " (<green>Online<end>)";
+			return " (<on>Online<end>)";
 		}
 		if (!$showLastSeen) {
-			return " (<red>Offline<end>)";
+			return " (<off>Offline<end>)";
 		}
 		$main = $this->altsController->getMainOf($who);
 		/** @var ?LastOnline */
@@ -236,9 +236,9 @@ class AdminController extends ModuleInstance {
 			->asObj(LastOnline::class)
 			->first();
 		if (!isset($lastSeen)) {
-			return " (<red>Offline<end>)";
+			return " (<off>Offline<end>)";
 		}
-		return " (<red>Offline<end>, last seen ".
+		return " (<off>Offline<end>, last seen ".
 			$this->util->date($lastSeen->dt, false).
 			" on {$lastSeen->name})";
 	}
