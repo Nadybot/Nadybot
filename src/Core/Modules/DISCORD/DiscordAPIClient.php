@@ -36,17 +36,11 @@ class DiscordAPIClient extends ModuleInstance {
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
-	/**
-	 * @phpstan-var array{0: string, 1: string, 2: ?callable}[]
-	 * @psalm-var array{0: string, 1: string, 2: ?callable}[]
-	 */
+	/** @var ChannelQueueItem[] */
 	protected array $outQueue = [];
 	protected bool $queueProcessing = false;
 
-	/**
-	 * @phpstan-var array{0: string, 1: string, 2:string, 3: ?callable}[]
-	 * @psalm-var array{0: string, 1: string, 2: string, 3: ?callable}[]
-	 */
+	/** @var WebhookQueueItem[] */
 	protected array $webhookQueue = [];
 	protected bool $webhookQueueProcessing = false;
 
@@ -287,7 +281,11 @@ class DiscordAPIClient extends ModuleInstance {
 		$this->logger->info("Adding discord message to end of channel queue {channel}", [
 			"channel" => $channel,
 		]);
-		$this->outQueue []= [$channel, $message, $callback];
+		$this->outQueue []= new ChannelQueueItem(
+			$channel,
+			$message,
+			isset($callback) ? Closure::fromCallable($callback) : null,
+		);
 		if ($this->queueProcessing === false) {
 			$this->processQueue();
 		}
@@ -297,7 +295,11 @@ class DiscordAPIClient extends ModuleInstance {
 		$this->logger->info("Adding discord message to front of channel queue {channel}", [
 			"channel" => $channel,
 		]);
-		array_unshift($this->outQueue, [$channel, $message, $callback]);
+		array_unshift($this->outQueue, new ChannelQueueItem(
+			$channel,
+			$message,
+			isset($callback) ? Closure::fromCallable($callback) : null,
+		));
 		if ($this->queueProcessing === false) {
 			$this->processQueue();
 		}
@@ -309,20 +311,19 @@ class DiscordAPIClient extends ModuleInstance {
 			return;
 		}
 		$this->queueProcessing = true;
-		$params = array_shift($this->outQueue);
-		/** @psalm-suppress TooFewArguments */
-		$this->immediatelySendToChannel(...$params);
+		$item = array_shift($this->outQueue);
+		$this->immediatelySendToChannel($item);
 	}
 
-	protected function immediatelySendToChannel(string $channel, string $message, ?callable $callback=null): void {
+	protected function immediatelySendToChannel(ChannelQueueItem $item): void {
 		$this->logger->info("Sending message to discord channel {channel}", [
-			"channel" => $channel,
-			"message" => $message,
+			"channel" => $item->channelId,
+			"message" => $item->message,
 		]);
-		$errorHandler = $this->getErrorWrapper(new DiscordMessageIn(), $callback);
+		$errorHandler = $this->getErrorWrapper(new DiscordMessageIn(), $item->callback);
 		$this->post(
-			self::DISCORD_API . "/channels/{$channel}/messages",
-			$message
+			self::DISCORD_API . "/channels/{$item->channelId}/messages",
+			$item->message
 		)->withCallback(
 			function(HttpResponse $response, array $message) use ($errorHandler): void {
 				if (isset($response->headers) && $response->headers["status-code"] === "429") {
@@ -341,7 +342,12 @@ class DiscordAPIClient extends ModuleInstance {
 		$this->logger->info("Adding discord message to end of webhook queue {interaction}", [
 			"channel" => $interactionToken,
 		]);
-		$this->webhookQueue []= [$applicationId, $interactionToken, $message, $callback];
+		$this->webhookQueue []= new WebhookQueueItem(
+			$applicationId,
+			$interactionToken,
+			$message,
+			isset($callback) ? Closure::fromCallable($callback) : null
+		);
 		if ($this->webhookQueueProcessing === false) {
 			$this->processWebhookQueue();
 		}
@@ -353,20 +359,19 @@ class DiscordAPIClient extends ModuleInstance {
 			return;
 		}
 		$this->webhookQueueProcessing = true;
-		$params = array_shift($this->webhookQueue);
-		/** @psalm-suppress TooFewArguments */
-		$this->immediatelySendToWebhook(...$params);
+		$item = array_shift($this->webhookQueue);
+		$this->immediatelySendToWebhook($item);
 	}
 
-	protected function immediatelySendToWebhook(string $applicationId, string $interactionToken, string $message, ?callable $callback=null): void {
+	protected function immediatelySendToWebhook(WebhookQueueItem $item): void {
 		$this->logger->info("Sending message to discord webhook {webhook}", [
-			"webhook" => $interactionToken,
-			"message" => $message,
+			"webhook" => $item->interactionToken,
+			"message" => $item->message,
 		]);
-		$errorHandler = $this->getErrorWrapper(new DiscordMessageIn(), $callback);
+		$errorHandler = $this->getErrorWrapper(new DiscordMessageIn(), $item->callback);
 		$this->post(
-			self::DISCORD_API . "/webhooks/{$applicationId}/{$interactionToken}",
-			$message
+			self::DISCORD_API . "/webhooks/{$item->applicationId}/{$item->interactionToken}",
+			$item->message
 		)->withCallback(
 			function(HttpResponse $response, array $message) use ($errorHandler): void {
 				if (isset($response->headers) && $response->headers["status-code"] === "429") {
