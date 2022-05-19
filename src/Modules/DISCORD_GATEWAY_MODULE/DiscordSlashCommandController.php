@@ -110,7 +110,7 @@ class DiscordSlashCommandController extends ModuleInstance {
 	}
 
 	/**
-	 * Register all slash-commands that the bot has configured
+	 * Make sure, all slash-commands that the bot has configured, are registered
 	 *
 	 * @phpstan-param null|callable():void $success
 	 * @phpstan-param null|callable(string):void $failure
@@ -149,6 +149,7 @@ class DiscordSlashCommandController extends ModuleInstance {
 		]);
 
 		if ($registeredCmds->count() === $commands->count() && $numModifiedCommands === 0) {
+			$this->logger->info("No Slash-commands need (re-)registering or deletion");
 			if (isset($success)) {
 				$success();
 			}
