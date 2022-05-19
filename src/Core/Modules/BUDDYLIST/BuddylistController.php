@@ -114,7 +114,7 @@ class BuddylistController extends ModuleInstance {
 			if (count($value->types ?? []) === 0) {
 				$orphanCount++;
 				$this->buddylistManager->remove($value->name);
-				$removed = " <red>REMOVED<end>";
+				$removed = " <off>REMOVED<end>";
 
 				// don't count removed characters
 				$count--;

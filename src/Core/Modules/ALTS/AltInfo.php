@@ -292,7 +292,7 @@ class AltInfo {
 
 	public function formatOnlineStatus(?bool $online): string {
 		if ($online) {
-			return " - <green>Online<end>";
+			return " - <on>Online<end>";
 		}
 		return "";
 	}

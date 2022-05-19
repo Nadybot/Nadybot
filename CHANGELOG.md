@@ -12,11 +12,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - New setting `add_header_ranges`. If enabled, in addition to Page X/Y, it will print the (sub-)header-ranges in that page (ADMIN -> TOWER_MODULE) as well, if the page is streuctured like that
 - Add support for Discord Slash-commands. The setting `discord_slash_commands` determines if they are disabled, only visible to the person sending them, or treated like a regular command and routed from/to the bot-channels.
   Because Discord allows a maximum of 100 global slash-commands, you have to use `!discord slash add|rem|pick` to configure which commands will be exposed. By default, some are exposed already that most people will probably want to, but this won't apply to everyone.
+- The name of every access-level-rank can now be changed freely.
+- The `!leaders`-command can now be configured to also show the admins and mods.
+- The colors that `!online` displays for ranks raid_leader and upwards, are now customizable.
+- Make "on"- and "off"-colors a configurable setting in the `COLORS` module
+- Add settings to configure the colors of `!tell`, `!cmd` and `!topic`.
 
 ### Changed
 
 - The `!track online`-command got a real parser now and supports filtering by level (ranges), title level (ranges), faction(s) and profession(s).
-- The message that's displayed what a tracked character goes on/offline is now completely configurable with {placeholders}. To display this properly, a new setting type `tracker_format` has been introduced that will display rendered and unrendered versions of the setting. There is also logic to remove `{org}` from the message is the character is not member of an org.
+- The message that's displayed when a tracked character goes on/offline is now completely configurable with {placeholders}. To display this properly, a new setting type `tracker_format` has been introduced that will display rendered and unrendered versions of the setting. There is also logic to remove `{org}` from the message is the character is not member of an org.
+- Gracefully support URLs for bank-CSV location. Download will be async with proper error handling.
+- Raid ranks in online-list are also shown for access-level "guild".
+- Joining and leaving voice chats will now display the linked AO character, if available.
+- Change the default "disabled/off"-color to a slightly lighter shade of red.
+
+### Fix
+
+- Due to a logic error, once a websocket connection timed out, chances were, it would constantly timeout again.
 
 ## [6.0.2] - 2022-05-10
 

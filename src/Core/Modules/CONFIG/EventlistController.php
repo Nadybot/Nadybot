@@ -56,9 +56,9 @@ class EventlistController extends ModuleInstance {
 			$off = $this->text->makeChatcmd('OFF', "/tell <myname> config event $row->type $row->file disable all");
 
 			if ($row->status === 1) {
-				$status = "<green>Enabled<end>";
+				$status = "<on>Enabled<end>";
 			} else {
-				$status = "<red>Disabled<end>";
+				$status = "<off>Disabled<end>";
 			}
 
 			if ($lastType !== $row->type) {

@@ -100,7 +100,7 @@ class DiscordController extends ModuleInstance {
 		$text = $this->factionColorsToEmojis($text);
 		$text = preg_replace('/([~`_*])/s', "\\\\$1", $text);
 		$text = preg_replace('/((?:\d{4}-\d{2}-\d{2} )?\d+(?::\d+)+)/s', "`$1`", $text);
-		$text = preg_replace('/<(highlight|black|white|yellow|blue|green|red|orange|grey|cyan|violet|neutral|omni|clan|unknown|font [^>]*)><end>/s', '', $text);
+		$text = preg_replace('/<(highlight|black|white|yellow|blue|green|red|on|off|orange|grey|cyan|violet|neutral|omni|clan|unknown|font [^>]*)><end>/s', '', $text);
 		$text = preg_replace('/<highlight>(.*?)<end>/s', '**$1**', $text);
 		$text = str_replace("<myname>", $this->chatBot->char->name, $text);
 		$text = str_replace("<myguild>", $this->config->orgName, $text);

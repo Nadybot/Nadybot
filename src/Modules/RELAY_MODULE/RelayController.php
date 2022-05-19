@@ -885,13 +885,13 @@ class RelayController extends ModuleInstance {
 			$line = "\n<tab><highlight>{$event->name}<end>:";
 			foreach (["incoming", "outgoing"] as $type) {
 				if ($eConf->{$type}) {
-					$line .= " <green>" . ucfirst($type) . "<end> [".
+					$line .= " <on>" . ucfirst($type) . "<end> [".
 						$this->text->makeChatcmd(
 							"disable",
 							"/tell <myname> relay config {$relay->name} eventmod {$event->name} disable {$type}"
 						) . "]";
 				} else {
-					$line .= " <red>" . ucfirst($type) . "<end> [".
+					$line .= " <off>" . ucfirst($type) . "<end> [".
 						$this->text->makeChatcmd(
 							"enable",
 							"/tell <myname> relay config {$relay->name} eventmod {$event->name} enable {$type}"
@@ -933,7 +933,7 @@ class RelayController extends ModuleInstance {
 			);
 			return;
 		}
-		$statusMsg = $enable ? "<green>enabled<end>" : "<red>disabled<end>";
+		$statusMsg = $enable ? "<on>enabled<end>" : "<off>disabled<end>";
 		if ($this->changeRelayEventStatus($relay, $event(), $direction, $enable)) {
 			$context->reply(
 				"Successfully {$statusMsg} {$direction} events of type <highlight>".

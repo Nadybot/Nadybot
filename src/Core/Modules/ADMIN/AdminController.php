@@ -92,6 +92,12 @@ class AdminController extends ModuleInstance {
 		$this->commandAlias->register($this->moduleName, "mod rem", "remmod");
 	}
 
+	private function addArticle(string $rank): string {
+		return in_array(substr($rank, 0, 1), ["a", "e", "i", "o", "u"])
+			? "an {$rank}"
+			: "a {$rank}";
+	}
+
 	/** Make &lt;who&gt; an administrator */
 	#[NCA\HandlesCommand("admin")]
 	#[NCA\Help\Group("ranks")]
@@ -101,7 +107,8 @@ class AdminController extends ModuleInstance {
 		PCharacter $who
 	): void {
 		$intlevel = 4;
-		$rank = 'an administrator';
+		$rankName = $this->accessManager->getDisplayName("admin");
+		$rank = $this->addArticle($rankName);
 
 		$this->add($who(), $context->char->name, $context, $intlevel, $rank);
 	}
@@ -115,7 +122,8 @@ class AdminController extends ModuleInstance {
 		PCharacter $who
 	): void {
 		$intlevel = 3;
-		$rank = 'a moderator';
+		$rankName = $this->accessManager->getDisplayName("mod");
+		$rank = $this->addArticle($rankName);
 
 		$this->add($who(), $context->char->name, $context, $intlevel, $rank);
 	}
@@ -125,7 +133,8 @@ class AdminController extends ModuleInstance {
 	#[NCA\Help\Group("ranks")]
 	public function adminRemoveCommand(CmdContext $context, PRemove $rem, PCharacter $who): void {
 		$intlevel = 4;
-		$rank = 'an administrator';
+		$rankName = $this->accessManager->getDisplayName("admin");
+		$rank = $this->addArticle($rankName);
 
 		$this->remove($who(), $context->char->name, $context, $intlevel, $rank);
 	}
@@ -135,7 +144,8 @@ class AdminController extends ModuleInstance {
 	#[NCA\Help\Group("ranks")]
 	public function modRemoveCommand(CmdContext $context, PRemove $rem, PCharacter $who): void {
 		$intlevel = 3;
-		$rank = 'a moderator';
+		$rankName = $this->accessManager->getDisplayName("mod");
+		$rank = $this->addArticle($rankName);
 
 		$this->remove($who(), $context->char->name, $context, $intlevel, $rank);
 	}
@@ -147,7 +157,14 @@ class AdminController extends ModuleInstance {
 	#[NCA\HandlesCommand("adminlist")]
 	#[NCA\Help\Group("ranks")]
 	public function adminlistCommand(CmdContext $context, #[NCA\Str("all")] ?string $all): void {
-		$showOfflineAlts = isset($all);
+		$blobs = $this->getLeaderList(isset($all));
+
+		$link = $this->text->makeBlob('Bot administrators', join("\n", $blobs));
+		$context->reply($link);
+	}
+
+	/** @return string[] */
+	public function getLeaderList(bool $showOfflineAlts): array {
 		$admins = [];
 		$mods = [];
 		$blobs = [];
@@ -157,7 +174,9 @@ class AdminController extends ModuleInstance {
 			}
 			$line = "<tab>$who";
 			if ($this->accessManager->checkAccess($who, 'superadmin')) {
-				$line .= " (<highlight>Super-administrator<end>)";
+				$line .= " (<highlight>".
+					ucfirst($this->accessManager->getDisplayName("superadmin")).
+					"<end>)";
 			}
 			$line .= $this->getOnlineStatus($who, true) . "\n".
 				$this->getAltAdminInfo($who, $showOfflineAlts);
@@ -168,16 +187,18 @@ class AdminController extends ModuleInstance {
 			}
 		}
 		if (count($admins)) {
-			$blobs []= "<header2>Administrators<end>\n".
+			$blobs []= "<header2>".
+				ucfirst($this->accessManager->getDisplayName("admin")).
+				"s<end>\n".
 				join("", $admins);
 		}
 		if (count($mods)) {
-			$blobs []= "<header2>Moderators<end>\n".
+			$blobs []= "<header2>".
+				ucfirst($this->accessManager->getDisplayName("mod")).
+				"s<end>\n".
 				join("", $mods);
 		}
-
-		$link = $this->text->makeBlob('Bot administrators', join("\n", $blobs));
-		$context->reply($link);
+		return $blobs;
 	}
 
 	#[NCA\Event(
@@ -195,16 +216,16 @@ class AdminController extends ModuleInstance {
 	/**
 	 * Get the string of the online status
 	 * @param string $who Playername
-	 * @return string " (<green>online<end>)" and so on
+	 * @return string " (<on>online<end>)" and so on
 	 */
 	private function getOnlineStatus(string $who, bool $showLastSeen=false): string {
 		if ($this->buddylistManager->isOnline($who) && isset($this->chatBot->chatlist[$who])) {
-			return " (<green>Online and in chat<end>)";
+			return " (<on>Online and in chat<end>)";
 		} elseif ($this->buddylistManager->isOnline($who)) {
-			return " (<green>Online<end>)";
+			return " (<on>Online<end>)";
 		}
 		if (!$showLastSeen) {
-			return " (<red>Offline<end>)";
+			return " (<off>Offline<end>)";
 		}
 		$main = $this->altsController->getMainOf($who);
 		/** @var ?LastOnline */
@@ -215,9 +236,9 @@ class AdminController extends ModuleInstance {
 			->asObj(LastOnline::class)
 			->first();
 		if (!isset($lastSeen)) {
-			return " (<red>Offline<end>)";
+			return " (<off>Offline<end>)";
 		}
-		return " (<red>Offline<end>, last seen ".
+		return " (<off>Offline<end>, last seen ".
 			$this->util->date($lastSeen->dt, false).
 			" on {$lastSeen->name})";
 	}

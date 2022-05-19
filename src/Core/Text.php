@@ -277,6 +277,8 @@ class Text {
 			"<header>" => str_replace("'", "", $this->settingManager->getString('default_header_color')??""),
 			"<header2>" => str_replace("'", "", $this->settingManager->getString('default_header2_color')??""),
 			"<highlight>" => str_replace("'", "", $this->settingManager->getString('default_highlight_color')??""),
+			"<on>" => str_replace("'", "", $this->settingManager->getString('default_enabled_color')??""),
+			"<off>" => str_replace("'", "", $this->settingManager->getString('default_disabled_color')??""),
 			"<black>" => "<font color=#000000>",
 			"<white>" => "<font color=#FFFFFF>",
 			"<yellow>" => "<font color=#FFFF00>",

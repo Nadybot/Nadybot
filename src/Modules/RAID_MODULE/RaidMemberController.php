@@ -171,9 +171,9 @@ class RaidMemberController extends ModuleInstance {
 		}
 		if (($raid->locked || $raidIsFull) && $sender === $player && !$force) {
 			if ($raid->locked) {
-				$msg = "The raid is currently <red>locked<end>.";
+				$msg = "The raid is currently <off>locked<end>.";
 			} else {
-				$msg = "The raid is currently <red>full<end> ".
+				$msg = "The raid is currently <off>full<end> ".
 					"with {$numRaiders}/{$raid->max_members} players.";
 			}
 			if (isset($source) && strncmp($source, 'aopriv', 6) === 0) {
@@ -203,16 +203,16 @@ class RaidMemberController extends ModuleInstance {
 		$msg = null;
 		if ($force) {
 			if ($this->raidInformMemberBeingAdded) {
-				$this->chatBot->sendMassTell("You were <green>added<end> to the raid by {$sender}.", $player);
+				$this->chatBot->sendMassTell("You were <on>added<end> to the raid by {$sender}.", $player);
 			}
-			$routed = $this->routeMessage("join", "<highlight>{$player}<end> was <green>added<end> to the raid by {$sender}{$countMsg}.");
+			$routed = $this->routeMessage("join", "<highlight>{$player}<end> was <on>added<end> to the raid by {$sender}{$countMsg}.");
 			if ($routed !== MessageHub::EVENT_DELIVERED) {
-				$msg = "<highlight>{$player}<end> was <green>added<end> to the raid{$countMsg}.";
+				$msg = "<highlight>{$player}<end> was <on>added<end> to the raid{$countMsg}.";
 			}
 		} else {
 			$this->routeMessage(
 				"join",
-				"<highlight>{$player}<end> has <green>joined<end> the raid{$countMsg} :: ".
+				"<highlight>{$player}<end> has <on>joined<end> the raid{$countMsg} :: ".
 				((array)$this->text->makeBlob(
 					"click to join",
 					$this->raidController->getRaidJoinLink(),
@@ -223,7 +223,7 @@ class RaidMemberController extends ModuleInstance {
 		}
 		$numRaiders++;
 		if ($numRaiders === $raid->max_members && ($this->raidAnnounceFull & self::ANNOUNCE_RAID_FULL)) {
-			$fullMsg = "The raid is now <red>full<end> with {$numRaiders}/{$raid->max_members} members.";
+			$fullMsg = "The raid is now <off>full<end> with {$numRaiders}/{$raid->max_members} members.";
 			$routed = $this->routeMessage("join", $fullMsg);
 			if ($routed !== MessageHub::EVENT_DELIVERED) {
 				if (isset($msg)) {
@@ -264,18 +264,18 @@ class RaidMemberController extends ModuleInstance {
 		$msg = null;
 		if ($sender !== $player) {
 			if ($this->raidInformMemberBeingAdded && isset($sender)) {
-				$this->chatBot->sendMassTell("You were <red>removed<end> from the raid by {$sender}.", $player);
+				$this->chatBot->sendMassTell("You were <off>removed<end> from the raid by {$sender}.", $player);
 			}
 			$leaveType = (isset($sender) && ($sender !== $player)) ? "kick" : "leave";
-			$routed = $this->routeMessage($leaveType, "<highlight>{$player}<end> was <red>removed<end> from the raid{$countMsg}.");
+			$routed = $this->routeMessage($leaveType, "<highlight>{$player}<end> was <off>removed<end> from the raid{$countMsg}.");
 			if ($routed !== MessageHub::EVENT_DELIVERED) {
-				$msg = "<highlight>{$player}<end> was <red>removed<end> to the raid{$countMsg}.";
+				$msg = "<highlight>{$player}<end> was <off>removed<end> to the raid{$countMsg}.";
 			}
 		} else {
-			$this->routeMessage("leave", "<highlight>{$player}<end> has <red>left<end> the raid{$countMsg}.");
+			$this->routeMessage("leave", "<highlight>{$player}<end> has <off>left<end> the raid{$countMsg}.");
 		}
 		if ($numRaiders === $raid->max_members && ($this->raidAnnounceFull & self::ANNOUNCE_RAID_OPEN)) {
-			$openMsg = "The raid is <green>no longer full<end>!";
+			$openMsg = "The raid is <on>no longer full<end>!";
 			$routed = $this->routeMessage("leave", $openMsg);
 			if ($routed !== MessageHub::EVENT_DELIVERED) {
 				if (isset($msg)) {
@@ -439,10 +439,10 @@ class RaidMemberController extends ModuleInstance {
 				$line .= " [Points: {$raider->pointsRewarded}] ";
 			}
 			if (isset($raider->left)) {
-				$line .= "<red>left<end>";
+				$line .= "<off>left<end>";
 				$inactive++;
 			} else {
-				$line .= "<green>active<end> ".
+				$line .= "<on>active<end> ".
 					"[" . $this->text->makeChatcmd(
 						"Kick",
 						"/tell <myname> raid kick {$player}"

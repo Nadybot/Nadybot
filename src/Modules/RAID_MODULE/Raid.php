@@ -112,9 +112,9 @@ class Raid extends DBRow {
 		}
 		$msg = "Raid is running: <highlight>{$this->description}<end>{$countMsg} :: ";
 		if ($this->locked) {
-			$msg .= "<red>raid is locked<end>";
+			$msg .= "<off>raid is locked<end>";
 		} elseif ($this->max_members > 0 && $this->max_members <= $numRaiders) {
-			$msg .= "<red>raid is full<end>{$countMsg}";
+			$msg .= "<off>raid is full<end>{$countMsg}";
 		} elseif ($joinMessage !== null) {
 			$msg .= $joinMessage;
 		}

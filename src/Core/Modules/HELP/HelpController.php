@@ -204,9 +204,9 @@ class HelpController extends ModuleInstance {
 			$enable ? "1" : "0"
 		);
 		if ($enable) {
-			$context->reply("Showing the syntax explanation is now <green>on<end>.");
+			$context->reply("Showing the syntax explanation is now <on>on<end>.");
 		} else {
-			$context->reply("Showing the syntax explanation is now <red>off<end>.");
+			$context->reply("Showing the syntax explanation is now <off>off<end>.");
 		}
 	}
 

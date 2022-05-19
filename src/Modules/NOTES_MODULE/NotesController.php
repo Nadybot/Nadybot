@@ -234,7 +234,7 @@ class NotesController extends ModuleInstance {
 		if (($note->reminder & Note::REMIND_ALL) === 0) {
 			$links []= $remindAllLink;
 		} else {
-			$links []= "<green>{$labels[2]}<end>";
+			$links []= "<on>{$labels[2]}<end>";
 		}
 		if (($note->reminder & Note::REMIND_SELF) === 0) {
 			$links []= $remindSelfLink;
@@ -244,7 +244,7 @@ class NotesController extends ModuleInstance {
 		if ($note->reminder !== Note::REMIND_NONE) {
 			$links []= $remindOffLink;
 		} else {
-			$links []= "<red>{$labels[0]}<end>";
+			$links []= "<off>{$labels[0]}<end>";
 		}
 		if ($format === 1) {
 			return "(" . join("|", $links) . ")";
