@@ -257,8 +257,10 @@ class DiscordGatewayController extends ModuleInstance {
 		return null;
 	}
 
-	/** @param mixed $args */
-	public function lookupChannel(string $channelId, callable $callback, ...$args): void {
+	/**
+	 * Lookup a channel by its ID and call a callback with the resolved channel
+	 */
+	public function lookupChannel(string $channelId, callable $callback, mixed ...$args): void {
 		$channel = $this->getChannel($channelId);
 		if (isset($channel)) {
 			$callback($channel, ...$args);
@@ -1016,7 +1018,7 @@ class DiscordGatewayController extends ModuleInstance {
 		);
 		$this->mustReconnect = true;
 		$this->reconnectDelay = 5;
-		$this->discordSlashCommandController->registerSlashCommands();
+		$this->discordSlashCommandController->syncSlashCommands();
 	}
 
 	#[NCA\Event(

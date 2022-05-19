@@ -6,7 +6,6 @@ use function Safe\json_decode;
 use function Safe\json_encode;
 
 use Closure;
-use Exception;
 use ReflectionClass;
 use ReflectionMethod;
 use ReflectionNamedType;
@@ -58,6 +57,10 @@ class DiscordSlashCommandController extends ModuleInstance {
 	/** Slash-commands are only shown to the sender */
 	public const SLASH_EPHEMERAL = 2;
 
+	public const APP_TYPE_NO_PARAMS = 0;
+	public const APP_TYPE_OPT_PARAMS = 1;
+	public const APP_TYPE_REQ_PARAMS = 2;
+
 	#[NCA\Inject]
 	public CommandManager $cmdManager;
 
@@ -93,19 +96,22 @@ class DiscordSlashCommandController extends ModuleInstance {
 	])]
 	public int $discordSlashCommands = self::SLASH_EPHEMERAL;
 
+	/** If the state changes to/from disabled, then we need to re-register the slash-cmds */
 	#[NCA\SettingChangeHandler('discord_slash_commands')]
-	public function updateSlashCmdsIfRequires(string $settingName, string $oldValue, string $newValue): void {
+	public function syncSlashCmdsOnStateChange(string $settingName, string $oldValue, string $newValue): void {
 		if ((int)$oldValue !== self::SLASH_OFF && (int)$newValue !== self::SLASH_OFF) {
 			return;
 		}
-		$this->registerSlashCommands();
+		$this->syncSlashCommands();
 	}
 
 	/**
+	 * Register all slash-commands that the bot has configured
+	 *
 	 * @phpstan-param null|callable():void $success
 	 * @phpstan-param null|callable(string):void $failure
 	 */
-	public function registerSlashCommands(?callable $success=null, ?callable $failure=null): void {
+	public function syncSlashCommands(?callable $success=null, ?callable $failure=null): void {
 		$appId = $this->gw->getID();
 		if (!isset($appId)) {
 			return;
@@ -120,6 +126,8 @@ class DiscordSlashCommandController extends ModuleInstance {
 	}
 
 	/**
+	 * Ensure the global application commands are identical to $registeredCmds
+	 *
 	 * @param ApplicationCommand[] $registeredCmds
 	 * @phpstan-param null|callable():void $success
 	 * @phpstan-param null|callable(string):void $failure
@@ -146,6 +154,8 @@ class DiscordSlashCommandController extends ModuleInstance {
 	}
 
 	/**
+	 * Set the given slash commands without checking if they've changed
+	 *
 	 * @param Collection<ApplicationCommand> $modifiedCommands
 	 * @phpstan-param null|callable():void $success
 	 * @phpstan-param null|callable(string):void $failure
@@ -155,12 +165,6 @@ class DiscordSlashCommandController extends ModuleInstance {
 		?callable $success=null,
 		?callable $failure=null,
 	): void {
-		if ($modifiedCommands->isEmpty()) {
-			if (isset($success)) {
-				$success();
-			}
-			return;
-		}
 		$appId = $this->gw->getID();
 		if (!isset($appId)) {
 			if (isset($failure)) {
@@ -205,12 +209,17 @@ class DiscordSlashCommandController extends ModuleInstance {
 		);
 	}
 
-	/** @return ApplicationCommand[] */
+	/**
+	 * Calculate which slash-commands should be enabled
+	 * and return them as an array of ApplicationCommands
+	 *
+	 * @return ApplicationCommand[]
+	 */
 	public function calcSlashCommands(): array {
 		$enabledCommands = $this->db->table(self::DB_SLASH_TABLE)
 			->pluckAs("cmd", "string")->toArray();
 		if ($this->discordSlashCommands === self::SLASH_OFF) {
-			$enabledCommands = [];
+			return [];
 		}
 		/** @var ApplicationCommand[] */
 		$cmds = [];
@@ -226,18 +235,24 @@ class DiscordSlashCommandController extends ModuleInstance {
 				if (!in_array($cmdObj->command, $enabledCommands)) {
 					continue;
 				}
-				$cmds []= $this->getApplicationCommandForDefineCommand($cmdObj);
+				if (($appCmd = $this->getApplicationCommandForDefineCommand($cmdObj)) !== null) {
+					$cmds []= $appCmd;
+				}
 			}
 		}
 		return $cmds;
 	}
 
-	private function getApplicationCommandForDefineCommand(NCA\DefineCommand $cmdObj): ApplicationCommand {
+	/**
+	 * Get the ApplicationCommand-definition for a single NCA\DefineCommand
+	 */
+	private function getApplicationCommandForDefineCommand(NCA\DefineCommand $cmdObj): ?ApplicationCommand {
 		$cmd = new ApplicationCommand();
 		$cmd->type = $cmd::TYPE_CHAT_INPUT;
 		$cmd->name = $cmdObj->command;
 		$cmd->description = $cmdObj->description;
 		$objs = Registry::getAllInstances();
+		/** @var int[] */
 		$types = [];
 		foreach ($objs as $obj) {
 			$refClass = new ReflectionClass($obj);
@@ -256,7 +271,7 @@ class DiscordSlashCommandController extends ModuleInstance {
 			}
 		}
 		if (empty($types)) {
-			throw new Exception("No validad handlers found for {$cmdObj->command}.");
+			return null;
 		}
 		if (count($types) === 1 && $types[0] === 0) {
 			return $cmd;
@@ -266,12 +281,19 @@ class DiscordSlashCommandController extends ModuleInstance {
 		$option->name = "parameters";
 		$option->description = "Parameters for this command";
 		$option->type = $option::TYPE_STRING;
-		$option->required = min($types) === 2;
+		$option->required = min($types) === self::APP_TYPE_REQ_PARAMS;
 		$cmd->options = [$option];
 
 		return $cmd;
 	}
 
+	/**
+	 * Calculate if the given command doesn't require parameters (0), has
+	 * optional parameters (1) or mandatory parameters (2)
+	 *
+	 * @return null|int
+	 * @phpstan-return null|self::APP_TYPE_*
+	 */
 	private function getApplicationCommandOptionType(ReflectionMethod $refMethod): ?int {
 		$params = $refMethod->getParameters();
 		if (count($params) === 0
@@ -284,10 +306,10 @@ class DiscordSlashCommandController extends ModuleInstance {
 			return null;
 		}
 		if (count($params) === 1) {
-			return 0;
+			return self::APP_TYPE_NO_PARAMS;
 		}
 
-		$type = 1;
+		$type = self::APP_TYPE_OPT_PARAMS;
 		for ($i = 1; $i < count($params); $i++) {
 			$paramType = $this->getParamOptionType($params[$i], count($params));
 			if ($paramType === null) {
@@ -298,6 +320,12 @@ class DiscordSlashCommandController extends ModuleInstance {
 		return $type;
 	}
 
+	/**
+	 * Calculate if the given parameter is optional(1) or mandatory(2)
+	 *
+	 * @return null|int
+	 * @phpstan-return null|self::APP_TYPE_OPT_PARAMS|self::APP_TYPE_REQ_PARAMS
+	 */
 	private function getParamOptionType(ReflectionParameter $param, int $numParams): ?int {
 		if (!$param->hasType()) {
 			return null;
@@ -310,12 +338,14 @@ class DiscordSlashCommandController extends ModuleInstance {
 			return null;
 		}
 		if ($param->allowsNull()) {
-			return 1;
+			return self::APP_TYPE_OPT_PARAMS;
 		}
-		return 2;
+		return self::APP_TYPE_REQ_PARAMS;
 	}
 
 	/**
+	 * Calculate how many commands in $set have change relatively to $live
+	 *
 	 * @param Collection<ApplicationCommand> $live
 	 * @param Collection<ApplicationCommand> $set
 	 */
@@ -415,7 +445,7 @@ class DiscordSlashCommandController extends ModuleInstance {
 			return;
 		}
 		$context->reply("Trying to add " . $newCommands->count() . " {$cmdText}...");
-		$this->registerSlashCommands(
+		$this->syncSlashCommands(
 			function() use ($newCommands, $context, $cmdText): void {
 				$context->reply(
 					"Successfully registered " . $newCommands->count(). " new ".
@@ -463,7 +493,7 @@ class DiscordSlashCommandController extends ModuleInstance {
 			->whereIn("cmd", $delCommands->toArray())
 			->delete();
 		$context->reply("Trying to remove " . $delCommands->count() . " {$cmdText}...");
-		$this->registerSlashCommands(
+		$this->syncSlashCommands(
 			function() use ($delCommands, $context, $cmdText): void {
 				$context->reply(
 					"Successfully removed " . $delCommands->count(). " ".
@@ -530,35 +560,52 @@ class DiscordSlashCommandController extends ModuleInstance {
 		name: "discord(interaction_create)",
 		description: "Handle Discord slash commands"
 	)]
-	public function processDiscordSlashCommands(DiscordGatewayEvent $event): void {
+	public function handleSlashCommands(DiscordGatewayEvent $event): void {
+		$this->logger->info("Received interaction on Discord");
 		$interaction = new Interaction();
 		$interaction->fromJSON($event->payload->d);
+		$this->logger->debug("Interaction decoded", [
+			"interaction" => $interaction,
+		]);
 		if (!$this->gw->isMe($interaction->application_id)) {
+			$this->logger->info("Interaction is not for this bot");
 			return;
 		}
 		$discordUserId = $interaction->user->id ?? $interaction->member->user->id ?? null;
 		if (!isset($discordUserId)) {
+			$this->logger->info("Interaction has no user id set");
+			return;
+		}
+		if ($interaction->type === $interaction::TYPE_APPLICATION_COMMAND
+			&& $this->discordSlashCommands === self::SLASH_OFF) {
+			$this->logger->info("Ignoring disabled slash-command");
 			return;
 		}
 		if ($interaction->type !== $interaction::TYPE_APPLICATION_COMMAND
 			&& $interaction->type !== $interaction::TYPE_MESSAGE_COMPONENT) {
+			$this->logger->info("Ignoring unuspported interaction type");
 			return;
 		}
 		$context = new CmdContext($discordUserId);
 		$context->setIsDM(isset($interaction->user));
 		$cmd = $interaction->toCommand();
 		if (!isset($cmd)) {
+			$this->logger->info("No command to execute found in interaction");
 			return;
 		}
 		$context->message = $cmd;
 		if (isset($interaction->channel_id)) {
 			$channel = $this->gw->getChannel($interaction->channel_id);
 			if (!isset($channel)) {
+				$this->logger->info("Interaction is for an unknown channel");
 				return;
 			}
 			$context->source = Source::DISCORD_PRIV . "({$channel->name})";
 			$cmdMap = $this->cmdManager->getPermsetMapForSource($context->source);
 			if (!isset($cmdMap)) {
+				$this->logger->info("No permission set found for {source}", [
+					"source" => $context->source
+				]);
 				$context->source = Source::DISCORD_PRIV . "({$channel->id})";
 				$cmdMap = $this->cmdManager->getPermsetMapForSource($context->source);
 			}
@@ -567,18 +614,22 @@ class DiscordSlashCommandController extends ModuleInstance {
 			$cmdMap = $this->cmdManager->getPermsetMapForSource($context->source);
 		}
 		if (!isset($cmdMap)) {
+			$this->logger->info("No permission set found for {source}", [
+				"source" => $context->source
+			]);
 			return;
 		}
 		$context->message = $cmdMap->symbol . $context->message;
-		$this->processDiscordSlashCommand($interaction, $context);
+		$this->executeSlashCommand($interaction, $context);
 	}
 
-	protected function processDiscordSlashCommand(Interaction $interaction, CmdContext $context): void {
+	/** Execute the given interaction/slash-command */
+	protected function executeSlashCommand(Interaction $interaction, CmdContext $context): void {
 		$discordUserId = $interaction->user->id ?? $interaction->member->user->id ?? null;
 		if ($discordUserId === null) {
+			$this->logger->info("Interaction has no user id set");
 			return;
 		}
-		$gw = $this->gw;
 		$sendto = new DiscordSlashCommandReply(
 			$interaction->application_id,
 			$interaction->id,
@@ -590,28 +641,24 @@ class DiscordSlashCommandController extends ModuleInstance {
 		$context->sendto = $sendto;
 		$sendto->sendStateUpdate();
 		$userId = $this->gwCmd->getNameForDiscordId($discordUserId);
+		// Create and route an artificial message if slash-commands are
+		// treated like regular commands
 		if (isset($interaction->channel_id)
 			&& $this->discordSlashCommands === self::SLASH_REGULAR
 		) {
-			$gw->lookupChannel(
+			$this->gw->lookupChannel(
 				$interaction->channel_id,
-				function (DiscordChannel $channel, CmdContext $context, string $userId): void {
-					$rMessage = new RoutableMessage("/" . substr($context->message, 1));
-					$rMessage->setCharacter(
-						new Character($userId, null, null)
-					);
-					$rMessage->appendPath(
-						new Source(
-							Source::DISCORD_PRIV,
-							$channel->name ?? $channel->id,
-						),
-					);
-					$this->messageHub->handle($rMessage);
-				},
+				Closure::fromCallable([$this, "createAndRouteSlashCmdChannelMsg"]),
 				$context,
 				$userId ?? $discordUserId
 			);
 		}
+
+		$this->logger->info("Executing slash-command \"{command}\" from {source}", [
+			"command" => $context->message,
+			"source" => $context->source,
+		]);
+		// Do the actual command execution
 		$execCmd = function() use ($context): void {
 			$this->cmdManager->checkAndHandleCmd($context);
 		};
@@ -629,5 +676,25 @@ class DiscordSlashCommandController extends ModuleInstance {
 			$context,
 			$execCmd
 		);
+	}
+
+	/**
+	 * Because slash-command-requests are not messages, we have to create
+	 * a message ourselves and route it to the bot - if it was issued on a channel
+	 * This is just a message with the command that was given
+	 */
+	private function createAndRouteSlashCmdChannelMsg(DiscordChannel $channel, CmdContext $context, string $userId): int {
+		$this->logger->info("Create and route stub-message for slash-command");
+		$rMessage = new RoutableMessage("/" . substr($context->message, 1));
+		$rMessage->setCharacter(
+			new Character($userId, null, null)
+		);
+		$rMessage->appendPath(
+			new Source(
+				Source::DISCORD_PRIV,
+				$channel->name ?? $channel->id,
+			),
+		);
+		return $this->messageHub->handle($rMessage);
 	}
 }

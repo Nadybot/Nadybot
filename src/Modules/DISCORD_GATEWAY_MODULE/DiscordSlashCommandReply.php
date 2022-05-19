@@ -2,7 +2,7 @@
 
 namespace Nadybot\Modules\DISCORD_GATEWAY_MODULE;
 
-use function \Safe\json_encode;
+use function Safe\json_encode;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CommandReply,
@@ -48,6 +48,13 @@ class DiscordSlashCommandReply implements CommandReply {
 	) {
 	}
 
+	/**
+	 * Set our status to "XXX is thinking"
+	 * This is needed, because the interactionToken is only valid for 3s.
+	 * After these 3s, we can only send replies via regular webhooks.
+	 * Some commands can take longer than 3s, so let's do this and add
+	 * the actual result later.
+	 */
 	public function sendStateUpdate(): void {
 		$response = new InteractionResponse();
 		$response->type = $response::TYPE_DEFERRED_CHANNEL_MESSAGE_WITH_SOURCE;
@@ -87,6 +94,7 @@ class DiscordSlashCommandReply implements CommandReply {
 		$this->sendReplyToDiscord(...$msg);
 	}
 
+	/** Send the given message-chunks to Discord via Webhook */
 	private function sendReplyToDiscord(string ...$msg): void {
 		for ($i = 0; $i < count($msg); $i++) {
 			$msgPack = $msg[$i];
@@ -102,6 +110,7 @@ class DiscordSlashCommandReply implements CommandReply {
 		}
 	}
 
+	/** Route the message to the MessageHub */
 	protected function routeToHub(DiscordChannel $channel, string $message): void {
 		$rMessage = new RoutableMessage($message);
 		$rMessage->setCharacter(
