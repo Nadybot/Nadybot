@@ -10,7 +10,6 @@ use Nadybot\Core\{
 	CmdContext,
 	CommandManager,
 	DB,
-	MessageHub,
 	ModuleInstance,
 	LoggerWrapper,
 	Modules\DISCORD\DiscordAPIClient,
@@ -42,9 +41,6 @@ class DiscordGatewayCommandHandler extends ModuleInstance implements AccessLevel
 
 	#[NCA\Inject]
 	public Nadybot $chatBot;
-
-	#[NCA\Inject]
-	public MessageHub $messageHub;
 
 	#[NCA\Inject]
 	public Text $text;
