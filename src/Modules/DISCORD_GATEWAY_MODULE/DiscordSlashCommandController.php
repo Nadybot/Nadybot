@@ -4,9 +4,9 @@ namespace Nadybot\Modules\DISCORD_GATEWAY_MODULE;
 
 use function Safe\json_decode;
 use function Safe\json_encode;
+use function Safe\preg_split;
 
 use Closure;
-use ReflectionClass;
 use ReflectionMethod;
 use ReflectionNamedType;
 use ReflectionParameter;
@@ -31,6 +31,7 @@ use Nadybot\Core\{
 	Routing\Character,
 	Routing\RoutableMessage,
 	Routing\Source,
+	SubcommandManager,
 	Text,
 };
 use Nadybot\Modules\DISCORD_GATEWAY_MODULE\Model\{
@@ -63,6 +64,9 @@ class DiscordSlashCommandController extends ModuleInstance {
 
 	#[NCA\Inject]
 	public CommandManager $cmdManager;
+
+	#[NCA\Inject]
+	public SubcommandManager $subcmdManager;
 
 	#[NCA\Inject]
 	public DiscordAPIClient $api;
@@ -209,6 +213,25 @@ class DiscordSlashCommandController extends ModuleInstance {
 		);
 	}
 
+	/** @return array<string,CmdCfg> */
+	private function getCmdDefinitions(string ...$commands): array {
+		$cfgs = $this->db->table(CommandManager::DB_TABLE)
+			->whereIn("cmd", $commands)
+			->orWhereIn("dependson", $commands)
+			->asObj(CmdCfg::class);
+		/** @var Collection<string,CmdCfg> */
+		$mains = $cfgs->where("cmdevent", "cmd")
+			->keyBy("cmd");
+		$cfgs->where("cmdevent", "subcmd")
+			->each(function (CmdCfg $cfg) use ($mains): void {
+				if (!$mains->has($cfg->dependson)) {
+					return;
+				}
+				$mains->get($cfg->dependson)->file .= ",{$cfg->file}";
+			});
+		return $mains->toArray();
+	}
+
 	/**
 	 * Calculate which slash-commands should be enabled
 	 * and return them as an array of ApplicationCommands
@@ -223,21 +246,10 @@ class DiscordSlashCommandController extends ModuleInstance {
 		}
 		/** @var ApplicationCommand[] */
 		$cmds = [];
-		$objs = Registry::getAllInstances();
-		foreach ($objs as $obj) {
-			$refClass = new ReflectionClass($obj);
-			foreach ($refClass->getAttributes(NCA\DefineCommand::class) as $cmd) {
-				/** @var NCA\DefineCommand */
-				$cmdObj = $cmd->newInstance();
-				if (strpos($cmdObj->command, " ") !== false) {
-					continue;
-				}
-				if (!in_array($cmdObj->command, $enabledCommands)) {
-					continue;
-				}
-				if (($appCmd = $this->getApplicationCommandForDefineCommand($cmdObj)) !== null) {
-					$cmds []= $appCmd;
-				}
+		$cmdDefs = $this->getCmdDefinitions(...$enabledCommands);
+		foreach ($cmdDefs as $cmdCfg) {
+			if (($appCmd = $this->getApplicationCommandForCmdCfg($cmdCfg)) !== null) {
+				$cmds []= $appCmd;
 			}
 		}
 		return $cmds;
@@ -246,28 +258,24 @@ class DiscordSlashCommandController extends ModuleInstance {
 	/**
 	 * Get the ApplicationCommand-definition for a single NCA\DefineCommand
 	 */
-	private function getApplicationCommandForDefineCommand(NCA\DefineCommand $cmdObj): ?ApplicationCommand {
+	private function getApplicationCommandForCmdCfg(CmdCfg $cmdCfg): ?ApplicationCommand {
 		$cmd = new ApplicationCommand();
 		$cmd->type = $cmd::TYPE_CHAT_INPUT;
-		$cmd->name = $cmdObj->command;
-		$cmd->description = $cmdObj->description;
-		$objs = Registry::getAllInstances();
+		$cmd->name = $cmdCfg->cmd;
+		$cmd->description = $cmdCfg->description;
 		/** @var int[] */
 		$types = [];
-		foreach ($objs as $obj) {
-			$refClass = new ReflectionClass($obj);
-			foreach ($refClass->getMethods() as $refMethod) {
-				foreach ($refMethod->getAttributes(NCA\HandlesCommand::class) as $hc) {
-					/** @var NCA\HandlesCommand */
-					$hcObj = $hc->newInstance();
-					if (explode(" ", $hcObj->command)[0] !== $cmd->name) {
-						continue;
-					}
-					$type = $this->getApplicationCommandOptionType($refMethod);
-					if (isset($type)) {
-						$types []= $type;
-					}
-				}
+		$methods = explode(",", $cmdCfg->file);
+		foreach ($methods as $methodDef) {
+			[$class, $method, $line] = preg_split("/[.:]/", $methodDef);
+			$obj = Registry::getInstance($class);
+			if (!isset($obj)) {
+				continue;
+			}
+			$refMethod = new ReflectionMethod($obj, $method);
+			$type = $this->getApplicationCommandOptionType($refMethod);
+			if (isset($type)) {
+				$types []= $type;
 			}
 		}
 		if (empty($types)) {
