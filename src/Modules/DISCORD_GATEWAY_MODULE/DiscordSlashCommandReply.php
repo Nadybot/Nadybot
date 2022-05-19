@@ -2,7 +2,6 @@
 
 namespace Nadybot\Modules\DISCORD_GATEWAY_MODULE;
 
-use function Safe\json_encode;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CommandReply,
@@ -65,7 +64,7 @@ class DiscordSlashCommandReply implements CommandReply {
 		$this->discordAPIClient->sendInteractionResponse(
 			$this->interactionId,
 			$this->interactionToken,
-			json_encode($response),
+			$this->discordAPIClient->encode($response),
 		);
 	}
 
@@ -105,7 +104,7 @@ class DiscordSlashCommandReply implements CommandReply {
 			$this->discordAPIClient->queueToWebhook(
 				$this->applicationId,
 				$this->interactionToken,
-				json_encode($messageObj),
+				$this->discordAPIClient->encode($messageObj),
 			);
 		}
 	}

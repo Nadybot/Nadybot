@@ -58,6 +58,21 @@ class DiscordAPIClient extends ModuleInstance {
 
 	public const DISCORD_API = "https://discord.com/api/v10";
 
+	/**
+	 * Encode the given data for sending it with the API
+	 *
+	 * @param mixed $data The data to be encoded
+	 * @return string
+	 * @throws JsonException on encoding error
+	 */
+	public static function encode(mixed $data): string {
+		$data = json_encode($data, JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE|JSON_INVALID_UTF8_SUBSTITUTE);
+		$data = preg_replace('/,"[^"]+":null/', '', $data);
+		$data = preg_replace('/"[^"]+":null,/', '', $data);
+		$data = preg_replace('/"[^"]+":null/', '', $data);
+		return $data;
+	}
+
 	public function get(string $uri): AsyncHttp {
 		$botToken = $this->discordCtrl->discordBotToken;
 		return $this->http

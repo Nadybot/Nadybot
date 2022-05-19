@@ -3,7 +3,6 @@
 namespace Nadybot\Modules\DISCORD_GATEWAY_MODULE;
 
 use function Safe\json_decode;
-use function Safe\json_encode;
 use function Safe\preg_split;
 
 use Closure;
@@ -178,13 +177,9 @@ class DiscordSlashCommandController extends ModuleInstance {
 			return;
 		}
 		$cmds = $modifiedCommands->toArray();
-		$data = json_encode($cmds);
-		$data = preg_replace('/,"[^"]+":null/', '', $data);
-		$data = preg_replace('/"[^"]+":null,/', '', $data);
-		$data = preg_replace('/"[^"]+":null/', '', $data);
 		$this->api->registerGlobalApplicationCommands(
 			$appId,
-			$data,
+			$this->api->encode($cmds),
 			/** @param ApplicationCommand[] $commands */
 			function (array $commands) use ($success): void {
 				$this->logger->notice(
