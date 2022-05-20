@@ -281,11 +281,7 @@ class DiscordAPIClient extends ModuleInstance {
 		$this->logger->info("Adding discord message to end of channel queue {channel}", [
 			"channel" => $channel,
 		]);
-		$this->outQueue []= new ChannelQueueItem(
-			$channel,
-			$message,
-			isset($callback) ? Closure::fromCallable($callback) : null,
-		);
+		$this->outQueue []= new ChannelQueueItem($channel, $message, $callback);
 		if ($this->queueProcessing === false) {
 			$this->processQueue();
 		}
@@ -295,11 +291,7 @@ class DiscordAPIClient extends ModuleInstance {
 		$this->logger->info("Adding discord message to front of channel queue {channel}", [
 			"channel" => $channel,
 		]);
-		array_unshift($this->outQueue, new ChannelQueueItem(
-			$channel,
-			$message,
-			isset($callback) ? Closure::fromCallable($callback) : null,
-		));
+		array_unshift($this->outQueue, new ChannelQueueItem($channel, $message, $callback));
 		if ($this->queueProcessing === false) {
 			$this->processQueue();
 		}
@@ -343,12 +335,7 @@ class DiscordAPIClient extends ModuleInstance {
 		$this->logger->info("Adding discord message to end of webhook queue {interaction}", [
 			"channel" => $interactionToken,
 		]);
-		$this->webhookQueue []= new WebhookQueueItem(
-			$applicationId,
-			$interactionToken,
-			$message,
-			isset($callback) ? Closure::fromCallable($callback) : null
-		);
+		$this->webhookQueue []= new WebhookQueueItem($applicationId, $interactionToken, $message, $callback);
 		if ($this->webhookQueueProcessing === false) {
 			$this->processWebhookQueue();
 		}
