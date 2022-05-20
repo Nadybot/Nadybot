@@ -100,6 +100,10 @@ class DiscordController extends ModuleInstance {
 		$text = $this->factionColorsToEmojis($text);
 		$text = preg_replace('/([~`_*])/s', "\\\\$1", $text);
 		$text = preg_replace('/((?:\d{4}-\d{2}-\d{2} )?\d+(?::\d+)+)/s', "`$1`", $text);
+		$text = preg_replace('/(\d{4}-\d{2}-\d{2})(\s*(?:\||<highlight>\|<end>))/s', "`$1`$2", $text);
+		$text = preg_replace('/((?:\||<highlight>\|<end>)\s*)(<black>0+<end>)?(\d+)(\s*(?:\||<highlight>\|<end>))/s', "$1$2`$3`$4", $text);
+		$text = preg_replace('/(\s*)(<black>0+<end>)?(\d+)(\s*(?:\||<highlight>\|<end>))/s', "$1$2`$3`$4", $text);
+		$text = preg_replace('/(\d+\.\d+)(°|mm|%|\s*\|)/s', "`$1`$2", $text);
 		$text = preg_replace('/<(highlight|black|white|yellow|blue|green|red|on|off|orange|grey|cyan|violet|neutral|omni|clan|unknown|font [^>]*)><end>/s', '', $text);
 		$text = preg_replace('/<highlight>(.*?)<end>/s', '**$1**', $text);
 		$text = str_replace("<myname>", $this->chatBot->char->name, $text);
@@ -113,9 +117,10 @@ class DiscordController extends ModuleInstance {
 			"/(?:<font[^>]*#000000[^>]*>|<black>)(.+?)(?:<end>|<\/font>)/s",
 			function(array $matches): string {
 				if (preg_match("/^0+$/", $matches[1])) {
-					return "_ _" . str_repeat(" ", strlen($matches[1]));
+					return "_ _" . str_repeat(" ", strlen($matches[1]));
+					// return "_ _" . str_repeat(" ", strlen($matches[1]));
 				}
-				return "_ _" . str_repeat(" ", strlen($matches[1]));
+				return "_ _" . str_repeat(" ", strlen(str_replace("\\", "", $matches[1])));
 			},
 			$text
 		);
