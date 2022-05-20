@@ -328,7 +328,8 @@ class DiscordAPIClient extends ModuleInstance {
 			function(HttpResponse $response, ChannelQueueItem $item) use ($errorHandler): void {
 				if (isset($response->headers) && $response->headers["status-code"] === "429") {
 					array_unshift($this->outQueue, $item);
-					$this->timer->callLater((int)ceil((float)($response->headers["retry-after"]??1)), [$this, "processQueue"]);
+					$retryTime = (int)ceil((float)($response->headers["retry-after"]??1));
+					$this->timer->callLater($retryTime, [$this, "processQueue"]);
 				} else {
 					$this->processQueue();
 					$errorHandler($response);
@@ -375,8 +376,9 @@ class DiscordAPIClient extends ModuleInstance {
 		)->withCallback(
 			function(HttpResponse $response, WebhookQueueItem $item) use ($errorHandler): void {
 				if (isset($response->headers) && $response->headers["status-code"] === "429") {
-					array_unshift($this->outQueue, $item);
-					$this->timer->callLater((int)ceil((float)($response->headers["retry-after"]??1)), [$this, "processQueue"]);
+					array_unshift($this->webhookQueue, $item);
+					$retryTime = (int)ceil((float)($response->headers["retry-after"]??1));
+					$this->timer->callLater($retryTime, [$this, "processWebhookQueue"]);
 				} else {
 					$this->processWebhookQueue();
 					$errorHandler($response);
