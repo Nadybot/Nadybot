@@ -27,6 +27,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fix
 
 - Due to a logic error, once a websocket connection timed out, chances were, it would constantly timeout again.
+- `!events setdate <id> <date>` now understands a lot more date-formats.
 
 ## [6.0.2] - 2022-05-10
 
