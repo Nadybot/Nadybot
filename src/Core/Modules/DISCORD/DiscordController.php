@@ -102,6 +102,7 @@ class DiscordController extends ModuleInstance {
 		$text = preg_replace('/((?:\d{4}-\d{2}-\d{2} )?\d+(?::\d+)+)/s', "`$1`", $text);
 		$text = preg_replace('/(\d{4}-\d{2}-\d{2})(\s*(?:\||<highlight>\|<end>))/s', "`$1`$2", $text);
 		$text = preg_replace('/((?:\||<highlight>\|<end>)\s*)(<black>0+<end>)?(\d+)(\s*(?:\||<highlight>\|<end>))/s', "$1$2`$3`$4", $text);
+		$text = preg_replace('/QL(\s*)(<black>0+<end>)?(\d+)/s', "QL$1$2`$3`", $text);
 		$text = preg_replace('/(\s*)(<black>0+<end>)?(\d+)(\s*(?:\||<highlight>\|<end>))/s', "$1$2`$3`$4", $text);
 		$text = preg_replace('/(\d+\.\d+)(°|mm|%|\s*\|)/s', "`$1`$2", $text);
 		$text = preg_replace('/<(highlight|black|white|yellow|blue|green|red|on|off|orange|grey|cyan|violet|neutral|omni|clan|unknown|font [^>]*)><end>/s', '', $text);
