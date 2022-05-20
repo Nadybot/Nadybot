@@ -106,6 +106,7 @@ class DiscordController extends ModuleInstance {
 		$text = preg_replace('/(\d+\.\d+)(°|mm|%|\s*\|)/s', "`$1`$2", $text);
 		$text = preg_replace('/<(highlight|black|white|yellow|blue|green|red|on|off|orange|grey|cyan|violet|neutral|omni|clan|unknown|font [^>]*)><end>/s', '', $text);
 		$text = preg_replace('/<highlight>(.*?)<end>/s', '**$1**', $text);
+		$text = preg_replace('/(\s|\*)-(>|&gt;)(\s|\*)/s', '$1↦$3', $text);
 		$text = str_replace("<myname>", $this->chatBot->char->name, $text);
 		$text = str_replace("<myguild>", $this->config->orgName, $text);
 		$text = str_replace("<symbol>", $this->settingManager->getString("symbol")??"!", $text);
@@ -204,17 +205,17 @@ class DiscordController extends ModuleInstance {
 
 	/** @param string[] $matches */
 	protected function parsePopupToEmbed(array $matches): DiscordEmbed {
+		$fix = function(string $s): string {
+			return htmlspecialchars_decode(strip_tags($s), ENT_QUOTES|ENT_HTML401);
+		};
 		$embed = new DiscordEmbed();
 		$embed->title = $matches[2];
 		if (preg_match("/^<font.*?><header>(.+?)<end>\n/s", $matches[1], $headerMatch)) {
-			$embed->title = $headerMatch[1];
+			$embed->title = $fix($headerMatch[1]);
 			$matches[1] = preg_replace("/^(<font.*?>)<header>(.+?)<end>\n/s", "$1", $matches[1]);
 		}
 		$matches[1] = preg_replace('/<font+?>(.*?)<\/font>/s', "*$1*", $matches[1]);
 		$fields = preg_split("/\n(<font color=#FCA712>.+?|<header2>.+?)\n/", $matches[1], -1, PREG_SPLIT_DELIM_CAPTURE);
-		$fix = function(string $s): string {
-			return htmlspecialchars_decode(strip_tags($s), ENT_QUOTES|ENT_HTML401);
-		};
 		for ($i = 1; $i < count($fields); $i+=2) {
 			$embed->fields ??= [];
 			$field = new DiscordEmbedField();
