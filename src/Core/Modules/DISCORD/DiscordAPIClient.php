@@ -16,6 +16,7 @@ use Nadybot\Core\{
 	LoggerWrapper,
 	Timer,
 };
+use Nadybot\Modules\DISCORD_GATEWAY_MODULE\Model\ApplicationCommand;
 use Nadybot\Modules\DISCORD_GATEWAY_MODULE\Model\GuildMember;
 
 /**
@@ -35,12 +36,13 @@ class DiscordAPIClient extends ModuleInstance {
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
-	/**
-	 * @phpstan-var array{0: string, 1: string, 2: ?callable}[]
-	 * @psalm-var array{0: string, 1: string, 2: ?callable}[]
-	 */
+	/** @var ChannelQueueItem[] */
 	protected array $outQueue = [];
 	protected bool $queueProcessing = false;
+
+	/** @var WebhookQueueItem[] */
+	protected array $webhookQueue = [];
+	protected bool $webhookQueueProcessing = false;
 
 	/** @var array<string,array<string,GuildMember>> */
 	protected $guildMemberCache = [];
@@ -49,6 +51,21 @@ class DiscordAPIClient extends ModuleInstance {
 	protected $userCache = [];
 
 	public const DISCORD_API = "https://discord.com/api/v10";
+
+	/**
+	 * Encode the given data for sending it with the API
+	 *
+	 * @param mixed $data The data to be encoded
+	 * @return string
+	 * @throws JsonException on encoding error
+	 */
+	public static function encode(mixed $data): string {
+		$data = json_encode($data, JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE|JSON_INVALID_UTF8_SUBSTITUTE);
+		$data = preg_replace('/,"[^"]+":null/', '', $data);
+		$data = preg_replace('/"[^"]+":null,/', '', $data);
+		$data = preg_replace('/"[^"]+":null/', '', $data);
+		return $data;
+	}
 
 	public function get(string $uri): AsyncHttp {
 		$botToken = $this->discordCtrl->discordBotToken;
@@ -75,6 +92,15 @@ class DiscordAPIClient extends ModuleInstance {
 			->withHeader('Content-Type', 'application/json');
 	}
 
+	public function put(string $uri, string $data): AsyncHttp {
+		$botToken = $this->discordCtrl->discordBotToken;
+		return $this->http
+			->put($uri)
+			->withPostData($data)
+			->withHeader('Authorization', "Bot $botToken")
+			->withHeader('Content-Type', 'application/json');
+	}
+
 	public function delete(string $uri): AsyncHttp {
 		$botToken = $this->discordCtrl->discordBotToken;
 		return $this->http
@@ -93,15 +119,161 @@ class DiscordAPIClient extends ModuleInstance {
 		);
 	}
 
+	/** @phpstan-param callable(ApplicationCommand[]):void $success */
+	public function registerGlobalApplicationCommands(
+		string $applicationId,
+		string $message,
+		?callable $success=null,
+		?callable $failure=null,
+	): void {
+		$this->put(
+			self::DISCORD_API . "/applications/{$applicationId}/commands",
+			$message,
+		)->withCallback(
+			$this->getErrorWrapper(
+				null,
+				function (array $commands) use ($success): void {
+					$this->handleApplicationCommands($commands, $success);
+				},
+				$failure
+			)
+		);
+	}
+
+	/** @phpstan-param callable(ApplicationCommand):void $success */
+	public function registerGuildApplicationCommand(
+		string $guildId,
+		string $applicationId,
+		string $message,
+		?callable $success=null,
+		?callable $failure=null,
+	): void {
+		$this->post(
+			self::DISCORD_API . "/applications/{$applicationId}/guilds/{$guildId}/commands",
+			$message,
+		)->withCallback(
+			$this->getErrorWrapper(new ApplicationCommand(), $success, $failure)
+		);
+	}
+
+	public function deleteGuildApplicationCommand(
+		string $guildId,
+		string $applicationId,
+		string $commandId,
+		?callable $success=null,
+		?callable $failure=null,
+	): void {
+		$this->delete(
+			self::DISCORD_API . "/applications/{$applicationId}/guilds/{$guildId}/commands/{$commandId}",
+		)->withCallback(
+			$this->getErrorWrapper(null, $success, $failure)
+		);
+	}
+
+	public function deleteGlobalApplicationCommand(
+		string $applicationId,
+		string $commandId,
+		?callable $success=null,
+		?callable $failure=null,
+	): void {
+		$this->delete(
+			self::DISCORD_API . "/applications/{$applicationId}/commands/{$commandId}",
+		)->withCallback(
+			$this->getErrorWrapper(null, $success, $failure)
+		);
+	}
+
+	/** @phpstan-param callable(string, ApplicationCommand[]):void $success */
+	public function getGuildApplicationCommands(
+		string $guildId,
+		string $applicationId,
+		?callable $success=null,
+		?callable $failure=null,
+	): void {
+		$this->get(
+			self::DISCORD_API . "/applications/{$applicationId}/guilds/{$guildId}/commands",
+		)->withCallback(
+			$this->getErrorWrapper(
+				null,
+				function (array $commands) use ($guildId, $success): void {
+					$this->handleGuildApplicationCommands($commands, $guildId, $success);
+				},
+				$failure
+			)
+		);
+	}
+
+	/** @phpstan-param callable(ApplicationCommand[]):void $success */
+	public function getGlobalApplicationCommands(
+		string $applicationId,
+		?callable $success=null,
+		?callable $failure=null,
+	): void {
+		$this->get(
+			self::DISCORD_API . "/applications/{$applicationId}/commands",
+		)->withCallback(
+			$this->getErrorWrapper(
+				null,
+				function (array $commands) use ($success): void {
+					$this->handleApplicationCommands($commands, $success);
+				},
+				$failure
+			)
+		);
+	}
+
+	/**
+	 * @param stdClass[] $commands
+	 * @phpstan-param callable(ApplicationCommand[]):void $callback
+	 */
+	protected function handleApplicationCommands(array $commands, ?callable $callback=null): void {
+		$result = [];
+		foreach ($commands as $command) {
+			$appCmd = new ApplicationCommand();
+			$appCmd->fromJSON($command);
+			$result []= $appCmd;
+		}
+		if (isset($callback)) {
+			$callback($result);
+		}
+	}
+
+	/**
+	 * @param stdClass[] $commands
+	 * @phpstan-param callable(string, ApplicationCommand[]):void $callback
+	 */
+	protected function handleGuildApplicationCommands(array $commands, string $guildId, ?callable $callback=null): void {
+		$result = [];
+		foreach ($commands as $command) {
+			$appCmd = new ApplicationCommand();
+			$appCmd->fromJSON($command);
+			$result []= $appCmd;
+		}
+		if (isset($callback)) {
+			$callback($guildId, $result);
+		}
+	}
+
+	public function sendInteractionResponse(
+		string $interactionId,
+		string $interactionToken,
+		string $message,
+		?callable $success=null,
+		?callable $failure=null
+	): void {
+		$this->post(
+			DiscordAPIClient::DISCORD_API . "/interactions/{$interactionId}/{$interactionToken}/callback",
+			$message,
+		)->withCallback(
+			$this->getErrorWrapper(null, $success, $failure)
+		);
+	}
+
 	public function leaveGuild(string $guildId, ?callable $success, ?callable $failure): void {
 		$this->delete(
 			self::DISCORD_API . "/users/@me/guilds/{$guildId}"
 		)->withCallback(
-			$this->getErrorWrapper(
-				null,
-				$success,
-				$failure,
-			)
+			$this->getErrorWrapper(null, $success, $failure)
 		);
 	}
 
@@ -109,7 +281,7 @@ class DiscordAPIClient extends ModuleInstance {
 		$this->logger->info("Adding discord message to end of channel queue {channel}", [
 			"channel" => $channel,
 		]);
-		$this->outQueue []= [$channel, $message, $callback];
+		$this->outQueue []= new ChannelQueueItem($channel, $message, $callback);
 		if ($this->queueProcessing === false) {
 			$this->processQueue();
 		}
@@ -119,7 +291,7 @@ class DiscordAPIClient extends ModuleInstance {
 		$this->logger->info("Adding discord message to front of channel queue {channel}", [
 			"channel" => $channel,
 		]);
-		array_unshift($this->outQueue, [$channel, $message, $callback]);
+		array_unshift($this->outQueue, new ChannelQueueItem($channel, $message, $callback));
 		if ($this->queueProcessing === false) {
 			$this->processQueue();
 		}
@@ -131,31 +303,75 @@ class DiscordAPIClient extends ModuleInstance {
 			return;
 		}
 		$this->queueProcessing = true;
-		$params = array_shift($this->outQueue);
-		/** @psalm-suppress TooFewArguments */
-		$this->immediatelySendToChannel(...$params);
+		$item = array_shift($this->outQueue);
+		$this->immediatelySendToChannel($item);
 	}
 
-	protected function immediatelySendToChannel(string $channel, string $message, ?callable $callback=null): void {
+	protected function immediatelySendToChannel(ChannelQueueItem $item): void {
 		$this->logger->info("Sending message to discord channel {channel}", [
-			"channel" => $channel,
-			"message" => $message,
+			"channel" => $item->channelId,
+			"message" => $item->message,
 		]);
-		$errorHandler = $this->getErrorWrapper(new DiscordMessageIn(), $callback);
+		$errorHandler = $this->getErrorWrapper(new DiscordMessageIn(), $item->callback);
 		$this->post(
-			self::DISCORD_API . "/channels/{$channel}/messages",
-			$message
+			self::DISCORD_API . "/channels/{$item->channelId}/messages",
+			$item->message
 		)->withCallback(
-			function(HttpResponse $response, array $message) use ($errorHandler): void {
+			function(HttpResponse $response, ChannelQueueItem $item) use ($errorHandler): void {
 				if (isset($response->headers) && $response->headers["status-code"] === "429") {
-					array_unshift($this->outQueue, $message);
-					$this->timer->callLater((int)($response->headers["retry-after"]??1), [$this, "processQueue"]);
+					array_unshift($this->outQueue, $item);
+					$retryTime = (int)ceil((float)($response->headers["retry-after"]??1));
+					$this->timer->callLater($retryTime, [$this, "processQueue"]);
 				} else {
 					$this->processQueue();
-					$errorHandler(...func_get_args());
+					$errorHandler($response);
 				}
 			},
-			func_get_args()
+			$item
+		);
+	}
+
+	public function queueToWebhook(string $applicationId, string $interactionToken, string $message, ?callable $callback=null): void {
+		$this->logger->info("Adding discord message to end of webhook queue {interaction}", [
+			"channel" => $interactionToken,
+		]);
+		$this->webhookQueue []= new WebhookQueueItem($applicationId, $interactionToken, $message, $callback);
+		if ($this->webhookQueueProcessing === false) {
+			$this->processWebhookQueue();
+		}
+	}
+
+	public function processWebhookQueue(): void {
+		if (empty($this->webhookQueue)) {
+			$this->webhookQueueProcessing = false;
+			return;
+		}
+		$this->webhookQueueProcessing = true;
+		$item = array_shift($this->webhookQueue);
+		$this->immediatelySendToWebhook($item);
+	}
+
+	protected function immediatelySendToWebhook(WebhookQueueItem $item): void {
+		$this->logger->info("Sending message to discord webhook {webhook}", [
+			"webhook" => $item->interactionToken,
+			"message" => $item->message,
+		]);
+		$errorHandler = $this->getErrorWrapper(new DiscordMessageIn(), $item->callback);
+		$this->post(
+			self::DISCORD_API . "/webhooks/{$item->applicationId}/{$item->interactionToken}",
+			$item->message
+		)->withCallback(
+			function(HttpResponse $response, WebhookQueueItem $item) use ($errorHandler): void {
+				if (isset($response->headers) && $response->headers["status-code"] === "429") {
+					array_unshift($this->webhookQueue, $item);
+					$retryTime = (int)ceil((float)($response->headers["retry-after"]??1));
+					$this->timer->callLater($retryTime, [$this, "processWebhookQueue"]);
+				} else {
+					$this->processWebhookQueue();
+					$errorHandler($response);
+				}
+			},
+			$item
 		);
 	}
 
@@ -388,6 +604,28 @@ class DiscordAPIClient extends ModuleInstance {
 					"error" => $response->error,
 					"response" => $response
 				]);
+				return;
+			}
+			// If we run into a ratelimit error, retry later
+			if ($response->headers['status-code'] === "429" && isset($response->request)) {
+				$waitFor = (int)ceil((float)$response->headers['x-ratelimit-reset-after']);
+				$this->timer->callLater(
+					$waitFor,
+					function() use ($response, $o, $success, $failure): void {
+						$request = $response->request;
+						$method = strtolower($request->getMethod());
+						if (!method_exists($this, $method)) {
+							return;
+						}
+						$params = [$request->getURI()];
+						if (in_array($method, ["post", "patch", "put"])) {
+							$params []= $request->getPostData()??"";
+						}
+						$this->{$method}(...$params)
+							->withCallback($this->getErrorWrapper($o, $success, $failure));
+					}
+				);
+				$this->logger->notice("Waiting for {$waitFor}s to retry...");
 				return;
 			}
 			if (substr($response->headers['status-code'], 0, 1) !== "2") {

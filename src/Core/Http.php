@@ -64,6 +64,19 @@ class Http {
 	}
 
 	/**
+	 * Requests a PUT request to the given $uri and returns AsyncHttp
+	 * object which has additional methods for controlling how the query is done.
+	 *
+	 * See get() for code example.
+	 */
+	public function put(string $uri): AsyncHttp {
+		$asyncHttp = new AsyncHttp('put', $uri);
+		Registry::injectDependencies($asyncHttp);
+		$this->timer->callLater(0, [$asyncHttp, 'execute']);
+		return $asyncHttp;
+	}
+
+	/**
 	 * Requests a DELETE request to the given $uri and returns AsyncHttp
 	 * object which has additional methods for controlling how the query is done.
 	 *

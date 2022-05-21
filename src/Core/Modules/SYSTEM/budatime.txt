@@ -7,8 +7,8 @@
 <tab>seconds => 1s, 1sec, 1secs
 
 <header2>Examples<end>
-<tab>2d9h5m43s       <highlight>--2 days, 9 hours, 5 minutes, 43 seconds<end>
-<tab>4day8s             <highlight>--4 days, 8 seconds<end>
-<tab>18hr20mins       <highlight>--18 hours, 20 minutes<end>
-<tab>2h                     <highlight>--2 hours<end>
-<tab>120secs             <highlight>--2 minutes<end>
+<tab>2d9h5m43s       <highlight>-&gt; 2 days, 9 hours, 5 minutes, 43 seconds<end>
+<tab>4day8s             <highlight>-&gt; 4 days, 8 seconds<end>
+<tab>18hr20mins       <highlight>-&gt; 18 hours, 20 minutes<end>
+<tab>2h                     <highlight>-&gt; 2 hours<end>
+<tab>120secs             <highlight>-&gt; 2 minutes<end>

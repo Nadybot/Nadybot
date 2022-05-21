@@ -100,25 +100,33 @@ class DiscordController extends ModuleInstance {
 		$text = $this->factionColorsToEmojis($text);
 		$text = preg_replace('/([~`_*])/s', "\\\\$1", $text);
 		$text = preg_replace('/((?:\d{4}-\d{2}-\d{2} )?\d+(?::\d+)+)/s', "`$1`", $text);
+		$text = preg_replace('/(\d{4}-\d{2}-\d{2})(\s*(?:\||<highlight>\|<end>))/s', "`$1`$2", $text);
+		$text = preg_replace('/((?:\||<highlight>\|<end>)\s*)(<black>0+<end>)?(\d+)(\s*(?:\||<highlight>\|<end>))/s', "$1$2`$3`$4", $text);
+		$text = preg_replace('/QL(\s*)(<black>0+<end>)?(\d+)/s', "QL$1$2`$3`", $text);
+		$text = preg_replace('/(\s*)(<black>0+<end>)?(\d+)(\s*(?:\||<highlight>\|<end>))/s', "$1$2`$3`$4", $text);
+		$text = preg_replace('/(\d+\.\d+)(°|mm|%|\s*\|)/s', "`$1`$2", $text);
 		$text = preg_replace('/<(highlight|black|white|yellow|blue|green|red|on|off|orange|grey|cyan|violet|neutral|omni|clan|unknown|font [^>]*)><end>/s', '', $text);
 		$text = preg_replace('/<highlight>(.*?)<end>/s', '**$1**', $text);
+		$text = preg_replace('/(\s|\*)-(>|&gt;)(\s|\*)/s', '$1↦$3', $text);
 		$text = str_replace("<myname>", $this->chatBot->char->name, $text);
 		$text = str_replace("<myguild>", $this->config->orgName, $text);
 		$text = str_replace("<symbol>", $this->settingManager->getString("symbol")??"!", $text);
 		$text = str_replace("<br>", "\n", $text);
 		$text = str_replace("<tab>", "_ _  ", $text);
 		$text = preg_replace("/^    /m", "_ _  ", $text);
-		$text = preg_replace("/\n<img src=['\"]?rdb:\/\/.+?['\"]?>\n/s", "\n", $text);
+		$text = preg_replace("/\n<img src=['\"]?rdb:\/\/[^>]+?['\"]?>\n/s", "\n", $text);
 		$text = preg_replace_callback(
 			"/(?:<font[^>]*#000000[^>]*>|<black>)(.+?)(?:<end>|<\/font>)/s",
 			function(array $matches): string {
 				if (preg_match("/^0+$/", $matches[1])) {
-					return "_ _" . str_repeat(" ", strlen($matches[1]));
+					return "_ _" . str_repeat(" ", strlen($matches[1]));
+					// return "_ _" . str_repeat(" ", strlen($matches[1]));
 				}
-				return "_ _" . str_repeat(" ", strlen($matches[1]));
+				return "_ _" . str_repeat(" ", strlen(str_replace("\\", "", $matches[1])));
 			},
 			$text
 		);
+		$text = preg_replace('/(<end>|<\/font>)<(white|yellow|blue|green|red|orange|grey|cyan|violet|neutral|omni|clan|unknown|font [^>]+)>/s', '', $text);
 		$text = preg_replace('/<(white|yellow|blue|green|red|orange|grey|cyan|violet|neutral|omni|clan|unknown)>(.*?)<end>/s', '*$2*', $text);
 		$text = preg_replace("|<a [^>]*?href='user://(.+?)'>(.+?)</a>|s", '$1', $text);
 		$text = preg_replace("|<a [^>]*?href='chatcmd:///start (.+?)'>(.+?)</a>|s", '[$2]($1)', $text);
@@ -199,17 +207,17 @@ class DiscordController extends ModuleInstance {
 
 	/** @param string[] $matches */
 	protected function parsePopupToEmbed(array $matches): DiscordEmbed {
+		$fix = function(string $s): string {
+			return htmlspecialchars_decode(strip_tags($s), ENT_QUOTES|ENT_HTML401);
+		};
 		$embed = new DiscordEmbed();
 		$embed->title = $matches[2];
 		if (preg_match("/^<font.*?><header>(.+?)<end>\n/s", $matches[1], $headerMatch)) {
-			$embed->title = $headerMatch[1];
+			$embed->title = $fix($headerMatch[1]);
 			$matches[1] = preg_replace("/^(<font.*?>)<header>(.+?)<end>\n/s", "$1", $matches[1]);
 		}
 		$matches[1] = preg_replace('/<font+?>(.*?)<\/font>/s', "*$1*", $matches[1]);
 		$fields = preg_split("/\n(<font color=#FCA712>.+?|<header2>.+?)\n/", $matches[1], -1, PREG_SPLIT_DELIM_CAPTURE);
-		$fix = function(string $s): string {
-			return htmlspecialchars_decode(strip_tags($s), ENT_QUOTES|ENT_HTML401);
-		};
 		for ($i = 1; $i < count($fields); $i+=2) {
 			$embed->fields ??= [];
 			$field = new DiscordEmbedField();

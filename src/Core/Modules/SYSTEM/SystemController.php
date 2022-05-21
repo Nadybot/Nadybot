@@ -151,6 +151,10 @@ class SystemController extends ModuleInstance implements MessageEmitter {
 	)]
 	public int $maxBlobSize = 7500;
 
+	/** Add header-ranges to multi-page replies */
+	#[NCA\Setting\Boolean]
+	public bool $addHeaderRanges = false;
+
 	/** Max time to wait for response from making http queries */
 	#[NCA\Setting\Time(options: ["1s", "2s", "5s", "10s", "30s"])]
 	public int $httpTimeout = 10;
