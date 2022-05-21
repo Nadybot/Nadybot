@@ -93,20 +93,22 @@ class BankController extends ModuleInstance {
 	): void {
 		$name = $char();
 
-		/** @var Collection<Bank> */
+		/** @var Collection<string,Collection<Bank>> */
 		$data = $this->db->table("bank")
 			->where("player", $name)
 			->orderBy("container")
-			->asObj(Bank::class);
+			->asObj(Bank::class)
+			->groupBy("container");
 		if ($data->count() === 0) {
 			$msg = "Could not find bank character <highlight>$name<end>.";
 			$context->reply($msg);
 			return;
 		}
 		$blob = "<header2>Containers on $name<end>\n";
-		foreach ($data as $row) {
-			$container_link = $this->text->makeChatcmd($row->container, "/tell <myname> bank browse {$row->player} {$row->container_id}");
-			$blob .= "<tab>{$container_link}\n";
+		foreach ($data as $container => $items) {
+			$firstItem = $items->firstOrFail();
+			$container_link = $this->text->makeChatcmd($container, "/tell <myname> bank browse {$name} {$firstItem->container_id}");
+			$blob .= "<tab>{$container_link} (" . $items->count() . " items)\n";
 		}
 
 		$msg = $this->text->makeBlob("Containers for $name", $blob);

@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - The colors that `!online` displays for ranks raid_leader and upwards, are now customizable.
 - Make "on"- and "off"-colors a configurable setting in the `COLORS` module
 - Add settings to configure the colors of `!tell`, `!cmd` and `!topic`.
+- Allow banning orgs without giving a reason
 
 ### Changed
 
@@ -31,6 +32,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Due to a logic error, once a websocket connection timed out, chances were, it would constantly timeout again.
 - `!events setdate <id> <date>` now understands a lot more date-formats.
+- Browsing bank backpacks accidentally showed each backpack as often as items were in the backpack.
 
 ## [6.0.2] - 2022-05-10
 
