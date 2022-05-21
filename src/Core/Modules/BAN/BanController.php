@@ -635,6 +635,24 @@ class BanController extends ModuleInstance {
 	}
 
 	/**
+	 * Ban a whole organization from the bot by their org id
+	 */
+	#[NCA\HandlesCommand("orgban")]
+	#[NCA\Help\Group("ban")]
+	#[NCA\Help\Example(
+		command: "<symbol>orgban add 725003",
+		description: "bans the org <i>Troet</i> permanently from the bot"
+	)]
+	public function orgbanAddByIdWithoutReasonCommand(
+		CmdContext $context,
+		#[NCA\Str("add")] string $add,
+		int $orgId,
+		?PDuration $duration,
+	): void {
+		$this->banOrg($orgId, $duration ? $duration() : null, $context->char->name, "No reason given", $context);
+	}
+
+	/**
 	 * @param \Nadybot\Modules\ORGLIST_MODULE\Organization[] $orgs
 	 * @param string|null $duration
 	 * @param string $reason
