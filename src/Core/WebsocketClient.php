@@ -2,6 +2,7 @@
 
 namespace Nadybot\Core;
 
+use Amp\Loop;
 use Nadybot\Core\Attributes as NCA;
 use RuntimeException;
 use Safe\Exceptions\StreamException;
@@ -40,8 +41,9 @@ class WebsocketClient extends WebsocketBase {
 		$this->receiveBuffer = "";
 		$this->lastReadTime = null;
 		$this->connected = false;
-		if (isset($this->timeoutChecker)) {
-			$this->timer->abortEvent($this->timeoutChecker);
+		if (isset($this->timeoutHandle)) {
+			Loop::cancel($this->timeoutHandle);
+			$this->timeoutHandle = null;
 		}
 		if ($this->notifier) {
 			$this->socketManager->removeSocketNotifier($this->notifier);
@@ -110,7 +112,7 @@ class WebsocketClient extends WebsocketBase {
 
 		$errno = null;
 		$errstr = null;
-		$this->timeoutChecker = $this->timer->callLater($this->timeout, [$this, "checkTimeout"]);
+		$this->timeoutHandle = Loop::delay($this->timeout * 1000, [$this, "checkTimeout"]);
 		try {
 			$socket = \Safe\stream_socket_client(
 				"$streamUri:$port",

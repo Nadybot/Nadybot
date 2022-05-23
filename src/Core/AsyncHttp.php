@@ -2,6 +2,7 @@
 
 namespace Nadybot\Core;
 
+use Amp\Loop;
 use Nadybot\Core\Attributes as NCA;
 use Exception;
 use Safe\Exceptions\StreamException;
@@ -56,7 +57,7 @@ class AsyncHttp {
 	private array $headers = [];
 
 	/**
-	 * Timeout after not receiving any data for $timerout seconds
+	 * Timeout after not receiving any data for $timeout seconds
 	 */
 	private ?int $timeout = null;
 
@@ -126,7 +127,7 @@ class AsyncHttp {
 	/**
 	 * The timer that tracks stream timeout
 	 */
-	private ?TimerEvent $timeoutEvent = null;
+	private ?string $timeoutEvent = null;
 
 	/**
 	 * Indicates if there's still a transaction running (true) or not (false)
@@ -233,7 +234,7 @@ class AsyncHttp {
 	private function finish(): void {
 		$this->finished = true;
 		if ($this->timeoutEvent) {
-			$this->timer->abortEvent($this->timeoutEvent);
+			Loop::cancel($this->timeoutEvent);
 			$this->timeoutEvent = null;
 		}
 		$this->close();
@@ -287,8 +288,8 @@ class AsyncHttp {
 			$this->timeout = $this->settingManager->getInt("http_timeout") ?? 10;
 		}
 
-		$this->timeoutEvent = $this->timer->callLater(
-			$this->timeout,
+		$this->timeoutEvent = Loop::delay(
+			$this->timeout * 1000,
 			\Closure::fromCallable([$this, 'timeout']),
 		);
 	}
@@ -389,7 +390,7 @@ class AsyncHttp {
 			if ($this->retriesLeft > 0) {
 				$this->retriesLeft--;
 				$this->close();
-				$this->timer->callLater(0, [$this, "execute"]);
+				Loop::defer([$this, "execute"]);
 				return;
 			}
 			$this->abortWithMessage(
@@ -542,8 +543,8 @@ class AsyncHttp {
 			if ($chunk === false) {
 				if (feof($this->stream)) {
 					if ($this->retriesLeft--) {
-						if ($this->timeoutEvent) {
-							$this->timer->abortEvent($this->timeoutEvent);
+						if (isset($this->timeoutEvent)) {
+							Loop::cancel($this->timeoutEvent);
 							$this->timeoutEvent = null;
 						}
 						throw new HttpRetryException();
@@ -568,7 +569,11 @@ class AsyncHttp {
 
 		if (!empty($data) && isset($this->timeoutEvent)) {
 			// since data was read, reset timeout
-			$this->timer->restartEvent($this->timeoutEvent);
+			Loop::cancel($this->timeoutEvent);
+			$this->timeoutEvent = Loop::delay(
+				($this->timeout ?? 10) * 1000,
+				\Closure::fromCallable([$this, 'timeout']),
+			);
 		}
 
 		return $data;
@@ -620,8 +625,8 @@ class AsyncHttp {
 		$written = fwrite($this->stream, $this->requestData);
 		if ($written === false) {
 			if ($this->retriesLeft--) {
-				if ($this->timeoutEvent) {
-					$this->timer->abortEvent($this->timeoutEvent);
+				if (isset($this->timeoutEvent)) {
+					Loop::cancel($this->timeoutEvent);
 					$this->timeoutEvent = null;
 				}
 				throw new HttpRetryException();
@@ -638,7 +643,11 @@ class AsyncHttp {
 
 			// since data was written, reset timeout
 			if (isset($this->timeoutEvent)) {
-				$this->timer->restartEvent($this->timeoutEvent);
+				Loop::cancel($this->timeoutEvent);
+				$this->timeoutEvent = Loop::delay(
+					($this->timeout??10) * 1000,
+					\Closure::fromCallable([$this, 'timeout']),
+				);
 			}
 		}
 	}

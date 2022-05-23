@@ -4,6 +4,7 @@ namespace Nadybot\Core;
 
 use function Safe\json_encode;
 
+use Amp\Loop;
 use ReflectionAttribute;
 use ReflectionClass;
 use ReflectionNamedType;
@@ -75,6 +76,9 @@ class Nadybot extends AOChat {
 
 	#[NCA\Inject]
 	public Util $util;
+
+	#[NCA\Inject]
+	public Timer $timer;
 
 	#[NCA\Inject]
 	public LimitsController $limitsController;
@@ -327,35 +331,26 @@ class Nadybot extends AOChat {
 	 * The main endless-loop of the bot
 	 */
 	public function run(): void {
-		$loop = new EventLoop();
-		Registry::injectDependencies($loop);
 
-		$continue = true;
-		$signalHandler = function () use (&$continue): void {
-			$this->logger->notice('Shutdown requested.');
-			$continue = false;
-		};
-		if (function_exists('sapi_windows_set_ctrl_handler')) {
-			\Safe\sapi_windows_set_ctrl_handler($signalHandler, true);
-		} elseif (function_exists('pcntl_signal')) {
-			\Safe\pcntl_signal(SIGINT, $signalHandler);
-			\Safe\pcntl_signal(SIGTERM, $signalHandler);
-		} else {
-			$this->logger->error('You need to have the pcntl extension on Linux');
-			exit(1);
-		}
-		$callDispatcher = true;
-		if (function_exists('pcntl_async_signals')) {
-			pcntl_async_signals(true);
-			$callDispatcher = false;
-		}
+		Loop::run(function() {
+			$loop = new EventLoop();
+			Registry::injectDependencies($loop);
+			Loop::defer([$loop, "execSingleLoop"]);
 
-		while ($continue) {
-			$loop->execSingleLoop();
-			if ($callDispatcher && function_exists('pcntl_signal_dispatch')) {
-				\Safe\pcntl_signal_dispatch();
-			}
-		}
+			$signalHandler = function (): void {
+				$this->logger->notice('Shutdown requested.');
+				Loop::stop();
+			};
+			Loop::onSignal(SIGTERM, $signalHandler);
+			Loop::onSignal(SIGINT, $signalHandler);
+
+			Loop::repeat(1000, [$this->eventManager, "crons"]);
+			Loop::repeat(1000, function() {
+				if ($this->ready) {
+					$this->timer->executeTimerEvents();
+				}
+			});
+		});
 		$this->logger->notice('Graceful shutdown.');
 	}
 
@@ -381,6 +376,9 @@ class Nadybot extends AOChat {
 			return true;
 		}
 		if (!strlen($this->readBuffer) && !strlen($this->writeBuffer)) {
+			if ($this->ready === false) {
+				Loop::defer([$this->eventManager, "executeConnectEvents"]);
+			}
 			$this->ready = true;
 			return false;
 		}

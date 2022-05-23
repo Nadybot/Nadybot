@@ -387,6 +387,9 @@ class EventManager {
 	 * Call timer events
 	 */
 	public function crons(): void {
+		if (!$this->chatBot->isReady()) {
+			return;
+		}
 		$time = time();
 
 		if ($this->lastCronTime === $time) {
@@ -412,7 +415,6 @@ class EventManager {
 	 * Execute Events that needs to be executed right after login
 	 */
 	public function executeConnectEvents(): void {
-
 		if ($this->areConnectEventsFired) {
 			return;
 		}

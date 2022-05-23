@@ -2,12 +2,12 @@
 
 namespace Nadybot\Modules\RELAY_MODULE\Transport;
 
+use Amp\Loop;
 use Exception;
 use Nadybot\Core\{
 	Attributes as NCA,
 	LoggerWrapper,
 	Nadybot,
-	Timer,
 	Websocket as CoreWebsocket,
 	WebsocketCallback,
 	WebsocketClient,
@@ -54,9 +54,6 @@ class Websocket implements TransportInterface, StatusProvider {
 
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
-
-	#[NCA\Inject]
-	public Timer $timer;
 
 	protected Relay $relay;
 
@@ -115,14 +112,14 @@ class Websocket implements TransportInterface, StatusProvider {
 		$this->status = new RelayStatus(RelayStatus::INIT, $event->data??"Unknown state");
 		if ($event->code === WebsocketError::CONNECT_TIMEOUT) {
 			if (isset($this->initCallback)) {
-				$this->timer->callLater(10, [$this->client, 'connect']);
+				Loop::delay(10000, fn() => $this->client->connect());
 			} else {
 				unset($this->client);
-				$this->timer->callLater(10, [$this->relay, 'init']);
+				Loop::delay(10000, fn() => $this->relay->init());
 			}
 		} else {
 			unset($this->client);
-			$this->timer->callLater(10, [$this->relay, 'init']);
+			Loop::delay(10000, fn() => $this->relay->init());
 		}
 	}
 
@@ -133,12 +130,12 @@ class Websocket implements TransportInterface, StatusProvider {
 				RelayStatus::INIT,
 				"Reconnecting to {$this->uri}"
 			);
-			$this->timer->callLater(10, [$this->client, 'connect']);
+			Loop::delay(10000, [$this->client, 'connect']);
 		} else {
 			$this->client->close();
 			unset($this->client);
 			$this->logger->notice("Reconnecting to Websocket {$this->uri}.");
-			$this->timer->callLater(0, [$this->relay, 'init']);
+			Loop::defer(fn() => $this->relay->init());
 		}
 	}
 

@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\ORGLIST_MODULE;
 
+use Amp\Loop;
 use Exception;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
@@ -153,7 +154,9 @@ class FindOrgController extends ModuleInstance {
 
 	public function handleOrglistResponse(CacheResult $result, string $url, int $searchIndex): void {
 		if ($this->db->inTransaction()) {
-			$this->timer->callLater(1, [$this, __FUNCTION__], ...func_get_args());
+			Loop::delay(1000, function() use ($result, $url, $searchIndex): void {
+				$this->handleOrglistResponse($result, $url, $searchIndex);
+			});
 			return;
 		}
 		if (!isset($result->data) || !$result->success) {
@@ -165,8 +168,8 @@ class FindOrgController extends ModuleInstance {
 					"retry" => $retry,
 				]
 			);
-			$this->timer->callLater(
-				$retry,
+			Loop::delay(
+				$retry * 1000,
 				function() use ($url, $searchIndex): void {
 					$this->downloadOrglistLetter($url, $searchIndex);
 				}

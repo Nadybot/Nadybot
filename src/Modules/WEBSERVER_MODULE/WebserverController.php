@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\WEBSERVER_MODULE;
 
+use Amp\Loop;
 use Closure;
 use ReflectionClass;
 use DateTime;
@@ -179,7 +180,7 @@ class WebserverController extends ModuleInstance {
 	#[NCA\SettingChangeHandler("webserver_auth")]
 	#[NCA\SettingChangeHandler("webserver_aoauth_url")]
 	public function downloadNewPublicKey(string $settingName, string $oldValue, string $newValue): void {
-		$this->timer->callLater(0, [$this, "downloadPublicKey"]);
+		Loop::defer([$this, "downloadPublicKey"]);
 	}
 
 	/**
@@ -204,7 +205,7 @@ class WebserverController extends ModuleInstance {
 			return;
 		}
 		$this->shutdown();
-		$this->timer->callLater(0, [$this, "listen"]);
+		Loop::defer([$this, "listen"]);
 	}
 
 	/**

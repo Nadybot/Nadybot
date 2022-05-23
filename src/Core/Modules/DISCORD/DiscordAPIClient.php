@@ -3,6 +3,8 @@
 namespace Nadybot\Core\Modules\DISCORD;
 
 use function Safe\json_encode;
+
+use Amp\Loop;
 use Closure;
 use Safe\Exceptions\JsonException;
 use stdClass;
@@ -14,7 +16,6 @@ use Nadybot\Core\{
 	ModuleInstance,
 	JSONDataModel,
 	LoggerWrapper,
-	Timer,
 };
 use Nadybot\Modules\DISCORD_GATEWAY_MODULE\Model\ApplicationCommand;
 use Nadybot\Modules\DISCORD_GATEWAY_MODULE\Model\GuildMember;
@@ -26,9 +27,6 @@ use Nadybot\Modules\DISCORD_GATEWAY_MODULE\Model\GuildMember;
 class DiscordAPIClient extends ModuleInstance {
 	#[NCA\Inject]
 	public Http $http;
-
-	#[NCA\Inject]
-	public Timer $timer;
 
 	#[NCA\Inject]
 	public DiscordController $discordCtrl;
@@ -320,8 +318,8 @@ class DiscordAPIClient extends ModuleInstance {
 			function(HttpResponse $response, ChannelQueueItem $item) use ($errorHandler): void {
 				if (isset($response->headers) && $response->headers["status-code"] === "429") {
 					array_unshift($this->outQueue, $item);
-					$retryTime = (int)ceil((float)($response->headers["retry-after"]??1));
-					$this->timer->callLater($retryTime, [$this, "processQueue"]);
+					$retryTime = (int)ceil((float)($response->headers["retry-after"]??1) * 1000);
+					Loop::delay($retryTime, [$this, "processQueue"]);
 				} else {
 					$this->processQueue();
 					$errorHandler($response);
@@ -364,8 +362,8 @@ class DiscordAPIClient extends ModuleInstance {
 			function(HttpResponse $response, WebhookQueueItem $item) use ($errorHandler): void {
 				if (isset($response->headers) && $response->headers["status-code"] === "429") {
 					array_unshift($this->webhookQueue, $item);
-					$retryTime = (int)ceil((float)($response->headers["retry-after"]??1));
-					$this->timer->callLater($retryTime, [$this, "processWebhookQueue"]);
+					$retryTime = (int)ceil((float)($response->headers["retry-after"]??1) * 1000);
+					Loop::delay($retryTime, [$this, "processWebhookQueue"]);
 				} else {
 					$this->processWebhookQueue();
 					$errorHandler($response);
@@ -609,7 +607,8 @@ class DiscordAPIClient extends ModuleInstance {
 			// If we run into a ratelimit error, retry later
 			if ($response->headers['status-code'] === "429" && isset($response->request)) {
 				$waitFor = (int)ceil((float)$response->headers['x-ratelimit-reset-after']);
-				$this->timer->callLater(
+				$waitFor = (int)ceil((float)($response->headers["x-ratelimit-reset-after"]??1) * 1000);
+				Loop::delay(
 					$waitFor,
 					function() use ($response, $o, $success, $failure): void {
 						$request = $response->request;

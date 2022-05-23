@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\RAID_MODULE;
 
+use Amp\Loop;
 use DateTime;
 use Illuminate\Database\Query\JoinClause;
 use Illuminate\Support\Collection;
@@ -178,7 +179,7 @@ class RaidController extends ModuleInstance {
 
 	#[NCA\Setup]
 	public function setup(): void {
-		$this->timer->callLater(0, [$this, 'resumeRaid']);
+		Loop::defer([$this, 'resumeRaid']);
 		$stateStats = new RaidStateStats();
 		Registry::injectDependencies($stateStats);
 		$this->statsController->registerProvider($stateStats, "states");

@@ -2,6 +2,7 @@
 
 namespace Nadybot\Core\Modules\PLAYER_LOOKUP;
 
+use Amp\Loop;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	Attributes as NCA,
@@ -10,7 +11,6 @@ use Nadybot\Core\{
 	LoggerWrapper,
 	Nadybot,
 	QueryBuilder,
-	Timer,
 };
 
 class PlayerLookupJob {
@@ -22,9 +22,6 @@ class PlayerLookupJob {
 
 	#[NCA\Inject]
 	public PlayerManager $playerManager;
-
-	#[NCA\Inject]
-	public Timer $timer;
 
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
@@ -120,7 +117,9 @@ class PlayerLookupJob {
 	public function asyncPlayerLookup(?int $uid, int $threadNum, Player $todo, callable $callback, mixed ...$args): void {
 		if ($uid === null) {
 			$this->logger->debug("[Thread #{$threadNum}] Player " . $todo->name . ' is inactive, not updating.');
-			$this->timer->callLater(0, [$this, "startThread"], $threadNum, $callback, ...$args);
+			Loop::defer(function() use ($threadNum, $callback, $args) {
+				$this->startThread($threadNum, $callback, ...$args);
+			});
 			return;
 		}
 		$this->logger->debug("[Thread #{$threadNum}] Player " . $todo->name . ' is active, querying PORK.');
@@ -130,7 +129,9 @@ class PlayerLookupJob {
 					"[Thread #{$threadNum}] PORK lookup for " . $todo->name . ' done, '.
 					(isset($player) ? 'data updated' : 'no data found')
 				);
-				$this->timer->callLater(0, [$this, "startThread"], $threadNum, $callback, ...$args);
+				Loop::defer(function() use ($threadNum, $callback, $args) {
+					$this->startThread($threadNum, $callback, ...$args);
+				});
 			},
 			$todo->name,
 			$todo->dimension

@@ -2,6 +2,7 @@
 
 namespace Nadybot\Core\Modules\CONSOLE;
 
+use Amp\Loop;
 use Exception;
 use Nadybot\Core\{
 	Attributes as NCA,
@@ -155,7 +156,7 @@ class ConsoleController extends ModuleInstance {
 			SocketNotifier::ACTIVITY_READ,
 			$callback,
 		);
-		$this->timer->callLater(1, function(): void {
+		Loop::delay(1000, function(): void {
 			$this->logger->notice("StdIn console activated, accepting commands");
 			$this->socketManager->addSocketNotifier($this->notifier);
 			if ($this->useReadline) {

@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\DISCORD_GATEWAY_MODULE;
 
+use Amp\Loop;
 use Closure;
 use ReflectionClass;
 use ReflectionClassConstant;
@@ -293,7 +294,9 @@ class DiscordGatewayController extends ModuleInstance {
 	#[NCA\SettingChangeHandler('discord_activity_name')]
 	public function updatePresence(string $settingName, string $oldValue, string $newValue): void {
 		if (!isset($this->client)) {
-			$this->timer->callLater(1, [$this, __FUNCTION__], ...func_get_args());
+			Loop::delay(1000, function () use ($settingName, $oldValue, $newValue): void {
+				$this->updatePresence($settingName, $oldValue, $newValue);
+			});
 			return;
 		}
 		$packet = new Payload();
@@ -319,7 +322,7 @@ class DiscordGatewayController extends ModuleInstance {
 			$this->client->close();
 		}
 		if ($newValue !== "" && $newValue !== 'off') {
-			$this->timer->callLater(0, [$this, "connect"]);
+			Loop::defer([$this, "connect"]);
 		}
 	}
 
@@ -355,7 +358,7 @@ class DiscordGatewayController extends ModuleInstance {
 					"delay" => $this->util->unixtimeToReadable($resetDelay),
 				]
 			);
-			$this->timer->callLater($resetDelay, [$this, "connect"]);
+			Loop::delay($resetDelay * 1000, [$this, "connect"]);
 			return;
 		}
 		$this->client = $this->websocket->createClient()
@@ -381,7 +384,7 @@ class DiscordGatewayController extends ModuleInstance {
 		$this->lastHeartbeat = time();
 		$this->client->send(json_encode(["op" => 1, "d" => $this->lastSequenceNumber]), "text");
 		$this->logger->info("Sending heartbeat");
-		$this->timer->callLater($this->heartbeatInterval, [$this, __FUNCTION__]);
+		Loop::delay($this->heartbeatInterval * 1000, [$this, __FUNCTION__]);
 	}
 
 	public function processWebsocketWrite(WebsocketCallback $event): void {
@@ -391,7 +394,7 @@ class DiscordGatewayController extends ModuleInstance {
 	public function processWebsocketError(WebsocketCallback $event): void {
 		$this->logger->error("[$event->code] $event->data");
 		if ($event->code === WebsocketError::CONNECT_TIMEOUT && isset($this->client)) {
-			$this->timer->callLater(30, [$this->client, 'connect']);
+			Loop::delay(30000, [$this->client, 'connect']);
 		}
 	}
 
@@ -453,7 +456,7 @@ class DiscordGatewayController extends ModuleInstance {
 		$payload = $event->payload;
 		/** @var stdClass $payload->d */
 		$this->heartbeatInterval = intdiv($payload->d->heartbeat_interval, 1000);
-		$this->timer->callLater($this->heartbeatInterval, [$this, "sendWebsocketHeartbeat"]);
+		Loop::delay($this->heartbeatInterval * 1000, [$this, "sendWebsocketHeartbeat"]);
 		$this->logger->info("Setting Discord heartbeat interval to ".$this->heartbeatInterval."sec");
 		$this->lastHeartbeat = time();
 
@@ -606,7 +609,7 @@ class DiscordGatewayController extends ModuleInstance {
 			&& isset($this->client)
 		) {
 			$this->logger->notice("Reconnecting to Discord gateway in {$this->reconnectDelay}s.");
-			$this->timer->callLater($this->reconnectDelay, [$this->client, 'connect']);
+			Loop::delay($this->reconnectDelay * 1000, [$this->client, 'connect']);
 			$this->reconnectDelay = max($this->reconnectDelay * 2, 5);
 		} elseif ($event->code === CloseEvents::DISALLOWED_INTENT) {
 			$this->logger->error(

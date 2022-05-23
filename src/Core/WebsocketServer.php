@@ -2,6 +2,7 @@
 
 namespace Nadybot\Core;
 
+use Amp\Loop;
 use Nadybot\Core\Attributes as NCA;
 use Exception;
 use Nadybot\Core\Socket\AsyncSocket;
@@ -68,8 +69,9 @@ class WebsocketServer extends WebsocketBase {
 	}
 
 	protected function resetClient(): void {
-		if (isset($this->timeoutChecker)) {
-			$this->timer->abortEvent($this->timeoutChecker);
+		if (isset($this->timeoutHandle)) {
+			Loop::cancel($this->timeoutHandle);
+			$this->timeoutHandle = null;
 		}
 		if ($this->notifier) {
 			$this->socketManager->removeSocketNotifier($this->notifier);

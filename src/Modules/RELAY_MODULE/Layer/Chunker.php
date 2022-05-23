@@ -2,12 +2,12 @@
 
 namespace Nadybot\Modules\RELAY_MODULE\Layer;
 
+use Amp\Loop;
 use InvalidArgumentException;
 use Nadybot\Core\{
 	Attributes as NCA,
 	LoggerWrapper,
 	Timer,
-	TimerEvent,
 	Util,
 };
 use Nadybot\Modules\RELAY_MODULE\{
@@ -56,7 +56,7 @@ class Chunker implements RelayLayerInterface {
 	#[NCA\Inject]
 	public Util $util;
 
-	protected TimerEvent $timerEvent;
+	protected ?string $timerHandler = null;
 
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
@@ -133,9 +133,9 @@ class Chunker implements RelayLayerInterface {
 				$this->logger->notice("Single-chunk chunk received.");
 				continue;
 			}
-			if (!isset($this->timerEvent)) {
+			if (!isset($this->timerHandler)) {
 				$this->logger->notice("Setup new cleanup call");
-				$this->timerEvent = $this->timer->callLater(10, [$this, "cleanStaleChunks"]);
+				$this->timerHandler = Loop::delay(10000, [$this, "cleanStaleChunks"]);
 			}
 			if (!isset($this->queue[$chunk->id])) {
 				$this->logger->notice("New chunk {$chunk->id} {$chunk->part}/{$chunk->count} received.");
@@ -173,7 +173,7 @@ class Chunker implements RelayLayerInterface {
 	}
 
 	public function cleanStaleChunks(): void {
-		unset($this->timerEvent);
+		$this->timerHandler = null;
 		$ids = array_keys($this->queue);
 		foreach ($ids as $id) {
 			$parts = array_keys($this->queue[$id]);
@@ -186,7 +186,7 @@ class Chunker implements RelayLayerInterface {
 		}
 		if (count($this->queue)) {
 			$this->logger->notice("Calling cleanup in 10");
-			$this->timerEvent = $this->timer->callLater(10, [$this, "cleanStaleChunks"]);
+			$this->timerHandler = Loop::delay(10000, [$this, "cleanStaleChunks"]);
 		} else {
 			$this->logger->notice("No more unfinished chunks.");
 		}

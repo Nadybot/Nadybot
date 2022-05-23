@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\RELAY_MODULE;
 
+use Amp\Loop;
 use Nadybot\Core\{
 	Attributes as NCA,
 	ConfigFile,
@@ -15,7 +16,6 @@ use Nadybot\Core\{
 	Routing\Source,
 	SettingManager,
 	SyncEvent,
-	Timer,
 };
 use Nadybot\Modules\{
 	ONLINE_MODULE\OnlinePlayer,
@@ -43,9 +43,6 @@ class Relay implements MessageReceiver {
 
 	#[NCA\Inject]
 	public PlayerManager $playerManager;
-
-	#[NCA\Inject]
-	public Timer $timer;
 
 	#[NCA\Inject]
 	public StatsController $statsController;
@@ -305,7 +302,7 @@ class Relay implements MessageReceiver {
 			if (isset($callback)) {
 				$callback();
 			}
-			$this->timer->callLater(10, function() {
+			Loop::delay(10000, function() {
 				if ($this->initialized) {
 					foreach ($this->msgQueue as $message) {
 						$this->receive($message, $this->getName());

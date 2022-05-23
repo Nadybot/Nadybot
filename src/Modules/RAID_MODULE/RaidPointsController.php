@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\RAID_MODULE;
 
+use Amp\Loop;
 use Safe\DateTime;
 use Exception;
 use Illuminate\Support\Collection;
@@ -712,7 +713,9 @@ class RaidPointsController extends ModuleInstance {
 			return;
 		}
 		if ($this->db->inTransaction()) {
-			$this->timer->callLater(0, [$this, "mergeRaidPoints"], $event);
+			Loop::defer(function () use ($event): void {
+				$this->mergeRaidPoints($event);
+			});
 			return;
 		}
 		$mainPoints = $this->getThisAltsRaidPoints($event->main);

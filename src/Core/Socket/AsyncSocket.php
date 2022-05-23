@@ -2,6 +2,7 @@
 
 namespace Nadybot\Core\Socket;
 
+use Amp\Loop;
 use Exception;
 use InvalidArgumentException;
 use Nadybot\Core\{
@@ -10,7 +11,6 @@ use Nadybot\Core\{
 	SocketManager,
 	SocketNotifier,
 	Timer,
-	TimerEvent,
 };
 use Throwable;
 
@@ -54,7 +54,7 @@ class AsyncSocket {
 	];
 
 	protected SocketNotifier $notifier;
-	protected TimerEvent $timeoutEvent;
+	protected ?string $timeoutHandler = null;
 
 	protected ?float $lastRead = null;
 	protected ?float $lastWrite = null;
@@ -111,14 +111,13 @@ class AsyncSocket {
 		if ($this->timeout <=0) {
 			return;
 		}
-		if (isset($this->timeoutEvent)) {
-			$this->timer->restartEvent($this->timeoutEvent);
-			return;
+		if (isset($this->timeoutHandler)) {
+			Loop::cancel($this->timeoutHandler);
 		}
-		$this->timeoutEvent = $this->timer->callLater(
-			$this->timeout,
+		$this->timeoutHandler = Loop::delay(
+			$this->timeout * 1000,
 			function() {
-				unset($this->timeoutEvent);
+				unset($this->timeoutHandler);
 				$this->streamTimeout();
 			}
 		);
@@ -160,8 +159,8 @@ class AsyncSocket {
 				}
 				$this->unsubscribeSocketEvent(SocketNotifier::ACTIVITY_READ);
 				$this->trigger(static::CLOSE);
-				if (isset($this->timeoutEvent)) {
-					$this->timer->abortEvent($this->timeoutEvent);
+				if (isset($this->timeoutHandler)) {
+					Loop::cancel($this->timeoutHandler);
 				}
 				$this->state = static::STATE_CLOSED;
 			} else {
@@ -228,9 +227,9 @@ class AsyncSocket {
 			unset($this->notifier);
 		}
 		unset($this->socketManager);
-		if (isset($this->timeoutEvent)) {
-			$this->timer->abortEvent($this->timeoutEvent);
-			unset($this->timeoutEvent);
+		if (isset($this->timeoutHandler)) {
+			Loop::cancel($this->timeoutHandler);
+			unset($this->timeoutHandler);
 		}
 		unset($this->timer);
 		// unset($this->logger);

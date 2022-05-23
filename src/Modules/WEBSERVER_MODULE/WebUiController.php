@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\WEBSERVER_MODULE;
 
+use Amp\Loop;
 use DateTime;
 use Exception;
 use Nadybot\Core\{
@@ -21,7 +22,6 @@ use Nadybot\Core\{
 	Nadybot,
 	Routing\Source,
 	SettingManager,
-	Timer,
 };
 use Safe\Exceptions\FilesystemException;
 use Throwable;
@@ -61,9 +61,6 @@ class WebUiController extends ModuleInstance implements MessageEmitter {
 	#[NCA\Inject]
 	public DB $db;
 
-	#[NCA\Inject]
-	public Timer $timer;
-
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
@@ -100,7 +97,7 @@ class WebUiController extends ModuleInstance implements MessageEmitter {
 		if (empty($new) || $new === "off") {
 			return;
 		}
-		$this->timer->callLater(0, [$this, "updateWebUI"]);
+		Loop::defer([$this, "updateWebUI"]);
 	}
 
 	#[NCA\Event(

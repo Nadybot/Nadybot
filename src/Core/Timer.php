@@ -39,6 +39,7 @@ class Timer {
 	 * $this->util->callLater(5, fn($message) => print $message, 'Hello World');
 	 *
 	 * Prints 'Hello World' after 5 seconds.
+	 * @deprecated 6.0.3
 	 */
 	public function callLater(int $delay, callable $callback, mixed ...$additionalArgs): TimerEvent {
 		return $this->addTimerEvent($delay, $callback, $additionalArgs);
@@ -46,6 +47,7 @@ class Timer {
 
 	/**
 	 * Abort an already timed event
+	 * @deprecated 6.0.3
 	 */
 	public function abortEvent(TimerEvent $event): void {
 		$key = array_search($event, $this->timerEvents, true);
@@ -57,6 +59,7 @@ class Timer {
 
 	/**
 	 * Run an event again with the configured amount of delay
+	 * @deprecated 6.0.3
 	 */
 	public function restartEvent(TimerEvent $event): void {
 		$event->time = intval($event->delay) + time();

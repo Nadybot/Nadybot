@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\WORLDBOSS_MODULE;
 
+use Amp\Loop;
 use DateTime;
 use Exception;
 use Safe\Exceptions\JsonException;
@@ -137,7 +138,7 @@ class GauntletBuffController extends ModuleInstance implements MessageEmitter {
 			$this->logger->warning('Gauntlet buff API sent a {code}, retrying in 5s', [
 				"code" => $code
 			]);
-			$this->timer->callLater(5, [$this, "loadGauntletBuffsFromAPI"]);
+			Loop::delay(5000, [$this, "loadGauntletBuffsFromAPI"]);
 			return;
 		}
 		if ($code !== "200" || !isset($response->body)) {

@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\TIMERS_MODULE;
 
+use Amp\Loop;
 use Closure;
 use Nadybot\Core\{
 	Attributes as NCA,
@@ -114,11 +115,15 @@ class CountdownController extends ModuleInstance {
 				$color = "<yellow>";
 			}
 			$msg = "[{$color}-------&gt; {$i} &lt;-------<end>]";
-			$this->timer->callLater(6-$i, $callback, $msg);
+			Loop::delay((6-$i)*1000, function () use ($callback, $msg): void {
+				$callback($msg);
+			});
 		}
 
 		$msg = "[<green>------&gt; {$message} &lt;-------<end>]";
-		$this->timer->callLater(6, $callback, $msg);
+		Loop::delay(6000, function () use ($callback, $msg): void {
+			$callback($msg);
+		});
 	}
 
 	#[NCA\Event(

@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\RAID_MODULE;
 
+use Amp\Loop;
 use Safe\DateTime;
 use InvalidArgumentException;
 use Nadybot\Core\{
@@ -20,7 +21,6 @@ use Nadybot\Core\{
 	Routing\Source,
 	Text,
 	Timer,
-	TimerEvent,
 	Util,
 };
 use Nadybot\Modules\RAFFLE_MODULE\RaffleItem;
@@ -164,7 +164,8 @@ class AuctionController extends ModuleInstance {
 	public int $auctionWinnerAnnouncement = 1;
 
 	public ?Auction $auction = null;
-	protected ?TimerEvent $auctionTimer = null;
+	protected ?string $auctionTimer = null;
+	protected ?int $auctionEnds = null;
 
 	#[NCA\Setup]
 	public function setup(): void {
@@ -212,7 +213,7 @@ class AuctionController extends ModuleInstance {
 			return;
 		}
 		if (isset($this->auctionTimer)) {
-			$this->timer->abortEvent($this->auctionTimer);
+			Loop::cancel($this->auctionTimer);
 			$this->auctionTimer = null;
 		}
 		$event = new AuctionEvent();
@@ -564,12 +565,14 @@ class AuctionController extends ModuleInstance {
 		$minTime = $this->auctionMinTimeAfterBid;
 		// When something changes, make sure people have at least
 		// $minTime seconds to place new bids
+		$this->auctionEnds ??= $this->auction->end;
 		if (isset($this->auctionTimer)) {
-			if ($this->auctionTimer->time - time() < $minTime) {
-				$this->auctionTimer->delay = $minTime;
-				$this->timer->restartEvent($this->auctionTimer);
+			if ($this->auctionEnds - time() < $minTime) {
+				Loop::cancel($this->auctionTimer);
+				$this->auctionTimer = Loop::delay($minTime * 1000, [$this, "endAuction"]);
+				$this->auctionEnds = time() + $minTime;
 			}
-			$this->auction->end = $this->auctionTimer->time;
+			$this->auction->end = $this->auctionEnds;
 		}
 
 		$event = new AuctionEvent();
@@ -586,10 +589,11 @@ class AuctionController extends ModuleInstance {
 			return false;
 		}
 		$this->auction = $auction;
-		$this->auctionTimer = $this->timer->callLater(
-			$auction->end - time(),
+		$this->auctionTimer = Loop::delay(
+			($auction->end - time()) * 1000,
 			[$this, "endAuction"],
 		);
+		$this->auctionEnds = $auction->end;
 		$event = new AuctionEvent();
 		$event->type = "auction(start)";
 		$event->auction = $auction;
@@ -605,7 +609,7 @@ class AuctionController extends ModuleInstance {
 			return;
 		}
 		if (isset($this->auctionTimer)) {
-			$this->timer->abortEvent($this->auctionTimer);
+			Loop::cancel($this->auctionTimer);
 			$this->auctionTimer = null;
 		}
 		$auction = $this->auction;

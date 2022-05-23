@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\SKILLS_MODULE;
 
+use Amp\Loop;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	Attributes as NCA,
@@ -15,7 +16,6 @@ use Nadybot\Core\{
 	ParamClass\PNonNumberWord,
 	SettingManager,
 	Text,
-	Timer,
 	Util,
 };
 use Nadybot\Modules\ITEMS_MODULE\{
@@ -68,9 +68,6 @@ class BuffPerksController extends ModuleInstance {
 	#[NCA\Inject]
 	public NanoController $nanoController;
 
-	#[NCA\Inject]
-	public Timer $timer;
-
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
@@ -83,12 +80,12 @@ class BuffPerksController extends ModuleInstance {
 
 	#[NCA\Setup]
 	public function setup(): void {
-		$this->timer->callLater(0, [$this, "initPerksDatabase"]);
+		Loop::defer([$this, "initPerksDatabase"]);
 	}
 
 	public function initPerksDatabase(): void {
 		if ($this->db->inTransaction()) {
-			$this->timer->callLater(0, [$this, "initPerksDatabase"]);
+			Loop::delay(100, [$this, "initPerksDatabase"]);
 			return;
 		}
 		$path = __DIR__ . "/perks.csv";

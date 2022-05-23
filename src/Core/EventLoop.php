@@ -2,6 +2,7 @@
 
 namespace Nadybot\Core;
 
+use Amp\Loop;
 use Nadybot\Core\Attributes as NCA;
 use Throwable;
 
@@ -30,27 +31,28 @@ class EventLoop {
 
 			if ($this->chatBot->isReady()) {
 				$socketActivity = $this->socketManager->checkMonitoredSockets();
-				$this->eventManager->executeConnectEvents();
-				$this->timer->executeTimerEvents();
 				foreach (static::$callbacks as $i => $callback) {
 					/** @phpstan-ignore-next-line */
 					if (isset($callback) && is_callable($callback)) {
 						$callback();
 					}
 				}
-				$this->eventManager->crons();
 
 				if (!$socketActivity && !$aoActivity) {
-					usleep(10000);
+					Loop::delay(10, [$this, __FUNCTION__]);
+					return;
 				} else {
-					usleep(200);
+					Loop::defer([$this, __FUNCTION__]);
+					return;
 				}
 			}
 		} catch (Throwable $e) {
 			$this->logger->error($e->getMessage(), ["exception" => $e]);
 		}
+		Loop::delay(10, [$this, __FUNCTION__]);
 	}
 
+	/** @deprecated version */
 	public static function add(callable $callback): int {
 		$i = 0;
 		while ($i < count(static::$callbacks)) {
@@ -63,6 +65,7 @@ class EventLoop {
 		return $i;
 	}
 
+	/** @deprecated version */
 	public static function rem(int $i): bool {
 		if (!array_key_exists($i, static::$callbacks)) {
 			return false;

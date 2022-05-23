@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\PRIVATE_CHANNEL_MODULE;
 
+use Amp\Loop;
 use Exception;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
@@ -756,7 +757,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 	public function kickallCommand(CmdContext $context): void {
 		$msg = "Everyone will be kicked from this channel in 10 seconds. [by <highlight>{$context->char->name}<end>]";
 		$this->chatBot->sendPrivate($msg);
-		$this->timer->callLater(10, [$this->chatBot, 'privategroup_kick_all']);
+		Loop::delay(10000, [$this->chatBot, 'privategroup_kick_all']);
 	}
 
 	/** Join this bot's private channel (if you have the permission) */

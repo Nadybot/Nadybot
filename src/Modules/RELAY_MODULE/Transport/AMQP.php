@@ -2,12 +2,12 @@
 
 namespace Nadybot\Modules\RELAY_MODULE\Transport;
 
+use Amp\Loop;
 use ErrorException;
 use Exception;
 use Throwable;
 use Nadybot\Core\{
 	Attributes as NCA,
-	EventLoop,
 	EventManager,
 	LoggerWrapper,
 	Nadybot,
@@ -116,9 +116,6 @@ class AMQP implements TransportInterface, StatusProvider {
 
 	protected ?RelayStatus $status = null;
 
-	/** Slot we use in the event loop */
-	protected int $loopTicket;
-
 	/** @var ?callable */
 	protected $initCallback;
 
@@ -143,7 +140,7 @@ class AMQP implements TransportInterface, StatusProvider {
 	protected int $port;
 	protected string $vhost;
 
-	protected int $eventTicket;
+	protected ?string $eventTicket = null;
 
 	public function __construct(
 		string $exchange,
@@ -195,7 +192,11 @@ class AMQP implements TransportInterface, StatusProvider {
 			$this->connectExchange($exchObject);
 		}
 		if (!isset($this->eventTicket)) {
-			$this->eventTicket = EventLoop::add([$this, "processMessages"]);
+			$this->eventTicket = Loop::repeat(100, function(): void {
+				if ($this->chatBot->isReady()) {
+					$this->processMessages();
+				}
+			});
 		}
 		return [];
 	}
@@ -209,8 +210,8 @@ class AMQP implements TransportInterface, StatusProvider {
 		}
 		$callback();
 		if (isset($this->eventTicket)) {
-			EventLoop::rem($this->eventTicket);
-			unset($this->eventTicket);
+			Loop::cancel($this->eventTicket);
+			$this->eventTicket = null;
 		}
 		return [];
 	}
@@ -387,8 +388,8 @@ class AMQP implements TransportInterface, StatusProvider {
 			$this->channel = null;
 			$this->connection = null;
 			if (isset($this->eventTicket)) {
-				EventLoop::rem($this->eventTicket);
-				unset($this->eventTicket);
+				Loop::cancel($this->eventTicket);
+				$this->eventTicket = null;
 			}
 			$args = func_get_args();
 			$this->relay->init(function() use ($args): void {
@@ -493,8 +494,8 @@ class AMQP implements TransportInterface, StatusProvider {
 				$this->channel = null;
 				$this->connection = null;
 				if (isset($this->eventTicket)) {
-					EventLoop::rem($this->eventTicket);
-					unset($this->eventTicket);
+					Loop::cancel($this->eventTicket);
+					$this->eventTicket = null;
 				}
 				$this->relay->init();
 				return;

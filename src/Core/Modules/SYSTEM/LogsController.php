@@ -2,6 +2,7 @@
 
 namespace Nadybot\Core\Modules\SYSTEM;
 
+use Amp\Loop;
 use Exception;
 use Safe\Exceptions\FilesystemException;
 use Monolog\{
@@ -28,7 +29,6 @@ use Nadybot\Core\{
 	ParamClass\PWord,
 	SettingManager,
 	Text,
-	Timer,
 	Util,
 };
 
@@ -65,9 +65,6 @@ class LogsController extends ModuleInstance {
 
 	#[NCA\Inject]
 	public Http $http;
-
-	#[NCA\Inject]
-	public Timer $timer;
 
 	#[NCA\Inject]
 	public Text $text;
@@ -286,7 +283,9 @@ class LogsController extends ModuleInstance {
 				$logger->popHandler();
 				$logger->popHandler();
 			}
-			$this->timer->callLater(0, [$this, "uploadDebugLog"], $context, $debugFile);
+			Loop::defer(function() use ($context, $debugFile): void {
+				$this->uploadDebugLog($context, $debugFile);
+			});
 		});
 
 		$this->commandManager->processCmd($newContext);

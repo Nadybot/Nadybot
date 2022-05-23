@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\DEV_MODULE;
 
+use Amp\Loop;
 use Exception;
 use Nadybot\Core\{
 	AOChatEvent,
@@ -112,7 +113,9 @@ class TestController extends ModuleInstance {
 		}
 		$testContext->message = substr($line, 1);
 		$this->commandManager->processCmd($testContext);
-		$this->timer->callLater(0, [$this, __FUNCTION__], $commands, $context, $logFile);
+		Loop::defer(function() use ($commands, $context, $logFile): void {
+			$this->runTests($commands, $context, $logFile);
+		});
 	}
 
 	protected function sendOrgMsg(string $message): void {

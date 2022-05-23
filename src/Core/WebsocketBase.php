@@ -2,6 +2,7 @@
 
 namespace Nadybot\Core;
 
+use Amp\Loop;
 use Exception;
 use InvalidArgumentException;
 use Nadybot\Core\{
@@ -71,7 +72,7 @@ class WebsocketBase {
 	protected bool $connected = false;
 	protected ?int $lastReadTime = null;
 	protected ?int $pendingPingTime = null;
-	protected ?TimerEvent $timeoutChecker = null;
+	protected ?string $timeoutHandle = null;
 	public bool $maskData = true;
 	protected string $uri;
 	protected ?int $lastWriteTime = null;
@@ -169,7 +170,7 @@ class WebsocketBase {
 				"Connection to {$this->uri} timed out, no response to ping."
 			);
 		} else {
-			$this->timeoutChecker = $this->timer->callLater(5, [$this, "checkTimeout"]);
+			$this->timeoutHandle = Loop::delay(5000, [$this, "checkTimeout"]);
 		}
 	}
 
