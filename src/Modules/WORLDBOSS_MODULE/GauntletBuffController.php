@@ -2,13 +2,16 @@
 
 namespace Nadybot\Modules\WORLDBOSS_MODULE;
 
+use function Amp\call;
+use function Amp\delay;
+use function Safe\json_decode;
 use Amp\Http\Client\HttpClientBuilder;
 use Amp\Http\Client\Request;
 use Amp\Http\Client\Response;
-use Amp\Loop;
 use DateTime;
 use Exception;
 use Safe\Exceptions\JsonException;
+use Throwable;
 use Nadybot\Core\{
 	AOChatEvent,
 	Attributes as NCA,
@@ -33,10 +36,6 @@ use Nadybot\Modules\TIMERS_MODULE\{
 	TimerController,
 };
 use Nadybot\Modules\WEBSERVER_MODULE\StatsController;
-use Throwable;
-
-use function Amp\call;
-use function Safe\json_decode;
 
 /**
  * @author Equi
@@ -134,7 +133,8 @@ class GauntletBuffController extends ModuleInstance implements MessageEmitter {
 					$this->logger->warning('Gauntlett buff API sent a {code}, retrying in 5s', [
 						"code" => $code
 					]);
-					Loop::delay(5000, fn() => $this->loadGauntletBuffsFromAPI());
+					yield delay(5000);
+					$this->loadGauntletBuffsFromAPI();
 					return;
 				}
 				if ($code !== 200) {

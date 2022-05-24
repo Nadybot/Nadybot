@@ -4,12 +4,12 @@ namespace Nadybot\Modules\WORLDBOSS_MODULE;
 
 use Throwable;
 use function Amp\call;
+use function Amp\delay;
 use function Safe\json_decode;
 
 use Amp\Http\Client\HttpClientBuilder;
 use Amp\Http\Client\Request;
 use Amp\Http\Client\Response;
-use Amp\Loop;
 use DateTime;
 use Safe\Exceptions\JsonException;
 use Nadybot\Core\{
@@ -256,7 +256,8 @@ class WorldBossController extends ModuleInstance {
 					$this->logger->warning('Worldboss API sent a {code}, retrying in 5s', [
 						"code" => $code
 					]);
-					Loop::delay(5000, fn() => $this->loadTimersFromAPI());
+					yield delay(5000);
+					$this->loadTimersFromAPI();
 					return;
 				}
 				if ($code !== 200) {
