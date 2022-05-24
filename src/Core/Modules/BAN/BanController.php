@@ -13,7 +13,6 @@ use Nadybot\Core\{
 	Event,
 	AccessManager,
 	CmdContext,
-	CommandReply,
 	DBSchema\Audit,
 	DBSchema\Player,
 	ModuleInstance,
@@ -139,11 +138,15 @@ class BanController extends ModuleInstance {
 		PDuration $duration,
 		#[NCA\Str("for", "reason")] string $for,
 		string $reason
-	): void {
+	): Generator {
 		$who = $who();
 		$length = $duration->toSecs();
 
-		if (!$this->banPlayer($who, $context->char->name, $length, $reason, $context)) {
+		[$success, $msgs] = yield $this->banPlayer($who, $context->char->name, $length, $reason);
+		if (count($msgs)) {
+			$context->reply(join("\n", $msgs));
+		}
+		if (!$success) {
 			return;
 		}
 
@@ -165,11 +168,19 @@ class BanController extends ModuleInstance {
 	#[NCA\HandlesCommand("ban")]
 	#[NCA\Help\Group("ban")]
 	#[NCA\Help\Example("<symbol>ban badplayer 2 weeks")]
-	public function banPlayerWithTimeCommand(CmdContext $context, PCharacter $who, PDuration $duration): void {
+	public function banPlayerWithTimeCommand(
+		CmdContext $context,
+		PCharacter $who,
+		PDuration $duration
+	): Generator {
 		$who = $who();
 		$length = $duration->toSecs();
 
-		if (!$this->banPlayer($who, $context->char->name, $length, '', $context)) {
+		[$success, $msgs] = yield $this->banPlayer($who, $context->char->name, $length, '');
+		if (isset($msgs)) {
+			$context->reply(join("\n", $msgs));
+		}
+		if (!$success) {
 			return;
 		}
 
@@ -195,10 +206,14 @@ class BanController extends ModuleInstance {
 		PCharacter $who,
 		#[NCA\Str("for", "reason")] string $for,
 		string $reason
-	): void {
+	): Generator {
 		$who = $who();
 
-		if (!$this->banPlayer($who, $context->char->name, null, $reason, $context)) {
+		[$success, $msgs] = yield $this->banPlayer($who, $context->char->name, null, $reason);
+		if (isset($msgs)) {
+			$context->reply(join("\n", $msgs));
+		}
+		if (!$success) {
 			return;
 		}
 
@@ -219,10 +234,14 @@ class BanController extends ModuleInstance {
 	#[NCA\HandlesCommand("ban")]
 	#[NCA\Help\Group("ban")]
 	#[NCA\Help\Example("<symbol>ban badplayer")]
-	public function banPlayerCommand(CmdContext $context, PCharacter $who): void {
+	public function banPlayerCommand(CmdContext $context, PCharacter $who): Generator {
 		$who = $who();
 
-		if (!$this->banPlayer($who, $context->char->name, null, '', $context)) {
+		[$success, $msgs] = yield $this->banPlayer($who, $context->char->name, null, '');
+		if (isset($msgs)) {
+			$context->reply(join("\n", $msgs));
+		}
+		if (!$success) {
 			return;
 		}
 
@@ -277,11 +296,15 @@ class BanController extends ModuleInstance {
 	 */
 	#[NCA\HandlesCommand("unban")]
 	#[NCA\Help\Group("ban")]
-	public function unbanAllCommand(CmdContext $context, #[NCA\Str("all")] string $all, PCharacter $who): void {
+	public function unbanAllCommand(
+		CmdContext $context,
+		#[NCA\Str("all")] string $all,
+		PCharacter $who
+	): Generator {
 		$who = $who();
 
-		$charId = $this->chatBot->get_uid($who);
-		if (!$charId) {
+		$charId = yield $this->chatBot->getUid2($who);
+		if ($charId === null) {
 			$context->reply("Player <highlight>{$who}<end> doesn't exist.");
 			return;
 		}
@@ -293,8 +316,8 @@ class BanController extends ModuleInstance {
 		$altInfo = $this->altsController->getAltInfo($who);
 		$toUnban = [$altInfo->main, ...$altInfo->getAllValidatedAlts()];
 		foreach ($toUnban as $charName) {
-			$charId = $this->chatBot->get_uid($charName);
-			if (!$charId || !$this->isBanned($charId)) {
+			$charId = yield $this->chatBot->getUid2($charName);
+			if (!isset($charId) || !$this->isBanned($charId)) {
 				continue;
 			}
 			$this->remove($charId);
@@ -311,10 +334,10 @@ class BanController extends ModuleInstance {
 	 */
 	#[NCA\HandlesCommand("unban")]
 	#[NCA\Help\Group("ban")]
-	public function unbanCommand(CmdContext $context, PCharacter $who): void {
+	public function unbanCommand(CmdContext $context, PCharacter $who): Generator {
 		$who = $who();
 
-		$charId = $this->chatBot->get_uid($who);
+		$charId = yield $this->chatBot->getUid2($who);
 		if (!$charId) {
 			$context->reply("Player <highlight>{$who}<end> doesn't exist.");
 			return;
@@ -365,58 +388,58 @@ class BanController extends ModuleInstance {
 
 	/**
 	 * This helper method bans player with given arguments.
+	 * @return Promise<array{bool,string[]}>
 	 */
-	private function banPlayer(string $who, string $sender, ?int $length, ?string $reason, CommandReply $sendto): bool {
-		$toBan = [$who];
-		if ($this->banAllAlts) {
-			$altInfo = $this->altsController->getAltInfo($who);
-			$toBan = [$altInfo->main, ...$altInfo->getAllValidatedAlts()];
-		}
-		$numSuccess = 0;
-		$numErrors = 0;
-		$msgs = [];
-		foreach ($toBan as $who) {
-			$charId = $this->chatBot->get_uid($who);
-			if (!$charId) {
-				$msgs []= "Character <highlight>$who<end> does not exist.";
-				$numErrors++;
-				continue;
+	private function banPlayer(string $who, string $sender, ?int $length, ?string $reason): Promise {
+		return call(function() use ($who, $sender, $length, $reason): Generator {
+			$toBan = [$who];
+			if ($this->banAllAlts) {
+				$altInfo = $this->altsController->getAltInfo($who);
+				$toBan = [$altInfo->main, ...$altInfo->getAllValidatedAlts()];
 			}
+			$numSuccess = 0;
+			$numErrors = 0;
+			$msgs = [];
+			foreach ($toBan as $who) {
+				$charId = yield $this->chatBot->getUid2($who);
+				if (!$charId) {
+					$msgs []= "Character <highlight>$who<end> does not exist.";
+					$numErrors++;
+					continue;
+				}
 
-			if ($this->isBanned($charId)) {
-				$msgs []= "Character <highlight>$who<end> is already banned.";
-				$numErrors++;
-				continue;
-			}
+				if ($this->isBanned($charId)) {
+					$msgs []= "Character <highlight>$who<end> is already banned.";
+					$numErrors++;
+					continue;
+				}
 
-			if ($this->accessManager->compareCharacterAccessLevels($sender, $who) <= 0) {
-				$msgs []= "You must have an access level higher than <highlight>$who<end> ".
-					"to perform this action.";
-				$numErrors++;
-				continue;
-			}
+				if ($this->accessManager->compareCharacterAccessLevels($sender, $who) <= 0) {
+					$msgs []= "You must have an access level higher than <highlight>$who<end> ".
+						"to perform this action.";
+					$numErrors++;
+					continue;
+				}
 
-			if ($length === 0) {
-				return false;
-			}
+				if ($length === 0) {
+					return [false, $msgs];
+				}
 
-			if ($this->add($charId, $sender, $length, $reason)) {
-				$this->chatBot->privategroup_kick($who);
-				$audit = new Audit();
-				$audit->actor = $sender;
-				$audit->actee = $who;
-				$audit->action = AccessManager::KICK;
-				$audit->value = "banned";
-				$this->accessManager->addAudit($audit);
-				$numSuccess++;
-			} else {
-				$numErrors++;
+				if ($this->add($charId, $sender, $length, $reason)) {
+					$this->chatBot->privategroup_kick($who);
+					$audit = new Audit();
+					$audit->actor = $sender;
+					$audit->actee = $who;
+					$audit->action = AccessManager::KICK;
+					$audit->value = "banned";
+					$this->accessManager->addAudit($audit);
+					$numSuccess++;
+				} else {
+					$numErrors++;
+				}
 			}
-		}
-		if (count($msgs)) {
-			$sendto->reply(join("\n", $msgs));
-		}
-		return $numSuccess > 0;
+			return [$numSuccess > 0, $msgs];
+		});
 	}
 
 	/**

@@ -112,20 +112,6 @@ class PlayerManager extends ModuleInstance {
 
 	/** @return Promise<?Player> */
 	public function byName(string $name, ?int $dimension=null, bool $forceUpdate=false): Promise {
-		$deferred = new Deferred();
-		$this->getByNameAsync(
-			function(?Player $player) use ($deferred): void {
-				$deferred->resolve($player);
-			},
-			$name,
-			$dimension,
-			$forceUpdate
-		);
-		return $deferred->promise();
-	}
-
-	/** @return Promise<?Player> */
-	public function byName2(string $name, ?int $dimension=null, bool $forceUpdate=false): Promise {
 		return call(function() use ($name, $dimension, $forceUpdate): Generator {
 			$dimension ??= $this->config->dimension;
 
@@ -170,7 +156,7 @@ class PlayerManager extends ModuleInstance {
 	/** @psalm-param callable(?Player) $callback */
 	public function getByNameAsync(callable $callback, string $name, ?int $dimension=null, bool $forceUpdate=false): void {
 		call(function() use ($callback, $name, $dimension, $forceUpdate): Generator {
-			$player = yield $this->byName2($name, $dimension, $forceUpdate);
+			$player = yield $this->byName($name, $dimension, $forceUpdate);
 			$callback($player);
 			return null;
 		});

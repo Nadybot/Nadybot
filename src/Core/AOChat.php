@@ -677,7 +677,7 @@ class AOChat {
 		$lastLookup = $this->pendingIdLookups[$userName] ?? null;
 		$deferred = new Deferred();
 		if (isset($lastLookup) && $lastLookup->time > $time - 10) {
-			$this->pendingIdLookups[$userName]->callbacks []= $deferred;
+			$this->pendingIdLookups[$userName]->callbacks []= [$deferred, null];
 			return $deferred->promise();
 		}
 		$this->pendingIdLookups[$userName] ??= (object)["callbacks" => []];
@@ -752,7 +752,7 @@ class AOChat {
 			if ($uid === 0xFFFFFFFF || $uid === "4294967295") {
 				$uid = null;
 			}
-			return new Success((int)$uid);
+			return new Success(isset($uid) ? (int)$uid : null);
 		}
 
 		return $this->sendLookupPacket2($user);

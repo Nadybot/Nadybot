@@ -2,6 +2,7 @@
 
 namespace Nadybot\Core\Modules\ALTS;
 
+use Generator;
 use Nadybot\Core\{
 	AccessManager,
 	Attributes as NCA,
@@ -172,7 +173,7 @@ class AltsController extends ModuleInstance {
 		CmdContext $context,
 		#[NCA\Str("add")] string $action,
 		PCharacter ...$names
-	): void {
+	): Generator {
 		$senderAltInfo = $this->getAltInfo($context->char->name, true);
 		if (!$senderAltInfo->isValidated($context->char->name)) {
 			$context->reply("You can only add alts from a main or validated alt.");
@@ -191,8 +192,8 @@ class AltsController extends ModuleInstance {
 				continue;
 			}
 
-			$uid = $this->chatBot->get_uid($name);
-			if (!$uid) {
+			$uid = yield $this->chatBot->getUid2($name);
+			if ($uid === null) {
 				$msg = "Character <highlight>{$name}<end> does not exist.";
 				$context->reply($msg);
 				continue;
@@ -277,7 +278,7 @@ class AltsController extends ModuleInstance {
 		CmdContext $context,
 		#[NCA\Str("main")] string $action,
 		PCharacter $main
-	): void {
+	): Generator {
 		$newMain = $main();
 
 		if ($newMain === $context->char->name) {
@@ -305,8 +306,8 @@ class AltsController extends ModuleInstance {
 			return;
 		}
 
-		$uid = $this->chatBot->get_uid($newMain);
-		if (!$uid) {
+		$uid = yield $this->chatBot->getUid2($newMain);
+		if ($uid === null) {
 			$msg = "Character <highlight>{$newMain}<end> does not exist.";
 			$context->reply($msg);
 			return;
@@ -334,10 +335,8 @@ class AltsController extends ModuleInstance {
 		}
 
 		// update character information for both, main and alt
-		$this->playerManager->getByNameAsync(function() {
-		}, $newMain);
-		$this->playerManager->getByNameAsync(function() {
-		}, $context->char->name);
+		$this->playerManager->byName($newMain);
+		$this->playerManager->byName($context->char->name);
 		// @todo Send a warning if the new main's accesslevel is lower than ours
 
 		$msg = "Successfully requested to be added as <highlight>{$newMain}'s<end> alt. ".
