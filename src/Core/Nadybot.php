@@ -331,7 +331,6 @@ class Nadybot extends AOChat {
 	 * The main endless-loop of the bot
 	 */
 	public function run(): void {
-
 		Loop::run(function() {
 			$loop = new EventLoop();
 			Registry::injectDependencies($loop);

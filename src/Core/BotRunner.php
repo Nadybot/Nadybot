@@ -2,6 +2,7 @@
 
 namespace Nadybot\Core;
 
+use Amp\Loop;
 use Closure;
 use ErrorException;
 use Exception;
@@ -326,12 +327,13 @@ class BotRunner {
 
 		$version = self::getVersion();
 		$this->logger->notice(
-			"Starting {name} {version} on RK{dimension} using PHP {phpVersion} and {dbType}...",
+			"Starting {name} {version} on RK{dimension} using PHP {phpVersion}, {loopType} event loop, and {dbType}...",
 			[
 				"name" => $config->name,
 				"version" => $version,
 				"dimension" => $config->dimension,
 				"phpVersion" => phpversion(),
+				"loopType" => class_basename(Loop::get()),
 				"dbType" => $config->dbType,
 			]
 		);

@@ -290,7 +290,7 @@ class AsyncHttp {
 
 		$this->timeoutEvent = Loop::delay(
 			$this->timeout * 1000,
-			\Closure::fromCallable([$this, 'timeout']),
+			fn() => $this->timeout()
 		);
 	}
 
@@ -572,7 +572,7 @@ class AsyncHttp {
 			Loop::cancel($this->timeoutEvent);
 			$this->timeoutEvent = Loop::delay(
 				($this->timeout ?? 10) * 1000,
-				\Closure::fromCallable([$this, 'timeout']),
+				fn() => $this->timeout()
 			);
 		}
 
@@ -646,7 +646,7 @@ class AsyncHttp {
 				Loop::cancel($this->timeoutEvent);
 				$this->timeoutEvent = Loop::delay(
 					($this->timeout??10) * 1000,
-					\Closure::fromCallable([$this, 'timeout']),
+					fn() => $this->timeout(),
 				);
 			}
 		}

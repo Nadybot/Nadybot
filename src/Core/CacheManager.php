@@ -163,6 +163,7 @@ class CacheManager {
 	 * @param integer $maxCacheAge      Age of the cache entry in seconds after which the data will be considered outdated
 	 * @param boolean $forceUpdate      Set to true to ignore the existing cache and always update
 	 * @throws Exception
+	 * @deprecated
 	 */
 	public function lookup(string $url, string $groupName, string $filename, callable $isValidCallback, int $maxCacheAge=86400, bool $forceUpdate=false): CacheResult {
 		if (empty($groupName)) {

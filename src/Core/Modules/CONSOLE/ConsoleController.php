@@ -23,6 +23,11 @@ use Nadybot\Core\{
 	Timer,
 };
 
+use function Safe\readline_add_history;
+use function Safe\readline_callback_handler_install;
+use function Safe\readline_read_history;
+use function Safe\readline_write_history;
+
 #[NCA\Instance]
 class ConsoleController extends ModuleInstance {
 	#[NCA\Inject]
@@ -90,7 +95,7 @@ class ConsoleController extends ModuleInstance {
 		$file = $this->getCacheFile();
 		if (@file_exists($file)) {
 			try {
-				\Safe\readline_read_history($file);
+				readline_read_history($file);
 			} catch (Exception $e) {
 				$this->logger->warning(
 					"Unable to read the readline history file {file}: {error}",
@@ -110,7 +115,7 @@ class ConsoleController extends ModuleInstance {
 			@mkdir(dirname($file), 0700, true);
 		}
 		try {
-			\Safe\readline_write_history($file);
+			readline_write_history($file);
 		} catch (Exception $e) {
 			$this->logger->warning(
 				"Unable to write the readline history file {file}: {error}",
@@ -160,7 +165,7 @@ class ConsoleController extends ModuleInstance {
 			$this->logger->notice("StdIn console activated, accepting commands");
 			$this->socketManager->addSocketNotifier($this->notifier);
 			if ($this->useReadline) {
-				\Safe\readline_callback_handler_install('> ', [$this, 'processLine']);
+				readline_callback_handler_install('> ', fn(?string $line) => $this->processLine($line));
 			} else {
 				echo("> ");
 			}
@@ -187,14 +192,14 @@ class ConsoleController extends ModuleInstance {
 		}
 	}
 
-	public function processLine(?string $line): void {
+	private function processLine(?string $line): void {
 		if ($line === null || trim($line) === '') {
 			return;
 		}
 		if ($this->useReadline) {
-			\Safe\readline_add_history($line);
+			readline_add_history($line);
 			$this->saveHistory();
-			\Safe\readline_callback_handler_install('> ', [$this, 'processLine']);
+			readline_callback_handler_install('> ', [$this, 'processLine']);
 		}
 
 		$context = new CmdContext($this->config->superAdmins[0]??"<no superadmin set>");

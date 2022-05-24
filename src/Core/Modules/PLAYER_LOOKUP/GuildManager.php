@@ -84,6 +84,7 @@ class GuildManager extends ModuleInstance {
 		);
 	}
 
+	/** @deprecated */
 	public function getById(int $guildID, int $dimension=null, bool $forceUpdate=false): ?Guild {
 		// if no server number is specified use the one on which the bot is logged in
 		$dimension ??= $this->config->dimension;

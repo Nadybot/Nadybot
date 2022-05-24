@@ -39,6 +39,7 @@ class PlayerHistoryManager extends ModuleInstance {
 		);
 	}
 
+	/** @deprecated */
 	public function lookup(string $name, int $dimension): ?PlayerHistory {
 		$name = ucfirst(strtolower($name));
 		$url = "https://pork.jkbff.com/pork/history.php?server=$dimension&name=$name";
