@@ -2,6 +2,12 @@
 
 namespace Nadybot\Core\Modules\BAN;
 
+use function Amp\call;
+
+use Amp\Promise;
+use Amp\Success;
+use Generator;
+use Throwable;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Event,
@@ -489,37 +495,26 @@ class BanController extends ModuleInstance {
 			});
 	}
 
-	protected function addOrgToBanlist(BannedOrg $ban, ?CommandReply $sendto=null): void {
-		$this->orgbanlist[$ban->org_id] = $ban;
-		if (!$this->chatBot->ready) {
-			return;
-		}
-		$this->guildManager->getByIdAsync(
-			$ban->org_id,
-			null,
-			false,
-			function (?Guild $guild, BannedOrg $ban, ?CommandReply $sendto): void {
-				$ban->org_name = (string)$ban->org_id;
-				if (isset($guild)) {
-					$ban->org_name = $guild->orgname;
-				}
-				if (!isset($this->orgbanlist[$ban->org_id])) {
-					if (isset($sendto)) {
-						$sendto->reply(
-							"Not adding <highlight>{$ban->org_name}<end> to the banlist, ".
-							"because they were unbanned before we finished looking up data."
-						);
-					}
-					return;
-				}
-				$this->orgbanlist[$ban->org_id] = $ban;
-				if (isset($sendto)) {
-					$sendto->reply("Added <highlight>{$ban->org_name}<end> to the banlist.");
-				}
-			},
-			$ban,
-			$sendto
-		);
+	/** @return Promise<?string> */
+	protected function addOrgToBanlist(BannedOrg $ban): Promise {
+		return call(function() use ($ban): Generator {
+			$this->orgbanlist[$ban->org_id] = $ban;
+			if (!$this->chatBot->ready) {
+				return null;
+			}
+			$guild = yield $this->guildManager->byId($ban->org_id);
+
+			$ban->org_name = (string)$ban->org_id;
+			if (isset($guild)) {
+				$ban->org_name = $guild->orgname;
+			}
+			if (!isset($this->orgbanlist[$ban->org_id])) {
+				return "Not adding <highlight>{$ban->org_name}<end> to the banlist, ".
+					"because they were unbanned before we finished looking up data.";
+			}
+			$this->orgbanlist[$ban->org_id] = $ban;
+			return "Added <highlight>{$ban->org_name}<end> to the banlist.";
+		});
 	}
 
 	/** Check if $charId is banned */
@@ -527,8 +522,31 @@ class BanController extends ModuleInstance {
 		return isset($this->banlist[$charId]);
 	}
 
+	/** @return Promise<bool> */
+	public function isOnBanlist(int $charId): Promise {
+		if ($this->isBanned($charId)) {
+			return new Success(true);
+		}
+		if (empty($this->orgbanlist)) {
+			return new Success(false);
+		}
+		if (!isset($this->chatBot->id[$charId])) {
+			return new Success(true);
+		}
+		$name = (string)$this->chatBot->id[$charId];
+		return call(function() use ($name): Generator {
+			/** @var ?Player */
+			$player = yield $this->playerManager->byName($name);
+			if (!isset($player) || !isset($player->guild_id)) {
+				return false;
+			}
+
+			return isset($this->orgbanlist[$player->guild_id]);
+		});
+	}
+
 	/**
-	 * Call either the notbanned ort banned callback for $charId
+	 * Call either the notbanned or the banned callback for $charId
 	 * @psalm-param null|callable(int, mixed...) $notBanned
 	 * @psalm-param null|callable(int, mixed...) $banned
 	 */
@@ -630,8 +648,14 @@ class BanController extends ModuleInstance {
 		?PDuration $duration,
 		#[NCA\Str("for", "reason", "because")] string $for,
 		string $reason
-	): void {
-		$this->banOrg($orgId, $duration ? $duration() : null, $context->char->name, $reason, $context);
+	): Generator {
+		try {
+			$msg = yield $this->banOrg($orgId, $duration ? $duration() : null, $context->char->name, $reason);
+			$msg ??= "The system is currently not ready to process bans.";
+			$context->reply($msg);
+		} catch (Throwable $e) {
+			$context->reply($e->getMessage());
+		}
 	}
 
 	/**
@@ -648,8 +672,14 @@ class BanController extends ModuleInstance {
 		#[NCA\Str("add")] string $add,
 		int $orgId,
 		?PDuration $duration,
-	): void {
-		$this->banOrg($orgId, $duration ? $duration() : null, $context->char->name, "No reason given", $context);
+	): Generator {
+		try {
+			$msg = yield $this->banOrg($orgId, $duration ? $duration() : null, $context->char->name, "No reason given");
+			$msg ??= "The system is currently not ready to process bans.";
+			$context->reply($msg);
+		} catch (Throwable $e) {
+			$context->reply($e->getMessage());
+		}
 	}
 
 	/**
@@ -670,33 +700,31 @@ class BanController extends ModuleInstance {
 		return $blob;
 	}
 
-	public function banOrg(int $orgId, ?string $duration, string $bannedBy, string $reason, CommandReply $sendto): bool {
-		if ($this->orgIsBanned($orgId)) {
-			$sendto->reply(
-				"<highlight>" . $this->orgbanlist[$orgId]->org_name.
-				"<end> is already banned."
-			);
-			return false;
-		}
-		$endDate = null;
-		if (isset($duration)) {
-			$durationInSecs = $this->util->parseTime($duration);
-			if ($durationInSecs === 0) {
-				$sendto->reply("<highlight>{$duration}<end> is not a valid duration.");
-				return false;
+	/** @return Promise<?string> */
+	public function banOrg(int $orgId, ?string $duration, string $bannedBy, string $reason): Promise {
+		return call(function() use ($orgId, $duration, $bannedBy, $reason): Generator {
+			if ($this->orgIsBanned($orgId)) {
+				return "<highlight>" . $this->orgbanlist[$orgId]->org_name.
+					"<end> is already banned.";
 			}
-			$endDate = time() + $durationInSecs;
-		}
-		$ban = new BannedOrg();
-		$ban->org_id = $orgId;
-		$ban->banned_by = $bannedBy;
-		$ban->start = time();
-		$ban->end = $endDate;
-		$ban->reason = $reason;
-		$ban->org_name = "org #{$ban->org_id}";
-		$this->db->insert(self::DB_TABLE_BANNED_ORGS, $ban, null);
-		$this->addOrgToBanlist($ban, $sendto);
-		return true;
+			$endDate = null;
+			if (isset($duration)) {
+				$durationInSecs = $this->util->parseTime($duration);
+				if ($durationInSecs === 0) {
+					return "<highlight>{$duration}<end> is not a valid duration.";
+				}
+				$endDate = time() + $durationInSecs;
+			}
+			$ban = new BannedOrg();
+			$ban->org_id = $orgId;
+			$ban->banned_by = $bannedBy;
+			$ban->start = time();
+			$ban->end = $endDate;
+			$ban->reason = $reason;
+			$ban->org_name = "org #{$ban->org_id}";
+			$this->db->insert(self::DB_TABLE_BANNED_ORGS, $ban, null);
+			return yield $this->addOrgToBanlist($ban);
+		});
 	}
 
 	/**
@@ -704,23 +732,16 @@ class BanController extends ModuleInstance {
 	 */
 	#[NCA\HandlesCommand("orgban")]
 	#[NCA\Help\Group("ban")]
-	public function orgbanRemCommand(CmdContext $context, PRemove $rem, int $orgId): void {
+	public function orgbanRemCommand(CmdContext $context, PRemove $rem, int $orgId): Generator {
 		if (!$this->orgIsBanned($orgId)) {
-			$this->guildManager->getByIdAsync(
-				$orgId,
-				null,
-				false,
-				function (?Guild $guild, int $orgId, CommandReply $sendto): void {
-					if (!isset($guild)) {
-						$sendto->reply("<highlight>{$orgId}<end> is not a valid org id.");
-						return;
-					}
-					$sendto->reply("<highlight>{$guild->orgname}<end> is currently not banned.");
-				},
-				$orgId,
-				$context
-			);
-			return;
+			/** @var ?Guild */
+			$guild = yield $this->guildManager->byId($orgId);
+			if (!isset($guild)) {
+				$context->reply("<highlight>{$orgId}<end> is not a valid org id.");
+				return null;
+			}
+			$context->reply($guild->getColorName() . " is currently not banned.");
+			return null;
 		}
 		$ban = $this->orgbanlist[$orgId];
 		$this->db->table(self::DB_TABLE_BANNED_ORGS)
@@ -728,5 +749,6 @@ class BanController extends ModuleInstance {
 			->delete();
 		$context->reply("Removed <highlight>{$ban->org_name}<end> from the banlist.");
 		unset($this->orgbanlist[$orgId]);
+		return null;
 	}
 }

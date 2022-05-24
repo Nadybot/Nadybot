@@ -2,8 +2,11 @@
 
 namespace Nadybot\Core\Modules\PLAYER_LOOKUP;
 
+use Amp\Deferred;
+use Amp\Promise;
 use Safe\DateTime;
 use DateTimeZone;
+use Generator;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	Attributes as NCA,
@@ -20,6 +23,8 @@ use Nadybot\Core\{
 	SQLException,
 	Util,
 };
+
+use function Amp\call;
 
 /**
  * @author Tyrence (RK2)
@@ -105,61 +110,70 @@ class PlayerManager extends ModuleInstance {
 		}
 	}
 
-	/** @psalm-param callable(?Player) $callback */
-	public function getByNameAsync(callable $callback, string $name, ?int $dimension=null, bool $forceUpdate=false): void {
-		$dimension ??= $this->config->dimension;
-
-		$name = ucfirst(strtolower($name));
-
-		if (!preg_match("/^[A-Z][a-z0-9-]{3,11}$/", $name)) {
-			$callback(null);
-			return;
-		}
-		$charid = null;
-		if ($dimension === $this->config->dimension) {
-			$this->chatBot->getUid($name, \Closure::fromCallable([$this, "getByNameAsync2"]), $callback, $name, $dimension, $forceUpdate);
-			return;
-		}
-		$this->getByNameAsync2($charid, $callback, $name, $dimension, $forceUpdate);
+	/** @return Promise<?Player> */
+	public function byName(string $name, ?int $dimension=null, bool $forceUpdate=false): Promise {
+		$deferred = new Deferred();
+		$this->getByNameAsync(
+			function(?Player $player) use ($deferred): void {
+				$deferred->resolve($player);
+			},
+			$name,
+			$dimension,
+			$forceUpdate
+		);
+		return $deferred->promise();
 	}
 
-	protected function getByNameAsync2(?int $charid, callable $callback, string $name, int $dimension, bool $forceUpdate): void {
-		$player = $this->findInDb($name, $dimension);
+	/** @return Promise<?Player> */
+	public function byName2(string $name, ?int $dimension=null, bool $forceUpdate=false): Promise {
+		return call(function() use ($name, $dimension, $forceUpdate): Generator {
+			$dimension ??= $this->config->dimension;
 
-		if ($player === null || $forceUpdate) {
-			$this->lookupAsync(
-				$name,
-				$dimension,
-				function(?Player $player) use ($charid, $callback): void {
-					if ($player !== null && is_int($charid)) {
+			$name = ucfirst(strtolower($name));
+
+			if (!preg_match("/^[A-Z][a-z0-9-]{3,11}$/", $name)) {
+				return null;
+			}
+			$charid = null;
+			if ($dimension === $this->config->dimension) {
+				$charid = yield $this->chatBot->getUid2($name);
+			}
+
+			$player = $this->findInDb($name, $dimension);
+
+			if ($player === null || $forceUpdate) {
+				$player = yield $this->lookupAsync2($name, $dimension);
+				if ($player !== null && is_int($charid)) {
+					$player->charid = $charid;
+					$this->update($player);
+				}
+				return $player;
+			} elseif ($player->last_update < (time() - static::CACHE_GRACE_TIME)) {
+				// We cache for 24h plus 10 minutes grace for Funcom
+				$player2 = yield $this->lookupAsync2($name, $dimension);
+				if ($player2 !== null) {
+					$player = $player2;
+					if (is_int($charid)) {
 						$player->charid = $charid;
 						$this->update($player);
 					}
-					$callback($player);
+				} else {
+					$player->source .= ' (old-cache)';
 				}
-			);
-		} elseif ($player->last_update < (time() - static::CACHE_GRACE_TIME)) {
-			// We cache for 24h plus 10 minutes grace for Funcom
-			$this->lookupAsync(
-				$name,
-				$dimension,
-				function(?Player $player2) use ($charid, $callback, $player): void {
-					if ($player2 !== null) {
-						$player = $player2;
-						if (is_int($charid)) {
-							$player->charid = $charid;
-							$this->update($player);
-						}
-					} else {
-						$player->source .= ' (old-cache)';
-					}
-					$callback($player);
-				}
-			);
-		} else {
+				return $player;
+			}
 			$player->source .= ' (current-cache)';
+			return $player;
+		});
+	}
+
+	/** @psalm-param callable(?Player) $callback */
+	public function getByNameAsync(callable $callback, string $name, ?int $dimension=null, bool $forceUpdate=false): void {
+		call(function() use ($callback, $name, $dimension, $forceUpdate): Generator {
+			$player = yield $this->byName2($name, $dimension, $forceUpdate);
 			$callback($player);
-		}
+			return null;
+		});
 	}
 
 	/**
@@ -213,6 +227,15 @@ class PlayerManager extends ModuleInstance {
 			]);
 		}
 		return  $player;
+	}
+
+	/** @return Promise<?Player> */
+	public function lookupAsync2(string $name, int $dimension): Promise {
+		$deferred = new Deferred();
+		$this->lookupAsync($name, $dimension, function(?Player $player) use ($deferred): void {
+			$deferred->resolve($player);
+		});
+		return $deferred->promise();
 	}
 
 	/** @psalm-param callable(?Player, mixed...) $callback */

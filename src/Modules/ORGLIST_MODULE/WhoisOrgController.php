@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\ORGLIST_MODULE;
 
+use Generator;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
@@ -57,54 +58,49 @@ class WhoisOrgController extends ModuleInstance {
 
 	/** Show information about an organization */
 	#[NCA\HandlesCommand("whoisorg")]
-	public function whoisorgIdCommand(CmdContext $context, int $orgId, ?int $dimension): void {
+	public function whoisorgIdCommand(CmdContext $context, int $orgId, ?int $dimension): Generator {
 		$dimension ??= $this->config->dimension;
-		$this->sendOrgIdInfo($orgId, $context, $dimension);
-		return;
+		/** @var ?Guild */
+		$guild = yield $this->guildManager->byId($orgId, $dimension);
+		$msg = $this->getOrgInfo($guild);
+		$context->reply($msg);
+		return null;
 	}
 
 	/** Show information about a character's org */
 	#[NCA\HandlesCommand("whoisorg")]
-	public function whoisorgCommand(CmdContext $context, PCharacter $char, ?int $dimension): void {
+	public function whoisorgCommand(CmdContext $context, PCharacter $char, ?int $dimension): Generator {
 		$dimension ??= $this->config->dimension;
 		$name = $char();
-		$this->playerManager->getByNameAsync(
-			function(?Player $whois) use ($name, $context, $dimension): void {
-				if ($whois === null) {
-					$msg = "Could not find character info for {$name}.";
-					$context->reply($msg);
-					return;
-				} elseif (!isset($whois->guild_id) || $whois->guild_id === 0) {
-					$msg = "Character <highlight>{$name}<end> does not seem to be in an org.";
-					$context->reply($msg);
-					return;
-				}
-				$this->sendOrgIdInfo($whois->guild_id, $context, $dimension);
-			},
-			$name,
-			$dimension
-		);
-	}
-
-	protected function sendOrgIdInfo(int $orgId, CmdContext $context, int $dimension): void {
-		$msg = "Getting org info...";
+		/** @var ?Player */
+		$whois = yield $this->playerManager->byName($name, $dimension);
+		if ($whois === null) {
+			$msg = "Could not find character info for {$name}.";
+			$context->reply($msg);
+			return null;
+		} elseif (!isset($whois->guild_id) || $whois->guild_id === 0) {
+			$msg = "Character <highlight>{$name}<end> does not seem to be in an org.";
+			$context->reply($msg);
+			return null;
+		}
+		/** @var ?Guild */
+		$guild = yield $this->guildManager->byId($whois->guild_id, $dimension);
+		$msg = $this->getOrgInfo($guild);
 		$context->reply($msg);
-
-		$this->guildManager->getByIdAsync($orgId, $dimension, false, [$this, "sendOrgInfo"], $context);
+		return null;
 	}
 
-	public function sendOrgInfo(?Guild $org, CmdContext $context): void {
+	/** @return string|string[] */
+	public function getOrgInfo(?Guild $org): string|array {
 		if ($org === null) {
 			$msg = "Error in getting the org info. ".
 				"Either the org does not exist or AO's server ".
 				"was too slow to respond.";
-			$context->reply($msg);
-			return;
+			return $msg;
 		}
 		if (!isset($org->orgname)) {
 			$msg = "This is an illegal org id.";
-			$context->reply($msg);
-			return;
+			return $msg;
 		}
 
 		$countProfs = [];
@@ -161,6 +157,6 @@ class WhoisOrgController extends ModuleInstance {
 		}
 		$msg = $this->text->makeBlob("Org Info for $org->orgname", $link);
 
-		$context->reply($msg);
+		return $msg;
 	}
 }

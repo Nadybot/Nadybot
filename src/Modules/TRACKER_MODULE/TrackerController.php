@@ -3,6 +3,7 @@
 namespace Nadybot\Modules\TRACKER_MODULE;
 
 use Exception;
+use Generator;
 use Throwable;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
@@ -39,6 +40,8 @@ use Nadybot\Modules\{
 	ORGLIST_MODULE\Organization,
 	TOWER_MODULE\TowerAttackEvent,
 };
+
+use function Amp\call;
 
 /**
  * @author Tyrence (RK2)
@@ -217,25 +220,19 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 	)]
 	public function downloadOrgRostersEvent(Event $eventObj): void {
 		$this->logger->notice("Starting Tracker Roster update");
-		/** @var Collection<TrackingOrg> */
-		$orgs = $this->db->table(static::DB_ORG)->asObj(TrackingOrg::class);
-
-		$i = 0;
-		foreach ($orgs as $org) {
-			$i++;
-			// Get the org info
-			$this->guildManager->getByIdAsync(
-				$org->org_id,
-				$this->config->dimension,
-				true,
-				[$this, "updateRosterForOrg"],
-				function() use (&$i) {
-					if (--$i === 0) {
-						$this->logger->notice("Finished Tracker Roster update");
-					}
+		call(function(): Generator {
+			/** @var Collection<TrackingOrg> */
+			$orgs = $this->db->table(static::DB_ORG)->asObj(TrackingOrg::class);
+			try {
+				foreach ($orgs as $org) {
+					$orgData = yield $this->guildManager->byId($org->org_id, $this->config->dimension, true);
+					$this->updateRosterForOrg($orgData);
 				}
-			);
-		}
+			} catch (Throwable $e) {
+				$this->logger->error($e->getMessage(), ["Exception" => $e->getPrevious()]);
+			}
+			$this->logger->notice("Finished Tracker Roster update");
+		});
 	}
 
 	#[NCA\Event(
@@ -600,34 +597,45 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 		#[NCA\Str("addorg")] string $action,
 		int $orgId
 	): void {
-		if (!$this->findOrgController->isReady()) {
-			$this->findOrgController->sendNotReadyError($context);
-			return;
-		}
-		$org = $this->findOrgController->getByID($orgId);
-		if (!isset($org)) {
-			$context->reply("There is no org #{$orgId}.");
-			return;
-		}
+		call(function() use ($context, $orgId): Generator {
+			if (!$this->findOrgController->isReady()) {
+				$this->findOrgController->sendNotReadyError($context);
+				return null;
+			}
+			$org = $this->findOrgController->getByID($orgId);
+			if (!isset($org)) {
+				$context->reply("There is no org #{$orgId}.");
+				return null;
+			}
 
-		if ($this->db->table(static::DB_ORG)->where("org_id", $orgId)->exists()) {
-			$msg = "The org <" . strtolower($org->faction) . ">{$org->name}<end> is already being tracked.";
-			$context->reply($msg);
-			return;
-		}
-		$tOrg = new TrackingOrg();
-		$tOrg->org_id = $orgId;
-		$tOrg->added_by = $context->char->name;
-		$this->db->insert(static::DB_ORG, $tOrg, null);
-		$context->reply("Adding <" . strtolower($org->faction) . ">{$org->name}<end> to the tracker.");
-		$this->guildManager->getByIdAsync(
-			$orgId,
-			$this->config->dimension,
-			true,
-			[$this, "updateRosterForOrg"],
-			[$context, "reply"],
-			"Added all members of <" . strtolower($org->faction) .">{$org->name}<end> to the roster."
-		);
+			if ($this->db->table(static::DB_ORG)->where("org_id", $orgId)->exists()) {
+				$msg = "The org <" . strtolower($org->faction) . ">{$org->name}<end> is already being tracked.";
+				$context->reply($msg);
+				return null;
+			}
+			$tOrg = new TrackingOrg();
+			$tOrg->org_id = $orgId;
+			$tOrg->added_by = $context->char->name;
+			$this->db->insert(static::DB_ORG, $tOrg, null);
+			$context->reply("Adding <" . strtolower($org->faction) . ">{$org->name}<end> to the tracker.");
+			try {
+				/** @var ?Guild */
+				$guild = yield $this->guildManager->byId($orgId, $this->config->dimension, true);
+				if (!isset($guild)) {
+					$context->reply("No data found for <" . strtolower($org->faction) . ">{$org->name}<end>.");
+					return null;
+				}
+				$this->updateRosterForOrg($guild);
+			} catch (Throwable $e) {
+				$this->logger->error($e->getMessage(), ["Exception" => $e->getPrevious()]);
+				$context->reply($e->getMessage());
+				return null;
+			}
+			$context->reply(
+				"Added all members of <" . strtolower($org->faction) .">{$org->name}<end> to the roster."
+			);
+			return null;
+		});
 	}
 
 	/** Add a whole organization to the track list */
@@ -741,15 +749,10 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 		$context->reply($msg);
 	}
 
-	/**
-	 *
-	 * @psalm-param null|callable(mixed ...) $callback
-	 */
-	public function updateRosterForOrg(?Guild $org, ?callable $callback, mixed ...$args): void {
+	public function updateRosterForOrg(?Guild $org): void {
 		// Check if JSON file was downloaded properly
 		if ($org === null) {
-			$this->logger->error("Error downloading the guild roster JSON file");
-			return;
+			throw new Exception("Error downloading the guild roster JSON file");
 		}
 
 		if (count($org->members) === 0) {
@@ -790,18 +793,15 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 				$maxBuddies = $this->chatBot->getBuddyListSize();
 				$numBuddies = $this->buddylistManager->getUsedBuddySlots();
 				if (count($toInsert) + $numBuddies > $maxBuddies) {
-					if (isset($callback)) {
-						$callback(
-							"You cannot add " . count($toInsert) . " more ".
-							"characters to the tracking list, you only have ".
-							($maxBuddies - $numBuddies) . " slots left. Please ".
-							"install aochatproxy, or add more characters to your ".
-							"existing configuration."
-						);
-					}
 					$this->db->rollback();
 					$this->db->table(static::DB_ORG)->where("org_id", $org->guild_id)->delete();
-					return;
+					throw new Exception(
+						"You cannot add " . count($toInsert) . " more ".
+						"characters to the tracking list, you only have ".
+						($maxBuddies - $numBuddies) . " slots left. Please ".
+						"install aochatproxy, or add more characters to your ".
+						"existing configuration."
+					);
 				}
 				$this->db->table(static::DB_ORG_MEMBER)
 					->chunkInsert($toInsert);
@@ -814,13 +814,9 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 			});
 		} catch (Throwable $e) {
 			$this->db->rollback();
-			$this->logger->error("Error adding org members for {$org->orgname}: " . $e->getMessage(), ["exception" => $e]);
-			return;
+			throw new Exception("Error adding org members for {$org->orgname}: " . $e->getMessage(), 0, $e);
 		}
 		$this->db->commit();
-		if (isset($callback)) {
-			$callback(...$args);
-		}
 	}
 
 	protected function trackUid(int $uid, string $name, ?string $sender=null): bool {

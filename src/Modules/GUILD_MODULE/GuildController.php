@@ -2,6 +2,9 @@
 
 namespace Nadybot\Modules\GUILD_MODULE;
 
+use Amp\Deferred;
+use Amp\Promise;
+use Generator;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	AOChatEvent,
@@ -34,6 +37,9 @@ use Nadybot\Core\{
 	UserStateEvent,
 	Util,
 };
+use Throwable;
+
+use function Amp\call;
 
 /**
  * @author Tyrence (RK2)
@@ -424,8 +430,17 @@ class GuildController extends ModuleInstance {
 	/** Force an update of the org roster */
 	#[NCA\HandlesCommand("updateorg")]
 	public function updateorgCommand(CmdContext $context): void {
-		$context->reply("Starting Roster update");
-		$this->updateOrgRoster([$context, "reply"], "Finished Roster update");
+		call(function() use ($context): Generator {
+			$context->reply("Starting Roster update");
+			try {
+				yield $this->updateMyOrgRoster();
+			} catch (Throwable $e) {
+				$context->reply("There was an error during the roster update: ".
+					$e->getMessage());
+				return;
+			}
+			$context->reply("Finished Roster update");
+		});
 	}
 
 	public function updateOrgRoster(?callable $callback=null, mixed ...$args): void {
@@ -443,6 +458,22 @@ class GuildController extends ModuleInstance {
 			$callback,
 			...$args
 		);
+	}
+
+	/** @return Promise<null> */
+	public function updateMyOrgRoster(): Promise {
+		return call(function (): Generator {
+			if (!$this->isGuildBot() || !isset($this->config->orgId)) {
+				return null;
+			}
+			$this->logger->notice("Starting Roster update");
+			$org = yield $this->guildManager->byId($this->config->orgId, $this->config->dimension, false);
+			$deferred = new Deferred();
+			$this->updateRosterForGuild($org, function() use ($deferred): void {
+				$deferred->resolve();
+			});
+			return $deferred->promise();
+		});
 	}
 
 	/**

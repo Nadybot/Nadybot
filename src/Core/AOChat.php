@@ -2,6 +2,9 @@
 
 namespace Nadybot\Core;
 
+use Amp\Deferred;
+use Amp\Promise;
+use Amp\Success;
 use Exception;
 use Monolog\Logger;
 
@@ -425,7 +428,10 @@ class AOChat {
 					foreach ($this->pendingIdLookups[$name]->callbacks as $cb) {
 						[$callback, $args] = $cb;
 						if ($id === 0xFFFFFFFF) {
-							$callback(null, ...$args);
+							$id = null;
+						}
+						if ($callback instanceof Deferred) {
+							$callback->resolve($id);
 						} else {
 							$callback($id, ...$args);
 						}
@@ -665,6 +671,22 @@ class AOChat {
 		$this->sendPacket(new AOChatPacket("out", AOChatPacket::CLIENT_LOOKUP, $userName));
 	}
 
+	/** @return Promise<?int> */
+	public function sendLookupPacket2(string $userName): Promise {
+		$time = time();
+		$lastLookup = $this->pendingIdLookups[$userName] ?? null;
+		$deferred = new Deferred();
+		if (isset($lastLookup) && $lastLookup->time > $time - 10) {
+			$this->pendingIdLookups[$userName]->callbacks []= $deferred;
+			return $deferred->promise();
+		}
+		$this->pendingIdLookups[$userName] ??= (object)["callbacks" => []];
+		$this->pendingIdLookups[$userName]->time = $time;
+		$this->pendingIdLookups[$userName]->callbacks []= [$deferred, null];
+		$this->sendPacket(new AOChatPacket("out", AOChatPacket::CLIENT_LOOKUP, $userName));
+		return $deferred->promise();
+	}
+
 	/**
 	 * Get the user id of a username and handle special cases, such as $user already being a user id.
 	 *
@@ -712,6 +734,28 @@ class AOChat {
 		}
 
 		$this->sendLookupPacket($user, $callback, ...$args);
+	}
+
+	/** @return Promise<?int> */
+	public function getUid2(string $user): Promise {
+		if ($this->isReallyNumeric($user)) {
+			return new Success($this->fixunsigned((int)$user));
+		}
+
+		$user = ucfirst(strtolower($user));
+		if ($user === '') {
+			return new Success(null);
+		}
+
+		$uid = $this->id[$user] ?? null;
+		if (isset($uid)) {
+			if ($uid === 0xFFFFFFFF || $uid === "4294967295") {
+				$uid = null;
+			}
+			return new Success((int)$uid);
+		}
+
+		return $this->sendLookupPacket2($user);
 	}
 
 	/**
