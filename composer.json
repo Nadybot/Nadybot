@@ -44,7 +44,8 @@
 		"monolog/monolog": "^2.3",
 		"thecodingmachine/safe": "^2.0",
 		"netresearch/jsonmapper": "^v4.0.0",
-		"amphp/amp": "^2.6"
+		"amphp/amp": "^2.6",
+		"amphp/http-client": "^4.6"
 	},
 	"autoload": {
 		"psr-4": {

@@ -2,6 +2,9 @@
 
 namespace Nadybot\Modules\WORLDBOSS_MODULE;
 
+use Amp\Http\Client\HttpClientBuilder;
+use Amp\Http\Client\Request;
+use Amp\Http\Client\Response;
 use Amp\Loop;
 use DateTime;
 use Exception;
@@ -11,8 +14,6 @@ use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
 	EventManager,
-	Http,
-	HttpResponse,
 	ModuleInstance,
 	LoggerWrapper,
 	MessageEmitter,
@@ -23,7 +24,6 @@ use Nadybot\Core\{
 	Routing\RoutableMessage,
 	Routing\Source,
 	Text,
-	Timer as SysTimer,
 	UserStateEvent,
 	Util,
 };
@@ -33,6 +33,10 @@ use Nadybot\Modules\TIMERS_MODULE\{
 	TimerController,
 };
 use Nadybot\Modules\WEBSERVER_MODULE\StatsController;
+use Throwable;
+
+use function Amp\call;
+use function Safe\json_decode;
 
 /**
  * @author Equi
@@ -72,13 +76,7 @@ class GauntletBuffController extends ModuleInstance implements MessageEmitter {
 	public EventManager $eventManager;
 
 	#[NCA\Inject]
-	public Http $http;
-
-	#[NCA\Inject]
 	public Util $util;
-
-	#[NCA\Inject]
-	public SysTimer $timer;
 
 	#[NCA\Inject]
 	public AltsController $altsController;
@@ -125,30 +123,53 @@ class GauntletBuffController extends ModuleInstance implements MessageEmitter {
 		description: "Get active Gauntlet buffs from API"
 	)]
 	public function loadGauntletBuffsFromAPI(): void {
-		$this->http->get(static::GAUNTLET_API)
-			->withCallback([$this, "handleGauntletBuffsFromApi"]);
+		call(function() {
+			$client = HttpClientBuilder::buildDefault();
+
+			try {
+				/** @var Response */
+				$response = yield $client->request(new Request(static::GAUNTLET_API));
+				$code = $response->getStatus();
+				if ($code >= 500 && $code < 600 && --$this->apiRetriesLeft) {
+					$this->logger->warning('Gauntlett buff API sent a {code}, retrying in 5s', [
+						"code" => $code
+					]);
+					Loop::delay(5000, fn() => $this->loadGauntletBuffsFromAPI());
+					return;
+				}
+				if ($code !== 200) {
+					$this->logger->error('Gauntlet buff API replied with error {code} ({reason})', [
+						"code" => $code,
+						"reason" => $response->getReason(),
+						"headers" => $response->getRawHeaders(),
+					]);
+					return;
+				}
+				/** @var string */
+				$body = yield $response->getBody()->buffer();
+			} catch (Throwable $error) {
+				$this->logger->warning('Unknown error from Gauntlet buff API: {error}', [
+					"error" => $error->getMessage(),
+					"Exception" => $error,
+				]);
+				return;
+			}
+			$this->handleGauntletBuffsFromApi($body);
+		});
 	}
 
 	/**
 	 * Parse the Gauntlet buff timer API result and handle each running buff
 	 */
-	public function handleGauntletBuffsFromApi(HttpResponse $response): void {
-		$code = $response->headers["status-code"] ?? "204";
-		if ($code >= 500 && $code < 600 && --$this->apiRetriesLeft) {
-			$this->logger->warning('Gauntlet buff API sent a {code}, retrying in 5s', [
-				"code" => $code
-			]);
-			Loop::delay(5000, [$this, "loadGauntletBuffsFromAPI"]);
-			return;
-		}
-		if ($code !== "200" || !isset($response->body)) {
-			$this->logger->error('Gauntlet buff API did not send correct data.');
+	private function handleGauntletBuffsFromApi(string $body): void {
+		if (!strlen($body)) {
+			$this->logger->error('Gauntlet buff API sent an empty reply');
 			return;
 		}
 		/** @var ApiGauntletBuff[] */
 		$buffs = [];
 		try {
-			$data = \Safe\json_decode($response->body, true);
+			$data = json_decode($body, true);
 			if (!is_array($data)) {
 				throw new JsonException();
 			}
