@@ -18,9 +18,6 @@ use Nadybot\Core\{
 	Registry,
 	Routing\RoutableMessage,
 	Routing\Source,
-	SocketManager,
-	SocketNotifier,
-	Timer,
 };
 
 use function Safe\readline_add_history;
@@ -31,16 +28,10 @@ use function Safe\readline_write_history;
 #[NCA\Instance]
 class ConsoleController extends ModuleInstance {
 	#[NCA\Inject]
-	public SocketManager $socketManager;
-
-	#[NCA\Inject]
 	public CommandManager $commandManager;
 
 	#[NCA\Inject]
 	public Nadybot $chatBot;
-
-	#[NCA\Inject]
-	public Timer $timer;
 
 	#[NCA\Inject]
 	public ConfigFile $config;
@@ -57,7 +48,7 @@ class ConsoleController extends ModuleInstance {
 	/** Set background color */
 	#[NCA\Setting\Boolean] public bool $consoleBGColor = false;
 
-	public SocketNotifier $notifier;
+	private string $socketHandle;
 
 	/**
 	 * @var resource
@@ -156,14 +147,12 @@ class ConsoleController extends ModuleInstance {
 		}
 		$this->loadHistory();
 		$this->socket = STDIN;
-		$this->notifier = new SocketNotifier(
-			$this->socket,
-			SocketNotifier::ACTIVITY_READ,
-			$callback,
-		);
-		Loop::delay(1000, function(): void {
+		Loop::delay(1000, function() use ($callback): void {
+			if (!is_resource($this->socket)) {
+				return;
+			}
 			$this->logger->notice("StdIn console activated, accepting commands");
-			$this->socketManager->addSocketNotifier($this->notifier);
+			$this->socketHandle = Loop::onReadable($this->socket, $callback);
 			if ($this->useReadline) {
 				readline_callback_handler_install('> ', fn(?string $line) => $this->processLine($line));
 			} else {
@@ -182,7 +171,7 @@ class ConsoleController extends ModuleInstance {
 		if (feof($this->socket)) {
 			echo("EOF received, closing console.\n");
 			@fclose($this->socket);
-			$this->socketManager->removeSocketNotifier($this->notifier);
+			Loop::cancel($this->socketHandle);
 			return;
 		}
 		$line = fgets($this->socket);
@@ -199,7 +188,7 @@ class ConsoleController extends ModuleInstance {
 		if ($this->useReadline) {
 			readline_add_history($line);
 			$this->saveHistory();
-			readline_callback_handler_install('> ', [$this, 'processLine']);
+			readline_callback_handler_install('> ', fn(?string $line) => $this->processLine($line));
 		}
 
 		$context = new CmdContext($this->config->superAdmins[0]??"<no superadmin set>");
