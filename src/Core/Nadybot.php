@@ -340,8 +340,12 @@ class Nadybot extends AOChat {
 				$this->logger->notice('Shutdown requested.');
 				Loop::stop();
 			};
-			Loop::onSignal(SIGTERM, $signalHandler);
-			Loop::onSignal(SIGINT, $signalHandler);
+			if (function_exists('sapi_windows_set_ctrl_handler')) {
+				\Safe\sapi_windows_set_ctrl_handler($signalHandler, true);
+			} else {
+				Loop::onSignal(SIGTERM, $signalHandler);
+				Loop::onSignal(SIGINT, $signalHandler);
+			}
 
 			Loop::repeat(1000, [$this->eventManager, "crons"]);
 			Loop::repeat(1000, function() {
