@@ -3,6 +3,7 @@
 namespace Nadybot\Modules\BASIC_CHAT_MODULE;
 
 use Exception;
+use Generator;
 use Nadybot\Core\{
 	Attributes as NCA,
 	BuddylistManager,
@@ -337,7 +338,11 @@ class ChatAssistController extends ModuleInstance {
 
 	/** Create an assist macro for multiple characters */
 	#[NCA\HandlesCommand(ChatAssistController::CMD_SET_ADD_CLEAR)]
-	public function assistSetCommand(CmdContext $context, #[NCA\Str("set")] string $action, PCharacter ...$callers): void {
+	public function assistSetCommand(
+		CmdContext $context,
+		#[NCA\Str("set")] string $action,
+		PCharacter ...$callers
+	): Generator {
 		if (!$this->chatLeaderController->checkLeaderAccess($context->char->name)) {
 			$context->reply("You must be Raid Leader to use this command.");
 			return;
@@ -347,7 +352,7 @@ class ChatAssistController extends ModuleInstance {
 		$groupName = "";
 		for ($i = 0; $i < count($callers); $i++) {
 			$name = $callers[$i]();
-			$uid = $this->chatBot->get_uid($name);
+			$uid = yield $this->chatBot->getUid2($name);
 			if (!$uid) {
 				$errors []= "Character <highlight>$name<end> does not exist.";
 			} elseif (
@@ -401,7 +406,12 @@ class ChatAssistController extends ModuleInstance {
 
 	/** Add a new player to the global assist list, or the one given */
 	#[NCA\HandlesCommand(ChatAssistController::CMD_SET_ADD_CLEAR)]
-	public function assistAddCommand(CmdContext $context, #[NCA\Str("add")] string $action, ?PWord $assistList, PCharacter $caller): void {
+	public function assistAddCommand(
+		CmdContext $context,
+		#[NCA\Str("add")] string $action,
+		?PWord $assistList,
+		PCharacter $caller
+	): Generator {
 		if (!$this->chatLeaderController->checkLeaderAccess($context->char->name)) {
 			$context->reply("You must be Raid Leader to use this command.");
 			return;
@@ -414,7 +424,7 @@ class ChatAssistController extends ModuleInstance {
 		$event->type = "assist(add)";
 
 		$name = ucfirst(strtolower($name));
-		$uid = $this->chatBot->get_uid($name);
+		$uid = yield $this->chatBot->getUid2($name);
 		if (!$uid) {
 			$context->reply("Character <highlight>$name<end> does not exist.");
 			return;
@@ -518,9 +528,10 @@ class ChatAssistController extends ModuleInstance {
 
 	/** Create an assist macro for a single character */
 	#[NCA\HandlesCommand(ChatAssistController::CMD_SET_ADD_CLEAR)]
-	public function assistOnceCommand(CmdContext $context, PCharacter $char): void {
+	public function assistOnceCommand(CmdContext $context, PCharacter $char): Generator {
 		$name = $char();
-		if (!$this->chatBot->get_uid($name)) {
+		$uid = yield $this->chatBot->getUid2($name);
+		if (!isset($uid)) {
 			$context->reply("No player named <highlight>{$name}<end> found.");
 			return;
 		}

@@ -2,7 +2,8 @@
 
 namespace Nadybot\Core\Modules\PLAYER_LOOKUP;
 
-use Amp\Loop;
+use Amp\Promise;
+use Generator;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	Attributes as NCA,
@@ -12,6 +13,10 @@ use Nadybot\Core\{
 	Nadybot,
 	QueryBuilder,
 };
+use Throwable;
+
+use function Amp\call;
+use function Amp\delay;
 
 class PlayerLookupJob {
 	#[NCA\Inject]
@@ -78,63 +83,50 @@ class PlayerLookupJob {
 			return;
 		}
 		$this->logger->info($this->toUpdate->count() . " missing / outdated characters found.");
-		for ($i = 0; $i < $numJobs; $i++) {
-			$this->numActiveThreads++;
-			$this->logger->info('Spawning lookup thread #' . $this->numActiveThreads);
-			$this->startThread($i+1, $callback, ...$args);
-		}
-	}
-
-	/**
-	 * @psalm-param callable(mixed...) $callback
-	 */
-	public function startThread(int $threadNum, callable $callback, mixed ...$args): void {
-		if ($this->toUpdate->isEmpty()) {
-			$this->logger->debug("[Thread #{$threadNum}] Queue empty, stopping thread.");
-			$this->numActiveThreads--;
-			if ($this->numActiveThreads === 0) {
-				$this->logger->info("[Thread #{$threadNum}] All threads stopped, calling callback.");
-				$callback(...$args);
+		call(function () use ($numJobs, $callback, $args): Generator {
+			$threads = [];
+			for ($i = 0; $i < $numJobs; $i++) {
+				$this->numActiveThreads++;
+				$this->logger->info('Spawning lookup thread #' . $this->numActiveThreads);
+				$threads []= $this->startThread($i+1);
 			}
-			return;
-		}
-		/** @var Player */
-		$todo = $this->toUpdate->shift();
-		$this->logger->debug("[Thread #{$threadNum}] Looking up " . $todo->name);
-		$this->chatBot->getUid(
-			$todo->name,
-			[$this, "asyncPlayerLookup"],
-			$threadNum,
-			$todo,
-			$callback,
-			...$args
-		);
+			yield Promise\all($threads);
+			$this->logger->info("All threads done, stopping lookup.");
+			$callback(...$args);
+		});
 	}
 
-	/**
-	 * @psalm-param callable(mixed...) $callback
-	 */
-	public function asyncPlayerLookup(?int $uid, int $threadNum, Player $todo, callable $callback, mixed ...$args): void {
-		if ($uid === null) {
-			$this->logger->debug("[Thread #{$threadNum}] Player " . $todo->name . ' is inactive, not updating.');
-			Loop::defer(function() use ($threadNum, $callback, $args) {
-				$this->startThread($threadNum, $callback, ...$args);
-			});
-			return;
-		}
-		$this->logger->debug("[Thread #{$threadNum}] Player " . $todo->name . ' is active, querying PORK.');
-		$this->playerManager->getByNameAsync(
-			function(?Player $player) use ($callback, $args, $todo, $threadNum): void {
-				$this->logger->debug(
-					"[Thread #{$threadNum}] PORK lookup for " . $todo->name . ' done, '.
-					(isset($player) ? 'data updated' : 'no data found')
-				);
-				Loop::defer(function() use ($threadNum, $callback, $args) {
-					$this->startThread($threadNum, $callback, ...$args);
-				});
-			},
-			$todo->name,
-			$todo->dimension
-		);
+	/** @return Promise<true> */
+	private function startThread(int $threadNum): Promise {
+		return call(function () use ($threadNum): Generator {
+			while ($todo = $this->toUpdate->shift()) {
+				/** @var Player $todo */
+				$this->logger->debug("[Thread #{$threadNum}] Looking up " . $todo->name);
+				try {
+					$uid = yield $this->chatBot->getUid2($todo->name);
+					if (!isset($uid)) {
+						$this->logger->debug("[Thread #{$threadNum}] Player " . $todo->name . ' is inactive, not updating.');
+						continue;
+					}
+					$start = microtime(true);
+					$player = yield $this->playerManager->byName($todo->name, $todo->dimension, true);
+					$duration = round((microtime(true) - $start) * 1000, 1);
+					$this->logger->debug(
+						"[Thread #{$threadNum}] PORK lookup for " . $todo->name . ' done, '.
+						(isset($player) ? 'data updated' : 'no data found').
+						" - took {$duration}ms"
+					);
+					yield delay(500);
+				} catch (Throwable $e) {
+					$this->logger->error("[Thread #{$threadNum}] Exception looking up {name}: {error}", [
+						"name" => $todo->name,
+						"error" => $e->getMessage(),
+						"Exception" => $e,
+					]);
+				}
+			}
+			$this->logger->debug("[Thread #{$threadNum}] Queue empty, stopping thread.");
+			return true;
+		});
 	}
 }

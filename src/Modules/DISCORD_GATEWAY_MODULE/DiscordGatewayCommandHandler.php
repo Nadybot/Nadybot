@@ -3,6 +3,7 @@
 namespace Nadybot\Modules\DISCORD_GATEWAY_MODULE;
 
 use Closure;
+use Generator;
 use Nadybot\Core\{
 	Attributes as NCA,
 	AccessLevelProvider,
@@ -172,7 +173,11 @@ class DiscordGatewayCommandHandler extends ModuleInstance implements AccessLevel
 		"Linking your Discord user with an AO character effectively\n".
 		"gives the Discord user the same rights!"
 	)]
-	public function extAuthCommand(CmdContext $context, #[NCA\Str("request")] string $action, PCharacter $char): void {
+	public function extAuthCommand(
+		CmdContext $context,
+		#[NCA\Str("request")] string $action,
+		PCharacter $char
+	): Generator {
 		$discordUserId = $context->char->name;
 		if (($authedAs = $this->getNameForDiscordId($discordUserId)) !== null) {
 			$msg = "You are already linked to <highlight>$authedAs<end>.";
@@ -181,8 +186,8 @@ class DiscordGatewayCommandHandler extends ModuleInstance implements AccessLevel
 		}
 		$name = $char();
 
-		$uid = $this->chatBot->get_uid($name);
-		if (!$uid) {
+		$uid = yield $this->chatBot->getUid2($name);
+		if (!isset($uid)) {
 			$msg = "Character <highlight>{$name}<end> does not exist.";
 			$context->reply($msg);
 			return;

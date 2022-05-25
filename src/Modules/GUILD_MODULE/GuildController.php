@@ -227,9 +227,9 @@ class GuildController extends ModuleInstance {
 
 	/** Check when a member of your org was last seen online by the bot */
 	#[NCA\HandlesCommand("lastseen")]
-	public function lastSeenCommand(CmdContext $context, PCharacter $name): void {
-		$uid = $this->chatBot->get_uid($name());
-		if (!$uid) {
+	public function lastSeenCommand(CmdContext $context, PCharacter $name): Generator {
+		$uid = yield $this->chatBot->getUid2($name());
+		if ($uid === null) {
 			$msg = "Character <highlight>{$name}<end> does not exist.";
 			$context->reply($msg);
 			return;
@@ -351,11 +351,15 @@ class GuildController extends ModuleInstance {
 	 * Do this if someone is an org member, but not in the org roster yet
 	 */
 	#[NCA\HandlesCommand("notify")]
-	public function notifyAddCommand(CmdContext $context, #[NCA\Str("on", "add")] string $action, PCharacter $char): void {
+	public function notifyAddCommand(
+		CmdContext $context,
+		#[NCA\Str("on", "add")] string $action,
+		PCharacter $char
+	): Generator {
 		$name = $char();
-		$uid = $this->chatBot->get_uid($name);
+		$uid = yield $this->chatBot->getUid2($name);
 
-		if (!$uid) {
+		if ($uid === null) {
 			$msg = "<highlight>{$name}<end> does not exist.";
 			$context->reply($msg);
 			return;
@@ -395,11 +399,15 @@ class GuildController extends ModuleInstance {
 	 * Manually remove a character from the notify list
 	 */
 	#[NCA\HandlesCommand("notify")]
-	public function notifyRemoveCommand(CmdContext $context, PRemove $action, PCharacter $char): void {
+	public function notifyRemoveCommand(
+		CmdContext $context,
+		PRemove $action,
+		PCharacter $char
+	): Generator {
 		$name = $char();
-		$uid = $this->chatBot->get_uid($name);
+		$uid = yield $this->chatBot->getUid2($name);
 
-		if (!$uid) {
+		if ($uid === null) {
 			$msg = "<highlight>{$name}<end> does not exist.";
 			$context->reply($msg);
 			return;

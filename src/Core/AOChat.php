@@ -6,7 +6,10 @@ use Amp\Deferred;
 use Amp\Promise;
 use Amp\Success;
 use Exception;
+use Generator;
 use Monolog\Logger;
+
+use function Amp\call;
 
 /*
 * $Id: aochat.php,v 1.1 2006/12/08 15:17:54 genesiscl Exp $
@@ -658,17 +661,12 @@ class AOChat {
 	 * @psalm-param null|callable(?int,mixed...) $callback
 	 */
 	public function sendLookupPacket(string $userName, ?callable $callback=null, ...$args): void {
-		$time = time();
-		$lastLookup = $this->pendingIdLookups[$userName] ?? null;
-		if (isset($lastLookup) && $lastLookup->time > $time - 10) {
-			return;
-		}
-		$this->pendingIdLookups[$userName] ??= (object)["callbacks" => []];
-		$this->pendingIdLookups[$userName]->time = $time;
-		if (isset($callback)) {
-			$this->pendingIdLookups[$userName]->callbacks []= [$callback, $args];
-		}
-		$this->sendPacket(new AOChatPacket("out", AOChatPacket::CLIENT_LOOKUP, $userName));
+		call(function () use ($userName, $callback, $args): Generator {
+			$uid = yield $this->sendLookupPacket2($userName);
+			if (isset($callback)) {
+				$callback($uid, ...$args);
+			}
+		});
 	}
 
 	/** @return Promise<?int> */

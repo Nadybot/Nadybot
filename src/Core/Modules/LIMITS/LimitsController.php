@@ -2,6 +2,7 @@
 
 namespace Nadybot\Core\Modules\LIMITS;
 
+use Generator;
 use Nadybot\Core\{
 	Attributes as NCA,
 	AccessManager,
@@ -27,6 +28,8 @@ use Nadybot\Core\Modules\PLAYER_LOOKUP\{
 	PlayerHistoryManager,
 	PlayerManager,
 };
+
+use function Amp\call;
 
 /**
  * @author Tyrence (RK2)
@@ -399,11 +402,13 @@ class LimitsController extends ModuleInstance {
 			}
 		}
 		if ($action & 2) {
-			$uid = $this->chatBot->get_uid($event->sender);
-			if (is_int($uid)) {
-				$this->logger->notice("Blocking {$event->sender} for {$blockadeLength}s.");
-				$this->banController->add($uid, (string)$event->sender, $blockadeLength, "Too many commands executed");
-			}
+			call(function() use ($event, $blockadeLength): Generator {
+				$uid = yield $this->chatBot->getUid2((string)$event->sender);
+				if (isset($uid)) {
+					$this->logger->notice("Blocking {$event->sender} for {$blockadeLength}s.");
+					$this->banController->add($uid, (string)$event->sender, $blockadeLength, "Too many commands executed");
+				}
+			});
 		}
 		if ($action & 4) {
 			$this->logger->notice("Ignoring {$event->sender} for {$blockadeLength}s.");

@@ -4,6 +4,7 @@ namespace Nadybot\Modules\DEV_MODULE;
 
 use Amp\Loop;
 use Exception;
+use Generator;
 use Nadybot\Core\{
 	AOChatEvent,
 	AOChatPacket,
@@ -530,9 +531,9 @@ class TestController extends ModuleInstance {
 		CmdContext $context,
 		#[NCA\Str("logon")] string $action,
 		PCharacter $char
-	): void {
-		$uid = $this->chatBot->get_uid($char());
-		if ($uid === false) {
+	): Generator {
+		$uid = yield $this->chatBot->getUid2($char());
+		if ($uid === null) {
 			$context->reply("The character <highlight>{$char}<end> does not exist.");
 			return;
 		}
@@ -547,9 +548,9 @@ class TestController extends ModuleInstance {
 		CmdContext $context,
 		#[NCA\Str("logoff")] string $action,
 		PCharacter $char
-	): void {
-		$uid = $this->chatBot->get_uid($char());
-		if ($uid === false) {
+	): Generator {
+		$uid = yield $this->chatBot->getUid2($char());
+		if ($uid === null) {
 			$context->reply("The character <highlight>{$char}<end> does not exist.");
 			return;
 		}
@@ -564,9 +565,9 @@ class TestController extends ModuleInstance {
 		CmdContext $context,
 		#[NCA\Str("join")] string $action,
 		PCharacter $char
-	): void {
-		$uid = $this->chatBot->get_uid($char());
-		if ($uid === false) {
+	): Generator {
+		$uid = yield $this->chatBot->getUid2($char());
+		if ($uid === null) {
 			$context->reply("The character <highlight>{$char}<end> does not exist.");
 			return;
 		}
@@ -582,9 +583,9 @@ class TestController extends ModuleInstance {
 		CmdContext $context,
 		#[NCA\Str("leave")] string $action,
 		PCharacter $char
-	): void {
-		$uid = $this->chatBot->get_uid($char());
-		if ($uid === false) {
+	): Generator {
+		$uid = yield $this->chatBot->getUid2($char());
+		if ($uid === null) {
 			$context->reply("The character <highlight>{$char}<end> does not exist.");
 			return;
 		}

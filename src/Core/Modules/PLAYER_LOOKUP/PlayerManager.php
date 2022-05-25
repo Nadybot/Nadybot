@@ -2,7 +2,16 @@
 
 namespace Nadybot\Core\Modules\PLAYER_LOOKUP;
 
-use Amp\Deferred;
+use function Amp\call;
+use function Amp\delay;
+use function Amp\File\getStatus;
+use function Safe\json_decode;
+
+use Amp\Http\Client\Connection\UnprocessedRequestException;
+use Amp\Http\Client\HttpClientBuilder;
+use Amp\Http\Client\Request;
+use Amp\Http\Client\Response;
+use Amp\Http\Client\TimeoutException;
 use Amp\Promise;
 use Safe\DateTime;
 use DateTimeZone;
@@ -13,8 +22,6 @@ use Nadybot\Core\{
 	ConfigFile,
 	DB,
 	DBSchema\Player,
-	Http,
-	HttpResponse,
 	ModuleInstance,
 	LoggerWrapper,
 	Nadybot,
@@ -23,8 +30,7 @@ use Nadybot\Core\{
 	SQLException,
 	Util,
 };
-
-use function Amp\call;
+use Safe\Exceptions\JsonException;
 
 /**
  * @author Tyrence (RK2)
@@ -47,9 +53,6 @@ class PlayerManager extends ModuleInstance {
 
 	#[NCA\Inject]
 	public SettingManager $settingManager;
-
-	#[NCA\Inject]
-	public Http $http;
 
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
@@ -201,13 +204,13 @@ class PlayerManager extends ModuleInstance {
 			->asObj(Player::class)
 			->first();
 		if (isset($player)) {
-			$this->logger->info("Found cached information found about {character} on RK{dimension}", [
+			$this->logger->info("Found cached information for {character} on RK{dimension}", [
 				"character" => $name,
 				"dimension" => $dimension,
 				"data" => $player,
 			]);
 		} else {
-			$this->logger->info("No cached information found about {character} on RK{dimension}", [
+			$this->logger->info("No cached information found for {character} on RK{dimension}", [
 				"character" => $name,
 				"dimension" => $dimension,
 			]);
@@ -217,52 +220,76 @@ class PlayerManager extends ModuleInstance {
 
 	/** @return Promise<?Player> */
 	public function lookupAsync2(string $name, int $dimension): Promise {
-		$deferred = new Deferred();
-		$this->lookupAsync($name, $dimension, function(?Player $player) use ($deferred): void {
-			$deferred->resolve($player);
+		return call(function () use ($name, $dimension): Generator {
+			$client = HttpClientBuilder::buildDefault();
+			$url = "http://people.anarchy-online.com/character/bio/d/{$dimension}/name/{$name}/bio.xml?data_type=json";
+			$player = null;
+			try {
+				$try = 0;
+				$retries = 5;
+				while ($try++ < $retries) {
+					try {
+						/** @var Response */
+						$response = yield $client->request(new Request($url));
+						if ($response->getStatus() === 200) {
+							$body = yield $response->getBody()->buffer();
+							$player = $this->parsePlayerFromBody($body);
+						} else {
+							$this->logger->debug("Looking up {name}.{dimension}: {code}", [
+								"name" => $name,
+								"dimension" => $dimension,
+								"code" => $response->getStatus(),
+							]);
+						}
+						break;
+					} catch (TimeoutException | UnprocessedRequestException $e) {
+						$delay = (int)pow($try, 2);
+						$this->logger->info("Lookup for {name}.{dimension} timed out, retrying in {delay}s ({try}/{retries})", [
+							"name" => $name,
+							"dimension" => $dimension,
+							"try" => $try,
+							"delay" => $delay,
+							"retries" => $retries,
+						]);
+						if ($try < $retries) {
+							yield delay($delay * 1000);
+						}
+					}
+				}
+			} catch (\Throwable $e) {
+				$this->logger->warning("Error looking up {name}.{dimension}: {error}", [
+					"name" => $name,
+					"dimension" => $dimension,
+					"error" => $e->getMessage(),
+				]);
+			}
+			if (isset($player) && $player->name === $name) {
+				$player->source = 'people.anarchy-online.com';
+				$player->dimension = $dimension;
+			} else {
+				$this->logger->info("No char information found about {character} on RK{dimension}", [
+					"character" => $name,
+					"dimension" => $dimension,
+				]);
+			}
+			return $player;
 		});
-		return $deferred->promise();
 	}
 
 	/** @psalm-param callable(?Player, mixed...) $callback */
 	public function lookupAsync(string $name, int $dimension, callable $callback, mixed ...$args): void {
-		$this->lookupUrlAsync(
-			"http://people.anarchy-online.com/character/bio/d/{$dimension}/name/{$name}/bio.xml?data_type=json",
-			function (?Player $player) use ($dimension, $name, $callback, $args): void {
-				if (isset($player) && $player->name === $name) {
-					$player->source = 'people.anarchy-online.com';
-					$player->dimension = $dimension;
-				} else {
-					$this->logger->info("No char information found about {character} on RK{dimension}", [
-						"character" => $name,
-						"dimension" => $dimension,
-					]);
-				}
-				$callback($player, ...$args);
-			}
-		);
+		call(function () use ($name, $dimension, $callback, $args): Generator {
+			$player = yield $this->lookupAsync2($name, $dimension);
+			$callback($player, ...$args);
+		});
 	}
 
-	/** @psalm-param callable(?Player) $callback */
-	private function lookupUrlAsync(string $url, callable $callback): void {
-		$this->http
-			->get($url)
-			->withTimeout(10)
-			->withCallback(
-				function(HttpResponse $response) use ($callback): void {
-					$callback($this->parsePlayerFromLookup($response));
-				}
-			);
-	}
-
-	private function parsePlayerFromLookup(HttpResponse $response): ?Player {
-		if ($response->headers["status-code"] !== "200") {
+	private function parsePlayerFromBody(string $body): ?Player {
+		try {
+			[$char, $org, $lastUpdated] = json_decode($body);
+		} catch (JsonException) {
 			return null;
 		}
-		if (!isset($response->body) || $response->body === "null") {
-			return null;
-		}
-		[$char, $org, $lastUpdated] = \Safe\json_decode($response->body);
 
 		$obj = new Player();
 

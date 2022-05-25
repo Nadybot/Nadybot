@@ -3,6 +3,7 @@
 namespace Nadybot\Modules\COMMENT_MODULE;
 
 use Exception;
+use Generator;
 use Illuminate\Database\Schema\Blueprint;
 use Nadybot\Core\{
 	AccessManager,
@@ -355,7 +356,7 @@ class CommentController extends ModuleInstance {
 		PCharacter $char,
 		PWord $category,
 		string $commentText
-	): void {
+	): Generator {
 		$character = $char();
 		$category = $category();
 
@@ -364,7 +365,8 @@ class CommentController extends ModuleInstance {
 			$context->reply("The category <highlight>{$category}<end> does not exist.");
 			return;
 		}
-		if (!$this->chatBot->get_uid($character)) {
+		$uid = yield $this->chatBot->getUid2($character);
+		if (!isset($uid)) {
 			$context->reply("No player named <highlight>{$character}<end> found.");
 			return;
 		}
@@ -451,9 +453,10 @@ class CommentController extends ModuleInstance {
 		#[NCA\Str("get", "search", "find")] string $action,
 		PCharacter $char,
 		?PWord $category
-	): void {
+	): Generator {
 		$character = $char();
-		if (!$this->chatBot->get_uid($character)) {
+		$uid = yield $this->chatBot->getUid2($character);
+		if (!isset($uid)) {
 			$context->reply("No player named <highlight>{$character}<end> found.");
 			return;
 		}
