@@ -94,6 +94,7 @@ class PlayerManager extends ModuleInstance {
 	/**
 	 * @psalm-param callable(array<string,?Player>) $callback
 	 * @param string[] $names
+	 * @deprecated use all(byName()) instead
 	 */
 	public function massGetByName(callable $callback, array $names, int $dimension=null, bool $forceUpdate=false): void {
 		/** @var array<string,?Player> */

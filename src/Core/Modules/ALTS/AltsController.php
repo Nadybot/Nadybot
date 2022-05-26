@@ -241,8 +241,7 @@ class AltsController extends ModuleInstance {
 			}
 
 			// update character information
-			$this->playerManager->getByNameAsync(function() {
-			}, $name);
+			$this->playerManager->byName($name);
 		}
 
 		if ($success === 0) {
@@ -445,7 +444,7 @@ class AltsController extends ModuleInstance {
 	 */
 	#[NCA\HandlesCommand("alts")]
 	#[NCA\Help\Group("alts")]
-	public function altsCommand(CmdContext $context, ?PCharacter $name): void {
+	public function altsCommand(CmdContext $context, ?PCharacter $name): Generator {
 		$name = isset($name) ? $name() : $context->char->name;
 
 		$altInfo = $this->getAltInfo($name, true);
@@ -454,7 +453,7 @@ class AltsController extends ModuleInstance {
 			$context->reply($msg);
 			return;
 		}
-		$altInfo->getAltsBlobAsync([$context, "reply"]);
+		$context->reply(yield $altInfo->getAltsBlob());
 	}
 
 	/**

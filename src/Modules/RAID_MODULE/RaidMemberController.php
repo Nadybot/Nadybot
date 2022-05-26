@@ -2,14 +2,17 @@
 
 namespace Nadybot\Modules\RAID_MODULE;
 
+use function Amp\call;
+use function Amp\Promise\all;
+
+use Amp\Promise;
+use Generator;
 use Nadybot\Core\{
 	Attributes as NCA,
 	AOChatEvent,
 	CmdContext,
 	CommandAlias,
-	CommandReply,
 	DB,
-	DBSchema\Player,
 	EventManager,
 	MessageHub,
 	ModuleInstance,
@@ -469,69 +472,58 @@ class RaidMemberController extends ModuleInstance {
 	}
 
 	/**
-	 * Send the blob for the !raid check command to $sendto
+	 * Get the blob for the !raid check command to $sendto
+	 *
+	 * @return Promise<string|string[]>
 	 */
-	public function sendRaidCheckBlob(Raid $raid, CommandReply $sendto): void {
-		$activeNames = [];
-		foreach ($raid->raiders as $player => $raider) {
-			if ($raider->left !== null) {
-				continue;
+	public function getRaidCheckBlob(Raid $raid): Promise {
+		return call(function () use ($raid): Generator {
+			$activeNames = [];
+			foreach ($raid->raiders as $player => $raider) {
+				if ($raider->left === null) {
+					$activeNames []= $this->playerManager->byName($raider->player);
+				}
 			}
-			$activeNames []= $raider->player;
-		}
-		$this->playerManager->massGetByName(
-			function(array $result) use ($sendto): void {
-				$this->sendRaidCheckBlobResult($result, $sendto);
-			},
-			$activeNames
-		);
-	}
-
-	/**
-	 * Send the raid check blob with all active players to $sendto
-	 * @param array<string,?Player> $activePlayers List of all the players in the raid
-	 * @param CommandReply $sendto Where to send the reply to
-	 */
-	protected function sendRaidCheckBlobResult(array $activePlayers, CommandReply $sendto): void {
-		ksort($activePlayers);
-		$lines = [];
-		foreach ($activePlayers as $name => $pInfo) {
-			if ($pInfo === null) {
-				continue;
+			$activePlayers = yield all($activeNames);
+			ksort($activePlayers);
+			$lines = [];
+			foreach ($activePlayers as $name => $pInfo) {
+				if ($pInfo === null) {
+					continue;
+				}
+				$profIcon = "<img src=tdb://id:GFX_GUI_ICON_PROFESSION_".
+					($this->onlineController->getProfessionId($pInfo->profession??"unknown")??0).">";
+				$line  = "<tab>{$profIcon} {$pInfo->name} - ".
+					"{$pInfo->level}/{$pInfo->ai_level} ".
+					"<" . strtolower($pInfo->faction) . ">{$pInfo->faction}<end>".
+					" [".
+					$this->text->makeChatcmd("Raid Kick", "/tell <myname> raid kick $name").
+					"]";
+				$lines []= $line;
 			}
-			$profIcon = "<img src=tdb://id:GFX_GUI_ICON_PROFESSION_".
-				($this->onlineController->getProfessionId($pInfo->profession??"unknown")??0).">";
-			$line  = "<tab>{$profIcon} {$pInfo->name} - ".
-				"{$pInfo->level}/{$pInfo->ai_level} ".
-				"<" . strtolower($pInfo->faction) . ">{$pInfo->faction}<end>".
-				" [".
-				$this->text->makeChatcmd("Raid Kick", "/tell <myname> raid kick $name").
-				"]";
-			$lines []= $line;
-		}
-		if (count($activePlayers) === 0) {
-			$sendto->reply("<highlight>No<end> players in the raid");
-			return;
-		}
-		$checkCmd = $this->text->makeChatcmd(
-			"Check all raid members",
-			"/assist " . join(" \\n /assist ", array_keys($activePlayers))
-		);
-		$notInCmd = $this->text->makeChatcmd(
-			"raid notin",
-			"/tell <myname> raid notin"
-		);
-		$blob = "Send not-in-raid warning: {$notInCmd}\n".
-			"\n".
-			"{$checkCmd}\n".
-			"\n".
-			join("\n", $lines);
-		$blobs = (array)$this->text->makeBlob("click to view", $blob, "Players in the raid");
-		foreach ($blobs as &$msg) {
-			$msg = "<highlight>" . count($activePlayers) . "<end> player".
-				((count($activePlayers) !== 1) ? "s" : "") . " in the raid :: $msg";
-		}
-		$sendto->reply($blobs);
+			if (count($activePlayers) === 0) {
+				return "<highlight>No<end> players in the raid";
+			}
+			$checkCmd = $this->text->makeChatcmd(
+				"Check all raid members",
+				"/assist " . join(" \\n /assist ", array_keys($activePlayers))
+			);
+			$notInCmd = $this->text->makeChatcmd(
+				"raid notin",
+				"/tell <myname> raid notin"
+			);
+			$blob = "Send not-in-raid warning: {$notInCmd}\n".
+				"\n".
+				"{$checkCmd}\n".
+				"\n".
+				join("\n", $lines);
+			$blobs = (array)$this->text->makeBlob("click to view", $blob, "Players in the raid");
+			foreach ($blobs as &$msg) {
+				$msg = "<highlight>" . count($activePlayers) . "<end> player".
+					((count($activePlayers) !== 1) ? "s" : "") . " in the raid :: $msg";
+			}
+			return $blobs;
+		});
 	}
 
 	#[NCA\Event(

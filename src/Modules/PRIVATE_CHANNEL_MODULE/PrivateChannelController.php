@@ -918,50 +918,52 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 		$this->chatBot->sendMassTell($msg, $sender);
 	}
 
-	protected function getLogonMessageForPlayer(callable $callback, ?Player $whois, string $player, bool $suppressAltList, AltInfo $altInfo): void {
-		$privChannelName = "the private channel";
-		if ($this->settingManager->getBool('guild_channel_status') === false) {
-			$privChannelName = "<myname>";
-		}
-		if ($whois !== null) {
-			$msg = $this->playerManager->getInfo($whois) . " has joined {$privChannelName}.";
-		} else {
-			$msg = "{$player} has joined {$privChannelName}.";
-		}
-		if ($suppressAltList) {
-			if ($altInfo->main !== $player) {
-				$msg .= " Alt of <highlight>{$altInfo->main}<end>";
+	/** @return Promise<string> */
+	protected function getLogonMessageForPlayer(?Player $whois, string $player, bool $suppressAltList, AltInfo $altInfo): Promise {
+		return call(function () use ($whois, $player, $suppressAltList, $altInfo): Generator {
+			$privChannelName = "the private channel";
+			if ($this->settingManager->getBool('guild_channel_status') === false) {
+				$privChannelName = "<myname>";
 			}
-		} else {
-			if (count($altInfo->getAllValidatedAlts()) > 0) {
-				$altInfo->getAltsBlobAsync(
-					/** @param string|string[] $blob */
-					function($blob) use ($msg, $callback): void {
-						$callback("{$msg} " . ((array)$blob)[0]);
-					},
-					true
-				);
-				return;
+			if ($whois !== null) {
+				$msg = $this->playerManager->getInfo($whois) . " has joined {$privChannelName}.";
+			} else {
+				$msg = "{$player} has joined {$privChannelName}.";
 			}
-		}
-		$callback($msg);
+			if ($suppressAltList) {
+				if ($altInfo->main !== $player) {
+					$msg .= " Alt of <highlight>{$altInfo->main}<end>";
+				}
+			} else {
+				if (count($altInfo->getAllValidatedAlts()) > 0) {
+					$blob = yield $altInfo->getAltsBlob(true);
+					$msg .= " " . ((array)$blob)[0];
+				}
+			}
+			return $msg;
+		});
 	}
 
 	public function getLogonMessageAsync(string $player, bool $suppressAltList, callable $callback): void {
-		$altInfo = $this->altsController->getAltInfo($player);
-		if ($this->settingManager->getBool('first_and_last_alt_only')) {
-			// if at least one alt/main is already online, don't show logon message
-			if (count($altInfo->getOnlineAlts()) > 1) {
-				return;
-			}
-		}
+		call(function () use ($player, $suppressAltList, $callback): Generator {
+			$callback(yield $this->getLogonMessage($player, $suppressAltList));
+		});
+	}
 
-		$this->playerManager->getByNameAsync(
-			function(?Player $whois) use ($player, $suppressAltList, $callback, $altInfo): void {
-				$this->getLogonMessageForPlayer($callback, $whois, $player, $suppressAltList, $altInfo);
-			},
-			$player
-		);
+	/** @return Promise<?string> */
+	public function getLogonMessage(string $player, bool $suppressAltList): Promise {
+		return call(function () use ($player, $suppressAltList): Generator {
+			$altInfo = $this->altsController->getAltInfo($player);
+			if ($this->settingManager->getBool('first_and_last_alt_only')) {
+				// if at least one alt/main is already online, don't show logon message
+				if (count($altInfo->getOnlineAlts()) > 1) {
+					return null;
+				}
+			}
+
+			$whois = yield $this->playerManager->byName($player);
+			return yield $this->getLogonMessageForPlayer($whois, $player, $suppressAltList, $altInfo);
+		});
 	}
 
 	public function dispatchRoutableEvent(object $event): void {
@@ -980,62 +982,54 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 		name: "joinPriv",
 		description: "Displays a message when a character joins the private channel"
 	)]
-	public function joinPrivateChannelMessageEvent(AOChatEvent $eventObj): void {
+	public function joinPrivateChannelMessageEvent(AOChatEvent $eventObj): Generator {
 		if (!is_string($eventObj->sender)) {
 			return;
 		}
 		$sender = $eventObj->sender;
 		$suppressAltList = $this->privSuppressAltList;
 
-		$this->getLogonMessageAsync($sender, $suppressAltList, function(string $msg) use ($sender): void {
-			$this->chatBot->getUid(
-				$sender,
-				function(?int $uid, string $name, string $msg): void {
-					$e = new Online();
-					$e->char = new Character($name, $uid);
-					$e->online = true;
-					$e->message = $msg;
-					$this->dispatchRoutableEvent($e);
-					$this->chatBot->sendPrivate($msg, true);
-				},
-				$sender,
-				$msg
-			);
-		});
-		$this->playerManager->getByNameAsync(
-			function(?Player $whois) use ($sender): void {
-				if (!isset($whois)) {
-					return;
-				}
-				$event = new OnlineEvent();
-				$event->type = "online(priv)";
-				$event->player = new OnlinePlayer();
-				$event->channel = "priv";
-				foreach (get_object_vars($whois) as $key => $value) {
-					$event->player->$key = $value;
-				}
-				$event->player->online = true;
-				$altInfo = $this->altsController->getAltInfo($sender);
-				$event->player->pmain = $altInfo->main;
-				$this->eventManager->fireEvent($event);
-			},
-			$sender
-		);
+		/** @var ?string */
+		$msg = yield $this->getLogonMessage($sender, $suppressAltList);
+		if (!isset($msg)) {
+			return;
+		}
+		$uid = yield $this->chatBot->getUid2($sender);
+		$e = new Online();
+		$e->char = new Character($sender, $uid);
+		$e->online = true;
+		$e->message = $msg;
+		$this->dispatchRoutableEvent($e);
+		$this->chatBot->sendPrivate($msg, true);
+
+		$whois = yield $this->playerManager->byName($sender);
+		if (!isset($whois)) {
+			return;
+		}
+		$event = new OnlineEvent();
+		$event->type = "online(priv)";
+		$event->player = new OnlinePlayer();
+		$event->channel = "priv";
+		foreach (get_object_vars($whois) as $key => $value) {
+			$event->player->$key = $value;
+		}
+		$event->player->online = true;
+		$altInfo = $this->altsController->getAltInfo($sender);
+		$event->player->pmain = $altInfo->main;
+		$this->eventManager->fireEvent($event);
 	}
 
 	#[NCA\Event(
 		name: "joinPriv",
 		description: "Autoban players of unwanted factions when they join the bot"
 	)]
-	public function autobanOnJoin(AOChatEvent $eventObj): void {
+	public function autobanOnJoin(AOChatEvent $eventObj): Generator {
 		$reqFaction = $this->onlyAllowFaction;
 		if ($reqFaction === 'all' || !is_String($eventObj->sender)) {
 			return;
 		}
-		$this->playerManager->getByNameAsync(
-			[$this,"autobanUnwantedFactions"],
-			$eventObj->sender
-		);
+		$player = yield $this->playerManager->byName($eventObj->sender);
+		$this->autobanUnwantedFactions($player);
 	}
 
 	/**

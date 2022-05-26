@@ -451,6 +451,7 @@ class GuildController extends ModuleInstance {
 		});
 	}
 
+	/** @deprecated */
 	public function updateOrgRoster(?callable $callback=null, mixed ...$args): void {
 		if (!$this->isGuildBot() || !isset($this->config->orgId)) {
 			return;
@@ -601,8 +602,8 @@ class GuildController extends ModuleInstance {
 		name: "timer(24hrs)",
 		description: "Download guild roster xml and update guild members"
 	)]
-	public function downloadOrgRosterEvent(Event $eventObj): void {
-		$this->updateOrgRoster();
+	public function downloadOrgRosterEvent(Event $eventObj): Generator {
+		yield $this->updateMyOrgRoster();
 	}
 
 	#[NCA\Event(
@@ -658,83 +659,98 @@ class GuildController extends ModuleInstance {
 	}
 
 	/**
-	 * @psalm-param callable(string) $callback
+	 * @phpstan-param callable(string):mixed $callback
+	 * @deprecated
 	 */
 	public function getLogonForPlayer(callable $callback, ?Player $whois, string $player, bool $suppressAltList): void {
-		$msg = '';
-		$logonMsg = $this->preferences->get($player, 'logon_msg') ?? "";
-		if ($logonMsg !== '') {
-			$logonMsg = " - {$logonMsg}";
-		}
-		if ($whois === null) {
-			$msg = "$player logged on";
-		} else {
-			$msg = $this->playerManager->getInfo($whois);
-
-			$msg .= " logged on";
-
-			$altInfo = $this->altsController->getAltInfo($player);
-			if ($suppressAltList) {
-				if ($altInfo->main !== $player) {
-					$msg .= ". Alt of <highlight>{$altInfo->main}<end>";
-				}
-			} else {
-				if (count($altInfo->getAllValidatedAlts()) > 0) {
-					$altInfo->getAltsBlobAsync(
-						/** @param string|string[] $blob */
-						function($blob) use ($msg, $callback, $logonMsg): void {
-							$blob = ((array)$blob)[0];
-							$callback("{$msg}. {$blob}{$logonMsg}");
-						},
-						true
-					);
-					return;
-				}
-			}
-		}
-
-		$callback($msg.$logonMsg);
+		call(function () use ($callback, $whois, $player, $suppressAltList): Generator {
+			$callback(yield $this->getLogonMessageForPlayer($whois, $player, $suppressAltList));
+		});
 	}
 
+	/**
+	 * @phpstan-param callable(string):mixed $callback
+	 * @deprecated
+	 */
 	public function getLogonMessageAsync(string $player, bool $suppressAltList, callable $callback): void {
-		if ($this->firstAndLastAltOnly) {
-			// if at least one alt/main is already online, don't show logon message
-			$altInfo = $this->altsController->getAltInfo($player);
-			if (count($altInfo->getOnlineAlts()) > 1) {
-				return;
+		call(function () use ($player, $suppressAltList, $callback): Generator {
+			$msg = yield $this->getLogonMessage($player, $suppressAltList);
+			if (isset($msg)) {
+				$callback($msg);
 			}
-		}
+		});
+	}
 
-		$this->playerManager->getByNameAsync(
-			function(?Player $whois) use ($callback, $player, $suppressAltList): void {
-				$this->getLogonForPlayer($callback, $whois, $player, $suppressAltList);
-			},
-			$player
-		);
+	/** @return Promise<?string> */
+	public function getLogonMessage(string $player, bool $suppressAltList): Promise {
+		return call(function () use ($player, $suppressAltList): Generator {
+			if ($this->firstAndLastAltOnly) {
+				// if at least one alt/main is already online, don't show logon message
+				$altInfo = $this->altsController->getAltInfo($player);
+				if (count($altInfo->getOnlineAlts()) > 1) {
+					return null;
+				}
+			}
+
+			$whois = yield $this->playerManager->byName($player);
+			return yield $this->getLogonMessageForPlayer($whois, $player, $suppressAltList);
+		});
+	}
+
+	/** @return Promise<string> */
+	public function getLogonMessageForPlayer(?Player $whois, string $player, bool $suppressAltList): Promise {
+		return call(function () use ($whois, $player, $suppressAltList): Generator {
+			$msg = '';
+			$logonMsg = $this->preferences->get($player, 'logon_msg') ?? "";
+			if ($logonMsg !== '') {
+				$logonMsg = " - {$logonMsg}";
+			}
+			if ($whois === null) {
+				$msg = "$player logged on";
+			} else {
+				$msg = $this->playerManager->getInfo($whois);
+
+				$msg .= " logged on";
+
+				$altInfo = $this->altsController->getAltInfo($player);
+				if ($suppressAltList) {
+					if ($altInfo->main !== $player) {
+						$msg .= ". Alt of <highlight>{$altInfo->main}<end>";
+					}
+				} else {
+					if (count($altInfo->getAllValidatedAlts()) > 0) {
+						$blob = yield $altInfo->getAltsBlob(true);
+						$blob = ((array)$blob)[0];
+						return "{$msg}. {$blob}{$logonMsg}";
+					}
+				}
+			}
+
+			return $msg.$logonMsg;
+		});
 	}
 
 	#[NCA\Event(
 		name: "logOn",
 		description: "Shows an org member logon in chat"
 	)]
-	public function orgMemberLogonMessageEvent(UserStateEvent $eventObj): void {
+	public function orgMemberLogonMessageEvent(UserStateEvent $eventObj): Generator {
 		$sender = $eventObj->sender;
 		if (!isset($this->chatBot->guildmembers[$sender])
 			|| !$this->chatBot->isReady()
 			|| !is_string($sender)) {
 			return;
 		}
-		$suppressAltList = $this->orgSuppressAltList;
-		$this->getLogonMessageAsync($sender, $suppressAltList, function(string $msg) use ($sender): void {
-			$this->chatBot->getUid($sender, function(?int $uid, string $msg, string $sender): void {
-				$e = new Online();
-				$e->char = new Character($sender, $uid);
-				$e->online = true;
-				$e->message = $msg;
-				$this->dispatchRoutableEvent($e);
-				$this->chatBot->sendGuild($msg, true);
-			}, $msg, $sender);
-		});
+		$msg = yield $this->getLogonMessage($sender, $this->orgSuppressAltList);
+		$uid = yield $this->chatBot->getUid2($sender);
+		$e = new Online();
+		$e->char = new Character($sender, $uid);
+		$e->online = true;
+		$e->message = $msg;
+		$this->dispatchRoutableEvent($e);
+		if (isset($msg)) {
+			$this->chatBot->sendGuild($msg, true);
+		}
 	}
 
 	public function getLogoffMessage(string $player): ?string {

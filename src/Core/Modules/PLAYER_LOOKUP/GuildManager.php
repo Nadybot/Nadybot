@@ -3,6 +3,7 @@
 namespace Nadybot\Core\Modules\PLAYER_LOOKUP;
 
 use function Amp\call;
+use function Safe\json_decode;
 
 use Amp\Cache\FileCache;
 use Amp\Http\Client\HttpClientBuilder;
@@ -64,7 +65,7 @@ class GuildManager extends ModuleInstance {
 				if ($data === null) {
 					return false;
 				}
-				$result = \Safe\json_decode($data);
+				$result = json_decode($data);
 				return $result !== null;
 			} catch (JsonException $e) {
 				return false;
@@ -116,7 +117,7 @@ class GuildManager extends ModuleInstance {
 				throw new Exception("Empty data received when reading org data");
 			}
 
-			[$orgInfo, $members, $lastUpdated] = \Safe\json_decode($body);
+			[$orgInfo, $members, $lastUpdated] = json_decode($body);
 
 			if ($orgInfo->NAME === null) {
 				return null;
@@ -247,7 +248,7 @@ class GuildManager extends ModuleInstance {
 			return;
 		}
 
-		[$orgInfo, $members, $lastUpdated] = \Safe\json_decode($cacheResult->data??"");
+		[$orgInfo, $members, $lastUpdated] = json_decode($cacheResult->data??"");
 
 		if ($orgInfo->NAME === null) {
 			$callback(null, ...$args);

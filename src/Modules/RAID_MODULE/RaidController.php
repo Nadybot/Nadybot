@@ -4,6 +4,7 @@ namespace Nadybot\Modules\RAID_MODULE;
 
 use Amp\Loop;
 use DateTime;
+use Generator;
 use Illuminate\Database\Query\JoinClause;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
@@ -11,7 +12,6 @@ use Nadybot\Core\{
 	Attributes as NCA,
 	AOChatEvent,
 	CmdContext,
-	CommandReply,
 	CommandManager,
 	DB,
 	DBSchema\Player,
@@ -38,6 +38,8 @@ use Nadybot\Modules\{
 	ONLINE_MODULE\OnlineController,
 	WEBSERVER_MODULE\StatsController,
 };
+
+use function Amp\Promise\all;
 
 /**
  * This class contains all functions necessary to start, stop and resume a raid
@@ -628,12 +630,13 @@ class RaidController extends ModuleInstance {
 	public function raidCheckCommand(
 		CmdContext $context,
 		#[NCA\Str("check")] string $action
-	): void {
+	): Generator {
 		if (!isset($this->raid)) {
 			$context->reply(static::ERR_NO_RAID);
 			return;
 		}
-		$this->raidMemberController->sendRaidCheckBlob($this->raid, $context);
+		$msg = yield $this->raidMemberController->getRaidCheckBlob($this->raid);
+		$context->reply($msg);
 	}
 
 	/**
@@ -681,7 +684,7 @@ class RaidController extends ModuleInstance {
 	 * Send everyone in the private channel who's not in the raid a reminder to join
 	 */
 	#[NCA\HandlesCommand(self::CMD_RAID_MANAGE)]
-	public function raidNotinCommand(CmdContext $context, #[NCA\Str("notin")] string $action): void {
+	public function raidNotinCommand(CmdContext $context, #[NCA\Str("notin")] string $action): \Generator {
 		if (!isset($this->raid)) {
 			$context->reply(static::ERR_NO_RAID);
 			return;
@@ -691,18 +694,20 @@ class RaidController extends ModuleInstance {
 			$context->reply("Everyone is in the raid.");
 			return;
 		}
-		$this->playerManager->massGetByName(
-			function(array $result) use ($context) {
-				$this->reportNotInResult($result, $context);
-			},
-			$notInRaid
-		);
+		$promises = [];
+		foreach ($notInRaid as $notInName) {
+			$promises []= $this->playerManager->byName($notInName);
+		}
+		$notInPlayers = yield \Amp\Promise\all($promises);
+		$msg = $this->reportNotInResult($notInPlayers);
+		$context->reply($msg);
 	}
 
 	/**
 	 * @param array<null|Player> $players
+	 * @return string[]
 	 */
-	protected function reportNotInResult(array $players, CommandReply $sendto): void {
+	protected function reportNotInResult(array $players): array {
 		$blob = "<header2>Players that were warned<end>\n";
 		ksort($players);
 		foreach ($players as $name => $player) {
@@ -719,7 +724,7 @@ class RaidController extends ModuleInstance {
 		foreach ($msgs as &$msg) {
 			$msg = "Sent not in raid warning to $msg.";
 		}
-		$sendto->reply($msgs);
+		return $msgs;
 	}
 
 	/**
@@ -933,7 +938,10 @@ class RaidController extends ModuleInstance {
 	 * Check if anyone in the current raid is dual-logged
 	 */
 	#[NCA\HandlesCommand(self::CMD_RAID_MANAGE)]
-	public function raidDualCommand(CmdContext $context, #[NCA\Str("dual")] string $action): void {
+	public function raidDualCommand(
+		CmdContext $context,
+		#[NCA\Str("dual")] string $action
+	): Generator {
 		if (!isset($this->raid)) {
 			$context->reply(static::ERR_NO_RAID);
 			return;
@@ -971,38 +979,38 @@ class RaidController extends ModuleInstance {
 		foreach ($duals as $name => $alts) {
 			$toLookup = [...$toLookup, $name, ...array_keys($alts)];
 		}
-		$this->playerManager->massGetByName(
-			function (array $lookup) use ($duals, $context): void {
-				$blob = "";
-				foreach ($duals as $name => $alts) {
-					$player = $lookup[$name];
-					if ($player === null) {
-						continue;
-					}
-					$blob .="<header2>{$name}<end>\n";
-					$blob .= "<tab>- <highlight>{$name}<end> - {$player->level}/<green>{$player->ai_level}<end> {$player->profession} :: <red>in raid<end>\n";
-					foreach ($alts as $alt => $inRaid) {
-						$player = $lookup[$alt];
-						if ($player === null) {
-							continue;
-						}
-						$blob .= "<tab>- <highlight>{$alt}<end> - {$player->level}/<green>{$player->ai_level}<end> {$player->profession}";
-						if ($inRaid) {
-							$blob .= " :: <red>in raid<end>";
-						}
-						$blob .= "\n";
-					}
-					$blob .= "\n";
+		$tasks = [];
+		foreach ($toLookup as $toLookupName) {
+			$tasks[$toLookupName] = $this->playerManager->byName($toLookupName);
+		}
+		$lookup = yield all($tasks);
+		$blob = "";
+		foreach ($duals as $name => $alts) {
+			$player = $lookup[$name];
+			if ($player === null) {
+				continue;
+			}
+			$blob .="<header2>{$name}<end>\n";
+			$blob .= "<tab>- <highlight>{$name}<end> - {$player->level}/<green>{$player->ai_level}<end> {$player->profession} :: <red>in raid<end>\n";
+			foreach ($alts as $alt => $inRaid) {
+				$player = $lookup[$alt];
+				if ($player === null) {
+					continue;
 				}
-				$msg = $this->text->makeBlob(
-					"Dual-logged players (" . count($duals) .")",
-					$blob,
-					"Dual-logged players with at last 1 char in the raid"
-				);
-				$context->reply($msg);
-			},
-			$toLookup
+				$blob .= "<tab>- <highlight>{$alt}<end> - {$player->level}/<green>{$player->ai_level}<end> {$player->profession}";
+				if ($inRaid) {
+					$blob .= " :: <red>in raid<end>";
+				}
+				$blob .= "\n";
+			}
+			$blob .= "\n";
+		}
+		$msg = $this->text->makeBlob(
+			"Dual-logged players (" . count($duals) .")",
+			$blob,
+			"Dual-logged players with at last 1 char in the raid"
 		);
+		$context->reply($msg);
 	}
 
 	/**
