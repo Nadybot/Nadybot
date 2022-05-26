@@ -2,6 +2,8 @@
 
 namespace Nadybot\Modules\RAID_MODULE;
 
+use Amp\Promise;
+use Generator;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	AccessLevelProvider,
@@ -24,6 +26,8 @@ use Nadybot\Core\{
 	SettingManager,
 	Text,
 };
+
+use function Amp\call;
 
 #[
 	NCA\Instance,
@@ -284,44 +288,47 @@ class RaidRankController extends ModuleInstance implements AccessLevelProvider {
 		return true;
 	}
 
-	public function add(string $who, string $sender, CommandReply $sendto, int $rank, string $rankName, string $alName): bool {
-		if ($this->chatBot->get_uid($who) == null) {
-			$sendto->reply("Character <highlight>$who<end> does not exist.");
-			return false;
-		}
+	/** @return Promise<bool> */
+	private function add(string $who, string $sender, CommandReply $sendto, int $rank, string $rankName, string $alName): Promise {
+		return call(function () use ($who, $sender, $sendto, $rank, $rankName, $alName): Generator {
+			if (null === yield $this->chatBot->getUid2($who)) {
+				$sendto->reply("Character <highlight>$who<end> does not exist.");
+				return false;
+			}
 
-		if ($this->checkExisting($who, $rank)) {
+			if ($this->checkExisting($who, $rank)) {
+				$sendto->reply(
+					"<highlight>$who<end> is already $rankName. ".
+					"To promote/demote to a different rank, add the ".
+					"rank number (1, 2 or 3) to the command."
+				);
+				return false;
+			}
+
+			if (!$this->canChangeRaidRank($sender, $who, $alName, $sendto)) {
+				return false;
+			}
+
+			$altInfo = $this->altsController->getAltInfo($who);
+			if ($altInfo->main !== $who) {
+				$msg = "<red>WARNING<end>: $who is not a main. This command did NOT affect $who's access level and no action was performed.";
+				$sendto->reply($msg);
+				return false;
+			}
+
+			$action = $this->addToLists($who, $sender, $rank);
+
 			$sendto->reply(
-				"<highlight>$who<end> is already $rankName. ".
-				"To promote/demote to a different rank, add the ".
-				"rank number (1, 2 or 3) to the command."
+				"<highlight>{$who}<end> has been <highlight>{$action}<end> ".
+				"to {$rankName}."
 			);
-			return false;
-		}
-
-		if (!$this->canChangeRaidRank($sender, $who, $alName, $sendto)) {
-			return false;
-		}
-
-		$altInfo = $this->altsController->getAltInfo($who);
-		if ($altInfo->main !== $who) {
-			$msg = "<red>WARNING<end>: $who is not a main. This command did NOT affect $who's access level and no action was performed.";
-			$sendto->reply($msg);
-			return false;
-		}
-
-		$action = $this->addToLists($who, $sender, $rank);
-
-		$sendto->reply(
-			"<highlight>{$who}<end> has been <highlight>{$action}<end> ".
-			"to {$rankName}."
-		);
-		$this->chatBot->sendTell(
-			"You have been <highlight>{$action}<end> to {$rankName} ".
-			"by <highlight>$sender<end>.",
-			$who
-		);
-		return true;
+			$this->chatBot->sendTell(
+				"You have been <highlight>{$action}<end> to {$rankName} ".
+				"by <highlight>$sender<end>.",
+				$who
+			);
+			return true;
+		});
 	}
 
 	/** @param int[] $ranks */
@@ -356,7 +363,7 @@ class RaidRankController extends ModuleInstance implements AccessLevelProvider {
 		#[NCA\Str("add", "promote")] string $action,
 		PCharacter $char,
 		?int $rank
-	): void {
+	): Generator {
 		$rank ??= 1;
 		if ($rank < 1 || $rank > 3) {
 			$context->reply("The admin rank must be a number between 1 and 3");
@@ -364,7 +371,7 @@ class RaidRankController extends ModuleInstance implements AccessLevelProvider {
 		}
 		$rankName = $this->settingManager->getString("name_raid_admin_$rank")??"";
 
-		$this->add($char(), $context->char->name, $context, $rank+6, $rankName, "raid_admin_$rank");
+		yield $this->add($char(), $context->char->name, $context, $rank+6, $rankName, "raid_admin_$rank");
 	}
 
 	/** Demote someone from raid admin */
@@ -388,7 +395,7 @@ class RaidRankController extends ModuleInstance implements AccessLevelProvider {
 		#[NCA\Str("add", "promote")] string $action,
 		PCharacter $char,
 		?int $rank
-	): void {
+	): Generator {
 		$rank ??= 1;
 		if ($rank < 1 || $rank > 3) {
 			$context->reply("The leader rank must be a number between 1 and 3");
@@ -396,7 +403,7 @@ class RaidRankController extends ModuleInstance implements AccessLevelProvider {
 		}
 		$rankName = $this->settingManager->getString("name_raid_leader_$rank")??"";
 
-		$this->add($char(), $context->char->name, $context, $rank+3, $rankName, "raid_leader_$rank");
+		yield $this->add($char(), $context->char->name, $context, $rank+3, $rankName, "raid_leader_$rank");
 	}
 
 	/** Demote someone from raid leader */

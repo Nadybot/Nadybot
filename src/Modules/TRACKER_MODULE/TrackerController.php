@@ -299,12 +299,12 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 		name: "logOn",
 		description: "Records a tracked user logging on"
 	)]
-	public function trackLogonEvent(UserStateEvent $eventObj): void {
+	public function trackLogonEvent(UserStateEvent $eventObj): Generator {
 		if (!$this->chatBot->isReady() || !is_string($eventObj->sender)) {
 			return;
 		}
-		$uid = $this->chatBot->get_uid($eventObj->sender);
-		if ($uid === false) {
+		$uid = yield $this->chatBot->getUid2($eventObj->sender);
+		if ($uid === null) {
 			return;
 		}
 		if (!$this->buddylistManager->buddyHasType($uid, static::REASON_TRACKER)
@@ -318,19 +318,18 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 				"dt" => time(),
 				"event" => "logon",
 			]);
-		$this->playerManager->getByNameAsync(
-			function(?Player $player) use ($eventObj): void {
-				$msg = $this->getLogonMessage($player, $eventObj->sender);
-				$r = new RoutableMessage($msg);
-				$r->appendPath(new Source(Source::SYSTEM, "tracker"));
-				$this->messageHub->handle($r);
-			},
-			$eventObj->sender
-		);
+
 		$event = new TrackerEvent();
 		$event->player = $eventObj->sender;
 		$event->type = "tracker(logon)";
 		$this->eventManager->fireEvent($event);
+
+		$player = yield $this->playerManager->byName($eventObj->sender);
+
+		$msg = $this->getLogonMessage($player, $eventObj->sender);
+		$r = new RoutableMessage($msg);
+		$r->appendPath(new Source(Source::SYSTEM, "tracker"));
+		$this->messageHub->handle($r);
 	}
 
 	/**
@@ -402,12 +401,12 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 		name: "logOff",
 		description: "Records a tracked user logging off"
 	)]
-	public function trackLogoffEvent(UserStateEvent $eventObj): void {
+	public function trackLogoffEvent(UserStateEvent $eventObj): Generator {
 		if (!$this->chatBot->isReady() || !is_string($eventObj->sender)) {
 			return;
 		}
-		$uid = $this->chatBot->get_uid($eventObj->sender);
-		if ($uid === false) {
+		$uid = yield $this->chatBot->getUid2($eventObj->sender);
+		if ($uid === null) {
 			return;
 		}
 		if (!$this->buddylistManager->buddyHasType($uid, static::REASON_TRACKER)
@@ -433,19 +432,17 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 		if (isset($orgMember) && (time() - $orgMember->added_dt->getTimestamp()) < 60) {
 			return;
 		}
-		$this->playerManager->getByNameAsync(
-			function(?Player $player) use ($eventObj): void {
-				$msg = $this->getLogoffMessage($player, $eventObj->sender);
-				$r = new RoutableMessage($msg);
-				$r->appendPath(new Source(Source::SYSTEM, "tracker"));
-				$this->messageHub->handle($r);
-			},
-			$eventObj->sender
-		);
+
 		$event = new TrackerEvent();
 		$event->player = $eventObj->sender;
 		$event->type = "tracker(logoff)";
 		$this->eventManager->fireEvent($event);
+
+		$player = yield $this->playerManager->byName($eventObj->sender);
+		$msg = $this->getLogoffMessage($player, $eventObj->sender);
+		$r = new RoutableMessage($msg);
+		$r->appendPath(new Source(Source::SYSTEM, "tracker"));
+		$this->messageHub->handle($r);
 	}
 
 	/** See the list of users on the track list */

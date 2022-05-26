@@ -3,6 +3,7 @@
 namespace Nadybot\Modules\PRIVATE_CHANNEL_MODULE;
 
 use Amp\Loop;
+use Amp\Promise;
 use Exception;
 use Generator;
 use Illuminate\Support\Collection;
@@ -52,6 +53,8 @@ use Nadybot\Modules\{
 	WEBSERVER_MODULE\StatsController,
 };
 use Safe\Exceptions\FilesystemException;
+
+use function Amp\call;
 
 /**
  * @author Tyrence (RK2)
@@ -430,8 +433,12 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 		CmdContext $context,
 		#[NCA\Str("add")] string $action,
 		PCharacter $char
-	): void {
-		$msg = $this->addUser($char(), $context->char->name);
+	): Generator {
+		try {
+			$msg = yield $this->addUser($char(), $context->char->name);
+		} catch (Exception $e) {
+			$msg = $e->getMessage();
+		}
 
 		$context->reply($msg);
 	}
@@ -1168,45 +1175,50 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 		$this->chatBot->sendMassTell($msg, $sender);
 	}
 
-	public function addUser(string $name, string $sender): string {
-		$autoInvite = $this->autoinviteDefault;
-		$name = ucfirst(strtolower($name));
-		$uid = $this->chatBot->get_uid($name);
-		if ($this->chatBot->char->name == $name) {
-			return "You cannot add the bot as a member of itself.";
-		} elseif (!$uid || $uid < 0) {
-			return "Character <highlight>$name<end> does not exist.";
-		}
-		$maxBuddies = $this->chatBot->getBuddyListSize();
-		$numBuddies = $this->buddylistManager->getUsedBuddySlots();
-		if ($autoInvite && $numBuddies >= $maxBuddies) {
-			return "The buddylist already contains ".
-				"{$numBuddies}/{$maxBuddies} characters. ".
-				"In order to be able to add more members, you need ".
-				"to setup AOChatProxy (https://github.com/Nadybot/aochatproxy).";
-		}
-		// always add in case they were removed from the buddy list for some reason
-		$this->buddylistManager->add($name, 'member');
-		if ($this->db->table(self::DB_TABLE)->where("name", $name)->exists()) {
-			return "<highlight>$name<end> is already a member of this bot.";
-		}
-		$this->db->table(self::DB_TABLE)
-			->insert([
-				"name" => $name,
-				"autoinv" => $autoInvite,
-			]);
-		$this->members[$name] = true;
-		$event = new MemberEvent();
-		$event->type = "member(add)";
-		$event->sender = $name;
-		$this->eventManager->fireEvent($event);
-		$audit = new Audit();
-		$audit->actor = $sender;
-		$audit->actee = $name;
-		$audit->action = AccessManager::ADD_RANK;
-		$audit->value = (string)$this->accessManager->getAccessLevels()["member"];
-		$this->accessManager->addAudit($audit);
-		return "<highlight>$name<end> has been added as a member of this bot.";
+	/** @return Promise<string> */
+	private function addUser(string $name, string $sender): Promise {
+		return call(function () use ($name, $sender) {
+			$autoInvite = $this->autoinviteDefault;
+			$name = ucfirst(strtolower($name));
+			$uid = yield $this->chatBot->getUid2($name);
+			if ($this->chatBot->char->name === $name) {
+				throw new Exception("You cannot add the bot as a member of itself.");
+			} elseif ($uid === null) {
+				throw new Exception("Character <highlight>$name<end> does not exist.");
+			}
+			$maxBuddies = $this->chatBot->getBuddyListSize();
+			$numBuddies = $this->buddylistManager->getUsedBuddySlots();
+			if ($autoInvite && $numBuddies >= $maxBuddies) {
+				throw new Exception(
+					"The buddylist already contains ".
+					"{$numBuddies}/{$maxBuddies} characters. ".
+					"In order to be able to add more members, you need ".
+					"to setup AOChatProxy (https://github.com/Nadybot/aochatproxy)."
+				);
+			}
+			// always add in case they were removed from the buddy list for some reason
+			$this->buddylistManager->add($name, 'member');
+			if ($this->db->table(self::DB_TABLE)->where("name", $name)->exists()) {
+				return "<highlight>$name<end> is already a member of this bot.";
+			}
+			$this->db->table(self::DB_TABLE)
+				->insert([
+					"name" => $name,
+					"autoinv" => $autoInvite,
+				]);
+			$this->members[$name] = true;
+			$event = new MemberEvent();
+			$event->type = "member(add)";
+			$event->sender = $name;
+			$this->eventManager->fireEvent($event);
+			$audit = new Audit();
+			$audit->actor = $sender;
+			$audit->actee = $name;
+			$audit->action = AccessManager::ADD_RANK;
+			$audit->value = (string)$this->accessManager->getAccessLevels()["member"];
+			$this->accessManager->addAudit($audit);
+			return "<highlight>$name<end> has been added as a member of this bot.";
+		});
 	}
 
 	#[NCA\Event(

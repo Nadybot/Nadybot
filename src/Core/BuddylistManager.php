@@ -2,7 +2,15 @@
 
 namespace Nadybot\Core;
 
+use Amp\Deferred;
+use Amp\Promise;
+use Amp\Success;
+use Generator;
 use Nadybot\Core\Attributes as NCA;
+use Throwable;
+
+use function Amp\call;
+use function Amp\Promise\timeout;
 
 #[NCA\Instance]
 class BuddylistManager {
@@ -14,6 +22,9 @@ class BuddylistManager {
 
 	#[NCA\Inject]
 	public ConfigFile $config;
+
+	#[NCA\Inject]
+	public EventManager $eventManager;
 
 	#[NCA\Inject]
 	public Timer $timer;
@@ -73,6 +84,40 @@ class BuddylistManager {
 		}
 		$buddy = $this->getBuddy($name);
 		return $buddy ? $buddy->online : null;
+	}
+
+	/**
+	 * Check if $uid is online (true) or offline/inactive (false)
+	 *
+	 * @return Promise<bool>
+	 */
+	public function checkIsOnline(int $uid): Promise {
+		$buddyOnline = $this->isUidOnline($uid);
+		if (isset($buddyOnline)) {
+			return new Success($buddyOnline);
+		}
+		return call(function () use ($uid): Generator {
+			$onlineKey = "is_online:" . microtime(true);
+			$deferred = new Deferred();
+			$resolver = function (UserStateEvent $event) use ($deferred, $uid, &$resolver): void {
+				if ($event->uid !== $uid) {
+					return;
+				}
+				$deferred->resolve($event->type == "logon");
+				$this->eventManager->unsubscribe($event->type, $resolver);
+			};
+			$this->eventManager->subscribe("logon", $resolver);
+			$this->eventManager->subscribe("logoff", $resolver);
+			$this->addId($uid, $onlineKey);
+			try {
+				$isOnline = yield timeout($deferred->promise(), 1000);
+			} catch (Throwable $e) {
+				$isOnline = false;
+			} finally {
+				$this->removeId($uid, $onlineKey);
+			}
+			return $isOnline;
+		});
 	}
 
 	/**

@@ -5,6 +5,7 @@ namespace Nadybot\Modules\RAID_MODULE;
 use Amp\Loop;
 use Safe\DateTime;
 use Exception;
+use Generator;
 use Illuminate\Support\Collection;
 use Throwable;
 use Nadybot\Core\{
@@ -622,10 +623,10 @@ class RaidPointsController extends ModuleInstance {
 		PCharacter $char,
 		int $points,
 		string $reason
-	): void {
+	): Generator {
 		$receiver = $char();
-		$uid = $this->chatBot->get_uid($receiver);
-		if ($uid === false) {
+		$uid = yield $this->chatBot->getUid2($receiver);
+		if ($uid === null) {
 			$context->reply("The player <highlight>{$receiver}<end> does not exist.");
 			return;
 		}
@@ -672,10 +673,10 @@ class RaidPointsController extends ModuleInstance {
 		PCharacter $char,
 		int $points,
 		string $reason
-	): void {
+	): Generator {
 		$receiver = $char();
-		$uid = $this->chatBot->get_uid($receiver);
-		if ($uid === false) {
+		$uid = yield $this->chatBot->getUid2($receiver);
+		if ($uid === null) {
 			$context->reply("The player <highlight>{$receiver}<end> does not exist.");
 			return;
 		}

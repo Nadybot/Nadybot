@@ -849,6 +849,7 @@ class Nadybot extends AOChat {
 		$this->setUserState($userId, $sender, $status === 1);
 
 		$eventObj = new UserStateEvent();
+		$eventObj->uid = $userId;
 		$eventObj->sender = $sender;
 
 		$this->logger->info("AOChatPacket::BUDDY_ADD => sender: '$sender' status: '$status'");

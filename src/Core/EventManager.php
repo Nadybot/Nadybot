@@ -2,7 +2,9 @@
 
 namespace Nadybot\Core;
 
-use Amp\Coroutine;
+use function Amp\call;
+
+use Amp\Promise;
 use Exception;
 use Closure;
 use Generator;
@@ -486,7 +488,7 @@ class EventManager {
 				if (isset($newEventObj)) {
 					$result = $callback($newEventObj, ...$args);
 					if ($result instanceof Generator) {
-						new Coroutine($result);
+						$this->wrapGenerator($result, $eventObj);
 					}
 				}
 			}
@@ -533,7 +535,10 @@ class EventManager {
 				$refMeth = new ReflectionMethod($instance, $method);
 				$eventObj = $this->convertSyncEvent($refMeth, $eventObj);
 				if (isset($eventObj)) {
-					$instance->$method($eventObj, ...$args);
+					$result = $instance->$method($eventObj, ...$args);
+					if ($result instanceof Generator) {
+						$this->wrapGenerator($result, $eventObj);
+					}
 				}
 			}
 		} catch (StopExecutionException $e) {
@@ -568,5 +573,19 @@ class EventManager {
 	 */
 	public function getEventTypes(): array {
 		return $this->eventTypes;
+	}
+
+	/** @return Promise<void> */
+	private function wrapGenerator(Generator $methodResult, Event $event): Promise {
+		return call(function () use ($methodResult, $event): Generator {
+			try {
+				yield from $methodResult;
+			} catch (Throwable $e) {
+				$this->logger->error(
+					"Error executing '{$event->type}': " . $e->getMessage(),
+					["exception" => $e]
+				);
+			}
+		});
 	}
 }

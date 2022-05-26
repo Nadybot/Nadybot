@@ -53,6 +53,11 @@ class GuildManager extends ModuleInstance {
 	#[NCA\Inject]
 	public PlayerManager $playerManager;
 
+	#[NCA\Setup]
+	public function setup(): void {
+		mkdir($this->config->cacheFolder . '/guild_roster');
+	}
+
 	protected function getJsonValidator(): Closure {
 		return function(?string $data): bool {
 			try {

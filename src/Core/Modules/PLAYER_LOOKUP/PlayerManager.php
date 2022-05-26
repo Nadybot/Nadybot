@@ -4,15 +4,16 @@ namespace Nadybot\Core\Modules\PLAYER_LOOKUP;
 
 use function Amp\call;
 use function Amp\delay;
-use function Amp\File\getStatus;
 use function Safe\json_decode;
 
+use Amp\Cache\FileCache;
 use Amp\Http\Client\Connection\UnprocessedRequestException;
 use Amp\Http\Client\HttpClientBuilder;
 use Amp\Http\Client\Request;
 use Amp\Http\Client\Response;
 use Amp\Http\Client\TimeoutException;
 use Amp\Promise;
+use Amp\Sync\LocalKeyedMutex;
 use Safe\DateTime;
 use DateTimeZone;
 use Generator;
@@ -62,6 +63,11 @@ class PlayerManager extends ModuleInstance {
 	public int $lookupJobs = 0;
 
 	public ?PlayerLookupJob $playerLookupJob = null;
+
+	#[NCA\Setup]
+	public function setup(): void {
+		mkdir($this->config->cacheFolder . '/players');
+	}
 
 	#[NCA\Event(
 		name: "timer(1h)",
@@ -229,10 +235,21 @@ class PlayerManager extends ModuleInstance {
 				$retries = 5;
 				while ($try++ < $retries) {
 					try {
+						$cache = new FileCache(
+							$this->config->cacheFolder . '/players',
+							new LocalKeyedMutex()
+						);
+						$cacheKey = "{$name}.{$dimension}";
+						$body = yield $cache->get($cacheKey);
+						if (isset($body)) {
+							$player = $this->parsePlayerFromBody($body);
+							break;
+						}
 						/** @var Response */
 						$response = yield $client->request(new Request($url));
 						if ($response->getStatus() === 200) {
 							$body = yield $response->getBody()->buffer();
+							$cache->set($cacheKey, $body, 60);
 							$player = $this->parsePlayerFromBody($body);
 						} else {
 							$this->logger->debug("Looking up {name}.{dimension}: {code}", [
@@ -285,6 +302,9 @@ class PlayerManager extends ModuleInstance {
 	}
 
 	private function parsePlayerFromBody(string $body): ?Player {
+		if ($body === "null") {
+			return null;
+		}
 		try {
 			[$char, $org, $lastUpdated] = json_decode($body);
 		} catch (JsonException) {

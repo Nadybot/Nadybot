@@ -2,7 +2,8 @@
 
 namespace Nadybot\Core;
 
-use Amp\Coroutine;
+use function Amp\call;
+
 use Exception;
 use Generator;
 use Illuminate\Support\Collection;
@@ -32,8 +33,6 @@ use Nadybot\Core\{
 	Routing\RoutableMessage,
 	Routing\Source,
 };
-
-use function Amp\call;
 
 #[
 	NCA\Instance,
@@ -734,8 +733,19 @@ class CommandManager implements MessageEmitter {
 			// methods will return false to indicate a syntax error, so when a false is returned,
 			// we set $syntaxError = true, otherwise we set it to false
 			$methodResult = $instance->$method($context, ...$args);
+			// @TODO merge with upwards error detection once this became a Promise
 			if ($methodResult instanceof Generator) {
-				new Coroutine($methodResult);
+				call(function () use ($methodResult, $context): Generator {
+					try {
+						yield from $methodResult;
+					} catch (Throwable $e) {
+						$this->logger->error(
+							"Error executing '{$context->message}': " . $e->getMessage(),
+							["exception" => $e]
+						);
+						$context->reply("There was an error executing your command: " . $e->getMessage());
+					}
+				});
 			}
 			if ($methodResult !== false) {
 				// we can stop looking, command was handled successfully

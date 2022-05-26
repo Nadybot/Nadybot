@@ -2,7 +2,6 @@
 
 namespace Nadybot\Modules\RELAY_MODULE\Transport;
 
-use Exception;
 use Nadybot\Core\{
 	Attributes as NCA,
 	AOChatEvent,
@@ -10,7 +9,6 @@ use Nadybot\Core\{
 	EventManager,
 	Nadybot,
 	PacketEvent,
-	Registry,
 	StopExecutionException,
 	UserStateEvent,
 };
@@ -56,11 +54,6 @@ class Tell implements TransportInterface {
 
 	public function __construct(string $bot) {
 		$bot = ucfirst(strtolower($bot));
-		/** @var Nadybot */
-		$chatBot = Registry::getInstance(Nadybot::class);
-		if ($chatBot->get_uid($bot) === false) {
-			throw new Exception("Unknown user <highlight>{$bot}<end>.");
-		}
 		$this->bot = $bot;
 	}
 

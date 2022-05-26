@@ -2,13 +2,11 @@
 
 namespace Nadybot\Modules\RELAY_MODULE\Transport;
 
-use Exception;
 use Nadybot\Core\{
 	Attributes as NCA,
 	AOChatEvent,
 	EventManager,
 	Nadybot,
-	Registry,
 	StopExecutionException,
 };
 use Nadybot\Modules\RELAY_MODULE\{
@@ -54,11 +52,6 @@ class PrivateChannel implements TransportInterface, StatusProvider {
 
 	public function __construct(string $channel) {
 		$this->channel = ucfirst(strtolower($channel));
-		/** @var Nadybot */
-		$chatBot = Registry::getInstance(Nadybot::class);
-		if ($chatBot->get_uid($this->channel) === false) {
-			throw new Exception("Unknown user <highlight>{$this->channel}<end>.");
-		}
 	}
 
 	public function setRelay(Relay $relay): void {

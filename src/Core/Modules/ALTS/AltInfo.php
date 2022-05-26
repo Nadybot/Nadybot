@@ -2,6 +2,8 @@
 
 namespace Nadybot\Core\Modules\ALTS;
 
+use Amp\Promise;
+use Generator;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	Attributes as NCA,
@@ -15,6 +17,8 @@ use Nadybot\Core\{
 	Util,
 };
 use Nadybot\Modules\ONLINE_MODULE\OnlineController;
+
+use function Amp\call;
 
 class AltInfo {
 	#[NCA\Inject]
@@ -128,6 +132,18 @@ class AltInfo {
 			},
 			$this->main
 		);
+	}
+
+	/** @return Promise<string|string[]> */
+	public function getAltsBlob(bool $firstPageOnly=false): Promise {
+		return call(function () use ($firstPageOnly): Generator {
+			if (count($this->alts) === 0) {
+				return "No registered alts.";
+			}
+
+			$player = yield $this->playerManager->byName($this->main);
+			return $this->getAltsBlobForPlayer($player, $firstPageOnly);
+		});
 	}
 
 	/** @return string|string[] */
