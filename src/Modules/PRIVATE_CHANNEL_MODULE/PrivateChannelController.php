@@ -4,6 +4,7 @@ namespace Nadybot\Modules\PRIVATE_CHANNEL_MODULE;
 
 use Amp\Loop;
 use Exception;
+use Generator;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	AccessLevelProvider,
@@ -482,9 +483,9 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 	 */
 	#[NCA\HandlesCommand("invite")]
 	#[NCA\Help\Group("private-channel")]
-	public function inviteCommand(CmdContext $context, PCharacter $char): void {
+	public function inviteCommand(CmdContext $context, PCharacter $char): Generator {
 		$name = $char();
-		$uid = $this->chatBot->get_uid($name);
+		$uid = yield $this->chatBot->getUid2($name);
 		if (!$uid) {
 			$msg = "Character <highlight>{$name}<end> does not exist.";
 			$context->reply($msg);
@@ -504,31 +505,22 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 			$context->reply("The private channel is currently <off>locked<end>: {$this->lockReason}");
 			return;
 		}
-		$invitation = function() use ($name, $context): void {
-			$msg = "Invited <highlight>{$name}<end> to this channel.";
-			$this->chatBot->privategroup_invite($name);
-			$audit = new Audit();
-			$audit->actor = $context->char->name;
-			$audit->actee = $name;
-			$audit->action = AccessManager::INVITE;
-			$this->accessManager->addAudit($audit);
-			$msg2 = "You have been invited to the <highlight><myname><end> channel by <highlight>{$context->char->name}<end>.";
-			$this->chatBot->sendMassTell($msg2, $name);
-
+		if (!$this->inviteBannedChars && (yield $this->banController->isOnBanlist($uid))) {
+			$msg = "<highlight>{$name}<end> is banned from <highlight><myname><end>.";
 			$context->reply($msg);
-		};
-		if ($this->inviteBannedChars) {
-			$invitation();
 			return;
 		}
-		$this->banController->handleBan(
-			$uid,
-			$invitation,
-			function() use ($name, $context): void {
-				$msg = "<highlight>{$name}<end> is banned from <highlight><myname><end>.";
-				$context->reply($msg);
-			}
-		);
+		$msg = "Invited <highlight>{$name}<end> to this channel.";
+		$this->chatBot->privategroup_invite($name);
+		$audit = new Audit();
+		$audit->actor = $context->char->name;
+		$audit->actee = $name;
+		$audit->action = AccessManager::INVITE;
+		$this->accessManager->addAudit($audit);
+		$msg2 = "You have been invited to the <highlight><myname><end> channel by <highlight>{$context->char->name}<end>.";
+		$this->chatBot->sendMassTell($msg2, $name);
+
+		$context->reply($msg);
 	}
 
 	/**
@@ -537,9 +529,9 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 	 */
 	#[NCA\HandlesCommand("kick")]
 	#[NCA\Help\Group("private-channel")]
-	public function kickCommand(CmdContext $context, PCharacter $char, ?string $reason): void {
+	public function kickCommand(CmdContext $context, PCharacter $char, ?string $reason): Generator {
 		$name = $char();
-		$uid = $this->chatBot->get_uid($name);
+		$uid = yield $this->chatBot->getUid2($name);
 		if (!$uid) {
 			$msg = "Character <highlight>{$name}<end> does not exist.";
 		} elseif (!isset($this->chatBot->chatlist[$name])) {
@@ -884,7 +876,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 		name: "logOn",
 		description: "Auto-invite members on logon"
 	)]
-	public function logonAutoinviteEvent(UserStateEvent $eventObj): void {
+	public function logonAutoinviteEvent(UserStateEvent $eventObj): Generator {
 		$sender = $eventObj->sender;
 		if (!is_string($sender)) {
 			return;
@@ -898,29 +890,25 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 		if (!count($data)) {
 			return;
 		}
-		$uid = $this->chatBot->get_uid($eventObj->sender);
-		if ($uid === false) {
+		$uid = yield $this->chatBot->getUid2((string)$eventObj->sender);
+		if ($uid === null) {
 			return;
 		}
 		if ($this->isLockedFor($sender)) {
 			return;
 		}
-		$this->banController->handleBan(
-			$uid,
-			function (int $uid, string $sender): void {
-				$channelName = "the <highlight><myname><end> channel";
-				if ($this->settingManager->getBool('guild_channel_status') === false) {
-					$channelName = "<highlight><myname><end>";
-				}
-				$msg = "You have been auto invited to {$channelName}. ".
-					"Use <highlight><symbol>autoinvite<end> to control ".
-					"your auto invite preference.";
-				$this->chatBot->privategroup_invite($sender);
-				$this->chatBot->sendMassTell($msg, $sender);
-			},
-			null,
-			$sender
-		);
+		if (yield $this->banController->isOnBanlist($uid)) {
+			return;
+		}
+		$channelName = "the <highlight><myname><end> channel";
+		if ($this->settingManager->getBool('guild_channel_status') === false) {
+			$channelName = "<highlight><myname><end>";
+		}
+		$msg = "You have been auto invited to {$channelName}. ".
+			"Use <highlight><symbol>autoinvite<end> to control ".
+			"your auto invite preference.";
+		$this->chatBot->privategroup_invite($sender);
+		$this->chatBot->sendMassTell($msg, $sender);
 	}
 
 	protected function getLogonMessageForPlayer(callable $callback, ?Player $whois, string $player, bool $suppressAltList, AltInfo $altInfo): void {

@@ -7,6 +7,7 @@ use Closure;
 use DateInterval;
 use DateTime;
 use DateTimeZone;
+use Generator;
 use Illuminate\Support\Collection;
 use InvalidArgumentException;
 use ReflectionMethod;
@@ -156,7 +157,7 @@ class StartpageController extends ModuleInstance {
 		name: "logOn",
 		description: "Show startpage to (org) members logging in"
 	)]
-	public function logonEvent(UserStateEvent $eventObj): void {
+	public function logonEvent(UserStateEvent $eventObj): Generator {
 		$sender = $eventObj->sender;
 		if (!$this->chatBot->isReady() || !is_string($sender)) {
 			return;
@@ -165,8 +166,8 @@ class StartpageController extends ModuleInstance {
 			$this->showStartpage($sender, $this->getMassTell($sender));
 			return;
 		}
-		$uid = $this->chatBot->get_uid($sender);
-		if ($uid === false) {
+		$uid = yield $this->chatBot->getUid2($sender);
+		if ($uid === null) {
 			return;
 		}
 		if ($this->startpageShowMembers !== 1) {
@@ -175,14 +176,10 @@ class StartpageController extends ModuleInstance {
 		if ($this->accessManager->getAccessLevelForCharacter($sender) === "all") {
 			return;
 		}
-		$this->banController->handleBan(
-			$uid,
-			function (int $uid, string $sender): void {
-				$this->showStartpage($sender, $this->getMassTell($sender));
-			},
-			null,
-			$sender
-		);
+		if (yield $this->banController->isOnBanlist($uid)) {
+			return;
+		}
+		$this->showStartpage($sender, $this->getMassTell($sender));
 	}
 
 	#[NCA\Event(

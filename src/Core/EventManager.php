@@ -2,8 +2,10 @@
 
 namespace Nadybot\Core;
 
+use Amp\Coroutine;
 use Exception;
 use Closure;
+use Generator;
 use ReflectionFunction;
 use ReflectionFunctionAbstract;
 use ReflectionMethod;
@@ -482,7 +484,10 @@ class EventManager {
 				$refMeth = new ReflectionFunction($callback);
 				$newEventObj = $this->convertSyncEvent($refMeth, $eventObj);
 				if (isset($newEventObj)) {
-					$callback($newEventObj, ...$args);
+					$result = $callback($newEventObj, ...$args);
+					if ($result instanceof Generator) {
+						new Coroutine($result);
+					}
 				}
 			}
 		}

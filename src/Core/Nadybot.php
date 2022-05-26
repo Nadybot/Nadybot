@@ -2,14 +2,17 @@
 
 namespace Nadybot\Core;
 
+use function Amp\call;
 use function Safe\json_encode;
 
 use Amp\Loop;
+use Amp\Promise;
 use ReflectionAttribute;
 use ReflectionClass;
 use ReflectionNamedType;
 use ReflectionProperty;
 use Exception;
+use Generator;
 use Throwable;
 use Nadybot\Core\{
 	Attributes as NCA,
@@ -1615,6 +1618,36 @@ class Nadybot extends AOChat {
 			return (string)$this->id[$id];
 		}
 		return null;
+	}
+
+	/**
+	 * Lookup the username of a user id
+	 * @return Promise<?string>
+	 */
+	public function uidToName(int $id): Promise {
+		return call(function () use ($id): Generator {
+			if (isset($this->id[$id])) {
+				return (string)$this->id[$id];
+			}
+
+			$buddyPayload = json_encode(["mode" => ProxyCapabilities::SEND_BY_WORKER, "worker" => 0]);
+			$removeFromBuddylist = !isset($this->buddylistManager->buddyList[$id]);
+			$this->buddy_add($id, $buddyPayload);
+			// Adding a non-existing uid as a buddy will never give any reply back.
+			// Because Funcom guarantees that the order of packet-replies is the same as the requests,
+			// we know that as soon as we have the reply to a (always succeeding) user lookup,
+			// the buddy packet must have arrived already. If not, the UID was deleted
+			unset($this->id["0"]);
+			$null = yield $this->getUid2("0");
+			if ($removeFromBuddylist) {
+				$this->buddylistManager->removeId($id);
+			}
+
+			if (isset($this->id[$id])) {
+				return (string)$this->id[$id];
+			}
+			return null;
+		});
 	}
 
 	public function getPacket(bool $blocking=false): ?AOChatPacket {
