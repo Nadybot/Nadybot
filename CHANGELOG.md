@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fix
+
+- The `TrackerFormatHandler` was moved to its correct namespace.
+
 ## [6.0.3] - 2022-05-27
 
 ### Added

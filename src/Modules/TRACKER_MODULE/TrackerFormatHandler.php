@@ -1,10 +1,11 @@
 <?php declare(strict_types=1);
 
-namespace Nadybot\Core;
+namespace Nadybot\Modules\TRACKER_MODULE;
 
 use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\DBSchema\Player;
-use Nadybot\Modules\TRACKER_MODULE\TrackerController;
+use Nadybot\Core\SettingHandler;
+use Nadybot\Core\Text;
 
 /**
  * Class to represent a setting with a tracker format value for NadyBot
