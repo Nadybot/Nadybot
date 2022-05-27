@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fix
 
 - The `TrackerFormatHandler` was moved to its correct namespace.
+- The nadybot-big image works again as expected.
 
 ## [6.0.3] - 2022-05-27
 
