@@ -2,10 +2,13 @@
 
 namespace Nadybot\Modules\GUILD_MODULE;
 
-use Amp\Deferred;
+use function Amp\call;
+use function Amp\asyncCall;
+
 use Amp\Promise;
 use Generator;
 use Illuminate\Support\Collection;
+use Throwable;
 use Nadybot\Core\{
 	AOChatEvent,
 	Attributes as NCA,
@@ -37,9 +40,6 @@ use Nadybot\Core\{
 	UserStateEvent,
 	Util,
 };
-use Throwable;
-
-use function Amp\call;
 
 /**
  * @author Tyrence (RK2)
@@ -437,18 +437,16 @@ class GuildController extends ModuleInstance {
 
 	/** Force an update of the org roster */
 	#[NCA\HandlesCommand("updateorg")]
-	public function updateorgCommand(CmdContext $context): void {
-		call(function() use ($context): Generator {
-			$context->reply("Starting Roster update");
-			try {
-				yield $this->updateMyOrgRoster();
-			} catch (Throwable $e) {
-				$context->reply("There was an error during the roster update: ".
-					$e->getMessage());
-				return;
-			}
-			$context->reply("Finished Roster update");
-		});
+	public function updateorgCommand(CmdContext $context): Generator {
+		$context->reply("Starting Roster update");
+		try {
+			yield $this->updateMyOrgRoster();
+		} catch (Throwable $e) {
+			$context->reply("There was an error during the roster update: ".
+				$e->getMessage());
+			return;
+		}
+		$context->reply("Finished Roster update");
 	}
 
 	/** @deprecated */
@@ -469,26 +467,22 @@ class GuildController extends ModuleInstance {
 		);
 	}
 
-	/** @return Promise<null> */
+	/** @return Promise<void> */
 	public function updateMyOrgRoster(): Promise {
 		return call(function (): Generator {
 			if (!$this->isGuildBot() || !isset($this->config->orgId)) {
-				return null;
+				return;
 			}
 			$this->logger->notice("Starting Roster update");
 			$org = yield $this->guildManager->byId($this->config->orgId, $this->config->dimension, false);
-			$deferred = new Deferred();
-			$this->updateRosterForGuild($org, function() use ($deferred): void {
-				$deferred->resolve();
-			});
-			return $deferred->promise();
+			$this->updateRosterForGuild($org);
 		});
 	}
 
 	/**
 	 * @psalm-param null|callable(mixed...) $callback
 	 */
-	public function updateRosterForGuild(?Guild $org, ?callable $callback, mixed ...$args): void {
+	public function updateRosterForGuild(?Guild $org, ?callable $callback=null, mixed ...$args): void {
 		// Check if guild xml file is correct if not abort
 		if ($org === null) {
 			$this->logger->error("Error downloading the guild roster xml file");
@@ -638,8 +632,7 @@ class GuildController extends ModuleInstance {
 			$this->chatBot->guildmembers[$name] = 6;
 
 			// update character info
-			$this->playerManager->getByNameAsync(function() {
-			}, $name);
+			$this->playerManager->byName($name);
 		} elseif (
 			preg_match("/^(.+) kicked (?<char>.+) from your organization.$/", $message, $arr)
 			|| preg_match("/^(.+) removed inactive character (?<char>.+) from your organization.$/", $message, $arr)
@@ -663,7 +656,7 @@ class GuildController extends ModuleInstance {
 	 * @deprecated
 	 */
 	public function getLogonForPlayer(callable $callback, ?Player $whois, string $player, bool $suppressAltList): void {
-		call(function () use ($callback, $whois, $player, $suppressAltList): Generator {
+		asyncCall(function () use ($callback, $whois, $player, $suppressAltList): Generator {
 			$callback(yield $this->getLogonMessageForPlayer($whois, $player, $suppressAltList));
 		});
 	}
@@ -673,7 +666,7 @@ class GuildController extends ModuleInstance {
 	 * @deprecated
 	 */
 	public function getLogonMessageAsync(string $player, bool $suppressAltList, callable $callback): void {
-		call(function () use ($player, $suppressAltList, $callback): Generator {
+		asyncCall(function () use ($player, $suppressAltList, $callback): Generator {
 			$msg = yield $this->getLogonMessage($player, $suppressAltList);
 			if (isset($msg)) {
 				$callback($msg);

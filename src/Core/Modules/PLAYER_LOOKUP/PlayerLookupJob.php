@@ -2,9 +2,14 @@
 
 namespace Nadybot\Core\Modules\PLAYER_LOOKUP;
 
+use function Amp\call;
+use function Amp\asyncCall;
+use function Amp\delay;
+
 use Amp\Promise;
 use Generator;
 use Illuminate\Support\Collection;
+use Throwable;
 use Nadybot\Core\{
 	Attributes as NCA,
 	DB,
@@ -13,10 +18,6 @@ use Nadybot\Core\{
 	Nadybot,
 	QueryBuilder,
 };
-use Throwable;
-
-use function Amp\call;
-use function Amp\delay;
 
 class PlayerLookupJob {
 	#[NCA\Inject]
@@ -83,7 +84,7 @@ class PlayerLookupJob {
 			return;
 		}
 		$this->logger->info($this->toUpdate->count() . " missing / outdated characters found.");
-		call(function () use ($numJobs, $callback, $args): Generator {
+		asyncCall(function () use ($numJobs, $callback, $args): Generator {
 			$threads = [];
 			for ($i = 0; $i < $numJobs; $i++) {
 				$this->numActiveThreads++;

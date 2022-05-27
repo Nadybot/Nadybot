@@ -3,6 +3,7 @@
 namespace Nadybot\Core\Modules\PLAYER_LOOKUP;
 
 use function Amp\call;
+use function Amp\asyncCall;
 use function Safe\json_decode;
 
 use Amp\Cache\FileCache;
@@ -77,7 +78,7 @@ class GuildManager extends ModuleInstance {
 	 * @psalm-param callable(?Guild, mixed...) $callback
 	 */
 	public function getByIdAsync(int $guildId, ?int $dimension, bool $forceUpdate, callable $callback, mixed ...$args): void {
-		call(function() use ($guildId, $dimension, $forceUpdate, $callback, $args): Generator {
+		asyncCall(function() use ($guildId, $dimension, $forceUpdate, $callback, $args): Generator {
 			$guild = yield $this->byId($guildId, $dimension, $forceUpdate);
 			$callback($guild, ...$args);
 		});

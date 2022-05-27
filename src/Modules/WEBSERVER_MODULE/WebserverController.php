@@ -2,20 +2,21 @@
 
 namespace Nadybot\Modules\WEBSERVER_MODULE;
 
+use Amp\Http\Client\HttpClientBuilder;
+use Amp\Http\Client\Request as AmpRequest;
+use Amp\Http\Client\Response as AmpResponse;
 use Amp\Loop;
 use Closure;
 use ReflectionClass;
 use DateTime;
 use Exception;
+use Generator;
 use Nadybot\Core\{
 	AccessManager,
-	AsyncHttp,
 	Attributes as NCA,
 	CmdContext,
 	ConfigFile,
 	DB,
-	Http,
-	HttpResponse,
 	ModuleInstance,
 	LoggerWrapper,
 	Registry,
@@ -59,9 +60,6 @@ class WebserverController extends ModuleInstance {
 
 	#[NCA\Inject]
 	public Timer $timer;
-
-	#[NCA\Inject]
-	public Http $http;
 
 	#[NCA\Inject]
 	public DB $db;
@@ -127,43 +125,39 @@ class WebserverController extends ModuleInstance {
 	protected AsyncSocket $asyncSocket;
 
 	protected ?string $aoAuthPubKey = null;
-	protected AsyncHttp $aoAuthPubKeyRequest;
 
 	#[NCA\Event(
 		name: "connect",
 		description: "Download aoauth public key"
 	)]
-	public function downloadPublicKey(): void {
+	public function downloadPublicKey(): Generator {
 		if ($this->webserverAuth !== static::AUTH_AOAUTH) {
 			return;
 		}
 		$aoAuthKeyUrl = rtrim($this->webserverAoauthUrl, '/') . '/key';
-		if (isset($this->aoAuthPubKeyRequest)) {
-			$this->aoAuthPubKeyRequest->abortWithMessage("Not needed anymore");
+		$client = HttpClientBuilder::buildDefault();
+		/** @var AmpResponse */
+		$response = yield $client->request(new AmpRequest($aoAuthKeyUrl));
+		if ($response->getStatus() !== 200) {
+			$this->logger->error(
+				'Error downloading aoauth pubkey from {uri}: {error} ({reason})',
+				[
+					"uri" => $aoAuthKeyUrl,
+					"error" => $response->getStatus(),
+					"reason" => $response->getReason(),
+				]
+			);
+			return;
 		}
-		$this->aoAuthPubKeyRequest = $this->http->get($aoAuthKeyUrl)
-			->withTimeout(30)
-			->withCallback(function (HttpResponse $response): void {
-				unset($this->aoAuthPubKeyRequest);
-				$this->receiveAoAuthPubkey($response);
-			});
-	}
-
-	protected function receiveAoAuthPubkey(HttpResponse $response): void {
-		if (isset($response->error) || $response->headers['status-code'] !== "200") {
-			if (isset($response->request)) {
-				$this->logger->error(
-					'Error downloading aoauth pubkey from {uri}: {error}',
-					[
-						"uri" => $response->request->getURI(),
-						"error" => ($response->error ?? $response->headers['status-code'] ?? ""),
-					]
-				);
-			}
+		$body = yield $response->getBody()->buffer();
+		if ($body === '') {
+			$this->logger->error('Empty aoauth pubkey received from {uri}', [
+				"uri" => $aoAuthKeyUrl,
+			]);
 			return;
 		}
 		$this->logger->notice('New aoauth pubkey downloaded.');
-		$this->aoAuthPubKey = $response->body;
+		$this->aoAuthPubKey = $body;
 	}
 
 	#[NCA\Setup]

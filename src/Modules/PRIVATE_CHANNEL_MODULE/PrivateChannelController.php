@@ -2,10 +2,14 @@
 
 namespace Nadybot\Modules\PRIVATE_CHANNEL_MODULE;
 
+use function Amp\call;
+use function Amp\asyncCall;
+
 use Amp\Loop;
 use Amp\Promise;
 use Exception;
 use Generator;
+use Safe\Exceptions\FilesystemException;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	AccessLevelProvider,
@@ -52,9 +56,6 @@ use Nadybot\Modules\{
 	ONLINE_MODULE\OnlinePlayer,
 	WEBSERVER_MODULE\StatsController,
 };
-use Safe\Exceptions\FilesystemException;
-
-use function Amp\call;
 
 /**
  * @author Tyrence (RK2)
@@ -945,7 +946,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 	}
 
 	public function getLogonMessageAsync(string $player, bool $suppressAltList, callable $callback): void {
-		call(function () use ($player, $suppressAltList, $callback): Generator {
+		asyncCall(function () use ($player, $suppressAltList, $callback): Generator {
 			$callback(yield $this->getLogonMessage($player, $suppressAltList));
 		});
 	}

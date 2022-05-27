@@ -7,7 +7,6 @@ use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
 	DB,
-	Http,
 	ModuleInstance,
 	ParamClass\PItem,
 	ParamClass\PNonNumber,
@@ -88,9 +87,6 @@ use Nadybot\Modules\ITEMS_MODULE\{
 class SkillsController extends ModuleInstance {
 	#[NCA\Inject]
 	public DB $db;
-
-	#[NCA\Inject]
-	public Http $http;
 
 	#[NCA\Inject]
 	public Text $text;

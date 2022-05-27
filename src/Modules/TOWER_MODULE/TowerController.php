@@ -15,7 +15,6 @@ use Nadybot\Core\{
 	DB,
 	DBSchema\Player,
 	EventManager,
-	Http,
 	ModuleInstance,
 	LoggerWrapper,
 	MessageEmitter,
@@ -165,9 +164,6 @@ class TowerController extends ModuleInstance {
 
 	#[NCA\Inject]
 	public TowerApiController $towerApiController;
-
-	#[NCA\Inject]
-	public Http $http;
 
 	#[NCA\Inject]
 	public DB $db;

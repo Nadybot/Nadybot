@@ -2,8 +2,6 @@
 
 namespace Nadybot\Modules\WORLDBOSS_MODULE;
 
-use Throwable;
-use function Amp\call;
 use function Amp\delay;
 use function Safe\json_decode;
 
@@ -11,6 +9,8 @@ use Amp\Http\Client\HttpClientBuilder;
 use Amp\Http\Client\Request;
 use Amp\Http\Client\Response;
 use DateTime;
+use Generator;
+use Throwable;
 use Safe\Exceptions\JsonException;
 use Nadybot\Core\{
 	Attributes as NCA,
@@ -19,7 +19,6 @@ use Nadybot\Core\{
 	DB,
 	Event,
 	EventManager,
-	Http,
 	ModuleInstance,
 	LoggerWrapper,
 	MessageHub,
@@ -167,9 +166,6 @@ class WorldBossController extends ModuleInstance {
 	public EventManager $eventManager;
 
 	#[NCA\Inject]
-	public Http $http;
-
-	#[NCA\Inject]
 	public Util $util;
 
 	#[NCA\Inject]
@@ -244,41 +240,39 @@ class WorldBossController extends ModuleInstance {
 		name: "connect",
 		description: "Get boss timers from timer API"
 	)]
-	public function loadTimersFromAPI(): void {
-		call(function() {
-			$client = HttpClientBuilder::buildDefault();
+	public function loadTimersFromAPI(): Generator {
+		$client = HttpClientBuilder::buildDefault();
 
-			try {
-				/** @var Response */
-				$response = yield $client->request(new Request(static::WORLDBOSS_API));
-				$code = $response->getStatus();
-				if ($code >= 500 && $code < 600 && --$this->timerRetriesLeft) {
-					$this->logger->warning('Worldboss API sent a {code}, retrying in 5s', [
-						"code" => $code
-					]);
-					yield delay(5000);
-					$this->loadTimersFromAPI();
-					return;
-				}
-				if ($code !== 200) {
-					$this->logger->error('Worldboss API replied with error {code} ({reason})', [
-						"code" => $code,
-						"reason" => $response->getReason(),
-						"headers" => $response->getRawHeaders(),
-					]);
-					return;
-				}
-				/** @var string */
-				$body = yield $response->getBody()->buffer();
-			} catch (Throwable $error) {
-				$this->logger->warning('Unknown error from Worldboss API: {error}', [
-					"error" => $error->getMessage(),
-					"Exception" => $error,
+		try {
+			/** @var Response */
+			$response = yield $client->request(new Request(static::WORLDBOSS_API));
+			$code = $response->getStatus();
+			if ($code >= 500 && $code < 600 && --$this->timerRetriesLeft) {
+				$this->logger->warning('Worldboss API sent a {code}, retrying in 5s', [
+					"code" => $code
+				]);
+				yield delay(5000);
+				$this->loadTimersFromAPI();
+				return;
+			}
+			if ($code !== 200) {
+				$this->logger->error('Worldboss API replied with error {code} ({reason})', [
+					"code" => $code,
+					"reason" => $response->getReason(),
+					"headers" => $response->getRawHeaders(),
 				]);
 				return;
 			}
-			$this->handleTimerData($body);
-		});
+			/** @var string */
+			$body = yield $response->getBody()->buffer();
+		} catch (Throwable $error) {
+			$this->logger->warning('Unknown error from Worldboss API: {error}', [
+				"error" => $error->getMessage(),
+				"Exception" => $error,
+			]);
+			return;
+		}
+		$this->handleTimerData($body);
 	}
 
 	/**

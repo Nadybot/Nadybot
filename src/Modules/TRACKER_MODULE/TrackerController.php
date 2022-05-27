@@ -41,8 +41,6 @@ use Nadybot\Modules\{
 	TOWER_MODULE\TowerAttackEvent,
 };
 
-use function Amp\call;
-
 /**
  * @author Tyrence (RK2)
  */
@@ -218,21 +216,18 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 		name: "timer(24hrs)",
 		description: "Download all tracked orgs' information"
 	)]
-	public function downloadOrgRostersEvent(Event $eventObj): void {
-		$this->logger->notice("Starting Tracker Roster update");
-		call(function(): Generator {
-			/** @var Collection<TrackingOrg> */
-			$orgs = $this->db->table(static::DB_ORG)->asObj(TrackingOrg::class);
-			try {
-				foreach ($orgs as $org) {
-					$orgData = yield $this->guildManager->byId($org->org_id, $this->config->dimension, true);
-					$this->updateRosterForOrg($orgData);
-				}
-			} catch (Throwable $e) {
-				$this->logger->error($e->getMessage(), ["Exception" => $e->getPrevious()]);
+	public function downloadOrgRostersEvent(Event $eventObj): Generator {
+		/** @var Collection<TrackingOrg> */
+		$orgs = $this->db->table(static::DB_ORG)->asObj(TrackingOrg::class);
+		try {
+			foreach ($orgs as $org) {
+				$orgData = yield $this->guildManager->byId($org->org_id, $this->config->dimension, true);
+				$this->updateRosterForOrg($orgData);
 			}
-			$this->logger->notice("Finished Tracker Roster update");
-		});
+		} catch (Throwable $e) {
+			$this->logger->error($e->getMessage(), ["Exception" => $e->getPrevious()]);
+		}
+		$this->logger->notice("Finished Tracker Roster update");
 	}
 
 	#[NCA\Event(
@@ -593,46 +588,44 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 		CmdContext $context,
 		#[NCA\Str("addorg")] string $action,
 		int $orgId
-	): void {
-		call(function() use ($context, $orgId): Generator {
-			if (!$this->findOrgController->isReady()) {
-				$this->findOrgController->sendNotReadyError($context);
-				return null;
-			}
-			$org = $this->findOrgController->getByID($orgId);
-			if (!isset($org)) {
-				$context->reply("There is no org #{$orgId}.");
-				return null;
-			}
-
-			if ($this->db->table(static::DB_ORG)->where("org_id", $orgId)->exists()) {
-				$msg = "The org <" . strtolower($org->faction) . ">{$org->name}<end> is already being tracked.";
-				$context->reply($msg);
-				return null;
-			}
-			$tOrg = new TrackingOrg();
-			$tOrg->org_id = $orgId;
-			$tOrg->added_by = $context->char->name;
-			$this->db->insert(static::DB_ORG, $tOrg, null);
-			$context->reply("Adding <" . strtolower($org->faction) . ">{$org->name}<end> to the tracker.");
-			try {
-				/** @var ?Guild */
-				$guild = yield $this->guildManager->byId($orgId, $this->config->dimension, true);
-				if (!isset($guild)) {
-					$context->reply("No data found for <" . strtolower($org->faction) . ">{$org->name}<end>.");
-					return null;
-				}
-				$this->updateRosterForOrg($guild);
-			} catch (Throwable $e) {
-				$this->logger->error($e->getMessage(), ["Exception" => $e->getPrevious()]);
-				$context->reply($e->getMessage());
-				return null;
-			}
-			$context->reply(
-				"Added all members of <" . strtolower($org->faction) .">{$org->name}<end> to the roster."
-			);
+	): Generator {
+		if (!$this->findOrgController->isReady()) {
+			$this->findOrgController->sendNotReadyError($context);
 			return null;
-		});
+		}
+		$org = $this->findOrgController->getByID($orgId);
+		if (!isset($org)) {
+			$context->reply("There is no org #{$orgId}.");
+			return null;
+		}
+
+		if ($this->db->table(static::DB_ORG)->where("org_id", $orgId)->exists()) {
+			$msg = "The org <" . strtolower($org->faction) . ">{$org->name}<end> is already being tracked.";
+			$context->reply($msg);
+			return null;
+		}
+		$tOrg = new TrackingOrg();
+		$tOrg->org_id = $orgId;
+		$tOrg->added_by = $context->char->name;
+		$this->db->insert(static::DB_ORG, $tOrg, null);
+		$context->reply("Adding <" . strtolower($org->faction) . ">{$org->name}<end> to the tracker.");
+		try {
+			/** @var ?Guild */
+			$guild = yield $this->guildManager->byId($orgId, $this->config->dimension, true);
+			if (!isset($guild)) {
+				$context->reply("No data found for <" . strtolower($org->faction) . ">{$org->name}<end>.");
+				return null;
+			}
+			$this->updateRosterForOrg($guild);
+		} catch (Throwable $e) {
+			$this->logger->error($e->getMessage(), ["Exception" => $e->getPrevious()]);
+			$context->reply($e->getMessage());
+			return null;
+		}
+		$context->reply(
+			"Added all members of <" . strtolower($org->faction) .">{$org->name}<end> to the roster."
+		);
+		return null;
 	}
 
 	/** Add a whole organization to the track list */

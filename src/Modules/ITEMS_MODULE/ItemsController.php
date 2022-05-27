@@ -7,7 +7,6 @@ use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
 	DB,
-	Http,
 	ModuleInstance,
 	LoggerWrapper,
 	Nadybot,
@@ -42,9 +41,6 @@ class ItemsController extends ModuleInstance {
 
 	#[NCA\Inject]
 	public Nadybot $chatBot;
-
-	#[NCA\Inject]
-	public Http $http;
 
 	#[NCA\Inject]
 	public SettingManager $settingManager;

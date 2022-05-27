@@ -2,14 +2,14 @@
 
 namespace Nadybot\Core;
 
+use function Amp\asyncCall;
+
 use Amp\Deferred;
 use Amp\Promise;
 use Amp\Success;
 use Exception;
 use Generator;
 use Monolog\Logger;
-
-use function Amp\call;
 
 /*
 * $Id: aochat.php,v 1.1 2006/12/08 15:17:54 genesiscl Exp $
@@ -661,7 +661,7 @@ class AOChat {
 	 * @psalm-param null|callable(?int,mixed...) $callback
 	 */
 	public function sendLookupPacket(string $userName, ?callable $callback=null, ...$args): void {
-		call(function () use ($userName, $callback, $args): Generator {
+		asyncCall(function () use ($userName, $callback, $args): Generator {
 			$uid = yield $this->sendLookupPacket2($userName);
 			if (isset($callback)) {
 				$callback($uid, ...$args);

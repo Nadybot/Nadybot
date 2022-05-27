@@ -335,6 +335,11 @@ class Nadybot extends AOChat {
 	 */
 	public function run(): void {
 		Loop::run(function() {
+			Loop::setErrorHandler(function(?Throwable $e): void {
+				if (isset($e)) {
+					$this->logger->error($e->getMessage(), ["exception" => $e]);
+				}
+			});
 			$loop = new EventLoop();
 			Registry::injectDependencies($loop);
 			Loop::defer([$loop, "execSingleLoop"]);

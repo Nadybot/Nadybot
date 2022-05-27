@@ -2,19 +2,28 @@
 
 namespace Nadybot\Modules\WEBSERVER_MODULE;
 
+use function Amp\call;
+
+use Amp\Http\Client\HttpClientBuilder;
+use Amp\Http\Client\Request;
+use Amp\Http\Client\Response;
 use Amp\Loop;
+use Amp\Promise;
+use Amp\Success;
 use DateTime;
 use Exception;
+use Generator;
+use Throwable;
+use ZipArchive;
+use Safe\Exceptions\FilesystemException;
+
 use Nadybot\Core\{
 	Attributes as NCA,
 	BotRunner,
 	CmdContext,
-	CommandReply,
 	ConfigFile,
 	DB,
 	EventManager,
-	Http,
-	HttpResponse,
 	ModuleInstance,
 	LoggerWrapper,
 	MessageEmitter,
@@ -22,10 +31,8 @@ use Nadybot\Core\{
 	Nadybot,
 	Routing\Source,
 	SettingManager,
+	UserException,
 };
-use Safe\Exceptions\FilesystemException;
-use Throwable;
-use ZipArchive;
 
 #[
 	NCA\DefineCommand(
@@ -37,9 +44,6 @@ use ZipArchive;
 	NCA\HasMigrations
 ]
 class WebUiController extends ModuleInstance implements MessageEmitter {
-	#[NCA\Inject]
-	public Http $http;
-
 	#[NCA\Inject]
 	public SettingManager $settingManager;
 
@@ -105,107 +109,83 @@ class WebUiController extends ModuleInstance implements MessageEmitter {
 		description: "Automatically upgrade NadyUI",
 		defaultStatus: 1
 	)]
-	public function updateWebUI(): void {
+	public function updateWebUI(): Generator {
 		$channel = $this->settingManager->getString('nadyui_channel');
 		if (empty($channel) || $channel === 'off') {
 			return;
 		}
 		$sendto = new WebUIChannel($this->messageHub);
 		$sendto->reply("Checking for new NadyUI release...");
-		$this->processNadyUIRelease($channel, $sendto, function() {
-		});
+
+		try {
+			[$response, $artifact] = yield $this->downloadBuildArtifact($channel);
+			$msg = yield $this->installArtifact($response, $artifact);
+			$sendto->reply($msg);
+		} catch (UserException $e) {
+		}
 	}
 
-	protected function getGitHubData(HttpResponse $response, ?CommandReply $sendto): ?HttpResponse {
-		$msg = null;
-		if ($response->error) {
-			$msg = 'Error received from GitHub: ' . trim($response->error);
-		} elseif (!isset($response->body)) {
-			$msg = 'Empty reply received from GitHub';
-		} elseif ((int)$response->headers["status-code"] !== 200) {
-			if ((int)$response->headers["status-code"] === 302) {
-				return $response;
-			}
-			if ((int)$response->headers["status-code"] === 404) {
-				$msg = "No release found with that name.";
-			} else {
-				$msg = "Error code {$response->headers['status-code']} received from GitHub: " . trim($response->body);
-			}
-		}
-		if (isset($msg)) {
-			if ($sendto) {
-				$sendto->reply($msg);
-			}
-			$this->logger->error($msg);
-			return null;
-		}
-		return $response;
-	}
-
-	public function processNadyUIRelease(string $channel, ?CommandReply $sendto, callable $callback): void {
-		if (!extension_loaded("zip")) {
-			if (isset($sendto)) {
-				$sendto->reply(
+	/** @return Promise<array{Response,string}> */
+	private function downloadBuildArtifact(string $channel): Promise {
+		return call(function () use ($channel): Generator {
+			if (!extension_loaded("zip")) {
+				$this->eventManager->deactivateIfActivated($this, "updateWebUI");
+				throw new UserException(
 					"In order to install or update NadyUI from within the bot, " .
 						"you must have the PHP Zip extension installed."
 				);
 			}
-			$this->eventManager->deactivateIfActivated($this, "updateWebUI");
-			return;
-		}
-		$uri = sprintf(
-			"https://github.com/Nadybot/nadyui/releases/download/ci-%s/nadyui.zip",
-			$channel
-		);
-		$this->http->get($uri)
-			->withCallback([$this, "processArtifact"], $sendto, $callback);
+			$uri = sprintf(
+				"https://github.com/Nadybot/nadyui/releases/download/ci-%s/nadyui.zip",
+				$channel
+			);
+			$client = HttpClientBuilder::buildDefault();
+			/** @var Response */
+			$response = yield $client->request(new Request($uri));
+			if ($response->getStatus() === 404) {
+				throw new UserException("No release found for <highlight>{$channel}<end>.");
+			} elseif ($response->getStatus() !== 200) {
+				throw new UserException("Error retrieving {$uri}, code " . $response->getStatus());
+			}
+			$body = yield $response->getBody()->buffer();
+			if ($body === '') {
+				throw new UserException("Empty response received from {$uri}");
+			}
+			return [$response, $body];
+		});
 	}
 
 	/**
 	 * Install the NadyUI version that was returned into ./html
+	 *
+	 * @return Promise<string>
 	 */
-	public function processArtifact(HttpResponse $response, ?CommandReply $sendto, callable $callback): void {
-		$response = $this->getGitHubData($response, $sendto);
-		if ($response === null) {
-			return;
-		}
-		if ((int)$response->headers["status-code"] === 302) {
-			$this->http->get($response->headers["location"])
-				->withCallback([$this, "processArtifact"], $sendto, $callback);
-			return;
-		}
+	private function installArtifact(Response $response, string $artifact): Promise {
 		$currentVersion = $this->nadyuiVersion;
-		$lastModified = DateTime::createFromFormat(DateTime::RFC7231, $response->headers["last-modified"]);
+		$lastModifiedHeader = $response->getHeader("last-modified");
+		$lastModified = false;
+		if (isset($lastModifiedHeader)) {
+			$lastModified = DateTime::createFromFormat(DateTime::RFC7231, $lastModifiedHeader);
+		}
 		if ($lastModified === false) {
-			$msg = "Cannot parse last modification date, assuming now";
-			if ($sendto) {
-				$sendto->reply($msg);
-			}
-			$this->logger->warning($msg);
+			$this->logger->warning("Cannot parse last modification date, assuming now");
 			$lastModified = new DateTime();
 		}
 		$dlVersion = $lastModified->getTimestamp();
 		if ($dlVersion === $currentVersion) {
-			if ($sendto) {
-				$sendto->reply("You are already using the latest version (" . $lastModified->format("Y-m-d H:i:s") . ").");
-			} else {
-				$this->logger->notice("Already using the latest version of NadyUI");
-			}
+			$this->logger->notice("Already using the latest version of NadyUI");
 			if ($this->chatBot->getUptime() < 120) {
 				$this->createAdminLogin();
 			}
-			return;
+			return new Success("You are already using the latest version (" . $lastModified->format("Y-m-d H:i:s") . ").");
 		}
 		try {
 			$this->uninstallNadyUi();
-			$this->installNewRelease($response);
+			$this->installNewRelease($artifact);
 		} catch (Exception $e) {
 			$msg = $e->getMessage();
-			if ($sendto) {
-				$sendto->reply($msg);
-			}
 			$this->logger->error($msg);
-			return;
+			throw $e;
 		}
 		if ($currentVersion === 0) {
 			$action = "<green>installed<end> with version";
@@ -216,11 +196,8 @@ class WebUiController extends ModuleInstance implements MessageEmitter {
 			$action = "<green>downgraded<end> to version";
 		}
 		$this->settingManager->save("nadyui_version", (string)$dlVersion);
-		if (isset($sendto)) {
-			$msg = "Webfrontend NadyUI {$action} <highlight>" . $lastModified->format("Y-m-d H:i:s") . "<end>";
-			$sendto->reply($msg);
-		}
-		$callback();
+		$msg = "Webfrontend NadyUI {$action} <highlight>" . $lastModified->format("Y-m-d H:i:s") . "<end>";
+		return new Success($msg);
 	}
 
 	protected function createAdminLogin(): void {
@@ -289,15 +266,15 @@ class WebUiController extends ModuleInstance implements MessageEmitter {
 	 * Install the new NadyUI release form the response object into ./html and clean up before
 	 * @throws Exception on installation error
 	 */
-	public function installNewRelease(HttpResponse $response): void {
+	private function installNewRelease(string $body): void {
 		try {
 			$oldMask = umask(0027);
 			$file = \Safe\tmpfile();
 			$archiveName = stream_get_meta_data($file)['uri'];
-			if (!isset($response->body)) {
+			if ($body === '') {
 				throw new Exception("Cannot write to temp file {$archiveName}.");
 			}
-			\Safe\fwrite($file, $response->body) ;
+			\Safe\fwrite($file, $body) ;
 			$extractor = new ZipArchive();
 			$openResult = $extractor->open($archiveName);
 			if ($openResult !== true) {
@@ -336,9 +313,14 @@ class WebUiController extends ModuleInstance implements MessageEmitter {
 		CmdContext $context,
 		#[NCA\Str("install")] string $action,
 		string $channel
-	): void {
-		$this->processNadyUIRelease($channel, $context, function() {
-		});
+	): Generator {
+		try {
+			[$response, $artifact] = yield $this->downloadBuildArtifact($channel);
+			$msg = yield $this->installArtifact($response, $artifact);
+		} catch (UserException $e) {
+			$msg = $e->getMessage();
+		}
+		$context->reply($msg);
 	}
 
 	/** Completely remove the WebUI installation */

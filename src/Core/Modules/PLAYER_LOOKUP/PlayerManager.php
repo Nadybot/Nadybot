@@ -3,6 +3,7 @@
 namespace Nadybot\Core\Modules\PLAYER_LOOKUP;
 
 use function Amp\call;
+use function Amp\asyncCall;
 use function Amp\delay;
 use function Safe\json_decode;
 
@@ -165,7 +166,7 @@ class PlayerManager extends ModuleInstance {
 
 	/** @psalm-param callable(?Player) $callback */
 	public function getByNameAsync(callable $callback, string $name, ?int $dimension=null, bool $forceUpdate=false): void {
-		call(function() use ($callback, $name, $dimension, $forceUpdate): Generator {
+		asyncCall(function() use ($callback, $name, $dimension, $forceUpdate): Generator {
 			$player = yield $this->byName($name, $dimension, $forceUpdate);
 			$callback($player);
 			return null;
@@ -296,7 +297,7 @@ class PlayerManager extends ModuleInstance {
 
 	/** @psalm-param callable(?Player, mixed...) $callback */
 	public function lookupAsync(string $name, int $dimension, callable $callback, mixed ...$args): void {
-		call(function () use ($name, $dimension, $callback, $args): Generator {
+		asyncCall(function () use ($name, $dimension, $callback, $args): Generator {
 			$player = yield $this->lookupAsync2($name, $dimension);
 			$callback($player, ...$args);
 		});

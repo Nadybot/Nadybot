@@ -2,14 +2,15 @@
 
 namespace Nadybot\Modules\BANK_MODULE;
 
-use Closure;
+use Amp\Http\Client\HttpClientBuilder;
+use Amp\Http\Client\Request;
+use Amp\Http\Client\Response;
+use Generator;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
 	DB,
-	Http,
-	HttpResponse,
 	ModuleInstance,
 	ParamClass\PCharacter,
 	SettingManager,
@@ -48,9 +49,6 @@ class BankController extends ModuleInstance {
 
 	#[NCA\Inject]
 	public Util $util;
-
-	#[NCA\Inject]
-	public Http $http;
 
 	#[NCA\Inject]
 	public SettingManager $settingManager;
@@ -176,35 +174,28 @@ class BankController extends ModuleInstance {
 
 	/** Reload the bank database from the file specified with the <a href='chatcmd:///tell <myname> settings change bank_file_location'>bank_file_location</a> setting */
 	#[NCA\HandlesCommand("bank update")]
-	public function bankUpdateCommand(CmdContext $context, #[NCA\Str("update")] string $action): void {
+	public function bankUpdateCommand(CmdContext $context, #[NCA\Str("update")] string $action): Generator {
 		if (preg_match("|^https?://|", $this->bankFileLocation)) {
-			$this->http->get($this->bankFileLocation)
-				->withCallback(Closure::fromCallable([$this, "handleBankDownload"]), $context);
-			return;
+			$client = HttpClientBuilder::buildDefault();
+			/** @var Response */
+			$response = yield $client->request(new Request($this->bankFileLocation));
+			if ($response->getStatus() !== 200) {
+				$context->reply(
+					"Received code <highlight>" . $response->getStatus() . "<end> ".
+					"when trying to download the bank CSV file."
+				);
+			}
+			$body = yield $response->getBody()->buffer();
+			$lines = preg_split("/(?:\r\n|\r|\n)/", $body);
+		} else {
+			try {
+				$lines = \Safe\file($this->bankFileLocation);
+			} catch (FilesystemException $e) {
+				$msg = "Could not open file '{$this->bankFileLocation}': " . $e->getMessage();
+				$context->reply($msg);
+				return;
+			}
 		}
-		try {
-			$lines = \Safe\file($this->bankFileLocation);
-		} catch (FilesystemException $e) {
-			$msg = "Could not open file '{$this->bankFileLocation}': " . $e->getMessage();
-			$context->reply($msg);
-			return;
-		}
-		$this->bankUpdate($context, $lines);
-	}
-
-	private function handleBankDownload(HttpResponse $response, CmdContext $context): void {
-		if ($response->headers["status-code"] !== "200") {
-			$context->reply(
-				"Received code <highlight>" . $response->headers["status-code"] . "<end> ".
-				"when trying to download the bank CSV file."
-			);
-			return;
-		}
-		if (!isset($response->body) || $response->body === "") {
-			$context->reply("Invalid data received from the bank CSV file.");
-			return;
-		}
-		$lines = preg_split("/(?:\r\n|\r|\n)/", $response->body);
 		$this->bankUpdate($context, $lines);
 	}
 

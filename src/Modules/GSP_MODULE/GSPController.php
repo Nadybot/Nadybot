@@ -2,16 +2,26 @@
 
 namespace Nadybot\Modules\GSP_MODULE;
 
+use function Amp\asyncCall;
+use function Safe\json_decode;
+
+use Amp\Failure;
+use Amp\Http\Client\HttpClientBuilder;
+use Amp\Http\Client\Request;
+use Amp\Http\Client\Response;
+use Amp\Promise;
+use Amp\Success;
 use Safe\DateTime;
 use Safe\Exceptions\JsonException;
 use DateTimeZone;
+use Exception;
+use Generator;
+use Throwable;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
 	DB,
 	EventManager,
-	Http,
-	HttpResponse,
 	ModuleInstance,
 	MessageEmitter,
 	MessageHub,
@@ -48,9 +58,6 @@ class GSPController extends ModuleInstance implements MessageEmitter {
 
 	#[NCA\Inject]
 	public Text $text;
-
-	#[NCA\Inject]
-	public Http $http;
 
 	#[NCA\Inject]
 	public DB $db;
@@ -98,11 +105,15 @@ class GSPController extends ModuleInstance implements MessageEmitter {
 		name: "timer(1min)",
 		description: "Check if a GSP show is running"
 	)]
-	public function announceIfShowRunning(): void {
-		$this->http
-				->get(static::GSP_URL)
-				->withTimeout(10)
-				->withCallback([$this, "checkAndAnnounceIfShowStarted"]);
+	public function announceIfShowRunning(): Generator {
+		try {
+			$client = HttpClientBuilder::buildDefault();
+			/** @var Response */
+			$response = yield $client->request(new Request(self::GSP_URL));
+			$body = yield $response->getBody()->buffer();
+			yield $this->checkAndAnnounceIfShowStarted($response, $body);
+		} catch (Throwable) {
+		}
 	}
 
 	/**
@@ -139,25 +150,26 @@ class GSPController extends ModuleInstance implements MessageEmitter {
 
 	/**
 	 * Announce if a new show has just started
+	 * @return Promise<null>
 	 */
-	public function checkAndAnnounceIfShowStarted(HttpResponse $response): void {
-		if ($response->body === null || $response->error) {
-			return;
+	public function checkAndAnnounceIfShowStarted(Response $response, string $body): Promise {
+		if ($response->getStatus() !== 200 || $body === '') {
+			return new Success();
 		}
 		$show = new Show();
 		try {
-			$show->fromJSON(\Safe\json_decode($response->body));
-		} catch (JsonException $e) {
-			return;
+			$show->fromJSON(json_decode($body));
+		} catch (JsonException) {
+			return new Success();
 		}
 		if ( !$this->isAllShowInformationPresent($show) ) {
-			return;
+			return new Success();
 		}
 		if (!$show->live || !strlen($show->name) || !strlen($show->info)) {
 			$show->live = 0;
 		}
 		if (!$this->hasShowInformationChanged($show)) {
-			return;
+			return new Success();
 		}
 
 		$event = new GSPEvent();
@@ -168,7 +180,7 @@ class GSPController extends ModuleInstance implements MessageEmitter {
 		if (!$show->live) {
 			$event->type = "gsp(show_end)";
 			$this->eventManager->fireEvent($event);
-			return;
+			return new Success();
 		}
 		$event->type = "gsp(show_start)";
 		$this->eventManager->fireEvent($event);
@@ -180,6 +192,7 @@ class GSPController extends ModuleInstance implements MessageEmitter {
 		$r = new RoutableMessage($msg);
 		$r->prependPath(new Source(Source::SYSTEM, "gsp"));
 		$this->messageHub->handle($r);
+		return new Success();
 	}
 
 	#[NCA\Event(
@@ -203,14 +216,13 @@ class GSPController extends ModuleInstance implements MessageEmitter {
 
 	/** Show what GridStream Productions is currently playing */
 	#[NCA\HandlesCommand("radio")]
-	public function radioCommand(CmdContext $context): void {
-		$this->http
-				->get(static::GSP_URL)
-				->withTimeout(5)
-				->withCallback(function(HttpResponse $response) use ($context) {
-					$msg = $this->renderPlaylist($response);
-					$context->reply($msg);
-				});
+	public function radioCommand(CmdContext $context): Generator {
+		$client = HttpClientBuilder::buildDefault();
+		/** @var Response */
+		$response = yield $client->request(new Request(self::GSP_URL));
+		$body = yield $response->getBody()->buffer();
+		$msg = yield $this->renderPlaylist($response, $body);
+		$context->reply($msg);
 	}
 
 	/**
@@ -304,19 +316,20 @@ class GSPController extends ModuleInstance implements MessageEmitter {
 
 	/**
 	 * Create a message with information about what's currently playing on GSP
+	 * @return Promise<string>
 	 */
-	public function renderPlaylist(HttpResponse $response): string {
-		if (!isset($response->body) || $response->error) {
-			return "GSP seems to have problems with their service. Please try again later.";
+	public function renderPlaylist(Response $response, string $body): Promise {
+		if ($body === '' || $response->getStatus() !== 200) {
+			return new Success("GSP seems to have problems with their service. Please try again later.");
 		}
 		$show = new Show();
 		try {
-			$show->fromJSON(\Safe\json_decode($response->body));
+			$show->fromJSON(json_decode($body));
 		} catch (JsonException $e) {
-			return "GSP seems to have problems with their service. Please try again later.";
+			return new Success("GSP seems to have problems with their service. Please try again later.");
 		}
 		if (empty($show->history)) {
-			return "GSP is currently not playing any music.";
+			return new Success("GSP is currently not playing any music.");
 		}
 		$song = array_shift($show->history);
 		$currentlyPlaying = $this->getCurrentlyPlaying($show, $song);
@@ -329,7 +342,7 @@ class GSPController extends ModuleInstance implements MessageEmitter {
 			"Last played songs (all times in UTC)",
 		))[0];
 		$msg = $currentlyPlaying." - ".$lastSongsPage.$this->renderTuneIn($show);
-		return $msg;
+		return new Success($msg);
 	}
 
 	#[
@@ -365,28 +378,37 @@ class GSPController extends ModuleInstance implements MessageEmitter {
 		)
 	]
 	public function gspTile(string $sender, callable $callback): void {
-		$this->http
-				->get(static::GSP_URL)
-				->withTimeout(5)
-				->withCallback([$this, "renderForGspTile"], $callback);
+		asyncCall(function () use ($callback): Generator {
+			try {
+				$client = HttpClientBuilder::buildDefault();
+				/** @var Response */
+				$response = yield $client->request(new Request(self::GSP_URL));
+				$body = yield $response->getBody()->buffer();
+				$msg = yield $this->renderForGspTile($response, $body);
+			} catch (Throwable $e) {
+				$msg = null;
+			}
+			$callback($msg);
+		});
 	}
 
-	public function renderForGspTile(HttpResponse $response, callable $callback): void {
-		if (!isset($response->body) || $response->error) {
-			$callback(null);
-			return;
+	/** @return Promise<string> */
+	public function renderForGspTile(Response $response, string $body): Promise {
+		if ($body === '') {
+			return new Failure(new Exception("No content received"));
+		}
+		if ($response->getStatus() !== 200) {
+			return new Failure(new Exception("Recdeiced a " . $response->getStatus() . "."));
 		}
 		$show = new Show();
 		try {
-			$show->fromJSON(\Safe\json_decode($response->body));
+			$show->fromJSON(json_decode($body));
 		} catch (JsonException $e) {
-			$callback(null);
-			return;
+			return new Failure($e);
 		}
 		$blob = "<header2>GSP<end>\n<tab>";
 		if (empty($show->history)) {
-			$callback($blob . "GSP is currently not playing any music.");
-			return;
+			return new Success($blob . "GSP is currently not playing any music.");
 		}
 		$song = array_shift($show->history);
 		$currentlyPlaying = $this->getCurrentlyPlaying($show, $song);
@@ -394,6 +416,6 @@ class GSPController extends ModuleInstance implements MessageEmitter {
 		if (strlen($showInfos)) {
 			$showInfos = "\n<tab>" . join("\n<tab>", explode("\n", $showInfos));
 		}
-		$callback("{$blob}{$currentlyPlaying}{$showInfos}");
+		return new Success("{$blob}{$currentlyPlaying}{$showInfos}");
 	}
 }

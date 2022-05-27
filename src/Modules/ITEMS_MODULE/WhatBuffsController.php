@@ -11,7 +11,6 @@ use Nadybot\Core\{
 	CommandManager,
 	CommandReply,
 	DB,
-	Http,
 	ModuleInstance,
 	LoggerWrapper,
 	QueryBuilder,
@@ -42,9 +41,6 @@ use Nadybot\Modules\SKILLS_MODULE\{
 	),
 ]
 class WhatBuffsController extends ModuleInstance {
-	#[NCA\Inject]
-	public Http $http;
-
 	#[NCA\Inject]
 	public Text $text;
 

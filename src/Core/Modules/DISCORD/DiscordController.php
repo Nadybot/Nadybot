@@ -6,7 +6,6 @@ use function Safe\preg_split;
 use Nadybot\Core\{
 	Attributes as NCA,
 	ConfigFile,
-	Http,
 	ModuleInstance,
 	LoggerWrapper,
 	Nadybot,
@@ -23,9 +22,6 @@ class DiscordController extends ModuleInstance {
 
 	#[NCA\Inject]
 	public SettingManager $settingManager;
-
-	#[NCA\Inject]
-	public Http $http;
 
 	#[NCA\Inject]
 	public ConfigFile $config;
