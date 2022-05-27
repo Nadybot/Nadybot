@@ -55,11 +55,11 @@ class LevelController extends ModuleInstance {
 			return;
 		}
 		$msg = "<white>L $row->level: Team {$row->teamMin}-{$row->teamMax}<end>".
-			"<highlight> | <end>".
+			" <highlight>|<end> ".
 			"<cyan>PvP {$row->pvpMin}-{$row->pvpMax}<end>".
-			"<highlight> | <end>".
+			" <highlight>|<end> ".
 			"<orange>Missions {$row->missions}<end>".
-			"<highlight> | <end>".
+			" <highlight>|<end> ".
 			"<blue>{$row->tokens} token(s)<end>";
 
 		$context->reply($msg);

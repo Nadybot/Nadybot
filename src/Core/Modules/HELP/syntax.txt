@@ -31,7 +31,7 @@ If you've already done so and feel like the reminder on each page is annoying yo
 <header2>Command argument types<end>
 
 <highlight>&lt;duration&gt;<end> / <highlight>&lt;interval&gt;<end>
-<tab>denotes a "Budatime" duration like '5h10m'. See <a href='chatcmd:///tell <myname> help budabot'><symbol>help budatime</a> for a complete description.
+<tab>denotes a "Budatime" duration like '5h10m'. See <a href='chatcmd:///tell <myname> help budatime'><symbol>help budatime</a> for a complete description.
 <highlight>&lt;playfield&gt;<end>
 <tab>denotes a playfield in short form like 'PW' for Perpetual Wastelands. See <a href='chatcmd:///tell <myname> playfield'><symbol>playfield</a> for a list.
 <highlight>&lt;tower site&gt;<end>

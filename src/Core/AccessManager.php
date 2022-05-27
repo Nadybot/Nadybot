@@ -8,6 +8,7 @@ use Nadybot\Core\{
 	DBSchema\Audit,
 	Modules\ALTS\AltsController,
 	Modules\SECURITY\AuditController,
+	Modules\SYSTEM\SystemController,
 };
 use SplObjectStorage;
 
@@ -76,6 +77,9 @@ class AccessManager {
 
 	#[NCA\Inject]
 	public AltsController $altsController;
+
+	#[NCA\Inject]
+	public SystemController $systemController;
 
 	#[NCA\Inject]
 	public ConfigFile $config;
@@ -178,11 +182,19 @@ class AccessManager {
 		$displayName = $this->getAccessLevel($accessLevel);
 		switch ($displayName) {
 			case "rl":
-				return "raidleader";
+				return $this->systemController->rankNameRL;
+			case "guest":
+				return $this->systemController->rankNameGuest;
+			case "member":
+				return $this->systemController->rankNameMember;
+			case "guild":
+				return $this->systemController->rankNameGuild;
 			case "mod":
-				return "moderator";
+				return $this->systemController->rankNameMod;
 			case "admin":
-				return "administrator";
+				return $this->systemController->rankNameAdmin;
+			case "superadmin":
+				return $this->systemController->rankNameSuperadmin;
 		}
 		if (substr($displayName, 0, 5) === "raid_") {
 			$setName = $this->settingManager->getString("name_{$displayName}");
@@ -277,14 +289,29 @@ class AccessManager {
 	public function getAccessLevel(string $accessLevel): string {
 		$accessLevel = strtolower($accessLevel);
 		switch ($accessLevel) {
+			case $this->systemController->rankNameRL:
 			case "raidleader":
 				$accessLevel = "rl";
 				break;
+			case $this->systemController->rankNameMod:
 			case "moderator":
 				$accessLevel = "mod";
 				break;
+			case $this->systemController->rankNameAdmin:
 			case "administrator":
 				$accessLevel = "admin";
+				break;
+			case $this->systemController->rankNameSuperadmin:
+				$accessLevel = "superadmin";
+				break;
+			case $this->systemController->rankNameMember:
+				$accessLevel = "member";
+				break;
+			case $this->systemController->rankNameGuest:
+				$accessLevel = "guest";
+				break;
+			case $this->systemController->rankNameGuild:
+				$accessLevel = "guild";
 				break;
 		}
 

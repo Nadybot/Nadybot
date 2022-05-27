@@ -18,9 +18,9 @@ class RelayStatus {
 
 	public function toString(): string {
 		$statusMap = [
-			static::ERROR => "red",
+			static::ERROR => "on",
 			static::INIT => "yellow",
-			static::READY => "green",
+			static::READY => "off",
 		];
 
 		$color = $statusMap[$this->type] ?? "red";

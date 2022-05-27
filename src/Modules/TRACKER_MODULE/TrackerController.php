@@ -2,6 +2,8 @@
 
 namespace Nadybot\Modules\TRACKER_MODULE;
 
+use Exception;
+use Throwable;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	AccessManager,
@@ -24,7 +26,6 @@ use Nadybot\Core\{
 	Nadybot,
 	ParamClass\PCharacter,
 	ParamClass\PNonNumber,
-	ParamClass\PProfession,
 	ParamClass\PRemove,
 	Routing\RoutableMessage,
 	Routing\Source,
@@ -38,7 +39,6 @@ use Nadybot\Modules\{
 	ORGLIST_MODULE\Organization,
 	TOWER_MODULE\TowerAttackEvent,
 };
-use Throwable;
 
 /**
  * @author Tyrence (RK2)
@@ -130,28 +130,33 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
-	/** How to show if a tracked person logs on/off */
-	#[NCA\Setting\Options(options: [
-		'TRACK: "info" logged on/off.' => 0,
-		'+/- "info"' => 1,
-	])]
-	public int $trackerLayout = 0;
+	/** Tracker logon-message */
+	#[NCA\DefineSetting(
+		type: "tracker_format",
+		options: [
+			"TRACK: <highlight>{name}<end> logged <on>on<end>.",
+			"TRACK: <{faction}>{name}<end> ({level}, {profession}), <{faction}>{org}<end> logged <on>on<end>.",
+			"<{faction}>{FACTION}<end>: <{faction}>{name}<end>, TL<highlight>{tl}<end> {prof} logged <on>on<end>.",
+			"<on>+<end> <{faction}>{name}<end>",
+			"<on>+<end> <{faction}>{name}<end> ({level}, {prof}), <{faction}>{org}<end>",
+		]
+	)]
+	public string $trackerLogon = "TRACK: <{faction}>{name}<end> ({level}, {profession}), <{faction}>{org}<end> logged <on>on<end>.";
 
-	/** Use faction color for the name of the tracked person */
-	#[NCA\Setting\Boolean]
-	public bool $trackerUseFactionColor = false;
+	/** Tracker logoff-message */
+	#[NCA\DefineSetting(
+		type: "tracker_format",
+		options: [
+			"TRACK: <{faction}>{name}<end> logged <off>off<end>.",
+			"<{faction}>{FACTION}<end>: <{faction}>{name}<end>, TL<highlight>{tl}<end> {prof} logged <off>off<end>",
+			"<off>-<end> <{faction}>{name}<end>",
+		]
+	)]
+	public string $trackerLogoff = "TRACK: <{faction}>{name}<end> logged <off>off<end>.";
 
-	/** Show the tracked person's level */
+	/** Use faction color for the name in the online list*/
 	#[NCA\Setting\Boolean]
-	public bool $trackerShowLevel = false;
-
-	/** Show the tracked person's profession */
-	#[NCA\Setting\Boolean]
-	public bool $trackerShowProf = false;
-
-	/** Show the tracked person's org */
-	#[NCA\Setting\Boolean]
-	public bool $trackerShowOrg = false;
+	public bool $trackerUseFactionColor = true;
 
 	/** Group online list by */
 	#[NCA\Setting\Options(options: [
@@ -331,52 +336,69 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 		$this->eventManager->fireEvent($event);
 	}
 
-	public function getTrackerLayout(bool $online): string {
-		$color = $online ? "<green>" : "<red>";
-		switch ($this->trackerLayout) {
-			case 0:
-				return "TRACK: %s logged {$color}" . ($online ? "on" : "off") . "<end>.";
-			case 1:
-			default:
-				return "{$color}" . ($online ? "+" : "-") . "<end> %s";
-		}
+	/**
+	 * Get the message to show when a tracked player logs on
+	 */
+	public function getLogonMessage(?Player $player, string $name): string {
+		return $this->getLogMessage($player, $name, $this->trackerLogon);
+	}
+
+	/**
+	 * Get the message to show when a tracked player logs off
+	 */
+	public function getLogoffMessage(?Player $player, string $name): string {
+		return $this->getLogMessage($player, $name, $this->trackerLogoff);
 	}
 
 	/**
 	 * Get the message to show when a tracked player logs on
 	 */
-	public function getLogonMessage(?Player $player, string $name): string {
-		$format = $this->getTrackerLayout(true);
-		$info = "";
-		if ($player === null) {
-			$info = "<highlight>{$name}<end>";
-			return sprintf($format, $info);
+	public function getLogMessage(?Player $player, string $name, string $format): string {
+		$replacements = [
+			"faction" => "neutral",
+			"name" => $name,
+			"profession" => "Unknown",
+			"prof" => "???",
+			"level" => "?",
+			"ai_level" => "?",
+			"org" => "&lt;no org&gt;",
+			"breed" => "?",
+			"gender" => "?",
+			"tl" => "?",
+		];
+		if (isset($player)) {
+			$replacements["faction"] = strtolower($player->faction);
+			if (isset($player->profession)) {
+				$replacements["profession"] = $player->profession;
+				$replacements["prof"] = $this->util->getProfessionAbbreviation($player->profession);
+			}
+			$replacements["org"] = $player->guild ?? "&lt;no org&gt;";
+			$replacements["gender"] = strtolower($player->gender);
+			$replacements["org_rank"] = $player->guild_rank ?? "&lt;no rank&gt;";
+			$replacements["breed"] = $player->breed;
+			if (isset($player->level)) {
+				$replacements["level"] = "<highlight>{$player->level}<end>/<green>{$player->ai_level}<end>";
+				$replacements["tl"] = $this->util->levelToTL($player->level ?? 1);
+			}
 		}
-		$faction = strtolower($player->faction);
-		if ($this->trackerUseFactionColor) {
-			$info = "<{$faction}>{$name}<end>";
-		} else {
-			$info = "<highlight>{$name}<end>";
+		$replacements["Gender"] = ucfirst($replacements["gender"]);
+		$replacements["Faction"] = ucfirst($replacements["faction"]);
+		$replacements["FACTION"] = strtoupper($replacements["faction"]);
+		if (!isset($player) || !isset($player->guild) || !strlen($player->guild)) {
+			$format = preg_replace("/(?: of|,)?\s+<[^>]+>\{org\}<end>/", "", $format);
+			$format = preg_replace("/(?: of|,)?\s+\{org\}/", "", $format);
+			$format = preg_replace("/\s+\{org_rank\}/", "", $format);
 		}
-		$bracketed = [];
-		$showLevel = $this->trackerShowLevel;
-		$showProf = $this->trackerShowProf;
-		$showOrg = $this->trackerShowOrg;
-		if ($showLevel) {
-			$bracketed []= "<highlight>{$player->level}<end>/<green>{$player->ai_level}<end>";
+		$subst = [];
+		foreach ($replacements as $key => $value) {
+			$subst ["{" . $key . "}"] = $value;
 		}
-		if ($showProf) {
-			$bracketed []= $player->profession;
-		}
-		if (count($bracketed)) {
-			$info .= " (" . join(", ", $bracketed) . ")";
-		} elseif ($showOrg) {
-			$info .= ", ";
-		}
-		if ($showOrg && $player->guild !== null && strlen($player->guild)) {
-			$info .= " <{$faction}>{$player->guild}<end>";
-		}
-		return sprintf($format, $info);
+
+		return str_replace(
+			array_keys($subst),
+			array_values($subst),
+			$format
+		);
 	}
 
 	#[NCA\Event(
@@ -429,20 +451,6 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 		$this->eventManager->fireEvent($event);
 	}
 
-	/**
-	 * Get the message to show when a tracked player logs off
-	 */
-	public function getLogoffMessage(?Player $player, string $name): string {
-		$format = $this->getTrackerLayout(false);
-		if ($player === null || !$this->trackerUseFactionColor) {
-			$info = "<highlight>{$name}<end>";
-		} else {
-			$faction = strtolower($player->faction);
-			$info = "<{$faction}>{$name}<end>";
-		}
-		return sprintf($format, $info);
-	}
-
 	/** See the list of users on the track list */
 	#[NCA\HandlesCommand("track")]
 	public function trackListCommand(CmdContext $context): void {
@@ -472,9 +480,9 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 			}
 
 			if (isset($lastState) && $lastState->event === 'logon') {
-				$status = "<green>logon<end>";
+				$status = "<on>logon<end>";
 			} elseif (isset($lastState) && $lastState->event == 'logoff') {
-				$status = "<orange>logoff<end>";
+				$status = "<off>logoff<end>";
 			} else {
 				$status = "<grey>None<end>";
 			}
@@ -832,6 +840,11 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 
 	/**
 	 * Show a nice online list of everyone on your track list
+	 * You can use any combination of filters to narrow down the list:
+	 * - clan|neutral|omni
+	 * - &lt;profession&gt;
+	 * - tl1|tl2|tl3|tl4|tl5|tl6|tl7
+	 * - &lt;level&gt;|&lt;min level&gt;-|-&lt;max level&gt;|&lt;min level&gt;-&lt;max level&gt;
 	 *
 	 * By default, this will not show chars hidden via '<symbol>track hide', unless you give 'all'
 	 * To get links for removing and hiding/unhiding characters, add '--edit'
@@ -839,14 +852,30 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 	#[NCA\HandlesCommand("track")]
 	#[NCA\Help\Example("<symbol>track online")]
 	#[NCA\Help\Example("<symbol>track online doc")]
+	#[NCA\Help\Example("<symbol>track online clan doc crat tl2-4")]
 	#[NCA\Help\Example("<symbol>track all --edit")]
 	public function trackOnlineCommand(
 		CmdContext $context,
 		#[NCA\Str("online")] string $action,
-		?PProfession $profession,
-		#[NCA\Str("all")] ?string $all,
-		#[NCA\Str("--edit")] ?string $edit
-	): void {
+		?string $filter,
+	): bool {
+		$filters = [];
+		if (isset($filter)) {
+			$parser = new TrackerOnlineParser();
+			try {
+				$options = $parser->parse(strtolower($filter));
+			} catch (TrackerOnlineParserException $e) {
+				$context->reply($e->getMessage());
+				return true;
+			} catch (Exception $e) {
+				$context->reply($e->getMessage());
+				return true;
+			}
+			foreach ($options as $option) {
+				$filters[$option->type] ??= [];
+				$filters[$option->type] []= $option->value;
+			}
+		}
 		$hiddenChars = $this->db->table(self::DB_ORG_MEMBER)
 			->select("name")
 			->where("hidden", true)
@@ -860,7 +889,7 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 			->toArray();
 		$data1 = $this->db->table(self::DB_ORG_MEMBER)->select("name");
 		$data2 = $this->db->table(self::DB_TABLE)->select("name");
-		if (!isset($all)) {
+		if (!isset($filters['all'])) {
 			$data1->where("hidden", false);
 			$data2->where("hidden", false);
 		}
@@ -872,6 +901,7 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 				return $this->buddylistManager->isOnline($name) ?? false;
 			})
 			->toArray();
+		/** @var Collection<OnlineTrackedUser> */
 		$data = $this->playerManager->searchByNames($this->config->dimension, ...$trackedUsers)
 			->sortBy("name")
 			->map(function (Player $p) use ($hiddenChars): OnlineTrackedUser {
@@ -881,32 +911,26 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 				$op->hidden = isset($hiddenChars[$op->name]);
 				return $op;
 			});
-		if (isset($profession)) {
-			$data = $data->where("profession", $profession());
-		}
+		$data = $this->filterOnlineList($data, $filters);
+		$hasFilters = array_diff(array_keys($filters), ['all', 'edit']);
 		if ($data->isEmpty()) {
-			$context->reply("No tracked players are currently online.");
-			return;
-		}
-		$data = $data->toArray();
-		$blob = $this->renderOnlineList($data, isset($edit));
-		$footNotes = [];
-		if (!isset($all)) {
-			$prof = isset($profession) ? $profession() . " " : "";
-			if (!isset($edit)) {
-				$allLink = $this->text->makeChatcmd(
-					"<symbol>track online {$prof}all",
-					"/tell <myname> track online {$prof}all"
-				);
+			if ($hasFilters) {
+				$context->reply("No tracked players matching your filter are currently online.");
 			} else {
-				$allLink = $this->text->makeChatcmd(
-					"<symbol>track online {$prof}all --edit",
-					"/tell <myname> track online {$prof}all --edit"
-				);
+				$context->reply("No tracked players are currently online.");
 			}
+			return true;
+		}
+		$blob = $this->renderOnlineList($data->toArray(), isset($filters['edit']));
+		$footNotes = [];
+		if (!isset($filters['all'])) {
+			$allLink = $this->text->makeChatcmd(
+				"<symbol>{$context->message} all",
+				"/tell <myname> {$context->message} all"
+			);
 			$footNotes []= "<i>Use {$allLink} to see hidden characters.</i>";
 		}
-		if (!isset($edit)) {
+		if (!isset($filters['edit'])) {
 			$editLink = $this->text->makeChatcmd(
 				"<symbol>{$context->message} --edit",
 				"/tell <myname> {$context->message} --edit"
@@ -916,8 +940,79 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 		if (!empty($footNotes)) {
 			$blob .= "\n\n" . join("\n", $footNotes);
 		}
-		$msg = $this->text->makeBlob("Online tracked players (" . count($data). ")", $blob);
+		if ($hasFilters) {
+			$msg = $this->text->makeBlob("Online tracked players matching your filter (" . count($data). ")", $blob);
+		} else {
+			$msg = $this->text->makeBlob("Online tracked players (" . $data->count(). ")", $blob);
+		}
 		$context->reply($msg);
+		return true;
+	}
+
+	/**
+	 * @param Collection<OnlineTrackedUser> $data
+	 * @param array<string,string[]> $filters
+	 * @return Collection<OnlineTrackedUser>
+	*/
+	private function filterOnlineList(Collection $data, array $filters): Collection {
+		if (isset($filters['profession'])) {
+			$professions = [];
+			foreach ($filters['profession'] as $prof) {
+				$professions []= $this->util->getProfessionName($prof);
+			}
+			$data = $data->whereIn("profession", $professions);
+		}
+		if (isset($filters['faction'])) {
+			$factions = [];
+			foreach ($filters['faction'] as $faction) {
+				$faction = ucfirst(strtolower($faction));
+				if ($faction === "Neut") {
+					$faction = "Neutral";
+				}
+				$factions []= $faction;
+			}
+			$data = $data->whereIn("faction", $factions);
+		}
+		if (isset($filters['titleLevelRange'])) {
+			$filters['levelRange'] ??= [];
+			foreach ($filters['titleLevelRange'] as $range) {
+				$from = $this->util->tlToLevelRange((int)substr($range, 2, 1));
+				$to = $this->util->tlToLevelRange((int)substr($range, 4, 1));
+				$filters['levelRange'] []= "{$from[0]}-{$to[1]}";
+			}
+		}
+		if (isset($filters['titleLevel'])) {
+			$filters['levelRange'] ??= [];
+			foreach ($filters['titleLevel'] as $tl) {
+				[$from, $to] = $this->util->tlToLevelRange((int)substr($tl, 2));
+				$filters['levelRange'] []= "{$from}-{$to}";
+			}
+		}
+		if (isset($filters['level'])) {
+			$filters['levelRange'] ??= [];
+			foreach ($filters['level'] as $level) {
+				$filters['levelRange'] []= "{$level}-{$level}";
+			}
+		}
+		if (isset($filters['levelRange'])) {
+			$ranges = [];
+			foreach ($filters['levelRange'] as $range) {
+				[$min, $max] = \Safe\preg_split("/\s*-\s*/", $range);
+				$ranges []= [strlen($min) ? (int)$min : 1, strlen($max) ? (int)$max : 220];
+			}
+			$data = $data->filter(function (OnlineTrackedUser $user) use ($ranges): bool {
+				if (!isset($user->level)) {
+					return true;
+				}
+				foreach ($ranges as $range) {
+					if ($user->level >= $range[0] && $user->level <= $range[1]) {
+						return true;
+					}
+				}
+				return false;
+			});
+		}
+		return $data;
 	}
 
 	/**
@@ -1191,9 +1286,9 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 			$blob = "<header2>All events for {$char}<end>\n";
 			foreach ($events as $event) {
 				if ($event->event == 'logon') {
-					$status = "<green>logon<end>";
+					$status = "<on>logon<end>";
 				} elseif ($event->event == 'logoff') {
-					$status = "<orange>logoff<end>";
+					$status = "<off>logoff<end>";
 				} else {
 					$status = "<grey>unknown<end>";
 				}

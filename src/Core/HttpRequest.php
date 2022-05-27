@@ -136,6 +136,14 @@ class HttpRequest {
 		return $data;
 	}
 
+	public function getMethod(): string {
+		return $this->method;
+	}
+
+	public function getPostData(): ?string {
+		return $this->postData;
+	}
+
 	private function getHeaderData(): string {
 		$path = $this->getRequestPath();
 		$data = strtoupper($this->method) . " $path HTTP/1.0\r\n";

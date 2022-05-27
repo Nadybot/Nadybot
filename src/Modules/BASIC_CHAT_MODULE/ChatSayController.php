@@ -48,6 +48,14 @@ class ChatSayController extends ModuleInstance {
 	#[NCA\Inject]
 	public EventManager $eventManager;
 
+	/** The color that !cmd wraps the message in */
+	#[NCA\Setting\Color]
+	public string $bcmCmdColor = "#FF0000";
+
+	/** The color that !tell wraps the message in */
+	#[NCA\Setting\Color]
+	public string $bcmTellColor = "#FFFF00";
+
 	/**
 	 * Have the bot say something in the org channel
 	 */
@@ -95,7 +103,7 @@ class ChatSayController extends ModuleInstance {
 
 		$msg = "\n".
 			"<yellow>------------------------------------------<end>\n".
-			"<tab><red>{$message}<end>\n".
+			"<tab>{$this->bcmCmdColor}{$message}<end>\n".
 			"<yellow>------------------------------------------<end>";
 
 		if ($context->isDM()) {
@@ -121,7 +129,7 @@ class ChatSayController extends ModuleInstance {
 			return;
 		}
 
-		$message = "<yellow>{$message}<end>";
+		$message = "{$this->bcmTellColor}{$message}<end>";
 		for ($i = 0; $i < 3; $i++) {
 			if ($context->isDM()) {
 				$this->chatBot->sendGuild($message, true);

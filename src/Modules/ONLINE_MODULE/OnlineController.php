@@ -29,6 +29,7 @@ use Nadybot\Core\{
 use Nadybot\Modules\{
 	DISCORD_GATEWAY_MODULE\DiscordGatewayController,
 	RAID_MODULE\RaidController,
+	RAID_MODULE\RaidRankController,
 	RELAY_MODULE\RelayController,
 	RELAY_MODULE\Relay,
 	WEBSERVER_MODULE\ApiResponse,
@@ -106,6 +107,9 @@ class OnlineController extends ModuleInstance {
 
 	#[NCA\Inject]
 	public RaidController $raidController;
+
+	#[NCA\Inject]
+	public RaidRankController $raidRankController;
 
 	#[NCA\Inject]
 	public RelayController $relayController;
@@ -205,6 +209,26 @@ class OnlineController extends ModuleInstance {
 	/** React to afk and brb even without command prefix */
 	#[NCA\Setting\Boolean]
 	public bool $afkBrbWithoutSymbol = true;
+
+	/** Rank color for superadmin */
+	#[NCA\Setting\Color]
+	public string $rankColorSuperadmin = "#FF0000";
+
+	/** Rank color for admin */
+	#[NCA\Setting\Color]
+	public string $rankColorAdmin = "#FF0000";
+
+	/** Rank color for mod */
+	#[NCA\Setting\Color]
+	public string $rankColorMod = "#00DE42";
+
+	/** Rank color for rl */
+	#[NCA\Setting\Color]
+	public string $rankColorRL = "#FCA712";
+
+	/** Rank color for raid leaders/admins */
+	#[NCA\Setting\Color]
+	public string $rankColorRaid = "#FCA712";
 
 	#[NCA\Setup]
 	public function setup(): void {
@@ -400,7 +424,7 @@ class OnlineController extends ModuleInstance {
 				$blob.= "<tab>$profIcon $playerName - $player->level/<green>$player->ai_level<end> $prof";
 			}
 			if ($player->online) {
-				$blob .= " <green>Online<end>";
+				$blob .= " <on>Online<end>";
 			}
 			$blob .= "\n";
 		}
@@ -902,21 +926,21 @@ class OnlineController extends ModuleInstance {
 		}
 
 		$accessLevel = $this->accessManager->getAccessLevelForCharacter($name);
+		$displayName = ucfirst($this->accessManager->getDisplayName($accessLevel));
 		switch ($accessLevel) {
 			case 'superadmin':
-				return " $fancyColon <red>SuperAdmin<end>";
+				return " $fancyColon {$this->rankColorSuperadmin}{$displayName}<end>";
 			case 'admin':
-				return " $fancyColon <red>Admin<end>";
+				return " $fancyColon {$this->rankColorAdmin}{$displayName}<end>";
 			case 'mod':
-				return " $fancyColon <green>Mod<end>";
+				return " $fancyColon {$this->rankColorMod}{$displayName}<end>";
 			case 'rl':
-				return " $fancyColon <orange>RL<end>";
+				return " $fancyColon {$this->rankColorRL}{$displayName}<end>";
 		}
-		if (substr($accessLevel, 0, 5) === "raid_") {
-			$setName = $this->settingManager->getString("name_{$accessLevel}");
-			if ($setName !== null) {
-				return " $fancyColon <orange>$setName<end>";
-			}
+		$raidRank = $this->raidRankController->getSingleAccessLevel($name);
+		if (isset($raidRank)) {
+			$displayName = ucfirst($this->accessManager->getDisplayName($raidRank));
+			return " $fancyColon {$this->rankColorRaid}{$displayName}<end>";
 		}
 		return "";
 	}
@@ -939,14 +963,14 @@ class OnlineController extends ModuleInstance {
 
 		if (($mode & static::RAID_IN) && $inRaid) {
 			if ($mode & static::RAID_COMPACT) {
-				return ["[<green>R<end>] ", ""];
+				return ["[<on>R<end>] ", ""];
 			}
-			return ["", " $fancyColon <green>in raid<end>"];
+			return ["", " $fancyColon <on>in raid<end>"];
 		} elseif (($mode & static::RAID_NOT_IN) && !$inRaid) {
 			if ($mode & static::RAID_COMPACT) {
-				return ["[<red>R<end>] ", ""];
+				return ["[<off>R<end>] ", ""];
 			}
-			return ["", " $fancyColon <red>not in raid<end>"];
+			return ["", " $fancyColon <off>not in raid<end>"];
 		}
 		return ["", ""];
 	}

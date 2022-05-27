@@ -2,11 +2,14 @@
 
 namespace Nadybot\Modules\BANK_MODULE;
 
+use Closure;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
 	DB,
+	Http,
+	HttpResponse,
 	ModuleInstance,
 	ParamClass\PCharacter,
 	SettingManager,
@@ -14,6 +17,8 @@ use Nadybot\Core\{
 	Util,
 };
 use Safe\Exceptions\FilesystemException;
+
+use function Safe\preg_split;
 
 /**
  * @author Tyrence (RK2)
@@ -45,11 +50,14 @@ class BankController extends ModuleInstance {
 	public Util $util;
 
 	#[NCA\Inject]
+	public Http $http;
+
+	#[NCA\Inject]
 	public SettingManager $settingManager;
 
-	/** Location of the AO Items Assistant csv dump file */
+	/** Location/URL of the AO Items Assistant CSV dump file */
 	#[NCA\Setting\Text]
-	public string $bankFileLocation = './src/Modules/BANK_MODULE/import.csv';
+	public string $bankFileLocation = './data/bank.csv';
 
 	/** Number of items shown in search results */
 	#[NCA\Setting\Number(options: [20, 50, 100])]
@@ -85,20 +93,22 @@ class BankController extends ModuleInstance {
 	): void {
 		$name = $char();
 
-		/** @var Collection<Bank> */
+		/** @var Collection<string,Collection<Bank>> */
 		$data = $this->db->table("bank")
 			->where("player", $name)
 			->orderBy("container")
-			->asObj(Bank::class);
+			->asObj(Bank::class)
+			->groupBy("container");
 		if ($data->count() === 0) {
 			$msg = "Could not find bank character <highlight>$name<end>.";
 			$context->reply($msg);
 			return;
 		}
 		$blob = "<header2>Containers on $name<end>\n";
-		foreach ($data as $row) {
-			$container_link = $this->text->makeChatcmd($row->container, "/tell <myname> bank browse {$row->player} {$row->container_id}");
-			$blob .= "<tab>{$container_link}\n";
+		foreach ($data as $container => $items) {
+			$firstItem = $items->firstOrFail();
+			$container_link = $this->text->makeChatcmd($container, "/tell <myname> bank browse {$name} {$firstItem->container_id}");
+			$blob .= "<tab>{$container_link} (" . $items->count() . " items)\n";
 		}
 
 		$msg = $this->text->makeBlob("Containers for $name", $blob);
@@ -167,6 +177,11 @@ class BankController extends ModuleInstance {
 	/** Reload the bank database from the file specified with the <a href='chatcmd:///tell <myname> settings change bank_file_location'>bank_file_location</a> setting */
 	#[NCA\HandlesCommand("bank update")]
 	public function bankUpdateCommand(CmdContext $context, #[NCA\Str("update")] string $action): void {
+		if (preg_match("|^https?://|", $this->bankFileLocation)) {
+			$this->http->get($this->bankFileLocation)
+				->withCallback(Closure::fromCallable([$this, "handleBankDownload"]), $context);
+			return;
+		}
 		try {
 			$lines = \Safe\file($this->bankFileLocation);
 		} catch (FilesystemException $e) {
@@ -174,7 +189,27 @@ class BankController extends ModuleInstance {
 			$context->reply($msg);
 			return;
 		}
+		$this->bankUpdate($context, $lines);
+	}
 
+	private function handleBankDownload(HttpResponse $response, CmdContext $context): void {
+		if ($response->headers["status-code"] !== "200") {
+			$context->reply(
+				"Received code <highlight>" . $response->headers["status-code"] . "<end> ".
+				"when trying to download the bank CSV file."
+			);
+			return;
+		}
+		if (!isset($response->body) || $response->body === "") {
+			$context->reply("Invalid data received from the bank CSV file.");
+			return;
+		}
+		$lines = preg_split("/(?:\r\n|\r|\n)/", $response->body);
+		$this->bankUpdate($context, $lines);
+	}
+
+	/** @param string[] $lines */
+	public function bankUpdate(CmdContext $context, array $lines): void {
 		//remove the header line
 		array_shift($lines);
 

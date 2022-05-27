@@ -314,14 +314,14 @@ class MassMsgController extends ModuleInstance {
 		$invitesOnLink  = $this->text->makeChatcmd("On", "/tell <myname> massinvites on");
 		$invitesOffLink = $this->text->makeChatcmd("Off", "/tell <myname> massinvites off");
 		if ($msgs === "no") {
-			$msgOffLink = "<red>Off<end>";
+			$msgOffLink = "<off>Off<end>";
 		} else {
-			$msgOnLink = "<green>On<end>";
+			$msgOnLink = "<on>On<end>";
 		}
 		if ($invs === "no") {
-			$invitesOffLink = "<red>Off<end>";
+			$invitesOffLink = "<off>Off<end>";
 		} else {
-			$invitesOnLink = "<green>On<end>";
+			$invitesOnLink = "<on>On<end>";
 		}
 		$blob = "<header2>Current preferences<end>\n".
 			"<tab>[{$msgOnLink}] [{$msgOffLink}]  Mass messages\n".
@@ -346,7 +346,7 @@ class MassMsgController extends ModuleInstance {
 	#[NCA\Help\Group("massmessaging")]
 	public function massMessagesOnCommand(CmdContext $context, bool $status): void {
 		$value = $status ? "yes" : "no";
-		$colText = $status ? "<green>again receive<end>" : "<red>no longer receive<end>";
+		$colText = $status ? "<on>again receive<end>" : "<off>no longer receive<end>";
 		$this->preferences->save($context->char->name, static::PREF_MSGS, $value);
 		$context->reply("You will {$colText} mass messages from this bot.");
 	}
@@ -356,7 +356,7 @@ class MassMsgController extends ModuleInstance {
 	#[NCA\Help\Group("massmessaging")]
 	public function massInvitesOnCommand(CmdContext $context, bool $status): void {
 		$value = $status ? "yes" : "no";
-		$colText = $status ? "<green>again receive<end>" : "<red>no longer receive<end>";
+		$colText = $status ? "<on>again receive<end>" : "<off>no longer receive<end>";
 		$this->preferences->save($context->char->name, static::PREF_INVITES, $value);
 		$context->reply("You will {$colText} mass invites from this bot.");
 	}
@@ -369,8 +369,8 @@ class MassMsgController extends ModuleInstance {
 				"as well with links to change these",
 			example:
 				"<header2>Mass messages<end>\n".
-				"<tab>[<green>On<end>] [<u>Off</u>] Receive Mass messages\n".
-				"<tab>[<u>On</u>] [<red>Off<end>] Receive Mass invites"
+				"<tab>[<on>On<end>] [<u>Off</u>] Receive Mass messages\n".
+				"<tab>[<u>On</u>] [<off>Off<end>] Receive Mass invites"
 		)
 	]
 	public function massMsgNewsTile(string $sender, callable $callback): void {
@@ -381,14 +381,14 @@ class MassMsgController extends ModuleInstance {
 		$invitesOnLink  = $this->text->makeChatcmd("On", "/tell <myname> massinvites on");
 		$invitesOffLink = $this->text->makeChatcmd("Off", "/tell <myname> massinvites off");
 		if ($msgs === "no") {
-			$msgOffLink = "<red>Off<end>";
+			$msgOffLink = "<off>Off<end>";
 		} else {
-			$msgOnLink = "<green>On<end>";
+			$msgOnLink = "<on>On<end>";
 		}
 		if ($invs === "no") {
-			$invitesOffLink = "<red>Off<end>";
+			$invitesOffLink = "<off>Off<end>";
 		} else {
-			$invitesOnLink = "<green>On<end>";
+			$invitesOnLink = "<on>On<end>";
 		}
 		$blob = "<header2>Mass messages<end>\n".
 			"<tab>[{$msgOnLink}] [{$msgOffLink}]  Receive Mass messages\n".

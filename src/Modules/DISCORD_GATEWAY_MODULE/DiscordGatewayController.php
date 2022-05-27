@@ -3,7 +3,11 @@
 namespace Nadybot\Modules\DISCORD_GATEWAY_MODULE;
 
 use Closure;
+use ReflectionClass;
+use ReflectionClassConstant;
+use stdClass;
 use Illuminate\Support\ItemNotFoundException;
+
 use function Safe\json_encode;
 use Safe\Exceptions\JsonException;
 use Nadybot\Core\{
@@ -61,9 +65,6 @@ use Nadybot\Modules\DISCORD_GATEWAY_MODULE\Model\{
 };
 use Nadybot\Modules\WEBSERVER_MODULE\StatsController;
 use Nadybot\Modules\RELAY_MODULE\RelayController;
-use ReflectionClass;
-use ReflectionClassConstant;
-use stdClass;
 
 /**
  * @author Nadyita (RK5)
@@ -88,6 +89,7 @@ use stdClass;
 	NCA\ProvidesEvent("discord(guild_role_update)"),
 	NCA\ProvidesEvent("discord(guild_role_update_delete)"),
 	NCA\ProvidesEvent("discord(guild_members_chunk)"),
+	NCA\ProvidesEvent("discord(interaction_create)"),
 	NCA\ProvidesEvent("discord(message_create)"),
 	NCA\ProvidesEvent("discord(message_update)"),
 	NCA\ProvidesEvent("discord(message_delete)"),
@@ -161,6 +163,9 @@ class DiscordGatewayController extends ModuleInstance {
 	public DiscordGatewayCommandHandler $discordGatewayCommandHandler;
 
 	#[NCA\Inject]
+	public DiscordSlashCommandController $discordSlashCommandController;
+
+	#[NCA\Inject]
 	public CommandManager $commandManager;
 
 	#[NCA\Inject]
@@ -214,6 +219,14 @@ class DiscordGatewayController extends ModuleInstance {
 	/** @var array<string,bool> */
 	private array $noManageInviteRights = [];
 
+	public function isMe(string $id): bool {
+		return isset($this->me) && $this->me->id === $id;
+	}
+
+	public function getID(): ?string {
+		return $this->me->id ?? null;
+	}
+
 	/**
 	 * Get a list of all guilds this bot is a member of
 	 * @return array<string,Guild>
@@ -244,8 +257,10 @@ class DiscordGatewayController extends ModuleInstance {
 		return null;
 	}
 
-	/** @param mixed $args */
-	public function lookupChannel(string $channelId, callable $callback, ...$args): void {
+	/**
+	 * Lookup a channel by its ID and call a callback with the resolved channel
+	 */
+	public function lookupChannel(string $channelId, callable $callback, mixed ...$args): void {
 		$channel = $this->getChannel($channelId);
 		if (isset($channel)) {
 			$callback($channel, ...$args);
@@ -667,7 +682,7 @@ class DiscordGatewayController extends ModuleInstance {
 		if (!isset($message->author)) {
 			return;
 		}
-		if ($message->author->id === $this->me?->id) {
+		if ($this->isMe($message->author->id)) {
 			return;
 		}
 
@@ -1003,6 +1018,7 @@ class DiscordGatewayController extends ModuleInstance {
 		);
 		$this->mustReconnect = true;
 		$this->reconnectDelay = 5;
+		$this->discordSlashCommandController->syncSlashCommands();
 	}
 
 	#[NCA\Event(
@@ -1172,7 +1188,11 @@ class DiscordGatewayController extends ModuleInstance {
 	]
 	public function announceVoiceStateChange(DiscordVoiceEvent $event): void {
 		$e = new Online();
-		$e->char = new Character($event->member->getName());
+		$userId = null;
+		if (isset($event->member->user)) {
+			$userId = $this->discordGatewayCommandHandler->getNameForDiscordId($event->member->user->id);
+		}
+		$e->char = new Character($userId ?? $event->member->getName());
 		$chanName = $event->discord_channel->name ?? $event->discord_channel->id;
 		if ($event->type === 'discord_voice_leave') {
 			$msg = $e->char->name.
@@ -1656,7 +1676,7 @@ class DiscordGatewayController extends ModuleInstance {
 					$blob .= " - expires ".
 						$this->util->date($invite->expires_at->getTimestamp());
 				}
-				if (isset($invite->inviter) && $invite->inviter->id !== $this->me?->id) {
+				if (isset($invite->inviter) && !$this->isMe($invite->inviter->id)) {
 					$blob .= " - created by ".
 						$invite->inviter->username.
 						"#" . $invite->inviter->discriminator;

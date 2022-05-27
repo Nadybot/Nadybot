@@ -283,7 +283,7 @@ class RaffleController extends ModuleInstance {
 			$context->reply($msg);
 			return;
 		}
-		$msg = "The raffle was <red>cancelled<end> by <highlight>{$context->char->name}<end>.";
+		$msg = "The raffle was <off>cancelled<end> by <highlight>{$context->char->name}<end>.";
 		$this->raffle->sendto->reply($msg);
 		$event = new RaffleEvent();
 		$event->raffle = $this->raffle;
@@ -420,7 +420,7 @@ class RaffleController extends ModuleInstance {
 		$this->eventManager->fireEvent($event);
 
 		if ($this->raffleAnnounceParticipants) {
-			$msg = "<highlight>{$context->char->name}<end> <green>joined<end> the raffle";
+			$msg = "<highlight>{$context->char->name}<end> <on>joined<end> the raffle";
 			if (count($this->raffle->slots) > 1) {
 				$msg .= " for " . $this->raffle->slots[$slot]->toString();
 			}
@@ -429,7 +429,7 @@ class RaffleController extends ModuleInstance {
 			return;
 		}
 		$this->chatBot->sendMassTell(
-			"You <green>joined<end> the raffle for <highlight>".
+			"You <on>joined<end> the raffle for <highlight>".
 			$this->raffle->slots[$slot]->toString() . "<end>.",
 			$context->char->name
 		);
@@ -491,7 +491,7 @@ class RaffleController extends ModuleInstance {
 		$event->player = $context->char->name;
 		$this->eventManager->fireEvent($event);
 		if ($this->raffleAnnounceParticipants) {
-			$msg = "<highlight>{$context->char->name}<end> <red>left<end> the raffle";
+			$msg = "<highlight>{$context->char->name}<end> <off>left<end> the raffle";
 			if (count($this->raffle->slots) > 1) {
 				$msg .= " for " . $this->raffle->slots[$slot]->toString();
 			}
@@ -500,7 +500,7 @@ class RaffleController extends ModuleInstance {
 			return;
 		}
 		$this->chatBot->sendMassTell(
-			"You <red>left<end> the raffle for <highlight>".
+			"You <off>left<end> the raffle for <highlight>".
 			$this->raffle->slots[$slot]->toString() . "<end>.",
 			$context->char->name
 		);

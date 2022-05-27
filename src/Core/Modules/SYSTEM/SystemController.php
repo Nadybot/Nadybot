@@ -4,6 +4,7 @@ namespace Nadybot\Core\Modules\SYSTEM;
 
 use function Safe\unpack;
 
+use Exception;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	AccessManager,
@@ -150,6 +151,10 @@ class SystemController extends ModuleInstance implements MessageEmitter {
 	)]
 	public int $maxBlobSize = 7500;
 
+	/** Add header-ranges to multi-page replies */
+	#[NCA\Setting\Boolean]
+	public bool $addHeaderRanges = false;
+
 	/** Max time to wait for response from making http queries */
 	#[NCA\Setting\Time(options: ["1s", "2s", "5s", "10s", "30s"])]
 	public int $httpTimeout = 10;
@@ -177,6 +182,57 @@ class SystemController extends ModuleInstance implements MessageEmitter {
 	/** When using the proxy, always send multi-page replies via one worker */
 	#[NCA\Setting\Boolean]
 	public bool $pagingOnSameWorker = true;
+
+	/** Display name for the rank "superadmin" */
+	#[NCA\Setting\Text]
+	public string $rankNameSuperadmin = "superadmin";
+
+	/** Display name for the rank "admin" */
+	#[NCA\Setting\Text]
+	public string $rankNameAdmin = "administrator";
+
+	/** Display name for the rank "moderator" */
+	#[NCA\Setting\Text]
+	public string $rankNameMod = "moderator";
+
+	/** Display name for the rank "guild" */
+	#[NCA\Setting\Text]
+	public string $rankNameGuild = "guild";
+
+	/** Display name for the rank "member" */
+	#[NCA\Setting\Text]
+	public string $rankNameMember = "member";
+
+	/** Display name for the rank "guest" */
+	#[NCA\Setting\Text]
+	public string $rankNameGuest = "guest";
+
+	/** Display name for the temporary rank "raidleader" */
+	#[NCA\Setting\Text]
+	public string $rankNameRL = "raidleader";
+
+	#[
+		NCA\SettingChangeHandler("rank_name_superadmin"),
+		NCA\SettingChangeHandler("rank_name_admin"),
+		NCA\SettingChangeHandler("rank_name_mod"),
+		NCA\SettingChangeHandler("rank_name_guild"),
+		NCA\SettingChangeHandler("rank_name_member"),
+		NCA\SettingChangeHandler("rank_name_guest"),
+		NCA\SettingChangeHandler("rank_name_rl"),
+	]
+	public function preventRankNameDupes(string $setting, string $old, string $new): void {
+		$new = strtolower($new);
+		if (strtolower($this->rankNameSuperadmin) === $new
+			|| strtolower($this->rankNameAdmin) === $new
+			|| strtolower($this->rankNameMod) === $new
+			|| strtolower($this->rankNameGuild) === $new
+			|| strtolower($this->rankNameMember) === $new
+			|| strtolower($this->rankNameGuest) === $new
+			|| strtolower($this->rankNameRL) === $new
+		) {
+			throw new Exception("The display name <highlight>{$new}<end> is already used for another rank.");
+		}
+	}
 
 	#[NCA\Setup]
 	public function setup(): void {
@@ -480,12 +536,12 @@ class SystemController extends ModuleInstance implements MessageEmitter {
 		// send Admin(s) a tell that the bot is online
 		foreach ($this->adminManager->admins as $name => $info) {
 			if ($info["level"] === 4 && $this->buddylistManager->isOnline($name)) {
-				$this->chatBot->sendTell("<myname> is now <green>online<end>.", $name);
+				$this->chatBot->sendTell("<myname> is now <on>online<end>.", $name);
 			}
 		}
 
 		$version = $this->chatBot->runner::getVersion();
-		$msg = "Nadybot <highlight>$version<end> is now <green>online<end>.";
+		$msg = "Nadybot <highlight>$version<end> is now <on>online<end>.";
 
 		// send a message to guild channel
 		$rMsg = new RoutableMessage($msg);

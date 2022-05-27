@@ -118,13 +118,13 @@ class CloakController extends ModuleInstance implements MessageEmitter {
 		$timeString = $this->util->unixtimeToReadable(3600 - $timeSinceChange, false);
 
 		if ($timeSinceChange >= 3600 && $row->action === "off") {
-			$msg = "The cloaking device is <orange>disabled<end>. It is possible to enable it.";
+			$msg = "The cloaking device is <off>disabled<end>. It is possible to enable it.";
 		} elseif ($timeSinceChange < 3600 && $row->action === "off") {
-			$msg = "The cloaking device is <orange>disabled<end>. It is possible in $timeString to enable it.";
+			$msg = "The cloaking device is <off>disabled<end>. It is possible in $timeString to enable it.";
 		} elseif ($timeSinceChange >= 3600 && $row->action === "on") {
-			$msg = "The cloaking device is <green>enabled<end>. It is possible to disable it.";
+			$msg = "The cloaking device is <on>enabled<end>. It is possible to disable it.";
 		} elseif ($timeSinceChange < 3600 && $row->action === "on") {
-			$msg = "The cloaking device is <green>enabled<end>. It is possible in $timeString to disable it.";
+			$msg = "The cloaking device is <on>enabled<end>. It is possible in $timeString to disable it.";
 		} else {
 			$msg = "The cloaking device is in an unknown state.";
 		}
@@ -152,7 +152,7 @@ class CloakController extends ModuleInstance implements MessageEmitter {
 		$row = $this->getLastOrgEntry(true);
 
 		if ($row !== null && $row->action === "on") {
-			$msg = "The cloaking device is already <green>enabled<end>.";
+			$msg = "The cloaking device is already <on>enabled<end>.";
 		} else {
 			$this->db->table(self::DB_TABLE)
 				->insert([
@@ -253,15 +253,15 @@ class CloakController extends ModuleInstance implements MessageEmitter {
 		$msg = null;
 		// 10 minutes before, send tell to player
 		if ($timeSinceChange >= 49*60 && $timeSinceChange <= 50*60) {
-			$msg = "The cloaking device is <orange>disabled<end>. It is possible in $timeString to enable it.";
+			$msg = "The cloaking device is <off>disabled<end>. It is possible in $timeString to enable it.";
 		} elseif ($timeSinceChange >= 58*60 && $timeSinceChange <= 59*60) {
 			// 1 minute before send tell to player
-			$msg = "The cloaking device is <orange>disabled<end>. It is possible in $timeString to enable it.";
+			$msg = "The cloaking device is <off>disabled<end>. It is possible in $timeString to enable it.";
 		// @phpstan-ignore-next-line
 		} elseif ($timeSinceChange >= 59*60 && ($timeSinceChange % (60*5) >= 0 && $timeSinceChange % (60*5) <= 60 )) {
 			// when cloak can be raised, send tell to player and
 			// every 5 minutes after, send tell to player
-			$msg = "The cloaking device is <orange>disabled<end>. Please enable it now.";
+			$msg = "The cloaking device is <off>disabled<end>. Please enable it now.";
 		} else {
 			return;
 		}
@@ -311,7 +311,7 @@ class CloakController extends ModuleInstance implements MessageEmitter {
 		$timeString = $this->util->unixtimeToReadable(3600 - $timeSinceChange, false);
 
 		if ($timeSinceChange >= 60*60 && $row->action === "off") {
-			return [1, "The cloaking device is <orange>disabled<end>. ".
+			return [1, "The cloaking device is <off>disabled<end>. ".
 				"It is possible to enable it."];
 		} elseif ($timeSinceChange < 60*30 && $row->action === "off") {
 			$msg = "RAID IN PROGRESS, <red>DO NOT ENTER CITY!<end>";
@@ -323,13 +323,13 @@ class CloakController extends ModuleInstance implements MessageEmitter {
 			}
 			return [1, $msg];
 		} elseif ($timeSinceChange < 60*60 && $row->action === "off") {
-			return [1, "Cloaking device is <orange>disabled<end>. ".
+			return [1, "Cloaking device is <off>disabled<end>. ".
 				"It is possible in <highlight>$timeString<end> to enable it."];
 		} elseif ($timeSinceChange >= 60*60 && $row->action === "on") {
-			return [2, "The cloaking device is <green>enabled<end>. ".
+			return [2, "The cloaking device is <on>enabled<end>. ".
 				"It is possible to disable it."];
 		} elseif ($timeSinceChange < 60*60 && $row->action === "on") {
-			return [2, "The cloaking device is <green>enabled<end>. ".
+			return [2, "The cloaking device is <on>enabled<end>. ".
 				"It is possible in <highlight>$timeString<end> to disable it."];
 		}
 		return [1, "Unknown status on city cloak!"];
@@ -343,7 +343,7 @@ class CloakController extends ModuleInstance implements MessageEmitter {
 				"new raids can be initiated",
 			example:
 				"<header2>City<end>\n".
-				"<tab>The cloaking device is <green>enabled<end>. It is possible to disable it."
+				"<tab>The cloaking device is <on>enabled<end>. It is possible to disable it."
 		)
 	]
 	public function cloakStatusTile(string $sender, callable $callback): void {

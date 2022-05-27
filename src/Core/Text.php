@@ -4,6 +4,8 @@ namespace Nadybot\Core;
 
 use Nadybot\Core\Attributes as NCA;
 
+use function Safe\preg_match_all;
+
 #[NCA\Instance]
 class Text {
 	#[NCA\Inject]
@@ -81,10 +83,30 @@ class Text {
 			$page = "<a href=\"text://".($this->settingManager->getString("default_window_color")??"").$headerMarkup.$page."\">$name</a>";
 			return $page;
 		} else {
+			$addHeaderRanges = $this->settingManager->getBool("add_header_ranges") ?? false;
 			$i = 1;
 			foreach ($pages as $key => $page) {
+				$headerInfo = "";
+				if ($addHeaderRanges
+					&& preg_match_all(
+						"/<header2>([^<]+)<end>/",
+						$page,
+						$headers,
+						PREG_OFFSET_CAPTURE
+					)
+				) {
+					if (isset($headers) && $headers[1][0][1] === 9) {
+						$from = $headers[1][0][0];
+						$to = $headers[1][count($headers[1])-1][0];
+						$headerInfo = " - {$from}";
+						if ($to !== $from) {
+							$headerInfo .= " -&gt; {$to}";
+						}
+					}
+				}
+
 				$headerMarkup = "<header>$header (Page $i / $num)<end>\n\n$permanentHeader";
-				$page = "<a href=\"text://".($this->settingManager->getString("default_window_color")??"").$headerMarkup.$page."\">$name</a> (Page <highlight>$i / $num<end>)";
+				$page = "<a href=\"text://".($this->settingManager->getString("default_window_color")??"").$headerMarkup.$page."\">$name</a> (Page <highlight>$i / $num<end>{$headerInfo})";
 				$pages[$key] = $page;
 				$i++;
 			}
@@ -255,6 +277,8 @@ class Text {
 			"<header>" => str_replace("'", "", $this->settingManager->getString('default_header_color')??""),
 			"<header2>" => str_replace("'", "", $this->settingManager->getString('default_header2_color')??""),
 			"<highlight>" => str_replace("'", "", $this->settingManager->getString('default_highlight_color')??""),
+			"<on>" => str_replace("'", "", $this->settingManager->getString('default_enabled_color')??""),
+			"<off>" => str_replace("'", "", $this->settingManager->getString('default_disabled_color')??""),
 			"<black>" => "<font color=#000000>",
 			"<white>" => "<font color=#FFFFFF>",
 			"<yellow>" => "<font color=#FFFF00>",

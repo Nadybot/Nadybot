@@ -79,6 +79,7 @@ class WebsocketClient extends WebsocketBase {
 	}
 
 	public function connect(): bool {
+		parent::connect();
 		$urlParts = parse_url($this->uri);
 		if ($urlParts === false
 			|| empty($urlParts)

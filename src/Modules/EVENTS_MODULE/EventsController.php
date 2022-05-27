@@ -2,7 +2,9 @@
 
 namespace Nadybot\Modules\EVENTS_MODULE;
 
+use function Safe\strtotime;
 use Illuminate\Support\Collection;
+use Safe\Exceptions\DatetimeException;
 use Nadybot\Core\{
 	AOChatEvent,
 	Attributes as NCA,
@@ -125,14 +127,18 @@ class EventsController extends ModuleInstance {
 		CmdContext $context,
 		#[NCA\Str("setdate")] string $action,
 		int $id,
-		#[NCA\Regexp("\d{4}-(?:0?[1-9]|1[012])-(?:0?[1-9]|[12]\d|3[01])\s+(?:[0-1]?\d|[2][0-3]):(?:[0-5]\d)(?::([0-5]\d))?")] string $date
+		string $date,
 	): void {
 		$row = $this->getEvent($id);
 		if ($row === null) {
 			$msg = "Could not find an event with id $id.";
 		} else {
-			// yyyy-dd-mm hh:mm:ss
-			$eventDate = \Safe\strtotime($date);
+			try {
+				$eventDate = strtotime($date);
+			} catch (DatetimeException) {
+				$context->reply("'<highlight>{$date}<end>' is not a valid date/time.");
+				return;
+			}
 			$this->db->table("events")
 				->where("id", $id)
 				->update(["event_date" => $eventDate]);

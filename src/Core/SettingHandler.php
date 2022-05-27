@@ -48,7 +48,7 @@ abstract class SettingHandler {
 	}
 
 	/**
-	 * Get all options for this setting or false if no options are available
+	 * Get all options for this setting or null if no options are available
 	 */
 	public function getOptions(): ?string {
 		if (strlen($this->row->options??'')) {
@@ -58,21 +58,23 @@ abstract class SettingHandler {
 			$intoptions = explode(";", $this->row->intoptions??"");
 			$options_map = \Safe\array_combine($intoptions, $options??[]);
 		}
-		if (!empty($options)) {
-			$msg = "<header2>Predefined Options<end>\n";
-			if (isset($options_map)) {
-				foreach ($options_map as $key => $label) {
-					$saveLink = $this->text->makeChatcmd('select', "/tell <myname> settings save {$this->row->name} {$key}");
-					$msg .= "<tab><highlight>" . htmlspecialchars($label) . "<end> [{$saveLink}]\n";
-				}
-			} else {
-				foreach ($options as $char) {
-					$saveLink = $this->text->makeChatcmd('select', "/tell <myname> settings save {$this->row->name} {$char}");
-					$msg .= "<tab><highlight>" . htmlspecialchars($char) . "<end> [{$saveLink}]\n";
-				}
+		if (empty($options)) {
+			return null;
+		}
+		$msg = "<header2>Predefined Options<end>\n";
+		if (isset($options_map)) {
+			foreach ($options_map as $key => $label) {
+				$saveLink = $this->text->makeChatcmd('select', "/tell <myname> settings save {$this->row->name} {$key}");
+				$msg .= "<tab><highlight>" . htmlspecialchars($label) . "<end> [{$saveLink}]\n";
+			}
+		} else {
+			foreach ($options as $char) {
+				$saveLink = $this->text->makeChatcmd('select', "/tell <myname> settings save {$this->row->name} {$char}");
+				$msg .= "<tab><highlight>" . htmlspecialchars($char) . "<end> [{$saveLink}]\n";
 			}
 		}
-		return $msg??"";
+
+		return $msg;
 	}
 
 	/**

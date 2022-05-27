@@ -86,6 +86,7 @@ class WebsocketBase {
 	public SocketManager $socketManager;
 
 	public function connect(): bool {
+		$this->pendingPingTime = null;
 		return true;
 	}
 
@@ -162,6 +163,7 @@ class WebsocketBase {
 			$this->send("", 'ping');
 		}
 		if (isset($this->pendingPingTime) && time() - $this->pendingPingTime >= $this->timeout) {
+			$this->pendingPingTime = null;
 			$this->throwError(
 				WebsocketError::CONNECT_TIMEOUT,
 				"Connection to {$this->uri} timed out, no response to ping."
@@ -465,6 +467,7 @@ class WebsocketBase {
 	}
 
 	public function close(int $status=1000, string $message='kthxbye'): void {
+		$this->pendingPingTime = null;
 		if (!$this->isConnected()) {
 			return;
 		}
