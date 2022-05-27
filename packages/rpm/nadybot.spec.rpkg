@@ -204,6 +204,27 @@ exit 0
 %endif
 
 %changelog
+* Fri May 27 2022 Nadyita <nadyita@hodorraid.org> 6.0.3-1
+- New setting `add_header_ranges`. If enabled, in addition to Page X/Y, it will print the (sub-)header-ranges in that page (ADMIN -> TOWER_MODULE) as well, if the page is streuctured like that
+- Add support for Discord Slash-commands. The setting `discord_slash_commands` determines if they are disabled, only visible to the person sending them, or treated like a regular command and routed from/to the bot-channels.
+  Because Discord allows a maximum of 100 global slash-commands, you have to use `!discord slash add|rem|pick` to configure which commands will be exposed. By default, some are exposed already that most people will probably want to, but this won't apply to everyone.
+- The name of every access-level-rank can now be changed freely.
+- The `!leaders`-command can now be configured to also show the admins and mods.
+- The colors that `!online` displays for ranks raid_leader and upwards, are now customizable.
+- Make "on"- and "off"-colors a configurable setting in the `COLORS` module
+- Add settings to configure the colors of `!tell`, `!cmd` and `!topic`.
+- Allow banning orgs without giving a reason
+- The `!track online`-command got a real parser now and supports filtering by level (ranges), title level (ranges), faction(s) and profession(s).
+- The message that's displayed when a tracked character goes on/offline is now completely configurable with {placeholders}. To display this properly, a new setting type `tracker_format` has been introduced that will display rendered and unrendered versions of the setting. There is also logic to remove `{org}` from the message is the character is not member of an org.
+- Gracefully support URLs for bank-CSV location. Download will be async with proper error handling.
+- Raid ranks in online-list are also shown for access-level "guild".
+- Joining and leaving voice chats will now display the linked AO character, if available.
+- Change the default "disabled/off"-color to a slightly lighter shade of red.
+- Due to a logic error, once a websocket connection timed out, chances were, it would constantly timeout again.
+- `!events setdate <id> <date>` now understands a lot more date-formats.
+- Browsing bank backpacks accidentally showed each backpack as often as items were in the backpack.
+- Fix a non-critical error-message when running `!lc <tower site>` which would have turned into a hard error in PHP 8.2
+
 * Tue May 10 2022 Nadyita <nadyita@hodorraid.org> 6.0.2-1
 - Add a new property to raids, that allows to limit the maximum number of raiders. Can be set with either "!raid start <description> limit <max members>" or "!raid limit <max members>".
 - New command "!orgnote" to manage org-wide notes that can also be shared via Nadynative protocol.

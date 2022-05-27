@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [6.0.3] - 2022-05-27
+
 ### Added
 
 - New setting `add_header_ranges`. If enabled, in addition to Page X/Y, it will print the (sub-)header-ranges in that page (ADMIN -> TOWER_MODULE) as well, if the page is streuctured like that
