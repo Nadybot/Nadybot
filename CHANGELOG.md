@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Allow specifying the ql or ql-range to search for when using `!bank search`
+
 ### Fix
 
 - The `TrackerFormatHandler` was moved to its correct namespace.
