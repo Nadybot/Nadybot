@@ -112,8 +112,8 @@ class TowerApiController extends ModuleInstance {
 			if ($apiURL === static::API_NONE) {
 				$apiURL = static::API_TYRENCE;
 			}
-			$builder = new HttpClientBuilder();
-			$builder->intercept(new AddRequestHeader("User-Agent", "Naughtybot " . BotRunner::getVersion()));
+			$builder = (new HttpClientBuilder())
+				->intercept(new AddRequestHeader("User-Agent", "Naughtybot " . BotRunner::getVersion()));
 			$client = $builder->build();
 			$uri = Http::createFromString($apiURL)->withQuery($query);
 			/** @var Response */

@@ -2,6 +2,7 @@
 
 namespace Nadybot\Core;
 
+use function Amp\asyncCall;
 use function Amp\call;
 
 use Exception;
@@ -735,7 +736,7 @@ class CommandManager implements MessageEmitter {
 			$methodResult = $instance->$method($context, ...$args);
 			// @TODO merge with upwards error detection once this became a Promise
 			if ($methodResult instanceof Generator) {
-				call(function () use ($methodResult, $context): Generator {
+				asyncCall(function () use ($methodResult, $context): Generator {
 					try {
 						yield from $methodResult;
 					} catch (UserException $e) {

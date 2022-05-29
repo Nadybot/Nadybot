@@ -2,7 +2,9 @@
 
 namespace Nadybot\Core\Modules\CONFIG;
 
+use Amp\Promise;
 use Exception;
+use Generator;
 use Illuminate\Support\Collection;
 use Throwable;
 use Nadybot\Core\{
@@ -122,7 +124,7 @@ class ConfigApiController extends ModuleInstance {
 		NCA\ApiResult(code: 404, desc: "Wrong module or setting"),
 		NCA\ApiResult(code: 422, desc: "Invalid value given")
 	]
-	public function changeModuleSettingEndpoint(Request $request, HttpProtocolWrapper $server, string $module, string $setting): Response {
+	public function changeModuleSettingEndpoint(Request $request, HttpProtocolWrapper $server, string $module, string $setting): Generator {
 		/** @var Setting|null */
 		$oldSetting = $this->db->table(SettingManager::DB_TABLE)
 			->where("name", $setting)->where("module", $module)
@@ -179,6 +181,9 @@ class ConfigApiController extends ModuleInstance {
 		}
 		try {
 			$newValueToSave = $settingHandler->save((string)$value);
+			if ($newValueToSave instanceof Promise) {
+				$newValueToSave = yield $newValueToSave;
+			}
 			if (!$this->settingManager->save($setting, $newValueToSave)) {
 				return new Response(Response::NOT_FOUND);
 			}

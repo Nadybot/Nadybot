@@ -88,8 +88,8 @@ class WeatherController extends ModuleInstance {
 			]);
 			$body = yield $this->cache->get($apiEndpoint);
 			if (!isset($body)) {
-				$builder = new HttpClientBuilder();
-				$builder->intercept(new AddRequestHeader('accept-language', 'en'));
+				$builder = (new HttpClientBuilder())
+					->intercept(new AddRequestHeader('accept-language', 'en'));
 				$client = $builder->build();
 
 				/** @var Response */
@@ -143,8 +143,8 @@ class WeatherController extends ModuleInstance {
 				"lat" => sprintf("%.4f", $nom->lat),
 				"lon" => sprintf("%.4f", $nom->lon),
 			]);
-			$builder = new HttpClientBuilder();
-			$builder->intercept(new AddRequestHeader('accept-language', 'en'));
+			$builder = (new HttpClientBuilder())
+				->intercept(new AddRequestHeader('accept-language', 'en'));
 			$client = $builder->build();
 			/** @var Response */
 			$response = yield $client->request(new Request($apiEndpoint));

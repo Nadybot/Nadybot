@@ -2,6 +2,7 @@
 
 namespace Nadybot\Core;
 
+use Amp\Promise;
 use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\DBSchema\Setting;
 
@@ -81,8 +82,9 @@ abstract class SettingHandler {
 	 * Change this setting
 	 *
 	 * @throws \Exception if $newValue is not accepted
+	 * @return string|Promise<string>
 	 */
-	public function save(string $newValue): string {
+	public function save(string $newValue): string|Promise {
 		return $newValue;
 	}
 

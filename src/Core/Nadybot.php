@@ -1336,7 +1336,7 @@ class Nadybot extends AOChat {
 					$result = $method->invoke($obj);
 					if ($result instanceof Generator) {
 						yield from $result;
-					} elseif ($method->invoke($obj) === false) {
+					} elseif ($result === false) {
 						$this->logger->error("Failed to call setup handler for '$name'");
 					}
 				}

@@ -2,7 +2,17 @@
 
 namespace Nadybot\Modules\WEBSERVER_MODULE;
 
+use function Amp\asyncCall;
+
 use Closure;
+use Generator;
+use ReflectionAttribute;
+use ReflectionClass;
+use ReflectionFunction;
+use ReflectionMethod;
+use ReflectionNamedType;
+use ReflectionProperty;
+use Throwable;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	AccessManager,
@@ -23,13 +33,6 @@ use Nadybot\Core\{
 	Util,
 };
 use Nadybot\Modules\WEBSOCKET_MODULE\WebsocketController;
-use ReflectionClass;
-use ReflectionFunction;
-use ReflectionMethod;
-use ReflectionNamedType;
-use ReflectionProperty;
-use Throwable;
-use ReflectionAttribute;
 
 #[
 	NCA\Instance,
@@ -485,28 +488,35 @@ class ApiController extends ModuleInstance {
 			return;
 		}
 		try {
-			/** @var Response */
+			/** @var null|Response|Generator */
 			$response = $handler->exec($request, $server);
 		} catch (Throwable $e) {
 			$response = null;
 		}
-		if (!isset($response) || !($response) instanceof Response) {
-			$server->httpError(new Response(Response::INTERNAL_SERVER_ERROR));
-			return;
-		}
-		if ($response->code >= 400) {
-			$server->httpError($response);
-			return;
-		}
-		if ($response->code >= 200 && $response->code < 300 && isset($response->body)) {
-			$response->headers['Content-Type'] = 'application/json';
-		} elseif ($response->code === Response::OK && $request->method === Request::POST) {
-			$response->headers['Content-Length'] = "0";
-			$response->setCode(Response::CREATED);
-		} elseif ($response->code === Response::OK && in_array($request->method, [Request::PUT, Request::PATCH, Request::DELETE])) {
-			$response->setCode(Response::NO_CONTENT);
-		}
-		$server->sendResponse($response);
+		$request->replied = -1;
+		asyncCall(function () use ($response, $server, $request): Generator {
+			if ($response instanceof Generator) {
+				$response = yield from $response;
+			}
+
+			if (!isset($response) || !($response instanceof Response)) {
+				$server->httpError(new Response(Response::INTERNAL_SERVER_ERROR));
+				return;
+			}
+			if ($response->code >= 400) {
+				$server->httpError($response);
+				return;
+			}
+			if ($response->code >= 200 && $response->code < 300 && isset($response->body)) {
+				$response->headers['Content-Type'] = 'application/json';
+			} elseif ($response->code === Response::OK && $request->method === Request::POST) {
+				$response->headers['Content-Length'] = "0";
+				$response->setCode(Response::CREATED);
+			} elseif ($response->code === Response::OK && in_array($request->method, [Request::PUT, Request::PATCH, Request::DELETE])) {
+				$response->setCode(Response::NO_CONTENT);
+			}
+			$server->sendResponse($response);
+		});
 	}
 
 	/**

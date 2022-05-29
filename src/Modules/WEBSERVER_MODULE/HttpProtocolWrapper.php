@@ -181,7 +181,7 @@ class HttpProtocolWrapper {
 	 */
 	public function sendResponse(Response $response, bool $forceClose=false): void {
 		$this->logger->info('Received a ' . $response->code . ' (' . $response->codeString . ') response');
-		if (isset($this->request->replied)) {
+		if (isset($this->request->replied) && $this->request->replied > 0) {
 			$this->logger->info('Not sending response, because already responded to');
 			return;
 		}

@@ -2,7 +2,9 @@
 
 namespace Nadybot\Core\Modules\CONFIG;
 
+use Amp\Promise;
 use Exception;
+use Generator;
 use Nadybot\Core\{
 	AccessManager,
 	Attributes as NCA,
@@ -132,7 +134,12 @@ class SettingsController extends ModuleInstance {
 
 	/** Set &lt;setting&gt; to &lt;new value&gt; and save it */
 	#[NCA\HandlesCommand("settings")]
-	public function saveCommand(CmdContext $context, #[NCA\Str("save")] string $action, PWord $setting, string $newValue): void {
+	public function saveCommand(
+		CmdContext $context,
+		#[NCA\Str("save")] string $action,
+		PWord $setting,
+		string $newValue
+	): Generator {
 		$name = strtolower($setting());
 		/** @var ?Setting */
 		$setting = $this->db->table(SettingManager::DB_TABLE)
@@ -157,6 +164,10 @@ class SettingsController extends ModuleInstance {
 		}
 		try {
 			$newValueToSave = $settingHandler->save($newValue);
+			if ($newValueToSave instanceof Promise) {
+				$temp = yield $newValueToSave;
+				$newValueToSave = $temp;
+			}
 			if ($this->settingManager->save($name, $newValueToSave)) {
 				$settingHandler->getData()->value = $newValueToSave;
 				$dispValue = $settingHandler->displayValue($context->char->name);
