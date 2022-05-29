@@ -2,10 +2,10 @@
 
 namespace Nadybot\Modules\WHOIS_MODULE;
 
+use Generator;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
-	CommandReply,
 	ConfigFile,
 	ModuleInstance,
 	Modules\PLAYER_LOOKUP\PlayerHistory,
@@ -41,18 +41,19 @@ class PlayerHistoryController extends ModuleInstance {
 	 * Valid dimensions are 1 (Atlantean), 2 (Rimor), and 5 (New server)
 	 */
 	#[NCA\HandlesCommand("history")]
-	public function playerHistoryCommand(CmdContext $context, PCharacter $char, ?int $dimension): void {
+	public function playerHistoryCommand(CmdContext $context, PCharacter $char, ?int $dimension): Generator {
 		$name = $char();
 		$dimension ??= $this->config->dimension;
 
-		$this->playerHistoryManager->asyncLookup($name, $dimension, [$this, "servePlayerHistory"], $name, $dimension, $context);
+		$history = yield $this->playerHistoryManager->asyncLookup2($name, $dimension);
+		$msg = $this->renderPlayerHistory($history, $name, $dimension);
+		$context->reply($msg);
 	}
 
-	public function servePlayerHistory(?PlayerHistory $history, string $name, int $dimension, CommandReply $sendto): void {
+	/** @return string|string[] */
+	private function renderPlayerHistory(?PlayerHistory $history, string $name, int $dimension): string|array {
 		if ($history === null) {
-			$msg = "Could not get History of $name on RK$dimension.";
-			$sendto->reply($msg);
-			return;
+			return "Could not get History of {$name} on RK{$dimension}.";
 		}
 		$blob = "";
 		$header = "Date            Level    AI    Faction    Breed     Guild (rank)\n".
@@ -94,6 +95,6 @@ class PlayerHistoryController extends ModuleInstance {
 		$blob .= "\nHistory provided by Auno.org, Chrisax, and Athen Paladins";
 		$msg = $this->text->makeBlob("History of $name for RK{$dimension}", $blob, null, $header);
 
-		$sendto->reply($msg);
+		return $msg;
 	}
 }

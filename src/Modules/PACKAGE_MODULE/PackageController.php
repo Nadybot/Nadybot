@@ -25,7 +25,6 @@ use Nadybot\Core\{
 	CmdContext,
 	ConfigFile,
 	DB,
-	Http,
 	ModuleInstance,
 	LoggerWrapper,
 	Nadybot,
@@ -73,9 +72,6 @@ class PackageController extends ModuleInstance {
 
 	#[NCA\Inject]
 	public Text $text;
-
-	#[NCA\Inject]
-	public Http $http;
 
 	#[NCA\Inject]
 	public CacheManager $cacheManager;
