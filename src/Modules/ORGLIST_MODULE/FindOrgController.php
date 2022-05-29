@@ -2,25 +2,35 @@
 
 namespace Nadybot\Modules\ORGLIST_MODULE;
 
-use Amp\Loop;
+use Amp\Cache\FileCache;
+use Amp\Http\Client\HttpClientBuilder;
+use Amp\Http\Client\Request;
+use Amp\Http\Client\Response;
+use Amp\Promise;
+use Amp\Sync\LocalKeyedMutex;
 use Exception;
+use Generator;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
-	Event,
 	CommandReply,
+	ConfigFile,
 	DB,
-	CacheManager,
-	CacheResult,
+	Event,
 	ModuleInstance,
 	LoggerWrapper,
 	Nadybot,
 	SQLException,
 	Text,
-	Timer,
 	Util,
 };
+use Throwable;
+
+use function Amp\call;
+use function Amp\delay;
+use function Amp\File\filesystem;
+use function Amp\Promise\all;
 
 /**
  * @author Tyrence (RK2)
@@ -45,31 +55,32 @@ class FindOrgController extends ModuleInstance {
 	public Text $text;
 
 	#[NCA\Inject]
+	public ConfigFile $config;
+
+	#[NCA\Inject]
 	public Util $util;
-
-	#[NCA\Inject]
-	public CacheManager $cacheManager;
-
-	#[NCA\Inject]
-	public Timer $timer;
 
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
+	/** How many parallel downloads to use for downloading the orglist */
+	#[NCA\Setting\Number]
+	public int $numOrglistDlJobs = 5;
+
 	protected bool $ready = false;
 
 	/** @var string[] */
-	private array $searches = [
-		'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm',
-		'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z',
-		'others'
-	];
+	private array $todo = [];
 
 	#[NCA\Setup]
-	public function setup(): void {
+	public function setup(): Generator {
 		$this->ready = $this->db->table("organizations")
 			->where("index", "others")
 			->exists();
+		yield filesystem()->createDirectoryRecursively(
+			$this->config->cacheFolder . "/orglist",
+			0700
+		);
 	}
 
 	/**
@@ -152,32 +163,9 @@ class FindOrgController extends ModuleInstance {
 		return $blob;
 	}
 
-	public function handleOrglistResponse(CacheResult $result, string $url, int $searchIndex): void {
-		if ($this->db->inTransaction()) {
-			Loop::delay(1000, function() use ($result, $url, $searchIndex): void {
-				$this->handleOrglistResponse($result, $url, $searchIndex);
-			});
-			return;
-		}
-		if (!isset($result->data) || !$result->success) {
-			$retry = 5;
-			$this->logger->warning(
-				"Error downloading orglist for letter {letter}, retrying in {retry}s",
-				[
-					"letter" => $this->searches[$searchIndex],
-					"retry" => $retry,
-				]
-			);
-			Loop::delay(
-				$retry * 1000,
-				function() use ($url, $searchIndex): void {
-					$this->downloadOrglistLetter($url, $searchIndex);
-				}
-			);
-			return;
-		}
-		if (!$result->usedCache || !$this->isReady()) {
-			$search = $this->searches[$searchIndex];
+	/** @return Promise<void> */
+	public function handleOrglistResponse(string $body, string $letter): Promise {
+		return call(function () use ($body, $letter): Generator {
 			$pattern = '@<tr>\s*'.
 				'<td align="left">\s*'.
 					'<a href="(?:https?:)?//people.anarchy-online.com/org/stats/d/(\d+)/name/(\d+)">\s*'.
@@ -191,23 +179,26 @@ class FindOrgController extends ModuleInstance {
 				'<td align="left" class="dim">RK\d+</td>\s*'.
 				'</tr>@s';
 
+			preg_match_all($pattern, $body, $arr, PREG_SET_ORDER);
+			$this->logger->info("Updating orgs starting with $letter");
+			$inserts = [];
+			foreach ($arr as $match) {
+				$obj = new Organization();
+				$obj->id = (int)$match[2];
+				$obj->name = trim($match[3]);
+				$obj->num_members = (int)$match[4];
+				$obj->faction = $match[6];
+				$obj->index = $letter;
+				$obj->governing_form = $match[7];
+				$inserts []= get_object_vars($obj);
+			}
+			while ($this->db->inTransaction()) {
+				yield delay(100);
+			}
 			try {
-				preg_match_all($pattern, $result->data, $arr, PREG_SET_ORDER);
-				$this->logger->info("Updating orgs starting with $search");
-				$inserts = [];
-				foreach ($arr as $match) {
-					$obj = new Organization();
-					$obj->id = (int)$match[2];
-					$obj->name = trim($match[3]);
-					$obj->num_members = (int)$match[4];
-					$obj->faction = $match[6];
-					$obj->index = $search;
-					$obj->governing_form = $match[7];
-					$inserts []= get_object_vars($obj);
-				}
 				$this->db->beginTransaction();
 				$this->db->table("organizations")
-					->where("index", $search)
+					->where("index", $letter)
 					->delete();
 				$this->db->table("organizations")
 					->chunkInsert($inserts);
@@ -217,50 +208,93 @@ class FindOrgController extends ModuleInstance {
 				$this->db->rollback();
 				$this->ready = true;
 			}
-		}
-		$searchIndex++;
-		if ($searchIndex >= count($this->searches)) {
-			$this->logger->notice("Finished downloading orglists");
-			$this->ready = true;
-			return;
-		}
-		$this->downloadOrglistLetter($url, $searchIndex);
+		});
 	}
 
-	protected function downloadOrglistLetter(string $url, int $searchIndex): void {
-		$this->cacheManager->asyncLookup(
-			$url . "?" . http_build_query(['l' => $this->searches[$searchIndex]]),
-			"orglist",
-			$this->searches[$searchIndex] . ".html",
-			[$this, "isValidOrglist"],
-			24 * 3600,
-			false,
-			[$this, "handleOrglistResponse"],
-			$url,
-			$searchIndex,
-		);
+	/** @return Promise<void> */
+	private function startDownloadOrglistJob(): Promise {
+		return call(function (): Generator {
+			while ($letter = array_shift($this->todo)) {
+				yield $this->downloadOrglistLetter($letter);
+			}
+		});
+	}
+
+	/** @return Promise<void> */
+	private function downloadOrglistLetter(string $letter): Promise {
+		return call(function () use ($letter): Generator {
+			$this->logger->info("Downloading orglist for letter {$letter}");
+			$cache = new FileCache(
+				$this->config->cacheFolder . '/orglist',
+				new LocalKeyedMutex()
+			);
+			$body = yield $cache->get($letter);
+			if ($body !== null) {
+				if (!$this->isReady()) {
+					yield $this->handleOrglistResponse($body, $letter);
+				}
+				return;
+			}
+			$url = "http://people.anarchy-online.com/people/lookup/orgs.html".
+				"?l={$letter}";
+			$client = HttpClientBuilder::buildDefault();
+			$retry = 5;
+			do {
+				/** @var Response */
+				$response = yield $client->request(new Request($url));
+
+				if ($response->getStatus() !== 200) {
+					if (--$retry <= 0) {
+						throw new Exception("Unable to download orglist for {$letter}");
+					}
+					$this->logger->warning(
+						"Error downloading orglist for letter {letter}, retrying in {retry}s",
+						[
+							"letter" => $letter,
+							"retry" => 5,
+						]
+					);
+					yield delay(5000);
+				}
+			} while ($response->getStatus() !== 200 && $retry > 0);
+			$body = yield $response->getBody()->buffer();
+			if ($body === '' || !str_contains($body, "ORGS BEGIN")) {
+				throw new Exception("Invalid data received from orglist for {$letter}");
+			}
+			yield $cache->set($letter, $body, 24 * 3600);
+			yield $this->handleOrglistResponse($body, $letter);
+		});
 	}
 
 	#[NCA\Event(
 		name: "timer(24hrs)",
 		description: "Parses all orgs from People of Rubi Ka"
 	)]
-	public function parseAllOrgsEvent(Event $eventObj): void {
-		$this->downloadOrglist();
-	}
-
-	public function downloadOrglist(): void {
-		$url = "http://people.anarchy-online.com/people/lookup/orgs.html";
-
+	public function downloadAllOrgsEvent(Event $eventObj): Generator {
+		$searches = [
+			'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm',
+			'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z',
+			'others'
+		];
 		$this->ready = $this->db->table("organizations")
 			->where("index", "others")
 			->exists();
-		$this->logger->info("Downloading all orgs from '$url'");
-		$this->downloadOrglistLetter($url, 0);
-	}
-
-	public function isValidOrglist(?string $html): bool {
-		return isset($html) && str_contains($html, "ORGS BEGIN");
+		$this->logger->info("Downloading list of all orgs");
+		$this->todo = $searches;
+		$jobs = [];
+		for ($i = 0; $i < $this->numOrglistDlJobs; $i++) {
+			$jobs []= $this->startDownloadOrglistJob();
+		}
+		try {
+			yield all($jobs);
+		} catch (Throwable $e) {
+			$this->logger->error("Error downloading orglists: {error}", [
+				"error" => $e->getMessage(),
+				"exception" => $e,
+			]);
+		}
+		$this->ready = true;
+		$this->logger->info("Finished downloading orglists");
 	}
 
 	/** @return Collection<Organization> */
