@@ -326,7 +326,7 @@ class WebUiController extends ModuleInstance implements MessageEmitter {
 	/** Completely remove the WebUI installation */
 	#[NCA\HandlesCommand("webui")]
 	public function webUiUninstallCommand(CmdContext $context, #[NCA\Str("uninstall")] string $action): void {
-		$msg = "There was an error removig the old files from NadyUI, please clean up manually.";
+		$msg = "There was an error removing the old files from NadyUI, please clean up manually.";
 		if ($this->uninstallNadyUi(true)) {
 			$msg = "NadyUI successfully uninstalled.";
 		}

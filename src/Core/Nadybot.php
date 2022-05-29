@@ -3,10 +3,13 @@
 namespace Nadybot\Core;
 
 use function Amp\call;
+use function Amp\Promise\all;
 use function Safe\json_encode;
 
+use Amp\Coroutine;
 use Amp\Loop;
 use Amp\Promise;
+use Amp\Success;
 use ReflectionAttribute;
 use ReflectionClass;
 use ReflectionNamedType;
@@ -211,17 +214,22 @@ class Nadybot extends AOChat {
 			$this->registerSettingHandlers($class);
 		}
 		$this->db->commit();
-		$this->db->beginTransaction();
-		foreach (Registry::getAllInstances() as $name => $instance) {
-			if ($instance instanceof ModuleInstanceInterface && $instance->getModuleName() !== "") {
-				$this->registerInstance($name, $instance);
-			} else {
-				$this->callSetupMethod($name, $instance);
+		Loop::run(function () {
+			$procs = [];
+			$this->db->beginTransaction();
+			foreach (Registry::getAllInstances() as $name => $instance) {
+				if ($instance instanceof ModuleInstanceInterface && $instance->getModuleName() !== "") {
+					$procs []= $this->registerInstance($name, $instance);
+				} else {
+					$procs []= $this->callSetupMethod($name, $instance);
+				}
+				if (!$this->db->inTransaction()) {
+					$this->db->beginTransaction();
+				}
 			}
-			if (!$this->db->inTransaction()) {
-				$this->db->beginTransaction();
-			}
-		}
+			yield all($procs);
+			Loop::stop();
+		});
 		$this->db->commit();
 
 		//Delete old entries in the DB
@@ -1306,97 +1314,104 @@ class Nadybot extends AOChat {
 	 *
 	 * In order to later easily find a module, it registers here
 	 * and other modules can get the instance by querying for $name
+	 *
+	 * @return Promise<void>
 	 */
-	public function registerInstance(string $name, ModuleInstanceInterface $obj): void {
-		$moduleName = $obj->getModuleName();
-		$this->logger->info("Registering instance name '{name}' for module '{moduleName}'", [
-			"name" => $name,
-			"moduleName" => $moduleName,
-		]);
+	public function registerInstance(string $name, ModuleInstanceInterface $obj): Promise {
+		return call(function () use ($name, $obj): Generator {
+			$moduleName = $obj->getModuleName();
+			$this->logger->info("Registering instance name '{name}' for module '{moduleName}'", [
+				"name" => $name,
+				"moduleName" => $moduleName,
+			]);
 
-		// register settings annotated on the class
-		$reflection = new ReflectionClass($obj);
+			// register settings annotated on the class
+			$reflection = new ReflectionClass($obj);
 
-		[$commands, $subcommands] = $this->parseInstanceCommands($moduleName, $obj);
-		$this->parseInstanceSettings($moduleName, $obj);
+			[$commands, $subcommands] = $this->parseInstanceCommands($moduleName, $obj);
+			$this->parseInstanceSettings($moduleName, $obj);
 
-		foreach ($reflection->getMethods() as $method) {
-			if (count($method->getAttributes(NCA\Setup::class))) {
-				if ($method->invoke($obj) === false) {
-					$this->logger->error("Failed to call setup handler for '$name'");
+			foreach ($reflection->getMethods() as $method) {
+				if (count($method->getAttributes(NCA\Setup::class))) {
+					$result = $method->invoke($obj);
+					if ($result instanceof Generator) {
+						yield from $result;
+					} elseif ($method->invoke($obj) === false) {
+						$this->logger->error("Failed to call setup handler for '$name'");
+					}
+				}
+				foreach ($method->getAttributes(NCA\HandlesCommand::class) as $command) {
+					/** @var NCA\HandlesCommand */
+					$command = $command->newInstance();
+					$commandName = $command->command;
+					$handlerName = "{$name}.{$method->name}:".$method->getStartLine();
+					if (isset($commands[$commandName])) {
+						$commands[$commandName]->handlers []= $handlerName;
+					} elseif (isset($subcommands[$commandName])) {
+						$subcommands[$commandName]->handlers []= $handlerName;
+					} else {
+						$this->logger->warning("Cannot handle command '$commandName' as it is not defined with #[DefineCommand] in '$name'.");
+					}
+				}
+				foreach ($method->getAttributes(NCA\Event::class) as $eventAnnotation) {
+					/** @var NCA\Event */
+					$event = $eventAnnotation->newInstance();
+					foreach ((array)$event->name as $eventName) {
+						$this->eventManager->register(
+							$moduleName,
+							$eventName,
+							$name . '.' . $method->name,
+							$event->description,
+							$event->help,
+							$event->defaultStatus
+						);
+					}
+				}
+				foreach ($method->getAttributes(NCA\SettingChangeHandler::class) as $changeAnnotation) {
+					/** @var NCA\SettingChangeHandler */
+					$change = $changeAnnotation->newInstance();
+					$closure = $method->getClosure($obj);
+					if (!isset($closure)) {
+						continue;
+					}
+					$this->settingManager->registerChangeListener($change->setting, $closure);
 				}
 			}
-			foreach ($method->getAttributes(NCA\HandlesCommand::class) as $command) {
-				/** @var NCA\HandlesCommand */
-				$command = $command->newInstance();
-				$commandName = $command->command;
-				$handlerName = "{$name}.{$method->name}:".$method->getStartLine();
-				if (isset($commands[$commandName])) {
-					$commands[$commandName]->handlers []= $handlerName;
-				} elseif (isset($subcommands[$commandName])) {
-					$subcommands[$commandName]->handlers []= $handlerName;
-				} else {
-					$this->logger->warning("Cannot handle command '$commandName' as it is not defined with #[DefineCommand] in '$name'.");
-				}
-			}
-			foreach ($method->getAttributes(NCA\Event::class) as $eventAnnotation) {
-				/** @var NCA\Event */
-				$event = $eventAnnotation->newInstance();
-				foreach ((array)$event->name as $eventName) {
-					$this->eventManager->register(
-						$moduleName,
-						$eventName,
-						$name . '.' . $method->name,
-						$event->description,
-						$event->help,
-						$event->defaultStatus
-					);
-				}
-			}
-			foreach ($method->getAttributes(NCA\SettingChangeHandler::class) as $changeAnnotation) {
-				/** @var NCA\SettingChangeHandler */
-				$change = $changeAnnotation->newInstance();
-				$closure = $method->getClosure($obj);
-				if (!isset($closure)) {
+
+			foreach ($commands as $command => $definition) {
+				if (count($definition->handlers) === 0) {
+					$this->logger->error("No handlers defined for command '$command' in module '$moduleName'.");
 					continue;
 				}
-				$this->settingManager->registerChangeListener($change->setting, $closure);
+				$this->commandManager->register(
+					$moduleName,
+					implode(',', $definition->handlers),
+					(string)$command,
+					$definition->accessLevel,
+					$definition->description,
+					$definition->defaultStatus,
+				);
 			}
-		}
 
-		foreach ($commands as $command => $definition) {
-			if (count($definition->handlers) === 0) {
-				$this->logger->error("No handlers defined for command '$command' in module '$moduleName'.");
-				continue;
+			foreach ($subcommands as $subcommand => $definition) {
+				if (count($definition->handlers) == 0) {
+					$this->logger->error("No handlers defined for subcommand '$subcommand' in module '$moduleName'.");
+					continue;
+				}
+				if (!isset($definition->parentCommand)) {
+					continue;
+				}
+				$this->subcommandManager->register(
+					$moduleName,
+					implode(',', $definition->handlers),
+					$subcommand,
+					$definition->accessLevel,
+					$definition->parentCommand,
+					$definition->description,
+					$definition->defaultStatus,
+				);
 			}
-			$this->commandManager->register(
-				$moduleName,
-				implode(',', $definition->handlers),
-				(string)$command,
-				$definition->accessLevel,
-				$definition->description,
-				$definition->defaultStatus,
-			);
-		}
-
-		foreach ($subcommands as $subcommand => $definition) {
-			if (count($definition->handlers) == 0) {
-				$this->logger->error("No handlers defined for subcommand '$subcommand' in module '$moduleName'.");
-				continue;
-			}
-			if (!isset($definition->parentCommand)) {
-				continue;
-			}
-			$this->subcommandManager->register(
-				$moduleName,
-				implode(',', $definition->handlers),
-				$subcommand,
-				$definition->accessLevel,
-				$definition->parentCommand,
-				$definition->description,
-				$definition->defaultStatus,
-			);
-		}
+		});
 	}
 
 	/**
@@ -1550,17 +1565,23 @@ class Nadybot extends AOChat {
 
 	/**
 	 * Call the setup method for an object
+	 * @return Promise<mixed>
 	 */
-	public function callSetupMethod(string $name, object $obj): void {
+	public function callSetupMethod(string $name, object $obj): Promise {
 		$reflection = new ReflectionClass($obj);
 		foreach ($reflection->getMethods() as $method) {
 			if (empty($method->getAttributes(NCA\Setup::class))) {
 				continue;
 			}
-			if ($method->invoke($obj) === false) {
+			$result = $method->invoke($obj);
+			if ($result instanceof Generator) {
+				return new Coroutine($result);
+			}
+			if ($result === false) {
 				$this->logger->error("Failed to call setup handler for '$name'");
 			}
 		}
+		return new Success();
 	}
 
 	/**
