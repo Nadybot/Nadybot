@@ -251,12 +251,8 @@ class PackageController extends ModuleInstance {
 		CmdContext $context,
 		#[NCA\Str("list")] string $action
 	): Generator {
-		try {
-			$packages = yield $this->getPackages();
-			$msg = $this->renderPackageList($packages);
-		} catch (UserException $e) {
-			$msg = $e->getMessage();
-		}
+		$packages = yield $this->getPackages();
+		$msg = $this->renderPackageList($packages);
 		$context->reply($msg);
 	}
 
@@ -357,12 +353,8 @@ class PackageController extends ModuleInstance {
 		#[NCA\Str("info")] string $action,
 		string $package
 	): Generator {
-		try {
-			$packages = yield $this->getPackage($package);
-			$msg = $this->getPackageDetail($packages);
-		} catch (UserException $e) {
-			$msg = $e->getMessage();
-		}
+		$packages = yield $this->getPackage($package);
+		$msg = $this->getPackageDetail($packages);
 		$context->reply($msg);
 	}
 
@@ -593,13 +585,9 @@ class PackageController extends ModuleInstance {
 			$context->reply("{$package} is not compatible with Nadybot.");
 			return;
 		}
-		try {
-			$cmd->version = yield $this->checkIsCompatible($packages, $cmd);
-			$data = yield $this->downloadPackage($cmd->package, $cmd->version);
-			$msg = yield $this->installPackage($data, $cmd);
-		} catch (UserException $e) {
-			$msg = $e->getMessage();
-		}
+		$cmd->version = yield $this->getHighestCompatibleVersion($packages, $cmd);
+		$data = yield $this->downloadPackage($cmd->package, $cmd->version);
+		$msg = yield $this->installPackage($data, $cmd);
 		$context->reply($msg);
 	}
 
@@ -610,7 +598,7 @@ class PackageController extends ModuleInstance {
 		#[NCA\Str("update")] string $action,
 		PWord $package,
 		?string $version
-	): void {
+	): Generator {
 		if (!$this->config->enablePackageModule) {
 			$context->reply(
 				"In order to be allowed to update modules from within Nadybot, ".
@@ -623,7 +611,15 @@ class PackageController extends ModuleInstance {
 		$cmd->version = $version ? new SemanticVersion($version) : null;
 		$cmd->sender = $context->char->name;
 		$cmd->sendto = $context;
-		// $this->getPackage($package(), [$this, "checkAndInstall"], $cmd);
+		$packages = yield $this->getPackage($package());
+		if (!count($packages)) {
+			$context->reply("{$package} is not compatible with Nadybot.");
+			return;
+		}
+		$cmd->version = yield $this->getHighestCompatibleVersion($packages, $cmd);
+		$data = yield $this->downloadPackage($cmd->package, $cmd->version);
+		$msg = yield $this->installPackage($data, $cmd);
+		$context->reply($msg);
 	}
 
 	/** Uninstall a package */
@@ -739,7 +735,7 @@ class PackageController extends ModuleInstance {
 	 * @param Package[] $packages
 	 * @return Promise<SemanticVersion>
 	 */
-	public function checkIsCompatible(array $packages, PackageAction $cmd): Promise {
+	private function getHighestCompatibleVersion(array $packages, PackageAction $cmd): Promise {
 		if ($packages[0]->state === static::BUILT_INT) {
 			return new Failure(new UserException(
 				"<highlight>{$cmd->package}<end> is a built-in module in ".
@@ -779,10 +775,10 @@ class PackageController extends ModuleInstance {
 				));
 			}
 			if (!$packages[0]->compatible) {
-				return new Failure(new UserException(
-					"<highlight>{$cmd->package} {$cmd->version}<end> ".
-					" is not compatible with Nadybot " . BotRunner::getVersion()
-				));
+				// return new Failure(new UserException(
+				// 	"<highlight>{$cmd->package} {$cmd->version}<end> ".
+				// 	"is not compatible with Nadybot " . BotRunner::getVersion()
+				// ));
 			}
 			return new Success($cmd->version);
 		}
@@ -856,7 +852,7 @@ class PackageController extends ModuleInstance {
 	}
 
 	/** Try to get a ZipArchive from a HttpResponse */
-	private function getZip(string $data, PackageAction $cmd): ZipArchive {
+	private function getZip(string $data): ZipArchive {
 		try {
 			$temp = \Safe\tempnam(sys_get_temp_dir(), "nadybot-module");
 			\Safe\file_put_contents($temp, $data);
@@ -892,7 +888,7 @@ class PackageController extends ModuleInstance {
 				);
 			}
 			try {
-				$zip = $this->getZip($data, $cmd);
+				$zip = $this->getZip($data);
 			} catch (UserException $e) {
 				return new Failure($e);
 			}

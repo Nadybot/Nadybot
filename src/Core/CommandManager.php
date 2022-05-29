@@ -738,6 +738,8 @@ class CommandManager implements MessageEmitter {
 				call(function () use ($methodResult, $context): Generator {
 					try {
 						yield from $methodResult;
+					} catch (UserException $e) {
+						$context->reply($e->getMessage());
 					} catch (Throwable $e) {
 						$this->logger->error(
 							"Error executing '{$context->message}': " . $e->getMessage(),
