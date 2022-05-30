@@ -38,6 +38,9 @@ class WeatherController extends ModuleInstance {
 	#[NCA\Inject]
 	public Text $text;
 
+	#[NCA\Inject]
+	public HttpClientBuilder $builder;
+
 	private ArrayCache $cache;
 
 	public function __construct() {
@@ -88,9 +91,9 @@ class WeatherController extends ModuleInstance {
 			]);
 			$body = yield $this->cache->get($apiEndpoint);
 			if (!isset($body)) {
-				$builder = (new HttpClientBuilder())
-					->intercept(new AddRequestHeader('accept-language', 'en'));
-				$client = $builder->build();
+				$client = $this->builder
+					->intercept(new AddRequestHeader('accept-language', 'en'))
+					->build();
 
 				/** @var Response */
 				$response = yield $client->request(new Request($apiEndpoint));
@@ -143,9 +146,9 @@ class WeatherController extends ModuleInstance {
 				"lat" => sprintf("%.4f", $nom->lat),
 				"lon" => sprintf("%.4f", $nom->lon),
 			]);
-			$builder = (new HttpClientBuilder())
-				->intercept(new AddRequestHeader('accept-language', 'en'));
-			$client = $builder->build();
+			$client = $this->builder
+				->intercept(new AddRequestHeader('accept-language', 'en'))
+				->build();
 			/** @var Response */
 			$response = yield $client->request(new Request($apiEndpoint));
 			if ($response->getStatus() !== 200) {

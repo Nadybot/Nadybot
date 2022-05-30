@@ -2,6 +2,8 @@
 
 namespace Nadybot\Core;
 
+use Amp\Http\Client\HttpClientBuilder;
+use Amp\Http\Client\Interceptor\SetRequestHeaderIfUnset;
 use Amp\Loop;
 use Closure;
 use ErrorException;
@@ -303,6 +305,11 @@ class BotRunner {
 
 		$config = $this->getConfigFile();
 		Registry::setInstance("configfile", $config);
+		Registry::setInstance(
+			"HttpClientBuilder",
+			(new HttpClientBuilder)
+				->intercept(new SetRequestHeaderIfUnset("User-Agent", "Nadybot ".self::getVersion()))
+		);
 		$this->checkRequiredModules();
 		$this->checkRequiredPackages();
 		$this->createMissingDirs();

@@ -63,6 +63,9 @@ class GauntletBuffController extends ModuleInstance implements MessageEmitter {
 	public const GAUNTLET_API = "https://timers.aobots.org/api/v1.0/gaubuffs";
 
 	#[NCA\Inject]
+	public HttpClientBuilder $builder;
+
+	#[NCA\Inject]
 	public Text $text;
 
 	#[NCA\Inject]
@@ -122,7 +125,7 @@ class GauntletBuffController extends ModuleInstance implements MessageEmitter {
 		description: "Get active Gauntlet buffs from API"
 	)]
 	public function loadGauntletBuffsFromAPI(): Generator {
-		$client = HttpClientBuilder::buildDefault();
+		$client = $this->builder->build();
 
 		try {
 			/** @var Response */

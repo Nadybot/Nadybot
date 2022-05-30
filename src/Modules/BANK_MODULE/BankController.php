@@ -42,6 +42,9 @@ use function Safe\preg_split;
 ]
 class BankController extends ModuleInstance {
 	#[NCA\Inject]
+	public HttpClientBuilder $builder;
+
+	#[NCA\Inject]
 	public DB $db;
 
 	#[NCA\Inject]
@@ -176,7 +179,7 @@ class BankController extends ModuleInstance {
 	#[NCA\HandlesCommand("bank update")]
 	public function bankUpdateCommand(CmdContext $context, #[NCA\Str("update")] string $action): Generator {
 		if (preg_match("|^https?://|", $this->bankFileLocation)) {
-			$client = HttpClientBuilder::buildDefault();
+			$client = $this->builder->build();
 			/** @var Response */
 			$response = yield $client->request(new Request($this->bankFileLocation));
 			if ($response->getStatus() !== 200) {

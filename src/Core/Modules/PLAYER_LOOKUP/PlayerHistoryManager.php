@@ -24,6 +24,9 @@ use Nadybot\Core\{
 #[NCA\Instance]
 class PlayerHistoryManager extends ModuleInstance {
 	#[NCA\Inject]
+	public HttpClientBuilder $builder;
+
+	#[NCA\Inject]
 	public CacheManager $cacheManager;
 
 	#[NCA\Inject]
@@ -50,7 +53,7 @@ class PlayerHistoryManager extends ModuleInstance {
 			if (null !== $body = yield $cache->get($cacheKey)) {
 				return $this->parsePlayerHistory($body, $name);
 			}
-			$client = HttpClientBuilder::buildDefault();
+			$client = $this->builder->build();
 			/** @var Response */
 			$response = yield $client->request(new Request($url));
 			if ($response->getStatus() !== 200) {

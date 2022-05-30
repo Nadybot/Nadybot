@@ -14,6 +14,7 @@ use Nadybot\Core\Modules\DISCORD\DiscordAPIClient;
 use Nadybot\Modules\DISCORD_GATEWAY_MODULE\DiscordGatewayController;
 
 use function Amp\call;
+use function League\Uri\build;
 
 /**
  * Class to represent a discord bot token setting
@@ -22,6 +23,9 @@ use function Amp\call;
 class DiscordBotTokenSettingHandler extends SettingHandler {
 	#[NCA\Inject]
 	public SettingManager $settingManager;
+
+	#[NCA\Inject]
+	public HttpClientBuilder $builder;
 
 	#[NCA\Inject]
 	public DiscordGatewayController $discordGatewayController;
@@ -51,9 +55,9 @@ class DiscordBotTokenSettingHandler extends SettingHandler {
 			if ($newValue === "off") {
 				return $newValue;
 			}
-			$builder = (new HttpClientBuilder())
-				->intercept(new AddRequestHeader('Authorization', 'Bot ' . $newValue));
-			$client = $builder->build();
+			$client = $this->builder
+				->intercept(new AddRequestHeader('Authorization', 'Bot ' . $newValue))
+				->build();
 			/** @var Response */
 			$response = yield $client->request(new Request(DiscordAPIClient::DISCORD_API . "/users/@me"));
 			if ($response->getStatus() !== 200) {

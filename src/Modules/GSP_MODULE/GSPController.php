@@ -51,6 +51,9 @@ use Nadybot\Core\{
 ]
 class GSPController extends ModuleInstance implements MessageEmitter {
 	#[NCA\Inject]
+	public HttpClientBuilder $builder;
+
+	#[NCA\Inject]
 	public Nadybot $chatBot;
 
 	#[NCA\Inject]
@@ -107,7 +110,7 @@ class GSPController extends ModuleInstance implements MessageEmitter {
 	)]
 	public function announceIfShowRunning(): Generator {
 		try {
-			$client = HttpClientBuilder::buildDefault();
+			$client = $this->builder->build();
 			/** @var Response */
 			$response = yield $client->request(new Request(self::GSP_URL));
 			$body = yield $response->getBody()->buffer();
@@ -217,7 +220,7 @@ class GSPController extends ModuleInstance implements MessageEmitter {
 	/** Show what GridStream Productions is currently playing */
 	#[NCA\HandlesCommand("radio")]
 	public function radioCommand(CmdContext $context): Generator {
-		$client = HttpClientBuilder::buildDefault();
+		$client = $this->builder->build();
 		/** @var Response */
 		$response = yield $client->request(new Request(self::GSP_URL));
 		$body = yield $response->getBody()->buffer();
@@ -380,7 +383,7 @@ class GSPController extends ModuleInstance implements MessageEmitter {
 	public function gspTile(string $sender, callable $callback): void {
 		asyncCall(function () use ($callback): Generator {
 			try {
-				$client = HttpClientBuilder::buildDefault();
+				$client = $this->builder->build();
 				/** @var Response */
 				$response = yield $client->request(new Request(self::GSP_URL));
 				$body = yield $response->getBody()->buffer();

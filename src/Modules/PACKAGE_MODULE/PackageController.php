@@ -62,6 +62,9 @@ class PackageController extends ModuleInstance {
 	public const API = "https://pkg.aobots.org/api";
 
 	#[NCA\Inject]
+	public HttpClientBuilder $builder;
+
+	#[NCA\Inject]
 	public DB $db;
 
 	#[NCA\Inject]
@@ -167,7 +170,7 @@ class PackageController extends ModuleInstance {
 			if (null !== $body = yield $cache->get("packages")) {
 				return $this->parsePackages($body);
 			}
-			$client = HttpClientBuilder::buildDefault();
+			$client = $this->builder->build();
 			/** @var Response */
 			$response = yield $client->request(new Request(static::API . "/packages"));
 			if ($response->getStatus() !== 200) {
@@ -196,7 +199,7 @@ class PackageController extends ModuleInstance {
 			if (null !== $body = yield $cache->get($package)) {
 				return $this->parsePackages($body);
 			}
-			$client = HttpClientBuilder::buildDefault();
+			$client = $this->builder->build();
 			/** @var Response */
 			$response = yield $client->request(new Request(static::API . "/packages/{$package}"));
 			if ($response->getStatus() === 404) {
@@ -800,7 +803,7 @@ class PackageController extends ModuleInstance {
 	private function downloadPackage(string $package, SemanticVersion $version): Promise {
 		return call(function () use ($package, $version): Generator {
 			$url = static::API . "/packages/{$package}/{$version}/download";
-			$client = HttpClientBuilder::buildDefault();
+			$client = $this->builder->build();
 			/** @var Response */
 			$response = yield $client->request(new Request($url));
 			if ($response->getStatus() === 404) {

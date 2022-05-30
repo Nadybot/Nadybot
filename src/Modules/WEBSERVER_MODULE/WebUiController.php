@@ -45,6 +45,9 @@ use Nadybot\Core\{
 ]
 class WebUiController extends ModuleInstance implements MessageEmitter {
 	#[NCA\Inject]
+	public HttpClientBuilder $builder;
+
+	#[NCA\Inject]
 	public SettingManager $settingManager;
 
 	#[NCA\Inject]
@@ -139,7 +142,7 @@ class WebUiController extends ModuleInstance implements MessageEmitter {
 				"https://github.com/Nadybot/nadyui/releases/download/ci-%s/nadyui.zip",
 				$channel
 			);
-			$client = HttpClientBuilder::buildDefault();
+			$client = $this->builder->build();
 			/** @var Response */
 			$response = yield $client->request(new Request($uri));
 			if ($response->getStatus() === 404) {

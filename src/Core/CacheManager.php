@@ -22,6 +22,9 @@ class CacheManager {
 	public Nadybot $chatBot;
 
 	#[NCA\Inject]
+	public HttpClientBuilder $builder;
+
+	#[NCA\Inject]
 	public Http $http;
 
 	#[NCA\Inject]
@@ -106,7 +109,7 @@ class CacheManager {
 				}
 			}
 			//If no old history file was found or it was invalid try to update it from url
-			$client = HttpClientBuilder::buildDefault();
+			$client = $this->builder->build();
 			try {
 				/** @var Response */
 				$response = yield $client->request(new Request($url));

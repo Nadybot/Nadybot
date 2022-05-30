@@ -50,6 +50,9 @@ class WebserverController extends ModuleInstance {
 	protected $serverSocket = null;
 
 	#[NCA\Inject]
+	public HttpClientBuilder $builder;
+
+	#[NCA\Inject]
 	public Socket $socket;
 
 	#[NCA\Inject]
@@ -135,7 +138,7 @@ class WebserverController extends ModuleInstance {
 			return;
 		}
 		$aoAuthKeyUrl = rtrim($this->webserverAoauthUrl, '/') . '/key';
-		$client = HttpClientBuilder::buildDefault();
+		$client = $this->builder->build();
 		/** @var AmpResponse */
 		$response = yield $client->request(new AmpRequest($aoAuthKeyUrl));
 		if ($response->getStatus() !== 200) {

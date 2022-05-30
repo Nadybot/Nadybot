@@ -23,6 +23,7 @@ use Nadybot\Core\{
 	Nadybot,
 	SQLException,
 	Text,
+	UserException,
 	Util,
 };
 use Throwable;
@@ -45,6 +46,9 @@ use function Amp\Promise\all;
 	)
 ]
 class FindOrgController extends ModuleInstance {
+	#[NCA\Inject]
+	public HttpClientBuilder $builder;
+
 	#[NCA\Inject]
 	public DB $db;
 
@@ -237,7 +241,7 @@ class FindOrgController extends ModuleInstance {
 			}
 			$url = "http://people.anarchy-online.com/people/lookup/orgs.html".
 				"?l={$letter}";
-			$client = HttpClientBuilder::buildDefault();
+			$client = $this->builder->build();
 			$retry = 5;
 			do {
 				/** @var Response */
@@ -245,7 +249,7 @@ class FindOrgController extends ModuleInstance {
 
 				if ($response->getStatus() !== 200) {
 					if (--$retry <= 0) {
-						throw new Exception("Unable to download orglist for {$letter}");
+						throw new UserException("Unable to download orglist for {$letter}");
 					}
 					$this->logger->warning(
 						"Error downloading orglist for letter {letter}, retrying in {retry}s",

@@ -42,6 +42,9 @@ class PlayerManager extends ModuleInstance {
 	public const CACHE_GRACE_TIME = 87000;
 
 	#[NCA\Inject]
+	public HttpClientBuilder $builder;
+
+	#[NCA\Inject]
 	public DB $db;
 
 	#[NCA\Inject]
@@ -229,7 +232,7 @@ class PlayerManager extends ModuleInstance {
 	/** @return Promise<?Player> */
 	public function lookupAsync2(string $name, int $dimension): Promise {
 		return call(function () use ($name, $dimension): Generator {
-			$client = HttpClientBuilder::buildDefault();
+			$client = $this->builder->build();
 			$url = "http://people.anarchy-online.com/character/bio/d/{$dimension}/name/{$name}/bio.xml?data_type=json";
 			$player = null;
 			try {

@@ -38,6 +38,9 @@ use Nadybot\Core\{
 #[NCA\Instance]
 class GuildManager extends ModuleInstance {
 	#[NCA\Inject]
+	public HttpClientBuilder $builder;
+
+	#[NCA\Inject]
 	public Nadybot $chatBot;
 
 	#[NCA\Inject]
@@ -107,7 +110,7 @@ class GuildManager extends ModuleInstance {
 				}
 			}
 			if (!isset($body) || $body === '') {
-				$client = HttpClientBuilder::buildDefault();
+				$client = $this->builder->build();
 				/** @var Response */
 				$response = yield $client->request(new Request($url));
 				$body = yield $response->getBody()->buffer();

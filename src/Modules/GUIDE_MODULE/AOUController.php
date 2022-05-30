@@ -41,6 +41,9 @@ use Nadybot\Modules\ITEMS_MODULE\{
 ]
 class AOUController extends ModuleInstance {
 	#[NCA\Inject]
+	public HttpClientBuilder $builder;
+
+	#[NCA\Inject]
 	public ConfigFile $config;
 
 	#[NCA\Inject]
@@ -83,7 +86,7 @@ class AOUController extends ModuleInstance {
 		$cacheKey = (string)$guideId;
 		$body = yield $cache->get($cacheKey);
 		if ($body === null) {
-			$client = HttpClientBuilder::buildDefault();
+			$client = $this->builder->build();
 			/** @var Response */
 			$response = yield $client->request(new Request(
 				self::AOU_URL . '&' . http_build_query($params)
@@ -169,7 +172,7 @@ class AOUController extends ModuleInstance {
 			'mode' => 'search',
 			'search' => $search
 		];
-		$client = HttpClientBuilder::buildDefault();
+		$client = $this->builder->build();
 		/** @var Response */
 		$response = yield $client->request(new Request(
 			self::AOU_URL . '&' . http_build_query($params)

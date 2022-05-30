@@ -68,6 +68,9 @@ use Nadybot\Core\{
 ]
 class LogsController extends ModuleInstance {
 	#[NCA\Inject]
+	public HttpClientBuilder $builder;
+
+	#[NCA\Inject]
 	public CommandManager $commandManager;
 
 	#[NCA\Inject]
@@ -335,7 +338,7 @@ class LogsController extends ModuleInstance {
 			}
 			$content = str_replace('"' . BotRunner::getBasedir() . "/", "", $content);
 			$boundary = '--------------------------'.microtime(true);
-			$client = (new HttpClientBuilder())
+			$client = $this->builder
 				->intercept(new SetRequestHeader("Authorization", "dRtXBMRnAH6AX2lx5ESiAQ=="))
 				->intercept(new SetRequestHeader("Content-Type", "multipart/form-data; boundary={$boundary}"))
 				->build();

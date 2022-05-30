@@ -23,6 +23,9 @@ class DiscordChannelSettingHandler extends SettingHandler {
 	public SettingManager $settingManager;
 
 	#[NCA\Inject]
+	public HttpClientBuilder $builder;
+
+	#[NCA\Inject]
 	public DiscordGatewayController $discordGatewayController;
 
 	/**
@@ -63,9 +66,9 @@ class DiscordChannelSettingHandler extends SettingHandler {
 				}
 				return $newValue;
 			}
-			$builder = (new HttpClientBuilder())
-				->intercept(new AddRequestHeader('Authorization', 'Bot ' . $discordBotToken));
-			$client = $builder->build();
+			$client = $this->builder
+				->intercept(new AddRequestHeader('Authorization', 'Bot ' . $discordBotToken))
+				->build();
 			/** @var Response */
 			$response = yield $client->request(new Request("https://discord.com/api/channels/{$newValue}"));
 			if ($response->getStatus() === 200) {

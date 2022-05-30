@@ -3,7 +3,7 @@
 namespace Nadybot\Modules\TOWER_MODULE;
 
 use Amp\Http\Client\HttpClientBuilder;
-use Amp\Http\Client\Interceptor\AddRequestHeader;
+use Amp\Http\Client\Interceptor\SetRequestHeader;
 use Amp\Http\Client\Request;
 use Amp\Http\Client\Response;
 use Amp\Promise;
@@ -26,6 +26,9 @@ class TowerApiController extends ModuleInstance {
 	public const TOWER_API = "tower_api";
 	public const API_TYRENCE = "https://tower-api.jkbff.com/v1/api/towers";
 	public const API_NONE = "none";
+
+	#[NCA\Inject]
+	public HttpClientBuilder $builder;
 
 	#[NCA\Inject]
 	public TowerController $towerController;
@@ -112,9 +115,9 @@ class TowerApiController extends ModuleInstance {
 			if ($apiURL === static::API_NONE) {
 				$apiURL = static::API_TYRENCE;
 			}
-			$builder = (new HttpClientBuilder())
-				->intercept(new AddRequestHeader("User-Agent", "Naughtybot " . BotRunner::getVersion()));
-			$client = $builder->build();
+			$client = $this->builder
+				->intercept(new SetRequestHeader("User-Agent", "Naughtybot " . BotRunner::getVersion()))
+				->build();
 			$uri = Http::createFromString($apiURL)->withQuery($query);
 			/** @var Response */
 			$response = yield $client->request(new Request($uri));

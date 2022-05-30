@@ -33,12 +33,13 @@ class HttpRequestController extends ModuleInstance {
 	#[NCA\Inject]
 	public Text $text;
 
+	#[NCA\Inject]
+	public HttpClientBuilder $builder;
+
 	/** Load the given URL and show the result */
 	#[NCA\HandlesCommand("httprequest")]
 	public function httprequestCommand(CmdContext $context, string $url): Generator {
-		$builder = new HttpClientBuilder();
-		$builder->retry(5);
-		$client = $builder->build();
+		$client = $this->builder->retry(5)->build();
 		try {
 			/** @var Response */
 			$response = yield $client->request(new Request($url));

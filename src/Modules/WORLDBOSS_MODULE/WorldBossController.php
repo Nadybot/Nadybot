@@ -157,6 +157,9 @@ class WorldBossController extends ModuleInstance {
 	public const SPAWN_EVENT = 3;
 
 	#[NCA\Inject]
+	public HttpClientBuilder $builder;
+
+	#[NCA\Inject]
 	public Text $text;
 
 	#[NCA\Inject]
@@ -241,7 +244,7 @@ class WorldBossController extends ModuleInstance {
 		description: "Get boss timers from timer API"
 	)]
 	public function loadTimersFromAPI(): Generator {
-		$client = HttpClientBuilder::buildDefault();
+		$client = $this->builder->build();
 
 		try {
 			/** @var Response */
