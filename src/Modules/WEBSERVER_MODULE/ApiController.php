@@ -493,7 +493,9 @@ class ApiController extends ModuleInstance {
 		} catch (Throwable $e) {
 			$response = null;
 		}
-		$request->replied = -1;
+		if (!isset($request->replied)) {
+			$request->replied = -1;
+		}
 		asyncCall(function () use ($response, $server, $request): Generator {
 			if ($response instanceof Generator) {
 				$response = yield from $response;
