@@ -10,7 +10,6 @@ use Nadybot\Core\Attributes as NCA;
 use Throwable;
 
 use function Amp\call;
-use function Amp\Promise\timeout;
 
 #[NCA\Instance]
 class BuddylistManager {
@@ -103,14 +102,14 @@ class BuddylistManager {
 				if ($event->uid !== $uid) {
 					return;
 				}
-				$deferred->resolve($event->type == "logon");
+				$deferred->resolve($event->type === "logon");
 				$this->eventManager->unsubscribe($event->type, $resolver);
 			};
 			$this->eventManager->subscribe("logon", $resolver);
 			$this->eventManager->subscribe("logoff", $resolver);
 			$this->addId($uid, $onlineKey);
 			try {
-				$isOnline = yield timeout($deferred->promise(), 1000);
+				$isOnline = yield $deferred->promise();
 			} catch (Throwable $e) {
 				$isOnline = false;
 			} finally {
@@ -130,7 +129,7 @@ class BuddylistManager {
 			return true;
 		}
 		$buddy = $this->buddyList[$uid] ?? null;
-		return $buddy ? $buddy->online : null;
+		return ($buddy && $buddy->known) ? $buddy->online : null;
 	}
 
 	/**

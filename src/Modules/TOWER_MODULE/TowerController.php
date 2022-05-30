@@ -5,6 +5,7 @@ namespace Nadybot\Modules\TOWER_MODULE;
 use Closure;
 use DateTime;
 use Exception;
+use Generator;
 use Illuminate\Database\Query\JoinClause;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
@@ -429,7 +430,7 @@ class TowerController extends ModuleInstance {
 	#[NCA\HandlesCommand("sites")]
 	#[NCA\Help\Example("<symbol>sites athen paladins")]
 	#[NCA\Help\Example("<symbol>sites 4736")]
-	public function sitesByNameCommand(CmdContext $context, string $search): void {
+	public function sitesByNameCommand(CmdContext $context, string $search): Generator {
 		if (!$this->findOrgController->isReady()) {
 			$this->findOrgController->sendNotReadyError($context);
 			return;
@@ -438,23 +439,20 @@ class TowerController extends ModuleInstance {
 			$this->showSitesOfOrg((int)$search, $context);
 			return;
 		}
-		$this->orglistController->getMatches(
-			$search,
-			function(array $orgs) use ($context, $search): void {
-				$count = count($orgs);
+		/** @var Organization[] */
+		$orgs = yield $this->orglistController->getOrgsMatchingSearch($search);
+		$count = count($orgs);
 
-				if ($count === 0) {
-					$msg = "Could not find any orgs (or players in orgs) that match <highlight>$search<end>.";
-					$context->reply($msg);
-				} elseif ($count === 1) {
-					$this->showSitesOfOrg($orgs[0]->id, $context);
-				} else {
-					$blob = $this->formatOrglist($orgs);
-					$msg = $this->makeBlob("Org Search Results for '{$search}' ($count)", $blob);
-					$context->reply($msg);
-				}
-			}
-		);
+		if ($count === 0) {
+			$msg = "Could not find any orgs (or players in orgs) that match <highlight>$search<end>.";
+			$context->reply($msg);
+		} elseif ($count === 1) {
+			$this->showSitesOfOrg($orgs[0]->id, $context);
+		} else {
+			$blob = $this->formatOrglist($orgs);
+			$msg = $this->makeBlob("Org Search Results for '{$search}' ($count)", $blob);
+			$context->reply($msg);
+		}
 	}
 
 	/**

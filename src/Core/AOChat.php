@@ -741,7 +741,7 @@ class AOChat {
 		}
 
 		$user = ucfirst(strtolower($user));
-		if ($user === '') {
+		if ($user === '' || strlen($user) < 4 || strlen($user) > 12) {
 			return new Success(null);
 		}
 
