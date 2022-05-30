@@ -103,11 +103,9 @@ class GuildManager extends ModuleInstance {
 				new LocalKeyedMutex()
 			);
 			$cacheKey = "{$guildID}.{$dimension}";
+			$fromCache = true;
 			if (!$forceUpdate) {
-				$cachedData = yield $cache->get($cacheKey);
-				if (isset($cachedData)) {
-					$body = $cachedData;
-				}
+				$body = yield $cache->get($cacheKey);
 			}
 			if (!isset($body) || $body === '') {
 				$client = $this->builder->build();
@@ -115,6 +113,7 @@ class GuildManager extends ModuleInstance {
 				$response = yield $client->request(new Request($url));
 				$body = yield $response->getBody()->buffer();
 				$cache->set($cacheKey, $body, $maxCacheAge);
+				$fromCache = false;
 			}
 
 			if ($body === '') {
@@ -189,6 +188,10 @@ class GuildManager extends ModuleInstance {
 				$guild->members[$name]->pvp_title     = $member->PVPTITLE;
 			}
 
+			// If this result is from our cache, then this information is already present
+			if ($fromCache) {
+				return $guild;
+			}
 			$this->db->beginTransaction();
 
 			$this->db->table("players")
