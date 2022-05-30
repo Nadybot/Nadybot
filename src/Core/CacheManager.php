@@ -2,9 +2,16 @@
 
 namespace Nadybot\Core;
 
+use Amp\Http\Client\HttpClientBuilder;
+use Amp\Http\Client\Request;
+use Amp\Http\Client\Response;
 use Nadybot\Core\Attributes as NCA;
 use Exception;
+use Generator;
 use Safe\Exceptions\FilesystemException;
+use Throwable;
+
+use function Amp\asyncCall;
 
 /**
  * Read-through cache to URLs
@@ -81,25 +88,71 @@ class CacheManager {
 	 * Lookup information in the cache or retrieve it when outdated and call the callback
 	 * @param mixed $args
 	 * @psalm-param callable(CacheResult, mixed...) $callback
+	 * @deprecated
 	 */
 	public function asyncLookup(string $url, string $groupName, string $filename, callable $isValidCallback, int $maxCacheAge, bool $forceUpdate, callable $callback, ...$args): void {
-		if (empty($groupName)) {
-			$this->logger->error("Cache group name cannot be empty");
-			return;
-		}
-
-		// Check if an xml file of the person exists and if it is up to date
-		if (!$forceUpdate) {
-			$cachedResult = $this->forceLookupFromCache($groupName, $filename, $isValidCallback, $maxCacheAge);
-			if (isset($cachedResult)) {
-				$callback($cachedResult, ...$args);
+		asyncCall(function () use ($url, $groupName, $filename, $isValidCallback, $maxCacheAge, $forceUpdate, $callback, $args): Generator {
+			if (empty($groupName)) {
+				$this->logger->error("Cache group name cannot be empty");
 				return;
 			}
-		}
-		//If no old history file was found or it was invalid try to update it from url
-		$this->http->get($url)
-			->withTimeout(10)
-			->withCallback([$this, "handleCacheLookup"], $groupName, $filename, $isValidCallback, $callback, ...$args);
+
+			// Check if an xml file of the person exists and if it is up to date
+			if (!$forceUpdate) {
+				$cachedResult = $this->forceLookupFromCache($groupName, $filename, $isValidCallback, $maxCacheAge);
+				if (isset($cachedResult)) {
+					$callback($cachedResult, ...$args);
+					return;
+				}
+			}
+			//If no old history file was found or it was invalid try to update it from url
+			$client = HttpClientBuilder::buildDefault();
+			try {
+				/** @var Response */
+				$response = yield $client->request(new Request($url));
+				$body = yield $response->getBody()->buffer();
+			} catch (Throwable $e) {
+				$this->logger->warning($e->getMessage());
+				$body = '';
+			}
+			if ($body === '') {
+				$this->logger->warning("Empty reply received from {url}", ["url" => $url]);
+			}
+			if ($body !== '' && $isValidCallback($body)) {
+				// Lookup for the URL was successful, now update the cache and return data
+				$cacheResult = new CacheResult();
+				$cacheResult->data = $body;
+				$cacheResult->cacheAge = 0;
+				$cacheResult->usedCache = false;
+				$cacheResult->oldCache = false;
+				$cacheResult->success = true;
+				$this->store($groupName, $filename, $cacheResult->data);
+				$callback($cacheResult, ...$args);
+				return;
+			}
+			//If the site was not responding or the data was invalid and we
+			// also have no old cache, report that
+			if (!$this->cacheExists($groupName, $filename)) {
+				$callback(new CacheResult(), ...$args);
+				return;
+			}
+			// If we have an old cache entry, use that one, it's better than nothing
+			$data = $this->retrieve($groupName, $filename);
+			if (!call_user_func($isValidCallback, $data)) {
+				// Old cache data is invalid? Delete and report no data found
+				$this->remove($groupName, $filename);
+				$callback(new CacheResult(), ...$args);
+				return;
+			}
+
+			$cacheResult = new CacheResult();
+			$cacheResult->data = $data;
+			$cacheResult->cacheAge = $this->getCacheAge($groupName, $filename) ?? 0;
+			$cacheResult->usedCache = true;
+			$cacheResult->oldCache = true;
+			$cacheResult->success = true;
+			$callback($cacheResult, ...$args);
+		});
 	}
 
 	/**
