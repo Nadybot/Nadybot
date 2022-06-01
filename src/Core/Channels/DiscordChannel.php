@@ -2,6 +2,7 @@
 
 namespace Nadybot\Core\Channels;
 
+use Amp\Promise;
 use Nadybot\Core\{
 	Attributes as NCA,
 	AccessManager,
@@ -97,7 +98,7 @@ class DiscordChannel implements MessageReceiver {
 		}
 
 		//Relay the message to the discord channel
-		$this->discordAPIClient->queueToChannel($this->id, $discordMsg->toJSON());
+		Promise\rethrow($this->discordAPIClient->queueToChannel($this->id, $discordMsg->toJSON()));
 		return true;
 	}
 }

@@ -488,7 +488,7 @@ class EventManager {
 				if (isset($newEventObj)) {
 					$result = $callback($newEventObj, ...$args);
 					if ($result instanceof Generator) {
-						$this->wrapGenerator($result, $eventObj);
+						$this->wrapGenerator($result, $eventObj, $refMeth);
 					}
 				}
 			}
@@ -537,7 +537,7 @@ class EventManager {
 				if (isset($eventObj)) {
 					$result = $instance->$method($eventObj, ...$args);
 					if ($result instanceof Generator) {
-						$this->wrapGenerator($result, $eventObj);
+						$this->wrapGenerator($result, $eventObj, $refMeth);
 					}
 				}
 			}
@@ -576,14 +576,29 @@ class EventManager {
 	}
 
 	/** @return Promise<void> */
-	private function wrapGenerator(Generator $methodResult, Event $event): Promise {
-		return call(function () use ($methodResult, $event): Generator {
+	private function wrapGenerator(Generator $methodResult, Event $event, ReflectionFunctionAbstract $ref): Promise {
+		return call(function () use ($methodResult, $event, $ref): Generator {
 			try {
 				yield from $methodResult;
 			} catch (Throwable $e) {
+				$loc = "{closure}";
+				if ($ref instanceof ReflectionMethod) {
+					$loc = $ref->getDeclaringClass()->getName() . '::' . $ref->getName() . '()';
+				} elseif ($ref instanceof ReflectionFunction) {
+					$file = $ref->getFileName();
+					if ($file === false) {
+						$file = '{closure}';
+					}
+					$loc = $file . '#' . $ref->getStartLine();
+				}
 				$this->logger->error(
-					"Error executing '{$event->type}': " . $e->getMessage(),
-					["exception" => $e]
+					"Error calling event handler {function} for '{event}': {error}",
+					[
+						"exception" => $e,
+						"error" => $e->getMessage(),
+						"function" => $loc,
+						"event" => $event->type,
+					]
 				);
 			}
 		});

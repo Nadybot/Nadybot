@@ -2,10 +2,12 @@
 
 namespace Nadybot\Core;
 
+use Amp\Promise;
 use DateTime;
 use PDO;
 use PDOException;
 use Exception;
+use Generator;
 use GlobIterator;
 use ReflectionClass;
 use ReflectionProperty;
@@ -23,6 +25,8 @@ use Nadybot\Core\{
 	DBSchema\Migration,
 	Migration as CoreMigration,
 };
+
+use function Amp\call;
 
 #[NCA\Instance]
 #[NCA\HasMigrations(module: "Core")]
@@ -512,13 +516,14 @@ class DB {
 		return $builder;
 	}
 
-	public function createDatabaseSchema(): void {
+	/** @return Promise<void> */
+	public function createDatabaseSchema(): Promise {
 		$instances = Registry::getAllInstances();
 		$migrations = new Collection();
 		foreach ($instances as $instance) {
 			$migrations = $migrations->merge($this->getMigrationFiles($instance));
 		}
-		$this->runMigrations(...$migrations->toArray());
+		return $this->runMigrations(...$migrations->toArray());
 	}
 
 	/** @return Collection<CoreMigration> */
@@ -602,45 +607,48 @@ class DB {
 				->exists();
 	}
 
-	public function runMigrations(CoreMigration ...$migrations): void {
-		$migrations = new Collection($migrations);
-		$this->createMigrationTables();
-		$groupedMigs = $migrations->groupBy("module");
-		$missingMigs = $groupedMigs->map(function (Collection $migs, string $module): Collection {
-			return $this->filterAppliedMigrations($module, $migs);
-		})->flatten()
-		->sort(function (CoreMigration $f1, CoreMigration $f2): int {
-			return strcmp($f1->timeStr, $f2->timeStr);
-		});
-		if ($missingMigs->isEmpty()) {
-			return;
-		}
-		$start = microtime(true);
-		$this->logger->notice("Applying {numMigs} database migrations", [
-			"numMigs" => $missingMigs->count(),
-		]);
-		foreach ($missingMigs as $mig) {
-			try {
-				$this->beginTransaction();
-				$this->applyMigration($mig->module, $mig->filePath);
-				if ($this->inTransaction()) {
-					$this->commit();
-				}
-			} catch (Throwable $e) {
-				$this->logger->critical(
-					"Error applying migration {module}/{baseName}: {error}",
-					array_merge((array)$mig, ["error" => $e->getMessage(), "exception" => $e])
-				);
-				if ($this->inTransaction()) {
-					$this->rollback();
-				}
-				exit(1);
+	/** @return Promise<void> */
+	public function runMigrations(CoreMigration ...$migrations): Promise {
+		return call(function () use ($migrations): Generator {
+			$migrations = new Collection($migrations);
+			$this->createMigrationTables();
+			$groupedMigs = $migrations->groupBy("module");
+			$missingMigs = $groupedMigs->map(function (Collection $migs, string $module): Collection {
+				return $this->filterAppliedMigrations($module, $migs);
+			})->flatten()
+			->sort(function (CoreMigration $f1, CoreMigration $f2): int {
+				return strcmp($f1->timeStr, $f2->timeStr);
+			});
+			if ($missingMigs->isEmpty()) {
+				return;
 			}
-		}
-		$end = microtime(true);
-		$this->logger->notice("All migrations applied successfully in {timeMS}ms", [
-			"timeMS" => number_format(($end - $start) * 1000, 2)
-		]);
+			$start = microtime(true);
+			$this->logger->notice("Applying {numMigs} database migrations", [
+				"numMigs" => $missingMigs->count(),
+			]);
+			foreach ($missingMigs as $mig) {
+				try {
+					$this->beginTransaction();
+					yield $this->applyMigration($mig->module, $mig->filePath);
+					if ($this->inTransaction()) {
+						$this->commit();
+					}
+				} catch (Throwable $e) {
+					$this->logger->critical(
+						"Error applying migration {module}/{baseName}: {error}",
+						array_merge((array)$mig, ["error" => $e->getMessage(), "exception" => $e])
+					);
+					if ($this->inTransaction()) {
+						$this->rollback();
+					}
+					exit(1);
+				}
+			}
+			$end = microtime(true);
+			$this->logger->notice("All migrations applied successfully in {timeMS}ms", [
+				"timeMS" => number_format(($end - $start) * 1000, 2)
+			]);
+		});
 	}
 
 	/**
@@ -654,45 +662,53 @@ class DB {
 		});
 	}
 
-	protected function applyMigration(string $module, string $file): void {
-		$baseName = basename($file, '.php');
-		$old = get_declared_classes();
-		try {
-			require_once $file;
-		} catch (Throwable $e) {
-			$this->logger->error("Cannot parse $file: " . $e->getMessage(), ["exception" => $e]);
-			return;
-		}
-		$new = array_diff(get_declared_classes(), $old);
-		$table = $this->formatSql(
-			preg_match("/\.shared/", $baseName) ? "migrations" : "migrations_<myname>"
-		);
-		foreach ($new as $class) {
-			if (!is_subclass_of($class, SchemaMigration::class)) {
-				continue;
-			}
-			$obj = new $class();
-			Registry::injectDependencies($obj);
+	/** @return Promise<void> */
+	private function applyMigration(string $module, string $file): Promise {
+		return call(function () use ($module, $file): Generator {
+			$baseName = basename($file, '.php');
+			$old = get_declared_classes();
 			try {
-				$this->logger->info("Running migration {$class}");
-				$obj->migrate($this->logger, $this);
+				require_once $file;
 			} catch (Throwable $e) {
-				if (isset(BotRunner::$arguments["migration-errors-fatal"])) {
-					throw $e;
-				}
-				$this->logger->error(
-					"Error executing {$class}::migrate(): ".
-						$e->getMessage(),
-					["exception" => $e]
-				);
-				continue;
+				$this->logger->error("Cannot parse $file: " . $e->getMessage(), ["exception" => $e]);
+				return;
 			}
-			$this->table($table)->insert([
-				'module' => $module,
-				'migration' => $baseName,
-				'applied_at' => time(),
-			]);
-		}
+			$new = array_diff(get_declared_classes(), $old);
+			$table = $this->formatSql(
+				preg_match("/\.shared/", $baseName) ? "migrations" : "migrations_<myname>"
+			);
+			foreach ($new as $class) {
+				if (!is_subclass_of($class, SchemaMigration::class)) {
+					continue;
+				}
+				$obj = new $class();
+				Registry::injectDependencies($obj);
+				try {
+					$this->logger->info("Running migration {$class}");
+					$result = $obj->migrate($this->logger, $this);
+					if ($result instanceof Promise) {
+						yield $result;
+					} elseif ($result instanceof Generator) {
+						yield from $result;
+					}
+				} catch (Throwable $e) {
+					if (isset(BotRunner::$arguments["migration-errors-fatal"])) {
+						throw $e;
+					}
+					$this->logger->error(
+						"Error executing {$class}::migrate(): ".
+							$e->getMessage(),
+						["exception" => $e]
+					);
+					continue;
+				}
+				$this->table($table)->insert([
+					'module' => $module,
+					'migration' => $baseName,
+					'applied_at' => time(),
+				]);
+			}
+		});
 	}
 
 	/**

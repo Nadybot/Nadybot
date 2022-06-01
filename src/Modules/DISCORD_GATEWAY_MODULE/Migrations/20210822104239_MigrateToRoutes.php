@@ -3,6 +3,7 @@
 namespace Nadybot\Modules\DISCORD_GATEWAY_MODULE\Migrations;
 
 use Exception;
+use Generator;
 use Nadybot\Core\{
 	Attributes as NCA,
 	ConfigFile,
@@ -18,6 +19,7 @@ use Nadybot\Core\{
 	SchemaMigration,
 	SettingManager,
 };
+use Throwable;
 
 class MigrateToRoutes implements SchemaMigration {
 	#[NCA\Inject]
@@ -59,7 +61,7 @@ class MigrateToRoutes implements SchemaMigration {
 		$db->table(MessageHub::DB_TABLE_COLORS)->insert($spec);
 	}
 
-	public function migrate(LoggerWrapper $logger, DB $db): void {
+	public function migrate(LoggerWrapper $logger, DB $db): Generator {
 		// throw new Exception("Hollera!");
 		$tagColor = $this->getColor($db, "discord_color_channel");
 		$textColor = $this->getColor($db, "discord_color_guild", "discord_color_priv");
@@ -74,22 +76,26 @@ class MigrateToRoutes implements SchemaMigration {
 			return;
 		}
 		$relayCommands = $this->getSetting($db, "discord_relay_commands");
-		$this->discordController->discordAPIClient->getChannel(
-			$relayChannel->value,
-			[$this, "migrateChannelToRoute"],
-			$db,
-			$relayWhat,
-			$relayCommands,
-		);
+		if (isset($relayCommands)) {
+			$relayCommands = $relayCommands->value === "1";
+		} else {
+			$relayCommands = false;
+		}
+		try {
+			/** @var DiscordChannel */
+			$channel = yield $this->discordController->discordAPIClient->getChannel($relayChannel->value);
+			$this->migrateChannelToRoute($channel, $db, $relayWhat, $relayCommands);
+		} catch (Throwable) {
+		}
 	}
 
-	public function migrateChannelToRoute(DiscordChannel $channel, DB $db, Setting $relayWhat, Setting $relayCommands): void {
+	public function migrateChannelToRoute(DiscordChannel $channel, DB $db, Setting $relayWhat, bool $relayCommands): void {
 		if ((int)$relayWhat->value & 2) {
 			$this->addRoute(
 				$db,
 				Source::DISCORD_PRIV . "({$channel->name})",
 				Source::ORG,
-				$relayCommands->value === "1"
+				$relayCommands
 			);
 		}
 		if ((int)$relayWhat->value & 1) {
@@ -97,7 +103,7 @@ class MigrateToRoutes implements SchemaMigration {
 				$db,
 				Source::DISCORD_PRIV . "({$channel->name})",
 				Source::PRIV . "({$this->config->name})",
-				$relayCommands->value === "1"
+				$relayCommands
 			);
 		}
 	}

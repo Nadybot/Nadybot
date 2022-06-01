@@ -3,6 +3,7 @@
 namespace Nadybot\Modules\TOWER_MODULE\Migrations;
 
 use Exception;
+use Generator;
 use Nadybot\Core\{
 	Attributes as NCA,
 	ConfigFile,
@@ -18,6 +19,7 @@ use Nadybot\Core\{
 	SettingManager,
 };
 use Nadybot\Modules\TOWER_MODULE\TowerController;
+use Throwable;
 
 class MigrateToRoutes implements SchemaMigration {
 	#[NCA\Inject]
@@ -39,7 +41,7 @@ class MigrateToRoutes implements SchemaMigration {
 			->first();
 	}
 
-	public function migrate(LoggerWrapper $logger, DB $db): void {
+	public function migrate(LoggerWrapper $logger, DB $db): Generator {
 		$towerColor = $this->getSetting($db, "tower_spam_color");
 		if (isset($towerColor)
 			&& preg_match("/#([0-9A-F]{6})/", $towerColor->value??"", $matches)
@@ -96,15 +98,15 @@ class MigrateToRoutes implements SchemaMigration {
 		if (!isset($notifyChannel) || !isset($notifyChannel->value) || $notifyChannel->value === "off") {
 			return;
 		}
-		$this->discordAPIClient->getChannel(
-			$notifyChannel->value,
-			[$this, "migrateChannelToRoute"],
-			$db,
-			($showWhere & 4) > 0
-		);
+		try {
+			/** @var DiscordChannel */
+			$channel = yield $this->discordAPIClient->getChannel($notifyChannel->value);
+			$this->migrateChannelToRoute($channel, $db, ($showWhere & 4) > 0);
+		} catch (Throwable) {
+		}
 	}
 
-	public function migrateChannelToRoute(DiscordChannel $channel, DB $db, bool $defaults): void {
+	private function migrateChannelToRoute(DiscordChannel $channel, DB $db, bool $defaults): void {
 		$types = [];
 		if ($defaults) {
 			$types = ["tower-attack", "tower-victory"];

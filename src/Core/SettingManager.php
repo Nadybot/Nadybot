@@ -12,6 +12,7 @@ use Nadybot\Core\DBSchema\Setting;
 ]
 class SettingManager {
 	public const DB_TABLE = "settings_<myname>";
+
 	#[NCA\Inject]
 	public DB $db;
 
@@ -44,6 +45,8 @@ class SettingManager {
 
 	/** @var array<string,string> */
 	private array $settingHandlers = [];
+
+	public static bool $isInitialized = false;
 
 	/**
 	 * Return the hardcoded value for a setting or a given default
@@ -210,6 +213,15 @@ class SettingManager {
 		$name = strtolower($name);
 		if ($this->exists($name)) {
 			return $this->settings[$name]->value;
+		} elseif (!static::$isInitialized) {
+			/** @var ?Setting */
+			$value = $this->db->table(self::DB_TABLE)
+				->where("name", $name)
+				->asObj(Setting::class)
+				->first();
+			if (isset($value)) {
+				return (new SettingValue($value))->value;
+			}
 		}
 		$this->logger->error("Could not retrieve value for setting '$name' because setting does not exist");
 		return false;
@@ -222,7 +234,17 @@ class SettingManager {
 		$name = strtolower($name);
 		if ($this->exists($name)) {
 			return $this->settings[$name]->typed();
+		} elseif (!static::$isInitialized) {
+			/** @var ?Setting */
+			$value = $this->db->table(self::DB_TABLE)
+				->where("name", $name)
+				->asObj(Setting::class)
+				->first();
+			if (isset($value)) {
+				return (new SettingValue($value))->typed();
+			}
 		}
+
 		$this->logger->error("Could not retrieve value for setting '$name' because setting does not exist");
 		return null;
 	}

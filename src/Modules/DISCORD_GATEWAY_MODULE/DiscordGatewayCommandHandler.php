@@ -222,27 +222,25 @@ class DiscordGatewayCommandHandler extends ModuleInstance implements AccessLevel
 		} else {
 			$uid = $data->token;
 		}
-		$this->discordAPIClient->getUser(
-			$discordUserId,
-			function(DiscordUser $user) use ($context, $name, $uid) {
-				$context->char->name = $user->username . "#" . $user->discriminator;
-				$blob = "The Discord user <highlight>{$context->char->name}<end> has requested to be linked with your ".
-					"game account. If you confirm the link, that discord user will be linked ".
-					"with this account, be able to run the same commands and have the same rights ".
-					"as you.\n".
-					"If you haven't requested this link, then <red>reject<end> it!\n".
-					"\n".
-					"[".
-						$this->text->makeChatcmd("Accept", "/tell <myname> extauth accept $uid").
-					"]    ".
-					"[".
-						$this->text->makeChatcmd("Reject", "/tell <myname> extauth reject $uid").
-					"]";
-				$msg = $this->text->makeBlob("Request to link your account with {$context->char->name}", $blob);
-				$msg = $this->text->blobWrap("You have received a ", $msg, ".");
-				$this->chatBot->sendMassTell($msg, $name);
-			}
-		);
+		/** @var DiscordUser */
+		$user = yield $this->discordAPIClient->getUser($discordUserId);
+		$context->char->name = $user->username . "#" . $user->discriminator;
+		$blob = "The Discord user <highlight>{$context->char->name}<end> has requested to be linked with your ".
+			"game account. If you confirm the link, that discord user will be linked ".
+			"with this account, be able to run the same commands and have the same rights ".
+			"as you.\n".
+			"If you haven't requested this link, then <red>reject<end> it!\n".
+			"\n".
+			"[".
+				$this->text->makeChatcmd("Accept", "/tell <myname> extauth accept $uid").
+			"]    ".
+			"[".
+				$this->text->makeChatcmd("Reject", "/tell <myname> extauth reject $uid").
+			"]";
+		$msg = $this->text->makeBlob("Request to link your account with {$context->char->name}", $blob);
+		$msg = $this->text->blobWrap("You have received a ", $msg, ".");
+		$this->chatBot->sendMassTell($msg, $name);
+
 		$context->reply(
 			"I sent a tell to {$name} on Anarchy Online. ".
 			"Follow the instructions there to finish linking these 2 accounts."

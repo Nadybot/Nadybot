@@ -3,6 +3,8 @@
 namespace Nadybot\Core\Modules\DISCORD;
 
 use function Safe\preg_split;
+
+use Amp\Promise;
 use Nadybot\Core\{
 	Attributes as NCA,
 	ConfigFile,
@@ -194,10 +196,10 @@ class DiscordController extends ModuleInstance {
 				$message->allowed_mentions->parse []= ["here"];
 				$message->allowed_mentions->parse []= ["everyone"];
 			}
-			$this->discordAPIClient->sendToChannel(
+			Promise\rethrow($this->discordAPIClient->sendToChannel(
 				$this->discordNotifyChannel,
 				$message->toJSON()
-			);
+			));
 		}
 	}
 

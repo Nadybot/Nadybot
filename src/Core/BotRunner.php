@@ -5,6 +5,7 @@ namespace Nadybot\Core;
 use Amp\Http\Client\HttpClientBuilder;
 use Amp\Http\Client\Interceptor\SetRequestHeaderIfUnset;
 use Amp\Loop;
+use Amp\Promise;
 use Closure;
 use ErrorException;
 use Exception;
@@ -357,7 +358,9 @@ class BotRunner {
 		$this->connectToDatabase();
 		$this->uninstallCtrlCHandler($signalHandler);
 
-		$this->runUpgradeScripts();
+		Loop::run(function() {
+			yield $this->runUpgradeScripts();
+		});
 		if ((static::$arguments["migrate-only"]??true) === false) {
 			exit(0);
 		}
@@ -485,11 +488,15 @@ class BotRunner {
 		$db->connect($config->dbType, $config->dbName, $config->dbHost, $config->dbUsername, $config->dbPassword);
 	}
 
-	/** Run migration scripts to keep the SQL schema up-to-date */
-	private function runUpgradeScripts(): void {
+	/**
+	 * Run migration scripts to keep the SQL schema up-to-date
+	 *
+	 * @return Promise<void>
+	 */
+	private function runUpgradeScripts(): Promise {
 		/** @var DB */
 		$db = Registry::getInstance(DB::class);
-		$db->createDatabaseSchema();
+		return $db->createDatabaseSchema();
 	}
 
 	/**

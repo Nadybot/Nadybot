@@ -231,6 +231,7 @@ class Nadybot extends AOChat {
 			Loop::stop();
 		});
 		$this->db->commit();
+		$this->settingManager::$isInitialized = true;
 
 		//Delete old entries in the DB
 		$this->db->table(CommandManager::DB_TABLE)->where("verify", 0)

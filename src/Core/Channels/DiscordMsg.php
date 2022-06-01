@@ -2,6 +2,7 @@
 
 namespace Nadybot\Core\Channels;
 
+use Amp\Promise;
 use Nadybot\Core\{
 	Attributes as NCA,
 	AccessManager,
@@ -85,9 +86,9 @@ class DiscordMsg implements MessageReceiver {
 
 		//Relay the message to the discord channel
 		if (preg_match("/^\d+$/", $destination)) {
-			$this->discordAPIClient->queueToChannel($destination, $discordMsg->toJSON());
+			Promise\rethrow($this->discordAPIClient->queueToChannel($destination, $discordMsg->toJSON()));
 		} else {
-			$this->discordAPIClient->sendToUser($destination, $discordMsg);
+			Promise\rethrow($this->discordAPIClient->sendToUser($destination, $discordMsg->toJSON()));
 		}
 		return true;
 	}

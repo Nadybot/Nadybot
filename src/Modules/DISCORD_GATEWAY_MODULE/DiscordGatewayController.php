@@ -2,14 +2,21 @@
 
 namespace Nadybot\Modules\DISCORD_GATEWAY_MODULE;
 
-use Amp\Loop;
-use Closure;
+use function Amp\asyncCall;
+use function Amp\call;
+use function Amp\Promise\all;
+use function Safe\json_encode;
+use function Safe\preg_match;
+use function Safe\preg_replace;
+
+use Generator;
 use ReflectionClass;
 use ReflectionClassConstant;
 use stdClass;
+use Throwable;
+use Amp\Loop;
+use Amp\Promise;
 use Illuminate\Support\ItemNotFoundException;
-
-use function Safe\json_encode;
 use Safe\Exceptions\JsonException;
 use Nadybot\Core\{
 	Attributes as NCA,
@@ -19,7 +26,6 @@ use Nadybot\Core\{
 	CommandManager,
 	DB,
 	EventManager,
-	HttpResponse,
 	ModuleInstance,
 	LoggerWrapper,
 	MessageHub,
@@ -45,6 +51,7 @@ use Nadybot\Core\Modules\DISCORD\{
 	DiscordChannelInvite,
 	DiscordController,
 	DiscordEmbed,
+	DiscordException,
 	DiscordGateway,
 	DiscordMessageIn,
 	DiscordUser,
@@ -267,20 +274,15 @@ class DiscordGatewayController extends ModuleInstance {
 			$callback($channel, ...$args);
 			return;
 		}
-		$this->discordAPIClient->getChannel(
-			$channelId,
-			/** @param mixed $args */
-			function(DiscordChannel $channel, callable $callback, ...$args): void {
-				$guildId = $channel->guild_id;
-				if (!isset($guildId) || !isset($this->guilds[$guildId])) {
-					return;
-				}
-				$this->guilds[$guildId]->channels []= $channel;
-				$callback($channel, ...$args);
-			},
-			$callback,
-			...$args
-		);
+		asyncCall(function () use ($channelId, $callback, $args): Generator {
+			$channel = yield $this->discordAPIClient->getChannel($channelId);
+			$guildId = $channel->guild_id;
+			if (!isset($guildId) || !isset($this->guilds[$guildId])) {
+				return;
+			}
+			$this->guilds[$guildId]->channels []= $channel;
+			$callback($channel, ...$args);
+		});
 	}
 
 	#[NCA\Setup]
@@ -339,9 +341,10 @@ class DiscordGatewayController extends ModuleInstance {
 		if (empty($botToken) || $botToken === 'off') {
 			return;
 		}
-		$this->discordAPIClient->getGateway(
-			Closure::fromCallable([$this, "connectUsingGateway"])
-		);
+		asyncCall(function (): Generator {
+			$gateway = yield $this->discordAPIClient->getGateway();
+			$this->connectUsingGateway($gateway);
+		});
 	}
 
 	protected function connectUsingGateway(DiscordGateway $gateway): void {
@@ -675,7 +678,7 @@ class DiscordGatewayController extends ModuleInstance {
 		description: "Handle discord gateway messages",
 		defaultStatus: 1
 	)]
-	public function processDiscordMessage(DiscordGatewayEvent $event): void {
+	public function processDiscordMessage(DiscordGatewayEvent $event): Generator {
 		$message = new DiscordMessageIn();
 		/** @var stdClass $event->payload->d */
 		$message->fromJSON($event->payload->d);
@@ -720,29 +723,6 @@ class DiscordGatewayController extends ModuleInstance {
 		if (empty($text)) {
 			return;
 		}
-		$this->resolveDiscordMentions(
-			$message->guild_id??null,
-			$text,
-			function(string $text) use ($message, $channelName, $name, $member): void {
-				$aoMessage = $text;
-				$rMessage = new RoutableMessage($aoMessage);
-				if ($message->guild_id) {
-					// $source = new Source(Source::DISCORD_GUILD, $this->guilds[(string)$message->guild_id]->name??null);
-					// $rMessage->appendPath($source);
-					$source = new Source(Source::DISCORD_PRIV, $channelName, null, (int)$message->guild_id);
-					$rMessage->appendPath($source);
-				} else {
-					$source = new Source(Source::DISCORD_MSG, $name);
-					$rMessage->prependPath($source);
-				}
-				if (isset($member)) {
-					$name = $this->discordGatewayCommandHandler->getNameForDiscordId($member->user->id??"") ?? $name;
-				}
-				$senderDisplayName = trim(preg_replace("/([\x{0450}-\x{fffff}])/u", "", $name));
-				$rMessage->setCharacter(new Character($senderDisplayName));
-				$this->messageHub->handle($rMessage);
-			}
-		);
 
 		$event = new DiscordMessageEvent();
 		$event->message = $message->content;
@@ -751,6 +731,26 @@ class DiscordGatewayController extends ModuleInstance {
 		$event->discord_message = $message;
 		$event->channel = $message->channel_id;
 		$this->eventManager->fireEvent($event);
+
+		$aoMessage = yield $this->resolveDiscordMentions($message->guild_id??null, $text);
+		$rMessage = new RoutableMessage($aoMessage);
+		if ($message->guild_id) {
+			// $source = new Source(Source::DISCORD_GUILD, $this->guilds[(string)$message->guild_id]->name??null);
+			// $rMessage->appendPath($source);
+			$source = new Source(Source::DISCORD_PRIV, $channelName, null, (int)$message->guild_id);
+			$rMessage->appendPath($source);
+		} else {
+			$source = new Source(Source::DISCORD_MSG, $name);
+			$rMessage->prependPath($source);
+		}
+		if (isset($member)) {
+			$name = $this->discordGatewayCommandHandler->getNameForDiscordId($member->user->id??"") ?? $name;
+		}
+		/** @var string */
+		$senderDisplayName = preg_replace("/([\x{0450}-\x{fffff}])/u", "", $name);
+		$senderDisplayName = trim($senderDisplayName);
+		$rMessage->setCharacter(new Character($senderDisplayName));
+		$this->messageHub->handle($rMessage);
 	}
 
 	public function embedToAOML(DiscordEmbed $embed): string {
@@ -785,43 +785,33 @@ class DiscordGatewayController extends ModuleInstance {
 	}
 
 	/**
-	 * Recursively resolve all mentions in $message and then call $callback
+	 * Recursively resolve all mentions in $message and then return it in a Promise
+	 * @return Promise<string>
 	 */
-	public function resolveDiscordMentions(?string $guildId, string $message, callable $callback): void {
-		if (!preg_match("/(?:<|&lt;)@!?(\d+)(?:>|&gt;)/", $message, $matches)) {
-			$callback($message);
-			return;
-		}
-		$niceName = $this->discordGatewayCommandHandler->getNameForDiscordId($matches[1]);
-		if (isset($niceName)) {
-			$message = preg_replace("/(?:<|&lt;)@!?" . preg_quote($matches[1], "/") . "(?:>|&gt;)/", "@{$niceName}", $message);
-			$this->resolveDiscordMentions($guildId, $message, $callback);
-			return;
-		}
-		if (isset($guildId)) {
-			$this->discordAPIClient->getGuildMember(
-				$guildId,
-				$matches[1],
-				function(GuildMember $member, string $guildId, string $message, callable $callback) {
+	public function resolveDiscordMentions(?string $guildId, string $message): Promise {
+		return call(function () use ($guildId, $message): Generator {
+			while (preg_match("/(?:<|&lt;)@!?(\d+)(?:>|&gt;)/", $message, $matches)) {
+				if (!isset($matches[1])) {
+					return $message;
+				}
+				$niceName = $this->discordGatewayCommandHandler->getNameForDiscordId($matches[1]);
+				if (isset($niceName)) {
+					/** @var string */
+					$message = preg_replace("/(?:<|&lt;)@!?" . preg_quote($matches[1], "/") . "(?:>|&gt;)/", "@{$niceName}", $message);
+					continue;
+				}
+				if (isset($guildId)) {
+					$member = yield $this->discordAPIClient->getGuildMember($guildId, $matches[1]);
+					/** @var string */
 					$message = preg_replace("/(?:<|&lt;)@!?" . ($member->user->id??"") . "(?:>|&gt;)/", "@" . $member->getName(), $message);
-					$this->resolveDiscordMentions($guildId, $message, $callback);
-				},
-				$guildId,
-				$message,
-				$callback
-			);
-			return;
-		}
-		$this->discordAPIClient->getUser(
-			$matches[1],
-			function(DiscordUser $user, ?int $guildId, string $message, callable $callback) {
+					continue;
+				}
+				$user = yield $this->discordAPIClient->getUser($matches[1]);
+				/** @var string */
 				$message = preg_replace("/(?:<|&lt;)@!?" . $user->id . "(?:>|&gt;)/", "@{$user->username}", $message);
-				$this->resolveDiscordMentions(isset($guildId) ? (string)$guildId : null, $message, $callback);
-			},
-			$guildId,
-			$message,
-			$callback
-		);
+			}
+			return $message;
+		});
 	}
 
 	/** @param DiscordChannelInvite[] $invites */
@@ -845,36 +835,34 @@ class DiscordGatewayController extends ModuleInstance {
 		$guild->fromJSON($event->payload->d);
 		$this->guilds[$guild->id] = $guild;
 		$this->sendRequestGuildMembers($guild->id);
-		$this->discordAPIClient->getGuildInvites(
-			$guild->id,
-			Closure::fromCallable([$this, "cacheInvites"]),
-			function (HttpResponse $response) use ($guild): bool {
-				if ((int)$response->headers['status-code'] === 403) {
-					$this->logger->warning(
-						"Your bot doesn't have enough rights to manage ".
-						"invitations for the Discord server \"{discordServer}\"",
-						[
-							"discordServer" => $guild->name,
-						]
-					);
-					$this->noManageInviteRights[$guild->id] = true;
-					return true;
+		asyncCall(function () use ($guild): Generator {
+			try {
+				$invites = yield $this->discordAPIClient->getGuildInvites($guild->id);
+				$this->cacheInvites($guild->id, $invites);
+			} catch (DiscordException $e) {
+				if ($e->getCode() !== 403) {
+					return;
 				}
-				return false;
+				$this->logger->warning(
+					"Your bot doesn't have enough rights to manage ".
+					"invitations for the Discord server \"{discordServer}\"",
+					[
+						"discordServer" => $guild->name,
+					]
+				);
+				$this->noManageInviteRights[$guild->id] = true;
 			}
-		);
+		});
 		foreach ($guild->voice_states as $voiceState) {
 			if (!isset($voiceState->user_id)) {
 				continue;
 			}
-			$this->discordAPIClient->getGuildMember(
-				$guild->id,
-				$voiceState->user_id,
-				function(GuildMember $member, VoiceState $voiceState) {
-					$voiceState->member = $member;
-				},
-				$voiceState
-			);
+			$this->discordAPIClient->getGuildMember($guild->id, $voiceState->user_id)
+				->onResolve(function (?Throwable $error, ?GuildMember $member) use ($voiceState): void {
+					if (isset($member)) {
+						$voiceState->member = $member;
+					}
+				});
 		}
 		foreach ($guild->channels as $channel) {
 			if (!isset($channel->name)) {
@@ -1021,7 +1009,7 @@ class DiscordGatewayController extends ModuleInstance {
 		);
 		$this->mustReconnect = true;
 		$this->reconnectDelay = 5;
-		$this->discordSlashCommandController->syncSlashCommands();
+		Promise\rethrow($this->discordSlashCommandController->syncSlashCommands());
 	}
 
 	#[NCA\Event(
@@ -1094,24 +1082,21 @@ class DiscordGatewayController extends ModuleInstance {
 		if (!isset($guildId) || !isset($voiceState->user_id)) {
 			return;
 		}
-		$this->discordAPIClient->getGuildMember(
-			$guildId,
-			$voiceState->user_id,
-			function (GuildMember $member) use ($oldState): void {
-				if (!isset($oldState->channel_id)) {
-					return;
-				}
-				$event = new DiscordVoiceEvent();
-				$event->type = "discord_voice_leave";
-				$discordChannel = $this->getChannel($oldState->channel_id);
-				if (!isset($discordChannel)) {
-					return;
-				}
-				$event->discord_channel = $discordChannel;
-				$event->member = $member;
-				$this->eventManager->fireEvent($event);
+		asyncCall(function () use ($guildId, $voiceState, $oldState): Generator {
+			$member = yield $this->discordAPIClient->getGuildMember($guildId, $voiceState->user_id);
+			if (!isset($oldState->channel_id)) {
+				return;
 			}
-		);
+			$event = new DiscordVoiceEvent();
+			$event->type = "discord_voice_leave";
+			$discordChannel = $this->getChannel($oldState->channel_id);
+			if (!isset($discordChannel)) {
+				return;
+			}
+			$event->discord_channel = $discordChannel;
+			$event->member = $member;
+			$this->eventManager->fireEvent($event);
+		});
 	}
 
 	/**
@@ -1166,18 +1151,17 @@ class DiscordGatewayController extends ModuleInstance {
 		if (!isset($voiceState->guild_id) || !isset($voiceState->user_id)) {
 			return;
 		}
-		$this->discordAPIClient->getGuildMember(
-			$voiceState->guild_id,
-			$voiceState->user_id,
-			function (GuildMember $member, DiscordChannel $channel): void {
-				$event = new DiscordVoiceEvent();
-				$event->type = "discord_voice_join";
-				$event->discord_channel = $channel;
-				$event->member = $member;
-				$this->eventManager->fireEvent($event);
-			},
-			$channel
-		);
+		asyncCall(function () use ($channel, $voiceState): Generator {
+			$member = yield $this->discordAPIClient->getGuildMember(
+				$voiceState->guild_id,
+				$voiceState->user_id,
+			);
+			$event = new DiscordVoiceEvent();
+			$event->type = "discord_voice_join";
+			$event->discord_channel = $channel;
+			$event->member = $member;
+			$this->eventManager->fireEvent($event);
+		});
 	}
 
 	#[
@@ -1225,18 +1209,18 @@ class DiscordGatewayController extends ModuleInstance {
 		description: "Connect invited members to their AO account",
 		defaultStatus: 1
 	)]
-	public function connectNewUsersWithAO(DiscordGatewayEvent $event): void {
+	public function connectNewUsersWithAO(DiscordGatewayEvent $event): Generator {
 		$userId = $event->payload->d?->user?->id ?? null;
 		$guildId = $event->payload->d?->guild_id ?? null;
 		if (!isset($userId) || !isset($guildId) || isset($this->noManageInviteRights[$guildId])) {
 			return;
 		}
-		$this->discordAPIClient->getGuildInvites(
-			$guildId,
-			function (string $guildId, array $invites) use ($userId): void {
-				$this->connectJoinedUserToAO($guildId, $invites, $userId);
-			}
-		);
+		try {
+			$invites = yield $this->discordAPIClient->getGuildInvites($guildId);
+		} catch (Throwable) {
+			return;
+		}
+		$this->connectJoinedUserToAO($guildId, $invites, $userId);
 	}
 
 	public function formatDiscordNick(string $aoCharacter): ?string {
@@ -1347,10 +1331,8 @@ class DiscordGatewayController extends ModuleInstance {
 					"role" => $discordRole,
 				]);
 			}
-			$this->discordAPIClient->patch(
-				$this->discordAPIClient::DISCORD_API . "/guilds/{$guildId}/members/{$userId}",
-				json_encode($data)
-			);
+			$json = json_encode($data);
+			Promise\rethrow($this->discordAPIClient->modifyGuildMember($guildId, $userId, $json));
 		}
 	}
 
@@ -1466,7 +1448,7 @@ class DiscordGatewayController extends ModuleInstance {
 	public function connectCommand(
 		CmdContext $context,
 		#[NCA\Str("connect")] string $action,
-	): void {
+	): Generator {
 		$botToken = $this->discordController->discordBotToken;
 		if (empty($botToken) || $botToken === 'off') {
 			$context->reply("You need to configure a Discord token in order to connect.");
@@ -1476,9 +1458,8 @@ class DiscordGatewayController extends ModuleInstance {
 			$context->reply("The bot is already connected to Discord.");
 			return;
 		}
-		$this->discordAPIClient->getGateway(
-			Closure::fromCallable([$this, "connectUsingGateway"])
-		);
+		$gateway = yield $this->discordAPIClient->getGateway();
+		$this->connectUsingGateway($gateway);
 		$context->reply("Connecting to Discord.");
 	}
 
@@ -1504,7 +1485,7 @@ class DiscordGatewayController extends ModuleInstance {
 		CmdContext $context,
 		#[NCA\Str("join")] string $action,
 		?string $discordServer,
-	): void {
+	): Generator {
 		if (!$context->isDM()) {
 			$context->reply(
 				"For security reasons, a personal Discord server token ".
@@ -1591,20 +1572,23 @@ class DiscordGatewayController extends ModuleInstance {
 			$invite = new DiscordChannelInvite();
 			$invite->code = $oldInvite->token;
 			$invite->guild = $this->guilds[$guildIds[0]];
-			$this->sendInviteReply($invite, $context);
+			$msg = $this->getInviteReply($invite);
+			$context->reply($msg);
 			return;
 		}
 		$guild = $this->guilds[$guildIds[0]] ?? null;
 		if (!isset($guild) || !isset($guild->system_channel_id)) {
 			return;
 		}
-		$this->discordAPIClient->createChannelInvite(
+		$invitation = yield $this->discordAPIClient->createChannelInvite(
 			$guild->system_channel_id,
 			3600,
-			1,
-			Closure::fromCallable([$this, "registerDiscordChannelInvite"]),
-			$context,
+			1
 		);
+		$main = $this->altsController->getMainOf($context->char->name);
+		$this->registerDiscordChannelInvite($invitation, $main);
+		$msg = $this->getInviteReply($invitation);
+		$context->reply($msg);
 	}
 
 	/** List all currently available invites */
@@ -1612,7 +1596,7 @@ class DiscordGatewayController extends ModuleInstance {
 	public function listDiscordInvites(
 		CmdContext $context,
 		#[NCA\Str("invites", "invitations")] string $action
-	): void {
+	): Generator {
 		if ($this->discordController->discordBotToken === 'off') {
 			$context->reply("This bot isn't configured to connect to Discord yet.");
 			return;
@@ -1621,28 +1605,19 @@ class DiscordGatewayController extends ModuleInstance {
 			$context->reply("The bot is currently not connected to Discord.");
 			return;
 		}
-		$awaiting = 0;
+		$queue = [];
 		foreach ($this->guilds as $guildId => $guild) {
-			$awaiting++;
-			$this->discordAPIClient->getGuildInvites(
-				$guild->id,
-				function (string $guildId, array $invites) use ($context, &$awaiting): void {
-					$this->cacheInvites($guildId, $invites);
-					if (--$awaiting === 0) {
-						$this->renderInvites($context);
-					}
-				},
-				function(HttpResponse $response) use ($context, &$awaiting): bool {
-					if (--$awaiting === 0) {
-						$this->renderInvites($context);
-					}
-					return true;
-				}
-			);
+			$queue[$guildId] = $this->discordAPIClient->getGuildInvites($guild->id);
 		}
+		$invitations = yield(all($queue));
+		foreach ($invitations as $guildId => $invites) {
+			$this->cacheInvites((string)$guildId, $invites);
+		}
+		$context->reply($this->renderInvites());
 	}
 
-	protected function renderInvites(CmdContext $context): void {
+	/** @return string[] */
+	private function renderInvites(): array {
 		$blobs = [];
 		$numInvites = 0;
 		$charInvites = $this->db->table(self::DB_TABLE)
@@ -1687,11 +1662,11 @@ class DiscordGatewayController extends ModuleInstance {
 			}
 			$blobs []= $blob;
 		}
-		$msg = $this->text->makeBlob(
+		$msg = (array)$this->text->makeBlob(
 			"Discord invites ({$numInvites})",
 			join("\n\n", $blobs),
 		);
-		$context->reply($msg);
+		return $msg;
 	}
 
 	/** Let the bot leave a Discord server */
@@ -1700,7 +1675,7 @@ class DiscordGatewayController extends ModuleInstance {
 		CmdContext $context,
 		#[NCA\Str("leave")] string $action,
 		string $guildId,
-	): void {
+	): Generator {
 		if ($this->discordController->discordBotToken === 'off') {
 			$context->reply("This bot isn't configured to connect to Discord yet.");
 			return;
@@ -1735,38 +1710,34 @@ class DiscordGatewayController extends ModuleInstance {
 			"discord(guild_delete)",
 			$informDelete
 		);
-		$this->discordAPIClient->leaveGuild(
-			$guildId,
-			null,
-			function() use ($context, $guild, $informDelete): bool {
-				$this->eventManager->unsubscribe(
-					"discord(guild_delete)",
-					$informDelete
-				);
-				$context->reply(
-					"There was an error leaving the Discord server ".
-					"<highlight>{$guild->name}<end>. ".
-					"See the logs for details."
-				);
-				return false;
-			}
-		);
+		try {
+			yield $this->discordAPIClient->leaveGuild($guildId);
+		} catch (Throwable) {
+			$context->reply(
+				"There was an error leaving the Discord server ".
+				"<highlight>{$guild->name}<end>. ".
+				"See the logs for details."
+			);
+			$this->eventManager->unsubscribe(
+				"discord(guild_delete)",
+				$informDelete
+			);
+		}
 	}
 
-	protected function registerDiscordChannelInvite(DiscordChannelInvite $invite, CmdContext $context): void {
-		$aoChar = $this->altsController->getMainOf($context->char->name);
+	protected function registerDiscordChannelInvite(DiscordChannelInvite $invite, string $main): void {
 		$this->db->table(self::DB_TABLE)->insert([
 			"token" => $invite->code,
-			"character" => $aoChar,
+			"character" => $main,
 			"expires" => $invite->expires_at?->getTimestamp() ?? null,
 		]);
 		if (isset($invite->guild)) {
 			$this->invites[$invite->guild->id] []= $invite;
 		}
-		$this->sendInviteReply($invite, $context);
 	}
 
-	private function sendInviteReply(DiscordChannelInvite $invite, CmdContext $context): void {
+	/** @return string[] */
+	private function getInviteReply(DiscordChannelInvite $invite): array {
 		$guildName = $invite->guild->name ?? "Discord server";
 		$joinLink = $this->text->makeChatcmd("this link", "/start https://discord.gg/{$invite->code}");
 		$blob = "<header2>Join Discord<end>\n\n".
@@ -1776,6 +1747,6 @@ class DiscordGatewayController extends ModuleInstance {
 			"Linking your Discord user with an AO character effectively\n".
 			"gives the Discord user the same rights. Do not give away your\n".
 			"personal invite code!";
-		$context->reply($this->text->makeBlob("Join {$guildName}", $blob));
+		return (array)$this->text->makeBlob("Join {$guildName}", $blob);
 	}
 }

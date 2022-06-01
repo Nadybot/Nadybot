@@ -125,6 +125,8 @@ class WebUiController extends ModuleInstance implements MessageEmitter {
 			$msg = yield $this->installArtifact($response, $artifact);
 			$sendto->reply($msg);
 		} catch (UserException $e) {
+		} catch (Throwable $e) {
+			$this->logger->warning("Error downloading/installing new WebUI: " . $e->getMessage());
 		}
 	}
 

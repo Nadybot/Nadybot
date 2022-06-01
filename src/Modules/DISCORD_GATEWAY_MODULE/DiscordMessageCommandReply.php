@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\DISCORD_GATEWAY_MODULE;
 
+use Amp\Promise;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Channels\DiscordChannel as ChannelsDiscordChannel,
@@ -85,7 +86,7 @@ class DiscordMessageCommandReply implements CommandReply, MessageEmitter {
 					"channel_id" => $this->channelId,
 				];
 			}
-			$this->discordAPIClient->queueToChannel($this->channelId, $messageObj->toJSON());
+			Promise\rethrow($this->discordAPIClient->queueToChannel($this->channelId, $messageObj->toJSON()));
 		}
 	}
 

@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\DISCORD_GATEWAY_MODULE;
 
+use Amp\Promise;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CommandReply,
@@ -61,11 +62,11 @@ class DiscordSlashCommandReply implements CommandReply {
 		$response->data->flags = $this->slashCtrl->discordSlashCommands === $this->slashCtrl::SLASH_EPHEMERAL
 			? InteractionCallbackData::EPHEMERAL
 			: null;
-		$this->discordAPIClient->sendInteractionResponse(
+		Promise\rethrow($this->discordAPIClient->sendInteractionResponse(
 			$this->interactionId,
 			$this->interactionToken,
 			$this->discordAPIClient->encode($response),
-		);
+		));
 	}
 
 	public function reply($msg): void {
@@ -101,11 +102,11 @@ class DiscordSlashCommandReply implements CommandReply {
 			$messageObj->flags = $this->slashCtrl->discordSlashCommands === $this->slashCtrl::SLASH_EPHEMERAL
 				? InteractionCallbackData::EPHEMERAL
 				: null;
-			$this->discordAPIClient->queueToWebhook(
+			Promise\rethrow($this->discordAPIClient->queueToWebhook(
 				$this->applicationId,
 				$this->interactionToken,
 				$this->discordAPIClient->encode($messageObj),
-			);
+			));
 		}
 	}
 
