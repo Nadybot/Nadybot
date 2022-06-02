@@ -183,17 +183,22 @@ class ConsoleController extends ModuleInstance {
 
 	private function processLine(?string $line): void {
 		if ($line === null || trim($line) === '') {
+			if ($this->useReadline) {
+				readline_callback_handler_install('> ', fn(?string $line) => $this->processLine($line));
+			}
 			return;
 		}
 		if ($this->useReadline) {
 			readline_add_history($line);
-			$this->saveHistory();
+			Loop::defer(function (): void {
+				$this->saveHistory();
+			});
 			readline_callback_handler_install('> ', fn(?string $line) => $this->processLine($line));
 		}
 
 		$context = new CmdContext($this->config->superAdmins[0]??"<no superadmin set>");
 		$context->message = $line;
-		$context->source = "console";
+		$context->source = Source::CONSOLE;
 		$context->sendto = new ConsoleCommandReply($this->chatBot);
 		Registry::injectDependencies($context->sendto);
 		$this->chatBot->getUid($context->char->name, function (?int $uid, CmdContext $context): void {
