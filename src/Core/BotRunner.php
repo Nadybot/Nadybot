@@ -414,12 +414,15 @@ class BotRunner {
 						return;
 					}
 					if ($value !== null) {
-						$refProp->setValue($instance, $value);
 						$this->logger->info('Setting {class}::${property} to {value}', [
 							"class" => class_basename($instance),
 							"property" => $refProp->getName(),
 							"value" => json_encode($value, JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES),
 						]);
+						try {
+							$refProp->setValue($instance, $value);
+						} catch (Throwable) {
+						}
 					}
 				}
 			}
