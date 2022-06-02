@@ -30,7 +30,7 @@ class EventLoop {
 			$aoActivity = $this->chatBot->processNextPacket();
 
 			if ($this->chatBot->isReady()) {
-				$socketActivity = $this->socketManager->checkMonitoredSockets();
+				// $socketActivity = $this->socketManager->checkMonitoredSockets();
 				foreach (static::$callbacks as $i => $callback) {
 					/** @phpstan-ignore-next-line */
 					if (isset($callback) && is_callable($callback)) {
@@ -38,7 +38,7 @@ class EventLoop {
 					}
 				}
 
-				if (!$socketActivity && !$aoActivity) {
+				if (/*!$socketActivity &&*/ !$aoActivity) {
 					Loop::delay(10, [$this, __FUNCTION__]);
 					return;
 				} else {

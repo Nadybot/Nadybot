@@ -5,11 +5,13 @@ namespace Nadybot\Core;
 use function Amp\asyncCall;
 
 use Amp\Deferred;
+use Amp\Loop;
 use Amp\Promise;
 use Amp\Success;
 use Exception;
 use Generator;
 use Monolog\Logger;
+use ReflectionObject;
 
 /*
 * $Id: aochat.php,v 1.1 2006/12/08 15:17:54 genesiscl Exp $
@@ -644,12 +646,15 @@ class AOChat {
 		}
 
 		$this->sendLookupPacket((string)$u);
+		$loop = Loop::get();
+		$refObj = new ReflectionObject($loop);
+		$refMeth = $refObj->getMethod("tick");
+		$refMeth->setAccessible(true);
 		for ($i = 0; $i < 100 && !isset($this->id[$u]); $i++) {
 			// hack so that packets are not discarding while waiting for char id response
-			$packet = $this->waitForPacket(1);
-			if ($packet && $this instanceof Nadybot) {
-				$this->process_packet($packet);
-			}
+			// This is an extension on  the previous hack, but even worse
+			$refMeth->invoke($loop);
+			usleep(10000);
 		}
 
 		return isset($this->id[$u]) ? $this->id[$u] : false;

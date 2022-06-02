@@ -2,44 +2,13 @@
 
 namespace Nadybot\Core;
 
+use Amp\Loop;
 use Nadybot\Core\Attributes as NCA;
 
 #[NCA\Instance]
 class SocketManager {
-	/** @var SocketNotifier[] */
-	private array $socketNotifiers = [];
-	/** @var array<int,resource[]> */
-	private array $monitoredSocketsByType = [
-		SocketNotifier::ACTIVITY_READ  => [],
-		SocketNotifier::ACTIVITY_WRITE => [],
-		SocketNotifier::ACTIVITY_ERROR => [],
-	];
-
 	public function checkMonitoredSockets(): bool {
-		$read   = array_filter($this->monitoredSocketsByType[SocketNotifier::ACTIVITY_READ] ?? [], "is_resource");
-		$write  = array_filter($this->monitoredSocketsByType[SocketNotifier::ACTIVITY_WRITE] ?? [], "is_resource");
-		$except = array_filter($this->monitoredSocketsByType[SocketNotifier::ACTIVITY_ERROR] ?? [], "is_resource");
-		if (empty($read) && empty($write) && empty($except)) {
-			return false;
-		}
-		if (stream_select($read, $write, $except, 0) === 0) {
-			return false;
-		}
-		foreach ($this->socketNotifiers as $notifier) {
-			$socket = $notifier->getSocket();
-			$type = $notifier->getType();
-
-			if (in_array($socket, $read) && $type & SocketNotifier::ACTIVITY_READ) {
-				$notifier->notify(SocketNotifier::ACTIVITY_READ);
-			}
-			if (!empty($write) && in_array($socket, $write) && $type & SocketNotifier::ACTIVITY_WRITE) {
-				$notifier->notify(SocketNotifier::ACTIVITY_WRITE);
-			}
-			if (!empty($except) && in_array($socket, $except) && $type & SocketNotifier::ACTIVITY_ERROR) {
-				$notifier->notify(SocketNotifier::ACTIVITY_ERROR);
-			}
-		}
-		return true;
+		return false;
 	}
 
 	/**
@@ -47,17 +16,23 @@ class SocketManager {
 	 * monitored for activity.
 	 */
 	public function addSocketNotifier(SocketNotifier $socketNotifier): void {
-		$this->socketNotifiers []= $socketNotifier;
-
-		// add the socket to each activity category for faster access in the event loop
 		if ($socketNotifier->getType() & SocketNotifier::ACTIVITY_READ) {
-			$this->monitoredSocketsByType[SocketNotifier::ACTIVITY_READ] []= $socketNotifier->getSocket();
+			$socketNotifier->readHandle = Loop::onReadable(
+				$socketNotifier->getSocket(),
+				function (string $watcherId, mixed $socket, mixed $data) use ($socketNotifier) {
+					$socketNotifier->notify(SocketNotifier::ACTIVITY_READ);
+				}
+			);
 		}
 		if ($socketNotifier->getType() & SocketNotifier::ACTIVITY_WRITE) {
-			$this->monitoredSocketsByType[SocketNotifier::ACTIVITY_WRITE] []= $socketNotifier->getSocket();
+			$socketNotifier->writeHandle = Loop::onWritable(
+				$socketNotifier->getSocket(),
+				function (string $watcherId, mixed $socket, mixed $data) use ($socketNotifier) {
+					$socketNotifier->notify(SocketNotifier::ACTIVITY_WRITE);
+				}
+			);
 		}
 		if ($socketNotifier->getType() & SocketNotifier::ACTIVITY_ERROR) {
-			$this->monitoredSocketsByType[SocketNotifier::ACTIVITY_ERROR] []= $socketNotifier->getSocket();
 		}
 	}
 
@@ -65,24 +40,17 @@ class SocketManager {
 	 * Removes given socket notifier from list of sockets being monitored.
 	 */
 	public function removeSocketNotifier(SocketNotifier $socketNotifier): void {
-		$this->removeOne($this->socketNotifiers, $socketNotifier);
-
 		if ($socketNotifier->getType() & SocketNotifier::ACTIVITY_READ) {
-			$this->removeOne($this->monitoredSocketsByType[SocketNotifier::ACTIVITY_READ], $socketNotifier->getSocket());
+			if (isset($socketNotifier->readHandle)) {
+				Loop::cancel($socketNotifier->readHandle);
+			}
 		}
 		if ($socketNotifier->getType() & SocketNotifier::ACTIVITY_WRITE) {
-			$this->removeOne($this->monitoredSocketsByType[SocketNotifier::ACTIVITY_WRITE], $socketNotifier->getSocket());
+			if (isset($socketNotifier->writeHandle)) {
+				Loop::cancel($socketNotifier->writeHandle);
+			}
 		}
 		if ($socketNotifier->getType() & SocketNotifier::ACTIVITY_ERROR) {
-			$this->removeOne($this->monitoredSocketsByType[SocketNotifier::ACTIVITY_ERROR], $socketNotifier->getSocket());
-		}
-	}
-
-	/** @param array<mixed> $array */
-	private function removeOne(array &$array, mixed $value): void {
-		$key = array_search($value, $array, true);
-		if ($key !== false) {
-			unset($array[$key]);
 		}
 	}
 }

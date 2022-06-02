@@ -169,8 +169,6 @@ class AsyncSocket {
 		} elseif ($type === SocketNotifier::ACTIVITY_WRITE) {
 			$this->logger->debug('Socket ready for WRITE');
 			$this->processQueue();
-		} elseif ($type === SocketNotifier::ACTIVITY_ERROR) {
-			throw new Exception("Unhandled OOB data");
 		} else {
 			throw new InvalidArgumentException("Unknown socket activity $type");
 		}

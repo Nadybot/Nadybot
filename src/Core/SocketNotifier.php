@@ -21,6 +21,9 @@ class SocketNotifier {
 	/** @var callable */
 	private $callback;
 
+	public string $readHandle;
+	public string $writeHandle;
+
 	public const ACTIVITY_READ  = 1;
 	public const ACTIVITY_WRITE = 2;
 	public const ACTIVITY_ERROR = 4;
@@ -58,7 +61,7 @@ class SocketNotifier {
 	}
 
 	/**
-	 * Calls the callback and passes given @a $type to the callback.
+	 * Calls the callback and passes given $type to the callback.
 	 */
 	public function notify(int $type): void {
 		call_user_func($this->callback, $type);

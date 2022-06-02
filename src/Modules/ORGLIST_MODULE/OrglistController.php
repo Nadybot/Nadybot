@@ -197,7 +197,7 @@ class OrglistController extends ModuleInstance {
 
 			$onlineStates = [];
 			$numThreads = min($this->getFreeBuddylistSlots() - 5, count($org->members));
-			if ($numThreads < 10) {
+			if (count($org->members) > 100 && $numThreads < 10) {
 				throw new UserException(
 					"You need more buddylist slots to be able to use this command."
 				);

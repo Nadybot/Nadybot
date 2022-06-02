@@ -323,6 +323,10 @@ class Relay implements MessageReceiver {
 		);
 		if (count($data)) {
 			for ($pos = $index-1; $pos >= 0; $pos--) {
+				$this->logger->info("Sending init data to layer {layer} on relay {relay}", [
+					"layer" => get_class($elements[$pos]),
+					"relay" => $this->name,
+				]);
 				$data = $elements[$pos]->send($data);
 			}
 		}

@@ -413,7 +413,7 @@ class AsyncHttp {
 		}
 		$this->notifier = new SocketNotifier(
 			$this->stream,
-			SocketNotifier::ACTIVITY_READ | SocketNotifier::ACTIVITY_WRITE | SocketNotifier::ACTIVITY_ERROR,
+			SocketNotifier::ACTIVITY_READ | SocketNotifier::ACTIVITY_WRITE,
 			[$this, 'onStreamActivity']
 		);
 		$this->socketManager->addSocketNotifier($this->notifier);
@@ -442,10 +442,6 @@ class AsyncHttp {
 					$this->execute();
 					return;
 				}
-				break;
-
-			case SocketNotifier::ACTIVITY_ERROR:
-				$this->abortWithMessage('Socket error occurred');
 				break;
 		}
 	}

@@ -300,6 +300,8 @@ class BotRunner {
 	 * Run the bot in an endless loop
 	 */
 	public function run(): void {
+		/** @todo Convert to AMPs sockets to be able to use Ev */
+		putenv('AMP_LOOP_DRIVER=Amp\Loop\NativeDriver');
 		$this->parseOptions();
 		// set default timezone
 		date_default_timezone_set("UTC");

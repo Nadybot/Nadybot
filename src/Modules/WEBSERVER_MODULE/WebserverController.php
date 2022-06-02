@@ -134,6 +134,9 @@ class WebserverController extends ModuleInstance {
 		description: "Download aoauth public key"
 	)]
 	public function downloadPublicKey(): Generator {
+		if ($this->webserver) {
+			$this->listen();
+		}
 		if ($this->webserverAuth !== static::AUTH_AOAUTH) {
 			return;
 		}
@@ -166,9 +169,6 @@ class WebserverController extends ModuleInstance {
 	#[NCA\Setup]
 	public function setup(): void {
 		$this->scanRouteAttributes();
-		if ($this->webserver) {
-			$this->listen();
-		}
 	}
 
 	/**
