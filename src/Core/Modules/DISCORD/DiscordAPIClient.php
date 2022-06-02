@@ -83,7 +83,7 @@ class DiscordAPIClient extends ModuleInstance {
 	}
 
 	private function getClient(): HttpClient {
-		$botToken = $this->settingManager->getString("discord_bot_token") ?? "off";
+		$botToken = $this->discordCtrl->discordBotToken;
 		$client = $this->builder
 			->intercept(new SetRequestHeaderIfUnset("Authorization", "Bot {$botToken}"))
 			->intercept(new RetryRateLimits())

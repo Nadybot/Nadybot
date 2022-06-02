@@ -1459,16 +1459,8 @@ class Nadybot extends AOChat {
 		return [$commands, $subcommands];
 	}
 
-	private function parseInstanceSettings(string $moduleName, ModuleInstanceInterface $obj): void {
-		$reflection = new ReflectionClass($obj);
-		foreach ($reflection->getProperties() as $property) {
-			$attrs = $property->getAttributes(NCA\DefineSetting::class, ReflectionAttribute::IS_INSTANCEOF);
-			if (empty($attrs)) {
-				continue;
-			}
-			/** @var NCA\DefineSetting */
-			$attribute = $attrs[0]->newInstance();
-			$attribute->name ??= strtolower(
+	public static function toSnakeCase(string $name): string {
+			return strtolower(
 				preg_replace(
 					"/([A-Z][a-z])/",
 					'_$1',
@@ -1478,11 +1470,23 @@ class Nadybot extends AOChat {
 						preg_replace(
 							"/(\d+)$/",
 							'_$1',
-							$property->getName()
+							$name
 						)
 					)
 				)
 			);
+	}
+
+	private function parseInstanceSettings(string $moduleName, ModuleInstanceInterface $obj): void {
+		$reflection = new ReflectionClass($obj);
+		foreach ($reflection->getProperties() as $property) {
+			$attrs = $property->getAttributes(NCA\DefineSetting::class, ReflectionAttribute::IS_INSTANCEOF);
+			if (empty($attrs)) {
+				continue;
+			}
+			/** @var NCA\DefineSetting */
+			$attribute = $attrs[0]->newInstance();
+			$attribute->name ??= self::toSnakeCase($property->getName());
 
 			$type = $property->getType();
 			if ($type === null) {

@@ -9,7 +9,12 @@ use Amp\Promise;
 use Closure;
 use ErrorException;
 use Exception;
+use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\Modules\SETUP\Setup;
+use ReflectionAttribute;
+use ReflectionObject;
+
+use function Safe\json_encode;
 
 class BotRunner {
 	/**
@@ -359,6 +364,7 @@ class BotRunner {
 		$signalHandler = $this->installCtrlCHandler();
 		$this->connectToDatabase();
 		$this->uninstallCtrlCHandler($signalHandler);
+		$this->prefillSettingProperties();
 
 		Loop::run(function() {
 			yield $this->runUpgradeScripts();
@@ -384,6 +390,34 @@ class BotRunner {
 
 		// pass control to Nadybot class
 		$chatBot->run();
+	}
+
+	/**
+	 * Make sure that the values of properties that are linked to settings
+	 * is filled with the last known values from the database
+	 */
+	private function prefillSettingProperties(): void {
+		/** @var SettingManager */
+		$settingManager = Registry::getInstance(SettingManager::class);
+		foreach (Registry::getAllInstances() as $name => $instance) {
+			$refObj = new ReflectionObject($instance);
+			foreach ($refObj->getProperties() as $refProp) {
+				foreach ($refProp->getAttributes(NCA\DefineSetting::class, ReflectionAttribute::IS_INSTANCEOF) as $refAttr) {
+					/** @var NCA\DefineSetting */
+					$attr = $refAttr->newInstance();
+					$attr->name ??= Nadybot::toSnakeCase($refProp->getName());
+					$value = $settingManager->getTyped($attr->name);
+					if ($value !== null) {
+						$refProp->setValue($instance, $value);
+						$this->logger->info('Setting {class}::${property} to {value}', [
+							"class" => class_basename($instance),
+							"property" => $refProp->getName(),
+							"value" => json_encode($value, JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES),
+						]);
+					}
+				}
+			}
+		}
 	}
 
 	protected function createMissingDirs(): void {

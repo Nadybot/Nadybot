@@ -243,6 +243,7 @@ class SettingManager {
 			if (isset($value)) {
 				return (new SettingValue($value))->typed();
 			}
+			return null;
 		}
 
 		$this->logger->error("Could not retrieve value for setting '$name' because setting does not exist");
