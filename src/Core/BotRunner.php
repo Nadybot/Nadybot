@@ -13,6 +13,7 @@ use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\Modules\SETUP\Setup;
 use ReflectionAttribute;
 use ReflectionObject;
+use Throwable;
 
 use function Safe\json_encode;
 
@@ -406,7 +407,12 @@ class BotRunner {
 					/** @var NCA\DefineSetting */
 					$attr = $refAttr->newInstance();
 					$attr->name ??= Nadybot::toSnakeCase($refProp->getName());
-					$value = $settingManager->getTyped($attr->name);
+					try {
+						$value = $settingManager->getTyped($attr->name);
+					} catch (Throwable) {
+						// If the database is initialized for the first time
+						return;
+					}
 					if ($value !== null) {
 						$refProp->setValue($instance, $value);
 						$this->logger->info('Setting {class}::${property} to {value}', [
