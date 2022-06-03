@@ -1100,33 +1100,27 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 		name: "leavePriv",
 		description: "Displays a message when a character leaves the private channel"
 	)]
-	public function leavePrivateChannelMessageEvent(AOChatEvent $eventObj): void {
+	public function leavePrivateChannelMessageEvent(AOChatEvent $eventObj): Generator {
 		$sender = $eventObj->sender;
 		if (!is_string($sender)) {
 			return;
 		}
 		$msg = $this->getLogoffMessage($sender);
 
-		$this->chatBot->getUid(
-			$sender,
-			function(?int $uid, string $sender, ?string $msg): void {
-				$e = new Online();
-				$e->char = new Character($sender, $uid);
-				$e->online = false;
-				if (isset($msg)) {
-					$e->message = $msg;
-				}
-				$this->dispatchRoutableEvent($e);
-			},
-			$sender,
-			$msg
-		);
-
 		$event = new OfflineEvent();
 		$event->type = "offline(priv)";
 		$event->player = $sender;
 		$event->channel = "priv";
 		$this->eventManager->fireEvent($event);
+
+		$uid = yield $this->chatBot->getUid2($sender);
+		$e = new Online();
+		$e->char = new Character($sender, $uid);
+		$e->online = false;
+		if (isset($msg)) {
+			$e->message = $msg;
+		}
+		$this->dispatchRoutableEvent($e);
 	}
 
 	#[NCA\Event(

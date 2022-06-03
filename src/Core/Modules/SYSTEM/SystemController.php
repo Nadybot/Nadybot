@@ -5,6 +5,7 @@ namespace Nadybot\Core\Modules\SYSTEM;
 use function Safe\unpack;
 
 use Exception;
+use Generator;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	AccessManager,
@@ -464,23 +465,15 @@ class SystemController extends ModuleInstance implements MessageEmitter {
 
 	/** Show which access level &lt;character&gt; currently has */
 	#[NCA\HandlesCommand("checkaccess")]
-	public function checkaccessOtherCommand(CmdContext $context, PCharacter $character): void {
-		$this->chatBot->getUid(
-			$character(),
-			function (?int $uid, CmdContext $context, string $character): void {
-				if (!isset($uid)) {
-					$context->reply("Character <highlight>{$character}<end> does not exist.");
-					return;
-				}
-				$accessLevel = $this->accessManager->getDisplayName($this->accessManager->getAccessLevelForCharacter($character));
-				$msg = "Access level for <highlight>{$character}<end> (ID {$uid}) is <highlight>$accessLevel<end>.";
-				$context->reply($msg);
-				return;
-			},
-			$context,
-			$character()
-		);
-		return;
+	public function checkaccessOtherCommand(CmdContext $context, PCharacter $character): Generator {
+		$uid = yield $this->chatBot->getUid2($character());
+		if (!isset($uid)) {
+			$context->reply("Character <highlight>{$character}<end> does not exist.");
+			return;
+		}
+		$accessLevel = $this->accessManager->getDisplayName($this->accessManager->getAccessLevelForCharacter($character()));
+		$msg = "Access level for <highlight>{$character}<end> (ID {$uid}) is <highlight>$accessLevel<end>.";
+		$context->reply($msg);
 	}
 
 	/**
@@ -555,12 +548,9 @@ class SystemController extends ModuleInstance implements MessageEmitter {
 		command: "<symbol>showcommand Tyrence online",
 		description: "Show the online list to Tyrence"
 	)]
-	public function showCommandCommand(CmdContext $context, PCharacter $name, string $cmd): void {
-		$this->chatBot->getUid($name(), [$this, "showCommandUid"], $context, $name(), $cmd);
-	}
-
-	public function showCommandUid(?int $uid, CmdContext $context, string $name, string $cmd): void {
-		$name = ucfirst(strtolower($name));
+	public function showCommandCommand(CmdContext $context, PCharacter $name, string $cmd): Generator {
+		$name = $name();
+		$uid = yield $this->chatBot->getUid2($name);
 		if (!isset($uid)) {
 			$context->reply("Character <highlight>{$name}<end> does not exist.");
 			return;

@@ -4,6 +4,7 @@ namespace Nadybot\Core\Modules\CONSOLE;
 
 use Amp\Loop;
 use Exception;
+use Generator;
 use Nadybot\Core\{
 	Attributes as NCA,
 	BotRunner,
@@ -20,6 +21,7 @@ use Nadybot\Core\{
 	Routing\Source,
 };
 
+use function Amp\asyncCall;
 use function Safe\readline_add_history;
 use function Safe\readline_callback_handler_install;
 use function Safe\readline_read_history;
@@ -201,7 +203,8 @@ class ConsoleController extends ModuleInstance {
 		$context->source = Source::CONSOLE;
 		$context->sendto = new ConsoleCommandReply($this->chatBot);
 		Registry::injectDependencies($context->sendto);
-		$this->chatBot->getUid($context->char->name, function (?int $uid, CmdContext $context): void {
+		asyncCall(function () use ($context): Generator {
+			$uid = yield $this->chatBot->getUid2($context->char->name);
 			$context->char->id = $uid;
 			$rMessage = new RoutableMessage($context->message);
 			$rMessage->setCharacter($context->char);
@@ -211,6 +214,6 @@ class ConsoleController extends ModuleInstance {
 			}
 
 			$this->commandManager->checkAndHandleCmd($context);
-		}, $context);
+		});
 	}
 }

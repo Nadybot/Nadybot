@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\WEBSERVER_MODULE;
 
+use Generator;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
@@ -21,6 +22,8 @@ use Nadybot\Modules\{
 	GUILD_MODULE\GuildController,
 	WEBSOCKET_MODULE\WebsocketCommandReply,
 };
+
+use function Amp\asyncCall;
 
 #[NCA\Instance]
 class WebchatApiController extends ModuleInstance {
@@ -103,10 +106,11 @@ class WebchatApiController extends ModuleInstance {
 		$context->source = Source::WEB;
 		$context->sendto = $sendto;
 		$context->message = $message;
-		$this->chatBot->getUid($context->char->name, function (?int $uid, CmdContext $context): void {
+		asyncCall(function () use ($context): Generator {
+			$uid = yield $this->chatBot->getUid2($context->char->name);
 			$context->char->id = $uid;
 			$this->commandManager->checkAndHandleCmd($context);
-		}, $context);
+		});
 		return new Response(Response::NO_CONTENT);
 	}
 }

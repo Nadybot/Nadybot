@@ -234,7 +234,7 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 		name: "tower(attack)",
 		description: "Automatically track tower field attackers"
 	)]
-	public function trackTowerAttacks(TowerAttackEvent $eventObj): void {
+	public function trackTowerAttacks(TowerAttackEvent $eventObj): Generator {
 		$attacker = $eventObj->attacker;
 		if ($this->accessManager->checkAccess($attacker->name, "member")) {
 			// Don't add members of the bot to the tracker
@@ -283,11 +283,10 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 			$this->trackUid($attacker->charid, $attacker->name);
 			return;
 		}
-		$this->chatBot->getUid($attacker->name, function (?int $uid) use ($attacker): void {
-			if (isset($uid)) {
-				$this->trackUid($uid, $attacker->name);
-			}
-		});
+		$uid = yield $this->chatBot->getUid2($attacker->name);
+		if (isset($uid)) {
+			$this->trackUid($uid, $attacker->name);
+		}
 	}
 
 	#[NCA\Event(
@@ -493,19 +492,14 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 		CmdContext $context,
 		PRemove $action,
 		PCharacter $char
-	): void {
-		$this->chatBot->getUid(
-			$char(),
-			function(?int $uid, string $name) use ($context): void {
-				if (!isset($uid)) {
-					$msg = "Character <highlight>{$name}<end> does not exist.";
-					$context->reply($msg);
-					return;
-				}
-				$this->trackRemoveCommand($context, $name, $uid);
-			},
-			$char()
-		);
+	): Generator {
+		$uid = yield $this->chatBot->getUid2($char());
+		if (!isset($uid)) {
+			$msg = "Character <highlight>{$char}<end> does not exist.";
+			$context->reply($msg);
+			return;
+		}
+		$this->trackRemoveCommand($context, $char(), $uid);
 	}
 
 	/** Remove a player from the track list */
@@ -514,10 +508,9 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 		CmdContext $context,
 		PRemove $action,
 		int $uid
-	): void {
-		$this->chatBot->getName($uid, function(?string $char) use ($uid, $context): void {
-			$this->trackRemoveCommand($context, $char ?? "UID {$uid}", $uid);
-		});
+	): Generator {
+		$char = yield $this->chatBot->uidToName($uid);
+		$this->trackRemoveCommand($context, $char ?? "UID {$uid}", $uid);
 	}
 
 	public function trackRemoveCommand(CmdContext $context, string $name, int $uid): void {
@@ -564,22 +557,21 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 		CmdContext $context,
 		#[NCA\Str("add")] string $action,
 		PCharacter $char
-	): void {
-		$this->chatBot->getUid($char(), function(?int $uid) use ($context, $char): void {
-			if (!isset($uid)) {
-				$msg = "Character <highlight>{$char}<end> does not exist.";
-				$context->reply($msg);
-				return;
-			}
-			if (!$this->trackUid($uid, $char())) {
-				$msg = "Character <highlight>{$char}<end> is already on the track list.";
-				$context->reply($msg);
-				return;
-			}
-			$msg = "Character <highlight>{$char}<end> has been added to the track list.";
-
+	): Generator {
+		$uid = yield $this->chatBot->getUid2($char());
+		if (!isset($uid)) {
+			$msg = "Character <highlight>{$char}<end> does not exist.";
 			$context->reply($msg);
-		});
+			return;
+		}
+		if (!$this->trackUid($uid, $char())) {
+			$msg = "Character <highlight>{$char}<end> is already on the track list.";
+			$context->reply($msg);
+			return;
+		}
+		$msg = "Character <highlight>{$char}<end> has been added to the track list.";
+
+		$context->reply($msg);
 	}
 
 	/** Add a whole organization to the track list */
@@ -1160,10 +1152,9 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 		CmdContext $context,
 		#[NCA\Str("hide")] string $action,
 		int $uid
-	): void {
-		$this->chatBot->getName($uid, function(?string $name) use ($context, $uid): void {
-			$this->trackHideCommand($context, $name ?? "UID {$uid}", $uid);
-		});
+	): Generator {
+		$name = yield $this->chatBot->uidToName($uid);
+		$this->trackHideCommand($context, $name ?? "UID {$uid}", $uid);
 	}
 
 	/** Hide a character from the '<symbol>track online' list */
@@ -1172,15 +1163,14 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 		CmdContext $context,
 		#[NCA\Str("hide")] string $action,
 		PCharacter $char
-	): void {
-		$this->chatBot->getUid($char(), function(?int $uid) use ($context, $char): void {
-			if (!isset($uid)) {
-				$msg = "Character <highlight>{$char}<end> does not exist.";
-				$context->reply($msg);
-				return;
-			}
-			$this->trackHideCommand($context, $char(), $uid);
-		});
+	): Generator {
+		$uid = yield $this->chatBot->getUid2($char());
+		if (!isset($uid)) {
+			$msg = "Character <highlight>{$char}<end> does not exist.";
+			$context->reply($msg);
+			return;
+		}
+		$this->trackHideCommand($context, $char(), $uid);
 	}
 
 	public function trackHideCommand(CmdContext $context, string $name, int $uid): void {
@@ -1205,10 +1195,9 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 		CmdContext $context,
 		#[NCA\Str("unhide")] string $action,
 		int $uid
-	): void {
-		$this->chatBot->getName($uid, function(?string $name) use ($context, $uid): void {
-			$this->trackUnhideCommand($context, $name ?? "UID {$uid}", $uid);
-		});
+	): Generator {
+		$name = yield $this->chatBot->uidToName($uid);
+		$this->trackUnhideCommand($context, $name ?? "UID {$uid}", $uid);
 	}
 
 	/** Show a hidden a character on the '<symbol>track online' list again */
@@ -1217,15 +1206,14 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 		CmdContext $context,
 		#[NCA\Str("unhide")] string $action,
 		PCharacter $char
-	): void {
-		$this->chatBot->getUid($char(), function(?int $uid) use ($context, $char): void {
-			if (!isset($uid)) {
-				$msg = "Character <highlight>{$char}<end> does not exist.";
-				$context->reply($msg);
-				return;
-			}
-			$this->trackUnhideCommand($context, $char(), $uid);
-		});
+	): Generator {
+		$uid = yield $this->chatBot->getUid2($char());
+		if (!isset($uid)) {
+			$msg = "Character <highlight>{$char}<end> does not exist.";
+			$context->reply($msg);
+			return;
+		}
+		$this->trackUnhideCommand($context, $char(), $uid);
 	}
 
 	public function trackUnhideCommand(CmdContext $context, string $name, int $uid): void {
@@ -1251,38 +1239,37 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 		CmdContext $context,
 		#[NCA\Str("show", "view")] string $action,
 		PCharacter $char
-	): void {
-		$this->chatBot->getUid($char(), function(?int $uid) use ($context, $char): void {
-			if (!isset($uid)) {
-				$msg = "<highlight>{$char}<end> does not exist.";
-				$context->reply($msg);
-				return;
-			}
-			/** @var Collection<Tracking> */
-			$events = $this->db->table(self::DB_TRACKING)
-				->where("uid", $uid)
-				->orderByDesc("dt")
-				->select("event", "dt")
-				->asObj(Tracking::class);
-			if ($events->isEmpty()) {
-				$msg = "<highlight>{$char}<end> has never logged on or is not being tracked.";
-				$context->reply($msg);
-				return;
-			}
-			$blob = "<header2>All events for {$char}<end>\n";
-			foreach ($events as $event) {
-				if ($event->event == 'logon') {
-					$status = "<on>logon<end>";
-				} elseif ($event->event == 'logoff') {
-					$status = "<off>logoff<end>";
-				} else {
-					$status = "<grey>unknown<end>";
-				}
-				$blob .= "<tab> {$status} - " . $this->util->date($event->dt) ."\n";
-			}
-
-			$msg = $this->text->makeBlob("Track History for {$char}", $blob);
+	): Generator {
+		$uid = yield $this->chatBot->getUid2($char());
+		if (!isset($uid)) {
+			$msg = "<highlight>{$char}<end> does not exist.";
 			$context->reply($msg);
-		});
+			return;
+		}
+		/** @var Collection<Tracking> */
+		$events = $this->db->table(self::DB_TRACKING)
+			->where("uid", $uid)
+			->orderByDesc("dt")
+			->select("event", "dt")
+			->asObj(Tracking::class);
+		if ($events->isEmpty()) {
+			$msg = "<highlight>{$char}<end> has never logged on or is not being tracked.";
+			$context->reply($msg);
+			return;
+		}
+		$blob = "<header2>All events for {$char}<end>\n";
+		foreach ($events as $event) {
+			if ($event->event == 'logon') {
+				$status = "<on>logon<end>";
+			} elseif ($event->event == 'logoff') {
+				$status = "<off>logoff<end>";
+			} else {
+				$status = "<grey>unknown<end>";
+			}
+			$blob .= "<tab> {$status} - " . $this->util->date($event->dt) ."\n";
+		}
+
+		$msg = $this->text->makeBlob("Track History for {$char}", $blob);
+		$context->reply($msg);
 	}
 }

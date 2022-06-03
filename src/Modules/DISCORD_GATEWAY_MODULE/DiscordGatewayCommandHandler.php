@@ -2,7 +2,6 @@
 
 namespace Nadybot\Modules\DISCORD_GATEWAY_MODULE;
 
-use Closure;
 use Generator;
 use Nadybot\Core\{
 	Attributes as NCA,
@@ -22,6 +21,8 @@ use Nadybot\Core\{
 	SettingManager,
 	Text,
 };
+
+use function Amp\asyncCall;
 
 /**
  * @author Nadyita (RK5)
@@ -301,14 +302,10 @@ class DiscordGatewayCommandHandler extends ModuleInstance implements AccessLevel
 			return;
 		}
 		$context->char->name = $userId;
-		$this->chatBot->getUid(
-			$userId,
-			function(?int $uid, CmdContext $context, Closure $execCmd): void {
-				$context->char->id = $uid;
-				$execCmd();
-			},
-			$context,
-			$execCmd
-		);
+		asyncCall(function () use ($userId, $context, $execCmd): Generator {
+			$uid = yield $this->chatBot->getUid2($userId);
+			$context->char->id = $uid;
+			$execCmd();
+		});
 	}
 }

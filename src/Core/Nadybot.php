@@ -2,6 +2,7 @@
 
 namespace Nadybot\Core;
 
+use function Amp\asyncCall;
 use function Amp\call;
 use function Amp\Promise\all;
 use function Safe\json_encode;
@@ -1230,30 +1231,11 @@ class Nadybot extends AOChat {
 	 *
 	 * @param mixed $args
 	 * @psalm-param callable(?string, mixed...) $callback
+	 * @deprecated 6.1.0
 	 */
 	public function getName(int $uid, callable $callback, ...$args): void {
-		$dummyName = "_" . (string)(microtime(true)*10000);
-		unset($this->id[$dummyName]);
-		if (isset($this->id[$uid])) {
-			$callback((string)$this->id[$uid], ...$args);
-			return;
-		}
-		$buddyEntry = $this->buddylistManager->buddyList[$uid] ?? null;
-		if (isset($buddyEntry)) {
-			if ($buddyEntry->known) {
-				$callback(null, ...$args);
-				return;
-			}
-		} else {
-			$this->buddylistManager->addId($uid, "name_lookup");
-		}
-		$this->getUid($dummyName, function(?int $null) use ($dummyName, $uid, $callback, $args): void {
-			unset($this->id[$dummyName]);
-			$this->buddylistManager->removeId($uid, "name_lookup");
-			$name = $this->id[$uid] ?? null;
-			if (!is_string($name) || $name === '4294967295') {
-				$name = null;
-			}
+		asyncCall(function () use ($uid, $callback, $args): Generator {
+			$name = yield $this->uidToName($uid);
 			$callback($name, ...$args);
 		});
 	}

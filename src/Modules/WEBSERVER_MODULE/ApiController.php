@@ -556,10 +556,11 @@ class ApiController extends ModuleInstance {
 				: $this->commandManager->getPermissionSets()->firstOrFail()->name;
 			$context->sendto = $handler;
 			$context->message = $msg;
-			$this->chatBot->getUid($context->char->name, function (?int $uid, CmdContext $context): void {
+			asyncCall(function () use ($context): Generator {
+				$uid = yield $this->chatBot->getUid2($context->char->name);
 				$context->char->id = $uid;
 				$this->commandManager->checkAndHandleCmd($context);
-			}, $context);
+			});
 		}
 		return new Response(Response::NO_CONTENT);
 	}

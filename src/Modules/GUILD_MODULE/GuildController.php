@@ -767,7 +767,7 @@ class GuildController extends ModuleInstance {
 		name: "logOff",
 		description: "Shows an org member logoff in chat"
 	)]
-	public function orgMemberLogoffMessageEvent(UserStateEvent $eventObj): void {
+	public function orgMemberLogoffMessageEvent(UserStateEvent $eventObj): Generator {
 		$sender = $eventObj->sender;
 		if (!isset($this->chatBot->guildmembers[$sender])
 			|| !$this->chatBot->isReady()
@@ -775,19 +775,18 @@ class GuildController extends ModuleInstance {
 			return;
 		}
 
-		$this->chatBot->getUid($sender, function(?int $uid, string $sender): void {
-			$msg = $this->getLogoffMessage($sender);
-			$e = new Online();
-			$e->char = new Character($sender, $uid);
-			$e->online = false;
-			$e->message = $msg;
-			$this->dispatchRoutableEvent($e);
-			if ($msg === null) {
-				return;
-			}
+		$uid = yield $this->chatBot->getUid2($sender);
+		$msg = $this->getLogoffMessage($sender);
+		$e = new Online();
+		$e->char = new Character($sender, $uid);
+		$e->online = false;
+		$e->message = $msg;
+		$this->dispatchRoutableEvent($e);
+		if ($msg === null) {
+			return;
+		}
 
-			$this->chatBot->sendGuild($msg, true);
-		}, $sender);
+		$this->chatBot->sendGuild($msg, true);
 	}
 
 	#[NCA\Event(

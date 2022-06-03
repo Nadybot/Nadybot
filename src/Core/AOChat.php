@@ -659,7 +659,7 @@ class AOChat {
 		$refMeth->setAccessible(true);
 		for ($i = 0; $i < 100 && !isset($this->id[$u]); $i++) {
 			// hack so that packets are not discarding while waiting for char id response
-			// This is an extension on  the previous hack, but even worse
+			// This is an extension on the previous hack, but even worse
 			$refMeth->invoke($loop);
 			usleep(10000);
 		}
@@ -720,30 +720,13 @@ class AOChat {
 	/**
 	 * @param mixed $args
 	 * @psalm-param callable(?int, mixed...) $callback
+	 * @deprecated 6.1.0
 	 */
 	public function getUid(string $user, callable $callback, ...$args): void {
-		if ($this->isReallyNumeric($user)) {
-			$callback($this->fixunsigned((int)$user), ...$args);
-			return;
-		}
-
-		$user = ucfirst(strtolower($user));
-		if ($user === '') {
-			$callback(null, ...$args);
-			return;
-		}
-
-		$uid = $this->id[$user] ?? null;
-		if (isset($uid)) {
-			if ($uid === 0xFFFFFFFF || $uid === "4294967295") {
-				$callback(null, ...$args);
-			} else {
-				$callback((int)$uid, ...$args);
-			}
-			return;
-		}
-
-		$this->sendLookupPacket($user, $callback, ...$args);
+		asyncCall(function () use ($user, $callback, $args): Generator {
+			$uid = yield $this->getUid2($user);
+			$callback($uid, ...$args);
+		});
 	}
 
 	/** @return Promise<?int> */

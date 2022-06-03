@@ -538,7 +538,7 @@ class DiscordSlashCommandController extends ModuleInstance {
 		name: "discord(interaction_create)",
 		description: "Handle Discord slash commands"
 	)]
-	public function handleSlashCommands(DiscordGatewayEvent $event): void {
+	public function handleSlashCommands(DiscordGatewayEvent $event): Generator {
 		$this->logger->info("Received interaction on Discord");
 		$interaction = new Interaction();
 		$interaction->fromJSON($event->payload->d);
@@ -598,62 +598,62 @@ class DiscordSlashCommandController extends ModuleInstance {
 			return;
 		}
 		$context->message = $cmdMap->symbol . $context->message;
-		$this->executeSlashCommand($interaction, $context);
+		yield $this->executeSlashCommand($interaction, $context);
 	}
 
-	/** Execute the given interaction/slash-command */
-	protected function executeSlashCommand(Interaction $interaction, CmdContext $context): void {
-		$discordUserId = $interaction->user->id ?? $interaction->member->user->id ?? null;
-		if ($discordUserId === null) {
-			$this->logger->info("Interaction has no user id set");
-			return;
-		}
-		$sendto = new DiscordSlashCommandReply(
-			$interaction->application_id,
-			$interaction->id,
-			$interaction->token,
-			$interaction->channel_id,
-			$context->isDM(),
-		);
-		Registry::injectDependencies($sendto);
-		$context->sendto = $sendto;
-		$sendto->sendStateUpdate();
-		$userId = $this->gwCmd->getNameForDiscordId($discordUserId);
-		// Create and route an artificial message if slash-commands are
-		// treated like regular commands
-		if (isset($interaction->channel_id)
-			&& $this->discordSlashCommands === self::SLASH_REGULAR
-		) {
-			$this->gw->lookupChannel(
+	/**
+	 * Execute the given interaction/slash-command
+	 *
+	 * @return Promise<void>
+	 */
+	private function executeSlashCommand(Interaction $interaction, CmdContext $context): Promise {
+		return call(function () use ($interaction, $context): Generator {
+			$discordUserId = $interaction->user->id ?? $interaction->member->user->id ?? null;
+			if ($discordUserId === null) {
+				$this->logger->info("Interaction has no user id set");
+				return;
+			}
+			$sendto = new DiscordSlashCommandReply(
+				$interaction->application_id,
+				$interaction->id,
+				$interaction->token,
 				$interaction->channel_id,
-				Closure::fromCallable([$this, "createAndRouteSlashCmdChannelMsg"]),
-				$context,
-				$userId ?? $discordUserId
+				$context->isDM(),
 			);
-		}
+			Registry::injectDependencies($sendto);
+			$context->sendto = $sendto;
+			$sendto->sendStateUpdate();
+			$userId = $this->gwCmd->getNameForDiscordId($discordUserId);
+			// Create and route an artificial message if slash-commands are
+			// treated like regular commands
+			if (isset($interaction->channel_id)
+				&& $this->discordSlashCommands === self::SLASH_REGULAR
+			) {
+				$this->gw->lookupChannel(
+					$interaction->channel_id,
+					Closure::fromCallable([$this, "createAndRouteSlashCmdChannelMsg"]),
+					$context,
+					$userId ?? $discordUserId
+				);
+			}
 
-		$this->logger->info("Executing slash-command \"{command}\" from {source}", [
-			"command" => $context->message,
-			"source" => $context->source,
-		]);
-		// Do the actual command execution
-		$execCmd = function() use ($context): void {
-			$this->cmdManager->checkAndHandleCmd($context);
-		};
-		if (!isset($userId)) {
-			$execCmd();
-			return;
-		}
-		$context->char->name = $userId;
-		$this->chatBot->getUid(
-			$userId,
-			function(?int $uid, CmdContext $context, Closure $execCmd): void {
-				$context->char->id = $uid;
+			$this->logger->info("Executing slash-command \"{command}\" from {source}", [
+				"command" => $context->message,
+				"source" => $context->source,
+			]);
+			// Do the actual command execution
+			$execCmd = function() use ($context): void {
+				$this->cmdManager->checkAndHandleCmd($context);
+			};
+			if (!isset($userId)) {
 				$execCmd();
-			},
-			$context,
-			$execCmd
-		);
+				return;
+			}
+			$context->char->name = $userId;
+			$uid = yield $this->chatBot->getUid2($userId);
+			$context->char->id = $uid;
+			$execCmd();
+		});
 	}
 
 	/**

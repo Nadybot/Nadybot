@@ -2,6 +2,7 @@
 
 namespace Nadybot\Core\Modules\SYSTEM;
 
+use Generator;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
@@ -30,23 +31,16 @@ class SendTellController extends ModuleInstance {
 	#[NCA\Inject]
 	public Nadybot $chatBot;
 
-	/** Have the bot send a tell to another */
+	/** Have the bot send a tell to a character */
 	#[NCA\HandlesCommand("sendtell")]
-	public function sendtellCommand(CmdContext $context, PCharacter $character, string $message): void {
-		$this->chatBot->getUid(
-			$character(),
-			function (?int $uid, CmdContext $context, string $character, string $message): void {
-				if (!isset($uid)) {
-					$context->reply("The character <highlight>{$character}<end> does not exist.");
-					return;
-				}
-				$this->logger->logChat("Out. Msg.", $character, $message);
-				$this->chatBot->send_tell($uid, $message, "\0", QueueInterface::PRIORITY_MED);
-				$context->reply("Message has been sent to <highlight>{$character}<end>.");
-			},
-			$context,
-			$character(),
-			$message
-		);
+	public function sendtellCommand(CmdContext $context, PCharacter $character, string $message): Generator {
+		$uid = yield $this->chatBot->getUid2($character());
+		if (!isset($uid)) {
+			$context->reply("The character <highlight>{$character}<end> does not exist.");
+			return;
+		}
+		$this->logger->logChat("Out. Msg.", $character(), $message);
+		$this->chatBot->send_tell($uid, $message, "\0", QueueInterface::PRIORITY_MED);
+		$context->reply("Message has been sent to <highlight>{$character}<end>.");
 	}
 }

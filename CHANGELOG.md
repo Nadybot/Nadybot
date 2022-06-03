@@ -10,6 +10,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Allow specifying the ql or ql-range to search for when using `!bank search`
+- Commands and events can now be declared as Generators, which automatically makes them executes async and allows to `yield` results from promises.
+
+### Changed
+
+- Replaced the EventLoop with an AMPHP event loop. Migrated the following functionality to AMP:
+  - Cron-events
+  - Timer->callLater()
+  - SocketManager
+  - Http-client is now being replaced with HttpClientBuilder
+- Commands and events can now be declared as Generators, which automatically makes them executes async and allows to `yield` results from promises.
 
 ### Fix
 
