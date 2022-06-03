@@ -214,7 +214,7 @@ class Nadybot extends AOChat {
 			$this->registerSettingHandlers($class);
 		}
 		$this->db->commit();
-		Loop::run(function () {
+		Loop::run(function (): Generator {
 			$procs = [];
 			$this->db->beginTransaction();
 			foreach (Registry::getAllInstances() as $name => $instance) {
@@ -228,9 +228,8 @@ class Nadybot extends AOChat {
 				}
 			}
 			yield all($procs);
-			Loop::stop();
+			$this->db->commit();
 		});
-		$this->db->commit();
 		$this->settingManager::$isInitialized = true;
 
 		//Delete old entries in the DB

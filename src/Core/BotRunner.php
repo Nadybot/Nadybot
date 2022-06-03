@@ -380,6 +380,13 @@ class BotRunner {
 		$chatBot = Registry::getInstance(Nadybot::class);
 
 		// startup core systems, load modules and call setup methods
+		/** @var DB */
+		$db = Registry::getInstance(DB::class);
+		if ($db->table(CommandManager::DB_TABLE)->exists()) {
+			$this->logger->notice("Initializing modules...");
+		} else {
+			$this->logger->notice("Initializing modules and db tables...");
+		}
 		$chatBot->init($this);
 
 		if ((static::$arguments["setup-only"]??true) === false) {

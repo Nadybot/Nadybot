@@ -299,6 +299,13 @@ class AOChat {
 		if (!socket_select($a, $b, $c, 0)) {
 			return;
 		}
+		$this->sendWriteBuffer();
+	}
+
+	protected function sendWriteBuffer(): void {
+		if (!strlen($this->writeBuffer) || !isset($this->socket)) {
+			return;
+		}
 		$start = microtime(true);
 		$written = socket_write($this->socket, $this->writeBuffer);
 		$end = microtime(true);

@@ -3,6 +3,7 @@
 namespace Nadybot\Modules\SKILLS_MODULE;
 
 use Amp\Loop;
+use Generator;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	Attributes as NCA,
@@ -26,6 +27,9 @@ use Nadybot\Modules\ITEMS_MODULE\{
 };
 use Nadybot\Modules\NANO_MODULE\NanoController;
 use Throwable;
+
+use function Amp\delay;
+use function Amp\File\filesystem;
 
 /**
  * @author Tyrence (RK2)
@@ -80,21 +84,21 @@ class BuffPerksController extends ModuleInstance {
 
 	#[NCA\Setup]
 	public function setup(): void {
-		Loop::defer([$this, "initPerksDatabase"]);
+		Loop::defer(fn() => $this->initPerksDatabase());
 	}
 
-	public function initPerksDatabase(): void {
-		if ($this->db->inTransaction()) {
-			Loop::delay(100, [$this, "initPerksDatabase"]);
-			return;
+	private function initPerksDatabase(): Generator {
+		while ($this->db->inTransaction()) {
+			yield delay(100);
 		}
 		$path = __DIR__ . "/perks.csv";
-		$mtime = @filemtime($path);
+		/** @var int */
+		$mtime = yield filesystem()->getModificationTime($path);
 		$dbVersion = $this->perksDBVersion;
 		$perkInfo = $this->getPerkInfo();
 		$this->perks = new Collection($perkInfo);
 		$empty = !$this->db->table("perk")->exists();
-		if (($mtime === false || $dbVersion >= $mtime) && !$empty) {
+		if (($dbVersion >= $mtime) && !$empty) {
 			return;
 		}
 		$this->logger->notice("(Re)building perk database...");
@@ -157,6 +161,7 @@ class BuffPerksController extends ModuleInstance {
 			throw $e;
 		}
 		$this->db->commit();
+		$this->logger->notice("Finished (re)building perk database");
 	}
 
 	/** See which perks are available for your level and profession */
