@@ -771,11 +771,10 @@ class TowerController extends ModuleInstance {
 		$query = $this->db->table(self::DB_TOWER_ATTACK, "a")
 			->leftJoin(self::DB_TOWER_VICTORY . " AS v", "v.attack_id", "a.id")
 			->where("a.playfield_id", $playfield->id)
-			->where("a.site_number", $site->site_number)
-			->orderByDesc("dt")
+			->where("a.site_number", $site->site_number);
+		$query->orderByDesc($query->colFunc("COALESCE", ["v.time", "a.time"]))
 			->limit(10)
 			->select("a.*", "v.*");
-		$query->addSelect($query->colFunc("COALESCE", ["v.time", "a.time"], "dt"));
 		/** @var Collection<TowerAttackAndVictory> */
 		$attacks = $query->asObj(TowerAttackAndVictory::class);
 		if ($attacks->isNotEmpty()) {

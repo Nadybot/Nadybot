@@ -9,6 +9,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Allow specifying the ql or ql-range to search for when using `!bank search`
+
+### Fix
+
+- The `TrackerFormatHandler` was moved to its correct namespace.
+- The nadybot-big image works again as expected.
+
+## [6.0.3] - 2022-05-27
+
+### Added
+
 - New setting `add_header_ranges`. If enabled, in addition to Page X/Y, it will print the (sub-)header-ranges in that page (ADMIN -> TOWER_MODULE) as well, if the page is streuctured like that
 - Add support for Discord Slash-commands. The setting `discord_slash_commands` determines if they are disabled, only visible to the person sending them, or treated like a regular command and routed from/to the bot-channels.
   Because Discord allows a maximum of 100 global slash-commands, you have to use `!discord slash add|rem|pick` to configure which commands will be exposed. By default, some are exposed already that most people will probably want to, but this won't apply to everyone.
@@ -33,6 +44,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Due to a logic error, once a websocket connection timed out, chances were, it would constantly timeout again.
 - `!events setdate <id> <date>` now understands a lot more date-formats.
 - Browsing bank backpacks accidentally showed each backpack as often as items were in the backpack.
+- Fix a non-critical error-message when running `!lc <tower site>` which would have turned into a hard error in PHP 8.2
 
 ## [6.0.2] - 2022-05-10
 
