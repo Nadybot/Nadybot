@@ -363,7 +363,6 @@ class Nadybot extends AOChat {
 				Loop::onSignal(SIGINT, $signalHandler);
 			}
 
-			Loop::repeat(1000, [$this->eventManager, "crons"]);
 			Loop::repeat(1000, function() {
 				if ($this->ready) {
 					$this->timer->executeTimerEvents();

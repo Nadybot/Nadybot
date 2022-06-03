@@ -90,7 +90,8 @@ class Registry {
 				if ($dependency === null) {
 					static::getLogger()->warning("Could not resolve dependency '$dependencyName' in '" . get_class($instance) ."'");
 				} else {
-					$instance->{$property->name} = $dependency;
+					$property->setAccessible(true);
+					$property->setValue($instance, $dependency);
 				}
 				continue;
 			}
@@ -111,8 +112,10 @@ class Registry {
 						$tag = join("/", array_slice($array, -2));
 					}
 				}
-				$instance->{$property->name} = new LoggerWrapper($tag);
-				static::injectDependencies($instance->{$property->name});
+				$property->setAccessible(true);
+				$logger = new LoggerWrapper($tag);
+				$property->setValue($instance, $logger);
+				static::injectDependencies($logger);
 			}
 		}
 	}

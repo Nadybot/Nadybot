@@ -338,16 +338,6 @@ class DiscordSlashCommandController extends ModuleInstance {
 		return $changedOrNewCommands->count();
 	}
 
-	/** Test new discord api */
-	#[NCA\HandlesCommand("discord slash-commands")]
-	public function testDiscordSlashCommands(
-		CmdContext $context,
-		#[NCA\Str("slash")] string $action,
-		#[NCA\Str("test")] string $subAction
-	): Generator {
-		yield $this->api->sendToUser("356025105371103232", "[]");
-	}
-
 	/** Show all currently exposed Discord slash-commands */
 	#[NCA\HandlesCommand("discord slash-commands")]
 	public function listDiscordSlashCommands(

@@ -3,7 +3,9 @@
 namespace Nadybot\Core;
 
 use function Amp\call;
+use function Amp\delay;
 
+use Amp\Loop;
 use Amp\Promise;
 use Exception;
 use Closure;
@@ -50,13 +52,12 @@ class EventManager {
 	/** @var array<string,callable[]> */
 	public array $dynamicEvents = [];
 
-	/** @var array<array<string,mixed>> */
+	/** @var CronEntry[] */
 	private array $cronevents = [];
 
 	/** @var array<string,EventType> */
 	private array $eventTypes = [];
 
-	private int $lastCronTime = 0;
 	private bool $areConnectEventsFired = false;
 	protected bool $eventsReady = false;
 	/**
@@ -78,6 +79,32 @@ class EventManager {
 			$type->name = $event;
 			$this->eventTypes[$event] = $type;
 		}
+	}
+
+	private function startCron(CronEntry $entry): void {
+		$entry->handle = Loop::defer(
+			function () use ($entry): Generator {
+				while (!$this->chatBot->isReady()) {
+					yield delay(100);
+				}
+				$eventObj = new Event();
+				$eventObj->type = (string)$entry->time;
+
+				$entry->nextevent = time() + $entry->time;
+				$this->logger->info("Initial call to {$entry->filename}");
+				$this->callEventHandler($eventObj, $entry->filename, [$entry->time]);
+				$period = $entry->time * 1000;
+				$this->logger->info("Periodic call setup for {$entry->filename} every {$period}ms");
+				$entry->handle = Loop::repeat(
+					$period,
+					function () use ($eventObj, $entry): void {
+						$this->logger->info("Periodic call to {$entry->filename}");
+						$entry->nextevent = time() + $entry->time;
+						$this->callEventHandler($eventObj, $entry->filename, [$entry->time]);
+					}
+				);
+			}
+		);
 	}
 
 	/**
@@ -166,7 +193,14 @@ class EventManager {
 			if ($time > 0) {
 				$key = $this->getKeyForCronEvent($time, $filename);
 				if ($key === null) {
-					$this->cronevents[] = ['nextevent' => 0, 'filename' => $filename, 'time' => $time];
+					$entry = new CronEntry(
+						nextevent: 0,
+						filename: $filename,
+						time: $time,
+					);
+					Registry::injectDependencies($entry);
+					$this->startCron($entry);
+					$this->cronevents []= $entry;
 				} else {
 					$this->logger->error("Error activating event Type:($type) Handler:($filename). Event already activated!");
 				}
@@ -236,10 +270,22 @@ class EventManager {
 	 * Change the time when a cron event gets called next time
 	 */
 	public function setCronNextEvent(int $key, int $nextEvent): bool {
-		if (!isset($this->cronevents[$key])) {
+		$entry = $this->cronevents[$key] ?? null;
+		if (!isset($entry) || !isset($entry->handle)) {
 			return false;
 		}
-		$this->cronevents[$key]['nextevent'] = $nextEvent;
+		Loop::disable($entry->handle);
+		if (isset($entry->moveHandle)) {
+			Loop::cancel($entry->moveHandle);
+		}
+		$delay = max(0, $nextEvent - time());
+		$entry->moveHandle = Loop::delay(
+			$delay * 1000,
+			function () use ($entry): void {
+				Loop::enable($entry->handle);
+				unset($entry->moveHandle);
+			}
+		);
 		return true;
 	}
 
@@ -263,6 +309,8 @@ class EventManager {
 				$key = $this->getKeyForCronEvent($time, $filename);
 				if ($key !== null) {
 					$found = true;
+					Loop::cancel($this->cronevents[$key]->moveHandle ?? '');
+					Loop::cancel($this->cronevents[$key]->handle ?? '');
 					unset($this->cronevents[$key]);
 				}
 			} else {
@@ -300,7 +348,13 @@ class EventManager {
 				if ($time > 0) {
 					$key = $this->getKeyForCronEvent($time, $call);
 					if ($key === null) {
-						$this->cronevents[] = ['nextevent' => 0, 'filename' => $call, 'time' => $time];
+						$entry = new CronEntry(
+							nextevent: 0,
+							filename: $call,
+							time: $time,
+						);
+						Registry::injectDependencies($entry);
+						$this->startCron($entry);
 					}
 				} else {
 					$this->logger->error("Error activating event Type:($type) Handler:($call). The type is not a recognized event type!");
@@ -336,6 +390,8 @@ class EventManager {
 					} else {
 						$key = $this->getKeyForCronEvent($time, $call);
 						if ($key !== null) {
+							Loop::cancel($this->cronevents[$key]->moveHandle ?? '');
+							Loop::cancel($this->cronevents[$key]->handle ?? '');
 							unset($this->cronevents[$key]);
 						}
 					}
@@ -360,7 +416,7 @@ class EventManager {
 
 	public function getKeyForCronEvent(int $time, string $filename): ?int {
 		foreach ($this->cronevents as $key => $event) {
-			if ($time == $event['time'] && $event['filename'] == $filename) {
+			if ($time === $event->time && $event->filename === $filename) {
 				return $key;
 			}
 		}
@@ -385,34 +441,6 @@ class EventManager {
 			});
 		$this->eventsReady = true;
 		$this->dontActivateEvents = [];
-	}
-
-	/**
-	 * Call timer events
-	 */
-	public function crons(): void {
-		if (!$this->chatBot->isReady()) {
-			return;
-		}
-		$time = time();
-
-		if ($this->lastCronTime === $time) {
-			return;
-		}
-		$this->lastCronTime = $time;
-
-		$this->logger->info("Executing cron events at '$time'");
-		foreach ($this->cronevents as $key => $event) {
-			if ($this->cronevents[$key]['nextevent'] <= $time) {
-				$this->logger->info("Executing cron event '${event['filename']}'");
-
-				$eventObj = new Event();
-				$eventObj->type = strtolower((string)$event['time']);
-
-				$this->cronevents[$key]['nextevent'] = $time + $event['time'];
-				$this->callEventHandler($eventObj, $event['filename'], [$key]);
-			}
-		}
 	}
 
 	/**
@@ -452,16 +480,12 @@ class EventManager {
 	}
 
 	public function getTimerEventTime(string $type): int {
-		if (preg_match(self::TIMER_EVENT_REGEX, $type, $arr) == 1) {
-			$time = $this->util->parseTime($arr[1]);
-			if ($time > 0) {
-				return $time;
-			}
-		} else { // legacy timer event format
-			$time = $this->util->parseTime($type);
-			if ($time > 0) {
-				return $time;
-			}
+		if (preg_match(self::TIMER_EVENT_REGEX, $type, $arr) !== 1) {
+			return 0;
+		}
+		$time = $this->util->parseTime($arr[1]);
+		if ($time > 0) {
+			return $time;
 		}
 		return 0;
 	}
