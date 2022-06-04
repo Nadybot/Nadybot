@@ -3,6 +3,11 @@
 namespace Nadybot\Core;
 
 use function Amp\asyncCall;
+use function Amp\call;
+use function Amp\delay;
+use function Safe\stream_socket_client;
+use function Safe\stream_socket_recvfrom;
+use function Safe\stream_socket_sendto;
 
 use Amp\Deferred;
 use Amp\Loop;
@@ -12,6 +17,7 @@ use Exception;
 use Generator;
 use Monolog\Logger;
 use ReflectionObject;
+use Safe\Exceptions\StreamException;
 
 /*
 * $Id: aochat.php,v 1.1 2006/12/08 15:17:54 genesiscl Exp $
@@ -138,13 +144,15 @@ class AOChat {
 
 	/**
 	 * The socket with which we are connected to the chat server
+	 * @var resource|null
+	 * @psalm-var resource|closed-resource|null
 	 */
-	public null|\Socket $socket = null;
+	public $socket = null;
 
 	/**
 	 * Timestamp when the last package was received
 	 */
-	public int $last_packet;
+	public float $last_packet;
 
 	/**
 	 * Timestamp when we sent the last ping
@@ -176,6 +184,9 @@ class AOChat {
 	public int $numBytesOut = 0;
 	public int $numBytesIn = 0;
 
+	private ?string $writeHandle = null;
+	private ?string $queueHandle = null;
+
 	public function __construct() {
 		$this->disconnect();
 		$this->mmdbParser = new MMDBParser();
@@ -187,8 +198,8 @@ class AOChat {
 	 * Disconnect from the chat server (if connected) and init variables
 	 */
 	public function disconnect(): void {
-		if ($this->socket instanceof \Socket) {
-			socket_close($this->socket);
+		if (is_resource($this->socket)) {
+			fclose($this->socket);
 		}
 		$this->socket      = null;
 		$this->readBuffer  = "";
@@ -209,38 +220,20 @@ class AOChat {
 	 * @return bool false we cannot connect, otherwise true
 	 */
 	public function connect(string $server, int $port, bool $logErrors=true): bool {
-		$socket = @socket_create(AF_INET, SOCK_STREAM, SOL_TCP);
-		if ($socket === false) {
-			if ($logErrors) {
-				$this->logger->error("Could not create socket: {error}", [
-					"error" => trim(socket_strerror(socket_last_error())),
+		try {
+			$socket = stream_socket_client("tcp://{$server}:{$port}", $errno, $errmsg, 10, STREAM_CLIENT_CONNECT);
+		} catch (StreamException $e) {
+			if ($logErrors && (!isset($errno) || $errno !== 111 || preg_match("/^chat\.d.\.funcom\.com$/", $server))) {
+				$this->logger->error("Could not connect to the AO Chat server ({server}:{port}): {error}", [
+					"server" => $server,
+					"port" => $port,
+					"error" => $errmsg ?? "Unknown error",
+					"errno" => $errno ?? null,
 				]);
 			}
 			return false;
 		}
 		$this->socket = $socket;
-
-		// prevents bot from hanging on startup when chatserver does not send login seed
-		$timeout = 10;
-		socket_set_option($this->socket, SOL_SOCKET, SO_RCVTIMEO, ['sec' => $timeout, 'usec' => 0]);
-
-		if (@socket_connect($this->socket, $server, $port) === false) {
-			$errorCode = socket_last_error($this->socket);
-			if ($logErrors && ($errorCode !== SOCKET_ECONNREFUSED || preg_match("/^chat\.d.\.funcom\.com$/", $server))) {
-				$this->logger->error(
-					"Could not connect to the AO Chat server ({server}:{port}): {error}",
-					[
-						"server" => $server,
-						"port" => $port,
-						"error" => trim(socket_strerror($errorCode)),
-					]
-				);
-			}
-
-			$this->disconnect();
-			return false;
-		}
-
 		$this->chatqueue = new LeakyBucket(self::AOC_FLOOD_LIMIT, self::AOC_FLOOD_INC);
 
 		return true;
@@ -276,56 +269,62 @@ class AOChat {
 	 */
 	public function waitForPacket(int $time=1): ?AOChatPacket {
 		$this->iteration();
-		if (!($this->socket instanceof \Socket)) {
+		if (!is_resource($this->socket)) {
 			return null;
 		}
 
 		$a = [$this->socket];
 		$b = [];
 		$c = [];
-		if (!socket_select($a, $b, $c, $time)) {
+		if (!stream_select($a, $b, $c, $time)) {
 			return null;
 		}
 		return $this->getPacket();
 	}
 
 	protected function processWriteBuffer(): void {
-		if (!strlen($this->writeBuffer) || !isset($this->socket)) {
+		if (!strlen($this->writeBuffer) || !is_resource($this->socket)) {
 			return;
 		}
 		$a = [];
 		$b = [$this->socket];
 		$c = [];
-		if (!socket_select($a, $b, $c, 0)) {
+		if (!stream_select($a, $b, $c, 0)) {
 			return;
 		}
 		$this->sendWriteBuffer();
 	}
 
 	protected function sendWriteBuffer(): void {
-		if (!strlen($this->writeBuffer) || !isset($this->socket)) {
+		if (!strlen($this->writeBuffer) || !is_resource($this->socket)) {
+			if (isset($this->writeHandle)) {
+				Loop::cancel($this->writeHandle);
+				unset($this->writeHandle);
+			}
 			return;
 		}
 		$start = microtime(true);
-		$written = socket_write($this->socket, $this->writeBuffer);
-		$end = microtime(true);
-		if ($written === false) {
-			$errorCode = socket_last_error($this->socket);
-			if ($errorCode === SOCKET_EWOULDBLOCK) {
-				return;
-			}
-			$this->logger->critical("Error writing to chat server: {error} (code {code})", [
-				"error" => socket_strerror($errorCode),
-				"code" => $errorCode,
+		try {
+			$toWrite = substr($this->writeBuffer, 0, 8096);
+			stream_socket_sendto($this->socket, $toWrite);
+			$written = strlen($toWrite);
+		} catch (StreamException $e) {
+			$this->logger->critical("Error writing to chat server: {error}", [
+				"error" => $e->getMessage(),
 			]);
 			die();
 		}
+		$end = microtime(true);
 		$this->numBytesOut += $written;
 		$this->logger->debug("Wrote {written} bytes in {duration}ms", [
 			"written" => $written,
 			"duration" => number_format(($end-$start)*1000, 3),
 		]);
 		$this->writeBuffer = substr($this->writeBuffer, $written);
+		if (!strlen($this->writeBuffer) && (isset($this->writeHandle))) {
+			Loop::cancel($this->writeHandle);
+			unset($this->writeHandle);
+		}
 	}
 
 	/**
@@ -342,25 +341,21 @@ class AOChat {
 			return "";
 		}
 		do {
-			if (!($this->socket instanceof \Socket)) {
+			if (!is_resource($this->socket)) {
 				$this->logger->error("Socket seems to have been closed");
 				die();
 			}
 			$start = microtime(true);
-			$bytesRead = socket_recv($this->socket, $buffer, $rlen, $blocking ? 0 : 0/*\MSG_DONTWAIT*/);
-			$end = microtime(true);
-			if ($bytesRead === false) {
-				$lastErrorCode = socket_last_error($this->socket);
-				if ($lastErrorCode === SOCKET_EWOULDBLOCK) {
-					return "";
-				}
-				$lastError = socket_strerror($lastErrorCode);
-				$this->logger->error("Read error: {error} (code {code})", [
-					"error" => $lastError,
-					"code" => $lastErrorCode,
+			try {
+				$buffer = stream_socket_recvfrom($this->socket, $rlen);
+			} catch (StreamException $e) {
+				$this->logger->error("Read error: {error}", [
+					"error" => $e->getMessage(),
 				]);
 				die();
 			}
+			$end = microtime(true);
+			$bytesRead = strlen($buffer);
 			$this->numBytesIn += $bytesRead;
 			if ($bytesRead === 0) {
 				$this->logger->error("Chat server or proxy terminated the connection. Someone else logged in on to same account?");
@@ -483,7 +478,7 @@ class AOChat {
 				break;
 		}
 
-		$this->last_packet = time();
+		$this->last_packet = microtime(true);
 
 		return $packet;
 	}
@@ -516,15 +511,24 @@ class AOChat {
 			);
 		}
 
-		if (!($this->socket instanceof \Socket)) {
+		if (!is_resource($this->socket)) {
 			$this->logger->error("Something unexpectedly closed the socket");
 			die();
 		}
 		if ($sync === true) {
-			socket_write($this->socket, $data, strlen($data));
+			stream_socket_sendto($this->socket, $data);
 			$this->numBytesOut += strlen($data);
 		} else {
 			$this->writeBuffer .= $data;
+			if (!isset($this->writeHandle)) {
+				$this->logger->info("Starting write handler");
+				$this->writeHandle = Loop::onWritable(
+					$this->socket,
+					fn() => $this->sendWriteBuffer(),
+				);
+			} else {
+				$this->logger->info("Write handler already active");
+			}
 		}
 		return true;
 	}
@@ -816,6 +820,35 @@ class AOChat {
 		return $this->sendPacket(new AOChatPacket("out", AOChatPacket::PING, "AOChat.php"));
 	}
 
+	/** @return Promise<void> */
+	private function processQueue(): Promise {
+		return call(function (): Generator {
+			$this->logger->info("Processing chat queue");
+			if (!isset($this->chatqueue)) {
+				unset($this->queueHandle);
+				return;
+			}
+			while ($this->chatqueue->getSize() > 0) {
+				$ttnp = $this->chatqueue->getTTNP();
+				if ($ttnp > 0) {
+					$delay = (int)ceil($ttnp * 1000);
+					$this->logger->info("Waiting {$delay}ms to send next packet from queue");
+					yield delay($delay);
+				}
+				$packet = $this->chatqueue->getNext();
+				if (!isset($packet)) {
+					$this->logger->info("Waiting extra 100ms to send next packet");
+					yield delay(100);
+					continue;
+				}
+				$this->logger->info("Sending packet from queue");
+				$this->sendPacket($packet, false);
+			}
+			unset($this->queueHandle);
+			$this->logger->info("Packet queue is empty");
+		});
+	}
+
 	/**
 	 * Send a tell to a user
 	 *
@@ -828,8 +861,10 @@ class AOChat {
 		$priority ??= QueueInterface::PRIORITY_MED;
 		if (isset($this->chatqueue)) {
 			$this->chatqueue->push($priority, new AOChatPacket("out", AOChatPacket::MSG_PRIVATE, [$uid, $msg, $blob]));
+			if (!isset($this->queueHandle)) {
+				$this->queueHandle = Loop::defer(fn() => $this->processQueue());
+			}
 		}
-		$this->iteration();
 		return true;
 	}
 
@@ -850,8 +885,10 @@ class AOChat {
 		$priority ??= QueueInterface::PRIORITY_MED;
 		if (isset($this->chatqueue)) {
 			$this->chatqueue->push($priority, new AOChatPacket("out", AOChatPacket::GROUP_MESSAGE, [$guildGid, $msg, "\0"]));
+			if (!isset($this->queueHandle)) {
+				$this->queueHandle = Loop::defer(fn() => $this->processQueue());
+			}
 		}
-		$this->iteration();
 		return true;
 	}
 
@@ -868,8 +905,10 @@ class AOChat {
 		$priority ??= QueueInterface::PRIORITY_MED;
 		if (isset($this->chatqueue)) {
 			$this->chatqueue->push($priority, new AOChatPacket("out", AOChatPacket::GROUP_MESSAGE, [$gid, $msg, "\0"]));
+			if (!isset($this->queueHandle)) {
+				$this->queueHandle = Loop::defer(fn() => $this->processQueue());
+			}
 		}
-		$this->iteration();
 		return true;
 	}
 

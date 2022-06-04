@@ -303,11 +303,11 @@ class Nadybot extends AOChat {
 			\Safe\sleep(10);
 			exit(1);
 		}
-		if (!isset($this->socket)) {
+		if (!is_resource($this->socket)) {
 			die();
 		}
 
-		if (socket_set_nonblock($this->socket)) {
+		if (stream_set_blocking($this->socket, false)) {
 			$this->logger->notice("Connection with AO switched to non-blocking");
 		} else {
 			$this->logger->warning("Unable to switch the AO-connection to non-blocking");
@@ -344,14 +344,10 @@ class Nadybot extends AOChat {
 	 */
 	public function run(): void {
 		Loop::run(function() {
-			Loop::setErrorHandler(function(?Throwable $e): void {
-				if (isset($e)) {
-					$this->logger->error($e->getMessage(), ["exception" => $e]);
-				}
+			assert(is_resource($this->socket));
+			Loop::setErrorHandler(function(Throwable $e): void {
+				$this->logger->error($e->getMessage(), ["exception" => $e]);
 			});
-			$loop = new EventLoop();
-			Registry::injectDependencies($loop);
-			Loop::defer([$loop, "execSingleLoop"]);
 
 			$signalHandler = function (): void {
 				$this->logger->notice('Shutdown requested.');
@@ -363,6 +359,35 @@ class Nadybot extends AOChat {
 				Loop::onSignal(SIGTERM, $signalHandler);
 				Loop::onSignal(SIGINT, $signalHandler);
 			}
+			Loop::onReadable(
+				$this->socket,
+				function (): void {
+					$packet = $this->getPacket(false);
+					if (isset($packet)) {
+						$this->process_packet($packet);
+					}
+				}
+			);
+			Loop::repeat(
+				100,
+				function(string $handle): void {
+					$readyAfter = $this->config->useProxy ? 2 : 1;
+					if (microtime(true) - $this->last_packet > $readyAfter) {
+						$this->ready = true;
+						$this->logger->info("Bot is ready");
+						Loop::cancel($handle);
+						$this->eventManager->executeConnectEvents();
+					}
+				}
+			);
+			Loop::repeat(
+				1000,
+				function(): void {
+					if ((time() - $this->last_packet) > 60 && (time() - $this->last_ping) > 60) {
+						$this->sendPing();
+					}
+				}
+			);
 
 			Loop::repeat(1000, function() {
 				if ($this->ready) {

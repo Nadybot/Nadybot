@@ -5,6 +5,7 @@ namespace Nadybot\Core;
 use Amp\Loop;
 use Nadybot\Core\Attributes as NCA;
 use Exception;
+use ReflectionObject;
 use Safe\Exceptions\StreamException;
 
 /**
@@ -133,11 +134,6 @@ class AsyncHttp {
 	 * Indicates if there's still a transaction running (true) or not (false)
 	 */
 	private bool $finished;
-
-	/**
-	 * The event loop
-	 */
-	private EventLoop $loop;
 
 	/**
 	 * Override the address to connect to for integration tests
@@ -709,10 +705,13 @@ class AsyncHttp {
 	 */
 	public function waitAndReturnResponse(): HttpResponse {
 		// run in event loop, waiting for loop->quit()
-		$this->loop = new EventLoop();
-		Registry::injectDependencies($this->loop);
+		$loop = Loop::get();
+		$refObj = new ReflectionObject($loop);
+		$refMeth = $refObj->getMethod("tick");
+		$refMeth->setAccessible(true);
 		while (!$this->finished) {
-			$this->loop->execSingleLoop();
+			$refMeth->invoke($loop);
+			usleep(10000);
 		}
 
 		return $this->buildResponse();

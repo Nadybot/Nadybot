@@ -3,53 +3,13 @@
 namespace Nadybot\Core;
 
 use Amp\Loop;
-use Nadybot\Core\Attributes as NCA;
-use Throwable;
 
 class EventLoop {
-	#[NCA\Inject]
-	public Nadybot $chatBot;
-
-	#[NCA\Inject]
-	public EventManager $eventManager;
-
-	#[NCA\Inject]
-	public SocketManager $socketManager;
-
-	#[NCA\Inject]
-	public Timer $timer;
-
-	#[NCA\Logger]
-	public LoggerWrapper $logger;
-
-	/** @var array<int,callable> */
+	/** @var array<int,array{callable,string}> */
 	protected static array $callbacks = [];
 
+	/** @deprecated 6.1.0 */
 	public function execSingleLoop(): void {
-		try {
-			$aoActivity = $this->chatBot->processNextPacket();
-
-			if ($this->chatBot->isReady()) {
-				// $socketActivity = $this->socketManager->checkMonitoredSockets();
-				foreach (static::$callbacks as $i => $callback) {
-					/** @phpstan-ignore-next-line */
-					if (isset($callback) && is_callable($callback)) {
-						$callback();
-					}
-				}
-
-				if (/*!$socketActivity &&*/ !$aoActivity) {
-					Loop::delay(10, [$this, __FUNCTION__]);
-					return;
-				} else {
-					Loop::defer([$this, __FUNCTION__]);
-					return;
-				}
-			}
-		} catch (Throwable $e) {
-			$this->logger->error($e->getMessage(), ["exception" => $e]);
-		}
-		Loop::delay(10, [$this, __FUNCTION__]);
 	}
 
 	/** @deprecated version */
@@ -61,7 +21,8 @@ class EventLoop {
 			}
 			$i++;
 		}
-		static::$callbacks[$i] = $callback;
+		$handle = Loop::repeat(100, $callback);
+		static::$callbacks[$i] = [$callback, $handle];
 		return $i;
 	}
 
@@ -70,6 +31,8 @@ class EventLoop {
 		if (!array_key_exists($i, static::$callbacks)) {
 			return false;
 		}
+		[$callback, $handle] = static::$callbacks[$i];
+		Loop::cancel($handle);
 		unset(static::$callbacks[$i]);
 		return true;
 	}

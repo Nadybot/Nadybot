@@ -13,6 +13,13 @@ interface QueueInterface {
 	public function push(int $priority, AOChatPacket $item): void;
 
 	/**
+	 * Get the number seconds until another packet can be sent
+	 *
+	 * @return float -1 if nothing to send, 0 if now otherwise fractional seconds
+	 */
+	public function getTTNP(): float;
+
+	/**
 	 * Get the next packet to process
 	 *
 	 * Takes queue priorities into account

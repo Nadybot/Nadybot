@@ -89,6 +89,33 @@ class LeakyBucket implements QueueInterface {
 	}
 
 	/**
+	 * Get the number seconds until another packet can be sent
+	 *
+	 * @return float -1 if nothing to send, 0 if now otherwise fractional seconds
+	 */
+	public function getTTNP(): float {
+		if ($this->queueSize === 0) {
+			return -1;
+		}
+		$current = microtime(true);
+		$timePassed = $current - $this->lastRefill;
+
+		$refillAmount = $timePassed / $this->refillIntervall;
+		if ($refillAmount >= 1.0) {
+			$this->bucketFill += $refillAmount;
+			$this->lastRefill = $current;
+			return 0;
+		}
+		$this->bucketFill = min($this->bucketSize, $this->bucketFill);
+		if ($this->enabled && $this->bucketFill < 1) {
+			$timeSinceLastRefill = $current - $this->lastRefill;
+			$timeTillNextRefill = $this->refillIntervall - $timeSinceLastRefill;
+			return $timeTillNextRefill;
+		}
+		return 0;
+	}
+
+	/**
 	 * Get the next packet to process
 	 *
 	 * Takes queue priorities into account
