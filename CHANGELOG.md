@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [6.0.4] - 2022-06-05
+
+### Added
+
+- Allow specifying the ql or ql-range to search for when using `!bank search`
+
+### Fix
+
+- The `TrackerFormatHandler` was moved to its correct namespace.
+- The nadybot-big image works again as expected.
+- Fix `!orglist` for RK19
+
 ## [6.0.3] - 2022-05-27
 
 ### Added

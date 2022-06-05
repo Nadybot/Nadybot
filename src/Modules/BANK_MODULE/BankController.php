@@ -146,7 +146,15 @@ class BankController extends ModuleInstance {
 
 	/** Search for an item on all bank characters */
 	#[NCA\HandlesCommand("bank")]
-	public function bankSearchCommand(CmdContext $context, #[NCA\Str("search")] string $action, string $search): void {
+	#[NCA\Help\Example("<symbol>bank search operative")]
+	#[NCA\Help\Example("<symbol>bank search 225 sharpshooter")]
+	#[NCA\Help\Example("<symbol>bank search 10-200 symbiant")]
+	public function bankSearchCommand(
+		CmdContext $context,
+		#[NCA\Str("search")] string $action,
+		#[NCA\Regexp("\d+(?:(?:\s*-\s*|\s+)\d+)?", "&lt;ql range&gt;")] ?string $ql,
+		string $search
+	): void {
 		$search = htmlspecialchars_decode($search);
 		$words = explode(' ', $search);
 		$limit = $this->maxBankItems;
@@ -154,6 +162,15 @@ class BankController extends ModuleInstance {
 			->orderBy("name")
 			->orderBy("ql")
 			->limit($limit);
+		if (isset($ql)) {
+			[$low, $high] = \Safe\preg_split("/(\s*-\s*|\s+)/", $ql);
+			if (isset($high)) {
+				$query->where("ql", ">=", min((int)$low, (int)$high));
+				$query->where("ql", "<=", max((int)$low, (int)$high));
+			} else {
+				$query->where("ql", (int)$low);
+			}
+		}
 		$this->db->addWhereFromParams($query, $words, 'name');
 
 		/** @var Collection<Bank> */

@@ -1,4 +1,6 @@
-FROM quay.io/nadyita/alpine-glibc:alpine-3.15
+FROM quay.io/nadyita/aochatproxy:unstable AS builder
+
+FROM quay.io/nadyita/alpine:3.15
 ARG VERSION
 
 LABEL maintainer="nadyita@hodorraid.org" \
@@ -33,9 +35,11 @@ RUN apk --no-cache upgrade && \
     php8-fileinfo \
     tini \
     && \
-    adduser -h /nadybot -s /bin/false -D -H nadybot
+    adduser -h /nadybot -s /bin/false -D -H nadybot && \
+    mkdir /proxy
 
 COPY --chown=nadybot:nadybot . /nadybot
+COPY --from=builder /aochatproxy /proxy/aochatproxy
 
 RUN wget -O /usr/bin/composer https://getcomposer.org/composer-2.phar && \
     apk --no-cache add \
@@ -51,16 +55,12 @@ RUN wget -O /usr/bin/composer https://getcomposer.org/composer-2.phar && \
     jq 'del(.monolog.handlers.logs)|.monolog.formatters.console.options.format="[%level_name%] %message% %context% %extra%\n"|.monolog.formatters.console += {"calls": {"includeStacktraces": {"include" :true}}}' conf/logging.json > conf/logging.json.2 && \
     mv conf/logging.json.2 conf/logging.json && \
     chown nadybot:nadybot conf/logging.json && \
-    mkdir -p /proxy && \
     chown nadybot /proxy && \
-    PROXY_URL=$(wget -O - https://api.github.com/repos/nadybot/aochatproxy/releases/latest | jq -r '.assets[] | select(.name=="aochatproxy-linux-x86_64") | .browser_download_url') && \
-    wget -O /proxy/aochatproxy "${PROXY_URL}" && \
     chmod +x /proxy/aochatproxy && \
     apk del --no-cache sudo jq && \
     if [ "x${VERSION}" != "x" ]; then \
         sed -i -e "s/public const VERSION = \"[^\"]*\";/public const VERSION = \"${VERSION:-4.0}\";/g" src/Core/BotRunner.php; \
     fi
-
 
 USER nadybot
 
