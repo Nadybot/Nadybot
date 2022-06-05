@@ -12,6 +12,7 @@ use Nadybot\Core\{
 	DB,
 	CacheManager,
 	CacheResult,
+	ConfigFile,
 	ModuleInstance,
 	LoggerWrapper,
 	Nadybot,
@@ -42,6 +43,9 @@ class FindOrgController extends ModuleInstance {
 
 	#[NCA\Inject]
 	public Text $text;
+
+	#[NCA\Inject]
+	public ConfigFile $config;
 
 	#[NCA\Inject]
 	public Util $util;
@@ -226,7 +230,10 @@ class FindOrgController extends ModuleInstance {
 
 	protected function downloadOrglistLetter(string $url, int $searchIndex): void {
 		$this->cacheManager->asyncLookup(
-			$url . "?" . http_build_query(['l' => $this->searches[$searchIndex]]),
+			$url . "?" . http_build_query([
+				'l' => $this->searches[$searchIndex],
+				'dim' => $this->config->dimension,
+			]),
 			"orglist",
 			$this->searches[$searchIndex] . ".html",
 			[$this, "isValidOrglist"],
