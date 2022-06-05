@@ -1,3 +1,13 @@
+nadybot (6.0.4-1+ubuntu1) bionic; urgency=medium
+  Added:
+  - Allow specifying the ql or ql-range to search for when using `!bank search`
+
+  Fix:
+  - The `TrackerFormatHandler` was moved to its correct namespace.
+  - The nadybot-big image works again as expected.
+  - Fix `!orglist` for RK19
+ -- Nadyita <nadyita@hodorraid.org>  Sun, 05 May 2022 16:30:00 +0200
+
 nadybot (6.0.3-1+ubuntu1) bionic; urgency=medium
   Added:
   - New setting `add_header_ranges`. If enabled, in addition to Page X/Y, it will print the (sub-)header-ranges in that page (ADMIN -> TOWER_MODULE) as well, if the page is streuctured like that

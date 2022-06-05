@@ -204,6 +204,12 @@ exit 0
 %endif
 
 %changelog
+* Sun Jun 05 2022 Nadyita <nadyita@hodorraid.org> 6.0.4-1
+- Allow specifying the ql or ql-range to search for when using `!bank search`
+- The `TrackerFormatHandler` was moved to its correct namespace.
+- The nadybot-big image works again as expected.
+- Fix `!orglist` for RK19
+
 * Fri May 27 2022 Nadyita <nadyita@hodorraid.org> 6.0.3-1
 - New setting `add_header_ranges`. If enabled, in addition to Page X/Y, it will print the (sub-)header-ranges in that page (ADMIN -> TOWER_MODULE) as well, if the page is streuctured like that
 - Add support for Discord Slash-commands. The setting `discord_slash_commands` determines if they are disabled, only visible to the person sending them, or treated like a regular command and routed from/to the bot-channels.
