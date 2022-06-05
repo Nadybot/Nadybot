@@ -4,6 +4,7 @@ on:
     branches:
       - unstable
       - stable
+      - amphp
     tags:
       - '*'
 jobs:
