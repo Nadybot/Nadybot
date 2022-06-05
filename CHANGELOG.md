@@ -30,6 +30,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - The `TrackerFormatHandler` was moved to its correct namespace.
 - The nadybot-big image works again as expected.
 - The console history works 100% now, only ctrl+r-search is now broken
+- Fix `!orglist` for RK19
 
 ## [6.0.3] - 2022-05-27
 
