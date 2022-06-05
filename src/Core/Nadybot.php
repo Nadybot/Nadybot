@@ -371,7 +371,11 @@ class Nadybot extends AOChat {
 			Loop::repeat(
 				100,
 				function(string $handle): void {
-					$readyAfter = $this->config->useProxy ? 2 : 1;
+					$readyAfter = $this->config->useProxy ? 2 : 0.5;
+					$this->logger->info("Time since last packet: {tslp}ms/{readyAfter}ms", [
+						"tslp" => round(microtime(true) - $this->last_packet, 3)*1000,
+						"readyAfter" => round($readyAfter, 3)*1000,
+					]);
 					if (microtime(true) - $this->last_packet > $readyAfter) {
 						$this->ready = true;
 						$this->logger->info("Bot is ready");
@@ -653,7 +657,9 @@ class Nadybot extends AOChat {
 	 * Process an incoming message packet that the bot receives
 	 */
 	public function process_packet(AOChatPacket $packet): void {
-		// $this->logger->notice("< {$packet->type}");
+		// $this->logger->notice("< {type}", [
+		// 	"type" => $packet->typeToName($packet->type),
+		// ]);
 		try {
 			$this->process_all_packets($packet);
 

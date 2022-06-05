@@ -286,4 +286,47 @@ class AOChatPacket {
 			$this->data = $data;
 		}
 	}
+
+	public function typeToName(int $type): ?string {
+		$types = [
+			0 => "LOGIN_SEED",
+			2 => "LOGIN_REQUEST",
+			3 => "LOGIN_SELECT",
+			5 => "LOGIN_OK",
+			6 => "LOGIN_ERROR",
+			7 => "LOGIN_CHARLIST",
+			10 => "CLIENT_UNKNOWN",
+			20 => "CLIENT_NAME",
+			21 => "CLIENT_LOOKUP",
+			30 => "MSG_PRIVATE",
+			34 => "MSG_VICINITY",
+			35 => "MSG_VICINITYA",
+			36 => "MSG_SYSTEM",
+			37 => "CHAT_NOTICE",
+			40 => "BUDDY_ADD",
+			41 => "BUDDY_REMOVE",
+			42 => "ONLINE_SET",
+			50 => "PRIVGRP_INVITE",
+			51 => "PRIVGRP_KICK",
+			52 => "PRIVGRP_JOIN",
+			53 => "PRIVGRP_PART",
+			54 => "PRIVGRP_KICKALL",
+			55 => "PRIVGRP_CLIJOIN",
+			56 => "PRIVGRP_CLIPART",
+			57 => "PRIVGRP_MESSAGE",
+			58 => "PRIVGRP_REFUSE",
+			60 => "GROUP_ANNOUNCE",
+			61 => "GROUP_PART",
+			64 => "GROUP_DATA_SET",
+			65 => "GROUP_MESSAGE",
+			66 => "GROUP_CM_SET",
+			70 => "CLIENTMODE_GET",
+			71 => "CLIENTMODE_SET",
+			100 => "PING",
+			110 => "FORWARD",
+			120 => "CC",
+			1100 => "ADM_MUX_INFO",
+		];
+		return $types[$type] ?? null;
+	}
 }
