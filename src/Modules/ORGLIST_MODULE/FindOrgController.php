@@ -240,7 +240,7 @@ class FindOrgController extends ModuleInstance {
 				return;
 			}
 			$url = "http://people.anarchy-online.com/people/lookup/orgs.html".
-				"?l={$letter}";
+				"?l={$letter}&dim={$this->config->dimension}";
 			$client = $this->builder->build();
 			$retry = 5;
 			do {
@@ -255,6 +255,7 @@ class FindOrgController extends ModuleInstance {
 						"Error downloading orglist for letter {letter}, retrying in {retry}s",
 						[
 							"letter" => $letter,
+							"dim" => $this->config->dimension,
 							"retry" => 5,
 						]
 					);

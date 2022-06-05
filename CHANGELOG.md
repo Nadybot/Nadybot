@@ -14,17 +14,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Replaced the EventLoop with an AMPHP event loop. Migrated the following functionality to AMP:
+- Replaced the EventLoop with an Amp (amphp) event loop. Migrated the following functionality to Amp:
+  - The AO-connection
   - Cron-events
   - Timer->callLater()
   - SocketManager
-  - Http-client is now being replaced with HttpClientBuilder
-- Commands and events can now be declared as Generators, which automatically makes them executes async and allows to `yield` results from promises.
+  - EventLoop::add()
+  - Http-client is now being replaced with HttpClientBuilder, while the old Http/AsyncHttp still function, but are now deprecated
+
+  This leads to even lower delay when processing Discord/Web/Console/AO packages, and the bot's CPU usage dropping to 0 in idle, compared to ~1%-2% before.
+  A whole lot of functions are now deprecated and will be removed or replaced in 7.0, while none of the core function signatures has changed.
 
 ### Fix
 
 - The `TrackerFormatHandler` was moved to its correct namespace.
 - The nadybot-big image works again as expected.
+- The console history works 100% now, only ctrl+r-search is now broken
 
 ## [6.0.3] - 2022-05-27
 
