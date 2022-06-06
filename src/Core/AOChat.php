@@ -5,8 +5,8 @@ namespace Nadybot\Core;
 use function Amp\asyncCall;
 use function Amp\call;
 use function Amp\delay;
+use function Safe\fread;
 use function Safe\stream_socket_client;
-use function Safe\stream_socket_recvfrom;
 use function Safe\stream_socket_sendto;
 
 use Amp\Deferred;
@@ -17,6 +17,7 @@ use Exception;
 use Generator;
 use Monolog\Logger;
 use ReflectionObject;
+use Safe\Exceptions\FilesystemException;
 use Safe\Exceptions\StreamException;
 
 /*
@@ -347,9 +348,9 @@ class AOChat {
 			}
 			$start = microtime(true);
 			try {
-				$buffer = stream_socket_recvfrom($this->socket, $rlen);
-			} catch (StreamException $e) {
-				$this->logger->error("Read error: {error}", [
+				$buffer = fread($this->socket, $rlen);
+			} catch (FilesystemException $e) {
+				$this->logger->critical("Read error: {error}", [
 					"error" => $e->getMessage(),
 				]);
 				die();
@@ -357,7 +358,7 @@ class AOChat {
 			$end = microtime(true);
 			$bytesRead = strlen($buffer);
 			$this->numBytesIn += $bytesRead;
-			if ($bytesRead === 0) {
+			if ($bytesRead === 0 && stream_get_meta_data($this->socket)["eof"]) {
 				$this->logger->error("Chat server or proxy terminated the connection. Someone else logged in on to same account?");
 				die();
 			}
