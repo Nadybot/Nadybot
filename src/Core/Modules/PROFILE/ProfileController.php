@@ -2,11 +2,16 @@
 
 namespace Nadybot\Core\Modules\PROFILE;
 
+use function Amp\File\filesystem;
 use function Safe\file_get_contents;
 use function Safe\json_decode;
 use function Safe\json_encode;
 use function Safe\preg_replace;
 
+use Exception;
+use Generator;
+use Illuminate\Support\Collection;
+use Safe\Exceptions\FilesystemException;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
@@ -28,8 +33,6 @@ use Nadybot\Core\{
 	Text,
 	Util,
 };
-use Exception;
-use Illuminate\Support\Collection;
 use Nadybot\Core\DBSchema\{
 	CmdAlias,
 	CmdCfg,
@@ -40,7 +43,6 @@ use Nadybot\Core\DBSchema\{
 	RouteHopFormat,
 };
 use Nadybot\Modules\RELAY_MODULE\RelayController;
-use Safe\Exceptions\FilesystemException;
 
 /**
  * @author Tyrence (RK2)
@@ -166,7 +168,11 @@ class ProfileController extends ModuleInstance {
 
 	/** View a profile */
 	#[NCA\HandlesCommand("profile")]
-	public function profileViewCommand(CmdContext $context, #[NCA\Str("view")] string $action, PFilename $profileName): void {
+	public function profileViewCommand(
+		CmdContext $context,
+		#[NCA\Str("view")] string $action,
+		PFilename $profileName
+	): Generator {
 		$profileName = $profileName();
 		$filename = $this->getFilename($profileName);
 		if (!@file_exists($filename)) {
@@ -174,7 +180,7 @@ class ProfileController extends ModuleInstance {
 			$context->reply($msg);
 			return;
 		}
-		$blob = htmlspecialchars(file_get_contents($filename));
+		$blob = htmlspecialchars(yield filesystem()->read($filename));
 		$blob = preg_replace("/^([^#])/m", "<tab>$1", $blob);
 		$blob = preg_replace("/^# (.+)$/m", "<header2>$1<end>", $blob);
 		/** @var string $blob */

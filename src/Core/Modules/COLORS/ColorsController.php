@@ -2,7 +2,13 @@
 
 namespace Nadybot\Core\Modules\COLORS;
 
+use function Amp\call;
+use function Amp\File\filesystem;
+use function Safe\json_decode;
+
+use Amp\Promise;
 use Exception;
+use Generator;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	Attributes as NCA,
@@ -17,10 +23,6 @@ use Nadybot\Core\{
 	SettingManager,
 	Text,
 };
-
-use function Safe\file_get_contents;
-use function Safe\glob;
-use function Safe\json_decode;
 
 #[
 	NCA\Instance,
@@ -98,8 +100,9 @@ class ColorsController extends ModuleInstance {
 
 	/** Get a list of color themes for the bot */
 	#[NCA\HandlesCommand("theme")]
-	public function cmdThemeList(CmdContext $context): void {
-		$themes = $this->getThemeList();
+	public function cmdThemeList(CmdContext $context): Generator {
+		/** @var Theme[] */
+		$themes = yield $this->getThemeList();
 		$blobs = [];
 		foreach ($themes as $theme) {
 			$link = "[" . $this->text->makeChatcmd(
@@ -122,8 +125,9 @@ class ColorsController extends ModuleInstance {
 	public function cmdThemePreview(
 		CmdContext $context,
 		#[NCA\Str("preview")] string $action,
-	): void {
-		$themes = $this->getThemeList();
+	): Generator {
+		/** @var Theme[] */
+		$themes = yield $this->getThemeList();
 		$blobs = [];
 		foreach ($themes as $theme) {
 			$link = $this->text->makeChatcmd(
@@ -145,17 +149,24 @@ class ColorsController extends ModuleInstance {
 		CmdContext $context,
 		#[NCA\Str("apply")] string $action,
 		PFilename $themeName
-	): void {
+	): Generator {
 		$paths = explode(":", $this->themePath);
 		$files = new Collection();
 		foreach ($paths as $path) {
-			$files->push(...glob(__DIR__ . "/" . $path . "/*.json"));
+			$fileList = yield filesystem()->listFiles(__DIR__ . "/" . $path);
+			foreach ($fileList as $fileName) {
+				if (!str_ends_with($fileName, ".json")) {
+					continue;
+				}
+				$files->push(__DIR__ . "/{$path}/{$fileName}");
+			}
 		}
 		$files = $files->filter(function(string $path) use ($themeName): bool {
 			return basename($path, ".json") === $themeName();
 		});
 		try {
-			$theme = $this->loadTheme($files->firstOrFail());
+			/** @var ?Theme */
+			$theme = yield $this->loadTheme($files->firstOrFail());
 			if (!isset($theme)) {
 				throw new Exception("Theme not found.");
 			}
@@ -211,31 +222,43 @@ class ColorsController extends ModuleInstance {
 		return $attributes;
 	}
 
-	/** @return Theme[] */
-	public function getThemeList(): array {
-		$paths = explode(":", $this->themePath);
-		$files = new Collection();
-		foreach ($paths as $path) {
-			$files->push(...glob(__DIR__ . "/" . $path . "/*.json"));
-		}
-		$themes = $files->map(function (string $file): ?Theme {
-			return $this->loadTheme($file);
-		})->filter()
-		->sortBy("name")
-		->values();
-		return $themes->toArray();
+	/** @return Promise<Theme[]> */
+	public function getThemeList(): Promise {
+		return call(function (): Generator {
+			$paths = explode(":", $this->themePath);
+			$themes = new Collection();
+			foreach ($paths as $path) {
+				$fileList = yield filesystem()->listFiles(__DIR__ . "/" . $path);
+				foreach ($fileList as $fileName) {
+					if (!str_ends_with($fileName, ".json")) {
+						continue;
+					}
+					$themes->push(
+						yield $this->loadTheme(__DIR__ . "/{$path}/{$fileName}")
+					);
+				}
+			}
+			$themes = $themes->filter()->sortBy("name")->values();
+			return $themes->toArray();
+		});
 	}
 
-	/** Load a theme from a file and return the parsed theme or null */
-	public function loadTheme(string $filename): ?Theme {
-		try {
-			$json = file_get_contents($filename);
-			$data = json_decode($json, true);
-		} catch (Exception) {
-			return null;
-		}
-		$data["name"] = basename($filename, ".json");
-		return new Theme($data);
+	/**
+	 * Load a theme from a file and return the parsed theme or null
+	 *
+	 * @return Promise<?Theme>
+	 */
+	public function loadTheme(string $filename): Promise {
+		return call(function () use ($filename): Generator {
+			try {
+				$json = yield filesystem()->read($filename);
+				$data = json_decode($json, true);
+			} catch (Exception) {
+				return null;
+			}
+			$data["name"] = basename($filename, ".json");
+			return new Theme($data);
+		});
 	}
 
 	/** Activate all colors of the given theme */

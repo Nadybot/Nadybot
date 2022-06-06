@@ -2,17 +2,21 @@
 
 namespace Nadybot\Core\Modules\PROFILE;
 
+use function Amp\File\filesystem;
+
+use Amp\File\FilesystemException as AmpFilesystemException;
 use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\ModuleInstance;
 use Exception;
+use Generator;
+use Safe\Exceptions\FilesystemException;
+use Throwable;
 use Nadybot\Modules\{
 	WEBSERVER_MODULE\ApiResponse,
 	WEBSERVER_MODULE\HttpProtocolWrapper,
 	WEBSERVER_MODULE\Request,
 	WEBSERVER_MODULE\Response,
 };
-use Safe\Exceptions\FilesystemException;
-use Throwable;
 
 #[NCA\Instance]
 class ProfileApiController extends ModuleInstance {
@@ -47,13 +51,15 @@ class ProfileApiController extends ModuleInstance {
 		NCA\ApiResult(code: 200, class: "string", desc: "Profile found and shown"),
 		NCA\ApiResult(code: 404, desc: "Profile not found")
 	]
-	public function viewProfileEndpoint(Request $request, HttpProtocolWrapper $server, string $profile): Response {
+	public function viewProfileEndpoint(Request $request, HttpProtocolWrapper $server, string $profile): Generator {
 		$filename = $this->profileController->getFilename($profile);
 
 		if (!@file_exists($filename)) {
 			return new Response(Response::NOT_FOUND, [], "Profile {$filename} not found.");
 		}
-		if (($content = file_get_contents($filename)) === false) {
+		try {
+			$content = yield filesystem()->read($filename);
+		} catch (AmpFilesystemException) {
 			return new Response(Response::NOT_FOUND, [], "Profile {$filename} not accessible.");
 		}
 		return new ApiResponse($content);
