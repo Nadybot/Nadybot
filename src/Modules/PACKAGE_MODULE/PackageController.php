@@ -983,7 +983,9 @@ class PackageController extends ModuleInstance {
 				$targetFile = "{$targetDir}/{$cmd->package}/" . substr($fileName, strlen($subDir));
 				if (substr($targetFile, -1, 1) === "/") {
 					try {
-						yield filesystem()->createDirectoryRecursively($targetFile, 0700);
+						if (false === yield filesystem()->exists($targetFile)) {
+							yield filesystem()->createDirectoryRecursively($targetFile, 0700);
+						}
 					} catch (Throwable $e) {
 						$this->logger->error("Error on mkdir of {$targetFile}: ".
 							$e->getMessage());

@@ -23,6 +23,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
   This leads to even lower delay when processing Discord/Web/Console/AO packages, and the bot's CPU usage dropping to 0 in idle, compared to ~1%-2% before.
   A whole lot of functions are now deprecated and will be removed or replaced in 7.0, while none of the core function signatures has changed.
+- Upgraded Docker images to alpine 3.16
+
+### Removed
+
+- The `!updatecsv`-command was removed, because it hasn't been any use yet, and given how easy it is to upgrade the bot, there's no need to keep it and its complex mechanism.
 
 ### Fix
 

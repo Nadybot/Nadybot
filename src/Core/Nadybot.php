@@ -215,6 +215,9 @@ class Nadybot extends AOChat {
 			$this->registerSettingHandlers($class);
 		}
 		$this->db->commit();
+		Loop::setErrorHandler(function(Throwable $e): void {
+			$this->logger->error($e->getMessage(), ["exception" => $e]);
+		});
 		Loop::run(function (): Generator {
 			$procs = [];
 			$this->db->beginTransaction();
@@ -1347,9 +1350,18 @@ class Nadybot extends AOChat {
 				if (count($method->getAttributes(NCA\Setup::class))) {
 					$result = $method->invoke($obj);
 					if ($result instanceof Generator) {
-						yield from $result;
+						try {
+							yield from $result;
+						} catch (Throwable $e) {
+							$this->logger->error("Failed to call setup handler for '{class}': {error}", [
+								"class" => $name,
+								"error" => $e->getMessage(),
+							]);
+						}
 					} elseif ($result === false) {
-						$this->logger->error("Failed to call setup handler for '$name'");
+						$this->logger->error("Failed to call setup handler for '{class}'", [
+							"class" => $name
+						]);
 					}
 				}
 				foreach ($method->getAttributes(NCA\HandlesCommand::class) as $command) {

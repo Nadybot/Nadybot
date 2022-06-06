@@ -81,10 +81,10 @@ class FindOrgController extends ModuleInstance {
 		$this->ready = $this->db->table("organizations")
 			->where("index", "others")
 			->exists();
-		yield filesystem()->createDirectoryRecursively(
-			$this->config->cacheFolder . "/orglist",
-			0700
-		);
+		$cacheFolder = $this->config->cacheFolder . "/orglist";
+		if (false === yield filesystem()->isDirectory($cacheFolder)) {
+			yield filesystem()->createDirectoryRecursively($cacheFolder, 0700);
+		}
 	}
 
 	/**
