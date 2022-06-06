@@ -2,6 +2,12 @@
 
 namespace Nadybot\Modules\GUIDE_MODULE;
 
+use function Amp\File\filesystem;
+
+use Amp\ByteStream\LineReader;
+use Amp\File\File;
+use Amp\File\FilesystemException;
+use Generator;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
@@ -11,8 +17,6 @@ use Nadybot\Core\{
 	Text,
 	Util,
 };
-use Safe\Exceptions\DirException;
-use Safe\Exceptions\FilesystemException;
 
 /**
  * @author Tyrence (RK2)
@@ -60,26 +64,29 @@ class GuideController extends ModuleInstance {
 
 	/** See a list of all the guides in alphabetical order */
 	#[NCA\HandlesCommand("guides")]
-	public function guidesListCommand(CmdContext $context): void {
+	public function guidesListCommand(CmdContext $context): Generator {
+		/** @var string[] */
+		$topicList = [];
 		try {
-			$handle = \Safe\opendir($this->path);
-		} catch (DirException $e) {
+			$fileList = yield filesystem()->listFiles($this->path);
+			foreach ($fileList as $fileName) {
+				if (!str_ends_with($fileName, self::FILE_EXT)) {
+					continue;
+				}
+				/** @var File */
+				$handle = yield filesystem()->openFile($this->path . '/' . $fileName, "r");
+				$firstLine = yield (new LineReader($handle))->readLine();
+				if ($firstLine === null) {
+					continue;
+				}
+				$firstLine = strip_tags(trim($firstLine));
+				$topicList[$firstLine] = basename($fileName, self::FILE_EXT);
+			}
+		} catch (FilesystemException $e) {
 			$msg = "Error reading topics: " . $e->getMessage();
 			$context->reply($msg);
 			return;
 		}
-		/** @var string[] */
-		$topicList = [];
-
-		while (($fileName = readdir($handle)) !== false) {
-			// if file has the correct extension, it's a topic file
-			if ($this->util->endsWith($fileName, self::FILE_EXT)) {
-				$firstLine = strip_tags(trim(\Safe\file($this->path . '/' . $fileName)[0]));
-				$topicList[$firstLine] = basename($fileName, self::FILE_EXT);
-			}
-		}
-
-		closedir($handle);
 
 		ksort($topicList);
 
@@ -123,12 +130,12 @@ class GuideController extends ModuleInstance {
 		"<highlight><tab><symbol>guides title<end>\n".
 		"<highlight><tab><symbol>title<end>\n"
 	)]
-	public function guidesShowCommand(CmdContext $context, PFilename $guideName): void {
+	public function guidesShowCommand(CmdContext $context, PFilename $guideName): Generator {
 		// get the filename and read in the file
 		$fileName = strtolower($guideName());
 		$file = $this->path . $fileName . self::FILE_EXT;
 		try {
-			$info = \Safe\file_get_contents($file);
+			$info = yield filesystem()->read($file);
 			$lines = explode("\n", $info);
 			$firstLine = preg_replace("/<header>(.+)<end>/", "$1", array_shift($lines));
 			$info = trim(implode("\n", $lines));
