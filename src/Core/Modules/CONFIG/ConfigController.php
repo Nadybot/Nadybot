@@ -19,6 +19,7 @@ use Nadybot\Core\{
 	ModuleInstance,
 	InsufficientAccessException,
 	LoggerWrapper,
+	ModuleInstanceInterface,
 	Nadybot,
 	ParamClass\PWord,
 	Registry,
@@ -971,6 +972,17 @@ class ConfigController extends ModuleInstance {
 	 * @return ConfigModule[]
 	 */
 	public function getModules(): array {
+		$modules = [];
+		foreach (Registry::getAllInstances() as $name => $instance) {
+			if (!($instance instanceof ModuleInstanceInterface)) {
+				continue;
+			}
+			$moduleName = $instance->getModuleName();
+			if ($moduleName === "") {
+				continue;
+			}
+			$modules[$moduleName] = true;
+		}
 		$eventQuery = $this->db->table(EventManager::DB_TABLE)
 			->select("module");
 		$eventQuery->selectRaw($eventQuery->grammar->wrap("status") . "+2 " . $eventQuery->as("status"));
@@ -998,16 +1010,20 @@ class ConfigController extends ModuleInstance {
 			$outerQuery->as("count_settings")
 		);
 		/** @var Collection<ModuleStats> */
-		$data = $outerQuery->asObj(ModuleStats::class);
+		$data = $outerQuery->asObj(ModuleStats::class)->keyBy("module");
 		/** @var Collection<string,Collection<CmdCfg>> */
 		$commands = $this->commandManager->getAll()
 			->groupBy("module");
 		$result = [];
-		foreach ($data as $row) {
+		foreach ($modules as $module => $dummy) {
+			$row = $data->get($module);
 			/** @var Collection<CmdCfg> */
-			$moduleCmds = $commands->get($row->module, new Collection());
+			$moduleCmds = $commands->get($module, new Collection());
+			if ($moduleCmds->isEmpty() && !isset($row)) {
+				continue;
+			}
 			$config = new ConfigModule();
-			$config->name = $row->module;
+			$config->name = $module;
 			$config->description = $this->getModuleDescription($config->name);
 			$config->num_commands_enabled = 0;
 			$config->num_commands_disabled = 0;
@@ -1021,9 +1037,11 @@ class ConfigController extends ModuleInstance {
 						return $disabled + (new Collection($cfg->permissions))->where("enabled", false)->count();
 					}, 0);
 			}
-			$config->num_events_disabled = (int)$row->count_events_disabled;
-			$config->num_events_enabled = (int)$row->count_events_enabled;
-			$config->num_settings = (int)$row->count_settings;
+			if (isset($row)) {
+				$config->num_events_disabled = (int)$row->count_events_disabled;
+				$config->num_events_enabled = (int)$row->count_events_enabled;
+				$config->num_settings = (int)$row->count_settings;
+			}
 			$result []= $config;
 		}
 		return $result;
