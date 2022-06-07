@@ -99,7 +99,7 @@ class ProfileApiController extends ModuleInstance {
 		NCA\ApiResult(code: 402, desc: "Wrong or no operation given"),
 		NCA\ApiResult(code: 404, desc: "Profile not found")
 	]
-	public function loadProfileEndpoint(Request $request, HttpProtocolWrapper $server, string $profile): Response {
+	public function loadProfileEndpoint(Request $request, HttpProtocolWrapper $server, string $profile): Generator {
 		if (!is_object($request->decodedBody) || !isset($request->decodedBody->op)) {
 			return new Response(Response::UNPROCESSABLE_ENTITY);
 		}
@@ -112,7 +112,7 @@ class ProfileApiController extends ModuleInstance {
 		if (!@file_exists($filename)) {
 			return new Response(Response::NOT_FOUND, [], "Profile {$filename} not found.");
 		}
-		$output = $this->profileController->loadProfile($filename, $request->authenticatedAs??"_");
+		$output = yield $this->profileController->loadProfile($filename, $request->authenticatedAs??"_");
 		if ($output === null) {
 			return new Response(Response::INTERNAL_SERVER_ERROR);
 		}

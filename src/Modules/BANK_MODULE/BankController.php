@@ -2,6 +2,10 @@
 
 namespace Nadybot\Modules\BANK_MODULE;
 
+use function Amp\File\filesystem;
+use function Safe\preg_split;
+
+use Amp\File\FilesystemException;
 use Amp\Http\Client\HttpClientBuilder;
 use Amp\Http\Client\Request;
 use Amp\Http\Client\Response;
@@ -17,9 +21,6 @@ use Nadybot\Core\{
 	Text,
 	Util,
 };
-use Safe\Exceptions\FilesystemException;
-
-use function Safe\preg_split;
 
 /**
  * @author Tyrence (RK2)
@@ -206,16 +207,16 @@ class BankController extends ModuleInstance {
 				);
 			}
 			$body = yield $response->getBody()->buffer();
-			$lines = preg_split("/(?:\r\n|\r|\n)/", $body);
 		} else {
 			try {
-				$lines = \Safe\file($this->bankFileLocation);
+				$body = yield filesystem()->read($this->bankFileLocation);
 			} catch (FilesystemException $e) {
 				$msg = "Could not open file '{$this->bankFileLocation}': " . $e->getMessage();
 				$context->reply($msg);
 				return;
 			}
 		}
+		$lines = preg_split("/(?:\r\n|\r|\n)/", $body);
 		$this->bankUpdate($context, $lines);
 	}
 

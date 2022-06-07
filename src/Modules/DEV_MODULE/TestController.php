@@ -2,6 +2,8 @@
 
 namespace Nadybot\Modules\DEV_MODULE;
 
+use function Amp\File\filesystem;
+
 use Amp\Loop;
 use Exception;
 use Generator;
@@ -625,16 +627,17 @@ class TestController extends ModuleInstance {
 	public function testAllCommand(
 		CmdContext $context,
 		#[NCA\Str("all")] string $action
-	): void {
+	): Generator {
 		$testContext = clone $context;
 
-		$files = $this->util->getFilesInDirectory($this->path);
+		$files = yield filesystem()->listFiles($this->path);
 		$context->reply("Starting tests...");
 		$logFile = $this->config->dataFolder.
 			"/tests-" . \Safe\date("YmdHis", time()) . ".json";
 		$testLines = [];
 		foreach ($files as $file) {
-			$lines = \Safe\file($this->path . $file, \FILE_IGNORE_NEW_LINES);
+			$data = yield filesystem()->read($this->path . $file);
+			$lines = explode("\n", $data);
 			$testLines = array_merge($testLines, $lines);
 		}
 		$this->runTests($testLines, $testContext, $logFile);
