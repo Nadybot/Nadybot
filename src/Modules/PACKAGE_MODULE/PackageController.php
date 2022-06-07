@@ -16,6 +16,7 @@ use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 use Safe\Exceptions\DirException;
 use Safe\Exceptions\FilesystemException;
+use Amp\File\FilesystemException as AmpFilesystemException;
 use SplFileInfo;
 use ZipArchive;
 use Nadybot\Core\{
@@ -98,7 +99,7 @@ class PackageController extends ModuleInstance {
 		try {
 			$dirs = yield filesystem()->listFiles($targetDir);
 			foreach ($dirs as $dir) {
-				$this->scanExtraModule($targetDir, $dir);
+				yield from $this->scanExtraModule($targetDir, $dir);
 			}
 		} catch (DirException) {
 		}
@@ -122,7 +123,7 @@ class PackageController extends ModuleInstance {
 	/**
 	 * Scan for and add all files of $module into the database
 	 */
-	private function scanExtraModule(string $targetDir, string $module): void {
+	private function scanExtraModule(string $targetDir, string $module): Generator {
 		$exists = $this->db->table(self::DB_TABLE)
 			->where("module", $module)
 			->exists();
@@ -130,7 +131,7 @@ class PackageController extends ModuleInstance {
 			return;
 		}
 
-		$version = $this->getInstalledVersion($module, $targetDir);
+		$version = yield $this->getInstalledVersion($module, $targetDir);
 		$dirIterator = new RecursiveDirectoryIterator(
 			"{$targetDir}/{$module}"
 		);
@@ -826,28 +827,30 @@ class PackageController extends ModuleInstance {
 
 	/**
 	 * Get the latest installed version of $package
-	 * @return string null if uninstalled, "" if unknown version, "x.y.z" otherwise
+	 * @return Promise<?string> null if uninstalled, "" if unknown version, "x.y.z" otherwise
 	 */
-	public function getInstalledVersion(string $package, ?string $moduleDir): ?string {
-		$moduleDir ??= $this->getExtraModulesDir();
-		if (!isset($moduleDir)) {
-			return null;
-		}
-		if (!@file_exists("{$moduleDir}/{$package}")) {
-			return null;
-		}
-		if (!@file_exists("{$moduleDir}/{$package}/aopkg.toml")) {
-			return "";
-		}
-		try {
-			$content = \Safe\file_get_contents("{$moduleDir}/{$package}/aopkg.toml");
-		} catch (FilesystemException) {
-			return "";
-		}
-		if (!preg_match("/^\s*version\s*=\s*\"(.*?)\"/m", $content, $matches)) {
-			return "";
-		}
-		return $matches[1];
+	public function getInstalledVersion(string $package, ?string $moduleDir): Promise {
+		return call(function () use ($package, $moduleDir): Generator {
+			$moduleDir ??= $this->getExtraModulesDir();
+			if (!isset($moduleDir)) {
+				return null;
+			}
+			if (false === yield filesystem()->exists("{$moduleDir}/{$package}")) {
+				return null;
+			}
+			if (false === yield filesystem()->exists("{$moduleDir}/{$package}/aopkg.toml")) {
+				return "";
+			}
+			try {
+				$content = yield filesystem()->read("{$moduleDir}/{$package}/aopkg.toml");
+			} catch (AmpFilesystemException) {
+				return "";
+			}
+			if (!preg_match("/^\s*version\s*=\s*\"(.*?)\"/m", $content, $matches)) {
+				return "";
+			}
+			return $matches[1];
+		});
 	}
 
 	/** Try to get a ZipArchive from a HttpResponse */
@@ -900,7 +903,7 @@ class PackageController extends ModuleInstance {
 					"please add one."
 				);
 			}
-			$oldVersion = $this->getInstalledVersion($cmd->package, $targetDir);
+			$oldVersion = yield $this->getInstalledVersion($cmd->package, $targetDir);
 			$cmd->oldVersion = isset($oldVersion) ? new SemanticVersion($oldVersion) : null;
 			try {
 				yield $this->checkCanInstallVersion($cmd);

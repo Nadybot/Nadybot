@@ -2,6 +2,12 @@
 
 namespace Nadybot\Modules\EXPORT_MODULE;
 
+use function Amp\call;
+use function Amp\File\filesystem;
+use function Safe\json_decode;
+use function Safe\json_encode;
+
+use Amp\File\FilesystemException;
 use Amp\Promise;
 use Exception;
 use Generator;
@@ -50,9 +56,6 @@ use Nadybot\Modules\{
 	VOTE_MODULE\VoteController,
 };
 
-use function Amp\call;
-use function Safe\json_encode;
-
 /**
  * @author Nadyita (RK5) <nadyita@hodorraid.org>
  */
@@ -98,33 +101,40 @@ class ImportController extends ModuleInstance {
 	#[NCA\Inject]
 	public ConfigFile $config;
 
-	protected function loadAndParseExportFile(string $fileName, CmdContext $sendto): ?object {
-		if (!@file_exists($fileName)) {
-			$sendto->reply("No export file <highlight>{$fileName}<end> found.");
-			return null;
-		}
-		$this->logger->notice("Decoding the JSON data");
-		try {
-			$import = \Safe\json_decode(\Safe\file_get_contents($fileName));
-		} catch (Throwable $e) {
-			$sendto->reply("Error decoding <highlight>{$fileName}<end>.");
-			return null;
-		}
-		if (!is_object($import)) {
-			$sendto->reply("The file <highlight>{$fileName}<end> is not a valid export file.");
-			return null;
-		}
-		$this->logger->notice("Loading schema data");
-		$schema = Schema::import("https://hodorraid.org/export-schema.json");
-		$this->logger->notice("Validating import data against the schema");
-		$sendto->reply("Validating the import data. This could take a while.");
-		try {
-			$schema->in($import);
-		} catch (Exception $e) {
-			$sendto->reply("The import data is not valid: <highlight>" . $e->getMessage() . "<end>.");
-			return null;
-		}
-		return $import;
+	/** @return Promise<?stdClass> */
+	private function loadAndParseExportFile(string $fileName, CmdContext $sendto): Promise {
+		return call(function () use ($fileName, $sendto): Generator {
+			if (false === yield filesystem()->exists($fileName)) {
+				$sendto->reply("No export file <highlight>{$fileName}<end> found.");
+				return null;
+			}
+			$this->logger->notice("Decoding the JSON data");
+			try {
+				$import = json_decode(yield filesystem()->read($fileName));
+			} catch (FilesystemException $e) {
+				$sendto->reply("Error reading <highlight>{$fileName}<end>: ".
+					$e->getMessage() . ".");
+				return null;
+			} catch (Throwable $e) {
+				$sendto->reply("Error decoding <highlight>{$fileName}<end>.");
+				return null;
+			}
+			if (!($import instanceof stdClass)) {
+				$sendto->reply("The file <highlight>{$fileName}<end> is not a valid export file.");
+				return null;
+			}
+			$this->logger->notice("Loading schema data");
+			$schema = Schema::import("https://hodorraid.org/export-schema.json");
+			$this->logger->notice("Validating import data against the schema");
+			$sendto->reply("Validating the import data. This could take a while.");
+			try {
+				$schema->in($import);
+			} catch (Exception $e) {
+				$sendto->reply("The import data is not valid: <highlight>" . $e->getMessage() . "<end>.");
+				return null;
+			}
+			return $import;
+		});
 	}
 
 	/**
@@ -165,7 +175,7 @@ class ImportController extends ModuleInstance {
 			$context->reply("No export file <highlight>{$fileName}<end> found.");
 			return;
 		}
-		$import = $this->loadAndParseExportFile($fileName, $context);
+		$import = yield $this->loadAndParseExportFile($fileName, $context);
 		if (!isset($import)) {
 			return;
 		}

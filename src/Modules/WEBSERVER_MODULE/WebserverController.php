@@ -2,10 +2,15 @@
 
 namespace Nadybot\Modules\WEBSERVER_MODULE;
 
+use function Amp\call;
+use function Amp\File\filesystem;
+
+use Amp\File\FilesystemException as AmpFilesystemException;
 use Amp\Http\Client\HttpClientBuilder;
 use Amp\Http\Client\Request as AmpRequest;
 use Amp\Http\Client\Response as AmpResponse;
 use Amp\Loop;
+use Amp\Promise;
 use Closure;
 use ReflectionClass;
 use DateTime;
@@ -451,7 +456,7 @@ class WebserverController extends ModuleInstance {
 			defaultStatus: 1
 		)
 	]
-	public function getRequest(HttpEvent $event, HttpProtocolWrapper $server): void {
+	public function getRequest(HttpEvent $event, HttpProtocolWrapper $server): Generator {
 		$handlers = $this->getHandlersForRequest($event->request);
 		$needAuth = true;
 		if (count($handlers) === 1) {
@@ -467,7 +472,7 @@ class WebserverController extends ModuleInstance {
 				$server->httpError(new Response(
 					Response::UNAUTHORIZED,
 					["WWW-Authenticate" => "Basic realm=\"{$this->config->name}\""],
-				));
+				), $event->request);
 			} elseif ($authType === static::AUTH_AOAUTH) {
 				$baseUrl = $this->webserverBaseUrl;
 				if ($baseUrl === 'default') {
@@ -486,7 +491,7 @@ class WebserverController extends ModuleInstance {
 							urlencode($redirectUrl) . '&application_name='.
 							urlencode($this->db->getMyname())
 					]
-				), true);
+				), $event->request, true);
 			}
 			return;
 		}
@@ -507,7 +512,7 @@ class WebserverController extends ModuleInstance {
 						'Location' => $redirectTo,
 						'Set-Cookie' => $cookie,
 					]
-				), true);
+				), $event->request, true);
 				return;
 			}
 		}
@@ -516,7 +521,7 @@ class WebserverController extends ModuleInstance {
 			$this->webserverMinAL
 		);
 		if (!$hasMinAL) {
-			$server->httpError(new Response(Response::FORBIDDEN));
+			$server->httpError(new Response(Response::FORBIDDEN), $event->request);
 			return;
 		}
 
@@ -527,56 +532,61 @@ class WebserverController extends ModuleInstance {
 		if (isset($event->request->replied)) {
 			return;
 		}
+		$event->request->replied = -1;
 		if (!in_array($event->request->method, [Request::HEAD, Request::GET])) {
-			$server->httpError(new Response(Response::METHOD_NOT_ALLOWED));
+			$server->httpError(new Response(Response::METHOD_NOT_ALLOWED), $event->request);
 			return;
 		}
-		$response = $this->serveStaticFile($event->request);
+		/** @var Response */
+		$response = yield $this->serveStaticFile($event->request);
 		if ($response->code !== Response::OK) {
-			$server->httpError($response);
+			$server->httpError($response, $event->request);
 		} else {
-			$server->sendResponse($response);
+			$server->sendResponse($response, $event->request);
 		}
 	}
 
-	protected function serveStaticFile(Request $request): Response {
-		$path = $this->config->htmlFolder;
-		try {
-			$realFile = \Safe\realpath("{$path}/{$request->path}");
-			$realBaseDir = \Safe\realpath("{$path}/");
-		} catch (FilesystemException) {
-			return new Response(Response::NOT_FOUND);
-		}
-		if ($realFile !== $realBaseDir
-			&& strncmp($realFile, $realBaseDir.DIRECTORY_SEPARATOR, strlen($realBaseDir)+1) !== 0
-		) {
-			return new Response(Response::NOT_FOUND);
-		}
-		if (is_dir($realFile)) {
-			$realFile .= DIRECTORY_SEPARATOR . "index.html";
-		}
-		if (!@file_exists($realFile)) {
-			return new Response(Response::NOT_FOUND);
-		}
-		try {
-			$body = \Safe\file_get_contents($realFile);
-		} catch (FilesystemException) {
-			$body = "";
-		}
-		$response = new Response(
-			Response::OK,
-			['Content-Type' => $this->guessContentType($realFile)],
-			$body
-		);
-		try {
-			$lastmodified = \Safe\filemtime($realFile);
-			$modifiedDate = (new DateTime())->setTimestamp($lastmodified)->format(DateTime::RFC7231);
-			$response->headers['Last-Modified'] = $modifiedDate;
-		} catch (FilesystemException) {
-		}
-		$response->headers['Cache-Control'] = 'private, max-age=3600';
-		$response->headers['ETag'] = '"' . dechex(crc32($body)) . '"';
-		return $response;
+	/** @return Promise<Response> */
+	private function serveStaticFile(Request $request): Promise {
+		return call(function () use ($request): Generator {
+			$path = $this->config->htmlFolder;
+			try {
+				$realFile = \Safe\realpath("{$path}/{$request->path}");
+				$realBaseDir = \Safe\realpath("{$path}/");
+			} catch (FilesystemException) {
+				return new Response(Response::NOT_FOUND);
+			}
+			if ($realFile !== $realBaseDir
+				&& strncmp($realFile, $realBaseDir.DIRECTORY_SEPARATOR, strlen($realBaseDir)+1) !== 0
+			) {
+				return new Response(Response::NOT_FOUND);
+			}
+			if (yield filesystem()->isDirectory($realFile)) {
+				$realFile .= DIRECTORY_SEPARATOR . "index.html";
+			}
+			if (false === yield filesystem()->exists($realFile)) {
+				return new Response(Response::NOT_FOUND);
+			}
+			try {
+				$body = yield filesystem()->read($realFile);
+			} catch (AmpFilesystemException) {
+				$body = "";
+			}
+			$response = new Response(
+				Response::OK,
+				['Content-Type' => $this->guessContentType($realFile)],
+				$body
+			);
+			try {
+				$lastmodified = yield filesystem()->getModificationTime($realFile);
+				$modifiedDate = (new DateTime())->setTimestamp($lastmodified)->format(DateTime::RFC7231);
+				$response->headers['Last-Modified'] = $modifiedDate;
+			} catch (AmpFilesystemException) {
+			}
+			$response->headers['Cache-Control'] = 'private, max-age=3600';
+			$response->headers['ETag'] = '"' . dechex(crc32($body)) . '"';
+			return $response;
+		});
 	}
 
 	public function guessContentType(string $file): string {

@@ -2,7 +2,9 @@
 
 namespace Nadybot\Modules\RECIPE_MODULE;
 
+use Amp\Promise;
 use Exception;
+use Generator;
 use Safe\Exceptions\JsonException;
 use Nadybot\Core\{
 	Attributes as NCA,
@@ -11,6 +13,7 @@ use Nadybot\Core\{
 	ModuleInstance,
 	ParamClass\PItem,
 	Text,
+	UserException,
 	Util,
 };
 use Nadybot\Modules\ITEMS_MODULE\{
@@ -18,6 +21,10 @@ use Nadybot\Modules\ITEMS_MODULE\{
 	AODBItem,
 };
 use Safe\Exceptions\DirException;
+
+use function Amp\call;
+use function Amp\File\filesystem;
+use function Safe\json_decode;
 
 /**
  * @author Tyrence
@@ -47,85 +54,91 @@ class RecipeController extends ModuleInstance {
 
 	private string $path;
 
-	protected function parseTextFile(int $id, string $fileName): Recipe {
-		$recipe = new Recipe();
-		$recipe->id = $id;
-		$lines = \Safe\file($this->path . $fileName);
-		$nameLine = trim(array_shift($lines));
-		$authorLine = trim(array_shift($lines));
-		$recipe->name = (strlen($nameLine) > 6) ? substr($nameLine, 6) : "Unknown";
-		$recipe->author = (strlen($authorLine) > 8) ? substr($authorLine, 8) : "Unknown";
-		$recipe->recipe = implode("", $lines);
-		$recipe->date = \Safe\filemtime($this->path . $fileName);
+	/** @return Promise<Recipe> */
+	private function parseTextFile(int $id, string $fileName): Promise {
+		return call(function () use ($id, $fileName): Generator {
+			$recipe = new Recipe();
+			$recipe->id = $id;
+			$lines = explode("\n", yield filesystem()->read($this->path . $fileName));
+			$nameLine = trim(array_shift($lines));
+			$authorLine = trim(array_shift($lines));
+			$recipe->name = (strlen($nameLine) > 6) ? substr($nameLine, 6) : "Unknown";
+			$recipe->author = (strlen($authorLine) > 8) ? substr($authorLine, 8) : "Unknown";
+			$recipe->recipe = implode("", $lines);
+			$recipe->date = yield filesystem()->getModificationTime($this->path . $fileName);
 
-		return $recipe;
+			return $recipe;
+		});
 	}
 
-	protected function parseJSONFile(int $id, string $fileName): Recipe {
-		$recipe = new Recipe();
-		$recipe->id = $id;
-		try {
-			$data = \Safe\json_decode(
-				\Safe\file_get_contents($this->path . $fileName),
-				false,
-				JSON_THROW_ON_ERROR
-			);
-		} catch (JsonException $e) {
-			throw new Exception("Could not read '$fileName': invalid JSON");
-		}
-		$recipe->name = $data->name ?? "<unnamed>";
-		$recipe->author = $data->author ?? "<unknown>";
-		$recipe->date = \Safe\filemtime($this->path . $fileName);
-		/** @var array<string,AODBItem> */
-		$items = [];
-		foreach ($data->items as $item) {
-			$dbItem = AODBItem::fromEntry($this->itemsController->findById($item->item_id));
-			if ($dbItem === null) {
-				throw new Exception("Could not find item '{$item->item_id}'");
+	/** @return Promise<Recipe> */
+	private function parseJSONFile(int $id, string $fileName): Promise {
+		return call(function () use ($id, $fileName): Generator {
+			$recipe = new Recipe();
+			$recipe->id = $id;
+			try {
+				$data = json_decode(
+					yield filesystem()->read($this->path . $fileName),
+					false,
+					JSON_THROW_ON_ERROR
+				);
+			} catch (JsonException $e) {
+				throw new UserException("Could not read '$fileName': invalid JSON");
 			}
-			$items[$item->alias] = $dbItem;
-			$items[$item->alias]->ql = $item->ql;
-		}
-
-		$recipe->recipe = "<font color=#FFFF00>------------------------------</font>\n";
-		$recipe->recipe .= "<font color=#FF0000>Ingredients</font>\n";
-		$recipe->recipe .= "<font color=#FFFF00>------------------------------</font>\n\n";
-		$ingredients = $items;
-		foreach ($data->steps as $step) {
-			unset($ingredients[$step->result]);
-		}
-		foreach ($ingredients as $ingredient) {
-			$recipe->recipe .= $this->text->makeImage($ingredient->icon) . "\n";
-			$recipe->recipe .= $this->text->makeItem($ingredient->lowid, $ingredient->highid, $ingredient->ql, $ingredient->name) . "\n\n\n";
-		}
-
-		$recipe->recipe .= "<pagebreak><yellow>------------------------------<end>\n";
-		$recipe->recipe .= "<red>Recipe<end>\n";
-		$recipe->recipe .= "<yellow>------------------------------<end>\n\n";
-		$stepNum = 1;
-		foreach ($data->steps as $step) {
-			$recipe->recipe .= "<pagebreak><header2>Step {$stepNum}<end>\n";
-			$stepNum++;
-			$source = $items[$step->source];
-			$target = $items[$step->target];
-			$result = $items[$step->result];
-			$recipe->recipe .= "<tab>".
-				$this->text->makeItem($source->lowid, $source->highid, $source->ql, $this->text->makeImage($source->icon)).
-				"<tab><img src=tdb://id:GFX_GUI_CONTROLCENTER_BIGARROW_RIGHT_STATE1><tab>".
-				$this->text->makeItem($target->lowid, $target->highid, $target->ql, $this->text->makeImage($target->icon)).
-				"<tab><img src=tdb://id:GFX_GUI_CONTROLCENTER_BIGARROW_RIGHT_STATE1><tab>".
-				$this->text->makeItem($result->lowid, $result->highid, $result->ql, $this->text->makeImage($result->icon)).
-				"\n";
-			$recipe->recipe .= "<tab>{$source->name} ".
-				"<highlight>+<end> {$target->name} <highlight>=<end> ".
-				$this->text->makeItem($result->lowid, $result->highid, $result->ql, $result->name).
-				"\n";
-			if ($step->skills) {
-				$recipe->recipe .= "<tab><yellow>Skills: {$step->skills}<end>\n";
+			$recipe->name = $data->name ?? "<unnamed>";
+			$recipe->author = $data->author ?? "<unknown>";
+			$recipe->date = yield filesystem()->getModificationTime($this->path . $fileName);
+			/** @var array<string,AODBItem> */
+			$items = [];
+			foreach ($data->items as $item) {
+				$dbItem = AODBItem::fromEntry($this->itemsController->findById($item->item_id));
+				if ($dbItem === null) {
+					throw new UserException("Could not find item '{$item->item_id}'");
+				}
+				$items[$item->alias] = $dbItem;
+				$items[$item->alias]->ql = $item->ql;
 			}
-			$recipe->recipe .= "\n\n";
-		}
-		return $recipe;
+
+			$recipe->recipe = "<font color=#FFFF00>------------------------------</font>\n";
+			$recipe->recipe .= "<font color=#FF0000>Ingredients</font>\n";
+			$recipe->recipe .= "<font color=#FFFF00>------------------------------</font>\n\n";
+			$ingredients = $items;
+			foreach ($data->steps as $step) {
+				unset($ingredients[$step->result]);
+			}
+			foreach ($ingredients as $ingredient) {
+				$recipe->recipe .= $this->text->makeImage($ingredient->icon) . "\n";
+				$recipe->recipe .= $this->text->makeItem($ingredient->lowid, $ingredient->highid, $ingredient->ql, $ingredient->name) . "\n\n\n";
+			}
+
+			$recipe->recipe .= "<pagebreak><yellow>------------------------------<end>\n";
+			$recipe->recipe .= "<red>Recipe<end>\n";
+			$recipe->recipe .= "<yellow>------------------------------<end>\n\n";
+			$stepNum = 1;
+			foreach ($data->steps as $step) {
+				$recipe->recipe .= "<pagebreak><header2>Step {$stepNum}<end>\n";
+				$stepNum++;
+				$source = $items[$step->source];
+				$target = $items[$step->target];
+				$result = $items[$step->result];
+				$recipe->recipe .= "<tab>".
+					$this->text->makeItem($source->lowid, $source->highid, $source->ql, $this->text->makeImage($source->icon)).
+					"<tab><img src=tdb://id:GFX_GUI_CONTROLCENTER_BIGARROW_RIGHT_STATE1><tab>".
+					$this->text->makeItem($target->lowid, $target->highid, $target->ql, $this->text->makeImage($target->icon)).
+					"<tab><img src=tdb://id:GFX_GUI_CONTROLCENTER_BIGARROW_RIGHT_STATE1><tab>".
+					$this->text->makeItem($result->lowid, $result->highid, $result->ql, $this->text->makeImage($result->icon)).
+					"\n";
+				$recipe->recipe .= "<tab>{$source->name} ".
+					"<highlight>+<end> {$target->name} <highlight>=<end> ".
+					$this->text->makeItem($result->lowid, $result->highid, $result->ql, $result->name).
+					"\n";
+				if ($step->skills) {
+					$recipe->recipe .= "<tab><yellow>Skills: {$step->skills}<end>\n";
+				}
+				$recipe->recipe .= "\n\n";
+			}
+			return $recipe;
+		});
 	}
 
 	/**
@@ -136,29 +149,29 @@ class RecipeController extends ModuleInstance {
 		description: "Initializes the recipe database",
 		defaultStatus: 1
 	)]
-	public function connectEvent(): void {
+	public function connectEvent(): Generator {
 		$this->path = __DIR__ . "/recipes/";
 		try {
-			$handle = \Safe\opendir($this->path);
+			$fileNames = yield filesystem()->listFiles($this->path);
 		} catch (DirException) {
 			throw new Exception("Could not open '{$this->path}' for loading recipes");
 		}
 		/** @var array<string,Recipe> */
-		$recipes = [];
 		$recipes = $this->db->table("recipes")->asObj(Recipe::class)->keyBy("id")->toArray();
-		$this->db->beginTransaction();
-		while (($fileName = readdir($handle)) !== false) {
-			if (!preg_match("/(\d+)\.(txt|json)$/", $fileName, $args)
-				|| (isset($recipes[$args[1]])
-					&& \Safe\filemtime($this->path . $fileName) === $recipes[$args[1]]->date)
-			) {
+		foreach ($fileNames as $fileName) {
+			if (!preg_match("/(\d+)\.(txt|json)$/", $fileName, $args)) {
 				continue;
+			}
+			if (isset($recipes[$args[1]])) {
+				if ((yield filesystem()->getModificationTime($this->path . $fileName)) === $recipes[$args[1]]->date) {
+					continue;
+				}
 			}
 			// if file has the correct extension, load recipe into database
 			if ($args[2] === 'txt') {
-				$recipe = $this->parseTextFile((int)$args[1], $fileName);
+				$recipe = yield $this->parseTextFile((int)$args[1], $fileName);
 			} elseif ($args[2] === 'json') {
-				$recipe = $this->parseJSONFile((int)$args[1], $fileName);
+				$recipe = yield $this->parseJSONFile((int)$args[1], $fileName);
 			} else {
 				continue;
 			}
@@ -168,8 +181,6 @@ class RecipeController extends ModuleInstance {
 				$this->db->insert("recipes", $recipe, null);
 			}
 		}
-		$this->db->commit();
-		closedir($handle);
 	}
 
 	/** Show a specific recipe */

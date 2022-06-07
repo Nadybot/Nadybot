@@ -99,7 +99,7 @@ class WebsocketController extends ModuleInstance {
 			return;
 		}
 		$response = $this->getResponseForWebsocketRequest($request);
-		$server->sendResponse($response);
+		$server->sendResponse($response, $request);
 		if ($response->code !== Response::SWITCHING_PROTOCOLS) {
 			return;
 		}

@@ -110,7 +110,7 @@ class StatsController extends ModuleInstance {
 		if (!$this->settingManager->getBool('prometheus_enabled')) {
 			$server->httpError(new Response(
 				Response::NOT_FOUND,
-			));
+			), $request);
 			return;
 		}
 		$authHeader = $request->headers["authorization"] ?? null;
@@ -121,14 +121,14 @@ class StatsController extends ModuleInstance {
 			$server->httpError(new Response(
 				Response::UNAUTHORIZED,
 				["WWW-Authenticate" => "Bearer realm=\"{$this->config->name}\""],
-			));
+			), $request);
 			return;
 		}
 		$server->sendResponse(new Response(
 			Response::OK,
 			['Content-type' => "text/plain; version=0.0.4"],
 			$this->getMetricsData()
-		), true);
+		), $request, true);
 	}
 
 	public function getMetricsData(): string {

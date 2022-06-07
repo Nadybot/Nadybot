@@ -459,14 +459,14 @@ class ApiController extends ModuleInstance {
 		}
 		$handler = $this->getHandlerForRequest($request);
 		if ($handler === null) {
-			$server->httpError(new Response(Response::NOT_FOUND));
+			$server->httpError(new Response(Response::NOT_FOUND), $request);
 			return;
 		}
 		if (!isset($handler->handler)) {
 			$server->httpError(new Response(
 				Response::METHOD_NOT_ALLOWED,
 				['Allow' => strtoupper(join(", ", $handler->allowedMethods))]
-			));
+			), $request);
 			return;
 		}
 		$authorized = true;
@@ -476,15 +476,15 @@ class ApiController extends ModuleInstance {
 			$authorized = $this->checkHasAccess($request, $handler);
 		}
 		if (!$authorized) {
-			$server->httpError(new Response(Response::FORBIDDEN));
+			$server->httpError(new Response(Response::FORBIDDEN), $request);
 			return;
 		}
 		if ($this->checkBodyFormat($request, $handler) === false) {
-			$server->httpError(new Response(Response::UNPROCESSABLE_ENTITY));
+			$server->httpError(new Response(Response::UNPROCESSABLE_ENTITY), $request);
 			return;
 		}
 		if ($this->checkBodyIsComplete($request, $handler) === false) {
-			$server->httpError(new Response(Response::UNPROCESSABLE_ENTITY));
+			$server->httpError(new Response(Response::UNPROCESSABLE_ENTITY), $request);
 			return;
 		}
 		try {
@@ -502,11 +502,11 @@ class ApiController extends ModuleInstance {
 			}
 
 			if (!isset($response) || !($response instanceof Response)) {
-				$server->httpError(new Response(Response::INTERNAL_SERVER_ERROR));
+				$server->httpError(new Response(Response::INTERNAL_SERVER_ERROR), $request);
 				return;
 			}
 			if ($response->code >= 400) {
-				$server->httpError($response);
+				$server->httpError($response, $request);
 				return;
 			}
 			if ($response->code >= 200 && $response->code < 300 && isset($response->body)) {
@@ -517,7 +517,7 @@ class ApiController extends ModuleInstance {
 			} elseif ($response->code === Response::OK && in_array($request->method, [Request::PUT, Request::PATCH, Request::DELETE])) {
 				$response->setCode(Response::NO_CONTENT);
 			}
-			$server->sendResponse($response);
+			$server->sendResponse($response, $request);
 		});
 	}
 

@@ -2,9 +2,16 @@
 
 namespace Nadybot\Modules\SKILLS_MODULE;
 
+use function Amp\call;
+use function Amp\File\filesystem;
+
+use Amp\ByteStream\LineReader;
+use Amp\File\File;
 use Amp\Loop;
+use Amp\Promise;
 use Generator;
 use Illuminate\Support\Collection;
+use Throwable;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
@@ -26,10 +33,6 @@ use Nadybot\Modules\ITEMS_MODULE\{
 	WhatBuffsController,
 };
 use Nadybot\Modules\NANO_MODULE\NanoController;
-use Throwable;
-
-use function Amp\delay;
-use function Amp\File\filesystem;
 
 /**
  * @author Tyrence (RK2)
@@ -88,22 +91,22 @@ class BuffPerksController extends ModuleInstance {
 	}
 
 	private function initPerksDatabase(): Generator {
-		while ($this->db->inTransaction()) {
-			yield delay(100);
-		}
+		$startTs = microtime(true);
 		$path = __DIR__ . "/perks.csv";
 		/** @var int */
 		$mtime = yield filesystem()->getModificationTime($path);
 		$dbVersion = $this->perksDBVersion;
-		$perkInfo = $this->getPerkInfo();
+		/** @var array<string,Perk> */
+		$perkInfo = yield $this->getPerkInfo();
 		$this->perks = new Collection($perkInfo);
 		$empty = !$this->db->table("perk")->exists();
 		if (($dbVersion >= $mtime) && !$empty) {
 			return;
 		}
+		$dbTs = microtime(true);
 		$this->logger->notice("(Re)building perk database...");
 
-		$this->db->beginTransaction();
+		yield $this->db->awaitBeginTransaction();
 		try {
 			$this->db->table("perk")->truncate();
 			$this->db->table("perk_level")->truncate();
@@ -161,7 +164,9 @@ class BuffPerksController extends ModuleInstance {
 			throw $e;
 		}
 		$this->db->commit();
-		$this->logger->notice("Finished (re)building perk database");
+		$dbDuration = round((microtime(true) - $dbTs) * 1000, 1);
+		$parseDuration = round(($dbTs - $startTs) * 1000, 1);
+		$this->logger->notice("Finished (re)building perk database in {$parseDuration}ms + {$dbDuration}ms");
 	}
 
 	/** See which perks are available for your level and profession */
@@ -485,102 +490,107 @@ class BuffPerksController extends ModuleInstance {
 	/**
 	 * Parse the perk CSV file into a structured perk array so we can
 	 * better insert the data into a database
-
-	 * @return array<string,Perk>
+	 *
+	 * @return Promise<array<string,Perk>>
 	 */
-	public function getPerkInfo(): array {
-		$path = __DIR__ . "/perks.csv";
-		$lines = explode("\n", \Safe\file_get_contents($path));
-		$perks = [];
-		$skillCache = [];
-		foreach ($lines as $line) {
-			$line = trim($line);
+	private function getPerkInfo(): Promise {
+		return call(function (): Generator {
+			$path = __DIR__ . "/perks.csv";
+			/** @var File */
+			$fileHandle = yield filesystem()->openFile($path, "r");
+			$reader = new LineReader($fileHandle);
+			$perks = [];
+			$skillCache = [];
+			while (null !== $line = yield $reader->readLine()) {
+				$line = trim($line);
 
-			if (empty($line)) {
-				continue;
-			}
-
-			$parts = explode("|", $line);
-			if (count($parts) < 7) {
-				$this->logger->error("Illegal perk entry: {$line}");
-				continue;
-			}
-			[$name, $perkLevel, $expansion, $aoid, $requiredLevel, $profs, $buffs] = $parts;
-			$action = $parts[7] ?? null;
-			$resistances = $parts[8] ?? null;
-			$description = $parts[9] ?? null;
-			if ($profs === '*') {
-				$profs = "Adv, Agent, Crat, Doc, Enf, Engi, Fix, Keep, MA, MP, NT, Shade, Sol, Tra";
-			}
-			$perk = $perks[$name]??null;
-			if (empty($perk)) {
-				$perk = new Perk();
-				$perks[$name] = $perk;
-				$perk->name = $name;
-				$perk->description = $description ? join("\n", explode("\\n", $description)) : null;
-				$perk->expansion = $expansion;
-			}
-
-			$level = new PerkLevel();
-			$perk->levels[(int)$perkLevel] = $level;
-
-			$level->perk_level = (int)$perkLevel;
-			$level->required_level = (int)$requiredLevel;
-			$level->aoid = (int)$aoid;
-
-			$professions = explode(",", $profs);
-			foreach ($professions as $prof) {
-				$profession = $this->util->getProfessionName(trim($prof));
-				if (empty($profession)) {
-					echo "Error parsing profession: '$prof'\n";
-				} else {
-					$level->professions []= $profession;
-				}
-			}
-
-			$buffs = explode(",", $buffs);
-			foreach ($buffs as $buff) {
-				$buff = trim($buff);
-				$pos = strrpos($buff, " ");
-				if ($pos === false) {
+				if (empty($line)) {
 					continue;
 				}
 
-				$skill = trim(substr($buff, 0, $pos + 1));
-				$amount = trim(substr($buff, $pos + 1));
-				$skills = $this->expandSkill($skill);
-				foreach ($skills as $skill) {
-					$skillSearch = $skillCache[$skill]
-						?? $this->whatBuffsController->searchForSkill($skill);
-					$skillCache[$skill] = $skillSearch;
-					if (count($skillSearch) !== 1) {
-						echo "Error parsing skill: '{$skill}'\n";
+				$parts = explode("|", $line);
+				if (count($parts) < 7) {
+					$this->logger->error("Illegal perk entry: {$line}");
+					continue;
+				}
+				[$name, $perkLevel, $expansion, $aoid, $requiredLevel, $profs, $buffs] = $parts;
+				$action = $parts[7] ?? null;
+				$resistances = $parts[8] ?? null;
+				$description = $parts[9] ?? null;
+				if ($profs === '*') {
+					$profs = "Adv, Agent, Crat, Doc, Enf, Engi, Fix, Keep, MA, MP, NT, Shade, Sol, Tra";
+				}
+				$perk = $perks[$name]??null;
+				if (empty($perk)) {
+					$perk = new Perk();
+					$perks[$name] = $perk;
+					$perk->name = $name;
+					$perk->description = $description ? join("\n", explode("\\n", $description)) : null;
+					$perk->expansion = $expansion;
+				}
+
+				$level = new PerkLevel();
+				$perk->levels[(int)$perkLevel] = $level;
+
+				$level->perk_level = (int)$perkLevel;
+				$level->required_level = (int)$requiredLevel;
+				$level->aoid = (int)$aoid;
+
+				$professions = explode(",", $profs);
+				foreach ($professions as $prof) {
+					$profession = $this->util->getProfessionName(trim($prof));
+					if (empty($profession)) {
+						echo "Error parsing profession: '$prof'\n";
 					} else {
-						$level->buffs[$skillSearch[0]->id] = (int)$amount;
+						$level->professions []= $profession;
 					}
 				}
-			}
 
-			if (strlen($resistances??'')) {
-				$resistances = \Safe\preg_split("/\s*,\s*/", $resistances??"");
-				foreach ($resistances as $resistance) {
-					[$strainId, $amount] = \Safe\preg_split("/\s*:\s*/", $resistance);
-					$level->resistances[(int)$strainId] = (int)$amount;
+				$buffs = explode(",", $buffs);
+				foreach ($buffs as $buff) {
+					$buff = trim($buff);
+					$pos = strrpos($buff, " ");
+					if ($pos === false) {
+						continue;
+					}
+
+					$skill = trim(substr($buff, 0, $pos + 1));
+					$amount = trim(substr($buff, $pos + 1));
+					$skills = $this->expandSkill($skill);
+					foreach ($skills as $skill) {
+						$skillSearch = $skillCache[$skill]
+							?? $this->whatBuffsController->searchForSkill($skill);
+						$skillCache[$skill] = $skillSearch;
+						if (count($skillSearch) !== 1) {
+							echo "Error parsing skill: '{$skill}'\n";
+						} else {
+							$level->buffs[$skillSearch[0]->id] = (int)$amount;
+						}
+					}
+				}
+
+				if (strlen($resistances??'')) {
+					$resistances = \Safe\preg_split("/\s*,\s*/", $resistances??"");
+					foreach ($resistances as $resistance) {
+						[$strainId, $amount] = \Safe\preg_split("/\s*:\s*/", $resistance);
+						$level->resistances[(int)$strainId] = (int)$amount;
+					}
+				}
+				if (strlen($action??'')) {
+					$level->action = new PerkLevelAction();
+					$level->action->action_id = (int)preg_replace("/\*$/", "", $action??"", -1, $count);
+					$level->action->scaling = $count > 0;
+					$level->action->perk_level = $level->perk_level;
+					$item = $this->itemsController->getByIDs($level->action->action_id)->first();
+					if (!isset($item)) {
+						continue;
+					}
+					$level->action->aodb = $item;
 				}
 			}
-			if (strlen($action??'')) {
-				$level->action = new PerkLevelAction();
-				$level->action->action_id = (int)preg_replace("/\*$/", "", $action??"", -1, $count);
-				$level->action->scaling = $count > 0;
-				$level->action->perk_level = $level->perk_level;
-				$item = $this->itemsController->getByIDs($level->action->action_id)->first();
-				if (!isset($item)) {
-					continue;
-				}
-				$level->action->aodb = $item;
-			}
-		}
-		return $perks;
+			yield $fileHandle->close();
+			return $perks;
+		});
 	}
 
 	/** Show detailed information for all of a perk's levels */

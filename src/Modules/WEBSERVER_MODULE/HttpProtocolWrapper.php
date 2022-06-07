@@ -36,7 +36,7 @@ class HttpProtocolWrapper {
 	public const EXPECT_IGNORE = 5;
 
 	protected AsyncSocket $asyncSocket;
-	protected Request $request;
+	public Request $request;
 
 	#[NCA\Inject]
 	public WebserverController $webserverController;
@@ -172,23 +172,24 @@ class HttpProtocolWrapper {
 	/**
 	 * Send a HTTP error message and gently close the socket
 	 */
-	public function httpError(Response $response): void {
-		$this->sendResponse($response, true);
+	public function httpError(Response $response, ?Request $request=null): void {
+		$request ??= $this->request;
+		$this->sendResponse($response, $request, true);
 	}
 
 	/**
 	 * Send a response back to the connected client
 	 */
-	public function sendResponse(Response $response, bool $forceClose=false): void {
+	public function sendResponse(Response $response, Request $request, bool $forceClose=false): void {
 		$this->logger->info('Received a ' . $response->code . ' (' . $response->codeString . ') response');
-		if (isset($this->request->replied) && $this->request->replied > 0) {
+		if (isset($request->replied) && $request->replied > 0) {
 			$this->logger->info('Not sending response, because already responded to');
 			return;
 		}
 		$dataChanged = $this->checkIfResponseDataChanged($response);
 		if ($dataChanged === false) {
 			$this->logger->info('Client already has the latest version');
-			if (in_array($this->request->method, [Request::GET, Request::HEAD], true)) {
+			if (in_array($request->method, [Request::GET, Request::HEAD], true)) {
 				$response->code = Response::NOT_MODIFIED;
 				unset($response->headers['Content-Length']);
 				unset($response->headers['Content-Type']);
@@ -200,7 +201,7 @@ class HttpProtocolWrapper {
 			$this->logger->info("Changing reply to {$response->code} ({$response->codeString})");
 			$response->body = null;
 		}
-		if (isset($this->request->method) && $this->request->method === Request::HEAD) {
+		if (isset($request->method) && $request->method === Request::HEAD) {
 			$this->logger->info('Removing body, because we received a HEAD request');
 			$response->body = null;
 			if ($response->code !== $response::OK) {
@@ -209,9 +210,9 @@ class HttpProtocolWrapper {
 			}
 		}
 		$requiresClose = $forceClose
-			|| ( $this->request->version < 1.1
-				&& strtolower($this->request->headers['connection']??"") !== "keep-alive")
-			|| (strtolower($this->request->headers["connection"]??"")) === "close"
+			|| ( $request->version < 1.1
+				&& strtolower($request->headers['connection']??"") !== "keep-alive")
+			|| (strtolower($request->headers["connection"]??"")) === "close"
 			|| $response->code >= 400;
 		if (!$requiresClose) {
 			if ($response->code !== Response::SWITCHING_PROTOCOLS) {
@@ -223,9 +224,9 @@ class HttpProtocolWrapper {
 			$this->logger->info('Not allowing keep-alives for this client/response.');
 		}
 		$this->logger->info('Sending response');
-		$responseString = $response->toString($this->request);
+		$responseString = $response->toString($request);
 		$this->asyncSocket->write($responseString);
-		$this->request->replied = microtime(true);
+		$request->replied = microtime(true);
 		if ($requiresClose) {
 			$this->logger->info('Closing socket connection');
 			$this->asyncSocket->close();

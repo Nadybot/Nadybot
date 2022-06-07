@@ -4,12 +4,13 @@ namespace Nadybot\Modules\PRIVATE_CHANNEL_MODULE;
 
 use function Amp\call;
 use function Amp\asyncCall;
+use function Amp\File\filesystem;
 
+use Amp\File\FilesystemException;
 use Amp\Loop;
 use Amp\Promise;
 use Exception;
 use Generator;
-use Safe\Exceptions\FilesystemException;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	AccessLevelProvider,
@@ -1214,16 +1215,15 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 		name: "member(add)",
 		description: "Send welcome message data/welcome.txt to new members"
 	)]
-	public function sendWelcomeMessage(MemberEvent $event): void {
-		$dataPath = $this->config->dataFolder;
-		if (!@file_exists("{$dataPath}/welcome.txt")) {
-			return;
-		}
-		error_clear_last();
+	public function sendWelcomeMessage(MemberEvent $event): Generator {
+		$welcomeFile = "{$this->config->dataFolder}/welcome.txt";
 		try {
-			$content = \Safe\file_get_contents("{$dataPath}/welcome.txt");
+			if (false === yield filesystem()->exists($welcomeFile)) {
+				return;
+			}
+			$content = yield filesystem()->read($welcomeFile);
 		} catch (FilesystemException $e) {
-			$this->logger->error("Error reading {$dataPath}/welcome.txt: " . $e->getMessage());
+			$this->logger->error("Error reading {$welcomeFile}: " . $e->getMessage());
 			return;
 		}
 		$msg = $this->welcomeMsgString;

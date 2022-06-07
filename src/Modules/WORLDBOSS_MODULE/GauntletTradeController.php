@@ -2,12 +2,15 @@
 
 namespace Nadybot\Modules\WORLDBOSS_MODULE;
 
+use Generator;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
 	ModuleInstance,
 	Text,
 };
+
+use function Amp\File\filesystem;
 
 /**
  * @author Equi
@@ -27,8 +30,8 @@ class GauntletTradeController extends ModuleInstance {
 
 	/** Show the Bastion tradeskill process for a single piece */
 	#[NCA\HandlesCommand("gautrade")]
-	public function gautradeCommand(CmdContext $context): void {
-		$info = \Safe\file_get_contents(__DIR__ . '/gautrade.html');
+	public function gautradeCommand(CmdContext $context): Generator {
+		$info = yield filesystem()->read(__DIR__ . '/gautrade.html');
 		$msg = $this->text->makeBlob("Gauntlet Tradeskills", $info);
 		$context->reply($msg);
 	}

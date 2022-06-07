@@ -2,6 +2,10 @@
 
 namespace Nadybot\Modules\PRIVATE_CHANNEL_MODULE;
 
+use function Amp\File\filesystem;
+
+use Generator;
+use Amp\File\FilesystemException;
 use Nadybot\Core\{
 	Attributes as NCA,
 	AOChatEvent,
@@ -11,7 +15,7 @@ use Nadybot\Core\{
 	Nadybot,
 	Text,
 };
-use Safe\Exceptions\FilesystemException;
+
 
 /**
  * @author Nadyita (RK5)
@@ -40,14 +44,14 @@ class RulesController extends ModuleInstance {
 		"To set up rules for this bot, put a file into\n".
 		"<tab><highlight>data/rules.txt<end>"
 	)]
-	public function rulesCommand(CmdContext $context): void {
-		$dataPath = $this->config->dataFolder;
-		if (!@file_exists("{$dataPath}/rules.txt")) {
-			$context->reply("This bot does not have any rules defined yet.");
-			return;
-		}
+	public function rulesCommand(CmdContext $context): Generator {
+		$rulesPath = "{$this->config->dataFolder}/rules.txt";
 		try {
-			$content = \Safe\file_get_contents("{$dataPath}/rules.txt");
+			if (false === yield filesystem()->exists($rulesPath)) {
+				$context->reply("This bot does not have any rules defined yet.");
+				return;
+			}
+			$content = yield filesystem()->read($rulesPath);
 		} catch (FilesystemException) {
 			$context->reply("This bot has rules defined, but I was unable to read them.");
 			return;
@@ -60,13 +64,16 @@ class RulesController extends ModuleInstance {
 		name: "joinPriv",
 		description: "If you defined rules, send them to people joining the private channel"
 	)]
-	public function joinPrivateChannelShowRulesEvent(AOChatEvent $eventObj): void {
-		$dataPath = $this->config->dataFolder;
-		if (!is_string($eventObj->sender) || !@file_exists("{$dataPath}/rules.txt")) {
+	public function joinPrivateChannelShowRulesEvent(AOChatEvent $eventObj): Generator {
+		if (!is_string($eventObj->sender)) {
 			return;
 		}
+		$rulesPath = "{$this->config->dataFolder}/rules.txt";
 		try {
-			$content = \Safe\file_get_contents("{$dataPath}/rules.txt");
+			if (false === yield filesystem()->exists($rulesPath)) {
+				return;
+			}
+			$content = yield filesystem()->read($rulesPath);
 		} catch (FilesystemException) {
 			return;
 		}

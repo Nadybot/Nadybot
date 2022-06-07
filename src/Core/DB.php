@@ -27,6 +27,7 @@ use Nadybot\Core\{
 };
 
 use function Amp\call;
+use function Amp\delay;
 
 #[NCA\Instance]
 #[NCA\HasMigrations(module: "Core")]
@@ -348,6 +349,20 @@ class DB {
 	public function beginTransaction(): void {
 		$this->logger->info("Starting transaction");
 		$this->sql->beginTransaction();
+	}
+
+	/**
+	 * Start a transaction
+	 *
+	 * @return Promise<void>
+	 */
+	public function awaitBeginTransaction(): Promise {
+		return call(function(): Generator {
+			while ($this->inTransaction()) {
+				yield delay(100);
+			}
+			$this->beginTransaction();
+		});
 	}
 
 	/**
