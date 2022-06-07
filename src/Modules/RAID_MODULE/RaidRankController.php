@@ -2,6 +2,9 @@
 
 namespace Nadybot\Modules\RAID_MODULE;
 
+use function Amp\call;
+use function Amp\Promise\rethrow;
+
 use Amp\Promise;
 use Generator;
 use Illuminate\Support\Collection;
@@ -26,8 +29,6 @@ use Nadybot\Core\{
 	SettingManager,
 	Text,
 };
-
-use function Amp\call;
 
 #[
 	NCA\Instance,
@@ -161,12 +162,12 @@ class RaidRankController extends ModuleInstance implements AccessLevelProvider {
 		description: "Add raid leader and admins to the buddy list",
 		defaultStatus: 1
 	)]
-	public function checkRaidRanksEvent(): void {
-		$this->db->table(self::DB_TABLE)
+	public function checkRaidRanksEvent(): Generator {
+		yield $this->db->table(self::DB_TABLE)
 			->asObj(RaidRank::class)
-			->each(function (RaidRank $row): void {
-				$this->buddylistManager->add($row->name, 'raidrank');
-			});
+			->map(function (RaidRank $row): Promise {
+				return $this->buddylistManager->addAsync($row->name, 'raidrank');
+			})->toArray();
 	}
 
 	/**
@@ -229,7 +230,7 @@ class RaidRankController extends ModuleInstance implements AccessLevelProvider {
 		$this->ranks[$who] ??= new RaidRank();
 		$this->ranks[$who]->rank = $rank;
 		$this->ranks[$who]->name = $who;
-		$this->buddylistManager->add($who, 'raidrank');
+		rethrow($this->buddylistManager->addAsync($who, 'raidrank'));
 
 		$audit = new Audit();
 		$audit->actor = $sender;

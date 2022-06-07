@@ -2,6 +2,7 @@
 
 namespace Nadybot\Core\Modules\BUDDYLIST;
 
+use Generator;
 use Nadybot\Core\{
 	Attributes as NCA,
 	BuddylistEntry,
@@ -140,10 +141,10 @@ class BuddylistController extends ModuleInstance {
 		#[NCA\Str("add")] string $action,
 		PCharacter $who,
 		PWord $type
-	): void {
+	): Generator {
 		$name = $who();
 
-		if ($this->buddylistManager->add($name, $type())) {
+		if (true === yield $this->buddylistManager->addAsync($name, $type())) {
 			$msg = "<highlight>{$name}<end> added to the buddy list successfully.";
 		} else {
 			$msg = "Could not add <highlight>{$name}<end> to the buddy list.";

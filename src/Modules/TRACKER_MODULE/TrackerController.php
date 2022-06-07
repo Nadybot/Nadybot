@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\TRACKER_MODULE;
 
+use Amp\Promise;
 use Exception;
 use Generator;
 use Throwable;
@@ -195,12 +196,12 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 		name: "connect",
 		description: "Adds all players on the track list to the buddy list"
 	)]
-	public function trackedUsersConnectEvent(Event $eventObj): void {
-		$this->db->table(self::DB_TABLE)
+	public function trackedUsersConnectEvent(Event $eventObj): Generator {
+		yield $this->db->table(self::DB_TABLE)
 			->asObj(TrackedUser::class)
-			->each(function(TrackedUser $row) {
-				$this->buddylistManager->add($row->name, static::REASON_TRACKER);
-			});
+			->map(function(TrackedUser $row): Promise {
+				return $this->buddylistManager->addAsync($row->name, static::REASON_TRACKER);
+			})->toArray();
 		$this->db->table(static::DB_ORG_MEMBER)
 			->asObj(TrackingOrgMember::class)
 			->each(function(TrackingOrgMember $row) {

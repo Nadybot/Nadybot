@@ -2,14 +2,14 @@
 
 namespace Nadybot\Core;
 
+use function Amp\call;
+
 use Amp\Deferred;
 use Amp\Promise;
 use Amp\Success;
 use Generator;
 use Nadybot\Core\Attributes as NCA;
 use Throwable;
-
-use function Amp\call;
 
 #[NCA\Instance]
 class BuddylistManager {
@@ -178,6 +178,7 @@ class BuddylistManager {
 	/**
 	 * Add a user to the bot's friendlist for a given purpose
 	 *
+	 * @deprecated 6.1.0
 	 * @param string $name The name of the player
 	 * @param string $type The reason why to add ("member", "admin", "org", "onlineorg", "is_online", "tracking")
 	 * @return bool true on success, otherwise false
@@ -188,6 +189,17 @@ class BuddylistManager {
 			return false;
 		}
 		return $this->addId($uid, $type);
+	}
+
+	/** @return Promise<bool> */
+	public function addAsync(string $name, string $type): Promise {
+		return call(function () use ($name, $type): Generator {
+			$uid = yield $this->chatBot->getUid2($name);
+			if ($uid === null || $type === '') {
+				return false;
+			}
+			return $this->addId($uid, $type);
+		});
 	}
 
 	/**

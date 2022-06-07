@@ -2,6 +2,8 @@
 
 namespace Nadybot\Modules\RELAY_MODULE\Transport;
 
+use function Amp\Promise\rethrow;
+
 use Nadybot\Core\{
 	Attributes as NCA,
 	AOChatEvent,
@@ -114,10 +116,10 @@ class Tell implements TransportInterface {
 			$callback();
 		} else {
 			$this->initCallback = $callback;
-			$this->buddylistManager->add(
+			rethrow($this->buddylistManager->addAsync(
 				$this->bot,
 				$this->relay->getName() . "_relay"
-			);
+			));
 		}
 		return [];
 	}

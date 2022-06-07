@@ -2,6 +2,8 @@
 
 namespace Nadybot\Core;
 
+use function Amp\Promise\rethrow;
+
 use Exception;
 use Illuminate\Support\Collection;
 use JsonException;
@@ -499,7 +501,7 @@ class MessageHub {
 		$this->routes[$source][$dest] []= $route;
 		$char = $this->getCharacter($dest);
 		if (isset($char)) {
-			$this->buddyListManager->add($char, "msg_hub");
+			rethrow($this->buddyListManager->addAsync($char, "msg_hub"));
 		}
 		if (!$route->getTwoWay()) {
 			return;
@@ -509,7 +511,7 @@ class MessageHub {
 		$this->routes[$dest][$source] []= $route;
 		$char = $this->getCharacter($source);
 		if (isset($char)) {
-			$this->buddyListManager->add($char, "msg_hub");
+			rethrow($this->buddyListManager->addAsync($char, "msg_hub"));
 		}
 	}
 

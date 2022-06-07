@@ -2,6 +2,9 @@
 
 namespace Nadybot\Modules\TRADEBOT_MODULE;
 
+use function Amp\Promise\rethrow;
+
+use Generator;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	Attributes as NCA,
@@ -110,10 +113,10 @@ class TradebotController extends ModuleInstance {
 		name: "Connect",
 		description: "Add active tradebots to buddylist"
 	)]
-	public function addTradebotsAsBuddies(): void {
+	public function addTradebotsAsBuddies(): Generator {
 		$activeBots = $this->normalizeBotNames($this->tradebot);
 		foreach ($activeBots as $botName) {
-			$this->buddylistManager->add($botName, "tradebot");
+			yield $this->buddylistManager->addAsync($botName, "tradebot");
 		}
 	}
 
@@ -170,7 +173,7 @@ class TradebotController extends ModuleInstance {
 				if ($this->buddylistManager->isOnline($botName)) {
 					$this->joinPrivateChannel($botName);
 				}
-				$this->buddylistManager->add($botName, "tradebot");
+				rethrow($this->buddylistManager->addAsync($botName, "tradebot"));
 			}
 		}
 		if ($this->messageHub->hasRouteFor(Source::TRADEBOT)) {

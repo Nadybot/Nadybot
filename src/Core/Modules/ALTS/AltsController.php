@@ -140,18 +140,18 @@ class AltsController extends ModuleInstance {
 		name: "connect",
 		description: "Add unvalidated alts/mains to friendlist"
 	)]
-	public function addNonValidatedAsBuddies(): void {
+	public function addNonValidatedAsBuddies(): Generator {
 		$myName = ucfirst(strtolower($this->chatBot->char->name));
-		$this->db->table("alts")->where("validated_by_alt", false)->where("added_via", $myName)
-			->asObj(Alt::class)->each(function(Alt $alt) {
-				$this->buddylistManager->add($alt->alt, static::ALT_VALIDATE);
-			});
-		$this->db->table("alts")->where("validated_by_main", false)->where("added_via", $myName)
+		yield $this->db->table("alts")->where("validated_by_alt", false)->where("added_via", $myName)
+			->asObj(Alt::class)->map(function(Alt $alt) {
+				return $this->buddylistManager->addAsync($alt->alt, static::ALT_VALIDATE);
+			})->toArray();
+		yield $this->db->table("alts")->where("validated_by_main", false)->where("added_via", $myName)
 			->select("main")->distinct()
 			->pluckAs("main", "string")
-			->each(function(string $main) {
-				$this->buddylistManager->add($main, static::MAIN_VALIDATE);
-			});
+			->map(function(string $main) {
+				return $this->buddylistManager->addAsync($main, static::MAIN_VALIDATE);
+			})->toArray();
 	}
 
 	/**
@@ -236,7 +236,7 @@ class AltsController extends ModuleInstance {
 				if ($this->buddylistManager->isOnline($name)) {
 					$this->sendAltValidationRequest($name, $senderAltInfo);
 				} else {
-					$this->buddylistManager->add($name, static::ALT_VALIDATE);
+					yield $this->buddylistManager->addAsync($name, static::ALT_VALIDATE);
 				}
 			}
 
@@ -330,7 +330,7 @@ class AltsController extends ModuleInstance {
 		}
 		// If no one was online, we will send the request on next login
 		if (!isset($sentTo)) {
-			$this->buddylistManager->add($newMainAltInfo->main, static::MAIN_VALIDATE);
+			yield $this->buddylistManager->addAsync($newMainAltInfo->main, static::MAIN_VALIDATE);
 		}
 
 		// update character information for both, main and alt

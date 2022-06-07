@@ -572,10 +572,10 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 
 	/** Change your auto invite preference */
 	#[NCA\HandlesCommand("autoinvite")]
-	public function autoInviteCommand(CmdContext $context, bool $status): void {
+	public function autoInviteCommand(CmdContext $context, bool $status): Generator {
 		if ($status) {
 			$onOrOff = 1;
-			$this->buddylistManager->add($context->char->name, 'member');
+			yield $this->buddylistManager->addAsync($context->char->name, 'member');
 		} else {
 			$onOrOff = 0;
 		}
@@ -873,12 +873,12 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 		name: "connect",
 		description: "Adds all members as buddies"
 	)]
-	public function connectEvent(Event $eventObj): void {
-		$this->db->table(self::DB_TABLE)
+	public function connectEvent(Event $eventObj): Generator {
+		yield $this->db->table(self::DB_TABLE)
 			->asObj(Member::class)
-			->each(function (Member $member): void {
-				$this->buddylistManager->add($member->name, 'member');
-			});
+			->map(function (Member $member): Promise {
+				return $this->buddylistManager->addAsync($member->name, 'member');
+			})->toArray();
 	}
 
 	#[NCA\Event(
@@ -1187,7 +1187,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 				);
 			}
 			// always add in case they were removed from the buddy list for some reason
-			$this->buddylistManager->add($name, 'member');
+			yield $this->buddylistManager->addAsync($name, 'member');
 			if ($this->db->table(self::DB_TABLE)->where("name", $name)->exists()) {
 				return "<highlight>$name<end> is already a member of this bot.";
 			}
