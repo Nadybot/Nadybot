@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fix
+
+- Add back the "loot" and "auction" links to loot lists
+
 ## [6.0.4] - 2022-06-05
 
 ### Added
