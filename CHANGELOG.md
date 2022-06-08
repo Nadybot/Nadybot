@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Commands and events can now be declared as Generators, which automatically makes them executes async and allows to `yield` results from promises.
+- Add a management-interface as an addition to the console. The management interface does not appear in the routes and currently supports tcp- and unix domain sockets.
 
 ### Changed
 

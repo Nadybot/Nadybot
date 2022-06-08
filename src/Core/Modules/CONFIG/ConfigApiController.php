@@ -358,6 +358,9 @@ class ConfigApiController extends ModuleInstance {
 		$result = [];
 		foreach ($settings as $setting) {
 			$modSet = new ModuleSetting($setting->getData());
+			if (strlen($modSet->description??"") > 0) {
+				$modSet->description = $this->webChatConverter->parseAOFormat(trim($modSet->description))->message;
+			}
 			if (strlen($setting->getData()->help??"") > 0) {
 				$help = $this->helpManager->find($modSet->name, $request->authenticatedAs??"_");
 				if ($help !== null) {
