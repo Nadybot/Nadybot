@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\LOOT_MODULE;
 
+use Generator;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	Attributes as NCA,
@@ -9,9 +10,9 @@ use Nadybot\Core\{
 	CommandAlias,
 	CommandManager,
 	DB,
-	DBSchema\Player,
 	ModuleInstance,
 	Nadybot,
+	ParamClass\PCharacter,
 	ParamClass\PItem,
 	ParamClass\PQuantity,
 	ParamClass\PRemove,
@@ -19,7 +20,6 @@ use Nadybot\Core\{
 	Util,
 	Modules\PLAYER_LOOKUP\PlayerManager,
 };
-use Nadybot\Core\ParamClass\PCharacter;
 use Nadybot\Modules\{
 	BASIC_CHAT_MODULE\ChatLeaderController,
 	ITEMS_MODULE\AODBEntry,
@@ -860,7 +860,7 @@ class LootController extends ModuleInstance {
 	 */
 	#[NCA\HandlesCommand("rem")]
 	#[NCA\Help\Group("loot")]
-	public function remCommand(CmdContext $context): void {
+	public function remCommand(CmdContext $context): Generator {
 		if (count($this->loot) === 0) {
 			$this->chatBot->sendTell("There is nothing to remove you from.", $context->char->name);
 			return;
@@ -871,25 +871,21 @@ class LootController extends ModuleInstance {
 			}
 		}
 
-		$this->playerManager->getByNameAsync(
-			function(?Player $player) use ($context): void {
-				if (!isset($player) || !isset($player->gender) || $player->gender === "Neuter") {
-					$privMsg = "{$context->char->name} removed themselves from all rolls.";
-				} elseif ($player->gender === "Female") {
-					$privMsg = "{$context->char->name} removed herself from all rolls.";
-				} else {
-					$privMsg = "{$context->char->name} removed himself from all rolls.";
-				}
-				$tellMsg = "You removed yourself from all rolls.";
-				if ($this->addOnLoot & 1) {
-					$this->chatBot->sendMassTell($tellMsg, $context->char->name);
-				}
-				if ($this->addOnLoot & 2) {
-					$this->chatBot->sendPrivate($privMsg);
-				}
-			},
-			$context->char->name
-		);
+		$player = yield $this->playerManager->byName($context->char->name);
+		if (!isset($player) || !isset($player->gender) || $player->gender === "Neuter") {
+			$privMsg = "{$context->char->name} removed themselves from all rolls.";
+		} elseif ($player->gender === "Female") {
+			$privMsg = "{$context->char->name} removed herself from all rolls.";
+		} else {
+			$privMsg = "{$context->char->name} removed himself from all rolls.";
+		}
+		$tellMsg = "You removed yourself from all rolls.";
+		if ($this->addOnLoot & 1) {
+			$this->chatBot->sendMassTell($tellMsg, $context->char->name);
+		}
+		if ($this->addOnLoot & 2) {
+			$this->chatBot->sendPrivate($privMsg);
+		}
 	}
 
 	/**

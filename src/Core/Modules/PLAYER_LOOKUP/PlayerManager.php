@@ -7,15 +7,20 @@ use function Amp\asyncCall;
 use function Amp\delay;
 use function Safe\json_decode;
 
-use Amp\Cache\FileCache;
-use Amp\Http\Client\Connection\UnprocessedRequestException;
-use Amp\Http\Client\HttpClientBuilder;
-use Amp\Http\Client\Request;
-use Amp\Http\Client\Response;
-use Amp\Http\Client\TimeoutException;
-use Amp\Promise;
-use Amp\Sync\LocalKeyedMutex;
+use Amp\Http\Client\{
+	Connection\UnprocessedRequestException,
+	HttpClientBuilder,
+	Request,
+	Response,
+	TimeoutException,
+};
+use Amp\{
+	Cache\FileCache,
+	Promise,
+	Sync\LocalKeyedMutex,
+};
 use Safe\DateTime;
+use Safe\Exceptions\JsonException;
 use DateTimeZone;
 use Generator;
 use Illuminate\Support\Collection;
@@ -32,7 +37,6 @@ use Nadybot\Core\{
 	SQLException,
 	Util,
 };
-use Safe\Exceptions\JsonException;
 
 /**
  * @author Tyrence (RK2)
@@ -101,27 +105,15 @@ class PlayerManager extends ModuleInstance {
 	 * @deprecated use all(byName()) instead
 	 */
 	public function massGetByName(callable $callback, array $names, int $dimension=null, bool $forceUpdate=false): void {
-		/** @var array<string,?Player> */
-		$result = [];
-		$left = count($names);
-		if ($left === 0) {
-			$callback([]);
-			return;
-		}
-		foreach ($names as $name) {
-			$this->getByNameAsync(
-				function(?Player $player) use (&$result, &$left, $callback, $name): void {
-					$result[$name] = $player;
-					$left--;
-					if ($left === 0) {
-						$callback($result);
-					}
-				},
-				$name,
-				$dimension,
-				$forceUpdate
-			);
-		}
+		asyncCall(function () use ($callback, $names, $dimension, $forceUpdate): Generator {
+			$promises = [];
+			foreach ($names as $name) {
+				$promises[$name] = $this->byName($name, $dimension, $forceUpdate);
+			}
+			/** @var array<?Player> */
+			$result = yield $promises;
+			$callback($result);
+		});
 	}
 
 	/** @return Promise<?Player> */
@@ -167,7 +159,11 @@ class PlayerManager extends ModuleInstance {
 		});
 	}
 
-	/** @psalm-param callable(?Player) $callback */
+	/**
+	 * @psalm-param callable(?Player) $callback
+	 *
+	 * @deprecated 6.1.0
+	 */
 	public function getByNameAsync(callable $callback, string $name, ?int $dimension=null, bool $forceUpdate=false): void {
 		asyncCall(function() use ($callback, $name, $dimension, $forceUpdate): Generator {
 			$player = yield $this->byName($name, $dimension, $forceUpdate);
@@ -298,7 +294,11 @@ class PlayerManager extends ModuleInstance {
 		});
 	}
 
-	/** @psalm-param callable(?Player, mixed...) $callback */
+	/**
+	 * @psalm-param callable(?Player, mixed...) $callback
+	 *
+	 * @deprecated 6.1.0
+	 */
 	public function lookupAsync(string $name, int $dimension, callable $callback, mixed ...$args): void {
 		asyncCall(function () use ($name, $dimension, $callback, $args): Generator {
 			$player = yield $this->lookupAsync2($name, $dimension);

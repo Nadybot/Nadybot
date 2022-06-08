@@ -9,16 +9,20 @@ use function Safe\fread;
 use function Safe\stream_socket_client;
 use function Safe\stream_socket_sendto;
 
-use Amp\Deferred;
-use Amp\Loop;
-use Amp\Promise;
-use Amp\Success;
+use Amp\{
+	Deferred,
+	Loop,
+	Promise,
+	Success,
+};
 use Exception;
 use Generator;
 use Monolog\Logger;
 use ReflectionObject;
-use Safe\Exceptions\FilesystemException;
-use Safe\Exceptions\StreamException;
+use Safe\Exceptions\{
+	FilesystemException,
+	StreamException,
+};
 
 /*
 * $Id: aochat.php,v 1.1 2006/12/08 15:17:54 genesiscl Exp $
@@ -997,9 +1001,13 @@ class AOChat {
 	 *
 	 * @param int|string $user User name or user ID to kick
 	 */
-	public function privategroup_kick($user): bool {
-		if (($uid = $this->get_uid($user)) === false) {
-			return false;
+	public function privategroup_kick(int|string $user): bool {
+		if (is_string($user)) {
+			if (($uid = $this->get_uid($user)) === false) {
+				return false;
+			}
+		} else {
+			$uid = $user;
 		}
 
 		return $this->sendPacket(new AOChatPacket("out", AOChatPacket::PRIVGRP_KICK, $uid));

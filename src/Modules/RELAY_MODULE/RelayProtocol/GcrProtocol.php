@@ -2,7 +2,10 @@
 
 namespace Nadybot\Modules\RELAY_MODULE\RelayProtocol;
 
+use function Amp\asyncCall;
+
 use Closure;
+use Generator;
 use Nadybot\Core\{
 	Attributes as NCA,
 	DBSchema\Player,
@@ -135,24 +138,23 @@ class GcrProtocol implements RelayProtocolInterface {
 		if (!isset($character) || !$this->util->isValidSender($character->name??-1)) {
 			return [];
 		}
-		$this->playerManager->getByNameAsync(
-			function(?Player $player) use ($event): void {
-				if (!isset($player)) {
-					return;
-				}
-				$send = [];
-				if (($msg = $this->getBeBotLogonOffMsg($player, $event)) !== null) {
-					$send []= $msg;
-				}
-				if (($msg = $this->getBeBotLogonOffStatus($player, $event)) !== null) {
-					$send []= $msg;
-				}
-				if (count($send)) {
-					$this->relay->receiveFromMember($this, $send);
-				}
-			},
-			$character->name
-		);
+		asyncCall(function () use ($character, $event): Generator {
+			/** @var ?Player */
+			$player = yield $this->playerManager->byName($character->name);
+			if (!isset($player)) {
+				return;
+			}
+			$send = [];
+			if (($msg = $this->getBeBotLogonOffMsg($player, $event)) !== null) {
+				$send []= $msg;
+			}
+			if (($msg = $this->getBeBotLogonOffStatus($player, $event)) !== null) {
+				$send []= $msg;
+			}
+			if (count($send)) {
+				$this->relay->receiveFromMember($this, $send);
+			}
+		});
 		return [];
 	}
 
@@ -302,48 +304,43 @@ class GcrProtocol implements RelayProtocolInterface {
 			$callback = ($matches['status'] === '1')
 				? Closure::fromCallable([$this->relay, "setOnline"])
 				: Closure::fromCallable([$this->relay, "setOffline"]);
-			$this->playerManager->getByNameAsync(
-				function(?Player $player) use ($matches, $callback): void {
-					if (!isset($player)) {
-						return;
+			asyncCall(function () use ($matches, $callback, $sender): Generator {
+				/** @var ?Player */
+				$player = yield $this->playerManager->byName($sender);
+				if (!isset($player)) {
+					return;
+				}
+				$channel = (!empty($player->guild))
+						? ($matches['where'] === 'pg'
+							? "{$player->guild} Guest"
+							: "{$player->guild}")
+						: "{$player->name}";
+				$callback($player->name, $channel, $matches['char']);
+			});
+		} elseif (preg_match("/^online (.+)$/", $text, $matches)) {
+			asyncCall(function () use ($matches, $sender): Generator {
+				/** @var ?Player */
+				$player = yield $this->playerManager->byName($sender);
+				if (!isset($player)) {
+					return;
+				}
+				$chars = explode(";", $matches[1]);
+				foreach ($chars as $char) {
+					[$name, $where, $rank] = [...explode(",", $char), null, null];
+					if (!isset($name)) {
+						continue;
 					}
-					$callback(
+					$this->relay->setOnline(
 						$player->name,
 						(!empty($player->guild))
-							? ($matches['where'] === 'pg'
+							? ($where === 'pg'
 								? "{$player->guild} Guest"
 								: "{$player->guild}")
 							: "{$player->name}",
-						$matches['char']
+						$name
 					);
-				},
-				$sender
-			);
-		} elseif (preg_match("/^online (.+)$/", $text, $matches)) {
-			$this->playerManager->getByNameAsync(
-				function(?Player $player) use ($matches): void {
-					if (!isset($player)) {
-						return;
-					}
-					$chars = explode(";", $matches[1]);
-					foreach ($chars as $char) {
-						[$name, $where, $rank] = [...explode(",", $char), null, null];
-						if (!isset($name)) {
-							continue;
-						}
-						$this->relay->setOnline(
-							$player->name,
-							(!empty($player->guild))
-								? ($where === 'pg'
-									? "{$player->guild} Guest"
-									: "{$player->guild}")
-								: "{$player->name}",
-							$name
-						);
-					}
-				},
-				$sender
-			);
+				}
+			});
 		} elseif (preg_match("/^onlinereq$/", $text, $matches)) {
 			$onlineList = $this->getOnlineList();
 			if (isset($onlineList)) {

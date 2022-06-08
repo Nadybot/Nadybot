@@ -2,10 +2,13 @@
 
 namespace Nadybot\Modules\TOWER_MODULE;
 
+use function Amp\asyncCall;
+
 use Closure;
 use DateTime;
 use Exception;
 use Generator;
+use Throwable;
 use Illuminate\Database\Query\JoinClause;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
@@ -1481,33 +1484,32 @@ class TowerController extends ModuleInstance {
 		if (time() - $this->lastDiscordNotify < 300) {
 			return;
 		}
-		$this->playerManager->getByNameAsync(
-			function(?Player $whois) use ($matches, $discordMessage): void {
-				$attGuild = $matches[4] ?? null;
-				$attPlayer = $matches[3];
-				$playfieldName = $matches[2];
-				if ($whois === null) {
-					$whois = new Player();
-					$whois->name = $attPlayer;
-					$whois->faction = 'Neutral';
-				}
-				$playerName = "<highlight>{$whois->name}<end> ({$whois->faction}";
-				if (isset($attGuild)) {
-					$playerName .= " org \"{$attGuild}\"";
-				}
-				$playerName .= ")";
-				$discordMessage = str_replace(
-					["{player}", "{location}"],
-					[$playerName, $playfieldName],
-					$discordMessage
-				);
-				$r = new RoutableMessage($discordMessage);
-				$r->appendPath(new Source(Source::SYSTEM, "tower-attack-own"));
-				$this->messageHub->handle($r);
-				$this->lastDiscordNotify = time();
-			},
-			$matches[3]
-		);
+		asyncCall(function () use ($matches, $discordMessage): Generator {
+			/** @var ?Player */
+			$whois = yield $this->playerManager->byName($matches[3]);
+			$attGuild = $matches[4] ?? null;
+			$attPlayer = $matches[3];
+			$playfieldName = $matches[2];
+			if ($whois === null) {
+				$whois = new Player();
+				$whois->name = $attPlayer;
+				$whois->faction = 'Neutral';
+			}
+			$playerName = "<highlight>{$whois->name}<end> ({$whois->faction}";
+			if (isset($attGuild)) {
+				$playerName .= " org \"{$attGuild}\"";
+			}
+			$playerName .= ")";
+			$discordMessage = str_replace(
+				["{player}", "{location}"],
+				[$playerName, $playfieldName],
+				$discordMessage
+			);
+			$r = new RoutableMessage($discordMessage);
+			$r->appendPath(new Source(Source::SYSTEM, "tower-attack-own"));
+			$this->messageHub->handle($r);
+			$this->lastDiscordNotify = time();
+		});
 	}
 
 	/**
@@ -1555,12 +1557,11 @@ class TowerController extends ModuleInstance {
 
 		// regardless of what the player lookup says, we use the information from the
 		// attack message where applicable because that will always be most up to date
-		$this->playerManager->getByNameAsync(
-			function(?Player $player) use ($attack): void {
-				$this->handleAttack($attack, $player);
-			},
-			$attack->attPlayer
-		);
+		asyncCall(function () use ($attack): Generator {
+			/** @var ?Player */
+			$player = yield $this->playerManager->byName($attack->attPlayer);
+			$this->handleAttack($attack, $player);
+		});
 	}
 
 	public function handleAttack(Attack $attack, ?Player $whois): void {
@@ -2483,39 +2484,36 @@ class TowerController extends ModuleInstance {
 	/** Show how many towers you are allowed to plant. Add 'all' to show it generally */
 	#[NCA\HandlesCommand("towerqty")]
 	#[NCA\Help\Group("tower")]
-	public function towerQtyCommand(CmdContext $context, #[NCA\Str("all")] ?string $all): void {
+	public function towerQtyCommand(CmdContext $context, #[NCA\Str("all")] ?string $all): Generator {
 		if (isset($all)) {
 			$msg = $this->text->makeBlob("Allowed number of towers", $this->getAllTowerQuantitiesBlob());
 			$context->reply($msg);
 			return;
 		}
-		$this->playerManager->getByNameAsync(
-			function (?Player $player) use ($context): void {
-				$blob = $this->getAllTowerQuantitiesBlob();
-				if (!isset($player)) {
-					$msg = $this->text->makeBlob("Allowed number of towers", $blob);
-					$context->reply($msg);
-					return;
-				}
-				if ($player->level < 15) {
-					$msg = "Your level is too low to have any towers.";
-				} elseif ($player->level < 75) {
-					$msg = "Your level ({$player->level}) allows you to have <highlight>1<end> tower.";
-				} elseif ($player->level < 150) {
-					$msg = "Your level ({$player->level}) allows you to have <highlight>2<end> towers.";
-				} elseif ($player->level < 200) {
-					$msg = "Your level ({$player->level}) allows you to have <highlight>3<end> towers.";
-				} else {
-					$msg = "Your level ({$player->level}) allows you to have <highlight>4<end> towers.";
-				}
-				$msg = $this->text->blobWrap(
-					$msg . " ",
-					$this->text->makeBlob("See full list", $blob, "Towers by level")
-				);
-				$context->reply($msg);
-			},
-			$context->char->name,
+		/** @var ?Player */
+		$player = yield $this->playerManager->byName($context->char->name);
+		$blob = $this->getAllTowerQuantitiesBlob();
+		if (!isset($player)) {
+			$msg = $this->text->makeBlob("Allowed number of towers", $blob);
+			$context->reply($msg);
+			return;
+		}
+		if ($player->level < 15) {
+			$msg = "Your level is too low to have any towers.";
+		} elseif ($player->level < 75) {
+			$msg = "Your level ({$player->level}) allows you to have <highlight>1<end> tower.";
+		} elseif ($player->level < 150) {
+			$msg = "Your level ({$player->level}) allows you to have <highlight>2<end> towers.";
+		} elseif ($player->level < 200) {
+			$msg = "Your level ({$player->level}) allows you to have <highlight>3<end> towers.";
+		} else {
+			$msg = "Your level ({$player->level}) allows you to have <highlight>4<end> towers.";
+		}
+		$msg = $this->text->blobWrap(
+			$msg . " ",
+			$this->text->makeBlob("See full list", $blob, "Towers by level")
 		);
+		$context->reply($msg);
 	}
 
 	private function getAllTowerQuantitiesBlob(): string {
@@ -2539,18 +2537,21 @@ class TowerController extends ModuleInstance {
 		)
 	]
 	public function towerOwnTile(string $sender, callable $callback): void {
-		$this->playerManager->getByNameAsync(
-			function(?Player $whois) use ($callback): void {
-				$this->showTowerSelfTile($whois, $callback);
-			},
-			$sender
-		);
+		asyncCall(function () use ($sender, $callback): Generator {
+			try {
+				/** @var ?Player */
+				$whois = yield $this->playerManager->byName($sender);
+				$text = $this->getTowerSelfTile($whois);
+			} catch (Throwable) {
+				$text = null;
+			}
+			$callback($text);
+		});
 	}
 
-	protected function showTowerSelfTile(?Player $whois, callable $callback): void {
+	private function getTowerSelfTile(?Player $whois): ?string {
 		if (!isset($whois) || !isset($whois->guild)) {
-			$callback(null);
-			return;
+			return null;
 		}
 		$query = $this->db->table(self::DB_TOWER_ATTACK, "a")
 			->leftJoin(self::DB_TOWER_VICTORY . " AS v", "v.attack_id", "a.id")
@@ -2561,8 +2562,7 @@ class TowerController extends ModuleInstance {
 			->limit(5)
 			->asObj(TowerVictoryPlus::class);
 		if ($attacks->isEmpty()) {
-			$callback(null);
-			return;
+			return null;
 		}
 		$pfs = $this->playfieldController->searchPlayfieldsByIds(
 			...$attacks->pluck("playfield_id")->filter()->toArray()
@@ -2606,6 +2606,6 @@ class TowerController extends ModuleInstance {
 			}
 		)->join("\n");
 		$moreLink = $this->text->makeChatcmd("see more", "/tell <myname> attacks org {$whois->guild}");
-		$callback("<header2>Notum Wars [{$moreLink}]<end>\n{$blob}");
+		return "<header2>Notum Wars [{$moreLink}]<end>\n{$blob}";
 	}
 }

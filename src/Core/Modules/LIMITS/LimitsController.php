@@ -4,6 +4,11 @@ namespace Nadybot\Core\Modules\LIMITS;
 
 use function Amp\asyncCall;
 
+use Amp\{
+	Failure,
+	Promise,
+	Success,
+};
 use Generator;
 use Nadybot\Core\{
 	Attributes as NCA,
@@ -22,6 +27,7 @@ use Nadybot\Core\{
 	Routing\RoutableMessage,
 	Routing\Source,
 	Timer,
+	UserException,
 	Util,
 };
 use Nadybot\Core\Modules\PLAYER_LOOKUP\{
@@ -212,23 +218,22 @@ class LimitsController extends ModuleInstance {
 	}
 
 	/**
-	 * @phpstan-param callable(string):void $errorHandler
-	 * @psalm-param callable(string):void $errorHandler
-	 * @phpstan-param callable(mixed...):mixed $successHandler
-	 * @psalm-param callable(mixed...) $successHandler
+	 * @return Promise<null>
 	 */
-	protected function handleLevelAndFactionRequirements(?Player $whois, callable $errorHandler, callable $successHandler, mixed ...$args): void {
+	private function checkMeetsLevelAndFactionRequirements(?Player $whois): Promise {
 		if ($whois === null) {
-			$errorHandler("Error! Unable to get your character info for limit checks. Please try again later.");
-			return;
+			return new Failure(new UserException(
+				"Error! Unable to get your character info for limit checks. Please try again later."
+			));
 		}
 		$tellReqFaction = $this->tellReqFaction;
 		$tellReqLevel = $this->tellReqLvl;
 
 		// check minlvl
 		if ($tellReqLevel > 0 && $tellReqLevel > $whois->level) {
-			$errorHandler("Error! You must be at least level <highlight>$tellReqLevel<end>.");
-			return;
+			return new Failure(new UserException(
+				"Error! You must be at least level <highlight>$tellReqLevel<end>."
+			));
 		}
 
 		// check faction limit
@@ -236,17 +241,19 @@ class LimitsController extends ModuleInstance {
 			in_array($tellReqFaction, ["Omni", "Clan", "Neutral"])
 			&& $tellReqFaction !== $whois->faction
 		) {
-			$errorHandler("Error! You must be <".strtolower($tellReqFaction).">$tellReqFaction<end>.");
-			return;
+			return new Failure(new UserException(
+				"Error! You must be <".strtolower($tellReqFaction).">$tellReqFaction<end>."
+			));
 		}
 		if (in_array($tellReqFaction, ["not Omni", "not Clan", "not Neutral"])) {
 			$tmp = explode(" ", $tellReqFaction);
 			if ($tmp[1] === $whois->faction) {
-				$errorHandler("Error! You must not be <".strtolower($tmp[1]).">{$tmp[1]}<end>.");
-				return;
+				return new Failure(throw new UserException(
+					"Error! You must not be <".strtolower($tmp[1]).">{$tmp[1]}<end>."
+				));
 			}
 		}
-		$successHandler(...$args);
+		return new Success();
 	}
 
 	/**
@@ -258,52 +265,42 @@ class LimitsController extends ModuleInstance {
 	 * @psalm-param callable(mixed...) $successHandler
 	 */
 	public function checkAccessError(string $sender, callable $errorHandler, callable $successHandler, mixed ...$args): void {
-		$minAgeCheck = function() use ($sender, $errorHandler, $successHandler, $args): void {
+		asyncCall(function () use ($sender, $errorHandler, $successHandler, $args): Generator {
+			$tellReqFaction = $this->tellReqFaction;
+			$tellReqLevel = $this->tellReqLvl;
+			if ($tellReqLevel > 0 || $tellReqFaction !== "all") {
+				// get player info which is needed for following checks
+				$player = yield $this->playerManager->byName($sender);
+				try {
+					yield $this->checkMeetsLevelAndFactionRequirements($player);
+				} catch (UserException $e) {
+					$errorHandler($e->getMessage());
+					return;
+				}
+			}
 			if ($this->tellMinPlayerAge <= 1) {
 				$successHandler(...$args);
 				return;
 			}
-			$this->playerHistoryManager->asyncLookup(
-				$sender,
-				$this->config->dimension,
-				/** @param mixed $args */
-				function(?PlayerHistory $history, callable $errorHandler, callable $successHandler, ...$args): void {
-					$this->handleMinAgeRequirements($history, $errorHandler, $successHandler, ...$args);
-				},
-				$errorHandler,
-				$successHandler,
-				...$args
-			);
-		};
-		$tellReqFaction = $this->tellReqFaction;
-		$tellReqLevel = $this->tellReqLvl;
-		if ($tellReqLevel > 0 || $tellReqFaction !== "all") {
-			// get player info which is needed for following checks
-			$this->playerManager->getByNameAsync(
-				function(?Player $player) use ($errorHandler, $minAgeCheck): void {
-					$this->handleLevelAndFactionRequirements(
-						$player,
-						$errorHandler,
-						$minAgeCheck
-					);
-				},
-				$sender
-			);
-			return;
-		}
-		$minAgeCheck();
+			$history = yield $this->playerHistoryManager->asyncLookup2($sender, $this->config->dimension);
+			try {
+				yield $this->checkMeetsMinAgeRequirements($history);
+			} catch (UserException $e) {
+				$errorHandler($e->getMessage());
+				return;
+			}
+			$successHandler(...$args);
+		});
 	}
 
 	/**
-	 * @phpstan-param callable(string):void $errorHandler
-	 * @psalm-param callable(string):void $errorHandler
-	 * @phpstan-param callable(mixed...):mixed $successHandler
-	 * @psalm-param callable(mixed...) $successHandler
+	 * @return Promise<null>
 	 */
-	protected function handleMinAgeRequirements(?PlayerHistory $history, callable $errorHandler, callable $successHandler, mixed ...$args): void {
+	private function checkMeetsMinAgeRequirements(?PlayerHistory $history): Promise {
 		if ($history === null) {
-			$errorHandler("Error! Unable to get your character history for limit checks. Please try again later.");
-			return;
+			return new Failure(new UserException(
+				"Error! Unable to get your character history for limit checks. Please try again later."
+			));
 		}
 		$minAge = time() - $this->tellMinPlayerAge;
 		/** @var PlayerHistoryData */
@@ -312,11 +309,11 @@ class LimitsController extends ModuleInstance {
 
 		if ($entry->last_changed->getTimestamp() > $minAge) {
 			$timeString = $this->util->unixtimeToReadable($this->tellMinPlayerAge);
-			$errorHandler("Error! You must be at least <highlight>$timeString<end> old.");
-			return;
+			return new Failure(new UserException(
+				"Error! You must be at least <highlight>$timeString<end> old."
+			));
 		}
-
-		$successHandler(...$args);
+		return new Success();
 	}
 
 	#[NCA\Event(

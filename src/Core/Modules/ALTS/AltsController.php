@@ -2,6 +2,8 @@
 
 namespace Nadybot\Core\Modules\ALTS;
 
+use function Amp\Promise\rethrow;
+
 use Generator;
 use Nadybot\Core\{
 	AccessManager,
@@ -241,7 +243,7 @@ class AltsController extends ModuleInstance {
 			}
 
 			// update character information
-			$this->playerManager->byName($name);
+			rethrow($this->playerManager->byName($name));
 		}
 
 		if ($success === 0) {
@@ -334,8 +336,8 @@ class AltsController extends ModuleInstance {
 		}
 
 		// update character information for both, main and alt
-		$this->playerManager->byName($newMain);
-		$this->playerManager->byName($context->char->name);
+		rethrow($this->playerManager->byName($newMain));
+		rethrow($this->playerManager->byName($context->char->name));
 		// @todo Send a warning if the new main's accesslevel is lower than ours
 
 		$msg = "Successfully requested to be added as <highlight>{$newMain}'s<end> alt. ".

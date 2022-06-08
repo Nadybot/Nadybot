@@ -2,6 +2,7 @@
 
 namespace Nadybot\Core\Modules\BAN;
 
+use function Amp\asyncCall;
 use function Amp\call;
 
 use Amp\Promise;
@@ -572,6 +573,7 @@ class BanController extends ModuleInstance {
 	 * Call either the notbanned or the banned callback for $charId
 	 * @psalm-param null|callable(int, mixed...) $notBanned
 	 * @psalm-param null|callable(int, mixed...) $banned
+	 * @deprecated 6.1.0
 	 */
 	public function handleBan(int $charId, ?callable $notBanned, ?callable $banned, mixed ...$args): void {
 		$notBanned ??= fn(int $charId, mixed ...$args): mixed => null;
@@ -589,21 +591,19 @@ class BanController extends ModuleInstance {
 			return;
 		}
 		$player = (string)$this->chatBot->id[$charId];
-		$this->playerManager->getByNameAsync(
-			function(?Player $whois) use ($charId, $notBanned, $banned, $args): void {
-				if (!isset($whois) || !isset($whois->guild_id)) {
-					$notBanned($charId, ...$args);
-					return;
-				}
-
-				if (isset($this->orgbanlist[$whois->guild_id])) {
-					$banned($charId, ...$args);
-					return;
-				}
+		asyncCall(function () use ($player, $banned, $charId, $notBanned, $args): Generator {
+			$whois = yield $this->playerManager->byName($player);
+			if (!isset($whois) || !isset($whois->guild_id)) {
 				$notBanned($charId, ...$args);
-			},
-			$player,
-		);
+				return;
+			}
+
+			if (isset($this->orgbanlist[$whois->guild_id])) {
+				$banned($charId, ...$args);
+				return;
+			}
+			$notBanned($charId, ...$args);
+		});
 	}
 
 	public function orgIsBanned(int $orgId): bool {

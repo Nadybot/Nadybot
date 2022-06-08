@@ -5,10 +5,12 @@ namespace Nadybot\Modules\SKILLS_MODULE;
 use function Amp\call;
 use function Amp\File\filesystem;
 
-use Amp\ByteStream\LineReader;
-use Amp\File\File;
-use Amp\Loop;
-use Amp\Promise;
+use Amp\{
+	ByteStream\LineReader,
+	File\File,
+	Loop,
+	Promise,
+};
 use Generator;
 use Illuminate\Support\Collection;
 use Throwable;
@@ -171,18 +173,15 @@ class BuffPerksController extends ModuleInstance {
 
 	/** See which perks are available for your level and profession */
 	#[NCA\HandlesCommand("perks")]
-	public function buffPerksNoArgsCommand(CmdContext $context): void {
-		$this->playerManager->getByNameAsync(
-			function(?Player $whois) use ($context): void {
-				if (empty($whois) || !isset($whois->profession) || !isset($whois->level)) {
-					$msg = "Could not retrieve whois info for you.";
-					$context->reply($msg);
-					return;
-				}
-				$this->showPerks($whois->profession, $whois->level, $whois->breed, null, $context);
-			},
-			$context->char->name
-		);
+	public function buffPerksNoArgsCommand(CmdContext $context): Generator {
+		/** @var ?Player */
+		$whois = yield $this->playerManager->byName($context->char->name);
+		if (empty($whois) || !isset($whois->profession) || !isset($whois->level)) {
+			$msg = "Could not retrieve whois info for you.";
+			$context->reply($msg);
+			return;
+		}
+		$this->showPerks($whois->profession, $whois->level, $whois->breed, null, $context);
 	}
 
 	/**

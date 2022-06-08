@@ -2,7 +2,10 @@
 
 namespace Nadybot\Modules\RELAY_MODULE;
 
+use function Amp\asyncCall;
+
 use Amp\Loop;
+use Generator;
 use Nadybot\Core\{
 	Attributes as NCA,
 	ConfigFile,
@@ -128,19 +131,17 @@ class Relay implements MessageReceiver {
 			$player->charid = $uid;
 		}
 		$this->onlineChars[$where][$character] = $player;
-		$this->playerManager->getByNameAsync(
-			function(?Player $player) use ($where, $character, $clientId): void {
-				if (!isset($player) || !isset($this->onlineChars[$where][$character])) {
-					return;
-				}
-				$player->source = $clientId;
-				foreach (get_object_vars($player) as $key => $value) {
-					$this->onlineChars[$where][$character]->{$key} = $value;
-				}
-			},
-			$character,
-			$dimension
-		);
+		asyncCall(function () use ($character, $dimension, $where, $clientId): Generator {
+			/** @var ?Player */
+			$player = yield $this->playerManager->byName($character, $dimension);
+			if (!isset($player) || !isset($this->onlineChars[$where][$character])) {
+				return;
+			}
+			$player->source = $clientId;
+			foreach (get_object_vars($player) as $key => $value) {
+				$this->onlineChars[$where][$character]->{$key} = $value;
+			}
+		});
 	}
 
 	public function setOffline(string $sender, string $where, string $character, ?int $uid=null, ?int $dimension=null): void {

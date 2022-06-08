@@ -7,10 +7,12 @@ use function Amp\call;
 use function Amp\Promise\all;
 use function Safe\json_encode;
 
-use Amp\Coroutine;
-use Amp\Loop;
-use Amp\Promise;
-use Amp\Success;
+use Amp\{
+	Coroutine,
+	Loop,
+	Promise,
+	Success,
+};
 use ReflectionAttribute;
 use ReflectionClass;
 use ReflectionNamedType;
@@ -763,26 +765,20 @@ class Nadybot extends AOChat {
 			$audit->action = AccessManager::JOIN;
 			$this->accessManager->addAudit($audit);
 
-			$this->banController->handleBan(
-				$userId,
-				function (int $userId, string $sender) use ($eventObj): void {
-					// Add sender to the chatlist
-					$this->chatlist[$sender] = true;
-
-					$this->eventManager->fireEvent($eventObj);
-				},
-				// Remove sender if they are banned
-				function (int $userId, string $sender): void {
-					$this->privategroup_kick($sender);
+			asyncCall(function () use ($sender, $userId, $eventObj): Generator {
+				if (yield $this->banController->isOnBanlist($userId)) {
+					$this->privategroup_kick($userId);
 					$audit = new Audit();
 					$audit->actor = $this->char->name;
 					$audit->actor = $sender;
 					$audit->action = AccessManager::KICK;
 					$audit->value = "banned";
 					$this->accessManager->addAudit($audit);
-				},
-				$sender
-			);
+					return;
+				}
+				$this->chatlist[$sender] = true;
+				$this->eventManager->fireEvent($eventObj);
+			});
 		} elseif ($this->char->id === $userId) {
 			$eventObj->type = "extjoinpriv";
 
@@ -984,7 +980,7 @@ class Nadybot extends AOChat {
 				if (isset($extraData) && is_object($extraData) && isset($extraData->id)) {
 					$eventObj->worker = $extraData->id;
 				}
-			} catch (Throwable $e) {
+			} catch (Throwable) {
 			}
 		}
 
@@ -1020,31 +1016,26 @@ class Nadybot extends AOChat {
 			return;
 		}
 
-		$this->banController->handleBan(
-			$senderId,
-			function(int $senderId, AOChatEvent $eventObj, string $message, string $sender, string $type): void {
-				$this->eventManager->fireEvent($eventObj);
+		asyncCall(function () use ($senderId, $eventObj, $message, $sender): Generator {
+			if (yield $this->banController->isOnBanlist($senderId)) {
+				return;
+			}
+			$this->eventManager->fireEvent($eventObj);
 
-				$context = new CmdContext($sender, $senderId);
-				$context->message = $message;
-				$context->source = Source::TELL . "({$sender})";
-				$context->sendto = new PrivateMessageCommandReply($this, $sender, $eventObj->worker ?? null);
-				$context->setIsDM();
-				$this->limitsController->checkAndExecute(
-					$sender,
-					$message,
-					function(CmdContext $context): void {
-						$this->commandManager->checkAndHandleCmd($context);
-					},
-					$context
-				);
-			},
-			null,
-			$eventObj,
-			$message,
-			$sender,
-			$type
-		);
+			$context = new CmdContext($sender, $senderId);
+			$context->message = $message;
+			$context->source = Source::TELL . "({$sender})";
+			$context->sendto = new PrivateMessageCommandReply($this, $sender, $eventObj->worker ?? null);
+			$context->setIsDM();
+			$this->limitsController->checkAndExecute(
+				$sender,
+				$message,
+				function(CmdContext $context): void {
+					$this->commandManager->checkAndHandleCmd($context);
+				},
+				$context
+			);
+		});
 	}
 
 	/**

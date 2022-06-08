@@ -3,7 +3,6 @@
 namespace Nadybot\Core;
 
 use function Amp\asyncCall;
-use function Amp\call;
 
 use Exception;
 use Generator;
@@ -1636,14 +1635,12 @@ class CommandManager implements MessageEmitter {
 			$this->processCmd($context);
 			return true;
 		}
-		$this->banController->handleBan(
-			$context->char->id,
-			function (int $senderId, CmdContext $context): void {
-				$this->processCmd($context);
-			},
-			null,
-			$context
-		);
+		asyncCall(function () use ($context): Generator {
+			if (yield $this->banController->isOnBanlist($context->char->id)) {
+				return;
+			}
+			$this->processCmd($context);
+		});
 		return true;
 	}
 }
