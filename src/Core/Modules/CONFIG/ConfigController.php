@@ -983,6 +983,7 @@ class ConfigController extends ModuleInstance {
 			}
 			$modules[$moduleName] = true;
 		}
+		ksort($modules);
 		$eventQuery = $this->db->table(EventManager::DB_TABLE)
 			->select("module");
 		$eventQuery->selectRaw($eventQuery->grammar->wrap("status") . "+2 " . $eventQuery->as("status"));
