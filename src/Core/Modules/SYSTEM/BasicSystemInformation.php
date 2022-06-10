@@ -24,6 +24,12 @@ class BasicSystemInformation {
 	/** Which PHP version are we running? */
 	public string $php_version;
 
+	/** Which event loop driver are we running? */
+	public string $event_loop;
+
+	/** Which file system driver are we running? */
+	public string $fs;
+
 	/** Which operating system/kernel are we running? */
 	public string $os;
 

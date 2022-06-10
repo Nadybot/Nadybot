@@ -2,8 +2,10 @@
 
 namespace Nadybot\Core\Modules\SYSTEM;
 
+use function Amp\File\createDefaultDriver;
 use function Safe\unpack;
 
+use Amp\Loop;
 use Exception;
 use Generator;
 use Illuminate\Support\Collection;
@@ -311,6 +313,9 @@ class SystemController extends ModuleInstance implements MessageEmitter {
 		$basicInfo->org_id = $this->config->orgId;
 		$basicInfo->php_version = phpversion();
 		$basicInfo->os = php_uname('s') . ' ' . php_uname('r') . ' ' . php_uname('m');
+		$basicInfo->event_loop = class_basename(Loop::get());
+		$basicInfo->fs = class_basename(createDefaultDriver());
+
 		$basicInfo->superadmins = $this->config->superAdmins;
 
 		$info->memory = $memory = new MemoryInformation();
@@ -388,6 +393,8 @@ class SystemController extends ModuleInstance implements MessageEmitter {
 
 		$blob .= "<tab>Nadybot: <highlight>{$info->basic->bot_version}<end>\n";
 		$blob .= "<tab>PHP: <highlight>{$info->basic->php_version}<end>\n";
+		$blob .= "<tab>Event loop: <highlight>Amp {$info->basic->event_loop}<end> using ".
+			"<highlight>{$info->basic->fs}<end> filesystem\n";
 		$blob .= "<tab>OS: <highlight>{$info->basic->os}<end>\n";
 		$blob .= "<tab>Database: <highlight>{$info->basic->db_type}<end>\n\n";
 

@@ -15,6 +15,7 @@ use ReflectionAttribute;
 use ReflectionObject;
 use Throwable;
 
+use function Amp\File\createDefaultDriver;
 use function Safe\json_encode;
 
 class BotRunner {
@@ -343,13 +344,16 @@ class BotRunner {
 
 		$version = self::getVersion();
 		$this->logger->notice(
-			"Starting {name} {version} on RK{dimension} using PHP {phpVersion}, {loopType} event loop, and {dbType}...",
+			"Starting {name} {version} on RK{dimension} using ".
+			"PHP {phpVersion}, {loopType} event loop, ".
+			"{fsType} filesystem, and {dbType}...",
 			[
 				"name" => $config->name,
 				"version" => $version,
 				"dimension" => $config->dimension,
 				"phpVersion" => phpversion(),
 				"loopType" => class_basename(Loop::get()),
+				"fsType" => class_basename(createDefaultDriver()),
 				"dbType" => $config->dbType,
 			]
 		);
