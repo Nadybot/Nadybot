@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Cron-events
   - Timer->callLater()
   - SocketManager
+  - Discord
   - EventLoop::add()
   - Http-client is now being replaced with HttpClientBuilder, while the old Http/AsyncHttp still function, but are now deprecated
 

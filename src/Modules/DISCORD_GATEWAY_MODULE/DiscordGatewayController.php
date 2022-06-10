@@ -4,11 +4,18 @@ namespace Nadybot\Modules\DISCORD_GATEWAY_MODULE;
 
 use function Amp\asyncCall;
 use function Amp\call;
+use function Amp\delay;
 use function Amp\Promise\all;
+use function Amp\Promise\rethrow;
 use function Safe\json_encode;
 use function Safe\preg_match;
 use function Safe\preg_replace;
 
+use Amp\Http\Client\Connection\DefaultConnectionFactory;
+use Amp\Http\Client\Connection\UnlimitedConnectionPool;
+use Amp\Http\Client\HttpClientBuilder;
+use Amp\Http\Client\HttpException;
+use Amp\Http\Client\Interceptor\RemoveRequestHeader;
 use Generator;
 use ReflectionClass;
 use ReflectionClassConstant;
@@ -16,6 +23,14 @@ use stdClass;
 use Throwable;
 use Amp\Loop;
 use Amp\Promise;
+use Amp\Socket\ConnectContext;
+use Amp\Websocket\Client\Connection;
+use Amp\Websocket\Client\ConnectionException;
+use Amp\Websocket\Client\Handshake;
+use Amp\Websocket\Client\Rfc6455Connector;
+use Amp\Websocket\ClientMetadata;
+use Amp\Websocket\ClosedException;
+use Amp\Websocket\Message;
 use Illuminate\Support\ItemNotFoundException;
 use Safe\Exceptions\JsonException;
 use Nadybot\Core\{
@@ -38,12 +53,9 @@ use Nadybot\Core\{
 	Routing\RoutableMessage,
 	Routing\Source,
 	Text,
-	Timer,
 	Util,
 	Websocket,
 	WebsocketCallback,
-	WebsocketClient,
-	WebsocketError,
 };
 use Nadybot\Core\Modules\DISCORD\{
 	DiscordAPIClient,
@@ -60,7 +72,6 @@ use Nadybot\Modules\DISCORD_GATEWAY_MODULE\Model\{
 	Activity,
 	CloseEvents,
 	Guild,
-	GuildMember,
 	GuildMemberChunk,
 	IdentifyPacket,
 	Intent,
@@ -93,10 +104,10 @@ use Nadybot\Modules\RELAY_MODULE\RelayController;
 	NCA\ProvidesEvent("discord(guild_update)"),
 	NCA\ProvidesEvent("discord(guild_update_delete)"),
 	NCA\ProvidesEvent("discord(guild_member_add)"),
+	NCA\ProvidesEvent("discord(guild_members_chunk)"),
 	NCA\ProvidesEvent("discord(guild_role_create)"),
 	NCA\ProvidesEvent("discord(guild_role_update)"),
 	NCA\ProvidesEvent("discord(guild_role_update_delete)"),
-	NCA\ProvidesEvent("discord(guild_members_chunk)"),
 	NCA\ProvidesEvent("discord(interaction_create)"),
 	NCA\ProvidesEvent("discord(message_create)"),
 	NCA\ProvidesEvent("discord(message_update)"),
@@ -148,9 +159,6 @@ class DiscordGatewayController extends ModuleInstance {
 
 	#[NCA\Inject]
 	public Websocket $websocket;
-
-	#[NCA\Inject]
-	public Timer $timer;
 
 	#[NCA\Inject]
 	public AltsController $altsController;
@@ -209,7 +217,7 @@ class DiscordGatewayController extends ModuleInstance {
 	public string $discordAssignRole = "";
 
 	protected ?int $lastSequenceNumber = null;
-	protected ?WebsocketClient $client = null;
+	protected ?Connection $client = null;
 	protected bool $mustReconnect = false;
 	protected int $lastHeartbeat = 0;
 	protected int $heartbeatInterval = 40;
@@ -226,6 +234,8 @@ class DiscordGatewayController extends ModuleInstance {
 
 	/** @var array<string,bool> */
 	private array $noManageInviteRights = [];
+
+	private ?ClientMetadata $lastMetadata = null;
 
 	public function isMe(string $id): bool {
 		return isset($this->me) && $this->me->id === $id;
@@ -311,7 +321,7 @@ class DiscordGatewayController extends ModuleInstance {
 		} else {
 			$packet->d->activities = [];
 		}
-		$this->client->send(json_encode($packet));
+		rethrow($this->client->send(json_encode($packet)));
 	}
 
 	/**
@@ -321,7 +331,7 @@ class DiscordGatewayController extends ModuleInstance {
 	public function tokenChanged(string $settingName, string $oldValue, string $newValue): void {
 		if ($oldValue !== "" && $oldValue !== 'off' && isset($this->client)) {
 			$this->logger->notice("Closing Discord gateway connection.");
-			$this->client->close();
+			rethrow($this->client->close());
 		}
 		if ($newValue !== "" && $newValue !== 'off') {
 			Loop::defer([$this, "connect"]);
@@ -341,113 +351,197 @@ class DiscordGatewayController extends ModuleInstance {
 		if (empty($botToken) || $botToken === 'off') {
 			return;
 		}
-		asyncCall(function (): Generator {
-			$gateway = yield $this->discordAPIClient->getGateway();
-			$this->connectUsingGateway($gateway);
-		});
+		rethrow($this->connectToGateway());
 	}
 
-	protected function connectUsingGateway(DiscordGateway $gateway): void {
-		$this->logger->info("{remaining} Discord connections out of {total} remaining", [
-			"remaining" => $gateway->session_start_limit->remaining,
-			"total" => $gateway->session_start_limit->total,
-		]);
-		if ($gateway->session_start_limit->remaining < 2) {
-			$resetDelay = (int)ceil($gateway->session_start_limit->reset_after / 1000);
-			$this->logger->warning(
-				"The bot used up all its allowed connections to the Discord API. ".
-				"Will try in {delay}",
-				[
-					"delay" => $this->util->unixtimeToReadable($resetDelay),
-				]
-			);
-			Loop::delay($resetDelay * 1000, [$this, "connect"]);
+	private function countOutgoingPackets(string $handleId): void {
+		if (!isset($this->client) || !$this->client->isConnected()) {
+			Loop::cancel($handleId);
 			return;
 		}
-		$this->client = $this->websocket->createClient()
-			->withURI($gateway->url . "/?v=10&encoding=json")
-			->withTimeout(30)
-			->on(WebsocketClient::ON_CLOSE, [$this, "processWebsocketClose"])
-			->on(WebsocketClient::ON_TEXT, [$this, "processWebsocketMessage"])
-			->on(WebsocketClient::ON_WRITE, [$this, "processWebsocketWrite"])
-			->on(WebsocketClient::ON_ERROR, [$this, "processWebsocketError"]);
+		$metadata = $this->client->getInfo();
+		$this->processOutgoingMetadata($metadata);
+	}
+
+	private function processOutgoingMetadata(ClientMetadata $metadata): void {
+		if (!isset($this->lastMetadata) || $this->lastMetadata->messagesSent < $metadata->messagesSent) {
+			$this->outStats->inc($metadata->messagesSent);
+		} else {
+			$this->outStats->inc($metadata->messagesSent - $this->lastMetadata->messagesSent);
+		}
+		$this->lastMetadata = $metadata;
+	}
+
+	/** @return Promise<void> */
+	private function connectToGateway(): Promise {
+		return call(function (): Generator {
+			do {
+				/** @var DiscordGateway */
+				$gateway = yield $this->discordAPIClient->getGateway();
+				$this->logger->info("{remaining} Discord connections out of {total} remaining", [
+					"remaining" => $gateway->session_start_limit->remaining,
+					"total" => $gateway->session_start_limit->total,
+				]);
+				if ($gateway->session_start_limit->remaining < 2) {
+					$resetDelay = (int)ceil($gateway->session_start_limit->reset_after / 1000);
+					$this->logger->warning(
+						"The bot used up all its allowed connections to the Discord API. ".
+						"Will try in {delay}",
+						[
+							"delay" => $this->util->unixtimeToReadable($resetDelay),
+						]
+					);
+					yield delay($resetDelay * 1000);
+					if ($this->isConnected()
+						&& isset($this->client)
+						&& $this->client->isConnected()) {
+						return;
+					}
+				}
+				$handshake = new Handshake($gateway->url . '/?v=10&encoding=json');
+				$connectContext = (new ConnectContext())->withTcpNoDelay();
+				$httpClient = (new HttpClientBuilder())
+					->usingPool(new UnlimitedConnectionPool(new DefaultConnectionFactory(null, $connectContext)))
+					->intercept(new RemoveRequestHeader('origin'))
+					->build();
+				$client = new Rfc6455Connector($httpClient);
+				try {
+					/** @var Connection */
+					$connection = yield $client->connect($handshake, null);
+					$this->client = $connection;
+					$handleId = Loop::repeat(10000, fn(string $handleId) => $this->countOutgoingPackets($handleId));
+					while ($message = yield $connection->receive()) {
+						/** @var Message $message */
+						$payload = yield $message->buffer();
+						$this->inStats->inc();
+						/** @var string $payload */
+						rethrow($this->processWebsocketMessage($payload));
+					}
+					if ($this->client->isClosedByPeer()) {
+						throw new ClosedException(
+							"Discord unexpectedly closed the connection",
+							$this->client->getCloseCode(),
+							$this->client->getCloseReason(),
+						);
+					}
+				} catch (ConnectionException $e) {
+					$this->logger->error("Discord endpoint errored: {error}", [
+						"error" => $e->getMessage(),
+					]);
+					$this->sessionId = null;
+					return;
+				} catch (HttpException $e) {
+					$this->logger->error("Request to connect to Discord failed: {error}", [
+						"error" => $e->getMessage(),
+					]);
+					$this->sessionId = null;
+					return;
+				} catch (ClosedException $e) {
+					if ($this->canReconnect($e->getCode())) {
+						if (!$this->canResumeSessionAfterClose($e->getCode())) {
+							$this->lastSequenceNumber = null;
+							$this->sessionId = null;
+						}
+						unset($this->client);
+						$this->logger->notice("Reconnecting to Discord gateway in {$this->reconnectDelay}s.");
+						yield delay($this->reconnectDelay * 1000);
+						$this->reconnectDelay = max($this->reconnectDelay * 2, 5);
+						continue;
+					}
+					return;
+				} finally {
+					if (isset($this->client)) {
+						$this->processOutgoingMetadata($this->client->getInfo());
+						$this->lastMetadata = null;
+					}
+					if (isset($handleId)) {
+						Loop::cancel($handleId);
+					}
+					unset($this->client);
+				}
+				$this->logger->notice("Connection to Discord gracefully closed");
+				if (!$this->mustReconnect) {
+					$this->lastSequenceNumber = null;
+					$this->sessionId = null;
+				}
+				yield delay(500);
+			} while ($this->mustReconnect);
+		});
 	}
 
 	/**
 	 * Send periodic heartbeats to the Discord gateway
+	 *
+	 * @return Promise<void>
 	 */
-	public function sendWebsocketHeartbeat(): void {
-		if (!isset($this->heartbeatInterval)
-			|| !$this->isConnected()
-			|| !$this->client
-			|| !$this->client->isConnected()
-		) {
-			return;
-		}
-		$this->lastHeartbeat = time();
-		$this->client->send(json_encode(["op" => 1, "d" => $this->lastSequenceNumber]), "text");
-		$this->logger->info("Sending heartbeat");
-		Loop::delay($this->heartbeatInterval * 1000, [$this, __FUNCTION__]);
+	private function sendWebsocketHeartbeat(string $watcherId): Promise {
+		return call(function () use ($watcherId): Generator {
+			if (!$this->isConnected()
+				|| !isset($this->client)
+				|| !$this->client->isConnected()
+			) {
+				Loop::cancel($watcherId);
+				return;
+			}
+			$this->lastHeartbeat = time();
+			$this->logger->info("Sending heartbeat");
+			yield $this->client->send(json_encode(["op" => 1, "d" => $this->lastSequenceNumber]));
+		});
 	}
 
 	public function processWebsocketWrite(WebsocketCallback $event): void {
 		$this->outStats->inc();
 	}
 
-	public function processWebsocketError(WebsocketCallback $event): void {
-		$this->logger->error("[$event->code] $event->data");
-		if ($event->code === WebsocketError::CONNECT_TIMEOUT && isset($this->client)) {
-			Loop::delay(30000, [$this->client, 'connect']);
-		}
-	}
-
-	public function processWebsocketMessage(WebsocketCallback $event): void {
-		$this->inStats->inc();
-		$this->logger->debug("Received discord message", ["message" => $event->data]);
-		$payload = new Payload();
-		try {
-			if (!isset($event->data)) {
-				throw new JsonException("null message received.");
+	/** @return Promise<void> */
+	public function processWebsocketMessage(string $message): Promise {
+		return call(function () use ($message): Generator {
+			$this->logger->debug("Received discord message", ["message" => $message]);
+			$payload = new Payload();
+			try {
+				if ($message === '') {
+					throw new JsonException("null message received.");
+				}
+				$payload->fromJSON(\Safe\json_decode($message));
+			} catch (JsonException $e) {
+				$this->logger->error("Invalid JSON data received from Discord: {error}", [
+					"error" => $e->getMessage(),
+					"data" => $message,
+					"exception" => $e
+				]);
+				if (isset($this->client)) {
+					yield $this->client->close(4002);
+				}
+				return;
 			}
-			$payload->fromJSON(\Safe\json_decode($event->data));
-		} catch (JsonException $e) {
-			$this->logger->error("Invalid JSON data received from Discord: {error}", [
-				"error" => $e->getMessage(),
-				"data" => $event->data,
-				"exception" => $e
+			$this->logger->debug("Packet received", ["packet" => $payload]);
+			$opcodeToName = [
+				 0 => "Dispatch",
+				 1 => "Heartbeat",
+				 2 => "Identify",
+				 3 => "Presence Update",
+				 4 => "Voice State Update",
+				 6 => "Resume",
+				 7 => "Reconnect",
+				 8 => "Request Guild Members",
+				 9 => "Invalid Session",
+				10 => "Hello",
+				11 => "Heartbeat ACK",
+			];
+			$this->logger->info("Received packet opcode {opcode} ({opcodeName})", [
+				"opcode" => $payload->op,
+				"opcodeName" => $opcodeToName[$payload->op] ?? "unknown",
+				"data" => $payload->d,
 			]);
-			if (isset($this->client)) {
-				$this->client->close(4002);
+			if (isset($payload->s)) {
+				$this->lastSequenceNumber = $payload->s;
 			}
-			return;
-		}
-		$this->logger->debug("Packet received", ["packet" => $payload]);
-		$opcodeToName = [
-			 0 => "Dispatch",
-			 1 => "Heartbeat",
-			 2 => "Identify",
-			 3 => "Presence Update",
-			 4 => "Voice State Update",
-			 6 => "Resume",
-			 7 => "Reconnect",
-			 8 => "Request Guild Members",
-			 9 => "Invalid Session",
-			10 => "Hello",
-			11 => "Heartbeat ACK",
-		];
-		$this->logger->info("Received packet opcode {opcode} ({opcodeName})", [
-			"opcode" => $payload->op,
-			"opcodeName" => $opcodeToName[$payload->op] ?? "unknown",
-			"data" => $payload->d,
-		]);
-		if (isset($payload->s)) {
-			$this->lastSequenceNumber = $payload->s;
-		}
-		$eventObj = new DiscordGatewayEvent();
-		$eventObj->type = "discord({$payload->op})";
-		$eventObj->message = $event->data;
-		$eventObj->payload = $payload;
-		$this->eventManager->fireEvent($eventObj);
+			$eventObj = new DiscordGatewayEvent();
+			$eventObj->type = "discord({$payload->op})";
+			$eventObj->message = $message;
+			$eventObj->payload = $payload;
+			$this->eventManager->fireEvent($eventObj);
+		});
 	}
 
 	#[NCA\Event(
@@ -455,68 +549,80 @@ class DiscordGatewayController extends ModuleInstance {
 		description: "Authorize to discord gateway",
 		defaultStatus: 1
 	)]
-	public function processGatewayHello(DiscordGatewayEvent $event): void {
+	public function processGatewayHello(DiscordGatewayEvent $event): Generator {
 		$payload = $event->payload;
 		/** @var stdClass $payload->d */
 		$this->heartbeatInterval = intdiv($payload->d->heartbeat_interval, 1000);
-		Loop::delay($this->heartbeatInterval * 1000, [$this, "sendWebsocketHeartbeat"]);
+		Loop::repeat(
+			$this->heartbeatInterval * 1000,
+			fn(string $watcherId) => $this->sendWebsocketHeartbeat($watcherId)
+		);
 		$this->logger->info("Setting Discord heartbeat interval to ".$this->heartbeatInterval."sec");
 		$this->lastHeartbeat = time();
 
 		if ($this->sessionId !== null && $this->lastSequenceNumber !== null) {
-			$this->sendResume();
+			yield $this->sendResume();
 		} else {
-			$this->sendIdentify();
+			yield $this->sendIdentify();
 		}
 	}
 
-	protected function sendIdentify(): void {
-		$this->guilds = [];
-		$this->invites = [];
-		$this->logger->notice("Logging into Discord gateway");
-		$identify = new IdentifyPacket();
-		$identify->token = $this->discordController->discordBotToken;
-		$identify->large_threshold = 250;
-		$identify->intents = Intent::GUILD_MESSAGES
-			| Intent::DIRECT_MESSAGES
-			| Intent::GUILD_MEMBERS
-			| Intent::GUILDS
-			| Intent::GUILD_VOICE_STATES
-			| Intent::MESSAGE_CONTENT;
-		$login = new Payload();
-		$login->op = Opcode::IDENTIFY;
-		$login->d = $identify;
-		if (isset($this->client)) {
-			$this->client->send(json_encode($login));
-		}
+	/** @return Promise<void> */
+	private function sendIdentify(): Promise {
+		return call(function (): Generator {
+			$this->guilds = [];
+			$this->invites = [];
+			$this->logger->notice("Logging into Discord gateway");
+			$identify = new IdentifyPacket();
+			$identify->token = $this->discordController->discordBotToken;
+			$identify->large_threshold = 250;
+			$identify->intents = Intent::GUILD_MESSAGES
+				| Intent::DIRECT_MESSAGES
+				| Intent::GUILD_MEMBERS
+				| Intent::GUILDS
+				| Intent::GUILD_VOICE_STATES
+				| Intent::MESSAGE_CONTENT;
+			$login = new Payload();
+			$login->op = Opcode::IDENTIFY;
+			$login->d = $identify;
+			if (isset($this->client)) {
+				yield $this->client->send(json_encode($login));
+			}
+		});
 	}
 
-	protected function sendResume(): void {
-		$this->logger->notice("Trying to resume old Discord gateway session");
-		$resume = new ResumePacket();
-		$resume->token = $this->discordController->discordBotToken;
-		if (!isset($this->sessionId) || !isset($this->lastSequenceNumber)) {
-			$this->logger->error("Cannot result session, because no previous session found.");
-			return;
-		}
-		$resume->session_id = $this->sessionId;
-		$resume->seq = $this->lastSequenceNumber;
-		$payload = new Payload();
-		$payload->op = Opcode::RESUME;
-		$payload->d = $resume;
-		if (isset($this->client)) {
-			$this->client->send(json_encode($payload));
-		}
+	/** @return Promise<void> */
+	private function sendResume(): Promise {
+		return call(function (): Generator {
+			$this->logger->notice("Trying to resume old Discord gateway session");
+			$resume = new ResumePacket();
+			$resume->token = $this->discordController->discordBotToken;
+			if (!isset($this->sessionId) || !isset($this->lastSequenceNumber)) {
+				$this->logger->error("Cannot resume session, because no previous session found.");
+				return;
+			}
+			$resume->session_id = $this->sessionId;
+			$resume->seq = $this->lastSequenceNumber;
+			$payload = new Payload();
+			$payload->op = Opcode::RESUME;
+			$payload->d = $resume;
+			if (isset($this->client)) {
+				yield $this->client->send(json_encode($payload));
+			}
+		});
 	}
 
-	protected function sendRequestGuildMembers(string $guildId): void {
-		$request = new RequestGuildMembers($guildId);
-		$payload = new Payload();
-		$payload->op = Opcode::REQUEST_GUILD_MEMBERS;
-		$payload->d = $request;
-		if (isset($this->client)) {
-			$this->client->send(json_encode($payload));
-		}
+	/** @return Promise<void> */
+	private function sendRequestGuildMembers(string $guildId): Promise {
+		return call(function () use ($guildId): Generator {
+			$request = new RequestGuildMembers($guildId);
+			$payload = new Payload();
+			$payload->op = Opcode::REQUEST_GUILD_MEMBERS;
+			$payload->d = $request;
+			if (isset($this->client)) {
+				yield $this->client->send(json_encode($payload));
+			}
+		});
 	}
 
 	#[NCA\Event(
@@ -541,11 +647,11 @@ class DiscordGatewayController extends ModuleInstance {
 		description: "Reconnect to discord gateway if requested",
 		defaultStatus: 1
 	)]
-	public function processGatewayReconnectRequest(DiscordGatewayEvent $event): void {
+	public function processGatewayReconnectRequest(DiscordGatewayEvent $event): Generator {
 		$this->logger->info("Discord Gateway requests reconnect");
 		$this->reconnectDelay = 1;
 		if (isset($this->client)) {
-			$this->client->close(1000);
+			yield $this->client->close(1000);
 		}
 	}
 
@@ -601,20 +707,13 @@ class DiscordGatewayController extends ModuleInstance {
 		);
 	}
 
-	public function processWebsocketClose(WebsocketCallback $event): void {
-		if (!$this->canResumeSessionAfterClose($event->code ?? null)) {
-			$this->lastSequenceNumber = null;
-			$this->sessionId = null;
-		}
+	private function canReconnect(int $code): bool {
 		if (
-			((($event->code ?? null) === 1000 && $this->mustReconnect)
-			|| $this->shouldReconnect($event->code ?? null))
-			&& isset($this->client)
+			(($code === 1000 && $this->mustReconnect)
+			|| $this->shouldReconnect($code))
 		) {
-			$this->logger->notice("Reconnecting to Discord gateway in {$this->reconnectDelay}s.");
-			Loop::delay($this->reconnectDelay * 1000, [$this->client, 'connect']);
-			$this->reconnectDelay = max($this->reconnectDelay * 2, 5);
-		} elseif ($event->code === CloseEvents::DISALLOWED_INTENT) {
+			return true;
+		} elseif ($code === CloseEvents::DISALLOWED_INTENT) {
 			$this->logger->error(
 				"Your bot doesn't have all the intents it needs. Please go to {url}, then ".
 				"choose this bot's application, then choose \"Bot\" on the left and ".
@@ -622,19 +721,21 @@ class DiscordGatewayController extends ModuleInstance {
 				"\"Privileged Gateway Intents\".",
 				["url" => "https://discord.com/developers"]
 			);
+			return false;
 		} else {
 			$ref = new ReflectionClass(CloseEvents::class);
 			$lookup = array_flip($ref->getConstants(ReflectionClassConstant::IS_PUBLIC));
 			$this->logger->notice(
 				"Discord server closed connection with code {code} ({text})",
 				[
-					"code" => $event->code ?? "unknown",
-					"text" => $lookup[$event->code] ?? "unknown",
+					"code" => $code,
+					"text" => $lookup[$code] ?? "unknown",
 				]
 			);
 			$this->guilds = [];
 			$this->invites = [];
 			$this->sessionId = null;
+			return true;
 		}
 	}
 
@@ -829,12 +930,12 @@ class DiscordGatewayController extends ModuleInstance {
 			defaultStatus: 1
 		),
 	]
-	public function processDiscordGuildMessages(DiscordGatewayEvent $event): void {
+	public function processDiscordGuildMessages(DiscordGatewayEvent $event): Generator {
 		$guild = new Guild();
 		/** @var stdClass $event->payload->d */
 		$guild->fromJSON($event->payload->d);
 		$this->guilds[$guild->id] = $guild;
-		$this->sendRequestGuildMembers($guild->id);
+		yield $this->sendRequestGuildMembers($guild->id);
 		asyncCall(function () use ($guild): Generator {
 			try {
 				$invites = yield $this->discordAPIClient->getGuildInvites($guild->id);
@@ -857,12 +958,10 @@ class DiscordGatewayController extends ModuleInstance {
 			if (!isset($voiceState->user_id)) {
 				continue;
 			}
-			$this->discordAPIClient->getGuildMember($guild->id, $voiceState->user_id)
-				->onResolve(function (?Throwable $error, ?GuildMember $member) use ($voiceState): void {
-					if (isset($member)) {
-						$voiceState->member = $member;
-					}
-				});
+			$member = yield $this->discordAPIClient->getGuildMember($guild->id, $voiceState->user_id);
+			if (isset($member)) {
+				$voiceState->member = $member;
+			}
 		}
 		foreach ($guild->channels as $channel) {
 			if (!isset($channel->name)) {
@@ -1459,7 +1558,7 @@ class DiscordGatewayController extends ModuleInstance {
 			return;
 		}
 		$gateway = yield $this->discordAPIClient->getGateway();
-		$this->connectUsingGateway($gateway);
+		rethrow($this->connectToGateway());
 		$context->reply("Connecting to Discord.");
 	}
 
@@ -1468,15 +1567,15 @@ class DiscordGatewayController extends ModuleInstance {
 	public function disconnectCommand(
 		CmdContext $context,
 		#[NCA\Str("disconnect")] string $action,
-	): void {
+	): Generator {
 		if (!$this->isConnected() || !isset($this->client)) {
 			$context->reply("The bot is already disconnected from Discord.");
 			return;
 		}
 		$this->mustReconnect = false;
 		$this->logger->notice("Closing Discord gateway connection.");
-		$this->client->close();
-		$context->reply("Successfully disconnect from Discord.");
+		yield $this->client->close();
+		$context->reply("Successfully disconnected from Discord.");
 	}
 
 	/** Request an invite to the org's Discord server that links to this character */

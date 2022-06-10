@@ -47,7 +47,8 @@
 		"amphp/amp": "^2.6",
 		"amphp/http-client": "^4.6",
 		"amphp/cache": "^1.5.0",
-		"amphp/file": "^2.0"
+		"amphp/file": "^2.0",
+		"amphp/websocket-client": "^1.0"
 	},
 	"autoload": {
 		"psr-4": {
