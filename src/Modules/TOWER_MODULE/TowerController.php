@@ -12,6 +12,7 @@ use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
 	CommandReply,
+	ConfigFile,
 	DB,
 	DBSchema\Player,
 	EventManager,
@@ -25,6 +26,7 @@ use Nadybot\Core\{
 	QueryBuilder,
 	Routing\RoutableMessage,
 	Routing\Source,
+	SettingEvent,
 	Text,
 	Util,
 };
@@ -149,6 +151,9 @@ class TowerController extends ModuleInstance {
 	public PlayfieldController $playfieldController;
 
 	#[NCA\Inject]
+	public ConfigFile $config;
+
+	#[NCA\Inject]
 	public PlayerManager $playerManager;
 
 	#[NCA\Inject]
@@ -229,7 +234,7 @@ class TowerController extends ModuleInstance {
 		"off",
 		"@here Our field in {location} is being attacked by {player}"
 	])]
-	public string $discordNotifyOrgAttacks = "@here Our field in {location} is being attacked by {player}";
+	public string $discordNotifyOrgAttacks = "off";
 
 	/** @var AttackListener[] */
 	protected array $attackListeners = [];
@@ -271,6 +276,30 @@ class TowerController extends ModuleInstance {
 		$this->messageHub->registerMessageEmitter($attack)
 			->registerMessageEmitter($attackOwn)
 			->registerMessageEmitter($victory);
+	}
+
+	#[NCA\Event(
+		name: "setting(discord_notify_org_attacks)",
+		description: "Check if a route is already in place"
+	)]
+	public function remindIfNoRouteForAttackMsg(SettingEvent $event): void {
+		if ($event->newValue->value === "off") {
+			return;
+		}
+		$routeName = Source::SYSTEM . "(tower-attack-own)";
+		$hasRoute = $this->messageHub->hasRouteFor($routeName);
+		if ($hasRoute) {
+			return;
+		}
+		$msg = "In order to actually see warning about your own towers being ".
+			"attack on Discord, you have to add a route similar to ".
+			"<highlight><symbol>route add {$routeName} -> discordpriv(example channel)".
+			"<end>";
+		if (isset($this->config->orgId)) {
+			$this->chatBot->sendGuild($msg, true);
+		} else {
+			$this->chatBot->sendPrivate($msg, true);
+		}
 	}
 
 	#[NCA\Event(

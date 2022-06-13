@@ -10,6 +10,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - You can now sync bans and unbans via nadynative
+- When changing the message that should be send to Discord whenever your own towers are being attacked, the bot will now warn if there is no route in place to actually make use of this message.
+
+### Changed
+
+- The default discord notification for own towers being attack has been change to off.
 
 ### Fix
 
