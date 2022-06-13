@@ -17,7 +17,8 @@ return $config
 		],
 		'array_syntax' => ['syntax' => 'short'],
 		'braces' => [
-			'allow_single_line_closure' => true,
+//			'allow_single_line_closure' => true,
+			'allow_single_line_closure' => false,
 			'position_after_anonymous_constructs' => 'same',
 			'position_after_control_structures' => 'same',
 			'position_after_functions_and_oop_constructs' => 'same',
@@ -31,8 +32,10 @@ return $config
 //			'property' => 'one',
 		]],
 		'class_definition' => [
-			'single_line' => true,
-			'space_before_parenthesis' => false,
+			'single_line' => false,
+//			'single_line' => true,
+			'space_before_parenthesis' => true,
+//			'space_before_parenthesis' => false,
 		],
 		'class_reference_name_casing' => true,
 		'clean_namespace' => true,
@@ -56,7 +59,8 @@ return $config
 		'full_opening_tag' => true,
 //		'fully_qualified_strict_types' => true,
 		'function_declaration' => [
-			'closure_function_spacing' => 'none',
+//			'closure_function_spacing' => 'none',
+			'closure_function_spacing' => 'one',
 			'trailing_comma_single_line' => false,
 		],
 		'function_typehint_space' => true,

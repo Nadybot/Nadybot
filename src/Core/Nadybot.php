@@ -1254,11 +1254,10 @@ class Nadybot extends AOChat {
 	/**
 	 * Retrieve the character name of a UID, or null if inactive or UID doesn't exist
 	 *
-	 * @param mixed $args
 	 * @psalm-param callable(?string, mixed...) $callback
 	 * @deprecated 6.1.0
 	 */
-	public function getName(int $uid, callable $callback, ...$args): void {
+	public function getName(int $uid, callable $callback, mixed ...$args): void {
 		asyncCall(function () use ($uid, $callback, $args): Generator {
 			$name = yield $this->uidToName($uid);
 			$callback($name, ...$args);
