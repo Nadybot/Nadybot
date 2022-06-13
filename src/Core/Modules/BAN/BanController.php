@@ -16,6 +16,7 @@ use Nadybot\Core\{
 	CmdContext,
 	DBSchema\Audit,
 	DBSchema\Player,
+	EventManager,
 	ModuleInstance,
 	Modules\ALTS\AltsController,
 	Modules\PLAYER_LOOKUP\PlayerManager,
@@ -59,6 +60,15 @@ use Nadybot\Core\{
 		description: "Ban or unban a whole org",
 		alias: "orgbans"
 	),
+
+	NCA\ProvidesEvent(
+		event: "sync(ban)",
+		desc: "Triggered whenever someone is banned"
+	),
+	NCA\ProvidesEvent(
+		event: "sync(ban-delete)",
+		desc: "Triggered when someone's ban is lifted"
+	)
 ]
 class BanController extends ModuleInstance {
 	public const DB_TABLE = "banlist_<myname>";
@@ -69,6 +79,9 @@ class BanController extends ModuleInstance {
 
 	#[NCA\Inject]
 	public AltsController $altsController;
+
+	#[NCA\Inject]
+	public EventManager $eventManager;
 
 	#[NCA\Inject]
 	public PlayerManager $playerManager;
@@ -143,7 +156,7 @@ class BanController extends ModuleInstance {
 		$who = $who();
 		$length = $duration->toSecs();
 
-		[$success, $msgs] = yield $this->banPlayer($who, $context->char->name, $length, $reason);
+		[$success, $msgs] = yield $this->banPlayer($who, $context->char->name, $length, $reason, $context);
 		if (count($msgs)) {
 			$context->reply(join("\n", $msgs));
 		}
@@ -177,7 +190,7 @@ class BanController extends ModuleInstance {
 		$who = $who();
 		$length = $duration->toSecs();
 
-		[$success, $msgs] = yield $this->banPlayer($who, $context->char->name, $length, '');
+		[$success, $msgs] = yield $this->banPlayer($who, $context->char->name, $length, '', $context);
 		if (isset($msgs)) {
 			$context->reply(join("\n", $msgs));
 		}
@@ -210,7 +223,7 @@ class BanController extends ModuleInstance {
 	): Generator {
 		$who = $who();
 
-		[$success, $msgs] = yield $this->banPlayer($who, $context->char->name, null, $reason);
+		[$success, $msgs] = yield $this->banPlayer($who, $context->char->name, null, $reason, $context);
 		if (isset($msgs)) {
 			$context->reply(join("\n", $msgs));
 		}
@@ -238,7 +251,7 @@ class BanController extends ModuleInstance {
 	public function banPlayerCommand(CmdContext $context, PCharacter $who): Generator {
 		$who = $who();
 
-		[$success, $msgs] = yield $this->banPlayer($who, $context->char->name, null, '');
+		[$success, $msgs] = yield $this->banPlayer($who, $context->char->name, null, '', $context);
 		if (isset($msgs)) {
 			$context->reply(join("\n", $msgs));
 		}
@@ -322,6 +335,12 @@ class BanController extends ModuleInstance {
 				continue;
 			}
 			$this->remove($charId);
+			$event = new SyncBanDeleteEvent();
+			$event->uid = $charId;
+			$event->name = $charName;
+			$event->unbanned_by = $context->char->name;
+			$event->forceSync = $context->forceSync;
+			$this->eventManager->fireEvent($event);
 		}
 
 		$context->reply("You have unbanned <highlight>{$who}<end> and all their alts from this bot.");
@@ -349,6 +368,13 @@ class BanController extends ModuleInstance {
 		}
 
 		$this->remove($charId);
+
+		$event = new SyncBanDeleteEvent();
+		$event->uid = $charId;
+		$event->name = $who;
+		$event->unbanned_by = $context->char->name;
+		$event->forceSync = $context->forceSync;
+		$this->eventManager->fireEvent($event);
 
 		$context->reply("You have unbanned <highlight>{$who}<end> from this bot.");
 		if ($this->notifyBannedPlayer) {
@@ -391,8 +417,8 @@ class BanController extends ModuleInstance {
 	 * This helper method bans player with given arguments.
 	 * @return Promise<array{bool,string[]}>
 	 */
-	private function banPlayer(string $who, string $sender, ?int $length, ?string $reason): Promise {
-		return call(function() use ($who, $sender, $length, $reason): Generator {
+	private function banPlayer(string $who, string $sender, ?int $length, ?string $reason, CmdContext $context): Promise {
+		return call(function() use ($who, $sender, $length, $reason, $context): Generator {
 			$toBan = [$who];
 			if ($this->banAllAlts) {
 				$altInfo = $this->altsController->getAltInfo($who);
@@ -435,6 +461,15 @@ class BanController extends ModuleInstance {
 					$audit->value = "banned";
 					$this->accessManager->addAudit($audit);
 					$numSuccess++;
+
+					$event = new SyncBanEvent();
+					$event->uid = $charId;
+					$event->name = $who;
+					$event->banned_by = $sender;
+					$event->banned_until = $length;
+					$event->reason = $reason;
+					$event->forceSync = $context->forceSync;
+					$this->eventManager->fireEvent($event);
 				} else {
 					$numErrors++;
 				}
@@ -773,5 +808,27 @@ class BanController extends ModuleInstance {
 		$context->reply("Removed <highlight>{$ban->org_name}<end> from the banlist.");
 		unset($this->orgbanlist[$orgId]);
 		return null;
+	}
+
+	#[NCA\Event(
+		name: "sync(ban)",
+		description: "Sync external bans"
+	)]
+	public function processBanSyncEvent(SyncBanEvent $event): void {
+		if ($event->isLocal()) {
+			return;
+		}
+		$this->add($event->uid, $event->banned_by, $event->banned_until, $event->reason);
+	}
+
+	#[NCA\Event(
+		name: "sync(ban-delete)",
+		description: "Sync external ban lifts"
+	)]
+	public function processBanDeleteSyncEvent(SyncBanDeleteEvent $event): void {
+		if ($event->isLocal()) {
+			return;
+		}
+		$this->remove($event->uid);
 	}
 }
