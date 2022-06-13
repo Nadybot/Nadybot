@@ -13,3 +13,4 @@
 /html/*
 !/html/api.json
 /php
+.php-cs-fixer.cache
