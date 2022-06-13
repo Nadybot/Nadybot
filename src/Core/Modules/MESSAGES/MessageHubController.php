@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Nadybot\Core\Modules\MESSAGES;
 
 use Exception;
+use Generator;
 use Safe\Exceptions\JsonException;
 use ReflectionClass;
 use ReflectionException;
@@ -144,7 +145,7 @@ class MessageHubController extends ModuleInstance {
 		PDirection $direction,
 		PSource $to,
 		?string $modifiers
-	): void {
+	): Generator {
 		$force = (strtolower($action) === "addforce");
 		$to = $this->fixDiscordChannelName($to());
 		$from = $this->fixDiscordChannelName($from());
@@ -190,12 +191,7 @@ class MessageHubController extends ModuleInstance {
 			}
 		}
 		/** @var null|RouteModifier[] $modifiers */
-		$transactionRunning = false;
-		try {
-			$this->db->beginTransaction();
-		} catch (Exception $e) {
-			$transactionRunning = true;
-		}
+		yield $this->db->awaitBeginTransaction();
 		try {
 			$route->id = $this->db->insert($this->messageHub::DB_TABLE_ROUTES, $route);
 			foreach ($modifiers??[] as $modifier) {
@@ -214,9 +210,6 @@ class MessageHubController extends ModuleInstance {
 				$route->modifiers []= $modifier;
 			}
 		} catch (Throwable $e) {
-			if ($transactionRunning) {
-				throw $e;
-			}
 			$this->db->rollback();
 			$context->reply("Error saving the route: " . $e->getMessage());
 			return;
@@ -228,16 +221,11 @@ class MessageHubController extends ModuleInstance {
 		try {
 			$msgRoute = $this->messageHub->createMessageRoute($route);
 		} catch (Exception $e) {
-			if ($transactionRunning) {
-				throw $e;
-			}
 			$this->db->rollback();
 			$context->reply($e->getMessage());
 			return;
 		}
-		if (!$transactionRunning) {
-			$this->db->commit();
-		}
+		$this->db->commit();
 		$this->messageHub->addRoute($msgRoute);
 		$context->reply(
 			"Route added from <highlight>{$from}<end> ".
@@ -368,7 +356,7 @@ class MessageHubController extends ModuleInstance {
 
 	/** Delete a route by its ID */
 	#[NCA\HandlesCommand("route")]
-	public function routeDel(CmdContext $context, PRemove $action, int $id): void {
+	public function routeDel(CmdContext $context, PRemove $action, int $id): Generator {
 		$route = $this->getRoute($id);
 		if (!isset($route)) {
 			$context->reply("No route <highlight>#{$id}<end> found.");
@@ -376,7 +364,7 @@ class MessageHubController extends ModuleInstance {
 		}
 		/** @var int[] List of modifier-ids for the route */
 		$modifiers = array_column($route->modifiers, "id");
-		$this->db->beginTransaction();
+		yield $this->db->awaitBeginTransaction();
 		try {
 			if (count($modifiers)) {
 				$this->db->table($this->messageHub::DB_TABLE_ROUTE_MODIFIER_ARGUMENT)

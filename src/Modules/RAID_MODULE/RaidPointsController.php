@@ -2,7 +2,6 @@
 
 namespace Nadybot\Modules\RAID_MODULE;
 
-use Amp\Loop;
 use Safe\DateTime;
 use Exception;
 use Generator;
@@ -702,7 +701,7 @@ class RaidPointsController extends ModuleInstance {
 			description: "Merge raid points when alts merge"
 		)
 	]
-	public function mergeRaidPoints(AltEvent $event): void {
+	public function mergeRaidPoints(AltEvent $event): Generator {
 		if ($event->validated === false) {
 			return;
 		}
@@ -713,19 +712,13 @@ class RaidPointsController extends ModuleInstance {
 		if ($altsPoints === null) {
 			return;
 		}
-		if ($this->db->inTransaction()) {
-			Loop::defer(function () use ($event): void {
-				$this->mergeRaidPoints($event);
-			});
-			return;
-		}
 		$mainPoints = $this->getThisAltsRaidPoints($event->main);
 		$this->logger->notice(
 			"Adding {$event->alt} as an alt of {$event->main} requires us to merge their raid points. ".
 			"Combining {$event->alt}'s points ({$altsPoints}) with {$event->main}'s (".
 			($mainPoints??0) . ")"
 		);
-		$this->db->beginTransaction();
+		yield $this->db->awaitBeginTransaction();
 		try {
 			$newPoints = $altsPoints + ($mainPoints??0);
 			$this->db->table(self::DB_TABLE)

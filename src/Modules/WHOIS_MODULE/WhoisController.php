@@ -17,6 +17,7 @@ use Nadybot\Core\{
 	DB,
 	DBSchema\Audit,
 	DBSchema\Player,
+	LoggerWrapper,
 	ModuleInstance,
 	Modules\ALTS\AltsController,
 	Modules\PLAYER_LOOKUP\PlayerManager,
@@ -27,6 +28,7 @@ use Nadybot\Core\{
 	Util,
 };
 use Nadybot\Modules\COMMENT_MODULE\CommentController;
+use Throwable;
 
 /**
  * @author Tyrence (RK2)
@@ -77,6 +79,9 @@ class WhoisController extends ModuleInstance {
 	#[NCA\Inject]
 	public AccessManager $accessManager;
 
+	#[NCA\Logger]
+	public LoggerWrapper $logger;
+
 	/** Add link to comments if found */
 	#[NCA\Setting\Boolean]
 	public bool $whoisAddComments = true;
@@ -88,37 +93,46 @@ class WhoisController extends ModuleInstance {
 		name: "timer(1min)",
 		description: "Save cache of names and charIds to database"
 	)]
-	public function saveCharIds(Event $eventObj): void {
+	public function saveCharIds(Event $eventObj): Generator {
 		if (empty($this->nameHistoryCache) || $this->db->inTransaction()) {
 			return;
 		}
-		$this->db->beginTransaction();
-		foreach ($this->nameHistoryCache as $entry) {
-			if ($this->db->getType() === DB::MSSQL) {
-				if ($this->db->table("name_history")
-					->where("name", $entry->name)
-					->where("charid", $entry->charid)
-					->where("dimension", $this->db->getDim())
-					->exists()
-				) {
-					continue;
+		yield $this->db->awaitBeginTransaction();
+		try {
+			foreach ($this->nameHistoryCache as $entry) {
+				if ($this->db->getType() === DB::MSSQL) {
+					if ($this->db->table("name_history")
+						->where("name", $entry->name)
+						->where("charid", $entry->charid)
+						->where("dimension", $this->db->getDim())
+						->exists()
+					) {
+						continue;
+					}
+					$this->db->table("name_history")
+						->insert([
+							"name" => $entry->name,
+							"charid" => $entry->charid,
+							"dimension" => $this->db->getDim(),
+							"dt" => time(),
+						]);
+				} else {
+					$this->db->table("name_history")
+						->insertOrIgnore([
+							"name" => $entry->name,
+							"charid" => $entry->charid,
+							"dimension" => $this->db->getDim(),
+							"dt" => time(),
+						]);
 				}
-				$this->db->table("name_history")
-					->insert([
-						"name" => $entry->name,
-						"charid" => $entry->charid,
-						"dimension" => $this->db->getDim(),
-						"dt" => time(),
-					]);
-			} else {
-				$this->db->table("name_history")
-					->insertOrIgnore([
-						"name" => $entry->name,
-						"charid" => $entry->charid,
-						"dimension" => $this->db->getDim(),
-						"dt" => time(),
-					]);
 			}
+		} catch (Throwable $e) {
+			$this->logger->error("Error saving lookup-cache: {error}", [
+				"error" => $e->getMessage(),
+				"exception" => $e,
+			]);
+			$this->db->rollback();
+			return;
 		}
 		$this->db->commit();
 

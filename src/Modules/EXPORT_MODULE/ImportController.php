@@ -294,7 +294,7 @@ class ImportController extends ModuleInstance {
 		return call(function () use ($alts): Generator {
 			$this->logger->notice("Importing alts for " . count($alts) . " character(s)");
 			$numImported = 0;
-			$this->db->beginTransaction();
+			yield $this->db->awaitBeginTransaction();
 			try {
 				$this->logger->notice("Deleting all alts");
 				$this->db->table("alts")->truncate();
@@ -344,7 +344,7 @@ class ImportController extends ModuleInstance {
 	public function importAuctions(array $auctions): Promise {
 		return call(function () use ($auctions): Generator {
 			$this->logger->notice("Importing " . count($auctions) . " auction(s)");
-			$this->db->beginTransaction();
+			yield $this->db->awaitBeginTransaction();
 			try {
 				$this->logger->notice("Deleting all auctions");
 				$this->db->table(AuctionController::DB_TABLE)->truncate();
@@ -379,7 +379,7 @@ class ImportController extends ModuleInstance {
 		return call(function () use ($banlist): Generator {
 			$numImported = 0;
 			$this->logger->notice("Importing " . count($banlist) . " ban(s)");
-			$this->db->beginTransaction();
+			yield $this->db->awaitBeginTransaction();
 			try {
 				$this->logger->notice("Deleting all bans");
 				$this->db->table(BanController::DB_TABLE)->truncate();
@@ -417,7 +417,7 @@ class ImportController extends ModuleInstance {
 	public function importCloak(array $cloakActions): Promise {
 		return call(function () use ($cloakActions): Generator {
 			$this->logger->notice("Importing " . count($cloakActions) . " cloak action(s)");
-			$this->db->beginTransaction();
+			yield $this->db->awaitBeginTransaction();
 			try {
 				$this->logger->notice("Deleting all cloak actions");
 				$this->db->table(CloakController::DB_TABLE)->truncate();
@@ -447,7 +447,7 @@ class ImportController extends ModuleInstance {
 	public function importLinks(array $links): Promise {
 		return call(function () use ($links): Generator {
 			$this->logger->notice("Importing " . count($links) . " links");
-			$this->db->beginTransaction();
+			yield $this->db->awaitBeginTransaction();
 			try {
 				$this->logger->notice("Deleting all links");
 				$this->db->table("links")->truncate();
@@ -485,7 +485,7 @@ class ImportController extends ModuleInstance {
 		return call(function () use ($members, $rankMap): Generator {
 			$numImported = 0;
 			$this->logger->notice("Importing " . count($members) . " member(s)");
-			$this->db->beginTransaction();
+			yield $this->db->awaitBeginTransaction();
 			try {
 				$this->logger->notice("Deleting all members");
 				$this->db->table(PrivateChannelController::DB_TABLE)->truncate();
@@ -570,7 +570,7 @@ class ImportController extends ModuleInstance {
 	public function importNews(array $news): Promise {
 		return call(function () use ($news): Generator {
 			$this->logger->notice("Importing " . count($news) . " news");
-			$this->db->beginTransaction();
+			yield $this->db->awaitBeginTransaction();
 			try {
 				$this->logger->notice("Deleting all news");
 				$this->db->table("news_confirmed")->truncate();
@@ -615,7 +615,7 @@ class ImportController extends ModuleInstance {
 	public function importNotes(array $notes): Promise {
 		return call(function () use ($notes): Generator {
 			$this->logger->notice("Importing " . count($notes) . " notes");
-			$this->db->beginTransaction();
+			yield $this->db->awaitBeginTransaction();
 			try {
 				$this->logger->notice("Deleting all notes");
 				$this->db->table("notes")->truncate();
@@ -657,7 +657,7 @@ class ImportController extends ModuleInstance {
 	public function importPolls(array $polls): Promise {
 		return call(function () use ($polls): Generator {
 			$this->logger->notice("Importing " . count($polls) . " polls");
-			$this->db->beginTransaction();
+			yield $this->db->awaitBeginTransaction();
 			try {
 				$this->logger->notice("Deleting all polls");
 				$this->db->table(VoteController::DB_VOTES)->truncate();
@@ -709,7 +709,7 @@ class ImportController extends ModuleInstance {
 	public function importQuotes(array $quotes): Promise {
 		return call(function () use ($quotes): Generator {
 			$this->logger->notice("Importing " . count($quotes) . " quotes");
-			$this->db->beginTransaction();
+			yield $this->db->awaitBeginTransaction();
 			try {
 				$this->logger->notice("Deleting all quotes");
 				$this->db->table("quote")->truncate();
@@ -739,7 +739,7 @@ class ImportController extends ModuleInstance {
 	public function importRaffleBonus(array $bonuses): Promise {
 		return call(function () use ($bonuses): Generator {
 			$this->logger->notice("Importing " . count($bonuses) . " raffle bonuses");
-			$this->db->beginTransaction();
+			yield $this->db->awaitBeginTransaction();
 			try {
 				$this->logger->notice("Deleting all raffle bonuses");
 				$this->db->table(RaffleController::DB_TABLE)->truncate();
@@ -772,7 +772,7 @@ class ImportController extends ModuleInstance {
 	public function importRaidBlocks(array $blocks): Promise {
 		return call(function () use ($blocks): Generator {
 			$this->logger->notice("Importing " . count($blocks) . " raid blocks");
-			$this->db->beginTransaction();
+			yield $this->db->awaitBeginTransaction();
 			try {
 				$this->logger->notice("Deleting all raid blocks");
 				$this->db->table(RaidBlockController::DB_TABLE)->truncate();
@@ -809,7 +809,7 @@ class ImportController extends ModuleInstance {
 	public function importRaids(array $raids): Promise {
 		return call(function () use ($raids): Generator {
 			$this->logger->notice("Importing " . count($raids) . " raids");
-			$this->db->beginTransaction();
+			yield $this->db->awaitBeginTransaction();
 			try {
 				$this->logger->notice("Deleting all raids");
 				$this->db->table(RaidController::DB_TABLE)->truncate();
@@ -887,7 +887,7 @@ class ImportController extends ModuleInstance {
 	public function importRaidPoints(array $points): Promise {
 		return call(function () use ($points): Generator {
 			$this->logger->notice("Importing " . count($points) . " raid points");
-			$this->db->beginTransaction();
+			yield $this->db->awaitBeginTransaction();
 			try {
 				$this->logger->notice("Deleting all raid points");
 				$this->db->table(RaidPointsController::DB_TABLE)->truncate();
@@ -919,7 +919,7 @@ class ImportController extends ModuleInstance {
 	public function importRaidPointsLog(array $points): Promise {
 		return call(function () use ($points): Generator {
 			$this->logger->notice("Importing " . count($points) . " raid point logs");
-			$this->db->beginTransaction();
+			yield $this->db->awaitBeginTransaction();
 			try {
 				$this->logger->notice("Deleting all raid point logs");
 				$this->db->table(RaidPointsController::DB_TABLE_LOG)->truncate();
@@ -977,7 +977,7 @@ class ImportController extends ModuleInstance {
 		return call(function () use ($timers): Generator {
 			$table = TimerController::DB_TABLE;
 			$this->logger->notice("Importing " . count($timers) . " timers");
-			$this->db->beginTransaction();
+			yield $this->db->awaitBeginTransaction();
 			try {
 				$this->logger->notice("Deleting all timers");
 				$this->db->table($table)->truncate();
@@ -1035,7 +1035,7 @@ class ImportController extends ModuleInstance {
 	public function importTrackedCharacters(array $trackedUsers): Promise {
 		return call(function () use ($trackedUsers): Generator {
 			$this->logger->notice("Importing " . count($trackedUsers) . " tracked users");
-			$this->db->beginTransaction();
+			yield $this->db->awaitBeginTransaction();
 			try {
 				$this->logger->notice("Deleting all tracked users");
 				$this->db->table(TrackerController::DB_TABLE)->truncate();
@@ -1083,7 +1083,7 @@ class ImportController extends ModuleInstance {
 	public function importCommentCategories(array $categories, array $rankMap): Promise {
 		return call(function () use ($categories, $rankMap): Generator {
 			$this->logger->notice("Importing " . count($categories) . " comment categories");
-			$this->db->beginTransaction();
+			yield $this->db->awaitBeginTransaction();
 			try {
 				$this->logger->notice("Deleting all user-managed comment categories");
 				$this->db->table("<table:comment_categories>")
@@ -1123,7 +1123,7 @@ class ImportController extends ModuleInstance {
 	public function importComments(array $comments): Promise {
 		return call(function () use ($comments): Generator {
 			$this->logger->notice("Importing " . count($comments) . " comment(s)");
-			$this->db->beginTransaction();
+			yield $this->db->awaitBeginTransaction();
 			try {
 				$this->logger->notice("Deleting all comments");
 				$this->db->table("<table:comments>")->truncate();

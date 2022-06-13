@@ -504,7 +504,7 @@ class ConfigApiController extends ModuleInstance {
 		NCA\AccessLevel("superadmin"),
 		NCA\ApiResult(code: 204, class: "ExtCmdPermissionSet", desc: "Permission Set changed successfully")
 	]
-	public function apiConfigPermissionSetPatchEndpoint(Request $request, HttpProtocolWrapper $server, string $name): Response {
+	public function apiConfigPermissionSetPatchEndpoint(Request $request, HttpProtocolWrapper $server, string $name): Generator {
 		$set = $request->decodedBody;
 		try {
 			if (!is_object($set)) {
@@ -523,7 +523,7 @@ class ConfigApiController extends ModuleInstance {
 			$old->{$key} = $value;
 		}
 		try {
-			$this->commandManager->changePermissionSet($name, $old);
+			yield $this->commandManager->changePermissionSet($name, $old);
 		} catch (Exception $e) {
 			return new Response(Response::UNPROCESSABLE_ENTITY, [], $e->getMessage());
 		}

@@ -3,6 +3,7 @@
 namespace Nadybot\Modules\RELAY_MODULE;
 
 use Exception;
+use Generator;
 use Illuminate\Support\Collection;
 use Safe\Exceptions\JsonException;
 use ReflectionClass;
@@ -1389,7 +1390,7 @@ class RelayController extends ModuleInstance {
 		NCA\ApiResult(code: 204, desc: "The event configuration was set"),
 		NCA\ApiResult(code: 404, desc: "Relay not found")
 	]
-	public function apiPutRelayEventsByNameEndpoint(Request $request, HttpProtocolWrapper $server, string $relay): Response {
+	public function apiPutRelayEventsByNameEndpoint(Request $request, HttpProtocolWrapper $server, string $relay): Generator {
 		$relay = $this->getRelayByName($relay);
 		if (!isset($relay)) {
 			return new Response(Response::NOT_FOUND);
@@ -1411,14 +1412,14 @@ class RelayController extends ModuleInstance {
 		} catch (Throwable $e) {
 			return new Response(Response::UNPROCESSABLE_ENTITY);
 		}
-		/** @var RelayEvent[] $events */
-		$this->db->beginTransaction();
+		yield $this->db->awaitBeginTransaction();
 		$oldEvents = $relay->events;
 		try {
 			$this->db->table(static::DB_TABLE_EVENT)
 				->where("relay_id", $relay->id)
 				->delete();
 			$relay->events = [];
+			/** @var RelayEvent[] $events */
 			foreach ($events as $event) {
 				$event->relay_id = $relay->id;
 				$event->id = $this->db->insert(static::DB_TABLE_EVENT, $event, "id");

@@ -192,7 +192,7 @@ class GuildManager extends ModuleInstance {
 			if ($fromCache) {
 				return $guild;
 			}
-			$this->db->beginTransaction();
+			yield $this->db->awaitBeginTransaction();
 
 			$this->db->table("players")
 				->where("guild_id", $guild->guild_id)

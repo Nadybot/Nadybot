@@ -6,6 +6,7 @@ use DateInterval;
 use DateTime;
 use DateTimeZone;
 use Exception;
+use Generator;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
@@ -139,19 +140,18 @@ class ArbiterController extends ModuleInstance {
 		#[NCA\Str("set")] string $action,
 		#[NCA\StrChoice("ai", "bs", "dio")] string $setWeek,
 		#[NCA\Str("ends")] ?string $ends
-	): void {
+	): Generator {
 		$setWeek = strtolower($setWeek);
 		$validTypes = [static::AI, static::BS, static::DIO];
 		$pos = array_search($setWeek, $validTypes);
 		if ($pos === false) {
 			return;
 		}
-		/** @var string $setWeek */
-		$this->db->beginTransaction();
 		$day = (new DateTime("now", new DateTimeZone("UTC")))->format("N");
 		$startsToday = ($day === "7") && !isset($ends);
 		$start =  \Safe\strtotime($startsToday ? "today" : "last sunday");
 		$end = \Safe\strtotime($startsToday ? "monday + 7 days" : "next monday");
+		yield $this->db->awaitBeginTransaction();
 		try {
 			$this->db->table(static::DB_TABLE)->truncate();
 			for ($i = 0; $i < 3; $i++) {

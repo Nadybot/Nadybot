@@ -388,7 +388,10 @@ class AltsController extends ModuleInstance {
 	 */
 	#[NCA\HandlesCommand("alts")]
 	#[NCA\Help\Group("alts")]
-	public function setMainCommand(CmdContext $context, #[NCA\Str("setmain")] string $action): void {
+	public function setMainCommand(
+		CmdContext $context,
+		#[NCA\Str("setmain")] string $action
+	): Generator {
 		$newMain = $context->char->name;
 		$altInfo = $this->getAltInfo($newMain);
 
@@ -404,7 +407,7 @@ class AltsController extends ModuleInstance {
 			return;
 		}
 
-		$this->db->beginTransaction();
+		yield $this->db->awaitBeginTransaction();
 		try {
 			// remove all the old alt information
 			$this->db->table("alts")->where("main", $altInfo->main)->delete();

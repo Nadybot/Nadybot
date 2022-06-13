@@ -223,7 +223,7 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 		try {
 			foreach ($orgs as $org) {
 				$orgData = yield $this->guildManager->byId($org->org_id, $this->config->dimension, true);
-				$this->updateRosterForOrg($orgData);
+				yield $this->updateRosterForOrg($orgData);
 			}
 		} catch (Throwable $e) {
 			$this->logger->error($e->getMessage(), ["Exception" => $e->getPrevious()]);
@@ -609,7 +609,7 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 				$context->reply("No data found for <" . strtolower($org->faction) . ">{$org->name}<end>.");
 				return null;
 			}
-			$this->updateRosterForOrg($guild);
+			yield $this->updateRosterForOrg($guild);
 		} catch (Throwable $e) {
 			$this->logger->error($e->getMessage(), ["Exception" => $e->getPrevious()]);
 			$context->reply($e->getMessage());
@@ -732,7 +732,7 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 		$context->reply($msg);
 	}
 
-	public function updateRosterForOrg(?Guild $org): void {
+	private function updateRosterForOrg(?Guild $org): Generator {
 		// Check if JSON file was downloaded properly
 		if ($org === null) {
 			throw new Exception("Error downloading the guild roster JSON file");
@@ -749,7 +749,7 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 			->where("org_id", $org->guild_id)
 			->asObj(TrackingOrgMember::class)
 			->keyBy("uid");
-		$this->db->beginTransaction();
+		yield $this->db->awaitBeginTransaction();
 		$toInsert = [];
 		try {
 			foreach ($org->members as $member) {

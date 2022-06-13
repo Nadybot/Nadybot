@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\BANK_MODULE;
 
+use function Amp\call;
 use function Amp\File\filesystem;
 use function Safe\preg_split;
 
@@ -9,6 +10,7 @@ use Amp\File\FilesystemException;
 use Amp\Http\Client\HttpClientBuilder;
 use Amp\Http\Client\Request;
 use Amp\Http\Client\Response;
+use Amp\Promise;
 use Generator;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
@@ -217,43 +219,46 @@ class BankController extends ModuleInstance {
 			}
 		}
 		$lines = preg_split("/(?:\r\n|\r|\n)/", $body);
-		$this->bankUpdate($context, $lines);
+		yield $this->bankUpdate($lines);
+		$context->reply("The bank database has been updated.");
 	}
 
-	/** @param string[] $lines */
-	public function bankUpdate(CmdContext $context, array $lines): void {
-		//remove the header line
-		array_shift($lines);
+	/**
+	 * @param string[] $lines
+	 * @return Promise<void>
+	 */
+	private function bankUpdate(array $lines): Promise {
+		return call(function () use ($lines): Generator {
+			//remove the header line
+			array_shift($lines);
 
-		$this->db->beginTransaction();
-		$this->db->table("bank")->truncate();
+			yield $this->db->awaitBeginTransaction();
+			$this->db->table("bank")->truncate();
 
-		foreach ($lines as $line) {
-			// this is the order of columns in the CSV file (AOIA v1.1.3.0):
-			// Item Name,QL,Character,Backpack,Location,LowID,HighID,ContainerID,Link
-			[$name, $ql, $player, $container, $location, $lowId, $highId, $containerId] = str_getcsv($line);
-			if ($location !== 'Bank' && $location !== 'Inventory') {
-				continue;
+			foreach ($lines as $line) {
+				// this is the order of columns in the CSV file (AOIA v1.1.3.0):
+				// Item Name,QL,Character,Backpack,Location,LowID,HighID,ContainerID,Link
+				[$name, $ql, $player, $container, $location, $lowId, $highId, $containerId] = str_getcsv($line);
+				if ($location !== 'Bank' && $location !== 'Inventory') {
+					continue;
+				}
+				if ($container == '') {
+					$container = $location;
+				}
+
+				$this->db->table("bank")
+					->insert([
+						"name" => $name,
+						"lowid" => $lowId,
+						"highid" => $highId,
+						"ql" => $ql,
+						"player" => $player,
+						"container" => $container,
+						"container_id" => $containerId,
+						"location" => $location,
+					]);
 			}
-			if ($container == '') {
-				$container = $location;
-			}
-
-			$this->db->table("bank")
-				->insert([
-					"name" => $name,
-					"lowid" => $lowId,
-					"highid" => $highId,
-					"ql" => $ql,
-					"player" => $player,
-					"container" => $container,
-					"container_id" => $containerId,
-					"location" => $location,
-				]);
-		}
-		$this->db->commit();
-
-		$msg = "The bank database has been updated.";
-		$context->reply($msg);
+			$this->db->commit();
+		});
 	}
 }
