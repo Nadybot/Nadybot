@@ -2,16 +2,42 @@
 
 namespace Nadybot\Modules\RELAY_MODULE\Transport;
 
-use Amp\Loop;
+use function Amp\{
+	asyncCall,
+	call,
+	delay,
+	Promise\rethrow,
+};
+
+use Amp\Http\Client\{
+	Connection\DefaultConnectionFactory,
+	Connection\UnlimitedConnectionPool,
+	Connection\UnprocessedRequestException,
+	HttpClientBuilder,
+	Interceptor\AddRequestHeader,
+	Interceptor\RemoveRequestHeader,
+	Interceptor\SetRequestHeaderIfUnset,
+	TimeoutException,
+};
+use Amp\{
+	Loop,
+	Promise,
+	Socket\ConnectContext,
+};
+use Amp\Websocket\{
+	Client\Connection,
+	Client\Handshake,
+	Client\Rfc6455Connector,
+	Message,
+};
 use Exception;
+use Generator;
+use Throwable;
 use Nadybot\Core\{
 	Attributes as NCA,
+	BotRunner,
 	LoggerWrapper,
 	Nadybot,
-	Websocket as CoreWebsocket,
-	WebsocketCallback,
-	WebsocketClient,
-	WebsocketError,
 };
 use Nadybot\Modules\RELAY_MODULE\{
 	Relay,
@@ -49,9 +75,6 @@ class Websocket implements TransportInterface, StatusProvider {
 	#[NCA\Inject]
 	public Nadybot $chatBot;
 
-	#[NCA\Inject]
-	public CoreWebsocket $websocket;
-
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
@@ -65,7 +88,7 @@ class Websocket implements TransportInterface, StatusProvider {
 	/** @var ?callable */
 	protected $initCallback;
 
-	protected WebsocketClient $client;
+	protected Connection $client;
 
 	public function __construct(string $uri, ?string $authorization=null) {
 		$this->uri = $uri;
@@ -92,78 +115,104 @@ class Websocket implements TransportInterface, StatusProvider {
 	}
 
 	public function send(array $data): array {
-		foreach ($data as $chunk) {
-			$this->client->send($chunk);
-		}
-		return [];
-	}
-
-	public function processMessage(WebsocketCallback $event): void {
-		if (!is_string($event->data)) {
-			return;
-		}
-		$msg = new RelayMessage();
-		$msg->packages = [$event->data];
-		$this->relay->receiveFromTransport($msg);
-	}
-
-	public function processError(WebsocketCallback $event): void {
-		$this->logger->error("[{$this->uri}] [Code $event->code] $event->data");
-		$this->status = new RelayStatus(RelayStatus::INIT, $event->data??"Unknown state");
-		if ($event->code === WebsocketError::CONNECT_TIMEOUT) {
-			if (isset($this->initCallback)) {
-				Loop::delay(10000, fn() => $this->client->connect());
-			} else {
-				unset($this->client);
-				Loop::delay(10000, fn() => $this->relay->init());
+		asyncCall(function () use ($data): Generator {
+			while (!isset($this->client)) {
+				yield delay(500);
 			}
-		} else {
-			unset($this->client);
-			Loop::delay(10000, fn() => $this->relay->init());
-		}
-	}
-
-	public function processClose(WebsocketCallback $event): void {
-		if (isset($this->initCallback)) {
-			$this->logger->notice("Reconnecting to Websocket {$this->uri} in 10s.");
-			$this->status = new RelayStatus(
-				RelayStatus::INIT,
-				"Reconnecting to {$this->uri}"
-			);
-			Loop::delay(10000, [$this->client, 'connect']);
-		} else {
-			$this->client->close();
-			unset($this->client);
-			$this->logger->notice("Reconnecting to Websocket {$this->uri}.");
-			Loop::defer(fn() => $this->relay->init());
-		}
-	}
-
-	public function processConnect(WebsocketCallback $event): void {
-		$this->logger->notice("Connected to Websocket {$this->uri}.");
-		if (!isset($this->initCallback)) {
-			return;
-		}
-		$callback = $this->initCallback;
-		unset($this->initCallback);
-		$this->status = new RelayStatus(RelayStatus::READY, "ready");
-		$callback();
+			foreach ($data as $chunk) {
+				yield $this->client->send($chunk);
+			}
+		});
+		return [];
 	}
 
 	public function init(callable $callback): array {
 		$this->initCallback = $callback;
-		$this->client = $this->websocket->createClient()
-			->withURI($this->uri);
+		$handshake = new Handshake($this->uri);
+		$connectContext = (new ConnectContext())->withTcpNoDelay();
+		$httpClientBuilder = (new HttpClientBuilder())
+			->usingPool(new UnlimitedConnectionPool(new DefaultConnectionFactory(null, $connectContext)))
+			->intercept(new RemoveRequestHeader('origin'))
+			->intercept(new SetRequestHeaderIfUnset("User-Agent", "Nadybot ".BotRunner::getVersion()));
 		if (isset($this->authorization)) {
-			$this->client->withHeader("Authorization", $this->authorization);
+			$httpClientBuilder->intercept(new AddRequestHeader("Authorization", $this->authorization));
 		}
-		$this->status = new RelayStatus(RelayStatus::INIT, "Connecting to {$this->uri}");
-		$this->client->withTimeout(30)
-			->on(WebsocketClient::ON_CONNECT, [$this, "processConnect"])
-			->on(WebsocketClient::ON_CLOSE, [$this, "processClose"])
-			->on(WebsocketClient::ON_TEXT, [$this, "processMessage"])
-			->on(WebsocketClient::ON_ERROR, [$this, "processError"]);
+		$httpClientBuilder->retry(10);
+		$httpClient = $httpClientBuilder->build();
+		$client = new Rfc6455Connector($httpClient);
+		asyncCall(function () use ($callback, $client, $handshake): Generator {
+			$reconnect = false;
+			do {
+				$this->status = new RelayStatus(RelayStatus::INIT, "Connecting to {$this->uri}");
+				try {
+					/** @var Connection */
+					$connection = yield $client->connect($handshake, null);
+				} catch (Throwable $e) {
+					if ($e instanceof UnprocessedRequestException) {
+						$error = "Unable to connect";
+					} else {
+						$error = $e->getMessage();
+					}
+					$this->logger->error("[{$this->uri}] {$error}");
+					$this->status = new RelayStatus(RelayStatus::INIT, $error);
+
+					if ($e instanceof TimeoutException) {
+						if (isset($this->initCallback)) {
+							yield delay(10000);
+							$reconnect = true;
+						} else {
+							unset($this->client);
+							Loop::delay(10000, fn() => $this->relay->init());
+							return;
+						}
+					} else {
+						unset($this->client);
+						Loop::delay(10000, fn() => $this->relay->init());
+						return;
+					}
+				}
+			} while ($reconnect || !isset($connection));
+			$this->client = $connection;
+			$this->logger->notice("Connected to Websocket {$this->uri}.");
+			if (!isset($this->initCallback)) {
+				return;
+			}
+			$callback = $this->initCallback;
+			unset($this->initCallback);
+			$this->status = new RelayStatus(RelayStatus::READY, "ready");
+			$callback();
+			rethrow($this->mainLoop());
+		});
 		return [];
+	}
+
+	/** @return Promise<void> */
+	private function mainLoop(): Promise {
+		return call(function (): Generator {
+			try {
+				while ($message = yield $this->client->receive()) {
+					/** @var Message $message */
+					$data = yield $message->buffer();
+					/** @var string $data */
+					$msg = new RelayMessage();
+					$msg->packages = [$data];
+					$this->relay->receiveFromTransport($msg);
+				}
+			} catch (Throwable $e) {
+				$this->logger->error("[{$this->uri}] " . $e->getMessage());
+				$this->status = new RelayStatus(RelayStatus::INIT, $e->getMessage());
+				unset($this->client);
+				Loop::delay(10000, fn() => $this->relay->init());
+				return;
+			}
+			try {
+				yield $this->client->close();
+			} catch (Throwable) {
+			}
+			unset($this->client);
+			$this->logger->notice("Reconnecting to Websocket {$this->uri}.");
+			Loop::defer(fn() => $this->relay->init());
+		});
 	}
 
 	public function deinit(callable $callback): array {
@@ -171,13 +220,13 @@ class Websocket implements TransportInterface, StatusProvider {
 			$callback();
 			return [];
 		}
-		$closeFunc = function (WebsocketCallback $event) use ($callback): void {
-			unset($this->client);
+		asyncCall(function () use ($callback): Generator {
+			try {
+				yield $this->client->close();
+			} catch (Throwable) {
+			}
 			$callback();
-		};
-		$this->client->on(WebsocketClient::ON_CLOSE, $closeFunc);
-		$this->client->on(WebsocketClient::ON_ERROR, $closeFunc);
-		$this->client->close();
+		});
 		return [];
 	}
 }
