@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- You can now sync bans and unbans via nadynative
+
 ### Fix
 
 - Add back the "loot" and "auction" links to loot lists
