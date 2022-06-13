@@ -33,7 +33,6 @@ use Nadybot\Core\{
 	BotRunner,
 	CmdContext,
 	CommandManager,
-	DedupHandler,
 	ModuleInstance,
 	LegacyLogger,
 	LoggerWrapper,
@@ -311,7 +310,6 @@ class LogsController extends ModuleInstance {
 		$handler->pushProcessor($processor);
 		foreach ($loggers as $logger) {
 			$logger->pushHandler($handler);
-			$logger->pushHandler(new DedupHandler());
 		}
 		$newContext->registerShutdownFunction(function() use ($context, $debugFile): void {
 			$loggers = LegacyLogger::getLoggers();
