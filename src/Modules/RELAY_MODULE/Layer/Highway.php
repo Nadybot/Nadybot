@@ -106,6 +106,10 @@ class Highway implements RelayLayerInterface, StatusProvider {
 
 	public function deinit(callable $callback): array {
 		$cmd = [];
+		if (!isset($this->status)) {
+			$callback();
+			return [];
+		}
 		foreach ($this->rooms as $room) {
 			$json = (object)[
 				"type" => static::TYPE_LEAVE,
