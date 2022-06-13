@@ -2,9 +2,12 @@
 
 namespace Nadybot\Core;
 
+use function Amp\call;
 use function Amp\Promise\rethrow;
 
+use Amp\Promise;
 use Exception;
+use Generator;
 use Illuminate\Support\Collection;
 use JsonException;
 use Monolog\Logger;
@@ -586,30 +589,27 @@ class MessageHub {
 		return $result;
 	}
 
-	/** Remove all routes from the routing table and return how many were removed */
-	public function deleteAllRoutes(): int {
-		$routes = $this->getRoutes();
-		$transactionRunning = false;
-		try {
-			$this->db->beginTransaction();
-		} catch (Exception $e) {
-			$transactionRunning = true;
-		}
-		try {
-			$this->db->table(MessageHub::DB_TABLE_ROUTE_MODIFIER_ARGUMENT)->truncate();
-			$this->db->table(MessageHub::DB_TABLE_ROUTE_MODIFIER)->truncate();
-			$this->db->table(MessageHub::DB_TABLE_ROUTES)->truncate();
-		} catch (Exception $e) {
-			if (!$transactionRunning) {
+	/**
+	 * Remove all routes from the routing table and return how many were removed
+	 *
+	 * @return Promise<int>
+	 */
+	public function deleteAllRoutes(): Promise {
+		return call(function (): Generator {
+			$routes = $this->getRoutes();
+			yield $this->db->awaitBeginTransaction();
+			try {
+				$this->db->table(MessageHub::DB_TABLE_ROUTE_MODIFIER_ARGUMENT)->truncate();
+				$this->db->table(MessageHub::DB_TABLE_ROUTE_MODIFIER)->truncate();
+				$this->db->table(MessageHub::DB_TABLE_ROUTES)->truncate();
+			} catch (Exception $e) {
 				$this->db->rollback();
+				throw $e;
 			}
-			throw $e;
-		}
-		if (!$transactionRunning) {
 			$this->db->commit();
-		}
-		$this->routes = [];
-		return count($routes);
+			$this->routes = [];
+			return count($routes);
+		});
 	}
 
 	/**

@@ -869,9 +869,12 @@ class MessageHubController extends ModuleInstance {
 
 	/** Remove all routes. Do not use unless you know what you are doing */
 	#[NCA\HandlesCommand("route")]
-	public function routeRemAllCommand(CmdContext $context, #[NCA\Str("remall")] string $action): void {
+	public function routeRemAllCommand(
+		CmdContext $context,
+		#[NCA\Str("remall")] string $action
+	): Generator {
 		try {
-			$numDeleted = $this->messageHub->deleteAllRoutes();
+			$numDeleted = yield $this->messageHub->deleteAllRoutes();
 		} catch (Exception $e) {
 			$context->reply("Unknown error clearing the routing table: " . $e->getMessage());
 			return;
