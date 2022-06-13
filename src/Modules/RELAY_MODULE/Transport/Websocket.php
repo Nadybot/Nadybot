@@ -90,6 +90,10 @@ class Websocket implements TransportInterface, StatusProvider {
 
 	protected Connection $client;
 
+	private bool $deinitializing = false;
+
+	private ?string $retryHandler = null;
+
 	public function __construct(string $uri, ?string $authorization=null) {
 		$this->uri = $uri;
 		$urlParts = parse_url($this->uri);
@@ -115,10 +119,10 @@ class Websocket implements TransportInterface, StatusProvider {
 	}
 
 	public function send(array $data): array {
+		if (!isset($this->client)) {
+			return [];
+		}
 		asyncCall(function () use ($data): Generator {
-			while (!isset($this->client)) {
-				yield delay(500);
-			}
 			foreach ($data as $chunk) {
 				yield $this->client->send($chunk);
 			}
@@ -143,17 +147,22 @@ class Websocket implements TransportInterface, StatusProvider {
 		asyncCall(function () use ($callback, $client, $handshake): Generator {
 			$reconnect = false;
 			do {
+				if ($this->deinitializing) {
+					return;
+				}
 				$this->status = new RelayStatus(RelayStatus::INIT, "Connecting to {$this->uri}");
 				try {
 					/** @var Connection */
 					$connection = yield $client->connect($handshake, null);
 				} catch (Throwable $e) {
 					if ($e instanceof UnprocessedRequestException) {
-						$error = "Unable to connect";
-					} else {
-						$error = $e->getMessage();
+						$prev = $e->getPrevious();
+						if (isset($prev)) {
+							$e = $prev;
+						}
 					}
-					$this->logger->error("[{$this->uri}] {$error}");
+					$error = $e->getMessage();
+					$this->logger->error("[{$this->uri}] {$error} - retrying in 10s");
 					$this->status = new RelayStatus(RelayStatus::INIT, $error);
 
 					if ($e instanceof TimeoutException) {
@@ -162,16 +171,19 @@ class Websocket implements TransportInterface, StatusProvider {
 							$reconnect = true;
 						} else {
 							unset($this->client);
-							Loop::delay(10000, fn() => $this->relay->init());
+							$this->retryHandler = Loop::delay(10000, fn() => $this->relay->init());
 							return;
 						}
 					} else {
 						unset($this->client);
-						Loop::delay(10000, fn() => $this->relay->init());
+						$this->retryHandler = Loop::delay(10000, fn() => $this->relay->init());
 						return;
 					}
 				}
-			} while ($reconnect || !isset($connection));
+			} while ($reconnect);
+			if (!isset($connection)) {
+				return;
+			}
 			$this->client = $connection;
 			$this->logger->notice("Connected to Websocket {$this->uri}.");
 			if (!isset($this->initCallback)) {
@@ -199,10 +211,14 @@ class Websocket implements TransportInterface, StatusProvider {
 					$this->relay->receiveFromTransport($msg);
 				}
 			} catch (Throwable $e) {
-				$this->logger->error("[{$this->uri}] " . $e->getMessage());
+				$this->logger->error("[{uri}] {error}, retrying in 10s", [
+					"uri" => $this->uri,
+					"error" => $e->getMessage(),
+					"exception" => $e,
+				]);
 				$this->status = new RelayStatus(RelayStatus::INIT, $e->getMessage());
 				unset($this->client);
-				Loop::delay(10000, fn() => $this->relay->init());
+				$this->retryHandler = Loop::delay(10000, fn() => $this->relay->init());
 				return;
 			}
 			try {
@@ -211,11 +227,16 @@ class Websocket implements TransportInterface, StatusProvider {
 			}
 			unset($this->client);
 			$this->logger->notice("Reconnecting to Websocket {$this->uri}.");
-			Loop::defer(fn() => $this->relay->init());
+			$this->retryHandler = Loop::defer(fn() => $this->relay->init());
 		});
 	}
 
 	public function deinit(callable $callback): array {
+		$this->deinitializing = true;
+		if (isset($this->retryHandler)) {
+			Loop::cancel($this->retryHandler);
+			$this->retryHandler = null;
+		}
 		if (!isset($this->client) || !$this->client->isConnected()) {
 			$callback();
 			return [];
