@@ -2,6 +2,8 @@
 
 namespace Nadybot\Modules\GUIDE_MODULE;
 
+use function Amp\File\filesystem;
+
 use Amp\Cache\FileCache;
 use Amp\Failure;
 use Amp\Http\Client\HttpClientBuilder;
@@ -56,6 +58,14 @@ class AOUController extends ModuleInstance {
 	public CacheManager $cacheManager;
 
 	public const AOU_URL = "https://www.ao-universe.com/mobile/parser.php?bot=nadybot";
+
+	#[NCA\Setup]
+	public function setup(): Generator {
+		$cacheFolder = $this->config->cacheFolder . "/guide";
+		if (false === yield filesystem()->exists($cacheFolder)) {
+			yield filesystem()->createDirectory($cacheFolder, 0700);
+		}
+	}
 
 	public function isValidXML(?string $data): bool {
 		if (!isset($data) || !strlen($data)) {

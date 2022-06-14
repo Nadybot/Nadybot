@@ -2,6 +2,9 @@
 
 namespace Nadybot\Core;
 
+use Amp\File\Driver\EioDriver;
+use Amp\File\Driver\ParallelDriver;
+use Amp\File\Filesystem;
 use Amp\Http\Client\HttpClientBuilder;
 use Amp\Http\Client\Interceptor\SetRequestHeaderIfUnset;
 use Amp\Loop;
@@ -14,6 +17,8 @@ use Nadybot\Core\Modules\SETUP\Setup;
 use ReflectionAttribute;
 use ReflectionObject;
 use Throwable;
+
+use const Amp\File\LOOP_STATE_IDENTIFIER;
 
 use function Amp\File\createDefaultDriver;
 use function Safe\json_encode;
@@ -343,6 +348,11 @@ class BotRunner {
 		$this->setWindowTitle($config);
 
 		$version = self::getVersion();
+		$fsDriver = createDefaultDriver();
+		if ($fsDriver instanceof EioDriver) {
+			$fsDriver = new ParallelDriver();
+		}
+		Loop::setState(LOOP_STATE_IDENTIFIER, new Filesystem($fsDriver));
 		$this->logger->notice(
 			"Starting {name} {version} on RK{dimension} using ".
 			"PHP {phpVersion}, {loopType} event loop, ".
@@ -353,7 +363,7 @@ class BotRunner {
 				"dimension" => $config->dimension,
 				"phpVersion" => phpversion(),
 				"loopType" => class_basename(Loop::get()),
-				"fsType" => class_basename(createDefaultDriver()),
+				"fsType" => class_basename($fsDriver),
 				"dbType" => $config->dbType,
 			]
 		);

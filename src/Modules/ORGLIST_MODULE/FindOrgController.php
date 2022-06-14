@@ -77,14 +77,10 @@ class FindOrgController extends ModuleInstance {
 	private array $todo = [];
 
 	#[NCA\Setup]
-	public function setup(): Generator {
+	public function setup(): void {
 		$this->ready = $this->db->table("organizations")
 			->where("index", "others")
 			->exists();
-		$cacheFolder = $this->config->cacheFolder . "/orglist";
-		if (false === yield filesystem()->isDirectory($cacheFolder)) {
-			yield filesystem()->createDirectoryRecursively($cacheFolder, 0700);
-		}
 	}
 
 	/**
@@ -281,6 +277,12 @@ class FindOrgController extends ModuleInstance {
 			'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z',
 			'others'
 		];
+
+		$cacheFolder = $this->config->cacheFolder . "/orglist";
+		if (false === yield filesystem()->exists($cacheFolder)) {
+			yield filesystem()->createDirectory($cacheFolder, 0700);
+		}
+
 		$this->ready = $this->db->table("organizations")
 			->where("index", "others")
 			->exists();
