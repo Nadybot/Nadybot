@@ -2,6 +2,8 @@
 
 namespace Nadybot\Core;
 
+use function Amp\call;
+
 use Amp\Http\Client\HttpClientBuilder;
 use Amp\Http\Client\Interceptor\AddRequestHeader;
 use Amp\Http\Client\Request;
@@ -12,9 +14,6 @@ use Exception;
 use Generator;
 use Nadybot\Core\Modules\DISCORD\DiscordAPIClient;
 use Nadybot\Modules\DISCORD_GATEWAY_MODULE\DiscordGatewayController;
-
-use function Amp\call;
-use function League\Uri\build;
 
 /**
  * Class to represent a discord bot token setting
