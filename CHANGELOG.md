@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - The default discord notification for own towers being attack has been change to off.
+- You can no longer create Discord invites with `!discord join` if your account is already linked.
 
 ### Fix
 
