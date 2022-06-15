@@ -585,9 +585,9 @@ class LootListsController extends ModuleInstance {
 	}
 
 	/**
-	 * @return string|string[]|null
+	 * @return string[]|null
 	 */
-	public function getPandemoniumLoot(string $raid, string $category, CmdContext $context): null|string|array {
+	public function getPandemoniumLoot(string $raid, string $category, CmdContext $context): ?array {
 		$category = ucwords(strtolower($category));
 		try {
 			$blob = $this->findRaidLoot($raid, $category, $context);
@@ -598,7 +598,7 @@ class LootListsController extends ModuleInstance {
 			return null;
 		}
 		$blob .= "\n\nPande Loot By Marinerecon (RK2)";
-		return $this->text->makeBlob("{$raid} \"{$category}\" Loot", $blob);
+		return (array)$this->text->makeBlob("{$raid} \"{$category}\" Loot", $blob);
 	}
 
 	/**

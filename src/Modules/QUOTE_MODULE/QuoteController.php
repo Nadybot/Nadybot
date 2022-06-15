@@ -203,8 +203,8 @@ class QuoteController extends ModuleInstance {
 		return (int)($this->db->table("quote")->max("id") ?? 0);
 	}
 
-	/** @return null|string|string[] */
-	public function getQuoteInfo(int $id=null): null|string|array {
+	/** @return null|string[] */
+	public function getQuoteInfo(int $id=null): ?array {
 		$count = $this->getMaxId();
 
 		if ($count === 0) {
@@ -255,7 +255,7 @@ class QuoteController extends ModuleInstance {
 			});
 		$msg .= "<tab>" . $idList->join(", ");
 
-		return $this->text->blobWrap(
+		return (array)$this->text->blobWrap(
 			"",
 			$this->text->makeBlob("Quote", $msg),
 			": \"{$quoteMsg}\""

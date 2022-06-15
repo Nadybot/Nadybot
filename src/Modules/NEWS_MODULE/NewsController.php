@@ -113,9 +113,9 @@ class NewsController extends ModuleInstance {
 	}
 
 	/**
-	 * @return string|string[]|null
+	 * @return string[]|null
 	 */
-	public function getNews(string $player, bool $onlyUnread=true): null|string|array {
+	public function getNews(string $player, bool $onlyUnread=true): ?array {
 		$news = $this->getNewsItems($player);
 		if ($onlyUnread) {
 			$news = $news->where("confirmed", false);
@@ -182,7 +182,7 @@ class NewsController extends ModuleInstance {
 				$this->text->makeBlob("more", $blob, "News")
 			);
 		}
-		return $msg;
+		return (array)$msg;
 	}
 
 	#[NCA\Event(

@@ -777,7 +777,7 @@ class AOChat {
 	 *
 	 * @param mixed $num
 	 */
-	public function isReallyNumeric($num): bool {
+	public function isReallyNumeric(int|string $num): bool {
 		return is_int($num) || preg_match("/^-?\d+$/", (string)$num);
 	}
 
