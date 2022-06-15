@@ -142,7 +142,7 @@ class BankController extends ModuleInstance {
 			$item->fromString($itemLink);
 			$itemLink = $item->toString();
 			$compactItemLink = str_replace("'", '', $itemLink);
-			$askLink = $this->text->makeChatcmd("ask", "/tell Pigtail Please give me {$compactItemLink} from {$data[0]->container}");
+			$askLink = $this->text->makeChatcmd("ask", "/tell {$name} Please give me {$compactItemLink} from {$data[0]->container}");
 			$blob .= "<tab>{$itemLink} [{$askLink}]\n";
 		}
 
@@ -194,7 +194,7 @@ class BankController extends ModuleInstance {
 			$item2->fromString($itemLink);
 			$itemLink = $item2->toString();
 			$compactItemLink = str_replace("'", '', $itemLink);
-			$askLink = $this->text->makeChatcmd("ask", "/tell Piggythrbs30 Please give me {$compactItemLink} from {$item->container}");
+			$askLink = $this->text->makeChatcmd("ask", "/tell {$item->player} Please give me {$compactItemLink} from {$item->container}");
 			$blob .= "{$itemLink} in <highlight>{$item->player} &gt; {$item->container}<end> [{$askLink}]\n";
 		}
 
