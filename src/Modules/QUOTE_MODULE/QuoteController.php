@@ -255,7 +255,7 @@ class QuoteController extends ModuleInstance {
 			});
 		$msg .= "<tab>" . $idList->join(", ");
 
-		return (array)$this->text->blobWrap(
+		return $this->text->blobWrap(
 			"",
 			$this->text->makeBlob("Quote", $msg),
 			": \"{$quoteMsg}\""
