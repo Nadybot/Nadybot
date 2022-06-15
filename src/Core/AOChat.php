@@ -681,7 +681,7 @@ class AOChat {
 	 * @param mixed $args
 	 * @psalm-param null|callable(?int,mixed...) $callback
 	 */
-	public function sendLookupPacket(string $userName, ?callable $callback=null, ...$args): void {
+	public function sendLookupPacket(string $userName, ?callable $callback=null, mixed ...$args): void {
 		asyncCall(function () use ($userName, $callback, $args): Generator {
 			$uid = yield $this->sendLookupPacket2($userName);
 			if (isset($callback)) {
@@ -731,7 +731,7 @@ class AOChat {
 	 * @psalm-param callable(?int, mixed...) $callback
 	 * @deprecated 6.1.0
 	 */
-	public function getUid(string $user, callable $callback, ...$args): void {
+	public function getUid(string $user, callable $callback, mixed ...$args): void {
 		asyncCall(function () use ($user, $callback, $args): Generator {
 			$uid = yield $this->getUid2($user);
 			$callback($uid, ...$args);

@@ -93,7 +93,7 @@ class CacheManager {
 	 * @psalm-param callable(CacheResult, mixed...) $callback
 	 * @deprecated
 	 */
-	public function asyncLookup(string $url, string $groupName, string $filename, callable $isValidCallback, int $maxCacheAge, bool $forceUpdate, callable $callback, ...$args): void {
+	public function asyncLookup(string $url, string $groupName, string $filename, callable $isValidCallback, int $maxCacheAge, bool $forceUpdate, callable $callback, mixed ...$args): void {
 		asyncCall(function () use ($url, $groupName, $filename, $isValidCallback, $maxCacheAge, $forceUpdate, $callback, $args): Generator {
 			if (empty($groupName)) {
 				$this->logger->error("Cache group name cannot be empty");

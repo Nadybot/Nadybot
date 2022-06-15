@@ -1473,21 +1473,21 @@ class Nadybot extends AOChat {
 	}
 
 	public static function toSnakeCase(string $name): string {
-			return strtolower(
+		return strtolower(
+			preg_replace(
+				"/([A-Z][a-z])/",
+				'_$1',
 				preg_replace(
-					"/([A-Z][a-z])/",
+					"/([A-Z]{2,})(?=[A-Z][a-z]|$)/",
 					'_$1',
 					preg_replace(
-						"/([A-Z]{2,})(?=[A-Z][a-z]|$)/",
+						"/(\d+)$/",
 						'_$1',
-						preg_replace(
-							"/(\d+)$/",
-							'_$1',
-							$name
-						)
+						$name
 					)
 				)
-			);
+			)
+		);
 	}
 
 	private function parseInstanceSettings(string $moduleName, ModuleInstanceInterface $obj): void {

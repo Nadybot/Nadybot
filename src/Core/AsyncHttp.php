@@ -45,7 +45,7 @@ class AsyncHttp {
 	 *
 	 * @var mixed $data
 	 */
-	private $data;
+	private mixed $data;
 
 	/** The HTTP method to use (GET/POST/PUT/DELETE) */
 	private string $method;
@@ -674,7 +674,7 @@ class AsyncHttp {
 	 * @psalm-param callable(HttpResponse,mixed...) $callback
 	 * @param mixed $data
 	 */
-	public function withCallback(callable $callback, ...$data): self {
+	public function withCallback(callable $callback, mixed ...$data): self {
 		$this->callback = $callback;
 		$this->data     = $data;
 		return $this;
