@@ -11,6 +11,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Commands and events can now be declared as Generators, which automatically makes them executes async and allows to `yield` results from promises.
 - Add a management-interface as an addition to the console. The management interface does not appear in the routes and currently supports tcp- and unix domain sockets.
+- You can now sync bans and unbans via nadynative
+- When changing the message that should be send to Discord whenever your own towers are being attacked, the bot will now warn if there is no route in place to actually make use of this message.
+- Add a link to bank browse- and search-results to ask the bank character to give you a specific item, including its location.
 
 ### Changed
 
@@ -27,6 +30,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   A whole lot of functions are now deprecated and will be removed or replaced in 7.0, while none of the core function signatures has changed.
 - Upgraded Docker images to alpine 3.16
 - The default discord notification for own towers being attack has been change to off.
+- You can no longer create Discord invites with `!discord join` if your account is already linked.
 
 ### Removed
 
