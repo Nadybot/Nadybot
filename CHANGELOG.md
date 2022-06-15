@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Commands and events can now be declared as Generators, which automatically makes them executes async and allows to `yield` results from promises.
+- Commands and events can now be declared as Generators, which automatically makes them execute async and allows to `yield` results from promises.
 - Add a management-interface as an addition to the console. The management interface does not appear in the routes and currently supports tcp- and unix domain sockets.
 - You can now sync bans and unbans via nadynative
 - When changing the message that should be send to Discord whenever your own towers are being attacked, the bot will now warn if there is no route in place to actually make use of this message.
@@ -22,6 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Cron-events
   - Timer->callLater()
   - SocketManager
+  - Relay websockets
   - Discord
   - EventLoop::add()
   - Http-client is now being replaced with HttpClientBuilder, while the old Http/AsyncHttp still function, but are now deprecated
