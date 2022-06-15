@@ -16,6 +16,7 @@ use Nadybot\Core\{
 	Text,
 	Util,
 };
+use Nadybot\Modules\RAFFLE_MODULE\RaffleItem;
 use Safe\Exceptions\FilesystemException;
 
 use function Safe\preg_split;
@@ -136,8 +137,13 @@ class BankController extends ModuleInstance {
 		}
 		$blob = '<header2>Items in ' . $data[0]->container . "<end>\n";
 		foreach ($data as $row) {
-			$item_link = $this->text->makeItem($row->lowid, $row->highid, $row->ql, $row->name);
-			$blob .= "<tab>{$item_link} (QL {$row->ql})\n";
+			$item = new RaffleItem();
+			$itemLink = $this->text->makeItem($row->lowid, $row->highid, $row->ql, $row->name);
+			$item->fromString($itemLink);
+			$itemLink = $item->toString();
+			$compactItemLink = str_replace("'", '', $itemLink);
+			$askLink = $this->text->makeChatcmd("ask", "/tell Pigtail Please give me {$compactItemLink} from {$data[0]->container}");
+			$blob .= "<tab>{$itemLink} [{$askLink}]\n";
 		}
 
 		$msg = $this->text->makeBlob("Contents of {$data[0]->container}", $blob);
@@ -184,7 +190,12 @@ class BankController extends ModuleInstance {
 		}
 		foreach ($foundItems as $item) {
 			$itemLink = $this->text->makeItem($item->lowid, $item->highid, $item->ql, $item->name);
-			$blob .= "{$itemLink} (QL {$item->ql}) in <highlight>{$item->player} &gt; {$item->container}<end>\n";
+			$item2 = new RaffleItem();
+			$item2->fromString($itemLink);
+			$itemLink = $item2->toString();
+			$compactItemLink = str_replace("'", '', $itemLink);
+			$askLink = $this->text->makeChatcmd("ask", "/tell Piggythrbs30 Please give me {$compactItemLink} from {$item->container}");
+			$blob .= "{$itemLink} in <highlight>{$item->player} &gt; {$item->container}<end> [{$askLink}]\n";
 		}
 
 		$msg = $this->text->makeBlob("Bank Search Results for {$search}", $blob);
