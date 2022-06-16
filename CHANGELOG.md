@@ -43,6 +43,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Add back the "loot" and "auction" links to loot lists
 - The console history works 100% now, only ctrl+r-search is now broken
+- Automatically ignore if someone managed to set themselves as their own alt. This allows them to run `!alts setmain` on any of their alts again.
 
 ## [6.0.4] - 2022-06-05
 
