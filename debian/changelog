@@ -1,3 +1,18 @@
+nadybot (6.0.5-1+ubuntu1) bionic; urgency=medium
+  Added:
+  - you can now sync bans and unbans via nadynative
+  - when changing the message that should be send to discord whenever your own towers are being attacked, the bot will now warn if there is no route in place to actually make use of this message.
+  - add a link to bank browse- and search-results to ask the bank character to give you a specific item, including its location.
+
+  Changed:
+  - the default discord notification for own towers being attack has been change to off.
+  - you can no longer create discord invites with '!discord join' if your account is already linked.
+
+  Fix:
+  - add back the "loot" and "auction" links to loot lists
+  - automatically ignore if someone managed to set themselves as their own alt. this allows them to run '!alts setmain' on any of their alts again.
+ -- Nadyita <nadyita@hodorraid.org>  Fri, 05 May 2022 10:30:00 +0200
+ 
 nadybot (6.0.4-1+ubuntu1) bionic; urgency=medium
   Added:
   - Allow specifying the ql or ql-range to search for when using `!bank search`
