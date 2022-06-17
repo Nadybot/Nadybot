@@ -7,15 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [6.0.5] - 2022-06-17
-
 ### Added
 
 - Commands and events can now be declared as Generators, which automatically makes them execute async and allows to `yield` results from promises.
 - Add a management-interface as an addition to the console. The management interface does not appear in the routes and currently supports tcp- and unix domain sockets.
-- You can now sync bans and unbans via nadynative
-- When changing the message that should be send to Discord whenever your own towers are being attacked, the bot will now warn if there is no route in place to actually make use of this message.
-- Add a link to bank browse- and search-results to ask the bank character to give you a specific item, including its location.
 
 ### Changed
 
@@ -32,19 +27,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   This leads to even lower delay when processing Discord/Web/Console/AO packages, and the bot's CPU usage dropping to 0 in idle, compared to ~1%-2% before.
   A whole lot of functions are now deprecated and will be removed or replaced in 7.0, while none of the core function signatures has changed.
 - Upgraded Docker images to alpine 3.16
-- The default discord notification for own towers being attack has been change to off.
-- You can no longer create Discord invites with `!discord join` if your account is already linked.
 
 ### Removed
 
 - The `!updatecsv`-command was removed, because it hasn't been any use yet, and given how easy it is to upgrade the bot, there's no need to keep it and its complex mechanism.
+
+### Fix
+
+- The console history works 100% now, only ctrl+r-search is now broken
+
+## [6.0.5] - 2022-06-17
+
+### Added
+
 - You can now sync bans and unbans via nadynative
 - When changing the message that should be send to Discord whenever your own towers are being attacked, the bot will now warn if there is no route in place to actually make use of this message.
+- Add a link to bank browse- and search-results to ask the bank character to give you a specific item, including its location.
+
+### Changed
+
+- The default discord notification for own towers being attack has been change to off.
+- You can no longer create Discord invites with `!discord join` if your account is already linked.
 
 ### Fix
 
 - Add back the "loot" and "auction" links to loot lists
-- The console history works 100% now, only ctrl+r-search is now broken
 - Automatically ignore if someone managed to set themselves as their own alt. This allows them to run `!alts setmain` on any of their alts again.
 
 ## [6.0.4] - 2022-06-05
