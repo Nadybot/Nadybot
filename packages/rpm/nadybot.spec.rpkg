@@ -204,6 +204,15 @@ exit 0
 %endif
 
 %changelog
+* Fri Jun 17 2022 Nadyita <nadyita@hodorraid.org> 6.0.5-1
+- You can now sync bans and unbans via nadynative
+- When changing the message that should be send to Discord whenever your own towers are being attacked, the bot will now warn if there is no route in place to actually make use of this message.
+- Add a link to bank browse- and search-results to ask the bank character to give you a specific item, including its location.
+- The default discord notification for own towers being attack has been change to off.
+- You can no longer create Discord invites with `!discord join` if your account is already linked.
+- Add back the "loot" and "auction" links to loot lists
+- Automatically ignore if someone managed to set themselves as their own alt. This allows them to run `!alts setmain` on any of their alts again.
+
 * Sun Jun 05 2022 Nadyita <nadyita@hodorraid.org> 6.0.4-1
 - Allow specifying the ql or ql-range to search for when using `!bank search`
 - The `TrackerFormatHandler` was moved to its correct namespace.

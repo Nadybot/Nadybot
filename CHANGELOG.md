@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [6.0.5] - 2022-06-17
+
 ### Added
 
 - Commands and events can now be declared as Generators, which automatically makes them execute async and allows to `yield` results from promises.
