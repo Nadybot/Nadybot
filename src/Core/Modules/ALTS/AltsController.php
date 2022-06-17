@@ -115,6 +115,7 @@ class AltsController extends ModuleInstance {
 			->where("validated_by_main", true)
 			->where("validated_by_alt", true)
 			->asObj(Alt::class)
+			->filter(fn(Alt $alt): bool => $alt->alt !== $alt->main)
 			->each(function (Alt $alt): void {
 				$this->alts[$alt->alt] = $alt->main;
 			});
@@ -128,7 +129,7 @@ class AltsController extends ModuleInstance {
 	public function getAltsOf(string $char): array {
 		$alts = [$char];
 		foreach ($this->alts as $alt => $main) {
-			if ($main === $char) {
+			if ($main === $char && $main !== $alt) {
 				$alts []= $alt;
 			}
 		}
@@ -713,13 +714,15 @@ class AltsController extends ModuleInstance {
 		if (!$includePending) {
 			$query->where("validated_by_main", true)->where("validated_by_alt", true);
 		}
-		$query->asObj(Alt::class)->each(function(Alt $row) use ($ai) {
-			$ai->main = $row->main;
-			$ai->alts[$row->alt] = new AltValidationStatus();
-			$ai->alts[$row->alt]->validated_by_alt = $row->validated_by_alt??false;
-			$ai->alts[$row->alt]->validated_by_main = $row->validated_by_main??false;
-			$ai->alts[$row->alt]->added_via = $row->added_via ?? $this->db->getMyname();
-		});
+		$query->asObj(Alt::class)
+			->filter(fn(Alt $alt): bool => $alt->alt !== $alt->main)
+			->each(function(Alt $row) use ($ai) {
+				$ai->main = $row->main;
+				$ai->alts[$row->alt] = new AltValidationStatus();
+				$ai->alts[$row->alt]->validated_by_alt = $row->validated_by_alt??false;
+				$ai->alts[$row->alt]->validated_by_main = $row->validated_by_main??false;
+				$ai->alts[$row->alt]->added_via = $row->added_via ?? $this->db->getMyname();
+			});
 
 		return $ai;
 	}

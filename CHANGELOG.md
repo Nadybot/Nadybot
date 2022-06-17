@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [6.0.5] - 2022-06-17
+
+### Added
+
+- You can now sync bans and unbans via nadynative
+- When changing the message that should be send to Discord whenever your own towers are being attacked, the bot will now warn if there is no route in place to actually make use of this message.
+- Add a link to bank browse- and search-results to ask the bank character to give you a specific item, including its location.
+
+### Changed
+
+- The default discord notification for own towers being attack has been change to off.
+- You can no longer create Discord invites with `!discord join` if your account is already linked.
+
+### Fix
+
+- Add back the "loot" and "auction" links to loot lists
+- Automatically ignore if someone managed to set themselves as their own alt. This allows them to run `!alts setmain` on any of their alts again.
+
 ## [6.0.4] - 2022-06-05
 
 ### Added

@@ -1502,6 +1502,20 @@ class DiscordGatewayController extends ModuleInstance {
 		#[NCA\Str("join")] string $action,
 		?string $discordServer,
 	): void {
+		$aoChar = $this->altsController->getMainOf($context->char->name);
+		$alts = $this->altsController->getAltsOf($aoChar);
+		$isLinked = $this->db->table(DiscordGatewayCommandHandler::DB_TABLE)
+			->whereIn("name", [$aoChar, ...$alts])
+			->whereNull("token")
+			->whereNotNull("confirmed")
+			->exists();
+		if ($isLinked) {
+			$context->reply(
+				"Your account is already linked to a Discord user and ".
+				"you cannot create invitations for someone else."
+			);
+			return;
+		}
 		if (!$context->isDM()) {
 			$context->reply(
 				"For security reasons, a personal Discord server token ".

@@ -20,6 +20,7 @@ use Nadybot\Modules\{
 	BASIC_CHAT_MODULE\ChatLeaderController,
 	ITEMS_MODULE\ItemsController,
 };
+use Nadybot\Modules\RAID_MODULE\AuctionController;
 
 /**
  * @author Marinerecon (RK2)
@@ -779,8 +780,8 @@ class LootListsController extends ModuleInstance {
 		$auctionsEnabled = false;
 		$lootEnabled = false;
 		if (isset($context->permissionSet)) {
-			$auctionsEnabled = $this->commandManager->cmdExecutable("auction", $sender, $context->permissionSet);
-			$lootEnabled = $this->commandManager->cmdExecutable('loot .+', $sender, $context->permissionSet);
+			$auctionsEnabled = $this->commandManager->cmdExecutable(AuctionController::CMD_BID_AUCTION, $sender, $context->permissionSet);
+			$lootEnabled = $this->commandManager->cmdExecutable(LootController::CMD_LOOT_MANAGE, $sender, $context->permissionSet);
 		}
 
 		$blob = "\n<pagebreak><header2>{$category}<end>\n\n";
@@ -789,13 +790,13 @@ class LootListsController extends ModuleInstance {
 			$actions = [];
 			if ($lootEnabled) {
 				$actions []= $this->text->makeChatcmd(
-					"Loot",
+					"loot",
 					"/tell <myname> loot add {$row->id}"
 				);
 			}
 			if ($lootEnabled && $auctionsEnabled) {
 				$actions []= $this->text->makeChatcmd(
-					"Auction",
+					"auction",
 					"/tell <myname> auction {$row->name}"
 				);
 			}
