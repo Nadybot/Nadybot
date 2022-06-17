@@ -11,15 +11,15 @@ use Nadybot\Core\{
 	CmdContext,
 	CommandAlias,
 	DB,
-	ModuleInstance,
 	LoggerWrapper,
+	ModuleInstance,
 	Modules\ALTS\AltsController,
 	Nadybot,
 	ParamClass\PCharacter,
 	ParamClass\PRemove,
 	ParamClass\PWord,
-	SettingManager,
 	SQLException,
+	SettingManager,
 	Text,
 	Util,
 };
@@ -43,6 +43,7 @@ use Nadybot\Core\{
 	),
 ]
 class CommentController extends ModuleInstance {
+	public const ADMIN = "admin";
 	#[NCA\Inject]
 	public CommandAlias $commandAlias;
 
@@ -86,8 +87,6 @@ class CommentController extends ModuleInstance {
 	#[NCA\Setting\Text(mode: "noedit")]
 	public string $tableNameCommentCategories = "comment_categories_<myname>";
 
-	public const ADMIN = "admin";
-
 	#[NCA\Setup]
 	public function setup(): void {
 		$sm = $this->settingManager;
@@ -108,6 +107,7 @@ class CommentController extends ModuleInstance {
 			// read all current entries
 			/** @var Comment[] */
 			$comments = $this->db->table("<table:comments>")->asObj(Comment::class)->toArray();
+
 			/** @var CommentCategory[] */
 			$cats = $this->db->table("<table:comment_categories>")->asObj(CommentCategory::class)->toArray();
 			if ($newValue === "1") {
@@ -116,7 +116,7 @@ class CommentController extends ModuleInstance {
 				$newCategoryTable = "comment_categories";
 				if (!$this->db->schema()->hasTable("comments")) {
 					$this->logger->notice('Creating table comments');
-					$this->db->schema()->create("comments", function(Blueprint $table): void {
+					$this->db->schema()->create("comments", function (Blueprint $table): void {
 						$table->id();
 						$table->string("character", 15)->index();
 						$table->string("created_by", 15);
@@ -126,7 +126,7 @@ class CommentController extends ModuleInstance {
 					});
 				}
 				if (!$this->db->schema()->hasTable("comment_categories")) {
-					$this->db->schema()->create("comment_categories", function(Blueprint $table): void {
+					$this->db->schema()->create("comment_categories", function (Blueprint $table): void {
 						$table->string("name", 20)->primary();
 						$table->string("created_by", 15);
 						$table->integer("created_at");
@@ -193,6 +193,7 @@ class CommentController extends ModuleInstance {
 
 	/**
 	 * Delete a single category by its name
+	 *
 	 * @return int|null Number of deleted comments or null if the category didn't exist
 	 */
 	public function deleteCategory(string $category): ?int {
@@ -398,39 +399,8 @@ class CommentController extends ModuleInstance {
 	}
 
 	/**
-	 * Calculate how many seconds to wait before posting another comment
-	 * about the same character again.
-	 */
-	protected function getCommentCooldown(Comment $comment): int {
-		if ($comment->created_by === $this->chatBot->char->name) {
-			return 0;
-		}
-		$cooldown = $this->commentCooldown;
-		// Get all comments about that same character
-		$comments = $this->getComments(null, $comment->character);
-		// Only keep those that were created by the same person creating one now
-		$ownComments = array_values(
-			array_filter(
-				$comments,
-				function(Comment $com) use ($comment): bool {
-					return $com->created_by === $comment->created_by;
-				}
-			)
-		);
-		// They are sorted by time, so last element is the newest
-		$lastComment = end($ownComments);
-		if ($lastComment === false) {
-			return 0;
-		}
-		// If the age of the last comment is less than the cooldown, return the remaining cooldown
-		if (time() - $lastComment->created_at < $cooldown) {
-			return $cooldown - time() + $lastComment->created_at;
-		}
-		return 0;
-	}
-
-	/**
 	 * Save a comment and take the cooldown into consideration
+	 *
 	 * @return int 0 for success, otherwise the remaining time in seconds for posting
 	 */
 	public function saveComment(Comment $comment): int {
@@ -515,6 +485,7 @@ class CommentController extends ModuleInstance {
 			);
 			return;
 		}
+
 		/** @var Comment[] */
 		$comments = $this->db->table("<table:comments>")
 			->where("category", $categoryName)
@@ -534,7 +505,9 @@ class CommentController extends ModuleInstance {
 
 	/**
 	 * Remove all comments from $comments that $sender does not have permission to read
+	 *
 	 * @param Comment[] $comments
+	 *
 	 * @return Comment[]
 	 */
 	public function filterInaccessibleComments(array $comments, string $sender): array {
@@ -543,7 +516,7 @@ class CommentController extends ModuleInstance {
 		$readableComments = array_values(
 			array_filter(
 				$comments,
-				function(Comment $comment) use (&$accessCache, $senderAL): bool {
+				function (Comment $comment) use (&$accessCache, $senderAL): bool {
 					if (isset($accessCache[$comment->category])) {
 						return $accessCache[$comment->category];
 					}
@@ -561,6 +534,7 @@ class CommentController extends ModuleInstance {
 
 	/**
 	 * Format the blob for a list of comments
+	 *
 	 * @param Comment[] $comments
 	 */
 	public function formatComments(array $comments, bool $groupByMain, bool $addCategory=false): FormattedComments {
@@ -644,6 +618,7 @@ class CommentController extends ModuleInstance {
 
 	/**
 	 * Read all comments about a list of players or their alts/main, optionally limited to a category
+	 *
 	 * @return Comment[]
 	 */
 	public function getComments(?CommentCategory $category, string ...$characters): array {
@@ -657,15 +632,13 @@ class CommentController extends ModuleInstance {
 		if (isset($category)) {
 			$query->where("category", $category->name);
 		}
+
 		/** @var Comment[] */
 		$comments = $query->asObj(Comment::class)->toArray();
 		return $comments;
 	}
 
-	/**
-	 * Count all comments about a list of players or their alts/main, optionally limited to a category
-	 * @return int
-	 */
+	/** Count all comments about a list of players or their alts/main, optionally limited to a category */
 	public function countComments(?CommentCategory $category, string ...$characters): int {
 		$query = $this->db->table("<table:comments>");
 		$chars = [];
@@ -682,6 +655,7 @@ class CommentController extends ModuleInstance {
 
 	/**
 	 * Read all comments about of a category
+	 *
 	 * @return Comment[]
 	 */
 	public function readCategoryComments(CommentCategory $category): array {
@@ -690,5 +664,37 @@ class CommentController extends ModuleInstance {
 			->orderBy("created_at")
 			->asObj(Comment::class)
 			->toArray();
+	}
+
+	/**
+	 * Calculate how many seconds to wait before posting another comment
+	 * about the same character again.
+	 */
+	protected function getCommentCooldown(Comment $comment): int {
+		if ($comment->created_by === $this->chatBot->char->name) {
+			return 0;
+		}
+		$cooldown = $this->commentCooldown;
+		// Get all comments about that same character
+		$comments = $this->getComments(null, $comment->character);
+		// Only keep those that were created by the same person creating one now
+		$ownComments = array_values(
+			array_filter(
+				$comments,
+				function (Comment $com) use ($comment): bool {
+					return $com->created_by === $comment->created_by;
+				}
+			)
+		);
+		// They are sorted by time, so last element is the newest
+		$lastComment = end($ownComments);
+		if ($lastComment === false) {
+			return 0;
+		}
+		// If the age of the last comment is less than the cooldown, return the remaining cooldown
+		if (time() - $lastComment->created_at < $cooldown) {
+			return $cooldown - time() + $lastComment->created_at;
+		}
+		return 0;
 	}
 }

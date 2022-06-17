@@ -3,15 +3,13 @@
 namespace Nadybot\Modules\IMPLANT_MODULE\Migrations\Pocketboss;
 
 use Illuminate\Database\Schema\Blueprint;
-use Nadybot\Core\DB;
-use Nadybot\Core\LoggerWrapper;
-use Nadybot\Core\SchemaMigration;
+use Nadybot\Core\{DB, LoggerWrapper, SchemaMigration};
 
 class CreatePocketbossTable implements SchemaMigration {
 	public function migrate(LoggerWrapper $logger, DB $db): void {
 		$table = "pocketboss";
 		$db->schema()->dropIfExists($table);
-		$db->schema()->create($table, function(Blueprint $table): void {
+		$db->schema()->create($table, function (Blueprint $table): void {
 			$table->integer("id")->primary();
 			$table->string("pb", 30)->index();
 			$table->string("pb_location", 30);

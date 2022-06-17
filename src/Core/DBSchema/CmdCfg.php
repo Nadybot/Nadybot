@@ -2,8 +2,7 @@
 
 namespace Nadybot\Core\DBSchema;
 
-use Nadybot\Core\DBRow;
-use Nadybot\Core\Attributes as NCA;
+use Nadybot\Core\{Attributes as NCA, DBRow};
 
 class CmdCfg extends DBRow {
 	#[NCA\JSON\Ignore]

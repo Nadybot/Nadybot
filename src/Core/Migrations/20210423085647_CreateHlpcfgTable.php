@@ -3,10 +3,7 @@
 namespace Nadybot\Core\Migrations;
 
 use Illuminate\Database\Schema\Blueprint;
-use Nadybot\Core\DB;
-use Nadybot\Core\HelpManager;
-use Nadybot\Core\LoggerWrapper;
-use Nadybot\Core\SchemaMigration;
+use Nadybot\Core\{DB, HelpManager, LoggerWrapper, SchemaMigration};
 
 class CreateHlpcfgTable implements SchemaMigration {
 	public function migrate(LoggerWrapper $logger, DB $db): void {
@@ -14,7 +11,7 @@ class CreateHlpcfgTable implements SchemaMigration {
 		if ($db->schema()->hasTable($table)) {
 			return;
 		}
-		$db->schema()->create($table, function(Blueprint $table): void {
+		$db->schema()->create($table, function (Blueprint $table): void {
 			$table->string("name", 25)->index();
 			$table->string("module", 50)->nullable();
 			$table->string("file", 255)->nullable();

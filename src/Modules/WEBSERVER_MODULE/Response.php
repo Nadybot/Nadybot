@@ -137,13 +137,12 @@ class Response {
 
 	public int $code;
 	public string $codeString;
+
 	/** @var array<string,null|string> */
 	public array $headers = [];
 	public ?string $body;
 
-	/**
-	 * @param array<string,null|string> $headers
-	 */
+	/** @param array<string,null|string> $headers */
 	public function __construct(int $code=200, array $headers=[], ?string $body=null) {
 		$this->code = $code;
 		$codeString = static::DEFAULT_RESPONSE_TEXT[$this->code] ?? "Unknown";
@@ -186,7 +185,7 @@ class Response {
 		$headers = "";
 		foreach ($this->headers as $key => $value) {
 			if ($value !== null) {
-				$headers .= "$key: $value\r\n";
+				$headers .= "{$key}: {$value}\r\n";
 			}
 		}
 		$response = "HTTP/1.1 {$this->code} {$this->codeString}\r\n".

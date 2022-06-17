@@ -62,7 +62,7 @@ class PlayerHistoryController extends ModuleInstance {
 			$date = $entry->last_changed->format("Y-m-d");
 
 			if ($entry->deleted === "1") {
-				$blob .= "$date <highlight>|<end>   <red>DELETED<end>\n";
+				$blob .= "{$date} <highlight>|<end>   <red>DELETED<end>\n";
 				continue;
 			}
 			if ($entry->defender_rank == "") {
@@ -90,10 +90,10 @@ class PlayerHistoryController extends ModuleInstance {
 			}
 			$level = $this->text->alignNumber((int)$entry->level, 3);
 
-			$blob .= "$date <highlight>|<end>  $level  <highlight>|<end> $ailevel <highlight>|<end> $faction <highlight>|<end> $entry->breed <highlight>|<end> $guild\n";
+			$blob .= "{$date} <highlight>|<end>  {$level}  <highlight>|<end> {$ailevel} <highlight>|<end> {$faction} <highlight>|<end> {$entry->breed} <highlight>|<end> {$guild}\n";
 		}
 		$blob .= "\nHistory provided by Auno.org, Chrisax, and Athen Paladins";
-		$msg = $this->text->makeBlob("History of $name for RK{$dimension}", $blob, null, $header);
+		$msg = $this->text->makeBlob("History of {$name} for RK{$dimension}", $blob, null, $header);
 
 		return $msg;
 	}

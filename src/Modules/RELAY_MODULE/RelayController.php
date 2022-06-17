@@ -5,12 +5,7 @@ namespace Nadybot\Modules\RELAY_MODULE;
 use Exception;
 use Generator;
 use Illuminate\Support\Collection;
-use Safe\Exceptions\JsonException;
-use ReflectionClass;
-use ReflectionException;
-use ReflectionMethod;
-use Throwable;
-
+use Nadybot\Core\Routing\{Character, RoutableMessage, Source};
 use Nadybot\Core\{
 	Attributes as NCA,
 	ClassSpec,
@@ -21,26 +16,23 @@ use Nadybot\Core\{
 	DB,
 	EventManager,
 	EventType,
-	ModuleInstance,
 	LoggerWrapper,
 	MessageHub,
-	Nadybot,
-	Text,
-	Util,
-	Websocket,
+	ModuleInstance,
 	Modules\ALTS\AltsController,
 	Modules\PLAYER_LOOKUP\PlayerManager,
 	Modules\PREFERENCES\Preferences,
 	Modules\PROFILE\ProfileCommandReply,
+	Nadybot,
 	ParamClass\PNonNumber,
 	ParamClass\PNonNumberWord,
 	ParamClass\PRemove,
 	ParamClass\PWord,
 	Registry,
+	Text,
+	Util,
+	Websocket,
 };
-use Nadybot\Core\Routing\Character;
-use Nadybot\Core\Routing\RoutableMessage;
-use Nadybot\Core\Routing\Source;
 use Nadybot\Modules\{
 	GUILD_MODULE\GuildController,
 	RELAY_MODULE\RelayProtocol\RelayProtocolInterface,
@@ -52,6 +44,12 @@ use Nadybot\Modules\{
 	WEBSERVER_MODULE\Response,
 	WEBSERVER_MODULE\StatsController,
 };
+use ReflectionClass;
+use ReflectionException;
+
+use ReflectionMethod;
+use Safe\Exceptions\JsonException;
+use Throwable;
 
 /**
  * @author Tyrence
@@ -77,15 +75,6 @@ class RelayController extends ModuleInstance {
 	public const DB_TABLE_LAYER = 'relay_layer_<myname>';
 	public const DB_TABLE_ARGUMENT = 'relay_layer_argument_<myname>';
 	public const DB_TABLE_EVENT = 'relay_event_<myname>';
-
-	/** @var array<string,ClassSpec> */
-	protected array $relayProtocols = [];
-
-	/** @var array<string,ClassSpec> */
-	protected array $transports = [];
-
-	/** @var array<string,ClassSpec> */
-	protected array $stackElements = [];
 
 	/** @var array<string,Relay> */
 	public array $relays = [];
@@ -149,6 +138,15 @@ class RelayController extends ModuleInstance {
 	#[NCA\Setting\Number(options: ["10", "20", "50"])]
 	public int $relayQueueSize = 10;
 
+	/** @var array<string,ClassSpec> */
+	protected array $relayProtocols = [];
+
+	/** @var array<string,ClassSpec> */
+	protected array $transports = [];
+
+	/** @var array<string,ClassSpec> */
+	protected array $stackElements = [];
+
 	#[NCA\Event(
 		name: "connect",
 		description: "Load relays from database"
@@ -159,7 +157,7 @@ class RelayController extends ModuleInstance {
 			try {
 				$relay = $this->createRelayFromDB($relayConf);
 				$this->addRelay($relay);
-				$relay->init(function() use ($relay) {
+				$relay->init(function () use ($relay) {
 					$this->logger->notice("Relay " . $relay->getName() . " initialized");
 				});
 			} catch (Exception $e) {
@@ -203,7 +201,7 @@ class RelayController extends ModuleInstance {
 			"Transport" => [
 				NCA\RelayTransport::class,
 				[$this, "registerTransport"],
-			]
+			],
 		];
 		foreach ($types as $dir => $data) {
 			$files = \Safe\glob(__DIR__ . "/{$dir}/*.php");
@@ -240,9 +238,8 @@ class RelayController extends ModuleInstance {
 		$abbr = $this->relayGuildAbbreviation;
 		if ($abbr !== 'none') {
 			return $abbr;
-		} else {
-			return $this->config->orgName;
 		}
+		return $this->config->orgName;
 	}
 
 	public function getTransportSpec(string $name): ?ClassSpec {
@@ -259,83 +256,6 @@ class RelayController extends ModuleInstance {
 			$spec = clone $spec;
 		}
 		return $spec;
-	}
-
-	/**
-	 * @param array<string,ClassSpec> $specs
-	 * @return string[]
-	 */
-	protected function renderClassSpecOverview(array $specs, string $name, string $subCommand): array {
-		$count = count($specs);
-		if (!$count) {
-			return ["No {$name}s available."];
-		}
-		$blobs = [];
-		foreach ($specs as $spec) {
-			$description = $spec->description ?? "Someone forgot to add a description";
-			$entry = "<header2>{$spec->name}<end>\n".
-				"<tab>".
-				join("\n<tab>", explode("\n", trim($description)));
-			if (count($spec->params)) {
-				$entry .= "\n<tab>[" . $this->text->makeChatcmd("details", "/tell <myname> relay list {$subCommand} {$spec->name}") . "]";
-			}
-			$blobs []= $entry;
-		}
-		$blob = join("\n\n", $blobs);
-		return (array)$this->text->makeBlob("Available {$name}s ({$count})", $blob);
-	}
-
-	/**
-	 * @param array<string,ClassSpec> $specs
-	 * @return string[]
-	 */
-	protected function renderClassSpecDetails(array $specs, string $key, string $name): array {
-		$spec = $specs[$key] ?? null;
-		if (!isset($spec)) {
-			return ["No {$name} <highlight>{$key}<end> found."];
-		}
-		$refClass = new ReflectionClass($spec->class);
-		try {
-			$refConstr = $refClass->getMethod("__construct");
-			$refParams = $refConstr->getParameters();
-		} catch (ReflectionException $e) {
-			$refParams = [];
-		}
-		$description = $spec->description ?? "Someone forgot to add a description";
-		$blob = "<header2>Description<end>\n".
-			"<tab>" . join("\n<tab>", explode("\n", trim($description))).
-			"\n";
-		if (count($spec->params)) {
-			$blob .= "\n<header2>Parameters<end>\n";
-			$parNum = 0;
-			foreach ($spec->params as $param) {
-				$type = ($param->type === $param::TYPE_SECRET) ? $param::TYPE_STRING : $param->type;
-				$blob .= "<tab><green>{$type}<end> <highlight>{$param->name}<end>";
-				if (!$param->required) {
-					if (isset($refParams[$parNum]) && $refParams[$parNum]->isDefaultValueAvailable()) {
-						try {
-							$blob .= " (optional, default=".
-								\Safe\json_encode(
-									$refParams[$parNum]->getDefaultValue(),
-									JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR|JSON_INVALID_UTF8_SUBSTITUTE
-								) . ")";
-						} catch (JsonException $e) {
-							$blob .= " (optional)";
-						}
-					} else {
-						$blob .= " (optional)";
-					}
-				}
-				$parNum++;
-				$blob .= "\n<tab><i>".
-					join("</i>\n<tab><i>", explode("\n", $param->description ?? "No description")).
-					"</i>\n\n";
-			}
-		}
-		return (array)$this->text->makeBlob(
-			"Detailed description for {$spec->name}",
-			$blob
-		);
 	}
 
 	/** Get a list of all available relay protocols */
@@ -543,7 +463,7 @@ class RelayController extends ModuleInstance {
 		if (!$transactionActive) {
 			$this->db->commit();
 		}
-		$relay->init(function() use ($relay) {
+		$relay->init(function () use ($relay) {
 			$this->logger->notice("Relay " . $relay->getName() . " initialized");
 		});
 		return $relay;
@@ -586,7 +506,7 @@ class RelayController extends ModuleInstance {
 		if (!isset($liveRelay)) {
 			return false;
 		}
-		$liveRelay->deinit(function(Relay $relay) {
+		$liveRelay->deinit(function (Relay $relay) {
 			$this->logger->notice("Relay " . $relay->getName() . " destroyed");
 			unset($relay);
 		});
@@ -608,6 +528,7 @@ class RelayController extends ModuleInstance {
 
 	/**
 	 * Get a list of commands to create all current relays
+	 *
 	 * @return string[]
 	 */
 	public function getRelayDump(): array {
@@ -668,6 +589,7 @@ class RelayController extends ModuleInstance {
 		$relay = isset($id)
 			? $this->getRelay($id)
 			: $this->getRelayByName($name??"");
+
 		/** @var ?RelayConfig $relay */
 		if (!isset($relay)) {
 			$context->reply(
@@ -709,94 +631,6 @@ class RelayController extends ModuleInstance {
 			"texts, see the {$wikiLink}.</i>";
 		$msg = $this->text->makeBlob("Relays (" . count($relays) . ")", $blob);
 		$context->reply($msg);
-	}
-
-	/** Return the textualrepresentation with status for a single relay */
-	private function renderRelay(RelayConfig $relay): string {
-		$blob = "<header2>{$relay->name}<end>\n";
-		if (isset($this->transports[$relay->layers[0]->layer])) {
-			$secrets = $this->transports[$relay->layers[0]->layer]->getSecrets();
-			$blob .= "<tab>Transport: <highlight>" . $relay->layers[0]->toString("transport", $secrets) . "<end>\n";
-		} else {
-			$blob .= "<tab>Transport: <highlight>{$relay->layers[0]->layer}(<red>error<end>)<end>\n";
-		}
-		for ($i = 1; $i < count($relay->layers)-1; $i++) {
-			if (isset($this->stackElements[$relay->layers[$i]->layer])) {
-				$secrets = $this->stackElements[$relay->layers[$i]->layer]->getSecrets();
-				$blob .= "<tab>Layer: <highlight>" . $relay->layers[$i]->toString("layer", $secrets) . "<end>\n";
-			} else {
-				$blob .= "<tab>Layer: <highlight>{$relay->layers[$i]->layer}(<red>error<end>)<end>\n";
-			}
-		}
-		$layerName = $relay->layers[count($relay->layers)-1]->layer;
-		if (isset($this->relayProtocols[$layerName])) {
-			$secrets = $this->relayProtocols[$relay->layers[count($relay->layers)-1]->layer]->getSecrets();
-			$blob .= "<tab>Protocol: <highlight>" . $relay->layers[count($relay->layers)-1]->toString("protocol", $secrets) . "<end>\n";
-		} else {
-			$blob .= "<tab>Protocol: <highlight>{$layerName}(<red>error<end>)<end>\n";
-		}
-		$live = $this->relays[$relay->name] ?? null;
-		if (isset($live)) {
-			$blob .= "<tab>Status: " . $live->getStatus()->toString();
-		} else {
-			$blob .= "<tab>Status: <red>error<end>";
-		}
-		$delLink = $this->text->makeChatcmd(
-			"delete",
-			"/tell <myname> relay rem {$relay->id}"
-		);
-		$descrLink = $this->text->makeChatcmd(
-			"describe",
-			"/tell <myname> relay describe {$relay->id}"
-		);
-		$blob .= " [{$delLink}] [{$descrLink}]\n";
-
-		$blob .= "<tab>Colors:\n";
-		$blob .= "<tab><tab>" . $this->getExampleMessage(
-			$relay,
-			[new Source(Source::ORG, "example", "ORG", 5)]
-		) . "\n";
-		$blob .= "<tab><tab>" . $this->getExampleMessage(
-			$relay,
-			[
-				new Source(Source::ORG, "example", "ORG", 5),
-				new Source(Source::PRIV, "example", "Guest", 5)
-			]
-		) . "\n";
-		return $blob;
-	}
-
-	/**
-	 * @param Source[] $source
-	 * @phpstan-param non-empty-array<Source> $source
-	 */
-	private function getExampleMessage(RelayConfig $relay, array $source): string {
-		$rEvent = new RoutableMessage("xxx");
-		$rEvent->setCharacter(new Character("Nady"));
-		$rEvent->path = [
-			new Source(Source::RELAY, $relay->name),
-			...$source,
-		];
-		$lastHop = $source[count($source)-1];
-		$renderedPath = $this->messageHub->renderPath($rEvent, "*", true);
-		$msgColor = $this->messageHub->getTextColor($rEvent, Source::ORG);
-		if (strlen($msgColor)) {
-			$example = "{$msgColor}This is what text from the ".
-				strtolower($lastHop->label ?? "test") . "-chat looks like.<end>";
-		} else {
-			$example = "Text from the " . strtolower($lastHop->label ?? "test").
-				"-chat has no color set.";
-		}
-		$tagLink = $this->text->makeChatcmd(
-			"{$lastHop->label}-tag color",
-			"/tell <myname> route color tag pick {$lastHop->type} via relay({$relay->name})"
-		);
-		$textLink = $this->text->makeChatcmd(
-			"text color",
-			"/tell <myname> route color text pick {$lastHop->type} via relay({$relay->name})"
-		);
-		$blob = "{$renderedPath}{$example} [{$tagLink}] [{$textLink}]";
-		return $blob;
 	}
 
 	/** Delete a relay */
@@ -948,35 +782,6 @@ class RelayController extends ModuleInstance {
 		);
 	}
 
-	protected function changeRelayEventStatus(RelayConfig $relay, string $eventName, string $direction, bool $enable): bool {
-		$event = $relay->getEvent($eventName);
-		if (!isset($event)) {
-			if ($enable === false) {
-				return false;
-			}
-			$event = new RelayEvent();
-			$event->event = $eventName;
-			$event->relay_id = $relay->id;
-		}
-		if ($event->{$direction} === $enable) {
-			return false;
-		}
-		$event->{$direction} = $enable;
-		if (isset($event->id)) {
-			if ($event->incoming === false && $event->outgoing === false) {
-				$this->db->table(static::DB_TABLE_EVENT)->delete($event->id);
-				$relay->deleteEvent($eventName);
-			} else {
-				$this->db->update(static::DB_TABLE_EVENT, "id", $event);
-			}
-		} else {
-			$event->id = $this->db->insert(static::DB_TABLE_EVENT, $event, "id");
-			$relay->addEvent($event);
-		}
-		$this->relays[$relay->name]->setEvents($relay->events);
-		return true;
-	}
-
 	/** Batch allow or forbid incoming or outgoing a syncable events for a relay */
 	#[NCA\HandlesCommand("relay")]
 	public function relayConfigEventsetCommand(
@@ -1036,22 +841,8 @@ class RelayController extends ModuleInstance {
 	}
 
 	/**
-	 * Get a list of all registered sync events as array with names
-	 * @return EventType[]
-	 */
-	protected function getRegisteredSyncEvents(): array {
-		return array_values(
-			array_filter(
-				$this->eventManager->getEventTypes(),
-				function (EventType $event): bool {
-					return fnmatch("sync(*)", $event->name, FNM_CASEFOLD);
-				}
-			)
-		);
-	}
-
-	/**
 	 * Read all defined relays from the database
+	 *
 	 * @return RelayConfig[]
 	 */
 	public function getRelays(): array {
@@ -1073,7 +864,7 @@ class RelayController extends ModuleInstance {
 		$relays = $this->db->table(static::DB_TABLE)
 			->orderBy("id")
 			->asObj(RelayConfig::class)
-			->each(function(RelayConfig $relay) use ($layers, $events): void {
+			->each(function (RelayConfig $relay) use ($layers, $events): void {
 				$relay->layers = $layers->get($relay->id, new Collection())->toArray();
 				$relay->events = $events->get($relay->id, new Collection())
 					->toArray();
@@ -1112,27 +903,6 @@ class RelayController extends ModuleInstance {
 		return $relay;
 	}
 
-	/** Add layers and args to a relay from the DB */
-	protected function completeRelay(RelayConfig $relay): void {
-		$relay->layers = $this->db->table(static::DB_TABLE_LAYER)
-		->where("relay_id", $relay->id)
-		->orderBy("id")
-		->asObj(RelayLayer::class)
-		->toArray();
-		foreach ($relay->layers as $layer) {
-			$layer->arguments = $this->db->table(static::DB_TABLE_ARGUMENT)
-			->where("layer_id", $layer->id)
-			->orderBy("id")
-			->asObj(RelayLayerArgument::class)
-			->toArray();
-		}
-		$relay->events = $this->db->table(static::DB_TABLE_EVENT)
-			->where("relay_id", $relay->id)
-			->orderBy("id")
-			->asObj(RelayEvent::class)
-			->toArray();
-	}
-
 	public function addRelay(Relay $relay): bool {
 		if (isset($this->relays[$relay->getName()])) {
 			return false;
@@ -1142,78 +912,10 @@ class RelayController extends ModuleInstance {
 		return true;
 	}
 
-	protected function createRelayFromDB(RelayConfig $conf): Relay {
-		$relay = new Relay($conf->name);
-		Registry::injectDependencies($relay);
-		if (count($conf->layers) < 2) {
-			throw new Exception(
-				"Every relay must have at least 1 transport and 1 protocol."
-			);
-		}
-		// The order is assumed to be transport --- protocol
-		// If it's the other way around, let's reverse it
-		if (
-			!isset($this->transports[$conf->layers[0]->layer])
-			&& isset($this->relayProtocols[$conf->layers[0]->layer])
-		) {
-			$conf->layers = array_reverse($conf->layers);
-		}
-
-		$stack = [];
-		$transport = array_shift($conf->layers);
-		$spec = $this->transports[strtolower($transport->layer)] ?? null;
-		if (!isset($spec)) {
-			throw new Exception(
-				"<highlight>{$transport->layer}<end> is not a ".
-				"known transport for relaying. Perhaps the order was wrong?"
-			);
-		}
-		/** @var TransportInterface */
-		$transportLayer = $this->getRelayLayer(
-			$transport->layer,
-			$transport->getKVArguments(),
-			$spec
-		);
-
-		for ($i = 0; $i < count($conf->layers)-1; $i++) {
-			$layerName = strtolower($conf->layers[$i]->layer);
-			$spec = $this->stackElements[$layerName] ?? null;
-			if (!isset($spec)) {
-				throw new Exception(
-					"<highlight>{$layerName}<end> is not a ".
-					"known layer for relaying. Perhaps the order was wrong?"
-				);
-			}
-			$stack []= $this->getRelayLayer(
-				$layerName,
-				$conf->layers[$i]->getKVArguments(),
-				$spec
-			);
-		}
-
-		$proto = array_pop($conf->layers);
-		$spec = $this->relayProtocols[strtolower($proto->layer)] ?? null;
-		if (!isset($spec)) {
-			throw new Exception(
-				"<highlight>{$proto->layer}<end> is not a ".
-				"known relay protocol. Perhaps the order was wrong?"
-			);
-		}
-		/** @var RelayProtocolInterface */
-		$protocolLayer = $this->getRelayLayer(
-			$proto->layer,
-			$proto->getKVArguments(),
-			$spec
-		);
-		/** @var RelayLayerInterface[] $stack */
-		$relay->setStack($transportLayer, $protocolLayer, ...$stack);
-		$relay->setEvents($conf->events);
-		return $relay;
-	}
-
 	/**
 	 * Get a fully configured relay layer or null if not possible
-	 * @param string $name Name of the layer
+	 *
+	 * @param string               $name   Name of the layer
 	 * @param array<string,string> $params The parameters of the layer
 	 */
 	public function getRelayLayer(string $name, array $params, ClassSpec $spec): object {
@@ -1247,7 +949,7 @@ class RelayController extends ModuleInstance {
 						unset($params[$parameter->name]);
 						break;
 					case $parameter::TYPE_STRING_ARRAY:
-						$value = array_map(fn($x) => (string)$x, (array)$value);
+						$value = array_map(fn ($x) => (string)$x, (array)$value);
 						$arguments []= $value;
 						unset($params[$parameter->name]);
 						break;
@@ -1403,6 +1105,7 @@ class RelayController extends ModuleInstance {
 		if (!is_array($events)) {
 			return new Response(Response::UNPROCESSABLE_ENTITY);
 		}
+
 		/** @var \stdClass[] $events */
 		try {
 			foreach ($events as &$event) {
@@ -1419,6 +1122,7 @@ class RelayController extends ModuleInstance {
 				->where("relay_id", $relay->id)
 				->delete();
 			$relay->events = [];
+
 			/** @var RelayEvent[] $events */
 			foreach ($events as $event) {
 				$event->relay_id = $relay->id;
@@ -1572,5 +1276,310 @@ class RelayController extends ModuleInstance {
 	]
 	public function apiGetEventsEndpoint(Request $request, HttpProtocolWrapper $server): Response {
 		return new ApiResponse($this->getRegisteredSyncEvents());
+	}
+
+	/**
+	 * @param array<string,ClassSpec> $specs
+	 *
+	 * @return string[]
+	 */
+	protected function renderClassSpecOverview(array $specs, string $name, string $subCommand): array {
+		$count = count($specs);
+		if (!$count) {
+			return ["No {$name}s available."];
+		}
+		$blobs = [];
+		foreach ($specs as $spec) {
+			$description = $spec->description ?? "Someone forgot to add a description";
+			$entry = "<header2>{$spec->name}<end>\n".
+				"<tab>".
+				join("\n<tab>", explode("\n", trim($description)));
+			if (count($spec->params)) {
+				$entry .= "\n<tab>[" . $this->text->makeChatcmd("details", "/tell <myname> relay list {$subCommand} {$spec->name}") . "]";
+			}
+			$blobs []= $entry;
+		}
+		$blob = join("\n\n", $blobs);
+		return (array)$this->text->makeBlob("Available {$name}s ({$count})", $blob);
+	}
+
+	/**
+	 * @param array<string,ClassSpec> $specs
+	 *
+	 * @return string[]
+	 */
+	protected function renderClassSpecDetails(array $specs, string $key, string $name): array {
+		$spec = $specs[$key] ?? null;
+		if (!isset($spec)) {
+			return ["No {$name} <highlight>{$key}<end> found."];
+		}
+		$refClass = new ReflectionClass($spec->class);
+		try {
+			$refConstr = $refClass->getMethod("__construct");
+			$refParams = $refConstr->getParameters();
+		} catch (ReflectionException $e) {
+			$refParams = [];
+		}
+		$description = $spec->description ?? "Someone forgot to add a description";
+		$blob = "<header2>Description<end>\n".
+			"<tab>" . join("\n<tab>", explode("\n", trim($description))).
+			"\n";
+		if (count($spec->params)) {
+			$blob .= "\n<header2>Parameters<end>\n";
+			$parNum = 0;
+			foreach ($spec->params as $param) {
+				$type = ($param->type === $param::TYPE_SECRET) ? $param::TYPE_STRING : $param->type;
+				$blob .= "<tab><green>{$type}<end> <highlight>{$param->name}<end>";
+				if (!$param->required) {
+					if (isset($refParams[$parNum]) && $refParams[$parNum]->isDefaultValueAvailable()) {
+						try {
+							$blob .= " (optional, default=".
+								\Safe\json_encode(
+									$refParams[$parNum]->getDefaultValue(),
+									JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR|JSON_INVALID_UTF8_SUBSTITUTE
+								) . ")";
+						} catch (JsonException $e) {
+							$blob .= " (optional)";
+						}
+					} else {
+						$blob .= " (optional)";
+					}
+				}
+				$parNum++;
+				$blob .= "\n<tab><i>".
+					join("</i>\n<tab><i>", explode("\n", $param->description ?? "No description")).
+					"</i>\n\n";
+			}
+		}
+		return (array)$this->text->makeBlob(
+			"Detailed description for {$spec->name}",
+			$blob
+		);
+	}
+
+	protected function changeRelayEventStatus(RelayConfig $relay, string $eventName, string $direction, bool $enable): bool {
+		$event = $relay->getEvent($eventName);
+		if (!isset($event)) {
+			if ($enable === false) {
+				return false;
+			}
+			$event = new RelayEvent();
+			$event->event = $eventName;
+			$event->relay_id = $relay->id;
+		}
+		if ($event->{$direction} === $enable) {
+			return false;
+		}
+		$event->{$direction} = $enable;
+		if (isset($event->id)) {
+			if ($event->incoming === false && $event->outgoing === false) {
+				$this->db->table(static::DB_TABLE_EVENT)->delete($event->id);
+				$relay->deleteEvent($eventName);
+			} else {
+				$this->db->update(static::DB_TABLE_EVENT, "id", $event);
+			}
+		} else {
+			$event->id = $this->db->insert(static::DB_TABLE_EVENT, $event, "id");
+			$relay->addEvent($event);
+		}
+		$this->relays[$relay->name]->setEvents($relay->events);
+		return true;
+	}
+
+	/**
+	 * Get a list of all registered sync events as array with names
+	 *
+	 * @return EventType[]
+	 */
+	protected function getRegisteredSyncEvents(): array {
+		return array_values(
+			array_filter(
+				$this->eventManager->getEventTypes(),
+				function (EventType $event): bool {
+					return fnmatch("sync(*)", $event->name, FNM_CASEFOLD);
+				}
+			)
+		);
+	}
+
+	/** Add layers and args to a relay from the DB */
+	protected function completeRelay(RelayConfig $relay): void {
+		$relay->layers = $this->db->table(static::DB_TABLE_LAYER)
+		->where("relay_id", $relay->id)
+		->orderBy("id")
+		->asObj(RelayLayer::class)
+		->toArray();
+		foreach ($relay->layers as $layer) {
+			$layer->arguments = $this->db->table(static::DB_TABLE_ARGUMENT)
+			->where("layer_id", $layer->id)
+			->orderBy("id")
+			->asObj(RelayLayerArgument::class)
+			->toArray();
+		}
+		$relay->events = $this->db->table(static::DB_TABLE_EVENT)
+			->where("relay_id", $relay->id)
+			->orderBy("id")
+			->asObj(RelayEvent::class)
+			->toArray();
+	}
+
+	protected function createRelayFromDB(RelayConfig $conf): Relay {
+		$relay = new Relay($conf->name);
+		Registry::injectDependencies($relay);
+		if (count($conf->layers) < 2) {
+			throw new Exception(
+				"Every relay must have at least 1 transport and 1 protocol."
+			);
+		}
+		// The order is assumed to be transport --- protocol
+		// If it's the other way around, let's reverse it
+		if (
+			!isset($this->transports[$conf->layers[0]->layer])
+			&& isset($this->relayProtocols[$conf->layers[0]->layer])
+		) {
+			$conf->layers = array_reverse($conf->layers);
+		}
+
+		$stack = [];
+		$transport = array_shift($conf->layers);
+		$spec = $this->transports[strtolower($transport->layer)] ?? null;
+		if (!isset($spec)) {
+			throw new Exception(
+				"<highlight>{$transport->layer}<end> is not a ".
+				"known transport for relaying. Perhaps the order was wrong?"
+			);
+		}
+
+		/** @var TransportInterface */
+		$transportLayer = $this->getRelayLayer(
+			$transport->layer,
+			$transport->getKVArguments(),
+			$spec
+		);
+
+		for ($i = 0; $i < count($conf->layers)-1; $i++) {
+			$layerName = strtolower($conf->layers[$i]->layer);
+			$spec = $this->stackElements[$layerName] ?? null;
+			if (!isset($spec)) {
+				throw new Exception(
+					"<highlight>{$layerName}<end> is not a ".
+					"known layer for relaying. Perhaps the order was wrong?"
+				);
+			}
+			$stack []= $this->getRelayLayer(
+				$layerName,
+				$conf->layers[$i]->getKVArguments(),
+				$spec
+			);
+		}
+
+		$proto = array_pop($conf->layers);
+		$spec = $this->relayProtocols[strtolower($proto->layer)] ?? null;
+		if (!isset($spec)) {
+			throw new Exception(
+				"<highlight>{$proto->layer}<end> is not a ".
+				"known relay protocol. Perhaps the order was wrong?"
+			);
+		}
+
+		/** @var RelayProtocolInterface */
+		$protocolLayer = $this->getRelayLayer(
+			$proto->layer,
+			$proto->getKVArguments(),
+			$spec
+		);
+
+		/** @var RelayLayerInterface[] $stack */
+		$relay->setStack($transportLayer, $protocolLayer, ...$stack);
+		$relay->setEvents($conf->events);
+		return $relay;
+	}
+
+	/** Return the textualrepresentation with status for a single relay */
+	private function renderRelay(RelayConfig $relay): string {
+		$blob = "<header2>{$relay->name}<end>\n";
+		if (isset($this->transports[$relay->layers[0]->layer])) {
+			$secrets = $this->transports[$relay->layers[0]->layer]->getSecrets();
+			$blob .= "<tab>Transport: <highlight>" . $relay->layers[0]->toString("transport", $secrets) . "<end>\n";
+		} else {
+			$blob .= "<tab>Transport: <highlight>{$relay->layers[0]->layer}(<red>error<end>)<end>\n";
+		}
+		for ($i = 1; $i < count($relay->layers)-1; $i++) {
+			if (isset($this->stackElements[$relay->layers[$i]->layer])) {
+				$secrets = $this->stackElements[$relay->layers[$i]->layer]->getSecrets();
+				$blob .= "<tab>Layer: <highlight>" . $relay->layers[$i]->toString("layer", $secrets) . "<end>\n";
+			} else {
+				$blob .= "<tab>Layer: <highlight>{$relay->layers[$i]->layer}(<red>error<end>)<end>\n";
+			}
+		}
+		$layerName = $relay->layers[count($relay->layers)-1]->layer;
+		if (isset($this->relayProtocols[$layerName])) {
+			$secrets = $this->relayProtocols[$relay->layers[count($relay->layers)-1]->layer]->getSecrets();
+			$blob .= "<tab>Protocol: <highlight>" . $relay->layers[count($relay->layers)-1]->toString("protocol", $secrets) . "<end>\n";
+		} else {
+			$blob .= "<tab>Protocol: <highlight>{$layerName}(<red>error<end>)<end>\n";
+		}
+		$live = $this->relays[$relay->name] ?? null;
+		if (isset($live)) {
+			$blob .= "<tab>Status: " . $live->getStatus()->toString();
+		} else {
+			$blob .= "<tab>Status: <red>error<end>";
+		}
+		$delLink = $this->text->makeChatcmd(
+			"delete",
+			"/tell <myname> relay rem {$relay->id}"
+		);
+		$descrLink = $this->text->makeChatcmd(
+			"describe",
+			"/tell <myname> relay describe {$relay->id}"
+		);
+		$blob .= " [{$delLink}] [{$descrLink}]\n";
+
+		$blob .= "<tab>Colors:\n";
+		$blob .= "<tab><tab>" . $this->getExampleMessage(
+			$relay,
+			[new Source(Source::ORG, "example", "ORG", 5)]
+		) . "\n";
+		$blob .= "<tab><tab>" . $this->getExampleMessage(
+			$relay,
+			[
+				new Source(Source::ORG, "example", "ORG", 5),
+				new Source(Source::PRIV, "example", "Guest", 5),
+			]
+		) . "\n";
+		return $blob;
+	}
+
+	/**
+	 * @param Source[] $source
+	 * @phpstan-param non-empty-array<Source> $source
+	 */
+	private function getExampleMessage(RelayConfig $relay, array $source): string {
+		$rEvent = new RoutableMessage("xxx");
+		$rEvent->setCharacter(new Character("Nady"));
+		$rEvent->path = [
+			new Source(Source::RELAY, $relay->name),
+			...$source,
+		];
+		$lastHop = $source[count($source)-1];
+		$renderedPath = $this->messageHub->renderPath($rEvent, "*", true);
+		$msgColor = $this->messageHub->getTextColor($rEvent, Source::ORG);
+		if (strlen($msgColor)) {
+			$example = "{$msgColor}This is what text from the ".
+				strtolower($lastHop->label ?? "test") . "-chat looks like.<end>";
+		} else {
+			$example = "Text from the " . strtolower($lastHop->label ?? "test").
+				"-chat has no color set.";
+		}
+		$tagLink = $this->text->makeChatcmd(
+			"{$lastHop->label}-tag color",
+			"/tell <myname> route color tag pick {$lastHop->type} via relay({$relay->name})"
+		);
+		$textLink = $this->text->makeChatcmd(
+			"text color",
+			"/tell <myname> route color text pick {$lastHop->type} via relay({$relay->name})"
+		);
+		$blob = "{$renderedPath}{$example} [{$tagLink}] [{$textLink}]";
+		return $blob;
 	}
 }

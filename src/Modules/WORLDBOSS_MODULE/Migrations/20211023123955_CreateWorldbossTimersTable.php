@@ -3,18 +3,14 @@
 namespace Nadybot\User\Modules\BIGBOSS_MODULE\Migrations\Worldboss;
 
 use Illuminate\Database\Schema\Blueprint;
-use Nadybot\Core\CommandManager;
-use Nadybot\Core\DB;
-use Nadybot\Core\EventManager;
-use Nadybot\Core\LoggerWrapper;
-use Nadybot\Core\SchemaMigration;
+use Nadybot\Core\{CommandManager, DB, EventManager, LoggerWrapper, SchemaMigration};
 use Nadybot\Modules\WORLDBOSS_MODULE\WorldBossController;
 use stdClass;
 
 class CreateWorldbossTimersTable implements SchemaMigration {
 	public function migrate(LoggerWrapper $logger, DB $db): void {
 		$table = WorldBossController::DB_TABLE;
-		$db->schema()->create($table, function(Blueprint $table): void {
+		$db->schema()->create($table, function (Blueprint $table): void {
 			$table->string("mob_name", 50)->primary();
 			$table->integer("timer");
 			$table->integer("spawn");

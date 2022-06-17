@@ -13,6 +13,7 @@ class SettingsUsageStats {
 	public string $os;
 	public string $symbol;
 	public int $num_relays;
+
 	/** @var string[] */
 	public array $relay_protocols;
 	public bool $first_and_last_alt_only;

@@ -12,17 +12,18 @@ use Nadybot\Core\{
 	MessageHub,
 	ModuleInstance,
 	Modules\BAN\BanController,
+	Modules\PREFERENCES\Preferences,
 	Nadybot,
+	Registry,
 	Routing\RoutableMessage,
 	Routing\Source,
 	Text,
 	Util,
-	Modules\PREFERENCES\Preferences,
-	Registry,
 };
 
 /**
  * This class contains all functions necessary for mass messaging
+ *
  * @package Nadybot\Modules\MASSMSG_MODULE
  */
 #[
@@ -165,9 +166,9 @@ class MassMsgController extends ModuleInstance {
 
 		$message .= " :: " . $this->getMassMsgOptInOutBlob();
 		$result = $this->massCallback([
-			self::PREF_MSGS => function(string $name) use ($message): void {
+			self::PREF_MSGS => function (string $name) use ($message): void {
 				$this->chatBot->sendMassTell($message, $name);
-			}
+			},
 		]);
 		$msg = $this->getMassResultPopup($result);
 		$context->reply($msg);
@@ -196,80 +197,24 @@ class MassMsgController extends ModuleInstance {
 		$this->messageHub->handle($rMessage);
 		$message .= " :: " . $this->getMassMsgOptInOutBlob();
 		$result = $this->massCallback([
-			self::PREF_MSGS => function(string $name) use ($message): void {
+			self::PREF_MSGS => function (string $name) use ($message): void {
 				$this->chatBot->sendMassTell($message, $name);
 			},
 			self::PREF_INVITES => function (string $name): void {
 				$this->chatBot->privategroup_invite($name);
-			}
+			},
 		]);
 		$msg = $this->getMassResultPopup($result);
 		$context->reply($msg);
 	}
 
 	/**
-	 * Turn the result of a massCallback() into a nice popup
-	 * @param array<string,string> $result
-	 * @return string[]
-	 */
-	protected function getMassResultPopup(array $result): array {
-		ksort($result);
-		$blob = "<header2>Result of your mass message<end>\n";
-		$numSent = 0;
-		$numInChat = 0;
-		$numInOrg = 0;
-		$numBlocked = 0;
-		foreach ($result as $player => $action) {
-			$blob .= "<tab>$player: ";
-			if ($action === static::BLOCKED) {
-				$blob .= "<red>blocked by preferences<end>";
-				$numBlocked++;
-			} elseif ($action === static::IN_CHAT) {
-				$blob .= "<green>read in chat<end>";
-				$numInChat++;
-			} elseif ($action === static::IN_ORG) {
-				$blob .= "<green>read in org<end>";
-				$numInOrg++;
-			} elseif ($action === static::SENT) {
-				$blob .= "<green>message sent<end>";
-				$numSent++;
-			}
-			$blob .= "\n";
-		}
-		$person = function(int $num): string {
-			return ($num === 1) ? "person" : "people";
-		};
-		$isAre = function(int $num): string {
-			return ($num === 1) ? "is" : "are";
-		};
-		$msg = "Your message was sent to <highlight>{$numSent}<end> ".
-			$person($numSent).
-			" and read by <highlight>{$numInChat}<end> ".
-			$person($numInChat) . " in the private channel";
-		if ($numInOrg > 0) {
-			$msg .= " and by <highlight>{$numInOrg}<end> ".
-			$person($numInOrg) . " in the org chat";
-		}
-		$msg .= ".";
-		if ($numBlocked > 0) {
-			$msg .= " {$numBlocked} " . $person($numBlocked) . " " . $isAre($numBlocked).
-			" blocking mass messages";
-		}
-		if (count($result) === 0) {
-			return (array)$msg;
-		}
-		$parts = (array)$this->text->makeBlob("Messaging details", $blob);
-		foreach ($parts as &$part) {
-			$part = "$msg :: $part";
-		}
-		return $parts;
-	}
-
-	/**
 	 * Run a callback for all users that are members, online but not in
 	 * our private channel.
+	 *
 	 * @param array<string,callable> $callback
 	 * @phpstan-param array<string,callable(string):void> $callback
+	 *
 	 * @return array<string,string> array(name => status)
 	 */
 	public function massCallback(array $callback): array {
@@ -302,33 +247,6 @@ class MassMsgController extends ModuleInstance {
 			}
 		}
 		return $result;
-	}
-
-	/** Show a character their current mass message and -invite preferences */
-	protected function showMassPreferences(CmdContext $context): void {
-		$character = $context->char->name;
-		$msgs = $this->preferences->get($character, static::PREF_MSGS);
-		$invs = $this->preferences->get($character, static::PREF_INVITES);
-		$msgOnLink      = $this->text->makeChatcmd("On", "/tell <myname> massmsgs on");
-		$msgOffLink     = $this->text->makeChatcmd("Off", "/tell <myname> massmsgs off");
-		$invitesOnLink  = $this->text->makeChatcmd("On", "/tell <myname> massinvites on");
-		$invitesOffLink = $this->text->makeChatcmd("Off", "/tell <myname> massinvites off");
-		if ($msgs === "no") {
-			$msgOffLink = "<off>Off<end>";
-		} else {
-			$msgOnLink = "<on>On<end>";
-		}
-		if ($invs === "no") {
-			$invitesOffLink = "<off>Off<end>";
-		} else {
-			$invitesOnLink = "<on>On<end>";
-		}
-		$blob = "<header2>Current preferences<end>\n".
-			"<tab>[{$msgOnLink}] [{$msgOffLink}]  Mass messages\n".
-			"<tab>[{$invitesOnLink}] [{$invitesOffLink}]  Mass invites\n";
-		$prefLink = $this->text->makeBlob("Your current mass message preferences", $blob);
-
-		$context->reply($prefLink);
 	}
 
 	/**
@@ -364,11 +282,9 @@ class MassMsgController extends ModuleInstance {
 	#[
 		NCA\NewsTile(
 			name: "massmsg-settings",
-			description:
-				"Shows your current settings for mass messages and -invites\n".
+			description: "Shows your current settings for mass messages and -invites\n".
 				"as well with links to change these",
-			example:
-				"<header2>Mass messages<end>\n".
+			example: "<header2>Mass messages<end>\n".
 				"<tab>[<on>On<end>] [<u>Off</u>] Receive Mass messages\n".
 				"<tab>[<u>On</u>] [<off>Off<end>] Receive Mass invites"
 		)
@@ -394,5 +310,92 @@ class MassMsgController extends ModuleInstance {
 			"<tab>[{$msgOnLink}] [{$msgOffLink}]  Receive Mass messages\n".
 			"<tab>[{$invitesOnLink}] [{$invitesOffLink}]  Receive Mass invites";
 		$callback($blob);
+	}
+
+	/**
+	 * Turn the result of a massCallback() into a nice popup
+	 *
+	 * @param array<string,string> $result
+	 *
+	 * @return string[]
+	 */
+	protected function getMassResultPopup(array $result): array {
+		ksort($result);
+		$blob = "<header2>Result of your mass message<end>\n";
+		$numSent = 0;
+		$numInChat = 0;
+		$numInOrg = 0;
+		$numBlocked = 0;
+		foreach ($result as $player => $action) {
+			$blob .= "<tab>{$player}: ";
+			if ($action === static::BLOCKED) {
+				$blob .= "<red>blocked by preferences<end>";
+				$numBlocked++;
+			} elseif ($action === static::IN_CHAT) {
+				$blob .= "<green>read in chat<end>";
+				$numInChat++;
+			} elseif ($action === static::IN_ORG) {
+				$blob .= "<green>read in org<end>";
+				$numInOrg++;
+			} elseif ($action === static::SENT) {
+				$blob .= "<green>message sent<end>";
+				$numSent++;
+			}
+			$blob .= "\n";
+		}
+		$person = function (int $num): string {
+			return ($num === 1) ? "person" : "people";
+		};
+		$isAre = function (int $num): string {
+			return ($num === 1) ? "is" : "are";
+		};
+		$msg = "Your message was sent to <highlight>{$numSent}<end> ".
+			$person($numSent).
+			" and read by <highlight>{$numInChat}<end> ".
+			$person($numInChat) . " in the private channel";
+		if ($numInOrg > 0) {
+			$msg .= " and by <highlight>{$numInOrg}<end> ".
+			$person($numInOrg) . " in the org chat";
+		}
+		$msg .= ".";
+		if ($numBlocked > 0) {
+			$msg .= " {$numBlocked} " . $person($numBlocked) . " " . $isAre($numBlocked).
+			" blocking mass messages";
+		}
+		if (count($result) === 0) {
+			return (array)$msg;
+		}
+		$parts = (array)$this->text->makeBlob("Messaging details", $blob);
+		foreach ($parts as &$part) {
+			$part = "{$msg} :: {$part}";
+		}
+		return $parts;
+	}
+
+	/** Show a character their current mass message and -invite preferences */
+	protected function showMassPreferences(CmdContext $context): void {
+		$character = $context->char->name;
+		$msgs = $this->preferences->get($character, static::PREF_MSGS);
+		$invs = $this->preferences->get($character, static::PREF_INVITES);
+		$msgOnLink      = $this->text->makeChatcmd("On", "/tell <myname> massmsgs on");
+		$msgOffLink     = $this->text->makeChatcmd("Off", "/tell <myname> massmsgs off");
+		$invitesOnLink  = $this->text->makeChatcmd("On", "/tell <myname> massinvites on");
+		$invitesOffLink = $this->text->makeChatcmd("Off", "/tell <myname> massinvites off");
+		if ($msgs === "no") {
+			$msgOffLink = "<off>Off<end>";
+		} else {
+			$msgOnLink = "<on>On<end>";
+		}
+		if ($invs === "no") {
+			$invitesOffLink = "<off>Off<end>";
+		} else {
+			$invitesOnLink = "<on>On<end>";
+		}
+		$blob = "<header2>Current preferences<end>\n".
+			"<tab>[{$msgOnLink}] [{$msgOffLink}]  Mass messages\n".
+			"<tab>[{$invitesOnLink}] [{$invitesOffLink}]  Mass invites\n";
+		$prefLink = $this->text->makeBlob("Your current mass message preferences", $blob);
+
+		$context->reply($prefLink);
 	}
 }

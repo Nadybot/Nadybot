@@ -2,13 +2,11 @@
 
 namespace Nadybot\Modules\ORGLIST_MODULE;
 
-use function Amp\call;
-use function Amp\delay;
 use function Amp\Promise\all;
+use function Amp\{call, delay};
 
 use Amp\Promise;
 use Generator;
-use stdClass;
 use Nadybot\Core\{
 	Attributes as NCA,
 	BuddylistManager,
@@ -26,6 +24,7 @@ use Nadybot\Core\{
 	UserException,
 	Util,
 };
+use stdClass;
 
 /**
  * @author Tyrence (RK2)
@@ -86,6 +85,7 @@ class OrglistController extends ModuleInstance {
 
 	/**
 	 * Get a hierarchical array of all the ranks in the goven governing form
+	 *
 	 * @return string[]
 	 */
 	public function getOrgRanks(string $governingForm): array {
@@ -121,17 +121,18 @@ class OrglistController extends ModuleInstance {
 			$count = count($orgs);
 
 			if ($count === 0) {
-				$msg = "Could not find any orgs (or players in orgs) that match <highlight>$search<end>.";
+				$msg = "Could not find any orgs (or players in orgs) that match <highlight>{$search}<end>.";
 				$context->reply($msg);
 				return;
 			} elseif ($count !== 1) {
 				$blob = $this->findOrgController->formatResults($orgs);
-				$msg = $this->text->makeBlob("Org Search Results for '{$search}' ($count)", $blob);
+				$msg = $this->text->makeBlob("Org Search Results for '{$search}' ({$count})", $blob);
 				$context->reply($msg);
 				return;
 			}
 			$orgId = $orgs[0]->id;
 		}
+
 		/** @var ?Guild */
 		$org = yield $this->guildManager->byId($orgId);
 		if (!isset($org)) {
@@ -205,7 +206,7 @@ class OrglistController extends ModuleInstance {
 			$this->logger->info("Using {numThreads} threads to get online status", [
 				"numThreads" => $numThreads,
 			]);
-			$lookupFunc = function() use (&$todo, &$onlineStates): Promise {
+			$lookupFunc = function () use (&$todo, &$onlineStates): Promise {
 				return call(function () use (&$todo, &$onlineStates): Generator {
 					while ($name = array_shift($todo)) {
 						$uid = yield $this->chatBot->getUid2($name);
@@ -230,19 +231,50 @@ class OrglistController extends ModuleInstance {
 	}
 
 	/**
+	 * @param array<string,Player> $members
+	 *
+	 * @return string[]
+	 */
+	public function getOrgGoverningForm(array $members): array {
+		$forms = $this->orgrankmap;
+		foreach ($members as $member) {
+			foreach ($forms as $name => $ranks) {
+				if (!isset($member->guild_rank_id) || $ranks[$member->guild_rank_id] !== $member->guild_rank) {
+					unset($forms[$name]);
+				}
+			}
+			if (count($forms) === 1) {
+				break;
+			}
+		}
+
+		// it's possible we haven't narrowed it down to 1 at this point
+		// If we haven't found the org yet, it can only be
+		// Republic or Department with only a president.
+		// choose the first one
+		return array_shift($forms);
+	}
+
+	/** Get the number of currently unused buddylist slots */
+	public function getFreeBuddylistSlots(): int {
+		return $this->chatBot->getBuddyListSize() - count($this->buddylistManager->buddyList);
+	}
+
+	/**
 	 * Render the given org and list of online chars into a nice blob
 	 *
 	 * @param array<string,bool> $onlineStates
+	 *
 	 * @return string[]
 	 */
 	private function renderOrglist(Guild $org, array $onlineStates, float $startTime, bool $renderOffline): array {
-		if (isset($org->governing_form) && isset($this->orgrankmap[$org->governing_form])) {
+		if (isset($org->governing_form, $this->orgrankmap[$org->governing_form])) {
 			$orgRankNames = $this->orgrankmap[$org->governing_form];
 		} else {
 			$orgRankNames = $this->getOrgGoverningForm($org->members);
 		}
 
-		$totalOnline = count(array_filter($onlineStates, fn(bool $online) => $online));
+		$totalOnline = count(array_filter($onlineStates, fn (bool $online) => $online));
 		$totalCount = count($org->members);
 		$rankGroups = [];
 		foreach ($org->members as $member) {
@@ -271,13 +303,13 @@ class OrglistController extends ModuleInstance {
 		$totalTime = round((microtime(true) - $startTime), 1);
 		$blob .= "\n\n<i>Lookup took {$totalTime} seconds.</i>";
 
-		return (array)$this->text->makeBlob("Orglist for '{$org->orgname}' ($totalOnline / $totalCount)", $blob);
+		return (array)$this->text->makeBlob("Orglist for '{$org->orgname}' ({$totalOnline} / {$totalCount})", $blob);
 	}
 
 	/** Render the online/offline list for a single rank */
 	private function renderOrglistRankGroup(string $rankName, stdClass $rankGroup): string {
 		$blob = "<pagebreak><header2>{$rankName}<end> (" . count($rankGroup->online) . "/{$rankGroup->total})";
-		$sortFunc = fn(Player $p1, Player $p2): int => strcmp($p1->name, $p2->name);
+		$sortFunc = fn (Player $p1, Player $p2): int => strcmp($p1->name, $p2->name);
 		usort($rankGroup->online, $sortFunc);
 		usort($rankGroup->offline, $sortFunc);
 		foreach ($rankGroup->online as $member) {
@@ -318,36 +350,5 @@ class OrglistController extends ModuleInstance {
 			$line .= " <highlight>{$member->profession}<end>)";
 		}
 		return $line;
-	}
-
-	/**
-	 * @param array<string,Player> $members
-	 * @return string[]
-	 */
-	public function getOrgGoverningForm(array $members): array {
-		$forms = $this->orgrankmap;
-		foreach ($members as $member) {
-			foreach ($forms as $name => $ranks) {
-				if (!isset($member->guild_rank_id) || $ranks[$member->guild_rank_id] !== $member->guild_rank) {
-					unset($forms[$name]);
-				}
-			}
-			if (count($forms) === 1) {
-				break;
-			}
-		}
-
-		// it's possible we haven't narrowed it down to 1 at this point
-		// If we haven't found the org yet, it can only be
-		// Republic or Department with only a president.
-		// choose the first one
-		return array_shift($forms);
-	}
-
-	/**
-	 * Get the number of currently unused buddylist slots
-	 */
-	public function getFreeBuddylistSlots(): int {
-		return $this->chatBot->getBuddyListSize() - count($this->buddylistManager->buddyList);
 	}
 }

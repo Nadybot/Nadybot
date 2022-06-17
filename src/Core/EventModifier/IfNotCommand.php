@@ -13,8 +13,7 @@ use Nadybot\Core\{
 #[
 	NCA\EventModifier(
 		name: "if-not-command",
-		description:
-			"This modifier will only route messages that are\n".
+		description: "This modifier will only route messages that are\n".
 			"not a command or a reply to a command."
 	)
 ]

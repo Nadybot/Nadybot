@@ -18,22 +18,23 @@ use ReflectionUnionType;
 
 class ApiSpecGenerator {
 	public function loadClasses(): void {
-		foreach (\Safe\glob(__DIR__ . "/../Core/DBSchema/*.php")?:[] as $file) {
+		foreach (\Safe\glob(__DIR__ . "/../Core/DBSchema/*.php") ?: [] as $file) {
 			require_once $file;
 		}
-		foreach (\Safe\glob(__DIR__ . "/../Core/Modules/*/*.php")?:[] as $file) {
+		foreach (\Safe\glob(__DIR__ . "/../Core/Modules/*/*.php") ?: [] as $file) {
 			require_once $file;
 		}
-		foreach (\Safe\glob(__DIR__ . "/../Core/*.php")?:[] as $file) {
+		foreach (\Safe\glob(__DIR__ . "/../Core/*.php") ?: [] as $file) {
 			require_once $file;
 		}
-		foreach (\Safe\glob(__DIR__ . "/../Modules/*/*.php")?:[] as $file) {
+		foreach (\Safe\glob(__DIR__ . "/../Modules/*/*.php") ?: [] as $file) {
 			require_once $file;
 		}
 	}
 
 	/**
 	 * Return an array of [instancename => full class name] for all #[Instance]s
+	 *
 	 * @return array<string,string>
 	 * @phpstan-return array<string,class-string>
 	 */
@@ -46,6 +47,7 @@ class ApiSpecGenerator {
 			if (empty($instanceAttrs)) {
 				continue;
 			}
+
 			/** @var NCA\Instance */
 			$instanceObj = $instanceAttrs[0]->newInstance();
 			$name = $instanceObj->name ?? Registry::formatName($className);
@@ -66,13 +68,15 @@ class ApiSpecGenerator {
 				if (empty($apiAttrs)) {
 					continue;
 				}
+
 				/** @var NCA\Api */
 				$apiAttr = $apiAttrs[0]->newInstance();
+
 				/** @var ReflectionParameter[] $params */
 				$params = array_slice($method->getParameters(), 2);
 				$path = preg_replace_callback(
 					"/%[ds]/",
-					function(array $matches) use (&$params): string {
+					function (array $matches) use (&$params): string {
 						$param = array_shift($params);
 						return '{' . $param->getName() . '}';
 					},
@@ -98,7 +102,7 @@ class ApiSpecGenerator {
 			if (is_subclass_of($class, \Attribute::class)) {
 				continue;
 			}
-			if ($class === $className || preg_match("/^Nadybot\\\\.*?\\\\\Q$className\E$/", $class)) {
+			if ($class === $className || preg_match("/^Nadybot\\\\.*?\\\\\Q{$className}\E$/", $class)) {
 				return $class;
 			}
 		}
@@ -142,11 +146,11 @@ class ApiSpecGenerator {
 			} elseif (is_array($nameAndType[1])) {
 				$newResult["properties"][$nameAndType[0]] = [
 					"oneOf" => array_map(
-						function(string $type): array {
+						function (string $type): array {
 							return ["type" => $type];
 						},
 						$nameAndType[1]
-					)
+					),
 				];
 			} else {
 				$newResult["properties"][$nameAndType[0]] = [
@@ -183,84 +187,11 @@ class ApiSpecGenerator {
 					"allOf" => [
 						['$ref' => "#/components/schemas/" . end($parentParts)],
 						$newResult,
-					]
+					],
 				];
 			}
 		}
 		$result[$className] = $newResult;
-	}
-
-	/**
-	 * @return mixed[]
-	 * @psalm-return array{0: string, 1: string|list<string>}
-	 */
-	protected function getRegularNameAndType(ReflectionProperty $refProp): array {
-		$propName = $refProp->getName();
-		if (!$refProp->hasType()) {
-			$comment = $refProp->getDocComment();
-			if ($comment === false || !preg_match("/@var ([^\s]+)/s", $comment, $matches)) {
-				return [$propName, "mixed"];
-			}
-			$types = explode("|", $matches[1]??"");
-			foreach ($types as &$type) {
-				if ($type === "int") {
-					$type = "integer";
-				} elseif ($type === "bool") {
-					$type = "boolean";
-				}
-			}
-			return [$propName, $types];
-		}
-		$refTypes = [];
-		$refType = $refProp->getType();
-		if ($refType instanceof ReflectionUnionType) {
-			$refTypes = $refType->getTypes();
-		} elseif ($refType instanceof ReflectionNamedType) {
-			$refTypes = [$refType];
-		} else {
-			throw new Exception("Unknown ReflectionClass");
-		}
-		$types = [];
-		foreach ($refTypes as $refType) {
-			if ($refType->isBuiltin()) {
-				if ($refType->getName() === "int") {
-					$types []= "integer";
-				} elseif ($refType->getName() === "bool") {
-					$types []= "boolean";
-				} else {
-					$types []= $refType->getName();
-				}
-			} elseif ($refType->getName() === "DateTime") {
-				$types []= "integer";
-			} else {
-				$name = explode("\\", $refType->getName());
-				$types []= "#/components/schemas/" . end($name);
-			}
-		}
-		if (count($types) === 1) {
-			return [$propName, $types[0]];
-		}
-		return [$propName, $types];
-	}
-
-	/**
-	 * @return null|array<mixed>
-	 * @psalm-return null|array{0: string, 1: string|string[], 2?: string}
-	 * @phpstan-return null|array{0: string, 1: string|string[], 2?: string}
-	 */
-	protected function getNameAndType(ReflectionProperty $refProperty): ?array {
-		$docComment = $refProperty->getDocComment();
-		if (count($refProperty->getAttributes(NCA\JSON\Ignore::class))) {
-			return null;
-		}
-		$description = $this->getDescriptionFromComment($docComment ?: "");
-		$nameAttr = $refProperty->getAttributes(NCA\JSON\Name::class);
-		if (count($nameAttr) > 0) {
-			/** @var NCA\JSON\Name */
-			$nameObj = $nameAttr[0]->newInstance();
-			return [$nameObj->name, $this->getRegularNameAndType($refProperty)[1], $description];
-		}
-		return [...$this->getRegularNameAndType($refProperty), $description];
 	}
 
 	/** @return array<string,mixed> */
@@ -278,6 +209,7 @@ class ApiSpecGenerator {
 
 	/**
 	 * @param array<string,ReflectionMethod[]> $mapping
+	 *
 	 * @return array<string,mixed>
 	 */
 	public function getSpec(array $mapping): array {
@@ -293,9 +225,9 @@ class ApiSpecGenerator {
 					"basicAuth" => [
 						"type" => "http",
 						"scheme" => "basic",
-					]
-				]
-			]
+					],
+				],
+			],
 
 		];
 		$newResult = [];
@@ -331,8 +263,8 @@ class ApiSpecGenerator {
 							$refClass = $this->getClassRef($response->class);
 							$newResult[$path][$method]["responses"][$code]["content"] = [
 								"application/json" => [
-									"schema" => $refClass
-								]
+									"schema" => $refClass,
+								],
 							];
 						}
 					}
@@ -360,13 +292,14 @@ class ApiSpecGenerator {
 				if (!isset($refParam)) {
 					continue;
 				}
+
 				/** @var ReflectionNamedType */
 				$refType = $refParam->getType();
 				$paramResult = [
 					"name" => $param,
 					"required" => true,
 					"in" => "path",
-					"schema" => ["type" => $refType->getName()]
+					"schema" => ["type" => $refType->getName()],
 				];
 				if ($refType->getName() === "int") {
 					$paramResult["schema"]["type"] = "integer";
@@ -374,7 +307,7 @@ class ApiSpecGenerator {
 				if ($refType->getName() === "bool") {
 					$paramResult["schema"]["type"] = "boolean";
 				}
-				if (preg_match("/@param.*?\\$\Q$param\E\s+(.+)$/m", $method->getDocComment()?:"", $matches)) {
+				if (preg_match("/@param.*?\\$\Q{$param}\E\s+(.+)$/m", $method->getDocComment() ?: "", $matches)) {
 					$matches[1] = preg_replace("/\*\//", "", $matches[1]);
 					if (is_string($matches[1])) {
 						$paramResult["description"] = trim($matches[1]);
@@ -466,9 +399,82 @@ class ApiSpecGenerator {
 		$result["content"] = [
 			"application/json" => [
 				"schema" => $classes,
-			]
+			],
 		];
 		return $result;
+	}
+
+	/**
+	 * @return mixed[]
+	 * @psalm-return array{0: string, 1: string|list<string>}
+	 */
+	protected function getRegularNameAndType(ReflectionProperty $refProp): array {
+		$propName = $refProp->getName();
+		if (!$refProp->hasType()) {
+			$comment = $refProp->getDocComment();
+			if ($comment === false || !preg_match("/@var ([^\s]+)/s", $comment, $matches)) {
+				return [$propName, "mixed"];
+			}
+			$types = explode("|", $matches[1]??"");
+			foreach ($types as &$type) {
+				if ($type === "int") {
+					$type = "integer";
+				} elseif ($type === "bool") {
+					$type = "boolean";
+				}
+			}
+			return [$propName, $types];
+		}
+		$refTypes = [];
+		$refType = $refProp->getType();
+		if ($refType instanceof ReflectionUnionType) {
+			$refTypes = $refType->getTypes();
+		} elseif ($refType instanceof ReflectionNamedType) {
+			$refTypes = [$refType];
+		} else {
+			throw new Exception("Unknown ReflectionClass");
+		}
+		$types = [];
+		foreach ($refTypes as $refType) {
+			if ($refType->isBuiltin()) {
+				if ($refType->getName() === "int") {
+					$types []= "integer";
+				} elseif ($refType->getName() === "bool") {
+					$types []= "boolean";
+				} else {
+					$types []= $refType->getName();
+				}
+			} elseif ($refType->getName() === "DateTime") {
+				$types []= "integer";
+			} else {
+				$name = explode("\\", $refType->getName());
+				$types []= "#/components/schemas/" . end($name);
+			}
+		}
+		if (count($types) === 1) {
+			return [$propName, $types[0]];
+		}
+		return [$propName, $types];
+	}
+
+	/**
+	 * @return null|array<mixed>
+	 * @psalm-return null|array{0: string, 1: string|string[], 2?: string}
+	 * @phpstan-return null|array{0: string, 1: string|string[], 2?: string}
+	 */
+	protected function getNameAndType(ReflectionProperty $refProperty): ?array {
+		$docComment = $refProperty->getDocComment();
+		if (count($refProperty->getAttributes(NCA\JSON\Ignore::class))) {
+			return null;
+		}
+		$description = $this->getDescriptionFromComment($docComment ?: "");
+		$nameAttr = $refProperty->getAttributes(NCA\JSON\Name::class);
+		if (count($nameAttr) > 0) {
+			/** @var NCA\JSON\Name */
+			$nameObj = $nameAttr[0]->newInstance();
+			return [$nameObj->name, $this->getRegularNameAndType($refProperty)[1], $description];
+		}
+		return [...$this->getRegularNameAndType($refProperty), $description];
 	}
 
 	/**

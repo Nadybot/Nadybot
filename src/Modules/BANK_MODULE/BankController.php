@@ -7,9 +7,7 @@ use function Amp\File\filesystem;
 use function Safe\preg_split;
 
 use Amp\File\FilesystemException;
-use Amp\Http\Client\HttpClientBuilder;
-use Amp\Http\Client\Request;
-use Amp\Http\Client\Response;
+use Amp\Http\Client\{HttpClientBuilder, Request, Response};
 use Amp\Promise;
 use Generator;
 use Illuminate\Support\Collection;
@@ -82,7 +80,7 @@ class BankController extends ModuleInstance {
 		$blob = "<header2>Available characters<end>\n";
 		foreach ($characters as $character) {
 			$characterLink = $this->text->makeChatcmd($character, "/tell <myname> bank browse {$character}");
-			$blob .= "<tab>$characterLink\n";
+			$blob .= "<tab>{$characterLink}\n";
 		}
 
 		$msg = $this->text->makeBlob('Bank Characters', $blob);
@@ -105,18 +103,18 @@ class BankController extends ModuleInstance {
 			->asObj(Bank::class)
 			->groupBy("container");
 		if ($data->count() === 0) {
-			$msg = "Could not find bank character <highlight>$name<end>.";
+			$msg = "Could not find bank character <highlight>{$name}<end>.";
 			$context->reply($msg);
 			return;
 		}
-		$blob = "<header2>Containers on $name<end>\n";
+		$blob = "<header2>Containers on {$name}<end>\n";
 		foreach ($data as $container => $items) {
 			$firstItem = $items->firstOrFail();
 			$container_link = $this->text->makeChatcmd($container, "/tell <myname> bank browse {$name} {$firstItem->container_id}");
 			$blob .= "<tab>{$container_link} (" . $items->count() . " items)\n";
 		}
 
-		$msg = $this->text->makeBlob("Containers for $name", $blob);
+		$msg = $this->text->makeBlob("Containers for {$name}", $blob);
 		$context->reply($msg);
 	}
 
@@ -211,6 +209,7 @@ class BankController extends ModuleInstance {
 	public function bankUpdateCommand(CmdContext $context, #[NCA\Str("update")] string $action): Generator {
 		if (preg_match("|^https?://|", $this->bankFileLocation)) {
 			$client = $this->builder->build();
+
 			/** @var Response */
 			$response = yield $client->request(new Request($this->bankFileLocation));
 			if ($response->getStatus() !== 200) {
@@ -236,11 +235,12 @@ class BankController extends ModuleInstance {
 
 	/**
 	 * @param string[] $lines
+	 *
 	 * @return Promise<void>
 	 */
 	private function bankUpdate(array $lines): Promise {
 		return call(function () use ($lines): Generator {
-			//remove the header line
+			// remove the header line
 			array_shift($lines);
 
 			yield $this->db->awaitBeginTransaction();

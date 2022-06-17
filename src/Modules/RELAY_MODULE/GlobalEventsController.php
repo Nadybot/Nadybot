@@ -4,8 +4,8 @@ namespace Nadybot\Modules\RELAY_MODULE;
 
 use Nadybot\Core\{
 	Attributes as NCA,
-	ModuleInstance,
 	LoggerWrapper,
+	ModuleInstance,
 	Registry,
 	SettingManager,
 };
@@ -17,6 +17,7 @@ use Nadybot\Modules\RELAY_MODULE\{
 
 /**
  * This class is the interface to the public highway channels
+ *
  * @author Nadyita
  */
 #[NCA\Instance]
@@ -49,7 +50,7 @@ class GlobalEventsController extends ModuleInstance {
 		Registry::injectDependencies($protocolLayer);
 		$relay->setStack($transportLayer, $protocolLayer, $highwayLayer);
 		$this->relay = $relay;
-		$relay->init(function(): void {
+		$relay->init(function (): void {
 			$this->logger->notice("Global timer events connected.");
 		});
 	}

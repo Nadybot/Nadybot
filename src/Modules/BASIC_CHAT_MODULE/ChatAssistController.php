@@ -73,18 +73,6 @@ class ChatAssistController extends ModuleInstance {
 	#[NCA\Setting\Number]
 	public int $callersUndoSteps = 5;
 
-	/**
-	 * Names of all callers
-	 * @var array<string,CallerList>
-	 */
-	protected array $callers = [];
-
-	/**
-	 * Backups of last callers
-	 * @var CallerBackup[]
-	 */
-	protected array $lastCallers = [];
-
 	/** List of classes never to pick as random callers */
 	#[NCA\Setting\Text(options: [
 		"doc",
@@ -94,6 +82,20 @@ class ChatAssistController extends ModuleInstance {
 		"doc:crat:enforcer",
 	])]
 	public string $neverAutoCallers = "doc:crat:enforcer";
+
+	/**
+	 * Names of all callers
+	 *
+	 * @var array<string,CallerList>
+	 */
+	protected array $callers = [];
+
+	/**
+	 * Backups of last callers
+	 *
+	 * @var CallerBackup[]
+	 */
+	protected array $lastCallers = [];
 
 	#[NCA\SettingChangeHandler("never_auto_callers")]
 	public function validateNeverAutoCallers(string $setting, string $old, string $new): void {
@@ -106,23 +108,11 @@ class ChatAssistController extends ModuleInstance {
 		}
 	}
 
-	/** Store a caller backup */
-	protected function storeBackup(CallerBackup $backup): void {
-		$this->lastCallers []= $backup;
-		$this->lastCallers = array_slice(
-			$this->lastCallers,
-			-1 * $this->callersUndoSteps
-		);
-	}
-
-	/**
-	 * Save the last callers configuration
-	 * @return CallerBackup
-	 */
+	/** Save the last callers configuration */
 	public function backupCallers(string $sender, string $command): CallerBackup {
 		$lastCallers = [];
 		foreach ($this->callers as $name => $callerList) {
-			$lastCallers[$name]= clone($callerList);
+			$lastCallers[$name]= clone $callerList;
 		}
 		$commands = explode(" ", $command, 2);
 		if (strtolower($commands[0]) === 'assist') {
@@ -135,7 +125,7 @@ class ChatAssistController extends ModuleInstance {
 	public function countCallers(): int {
 		$count = array_sum(
 			array_map(
-				function(CallerList $list): int {
+				function (CallerList $list): int {
 					return $list->count();
 				},
 				$this->callers
@@ -323,7 +313,8 @@ class ChatAssistController extends ModuleInstance {
 
 	/**
 	 * Clear the list of callers
-	 * @param string $sender The person who clears the callers
+	 *
+	 * @param string $sender  The person who clears the callers
 	 * @param string $command The command to log in the caller history
 	 */
 	public function clearCallers(string $sender, string $command): void {
@@ -354,7 +345,7 @@ class ChatAssistController extends ModuleInstance {
 			$name = $callers[$i]();
 			$uid = yield $this->chatBot->getUid2($name);
 			if (!$uid) {
-				$errors []= "Character <highlight>$name<end> does not exist.";
+				$errors []= "Character <highlight>{$name}<end> does not exist.";
 			} elseif (
 				!isset($this->chatBot->guildmembers[$name])
 				&& !$this->buddylistManager->isUidOnline($uid)
@@ -376,7 +367,7 @@ class ChatAssistController extends ModuleInstance {
 
 		// reverse array so that the first character will be the primary assist, and so on
 		$newCallers = array_map(
-			function(string $name) use ($context): Caller {
+			function (string $name) use ($context): Caller {
 				return new Caller($name, $context->char->name);
 			},
 			array_reverse($newCallers)
@@ -394,7 +385,7 @@ class ChatAssistController extends ModuleInstance {
 			if ($groupName === "") {
 				$page = "Callers set, here is the {$page}";
 			} else {
-				$page = "Callers set for <highlight>$groupName<end>, here is the {$page}";
+				$page = "Callers set for <highlight>{$groupName}<end>, here is the {$page}";
 			}
 		}
 		$context->reply($blob);
@@ -426,14 +417,14 @@ class ChatAssistController extends ModuleInstance {
 		$name = ucfirst(strtolower($name));
 		$uid = yield $this->chatBot->getUid2($name);
 		if (!$uid) {
-			$context->reply("Character <highlight>$name<end> does not exist.");
+			$context->reply("Character <highlight>{$name}<end> does not exist.");
 			return;
 		} elseif (
 			!isset($this->chatBot->guildmembers[$name])
 			&& !$this->buddylistManager->isUidOnline($uid)
 			&& !isset($this->chatBot->chatlist[$name])
 		) {
-			$context->reply("Character <highlight>$name<end> is not in this bot.");
+			$context->reply("Character <highlight>{$name}<end> is not in this bot.");
 			return;
 		}
 		$backup = $this->backupCallers($context->char->name, $context->message);
@@ -545,29 +536,6 @@ class ChatAssistController extends ModuleInstance {
 		);
 	}
 
-	/**
-	 * From a list of character names, return only those whose profession
-	 * is not in the never_auto_callers profession list
-	 *
-	 * @return string[]
-	 */
-	protected function removeNeverCallers(string ...$members): array {
-		$forbiddenProfs = array_map(
-			[$this->util, "getProfessionName"],
-			explode(":", $this->neverAutoCallers)
-		);
-		$players = $this->playerManager->searchByNames(
-			$this->config->dimension,
-			...$members
-		);
-		return $players->filter(function (Player $member) use ($forbiddenProfs): bool {
-			return !isset($member->profession)
-				|| !in_array($member->profession, $forbiddenProfs);
-		})->pluck("name")
-		->values()
-		->toArray();
-	}
-
 	/** Set a given number of random raid members to be callers */
 	#[NCA\HandlesCommand(ChatAssistController::CMD_SET_ADD_CLEAR)]
 	public function assistRandomCommand(
@@ -633,5 +601,37 @@ class ChatAssistController extends ModuleInstance {
 		$event->type = "assist(set)";
 		$event->lists = array_values($this->callers);
 		$this->eventManager->fireEvent($event);
+	}
+
+	/** Store a caller backup */
+	protected function storeBackup(CallerBackup $backup): void {
+		$this->lastCallers []= $backup;
+		$this->lastCallers = array_slice(
+			$this->lastCallers,
+			-1 * $this->callersUndoSteps
+		);
+	}
+
+	/**
+	 * From a list of character names, return only those whose profession
+	 * is not in the never_auto_callers profession list
+	 *
+	 * @return string[]
+	 */
+	protected function removeNeverCallers(string ...$members): array {
+		$forbiddenProfs = array_map(
+			[$this->util, "getProfessionName"],
+			explode(":", $this->neverAutoCallers)
+		);
+		$players = $this->playerManager->searchByNames(
+			$this->config->dimension,
+			...$members
+		);
+		return $players->filter(function (Player $member) use ($forbiddenProfs): bool {
+			return !isset($member->profession)
+				|| !in_array($member->profession, $forbiddenProfs);
+		})->pluck("name")
+		->values()
+		->toArray();
 	}
 }

@@ -2,8 +2,7 @@
 
 namespace Nadybot\Modules\SKILLS_MODULE;
 
-use Nadybot\Core\Attributes as NCA;
-use Nadybot\Core\DBRow;
+use Nadybot\Core\{Attributes as NCA, DBRow};
 use Nadybot\Modules\ITEMS_MODULE\AODBEntry;
 
 class PerkLevelAction extends DBRow {

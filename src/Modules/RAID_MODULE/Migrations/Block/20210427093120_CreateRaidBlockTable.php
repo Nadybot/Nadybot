@@ -3,9 +3,7 @@
 namespace Nadybot\Modules\RAID_MODULE\Migrations\Block;
 
 use Illuminate\Database\Schema\Blueprint;
-use Nadybot\Core\DB;
-use Nadybot\Core\LoggerWrapper;
-use Nadybot\Core\SchemaMigration;
+use Nadybot\Core\{DB, LoggerWrapper, SchemaMigration};
 use Nadybot\Modules\RAID_MODULE\RaidBlockController;
 
 class CreateRaidBlockTable implements SchemaMigration {
@@ -14,7 +12,7 @@ class CreateRaidBlockTable implements SchemaMigration {
 		if ($db->schema()->hasTable($table)) {
 			return;
 		}
-		$db->schema()->create($table, function(Blueprint $table): void {
+		$db->schema()->create($table, function (Blueprint $table): void {
 			$table->string("player", 15)->index();
 			$table->string("blocked_from", 20);
 			$table->string("blocked_by", 15);

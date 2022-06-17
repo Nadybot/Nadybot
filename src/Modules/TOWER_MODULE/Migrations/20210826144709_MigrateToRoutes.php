@@ -7,13 +7,13 @@ use Generator;
 use Nadybot\Core\{
 	Attributes as NCA,
 	ConfigFile,
-	Modules\DISCORD\DiscordChannel,
 	DB,
 	DBSchema\Route,
 	DBSchema\Setting,
 	LoggerWrapper,
 	MessageHub,
 	Modules\DISCORD\DiscordAPIClient,
+	Modules\DISCORD\DiscordChannel,
 	Routing\Source,
 	SchemaMigration,
 	SettingManager,
@@ -33,13 +33,6 @@ class MigrateToRoutes implements SchemaMigration {
 
 	#[NCA\Inject]
 	public MessageHub $messageHub;
-
-	protected function getSetting(DB $db, string $name): ?Setting {
-		return $db->table(SettingManager::DB_TABLE)
-			->where("name", $name)
-			->asObj(Setting::class)
-			->first();
-	}
 
 	public function migrate(LoggerWrapper $logger, DB $db): Generator {
 		$towerColor = $this->getSetting($db, "tower_spam_color");
@@ -104,6 +97,13 @@ class MigrateToRoutes implements SchemaMigration {
 			$this->migrateChannelToRoute($channel, $db, ($showWhere & 4) > 0);
 		} catch (Throwable) {
 		}
+	}
+
+	protected function getSetting(DB $db, string $name): ?Setting {
+		return $db->table(SettingManager::DB_TABLE)
+			->where("name", $name)
+			->asObj(Setting::class)
+			->first();
 	}
 
 	private function migrateChannelToRoute(DiscordChannel $channel, DB $db, bool $defaults): void {

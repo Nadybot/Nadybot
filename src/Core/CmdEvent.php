@@ -5,7 +5,6 @@ namespace Nadybot\Core;
 class CmdEvent extends Event {
 	/**
 	 * Either the name of the sender or the numeric UID (eg. city raid accouncements)
-	 * @var string|int
 	 */
 	public int|string $sender;
 

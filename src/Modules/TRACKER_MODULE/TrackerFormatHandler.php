@@ -2,10 +2,8 @@
 
 namespace Nadybot\Modules\TRACKER_MODULE;
 
-use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\DBSchema\Player;
-use Nadybot\Core\SettingHandler;
-use Nadybot\Core\Text;
+use Nadybot\Core\{Attributes as NCA, SettingHandler, Text};
 
 /**
  * Class to represent a setting with a tracker format value for NadyBot
@@ -18,31 +16,13 @@ class TrackerFormatSettingHandler extends SettingHandler {
 	#[NCA\Inject]
 	public TrackerController $trackerController;
 
-	/**
-	 * Get a displayable representation of the setting
-	 */
+	/** Get a displayable representation of the setting */
 	public function displayValue(string $sender): string {
 		$player = $this->getDummyPlayer();
 		return $this->trackerController->getLogMessage($player, "Nady", $this->row->value ?? "");
 	}
 
-	private function getDummyPlayer(): Player {
-		$player = new Player();
-		$player->ai_level = 30;
-		$player->level = 220;
-		$player->name = "Nady";
-		$player->guild = "Team Rainbow";
-		$player->guild_id = 123;
-		$player->gender = "Female";
-		$player->faction = "Clan";
-		$player->profession = "Bureaucrat";
-		$player->breed = "Nanomage";
-		return $player;
-	}
-
-	/**
-	 * Describe the valid values for this setting
-	 */
+	/** Describe the valid values for this setting */
 	public function getDescription(): string {
 		$msg = "For this setting you can set any text using some pre-defined keywords\n".
 			"that will be replaced with the actual data from the player:\n\n".
@@ -65,9 +45,7 @@ class TrackerFormatSettingHandler extends SettingHandler {
 		return $msg;
 	}
 
-	/**
-	 * Get all options for this setting or null if no options are available
-	 */
+	/** Get all options for this setting or null if no options are available */
 	public function getOptions(): ?string {
 		if (strlen($this->row->options??'')) {
 			$options = explode(";", $this->row->options??"");
@@ -89,5 +67,19 @@ class TrackerFormatSettingHandler extends SettingHandler {
 				"<tab>Code: <highlight>" . htmlentities($example). "<end>\n\n";
 		}
 		return $msg;
+	}
+
+	private function getDummyPlayer(): Player {
+		$player = new Player();
+		$player->ai_level = 30;
+		$player->level = 220;
+		$player->name = "Nady";
+		$player->guild = "Team Rainbow";
+		$player->guild_id = 123;
+		$player->gender = "Female";
+		$player->faction = "Clan";
+		$player->profession = "Bureaucrat";
+		$player->breed = "Nanomage";
+		return $player;
 	}
 }

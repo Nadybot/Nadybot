@@ -17,19 +17,21 @@ class BuddylistEntry {
 
 	/**
 	 * Which worker(s) holds this as their buddy
+	 *
 	 * @var array<int,bool>
 	 */
 	public array $worker = [];
 
 	/**
 	 * Internal list to track, why someone is on the buddy-list
+	 *
 	 * @var array<string,bool>
 	 */
 	public array $types = [];
 
 	/** Query if $type is in the reasons, why this person is on the buddy-list */
 	public function hasType(string $type): bool {
-		return ($this->types[$type] ?? false);
+		return $this->types[$type] ?? false;
 	}
 
 	/** Add $type to the reasons, why this person is on the buddy-list */

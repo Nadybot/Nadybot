@@ -15,8 +15,8 @@ use Nadybot\Core\{
 };
 use Nadybot\Modules\ITEMS_MODULE\{
 	AODBEntry,
-	ItemsController,
 	ItemSearchResult,
+	ItemsController,
 };
 
 /**
@@ -119,18 +119,6 @@ class SkillsController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
-	protected function getAggdefBar(float $percent, int $length=50): string {
-		$bar = str_repeat("l", $length);
-		$markerPos = (int)round($percent / 100 * $length, 0);
-		$leftBar   = substr($bar, 0, $markerPos);
-		$rightBar  = substr($bar, $markerPos + 1);
-		$fancyBar = "<green>${leftBar}<end><red>│<end><green>${rightBar}<end>";
-		if ($percent < 100.0) {
-			$fancyBar .= "<black>l<end>";
-		}
-		return $fancyBar;
-	}
-
 	public function getAggDefOutput(float $AttTim, float $RechT, int $InitS): string {
 		if ($InitS < 1200) {
 			$AttCalc	= round(((($AttTim - ($InitS / 600)) - 1)/0.02) + 87.5, 2);
@@ -148,7 +136,7 @@ class SkillsController extends ModuleInstance {
 		}
 		if ($InitResult < 0) {
 			$InitResult = 0;
-		} elseif ($InitResult > 100 ) {
+		} elseif ($InitResult > 100) {
 			$InitResult = 100;
 		}
 
@@ -165,10 +153,10 @@ class SkillsController extends ModuleInstance {
 		$blob .= "  Full Agg (100%): <highlight>". $initsFullAgg ." <end>inits\n";
 		$blob .= "  Neutral (87.5%): <highlight>". $initsNeutral ." <end>inits\n";
 		$blob .= "  Full Def (0%):     <highlight>". $initsFullDef ." <end>inits\n\n";
-		$blob .= "<highlight>${initsFullDef}<end> DEF ";
+		$blob .= "<highlight>{$initsFullDef}<end> DEF ";
 		$blob .= $this->getAggdefBar($InitResult);
-		$blob .= " AGG <highlight>${initsFullAgg}<end>\n";
-		$blob .= "                         You: <highlight>${InitS}<end>\n\n";
+		$blob .= " AGG <highlight>{$initsFullAgg}<end>\n";
+		$blob .= "                         You: <highlight>{$InitS}<end>\n\n";
 		$blob .= "Note that at the neutral position (87.5%), your attack and recharge time will match that of the weapon you are using.";
 		$blob .= "\n\nBased upon a RINGBOT module made by NoGoal(RK2)\n";
 		$blob .= "Modified for Budabot by Healnjoo and Nadyita";
@@ -235,11 +223,10 @@ class SkillsController extends ModuleInstance {
 	/** Calculate your brawl recharge and damage */
 	#[NCA\HandlesCommand("brawl")]
 	public function brawlCommand(CmdContext $context, int $brawlSkill): void {
-
-		$skillList  = [ 1, 1000, 1001, 2000, 2001, 3000];
-		$minList	= [ 1,  100,  101,  170,  171,  235];
-		$maxList	= [ 2,  500,  501,  850,  851, 1145];
-		$critList	= [ 3,  500,  501,  600,  601,  725];
+		$skillList  = [1, 1000, 1001, 2000, 2001, 3000];
+		$minList	= [1,  100,  101,  170,  171,  235];
+		$maxList	= [2,  500,  501,  850,  851, 1145];
+		$critList	= [3,  500,  501,  600,  601,  725];
 
 		if ($brawlSkill < 1001) {
 			$i = 0;
@@ -308,14 +295,14 @@ class SkillsController extends ModuleInstance {
 	/** Calculate your dimach recharge and damage */
 	#[NCA\HandlesCommand("dimach")]
 	public function dimachCommand(CmdContext $context, int $dimachSkill): void {
-		$skillList	        = [   1, 1000, 1001, 2000, 2001, 3000];
-		$generalDamageList	= [   1, 2000, 2001, 2500, 2501, 2850];
+		$skillList	        = [1, 1000, 1001, 2000, 2001, 3000];
+		$generalDamageList	= [1, 2000, 2001, 2500, 2501, 2850];
 		$maRechargeList  	= [1800, 1800, 1188,  600,  600,  300];
-		$maDamageList	    = [   1, 2000, 2001, 2340, 2341, 2550];
-		$shadeRechargeList  = [ 300,  300,  300,  300,  240,  200];
-		$shadeDamageList	= [   1,  920,  921, 1872, 1873, 2750];
-		$shadeHPDrainList	= [  70,   70,   70,   75,   75,   80];
-		$keeperHealList     = [   1, 3000, 3001,10500,10501,15000];
+		$maDamageList	    = [1, 2000, 2001, 2340, 2341, 2550];
+		$shadeRechargeList  = [300,  300,  300,  300,  240,  200];
+		$shadeDamageList	= [1,  920,  921, 1872, 1873, 2750];
+		$shadeHPDrainList	= [70,   70,   70,   75,   75,   80];
+		$keeperHealList     = [1, 3000, 3001, 10500, 10501, 15000];
 
 		if ($dimachSkill < 1001) {
 			$i = 0;
@@ -457,23 +444,23 @@ class SkillsController extends ModuleInstance {
 	#[NCA\HandlesCommand("mafist")]
 	public function maFistCommand(CmdContext $context, int $maSkill): void {
 		// MA templates
-		$skillList =     [     1,    200,   1000,   1001,   2000,   2001,   3000];
+		$skillList =     [1,    200,   1000,   1001,   2000,   2001,   3000];
 
-		$maMinList =     [     4,     45,    125,    130,    220,    225,    450];
-		$maMaxList =     [     8,     75,    400,    405,    830,    831,   1300];
-		$maCritList =    [     3,     50,    500,    501,    560,    561,    800];
-		$maFistSpeed =   [  1.15,    1.2,   1.25,   1.30,   1.35,   1.45,   1.50];
+		$maMinList =     [4,     45,    125,    130,    220,    225,    450];
+		$maMaxList =     [8,     75,    400,    405,    830,    831,   1300];
+		$maCritList =    [3,     50,    500,    501,    560,    561,    800];
+		$maFistSpeed =   [1.15,    1.2,   1.25,   1.30,   1.35,   1.45,   1.50];
 		$maAOID =        [211352, 211353, 211354, 211357, 211358, 211363, 211364];
 
-		$shadeMinList =  [     3,     25,     55,     56,    130    ,131,    280];
-		$shadeMaxList =  [     5,     60,    258,    259,    682    ,683,    890];
-		$shadeCritList = [     3,     50,    250,    251,    275    ,276,    300];
+		$shadeMinList =  [3,     25,     55,     56,    130, 131,    280];
+		$shadeMaxList =  [5,     60,    258,    259,    682, 683,    890];
+		$shadeCritList = [3,     50,    250,    251,    275, 276,    300];
 		$shadeAOID =     [211349, 211350, 211351, 211359, 211360, 211365, 211366];
 
-		$otherMinList =  [     3,     25,     65,     66,    140,    204,    300];
-		$otherMaxList =  [     5,     60,    280,    281,    715,    831,    990];
-		$otherCritList = [     3,     50,    500,    501,    605,    605,    630];
-		$otherAOID =     [ 43712, 144745,  43713, 211355, 211356, 211361, 211362];
+		$otherMinList =  [3,     25,     65,     66,    140,    204,    300];
+		$otherMaxList =  [5,     60,    280,    281,    715,    831,    990];
+		$otherCritList = [3,     50,    500,    501,    605,    605,    630];
+		$otherAOID =     [43712, 144745,  43713, 211355, 211356, 211361, 211362];
 
 		if ($maSkill < 200) {
 			$i = 0;
@@ -554,22 +541,22 @@ class SkillsController extends ModuleInstance {
 		$neutralInits = $this->calcInits($castingTime);
 		$fulldefInits = $this->calcInits($castingTime + 1);
 
-		$blob = "Attack:    <highlight>${castingTime}<end> second(s)\n";
-		$blob .= "Init Skill:  <highlight>${initSkill}<end>\n";
+		$blob = "Attack:    <highlight>{$castingTime}<end> second(s)\n";
+		$blob .= "Init Skill:  <highlight>{$initSkill}<end>\n";
 		$blob .= "Def/Agg:  <highlight>" . round($barSetting, 0) . "%<end>\n";
 		$blob .= "You must set your AGG bar at <highlight>" . round($barSetting, 0) ."% (". round($barSetting * 8 / 100, 2) .") <end>to instacast your nano.\n\n";
 		$blob .= "(<a href=skillid://51>Agg/def-Slider</a> should read <highlight>" . round($barSetting*2-100, 0) . "<end>).\n\n";
 		$blob .= "Init needed to instacast at:\n";
-		$blob .= "  Full Agg (100%): <highlight>${fullAggInits}<end> inits\n";
-		$blob .= "  Neutral (87.5%): <highlight>${neutralInits}<end> inits\n";
-		$blob .= "  Full Def (0%):     <highlight>${fulldefInits}<end> inits\n\n";
+		$blob .= "  Full Agg (100%): <highlight>{$fullAggInits}<end> inits\n";
+		$blob .= "  Neutral (87.5%): <highlight>{$neutralInits}<end> inits\n";
+		$blob .= "  Full Def (0%):     <highlight>{$fulldefInits}<end> inits\n\n";
 
 		$bar = "llllllllllllllllllllllllllllllllllllllllllllllllll";
 		$markerPos = (int)round($barSetting/100*strlen($bar), 0);
 		$leftBar    = substr($bar, 0, $markerPos);
 		$rightBar   = substr($bar, $markerPos+1);
-		$blob .= "<highlight>${fulldefInits}<end> DEF <green>${leftBar}<end><red>│<end><green>${rightBar}<end> AGG <highlight>${fullAggInits}<end>\n";
-		$blob .= "                         You: <highlight>${initSkill}<end>\n\n";
+		$blob .= "<highlight>{$fulldefInits}<end> DEF <green>{$leftBar}<end><red>│<end><green>{$rightBar}<end> AGG <highlight>{$fullAggInits}<end>\n";
+		$blob .= "                         You: <highlight>{$initSkill}<end>\n\n";
 
 		$msg = $this->text->makeBlob("Nano Init Results", $blob);
 		$context->reply($msg);
@@ -613,6 +600,7 @@ class SkillsController extends ModuleInstance {
 			->where("id", $row->lowid)
 			->asObj(WeaponAttribute::class)
 			->first();
+
 		/** @var ?WeaponAttribute */
 		$highAttributes = $this->db->table("weapon_attributes")
 			->where("id", $row->highid)
@@ -695,7 +683,7 @@ class SkillsController extends ModuleInstance {
 		}
 
 		$blob .= "\nRewritten by Nadyita (RK5)";
-		$msg = $this->text->makeBlob("Weapon Info for $name", $blob);
+		$msg = $this->text->makeBlob("Weapon Info for {$name}", $blob);
 
 		$context->reply($msg);
 	}
@@ -714,7 +702,7 @@ class SkillsController extends ModuleInstance {
 		$data = array_values(
 			array_filter(
 				$data,
-				function(ItemSearchResult $item) use ($ql, &$kept): bool {
+				function (ItemSearchResult $item) use ($ql, &$kept): bool {
 					if (isset($ql) && $ql < $item->lowql || $ql > $item->highql) {
 						return false;
 					}
@@ -746,6 +734,7 @@ class SkillsController extends ModuleInstance {
 			$this->weaponCommand($context, $data[0]->lowid, $ql ?? $data[0]->ql);
 			return;
 		}
+
 		/** @var ItemSearchResult[] $data */
 		$blob = "<header2>Weapons matching {$search}<end>\n";
 		foreach ($data as $item) {
@@ -783,14 +772,11 @@ class SkillsController extends ModuleInstance {
 			return 0;
 		} elseif ($attackTime < 6) {
 			return round($attackTime * 200, 2);
-		} else {
-			return round(1200 + ($attackTime - 6) * 600, 2);
 		}
+		return round(1200 + ($attackTime - 6) * 600, 2);
 	}
 
-	/**
-	 * @return float[]
-	 */
+	/** @return float[] */
 	public function capFullAuto(float $attackTime, float $rechargeTime, int $fullAutoRecharge): array {
 		$weaponCap = floor(10 + $attackTime);
 		$skillCap = ((40 * $rechargeTime) + ($fullAutoRecharge / 100) - 11) * 25;
@@ -798,9 +784,7 @@ class SkillsController extends ModuleInstance {
 		return [$weaponCap, $skillCap];
 	}
 
-	/**
-	 * @return int[]
-	 */
+	/** @return int[] */
 	public function capBurst(float $attackTime, float $rechargeTime, int $burstRecharge): array {
 		$hard_cap = (int)round($attackTime + 8, 0);
 		$skill_cap = (int)floor((($rechargeTime * 20) + ($burstRecharge / 100) - 8) * 25);
@@ -808,9 +792,7 @@ class SkillsController extends ModuleInstance {
 		return [$hard_cap, $skill_cap];
 	}
 
-	/**
-	 * @return float[]
-	 */
+	/** @return float[] */
 	public function capFlingShot(float $attackTime): array {
 		$weaponCap = 5 + $attackTime;
 		$skillCap = (($attackTime * 16) - $weaponCap) * 100;
@@ -818,9 +800,7 @@ class SkillsController extends ModuleInstance {
 		return [$weaponCap, $skillCap];
 	}
 
-	/**
-	 * @return float[]
-	 */
+	/** @return float[] */
 	public function capFastAttack(float $attackTime): array {
 		$weaponCap = (int)floor(5 + $attackTime);
 		$skillCap = (($attackTime * 16) - $weaponCap) * 100;
@@ -828,9 +808,7 @@ class SkillsController extends ModuleInstance {
 		return [$weaponCap, $skillCap];
 	}
 
-	/**
-	 * @return int[]
-	 */
+	/** @return int[] */
 	public function capAimedShot(float $attackTime, float $rechargeTime): array {
 		$hardCap = (int)floor($attackTime + 10);
 		$skillCap = (int)ceil((4000 * $rechargeTime - 1100) / 3);
@@ -853,7 +831,8 @@ class SkillsController extends ModuleInstance {
 	}
 
 	/**
-	 * @param integer|integer[] $aoid
+	 * @param int|int[] $aoid
+	 *
 	 * @return Collection<WeaponAttribute>
 	 */
 	public function getWeaponAttributes(null|int|array $aoid): Collection {
@@ -865,5 +844,17 @@ class SkillsController extends ModuleInstance {
 		}
 
 		return $query->asObj(WeaponAttribute::class);
+	}
+
+	protected function getAggdefBar(float $percent, int $length=50): string {
+		$bar = str_repeat("l", $length);
+		$markerPos = (int)round($percent / 100 * $length, 0);
+		$leftBar   = substr($bar, 0, $markerPos);
+		$rightBar  = substr($bar, $markerPos + 1);
+		$fancyBar = "<green>{$leftBar}<end><red>│<end><green>{$rightBar}<end>";
+		if ($percent < 100.0) {
+			$fancyBar .= "<black>l<end>";
+		}
+		return $fancyBar;
 	}
 }

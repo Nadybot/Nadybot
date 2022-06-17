@@ -4,8 +4,8 @@ namespace Nadybot\Core\Modules\CONFIG;
 
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
-	Attributes as NCA,
 	AccessManager,
+	Attributes as NCA,
 	CmdContext,
 	CommandManager,
 	DB,
@@ -72,7 +72,7 @@ class CommandlistController extends ModuleInstance {
 					$offLink = "[" . $this->text->makeChatcmd('off', "/tell <myname> config cmd {$cmd->cmd} disable all") . "]";
 				}
 				$rightsLink = $this->text->makeChatcmd('rights', "/tell <myname> config cmd {$cmd->cmd}");
-				$links = "[$rightsLink]  $onLink  $offLink";
+				$links = "[{$rightsLink}]  {$onLink}  {$offLink}";
 			}
 			$status = [];
 			foreach ($sets as $set) {

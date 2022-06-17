@@ -3,9 +3,7 @@
 namespace Nadybot\Modules\PACKAGE_MODULE\Migrations;
 
 use Illuminate\Database\Schema\Blueprint;
-use Nadybot\Core\DB;
-use Nadybot\Core\LoggerWrapper;
-use Nadybot\Core\SchemaMigration;
+use Nadybot\Core\{DB, LoggerWrapper, SchemaMigration};
 use Nadybot\Modules\PACKAGE_MODULE\PackageController;
 
 class CreatePackageFilesTable implements SchemaMigration {
@@ -14,7 +12,7 @@ class CreatePackageFilesTable implements SchemaMigration {
 		if ($db->schema()->hasTable($table)) {
 			return;
 		}
-		$db->schema()->create($table, function(Blueprint $table): void {
+		$db->schema()->create($table, function (Blueprint $table): void {
 			$table->string("module", 25)->index();
 			$table->string("version", 50)->index();
 			$table->text("file");

@@ -4,10 +4,10 @@ namespace Nadybot\Modules\NEWS_MODULE;
 
 use Closure;
 use InvalidArgumentException;
+use Nadybot\Core\Attributes\JSON;
 use ReflectionFunction;
 use ReflectionNamedType;
 use ReflectionUnionType;
-use Nadybot\Core\Attributes\JSON;
 
 class NewsTile {
 	/** The name of this news tile */
@@ -49,7 +49,7 @@ class NewsTile {
 			if ($type instanceof ReflectionNamedType) {
 				$typeNames =[$type->getName()];
 			} elseif ($type instanceof ReflectionUnionType) {
-				$typeNames = array_map(fn(ReflectionNamedType $type) => $type->getName(), $type->getTypes());
+				$typeNames = array_map(fn (ReflectionNamedType $type) => $type->getName(), $type->getTypes());
 			}
 			if (!in_array("string", $typeNames??[])) {
 				throw new InvalidArgumentException(
@@ -63,7 +63,7 @@ class NewsTile {
 			if ($type instanceof ReflectionNamedType) {
 				$typeNames =[$type->getName()];
 			} elseif ($type instanceof ReflectionUnionType) {
-				$typeNames = array_map(fn(ReflectionNamedType $type) => $type->getName(), $type->getTypes());
+				$typeNames = array_map(fn (ReflectionNamedType $type) => $type->getName(), $type->getTypes());
 			}
 			if (!in_array("callable", $typeNames??[])) {
 				throw new InvalidArgumentException(

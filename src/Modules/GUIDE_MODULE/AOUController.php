@@ -5,18 +5,13 @@ namespace Nadybot\Modules\GUIDE_MODULE;
 use function Amp\File\filesystem;
 
 use Amp\Cache\FileCache;
-use Amp\Failure;
-use Amp\Http\Client\HttpClientBuilder;
-use Amp\Http\Client\Request;
-use Amp\Http\Client\Response;
-use Amp\Promise;
-use Amp\Success;
+use Amp\Http\Client\{HttpClientBuilder, Request, Response};
 use Amp\Sync\LocalKeyedMutex;
+use Amp\{Failure, Promise, Success};
 use DOMDocument;
 use DOMElement;
 use Exception;
 use Generator;
-use Throwable;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CacheManager,
@@ -29,6 +24,7 @@ use Nadybot\Modules\ITEMS_MODULE\{
 	AODBEntry,
 	ItemsController,
 };
+use Throwable;
 
 /**
  * @author Tyrence (RK2)
@@ -42,6 +38,7 @@ use Nadybot\Modules\ITEMS_MODULE\{
 	)
 ]
 class AOUController extends ModuleInstance {
+	public const AOU_URL = "https://www.ao-universe.com/mobile/parser.php?bot=nadybot";
 	#[NCA\Inject]
 	public HttpClientBuilder $builder;
 
@@ -57,8 +54,6 @@ class AOUController extends ModuleInstance {
 	#[NCA\Inject]
 	public CacheManager $cacheManager;
 
-	public const AOU_URL = "https://www.ao-universe.com/mobile/parser.php?bot=nadybot";
-
 	#[NCA\Setup]
 	public function setup(): Generator {
 		$cacheFolder = $this->config->cacheFolder . "/guide";
@@ -71,6 +66,7 @@ class AOUController extends ModuleInstance {
 		if (!isset($data) || !strlen($data)) {
 			return false;
 		}
+
 		/** @phpstan-var non-empty-string $data */
 		try {
 			$dom = new DOMDocument();
@@ -87,7 +83,7 @@ class AOUController extends ModuleInstance {
 	public function aouView(CmdContext $context, int $guideId): Generator {
 		$params = [
 			'mode' => 'view',
-			'id' => $guideId
+			'id' => $guideId,
 		];
 		$cache = new FileCache(
 			$this->config->cacheFolder . '/guide',
@@ -97,13 +93,14 @@ class AOUController extends ModuleInstance {
 		$body = yield $cache->get($cacheKey);
 		if ($body === null) {
 			$client = $this->builder->build();
+
 			/** @var Response */
 			$response = yield $client->request(new Request(
 				self::AOU_URL . '&' . http_build_query($params)
 			));
 			$body = yield $response->getBody()->buffer();
 			if ($response->getStatus() !== 200 || $body === '' || !$this->isValidXML($body)) {
-				$msg = "An error occurred while trying to retrieve AOU guide with id <highlight>$guideId<end>.";
+				$msg = "An error occurred while trying to retrieve AOU guide with id <highlight>{$guideId}<end>.";
 				$context->reply($msg);
 			}
 			$cache->set($cacheKey, $body, 3600*24);
@@ -121,6 +118,7 @@ class AOUController extends ModuleInstance {
 
 	/**
 	 * @phpstan-param non-empty-string $body
+	 *
 	 * @return Promise<string|string[]>
 	 */
 	public function renderAOUGuide(string $body, int $guideId): Promise {
@@ -180,9 +178,10 @@ class AOUController extends ModuleInstance {
 	private function searchAndGetAOUGuide(string $search, bool $searchGuideText): Generator {
 		$params = [
 			'mode' => 'search',
-			'search' => $search
+			'search' => $search,
 		];
 		$client = $this->builder->build();
+
 		/** @var Response */
 		$response = yield $client->request(new Request(
 			self::AOU_URL . '&' . http_build_query($params)
@@ -191,12 +190,14 @@ class AOUController extends ModuleInstance {
 		if ($response->getStatus() !== 200 || $body === '' || !$this->isValidXML($body)) {
 			return new Success("An error occurred while trying to search the AOU guides.");
 		}
+
 		/** @phpstan-var non-empty-string $body */
 		return yield $this->renderAOUGuideList($body, $searchGuideText, $search);
 	}
 
 	/**
 	 * @phpstan-param non-empty-string $body
+	 *
 	 * @return Promise<string|string[]>
 	 */
 	private function renderAOUGuideList(string $body, bool $searchGuideText, string $search): Promise {
@@ -220,7 +221,7 @@ class AOUController extends ModuleInstance {
 				// to only include guides that contain the keywords in the category, name, or description
 				if ($searchGuideText || $this->striposarray($category . ' ' . $guideObj->name . ' ' . $guideObj->description, $searchTerms)) {
 					$count++;
-					$tempBlob .= '  ' . $this->text->makeChatcmd("$guideObj->name", "/tell <myname> aou $guideObj->id") . " - " . $guideObj->description . "\n";
+					$tempBlob .= '  ' . $this->text->makeChatcmd("{$guideObj->name}", "/tell <myname> aou {$guideObj->id}") . " - " . $guideObj->description . "\n";
 					$found = true;
 				}
 			}
@@ -236,25 +237,21 @@ class AOUController extends ModuleInstance {
 
 		if ($count > 0) {
 			if ($searchGuideText) {
-				$title = "All AO-Universe Guides containing '$search' ($count)";
+				$title = "All AO-Universe Guides containing '{$search}' ({$count})";
 			} else {
-				$title = "AO-Universe Guides containing '$search' ($count)";
+				$title = "AO-Universe Guides containing '{$search}' ({$count})";
 			}
 			$msg = $this->text->makeBlob($title, $blob);
 		} else {
-			$msg = "Could not find any guides containing: '$search'.";
+			$msg = "Could not find any guides containing: '{$search}'.";
 			if (!$searchGuideText) {
-				$msg .= " Try including all results with <highlight>!aou all $search<end>.";
+				$msg .= " Try including all results with <highlight>!aou all {$search}<end>.";
 			}
 		}
 		return new Success($msg);
 	}
 
-	/**
-	 * @param string $haystack
-	 * @param string[] $needles
-	 * @return bool
-	 */
+	/** @param string[] $needles */
 	private function striposarray(string $haystack, array $needles): bool {
 		foreach ($needles as $needle) {
 			if (stripos($haystack, $needle) === false) {
@@ -318,7 +315,7 @@ class AOUController extends ModuleInstance {
 		if (preg_match("/pid=(\\d+)/", $url, $idArray)) {
 			return $this->text->makeChatcmd($label, "/tell <myname> aou " . $idArray[1]);
 		}
-		return $this->text->makeChatcmd($label, "/start $url");
+		return $this->text->makeChatcmd($label, "/start {$url}");
 	}
 
 	private function processInput(string $input): string {

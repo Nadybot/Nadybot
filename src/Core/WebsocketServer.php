@@ -3,8 +3,8 @@
 namespace Nadybot\Core;
 
 use Amp\Loop;
-use Nadybot\Core\Attributes as NCA;
 use Exception;
+use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\Socket\AsyncSocket;
 use Nadybot\Modules\WEBSOCKET_MODULE\WebsocketController;
 
@@ -21,11 +21,11 @@ class WebsocketServer extends WebsocketBase {
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
+	public string $uuid;
+
 
 	/** @var string[] */
 	protected array $subscriptions = [];
-
-	public string $uuid;
 
 	public function __construct(AsyncSocket $socket) {
 		$this->maskData = false;

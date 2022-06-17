@@ -4,16 +4,11 @@ namespace Nadybot\Modules\EXPORT_MODULE;
 
 use function Amp\call;
 use function Amp\File\filesystem;
-use function Safe\json_decode;
-use function Safe\json_encode;
-
+use function Safe\{json_decode, json_encode};
 use Amp\File\FilesystemException;
 use Amp\Promise;
 use Exception;
 use Generator;
-use stdClass;
-use Throwable;
-use Swaggest\JsonSchema\Schema;
 use Nadybot\Core\{
 	AccessManager,
 	AdminManager,
@@ -21,12 +16,12 @@ use Nadybot\Core\{
 	CmdContext,
 	ConfigFile,
 	DB,
-	ModuleInstance,
 	LoggerWrapper,
+	ModuleInstance,
 	Modules\BAN\BanController,
 	Modules\PREFERENCES\Preferences,
-	ParamClass\PFilename,
 	Nadybot,
+	ParamClass\PFilename,
 	SettingManager,
 };
 use Nadybot\Modules\{
@@ -55,6 +50,9 @@ use Nadybot\Modules\{
 	TRACKER_MODULE\TrackerController,
 	VOTE_MODULE\VoteController,
 };
+use stdClass;
+use Swaggest\JsonSchema\Schema;
+use Throwable;
 
 /**
  * @author Nadyita (RK5) <nadyita@hodorraid.org>
@@ -100,42 +98,6 @@ class ImportController extends ModuleInstance {
 
 	#[NCA\Inject]
 	public ConfigFile $config;
-
-	/** @return Promise<?stdClass> */
-	private function loadAndParseExportFile(string $fileName, CmdContext $sendto): Promise {
-		return call(function () use ($fileName, $sendto): Generator {
-			if (false === yield filesystem()->exists($fileName)) {
-				$sendto->reply("No export file <highlight>{$fileName}<end> found.");
-				return null;
-			}
-			$this->logger->notice("Decoding the JSON data");
-			try {
-				$import = json_decode(yield filesystem()->read($fileName));
-			} catch (FilesystemException $e) {
-				$sendto->reply("Error reading <highlight>{$fileName}<end>: ".
-					$e->getMessage() . ".");
-				return null;
-			} catch (Throwable $e) {
-				$sendto->reply("Error decoding <highlight>{$fileName}<end>.");
-				return null;
-			}
-			if (!($import instanceof stdClass)) {
-				$sendto->reply("The file <highlight>{$fileName}<end> is not a valid export file.");
-				return null;
-			}
-			$this->logger->notice("Loading schema data");
-			$schema = Schema::import("https://hodorraid.org/export-schema.json");
-			$this->logger->notice("Validating import data against the schema");
-			$sendto->reply("Validating the import data. This could take a while.");
-			try {
-				$schema->in($import);
-			} catch (Exception $e) {
-				$sendto->reply("The import data is not valid: <highlight>" . $e->getMessage() . "<end>.");
-				return null;
-			}
-			return $import;
-		});
-	}
 
 	/**
 	 * Import data from a file, mapping the exported access levels to your own ones
@@ -185,13 +147,12 @@ class ImportController extends ModuleInstance {
 			if (!isset($rankMapping[$rank])) {
 				$context->reply("Please define a mapping for <highlight>{$rank}<end> by appending '{$rank}=&lt;rank&gt;' to your command");
 				return;
-			} else {
-				try {
-					$rankMapping[$rank] = $this->accessManager->getAccessLevel($rankMapping[$rank]);
-				} catch (Exception $e) {
-					$context->reply("<highlight>{$rankMapping[$rank]}<end> is not a valid access level");
-					return;
-				}
+			}
+			try {
+				$rankMapping[$rank] = $this->accessManager->getAccessLevel($rankMapping[$rank]);
+			} catch (Exception $e) {
+				$context->reply("<highlight>{$rankMapping[$rank]}<end> is not a valid access level");
+				return;
 			}
 		}
 		$this->logger->notice("Starting import");
@@ -208,137 +169,8 @@ class ImportController extends ModuleInstance {
 	}
 
 	/**
-	 * @return array<string,callable>
-	 */
-	protected function getImportMapping(): array {
-		return [
-			"members"           => [$this, "importMembers"],
-			"alts"              => [$this, "importAlts"],
-			"auctions"          => [$this, "importAuctions"],
-			"banlist"           => [$this, "importBanlist"],
-			"cityCloak"         => [$this, "importCloak"],
-			"commentCategories" => [$this, "importCommentCategories"],
-			"comments"          => [$this, "importComments"],
-			"links"             => [$this, "importLinks"],
-			"news"              => [$this, "importNews"],
-			"notes"             => [$this, "importNotes"],
-			"polls"             => [$this, "importPolls"],
-			"quotes"            => [$this, "importQuotes"],
-			"raffleBonus"       => [$this, "importRaffleBonus"],
-			"raidBlocks"        => [$this, "importRaidBlocks"],
-			"raids"             => [$this, "importRaids"],
-			"raidPoints"        => [$this, "importRaidPoints"],
-			"raidPointsLog"     => [$this, "importRaidPointsLog"],
-			"timers"            => [$this, "importTimers"],
-			"trackedCharacters" => [$this, "importTrackedCharacters"],
-		];
-	}
-
-	/**
-	 * @param string[] $mappings
-	 * @return array<string,string>
-	 */
-	protected function parseRankMapping(array $mappings): array {
-		$mapping = [];
-		foreach ($mappings as $part) {
-			[$key, $value] = explode("=", $part);
-			$mapping[$key] = $value;
-		}
-		return $mapping;
-	}
-
-	/**
-	 * @return string[]
-	 */
-	protected function getRanks(object $import): array {
-		$ranks = [];
-		foreach ($import->members??[] as $member) {
-			$ranks[$member->rank] = true;
-		}
-		foreach ($import->commentCategories??[] as $category) {
-			if (isset($category->minRankToRead)) {
-				$ranks[$category->minRankToRead] = true;
-			}
-			if (isset($category->minRankToWrite)) {
-				$ranks[$category->minRankToWrite] = true;
-			}
-		}
-		foreach ($import->polls??[] as $poll) {
-			if (isset($poll->minRankToVote)) {
-				$ranks[$poll->minRankToVote] = true;
-			}
-		}
-		// @phpstan-ignore-next-line
-		return array_keys($ranks);
-	}
-
-	/** @return Promise<?string> */
-	protected function characterToName(?stdClass $char): Promise {
-		return call(function () use ($char): Generator {
-			if (!isset($char)) {
-				return null;
-			}
-			$name = $char->name ?? yield $this->chatBot->uidToName($char->id);
-			if (!isset($name)) {
-				$this->logger->notice("Unable to find a name for UID {$char->id}");
-			}
-			return $name;
-		});
-	}
-
-	/**
-	 * @param array<stdClass> $alts
-	 * @return Promise<void>
-	 */
-	protected function importAlts(array $alts): Promise {
-		return call(function () use ($alts): Generator {
-			$this->logger->notice("Importing alts for " . count($alts) . " character(s)");
-			$numImported = 0;
-			yield $this->db->awaitBeginTransaction();
-			try {
-				$this->logger->notice("Deleting all alts");
-				$this->db->table("alts")->truncate();
-				foreach ($alts as $altData) {
-					$mainName = yield $this->characterToName($altData->main);
-					if (!isset($mainName)) {
-						continue;
-					}
-					foreach ($altData->alts as $alt) {
-						$numImported += yield $this->importAlt($mainName, $alt);
-					}
-				}
-			} catch (Throwable $e) {
-				$this->logger->error($e->getMessage(), ["exception" => $e]);
-				$this->logger->notice("Rolling back changes");
-				$this->db->rollback();
-				return;
-			}
-			$this->db->commit();
-			$this->logger->notice("{$numImported} alt(s) imported");
-		});
-	}
-
-	/** @return Promise<int> */
-	protected function importAlt(string $mainName, stdClass $alt): Promise {
-		return call(function () use ($mainName, $alt): Generator {
-			$altName = yield $this->characterToName($alt->alt);
-			if (!isset($altName)) {
-				return 0;
-			}
-			$this->db->table("alts")
-				->insert([
-					"alt" => $altName,
-					"main" => $mainName,
-					"validated_by_main" => $alt->validatedByMain ?? true,
-					"validated_by_alt" => $alt->validatedByAlt ?? true,
-					"added_via" => $this->db->getMyname(),
-				]);
-			return 1;
-		});
-	}
-
-	/**
 	 * @param array<stdClass> $auctions
+	 *
 	 * @return Promise<void>
 	 */
 	public function importAuctions(array $auctions): Promise {
@@ -373,6 +205,7 @@ class ImportController extends ModuleInstance {
 
 	/**
 	 * @param array<stdClass> $banlist
+	 *
 	 * @return Promise<void>
 	 */
 	public function importBanlist(array $banlist): Promise {
@@ -412,6 +245,7 @@ class ImportController extends ModuleInstance {
 
 	/**
 	 * @param array<stdClass> $cloakActions
+	 *
 	 * @return Promise<void>
 	 */
 	public function importCloak(array $cloakActions): Promise {
@@ -442,6 +276,7 @@ class ImportController extends ModuleInstance {
 
 	/**
 	 * @param array<stdClass> $links
+	 *
 	 * @return Promise<void>
 	 */
 	public function importLinks(array $links): Promise {
@@ -471,14 +306,10 @@ class ImportController extends ModuleInstance {
 		});
 	}
 
-	/** @param array<string,string> $mapping */
-	protected function getMappedRank(array $mapping, string $rank): ?string {
-		return $mapping[$rank] ?? null;
-	}
-
 	/**
-	 * @param array<stdClass> $members
+	 * @param array<stdClass>      $members
 	 * @param array<string,string> $rankMap
+	 *
 	 * @return Promise<void>
 	 */
 	public function importMembers(array $members, array $rankMap=[]): Promise {
@@ -494,6 +325,7 @@ class ImportController extends ModuleInstance {
 				$this->db->table(RaidRankController::DB_TABLE)->truncate();
 				foreach ($members as $member) {
 					$id = $member->character->id ?? yield $this->chatBot->getUid2($member->character->name);
+
 					/** @var ?string */
 					$name = yield $this->characterToName($member->character);
 					if (!isset($id) || !isset($name)) {
@@ -527,13 +359,13 @@ class ImportController extends ModuleInstance {
 						$this->db->table(RaidRankController::DB_TABLE)
 							->insert([
 								"name" => $name,
-								"rank" => (int)$matches[1] + 3
+								"rank" => (int)$matches[1] + 3,
 							]);
 					} elseif (preg_match("/^raid_admin_([123])/", $newRank, $matches)) {
 						$this->db->table(RaidRankController::DB_TABLE)
 							->insert([
 								"name" => $name,
-								"rank" => (int)$matches[1] + 6
+								"rank" => (int)$matches[1] + 6,
 							]);
 					} elseif (in_array($newRank, ["rl", "all"])) {
 						// Nothing, we just ignore that
@@ -565,6 +397,7 @@ class ImportController extends ModuleInstance {
 
 	/**
 	 * @param array<stdClass> $news
+	 *
 	 * @return Promise<void>
 	 */
 	public function importNews(array $news): Promise {
@@ -610,6 +443,7 @@ class ImportController extends ModuleInstance {
 
 	/**
 	 * @param array<stdClass> $notes
+	 *
 	 * @return Promise<void>
 	 */
 	public function importNotes(array $notes): Promise {
@@ -652,6 +486,7 @@ class ImportController extends ModuleInstance {
 
 	/**
 	 * @param array<stdClass> $polls
+	 *
 	 * @return Promise<void>
 	 */
 	public function importPolls(array $polls): Promise {
@@ -669,7 +504,7 @@ class ImportController extends ModuleInstance {
 							"question" => $poll->question,
 							"possible_answers" => json_encode(
 								array_map(
-									function(stdClass $answer): string {
+									function (stdClass $answer): string {
 										return $answer->answer;
 									},
 									$poll->answers??[]
@@ -677,7 +512,7 @@ class ImportController extends ModuleInstance {
 							),
 							"started" => $poll->startTime ?? time(),
 							"duration" => ($poll->endTime ?? time()) - ($poll->startTime ?? time()),
-							"status" => VoteController::STATUS_STARTED
+							"status" => VoteController::STATUS_STARTED,
 						]);
 					foreach ($poll->answers??[] as $answer) {
 						foreach ($answer->votes??[] as $vote) {
@@ -704,6 +539,7 @@ class ImportController extends ModuleInstance {
 
 	/**
 	 * @param array<stdClass> $quotes
+	 *
 	 * @return Promise<void>
 	 */
 	public function importQuotes(array $quotes): Promise {
@@ -734,6 +570,7 @@ class ImportController extends ModuleInstance {
 
 	/**
 	 * @param array<stdClass> $bonuses
+	 *
 	 * @return Promise<void>
 	 */
 	public function importRaffleBonus(array $bonuses): Promise {
@@ -767,6 +604,7 @@ class ImportController extends ModuleInstance {
 
 	/**
 	 * @param array<stdClass> $blocks
+	 *
 	 * @return Promise<void>
 	 */
 	public function importRaidBlocks(array $blocks): Promise {
@@ -804,6 +642,7 @@ class ImportController extends ModuleInstance {
 
 	/**
 	 * @param array<stdClass> $raids
+	 *
 	 * @return Promise<void>
 	 */
 	public function importRaids(array $raids): Promise {
@@ -882,6 +721,7 @@ class ImportController extends ModuleInstance {
 
 	/**
 	 * @param array<stdClass> $points
+	 *
 	 * @return Promise<void>
 	 */
 	public function importRaidPoints(array $points): Promise {
@@ -914,6 +754,7 @@ class ImportController extends ModuleInstance {
 
 	/**
 	 * @param array<stdClass> $points
+	 *
 	 * @return Promise<void>
 	 */
 	public function importRaidPointsLog(array $points): Promise {
@@ -951,26 +792,9 @@ class ImportController extends ModuleInstance {
 		});
 	}
 
-	/** @param string[] $channels */
-	protected function channelsToMode(array $channels): string {
-		$modes = [
-			"org" => "guild",
-			"tell" => "msg",
-			"priv" => "priv",
-			"discord" => "discord",
-			"irc" => "irc",
-		];
-		$result = [];
-		foreach ($channels as $channel) {
-			if (isset($modes[$channel])) {
-				$result []= $modes[$channel];
-			}
-		}
-		return join(",", $result);
-	}
-
 	/**
 	 * @param array<stdClass> $timers
+	 *
 	 * @return Promise<void>
 	 */
 	public function importTimers(array $timers): Promise {
@@ -1013,7 +837,7 @@ class ImportController extends ModuleInstance {
 							"settime" => $timer->startTime ?? time(),
 							"callback" => $entry->callback,
 							"data" => $entry->data,
-							"alerts" => json_encode($entry->alerts)
+							"alerts" => json_encode($entry->alerts),
 						]);
 					$timerNum++;
 				}
@@ -1030,6 +854,7 @@ class ImportController extends ModuleInstance {
 
 	/**
 	 * @param array<stdClass> $trackedUsers
+	 *
 	 * @return Promise<void>
 	 */
 	public function importTrackedCharacters(array $trackedUsers): Promise {
@@ -1044,7 +869,7 @@ class ImportController extends ModuleInstance {
 					if (!isset($name)) {
 						continue;
 					}
-					$id = isset($trackedUser->character->id) ? $trackedUser->character->id : yield $this->chatBot->getUid2($name);
+					$id = $trackedUser->character->id ?? yield $this->chatBot->getUid2($name);
 					if ($id === false) {
 						continue;
 					}
@@ -1076,8 +901,9 @@ class ImportController extends ModuleInstance {
 	}
 
 	/**
-	 * @param array<stdClass> $categories
+	 * @param array<stdClass>      $categories
 	 * @param array<string,string> $rankMap
+	 *
 	 * @return Promise<void>
 	 */
 	public function importCommentCategories(array $categories, array $rankMap): Promise {
@@ -1118,6 +944,7 @@ class ImportController extends ModuleInstance {
 
 	/**
 	 * @param array<stdClass> $comments
+	 *
 	 * @return Promise<void>
 	 */
 	public function importComments(array $comments): Promise {
@@ -1159,6 +986,193 @@ class ImportController extends ModuleInstance {
 			}
 			$this->db->commit();
 			$this->logger->notice("All comments imported");
+		});
+	}
+
+	/** @return array<string,callable> */
+	protected function getImportMapping(): array {
+		return [
+			"members"           => [$this, "importMembers"],
+			"alts"              => [$this, "importAlts"],
+			"auctions"          => [$this, "importAuctions"],
+			"banlist"           => [$this, "importBanlist"],
+			"cityCloak"         => [$this, "importCloak"],
+			"commentCategories" => [$this, "importCommentCategories"],
+			"comments"          => [$this, "importComments"],
+			"links"             => [$this, "importLinks"],
+			"news"              => [$this, "importNews"],
+			"notes"             => [$this, "importNotes"],
+			"polls"             => [$this, "importPolls"],
+			"quotes"            => [$this, "importQuotes"],
+			"raffleBonus"       => [$this, "importRaffleBonus"],
+			"raidBlocks"        => [$this, "importRaidBlocks"],
+			"raids"             => [$this, "importRaids"],
+			"raidPoints"        => [$this, "importRaidPoints"],
+			"raidPointsLog"     => [$this, "importRaidPointsLog"],
+			"timers"            => [$this, "importTimers"],
+			"trackedCharacters" => [$this, "importTrackedCharacters"],
+		];
+	}
+
+	/**
+	 * @param string[] $mappings
+	 *
+	 * @return array<string,string>
+	 */
+	protected function parseRankMapping(array $mappings): array {
+		$mapping = [];
+		foreach ($mappings as $part) {
+			[$key, $value] = explode("=", $part);
+			$mapping[$key] = $value;
+		}
+		return $mapping;
+	}
+
+	/** @return string[] */
+	protected function getRanks(object $import): array {
+		$ranks = [];
+		foreach ($import->members??[] as $member) {
+			$ranks[$member->rank] = true;
+		}
+		foreach ($import->commentCategories??[] as $category) {
+			if (isset($category->minRankToRead)) {
+				$ranks[$category->minRankToRead] = true;
+			}
+			if (isset($category->minRankToWrite)) {
+				$ranks[$category->minRankToWrite] = true;
+			}
+		}
+		foreach ($import->polls??[] as $poll) {
+			if (isset($poll->minRankToVote)) {
+				$ranks[$poll->minRankToVote] = true;
+			}
+		}
+		// @phpstan-ignore-next-line
+		return array_keys($ranks);
+	}
+
+	/** @return Promise<?string> */
+	protected function characterToName(?stdClass $char): Promise {
+		return call(function () use ($char): Generator {
+			if (!isset($char)) {
+				return null;
+			}
+			$name = $char->name ?? yield $this->chatBot->uidToName($char->id);
+			if (!isset($name)) {
+				$this->logger->notice("Unable to find a name for UID {$char->id}");
+			}
+			return $name;
+		});
+	}
+
+	/**
+	 * @param array<stdClass> $alts
+	 *
+	 * @return Promise<void>
+	 */
+	protected function importAlts(array $alts): Promise {
+		return call(function () use ($alts): Generator {
+			$this->logger->notice("Importing alts for " . count($alts) . " character(s)");
+			$numImported = 0;
+			yield $this->db->awaitBeginTransaction();
+			try {
+				$this->logger->notice("Deleting all alts");
+				$this->db->table("alts")->truncate();
+				foreach ($alts as $altData) {
+					$mainName = yield $this->characterToName($altData->main);
+					if (!isset($mainName)) {
+						continue;
+					}
+					foreach ($altData->alts as $alt) {
+						$numImported += yield $this->importAlt($mainName, $alt);
+					}
+				}
+			} catch (Throwable $e) {
+				$this->logger->error($e->getMessage(), ["exception" => $e]);
+				$this->logger->notice("Rolling back changes");
+				$this->db->rollback();
+				return;
+			}
+			$this->db->commit();
+			$this->logger->notice("{$numImported} alt(s) imported");
+		});
+	}
+
+	/** @return Promise<int> */
+	protected function importAlt(string $mainName, stdClass $alt): Promise {
+		return call(function () use ($mainName, $alt): Generator {
+			$altName = yield $this->characterToName($alt->alt);
+			if (!isset($altName)) {
+				return 0;
+			}
+			$this->db->table("alts")
+				->insert([
+					"alt" => $altName,
+					"main" => $mainName,
+					"validated_by_main" => $alt->validatedByMain ?? true,
+					"validated_by_alt" => $alt->validatedByAlt ?? true,
+					"added_via" => $this->db->getMyname(),
+				]);
+			return 1;
+		});
+	}
+
+	/** @param array<string,string> $mapping */
+	protected function getMappedRank(array $mapping, string $rank): ?string {
+		return $mapping[$rank] ?? null;
+	}
+
+	/** @param string[] $channels */
+	protected function channelsToMode(array $channels): string {
+		$modes = [
+			"org" => "guild",
+			"tell" => "msg",
+			"priv" => "priv",
+			"discord" => "discord",
+			"irc" => "irc",
+		];
+		$result = [];
+		foreach ($channels as $channel) {
+			if (isset($modes[$channel])) {
+				$result []= $modes[$channel];
+			}
+		}
+		return join(",", $result);
+	}
+
+	/** @return Promise<?stdClass> */
+	private function loadAndParseExportFile(string $fileName, CmdContext $sendto): Promise {
+		return call(function () use ($fileName, $sendto): Generator {
+			if (false === yield filesystem()->exists($fileName)) {
+				$sendto->reply("No export file <highlight>{$fileName}<end> found.");
+				return null;
+			}
+			$this->logger->notice("Decoding the JSON data");
+			try {
+				$import = json_decode(yield filesystem()->read($fileName));
+			} catch (FilesystemException $e) {
+				$sendto->reply("Error reading <highlight>{$fileName}<end>: ".
+					$e->getMessage() . ".");
+				return null;
+			} catch (Throwable $e) {
+				$sendto->reply("Error decoding <highlight>{$fileName}<end>.");
+				return null;
+			}
+			if (!($import instanceof stdClass)) {
+				$sendto->reply("The file <highlight>{$fileName}<end> is not a valid export file.");
+				return null;
+			}
+			$this->logger->notice("Loading schema data");
+			$schema = Schema::import("https://hodorraid.org/export-schema.json");
+			$this->logger->notice("Validating import data against the schema");
+			$sendto->reply("Validating the import data. This could take a while.");
+			try {
+				$schema->in($import);
+			} catch (Exception $e) {
+				$sendto->reply("The import data is not valid: <highlight>" . $e->getMessage() . "<end>.");
+				return null;
+			}
+			return $import;
 		});
 	}
 }

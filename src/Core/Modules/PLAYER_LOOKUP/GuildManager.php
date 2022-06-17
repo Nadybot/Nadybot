@@ -2,14 +2,11 @@
 
 namespace Nadybot\Core\Modules\PLAYER_LOOKUP;
 
-use function Amp\call;
-use function Amp\asyncCall;
-use function Safe\json_decode;
+use function Amp\{asyncCall, call};
 
+use function Safe\json_decode;
 use Amp\Cache\FileCache;
-use Amp\Http\Client\HttpClientBuilder;
-use Amp\Http\Client\Request;
-use Amp\Http\Client\Response;
+use Amp\Http\Client\{HttpClientBuilder, Request, Response};
 use Amp\Promise;
 use Amp\Sync\LocalKeyedMutex;
 
@@ -19,7 +16,6 @@ use DateTime;
 use DateTimeZone;
 use Exception;
 use Generator;
-use Safe\Exceptions\JsonException;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CacheManager,
@@ -31,6 +27,7 @@ use Nadybot\Core\{
 	ModuleInstance,
 	Nadybot,
 };
+use Safe\Exceptions\JsonException;
 
 /**
  * @author Tyrence (RK2)
@@ -63,25 +60,9 @@ class GuildManager extends ModuleInstance {
 		mkdir($this->config->cacheFolder . '/guild_roster');
 	}
 
-	protected function getJsonValidator(): Closure {
-		return function(?string $data): bool {
-			try {
-				if ($data === null) {
-					return false;
-				}
-				$result = json_decode($data);
-				return $result !== null;
-			} catch (JsonException $e) {
-				return false;
-			}
-		};
-	}
-
-	/**
-	 * @psalm-param callable(?Guild, mixed...) $callback
-	 */
+	/** @psalm-param callable(?Guild, mixed...) $callback */
 	public function getByIdAsync(int $guildId, ?int $dimension, bool $forceUpdate, callable $callback, mixed ...$args): void {
-		asyncCall(function() use ($guildId, $dimension, $forceUpdate, $callback, $args): Generator {
+		asyncCall(function () use ($guildId, $dimension, $forceUpdate, $callback, $args): Generator {
 			$guild = yield $this->byId($guildId, $dimension, $forceUpdate);
 			$callback($guild, ...$args);
 		});
@@ -89,7 +70,7 @@ class GuildManager extends ModuleInstance {
 
 	/** @return Promise<?Guild> */
 	public function byId(int $guildID, ?int $dimension=null, bool $forceUpdate=false): Promise {
-		return call(function() use ($guildID, $dimension, $forceUpdate): Generator {
+		return call(function () use ($guildID, $dimension, $forceUpdate): Generator {
 			// if no server number is specified use the one on which the bot is logged in
 			$dimension ??= $this->config->dimension;
 
@@ -109,6 +90,7 @@ class GuildManager extends ModuleInstance {
 			}
 			if (!isset($body) || $body === '') {
 				$client = $this->builder->build();
+
 				/** @var Response */
 				$response = yield $client->request(new Request($url));
 				$body = yield $response->getBody()->buffer();
@@ -199,7 +181,7 @@ class GuildManager extends ModuleInstance {
 				->where("dimension", $dimension)
 				->update([
 					"guild_id" => 0,
-					"guild" => ""
+					"guild" => "",
 				]);
 
 			foreach ($guild->members as $member) {
@@ -212,13 +194,13 @@ class GuildManager extends ModuleInstance {
 	}
 
 	/** @deprecated */
-	public function getById(int $guildID, int $dimension=null, bool $forceUpdate=false): ?Guild {
+	public function getById(int $guildID, ?int $dimension=null, bool $forceUpdate=false): ?Guild {
 		// if no server number is specified use the one on which the bot is logged in
 		$dimension ??= $this->config->dimension;
 
-		$url = "http://people.anarchy-online.com/org/stats/d/$dimension/name/$guildID/basicstats.xml?data_type=json";
+		$url = "http://people.anarchy-online.com/org/stats/d/{$dimension}/name/{$guildID}/basicstats.xml?data_type=json";
 		$groupName = "guild_roster";
-		$filename = "$guildID.$dimension.json";
+		$filename = "{$guildID}.{$dimension}.json";
 		$maxCacheAge = 86400;
 		if ($this->isMyGuild($guildID)) {
 			$maxCacheAge = 21600;
@@ -231,19 +213,31 @@ class GuildManager extends ModuleInstance {
 			$cacheResult,
 			$guildID,
 			$dimension,
-			function(?Guild $guild) use (&$result): void {
+			function (?Guild $guild) use (&$result): void {
 				$result = $guild;
 			}
 		);
 		return $result;
 	}
 
-	/**
-	 * Check if $guildId is the bot's guild id
-	 */
+	/** Check if $guildId is the bot's guild id */
 	public function isMyGuild(int $guildId): bool {
 		return isset($this->config->orgId)
 			&& $this->config->orgId === $guildId;
+	}
+
+	protected function getJsonValidator(): Closure {
+		return function (?string $data): bool {
+			try {
+				if ($data === null) {
+					return false;
+				}
+				$result = json_decode($data);
+				return $result !== null;
+			} catch (JsonException $e) {
+				return false;
+			}
+		};
 	}
 
 	/** @psalm-param callable(?Guild, mixed...) $callback */
@@ -332,7 +326,7 @@ class GuildManager extends ModuleInstance {
 				->where("dimension", $dimension)
 				->update([
 					"guild_id" => 0,
-					"guild" => ""
+					"guild" => "",
 				]);
 
 			foreach ($guild->members as $member) {

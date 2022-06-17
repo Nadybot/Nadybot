@@ -2,7 +2,6 @@
 
 namespace Nadybot\Modules\HELPBOT_MODULE;
 
-use ParseError;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	Attributes as NCA,
@@ -12,6 +11,7 @@ use Nadybot\Core\{
 	Text,
 	Util,
 };
+use ParseError;
 
 /**
  * @author Tyrence (RK2)
@@ -60,6 +60,7 @@ class HelpbotController extends ModuleInstance {
 	public function dynaLevelCommand(CmdContext $context, int $ql): void {
 		$range1 = (int)floor($ql - $ql / 10);
 		$range2 = (int)ceil($ql + $ql / 10);
+
 		/** @var Collection<DynaDBSearch> */
 		$data = $this->db->table("dynadb AS d")
 			->where("max_ql", ">=", $range1)
@@ -111,36 +112,8 @@ class HelpbotController extends ModuleInstance {
 
 		$blob .= $this->formatResults($data);
 
-		$msg = $this->text->makeBlob("Dynacamps ($count)", $blob);
+		$msg = $this->text->makeBlob("Dynacamps ({$count})", $blob);
 		$context->reply($msg);
-	}
-
-	/**
-	 * Format the dynacamp results as a blob for a popup
-	 * @param Collection<DynaDBSearch> $data
-	 */
-	private function formatResults(Collection $data): string {
-		$blob = '';
-		/** @var Collection<string,Collection<DynaDBSearch>> */
-		$data = $data->filter(fn (DynaDBSearch $search): bool => isset($search->pf))
-			->groupBy("pf.long_name")
-			->sortKeys();
-
-		foreach ($data as $pfName => $rows) {
-			$blob .= "\n<pagebreak><header2>{$pfName}<end>\n";
-			foreach ($rows as $row) {
-				$coordLink = $this->text->makeChatcmd(
-					"{$row->x_coord}x{$row->y_coord}",
-					"/waypoint {$row->x_coord} {$row->y_coord} {$row->playfield_id}"
-				);
-				$range = "{$row->min_ql}-{$row->max_ql}";
-				if (strlen($range) < 7) {
-					$range = "<black>" . str_repeat("_", 7 - strlen($range)) . "<end>{$range}";
-				}
-				$blob .= "<tab>{$range}: <highlight>{$row->mob}<end> at {$coordLink}\n";
-			}
-		}
-		return trim($blob);
 	}
 
 	/** See the over-equip ranges for a skill requirement */
@@ -162,17 +135,17 @@ class HelpbotController extends ModuleInstance {
 		$lowOE25 = (int)floor($skillRequirement * 0.2);
 
 		$blob = "With a skill requirement of <highlight>{$skillRequirement}<end>, you will be\n".
-			"Out of OE: <highlight>$lowOE100<end> or higher\n".
-			"75%: <highlight>$lowOE75<end> - <highlight>" .($lowOE100 - 1). "<end>\n".
+			"Out of OE: <highlight>{$lowOE100}<end> or higher\n".
+			"75%: <highlight>{$lowOE75}<end> - <highlight>" .($lowOE100 - 1). "<end>\n".
 			"50%: <highlight>" .($lowOE50 + 1). "<end> - <highlight>" .($lowOE75 - 1). "<end>\n".
-			"25%: <highlight>" .($lowOE25 + 1). "<end> - <highlight>$lowOE50<end>\n".
-			"<black>0<end>0%: <highlight>$lowOE25<end> or lower\n\n".
-			"With a personal skill of <highlight>$skillRequirement<end>, you can use up to and be\n".
-			"Out of OE: <highlight>$oe100<end> or lower\n".
-			"75%: <highlight>" .($oe100 + 1). "<end> - <highlight>$oe75<end>\n".
+			"25%: <highlight>" .($lowOE25 + 1). "<end> - <highlight>{$lowOE50}<end>\n".
+			"<black>0<end>0%: <highlight>{$lowOE25}<end> or lower\n\n".
+			"With a personal skill of <highlight>{$skillRequirement}<end>, you can use up to and be\n".
+			"Out of OE: <highlight>{$oe100}<end> or lower\n".
+			"75%: <highlight>" .($oe100 + 1). "<end> - <highlight>{$oe75}<end>\n".
 			"50%: <highlight>" .($oe75 + 1). "<end> - <highlight>" .($oe50 - 1). "<end>\n".
-			"25%: <highlight>$oe50<end> - <highlight>" .($oe25 - 1). "<end>\n".
-			"<black>0<end>0%: <highlight>$oe25<end> or higher\n\n".
+			"25%: <highlight>{$oe50}<end> - <highlight>" .($oe25 - 1). "<end>\n".
+			"<black>0<end>0%: <highlight>{$oe25}<end> or higher\n\n".
 			"WARNING: May be plus/minus 1 point!";
 
 		$msg = $this->text->blobWrap(
@@ -216,5 +189,35 @@ class HelpbotController extends ModuleInstance {
 
 		$msg ="{$expression} = <highlight>{$result}<end>";
 		$context->reply($msg);
+	}
+
+	/**
+	 * Format the dynacamp results as a blob for a popup
+	 *
+	 * @param Collection<DynaDBSearch> $data
+	 */
+	private function formatResults(Collection $data): string {
+		$blob = '';
+
+		/** @var Collection<string,Collection<DynaDBSearch>> */
+		$data = $data->filter(fn (DynaDBSearch $search): bool => isset($search->pf))
+			->groupBy("pf.long_name")
+			->sortKeys();
+
+		foreach ($data as $pfName => $rows) {
+			$blob .= "\n<pagebreak><header2>{$pfName}<end>\n";
+			foreach ($rows as $row) {
+				$coordLink = $this->text->makeChatcmd(
+					"{$row->x_coord}x{$row->y_coord}",
+					"/waypoint {$row->x_coord} {$row->y_coord} {$row->playfield_id}"
+				);
+				$range = "{$row->min_ql}-{$row->max_ql}";
+				if (strlen($range) < 7) {
+					$range = "<black>" . str_repeat("_", 7 - strlen($range)) . "<end>{$range}";
+				}
+				$blob .= "<tab>{$range}: <highlight>{$row->mob}<end> at {$coordLink}\n";
+			}
+		}
+		return trim($blob);
 	}
 }

@@ -2,15 +2,17 @@
 
 namespace Nadybot\Modules\ORGLIST_MODULE;
 
+use function Amp\File\filesystem;
+use function Amp\Promise\all;
+use function Amp\{call, delay};
 use Amp\Cache\FileCache;
-use Amp\Http\Client\HttpClientBuilder;
-use Amp\Http\Client\Request;
-use Amp\Http\Client\Response;
+use Amp\Http\Client\{HttpClientBuilder, Request, Response};
 use Amp\Promise;
 use Amp\Sync\LocalKeyedMutex;
 use Exception;
 use Generator;
 use Illuminate\Support\Collection;
+
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
@@ -18,8 +20,8 @@ use Nadybot\Core\{
 	ConfigFile,
 	DB,
 	Event,
-	ModuleInstance,
 	LoggerWrapper,
+	ModuleInstance,
 	Nadybot,
 	SQLException,
 	Text,
@@ -27,11 +29,6 @@ use Nadybot\Core\{
 	Util,
 };
 use Throwable;
-
-use function Amp\call;
-use function Amp\delay;
-use function Amp\File\filesystem;
-use function Amp\Promise\all;
 
 /**
  * @author Tyrence (RK2)
@@ -83,9 +80,7 @@ class FindOrgController extends ModuleInstance {
 			->exists();
 	}
 
-	/**
-	 * Check if the orglists are currently ready to be used
-	 */
+	/** Check if the orglists are currently ready to be used */
 	public function isReady(): bool {
 		return $this->ready;
 	}
@@ -116,7 +111,7 @@ class FindOrgController extends ModuleInstance {
 
 		if ($count > 0) {
 			$blob = $this->formatResults($orgs);
-			$msg = $this->text->makeBlob("Org Search Results for '{$search}' ($count)", $blob);
+			$msg = $this->text->makeBlob("Org Search Results for '{$search}' ({$count})", $blob);
 		} else {
 			$msg = "No matches found.";
 		}
@@ -125,6 +120,7 @@ class FindOrgController extends ModuleInstance {
 
 	/**
 	 * @return Organization[]
+	 *
 	 * @throws SQLException
 	 */
 	public function lookupOrg(string $search, int $limit=50): array {
@@ -143,9 +139,7 @@ class FindOrgController extends ModuleInstance {
 		return $orgs->toArray();
 	}
 
-	/**
-	 * @param Organization[] $orgs
-	 */
+	/** @param Organization[] $orgs */
 	public function formatResults(array $orgs): string {
 		$blob = "<header2>Matching orgs<end>\n";
 		usort($orgs, function (Organization $a, Organization $b): int {
@@ -158,7 +152,7 @@ class FindOrgController extends ModuleInstance {
 			$blob .= "<tab><{$org->faction}>{$org->name}<end> ({$org->id}) - ".
 				"<highlight>{$org->num_members}<end> ".
 				$this->text->pluralize("member", $org->num_members).
-				", {$org->governing_form} [$orglist] [$whoisorg] [$orgmembers]\n";
+				", {$org->governing_form} [{$orglist}] [{$whoisorg}] [{$orgmembers}]\n";
 		}
 		return $blob;
 	}
@@ -180,7 +174,7 @@ class FindOrgController extends ModuleInstance {
 				'</tr>@s';
 
 			preg_match_all($pattern, $body, $arr, PREG_SET_ORDER);
-			$this->logger->info("Updating orgs starting with $letter");
+			$this->logger->info("Updating orgs starting with {$letter}");
 			$inserts = [];
 			foreach ($arr as $match) {
 				$obj = new Organization();
@@ -209,6 +203,63 @@ class FindOrgController extends ModuleInstance {
 				$this->ready = true;
 			}
 		});
+	}
+
+	#[NCA\Event(
+		name: "timer(24hrs)",
+		description: "Parses all orgs from People of Rubi Ka"
+	)]
+	public function downloadAllOrgsEvent(Event $eventObj): Generator {
+		$searches = [
+			'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm',
+			'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z',
+			'others',
+		];
+
+		$cacheFolder = $this->config->cacheFolder . "/orglist";
+		if (false === yield filesystem()->exists($cacheFolder)) {
+			yield filesystem()->createDirectory($cacheFolder, 0700);
+		}
+
+		$this->ready = $this->db->table("organizations")
+			->where("index", "others")
+			->exists();
+		$this->logger->info("Downloading list of all orgs");
+		$this->todo = $searches;
+		$jobs = [];
+		for ($i = 0; $i < $this->numOrglistDlJobs; $i++) {
+			$jobs []= $this->startDownloadOrglistJob();
+		}
+		try {
+			yield all($jobs);
+		} catch (Throwable $e) {
+			$this->logger->error("Error downloading orglists: {error}", [
+				"error" => $e->getMessage(),
+				"exception" => $e,
+			]);
+		}
+		$this->ready = true;
+		$this->logger->info("Finished downloading orglists");
+	}
+
+	/** @return Collection<Organization> */
+	public function getOrgsByName(string ...$names): Collection {
+		if (empty($names)) {
+			return new Collection();
+		}
+		return $this->db->table("organizations")
+			->whereIn("name", $names)
+			->asObj(Organization::class);
+	}
+
+	/** @return Collection<Organization> */
+	public function getOrgsById(int ...$ids): Collection {
+		if (empty($ids)) {
+			return new Collection();
+		}
+		return $this->db->table("organizations")
+			->whereIn("id", $ids)
+			->asObj(Organization::class);
 	}
 
 	/** @return Promise<void> */
@@ -265,62 +316,5 @@ class FindOrgController extends ModuleInstance {
 			yield $cache->set($letter, $body, 24 * 3600);
 			yield $this->handleOrglistResponse($body, $letter);
 		});
-	}
-
-	#[NCA\Event(
-		name: "timer(24hrs)",
-		description: "Parses all orgs from People of Rubi Ka"
-	)]
-	public function downloadAllOrgsEvent(Event $eventObj): Generator {
-		$searches = [
-			'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm',
-			'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z',
-			'others'
-		];
-
-		$cacheFolder = $this->config->cacheFolder . "/orglist";
-		if (false === yield filesystem()->exists($cacheFolder)) {
-			yield filesystem()->createDirectory($cacheFolder, 0700);
-		}
-
-		$this->ready = $this->db->table("organizations")
-			->where("index", "others")
-			->exists();
-		$this->logger->info("Downloading list of all orgs");
-		$this->todo = $searches;
-		$jobs = [];
-		for ($i = 0; $i < $this->numOrglistDlJobs; $i++) {
-			$jobs []= $this->startDownloadOrglistJob();
-		}
-		try {
-			yield all($jobs);
-		} catch (Throwable $e) {
-			$this->logger->error("Error downloading orglists: {error}", [
-				"error" => $e->getMessage(),
-				"exception" => $e,
-			]);
-		}
-		$this->ready = true;
-		$this->logger->info("Finished downloading orglists");
-	}
-
-	/** @return Collection<Organization> */
-	public function getOrgsByName(string ...$names): Collection {
-		if (empty($names)) {
-			return new Collection();
-		}
-		return $this->db->table("organizations")
-			->whereIn("name", $names)
-			->asObj(Organization::class);
-	}
-
-	/** @return Collection<Organization> */
-	public function getOrgsById(int ...$ids): Collection {
-		if (empty($ids)) {
-			return new Collection();
-		}
-		return $this->db->table("organizations")
-			->whereIn("id", $ids)
-			->asObj(Organization::class);
 	}
 }

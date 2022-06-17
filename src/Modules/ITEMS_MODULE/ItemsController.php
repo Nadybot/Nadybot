@@ -7,8 +7,8 @@ use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
 	DB,
-	ModuleInstance,
 	LoggerWrapper,
+	ModuleInstance,
 	Nadybot,
 	SettingManager,
 	Text,
@@ -92,7 +92,7 @@ class ItemsController extends ModuleInstance {
 	public function itemIdCommand(CmdContext $context, int $id): void {
 		$row = ItemSearchResult::fromItem($this->findById($id));
 		if ($row === null) {
-			$msg = "No item found with id <highlight>$id<end>.";
+			$msg = "No item found with id <highlight>{$id}<end>.";
 			$context->reply($msg);
 			return;
 		}
@@ -108,18 +108,18 @@ class ItemsController extends ModuleInstance {
 			}
 			$key = str_replace("_", " ", $key);
 			if ($key === "flags") {
-				$blob .= "$key: <highlight>" . join(", ", $this->flagsToText((int)$value)) . "<end>\n";
+				$blob .= "{$key}: <highlight>" . join(", ", $this->flagsToText((int)$value)) . "<end>\n";
 			} elseif ($key === "slot") {
 				$slots = $this->slotToText((int)$value);
 				if (count(array_diff($types, ["Util", "Hud", "Deck", "Weapon"]))) {
 					$slots = array_diff($slots, [
 						"UTILS1", "UTILS2", "UTILS3",
-						"HUD1", "HUD2", "HUD3", "DECK", "LHAND", "RHAND"
+						"HUD1", "HUD2", "HUD3", "DECK", "LHAND", "RHAND",
 					]);
 				}
 				if (count(array_diff($types, [
 					"Arms", "Back", "Chest", "Feet", "Fingers", "Head", "Legs",
-					"Neck", "Shoulders", "Hands", "Wrists"
+					"Neck", "Shoulders", "Hands", "Wrists",
 				]))) {
 					$slots = array_diff($slots, [
 						"NECK", "HEAD", "BACK", "RSHOULDER", "BODY", "LSHOULDER",
@@ -128,12 +128,12 @@ class ItemsController extends ModuleInstance {
 					]);
 				}
 				if (count($slots)) {
-					$blob .= "$key: <highlight>" . join(", ", $slots) . "<end>\n";
+					$blob .= "{$key}: <highlight>" . join(", ", $slots) . "<end>\n";
 				} else {
-					$blob .= "$key: <highlight>&lt;none&gt;<end>\n";
+					$blob .= "{$key}: <highlight>&lt;none&gt;<end>\n";
 				}
 			} else {
-				$blob .= "$key: <highlight>" . (is_bool($value) ? ($value ? "yes" : "no") : ($value??"<empty>")) . "<end>\n";
+				$blob .= "{$key}: <highlight>" . (is_bool($value) ? ($value ? "yes" : "no") : ($value??"<empty>")) . "<end>\n";
 			}
 		}
 		$row->ql = $row->highql;
@@ -143,37 +143,11 @@ class ItemsController extends ModuleInstance {
 		$blob .= "\n" . $this->formatSearchResults([$row], null, true);
 		$msg = $this->text->blobWrap(
 			"Details about item ID ",
-			$this->text->makeBlob((string)$id, $blob, "Details about item ID $id"),
+			$this->text->makeBlob((string)$id, $blob, "Details about item ID {$id}"),
 			" ({$row->name})"
 		);
 
 		$context->reply($msg);
-	}
-
-	/** @return string[] */
-	protected function flagsToText(int $flags): array {
-		$result = [];
-		$refClass = new \ReflectionClass(Flag::class);
-		$constants = $refClass->getConstants();
-		foreach ($constants as $name => $value) {
-			if ($flags & $value) {
-				$result []= $name;
-			}
-		}
-		return $result;
-	}
-
-	/** @return string[] */
-	protected function slotToText(int $flags): array {
-		$result = [];
-		$refClass = new \ReflectionClass(Slot::class);
-		$constants = $refClass->getConstants();
-		foreach ($constants as $name => $value) {
-			if ($flags & $value) {
-				$result []= $name;
-			}
-		}
-		return $result;
 	}
 
 	public function findById(int $id): ?AODBEntry {
@@ -243,6 +217,7 @@ class ItemsController extends ModuleInstance {
 			->limit($this->maxitems);
 		$tmp = explode(" ", $search);
 		$this->db->addWhereFromParams($query, $tmp, "a.name");
+
 		/** @var AODBEntry[] */
 		$items = $query->asObj(AODBEntry::class)->toArray();
 		if (!count($items)) {
@@ -266,9 +241,7 @@ class ItemsController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @return string|string[]
-	 */
+	/** @return string|string[] */
 	public function findItems(?int $ql, string $search): string|array {
 		if (isset($ql)) {
 			if ($ql < 1 || $ql > 500) {
@@ -283,7 +256,7 @@ class ItemsController extends ModuleInstance {
 
 		$aoiaPlusLink = $this->text->makeChatcmd("AOIA+", "/start https://sourceforge.net/projects/aoiaplus");
 		$footer = "QLs between <red>[<end>brackets<red>]<end> denote items matching your name search\n".
-			"Item DB rips created using the $aoiaPlusLink tool.";
+			"Item DB rips created using the {$aoiaPlusLink} tool.";
 
 		$msg = $this->createItemsBlob($data, $search, $ql, $this->settingManager->getString('aodb_db_version')??"unknown", $footer);
 
@@ -292,8 +265,10 @@ class ItemsController extends ModuleInstance {
 
 	/**
 	 * Search for items in the local database
-	 * @param string $search The searchterm
-	 * @param null|int $ql The QL to return the results in
+	 *
+	 * @param string   $search The searchterm
+	 * @param null|int $ql     The QL to return the results in
+	 *
 	 * @return ItemSearchResult[]
 	 */
 	public function findItemsFromLocal(string $search, ?int $ql): array {
@@ -336,11 +311,7 @@ class ItemsController extends ModuleInstance {
 
 	/**
 	 * @param ItemSearchResult[] $data
-	 * @param string $search
-	 * @param null|int $ql
-	 * @param string $version
-	 * @param string $footer
-	 * @param mixed|null $elapsed
+	 *
 	 * @return string|string[]
 	 */
 	public function createItemsBlob(array $data, string $search, ?int $ql, string $version, string $footer, mixed $elapsed=null): string|array {
@@ -348,33 +319,33 @@ class ItemsController extends ModuleInstance {
 		$groups = count(
 			array_unique(
 				array_diff(
-					array_map(function(ItemSearchResult $row) {
+					array_map(function (ItemSearchResult $row) {
 						return $row->group_id;
 					}, $data),
 					[null],
 				)
 			)
 		) + count(
-			array_filter($data, function(ItemSearchResult $row) {
+			array_filter($data, function (ItemSearchResult $row) {
 				return $row->group_id === null;
 			})
 		);
 
 		if ($numItems === 0) {
 			if ($ql !== null) {
-				$msg = "No QL <highlight>$ql<end> items found matching <highlight>$search<end>.";
+				$msg = "No QL <highlight>{$ql}<end> items found matching <highlight>{$search}<end>.";
 			} else {
-				$msg = "No items found matching <highlight>$search<end>.";
+				$msg = "No items found matching <highlight>{$search}<end>.";
 			}
 			return $msg;
 		} elseif ($groups < 4) {
 			return trim($this->formatSearchResults($data, $ql, false, $search));
 		}
-		$blob = "Version: <highlight>$version<end>\n";
+		$blob = "Version: <highlight>{$version}<end>\n";
 		if ($ql !== null) {
-			$blob .= "Search: <highlight>QL $ql $search<end>\n";
+			$blob .= "Search: <highlight>QL {$ql} {$search}<end>\n";
 		} else {
-			$blob .= "Search: <highlight>$search<end>\n";
+			$blob .= "Search: <highlight>{$search}<end>\n";
 		}
 		if ($elapsed) {
 			$blob .= "Time: <highlight>" . round($elapsed, 2) . "s<end>\n";
@@ -385,15 +356,16 @@ class ItemsController extends ModuleInstance {
 			$blob .= "\n\n<highlight>*Results have been limited to the first {$this->maxitems} results.<end>";
 		}
 		$blob .= "\n\n" . $footer;
-		$link = $this->text->makeBlob("Item Search Results ($numItems)", $blob);
+		$link = $this->text->makeBlob("Item Search Results ({$numItems})", $blob);
 
 		return $link;
 	}
 
 	/**
 	 * Sort by exact word matches higher than partial word matches
+	 *
 	 * @param ItemSearchResult[] $data
-	 * @param string $search
+	 *
 	 * @return ItemSearchResult[]
 	 */
 	public function orderSearchResults(array $data, string $search): array {
@@ -429,12 +401,7 @@ class ItemsController extends ModuleInstance {
 		return $data;
 	}
 
-	/**
-	 * @param ItemSearchResult[] $data
-	 * @param null|int $ql
-	 * @param bool $showImages
-	 * @return string
-	 */
+	/** @param ItemSearchResult[] $data */
 	public function formatSearchResults(array $data, ?int $ql, bool $showImages, ?string $search=null): string {
 		$list = '';
 		$oldGroup = null;
@@ -487,10 +454,10 @@ class ItemsController extends ModuleInstance {
 					}
 				}
 			}
-			$oldGroup = isset($row->group_id) ? $row->group_id : null;
+			$oldGroup = $row->group_id ?? null;
 			if (!isset($row->group_id)) {
 				$list .= $this->text->makeItem($row->lowid, $row->highid, $row->ql, $row->name);
-				$list .= " (QL $row->ql)";
+				$list .= " (QL {$row->ql})";
 			} else {
 				if ($newGroup === true) {
 					$list .= "QL ";
@@ -514,10 +481,10 @@ class ItemsController extends ModuleInstance {
 				}
 				$item = $this->text->makeItem($row->lowid, $row->highid, $row->ql, (string)$row->ql);
 				if ($ql === $row->ql) {
-					$list .= "<yellow>[<end>$item<yellow>]<end>";
+					$list .= "<yellow>[<end>{$item}<yellow>]<end>";
 				} elseif (isset($ql) && $ql > $row->lowql && $ql < $row->highql && $ql < $row->ql) {
 					$list .= "<yellow>[<end>" . $this->text->makeItem($row->lowid, $row->highid, $ql, (string)$ql) . "<yellow>]<end>";
-					$list .= ", $item";
+					$list .= ", {$item}";
 				} elseif (
 					isset($ql) &&
 					$ql > $row->lowql && $ql < $row->highql && $ql > $row->ql &&
@@ -542,7 +509,7 @@ class ItemsController extends ModuleInstance {
 		}
 		$list = preg_replace_callback(
 			"/^([^<]+?)<red>\[<end>(.+)<red>\]<end>$/m",
-			function(array $matches): string {
+			function (array $matches): string {
 				if (strpos($matches[2], "<red>") !== false) {
 					return $matches[0];
 				}
@@ -585,7 +552,7 @@ class ItemsController extends ModuleInstance {
 	public function getItem(string $name, ?int $ql=null): ?string {
 		$row = $this->findByName($name, $ql);
 		if ($row === null) {
-			$this->logger->warning("Could not find item '$name' at QL '$ql'");
+			$this->logger->warning("Could not find item '{$name}' at QL '{$ql}'");
 			return null;
 		}
 		$ql ??= $row->highql;
@@ -596,10 +563,10 @@ class ItemsController extends ModuleInstance {
 		$row = $this->findByName($name, $ql);
 		if ($row === null) {
 			if (isset($ql)) {
-				$this->logger->warning("Could not find item '$name' at QL '$ql'");
+				$this->logger->warning("Could not find item '{$name}' at QL '{$ql}'");
 				return "{$name}@{$ql}";
 			}
-			$this->logger->warning("Could not find item '$name'");
+			$this->logger->warning("Could not find item '{$name}'");
 			return $name;
 		}
 		$ql ??= $row->highql;
@@ -611,8 +578,10 @@ class ItemsController extends ModuleInstance {
 	 * Get the longest common string of 2 strings
 	 * The LCS of "Cheap Caterwaul X-17" and "Exceptional Caterwaul X-17"
 	 * would be " Caterwaul X-17", so mind the included space!
+	 *
 	 * @param string $first  The first word to compare
 	 * @param string $second The second word to compare
+	 *
 	 * @return string The longest common string of $first and $second
 	 */
 	public function getLongestCommonString(string $first, string $second): string {
@@ -645,9 +614,8 @@ class ItemsController extends ModuleInstance {
 		}
 		if ($largestFound === 0) {
 			return "";
-		} else {
-			return implode(" ", array_slice($first, $longestCommonSubstringIndexInFirst, $largestFound));
 		}
+		return implode(" ", array_slice($first, $longestCommonSubstringIndexInFirst, $largestFound));
 	}
 
 	/**
@@ -657,8 +625,10 @@ class ItemsController extends ModuleInstance {
 	 *  "Exceptional Caterwaul X-17"
 	 *  and "Crappy Caterwaul"
 	 * would be "Caterwaul", without the leading space!
+	 *
 	 * @param string[] $words The words to compare
-	 * @return string  The longest common string of all given words
+	 *
+	 * @return string The longest common string of all given words
 	 */
 	public function getLongestCommonStringOfWords(array $words): string {
 		if (empty($words)) {
@@ -690,9 +660,11 @@ class ItemsController extends ModuleInstance {
 		// check for exact match first, in order to disambiguate
 		// between Bow and Bow special attack
 		$query = $this->db->table("skills");
+
 		/**
 		 * @psalm-suppress ImplicitToStringCast
 		 * @phpstan-ignore-next-line
+		 *
 		 * @var Collection<Skill>
 		 */
 		$results = $query->where($query->colFunc("LOWER", "name"), strtolower($skillName))
@@ -717,7 +689,8 @@ class ItemsController extends ModuleInstance {
 			->asObj(ItemBuff::class);
 		$skills = $this->getSkillByIDs(...$buffs->pluck("attribute_id")->unique()->toArray())
 			->keyBy("id");
-			/** @param Collection<ItemBuff> $buffs */
+
+		/** @param Collection<ItemBuff> $buffs */
 		$buffs = $buffs->groupBy("item_id")
 			->map(function (Collection $iBuffs, int $itemId) use ($skills): array {
 				return $iBuffs->map(function (ItemBuff $buff) use ($skills): ExtBuff {
@@ -738,6 +711,32 @@ class ItemsController extends ModuleInstance {
 				$new->buffs = array_merge($new->buffs, $buffs->get($new->highid, []));
 			}
 			$result->push($new);
+		}
+		return $result;
+	}
+
+	/** @return string[] */
+	protected function flagsToText(int $flags): array {
+		$result = [];
+		$refClass = new \ReflectionClass(Flag::class);
+		$constants = $refClass->getConstants();
+		foreach ($constants as $name => $value) {
+			if ($flags & $value) {
+				$result []= $name;
+			}
+		}
+		return $result;
+	}
+
+	/** @return string[] */
+	protected function slotToText(int $flags): array {
+		$result = [];
+		$refClass = new \ReflectionClass(Slot::class);
+		$constants = $refClass->getConstants();
+		foreach ($constants as $name => $value) {
+			if ($flags & $value) {
+				$result []= $name;
+			}
 		}
 		return $result;
 	}

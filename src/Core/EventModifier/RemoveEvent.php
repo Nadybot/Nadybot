@@ -11,8 +11,7 @@ use Nadybot\Core\{
 #[
 	NCA\EventModifier(
 		name: "remove-event",
-		description:
-			"This modifier removes events of one or more types\n".
+		description: "This modifier removes events of one or more types\n".
 			"from being routed. A typical event is \"online\" which is triggered\n".
 			"whenever a character goes online or offline.\n".
 			"To stop displaying logon/logoff messages from your relay, add\n".
@@ -39,9 +38,7 @@ class RemoveEvent implements EventModifier {
 	protected array $filter = [];
 	protected ?string $from = null;
 
-	/**
-	 * @param string[] $filter
-	 */
+	/** @param string[] $filter */
 	public function __construct(array $filter, ?string $from=null) {
 		$this->filter = $filter;
 		$this->from = $from;

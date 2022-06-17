@@ -2,9 +2,7 @@
 
 namespace Nadybot\Core\Modules\PLAYER_LOOKUP;
 
-use function Amp\call;
-use function Amp\asyncCall;
-use function Amp\delay;
+use function Amp\{asyncCall, call, delay};
 use function Safe\json_decode;
 
 use Amp\Http\Client\{
@@ -19,8 +17,6 @@ use Amp\{
 	Promise,
 	Sync\LocalKeyedMutex,
 };
-use Safe\DateTime;
-use Safe\Exceptions\JsonException;
 use DateTimeZone;
 use Generator;
 use Illuminate\Support\Collection;
@@ -29,14 +25,16 @@ use Nadybot\Core\{
 	ConfigFile,
 	DB,
 	DBSchema\Player,
-	ModuleInstance,
 	LoggerWrapper,
+	ModuleInstance,
 	Nadybot,
 	Registry,
-	SettingManager,
 	SQLException,
+	SettingManager,
 	Util,
 };
+use Safe\DateTime;
+use Safe\Exceptions\JsonException;
 
 /**
  * @author Tyrence (RK2)
@@ -91,7 +89,7 @@ class PlayerManager extends ModuleInstance {
 		}
 		$this->playerLookupJob = new PlayerLookupJob();
 		Registry::injectDependencies($this->playerLookupJob);
-		$this->playerLookupJob->run(function() {
+		$this->playerLookupJob->run(function () {
 			$this->playerLookupJob = null;
 			$this->db->table("players")
 				->where("last_update", "<", time() - 5*static::CACHE_GRACE_TIME)
@@ -101,15 +99,18 @@ class PlayerManager extends ModuleInstance {
 
 	/**
 	 * @psalm-param callable(array<string,?Player>) $callback
+	 *
 	 * @param string[] $names
+	 *
 	 * @deprecated use all(byName()) instead
 	 */
-	public function massGetByName(callable $callback, array $names, int $dimension=null, bool $forceUpdate=false): void {
+	public function massGetByName(callable $callback, array $names, ?int $dimension=null, bool $forceUpdate=false): void {
 		asyncCall(function () use ($callback, $names, $dimension, $forceUpdate): Generator {
 			$promises = [];
 			foreach ($names as $name) {
 				$promises[$name] = $this->byName($name, $dimension, $forceUpdate);
 			}
+
 			/** @var array<?Player> */
 			$result = yield $promises;
 			$callback($result);
@@ -118,7 +119,7 @@ class PlayerManager extends ModuleInstance {
 
 	/** @return Promise<?Player> */
 	public function byName(string $name, ?int $dimension=null, bool $forceUpdate=false): Promise {
-		return call(function() use ($name, $dimension, $forceUpdate): Generator {
+		return call(function () use ($name, $dimension, $forceUpdate): Generator {
 			$dimension ??= $this->config->dimension;
 
 			$name = ucfirst(strtolower($name));
@@ -165,16 +166,14 @@ class PlayerManager extends ModuleInstance {
 	 * @deprecated 6.1.0
 	 */
 	public function getByNameAsync(callable $callback, string $name, ?int $dimension=null, bool $forceUpdate=false): void {
-		asyncCall(function() use ($callback, $name, $dimension, $forceUpdate): Generator {
+		asyncCall(function () use ($callback, $name, $dimension, $forceUpdate): Generator {
 			$player = yield $this->byName($name, $dimension, $forceUpdate);
 			$callback($player);
 			return null;
 		});
 	}
 
-	/**
-	 * @return Collection<Player>
-	 */
+	/** @return Collection<Player> */
 	public function searchByNames(int $dimension, string ...$names): Collection {
 		$names = array_map("ucfirst", array_map("strtolower", $names));
 		return $this->db->table("players")
@@ -183,9 +182,7 @@ class PlayerManager extends ModuleInstance {
 			->asObj(Player::class);
 	}
 
-	/**
-	 * @return Collection<Player>
-	 */
+	/** @return Collection<Player> */
 	public function searchByUids(int $dimension, int ...$uids): Collection {
 		return $this->db->table("players")
 			->where("dimension", $dimension)
@@ -193,9 +190,7 @@ class PlayerManager extends ModuleInstance {
 			->asObj(Player::class);
 	}
 
-	/**
-	 * @return Collection<Player>
-	 */
+	/** @return Collection<Player> */
 	public function searchByColumn(int $dimension, string $column, mixed ...$values): Collection {
 		return $this->db->table("players")
 			->where("dimension", $dimension)
@@ -222,7 +217,7 @@ class PlayerManager extends ModuleInstance {
 				"dimension" => $dimension,
 			]);
 		}
-		return  $player;
+		return $player;
 	}
 
 	/** @return Promise<?Player> */
@@ -246,6 +241,7 @@ class PlayerManager extends ModuleInstance {
 							$player = $this->parsePlayerFromBody($body);
 							break;
 						}
+
 						/** @var Response */
 						$response = yield $client->request(new Request($url));
 						if ($response->getStatus() === 200) {
@@ -306,47 +302,6 @@ class PlayerManager extends ModuleInstance {
 		});
 	}
 
-	private function parsePlayerFromBody(string $body): ?Player {
-		if ($body === "null") {
-			return null;
-		}
-		try {
-			[$char, $org, $lastUpdated] = json_decode($body);
-		} catch (JsonException) {
-			return null;
-		}
-
-		$obj = new Player();
-
-		// parsing of the player data
-		$obj->firstname      = trim($char->FIRSTNAME);
-		$obj->name           = $char->NAME;
-		$obj->lastname       = trim($char->LASTNAME);
-		$obj->level          = $char->LEVELX;
-		$obj->breed          = $char->BREED ?? '';
-		$obj->gender         = $char->SEX ?? '';
-		$obj->faction        = $char->SIDE ?? '';
-		$obj->profession     = $char->PROF;
-		$obj->prof_title     = $char->PROFNAME ?? '';
-		$obj->ai_rank        = $char->RANK_name ?? '';
-		$obj->ai_level       = $char->ALIENLEVEL;
-		$obj->guild_id       = $org->ORG_INSTANCE;
-		$obj->guild          = $org->NAME ?? '';
-		$obj->guild_rank     = $org->RANK_TITLE ?? '';
-		$obj->guild_rank_id  = $org->RANK;
-
-		$obj->head_id        = $char->HEADID;
-		$obj->pvp_rating     = $char->PVPRATING;
-		$obj->pvp_title      = $char->PVPTITLE;
-
-		//$obj->charid        = $char->CHAR_INSTANCE;
-		$obj->dimension      = $char->CHAR_DIMENSION;
-		$luDateTime = DateTime::createFromFormat("Y/m/d H:i:s", $lastUpdated, new DateTimeZone("UTC"));
-		$obj->last_update = $luDateTime->getTimestamp();
-
-		return $obj;
-	}
-
 	public function update(Player $char): void {
 		$this->db->table("players")
 			->upsert(
@@ -393,7 +348,7 @@ class PlayerManager extends ModuleInstance {
 
 		$msg .= "(<highlight>{$whois->level}<end>/<green>{$whois->ai_level}<end>";
 		$msg .= ", {$whois->gender} {$whois->breed} <highlight>{$whois->profession}<end>";
-		$msg .= ", <" . strtolower($whois->faction) . ">$whois->faction<end>";
+		$msg .= ", <" . strtolower($whois->faction) . ">{$whois->faction}<end>";
 
 		if ($whois->guild) {
 			$msg .= ", {$whois->guild_rank} of <" . strtolower($whois->faction) . ">{$whois->guild}<end>)";
@@ -406,9 +361,12 @@ class PlayerManager extends ModuleInstance {
 
 	/**
 	 * Search for players in the database
-	 * @param string $search Search term
+	 *
+	 * @param string   $search    Search term
 	 * @param int|null $dimension Dimension to limit search to
+	 *
 	 * @return Player[]
+	 *
 	 * @throws SQLException On error
 	 */
 	public function searchForPlayers(string $search, ?int $dimension=null): array {
@@ -421,5 +379,46 @@ class PlayerManager extends ModuleInstance {
 		}
 
 		return $query->asObj(Player::class)->toArray();
+	}
+
+	private function parsePlayerFromBody(string $body): ?Player {
+		if ($body === "null") {
+			return null;
+		}
+		try {
+			[$char, $org, $lastUpdated] = json_decode($body);
+		} catch (JsonException) {
+			return null;
+		}
+
+		$obj = new Player();
+
+		// parsing of the player data
+		$obj->firstname      = trim($char->FIRSTNAME);
+		$obj->name           = $char->NAME;
+		$obj->lastname       = trim($char->LASTNAME);
+		$obj->level          = $char->LEVELX;
+		$obj->breed          = $char->BREED ?? '';
+		$obj->gender         = $char->SEX ?? '';
+		$obj->faction        = $char->SIDE ?? '';
+		$obj->profession     = $char->PROF;
+		$obj->prof_title     = $char->PROFNAME ?? '';
+		$obj->ai_rank        = $char->RANK_name ?? '';
+		$obj->ai_level       = $char->ALIENLEVEL;
+		$obj->guild_id       = $org->ORG_INSTANCE;
+		$obj->guild          = $org->NAME ?? '';
+		$obj->guild_rank     = $org->RANK_TITLE ?? '';
+		$obj->guild_rank_id  = $org->RANK;
+
+		$obj->head_id        = $char->HEADID;
+		$obj->pvp_rating     = $char->PVPRATING;
+		$obj->pvp_title      = $char->PVPTITLE;
+
+		// $obj->charid        = $char->CHAR_INSTANCE;
+		$obj->dimension      = $char->CHAR_DIMENSION;
+		$luDateTime = DateTime::createFromFormat("Y/m/d H:i:s", $lastUpdated, new DateTimeZone("UTC"));
+		$obj->last_update = $luDateTime->getTimestamp();
+
+		return $obj;
 	}
 }

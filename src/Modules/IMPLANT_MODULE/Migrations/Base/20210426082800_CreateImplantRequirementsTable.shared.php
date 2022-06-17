@@ -3,15 +3,13 @@
 namespace Nadybot\Modules\IMPLANT_MODULE\Migrations\Base;
 
 use Illuminate\Database\Schema\Blueprint;
-use Nadybot\Core\DB;
-use Nadybot\Core\LoggerWrapper;
-use Nadybot\Core\SchemaMigration;
+use Nadybot\Core\{DB, LoggerWrapper, SchemaMigration};
 
 class CreateImplantRequirementsTable implements SchemaMigration {
 	public function migrate(LoggerWrapper $logger, DB $db): void {
 		$table = "implant_requirements";
 		$db->schema()->dropIfExists($table);
-		$db->schema()->create($table, function(Blueprint $table): void {
+		$db->schema()->create($table, function (Blueprint $table): void {
 			$table->integer("ql")->primary();
 			$table->integer("treatment");
 			$table->integer("ability");

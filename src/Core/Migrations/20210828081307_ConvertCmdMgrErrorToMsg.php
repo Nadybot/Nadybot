@@ -17,13 +17,6 @@ class ConvertCmdMgrErrorToMsg implements SchemaMigration {
 	#[NCA\Inject]
 	public MessageHub $messageHub;
 
-	protected function getSetting(DB $db, string $name): ?Setting {
-		return $db->table(SettingManager::DB_TABLE)
-			->where("name", $name)
-			->asObj(Setting::class)
-			->first();
-	}
-
 	public function migrate(LoggerWrapper $logger, DB $db): void {
 		$table = $this->messageHub::DB_TABLE_ROUTES;
 		$errToOrg = $this->getSetting($db, "access_denied_notify_guild");
@@ -48,5 +41,12 @@ class ConvertCmdMgrErrorToMsg implements SchemaMigration {
 			];
 			$db->table($table)->insert($route);
 		}
+	}
+
+	protected function getSetting(DB $db, string $name): ?Setting {
+		return $db->table(SettingManager::DB_TABLE)
+			->where("name", $name)
+			->asObj(Setting::class)
+			->first();
 	}
 }

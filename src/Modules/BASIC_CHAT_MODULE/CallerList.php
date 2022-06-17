@@ -11,6 +11,7 @@ class CallerList {
 
 	/**
 	 * List of the characters who are callers
+	 *
 	 * @var Caller[]
 	 */
 	public array $callers = [];
@@ -32,9 +33,11 @@ class CallerList {
 
 	/**
 	 * Remove all callers added by $search
-	 * @param string $search Either the full name or a partial one
-	 * @param bool $partialMatch Do a partial match on $search
-	 * @param bool $invert if true, remove those NOT matching
+	 *
+	 * @param string $search       Either the full name or a partial one
+	 * @param bool   $partialMatch Do a partial match on $search
+	 * @param bool   $invert       if true, remove those NOT matching
+	 *
 	 * @return Caller[] The removed callers
 	 */
 	public function removeCallersAddedBy(string $search, bool $partialMatch, bool $invert): array {

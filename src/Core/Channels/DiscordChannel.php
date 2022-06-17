@@ -4,8 +4,8 @@ namespace Nadybot\Core\Channels;
 
 use Amp\Promise;
 use Nadybot\Core\{
-	Attributes as NCA,
 	AccessManager,
+	Attributes as NCA,
 	MessageHub,
 	MessageReceiver,
 	Modules\DISCORD\DiscordAPIClient,
@@ -88,16 +88,16 @@ class DiscordChannel implements MessageReceiver {
 			$sendersRank = $this->accessManager->getAccessLevelForCharacter($event->char->name);
 			if ($this->accessManager->compareAccessLevels($sendersRank, $minRankForMentions) < 0) {
 				$discordMsg->allowed_mentions = (object)[
-					"parse" => ["users", "everyone"]
+					"parse" => ["users", "everyone"],
 				];
 			}
 		} else {
 			$discordMsg->allowed_mentions = (object)[
-				"parse" => ["everyone"]
+				"parse" => ["everyone"],
 			];
 		}
 
-		//Relay the message to the discord channel
+		// Relay the message to the discord channel
 		Promise\rethrow($this->discordAPIClient->queueToChannel($this->id, $discordMsg->toJSON()));
 		return true;
 	}

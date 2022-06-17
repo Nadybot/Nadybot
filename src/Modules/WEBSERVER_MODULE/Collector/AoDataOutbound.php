@@ -2,8 +2,7 @@
 
 namespace Nadybot\Modules\WEBSERVER_MODULE\Collector;
 
-use Nadybot\Core\Attributes as NCA;
-use Nadybot\Core\Nadybot;
+use Nadybot\Core\{Attributes as NCA, Nadybot};
 use Nadybot\Modules\WEBSERVER_MODULE\Interfaces\CounterProvider;
 
 class AoDataOutbound implements CounterProvider {

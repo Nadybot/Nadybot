@@ -7,8 +7,8 @@ use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
 	DB,
-	ModuleInstance,
 	LoggerWrapper,
+	ModuleInstance,
 	ParamClass\PWord,
 	Text,
 	Util,
@@ -88,7 +88,7 @@ class AlienMiscController extends ModuleInstance {
 			->reduce(
 				function (string $blob, string $profession): string {
 					$professionLink = $this->text->makeChatcmd($profession, "/tell <myname> leprocs {$profession}");
-					return "{$blob}<tab>$professionLink\n";
+					return "{$blob}<tab>{$professionLink}\n";
 				},
 				$blob
 			);
@@ -125,19 +125,19 @@ class AlienMiscController extends ModuleInstance {
 		foreach ($data as $row) {
 			if ($type !== $row->proc_type) {
 				$type = $row->proc_type;
-				$blob .= "\n<img src=rdb://" . ($type === 1 ? 84789 : 84310) . "><header2>Type $type<end>\n";
+				$blob .= "\n<img src=rdb://" . ($type === 1 ? 84789 : 84310) . "><header2>Type {$type}<end>\n";
 			}
 
-			$proc_trigger = "<green>$row->proc_trigger<end>";
+			$proc_trigger = "<green>{$row->proc_trigger}<end>";
 			$blob .= "<tab>".
 				$this->text->alignNumber($row->research_lvl, 2).
-				" - $row->name <orange>$row->modifiers<end> $row->duration $proc_trigger\n";
+				" - {$row->name} <orange>{$row->modifiers}<end> {$row->duration} {$proc_trigger}\n";
 		}
 		$blob .= "\n".
 			"\n<i>Offensive procs have a 5% chance of firing every time you attack</i>".
 			"\n<i>Defensive procs have a 10% chance of firing every time something attacks you.</i>";
 
-		$msg = $this->text->makeBlob("$profession LE Procs", $blob);
+		$msg = $this->text->makeBlob("{$profession} LE Procs", $blob);
 		$context->reply($msg);
 	}
 
@@ -226,7 +226,7 @@ class AlienMiscController extends ModuleInstance {
 		$blob = '';
 		$typeLink = $this->text->makeChatcmd("Kyr'Ozch Bio-Material - Type {$type}", "/tell <myname> bioinfo {$type}");
 		$typeQl = round(.8 * $ql);
-		$blob .= "Upgrade with $typeLink (minimum QL {$typeQl})\n\n";
+		$blob .= "Upgrade with {$typeLink} (minimum QL {$typeQl})\n\n";
 
 		/** @var Collection<int> */
 		$qls = $this->db->table("ofabarmorcost")
@@ -258,7 +258,7 @@ class AlienMiscController extends ModuleInstance {
 				} elseif ($currentUpgrade === 1) {
 					$blob .= "1 upgrade";
 				} else {
-					$blob .= "$currentUpgrade upgrades";
+					$blob .= "{$currentUpgrade} upgrades";
 				}
 				$blob .= "<end>\n";
 			}
@@ -270,9 +270,9 @@ class AlienMiscController extends ModuleInstance {
 			}
 			$blob .= "\n";
 		}
-		$blob .= "\nCost for full set: <highlight>$fullSetVP<end> VP";
+		$blob .= "\nCost for full set: <highlight>{$fullSetVP}<end> VP";
 
-		$msg = $this->text->makeBlob("$profession Ofab Armor (QL $ql)", $blob);
+		$msg = $this->text->makeBlob("{$profession} Ofab Armor (QL {$ql})", $blob);
 		$context->reply($msg);
 	}
 
@@ -303,7 +303,7 @@ class AlienMiscController extends ModuleInstance {
 						);
 						$blob .= "[{$ql_link}] ";
 					}
-					return"{$blob}\n\n";
+					return "{$blob}\n\n";
 				},
 				""
 			);
@@ -335,14 +335,14 @@ class AlienMiscController extends ModuleInstance {
 		$blob = '';
 		$typeQl = round(.8 * $searchQL);
 		$typeLink = $this->text->makeChatcmd("Kyr'Ozch Bio-Material - Type {$row->type}", "/tell <myname> bioinfo {$row->type} {$typeQl}");
-		$blob .= "Upgrade with $typeLink (minimum QL {$typeQl})\n\n";
+		$blob .= "Upgrade with {$typeLink} (minimum QL {$typeQl})\n\n";
 
 		$blob = $this->db->table("ofabweaponscost")
 			->orderBy("ql")
 			->select("ql")->distinct()
 			->pluckAs("ql", "int")
 			->reduce(
-				function(string $blob, int $ql) use ($searchQL, $weapon): string {
+				function (string $blob, int $ql) use ($searchQL, $weapon): string {
 					if ($ql === $searchQL) {
 						return "{$blob}<yellow>[<end>{$ql}<yellow>]<end> ";
 					}
@@ -367,7 +367,7 @@ class AlienMiscController extends ModuleInstance {
 			}
 		}
 
-		$msg = $this->text->makeBlob("Ofab $weapon (QL $searchQL)", $blob);
+		$msg = $this->text->makeBlob("Ofab {$weapon} (QL {$searchQL})", $blob);
 		$context->reply($msg);
 	}
 
@@ -428,7 +428,7 @@ class AlienMiscController extends ModuleInstance {
 				break;
 		}
 
-		$msg = $this->text->makeBlob("General $gen", $blob);
+		$msg = $this->text->makeBlob("General {$gen}", $blob);
 		$context->reply($msg);
 	}
 }

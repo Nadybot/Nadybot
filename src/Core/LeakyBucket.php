@@ -4,26 +4,22 @@ namespace Nadybot\Core;
 
 if (!defined("AOC_PRIORITY_HIGH")) {
 	\Safe\define('AOC_PRIORITY_HIGH', 1000);
-	\Safe\define('AOC_PRIORITY_MED',   500);
-	\Safe\define('AOC_PRIORITY_LOW',   100);
+	\Safe\define('AOC_PRIORITY_MED', 500);
+	\Safe\define('AOC_PRIORITY_LOW', 100);
 }
 
 class LeakyBucket implements QueueInterface {
 	/**
 	 * The packet queue for each priority (low, med, high)
 	 *
-	 * @var array<int,\Nadybot\Core\AOChatPacket[]> $queue
+	 * @var array<int,\Nadybot\Core\AOChatPacket[]>
 	 */
 	public array $queue;
 
-	/**
-	 * The number of items in the queue for any priority
-	 */
+	/** The number of items in the queue for any priority */
 	protected int $queueSize;
 
-	/**
-	 * How many seconds between refilling the bucket with 1 item
-	 */
+	/** How many seconds between refilling the bucket with 1 item */
 	protected int $refillIntervall;
 
 	/**
@@ -39,14 +35,10 @@ class LeakyBucket implements QueueInterface {
 	 */
 	protected float $bucketFill;
 
-	/**
-	 * When did we last check for refill
-	 */
+	/** When did we last check for refill */
 	protected float $lastRefill;
 
-	/**
-	 * Is the limiter active?
-	 */
+	/** Is the limiter active? */
 	protected bool $enabled = true;
 
 	/**
@@ -75,9 +67,7 @@ class LeakyBucket implements QueueInterface {
 		return $size;
 	}
 
-	/**
-	 * Add a packet to the end of the chat queue with priority $priority
-	 */
+	/** Add a packet to the end of the chat queue with priority $priority */
 	public function push(int $priority, AOChatPacket $item): void {
 		if (isset($this->queue[$priority])) {
 			$this->queue[$priority] []= $item;

@@ -2,15 +2,15 @@
 
 namespace Nadybot\Modules\WORLDBOSS_MODULE;
 
+use function Amp\File\filesystem;
 use Generator;
+
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
 	ModuleInstance,
 	Text,
 };
-
-use function Amp\File\filesystem;
 
 /**
  * @author Equi

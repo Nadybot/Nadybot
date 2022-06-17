@@ -2,17 +2,16 @@
 
 namespace Nadybot\Core\DBSchema;
 
-use Nadybot\Core\DBRow;
 use Nadybot\Core\Attributes\JSON;
+use Nadybot\Core\DBRow;
 
 /**
  * This represents the data the bot stores about a player in the cache and database
+ *
  * @package Nadybot\Core\DBSchema
  */
 class Player extends DBRow {
-	/**
-	 * The character ID as used by Anarchy Online
-	 */
+	/** The character ID as used by Anarchy Online */
 	public int $charid;
 
 	/**
@@ -21,9 +20,7 @@ class Player extends DBRow {
 	#[JSON\Name("first_name")]
 	public string $firstname = '';
 
-	/**
-	 * The character's name as it appears in the game
-	 */
+	/** The character's name as it appears in the game */
 	public string $name;
 
 	/**
@@ -32,46 +29,31 @@ class Player extends DBRow {
 	#[JSON\Name("last_name")]
 	public string $lastname = '';
 
-	/**
-	 * What level (1-220) is the character or null if unknown
-	 */
+	/** What level (1-220) is the character or null if unknown */
 	public ?int $level = null;
 
-	/**
-	 * Any of Nano, Solitus, Atrox or Opifex. Also empty string if unknown
-	 */
+	/** Any of Nano, Solitus, Atrox or Opifex. Also empty string if unknown */
 	public string $breed = '';
 
-	/**
-	 * Male, Female, Neuter or an empty string if unknown
-	 */
+	/** Male, Female, Neuter or an empty string if unknown */
 	public string $gender = '';
 
-	/**
-	 * Omni, Clan, Neutral or an empty string if unknown
-	 */
+	/** Omni, Clan, Neutral or an empty string if unknown */
 	public string $faction = '';
 
-	/**
-	 * The long profession name (e.g. "Enforcer", not "enf" or "enfo") or an empty string if unknown
-	 */
+	/** The long profession name (e.g. "Enforcer", not "enf" or "enfo") or an empty string if unknown */
 	public ?string $profession = '';
 
 	/**
 	 * The title-level title for the profession of this player
 	 * For example "The man", "Don" or empty if unknown.
-	 * @var string
 	 */
 	public string $prof_title= '';
 
-	/**
-	 * The name of the ai_level as a rank or empty string if unknown
-	 */
+	/** The name of the ai_level as a rank or empty string if unknown */
 	public string $ai_rank = '';
 
-	/**
-	 * AI level of this player or null if unknown
-	 */
+	/** AI level of this player or null if unknown */
 	public ?int $ai_level = null;
 
 	/**
@@ -99,19 +81,13 @@ class Player extends DBRow {
 	#[JSON\Name("org_rank_id")]
 	public ?int $guild_rank_id = null;
 
-	/**
-	 * In which dimension (RK server) is this character? 4 for test, 5 for RK5, 6 for RK19
-	 */
+	/** In which dimension (RK server) is this character? 4 for test, 5 for RK5, 6 for RK19 */
 	public ?int $dimension;
 
-	/**
-	 * Which head is the player using
-	 */
+	/** Which head is the player using */
 	public ?int $head_id = null;
 
-	/**
-	 * Numeric PvP-rating of the player (1-7) or null if unknown
-	 */
+	/** Numeric PvP-rating of the player (1-7) or null if unknown */
 	public ?int $pvp_rating = null;
 
 	/**
@@ -123,9 +99,7 @@ class Player extends DBRow {
 	#[JSON\Ignore]
 	public string $source = '';
 
-	/**
-	 * Unix timestamp of the last update of these data
-	 */
+	/** Unix timestamp of the last update of these data */
 	public ?int $last_update;
 
 	public function getPronoun(): string {
@@ -156,6 +130,7 @@ class Player extends DBRow {
 	 * in uppercase. So "%Faction%" is "Clan" and "%faction%" is "clan"
 	 *
 	 * @param string $text The text to parse
+	 *
 	 * @return string The rendered text
 	 */
 	public function text(string $text): string {

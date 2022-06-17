@@ -3,8 +3,8 @@
 namespace Nadybot\Modules\RELAY_MODULE\Transport;
 
 use Nadybot\Core\{
-	Attributes as NCA,
 	AOChatEvent,
+	Attributes as NCA,
 	EventManager,
 	Nadybot,
 	StopExecutionException,
@@ -19,8 +19,7 @@ use Nadybot\Modules\RELAY_MODULE\{
 #[
 	NCA\RelayTransport(
 		name: "private-channel",
-		description:
-			"This is the Anarchy Online private channel transport.\n".
+		description: "This is the Anarchy Online private channel transport.\n".
 			"You can use this to relay messages internally inside Anarchy Online.\n".
 			"Be aware though, that the delay is based on the size of the message\n".
 			"being sent.\n".
@@ -126,7 +125,7 @@ class PrivateChannel implements TransportInterface, StatusProvider {
 		if (strtolower($event->channel) !== strtolower($this->channel)) {
 			return;
 		}
-		$this->relay->deinit(function(Relay $relay): void {
+		$this->relay->deinit(function (Relay $relay): void {
 			$relay->init();
 		});
 	}

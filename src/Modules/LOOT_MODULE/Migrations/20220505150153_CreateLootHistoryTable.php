@@ -3,15 +3,13 @@
 namespace Nadybot\Modules\LOOT_MODULE\Migrations;
 
 use Illuminate\Database\Schema\Blueprint;
-use Nadybot\Core\DB;
-use Nadybot\Core\LoggerWrapper;
-use Nadybot\Core\SchemaMigration;
+use Nadybot\Core\{DB, LoggerWrapper, SchemaMigration};
 use Nadybot\Modules\LOOT_MODULE\LootController;
 
 class CreateLootHistoryTable implements SchemaMigration {
 	public function migrate(LoggerWrapper $logger, DB $db): void {
 		$table = LootController::DB_TABLE;
-		$db->schema()->create($table, function(Blueprint $table) {
+		$db->schema()->create($table, function (Blueprint $table) {
 			$table->id();
 			$table->unsignedInteger("dt")->index();
 			$table->unsignedInteger("roll")->index();

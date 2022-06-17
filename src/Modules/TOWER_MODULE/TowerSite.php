@@ -14,8 +14,6 @@ class TowerSite extends DBRow {
 	public string $site_name;
 	public bool $enabled;
 
-	/**
-	 * Is this legacy (0), EU-friendly (1) or US-friendly (2)
-	 */
+	/** Is this legacy (0), EU-friendly (1) or US-friendly (2) */
 	public int $timing;
 }

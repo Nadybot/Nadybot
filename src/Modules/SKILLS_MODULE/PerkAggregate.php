@@ -17,18 +17,12 @@ class PerkAggregate {
 
 	public int $max_level = 1;
 
-	/**
-	 * @var array<int,int>
-	 */
+	/** @var array<int,int> */
 	public array $buffs = [];
 
-	/**
-	 * @var array<int,int>
-	 */
+	/** @var array<int,int> */
 	public array $resistances = [];
 
-	/**
-	 * @var PerkLevelAction[]
-	 */
+	/** @var PerkLevelAction[] */
 	public array $actions = [];
 }

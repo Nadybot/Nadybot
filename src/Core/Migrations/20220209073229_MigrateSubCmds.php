@@ -27,25 +27,6 @@ use Nadybot\Modules\{
 };
 
 class MigrateSubCmds implements SchemaMigration {
-	protected function deleteAlias(DB $db, LoggerWrapper $logger, string $alias): void {
-		$db->table(CommandAlias::DB_TABLE)
-			->where("alias", $alias)
-			->delete();
-	}
-
-	protected function migrateSubCmdRights(DB $db, LoggerWrapper $logger, string $old, string $new): void {
-		$db->table(CommandManager::DB_TABLE)
-			->where('cmd', $old)
-			->update([
-				'cmd' => $new,
-				'cmdevent' => "subcmd",
-				'dependson' => strtolower(explode(" ", $new)[0]),
-			]);
-		$db->table(CommandManager::DB_TABLE_PERMS)
-			->where('cmd', $old)
-			->update(['cmd' => $new]);
-	}
-
 	public function migrate(LoggerWrapper $logger, DB $db): void {
 		$deletedAliases = [
 			"bid start",
@@ -105,5 +86,24 @@ class MigrateSubCmds implements SchemaMigration {
 		foreach ($renamedCmds as $oldName => $newName) {
 			$this->migrateSubCmdRights($db, $logger, $oldName, $newName);
 		}
+	}
+
+	protected function deleteAlias(DB $db, LoggerWrapper $logger, string $alias): void {
+		$db->table(CommandAlias::DB_TABLE)
+			->where("alias", $alias)
+			->delete();
+	}
+
+	protected function migrateSubCmdRights(DB $db, LoggerWrapper $logger, string $old, string $new): void {
+		$db->table(CommandManager::DB_TABLE)
+			->where('cmd', $old)
+			->update([
+				'cmd' => $new,
+				'cmdevent' => "subcmd",
+				'dependson' => strtolower(explode(" ", $new)[0]),
+			]);
+		$db->table(CommandManager::DB_TABLE_PERMS)
+			->where('cmd', $old)
+			->update(['cmd' => $new]);
 	}
 }

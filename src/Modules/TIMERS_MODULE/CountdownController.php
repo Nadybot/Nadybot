@@ -91,17 +91,6 @@ class CountdownController extends ModuleInstance {
 		$this->eventManager->fireEvent($sEvent);
 	}
 
-	protected function getDmCallback(): Closure {
-		return function(string $text): void {
-			if ($this->cdTellLocation & self::LOC_PRIV) {
-				$this->chatBot->sendPrivate($text, true);
-			}
-			if ($this->cdTellLocation & self::LOC_ORG) {
-				$this->chatBot->sendGuild($text, true);
-			}
-		};
-	}
-
 	/** @psalm-param callable(string) $callback */
 	public function startCountdown(callable $callback, string $message): void {
 		$this->lastCountdown = time();
@@ -139,5 +128,16 @@ class CountdownController extends ModuleInstance {
 		}
 		$callback = $this->getDmCallback();
 		$this->startCountdown($callback, $event->message);
+	}
+
+	protected function getDmCallback(): Closure {
+		return function (string $text): void {
+			if ($this->cdTellLocation & self::LOC_PRIV) {
+				$this->chatBot->sendPrivate($text, true);
+			}
+			if ($this->cdTellLocation & self::LOC_ORG) {
+				$this->chatBot->sendGuild($text, true);
+			}
+		};
 	}
 }

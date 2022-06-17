@@ -4,5 +4,6 @@ namespace Nadybot\Core;
 
 interface ModuleInstanceInterface {
 	public function setModuleName(string $name): void;
+
 	public function getModuleName(): string;
 }

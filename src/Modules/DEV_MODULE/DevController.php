@@ -2,7 +2,6 @@
 
 namespace Nadybot\Modules\DEV_MODULE;
 
-use ReflectionMethod;
 use Nadybot\Core\{
 	AccessManager,
 	Attributes as NCA,
@@ -18,6 +17,7 @@ use Nadybot\Core\{
 	Util,
 };
 use ReflectionException;
+use ReflectionMethod;
 
 /**
  * @author Tyrence (RK2)
@@ -135,6 +135,7 @@ class DevController extends ModuleInstance {
 				if (empty($commands)) {
 					continue;
 				}
+
 				/** @var NCA\HandlesCommand */
 				$commandObj = $commands[0]->newInstance();
 				$command = $commandObj->command;
@@ -166,16 +167,14 @@ class DevController extends ModuleInstance {
 			$blob .= "\n\n";
 		}
 		if (isset($cmd)) {
-			$msg = $this->text->makeBlob("Regexes for $cmd ($count)", $blob);
+			$msg = $this->text->makeBlob("Regexes for {$cmd} ({$count})", $blob);
 		} else {
-			$msg = $this->text->makeBlob("Regexes for commands ($count)", $blob);
+			$msg = $this->text->makeBlob("Regexes for commands ({$count})", $blob);
 		}
 		$context->reply($msg);
 	}
 
-	/**
-	 * @return CommandHandler[]
-	 */
+	/** @return CommandHandler[] */
 	public function getAllCommandHandlers(?string $command, string $channel): array {
 		$handlers = [];
 		if (!isset($command)) {
@@ -229,7 +228,7 @@ class DevController extends ModuleInstance {
 			$pos = $count-$i;
 			$blob .= "\n<tab>" . $this->text->alignNumber($pos, 2, "highlight") . ". {$lines[$i]}";
 		}
-		$msg = $this->text->makeBlob("Current Stacktrace ($count)", $blob);
+		$msg = $this->text->makeBlob("Current Stacktrace ({$count})", $blob);
 		$context->reply($msg);
 	}
 
@@ -244,7 +243,7 @@ class DevController extends ModuleInstance {
 		// command
 		foreach ($this->commandManager->commands as $channelName => $channel) {
 			if (isset($channel[$cmd])) {
-				$blob .= "<header2>$channelName ($cmd)<end>\n";
+				$blob .= "<header2>{$channelName} ({$cmd})<end>\n";
 				$blob .= join(", ", $channel[$cmd]->files) . "\n\n";
 			}
 		}
@@ -252,12 +251,12 @@ class DevController extends ModuleInstance {
 		// subcommand
 		foreach ($this->subcommandManager->subcommands[$cmd] as $row) {
 			foreach ($row->permissions as $permission) {
-				$blob .= "<header2>{$permission->permission_set} ($row->cmd)<end>\n";
+				$blob .= "<header2>{$permission->permission_set} ({$row->cmd})<end>\n";
 				$blob .= $row->file . "\n\n";
 			}
 		}
 
-		$msg = $this->text->makeBlob("Command Handlers for '$cmd'", $blob);
+		$msg = $this->text->makeBlob("Command Handlers for '{$cmd}'", $blob);
 
 		$context->reply($msg);
 	}
@@ -275,7 +274,7 @@ class DevController extends ModuleInstance {
 
 		for ($i = 0; $i < $numBlobs; $i++) {
 			$blob = $this->randString($length);
-			$msg = $this->text->makeBlob("Blob $i", $blob);
+			$msg = $this->text->makeBlob("Blob {$i}", $blob);
 			$context->reply($msg);
 		}
 	}

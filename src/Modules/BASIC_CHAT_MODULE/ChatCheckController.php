@@ -20,13 +20,12 @@ use Nadybot\Core\{
 	)
 ]
 class ChatCheckController extends ModuleInstance {
+	public const CHANNEL_TYPE = "priv";
 	#[NCA\Inject]
 	public DB $db;
 
 	#[NCA\Inject]
 	public Text $text;
-
-	public const CHANNEL_TYPE = "priv";
 
 	/**
 	 * Checks who in the private channel is in the area

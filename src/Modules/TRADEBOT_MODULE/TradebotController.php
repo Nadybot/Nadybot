@@ -7,16 +7,16 @@ use function Amp\Promise\rethrow;
 use Generator;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
-	Attributes as NCA,
 	AOChatEvent,
+	Attributes as NCA,
 	BuddylistManager,
 	CmdContext,
 	ColorSettingHandler,
 	ConfigFile,
 	DB,
-	ModuleInstance,
 	LoggerWrapper,
 	MessageHub,
+	ModuleInstance,
 	Nadybot,
 	ParamClass\PCharacter,
 	ParamClass\PColor,
@@ -45,6 +45,22 @@ use Nadybot\Modules\COMMENT_MODULE\CommentController;
 class TradebotController extends ModuleInstance {
 	public const NONE = 'None';
 	public const DB_TABLE = "tradebot_colors_<myname>";
+
+	/** @var array<string,array<string,mixed>> */
+	private const BOT_DATA = [
+		'Darknet' => [
+			'join' => ['!register'],
+			'leave' => ['!autoinvite off', '!unregister'],
+			'match' => '/^\[([a-z]+)\]/i',
+			'ignore' => ['/^Unread News/i'],
+		],
+		'Lightnet' => [
+			'join' => ['register', 'autoinvite on'],
+			'leave' => ['autoinvite off', 'unregister'],
+			'match' => '/^\[([a-z]+)\]/i',
+			'ignore' => [],
+		],
+	];
 
 	#[NCA\Inject]
 	public ConfigFile $config;
@@ -93,22 +109,6 @@ class TradebotController extends ModuleInstance {
 	#[NCA\Setting\Color]
 	public string $tradebotTextColor = "#89D2E8";
 
-	/** @var array<string,array<string,mixed>> */
-	private const BOT_DATA = [
-		'Darknet' => [
-			'join' => ['!register'],
-			'leave' => ['!autoinvite off', '!unregister'],
-			'match' => '/^\[([a-z]+)\]/i',
-			'ignore' => ['/^Unread News/i'],
-		],
-		'Lightnet' => [
-			'join' => ['register', 'autoinvite on'],
-			'leave' => ['autoinvite off', 'unregister'],
-			'match' => '/^\[([a-z]+)\]/i',
-			'ignore' => [],
-		]
-	];
-
 	#[NCA\Event(
 		name: "Connect",
 		description: "Add active tradebots to buddylist"
@@ -121,29 +121,11 @@ class TradebotController extends ModuleInstance {
 	}
 
 	/**
-	 * Convert the colon-separated list of botnames into a proper array
-	 * @param string $botNames Colon-separated list of botnames
-	 * @return string[]
-	 */
-	protected function normalizeBotNames(string $botNames): array {
-		return array_diff(
-			array_map(
-				'ucfirst',
-				explode(
-					';',
-					strtolower($botNames)
-				)
-			),
-			['', static::NONE]
-		);
-	}
-
-	/**
 	 * (un)subscribe from tradebot(s) when they get activated or deactivated
-	 * @param string $setting Name of the setting that gets changed
+	 *
+	 * @param string $setting  Name of the setting that gets changed
 	 * @param string $oldValue Old value of that setting
 	 * @param string $newValue New value of that setting
-	 * @return void
 	 */
 	#[NCA\SettingChangeHandler('tradebot')]
 	public function changeTradebot(string $setting, string $oldValue, string $newValue): void {
@@ -201,20 +183,11 @@ class TradebotController extends ModuleInstance {
 		}
 	}
 
-	/** Join the private channel of the tradebot $botName */
-	protected function joinPrivateChannel(string $botName): void {
-		$cmd = "!join";
-		$this->logger->logChat("Out. Msg.", $botName, $cmd);
-		$this->chatBot->send_tell($botName, $cmd);
-	}
-
-	/**
-	 * Check if the given name is one of the configured tradebots
-	 */
+	/** Check if the given name is one of the configured tradebots */
 	public function isTradebot(string $botName): bool {
 		$tradebotNames = $this->normalizeBotNames($this->tradebot);
 		foreach ($tradebotNames as $tradebotName) {
-			if (preg_match("/^\Q$tradebotName\E\d*$/", $botName)) {
+			if (preg_match("/^\Q{$tradebotName}\E\d*$/", $botName)) {
 				return true;
 			}
 		}
@@ -250,9 +223,7 @@ class TradebotController extends ModuleInstance {
 		throw new StopExecutionException();
 	}
 
-	/**
-	 * Relay incoming tell-messages of tradebots to org/priv chat, so we can see errors
-	 */
+	/** Relay incoming tell-messages of tradebots to org/priv chat, so we can see errors */
 	public function processIncomingTradebotMessage(string $sender, string $message): void {
 		$baseSender = preg_replace("/\d+$/", "", $sender);
 		$ignorePattern = self::BOT_DATA[$baseSender]['ignore'] ?? [];
@@ -262,7 +233,7 @@ class TradebotController extends ModuleInstance {
 				return;
 			}
 		}
-		$message = "Received message from Tradebot <highlight>$sender<end>: $message";
+		$message = "Received message from Tradebot <highlight>{$sender}<end>: {$message}";
 	}
 
 	/**
@@ -286,65 +257,6 @@ class TradebotController extends ModuleInstance {
 		$source = new Source(Source::TRADEBOT, $sender . "-{$matches[1]}");
 		$rMessage->prependPath($source);
 		$this->messageHub->handle($rMessage);
-	}
-
-	protected function colorizeMessage(string $tradeBot, string $message): string {
-		if (!preg_match("/^.*?\[(.+?)\](.+)$/s", $message, $matches)) {
-			return $message;
-		}
-		$tag = strip_tags($matches[1]);
-		/** @var string */
-		$text = preg_replace("/^(\s|<\/?font.*?>)*/s", "", $matches[2]);
-		$textColor = $this->tradebotTextColor;
-		$tagColor = $this->getTagColor($tradeBot, $tag);
-		$tagColor = isset($tagColor) ? "<font color='#{$tagColor->color}'>" : "";
-		return "{$tagColor}[{$tag}]<end> {$textColor}{$text}";
-	}
-
-	protected function getTagColor(string $tradeBot, string $tag): ?TradebotColors {
-		$query = $this->db->table(self::DB_TABLE)
-			->where("tradebot", $tradeBot);
-		/** @var Collection<TradebotColors> */
-		$colorDefs = $query->orderByDesc($query->colFunc("LENGTH", "channel"))
-			->asObj(TradebotColors::class);
-		foreach ($colorDefs as $colorDef) {
-			if (fnmatch($colorDef->channel, $tag, FNM_CASEFOLD)) {
-				return $colorDef;
-			}
-		}
-		return null;
-	}
-
-	protected function addCommentsToMessage(string $message): string {
-		if (!preg_match("/<a\s+href\s*=\s*['\"]?user:\/\/([A-Z][a-z0-9-]+)/i", $message, $match)) {
-			return $message;
-		}
-		$numComments = $this->commentController->countComments(null, $match[1]);
-		if ($numComments === 0) {
-			return $message;
-		}
-		$comText = ($numComments > 1) ? "$numComments Comments" : "1 Comment";
-		$blob = $this->text->makeChatcmd("Read {$comText}", "/tell <myname> comments get {$match[1]}").
-			" if you have the necessary access level.";
-		$message .= " [" . ((array)$this->text->makeBlob($comText, $blob))[0] . "]";
-		return $message;
-	}
-
-	/**
-	 * Check if the message is from a tradenet channel that we are subscribed to
-	 */
-	protected function isSubscribedTo(string $channel): bool {
-		$channelString = $this->tradebotChannels;
-		if ($channelString === static::NONE) {
-			return false;
-		}
-		$subbed = explode(",", $channelString);
-		foreach ($subbed as $subChannel) {
-			if (fnmatch($subChannel, $channel, FNM_CASEFOLD)) {
-				return true;
-			}
-		}
-		return false;
 	}
 
 	#[NCA\Event(
@@ -378,6 +290,7 @@ class TradebotController extends ModuleInstance {
 			$context->reply("No colors have been defined yet.");
 			return;
 		}
+
 		/** @var array<string,TradebotColors[]> */
 		$colorDefs = $colors->groupBy("tradebot")->toArray();
 		$blob = "";
@@ -491,5 +404,91 @@ class TradebotController extends ModuleInstance {
 			$blob
 		);
 		$context->reply($msg);
+	}
+
+	/**
+	 * Convert the colon-separated list of botnames into a proper array
+	 *
+	 * @param string $botNames Colon-separated list of botnames
+	 *
+	 * @return string[]
+	 */
+	protected function normalizeBotNames(string $botNames): array {
+		return array_diff(
+			array_map(
+				'ucfirst',
+				explode(
+					';',
+					strtolower($botNames)
+				)
+			),
+			['', static::NONE]
+		);
+	}
+
+	/** Join the private channel of the tradebot $botName */
+	protected function joinPrivateChannel(string $botName): void {
+		$cmd = "!join";
+		$this->logger->logChat("Out. Msg.", $botName, $cmd);
+		$this->chatBot->send_tell($botName, $cmd);
+	}
+
+	protected function colorizeMessage(string $tradeBot, string $message): string {
+		if (!preg_match("/^.*?\[(.+?)\](.+)$/s", $message, $matches)) {
+			return $message;
+		}
+		$tag = strip_tags($matches[1]);
+
+		/** @var string */
+		$text = preg_replace("/^(\s|<\/?font.*?>)*/s", "", $matches[2]);
+		$textColor = $this->tradebotTextColor;
+		$tagColor = $this->getTagColor($tradeBot, $tag);
+		$tagColor = isset($tagColor) ? "<font color='#{$tagColor->color}'>" : "";
+		return "{$tagColor}[{$tag}]<end> {$textColor}{$text}";
+	}
+
+	protected function getTagColor(string $tradeBot, string $tag): ?TradebotColors {
+		$query = $this->db->table(self::DB_TABLE)
+			->where("tradebot", $tradeBot);
+
+		/** @var Collection<TradebotColors> */
+		$colorDefs = $query->orderByDesc($query->colFunc("LENGTH", "channel"))
+			->asObj(TradebotColors::class);
+		foreach ($colorDefs as $colorDef) {
+			if (fnmatch($colorDef->channel, $tag, FNM_CASEFOLD)) {
+				return $colorDef;
+			}
+		}
+		return null;
+	}
+
+	protected function addCommentsToMessage(string $message): string {
+		if (!preg_match("/<a\s+href\s*=\s*['\"]?user:\/\/([A-Z][a-z0-9-]+)/i", $message, $match)) {
+			return $message;
+		}
+		$numComments = $this->commentController->countComments(null, $match[1]);
+		if ($numComments === 0) {
+			return $message;
+		}
+		$comText = ($numComments > 1) ? "{$numComments} Comments" : "1 Comment";
+		$blob = $this->text->makeChatcmd("Read {$comText}", "/tell <myname> comments get {$match[1]}").
+			" if you have the necessary access level.";
+		$message .= " [" . ((array)$this->text->makeBlob($comText, $blob))[0] . "]";
+		return $message;
+	}
+
+	/** Check if the message is from a tradenet channel that we are subscribed to */
+	protected function isSubscribedTo(string $channel): bool {
+		$channelString = $this->tradebotChannels;
+		if ($channelString === static::NONE) {
+			return false;
+		}
+		$subbed = explode(",", $channelString);
+		foreach ($subbed as $subChannel) {
+			if (fnmatch($subChannel, $channel, FNM_CASEFOLD)) {
+				return true;
+			}
+		}
+		return false;
 	}
 }

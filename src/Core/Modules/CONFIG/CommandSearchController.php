@@ -10,8 +10,8 @@ use Nadybot\Core\{
 	CmdContext,
 	CommandManager,
 	DB,
-	DBSchema\CommandSearchResult,
 	DBSchema\CmdPermission,
+	DBSchema\CommandSearchResult,
 	ModuleInstance,
 	Nadybot,
 	SQLException,
@@ -44,33 +44,6 @@ class CommandSearchController extends ModuleInstance {
 	#[NCA\Inject]
 	public CommandManager $commandManager;
 
-	/** @return Collection<CommandSearchResult> */
-	protected function getAllCmds(): Collection {
-		$permissions = $this->db->table(CommandManager::DB_TABLE_PERMS)
-			->asObj(CmdPermission::class)
-			->groupBy("cmd");
-		return $this->db->table(CommandManager::DB_TABLE)
-			->where("cmdevent", "cmd")
-			->asObj(CommandSearchResult::class)
-			->each(function (CommandSearchResult $cmd) use ($permissions): void {
-				$cmd->permissions = $permissions->get($cmd->cmd, new Collection())
-					->keyBy("permission_set")->toArray();
-			});
-	}
-
-	/**
-	 * @param Collection<CommandSearchResult> $commands
-	 * @return Collection<CommandSearchResult>
-	 */
-	protected function filterDisabled(Collection $commands): Collection {
-		return $commands->filter(function (CommandSearchResult $cmd): bool {
-			$cmd->permissions = array_filter($cmd->permissions, function (CmdPermission $perm): bool {
-				return $perm->enabled;
-			});
-			return count($cmd->permissions) > 0;
-		})->values();
-	}
-
 	/** Search for a command */
 	#[NCA\HandlesCommand("cmdsearch")]
 	public function searchCommand(CmdContext $context, string $search): void {
@@ -101,9 +74,11 @@ class CommandSearchController extends ModuleInstance {
 
 	/**
 	 * Remove all commands that we don't have access to
-	 * @param string $sender
+	 *
 	 * @param Collection<CommandSearchResult> $data
+	 *
 	 * @return Collection<CommandSearchResult>
+	 *
 	 * @throws SQLException
 	 * @throws Exception
 	 */
@@ -119,6 +94,7 @@ class CommandSearchController extends ModuleInstance {
 
 	/**
 	 * @param Collection<CommandSearchResult> $data
+	 *
 	 * @return Collection<CommandSearchResult>
 	 */
 	public function orderBySimilarity(Collection $data, string $search): Collection {
@@ -133,12 +109,13 @@ class CommandSearchController extends ModuleInstance {
 
 	/**
 	 * @param Collection<CommandSearchResult> $results
+	 *
 	 * @return string|string[]
 	 */
 	public function render(Collection $results, bool $hasAccess, bool $exactMatch): string|array {
 		$blob = '';
 		foreach ($results as $row) {
-			$helpLink = ' [' . $this->text->makeChatcmd("help", "/tell <myname> help $row->cmd") . ']';
+			$helpLink = ' [' . $this->text->makeChatcmd("help", "/tell <myname> help {$row->cmd}") . ']';
 			if ($hasAccess) {
 				$module = $this->text->makeChatcmd($row->module, "/tell <myname> config {$row->module}");
 			} else {
@@ -153,9 +130,9 @@ class CommandSearchController extends ModuleInstance {
 			return "No results found.";
 		}
 		if ($exactMatch) {
-			$msg = $this->text->makeBlob("Command Search Results ($count)", $blob);
+			$msg = $this->text->makeBlob("Command Search Results ({$count})", $blob);
 		} else {
-			$msg = $this->text->makeBlob("Possible Matches ($count)", $blob);
+			$msg = $this->text->makeBlob("Possible Matches ({$count})", $blob);
 		}
 		return $msg;
 	}
@@ -166,5 +143,33 @@ class CommandSearchController extends ModuleInstance {
 		$commands = $this->filterDisabled($commands);
 		$commands = $this->filterResultsByAccessLevel($sender, $commands);
 		return $this->orderBySimilarity($commands, $search);
+	}
+
+	/** @return Collection<CommandSearchResult> */
+	protected function getAllCmds(): Collection {
+		$permissions = $this->db->table(CommandManager::DB_TABLE_PERMS)
+			->asObj(CmdPermission::class)
+			->groupBy("cmd");
+		return $this->db->table(CommandManager::DB_TABLE)
+			->where("cmdevent", "cmd")
+			->asObj(CommandSearchResult::class)
+			->each(function (CommandSearchResult $cmd) use ($permissions): void {
+				$cmd->permissions = $permissions->get($cmd->cmd, new Collection())
+					->keyBy("permission_set")->toArray();
+			});
+	}
+
+	/**
+	 * @param Collection<CommandSearchResult> $commands
+	 *
+	 * @return Collection<CommandSearchResult>
+	 */
+	protected function filterDisabled(Collection $commands): Collection {
+		return $commands->filter(function (CommandSearchResult $cmd): bool {
+			$cmd->permissions = array_filter($cmd->permissions, function (CmdPermission $perm): bool {
+				return $perm->enabled;
+			});
+			return count($cmd->permissions) > 0;
+		})->values();
 	}
 }

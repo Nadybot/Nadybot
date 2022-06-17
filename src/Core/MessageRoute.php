@@ -64,6 +64,7 @@ class MessageRoute {
 
 	/**
 	 * Render the modifiers so we can display them
+	 *
 	 * @return string[]
 	 */
 	public function renderModifiers(bool $asLink=false): array {

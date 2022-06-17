@@ -13,8 +13,7 @@ use Nadybot\Core\{
 #[
 	NCA\EventModifier(
 		name: "remove-popups",
-		description:
-			"This modifier will remove all popups and only\n".
+		description: "This modifier will remove all popups and only\n".
 			"leave the link name."
 	),
 	NCA\Param(

@@ -2,8 +2,11 @@
 
 namespace Nadybot\Core\Modules\CONSOLE;
 
+use function Amp\asyncCall;
+use function Safe\{readline_add_history, readline_callback_handler_install, readline_read_history, readline_write_history};
 use Amp\Loop;
 use Exception;
+
 use Generator;
 use Nadybot\Core\{
 	Attributes as NCA,
@@ -12,20 +15,14 @@ use Nadybot\Core\{
 	CmdContext,
 	CommandManager,
 	ConfigFile,
-	ModuleInstance,
 	LoggerWrapper,
 	MessageHub,
+	ModuleInstance,
 	Nadybot,
 	Registry,
 	Routing\RoutableMessage,
 	Routing\Source,
 };
-
-use function Amp\asyncCall;
-use function Safe\readline_add_history;
-use function Safe\readline_callback_handler_install;
-use function Safe\readline_read_history;
-use function Safe\readline_write_history;
 
 #[NCA\Instance]
 class ConsoleController extends ModuleInstance {
@@ -50,8 +47,6 @@ class ConsoleController extends ModuleInstance {
 	/** Set background color */
 	#[NCA\Setting\Boolean] public bool $consoleBGColor = false;
 
-	private string $socketHandle;
-
 	/**
 	 * @var resource
 	 * @psalm-var resource|closed-resource
@@ -59,6 +54,8 @@ class ConsoleController extends ModuleInstance {
 	public $socket;
 
 	public bool $useReadline = false;
+
+	private string $socketHandle;
 
 	#[NCA\Setup]
 	public function setup(): void {
@@ -143,29 +140,27 @@ class ConsoleController extends ModuleInstance {
 			$this->logger->warning('readline not supported on this platform, using basic console');
 			$callback = [$this, "processStdin"];
 		} else {
-			$callback = function(): void {
+			$callback = function (): void {
 				readline_callback_read_char();
 			};
 		}
 		$this->loadHistory();
 		$this->socket = STDIN;
-		Loop::delay(1000, function() use ($callback): void {
+		Loop::delay(1000, function () use ($callback): void {
 			if (!is_resource($this->socket)) {
 				return;
 			}
 			$this->logger->notice("StdIn console activated, accepting commands");
 			$this->socketHandle = Loop::onReadable($this->socket, $callback);
 			if ($this->useReadline) {
-				readline_callback_handler_install('> ', fn(?string $line) => $this->processLine($line));
+				readline_callback_handler_install('> ', fn (?string $line) => $this->processLine($line));
 			} else {
 				echo("> ");
 			}
 		});
 	}
 
-	/**
-	 * Handle data arriving on stdin
-	 */
+	/** Handle data arriving on stdin */
 	public function processStdin(): void {
 		if (!is_resource($this->socket)) {
 			return;
@@ -186,7 +181,7 @@ class ConsoleController extends ModuleInstance {
 	private function processLine(?string $line): void {
 		if ($line === null || trim($line) === '') {
 			if ($this->useReadline) {
-				readline_callback_handler_install('> ', fn(?string $line) => $this->processLine($line));
+				readline_callback_handler_install('> ', fn (?string $line) => $this->processLine($line));
 			}
 			return;
 		}
@@ -195,7 +190,7 @@ class ConsoleController extends ModuleInstance {
 			Loop::defer(function (): void {
 				$this->saveHistory();
 			});
-			readline_callback_handler_install('> ', fn(?string $line) => $this->processLine($line));
+			readline_callback_handler_install('> ', fn (?string $line) => $this->processLine($line));
 		}
 
 		$context = new CmdContext($this->config->superAdmins[0]??"<no superadmin set>");

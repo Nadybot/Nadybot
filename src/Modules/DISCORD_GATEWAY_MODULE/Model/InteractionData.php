@@ -7,8 +7,10 @@ use Nadybot\Core\JSONDataModel;
 class InteractionData extends JSONDataModel {
 	/** Slash commands; a text-based command that shows up when a user types / */
 	public const TYPE_CHAT_INPUT = 1;
+
 	/** A UI-based command that shows up when you right click or tap on a user */
 	public const TYPE_USER = 2;
+
 	/** A UI-based command that shows up when you right click or tap on a message */
 	public const TYPE_MESSAGE = 3;
 
@@ -26,6 +28,7 @@ class InteractionData extends JSONDataModel {
 
 	/**
 	 * the params + values from the user
+	 *
 	 * @var \Nadybot\Modules\DISCORD_GATEWAY_MODULE\Model\InteractionDataOption[]
 	 */
 	public ?array $options = null;
@@ -41,6 +44,7 @@ class InteractionData extends JSONDataModel {
 
 	/**
 	 * the values the user selected
+	 *
 	 * @var SelectOptionValue[]
 	 */
 	public ?array $values = null;
@@ -50,6 +54,7 @@ class InteractionData extends JSONDataModel {
 
 	/**
 	 * the values submitted by the user
+	 *
 	 * @var object[]
 	 */
 	public ?array $components = null;

@@ -10,6 +10,7 @@ class WhompahCity extends DBRow {
 	public string $zone;
 	public string $faction;
 	public string $short_name;
+
 	/** @var int[] */
 	public array $connections = [];
 	public bool $visited = false;

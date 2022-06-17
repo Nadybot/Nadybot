@@ -60,6 +60,7 @@ class WhoisOrgController extends ModuleInstance {
 	#[NCA\HandlesCommand("whoisorg")]
 	public function whoisorgIdCommand(CmdContext $context, int $orgId, ?int $dimension): Generator {
 		$dimension ??= $this->config->dimension;
+
 		/** @var ?Guild */
 		$guild = yield $this->guildManager->byId($orgId, $dimension);
 		$msg = $this->getOrgInfo($guild);
@@ -72,6 +73,7 @@ class WhoisOrgController extends ModuleInstance {
 	public function whoisorgCommand(CmdContext $context, PCharacter $char, ?int $dimension): Generator {
 		$dimension ??= $this->config->dimension;
 		$name = $char();
+
 		/** @var ?Player */
 		$whois = yield $this->playerManager->byName($name, $dimension);
 		if ($whois === null) {
@@ -83,6 +85,7 @@ class WhoisOrgController extends ModuleInstance {
 			$context->reply($msg);
 			return null;
 		}
+
 		/** @var ?Guild */
 		$guild = yield $this->guildManager->byId($whois->guild_id, $dimension);
 		$msg = $this->getOrgInfo($guild);
@@ -143,7 +146,7 @@ class WhoisOrgController extends ModuleInstance {
 		}
 
 		ksort($countProfs);
-		$link .= "<header2>Members ($numMembers)<end>\n";
+		$link .= "<header2>Members ({$numMembers})<end>\n";
 		foreach ($countProfs as $prof => $profMembers) {
 			$profIcon = "<img src=tdb://id:GFX_GUI_ICON_PROFESSION_".($this->onlineController->getProfessionId($prof)??0).">";
 			$link .= "<tab>".
@@ -151,11 +154,11 @@ class WhoisOrgController extends ModuleInstance {
 				"  (".
 				$this->text->alignNumber(
 					(int)round(($profMembers*100)/$numMembers, 1),
-					(count($countProfs) > 1 ) ? 2 : 3
+					(count($countProfs) > 1) ? 2 : 3
 				).
-				"%)  $profIcon $prof\n";
+				"%)  {$profIcon} {$prof}\n";
 		}
-		$msg = $this->text->makeBlob("Org Info for $org->orgname", $link);
+		$msg = $this->text->makeBlob("Org Info for {$org->orgname}", $link);
 
 		return $msg;
 	}

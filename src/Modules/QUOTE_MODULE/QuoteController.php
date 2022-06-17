@@ -3,8 +3,8 @@
 namespace Nadybot\Modules\QUOTE_MODULE;
 
 use Nadybot\Core\{
-	Attributes as NCA,
 	AccessManager,
+	Attributes as NCA,
 	CmdContext,
 	ConfigFile,
 	DB,
@@ -99,7 +99,7 @@ class QuoteController extends ModuleInstance {
 		}
 		$poster = $row->poster;
 
-		//only author or admin can delete.
+		// only author or admin can delete.
 		if (($poster === $context->char->name)
 			|| $this->accessManager->checkAccess($context->char->name, 'moderator')
 		) {
@@ -128,11 +128,11 @@ class QuoteController extends ModuleInstance {
 			->map(function (Quote $quote): string {
 				return $this->text->makeChatcmd(
 					(string)$quote->id,
-					"/tell <myname> quote $quote->id"
+					"/tell <myname> quote {$quote->id}"
 				);
 			})->toArray();
 		if (count($idList)) {
-			$msg  = "<header2>Quotes posted by \"$search\"<end>\n";
+			$msg  = "<header2>Quotes posted by \"{$search}\"<end>\n";
 			$msg .= "<tab>" . join(", ", $idList) . "\n\n";
 		}
 
@@ -143,16 +143,16 @@ class QuoteController extends ModuleInstance {
 			->map(function (Quote $quote): string {
 				return $this->text->makeChatcmd(
 					(string)$quote->id,
-					"/tell <myname> quote $quote->id"
+					"/tell <myname> quote {$quote->id}"
 				);
 			})->toArray();
 		if (count($idList)) {
-			$msg .= "<header2>Quotes that contain \"$search\"<end>\n";
+			$msg .= "<header2>Quotes that contain \"{$search}\"<end>\n";
 			$msg .= "<tab>" . join(", ", $idList);
 		}
 
 		if ($msg) {
-			$msg = $this->text->makeBlob("Results for: '$search'", $msg);
+			$msg = $this->text->makeBlob("Results for: '{$search}'", $msg);
 		} else {
 			$msg = "Could not find any matches for this search.";
 		}
@@ -204,7 +204,7 @@ class QuoteController extends ModuleInstance {
 	}
 
 	/** @return null|string[] */
-	public function getQuoteInfo(int $id=null): ?array {
+	public function getQuoteInfo(?int $id=null): ?array {
 		$count = $this->getMaxId();
 
 		if ($count === 0) {
@@ -221,6 +221,7 @@ class QuoteController extends ModuleInstance {
 				->where("id", $id)
 				->asObj(Quote::class)->first();
 		}
+
 		/** @var ?Quote $row */
 		if ($row === null) {
 			return null;
@@ -229,10 +230,10 @@ class QuoteController extends ModuleInstance {
 		$poster = $row->poster;
 		$quoteMsg = $row->msg;
 
-		$msg = "ID: <highlight>$row->id<end> of $count\n";
-		$msg .= "Poster: <highlight>$poster<end>\n";
+		$msg = "ID: <highlight>{$row->id}<end> of {$count}\n";
+		$msg .= "Poster: <highlight>{$poster}<end>\n";
 		$msg .= "Date: <highlight>" . $this->util->date($row->dt) . "<end>\n";
-		$msg .= "Quote: <highlight>$quoteMsg<end>\n";
+		$msg .= "Quote: <highlight>{$quoteMsg}<end>\n";
 		$msg .= "Action:";
 		if (!empty($this->config->orgName)) {
 			$msg .= " [".
@@ -266,8 +267,7 @@ class QuoteController extends ModuleInstance {
 		NCA\NewsTile(
 			name: "quote",
 			description: "Displays a random quote from your quote database",
-			example:
-				"» [Team] This is a random quote from Player 1\n".
+			example: "» [Team] This is a random quote from Player 1\n".
 				"» [Team] And a witty response from Player 2"
 		)
 	]

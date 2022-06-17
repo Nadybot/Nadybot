@@ -8,17 +8,22 @@ class InteractionDataOption extends JSONDataModel {
 	public const TYPE_SUB_COMMAND = 1;
 	public const TYPE_SUB_COMMAND_GROUP = 2;
 	public const TYPE_STRING = 3;
+
 	/** Any integer between -2^53 and 2^53 */
 	public const TYPE_INTEGER = 4;
 	public const TYPE_BOOLEAN = 5;
 	public const TYPE_USER = 6;
+
 	/** Includes all channel types + categories */
 	public const TYPE_CHANNEL = 7;
 	public const TYPE_ROLE = 8;
+
 	/** Includes users and roles */
 	public const TYPE_MENTIONABLE = 9;
+
 	/** Any double between -2^53 and 2^53 */
 	public const TYPE_NUMBER = 10;
+
 	/** attachment object */
 	public const TYPE_ATTACHMENT = 11;
 
@@ -33,6 +38,7 @@ class InteractionDataOption extends JSONDataModel {
 
 	/**
 	 * Present if this option is a group or subcommand
+	 *
 	 * @var \Nadybot\Modules\DISCORD_GATEWAY_MODULE\Model\InteractionDataOption[]
 	 */
 	public ?array $options = null;

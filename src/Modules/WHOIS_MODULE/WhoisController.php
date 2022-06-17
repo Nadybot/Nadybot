@@ -13,10 +13,10 @@ use Nadybot\Core\{
 	BuddylistManager,
 	CmdContext,
 	ConfigFile,
-	Event,
 	DB,
 	DBSchema\Audit,
 	DBSchema\Player,
+	Event,
 	LoggerWrapper,
 	ModuleInstance,
 	Modules\ALTS\AltsController,
@@ -166,6 +166,7 @@ class WhoisController extends ModuleInstance {
 		if (isset($name)) {
 			$this->saveCharIds(new Event());
 		}
+
 		/** @var NameHistory[] */
 		$players = $this->db->table("name_history")
 		->where("charid", $charID)
@@ -183,10 +184,10 @@ class WhoisController extends ModuleInstance {
 			return;
 		}
 		foreach ($players as $player) {
-			$link = $this->text->makeChatcmd($player->name, "/tell <myname> lookup $player->name");
-			$blob .= "<tab>$link " . $this->util->date($player->dt) . "\n";
+			$link = $this->text->makeChatcmd($player->name, "/tell <myname> lookup {$player->name}");
+			$blob .= "<tab>{$link} " . $this->util->date($player->dt) . "\n";
 		}
-		$msg = $this->text->makeBlob("Name History for $charID ($count)", $blob);
+		$msg = $this->text->makeBlob("Name History for {$charID} ({$count})", $blob);
 
 		$context->reply($msg);
 	}
@@ -207,15 +208,15 @@ class WhoisController extends ModuleInstance {
 
 		$blob = "<header2>Known IDs of {$name}<end>\n";
 		if ($count === 0) {
-			$msg = "No history available for character <highlight>$name<end>.";
+			$msg = "No history available for character <highlight>{$name}<end>.";
 			$context->reply($msg);
 			return;
 		}
 		foreach ($players as $player) {
-			$link = $this->text->makeChatcmd((string)$player->charid, "/tell <myname> lookup $player->charid");
-			$blob .= "<tab>$link " . $this->util->date($player->dt) . "\n";
+			$link = $this->text->makeChatcmd((string)$player->charid, "/tell <myname> lookup {$player->charid}");
+			$blob .= "<tab>{$link} " . $this->util->date($player->dt) . "\n";
 		}
-		$msg = $this->text->makeBlob("Character Ids for $name ($count)", $blob);
+		$msg = $this->text->makeBlob("Character Ids for {$name} ({$count})", $blob);
 
 		$context->reply($msg);
 	}
@@ -263,10 +264,27 @@ class WhoisController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
+	public function getFullName(Player $whois): string {
+		$msg = "";
+
+		if (isset($whois->firstname)) {
+			$msg .= $whois->firstname . " ";
+		}
+
+		$msg .= "\"{$whois->name}\"";
+
+		if (isset($whois->lastname)) {
+			$msg .= " " . $whois->lastname;
+		}
+
+		return $msg;
+	}
+
 	/**
 	 * Determine the breakpoints where the audits indicate a new member was added/removed
 	 *
 	 * @param Collection<Audit> $audits
+	 *
 	 * @return Collection<Audit>
 	 */
 	private function getAuditBreakpoints(Collection $audits): Collection {
@@ -275,6 +293,7 @@ class WhoisController extends ModuleInstance {
 			return (string)$audit->time->getTimestamp();
 		});
 		$rank = [];
+
 		/** @var Collection<Audit> */
 		$result = new Collection();
 		foreach ($auditGroups as $time => $audits) {
@@ -308,9 +327,9 @@ class WhoisController extends ModuleInstance {
 		return call(function () use ($whois, $name, $online): Generator {
 			/** @var ?int */
 			$charID = yield $this->chatBot->getUid2($name);
-			$lookupNameLink = $this->text->makeChatcmd("lookup", "/tell <myname> lookup $name");
+			$lookupNameLink = $this->text->makeChatcmd("lookup", "/tell <myname> lookup {$name}");
 			if ($charID !== null) {
-				$lookupCharIdLink = $this->text->makeChatcmd("lookup", "/tell <myname> lookup $charID");
+				$lookupCharIdLink = $this->text->makeChatcmd("lookup", "/tell <myname> lookup {$charID}");
 			}
 
 			if ($whois === null) {
@@ -323,15 +342,15 @@ class WhoisController extends ModuleInstance {
 					$blob .= $this->getNameHistory($charID, $this->config->dimension);
 				}
 
-				$msg = $this->text->makeBlob("Basic Info for $name", $blob);
+				$msg = $this->text->makeBlob("Basic Info for {$name}", $blob);
 				return $msg;
 			}
 
 			$blob = "Name: <highlight>" . $this->getFullName($whois) . "<end> [{$lookupNameLink}]\n";
 			if (isset($whois->guild) && $whois->guild !== "") {
-				$orglistLink = $this->text->makeChatcmd("see members", "/tell <myname> orglist $whois->guild_id");
-				$orginfoLink = $this->text->makeChatcmd("info", "/tell <myname> whoisorg $whois->guild_id");
-				$blob .= "Org: <highlight>{$whois->guild}<end> (<highlight>{$whois->guild_id}<end>) [$orginfoLink] [$orglistLink]\n";
+				$orglistLink = $this->text->makeChatcmd("see members", "/tell <myname> orglist {$whois->guild_id}");
+				$orginfoLink = $this->text->makeChatcmd("info", "/tell <myname> whoisorg {$whois->guild_id}");
+				$blob .= "Org: <highlight>{$whois->guild}<end> (<highlight>{$whois->guild_id}<end>) [{$orginfoLink}] [{$orglistLink}]\n";
 				$blob .= "Org Rank: <highlight>{$whois->guild_rank}<end> (<highlight>{$whois->guild_rank_id}<end>)\n";
 			}
 			$blob .= "Breed: <highlight>{$whois->breed}<end>\n";
@@ -367,7 +386,7 @@ class WhoisController extends ModuleInstance {
 					->where("actee", $name)
 					->whereIn("action", [
 						AccessManager::ADD_RANK,
-						AccessManager::DEL_RANK
+						AccessManager::DEL_RANK,
 					])
 					->orderBy("time")
 					->orderBy("id")
@@ -377,7 +396,8 @@ class WhoisController extends ModuleInstance {
 					/** @var Audit */
 					$lastAction = $breakPoints->last();
 					$blob .= "\n".
-						(($lastAction->action === AccessManager::ADD_RANK)
+						(
+							($lastAction->action === AccessManager::ADD_RANK)
 							? "Added to bot"
 							: "Removed from bot"
 						) . ": <highlight>" . $this->util->date($lastAction->time->getTimestamp()).
@@ -397,7 +417,7 @@ class WhoisController extends ModuleInstance {
 			if ($this->whoisAddComments) {
 				$numComments = $this->commentController->countComments(null, $whois->name);
 				if ($numComments) {
-					$comText = ($numComments > 1) ? "$numComments Comments" : "1 Comment";
+					$comText = ($numComments > 1) ? "{$numComments} Comments" : "1 Comment";
 					$blob = $this->text->makeChatcmd("Read {$comText}", "/tell <myname> comments get {$whois->name}").
 						" if you have the necessary access level.";
 					$msg .= " :: " . ((array)$this->text->makeBlob($comText, $blob))[0];
@@ -411,21 +431,5 @@ class WhoisController extends ModuleInstance {
 			$altsBlob = yield $altInfo->getAltsBlob(true);
 			return "{$msg} :: " . ((array)$altsBlob)[0];
 		});
-	}
-
-	public function getFullName(Player $whois): string {
-		$msg = "";
-
-		if (isset($whois->firstname)) {
-			$msg .= $whois->firstname . " ";
-		}
-
-		$msg .= "\"{$whois->name}\"";
-
-		if (isset($whois->lastname)) {
-			$msg .= " " . $whois->lastname;
-		}
-
-		return $msg;
 	}
 }

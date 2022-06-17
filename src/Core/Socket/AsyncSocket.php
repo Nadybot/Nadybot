@@ -28,12 +28,6 @@ class AsyncSocket {
 	public const STATE_CLOSING = 2;
 	public const STATE_CLOSED = 3;
 
-	/**
-	 * @var ?resource
-	 * @psalm-var null|resource|closed-resource
-	 */
-	protected $socket = null;
-
 	#[NCA\Inject]
 	public SocketManager $socketManager;
 
@@ -42,6 +36,12 @@ class AsyncSocket {
 
 	#[NCA\Logger("Core/AsyncSocket")]
 	public LoggerWrapper $logger;
+
+	/**
+	 * @var ?resource
+	 * @psalm-var null|resource|closed-resource
+	 */
+	protected $socket = null;
 
 	/** @var array<WriteClosureInterface|ShutdownRequest|string> */
 	protected array $writeQueue = [];
@@ -62,9 +62,7 @@ class AsyncSocket {
 	protected int $timeout = 5;
 	protected int $state = self::STATE_READY;
 
-	/**
-	 * @param resource $socket
-	 */
+	/** @param resource $socket */
 	public function __construct($socket) {
 		try {
 			$this->socket = $socket;
@@ -74,8 +72,15 @@ class AsyncSocket {
 		}
 	}
 
+	public function __destruct() {
+		if (isset($this->logger)) {
+			$this->logger->info(get_class() . ' destroyed');
+		}
+	}
+
 	/**
 	 * Get the low level socket
+	 *
 	 * @return null|resource
 	 * @psalm-return null|resource|closed-resource
 	 */
@@ -104,9 +109,70 @@ class AsyncSocket {
 		return $this->timeout;
 	}
 
-	/**
-	 * Reset the timeout, because there was stream activity
-	 */
+	/** Subscribe to the event $event, resulting into $callback being called on trigger */
+	public function on(string $event, callable $callback): self {
+		if (isset($this->callbacks[$event])) {
+			$this->callbacks[$event] []= $callback;
+		}
+		if ($event === self::DATA) {
+			$mayListenToReads = !count($this->writeQueue) || !($this->writeQueue[0] instanceof WriteClosureInterface) || $this->writeQueue[0]->allowReading();
+			if ($mayListenToReads) {
+				$this->subscribeSocketEvent(SocketNotifier::ACTIVITY_READ);
+			}
+		}
+		return $this;
+	}
+
+	public function destroy(): void {
+		$this->logger->debug('Destroying ' . get_class());
+		$this->callbacks = [];
+		$this->socket = null;
+		if (isset($this->notifier)) {
+			$this->socketManager->removeSocketNotifier($this->notifier);
+			unset($this->notifier);
+		}
+		unset($this->socketManager);
+		if (isset($this->timeoutHandler)) {
+			Loop::cancel($this->timeoutHandler);
+			unset($this->timeoutHandler);
+		}
+		unset($this->timer);
+		// unset($this->logger);
+		$this->writeQueue = [];
+	}
+
+	/** Async send data via the socket */
+	public function write(string $data): bool {
+		$this->writeQueue []= $data;
+		$this->subscribeSocketEvent(SocketNotifier::ACTIVITY_WRITE);
+		return true;
+	}
+
+	/** Async close the socket gracefully */
+	public function close(): bool {
+		if ($this->state === self::STATE_CLOSED) {
+			return true;
+		}
+		if ($this->state === self::STATE_CLOSING) {
+			$this->forceClose();
+			return true;
+		}
+		$this->writeQueue []= new ShutdownRequest();
+		$this->subscribeSocketEvent(SocketNotifier::ACTIVITY_WRITE);
+		return true;
+	}
+
+	/** Async send data via the socket by calling a closure to do the job (i.e. SSL encryption) */
+	public function writeClosureInterface(WriteClosureInterface $callback): bool {
+		$this->writeQueue []= $callback;
+		$this->subscribeSocketEvent(SocketNotifier::ACTIVITY_WRITE);
+		if (!$callback->allowReading()) {
+			$this->unsubscribeSocketEvent(SocketNotifier::ACTIVITY_READ);
+		}
+		return true;
+	}
+
+	/** Reset the timeout, because there was stream activity */
 	protected function refreshTimeout(): void {
 		if ($this->timeout <=0) {
 			return;
@@ -116,7 +182,7 @@ class AsyncSocket {
 		}
 		$this->timeoutHandler = Loop::delay(
 			$this->timeout * 1000,
-			function() {
+			function () {
 				unset($this->timeoutHandler);
 				$this->streamTimeout();
 			}
@@ -142,7 +208,8 @@ class AsyncSocket {
 
 	/**
 	 * Callback for the SocketManager where we handle low-level socket events
-	 * @throws Exception on OOB data
+	 *
+	 * @throws Exception                on OOB data
 	 * @throws InvalidArgumentException on unknown socket activity
 	 */
 	protected function socketCallback(int $type): void {
@@ -170,7 +237,7 @@ class AsyncSocket {
 			$this->logger->debug('Socket ready for WRITE');
 			$this->processQueue();
 		} else {
-			throw new InvalidArgumentException("Unknown socket activity $type");
+			throw new InvalidArgumentException("Unknown socket activity {$type}");
 		}
 	}
 
@@ -181,32 +248,14 @@ class AsyncSocket {
 		$this->notifier = new SocketNotifier(
 			$this->socket,
 			SocketNotifier::ACTIVITY_READ,
-			function(int $action): void {
+			function (int $action): void {
 				$this->socketCallback($action);
 			}
 		);
 		$this->socketManager->addSocketNotifier($this->notifier);
 	}
 
-	/**
-	 * Subscribe to the event $event, resulting into $callback being called on trigger
-	 */
-	public function on(string $event, callable $callback): self {
-		if (isset($this->callbacks[$event])) {
-			$this->callbacks[$event] []= $callback;
-		}
-		if ($event === self::DATA) {
-			$mayListenToReads = !count($this->writeQueue) || !($this->writeQueue[0] instanceof WriteClosureInterface) || $this->writeQueue[0]->allowReading();
-			if ($mayListenToReads) {
-				$this->subscribeSocketEvent(SocketNotifier::ACTIVITY_READ);
-			}
-		}
-		return $this;
-	}
-
-	/**
-	 * Trigger an event and call all registered callbacks
-	 */
+	/** Trigger an event and call all registered callbacks */
 	protected function trigger(string $event, mixed ...$params): void {
 		foreach ($this->callbacks[$event] as $callback) {
 			$callback($this, ...$params);
@@ -214,33 +263,6 @@ class AsyncSocket {
 		if ($event === self::CLOSE) {
 			$this->destroy();
 		}
-	}
-
-	public function destroy(): void {
-		$this->logger->debug('Destroying ' . get_class());
-		$this->callbacks = [];
-		$this->socket = null;
-		if (isset($this->notifier)) {
-			$this->socketManager->removeSocketNotifier($this->notifier);
-			unset($this->notifier);
-		}
-		unset($this->socketManager);
-		if (isset($this->timeoutHandler)) {
-			Loop::cancel($this->timeoutHandler);
-			unset($this->timeoutHandler);
-		}
-		unset($this->timer);
-		// unset($this->logger);
-		$this->writeQueue = [];
-	}
-
-	/**
-	 * Async send data via the socket
-	 */
-	public function write(string $data): bool {
-		$this->writeQueue []= $data;
-		$this->subscribeSocketEvent(SocketNotifier::ACTIVITY_WRITE);
-		return true;
 	}
 
 	protected function forceClose(): void {
@@ -255,37 +277,7 @@ class AsyncSocket {
 		$this->trigger(static::CLOSE);
 	}
 
-	/**
-	 * Async close the socket gracefully
-	 */
-	public function close(): bool {
-		if ($this->state === self::STATE_CLOSED) {
-			return true;
-		}
-		if ($this->state === self::STATE_CLOSING) {
-			$this->forceClose();
-			return true;
-		}
-		$this->writeQueue []= new ShutdownRequest();
-		$this->subscribeSocketEvent(SocketNotifier::ACTIVITY_WRITE);
-		return true;
-	}
-
-	/**
-	 * Async send data via the socket by calling a closure to do the job (i.e. SSL encryption)
-	 */
-	public function writeClosureInterface(WriteClosureInterface $callback): bool {
-		$this->writeQueue []= $callback;
-		$this->subscribeSocketEvent(SocketNotifier::ACTIVITY_WRITE);
-		if (!$callback->allowReading()) {
-			$this->unsubscribeSocketEvent(SocketNotifier::ACTIVITY_READ);
-		}
-		return true;
-	}
-
-	/**
-	 * Subscribe to an event of the low level socket event queue
-	 */
+	/** Subscribe to an event of the low level socket event queue */
 	protected function subscribeSocketEvent(int $type): void {
 		$this->initNotifier();
 		if (($this->notifier->getType() & $type) === $type) {
@@ -305,9 +297,7 @@ class AsyncSocket {
 		$this->socketManager->addSocketNotifier($this->notifier);
 	}
 
-	/**
-	 * Unsubscribe from an event of the low level socket event queue
-	 */
+	/** Unsubscribe from an event of the low level socket event queue */
 	protected function unsubscribeSocketEvent(int $type): void {
 		$this->initNotifier();
 		if (!isset($this->socketManager) || !isset($this->notifier) || (($this->notifier->getType() & $type) === 0)) {
@@ -328,9 +318,7 @@ class AsyncSocket {
 		$this->socketManager->addSocketNotifier($this->notifier);
 	}
 
-	/**
-	 * Send out data from our queue (if any)
-	 */
+	/** Send out data from our queue (if any) */
 	protected function processQueue(): void {
 		if (empty($this->writeQueue)) {
 			$this->logger->info('writeQueue empty');
@@ -365,9 +353,7 @@ class AsyncSocket {
 		}
 	}
 
-	/**
-	 * Have some callback utilize the socket until it returns true or false
-	 */
+	/** Have some callback utilize the socket until it returns true or false */
 	protected function writeClosure(WriteClosureInterface $callback): bool {
 		$result = $callback->exec($this);
 		if ($result === true) {
@@ -393,6 +379,7 @@ class AsyncSocket {
 
 	/**
 	 * Low level write $data to the socket and take care of retries
+	 *
 	 * @throws Exception on wrong parameters
 	 */
 	protected function writeData(string $data): bool {
@@ -405,7 +392,7 @@ class AsyncSocket {
 				'Writing "'.
 				preg_replace_callback(
 					"/[^\32-\126]/",
-					function(array $match): string {
+					function (array $match): string {
 						if ($match[0] === "\r") {
 							return "\\r";
 						}
@@ -444,11 +431,5 @@ class AsyncSocket {
 		$this->refreshTimeout();
 		$this->writeTries = 0;
 		return true;
-	}
-
-	public function __destruct() {
-		if (isset($this->logger)) {
-			$this->logger->info(get_class() . ' destroyed');
-		}
 	}
 }

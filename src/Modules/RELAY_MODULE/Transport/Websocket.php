@@ -3,10 +3,10 @@
 namespace Nadybot\Modules\RELAY_MODULE\Transport;
 
 use function Amp\{
+	Promise\rethrow,
 	asyncCall,
 	call,
 	delay,
-	Promise\rethrow,
 };
 
 use Amp\Http\Client\{
@@ -19,20 +19,19 @@ use Amp\Http\Client\{
 	Interceptor\SetRequestHeaderIfUnset,
 	TimeoutException,
 };
-use Amp\{
-	Loop,
-	Promise,
-	Socket\ConnectContext,
-};
 use Amp\Websocket\{
 	Client\Connection,
 	Client\Handshake,
 	Client\Rfc6455Connector,
 	Message,
 };
+use Amp\{
+	Loop,
+	Promise,
+	Socket\ConnectContext,
+};
 use Exception;
 use Generator;
-use Throwable;
 use Nadybot\Core\{
 	Attributes as NCA,
 	BotRunner,
@@ -45,12 +44,12 @@ use Nadybot\Modules\RELAY_MODULE\{
 	RelayStatus,
 	StatusProvider,
 };
+use Throwable;
 
 #[
 	NCA\RelayTransport(
 		name: "websocket",
-		description:
-			"You can use websockets as a relay transport.\n".
+		description: "You can use websockets as a relay transport.\n".
 			"Websockets provide near-realtime communication, but since they\n".
 			"are not part of Anarchy Online, if they are down, you might have\n".
 			"a hard time debugging this.\n".
@@ -171,12 +170,12 @@ class Websocket implements TransportInterface, StatusProvider {
 							$reconnect = true;
 						} else {
 							unset($this->client);
-							$this->retryHandler = Loop::delay(10000, fn() => $this->relay->init());
+							$this->retryHandler = Loop::delay(10000, fn () => $this->relay->init());
 							return;
 						}
 					} else {
 						unset($this->client);
-						$this->retryHandler = Loop::delay(10000, fn() => $this->relay->init());
+						$this->retryHandler = Loop::delay(10000, fn () => $this->relay->init());
 						return;
 					}
 				}
@@ -198,39 +197,6 @@ class Websocket implements TransportInterface, StatusProvider {
 		return [];
 	}
 
-	/** @return Promise<void> */
-	private function mainLoop(): Promise {
-		return call(function (): Generator {
-			try {
-				while ($message = yield $this->client->receive()) {
-					/** @var Message $message */
-					$data = yield $message->buffer();
-					/** @var string $data */
-					$msg = new RelayMessage();
-					$msg->packages = [$data];
-					$this->relay->receiveFromTransport($msg);
-				}
-			} catch (Throwable $e) {
-				$this->logger->error("[{uri}] {error}, retrying in 10s", [
-					"uri" => $this->uri,
-					"error" => $e->getMessage(),
-					"exception" => $e,
-				]);
-				$this->status = new RelayStatus(RelayStatus::INIT, $e->getMessage());
-				unset($this->client);
-				$this->retryHandler = Loop::delay(10000, fn() => $this->relay->init());
-				return;
-			}
-			try {
-				yield $this->client->close();
-			} catch (Throwable) {
-			}
-			unset($this->client);
-			$this->logger->notice("Reconnecting to Websocket {$this->uri}.");
-			$this->retryHandler = Loop::defer(fn() => $this->relay->init());
-		});
-	}
-
 	public function deinit(callable $callback): array {
 		$this->deinitializing = true;
 		if (isset($this->retryHandler)) {
@@ -249,5 +215,39 @@ class Websocket implements TransportInterface, StatusProvider {
 			$callback();
 		});
 		return [];
+	}
+
+	/** @return Promise<void> */
+	private function mainLoop(): Promise {
+		return call(function (): Generator {
+			try {
+				while ($message = yield $this->client->receive()) {
+					/** @var Message $message */
+					$data = yield $message->buffer();
+
+					/** @var string $data */
+					$msg = new RelayMessage();
+					$msg->packages = [$data];
+					$this->relay->receiveFromTransport($msg);
+				}
+			} catch (Throwable $e) {
+				$this->logger->error("[{uri}] {error}, retrying in 10s", [
+					"uri" => $this->uri,
+					"error" => $e->getMessage(),
+					"exception" => $e,
+				]);
+				$this->status = new RelayStatus(RelayStatus::INIT, $e->getMessage());
+				unset($this->client);
+				$this->retryHandler = Loop::delay(10000, fn () => $this->relay->init());
+				return;
+			}
+			try {
+				yield $this->client->close();
+			} catch (Throwable) {
+			}
+			unset($this->client);
+			$this->logger->notice("Reconnecting to Websocket {$this->uri}.");
+			$this->retryHandler = Loop::defer(fn () => $this->relay->init());
+		});
 	}
 }

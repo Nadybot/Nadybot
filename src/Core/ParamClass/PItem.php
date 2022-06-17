@@ -5,12 +5,12 @@ namespace Nadybot\Core\ParamClass;
 use InvalidArgumentException;
 
 class PItem extends Base {
-	protected static string $regExp = "(?:<|&lt;)a href=(?:&#39;|'|\x22)itemref://\d+/\d+/\d+(?:&#39;|'|\x22)(?:>|&gt;).+?(<|&lt;)/a(>|&gt;)";
-	protected string $value;
 	public int $lowID;
 	public int $highID;
 	public int $ql;
 	public string $name;
+	protected static string $regExp = "(?:<|&lt;)a href=(?:&#39;|'|\x22)itemref://\d+/\d+/\d+(?:&#39;|'|\x22)(?:>|&gt;).+?(<|&lt;)/a(>|&gt;)";
+	protected string $value;
 
 	public function __construct(string $value) {
 		$this->value = htmlspecialchars_decode($value);

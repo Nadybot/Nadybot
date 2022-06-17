@@ -7,9 +7,7 @@ interface QueueInterface {
 	public const PRIORITY_MED =   500;
 	public const PRIORITY_LOW =   100;
 
-	/**
-	 * Add a packet to the queue
-	 */
+	/** Add a packet to the queue */
 	public function push(int $priority, AOChatPacket $item): void;
 
 	/**
@@ -28,13 +26,9 @@ interface QueueInterface {
 
 	public function disable(): void;
 
-	/**
-	 * Clear all items from the queue and return the number of removed items
-	 */
+	/** Clear all items from the queue and return the number of removed items */
 	public function clear(): int;
 
-	/**
-	 * Returns the number of items currently in the queue
-	 */
+	/** Returns the number of items currently in the queue */
 	public function getSize(): int;
 }

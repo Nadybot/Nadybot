@@ -18,13 +18,6 @@ class MigrateWaveToRoute implements SchemaMigration {
 	#[NCA\Inject]
 	public CityWaveController $cityWaveController;
 
-	protected function getSetting(DB $db, string $name): ?Setting {
-		return $db->table(SettingManager::DB_TABLE)
-			->where("name", $name)
-			->asObj(Setting::class)
-			->first();
-	}
-
 	public function migrate(LoggerWrapper $logger, DB $db): void {
 		$channel = $this->getSetting($db, "city_wave_announce");
 		if (!isset($channel)) {
@@ -47,5 +40,12 @@ class MigrateWaveToRoute implements SchemaMigration {
 			];
 			$db->table(MessageHub::DB_TABLE_ROUTES)->insert($route);
 		}
+	}
+
+	protected function getSetting(DB $db, string $name): ?Setting {
+		return $db->table(SettingManager::DB_TABLE)
+			->where("name", $name)
+			->asObj(Setting::class)
+			->first();
 	}
 }

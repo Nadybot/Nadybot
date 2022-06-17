@@ -14,6 +14,7 @@ use Nadybot\Core\{
 
 /**
  * This class accepts incoming messages and sends them out as mass messages
+ *
  * @package Nadybot\Modules\MASSMSG_MODULE
  */
 class MassMsgReceiver implements MessageReceiver {
@@ -48,9 +49,9 @@ class MassMsgReceiver implements MessageReceiver {
 			" :: " . $ctrl->getMassMsgOptInOutBlob();
 
 		$ctrl->massCallback([
-			MassMsgController::PREF_MSGS => function(string $name) use ($message): void {
+			MassMsgController::PREF_MSGS => function (string $name) use ($message): void {
 				$this->chatBot->sendMassTell($message, $name);
-			}
+			},
 		]);
 		return true;
 	}

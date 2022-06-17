@@ -3,8 +3,8 @@
 namespace Nadybot\Modules\RAFFLE_MODULE;
 
 use Nadybot\Core\{
-	Attributes as NCA,
 	AccessManager,
+	Attributes as NCA,
 	CmdContext,
 	CommandAlias,
 	DB,
@@ -87,7 +87,7 @@ class RaffleController extends ModuleInstance {
 
 	/** How much time between each raffle announcement */
 	#[NCA\Setting\Time(options: [
-		"10s", "20s", "30s", "45s", "1m", "2m", "3m", "4m", "5m", "10m"
+		"10s", "20s", "30s", "45s", "1m", "2m", "3m", "4m", "5m", "10m",
 	])]
 	public int $raffleAnnounceFrequency = 30;
 
@@ -118,12 +118,6 @@ class RaffleController extends ModuleInstance {
 	public string $raffleCancelotherRank = "mod";
 
 	public ?Raffle $raffle = null;
-
-	protected function fancyFrame(string $text): string {
-		return "<yellow>" . str_repeat("-", 70) . "<end>\n".
-			trim($text) . "\n".
-			"<yellow>" . str_repeat("-", 70) . "<end>\n";
-	}
 
 	public function getRaffleAdminPage(string $sender): string {
 		$blob = "<header2>Join / Leave<end>\n".
@@ -205,41 +199,6 @@ class RaffleController extends ModuleInstance {
 			"."
 		);
 		$this->chatBot->sendTell($adminMsg, $context->char->name, QueueInterface::PRIORITY_HIGH);
-	}
-
-	/**
-	 * @return string[]
-	 */
-	protected function getJoinLeaveLinks(): array {
-		if (!isset($this->raffle)) {
-			return [];
-		}
-		$result = [];
-		$items = $this->raffle->toList();
-		for ($i = 0; $i < count($items); $i++) {
-			$joinLink = $this->text->makeChatcmd("Join", "/tell <myname> raffle join " . ($i+1));
-			$leaveLink = $this->text->makeChatcmd("Leave", "/tell <myname> raffle leave " . ($i+1));
-			$result []= ((count($items) > 1) ? "Item " . ($i + 1) . ": " : "") . "[$joinLink] [$leaveLink] - <highlight>{$items[$i]}<end>";
-		}
-		return $result;
-	}
-
-	protected function getJoinLeaveBlob(): string {
-		$bonusPerLoss = $this->raffleBonusPerLoss;
-		$blob = "";
-		if ($bonusPerLoss > 0) {
-			$blob = "This raffle uses the bonus points system.\n".
-				"Winners of any items will get their bonus points set ".
-				"to <highlight>0<end>.\n".
-				"Losers will get their bonus points increased by ".
-				"<highlight>{$bonusPerLoss}<end> points for all upcoming ".
-				"raffles until they won.\n\n";
-		}
-		$blob .= "[" . $this->text->makeChatcmd("Leave All", "/tell <myname> raffle leave") . "]".
-			" Leave raffle for all items\n\n".
-			"<header2>Item(s) for raffle<end>\n".
-			"<tab>" . join("\n<tab>", $this->getJoinLeaveLinks()) . "\n";
-		return $blob;
 	}
 
 	public function announceRaffleStart(): void {
@@ -523,99 +482,6 @@ class RaffleController extends ModuleInstance {
 		}
 	}
 
-	protected function announceRaffle(?string $extra=null): void {
-		if (!isset($this->raffle)) {
-			return;
-		}
-		$this->raffle->lastAnnounce = time();
-
-		$numParticipants = count($this->raffle->getParticipantNames());
-		$participantsString = "<highlight>{$numParticipants}<end> people are in the raffle";
-		if ($numParticipants === 1) {
-			$participantsString = "<highlight>1<end> person is in the raffle";
-		}
-
-		$msg = "\n";
-		if (isset($extra)) {
-			$msg .= "<yellow>:::<end> <red>{$extra}<end> <yellow>:::<end>\n";
-		}
-		$msg .= $this->fancyFrame($this->raffle->toString("<tab>"));
-		if (isset($this->raffle->end)) {
-			$endTime = $this->util->unixtimeToReadable($this->raffle->end - time());
-			$msg .= "The raffle will end in <highlight>{$endTime}<end>. ";
-		}
-		$msg .= $participantsString . " :: [";
-		$blob = $this->getJoinLeaveBlob();
-		$msg = $this->text->blobWrap(
-			$msg,
-			$this->text->makeBlob("Join", $blob, "Raffle actions"),
-			"]"
-		);
-		$this->raffle->sendto->reply($msg);
-	}
-
-	protected function getBonusPoints(string $player): int {
-		if ($this->shareRaffleBonusOnAlts) {
-			$player = $this->altsController->getMainOf($player);
-		}
-		return $this->db->table(self::DB_TABLE)
-			->where("name", $player)
-			->select("bonus")
-			->pluckAs("bonus", "int")->first() ?? 0;
-	}
-
-	/**
-	 * @param RaffleResultItem[] $result
-	 */
-	protected function resultIsUnambiguous(array $result): bool {
-		$points = array_map(
-			function(RaffleResultItem $item) {
-				return $item->points;
-			},
-			$result
-		);
-		$uniqPoints = array_unique($points);
-		return count($points) === count($uniqPoints);
-	}
-
-	/**
-	 * @return RaffleResultItem[]
-	 */
-	protected function getSlotResult(RaffleSlot $slot): array {
-		srand();
-		/** @var RaffleResultItem[] */
-		$result = [];
-		if (!count($slot->participants)) {
-			return $result;
-		}
-		foreach ($slot->participants as $player) {
-			$playerResult = new RaffleResultItem($player);
-			$playerResult->bonus_points = $this->getBonusPoints($player);
-			$result[] = $playerResult;
-		}
-		$numParticipants = count($slot->participants);
-		$iteration = 0;
-		while ($iteration < $numParticipants * 250 || !$this->resultIsUnambiguous($result)) {
-			$result[array_rand($result)]->decreasePoints();
-			$result[array_rand($result)]->increasePoints();
-			$iteration++;
-		}
-		foreach ($result as $data) {
-			$data->points += $data->bonus_points;
-		}
-		usort(
-			$result,
-			function(RaffleResultItem $a, RaffleResultItem $b): int {
-				return $b->points <=> $a->points;
-			}
-		);
-		$numWinners = min($slot->amount ?: count($result), count($result));
-		for ($i = 0; $i < $numWinners; $i++) {
-			$result[$i]->won = true;
-		}
-		return $result;
-	}
-
 	public function endRaffle(): void {
 		if (!isset($this->raffle)) {
 			return;
@@ -631,18 +497,6 @@ class RaffleController extends ModuleInstance {
 		$this->eventManager->fireEvent($event);
 		$this->announceRaffleResults($raffle);
 		$this->adjustBonusPoints($raffle);
-	}
-
-	/**
-	 * @return string[]
-	 */
-	protected function getMainCharacters(string ...$players): array {
-		return array_map(
-			function(string $player): string {
-				return $this->altsController->getMainOf($player);
-			},
-			$players
-		);
 	}
 
 	/**
@@ -678,7 +532,7 @@ class RaffleController extends ModuleInstance {
 		if (count($losersInsert)) {
 			$this->db->table(self::DB_TABLE)
 				->insert(
-					array_map(function(string $loser) use ($bonusPerLoss): array {
+					array_map(function (string $loser) use ($bonusPerLoss): array {
 						return ["name" => $loser, "bonus" => $bonusPerLoss];
 					}, $losersInsert)
 				);
@@ -750,5 +604,144 @@ class RaffleController extends ModuleInstance {
 			);
 		}
 		$raffle->sendto->reply($msg);
+	}
+
+	protected function fancyFrame(string $text): string {
+		return "<yellow>" . str_repeat("-", 70) . "<end>\n".
+			trim($text) . "\n".
+			"<yellow>" . str_repeat("-", 70) . "<end>\n";
+	}
+
+	/** @return string[] */
+	protected function getJoinLeaveLinks(): array {
+		if (!isset($this->raffle)) {
+			return [];
+		}
+		$result = [];
+		$items = $this->raffle->toList();
+		for ($i = 0; $i < count($items); $i++) {
+			$joinLink = $this->text->makeChatcmd("Join", "/tell <myname> raffle join " . ($i+1));
+			$leaveLink = $this->text->makeChatcmd("Leave", "/tell <myname> raffle leave " . ($i+1));
+			$result []= ((count($items) > 1) ? "Item " . ($i + 1) . ": " : "") . "[{$joinLink}] [{$leaveLink}] - <highlight>{$items[$i]}<end>";
+		}
+		return $result;
+	}
+
+	protected function getJoinLeaveBlob(): string {
+		$bonusPerLoss = $this->raffleBonusPerLoss;
+		$blob = "";
+		if ($bonusPerLoss > 0) {
+			$blob = "This raffle uses the bonus points system.\n".
+				"Winners of any items will get their bonus points set ".
+				"to <highlight>0<end>.\n".
+				"Losers will get their bonus points increased by ".
+				"<highlight>{$bonusPerLoss}<end> points for all upcoming ".
+				"raffles until they won.\n\n";
+		}
+		$blob .= "[" . $this->text->makeChatcmd("Leave All", "/tell <myname> raffle leave") . "]".
+			" Leave raffle for all items\n\n".
+			"<header2>Item(s) for raffle<end>\n".
+			"<tab>" . join("\n<tab>", $this->getJoinLeaveLinks()) . "\n";
+		return $blob;
+	}
+
+	protected function announceRaffle(?string $extra=null): void {
+		if (!isset($this->raffle)) {
+			return;
+		}
+		$this->raffle->lastAnnounce = time();
+
+		$numParticipants = count($this->raffle->getParticipantNames());
+		$participantsString = "<highlight>{$numParticipants}<end> people are in the raffle";
+		if ($numParticipants === 1) {
+			$participantsString = "<highlight>1<end> person is in the raffle";
+		}
+
+		$msg = "\n";
+		if (isset($extra)) {
+			$msg .= "<yellow>:::<end> <red>{$extra}<end> <yellow>:::<end>\n";
+		}
+		$msg .= $this->fancyFrame($this->raffle->toString("<tab>"));
+		if (isset($this->raffle->end)) {
+			$endTime = $this->util->unixtimeToReadable($this->raffle->end - time());
+			$msg .= "The raffle will end in <highlight>{$endTime}<end>. ";
+		}
+		$msg .= $participantsString . " :: [";
+		$blob = $this->getJoinLeaveBlob();
+		$msg = $this->text->blobWrap(
+			$msg,
+			$this->text->makeBlob("Join", $blob, "Raffle actions"),
+			"]"
+		);
+		$this->raffle->sendto->reply($msg);
+	}
+
+	protected function getBonusPoints(string $player): int {
+		if ($this->shareRaffleBonusOnAlts) {
+			$player = $this->altsController->getMainOf($player);
+		}
+		return $this->db->table(self::DB_TABLE)
+			->where("name", $player)
+			->select("bonus")
+			->pluckAs("bonus", "int")->first() ?? 0;
+	}
+
+	/** @param RaffleResultItem[] $result */
+	protected function resultIsUnambiguous(array $result): bool {
+		$points = array_map(
+			function (RaffleResultItem $item) {
+				return $item->points;
+			},
+			$result
+		);
+		$uniqPoints = array_unique($points);
+		return count($points) === count($uniqPoints);
+	}
+
+	/** @return RaffleResultItem[] */
+	protected function getSlotResult(RaffleSlot $slot): array {
+		srand();
+
+		/** @var RaffleResultItem[] */
+		$result = [];
+		if (!count($slot->participants)) {
+			return $result;
+		}
+		foreach ($slot->participants as $player) {
+			$playerResult = new RaffleResultItem($player);
+			$playerResult->bonus_points = $this->getBonusPoints($player);
+			$result[] = $playerResult;
+		}
+		$numParticipants = count($slot->participants);
+		$iteration = 0;
+		while ($iteration < $numParticipants * 250 || !$this->resultIsUnambiguous($result)) {
+			$result[array_rand($result)]->decreasePoints();
+			$result[array_rand($result)]->increasePoints();
+			$iteration++;
+		}
+		foreach ($result as $data) {
+			$data->points += $data->bonus_points;
+		}
+		usort(
+			$result,
+			function (RaffleResultItem $a, RaffleResultItem $b): int {
+				return $b->points <=> $a->points;
+			}
+		);
+		$numWinners = min($slot->amount ?: count($result), count($result));
+		for ($i = 0; $i < $numWinners; $i++) {
+			$result[$i]->won = true;
+		}
+		return $result;
+	}
+
+	/** @return string[] */
+	protected function getMainCharacters(string ...$players): array {
+		return array_map(
+			function (string $player): string {
+				return $this->altsController->getMainOf($player);
+			},
+			$players
+		);
 	}
 }

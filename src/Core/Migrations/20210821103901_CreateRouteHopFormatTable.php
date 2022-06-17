@@ -3,15 +3,13 @@
 namespace Nadybot\Core\Migrations;
 
 use Illuminate\Database\Schema\Blueprint;
-use Nadybot\Core\DB;
-use Nadybot\Core\LoggerWrapper;
 use Nadybot\Core\Routing\Source;
-use Nadybot\Core\SchemaMigration;
+use Nadybot\Core\{DB, LoggerWrapper, SchemaMigration};
 
 class CreateRouteHopFormatTable implements SchemaMigration {
 	public function migrate(LoggerWrapper $logger, DB $db): void {
 		$table = Source::DB_TABLE;
-		$db->schema()->create($table, function(Blueprint $table): void {
+		$db->schema()->create($table, function (Blueprint $table): void {
 			$table->id();
 			$table->string("hop", 50);
 			$table->string("where", 50)->nullable(true);
@@ -33,12 +31,12 @@ class CreateRouteHopFormatTable implements SchemaMigration {
 			[
 				"hop" => Source::RELAY,
 				"render" => false,
-				"format" => "%s"
+				"format" => "%s",
 			],
 			[
 				"hop" => Source::SYSTEM,
 				"render" => false,
-				"format" => "%s"
+				"format" => "%s",
 			],
 			[
 				"hop" => Source::DISCORD_PRIV,

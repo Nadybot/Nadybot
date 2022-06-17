@@ -4,14 +4,12 @@ namespace Nadybot\Core;
 
 use function Amp\call;
 
-use Amp\Http\Client\HttpClientBuilder;
 use Amp\Http\Client\Interceptor\AddRequestHeader;
-use Amp\Http\Client\Request;
-use Amp\Http\Client\Response;
+use Amp\Http\Client\{HttpClientBuilder, Request, Response};
 use Amp\Promise;
-use Nadybot\Core\Attributes as NCA;
 use Exception;
 use Generator;
+use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\Modules\DISCORD\DiscordAPIClient;
 use Nadybot\Modules\DISCORD_GATEWAY_MODULE\DiscordGatewayController;
 
@@ -32,9 +30,7 @@ class DiscordBotTokenSettingHandler extends SettingHandler {
 	#[NCA\Inject]
 	public AccessManager $accessManager;
 
-	/**
-	 * @inheritDoc
-	 */
+	/** @inheritDoc */
 	public function getDescription(): string {
 		$msg = "For this setting you need to enter a Discord token (59 characters).\n".
 			"You can get the ID for your bot on the Discord developer portal.\n".
@@ -47,6 +43,7 @@ class DiscordBotTokenSettingHandler extends SettingHandler {
 
 	/**
 	 * @throws \Exception when the Discord token is invalid
+	 *
 	 * @return Promise<string>
 	 */
 	public function save(string $newValue): Promise {
@@ -57,6 +54,7 @@ class DiscordBotTokenSettingHandler extends SettingHandler {
 			$client = $this->builder
 				->intercept(new AddRequestHeader('Authorization', 'Bot ' . $newValue))
 				->build();
+
 			/** @var Response */
 			$response = yield $client->request(new Request(DiscordAPIClient::DISCORD_API . "/users/@me"));
 			if ($response->getStatus() !== 200) {

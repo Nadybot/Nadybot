@@ -3,9 +3,7 @@
 namespace Nadybot\Core\Modules\PLAYER_LOOKUP\Migrations;
 
 use Illuminate\Database\Schema\Blueprint;
-use Nadybot\Core\DB;
-use Nadybot\Core\LoggerWrapper;
-use Nadybot\Core\SchemaMigration;
+use Nadybot\Core\{DB, LoggerWrapper, SchemaMigration};
 use Throwable;
 
 class CreatePlayersTable implements SchemaMigration {
@@ -17,26 +15,26 @@ class CreatePlayersTable implements SchemaMigration {
 				->groupBy("name", "dimension")
 				->havingRaw("COUNT(*) > 1")
 				->delete();
-			$db->schema()->table($table, function(Blueprint $table): void {
+			$db->schema()->table($table, function (Blueprint $table): void {
 				$table->string("prof_title", 40)->default('')->change();
 			});
 			try {
-				$db->schema()->table($table, function(Blueprint $table): void {
+				$db->schema()->table($table, function (Blueprint $table): void {
 					$table->dropUnique("name");
 				});
 			} catch (Throwable $e) {
 				// Ignore
 			}
 
-			$db->schema()->table($table, function(Blueprint $table): void {
+			$db->schema()->table($table, function (Blueprint $table): void {
 				$table->unique(["name", "dimension"]);
 			});
-			$db->schema()->table($table, function(Blueprint $table): void {
+			$db->schema()->table($table, function (Blueprint $table): void {
 				$table->smallInteger("dimension")->nullable(false)->change();
 			});
 			return;
 		}
-		$db->schema()->create($table, function(Blueprint $table): void {
+		$db->schema()->create($table, function (Blueprint $table): void {
 			$table->integer("charid")->index();
 			$table->string("firstname", 30)->default('');
 			$table->string("name", 20)->index();

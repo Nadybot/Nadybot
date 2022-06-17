@@ -10,10 +10,10 @@ use Nadybot\Core\{
 	DB,
 	Event,
 	EventManager,
-	ModuleInstance,
 	LoggerWrapper,
 	MessageEmitter,
 	MessageHub,
+	ModuleInstance,
 	Nadybot,
 	ParamClass\PDuration,
 	ParamClass\PRemove,
@@ -55,6 +55,16 @@ class VoteController extends ModuleInstance implements MessageEmitter {
 	public const DB_POLLS = "polls_<myname>";
 	public const DB_VOTES = "votes_<myname>";
 
+	public const DELIMITER = "|";
+
+	// status indicates the last alert that happened (not the next alert that will happen)
+	public const STATUS_CREATED = 0;
+	public const STATUS_STARTED = 1;
+	public const STATUS_60_MINUTES_LEFT = 2;
+	public const STATUS_15_MINUTES_LEFT = 3;
+	public const STATUS_60_SECONDS_LEFT = 4;
+	public const STATUS_ENDED = 9;
+
 	#[NCA\Inject]
 	public Text $text;
 
@@ -91,16 +101,6 @@ class VoteController extends ModuleInstance implements MessageEmitter {
 	/** @var array<int,Poll> */
 	private $polls = [];
 
-	public const DELIMITER = "|";
-
-	// status indicates the last alert that happened (not the next alert that will happen)
-	public const STATUS_CREATED = 0;
-	public const STATUS_STARTED = 1;
-	public const STATUS_60_MINUTES_LEFT = 2;
-	public const STATUS_15_MINUTES_LEFT = 3;
-	public const STATUS_60_SECONDS_LEFT = 4;
-	public const STATUS_ENDED = 9;
-
 	#[NCA\Setup]
 	public function setup(): void {
 		$this->cacheVotes();
@@ -121,11 +121,12 @@ class VoteController extends ModuleInstance implements MessageEmitter {
 			});
 	}
 
-	public function getPoll(int $id, string $creator=null): ?Poll {
+	public function getPoll(int $id, ?string $creator=null): ?Poll {
 		$query = $this->db->table(self::DB_POLLS)->where("id", $id);
 		if ($creator !== null) {
 			$query->where("owner", $creator);
 		}
+
 		/** @var ?Poll */
 		$topic = $query->asObj(Poll::class)->first();
 		if ($topic === null) {
@@ -152,12 +153,12 @@ class VoteController extends ModuleInstance implements MessageEmitter {
 			$timeleft = $poll->getTimeLeft();
 
 			if ($timeleft <= 0) {
-				$title = "Finished Vote: $poll->question";
+				$title = "Finished Vote: {$poll->question}";
 				$this->db->table(self::DB_POLLS)
 					->where("id", $poll->id)
 					->update(["status" => self::STATUS_ENDED]);
 				$event = new PollEvent();
-				$event->poll = clone($poll);
+				$event->poll = clone $poll;
 				unset($event->poll->possible_answers);
 				$event->votes = $this->db->table(self::DB_VOTES)
 					->where("poll_id", $poll->id)
@@ -166,7 +167,7 @@ class VoteController extends ModuleInstance implements MessageEmitter {
 				$this->eventManager->fireEvent($event);
 				unset($this->polls[$id]);
 			} elseif ($poll->status === self::STATUS_CREATED) {
-				$title = "Vote: $poll->question";
+				$title = "Vote: {$poll->question}";
 
 				if ($timeleft > 3600) {
 					$mstatus = self::STATUS_STARTED;
@@ -180,13 +181,13 @@ class VoteController extends ModuleInstance implements MessageEmitter {
 				$this->polls[$id]->status = $mstatus;
 			// @phpstan-ignore-next-line
 			} elseif ($timeleft <= 60 && $timeleft > 0 && $poll->status !== self::STATUS_60_SECONDS_LEFT) {
-				$title = "60 seconds left: $poll->question";
+				$title = "60 seconds left: {$poll->question}";
 				$this->polls[$id]->status = self::STATUS_60_SECONDS_LEFT;
 			} elseif ($timeleft <= 900 && $timeleft > 60 && $poll->status !== self::STATUS_15_MINUTES_LEFT) {
-				$title = "15 minutes left: $poll->question";
+				$title = "15 minutes left: {$poll->question}";
 				$this->polls[$id]->status = self::STATUS_15_MINUTES_LEFT;
 			} elseif ($timeleft <= 3600 && $timeleft > 900 && $poll->status !== self::STATUS_60_MINUTES_LEFT) {
-				$title = "60 minutes left: $poll->question";
+				$title = "60 minutes left: {$poll->question}";
 				$this->polls[$id]->status = self::STATUS_60_MINUTES_LEFT;
 			} else {
 				$title = "";
@@ -271,7 +272,7 @@ class VoteController extends ModuleInstance implements MessageEmitter {
 		$this->db->table(self::DB_VOTES)->where("poll_id", $topic->id)->delete();
 		$this->db->table(self::DB_POLLS)->delete($topic->id);
 		$event = new PollEvent();
-		$event->poll = clone($topic);
+		$event->poll = clone $topic;
 		unset($event->poll->possible_answers);
 		$event->type = "poll(del)";
 		unset($this->polls[$topic->id]);
@@ -299,7 +300,7 @@ class VoteController extends ModuleInstance implements MessageEmitter {
 		if ($deleted > 0) {
 			$msg = "Your vote for <highlight>{$topic->question}<end> has been removed.";
 			$event = new VoteEvent();
-			$event->poll = clone($topic);
+			$event->poll = clone $topic;
 			unset($event->poll->possible_answers);
 			$event->type = "vote(del)";
 			$event->player = $context->char->name;
@@ -335,7 +336,7 @@ class VoteController extends ModuleInstance implements MessageEmitter {
 		} elseif ($timeleft <= 0) {
 			$msg = "This poll has already finished.";
 		} else {
-			$msg = "There is only <highlight>$timeleft<end> seconds left.";
+			$msg = "There is only <highlight>{$timeleft}<end> seconds left.";
 		}
 		$context->reply($msg);
 	}
@@ -390,6 +391,7 @@ class VoteController extends ModuleInstance implements MessageEmitter {
 			$context->reply($msg);
 			return;
 		}
+
 		/** @var ?Vote */
 		$oldVote = $this->db->table(self::DB_VOTES)
 			->where("poll_id", $topic->id)
@@ -397,7 +399,7 @@ class VoteController extends ModuleInstance implements MessageEmitter {
 			->asObj(Vote::class)
 			->first();
 		$event = new VoteEvent();
-		$event->poll = clone($topic);
+		$event->poll = clone $topic;
 		unset($event->poll->possible_answers);
 		$event->player = $context->char->name;
 		$event->vote = $answer;
@@ -418,7 +420,7 @@ class VoteController extends ModuleInstance implements MessageEmitter {
 				"author" => $context->char->name,
 				"answer" => $answer,
 				"time" => time(),
-				"poll_id" => $topic->id
+				"poll_id" => $topic->id,
 			]);
 			$msg = "You have voted <highlight>{$answer}<end> for \"{$topic->question}\".";
 			$event->type = "vote(cast)";
@@ -470,7 +472,7 @@ class VoteController extends ModuleInstance implements MessageEmitter {
 
 		$context->reply($msg);
 		$event = new PollEvent();
-		$event->poll = clone($topic);
+		$event->poll = clone $topic;
 		unset($event->poll->possible_answers);
 		$event->type = "poll(start)";
 		$this->eventManager->fireEvent($event);
@@ -515,7 +517,7 @@ class VoteController extends ModuleInstance implements MessageEmitter {
 			$blob .= "<tab>" . $this->text->alignNumber($val, 3) . "% ";
 
 			if ($timeleft > 0) {
-				$blob .= $this->text->makeChatcmd($answer, "/tell <myname> vote {$topic->id} {$answer}") . " (Votes: $votes)\n";
+				$blob .= $this->text->makeChatcmd($answer, "/tell <myname> vote {$topic->id} {$answer}") . " (Votes: {$votes})\n";
 			} else {
 				$blob .= "<highlight>{$answer}<end> (Votes: {$votes})\n";
 			}
@@ -550,8 +552,7 @@ class VoteController extends ModuleInstance implements MessageEmitter {
 		NCA\NewsTile(
 			name: "polls",
 			description: "Shows currently running polls - if any",
-			example:
-				"<header2>Polls<end>\n".
+			example: "<header2>Polls<end>\n".
 				"<tab>Shall we use startpage instead of news? [<u>show</u>]\n".
 				"<tab>New logo for Discord [<u>show</u>]"
 		)

@@ -2,15 +2,9 @@
 
 namespace Nadybot\Core\Channels;
 
-use Nadybot\Core\Attributes as NCA;
-use Nadybot\Core\EventManager;
-use Nadybot\Core\MessageHub;
-use Nadybot\Core\MessageReceiver;
-use Nadybot\Core\Nadybot;
-use Nadybot\Core\Routing\RoutableEvent;
-use Nadybot\Core\Routing\Source;
-use Nadybot\Modules\WEBSERVER_MODULE\AOWebChatEvent;
-use Nadybot\Modules\WEBSERVER_MODULE\WebChatConverter;
+use Nadybot\Core\Routing\{RoutableEvent, Source};
+use Nadybot\Core\{Attributes as NCA, EventManager, MessageHub, MessageReceiver, Nadybot};
+use Nadybot\Modules\WEBSERVER_MODULE\{AOWebChatEvent, WebChatConverter};
 use Nadybot\Modules\WEBSOCKET_MODULE\WebsocketController;
 
 class WebChannel implements MessageReceiver {

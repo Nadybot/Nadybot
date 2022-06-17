@@ -29,7 +29,6 @@ use Exception;
  *
  * D - 'data', we have relabeled all 'D' type fields to 'S'
  * M - mapping [see t.class in ao_nosign.jar] - unsupported
- *
  */
 
 /* Packet type definitions - so we won't have to use the number IDs
@@ -78,8 +77,22 @@ class AOChatPacket {
 	public const ADM_MUX_INFO =    1100;
 
 	/**
-	 * @var array<string,array<int,array<string,string>>>
+	 * The decoded arguments of the chat packet
+	 *
+	 * @var mixed[]
 	 */
+	public array $args=[];
+
+	/** The package type as in LOGIN_REQUEST or PRIVGROUP_JOIN */
+	public int $type;
+
+	/** The direction of the packet (in or out) */
+	public string $dir;
+
+	/** The encoded binary packet data */
+	public string $data;
+
+	/** @var array<string,array<int,array<string,string>>> */
 	private static array $packet_map = [
 		"in" => [
 			self::LOGIN_SEED       => ["name" => "Login Seed",                  "args" => "S"],
@@ -131,29 +144,8 @@ class AOChatPacket {
 			self::CLIENTMODE_SET   => ["name" => "Clientmode Set",              "args" => "IIII"],
 			self::PING             => ["name" => "Ping",                        "args" => "S"],
 			self::CC               => ["name" => "CC",                          "args" => "s"],
-		]
+		],
 	];
-
-	/**
-	 * The decoded arguments of the chat packet
-	 * @var mixed[]
-	 */
-	public array $args=[];
-
-	/**
-	 * The package type as in LOGIN_REQUEST or PRIVGROUP_JOIN
-	 */
-	public int $type;
-
-	/**
-	 * The direction of the packet (in or out)
-	 */
-	public string $dir;
-
-	/**
-	 * The encoded binary packet data
-	 */
-	public string $data;
 
 	/**
 	 * Create a new packet, either for parsing incoming or encoding outgoing ones

@@ -28,16 +28,9 @@ class MigrateToRoutes implements SchemaMigration {
 	#[NCA\Inject]
 	public MessageHub $messageHub;
 
-	protected function getSetting(DB $db, string $name): ?Setting {
-		return $db->table(SettingManager::DB_TABLE)
-			->where("name", $name)
-			->asObj(Setting::class)
-			->first();
-	}
-
 	public function migrate(LoggerWrapper $logger, DB $db): Generator {
 		$table = TimerController::DB_TABLE;
-		$db->schema()->table($table, function(Blueprint $table): void {
+		$db->schema()->table($table, function (Blueprint $table): void {
 			$table->string("mode", 50)->nullable()->change();
 			$table->string("origin", 100)->nullable();
 		});
@@ -61,7 +54,7 @@ class MigrateToRoutes implements SchemaMigration {
 			$defaultMode []= "discord";
 		}
 		$discordChannel = $this->getSetting($db, "discord_notify_channel") ?? null;
-		if (isset($discordChannel) && isset($discordChannel->value) && $discordChannel->value !== 'off') {
+		if (isset($discordChannel, $discordChannel->value)   && $discordChannel->value !== 'off') {
 			try {
 				/** @var DiscordChannel */
 				$channel = yield $this->discordAPIClient->getChannel($discordChannel->value);
@@ -71,6 +64,13 @@ class MigrateToRoutes implements SchemaMigration {
 			return;
 		}
 		$this->rewriteTimerMode($db, $table, $defaultMode);
+	}
+
+	protected function getSetting(DB $db, string $name): ?Setting {
+		return $db->table(SettingManager::DB_TABLE)
+			->where("name", $name)
+			->asObj(Setting::class)
+			->first();
 	}
 
 	/** @param string[] $defaultMode */

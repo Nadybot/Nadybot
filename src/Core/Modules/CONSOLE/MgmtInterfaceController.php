@@ -3,11 +3,11 @@
 namespace Nadybot\Core\Modules\CONSOLE;
 
 use function Amp\{
+	File\filesystem,
+	Promise\rethrow,
 	asyncCall,
 	call,
 	delay,
-	File\filesystem,
-	Promise\rethrow,
 };
 use function Safe\preg_match;
 
@@ -38,15 +38,6 @@ use Nadybot\Core\{
 class MgmtInterfaceController extends ModuleInstance {
 	public const TYPE_NONE = "None";
 
-	#[NCA\Inject]
-	private ConfigFile $config;
-
-	#[NCA\Inject]
-	private Nadybot $chatBot;
-
-	#[NCA\Inject]
-	private CommandManager $commandManager;
-
 	/**
 	 * The type and path of the management interface.
 	 * Accepts unix://&lt;filename&gt; and tcp://&lt;ip&gt;:&lt;port&gt;
@@ -57,8 +48,23 @@ class MgmtInterfaceController extends ModuleInstance {
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
+	#[NCA\Inject]
+	private ConfigFile $config;
+
+	#[NCA\Inject]
+	private Nadybot $chatBot;
+
+	#[NCA\Inject]
+	private CommandManager $commandManager;
+
 	private ?Server $server = null;
 	private ?string $socketPath = null;
+
+	public function __destruct() {
+		if (isset($this->socketPath)) {
+			@unlink($this->socketPath);
+		}
+	}
 
 	#[NCA\Event(name: "connect", description: "Start the interface")]
 	public function onConnect(): void {
@@ -89,7 +95,51 @@ class MgmtInterfaceController extends ModuleInstance {
 			);
 		}
 		$this->stop();
-		Loop::defer(fn() => $this->start());
+		Loop::defer(fn () => $this->start());
+	}
+
+	public function start(): void {
+		asyncCall(function (): Generator {
+			if (isset($this->server) && $this->mgmtInterface === self::TYPE_NONE) {
+				return;
+			}
+			[$scheme, $path] = explode("://", $this->mgmtInterface, 2);
+			if ($scheme === "unix") {
+				yield from $this->handleExistingUnixSocket($path);
+			}
+			$this->server = $server = Server::listen($this->mgmtInterface);
+			if ($scheme === "unix") {
+				$this->socketPath = $path;
+				Loop::onSignal(SIGTERM, Closure::fromCallable([$this, "onShutdown"]));
+			}
+			$this->logger->notice("Management Interface listening on {addr}", [
+				"addr" => $this->mgmtInterface,
+			]);
+			register_shutdown_function(Closure::fromCallable([$this, "onShutdown"]));
+			while ($socket = yield $server->accept()) {
+				rethrow($this->acceptConnection($socket));
+			}
+			if ($scheme === "unix") {
+				try {
+					yield filesystem()->deleteFile($path);
+				} catch (FilesystemException) {
+				}
+				if ($this->socketPath === $path) {
+					$this->socketPath = null;
+				}
+			}
+			$this->logger->notice("Management Interface on {addr} shutdown", [
+				"addr" => "{$scheme}://{$path}",
+			]);
+		});
+	}
+
+	public function stop(): void {
+		if (!isset($this->server)) {
+			return;
+		}
+		$this->server->close();
+		$this->server = null;
 	}
 
 	private function handleExistingUnixSocket(string $path): Generator {
@@ -108,62 +158,11 @@ class MgmtInterfaceController extends ModuleInstance {
 		}
 	}
 
-	public function start(): void {
-		asyncCall(function (): Generator {
-			if (isset($this->server) && $this->mgmtInterface === self::TYPE_NONE) {
-				return;
-			}
-			[$scheme, $path] = explode("://", $this->mgmtInterface, 2);
-			if ($scheme === "unix") {
-				yield from $this->handleExistingUnixSocket($path);
-			}
-			$this->server = $server = Server::listen($this->mgmtInterface);
-			if ($scheme === "unix") {
-				$this->socketPath = $path;
-				Loop::onSignal(SIGTERM, Closure::fromCallable([$this, "onShutdown"]));
-			}
-			$this->logger->notice("Management Interface listening on {addr}", [
-				"addr" => $this->mgmtInterface
-			]);
-			register_shutdown_function(Closure::fromCallable([$this, "onShutdown"]));
-			while ($socket = yield $server->accept()) {
-				rethrow($this->acceptConnection($socket));
-			}
-			if ($scheme === "unix") {
-				try {
-					yield filesystem()->deleteFile($path);
-				} catch (FilesystemException) {
-				}
-				if ($this->socketPath === $path) {
-					$this->socketPath = null;
-				}
-			}
-			$this->logger->notice("Management Interface on {addr} shutdown", [
-				"addr" => "{$scheme}://{$path}"
-			]);
-		});
-	}
-
-	public function __destruct() {
-		if (isset($this->socketPath)) {
-			@unlink($this->socketPath);
-		}
-	}
-
 	private function onShutdown(): void {
 		if (isset($this->socketPath)) {
 			@unlink($this->socketPath);
 		}
 	}
-
-	public function stop(): void {
-		if (!isset($this->server)) {
-			return;
-		}
-		$this->server->close();
-		$this->server = null;
-	}
-
 
 	/** @return Promise<void> */
 	private function acceptConnection(ResourceSocket $socket): Promise {

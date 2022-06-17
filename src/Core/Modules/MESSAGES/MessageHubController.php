@@ -6,10 +6,6 @@ namespace Nadybot\Core\Modules\MESSAGES;
 
 use Exception;
 use Generator;
-use Safe\Exceptions\JsonException;
-use ReflectionClass;
-use ReflectionException;
-use Throwable;
 use Illuminate\Support\Collection;
 use Monolog\Logger;
 use Nadybot\Core\{
@@ -23,19 +19,23 @@ use Nadybot\Core\{
 	DBSchema\RouteHopFormat,
 	DBSchema\RouteModifier,
 	DBSchema\RouteModifierArgument,
-	ModuleInstance,
 	LoggerWrapper,
 	MessageEmitter,
 	MessageHub,
 	MessageRoute,
+	ModuleInstance,
 	Nadybot,
 	ParamClass\PColor,
 	ParamClass\PRemove,
+	Routing\Source,
 	SettingManager,
 	Text,
 	Util,
-	Routing\Source,
 };
+use ReflectionClass;
+use ReflectionException;
+use Safe\Exceptions\JsonException;
+use Throwable;
 
 /**
  * @author Nadyita (RK5)
@@ -88,7 +88,7 @@ class MessageHubController extends ModuleInstance {
 		$this->db->table($this->messageHub::DB_TABLE_ROUTES)
 			->orderBy("id")
 			->asObj(Route::class)
-			->each(function(Route $route) use ($modifiers): void {
+			->each(function (Route $route) use ($modifiers): void {
 				$route->modifiers = $modifiers->get($route->id, new Collection())->toArray();
 				try {
 					$msgRoute = $this->messageHub->createMessageRoute($route);
@@ -98,20 +98,6 @@ class MessageHubController extends ModuleInstance {
 				}
 			});
 		$this->messageHub->routingLoaded = true;
-	}
-
-	protected function fixDiscordChannelName(string $name): string {
-		if (!preg_match("/^discordpriv\((\d+?)\)$/", $name, $matches)) {
-			return str_replace(["&lt;", "&gt;"], ["<", ">"], $name);
-		}
-		$emitters = $this->messageHub->getEmitters();
-		foreach ($emitters as $emitter) {
-			if ($emitter instanceof DiscordChannel
-				&& ($emitter->getChannelID() === $matches[1])) {
-				return $emitter->getChannelName();
-			}
-		}
-		return $name;
 	}
 
 	/** Create a new route from &lt;from&gt; to &lt;to&gt; with optional modifiers */
@@ -160,9 +146,10 @@ class MessageHubController extends ModuleInstance {
 			$context->reply("Unknown target <highlight>{$to}<end>.");
 			return;
 		}
+
 		/** @var Collection<MessageEmitter> */
 		$senders = new Collection($this->messageHub->getEmitters());
-		$hasSender = $senders->first(function(MessageEmitter $e) use ($from) {
+		$hasSender = $senders->first(function (MessageEmitter $e) use ($from) {
 			return fnmatch($e->getChannelName(), $from, FNM_CASEFOLD)
 				|| fnmatch($from, $e->getChannelName(), FNM_CASEFOLD);
 		});
@@ -190,6 +177,7 @@ class MessageHubController extends ModuleInstance {
 				return;
 			}
 		}
+
 		/** @var null|RouteModifier[] $modifiers */
 		yield $this->db->awaitBeginTransaction();
 		try {
@@ -362,6 +350,7 @@ class MessageHubController extends ModuleInstance {
 			$context->reply("No route <highlight>#{$id}<end> found.");
 			return;
 		}
+
 		/** @var int[] List of modifier-ids for the route */
 		$modifiers = array_column($route->modifiers, "id");
 		yield $this->db->awaitBeginTransaction();
@@ -388,7 +377,7 @@ class MessageHubController extends ModuleInstance {
 				"Route #{$id} (" . $this->renderRoute($deleted) . ") deleted."
 			);
 		} else {
-			$context->reply("Route <highlight>#${id}<end> deleted.");
+			$context->reply("Route <highlight>#{$id}<end> deleted.");
 		}
 	}
 
@@ -401,7 +390,7 @@ class MessageHubController extends ModuleInstance {
 			return;
 		}
 		$list = [];
-		usort($routes, function(MessageRoute $route1, MessageRoute $route2): int {
+		usort($routes, function (MessageRoute $route1, MessageRoute $route2): int {
 			return strcmp($route1->getSource(), $route2->getSource());
 		});
 		foreach ($routes as $route) {
@@ -444,6 +433,7 @@ class MessageHubController extends ModuleInstance {
 			}
 			$numShown++;
 		}
+
 		/** @var array<string,MessageRoute[]> $grouped */
 		$result = [];
 		foreach ($grouped as $receiver => $recRoutes) {
@@ -581,10 +571,12 @@ class MessageHubController extends ModuleInstance {
 		if (isset($where)) {
 			$where = $this->fixDiscordChannelName($where());
 		}
+
 		/** @var ?string $where */
 		if (isset($via)) {
 			$via = $this->fixDiscordChannelName($via());
 		}
+
 		/** @var ?string $via */
 		$color = $this->getHopColor($tag, $where??null, $via??null);
 		$name = $tag;
@@ -885,7 +877,7 @@ class MessageHubController extends ModuleInstance {
 	/** Turn on/off rendering of a specific hop */
 	public function setHopRender(string $hop, bool $state): void {
 		/** @var ?RouteHopFormat */
-		$format = Source::$format->first(fn(RouteHopFormat $x) => $x->hop === $hop);
+		$format = Source::$format->first(fn (RouteHopFormat $x) => $x->hop === $hop);
 		$update = true;
 		if (!isset($format)) {
 			$format = new RouteHopFormat();
@@ -907,7 +899,8 @@ class MessageHubController extends ModuleInstance {
 		if (preg_match("/%[^%]/", $format)) {
 			$_ignore = sprintf($format, "text");
 		}
-		$spec = Source::$format->first(fn(RouteHopFormat $x) => $x->hop === $hop);
+		$spec = Source::$format->first(fn (RouteHopFormat $x) => $x->hop === $hop);
+
 		/** @var ?RouteHopFormat $spec */
 		$update = true;
 		if (!isset($spec)) {
@@ -926,7 +919,7 @@ class MessageHubController extends ModuleInstance {
 
 	public function clearHopFormat(string $hop): bool {
 		/** @var ?RouteHopFormat */
-		$format = Source::$format->first(fn(RouteHopFormat $x) => $x->hop === $hop);
+		$format = Source::$format->first(fn (RouteHopFormat $x) => $x->hop === $hop);
 		if (!isset($format)) {
 			return false;
 		}
@@ -1006,12 +999,13 @@ class MessageHubController extends ModuleInstance {
 
 	/**
 	 * Render a blob for an emitter group
+	 *
 	 * @param Collection<MessageEmitter> $values
 	 */
 	public function renderEmitterGroup(Collection $values, string $group): string {
 		if ($group === Source::LOG) {
 			// Log group is sorted by severity, descending
-			$values = $values->sort(function(MessageEmitter $e1, MessageEmitter $e2): int {
+			$values = $values->sort(function (MessageEmitter $e1, MessageEmitter $e2): int {
 				$l1 = 0;
 				if (preg_match("/\((.+)\)$/", $e1->getChannelName(), $matches)) {
 					try {
@@ -1032,7 +1026,7 @@ class MessageHubController extends ModuleInstance {
 			});
 		}
 		return "<header2>{$group}<end>\n<tab>".
-			$values->map(function(MessageEmitter $emitter): string {
+			$values->map(function (MessageEmitter $emitter): string {
 				$name = htmlentities($emitter->getChannelName());
 				if ($emitter instanceof DiscordChannel) {
 					if (!preg_match("/^[[:graph:]]+$/s", $name)) {
@@ -1042,5 +1036,19 @@ class MessageHubController extends ModuleInstance {
 				return $name;
 			})
 			->join("\n<tab>");
+	}
+
+	protected function fixDiscordChannelName(string $name): string {
+		if (!preg_match("/^discordpriv\((\d+?)\)$/", $name, $matches)) {
+			return str_replace(["&lt;", "&gt;"], ["<", ">"], $name);
+		}
+		$emitters = $this->messageHub->getEmitters();
+		foreach ($emitters as $emitter) {
+			if ($emitter instanceof DiscordChannel
+				&& ($emitter->getChannelID() === $matches[1])) {
+				return $emitter->getChannelName();
+			}
+		}
+		return $name;
 	}
 }

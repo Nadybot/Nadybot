@@ -2,9 +2,7 @@
 
 namespace Nadybot\Core\Migrations;
 
-use Nadybot\Core\DB;
-use Nadybot\Core\LoggerWrapper;
-use Nadybot\Core\SchemaMigration;
+use Nadybot\Core\{DB, LoggerWrapper, SchemaMigration};
 
 class ConvertAriaTables implements SchemaMigration {
 	public function migrate(LoggerWrapper $logger, DB $db): void {

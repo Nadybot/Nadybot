@@ -2,37 +2,41 @@
 
 namespace Nadybot\Core;
 
+use function Amp\{call, delay};
 use Amp\Promise;
 use DateTime;
-use PDO;
-use PDOException;
 use Exception;
 use Generator;
 use GlobIterator;
-use ReflectionClass;
-use ReflectionProperty;
-use Safe\Exceptions\FilesystemException;
-use Throwable;
-use Illuminate\Support\Collection;
 use Illuminate\Database\{
 	Capsule\Manager as Capsule,
 	Connection,
 	Schema\Blueprint,
 };
+use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CSV\Reader,
 	DBSchema\Migration,
 	Migration as CoreMigration,
 };
+use PDO;
+use PDOException;
+use ReflectionClass;
+use ReflectionProperty;
+use Safe\Exceptions\FilesystemException;
 
-use function Amp\call;
-use function Amp\delay;
+use Throwable;
 
 #[NCA\Instance]
 #[NCA\HasMigrations(module: "Core")]
 class DB {
 	public const SQLITE_MIN_VERSION = "3.24.0";
+
+	public const MYSQL = 'mysql';
+	public const SQLITE = 'sqlite';
+	public const POSTGRESQL = 'postgresql';
+	public const MSSQL = 'mssql';
 
 	#[NCA\Inject]
 	public SettingManager $settingManager;
@@ -43,45 +47,34 @@ class DB {
 	#[NCA\Inject]
 	public ConfigFile $config;
 
-	/**
-	 * The database type: mysql/sqlite
-	 */
-	private string $type;
-
-	/**
-	 * The PDO object to talk to the database
-	 */
-	private PDO $sql;
-
-	/**
-	 * The low-level Capsule manager object
-	 */
-	private Capsule $capsule;
-
-	/**
-	 * The database name
-	 */
-	protected string $dbName;
-
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
+	public int $maxPlaceholders = 9000;
+
+	/** The database name */
+	protected string $dbName;
+
 	/** @var array<string,string> */
 	protected array $sqlReplacements = [];
+
 	/** @var array<string,string> */
 	protected array $sqlRegexpReplacements = [];
+
 	/** @var array<string,string> */
 	protected array $sqlCreateReplacements = [];
 
 	/** @var array<string,string> */
 	protected array $tableNames = [];
 
-	public int $maxPlaceholders = 9000;
+	/** The database type: mysql/sqlite */
+	private string $type;
 
-	public const MYSQL = 'mysql';
-	public const SQLITE = 'sqlite';
-	public const POSTGRESQL = 'postgresql';
-	public const MSSQL = 'mssql';
+	/** The PDO object to talk to the database */
+	private PDO $sql;
+
+	/** The low-level Capsule manager object */
+	private Capsule $capsule;
 
 	/** Get the lowercased name of the bot */
 	public function getBotname(): string {
@@ -130,7 +123,7 @@ class DB {
 						'password' => $pass,
 						'charset' => 'utf8',
 						'collation' => 'utf8_unicode_ci',
-						'prefix' => ''
+						'prefix' => '',
 					]);
 					$this->sql = $this->capsule->getConnection()->getPdo();
 				} catch (PDOException $e) {
@@ -155,9 +148,9 @@ class DB {
 			$this->sqlCreateReplacements[" AUTOINCREMENT"] = " AUTO_INCREMENT";
 		} elseif ($this->type === self::SQLITE) {
 			if ($host === null || $host === "" || $host === "localhost") {
-				$dbName = "./data/$dbName";
+				$dbName = "./data/{$dbName}";
 			} else {
-				$dbName = "$host/$dbName";
+				$dbName = "{$host}/{$dbName}";
 			}
 			if (!@file_exists($dbName)) {
 				try {
@@ -177,7 +170,7 @@ class DB {
 			$this->capsule->addConnection([
 				'driver' => 'sqlite',
 				'database' => $dbName,
-				'prefix' => ''
+				'prefix' => '',
 			]);
 			$this->sql = $this->capsule->getConnection()->getPdo();
 			$this->maxPlaceholders = 999;
@@ -198,7 +191,7 @@ class DB {
 			$this->sqlCreateReplacements[" INT "] = " INTEGER ";
 			$this->sqlCreateReplacements[" INT,"] = " INTEGER,";
 			// SQLite 3.37.0 adds strict tables. These do actual type checking
-			$strictGrammar = new class extends \Illuminate\Database\Schema\Grammars\SQLiteGrammar {
+			$strictGrammar = new class () extends \Illuminate\Database\Schema\Grammars\SQLiteGrammar {
 				public function compileCreate(\Illuminate\Database\Schema\Blueprint $blueprint, \Illuminate\Support\Fluent $command) {
 					return parent::compileCreate($blueprint, $command) . ' strict';
 				}
@@ -229,7 +222,7 @@ class DB {
 			};
 			// Querying non-existing columns throws no error when escaped with ",
 			// so we switch to ` instead, which brings back errors
-			$strictQuery = new class extends \Illuminate\Database\Query\Grammars\SQLiteGrammar {
+			$strictQuery = new class () extends \Illuminate\Database\Query\Grammars\SQLiteGrammar {
 				protected function wrapValue($value) {
 					return $value === '*' ? $value : '`' . str_replace('`', '``', $value) . '`';
 				}
@@ -251,7 +244,7 @@ class DB {
 						'password' => $pass,
 						'charset' => 'utf8',
 						'collation' => 'utf8_unicode_ci',
-						'prefix' => ''
+						'prefix' => '',
 					]);
 					$this->sql = $this->capsule->getConnection()->getPdo();
 				} catch (PDOException $e) {
@@ -282,7 +275,7 @@ class DB {
 						'password' => $pass,
 						'charset' => 'utf8',
 						'collation' => 'utf8_unicode_ci',
-						'prefix' => ''
+						'prefix' => '',
 					]);
 					$this->sql = $this->capsule->getConnection()->getPdo();
 				} catch (PDOException $e) {
@@ -303,34 +296,30 @@ class DB {
 				$this->logger->notice("Database connection re-established");
 			}
 		} else {
-			throw new Exception("Invalid database type: '$type'.  Expecting '" . self::MYSQL . "', '". self::POSTGRESQL . "' or '" . self::SQLITE . "'.");
+			throw new Exception("Invalid database type: '{$type}'.  Expecting '" . self::MYSQL . "', '". self::POSTGRESQL . "' or '" . self::SQLITE . "'.");
 		}
 		$this->capsule->setAsGlobal();
 		$this->capsule->setFetchMode(PDO::FETCH_CLASS);
 		$this->capsule->getConnection()->beforeExecuting(
-			function(string $query, array $bindings, Connection $connection): void {
+			function (string $query, array $bindings, Connection $connection): void {
 				$this->logger->debug(
 					$query,
 					[
 						"params" => $bindings,
 						"driver" => $this->sql->getAttribute(PDO::ATTR_DRIVER_NAME),
-						"version" => $this->sql->getAttribute(PDO::ATTR_SERVER_VERSION)
+						"version" => $this->sql->getAttribute(PDO::ATTR_SERVER_VERSION),
 					]
 				);
 			}
 		);
 	}
 
-	/**
-	 * Get the configured database type
-	 */
+	/** Get the configured database type */
 	public function getType(): string {
 		return $this->type;
 	}
 
-	/**
-	 * Change the SQL to work in a variety of MySQL/SQLite versions
-	 */
+	/** Change the SQL to work in a variety of MySQL/SQLite versions */
 	public function applySQLCompatFixes(string $sql): string {
 		if (!empty($this->sqlReplacements)) {
 			$search = array_keys($this->sqlReplacements);
@@ -343,9 +332,7 @@ class DB {
 		return $sql;
 	}
 
-	/**
-	 * Start a transaction
-	 */
+	/** Start a transaction */
 	public function beginTransaction(): void {
 		$this->logger->info("Starting transaction");
 		$this->sql->beginTransaction();
@@ -357,7 +344,7 @@ class DB {
 	 * @return Promise<void>
 	 */
 	public function awaitBeginTransaction(): Promise {
-		return call(function(): Generator {
+		return call(function (): Generator {
 			while ($this->inTransaction()) {
 				yield delay(100);
 			}
@@ -365,9 +352,7 @@ class DB {
 		});
 	}
 
-	/**
-	 * Commit a transaction
-	 */
+	/** Commit a transaction */
 	public function commit(): void {
 		$this->logger->info("Committing transaction");
 		try {
@@ -377,24 +362,18 @@ class DB {
 		}
 	}
 
-	/**
-	 * Roll back a transaction
-	 */
+	/** Roll back a transaction */
 	public function rollback(): void {
 		$this->logger->info("Rolling back transaction");
 		$this->sql->rollback();
 	}
 
-	/**
-	 * Check if we're currently in a transaction
-	 */
+	/** Check if we're currently in a transaction */
 	public function inTransaction(): bool {
 		return $this->sql->inTransaction();
 	}
 
-	/**
-	 * Format SQL code by replacing placeholders like <myname>
-	 */
+	/** Format SQL code by replacing placeholders like <myname> */
 	public function formatSql(string $sql): string {
 		$sql = preg_replace_callback(
 			"/<table:(.+?)>/",
@@ -408,9 +387,7 @@ class DB {
 		return $sql;
 	}
 
-	/**
-	 * Insert a DBRow $row into the database table $table
-	 */
+	/** Insert a DBRow $row into the database table $table */
 	public function insert(string $table, DBRow $row, ?string $sequence=""): int {
 		$refClass = new ReflectionClass($row);
 		$props = $refClass->getProperties(ReflectionProperty::IS_PUBLIC);
@@ -441,9 +418,10 @@ class DB {
 	/**
 	 * Update a DBRow $row in the database table $table, using property $key in the where
 	 *
-	 * @param string $table Name of the database table
-	 * @param string|string[] $key Name of the primary key or array of the primary keys
-	 * @param DBRow $row The data to update
+	 * @param string          $table Name of the database table
+	 * @param string|string[] $key   Name of the primary key or array of the primary keys
+	 * @param DBRow           $row   The data to update
+	 *
 	 * @return int Number of updates records
 	 */
 	public function update(string $table, string|array $key, DBRow $row): int {
@@ -478,9 +456,7 @@ class DB {
 		$this->tableNames[$key] = $table;
 	}
 
-	/**
-	 * Get a schema builder instance.
-	 */
+	/** Get a schema builder instance. */
 	public function schema(?string $connection=null): SchemaBuilder {
 		$schema = $this->capsule->schema($connection);
 		$builder = new SchemaBuilder($schema);
@@ -494,8 +470,6 @@ class DB {
 	 * Get a fluent query builder instance.
 	 *
 	 * @param \Closure|\Illuminate\Database\Query\Builder|string $table
-	 * @param string|null $as
-	 * @param string|null $connection
 	 */
 	public function table($table, ?string $as=null, ?string $connection=null): QueryBuilder {
 		if (is_string($table)) {
@@ -515,9 +489,7 @@ class DB {
 	/**
 	 * Makes "from" fetch from a subquery.
 	 *
-	 * @param  \Closure|\Illuminate\Database\Query\Builder|string  $query
-	 * @param  string  $as
-	 * @return QueryBuilder
+	 * @param \Closure|\Illuminate\Database\Query\Builder|string $query
 	 */
 	public function fromSub($query, string $as): QueryBuilder {
 		$query = $this->capsule->getConnection()->query()->fromSub($query, $as);
@@ -541,72 +513,18 @@ class DB {
 		return $this->runMigrations(...$migrations->toArray());
 	}
 
-	/** @return Collection<CoreMigration> */
-	private function getMigrationFiles(object $instance): Collection {
-		$migrations = new Collection();
-		$ref = new ReflectionClass($instance);
-		$attrs = $ref->getAttributes(NCA\HasMigrations::class);
-		if (empty($attrs)) {
-			return $migrations;
-		}
-		/** @var ?NCA\HasMigrations */
-		$migDir = $attrs[0]->newInstance();
-		if (!isset($migDir)) {
-			return new Collection();
-		}
-		$migDir->module ??= is_subclass_of($instance, ModuleInstanceInterface::class) ? $instance->getModuleName() : null;
-		if (!isset($migDir->module)) {
-			return new Collection();
-		}
-		$fullFile = $ref->getFileName();
-		if (!is_string($fullFile)) {
-			return new Collection();
-		}
-		$fullDir = dirname($fullFile) . "/" . $migDir->dir;
-		$iter = new GlobIterator("{$fullDir}/*.php");
-		foreach ($iter as $file) {
-			if (is_string($file)) {
-				continue;
-			}
-			if (!preg_match("/^(\d+)/", $file->getFilename(), $m1)) {
-				continue;
-			}
-			$migrations->push(new CoreMigration(
-				filePath: $file->getPathname(),
-				baseName: $file->getBasename(".php"),
-				timeStr: $m1[1],
-				module: $migDir->module,
-			));
-		}
-		return $migrations;
-	}
-
-
 	public function createMigrationTables(): void {
 		foreach (["migrations", "migrations_<myname>"] as $table) {
 			if ($this->schema()->hasTable($table)) {
 				continue;
 			}
-			$this->schema()->create($table, function(Blueprint $table): void {
+			$this->schema()->create($table, function (Blueprint $table): void {
 				$table->id();
 				$table->string('module');
 				$table->string('migration');
 				$table->integer('applied_at');
 			});
 		}
-	}
-
-	/**
-	 * Get a list of all DB migrations that were already applied in $module
-	 * @return Collection<Migration>
-	 */
-	protected function getAppliedMigrations(string $module): Collection {
-		$ownQuery = $this->table('migrations_<myname>')
-			->where('module', $module);
-		$sharedQuery = $this->table('migrations')
-				->where('module', $module);
-		return $ownQuery->union($sharedQuery)
-			->orderBy('migration')->asObj(Migration::class);
 	}
 
 	/** Check if a specific migration has already been applied */
@@ -661,76 +579,19 @@ class DB {
 			}
 			$end = microtime(true);
 			$this->logger->notice("All migrations applied successfully in {timeMS}ms", [
-				"timeMS" => number_format(($end - $start) * 1000, 2)
+				"timeMS" => number_format(($end - $start) * 1000, 2),
 			]);
 		});
 	}
 
 	/**
-	 * @param Collection<CoreMigration> $migrations
-	 * @return Collection<CoreMigration>
-	 */
-	private function filterAppliedMigrations(string $module, Collection $migrations): Collection {
-		$applied = $this->getAppliedMigrations($module);
-		return $migrations->filter(function (CoreMigration $m) use ($applied): bool {
-			return !$applied->contains("migration", $m->baseName);
-		});
-	}
-
-	/** @return Promise<void> */
-	private function applyMigration(string $module, string $file): Promise {
-		return call(function () use ($module, $file): Generator {
-			$baseName = basename($file, '.php');
-			$old = get_declared_classes();
-			try {
-				require_once $file;
-			} catch (Throwable $e) {
-				$this->logger->error("Cannot parse $file: " . $e->getMessage(), ["exception" => $e]);
-				return;
-			}
-			$new = array_diff(get_declared_classes(), $old);
-			$table = $this->formatSql(
-				preg_match("/\.shared/", $baseName) ? "migrations" : "migrations_<myname>"
-			);
-			foreach ($new as $class) {
-				if (!is_subclass_of($class, SchemaMigration::class)) {
-					continue;
-				}
-				$obj = new $class();
-				Registry::injectDependencies($obj);
-				try {
-					$this->logger->info("Running migration {$class}");
-					$result = $obj->migrate($this->logger, $this);
-					if ($result instanceof Promise) {
-						yield $result;
-					} elseif ($result instanceof Generator) {
-						yield from $result;
-					}
-				} catch (Throwable $e) {
-					if (isset(BotRunner::$arguments["migration-errors-fatal"])) {
-						throw $e;
-					}
-					$this->logger->error(
-						"Error executing {$class}::migrate(): ".
-							$e->getMessage(),
-						["exception" => $e]
-					);
-					continue;
-				}
-				$this->table($table)->insert([
-					'module' => $module,
-					'migration' => $baseName,
-					'applied_at' => time(),
-				]);
-			}
-		});
-	}
-
-	/**
 	 * Load a CSV file $file into table $table
+	 *
 	 * @param string $module The module to which this file belongs
-	 * @param string $file The full path to the CSV file
+	 * @param string $file   The full path to the CSV file
+	 *
 	 * @return bool true if inserted, false if already up-to-date
+	 *
 	 * @throws Exception
 	 */
 	public function loadCSVFile(string $module, string $file): bool {
@@ -790,7 +651,7 @@ class DB {
 		);
 
 		if ($this->table($table)->exists() && $this->util->compareVersionNumbers((string)$version, (string)$currentVersion) <= 0) {
-			$msg = "'{$table}' database already up to date! version: '$currentVersion'";
+			$msg = "'{$table}' database already up to date! version: '{$currentVersion}'";
 			$this->logger->info($msg);
 			return false;
 		}
@@ -835,8 +696,7 @@ class DB {
 	 * Generate an SQL query from a column and a list of criteria
 	 *
 	 * @param string[] $params An array of strings that $column must contain (or not contain if they start with "-")
-	 * @param string $column The table column to test against
-	 * @return void
+	 * @param string   $column The table column to test against
 	 */
 	public function addWhereFromParams(QueryBuilder $query, array $params, string $column, string $boolean='and'): void {
 		$closure = function (QueryBuilder $query) use ($params, $column): void {
@@ -854,5 +714,121 @@ class DB {
 			}
 		};
 		$query->where($closure, null, null, $boolean);
+	}
+
+	/**
+	 * Get a list of all DB migrations that were already applied in $module
+	 *
+	 * @return Collection<Migration>
+	 */
+	protected function getAppliedMigrations(string $module): Collection {
+		$ownQuery = $this->table('migrations_<myname>')
+			->where('module', $module);
+		$sharedQuery = $this->table('migrations')
+				->where('module', $module);
+		return $ownQuery->union($sharedQuery)
+			->orderBy('migration')->asObj(Migration::class);
+	}
+
+	/** @return Collection<CoreMigration> */
+	private function getMigrationFiles(object $instance): Collection {
+		$migrations = new Collection();
+		$ref = new ReflectionClass($instance);
+		$attrs = $ref->getAttributes(NCA\HasMigrations::class);
+		if (empty($attrs)) {
+			return $migrations;
+		}
+
+		/** @var ?NCA\HasMigrations */
+		$migDir = $attrs[0]->newInstance();
+		if (!isset($migDir)) {
+			return new Collection();
+		}
+		$migDir->module ??= is_subclass_of($instance, ModuleInstanceInterface::class) ? $instance->getModuleName() : null;
+		if (!isset($migDir->module)) {
+			return new Collection();
+		}
+		$fullFile = $ref->getFileName();
+		if (!is_string($fullFile)) {
+			return new Collection();
+		}
+		$fullDir = dirname($fullFile) . "/" . $migDir->dir;
+		$iter = new GlobIterator("{$fullDir}/*.php");
+		foreach ($iter as $file) {
+			if (is_string($file)) {
+				continue;
+			}
+			if (!preg_match("/^(\d+)/", $file->getFilename(), $m1)) {
+				continue;
+			}
+			$migrations->push(new CoreMigration(
+				filePath: $file->getPathname(),
+				baseName: $file->getBasename(".php"),
+				timeStr: $m1[1],
+				module: $migDir->module,
+			));
+		}
+		return $migrations;
+	}
+
+	/**
+	 * @param Collection<CoreMigration> $migrations
+	 *
+	 * @return Collection<CoreMigration>
+	 */
+	private function filterAppliedMigrations(string $module, Collection $migrations): Collection {
+		$applied = $this->getAppliedMigrations($module);
+		return $migrations->filter(function (CoreMigration $m) use ($applied): bool {
+			return !$applied->contains("migration", $m->baseName);
+		});
+	}
+
+	/** @return Promise<void> */
+	private function applyMigration(string $module, string $file): Promise {
+		return call(function () use ($module, $file): Generator {
+			$baseName = basename($file, '.php');
+			$old = get_declared_classes();
+			try {
+				require_once $file;
+			} catch (Throwable $e) {
+				$this->logger->error("Cannot parse {$file}: " . $e->getMessage(), ["exception" => $e]);
+				return;
+			}
+			$new = array_diff(get_declared_classes(), $old);
+			$table = $this->formatSql(
+				preg_match("/\.shared/", $baseName) ? "migrations" : "migrations_<myname>"
+			);
+			foreach ($new as $class) {
+				if (!is_subclass_of($class, SchemaMigration::class)) {
+					continue;
+				}
+				$obj = new $class();
+				Registry::injectDependencies($obj);
+				try {
+					$this->logger->info("Running migration {$class}");
+					$result = $obj->migrate($this->logger, $this);
+					if ($result instanceof Promise) {
+						yield $result;
+					} elseif ($result instanceof Generator) {
+						yield from $result;
+					}
+				} catch (Throwable $e) {
+					if (isset(BotRunner::$arguments["migration-errors-fatal"])) {
+						throw $e;
+					}
+					$this->logger->error(
+						"Error executing {$class}::migrate(): ".
+							$e->getMessage(),
+						["exception" => $e]
+					);
+					continue;
+				}
+				$this->table($table)->insert([
+					'module' => $module,
+					'migration' => $baseName,
+					'applied_at' => time(),
+				]);
+			}
+		});
 	}
 }

@@ -30,22 +30,22 @@ class AXPController extends ModuleInstance {
 	 * @phpstan-var array{0:int, 1:int, 2:string}[]
 	 */
 	private array $aiRanks = [
-		[    1_500,   5, "Fledgling"],
-		[    9_000,  15, "Amateur"],
-		[   22_500,  25, "Beginner"],
-		[   42_000,  35, "Starter"],
-		[   67_500,  45, "Newcomer"],
-		[   99_000,  55, "Student"],
-		[  136_500,  65, "Common"],
-		[  180_000,  75, "Intermediate"],
-		[  229_500,  85, "Mediocre"],
-		[  285_000,  95, "Fair"],
-		[  346_500, 105, "Able"],
-		[  414_000, 110, "Accomplished"],
-		[  487_500, 115, "Adept"],
-		[  567_000, 120, "Qualified"],
-		[  697_410, 125, "Competent"],
-		[  857_814, 130, "Suited"],
+		[1_500,   5, "Fledgling"],
+		[9_000,  15, "Amateur"],
+		[22_500,  25, "Beginner"],
+		[42_000,  35, "Starter"],
+		[67_500,  45, "Newcomer"],
+		[99_000,  55, "Student"],
+		[136_500,  65, "Common"],
+		[180_000,  75, "Intermediate"],
+		[229_500,  85, "Mediocre"],
+		[285_000,  95, "Fair"],
+		[346_500, 105, "Able"],
+		[414_000, 110, "Accomplished"],
+		[487_500, 115, "Adept"],
+		[567_000, 120, "Qualified"],
+		[697_410, 125, "Competent"],
+		[857_814, 130, "Suited"],
 		[1_055_112, 135, "Talented"],
 		[1_297_787, 140, "Trustworthy"],
 		[1_596_278, 145, "Supporter"],
@@ -114,7 +114,7 @@ class AXPController extends ModuleInstance {
 			$axp_comp += $this->aiRanks[$i][0];
 		}
 
-		$msg = "From the beginning of AI level <highlight>$startLevel<end> you need <highlight>".number_format($axp_comp)."<end> AXP to reach AI level <highlight>$endLevel<end>.";
+		$msg = "From the beginning of AI level <highlight>{$startLevel}<end> you need <highlight>".number_format($axp_comp)."<end> AXP to reach AI level <highlight>{$endLevel}<end>.";
 
 		$context->reply($msg);
 	}

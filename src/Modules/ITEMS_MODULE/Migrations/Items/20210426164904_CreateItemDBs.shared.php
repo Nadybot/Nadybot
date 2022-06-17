@@ -3,14 +3,12 @@
 namespace Nadybot\Modules\ITEMS_MODULE\Migrations\Items;
 
 use Illuminate\Database\Schema\Blueprint;
-use Nadybot\Core\DB;
-use Nadybot\Core\LoggerWrapper;
-use Nadybot\Core\SchemaMigration;
+use Nadybot\Core\{DB, LoggerWrapper, SchemaMigration};
 
 class CreateItemDBs implements SchemaMigration {
 	public function migrate(LoggerWrapper $logger, DB $db): void {
 		$db->schema()->dropIfExists("aodb");
-		$db->schema()->create("aodb", function(Blueprint $table): void {
+		$db->schema()->create("aodb", function (Blueprint $table): void {
 			$table->integer("lowid")->nullable()->index();
 			$table->integer("highid")->nullable()->index();
 			$table->integer("lowql")->nullable()->index();
@@ -23,14 +21,14 @@ class CreateItemDBs implements SchemaMigration {
 		});
 
 		$db->schema()->dropIfExists("item_groups");
-		$db->schema()->create("item_groups", function(Blueprint $table): void {
+		$db->schema()->create("item_groups", function (Blueprint $table): void {
 			$table->integer("id")->primary();
 			$table->integer("group_id")->index();
 			$table->integer("item_id")->index();
 		});
 
 		$db->schema()->dropIfExists("item_group_names");
-		$db->schema()->create("item_group_names", function(Blueprint $table): void {
+		$db->schema()->create("item_group_names", function (Blueprint $table): void {
 			$table->integer("group_id")->primary();
 			$table->string("name", 150);
 		});

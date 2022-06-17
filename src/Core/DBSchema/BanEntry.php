@@ -2,8 +2,7 @@
 
 namespace Nadybot\Core\DBSchema;
 
-use Nadybot\Core\Attributes as NCA;
-use Nadybot\Core\DBRow;
+use Nadybot\Core\{Attributes as NCA, DBRow};
 
 class BanEntry extends DBRow {
 	/** uid of the banned person */

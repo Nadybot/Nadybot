@@ -2,8 +2,7 @@
 
 namespace Nadybot\Core\ParamClass;
 
-use Nadybot\Core\Registry;
-use Nadybot\Core\Util;
+use Nadybot\Core\{Registry, Util};
 
 class PDuration extends Base {
 	protected static string $regExp = "(?:(?:,?\s*\d+(?:yr?|years?|m|months?|w|weeks?|d|days?|h|hrs?|hours?|m|mins?|s|secs?))+|[1-9]\d*)";
@@ -11,6 +10,14 @@ class PDuration extends Base {
 
 	public function __construct(string $value) {
 		$this->value = $value;
+	}
+
+	public function __invoke(): string {
+		return $this->value;
+	}
+
+	public function __toString(): string {
+		return $this->value;
 	}
 
 	public function toSecs(): int {
@@ -22,13 +29,5 @@ class PDuration extends Base {
 			return $util->parseTime($this->value);
 		}
 		return 0;
-	}
-
-	public function __invoke(): string {
-		return $this->value;
-	}
-
-	public function __toString(): string {
-		return $this->value;
 	}
 }

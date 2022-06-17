@@ -7,9 +7,9 @@ use function Amp\call;
 use Amp\Promise;
 use Generator;
 use Nadybot\Core\{
+	AOChatEvent,
 	AccessLevelProvider,
 	AccessManager,
-	AOChatEvent,
 	Attributes as NCA,
 	CmdContext,
 	EventManager,
@@ -62,9 +62,7 @@ class ChatLeaderController extends ModuleInstance implements AccessLevelProvider
 	#[NCA\Setting\Color]
 	public string $leaderechoColor = "#FFFF00";
 
-	/**
-	 * Name of the leader character.
-	 */
+	/** Name of the leader character. */
 	private ?string $leader = null;
 
 	#[NCA\Setup]
@@ -92,6 +90,7 @@ class ChatLeaderController extends ModuleInstance implements AccessLevelProvider
 			$this->eventManager->fireEvent($event);
 			return;
 		}
+
 		/** @var ?string */
 		$msg = yield $this->setLeader($context->char->name, $context->char->name);
 		if ($msg !== null) {
@@ -189,28 +188,6 @@ class ChatLeaderController extends ModuleInstance implements AccessLevelProvider
 		$this->chatBot->sendPrivate($msg);
 	}
 
-	/**
-	 * Returns echo's status message based on 'leaderecho' setting.
-	 */
-	private function getEchoStatusText(): string {
-		if ($this->leaderecho) {
-			$status = "<on>Enabled<end>";
-		} else {
-			$status = "<off>Disabled<end>";
-		}
-		return $status;
-	}
-
-	/**
-	 * Returns current leader and echo's current status.
-	 */
-	private function getLeaderStatusText(): string {
-		$cmd = $this->leaderecho ? "off": "on";
-		$status = $this->getEchoStatusText();
-		$msg = "{$this->leader} is now Raid Leader. Leader echo is currently {$status}. You can change it with <symbol>leaderecho {$cmd}";
-		return $msg;
-	}
-
 	public function getLeader(): ?string {
 		return $this->leader;
 	}
@@ -224,5 +201,23 @@ class ChatLeaderController extends ModuleInstance implements AccessLevelProvider
 			return true;
 		}
 		return false;
+	}
+
+	/** Returns echo's status message based on 'leaderecho' setting. */
+	private function getEchoStatusText(): string {
+		if ($this->leaderecho) {
+			$status = "<on>Enabled<end>";
+		} else {
+			$status = "<off>Disabled<end>";
+		}
+		return $status;
+	}
+
+	/** Returns current leader and echo's current status. */
+	private function getLeaderStatusText(): string {
+		$cmd = $this->leaderecho ? "off" : "on";
+		$status = $this->getEchoStatusText();
+		$msg = "{$this->leader} is now Raid Leader. Leader echo is currently {$status}. You can change it with <symbol>leaderecho {$cmd}";
+		return $msg;
 	}
 }

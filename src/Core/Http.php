@@ -34,7 +34,7 @@ class Http {
 	public function get(string $uri): AsyncHttp {
 		$asyncHttp = new AsyncHttp('get', $uri);
 		Registry::injectDependencies($asyncHttp);
-		Loop::defer(fn() => $asyncHttp->execute());
+		Loop::defer(fn () => $asyncHttp->execute());
 		return $asyncHttp;
 	}
 
@@ -47,7 +47,7 @@ class Http {
 	public function post(string $uri): AsyncHttp {
 		$asyncHttp = new AsyncHttp('post', $uri);
 		Registry::injectDependencies($asyncHttp);
-		Loop::defer(fn() => $asyncHttp->execute());
+		Loop::defer(fn () => $asyncHttp->execute());
 		return $asyncHttp;
 	}
 
@@ -60,7 +60,7 @@ class Http {
 	public function patch(string $uri): AsyncHttp {
 		$asyncHttp = new AsyncHttp('patch', $uri);
 		Registry::injectDependencies($asyncHttp);
-		Loop::defer(fn() => $asyncHttp->execute());
+		Loop::defer(fn () => $asyncHttp->execute());
 		return $asyncHttp;
 	}
 
@@ -73,7 +73,7 @@ class Http {
 	public function put(string $uri): AsyncHttp {
 		$asyncHttp = new AsyncHttp('put', $uri);
 		Registry::injectDependencies($asyncHttp);
-		Loop::defer(fn() => $asyncHttp->execute());
+		Loop::defer(fn () => $asyncHttp->execute());
 		return $asyncHttp;
 	}
 
@@ -86,7 +86,7 @@ class Http {
 	public function delete(string $uri): AsyncHttp {
 		$asyncHttp = new AsyncHttp('delete', $uri);
 		Registry::injectDependencies($asyncHttp);
-		Loop::defer(fn() => $asyncHttp->execute());
+		Loop::defer(fn () => $asyncHttp->execute());
 		return $asyncHttp;
 	}
 }

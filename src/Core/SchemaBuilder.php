@@ -11,18 +11,18 @@ use Illuminate\Database\Schema\Builder;
  * This is needed, so we can handle Nadybot's special <myname> table names
  * without too much hassle.
  *
- * @method bool createDatabase(string $name) Create a database in the schema.
- * @method bool dropDatabaseIfExists(string $name) Drop a database from the schema if the database exists.
- * @method void dropAllTables() Drop all tables from the database.
- * @method void dropAllViews() Drop all views from the database.
- * @method void dropAllTypes() Drop all types from the database.
- * @method array getAllTables() Get all of the table names for the database.
- * @method void rename(string $from, string $to) Rename a table on the schema.
- * @method bool enableForeignKeyConstraints() Enable foreign key constraints.
- * @method bool disableForeignKeyConstraints() Disable foreign key constraints.
- * @method \Illuminate\Database\Connection getConnection() Get the database connection instance.
- * @method $this setConnection(\Illuminate\Database\Connection $connection) Set the database connection instance.
- * @method void blueprintResolver(\Closure $resolver) Set the Schema Blueprint resolver callback.
+ * @method bool                            createDatabase(string $name)                               Create a database in the schema.
+ * @method bool                            dropDatabaseIfExists(string $name)                         Drop a database from the schema if the database exists.
+ * @method void                            dropAllTables()                                            Drop all tables from the database.
+ * @method void                            dropAllViews()                                             Drop all views from the database.
+ * @method void                            dropAllTypes()                                             Drop all types from the database.
+ * @method array                           getAllTables()                                             Get all of the table names for the database.
+ * @method void                            rename(string $from, string $to)                           Rename a table on the schema.
+ * @method bool                            enableForeignKeyConstraints()                              Enable foreign key constraints.
+ * @method bool                            disableForeignKeyConstraints()                             Disable foreign key constraints.
+ * @method \Illuminate\Database\Connection getConnection()                                            Get the database connection instance.
+ * @method $this                           setConnection(\Illuminate\Database\Connection $connection) Set the database connection instance.
+ * @method void                            blueprintResolver(\Closure $resolver)                      Set the Schema Blueprint resolver callback.
  */
 class SchemaBuilder {
 	public DB $nadyDB;
@@ -31,6 +31,11 @@ class SchemaBuilder {
 
 	public function __construct(Builder $builder) {
 		$this->builder = $builder;
+	}
+
+	/** @param mixed[] $arguments */
+	public function __call(string $name, array $arguments): mixed {
+		return $this->builder->{$name}(...$arguments);
 	}
 
 	/** Create a database in the schema.  */
@@ -71,6 +76,7 @@ class SchemaBuilder {
 
 	/**
 	 * Determine if the given table has given columns.
+	 *
 	 * @param string[] $columns
 	 */
 	public function hasColumns(string $table, array $columns): bool {
@@ -81,7 +87,6 @@ class SchemaBuilder {
 	/**
 	 * Drop columns from a table schema.
 	 *
-	 * @param string $table
 	 * @param string|string[] $columns
 	 */
 	public function dropColumns(string $table, mixed $columns): void {
@@ -91,6 +96,7 @@ class SchemaBuilder {
 
 	/**
 	 * Get the column listing for a given table.
+	 *
 	 * @return string[]
 	 */
 	public function getColumnListing(string $table): array {
@@ -102,12 +108,5 @@ class SchemaBuilder {
 	public function getColumnType(string $table, string $column): string {
 		$table = $this->nadyDB->formatSql($table);
 		return $this->builder->getColumnType($table, $column);
-	}
-
-	/**
-	 * @param mixed[] $arguments
-	 */
-	public function __call(string $name, array $arguments): mixed {
-		return $this->builder->$name(...$arguments);
 	}
 }

@@ -3,12 +3,12 @@
 namespace Nadybot\Core\Modules\CONSOLE;
 
 use Amp\Socket\ResourceSocket;
-use Throwable;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CommandReply,
 	ConfigFile,
 };
+use Throwable;
 
 class SocketCommandReply implements CommandReply {
 	#[NCA\Inject]
@@ -41,12 +41,12 @@ class SocketCommandReply implements CommandReply {
 			"</i>" => "",
 			"<br>" => "\n",
 			"<br/>" => "\n",
-			"<br />" => "\n"
+			"<br />" => "\n",
 		];
 
 		$message = preg_replace_callback(
 			"/<black>(.*?)<end>/",
-			function(array $matches): string {
+			function (array $matches): string {
 				if (function_exists('mb_strlen')) {
 					return str_repeat(" ", mb_strlen($matches[1]));
 				}

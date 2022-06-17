@@ -3,9 +3,7 @@
 namespace Nadybot\Modules\TRACKER_MODULE\Migrations;
 
 use Illuminate\Database\Schema\Blueprint;
-use Nadybot\Core\DB;
-use Nadybot\Core\LoggerWrapper;
-use Nadybot\Core\SchemaMigration;
+use Nadybot\Core\{DB, LoggerWrapper, SchemaMigration};
 use Nadybot\Modules\TRACKER_MODULE\TrackerController;
 
 class CreateTrackedUsersTable implements SchemaMigration {
@@ -14,7 +12,7 @@ class CreateTrackedUsersTable implements SchemaMigration {
 		if ($db->schema()->hasTable($table)) {
 			return;
 		}
-		$db->schema()->create($table, function(Blueprint $table): void {
+		$db->schema()->create($table, function (Blueprint $table): void {
 			$table->bigInteger("uid")->primary();
 			$table->string("name", 25);
 			$table->string("added_by", 25);

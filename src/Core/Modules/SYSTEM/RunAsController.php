@@ -4,8 +4,8 @@ namespace Nadybot\Core\Modules\SYSTEM;
 
 use Generator;
 use Nadybot\Core\{
-	Attributes as NCA,
 	AccessManager,
+	Attributes as NCA,
 	CmdContext,
 	CommandManager,
 	ModuleInstance,
@@ -47,7 +47,7 @@ class RunAsController extends ModuleInstance {
 		if (!$this->accessManager->checkAccess($context->char->name, "superadmin")
 			&& $this->accessManager->compareCharacterAccessLevels($context->char->name, $character()) <= 0
 		) {
-			$context->reply("Error! Access level not sufficient to run commands as <highlight>$character<end>.");
+			$context->reply("Error! Access level not sufficient to run commands as <highlight>{$character}<end>.");
 			return;
 		}
 		$context->char = new Character($character(), $uid);

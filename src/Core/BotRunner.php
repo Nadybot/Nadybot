@@ -2,47 +2,35 @@
 
 namespace Nadybot\Core;
 
-use Amp\File\Driver\EioDriver;
-use Amp\File\Driver\ParallelDriver;
+use const Amp\File\LOOP_STATE_IDENTIFIER;
+use function Amp\File\createDefaultDriver;
+use function Safe\json_encode;
+use Amp\File\Driver\{EioDriver, ParallelDriver};
 use Amp\File\Filesystem;
 use Amp\Http\Client\HttpClientBuilder;
 use Amp\Http\Client\Interceptor\SetRequestHeaderIfUnset;
-use Amp\Loop;
-use Amp\Promise;
+use Amp\{Loop, Promise};
 use Closure;
 use ErrorException;
 use Exception;
 use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\Modules\SETUP\Setup;
+
 use ReflectionAttribute;
+
 use ReflectionObject;
 use Throwable;
 
-use const Amp\File\LOOP_STATE_IDENTIFIER;
-
-use function Amp\File\createDefaultDriver;
-use function Safe\json_encode;
-
 class BotRunner {
-	/**
-	 * Nadybot's current version
-	 */
+	/** Nadybot's current version */
 	public const VERSION = "6.0.5";
 
 	/**
-	 * The command line arguments
-	 *
-	 * @var string[] $argv
-	 */
-	private array $argv = [];
-
-	/**
 	 * The parsed command line arguments
+	 *
 	 * @var array<string,mixed>
 	 */
 	public static array $arguments = [];
-
-	private ?ConfigFile $configFile;
 
 	public ClassLoader $classLoader;
 
@@ -53,7 +41,17 @@ class BotRunner {
 	protected LoggerWrapper $logger;
 
 	/**
+	 * The command line arguments
+	 *
+	 * @var string[]
+	 */
+	private array $argv = [];
+
+	private ?ConfigFile $configFile;
+
+	/**
 	 * Create a new instance
+	 *
 	 * @param string[] $argv
 	 */
 	public function __construct(array $argv) {
@@ -77,7 +75,7 @@ class BotRunner {
 
 	/** Get the base directory of the bot */
 	public static function getBasedir(): string {
-		return \Safe\realpath(dirname(dirname(__DIR__)));
+		return \Safe\realpath(dirname(__DIR__, 2));
 	}
 
 	/**
@@ -90,7 +88,7 @@ class BotRunner {
 		if (!@file_exists("{$baseDir}/.git")) {
 			return static::VERSION;
 		}
-		set_error_handler(function(int $num, string $str, string $file, int $line): void {
+		set_error_handler(function (int $num, string $str, string $file, int $line): void {
 			throw new ErrorException($str, 0, $num, $file, $line);
 		});
 		try {
@@ -130,7 +128,7 @@ class BotRunner {
 			return null;
 		}
 		\Safe\fclose($pipes[0]);
-		$gitDescribe = trim(\Safe\stream_get_contents($pipes[1])?:"");
+		$gitDescribe = trim(\Safe\stream_get_contents($pipes[1]) ?: "");
 		\Safe\fclose($pipes[1]);
 		\Safe\fclose($pipes[2]);
 		proc_close($pid);
@@ -154,21 +152,22 @@ class BotRunner {
 			return static::$latestTag = null;
 		}
 		\Safe\fclose($pipes[0]);
-		$tags = explode("\n", trim(\Safe\stream_get_contents($pipes[1])?:""));
+		$tags = explode("\n", trim(\Safe\stream_get_contents($pipes[1]) ?: ""));
 		\Safe\fclose($pipes[1]);
 		\Safe\fclose($pipes[2]);
 		proc_close($pid);
 
 		$tags = array_map(
-			function(string $tag): SemanticVersion {
+			function (string $tag): SemanticVersion {
 				return new SemanticVersion($tag);
 			},
 			$tags
 		);
-		/** @var SemanticVersion[] $tags*/
+
+		/** @var SemanticVersion[] $tags */
 		usort(
 			$tags,
-			function(SemanticVersion $v1, SemanticVersion $v2): int {
+			function (SemanticVersion $v1, SemanticVersion $v2): int {
 				return $v1->cmp($v2);
 			}
 		);
@@ -231,86 +230,7 @@ class BotRunner {
 		exit(1);
 	}
 
-	/** Install a signal handler that will immediately terminate the bot when ctrl+c is pressed */
-	protected function installCtrlCHandler(): Closure {
-		$signalHandler = function (int $sigNo): void {
-			$this->logger->notice('Shutdown requested.');
-			exit;
-		};
-		if (function_exists('sapi_windows_set_ctrl_handler')) {
-			\Safe\sapi_windows_set_ctrl_handler($signalHandler, true);
-		} elseif (function_exists('pcntl_signal')) {
-			\Safe\pcntl_signal(SIGINT, $signalHandler);
-			\Safe\pcntl_signal(SIGTERM, $signalHandler);
-			pcntl_async_signals(true);
-		} else {
-			$this->logger->error('You need to have the pcntl extension on Linux');
-			exit(1);
-		}
-		return $signalHandler;
-	}
-
-	/** Uninstall a previously installed signal handler */
-	protected function uninstallCtrlCHandler(Closure $signalHandler): void {
-		if (function_exists('sapi_windows_set_ctrl_handler')) {
-			\Safe\sapi_windows_set_ctrl_handler($signalHandler, false);
-		} elseif (function_exists('pcntl_signal')) {
-			\Safe\pcntl_signal(SIGINT, SIG_DFL);
-			\Safe\pcntl_signal(SIGTERM, SIG_DFL);
-		}
-	}
-
-	private function parseOptions(): void {
-		$options = getopt(
-			"c:v",
-			[
-				"help",
-				"migrate-only",
-				"setup-only",
-				"strict",
-				"log-config:",
-				"migration-errors-fatal",
-			],
-			$restPos
-		);
-		if ($options === false) {
-			\Safe\fwrite(STDERR, "Unable to parse arguments passed to the bot.\n");
-			\Safe\sleep(5);
-			exit(1);
-		}
-		$argv = array_slice($this->argv, $restPos);
-		static::$arguments = $options;
-		if (count($argv) > 0) {
-			static::$arguments["c"] = array_shift($argv);
-		}
-		if (isset(static::$arguments["help"])) {
-			$this->showSyntaxHelp();
-			exit(0);
-		}
-	}
-
-	private function showSyntaxHelp(): void {
-		echo(
-			"Usage: " . PHP_BINARY . " " . $_SERVER["argv"][0].
-			" [options] [-c] <config file>\n\n".
-			"positional arguments:\n".
-			"  <config file>         A Nadybot configuration file, usually conf/config.php\n".
-			"\n".
-			"options:\n".
-			"  --help                Show this help message and exit\n".
-			"  --migrate-only        Only run the database migration and then exit\n".
-			"  --setup-only          Stop the bot after the setup handlers have been called\n".
-			"  --log-config=<file>   Use an alternative config file for the logger. The default\n".
-			"                        configuration is in conf/logging.json\n".
-			"  --migration-errors-fatal\n".
-			"                        Stop the bot startup if any of the database migrations fails\n".
-			"  -v                    Enable logging INFO. Use -v -v to also log DEBUG\n"
-		);
-	}
-
-	/**
-	 * Run the bot in an endless loop
-	 */
+	/** Run the bot in an endless loop */
 	public function run(): void {
 		/** @todo Convert to AMPs sockets to be able to use Ev */
 		putenv('AMP_LOOP_DRIVER=Amp\Loop\NativeDriver');
@@ -322,7 +242,7 @@ class BotRunner {
 		Registry::setInstance("configfile", $config);
 		Registry::setInstance(
 			"HttpClientBuilder",
-			(new HttpClientBuilder)
+			(new HttpClientBuilder())
 				->intercept(new SetRequestHeaderIfUnset("User-Agent", "Nadybot ".self::getVersion()))
 		);
 		$this->checkRequiredModules();
@@ -381,7 +301,7 @@ class BotRunner {
 		$this->uninstallCtrlCHandler($signalHandler);
 		$this->prefillSettingProperties();
 
-		Loop::run(function() {
+		Loop::run(function () {
 			yield $this->runUpgradeScripts();
 		});
 		if ((static::$arguments["migrate-only"]??true) === false) {
@@ -412,6 +332,139 @@ class BotRunner {
 
 		// pass control to Nadybot class
 		$chatBot->run();
+	}
+
+	/** Utility function to check whether the bot is running Windows */
+	public static function isWindows(): bool {
+		return strtoupper(substr(PHP_OS, 0, 3)) === 'WIN';
+	}
+
+	public function getConfigFile(): ConfigFile {
+		if (isset($this->configFile)) {
+			return $this->configFile;
+		}
+		$configFilePath = static::$arguments["c"] ?? "conf/config.php";
+		return $this->configFile = ConfigFile::loadFromFile($configFilePath);
+	}
+
+	/** Install a signal handler that will immediately terminate the bot when ctrl+c is pressed */
+	protected function installCtrlCHandler(): Closure {
+		$signalHandler = function (int $sigNo): void {
+			$this->logger->notice('Shutdown requested.');
+			exit;
+		};
+		if (function_exists('sapi_windows_set_ctrl_handler')) {
+			\Safe\sapi_windows_set_ctrl_handler($signalHandler, true);
+		} elseif (function_exists('pcntl_signal')) {
+			\Safe\pcntl_signal(SIGINT, $signalHandler);
+			\Safe\pcntl_signal(SIGTERM, $signalHandler);
+			pcntl_async_signals(true);
+		} else {
+			$this->logger->error('You need to have the pcntl extension on Linux');
+			exit(1);
+		}
+		return $signalHandler;
+	}
+
+	/** Uninstall a previously installed signal handler */
+	protected function uninstallCtrlCHandler(Closure $signalHandler): void {
+		if (function_exists('sapi_windows_set_ctrl_handler')) {
+			\Safe\sapi_windows_set_ctrl_handler($signalHandler, false);
+		} elseif (function_exists('pcntl_signal')) {
+			\Safe\pcntl_signal(SIGINT, SIG_DFL);
+			\Safe\pcntl_signal(SIGTERM, SIG_DFL);
+		}
+	}
+
+	protected function createMissingDirs(): void {
+		$dirVars = ["cacheFolder", "htmlFolder", "dataFolder"];
+		foreach ($dirVars as $var) {
+			$dir = $this->getConfigFile()->{$var};
+			if (is_string($dir) && !@file_exists($dir)) {
+				@mkdir($dir, 0700);
+			}
+		}
+		foreach ($this->getConfigFile()->moduleLoadPaths as $dir) {
+			if (is_string($dir) && !@file_exists($dir)) {
+				@mkdir($dir, 0700);
+			}
+		}
+	}
+
+	/**
+	 * Get AO's chat server hostname and port
+	 *
+	 * @return (string|int)[] [(string)Server, (int)Port]
+	 * @phpstan-return array{string,int}
+	 */
+	protected function getServerAndPort(ConfigFile $config): array {
+		// Choose server
+		if ($config->useProxy) {
+			// For use with the AO chat proxy ONLY!
+			$server = $config->proxyServer;
+			$port = $config->proxyPort;
+		} elseif ($config->dimension === 4) {
+			$server = "chat.dt.funcom.com";
+			$port = 7109;
+		} elseif ($config->dimension === 5) {
+			$server = "chat.d1.funcom.com";
+			$port = 7105;
+		} elseif ($config->dimension === 6) {
+			$server = "chat.d1.funcom.com";
+			$port = 7106;
+		} else {
+			$this->logger->error("No valid server to connect with! Available dimensions are 4, 5, and 6.");
+			die();
+		}
+		return [$server, $port];
+	}
+
+	private function parseOptions(): void {
+		$options = getopt(
+			"c:v",
+			[
+				"help",
+				"migrate-only",
+				"setup-only",
+				"strict",
+				"log-config:",
+				"migration-errors-fatal",
+			],
+			$restPos
+		);
+		if ($options === false) {
+			\Safe\fwrite(STDERR, "Unable to parse arguments passed to the bot.\n");
+			\Safe\sleep(5);
+			exit(1);
+		}
+		$argv = array_slice($this->argv, $restPos);
+		static::$arguments = $options;
+		if (count($argv) > 0) {
+			static::$arguments["c"] = array_shift($argv);
+		}
+		if (isset(static::$arguments["help"])) {
+			$this->showSyntaxHelp();
+			exit(0);
+		}
+	}
+
+	private function showSyntaxHelp(): void {
+		echo(
+			"Usage: " . PHP_BINARY . " " . $_SERVER["argv"][0].
+			" [options] [-c] <config file>\n\n".
+			"positional arguments:\n".
+			"  <config file>         A Nadybot configuration file, usually conf/config.php\n".
+			"\n".
+			"options:\n".
+			"  --help                Show this help message and exit\n".
+			"  --migrate-only        Only run the database migration and then exit\n".
+			"  --setup-only          Stop the bot after the setup handlers have been called\n".
+			"  --log-config=<file>   Use an alternative config file for the logger. The default\n".
+			"                        configuration is in conf/logging.json\n".
+			"  --migration-errors-fatal\n".
+			"                        Stop the bot startup if any of the database migrations fails\n".
+			"  -v                    Enable logging INFO. Use -v -v to also log DEBUG\n"
+		);
 	}
 
 	/**
@@ -450,31 +503,7 @@ class BotRunner {
 		}
 	}
 
-	protected function createMissingDirs(): void {
-		$dirVars = ["cacheFolder", "htmlFolder", "dataFolder"];
-		foreach ($dirVars as $var) {
-			$dir = $this->getConfigFile()->{$var};
-			if (is_string($dir) && !@file_exists($dir)) {
-				@mkdir($dir, 0700);
-			}
-		}
-		foreach ($this->getConfigFile()->moduleLoadPaths as $dir) {
-			if (is_string($dir) && !@file_exists($dir)) {
-				@mkdir($dir, 0700);
-			}
-		}
-	}
-
-	/**
-	 * Utility function to check whether the bot is running Windows
-	 */
-	public static function isWindows(): bool {
-		return strtoupper(substr(PHP_OS, 0, 3)) === 'WIN';
-	}
-
-	/**
-	 * Get a message describing the bot's codebase
-	 */
+	/** Get a message describing the bot's codebase */
 	private function getInitialInfoMessage(): string {
 		$version = self::getVersion();
 
@@ -487,33 +516,19 @@ class BotRunner {
 			PHP_EOL;
 	}
 
-	public function getConfigFile(): ConfigFile {
-		if (isset($this->configFile)) {
-			return $this->configFile;
-		}
-		$configFilePath = static::$arguments["c"] ?? "conf/config.php";
-		return $this->configFile = ConfigFile::loadFromFile($configFilePath);
-	}
-
-	/**
-	 * Setup proper error-reporting, -handling and -logging
-	 */
+	/** Setup proper error-reporting, -handling and -logging */
 	private function setErrorHandling(string $logFolderName): void {
 		error_reporting(E_ALL & ~E_STRICT & ~E_WARNING & ~E_NOTICE);
 		\Safe\ini_set("log_errors", "1");
 		\Safe\ini_set('display_errors', "1");
-		\Safe\ini_set("error_log", "${logFolderName}/php_errors.log");
+		\Safe\ini_set("error_log", "{$logFolderName}/php_errors.log");
 	}
 
-	/**
-	 * Load external classes that we need
-	 */
+	/** Load external classes that we need */
 	private function loadPhpLibraries(): void {
 	}
 
-	/**
-	 * Guide customer through setup if needed
-	 */
+	/** Guide customer through setup if needed */
 	private function showSetupDialog(): bool {
 		if (!$this->shouldShowSetup()) {
 			return false;
@@ -524,16 +539,12 @@ class BotRunner {
 		return true;
 	}
 
-	/**
-	 * Is information missing to run the bot?
-	 */
+	/** Is information missing to run the bot? */
 	private function shouldShowSetup(): bool {
 		return empty($this->configFile->login) || empty($this->configFile->password) || empty($this->configFile->name);
 	}
 
-	/**
-	 * Set the title of the command prompt window in Windows
-	 */
+	/** Set the title of the command prompt window in Windows */
 	private function setWindowTitle(ConfigFile $config): void {
 		if ($this->isWindows() === false) {
 			return;
@@ -541,9 +552,7 @@ class BotRunner {
 		\Safe\system("title {$config->name} - Nadybot");
 	}
 
-	/**
-	 * Connect to the database
-	 */
+	/** Connect to the database */
 	private function connectToDatabase(): void {
 		/** @var ?DB */
 		$db = Registry::getInstance(DB::class);
@@ -563,32 +572,5 @@ class BotRunner {
 		/** @var DB */
 		$db = Registry::getInstance(DB::class);
 		return $db->createDatabaseSchema();
-	}
-
-	/**
-	 * Get AO's chat server hostname and port
-	 * @return (string|int)[] [(string)Server, (int)Port]
-	 * @phpstan-return array{string,int}
-	 */
-	protected function getServerAndPort(ConfigFile $config): array {
-		// Choose server
-		if ($config->useProxy) {
-			// For use with the AO chat proxy ONLY!
-			$server = $config->proxyServer;
-			$port = $config->proxyPort;
-		} elseif ($config->dimension === 4) {
-			$server = "chat.dt.funcom.com";
-			$port = 7109;
-		} elseif ($config->dimension === 5) {
-			$server = "chat.d1.funcom.com";
-			$port = 7105;
-		} elseif ($config->dimension === 6) {
-			$server = "chat.d1.funcom.com";
-			$port = 7106;
-		} else {
-			$this->logger->error("No valid server to connect with! Available dimensions are 4, 5, and 6.");
-			die();
-		}
-		return [$server, $port];
 	}
 }

@@ -2,14 +2,12 @@
 
 namespace Nadybot\Core;
 
-use Nadybot\Core\Attributes as NCA;
 use Exception;
+use Nadybot\Core\Attributes as NCA;
 
 #[NCA\SettingHandler("options")]
 class OptionsSettingHandler extends SettingHandler {
-	/**
-	 * @inheritDoc
-	 */
+	/** @inheritDoc */
 	public function getDescription(): string {
 		$msg = "For this setting you must choose one of the options from the list below.\n\n";
 		return $msg;

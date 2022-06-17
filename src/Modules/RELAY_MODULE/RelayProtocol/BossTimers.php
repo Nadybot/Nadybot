@@ -3,7 +3,6 @@
 namespace Nadybot\Modules\RELAY_MODULE\RelayProtocol;
 
 use Exception;
-use Safe\Exceptions\JsonException;
 use Nadybot\Core\{
 	Attributes as NCA,
 	EventManager,
@@ -16,16 +15,16 @@ use Nadybot\Modules\{
 	RELAY_MODULE\RelayMessage,
 	WEBSERVER_MODULE\JsonImporter,
 };
+use Safe\Exceptions\JsonException;
 use stdClass;
 
 class BossTimers implements RelayProtocolInterface {
-	protected Relay $relay;
-
 	#[NCA\Inject]
 	public EventManager $eventManager;
 
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
+	protected Relay $relay;
 
 	public function send(RoutableEvent $event): array {
 		return [];
@@ -51,6 +50,7 @@ class BossTimers implements RelayProtocolInterface {
 		}
 		$data->sourceBot ??= "_Nadybot";
 		$data->forceSync ??= false;
+
 		/** @var SyncEvent */
 		$event = JsonImporter::convert(SyncEvent::class, $data);
 		foreach (get_object_vars($data) as $key => $value) {

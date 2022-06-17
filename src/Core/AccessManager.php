@@ -14,7 +14,6 @@ use SplObjectStorage;
 
 /**
  * The AccessLevel class provides functionality for checking a player's access level.
- *
  */
 #[NCA\Instance]
 class AccessManager {
@@ -32,30 +31,6 @@ class AccessManager {
 	public const ADD_ALT = "add-alt";
 	public const DEL_ALT = "del-alt";
 	public const SET_MAIN = "set-main";
-
-	/**
-	 * @var array<string,int> $ACCESS_LEVELS
-	 */
-	private static array $ACCESS_LEVELS = [
-		'none'          => 0,
-		'superadmin'    => 1,
-		'admin'         => 2,
-		'mod'           => 3,
-		'guild'         => 4,
-		'raid_admin_3'  => 5,
-		'raid_admin_2'  => 6,
-		'raid_admin_1'  => 7,
-		'raid_leader_3' => 8,
-		'raid_leader_2' => 9,
-		'raid_leader_1' => 10,
-		// 'raid_level_3'  => 11,
-		// 'raid_level_2'  => 12,
-		// 'raid_level_1'  => 13,
-		'member'        => 14,
-		'rl'            => 15,
-		'guest'         => 16,
-		'all'           => 17,
-	];
 
 	#[NCA\Inject]
 	public DB $db;
@@ -83,6 +58,28 @@ class AccessManager {
 
 	#[NCA\Inject]
 	public ConfigFile $config;
+
+	/** @var array<string,int> */
+	private static array $ACCESS_LEVELS = [
+		'none'          => 0,
+		'superadmin'    => 1,
+		'admin'         => 2,
+		'mod'           => 3,
+		'guild'         => 4,
+		'raid_admin_3'  => 5,
+		'raid_admin_2'  => 6,
+		'raid_admin_1'  => 7,
+		'raid_leader_3' => 8,
+		'raid_leader_2' => 9,
+		'raid_leader_1' => 10,
+		// 'raid_level_3'  => 11,
+		// 'raid_level_2'  => 12,
+		// 'raid_level_1'  => 13,
+		'member'        => 14,
+		'rl'            => 15,
+		'guest'         => 16,
+		'all'           => 17,
+	];
 
 	/** @var SplObjectStorage<AccessLevelProvider,AccessLevelProvider> */
 	private SplObjectStorage $providers;
@@ -153,7 +150,7 @@ class AccessManager {
 					[
 						"accessLevel" => $accessLevel,
 						"sender" => $sender,
-						"main" => $altInfo->main
+						"main" => $altInfo->main,
 					]
 				);
 				$returnVal = $this->checkSingleAccess($altInfo->main, $accessLevel);
@@ -172,12 +169,10 @@ class AccessManager {
 		$sender = ucfirst(strtolower($sender));
 
 		$charAccessLevel = $this->getSingleAccessLevel($sender);
-		return ($this->compareAccessLevels($charAccessLevel, $accessLevel) >= 0);
+		return $this->compareAccessLevels($charAccessLevel, $accessLevel) >= 0;
 	}
 
-	/**
-	 * Turn the short accesslevel (rl, mod, admin) into the long version
-	 */
+	/** Turn the short accesslevel (rl, mod, admin) into the long version */
 	public function getDisplayName(string $accessLevel): string {
 		$displayName = $this->getAccessLevel($accessLevel);
 		switch ($displayName) {
@@ -206,15 +201,14 @@ class AccessManager {
 		return $displayName;
 	}
 
-	/**
-	 * Returns the access level of $sender, ignoring guild admin and inheriting access level from main
-	 */
+	/** Returns the access level of $sender, ignoring guild admin and inheriting access level from main */
 	public function getSingleAccessLevel(string $sender): string {
 		if (in_array($sender, $this->config->superAdmins, true)) {
 			return "superadmin";
 		} elseif (empty($this->config->superAdmins) && $sender === "<no superadmin set>") {
 			return "superadmin";
 		}
+
 		/** @var array<string,int> */
 		$ranks = [];
 		foreach ($this->providers as $provider) {
@@ -230,9 +224,7 @@ class AccessManager {
 		return array_keys($ranks)[0];
 	}
 
-	/**
-	 * Returns the access level of $sender, accounting for guild admin and inheriting access level from main
-	 */
+	/** Returns the access level of $sender, accounting for guild admin and inheriting access level from main */
 	public function getAccessLevelForCharacter(string $sender): string {
 		$sender = ucfirst(strtolower($sender));
 
@@ -284,6 +276,7 @@ class AccessManager {
 
 	/**
 	 * Get the short version of the accesslevel, e.g. raidleader => rl
+	 *
 	 * @throws Exception
 	 */
 	public function getAccessLevel(string $accessLevel): string {
@@ -319,7 +312,7 @@ class AccessManager {
 		if (isset($accessLevels[$accessLevel])) {
 			return $accessLevel;
 		}
-		throw new Exception("Invalid access level '$accessLevel'.");
+		throw new Exception("Invalid access level '{$accessLevel}'.");
 	}
 
 	/**

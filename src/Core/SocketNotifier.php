@@ -14,6 +14,13 @@ namespace Nadybot\Core;
  * given callback to notify of the activity.
  */
 class SocketNotifier {
+	public const ACTIVITY_READ  = 1;
+	public const ACTIVITY_WRITE = 2;
+	public const ACTIVITY_ERROR = 4;
+
+	public string $readHandle;
+	public string $writeHandle;
+
 	/** @var resource */
 	private $socket;
 	private int $type;
@@ -21,16 +28,7 @@ class SocketNotifier {
 	/** @var callable */
 	private $callback;
 
-	public string $readHandle;
-	public string $writeHandle;
-
-	public const ACTIVITY_READ  = 1;
-	public const ACTIVITY_WRITE = 2;
-	public const ACTIVITY_ERROR = 4;
-
-	/**
-	 * @param resource $socket
-	 */
+	/** @param resource $socket */
 	public function __construct($socket, int $type, callable $callback) {
 		$this->socket   = $socket;
 		$this->type     = $type;
@@ -39,30 +37,24 @@ class SocketNotifier {
 
 	/**
 	 * Returns the socket resource.
+	 *
 	 * @return resource
 	 */
 	public function getSocket() {
 		return $this->socket;
 	}
 
-	/**
-	 * Returns type of the activity.
-	 */
+	/** Returns type of the activity. */
 	public function getType(): int {
 		return $this->type;
 	}
 
-	/**
-	 * Returns the callback
-	 * @return callable
-	 */
+	/** Returns the callback */
 	public function getCallback(): callable {
 		return $this->callback;
 	}
 
-	/**
-	 * Calls the callback and passes given $type to the callback.
-	 */
+	/** Calls the callback and passes given $type to the callback. */
 	public function notify(int $type): void {
 		call_user_func($this->callback, $type);
 	}

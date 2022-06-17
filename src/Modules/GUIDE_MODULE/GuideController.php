@@ -5,8 +5,7 @@ namespace Nadybot\Modules\GUIDE_MODULE;
 use function Amp\File\filesystem;
 
 use Amp\ByteStream\LineReader;
-use Amp\File\File;
-use Amp\File\FilesystemException;
+use Amp\File\{File, FilesystemException};
 use Generator;
 use Nadybot\Core\{
 	Attributes as NCA,
@@ -32,6 +31,7 @@ use Nadybot\Core\{
 	)
 ]
 class GuideController extends ModuleInstance {
+	private const FILE_EXT = ".txt";
 	#[NCA\Inject]
 	public Text $text;
 
@@ -42,7 +42,6 @@ class GuideController extends ModuleInstance {
 	public CommandAlias $commandAlias;
 
 	private string $path;
-	private const FILE_EXT = ".txt";
 
 	#[NCA\Setup]
 	public function setup(): void {
@@ -73,6 +72,7 @@ class GuideController extends ModuleInstance {
 				if (!str_ends_with($fileName, self::FILE_EXT)) {
 					continue;
 				}
+
 				/** @var File */
 				$handle = yield filesystem()->openFile($this->path . '/' . $fileName, "r");
 				$firstLine = yield (new LineReader($handle))->readLine();
@@ -93,7 +93,7 @@ class GuideController extends ModuleInstance {
 		$linkContents = "<header2>Available guides<end>\n";
 		foreach ($topicList as $topic => $file) {
 			$linkContents .= "<tab>".
-				$this->text->makeChatcmd($topic, "/tell <myname> guides $file") . "\n";
+				$this->text->makeChatcmd($topic, "/tell <myname> guides {$file}") . "\n";
 		}
 
 		if (count($topicList)) {

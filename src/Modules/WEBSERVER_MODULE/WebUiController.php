@@ -4,19 +4,11 @@ namespace Nadybot\Modules\WEBSERVER_MODULE;
 
 use function Amp\call;
 
-use Amp\Http\Client\HttpClientBuilder;
-use Amp\Http\Client\Request;
-use Amp\Http\Client\Response;
-use Amp\Loop;
-use Amp\Promise;
-use Amp\Success;
+use Amp\Http\Client\{HttpClientBuilder, Request, Response};
+use Amp\{Loop, Promise, Success};
 use DateTime;
 use Exception;
 use Generator;
-use Throwable;
-use ZipArchive;
-use Safe\Exceptions\FilesystemException;
-
 use Nadybot\Core\{
 	Attributes as NCA,
 	BotRunner,
@@ -24,15 +16,19 @@ use Nadybot\Core\{
 	ConfigFile,
 	DB,
 	EventManager,
-	ModuleInstance,
 	LoggerWrapper,
 	MessageEmitter,
 	MessageHub,
+	ModuleInstance,
 	Nadybot,
 	Routing\Source,
 	SettingManager,
 	UserException,
 };
+use Safe\Exceptions\FilesystemException;
+use Throwable;
+
+use ZipArchive;
 
 #[
 	NCA\DefineCommand(
@@ -130,6 +126,97 @@ class WebUiController extends ModuleInstance implements MessageEmitter {
 		}
 	}
 
+	/** Remove all files from the NadyUI installation (if any) and reset the version in the DB */
+	public function uninstallNadyUi(bool $updateDB=false): bool {
+		if ($updateDB && $this->settingManager->exists("nadyui_version")) {
+			$this->settingManager->save("nadyui_version", "0");
+		}
+		$path = $this->config->htmlFolder;
+		return (realpath("{$path}/css") ? $this->recursiveRemoveDirectory(\Safe\realpath("{$path}/css")) : true)
+			&& (realpath("{$path}/img") ? $this->recursiveRemoveDirectory(\Safe\realpath("{$path}/img")) : true)
+			&& (realpath("{$path}/js") ? $this->recursiveRemoveDirectory(\Safe\realpath("{$path}/js")) : true)
+			&& (realpath("{$path}/index.html") ? unlink(\Safe\realpath("{$path}/index.html")) : true)
+			&& (realpath("{$path}/favicon.ico") ? unlink(\Safe\realpath("{$path}/favicon.ico")) : true);
+	}
+
+	/** Delete a directory and all its subdirectories */
+	public function recursiveRemoveDirectory(string $directory): bool {
+		foreach (\Safe\glob("{$directory}/*") as $file) {
+			if (is_dir($file)) {
+				$this->recursiveRemoveDirectory($file);
+			} else {
+				try {
+					\Safe\unlink($file);
+				} catch (FilesystemException) {
+					return false;
+				}
+			}
+		}
+		if (rmdir($directory) === false) {
+			return false;
+		}
+		return true;
+	}
+
+	/** Manually install the WebUI "NadyUI" */
+	#[NCA\HandlesCommand("webui")]
+	#[NCA\Help\Epilogue(
+		"You should only use these commands for debugging. The regular way to install\n".
+		"the WebUI is via the ".
+		"<a href='chatcmd:///tell <myname> settings change nadyui_channel'>nadyui_channel</a> setting."
+	)]
+	#[NCA\Help\Example("<symbol>webui install stable")]
+	#[NCA\Help\Example("<symbol>webui install unstable")]
+	public function webUiInstallCommand(
+		CmdContext $context,
+		#[NCA\Str("install")] string $action,
+		string $channel
+	): Generator {
+		try {
+			[$response, $artifact] = yield $this->downloadBuildArtifact($channel);
+			$msg = yield $this->installArtifact($response, $artifact);
+		} catch (UserException $e) {
+			$msg = $e->getMessage();
+		}
+		$context->reply($msg);
+	}
+
+	/** Completely remove the WebUI installation */
+	#[NCA\HandlesCommand("webui")]
+	public function webUiUninstallCommand(CmdContext $context, #[NCA\Str("uninstall")] string $action): void {
+		$msg = "There was an error removing the old files from NadyUI, please clean up manually.";
+		if ($this->uninstallNadyUi(true)) {
+			$msg = "NadyUI successfully uninstalled.";
+		}
+		$context->reply($msg);
+	}
+
+	protected function createAdminLogin(): void {
+		if (!$this->settingManager->getBool('webserver')) {
+			return;
+		}
+		if ($this->settingManager->getString('webserver_auth') !== WebserverController::AUTH_BASIC) {
+			return;
+		}
+		$schema = "http"; /* $this->settingManager->getBool('webserver_tls') ? "https" : "http"; */
+		$port = $this->settingManager->getInt('webserver_port');
+		if (empty($this->config->superAdmins)) {
+			return;
+		}
+		$superUser = $this->config->superAdmins[0];
+		$uuid = $this->webserverController->authenticate($superUser, 6 * 3600);
+		$this->logger->notice(
+			">>> You can now configure this bot at {$schema}://127.0.0.1:{$port}/"
+		);
+		$this->logger->notice(
+			">>> Login with username \"{$superUser}\" and password \"{$uuid}\""
+		);
+		$this->logger->notice(
+			">>> Use the " . ($this->settingManager->getString('symbol')??"!").
+				"webauth command to create a new password after this expired"
+		);
+	}
+
 	/** @return Promise<array{Response,string}> */
 	private function downloadBuildArtifact(string $channel): Promise {
 		return call(function () use ($channel): Generator {
@@ -145,6 +232,7 @@ class WebUiController extends ModuleInstance implements MessageEmitter {
 				$channel
 			);
 			$client = $this->builder->build();
+
 			/** @var Response */
 			$response = yield $client->request(new Request($uri));
 			if ($response->getStatus() === 404) {
@@ -205,70 +293,9 @@ class WebUiController extends ModuleInstance implements MessageEmitter {
 		return new Success($msg);
 	}
 
-	protected function createAdminLogin(): void {
-		if (!$this->settingManager->getBool('webserver')) {
-			return;
-		}
-		if ($this->settingManager->getString('webserver_auth') !== WebserverController::AUTH_BASIC) {
-			return;
-		}
-		$schema = "http"; /*$this->settingManager->getBool('webserver_tls') ? "https" : "http";*/
-		$port = $this->settingManager->getInt('webserver_port');
-		if (empty($this->config->superAdmins)) {
-			return;
-		}
-		$superUser = $this->config->superAdmins[0];
-		$uuid = $this->webserverController->authenticate($superUser, 6 * 3600);
-		$this->logger->notice(
-			">>> You can now configure this bot at {$schema}://127.0.0.1:{$port}/"
-		);
-		$this->logger->notice(
-			">>> Login with username \"{$superUser}\" and password \"{$uuid}\""
-		);
-		$this->logger->notice(
-			">>> Use the " . ($this->settingManager->getString('symbol')??"!").
-				"webauth command to create a new password after this expired"
-		);
-	}
-
-	/**
-	 * Remove all files from the NadyUI installation (if any) and reset the version in the DB
-	 */
-	public function uninstallNadyUi(bool $updateDB=false): bool {
-		if ($updateDB && $this->settingManager->exists("nadyui_version")) {
-			$this->settingManager->save("nadyui_version", "0");
-		}
-		$path = $this->config->htmlFolder;
-		return (realpath("{$path}/css") ? $this->recursiveRemoveDirectory(\Safe\realpath("{$path}/css")) : true)
-			&& (realpath("{$path}/img") ? $this->recursiveRemoveDirectory(\Safe\realpath("{$path}/img")) : true)
-			&& (realpath("{$path}/js")  ? $this->recursiveRemoveDirectory(\Safe\realpath("{$path}/js")) : true)
-			&& (realpath("{$path}/index.html") ? unlink(\Safe\realpath("{$path}/index.html")) : true)
-			&& (realpath("{$path}/favicon.ico") ? unlink(\Safe\realpath("{$path}/favicon.ico")) : true);
-	}
-
-	/**
-	 * Delete a directory and all its subdirectories
-	 */
-	public function recursiveRemoveDirectory(string $directory): bool {
-		foreach (\Safe\glob("{$directory}/*") as $file) {
-			if (is_dir($file)) {
-				$this->recursiveRemoveDirectory($file);
-			} else {
-				try {
-					\Safe\unlink($file);
-				} catch (FilesystemException) {
-					return false;
-				}
-			}
-		}
-		if (rmdir($directory) === false) {
-			return false;
-		}
-		return true;
-	}
-
 	/**
 	 * Install the new NadyUI release form the response object into ./html and clean up before
+	 *
 	 * @throws Exception on installation error
 	 */
 	private function installNewRelease(string $body): void {
@@ -279,7 +306,7 @@ class WebUiController extends ModuleInstance implements MessageEmitter {
 			if ($body === '') {
 				throw new Exception("Cannot write to temp file {$archiveName}.");
 			}
-			\Safe\fwrite($file, $body) ;
+			\Safe\fwrite($file, $body);
 			$extractor = new ZipArchive();
 			$openResult = $extractor->open($archiveName);
 			if ($openResult !== true) {
@@ -303,38 +330,5 @@ class WebUiController extends ModuleInstance implements MessageEmitter {
 				@fclose($file);
 			}
 		}
-	}
-
-	/** Manually install the WebUI "NadyUI" */
-	#[NCA\HandlesCommand("webui")]
-	#[NCA\Help\Epilogue(
-		"You should only use these commands for debugging. The regular way to install\n".
-		"the WebUI is via the ".
-		"<a href='chatcmd:///tell <myname> settings change nadyui_channel'>nadyui_channel</a> setting."
-	)]
-	#[NCA\Help\Example("<symbol>webui install stable")]
-	#[NCA\Help\Example("<symbol>webui install unstable")]
-	public function webUiInstallCommand(
-		CmdContext $context,
-		#[NCA\Str("install")] string $action,
-		string $channel
-	): Generator {
-		try {
-			[$response, $artifact] = yield $this->downloadBuildArtifact($channel);
-			$msg = yield $this->installArtifact($response, $artifact);
-		} catch (UserException $e) {
-			$msg = $e->getMessage();
-		}
-		$context->reply($msg);
-	}
-
-	/** Completely remove the WebUI installation */
-	#[NCA\HandlesCommand("webui")]
-	public function webUiUninstallCommand(CmdContext $context, #[NCA\Str("uninstall")] string $action): void {
-		$msg = "There was an error removing the old files from NadyUI, please clean up manually.";
-		if ($this->uninstallNadyUi(true)) {
-			$msg = "NadyUI successfully uninstalled.";
-		}
-		$context->reply($msg);
 	}
 }

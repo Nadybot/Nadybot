@@ -3,23 +3,18 @@
 namespace Nadybot\Core\Modules\SYSTEM;
 
 use function Amp\asyncCall;
-use function Amp\File\deleteFile;
-use function Amp\File\filesystem;
-use function Amp\File\read;
-
+use function Amp\File\{deleteFile, filesystem, read};
 use Amp\ByteStream\LineReader;
-use Amp\File\File;
-use Amp\File\FilesystemException;
-use Amp\Loop;
-use Exception;
-use Generator;
-use Throwable;
+use Amp\File\{File, FilesystemException};
 use Amp\Http\Client\{
 	HttpClientBuilder,
 	Interceptor\SetRequestHeader,
 	Request,
 	Response,
 };
+use Amp\Loop;
+use Exception;
+use Generator;
 use Monolog\{
 	Formatter\JsonFormatter,
 	Handler\AbstractHandler,
@@ -33,9 +28,9 @@ use Nadybot\Core\{
 	BotRunner,
 	CmdContext,
 	CommandManager,
-	ModuleInstance,
 	LegacyLogger,
 	LoggerWrapper,
+	ModuleInstance,
 	Nadybot,
 	ParamClass\PFilename,
 	ParamClass\PWord,
@@ -43,6 +38,7 @@ use Nadybot\Core\{
 	Text,
 	Util,
 };
+use Throwable;
 
 /**
  * @author Tyrence (RK2)
@@ -98,10 +94,10 @@ class LogsController extends ModuleInstance {
 		sort($files);
 		$blob = '';
 		foreach ($files as $file) {
-			$fileLink  = $this->text->makeChatcmd($file, "/tell <myname> logs $file");
-			$errorLink = $this->text->makeChatcmd("ERROR", "/tell <myname> logs $file ERROR");
-			$chatLink  = $this->text->makeChatcmd("CHAT", "/tell <myname> logs $file CHAT");
-			$blob .= "$fileLink [$errorLink] [$chatLink]\n";
+			$fileLink  = $this->text->makeChatcmd($file, "/tell <myname> logs {$file}");
+			$errorLink = $this->text->makeChatcmd("ERROR", "/tell <myname> logs {$file} ERROR");
+			$chatLink  = $this->text->makeChatcmd("CHAT", "/tell <myname> logs {$file} CHAT");
+			$blob .= "{$fileLink} [{$errorLink}] [{$chatLink}]\n";
 		}
 
 		$msg = $this->text->makeBlob('Log Files (' . count($files) . ')', $blob);
@@ -123,6 +119,7 @@ class LogsController extends ModuleInstance {
 				$context->reply("The file <highlight>{$filename}<end> doesn't exist.");
 				return;
 			}
+
 			/** @var File */
 			$handle = yield filesystem()->openFile($filename, "r");
 			$reader = new LineReader($handle);
@@ -134,15 +131,15 @@ class LogsController extends ModuleInstance {
 				$lines []= $line;
 			}
 			$handle->close();
-			$searchFunc = function(string $line): bool {
+			$searchFunc = function (string $line): bool {
 				return true;
 			};
 			if (isset($search) && preg_match("/^[a-zA-Z0-9_-]+$/", $search)) {
-				$searchFunc = function(string $line) use ($search): bool {
+				$searchFunc = function (string $line) use ($search): bool {
 					return stripos($line, $search) !== false;
 				};
 			} elseif (isset($search)) {
-				$searchFunc = function(string $line) use ($search): bool {
+				$searchFunc = function (string $line) use ($search): bool {
 					return preg_match(chr(1) . $search . chr(1) ."i", $line) === 1;
 				};
 			}
@@ -152,7 +149,7 @@ class LogsController extends ModuleInstance {
 			foreach ($lines as $line) {
 				if (isset($search) && !$searchFunc($line)) {
 					if (preg_match("/^(#\d+\s|\[stacktrace\])/", $line)) {
-						array_unshift($trace, "<tab>$line");
+						array_unshift($trace, "<tab>{$line}");
 					} else {
 						$trace = [];
 					}
@@ -311,13 +308,13 @@ class LogsController extends ModuleInstance {
 		foreach ($loggers as $logger) {
 			$logger->pushHandler($handler);
 		}
-		$newContext->registerShutdownFunction(function() use ($context, $debugFile): void {
+		$newContext->registerShutdownFunction(function () use ($context, $debugFile): void {
 			$loggers = LegacyLogger::getLoggers();
 			foreach ($loggers as $logger) {
 				$logger->popHandler();
 				$logger->popHandler();
 			}
-			Loop::defer(function() use ($context, $debugFile): void {
+			Loop::defer(function () use ($context, $debugFile): void {
 				$this->uploadDebugLog($context, $debugFile);
 			});
 		});

@@ -2,8 +2,7 @@
 
 namespace Nadybot\Modules\SKILLS_MODULE;
 
-use Nadybot\Core\Attributes as NCA;
-use Nadybot\Core\DBRow;
+use Nadybot\Core\{Attributes as NCA, DBRow};
 
 class PerkLevel extends DBRow {
 	public int $id;
@@ -19,6 +18,7 @@ class PerkLevel extends DBRow {
 
 	/** Required character level to perk this perk level */
 	public int $required_level;
+
 	/**
 	 * @var string[]
 	 */

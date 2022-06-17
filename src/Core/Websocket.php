@@ -10,7 +10,7 @@ class Websocket {
 	public function createClient(): WebsocketClient {
 		$client = new WebsocketClient();
 		Registry::injectDependencies($client);
-		Loop::defer(fn() => $client->connect());
+		Loop::defer(fn () => $client->connect());
 		return $client;
 	}
 }

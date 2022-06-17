@@ -3,39 +3,32 @@
 namespace Nadybot\Core\Modules\DISCORD;
 
 use function Amp\call;
-use function Safe\json_decode;
-use function Safe\json_encode;
-
-use Amp\Deferred;
+use function Safe\{json_decode, json_encode};
 use Amp\Http\Client\Body\JsonBody;
-use Amp\Http\Client\HttpClient;
-use Amp\Http\Client\HttpClientBuilder;
 use Amp\Http\Client\Interceptor\SetRequestHeaderIfUnset;
-use Amp\Http\Client\Request;
-use Amp\Http\Client\Response;
-use Amp\Promise;
-use Amp\Success;
+use Amp\Http\Client\{HttpClient, HttpClientBuilder, Request, Response};
+use Amp\{Deferred, Promise, Success};
 use Exception;
 use Generator;
-use Safe\Exceptions\JsonException;
-use stdClass;
 use Nadybot\Core\{
 	AsyncHttp,
 	Attributes as NCA,
 	Http,
-	ModuleInstance,
 	JSONDataModel,
 	LoggerWrapper,
+	ModuleInstance,
 	SettingManager,
 };
-use Nadybot\Modules\DISCORD_GATEWAY_MODULE\Model\ApplicationCommand;
-use Nadybot\Modules\DISCORD_GATEWAY_MODULE\Model\GuildMember;
+use Nadybot\Modules\DISCORD_GATEWAY_MODULE\Model\{ApplicationCommand, GuildMember};
+use Safe\Exceptions\JsonException;
+use stdClass;
 
 /**
  * A Discord API-client
  */
 #[NCA\Instance]
 class DiscordAPIClient extends ModuleInstance {
+	public const DISCORD_API = "https://discord.com/api/v10";
 	#[NCA\Inject]
 	public Http $http;
 
@@ -65,13 +58,11 @@ class DiscordAPIClient extends ModuleInstance {
 	/** @var array<string,DiscordUser> */
 	protected $userCache = [];
 
-	public const DISCORD_API = "https://discord.com/api/v10";
-
 	/**
 	 * Encode the given data for sending it with the API
 	 *
 	 * @param mixed $data The data to be encoded
-	 * @return string
+	 *
 	 * @throws JsonException on encoding error
 	 */
 	public static function encode(mixed $data): string {
@@ -82,21 +73,12 @@ class DiscordAPIClient extends ModuleInstance {
 		return $data;
 	}
 
-	private function getClient(): HttpClient {
-		$botToken = $this->discordCtrl->discordBotToken;
-		$client = $this->builder
-			->intercept(new SetRequestHeaderIfUnset("Authorization", "Bot {$botToken}"))
-			->intercept(new RetryRateLimits())
-			->build();
-		return $client;
-	}
-
 	/** @deprecated */
 	public function get(string $uri): AsyncHttp {
 		$botToken = $this->discordCtrl->discordBotToken;
 		return $this->http
 			->get($uri)
-			->withHeader('Authorization', "Bot $botToken");
+			->withHeader('Authorization', "Bot {$botToken}");
 	}
 
 	/** @deprecated */
@@ -105,7 +87,7 @@ class DiscordAPIClient extends ModuleInstance {
 		return $this->http
 			->post($uri)
 			->withPostData($data)
-			->withHeader('Authorization', "Bot $botToken")
+			->withHeader('Authorization', "Bot {$botToken}")
 			->withHeader('Content-Type', 'application/json');
 	}
 
@@ -115,7 +97,7 @@ class DiscordAPIClient extends ModuleInstance {
 		return $this->http
 			->patch($uri)
 			->withPostData($data)
-			->withHeader('Authorization', "Bot $botToken")
+			->withHeader('Authorization', "Bot {$botToken}")
 			->withHeader('Content-Type', 'application/json');
 	}
 
@@ -125,7 +107,7 @@ class DiscordAPIClient extends ModuleInstance {
 		return $this->http
 			->put($uri)
 			->withPostData($data)
-			->withHeader('Authorization', "Bot $botToken")
+			->withHeader('Authorization', "Bot {$botToken}")
 			->withHeader('Content-Type', 'application/json');
 	}
 
@@ -134,7 +116,7 @@ class DiscordAPIClient extends ModuleInstance {
 		$botToken = $this->discordCtrl->discordBotToken;
 		return $this->http
 			->delete($uri)
-			->withHeader('Authorization', "Bot $botToken");
+			->withHeader('Authorization', "Bot {$botToken}");
 	}
 
 	/** @return Promise<DiscordGateway> */
@@ -199,7 +181,7 @@ class DiscordAPIClient extends ModuleInstance {
 		return $this->sendRequest(new Request(
 			self::DISCORD_API . "/users/@me/guilds/{$guildId}",
 			"DELETE"
-		), new stdClass);
+		), new stdClass());
 	}
 
 	/** @return Promise<void> */
@@ -228,35 +210,6 @@ class DiscordAPIClient extends ModuleInstance {
 		return $deferred->promise();
 	}
 
-	private function processQueue(): void {
-		if (empty($this->outQueue)) {
-			$this->logger->info("Channel queue empty, stopping processing");
-			$this->queueProcessing = false;
-			return;
-		}
-		$this->queueProcessing = true;
-		$item = array_shift($this->outQueue);
-		Promise\rethrow($this->immediatelySendToChannel($item));
-	}
-
-	/** @return Promise<void> */
-	private function immediatelySendToChannel(ChannelQueueItem $item): Promise {
-		return call(function () use ($item): Generator {
-			$this->logger->info("Sending message to discord channel {channel}", [
-				"channel" => $item->channelId,
-				"message" => $item->message,
-			]);
-			$url = self::DISCORD_API . "/channels/{$item->channelId}/messages";
-			$request = new Request($url, "POST");
-			$request->setBody(new DiscordBody($item->message));
-			yield $this->sendRequest($request, new stdClass());
-			if (isset($item->deferred)) {
-				$item->deferred->resolve();
-			}
-			$this->processQueue();
-		});
-	}
-
 	/** @return Promise<void> */
 	public function queueToWebhook(string $applicationId, string $interactionToken, string $message): Promise {
 		$this->logger->info("Adding discord message to end of webhook queue {interaction}", [
@@ -268,34 +221,6 @@ class DiscordAPIClient extends ModuleInstance {
 			$this->processWebhookQueue();
 		}
 		return $deferred->promise();
-	}
-
-	private function processWebhookQueue(): void {
-		if (empty($this->webhookQueue)) {
-			$this->webhookQueueProcessing = false;
-			return;
-		}
-		$this->webhookQueueProcessing = true;
-		$item = array_shift($this->webhookQueue);
-		Promise\rethrow($this->immediatelySendToWebhook($item));
-	}
-
-	/** @return Promise<void> */
-	private function immediatelySendToWebhook(WebhookQueueItem $item): Promise {
-		return call(function () use ($item): Generator {
-			$this->logger->info("Sending message to discord webhook {webhook}", [
-				"webhook" => $item->interactionToken,
-				"message" => $item->message,
-			]);
-			$url = self::DISCORD_API . "/webhooks/{$item->applicationId}/{$item->interactionToken}";
-			$request = new Request($url, "POST");
-			$request->setBody(new DiscordBody($item->message));
-			yield $this->sendRequest($request, new stdClass());
-			if (isset($item->deferred)) {
-				$item->deferred->resolve();
-			}
-			$this->processWebhookQueue();
-		});
 	}
 
 	/** @return Promise<void> */
@@ -373,6 +298,7 @@ class DiscordAPIClient extends ModuleInstance {
 
 	/**
 	 * Create a new channel invite
+	 *
 	 * @return Promise<DiscordChannelInvite>
 	 */
 	public function createChannelInvite(string $channelId, int $maxAge, int $maxUses): Promise {
@@ -395,15 +321,83 @@ class DiscordAPIClient extends ModuleInstance {
 		return $this->sendRequest($request, [new DiscordChannelInvite()]);
 	}
 
+	private function getClient(): HttpClient {
+		$botToken = $this->discordCtrl->discordBotToken;
+		$client = $this->builder
+			->intercept(new SetRequestHeaderIfUnset("Authorization", "Bot {$botToken}"))
+			->intercept(new RetryRateLimits())
+			->build();
+		return $client;
+	}
+
+	private function processQueue(): void {
+		if (empty($this->outQueue)) {
+			$this->logger->info("Channel queue empty, stopping processing");
+			$this->queueProcessing = false;
+			return;
+		}
+		$this->queueProcessing = true;
+		$item = array_shift($this->outQueue);
+		Promise\rethrow($this->immediatelySendToChannel($item));
+	}
+
+	/** @return Promise<void> */
+	private function immediatelySendToChannel(ChannelQueueItem $item): Promise {
+		return call(function () use ($item): Generator {
+			$this->logger->info("Sending message to discord channel {channel}", [
+				"channel" => $item->channelId,
+				"message" => $item->message,
+			]);
+			$url = self::DISCORD_API . "/channels/{$item->channelId}/messages";
+			$request = new Request($url, "POST");
+			$request->setBody(new DiscordBody($item->message));
+			yield $this->sendRequest($request, new stdClass());
+			if (isset($item->deferred)) {
+				$item->deferred->resolve();
+			}
+			$this->processQueue();
+		});
+	}
+
+	private function processWebhookQueue(): void {
+		if (empty($this->webhookQueue)) {
+			$this->webhookQueueProcessing = false;
+			return;
+		}
+		$this->webhookQueueProcessing = true;
+		$item = array_shift($this->webhookQueue);
+		Promise\rethrow($this->immediatelySendToWebhook($item));
+	}
+
+	/** @return Promise<void> */
+	private function immediatelySendToWebhook(WebhookQueueItem $item): Promise {
+		return call(function () use ($item): Generator {
+			$this->logger->info("Sending message to discord webhook {webhook}", [
+				"webhook" => $item->interactionToken,
+				"message" => $item->message,
+			]);
+			$url = self::DISCORD_API . "/webhooks/{$item->applicationId}/{$item->interactionToken}";
+			$request = new Request($url, "POST");
+			$request->setBody(new DiscordBody($item->message));
+			yield $this->sendRequest($request, new stdClass());
+			if (isset($item->deferred)) {
+				$item->deferred->resolve();
+			}
+			$this->processWebhookQueue();
+		});
+	}
+
 	/**
 	 * @template T of JSONDataModel|stdClass|JSONDataModel[]
 	 * @phpstan-param T $o
+	 *
 	 * @return Promise<JSONDataModel|JSONDataModel[]|stdClass>
 	 * @phpstan-return Promise<T>
 	 */
 	private function sendRequest(Request $request, JSONDataModel|stdClass|array $o): Promise {
-		return call(function() use ($request, $o) {
+		return call(function () use ($request, $o) {
 			$client = $this->getClient();
+
 			/** @var Response */
 			$response = yield $client->request($request);
 			$body = yield $response->getBody()->buffer();
@@ -428,7 +422,7 @@ class DiscordAPIClient extends ModuleInstance {
 			if (is_array($o)) {
 				$result = [];
 				foreach ($reply as $element) {
-					$obj = clone($o[0]);
+					$obj = clone $o[0];
 					$obj->fromJSON($element);
 					$result []= $obj;
 				}

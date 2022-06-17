@@ -5,7 +5,6 @@ namespace Nadybot\Modules\RELAY_MODULE\Transport;
 use Amp\Loop;
 use ErrorException;
 use Exception;
-use Throwable;
 use Nadybot\Core\{
 	Attributes as NCA,
 	EventManager,
@@ -18,12 +17,6 @@ use Nadybot\Modules\RELAY_MODULE\{
 	RelayStatus,
 	StatusProvider,
 };
-use PhpAmqpLib\{
-	Channel\AMQPChannel,
-	Connection\AMQPStreamConnection,
-	Exchange\AMQPExchangeType,
-	Message\AMQPMessage,
-};
 use PhpAmqpLib\Exception\{
 	AMQPConnectionClosedException,
 	AMQPIOException,
@@ -31,12 +24,18 @@ use PhpAmqpLib\Exception\{
 	AMQPRuntimeException,
 	AMQPTimeoutException,
 };
+use PhpAmqpLib\{
+	Channel\AMQPChannel,
+	Connection\AMQPStreamConnection,
+	Exchange\AMQPExchangeType,
+	Message\AMQPMessage,
+};
+use Throwable;
 
 #[
 	NCA\RelayTransport(
 		name: "amqp",
-		description:
-			"AMQP is a transport layer provided by software like RabbitMQ.\n".
+		description: "AMQP is a transport layer provided by software like RabbitMQ.\n".
 			"It allows near-realtime communication, but because the server is not part\n".
 			"of Anarchy Online, you might have a hard time debugging errors.\n".
 			"AMQP has a built-in transport protocol: Every client can subscribe\n".
@@ -119,18 +118,8 @@ class AMQP implements TransportInterface, StatusProvider {
 	/** @var ?callable */
 	protected $initCallback;
 
-	/**
-	 * Did we receive a message on our last wait for new messages?
-	 */
-	private bool $lastWaitReceivedMessage = false;
-
 	protected int $lastConnectTry = 0;
 	protected int $reconnectInterval = 60;
-
-	private ?string $queueName = null;
-
-	/** @var array<string,AMQPExchange> */
-	private array $exchanges = [];
 
 	/** @var string[] */
 	protected array $exchangeNames = [];
@@ -142,6 +131,14 @@ class AMQP implements TransportInterface, StatusProvider {
 
 	protected ?string $eventTicket = null;
 
+	/** Did we receive a message on our last wait for new messages? */
+	private bool $lastWaitReceivedMessage = false;
+
+	private ?string $queueName = null;
+
+	/** @var array<string,AMQPExchange> */
+	private array $exchanges = [];
+
 	public function __construct(
 		string $exchange,
 		string $user,
@@ -149,7 +146,7 @@ class AMQP implements TransportInterface, StatusProvider {
 		string $server="127.0.0.1",
 		int $port=5672,
 		string $vhost="/",
-		string $queueName=null,
+		?string $queueName=null,
 		int $reconnectInterval=60
 	) {
 		$this->exchangeNames = explode(",", $exchange);
@@ -192,7 +189,7 @@ class AMQP implements TransportInterface, StatusProvider {
 			$this->connectExchange($exchObject);
 		}
 		if (!isset($this->eventTicket)) {
-			$this->eventTicket = Loop::repeat(100, function(): void {
+			$this->eventTicket = Loop::repeat(100, function (): void {
 				if ($this->chatBot->isReady()) {
 					$this->processMessages();
 				}
@@ -268,9 +265,7 @@ class AMQP implements TransportInterface, StatusProvider {
 		return true;
 	}
 
-	/**
-	 * Get the channel object by trying to connect
-	 */
+	/** Get the channel object by trying to connect */
 	public function getChannel(): ?AMQPChannel {
 		if (isset($this->channel)) {
 			return $this->channel;
@@ -358,9 +353,7 @@ class AMQP implements TransportInterface, StatusProvider {
 		return $channel;
 	}
 
-	/**
-	 * Send a message to the configured AMQP exchange
-	 */
+	/** Send a message to the configured AMQP exchange */
 	public function sendMessage(string $exchange, string $text, ?string $routingKey=null): bool {
 		$channel = $this->getChannel();
 		if ($channel === null) {
@@ -392,7 +385,7 @@ class AMQP implements TransportInterface, StatusProvider {
 				$this->eventTicket = null;
 			}
 			$args = func_get_args();
-			$this->relay->init(function() use ($args): void {
+			$this->relay->init(function () use ($args): void {
 				$this->sendMessage(...$args);
 			});
 			return false;
@@ -401,9 +394,7 @@ class AMQP implements TransportInterface, StatusProvider {
 		return true;
 	}
 
-	/**
-	 * Register us as listeners for new messages
-	 */
+	/** Register us as listeners for new messages */
 	public function listenForMessages(): bool {
 		$channel = $this->getChannel();
 		if ($channel === null) {
@@ -431,9 +422,7 @@ class AMQP implements TransportInterface, StatusProvider {
 		return true;
 	}
 
-	/**
-	 * Handle incoming AMQP messages
-	 */
+	/** Handle incoming AMQP messages */
 	public function handleIncomingMessage(AMQPMessage $message): void {
 		$this->lastWaitReceivedMessage = true;
 		$sender = $message->get('routing_key');
@@ -500,7 +489,7 @@ class AMQP implements TransportInterface, StatusProvider {
 				$this->relay->init();
 				return;
 			}
-		// @phpstan-ignore-next-line
+			// @phpstan-ignore-next-line
 		} while ($this->lastWaitReceivedMessage === true && $channel->is_consuming());
 	}
 }

@@ -111,19 +111,6 @@ class AltsController extends ModuleInstance {
 		$this->cacheAlts();
 	}
 
-	private function cacheAlts(): void {
-		$this->alts = [];
-		$this->db->table("alts")
-			->where("added_via", $this->db->getMyname())
-			->where("validated_by_main", true)
-			->where("validated_by_alt", true)
-			->asObj(Alt::class)
-			->filter(fn(Alt $alt): bool => $alt->alt !== $alt->main)
-			->each(function (Alt $alt): void {
-				$this->alts[$alt->alt] = $alt->main;
-			});
-	}
-
 	public function getMainOf(string $char): string {
 		return $this->alts[$char] ?? $char;
 	}
@@ -146,13 +133,13 @@ class AltsController extends ModuleInstance {
 	public function addNonValidatedAsBuddies(): Generator {
 		$myName = ucfirst(strtolower($this->chatBot->char->name));
 		yield $this->db->table("alts")->where("validated_by_alt", false)->where("added_via", $myName)
-			->asObj(Alt::class)->map(function(Alt $alt) {
+			->asObj(Alt::class)->map(function (Alt $alt) {
 				return $this->buddylistManager->addAsync($alt->alt, static::ALT_VALIDATE);
 			})->toArray();
 		yield $this->db->table("alts")->where("validated_by_main", false)->where("added_via", $myName)
 			->select("main")->distinct()
 			->pluckAs("main", "string")
-			->map(function(string $main) {
+			->map(function (string $main) {
 				return $this->buddylistManager->addAsync($main, static::MAIN_VALIDATE);
 			})->toArray();
 	}
@@ -251,7 +238,7 @@ class AltsController extends ModuleInstance {
 			return;
 		}
 		$s = ($success === 1 ? "s" : "");
-		$numAlts = ($success === 1 ? "Alt" : "$success alts");
+		$numAlts = ($success === 1 ? "Alt" : "{$success} alts");
 		if ($validated) {
 			$msg = "{$numAlts} added successfully.";
 		} else {
@@ -488,6 +475,254 @@ class AltsController extends ModuleInstance {
 		}
 	}
 
+	/**
+	 * Declines an alt or main requests
+	 */
+	#[NCA\HandlesCommand("altdecline")]
+	#[NCA\Help\Group("alts")]
+	public function altDeclineCommand(CmdContext $context, PCharacter $name): void {
+		$altInfo = $this->getAltInfo($context->char->name, true);
+		$toDecline = $name();
+
+		if ($altInfo->isValidated($context->char->name)) {
+			$this->declineAsMain($toDecline, $altInfo, $context);
+		} else {
+			$this->declineAsAlt($toDecline, $context->char->name, $altInfo, $context);
+		}
+	}
+
+	#[NCA\Event(
+		name: "logOn",
+		description: "Reminds unvalidates alts/mains to accept or deny"
+	)]
+	public function checkUnvalidatedAltsEvent(UserStateEvent $eventObj): void {
+		if (!$this->chatBot->isReady() || !is_string($eventObj->sender)) {
+			return;
+		}
+		$sender = $eventObj->sender;
+		$altInfo = $this->getAltInfo($sender, true);
+		if (!$altInfo->hasUnvalidatedAlts()) {
+			return;
+		}
+		if (!$altInfo->isValidated($sender)) {
+			if ($altInfo->alts[$sender]->added_via !== $this->chatBot->char->name) {
+				return;
+			}
+			if (!$altInfo->alts[$sender]->validated_by_alt) {
+				$this->sendAltValidationRequest($sender, $altInfo);
+			}
+			return;
+		}
+		$unvalidatedByMain = $altInfo->getAllMainUnvalidatedAlts(true);
+		if (count($unvalidatedByMain)) {
+			$this->sendMainValidationRequest($sender, ...$unvalidatedByMain);
+		}
+	}
+
+	/** Send $sender a request to confirm that they are $altInfo->main's alt */
+	public function sendAltValidationRequest(string $sender, AltInfo $altInfo): void {
+		$blob = "<header2>Are you an alt of {$altInfo->main}?<end>\n";
+		$blob .= "<tab>We received a request from <highlight>{$altInfo->main}<end> ".
+			"to add you as their alt.\n\n";
+		$blob .= "<tab>Do you agree to this: ";
+		$blob .= "[".
+			$this->text->makeChatcmd("yes", "/tell <myname> altvalidate {$altInfo->main}").
+			"] [".
+			$this->text->makeChatcmd("no", "/tell <myname> altdecline {$altInfo->main}").
+			"]";
+		$msg = "{$altInfo->main} requested to add you as their alt :: ".
+			((array)$this->text->makeBlob("decide", $blob, "Decide if you are {$altInfo->main}'s alt"))[0];
+		$this->chatBot->sendTell($msg, $sender);
+	}
+
+	/** Send $main a request to confirm that a given list of users are their alts */
+	public function sendMainValidationRequest(string $main, string ...$alts): void {
+		$plural = (count($alts) > 1) ? "s" : "";
+		$blob = "<header2>Alt confirmation<end>\n".
+			"<tab>We received a request from " . count($alts) . " player{$plural} ".
+			"to be added to your alt list.\n\n".
+			"<header2>Choose what to do<end>\n";
+		foreach ($alts as $alt) {
+			$blob .= "<tab> [".
+				$this->text->makeChatcmd("confirm", "/tell <myname> altvalidate {$alt}").
+				"] [".
+				$this->text->makeChatcmd("decline", "/tell <myname> altdecline {$alt}").
+				"] {$alt}\n";
+		}
+		$msg = "You have <highlight>" . count($alts) . "<end> unanswered ".
+			"alt request{$plural} :: ".
+			((array)$this->text->makeBlob("decide", $blob, "Decide who is your alt"))[0];
+		$this->chatBot->sendTell($msg, $main);
+	}
+
+	/**
+	 * Get information about the mains and alts of a player
+	 *
+	 * @param string $player The name of either the main or one of their alts
+	 *
+	 * @return AltInfo Information about the main and the alts
+	 */
+	public function getAltInfo(string $player, bool $includePending=false): AltInfo {
+		$player = ucfirst(strtolower($player));
+
+		$ai = new AltInfo();
+		Registry::injectDependencies($ai);
+		$ai->main = $player;
+		$query = $this->db->table("alts")
+			->where(function (QueryBuilder $query) use ($includePending, $player) {
+				$query->where("main", $player)
+					->orWhere("main", function (QueryBuilder $subQuery) use ($player, $includePending) {
+						$subQuery->from("alts")->where("alt", $player)->select("main");
+						if (!$includePending) {
+							$subQuery->where("validated_by_main", true)
+								->where("validated_by_alt", true);
+						}
+					});
+			});
+		if (!$includePending) {
+			$query->where("validated_by_main", true)->where("validated_by_alt", true);
+		}
+		$query->asObj(Alt::class)
+			->filter(fn (Alt $alt): bool => $alt->alt !== $alt->main)
+			->each(function (Alt $row) use ($ai) {
+				$ai->main = $row->main;
+				$ai->alts[$row->alt] = new AltValidationStatus();
+				$ai->alts[$row->alt]->validated_by_alt = $row->validated_by_alt??false;
+				$ai->alts[$row->alt]->validated_by_main = $row->validated_by_main??false;
+				$ai->alts[$row->alt]->added_via = $row->added_via ?? $this->db->getMyname();
+			});
+
+		return $ai;
+	}
+
+	/** This method adds given $alt as $main's alt character. */
+	public function addAlt(string $main, string $alt, bool $validatedByMain, bool $validatedByAlt, bool $sendEvent=true): int {
+		$main = ucfirst(strtolower($main));
+		$alt = ucfirst(strtolower($alt));
+
+		$added = $this->db->table("alts")
+			->insert([
+				"alt" => $alt,
+				"main" => $main,
+				"validated_by_main" => $validatedByMain,
+				"validated_by_alt" => $validatedByAlt,
+				"added_via" => $this->db->getMyname(),
+			]);
+		if ($added && $sendEvent) {
+			$event = new AltEvent();
+			$event->main = $main;
+			$event->alt = $alt;
+			$event->validated = $validatedByAlt && $validatedByMain;
+			$event->type = 'alt(add)';
+			$this->eventManager->fireEvent($event);
+		}
+		if ($validatedByAlt && $validatedByMain) {
+			$this->alts[$alt] = $main;
+			$audit = new Audit();
+			$audit->actor = $main;
+			$audit->actee = $alt;
+			$audit->action = AccessManager::ADD_ALT;
+			$this->accessManager->addAudit($audit);
+		}
+		return $added ? 1 : 0;
+	}
+
+	/** This method removes given a $alt from being $main's alt character. */
+	public function remAlt(string $main, string $alt): int {
+		/** @var ?Alt */
+		$old = $this->db->table("alts")
+			->where("alt", $alt)
+			->where("main", $main)
+			->asObj(Alt::class)
+			->first();
+		$deleted = $this->db->table("alts")
+			->where("alt", $alt)
+			->where("main", $main)
+			->delete();
+		if ($deleted > 0) {
+			$event = new AltEvent();
+			$event->main = $main;
+			$event->alt = $alt;
+			$event->type = 'alt(del)';
+			$this->eventManager->fireEvent($event);
+
+			if (isset($old) && $old->validated_by_alt && $old->validated_by_main) {
+				unset($this->alts[$alt]);
+				$audit = new Audit();
+				$audit->actor = $main;
+				$audit->actee = $alt;
+				$audit->action = AccessManager::DEL_ALT;
+				$this->accessManager->addAudit($audit);
+			}
+		}
+		return $deleted;
+	}
+
+	#[
+		NCA\NewsTile(
+			name: "alts-info",
+			description: "Displays basic information about your alts",
+			example: "<header2>Account<end>\n".
+				"<tab>Your main is <highlight>Nady<end>\n".
+				"<tab>You have <u>15 alts</u>."
+		)
+	]
+	public function altsTile(string $sender, callable $callback): void {
+		$altInfo = $this->getAltInfo($sender, true);
+		$altsCmdText = "no alts";
+		if (count($altInfo->getAllAlts()) === 2) {
+			$altsCmdText = "1 alt";
+		} elseif (count($altInfo->getAllAlts()) > 2) {
+			$altsCmdText = (count($altInfo->getAllAlts())-1) . " alts";
+		}
+		if ($altInfo->hasUnvalidatedAlts()) {
+			$numUnvalidated = 0;
+			foreach ($altInfo->getAllAlts() as $alt) {
+				if (!$altInfo->isValidated($alt)) {
+					$numUnvalidated++;
+				}
+			}
+			if ($numUnvalidated > 1) {
+				$altsCmdText .= ", {$numUnvalidated} need validation";
+			} else {
+				$altsCmdText .= ", {$numUnvalidated} needs validation";
+			}
+		}
+		$altsCommand = $altsCmdText;
+		if (count($altInfo->getAllAlts()) > 1) {
+			$altsCommand = $this->text->makeChatcmd($altsCmdText, "/tell <myname> alts");
+		}
+		$blob = "<header2>Account<end>\n".
+			"<tab>Your main is <highlight>{$altInfo->main}<end>\n".
+			"<tab>You have {$altsCommand}.";
+		$callback($blob);
+	}
+
+	#[
+		NCA\NewsTile(
+			name: "alts-unvalidated",
+			description: "Show a notice if char has any unvalidated alts",
+			example: "<header2>Unvalidated Alts [<u>see more</u>]<end>\n".
+			"<tab>- Char1\n".
+			"<tab>- Char2"
+		)
+	]
+	public function unvalidatedAltsTile(string $sender, callable $callback): void {
+		$altInfo = $this->getAltInfo($sender, true);
+		if (!$altInfo->hasUnvalidatedAlts()) {
+			$callback(null);
+			return;
+		}
+		$altsLink = $this->text->makeChatcmd("see more", "/tell <myname> alts");
+		$blob = "<header2>Unvalidated Alts [{$altsLink}]<end>";
+		foreach ($altInfo->getAllAlts() as $alt) {
+			if (!$altInfo->isValidated($alt)) {
+				$blob .= "\n<tab>- {$alt}";
+			}
+		}
+		$callback($blob);
+	}
+
 	protected function validateAsMain(string $toValidate, AltInfo $altInfo, CommandReply $sendto): void {
 		if (!isset($altInfo->alts[$toValidate])
 			|| !$altInfo->alts[$toValidate]->validated_by_alt) {
@@ -535,7 +770,7 @@ class AltsController extends ModuleInstance {
 		$audit->action = AccessManager::ADD_ALT;
 		$this->accessManager->addAudit($audit);
 
-		$sendto->reply("<highlight>$toValidate<end> has been validated as your main.");
+		$sendto->reply("<highlight>{$toValidate}<end> has been validated as your main.");
 		$this->buddylistManager->remove($sender, static::ALT_VALIDATE);
 	}
 
@@ -546,22 +781,6 @@ class AltsController extends ModuleInstance {
 		$event->validated = true;
 		$event->type = 'alt(validate)';
 		$this->eventManager->fireEvent($event);
-	}
-
-	/**
-	 * Declines an alt or main requests
-	 */
-	#[NCA\HandlesCommand("altdecline")]
-	#[NCA\Help\Group("alts")]
-	public function altDeclineCommand(CmdContext $context, PCharacter $name): void {
-		$altInfo = $this->getAltInfo($context->char->name, true);
-		$toDecline = $name();
-
-		if ($altInfo->isValidated($context->char->name)) {
-			$this->declineAsMain($toDecline, $altInfo, $context);
-		} else {
-			$this->declineAsAlt($toDecline, $context->char->name, $altInfo, $context);
-		}
 	}
 
 	protected function declineAsMain(string $toDecline, AltInfo $altInfo, CommandReply $sendto): void {
@@ -624,243 +843,16 @@ class AltsController extends ModuleInstance {
 		$this->buddylistManager->remove($main, static::MAIN_VALIDATE);
 	}
 
-	#[NCA\Event(
-		name: "logOn",
-		description: "Reminds unvalidates alts/mains to accept or deny"
-	)]
-	public function checkUnvalidatedAltsEvent(UserStateEvent $eventObj): void {
-		if (!$this->chatBot->isReady() || !is_string($eventObj->sender)) {
-			return;
-		}
-		$sender = $eventObj->sender;
-		$altInfo = $this->getAltInfo($sender, true);
-		if (!$altInfo->hasUnvalidatedAlts()) {
-			return;
-		}
-		if (!$altInfo->isValidated($sender)) {
-			if ($altInfo->alts[$sender]->added_via !== $this->chatBot->char->name) {
-				return;
-			}
-			if (!$altInfo->alts[$sender]->validated_by_alt) {
-				$this->sendAltValidationRequest($sender, $altInfo);
-			}
-			return;
-		}
-		$unvalidatedByMain = $altInfo->getAllMainUnvalidatedAlts(true);
-		if (count($unvalidatedByMain)) {
-			$this->sendMainValidationRequest($sender, ...$unvalidatedByMain);
-		}
-	}
-
-	/**
-	 * Send $sender a request to confirm that they are $altInfo->main's alt
-	 */
-	public function sendAltValidationRequest(string $sender, AltInfo $altInfo): void {
-		$blob = "<header2>Are you an alt of {$altInfo->main}?<end>\n";
-		$blob .= "<tab>We received a request from <highlight>{$altInfo->main}<end> ".
-			"to add you as their alt.\n\n";
-		$blob .= "<tab>Do you agree to this: ";
-		$blob .= "[".
-			$this->text->makeChatcmd("yes", "/tell <myname> altvalidate {$altInfo->main}").
-			"] [".
-			$this->text->makeChatcmd("no", "/tell <myname> altdecline {$altInfo->main}").
-			"]";
-		$msg = "{$altInfo->main} requested to add you as their alt :: ".
-			((array)$this->text->makeBlob("decide", $blob, "Decide if you are {$altInfo->main}'s alt"))[0];
-		$this->chatBot->sendTell($msg, $sender);
-	}
-
-	/**
-	 * Send $main a request to confirm that a given list of users are their alts
-	 */
-	public function sendMainValidationRequest(string $main, string ...$alts): void {
-		$plural = (count($alts) > 1) ? "s" : "";
-		$blob = "<header2>Alt confirmation<end>\n".
-			"<tab>We received a request from " . count($alts) . " player{$plural} ".
-			"to be added to your alt list.\n\n".
-			"<header2>Choose what to do<end>\n";
-		foreach ($alts as $alt) {
-			$blob .= "<tab> [".
-				$this->text->makeChatcmd("confirm", "/tell <myname> altvalidate {$alt}").
-				"] [".
-				$this->text->makeChatcmd("decline", "/tell <myname> altdecline {$alt}").
-				"] {$alt}\n";
-		}
-		$msg = "You have <highlight>" . count($alts) . "<end> unanswered ".
-			"alt request{$plural} :: ".
-			((array)$this->text->makeBlob("decide", $blob, "Decide who is your alt"))[0];
-		$this->chatBot->sendTell($msg, $main);
-	}
-
-	/**
-	 * Get information about the mains and alts of a player
-	 * @param string $player The name of either the main or one of their alts
-	 * @return AltInfo Information about the main and the alts
-	 */
-	public function getAltInfo(string $player, bool $includePending=false): AltInfo {
-		$player = ucfirst(strtolower($player));
-
-		$ai = new AltInfo();
-		Registry::injectDependencies($ai);
-		$ai->main = $player;
-		$query = $this->db->table("alts")
-			->where(function(QueryBuilder $query) use ($includePending, $player) {
-				$query->where("main", $player)
-					->orWhere("main", function(QueryBuilder $subQuery) use ($player, $includePending) {
-						$subQuery->from("alts")->where("alt", $player)->select("main");
-						if (!$includePending) {
-							$subQuery->where("validated_by_main", true)
-								->where("validated_by_alt", true);
-						}
-					});
-			});
-		if (!$includePending) {
-			$query->where("validated_by_main", true)->where("validated_by_alt", true);
-		}
-		$query->asObj(Alt::class)
-			->filter(fn(Alt $alt): bool => $alt->alt !== $alt->main)
-			->each(function(Alt $row) use ($ai) {
-				$ai->main = $row->main;
-				$ai->alts[$row->alt] = new AltValidationStatus();
-				$ai->alts[$row->alt]->validated_by_alt = $row->validated_by_alt??false;
-				$ai->alts[$row->alt]->validated_by_main = $row->validated_by_main??false;
-				$ai->alts[$row->alt]->added_via = $row->added_via ?? $this->db->getMyname();
-			});
-
-		return $ai;
-	}
-
-	/**
-	 * This method adds given $alt as $main's alt character.
-	 */
-	public function addAlt(string $main, string $alt, bool $validatedByMain, bool $validatedByAlt, bool $sendEvent=true): int {
-		$main = ucfirst(strtolower($main));
-		$alt = ucfirst(strtolower($alt));
-
-		$added = $this->db->table("alts")
-			->insert([
-				"alt" => $alt,
-				"main" => $main,
-				"validated_by_main" => $validatedByMain,
-				"validated_by_alt" => $validatedByAlt,
-				"added_via" => $this->db->getMyname(),
-			]);
-		if ($added && $sendEvent) {
-			$event = new AltEvent();
-			$event->main = $main;
-			$event->alt = $alt;
-			$event->validated = $validatedByAlt && $validatedByMain;
-			$event->type = 'alt(add)';
-			$this->eventManager->fireEvent($event);
-		}
-		if ($validatedByAlt && $validatedByMain) {
-			$this->alts[$alt] = $main;
-			$audit = new Audit();
-			$audit->actor = $main;
-			$audit->actee = $alt;
-			$audit->action = AccessManager::ADD_ALT;
-			$this->accessManager->addAudit($audit);
-		}
-		return $added ? 1 : 0;
-	}
-
-	/**
-	 * This method removes given a $alt from being $main's alt character.
-	 */
-	public function remAlt(string $main, string $alt): int {
-		/** @var ?Alt */
-		$old = $this->db->table("alts")
-			->where("alt", $alt)
-			->where("main", $main)
+	private function cacheAlts(): void {
+		$this->alts = [];
+		$this->db->table("alts")
+			->where("added_via", $this->db->getMyname())
+			->where("validated_by_main", true)
+			->where("validated_by_alt", true)
 			->asObj(Alt::class)
-			->first();
-		$deleted = $this->db->table("alts")
-			->where("alt", $alt)
-			->where("main", $main)
-			->delete();
-		if ($deleted > 0) {
-			$event = new AltEvent();
-			$event->main = $main;
-			$event->alt = $alt;
-			$event->type = 'alt(del)';
-			$this->eventManager->fireEvent($event);
-
-			if (isset($old) && $old->validated_by_alt && $old->validated_by_main) {
-				unset($this->alts[$alt]);
-				$audit = new Audit();
-				$audit->actor = $main;
-				$audit->actee = $alt;
-				$audit->action = AccessManager::DEL_ALT;
-				$this->accessManager->addAudit($audit);
-			}
-		}
-		return $deleted;
-	}
-
-	#[
-		NCA\NewsTile(
-			name: "alts-info",
-			description: "Displays basic information about your alts",
-			example:
-				"<header2>Account<end>\n".
-				"<tab>Your main is <highlight>Nady<end>\n".
-				"<tab>You have <u>15 alts</u>."
-		)
-	]
-	public function altsTile(string $sender, callable $callback): void {
-		$altInfo = $this->getAltInfo($sender, true);
-		$altsCmdText = "no alts";
-		if (count($altInfo->getAllAlts()) === 2) {
-			$altsCmdText = "1 alt";
-		} elseif (count($altInfo->getAllAlts()) > 2) {
-			$altsCmdText = (count($altInfo->getAllAlts())-1) . " alts";
-		}
-		if ($altInfo->hasUnvalidatedAlts()) {
-			$numUnvalidated = 0;
-			foreach ($altInfo->getAllAlts() as $alt) {
-				if (!$altInfo->isValidated($alt)) {
-					$numUnvalidated++;
-				}
-			}
-			if ($numUnvalidated > 1) {
-				$altsCmdText .= ", {$numUnvalidated} need validation";
-			} else {
-				$altsCmdText .= ", {$numUnvalidated} needs validation";
-			}
-		}
-		$altsCommand = $altsCmdText;
-		if (count($altInfo->getAllAlts()) > 1) {
-			$altsCommand = $this->text->makeChatcmd($altsCmdText, "/tell <myname> alts");
-		}
-		$blob = "<header2>Account<end>\n".
-			"<tab>Your main is <highlight>{$altInfo->main}<end>\n".
-			"<tab>You have {$altsCommand}.";
-		$callback($blob);
-	}
-
-	#[
-		NCA\NewsTile(
-			name: "alts-unvalidated",
-			description: "Show a notice if char has any unvalidated alts",
-			example:
-				"<header2>Unvalidated Alts [<u>see more</u>]<end>\n".
-			"<tab>- Char1\n".
-			"<tab>- Char2"
-		)
-	]
-	public function unvalidatedAltsTile(string $sender, callable $callback): void {
-		$altInfo = $this->getAltInfo($sender, true);
-		if (!$altInfo->hasUnvalidatedAlts()) {
-			$callback(null);
-			return;
-		}
-		$altsLink = $this->text->makeChatcmd("see more", "/tell <myname> alts");
-		$blob = "<header2>Unvalidated Alts [{$altsLink}]<end>";
-		foreach ($altInfo->getAllAlts() as $alt) {
-			if (!$altInfo->isValidated($alt)) {
-				$blob .= "\n<tab>- {$alt}";
-			}
-		}
-		$callback($blob);
+			->filter(fn (Alt $alt): bool => $alt->alt !== $alt->main)
+			->each(function (Alt $alt): void {
+				$this->alts[$alt->alt] = $alt->main;
+			});
 	}
 }

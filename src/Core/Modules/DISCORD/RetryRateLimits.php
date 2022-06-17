@@ -2,17 +2,10 @@
 
 namespace Nadybot\Core\Modules\DISCORD;
 
-use Amp\CancellationToken;
-use Amp\Http\Client\ApplicationInterceptor;
-use Amp\Http\Client\DelegateHttpClient;
-use Amp\Http\Client\Internal\ForbidCloning;
-use Amp\Http\Client\Internal\ForbidSerialization;
-use Amp\Http\Client\Request;
-use Amp\Http\Client\Response;
-use Amp\Promise;
-
-use function Amp\call;
-use function Amp\delay;
+use function Amp\{call, delay};
+use Amp\Http\Client\Internal\{ForbidCloning, ForbidSerialization};
+use Amp\Http\Client\{ApplicationInterceptor, DelegateHttpClient, Request, Response};
+use Amp\{CancellationToken, Promise};
 
 class RetryRateLimits implements ApplicationInterceptor {
 	use ForbidCloning;
@@ -24,7 +17,7 @@ class RetryRateLimits implements ApplicationInterceptor {
 		DelegateHttpClient $httpClient,
 	): Promise {
 		return call(function () use ($request, $cancellation, $httpClient) {
-			do {
+			while (true) {
 				/** @var Response */
 				$response = yield $httpClient->request(clone $request, $cancellation);
 				if ($response->getStatus() === 429) {
@@ -33,7 +26,7 @@ class RetryRateLimits implements ApplicationInterceptor {
 				} else {
 					return $response;
 				}
-			} while (true);
+			}
 		});
 	}
 }

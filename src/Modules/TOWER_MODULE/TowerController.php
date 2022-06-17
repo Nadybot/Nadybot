@@ -8,9 +8,15 @@ use Closure;
 use DateTime;
 use Exception;
 use Generator;
-use Throwable;
 use Illuminate\Database\Query\JoinClause;
 use Illuminate\Support\Collection;
+use Nadybot\Core\ParamClass\{
+	PDuration,
+	PNonGreedy,
+	PPlayfield,
+	PTowerSite,
+	PWord,
+};
 use Nadybot\Core\{
 	AOChatEvent,
 	Attributes as NCA,
@@ -20,10 +26,10 @@ use Nadybot\Core\{
 	DB,
 	DBSchema\Player,
 	EventManager,
-	ModuleInstance,
 	LoggerWrapper,
 	MessageEmitter,
 	MessageHub,
+	ModuleInstance,
 	Modules\PLAYER_LOOKUP\PlayerManager,
 	Nadybot,
 	QueryBuilder,
@@ -33,23 +39,17 @@ use Nadybot\Core\{
 	Text,
 	Util,
 };
-use Nadybot\Core\ParamClass\{
-	PDuration,
-	PNonGreedy,
-	PPlayfield,
-	PTowerSite,
-	PWord,
-};
 use Nadybot\Modules\{
 	HELPBOT_MODULE\Playfield,
 	HELPBOT_MODULE\PlayfieldController,
 	LEVEL_MODULE\LevelController,
-	TIMERS_MODULE\Alert,
 	ORGLIST_MODULE\FindOrgController,
 	ORGLIST_MODULE\Organization,
 	ORGLIST_MODULE\OrglistController,
+	TIMERS_MODULE\Alert,
 	TIMERS_MODULE\TimerController,
 };
+use Throwable;
 
 #[
 	NCA\Instance,
@@ -150,6 +150,8 @@ class TowerController extends ModuleInstance {
 		226 => 7,
 	];
 
+	public const TIMER_NAME = "Towerbattles";
+
 	#[NCA\Inject]
 	public PlayfieldController $playfieldController;
 
@@ -232,20 +234,16 @@ class TowerController extends ModuleInstance {
 	/** Message for system(tower-attack-own) when the own field is being attacked */
 	#[NCA\Setting\Text(options: [
 		"off",
-		"@here Our field in {location} is being attacked by {player}"
+		"@here Our field in {location} is being attacked by {player}",
 	])]
 	public string $discordNotifyOrgAttacks = "off";
+
+	public int $lastDiscordNotify = 0;
 
 	/** @var AttackListener[] */
 	protected array $attackListeners = [];
 
-	public int $lastDiscordNotify = 0;
-
-	public const TIMER_NAME = "Towerbattles";
-
-	/**
-	 * Adds listener callback which will be called when tower attacks occur.
-	 */
+	/** Adds listener callback which will be called when tower attacks occur. */
 	public function registerAttackListener(callable $callback, mixed $data=null): void {
 		$listener = new AttackListener();
 		$listener->callback = $callback;
@@ -258,17 +256,17 @@ class TowerController extends ModuleInstance {
 		$this->db->loadCSVFile($this->moduleName, __DIR__ . '/tower_site.csv');
 		$this->db->loadCSVFile($this->moduleName, __DIR__ . '/tower_site_bounds.csv');
 
-		$attack = new class implements MessageEmitter {
+		$attack = new class () implements MessageEmitter {
 			public function getChannelName(): string {
 				return Source::SYSTEM . "(tower-attack)";
 			}
 		};
-		$attackOwn = new class implements MessageEmitter {
+		$attackOwn = new class () implements MessageEmitter {
 			public function getChannelName(): string {
 				return Source::SYSTEM . "(tower-attack-own)";
 			}
 		};
-		$victory = new class implements MessageEmitter {
+		$victory = new class () implements MessageEmitter {
 			public function getChannelName(): string {
 				return Source::SYSTEM . "(tower-victory)";
 			}
@@ -370,7 +368,7 @@ class TowerController extends ModuleInstance {
 		PNonGreedy $orgName,
 		?int $page
 	): void {
-		$cmd = "org $orgName ";
+		$cmd = "org {$orgName} ";
 		$search = function (QueryBuilder $query) use ($orgName): void {
 			$query->whereIlike("att_guild_name", $orgName())
 				->orWhereIlike("def_guild_name", $orgName());
@@ -430,6 +428,7 @@ class TowerController extends ModuleInstance {
 					->limit(1);
 				$scoutedInfo = $query->asObj(ScoutInfoPlus::class);
 				$this->addPlusToScout($scoutedInfo);
+
 				/** @var ?ScoutInfoPlus */
 				$scoutedInfo = $scoutedInfo->first();
 				if (!isset($scoutedInfo) || !isset($scoutedInfo->ql)) {
@@ -471,24 +470,26 @@ class TowerController extends ModuleInstance {
 			$this->showSitesOfOrg((int)$search, $context);
 			return;
 		}
+
 		/** @var Organization[] */
 		$orgs = yield $this->orglistController->getOrgsMatchingSearch($search);
 		$count = count($orgs);
 
 		if ($count === 0) {
-			$msg = "Could not find any orgs (or players in orgs) that match <highlight>$search<end>.";
+			$msg = "Could not find any orgs (or players in orgs) that match <highlight>{$search}<end>.";
 			$context->reply($msg);
 		} elseif ($count === 1) {
 			$this->showSitesOfOrg($orgs[0]->id, $context);
 		} else {
 			$blob = $this->formatOrglist($orgs);
-			$msg = $this->makeBlob("Org Search Results for '{$search}' ($count)", $blob);
+			$msg = $this->makeBlob("Org Search Results for '{$search}' ({$count})", $blob);
 			$context->reply($msg);
 		}
 	}
 
 	/**
 	 * Show a list of links, generated from the orglist
+	 *
 	 * @param Organization[] $orgs
 	 */
 	public function formatOrglist(array $orgs): string {
@@ -498,32 +499,18 @@ class TowerController extends ModuleInstance {
 			$whoisorg = $this->text->makeChatcmd('Whoisorg', "/tell <myname> whoisorg {$org->id}");
 			$orglist = $this->text->makeChatcmd('Orglist', "/tell <myname> orglist {$org->id}");
 			$orgmembers = $this->text->makeChatcmd('Orgmembers', "/tell <myname> orgmembers {$org->id}");
-			$blob .= "<{$org->faction}>{$org->name}<end> ({$org->id}) - {$org->num_members} members [$sites] [$orglist] [$whoisorg] [$orgmembers]\n\n";
+			$blob .= "<{$org->faction}>{$org->name}<end> ({$org->id}) - {$org->num_members} members [{$sites}] [{$orglist}] [{$whoisorg}] [{$orgmembers}]\n\n";
 		}
 		return $blob;
 	}
 
-	/** Query the API for a list of all sites of an org and show to $sendto */
-	protected function showSitesOfOrg(int $orgId, CommandReply $sendto): void {
-		$sites = $this->getScoutPlusQuery()
-			->asObj(ScoutInfoPlus::class);
-		$this->addPlusToScout($sites);
-		$sites = $sites->where("org_id", $orgId);
-		if ($this->towerApiController->isActive()) {
-			$params = ["enabled" => "1", "org_id" => $orgId];
-			$this->towerApiController->call($params, [$this, "showOrgSites"], $sites, $sendto, $orgId);
-			return;
-		}
-		$result = $this->scoutToAPI($sites);
-		$this->showOrgSites($result, null, $sendto, $orgId);
-	}
-
 	/**
 	 * Show the result of the sites of org query to $sendto
+	 *
 	 * @param null|Collection<ScoutInfoPlus> $local
 	 */
 	public function showOrgSites(?ApiResult $result, ?Collection $local, CommandReply $sendto, int $orgId): void {
-		if (isset($result) && isset($local)) {
+		if (isset($result, $local)) {
 			$result = $this->mergeLocalToAPI($local, $result);
 		} elseif (isset($local)) {
 			$result = $this->scoutToAPI($local);
@@ -573,8 +560,8 @@ class TowerController extends ModuleInstance {
 
 		$blob = "<header2>Playfields with notum fields<end>\n";
 		foreach ($playfields as $pf) {
-			$baseLink = $this->text->makeChatcmd($pf->long_name, "/tell <myname> lc $pf->short_name");
-			$blob .= "<tab>$baseLink <highlight>($pf->short_name)<end>\n";
+			$baseLink = $this->text->makeChatcmd($pf->long_name, "/tell <myname> lc {$pf->short_name}");
+			$blob .= "<tab>{$baseLink} <highlight>({$pf->short_name})<end>\n";
 		}
 		$msg = $this->text->makeBlob('Land Control Index', $blob);
 		$context->reply($msg);
@@ -589,7 +576,7 @@ class TowerController extends ModuleInstance {
 		$playfieldName = $pf();
 		$playfield = $this->playfieldController->getPlayfieldByName($playfieldName);
 		if ($playfield === null) {
-			$msg = "Playfield <highlight>$playfieldName<end> could not be found.";
+			$msg = "Playfield <highlight>{$playfieldName}<end> could not be found.";
 			$context->reply($msg);
 			return;
 		}
@@ -604,7 +591,7 @@ class TowerController extends ModuleInstance {
 				$info->long_name = $playfield->long_name;
 			});
 		if ($data->isEmpty()) {
-			$msg = "Playfield <highlight>$playfield->long_name<end> does not have any tower sites.";
+			$msg = "Playfield <highlight>{$playfield->long_name}<end> does not have any tower sites.";
 			$context->reply($msg);
 			return;
 		}
@@ -660,18 +647,19 @@ class TowerController extends ModuleInstance {
 
 	/**
 	 * Show the API-result of a whole playfield
+	 *
 	 * @param null|Collection<ScoutInfoPlus> $local
-	 * @param Collection<SiteInfo> $data
+	 * @param Collection<SiteInfo>           $data
 	 */
 	public function showArea(?ApiResult $result, ?Collection $local, Collection $data, Playfield $pf, CommandReply $sendto): void {
 		$blob = '';
-		if (isset($result) && isset($local)) {
+		if (isset($result, $local)) {
 			$result = $this->mergeLocalToAPI($local, $result);
 		} elseif (isset($local)) {
 			$result = $this->scoutToAPI($local);
 		}
 		if (isset($result)) {
-			usort($result->results, function(ApiSite $a, ApiSite $b): int {
+			usort($result->results, function (ApiSite $a, ApiSite $b): int {
 				return $a->site_number <=> $b->site_number;
 			});
 		}
@@ -685,56 +673,8 @@ class TowerController extends ModuleInstance {
 			}
 		}
 
-		$msg = $this->makeBlob("All Bases in $pf->long_name", $blob);
+		$msg = $this->makeBlob("All Bases in {$pf->long_name}", $blob);
 		$sendto->reply($msg);
-	}
-
-	protected function formatApiSiteInfo(ApiSite $site, ?Playfield $pf=null, bool $showOrgLinks=true): string {
-		if (!isset($pf)) {
-			$pf = new Playfield();
-			$pf->id = $site->playfield_id;
-			$pf->long_name = $site->playfield_long_name;
-			$pf->short_name = $site->playfield_short_name;
-		}
-		$waypointLink = $this->text->makeChatcmd($site->x_coord . "x" . $site->y_coord, "/waypoint {$site->x_coord} {$site->y_coord} {$pf->id}");
-		$attacksLink = $this->text->makeChatcmd("Recent attacks", "/tell <myname> attacks {$pf->short_name} {$site->site_number}");
-		$victoryLink = $this->text->makeChatcmd("Recent victories", "/tell <myname> victory {$pf->short_name} {$site->site_number}");
-
-		$blob = "<header2>{$pf->short_name} {$site->site_number} ({$site->site_name})<end>\n";
-		$blob .= "<tab>Level range: <highlight>{$site->min_ql}-{$site->max_ql}<end>\n";
-		if (isset($site->ql)) {
-			$blob .= "<tab>Planted: <highlight>".
-				(isset($site->created_at) ? $this->util->date($site->created_at) : "Unknown") . "<end>\n".
-				"<tab>CT: QL <highlight>{$site->ql}<end>, Type " . $this->qlToSiteType($site->ql) . " ".
-				"(<" . strtolower($site->faction??"neutral") .">{$site->org_name}<end>)";
-			if ($showOrgLinks) {
-				$orgLink = $this->text->makeChatcmd(
-					"show sites",
-					"/tell <myname> sites {$site->org_id}"
-				);
-				$blob .= " [{$orgLink}]";
-			}
-			$blob .= "\n";
-			if (isset($site->close_time)) {
-				$gas = $this->getGasLevel($site->close_time);
-				if ($gas->gas_level === "75%" && ($site->penalty_until??0) >= time() && $site->penalty_until >= $gas->time_until_close_time) {
-					$blob .= "<tab>Gas: <green>25%<end>, closes in ".
-						$this->util->unixtimeToReadable(($site->penalty_until??0) - time()) . "\n";
-				} else {
-					$blob .= "<tab>Gas: {$gas->color}{$gas->gas_level}<end>, {$gas->next_state} in ".
-						$this->util->unixtimeToReadable($gas->gas_change, false) . "\n";
-				}
-			}
-		} elseif ($site->source === "api" || $site->source === "empty") {
-			$blob .= "<tab>Planted: <highlight>No<end>\n";
-		} else {
-			$blob .= "<tab>Planted: <highlight>Unknown<end>\n";
-		}
-		$blob .= "<tab>Center coordinates: {$waypointLink}\n".
-			"<tab>{$attacksLink}\n".
-			"<tab>{$victoryLink}";
-
-		return $blob;
 	}
 
 	/**
@@ -747,7 +687,7 @@ class TowerController extends ModuleInstance {
 		$playfieldName = $site->pf;
 		$playfield = $this->playfieldController->getPlayfieldByName($playfieldName);
 		if ($playfield === null) {
-			$msg = "Playfield <highlight>$playfieldName<end> could not be found.";
+			$msg = "Playfield <highlight>{$playfieldName}<end> could not be found.";
 			$context->reply($msg);
 			return;
 		}
@@ -757,7 +697,7 @@ class TowerController extends ModuleInstance {
 			->where("t.playfield_id", $playfield->id)
 			->where("t.site_number", $site->site)
 			->asObj(SiteInfo::class)
-			->each(function(SiteInfo $info) use ($playfield): void {
+			->each(function (SiteInfo $info) use ($playfield): void {
 				$info->id = $playfield->id;
 				$info->short_name = $playfield->short_name;
 				$info->long_name = $playfield->long_name;
@@ -783,12 +723,11 @@ class TowerController extends ModuleInstance {
 		$sites = $this->scoutToAPI($sites);
 		$this->showSite($sites, null, $site, $playfield, $context);
 	}
-	/**
-	 * @param null|Collection<ScoutInfoPlus> $local
-	 */
+
+	/** @param null|Collection<ScoutInfoPlus> $local */
 	public function showSite(?ApiResult $result, ?Collection $local, SiteInfo $site, Playfield $playfield, CommandReply $sendto): void {
 		$details = null;
-		if (isset($result) && isset($local)) {
+		if (isset($result, $local)) {
 			$result = $this->mergeLocalToAPI($local, $result);
 		} elseif (isset($local)) {
 			$result = $this->scoutToAPI($local);
@@ -807,6 +746,7 @@ class TowerController extends ModuleInstance {
 		$query->orderByDesc($query->colFunc("COALESCE", ["v.time", "a.time"]))
 			->limit(10)
 			->select("a.*", "v.*");
+
 		/** @var Collection<TowerAttackAndVictory> */
 		$attacks = $query->asObj(TowerAttackAndVictory::class);
 		if ($attacks->isNotEmpty()) {
@@ -825,14 +765,14 @@ class TowerController extends ModuleInstance {
 				$blob .= "<tab><{$attFaction}>{$name}<end> attacked <{$defFaction}>{$attack->def_guild_name}<end>\n";
 			} else {
 				// victory
-				$blob .= "<tab><$attack->win_faction>$attack->win_guild_name<end> won against <$attack->lose_faction>$attack->lose_guild_name<end>\n";
+				$blob .= "<tab><{$attack->win_faction}>{$attack->win_guild_name}<end> won against <{$attack->lose_faction}>{$attack->lose_guild_name}<end>\n";
 			}
 		}
 
 		if (isset($details)) {
-			$msg = $this->makeBlob("$playfield->short_name {$site->site_number}", $blob);
+			$msg = $this->makeBlob("{$playfield->short_name} {$site->site_number}", $blob);
 		} else {
-			$msg = $this->text->makeBlob("$playfield->short_name {$site->site_number}", $blob);
+			$msg = $this->text->makeBlob("{$playfield->short_name} {$site->site_number}", $blob);
 		}
 
 		$sendto->reply($msg);
@@ -874,11 +814,9 @@ class TowerController extends ModuleInstance {
 		$this->processPenaltySites($result, null, $context);
 	}
 
-	/**
-	 * @param null|Collection<ScoutInfoPlus> $local
-	 */
+	/** @param null|Collection<ScoutInfoPlus> $local */
 	public function processPenaltySites(?ApiResult $result, ?Collection $local, CommandReply $sendto): void {
-		if (isset($result) && isset($local)) {
+		if (isset($result, $local)) {
 			$result = $this->mergeLocalToAPI($local, $result);
 		} elseif (isset($local)) {
 			$result = $this->scoutToAPI($local);
@@ -954,7 +892,7 @@ class TowerController extends ModuleInstance {
 		$pfIds = $data->pluck("playfield_id")->filter()->toArray();
 		$playfields = $this->playfieldController->searchPlayfieldsByIds(...$pfIds)
 			->keyBy("id");
-		$data->each(function(SiteInfo $info) use ($playfields): void {
+		$data->each(function (SiteInfo $info) use ($playfields): void {
 			/** @var Playfield */
 			$pf = $playfields->get($info->playfield_id);
 			$info->id = $pf->id;
@@ -975,13 +913,9 @@ class TowerController extends ModuleInstance {
 		);
 	}
 
-	/**
-	 * @param Collection<SiteInfo> $siteGroup
-	 * @param string $shortName
-	 * @return string
-	 */
+	/** @param Collection<SiteInfo> $siteGroup */
 	public function formatSiteGroup(Collection $siteGroup, string $shortName): string {
-		$siteLinks = $siteGroup->map(function(SiteInfo $site): string {
+		$siteLinks = $siteGroup->map(function (SiteInfo $site): string {
 			$shortName = ($site->short_name??"UNKNOWN") . " " . $site->site_number;
 			$siteLink = $this->text->makeChatcmd(
 				$shortName,
@@ -1090,29 +1024,6 @@ class TowerController extends ModuleInstance {
 		);
 	}
 
-	/**
-	 * @param Collection<ScoutInfoPlus> $data
-	 */
-	private function addPlusToScout(Collection $data): void {
-		$pfs = $this->playfieldController->searchPlayfieldsByIds(
-			...$data->pluck("playfield_id")->filter()->toArray()
-		)->keyBy("id");
-		$orgs = $this->findOrgController->getOrgsByName(
-			...$data->pluck("org_name")->filter()->toArray()
-		)->keyBy("name");
-		foreach ($data as $scout) {
-			/** @var ?Playfield */
-			$pf = $pfs->get($scout->playfield_id);
-			if (isset($pf)) {
-				$scout->playfield_long_name = $pf->long_name;
-				$scout->playfield_short_name = $pf->short_name;
-			}
-			/** @var ?Organization */
-			$org = $orgs->get($scout->org_name);
-			$scout->org_id = $org->id ?? null;
-		}
-	}
-
 	public function getScoutPlusQuery(): QueryBuilder {
 		return $this->db->table("scout_info", "s")
 			->join("tower_site AS t", function (JoinClause $join): void {
@@ -1128,6 +1039,7 @@ class TowerController extends ModuleInstance {
 
 	/**
 	 * @param array<string,mixed> $params
+	 *
 	 * @return null|Collection<ScoutInfoPlus>
 	 */
 	public function getScoutedHotSites(array $params, int $time, CommandReply $sendto): ?Collection {
@@ -1170,8 +1082,8 @@ class TowerController extends ModuleInstance {
 
 	/**
 	 * Convert the locally scouted data into an API result
+	 *
 	 * @param \Illuminate\Support\Collection<ScoutInfoPlus> $scoutInfos
-	 * @return ApiResult
 	 */
 	public function scoutToAPI(Collection $scoutInfos): ApiResult {
 		$data = [];
@@ -1212,50 +1124,10 @@ class TowerController extends ModuleInstance {
 	}
 
 	/**
-	 * Merge local scout data into API results and vice versa
-	 * @param Collection<ScoutInfoPlus> $local
-	 * @param ApiResult $api
-	 * @return ApiResult
-	 */
-	protected function mergeLocalToAPI(Collection $local, ApiResult $api): ApiResult {
-		$result = [];
-		/** @var array<int,array<int,ApiSite>> */
-		$apiSites = [];
-		foreach ($api->results as $apiSite) {
-			$apiSites[$apiSite->playfield_id] ??= [];
-			$apiSites[$apiSite->playfield_id][$apiSite->site_number] = $apiSite;
-		}
-		foreach ($local as $localSite) {
-			/** @var ?ApiSite */
-			$apiSite = $apiSites[$localSite->playfield_id][$localSite->site_number] ?? null;
-			if (isset($apiSite) && $this->isApiVersionNewer($apiSite, $localSite)) {
-				$this->remScoutSite($apiSite->playfield_id, $apiSite->site_number);
-				continue;
-			}
-			unset($apiSites[$localSite->playfield_id][$localSite->site_number]);
-			$result []= new ApiSite((array)$localSite);
-		}
-		foreach ($apiSites as $pfId => $siteList) {
-			foreach ($siteList as $siteId => $apiSite) {
-				$result []= $apiSite;
-				/** @var ?ScoutInfo */
-				$localSite = $this->db->table("scout_info")
-					->where("playfield_id", $apiSite->playfield_id)
-					->where("site_number", $apiSite->site_number)
-					->asObj(ScoutInfo::class)
-					->first();
-				if ($this->isApiVersionNewer($apiSite, $localSite)) {
-					$this->remScoutSite($apiSite->playfield_id, $apiSite->site_number);
-				}
-			}
-		}
-		return new ApiResult(["count" => count($result), "results" => $result]);
-	}
-
-	/**
 	 * Render the API !hot results
+	 *
 	 * @param Collection<ScoutInfoPlus> $local
-	 * @param array<string,mixed> $params
+	 * @param array<string,mixed>       $params
 	 */
 	public function showHotSites(?ApiResult $result, Collection $local, array $params, string $sender, CommandReply $sendto, int $time=0): void {
 		if ($result === null) {
@@ -1278,79 +1150,6 @@ class TowerController extends ModuleInstance {
 		);
 	}
 
-	/**
-	 * @param array<string,mixed> $params
-	 */
-	protected function renderHotSites(ApiResult $result, array $params, int $time): string {
-		$time += time();
-		$sites = new Collection($result->results);
-		$fromTime = (new DateTime())->setTimestamp($params["min_close_time"]);
-		$toTime = (new DateTime())->setTimestamp($params["max_close_time"]);
-		if ($fromTime > $toTime) {
-			$toTime->modify("+1 day");
-		}
-		$sites = $sites->filter(function (ApiSite $site) use ($fromTime, $toTime, $time): bool {
-			$i = (new DateTime())->setTimestamp($site->close_time??0);
-			return ($fromTime <= $i  && $i <= $toTime)
-				|| ($fromTime <= $i->modify('+1 day') && $i <= $toTime)
-				|| ($site->penalty_until >= $time);
-		});
-		$result->count = $sites->count();
-		$grouping = $this->towerHotGroup;
-		if ($grouping === 1) {
-			$sites = $sites->sortBy("site_number");
-			$grouped = $sites->groupBy("playfield_long_name");
-		} elseif ($grouping === 2) {
-			$sites = $sites->sortBy("ql");
-			$grouped = $sites->groupBy(function(ApiSite $site): string {
-				return "TL" . $this->util->levelToTL($site->ql??1);
-			});
-		} elseif ($grouping === 3) {
-			$sites = $sites->sortBy("ql");
-			$grouped = $sites->groupBy("org_name");
-		} else {
-			throw new Exception("Invalid grouping found");
-		}
-		$grouped = $grouped->sortKeys();
-		$blob = $grouped->map(function (Collection $sites, string $short) use ($params, $time): string {
-			return "<pagebreak><header2>{$short}<end>\n".
-				$sites->map(function (ApiSite $site) use ($params, $time): string {
-					$shortName = $site->playfield_short_name . " " . $site->site_number;
-					$line = "<tab>".
-						$this->text->makeChatcmd(
-							$shortName,
-							"/tell <myname> <symbol>lc {$shortName}"
-						);
-					$line .= " QL {$site->min_ql}/<highlight>{$site->ql}<end>/{$site->max_ql} -";
-					$factionColor = "";
-					if (isset($site->faction)) {
-						$factionColor = "<" . strtolower($site->faction) . ">";
-						$org = $site->org_name ?? $site->faction;
-						$line .= " {$factionColor}{$org}<end>";
-					} else {
-						$line .= " &lt;Free or unknown planter&gt;";
-					}
-					if (isset($site->close_time)) {
-						$gas = $this->getGasLevel($site->close_time, (int)$params["min_close_time"]);
-						if (isset($site->penalty_until) && $gas->gas_level === "75%" && $site->penalty_until >= $time && $site->penalty_until >= $gas->time_until_close_time) {
-							$line .= " <green>25%<end>, closes in " . $this->util->unixtimeToReadable($site->penalty_until - $time);
-						} else {
-							$line .= " {$gas->color}{$gas->gas_level}<end>, {$gas->next_state} in ".
-								$this->util->unixtimeToReadable($gas->gas_change, false);
-						}
-					} else {
-						$line .= " unknown gas level";
-					}
-					return $line;
-				})->join("\n");
-		})->join("\n\n");
-		if ($result->count === 50) {
-			$blob .= "\n\n\n<i>Number of matches limited to 50. ".
-				"Please use filtering to see the rest.</i>";
-		}
-		return $blob;
-	}
-
 	/** See how many tower sites each faction has taken and lost in the past 24 hours or &lt;duration&gt; */
 	#[NCA\HandlesCommand("towerstats")]
 	public function towerStatsCommand(CmdContext $context, ?PDuration $duration): void {
@@ -1369,6 +1168,7 @@ class TowerController extends ModuleInstance {
 			->where("time", ">=", time() - $duration)
 			->groupBy("att_faction")
 			->orderBy("att_faction");
+
 		/** @var Collection<FactionCount> */
 		$data = $query->orderBy($query->colFunc("COUNT", "att_faction"))
 			->select(
@@ -1389,6 +1189,7 @@ class TowerController extends ModuleInstance {
 			->groupBy("lose_faction")
 			->orderByDesc("num")
 			->select("lose_faction as faction");
+
 		/** @var Collection<FactionCount> */
 		$data = $query->addSelect($query->colFunc("COUNT", "lose_faction", "num"))
 			->asObj(FactionCount::class);
@@ -1400,7 +1201,7 @@ class TowerController extends ModuleInstance {
 		if ($blob == '') {
 			$msg = "No tower attacks or victories have been recorded.";
 		} else {
-			$msg = $this->text->makeBlob("Tower Stats for the Last $timeString", $blob);
+			$msg = $this->text->makeBlob("Tower Stats for the Last {$timeString}", $blob);
 		}
 		$context->reply($msg);
 	}
@@ -1655,14 +1456,14 @@ class TowerController extends ModuleInstance {
 			$link .= "<end>\n";
 
 			if (isset($whois->breed) && strlen($whois->breed)) {
-				$link .= "Breed: <highlight>$whois->breed<end>\n";
+				$link .= "Breed: <highlight>{$whois->breed}<end>\n";
 			}
 			if (isset($whois->gender) && strlen($whois->gender)) {
-				$link .= "Gender: <highlight>$whois->gender<end>\n";
+				$link .= "Gender: <highlight>{$whois->gender}<end>\n";
 			}
 
 			if (isset($whois->profession) && strlen($whois->profession)) {
-				$link .= "Profession: <highlight>$whois->profession<end>\n";
+				$link .= "Profession: <highlight>{$whois->profession}<end>\n";
 			}
 			if (isset($whois->level)) {
 				$level_info = $this->levelController->getLevelInfo($whois->level);
@@ -1674,9 +1475,9 @@ class TowerController extends ModuleInstance {
 			$link .= "Alignment: <" . strtolower($whois->faction) . ">{$whois->faction}<end>\n";
 
 			if (isset($whois->guild)) {
-				$link .= "Organization: <highlight>$whois->guild<end>\n";
+				$link .= "Organization: <highlight>{$whois->guild}<end>\n";
 				if (isset($whois->guild_rank)) {
-					$link .= "Organization Rank: <highlight>$whois->guild_rank<end>\n";
+					$link .= "Organization Rank: <highlight>{$whois->guild_rank}<end>\n";
 				}
 			}
 
@@ -1699,11 +1500,11 @@ class TowerController extends ModuleInstance {
 		$msg = "";
 		$likelyFake = $factionGuess && isset($originalGuild) && strlen($originalGuild);
 		if ($whois->guild) {
-			$msg .= "<".strtolower($whois->faction).">$whois->guild<end>";
+			$msg .= "<".strtolower($whois->faction).">{$whois->guild}<end>";
 		} else {
 			$msg .= "<".strtolower($whois->faction).">{$attack->attPlayer}<end>";
 		}
-		$msg .= " attacked $targetOrg";
+		$msg .= " attacked {$targetOrg}";
 
 		$s = $this->towerAttackSpam;
 		// tower_attack_spam >= 2 (normal) includes attacker stats
@@ -1734,49 +1535,6 @@ class TowerController extends ModuleInstance {
 	}
 
 	/**
-	 * Set a timer to warn 1m, 5s and 0s before you can plant
-	 */
-	protected function setPlantTimer(string $timerLocation): void {
-		$start = time();
-		/** @var Alert[] */
-		$alerts = [];
-
-		$alert = new Alert();
-		$alert->time = $start;
-		$alert->message = "Started countdown for planting $timerLocation";
-		$alerts []= $alert;
-
-		$alert = new Alert();
-		$alert->time = $start + 19*60;
-		$alert->message = "<highlight>1 minute<end> remaining to plant $timerLocation";
-		$alerts []= $alert;
-
-		$countdown = [5, 4, 3, 2, 1];
-		if ($this->towerPlantTimer === 2) {
-			$countdown = [5];
-		}
-		foreach ($countdown as $remaining) {
-			$alert = new Alert();
-			$alert->time = $start + 20*60-$remaining;
-			$alert->message = "<highlight>${remaining}s<end> remaining to plant ".strip_tags($timerLocation);
-			$alerts []= $alert;
-		}
-
-		$alertPlant = new Alert();
-		$alertPlant->time = $start + 20*60;
-		$alertPlant->message = "Plant $timerLocation <highlight>NOW<end>";
-		$alerts []= $alertPlant;
-
-		$this->timerController->add(
-			"Plant " . strip_tags($timerLocation),
-			$this->chatBot->char->name,
-			$this->towerPlantTimer === 1 ? "priv": "guild",
-			$alerts,
-			'timercontroller.timerCallback'
-		);
-	}
-
-	/**
 	 * This event handler record victory messages.
 	 */
 	#[NCA\Event(
@@ -1804,7 +1562,7 @@ class TowerController extends ModuleInstance {
 
 		$playfield = $this->playfieldController->getPlayfieldByName($playfieldName);
 		if ($playfield === null) {
-			$this->logger->error("Could not find playfield for name '$playfieldName'");
+			$this->logger->error("Could not find playfield for name '{$playfieldName}'");
 			return;
 		}
 
@@ -1828,7 +1586,7 @@ class TowerController extends ModuleInstance {
 				"{$playfield->short_name} {$siteNumber}",
 				"Name: <highlight>{$towerInfo->site_name}<end><br>".
 				"QL: <highlight>{$towerInfo->min_ql}<end> - <highlight>{$towerInfo->max_ql}<end><br>".
-				"Action: $waypointLink",
+				"Action: {$waypointLink}",
 				"Information about {$playfield->short_name} {$siteNumber}"
 			))[0];
 			$msg .= " in " . $timerLocation;
@@ -1864,6 +1622,435 @@ class TowerController extends ModuleInstance {
 		$this->eventManager->fireEvent($event);
 	}
 
+	public function getTowerInfo(int $playfieldID, int $siteNumber): ?TowerSite {
+		return $this->db->table("tower_site AS t")
+			->where("playfield_id", $playfieldID)
+			->where("site_number", $siteNumber)
+			->limit(1)
+			->asObj(TowerSite::class)
+			->first();
+	}
+
+	#[NCA\Event(
+		name: "sync(scout)",
+		description: "Sync external scout information"
+	)]
+	public function processScoutSyncEvent(SyncScoutEvent $event): void {
+		if (!$event->isLocal()) {
+			$this->addScoutSite($event->toScoutInfo());
+		}
+	}
+
+	#[NCA\Event(
+		name: "sync(remscout)",
+		description: "Sync external scout information"
+	)]
+	public function processRemscoutSyncEvent(SyncRemscoutEvent $event): void {
+		if (!$event->isLocal()) {
+			$this->remScoutSite($event->playfield_id, $event->site_number);
+		}
+	}
+
+	public function getSitesInPenalty(?int $time=null): ApiResult {
+		/** @var Collection<HotApiSite> */
+		$penalties = $this->db->table(static::DB_HOT)
+			->where("close_time_override", ">", $time??time())
+			->orderByDesc("close_time_override")
+			->asObj(HotApiSite::class);
+		$groups = $penalties->groupBy(function (HotApiSite $site): string {
+			return "{$site->playfield_id}x{$site->site_number}";
+		});
+		$flatSites = $groups->map(function (Collection $value, string $key): HotApiSite {
+			return $value->first();
+		});
+		$apiSites = $flatSites->flatten()->map(function (HotApiSite $site): array {
+			$hash = (array)$site;
+			$hash["close_time"] = $hash["close_time_override"] % 86400;
+			unset($hash["close_time_override"]);
+			unset($hash["id"]);
+			$pf = $this->playfieldController->getPlayfieldById($site->playfield_id);
+			if (isset($pf)) {
+				$hash["playfield_short_name"] = $pf->short_name;
+				$hash["playfield_long_name"] = $pf->long_name;
+			}
+			$towerInfo = $this->getTowerInfo($site->playfield_id, $site->site_number);
+			if (isset($towerInfo)) {
+				$hash["min_ql"] = $towerInfo->min_ql;
+				$hash["max_ql"] = $towerInfo->max_ql;
+				$hash["x_coord"] = $towerInfo->x_coord;
+				$hash["y_coord"] = $towerInfo->y_coord;
+				$hash["site_name"] = $towerInfo->site_name;
+				$hash["enabled"] = 1;
+			}
+			return $hash;
+		});
+		return new ApiResult([
+			"count" => $apiSites->count(),
+			"results" => $apiSites->toArray(),
+		]);
+	}
+
+	public function getFaction(string $input): string {
+		$faction = ucfirst(strtolower($input));
+		if ($faction == "Neut") {
+			$faction = "Neutral";
+		}
+		return $faction;
+	}
+
+	/**
+	 * Remove local scout info for a site and mark it unscouted
+	 */
+	#[NCA\HandlesCommand("remscout")]
+	#[NCA\Help\Group("scout")]
+	public function remscoutCommand(CmdContext $context, PTowerSite $site): void {
+		$playfield = $this->playfieldController->getPlayfieldByName($site->pf);
+		if ($playfield === null) {
+			$msg = "Invalid playfield.";
+			$context->reply($msg);
+			return;
+		}
+
+		$towerInfo = $this->getTowerInfo($playfield->id, $site->site);
+		if ($towerInfo === null) {
+			$msg = "Invalid site number.";
+			$context->reply($msg);
+			return;
+		}
+
+		$numDeleted = $this->remScoutSite($playfield->id, $site->site);
+
+		if ($numDeleted === 0) {
+			$msg = "Could not find a scout record for <highlight>{$playfield->short_name} {$site->site}<end>.";
+		} else {
+			$msg = "<highlight>{$playfield->short_name} {$site->site}<end> removed successfully.";
+			$rEvent = new SyncRemscoutEvent();
+			$rEvent->playfield_id = $playfield->id;
+			$rEvent->site_number = $site->site;
+			$rEvent->scouted_by = $context->char->name;
+			$rEvent->forceSync = $context->forceSync;
+			$this->eventManager->fireEvent($rEvent);
+		}
+		$context->reply($msg);
+	}
+
+	/**
+	 * Scout a tower site by pasting the CT blob info.
+	 * If the field is unplanted, use 'none'
+	 */
+	#[NCA\HandlesCommand("scout")]
+	#[NCA\Help\Group("scout")]
+	#[NCA\Help\Example(
+		"<symbol>scout PW 4 Control Tower - Clan ".
+		"Level: 190 ".
+		"Danger level: Killing it poses no danger. ".
+		"Might attack you on sight. ".
+		"Alignment: clan  ".
+		"Organization: Dark Ninjas ".
+		"Created at UTC: 2014-05-19 12:34:56"
+	)]
+	#[NCA\Help\Example("<symbol>scout PW 4 none")]
+	public function scoutCommand(CmdContext $context, PTowerSite $site, string $text): void {
+		$this->scoutInputHandler($context, $site->pf, $site->site, $text);
+	}
+
+	/** Show the tower types by QL of the tower */
+	#[NCA\HandlesCommand("towertype")]
+	#[NCA\Help\Group("tower")]
+	public function towerTypeCommand(CmdContext $context): void {
+		$blob = "<header2>Tower types by QL<end>";
+		$minQL = 1;
+		$roman = ["I", "II", "III", "IV", "V", "VI", "VII"];
+		$qls = static::TOWER_TYPE_QLS;
+		$qls[301] = 8;
+		foreach ($qls as $ql => $type) {
+			$maxQL = $ql - 1;
+			$blob .= "\n<tab>" . $this->text->alignNumber($minQL, 3).
+				" - ".
+				$this->text->alignNumber($maxQL, 3).
+				": Type " . $roman[$type-2];
+			$minQL = $ql;
+		}
+		$msg = $this->text->makeBlob("Tower types by QL", $blob);
+		$context->reply($msg);
+	}
+
+	/** Show how many towers you are allowed to plant. Add 'all' to show it generally */
+	#[NCA\HandlesCommand("towerqty")]
+	#[NCA\Help\Group("tower")]
+	public function towerQtyCommand(CmdContext $context, #[NCA\Str("all")] ?string $all): Generator {
+		if (isset($all)) {
+			$msg = $this->text->makeBlob("Allowed number of towers", $this->getAllTowerQuantitiesBlob());
+			$context->reply($msg);
+			return;
+		}
+
+		/** @var ?Player */
+		$player = yield $this->playerManager->byName($context->char->name);
+		$blob = $this->getAllTowerQuantitiesBlob();
+		if (!isset($player)) {
+			$msg = $this->text->makeBlob("Allowed number of towers", $blob);
+			$context->reply($msg);
+			return;
+		}
+		if ($player->level < 15) {
+			$msg = "Your level is too low to have any towers.";
+		} elseif ($player->level < 75) {
+			$msg = "Your level ({$player->level}) allows you to have <highlight>1<end> tower.";
+		} elseif ($player->level < 150) {
+			$msg = "Your level ({$player->level}) allows you to have <highlight>2<end> towers.";
+		} elseif ($player->level < 200) {
+			$msg = "Your level ({$player->level}) allows you to have <highlight>3<end> towers.";
+		} else {
+			$msg = "Your level ({$player->level}) allows you to have <highlight>4<end> towers.";
+		}
+		$msg = $this->text->blobWrap(
+			$msg . " ",
+			$this->text->makeBlob("See full list", $blob, "Towers by level")
+		);
+		$context->reply($msg);
+	}
+
+	#[
+		NCA\NewsTile(
+			name: "tower-own",
+			description: "Show the last 5 attacks on your org's towers from the last 3\n".
+				"days - or nothing, if no attacks occurred.",
+			example: "<header2>Notum Wars [<u>see more</u>]<end>\n".
+				"<tab>22-Oct-2021 18:20 UTC - Nady (<clan>Team Rainbow<end>) attacked <u>CLON 6</u> (QL 35-50):"
+		)
+	]
+	public function towerOwnTile(string $sender, callable $callback): void {
+		asyncCall(function () use ($sender, $callback): Generator {
+			try {
+				/** @var ?Player */
+				$whois = yield $this->playerManager->byName($sender);
+				$text = $this->getTowerSelfTile($whois);
+			} catch (Throwable) {
+				$text = null;
+			}
+			$callback($text);
+		});
+	}
+
+	/** Query the API for a list of all sites of an org and show to $sendto */
+	protected function showSitesOfOrg(int $orgId, CommandReply $sendto): void {
+		$sites = $this->getScoutPlusQuery()
+			->asObj(ScoutInfoPlus::class);
+		$this->addPlusToScout($sites);
+		$sites = $sites->where("org_id", $orgId);
+		if ($this->towerApiController->isActive()) {
+			$params = ["enabled" => "1", "org_id" => $orgId];
+			$this->towerApiController->call($params, [$this, "showOrgSites"], $sites, $sendto, $orgId);
+			return;
+		}
+		$result = $this->scoutToAPI($sites);
+		$this->showOrgSites($result, null, $sendto, $orgId);
+	}
+
+	protected function formatApiSiteInfo(ApiSite $site, ?Playfield $pf=null, bool $showOrgLinks=true): string {
+		if (!isset($pf)) {
+			$pf = new Playfield();
+			$pf->id = $site->playfield_id;
+			$pf->long_name = $site->playfield_long_name;
+			$pf->short_name = $site->playfield_short_name;
+		}
+		$waypointLink = $this->text->makeChatcmd($site->x_coord . "x" . $site->y_coord, "/waypoint {$site->x_coord} {$site->y_coord} {$pf->id}");
+		$attacksLink = $this->text->makeChatcmd("Recent attacks", "/tell <myname> attacks {$pf->short_name} {$site->site_number}");
+		$victoryLink = $this->text->makeChatcmd("Recent victories", "/tell <myname> victory {$pf->short_name} {$site->site_number}");
+
+		$blob = "<header2>{$pf->short_name} {$site->site_number} ({$site->site_name})<end>\n";
+		$blob .= "<tab>Level range: <highlight>{$site->min_ql}-{$site->max_ql}<end>\n";
+		if (isset($site->ql)) {
+			$blob .= "<tab>Planted: <highlight>".
+				(isset($site->created_at) ? $this->util->date($site->created_at) : "Unknown") . "<end>\n".
+				"<tab>CT: QL <highlight>{$site->ql}<end>, Type " . $this->qlToSiteType($site->ql) . " ".
+				"(<" . strtolower($site->faction??"neutral") .">{$site->org_name}<end>)";
+			if ($showOrgLinks) {
+				$orgLink = $this->text->makeChatcmd(
+					"show sites",
+					"/tell <myname> sites {$site->org_id}"
+				);
+				$blob .= " [{$orgLink}]";
+			}
+			$blob .= "\n";
+			if (isset($site->close_time)) {
+				$gas = $this->getGasLevel($site->close_time);
+				if ($gas->gas_level === "75%" && ($site->penalty_until??0) >= time() && $site->penalty_until >= $gas->time_until_close_time) {
+					$blob .= "<tab>Gas: <green>25%<end>, closes in ".
+						$this->util->unixtimeToReadable(($site->penalty_until??0) - time()) . "\n";
+				} else {
+					$blob .= "<tab>Gas: {$gas->color}{$gas->gas_level}<end>, {$gas->next_state} in ".
+						$this->util->unixtimeToReadable($gas->gas_change, false) . "\n";
+				}
+			}
+		} elseif ($site->source === "api" || $site->source === "empty") {
+			$blob .= "<tab>Planted: <highlight>No<end>\n";
+		} else {
+			$blob .= "<tab>Planted: <highlight>Unknown<end>\n";
+		}
+		$blob .= "<tab>Center coordinates: {$waypointLink}\n".
+			"<tab>{$attacksLink}\n".
+			"<tab>{$victoryLink}";
+
+		return $blob;
+	}
+
+	/**
+	 * Merge local scout data into API results and vice versa
+	 *
+	 * @param Collection<ScoutInfoPlus> $local
+	 */
+	protected function mergeLocalToAPI(Collection $local, ApiResult $api): ApiResult {
+		$result = [];
+
+		/** @var array<int,array<int,ApiSite>> */
+		$apiSites = [];
+		foreach ($api->results as $apiSite) {
+			$apiSites[$apiSite->playfield_id] ??= [];
+			$apiSites[$apiSite->playfield_id][$apiSite->site_number] = $apiSite;
+		}
+		foreach ($local as $localSite) {
+			/** @var ?ApiSite */
+			$apiSite = $apiSites[$localSite->playfield_id][$localSite->site_number] ?? null;
+			if (isset($apiSite) && $this->isApiVersionNewer($apiSite, $localSite)) {
+				$this->remScoutSite($apiSite->playfield_id, $apiSite->site_number);
+				continue;
+			}
+			unset($apiSites[$localSite->playfield_id][$localSite->site_number]);
+			$result []= new ApiSite((array)$localSite);
+		}
+		foreach ($apiSites as $pfId => $siteList) {
+			foreach ($siteList as $siteId => $apiSite) {
+				$result []= $apiSite;
+
+				/** @var ?ScoutInfo */
+				$localSite = $this->db->table("scout_info")
+					->where("playfield_id", $apiSite->playfield_id)
+					->where("site_number", $apiSite->site_number)
+					->asObj(ScoutInfo::class)
+					->first();
+				if ($this->isApiVersionNewer($apiSite, $localSite)) {
+					$this->remScoutSite($apiSite->playfield_id, $apiSite->site_number);
+				}
+			}
+		}
+		return new ApiResult(["count" => count($result), "results" => $result]);
+	}
+
+	/** @param array<string,mixed> $params */
+	protected function renderHotSites(ApiResult $result, array $params, int $time): string {
+		$time += time();
+		$sites = new Collection($result->results);
+		$fromTime = (new DateTime())->setTimestamp($params["min_close_time"]);
+		$toTime = (new DateTime())->setTimestamp($params["max_close_time"]);
+		if ($fromTime > $toTime) {
+			$toTime->modify("+1 day");
+		}
+		$sites = $sites->filter(function (ApiSite $site) use ($fromTime, $toTime, $time): bool {
+			$i = (new DateTime())->setTimestamp($site->close_time??0);
+			return ($fromTime <= $i  && $i <= $toTime)
+				|| ($fromTime <= $i->modify('+1 day') && $i <= $toTime)
+				|| ($site->penalty_until >= $time);
+		});
+		$result->count = $sites->count();
+		$grouping = $this->towerHotGroup;
+		if ($grouping === 1) {
+			$sites = $sites->sortBy("site_number");
+			$grouped = $sites->groupBy("playfield_long_name");
+		} elseif ($grouping === 2) {
+			$sites = $sites->sortBy("ql");
+			$grouped = $sites->groupBy(function (ApiSite $site): string {
+				return "TL" . $this->util->levelToTL($site->ql??1);
+			});
+		} elseif ($grouping === 3) {
+			$sites = $sites->sortBy("ql");
+			$grouped = $sites->groupBy("org_name");
+		} else {
+			throw new Exception("Invalid grouping found");
+		}
+		$grouped = $grouped->sortKeys();
+		$blob = $grouped->map(function (Collection $sites, string $short) use ($params, $time): string {
+			return "<pagebreak><header2>{$short}<end>\n".
+				$sites->map(function (ApiSite $site) use ($params, $time): string {
+					$shortName = $site->playfield_short_name . " " . $site->site_number;
+					$line = "<tab>".
+						$this->text->makeChatcmd(
+							$shortName,
+							"/tell <myname> <symbol>lc {$shortName}"
+						);
+					$line .= " QL {$site->min_ql}/<highlight>{$site->ql}<end>/{$site->max_ql} -";
+					$factionColor = "";
+					if (isset($site->faction)) {
+						$factionColor = "<" . strtolower($site->faction) . ">";
+						$org = $site->org_name ?? $site->faction;
+						$line .= " {$factionColor}{$org}<end>";
+					} else {
+						$line .= " &lt;Free or unknown planter&gt;";
+					}
+					if (isset($site->close_time)) {
+						$gas = $this->getGasLevel($site->close_time, (int)$params["min_close_time"]);
+						if (isset($site->penalty_until) && $gas->gas_level === "75%" && $site->penalty_until >= $time && $site->penalty_until >= $gas->time_until_close_time) {
+							$line .= " <green>25%<end>, closes in " . $this->util->unixtimeToReadable($site->penalty_until - $time);
+						} else {
+							$line .= " {$gas->color}{$gas->gas_level}<end>, {$gas->next_state} in ".
+								$this->util->unixtimeToReadable($gas->gas_change, false);
+						}
+					} else {
+						$line .= " unknown gas level";
+					}
+					return $line;
+				})->join("\n");
+		})->join("\n\n");
+		if ($result->count === 50) {
+			$blob .= "\n\n\n<i>Number of matches limited to 50. ".
+				"Please use filtering to see the rest.</i>";
+		}
+		return $blob;
+	}
+
+	/** Set a timer to warn 1m, 5s and 0s before you can plant */
+	protected function setPlantTimer(string $timerLocation): void {
+		$start = time();
+
+		/** @var Alert[] */
+		$alerts = [];
+
+		$alert = new Alert();
+		$alert->time = $start;
+		$alert->message = "Started countdown for planting {$timerLocation}";
+		$alerts []= $alert;
+
+		$alert = new Alert();
+		$alert->time = $start + 19*60;
+		$alert->message = "<highlight>1 minute<end> remaining to plant {$timerLocation}";
+		$alerts []= $alert;
+
+		$countdown = [5, 4, 3, 2, 1];
+		if ($this->towerPlantTimer === 2) {
+			$countdown = [5];
+		}
+		foreach ($countdown as $remaining) {
+			$alert = new Alert();
+			$alert->time = $start + 20*60-$remaining;
+			$alert->message = "<highlight>{$remaining}s<end> remaining to plant ".strip_tags($timerLocation);
+			$alerts []= $alert;
+		}
+
+		$alertPlant = new Alert();
+		$alertPlant->time = $start + 20*60;
+		$alertPlant->message = "Plant {$timerLocation} <highlight>NOW<end>";
+		$alerts []= $alertPlant;
+
+		$this->timerController->add(
+			"Plant " . strip_tags($timerLocation),
+			$this->chatBot->char->name,
+			$this->towerPlantTimer === 1 ? "priv" : "guild",
+			$alerts,
+			'timercontroller.timerCallback'
+		);
+	}
+
 	protected function attacksCommandHandler(?int $pageLabel, ?Closure $where, string $cmd, CommandReply $sendto): void {
 		if ($pageLabel === null) {
 			$pageLabel = 1;
@@ -1889,6 +2076,7 @@ class TowerController extends ModuleInstance {
 			->map(function (Collection $sites2): Collection {
 				return $sites2->keyBy("site_number");
 			});
+
 		/** @var Collection<AttackPlus> */
 		$attacks = $query->asObj(AttackPlus::class)
 			->each(function (AttackPlus $att) use ($sites): void {
@@ -1914,12 +2102,12 @@ class TowerController extends ModuleInstance {
 		}
 		$links['Next Page'] = "/tell <myname> attacks {$cmd}" . ($pageLabel + 1);
 
-		$blob = "The last $pageSize Tower Attacks (page $pageLabel)\n\n";
+		$blob = "The last {$pageSize} Tower Attacks (page {$pageLabel})\n\n";
 		$blob .= $this->text->makeHeaderLinks($links) . "\n\n";
 
 		foreach ($attacks as $attack) {
 			$timeString = $this->util->unixtimeToReadable(time() - $attack->time);
-			$blob .= "Time: " . $this->util->date($attack->time) . " (<highlight>$timeString<end> ago)\n";
+			$blob .= "Time: " . $this->util->date($attack->time) . " (<highlight>{$timeString}<end> ago)\n";
 			if ($attack->att_faction == '') {
 				$att_faction = "unknown";
 			} else {
@@ -1950,10 +2138,10 @@ class TowerController extends ModuleInstance {
 
 			$blob .= "Defender: <{$def_faction}>{$attack->def_guild_name}<end> ({$attack->def_faction})\n";
 
-			if (isset($attack->pf) && isset($attack->site_number) && isset($attack->site)) {
+			if (isset($attack->pf, $attack->site_number, $attack->site)) {
 				$base = $this->text->makeChatcmd("{$attack->pf->short_name} {$attack->site_number}", "/tell <myname> lc {$attack->pf->short_name} {$attack->site_number}");
 				$base .= " ({$attack->site->min_ql}-{$attack->site->max_ql})";
-				$blob .= "Site: $base\n\n";
+				$blob .= "Site: {$base}\n\n";
 			} else {
 				$blob .= "\n";
 			}
@@ -1996,7 +2184,7 @@ class TowerController extends ModuleInstance {
 		}
 		$links['Next Page'] = "/tell <myname> victory {$cmd}" . ($pageLabel + 1);
 
-		$blob = "The last $pageSize Tower Results (page $pageLabel)\n\n";
+		$blob = "The last {$pageSize} Tower Results (page {$pageLabel})\n\n";
 		$blob .= $this->text->makeHeaderLinks($links) . "\n\n";
 		$pfs = $this->playfieldController->searchPlayfieldsByIds(
 			...$data->pluck("playfield_id")->filter()->toArray()
@@ -2011,7 +2199,7 @@ class TowerController extends ModuleInstance {
 			$row->pf = $pfs->get($row->playfield_id);
 			$row->site = $sites->get($row->playfield_id)?->get($row->site_number)??null;
 			$timeString = $this->util->unixtimeToReadable(time() - $row->victory_time);
-			$blob .= "Time: " . $this->util->date($row->victory_time) . " (<highlight>$timeString<end> ago)\n";
+			$blob .= "Time: " . $this->util->date($row->victory_time) . " (<highlight>{$timeString}<end> ago)\n";
 
 			if (!strlen($win_side = strtolower($row->win_faction??""))) {
 				$win_side = "unknown";
@@ -2029,20 +2217,11 @@ class TowerController extends ModuleInstance {
 
 			$blob .= "Winner: <{$win_side}>{$row->win_guild_name}<end>\n";
 			$blob .= "Loser: <{$lose_side}>{$row->lose_guild_name}<end>\n";
-			$blob .= "Site: $base\n\n";
+			$blob .= "Site: {$base}\n\n";
 		}
 		$msg = $this->text->makeBlob("Tower Victories", $blob);
 
 		$sendto->reply($msg);
-	}
-
-	public function getTowerInfo(int $playfieldID, int $siteNumber): ?TowerSite {
-		return $this->db->table("tower_site AS t")
-			->where("playfield_id", $playfieldID)
-			->where("site_number", $siteNumber)
-			->limit(1)
-			->asObj(TowerSite::class)
-			->first();
 	}
 
 	protected function getClosestSite(int $playfieldID, int $xCoords, int $yCoords): ?TowerSite {
@@ -2068,7 +2247,7 @@ class TowerController extends ModuleInstance {
 		}
 
 		return $zoneSites->sort(
-			function(TowerSite $site1, TowerSite $site2) use ($xCoords, $yCoords): int {
+			function (TowerSite $site1, TowerSite $site2) use ($xCoords, $yCoords): int {
 				return pow(abs($site1->x_coord - $xCoords), 2)
 					+ pow(abs($site1->y_coord - $yCoords), 2)
 					<=>
@@ -2153,7 +2332,7 @@ class TowerController extends ModuleInstance {
 	}
 
 	protected function recordVictory(TowerAttack $attack): int {
-		if (isset($attack->site_number) && isset($attack->playfield_id)) {
+		if (isset($attack->site_number, $attack->playfield_id)) {
 			// If we know which field was destroyed, mark it unplanted
 			$scout = new ScoutInfo();
 			$scout->scouted_on = time();
@@ -2190,26 +2369,6 @@ class TowerController extends ModuleInstance {
 		return $this->db->insert("scout_info", $scoutInfo, null) > 0;
 	}
 
-	#[NCA\Event(
-		name: "sync(scout)",
-		description: "Sync external scout information"
-	)]
-	public function processScoutSyncEvent(SyncScoutEvent $event): void {
-		if (!$event->isLocal()) {
-			$this->addScoutSite($event->toScoutInfo());
-		}
-	}
-
-	#[NCA\Event(
-		name: "sync(remscout)",
-		description: "Sync external scout information"
-	)]
-	public function processRemscoutSyncEvent(SyncRemscoutEvent $event): void {
-		if (!$event->isLocal()) {
-			$this->remScoutSite($event->playfield_id, $event->site_number);
-		}
-	}
-
 	protected function remScoutSite(int $playfield_id, int $site_number): int {
 		return $this->db->table("scout_info")
 			->where("playfield_id", $playfield_id)
@@ -2222,45 +2381,6 @@ class TowerController extends ModuleInstance {
 			->whereIlike("att_guild_name", $guildName)
 			->orWhereIlike("def_guild_name", $guildName)
 			->exists();
-	}
-
-	public function getSitesInPenalty(?int $time=null): ApiResult {
-		/** @var Collection<HotApiSite> */
-		$penalties = $this->db->table(static::DB_HOT)
-			->where("close_time_override", ">", $time??time())
-			->orderByDesc("close_time_override")
-			->asObj(HotApiSite::class);
-		$groups = $penalties->groupBy(function (HotApiSite $site): string {
-			return "{$site->playfield_id}x{$site->site_number}";
-		});
-		$flatSites = $groups->map(function(Collection $value, string $key): HotApiSite {
-			return $value->first();
-		});
-		$apiSites = $flatSites->flatten()->map(function (HotApiSite $site): array {
-			$hash = (array)$site;
-			$hash["close_time"] = $hash["close_time_override"] % 86400;
-			unset($hash["close_time_override"]);
-			unset($hash["id"]);
-			$pf = $this->playfieldController->getPlayfieldById($site->playfield_id);
-			if (isset($pf)) {
-				$hash["playfield_short_name"] = $pf->short_name;
-				$hash["playfield_long_name"] = $pf->long_name;
-			}
-			$towerInfo = $this->getTowerInfo($site->playfield_id, $site->site_number);
-			if (isset($towerInfo)) {
-				$hash["min_ql"] = $towerInfo->min_ql;
-				$hash["max_ql"] = $towerInfo->max_ql;
-				$hash["x_coord"] = $towerInfo->x_coord;
-				$hash["y_coord"] = $towerInfo->y_coord;
-				$hash["site_name"] = $towerInfo->site_name;
-				$hash["enabled"] = 1;
-			}
-			return $hash;
-		});
-		return new ApiResult([
-			"count" => $apiSites->count(),
-			"results" => $apiSites->toArray()
-		]);
 	}
 
 	protected function getGasLevel(int $closeTime, ?int $time=null): GasInfo {
@@ -2305,7 +2425,7 @@ class TowerController extends ModuleInstance {
 
 		$blob = "<pagebreak><header2>{$row->short_name} {$row->site_number} ({$row->site_name})<end>\n".
 			"<tab>Level range: <highlight>{$row->min_ql}-{$row->max_ql}<end>\n";
-		if (isset($site->ql) && isset($site->close_time)) {
+		if (isset($site->ql, $site->close_time)) {
 			if (isset($site->created_at)) {
 				$blob .= "<tab>Planted: <highlight>" . $this->util->date($site->created_at) . "<end>\n";
 			}
@@ -2331,21 +2451,13 @@ class TowerController extends ModuleInstance {
 				$blob .= "<tab>Planted: <highlight>Unknown<end>\n";
 			}
 		} elseif (!$row->enabled) {
-				$blob .= "<tab>Planted: <highlight>This site is disabled<end>\n";
+			$blob .= "<tab>Planted: <highlight>This site is disabled<end>\n";
 		}
-		$blob .= "<tab>Center coordinates: $waypointLink\n".
+		$blob .= "<tab>Center coordinates: {$waypointLink}\n".
 			"<tab>{$attacksLink}\n".
 			"<tab>{$victoryLink}";
 
 		return $blob;
-	}
-
-	public function getFaction(string $input): string {
-		$faction = ucfirst(strtolower($input));
-		if ($faction == "Neut") {
-			$faction = "Neutral";
-		}
-		return $faction;
 	}
 
 	/** @return string[] */
@@ -2359,42 +2471,6 @@ class TowerController extends ModuleInstance {
 		$content .= "<i>Tower API provided by Tyrence, ".
 			"tower information provided by Draex and Unk</i>";
 		return (array)$this->text->makeBlob($name, $content);
-	}
-
-	/**
-	 * Remove local scout info for a site and mark it unscouted
-	 */
-	#[NCA\HandlesCommand("remscout")]
-	#[NCA\Help\Group("scout")]
-	public function remscoutCommand(CmdContext $context, PTowerSite $site): void {
-		$playfield = $this->playfieldController->getPlayfieldByName($site->pf);
-		if ($playfield === null) {
-			$msg = "Invalid playfield.";
-			$context->reply($msg);
-			return;
-		}
-
-		$towerInfo = $this->getTowerInfo($playfield->id, $site->site);
-		if ($towerInfo === null) {
-			$msg = "Invalid site number.";
-			$context->reply($msg);
-			return;
-		}
-
-		$numDeleted = $this->remScoutSite($playfield->id, $site->site);
-
-		if ($numDeleted === 0) {
-			$msg = "Could not find a scout record for <highlight>{$playfield->short_name} {$site->site}<end>.";
-		} else {
-			$msg = "<highlight>{$playfield->short_name} {$site->site}<end> removed successfully.";
-			$rEvent = new SyncRemscoutEvent();
-			$rEvent->playfield_id = $playfield->id;
-			$rEvent->site_number = $site->site;
-			$rEvent->scouted_by = $context->char->name;
-			$rEvent->forceSync = $context->forceSync;
-			$this->eventManager->fireEvent($rEvent);
-		}
-		$context->reply($msg);
 	}
 
 	protected function scoutInputHandler(CmdContext $context, string $playfieldName, int $siteNumber, string $tower): void {
@@ -2468,81 +2544,26 @@ class TowerController extends ModuleInstance {
 		$context->reply("There was an unknown error recording this scout information, please check the logs.");
 	}
 
+	/** @param Collection<ScoutInfoPlus> $data */
+	private function addPlusToScout(Collection $data): void {
+		$pfs = $this->playfieldController->searchPlayfieldsByIds(
+			...$data->pluck("playfield_id")->filter()->toArray()
+		)->keyBy("id");
+		$orgs = $this->findOrgController->getOrgsByName(
+			...$data->pluck("org_name")->filter()->toArray()
+		)->keyBy("name");
+		foreach ($data as $scout) {
+			/** @var ?Playfield */
+			$pf = $pfs->get($scout->playfield_id);
+			if (isset($pf)) {
+				$scout->playfield_long_name = $pf->long_name;
+				$scout->playfield_short_name = $pf->short_name;
+			}
 
-	/**
-	 * Scout a tower site by pasting the CT blob info.
-	 * If the field is unplanted, use 'none'
-	 */
-	#[NCA\HandlesCommand("scout")]
-	#[NCA\Help\Group("scout")]
-	#[NCA\Help\Example(
-		"<symbol>scout PW 4 Control Tower - Clan ".
-		"Level: 190 ".
-		"Danger level: Killing it poses no danger. ".
-		"Might attack you on sight. ".
-		"Alignment: clan  ".
-		"Organization: Dark Ninjas ".
-		"Created at UTC: 2014-05-19 12:34:56"
-	)]
-	#[NCA\Help\Example("<symbol>scout PW 4 none")]
-	public function scoutCommand(CmdContext $context, PTowerSite $site, string $text): void {
-		$this->scoutInputHandler($context, $site->pf, $site->site, $text);
-	}
-
-	/** Show the tower types by QL of the tower */
-	#[NCA\HandlesCommand("towertype")]
-	#[NCA\Help\Group("tower")]
-	public function towerTypeCommand(CmdContext $context): void {
-		$blob = "<header2>Tower types by QL<end>";
-		$minQL = 1;
-		$roman = ["I", "II", "III", "IV", "V", "VI", "VII"];
-		$qls = static::TOWER_TYPE_QLS;
-		$qls[301] = 8;
-		foreach ($qls as $ql => $type) {
-			$maxQL = $ql - 1;
-			$blob .= "\n<tab>" . $this->text->alignNumber($minQL, 3).
-				" - ".
-				$this->text->alignNumber($maxQL, 3).
-				": Type " . $roman[$type-2];
-			$minQL = $ql;
+			/** @var ?Organization */
+			$org = $orgs->get($scout->org_name);
+			$scout->org_id = $org->id ?? null;
 		}
-		$msg = $this->text->makeBlob("Tower types by QL", $blob);
-		$context->reply($msg);
-	}
-
-	/** Show how many towers you are allowed to plant. Add 'all' to show it generally */
-	#[NCA\HandlesCommand("towerqty")]
-	#[NCA\Help\Group("tower")]
-	public function towerQtyCommand(CmdContext $context, #[NCA\Str("all")] ?string $all): Generator {
-		if (isset($all)) {
-			$msg = $this->text->makeBlob("Allowed number of towers", $this->getAllTowerQuantitiesBlob());
-			$context->reply($msg);
-			return;
-		}
-		/** @var ?Player */
-		$player = yield $this->playerManager->byName($context->char->name);
-		$blob = $this->getAllTowerQuantitiesBlob();
-		if (!isset($player)) {
-			$msg = $this->text->makeBlob("Allowed number of towers", $blob);
-			$context->reply($msg);
-			return;
-		}
-		if ($player->level < 15) {
-			$msg = "Your level is too low to have any towers.";
-		} elseif ($player->level < 75) {
-			$msg = "Your level ({$player->level}) allows you to have <highlight>1<end> tower.";
-		} elseif ($player->level < 150) {
-			$msg = "Your level ({$player->level}) allows you to have <highlight>2<end> towers.";
-		} elseif ($player->level < 200) {
-			$msg = "Your level ({$player->level}) allows you to have <highlight>3<end> towers.";
-		} else {
-			$msg = "Your level ({$player->level}) allows you to have <highlight>4<end> towers.";
-		}
-		$msg = $this->text->blobWrap(
-			$msg . " ",
-			$this->text->makeBlob("See full list", $blob, "Towers by level")
-		);
-		$context->reply($msg);
 	}
 
 	private function getAllTowerQuantitiesBlob(): string {
@@ -2552,30 +2573,6 @@ class TowerController extends ModuleInstance {
 			"<tab>Level <black>0<end>75 - 149: <highlight>2<end> towers\n".
 			"<tab>Level 150 - 199: <highlight>3<end> towers\n".
 			"<tab>Level 200 - 220: <highlight>4<end> towers\n";
-	}
-
-	#[
-		NCA\NewsTile(
-			name: "tower-own",
-			description:
-				"Show the last 5 attacks on your org's towers from the last 3\n".
-				"days - or nothing, if no attacks occurred.",
-			example:
-				"<header2>Notum Wars [<u>see more</u>]<end>\n".
-				"<tab>22-Oct-2021 18:20 UTC - Nady (<clan>Team Rainbow<end>) attacked <u>CLON 6</u> (QL 35-50):"
-		)
-	]
-	public function towerOwnTile(string $sender, callable $callback): void {
-		asyncCall(function () use ($sender, $callback): Generator {
-			try {
-				/** @var ?Player */
-				$whois = yield $this->playerManager->byName($sender);
-				$text = $this->getTowerSelfTile($whois);
-			} catch (Throwable) {
-				$text = null;
-			}
-			$callback($text);
-		});
 	}
 
 	private function getTowerSelfTile(?Player $whois): ?string {
@@ -2603,7 +2600,7 @@ class TowerController extends ModuleInstance {
 				return $sites2->keyBy("site_number");
 			});
 		$blob = $attacks->map(
-			function(TowerVictoryPlus $attack) use ($sites, $pfs): string {
+			function (TowerVictoryPlus $attack) use ($sites, $pfs): string {
 				$attack->pf = $pfs->get($attack->playfield_id);
 				$attack->site = $sites->get($attack->playfield_id)?->get($attack->site_number)??null;
 				$line = "<tab>" . $this->util->date($attack->attack_time) . " - ";
@@ -2611,7 +2608,7 @@ class TowerController extends ModuleInstance {
 					// attack
 					$attFaction = strtolower($attack->att_faction ?? "highlight");
 					if (!empty($attack->att_guild_name)) {
-						$line .= "{$attack->att_player} (<{$attFaction}>$attack->att_guild_name<end>)";
+						$line .= "{$attack->att_player} (<{$attFaction}>{$attack->att_guild_name}<end>)";
 					} else {
 						$line .= "<{$attFaction}>" . ($attack->att_player ?? "Unknown player") . "<end>";
 					}

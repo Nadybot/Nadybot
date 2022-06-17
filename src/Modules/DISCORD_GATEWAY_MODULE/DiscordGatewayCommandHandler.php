@@ -2,27 +2,27 @@
 
 namespace Nadybot\Modules\DISCORD_GATEWAY_MODULE;
 
+use function Amp\asyncCall;
 use Generator;
+
 use Nadybot\Core\{
-	Attributes as NCA,
 	AccessLevelProvider,
 	AccessManager,
+	Attributes as NCA,
 	CmdContext,
 	CommandManager,
 	DB,
-	ModuleInstance,
 	LoggerWrapper,
+	ModuleInstance,
 	Modules\DISCORD\DiscordAPIClient,
 	Modules\DISCORD\DiscordUser,
 	Nadybot,
 	ParamClass\PCharacter,
-	Routing\Source,
 	Registry,
+	Routing\Source,
 	SettingManager,
 	Text,
 };
-
-use function Amp\asyncCall;
 
 /**
  * @author Nadyita (RK5)
@@ -110,6 +110,7 @@ class DiscordGatewayCommandHandler extends ModuleInstance implements AccessLevel
 			return;
 		}
 		$uid = strtoupper($uid);
+
 		/** @var ?DiscordMapping */
 		$data = $this->db->table(self::DB_TABLE)
 			->where("name", $uid)
@@ -121,6 +122,7 @@ class DiscordGatewayCommandHandler extends ModuleInstance implements AccessLevel
 			$context->reply($msg);
 			return;
 		}
+
 		/** @var ?DiscordMapping */
 		$data = $this->db->table(self::DB_TABLE)
 			->where("name", $context->char->name)
@@ -137,7 +139,7 @@ class DiscordGatewayCommandHandler extends ModuleInstance implements AccessLevel
 			->where("token", $uid)
 			->update([
 				"confirmed" => time(),
-				"token" => null
+				"token" => null,
 			]);
 		$guilds = $this->discordGatewayController->getGuilds();
 		$guild = $guilds[array_keys($guilds)[0]] ?? null;
@@ -181,7 +183,7 @@ class DiscordGatewayCommandHandler extends ModuleInstance implements AccessLevel
 	): Generator {
 		$discordUserId = $context->char->name;
 		if (($authedAs = $this->getNameForDiscordId($discordUserId)) !== null) {
-			$msg = "You are already linked to <highlight>$authedAs<end>.";
+			$msg = "You are already linked to <highlight>{$authedAs}<end>.";
 			$context->reply($msg);
 			return;
 		}
@@ -193,6 +195,7 @@ class DiscordGatewayCommandHandler extends ModuleInstance implements AccessLevel
 			$context->reply($msg);
 			return;
 		}
+
 		/** @var ?DiscordMapping */
 		$data = $this->db->table(self::DB_TABLE)
 			->where("name", $name)
@@ -204,6 +207,7 @@ class DiscordGatewayCommandHandler extends ModuleInstance implements AccessLevel
 			$context->reply($msg);
 			return;
 		}
+
 		/** @var ?DiscordMapping */
 		$data = $this->db->table(self::DB_TABLE)
 			->where("name", $name)
@@ -223,6 +227,7 @@ class DiscordGatewayCommandHandler extends ModuleInstance implements AccessLevel
 		} else {
 			$uid = $data->token;
 		}
+
 		/** @var DiscordUser */
 		$user = yield $this->discordAPIClient->getUser($discordUserId);
 		$context->char->name = $user->username . "#" . $user->discriminator;
@@ -233,10 +238,10 @@ class DiscordGatewayCommandHandler extends ModuleInstance implements AccessLevel
 			"If you haven't requested this link, then <red>reject<end> it!\n".
 			"\n".
 			"[".
-				$this->text->makeChatcmd("Accept", "/tell <myname> extauth accept $uid").
+				$this->text->makeChatcmd("Accept", "/tell <myname> extauth accept {$uid}").
 			"]    ".
 			"[".
-				$this->text->makeChatcmd("Reject", "/tell <myname> extauth reject $uid").
+				$this->text->makeChatcmd("Reject", "/tell <myname> extauth reject {$uid}").
 			"]";
 		$msg = $this->text->makeBlob("Request to link your account with {$context->char->name}", $blob);
 		$msg = $this->text->blobWrap("You have received a ", $msg, ".");
@@ -290,7 +295,7 @@ class DiscordGatewayCommandHandler extends ModuleInstance implements AccessLevel
 		if (!preg_match("/^.?extauth\s+request/si", $event->message)) {
 			$userId = $this->getNameForDiscordId($discordUserId);
 		}
-		$execCmd = function() use ($context, $sendto): void {
+		$execCmd = function () use ($context, $sendto): void {
 			if ($this->commandManager->checkAndHandleCmd($context)) {
 				return;
 			}

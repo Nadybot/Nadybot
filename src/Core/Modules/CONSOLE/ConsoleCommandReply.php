@@ -16,8 +16,6 @@ use Nadybot\Core\{
 };
 
 class ConsoleCommandReply implements CommandReply, MessageEmitter {
-	private Nadybot $chatBot;
-
 	#[NCA\Inject]
 	public ConsoleController $consoleController;
 
@@ -29,6 +27,7 @@ class ConsoleCommandReply implements CommandReply, MessageEmitter {
 
 	#[NCA\Inject]
 	public ConfigFile $config;
+	private Nadybot $chatBot;
 
 	public function __construct(Nadybot $chatBot) {
 		$this->chatBot = $chatBot;
@@ -238,12 +237,12 @@ class ConsoleCommandReply implements CommandReply, MessageEmitter {
 			"</i>" => "\e[23m",
 			"<br>" => "\n",
 			"<br/>" => "\n",
-			"<br />" => "\n"
+			"<br />" => "\n",
 		];
 
 		$message = preg_replace_callback(
 			"/<black>(.*?)<end>/",
-			function(array $matches): string {
+			function (array $matches): string {
 				if (function_exists('mb_strlen')) {
 					return str_repeat(" ", mb_strlen($matches[1]));
 				}
@@ -282,6 +281,43 @@ class ConsoleCommandReply implements CommandReply, MessageEmitter {
 		}
 
 		return $message;
+	}
+
+	public function handleColors(string $text, bool $clearEOL): string {
+		if (!$this->consoleController->consoleColor) {
+			return $this->parseBasicAnsi($text);
+		}
+		$text = $this->parseAnsiColors($text);
+		$stack = [];
+		$text = preg_replace_callback(
+			"/<(\/?font.*?)>/",
+			function (array $matches) use (&$stack): string {
+				$matches[1] = strtolower($matches[1]);
+				if (substr($matches[1], 0, 1) === "/") {
+					array_pop($stack);
+					$currentTag = $stack[count($stack)-1] ?? null;
+					if ($currentTag === null) {
+						return "";
+					}
+					$matches[1] = $currentTag;
+				} else {
+					$stack []= $matches[1];
+				}
+				if (preg_match("/font\s+color\s*=\s*[\"']?#(.{6})[\"']?/s", $matches[1], $colMatch)) {
+					return $this->fgHexToAnsi($colMatch[1]);
+				}
+				return $matches[0];
+			},
+			$text
+		);
+		if ($this->consoleController->consoleBGColor) {
+			$text = $this->bgHexToAnsi("222222") . $text;
+		}
+		$text = str_replace("\r\n", "\n", $text);
+		if ($clearEOL) {
+			return str_replace("\n", "\e[K\n", $text) . "\e[K\e[0m";
+		}
+		return $text;
 	}
 
 	protected function parseBasicAnsi(string $text): string {
@@ -346,43 +382,6 @@ class ConsoleCommandReply implements CommandReply, MessageEmitter {
 		];
 		$defaultColor = $this->colors->defaultPrivColor;
 		$text = $defaultColor . str_ireplace(array_keys($array), array_values($array), $text);
-		return $text;
-	}
-
-	public function handleColors(string $text, bool $clearEOL): string {
-		if (!$this->consoleController->consoleColor) {
-			return $this->parseBasicAnsi($text);
-		}
-		$text = $this->parseAnsiColors($text);
-		$stack = [];
-		$text = preg_replace_callback(
-			"/<(\/?font.*?)>/",
-			function (array $matches) use (&$stack): string {
-				$matches[1] = strtolower($matches[1]);
-				if (substr($matches[1], 0, 1) === "/") {
-					array_pop($stack);
-					$currentTag = $stack[count($stack)-1] ?? null;
-					if ($currentTag === null) {
-						return "";
-					}
-					$matches[1] = $currentTag;
-				} else {
-					$stack []= $matches[1];
-				}
-				if (preg_match("/font\s+color\s*=\s*[\"']?#(.{6})[\"']?/s", $matches[1], $colMatch)) {
-					return $this->fgHexToAnsi($colMatch[1]);
-				}
-				return $matches[0];
-			},
-			$text
-		);
-		if ($this->consoleController->consoleBGColor) {
-			$text = $this->bgHexToAnsi("222222") . $text;
-		}
-		$text = str_replace("\r\n", "\n", $text);
-		if ($clearEOL) {
-			return str_replace("\n", "\e[K\n", $text) . "\e[K\e[0m";
-		}
 		return $text;
 	}
 

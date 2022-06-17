@@ -161,7 +161,7 @@ class ColorsController extends ModuleInstance {
 				$files->push(__DIR__ . "/{$path}/{$fileName}");
 			}
 		}
-		$files = $files->filter(function(string $path) use ($themeName): bool {
+		$files = $files->filter(function (string $path) use ($themeName): bool {
 			return basename($path, ".json") === $themeName();
 		});
 		try {
@@ -176,50 +176,6 @@ class ColorsController extends ModuleInstance {
 		}
 		$this->applyTheme($theme);
 		$context->reply("Theme changed to <highlight>{$themeName}<end>.");
-	}
-
-	/** Get a rendered preview of a theme */
-	private function getThemePreview(Theme $theme): string {
-		$blob = "<font color={$theme->window_color}>".
-			"<header>Page header<end>\n".
-			"\n".
-			"<header2>Section<end>\n".
-			"<tab>Some text explaining <highlight>things<end> regarding lorem ipsum\n".
-			"<tab>or something else. It's <highlight>really<end> important.".
-			"<end>";
-		$blob = str_replace(
-			[
-				"<header>",
-				"<header2>",
-				"<highlight>",
-			],
-			[
-				"<font color={$theme->header_color}>",
-				"<font color={$theme->header2_color}>",
-				"<font color={$theme->highlight_color}>",
-			],
-			$blob
-		);
-		return $blob;
-	}
-
-	/** @return string[] */
-	private function getColorAttributes(): array {
-		$attributes = [
-			"window_color",
-			"priv_color",
-			"tell_color",
-			"guild_color",
-			"routed_sys_color",
-			"header_color",
-			"header2_color",
-			"highlight_color",
-			"clan_color",
-			"omni_color",
-			"neut_color",
-			"unknown_color",
-		];
-		return $attributes;
 	}
 
 	/** @return Promise<Theme[]> */
@@ -272,7 +228,7 @@ class ColorsController extends ModuleInstance {
 			$setting = "default_{$attr}";
 			if (preg_match("/^#([0-9a-f]{6})$/i", $value)) {
 				$value = strtoupper($value);
-				$value = "<font color='$value'>";
+				$value = "<font color='{$value}'>";
 			}
 			$this->settingManager->save($setting, $value);
 		}
@@ -280,6 +236,50 @@ class ColorsController extends ModuleInstance {
 		if (isset($sysColor) && preg_match("/^#([0-9a-f]{6})$/i", $sysColor)) {
 			$this->setRoutedSysColor(substr(strtoupper($sysColor), 1));
 		}
+	}
+
+	/** Get a rendered preview of a theme */
+	private function getThemePreview(Theme $theme): string {
+		$blob = "<font color={$theme->window_color}>".
+			"<header>Page header<end>\n".
+			"\n".
+			"<header2>Section<end>\n".
+			"<tab>Some text explaining <highlight>things<end> regarding lorem ipsum\n".
+			"<tab>or something else. It's <highlight>really<end> important.".
+			"<end>";
+		$blob = str_replace(
+			[
+				"<header>",
+				"<header2>",
+				"<highlight>",
+			],
+			[
+				"<font color={$theme->header_color}>",
+				"<font color={$theme->header2_color}>",
+				"<font color={$theme->highlight_color}>",
+			],
+			$blob
+		);
+		return $blob;
+	}
+
+	/** @return string[] */
+	private function getColorAttributes(): array {
+		$attributes = [
+			"window_color",
+			"priv_color",
+			"tell_color",
+			"guild_color",
+			"routed_sys_color",
+			"header_color",
+			"header2_color",
+			"highlight_color",
+			"clan_color",
+			"omni_color",
+			"neut_color",
+			"unknown_color",
+		];
+		return $attributes;
 	}
 
 	private function setRoutedSysColor(string $color): bool {
@@ -313,7 +313,7 @@ class ColorsController extends ModuleInstance {
 				continue;
 			}
 			if (preg_match("/^#([0-9a-f]{6})$/i", $value)) {
-				$value = "<font color='$value'>";
+				$value = "<font color='{$value}'>";
 			}
 			$setting = "default" . join("", array_map("ucfirst", explode("_", $attr)));
 			$currValue = $this->{$setting} ?? null;

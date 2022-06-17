@@ -3,9 +3,7 @@
 namespace Nadybot\Core\Modules\LIMITS\Migrations;
 
 use Illuminate\Database\Schema\Blueprint;
-use Nadybot\Core\DB;
-use Nadybot\Core\LoggerWrapper;
-use Nadybot\Core\SchemaMigration;
+use Nadybot\Core\{DB, LoggerWrapper, SchemaMigration};
 
 class CreateRateignorelist implements SchemaMigration {
 	public function migrate(LoggerWrapper $logger, DB $db): void {
@@ -13,7 +11,7 @@ class CreateRateignorelist implements SchemaMigration {
 		if ($db->schema()->hasTable($table)) {
 			return;
 		}
-		$db->schema()->create($table, function(Blueprint $table): void {
+		$db->schema()->create($table, function (Blueprint $table): void {
 			$table->string("name", 20);
 			$table->string("added_by", 20);
 			$table->integer("added_dt");

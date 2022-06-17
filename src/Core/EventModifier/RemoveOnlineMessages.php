@@ -11,8 +11,7 @@ use Nadybot\Core\{
 #[
 	NCA\EventModifier(
 		name: "remove-online-messages",
-		description:
-			"This modifier removes all XXX has joined/left messages\n".
+		description: "This modifier removes all XXX has joined/left messages\n".
 			"coming from the relay"
 	)
 ]

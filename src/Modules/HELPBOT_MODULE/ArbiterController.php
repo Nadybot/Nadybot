@@ -56,14 +56,13 @@ class ArbiterController extends ModuleInstance {
 	#[NCA\Inject]
 	public DB $db;
 
-	/**
-	 * Calculate the next (or current) times for an event
-	 */
+	/** Calculate the next (or current) times for an event */
 	public function getNextForType(string $type, ?int $time=null): ArbiterEvent {
 		$event = new ArbiterEvent();
 		$event->shortName = $type;
 		$event->longName = $this->getLongName($event->shortName);
 		$time ??= time();
+
 		/** @var ?ICCArbiter */
 		$entry = $this->db->table(static::DB_TABLE)
 			->where("type", $type)
@@ -84,23 +83,17 @@ class ArbiterController extends ModuleInstance {
 		return $event;
 	}
 
-	/**
-	 * Calculate the next (or current) times for DIO
-	 */
+	/** Calculate the next (or current) times for DIO */
 	public function getNextDio(?int $time=null): ArbiterEvent {
 		return $this->getNextForType(static::DIO, $time);
 	}
 
-	/**
-	 * Calculate the next (or current) times for PVP Week
-	 */
+	/** Calculate the next (or current) times for PVP Week */
 	public function getNextBS(?int $time=null): ArbiterEvent {
 		return $this->getNextForType(static::BS, $time);
 	}
 
-	/**
-	 * Calculate the next (or current) times for AI
-	 */
+	/** Calculate the next (or current) times for AI */
 	public function getNextAI(?int $time=null): ArbiterEvent {
 		return $this->getNextForType(static::AI, $time);
 	}
@@ -156,6 +149,7 @@ class ArbiterController extends ModuleInstance {
 			$this->db->table(static::DB_TABLE)->truncate();
 			for ($i = 0; $i < 3; $i++) {
 				$arb = new ICCArbiter();
+
 				/** @psalm-suppress InvalidArrayOffset */
 				$arb->type = $validTypes[($pos + $i) % 3];
 				$arb->start = (new DateTime())->setTimestamp($start);
@@ -195,6 +189,7 @@ class ArbiterController extends ModuleInstance {
 				return;
 			}
 		}
+
 		/** @var ArbiterEvent[] */
 		$upcomingEvents = [
 			$this->getNextBS($time),
@@ -205,7 +200,7 @@ class ArbiterController extends ModuleInstance {
 		// Sort them by start date, to the next one coming up or currently on is the first
 		usort(
 			$upcomingEvents,
-			function(ArbiterEvent $e1, ArbiterEvent $e2): int {
+			function (ArbiterEvent $e1, ArbiterEvent $e2): int {
 				return $e1->start <=> $e2->start;
 			}
 		);
@@ -256,8 +251,7 @@ class ArbiterController extends ModuleInstance {
 		NCA\NewsTile(
 			name: "arbiter",
 			description: "Shows the current ICC arbiter week - if any",
-			example:
-				"<header2>Arbiter<end>\n".
+			example: "<header2>Arbiter<end>\n".
 				"<tab>It's currently <highlight>DIO week<end>."
 		)
 	]
@@ -272,7 +266,7 @@ class ArbiterController extends ModuleInstance {
 		// Sort them by start date, to the next one coming up or currently on is the first
 		usort(
 			$upcomingEvents,
-			function(ArbiterEvent $e1, ArbiterEvent $e2): int {
+			function (ArbiterEvent $e1, ArbiterEvent $e2): int {
 				return $e1->start <=> $e2->start;
 			}
 		);
@@ -290,8 +284,7 @@ class ArbiterController extends ModuleInstance {
 		NCA\NewsTile(
 			name: "arbiter-force",
 			description: "Shows the current ICC arbiter week or what the next one will be",
-			example:
-				"<header2>Arbiter<end>\n".
+			example: "<header2>Arbiter<end>\n".
 				"<tab>The arbiter is currently not here.\n".
 				"<tab>DIO week starts in <highlight>3 days 17 hrs 4 mins<end>."
 		)
@@ -307,7 +300,7 @@ class ArbiterController extends ModuleInstance {
 		// Sort them by start date, to the next one coming up or currently on is the first
 		usort(
 			$upcomingEvents,
-			function(ArbiterEvent $e1, ArbiterEvent $e2): int {
+			function (ArbiterEvent $e1, ArbiterEvent $e2): int {
 				return $e1->start <=> $e2->start;
 			}
 		);

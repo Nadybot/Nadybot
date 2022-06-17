@@ -17,8 +17,8 @@ use Nadybot\Core\{
 	Routing\RoutableMessage,
 	Routing\Source,
 	SettingManager,
-	Util,
 	Text,
+	Util,
 };
 use Nadybot\Modules\{
 	ONLINE_MODULE\OnlineController,
@@ -29,8 +29,7 @@ use Nadybot\Modules\{
 #[
 	NCA\RelayProtocol(
 		name: "gcr",
-		description:
-			"This is the protocol that BeBot speaks natively.\n".
+		description: "This is the protocol that BeBot speaks natively.\n".
 			"It supports sharing online lists and basic colorization.\n".
 			"Nadybot only support colorization of messages from the\n".
 			"org and guest chat and not the BeBot native encryption."
@@ -61,10 +60,6 @@ use Nadybot\Modules\{
 	)
 ]
 class GcrProtocol implements RelayProtocolInterface {
-	protected static int $supportedFeatures = self::F_ONLINE_SYNC;
-
-	protected Relay $relay;
-
 	#[NCA\Inject]
 	public Util $util;
 
@@ -82,6 +77,9 @@ class GcrProtocol implements RelayProtocolInterface {
 
 	#[NCA\Inject]
 	public Nadybot $chatBot;
+	protected static int $supportedFeatures = self::F_ONLINE_SYNC;
+
+	protected Relay $relay;
 
 	protected string $command = "gcr";
 	protected string $prefix = "";
@@ -128,7 +126,7 @@ class GcrProtocol implements RelayProtocolInterface {
 		return [
 			$this->prefix.$this->command . " ".
 				join(" ", $hops) . " {$senderLink} ". "##relay_message##".
-				$this->text->formatMessage($event->getData()). "##end##"
+				$this->text->formatMessage($event->getData()). "##end##",
 		];
 	}
 
@@ -156,55 +154,6 @@ class GcrProtocol implements RelayProtocolInterface {
 			}
 		});
 		return [];
-	}
-
-	protected function getBeBotLogonOffStatus(Player $player, RoutableEvent $event): ?string {
-		if (!$this->syncOnline) {
-			return null;
-		}
-		$path = $event->getPath();
-		$lastHop = $path[count($path)-1] ?? null;
-		if (!isset($lastHop)) {
-			return null;
-		}
-		$onlineUpdate = $this->prefix.$this->command . "c buddy ".
-			(int)$event->getData()->online . " {$player->name} ";
-		if ($lastHop->type === Source::ORG) {
-			return $onlineUpdate . "gc {$player->guild_rank_id}";
-		} elseif ($lastHop->type === Source::PRIV) {
-			return $onlineUpdate . "pg";
-		}
-		return null;
-	}
-
-	protected function getBeBotLogonOffMsg(Player $player, RoutableEvent $event): ?string {
-		if (!$this->spamOnline) {
-			return null;
-		}
-		$path = $event->getPath();
-		$lastHop = $path[count($path)-1] ?? null;
-		if (!isset($lastHop) || $lastHop->type !== Source::ORG) {
-			return null;
-		}
-		if (!$event->getData()->online) {
-			return $this->prefix.$this->command . " ".
-				"##logon_logoff_spam##{$player->name} logged off##end##";
-		}
-		$msg = $this->prefix.$this->command . " ".
-			"##logon_logon_spam##".
-			"##highlight##{$player->name}##end## ".
-			"(Lvl ##logon_level##{$player->level}##end##/".
-			"##logon_ailevel##{$player->ai_level}##end## ".
-			$player->faction;
-		if (isset($player->profession)) {
-			$msg .= " " . $player->profession;
-		}
-		if (strlen($player->guild??"")) {
-			$msg .= ", ##logon_organization##{$player->guild_rank} ".
-			"of {$player->guild}##end##";
-		}
-		$msg .= ") logged On##end##";
-		return $msg;
 	}
 
 	public function receive(RelayMessage $message): ?RoutableEvent {
@@ -372,9 +321,7 @@ class GcrProtocol implements RelayProtocolInterface {
 		return $this->prefix.$this->command . "c online " . join(";", $chunks);
 	}
 
-	/**
-	 * Parse and replace BeBot-style color-codes (##red##) with their actual colors (<font>)
-	 */
+	/** Parse and replace BeBot-style color-codes (##red##) with their actual colors (<font>) */
 	public function replaceBeBotColors(string $text): string {
 		$colors = [
 			"aqua"         => "#00FFFF",
@@ -518,5 +465,54 @@ class GcrProtocol implements RelayProtocolInterface {
 
 	public static function supportsFeature(int $feature): bool {
 		return (static::$supportedFeatures & $feature) === $feature;
+	}
+
+	protected function getBeBotLogonOffStatus(Player $player, RoutableEvent $event): ?string {
+		if (!$this->syncOnline) {
+			return null;
+		}
+		$path = $event->getPath();
+		$lastHop = $path[count($path)-1] ?? null;
+		if (!isset($lastHop)) {
+			return null;
+		}
+		$onlineUpdate = $this->prefix.$this->command . "c buddy ".
+			(int)$event->getData()->online . " {$player->name} ";
+		if ($lastHop->type === Source::ORG) {
+			return $onlineUpdate . "gc {$player->guild_rank_id}";
+		} elseif ($lastHop->type === Source::PRIV) {
+			return $onlineUpdate . "pg";
+		}
+		return null;
+	}
+
+	protected function getBeBotLogonOffMsg(Player $player, RoutableEvent $event): ?string {
+		if (!$this->spamOnline) {
+			return null;
+		}
+		$path = $event->getPath();
+		$lastHop = $path[count($path)-1] ?? null;
+		if (!isset($lastHop) || $lastHop->type !== Source::ORG) {
+			return null;
+		}
+		if (!$event->getData()->online) {
+			return $this->prefix.$this->command . " ".
+				"##logon_logoff_spam##{$player->name} logged off##end##";
+		}
+		$msg = $this->prefix.$this->command . " ".
+			"##logon_logon_spam##".
+			"##highlight##{$player->name}##end## ".
+			"(Lvl ##logon_level##{$player->level}##end##/".
+			"##logon_ailevel##{$player->ai_level}##end## ".
+			$player->faction;
+		if (isset($player->profession)) {
+			$msg .= " " . $player->profession;
+		}
+		if (strlen($player->guild??"")) {
+			$msg .= ", ##logon_organization##{$player->guild_rank} ".
+			"of {$player->guild}##end##";
+		}
+		$msg .= ") logged On##end##";
+		return $msg;
 	}
 }

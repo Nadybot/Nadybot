@@ -7,13 +7,6 @@ $config = new PhpCsFixer\Config();
 return $config
 	->setIndent("\t")
 	->setRules([
-		'no_unused_imports' => true,
-	])
-	->setRiskyAllowed(true)
-	->setFinder($finder);
-return $config
-	->setIndent("\t")
-	->setRules([
 		'align_multiline_comment' => true,
 		'assign_null_coalescing_to_coalesce_equal' => true,
 		'blank_line_after_namespace' => true,

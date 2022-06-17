@@ -2,17 +2,15 @@
 
 namespace Nadybot\Core;
 
-use Amp\Http\Client\HttpClientBuilder;
+use function Amp\call;
 use Amp\Http\Client\Interceptor\AddRequestHeader;
-use Amp\Http\Client\Request;
-use Amp\Http\Client\Response;
+use Amp\Http\Client\{HttpClientBuilder, Request, Response};
 use Amp\Promise;
-use Nadybot\Core\Attributes as NCA;
 use Exception;
-use Safe\Exceptions\JsonException;
+use Nadybot\Core\Attributes as NCA;
 use Nadybot\Modules\DISCORD_GATEWAY_MODULE\DiscordGatewayController;
 
-use function Amp\call;
+use Safe\Exceptions\JsonException;
 
 /**
  * Class to represent a setting with a discord channel value for NadyBot
@@ -28,9 +26,7 @@ class DiscordChannelSettingHandler extends SettingHandler {
 	#[NCA\Inject]
 	public DiscordGatewayController $discordGatewayController;
 
-	/**
-	 * @inheritDoc
-	 */
+	/** @inheritDoc */
 	public function getDescription(): string {
 		$msg = "For this setting you need to enter a Discord channel ID (nmber up to 20 digits).\n".
 			"You can get the ID of a channel by turning on Developer mode in Discord, ".
@@ -44,16 +40,14 @@ class DiscordChannelSettingHandler extends SettingHandler {
 		return $msg;
 	}
 
-	/**
-	 * @return Promise<string>
-	 */
+	/** @return Promise<string> */
 	public function save(string $newValue): Promise {
 		return call(function () use ($newValue) {
 			if ($newValue === "off") {
 				return $newValue;
 			}
 			if (!preg_match("/^\d{1,20}$/", $newValue)) {
-				throw new Exception("<highlight>$newValue<end> is not a valid Channel ID.");
+				throw new Exception("<highlight>{$newValue}<end> is not a valid Channel ID.");
 			}
 			$discordBotToken = $this->settingManager->get('discord_bot_token');
 			if (empty($discordBotToken) || $discordBotToken === 'off') {
@@ -69,6 +63,7 @@ class DiscordChannelSettingHandler extends SettingHandler {
 			$client = $this->builder
 				->intercept(new AddRequestHeader('Authorization', 'Bot ' . $discordBotToken))
 				->build();
+
 			/** @var Response */
 			$response = yield $client->request(new Request("https://discord.com/api/channels/{$newValue}"));
 			if ($response->getStatus() === 200) {

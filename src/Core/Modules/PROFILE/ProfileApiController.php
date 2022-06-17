@@ -5,18 +5,17 @@ namespace Nadybot\Core\Modules\PROFILE;
 use function Amp\File\filesystem;
 
 use Amp\File\FilesystemException as AmpFilesystemException;
-use Nadybot\Core\Attributes as NCA;
-use Nadybot\Core\ModuleInstance;
 use Exception;
 use Generator;
-use Safe\Exceptions\FilesystemException;
-use Throwable;
+use Nadybot\Core\{Attributes as NCA, ModuleInstance};
 use Nadybot\Modules\{
 	WEBSERVER_MODULE\ApiResponse,
 	WEBSERVER_MODULE\HttpProtocolWrapper,
 	WEBSERVER_MODULE\Request,
 	WEBSERVER_MODULE\Response,
 };
+use Safe\Exceptions\FilesystemException;
+use Throwable;
 
 #[NCA\Instance]
 class ProfileApiController extends ModuleInstance {

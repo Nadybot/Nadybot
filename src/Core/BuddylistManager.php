@@ -4,9 +4,7 @@ namespace Nadybot\Core;
 
 use function Amp\call;
 
-use Amp\Deferred;
-use Amp\Promise;
-use Amp\Success;
+use Amp\{Deferred, Promise, Success};
 use Generator;
 use Nadybot\Core\Attributes as NCA;
 use Throwable;
@@ -30,41 +28,40 @@ class BuddylistManager {
 
 	/**
 	 * List of all players on the friendlist, real or just queued up
+	 *
 	 * @var array<int,BuddylistEntry>
 	 */
 	public array $buddyList = [];
 
 	/**
 	 * List of all characters currently queued for rebalancing
+	 *
 	 * @var array<int,bool>
 	 */
 	private array $inRebalance = [];
 
 	/**
 	 * List of all characters currently removed for rebalancing
+	 *
 	 * @var array<int,array<int,bool>>
 	 */
 	private array $pendingRebalance = [];
 
 	private ?CommandReply $rebalancingCallback = null;
 
-	/**
-	 * Get the number of definitively used up buddy slots
-	 */
+	/** Get the number of definitively used up buddy slots */
 	public function getUsedBuddySlots(): int {
 		return count(
 			array_filter(
 				$this->buddyList,
-				function(BuddylistEntry $buddy): bool {
+				function (BuddylistEntry $buddy): bool {
 					return $buddy->known;
 				}
 			)
 		);
 	}
 
-	/**
-	 * Check if we are currently rebalancing (the given uid)
-	 */
+	/** Check if we are currently rebalancing (the given uid) */
 	public function isRebalancing(?int $uid=null): bool {
 		if (isset($uid)) {
 			return isset($this->pendingRebalance[$uid]);
@@ -140,18 +137,14 @@ class BuddylistManager {
 		return count(
 			array_filter(
 				$this->buddyList,
-				function(BuddylistEntry $entry): bool {
+				function (BuddylistEntry $entry): bool {
 					return $entry->known;
 				}
 			)
 		);
 	}
 
-	/**
-	 * Get information stored about a friend
-	 *
-	 * @param string $name
-	 */
+	/** Get information stored about a friend */
 	public function getBuddy(string $name): ?BuddylistEntry {
 		/** Never trigger an actual ID lookup. If we don't have a buddy's ID, it's inactive */
 		$uid = $this->chatBot->id[ucfirst(strtolower($name))] ?? false;
@@ -163,6 +156,7 @@ class BuddylistManager {
 
 	/**
 	 * Get the names of all people in the friendlist who are online
+	 *
 	 * @return string[]
 	 */
 	public function getOnline(): array {
@@ -179,8 +173,10 @@ class BuddylistManager {
 	 * Add a user to the bot's friendlist for a given purpose
 	 *
 	 * @deprecated 6.1.0
+	 *
 	 * @param string $name The name of the player
 	 * @param string $type The reason why to add ("member", "admin", "org", "onlineorg", "is_online", "tracking")
+	 *
 	 * @return bool true on success, otherwise false
 	 */
 	public function add(string $name, string $type): bool {
@@ -202,15 +198,13 @@ class BuddylistManager {
 		});
 	}
 
-	/**
-	 * Add a user id to the bot's friendlist for a given purpose
-	 */
+	/** Add a user id to the bot's friendlist for a given purpose */
 	public function addId(int $uid, string $type): bool {
 		$name = (string)($this->chatBot->id[$uid] ?? $uid);
 		if (!isset($this->buddyList[$uid])) {
-			$this->logger->info("$name buddy added");
+			$this->logger->info("{$name} buddy added");
 			if (!$this->config->useProxy && count($this->buddyList) > 999) {
-				$this->logger->error("Error adding '$name' to buddy list--buddy list is full");
+				$this->logger->error("Error adding '{$name}' to buddy list--buddy list is full");
 			}
 			$this->chatBot->buddy_add($uid);
 			// Initialize with an unconfirmed entry
@@ -221,7 +215,7 @@ class BuddylistManager {
 		}
 		if (!$this->buddyList[$uid]->hasType($type)) {
 			$this->buddyList[$uid]->setType($type);
-			$this->logger->info("$name buddy added (type: $type)");
+			$this->logger->info("{$name} buddy added (type: {$type})");
 		}
 
 		return true;
@@ -236,6 +230,7 @@ class BuddylistManager {
 	 *
 	 * @param string $name The name of the player
 	 * @param string $type The reason for which to remove ("member", "admin", "org", "onlineorg", "is_online", "tracking")
+	 *
 	 * @return bool true on success, otherwise false
 	 */
 	public function remove(string $name, string $type=''): bool {
@@ -261,20 +256,18 @@ class BuddylistManager {
 		}
 		if ($this->buddyList[$uid]->hasType($type)) {
 			$this->buddyList[$uid]->unsetType($type);
-			$this->logger->info("$name buddy type removed (type: $type)");
+			$this->logger->info("{$name} buddy type removed (type: {$type})");
 		}
 
 		if (count($this->buddyList[$uid]->types) === 0) {
-			$this->logger->info("$name buddy removed");
+			$this->logger->info("{$name} buddy removed");
 			$this->chatBot->buddy_remove($uid);
 		}
 
 		return true;
 	}
 
-	/**
-	 * Update the cached information in the friendlist
-	 */
+	/** Update the cached information in the friendlist */
 	public function update(int $userId, bool $status, int $worker=0): void {
 		if ($this->isRebalancing($userId)) {
 			unset($this->pendingRebalance[$userId]);
@@ -305,9 +298,7 @@ class BuddylistManager {
 		$this->buddyList[$userId]->worker[$worker] = true;
 	}
 
-	/**
-	 * Forcefully delete cached information in the friendlist
-	 */
+	/** Forcefully delete cached information in the friendlist */
 	public function updateRemoved(int $uid): void {
 		$this->logger->info("UID {uid} removed from buddylist", ["uid" => $uid]);
 		if ($this->isRebalancing($uid)) {
@@ -352,9 +343,7 @@ class BuddylistManager {
 		}
 	}
 
-	/**
-	 * Check if a given UID is on the buddylist for a given type
-	 */
+	/** Check if a given UID is on the buddylist for a given type */
 	public function buddyHasType(int $uid, string $type): bool {
 		$buddy = $this->buddyList[$uid] ?? null;
 		return isset($buddy) && $buddy->hasType($type);

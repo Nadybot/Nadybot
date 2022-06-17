@@ -3,7 +3,6 @@
 namespace Nadybot\Modules\NEWS_MODULE;
 
 use Exception;
-use Throwable;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	AOChatEvent,
@@ -26,6 +25,7 @@ use Nadybot\Modules\WEBSERVER_MODULE\{
 	Request,
 	Response,
 };
+use Throwable;
 
 /**
  * Commands this class contains:
@@ -89,9 +89,7 @@ class NewsController extends ModuleInstance {
 	#[NCA\Setting\Boolean]
 	public bool $newsConfirmedForAllAlts = true;
 
-	/**
-	 * @return Collection<INews>
-	 */
+	/** @return Collection<INews> */
 	public function getNewsItems(string $player): Collection {
 		if ($this->newsConfirmedForAllAlts) {
 			$player = $this->altsController->getMainOf($player);
@@ -112,9 +110,7 @@ class NewsController extends ModuleInstance {
 		return $query->asObj(INews::class);
 	}
 
-	/**
-	 * @return string[]|null
-	 */
+	/** @return string[]|null */
 	public function getNews(string $player, bool $onlyUnread=true): ?array {
 		$news = $this->getNewsItems($player);
 		if ($onlyUnread) {
@@ -145,14 +141,14 @@ class NewsController extends ModuleInstance {
 			$blob .= ($item->confirmed ? "<grey>" : "<highlight>").
 				"{$item->news}<end>\n";
 			$blob .= "By {$item->name} " . $this->util->date($item->time) . " ";
-			$blob .= "[" . $this->text->makeChatcmd("remove", "/tell <myname> news rem $item->id") . "] ";
+			$blob .= "[" . $this->text->makeChatcmd("remove", "/tell <myname> news rem {$item->id}") . "] ";
 			if ($item->sticky) {
-				$blob .= "[" . $this->text->makeChatcmd("unpin", "/tell <myname> news unpin $item->id") . "] ";
+				$blob .= "[" . $this->text->makeChatcmd("unpin", "/tell <myname> news unpin {$item->id}") . "] ";
 			} else {
-				$blob .= "[" . $this->text->makeChatcmd("pin", "/tell <myname> news pin $item->id") . "] ";
+				$blob .= "[" . $this->text->makeChatcmd("pin", "/tell <myname> news pin {$item->id}") . "] ";
 			}
 			if (!$item->confirmed) {
-				$blob .= "[" . $this->text->makeChatcmd("confirm", "/tell <myname> news confirm $item->id") . "] ";
+				$blob .= "[" . $this->text->makeChatcmd("confirm", "/tell <myname> news confirm {$item->id}") . "] ";
 			}
 			$blob .= "\n";
 			$sticky = $item->sticky;
@@ -221,9 +217,7 @@ class NewsController extends ModuleInstance {
 		}
 	}
 
-	/**
-	 * Check if there are recent news for player $player
-	 */
+	/** Check if there are recent news for player $player */
 	public function hasRecentNews(string $player): bool {
 		$thirtyDays = time() - (86400 * 30);
 		$news = $this->getNewsItems($player);
@@ -462,6 +456,7 @@ class NewsController extends ModuleInstance {
 			if (!is_object($news)) {
 				throw new Exception("Wrong content body");
 			}
+
 			/** @var NewNews */
 			$decoded = JsonImporter::convert(NewNews::class, $news);
 		} catch (Throwable $e) {
@@ -510,6 +505,7 @@ class NewsController extends ModuleInstance {
 			if (!is_object($news)) {
 				throw new Exception("Wrong content");
 			}
+
 			/** @var NewNews */
 			$decoded = JsonImporter::convert(NewNews::class, $news);
 		} catch (Throwable $e) {
@@ -540,8 +536,7 @@ class NewsController extends ModuleInstance {
 		NCA\NewsTile(
 			name: "news",
 			description: "Show excerpts of unread news",
-			example:
-				"<header2>News [<u>see more</u>]<end>\n".
+			example: "<header2>News [<u>see more</u>]<end>\n".
 				"<tab><highlight>2021-Oct-18<end>: We have a new tower site..."
 		)
 	]

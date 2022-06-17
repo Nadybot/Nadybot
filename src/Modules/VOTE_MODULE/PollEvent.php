@@ -6,6 +6,7 @@ use Nadybot\Core\Event;
 
 class PollEvent extends Event {
 	public Poll $poll;
+
 	/** @var Vote[] */
 	public array $votes;
 }

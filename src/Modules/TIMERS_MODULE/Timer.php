@@ -2,8 +2,7 @@
 
 namespace Nadybot\Modules\TIMERS_MODULE;
 
-use Nadybot\Core\Attributes as NCA;
-use Nadybot\Core\DBRow;
+use Nadybot\Core\{Attributes as NCA, DBRow};
 
 class Timer extends DBRow {
 	/** ID of the timer */
@@ -35,6 +34,7 @@ class Timer extends DBRow {
 
 	/**
 	 * A list of alerts, each calling $callback
+	 *
 	 * @var Alert[]
 	 */
 	#[NCA\DB\MapRead([self::class, "decodeAlerts"])]

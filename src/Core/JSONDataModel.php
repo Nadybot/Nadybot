@@ -2,10 +2,10 @@
 
 namespace Nadybot\Core;
 
-use ReflectionClass;
-use ReflectionProperty;
 use DateTime;
+use ReflectionClass;
 use ReflectionNamedType;
+use ReflectionProperty;
 use ReflectionUnionType;
 
 class JSONDataModel {
@@ -45,7 +45,7 @@ class JSONDataModel {
 					$refProp->setValue($this, null);
 					if (isset($data->{$propName})) {
 						$values = array_map(
-							function(string|int|float $v): DateTime|false {
+							function (string|int|float $v): DateTime|false {
 								return DateTime::createFromFormat("U", (string)floor((float)$v));
 							},
 							$data->{$propName}
@@ -55,7 +55,7 @@ class JSONDataModel {
 				} else {
 					if (isset($data->{$propName})) {
 						$values = array_map(
-							function(object $v) use ($class): object {
+							function (object $v) use ($class): object {
 								if (class_exists($class, true) &&is_subclass_of($class, self::class)) {
 									/** @psalm-suppress UnsafeInstantiation */
 									$ret = new $class();

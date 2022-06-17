@@ -10,6 +10,7 @@ class GuildMemberChunk extends JSONDataModel {
 
 	/**
 	 * set of guild members
+	 *
 	 * @var \Nadybot\Modules\DISCORD_GATEWAY_MODULE\Model\GuildMember[]
 	 */
 	public array $members = [];
@@ -22,12 +23,14 @@ class GuildMemberChunk extends JSONDataModel {
 
 	/**
 	 * if passing an invalid id to REQUEST_GUILD_MEMBERS, it will be returned here
+	 *
 	 * @var null|string[]
 	 */
 	public ?array $not_found = null;
 
 	/**
 	 * if passing true to REQUEST_GUILD_MEMBERS, presences of the returned members will be here
+	 *
 	 * @var null|object[]
 	 */
 	public ?array $presences = null;

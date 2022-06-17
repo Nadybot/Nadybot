@@ -31,36 +31,6 @@ class MigrateToRoutes implements SchemaMigration {
 	#[NCA\Inject]
 	public MessageHub $messageHub;
 
-	protected function getSetting(DB $db, string $name): ?Setting {
-		return $db->table(SettingManager::DB_TABLE)
-			->where("name", $name)
-			->asObj(Setting::class)
-			->first();
-	}
-
-	protected function getColor(DB $db, string ...$names): string {
-		foreach ($names as $name) {
-			$setting = $this->getSetting($db, $name);
-			if (!isset($setting) || $setting->value !== "<font color='#C3C3C3'>") {
-				continue;
-			}
-			if (!preg_match("/#([A-F0-9]{6})/i", $setting->value, $matches)) {
-				continue;
-			}
-			return $matches[1];
-		}
-		return "C3C3C3";
-	}
-
-	protected function saveColor(DB $db, string $hop, string $tag, string $text): void {
-		$spec = [
-			"hop" => $hop,
-			"tag_color" => $tag,
-			"text_color" => $text,
-		];
-		$db->table(MessageHub::DB_TABLE_COLORS)->insert($spec);
-	}
-
 	public function migrate(LoggerWrapper $logger, DB $db): Generator {
 		// throw new Exception("Hollera!");
 		$tagColor = $this->getColor($db, "discord_color_channel");
@@ -106,6 +76,36 @@ class MigrateToRoutes implements SchemaMigration {
 				$relayCommands
 			);
 		}
+	}
+
+	protected function getSetting(DB $db, string $name): ?Setting {
+		return $db->table(SettingManager::DB_TABLE)
+			->where("name", $name)
+			->asObj(Setting::class)
+			->first();
+	}
+
+	protected function getColor(DB $db, string ...$names): string {
+		foreach ($names as $name) {
+			$setting = $this->getSetting($db, $name);
+			if (!isset($setting) || $setting->value !== "<font color='#C3C3C3'>") {
+				continue;
+			}
+			if (!preg_match("/#([A-F0-9]{6})/i", $setting->value, $matches)) {
+				continue;
+			}
+			return $matches[1];
+		}
+		return "C3C3C3";
+	}
+
+	protected function saveColor(DB $db, string $hop, string $tag, string $text): void {
+		$spec = [
+			"hop" => $hop,
+			"tag_color" => $tag,
+			"text_color" => $text,
+		];
+		$db->table(MessageHub::DB_TABLE_COLORS)->insert($spec);
 	}
 
 	protected function addRoute(DB $db, string $from, string $to, bool $relayCommands): void {

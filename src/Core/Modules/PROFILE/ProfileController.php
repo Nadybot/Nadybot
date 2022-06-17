@@ -4,15 +4,21 @@ namespace Nadybot\Core\Modules\PROFILE;
 
 use function Amp\call;
 use function Amp\File\filesystem;
-use function Safe\json_decode;
-use function Safe\json_encode;
-use function Safe\preg_replace;
-
+use function Safe\{json_decode, json_encode, preg_replace};
+use Amp\File\FilesystemException;
 use Amp\Promise;
 use Exception;
 use Generator;
 use Illuminate\Support\Collection;
-use Amp\File\FilesystemException;
+use Nadybot\Core\DBSchema\{
+	CmdAlias,
+	CmdCfg,
+	CmdPermSetMapping,
+	EventCfg,
+	ExtCmdPermissionSet,
+	RouteHopColor,
+	RouteHopFormat,
+};
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
@@ -22,9 +28,9 @@ use Nadybot\Core\{
 	ConfigFile,
 	DB,
 	EventManager,
-	ModuleInstance,
 	LoggerWrapper,
 	MessageHub,
+	ModuleInstance,
 	Nadybot,
 	ParamClass\PFilename,
 	ParamClass\PRemove,
@@ -33,15 +39,6 @@ use Nadybot\Core\{
 	SubcommandManager,
 	Text,
 	Util,
-};
-use Nadybot\Core\DBSchema\{
-	CmdAlias,
-	CmdCfg,
-	CmdPermSetMapping,
-	EventCfg,
-	ExtCmdPermissionSet,
-	RouteHopColor,
-	RouteHopFormat,
 };
 use Nadybot\Modules\RELAY_MODULE\RelayController;
 
@@ -74,7 +71,7 @@ class ProfileController extends ModuleInstance {
 
 	#[NCA\Inject]
 	public CommandManager $commandManager;
-	#
+
 	#[NCA\Inject]
 	public SubcommandManager $subcommandManager;
 
@@ -108,7 +105,7 @@ class ProfileController extends ModuleInstance {
 				$this->logger->warning("Unable to create profile directory {dir}: {error}", [
 					"dir" => $this->path,
 					"error" => $e->getMessage(),
-					"exception" => $e
+					"exception" => $e,
 				]);
 			}
 		}
@@ -116,6 +113,7 @@ class ProfileController extends ModuleInstance {
 
 	/**
 	 * Get a list of all stored profiles
+	 *
 	 * @return Promise<string[]>
 	 */
 	public function getProfileList(): Promise {
@@ -153,9 +151,9 @@ class ProfileController extends ModuleInstance {
 		$linkContents = '';
 		foreach ($profileList as $profile) {
 			$name = ucfirst(strtolower($profile));
-			$viewLink = $this->text->makeChatcmd("view", "/tell <myname> profile view $profile");
-			$loadLink = $this->text->makeChatcmd("load", "/tell <myname> profile load $profile");
-			$linkContents .= "$name [$viewLink] [$loadLink]\n";
+			$viewLink = $this->text->makeChatcmd("view", "/tell <myname> profile view {$profile}");
+			$loadLink = $this->text->makeChatcmd("load", "/tell <myname> profile load {$profile}");
+			$linkContents .= "{$name} [{$viewLink}] [{$loadLink}]\n";
 		}
 
 		if ($linkContents) {
@@ -184,8 +182,9 @@ class ProfileController extends ModuleInstance {
 		$blob = htmlspecialchars(yield filesystem()->read($filename));
 		$blob = preg_replace("/^([^#])/m", "<tab>$1", $blob);
 		$blob = preg_replace("/^# (.+)$/m", "<header2>$1<end>", $blob);
+
 		/** @var string $blob */
-		$msg = $this->text->makeBlob("Profile $profileName", $blob);
+		$msg = $this->text->makeBlob("Profile {$profileName}", $blob);
 		$context->reply($msg);
 	}
 
@@ -208,22 +207,24 @@ class ProfileController extends ModuleInstance {
 	public function saveProfile(string $profileName): bool {
 		$filename = $this->getFilename($profileName);
 		if (@file_exists($filename)) {
-			throw new Exception("Profile <highlight>$profileName<end> already exists.");
+			throw new Exception("Profile <highlight>{$profileName}<end> already exists.");
 		}
 		$contents = "# Permission maps\n";
 		$sets = $this->commandManager->getExtPermissionSets();
 		$setData = json_encode($sets, JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE);
 		$setData = preg_replace("/\"id\":\d+,/", "", $setData);
+
 		/** @var string $setData */
 		$contents .= "!permissions {$setData}\n";
 
 		$contents .= "\n# Settings\n";
 		foreach ($this->settingManager->settings as $name => $value) {
 			if ($name !== "botid" && $name !== "version" && !$this->util->endsWith($name, "_db_version")) {
-				$contents .= "!settings save $name {$value->value}\n";
+				$contents .= "!settings save {$name} {$value->value}\n";
 			}
 		}
 		$contents .= "\n# Events\n";
+
 		/** @var EventCfg[] */
 		$data = $this->db->table(EventManager::DB_TABLE)->asObj(EventCfg::class)->toArray();
 		foreach ($data as $row) {
@@ -234,6 +235,7 @@ class ProfileController extends ModuleInstance {
 			$contents .= "!config event {$row->type} {$row->file} {$status} all\n";
 		}
 		$contents .= "\n# Commands\n";
+
 		/** @var Collection<CmdCfg> */
 		$data = $this->commandManager->getAll(true);
 		foreach ($data as $row) {
@@ -244,6 +246,7 @@ class ProfileController extends ModuleInstance {
 			}
 		}
 		$contents .= "\n# Aliases\n";
+
 		/** @var CmdAlias[] */
 		$data = $this->db->table(CommandAlias::DB_TABLE)
 			->where("status", 1)
@@ -264,6 +267,7 @@ class ProfileController extends ModuleInstance {
 
 		$contents .= "\n# Route colors\n".
 			"!route color remall\n";
+
 		/** @var RouteHopColor[] */
 		$data = $this->db->table(MessageHub::DB_TABLE_COLORS)
 			->asObj(RouteHopColor::class)->toArray();
@@ -281,6 +285,7 @@ class ProfileController extends ModuleInstance {
 
 		$contents .= "\n# Route format\n".
 			"!route format remall\n";
+
 		/** @var RouteHopFormat[] */
 		$data = $this->db->table(Source::DB_TABLE)
 			->asObj(RouteHopFormat::class)->toArray();
@@ -336,9 +341,9 @@ class ProfileController extends ModuleInstance {
 		$context->reply("Loading profile <highlight>{$profileName}<end>...");
 		$output = yield $this->loadProfile($filename, $context->char->name);
 		if ($output === null) {
-			$msg = "There was an error loading the profile <highlight>$profileName<end>.";
+			$msg = "There was an error loading the profile <highlight>{$profileName}<end>.";
 		} else {
-			$msg = $this->text->makeBlob("Profile Results: $profileName", $output);
+			$msg = $this->text->makeBlob("Profile Results: {$profileName}", $output);
 		}
 		$context->reply($msg);
 	}
@@ -400,7 +405,7 @@ class ProfileController extends ModuleInstance {
 						}
 					} elseif (substr($line, 0, 11) === "!alias rem ") {
 						$alias = explode(" ", $line, 3)[2];
-						if (preg_match("/^!alias add \Q$alias\E (.+)$/", $lines[$profileRow+1], $parts)) {
+						if (preg_match("/^!alias add \Q{$alias}\E (.+)$/", $lines[$profileRow+1], $parts)) {
 							/** @var ?CmdAlias $data */
 							$data = $this->db->table(CommandAlias::DB_TABLE)
 								->where("status", 1)
@@ -453,6 +458,7 @@ class ProfileController extends ModuleInstance {
 		$this->db->table(CommandManager::DB_TABLE_PERM_SET)->delete();
 		$this->db->table(CommandManager::DB_TABLE_MAPPING)->delete();
 		$reply->reply("All permissions reset");
+
 		/** @var ExtCmdPermissionSet[] $sets */
 		$this->commandManager->commands = [];
 		$this->subcommandManager->subcommands = [];
@@ -472,7 +478,7 @@ class ProfileController extends ModuleInstance {
 				$reply->reply(
 					"Mapped <highlight>{$map->source}<end> ".
 					"to <highlight>{$map->permission_set}<end> ".
-					"with " . ($map->symbol_optional ? "optional " :"").
+					"with " . ($map->symbol_optional ? "optional " : "").
 					"prefix <highlight>{$map->symbol}<end>, ".
 					($map->feedback ? "" : "not ") . "giving unknown command errors."
 				);

@@ -10,14 +10,14 @@ use Nadybot\Core\{
 	DB,
 	ModuleInstance,
 	ParamClass\PWord,
-	Util,
 	Text,
+	Util,
 };
 use Nadybot\Modules\ITEMS_MODULE\{
 	AODBItem,
 	ItemFlag,
-	ItemsController,
 	ItemWithBuffs,
+	ItemsController,
 	Skill,
 };
 
@@ -106,6 +106,7 @@ class ArulSabaController extends ModuleInstance {
 				$context->reply("Cannot find item #{$arul->left_aoid} in bot's item database.");
 				return;
 			}
+
 			/** @var ItemWithBuffs */
 			$item = $this->itemsController->addBuffs($item)->firstOrFail();
 			$shortName = preg_replace("/^.*\((.+?) - Left\)$/", "$1", $item->name);
@@ -121,23 +122,6 @@ class ArulSabaController extends ModuleInstance {
 		}
 		$msg = $this->text->makeBlob("Types of a Arul Saba {$aruls[0]->name} bracelet", $blob);
 		$context->reply($msg);
-	}
-
-	protected function enrichIngredient(Ingredient $ing, int $amount, ?int $ql=null, bool $qlCanBeHigher=false): Ingredient {
-		$ing->qlCanBeHigher = $qlCanBeHigher;
-		if (isset($ql)) {
-			$ing->ql = $ql;
-		}
-		$ing->amount = $amount;
-		if (!isset($ing->aoid)) {
-			return $ing;
-		}
-		$ing->item = AODBItem::fromEntry($this->itemsController->findById($ing->aoid));
-		if (isset($ing->item)) {
-			$ql ??= $ing->item->lowql;
-			$ing->item->ql = $ql;
-		}
-		return $ing;
 	}
 
 	public function readIngredientByAoid(int $aoid, int $amount=1, ?int $ql=null, bool $qlCanBeHigher=false): ?Ingredient {
@@ -188,7 +172,7 @@ class ArulSabaController extends ModuleInstance {
 			["Monarch Gem",     "Adonis",   528,  563],
 			["Emperor Gem",     "Penumbra", 937, 1035],
 			["Stellar Jewel",   "Inferno", 1665, 1775],
-			["Galactic Jewel" , "Alappaa", 2100, 2270],
+			["Galactic Jewel", "Alappaa", 2100, 2270],
 		];
 		$blueprints = [
 			[150871, 150870,  80, 150862, 150866, 150857, 150861],
@@ -212,16 +196,16 @@ class ArulSabaController extends ModuleInstance {
 				"right" => [150833, 150847],
 			],
 			3 => [
-				"left"  => [150834,150832,150842],
-				"right" => [150820,150818,150844],
+				"left"  => [150834, 150832, 150842],
+				"right" => [150820, 150818, 150844],
 			],
 			4 => [
-				"left"  => [150821,150828,150825,150840],
-				"right" => [150831,150829,150826,150837],
+				"left"  => [150821, 150828, 150825, 150840],
+				"right" => [150831, 150829, 150826, 150837],
 			],
 			5 => [
-				"left"  => [150835,150830,150827,150824,150838],
-				"right" => [150817,150819,150823,150822,150845],
+				"left"  => [150835, 150830, 150827, 150824, 150838],
+				"right" => [150817, 150819, 150823, 150822, 150845],
 			],
 		];
 		$finished = [
@@ -255,7 +239,7 @@ class ArulSabaController extends ModuleInstance {
 			151023,
 			151024,
 			151025,
-			151022
+			151022,
 		];
 
 		/** @var ArulSaba|null */
@@ -294,7 +278,7 @@ class ArulSabaController extends ModuleInstance {
 		$ingredients->add($ingredient);
 		$bPrint = $ingredient->item;
 		$bPrint->ql = $bpQL;
-		$bbPrint = clone($bPrint);
+		$bbPrint = clone $bPrint;
 		$bbPrint->lowid = $blueprints[$numGems][$balId];
 		$bbPrint->highid = $blueprints[$numGems][$balId+1];
 		$bbPrint->name = "Balanced Bracelet Blueprints";
@@ -382,7 +366,7 @@ class ArulSabaController extends ModuleInstance {
 		$blob .= "\n<pagebreak><header2>Add {$socket} to the bracelet<end>\n";
 		$target = $bbPrint;
 		for ($i = 0; $i < $reqGems; $i++) {
-			$result = clone($target);
+			$result = clone $target;
 			$result->highid = $result->lowid = $unfinished[$numGems][$side][$i];
 			$result->icon = $icons[$i];
 			$result->name = "Unfinished Bracelet of Arul Saba";
@@ -397,7 +381,7 @@ class ArulSabaController extends ModuleInstance {
 		}
 
 		/** @var AODBItem $result */
-		$coated = clone($result);
+		$coated = clone $result;
 		$coated->lowid = $coated->highid = $finished[$numGems][$side];
 		$coated->name = "Bracelet of Arul Saba";
 		$blob .= "\n<pagebreak><header2>Add silver coating<end>\n".
@@ -434,9 +418,62 @@ class ArulSabaController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @param array<int,string|int> $skillReqs
-	 */
+	/** Render the given ingredients to a blob */
+	public function renderIngredients(Ingredients $ingredients): string {
+		$blob = "<header2>Ingredients<end>\n";
+		$maxAmount = $ingredients->getMaxAmount();
+		foreach ($ingredients as $ing) {
+			$ql = (string)($ing->ql ?: "");
+			if (isset($ing->item)) {
+				$item = $ing->item;
+				$link = $this->text->makeItem($item->lowid, $item->highid, $ing->ql ?? $item->lowql, $item->name);
+				if ($item->lowql === $item->highql) {
+					$ql = "";
+				}
+			} else {
+				$link = $ing->name;
+			}
+			if (strlen($ql)) {
+				$ql = "QL{$ql}";
+				if ($ing->qlCanBeHigher) {
+					$ql .= "+";
+				}
+				$ql .= " ";
+			}
+			if ($maxAmount === 1) {
+				$amount = "";
+			} elseif ($ing->amount === 1) {
+				$amount = "<black>" . str_repeat("0", strlen((string)$maxAmount)-1) . "1×<end> ";
+			} else {
+				$amount = $this->text->alignNumber($ing->amount, strlen((string)$maxAmount), "orange") . "× ";
+			}
+			$blob .= "<tab>{$amount}{$ql}{$link}";
+			if (isset($ing->where)) {
+				$blob .= " ({$ing->where})";
+			}
+			$blob .= "\n";
+		}
+		return "{$blob}\n";
+	}
+
+	protected function enrichIngredient(Ingredient $ing, int $amount, ?int $ql=null, bool $qlCanBeHigher=false): Ingredient {
+		$ing->qlCanBeHigher = $qlCanBeHigher;
+		if (isset($ql)) {
+			$ing->ql = $ql;
+		}
+		$ing->amount = $amount;
+		if (!isset($ing->aoid)) {
+			return $ing;
+		}
+		$ing->item = AODBItem::fromEntry($this->itemsController->findById($ing->aoid));
+		if (isset($ing->item)) {
+			$ql ??= $ing->item->lowql;
+			$ing->item->ql = $ql;
+		}
+		return $ing;
+	}
+
+	/** @param array<int,string|int> $skillReqs */
 	protected function renderStep(AODBItem $source, AODBItem $dest, AODBItem $result, array $skillReqs=[]): string {
 		$showImages = $this->arulsabaShowImages;
 		$sLink = $source->getLink();
@@ -503,43 +540,5 @@ class ArulSabaController extends ModuleInstance {
 			->where("id", $id)
 			->asObj(Skill::class)
 			->first();
-	}
-
-	/** Render the given ingredients to a blob */
-	public function renderIngredients(Ingredients $ingredients): string {
-		$blob = "<header2>Ingredients<end>\n";
-		$maxAmount = $ingredients->getMaxAmount();
-		foreach ($ingredients as $ing) {
-			$ql = (string)($ing->ql ?: "");
-			if (isset($ing->item)) {
-				$item = $ing->item;
-				$link = $this->text->makeItem($item->lowid, $item->highid, $ing->ql ?? $item->lowql, $item->name);
-				if ($item->lowql === $item->highql) {
-					$ql = "";
-				}
-			} else {
-				$link = $ing->name;
-			}
-			if (strlen($ql)) {
-				$ql = "QL{$ql}";
-				if ($ing->qlCanBeHigher) {
-					$ql .= "+";
-				}
-				$ql .= " ";
-			}
-			if ($maxAmount === 1) {
-				$amount = "";
-			} elseif ($ing->amount === 1) {
-				$amount = "<black>" . str_repeat("0", strlen((string)$maxAmount)-1) . "1×<end> ";
-			} else {
-				$amount = $this->text->alignNumber($ing->amount, strlen((string)$maxAmount), "orange") . "× ";
-			}
-			$blob .= "<tab>{$amount}{$ql}{$link}";
-			if (isset($ing->where)) {
-				$blob .= " ({$ing->where})";
-			}
-			$blob .= "\n";
-		}
-		return "$blob\n";
 	}
 }

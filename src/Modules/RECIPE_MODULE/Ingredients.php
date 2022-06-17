@@ -35,10 +35,7 @@ class Ingredients extends IteratorIterator {
 		return $inner->offsetGet($this->count()-1);
 	}
 
-	/**
-	 * Get the highest amount required of any ingredient
-	 * @return int
-	 */
+	/** Get the highest amount required of any ingredient */
 	public function getMaxAmount(): int {
 		return array_reduce(
 			iterator_to_array($this->getInnerIterator()),

@@ -2,21 +2,19 @@
 
 namespace Nadybot\Modules\PRIVATE_CHANNEL_MODULE;
 
-use function Amp\call;
-use function Amp\asyncCall;
 use function Amp\File\filesystem;
-
+use function Amp\{asyncCall, call};
 use Amp\File\FilesystemException;
-use Amp\Loop;
-use Amp\Promise;
+
+use Amp\{Loop, Promise};
 use Exception;
 use Generator;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
-	AccessLevelProvider,
-	Attributes as NCA,
-	AccessManager,
 	AOChatEvent,
+	AccessLevelProvider,
+	AccessManager,
+	Attributes as NCA,
 	BuddylistManager,
 	CmdContext,
 	CommandAlias,
@@ -28,18 +26,14 @@ use Nadybot\Core\{
 	DBSchema\Player,
 	Event,
 	EventManager,
-	ModuleInstance,
-	Nadybot,
-	SettingManager,
-	Text,
-	Timer,
-	Util,
 	LoggerWrapper,
 	MessageHub,
-	Modules\ALTS\AltsController,
-	Modules\PLAYER_LOOKUP\PlayerManager,
+	ModuleInstance,
 	Modules\ALTS\AltInfo,
+	Modules\ALTS\AltsController,
 	Modules\BAN\BanController,
+	Modules\PLAYER_LOOKUP\PlayerManager,
+	Nadybot,
 	ParamClass\PCharacter,
 	ParamClass\PDuration,
 	ParamClass\PRemove,
@@ -48,7 +42,11 @@ use Nadybot\Core\{
 	Routing\Events\Online,
 	Routing\RoutableEvent,
 	Routing\Source,
+	SettingManager,
+	Text,
+	Timer,
 	UserStateEvent,
+	Util,
 };
 use Nadybot\Modules\{
 	ONLINE_MODULE\OfflineEvent,
@@ -202,7 +200,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 
 	/** Faction allowed on the bot - autoban everything else */
 	#[NCA\Setting\Options(options: [
-		"all", "Omni", "Neutral", "Clan", "not Omni", "not Neutral", "not Clan"
+		"all", "Omni", "Neutral", "Clan", "not Omni", "not Neutral", "not Clan",
 	])]
 	public string $onlyAllowFaction = "all";
 
@@ -218,7 +216,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 	#[NCA\Setting\Text(
 		options: [
 			"<link>Welcome to <myname></link>!",
-			"Welcome to <myname>! Here is some <link>information to get you started</link>."
+			"Welcome to <myname>! Here is some <link>information to get you started</link>.",
 		],
 		help: "welcome_msg.txt"
 	)]
@@ -336,7 +334,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 			$list .= "<tab>{$member->name} {$status}\n";
 		}
 
-		$msg = $this->text->makeBlob("Members ($count)", $list);
+		$msg = $this->text->makeBlob("Members ({$count})", $list);
 		$context->reply($msg);
 	}
 
@@ -355,6 +353,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 			$context->reply($msg);
 			return;
 		}
+
 		/** @var Collection<Member> */
 		$members = $this->db->table(self::DB_TABLE)->asObj(Member::class);
 		if ($members->isEmpty()) {
@@ -367,6 +366,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 
 		/**
 		 * Main char => information about the char last online of the main
+		 *
 		 * @var Collection<string,LastOnline>
 		 */
 		$lastOnline = $this->db->table("last_online")
@@ -379,6 +379,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 			->filter(function (LastOnline $member, string $main): bool {
 				return $this->accessManager->checkSingleAccess($main, "member");
 			});
+
 		/** @var Collection<InactiveMember> */
 		$inactiveMembers = $members->keyBy(function (Member $member): string {
 			return $this->altsController->getMainOf($member->name);
@@ -506,7 +507,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 			return;
 		}
 		if (isset($this->chatBot->chatlist[$name])) {
-			$msg = "<highlight>$name<end> is already in the private channel.";
+			$msg = "<highlight>{$name}<end> is already in the private channel.";
 			$context->reply($msg);
 			return;
 		}
@@ -562,7 +563,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 				$audit->value = $reason;
 				$this->accessManager->addAudit($audit);
 			} else {
-				$msg = "You do not have the required access level to kick <highlight>$name<end>.";
+				$msg = "You do not have the required access level to kick <highlight>{$name}<end>.";
 			}
 		}
 		if ($context->isDM()) {
@@ -639,14 +640,14 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 				$tl7++;
 			}
 		}
-		$msg = "<highlight>$numonline<end> in total: ".
-			"TL1: <highlight>$tl1<end>, ".
-			"TL2: <highlight>$tl2<end>, ".
-			"TL3: <highlight>$tl3<end>, ".
-			"TL4: <highlight>$tl4<end>, ".
-			"TL5: <highlight>$tl5<end>, ".
-			"TL6: <highlight>$tl6<end>, ".
-			"TL7: <highlight>$tl7<end>";
+		$msg = "<highlight>{$numonline}<end> in total: ".
+			"TL1: <highlight>{$tl1}<end>, ".
+			"TL2: <highlight>{$tl2}<end>, ".
+			"TL3: <highlight>{$tl3}<end>, ".
+			"TL4: <highlight>{$tl4}<end>, ".
+			"TL5: <highlight>{$tl5}<end>, ".
+			"TL6: <highlight>{$tl6}<end>, ".
+			"TL7: <highlight>{$tl7}<end>";
 		$context->reply($msg);
 	}
 
@@ -692,6 +693,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 			return;
 		}
 		$byOrg = $online->groupBy("guild");
+
 		/** @var Collection<OrgCount> */
 		$orgStats = $byOrg->map(function (Collection $chars, string $orgName): OrgCount {
 			$result = new OrgCount();
@@ -725,16 +727,17 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 			$context->reply($msg);
 			return;
 		}
+
 		/** @var Collection<OnlinePlayer> */
 		$data = (new Collection($this->onlineController->getPlayers("priv", $this->config->name)))
 			->where("profession", $prof);
 		$numOnline = $data->count();
 		if ($numOnline === 0) {
-			$msg = "<highlight>$numOnline<end> {$prof}s.";
+			$msg = "<highlight>{$numOnline}<end> {$prof}s.";
 			$context->reply($msg);
 			return;
 		}
-		$msg = "<highlight>$numOnline<end> $prof:";
+		$msg = "<highlight>{$numOnline}<end> {$prof}:";
 
 		foreach ($data as $row) {
 			if ($row->afk !== "") {
@@ -890,6 +893,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 		if (!is_string($sender)) {
 			return;
 		}
+
 		/** @var Member[] */
 		$data = $this->db->table(self::DB_TABLE)
 			->where("name", $sender)
@@ -918,32 +922,6 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 			"your auto invite preference.";
 		$this->chatBot->privategroup_invite($sender);
 		$this->chatBot->sendMassTell($msg, $sender);
-	}
-
-	/** @return Promise<string> */
-	protected function getLogonMessageForPlayer(?Player $whois, string $player, bool $suppressAltList, AltInfo $altInfo): Promise {
-		return call(function () use ($whois, $player, $suppressAltList, $altInfo): Generator {
-			$privChannelName = "the private channel";
-			if ($this->settingManager->getBool('guild_channel_status') === false) {
-				$privChannelName = "<myname>";
-			}
-			if ($whois !== null) {
-				$msg = $this->playerManager->getInfo($whois) . " has joined {$privChannelName}.";
-			} else {
-				$msg = "{$player} has joined {$privChannelName}.";
-			}
-			if ($suppressAltList) {
-				if ($altInfo->main !== $player) {
-					$msg .= " Alt of <highlight>{$altInfo->main}<end>";
-				}
-			} else {
-				if (count($altInfo->getAllValidatedAlts()) > 0) {
-					$blob = yield $altInfo->getAltsBlob(true);
-					$msg .= " " . ((array)$blob)[0];
-				}
-			}
-			return $msg;
-		});
 	}
 
 	public function getLogonMessageAsync(string $player, bool $suppressAltList, callable $callback): void {
@@ -1013,7 +991,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 		$event->player = new OnlinePlayer();
 		$event->channel = "priv";
 		foreach (get_object_vars($whois) as $key => $value) {
-			$event->player->$key = $value;
+			$event->player->{$key} = $value;
 		}
 		$event->player->online = true;
 		$altInfo = $this->altsController->getAltInfo($sender);
@@ -1027,16 +1005,14 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 	)]
 	public function autobanOnJoin(AOChatEvent $eventObj): Generator {
 		$reqFaction = $this->onlyAllowFaction;
-		if ($reqFaction === 'all' || !is_String($eventObj->sender)) {
+		if ($reqFaction === 'all' || !is_string($eventObj->sender)) {
 			return;
 		}
 		$player = yield $this->playerManager->byName($eventObj->sender);
 		$this->autobanUnwantedFactions($player);
 	}
 
-	/**
-	 * Automatically ban players if they are not of the wanted faction
-	 */
+	/** Automatically ban players if they are not of the wanted faction */
 	public function autobanUnwantedFactions(?Player $whois): void {
 		if (!isset($whois)) {
 			return;
@@ -1165,52 +1141,6 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 		$this->chatBot->sendMassTell($msg, $sender);
 	}
 
-	/** @return Promise<string> */
-	private function addUser(string $name, string $sender): Promise {
-		return call(function () use ($name, $sender) {
-			$autoInvite = $this->autoinviteDefault;
-			$name = ucfirst(strtolower($name));
-			$uid = yield $this->chatBot->getUid2($name);
-			if ($this->chatBot->char->name === $name) {
-				throw new Exception("You cannot add the bot as a member of itself.");
-			} elseif ($uid === null) {
-				throw new Exception("Character <highlight>$name<end> does not exist.");
-			}
-			$maxBuddies = $this->chatBot->getBuddyListSize();
-			$numBuddies = $this->buddylistManager->getUsedBuddySlots();
-			if ($autoInvite && $numBuddies >= $maxBuddies) {
-				throw new Exception(
-					"The buddylist already contains ".
-					"{$numBuddies}/{$maxBuddies} characters. ".
-					"In order to be able to add more members, you need ".
-					"to setup AOChatProxy (https://github.com/Nadybot/aochatproxy)."
-				);
-			}
-			// always add in case they were removed from the buddy list for some reason
-			yield $this->buddylistManager->addAsync($name, 'member');
-			if ($this->db->table(self::DB_TABLE)->where("name", $name)->exists()) {
-				return "<highlight>$name<end> is already a member of this bot.";
-			}
-			$this->db->table(self::DB_TABLE)
-				->insert([
-					"name" => $name,
-					"autoinv" => $autoInvite,
-				]);
-			$this->members[$name] = true;
-			$event = new MemberEvent();
-			$event->type = "member(add)";
-			$event->sender = $name;
-			$this->eventManager->fireEvent($event);
-			$audit = new Audit();
-			$audit->actor = $sender;
-			$audit->actee = $name;
-			$audit->action = AccessManager::ADD_RANK;
-			$audit->value = (string)$this->accessManager->getAccessLevels()["member"];
-			$this->accessManager->addAudit($audit);
-			return "<highlight>$name<end> has been added as a member of this bot.";
-		});
-	}
-
 	#[NCA\Event(
 		name: "member(add)",
 		description: "Send welcome message data/welcome.txt to new members"
@@ -1242,7 +1172,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 		$name = ucfirst(strtolower($name));
 
 		if (!$this->db->table(self::DB_TABLE)->where("name", $name)->delete()) {
-			return "<highlight>$name<end> is not a member of this bot.";
+			return "<highlight>{$name}<end> is not a member of this bot.";
 		}
 		unset($this->members[$name]);
 		$this->buddylistManager->remove($name, 'member');
@@ -1256,19 +1186,15 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 		$audit->action = AccessManager::DEL_RANK;
 		$audit->value = (string)$this->accessManager->getAccessLevels()["member"];
 		$this->accessManager->addAudit($audit);
-		return "<highlight>$name<end> has been removed as a member of this bot.";
+		return "<highlight>{$name}<end> has been removed as a member of this bot.";
 	}
 
-	/**
-	 * Check if the private channel is currently locked
-	 */
+	/** Check if the private channel is currently locked */
 	public function isLocked(): bool {
 		return strlen($this->lockReason) > 0;
 	}
 
-	/**
-	 * Check if the private channel is currently locked for a character
-	 */
+	/** Check if the private channel is currently locked for a character */
 	public function isLockedFor(string $sender): bool {
 		if (!strlen($this->lockReason)) {
 			return false;
@@ -1276,5 +1202,77 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 		$alSender = $this->accessManager->getAccessLevelForCharacter($sender);
 		$alRequired = $this->lockMinrank;
 		return $this->accessManager->compareAccessLevels($alSender, $alRequired) < 0;
+	}
+
+	/** @return Promise<string> */
+	protected function getLogonMessageForPlayer(?Player $whois, string $player, bool $suppressAltList, AltInfo $altInfo): Promise {
+		return call(function () use ($whois, $player, $suppressAltList, $altInfo): Generator {
+			$privChannelName = "the private channel";
+			if ($this->settingManager->getBool('guild_channel_status') === false) {
+				$privChannelName = "<myname>";
+			}
+			if ($whois !== null) {
+				$msg = $this->playerManager->getInfo($whois) . " has joined {$privChannelName}.";
+			} else {
+				$msg = "{$player} has joined {$privChannelName}.";
+			}
+			if ($suppressAltList) {
+				if ($altInfo->main !== $player) {
+					$msg .= " Alt of <highlight>{$altInfo->main}<end>";
+				}
+			} else {
+				if (count($altInfo->getAllValidatedAlts()) > 0) {
+					$blob = yield $altInfo->getAltsBlob(true);
+					$msg .= " " . ((array)$blob)[0];
+				}
+			}
+			return $msg;
+		});
+	}
+
+	/** @return Promise<string> */
+	private function addUser(string $name, string $sender): Promise {
+		return call(function () use ($name, $sender) {
+			$autoInvite = $this->autoinviteDefault;
+			$name = ucfirst(strtolower($name));
+			$uid = yield $this->chatBot->getUid2($name);
+			if ($this->chatBot->char->name === $name) {
+				throw new Exception("You cannot add the bot as a member of itself.");
+			} elseif ($uid === null) {
+				throw new Exception("Character <highlight>{$name}<end> does not exist.");
+			}
+			$maxBuddies = $this->chatBot->getBuddyListSize();
+			$numBuddies = $this->buddylistManager->getUsedBuddySlots();
+			if ($autoInvite && $numBuddies >= $maxBuddies) {
+				throw new Exception(
+					"The buddylist already contains ".
+					"{$numBuddies}/{$maxBuddies} characters. ".
+					"In order to be able to add more members, you need ".
+					"to setup AOChatProxy (https://github.com/Nadybot/aochatproxy)."
+				);
+			}
+			// always add in case they were removed from the buddy list for some reason
+			yield $this->buddylistManager->addAsync($name, 'member');
+			if ($this->db->table(self::DB_TABLE)->where("name", $name)->exists()) {
+				return "<highlight>{$name}<end> is already a member of this bot.";
+			}
+			$this->db->table(self::DB_TABLE)
+				->insert([
+					"name" => $name,
+					"autoinv" => $autoInvite,
+				]);
+			$this->members[$name] = true;
+			$event = new MemberEvent();
+			$event->type = "member(add)";
+			$event->sender = $name;
+			$this->eventManager->fireEvent($event);
+			$audit = new Audit();
+			$audit->actor = $sender;
+			$audit->actee = $name;
+			$audit->action = AccessManager::ADD_RANK;
+			$audit->value = (string)$this->accessManager->getAccessLevels()["member"];
+			$this->accessManager->addAudit($audit);
+			return "<highlight>{$name}<end> has been added as a member of this bot.";
+		});
 	}
 }

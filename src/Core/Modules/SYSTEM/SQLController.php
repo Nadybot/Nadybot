@@ -4,8 +4,8 @@ namespace Nadybot\Core\Modules\SYSTEM;
 
 use Illuminate\Database\Capsule\Manager as Capsule;
 use Nadybot\Core\{
-	Attributes as NCA,
 	AccessManager,
+	Attributes as NCA,
 	CmdContext,
 	CommandManager,
 	DB,
@@ -53,6 +53,7 @@ class SQLController extends ModuleInstance {
 		$refDB = new ReflectionClass($this->db);
 		$refCap = $refDB->getProperty("capsule");
 		$refCap->setAccessible(true);
+
 		/** @var Capsule */
 		$capsule = $refCap->getValue($this->db);
 
@@ -77,6 +78,7 @@ class SQLController extends ModuleInstance {
 		$refDB = new ReflectionClass($this->db);
 		$refCap = $refDB->getProperty("capsule");
 		$refCap->setAccessible(true);
+
 		/** @var Capsule */
 		$capsule = $refCap->getValue($this->db);
 		$sql = htmlspecialchars_decode($sql);
@@ -89,14 +91,14 @@ class SQLController extends ModuleInstance {
 			foreach ($data as $row) {
 				$blob .= "<pagebreak><header2>Entry<end>\n";
 				foreach ($row as $key => $value) {
-					$blob .= "<tab><highlight>$key:<end> ".\Safe\json_encode($value, JSON_UNESCAPED_SLASHES)."\n";
+					$blob .= "<tab><highlight>{$key}:<end> ".\Safe\json_encode($value, JSON_UNESCAPED_SLASHES)."\n";
 				}
 				$blob .= "\n";
 			}
 			if (empty($data)) {
-				$msg = "Results ($count)";
+				$msg = "Results ({$count})";
 			} else {
-				$msg = $this->text->makeBlob("Results ($count)", $blob);
+				$msg = $this->text->makeBlob("Results ({$count})", $blob);
 			}
 		} catch (SQLException $e) {
 			$msg = $this->text->makeBlob("SQL Error", $e->getMessage());

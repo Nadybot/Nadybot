@@ -5,26 +5,19 @@ namespace Nadybot\Modules\GSP_MODULE;
 use function Amp\asyncCall;
 use function Safe\json_decode;
 
-use Amp\Failure;
-use Amp\Http\Client\HttpClientBuilder;
-use Amp\Http\Client\Request;
-use Amp\Http\Client\Response;
-use Amp\Promise;
-use Amp\Success;
-use Safe\DateTime;
-use Safe\Exceptions\JsonException;
+use Amp\Http\Client\{HttpClientBuilder, Request, Response};
+use Amp\{Failure, Promise, Success};
 use DateTimeZone;
 use Exception;
 use Generator;
-use Throwable;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
 	DB,
 	EventManager,
-	ModuleInstance,
 	MessageEmitter,
 	MessageHub,
+	ModuleInstance,
 	Modules\DISCORD\DiscordController,
 	Nadybot,
 	Routing\RoutableMessage,
@@ -33,6 +26,9 @@ use Nadybot\Core\{
 	Text,
 	UserStateEvent,
 };
+use Safe\DateTime;
+use Safe\Exceptions\JsonException;
+use Throwable;
 
 /**
  * @author Nadyita (RK5) <nadyita@hodorraid.org>
@@ -50,6 +46,7 @@ use Nadybot\Core\{
 	NCA\ProvidesEvent("gsp(show_end)")
 ]
 class GSPController extends ModuleInstance implements MessageEmitter {
+	public const GSP_URL = 'https://gsp.torontocast.stream/streaminfo/';
 	#[NCA\Inject]
 	public HttpClientBuilder $builder;
 
@@ -78,22 +75,14 @@ class GSPController extends ModuleInstance implements MessageEmitter {
 	#[NCA\Setting\Boolean]
 	public bool $gspShowLogon = true;
 
-	/**
-	 * 1 if a GSP show is currently running, otherwise 0
-	 */
+	/** 1 if a GSP show is currently running, otherwise 0 */
 	protected int $showRunning = 0;
 
-	/**
-	 * The name of the currently running show or empty if none
-	 */
+	/** The name of the currently running show or empty if none */
 	protected string $showName = "";
 
-	/**
-	 * Location of the currently running show or empty if none
-	 */
+	/** Location of the currently running show or empty if none */
 	protected string $showLocation = "";
-
-	public const GSP_URL = 'https://gsp.torontocast.stream/streaminfo/';
 
 	public function getChannelName(): string {
 		return Source::SYSTEM . "(gsp)";
@@ -111,6 +100,7 @@ class GSPController extends ModuleInstance implements MessageEmitter {
 	public function announceIfShowRunning(): Generator {
 		try {
 			$client = $this->builder->build();
+
 			/** @var Response */
 			$response = yield $client->request(new Request(self::GSP_URL));
 			$body = yield $response->getBody()->buffer();
@@ -119,9 +109,7 @@ class GSPController extends ModuleInstance implements MessageEmitter {
 		}
 	}
 
-	/**
-	 * Create a message about the currently running GSP show
-	 */
+	/** Create a message about the currently running GSP show */
 	public function getNotificationMessage(): string {
 		$msg = sprintf(
 			"GSP is now running <highlight>%s<end>.\nLocation: <highlight>%s<end>.",
@@ -132,27 +120,8 @@ class GSPController extends ModuleInstance implements MessageEmitter {
 	}
 
 	/**
-	 * Test if all needed data for the current show is present and valid
-	 */
-	protected function isAllShowInformationPresent(Show $show): bool {
-		return isset($show->live)
-			&& is_integer($show->live)
-			&& isset($show->name)
-			&& isset($show->info);
-	}
-
-	/**
-	 * Check if the GSP changed to live, changed name or location
-	 */
-	protected function hasShowInformationChanged(Show $show): bool {
-		$informationChanged = $show->live !== $this->showRunning
-			|| $show->name !== $this->showName
-			|| $show->info !== $this->showLocation;
-		return $informationChanged;
-	}
-
-	/**
 	 * Announce if a new show has just started
+	 *
 	 * @return Promise<null>
 	 */
 	public function checkAndAnnounceIfShowStarted(Response $response, string $body): Promise {
@@ -165,7 +134,7 @@ class GSPController extends ModuleInstance implements MessageEmitter {
 		} catch (JsonException) {
 			return new Success();
 		}
-		if ( !$this->isAllShowInformationPresent($show) ) {
+		if (!$this->isAllShowInformationPresent($show)) {
 			return new Success();
 		}
 		if (!$show->live || !strlen($show->name) || !strlen($show->info)) {
@@ -221,6 +190,7 @@ class GSPController extends ModuleInstance implements MessageEmitter {
 	#[NCA\HandlesCommand("radio")]
 	public function radioCommand(CmdContext $context): Generator {
 		$client = $this->builder->build();
+
 		/** @var Response */
 		$response = yield $client->request(new Request(self::GSP_URL));
 		$body = yield $response->getBody()->buffer();
@@ -230,7 +200,9 @@ class GSPController extends ModuleInstance implements MessageEmitter {
 
 	/**
 	 * Convert GSP milliseconds into a human readable time like 6:53
+	 *
 	 * @param int $milliSecs The duration in milliseconds
+	 *
 	 * @return string The time in a format 6:53 or 0:05
 	 */
 	public function msToTime(int $milliSecs): string {
@@ -240,9 +212,7 @@ class GSPController extends ModuleInstance implements MessageEmitter {
 		return gmdate("G:i:s", (int)round($milliSecs/1000));
 	}
 
-	/**
-	 * Render a blob how players can tune into GSP
-	 */
+	/** Render a blob how players can tune into GSP */
 	public function renderTuneIn(Show $show): string {
 		if (!count($show->stream)) {
 			return '';
@@ -260,47 +230,7 @@ class GSPController extends ModuleInstance implements MessageEmitter {
 		return " - " . ((array)$this->text->makeBlob("tune in", $blob, "Choose your stream quality"))[0];
 	}
 
-	/**
-	 * Get an array of song descriptions
-	 * @param Song[] $history The history (playlist) as an array of songs
-	 * @return string[] Rendered song information about the playlist
-	 */
-	protected function getPlaylistInfos(array $history): array {
-		$songs = [];
-		foreach ($history as $song) {
-			$time = DateTime::createFromFormat("Y-m-d*H:i:sT", $song->date)->setTimezone(new DateTimeZone("UTC"));
-			$info = sprintf(
-				"%s   <highlight>%s<end> - %s",
-				$time->format("H:i:s"),
-				$song->artist ?? "Unknown Artist",
-				$song->title ?? "Unknown Song",
-			);
-			if (isset($song->duration) && $song->duration > 0) {
-				$info .= " [".$this->msToTime($song->duration)."]";
-			}
-			$songs[] = $info;
-		}
-		return $songs;
-	}
-
-	/**
-	 * Get information about the currently running GSP show
-	 */
-	protected function getShowInfos(Show $show): string {
-		if ($show->live !== 1 || !strlen($show->name)) {
-			return "";
-		}
-		$showInfos = "Current show: <highlight>".$show->name."<end>\n";
-		if (strlen($show->info)) {
-			$showInfos .= "Location: <highlight>".$show->info."<end>\n";
-		}
-		$showInfos .= "\n";
-		return $showInfos;
-	}
-
-	/**
-	 * Get a line describing what GSP is currently playing
-	 */
+	/** Get a line describing what GSP is currently playing */
 	public function getCurrentlyPlaying(Show $show, Song $song): string {
 		$msg = sprintf(
 			"Currently playing on %s: <highlight>%s<end> - <highlight>%s<end>",
@@ -319,6 +249,7 @@ class GSPController extends ModuleInstance implements MessageEmitter {
 
 	/**
 	 * Create a message with information about what's currently playing on GSP
+	 *
 	 * @return Promise<string>
 	 */
 	public function renderPlaylist(Response $response, string $body): Promise {
@@ -352,8 +283,7 @@ class GSPController extends ModuleInstance implements MessageEmitter {
 		NCA\NewsTile(
 			name: "gsp-show",
 			description: "Show the currently running GSP show and location - if any",
-			example:
-				"<header2>GSP<end>\n".
+			example: "<header2>GSP<end>\n".
 				"<tab>GSP is now running <highlight>Shigy's odd end<end>. Location: <highlight>Borealis at the whompahs<end>."
 		)
 	]
@@ -370,11 +300,9 @@ class GSPController extends ModuleInstance implements MessageEmitter {
 	#[
 		NCA\NewsTile(
 			name: "gsp",
-			description:
-				"Show what's currently playing on GSP.\n".
+			description: "Show what's currently playing on GSP.\n".
 				"If there's a show, it also shows which one and its location.",
-			example:
-				"<header2>GSP<end>\n".
+			example: "<header2>GSP<end>\n".
 				"<tab>Currently playing on <yellow>The Odd End /w DJ Shigy<end>: <highlight>Molly Hatchet<end> - <highlight>Whiskey Man<end> [2:50/3:41]\n".
 				"<tab>Current show: <highlight>The Odd End /w DJ Shigy<end>\n".
 				"<tab>Location: <highlight>Borealis west of the wompahs (AO)<end>"
@@ -384,6 +312,7 @@ class GSPController extends ModuleInstance implements MessageEmitter {
 		asyncCall(function () use ($callback): Generator {
 			try {
 				$client = $this->builder->build();
+
 				/** @var Response */
 				$response = yield $client->request(new Request(self::GSP_URL));
 				$body = yield $response->getBody()->buffer();
@@ -420,5 +349,58 @@ class GSPController extends ModuleInstance implements MessageEmitter {
 			$showInfos = "\n<tab>" . join("\n<tab>", explode("\n", $showInfos));
 		}
 		return new Success("{$blob}{$currentlyPlaying}{$showInfos}");
+	}
+
+	/** Test if all needed data for the current show is present and valid */
+	protected function isAllShowInformationPresent(Show $show): bool {
+		return isset($show->live)
+			&& is_integer($show->live)
+			&& isset($show->name, $show->info);
+	}
+
+	/** Check if the GSP changed to live, changed name or location */
+	protected function hasShowInformationChanged(Show $show): bool {
+		$informationChanged = $show->live !== $this->showRunning
+			|| $show->name !== $this->showName
+			|| $show->info !== $this->showLocation;
+		return $informationChanged;
+	}
+
+	/**
+	 * Get an array of song descriptions
+	 *
+	 * @param Song[] $history The history (playlist) as an array of songs
+	 *
+	 * @return string[] Rendered song information about the playlist
+	 */
+	protected function getPlaylistInfos(array $history): array {
+		$songs = [];
+		foreach ($history as $song) {
+			$time = DateTime::createFromFormat("Y-m-d*H:i:sT", $song->date)->setTimezone(new DateTimeZone("UTC"));
+			$info = sprintf(
+				"%s   <highlight>%s<end> - %s",
+				$time->format("H:i:s"),
+				$song->artist ?? "Unknown Artist",
+				$song->title ?? "Unknown Song",
+			);
+			if (isset($song->duration) && $song->duration > 0) {
+				$info .= " [".$this->msToTime($song->duration)."]";
+			}
+			$songs[] = $info;
+		}
+		return $songs;
+	}
+
+	/** Get information about the currently running GSP show */
+	protected function getShowInfos(Show $show): string {
+		if ($show->live !== 1 || !strlen($show->name)) {
+			return "";
+		}
+		$showInfos = "Current show: <highlight>".$show->name."<end>\n";
+		if (strlen($show->info)) {
+			$showInfos .= "Location: <highlight>".$show->info."<end>\n";
+		}
+		$showInfos .= "\n";
+		return $showInfos;
 	}
 }

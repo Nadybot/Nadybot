@@ -11,8 +11,8 @@ use Nadybot\Core\{
 	CommandAlias,
 	CommandManager,
 	DB,
-	ModuleInstance,
 	LoggerWrapper,
+	ModuleInstance,
 	Modules\ALTS\AltEvent,
 	Modules\ALTS\AltsController,
 	Modules\PREFERENCES\Preferences,
@@ -153,108 +153,7 @@ class NotesController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
-	/**
-	 * Make sure all notes with owner $sender are assigned to the main
-	 */
-	protected function assignNotesToMain(string $main, string $sender): void {
-		if ($main === $sender) {
-			return;
-		}
-		// convert all notes to be assigned to the main
-		$this->db->table("notes")
-			->where("owner", $sender)
-			->update(["owner" => $main]);
-	}
-
-	/**
-	 * Read all notes or reminders for player $main
-	 * @return Note[]
-	 */
-	protected function readNotes(string $main, bool $remindersOnly=false): array {
-		return $this->db->table("notes")
-			->where("owner", $main)
-			->where("reminder", ">", $remindersOnly ? 0 : -1)
-			->orderBy("added_by")
-			->orderByDesc("dt")
-			->asObj(Note::class)->toArray();
-	}
-
-	/**
-	 * Render an array of Notes into a blob
-	 * @param Note[] $notes
-	 */
-	protected function renderNotes(array $notes, string $sender): string {
-		$blob = '';
-		$current = '';
-		$format = $this->reminderFormat;
-		if (!$this->commandManager->cmdExecutable('reminders', $sender)) {
-			$format = 0;
-		}
-		foreach ($notes as $note) {
-			if ($note->added_by !== $current) {
-				$blob .= "\n<header2>{$note->added_by}<end>\n";
-				$current = $note->added_by;
-			}
-			$deleteLink = $this->text->makeChatcmd('remove', "/tell <myname> notes rem {$note->id}");
-
-			$reminderLinks = $this->renderReminderLinks($note, $format);
-			if ($format === 0) {
-				$blob .= "<tab>[{$deleteLink}] {$note->note}\n\n";
-			} elseif ($format === 1) {
-				$blob .= "<tab>[$deleteLink] {$note->note}<tab>{$reminderLinks}\n\n";
-			} else {
-				$blob .= "<tab>- <highlight>{$note->note}<end> [{$deleteLink}]<tab>Reminders: {$reminderLinks}\n\n";
-			}
-		}
-		return $blob;
-	}
-
-	protected function renderReminderLinks(Note $note, int $format): string {
-		if ($format === 0) {
-			return "";
-		}
-		$texts = [
-			1 => ["O", "S", "A"],
-			2 => ["off", "self", "all"],
-		];
-		$labels = $texts[$format];
-		$links = [];
-		$remindOffLink  = $this->text->makeChatcmd(
-			$labels[Note::REMIND_NONE],
-			"/tell <myname> reminders set off {$note->id}"
-		);
-		$remindSelfLink = $this->text->makeChatcmd(
-			$labels[Note::REMIND_SELF],
-			"/tell <myname> reminders set self {$note->id}"
-		);
-		$remindAllLink  = $this->text->makeChatcmd(
-			$labels[Note::REMIND_ALL],
-			"/tell <myname> reminders set all {$note->id}"
-		);
-		if (($note->reminder & Note::REMIND_ALL) === 0) {
-			$links []= $remindAllLink;
-		} else {
-			$links []= "<on>{$labels[2]}<end>";
-		}
-		if (($note->reminder & Note::REMIND_SELF) === 0) {
-			$links []= $remindSelfLink;
-		} else {
-			$links []= "<yellow>{$labels[1]}<end>";
-		}
-		if ($note->reminder !== Note::REMIND_NONE) {
-			$links []= $remindOffLink;
-		} else {
-			$links []= "<off>{$labels[0]}<end>";
-		}
-		if ($format === 1) {
-			return "(" . join("|", $links) . ")";
-		}
-		return "[" . join("] [", $links) . "]";
-	}
-
-	/**
-	 * Save a note into the database and return the id
-	 */
+	/** Save a note into the database and return the id */
 	public function saveNote(string $noteText, string $sender, int $reminder=0): int {
 		$altInfo = $this->altsController->getAltInfo($sender);
 		$main = $altInfo->getValidatedMain($sender);
@@ -374,27 +273,6 @@ class NotesController extends ModuleInstance {
 		$this->showReminders($sender);
 	}
 
-	/**
-	 * Show all reminder for character $sender
-	 */
-	protected function showReminders(string $sender): void {
-		$altInfo = $this->altsController->getAltInfo($sender);
-		$main = $altInfo->getValidatedMain($sender);
-		$notes = $this->readNotes($main, true);
-		$notes = array_filter(
-			$notes,
-			function (Note $note) use ($sender): bool {
-				return $note->reminder === Note::REMIND_ALL || $note->added_by === $sender;
-			}
-		);
-		if (!count($notes)) {
-			return;
-		}
-		$reminderFormat = $this->getReminderFormat($sender);
-		$msg = $this->getReminderMessage($reminderFormat, $notes);
-		$this->chatBot->sendMassTell($msg, $sender);
-	}
-
 	public function getReminderFormat(string $sender): string {
 		$altInfo = $this->altsController->getAltInfo($sender);
 		$main = $altInfo->getValidatedMain($sender);
@@ -421,15 +299,17 @@ class NotesController extends ModuleInstance {
 
 	/**
 	 * Render the reminder message for $sender, reminding about the $notes
+	 *
 	 * @param string $format The format to render the messages with
-	 * @param Note[] $notes The notes we are reminded about
+	 * @param Note[] $notes  The notes we are reminded about
+	 *
 	 * @return string The rendered message
 	 */
 	public function getReminderMessage(string $format, array $notes): string {
 		if ($format === static::FORMAT_GROUPED) {
 			$msgs = array_map(
 				function (Note $note): string {
-					return "For {$note->added_by}: <highlight>$note->note<end>";
+					return "For {$note->added_by}: <highlight>{$note->note}<end>";
 				},
 				$notes
 			);
@@ -448,7 +328,7 @@ class NotesController extends ModuleInstance {
 			);
 			$msg = join("\n", $msgs);
 		}
-		return  $msg;
+		return $msg;
 	}
 
 	/** Show the format of your reminder */
@@ -512,11 +392,9 @@ class NotesController extends ModuleInstance {
 	#[
 		NCA\NewsTile(
 			name: "notes",
-			description:
-				"Shows you how many notes you have for this character\n".
+			description: "Shows you how many notes you have for this character\n".
 				"as well with a link to show them",
-			example:
-				"<header2>Notes<end>\n".
+			example: "<header2>Notes<end>\n".
 				"<tab>You have <highlight>2 notes<end> [<u>show</u>]"
 		)
 	]
@@ -540,5 +418,123 @@ class NotesController extends ModuleInstance {
 			$this->text->makeChatcmd("show", "/tell <myname> notes").
 			"]";
 		$callback($blob);
+	}
+
+	/** Make sure all notes with owner $sender are assigned to the main */
+	protected function assignNotesToMain(string $main, string $sender): void {
+		if ($main === $sender) {
+			return;
+		}
+		// convert all notes to be assigned to the main
+		$this->db->table("notes")
+			->where("owner", $sender)
+			->update(["owner" => $main]);
+	}
+
+	/**
+	 * Read all notes or reminders for player $main
+	 *
+	 * @return Note[]
+	 */
+	protected function readNotes(string $main, bool $remindersOnly=false): array {
+		return $this->db->table("notes")
+			->where("owner", $main)
+			->where("reminder", ">", $remindersOnly ? 0 : -1)
+			->orderBy("added_by")
+			->orderByDesc("dt")
+			->asObj(Note::class)->toArray();
+	}
+
+	/**
+	 * Render an array of Notes into a blob
+	 *
+	 * @param Note[] $notes
+	 */
+	protected function renderNotes(array $notes, string $sender): string {
+		$blob = '';
+		$current = '';
+		$format = $this->reminderFormat;
+		if (!$this->commandManager->cmdExecutable('reminders', $sender)) {
+			$format = 0;
+		}
+		foreach ($notes as $note) {
+			if ($note->added_by !== $current) {
+				$blob .= "\n<header2>{$note->added_by}<end>\n";
+				$current = $note->added_by;
+			}
+			$deleteLink = $this->text->makeChatcmd('remove', "/tell <myname> notes rem {$note->id}");
+
+			$reminderLinks = $this->renderReminderLinks($note, $format);
+			if ($format === 0) {
+				$blob .= "<tab>[{$deleteLink}] {$note->note}\n\n";
+			} elseif ($format === 1) {
+				$blob .= "<tab>[{$deleteLink}] {$note->note}<tab>{$reminderLinks}\n\n";
+			} else {
+				$blob .= "<tab>- <highlight>{$note->note}<end> [{$deleteLink}]<tab>Reminders: {$reminderLinks}\n\n";
+			}
+		}
+		return $blob;
+	}
+
+	protected function renderReminderLinks(Note $note, int $format): string {
+		if ($format === 0) {
+			return "";
+		}
+		$texts = [
+			1 => ["O", "S", "A"],
+			2 => ["off", "self", "all"],
+		];
+		$labels = $texts[$format];
+		$links = [];
+		$remindOffLink  = $this->text->makeChatcmd(
+			$labels[Note::REMIND_NONE],
+			"/tell <myname> reminders set off {$note->id}"
+		);
+		$remindSelfLink = $this->text->makeChatcmd(
+			$labels[Note::REMIND_SELF],
+			"/tell <myname> reminders set self {$note->id}"
+		);
+		$remindAllLink  = $this->text->makeChatcmd(
+			$labels[Note::REMIND_ALL],
+			"/tell <myname> reminders set all {$note->id}"
+		);
+		if (($note->reminder & Note::REMIND_ALL) === 0) {
+			$links []= $remindAllLink;
+		} else {
+			$links []= "<on>{$labels[2]}<end>";
+		}
+		if (($note->reminder & Note::REMIND_SELF) === 0) {
+			$links []= $remindSelfLink;
+		} else {
+			$links []= "<yellow>{$labels[1]}<end>";
+		}
+		if ($note->reminder !== Note::REMIND_NONE) {
+			$links []= $remindOffLink;
+		} else {
+			$links []= "<off>{$labels[0]}<end>";
+		}
+		if ($format === 1) {
+			return "(" . join("|", $links) . ")";
+		}
+		return "[" . join("] [", $links) . "]";
+	}
+
+	/** Show all reminder for character $sender */
+	protected function showReminders(string $sender): void {
+		$altInfo = $this->altsController->getAltInfo($sender);
+		$main = $altInfo->getValidatedMain($sender);
+		$notes = $this->readNotes($main, true);
+		$notes = array_filter(
+			$notes,
+			function (Note $note) use ($sender): bool {
+				return $note->reminder === Note::REMIND_ALL || $note->added_by === $sender;
+			}
+		);
+		if (!count($notes)) {
+			return;
+		}
+		$reminderFormat = $this->getReminderFormat($sender);
+		$msg = $this->getReminderMessage($reminderFormat, $notes);
+		$this->chatBot->sendMassTell($msg, $sender);
 	}
 }

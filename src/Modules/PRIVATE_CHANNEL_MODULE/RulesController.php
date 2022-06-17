@@ -4,18 +4,17 @@ namespace Nadybot\Modules\PRIVATE_CHANNEL_MODULE;
 
 use function Amp\File\filesystem;
 
-use Generator;
 use Amp\File\FilesystemException;
+use Generator;
 use Nadybot\Core\{
-	Attributes as NCA,
 	AOChatEvent,
+	Attributes as NCA,
 	CmdContext,
 	ConfigFile,
 	ModuleInstance,
 	Nadybot,
 	Text,
 };
-
 
 /**
  * @author Nadyita (RK5)

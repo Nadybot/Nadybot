@@ -2,15 +2,15 @@
 
 namespace Nadybot\Core;
 
+use function Safe\json_encode;
 use Exception;
 use Nadybot\Core\Attributes\Instance;
+
 use Spatie\DataTransferObject\{
 	Attributes\MapFrom,
 	Attributes\MapTo,
 	DataTransferObject,
 };
-
-use function Safe\json_encode;
 
 /**
  * The ConfigFile class provides convenient interface for reading and saving
@@ -18,8 +18,6 @@ use function Safe\json_encode;
  */
 #[Instance]
 class ConfigFile extends DataTransferObject {
-	private string $filePath;
-
 	public string $login;
 	public string $password;
 	public string $name;
@@ -35,6 +33,7 @@ class ConfigFile extends DataTransferObject {
 
 	/**
 	 * Character name of the Super Administrator.
+	 *
 	 * @var string[]
 	 */
 	#[MapFrom('SuperAdmin')]
@@ -86,7 +85,7 @@ class ConfigFile extends DataTransferObject {
 	#[MapTo('datafolder')]
 	public string $dataFolder = "./data/";
 
-	/**Folder for storing log files */
+	/* Folder for storing log files */
 	#[MapFrom('logsfolder')]
 	#[MapTo('logsfolder')]
 	public string $logsFolder = "./logs/";
@@ -121,13 +120,14 @@ class ConfigFile extends DataTransferObject {
 
 	/**
 	 * Define additional paths from where Nadybot should load modules at startup
+	 *
 	 * @var string[]
 	 */
 	#[MapFrom('module_load_paths')]
 	#[MapTo('module_load_paths')]
 	public array $moduleLoadPaths = [
 		'./src/Modules',
-		'./extras'
+		'./extras',
 	];
 
 	/**
@@ -138,10 +138,9 @@ class ConfigFile extends DataTransferObject {
 	public array $settings = [];
 
 	public ?string $timezone = null;
+	private string $filePath;
 
-	/**
-	 * @param array<string,mixed> $args
-	 */
+	/** @param array<string,mixed> $args */
 	public function __construct(array $args) {
 		unset($args["my_guild_id"]);
 		$args["my_guild"] ??= "";
@@ -160,9 +159,7 @@ class ConfigFile extends DataTransferObject {
 		$this->name = ucfirst(strtolower($this->name));
 	}
 
-	/**
-	 * Constructor method.
-	 */
+	/** Constructor method. */
 	public static function loadFromFile(string $filePath): self {
 		self::copyFromTemplateIfNeeded($filePath);
 		$vars = [];
@@ -172,16 +169,12 @@ class ConfigFile extends DataTransferObject {
 		return $config;
 	}
 
-	/**
-	 * Returns file path to the config file.
-	 */
+	/** Returns file path to the config file. */
 	public function getFilePath(): string {
 		return $this->filePath;
 	}
 
-	/**
-	 * Saves the config file, creating the file if it doesn't exist yet.
-	 */
+	/** Saves the config file, creating the file if it doesn't exist yet. */
 	public function save(): void {
 		$vars = $this->except("filePath", "orgId")->toArray();
 		$vars = array_filter($vars, function (mixed $value): bool {
@@ -194,12 +187,12 @@ class ConfigFile extends DataTransferObject {
 		}
 		foreach ($lines as $key => $line) {
 			if (preg_match("/^(.+)vars\[('|\")(.+)('|\")](.*)=(.*)\"(.*)\";(.*)$/si", $line, $arr)) {
-				$lines[$key] = "$arr[1]vars['$arr[3]']$arr[5]=$arr[6]".
+				$lines[$key] = "{$arr[1]}vars['{$arr[3]}']{$arr[5]}={$arr[6]}".
 					json_encode($vars[$arr[3]], JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE).
-					";$arr[8]";
+					";{$arr[8]}";
 				unset($vars[$arr[3]]);
 			} elseif (preg_match("/^(.+)vars\[('|\")(.+)('|\")](.*)=([ 	]+)([0-9]+);(.*)$/si", $line, $arr)) {
-				$lines[$key] = "$arr[1]vars['$arr[3]']$arr[5]=$arr[6]{$vars[$arr[3]]};$arr[8]";
+				$lines[$key] = "{$arr[1]}vars['{$arr[3]}']{$arr[5]}={$arr[6]}{$vars[$arr[3]]};{$arr[8]}";
 				unset($vars[$arr[3]]);
 			}
 		}
@@ -215,11 +208,11 @@ class ConfigFile extends DataTransferObject {
 			}
 			foreach ($vars as $name => $value) {
 				if (is_string($value)) {
-					$lines []= "\$vars['$name'] = \"$value\";\n";
+					$lines []= "\$vars['{$name}'] = \"{$value}\";\n";
 				} elseif (is_array($value)) {
-					$lines []= "\$vars['$name'] = " . json_encode($value) . ";\n";
+					$lines []= "\$vars['{$name}'] = " . json_encode($value) . ";\n";
 				} else {
-					$lines []= "\$vars['$name'] = $value;\n";
+					$lines []= "\$vars['{$name}'] = {$value};\n";
 				}
 			}
 			// $lines []= "\n";
@@ -228,9 +221,7 @@ class ConfigFile extends DataTransferObject {
 		\Safe\file_put_contents($this->filePath, $lines);
 	}
 
-	/**
-	 * Copies config.template.php to this config file if it doesn't exist yet.
-	 */
+	/** Copies config.template.php to this config file if it doesn't exist yet. */
 	private static function copyFromTemplateIfNeeded(string $filePath): void {
 		if (@file_exists($filePath)) {
 			return;

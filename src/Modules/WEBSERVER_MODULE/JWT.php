@@ -2,17 +2,14 @@
 
 namespace Nadybot\Modules\WEBSERVER_MODULE;
 
-use Nadybot\Modules\WEBSERVER_MODULE\JWT\BeforeValidException;
-use Nadybot\Modules\WEBSERVER_MODULE\JWT\ExpiredException;
-use Nadybot\Modules\WEBSERVER_MODULE\JWT\SignatureInvalidException;
-use DomainException;
-use InvalidArgumentException;
-use UnexpectedValueException;
 use DateTime;
+use DomainException;
 use Exception;
-use Safe\Exceptions\DatetimeException;
-use Safe\Exceptions\UrlException;
+use InvalidArgumentException;
+use Nadybot\Modules\WEBSERVER_MODULE\JWT\{BeforeValidException, ExpiredException, SignatureInvalidException};
+use Safe\Exceptions\{DatetimeException, UrlException};
 use stdClass;
+use UnexpectedValueException;
 
 /**
  * Based on https://github.com/firebase/php-jwt
@@ -50,14 +47,15 @@ class JWT {
 	 * Decodes a JWT string into a PHP object.
 	 *
 	 * @param string[] $allowed_algs
+	 *
 	 * @return stdClass The JWT's payload as a PHP object
 	 *
-	 * @throws InvalidArgumentException     Provided JWT was empty
-	 * @throws UnexpectedValueException     Provided JWT was invalid
-	 * @throws SignatureInvalidException    Provided JWT was invalid because the signature verification failed
-	 * @throws BeforeValidException         Provided JWT is trying to be used before it's eligible as defined by 'nbf'
-	 * @throws BeforeValidException         Provided JWT is trying to be used before it's been created as defined by 'iat'
-	 * @throws ExpiredException             Provided JWT has since expired, as defined by the 'exp' claim
+	 * @throws InvalidArgumentException  Provided JWT was empty
+	 * @throws UnexpectedValueException  Provided JWT was invalid
+	 * @throws SignatureInvalidException Provided JWT was invalid because the signature verification failed
+	 * @throws BeforeValidException      Provided JWT is trying to be used before it's eligible as defined by 'nbf'
+	 * @throws BeforeValidException      Provided JWT is trying to be used before it's been created as defined by 'iat'
+	 * @throws ExpiredException          Provided JWT has since expired, as defined by the 'exp' claim
 	 */
 	public static function decode(string $jwt, string $key, array $allowed_algs=[]): stdClass {
 		$timestamp = is_null(static::$timestamp) ? time() : static::$timestamp;
@@ -89,20 +87,20 @@ class JWT {
 			$sig = self::signatureToDER($sig);
 		}
 
-/*
-		if (is_array($key) || $key instanceof ArrayAccess) {
-			if (isset($header->kid)) {
-				if (!isset($key[$header->kid])) {
-					throw new UnexpectedValueException('"kid" invalid, unable to lookup correct key');
+		/*
+				if (is_array($key) || $key instanceof ArrayAccess) {
+					if (isset($header->kid)) {
+						if (!isset($key[$header->kid])) {
+							throw new UnexpectedValueException('"kid" invalid, unable to lookup correct key');
+						}
+						$key = $key[$header->kid];
+					} else {
+						throw new UnexpectedValueException('"kid" empty, unable to lookup correct key');
+					}
 				}
-				$key = $key[$header->kid];
-			} else {
-				throw new UnexpectedValueException('"kid" empty, unable to lookup correct key');
-			}
-		}
-*/
+		*/
 		// Check the signature
-		if (!self::verify("$headb64.$bodyb64", $sig, $key, $header->alg)) {
+		if (!self::verify("{$headb64}.{$bodyb64}", $sig, $key, $header->alg)) {
 			throw new SignatureInvalidException('Signature verification failed');
 		}
 
@@ -138,37 +136,6 @@ class JWT {
 	}
 
 	/**
-	 * Verify a signature with the message, key and method. Not all methods
-	 * are symmetric, so we must have a separate verify and sign method.
-	 *
-	 * @param string            $msg        The original message (header and body)
-	 * @param string            $signature  The original signature
-	 * @param string            $key        For HS*, a string key works. for RS*, must be a resource of an openssl public key
-	 * @param string            $alg        The algorithm
-	 *
-	 * @return bool
-	 *
-	 * @throws DomainException Invalid Algorithm, bad key, or OpenSSL failure
-	 */
-	private static function verify(string $msg, string $signature, string $key, string $alg): bool {
-		if (empty(static::$supported_algs[$alg])) {
-			throw new DomainException('Algorithm not supported');
-		}
-
-		$algorithm = static::$supported_algs[$alg];
-		$success = \Safe\openssl_verify($msg, $signature, $key, $algorithm);
-		if ($success === 1) {
-			return true;
-		} elseif ($success === 0) {
-			return false;
-		}
-		// returns 1 on success, 0 on failure, -1 on error.
-		throw new DomainException(
-			'OpenSSL error: ' . openssl_error_string()
-		);
-	}
-
-	/**
 	 * Decode a JSON string into a PHP object.
 	 *
 	 * @param string $input JSON string
@@ -184,7 +151,7 @@ class JWT {
 		if (version_compare(PHP_VERSION, '5.4.0', '>=') && !(defined('JSON_C_VERSION') && PHP_INT_SIZE > 4)) {
 			$obj = \Safe\json_decode($input, false, 512, JSON_BIGINT_AS_STRING);
 		} else {
-			$max_int_length = strlen((string) PHP_INT_MAX) - 1;
+			$max_int_length = strlen((string)PHP_INT_MAX) - 1;
 			$json_without_bigints = preg_replace('/:\s*(-?\d{' . $max_int_length . ',})/', ': "$1"', $input);
 			$obj = \Safe\json_decode($json_without_bigints);
 		}
@@ -219,11 +186,38 @@ class JWT {
 	}
 
 	/**
+	 * Verify a signature with the message, key and method. Not all methods
+	 * are symmetric, so we must have a separate verify and sign method.
+	 *
+	 * @param string $msg       The original message (header and body)
+	 * @param string $signature The original signature
+	 * @param string $key       For HS*, a string key works. for RS*, must be a resource of an openssl public key
+	 * @param string $alg       The algorithm
+	 *
+	 * @throws DomainException Invalid Algorithm, bad key, or OpenSSL failure
+	 */
+	private static function verify(string $msg, string $signature, string $key, string $alg): bool {
+		if (empty(static::$supported_algs[$alg])) {
+			throw new DomainException('Algorithm not supported');
+		}
+
+		$algorithm = static::$supported_algs[$alg];
+		$success = \Safe\openssl_verify($msg, $signature, $key, $algorithm);
+		if ($success === 1) {
+			return true;
+		} elseif ($success === 0) {
+			return false;
+		}
+		// returns 1 on success, 0 on failure, -1 on error.
+		throw new DomainException(
+			'OpenSSL error: ' . openssl_error_string()
+		);
+	}
+
+	/**
 	 * Helper method to create a JSON error.
 	 *
 	 * @param int $errno An error number from json_last_error()
-	 *
-	 * @return void
 	 */
 	private static function handleJsonError($errno): void {
 		$messages = [
@@ -231,20 +225,20 @@ class JWT {
 			JSON_ERROR_STATE_MISMATCH => 'Invalid or malformed JSON',
 			JSON_ERROR_CTRL_CHAR => 'Unexpected control character found',
 			JSON_ERROR_SYNTAX => 'Syntax error, malformed JSON',
-			JSON_ERROR_UTF8 => 'Malformed UTF-8 characters' //PHP >= 5.3.3
+			JSON_ERROR_UTF8 => 'Malformed UTF-8 characters', // PHP >= 5.3.3
 		];
 		throw new DomainException(
-			isset($messages[$errno])
-				? $messages[$errno]
-				: 'Unknown JSON error: ' . $errno
+			$messages[$errno]
+				?? 'Unknown JSON error: ' . $errno
 		);
 	}
 
 	/**
 	 * Convert an ECDSA signature to an ASN.1 DER sequence
 	 *
-	 * @param   string $sig The ECDSA signature to convert
-	 * @return  string The encoded DER object
+	 * @param string $sig The ECDSA signature to convert
+	 *
+	 * @return string The encoded DER object
 	 */
 	private static function signatureToDER(string $sig): string {
 		$chunkSize = (int)(strlen($sig) / 2);
@@ -261,10 +255,10 @@ class JWT {
 
 		// Convert r-value and s-value from unsigned big-endian integers to
 		// signed two's complement
-		if (ord($r[0]) > 0x7f) {
+		if (ord($r[0]) > 0x7F) {
 			$r = "\x00" . $r;
 		}
-		if (ord($s[0]) > 0x7f) {
+		if (ord($s[0]) > 0x7F) {
 			$s = "\x00" . $s;
 		}
 
@@ -278,9 +272,10 @@ class JWT {
 	/**
 	 * Encodes a value into a DER object.
 	 *
-	 * @param   int     $type DER tag
-	 * @param   string  $value the value to encode
-	 * @return  string  the encoded object
+	 * @param int    $type  DER tag
+	 * @param string $value the value to encode
+	 *
+	 * @return string the encoded object
 	 */
 	private static function encodeDER(int $type, string $value): string {
 		$tag_header = 0;

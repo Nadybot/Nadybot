@@ -52,9 +52,10 @@ class Relay implements MessageReceiver {
 
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
+	public bool $registerAsReceiver = true;
+	public bool $registerAsEmitter = true;
 
-	private RelayPacketsStats $inboundPackets;
-	private RelayPacketsStats $outboundPackets;
+	public MessageQueue $msgQueue;
 
 	/** Name of this relay */
 	protected string $name;
@@ -67,6 +68,7 @@ class Relay implements MessageReceiver {
 
 	/**
 	 * Events that this relay sends and/or receives
+	 *
 	 * @var array<string,RelayEvent>
 	 */
 	protected array $events = [];
@@ -80,10 +82,9 @@ class Relay implements MessageReceiver {
 
 	protected bool $initialized = false;
 	protected int $initStep = 0;
-	public bool $registerAsReceiver = true;
-	public bool $registerAsEmitter = true;
 
-	public MessageQueue $msgQueue;
+	private RelayPacketsStats $inboundPackets;
+	private RelayPacketsStats $outboundPackets;
 
 	public function __construct(string $name) {
 		$this->msgQueue = new MessageQueue();
@@ -106,7 +107,7 @@ class Relay implements MessageReceiver {
 	public function clearOnline(string $where): void {
 		$this->logger->info("Cleaning online chars for {relay}.{where}", [
 			"relay" => $this->name,
-			"where" => $where
+			"where" => $where,
 		]);
 		unset($this->onlineChars[$where]);
 	}
@@ -214,9 +215,7 @@ class Relay implements MessageReceiver {
 		return Source::RELAY . "({$this->name})";
 	}
 
-	/**
-	 * Set the stack members that make up the stack
-	 */
+	/** Set the stack members that make up the stack */
 	public function setStack(
 		TransportInterface $transport,
 		RelayProtocolInterface $relayProtocol,
@@ -245,11 +244,12 @@ class Relay implements MessageReceiver {
 				$this->messageHub->unregisterMessageReceiver($this->getChannelName());
 			}
 		}
+
 		/** @var RelayStackArraySenderInterface[] */
 		$layers = [
 			$this->relayProtocol,
 			...array_reverse($this->stack),
-			$this->transport
+			$this->transport,
 		];
 		$layer = $layers[$index] ?? null;
 		if (!isset($layer)) {
@@ -266,7 +266,7 @@ class Relay implements MessageReceiver {
 			"relay" => $this->name,
 		]);
 		$data = $layer->deinit(
-			function() use ($callback, $index): void {
+			function () use ($callback, $index): void {
 				$this->deinit($callback, $index+1);
 			}
 		);
@@ -292,6 +292,7 @@ class Relay implements MessageReceiver {
 		if ($this->registerAsReceiver) {
 			$this->messageHub->registerMessageReceiver($this);
 		}
+
 		/** @var RelayStackArraySenderInterface[] */
 		$elements = [$this->transport, ...$this->stack, $this->relayProtocol];
 		$element = $elements[$index] ?? null;
@@ -303,7 +304,7 @@ class Relay implements MessageReceiver {
 			if (isset($callback)) {
 				$callback();
 			}
-			Loop::delay(10000, function() {
+			Loop::delay(10000, function () {
 				if ($this->initialized) {
 					foreach ($this->msgQueue as $message) {
 						$this->receive($message, $this->getName());
@@ -318,7 +319,7 @@ class Relay implements MessageReceiver {
 			"relay" => $this->name,
 		]);
 		$data = $element->init(
-			function() use ($callback, $index): void {
+			function () use ($callback, $index): void {
 				$this->init($callback, $index+1);
 			}
 		);
@@ -342,9 +343,7 @@ class Relay implements MessageReceiver {
 		return $event;
 	}
 
-	/**
-	 * Handle data received from the transport layer
-	 */
+	/** Handle data received from the transport layer */
 	public function receiveFromTransport(RelayMessage $data): void {
 		$this->inboundPackets->inc();
 		foreach ($this->stack as $stackMember) {
@@ -365,27 +364,6 @@ class Relay implements MessageReceiver {
 			$this->name
 		));
 		$this->messageHub->handle($event);
-	}
-
-	/**
-	 * Make sure either the org chat or priv channel is the first element
-	 * when we send data, so it can always be traced to us
-	 */
-	protected function prependMainHop(RoutableEvent $event): void {
-		$isOrgBot = strlen($this->config->orgName) > 0;
-		if (!empty($event->path) && $event->path[0]->type !== Source::ORG && $isOrgBot) {
-			$abbr = $this->settingManager->getString("relay_guild_abbreviation");
-			$event->prependPath(new Source(
-				Source::ORG,
-				$this->config->orgName,
-				($abbr === "none") ? null : $abbr
-			));
-		} elseif (!empty($event->path) && $event->path[0]->type !== Source::PRIV && !$isOrgBot) {
-			$event->prependPath(new Source(
-				Source::PRIV,
-				$this->chatBot->char->name
-			));
-		}
 	}
 
 	public function receive(RoutableEvent $event, string $destination): bool {
@@ -446,5 +424,26 @@ class Relay implements MessageReceiver {
 	/** Check id the relay protocol supports a certain feature */
 	public function protocolSupportsFeature(int $feature): bool {
 		return $this->relayProtocol->supportsFeature($feature);
+	}
+
+	/**
+	 * Make sure either the org chat or priv channel is the first element
+	 * when we send data, so it can always be traced to us
+	 */
+	protected function prependMainHop(RoutableEvent $event): void {
+		$isOrgBot = strlen($this->config->orgName) > 0;
+		if (!empty($event->path) && $event->path[0]->type !== Source::ORG && $isOrgBot) {
+			$abbr = $this->settingManager->getString("relay_guild_abbreviation");
+			$event->prependPath(new Source(
+				Source::ORG,
+				$this->config->orgName,
+				($abbr === "none") ? null : $abbr
+			));
+		} elseif (!empty($event->path) && $event->path[0]->type !== Source::PRIV && !$isOrgBot) {
+			$event->prependPath(new Source(
+				Source::PRIV,
+				$this->chatBot->char->name
+			));
+		}
 	}
 }

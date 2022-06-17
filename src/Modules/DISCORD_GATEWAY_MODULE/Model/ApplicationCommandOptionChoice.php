@@ -10,6 +10,7 @@ class ApplicationCommandOptionChoice extends JSONDataModel {
 
 	/**
 	 * Localization dictionary for the name field. Values follow the same restrictions as name
+	 *
 	 * @var null|array<string,string>
 	 */
 	public ?array $name_localizations = null;

@@ -4,9 +4,7 @@ namespace Nadybot\Modules\TIMERS_MODULE\Migrations;
 
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Collection;
-use Nadybot\Core\DB;
-use Nadybot\Core\LoggerWrapper;
-use Nadybot\Core\SchemaMigration;
+use Nadybot\Core\{DB, LoggerWrapper, SchemaMigration};
 use Nadybot\Modules\TIMERS_MODULE\TimerController;
 use stdClass;
 
@@ -15,7 +13,7 @@ class AddIdColumn implements SchemaMigration {
 		$table = TimerController::DB_TABLE;
 		$data = $db->schema()->hasTable($table) ? $db->table($table)->get() : new Collection();
 		$db->schema()->dropIfExists($table);
-		$db->schema()->create($table, function(Blueprint $table): void {
+		$db->schema()->create($table, function (Blueprint $table): void {
 			$table->id();
 			$table->string("name", 255)->unique();
 			$table->string("owner", 25);

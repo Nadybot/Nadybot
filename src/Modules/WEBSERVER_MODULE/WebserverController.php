@@ -5,14 +5,10 @@ namespace Nadybot\Modules\WEBSERVER_MODULE;
 use function Amp\call;
 use function Amp\File\filesystem;
 
-use Amp\File\FilesystemException as AmpFilesystemException;
+use Amp\Http\Client;
 use Amp\Http\Client\HttpClientBuilder;
-use Amp\Http\Client\Request as AmpRequest;
-use Amp\Http\Client\Response as AmpResponse;
-use Amp\Loop;
-use Amp\Promise;
+use Amp\{File, Loop, Promise};
 use Closure;
-use ReflectionClass;
 use DateTime;
 use Exception;
 use Generator;
@@ -22,19 +18,17 @@ use Nadybot\Core\{
 	CmdContext,
 	ConfigFile,
 	DB,
-	ModuleInstance,
 	LoggerWrapper,
+	ModuleInstance,
 	Registry,
 	Socket,
-	Timer,
 	Socket\AsyncSocket,
+	Timer,
 };
 use ReflectionAttribute;
+use ReflectionClass;
 use ReflectionFunction;
-use Safe\Exceptions\FilesystemException;
-use Safe\Exceptions\OpensslException;
-use Safe\Exceptions\StreamException;
-use Safe\Exceptions\UrlException;
+use Safe\Exceptions\{FilesystemException, OpensslException, StreamException, UrlException};
 
 #[
 	NCA\Instance,
@@ -47,12 +41,6 @@ use Safe\Exceptions\UrlException;
 class WebserverController extends ModuleInstance {
 	public const AUTH_AOAUTH = "aoauth";
 	public const AUTH_BASIC = "webauth";
-
-	/**
-	 * @var ?resource
-	 * @psalm-var null|resource|closed-resource
-	 */
-	protected $serverSocket = null;
 
 	#[NCA\Inject]
 	public HttpClientBuilder $builder;
@@ -116,12 +104,18 @@ class WebserverController extends ModuleInstance {
 	#[NCA\Setting\Rank]
 	public string $webserverMinAL = "mod";
 
+	/**
+	 * @var ?resource
+	 * @psalm-var null|resource|closed-resource
+	 */
+	protected $serverSocket = null;
+
 	/** @var array<string,array<string,callable[]>> */
 	protected array $routes = [
 		'get' => [],
 		'post' => [],
 		'put' => [],
-		'delete' => []
+		'delete' => [],
 	];
 
 	/**
@@ -147,8 +141,9 @@ class WebserverController extends ModuleInstance {
 		}
 		$aoAuthKeyUrl = rtrim($this->webserverAoauthUrl, '/') . '/key';
 		$client = $this->builder->build();
-		/** @var AmpResponse */
-		$response = yield $client->request(new AmpRequest($aoAuthKeyUrl));
+
+		/** @var Client\Response */
+		$response = yield $client->request(new Client\Request($aoAuthKeyUrl));
 		if ($response->getStatus() !== 200) {
 			$this->logger->error(
 				'Error downloading aoauth pubkey from {uri}: {error} ({reason})',
@@ -210,9 +205,7 @@ class WebserverController extends ModuleInstance {
 		Loop::defer([$this, "listen"]);
 	}
 
-	/**
-	 * Authenticate player $player to login to the Webserver for $duration seconds
-	 */
+	/** Authenticate player $player to login to the Webserver for $duration seconds */
 	public function authenticate(string $player, int $duration=3600): string {
 		do {
 			$uuid = bin2hex(random_bytes(12));
@@ -235,10 +228,7 @@ class WebserverController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
-	/**
-	 * Scan all Instances for #[HttpGet] or #[HttpPost] attributes and register them
-	 * @return void
-	 */
+	/** Scan all Instances for HttpGet or HttpPost attributes and register them */
 	public function scanRouteAttributes(): void {
 		$instances = Registry::getAllInstances();
 		foreach ($instances as $instance) {
@@ -260,10 +250,7 @@ class WebserverController extends ModuleInstance {
 		}
 	}
 
-
-	/**
-	 * Add a HTTP route handler for a path
-	 */
+	/** Add a HTTP route handler for a path */
 	public function addRoute(string $method, string $path, callable $callback): void {
 		$route = $this->routeToRegExp($path);
 		if (!isset($this->routes[$method][$route])) {
@@ -274,7 +261,7 @@ class WebserverController extends ModuleInstance {
 		// Longer routes must be handled first, because they are more specific
 		uksort(
 			$this->routes[$method],
-			function(string $a, string $b): int {
+			function (string $a, string $b): int {
 				return (substr_count($b, "/") <=> substr_count($a, "/"))
 					?: substr_count(basename($a), "+?)") <=> substr_count(basename($b), "+?)")
 					?: strlen($b) <=> strlen($a);
@@ -282,21 +269,18 @@ class WebserverController extends ModuleInstance {
 		);
 	}
 
-	/**
-	 * Convert the route notation /foo/%s/bar into a regexp
-	 */
+	/** Convert the route notation /foo/%s/bar into a regexp */
 	public function routeToRegExp(string $route): string {
 		$match = \Safe\preg_split("/(%[sd])/", $route, 0, PREG_SPLIT_DELIM_CAPTURE|PREG_SPLIT_NO_EMPTY);
 		$newMask = array_reduce(
 			$match,
-			function(string $carry, string $part): string {
+			function (string $carry, string $part): string {
 				if ($part === '%s') {
 					return $carry . "(.+?)";
 				} elseif ($part === '%d') {
 					return $carry . "(\d+?)";
-				} else {
-					return $carry . preg_quote($part, "|");
 				}
+				return $carry . preg_quote($part, "|");
 			},
 			"^"
 		);
@@ -304,9 +288,7 @@ class WebserverController extends ModuleInstance {
 		return $newMask . '$';
 	}
 
-	/**
-	 * Handle new client connections
-	 */
+	/** Handle new client connections */
 	public function clientConnected(AsyncSocket $socket): void {
 		$lowSock = $socket->getSocket();
 		if (!is_resource($lowSock)) {
@@ -329,16 +311,12 @@ class WebserverController extends ModuleInstance {
 		$httpWrapper->wrapAsyncSocket($wrapper);
 	}
 
-	/**
-	 * Handle client disconnects / being disconnected
-	 */
+	/** Handle client disconnects / being disconnected */
 	public function handleClientDisconnect(AsyncSocket $scket): void {
 		$this->logger->info("Webserver: Client disconnected.");
 	}
 
-	/**
-	 * Start listening for incoming TCP connections on the configured port
-	 */
+	/** Start listening for incoming TCP connections on the configured port */
 	public function listen(): bool {
 		$port = $this->webserverPort;
 		$addr = $this->webserverAddr;
@@ -371,9 +349,7 @@ class WebserverController extends ModuleInstance {
 		return true;
 	}
 
-	/**
-	 * Shutdown the webserver
-	 */
+	/** Shutdown the webserver */
 	public function shutdown(): bool {
 		if (!isset($this->serverSocket) || !is_resource($this->serverSocket)) {
 			return true;
@@ -389,42 +365,6 @@ class WebserverController extends ModuleInstance {
 	}
 
 	/**
-	 * Generate a new self-signed certificate for this bot and return the path to it
-	 */
-/*
-	public function generateCertificate(): string {
-		if (@file_exists("/tmp/server.pem")) {
-			return "/tmp/server.pem";
-		}
-		$this->logger->notice('Generating new SSL certificate for ' . gethostname());
-		$pemfile = '/tmp/server.pem';
-		$dn = [
-			"countryName" => "XX",
-			"localityName" => "Anarchy Online",
-			"commonName" => gethostname(),
-			"organizationName" => $this->config->name,
-		];
-		if (!empty($this->config->orgName)) {
-			$dn["organizationName"] = $this->config->orgName;
-		}
-
-		$privKey = openssl_pkey_new();
-		$cert    = openssl_csr_new($dn, $privKey);
-		$cert    = openssl_csr_sign($cert, null, $privKey, 365, null, time());
-
-		$pem = [];
-		openssl_x509_export($cert, $pem[0]);
-		openssl_pkey_export($privKey, $pem[1]);
-		$pem = implode("", $pem);
-
-		// Save PEM file
-		$pemfile = '/tmp/server.pem';
-		file_put_contents($pemfile, $pem);
-		return $pemfile;
-	}
-*/
-
-	/**
 	 * @return array<array<Closure|string[]>>
 	 * @phpstan-return array<array{Closure,string[]}>
 	 * @psalm-return array<array{Closure,string[]}>
@@ -432,7 +372,7 @@ class WebserverController extends ModuleInstance {
 	public function getHandlersForRequest(Request $request): array {
 		$result = [];
 		foreach ($this->routes[$request->method] as $mask => $handlers) {
-			if (preg_match("|$mask|", $request->path, $parts)) {
+			if (preg_match("|{$mask}|", $request->path, $parts)) {
 				array_shift($parts);
 				foreach ($handlers as $handler) {
 					$result []= [Closure::fromCallable($handler), $parts];
@@ -461,6 +401,7 @@ class WebserverController extends ModuleInstance {
 		$needAuth = true;
 		if (count($handlers) === 1) {
 			$ref = new ReflectionFunction($handlers[0][0]);
+
 			/** @psalm-suppress InvalidAttribute */
 			if (count($ref->getAttributes(NCA\HttpOwnAuth::class))) {
 				$needAuth = false;
@@ -489,7 +430,7 @@ class WebserverController extends ModuleInstance {
 					[
 						'Location' => $aoAuthUrl . '?redirect_uri='.
 							urlencode($redirectUrl) . '&application_name='.
-							urlencode($this->db->getMyname())
+							urlencode($this->db->getMyname()),
 					]
 				), $event->request, true);
 			}
@@ -537,6 +478,7 @@ class WebserverController extends ModuleInstance {
 			$server->httpError(new Response(Response::METHOD_NOT_ALLOWED), $event->request);
 			return;
 		}
+
 		/** @var Response */
 		$response = yield $this->serveStaticFile($event->request);
 		if ($response->code !== Response::OK) {
@@ -544,49 +486,6 @@ class WebserverController extends ModuleInstance {
 		} else {
 			$server->sendResponse($response, $event->request);
 		}
-	}
-
-	/** @return Promise<Response> */
-	private function serveStaticFile(Request $request): Promise {
-		return call(function () use ($request): Generator {
-			$path = $this->config->htmlFolder;
-			try {
-				$realFile = \Safe\realpath("{$path}/{$request->path}");
-				$realBaseDir = \Safe\realpath("{$path}/");
-			} catch (FilesystemException) {
-				return new Response(Response::NOT_FOUND);
-			}
-			if ($realFile !== $realBaseDir
-				&& strncmp($realFile, $realBaseDir.DIRECTORY_SEPARATOR, strlen($realBaseDir)+1) !== 0
-			) {
-				return new Response(Response::NOT_FOUND);
-			}
-			if (yield filesystem()->isDirectory($realFile)) {
-				$realFile .= DIRECTORY_SEPARATOR . "index.html";
-			}
-			if (false === yield filesystem()->exists($realFile)) {
-				return new Response(Response::NOT_FOUND);
-			}
-			try {
-				$body = yield filesystem()->read($realFile);
-			} catch (AmpFilesystemException) {
-				$body = "";
-			}
-			$response = new Response(
-				Response::OK,
-				['Content-Type' => $this->guessContentType($realFile)],
-				$body
-			);
-			try {
-				$lastmodified = yield filesystem()->getModificationTime($realFile);
-				$modifiedDate = (new DateTime())->setTimestamp($lastmodified)->format(DateTime::RFC7231);
-				$response->headers['Last-Modified'] = $modifiedDate;
-			} catch (AmpFilesystemException) {
-			}
-			$response->headers['Cache-Control'] = 'private, max-age=3600';
-			$response->headers['ETag'] = '"' . dechex(crc32($body)) . '"';
-			return $response;
-		});
 	}
 
 	public function guessContentType(string $file): string {
@@ -642,6 +541,7 @@ class WebserverController extends ModuleInstance {
 			return null;
 		}
 		$signature = $matches[1];
+
 		/** @var ?ApiKey */
 		$key = $this->db->table(ApiController::DB_TABLE)
 			->where("token", $keyId)
@@ -672,6 +572,7 @@ class WebserverController extends ModuleInstance {
 
 	/**
 	 * Check if $user is allowed to login with password $pass
+	 *
 	 * @return null|string null if password is wrong, the username that was sent if correct
 	 */
 	public function checkAuthentication(string $user, string $password): ?string {
@@ -688,6 +589,7 @@ class WebserverController extends ModuleInstance {
 
 	/**
 	 * Check if a valid user is given by a JWT
+	 *
 	 * @return null|string null if token is wrong, the username that was sent if correct
 	 */
 	public function checkJWTAuthentication(string $token): ?string {
@@ -719,5 +621,48 @@ class WebserverController extends ModuleInstance {
 				unset($this->authentications[$user]);
 			}
 		}
+	}
+
+	/** @return Promise<Response> */
+	private function serveStaticFile(Request $request): Promise {
+		return call(function () use ($request): Generator {
+			$path = $this->config->htmlFolder;
+			try {
+				$realFile = \Safe\realpath("{$path}/{$request->path}");
+				$realBaseDir = \Safe\realpath("{$path}/");
+			} catch (FilesystemException) {
+				return new Response(Response::NOT_FOUND);
+			}
+			if ($realFile !== $realBaseDir
+				&& strncmp($realFile, $realBaseDir.DIRECTORY_SEPARATOR, strlen($realBaseDir)+1) !== 0
+			) {
+				return new Response(Response::NOT_FOUND);
+			}
+			if (yield filesystem()->isDirectory($realFile)) {
+				$realFile .= DIRECTORY_SEPARATOR . "index.html";
+			}
+			if (false === yield filesystem()->exists($realFile)) {
+				return new Response(Response::NOT_FOUND);
+			}
+			try {
+				$body = yield filesystem()->read($realFile);
+			} catch (File\FilesystemException) {
+				$body = "";
+			}
+			$response = new Response(
+				Response::OK,
+				['Content-Type' => $this->guessContentType($realFile)],
+				$body
+			);
+			try {
+				$lastmodified = yield filesystem()->getModificationTime($realFile);
+				$modifiedDate = (new DateTime())->setTimestamp($lastmodified)->format(DateTime::RFC7231);
+				$response->headers['Last-Modified'] = $modifiedDate;
+			} catch (File\FilesystemException) {
+			}
+			$response->headers['Cache-Control'] = 'private, max-age=3600';
+			$response->headers['ETag'] = '"' . dechex(crc32($body)) . '"';
+			return $response;
+		});
 	}
 }

@@ -3,10 +3,7 @@
 namespace Nadybot\Core\Migrations;
 
 use Illuminate\Database\Schema\Blueprint;
-use Nadybot\Core\CommandManager;
-use Nadybot\Core\DB;
-use Nadybot\Core\LoggerWrapper;
-use Nadybot\Core\SchemaMigration;
+use Nadybot\Core\{CommandManager, DB, LoggerWrapper, SchemaMigration};
 
 class MigrateCmdcfg implements SchemaMigration {
 	public function migrate(LoggerWrapper $logger, DB $db): void {
@@ -19,13 +16,14 @@ class MigrateCmdcfg implements SchemaMigration {
 		$entries = $db->table($table)->get();
 		$db->table($table)->truncate();
 
-		$db->schema()->table($table, function(Blueprint $table): void {
+		$db->schema()->table($table, function (Blueprint $table): void {
 			$table->dropUnique(["cmd", "type"]);
 		});
 		$db->schema()->dropColumns($table, ["admin", "status", "type"]);
-		$db->schema()->table($table, function(Blueprint $table): void {
+		$db->schema()->table($table, function (Blueprint $table): void {
 			$table->unique("cmd");
 		});
+
 		/** @var array<string,bool> */
 		$cmds = [];
 		foreach ($entries as $entry) {

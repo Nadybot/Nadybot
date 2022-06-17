@@ -2,24 +2,21 @@
 
 namespace Nadybot\Modules\TOWER_MODULE;
 
-use Amp\Http\Client\HttpClientBuilder;
+use function Amp\{asyncCall, call};
+use function Safe\json_decode;
 use Amp\Http\Client\Interceptor\SetRequestHeader;
-use Amp\Http\Client\Request;
-use Amp\Http\Client\Response;
+use Amp\Http\Client\{HttpClientBuilder, Request, Response};
 use Amp\Promise;
 use Exception;
 use Generator;
 use League\Uri\Http;
-use Throwable;
 use Nadybot\Core\{
 	Attributes as NCA,
 	BotRunner,
 	ModuleInstance,
 };
 
-use function Amp\asyncCall;
-use function Amp\call;
-use function Safe\json_decode;
+use Throwable;
 
 #[NCA\Instance]
 class TowerApiController extends ModuleInstance {
@@ -92,6 +89,7 @@ class TowerApiController extends ModuleInstance {
 
 	/**
 	 * @param array<string,mixed> $params
+	 *
 	 * @return Promise<?ApiResult>
 	 */
 	public function call2(array $params): Promise {
@@ -119,6 +117,7 @@ class TowerApiController extends ModuleInstance {
 				->intercept(new SetRequestHeader("User-Agent", "Naughtybot " . BotRunner::getVersion()))
 				->build();
 			$uri = Http::createFromString($apiURL)->withQuery($query);
+
 			/** @var Response */
 			$response = yield $client->request(new Request($uri));
 			if ($response->getStatus() !== 200) {

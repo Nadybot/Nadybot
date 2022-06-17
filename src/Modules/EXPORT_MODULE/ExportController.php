@@ -3,15 +3,9 @@
 namespace Nadybot\Modules\EXPORT_MODULE;
 
 use function Amp\call;
-use function Safe\file_put_contents;
-use function Safe\json_decode;
-use function Safe\json_encode;
-
+use function Safe\{file_put_contents, json_decode, json_encode};
 use Amp\Promise;
 use Generator;
-use stdClass;
-use Safe\Exceptions\FilesystemException;
-use Safe\Exceptions\JsonException;
 use Nadybot\Core\{
 	AccessManager,
 	AdminManager,
@@ -20,8 +14,8 @@ use Nadybot\Core\{
 	CmdContext,
 	ConfigFile,
 	DB,
-	DBSchema\Alt,
 	DBSchema\Admin,
+	DBSchema\Alt,
 	DBSchema\BanEntry,
 	DBSchema\Member,
 	ModuleInstance,
@@ -67,6 +61,8 @@ use Nadybot\Modules\{
 	VOTE_MODULE\Vote,
 	VOTE_MODULE\VoteController,
 };
+use Safe\Exceptions\{FilesystemException, JsonException};
+use stdClass;
 
 /**
  * @author Nadyita (RK5) <nadyita@hodorraid.org>
@@ -188,7 +184,7 @@ class ExportController extends ModuleInstance {
 
 	/** @return Promise<stdClass[]> */
 	protected function exportAlts(): Promise {
-		return call(function() {
+		return call(function () {
 			/** @var Alt[] */
 			$alts = $this->db->table("alts")->asObj(Alt::class)->toArray();
 			$data = [];
@@ -207,7 +203,7 @@ class ExportController extends ModuleInstance {
 			foreach ($data as $main => $altInfo) {
 				$result []= (object)[
 					"main" => yield $this->toChar($main),
-					"alts" => $altInfo
+					"alts" => $altInfo,
 				];
 			}
 			return $result;
@@ -216,9 +212,10 @@ class ExportController extends ModuleInstance {
 
 	/** @return Promise<stdClass[]> */
 	protected function exportMembers(): Promise {
-		return call(function(): Generator {
+		return call(function (): Generator {
 			$exported = [];
 			$result = [];
+
 			/** @var Member[] */
 			$members = $this->db->table(PrivateChannelController::DB_TABLE)
 				->asObj(Member::class)
@@ -230,6 +227,7 @@ class ExportController extends ModuleInstance {
 				];
 				$exported[$member->name] = true;
 			}
+
 			/** @var RaidRank[] */
 			$members = $this->db->table(RaidRankController::DB_TABLE)
 				->asObj(RaidRank::class)
@@ -257,6 +255,7 @@ class ExportController extends ModuleInstance {
 				];
 				$exported[$member->name] = true;
 			}
+
 			/** @var Admin[] */
 			$members = $this->db->table(AdminManager::DB_TABLE)
 				->asObj(Admin::class)
@@ -325,7 +324,7 @@ class ExportController extends ModuleInstance {
 
 	/** @return Promise<stdClass[]> */
 	protected function exportBanlist(): Promise {
-		return call(function(): Generator {
+		return call(function (): Generator {
 			/** @var BanEntry[] */
 			$banList = $this->db->table(BanController::DB_TABLE)
 				->asObj(BanEntry::class)->toArray();
@@ -390,6 +389,7 @@ class ExportController extends ModuleInstance {
 						"votes" => [],
 					];
 				}
+
 				/** @var Vote[] */
 				$votes = $this->db->table(VoteController::DB_VOTES)
 					->where("poll_id", $poll->id)
@@ -497,6 +497,7 @@ class ExportController extends ModuleInstance {
 					"raidSecondsPerPoint" => $this->nullIf($raid->seconds_per_point),
 				];
 			}
+
 			/** @var RaidMember[] */
 			$data = $this->db->table(RaidMemberController::DB_TABLE)
 				->asObj(RaidMember::class)
@@ -609,6 +610,7 @@ class ExportController extends ModuleInstance {
 					"events" => [],
 				];
 			}
+
 			/** @var Tracking[] */
 			$events = $this->db->table(TrackerController::DB_TRACKING)
 				->orderBy("dt")
@@ -641,7 +643,7 @@ class ExportController extends ModuleInstance {
 					"item" => $auction->item,
 					"startedBy" => yield $this->toChar($auction->auctioneer),
 					"timeEnd" => $auction->end,
-					"reimbursed" => $auction->reimbursed
+					"reimbursed" => $auction->reimbursed,
 				];
 				if (isset($auction->winner)) {
 					$auctionObj->winner = yield $this->toChar($auction->winner);
@@ -675,6 +677,7 @@ class ExportController extends ModuleInstance {
 					"deleted" => $topic->deleted,
 					"confirmedBy" => [],
 				];
+
 				/** @var NewsConfirmed[] */
 				$confirmations = $this->db->table("news_confirmed")
 					->where("id", $topic->id)

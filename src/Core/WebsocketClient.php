@@ -8,11 +8,6 @@ use RuntimeException;
 use Safe\Exceptions\StreamException;
 
 class WebsocketClient extends WebsocketBase {
-	protected string $uri;
-	/** @var array<string,string> */
-	protected array $headers = [];
-	protected bool $isSSL = false;
-
 	#[NCA\Inject]
 	public SocketManager $socketManager;
 
@@ -24,31 +19,17 @@ class WebsocketClient extends WebsocketBase {
 
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
+	protected string $uri;
+
+	/** @var array<string,string> */
+	protected array $headers = [];
+	protected bool $isSSL = false;
 
 	public function __destruct() {
 		if ($this->isConnected() && is_resource($this->socket)) {
 			@fclose($this->socket);
 		}
 		$this->socket = null;
-	}
-
-	protected function resetClient(): void {
-		$this->socket = null;
-		$this->isClosing = true;
-		$this->lastOpcode = null;
-		$this->closeStatus = null;
-		$this->sendQueue = [];
-		$this->receiveBuffer = "";
-		$this->lastReadTime = null;
-		$this->connected = false;
-		if (isset($this->timeoutHandle)) {
-			Loop::cancel($this->timeoutHandle);
-			$this->timeoutHandle = null;
-		}
-		if ($this->notifier) {
-			$this->socketManager->removeSocketNotifier($this->notifier);
-			$this->notifier = null;
-		}
 	}
 
 	public function withURI(string $uri): self {
@@ -61,9 +42,7 @@ class WebsocketClient extends WebsocketBase {
 		return $this;
 	}
 
-	/**
-	 * Set a headers to be send with the request
-	 */
+	/** Set a headers to be send with the request */
 	public function withHeader(string $header, string $value): self {
 		$this->headers[$header] = $value;
 		return $this;
@@ -115,7 +94,7 @@ class WebsocketClient extends WebsocketBase {
 		$this->timeoutHandle = Loop::delay($this->timeout * 1000, [$this, "checkTimeout"]);
 		try {
 			$socket = \Safe\stream_socket_client(
-				"$streamUri:$port",
+				"{$streamUri}:{$port}",
 				$errno,
 				$errstr,
 				0,
@@ -152,8 +131,6 @@ class WebsocketClient extends WebsocketBase {
 	 * This is needed, because you cannot connect asynchronously
 	 * when using ssl:// stream sockets. Rather connect with tcp://
 	 * and then enable tls once actually connected.
-	 *
-	 * @return void
 	 */
 	public function enableTLS(): void {
 		if (isset($this->notifier)) {
@@ -176,9 +153,7 @@ class WebsocketClient extends WebsocketBase {
 		$this->socketManager->addSocketNotifier($this->notifier);
 	}
 
-	/**
-	 * Upgrades a http(s) connection to a websocket
-	 */
+	/** Upgrades a http(s) connection to a websocket */
 	public function upgradeToWebsocket(): void {
 		$this->connected = true;
 		$this->logger->info("[Websocket {uri}] Connected", [
@@ -212,7 +187,7 @@ class WebsocketClient extends WebsocketBase {
 			'Sec-WebSocket-Version' => '13',
 		];
 
-		if (isset($urlParts["user"]) && isset($urlParts["pass"])) {
+		if (isset($urlParts["user"], $urlParts["pass"])) {
 			$headers['authorization'] = 'Basic '.
 				base64_encode($urlParts["user"] . ':' . $urlParts["pass"]) . "\r\n";
 		}
@@ -220,13 +195,13 @@ class WebsocketClient extends WebsocketBase {
 		$headers = array_merge($headers, $this->headers);
 		$headerStrings =  array_map(
 			function (string $key, string $value): string {
-				return "$key: $value";
+				return "{$key}: {$value}";
 			},
 			array_keys($headers),
 			$headers
 		);
 
-		$header = "GET $path HTTP/1.1\r\n" . implode("\r\n", $headerStrings) . "\r\n\r\n";
+		$header = "GET {$path} HTTP/1.1\r\n" . implode("\r\n", $headerStrings) . "\r\n\r\n";
 
 		$this->write($header);
 		$this->logger->debug("[Websocket {uri}] Headers sent", [
@@ -239,7 +214,7 @@ class WebsocketClient extends WebsocketBase {
 		$this->notifier = new SocketNotifier(
 			$this->socket,
 			SocketNotifier::ACTIVITY_READ,
-			function() use ($key): void {
+			function () use ($key): void {
 				$this->validateWebsocketUpgradeReply($key);
 			}
 		);
@@ -303,5 +278,24 @@ class WebsocketClient extends WebsocketBase {
 		$event = $this->getEvent("connect");
 		$this->fireEvent(static::ON_CONNECT, $event);
 		return true;
+	}
+
+	protected function resetClient(): void {
+		$this->socket = null;
+		$this->isClosing = true;
+		$this->lastOpcode = null;
+		$this->closeStatus = null;
+		$this->sendQueue = [];
+		$this->receiveBuffer = "";
+		$this->lastReadTime = null;
+		$this->connected = false;
+		if (isset($this->timeoutHandle)) {
+			Loop::cancel($this->timeoutHandle);
+			$this->timeoutHandle = null;
+		}
+		if ($this->notifier) {
+			$this->socketManager->removeSocketNotifier($this->notifier);
+			$this->notifier = null;
+		}
 	}
 }

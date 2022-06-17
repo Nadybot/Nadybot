@@ -18,15 +18,15 @@ class AddUuidColumn implements SchemaMigration {
 
 	public function migrate(LoggerWrapper $logger, DB $db): void {
 		$table = "news";
-		$db->schema()->table($table, function(Blueprint $table) {
+		$db->schema()->table($table, function (Blueprint $table) {
 			$table->string("uuid", 36)->nullable(true);
 		});
 		$db->table($table)->get()->each(function (stdClass $data) use ($db, $table): void {
 			$db->table($table)->where("id", (int)$data->id)->update([
-				"uuid" => $this->util->createUUID()
+				"uuid" => $this->util->createUUID(),
 			]);
 		});
-		$db->schema()->table($table, function(Blueprint $table) {
+		$db->schema()->table($table, function (Blueprint $table) {
 			$table->string("uuid", 36)->nullable(false)->unique()->index()->change();
 		});
 	}

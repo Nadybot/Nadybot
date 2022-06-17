@@ -2,7 +2,6 @@
 
 namespace Nadybot\Modules\WEBSERVER_MODULE;
 
-use Safe\DateTime;
 use Exception;
 use Nadybot\Core\{
 	Attributes as NCA,
@@ -11,6 +10,7 @@ use Nadybot\Core\{
 	SettingManager,
 	Socket\AsyncSocket,
 };
+use Safe\DateTime;
 use Safe\Exceptions\FilesystemException;
 use stdClass;
 use Throwable;
@@ -18,7 +18,6 @@ use Throwable;
 /**
  * A convenient wrapper around AsyncSockets that emits
  * http(get) and http(post) events
- *
  */
 #[
 	NCA\ProvidesEvent("http(get)"),
@@ -34,8 +33,6 @@ class HttpProtocolWrapper {
 	public const EXPECT_BODY = 3;
 	public const EXPECT_DONE = 4;
 	public const EXPECT_IGNORE = 5;
-
-	protected AsyncSocket $asyncSocket;
 	public Request $request;
 
 	#[NCA\Inject]
@@ -50,12 +47,18 @@ class HttpProtocolWrapper {
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
+	protected AsyncSocket $asyncSocket;
+
 	protected string $readQueue = "";
 	protected int $nextPart = self::EXPECT_REQUEST;
 
-	/**
-	 * Wrap an AsyncSocket with a HttpProtocolWrapper
-	 */
+	public function __destruct() {
+		if (isset($this->logger)) {
+			$this->logger->info(get_class() . ' destroyed');
+		}
+	}
+
+	/** Wrap an AsyncSocket with a HttpProtocolWrapper */
 	public function wrapAsyncSocket(AsyncSocket $asyncSocket): self {
 		$this->logger->info('New AsyncSocket socket assigned to HttpProtocolWrapper');
 		$this->request = new Request();
@@ -65,22 +68,19 @@ class HttpProtocolWrapper {
 		return $this;
 	}
 
-	/**
-	 * Get the AsyncSocket that is wrapper with this HttpProtocolWrapper
-	 */
+	/** Get the AsyncSocket that is wrapper with this HttpProtocolWrapper */
 	public function getAsyncSocket(): AsyncSocket {
 		return $this->asyncSocket;
 	}
 
-	/**
-	 * Deal with a closing connection
-	 */
+	/** Deal with a closing connection */
 	public function handleConnectionClosed(AsyncSocket $socket): void {
 		unset($this->asyncSocket);
 	}
 
 	/**
 	 * Depending on what we've read so far, read a new token, parse it or emit an event
+	 *
 	 * @throws Exception on unknown state
 	 */
 	public function handleIncomingData(AsyncSocket $socket): void {
@@ -115,71 +115,18 @@ class HttpProtocolWrapper {
 				throw new Exception("Invalid state {$this->nextPart} encountered.");
 		}
 		if ($this->nextPart === static::EXPECT_DONE) {
-				$this->logger->info('Request fully received');
-				$this->handleRequest();
+			$this->logger->info('Request fully received');
+			$this->handleRequest();
 		}
 	}
 
-	/**
-	 * Read a \r\n terminated line from the socket and return it
-	 * @param AsyncSocket $socket The socket to read from
-	 * @return null|string The read line or null on error
-	 */
-	protected function readSocketLine(AsyncSocket $socket): ?string {
-		$lowSocket = $socket->getSocket();
-		if (!isset($lowSocket) || !is_resource($lowSocket)) {
-			$this->logger->info('Error reading a line from socket: ' . (error_get_last()["message"]??""));
-			$socket->close();
-			return null;
-		}
-		$buffer = fgets($lowSocket, 4098);
-		if ($buffer === false) {
-			$this->logger->info('Error reading a line from socket: ' . (error_get_last()["message"]??""));
-			$socket->close();
-			return null;
-		}
-		$trimmedData = rtrim($buffer);
-		// This can be cost intensive to calculate, so only do it if really needed
-		if ($this->logger->isEnabledFor('TRACE')) {
-			$this->logger->debug(
-				'Read data: ' . $this->dataToLogString($buffer)
-			);
-		}
-		if (strlen($buffer) > 4096) {
-			$this->logger->info('Line was longer than the allowed length of 4096 bytes');
-			$this->httpError(new Response(Response::REQUEST_HEADER_FIELDS_TOO_LARGE));
-			return null;
-		}
-		return $trimmedData;
-	}
-
-	protected function dataToLogString(string $data): string {
-		return '"' . preg_replace_callback(
-			"/[^\x20-\x7E]/",
-			function(array $match): string {
-				if ($match[0] === "\r") {
-					return "\\r";
-				}
-				if ($match[0] === "\n") {
-					return "\\n";
-				}
-				return "\\" . sprintf("%02X", ord($match[0]));
-			},
-			$data
-		) . '"';
-	}
-
-	/**
-	 * Send a HTTP error message and gently close the socket
-	 */
+	/** Send a HTTP error message and gently close the socket */
 	public function httpError(Response $response, ?Request $request=null): void {
 		$request ??= $this->request;
 		$this->sendResponse($response, $request, true);
 	}
 
-	/**
-	 * Send a response back to the connected client
-	 */
+	/** Send a response back to the connected client */
 	public function sendResponse(Response $response, Request $request, bool $forceClose=false): void {
 		$this->logger->info('Received a ' . $response->code . ' (' . $response->codeString . ') response');
 		if (isset($request->replied) && $request->replied > 0) {
@@ -210,7 +157,7 @@ class HttpProtocolWrapper {
 			}
 		}
 		$requiresClose = $forceClose
-			|| ( $request->version < 1.1
+			|| ($request->version < 1.1
 				&& strtolower($request->headers['connection']??"") !== "keep-alive")
 			|| (strtolower($request->headers["connection"]??"")) === "close"
 			|| $response->code >= 400;
@@ -233,37 +180,7 @@ class HttpProtocolWrapper {
 		}
 	}
 
-	/**
-	 * Check if the client already has the latest version of the data
-	 */
-	protected function checkIfResponseDataChanged(Response $response): bool {
-		if (isset($this->request->headers['if-modified-since']) && isset($response->headers['Last-Modified'])) {
-			$clientVersion = DateTime::createFromFormat(
-				DateTime::RFC7231,
-				$this->request->headers['if-modified-since']
-			);
-			$serverVersion = DateTime::createFromFormat(
-				DateTime::RFC7231,
-				$response->headers['Last-Modified']
-			);
-			if ($clientVersion->getTimestamp() >= $serverVersion->getTimestamp()) {
-				return false;
-			}
-		}
-		if (isset($this->request->headers['if-none-match']) && isset($response->headers['ETag'])) {
-			$tags = \Safe\preg_split("/\s*,\s*/", $this->request->headers['if-none-match']);
-			foreach ($tags as $tag) {
-				if ($tag === '*' || $tag === $response->headers['ETag']) {
-					return false;
-				}
-			}
-		}
-		return true;
-	}
-
-	/**
-	 * Read the "GET / http/1.0" line or generate errors on parse errors
-	 */
+	/** Read the "GET / http/1.0" line or generate errors on parse errors */
 	public function readRequestLine(AsyncSocket $socket): void {
 		$line = $this->readSocketLine($socket);
 		$sock = $socket->getSocket();
@@ -300,7 +217,7 @@ class HttpProtocolWrapper {
 			$queryParts = explode("&", $parts["query"]);
 			$this->request->query = array_reduce(
 				$queryParts,
-				function(array $carry, string $newPart): array {
+				function (array $carry, string $newPart): array {
 					$kv = explode("=", $newPart, 2);
 					$kv = array_map("urldecode", $kv);
 					$carry[$kv[0]] = $kv[1] ?? null;
@@ -313,9 +230,7 @@ class HttpProtocolWrapper {
 		$this->nextPart = static::EXPECT_HEADER;
 	}
 
-	/**
-	 * Read a HTTP header line from the socket and parse it
-	 */
+	/** Read a HTTP header line from the socket and parse it */
 	public function readHeaderLine(AsyncSocket $socket): void {
 		$line = $this->readSocketLine($socket);
 		if ($line === null) {
@@ -353,9 +268,7 @@ class HttpProtocolWrapper {
 		$this->nextPart = static::EXPECT_BODY;
 	}
 
-	/**
-	 * Read the body of the POST request, if necessary in chunks
-	 */
+	/** Read the body of the POST request, if necessary in chunks */
 	public function readBody(AsyncSocket $socket): void {
 		$toRead = (int)$this->request->headers['content-length'] - strlen($this->request->body ?? "");
 		$readChunk = min(4096, $toRead);
@@ -387,9 +300,135 @@ class HttpProtocolWrapper {
 		}
 	}
 
+	/** Trigger the event handlers for the request */
+	public function handleRequest(): void {
+		$this->request->authenticatedAs = $this->getAuthenticatedUser();
+		$event = new HttpEvent();
+		$response = $this->decodeRequestBody();
+		if ($response instanceof Response) {
+			$this->httpError($response);
+			return;
+		}
+		$event->request = $this->request;
+		$event->type = "http(" . strtolower($this->request->method) . ")";
+		$this->logger->info("Firing {$event->type} event");
+		$this->eventManager->fireEvent($event, $this);
+		$this->request = new Request();
+		$this->nextPart = static::EXPECT_REQUEST;
+		$this->readQueue = "";
+	}
+
 	/**
-	 * Return the username for which this connection as authorized or null if unauthorized
+	 * Try and decode the request body in accordance of the given content type
+	 *
+	 * @return null|Response null on success or a error Response to send
 	 */
+	public function decodeRequestBody(): ?Response {
+		if (!isset($this->request->body) || $this->request->body === "") {
+			return null;
+		}
+		if (!isset($this->request->headers['content-type'])) {
+			return new Response(Response::UNSUPPORTED_MEDIA_TYPE);
+		}
+		if (\Safe\preg_split("/;\s*/", $this->request->headers['content-type'])[0] === 'application/json') {
+			try {
+				$this->request->decodedBody = \Safe\json_decode($this->request->body);
+				return null;
+			} catch (Throwable $error) {
+				return new Response(Response::BAD_REQUEST, [], "Invalid JSON given: ".$error->getMessage());
+			}
+		}
+		if (\Safe\preg_split("/;\s*/", $this->request->headers['content-type'])[0] === 'application/x-www-form-urlencoded') {
+			$parts = explode("&", $this->request->body);
+			$result = new stdClass();
+			foreach ($parts as $part) {
+				$kv = array_map("urldecode", explode("=", $part, 2));
+				$result->{$kv[0]} = $kv[1] ?? null;
+			}
+			$this->request->decodedBody = $result;
+			return null;
+		}
+		return new Response(Response::UNSUPPORTED_MEDIA_TYPE);
+	}
+
+	/**
+	 * Read a \r\n terminated line from the socket and return it
+	 *
+	 * @param AsyncSocket $socket The socket to read from
+	 *
+	 * @return null|string The read line or null on error
+	 */
+	protected function readSocketLine(AsyncSocket $socket): ?string {
+		$lowSocket = $socket->getSocket();
+		if (!isset($lowSocket) || !is_resource($lowSocket)) {
+			$this->logger->info('Error reading a line from socket: ' . (error_get_last()["message"]??""));
+			$socket->close();
+			return null;
+		}
+		$buffer = fgets($lowSocket, 4098);
+		if ($buffer === false) {
+			$this->logger->info('Error reading a line from socket: ' . (error_get_last()["message"]??""));
+			$socket->close();
+			return null;
+		}
+		$trimmedData = rtrim($buffer);
+		// This can be cost intensive to calculate, so only do it if really needed
+		if ($this->logger->isEnabledFor('TRACE')) {
+			$this->logger->debug(
+				'Read data: ' . $this->dataToLogString($buffer)
+			);
+		}
+		if (strlen($buffer) > 4096) {
+			$this->logger->info('Line was longer than the allowed length of 4096 bytes');
+			$this->httpError(new Response(Response::REQUEST_HEADER_FIELDS_TOO_LARGE));
+			return null;
+		}
+		return $trimmedData;
+	}
+
+	protected function dataToLogString(string $data): string {
+		return '"' . preg_replace_callback(
+			"/[^\x20-\x7E]/",
+			function (array $match): string {
+				if ($match[0] === "\r") {
+					return "\\r";
+				}
+				if ($match[0] === "\n") {
+					return "\\n";
+				}
+				return "\\" . sprintf("%02X", ord($match[0]));
+			},
+			$data
+		) . '"';
+	}
+
+	/** Check if the client already has the latest version of the data */
+	protected function checkIfResponseDataChanged(Response $response): bool {
+		if (isset($this->request->headers['if-modified-since'], $response->headers['Last-Modified'])) {
+			$clientVersion = DateTime::createFromFormat(
+				DateTime::RFC7231,
+				$this->request->headers['if-modified-since']
+			);
+			$serverVersion = DateTime::createFromFormat(
+				DateTime::RFC7231,
+				$response->headers['Last-Modified']
+			);
+			if ($clientVersion->getTimestamp() >= $serverVersion->getTimestamp()) {
+				return false;
+			}
+		}
+		if (isset($this->request->headers['if-none-match'], $response->headers['ETag'])) {
+			$tags = \Safe\preg_split("/\s*,\s*/", $this->request->headers['if-none-match']);
+			foreach ($tags as $tag) {
+				if ($tag === '*' || $tag === $response->headers['ETag']) {
+					return false;
+				}
+			}
+		}
+		return true;
+	}
+
+	/** Return the username for which this connection as authorized or null if unauthorized */
 	protected function getAuthenticatedUser(): ?string {
 		if (strlen($this->request->headers["signature"]??"") > 16) {
 			return $this->webserverController->checkSignature(
@@ -431,63 +470,5 @@ class HttpProtocolWrapper {
 			return null;
 		}
 		return $authenticatedUser;
-	}
-
-	/**
-	 * Trigger the event handlers for the request
-	 */
-	public function handleRequest(): void {
-		$this->request->authenticatedAs = $this->getAuthenticatedUser();
-		$event = new HttpEvent();
-		$response = $this->decodeRequestBody();
-		if ($response instanceof Response) {
-			$this->httpError($response);
-			return;
-		}
-		$event->request = $this->request;
-		$event->type = "http(" . strtolower($this->request->method) . ")";
-		$this->logger->info("Firing {$event->type} event");
-		$this->eventManager->fireEvent($event, $this);
-		$this->request = new Request();
-		$this->nextPart = static::EXPECT_REQUEST;
-		$this->readQueue = "";
-	}
-
-	/**
-	 * Try and decode the request body in accordance of the given content type
-	 * @return null|Response null on success or a error Response to send
-	 */
-	public function decodeRequestBody(): ?Response {
-		if (!isset($this->request->body) || $this->request->body === "") {
-			return null;
-		}
-		if (!isset($this->request->headers['content-type'])) {
-			return new Response(Response::UNSUPPORTED_MEDIA_TYPE);
-		}
-		if (\Safe\preg_split("/;\s*/", $this->request->headers['content-type'])[0] === 'application/json') {
-			try {
-				$this->request->decodedBody = \Safe\json_decode($this->request->body);
-				return null;
-			} catch (Throwable $error) {
-				return new Response(Response::BAD_REQUEST, [], "Invalid JSON given: ".$error->getMessage());
-			}
-		}
-		if (\Safe\preg_split("/;\s*/", $this->request->headers['content-type'])[0] === 'application/x-www-form-urlencoded') {
-			$parts = explode("&", $this->request->body);
-			$result = new stdClass();
-			foreach ($parts as $part) {
-				$kv = array_map("urldecode", explode("=", $part, 2));
-				$result->{$kv[0]} = $kv[1] ?? null;
-			}
-			$this->request->decodedBody = $result;
-			return null;
-		}
-		return new Response(Response::UNSUPPORTED_MEDIA_TYPE);
-	}
-
-	public function __destruct() {
-		if (isset($this->logger)) {
-			$this->logger->info(get_class() . ' destroyed');
-		}
 	}
 }

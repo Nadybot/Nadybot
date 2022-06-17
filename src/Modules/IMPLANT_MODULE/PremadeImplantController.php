@@ -68,12 +68,69 @@ class PremadeImplantController extends ModuleInstance {
 
 		if (!empty($results)) {
 			$blob = trim($this->formatResults($results));
-			$msg = $this->text->makeBlob("Implant Search Results for '$searchTerms'", $blob);
+			$msg = $this->text->makeBlob("Implant Search Results for '{$searchTerms}'", $blob);
 		} else {
 			$msg = "No results found.";
 		}
 
 		$context->reply($msg);
+	}
+
+	/** @return PremadeSearchResult[] */
+	public function searchByProfession(string $profession): array {
+		$query = $this->getBaseQuery()->where("p2.Name", $profession);
+		return $query->asObj(PremadeSearchResult::class)->toArray();
+	}
+
+	/** @return PremadeSearchResult[] */
+	public function searchBySlot(string $slot): array {
+		$query = $this->getBaseQuery()->where("i.ShortName", $slot);
+		return $query->asObj(PremadeSearchResult::class)->toArray();
+	}
+
+	/** @return PremadeSearchResult[] */
+	public function searchByModifier(string $modifier): array {
+		$skills = $this->whatBuffsController->searchForSkill($modifier);
+		if (!count($skills)) {
+			return [];
+		}
+		$skillIds = array_map(
+			function (Skill $s): int {
+				return $s->id;
+			},
+			$skills
+		);
+		$query = $this->getBaseQuery()
+			->whereIn("c1.SkillID", $skillIds)
+			->orWhereIn("c2.SkillID", $skillIds)
+			->orWhereIn("c3.SkillID", $skillIds);
+
+		return $query->asObj(PremadeSearchResult::class)->toArray();
+	}
+
+	/** @param PremadeSearchResult[] $implants */
+	public function formatResults(array $implants): string {
+		$blob = "";
+		$slotMap = [];
+		foreach ($implants as $implant) {
+			$slotMap[$implant->slot] ??= [];
+			$slotMap[$implant->slot] []= $implant;
+		}
+		foreach ($slotMap as $slot => $implants) {
+			$blob .= "<header2>{$slot}<end>\n";
+			foreach ($implants as $implant) {
+				$blob .= $this->getFormattedLine($implant);
+			}
+		}
+
+		return $blob;
+	}
+
+	public function getFormattedLine(PremadeSearchResult $implant): string {
+		return "<tab><highlight>{$implant->profession}<end> ({$implant->ability})\n".
+			"<tab>S: {$implant->shiny}\n".
+			"<tab>B: {$implant->bright}\n".
+			"<tab>F: {$implant->faded}\n\n";
 	}
 
 	protected function getBaseQuery(): QueryBuilder {
@@ -105,70 +162,5 @@ class PremadeImplantController extends ModuleInstance {
 			"END AS " . $query->grammar->wrap("faded")
 		)->addBinding('N/A', 'select');
 		return $query;
-	}
-
-	/**
-	 * @return PremadeSearchResult[]
-	 */
-	public function searchByProfession(string $profession): array {
-		$query = $this->getBaseQuery()->where("p2.Name", $profession);
-		return $query->asObj(PremadeSearchResult::class)->toArray();
-	}
-
-	/**
-	 * @return PremadeSearchResult[]
-	 */
-	public function searchBySlot(string $slot): array {
-		$query = $this->getBaseQuery()->where("i.ShortName", $slot);
-		return $query->asObj(PremadeSearchResult::class)->toArray();
-	}
-
-	/**
-	 * @return PremadeSearchResult[]
-	 */
-	public function searchByModifier(string $modifier): array {
-		$skills = $this->whatBuffsController->searchForSkill($modifier);
-		if (!count($skills)) {
-			return [];
-		}
-		$skillIds = array_map(
-			function(Skill $s): int {
-				return $s->id;
-			},
-			$skills
-		);
-		$query = $this->getBaseQuery()
-			->whereIn("c1.SkillID", $skillIds)
-			->orWhereIn("c2.SkillID", $skillIds)
-			->orWhereIn("c3.SkillID", $skillIds);
-
-		return $query->asObj(PremadeSearchResult::class)->toArray();
-	}
-
-	/**
-	 * @param PremadeSearchResult[] $implants
-	 */
-	public function formatResults(array $implants): string {
-		$blob = "";
-		$slotMap = [];
-		foreach ($implants as $implant) {
-			$slotMap[$implant->slot] ??= [];
-			$slotMap[$implant->slot] []= $implant;
-		}
-		foreach ($slotMap as $slot => $implants) {
-			$blob .= "<header2>{$slot}<end>\n";
-			foreach ($implants as $implant) {
-				$blob .= $this->getFormattedLine($implant);
-			}
-		}
-
-		return $blob;
-	}
-
-	public function getFormattedLine(PremadeSearchResult $implant): string {
-		return "<tab><highlight>{$implant->profession}<end> ({$implant->ability})\n".
-			"<tab>S: $implant->shiny\n".
-			"<tab>B: $implant->bright\n".
-			"<tab>F: $implant->faded\n\n";
 	}
 }

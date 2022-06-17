@@ -14,6 +14,7 @@ class Request {
 	public array $headers = [];
 	public ?string $body = null;
 	public mixed $decodedBody = null;
+
 	/** @var array<string,mixed> */
 	public array $query = [];
 	public string $method;

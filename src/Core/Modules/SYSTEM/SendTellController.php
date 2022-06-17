@@ -3,15 +3,15 @@
 namespace Nadybot\Core\Modules\SYSTEM;
 
 use Generator;
+use Nadybot\Core\ParamClass\PCharacter;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
-	ModuleInstance,
 	LoggerWrapper,
+	ModuleInstance,
 	Nadybot,
 	QueueInterface,
 };
-use Nadybot\Core\ParamClass\PCharacter;
 
 /**
  * @author Tyrence (RK2)
@@ -25,7 +25,7 @@ use Nadybot\Core\ParamClass\PCharacter;
 	)
 ]
 class SendTellController extends ModuleInstance {
-		#[NCA\Logger]
+	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
 	#[NCA\Inject]

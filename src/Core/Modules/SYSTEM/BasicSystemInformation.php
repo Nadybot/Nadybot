@@ -8,6 +8,7 @@ class BasicSystemInformation {
 
 	/**
 	 * Name(s) of the character(s) running the bot, empty if not set
+	 *
 	 * @var string[]
 	 */
 	public array $superadmins;

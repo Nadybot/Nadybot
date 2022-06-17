@@ -2,17 +2,13 @@
 
 namespace Nadybot\Core\Modules\PLAYER_LOOKUP;
 
-use function Amp\asyncCall;
-use function Amp\call;
-use function Safe\json_decode;
+use function Amp\{asyncCall, call};
 
+use function Safe\json_decode;
 use Amp\Cache\FileCache;
-use Amp\Http\Client\HttpClientBuilder;
-use Amp\Http\Client\Request;
-use Amp\Http\Client\Response;
+use Amp\Http\Client\{HttpClientBuilder, Request, Response};
 use Amp\Promise;
 use Amp\Sync\LocalKeyedMutex;
-use Safe\Exceptions\JsonException;
 use Generator;
 use Nadybot\Core\{
 	Attributes as NCA,
@@ -20,6 +16,7 @@ use Nadybot\Core\{
 	ConfigFile,
 	ModuleInstance,
 };
+use Safe\Exceptions\JsonException;
 
 #[NCA\Instance]
 class PlayerHistoryManager extends ModuleInstance {
@@ -43,9 +40,9 @@ class PlayerHistoryManager extends ModuleInstance {
 	public function asyncLookup2(string $name, int $dimension): Promise {
 		return call(function () use ($name, $dimension): Generator {
 			$name = ucfirst(strtolower($name));
-			$url = "https://pork.jkbff.com/pork/history.php?server=${dimension}&name={$name}";
+			$url = "https://pork.jkbff.com/pork/history.php?server={$dimension}&name={$name}";
 			$groupName = "player_history";
-			$cacheKey = "$name.$dimension.history";
+			$cacheKey = "{$name}.{$dimension}.history";
 			$cache = new FileCache(
 				$this->config->cacheFolder . "/{$groupName}",
 				new LocalKeyedMutex(),
@@ -54,6 +51,7 @@ class PlayerHistoryManager extends ModuleInstance {
 				return $this->parsePlayerHistory($body, $name);
 			}
 			$client = $this->builder->build();
+
 			/** @var Response */
 			$response = yield $client->request(new Request($url));
 			if ($response->getStatus() !== 200) {
@@ -71,11 +69,11 @@ class PlayerHistoryManager extends ModuleInstance {
 	/** @deprecated */
 	public function lookup(string $name, int $dimension): ?PlayerHistory {
 		$name = ucfirst(strtolower($name));
-		$url = "https://pork.jkbff.com/pork/history.php?server=$dimension&name=$name";
+		$url = "https://pork.jkbff.com/pork/history.php?server={$dimension}&name={$name}";
 		$groupName = "player_history";
-		$filename = "$name.$dimension.history.json";
+		$filename = "{$name}.{$dimension}.history.json";
 		$maxCacheAge = 86400;
-		$cb = function(?string $data): bool {
+		$cb = function (?string $data): bool {
 			return isset($data) && $data !== "[]";
 		};
 
@@ -83,9 +81,7 @@ class PlayerHistoryManager extends ModuleInstance {
 		return $this->parsePlayerHistory($cacheResult->data??"", $name);
 	}
 
-	/**
-	 * @psalm-param callable(?PlayerHistory, mixed...) $callback
-	 */
+	/** @psalm-param callable(?PlayerHistory, mixed...) $callback */
 	private function parsePlayerHistory(string $data, string $name): ?PlayerHistory {
 		$obj = new PlayerHistory();
 		$obj->name = $name;

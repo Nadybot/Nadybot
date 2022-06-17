@@ -9,6 +9,7 @@ class Nominatim extends JSONDataModel {
 	public string $lat;
 	public string $lon;
 	public string $display_name;
+
 	/** @var string[] */
 	public array $boundingbox;
 	public int $place_id;

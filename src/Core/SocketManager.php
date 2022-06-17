@@ -36,9 +36,7 @@ class SocketManager {
 		}
 	}
 
-	/**
-	 * Removes given socket notifier from list of sockets being monitored.
-	 */
+	/** Removes given socket notifier from list of sockets being monitored. */
 	public function removeSocketNotifier(SocketNotifier $socketNotifier): void {
 		if ($socketNotifier->getType() & SocketNotifier::ACTIVITY_READ) {
 			if (isset($socketNotifier->readHandle)) {

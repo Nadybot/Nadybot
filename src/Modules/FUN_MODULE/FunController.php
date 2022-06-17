@@ -84,7 +84,7 @@ class FunController extends ModuleInstance {
 		$this->db->loadCSVFile($this->moduleName, __DIR__ . "/compliment.csv");
 	}
 
-	public function getFunItem(string $type, string $sender, int $number=null): string {
+	public function getFunItem(string $type, string $sender, ?int $number=null): string {
 		/** @var Collection<Fun> */
 		$data = $this->db->table("fun")
 			->where("type", $type)

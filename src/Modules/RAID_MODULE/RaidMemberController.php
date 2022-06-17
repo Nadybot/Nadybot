@@ -8,16 +8,16 @@ use function Amp\Promise\all;
 use Amp\Promise;
 use Generator;
 use Nadybot\Core\{
-	Attributes as NCA,
 	AOChatEvent,
+	Attributes as NCA,
 	CmdContext,
 	CommandAlias,
 	DB,
 	EventManager,
 	MessageHub,
 	ModuleInstance,
-	Modules\PLAYER_LOOKUP\PlayerManager,
 	Modules\ALTS\AltsController,
+	Modules\PLAYER_LOOKUP\PlayerManager,
 	Nadybot,
 	ParamClass\PCharacter,
 	Routing\RoutableMessage,
@@ -108,15 +108,7 @@ class RaidMemberController extends ModuleInstance {
 	)]
 	public int $raidAnnounceFull = 0;
 
-	protected function routeMessage(string $type, string $message): int {
-		$rMessage = new RoutableMessage($message);
-		$rMessage->prependPath(new Source("raid", $type));
-		return $this->messageHub->handle($rMessage);
-	}
-
-	/**
-	 * Resume an old raid after a bot restart
-	 */
+	/** Resume an old raid after a bot restart */
 	public function resumeRaid(Raid $raid): void {
 		$this->db->table(self::DB_TABLE)
 			->where("raid_id", $raid->raid_id)
@@ -128,9 +120,7 @@ class RaidMemberController extends ModuleInstance {
 			->keyBy("player")->toArray();
 	}
 
-	/**
-	 * Add player $player to the raid by player $sender
-	 */
+	/** Add player $player to the raid by player $sender */
 	public function joinRaid(string $sender, string $player, ?string $source, bool $force=false): ?string {
 		$raid = $this->raidController->raid;
 		if ($raid === null) {
@@ -238,9 +228,7 @@ class RaidMemberController extends ModuleInstance {
 		return $msg;
 	}
 
-	/**
-	 * Remove player $player from the raid by player $sender
-	 */
+	/** Remove player $player from the raid by player $sender */
 	public function leaveRaid(?string $sender, string $player): ?string {
 		$raid = $this->raidController->raid;
 		if ($raid === null) {
@@ -362,6 +350,7 @@ class RaidMemberController extends ModuleInstance {
 
 	/**
 	 * Warn everyone on the private channel who's not in the raid $raid
+	 *
 	 * @return string[]
 	 */
 	public function sendNotInRaidWarning(Raid $raid): array {
@@ -403,6 +392,7 @@ class RaidMemberController extends ModuleInstance {
 
 	/**
 	 * kick everyone on the private channel who's not in the raid $raid
+	 *
 	 * @return string[]
 	 */
 	public function kickNotInRaid(Raid $raid, bool $all): array {
@@ -423,6 +413,7 @@ class RaidMemberController extends ModuleInstance {
 
 	/**
 	 * Get the blob for the !raid list command
+	 *
 	 * @return string[]
 	 */
 	public function getRaidListBlob(Raid $raid, bool $justBlob=false): array {
@@ -466,9 +457,9 @@ class RaidMemberController extends ModuleInstance {
 		foreach ($blobMsgs as &$msg) {
 			$msg = "<highlight>{$active}<end> active ".
 				"and <highlight>{$inactive}<end> inactive ".
-				"player" . (($inactive !== 1) ? "s" : "") . " in the raid :: $msg";
+				"player" . (($inactive !== 1) ? "s" : "") . " in the raid :: {$msg}";
 		}
-		return  $blobMsgs;
+		return $blobMsgs;
 	}
 
 	/**
@@ -497,7 +488,7 @@ class RaidMemberController extends ModuleInstance {
 					"{$pInfo->level}/{$pInfo->ai_level} ".
 					"<" . strtolower($pInfo->faction) . ">{$pInfo->faction}<end>".
 					" [".
-					$this->text->makeChatcmd("Raid Kick", "/tell <myname> raid kick $name").
+					$this->text->makeChatcmd("Raid Kick", "/tell <myname> raid kick {$name}").
 					"]";
 				$lines []= $line;
 			}
@@ -520,7 +511,7 @@ class RaidMemberController extends ModuleInstance {
 			$blobs = (array)$this->text->makeBlob("click to view", $blob, "Players in the raid");
 			foreach ($blobs as &$msg) {
 				$msg = "<highlight>" . count($activePlayers) . "<end> player".
-					((count($activePlayers) !== 1) ? "s" : "") . " in the raid :: $msg";
+					((count($activePlayers) !== 1) ? "s" : "") . " in the raid :: {$msg}";
 			}
 			return $blobs;
 		});
@@ -535,5 +526,11 @@ class RaidMemberController extends ModuleInstance {
 			return;
 		}
 		$this->leaveRaid(null, $eventObj->sender);
+	}
+
+	protected function routeMessage(string $type, string $message): int {
+		$rMessage = new RoutableMessage($message);
+		$rMessage->prependPath(new Source("raid", $type));
+		return $this->messageHub->handle($rMessage);
 	}
 }

@@ -52,7 +52,7 @@ class StatsController extends ModuleInstance {
 			$this->assignRandomAuthToken();
 		}
 		$collectors = [
-			"ao_data" => [new AoDataInbound(), new AoDataOutbound],
+			"ao_data" => [new AoDataInbound(), new AoDataOutbound()],
 			"buddylist" => [new BuddylistSize(), new BuddylistOnline(), new BuddylistOffline()],
 			"memory" => [new MemoryRealUsage(), new MemoryUsage(), new MemoryPeakUsage()],
 		];
@@ -66,14 +66,6 @@ class StatsController extends ModuleInstance {
 		Registry::injectDependencies($aoPackets);
 		$this->registerDataset($aoPackets, "ao_packets");
 		$this->registerDataset(new CmdStats("cmd_times"), "cmd_times");
-	}
-
-	private function assignRandomAuthToken(): void {
-		$this->settingManager->save("prometheus_auth_token", $this->util->getPassword(16));
-	}
-
-	private function assignEmptyAuthToken(): void {
-		$this->settingManager->save("prometheus_auth_token", "");
 	}
 
 	#[NCA\SettingChangeHandler('prometheus_enabled')]
@@ -140,5 +132,13 @@ class StatsController extends ModuleInstance {
 			}
 		}
 		return join("\n\n", $lines);
+	}
+
+	private function assignRandomAuthToken(): void {
+		$this->settingManager->save("prometheus_auth_token", $this->util->getPassword(16));
+	}
+
+	private function assignEmptyAuthToken(): void {
+		$this->settingManager->save("prometheus_auth_token", "");
 	}
 }

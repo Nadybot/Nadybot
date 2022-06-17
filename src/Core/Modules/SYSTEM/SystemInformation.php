@@ -20,6 +20,7 @@ class SystemInformation {
 
 	/**
 	 * Which channels is the bot listening to
+	 *
 	 * @var ChannelInfo[]
 	 */
 	public array $channels = [];

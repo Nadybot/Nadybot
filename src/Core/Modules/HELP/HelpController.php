@@ -13,10 +13,10 @@ use Nadybot\Core\{
 	CmdContext,
 	CommandAlias,
 	CommandManager,
-	Modules\CONFIG\ConfigController,
 	DB,
 	HelpManager,
 	ModuleInstance,
+	Modules\CONFIG\ConfigController,
 	Modules\PREFERENCES\Preferences,
 	Nadybot,
 	SettingManager,
@@ -94,7 +94,7 @@ class HelpController extends ModuleInstance {
 			$data = yield filesystem()->read(__DIR__ . "/about.txt");
 			$version = BotRunner::getVersion();
 			$data = str_replace('<version>', $version, $data);
-			return $this->text->makeBlob("About Nadybot $version", $data);
+			return $this->text->makeBlob("About Nadybot {$version}", $data);
 		});
 	}
 
@@ -118,7 +118,7 @@ class HelpController extends ModuleInstance {
 				$blob .= "\n<pagebreak><header2>{$row->module}<end>\n";
 				$currentModule = $row->module;
 			}
-			$helpLink = $this->text->makeChatcmd($row->name, "/tell <myname> help $row->name");
+			$helpLink = $this->text->makeChatcmd($row->name, "/tell <myname> help {$row->name}");
 			$blob .= "<tab>{$helpLink}: {$row->description}\n";
 		}
 
@@ -160,19 +160,21 @@ class HelpController extends ModuleInstance {
 		#[NCA\Str("modules")] string $action
 	): void {
 		$modules = $this->chatBot->runner->classLoader->registeredModules;
+
 		/** @var array<string,string> */
 		$data = [];
 		foreach ($modules as $module => $path) {
 			$data[$module] = $this->configController->getModuleDescription($module) ?? "&lt;no description&gt;";
 			$data[$module] = preg_replace_callback(
 				"/(https?:\/\/[^\s\n<]+)/s",
-				function(array $matches): string {
+				function (array $matches): string {
 					return $this->text->makeChatcmd($matches[1], "/start {$matches[1]}");
 				},
 				$data[$module]
 			);
 		}
 		ksort($data);
+
 		/** @var string[] */
 		$blobs = [];
 		foreach ($data as $module => $description) {
@@ -242,7 +244,7 @@ class HelpController extends ModuleInstance {
 			return;
 		}
 		$topic = ucfirst($topic);
-		$msg = $this->text->makeBlob("Help ($topic)", $blob);
+		$msg = $this->text->makeBlob("Help ({$topic})", $blob);
 		$context->reply($msg);
 	}
 }

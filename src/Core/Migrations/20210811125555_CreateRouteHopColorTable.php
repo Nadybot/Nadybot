@@ -14,16 +14,9 @@ use Nadybot\Core\{
 };
 
 class CreateRouteHopColorTable implements SchemaMigration {
-	protected function getSetting(DB $db, string $name): ?Setting {
-		return $db->table(SettingManager::DB_TABLE)
-			->where("name", $name)
-			->asObj(Setting::class)
-			->first();
-	}
-
 	public function migrate(LoggerWrapper $logger, DB $db): void {
 		$table = MessageHub::DB_TABLE_COLORS;
-		$db->schema()->create($table, function(Blueprint $table): void {
+		$db->schema()->create($table, function (Blueprint $table): void {
 			$table->id();
 			$table->string("hop", 50)->default('*');
 			$table->string("where", 50)->nullable(true);
@@ -64,5 +57,12 @@ class CreateRouteHopColorTable implements SchemaMigration {
 			"where" => Source::PRIV . "(" . $db->getMyname() . ")",
 			"text_color" => $matches[1]??"",
 		]);
+	}
+
+	protected function getSetting(DB $db, string $name): ?Setting {
+		return $db->table(SettingManager::DB_TABLE)
+			->where("name", $name)
+			->asObj(Setting::class)
+			->first();
 	}
 }

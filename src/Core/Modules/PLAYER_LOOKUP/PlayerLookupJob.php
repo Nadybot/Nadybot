@@ -2,14 +2,10 @@
 
 namespace Nadybot\Core\Modules\PLAYER_LOOKUP;
 
-use function Amp\call;
-use function Amp\asyncCall;
-use function Amp\delay;
-
+use function Amp\{asyncCall, call, delay};
 use Amp\Promise;
 use Generator;
 use Illuminate\Support\Collection;
-use Throwable;
 use Nadybot\Core\{
 	Attributes as NCA,
 	DB,
@@ -18,6 +14,7 @@ use Nadybot\Core\{
 	Nadybot,
 	QueryBuilder,
 };
+use Throwable;
 
 class PlayerLookupJob {
 	#[NCA\Inject]
@@ -39,6 +36,7 @@ class PlayerLookupJob {
 
 	/**
 	 * Get a list of character names in need of updates
+	 *
 	 * @return Collection<Player>
 	 */
 	public function getOudatedCharacters(): Collection {
@@ -49,6 +47,7 @@ class PlayerLookupJob {
 
 	/**
 	 * Get a list of character names who are alts without info
+	 *
 	 * @return Collection<Player>
 	 */
 	public function getMissingAlts(): Collection {
@@ -68,6 +67,7 @@ class PlayerLookupJob {
 
 	/**
 	 * Start the lookup job and call the callback when done
+	 *
 	 * @psalm-param callable(mixed...) $callback
 	 */
 	public function run(callable $callback, mixed ...$args): void {

@@ -12,6 +12,7 @@ use Nadybot\Core\Routing\RoutableEvent;
  */
 class MessageQueue implements Iterator, Countable {
 	private int $maxLength = 10;
+
 	/** @var RoutableEvent[] */
 	private array $msgs = [];
 

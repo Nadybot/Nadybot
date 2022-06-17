@@ -14,8 +14,7 @@ use Nadybot\Core\{
 #[
 	NCA\EventModifier(
 		name: "change-message",
-		description:
-			"This modifier allows you to modify the message of an\n".
+		description: "This modifier allows you to modify the message of an\n".
 			"event by replacing text, or adding a prefix."
 	),
 	NCA\Param(
@@ -68,24 +67,6 @@ class ChangeMessage implements EventModifier {
 		}
 	}
 
-	protected function alterMessage(string $message): string {
-		if (isset($this->search) && isset($this->replace)) {
-			if ($this->isRegExp) {
-				$message = preg_replace(
-					chr(1) . $this->search . chr(1) . "s",
-					$this->replace,
-					$message
-				);
-			} else {
-				$message = str_replace($this->search, $this->replace, $message);
-			}
-		}
-		if (isset($this->addPrefix)) {
-			$message = "{$this->addPrefix}{$message}";
-		}
-		return $message;
-	}
-
 	public function modify(?RoutableEvent $event=null): ?RoutableEvent {
 		if (!isset($event)) {
 			return $event;
@@ -114,5 +95,23 @@ class ChangeMessage implements EventModifier {
 		$modifiedEvent = clone $event;
 		$modifiedEvent->setData($message);
 		return $modifiedEvent;
+	}
+
+	protected function alterMessage(string $message): string {
+		if (isset($this->search, $this->replace)) {
+			if ($this->isRegExp) {
+				$message = preg_replace(
+					chr(1) . $this->search . chr(1) . "s",
+					$this->replace,
+					$message
+				);
+			} else {
+				$message = str_replace($this->search, $this->replace, $message);
+			}
+		}
+		if (isset($this->addPrefix)) {
+			$message = "{$this->addPrefix}{$message}";
+		}
+		return $message;
 	}
 }

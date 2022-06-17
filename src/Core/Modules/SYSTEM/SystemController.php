@@ -11,8 +11,8 @@ use Generator;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	AccessManager,
-	Attributes as NCA,
 	AdminManager,
+	Attributes as NCA,
 	BuddylistManager,
 	CmdContext,
 	CommandAlias,
@@ -23,10 +23,10 @@ use Nadybot\Core\{
 	Event,
 	EventManager,
 	HelpManager,
-	ModuleInstance,
 	LoggerWrapper,
 	MessageEmitter,
 	MessageHub,
+	ModuleInstance,
 	Nadybot,
 	ParamClass\PCharacter,
 	PrivateMessageCommandReply,
@@ -428,7 +428,7 @@ class SystemController extends ModuleInstance implements MessageEmitter {
 					"<end>\n";
 			}
 		}
-		$blob .= "<tab>Bot Uptime: <highlight>$date_string<end>\n\n";
+		$blob .= "<tab>Bot Uptime: <highlight>{$date_string}<end>\n\n";
 
 		$blob .= "<header2>Configuration<end>\n";
 		foreach ($info->config->active_commands as $cmdChannelStats) {
@@ -448,7 +448,7 @@ class SystemController extends ModuleInstance implements MessageEmitter {
 		$blob .= "<tab>Messages in the chat queue: <highlight>{$info->stats->chatqueue_length}<end>\n\n";
 
 		$blob .= "<header2>Public Channels<end>\n";
-		usort($info->channels, function(ChannelInfo $c1, ChannelInfo $c2): int {
+		usort($info->channels, function (ChannelInfo $c1, ChannelInfo $c2): int {
 			return ($c1->class <=> $c2->class) ?: $c1->id <=> $c2->id;
 		});
 		foreach ($info->channels as $channel) {
@@ -466,7 +466,7 @@ class SystemController extends ModuleInstance implements MessageEmitter {
 
 		$msg = "Access level for <highlight>{$context->char->name}<end> (".
 			(isset($context->char->id) ? "ID {$context->char->id}" : "No ID").
-			") is <highlight>$accessLevel<end>.";
+			") is <highlight>{$accessLevel}<end>.";
 		$context->reply($msg);
 	}
 
@@ -479,7 +479,7 @@ class SystemController extends ModuleInstance implements MessageEmitter {
 			return;
 		}
 		$accessLevel = $this->accessManager->getDisplayName($this->accessManager->getAccessLevelForCharacter($character()));
-		$msg = "Access level for <highlight>{$character}<end> (ID {$uid}) is <highlight>$accessLevel<end>.";
+		$msg = "Access level for <highlight>{$character}<end> (ID {$uid}) is <highlight>{$accessLevel}<end>.";
 		$context->reply($msg);
 	}
 
@@ -541,7 +541,7 @@ class SystemController extends ModuleInstance implements MessageEmitter {
 		}
 
 		$version = $this->chatBot->runner::getVersion();
-		$msg = "Nadybot <highlight>$version<end> is now <on>online<end>.";
+		$msg = "Nadybot <highlight>{$version}<end> is now <on>online<end>.";
 
 		// send a message to guild channel
 		$rMsg = new RoutableMessage($msg);

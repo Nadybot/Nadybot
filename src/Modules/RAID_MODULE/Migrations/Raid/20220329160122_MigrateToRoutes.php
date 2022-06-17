@@ -13,13 +13,6 @@ use Nadybot\Core\{
 };
 
 class MigrateToRoutes implements SchemaMigration {
-	protected function getSetting(DB $db, string $name): ?Setting {
-		return $db->table(SettingManager::DB_TABLE)
-			->where("name", $name)
-			->asObj(Setting::class)
-			->first();
-	}
-
 	public function migrate(LoggerWrapper $logger, DB $db): void {
 		$route = [
 			"source" => "raid(*)",
@@ -47,5 +40,12 @@ class MigrateToRoutes implements SchemaMigration {
 				"value" => $raidInformMemberBeingAdded ? "1" : "0",
 				"type" => 'bool',
 			]);
+	}
+
+	protected function getSetting(DB $db, string $name): ?Setting {
+		return $db->table(SettingManager::DB_TABLE)
+			->where("name", $name)
+			->asObj(Setting::class)
+			->first();
 	}
 }

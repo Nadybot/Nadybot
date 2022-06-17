@@ -4,18 +4,15 @@ namespace Nadybot\Modules\DEV_MODULE;
 
 use Amp\Dns\DnsException;
 use Amp\Http\Client\Connection\UnprocessedRequestException;
-use Amp\Http\Client\HttpClientBuilder;
-use Amp\Http\Client\InvalidRequestException;
-use Amp\Http\Client\Request;
-use Amp\Http\Client\Response;
+use Amp\Http\Client\{HttpClientBuilder, InvalidRequestException, Request, Response};
 use Generator;
-use Safe\Exceptions\JsonException;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
 	ModuleInstance,
 	Text,
 };
+use Safe\Exceptions\JsonException;
 use Throwable;
 
 /**

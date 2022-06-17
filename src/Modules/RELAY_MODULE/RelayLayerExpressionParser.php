@@ -38,6 +38,7 @@ class RelayLayerExpressionParser {
 
 	/**
 	 * @return RelayLayer[]
+	 *
 	 * @throws LayerParserException
 	 */
 	public function parse(string $input): array {

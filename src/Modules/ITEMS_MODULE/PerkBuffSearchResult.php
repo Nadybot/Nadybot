@@ -8,6 +8,7 @@ class PerkBuffSearchResult extends DBRow {
 	public ?string $name;
 	public int $amount;
 	public int $perk_level;
+
 	/** @var array<string,int> */
 	public array $profMax = [];
 	public string $profs;

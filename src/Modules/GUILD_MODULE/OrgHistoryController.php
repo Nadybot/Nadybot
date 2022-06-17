@@ -4,8 +4,8 @@ namespace Nadybot\Modules\GUILD_MODULE;
 
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
-	Attributes as NCA,
 	AOChatEvent,
+	Attributes as NCA,
 	CmdContext,
 	DB,
 	ModuleInstance,
@@ -87,7 +87,7 @@ class OrgHistoryController extends ModuleInstance {
 			->orderByDesc("time")
 			->asObj(OrgHistory::class);
 		$count = $data->count();
-		$blob .= "\n<header2>Actions on $player ($count)<end>\n";
+		$blob .= "\n<header2>Actions on {$player} ({$count})<end>\n";
 		foreach ($data as $row) {
 			$blob .= $this->formatOrgAction($row);
 		}
@@ -98,12 +98,12 @@ class OrgHistoryController extends ModuleInstance {
 			->orderByDesc("time")
 			->asObj(OrgHistory::class);
 		$count = $data->count();
-		$blob .= "\n<header2>Actions by $player ($count)<end>\n";
+		$blob .= "\n<header2>Actions by {$player} ({$count})<end>\n";
 		foreach ($data as $row) {
 			$blob .= $this->formatOrgAction($row);
 		}
 
-		$msg = $this->text->makeBlob("Org History for $player", $blob);
+		$msg = $this->text->makeBlob("Org History for {$player}", $blob);
 
 		$context->reply($msg);
 	}
@@ -114,9 +114,9 @@ class OrgHistoryController extends ModuleInstance {
 			$time = $this->util->date($row->time);
 		}
 		if ($row->action === "left") {
-			return "<highlight>$row->actor<end> $row->action. [$row->organization] {$time}\n";
+			return "<highlight>{$row->actor}<end> {$row->action}. [{$row->organization}] {$time}\n";
 		}
-		return"<highlight>$row->actor<end> $row->action <highlight>$row->actee<end>. [$row->organization] {$time}\n";
+		return "<highlight>{$row->actor}<end> {$row->action} <highlight>{$row->actee}<end>. [{$row->organization}] {$time}\n";
 	}
 
 	#[NCA\Event(

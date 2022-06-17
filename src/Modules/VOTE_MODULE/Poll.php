@@ -2,14 +2,14 @@
 
 namespace Nadybot\Modules\VOTE_MODULE;
 
-use Nadybot\Core\Attributes as NCA;
-use Nadybot\Core\DBRow;
+use Nadybot\Core\{Attributes as NCA, DBRow};
 
 class Poll extends DBRow {
 	public int $id;
 	public string $author;
 	public string $question;
 	public string $possible_answers;
+
 	/** @var string[] */
 	#[NCA\DB\Ignore]
 	public array $answers = [];

@@ -2,8 +2,7 @@
 
 namespace Nadybot\Modules\RELAY_MODULE;
 
-use Nadybot\Core\Attributes as NCA;
-use Nadybot\Core\DBRow;
+use Nadybot\Core\{Attributes as NCA, DBRow};
 
 class RelayConfig extends DBRow {
 	/**
@@ -17,6 +16,7 @@ class RelayConfig extends DBRow {
 
 	/**
 	 * The individual layers that make up this relay
+	 *
 	 * @var RelayLayer[]
 	 */
 	#[NCA\DB\Ignore]
@@ -24,6 +24,7 @@ class RelayConfig extends DBRow {
 
 	/**
 	 * A list of events this relay allows in- and/or outbound
+	 *
 	 * @var RelayEvent[]
 	 */
 	#[NCA\DB\Ignore]

@@ -6,6 +6,7 @@ class RequestGuildMembers {
 	public ?string $query = "";
 	public int $limit = 0;
 	public ?bool $presences = null;
+
 	/** @var string[] */
 	public ?array $user_ids = null;
 	public ?string $nonce;

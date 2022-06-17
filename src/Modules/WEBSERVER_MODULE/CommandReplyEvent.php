@@ -7,6 +7,7 @@ use Nadybot\Core\Event;
 class CommandReplyEvent extends Event {
 	/**
 	 * An array with reply messages
+	 *
 	 * @var string[]
 	 */
 	public array $msgs = [];

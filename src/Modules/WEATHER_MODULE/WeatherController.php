@@ -6,15 +6,10 @@ use function Amp\call;
 use function Safe\json_decode;
 
 use Amp\Cache\ArrayCache;
-use Amp\Failure;
-use Amp\Http\Client\HttpClientBuilder;
 use Amp\Http\Client\Interceptor\AddRequestHeader;
-use Amp\Http\Client\Request;
-use Amp\Http\Client\Response;
-use Amp\Promise;
-use Amp\Success;
+use Amp\Http\Client\{HttpClientBuilder, Request, Response};
+use Amp\{Failure, Promise, Success};
 use Generator;
-use Safe\Exceptions\JsonException;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
@@ -22,6 +17,7 @@ use Nadybot\Core\{
 	Text,
 	UserException,
 };
+use Safe\Exceptions\JsonException;
 
 /**
  * @author Nadyita (RK5)
@@ -75,7 +71,9 @@ class WeatherController extends ModuleInstance {
 
 	/**
 	 * Lookup the coordinates of a location
+	 *
 	 * @psalm-param callable(HttpResponse, CmdContext, mixed...) $callback
+	 *
 	 * @return Promise<Nominatim>
 	 */
 	public function lookupLocation(string $location): Promise {
@@ -110,30 +108,6 @@ class WeatherController extends ModuleInstance {
 		});
 	}
 
-	/** @return Promise<Nominatim> */
-	private function decodeNominatim(string $body): Promise {
-		try {
-			$data = json_decode($body);
-		} catch (JsonException $e) {
-			return new Failure(new UserException(
-				"Invalid JSON received from Location provider: ".
-				"<highlight>{$body}<end>."
-			));
-		}
-		if (!is_array($data)) {
-			return new Failure(new UserException(
-				"Invalid answer received from Location provider: ".
-				"<highlight>" . print_r($data, true) . "<end>."
-			));
-		}
-		if (!count($data)) {
-			return new Failure(new UserException("Location not found"));
-		}
-		$nominatim = new Nominatim();
-		$nominatim->fromJSON($data[0]);
-		return new Success($nominatim);
-	}
-
 	/**
 	 * Lookup the weather for a location
 	 *
@@ -149,6 +123,7 @@ class WeatherController extends ModuleInstance {
 			$client = $this->builder
 				->intercept(new AddRequestHeader('accept-language', 'en'))
 				->build();
+
 			/** @var Response */
 			$response = yield $client->request(new Request($apiEndpoint));
 			if ($response->getStatus() !== 200) {
@@ -162,60 +137,7 @@ class WeatherController extends ModuleInstance {
 		});
 	}
 
-	/** @return Promise<Weather> */
-	private function decodeWeather(string $body): Promise {
-		try {
-			$data = json_decode($body);
-		} catch (JsonException $e) {
-			return new Failure(new UserException(
-				"Invalid JSON received from Weather provider: ".
-				"<highlight>{$body}<end>."
-			));
-		}
-		if (!is_object($data)) {
-			return new Failure(new UserException(
-				"Invalid answer received from Weather provider: ".
-				"<highlight>" . print_r($data, true) . "<end>."
-			));
-		}
-		$weather = new Weather();
-		$weather->fromJSON($data);
-		return new Success($weather);
-	}
-
-	/** @return string|string[] */
-	protected function getWeatherBlob(Nominatim $nominatim, Weather $weather): string|array {
-		$blob = $this->renderWeather($nominatim, $weather);
-		$placeParts = explode(", ", $nominatim->display_name);
-		$locationName = $placeParts[0];
-		// If we're being shown just a ZIP code or house number, add one more layer of info
-		if (preg_match("/^\d+/", $locationName)) {
-			$locationName = "{$placeParts[1]} {$locationName}";
-		}
-		$header = "The current weather for <highlight>{$locationName}<end>";
-		if (count($placeParts) > 2 && $nominatim->address->country_code === "us") {
-			$header .= ", " . $nominatim->address->state;
-		} elseif (count($placeParts) > 1) {
-			$header .= ", " . $nominatim->address->country;
-		}
-		$currentIcon = $weather->properties->timeseries[0]->data->next_1_hours->summary->symbol_code;
-		$currentSummary = $this->iconToForecastSummary($currentIcon);
-		$currentTemp = $weather->properties->timeseries[0]->data->instant->details->air_temperature;
-		$tempUnit = $this->nameToDegree($weather->properties->meta->units->air_temperature);
-		$blob = $this->text->makeBlob("details", $blob, strip_tags($header));
-
-		$msg = $this->text->blobWrap(
-			"$header: <highlight>{$currentTemp}{$tempUnit}<end>, ".
-			"<highlight>{$currentSummary}<end> [",
-			$blob,
-			"]"
-		);
-		return $msg;
-	}
-
-	/**
-	 * Try to convert a wind degree into a wind direction
-	 */
+	/** Try to convert a wind degree into a wind direction */
 	public function degreeToDirection(float $degree): string {
 		$mapping = [
 			  0 => "N",
@@ -247,9 +169,7 @@ class WeatherController extends ModuleInstance {
 		return $current;
 	}
 
-	/**
-	 * Convert the windspeed in m/s into the wind's strength according to beaufort
-	 */
+	/** Convert the windspeed in m/s into the wind's strength according to beaufort */
 	public function getWindStrength(float $speed): string {
 		$beaufortScale = [
 			'32.7' => 'hurricane',
@@ -276,7 +196,9 @@ class WeatherController extends ModuleInstance {
 
 	/**
 	 * Return a link to OpenStreetMap at the given coordinates
+	 *
 	 * @param \Nadybot\Modules\WEATHER_MODULE\Nominatim $nominatim The location object
+	 *
 	 * @return string The URL to OSM
 	 */
 	public function getOSMLink(Nominatim $nominatim): string {
@@ -284,24 +206,14 @@ class WeatherController extends ModuleInstance {
 		$lat = number_format((float)$nominatim->lat, 4);
 		$lon = number_format((float)$nominatim->lon, 4);
 
-		return "https://www.openstreetmap.org/#map=$zoom/$lat/$lon";
-	}
-
-	/**
-	 * Convert the written temperature unit to short
-	 * @param string $name Name of the unit ("celsius", "fahrenheit")
-	 * @return string
-	 */
-	protected function nameToDegree(string $name): string {
-		if ($name === 'fahrenheit') {
-			return "°F";
-		}
-		return "°C";
+		return "https://www.openstreetmap.org/#map={$zoom}/{$lat}/{$lon}";
 	}
 
 	/**
 	 * Convert a forecast icon (e.g. "heavysnowshowersandthunder") into a sentence
+	 *
 	 * @param string $icon The icon name
+	 *
 	 * @return string A forecast summary
 	 */
 	public function iconToForecastSummary(string $icon): string {
@@ -332,12 +244,12 @@ class WeatherController extends ModuleInstance {
 		$windStrength = $this->getWindStrength($currentWeather->wind_speed);
 		$osmLicence = preg_replace_callback(
 			"/(http[^ ]+)/",
-			function(array $matched) {
+			function (array $matched) {
 				return $this->text->makeChatcmd($matched[1], "/start ".$matched[1]);
 			},
 			lcfirst($nominatim->licence)
 		);
-		$blob = "Last Updated: <highlight>$lastUpdated<end><br>" .
+		$blob = "Last Updated: <highlight>{$lastUpdated}<end><br>" .
 			"<br>" .
 			"Location: <highlight>{$nominatim->display_name}<end><br>";
 		if ($nominatim->extratags->population) {
@@ -348,7 +260,7 @@ class WeatherController extends ModuleInstance {
 		$blob .= "Lat/Lon: <highlight>{$nominatim->lat}° {$nominatim->lon}°<end> {$mapCommand}<br>" .
 			"Height: <highlight>{$weather->geometry->coordinates[2]}m<end><br>" .
 			"<br>" .
-			"Currently: <highlight>{$currentWeather->air_temperature}{$tempDegree}<end>, <highlight>$currentSummary<end>";
+			"Currently: <highlight>{$currentWeather->air_temperature}{$tempDegree}<end>, <highlight>{$currentSummary}<end>";
 		if ($precipitation > 0) {
 			$blob .= " (<highlight>{$precipitation}{$units->precipitation_amount}<end> precipitation)";
 		}
@@ -361,10 +273,97 @@ class WeatherController extends ModuleInstance {
 		$blob .= "Clouds: <highlight>{$currentWeather->cloud_area_fraction}{$units->cloud_area_fraction}<end><br>" .
 			"Pressure: <highlight>{$currentWeather->air_pressure_at_sea_level} {$units->air_pressure_at_sea_level}<end><br>" .
 			"Humidity: <highlight>{$currentWeather->relative_humidity}{$units->relative_humidity}<end><br>" .
-			"Wind: <highlight>{$windStrength}<end> (<highlight>{$currentWeather->wind_speed} {$units->wind_speed}<end>) from <highlight>$windDirection<end><br>" .
+			"Wind: <highlight>{$windStrength}<end> (<highlight>{$currentWeather->wind_speed} {$units->wind_speed}<end>) from <highlight>{$windDirection}<end><br>" .
 			"<br><br>".
 			"Location search " . $osmLicence . "<br>".
 			"Weather forecast data by Meteorologisk institutt of Norway";
 		return $blob;
+	}
+
+	/** @return string|string[] */
+	protected function getWeatherBlob(Nominatim $nominatim, Weather $weather): string|array {
+		$blob = $this->renderWeather($nominatim, $weather);
+		$placeParts = explode(", ", $nominatim->display_name);
+		$locationName = $placeParts[0];
+		// If we're being shown just a ZIP code or house number, add one more layer of info
+		if (preg_match("/^\d+/", $locationName)) {
+			$locationName = "{$placeParts[1]} {$locationName}";
+		}
+		$header = "The current weather for <highlight>{$locationName}<end>";
+		if (count($placeParts) > 2 && $nominatim->address->country_code === "us") {
+			$header .= ", " . $nominatim->address->state;
+		} elseif (count($placeParts) > 1) {
+			$header .= ", " . $nominatim->address->country;
+		}
+		$currentIcon = $weather->properties->timeseries[0]->data->next_1_hours->summary->symbol_code;
+		$currentSummary = $this->iconToForecastSummary($currentIcon);
+		$currentTemp = $weather->properties->timeseries[0]->data->instant->details->air_temperature;
+		$tempUnit = $this->nameToDegree($weather->properties->meta->units->air_temperature);
+		$blob = $this->text->makeBlob("details", $blob, strip_tags($header));
+
+		$msg = $this->text->blobWrap(
+			"{$header}: <highlight>{$currentTemp}{$tempUnit}<end>, ".
+			"<highlight>{$currentSummary}<end> [",
+			$blob,
+			"]"
+		);
+		return $msg;
+	}
+
+	/**
+	 * Convert the written temperature unit to short
+	 *
+	 * @param string $name Name of the unit ("celsius", "fahrenheit")
+	 */
+	protected function nameToDegree(string $name): string {
+		if ($name === 'fahrenheit') {
+			return "°F";
+		}
+		return "°C";
+	}
+
+	/** @return Promise<Nominatim> */
+	private function decodeNominatim(string $body): Promise {
+		try {
+			$data = json_decode($body);
+		} catch (JsonException $e) {
+			return new Failure(new UserException(
+				"Invalid JSON received from Location provider: ".
+				"<highlight>{$body}<end>."
+			));
+		}
+		if (!is_array($data)) {
+			return new Failure(new UserException(
+				"Invalid answer received from Location provider: ".
+				"<highlight>" . print_r($data, true) . "<end>."
+			));
+		}
+		if (!count($data)) {
+			return new Failure(new UserException("Location not found"));
+		}
+		$nominatim = new Nominatim();
+		$nominatim->fromJSON($data[0]);
+		return new Success($nominatim);
+	}
+
+	/** @return Promise<Weather> */
+	private function decodeWeather(string $body): Promise {
+		try {
+			$data = json_decode($body);
+		} catch (JsonException $e) {
+			return new Failure(new UserException(
+				"Invalid JSON received from Weather provider: ".
+				"<highlight>{$body}<end>."
+			));
+		}
+		if (!is_object($data)) {
+			return new Failure(new UserException(
+				"Invalid answer received from Weather provider: ".
+				"<highlight>" . print_r($data, true) . "<end>."
+			));
+		}
+		$weather = new Weather();
+		$weather->fromJSON($data);
+		return new Success($weather);
 	}
 }

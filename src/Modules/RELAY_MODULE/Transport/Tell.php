@@ -5,8 +5,8 @@ namespace Nadybot\Modules\RELAY_MODULE\Transport;
 use function Amp\Promise\rethrow;
 
 use Nadybot\Core\{
-	Attributes as NCA,
 	AOChatEvent,
+	Attributes as NCA,
 	BuddylistManager,
 	EventManager,
 	Nadybot,
@@ -22,8 +22,7 @@ use Nadybot\Modules\RELAY_MODULE\{
 #[
 	NCA\RelayTransport(
 		name: "tell",
-		description:
-			"This is the Anarchy Online private message (tell) protocol.\n".
+		description: "This is the Anarchy Online private message (tell) protocol.\n".
 			"You can use this to relay messages internally inside Anarchy Online\n".
 			"via sending tells. This is the simplest form of relaying messages.\n".
 			"Be aware though, that tells are rate-limited and will very likely\n".
@@ -103,7 +102,7 @@ class Tell implements TransportInterface {
 		if (isset($this->initCallback)) {
 			return;
 		}
-		$this->relay->deinit(function(Relay $relay): void {
+		$this->relay->deinit(function (Relay $relay): void {
 			$relay->init();
 		});
 	}

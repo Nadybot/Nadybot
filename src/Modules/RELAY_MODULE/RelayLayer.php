@@ -2,8 +2,7 @@
 
 namespace Nadybot\Modules\RELAY_MODULE;
 
-use Nadybot\Core\Attributes as NCA;
-use Nadybot\Core\DBRow;
+use Nadybot\Core\{Attributes as NCA, DBRow};
 
 class RelayLayer extends DBRow {
 	/**
@@ -30,7 +29,7 @@ class RelayLayer extends DBRow {
 	/** @param string[] $secrets */
 	public function toString(?string $linkType=null, array $secrets=[]): string {
 		$arguments = array_map(
-			function(RelayLayerArgument $argument) use ($secrets): string {
+			function (RelayLayerArgument $argument) use ($secrets): string {
 				return $argument->toString(in_array($argument->name, $secrets));
 			},
 			$this->arguments
@@ -43,13 +42,11 @@ class RelayLayer extends DBRow {
 			$this->layer . "</a>{$argString}";
 	}
 
-	/**
-	 * @return array<string,string>
-	 */
+	/** @return array<string,string> */
 	public function getKVArguments(): array {
 		return array_reduce(
 			$this->arguments,
-			function(array $kv, RelayLayerArgument $argument): array {
+			function (array $kv, RelayLayerArgument $argument): array {
 				$kv[$argument->name] = $argument->value;
 				return $kv;
 			},

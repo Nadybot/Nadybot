@@ -2,11 +2,9 @@
 
 namespace Nadybot\Core\Modules\DISCORD;
 
-use Amp\ByteStream\InMemoryStream;
-use Amp\ByteStream\InputStream;
+use Amp\ByteStream\{InMemoryStream, InputStream};
 use Amp\Http\Client\RequestBody;
-use Amp\Promise;
-use Amp\Success;
+use Amp\{Promise, Success};
 
 final class DiscordBody implements RequestBody {
 	public function __construct(private string $json) {
