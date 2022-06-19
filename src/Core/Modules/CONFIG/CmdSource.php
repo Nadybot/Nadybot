@@ -14,6 +14,7 @@ class CmdSource {
 
 	/**
 	 * A list of permission set mappings this command source maps to
+	 *
 	 * @var CmdSourceMapping[]
 	 */
 	public array $mappings = [];

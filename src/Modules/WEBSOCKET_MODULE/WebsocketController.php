@@ -3,17 +3,14 @@
 namespace Nadybot\Modules\WEBSOCKET_MODULE;
 
 use Exception;
-use Throwable;
-use TypeError;
-
 use Nadybot\Core\{
 	Attributes as NCA,
 	Channels\WebChannel,
 	Event,
 	EventManager,
-	ModuleInstance,
 	LoggerWrapper,
 	MessageHub,
+	ModuleInstance,
 	PacketEvent,
 	Registry,
 	WebsocketBase,
@@ -28,6 +25,9 @@ use Nadybot\Modules\WEBSERVER_MODULE\{
 	Response,
 	WebChatConverter,
 };
+
+use Throwable;
+use TypeError;
 
 /**
  * @author Nadyita (RK5) <nadyita@hodorraid.org>
@@ -75,22 +75,6 @@ class WebsocketController extends ModuleInstance {
 		}
 	}
 
-	protected function registerWebChat(): void {
-		$wc = new WebChannel();
-		Registry::injectDependencies($wc);
-		$this->messageHub
-			->registerMessageEmitter($wc)
-			->registerMessageReceiver($wc);
-	}
-
-	protected function unregisterWebChat(): void {
-		$wc = new WebChannel();
-		Registry::injectDependencies($wc);
-		$this->messageHub
-			->unregisterMessageEmitter($wc->getChannelName())
-			->unregisterMessageReceiver($wc->getChannelName());
-	}
-
 	#[
 		NCA\HttpGet("/events"),
 	]
@@ -99,7 +83,7 @@ class WebsocketController extends ModuleInstance {
 			return;
 		}
 		$response = $this->getResponseForWebsocketRequest($request);
-		$server->sendResponse($response);
+		$server->sendResponse($response, $request);
 		if ($response->code !== Response::SWITCHING_PROTOCOLS) {
 			return;
 		}
@@ -120,48 +104,6 @@ class WebsocketController extends ModuleInstance {
 		$websocketHandler->send(JsonExporter::encode($packet), 'text');
 	}
 
-	/**
-	 * Check if the upgrade was requested correctly and return either error or upgrade response
-	 */
-	protected function getResponseForWebsocketRequest(Request $request): Response {
-		$errorResponse = new Response(
-			Response::UPGRADE_REQUIRED,
-			[
-				"Connection" => "Upgrade",
-				"Upgrade" => "websocket",
-				"Sec-WebSocket-Version" => "13",
-				// "Sec-WebSocket-Protocol" => "nadybot",
-			]
-		);
-		$clientRequestedWebsocket = isset($request->headers["upgrade"])
-			&& strtolower($request->headers["upgrade"]) === "websocket";
-		if (!$clientRequestedWebsocket) {
-			$this->logger->info('Client accessed WebSocket endpoint without requesting upgrade');
-			return $errorResponse;
-		}
-		if (!isset($request->headers["sec-websocket-key"])) {
-			$this->logger->info('WebSocket client did not give key');
-			return new Response(Response::BAD_REQUEST);
-		}
-		$key = $request->headers["sec-websocket-key"];
-		if (isset($request->headers["sec-websocket-protocol"])
-			&& !in_array("nadybot", \Safe\preg_split("/\s*,\s*/", $request->headers["sec-websocket-protocol"]))) {
-			return $errorResponse;
-		}
-
-		/** @todo Validate key length and base 64 */
-		$responseKey = base64_encode(\Safe\pack('H*', sha1($key . WebsocketBase::GUID)));
-		return new Response(
-			Response::SWITCHING_PROTOCOLS,
-			[
-				"Connection" => "Upgrade",
-				"Upgrade" => "websocket",
-				"Sec-WebSocket-Accept" => $responseKey,
-				// "Sec-WebSocket-Protocol" => "nadybot",
-			]
-		);
-	}
-
 	public function clientConnected(WebsocketCallback $event): void {
 		$this->logger->info("New Websocket connection from ".
 			($event->websocket->getPeer() ?? "unknown"));
@@ -178,9 +120,7 @@ class WebsocketController extends ModuleInstance {
 		$event->websocket->close();
 	}
 
-	/**
-	 * Handle the Websocket client sending data
-	 */
+	/** Handle the Websocket client sending data */
 	public function clientSentData(WebsocketCallback $event): void {
 		$this->logger->info("[Data inc.] {$event->data}");
 		try {
@@ -274,31 +214,81 @@ class WebsocketController extends ModuleInstance {
 					$client->send(JsonExporter::encode($packet), 'text');
 					$this->logger->info("Sending {class} to Websocket client", [
 						"class" => get_class($event),
-						"packet" => $packet
+						"packet" => $packet,
 					]);
 				}
 			}
 		}
 	}
 
-	/**
-	 * Register a Websocket client connection, so we can send commands/events to it
-	 */
+	/** Register a Websocket client connection, so we can send commands/events to it */
 	public function registerClient(WebsocketServer $client): void {
 		$this->clients[$client->getUUID()] = $client;
 	}
 
-	/**
-	 * Register a Websocket client connection, so we don't keep a reference to it
-	 */
+	/** Register a Websocket client connection, so we don't keep a reference to it */
 	public function unregisterClient(WebsocketServer $client): void {
 		unset($this->clients[$client->getUUID()]);
 	}
 
-	/**
-	 * Check if a Websocket client connection exists
-	 */
+	/** Check if a Websocket client connection exists */
 	public function clientExists(string $uuid): bool {
 		return isset($this->clients[$uuid]);
+	}
+
+	protected function registerWebChat(): void {
+		$wc = new WebChannel();
+		Registry::injectDependencies($wc);
+		$this->messageHub
+			->registerMessageEmitter($wc)
+			->registerMessageReceiver($wc);
+	}
+
+	protected function unregisterWebChat(): void {
+		$wc = new WebChannel();
+		Registry::injectDependencies($wc);
+		$this->messageHub
+			->unregisterMessageEmitter($wc->getChannelName())
+			->unregisterMessageReceiver($wc->getChannelName());
+	}
+
+	/** Check if the upgrade was requested correctly and return either error or upgrade response */
+	protected function getResponseForWebsocketRequest(Request $request): Response {
+		$errorResponse = new Response(
+			Response::UPGRADE_REQUIRED,
+			[
+				"Connection" => "Upgrade",
+				"Upgrade" => "websocket",
+				"Sec-WebSocket-Version" => "13",
+				// "Sec-WebSocket-Protocol" => "nadybot",
+			]
+		);
+		$clientRequestedWebsocket = isset($request->headers["upgrade"])
+			&& strtolower($request->headers["upgrade"]) === "websocket";
+		if (!$clientRequestedWebsocket) {
+			$this->logger->info('Client accessed WebSocket endpoint without requesting upgrade');
+			return $errorResponse;
+		}
+		if (!isset($request->headers["sec-websocket-key"])) {
+			$this->logger->info('WebSocket client did not give key');
+			return new Response(Response::BAD_REQUEST);
+		}
+		$key = $request->headers["sec-websocket-key"];
+		if (isset($request->headers["sec-websocket-protocol"])
+			&& !in_array("nadybot", \Safe\preg_split("/\s*,\s*/", $request->headers["sec-websocket-protocol"]))) {
+			return $errorResponse;
+		}
+
+		/** @todo Validate key length and base 64 */
+		$responseKey = base64_encode(\Safe\pack('H*', sha1($key . WebsocketBase::GUID)));
+		return new Response(
+			Response::SWITCHING_PROTOCOLS,
+			[
+				"Connection" => "Upgrade",
+				"Upgrade" => "websocket",
+				"Sec-WebSocket-Accept" => $responseKey,
+				// "Sec-WebSocket-Protocol" => "nadybot",
+			]
+		);
 	}
 }

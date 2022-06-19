@@ -2,8 +2,7 @@
 
 namespace Nadybot\Core\DBSchema;
 
-use Nadybot\Core\Attributes as NCA;
-use Nadybot\Core\DBRow;
+use Nadybot\Core\{Attributes as NCA, DBRow};
 
 class Route extends DBRow {
 	/** The unique ID of this route */
@@ -20,6 +19,7 @@ class Route extends DBRow {
 
 	/**
 	 * The modifiers for this route
+	 *
 	 * @var RouteModifier[]
 	 */
 	#[NCA\DB\Ignore]

@@ -6,6 +6,6 @@ class ChangeListener {
 	/** @var callable */
 	public $callback;
 
-	/** @var mixed */
+
 	public mixed $data;
 }

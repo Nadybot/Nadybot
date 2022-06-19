@@ -6,8 +6,8 @@ use Exception;
 use Nadybot\Core\{
 	Attributes as NCA,
 	ConfigFile,
-	ModuleInstance,
 	MessageHub,
+	ModuleInstance,
 	Routing\Source,
 	SettingManager,
 };
@@ -32,7 +32,9 @@ class WebChatConverter extends ModuleInstance {
 
 	/**
 	 * Add the color and display information to the path
+	 *
 	 * @param null|Source[] $path
+	 *
 	 * @return null|WebSource[]
 	 */
 	public function convertPath(?array $path=null): ?array {
@@ -61,6 +63,7 @@ class WebChatConverter extends ModuleInstance {
 
 	/**
 	 * @param string[] $msgs
+	 *
 	 * @return string[]
 	 */
 	public function convertMessages(array $msgs): array {
@@ -74,7 +77,9 @@ class WebChatConverter extends ModuleInstance {
 
 	/**
 	 * Try to reverse the splitting of a large message into multiple ones
+	 *
 	 * @param AOMsg[] $msgs
+	 *
 	 * @return AOMsg[]
 	 */
 	public function tryToUnbreakPopups(array $msgs): array {
@@ -152,7 +157,7 @@ class WebChatConverter extends ModuleInstance {
 		$message = preg_replace("/<\/font>/", "<end>", $message);
 		$message = preg_replace_callback(
 			"/<(end|" . join("|", array_keys($colors)) . "|font\s+color\s*=\s*[\"']?(#.{6})[\"']?)>/i",
-			function(array $matches) use (&$stack, $colors): string {
+			function (array $matches) use (&$stack, $colors): string {
 				if ($matches[1] === "end") {
 					if (empty($stack)) {
 						return "";
@@ -169,7 +174,7 @@ class WebChatConverter extends ModuleInstance {
 				}
 				if (substr($tag, 0, 1) === "#") {
 					$stack []= "color";
-					return "<color fg=\"$tag\">";
+					return "<color fg=\"{$tag}\">";
 				}
 				$stack []= preg_replace("/[<>]/", "", $tag);
 				return $tag;
@@ -190,7 +195,7 @@ class WebChatConverter extends ModuleInstance {
 		);
 		$message = preg_replace_callback(
 			"/^((?:    )+)/m",
-			function(array $matches): string {
+			function (array $matches): string {
 				return str_repeat("<indent />", (int)(strlen($matches[1])/4));
 			},
 			$message
@@ -202,7 +207,7 @@ class WebChatConverter extends ModuleInstance {
 		$message = preg_replace("/<a\s+href\s*=\s*['\"]?user:\/\/(.+?)['\"]?>(.*?)<\/a>/s", "<ao:user name=\"$1\">$2</ao:user>", $message);
 		$message = preg_replace_callback(
 			"/<a\s+href\s*=\s*(['\"])chatcmd:\/\/\/tell\s+<myname>\s+(.*?)\\1>(.*?)<\/a>/s",
-			function(array $matches): string {
+			function (array $matches): string {
 				return '<ao:command cmd="' . htmlentities($matches[2]) . "\">{$matches[3]}</ao:command>";
 			},
 			$message
@@ -256,7 +261,7 @@ class WebChatConverter extends ModuleInstance {
 						)
 					)
 				);
-				return "<popup ref=\"ao-$id\">" . $this->formatMsg($matches[3]) . "</popup>";
+				return "<popup ref=\"ao-{$id}\">" . $this->formatMsg($matches[3]) . "</popup>";
 			},
 			$message
 		);

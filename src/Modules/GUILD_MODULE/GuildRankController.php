@@ -86,6 +86,7 @@ class GuildRankController extends ModuleInstance implements AccessLevelProvider 
 
 	/**
 	 * Get a list of all defined rank mappings
+	 *
 	 * @return OrgRankMapping[]
 	 */
 	public function getMappings(): array {
@@ -131,7 +132,7 @@ class GuildRankController extends ModuleInstance implements AccessLevelProvider 
 		$maps = $this->getMappings();
 		$mapKeys = array_reduce(
 			$maps,
-			function(array $carry, OrgRankMapping $m): array {
+			function (array $carry, OrgRankMapping $m): array {
 				$carry[$m->min_rank] = true;
 				return $carry;
 			},
@@ -230,17 +231,19 @@ class GuildRankController extends ModuleInstance implements AccessLevelProvider 
 		$rankMapping = new OrgRankMapping();
 		$rankMapping->access_level = $accessLevel;
 		$rankMapping->min_rank = $rank;
+
 		/** @var ?OrgRankMapping */
 		$alEntry = $this->db->table(self::DB_TABLE)
 			->where("access_level", $rankMapping->access_level)
 			->asObj(OrgRankMapping::class)
 			->first();
+
 		/** @var ?OrgRankMapping */
 		$rankEntry = $this->db->table(self::DB_TABLE)
 			->where("min_rank", $rankMapping->min_rank)
 			->asObj(OrgRankMapping::class)
 			->first();
-		if (isset($alEntry) && isset($rankEntry)) {
+		if (isset($alEntry, $rankEntry)) {
 			$sendto->reply("You have already assigned rank mapping for both {$alName} and {$rankName}.");
 			return;
 		}
@@ -283,6 +286,7 @@ class GuildRankController extends ModuleInstance implements AccessLevelProvider 
 			$context->reply("{$guild->governing_form} doesn't have a rank #{$rank}.");
 			return;
 		}
+
 		/** @var ?OrgRankMapping */
 		$oldEntry = $this->db->table(self::DB_TABLE)
 			->where("min_rank", $rank)

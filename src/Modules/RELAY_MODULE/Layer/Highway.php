@@ -3,9 +3,7 @@
 namespace Nadybot\Modules\RELAY_MODULE\Layer;
 
 use Exception;
-use Safe\Exceptions\JsonException;
-use Nadybot\Core\Attributes as NCA;
-use Nadybot\Core\LoggerWrapper;
+use Nadybot\Core\{Attributes as NCA, LoggerWrapper};
 use Nadybot\Modules\RELAY_MODULE\{
 	Relay,
 	RelayLayerInterface,
@@ -13,12 +11,12 @@ use Nadybot\Modules\RELAY_MODULE\{
 	RelayStatus,
 	StatusProvider,
 };
+use Safe\Exceptions\JsonException;
 
 #[
 	NCA\RelayStackMember(
 		name: "highway",
-		description:
-			"This is the highway protocol, spoken by the highway websocket-server.\n".
+		description: "This is the highway protocol, spoken by the highway websocket-server.\n".
 			"It will broadcast incoming messages to all clients in the same room.\n".
 			"Room names can be picked freely as long as they are at least 32 characters\n".
 			"long. They should be as random as possible to prevent unauthorized\n".
@@ -42,15 +40,15 @@ class Highway implements RelayLayerInterface, StatusProvider {
 	public const TYPE_ERROR = "error";
 	public const TYPE_HELLO = "hello";
 
+	#[NCA\Logger]
+	public LoggerWrapper $logger;
+
 	/** @var string[] */
 	protected array $rooms = [];
 
 	protected Relay $relay;
 
 	protected ?RelayStatus $status = null;
-
-	#[NCA\Logger]
-	public LoggerWrapper $logger;
 
 	/** @var ?callable */
 	protected $initCallback = null;
@@ -106,6 +104,10 @@ class Highway implements RelayLayerInterface, StatusProvider {
 
 	public function deinit(callable $callback): array {
 		$cmd = [];
+		if (!isset($this->status)) {
+			$callback();
+			return [];
+		}
 		foreach ($this->rooms as $room) {
 			$json = (object)[
 				"type" => static::TYPE_LEAVE,
@@ -218,11 +220,11 @@ class Highway implements RelayLayerInterface, StatusProvider {
 			if ($json->type === static::TYPE_ERROR) {
 				$this->logger->error("Highway error on {relay}: {message}", [
 					"relay" => $this->relay->getName(),
-					"message" => isset($json->message) ? $json->message : null,
+					"message" => $json->message ?? null,
 				]);
 				$this->status = new RelayStatus(
 					RelayStatus::ERROR,
-					isset($json->message) ? $json->message : "Unknown highway error"
+					$json->message ?? "Unknown highway error"
 				);
 				$data = null;
 				continue;
@@ -250,7 +252,7 @@ class Highway implements RelayLayerInterface, StatusProvider {
 				);
 				$this->logger->error("Received highway message without body on {relay}", [
 					"relay" => $this->relay->getName(),
-					"message" => $json
+					"message" => $json,
 				]);
 				$data = null;
 				continue;

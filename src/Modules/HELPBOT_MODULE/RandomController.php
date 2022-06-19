@@ -80,8 +80,8 @@ class RandomController extends ModuleInstance {
 			$list []= $elem;
 		}
 		$msg = "Randomized order: <highlight>" . implode("<end> -&gt; <highlight>", $list) . "<end>";
-		$blob = $this->text->makeChatcmd("Send to team chat", "/t $msg") . "\n".
-			$this->text->makeChatcmd("Send to raid chat", "/g raid $msg");
+		$blob = $this->text->makeChatcmd("Send to team chat", "/t {$msg}") . "\n".
+			$this->text->makeChatcmd("Send to raid chat", "/g raid {$msg}");
 		$context->reply($this->text->blobWrap(
 			$msg . " [",
 			$this->text->makeBlob("announce", $blob, "Announce result"),
@@ -109,7 +109,7 @@ class RandomController extends ModuleInstance {
 		}
 		$timeBetweenRolls = $this->timeBetweenRolls;
 		if (!$this->canRoll($context->char->name, $timeBetweenRolls)) {
-			$msg = "You can only roll once every $timeBetweenRolls seconds.";
+			$msg = "You can only roll once every {$timeBetweenRolls} seconds.";
 			$context->reply($msg);
 			return;
 		}
@@ -118,9 +118,9 @@ class RandomController extends ModuleInstance {
 			$options []= (string)$i;
 		}
 		[$rollNumber, $result] = $this->roll($context->char->name, $options);
-		$msg = "The roll is <highlight>$result<end> between $min and $max. To verify do /tell <myname> verify $rollNumber";
-		$blob = $this->text->makeChatcmd("Send to team chat", "/t $msg") . "\n".
-			$this->text->makeChatcmd("Send to raid chat", "/g raid $msg");
+		$msg = "The roll is <highlight>{$result}<end> between {$min} and {$max}. To verify do /tell <myname> verify {$rollNumber}";
+		$blob = $this->text->makeChatcmd("Send to team chat", "/t {$msg}") . "\n".
+			$this->text->makeChatcmd("Send to raid chat", "/g raid {$msg}");
 
 		$context->reply($this->text->blobWrap(
 			$msg . " [",
@@ -140,7 +140,7 @@ class RandomController extends ModuleInstance {
 		$amount = (int)$amount;
 		$timeBetweenRolls = $this->timeBetweenRolls;
 		if (!$this->canRoll($context->char->name, $timeBetweenRolls)) {
-			$msg = "You can only roll once every $timeBetweenRolls seconds.";
+			$msg = "You can only roll once every {$timeBetweenRolls} seconds.";
 			$context->reply($msg);
 			return;
 		}
@@ -153,14 +153,14 @@ class RandomController extends ModuleInstance {
 		[$rollNumber, $result] = $this->roll($context->char->name, $options, $amount);
 		$winners = $this->joinOptions(explode("|", $result), "highlight");
 		if ($amount === 1) {
-			$msg = "The winner is $winners out of the possible options ".
-				$this->joinOptions($options, "highlight") . ". To verify do /tell <myname> verify $rollNumber";
+			$msg = "The winner is {$winners} out of the possible options ".
+				$this->joinOptions($options, "highlight") . ". To verify do /tell <myname> verify {$rollNumber}";
 		} else {
-			$msg = "The winners are $winners out of the possible options ".
-				$this->joinOptions($options, "highlight") . ". To verify do /tell <myname> verify $rollNumber";
+			$msg = "The winners are {$winners} out of the possible options ".
+				$this->joinOptions($options, "highlight") . ". To verify do /tell <myname> verify {$rollNumber}";
 		}
-		$blob = $this->text->makeChatcmd("Send to team chat", "/t $msg") . "\n".
-			$this->text->makeChatcmd("Send to raid chat", "/g raid $msg");
+		$blob = $this->text->makeChatcmd("Send to team chat", "/t {$msg}") . "\n".
+			$this->text->makeChatcmd("Send to raid chat", "/g raid {$msg}");
 
 		$context->reply($this->text->blobWrap(
 			$msg . " [",
@@ -174,42 +174,22 @@ class RandomController extends ModuleInstance {
 	public function rollNamesCommand(CmdContext $context, string $listofNames): void {
 		$timeBetweenRolls = $this->timeBetweenRolls;
 		if (!$this->canRoll($context->char->name, $timeBetweenRolls)) {
-			$msg = "You can only roll once every $timeBetweenRolls seconds.";
+			$msg = "You can only roll once every {$timeBetweenRolls} seconds.";
 			$context->reply($msg);
 			return;
 		}
 		$options = \Safe\preg_split("/(,\s+|\s+|,)/", $listofNames);
 		[$rollNumber, $result] = $this->roll($context->char->name, $options);
-		$msg = "The roll is <highlight>$result<end> out of the possible options ".
-			$this->joinOptions($options, "highlight") . ". To verify do /tell <myname> verify $rollNumber";
-		$blob = $this->text->makeChatcmd("Send to team chat", "/t $msg") . "\n".
-			$this->text->makeChatcmd("Send to raid chat", "/g raid $msg");
+		$msg = "The roll is <highlight>{$result}<end> out of the possible options ".
+			$this->joinOptions($options, "highlight") . ". To verify do /tell <myname> verify {$rollNumber}";
+		$blob = $this->text->makeChatcmd("Send to team chat", "/t {$msg}") . "\n".
+			$this->text->makeChatcmd("Send to raid chat", "/g raid {$msg}");
 
 		$context->reply($this->text->blobWrap(
 			$msg . " [",
 			$this->text->makeBlob("announce", $blob, "Announce result"),
 			"]"
 		));
-	}
-
-	/**
-	 * Join options in the style "A, B and C"
-	 * @param string[] $options The options to join
-	 * @param null|string $color If set, highlight the values with that color
-	 * @return string The joined string
-	 */
-	protected function joinOptions(array $options, ?string $color=null): string {
-		$startTag = "";
-		$endTag = "";
-		if ($color !== null) {
-			$startTag = "<{$color}>";
-			$endTag = "<end>";
-		}
-		$lastOption = array_pop($options);
-		if (count($options)) {
-			$options = [join("{$endTag}, {$startTag}", $options)];
-		}
-		return "{$startTag}" . join("{$endTag} and {$startTag}", [...$options, $lastOption]) . "{$endTag}";
 	}
 
 	/** Verify a roll */
@@ -221,7 +201,7 @@ class RandomController extends ModuleInstance {
 			->asObj(Roll::class)
 			->first();
 		if ($row === null) {
-			$msg = "Roll number <highlight>$rollId<end> does not exist.";
+			$msg = "Roll number <highlight>{$rollId}<end> does not exist.";
 		} else {
 			$options = isset($row->options) ? explode("|", $row->options) : ["&lt;none&gt;"];
 			$result = isset($row->result) ? explode("|", $row->result) : ["&lt;none&gt;"];
@@ -240,11 +220,14 @@ class RandomController extends ModuleInstance {
 
 	/**
 	 * Roll and record the result
-	 * @param string $sender Name of the person rolling
+	 *
+	 * @param string   $sender  Name of the person rolling
 	 * @param string[] $options The options to roll between
+	 *
 	 * @return array An array with the roll number and the chosen option
 	 * @psalm-return array{0:int, 1:string}
 	 * @phpstan-return array{0:int, 1:string}
+	 *
 	 * @throws SQLException on SQL errors
 	 */
 	public function roll(string $sender, array $options, int $amount=1): array {
@@ -263,5 +246,27 @@ class RandomController extends ModuleInstance {
 				"result" => $result,
 			]);
 		return [$id, $result];
+	}
+
+	/**
+	 * Join options in the style "A, B and C"
+	 *
+	 * @param string[]    $options The options to join
+	 * @param null|string $color   If set, highlight the values with that color
+	 *
+	 * @return string The joined string
+	 */
+	protected function joinOptions(array $options, ?string $color=null): string {
+		$startTag = "";
+		$endTag = "";
+		if ($color !== null) {
+			$startTag = "<{$color}>";
+			$endTag = "<end>";
+		}
+		$lastOption = array_pop($options);
+		if (count($options)) {
+			$options = [join("{$endTag}, {$startTag}", $options)];
+		}
+		return "{$startTag}" . join("{$endTag} and {$startTag}", [...$options, $lastOption]) . "{$endTag}";
 	}
 }

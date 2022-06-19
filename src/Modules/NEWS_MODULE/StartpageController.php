@@ -2,24 +2,22 @@
 
 namespace Nadybot\Modules\NEWS_MODULE;
 
-use ReflectionClass;
 use Closure;
 use DateInterval;
 use DateTime;
 use DateTimeZone;
+use Generator;
 use Illuminate\Support\Collection;
 use InvalidArgumentException;
-use ReflectionMethod;
-use Throwable;
 use Nadybot\Core\{
-	AccessManager,
 	AOChatEvent,
+	AccessManager,
 	Attributes as NCA,
 	CmdContext,
 	CommandReply,
 	DB,
-	ModuleInstance,
 	LoggerWrapper,
+	ModuleInstance,
 	Modules\BAN\BanController,
 	Nadybot,
 	ParamClass\PRemove,
@@ -36,6 +34,9 @@ use Nadybot\Modules\WEBSERVER_MODULE\{
 	Response,
 	WebChatConverter,
 };
+use ReflectionClass;
+use ReflectionMethod;
+use Throwable;
 
 #[
 	NCA\Instance,
@@ -97,33 +98,6 @@ class StartpageController extends ModuleInstance {
 	/** @var array<string,NewsTile> */
 	protected array $tiles = [];
 
-	/**
-	 * Parse a method for NewsTile annotations and add the tiles
-	 * @param object $instance The object instance we're processing
-	 * @param ReflectionMethod $method The method we're scanning
-	 */
-	protected function parseRefMethod(object $instance, ReflectionMethod $method): void {
-		$newsTileAttrs = $method->getAttributes(NCA\NewsTile::class);
-		if (empty($newsTileAttrs)) {
-			return;
-		}
-		$className = get_class($instance);
-		$funcName = "{$className}::" . $method->getName() . "()";
-		/** @var NCA\NewsTile */
-		$attrObj = $newsTileAttrs[0]->newInstance();
-		$name = $attrObj->name;
-		$closure = $method->getClosure($instance);
-		if (!isset($closure)) {
-			throw new InvalidArgumentException(
-				"{$funcName} cannot be made into a closure."
-			);
-		}
-		$tile = new NewsTile($name, $closure);
-		$tile->description = $attrObj->description;
-		$tile->example = $attrObj->example;
-		$this->registerNewsTile($tile);
-	}
-
 	#[NCA\Setup]
 	public function setup(): void {
 		$instances = Registry::getAllInstances();
@@ -135,28 +109,11 @@ class StartpageController extends ModuleInstance {
 		}
 	}
 
-	/**
-	 * Creates a CommandReply object that sens mass tells
-	 * @param string $receiver The character to send the mass tells to
-	 */
-	protected function getMassTell(string $receiver): CommandReply {
-		$sendto = new class implements CommandReply {
-			public Nadybot $chatBot;
-			public string $receiver;
-			public function reply($msg): void {
-				$this->chatBot->sendMassTell($msg, $this->receiver);
-			}
-		};
-		$sendto->chatBot = $this->chatBot;
-		$sendto->receiver = $receiver;
-		return $sendto;
-	}
-
 	#[NCA\Event(
 		name: "logOn",
 		description: "Show startpage to (org) members logging in"
 	)]
-	public function logonEvent(UserStateEvent $eventObj): void {
+	public function logonEvent(UserStateEvent $eventObj): Generator {
 		$sender = $eventObj->sender;
 		if (!$this->chatBot->isReady() || !is_string($sender)) {
 			return;
@@ -165,8 +122,8 @@ class StartpageController extends ModuleInstance {
 			$this->showStartpage($sender, $this->getMassTell($sender));
 			return;
 		}
-		$uid = $this->chatBot->get_uid($sender);
-		if ($uid === false) {
+		$uid = yield $this->chatBot->getUid2($sender);
+		if ($uid === null) {
 			return;
 		}
 		if ($this->startpageShowMembers !== 1) {
@@ -175,14 +132,10 @@ class StartpageController extends ModuleInstance {
 		if ($this->accessManager->getAccessLevelForCharacter($sender) === "all") {
 			return;
 		}
-		$this->banController->handleBan(
-			$uid,
-			function (int $uid, string $sender): void {
-				$this->showStartpage($sender, $this->getMassTell($sender));
-			},
-			null,
-			$sender
-		);
+		if (yield $this->banController->isOnBanlist($uid)) {
+			return;
+		}
+		$this->showStartpage($sender, $this->getMassTell($sender));
 	}
 
 	#[NCA\Event(
@@ -204,8 +157,7 @@ class StartpageController extends ModuleInstance {
 		NCA\NewsTile(
 			name: "time",
 			description: "Shows the current date and time in UTC and game",
-			example:
-				"<header2>Time<end>\n".
+			example: "<header2>Time<end>\n".
 				"<tab>Current time: <highlight>Mon, 18-Oct-2021 14:15:16<end> (RK year 29495)"
 		)
 	]
@@ -243,6 +195,7 @@ class StartpageController extends ModuleInstance {
 
 	/**
 	 * Get a list of all registered tiles
+	 *
 	 * @return array<string,NewsTile>
 	 */
 	public function getTiles(): array {
@@ -251,6 +204,7 @@ class StartpageController extends ModuleInstance {
 
 	/**
 	 * Get a list of all active tiles that are valid
+	 *
 	 * @return array<string,NewsTile>
 	 */
 	public function getActiveLayout(): array {
@@ -266,12 +220,6 @@ class StartpageController extends ModuleInstance {
 			}
 		}
 		return $tiles;
-	}
-
-	protected function createTileCallback(callable $callback, string $name, int $numCall): Closure {
-		return function(?string $text) use ($callback, $numCall, $name): void {
-			$callback($numCall, $text, $name);
-		};
 	}
 
 	public function getStartpageString(string $sender): string {
@@ -296,7 +244,7 @@ class StartpageController extends ModuleInstance {
 		}
 		$callResults = [];
 		$callNum = 0;
-		$callback = function(int $numCall, ?string $text, string $name) use (&$callResults, $tiles, $sendto, $sender, $showEmpty): void {
+		$callback = function (int $numCall, ?string $text, string $name) use (&$callResults, $tiles, $sendto, $sender, $showEmpty): void {
 			$callResults[$numCall] = isset($text) ? trim($text) : null;
 			$this->logger->debug("Callback for {name} received", [
 				"name" => $name,
@@ -346,21 +294,6 @@ class StartpageController extends ModuleInstance {
 	)]
 	public function startpageCommand(CmdContext $context): void {
 		$this->showStartpageLayout($context, false);
-	}
-
-	protected function showStartpageLayout(CmdContext $context, bool $changed): void {
-		$tiles = $this->getActiveLayout();
-		if (empty($tiles)) {
-			$context->reply("The current startpage is empty. Use <highlight><symbol>startpage pick 0<end> to get started.");
-			return;
-		}
-		$blob = $this->renderLayout($tiles);
-		if ($changed) {
-			$msg = $this->text->makeBlob("New startpage layout", $blob);
-		} else {
-			$msg = $this->text->makeBlob("Current startpage layout", $blob);
-		}
-		$context->reply($msg);
 	}
 
 	/**
@@ -490,44 +423,6 @@ class StartpageController extends ModuleInstance {
 		$this->showStartpageLayout($context, true);
 	}
 
-	protected function getInsertLine(int $num): string {
-		return "<tab><black>0 - <end>[".
-			$this->text->makeChatcmd("insert new", "/tell <myname> startpage pick {$num}").
-			"]\n";
-	}
-
-	/** @param array<string,NewsTile> $tiles */
-	protected function renderLayout(array $tiles): string {
-		$blobLines = [];
-		$i = 0;
-		foreach ($tiles as $name => $tile) {
-			$blobLines []= $this->getInsertLine($i);
-			$descrLink = $this->text->makeChatcmd("details", "/tell <myname> startpage describe {$name}");
-			$remLink = $this->text->makeChatcmd("delete", "/tell <myname> startpage rem {$name}");
-			$moveUpLink = "<black>[up]<end>";
-			$moveDownLink = "<black>[down]<end>";
-			if ($i > 0) {
-				$moveUpLink = "[" . $this->text->makeChatcmd("up", "/tell <myname> startpage move {$name} up") . "]";
-			}
-			if ($i < count($tiles) - 1) {
-				$moveDownLink = "[" . $this->text->makeChatcmd("down", "/tell <myname> startpage move {$name} down") . "]";
-			}
-			$line = "<tab>" . $this->text->alignNumber($i+1, strlen((string)count($tiles))).
-				" - {$moveUpLink} {$moveDownLink}   <highlight>{$name}<end> [{$descrLink}] [{$remLink}]\n";
-			$blobLines []= $line;
-			$i++;
-		}
-		$blobLines []= $this->getInsertLine($i);
-		$intro = "This is the order in which the individual tiles will be displayed.\n".
-			"You can move the tiles up and down to re-arrange them, or you can\n".
-			"delete those which you no longer want.\n".
-			"Use [insert new] to add a new tile at the chosen position.";
-		return "{$intro}\n\n".
-			"<header2>Your layout<end>\n\n".
-			join("\n", $blobLines). "\n\n\n".
-			"[" . $this->text->makeChatcmd("preview", "/tell <myname> start") . "]";
-	}
-
 	/**
 	 * List all news tiles
 	 */
@@ -584,5 +479,112 @@ class StartpageController extends ModuleInstance {
 			return new Response(Response::UNPROCESSABLE_ENTITY, [], $e->getMessage());
 		}
 		return new Response(Response::NO_CONTENT);
+	}
+
+	/**
+	 * Parse a method for NewsTile annotations and add the tiles
+	 *
+	 * @param object           $instance The object instance we're processing
+	 * @param ReflectionMethod $method   The method we're scanning
+	 */
+	protected function parseRefMethod(object $instance, ReflectionMethod $method): void {
+		$newsTileAttrs = $method->getAttributes(NCA\NewsTile::class);
+		if (empty($newsTileAttrs)) {
+			return;
+		}
+		$className = get_class($instance);
+		$funcName = "{$className}::" . $method->getName() . "()";
+
+		/** @var NCA\NewsTile */
+		$attrObj = $newsTileAttrs[0]->newInstance();
+		$name = $attrObj->name;
+		$closure = $method->getClosure($instance);
+		if (!isset($closure)) {
+			throw new InvalidArgumentException(
+				"{$funcName} cannot be made into a closure."
+			);
+		}
+		$tile = new NewsTile($name, $closure);
+		$tile->description = $attrObj->description;
+		$tile->example = $attrObj->example;
+		$this->registerNewsTile($tile);
+	}
+
+	/**
+	 * Creates a CommandReply object that sens mass tells
+	 *
+	 * @param string $receiver The character to send the mass tells to
+	 */
+	protected function getMassTell(string $receiver): CommandReply {
+		$sendto = new class () implements CommandReply {
+			public Nadybot $chatBot;
+			public string $receiver;
+
+			public function reply($msg): void {
+				$this->chatBot->sendMassTell($msg, $this->receiver);
+			}
+		};
+		$sendto->chatBot = $this->chatBot;
+		$sendto->receiver = $receiver;
+		return $sendto;
+	}
+
+	protected function createTileCallback(callable $callback, string $name, int $numCall): Closure {
+		return function (?string $text) use ($callback, $numCall, $name): void {
+			$callback($numCall, $text, $name);
+		};
+	}
+
+	protected function showStartpageLayout(CmdContext $context, bool $changed): void {
+		$tiles = $this->getActiveLayout();
+		if (empty($tiles)) {
+			$context->reply("The current startpage is empty. Use <highlight><symbol>startpage pick 0<end> to get started.");
+			return;
+		}
+		$blob = $this->renderLayout($tiles);
+		if ($changed) {
+			$msg = $this->text->makeBlob("New startpage layout", $blob);
+		} else {
+			$msg = $this->text->makeBlob("Current startpage layout", $blob);
+		}
+		$context->reply($msg);
+	}
+
+	protected function getInsertLine(int $num): string {
+		return "<tab><black>0 - <end>[".
+			$this->text->makeChatcmd("insert new", "/tell <myname> startpage pick {$num}").
+			"]\n";
+	}
+
+	/** @param array<string,NewsTile> $tiles */
+	protected function renderLayout(array $tiles): string {
+		$blobLines = [];
+		$i = 0;
+		foreach ($tiles as $name => $tile) {
+			$blobLines []= $this->getInsertLine($i);
+			$descrLink = $this->text->makeChatcmd("details", "/tell <myname> startpage describe {$name}");
+			$remLink = $this->text->makeChatcmd("delete", "/tell <myname> startpage rem {$name}");
+			$moveUpLink = "<black>[up]<end>";
+			$moveDownLink = "<black>[down]<end>";
+			if ($i > 0) {
+				$moveUpLink = "[" . $this->text->makeChatcmd("up", "/tell <myname> startpage move {$name} up") . "]";
+			}
+			if ($i < count($tiles) - 1) {
+				$moveDownLink = "[" . $this->text->makeChatcmd("down", "/tell <myname> startpage move {$name} down") . "]";
+			}
+			$line = "<tab>" . $this->text->alignNumber($i+1, strlen((string)count($tiles))).
+				" - {$moveUpLink} {$moveDownLink}   <highlight>{$name}<end> [{$descrLink}] [{$remLink}]\n";
+			$blobLines []= $line;
+			$i++;
+		}
+		$blobLines []= $this->getInsertLine($i);
+		$intro = "This is the order in which the individual tiles will be displayed.\n".
+			"You can move the tiles up and down to re-arrange them, or you can\n".
+			"delete those which you no longer want.\n".
+			"Use [insert new] to add a new tile at the chosen position.";
+		return "{$intro}\n\n".
+			"<header2>Your layout<end>\n\n".
+			join("\n", $blobLines). "\n\n\n".
+			"[" . $this->text->makeChatcmd("preview", "/tell <myname> start") . "]";
 	}
 }

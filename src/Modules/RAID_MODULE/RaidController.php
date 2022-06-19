@@ -2,15 +2,17 @@
 
 namespace Nadybot\Modules\RAID_MODULE;
 
+use function Amp\Promise\all;
+use Amp\Loop;
 use DateTime;
+use Generator;
 use Illuminate\Database\Query\JoinClause;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
+	AOChatEvent,
 	AccessManager,
 	Attributes as NCA,
-	AOChatEvent,
 	CmdContext,
-	CommandReply,
 	CommandManager,
 	DB,
 	DBSchema\Player,
@@ -30,6 +32,7 @@ use Nadybot\Core\{
 	Timer,
 	Util,
 };
+
 use Nadybot\Modules\{
 	BASIC_CHAT_MODULE\ChatAssistController,
 	COMMENT_MODULE\CommentCategory,
@@ -40,6 +43,7 @@ use Nadybot\Modules\{
 
 /**
  * This class contains all functions necessary to start, stop and resume a raid
+ *
  * @package Nadybot\Modules\POINT_RAID_MODULE
  */
 #[
@@ -78,6 +82,9 @@ class RaidController extends ModuleInstance {
 	public const DB_TABLE_LOG = "raid_log_<myname>";
 	public const CMD_RAID_MANAGE = 'raid manage';
 	public const CMD_RAID_TICKER = 'raid change ticker';
+
+	public const ERR_NO_RAID = "There's currently no raid running.";
+	public const CAT_RAID = "raid";
 
 	#[NCA\Inject]
 	public Nadybot $chatBot;
@@ -168,17 +175,12 @@ class RaidController extends ModuleInstance {
 	)]
 	public int $raidKickNotinOnLock = 0;
 
-	/**
-	 * The currently running raid or null if none running
-	 */
+	/** The currently running raid or null if none running */
 	public ?Raid $raid = null;
-
-	public const ERR_NO_RAID = "There's currently no raid running.";
-	public const CAT_RAID = "raid";
 
 	#[NCA\Setup]
 	public function setup(): void {
-		$this->timer->callLater(0, [$this, 'resumeRaid']);
+		Loop::defer([$this, 'resumeRaid']);
 		$stateStats = new RaidStateStats();
 		Registry::injectDependencies($stateStats);
 		$this->statsController->registerProvider($stateStats, "states");
@@ -188,12 +190,6 @@ class RaidController extends ModuleInstance {
 		$raidStats = new RaidMemberStats("raid");
 		Registry::injectDependencies($raidStats);
 		$this->statsController->registerDataset($raidStats, "raid");
-	}
-
-	protected function routeMessage(string $type, string $message): void {
-		$rMessage = new RoutableMessage($message);
-		$rMessage->prependPath(new Source("raid", $type));
-		$this->messageHub->handle($rMessage);
 	}
 
 	public function getRaidCategory(): CommentCategory {
@@ -211,9 +207,7 @@ class RaidController extends ModuleInstance {
 		return $raidCat;
 	}
 
-	/**
-	 * Get the content of the popup that shows you how to join the raid
-	 */
+	/** Get the content of the popup that shows you how to join the raid */
 	public function getRaidJoinLink(): string {
 		if (!isset($this->raid)) {
 			return "";
@@ -352,9 +346,7 @@ class RaidController extends ModuleInstance {
 		$context->reply($announceMsg);
 	}
 
-	/**
-	 * Try to resume a raid that was already running when the bot shut down
-	 */
+	/** Try to resume a raid that was already running when the bot shut down */
 	public function resumeRaid(): void {
 		/** @var ?Raid */
 		$lastRaid = $this->db->table(self::DB_TABLE)
@@ -365,6 +357,7 @@ class RaidController extends ModuleInstance {
 		if ($lastRaid === null || $lastRaid->stopped) {
 			return;
 		}
+
 		/** @var ?RaidLog */
 		$lastRaidLog = $this->db->table(self::DB_TABLE_LOG)
 			->where("raid_id", $lastRaid->raid_id)
@@ -414,27 +407,6 @@ class RaidController extends ModuleInstance {
 		$raid->started_by = $context->char->name;
 		$raid->description = $description;
 		$this->startNewRaid($context, $raid);
-	}
-
-	protected function startNewRaid(CmdContext $context, Raid $raid): void {
-		if (isset($this->raid)) {
-			$context->reply("There's already a raid running.");
-			return;
-		}
-		if ($this->raidAnnouncement) {
-			$raid->announce_interval = $this->raidAnnouncementInterval;
-		}
-		if ($this->raidPointsForTime) {
-			$raid->seconds_per_point = $this->raidPointsInterval;
-		}
-		$this->startRaid($raid);
-		if ($this->raidAutoAddCreator) {
-			$this->raidMemberController->joinRaid($context->char->name, $context->char->name, $context->source, false);
-		}
-		$this->chatBot->sendTell(
-			$this->text->makeBlob("Raid Control", $this->getControlInterface()),
-			$context->char->name
-		);
 	}
 
 	/**
@@ -627,12 +599,13 @@ class RaidController extends ModuleInstance {
 	public function raidCheckCommand(
 		CmdContext $context,
 		#[NCA\Str("check")] string $action
-	): void {
+	): Generator {
 		if (!isset($this->raid)) {
 			$context->reply(static::ERR_NO_RAID);
 			return;
 		}
-		$this->raidMemberController->sendRaidCheckBlob($this->raid, $context);
+		$msg = yield $this->raidMemberController->getRaidCheckBlob($this->raid);
+		$context->reply($msg);
 	}
 
 	/**
@@ -680,7 +653,7 @@ class RaidController extends ModuleInstance {
 	 * Send everyone in the private channel who's not in the raid a reminder to join
 	 */
 	#[NCA\HandlesCommand(self::CMD_RAID_MANAGE)]
-	public function raidNotinCommand(CmdContext $context, #[NCA\Str("notin")] string $action): void {
+	public function raidNotinCommand(CmdContext $context, #[NCA\Str("notin")] string $action): \Generator {
 		if (!isset($this->raid)) {
 			$context->reply(static::ERR_NO_RAID);
 			return;
@@ -690,35 +663,13 @@ class RaidController extends ModuleInstance {
 			$context->reply("Everyone is in the raid.");
 			return;
 		}
-		$this->playerManager->massGetByName(
-			function(array $result) use ($context) {
-				$this->reportNotInResult($result, $context);
-			},
-			$notInRaid
-		);
-	}
-
-	/**
-	 * @param array<null|Player> $players
-	 */
-	protected function reportNotInResult(array $players, CommandReply $sendto): void {
-		$blob = "<header2>Players that were warned<end>\n";
-		ksort($players);
-		foreach ($players as $name => $player) {
-			if ($player instanceof Player && isset($player->profession)) {
-				$profIcon = "<img src=tdb://id:GFX_GUI_ICON_PROFESSION_".
-					($this->onlineController->getProfessionId($player->profession)??0).">";
-				$blob .= "<tab>{$profIcon} {$player->name} - {$player->level}/{$player->ai_level}\n";
-			} else {
-				$blob .= "<tab>{$name}\n";
-			}
+		$promises = [];
+		foreach ($notInRaid as $notInName) {
+			$promises []= $this->playerManager->byName($notInName);
 		}
-		$s = (count($players) === 1) ? "" : "s";
-		$msgs = (array)$this->text->makeBlob(count($players) . " player{$s}", $blob, "Players not in the raid");
-		foreach ($msgs as &$msg) {
-			$msg = "Sent not in raid warning to $msg.";
-		}
-		$sendto->reply($msgs);
+		$notInPlayers = yield \Amp\Promise\all($promises);
+		$msg = $this->reportNotInResult($notInPlayers);
+		$context->reply($msg);
 	}
 
 	/**
@@ -737,6 +688,7 @@ class RaidController extends ModuleInstance {
 			->orderByDesc("r.raid_id")
 			->limit(50)
 			->select("r.raid_id", "r.started", "r.stopped");
+
 		/** @var Collection<RaidHistoryEntry> */
 		$raids = $query->addSelect(
 			$query->rawFunc(
@@ -765,31 +717,6 @@ class RaidController extends ModuleInstance {
 		}
 		$msg = $this->text->makeBlob("Last Raids (" . count($raids).")", $blob);
 		$context->reply($msg);
-	}
-
-	protected function getRaidSummary(Raid $raid): string {
-		$blob  = "<header2>Raid Nr. {$raid->raid_id}<end>\n";
-		$blob .= "<tab>Started:  ".
-			"<highlight>" . $this->util->date($raid->started) . "<end> ".
-			"by <highlight>{$raid->started_by}<end>\n";
-		if (isset($raid->stopped)) {
-			$blob .= "<tab>Stopped: ".
-				"<highlight>" . $this->util->date($raid->stopped) . "<end> ".
-				"by <highlight>{$raid->stopped_by}<end>\n";
-		}
-		$blob .= "<tab>Description: <highlight>{$raid->description}<end>\n";
-		if ($raid->max_members > 0) {
-			$blob .= "<tab>Max members: <highlight>{$raid->max_members}<end>\n";
-		}
-		$blob .= "<tab>Raid points: ";
-		if ($raid->seconds_per_point === 0) {
-			$blob .= "<highlight>Given per kill<end>\n";
-		} else {
-			$blob .= "<highlight>1 point every ".
-				$this->util->unixtimeToReadable($raid->seconds_per_point).
-				"<end>\n";
-		}
-		return $blob;
 	}
 
 	/**
@@ -870,6 +797,7 @@ class RaidController extends ModuleInstance {
 			$context->reply("The raid <highlight>{$raidId}<end> doesn't exist.");
 			return;
 		}
+
 		/** @var Collection<RaidPointsLog> */
 		$logs = $this->db->table(RaidPointsController::DB_TABLE_LOG)
 			->where("raid_id", $raidId)
@@ -888,9 +816,10 @@ class RaidController extends ModuleInstance {
 			->select("left AS time");
 		$left->selectRaw("0" . $left->as("status"));
 		$events = $joined->union($left)->orderBy("time")->asObj(RaidStatus::class);
+
 		/** @var Collection<RaidStatus|RaidPointsLog> */
 		$allLogs = $logs->concat($events)
-			->sort(function(RaidStatus|RaidPointsLog $a, RaidStatus|RaidPointsLog $b) {
+			->sort(function (RaidStatus|RaidPointsLog $a, RaidStatus|RaidPointsLog $b) {
 				return $a->time <=> $b->time;
 			});
 		if ($allLogs->isEmpty()) {
@@ -932,13 +861,18 @@ class RaidController extends ModuleInstance {
 	 * Check if anyone in the current raid is dual-logged
 	 */
 	#[NCA\HandlesCommand(self::CMD_RAID_MANAGE)]
-	public function raidDualCommand(CmdContext $context, #[NCA\Str("dual")] string $action): void {
+	public function raidDualCommand(
+		CmdContext $context,
+		#[NCA\Str("dual")] string $action
+	): Generator {
 		if (!isset($this->raid)) {
 			$context->reply(static::ERR_NO_RAID);
 			return;
 		}
+
 		/** @var array<string,bool> */
 		$mains = [];
+
 		/** @var array<string,array<string,bool>> */
 		$duals = [];
 		foreach ($this->raid->raiders as $name => $raider) {
@@ -970,43 +904,41 @@ class RaidController extends ModuleInstance {
 		foreach ($duals as $name => $alts) {
 			$toLookup = [...$toLookup, $name, ...array_keys($alts)];
 		}
-		$this->playerManager->massGetByName(
-			function (array $lookup) use ($duals, $context): void {
-				$blob = "";
-				foreach ($duals as $name => $alts) {
-					$player = $lookup[$name];
-					if ($player === null) {
-						continue;
-					}
-					$blob .="<header2>{$name}<end>\n";
-					$blob .= "<tab>- <highlight>{$name}<end> - {$player->level}/<green>{$player->ai_level}<end> {$player->profession} :: <red>in raid<end>\n";
-					foreach ($alts as $alt => $inRaid) {
-						$player = $lookup[$alt];
-						if ($player === null) {
-							continue;
-						}
-						$blob .= "<tab>- <highlight>{$alt}<end> - {$player->level}/<green>{$player->ai_level}<end> {$player->profession}";
-						if ($inRaid) {
-							$blob .= " :: <red>in raid<end>";
-						}
-						$blob .= "\n";
-					}
-					$blob .= "\n";
+		$tasks = [];
+		foreach ($toLookup as $toLookupName) {
+			$tasks[$toLookupName] = $this->playerManager->byName($toLookupName);
+		}
+		$lookup = yield all($tasks);
+		$blob = "";
+		foreach ($duals as $name => $alts) {
+			$player = $lookup[$name];
+			if ($player === null) {
+				continue;
+			}
+			$blob .="<header2>{$name}<end>\n";
+			$blob .= "<tab>- <highlight>{$name}<end> - {$player->level}/<green>{$player->ai_level}<end> {$player->profession} :: <red>in raid<end>\n";
+			foreach ($alts as $alt => $inRaid) {
+				$player = $lookup[$alt];
+				if ($player === null) {
+					continue;
 				}
-				$msg = $this->text->makeBlob(
-					"Dual-logged players (" . count($duals) .")",
-					$blob,
-					"Dual-logged players with at last 1 char in the raid"
-				);
-				$context->reply($msg);
-			},
-			$toLookup
+				$blob .= "<tab>- <highlight>{$alt}<end> - {$player->level}/<green>{$player->ai_level}<end> {$player->profession}";
+				if ($inRaid) {
+					$blob .= " :: <red>in raid<end>";
+				}
+				$blob .= "\n";
+			}
+			$blob .= "\n";
+		}
+		$msg = $this->text->makeBlob(
+			"Dual-logged players (" . count($duals) .")",
+			$blob,
+			"Dual-logged players with at last 1 char in the raid"
 		);
+		$context->reply($msg);
 	}
 
-	/**
-	 * Log to the database whenever something of the raid changes
-	 */
+	/** Log to the database whenever something of the raid changes */
 	public function logRaidChanges(Raid $raid): void {
 		$this->db->table(self::DB_TABLE_LOG)
 			->insert([
@@ -1101,9 +1033,7 @@ class RaidController extends ModuleInstance {
 		$this->routeMessage("stop", "<highlight>{$event->player}<end> has stopped the raid.");
 	}
 
-	/**
-	 * Start a new raid and also register it in the database
-	 */
+	/** Start a new raid and also register it in the database */
 	public function startRaid(Raid $raid): void {
 		if (isset($raid->raid_id)) {
 			$this->raid = $raid;
@@ -1126,9 +1056,7 @@ class RaidController extends ModuleInstance {
 		$this->logRaidChanges($this->raid);
 	}
 
-	/**
-	 * Stop the current raid
-	 */
+	/** Stop the current raid */
 	public function stopRaid(string $sender): void {
 		if (!isset($this->raid)) {
 			return;
@@ -1218,5 +1146,82 @@ class RaidController extends ModuleInstance {
 			$char,
 			new PWord($this->getRaidCategory()->name),
 		);
+	}
+
+	protected function routeMessage(string $type, string $message): void {
+		$rMessage = new RoutableMessage($message);
+		$rMessage->prependPath(new Source("raid", $type));
+		$this->messageHub->handle($rMessage);
+	}
+
+	protected function startNewRaid(CmdContext $context, Raid $raid): void {
+		if (isset($this->raid)) {
+			$context->reply("There's already a raid running.");
+			return;
+		}
+		if ($this->raidAnnouncement) {
+			$raid->announce_interval = $this->raidAnnouncementInterval;
+		}
+		if ($this->raidPointsForTime) {
+			$raid->seconds_per_point = $this->raidPointsInterval;
+		}
+		$this->startRaid($raid);
+		if ($this->raidAutoAddCreator) {
+			$this->raidMemberController->joinRaid($context->char->name, $context->char->name, $context->source, false);
+		}
+		$this->chatBot->sendTell(
+			$this->text->makeBlob("Raid Control", $this->getControlInterface()),
+			$context->char->name
+		);
+	}
+
+	/**
+	 * @param array<null|Player> $players
+	 *
+	 * @return string[]
+	 */
+	protected function reportNotInResult(array $players): array {
+		$blob = "<header2>Players that were warned<end>\n";
+		ksort($players);
+		foreach ($players as $name => $player) {
+			if ($player instanceof Player && isset($player->profession)) {
+				$profIcon = "<img src=tdb://id:GFX_GUI_ICON_PROFESSION_".
+					($this->onlineController->getProfessionId($player->profession)??0).">";
+				$blob .= "<tab>{$profIcon} {$player->name} - {$player->level}/{$player->ai_level}\n";
+			} else {
+				$blob .= "<tab>{$name}\n";
+			}
+		}
+		$s = (count($players) === 1) ? "" : "s";
+		$msgs = (array)$this->text->makeBlob(count($players) . " player{$s}", $blob, "Players not in the raid");
+		foreach ($msgs as &$msg) {
+			$msg = "Sent not in raid warning to {$msg}.";
+		}
+		return $msgs;
+	}
+
+	protected function getRaidSummary(Raid $raid): string {
+		$blob  = "<header2>Raid Nr. {$raid->raid_id}<end>\n";
+		$blob .= "<tab>Started:  ".
+			"<highlight>" . $this->util->date($raid->started) . "<end> ".
+			"by <highlight>{$raid->started_by}<end>\n";
+		if (isset($raid->stopped)) {
+			$blob .= "<tab>Stopped: ".
+				"<highlight>" . $this->util->date($raid->stopped) . "<end> ".
+				"by <highlight>{$raid->stopped_by}<end>\n";
+		}
+		$blob .= "<tab>Description: <highlight>{$raid->description}<end>\n";
+		if ($raid->max_members > 0) {
+			$blob .= "<tab>Max members: <highlight>{$raid->max_members}<end>\n";
+		}
+		$blob .= "<tab>Raid points: ";
+		if ($raid->seconds_per_point === 0) {
+			$blob .= "<highlight>Given per kill<end>\n";
+		} else {
+			$blob .= "<highlight>1 point every ".
+				$this->util->unixtimeToReadable($raid->seconds_per_point).
+				"<end>\n";
+		}
+		return $blob;
 	}
 }

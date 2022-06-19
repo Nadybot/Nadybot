@@ -12,11 +12,12 @@ use Nadybot\Core\Socket\AsyncSocket;
 class Socket {
 	/**
 	 * Wrap a socket resource into a class for easy async operations
+	 *
 	 * @param resource $socket
 	 */
 	public function wrap($socket): AsyncSocket {
 		$asyncSocket = new AsyncSocket($socket);
 		Registry::injectDependencies($asyncSocket);
-		return  $asyncSocket;
+		return $asyncSocket;
 	}
 }

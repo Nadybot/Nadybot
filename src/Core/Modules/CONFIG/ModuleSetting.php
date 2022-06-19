@@ -28,6 +28,7 @@ class ModuleSetting {
 
 	/**
 	 * A list of predefined options to pick from
+	 *
 	 * @var SettingOption[]
 	 */
 	public array $options = [];

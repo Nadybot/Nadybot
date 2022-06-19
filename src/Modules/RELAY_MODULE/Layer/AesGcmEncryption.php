@@ -3,8 +3,7 @@
 namespace Nadybot\Modules\RELAY_MODULE\Layer;
 
 use Exception;
-use Nadybot\Core\Attributes as NCA;
-use Nadybot\Core\LoggerWrapper;
+use Nadybot\Core\{Attributes as NCA, LoggerWrapper};
 use Nadybot\Modules\RELAY_MODULE\{
 	Relay,
 	RelayLayerInterface,
@@ -19,8 +18,7 @@ use Nadybot\Modules\RELAY_MODULE\{
 #[
 	NCA\RelayStackMember(
 		name: "aes-gcm-encryption",
-		description:
-			"This adds 256 bit AES encryption with Galois/Counter mode to the relay-stack.\n".
+		description: "This adds 256 bit AES encryption with Galois/Counter mode to the relay-stack.\n".
 			"It guarantees that the data was not tampered with, and rotates the salt(iv)\n".
 			"on every message, so even if one was cracked, the rest is still secure.\n".
 			"This is state-of-the-art cryptography and proven secure.\n".
@@ -35,13 +33,13 @@ use Nadybot\Modules\RELAY_MODULE\{
 ]
 class AesGcmEncryption implements RelayLayerInterface {
 	public const CIPHER = "aes-256-gcm";
+
+	#[NCA\Logger]
+	public LoggerWrapper $logger;
 	protected string $password;
 	protected int $ivLength;
 
 	protected Relay $relay;
-
-	#[NCA\Logger]
-	public LoggerWrapper $logger;
 
 	public function __construct(string $password) {
 		$this->password = \Safe\openssl_digest($password, 'SHA256', true);
@@ -78,6 +76,39 @@ class AesGcmEncryption implements RelayLayerInterface {
 		}
 		$msg->packages = $result;
 		return $msg;
+	}
+
+	public function encode(string $text): string {
+		$this->logger->debug("Encoding message for relay {relay} with AES-GCM", [
+			"relay" => $this->relay->getName(),
+			"data" => $text,
+		]);
+		$ivLength = $this->ivLength;
+		[$micro, $secs] = explode(" ", microtime());
+		$iv = \Safe\pack("NN", $secs, (float)$micro*100000000);
+		$fillLength = $ivLength - strlen($iv);
+		if ($fillLength >= 1) {
+			$iv .= random_bytes($fillLength);
+		}
+		if (
+			function_exists('sodium_crypto_aead_aes256gcm_is_available')
+			&& sodium_crypto_aead_aes256gcm_is_available()
+			&& defined("SODIUM_BASE64_VARIANT_ORIGINAL")
+		) {
+			$enc = sodium_crypto_aead_aes256gcm_encrypt($text, "", $iv, $this->password);
+			$ciphertextRaw = substr($enc, 0, -16);
+			$tag = substr($enc, -16);
+			$encrypted = sodium_bin2base64($iv . $tag . $ciphertextRaw, SODIUM_BASE64_VARIANT_ORIGINAL);
+		} else {
+			$tag="";
+			$ciphertextRaw = \Safe\openssl_encrypt($text, static::CIPHER, $this->password, OPENSSL_RAW_DATA, $iv, $tag);
+			$encrypted = base64_encode($iv . $tag . $ciphertextRaw);
+		}
+		$this->logger->debug("Successfully encoded message for relay {relay} with AES-GCM", [
+			"relay" => $this->relay->getName(),
+			"encrypted" => $encrypted,
+		]);
+		return $encrypted;
 	}
 
 	protected function decode(string $text): ?string {
@@ -121,38 +152,5 @@ class AesGcmEncryption implements RelayLayerInterface {
 			"decrypted" => $originalText,
 		]);
 		return $originalText;
-	}
-
-	public function encode(string $text): string {
-		$this->logger->debug("Encoding message for relay {relay} with AES-GCM", [
-			"relay" => $this->relay->getName(),
-			"data" => $text,
-		]);
-		$ivLength = $this->ivLength;
-		[$micro, $secs] = explode(" ", microtime());
-		$iv = \Safe\pack("NN", $secs, (float)$micro*100000000);
-		$fillLength = $ivLength - strlen($iv);
-		if ($fillLength >= 1) {
-			$iv .= random_bytes($fillLength);
-		}
-		if (
-			function_exists('sodium_crypto_aead_aes256gcm_is_available')
-			&& sodium_crypto_aead_aes256gcm_is_available()
-			&& defined("SODIUM_BASE64_VARIANT_ORIGINAL")
-		) {
-			$enc = sodium_crypto_aead_aes256gcm_encrypt($text, "", $iv, $this->password);
-			$ciphertextRaw = substr($enc, 0, -16);
-			$tag = substr($enc, -16);
-			$encrypted = sodium_bin2base64($iv . $tag . $ciphertextRaw, SODIUM_BASE64_VARIANT_ORIGINAL);
-		} else {
-			$tag="";
-			$ciphertextRaw = \Safe\openssl_encrypt($text, static::CIPHER, $this->password, OPENSSL_RAW_DATA, $iv, $tag);
-			$encrypted = base64_encode($iv . $tag . $ciphertextRaw);
-		}
-		$this->logger->debug("Successfully encoded message for relay {relay} with AES-GCM", [
-			"relay" => $this->relay->getName(),
-			"encrypted" => $encrypted,
-		]);
-		return $encrypted;
 	}
 }

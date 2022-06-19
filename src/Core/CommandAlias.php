@@ -10,6 +10,8 @@ use Nadybot\Core\DBSchema\CmdAlias;
 class CommandAlias {
 	public const DB_TABLE = "cmd_alias_<myname>";
 
+	public const ALIAS_HANDLER = "CommandAlias.process";
+
 	#[NCA\Inject]
 	public DB $db;
 
@@ -22,11 +24,7 @@ class CommandAlias {
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
-	public const ALIAS_HANDLER = "CommandAlias.process";
-
-	/**
-	 * Loads active aliases into memory to activate them
-	 */
+	/** Loads active aliases into memory to activate them */
 	public function load(): void {
 		$this->logger->info("Loading enabled command aliases");
 
@@ -38,15 +36,13 @@ class CommandAlias {
 			});
 	}
 
-	/**
-	 * Registers a command alias
-	 */
+	/** Registers a command alias */
 	public function register(string $module, string $command, string $alias, int $status=1): void {
 		$module = strtoupper($module);
 		$command = strtolower($command);
 		$alias = strtolower($alias);
 
-		$this->logger->info("Registering alias: '{$alias}' for command: '$command'");
+		$this->logger->info("Registering alias: '{$alias}' for command: '{$command}'");
 
 		$row = $this->get($alias);
 		if ($row !== null) {
@@ -62,40 +58,34 @@ class CommandAlias {
 					"module" => $module,
 					"cmd" => $command,
 					"alias" => $alias,
-					"status" => $status
+					"status" => $status,
 				]);
 		}
 	}
 
-	/**
-	 * Activates a command alias
-	 */
+	/** Activates a command alias */
 	public function activate(string $command, string $alias): void {
 		$alias = strtolower($alias);
 
-		$this->logger->info("Activate Command Alias command:($command) alias:($alias)");
+		$this->logger->info("Activate Command Alias command:({$command}) alias:({$alias})");
 
 		foreach ($this->commandManager->getPermissionSets() as $set) {
 			$this->commandManager->activate($set->name, self::ALIAS_HANDLER, $alias, 'all');
 		}
 	}
 
-	/**
-	 * Deactivates a command alias
-	 */
+	/** Deactivates a command alias */
 	public function deactivate(string $alias): void {
 		$alias = strtolower($alias);
 
-		$this->logger->info("Deactivate Command Alias:($alias)");
+		$this->logger->info("Deactivate Command Alias:({$alias})");
 
 		foreach ($this->commandManager->getPermissionSets() as $set) {
 			$this->commandManager->deactivate($set->name, self::ALIAS_HANDLER, $alias);
 		}
 	}
 
-	/**
-	 * Check incoming commands if they are aliases for commands and execute them
-	 */
+	/** Check incoming commands if they are aliases for commands and execute them */
 	public function process(CmdContext $context): bool {
 		$params = explode(' ', $context->message);
 		while (count($params) && !isset($row)) {
@@ -156,9 +146,7 @@ class CommandAlias {
 		return true;
 	}
 
-	/**
-	 * Adds a command alias to the db
-	 */
+	/** Adds a command alias to the db */
 	public function add(CmdAlias $row): int {
 		$this->logger->info("Adding alias: '{$row->alias}' for command: '{$row->cmd}'");
 		return $this->db->table(self::DB_TABLE)->insert([
@@ -169,9 +157,7 @@ class CommandAlias {
 		]) ? 1 : 0;
 	}
 
-	/**
-	 * Updates a command alias in the db
-	 */
+	/** Updates a command alias in the db */
 	public function update(CmdAlias $row): int {
 		$this->logger->info("Updating alias :({$row->alias})");
 		return $this->db->table(self::DB_TABLE)
@@ -179,22 +165,18 @@ class CommandAlias {
 			->update([
 				"module" => $row->module,
 				"cmd" => $row->cmd,
-				"status" => $row->status
+				"status" => $row->status,
 			]);
 	}
 
-	/**
-	 * Read the database entry for an alias
-	 */
+	/** Read the database entry for an alias */
 	public function get(string $alias): ?CmdAlias {
 		$alias = strtolower($alias);
 
 		return $this->db->table(self::DB_TABLE)->where("alias", $alias)->asObj(CmdAlias::class)->first();
 	}
 
-	/**
-	 * Get the command for which an alias actually is an alias
-	 */
+	/** Get the command for which an alias actually is an alias */
 	public function getBaseCommandForAlias(string $alias): ?string {
 		$row = $this->get($alias);
 
@@ -210,6 +192,7 @@ class CommandAlias {
 	 * Find all aliases for a command
 	 *
 	 * @param string $command The command to check
+	 *
 	 * @return Collection<CmdAlias>
 	 */
 	public function findAliasesByCommand(string $command): Collection {

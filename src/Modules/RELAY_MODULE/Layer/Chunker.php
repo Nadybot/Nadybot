@@ -2,12 +2,12 @@
 
 namespace Nadybot\Modules\RELAY_MODULE\Layer;
 
+use Amp\Loop;
 use InvalidArgumentException;
 use Nadybot\Core\{
 	Attributes as NCA,
 	LoggerWrapper,
 	Timer,
-	TimerEvent,
 	Util,
 };
 use Nadybot\Modules\RELAY_MODULE\{
@@ -21,8 +21,7 @@ use Throwable;
 #[
 	NCA\RelayStackMember(
 		name: "chunker",
-		description:
-			"This adds the ability to chunk and re-assemble\n".
+		description: "This adds the ability to chunk and re-assemble\n".
 			"long messages on the fly, so we can send large payloads\n".
 			"over a medium that only has a limited package size.\n".
 			"Of course this only works if all Bots use this chunker."
@@ -41,6 +40,15 @@ use Throwable;
 	)
 ]
 class Chunker implements RelayLayerInterface {
+	#[NCA\Inject]
+	public Timer $timer;
+
+	#[NCA\Inject]
+	public Util $util;
+
+	#[NCA\Logger]
+	public LoggerWrapper $logger;
+
 	/** @psalm-var positive-int */
 	protected int $chunkSize = 50000;
 	protected int $timeout = 60;
@@ -50,16 +58,7 @@ class Chunker implements RelayLayerInterface {
 	/** @var array<string,array<int,Chunk>> */
 	protected $queue = [];
 
-	#[NCA\Inject]
-	public Timer $timer;
-
-	#[NCA\Inject]
-	public Util $util;
-
-	protected TimerEvent $timerEvent;
-
-	#[NCA\Logger]
-	public LoggerWrapper $logger;
+	protected ?string $timerHandler = null;
 
 	public function __construct(int $chunkSize, int $timeout=60) {
 		if ($chunkSize < 1) {
@@ -91,35 +90,6 @@ class Chunker implements RelayLayerInterface {
 		return $encoded;
 	}
 
-	/**
-	 * @return string[]
-	 * @psalm-return list<string>
-	 */
-	protected function chunkPacket(string $packet): array {
-		if (strlen($packet) < $this->chunkSize) {
-			return [$packet];
-		}
-		$chunks = str_split($packet, $this->chunkSize);
-		$result = [];
-		$uuid = $this->util->createUUID();
-		$part = 1;
-		$created = time();
-		foreach ($chunks as $chunk) {
-			$msg = new Chunk([
-				"id" => $uuid,
-				"part" => $part++,
-				"count" => count($chunks),
-				"sent" => $created,
-				"data" => $chunk,
-			]);
-			$json = \Safe\json_encode($msg, JSON_UNESCAPED_SLASHES|JSON_INVALID_UTF8_SUBSTITUTE);
-			if ($json !== false) {
-				$result []= \Safe\json_encode($msg, JSON_UNESCAPED_SLASHES|JSON_INVALID_UTF8_SUBSTITUTE);
-			}
-		}
-		return $result;
-	}
-
 	public function receive(RelayMessage $msg): ?RelayMessage {
 		foreach ($msg->packages as &$data) {
 			try {
@@ -133,15 +103,15 @@ class Chunker implements RelayLayerInterface {
 				$this->logger->notice("Single-chunk chunk received.");
 				continue;
 			}
-			if (!isset($this->timerEvent)) {
+			if (!isset($this->timerHandler)) {
 				$this->logger->notice("Setup new cleanup call");
-				$this->timerEvent = $this->timer->callLater(10, [$this, "cleanStaleChunks"]);
+				$this->timerHandler = Loop::delay(10000, [$this, "cleanStaleChunks"]);
 			}
 			if (!isset($this->queue[$chunk->id])) {
 				$this->logger->notice("New chunk {$chunk->id} {$chunk->part}/{$chunk->count} received.");
 				$chunk->sent = time();
 				$this->queue[$chunk->id] = [
-					$chunk->part => $chunk
+					$chunk->part => $chunk,
 				];
 				$data = null;
 				continue;
@@ -173,7 +143,7 @@ class Chunker implements RelayLayerInterface {
 	}
 
 	public function cleanStaleChunks(): void {
-		unset($this->timerEvent);
+		$this->timerHandler = null;
 		$ids = array_keys($this->queue);
 		foreach ($ids as $id) {
 			$parts = array_keys($this->queue[$id]);
@@ -186,9 +156,38 @@ class Chunker implements RelayLayerInterface {
 		}
 		if (count($this->queue)) {
 			$this->logger->notice("Calling cleanup in 10");
-			$this->timerEvent = $this->timer->callLater(10, [$this, "cleanStaleChunks"]);
+			$this->timerHandler = Loop::delay(10000, [$this, "cleanStaleChunks"]);
 		} else {
 			$this->logger->notice("No more unfinished chunks.");
 		}
+	}
+
+	/**
+	 * @return string[]
+	 * @psalm-return list<string>
+	 */
+	protected function chunkPacket(string $packet): array {
+		if (strlen($packet) < $this->chunkSize) {
+			return [$packet];
+		}
+		$chunks = str_split($packet, $this->chunkSize);
+		$result = [];
+		$uuid = $this->util->createUUID();
+		$part = 1;
+		$created = time();
+		foreach ($chunks as $chunk) {
+			$msg = new Chunk([
+				"id" => $uuid,
+				"part" => $part++,
+				"count" => count($chunks),
+				"sent" => $created,
+				"data" => $chunk,
+			]);
+			$json = \Safe\json_encode($msg, JSON_UNESCAPED_SLASHES|JSON_INVALID_UTF8_SUBSTITUTE);
+			if ($json !== false) {
+				$result []= \Safe\json_encode($msg, JSON_UNESCAPED_SLASHES|JSON_INVALID_UTF8_SUBSTITUTE);
+			}
+		}
+		return $result;
 	}
 }

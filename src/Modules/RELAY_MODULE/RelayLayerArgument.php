@@ -2,8 +2,8 @@
 
 namespace Nadybot\Modules\RELAY_MODULE;
 
-use Nadybot\Core\DBRow;
 use Nadybot\Core\Attributes\JSON;
+use Nadybot\Core\DBRow;
 
 class RelayLayerArgument extends DBRow {
 	/**

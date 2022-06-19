@@ -42,7 +42,7 @@ class FindPlayerController extends ModuleInstance {
 		$count = count($players);
 
 		if ($count === 0) {
-			$msg = "Could not find any players matching <highlight>$search<end>.";
+			$msg = "Could not find any players matching <highlight>{$search}<end>.";
 			$context->reply($msg);
 			return;
 		}
@@ -50,7 +50,7 @@ class FindPlayerController extends ModuleInstance {
 		foreach ($players as $player) {
 			$blob .= "<tab>" . $this->playerManager->getInfo($player, false) . "\n";
 		}
-		$msg = $this->text->makeBlob("Search results for \"$search\" ($count)", $blob);
+		$msg = $this->text->makeBlob("Search results for \"{$search}\" ({$count})", $blob);
 
 		$context->reply($msg);
 	}

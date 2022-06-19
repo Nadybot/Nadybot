@@ -154,20 +154,6 @@ class QuickRelayController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
-	protected function getDisclaimer(string $name): string {
-		return "\n\n<i>".
-			"This will create a relay named \"{$name}\".\n".
-			"Feel free to change the name or any of the parameters to your needs.\n".
-			"Except for the name, the <symbol>relay-command must be ".
-			"executed exactly the same on all the bots.\n\n".
-			"The Nadybot Wiki has a more detailed documentation of ".
-			"<a href='chatcmd:///start https://github.com/Nadybot/Nadybot/wiki/Relaying-(form-5.2-onward)'>".
-			"the relay stack</a> and ".
-			"<a href='chatcmd:///start https://github.com/Nadybot/Nadybot/wiki/Routing'>".
-			"how routing is configured</a>.".
-			"</i>";
-	}
-
 	public function getRouteInformation(string $name, bool $sharedOnline=false): string {
 		$cmd1 = "route add relay({$name}) <-> " . Source::ORG;
 		$cmd2 = "route add relay({$name}) <-> " . Source::PRIV;
@@ -186,6 +172,20 @@ class QuickRelayController extends ModuleInstance {
 			"and from the relay. If you only want to share online lists between the bots,\n".
 			"but don't want to display these messages, add\n".
 			"<tab><highlight>remove-online-messages()<end> to the end of all route commands.";
-		return$blob;
+		return $blob;
+	}
+
+	protected function getDisclaimer(string $name): string {
+		return "\n\n<i>".
+			"This will create a relay named \"{$name}\".\n".
+			"Feel free to change the name or any of the parameters to your needs.\n".
+			"Except for the name, the <symbol>relay-command must be ".
+			"executed exactly the same on all the bots.\n\n".
+			"The Nadybot Wiki has a more detailed documentation of ".
+			"<a href='chatcmd:///start https://github.com/Nadybot/Nadybot/wiki/Relaying-(form-5.2-onward)'>".
+			"the relay stack</a> and ".
+			"<a href='chatcmd:///start https://github.com/Nadybot/Nadybot/wiki/Routing'>".
+			"how routing is configured</a>.".
+			"</i>";
 	}
 }

@@ -9,9 +9,9 @@ use Nadybot\Core\{
 	CmdContext,
 	CommandAlias,
 	EventManager,
-	ModuleInstance,
 	MessageEmitter,
 	MessageHub,
+	ModuleInstance,
 	Nadybot,
 	Routing\RoutableMessage,
 	Routing\Source,
@@ -19,8 +19,8 @@ use Nadybot\Core\{
 };
 use Nadybot\Modules\TIMERS_MODULE\{
 	Alert,
-	TimerController,
 	Timer,
+	TimerController,
 };
 
 /**
@@ -40,6 +40,7 @@ use Nadybot\Modules\TIMERS_MODULE\{
 	NCA\ProvidesEvent("cityraid(end)")
 ]
 class CityWaveController extends ModuleInstance implements MessageEmitter {
+	public const TIMER_NAME = "City Raid";
 	#[NCA\Inject]
 	public Nadybot $chatBot;
 
@@ -64,8 +65,6 @@ class CityWaveController extends ModuleInstance implements MessageEmitter {
 		help: 'city_wave_times.txt'
 	)]
 	public string $cityWaveTimes = '105s 150s 90s 120s 120s 120s 120s 120s 120s';
-
-	public const TIMER_NAME = "City Raid";
 
 	#[NCA\Setup]
 	public function setup(): void {
@@ -98,7 +97,7 @@ class CityWaveController extends ModuleInstance implements MessageEmitter {
 			$time = $this->util->parseTime($alertTime);
 			if ($time === 0) {
 				// invalid time
-				throw new Exception("Error saving setting: invalid alert time('$alertTime'). For more info type !help city_wave_times.");
+				throw new Exception("Error saving setting: invalid alert time('{$alertTime}'). For more info type !help city_wave_times.");
 			}
 		}
 	}
@@ -140,7 +139,7 @@ class CityWaveController extends ModuleInstance implements MessageEmitter {
 		} elseif ($wave == 9) {
 			$msg = "Waiting for General.";
 		} else {
-			$msg = "Waiting for wave $wave.";
+			$msg = "Waiting for wave {$wave}.";
 		}
 		$context->reply($msg);
 	}
@@ -174,7 +173,7 @@ class CityWaveController extends ModuleInstance implements MessageEmitter {
 		$this->eventManager->fireEvent($event);
 	}
 
-	public function startWaveCounter(string $name=null): void {
+	public function startWaveCounter(?string $name=null): void {
 		$event = new CityWaveEvent();
 		$event->type = "cityraid(start)";
 		$this->eventManager->fireEvent($event);
@@ -182,7 +181,7 @@ class CityWaveController extends ModuleInstance implements MessageEmitter {
 		if ($name === null) {
 			$this->sendWaveMessage("Wave counter started.");
 		} else {
-			$this->sendWaveMessage("Wave counter started by $name.");
+			$this->sendWaveMessage("Wave counter started by {$name}.");
 		}
 		$lastTime = time();
 		$wave = 1;
@@ -193,7 +192,7 @@ class CityWaveController extends ModuleInstance implements MessageEmitter {
 			$lastTime += $time;
 
 			$alert = new WaveAlert();
-			$alert->message = "Wave $wave incoming.";
+			$alert->message = "Wave {$wave} incoming.";
 			if ($wave === 9) {
 				$alert->message = "General Incoming.";
 			}

@@ -3,12 +3,13 @@
 namespace Nadybot\Core\Modules\DISCORD;
 
 use function Safe\preg_split;
+
+use Amp\Promise;
 use Nadybot\Core\{
 	Attributes as NCA,
 	ConfigFile,
-	Http,
-	ModuleInstance,
 	LoggerWrapper,
+	ModuleInstance,
 	Nadybot,
 	SettingManager,
 };
@@ -23,9 +24,6 @@ class DiscordController extends ModuleInstance {
 
 	#[NCA\Inject]
 	public SettingManager $settingManager;
-
-	#[NCA\Inject]
-	public Http $http;
 
 	#[NCA\Inject]
 	public ConfigFile $config;
@@ -48,53 +46,7 @@ class DiscordController extends ModuleInstance {
 	#[NCA\DefineSetting(type: "discord_channel", accessLevel: "admin")]
 	public string $discordNotifyChannel = "off";
 
-	protected function aoIconsToEmojis(string $text): string {
-		$mapping = [
-			"GFX_GUI_ICON_PROFESSION_1" => "🔫",
-			"GFX_GUI_ICON_PROFESSION_2" => "🥋",
-			"GFX_GUI_ICON_PROFESSION_3" => "⚙️",
-			"GFX_GUI_ICON_PROFESSION_4" => "🔓",
-			"GFX_GUI_ICON_PROFESSION_5" => "🕵️",
-			"GFX_GUI_ICON_PROFESSION_6" => "🧭",
-			"GFX_GUI_ICON_PROFESSION_7" => "💵",
-			"GFX_GUI_ICON_PROFESSION_8" => "📎",
-			"GFX_GUI_ICON_PROFESSION_9" => "🗣️",
-			"GFX_GUI_ICON_PROFESSION_10" => "🩹",
-			"GFX_GUI_ICON_PROFESSION_11" => "💥",
-			"GFX_GUI_ICON_PROFESSION_12" => "⚱️",
-			"GFX_GUI_ICON_PROFESSION_14" => "🛡️",
-			"GFX_GUI_ICON_PROFESSION_15" => "🗡️",
-			"GFX_GUI_WINDOW_QUESTIONMARK" => "❓",
-		];
-		$text = preg_replace_callback(
-			"/<img src=['\"]?tdb:\/\/id:([A-Z0-9_]+)['\"]?>/",
-			function(array $matches) use ($mapping): string {
-				return ($mapping[$matches[1]] ?? $matches[1]) . " ";
-			},
-			$text
-		);
-		return $text;
-	}
-
-	protected function factionColorsToEmojis(string $text): string {
-		$mapping = [
-			"neutral" => "▪️",
-			"clan" => "🔸",
-			"omni" => "🔹",
-		];
-		$text = preg_replace_callback(
-			"/<(neutral|clan|omni)>(.+?)<end>/s",
-			function(array $matches) use ($mapping): string {
-				return $mapping[$matches[1]] . $matches[2];
-			},
-			$text
-		);
-		return $text;
-	}
-
-	/**
-	 * Reformat a Nadybot message for sending to Discord
-	 */
+	/** Reformat a Nadybot message for sending to Discord */
 	public function formatMessage(string $text): DiscordMessageOut {
 		$text = $this->aoIconsToEmojis($text);
 		$text = $this->factionColorsToEmojis($text);
@@ -117,7 +69,7 @@ class DiscordController extends ModuleInstance {
 		$text = preg_replace("/\n<img src=['\"]?rdb:\/\/[^>]+?['\"]?>\n/s", "\n", $text);
 		$text = preg_replace_callback(
 			"/(?:<font[^>]*#000000[^>]*>|<black>)(.+?)(?:<end>|<\/font>)/s",
-			function(array $matches): string {
+			function (array $matches): string {
 				if (preg_match("/^0+$/", $matches[1])) {
 					return "_ _" . str_repeat(" ", strlen($matches[1]));
 					// return "_ _" . str_repeat(" ", strlen($matches[1]));
@@ -176,6 +128,7 @@ class DiscordController extends ModuleInstance {
 
 	/**
 	 * Send a message to the configured Discord channel (if configured)
+	 *
 	 * @param string|string[] $text
 	 */
 	public function sendDiscord(string|array $text, bool $allowGroupMentions=false): void {
@@ -191,23 +144,67 @@ class DiscordController extends ModuleInstance {
 		foreach ($text as $page) {
 			$message = $this->formatMessage($page);
 			$message->allowed_mentions = (object)[
-				"parse" => ["users"]
+				"parse" => ["users"],
 			];
 			if (!$allowGroupMentions) {
 				$message->allowed_mentions->parse []= ["roles"];
 				$message->allowed_mentions->parse []= ["here"];
 				$message->allowed_mentions->parse []= ["everyone"];
 			}
-			$this->discordAPIClient->sendToChannel(
+			Promise\rethrow($this->discordAPIClient->sendToChannel(
 				$this->discordNotifyChannel,
 				$message->toJSON()
-			);
+			));
 		}
+	}
+
+	protected function aoIconsToEmojis(string $text): string {
+		$mapping = [
+			"GFX_GUI_ICON_PROFESSION_1" => "🔫",
+			"GFX_GUI_ICON_PROFESSION_2" => "🥋",
+			"GFX_GUI_ICON_PROFESSION_3" => "⚙️",
+			"GFX_GUI_ICON_PROFESSION_4" => "🔓",
+			"GFX_GUI_ICON_PROFESSION_5" => "🕵️",
+			"GFX_GUI_ICON_PROFESSION_6" => "🧭",
+			"GFX_GUI_ICON_PROFESSION_7" => "💵",
+			"GFX_GUI_ICON_PROFESSION_8" => "📎",
+			"GFX_GUI_ICON_PROFESSION_9" => "🗣️",
+			"GFX_GUI_ICON_PROFESSION_10" => "🩹",
+			"GFX_GUI_ICON_PROFESSION_11" => "💥",
+			"GFX_GUI_ICON_PROFESSION_12" => "⚱️",
+			"GFX_GUI_ICON_PROFESSION_14" => "🛡️",
+			"GFX_GUI_ICON_PROFESSION_15" => "🗡️",
+			"GFX_GUI_WINDOW_QUESTIONMARK" => "❓",
+		];
+		$text = preg_replace_callback(
+			"/<img src=['\"]?tdb:\/\/id:([A-Z0-9_]+)['\"]?>/",
+			function (array $matches) use ($mapping): string {
+				return ($mapping[$matches[1]] ?? $matches[1]) . " ";
+			},
+			$text
+		);
+		return $text;
+	}
+
+	protected function factionColorsToEmojis(string $text): string {
+		$mapping = [
+			"neutral" => "▪️",
+			"clan" => "🔸",
+			"omni" => "🔹",
+		];
+		$text = preg_replace_callback(
+			"/<(neutral|clan|omni)>(.+?)<end>/s",
+			function (array $matches) use ($mapping): string {
+				return $mapping[$matches[1]] . $matches[2];
+			},
+			$text
+		);
+		return $text;
 	}
 
 	/** @param string[] $matches */
 	protected function parsePopupToEmbed(array $matches): DiscordEmbed {
-		$fix = function(string $s): string {
+		$fix = function (string $s): string {
 			return htmlspecialchars_decode(strip_tags($s), ENT_QUOTES|ENT_HTML401);
 		};
 		$embed = new DiscordEmbed();

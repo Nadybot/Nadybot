@@ -3,15 +3,13 @@
 namespace Nadybot\Modules\TRICKLE_MODULE\Migrations;
 
 use Illuminate\Database\Schema\Blueprint;
-use Nadybot\Core\DB;
-use Nadybot\Core\LoggerWrapper;
-use Nadybot\Core\SchemaMigration;
+use Nadybot\Core\{DB, LoggerWrapper, SchemaMigration};
 
 class CreateTrickleTable implements SchemaMigration {
 	public function migrate(LoggerWrapper $logger, DB $db): void {
 		$table = "trickle";
 		$db->schema()->dropIfExists($table);
-		$db->schema()->create($table, function(Blueprint $table): void {
+		$db->schema()->create($table, function (Blueprint $table): void {
 			$table->integer("id")->primary();
 			$table->integer("skill_id");
 			$table->string("groupName", 20);

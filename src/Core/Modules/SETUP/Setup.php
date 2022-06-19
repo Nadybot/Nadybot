@@ -2,20 +2,19 @@
 
 namespace Nadybot\Core\Modules\SETUP;
 
-use Nadybot\Core\ConfigFile;
-use Nadybot\Core\DB;
+use Nadybot\Core\{ConfigFile, DB};
 
 /**
  * Description: Configuration of the Basicbot settings
  *
  * @author Derroylo (RK2)
+ *
  * @link http://sourceforge.net/projects/budabot
  *
  * Date(created): 15.01.2006
  * Date(last modified): 22.07.2006
  *
  * @copyright 2006 Carsten Lohmann
- *
  * @license GPL
  */
 class Setup {
@@ -42,7 +41,7 @@ class Setup {
 		$lines = explode("\n", trim($text));
 		echo "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n";
 		echo "{$indentString}**********************************************************\n";
-		echo $indentString.join("\n$indentString", $lines)."\n";
+		echo $indentString.join("\n{$indentString}", $lines)."\n";
 		echo "{$indentString}**********************************************************\n";
 		echo "\n\n\n\n\n\n\n\n\n";
 	}
@@ -311,7 +310,7 @@ class Setup {
 			"config file: {$this->configFile->getFilePath()}\n"
 		);
 
-		//Save the entered info to $configFile
+		// Save the entered info to $configFile
 		$this->configFile->save();
 
 		$msg = "Press [Enter] to close setup.\n";

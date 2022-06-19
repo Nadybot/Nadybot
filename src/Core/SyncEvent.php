@@ -22,6 +22,7 @@ class SyncEvent extends Event {
 		if (!isset($this->sourceBot) || !isset($this->sourceDimension)) {
 			return true;
 		}
+
 		/** @var ConfigFile */
 		$config = Registry::getInstance(ConfigFile::class);
 		$myName = $config->name;

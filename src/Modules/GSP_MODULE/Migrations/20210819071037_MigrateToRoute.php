@@ -18,13 +18,6 @@ class MigrateToRoute implements SchemaMigration {
 	#[NCA\Inject]
 	public GSPController $gspController;
 
-	protected function getSetting(DB $db, string $name): ?Setting {
-		return $db->table(SettingManager::DB_TABLE)
-			->where("name", $name)
-			->asObj(Setting::class)
-			->first();
-	}
-
 	public function migrate(LoggerWrapper $logger, DB $db): void {
 		$channel = $this->getSetting($db, "gsp_channels");
 		if (!isset($channel)) {
@@ -46,5 +39,12 @@ class MigrateToRoute implements SchemaMigration {
 			];
 			$db->table(MessageHub::DB_TABLE_ROUTES)->insert($route);
 		}
+	}
+
+	protected function getSetting(DB $db, string $name): ?Setting {
+		return $db->table(SettingManager::DB_TABLE)
+			->where("name", $name)
+			->asObj(Setting::class)
+			->first();
 	}
 }

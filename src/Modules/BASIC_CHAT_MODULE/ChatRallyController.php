@@ -231,7 +231,7 @@ class ChatRallyController extends ModuleInstance {
 		}
 		[$name, $playfieldId, $xCoords, $yCoords] = explode(":", $data);
 		$link = $this->text->makeChatcmd("Rally: {$xCoords}x{$yCoords} {$name}", "/waypoint {$xCoords} {$yCoords} {$playfieldId}");
-		$blob = "Click here to use rally: $link";
+		$blob = "Click here to use rally: {$link}";
 		$blob .= "\n\n" . $this->text->makeChatcmd("Clear Rally", "/tell <myname> rally clear");
 		return ((array)$this->text->makeBlob("Rally: {$xCoords}x{$yCoords} {$name}", $blob))[0];
 	}
@@ -254,8 +254,7 @@ class ChatRallyController extends ModuleInstance {
 		NCA\NewsTile(
 			name: "rally",
 			description: "Will show a waypoint-link to the current rally-point - if any",
-			example:
-				"<header2>Rally<end>\n".
+			example: "<header2>Rally<end>\n".
 				"<tab>We are rallying <u>here</u>"
 		)
 	]

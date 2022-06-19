@@ -3,15 +3,13 @@
 namespace Nadybot\Modules\NANO_MODULE\Migrations;
 
 use Illuminate\Database\Schema\Blueprint;
-use Nadybot\Core\DB;
-use Nadybot\Core\LoggerWrapper;
-use Nadybot\Core\SchemaMigration;
+use Nadybot\Core\{DB, LoggerWrapper, SchemaMigration};
 
 class CreateNanosTable implements SchemaMigration {
 	public function migrate(LoggerWrapper $logger, DB $db): void {
 		$table = "nanos";
 		$db->schema()->dropIfExists($table);
-		$db->schema()->create($table, function(Blueprint $table): void {
+		$db->schema()->create($table, function (Blueprint $table): void {
 			$table->unsignedInteger("crystal_id")->nullable()->index();
 			$table->unsignedInteger("nano_id")->primary();
 			$table->unsignedInteger("ql");

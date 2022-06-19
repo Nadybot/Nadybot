@@ -3,15 +3,13 @@
 namespace Nadybot\Modules\ONLINE_MODULE\Migrations;
 
 use Illuminate\Database\Schema\Blueprint;
-use Nadybot\Core\DB;
-use Nadybot\Core\LoggerWrapper;
-use Nadybot\Core\SchemaMigration;
+use Nadybot\Core\{DB, LoggerWrapper, SchemaMigration};
 
 class CreateOnlineTable implements SchemaMigration {
 	public function migrate(LoggerWrapper $logger, DB $db): void {
 		$table = "online";
 		if ($db->schema()->hasTable($table)) {
-			$db->schema()->table($table, function(Blueprint $table): void {
+			$db->schema()->table($table, function (Blueprint $table): void {
 				$table->string("name", 15)->change();
 				$table->string("channel", 50)->nullable()->change();
 				$table->string("channel_type", 10)->change();
@@ -19,7 +17,7 @@ class CreateOnlineTable implements SchemaMigration {
 			});
 			return;
 		}
-		$db->schema()->create($table, function(Blueprint $table): void {
+		$db->schema()->create($table, function (Blueprint $table): void {
 			$table->string("name", 15);
 			$table->string("afk", 255)->nullable()->default('');
 			$table->string("channel", 50)->nullable();

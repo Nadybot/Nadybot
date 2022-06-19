@@ -2,27 +2,27 @@
 
 namespace Nadybot\Modules\WORLDBOSS_MODULE;
 
+use function Amp\delay;
+use function Safe\json_decode;
+use Amp\Http\Client\{HttpClientBuilder, Request, Response};
 use DateTime;
 use Exception;
-use Safe\Exceptions\JsonException;
+use Generator;
 use Nadybot\Core\{
 	AOChatEvent,
 	Attributes as NCA,
 	CmdContext,
 	EventManager,
-	Http,
-	HttpResponse,
-	ModuleInstance,
 	LoggerWrapper,
 	MessageEmitter,
 	MessageHub,
+	ModuleInstance,
 	Modules\ALTS\AltsController,
 	Nadybot,
 	ParamClass\PDuration,
 	Routing\RoutableMessage,
 	Routing\Source,
 	Text,
-	Timer as SysTimer,
 	UserStateEvent,
 	Util,
 };
@@ -32,6 +32,8 @@ use Nadybot\Modules\TIMERS_MODULE\{
 	TimerController,
 };
 use Nadybot\Modules\WEBSERVER_MODULE\StatsController;
+use Safe\Exceptions\JsonException;
+use Throwable;
 
 /**
  * @author Equi
@@ -59,6 +61,9 @@ class GauntletBuffController extends ModuleInstance implements MessageEmitter {
 	public const GAUNTLET_API = "https://timers.aobots.org/api/v1.0/gaubuffs";
 
 	#[NCA\Inject]
+	public HttpClientBuilder $builder;
+
+	#[NCA\Inject]
 	public Text $text;
 
 	#[NCA\Inject]
@@ -71,13 +76,7 @@ class GauntletBuffController extends ModuleInstance implements MessageEmitter {
 	public EventManager $eventManager;
 
 	#[NCA\Inject]
-	public Http $http;
-
-	#[NCA\Inject]
 	public Util $util;
-
-	#[NCA\Inject]
-	public SysTimer $timer;
 
 	#[NCA\Inject]
 	public AltsController $altsController;
@@ -123,74 +122,40 @@ class GauntletBuffController extends ModuleInstance implements MessageEmitter {
 		name: "connect",
 		description: "Get active Gauntlet buffs from API"
 	)]
-	public function loadGauntletBuffsFromAPI(): void {
-		$this->http->get(static::GAUNTLET_API)
-			->withCallback([$this, "handleGauntletBuffsFromApi"]);
-	}
+	public function loadGauntletBuffsFromAPI(): Generator {
+		$client = $this->builder->build();
 
-	/**
-	 * Parse the Gauntlet buff timer API result and handle each running buff
-	 */
-	public function handleGauntletBuffsFromApi(HttpResponse $response): void {
-		$code = $response->headers["status-code"] ?? "204";
-		if ($code >= 500 && $code < 600 && --$this->apiRetriesLeft) {
-			$this->logger->warning('Gauntlet buff API sent a {code}, retrying in 5s', [
-				"code" => $code
-			]);
-			$this->timer->callLater(5, [$this, "loadGauntletBuffsFromAPI"]);
-			return;
-		}
-		if ($code !== "200" || !isset($response->body)) {
-			$this->logger->error('Gauntlet buff API did not send correct data.');
-			return;
-		}
-		/** @var ApiGauntletBuff[] */
-		$buffs = [];
 		try {
-			$data = \Safe\json_decode($response->body, true);
-			if (!is_array($data)) {
-				throw new JsonException();
+			/** @var Response */
+			$response = yield $client->request(new Request(static::GAUNTLET_API));
+			$code = $response->getStatus();
+			if ($code >= 500 && $code < 600 && --$this->apiRetriesLeft) {
+				$this->logger->warning('Gauntlett buff API sent a {code}, retrying in 5s', [
+					"code" => $code,
+				]);
+				yield delay(5000);
+				$this->loadGauntletBuffsFromAPI();
+				return;
 			}
-			foreach ($data as $gauntletData) {
-				$buffs []= new ApiGauntletBuff($gauntletData);
+			if ($code !== 200) {
+				$this->logger->error('Gauntlet buff API replied with error {code} ({reason})', [
+					"code" => $code,
+					"reason" => $response->getReason(),
+					"headers" => $response->getRawHeaders(),
+				]);
+				return;
 			}
-		} catch (JsonException) {
-			$this->logger->error("Gauntlet buff API sent invalid json.");
-			return;
-		}
-		foreach ($buffs as $buff) {
-			$this->handleApiGauntletBuff($buff);
-		}
-	}
 
-	/**
-	 * Check if the given Gauntlet buff is valid and set or update a timer for it
-	 */
-	protected function handleApiGauntletBuff(ApiGauntletBuff $buff): void {
-		$this->logger->info("Received gauntlet information for {$buff->faction}.");
-		if (!in_array(strtolower($buff->faction), ["omni", "clan"])) {
-			$this->logger->warning("Received timer information for unknown faction {$buff->faction}.");
+			/** @var string */
+			$body = yield $response->getBody()->buffer();
+		} catch (Throwable $error) {
+			$this->logger->warning('Unknown error from Gauntlet buff API: {error}', [
+				"error" => $error->getMessage(),
+				"Exception" => $error,
+			]);
 			return;
 		}
-		if ($buff->expires < time()) {
-			$this->logger->warning("Received expired timer information for {$buff->faction} Gauntlet buff.");
-			return;
-		}
-		$timer = $this->timerController->get("Gaubuff_{$buff->faction}");
-		if (isset($timer) && abs($buff->expires-($timer->endtime??0)) < 10) {
-			$this->logger->info(
-				"Already existing {$buff->faction} buff recent enough. Difference: ".
-				abs($buff->expires-($timer->endtime??0)) . "s"
-			);
-			return;
-		}
-		$this->logger->info("Updating {$buff->faction} buff from API");
-		$this->setGaubuff(
-			strtolower($buff->faction),
-			$buff->expires,
-			$this->chatBot->char->name,
-			time()
-		);
+		$this->handleGauntletBuffsFromApi($body);
 	}
 
 	#[NCA\SettingChangeHandler('gaubuff_times')]
@@ -208,12 +173,6 @@ class GauntletBuffController extends ModuleInstance implements MessageEmitter {
 		}
 	}
 
-	private function tmTime(int $time): string {
-		$gtime = new DateTime();
-		$gtime->setTimestamp($time);
-		return $gtime->format("D, H:i T (d-M-Y)");
-	}
-
 	public function setGaubuff(string $side, int $time, string $creator, int $createtime): void {
 		$alerts = [];
 		$alertTimes = [];
@@ -221,7 +180,7 @@ class GauntletBuffController extends ModuleInstance implements MessageEmitter {
 		foreach (explode(' ', $gaubuffTimes) as $utime) {
 			$alertTimes [] = $this->util->parseTime($utime);
 		}
-		$alertTimes []= 0; //timer runs out
+		$alertTimes []= 0; // timer runs out
 		foreach ($alertTimes as $alertTime) {
 			if (($time - $alertTime) > time()) {
 				$alert = new Alert();
@@ -259,25 +218,6 @@ class GauntletBuffController extends ModuleInstance implements MessageEmitter {
 			"gauntlet-buff"
 		));
 		$this->messageHub->handle($rMsg);
-	}
-
-	protected function showGauntletBuff(string $sender): void {
-		$sides = $this->getSidesToShowBuff();
-		$msgs = [];
-		foreach ($sides as $side) {
-			$timer = $this->timerController->get("Gaubuff_{$side}");
-			if ($timer === null || !isset($timer->endtime)) {
-				continue;
-			}
-			$msgs []= "<{$side}>" . ucfirst($side) . " Gauntlet buff<end> ".
-					"runs out in <highlight>".
-					$this->util->unixtimeToReadable($timer->endtime - time()).
-					"<end>.";
-		}
-		if (empty($msgs)) {
-			return;
-		}
-		$this->chatBot->sendMassTell(join("\n", $msgs), $sender);
 	}
 
 	#[NCA\Event(
@@ -348,7 +288,7 @@ class GauntletBuffController extends ModuleInstance implements MessageEmitter {
 		PDuration $duration
 	): void {
 		$defaultSide = $this->gaubuffDefaultSide;
-		$faction = $faction ?? $defaultSide;
+		$faction ??= $defaultSide;
 		if ($faction === static::SIDE_NONE) {
 			$msg = "You have to specify for which side the buff is: omni or clan";
 			$context->reply($msg);
@@ -392,25 +332,11 @@ class GauntletBuffController extends ModuleInstance implements MessageEmitter {
 		$this->messageHub->handle($rMsg);
 	}
 
-	/**
-	 * Get a list of array for which to show the gauntlet buff(s)
-	 * @return string[]
-	 */
-	protected function getSidesToShowBuff(?string $side=null): array {
-		$defaultSide = $this->gaubuffDefaultSide;
-		$side ??= $defaultSide;
-		if ($side === static::SIDE_NONE) {
-			return ['clan', 'omni'];
-		}
-		return [$side];
-	}
-
 	#[
 		NCA\NewsTile(
 			name: "gauntlet-buff",
 			description: "Show the remaining time of the currently popped Gauntlet buff(s) - if any",
-			example:
-				"<header2>Gauntlet buff<end>\n".
+			example: "<header2>Gauntlet buff<end>\n".
 				"<tab><omni>Omni Gauntlet buff<end> runs out in <highlight>4 hrs 59 mins 31 secs<end>."
 		)
 	]
@@ -441,7 +367,100 @@ class GauntletBuffController extends ModuleInstance implements MessageEmitter {
 	}
 
 	public function getIsActive(string $faction): bool {
-			$timer = $this->timerController->get("Gaubuff_{$faction}");
-			return ($timer !== null && isset($timer->endtime));
+		$timer = $this->timerController->get("Gaubuff_{$faction}");
+		return $timer !== null && isset($timer->endtime);
+	}
+
+	/** Check if the given Gauntlet buff is valid and set or update a timer for it */
+	protected function handleApiGauntletBuff(ApiGauntletBuff $buff): void {
+		$this->logger->info("Received gauntlet information for {$buff->faction}.");
+		if (!in_array(strtolower($buff->faction), ["omni", "clan"])) {
+			$this->logger->warning("Received timer information for unknown faction {$buff->faction}.");
+			return;
+		}
+		if ($buff->expires < time()) {
+			$this->logger->warning("Received expired timer information for {$buff->faction} Gauntlet buff.");
+			return;
+		}
+		$timer = $this->timerController->get("Gaubuff_{$buff->faction}");
+		if (isset($timer) && abs($buff->expires-($timer->endtime??0)) < 10) {
+			$this->logger->info(
+				"Already existing {$buff->faction} buff recent enough. Difference: ".
+				abs($buff->expires-($timer->endtime??0)) . "s"
+			);
+			return;
+		}
+		$this->logger->info("Updating {$buff->faction} buff from API");
+		$this->setGaubuff(
+			strtolower($buff->faction),
+			$buff->expires,
+			$this->chatBot->char->name,
+			time()
+		);
+	}
+
+	protected function showGauntletBuff(string $sender): void {
+		$sides = $this->getSidesToShowBuff();
+		$msgs = [];
+		foreach ($sides as $side) {
+			$timer = $this->timerController->get("Gaubuff_{$side}");
+			if ($timer === null || !isset($timer->endtime)) {
+				continue;
+			}
+			$msgs []= "<{$side}>" . ucfirst($side) . " Gauntlet buff<end> ".
+					"runs out in <highlight>".
+					$this->util->unixtimeToReadable($timer->endtime - time()).
+					"<end>.";
+		}
+		if (empty($msgs)) {
+			return;
+		}
+		$this->chatBot->sendMassTell(join("\n", $msgs), $sender);
+	}
+
+	/**
+	 * Get a list of array for which to show the gauntlet buff(s)
+	 *
+	 * @return string[]
+	 */
+	protected function getSidesToShowBuff(?string $side=null): array {
+		$defaultSide = $this->gaubuffDefaultSide;
+		$side ??= $defaultSide;
+		if ($side === static::SIDE_NONE) {
+			return ['clan', 'omni'];
+		}
+		return [$side];
+	}
+
+	/** Parse the Gauntlet buff timer API result and handle each running buff */
+	private function handleGauntletBuffsFromApi(string $body): void {
+		if (!strlen($body)) {
+			$this->logger->error('Gauntlet buff API sent an empty reply');
+			return;
+		}
+
+		/** @var ApiGauntletBuff[] */
+		$buffs = [];
+		try {
+			$data = json_decode($body, true);
+			if (!is_array($data)) {
+				throw new JsonException();
+			}
+			foreach ($data as $gauntletData) {
+				$buffs []= new ApiGauntletBuff($gauntletData);
+			}
+		} catch (JsonException) {
+			$this->logger->error("Gauntlet buff API sent invalid json.");
+			return;
+		}
+		foreach ($buffs as $buff) {
+			$this->handleApiGauntletBuff($buff);
+		}
+	}
+
+	private function tmTime(int $time): string {
+		$gtime = new DateTime();
+		$gtime->setTimestamp($time);
+		return $gtime->format("D, H:i T (d-M-Y)");
 	}
 }

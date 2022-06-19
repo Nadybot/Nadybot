@@ -18,7 +18,7 @@ class MigrateReputationTable implements SchemaMigration {
 	public function migrate(LoggerWrapper $logger, DB $db): void {
 		if (!$db->schema()->hasTable("reputation")) {
 			return;
-		};
+		}
 		$oldData = $db->table("reputation")->get();
 		if ($oldData->count() === 0) {
 			$logger->log("INFO", "Reputation table empty, no need to convert anything");
@@ -38,7 +38,7 @@ class MigrateReputationTable implements SchemaMigration {
 						"character" => (string)$row->name,
 						"comment" => "{$row->reputation} {$row->comment}",
 						"created_at" => (int)$row->dt,
-						"created_by" => (string)$row->by
+						"created_by" => (string)$row->by,
 					]);
 			}
 		} catch (Throwable $e) {

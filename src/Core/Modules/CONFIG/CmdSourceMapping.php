@@ -2,8 +2,8 @@
 
 namespace Nadybot\Core\Modules\CONFIG;
 
-use Nadybot\Core\DBSchema\CmdPermSetMapping;
 use Nadybot\Core\Attributes\JSON;
+use Nadybot\Core\DBSchema\CmdPermSetMapping;
 
 class CmdSourceMapping {
 	/**
@@ -48,7 +48,7 @@ class CmdSourceMapping {
 		$map->source = $source;
 		$map->permission_set = $this->permission_set;
 		$map->feedback = $this->unknown_cmd_feedback;
-		$map->symbol = isset($this->cmd_prefix) ? $this->cmd_prefix : "!";
+		$map->symbol = $this->cmd_prefix ?? "!";
 		$map->symbol_optional = $this->cmd_prefix_optional;
 		return $map;
 	}

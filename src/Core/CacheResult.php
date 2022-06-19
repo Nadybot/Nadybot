@@ -3,14 +3,10 @@
 namespace Nadybot\Core;
 
 class CacheResult {
-	/**
-	 * Is the cache valid?
-	 */
+	/** Is the cache valid? */
 	public bool $success = false;
 
-	/**
-	 * Did this data come from the cache (true) or was it fetched (false)?
-	 */
+	/** Did this data come from the cache (true) or was it fetched (false)? */
 	public bool $usedCache = false;
 
 	/**
@@ -30,8 +26,6 @@ class CacheResult {
 	 */
 	public int $cacheAge = 0;
 
-	/**
-	 * The cached data as retrieved from the URL's body
-	 */
+	/** The cached data as retrieved from the URL's body */
 	public ?string $data = null;
 }

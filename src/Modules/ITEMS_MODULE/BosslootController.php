@@ -7,8 +7,8 @@ use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
 	DB,
-	ModuleInstance,
 	LoggerWrapper,
+	ModuleInstance,
 	Text,
 	Util,
 };
@@ -60,23 +60,6 @@ class BosslootController extends ModuleInstance {
 		$this->db->loadCSVFile($this->moduleName, __DIR__ ."/boss_lootdb.csv");
 	}
 
-	/** @param Collection<BossLootdb> $data */
-	private function addItemsToLoot(Collection $data): void {
-		$itemsByName = $this->itemsController
-			->getByNames(...$data->whereNull("aoid")->pluck("itemname")->toArray())
-			->keyBy("name");
-		$itemsByAoid = $this->itemsController
-			->getByIDs(...$data->whereNotNull("aoid")->pluck("aoid")->toArray())
-			->keyBy("aoid");
-		$data->each(function (BossLootdb $loot) use ($itemsByName, $itemsByAoid): void {
-			if (isset($loot->aoid)) {
-				$loot->item = $itemsByAoid->get($loot->aoid);
-			} else {
-				$loot->item = $itemsByName->get($loot->itemname);
-			}
-		});
-	}
-
 	/**
 	 * See the drop table for a boss
 	 */
@@ -97,16 +80,16 @@ class BosslootController extends ModuleInstance {
 			return;
 		}
 		if ($count > 1) {
-			$blob = "Results of Search for '$bossName'\n\n";
-			//If multiple matches found output list of bosses
+			$blob = "Results of Search for '{$bossName}'\n\n";
+			// If multiple matches found output list of bosses
 			foreach ($bosses as $row) {
 				$blob .= $this->getBossLootOutput($row);
 			}
-			$output = $this->text->makeBlob("Boss Search Results ($count)", $blob);
+			$output = $this->text->makeBlob("Boss Search Results ({$count})", $blob);
 			$context->reply($output);
 			return;
 		}
-		//If single match found, output full loot table
+		// If single match found, output full loot table
 		$row = $bosses[0];
 		$blob = "";
 
@@ -135,22 +118,6 @@ class BosslootController extends ModuleInstance {
 		$context->reply($output);
 	}
 
-	/** @return Collection<string> */
-	private function getBossLocations(string $bossName): Collection {
-		/** @var Collection<string> */
-		$locations = $this->whereisController->getByName($bossName)
-			->map(function (WhereisResult $npc): string {
-				if ($npc->playfield_id === 0 || ($npc->xcoord === 0 && $npc->ycoord === 0)) {
-					return $npc->answer;
-				}
-				return $this->text->makeChatcmd(
-					$npc->answer,
-					"/waypoint {$npc->xcoord} {$npc->ycoord} {$npc->playfield_id}"
-				);
-			});
-		return $locations;
-	}
-
 	/**
 	 * Search for the boss dropping the item
 	 */
@@ -158,7 +125,7 @@ class BosslootController extends ModuleInstance {
 	public function bosslootCommand(CmdContext $context, string $item): void {
 		$item = strtolower($item);
 
-		$blob = "Bosses that drop items matching '$item':\n\n";
+		$blob = "Bosses that drop items matching '{$item}':\n\n";
 
 		$query = $this->db->table("boss_lootdb AS b1")
 			->join("boss_namedb AS b2", "b2.bossid", "b1.bossid")
@@ -174,7 +141,7 @@ class BosslootController extends ModuleInstance {
 			foreach ($loot as $row) {
 				$blob .= $this->getBossLootOutput($row, $item);
 			}
-			$output = $this->text->makeBlob("Bossloot Search Results ($count)", $blob);
+			$output = $this->text->makeBlob("Bossloot Search Results ({$count})", $blob);
 		}
 		$context->reply($output);
 	}
@@ -185,17 +152,18 @@ class BosslootController extends ModuleInstance {
 		if (isset($search)) {
 			$this->db->addWhereFromParams($query, explode(' ', $search), 'itemname');
 		}
+
 		/** @var Collection<BossLootdb> */
 		$data = $query->asObj(BossLootdb::class);
 		$this->addItemsToLoot($data);
 
-		$blob = "<pagebreak><header2>{$row->bossname} [" . $this->text->makeChatcmd("details", "/tell <myname> boss $row->bossname") . "]<end>\n";
+		$blob = "<pagebreak><header2>{$row->bossname} [" . $this->text->makeChatcmd("details", "/tell <myname> boss {$row->bossname}") . "]<end>\n";
 		$locations = $this->getBossLocations($row->bossname);
 		if ($locations->count()) {
 			$blob .= "<tab>Location: " . $locations->join(", ") . "\n";
 		}
 		$blob .= "<tab>Loot: ";
-		$lootItems = $data->map(function(BossLootdb $loot): ?string {
+		$lootItems = $data->map(function (BossLootdb $loot): ?string {
 			return $loot->item?->getLink($loot->item->highql) ?? null;
 		})->filter();
 		if (isset($search)) {
@@ -204,5 +172,38 @@ class BosslootController extends ModuleInstance {
 			$blob .= $lootItems->join(", ") . "\n\n";
 		}
 		return $blob;
+	}
+
+	/** @param Collection<BossLootdb> $data */
+	private function addItemsToLoot(Collection $data): void {
+		$itemsByName = $this->itemsController
+			->getByNames(...$data->whereNull("aoid")->pluck("itemname")->toArray())
+			->keyBy("name");
+		$itemsByAoid = $this->itemsController
+			->getByIDs(...$data->whereNotNull("aoid")->pluck("aoid")->toArray())
+			->keyBy("aoid");
+		$data->each(function (BossLootdb $loot) use ($itemsByName, $itemsByAoid): void {
+			if (isset($loot->aoid)) {
+				$loot->item = $itemsByAoid->get($loot->aoid);
+			} else {
+				$loot->item = $itemsByName->get($loot->itemname);
+			}
+		});
+	}
+
+	/** @return Collection<string> */
+	private function getBossLocations(string $bossName): Collection {
+		/** @var Collection<string> */
+		$locations = $this->whereisController->getByName($bossName)
+			->map(function (WhereisResult $npc): string {
+				if ($npc->playfield_id === 0 || ($npc->xcoord === 0 && $npc->ycoord === 0)) {
+					return $npc->answer;
+				}
+				return $this->text->makeChatcmd(
+					$npc->answer,
+					"/waypoint {$npc->xcoord} {$npc->ycoord} {$npc->playfield_id}"
+				);
+			});
+		return $locations;
 	}
 }

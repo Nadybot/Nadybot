@@ -2,7 +2,11 @@
 
 namespace Nadybot\Modules\DEV_MODULE;
 
+use function Amp\File\filesystem;
+
+use Amp\Loop;
 use Exception;
+use Generator;
 use Nadybot\Core\{
 	AOChatEvent,
 	AOChatPacket,
@@ -12,8 +16,8 @@ use Nadybot\Core\{
 	ConfigFile,
 	Event,
 	EventManager,
-	ModuleInstance,
 	LoggerWrapper,
+	ModuleInstance,
 	Modules\DISCORD\DiscordMessageIn,
 	Nadybot,
 	ParamClass\PCharacter,
@@ -112,22 +116,9 @@ class TestController extends ModuleInstance {
 		}
 		$testContext->message = substr($line, 1);
 		$this->commandManager->processCmd($testContext);
-		$this->timer->callLater(0, [$this, __FUNCTION__], $commands, $context, $logFile);
-	}
-
-	protected function sendOrgMsg(string $message): void {
-		$gid = $this->chatBot->get_gid('Org Msg');
-		if (!isset($gid)) {
-			$this->chatBot->gid["sicrit"] = 'Org Msg';
-			$this->chatBot->gid["Org Msg"] = 'sicrit';
-			$gid = 'sicrit';
-		}
-		$testArgs = [$gid, 0xFFFFFFFF, $message];
-		$packet = new AOChatPacket("in", AOChatPacket::LOGIN_OK, "");
-		$packet->type = AOChatPacket::GROUP_MESSAGE;
-		$packet->args = $testArgs;
-
-		$this->chatBot->process_packet($packet);
+		Loop::defer(function () use ($commands, $context, $logFile): void {
+			$this->runTests($commands, $context, $logFile);
+		});
 	}
 
 	/** Pretend that &lt;char&gt; joins your org */
@@ -162,33 +153,6 @@ class TestController extends ModuleInstance {
 		PCharacter $char
 	): void {
 		$this->sendOrgMsg("{$char} just left your organization.");
-	}
-
-	protected function getTowerLocationString(PTowerSite $site, string $format): ?string {
-		$pf = $this->playfieldController->getPlayfieldByName($site->pf);
-		if (!isset($pf)) {
-			return null;
-		}
-		$tSite = $this->towerController->readTowerSiteById($pf->id, $site->site);
-		if (!isset($tSite)) {
-			return null;
-		}
-		return sprintf($format, $pf->long_name, $tSite->x_coord, $tSite->y_coord);
-	}
-
-	protected function sendTowerMsg(string $msg): void {
-		$gid = $this->chatBot->get_gid('All Towers');
-		if (!isset($gid)) {
-			$this->chatBot->gid["sicrit"] = 'All Towers';
-			$this->chatBot->gid["All Towers"] = 'sicrit';
-			$gid = 'sicrit';
-		}
-		$testArgs = [$gid, 0, $msg];
-		$packet = new AOChatPacket("in", AOChatPacket::LOGIN_OK, "");
-		$packet->type = AOChatPacket::GROUP_MESSAGE;
-		$packet->args = $testArgs;
-
-		$this->chatBot->process_packet($packet);
 	}
 
 	/** Run a fictional tower attack by another org */
@@ -336,9 +300,9 @@ class TestController extends ModuleInstance {
 		[$instanceName, $methodName] = explode(".", $event);
 		$instance = Registry::getInstance($instanceName);
 		if ($instance === null) {
-			$context->reply("Instance <highlight>$instanceName<end> does not exist.");
+			$context->reply("Instance <highlight>{$instanceName}<end> does not exist.");
 		} elseif (!method_exists($instance, $methodName)) {
-			$context->reply("Method <highlight>$methodName<end> does not exist on instance <highlight>$instanceName<end>.");
+			$context->reply("Method <highlight>{$methodName}<end> does not exist on instance <highlight>{$instanceName}<end>.");
 		} else {
 			$testEvent = new Event();
 			$testEvent->type = 'dummy';
@@ -527,9 +491,9 @@ class TestController extends ModuleInstance {
 		CmdContext $context,
 		#[NCA\Str("logon")] string $action,
 		PCharacter $char
-	): void {
-		$uid = $this->chatBot->get_uid($char());
-		if ($uid === false) {
+	): Generator {
+		$uid = yield $this->chatBot->getUid2($char());
+		if ($uid === null) {
 			$context->reply("The character <highlight>{$char}<end> does not exist.");
 			return;
 		}
@@ -544,9 +508,9 @@ class TestController extends ModuleInstance {
 		CmdContext $context,
 		#[NCA\Str("logoff")] string $action,
 		PCharacter $char
-	): void {
-		$uid = $this->chatBot->get_uid($char());
-		if ($uid === false) {
+	): Generator {
+		$uid = yield $this->chatBot->getUid2($char());
+		if ($uid === null) {
 			$context->reply("The character <highlight>{$char}<end> does not exist.");
 			return;
 		}
@@ -561,9 +525,9 @@ class TestController extends ModuleInstance {
 		CmdContext $context,
 		#[NCA\Str("join")] string $action,
 		PCharacter $char
-	): void {
-		$uid = $this->chatBot->get_uid($char());
-		if ($uid === false) {
+	): Generator {
+		$uid = yield $this->chatBot->getUid2($char());
+		if ($uid === null) {
 			$context->reply("The character <highlight>{$char}<end> does not exist.");
 			return;
 		}
@@ -579,9 +543,9 @@ class TestController extends ModuleInstance {
 		CmdContext $context,
 		#[NCA\Str("leave")] string $action,
 		PCharacter $char
-	): void {
-		$uid = $this->chatBot->get_uid($char());
-		if ($uid === false) {
+	): Generator {
+		$uid = yield $this->chatBot->getUid2($char());
+		if ($uid === null) {
 			$context->reply("The character <highlight>{$char}<end> does not exist.");
 			return;
 		}
@@ -610,9 +574,9 @@ class TestController extends ModuleInstance {
 		$blob = $this->text->makeChatcmd("All Tests", "/tell <myname> test all") . "\n";
 		foreach ($files as $file) {
 			$name = str_replace(".txt", "", $file);
-			$blob .= $this->text->makeChatcmd($name, "/tell <myname> test $name") . "\n";
+			$blob .= $this->text->makeChatcmd($name, "/tell <myname> test {$name}") . "\n";
 		}
-		$msg = $this->text->makeBlob("Tests Available ($count)", $blob);
+		$msg = $this->text->makeBlob("Tests Available ({$count})", $blob);
 		$context->reply($msg);
 	}
 
@@ -621,16 +585,17 @@ class TestController extends ModuleInstance {
 	public function testAllCommand(
 		CmdContext $context,
 		#[NCA\Str("all")] string $action
-	): void {
+	): Generator {
 		$testContext = clone $context;
 
-		$files = $this->util->getFilesInDirectory($this->path);
+		$files = yield filesystem()->listFiles($this->path);
 		$context->reply("Starting tests...");
 		$logFile = $this->config->dataFolder.
 			"/tests-" . \Safe\date("YmdHis", time()) . ".json";
 		$testLines = [];
 		foreach ($files as $file) {
-			$lines = \Safe\file($this->path . $file, \FILE_IGNORE_NEW_LINES);
+			$data = yield filesystem()->read($this->path . $file);
+			$lines = explode("\n", $data);
 			$testLines = array_merge($testLines, $lines);
 		}
 		$this->runTests($testLines, $testContext, $logFile);
@@ -648,15 +613,57 @@ class TestController extends ModuleInstance {
 		try {
 			$lines = \Safe\file($this->path . $file, FILE_IGNORE_NEW_LINES);
 		} catch (FilesystemException) {
-			$context->reply("Could not find test <highlight>$file<end> to run.");
+			$context->reply("Could not find test <highlight>{$file}<end> to run.");
 			return;
 		}
 		$starttime = time();
 		$logFile = $this->config->dataFolder.
 			"/tests-" . \Safe\date("YmdHis", $starttime) . ".json";
-		$context->reply("Starting test $file...");
+		$context->reply("Starting test {$file}...");
 		$this->runTests($lines, $testContext, $logFile);
 		$time = $this->util->unixtimeToReadable(time() - $starttime);
-		$context->reply("Finished test $file. Time: $time");
+		$context->reply("Finished test {$file}. Time: {$time}");
+	}
+
+	protected function sendOrgMsg(string $message): void {
+		$gid = $this->chatBot->get_gid('Org Msg');
+		if (!isset($gid)) {
+			$this->chatBot->gid["sicrit"] = 'Org Msg';
+			$this->chatBot->gid["Org Msg"] = 'sicrit';
+			$gid = 'sicrit';
+		}
+		$testArgs = [$gid, 0xFFFFFFFF, $message];
+		$packet = new AOChatPacket("in", AOChatPacket::LOGIN_OK, "");
+		$packet->type = AOChatPacket::GROUP_MESSAGE;
+		$packet->args = $testArgs;
+
+		$this->chatBot->process_packet($packet);
+	}
+
+	protected function getTowerLocationString(PTowerSite $site, string $format): ?string {
+		$pf = $this->playfieldController->getPlayfieldByName($site->pf);
+		if (!isset($pf)) {
+			return null;
+		}
+		$tSite = $this->towerController->readTowerSiteById($pf->id, $site->site);
+		if (!isset($tSite)) {
+			return null;
+		}
+		return sprintf($format, $pf->long_name, $tSite->x_coord, $tSite->y_coord);
+	}
+
+	protected function sendTowerMsg(string $msg): void {
+		$gid = $this->chatBot->get_gid('All Towers');
+		if (!isset($gid)) {
+			$this->chatBot->gid["sicrit"] = 'All Towers';
+			$this->chatBot->gid["All Towers"] = 'sicrit';
+			$gid = 'sicrit';
+		}
+		$testArgs = [$gid, 0, $msg];
+		$packet = new AOChatPacket("in", AOChatPacket::LOGIN_OK, "");
+		$packet->type = AOChatPacket::GROUP_MESSAGE;
+		$packet->args = $testArgs;
+
+		$this->chatBot->process_packet($packet);
 	}
 }

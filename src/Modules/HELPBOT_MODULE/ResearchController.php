@@ -42,6 +42,7 @@ class ResearchController extends ModuleInstance {
 			$context->reply("Valid values are 1-10.");
 			return;
 		}
+
 		/** @var Research */
 		$row = $this->db->table("research")
 			->where("level", $level)
@@ -56,11 +57,11 @@ class ResearchController extends ModuleInstance {
 		$xp = number_format($xp);
 		$sk = number_format($sk);
 
-		$blob = "You must be <highlight>Level $levelcap<end> to reach <highlight>Research Level $level<end>.\n";
-		$blob .= "You need <highlight>$sk SK<end> to reach <highlight>Research Level $level<end> per research line.\n\n";
-		$blob .= "This equals <highlight>$xp XP<end>.\n\n";
-		$blob .= "Your research will cap at <highlight>~$capXP XP<end> or <highlight>~$capSK SK<end>.";
-		$msg = $this->text->makeBlob("Research Level $level", $blob);
+		$blob = "You must be <highlight>Level {$levelcap}<end> to reach <highlight>Research Level {$level}<end>.\n";
+		$blob .= "You need <highlight>{$sk} SK<end> to reach <highlight>Research Level {$level}<end> per research line.\n\n";
+		$blob .= "This equals <highlight>{$xp} XP<end>.\n\n";
+		$blob .= "Your research will cap at <highlight>~{$capXP} XP<end> or <highlight>~{$capSK} SK<end>.";
+		$msg = $this->text->makeBlob("Research Level {$level}", $blob);
 
 		$context->reply($msg);
 	}
@@ -79,6 +80,7 @@ class ResearchController extends ModuleInstance {
 			->where("level", "<=", $hiLevel);
 		$query->select($query->colFunc("SUM", "sk", "totalsk"));
 		$query->addSelect($query->colFunc("MAX", "levelcap", "levelcap"));
+
 		/** @var ?ResearchResult */
 		$row = $query->asObj(ResearchResult::class)->first();
 		if (!isset($row) || $loLevel === $hiLevel) {
@@ -90,10 +92,10 @@ class ResearchController extends ModuleInstance {
 		$xp = number_format($row->totalsk * 1000);
 		$sk = number_format($row->totalsk);
 
-		$blob = "You must be <highlight>Level $row->levelcap<end> to reach Research Level <highlight>$hiLevel.<end>\n";
-		$blob .= "It takes <highlight>$sk SK<end> to go from Research Level <highlight>$loLevel<end> to Research Level <highlight>$hiLevel<end> per research line.\n\n";
-		$blob .= "This equals <highlight>$xp XP<end>.";
-		$msg = $this->text->makeBlob("Research Levels $loLevel - $hiLevel", $blob);
+		$blob = "You must be <highlight>Level {$row->levelcap}<end> to reach Research Level <highlight>{$hiLevel}.<end>\n";
+		$blob .= "It takes <highlight>{$sk} SK<end> to go from Research Level <highlight>{$loLevel}<end> to Research Level <highlight>{$hiLevel}<end> per research line.\n\n";
+		$blob .= "This equals <highlight>{$xp} XP<end>.";
+		$msg = $this->text->makeBlob("Research Levels {$loLevel} - {$hiLevel}", $blob);
 
 		$context->reply($msg);
 	}

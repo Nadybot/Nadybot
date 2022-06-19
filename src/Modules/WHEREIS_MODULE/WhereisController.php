@@ -76,6 +76,7 @@ class WhereisController extends ModuleInstance {
 		$query = $this->db->table("whereis");
 		$this->db->addWhereFromParams($query, $words, "name");
 		$this->db->addWhereFromParams($query, $words, "keywords", "or");
+
 		/** @var Collection<string> */
 		$lines = $query->asObj(WhereisResult::class)
 			->map(function (WhereisResult $npc): string {

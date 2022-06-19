@@ -2,9 +2,9 @@
 
 namespace Nadybot\Modules\DISCORD_GATEWAY_MODULE\Model;
 
-use Nadybot\Core\JSONDataModel;
-
 use function Safe\json_encode;
+
+use Nadybot\Core\JSONDataModel;
 
 class ApplicationCommand extends JSONDataModel {
 	/** Slash commands; a text-based command that shows up when a user types / */
@@ -33,6 +33,7 @@ class ApplicationCommand extends JSONDataModel {
 
 	/**
 	 * Localization dictionary for name field. Values follow the same restrictions as name
+	 *
 	 * @var array<string,string>
 	 */
 	public ?array $name_localizations = null;
@@ -42,12 +43,14 @@ class ApplicationCommand extends JSONDataModel {
 
 	/**
 	 * Localization dictionary for description field. Values follow the same restrictions as description
+	 *
 	 * @var array<string,string>
 	 */
 	public ?array $description_localizations = null;
 
 	/**
 	 * Parameters for the command, max of 25
+	 *
 	 * @var null|\Nadybot\Modules\DISCORD_GATEWAY_MODULE\Model\ApplicationCommandOption[]
 	 */
 	public ?array $options = null;

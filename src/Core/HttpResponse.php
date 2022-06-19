@@ -3,7 +3,7 @@
 namespace Nadybot\Core;
 
 class HttpResponse {
-	/** @var array<string,string> $headers */
+	/** @var array<string,string> */
 	public array $headers = [];
 	public ?string $body = null;
 	public ?string $error = null;

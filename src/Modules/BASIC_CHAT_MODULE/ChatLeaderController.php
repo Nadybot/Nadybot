@@ -2,10 +2,14 @@
 
 namespace Nadybot\Modules\BASIC_CHAT_MODULE;
 
+use function Amp\call;
+
+use Amp\Promise;
+use Generator;
 use Nadybot\Core\{
+	AOChatEvent,
 	AccessLevelProvider,
 	AccessManager,
-	AOChatEvent,
 	Attributes as NCA,
 	CmdContext,
 	EventManager,
@@ -58,9 +62,7 @@ class ChatLeaderController extends ModuleInstance implements AccessLevelProvider
 	#[NCA\Setting\Color]
 	public string $leaderechoColor = "#FFFF00";
 
-	/**
-	 * Name of the leader character.
-	 */
+	/** Name of the leader character. */
 	private ?string $leader = null;
 
 	#[NCA\Setup]
@@ -79,7 +81,7 @@ class ChatLeaderController extends ModuleInstance implements AccessLevelProvider
 	 * Sets the leader of the raid, granting special access
 	 */
 	#[NCA\HandlesCommand("leader")]
-	public function leaderCommand(CmdContext $context): void {
+	public function leaderCommand(CmdContext $context): Generator {
 		if ($this->leader === $context->char->name) {
 			$this->leader = null;
 			$this->chatBot->sendPrivate("Raid Leader cleared.");
@@ -88,7 +90,9 @@ class ChatLeaderController extends ModuleInstance implements AccessLevelProvider
 			$this->eventManager->fireEvent($event);
 			return;
 		}
-		$msg = $this->setLeader($context->char->name, $context->char->name);
+
+		/** @var ?string */
+		$msg = yield $this->setLeader($context->char->name, $context->char->name);
 		if ($msg !== null) {
 			$context->reply($msg);
 		}
@@ -98,34 +102,38 @@ class ChatLeaderController extends ModuleInstance implements AccessLevelProvider
 	 * Set someone to be raid leader
 	 */
 	#[NCA\HandlesCommand(self::CMD_LEADER_SET)]
-	public function leaderSetCommand(CmdContext $context, PCharacter $newLeader): void {
-		$msg = $this->setLeader($newLeader(), $context->char->name);
+	public function leaderSetCommand(CmdContext $context, PCharacter $newLeader): Generator {
+		/** @var ?string */
+		$msg = yield $this->setLeader($newLeader(), $context->char->name);
 		if ($msg !== null) {
 			$context->reply($msg);
 		}
 	}
 
-	public function setLeader(string $name, string $sender): ?string {
-		$name = ucfirst(strtolower($name));
-		$uid = $this->chatBot->get_uid($name);
-		if (!$uid) {
-			return "Character <highlight>{$name}<end> does not exist.";
-		}
-		if (!isset($this->chatBot->chatlist[$name])) {
-			return "Character <highlight>{$name}<end> is not in the private channel.";
-		}
-		if (isset($this->leader)
-			&& $sender !== $this->leader
-			&& $this->accessManager->compareCharacterAccessLevels($sender, $this->leader) <= 0) {
-			return "You cannot take Raid Leader from <highlight>{$this->leader}<end>.";
-		}
-		$this->leader = $name;
-		$this->chatBot->sendPrivate($this->getLeaderStatusText());
-		$event = new LeaderEvent();
-		$event->type = "leader(set)";
-		$event->player = $name;
-		$this->eventManager->fireEvent($event);
-		return null;
+	/** @return Promise<?string> */
+	public function setLeader(string $name, string $sender): Promise {
+		return call(function () use ($name, $sender): Generator {
+			$name = ucfirst(strtolower($name));
+			$uid = yield $this->chatBot->getUid2($name);
+			if (!isset($uid)) {
+				return "Character <highlight>{$name}<end> does not exist.";
+			}
+			if (!isset($this->chatBot->chatlist[$name])) {
+				return "Character <highlight>{$name}<end> is not in the private channel.";
+			}
+			if (isset($this->leader)
+				&& $sender !== $this->leader
+				&& $this->accessManager->compareCharacterAccessLevels($sender, $this->leader) <= 0) {
+				return "You cannot take Raid Leader from <highlight>{$this->leader}<end>.";
+			}
+			$this->leader = $name;
+			$this->chatBot->sendPrivate($this->getLeaderStatusText());
+			$event = new LeaderEvent();
+			$event->type = "leader(set)";
+			$event->player = $name;
+			$this->eventManager->fireEvent($event);
+			return null;
+		});
 	}
 
 	/**
@@ -180,28 +188,6 @@ class ChatLeaderController extends ModuleInstance implements AccessLevelProvider
 		$this->chatBot->sendPrivate($msg);
 	}
 
-	/**
-	 * Returns echo's status message based on 'leaderecho' setting.
-	 */
-	private function getEchoStatusText(): string {
-		if ($this->leaderecho) {
-			$status = "<on>Enabled<end>";
-		} else {
-			$status = "<off>Disabled<end>";
-		}
-		return $status;
-	}
-
-	/**
-	 * Returns current leader and echo's current status.
-	 */
-	private function getLeaderStatusText(): string {
-		$cmd = $this->leaderecho ? "off": "on";
-		$status = $this->getEchoStatusText();
-		$msg = "{$this->leader} is now Raid Leader. Leader echo is currently {$status}. You can change it with <symbol>leaderecho {$cmd}";
-		return $msg;
-	}
-
 	public function getLeader(): ?string {
 		return $this->leader;
 	}
@@ -215,5 +201,23 @@ class ChatLeaderController extends ModuleInstance implements AccessLevelProvider
 			return true;
 		}
 		return false;
+	}
+
+	/** Returns echo's status message based on 'leaderecho' setting. */
+	private function getEchoStatusText(): string {
+		if ($this->leaderecho) {
+			$status = "<on>Enabled<end>";
+		} else {
+			$status = "<off>Disabled<end>";
+		}
+		return $status;
+	}
+
+	/** Returns current leader and echo's current status. */
+	private function getLeaderStatusText(): string {
+		$cmd = $this->leaderecho ? "off" : "on";
+		$status = $this->getEchoStatusText();
+		$msg = "{$this->leader} is now Raid Leader. Leader echo is currently {$status}. You can change it with <symbol>leaderecho {$cmd}";
+		return $msg;
 	}
 }

@@ -57,9 +57,7 @@ class MMDBParser {
 		return $message;
 	}
 
-	/**
-	 * @return array<string,int>[]|null
-	 */
+	/** @return array<string,int>[]|null */
 	public function findAllInstancesInCategory(int $categoryId): ?array {
 		$in = $this->openFile();
 		if ($in === null) {
@@ -92,9 +90,7 @@ class MMDBParser {
 		return $instances;
 	}
 
-	/**
-	 * @return null|array<string,int>[]
-	 */
+	/** @return null|array<string,int>[] */
 	public function getCategories(): ?array {
 		$in = $this->openFile();
 		if ($in === null) {
@@ -124,7 +120,7 @@ class MMDBParser {
 	 *
 	 * @return null|resource
 	 */
-	private function openFile(string $filename="res/text.mdb") {
+	private function openFile(string $filename="res/text.mdb"): mixed {
 		try {
 			$in = \Safe\fopen($filename, 'rb');
 		} catch (FilesystemException $e) {
@@ -146,9 +142,10 @@ class MMDBParser {
 	/**
 	 * Find an entry in the MMDB
 	 *
-	 * @param resource $in The resource of the file
-	 * @param int $id The category ID
-	 * @param int $offset Offset where to read
+	 * @param resource $in     The resource of the file
+	 * @param int      $id     The category ID
+	 * @param int      $offset Offset where to read
+	 *
 	 * @return null|array<string,int>
 	 */
 	private function findEntry($in, int $id, int $offset): ?array {
@@ -169,24 +166,21 @@ class MMDBParser {
 
 	/**
 	 * @param resource $in
+	 *
 	 * @return array<string,int>
 	 */
 	private function readEntry($in): array {
 		return ['id' => $this->readLong($in), 'offset' => $this->readLong($in)];
 	}
 
-	/**
-	 * @param resource $in
-	 */
+	/** @param resource $in */
 	private function readLong($in): int {
 		$packed = \Safe\fread($in, 4);
 		$unpacked = \Safe\unpack("L", $packed);
 		return array_pop($unpacked);
 	}
 
-	/**
-	 * @param resource $in
-	 */
+	/** @param resource $in */
 	private function readString($in): string {
 		$message = '';
 		$char = '';

@@ -2,14 +2,17 @@
 
 namespace Nadybot\Core\Modules\SYSTEM;
 
+use function Amp\File\createDefaultDriver;
 use function Safe\unpack;
 
+use Amp\Loop;
 use Exception;
+use Generator;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	AccessManager,
-	Attributes as NCA,
 	AdminManager,
+	Attributes as NCA,
 	BuddylistManager,
 	CmdContext,
 	CommandAlias,
@@ -20,10 +23,10 @@ use Nadybot\Core\{
 	Event,
 	EventManager,
 	HelpManager,
-	ModuleInstance,
 	LoggerWrapper,
 	MessageEmitter,
 	MessageHub,
+	ModuleInstance,
 	Nadybot,
 	ParamClass\PCharacter,
 	PrivateMessageCommandReply,
@@ -310,6 +313,9 @@ class SystemController extends ModuleInstance implements MessageEmitter {
 		$basicInfo->org_id = $this->config->orgId;
 		$basicInfo->php_version = phpversion();
 		$basicInfo->os = php_uname('s') . ' ' . php_uname('r') . ' ' . php_uname('m');
+		$basicInfo->event_loop = class_basename(Loop::get());
+		$basicInfo->fs = class_basename(createDefaultDriver());
+
 		$basicInfo->superadmins = $this->config->superAdmins;
 
 		$info->memory = $memory = new MemoryInformation();
@@ -387,6 +393,8 @@ class SystemController extends ModuleInstance implements MessageEmitter {
 
 		$blob .= "<tab>Nadybot: <highlight>{$info->basic->bot_version}<end>\n";
 		$blob .= "<tab>PHP: <highlight>{$info->basic->php_version}<end>\n";
+		$blob .= "<tab>Event loop: <highlight>Amp {$info->basic->event_loop}<end> using ".
+			"<highlight>{$info->basic->fs}<end> filesystem\n";
 		$blob .= "<tab>OS: <highlight>{$info->basic->os}<end>\n";
 		$blob .= "<tab>Database: <highlight>{$info->basic->db_type}<end>\n\n";
 
@@ -420,7 +428,7 @@ class SystemController extends ModuleInstance implements MessageEmitter {
 					"<end>\n";
 			}
 		}
-		$blob .= "<tab>Bot Uptime: <highlight>$date_string<end>\n\n";
+		$blob .= "<tab>Bot Uptime: <highlight>{$date_string}<end>\n\n";
 
 		$blob .= "<header2>Configuration<end>\n";
 		foreach ($info->config->active_commands as $cmdChannelStats) {
@@ -440,7 +448,7 @@ class SystemController extends ModuleInstance implements MessageEmitter {
 		$blob .= "<tab>Messages in the chat queue: <highlight>{$info->stats->chatqueue_length}<end>\n\n";
 
 		$blob .= "<header2>Public Channels<end>\n";
-		usort($info->channels, function(ChannelInfo $c1, ChannelInfo $c2): int {
+		usort($info->channels, function (ChannelInfo $c1, ChannelInfo $c2): int {
 			return ($c1->class <=> $c2->class) ?: $c1->id <=> $c2->id;
 		});
 		foreach ($info->channels as $channel) {
@@ -458,29 +466,21 @@ class SystemController extends ModuleInstance implements MessageEmitter {
 
 		$msg = "Access level for <highlight>{$context->char->name}<end> (".
 			(isset($context->char->id) ? "ID {$context->char->id}" : "No ID").
-			") is <highlight>$accessLevel<end>.";
+			") is <highlight>{$accessLevel}<end>.";
 		$context->reply($msg);
 	}
 
 	/** Show which access level &lt;character&gt; currently has */
 	#[NCA\HandlesCommand("checkaccess")]
-	public function checkaccessOtherCommand(CmdContext $context, PCharacter $character): void {
-		$this->chatBot->getUid(
-			$character(),
-			function (?int $uid, CmdContext $context, string $character): void {
-				if (!isset($uid)) {
-					$context->reply("Character <highlight>{$character}<end> does not exist.");
-					return;
-				}
-				$accessLevel = $this->accessManager->getDisplayName($this->accessManager->getAccessLevelForCharacter($character));
-				$msg = "Access level for <highlight>{$character}<end> (ID {$uid}) is <highlight>$accessLevel<end>.";
-				$context->reply($msg);
-				return;
-			},
-			$context,
-			$character()
-		);
-		return;
+	public function checkaccessOtherCommand(CmdContext $context, PCharacter $character): Generator {
+		$uid = yield $this->chatBot->getUid2($character());
+		if (!isset($uid)) {
+			$context->reply("Character <highlight>{$character}<end> does not exist.");
+			return;
+		}
+		$accessLevel = $this->accessManager->getDisplayName($this->accessManager->getAccessLevelForCharacter($character()));
+		$msg = "Access level for <highlight>{$character}<end> (ID {$uid}) is <highlight>{$accessLevel}<end>.";
+		$context->reply($msg);
 	}
 
 	/**
@@ -541,7 +541,7 @@ class SystemController extends ModuleInstance implements MessageEmitter {
 		}
 
 		$version = $this->chatBot->runner::getVersion();
-		$msg = "Nadybot <highlight>$version<end> is now <on>online<end>.";
+		$msg = "Nadybot <highlight>{$version}<end> is now <on>online<end>.";
 
 		// send a message to guild channel
 		$rMsg = new RoutableMessage($msg);
@@ -555,12 +555,9 @@ class SystemController extends ModuleInstance implements MessageEmitter {
 		command: "<symbol>showcommand Tyrence online",
 		description: "Show the online list to Tyrence"
 	)]
-	public function showCommandCommand(CmdContext $context, PCharacter $name, string $cmd): void {
-		$this->chatBot->getUid($name(), [$this, "showCommandUid"], $context, $name(), $cmd);
-	}
-
-	public function showCommandUid(?int $uid, CmdContext $context, string $name, string $cmd): void {
-		$name = ucfirst(strtolower($name));
+	public function showCommandCommand(CmdContext $context, PCharacter $name, string $cmd): Generator {
+		$name = $name();
+		$uid = yield $this->chatBot->getUid2($name);
 		if (!isset($uid)) {
 			$context->reply("Character <highlight>{$name}<end> does not exist.");
 			return;

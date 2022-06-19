@@ -2,8 +2,19 @@
 
 namespace Nadybot\Core\Modules\SYSTEM;
 
+use function Amp\asyncCall;
+use function Amp\File\{deleteFile, filesystem, read};
+use Amp\ByteStream\LineReader;
+use Amp\File\{File, FilesystemException};
+use Amp\Http\Client\{
+	HttpClientBuilder,
+	Interceptor\SetRequestHeader,
+	Request,
+	Response,
+};
+use Amp\Loop;
 use Exception;
-use Safe\Exceptions\FilesystemException;
+use Generator;
 use Monolog\{
 	Formatter\JsonFormatter,
 	Handler\AbstractHandler,
@@ -17,20 +28,17 @@ use Nadybot\Core\{
 	BotRunner,
 	CmdContext,
 	CommandManager,
-	DedupHandler,
-	Http,
-	HttpResponse,
-	ModuleInstance,
 	LegacyLogger,
 	LoggerWrapper,
+	ModuleInstance,
 	Nadybot,
 	ParamClass\PFilename,
 	ParamClass\PWord,
 	SettingManager,
 	Text,
-	Timer,
 	Util,
 };
+use Throwable;
 
 /**
  * @author Tyrence (RK2)
@@ -55,6 +63,9 @@ use Nadybot\Core\{
 ]
 class LogsController extends ModuleInstance {
 	#[NCA\Inject]
+	public HttpClientBuilder $builder;
+
+	#[NCA\Inject]
 	public CommandManager $commandManager;
 
 	#[NCA\Inject]
@@ -62,12 +73,6 @@ class LogsController extends ModuleInstance {
 
 	#[NCA\Inject]
 	public Nadybot $chatBot;
-
-	#[NCA\Inject]
-	public Http $http;
-
-	#[NCA\Inject]
-	public Timer $timer;
 
 	#[NCA\Inject]
 	public Text $text;
@@ -80,10 +85,8 @@ class LogsController extends ModuleInstance {
 
 	/** View a list of log files */
 	#[NCA\HandlesCommand("logs")]
-	public function logsCommand(CmdContext $context): void {
-		$files = $this->util->getFilesInDirectory(
-			$this->logger->getLoggingDirectory()
-		);
+	public function logsCommand(CmdContext $context): Generator {
+		$files = yield filesystem()->listFiles($this->logger->getLoggingDirectory());
 		if (!count($files)) {
 			$context->reply("Log Files (0)");
 			return;
@@ -91,10 +94,10 @@ class LogsController extends ModuleInstance {
 		sort($files);
 		$blob = '';
 		foreach ($files as $file) {
-			$fileLink  = $this->text->makeChatcmd($file, "/tell <myname> logs $file");
-			$errorLink = $this->text->makeChatcmd("ERROR", "/tell <myname> logs $file ERROR");
-			$chatLink  = $this->text->makeChatcmd("CHAT", "/tell <myname> logs $file CHAT");
-			$blob .= "$fileLink [$errorLink] [$chatLink]\n";
+			$fileLink  = $this->text->makeChatcmd($file, "/tell <myname> logs {$file}");
+			$errorLink = $this->text->makeChatcmd("ERROR", "/tell <myname> logs {$file} ERROR");
+			$chatLink  = $this->text->makeChatcmd("CHAT", "/tell <myname> logs {$file} CHAT");
+			$blob .= "{$fileLink} [{$errorLink}] [{$chatLink}]\n";
 		}
 
 		$msg = $this->text->makeBlob('Log Files (' . count($files) . ')', $blob);
@@ -107,29 +110,55 @@ class LogsController extends ModuleInstance {
 	 * &lt;search&gt; is a regular expression (without delimiters) and case-insensitive
 	 */
 	#[NCA\HandlesCommand("logs")]
-	public function logsFileCommand(CmdContext $context, PFilename $file, ?string $search): void {
+	public function logsFileCommand(CmdContext $context, PFilename $file, ?string $search): Generator {
 		$filename = $this->logger->getLoggingDirectory() . DIRECTORY_SEPARATOR . $file();
 		$readsize = ($this->settingManager->getInt('max_blob_size')??10000) - 500;
 
 		try {
-			$lines = file($filename);
-			if ($lines === false) {
+			if (false === yield filesystem()->exists($filename)) {
 				$context->reply("The file <highlight>{$filename}<end> doesn't exist.");
 				return;
+			}
+
+			/** @var File */
+			$handle = yield filesystem()->openFile($filename, "r");
+			$reader = new LineReader($handle);
+			$lines = [];
+			while (null !== $line = yield $reader->readLine()) {
+				if (strlen($line) > 1000) {
+					$line = substr($line, 0, 997) . "[…]";
+				}
+				$lines []= $line;
+			}
+			$handle->close();
+			$searchFunc = function (string $line): bool {
+				return true;
+			};
+			if (isset($search) && preg_match("/^[a-zA-Z0-9_-]+$/", $search)) {
+				$searchFunc = function (string $line) use ($search): bool {
+					return stripos($line, $search) !== false;
+				};
+			} elseif (isset($search)) {
+				$searchFunc = function (string $line) use ($search): bool {
+					return preg_match(chr(1) . $search . chr(1) ."i", $line) === 1;
+				};
 			}
 			$lines = array_reverse($lines);
 			$contents = '';
 			$trace = [];
 			foreach ($lines as $line) {
-				if (isset($search) && !preg_match(chr(1) . $search . chr(1) ."i", $line)) {
+				if (isset($search) && !$searchFunc($line)) {
 					if (preg_match("/^(#\d+\s|\[stacktrace\])/", $line)) {
-						array_unshift($trace, "<tab>$line");
+						array_unshift($trace, "<tab>{$line}");
 					} else {
 						$trace = [];
 					}
 					continue;
 				}
-				$line .= join("", $trace);
+				if (count($trace)) {
+					$line .= "\n" . join("\n", $trace);
+				}
+				$line .= "\n";
 				$trace = [];
 				if (strlen($contents . $line) > $readsize) {
 					break;
@@ -278,62 +307,71 @@ class LogsController extends ModuleInstance {
 		$handler->pushProcessor($processor);
 		foreach ($loggers as $logger) {
 			$logger->pushHandler($handler);
-			$logger->pushHandler(new DedupHandler());
 		}
-		$newContext->registerShutdownFunction(function() use ($context, $debugFile): void {
+		$newContext->registerShutdownFunction(function () use ($context, $debugFile): void {
 			$loggers = LegacyLogger::getLoggers();
 			foreach ($loggers as $logger) {
 				$logger->popHandler();
 				$logger->popHandler();
 			}
-			$this->timer->callLater(0, [$this, "uploadDebugLog"], $context, $debugFile);
+			Loop::defer(function () use ($context, $debugFile): void {
+				$this->uploadDebugLog($context, $debugFile);
+			});
 		});
 
 		$this->commandManager->processCmd($newContext);
 	}
 
 	public function uploadDebugLog(CmdContext $context, string $filename): void {
-		try {
-			$content = \Safe\file_get_contents($filename);
-		} catch (FilesystemException $e) {
-			$context->reply("Unable to open <highlight>{$filename}<end>: " . $e->getMessage() . ".");
-			return;
-		}
-		$content = str_replace('"' . BotRunner::getBasedir() . "/", "", $content);
-		$boundary = '--------------------------'.microtime(true);
-		$this->http->post("https://debug.nadybot.org")
-			->withHeader("Authorization", "dRtXBMRnAH6AX2lx5ESiAQ==")
-			->withHeader("Content-Type", "multipart/form-data; boundary={$boundary}")
-			->withPostData(
-				"--{$boundary}\r\n".
+		asyncCall(function () use ($context, $filename): Generator {
+			try {
+				$content = yield read($filename);
+				deleteFile($filename);
+			} catch (FilesystemException $e) {
+				$context->reply("Unable to open <highlight>{$filename}<end>: " . $e->getMessage() . ".");
+				return;
+			}
+			$content = str_replace('"' . BotRunner::getBasedir() . "/", "", $content);
+			$boundary = '--------------------------'.microtime(true);
+			$client = $this->builder
+				->intercept(new SetRequestHeader("Authorization", "dRtXBMRnAH6AX2lx5ESiAQ=="))
+				->intercept(new SetRequestHeader("Content-Type", "multipart/form-data; boundary={$boundary}"))
+				->build();
+			$postData = "--{$boundary}\r\n".
 				"Content-Disposition: form-data; name=\"file\"; filename=\"" . basename($filename) . "\"\r\n".
 				"Content-Type: application/json\r\n\r\n".
 				$content . "\r\n".
-				"--{$boundary}--\r\n"
-			)->withCallback([$this, "handleDebugLogUpload"], $context);
-			@unlink($filename);
-	}
-
-	public function handleDebugLogUpload(HttpResponse $response, CmdContext $context): void {
-		if (isset($response->error)) {
-			$context->reply("Error uploading debug file: {$response->error}");
-			return;
-		}
-		if ($response->headers["status-code"] !== "200") {
+				"--{$boundary}--\r\n";
+			$request = new Request("https://debug.nadybot.org", "POST", $postData);
+			try {
+				/** @var Response */
+				$response = yield $client->request($request);
+			} catch (Throwable $e) {
+				$context->reply("Error uploading debug file: " . $e->getMessage());
+				return;
+			}
+			if ($response->getStatus() !== 200) {
+				$context->reply(
+					"Error uploading debug file. ".
+					"Code " . $response->getStatus(). " (".
+					$response->getReason() . ")"
+				);
+				return;
+			}
+			try {
+				$body = yield $response->getBody()->buffer();
+			} catch (Throwable $e) {
+				$context->reply("Error uploading debug file: " . $e->getMessage());
+				return;
+			}
+			if ($body === '') {
+				$context->reply("The file was uploaded successfully, but we did not receive a storage link.");
+				return;
+			}
+			$url = trim($body);
 			$context->reply(
-				"Error uploading debug file. ".
-				"Code {$response->headers['status-code']} (".
-				($response->headers["status-message"] ?? "Unknown") . ")"
+				"The debug log has been uploaded successfully to <highlight>{$url}<end>."
 			);
-			return;
-		}
-		if (!isset($response->body)) {
-			$context->reply("The file was uploaded successfully, but we did receive a storage link.");
-			return;
-		}
-		$url = trim($response->body);
-		$context->reply(
-			"The debug log has been uploaded successfully to <highlight>{$url}<end>."
-		);
+		});
 	}
 }

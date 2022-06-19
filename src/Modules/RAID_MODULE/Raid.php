@@ -2,13 +2,10 @@
 
 namespace Nadybot\Modules\RAID_MODULE;
 
-use Nadybot\Core\Attributes as NCA;
-use Nadybot\Core\DBRow;
+use Nadybot\Core\{Attributes as NCA, DBRow};
 
 class Raid extends DBRow {
-	/**
-	 * The internal ID of this raid
-	 */
+	/** The internal ID of this raid */
 	public int $raid_id;
 
 	/** The description of the raid */
@@ -39,29 +36,19 @@ class Raid extends DBRow {
 	#[NCA\DB\Ignore]
 	public int $last_announcement = 0;
 
-	/**
-	 * Is the raid currently locked and joining as forbidden?
-	 */
+	/** Is the raid currently locked and joining as forbidden? */
 	public bool $locked = false;
 
-	/**
-	 * UNIX timestamp when this raid/raid part was started
-	 */
+	/** UNIX timestamp when this raid/raid part was started */
 	public int $started;
 
-	/**
-	 * Name of the raidleader who started the raid
-	 */
+	/** Name of the raidleader who started the raid */
 	public string $started_by;
 
-	/**
-	 * UNIX timestamp when this raid was stopped
-	 */
+	/** UNIX timestamp when this raid was stopped */
 	public ?int $stopped = null;
 
-	/**
-	 * Name of the raidleader who stopped the raid
-	 */
+	/** Name of the raidleader who stopped the raid */
 	public ?string $stopped_by = null;
 
 	/**
@@ -72,6 +59,7 @@ class Raid extends DBRow {
 
 	/**
 	 * List of all players who are or were in the raid
+	 *
 	 * @var array<string,RaidMember>
 	 */
 	#[NCA\DB\Ignore]
@@ -79,6 +67,7 @@ class Raid extends DBRow {
 
 	/**
 	 * Internal array to track which mains already received points
+	 *
 	 * @var array<string,bool>
 	 */
 	#[NCA\DB\Ignore]

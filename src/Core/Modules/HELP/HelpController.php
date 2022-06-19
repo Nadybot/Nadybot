@@ -2,18 +2,21 @@
 
 namespace Nadybot\Core\Modules\HELP;
 
-use function Safe\file_get_contents;
+use function Amp\call;
+use function Amp\File\filesystem;
 
+use Amp\Promise;
+use Generator;
 use Nadybot\Core\{
 	Attributes as NCA,
 	BotRunner,
 	CmdContext,
 	CommandAlias,
 	CommandManager,
-	Modules\CONFIG\ConfigController,
 	DB,
 	HelpManager,
 	ModuleInstance,
+	Modules\CONFIG\ConfigController,
 	Modules\PREFERENCES\Preferences,
 	Nadybot,
 	SettingManager,
@@ -85,12 +88,14 @@ class HelpController extends ModuleInstance {
 		$this->commandAlias->register($this->moduleName, "help modules", "modules");
 	}
 
-	/** @return string|string[] */
-	public function getAbout(): string|array {
-		$data = file_get_contents(__DIR__ . "/about.txt");
-		$version = BotRunner::getVersion();
-		$data = str_replace('<version>', $version, $data);
-		return $this->text->makeBlob("About Nadybot $version", $data);
+	/** @return Promise<string|string[]> */
+	public function getAbout(): Promise {
+		return call(function (): Generator {
+			$data = yield filesystem()->read(__DIR__ . "/about.txt");
+			$version = BotRunner::getVersion();
+			$data = str_replace('<version>', $version, $data);
+			return $this->text->makeBlob("About Nadybot {$version}", $data);
+		});
 	}
 
 	/** Get a list of all help topics */
@@ -113,7 +118,7 @@ class HelpController extends ModuleInstance {
 				$blob .= "\n<pagebreak><header2>{$row->module}<end>\n";
 				$currentModule = $row->module;
 			}
-			$helpLink = $this->text->makeChatcmd($row->name, "/tell <myname> help $row->name");
+			$helpLink = $this->text->makeChatcmd($row->name, "/tell <myname> help {$row->name}");
 			$blob .= "<tab>{$helpLink}: {$row->description}\n";
 		}
 
@@ -124,8 +129,8 @@ class HelpController extends ModuleInstance {
 
 	/** Get the initial help overview */
 	#[NCA\HandlesCommand("help")]
-	public function helpCommand(CmdContext $context): void {
-		$data = file_get_contents(__DIR__ . "/overview.txt");
+	public function helpCommand(CmdContext $context): Generator {
+		$data = yield filesystem()->read(__DIR__ . "/overview.txt");
 		$version = BotRunner::getVersion();
 		$database = $this->db->getVersion();
 		$data = str_replace(
@@ -142,8 +147,8 @@ class HelpController extends ModuleInstance {
 	public function helpSyntaxCommand(
 		CmdContext $context,
 		#[NCA\Str("syntax")] string $action
-	): void {
-		$data = file_get_contents(__DIR__ . "/syntax.txt");
+	): Generator {
+		$data = yield filesystem()->read(__DIR__ . "/syntax.txt");
 		$msg = $this->text->makeBlob("Help", trim($data));
 		$context->reply($msg);
 	}
@@ -155,19 +160,21 @@ class HelpController extends ModuleInstance {
 		#[NCA\Str("modules")] string $action
 	): void {
 		$modules = $this->chatBot->runner->classLoader->registeredModules;
+
 		/** @var array<string,string> */
 		$data = [];
 		foreach ($modules as $module => $path) {
 			$data[$module] = $this->configController->getModuleDescription($module) ?? "&lt;no description&gt;";
 			$data[$module] = preg_replace_callback(
 				"/(https?:\/\/[^\s\n<]+)/s",
-				function(array $matches): string {
+				function (array $matches): string {
 					return $this->text->makeChatcmd($matches[1], "/start {$matches[1]}");
 				},
 				$data[$module]
 			);
 		}
 		ksort($data);
+
 		/** @var string[] */
 		$blobs = [];
 		foreach ($data as $module => $description) {
@@ -183,8 +190,8 @@ class HelpController extends ModuleInstance {
 
 	/** Get the initial adminhelp overview */
 	#[NCA\HandlesCommand("adminhelp")]
-	public function adminhelpCommand(CmdContext $context): void {
-		$data = file_get_contents(__DIR__ . "/adminhelp.txt");
+	public function adminhelpCommand(CmdContext $context): Generator {
+		$data = yield filesystem()->read(__DIR__ . "/adminhelp.txt");
 		$msg = $this->text->makeBlob("Help", $data);
 		$context->reply($msg);
 	}
@@ -216,11 +223,11 @@ class HelpController extends ModuleInstance {
 	 * The topic can be a module name, a command or a topic like 'budatime'
 	 */
 	#[NCA\HandlesCommand("help")]
-	public function helpShowCommand(CmdContext $context, string $topic): void {
+	public function helpShowCommand(CmdContext $context, string $topic): Generator {
 		$topic = strtolower($topic);
 
 		if ($topic === 'about') {
-			$msg = $this->getAbout();
+			$msg = yield $this->getAbout();
 			$context->reply($msg);
 			return;
 		}
@@ -237,7 +244,7 @@ class HelpController extends ModuleInstance {
 			return;
 		}
 		$topic = ucfirst($topic);
-		$msg = $this->text->makeBlob("Help ($topic)", $blob);
+		$msg = $this->text->makeBlob("Help ({$topic})", $blob);
 		$context->reply($msg);
 	}
 }

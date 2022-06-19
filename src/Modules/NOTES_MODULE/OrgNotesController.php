@@ -130,20 +130,6 @@ class OrgNotesController extends ModuleInstance {
 		return $this->removeOrgNote($note, $forceSync);
 	}
 
-	/** Check if $actor has sufficient rights to delete $note */
-	protected function canDeleteOrgNote(OrgNote $note, string $actor): bool {
-		$isAdmin = $this->accessManager->checkSingleAccess(
-			$actor,
-			$this->orgnoteDeleteOtherRank
-		);
-		if ($isAdmin) {
-			return true;
-		}
-		$actorMain = $this->altsController->getMainOf($actor);
-		$noteMain = $this->altsController->getMainOf($note->added_by);
-		return $actorMain === $noteMain;
-	}
-
 	/** List all organization-wide notes */
 	#[NCA\HandlesCommand("orgnotes")]
 	public function cmdShowOrgNotes(CmdContext $context): void {
@@ -233,5 +219,19 @@ class OrgNotesController extends ModuleInstance {
 		$this->db->table(self::DB_TABLE)
 			->where("uuid", $event->uuid)
 			->delete();
+	}
+
+	/** Check if $actor has sufficient rights to delete $note */
+	protected function canDeleteOrgNote(OrgNote $note, string $actor): bool {
+		$isAdmin = $this->accessManager->checkSingleAccess(
+			$actor,
+			$this->orgnoteDeleteOtherRank
+		);
+		if ($isAdmin) {
+			return true;
+		}
+		$actorMain = $this->altsController->getMainOf($actor);
+		$noteMain = $this->altsController->getMainOf($note->added_by);
+		return $actorMain === $noteMain;
 	}
 }

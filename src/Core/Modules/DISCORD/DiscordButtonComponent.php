@@ -10,6 +10,7 @@ class DiscordButtonComponent extends DiscordComponent {
 	public const STYLE_LINK = 5;
 
 	public int $type = 2;
+
 	/** one of button styles */
 	public int $style;
 

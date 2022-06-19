@@ -4,7 +4,6 @@ namespace Nadybot\Modules\RELAY_MODULE\RelayProtocol;
 
 use Closure;
 use JsonMapper;
-use Safe\Exceptions\JsonException;
 use Nadybot\Core\{
 	Attributes as NCA,
 	ConfigFile,
@@ -26,14 +25,14 @@ use Nadybot\Modules\{
 	RELAY_MODULE\RelayProtocol\Nadybot\OnlineBlock,
 	RELAY_MODULE\RelayProtocol\Nadybot\OnlineList,
 };
+use Safe\Exceptions\JsonException;
 use stdClass;
 use Throwable;
 
 #[
 	NCA\RelayProtocol(
 		name: "nadynative",
-		description:
-			"This is the native protocol if your relay consists\n".
+		description: "This is the native protocol if your relay consists\n".
 			"only of Nadybots 5.2 or newer. It supports message-passing,\n".
 			"proper colorization and event-passing."
 	),
@@ -45,10 +44,6 @@ use Throwable;
 	)
 ]
 class NadyNative implements RelayProtocolInterface {
-	protected static int $supportedFeatures = 3;
-
-	protected Relay $relay;
-
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
@@ -66,6 +61,9 @@ class NadyNative implements RelayProtocolInterface {
 
 	#[NCA\Inject]
 	public EventManager $eventManager;
+	protected static int $supportedFeatures = 3;
+
+	protected Relay $relay;
 
 	protected bool $syncOnline = true;
 
@@ -116,7 +114,7 @@ class NadyNative implements RelayProtocolInterface {
 				'Invalid data received via Nadynative protocol',
 				[
 					"exception" => $e,
-					"data" => $serialized
+					"data" => $serialized,
 				]
 			);
 			return null;
@@ -187,6 +185,53 @@ class NadyNative implements RelayProtocolInterface {
 		return $event;
 	}
 
+	public function init(callable $callback): array {
+		$callback();
+		$this->eventManager->subscribe("sync(*)", [$this, "handleSyncEvent"]);
+		if ($this->syncOnline) {
+			return [
+				$this->jsonEncode($this->getOnlineList()),
+				$this->jsonEncode((object)["type" => "online_list_request"]),
+			];
+		}
+		return [];
+	}
+
+	public function deinit(callable $callback): array {
+		$this->eventManager->unsubscribe("sync(*)", [$this, "handleSyncEvent"]);
+		$callback();
+		return [];
+	}
+
+	public function setRelay(Relay $relay): void {
+		$this->relay = $relay;
+	}
+
+	public function handleSyncEvent(SyncEvent $event): void {
+		if (isset($event->sourceBot, $event->sourceDimension)
+
+			&& ($event->sourceDimension !== $this->config->dimension
+				|| $event->sourceBot !== $this->chatBot->char->name)
+		) {
+			// We don't want to relay other bots' events
+			return;
+		}
+		if (!$this->relay->allowOutSyncEvent($event) && !$event->forceSync) {
+			return;
+		}
+		$sEvent = clone $event;
+		$sEvent->sourceBot = $this->chatBot->char->name;
+		$sEvent->sourceDimension = $this->config->dimension;
+		$rEvent = new RoutableEvent();
+		$rEvent->setType($rEvent::TYPE_EVENT);
+		$rEvent->setData($sEvent);
+		$this->relay->receive($rEvent, "*");
+	}
+
+	public static function supportsFeature(int $feature): bool {
+		return (static::$supportedFeatures & $feature) === $feature;
+	}
+
 	protected function handleExtSyncEvent(object $event): void {
 		try {
 			$sEvent = new SyncEvent();
@@ -234,7 +279,7 @@ class NadyNative implements RelayProtocolInterface {
 				$hop->type,
 				$hop->name,
 				$hop->label??null,
-				isset($hop->dimension) ? $hop->dimension : null
+				$hop->dimension ?? null
 			);
 			$hops []= $source->render($lastHop);
 			$lastHop = $source;
@@ -261,6 +306,7 @@ class NadyNative implements RelayProtocolInterface {
 		}
 		$hops = array_filter($hops);
 		$where = join(" ", $hops);
+
 		/** @var Online */
 		$llEvent = $event->data;
 		if (!isset($llEvent->char)) {
@@ -320,54 +366,7 @@ class NadyNative implements RelayProtocolInterface {
 		return $onlineList;
 	}
 
-	public function init(callable $callback): array {
-		$callback();
-		$this->eventManager->subscribe("sync(*)", [$this, "handleSyncEvent"]);
-		if ($this->syncOnline) {
-			return [
-				$this->jsonEncode($this->getOnlineList()),
-				$this->jsonEncode((object)["type" => "online_list_request"]),
-			];
-		}
-		return [];
-	}
-
-	public function deinit(callable $callback): array {
-		$this->eventManager->unsubscribe("sync(*)", [$this, "handleSyncEvent"]);
-		$callback();
-		return [];
-	}
-
-	public function setRelay(Relay $relay): void {
-		$this->relay = $relay;
-	}
-
 	protected function jsonEncode(mixed $data): string {
 		return \Safe\json_encode($data, JSON_UNESCAPED_SLASHES|JSON_INVALID_UTF8_SUBSTITUTE|JSON_THROW_ON_ERROR);
-	}
-
-	public function handleSyncEvent(SyncEvent $event): void {
-		if (isset($event->sourceBot)
-			&& isset($event->sourceDimension)
-			&& ($event->sourceDimension !== $this->config->dimension
-				|| $event->sourceBot !== $this->chatBot->char->name)
-		) {
-			// We don't want to relay other bots' events
-			return;
-		}
-		if (!$this->relay->allowOutSyncEvent($event) && !$event->forceSync) {
-			return;
-		}
-		$sEvent = clone $event;
-		$sEvent->sourceBot = $this->chatBot->char->name;
-		$sEvent->sourceDimension = $this->config->dimension;
-		$rEvent = new RoutableEvent();
-		$rEvent->setType($rEvent::TYPE_EVENT);
-		$rEvent->setData($sEvent);
-		$this->relay->receive($rEvent, "*");
-	}
-
-	public static function supportsFeature(int $feature): bool {
-		return (static::$supportedFeatures & $feature) === $feature;
 	}
 }

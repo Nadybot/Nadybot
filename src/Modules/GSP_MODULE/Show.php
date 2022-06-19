@@ -15,6 +15,7 @@ class Show extends JSONDataModel {
 
 	/** @var \Nadybot\Modules\GSP_MODULE\Song[] */
 	public array $history = [];
+
 	/** @var \Nadybot\Modules\GSP_MODULE\Stream[] */
 	public array $stream = [];
 }

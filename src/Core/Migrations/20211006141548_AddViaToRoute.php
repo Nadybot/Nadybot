@@ -3,23 +3,20 @@
 namespace Nadybot\Core\Migrations;
 
 use Illuminate\Database\Schema\Blueprint;
-use Nadybot\Core\DB;
-use Nadybot\Core\LoggerWrapper;
-use Nadybot\Core\MessageHub;
 use Nadybot\Core\Routing\Source;
-use Nadybot\Core\SchemaMigration;
+use Nadybot\Core\{DB, LoggerWrapper, MessageHub, SchemaMigration};
 
 class AddViaToRoute implements SchemaMigration {
 	public function migrate(LoggerWrapper $logger, DB $db): void {
 		$table = MessageHub::DB_TABLE_COLORS;
-		$db->schema()->table($table, function(Blueprint $table): void {
+		$db->schema()->table($table, function (Blueprint $table): void {
 			$table->string("via", 50)->nullable(true);
 			$table->dropUnique(["hop", "where"]);
 			$table->unique(["hop", "where", "via"]);
 		});
 
 		$table = Source::DB_TABLE;
-		$db->schema()->table($table, function(Blueprint $table): void {
+		$db->schema()->table($table, function (Blueprint $table): void {
 			$table->string("via", 50)->nullable(true);
 			$table->dropUnique(["hop", "where"]);
 			$table->unique(["hop", "where", "via"]);

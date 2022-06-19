@@ -2,6 +2,7 @@
 
 namespace Nadybot\Core\Modules\BUDDYLIST;
 
+use Generator;
 use Nadybot\Core\{
 	Attributes as NCA,
 	BuddylistEntry,
@@ -10,10 +11,10 @@ use Nadybot\Core\{
 	ConfigFile,
 	ModuleInstance,
 	Nadybot,
-	Text,
 	ParamClass\PCharacter,
 	ParamClass\PRemove,
 	ParamClass\PWord,
+	Text,
 };
 
 /**
@@ -85,7 +86,7 @@ class BuddylistController extends ModuleInstance {
 				'/tell <myname> <symbol>buddylist rebalance'
 			) . "]";
 		}
-		$msg = $this->text->makeBlob("Buddy list ($count)", $blob);
+		$msg = $this->text->makeBlob("Buddy list ({$count})", $blob);
 		$context->reply($msg);
 	}
 
@@ -122,10 +123,10 @@ class BuddylistController extends ModuleInstance {
 			$blob .= $this->renderBuddyLine($value, $removed);
 		}
 
-		$blob .="\n\nRemoved: ($orphanCount)";
+		$blob .="\n\nRemoved: ({$orphanCount})";
 
 		$context->reply("Removed {$orphanCount} characters from the buddy list.");
-		$msg = $this->text->makeBlob("Buddy list ($count)", $blob);
+		$msg = $this->text->makeBlob("Buddy list ({$count})", $blob);
 		$context->reply($msg);
 	}
 
@@ -140,10 +141,10 @@ class BuddylistController extends ModuleInstance {
 		#[NCA\Str("add")] string $action,
 		PCharacter $who,
 		PWord $type
-	): void {
+	): Generator {
 		$name = $who();
 
-		if ($this->buddylistManager->add($name, $type())) {
+		if (true === yield $this->buddylistManager->addAsync($name, $type())) {
 			$msg = "<highlight>{$name}<end> added to the buddy list successfully.";
 		} else {
 			$msg = "Could not add <highlight>{$name}<end> to the buddy list.";
@@ -223,16 +224,16 @@ class BuddylistController extends ModuleInstance {
 		$count = 0;
 		$blob = "Buddy list Search: '{$search}'\n\n";
 		foreach ($this->getSortedBuddyList() as $value) {
-			if (preg_match("/$search/i", $value->name)) {
+			if (preg_match("/{$search}/i", $value->name)) {
 				$count++;
 				$blob .= $this->renderBuddyLine($value);
 			}
 		}
 
 		if ($count > 0) {
-			$msg = $this->text->makeBlob("Buddy List Search ($count)", $blob);
+			$msg = $this->text->makeBlob("Buddy List Search ({$count})", $blob);
 		} else {
-			$msg = "No characters on the buddy list found containing '$search'";
+			$msg = "No characters on the buddy list found containing '{$search}'";
 		}
 		$context->reply($msg);
 	}
@@ -259,9 +260,7 @@ class BuddylistController extends ModuleInstance {
 		);
 	}
 
-	/**
-	 * @return array<int,BuddylistEntry>
-	 */
+	/** @return array<int,BuddylistEntry> */
 	public function getSortedBuddyList(): array {
 		$buddylist = $this->buddylistManager->buddyList;
 		usort($buddylist, function (BuddylistEntry $entry1, BuddylistEntry $entry2): int {

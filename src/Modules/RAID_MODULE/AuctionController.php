@@ -2,7 +2,7 @@
 
 namespace Nadybot\Modules\RAID_MODULE;
 
-use Safe\DateTime;
+use Amp\Loop;
 use InvalidArgumentException;
 use Nadybot\Core\{
 	Attributes as NCA,
@@ -11,22 +11,23 @@ use Nadybot\Core\{
 	CommandReply,
 	DB,
 	EventManager,
-	ModuleInstance,
 	LoggerWrapper,
 	MessageHub,
+	ModuleInstance,
 	Nadybot,
 	ParamClass\PCharacter,
 	Routing\RoutableMessage,
 	Routing\Source,
 	Text,
 	Timer,
-	TimerEvent,
 	Util,
 };
 use Nadybot\Modules\RAFFLE_MODULE\RaffleItem;
+use Safe\DateTime;
 
 /**
  * This class contains all functions necessary to deal with points in a raid
+ *
  * @package Nadybot\Modules\RAID_MODULE
  */
 #[
@@ -164,17 +165,12 @@ class AuctionController extends ModuleInstance {
 	public int $auctionWinnerAnnouncement = 1;
 
 	public ?Auction $auction = null;
-	protected ?TimerEvent $auctionTimer = null;
+	protected ?string $auctionTimer = null;
+	protected ?int $auctionEnds = null;
 
 	#[NCA\Setup]
 	public function setup(): void {
 		$this->commandAlias->register($this->moduleName, "bid history", "bh");
-	}
-
-	protected function routeMessage(string $type, string $message): void {
-		$rMessage = new RoutableMessage($message);
-		$rMessage->prependPath(new Source("auction", $type));
-		$this->messageHub->handle($rMessage);
 	}
 
 	/** Auction an item */
@@ -212,7 +208,7 @@ class AuctionController extends ModuleInstance {
 			return;
 		}
 		if (isset($this->auctionTimer)) {
-			$this->timer->abortEvent($this->auctionTimer);
+			Loop::cancel($this->auctionTimer);
 			$this->auctionTimer = null;
 		}
 		$event = new AuctionEvent();
@@ -254,6 +250,7 @@ class AuctionController extends ModuleInstance {
 		PCharacter $winner
 	): void {
 		$winner = $winner();
+
 		/** @var ?DBAuction */
 		$lastAuction = $this->db->table(self::DB_TABLE)
 			->where("winner", $winner)
@@ -458,6 +455,7 @@ class AuctionController extends ModuleInstance {
 				'item'
 			);
 		}
+
 		/** @var DBAuction[] */
 		$items = (clone $query)
 			->orderByDesc("end")
@@ -467,6 +465,7 @@ class AuctionController extends ModuleInstance {
 			$context->reply("Nothing matched <highlight>{$search}<end>.");
 			return;
 		}
+
 		/** @var DBAuction */
 		$mostExpensiveItem = (clone $query)
 			->orderByDesc("cost")
@@ -511,10 +510,10 @@ class AuctionController extends ModuleInstance {
 
 	/**
 	 * Have $sender place a bid of $offer in the current auction
-	 * @param string $sender Nme of the character placing the bid
-	 * @param int $offer Height of the bid
+	 *
+	 * @param string       $sender Nme of the character placing the bid
+	 * @param int          $offer  Height of the bid
 	 * @param CommandReply $sendto Where to send messages about success/failure
-	 * @return void
 	 */
 	public function bid(string $sender, int $offer, CommandReply $sendto): void {
 		if (!isset($this->auction)) {
@@ -564,12 +563,14 @@ class AuctionController extends ModuleInstance {
 		$minTime = $this->auctionMinTimeAfterBid;
 		// When something changes, make sure people have at least
 		// $minTime seconds to place new bids
+		$this->auctionEnds ??= $this->auction->end;
 		if (isset($this->auctionTimer)) {
-			if ($this->auctionTimer->time - time() < $minTime) {
-				$this->auctionTimer->delay = $minTime;
-				$this->timer->restartEvent($this->auctionTimer);
+			if ($this->auctionEnds - time() < $minTime) {
+				Loop::cancel($this->auctionTimer);
+				$this->auctionTimer = Loop::delay($minTime * 1000, [$this, "endAuction"]);
+				$this->auctionEnds = time() + $minTime;
 			}
-			$this->auction->end = $this->auctionTimer->time;
+			$this->auction->end = $this->auctionEnds;
 		}
 
 		$event = new AuctionEvent();
@@ -578,18 +579,17 @@ class AuctionController extends ModuleInstance {
 		$this->eventManager->fireEvent($event);
 	}
 
-	/**
-	 * Start an auction for an item
-	 */
+	/** Start an auction for an item */
 	public function startAuction(Auction $auction): bool {
 		if ($this->auction) {
 			return false;
 		}
 		$this->auction = $auction;
-		$this->auctionTimer = $this->timer->callLater(
-			$auction->end - time(),
+		$this->auctionTimer = Loop::delay(
+			($auction->end - time()) * 1000,
 			[$this, "endAuction"],
 		);
+		$this->auctionEnds = $auction->end;
 		$event = new AuctionEvent();
 		$event->type = "auction(start)";
 		$event->auction = $auction;
@@ -597,15 +597,13 @@ class AuctionController extends ModuleInstance {
 		return true;
 	}
 
-	/**
-	 * End an auction, either forced ($sender set) or by time
-	 */
+	/** End an auction, either forced ($sender set) or by time */
 	public function endAuction(?string $sender=null): void {
 		if (!$this->auction) {
 			return;
 		}
 		if (isset($this->auctionTimer)) {
-			$this->timer->abortEvent($this->auctionTimer);
+			Loop::cancel($this->auctionTimer);
 			$this->auctionTimer = null;
 		}
 		$auction = $this->auction;
@@ -628,21 +626,6 @@ class AuctionController extends ModuleInstance {
 			);
 		}
 		$this->eventManager->fireEvent($event);
-	}
-
-	/**
-	 * Record a finished auction into the database so that it can be searched later on
-	 */
-	protected function recordAuctionInDB(Auction $auction): bool {
-		return $this->db->table(self::DB_TABLE)
-			->insert([
-				"item" => $auction->item->toString(),
-				"auctioneer" => $auction->auctioneer,
-				"cost" => $auction->bid,
-				"winner" => $auction->top_bidder,
-				"end" => $auction->end,
-				"reimbursed" => false,
-			]);
 	}
 
 	public function getBiddingInfo(): string {
@@ -740,26 +723,6 @@ class AuctionController extends ModuleInstance {
 		$this->routeMessage("end", $msg);
 	}
 
-	protected function rainbow(string $text, int $length=1): string {
-		if ($length < 1) {
-			throw new InvalidArgumentException("Argument\$length to " . __FUNCTION__ . "() cannot be less than 1");
-		}
-		$colors = [
-			"FF0000",
-			"FFa500",
-			"FFFF00",
-			"00BB00",
-			"6666FF",
-			"EE82EE",
-		];
-		$chars = str_split($text, $length);
-		$result = "";
-		for ($i = 0; $i < count($chars); $i++) {
-			$result .= "<font color=#" . $colors[$i % count($colors)] . ">{$chars[$i]}</font>";
-		}
-		return $result;
-	}
-
 	public function getAuctionWinnerLayout(int $type): string {
 		$line1 = "<highlight>%s<end> won <highlight>%s<end> for <highlight>%d<end> %s.";
 		switch ($type) {
@@ -812,5 +775,44 @@ class AuctionController extends ModuleInstance {
 	)]
 	public function announceAuctionBid(AuctionEvent $event): void {
 		$this->routeMessage("bid", $this->getRunningAuctionInfo($event->auction));
+	}
+
+	protected function routeMessage(string $type, string $message): void {
+		$rMessage = new RoutableMessage($message);
+		$rMessage->prependPath(new Source("auction", $type));
+		$this->messageHub->handle($rMessage);
+	}
+
+	/** Record a finished auction into the database so that it can be searched later on */
+	protected function recordAuctionInDB(Auction $auction): bool {
+		return $this->db->table(self::DB_TABLE)
+			->insert([
+				"item" => $auction->item->toString(),
+				"auctioneer" => $auction->auctioneer,
+				"cost" => $auction->bid,
+				"winner" => $auction->top_bidder,
+				"end" => $auction->end,
+				"reimbursed" => false,
+			]);
+	}
+
+	protected function rainbow(string $text, int $length=1): string {
+		if ($length < 1) {
+			throw new InvalidArgumentException("Argument\$length to " . __FUNCTION__ . "() cannot be less than 1");
+		}
+		$colors = [
+			"FF0000",
+			"FFa500",
+			"FFFF00",
+			"00BB00",
+			"6666FF",
+			"EE82EE",
+		];
+		$chars = str_split($text, $length);
+		$result = "";
+		for ($i = 0; $i < count($chars); $i++) {
+			$result .= "<font color=#" . $colors[$i % count($colors)] . ">{$chars[$i]}</font>";
+		}
+		return $result;
 	}
 }

@@ -2,10 +2,8 @@
 
 namespace Nadybot\Modules\VOTE_MODULE\Migrations;
 
+use Nadybot\Core\{DB, LoggerWrapper, SchemaMigration};
 use Nadybot\Modules\VOTE_MODULE\VoteController;
-use Nadybot\Core\DB;
-use Nadybot\Core\LoggerWrapper;
-use Nadybot\Core\SchemaMigration;
 
 class MigrateFromV1 implements SchemaMigration {
 	public const DB_OLD_VOTE = "vote_<myname>";
@@ -36,7 +34,7 @@ class MigrateFromV1 implements SchemaMigration {
 				if (!$db->table(VoteController::DB_VOTES)->insert([
 					"poll_id" => $id,
 					"author" => (string)$oldVote->author,
-					"answer" => (string)$oldVote->answer
+					"answer" => (string)$oldVote->answer,
 				])) {
 					$logger->log("ERROR", "Cannot convert old votes into new format.");
 					return;

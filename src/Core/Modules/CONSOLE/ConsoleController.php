@@ -2,7 +2,12 @@
 
 namespace Nadybot\Core\Modules\CONSOLE;
 
+use function Amp\asyncCall;
+use function Safe\{readline_add_history, readline_callback_handler_install, readline_read_history, readline_write_history};
+use Amp\Loop;
 use Exception;
+
+use Generator;
 use Nadybot\Core\{
 	Attributes as NCA,
 	BotRunner,
@@ -10,31 +15,22 @@ use Nadybot\Core\{
 	CmdContext,
 	CommandManager,
 	ConfigFile,
-	ModuleInstance,
 	LoggerWrapper,
 	MessageHub,
+	ModuleInstance,
 	Nadybot,
 	Registry,
 	Routing\RoutableMessage,
 	Routing\Source,
-	SocketManager,
-	SocketNotifier,
-	Timer,
 };
 
 #[NCA\Instance]
 class ConsoleController extends ModuleInstance {
 	#[NCA\Inject]
-	public SocketManager $socketManager;
-
-	#[NCA\Inject]
 	public CommandManager $commandManager;
 
 	#[NCA\Inject]
 	public Nadybot $chatBot;
-
-	#[NCA\Inject]
-	public Timer $timer;
 
 	#[NCA\Inject]
 	public ConfigFile $config;
@@ -51,8 +47,6 @@ class ConsoleController extends ModuleInstance {
 	/** Set background color */
 	#[NCA\Setting\Boolean] public bool $consoleBGColor = false;
 
-	public SocketNotifier $notifier;
-
 	/**
 	 * @var resource
 	 * @psalm-var resource|closed-resource
@@ -60,6 +54,8 @@ class ConsoleController extends ModuleInstance {
 	public $socket;
 
 	public bool $useReadline = false;
+
+	private string $socketHandle;
 
 	#[NCA\Setup]
 	public function setup(): void {
@@ -89,7 +85,7 @@ class ConsoleController extends ModuleInstance {
 		$file = $this->getCacheFile();
 		if (@file_exists($file)) {
 			try {
-				\Safe\readline_read_history($file);
+				readline_read_history($file);
 			} catch (Exception $e) {
 				$this->logger->warning(
 					"Unable to read the readline history file {file}: {error}",
@@ -109,7 +105,7 @@ class ConsoleController extends ModuleInstance {
 			@mkdir(dirname($file), 0700, true);
 		}
 		try {
-			\Safe\readline_write_history($file);
+			readline_write_history($file);
 		} catch (Exception $e) {
 			$this->logger->warning(
 				"Unable to write the readline history file {file}: {error}",
@@ -144,31 +140,27 @@ class ConsoleController extends ModuleInstance {
 			$this->logger->warning('readline not supported on this platform, using basic console');
 			$callback = [$this, "processStdin"];
 		} else {
-			$callback = function(): void {
+			$callback = function (): void {
 				readline_callback_read_char();
 			};
 		}
 		$this->loadHistory();
 		$this->socket = STDIN;
-		$this->notifier = new SocketNotifier(
-			$this->socket,
-			SocketNotifier::ACTIVITY_READ,
-			$callback,
-		);
-		$this->timer->callLater(1, function(): void {
+		Loop::delay(1000, function () use ($callback): void {
+			if (!is_resource($this->socket)) {
+				return;
+			}
 			$this->logger->notice("StdIn console activated, accepting commands");
-			$this->socketManager->addSocketNotifier($this->notifier);
+			$this->socketHandle = Loop::onReadable($this->socket, $callback);
 			if ($this->useReadline) {
-				\Safe\readline_callback_handler_install('> ', [$this, 'processLine']);
+				readline_callback_handler_install('> ', fn (?string $line) => $this->processLine($line));
 			} else {
 				echo("> ");
 			}
 		});
 	}
 
-	/**
-	 * Handle data arriving on stdin
-	 */
+	/** Handle data arriving on stdin */
 	public function processStdin(): void {
 		if (!is_resource($this->socket)) {
 			return;
@@ -176,7 +168,7 @@ class ConsoleController extends ModuleInstance {
 		if (feof($this->socket)) {
 			echo("EOF received, closing console.\n");
 			@fclose($this->socket);
-			$this->socketManager->removeSocketNotifier($this->notifier);
+			Loop::cancel($this->socketHandle);
 			return;
 		}
 		$line = fgets($this->socket);
@@ -186,22 +178,28 @@ class ConsoleController extends ModuleInstance {
 		}
 	}
 
-	public function processLine(?string $line): void {
+	private function processLine(?string $line): void {
 		if ($line === null || trim($line) === '') {
+			if ($this->useReadline) {
+				readline_callback_handler_install('> ', fn (?string $line) => $this->processLine($line));
+			}
 			return;
 		}
 		if ($this->useReadline) {
-			\Safe\readline_add_history($line);
-			$this->saveHistory();
-			\Safe\readline_callback_handler_install('> ', [$this, 'processLine']);
+			readline_add_history($line);
+			Loop::defer(function (): void {
+				$this->saveHistory();
+			});
+			readline_callback_handler_install('> ', fn (?string $line) => $this->processLine($line));
 		}
 
 		$context = new CmdContext($this->config->superAdmins[0]??"<no superadmin set>");
 		$context->message = $line;
-		$context->source = "console";
+		$context->source = Source::CONSOLE;
 		$context->sendto = new ConsoleCommandReply($this->chatBot);
 		Registry::injectDependencies($context->sendto);
-		$this->chatBot->getUid($context->char->name, function (?int $uid, CmdContext $context): void {
+		asyncCall(function () use ($context): Generator {
+			$uid = yield $this->chatBot->getUid2($context->char->name);
 			$context->char->id = $uid;
 			$rMessage = new RoutableMessage($context->message);
 			$rMessage->setCharacter($context->char);
@@ -211,6 +209,6 @@ class ConsoleController extends ModuleInstance {
 			}
 
 			$this->commandManager->checkAndHandleCmd($context);
-		}, $context);
+		});
 	}
 }

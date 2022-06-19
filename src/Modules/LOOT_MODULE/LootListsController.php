@@ -16,11 +16,11 @@ use Nadybot\Core\{
 	Text,
 	Util,
 };
+use Nadybot\Modules\RAID_MODULE\AuctionController;
 use Nadybot\Modules\{
 	BASIC_CHAT_MODULE\ChatLeaderController,
 	ITEMS_MODULE\ItemsController,
 };
-use Nadybot\Modules\RAID_MODULE\AuctionController;
 
 /**
  * @author Marinerecon (RK2)
@@ -266,7 +266,7 @@ class LootListsController extends ModuleInstance {
 		$blob .= $this->findRaidLoot($raid, "NCU", $context);
 		$blob .= $this->findRaidLoot($raid, "Weapons", $context);
 		$blob .= $this->findRaidLoot($raid, "Viralbots", $context);
-		$msg = $this->text->makeBlob("$raid Loot", $blob);
+		$msg = $this->text->makeBlob("{$raid} Loot", $blob);
 		$context->reply($msg);
 	}
 
@@ -314,8 +314,8 @@ class LootListsController extends ModuleInstance {
 
 	public function addAPFLootToList(string $addedBy, int $sector): void {
 		// adding apf stuff
-		$this->lootController->addRaidToLootList($addedBy, 'APF', "Sector $sector");
-		$msg = "Sector $sector loot table was added to the loot list.";
+		$this->lootController->addRaidToLootList($addedBy, 'APF', "Sector {$sector}");
+		$msg = "Sector {$sector} loot table was added to the loot list.";
 		$this->chatBot->sendPrivate($msg);
 
 		$msg = $this->lootController->getCurrentLootList();
@@ -331,51 +331,6 @@ class LootListsController extends ModuleInstance {
 		$this->apf7Command($context);
 	}
 
-	/** @return array<string,string> */
-	protected function getApfItems(): array {
-		$itemlink = [];
-		$itemlink["ICE"] = $this->text->makeItem(257968, 257968, 1, "Hacker ICE-Breaker Source");
-		$itemlink["BOARD"] = $this->text->makeItem(257706, 257706, 1, "Kyr'Ozch Helmet");
-		$itemlink["APE"] = $this->text->makeItem(257960, 257960, 250, "Action Probability Estimator");
-		$itemlink["DGRV"] = $this->text->makeItem(257962, 257962, 250, "Dynamic Gas Redistribution Valves");
-		$itemlink["KBAP"] = $this->text->makeItem(257529, 257529, 1, "Kyr'Ozch Battlesuit Audio Processor");
-		$itemlink["KVPU"] = $this->text->makeItem(257533, 257533, 1, "Kyr'Ozch Video Processing Unit");
-		$itemlink["KRI"] = $this->text->makeItem(257531, 257531, 1, "Kyr'Ozch Rank Identification");
-		$itemlink["ICEU"] = $this->text->makeItem(257110, 257110, 1, "Intrusion Countermeasure Electronics Upgrade");
-		$itemlink["OTAE"] = $this->text->makeItem(257112, 257112, 1, "Omni-Tek Award - Exemplar");
-		$itemlink["CMP"] = $this->text->makeItem(257113, 257113, 1, "Clan Merits - Paragon");
-		$itemlink["EMCH"] = $this->text->makeItem(257379, 257379, 200, "Extruder's Molybdenum Crash Helmet");
-		$itemlink["CKCNH"] = $this->text->makeItem(257115, 257115, 200, "Conscientious Knight Commander Nizno's Helmet");
-		$itemlink["SKCGH"] = $this->text->makeItem(257114, 257114, 200, "Sworn Knight Commander Genevra's Helmet");
-		$itemlink["BCOH"] = $this->text->makeItem(257383, 257383, 300, "Blackmane's Combined Officer's Headwear");
-		$itemlink["GCCH"] = $this->text->makeItem(257381, 257381, 300, "Gannondorf's Combined Commando's Headwear");
-		$itemlink["HCSH"] = $this->text->makeItem(257384, 257384, 300, "Haitte's Combined Sharpshooter's Headwear");
-		$itemlink["OCPH"] = $this->text->makeItem(257377, 257377, 300, "Odum's Combined Paramedic's Headwear");
-		$itemlink["SCMH"] = $this->text->makeItem(257380, 257380, 300, "Sillum's Combined Mercenary's Headwear");
-		$itemlink["YCSH"] = $this->text->makeItem(257382, 257382, 300, "Yakomo's Combined Scout's Headwear");
-		$itemlink["HLOA"] = $this->text->makeItem(257128, 257128, 300, "High Lord of Angst");
-		$itemlink["SKR2"] = $this->text->makeItem(257967, 257967, 300, "Silenced Kyr'Ozch Rifle - Type 2");
-		$itemlink["SKR3"] = $this->text->makeItem(257131, 257131, 300, "Silenced Kyr'Ozch Rifle - Type 3");
-		$itemlink["ASC"] = $this->text->makeItem(257126, 257126, 300, "Amplified Sleek Cannon");
-		$itemlink["IAPU"] = $this->text->makeItem(257959, 257959, 1, "Inertial Adjustment Processing Unit");
-		$itemlink["HVBCP"] = $this->text->makeItem(257119, 257119, 300, "Hadrulf's Viral Belt Component Platform");
-		$itemlink["NAC"] = $this->text->makeItem(257963, 257963, 250, "Notum Amplification Coil");
-		$itemlink["TAHSC"] = $this->text->makeItem(257124, 257124, 300, "Twice Augmented Hellspinner Shock Cannon");
-		$itemlink["ONC"] = $this->text->makeItem(257118, 257118, 250, "ObiTom's Nano Calculator");
-		$itemlink["AKC12"] = $this->text->makeItem(257143, 257143, 300, "Amplified Kyr'Ozch Carbine - Type 12");
-		$itemlink["AKC13"] = $this->text->makeItem(257142, 257142, 300, "Amplified Kyr'Ozch Carbine - Type 13");
-		$itemlink["AKC5"] = $this->text->makeItem(257144, 257144, 300, "Amplified Kyr'Ozch Carbine - Type 5");
-		$itemlink["ERU"] = $this->text->makeItem(257961, 257961, 250, "Energy Redistribution Unit");
-		$itemlink["BOB"] = $this->text->makeItem(257147, 257147, 300, "Blades of Boltar");
-		$itemlink["DVLPR"] = $this->text->makeItem(257116, 257116, 1, "De'Valos Lava Protection Ring");
-		$itemlink["VLRD"] = $this->text->makeItem(257964, 257964, 250, "Visible Light Remodulation Device");
-		$itemlink["DVRPR"] = $this->text->makeItem(257117, 257117, 1, "De'Valos Radiation Protection Ring");
-		$itemlink["SSSS"] = $this->text->makeItem(257141, 257141, 300, "Scoped Salabim Shotgun Supremo");
-		$itemlink["EPP"] = $this->text->makeItem(258345, 258345, 300, "Explosif's Polychromatic Pillows");
-		$itemlink["VNGW"] = $this->text->makeItem(257123, 257123, 300, "Vektor ND Grand Wyrm");
-		return $itemlink;
-	}
-
 	/**
 	 * Show the loot list for Sector 13
 	 */
@@ -384,13 +339,13 @@ class LootListsController extends ModuleInstance {
 	public function apfThirteenCommand(CmdContext $context, #[NCA\Str("13")] string $sector): void {
 		$itemlink = $this->getApfItems();
 		$list = '';
-		//CRU
+		// CRU
 		$list .= $this->text->makeImage(257196) . "\n";
 		$list .= "Name: {$itemlink["ICE"]}\n";
 		$list .= "Purpose: {$itemlink["ICEU"]}\n";
 		$list .= "Note: <highlight>Drops on all Alien Playfield 5 times from the Boss.<end>\n\n";
 
-		//Token Credit Items
+		// Token Credit Items
 		$list .= $this->text->makeImage(218775) . "\n";
 		$list .= "Name: {$itemlink["KBAP"]}\n";
 		$list .= $this->text->makeImage(218758) . "\n";
@@ -405,14 +360,14 @@ class LootListsController extends ModuleInstance {
 			"for Tokens or Credits.<end>\n";
 		$list .= "Note: <highlight>Drops on all Alien Playfield from the Boss (one from each type).<end>\n\n";
 
-		//Token Board
+		// Token Board
 		$list .= $this->text->makeImage(230855) . "\n";
 		$list .= "Name: {$itemlink["BOARD"]}\n";
 		$list .= "Purpose: - {$itemlink["OTAE"]}\n";
 		$list .= "<tab><tab>     - {$itemlink["CMP"]}\n";
 		$list .= "Note: <highlight>Drops on all Alien Playfield from the Boss.<end>\n\n";
 
-		//Action Probability Estimator
+		// Action Probability Estimator
 		$list .= $this->text->makeImage(203502) . "\n";
 		$list .= "Name: {$itemlink["APE"]}\n";
 		$list .= "Purpose: - {$itemlink["EMCH"]}\n";
@@ -425,7 +380,7 @@ class LootListsController extends ModuleInstance {
 		$list .= "<tab><tab>     - {$itemlink["SCMH"]}\n";
 		$list .= "<tab><tab>     - {$itemlink["YCSH"]}\n\n";
 
-		//Dynamic Gas Redistribution Valves
+		// Dynamic Gas Redistribution Valves
 		$list .= $this->text->makeImage(205508) . "\n";
 		$list .= "Name: {$itemlink["DGRV"]}\n";
 		$list .= "Purpose: - {$itemlink["HLOA"]}\n";
@@ -433,7 +388,7 @@ class LootListsController extends ModuleInstance {
 		$list .= "<tab><tab>     - {$itemlink["SKR3"]}\n";
 		$list .= "<tab><tab>     - {$itemlink["ASC"]}\n\n";
 
-		$msg = $this->text->makeBlob("Loot table for sector $sector", $list);
+		$msg = $this->text->makeBlob("Loot table for sector {$sector}", $list);
 
 		$context->reply($msg);
 	}
@@ -446,13 +401,13 @@ class LootListsController extends ModuleInstance {
 	public function apfTwentyEightCommand(CmdContext $context, #[NCA\Str("28")] string $sector): void {
 		$itemlink = $this->getApfItems();
 		$list = '';
-		//CRU
+		// CRU
 		$list .= $this->text->makeImage(257196) . "\n";
 		$list .= "Name: {$itemlink["ICE"]}\n";
 		$list .= "Purpose: {$itemlink["ICEU"]}\n";
 		$list .= "Note: <highlight>Drops on all Alien Playfield 5 times from the Boss.<end>\n\n";
 
-		//Token Credit Items
+		// Token Credit Items
 		$list .= $this->text->makeImage(218775) . "\n";
 		$list .= "Name: {$itemlink["KBAP"]}\n";
 		$list .= $this->text->makeImage(218758) . "\n";
@@ -467,19 +422,19 @@ class LootListsController extends ModuleInstance {
 			"for Tokens or Credits.<end>\n";
 		$list .= "Note: <highlight>Drops on all Alien Playfields from the Boss (one from each type).<end>\n\n";
 
-		//Token Board
+		// Token Board
 		$list .= $this->text->makeImage(230855) . "\n";
 		$list .= "Name: {$itemlink["BOARD"]}\n";
 		$list .= "Purpose: - {$itemlink["OTAE"]}\n";
 		$list .= "<tab><tab>     - {$itemlink["CMP"]}\n";
 		$list .= "Note: <highlight>Drops on all Alien Playfield from the Boss.<end>\n\n";
 
-		//APF Belt
+		// APF Belt
 		$list .= $this->text->makeImage(11618) . "\n";
 		$list .= "Name: {$itemlink["IAPU"]}\n";
 		$list .= "Purpose: - {$itemlink["HVBCP"]}\n\n";
 
-		//Notum coil
+		// Notum coil
 		$list .= $this->text->makeImage(257195) . "\n";
 		$list .= "Name: {$itemlink["NAC"]}\n";
 		$list .= "Purpose: - {$itemlink["TAHSC"]}\n";
@@ -488,7 +443,7 @@ class LootListsController extends ModuleInstance {
 		$list .= "<tab><tab>     - {$itemlink["AKC13"]}\n";
 		$list .= "<tab><tab>     - {$itemlink["AKC5"]}\n\n";
 
-		$msg = $this->text->makeBlob("Loot table for sector $sector", $list);
+		$msg = $this->text->makeBlob("Loot table for sector {$sector}", $list);
 
 		$context->reply($msg);
 	}
@@ -502,13 +457,13 @@ class LootListsController extends ModuleInstance {
 		$itemlink = $this->getApfItems();
 		$list = '';
 
-		//CRU
+		// CRU
 		$list .= $this->text->makeImage(257196) . "\n";
 		$list .= "Name: {$itemlink["ICE"]}\n";
 		$list .= "Purpose: {$itemlink["ICEU"]}\n";
 		$list .= "Note: <highlight>Drops on all Alien Playfield 5 times from the Boss.<end>\n\n";
 
-		//Token Credit Items
+		// Token Credit Items
 		$list .= $this->text->makeImage(218775) . "\n";
 		$list .= "Name: {$itemlink["KBAP"]}\n";
 		$list .= $this->text->makeImage(218758) . "\n";
@@ -523,32 +478,31 @@ class LootListsController extends ModuleInstance {
 			"for Tokens or Credits.<end>\n";
 		$list .= "Note: <highlight>Drops on all Alien Playfield from the Boss (one from each type).<end>\n\n";
 
-		//Token Board
+		// Token Board
 		$list .= $this->text->makeImage(230855) . "\n";
 		$list .= "Name:{$itemlink["BOARD"]}\n";
 		$list .= "Purpose: - {$itemlink["OTAE"]}\n";
 		$list .= "<tab><tab>     - {$itemlink["CMP"]}\n";
 		$list .= "Note: <highlight>Drops on all Alien Playfield from the Boss.<end>\n\n";
 
-		//Energy Redistribution Unit
+		// Energy Redistribution Unit
 		$list .= $this->text->makeImage(257197) . "\n";
 		$list .= "Name: {$itemlink["ERU"]}\n";
 		$list .= "Purpose: - {$itemlink["BOB"]}\n";
 		$list .= "<tab><tab>     - {$itemlink["DVLPR"]}\n";
 		$list .= "<tab><tab>     - {$itemlink["VNGW"]}\n\n";
 
-		//Visible Light Remodulation Device
+		// Visible Light Remodulation Device
 		$list .= $this->text->makeImage(235270) . "\n";
 		$list .= "Name: {$itemlink["VLRD"]}\n";
 		$list .= "Purpose: - {$itemlink["DVRPR"]}\n";
 		$list .= "<tab><tab>     - {$itemlink["SSSS"]}\n";
 		$list .= "<tab><tab>     - {$itemlink["EPP"]}\n\n";
 
-		$msg = $this->text->makeBlob("Loot table for sector $sector", $list);
+		$msg = $this->text->makeBlob("Loot table for sector {$sector}", $list);
 
 		$context->reply($msg);
 	}
-
 
 	/** Show the full Beast loot */
 	#[NCA\HandlesCommand("beast")]
@@ -584,10 +538,8 @@ class LootListsController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @return string|string[]|null
-	 */
-	public function getPandemoniumLoot(string $raid, string $category, CmdContext $context): null|string|array {
+	/** @return string[]|null */
+	public function getPandemoniumLoot(string $raid, string $category, CmdContext $context): ?array {
 		$category = ucwords(strtolower($category));
 		try {
 			$blob = $this->findRaidLoot($raid, $category, $context);
@@ -598,7 +550,7 @@ class LootListsController extends ModuleInstance {
 			return null;
 		}
 		$blob .= "\n\nPande Loot By Marinerecon (RK2)";
-		return $this->text->makeBlob("{$raid} \"{$category}\" Loot", $blob);
+		return (array)$this->text->makeBlob("{$raid} \"{$category}\" Loot", $blob);
 	}
 
 	/**
@@ -743,12 +695,12 @@ class LootListsController extends ModuleInstance {
 			"<tab>- Level 200-250: ".
 			$this->text->makeChatcmd("Broken Shores along the river", "/waypoint 1266 1889 665") . "\n".
 			"<tab>- Level <black>00<end>1-300: Notum Mining Area\n";
-		$blob = preg_replace("/(<header2>.*?<end>\n)/", "$1\n$guph", $this->findRaidLoot('Halloween', 'Griefing Uncle Pumpkin-Head', $context));
+		$blob = preg_replace("/(<header2>.*?<end>\n)/", "$1\n{$guph}", $this->findRaidLoot('Halloween', 'Griefing Uncle Pumpkin-Head', $context));
 		$blob .= "\n<pagebreak><header2>Ganking Uncle Pumpkin-Head<end>\n\n".
 			"They drop the same loot as the GUPHs, but have a higher chance to drop the rare items.\n";
 		$huph = "They are only spawned by ARKs on Halloween events ".
 			"and cannot be found anywhere else.\n";
-		$blob .= preg_replace("/(<header2>.*?<end>\n)/", "<pagebreak>$1\n$huph", $this->findRaidLoot('Halloween', 'Harvesting Uncle Pumpkin-Head', $context));
+		$blob .= preg_replace("/(<header2>.*?<end>\n)/", "<pagebreak>$1\n{$huph}", $this->findRaidLoot('Halloween', 'Harvesting Uncle Pumpkin-Head', $context));
 		$blob .= $this->findRaidLoot('Halloween', 'Solo Instance', $context);
 		$msg = $this->text->makeBlob("Halloween loot", $blob);
 		$context->reply($msg);
@@ -823,7 +775,7 @@ class LootListsController extends ModuleInstance {
 				$blob .= " x" . $row->multiloot;
 			}
 			if (!empty($row->comment)) {
-				$blob .= " ($row->comment)";
+				$blob .= " ({$row->comment})";
 			}
 			if ($showLootPics) {
 				$blob .= "\n";
@@ -862,5 +814,50 @@ class LootListsController extends ModuleInstance {
 		$list .= "<tab>- Left Hand\n";
 		$msg = $this->text->makeBlob("LoX Hub Loot", $list);
 		$context->reply($msg);
+	}
+
+	/** @return array<string,string> */
+	protected function getApfItems(): array {
+		$itemlink = [];
+		$itemlink["ICE"] = $this->text->makeItem(257968, 257968, 1, "Hacker ICE-Breaker Source");
+		$itemlink["BOARD"] = $this->text->makeItem(257706, 257706, 1, "Kyr'Ozch Helmet");
+		$itemlink["APE"] = $this->text->makeItem(257960, 257960, 250, "Action Probability Estimator");
+		$itemlink["DGRV"] = $this->text->makeItem(257962, 257962, 250, "Dynamic Gas Redistribution Valves");
+		$itemlink["KBAP"] = $this->text->makeItem(257529, 257529, 1, "Kyr'Ozch Battlesuit Audio Processor");
+		$itemlink["KVPU"] = $this->text->makeItem(257533, 257533, 1, "Kyr'Ozch Video Processing Unit");
+		$itemlink["KRI"] = $this->text->makeItem(257531, 257531, 1, "Kyr'Ozch Rank Identification");
+		$itemlink["ICEU"] = $this->text->makeItem(257110, 257110, 1, "Intrusion Countermeasure Electronics Upgrade");
+		$itemlink["OTAE"] = $this->text->makeItem(257112, 257112, 1, "Omni-Tek Award - Exemplar");
+		$itemlink["CMP"] = $this->text->makeItem(257113, 257113, 1, "Clan Merits - Paragon");
+		$itemlink["EMCH"] = $this->text->makeItem(257379, 257379, 200, "Extruder's Molybdenum Crash Helmet");
+		$itemlink["CKCNH"] = $this->text->makeItem(257115, 257115, 200, "Conscientious Knight Commander Nizno's Helmet");
+		$itemlink["SKCGH"] = $this->text->makeItem(257114, 257114, 200, "Sworn Knight Commander Genevra's Helmet");
+		$itemlink["BCOH"] = $this->text->makeItem(257383, 257383, 300, "Blackmane's Combined Officer's Headwear");
+		$itemlink["GCCH"] = $this->text->makeItem(257381, 257381, 300, "Gannondorf's Combined Commando's Headwear");
+		$itemlink["HCSH"] = $this->text->makeItem(257384, 257384, 300, "Haitte's Combined Sharpshooter's Headwear");
+		$itemlink["OCPH"] = $this->text->makeItem(257377, 257377, 300, "Odum's Combined Paramedic's Headwear");
+		$itemlink["SCMH"] = $this->text->makeItem(257380, 257380, 300, "Sillum's Combined Mercenary's Headwear");
+		$itemlink["YCSH"] = $this->text->makeItem(257382, 257382, 300, "Yakomo's Combined Scout's Headwear");
+		$itemlink["HLOA"] = $this->text->makeItem(257128, 257128, 300, "High Lord of Angst");
+		$itemlink["SKR2"] = $this->text->makeItem(257967, 257967, 300, "Silenced Kyr'Ozch Rifle - Type 2");
+		$itemlink["SKR3"] = $this->text->makeItem(257131, 257131, 300, "Silenced Kyr'Ozch Rifle - Type 3");
+		$itemlink["ASC"] = $this->text->makeItem(257126, 257126, 300, "Amplified Sleek Cannon");
+		$itemlink["IAPU"] = $this->text->makeItem(257959, 257959, 1, "Inertial Adjustment Processing Unit");
+		$itemlink["HVBCP"] = $this->text->makeItem(257119, 257119, 300, "Hadrulf's Viral Belt Component Platform");
+		$itemlink["NAC"] = $this->text->makeItem(257963, 257963, 250, "Notum Amplification Coil");
+		$itemlink["TAHSC"] = $this->text->makeItem(257124, 257124, 300, "Twice Augmented Hellspinner Shock Cannon");
+		$itemlink["ONC"] = $this->text->makeItem(257118, 257118, 250, "ObiTom's Nano Calculator");
+		$itemlink["AKC12"] = $this->text->makeItem(257143, 257143, 300, "Amplified Kyr'Ozch Carbine - Type 12");
+		$itemlink["AKC13"] = $this->text->makeItem(257142, 257142, 300, "Amplified Kyr'Ozch Carbine - Type 13");
+		$itemlink["AKC5"] = $this->text->makeItem(257144, 257144, 300, "Amplified Kyr'Ozch Carbine - Type 5");
+		$itemlink["ERU"] = $this->text->makeItem(257961, 257961, 250, "Energy Redistribution Unit");
+		$itemlink["BOB"] = $this->text->makeItem(257147, 257147, 300, "Blades of Boltar");
+		$itemlink["DVLPR"] = $this->text->makeItem(257116, 257116, 1, "De'Valos Lava Protection Ring");
+		$itemlink["VLRD"] = $this->text->makeItem(257964, 257964, 250, "Visible Light Remodulation Device");
+		$itemlink["DVRPR"] = $this->text->makeItem(257117, 257117, 1, "De'Valos Radiation Protection Ring");
+		$itemlink["SSSS"] = $this->text->makeItem(257141, 257141, 300, "Scoped Salabim Shotgun Supremo");
+		$itemlink["EPP"] = $this->text->makeItem(258345, 258345, 300, "Explosif's Polychromatic Pillows");
+		$itemlink["VNGW"] = $this->text->makeItem(257123, 257123, 300, "Vektor ND Grand Wyrm");
+		return $itemlink;
 	}
 }

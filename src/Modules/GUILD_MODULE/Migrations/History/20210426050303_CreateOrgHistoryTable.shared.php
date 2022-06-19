@@ -3,9 +3,7 @@
 namespace Nadybot\Modules\GUILD_MODULE\Migrations\History;
 
 use Illuminate\Database\Schema\Blueprint;
-use Nadybot\Core\DB;
-use Nadybot\Core\LoggerWrapper;
-use Nadybot\Core\SchemaMigration;
+use Nadybot\Core\{DB, LoggerWrapper, SchemaMigration};
 
 class CreateOrgHistoryTable implements SchemaMigration {
 	public function migrate(LoggerWrapper $logger, DB $db): void {
@@ -16,7 +14,7 @@ class CreateOrgHistoryTable implements SchemaMigration {
 			});
 			return;
 		}
-		$db->schema()->create($table, function(Blueprint $table): void {
+		$db->schema()->create($table, function (Blueprint $table): void {
 			$table->id();
 			$table->text("actor")->nullable();
 			$table->text("actee")->nullable();

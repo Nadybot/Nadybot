@@ -26,6 +26,30 @@ class MigrateRelayColors implements SchemaMigration {
 	#[NCA\Inject]
 	public ConfigController $configController;
 
+	public function migrate(LoggerWrapper $logger, DB $db): void {
+		$relayType = $this->getSetting($db, "relaytype");
+		$relayBot = $this->getSetting($db, "relaybot");
+		if (isset($relayType, $relayBot)   && $relayBot->value !== 'Off') {
+			$this->migrateRelayModuleColors($db);
+		}
+		$relayType = $this->getSetting($db, "arelaytype");
+		$relayBot = $this->getSetting($db, "arelaybot");
+		if (isset($relayType, $relayBot)   && $relayBot->value !== 'Off') {
+			$this->migrateAllianceRelayModuleColors($db);
+		}
+
+		if ($db->table(CommandManager::DB_TABLE)
+			->where("module", "ALLIANCE_RELAY_MODULE")
+			->update(["status" => 0])) {
+			$logger->log(
+				'WARN',
+				"Found the ALLIANCE_RELAY_MODULE, converted all settings and ".
+				"deactivated it. Please remove the module, so it cannot ".
+				"interfere. It is not compatible with Nadybot 5.2.0 or newer."
+			);
+		}
+	}
+
 	protected function getSetting(DB $db, string $name): ?Setting {
 		return $db->table(SettingManager::DB_TABLE)
 			->where("name", $name)
@@ -54,30 +78,6 @@ class MigrateRelayColors implements SchemaMigration {
 		$spec->tag_color = $tag;
 		$spec->text_color = $text;
 		$db->insert(MessageHub::DB_TABLE_COLORS, $spec);
-	}
-
-	public function migrate(LoggerWrapper $logger, DB $db): void {
-		$relayType = $this->getSetting($db, "relaytype");
-		$relayBot = $this->getSetting($db, "relaybot");
-		if (isset($relayType) && isset($relayBot) && $relayBot->value !== 'Off') {
-			$this->migrateRelayModuleColors($db);
-		}
-		$relayType = $this->getSetting($db, "arelaytype");
-		$relayBot = $this->getSetting($db, "arelaybot");
-		if (isset($relayType) && isset($relayBot) && $relayBot->value !== 'Off') {
-			$this->migrateAllianceRelayModuleColors($db);
-		}
-
-		if ($db->table(CommandManager::DB_TABLE)
-			->where("module", "ALLIANCE_RELAY_MODULE")
-			->update(["status" => 0])) {
-			$logger->log(
-				'WARN',
-				"Found the ALLIANCE_RELAY_MODULE, converted all settings and ".
-				"deactivated it. Please remove the module, so it cannot ".
-				"interfere. It is not compatible with Nadybot 5.2.0 or newer."
-			);
-		}
 	}
 
 	protected function migrateAllianceRelayModuleColors(DB $db): void {

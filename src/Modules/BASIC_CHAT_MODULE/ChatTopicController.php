@@ -162,9 +162,7 @@ class ChatTopicController extends ModuleInstance {
 		}
 	}
 
-	/**
-	 * Builds current topic information message and returns it.
-	 */
+	/** Builds current topic information message and returns it. */
 	public function buildTopicMessage(): string {
 		$topicAge = $this->util->unixtimeToReadable(time() - $this->topicTime, false);
 		$topic = $this->topic;

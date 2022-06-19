@@ -2,8 +2,7 @@
 
 namespace Nadybot\Modules\LOOT_MODULE;
 
-use Nadybot\Core\Attributes as NCA;
-use Nadybot\Core\DBRow;
+use Nadybot\Core\{Attributes as NCA, DBRow};
 
 class LootHistory extends DBRow {
 	/** Artificial primary key */

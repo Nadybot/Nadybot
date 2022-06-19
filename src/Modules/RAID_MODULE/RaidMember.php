@@ -2,18 +2,13 @@
 
 namespace Nadybot\Modules\RAID_MODULE;
 
-use Nadybot\Core\Attributes as NCA;
-use Nadybot\Core\DBRow;
+use Nadybot\Core\{Attributes as NCA, DBRow};
 
 class RaidMember extends DBRow {
-	/**
-	 * ID of the raid this player represents
-	 */
+	/** ID of the raid this player represents */
 	public int $raid_id;
 
-	/**
-	 * Name of the character
-	 */
+	/** Name of the character */
 	public string $player;
 
 	/** UNIX Timestamp when they joined the raid */

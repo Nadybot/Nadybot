@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\DISCORD_GATEWAY_MODULE;
 
+use Amp\Promise;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CommandReply,
@@ -61,11 +62,11 @@ class DiscordSlashCommandReply implements CommandReply {
 		$response->data->flags = $this->slashCtrl->discordSlashCommands === $this->slashCtrl::SLASH_EPHEMERAL
 			? InteractionCallbackData::EPHEMERAL
 			: null;
-		$this->discordAPIClient->sendInteractionResponse(
+		Promise\rethrow($this->discordAPIClient->sendInteractionResponse(
 			$this->interactionId,
 			$this->interactionToken,
 			$this->discordAPIClient->encode($response),
-		);
+		));
 	}
 
 	public function reply($msg): void {
@@ -93,22 +94,6 @@ class DiscordSlashCommandReply implements CommandReply {
 		$this->sendReplyToDiscord(...$msg);
 	}
 
-	/** Send the given message-chunks to Discord via Webhook */
-	private function sendReplyToDiscord(string ...$msg): void {
-		for ($i = 0; $i < count($msg); $i++) {
-			$msgPack = $msg[$i];
-			$messageObj = $this->discordController->formatMessage($msgPack);
-			$messageObj->flags = $this->slashCtrl->discordSlashCommands === $this->slashCtrl::SLASH_EPHEMERAL
-				? InteractionCallbackData::EPHEMERAL
-				: null;
-			$this->discordAPIClient->queueToWebhook(
-				$this->applicationId,
-				$this->interactionToken,
-				$this->discordAPIClient->encode($messageObj),
-			);
-		}
-	}
-
 	/** Route the message to the MessageHub */
 	protected function routeToHub(DiscordChannel $channel, string $message): void {
 		$rMessage = new RoutableMessage($message);
@@ -124,5 +109,21 @@ class DiscordSlashCommandReply implements CommandReply {
 			isset($guild) ? (int)$guild->id : null
 		));
 		$this->messageHub->handle($rMessage);
+	}
+
+	/** Send the given message-chunks to Discord via Webhook */
+	private function sendReplyToDiscord(string ...$msg): void {
+		for ($i = 0; $i < count($msg); $i++) {
+			$msgPack = $msg[$i];
+			$messageObj = $this->discordController->formatMessage($msgPack);
+			$messageObj->flags = $this->slashCtrl->discordSlashCommands === $this->slashCtrl::SLASH_EPHEMERAL
+				? InteractionCallbackData::EPHEMERAL
+				: null;
+			Promise\rethrow($this->discordAPIClient->queueToWebhook(
+				$this->applicationId,
+				$this->interactionToken,
+				$this->discordAPIClient->encode($messageObj),
+			));
+		}
 	}
 }

@@ -32,9 +32,7 @@ class SubcommandManager {
 	/** @var array<string,CmdPermission> */
 	private array $cmdDefaultPermissions = [];
 
-	/**
-	 * Register a subcommand
-	 */
+	/** Register a subcommand */
 	public function register(
 		string $module,
 		string $filename,
@@ -49,7 +47,7 @@ class SubcommandManager {
 
 		$name = explode(".", $filename)[0];
 		if (!Registry::instanceExists($name)) {
-			$this->logger->error("Error registering method $filename for subcommand $command.  Could not find instance '$name'.");
+			$this->logger->error("Error registering method {$filename} for subcommand {$command}.  Could not find instance '{$name}'.");
 			return;
 		}
 
@@ -70,7 +68,7 @@ class SubcommandManager {
 		$defaultPerms->permission_set = "default";
 		$this->cmdDefaultPermissions[$command] = $defaultPerms;
 
-		$this->logger->info("Adding Subcommand to list:($command) File:($filename)");
+		$this->logger->info("Adding Subcommand to list:({$command}) File:({$filename})");
 		$this->db->table(CommandManager::DB_TABLE)
 			->upsert(
 				[
@@ -103,9 +101,7 @@ class SubcommandManager {
 		}
 	}
 
-	/**
-	 * Load the active subcommands into memory and activates them
-	 */
+	/** Load the active subcommands into memory and activates them */
 	public function loadSubcommands(): void {
 		$this->logger->info("Loading enabled subcommands");
 
@@ -133,7 +129,7 @@ class SubcommandManager {
 				$has2 = (strpos($row2->cmd, '.') === false) ? 0 : 1;
 				return ($len2 <=> $len1) ?: ($has1 <=> $has2);
 			})
-			->each(function(CmdCfg $row): void {
+			->each(function (CmdCfg $row): void {
 				$this->subcommands[$row->dependson] []= $row;
 			});
 	}

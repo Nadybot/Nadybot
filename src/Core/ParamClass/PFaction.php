@@ -3,11 +3,10 @@
 namespace Nadybot\Core\ParamClass;
 
 class PFaction extends Base {
-	protected static string $regExp = "omni|clan|neutral|neut";
-	protected string $value;
-
 	public string $lower;
 	public string $color;
+	protected static string $regExp = "omni|clan|neutral|neut";
+	protected string $value;
 
 	public function __construct(string $value) {
 		$this->value = ucfirst(strtolower($value));

@@ -2,11 +2,8 @@
 
 namespace Nadybot\Modules\WEBSERVER_MODULE;
 
-use Nadybot\Core\CommandReply;
-use Nadybot\Core\MessageEmitter;
-use Nadybot\Core\MessageHub;
-use Nadybot\Core\Routing\RoutableMessage;
-use Nadybot\Core\Routing\Source;
+use Nadybot\Core\Routing\{RoutableMessage, Source};
+use Nadybot\Core\{CommandReply, MessageEmitter, MessageHub};
 
 class WebUIChannel implements CommandReply, MessageEmitter {
 	public MessageHub $messageHub;

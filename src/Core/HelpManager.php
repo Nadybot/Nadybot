@@ -4,8 +4,8 @@ namespace Nadybot\Core;
 
 use Nadybot\Core\{
 	Attributes as NCA,
-	Modules\CONFIG\ConfigController,
 	DBSchema\HelpTopic,
+	Modules\CONFIG\ConfigController,
 };
 
 #[NCA\Instance]
@@ -17,7 +17,7 @@ class HelpManager {
 
 	#[NCA\Inject]
 	public AccessManager $accessManager;
-	#
+
 	#[NCA\Inject]
 	public CommandManager $commandManager;
 
@@ -33,18 +33,16 @@ class HelpManager {
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
-	/**
-	 * Register a help command
-	 */
+	/** Register a help command */
 	public function register(string $module, string $command, string $filename, string $admin, string $description): void {
-		$this->logger->info("Registering $module:help($command) Helpfile:($filename)");
+		$this->logger->info("Registering {$module}:help({$command}) Helpfile:({$filename})");
 
 		$command = strtolower($command);
 
 		// Check if the file exists
 		$actual_filename = $this->util->verifyFilename($module . '/' . $filename);
 		if ($actual_filename == '') {
-			$this->logger->error("Error in registering the File $filename for Help command $module:help($command). The file doesn't exist!");
+			$this->logger->error("Error in registering the File {$filename} for Help command {$module}:help({$command}). The file doesn't exist!");
 			return;
 		}
 
@@ -69,9 +67,7 @@ class HelpManager {
 		}
 	}
 
-	/**
-	 * Find a help topic by name if it exists and if the user has permissions to see it
-	 */
+	/** Find a help topic by name if it exists and if the user has permissions to see it */
 	public function find(string $helpcmd, string $char): ?string {
 		$helpcmd = strtolower($helpcmd);
 		$settingsHelp = $this->db->table(SettingManager::DB_TABLE)
@@ -86,6 +82,7 @@ class HelpManager {
 			$settingsHelp->union($hlpHelp),
 			"foo"
 		)->select("foo.module", "foo.file", "foo.name", "foo.admin AS admin_list");
+
 		/** @var HelpTopic[] $data */
 		$data = $outerQuery->asObj(HelpTopic::class)->toArray();
 
@@ -156,6 +153,7 @@ class HelpManager {
 		->orderBy("name")
 		->orderByDesc("sort")
 		->orderBy("description");
+
 		/** @var HelpTopic[] $data */
 		$data = $outerQuery->asObj(HelpTopic::class)->toArray();
 
@@ -183,9 +181,7 @@ class HelpManager {
 		return $topics;
 	}
 
-	/**
-	 * @param string[] $accessLevelsArray
-	 */
+	/** @param string[] $accessLevelsArray */
 	public function checkAccessLevels(string $accessLevel1, array $accessLevelsArray): bool {
 		foreach ($accessLevelsArray as $accessLevel2) {
 			if ($this->accessManager->compareAccessLevels($accessLevel1, $accessLevel2) >= 0) {

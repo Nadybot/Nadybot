@@ -2,7 +2,10 @@
 
 namespace Nadybot\Modules\WEBSERVER_MODULE;
 
+use function Amp\asyncCall;
+
 use Closure;
+use Generator;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	AccessManager,
@@ -13,8 +16,8 @@ use Nadybot\Core\{
 	DB,
 	EventManager,
 	LoggerWrapper,
-	Modules\SYSTEM\SystemController,
 	ModuleInstance,
+	Modules\SYSTEM\SystemController,
 	Nadybot,
 	ParamClass\PRemove,
 	Registry,
@@ -23,13 +26,13 @@ use Nadybot\Core\{
 	Util,
 };
 use Nadybot\Modules\WEBSOCKET_MODULE\WebsocketController;
+use ReflectionAttribute;
 use ReflectionClass;
 use ReflectionFunction;
 use ReflectionMethod;
 use ReflectionNamedType;
 use ReflectionProperty;
 use Throwable;
-use ReflectionAttribute;
 
 #[
 	NCA\Instance,
@@ -241,9 +244,7 @@ class ApiController extends ModuleInstance {
 		$context->reply("API token <highlight>{$token}<end> reset.");
 	}
 
-	/**
-	 * Scan all Instances for #[HttpGet] or #[HttpPost] attributes and register them
-	 */
+	/** Scan all Instances for #[HttpGet] or #[HttpPost] attributes and register them */
 	public function scanApiAttributes(): void {
 		$instances = Registry::getAllInstances();
 		foreach ($instances as $instance) {
@@ -290,9 +291,9 @@ class ApiController extends ModuleInstance {
 		}
 	}
 
-
 	/**
 	 * Add a HTTP route handler for a path
+	 *
 	 * @param string[] $paths
 	 * @param string[] $methods
 	 * @psalm-param callable(Request,HttpProtocolWrapper,mixed...) $callback
@@ -315,7 +316,7 @@ class ApiController extends ModuleInstance {
 			// Longer routes must be handled first, because they are more specific
 			uksort(
 				$this->routes,
-				function(string $a, string $b): int {
+				function (string $a, string $b): int {
 					return (substr_count($b, "/") <=> substr_count($a, "/"))
 						?: substr_count(basename($a), "+?)") <=> substr_count(basename($b), "+?)")
 						?: strlen($b) <=> strlen($a);
@@ -327,7 +328,7 @@ class ApiController extends ModuleInstance {
 	public function getHandlerForRequest(Request $request, string $prefix="/api"): ?ApiHandler {
 		$path = substr($request->path, strlen($prefix));
 		foreach ($this->routes as $mask => $data) {
-			if (!preg_match("|$mask|", $path, $parts)) {
+			if (!preg_match("|{$mask}|", $path, $parts)) {
 				continue;
 			}
 			if (!isset($data[$request->method])) {
@@ -335,7 +336,7 @@ class ApiController extends ModuleInstance {
 				$handler->allowedMethods = array_keys($data);
 				return $handler;
 			}
-			$handler = clone($data[$request->method]);
+			$handler = clone $data[$request->method];
 			if (!isset($handler->handler)) {
 				$handler->allowedMethods = array_keys($data);
 				return $handler;
@@ -361,88 +362,6 @@ class ApiController extends ModuleInstance {
 		return null;
 	}
 
-	protected function getCommandHandler(ApiHandler $handler): ?CommandHandler {
-		if (!isset($handler->accessLevelFrom)) {
-			return null;
-		}
-		$set = $this->commandManager->getPermsetMapForSource("api");
-		if (!isset($set)) {
-			return null;
-		}
-		// Check if a subcommands for this exists
-		$mainCommand = explode(" ", $handler->accessLevelFrom)[0];
-		if (isset($this->subcommandManager->subcommands[$mainCommand])) {
-			foreach ($this->subcommandManager->subcommands[$mainCommand] as $row) {
-				$perms = $row->permissions[$set->permission_set] ?? null;
-				if (!isset($perms) || $row->cmd !== $handler->accessLevelFrom) {
-					continue;
-				}
-				$files = explode(",", $row->file);
-				return new CommandHandler($perms->access_level, ...$files);
-			}
-		}
-		return $this->commandManager->commands[$set->permission_set][$handler->accessLevelFrom] ?? null;
-	}
-
-
-	protected function checkHasAccess(Request $request, ApiHandler $apiHandler): bool {
-		$cmdHandler = $this->getCommandHandler($apiHandler);
-		if ($cmdHandler === null || !isset($request->authenticatedAs)) {
-			return false;
-		}
-		return $this->accessManager->checkAccess($request->authenticatedAs, $cmdHandler->access_level);
-	}
-
-	protected function checkBodyIsComplete(Request $request, ApiHandler $apiHandler): bool {
-		if (!in_array($request->method, [$request::PUT, $request::POST])) {
-			return true;
-		}
-		if ($request->decodedBody === null || !is_object($request->decodedBody)) {
-			return true;
-		}
-		$refClass = new ReflectionClass($request->decodedBody);
-		$refProps = $refClass->getProperties(ReflectionProperty::IS_PUBLIC);
-		foreach ($refProps as $refProp) {
-			if (!$refProp->isInitialized($request->decodedBody)) {
-				return false;
-			}
-		}
-		return true;
-	}
-
-	protected function checkBodyFormat(Request $request, ApiHandler $apiHandler): bool {
-		if (in_array($request->method, [$request::GET, $request::HEAD, $request::DELETE])) {
-			return true;
-		}
-		$rqBodyAttrs = $apiHandler->reflectionMethod->getAttributes(NCA\RequestBody::class);
-		if (empty($rqBodyAttrs)) {
-			return true;
-		}
-		/** @var NCA\RequestBody */
-		$reqBody = $rqBodyAttrs[0]->newInstance();
-		if ($request->decodedBody === null) {
-			if (!$reqBody->required) {
-				return true;
-			}
-			return false;
-		}
-		if (JsonImporter::matchesType($reqBody->class, $request->decodedBody)) {
-			return true;
-		}
-		try {
-			if (is_object($request->decodedBody)) {
-				$request->decodedBody = JsonImporter::convert($reqBody->class, $request->decodedBody);
-			} elseif (is_array($request->decodedBody)) {
-				foreach ($request->decodedBody as &$part) {
-					$request->decodedBody = JsonImporter::convert($reqBody->class, $part);
-				}
-			}
-		} catch (Throwable $e) {
-			return false;
-		}
-		return true;
-	}
-
 	#[
 		NCA\HttpGet("/api/%s"),
 		NCA\HttpPost("/api/%s"),
@@ -456,14 +375,14 @@ class ApiController extends ModuleInstance {
 		}
 		$handler = $this->getHandlerForRequest($request);
 		if ($handler === null) {
-			$server->httpError(new Response(Response::NOT_FOUND));
+			$server->httpError(new Response(Response::NOT_FOUND), $request);
 			return;
 		}
 		if (!isset($handler->handler)) {
 			$server->httpError(new Response(
 				Response::METHOD_NOT_ALLOWED,
 				['Allow' => strtoupper(join(", ", $handler->allowedMethods))]
-			));
+			), $request);
 			return;
 		}
 		$authorized = true;
@@ -473,40 +392,49 @@ class ApiController extends ModuleInstance {
 			$authorized = $this->checkHasAccess($request, $handler);
 		}
 		if (!$authorized) {
-			$server->httpError(new Response(Response::FORBIDDEN));
+			$server->httpError(new Response(Response::FORBIDDEN), $request);
 			return;
 		}
 		if ($this->checkBodyFormat($request, $handler) === false) {
-			$server->httpError(new Response(Response::UNPROCESSABLE_ENTITY));
+			$server->httpError(new Response(Response::UNPROCESSABLE_ENTITY), $request);
 			return;
 		}
 		if ($this->checkBodyIsComplete($request, $handler) === false) {
-			$server->httpError(new Response(Response::UNPROCESSABLE_ENTITY));
+			$server->httpError(new Response(Response::UNPROCESSABLE_ENTITY), $request);
 			return;
 		}
 		try {
-			/** @var Response */
+			/** @var null|Response|Generator */
 			$response = $handler->exec($request, $server);
 		} catch (Throwable $e) {
 			$response = null;
 		}
-		if (!isset($response) || !($response) instanceof Response) {
-			$server->httpError(new Response(Response::INTERNAL_SERVER_ERROR));
-			return;
+		if (!isset($request->replied)) {
+			$request->replied = -1;
 		}
-		if ($response->code >= 400) {
-			$server->httpError($response);
-			return;
-		}
-		if ($response->code >= 200 && $response->code < 300 && isset($response->body)) {
-			$response->headers['Content-Type'] = 'application/json';
-		} elseif ($response->code === Response::OK && $request->method === Request::POST) {
-			$response->headers['Content-Length'] = "0";
-			$response->setCode(Response::CREATED);
-		} elseif ($response->code === Response::OK && in_array($request->method, [Request::PUT, Request::PATCH, Request::DELETE])) {
-			$response->setCode(Response::NO_CONTENT);
-		}
-		$server->sendResponse($response);
+		asyncCall(function () use ($response, $server, $request): Generator {
+			if ($response instanceof Generator) {
+				$response = yield from $response;
+			}
+
+			if (!isset($response) || !($response instanceof Response)) {
+				$server->httpError(new Response(Response::INTERNAL_SERVER_ERROR), $request);
+				return;
+			}
+			if ($response->code >= 400) {
+				$server->httpError($response, $request);
+				return;
+			}
+			if ($response->code >= 200 && $response->code < 300 && isset($response->body)) {
+				$response->headers['Content-Type'] = 'application/json';
+			} elseif ($response->code === Response::OK && $request->method === Request::POST) {
+				$response->headers['Content-Length'] = "0";
+				$response->setCode(Response::CREATED);
+			} elseif ($response->code === Response::OK && in_array($request->method, [Request::PUT, Request::PATCH, Request::DELETE])) {
+				$response->setCode(Response::NO_CONTENT);
+			}
+			$server->sendResponse($response, $request);
+		});
 	}
 
 	/**
@@ -544,11 +472,94 @@ class ApiController extends ModuleInstance {
 				: $this->commandManager->getPermissionSets()->firstOrFail()->name;
 			$context->sendto = $handler;
 			$context->message = $msg;
-			$this->chatBot->getUid($context->char->name, function (?int $uid, CmdContext $context): void {
+			asyncCall(function () use ($context): Generator {
+				$uid = yield $this->chatBot->getUid2($context->char->name);
 				$context->char->id = $uid;
 				$this->commandManager->checkAndHandleCmd($context);
-			}, $context);
+			});
 		}
 		return new Response(Response::NO_CONTENT);
+	}
+
+	protected function getCommandHandler(ApiHandler $handler): ?CommandHandler {
+		if (!isset($handler->accessLevelFrom)) {
+			return null;
+		}
+		$set = $this->commandManager->getPermsetMapForSource("api");
+		if (!isset($set)) {
+			return null;
+		}
+		// Check if a subcommands for this exists
+		$mainCommand = explode(" ", $handler->accessLevelFrom)[0];
+		if (isset($this->subcommandManager->subcommands[$mainCommand])) {
+			foreach ($this->subcommandManager->subcommands[$mainCommand] as $row) {
+				$perms = $row->permissions[$set->permission_set] ?? null;
+				if (!isset($perms) || $row->cmd !== $handler->accessLevelFrom) {
+					continue;
+				}
+				$files = explode(",", $row->file);
+				return new CommandHandler($perms->access_level, ...$files);
+			}
+		}
+		return $this->commandManager->commands[$set->permission_set][$handler->accessLevelFrom] ?? null;
+	}
+
+	protected function checkHasAccess(Request $request, ApiHandler $apiHandler): bool {
+		$cmdHandler = $this->getCommandHandler($apiHandler);
+		if ($cmdHandler === null || !isset($request->authenticatedAs)) {
+			return false;
+		}
+		return $this->accessManager->checkAccess($request->authenticatedAs, $cmdHandler->access_level);
+	}
+
+	protected function checkBodyIsComplete(Request $request, ApiHandler $apiHandler): bool {
+		if (!in_array($request->method, [$request::PUT, $request::POST])) {
+			return true;
+		}
+		if ($request->decodedBody === null || !is_object($request->decodedBody)) {
+			return true;
+		}
+		$refClass = new ReflectionClass($request->decodedBody);
+		$refProps = $refClass->getProperties(ReflectionProperty::IS_PUBLIC);
+		foreach ($refProps as $refProp) {
+			if (!$refProp->isInitialized($request->decodedBody)) {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	protected function checkBodyFormat(Request $request, ApiHandler $apiHandler): bool {
+		if (in_array($request->method, [$request::GET, $request::HEAD, $request::DELETE])) {
+			return true;
+		}
+		$rqBodyAttrs = $apiHandler->reflectionMethod->getAttributes(NCA\RequestBody::class);
+		if (empty($rqBodyAttrs)) {
+			return true;
+		}
+
+		/** @var NCA\RequestBody */
+		$reqBody = $rqBodyAttrs[0]->newInstance();
+		if ($request->decodedBody === null) {
+			if (!$reqBody->required) {
+				return true;
+			}
+			return false;
+		}
+		if (JsonImporter::matchesType($reqBody->class, $request->decodedBody)) {
+			return true;
+		}
+		try {
+			if (is_object($request->decodedBody)) {
+				$request->decodedBody = JsonImporter::convert($reqBody->class, $request->decodedBody);
+			} elseif (is_array($request->decodedBody)) {
+				foreach ($request->decodedBody as &$part) {
+					$request->decodedBody = JsonImporter::convert($reqBody->class, $part);
+				}
+			}
+		} catch (Throwable $e) {
+			return false;
+		}
+		return true;
 	}
 }

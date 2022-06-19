@@ -6,14 +6,15 @@ use DateTime;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
-	ModuleInstance,
 	LoggerWrapper,
+	ModuleInstance,
 	Text,
 	Util,
 };
 
 /**
  * A stopwatch controller with start, stop and lap
+ *
  * @author Nadyita (RK5) <nadyita@hodorraid.org>
  */
 #[
@@ -35,9 +36,7 @@ class StopwatchController extends ModuleInstance {
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
-	/**
-	 * @var array<string,Stopwatch>
-	 */
+	/** @var array<string,Stopwatch> */
 	public array $stopwatches = [];
 
 	/**
@@ -70,7 +69,7 @@ class StopwatchController extends ModuleInstance {
 		$stopwatch->end = new DateTime();
 		unset($this->stopwatches[$context->char->name]);
 		$msg = $stopwatch->toString();
-		$context->reply("Your stopwatch times:\n$msg");
+		$context->reply("Your stopwatch times:\n{$msg}");
 	}
 
 	/**
@@ -104,6 +103,6 @@ class StopwatchController extends ModuleInstance {
 		}
 		$stopwatch = $this->stopwatches[$context->char->name];
 		$msg = $stopwatch->toString();
-		$context->reply("Your stopwatch times:\n$msg");
+		$context->reply("Your stopwatch times:\n{$msg}");
 	}
 }

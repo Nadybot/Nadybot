@@ -4,10 +4,13 @@ namespace Nadybot\Modules\RAFFLE_MODULE;
 
 class RaffleSlot {
 	public int $amount = 1;
+
 	/** @var RaffleItem[] */
 	public array $items = [];
+
 	/** @var string[] */
 	public array $participants = [];
+
 	/** @var RaffleResultItem[] */
 	public array $result = [];
 
@@ -28,7 +31,7 @@ class RaffleSlot {
 
 	public function toString(): string {
 		$items = array_map(
-			function(RaffleItem $item): string {
+			function (RaffleItem $item): string {
 				return $item->toString();
 			},
 			$this->items
@@ -49,9 +52,7 @@ class RaffleSlot {
 		return true;
 	}
 
-	/**
-	 * @return string[]
-	 */
+	/** @return string[] */
 	public function getWinnerNames(): array {
 		return array_values(
 			array_map(
@@ -60,7 +61,7 @@ class RaffleSlot {
 				},
 				array_filter(
 					$this->result??[],
-					function(RaffleResultItem $res): bool {
+					function (RaffleResultItem $res): bool {
 						return $res->won;
 					}
 				)

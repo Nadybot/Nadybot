@@ -7,8 +7,8 @@ use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
 	DB,
-	ModuleInstance,
 	LoggerWrapper,
+	ModuleInstance,
 	ParamClass\PItem,
 	ParamClass\PWord,
 	Text,
@@ -37,6 +37,10 @@ use Nadybot\Modules\ITEMS_MODULE\ItemsController;
 	)
 ]
 class AlienBioController extends ModuleInstance {
+	private const LE_ARMOR_TYPES  = [64, 295, 468, 935];
+	private const LE_WEAPON_TYPES = [18, 34, 687, 812];
+	private const AI_ARMOR_TYPES  = ['mutated', 'pristine'];
+	private const AI_WEAPON_TYPES = [1, 2, 3, 4, 5, 12, 13, 48, 76, 112, 240, 880, 992];
 	#[NCA\Inject]
 	public DB $db;
 
@@ -48,11 +52,6 @@ class AlienBioController extends ModuleInstance {
 
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
-
-	private const LE_ARMOR_TYPES  = [64, 295, 468, 935];
-	private const LE_WEAPON_TYPES = [18, 34, 687, 812];
-	private const AI_ARMOR_TYPES  = ['mutated', 'pristine'];
-	private const AI_WEAPON_TYPES = [1, 2, 3, 4, 5, 12, 13, 48, 76, 112, 240, 880, 992];
 
 	#[NCA\Setup]
 	public function setup(): void {
@@ -165,7 +164,7 @@ class AlienBioController extends ModuleInstance {
 
 			$biotypeLink = $name;
 			if ($bioinfo !== "") {
-				$biotypeLink = $this->text->makeChatcmd($name, "/tell <myname> bioinfo $bioinfo {$clump->ql}");
+				$biotypeLink = $this->text->makeChatcmd($name, "/tell <myname> bioinfo {$bioinfo} {$clump->ql}");
 			}
 			$blob .= "<header2>QL {$clump->ql} clump<end>\n".
 				"<tab>{$biotypeLink} (QL {$clump->ql})\n\n";
@@ -203,13 +202,11 @@ class AlienBioController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
-	/**
-	 * @param int[]|string[] $types
-	 */
+	/** @param int[]|string[] $types */
 	public function getTypeBlob(array $types): string {
 		$blob = '';
 		foreach ($types as $type) {
-			$blob .= "<tab>" . $this->text->makeChatcmd((string)$type, "/tell <myname> bioinfo $type") . "\n";
+			$blob .= "<tab>" . $this->text->makeChatcmd((string)$type, "/tell <myname> bioinfo {$type}") . "\n";
 		}
 		return $blob;
 	}
@@ -259,11 +256,11 @@ class AlienBioController extends ModuleInstance {
 	 */
 	private function getWeaponInfo(int $ql): string {
 		$requiredMEandWS = (int)floor($ql * 6);
-		$text = "\n\n<highlight>QL $ql<end> is the highest weapon this type will combine into.";
+		$text = "\n\n<highlight>QL {$ql}<end> is the highest weapon this type will combine into.";
 		if ($ql !== 300) {
 			$text .= "\nNote: <highlight>The weapon can bump several QL's.<end>";
 		}
-		$text .= "\n\nIt will take <highlight>$requiredMEandWS<end> ME & WS (<highlight>6 * QL<end>) to combine with a <highlight>QL $ql<end> Kyr'ozch Weapon.";
+		$text .= "\n\nIt will take <highlight>{$requiredMEandWS}<end> ME & WS (<highlight>6 * QL<end>) to combine with a <highlight>QL {$ql}<end> Kyr'ozch Weapon.";
 
 		return $text;
 	}
@@ -273,7 +270,7 @@ class AlienBioController extends ModuleInstance {
 	 * will upgrade.
 	 */
 	private function ofabArmorBio(int $ql, int $type): string {
-		$name = "Kyr'Ozch Bio-Material - Type $type";
+		$name = "Kyr'Ozch Bio-Material - Type {$type}";
 		$item = $this->itemsController->getItem($name, $ql);
 		if ($item === null) {
 			throw new Exception("Cannot find expected ofab bio material in database.");
@@ -291,7 +288,7 @@ class AlienBioController extends ModuleInstance {
 			$blob .= $this->text->makeChatcmd($row->profession, "/tell <myname> ofabarmor {$row->profession}") . "\n";
 		}
 
-		return ((array)$this->text->makeBlob("$name (QL $ql)", $blob))[0];
+		return ((array)$this->text->makeBlob("{$name} (QL {$ql})", $blob))[0];
 	}
 
 	/**
@@ -299,7 +296,7 @@ class AlienBioController extends ModuleInstance {
 	 * will upgrade.
 	 */
 	private function ofabWeaponBio(int $ql, int $type): string {
-		$name = "Kyr'Ozch Bio-Material - Type $type";
+		$name = "Kyr'Ozch Bio-Material - Type {$type}";
 		$item = $this->itemsController->getItem($name, $ql);
 		if ($item === null) {
 			throw new Exception("Cannot find expected ofab bio material in database.");
@@ -316,7 +313,7 @@ class AlienBioController extends ModuleInstance {
 			$blob .= $this->text->makeChatcmd("Ofab {$row->name} Mk 1", "/tell <myname> ofabweapons {$row->name}") . "\n";
 		}
 
-		return ((array)$this->text->makeBlob("$name (QL $ql)", $blob))[0];
+		return ((array)$this->text->makeBlob("{$name} (QL {$ql})", $blob))[0];
 	}
 
 	/**
@@ -325,7 +322,7 @@ class AlienBioController extends ModuleInstance {
 	 * is needed to upgrade the weapon.
 	 */
 	private function alienWeaponBio(int $ql, int $type): string {
-		$name = "Kyr'Ozch Bio-Material - Type $type";
+		$name = "Kyr'Ozch Bio-Material - Type {$type}";
 		$item = $this->itemsController->getItem($name, $ql);
 		if ($item === null) {
 			throw new Exception("Cannot find expected alien bio material in database.");
@@ -347,7 +344,7 @@ class AlienBioController extends ModuleInstance {
 			->first();
 
 		$blob = $item . "\n\n";
-		$blob .= "It will take <highlight>$requiredEEandCL<end> EE & CL (<highlight>4.5 * QL<end>) to analyze the Bio-Material.\n\n";
+		$blob .= "It will take <highlight>{$requiredEEandCL}<end> EE & CL (<highlight>4.5 * QL<end>) to analyze the Bio-Material.\n\n";
 
 		$blob .= "<highlight>Adds {$specials} to:<end>\n";
 
@@ -367,7 +364,7 @@ class AlienBioController extends ModuleInstance {
 		$blob .= $this->getWeaponInfo($maxAIType);
 		$blob .= "\n\nTradeskilling info added by Mdkdoc420 (RK2)";
 
-		return ((array)$this->text->makeBlob("$name (QL $ql)", $blob))[0];
+		return ((array)$this->text->makeBlob("{$name} (QL {$ql})", $blob))[0];
 	}
 
 	/**
@@ -405,7 +402,7 @@ class AlienBioController extends ModuleInstance {
 		} else {
 			return "Unknown tradeskil process";
 		}
-		//End of tradeskill processes
+		// End of tradeskill processes
 
 		$item = $this->itemsController->getItem($name, $ql);
 		if (!isset($item)) {
@@ -413,28 +410,28 @@ class AlienBioController extends ModuleInstance {
 		}
 
 		$blob = $item . "\n\n";
-		$blob .= "It will take <highlight>$requiredEEandCL<end> EE & CL (<highlight>4.5 * QL<end>) to analyze the Bio-Material.\n\n";
+		$blob .= "It will take <highlight>{$requiredEEandCL}<end> EE & CL (<highlight>4.5 * QL<end>) to analyze the Bio-Material.\n\n";
 
-		$blob .= "Used to build Alien Armor $extraInfo\n\n" .
-			"<highlight>The following tradeskill amounts are required to make<end> QL $ql<highlight>\n" .
+		$blob .= "Used to build Alien Armor {$extraInfo}\n\n" .
+			"<highlight>The following tradeskill amounts are required to make<end> QL {$ql}<highlight>\n" .
 			"strong/arithmetic/enduring/spiritual/supple/observant armor:<end>\n\n" .
-			"Computer Literacy - <highlight>$requiredCL<end> (<highlight>4.5 * QL<end>)\n" .
-			"Chemistry - <highlight>$reqiredChem<end> (<highlight>$chemMsg<end>)\n" .
-			"Nano Programming - <highlight>$requiredNP<end> (<highlight>6 * QL<end>)\n" .
-			"Pharma Tech - <highlight>$requiredPharma<end> (<highlight>6 * QL<end>)\n" .
-			"Psychology - <highlight>$requiredPsychology<end> (<highlight>6 * QL<end>)\n\n" .
+			"Computer Literacy - <highlight>{$requiredCL}<end> (<highlight>4.5 * QL<end>)\n" .
+			"Chemistry - <highlight>{$reqiredChem}<end> (<highlight>{$chemMsg}<end>)\n" .
+			"Nano Programming - <highlight>{$requiredNP}<end> (<highlight>6 * QL<end>)\n" .
+			"Pharma Tech - <highlight>{$requiredPharma}<end> (<highlight>6 * QL<end>)\n" .
+			"Psychology - <highlight>{$requiredPsychology}<end> (<highlight>6 * QL<end>)\n\n" .
 			"Note:<highlight> Tradeskill requirements are based off the lowest QL items needed throughout the entire process.<end>";
 
 		$blob .= "\n\nFor Supple, Arithmetic, or Enduring:\n\n" .
-			"<highlight>When completed, the armor piece can have as low as<end> QL $minQL <highlight>combined into it, depending on available tradeskill options.\n\n" .
-			"Does not change QLs, therefore takes<end> $requiredPsychology <highlight>Psychology for available combinations.<end>\n\n" .
+			"<highlight>When completed, the armor piece can have as low as<end> QL {$minQL} <highlight>combined into it, depending on available tradeskill options.\n\n" .
+			"Does not change QLs, therefore takes<end> {$requiredPsychology} <highlight>Psychology for available combinations.<end>\n\n" .
 			"For Spiritual, Strong, or Observant:\n\n" .
-			"<highlight>When completed, the armor piece can combine up to<end> QL $maxQL<highlight>, depending on available tradeskill options.\n\n" .
-			"Changes QL depending on targets QL. The max combination is: (<end>QL $maxQL<highlight>) (<end>$max_psyco Psychology required for this combination<highlight>)<end>";
+			"<highlight>When completed, the armor piece can combine up to<end> QL {$maxQL}<highlight>, depending on available tradeskill options.\n\n" .
+			"Changes QL depending on targets QL. The max combination is: (<end>QL {$maxQL}<highlight>) (<end>{$max_psyco} Psychology required for this combination<highlight>)<end>";
 
 		$blob .= "\n\nTradeskilling info added by Mdkdoc420 (RK2)";
 
-		return ((array)$this->text->makeBlob("$name (QL $ql)", $blob))[0];
+		return ((array)$this->text->makeBlob("{$name} (QL {$ql})", $blob))[0];
 	}
 
 	/**
@@ -455,17 +452,17 @@ class AlienBioController extends ModuleInstance {
 		$requiredEEandCL   = (int)floor($ql * 4.5);
 
 		$blob = $item . "\n\n";
-		$blob .= "It will take <highlight>$requiredEEandCL<end> EE & CL (<highlight>4.5 * QL<end>) to analyze the Bio-Material.\n\n";
+		$blob .= "It will take <highlight>{$requiredEEandCL}<end> EE & CL (<highlight>4.5 * QL<end>) to analyze the Bio-Material.\n\n";
 
 		$blob .= "<highlight>Used to build city buildings<end>\n\n" .
 			"<highlight>The following are the required skills throughout the process of making a building:<end>\n\n" .
 			"Quantum FT - <highlight>400<end> (<highlight>Static<end>)\nPharma Tech - ";
 
-		//Used to change dialog between minimum and actual requirements, for requirements that go under 400
+		// Used to change dialog between minimum and actual requirements, for requirements that go under 400
 		if ($requiredPharma < 400) {
 			$blob .= "<highlight>400<end>";
 		} else {
-			$blob .= "<highlight>$requiredPharma<end>";
+			$blob .= "<highlight>{$requiredPharma}<end>";
 		}
 
 		$blob .= " (<highlight>3.5 * QL<end>) 400 is minimum requirement\nChemistry - ";
@@ -473,16 +470,16 @@ class AlienBioController extends ModuleInstance {
 		if ($requiredChemAndME < 400) {
 			$blob .= "<highlight>400<end>";
 		} else {
-			$blob .= "<highlight>$requiredChemAndME<end>";
+			$blob .= "<highlight>{$requiredChemAndME}<end>";
 		}
 
 		$blob .= " (<highlight>4 * QL<end>) 400 is minimum requirement\n" .
-			"Mechanical Engineering - <highlight>$requiredChemAndME<end> (<highlight>4 * QL<end>)\n" .
-			"Electrical Engineering - <highlight>$requiredEE<end> (<highlight>4.5 * QL<end>)\n" .
-			"Comp Liter - <highlight>$requiredCL<end> (<highlight>5 * QL<end>)";
+			"Mechanical Engineering - <highlight>{$requiredChemAndME}<end> (<highlight>4 * QL<end>)\n" .
+			"Electrical Engineering - <highlight>{$requiredEE}<end> (<highlight>4.5 * QL<end>)\n" .
+			"Comp Liter - <highlight>{$requiredCL}<end> (<highlight>5 * QL<end>)";
 
 		$blob .= "\n\nTradeskilling info added by Mdkdoc420 (RK2)";
 
-		return ((array)$this->text->makeBlob("$name (QL $ql)", $blob))[0];
+		return ((array)$this->text->makeBlob("{$name} (QL {$ql})", $blob))[0];
 	}
 }

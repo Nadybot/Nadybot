@@ -3,9 +3,7 @@
 namespace Nadybot\Modules\ALIEN_MODULE\Migrations\Misc;
 
 use Illuminate\Database\Schema\Blueprint;
-use Nadybot\Core\DB;
-use Nadybot\Core\LoggerWrapper;
-use Nadybot\Core\SchemaMigration;
+use Nadybot\Core\{DB, LoggerWrapper, SchemaMigration};
 
 class CreateLEProcsTable implements SchemaMigration {
 	public function migrate(LoggerWrapper $logger, DB $db): void {
@@ -13,7 +11,7 @@ class CreateLEProcsTable implements SchemaMigration {
 		if ($db->schema()->hasTable($table)) {
 			return;
 		}
-		$db->schema()->create($table, function(Blueprint $table): void {
+		$db->schema()->create($table, function (Blueprint $table): void {
 			$table->string("profession", 20);
 			$table->string("name", 50);
 			$table->string("research_name", 50)->nullable();

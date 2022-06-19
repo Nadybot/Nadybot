@@ -56,8 +56,8 @@ class FightController extends ModuleInstance {
 		if (strcasecmp($player1, $player2) === 0) {
 			$twin = [
 				"Déjà vu?",
-				"$player1 can't fight $player2, it may break the voids of space and time!",
-				"As much as I'd love to see $player1 punching himself/herself in the face, it just isn't theoretical..."];
+				"{$player1} can't fight {$player2}, it may break the voids of space and time!",
+				"As much as I'd love to see {$player1} punching himself/herself in the face, it just isn't theoretical...", ];
 
 			$context->reply($this->util->randomArrayValue($twin));
 			return;
@@ -66,7 +66,7 @@ class FightController extends ModuleInstance {
 		$fighter1 = $this->getFighter($player1);
 		$fighter2 = $this->getFighter($player2);
 
-		$list = "<header2>Fight $player1 vs $player2<end>\n\n";
+		$list = "<header2>Fight {$player1} vs {$player2}<end>\n\n";
 		while ($fighter1->hp > 0 && $fighter2->hp > 0) {
 			$list .= "<tab>" . $this->doAttack($fighter1, $fighter2);
 			$list .= "<tab>" . $this->doAttack($fighter2, $fighter1);
@@ -74,14 +74,14 @@ class FightController extends ModuleInstance {
 		}
 
 		if ($fighter1->hp > $fighter2->hp) {
-			$list .= "\nAnd the winner is …… <highlight>$player1!<end>";
-			$msg = $this->text->makeBlob("$player1 vs $player2: $player1 wins!", $list);
+			$list .= "\nAnd the winner is …… <highlight>{$player1}!<end>";
+			$msg = $this->text->makeBlob("{$player1} vs {$player2}: {$player1} wins!", $list);
 		} elseif ($fighter2->hp > $fighter1->hp) {
-			$list .= "\nAnd the winner is …… <highlight>$player2!<end>";
-			$msg = $this->text->makeBlob("$player1 vs $player2: $player2 wins!", $list);
+			$list .= "\nAnd the winner is …… <highlight>{$player2}!<end>";
+			$msg = $this->text->makeBlob("{$player1} vs {$player2}: {$player2} wins!", $list);
 		} else {
 			$list .= "\nIt's a tie!!";
-			$msg = $this->text->makeBlob("$player1 vs $player2: It's a tie!", $list);
+			$msg = $this->text->makeBlob("{$player1} vs {$player2}: It's a tie!", $list);
 		}
 
 		$context->reply($msg);
@@ -147,7 +147,7 @@ class FightController extends ModuleInstance {
 		}
 
 		$defender->hp -= $dmg;
-		return "<highlight>{$attacker->name}<end> hits <highlight>{$defender->name}<end> {$attacker->weapon} for $dmg {$attacker->damageType}.$crit\n";
+		return "<highlight>{$attacker->name}<end> hits <highlight>{$defender->name}<end> {$attacker->weapon} for {$dmg} {$attacker->damageType}.{$crit}\n";
 	}
 
 	public function isCriticalHit(Fighter $fighter, int $dmg): bool {

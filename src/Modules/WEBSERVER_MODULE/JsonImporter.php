@@ -3,10 +3,10 @@
 namespace Nadybot\Modules\WEBSERVER_MODULE;
 
 use Exception;
+use Nadybot\Core\Attributes\JSON;
 use ReflectionClass;
 use ReflectionNamedType;
 use ReflectionProperty;
-use Nadybot\Core\Attributes\JSON;
 
 class JsonImporter {
 	public static function expandClassname(string $class): ?string {
@@ -21,29 +21,6 @@ class JsonImporter {
 			}
 		}
 		return null;
-	}
-
-	protected static function isAssocArray(mixed $value): bool {
-		return is_array($value) && array_diff_key($value, array_keys(array_keys($value)));
-	}
-
-	protected static function hasIntervalType(string $checkType, mixed $value): bool {
-		if ($checkType === "string" && is_string($value)) {
-			return true;
-		}
-		if ($checkType === "int" && is_int($value)) {
-			return true;
-		}
-		if ($checkType === "float" && is_float($value)) {
-			return true;
-		}
-		if ($checkType === "array" && is_array($value)) {
-			return true;
-		}
-		if ($checkType === "bool" && is_bool($value)) {
-			return true;
-		}
-		return false;
 	}
 
 	public static function matchesType(string $type, mixed &$value): bool {
@@ -178,7 +155,7 @@ class JsonImporter {
 	public static function convert(string $class, object $obj): object {
 		$class = static::expandClassname($class);
 		if ($class === null) {
-			throw new Exception("Cannot find class $class");
+			throw new Exception("Cannot find class {$class}");
 		}
 		$result = new $class();
 		$refObj = new ReflectionClass($result);
@@ -187,5 +164,28 @@ class JsonImporter {
 			static::castFromRefprop($result, $refProp, $obj);
 		}
 		return $result;
+	}
+
+	protected static function isAssocArray(mixed $value): bool {
+		return is_array($value) && array_diff_key($value, array_keys(array_keys($value)));
+	}
+
+	protected static function hasIntervalType(string $checkType, mixed $value): bool {
+		if ($checkType === "string" && is_string($value)) {
+			return true;
+		}
+		if ($checkType === "int" && is_int($value)) {
+			return true;
+		}
+		if ($checkType === "float" && is_float($value)) {
+			return true;
+		}
+		if ($checkType === "array" && is_array($value)) {
+			return true;
+		}
+		if ($checkType === "bool" && is_bool($value)) {
+			return true;
+		}
+		return false;
 	}
 }

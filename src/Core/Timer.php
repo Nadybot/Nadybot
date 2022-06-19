@@ -8,14 +8,14 @@ use Nadybot\Core\Attributes as NCA;
 class Timer {
 	/**
 	 * Array of waiting timer events.
+	 *
 	 * @internal
-	 * @var \Nadybot\Core\TimerEvent[] $timerEvents
+	 *
+	 * @var \Nadybot\Core\TimerEvent[]
 	 */
 	private array $timerEvents = [];
 
-	/**
-	 * Execute all timer events that are due now
-	 */
+	/** Execute all timer events that are due now */
 	public function executeTimerEvents(): void {
 		// execute timer events
 		$time = time();
@@ -39,6 +39,8 @@ class Timer {
 	 * $this->util->callLater(5, fn($message) => print $message, 'Hello World');
 	 *
 	 * Prints 'Hello World' after 5 seconds.
+	 *
+	 * @deprecated 6.0.3
 	 */
 	public function callLater(int $delay, callable $callback, mixed ...$additionalArgs): TimerEvent {
 		return $this->addTimerEvent($delay, $callback, $additionalArgs);
@@ -46,6 +48,8 @@ class Timer {
 
 	/**
 	 * Abort an already timed event
+	 *
+	 * @deprecated 6.0.3
 	 */
 	public function abortEvent(TimerEvent $event): void {
 		$key = array_search($event, $this->timerEvents, true);
@@ -57,6 +61,8 @@ class Timer {
 
 	/**
 	 * Run an event again with the configured amount of delay
+	 *
+	 * @deprecated 6.0.3
 	 */
 	public function restartEvent(TimerEvent $event): void {
 		$event->time = intval($event->delay) + time();
@@ -66,6 +72,7 @@ class Timer {
 	/**
 	 * Adds a new timer event.
 	 * $callback will be called with arguments $args array after $delay seconds.
+	 *
 	 * @param mixed[] $args
 	 */
 	private function addTimerEvent(int $delay, callable $callback, array $args): TimerEvent {
@@ -83,7 +90,7 @@ class Timer {
 	private function sortEventsByTime(): void {
 		usort(
 			$this->timerEvents,
-			fn(TimerEvent $a, TimerEvent $b) => $a->time <=> $b->time
+			fn (TimerEvent $a, TimerEvent $b) => $a->time <=> $b->time
 		);
 	}
 }

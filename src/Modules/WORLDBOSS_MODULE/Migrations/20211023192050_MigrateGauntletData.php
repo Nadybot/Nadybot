@@ -34,7 +34,7 @@ class MigrateGauntletData implements SchemaMigration {
 		}
 		$timer = $db->table($table)
 			->where("name", "Gauntlet")
-			->limit(1)->get() ->first();
+			->limit(1)->get()->first();
 		if (isset($timer)) {
 			$endtime = (int)$timer->endtime;
 			while ($endtime < time()) {

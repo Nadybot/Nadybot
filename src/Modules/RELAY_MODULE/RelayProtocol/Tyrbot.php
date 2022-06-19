@@ -2,8 +2,6 @@
 
 namespace Nadybot\Modules\RELAY_MODULE\RelayProtocol;
 
-use Safe\Exceptions\JsonException;
-use Throwable;
 use Nadybot\Core\{
 	Attributes as NCA,
 	ConfigFile,
@@ -16,10 +14,6 @@ use Nadybot\Core\{
 	SettingManager,
 };
 use Nadybot\Modules\ONLINE_MODULE\OnlineController;
-use Nadybot\Modules\RELAY_MODULE\{
-	Relay,
-	RelayMessage,
-};
 use Nadybot\Modules\RELAY_MODULE\RelayProtocol\Tyrbot\{
 	BasePacket,
 	Logoff,
@@ -28,12 +22,17 @@ use Nadybot\Modules\RELAY_MODULE\RelayProtocol\Tyrbot\{
 	OnlineList,
 	OnlineListRequest,
 };
+use Nadybot\Modules\RELAY_MODULE\{
+	Relay,
+	RelayMessage,
+};
+use Safe\Exceptions\JsonException;
+use Throwable;
 
 #[
 	NCA\RelayProtocol(
 		name: "tyrbot",
-		description:
-			"This is the enhanced protocol of Tyrbot. If your\n".
+		description: "This is the enhanced protocol of Tyrbot. If your\n".
 			"relay consists only of Nadybots and Tyrbots, use this one.\n".
 			"It allows sharing of online users as well as fully customized\n".
 			"colors."
@@ -46,13 +45,6 @@ use Nadybot\Modules\RELAY_MODULE\RelayProtocol\Tyrbot\{
 	)
 ]
 class Tyrbot implements RelayProtocolInterface {
-	protected static int $supportedFeatures = self::F_ONLINE_SYNC;
-
-	protected Relay $relay;
-
-	/** Do we want to sync online users? */
-	protected bool $syncOnline = true;
-
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
@@ -67,6 +59,12 @@ class Tyrbot implements RelayProtocolInterface {
 
 	#[NCA\Inject]
 	public SettingManager $settingManager;
+	protected static int $supportedFeatures = self::F_ONLINE_SYNC;
+
+	protected Relay $relay;
+
+	/** Do we want to sync online users? */
+	protected bool $syncOnline = true;
 
 	public function __construct(bool $syncOnline=true) {
 		$this->syncOnline = $syncOnline;
@@ -84,6 +82,59 @@ class Tyrbot implements RelayProtocolInterface {
 			return [...$this->encodeUserStateChange($event, $event->data), ...$this->encodeMessage($event)];
 		}
 		return [];
+	}
+
+	public function receive(RelayMessage $message): ?RoutableEvent {
+		if (empty($message->packages)) {
+			return null;
+		}
+		$this->logger->debug("Received message on relay {relay}", [
+			"relay" => $this->relay->getName(),
+			"message" => $message,
+		]);
+		$serialized = array_shift($message->packages);
+		try {
+			$data = \Safe\json_decode($serialized, true, 10, JSON_UNESCAPED_SLASHES|JSON_INVALID_UTF8_SUBSTITUTE);
+			$identify = new BasePacket($data);
+			return $this->decodeAndHandlePacket($message->sender, $identify, $data);
+		} catch (JsonException $e) {
+			$this->logger->error(
+				"Invalid data received via Tyrbot protocol: {$serialized}",
+				["exception" => $e]
+			);
+			return null;
+		} catch (Throwable $e) {
+			$this->logger->error(
+				"Invalid Tyrbot-package received: {$serialized}",
+				["exception" => $e]
+			);
+			return null;
+		}
+	}
+
+	public function init(callable $callback): array {
+		$callback();
+		if ($this->syncOnline) {
+			$onlineList = $this->getOnlineList();
+			return [
+				$this->jsonEncode(new OnlineListRequest()),
+				$this->jsonEncode($onlineList),
+			];
+		}
+		return [];
+	}
+
+	public function deinit(callable $callback): array {
+		$callback();
+		return [];
+	}
+
+	public function setRelay(Relay $relay): void {
+		$this->relay = $relay;
+	}
+
+	public static function supportsFeature(int $feature): bool {
+		return (static::$supportedFeatures & $feature) === $feature;
 	}
 
 	/**
@@ -168,34 +219,6 @@ class Tyrbot implements RelayProtocolInterface {
 		return [$data];
 	}
 
-	public function receive(RelayMessage $message): ?RoutableEvent {
-		if (empty($message->packages)) {
-			return null;
-		}
-		$this->logger->debug("Received message on relay {relay}", [
-			"relay" => $this->relay->getName(),
-			"message" => $message,
-		]);
-		$serialized = array_shift($message->packages);
-		try {
-			$data = \Safe\json_decode($serialized, true, 10, JSON_UNESCAPED_SLASHES|JSON_INVALID_UTF8_SUBSTITUTE);
-			$identify = new BasePacket($data);
-			return $this->decodeAndHandlePacket($message->sender, $identify, $data);
-		} catch (JsonException $e) {
-			$this->logger->error(
-				"Invalid data received via Tyrbot protocol: {$serialized}",
-				["exception" => $e]
-			);
-			return null;
-		} catch (Throwable $e) {
-			$this->logger->error(
-				"Invalid Tyrbot-package received: {$serialized}",
-				["exception" => $e]
-			);
-			return null;
-		}
-	}
-
 	/** @param array<mixed> $data */
 	protected function decodeAndHandlePacket(?string $sender, BasePacket $identify, array $data): ?RoutableEvent {
 		switch ($identify->type) {
@@ -275,7 +298,7 @@ class Tyrbot implements RelayProtocolInterface {
 	protected function getOnlineList(): OnlineList {
 		$onlineList = [
 			"type" => "online_list",
-			"online" => []
+			"online" => [],
 		];
 		$onlineOrg = $this->onlineController->getPlayers('guild', $this->chatBot->char->name);
 		if (strlen($this->config->orgName)) {
@@ -409,32 +432,7 @@ class Tyrbot implements RelayProtocolInterface {
 		return $map[$type] ?? $type;
 	}
 
-	public function init(callable $callback): array {
-		$callback();
-		if ($this->syncOnline) {
-			$onlineList = $this->getOnlineList();
-			return [
-				$this->jsonEncode(new OnlineListRequest()),
-				$this->jsonEncode($onlineList),
-			];
-		}
-		return [];
-	}
-
-	public function deinit(callable $callback): array {
-		$callback();
-		return [];
-	}
-
-	public function setRelay(Relay $relay): void {
-		$this->relay = $relay;
-	}
-
 	protected function jsonEncode(mixed $data): string {
 		return \Safe\json_encode($data, JSON_UNESCAPED_SLASHES|JSON_INVALID_UTF8_SUBSTITUTE);
-	}
-
-	public static function supportsFeature(int $feature): bool {
-		return (static::$supportedFeatures & $feature) === $feature;
 	}
 }

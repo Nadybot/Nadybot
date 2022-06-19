@@ -2,8 +2,7 @@
 
 namespace Nadybot\Core\Modules\BAN;
 
-use Nadybot\Core\Attributes as NCA;
-use Nadybot\Core\DBRow;
+use Nadybot\Core\{Attributes as NCA, DBRow};
 
 class BannedOrg extends DBRow {
 	/** The ID of the org that is or was banned */

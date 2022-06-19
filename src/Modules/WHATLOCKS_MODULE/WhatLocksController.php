@@ -13,8 +13,7 @@ use Nadybot\Core\{
 	Text,
 	Util,
 };
-use Nadybot\Modules\ITEMS_MODULE\ItemsController;
-use Nadybot\Modules\ITEMS_MODULE\Skill;
+use Nadybot\Modules\ITEMS_MODULE\{ItemsController, Skill};
 
 /**
  * @author Nadyita (RK5) <nadyita@hodorraid.org>
@@ -61,7 +60,7 @@ class WhatLocksController extends ModuleInstance {
 			$item->skill = $skillsById->get($item->skill_id);
 		})->sort(function (SkillIdCount $s1, SkillIdCount $s2): int {
 			return strnatcmp($s1->skill->name, $s2->skill->name);
-		})->map(function(SkillIdCount $row) {
+		})->map(function (SkillIdCount $row) {
 			return $this->text->alignNumber($row->amount, 4).
 				" - ".
 				$this->text->makeChatcmd($row->skill->name, "/tell <myname> whatlocks {$row->skill->name}");
@@ -73,7 +72,7 @@ class WhatLocksController extends ModuleInstance {
 			$blob
 		);
 		if (is_array($pages)) {
-			$msg = array_map(function($page) {
+			$msg = array_map(function ($page) {
 				return $page . " found.";
 			}, $pages);
 		} else {
@@ -84,14 +83,16 @@ class WhatLocksController extends ModuleInstance {
 
 	/**
 	 * Get a dialog to choose which skill to search for locks
+	 *
 	 * @param Skill $skills A list of skills to choose from
+	 *
 	 * @return string[] The complete dialogue
 	 */
 	public function getSkillChoiceDialog(Skill ...$skills): array {
 		usort($skills, function (Skill $a, Skill $b): int {
 			return strnatcmp($a->name, $b->name);
 		});
-		$lines = array_map(function(Skill $skill) {
+		$lines = array_map(function (Skill $skill) {
 			return $this->text->makeChatcmd(
 				$skill->name,
 				"/tell <myname> whatlocks {$skill->name}"
@@ -116,6 +117,7 @@ class WhatLocksController extends ModuleInstance {
 			$context->reply($msg);
 			return;
 		}
+
 		/** @var Collection<WhatLocks> */
 		$items = $this->db->table("what_locks")
 			->where("skill_id", $skills->firstOrFail()->id)
@@ -150,7 +152,7 @@ class WhatLocksController extends ModuleInstance {
 			"The following " . count($lines) . " items lock ". $skills[0]->name
 		);
 		if (is_array($pages)) {
-			$msg = array_map(function($page) use ($skills) {
+			$msg = array_map(function ($page) use ($skills) {
 				return "{$page} found that lock <highlight>{$skills[0]->name}<end>.";
 			}, $pages);
 		} else {
@@ -161,9 +163,11 @@ class WhatLocksController extends ModuleInstance {
 
 	/**
 	 * Get a pretty short string of a duration in seconds
+	 *
 	 * @param int $duration The ducation in seconds
-	 * @param int $cutAway (optional) Cut away the first $cutAway characters
-	 *                                from the returned string
+	 * @param int $cutAway  (optional) Cut away the first $cutAway characters
+	 *                      from the returned string
+	 *
 	 * @return array An array with 2 elements:
 	 *               How many characters are useless fill information,
 	 *               The prettified duration string
@@ -178,7 +182,7 @@ class WhatLocksController extends ModuleInstance {
 		// duration reasons, it must be 0
 		$short = preg_replace_callback(
 			"/^(\d+)/",
-			function(array $match): string {
+			function (array $match): string {
 				return (string)((int)$match[1] - 1);
 			},
 			$short

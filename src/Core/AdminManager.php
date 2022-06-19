@@ -1,6 +1,8 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace Nadybot\Core;
+
+use function Amp\Promise\rethrow;
 
 use Nadybot\Core\{
 	Attributes as NCA,
@@ -32,7 +34,8 @@ class AdminManager implements AccessLevelProvider {
 
 	/**
 	 * Admin access levels of our admin users
-	 * @var array<string,array<string,int>> $admins
+	 *
+	 * @var array<string,array<string,int>>
 	 */
 	public array $admins = [];
 
@@ -51,9 +54,7 @@ class AdminManager implements AccessLevelProvider {
 		$this->accessManager->registerProvider($this);
 	}
 
-	/**
-	 * Load the bot admins from database into $admins
-	 */
+	/** Load the bot admins from database into $admins */
 	public function uploadAdmins(): void {
 		foreach ($this->config->superAdmins as $superAdmin) {
 			$this->db->table(self::DB_TABLE)->upsert(
@@ -67,16 +68,14 @@ class AdminManager implements AccessLevelProvider {
 
 		$this->db->table(self::DB_TABLE)
 			->asObj(Admin::class)
-			->each(function(Admin $row): void {
+			->each(function (Admin $row): void {
 				if (isset($row->adminlevel)) {
 					$this->admins[$row->name] = ["level" => $row->adminlevel];
 				}
 			});
 	}
 
-	/**
-	 * Demote someone from the admin position
-	 */
+	/** Demote someone from the admin position */
 	public function removeFromLists(string $who, string $sender): void {
 		$oldRank = $this->admins[$who]??[];
 		unset($this->admins[$who]);
@@ -118,7 +117,7 @@ class AdminManager implements AccessLevelProvider {
 		}
 
 		$this->admins[$who]["level"] = $intlevel;
-		$this->buddylistManager->add($who, 'admin');
+		rethrow($this->buddylistManager->addAsync($who, 'admin'));
 
 		$audit = new Audit();
 		$audit->actor = $sender;
@@ -130,9 +129,7 @@ class AdminManager implements AccessLevelProvider {
 		return $action;
 	}
 
-	/**
-	 * Check if a user $who has admin level $level
-	 */
+	/** Check if a user $who has admin level $level */
 	public function checkExisting(string $who, int $level): bool {
 		if ($this->admins[$who]["level"] !== $level) {
 			return false;

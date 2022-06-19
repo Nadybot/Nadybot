@@ -6,5 +6,6 @@ use ReflectionParameter;
 
 interface ParamAttribute {
 	public function renderParameter(ReflectionParameter $param): string;
+
 	public function getRegexp(): string;
 }

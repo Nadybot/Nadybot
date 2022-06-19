@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace Nadybot\Patcher;
 
@@ -14,12 +14,7 @@ use Exception;
  *   deprecation warnings.
  */
 class Patcher {
-	/**
-	 * Callback for composer install and update events
-	 *
-	 * @param \Composer\Installer\PackageEvent $event
-	 * @return void
-	 */
+	/** Callback for composer install and update events */
 	public static function patch(PackageEvent $event): void {
 		$vendorDir = $event->getComposer()->getConfig()->get('vendor-dir');
 		$operation = $event->getOperation();
@@ -39,6 +34,7 @@ class Patcher {
 			/** @var \Composer\DependencyResolver\Operation\UpdateOperation $operation */
 			$package = $operation->getTargetPackage();
 		}
+
 		/** @var \Composer\Package\Package $package */
 		if ($package->getName() === 'squizlabs/php_codesniffer') {
 			static::patchCodesniffer($vendorDir, $package);
@@ -48,9 +44,8 @@ class Patcher {
 	/**
 	 * Patch PHP Codesniffer to use Nadybot style by default
 	 *
-	 * @param string $vendorDir The installation basepath
-	 * @param \Composer\Package\Package $package The package being installed
-	 * @return void
+	 * @param string                    $vendorDir The installation basepath
+	 * @param \Composer\Package\Package $package   The package being installed
 	 */
 	public static function patchCodesniffer($vendorDir, Package $package): void {
 		$file = $vendorDir . '/' . $package->getName() . '/CodeSniffer.conf.dist';

@@ -66,6 +66,7 @@ class NanoController extends ModuleInstance {
 
 	/** @var array<int,Nanoline> */
 	public array $nanolines = [];
+
 	#[NCA\Setup]
 	public function setup(): void {
 		$this->db->loadCSVFile($this->moduleName, __DIR__ . "/nanos.csv");
@@ -106,12 +107,12 @@ class NanoController extends ModuleInstance {
 			$defColor = $this->settingManager->getString('default_window_color');
 			if ($currentNanoline !== $row->strain || $currentSubstrain !== $row->sub_strain) {
 				if (!empty($row->strain)) {
-					$nanolineLink = $this->text->makeChatcmd("see all nanos", "/tell <myname> nanolines $row->strain");
-					$blob .= "\n<header2>$row->school {$defColor}&gt;<end> $row->strain";
+					$nanolineLink = $this->text->makeChatcmd("see all nanos", "/tell <myname> nanolines {$row->strain}");
+					$blob .= "\n<header2>{$row->school} {$defColor}&gt;<end> {$row->strain}";
 					if ($row->sub_strain) {
-						$blob .= " {$defColor}&gt;<end> $row->sub_strain";
+						$blob .= " {$defColor}&gt;<end> {$row->sub_strain}";
 					}
-					$blob .= "{$defColor} - [$nanolineLink]<end><end>\n";
+					$blob .= "{$defColor} - [{$nanolineLink}]<end><end>\n";
 				} else {
 					$blob .= "\n<header2>Unknown/General<end>\n";
 				}
@@ -122,12 +123,12 @@ class NanoController extends ModuleInstance {
 			$crystalLink = isset($row->crystal_id)
 				? $this->text->makeItem($row->crystal_id, $row->crystal_id, $row->ql, "Crystal")
 				: "Crystal";
-			$info = "QL" . $this->text->alignNumber($row->ql, 3) . " [$crystalLink] $nanoLink ($row->location)";
+			$info = "QL" . $this->text->alignNumber($row->ql, 3) . " [{$crystalLink}] {$nanoLink} ({$row->location})";
 			$info .= " - <highlight>" . implode("<end>, <highlight>", explode(":", $row->professions)) . "<end>";
-			$blob .= "<tab>$info\n";
+			$blob .= "<tab>{$info}\n";
 		}
 		$blob .= $this->getFooter();
-		$msg = $this->text->makeBlob("Nano Search Results ($count)", $blob);
+		$msg = $this->text->makeBlob("Nano Search Results ({$count})", $blob);
 		if (count($data) === 1) {
 			$msg = $this->text->blobWrap(
 				($info??"") . " [",
@@ -155,9 +156,9 @@ class NanoController extends ModuleInstance {
 
 	/**
 	 * List all professions for which nanolines exist
-	 * @param CmdContext $context Where to send the reply to
-	 * @param bool $froobOnly Is set, only show professions a froob can play
-	 * @return void
+	 *
+	 * @param CmdContext $context   Where to send the reply to
+	 * @param bool       $froobOnly Is set, only show professions a froob can play
 	 */
 	public function listNanolineProfs(CmdContext $context, bool $froobOnly): void {
 		$query = $this->db->table("nanos")
@@ -167,6 +168,7 @@ class NanoController extends ModuleInstance {
 		if ($froobOnly) {
 			$query->whereNotIn("professions", ["Keeper", "Shade"]);
 		}
+
 		/** @var Collection<string> */
 		$profs = $query->pluckAs("professions", "string");
 
@@ -213,110 +215,6 @@ class NanoController extends ModuleInstance {
 		}
 	}
 
-	/**
-	 * Show all nanos of a nanoline grouped by sub-strain
-	 */
-	private function nanolinesShow(string $nanoline, ?string $prof, bool $froobOnly, CmdContext $context): void {
-		$query = $this->db->table("nanos")
-			->whereIlike("strain", $nanoline)
-			->orderBy("sub_strain")
-			->orderBy("sort_order");
-		if ($prof !== null) {
-			$query->whereIlike("professions", "%{$prof}%");
-		}
-		if ($froobOnly) {
-			if ($prof !== null && in_array($prof, ["Keeper", "Shade"])) {
-				$msg = "<highlight>$prof<end> is not playable as froob.";
-				$context->reply($msg);
-				return;
-			}
-			$query->where("froob_friendly", true);
-		}
-		/** @var Collection<Nano> */
-		$data = $query->asObj(Nano::class);
-		if ($data->isEmpty()) {
-			$msg = "No nanoline named <highlight>$nanoline<end> found.";
-			if ($prof !== null) {
-				$msg = "No nanoline named <highlight>$nanoline<end> found for <highlight>$prof<end>.";
-			}
-			$context->reply($msg);
-			return;
-		}
-
-		$lastSubStrain = null;
-		$blob = "<header2>{$data[0]->strain}<end>\n";
-		foreach ($data as $nano) {
-			if ($nano->sub_strain !== null && $nano->sub_strain !== '' && $nano->sub_strain !== $lastSubStrain) {
-				$blob .= "\n<highlight>{$nano->sub_strain}<end>\n";
-				$lastSubStrain = $nano->sub_strain;
-			}
-			$nanoLink = $this->makeNanoLink($nano);
-			$crystalLink = isset($nano->crystal_id)
-				? $this->text->makeItem($nano->crystal_id, $nano->crystal_id, $nano->ql, "Crystal")
-				: "Crystal";
-			$blob .= "<tab>" . $this->text->alignNumber($nano->ql, 3) . " [$crystalLink] $nanoLink ($nano->location)\n";
-		}
-		$blob .= $this->getFooter();
-		$msg = $this->text->makeBlob("All {$data[0]->strain} Nanos", $blob);
-		if ($prof !== null) {
-			$msg = $this->text->makeBlob("All {$data[0]->strain} Nanos for $prof", $blob);
-		}
-
-		$context->reply($msg);
-	}
-
-	/**
-	 * List all nanolines for a profession, grouped by school
-	 * @param string $profession The full name of the profession
-	 * @param bool   $froobOnly  If true, only show nanolines containing nanos a froob can use
-	 * @param CmdContext $context Object to send the reply to
-	 * @return void
-	 */
-	private function nanolinesList(string $profession, bool $froobOnly, CmdContext $context): void {
-		$query = $this->db->table("nanos")
-			->whereIlike("professions", "%{$profession}%")
-			->orderBy("school")
-			->orderBy("strain")
-			->select("school", "strain")->distinct();
-		if ($froobOnly) {
-			if ($profession !== null && in_array($profession, ["Keeper", "Shade"])) {
-				$msg = "<highlight>$profession<end> is not playable as froob.";
-				$context->reply($msg);
-				return;
-			}
-			$query->where("froob_friendly", true);
-		}
-		/** @var SchoolAndStrain[] */
-		$data = $query->asObj(SchoolAndStrain::class)->toArray();
-
-		$shortProf = $profession;
-		if ($profession !== 'General') {
-			$shortProf = $this->util->getProfessionAbbreviation($profession);
-		}
-		$blob = '';
-		$lastSchool = null;
-		$command = "nanolines";
-		if ($froobOnly) {
-			$command = "nanolinesfroob";
-		}
-		foreach ($data as $row) {
-			$strain = $row->strain;
-			if ($lastSchool === null || $lastSchool !== $row->school) {
-				if ($lastSchool !== null) {
-					$blob .="\n";
-				}
-				$blob .= "<pagebreak><header2>{$row->school}<end>\n";
-				$lastSchool = $row->school;
-			}
-			$blob .= "<tab>" . $this->text->makeChatcmd($strain, "/tell <myname> $command $shortProf > $row->strain");
-			$blob .= "\n";
-		}
-		$blob .= $this->getFooter();
-		$msg = $this->text->makeBlob("$profession Nanolines", $blob);
-
-		$context->reply($msg);
-	}
-
 	/** Show a list of nano locations */
 	#[NCA\HandlesCommand("nanoloc")]
 	#[NCA\Help\Group("nano")]
@@ -326,6 +224,7 @@ class NanoController extends ModuleInstance {
 			->orderBy("location")
 			->select("location");
 		$query->addSelect($query->colFunc("COUNT", "location", "count"));
+
 		/** @var Collection<LocationCount> */
 		$data = $query->asObj(LocationCount::class);
 		$nanoCount = [];
@@ -336,14 +235,15 @@ class NanoController extends ModuleInstance {
 			}
 		}
 		ksort($nanoCount);
+
 		/** @var array<string,int> $nanoCount */
 
 		$blob = "<header2>All nano locations<end>\n";
 		foreach ($nanoCount as $loc => $count) {
 			$blob .= "<tab>" . $this->text->makeChatcmd(
 				$loc,
-				"/tell <myname> nanoloc $loc"
-			) . " ($count) \n";
+				"/tell <myname> nanoloc {$loc}"
+			) . " ({$count}) \n";
 		}
 		$blob .= $this->getFooter();
 		$msg = $this->text->makeBlob("Nano Locations", $blob);
@@ -374,6 +274,7 @@ class NanoController extends ModuleInstance {
 			$context->reply($msg);
 			return;
 		}
+
 		/** @var Collection<Nano> $nanos */
 		$blob = '';
 		foreach ($nanos as $nano) {
@@ -381,24 +282,18 @@ class NanoController extends ModuleInstance {
 			$crystalLink = isset($nano->crystal_id)
 				? $this->text->makeItem($nano->crystal_id, $nano->crystal_id, $nano->ql, "Crystal")
 				: "Crystal";
-			$blob .= "QL" . $this->text->alignNumber($nano->ql, 3) . " [$crystalLink] $nanoLink";
+			$blob .= "QL" . $this->text->alignNumber($nano->ql, 3) . " [{$crystalLink}] {$nanoLink}";
 			if ($nano->professions) {
 				$blob .= " - <highlight>" . join("<end>, <highlight>", explode(":", $nano->professions)) . "<end>";
 			}
 			$blob .= "\n";
 		}
 
-		$msg = $this->text->makeBlob("Nanos for Location '$location' ($count)", $blob);
+		$msg = $this->text->makeBlob("Nanos for Location '{$location}' ({$count})", $blob);
 		$context->reply($msg);
 	}
 
-	private function getFooter(): string {
-		return "\n\nNanos DB originally provided by Saavick & Lucier, now enhanced with AOIA+ data";
-	}
-
-	/**
-	 * Creates a link to a nano - not a crystal
-	 */
+	/** Creates a link to a nano - not a crystal */
 	public function makeNanoLink(Nano $nano): string {
 		return "<a href='itemid://53019/{$nano->nano_id}'>{$nano->nano_name}</a>";
 	}
@@ -412,5 +307,113 @@ class NanoController extends ModuleInstance {
 
 	public function getNanoLineById(int $id): ?Nanoline {
 		return $this->nanolines[$id] ?? null;
+	}
+
+	/** Show all nanos of a nanoline grouped by sub-strain */
+	private function nanolinesShow(string $nanoline, ?string $prof, bool $froobOnly, CmdContext $context): void {
+		$query = $this->db->table("nanos")
+			->whereIlike("strain", $nanoline)
+			->orderBy("sub_strain")
+			->orderBy("sort_order");
+		if ($prof !== null) {
+			$query->whereIlike("professions", "%{$prof}%");
+		}
+		if ($froobOnly) {
+			if ($prof !== null && in_array($prof, ["Keeper", "Shade"])) {
+				$msg = "<highlight>{$prof}<end> is not playable as froob.";
+				$context->reply($msg);
+				return;
+			}
+			$query->where("froob_friendly", true);
+		}
+
+		/** @var Collection<Nano> */
+		$data = $query->asObj(Nano::class);
+		if ($data->isEmpty()) {
+			$msg = "No nanoline named <highlight>{$nanoline}<end> found.";
+			if ($prof !== null) {
+				$msg = "No nanoline named <highlight>{$nanoline}<end> found for <highlight>{$prof}<end>.";
+			}
+			$context->reply($msg);
+			return;
+		}
+
+		$lastSubStrain = null;
+		$blob = "<header2>{$data[0]->strain}<end>\n";
+		foreach ($data as $nano) {
+			if ($nano->sub_strain !== null && $nano->sub_strain !== '' && $nano->sub_strain !== $lastSubStrain) {
+				$blob .= "\n<highlight>{$nano->sub_strain}<end>\n";
+				$lastSubStrain = $nano->sub_strain;
+			}
+			$nanoLink = $this->makeNanoLink($nano);
+			$crystalLink = isset($nano->crystal_id)
+				? $this->text->makeItem($nano->crystal_id, $nano->crystal_id, $nano->ql, "Crystal")
+				: "Crystal";
+			$blob .= "<tab>" . $this->text->alignNumber($nano->ql, 3) . " [{$crystalLink}] {$nanoLink} ({$nano->location})\n";
+		}
+		$blob .= $this->getFooter();
+		$msg = $this->text->makeBlob("All {$data[0]->strain} Nanos", $blob);
+		if ($prof !== null) {
+			$msg = $this->text->makeBlob("All {$data[0]->strain} Nanos for {$prof}", $blob);
+		}
+
+		$context->reply($msg);
+	}
+
+	/**
+	 * List all nanolines for a profession, grouped by school
+	 *
+	 * @param string     $profession The full name of the profession
+	 * @param bool       $froobOnly  If true, only show nanolines containing nanos a froob can use
+	 * @param CmdContext $context    Object to send the reply to
+	 */
+	private function nanolinesList(string $profession, bool $froobOnly, CmdContext $context): void {
+		$query = $this->db->table("nanos")
+			->whereIlike("professions", "%{$profession}%")
+			->orderBy("school")
+			->orderBy("strain")
+			->select("school", "strain")->distinct();
+		if ($froobOnly) {
+			if ($profession !== null && in_array($profession, ["Keeper", "Shade"])) {
+				$msg = "<highlight>{$profession}<end> is not playable as froob.";
+				$context->reply($msg);
+				return;
+			}
+			$query->where("froob_friendly", true);
+		}
+
+		/** @var SchoolAndStrain[] */
+		$data = $query->asObj(SchoolAndStrain::class)->toArray();
+
+		$shortProf = $profession;
+		if ($profession !== 'General') {
+			$shortProf = $this->util->getProfessionAbbreviation($profession);
+		}
+		$blob = '';
+		$lastSchool = null;
+		$command = "nanolines";
+		if ($froobOnly) {
+			$command = "nanolinesfroob";
+		}
+		foreach ($data as $row) {
+			$strain = $row->strain;
+			if ($lastSchool === null || $lastSchool !== $row->school) {
+				if ($lastSchool !== null) {
+					$blob .="\n";
+				}
+				$blob .= "<pagebreak><header2>{$row->school}<end>\n";
+				$lastSchool = $row->school;
+			}
+			$blob .= "<tab>" . $this->text->makeChatcmd($strain, "/tell <myname> {$command} {$shortProf} > {$row->strain}");
+			$blob .= "\n";
+		}
+		$blob .= $this->getFooter();
+		$msg = $this->text->makeBlob("{$profession} Nanolines", $blob);
+
+		$context->reply($msg);
+	}
+
+	private function getFooter(): string {
+		return "\n\nNanos DB originally provided by Saavick & Lucier, now enhanced with AOIA+ data";
 	}
 }

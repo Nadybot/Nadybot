@@ -3,15 +3,13 @@
 namespace Nadybot\Modules\LEVEL_MODULE\Migrations;
 
 use Illuminate\Database\Schema\Blueprint;
-use Nadybot\Core\DB;
-use Nadybot\Core\LoggerWrapper;
-use Nadybot\Core\SchemaMigration;
+use Nadybot\Core\{DB, LoggerWrapper, SchemaMigration};
 
 class CreateLevelsTable implements SchemaMigration {
 	public function migrate(LoggerWrapper $logger, DB $db): void {
 		$table = "levels";
 		$db->schema()->dropIfExists($table);
-		$db->schema()->create($table, function(Blueprint $table): void {
+		$db->schema()->create($table, function (Blueprint $table): void {
 			$table->smallInteger("level")->primary();
 			$table->smallInteger("teamMin");
 			$table->smallInteger("teamMax");

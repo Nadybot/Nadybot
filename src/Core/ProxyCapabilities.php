@@ -22,6 +22,7 @@ class ProxyCapabilities extends ProxyReply {
 
 	/**
 	 * Modes the proxy supports for sending messages
+	 *
 	 * @var string[]
 	 */
 	#[JSON\Name("send-modes")]
@@ -29,6 +30,7 @@ class ProxyCapabilities extends ProxyReply {
 
 	/**
 	 * Modes the proxy supports for adding buddies
+	 *
 	 * @var string[]
 	 */
 	#[JSON\Name("buddy-modes")]
@@ -36,6 +38,7 @@ class ProxyCapabilities extends ProxyReply {
 
 	/**
 	 * Commands the proxy supports in general
+	 *
 	 * @var string[]
 	 */
 	#[JSON\Name("supported-cmds")]
@@ -61,6 +64,7 @@ class ProxyCapabilities extends ProxyReply {
 
 	/**
 	 * Names of the workers
+	 *
 	 * @var string[]
 	 */
 	public array $workers = [];

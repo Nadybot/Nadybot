@@ -37,6 +37,7 @@ class GauntletInventoryController extends ModuleInstance {
 
 	/**
 	 * (ref , image, need) 17 items without basic armor
+	 *
 	 * @var int[][]
 	 * @psalm-var list<array{0: int, 1: int, 2: int}>
 	 */
@@ -45,7 +46,7 @@ class GauntletInventoryController extends ModuleInstance {
 		[292514, 292764, 1], [292515, 292780, 1], [292516, 292792, 1], [292532, 292760, 3],
 		[292533, 292788, 3], [292529, 292779, 3], [292530, 292759, 3], [292524, 292784, 3],
 		[292538, 292772, 3], [292525, 292763, 3], [292526, 292777, 3], [292528, 292778, 3],
-		[292517, 292762, 3]
+		[292517, 292762, 3],
 	];
 
 	/** @return int[] */
@@ -53,65 +54,13 @@ class GauntletInventoryController extends ModuleInstance {
 		$data = $this->preferences->get($name, 'gauntlet');
 		if (isset($data)) {
 			return \Safe\json_decode($data);
-		} else {
-			return array_fill(0, 17, 0);
 		}
+		return array_fill(0, 17, 0);
 	}
 
 	/** @param int[] $inv */
 	public function saveData(string $sender, array $inv): void {
 		$this->preferences->save($sender, 'gauntlet', \Safe\json_encode($inv));
-	}
-
-	/**
-	 * @return string[]
-	 */
-	private function renderBastionInventory(string $name, int $numArmors): array {
-		$inventory = $this->getData($name);
-		if (($numArmors < 1) || ($numArmors > 3)) {
-			$numArmors = 1;
-		}
-		//Do blob box
-		$gauTradeCmd = $this->text->makeChatcmd("<symbol>gautrade", "/tell <myname> gautrade");
-		$gauListMask = $this->text->makeChatcmd("%d Armor", "/tell <myname> gaulist {$name} %d");
-		$list = "Tradeskill: [{$gauTradeCmd}]\n" .
-			"Needed items for: [".
-			sprintf($gauListMask, 1, 1) . "|" .
-			sprintf($gauListMask, 2, 2) . "|" .
-			sprintf($gauListMask, 3, 3) . "]\n\n";
-		$list .= "<header2>Items needed for {$numArmors} Bastion armor parts<end>\n".
-			"<tab>[ + increase amount | <green>Amount you have<end> | <red>Amount you still need<end> | - decrease amount ]\n\n";
-
-		$incLink = $this->text->makeChatcmd(" + ", "/tell <myname> gaulist add {$name} %d");
-		$decLink = $this->text->makeChatcmd(" - ", "/tell <myname> gaulist del {$name} %d");
-		$headerLine = "<tab>";
-		$line = "<tab>";
-		for ($i = 0; $i <= 16; $i++) {
-			$data = $this->gaulisttab[$i];
-			$itemLink = $this->text->makeItem($data[0], $data[0], 1, $this->text->makeImage($data[1]));
-			$headerLine .= "    {$itemLink}    ";
-			$line .= "[".
-				sprintf($incLink, $i).
-				"|".
-				"<green>" . ($inventory[$i]??0) . "<end>".
-				"|".
-				"<red>".max(0, ($numArmors*$data[2])-$inventory[$i])."<end>".
-				"|".
-				sprintf($decLink, $i).
-				"] ";
-			if ((($i+1) % 4) === 0 || $i === 16) {
-				$list .= $headerLine . "\n" . $line . "\n\n";
-				$headerLine = "<tab>";
-				$line = "<tab>";
-			}
-		}
-		$refreshLink = $this->text->makeChatcmd("Refresh", "/tell <myname> gaulist {$name} {$numArmors}");
-		$list .= "\n<tab>[{$refreshLink}]";
-		$blob = (array)$this->text->makeBlob("Bastion inventory for $name", $list);
-		foreach ($blob as &$page) {
-			$page = "Bastion inventory: {$page}";
-		}
-		return $blob;
 	}
 
 	/** Show the Gauntlet inventory for you or someone else, wanting to make &lt;num armors&gt; */
@@ -125,15 +74,6 @@ class GauntletInventoryController extends ModuleInstance {
 		$numArmors ??= 1;
 		$msg = $this->renderBastionInventory($name, $numArmors);
 		$context->reply($msg);
-	}
-
-	protected function altCheck(CmdContext $context, string $sender, string $name): bool {
-		$altInfo = $this->altsController->getAltInfo($sender);
-		if ($altInfo->main !== $name && !in_array($name, $altInfo->getAllValidatedAlts())) {
-			$context->reply("Player \"{$name}\" is not your alt.");
-			return false;
-		}
-		return true;
 	}
 
 	/** Add the item &lt;pos&gt; to &lt;name&gt;'s Gauntlet inventory */
@@ -190,5 +130,63 @@ class GauntletInventoryController extends ModuleInstance {
 			$msg = "Item decreased!";
 		}
 		$context->reply($msg);
+	}
+
+	protected function altCheck(CmdContext $context, string $sender, string $name): bool {
+		$altInfo = $this->altsController->getAltInfo($sender);
+		if ($altInfo->main !== $name && !in_array($name, $altInfo->getAllValidatedAlts())) {
+			$context->reply("Player \"{$name}\" is not your alt.");
+			return false;
+		}
+		return true;
+	}
+
+	/** @return string[] */
+	private function renderBastionInventory(string $name, int $numArmors): array {
+		$inventory = $this->getData($name);
+		if (($numArmors < 1) || ($numArmors > 3)) {
+			$numArmors = 1;
+		}
+		// Do blob box
+		$gauTradeCmd = $this->text->makeChatcmd("<symbol>gautrade", "/tell <myname> gautrade");
+		$gauListMask = $this->text->makeChatcmd("%d Armor", "/tell <myname> gaulist {$name} %d");
+		$list = "Tradeskill: [{$gauTradeCmd}]\n" .
+			"Needed items for: [".
+			sprintf($gauListMask, 1, 1) . "|" .
+			sprintf($gauListMask, 2, 2) . "|" .
+			sprintf($gauListMask, 3, 3) . "]\n\n";
+		$list .= "<header2>Items needed for {$numArmors} Bastion armor parts<end>\n".
+			"<tab>[ + increase amount | <green>Amount you have<end> | <red>Amount you still need<end> | - decrease amount ]\n\n";
+
+		$incLink = $this->text->makeChatcmd(" + ", "/tell <myname> gaulist add {$name} %d");
+		$decLink = $this->text->makeChatcmd(" - ", "/tell <myname> gaulist del {$name} %d");
+		$headerLine = "<tab>";
+		$line = "<tab>";
+		for ($i = 0; $i <= 16; $i++) {
+			$data = $this->gaulisttab[$i];
+			$itemLink = $this->text->makeItem($data[0], $data[0], 1, $this->text->makeImage($data[1]));
+			$headerLine .= "    {$itemLink}    ";
+			$line .= "[".
+				sprintf($incLink, $i).
+				"|".
+				"<green>" . ($inventory[$i]??0) . "<end>".
+				"|".
+				"<red>".max(0, ($numArmors*$data[2])-$inventory[$i])."<end>".
+				"|".
+				sprintf($decLink, $i).
+				"] ";
+			if ((($i+1) % 4) === 0 || $i === 16) {
+				$list .= $headerLine . "\n" . $line . "\n\n";
+				$headerLine = "<tab>";
+				$line = "<tab>";
+			}
+		}
+		$refreshLink = $this->text->makeChatcmd("Refresh", "/tell <myname> gaulist {$name} {$numArmors}");
+		$list .= "\n<tab>[{$refreshLink}]";
+		$blob = (array)$this->text->makeBlob("Bastion inventory for {$name}", $list);
+		foreach ($blob as &$page) {
+			$page = "Bastion inventory: {$page}";
+		}
+		return $blob;
 	}
 }

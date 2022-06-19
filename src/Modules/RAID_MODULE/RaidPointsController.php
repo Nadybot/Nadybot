@@ -2,20 +2,19 @@
 
 namespace Nadybot\Modules\RAID_MODULE;
 
-use Safe\DateTime;
 use Exception;
+use Generator;
 use Illuminate\Support\Collection;
-use Throwable;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
 	CommandAlias,
 	DB,
-	ModuleInstance,
 	LoggerWrapper,
 	MessageHub,
-	Modules\ALTS\AltsController,
+	ModuleInstance,
 	Modules\ALTS\AltEvent,
+	Modules\ALTS\AltsController,
 	Nadybot,
 	ParamClass\PCharacter,
 	ParamClass\PNonNumber,
@@ -27,6 +26,8 @@ use Nadybot\Core\{
 	Text,
 	Timer,
 };
+use Safe\DateTime;
+use Throwable;
 
 /**
  * This class contains all functions necessary to deal with points in a raid
@@ -133,12 +134,6 @@ class RaidPointsController extends ModuleInstance {
 	#[NCA\Setting\Number]
 	public int $raidPointsReasonMinLength = 10;
 
-	protected function routeMessage(string $type, string $message): void {
-		$rMessage = new RoutableMessage($message);
-		$rMessage->prependPath(new Source("raid", $type));
-		$this->messageHub->handle($rMessage);
-	}
-
 	/**
 	 * Give points when the ticker is enabled
 	 */
@@ -167,9 +162,7 @@ class RaidPointsController extends ModuleInstance {
 		}
 	}
 
-	/**
-	 * Give $player a point for participation in raid $raid
-	 */
+	/** Give $player a point for participation in raid $raid */
 	public function giveTickPoint(string $player, Raid $raid): string {
 		$pointsChar = ucfirst(strtolower($player));
 		$sharePoints = $this->raidSharePoints;
@@ -204,7 +197,9 @@ class RaidPointsController extends ModuleInstance {
 
 	/**
 	 * Modify $player's raid points by $delta, logging reason, etc.
+	 *
 	 * @return string The name of the character (main) receiving the points
+	 *
 	 * @throws Exception on error
 	 */
 	public function modifyRaidPoints(string $player, int $delta, bool $individual, string $reason, string $changedBy, ?Raid $raid): string {
@@ -214,10 +209,10 @@ class RaidPointsController extends ModuleInstance {
 			$pointsChar = $this->altsController->getMainOf($pointsChar);
 		}
 		// If that player already received reward based points for this reward on an alt ignore this
-		if (isset($raid) && isset($raid->pointsGiven[$pointsChar])) {
+		if (isset($raid, $raid->pointsGiven[$pointsChar])) {
 			return $pointsChar;
 		}
-		if (isset($raid) && isset($raid->raiders[$player])) {
+		if (isset($raid, $raid->raiders[$player])) {
 			$raid->raiders[$player]->points += $delta;
 			if ($individual) {
 				$raid->raiders[$player]->pointsIndividual += $delta;
@@ -248,25 +243,8 @@ class RaidPointsController extends ModuleInstance {
 	}
 
 	/**
-	 * Low level function to modify a player's points, returning success or not
-	 */
-	protected function giveRaidPoints(string $player, int $delta): bool {
-		$updated = $this->db->table(self::DB_TABLE)
-			->where("username", $player)
-			->increment("points", $delta);
-		if ($updated) {
-			return true;
-		}
-		$inserted = $this->db->table(self::DB_TABLE)
-			->insert([
-				"username" => $player,
-				"points" => $delta
-			]);
-		return $inserted > 0;
-	}
-
-	/**
 	 * Give everyone in the raid $raid $delta points, authorized by $sender
+	 *
 	 * @return int Number of players receiving points
 	 */
 	public function awardRaidPoints(Raid $raid, string $sender, int $delta, ?string $reason=null): int {
@@ -289,9 +267,7 @@ class RaidPointsController extends ModuleInstance {
 		return $numReceivers;
 	}
 
-	/**
-	 * Get this player's raid points, taking into consideration alts
-	 */
+	/** Get this player's raid points, taking into consideration alts */
 	public function getRaidPoints(string $player): ?int {
 		$pointsChar = ucfirst(strtolower($player));
 		$sharePoints = $this->raidSharePoints;
@@ -301,9 +277,7 @@ class RaidPointsController extends ModuleInstance {
 		return $this->getThisAltsRaidPoints($pointsChar);
 	}
 
-	/**
-	 * Get this character's raid points, not taking into consideration any alts
-	 */
+	/** Get this character's raid points, not taking into consideration any alts */
 	public function getThisAltsRaidPoints(string $player): ?int {
 		return $this->db->table(self::DB_TABLE)
 			->where("username", $player)
@@ -338,7 +312,7 @@ class RaidPointsController extends ModuleInstance {
 		}
 		$pointsGiven .= " to all raiders (<highlight>{$numRecipients}<end>) by {$context->char->name} :: ";
 		foreach ($msgs as &$blob) {
-			$blob = "$pointsGiven $blob";
+			$blob = "{$pointsGiven} {$blob}";
 			$this->routeMessage("reward", $blob);
 		}
 	}
@@ -383,9 +357,9 @@ class RaidPointsController extends ModuleInstance {
 		if ($points === 1) {
 			$pointsGiven = "<highlight>1 point<end> was removed";
 		}
-		$pointsGiven .= " from all raiders ($numRecipients) by <highligh>{$context->char->name}<end> :: ";
+		$pointsGiven .= " from all raiders ({$numRecipients}) by <highligh>{$context->char->name}<end> :: ";
 		foreach ($msgs as &$blob) {
-			$blob = "$pointsGiven $blob";
+			$blob = "{$pointsGiven} {$blob}";
 			$this->routeMessage("reward", $blob);
 		}
 	}
@@ -481,35 +455,6 @@ class RaidPointsController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
-	/**
-	 * Get all the raidpoint log entries for main and confirmed alts of $sender
-	 * @return RaidPointsLog[]
-	 */
-	protected function getRaidpointLogsForAccount(string $sender): array {
-		$main = $this->altsController->getMainOf($sender);
-		$alts = $this->altsController->getAltsOf($main);
-		return  $this->db->table(self::DB_TABLE_LOG)
-			->whereIn("username", array_merge([$sender], $alts))
-			->orderByDesc("time")
-			->limit(50)
-			->asObj(RaidPointsLog::class)
-			->toArray();
-	}
-
-	/**
-	 * Get all the raidpoint log entries for a single character $sender, not
-	 * including alts
-	 * @return RaidPointsLog[]
-	 */
-	protected function getRaidpointLogsForChar(string $sender): array {
-		return $this->db->table(self::DB_TABLE_LOG)
-			->where("username", $sender)
-			->orderByDesc("time")
-			->limit(50)
-			->asObj(RaidPointsLog::class)
-			->toArray();
-	}
-
 	/** See a history of &lt;char&gt;'s raid points. Add 'all' to include all alts */
 	#[NCA\HandlesCommand(self::CMD_POINTS_OTHER)]
 	#[NCA\Help\Group("raid-points")]
@@ -541,6 +486,7 @@ class RaidPointsController extends ModuleInstance {
 		} else {
 			$pointLogs = $this->getRaidpointLogsForChar($char);
 		}
+
 		/** @var RaidPointsLog[] $pointLogs */
 		if (count($pointLogs) === 0) {
 			$context->reply("{$char} has never received any raid points at <myname>.");
@@ -559,7 +505,9 @@ class RaidPointsController extends ModuleInstance {
 
 	/**
 	 * Get the popup text with a detailed with of all points given/taken
+	 *
 	 * @param RaidPointsLog[] $pointLogs
+	 *
 	 * @return string[] Header and The popup text
 	 */
 	public function getPointsLogBlob(array $pointLogs, bool $showUsername=false): array {
@@ -571,7 +519,7 @@ class RaidPointsController extends ModuleInstance {
 				$log->reason = "<highlight>{$log->reason}<end>";
 				$time = "<highlight>{$time}<end>";
 			}
-			$row = "$time  |  ".
+			$row = "{$time}  |  ".
 				(($log->delta > 0) ? '+' : '-').
 				$this->text->alignNumber(abs($log->delta), 4, $log->delta > 0 ? 'green' : 'red').
 				"  |  {$log->reason} ({$log->changed_by})";
@@ -621,10 +569,10 @@ class RaidPointsController extends ModuleInstance {
 		PCharacter $char,
 		int $points,
 		string $reason
-	): void {
+	): Generator {
 		$receiver = $char();
-		$uid = $this->chatBot->get_uid($receiver);
-		if ($uid === false) {
+		$uid = yield $this->chatBot->getUid2($receiver);
+		if ($uid === null) {
 			$context->reply("The player <highlight>{$receiver}<end> does not exist.");
 			return;
 		}
@@ -671,10 +619,10 @@ class RaidPointsController extends ModuleInstance {
 		PCharacter $char,
 		int $points,
 		string $reason
-	): void {
+	): Generator {
 		$receiver = $char();
-		$uid = $this->chatBot->get_uid($receiver);
-		if ($uid === false) {
+		$uid = yield $this->chatBot->getUid2($receiver);
+		if ($uid === null) {
 			$context->reply("The player <highlight>{$receiver}<end> does not exist.");
 			return;
 		}
@@ -700,7 +648,7 @@ class RaidPointsController extends ModuleInstance {
 			description: "Merge raid points when alts merge"
 		)
 	]
-	public function mergeRaidPoints(AltEvent $event): void {
+	public function mergeRaidPoints(AltEvent $event): Generator {
 		if ($event->validated === false) {
 			return;
 		}
@@ -711,17 +659,13 @@ class RaidPointsController extends ModuleInstance {
 		if ($altsPoints === null) {
 			return;
 		}
-		if ($this->db->inTransaction()) {
-			$this->timer->callLater(0, [$this, "mergeRaidPoints"], $event);
-			return;
-		}
 		$mainPoints = $this->getThisAltsRaidPoints($event->main);
 		$this->logger->notice(
 			"Adding {$event->alt} as an alt of {$event->main} requires us to merge their raid points. ".
 			"Combining {$event->alt}'s points ({$altsPoints}) with {$event->main}'s (".
 			($mainPoints??0) . ")"
 		);
-		$this->db->beginTransaction();
+		yield $this->db->awaitBeginTransaction();
 		try {
 			$newPoints = $altsPoints + ($mainPoints??0);
 			$this->db->table(self::DB_TABLE)
@@ -893,11 +837,9 @@ class RaidPointsController extends ModuleInstance {
 	#[
 		NCA\NewsTile(
 			name: "raid",
-			description:
-				"Shows the player's amount of raid points and if a raid\n".
+			description: "Shows the player's amount of raid points and if a raid\n".
 				"is currently running.",
-			example:
-				"<header2>Raid<end>\n".
+			example: "<header2>Raid<end>\n".
 				"<tab>You have <highlight>2222<end> raid points.\n".
 				"<tab>Raid is running: <highlight>Test raid, everyone join<end> :: [<u>join bot</u>] [<u>join raid</u>]"
 		)
@@ -919,5 +861,58 @@ class RaidPointsController extends ModuleInstance {
 				"[" . $this->text->makeChatcmd("join raid", "/tell <myname> raid join") . "]";
 		}
 		$callback($blob);
+	}
+
+	protected function routeMessage(string $type, string $message): void {
+		$rMessage = new RoutableMessage($message);
+		$rMessage->prependPath(new Source("raid", $type));
+		$this->messageHub->handle($rMessage);
+	}
+
+	/** Low level function to modify a player's points, returning success or not */
+	protected function giveRaidPoints(string $player, int $delta): bool {
+		$updated = $this->db->table(self::DB_TABLE)
+			->where("username", $player)
+			->increment("points", $delta);
+		if ($updated) {
+			return true;
+		}
+		$inserted = $this->db->table(self::DB_TABLE)
+			->insert([
+				"username" => $player,
+				"points" => $delta,
+			]);
+		return $inserted > 0;
+	}
+
+	/**
+	 * Get all the raidpoint log entries for main and confirmed alts of $sender
+	 *
+	 * @return RaidPointsLog[]
+	 */
+	protected function getRaidpointLogsForAccount(string $sender): array {
+		$main = $this->altsController->getMainOf($sender);
+		$alts = $this->altsController->getAltsOf($main);
+		return $this->db->table(self::DB_TABLE_LOG)
+			->whereIn("username", array_merge([$sender], $alts))
+			->orderByDesc("time")
+			->limit(50)
+			->asObj(RaidPointsLog::class)
+			->toArray();
+	}
+
+	/**
+	 * Get all the raidpoint log entries for a single character $sender, not
+	 * including alts
+	 *
+	 * @return RaidPointsLog[]
+	 */
+	protected function getRaidpointLogsForChar(string $sender): array {
+		return $this->db->table(self::DB_TABLE_LOG)
+			->where("username", $sender)
+			->orderByDesc("time")
+			->limit(50)
+			->asObj(RaidPointsLog::class)
+			->toArray();
 	}
 }

@@ -2,13 +2,15 @@
 
 namespace Nadybot\Modules\WEBSERVER_MODULE;
 
+use function Amp\asyncCall;
+use Generator;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
 	CommandManager,
 	EventManager,
-	ModuleInstance,
 	MessageHub,
+	ModuleInstance,
 	Nadybot,
 	Registry,
 	Routing\Character,
@@ -17,6 +19,7 @@ use Nadybot\Core\{
 	SettingManager,
 	Text,
 };
+
 use Nadybot\Modules\{
 	GUILD_MODULE\GuildController,
 	WEBSOCKET_MODULE\WebsocketCommandReply,
@@ -73,17 +76,17 @@ class WebchatApiController extends ModuleInstance {
 		$event->channel = "web";
 		$event->color = "";
 		$event->path = [
-			new WebSource(Source::WEB, "Web")
+			new WebSource(Source::WEB, "Web"),
 		];
 		$event->path[0]->renderAs = $event->path[0]->render(null);
 		$color = $this->messageHub->getHopColor($event->path, Source::WEB, new Source(Source::WEB, "Web"), "tag_color");
-		if (isset($color) && isset($color->tag_color)) {
+		if (isset($color, $color->tag_color)) {
 			$event->path[0]->color = $color->tag_color;
 		} else {
 			$event->path[0]->color = "";
 		}
 		$color = $this->messageHub->getHopColor($event->path, Source::WEB, new Source(Source::WEB, "Web"), "text_color");
-		if (isset($color) && isset($color->text_color)) {
+		if (isset($color, $color->text_color)) {
 			$event->color = $color->text_color;
 		}
 		$event->message = $this->webChatConverter->convertMessage($message);
@@ -103,10 +106,11 @@ class WebchatApiController extends ModuleInstance {
 		$context->source = Source::WEB;
 		$context->sendto = $sendto;
 		$context->message = $message;
-		$this->chatBot->getUid($context->char->name, function (?int $uid, CmdContext $context): void {
+		asyncCall(function () use ($context): Generator {
+			$uid = yield $this->chatBot->getUid2($context->char->name);
 			$context->char->id = $uid;
 			$this->commandManager->checkAndHandleCmd($context);
-		}, $context);
+		});
 		return new Response(Response::NO_CONTENT);
 	}
 }

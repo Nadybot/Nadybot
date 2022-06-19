@@ -21,13 +21,6 @@ class MoveSettingsToRoutes implements SchemaMigration {
 	#[NCA\Inject]
 	public ConfigFile $config;
 
-	protected function getSetting(DB $db, string $name): ?Setting {
-		return $db->table(SettingManager::DB_TABLE)
-			->where("name", $name)
-			->asObj(Setting::class)
-			->first();
-	}
-
 	public function migrate(LoggerWrapper $logger, DB $db): void {
 		$guestRelay = $this->getSetting($db, "guest_relay");
 		if (isset($guestRelay) && $guestRelay->value !== "1") {
@@ -64,6 +57,13 @@ class MoveSettingsToRoutes implements SchemaMigration {
 		if (isset($relayFilter) && strlen($relayFilter->value??"") > 0) {
 			$this->addRegExpFilter($db, $route->id, $relayFilter->value??"");
 		}
+	}
+
+	protected function getSetting(DB $db, string $name): ?Setting {
+		return $db->table(SettingManager::DB_TABLE)
+			->where("name", $name)
+			->asObj(Setting::class)
+			->first();
 	}
 
 	protected function addCommandFilter(DB $db, ?Setting $relayCommands, int $routeId): void {

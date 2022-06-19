@@ -7,6 +7,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Commands and events can now be declared as Generators, which automatically makes them execute async and allows to `yield` results from promises.
+- Add a management-interface as an addition to the console. The management interface does not appear in the routes and currently supports tcp- and unix domain sockets.
+
+### Changed
+
+- Replaced the EventLoop with an Amp (amphp) event loop. Migrated the following functionality to Amp:
+  - The AO-connection
+  - Cron-events
+  - Timer->callLater()
+  - SocketManager
+  - Relay websockets
+  - Discord
+  - EventLoop::add()
+  - Http-client is now being replaced with HttpClientBuilder, while the old Http/AsyncHttp still function, but are now deprecated
+
+  This leads to even lower delay when processing Discord/Web/Console/AO packages, and the bot's CPU usage dropping to 0 in idle, compared to ~1%-2% before.
+  A whole lot of functions are now deprecated and will be removed or replaced in 7.0, while none of the core function signatures has changed.
+- Upgraded Docker images to alpine 3.16
+
+### Removed
+
+- The `!updatecsv`-command was removed, because it hasn't been any use yet, and given how easy it is to upgrade the bot, there's no need to keep it and its complex mechanism.
+
+### Fix
+
+- The console history works 100% now, only ctrl+r-search is now broken
+
 ## [6.0.5] - 2022-06-17
 
 ### Added

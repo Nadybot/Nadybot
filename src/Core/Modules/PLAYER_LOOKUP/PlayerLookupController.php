@@ -2,8 +2,7 @@
 
 namespace Nadybot\Core\Modules\PLAYER_LOOKUP;
 
-use Nadybot\Core\Attributes as NCA;
-use Nadybot\Core\ModuleInstance;
+use Nadybot\Core\{Attributes as NCA, ModuleInstance};
 
 /**
  * @author Tyrence (RK2)

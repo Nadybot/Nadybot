@@ -17,6 +17,7 @@ class CmdContext implements CommandReply {
 	public ?string $source = null;
 	public Character $char;
 	public CommandReply $sendto;
+
 	/** @var mixed[] */
 	public array $args = [];
 	public bool $forceSync = false;
@@ -31,6 +32,18 @@ class CmdContext implements CommandReply {
 	public function __construct(string $charName, ?int $charId=null) {
 		$this->char = new Character($charName, $charId);
 		$this->started = microtime(true);
+	}
+
+	public function __destruct() {
+		static::$cmdStats = array_values(
+			array_filter(static::$cmdStats, function (array $stats): bool {
+				return time() - $stats[0] <= 600;
+			})
+		);
+		static::$cmdStats []= [time(), (microtime(true)-$this->started) * 1000];
+		foreach ($this->shutdownFunctions as $callback) {
+			$callback();
+		}
 	}
 
 	public function setIsDM(bool $isDM=true): self {
@@ -52,17 +65,5 @@ class CmdContext implements CommandReply {
 
 	public function registerShutdownFunction(Closure $callback): void {
 		$this->shutdownFunctions []= $callback;
-	}
-
-	public function __destruct() {
-		static::$cmdStats = array_values(
-			array_filter(static::$cmdStats, function (array $stats): bool {
-				return time() - $stats[0] <= 600;
-			})
-		);
-		static::$cmdStats []= [time(), (microtime(true)-$this->started) * 1000];
-		foreach ($this->shutdownFunctions as $callback) {
-			$callback();
-		}
 	}
 }

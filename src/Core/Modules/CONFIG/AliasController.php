@@ -140,6 +140,7 @@ class AliasController extends ModuleInstance {
 	#[NCA\HandlesCommand("alias")]
 	public function aliasListCommand(CmdContext $context, #[NCA\Str("list")] string $action): void {
 		$blob = "";
+
 		/** @var array<string,CmdAlias[]> */
 		$grouped = [];
 		foreach ($this->commandAlias->getEnabledAliases() as $alias) {
@@ -158,7 +159,7 @@ class AliasController extends ModuleInstance {
 					$blob .= "<tab>{$alias->alias} {$removeLink}\n";
 				} else {
 					$alias->cmd = implode(" ", array_slice(explode(" ", $alias->cmd), 1));
-					$blob .= "<tab><highlight>{$alias->cmd}<end>: {$alias->alias} $removeLink\n";
+					$blob .= "<tab><highlight>{$alias->cmd}<end>: {$alias->alias} {$removeLink}\n";
 				}
 			}
 		}

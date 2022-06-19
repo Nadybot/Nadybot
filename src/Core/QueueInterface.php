@@ -7,10 +7,15 @@ interface QueueInterface {
 	public const PRIORITY_MED =   500;
 	public const PRIORITY_LOW =   100;
 
-	/**
-	 * Add a packet to the queue
-	 */
+	/** Add a packet to the queue */
 	public function push(int $priority, AOChatPacket $item): void;
+
+	/**
+	 * Get the number seconds until another packet can be sent
+	 *
+	 * @return float -1 if nothing to send, 0 if now otherwise fractional seconds
+	 */
+	public function getTTNP(): float;
 
 	/**
 	 * Get the next packet to process
@@ -21,13 +26,9 @@ interface QueueInterface {
 
 	public function disable(): void;
 
-	/**
-	 * Clear all items from the queue and return the number of removed items
-	 */
+	/** Clear all items from the queue and return the number of removed items */
 	public function clear(): int;
 
-	/**
-	 * Returns the number of items currently in the queue
-	 */
+	/** Returns the number of items currently in the queue */
 	public function getSize(): int;
 }

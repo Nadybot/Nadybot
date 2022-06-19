@@ -2,8 +2,12 @@
 
 namespace Nadybot\Modules\WORLDBOSS_MODULE;
 
+use function Amp\delay;
+use function Safe\json_decode;
+
+use Amp\Http\Client\{HttpClientBuilder, Request, Response};
 use DateTime;
-use Safe\Exceptions\JsonException;
+use Generator;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
@@ -11,20 +15,19 @@ use Nadybot\Core\{
 	DB,
 	Event,
 	EventManager,
-	Http,
-	HttpResponse,
-	ModuleInstance,
 	LoggerWrapper,
 	MessageHub,
+	ModuleInstance,
 	ParamClass\PDuration,
 	ParamClass\PRemove,
 	Routing\Character,
 	Routing\RoutableMessage,
 	Routing\Source,
 	Text,
-	Timer,
 	Util,
 };
+use Safe\Exceptions\JsonException;
+use Throwable;
 
 /**
  * @author Nadyita (RK5) <nadyita@hodorraid.org>
@@ -152,6 +155,9 @@ class WorldBossController extends ModuleInstance {
 	public const SPAWN_EVENT = 3;
 
 	#[NCA\Inject]
+	public HttpClientBuilder $builder;
+
+	#[NCA\Inject]
 	public Text $text;
 
 	#[NCA\Inject]
@@ -161,16 +167,10 @@ class WorldBossController extends ModuleInstance {
 	public EventManager $eventManager;
 
 	#[NCA\Inject]
-	public Http $http;
-
-	#[NCA\Inject]
 	public Util $util;
 
 	#[NCA\Inject]
 	public DB $db;
-
-	#[NCA\Inject]
-	public Timer $timer;
 
 	#[NCA\Inject]
 	public GauntletBuffController $gauntletBuffController;
@@ -191,14 +191,13 @@ class WorldBossController extends ModuleInstance {
 	])]
 	public int $worldbossShowSpawn = self::SPAWN_SHOW;
 
-	/**
-	 * @var WorldBossTimer[]
-	 */
+	/** @var WorldBossTimer[] */
 	public array $timers = [];
 
 	/**
 	 * Keep track whether the last spawn was manually
 	 * set or via world event (true), or just calculated (false)
+	 *
 	 * @var array<string,bool>
 	 */
 	private array $lastSpawnPrecise = [];
@@ -241,112 +240,40 @@ class WorldBossController extends ModuleInstance {
 		name: "connect",
 		description: "Get boss timers from timer API"
 	)]
-	public function loadTimersFromAPI(): void {
-		$this->http->get(static::WORLDBOSS_API)
-			->withCallback([$this, "handleTimersFromApi"]);
-	}
+	public function loadTimersFromAPI(): Generator {
+		$client = $this->builder->build();
 
-	/**
-	 * Parse the incoming data and call the function to handle the
-	 * timers if the data is valid.
-	 */
-	public function handleTimersFromApi(HttpResponse $response): void {
-		$code = $response->headers["status-code"] ?? "204";
-		if ($code >= 500 && $code < 600 && --$this->timerRetriesLeft) {
-			$this->logger->warning('Worldboss API sent a {code}, retrying in 5s', [
-				"code" => $code
-			]);
-			$this->timer->callLater(5, [$this, "loadTimersFromAPI"]);
-			return;
-		}
-		if ($code !== "200" || !isset($response->body)) {
-			$this->logger->error('Worldboss API did not send correct data.', [
-				"headers" => $response->headers,
-				"body" => $response->body,
-			]);
-			return;
-		}
-		/** @var ApiSpawnData[] */
-		$timers = [];
 		try {
-			$data = \Safe\json_decode($response->body, true);
-			if (!is_array($data)) {
-				throw new JsonException();
+			/** @var Response */
+			$response = yield $client->request(new Request(static::WORLDBOSS_API));
+			$code = $response->getStatus();
+			if ($code >= 500 && $code < 600 && --$this->timerRetriesLeft) {
+				$this->logger->warning('Worldboss API sent a {code}, retrying in 5s', [
+					"code" => $code,
+				]);
+				yield delay(5000);
+				$this->loadTimersFromAPI();
+				return;
 			}
-			foreach ($data as $timerData) {
-				$timers []= new ApiSpawnData($timerData);
+			if ($code !== 200) {
+				$this->logger->error('Worldboss API replied with error {code} ({reason})', [
+					"code" => $code,
+					"reason" => $response->getReason(),
+					"headers" => $response->getRawHeaders(),
+				]);
+				return;
 			}
-		} catch (JsonException) {
-			$this->logger->error("Worldboss API sent invalid json.", [
-				"json" => $response->body
+
+			/** @var string */
+			$body = yield $response->getBody()->buffer();
+		} catch (Throwable $error) {
+			$this->logger->warning('Unknown error from Worldboss API: {error}', [
+				"error" => $error->getMessage(),
+				"Exception" => $error,
 			]);
 			return;
 		}
-		foreach ($timers as $timer) {
-			$this->handleApiTimer($timer);
-		}
-	}
-
-	/**
-	 * Check if the given timer is more accurate than our own stored
-	 * information, and if so, update our database and timers.
-	 */
-	protected function handleApiTimer(ApiSpawnData $timer): void {
-		$this->logger->info("Received timer information for {$timer->name}.");
-		$map = array_flip(static::BOSS_MAP);
-		$map["gauntlet"] = $map["vizaresh"];
-		$mobName = $map[$timer->name] ?? null;
-		if (!isset($mobName)) {
-			$this->logger->warning("Received timer information for unknown boss {$timer->name}.");
-			return;
-		}
-		$ourTimer = $this->getWorldBossTimer($mobName);
-		$apiTimer = $this->apiTimerToWorldbossTimer($timer, $mobName);
-		if (isset($ourTimer) && $apiTimer->next_spawn <= $ourTimer->next_spawn) {
-			return;
-		}
-		$this->logger->info("Updating {$mobName} timer from API");
-		$this->worldBossUpdate(
-			new Character("Timer-API"),
-			$mobName,
-			($apiTimer->next_killable??time()) - time()
-		);
-	}
-
-	/**
-	 * Convert timer information from the API into an actual timer with correct information
-	 */
-	protected function apiTimerToWorldbossTimer(ApiSpawnData $timer, string $mobName): WorldBossTimer {
-		$newTimer = new WorldBossTimer();
-		$newTimer->spawn = $timer->last_spawn;
-		$newTimer->killable = $timer->last_spawn + static::BOSS_DATA[$mobName][static::IMMORTAL];
-		$newTimer->next_killable = $newTimer->killable;
-		$newTimer->mob_name = $mobName;
-		$newTimer->timer = static::BOSS_DATA[$mobName][static::INTERVAL];
-		$this->addNextDates([$newTimer]);
-		return $newTimer;
-	}
-
-	/**
-	 * @param WorldBossTimer[] $timers
-	 */
-	protected function addNextDates(array $timers): void {
-		$showSpawn = $this->worldbossShowSpawn;
-		foreach ($timers as $timer) {
-			$invulnerableTime = $timer->killable - $timer->spawn;
-			$timer->next_killable = $timer->killable;
-			$timer->next_spawn    = $timer->spawn;
-			if ($showSpawn === static::SPAWN_EVENT && !$this->lastSpawnPrecise[$timer->mob_name]) {
-				continue;
-			}
-			while ($timer->next_killable <= time()) {
-				$timer->next_killable += $timer->timer + $invulnerableTime;
-				$timer->next_spawn    += $timer->timer + $invulnerableTime;
-			}
-		}
-		usort($timers, function(WorldBossTimer $a, WorldBossTimer $b) {
-			return $a->next_spawn <=> $b->next_spawn;
-		});
+		$this->handleTimerData($body);
 	}
 
 	public function getWorldBossTimer(string $mobName): ?WorldBossTimer {
@@ -360,55 +287,6 @@ class WorldBossController extends ModuleInstance {
 		}
 		$this->addNextDates($timers);
 		return $timers[0];
-	}
-
-	/**
-	 * @return WorldBossTimer[]
-	 */
-	protected function getWorldBossTimers(): array {
-		return $this->timers;
-	}
-
-	protected function reloadWorldBossTimers(): void {
-		/** @var WorldBossTimer[] */
-		$timers = $this->db->table(static::DB_TABLE)
-			->asObj(WorldBossTimer::class)
-			->toArray();
-		$this->addNextDates($timers);
-		$this->timers = $timers;
-	}
-
-	protected function niceTime(int $timestamp): string {
-		$time = new DateTime();
-		$time->setTimestamp($timestamp);
-		return $time->format("D, H:i T (d-M-Y)");
-	}
-
-	protected function getNextSpawnsMessage(WorldBossTimer $timer, int $howMany=10): string {
-		$multiplicator = $timer->timer + $timer->killable - $timer->spawn;
-		$times = [];
-		if (isset($timer->next_spawn)) {
-			for ($i = 0; $i < $howMany; $i++) {
-				$spawnTime = $timer->next_spawn + $i*$multiplicator;
-				$times []= $this->niceTime($spawnTime);
-			}
-		} else {
-			$times []= "unknown";
-		}
-		$msg = "Timer updated".
-				" at <highlight>".$this->niceTime($timer->time_submitted)."<end>.\n\n".
-				"<header2>Next spawntimes<end>\n".
-				"<tab>- ".join("\n<tab>- ", $times);
-		return $msg;
-	}
-
-	protected function getWorldBossMessage(string $mobName): string {
-		$timer = $this->getWorldBossTimer($mobName);
-		if ($timer === null) {
-			$msg = "I currently don't have an accurate timer for <highlight>{$mobName}<end>.";
-			return $msg;
-		}
-		return $this->formatWorldBossMessage($timer, false);
 	}
 
 	public function formatWorldBossMessage(WorldBossTimer $timer, bool $short=true): string {
@@ -454,7 +332,7 @@ class WorldBossController extends ModuleInstance {
 			if ($short) {
 				return "{$timer->mob_name}{$spawnTimeMessage}{$killTimeMessage}.";
 			}
-			$msg = "{$timer->mob_name}${spawnTimeMessage}${killTimeMessage}.";
+			$msg = "{$timer->mob_name}{$spawnTimeMessage}{$killTimeMessage}.";
 			if (count($spawntimes)) {
 				$msg .= " {$spawntimes[0]}";
 			}
@@ -468,10 +346,10 @@ class WorldBossController extends ModuleInstance {
 			->where("mob_name", $mobName)
 			->delete() === 0
 		) {
-			return "There is currently no timer for <highlight>$mobName<end>.";
+			return "There is currently no timer for <highlight>{$mobName}<end>.";
 		}
 		$this->reloadWorldBossTimers();
-		return "The timer for <highlight>$mobName<end> has been deleted.";
+		return "The timer for <highlight>{$mobName}<end> has been deleted.";
 	}
 
 	public function worldBossUpdate(Character $sender, string $mobName, int $vulnerable): bool {
@@ -499,23 +377,6 @@ class WorldBossController extends ModuleInstance {
 		return true;
 	}
 
-	protected function sendSyncEvent(string $sender, string $mobName, int $immortal, bool $forceSync): void {
-		$event = new SyncWorldbossEvent();
-		$event->boss = static::BOSS_MAP[$mobName];
-		$event->vulnerable = $immortal;
-		$event->sender = $sender;
-		$event->forceSync = $forceSync;
-		$this->eventManager->fireEvent($event);
-	}
-
-	protected function sendSyncDeleteEvent(string $sender, string $mobName, bool $forceSync): void {
-		$event = new SyncWorldbossDeleteEvent();
-		$event->boss = static::BOSS_MAP[$mobName];
-		$event->sender = $sender;
-		$event->forceSync = $forceSync;
-		$this->eventManager->fireEvent($event);
-	}
-
 	/** Show all upcoming world boss spawn timers in the correct order */
 	#[NCA\HandlesCommand("wb")]
 	#[NCA\Help\Group("worldboss")]
@@ -533,13 +394,6 @@ class WorldBossController extends ModuleInstance {
 				join("\n", $messages);
 		}
 		$context->reply($msg);
-	}
-
-	protected function getMobFromContext(CmdContext $context): string {
-		$mobs = array_flip(static::BOSS_MAP);
-		$mobs["gauntlet"] = $mobs["vizaresh"];
-		$mobs["father"] = $mobs["father-time"];
-		return $mobs[explode(" ", strtolower($context->message))[0]];
 	}
 
 	/** Show the next spawn time(s) for a world boss */
@@ -608,37 +462,6 @@ class WorldBossController extends ModuleInstance {
 		$msg = $this->worldBossDeleteCommand($context->char, $boss);
 		$context->reply($msg);
 		$this->sendSyncDeleteEvent($context->char->name, $boss, $context->forceSync);
-	}
-
-	/**
-	 * Announce an event
-	 * @param string $msg The message to send
-	 * @param int $step 1 => spawns soon, 2 => has spawned, 3 => vulnerable
-	 * @return void
-	 */
-	protected function announceBigBossEvent(string $boss, string $msg, int $step): void {
-		if (time() - ($this->sentNotifications[$boss][$step]??0) < 30) {
-			return;
-		}
-		$this->sentNotifications[$boss] ??= [];
-		$this->sentNotifications[$boss][$step] = time();
-		$event = 'spawn';
-		if ($step === 1) {
-			$event = 'prespawn';
-		} elseif ($step === 3) {
-			$event = 'vulnerable';
-		}
-		$bossName = static::BOSS_MAP[$boss];
-		if ($bossName === 'vizaresh') {
-			$bossName = 'gauntlet';
-		}
-		$rMsg = new RoutableMessage($msg);
-		$rMsg->appendPath(new Source(
-			"spawn",
-			"{$bossName}-{$event}",
-			join("-", array_map("ucfirst", explode("-", static::BOSS_MAP[$boss])))
-		));
-		$this->messageHub->handle($rMsg);
 	}
 
 	#[NCA\Event(
@@ -750,8 +573,7 @@ class WorldBossController extends ModuleInstance {
 		NCA\NewsTile(
 			name: "boss-timers",
 			description: "A list of upcoming boss spawn timers",
-			example:
-				"<header2>Boss timers<end>\n".
+			example: "<header2>Boss timers<end>\n".
 				"<tab>The Hollow Reaper spawns in <highlight>8 hrs 18 mins 26 secs<end>.\n".
 				"<tab>Tarasque spawns in <highlight>8 hrs 1 min 48 secs<end>.\n".
 				"<tab>The Gauntlet portal will be open for <highlight>5 mins 9 secs<end>."
@@ -774,8 +596,7 @@ class WorldBossController extends ModuleInstance {
 		NCA\NewsTile(
 			name: "tara-timer",
 			description: "The current tara timer",
-			example:
-				"<header2>Tara timer<end>\n".
+			example: "<header2>Tara timer<end>\n".
 				"<tab>Tarasque spawns in <highlight>8 hrs 1 min 48 secs<end>."
 		)
 	]
@@ -794,8 +615,7 @@ class WorldBossController extends ModuleInstance {
 		NCA\NewsTile(
 			name: "gauntlet-timer",
 			description: "Show when Vizaresh spawns/is vulnerable",
-			example:
-				"<header2>Gauntlet<end>\n".
+			example: "<header2>Gauntlet<end>\n".
 				"<tab>The Gauntlet portal will be open for <highlight>5 mins 9 secs<end>."
 		)
 	]
@@ -814,8 +634,7 @@ class WorldBossController extends ModuleInstance {
 		NCA\NewsTile(
 			name: "gauntlet",
 			description: "Show when Vizaresh spawns/is vulnerable",
-			example:
-				"<header2>Gauntlet<end>\n".
+			example: "<header2>Gauntlet<end>\n".
 				"<tab>The Gauntlet portal will be open for <highlight>5 mins 9 secs<end>.\n".
 				"<tab><omni>Omni Gauntlet buff<end> runs out in <highlight>4 hrs 59 mins 31 secs<end>."
 		)
@@ -835,5 +654,196 @@ class WorldBossController extends ModuleInstance {
 			$blob .= "\n{$buffLine}";
 		}
 		$callback($blob);
+	}
+
+	/**
+	 * Check if the given timer is more accurate than our own stored
+	 * information, and if so, update our database and timers.
+	 */
+	protected function handleApiTimer(ApiSpawnData $timer): void {
+		$this->logger->info("Received timer information for {$timer->name}.");
+		$map = array_flip(static::BOSS_MAP);
+		$map["gauntlet"] = $map["vizaresh"];
+		$mobName = $map[$timer->name] ?? null;
+		if (!isset($mobName)) {
+			$this->logger->warning("Received timer information for unknown boss {$timer->name}.");
+			return;
+		}
+		$ourTimer = $this->getWorldBossTimer($mobName);
+		$apiTimer = $this->apiTimerToWorldbossTimer($timer, $mobName);
+		if (isset($ourTimer) && $apiTimer->next_spawn <= $ourTimer->next_spawn) {
+			return;
+		}
+		$this->logger->info("Updating {$mobName} timer from API");
+		$this->worldBossUpdate(
+			new Character("Timer-API"),
+			$mobName,
+			($apiTimer->next_killable??time()) - time()
+		);
+	}
+
+	/** Convert timer information from the API into an actual timer with correct information */
+	protected function apiTimerToWorldbossTimer(ApiSpawnData $timer, string $mobName): WorldBossTimer {
+		$newTimer = new WorldBossTimer();
+		$newTimer->spawn = $timer->last_spawn;
+		$newTimer->killable = $timer->last_spawn + static::BOSS_DATA[$mobName][static::IMMORTAL];
+		$newTimer->next_killable = $newTimer->killable;
+		$newTimer->mob_name = $mobName;
+		$newTimer->timer = static::BOSS_DATA[$mobName][static::INTERVAL];
+		$this->addNextDates([$newTimer]);
+		return $newTimer;
+	}
+
+	/** @param WorldBossTimer[] $timers */
+	protected function addNextDates(array $timers): void {
+		$showSpawn = $this->worldbossShowSpawn;
+		foreach ($timers as $timer) {
+			$invulnerableTime = $timer->killable - $timer->spawn;
+			$timer->next_killable = $timer->killable;
+			$timer->next_spawn    = $timer->spawn;
+			if ($showSpawn === static::SPAWN_EVENT && !$this->lastSpawnPrecise[$timer->mob_name]) {
+				continue;
+			}
+			while ($timer->next_killable <= time()) {
+				$timer->next_killable += $timer->timer + $invulnerableTime;
+				$timer->next_spawn    += $timer->timer + $invulnerableTime;
+			}
+		}
+		usort($timers, function (WorldBossTimer $a, WorldBossTimer $b) {
+			return $a->next_spawn <=> $b->next_spawn;
+		});
+	}
+
+	/** @return WorldBossTimer[] */
+	protected function getWorldBossTimers(): array {
+		return $this->timers;
+	}
+
+	protected function reloadWorldBossTimers(): void {
+		/** @var WorldBossTimer[] */
+		$timers = $this->db->table(static::DB_TABLE)
+			->asObj(WorldBossTimer::class)
+			->toArray();
+		$this->addNextDates($timers);
+		$this->timers = $timers;
+	}
+
+	protected function niceTime(int $timestamp): string {
+		$time = new DateTime();
+		$time->setTimestamp($timestamp);
+		return $time->format("D, H:i T (d-M-Y)");
+	}
+
+	protected function getNextSpawnsMessage(WorldBossTimer $timer, int $howMany=10): string {
+		$multiplicator = $timer->timer + $timer->killable - $timer->spawn;
+		$times = [];
+		if (isset($timer->next_spawn)) {
+			for ($i = 0; $i < $howMany; $i++) {
+				$spawnTime = $timer->next_spawn + $i*$multiplicator;
+				$times []= $this->niceTime($spawnTime);
+			}
+		} else {
+			$times []= "unknown";
+		}
+		$msg = "Timer updated".
+				" at <highlight>".$this->niceTime($timer->time_submitted)."<end>.\n\n".
+				"<header2>Next spawntimes<end>\n".
+				"<tab>- ".join("\n<tab>- ", $times);
+		return $msg;
+	}
+
+	protected function getWorldBossMessage(string $mobName): string {
+		$timer = $this->getWorldBossTimer($mobName);
+		if ($timer === null) {
+			$msg = "I currently don't have an accurate timer for <highlight>{$mobName}<end>.";
+			return $msg;
+		}
+		return $this->formatWorldBossMessage($timer, false);
+	}
+
+	protected function sendSyncEvent(string $sender, string $mobName, int $immortal, bool $forceSync): void {
+		$event = new SyncWorldbossEvent();
+		$event->boss = static::BOSS_MAP[$mobName];
+		$event->vulnerable = $immortal;
+		$event->sender = $sender;
+		$event->forceSync = $forceSync;
+		$this->eventManager->fireEvent($event);
+	}
+
+	protected function sendSyncDeleteEvent(string $sender, string $mobName, bool $forceSync): void {
+		$event = new SyncWorldbossDeleteEvent();
+		$event->boss = static::BOSS_MAP[$mobName];
+		$event->sender = $sender;
+		$event->forceSync = $forceSync;
+		$this->eventManager->fireEvent($event);
+	}
+
+	protected function getMobFromContext(CmdContext $context): string {
+		$mobs = array_flip(static::BOSS_MAP);
+		$mobs["gauntlet"] = $mobs["vizaresh"];
+		$mobs["father"] = $mobs["father-time"];
+		return $mobs[explode(" ", strtolower($context->message))[0]];
+	}
+
+	/**
+	 * Announce an event
+	 *
+	 * @param string $msg  The message to send
+	 * @param int    $step 1 => spawns soon, 2 => has spawned, 3 => vulnerable
+	 */
+	protected function announceBigBossEvent(string $boss, string $msg, int $step): void {
+		if (time() - ($this->sentNotifications[$boss][$step]??0) < 30) {
+			return;
+		}
+		$this->sentNotifications[$boss] ??= [];
+		$this->sentNotifications[$boss][$step] = time();
+		$event = 'spawn';
+		if ($step === 1) {
+			$event = 'prespawn';
+		} elseif ($step === 3) {
+			$event = 'vulnerable';
+		}
+		$bossName = static::BOSS_MAP[$boss];
+		if ($bossName === 'vizaresh') {
+			$bossName = 'gauntlet';
+		}
+		$rMsg = new RoutableMessage($msg);
+		$rMsg->appendPath(new Source(
+			"spawn",
+			"{$bossName}-{$event}",
+			join("-", array_map("ucfirst", explode("-", static::BOSS_MAP[$boss])))
+		));
+		$this->messageHub->handle($rMsg);
+	}
+
+	/**
+	 * Parse the incoming data and call the function to handle the
+	 * timers if the data is valid.
+	 */
+	private function handleTimerData(string $body): void {
+		if (!strlen($body)) {
+			$this->logger->error('Worldboss API sent an empty reply');
+			return;
+		}
+
+		/** @var ApiSpawnData[] */
+		$timers = [];
+		try {
+			$data = json_decode($body, true);
+			if (!is_array($data)) {
+				throw new JsonException();
+			}
+			foreach ($data as $timerData) {
+				$timers []= new ApiSpawnData($timerData);
+			}
+		} catch (JsonException) {
+			$this->logger->error("Worldboss API sent invalid json.", [
+				"json" => $body,
+			]);
+			return;
+		}
+		foreach ($timers as $timer) {
+			$this->handleApiTimer($timer);
+		}
 	}
 }

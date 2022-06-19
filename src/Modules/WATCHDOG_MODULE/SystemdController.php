@@ -2,13 +2,13 @@
 
 namespace Nadybot\Modules\WATCHDOG_MODULE;
 
-use Socket;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Event,
 	EventManager,
 	ModuleInstance,
 };
+use Socket;
 
 /**
  * Authors:
@@ -17,10 +17,9 @@ use Nadybot\Core\{
 
 #[NCA\Instance]
 class SystemdController extends ModuleInstance {
+	public const EINVAL = 22;
 	#[NCA\Inject]
 	public EventManager $eventManager;
-
-	public const EINVAL = 22;
 
 	protected bool $enabled = false;
 	protected int $watchdogInterval = 0;
@@ -53,6 +52,7 @@ class SystemdController extends ModuleInstance {
 
 	/**
 	 * sd_notify PHP implementation
+	 *
 	 * @link https://www.freedesktop.org/software/systemd/man/sd_notify.html
 	 */
 	public function notify(bool $unsetEnvironment, string $state): int {
@@ -61,7 +61,9 @@ class SystemdController extends ModuleInstance {
 
 	/**
 	 * sd_pid_notify_with_fds PHP implementation
+	 *
 	 * @link https://github.com/systemd/systemd/blob/master/src/libsystemd/sd-daemon/sd-daemon.c
+	 *
 	 * @param int[] $fds
 	 */
 	public function notifyWithFDs(int $pid, bool $unsetEnvironment, string $state, array $fds): int {
@@ -79,6 +81,7 @@ class SystemdController extends ModuleInstance {
 
 	/**
 	 * @param int[] $fds
+	 *
 	 * @return array<null|bool|int|Socket>
 	 * @phpstan-return array{null|bool|Socket,int}
 	 */
@@ -127,7 +130,7 @@ class SystemdController extends ModuleInstance {
 				$messageHeader['control'][] = [
 					'level' => SOL_SOCKET,
 					'type' => SCM_RIGHTS,
-					'data' => $fds
+					'data' => $fds,
 				];
 			}
 
@@ -138,8 +141,8 @@ class SystemdController extends ModuleInstance {
 					'data' => [
 						'pid' => $pid,
 						'uid' => \Safe\getmyuid(),
-						'gid' => \Safe\getmygid()
-					]
+						'gid' => \Safe\getmygid(),
+					],
 				];
 			}
 		}
@@ -166,6 +169,7 @@ class SystemdController extends ModuleInstance {
 
 	/**
 	 * sd_watchdog_enabled PHP implementation
+	 *
 	 * @link https://github.com/systemd/systemd/blob/master/src/libsystemd/sd-daemon/sd-daemon.c
 	 */
 	public function isSystemdWatchdogEnabled(bool $unsetEnvironment, int &$usec): int {

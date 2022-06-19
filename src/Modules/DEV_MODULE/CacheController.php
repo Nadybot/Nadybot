@@ -47,7 +47,7 @@ class CacheController extends ModuleInstance {
 	public function cacheCommand(CmdContext $context): void {
 		$blob = '';
 		foreach ($this->cacheManager->getGroups() as $group) {
-			$blob .= $this->text->makeChatcmd($group, "/tell <myname> cache browse $group") . "\n";
+			$blob .= $this->text->makeChatcmd($group, "/tell <myname> cache browse {$group}") . "\n";
 		}
 		$msg = $this->text->makeBlob("Cache Groups", $blob);
 		$context->reply($msg);
@@ -68,11 +68,11 @@ class CacheController extends ModuleInstance {
 			if ($fileInfo === false) {
 				continue;
 			}
-			$blob .= "<highlight>$file<end>  " . $this->util->bytesConvert($fileInfo['size']) . " - Last modified " . $this->util->date($fileInfo['mtime']);
-			$blob .= "  [" . $this->text->makeChatcmd("View", "/tell <myname> cache view $group $file") . "]";
-			$blob .= "  [" . $this->text->makeChatcmd("Delete", "/tell <myname> cache rem $group $file") . "]\n";
+			$blob .= "<highlight>{$file}<end>  " . $this->util->bytesConvert($fileInfo['size']) . " - Last modified " . $this->util->date($fileInfo['mtime']);
+			$blob .= "  [" . $this->text->makeChatcmd("View", "/tell <myname> cache view {$group} {$file}") . "]";
+			$blob .= "  [" . $this->text->makeChatcmd("Delete", "/tell <myname> cache rem {$group} {$file}") . "]\n";
 		}
-		$msg = $this->text->makeBlob("Cache Group: $group", $blob);
+		$msg = $this->text->makeBlob("Cache Group: {$group}", $blob);
 		$context->reply($msg);
 	}
 
@@ -88,9 +88,9 @@ class CacheController extends ModuleInstance {
 
 		if ($this->cacheManager->cacheExists($group, $file)) {
 			$this->cacheManager->remove($group, $file);
-			$msg = "Cache file <highlight>$file<end> in cache group <highlight>$group<end> has been deleted.";
+			$msg = "Cache file <highlight>{$file}<end> in cache group <highlight>{$group}<end> has been deleted.";
 		} else {
-			$msg = "Could not find file <highlight>$file<end> in cache group <highlight>$group<end>.";
+			$msg = "Could not find file <highlight>{$file}<end> in cache group <highlight>{$group}<end>.";
 		}
 		$context->reply($msg);
 	}
@@ -110,9 +110,9 @@ class CacheController extends ModuleInstance {
 			if (preg_match("/\.json$/", $file)) {
 				$contents = \Safe\json_encode(\Safe\json_decode($contents), JSON_PRETTY_PRINT);
 			}
-			$msg = $this->text->makeBlob("Cache File: $group $file", htmlspecialchars($contents));
+			$msg = $this->text->makeBlob("Cache File: {$group} {$file}", htmlspecialchars($contents));
 		} else {
-			$msg = "Could not find file <highlight>$file<end> in cache group <highlight>$group<end>.";
+			$msg = "Could not find file <highlight>{$file}<end> in cache group <highlight>{$group}<end>.";
 		}
 		$context->reply($msg);
 	}

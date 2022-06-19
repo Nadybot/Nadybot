@@ -5,8 +5,8 @@ namespace Nadybot\Core\Modules\MESSAGES;
 use Nadybot\Core\{
 	Attributes as NCA,
 	DB,
-	ModuleInstance,
 	MessageHub,
+	ModuleInstance,
 	Routing\Source,
 };
 use Nadybot\Modules\WEBSERVER_MODULE\{

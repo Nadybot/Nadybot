@@ -8,12 +8,16 @@ class Orglist {
 	public int $start;
 	public CommandReply $sendto;
 	public string $org;
+
 	/** @var string[] */
 	public array $orgtype;
+
 	/** @var array<string,OrglistResult> */
 	public array $result = [];
+
 	/** @var array<string,int> */
 	public array $added = [];
+
 	/** @var array<string,bool> */
 	public array $check = [];
 	public int $numAdded = 0;

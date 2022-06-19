@@ -2,26 +2,13 @@
 
 namespace Nadybot\Modules\TRACKER_MODULE\Migrations;
 
-use Nadybot\Core\Attributes as NCA;
-use Nadybot\Core\DB;
 use Nadybot\Core\DBSchema\Setting;
-use Nadybot\Core\LoggerWrapper;
-use Nadybot\Core\SchemaMigration;
-use Nadybot\Core\SettingManager;
+use Nadybot\Core\{Attributes as NCA, DB, LoggerWrapper, SchemaMigration, SettingManager};
 use Nadybot\Modules\TRACKER_MODULE\TrackerController;
 
 class MigrateToTrackerFormat implements SchemaMigration {
 	#[NCA\Inject]
 	public TrackerController $trackerController;
-
-	protected function getSetting(DB $db, string $name): ?string {
-		/** @var ?Setting */
-		$setting = $db->table(SettingManager::DB_TABLE)
-			->where("name", $name)
-			->asObj(Setting::class)
-			->first();
-		return $setting->value ?? null;
-	}
 
 	public function migrate(LoggerWrapper $logger, DB $db): void {
 		$trackerLayout = (int)($this->getSetting($db, "tracker_layout") ?? 0);
@@ -61,5 +48,14 @@ class MigrateToTrackerFormat implements SchemaMigration {
 		$formatOff = sprintf($trackerLayoutOff, $info);
 		$this->trackerController->trackerLogon = $formatOn;
 		$this->trackerController->trackerLogoff = $formatOff;
+	}
+
+	protected function getSetting(DB $db, string $name): ?string {
+		/** @var ?Setting */
+		$setting = $db->table(SettingManager::DB_TABLE)
+			->where("name", $name)
+			->asObj(Setting::class)
+			->first();
+		return $setting->value ?? null;
 	}
 }

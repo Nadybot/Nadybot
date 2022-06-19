@@ -54,7 +54,7 @@ class LevelController extends ModuleInstance {
 			$context->reply($msg);
 			return;
 		}
-		$msg = "<white>L $row->level: Team {$row->teamMin}-{$row->teamMax}<end>".
+		$msg = "<white>L {$row->level}: Team {$row->teamMin}-{$row->teamMax}<end>".
 			" <highlight>|<end> ".
 			"<cyan>PvP {$row->pvpMin}-{$row->pvpMax}<end>".
 			" <highlight>|<end> ".
@@ -97,7 +97,7 @@ class LevelController extends ModuleInstance {
 		if ($level >= 200) {
 			$xp = "SK";
 		}
-		$msg = "At level <highlight>{$row->level}<end> you need <highlight>".number_format($row->xpsk)."<end> ${xp} to level up.";
+		$msg = "At level <highlight>{$row->level}<end> you need <highlight>".number_format($row->xpsk)."<end> {$xp} to level up.";
 		$context->reply($msg);
 	}
 
@@ -115,6 +115,7 @@ class LevelController extends ModuleInstance {
 			$context->reply($msg);
 			return;
 		}
+
 		/** @var Collection<Level> */
 		$data = $this->db->table("levels")
 			->where("level", ">=", $startLevel)
@@ -130,18 +131,18 @@ class LevelController extends ModuleInstance {
 			}
 		}
 		if ($sk > 0 && $xp > 0) {
-			$msg = "From the beginning of level <highlight>$startLevel<end> ".
+			$msg = "From the beginning of level <highlight>{$startLevel}<end> ".
 				"you need <highlight>".number_format($xp)."<end> XP ".
 				"and <highlight>".number_format($sk)."<end> SK ".
-				"to reach level <highlight>$endLevel<end>.";
+				"to reach level <highlight>{$endLevel}<end>.";
 		} elseif ($sk > 0) {
-			$msg = "From the beginning of level <highlight>$startLevel<end> ".
+			$msg = "From the beginning of level <highlight>{$startLevel}<end> ".
 				"you need <highlight>".number_format($sk)."<end> SK ".
-				"to reach level <highlight>$endLevel<end>.";
+				"to reach level <highlight>{$endLevel}<end>.";
 		} elseif ($xp > 0) {
-			$msg = "From the beginning of level <highlight>$startLevel<end> ".
+			$msg = "From the beginning of level <highlight>{$startLevel}<end> ".
 				"you need <highlight>".number_format($xp)."<end> XP ".
-				"to reach level <highlight>$endLevel<end>.";
+				"to reach level <highlight>{$endLevel}<end>.";
 		} else {
 			$msg = "You somehow managed to pass illegal parameters.";
 		}
@@ -155,9 +156,7 @@ class LevelController extends ModuleInstance {
 			->first();
 	}
 
-	/**
-	 * @return Level[]
-	 */
+	/** @return Level[] */
 	public function findAllLevels(): array {
 		return $this->db->table("levels")
 			->orderBy("level")

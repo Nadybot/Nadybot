@@ -2,9 +2,7 @@
 
 namespace Nadybot\Modules\RAFFLE_MODULE;
 
-use Nadybot\Core\DB;
-use Nadybot\Core\DBRow;
-use Nadybot\Core\Registry;
+use Nadybot\Core\{DB, DBRow, Registry};
 
 class RaffleItem {
 	public int $amount = 1;
@@ -29,6 +27,7 @@ class RaffleItem {
 				} else {
 					/** @var DB */
 					$db = Registry::getInstance(DB::class);
+
 					/** @var null|DBRow */
 					$hasItemGroup = $db->table("item_groups")
 						->where("item_id", $matches[1][$i])

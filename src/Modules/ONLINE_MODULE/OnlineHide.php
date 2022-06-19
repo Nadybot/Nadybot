@@ -7,12 +7,11 @@ use Nadybot\Core\DBRow;
 
 /**
  * This represents a single player in the online list
+ *
  * @package Nadybot\Modules\ONLINE_MODULE
  */
 class OnlineHide extends DBRow {
-	/**
-	 * The artificial ID of this hide mask
-	 */
+	/** The artificial ID of this hide mask */
 	public int $id;
 
 	/** A glob mask that will match one or more names */

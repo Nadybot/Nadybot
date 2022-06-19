@@ -2,8 +2,7 @@
 
 namespace Nadybot\Modules\WEBSERVER_MODULE\Collector;
 
-use Nadybot\Core\Attributes as NCA;
-use Nadybot\Core\BuddylistManager;
+use Nadybot\Core\{Attributes as NCA, BuddylistManager};
 use Nadybot\Modules\WEBSERVER_MODULE\Interfaces\GaugeProvider;
 
 class BuddylistOffline implements GaugeProvider {

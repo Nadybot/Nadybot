@@ -2,8 +2,7 @@
 
 namespace Nadybot\Core\Modules\MESSAGES;
 
-use Nadybot\Core\DBSchema\RouteModifier;
-use Nadybot\Core\DBSchema\RouteModifierArgument;
+use Nadybot\Core\DBSchema\{RouteModifier, RouteModifierArgument};
 use ParserGenerator\Parser;
 use ParserGenerator\SyntaxTreeNode\Branch;
 
@@ -40,6 +39,7 @@ class ModifierExpressionParser {
 
 	/**
 	 * @return RouteModifier[]
+	 *
 	 * @throws ModifierParserException
 	 */
 	public function parse(string $input): array {

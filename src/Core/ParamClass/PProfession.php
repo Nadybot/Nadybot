@@ -2,8 +2,7 @@
 
 namespace Nadybot\Core\ParamClass;
 
-use Nadybot\Core\Registry;
-use Nadybot\Core\Util;
+use Nadybot\Core\{Registry, Util};
 
 class PProfession extends Base {
 	protected static string $regExp = "adv(|y|enturer)".

@@ -11,6 +11,7 @@ class NadyRequest extends JSONDataModel {
 
 	public string $resource = "/";
 	public int $mode = self::READ;
+
 	/** @var null|mixed[] */
 	public ?array $data=null;
 }

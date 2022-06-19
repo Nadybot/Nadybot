@@ -3,14 +3,12 @@
 namespace Nadybot\Modules\TOWER_MODULE\Migrations;
 
 use Illuminate\Database\Schema\Blueprint;
-use Nadybot\Core\DB;
-use Nadybot\Core\LoggerWrapper;
-use Nadybot\Core\SchemaMigration;
+use Nadybot\Core\{DB, LoggerWrapper, SchemaMigration};
 
 class AddBoundingBoxes implements SchemaMigration {
 	public function migrate(LoggerWrapper $logger, DB $db): void {
 		$table = "tower_site_bounds";
-		$db->schema()->create($table, function(Blueprint $table): void {
+		$db->schema()->create($table, function (Blueprint $table): void {
 			$table->id();
 			$table->unsignedInteger("playfield_id")->index();
 			$table->unsignedInteger("site_number")->index();

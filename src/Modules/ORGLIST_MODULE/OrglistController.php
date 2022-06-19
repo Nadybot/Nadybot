@@ -2,27 +2,34 @@
 
 namespace Nadybot\Modules\ORGLIST_MODULE;
 
+use function Amp\Promise\all;
+use function Amp\{call, delay};
+
+use Amp\Promise;
+use Generator;
 use Nadybot\Core\{
 	Attributes as NCA,
 	BuddylistManager,
 	CmdContext,
-	CommandReply,
 	DB,
 	DBSchema\Player,
-	Event,
+	LoggerWrapper,
 	ModuleInstance,
 	Modules\PLAYER_LOOKUP\Guild,
 	Modules\PLAYER_LOOKUP\GuildManager,
 	Modules\PLAYER_LOOKUP\PlayerManager,
 	Nadybot,
+	ParamClass\PNonGreedy,
 	Text,
-	UserStateEvent,
+	UserException,
 	Util,
 };
+use stdClass;
 
 /**
  * @author Tyrence (RK2)
  * @author Lucier (RK1)
+ * @author Nadyita (RK5)
  */
 #[
 	NCA\Instance,
@@ -57,6 +64,13 @@ class OrglistController extends ModuleInstance {
 	#[NCA\Inject]
 	public FindOrgController $findOrgController;
 
+	#[NCA\Logger]
+	public LoggerWrapper $logger;
+
+	/** Show offline org members by default */
+	#[NCA\Setting\Boolean]
+	public bool $orglistShowOffline = true;
+
 	protected ?Orglist $orglist = null;
 
 	/** @var array<string,string[]> */
@@ -71,168 +85,154 @@ class OrglistController extends ModuleInstance {
 
 	/**
 	 * Get a hierarchical array of all the ranks in the goven governing form
+	 *
 	 * @return string[]
 	 */
 	public function getOrgRanks(string $governingForm): array {
 		return $this->orgrankmap[ucfirst(strtolower($governingForm))] ?? [];
 	}
 
-	/** Stop a running orglist lookup */
-	#[NCA\HandlesCommand("orglist")]
-	public function orglistEndCommand(CmdContext $context, #[NCA\Str("end")] string $action): void {
-		if (isset($this->orglist)) {
-			$this->orglistEnd();
-		} else {
-			$context->reply("There is no orglist currently running.");
-		}
-	}
-
 	/**
-	 * Show who is online in an org / a player's org
+	 * Show who is online in an org / a player's org. Add 'all' to see offline
+	 * characters as well
 	 *
 	 * You can use '%' as a wildcard in the org name
 	 */
 	#[NCA\HandlesCommand("orglist")]
 	#[NCA\Help\Example("<symbol>orglist Team Rainbow")]
 	#[NCA\Help\Example("<symbol>orglist Nadyita")]
-	public function orglistCommand(CmdContext $context, string $search): void {
+	public function orglistCommand(
+		CmdContext $context,
+		PNonGreedy $search,
+		#[NCA\Str("all")] ?string $all,
+	): Generator {
+		if ($this->orglistShowOffline) {
+			$all = "all";
+		}
+		$search = $search();
 		if (preg_match("/^\d+$/", $search)) {
-			$this->checkOrglist((int)$search, $context);
-			return;
-		}
-		if (!$this->findOrgController->isReady()) {
-			$this->findOrgController->sendNotReadyError($context);
-			return;
-		}
-		$this->getMatches(
-			$search,
-			function(array $orgs) use ($context, $search): void {
-				$count = count($orgs);
-
-				if ($count === 0) {
-					$msg = "Could not find any orgs (or players in orgs) that match <highlight>$search<end>.";
-					$context->reply($msg);
-				} elseif ($count === 1) {
-					$this->checkOrglist($orgs[0]->id, $context);
-				} else {
-					$blob = $this->findOrgController->formatResults($orgs);
-					$msg = $this->text->makeBlob("Org Search Results for '{$search}' ($count)", $blob);
-					$context->reply($msg);
-				}
+			$orgId = (int)$search;
+		} else {
+			if (!$this->findOrgController->isReady()) {
+				$this->findOrgController->sendNotReadyError($context);
+				return;
 			}
+			$orgs = yield $this->getOrgsMatchingSearch($search);
+			$count = count($orgs);
+
+			if ($count === 0) {
+				$msg = "Could not find any orgs (or players in orgs) that match <highlight>{$search}<end>.";
+				$context->reply($msg);
+				return;
+			} elseif ($count !== 1) {
+				$blob = $this->findOrgController->formatResults($orgs);
+				$msg = $this->text->makeBlob("Org Search Results for '{$search}' ({$count})", $blob);
+				$context->reply($msg);
+				return;
+			}
+			$orgId = $orgs[0]->id;
+		}
+
+		/** @var ?Guild */
+		$org = yield $this->guildManager->byId($orgId);
+		if (!isset($org)) {
+			$msg = "Error in getting the Org info. Either org does not exist or AO's server was too slow to respond.";
+			$context->reply($msg);
+			return;
+		}
+		$context->reply(
+			"Checking online-status of <highlight>" . count($org->members) . "<end> ".
+			"members of <" . strtolower($org->orgside) . ">{$org->orgname}<end>."
 		);
+		$startTime = microtime(true);
+		$onlineStates = yield $this->getOnlineStates($org);
+		$msg = $this->renderOrglist($org, $onlineStates, $startTime, isset($all));
+		$context->reply($msg);
 	}
 
 	/**
-	 * @psalm-param callable(list<Organization>, mixed...) $callback
+	 * Get a list of orgs that match the given search string.
+	 * If $search is a character name, this character's org will be
+	 * included as well.
+	 *
+	 * @return Promise<Organization[]>
 	 */
-	public function getMatches(string $search, callable $callback): void {
-		$orgs = $this->findOrgController->lookupOrg($search);
-		if (count($orgs) === 1 && strcasecmp($orgs[0]->name, $search) === 0) {
-			$callback($orgs);
-			return;
-		}
-
-		// check if search is a character and add character's org to org list if it's not already in the list
-		$name = ucfirst(strtolower($search));
-		$this->playerManager->getByNameAsync(
-			function(?Player $whois) use ($orgs, $callback): void {
-				if ($whois === null || $whois->guild_id === 0 || $whois->guild_id === null) {
-					$callback($orgs);
-					return;
+	public function getOrgsMatchingSearch(string $search): Promise {
+		return call(function () use ($search): Generator {
+			$orgs = $this->findOrgController->lookupOrg($search);
+			if (count($orgs) === 1 && strcasecmp($orgs[0]->name, $search) === 0) {
+				return $orgs;
+			}
+			// check if search is a character and add character's org to org list if it's not already in the list
+			$name = ucfirst(strtolower($search));
+			$whois = yield $this->playerManager->byName($name);
+			if ($whois === null || $whois->guild_id === 0 || $whois->guild_id === null) {
+				return $orgs;
+			}
+			foreach ($orgs as $org) {
+				if ($org->id === $whois->guild_id) {
+					return $orgs;
 				}
-				foreach ($orgs as $org) {
-					if ($org->id === $whois->guild_id) {
-						$callback($orgs);
-						return;
+			}
+
+			$obj = $this->findOrgController->getByID($whois->guild_id);
+			if (isset($obj)) {
+				$orgs []= $obj;
+			}
+			return $orgs;
+		});
+	}
+
+	/**
+	 * Check the online status of all org members and return them in an array,
+	 * keyed by the character name
+	 *
+	 * @return Promise<array<string,bool>>
+	 */
+	public function getOnlineStates(Guild $org): Promise {
+		return call(function () use ($org): Generator {
+			$todo = [];
+			foreach ($org->members as $member) {
+				$todo []= $member->name;
+			}
+
+			$onlineStates = [];
+			$numThreads = min($this->getFreeBuddylistSlots() - 5, count($org->members));
+			if (count($org->members) > 100 && $numThreads < 10) {
+				throw new UserException(
+					"You need more buddylist slots to be able to use this command."
+				);
+			}
+			$this->logger->info("Using {numThreads} threads to get online status", [
+				"numThreads" => $numThreads,
+			]);
+			$lookupFunc = function () use (&$todo, &$onlineStates): Promise {
+				return call(function () use (&$todo, &$onlineStates): Generator {
+					while ($name = array_shift($todo)) {
+						$uid = yield $this->chatBot->getUid2($name);
+						if (!isset($uid)) {
+							$onlineStates[$name] = false;
+							continue;
+						}
+						while ($this->getFreeBuddylistSlots() < 5) {
+							yield delay(10);
+						}
+						$onlineStates[$name] = yield $this->buddylistManager->checkIsOnline($uid);
 					}
-				}
-
-				$obj = $this->findOrgController->getByID($whois->guild_id);
-				if (isset($obj)) {
-					$orgs []= $obj;
-				}
-				$callback($orgs);
-			},
-			$name
-		);
-	}
-
-	public function checkOrglist(int $orgid, CommandReply $sendto): void {
-		// Check if we are already doing a list.
-		if (isset($this->orglist)) {
-			$msg = "There is already an orglist running. You may force it to end by using <symbol>orglist end.";
-			$sendto->reply($msg);
-			return;
-		}
-
-		$this->orglist = new Orglist();
-		$this->orglist->start = time();
-		$this->orglist->org = "Org #{$orgid}";
-		$this->orglist->sendto = $sendto;
-
-		$sendto->reply("Downloading org roster for org id $orgid...");
-
-		$this->guildManager->getByIdAsync($orgid, null, false, [$this, "checkOrg"], $sendto);
-	}
-
-	public function checkOrg(?Guild $org, CommandReply $sendto): void {
-		if ($org === null || !isset($this->orglist)) {
-			$msg = "Error in getting the Org info. Either org does not exist or AO's server was too slow to respond.";
-			$sendto->reply($msg);
-			unset($this->orglist);
-			return;
-		}
-
-		$this->orglist->org = $org->orgname;
-		if (isset($org->governing_form) && isset($this->orgrankmap[$org->governing_form])) {
-			$this->orglist->orgtype = $this->orgrankmap[$org->governing_form];
-		} else {
-			$this->orglist->orgtype = $this->getOrgGoverningForm($org->members);
-		}
-
-		$uidLookup = [];
-		// Check each name if they are already on the buddylist (and get online status now)
-		// Or make note of the name so we can add it to the buddylist later.
-		foreach ($org->members as $member) {
-			// Writing the whois info for all names
-			// Name (Level 1/1, Sex Breed Profession)
-			$thismember  = '<highlight>'.$member->name.'<end>';
-			if (isset($member->level)) {
-				$thismember .= " (Level <highlight>{$member->level}<end>";
+				});
+			};
+			$lookups = [];
+			for ($i = 0; $i < $numThreads; $i++) {
+				$lookups []= $lookupFunc();
 			}
-			if ($member->ai_level > 0) {
-				$thismember .= "<green>/{$member->ai_level}<end>";
-			}
-			$thismember .= ", ".$member->gender;
-			$thismember .= " ".$member->breed;
-			if (isset($member->profession)) {
-				$thismember .= " <highlight>{$member->profession}<end>)";
-			}
-			if (isset($member->charid)) {
-				$uidLookup[$member->name] = $member->charid;
-			}
-
-			$this->orglist->result[$member->name] = new OrglistResult();
-			$this->orglist->result[$member->name]->post = $thismember;
-
-			$this->orglist->result[$member->name]->name = $member->name;
-			$this->orglist->result[$member->name]->rank_id = $member->guild_rank_id;
-		}
-
-		$sendto->reply("Checking online status for " . count($org->members) ." members of <highlight>$org->orgname<end>…");
-
-		$this->checkOnline($org->members);
-		$this->addOrgMembersToBuddylist($uidLookup);
-
-		if (isset($this->orglist) && count($this->orglist->added) === 0) {
-			$this->orglistEnd();
-			return;
-		}
+			yield all($lookups);
+			return $onlineStates;
+		});
 	}
 
 	/**
 	 * @param array<string,Player> $members
+	 *
 	 * @return string[]
 	 */
 	public function getOrgGoverningForm(array $members): array {
@@ -255,192 +255,100 @@ class OrglistController extends ModuleInstance {
 		return array_shift($forms);
 	}
 
-	/**
-	 * @param array<string,Player> $members
-	 */
-	public function checkOnline(array $members): void {
-		if (!isset($this->orglist)) {
-			return;
-		}
-		foreach ($members as $member) {
-			$buddyOnlineStatus = $this->buddylistManager->isUidOnline($member->charid);
-			if ($buddyOnlineStatus !== null) {
-				$this->orglist->result[$member->name]->online = $buddyOnlineStatus;
-			} elseif ($this->chatBot->char->name === $member->name) {
-				$this->orglist->result[$member->name]->online = true;
-			} else {
-				$this->orglist->check[$member->name] = true;
-			}
-		}
-	}
-
-	/** @param array<string,int> $uidLookup */
-	public function addOrgMembersToBuddylist(array $uidLookup=[]): void {
-		if (!isset($this->orglist)) {
-			return;
-		}
-		foreach ($this->orglist->check as $name => &$value) {
-			if ($value === false) {
-				continue;
-			}
-			if (!$this->checkBuddylistSize()) {
-				return;
-			}
-
-			$value = false;
-			if (isset($uidLookup[$name])) {
-				$this->buddylistManager->addId($uidLookup[$name], 'onlineorg');
-				$this->orglist->added[$name] = $uidLookup[$name];
-				$this->orglist->numAdded++;
-			} else {
-				$this->chatBot->getUid($name, function(?int $uid) use ($name, &$value): void {
-					if (!isset($this->orglist)) {
-						return;
-					}
-					$this->orglist->added[$name] = 0;
-					if (isset($uid)) {
-						if (!$this->checkBuddylistSize()) {
-							$value = true;
-							return;
-						}
-						$this->buddylistManager->addId($uid, 'onlineorg');
-						$this->orglist->added[$name] = $uid;
-					}
-					$this->orglist->numAdded++;
-				});
-			}
-		}
-		if ($this->orglist->numAdded >= count($this->orglist->check)) {
-			unset($this->chatBot->id["_"]);
-			$this->chatBot->getUid("_", function(?int $uid): void {
-				$this->orglistEnd();
-			});
-		}
-	}
-
-	public function orglistEnd(): void {
-		if (!isset($this->orglist)) {
-			return;
-		}
-		$orgcolor = ["offline" => "<font color='#555555'>"];
-
-		$msg = $this->orgmatesformat($this->orglist, $orgcolor, $this->orglist->start);
-		$this->orglist->sendto->reply($msg);
-
-		// in case it was ended early
-		foreach ($this->orglist->added as $name => $uid) {
-			$this->buddylistManager->removeId($uid, 'onlineorg');
-		}
-		unset($this->orglist);
+	/** Get the number of currently unused buddylist slots */
+	public function getFreeBuddylistSlots(): int {
+		return $this->chatBot->getBuddyListSize() - count($this->buddylistManager->buddyList);
 	}
 
 	/**
-	 * @param array<string,string> $orgcolor
+	 * Render the given org and list of online chars into a nice blob
+	 *
+	 * @param array<string,bool> $onlineStates
+	 *
 	 * @return string[]
 	 */
-	public function orgmatesformat(Orglist $memberlist, array $orgcolor, int $timestart): array {
-		$map = $memberlist->orgtype ?? [];
+	private function renderOrglist(Guild $org, array $onlineStates, float $startTime, bool $renderOffline): array {
+		if (isset($org->governing_form, $this->orgrankmap[$org->governing_form])) {
+			$orgRankNames = $this->orgrankmap[$org->governing_form];
+		} else {
+			$orgRankNames = $this->getOrgGoverningForm($org->members);
+		}
 
-		$totalonline = 0;
-		$totalcount = count($memberlist->result);
-		$newlist = [];
-		foreach ($memberlist->result as $amember) {
-			if (!isset($amember->rank_id)) {
+		$totalOnline = count(array_filter($onlineStates, fn (bool $online) => $online));
+		$totalCount = count($org->members);
+		$rankGroups = [];
+		foreach ($org->members as $member) {
+			if (!isset($member->guild_rank_id)) {
 				continue;
 			}
-			$newlist[$amember->rank_id] ??= [];
-			$newlist[$amember->rank_id] []= $amember->name;
-		}
-
-		$blob = '';
-
-		for ($rankid = 0; $rankid < count($map); $rankid++) {
-			$onlinelist = "";
-			$offlinelist = "<tab>";
-			$olcount = 0;
-			$rank_online = 0;
-			$rank_total = count($newlist[$rankid]??[]);
-
-			if ($rank_total > 0) {
-				sort($newlist[$rankid]);
-				for ($i = 0; $i < $rank_total; $i++) {
-					if ($memberlist->result[$newlist[$rankid][$i]]->online ?? false) {
-						$rank_online++;
-						$onlinelist .= "<tab>" . $memberlist->result[$newlist[$rankid][$i]]->post . "\n";
-					} else {
-						if ($offlinelist !== "<tab>") {
-							$offlinelist .= ", ";
-							if (($olcount % 50) == 0) {
-								$offlinelist .= "<end><pagebreak>" . $orgcolor["offline"];
-							}
-						}
-						$offlinelist .= $newlist[$rankid][$i];
-						$olcount++;
-					}
+			$rankGroups[$member->guild_rank_id] ??= (object)['total' => 0, 'online' => [], 'offline' => []];
+			$rankGroups[$member->guild_rank_id]->total++;
+			if ($onlineStates[$member->name] ?? false) {
+				$rankGroups[$member->guild_rank_id]->online []= $member;
+			} else {
+				if ($renderOffline) {
+					$rankGroups[$member->guild_rank_id]->offline []= $member;
 				}
 			}
+		}
 
-			$totalonline += $rank_online;
-
-			$blob .= "\n<header2>" . $map[$rankid] . "<end> ({$rank_online} / {$rank_total})\n";
-
-			if ($onlinelist !== "") {
-				$blob .= $onlinelist;
+		$renderedGroups = [];
+		for ($rankid = 0; $rankid < count($orgRankNames); $rankid++) {
+			if (isset($rankGroups[$rankid])) {
+				$renderedGroups []= $this->renderOrglistRankGroup($orgRankNames[$rankid], $rankGroups[$rankid]);
 			}
-			if ($offlinelist !== "<tab>") {
-				$blob .= $orgcolor["offline"] . $offlinelist . "<end>\n";
+		}
+
+		$blob = join("\n\n", $renderedGroups);
+		$totalTime = round((microtime(true) - $startTime), 1);
+		$blob .= "\n\n<i>Lookup took {$totalTime} seconds.</i>";
+
+		return (array)$this->text->makeBlob("Orglist for '{$org->orgname}' ({$totalOnline} / {$totalCount})", $blob);
+	}
+
+	/** Render the online/offline list for a single rank */
+	private function renderOrglistRankGroup(string $rankName, stdClass $rankGroup): string {
+		$blob = "<pagebreak><header2>{$rankName}<end> (" . count($rankGroup->online) . "/{$rankGroup->total})";
+		$sortFunc = fn (Player $p1, Player $p2): int => strcmp($p1->name, $p2->name);
+		usort($rankGroup->online, $sortFunc);
+		usort($rankGroup->offline, $sortFunc);
+		foreach ($rankGroup->online as $member) {
+			$blob .= "\n<tab>" . $this->renderOnlineMember($member);
+		}
+		if (count($rankGroup->offline) > 0) {
+			$names = array_column($rankGroup->offline, "name");
+			$chunks = array_chunk($names, 50, false);
+			$blob .= "\n<tab>";
+			for ($i = 0; $i < count($chunks); $i++) {
+				$chunk = $chunks[$i];
+				$suffix = ",";
+				if ($i === count($chunks)-1) {
+					$suffix = "";
+				}
+				$blob .= "<pagebreak><font color=#555555>".
+					join(",", $chunk) . "{$suffix}</font>";
 			}
-			$blob .= "\n";
 		}
-
-		$totaltime = time() - $timestart;
-		$blob .= "\nLookup took $totaltime seconds.";
-
-		return (array)$this->text->makeBlob("Orglist for '{$memberlist->org}' ($totalonline / $totalcount)", $blob);
+		if (!count($rankGroup->online) && !count($rankGroup->offline)) {
+			$blob .= "\n<tab>&lt;none&gt;";
+		}
+		return $blob;
 	}
 
-	#[
-		NCA\Event(
-			name: ["logOn", "logOff"],
-			description: "Records online status of org members"
-		)
-	]
-	public function orgMemberLogonEvent(UserStateEvent $eventObj): void {
-		if (!is_string($eventObj->sender)) {
-			return;
+	/** Render a single, online player */
+	private function renderOnlineMember(Player $member): string {
+		$line  = "<highlight>{$member->name}<end>";
+		if (isset($member->level)) {
+			$line .= " (Level <highlight>{$member->level}<end>";
 		}
-		$this->updateOrglist($eventObj->sender, $eventObj->type);
-	}
-
-	#[NCA\Event(
-		name: "packet(41)",
-		description: "Records online status of org members"
-	)]
-	public function buddyRemovedEvent(Event $eventObj): void {
-		if (isset($this->orglist)) {
-			$this->addOrgMembersToBuddylist();
+		if ($member->ai_level > 0) {
+			$line .= "<green>/{$member->ai_level}<end>";
 		}
-	}
-
-	public function updateOrglist(string $sender, string $type): void {
-		if (!isset($this->orglist->added[$sender])) {
-			return;
+		$line .= ", ".$member->gender;
+		$line .= " ".$member->breed;
+		if (isset($member->profession)) {
+			$line .= " <highlight>{$member->profession}<end>)";
 		}
-		$this->orglist->result[$sender]->online = $type === "logon";
-
-		$this->buddylistManager->remove($sender, 'onlineorg');
-		unset($this->orglist->added[$sender]);
-
-		if (count($this->orglist->check) === 0 && count($this->orglist->added) === 0) {
-			$this->orglistEnd();
-		}
-	}
-
-	/**
-	 * Check if we are allowed to add more buddies or if we should
-	 * slow down, because our buddylist gets too full
-	 */
-	public function checkBuddylistSize(): bool {
-		return count($this->buddylistManager->buddyList) < ($this->chatBot->getBuddyListSize() - 5);
+		return $line;
 	}
 }

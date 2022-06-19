@@ -3,8 +3,7 @@
 namespace Nadybot\Modules\RELAY_MODULE\Layer;
 
 use Fernet\Fernet as FernetProto;
-use Nadybot\Core\Attributes as NCA;
-use Nadybot\Core\LoggerWrapper;
+use Nadybot\Core\{Attributes as NCA, LoggerWrapper};
 use Nadybot\Modules\RELAY_MODULE\{
 	Relay,
 	RelayLayerInterface,
@@ -17,8 +16,7 @@ use Nadybot\Modules\RELAY_MODULE\{
 #[
 	NCA\RelayStackMember(
 		name: "fernet-encryption",
-		description:
-			"This adds fernet-based 128 bit AES encryption to the relay-stack.\n".
+		description: "This adds fernet-based 128 bit AES encryption to the relay-stack.\n".
 			"You can configure all parameters of the encryption key generation via options.\n".
 			"Encryption layers only work if all relay-parties use the same encryption parameters!\n".
 			"Fernet guarantees that the data you send is unaltered"
@@ -49,12 +47,11 @@ use Nadybot\Modules\RELAY_MODULE\{
 	)
 ]
 class Fernet implements RelayLayerInterface {
+	#[NCA\Logger]
+	public LoggerWrapper $logger;
 	protected FernetProto $fernet;
 
 	protected Relay $relay;
-
-	#[NCA\Logger]
-	public LoggerWrapper $logger;
 
 	public function __construct(string $password, string $salt, string $hashAlgo="sha256", int $iterations=10000) {
 		$key = hash_pbkdf2($hashAlgo, $password, $salt, $iterations, 32, true);

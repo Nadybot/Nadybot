@@ -3,9 +3,8 @@
 namespace Nadybot\Core\Routing;
 
 use Illuminate\Support\Collection;
-use Nadybot\Core\ConfigFile;
-use Nadybot\Core\Registry;
 use Nadybot\Core\DBSchema\RouteHopFormat;
+use Nadybot\Core\{ConfigFile, Registry};
 
 class Source {
 	public const DB_TABLE = "route_hop_format_<myname>";

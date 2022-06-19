@@ -2,8 +2,9 @@
 
 namespace Nadybot\Modules\TRACKER_MODULE;
 
+use Amp\Promise;
 use Exception;
-use Throwable;
+use Generator;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	AccessManager,
@@ -15,10 +16,10 @@ use Nadybot\Core\{
 	DBSchema\Player,
 	Event,
 	EventManager,
-	ModuleInstance,
 	LoggerWrapper,
 	MessageEmitter,
 	MessageHub,
+	ModuleInstance,
 	Modules\DISCORD\DiscordController,
 	Modules\PLAYER_LOOKUP\Guild,
 	Modules\PLAYER_LOOKUP\GuildManager,
@@ -39,6 +40,7 @@ use Nadybot\Modules\{
 	ORGLIST_MODULE\Organization,
 	TOWER_MODULE\TowerAttackEvent,
 };
+use Throwable;
 
 /**
  * @author Tyrence (RK2)
@@ -65,16 +67,22 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 
 	/** No grouping, just sorting */
 	public const GROUP_NONE = 0;
+
 	/** Group by title level */
 	public const GROUP_TL = 1;
+
 	/** Group by profession */
 	public const GROUP_PROF = 2;
+
 	/** Group by faction */
 	public const GROUP_FACTION = 3;
+
 	/** Group by org */
 	public const GROUP_ORG = 4;
+
 	/** Group by breed */
 	public const GROUP_BREED = 5;
+
 	/** Group by gender */
 	public const GROUP_GENDER = 6;
 
@@ -194,15 +202,15 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 		name: "connect",
 		description: "Adds all players on the track list to the buddy list"
 	)]
-	public function trackedUsersConnectEvent(Event $eventObj): void {
-		$this->db->table(self::DB_TABLE)
+	public function trackedUsersConnectEvent(Event $eventObj): Generator {
+		yield $this->db->table(self::DB_TABLE)
 			->asObj(TrackedUser::class)
-			->each(function(TrackedUser $row) {
-				$this->buddylistManager->add($row->name, static::REASON_TRACKER);
-			});
+			->map(function (TrackedUser $row): Promise {
+				return $this->buddylistManager->addAsync($row->name, static::REASON_TRACKER);
+			})->toArray();
 		$this->db->table(static::DB_ORG_MEMBER)
 			->asObj(TrackingOrgMember::class)
-			->each(function(TrackingOrgMember $row) {
+			->each(function (TrackingOrgMember $row) {
 				$this->buddylistManager->addId($row->uid, static::REASON_ORG_TRACKER);
 			});
 	}
@@ -215,34 +223,25 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 		name: "timer(24hrs)",
 		description: "Download all tracked orgs' information"
 	)]
-	public function downloadOrgRostersEvent(Event $eventObj): void {
-		$this->logger->notice("Starting Tracker Roster update");
+	public function downloadOrgRostersEvent(Event $eventObj): Generator {
 		/** @var Collection<TrackingOrg> */
 		$orgs = $this->db->table(static::DB_ORG)->asObj(TrackingOrg::class);
-
-		$i = 0;
-		foreach ($orgs as $org) {
-			$i++;
-			// Get the org info
-			$this->guildManager->getByIdAsync(
-				$org->org_id,
-				$this->config->dimension,
-				true,
-				[$this, "updateRosterForOrg"],
-				function() use (&$i) {
-					if (--$i === 0) {
-						$this->logger->notice("Finished Tracker Roster update");
-					}
-				}
-			);
+		try {
+			foreach ($orgs as $org) {
+				$orgData = yield $this->guildManager->byId($org->org_id, $this->config->dimension, true);
+				yield $this->updateRosterForOrg($orgData);
+			}
+		} catch (Throwable $e) {
+			$this->logger->error($e->getMessage(), ["Exception" => $e->getPrevious()]);
 		}
+		$this->logger->notice("Finished Tracker Roster update");
 	}
 
 	#[NCA\Event(
 		name: "tower(attack)",
 		description: "Automatically track tower field attackers"
 	)]
-	public function trackTowerAttacks(TowerAttackEvent $eventObj): void {
+	public function trackTowerAttacks(TowerAttackEvent $eventObj): Generator {
 		$attacker = $eventObj->attacker;
 		if ($this->accessManager->checkAccess($attacker->name, "member")) {
 			// Don't add members of the bot to the tracker
@@ -254,7 +253,7 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 		if ($trackWho === self::ATT_NONE) {
 			return;
 		}
-		if ($trackWho === self::ATT_OWN_ORG ) {
+		if ($trackWho === self::ATT_OWN_ORG) {
 			$attackingMyOrg = isset($defGuild) && $defGuild === $this->config->orgName;
 			if (!$attackingMyOrg) {
 				return;
@@ -291,23 +290,22 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 			$this->trackUid($attacker->charid, $attacker->name);
 			return;
 		}
-		$this->chatBot->getUid($attacker->name, function (?int $uid) use ($attacker): void {
-			if (isset($uid)) {
-				$this->trackUid($uid, $attacker->name);
-			}
-		});
+		$uid = yield $this->chatBot->getUid2($attacker->name);
+		if (isset($uid)) {
+			$this->trackUid($uid, $attacker->name);
+		}
 	}
 
 	#[NCA\Event(
 		name: "logOn",
 		description: "Records a tracked user logging on"
 	)]
-	public function trackLogonEvent(UserStateEvent $eventObj): void {
+	public function trackLogonEvent(UserStateEvent $eventObj): Generator {
 		if (!$this->chatBot->isReady() || !is_string($eventObj->sender)) {
 			return;
 		}
-		$uid = $this->chatBot->get_uid($eventObj->sender);
-		if ($uid === false) {
+		$uid = yield $this->chatBot->getUid2($eventObj->sender);
+		if ($uid === null) {
 			return;
 		}
 		if (!$this->buddylistManager->buddyHasType($uid, static::REASON_TRACKER)
@@ -321,38 +319,31 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 				"dt" => time(),
 				"event" => "logon",
 			]);
-		$this->playerManager->getByNameAsync(
-			function(?Player $player) use ($eventObj): void {
-				$msg = $this->getLogonMessage($player, $eventObj->sender);
-				$r = new RoutableMessage($msg);
-				$r->appendPath(new Source(Source::SYSTEM, "tracker"));
-				$this->messageHub->handle($r);
-			},
-			$eventObj->sender
-		);
+
 		$event = new TrackerEvent();
 		$event->player = $eventObj->sender;
 		$event->type = "tracker(logon)";
 		$this->eventManager->fireEvent($event);
+
+		$player = yield $this->playerManager->byName($eventObj->sender);
+
+		$msg = $this->getLogonMessage($player, $eventObj->sender);
+		$r = new RoutableMessage($msg);
+		$r->appendPath(new Source(Source::SYSTEM, "tracker"));
+		$this->messageHub->handle($r);
 	}
 
-	/**
-	 * Get the message to show when a tracked player logs on
-	 */
+	/** Get the message to show when a tracked player logs on */
 	public function getLogonMessage(?Player $player, string $name): string {
 		return $this->getLogMessage($player, $name, $this->trackerLogon);
 	}
 
-	/**
-	 * Get the message to show when a tracked player logs off
-	 */
+	/** Get the message to show when a tracked player logs off */
 	public function getLogoffMessage(?Player $player, string $name): string {
 		return $this->getLogMessage($player, $name, $this->trackerLogoff);
 	}
 
-	/**
-	 * Get the message to show when a tracked player logs on
-	 */
+	/** Get the message to show when a tracked player logs on */
 	public function getLogMessage(?Player $player, string $name, string $format): string {
 		$replacements = [
 			"faction" => "neutral",
@@ -405,12 +396,12 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 		name: "logOff",
 		description: "Records a tracked user logging off"
 	)]
-	public function trackLogoffEvent(UserStateEvent $eventObj): void {
+	public function trackLogoffEvent(UserStateEvent $eventObj): Generator {
 		if (!$this->chatBot->isReady() || !is_string($eventObj->sender)) {
 			return;
 		}
-		$uid = $this->chatBot->get_uid($eventObj->sender);
-		if ($uid === false) {
+		$uid = yield $this->chatBot->getUid2($eventObj->sender);
+		if ($uid === null) {
 			return;
 		}
 		if (!$this->buddylistManager->buddyHasType($uid, static::REASON_TRACKER)
@@ -436,19 +427,17 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 		if (isset($orgMember) && (time() - $orgMember->added_dt->getTimestamp()) < 60) {
 			return;
 		}
-		$this->playerManager->getByNameAsync(
-			function(?Player $player) use ($eventObj): void {
-				$msg = $this->getLogoffMessage($player, $eventObj->sender);
-				$r = new RoutableMessage($msg);
-				$r->appendPath(new Source(Source::SYSTEM, "tracker"));
-				$this->messageHub->handle($r);
-			},
-			$eventObj->sender
-		);
+
 		$event = new TrackerEvent();
 		$event->player = $eventObj->sender;
 		$event->type = "tracker(logoff)";
 		$this->eventManager->fireEvent($event);
+
+		$player = yield $this->playerManager->byName($eventObj->sender);
+		$msg = $this->getLogoffMessage($player, $eventObj->sender);
+		$r = new RoutableMessage($msg);
+		$r->appendPath(new Source(Source::SYSTEM, "tracker"));
+		$this->messageHub->handle($r);
 	}
 
 	/** See the list of users on the track list */
@@ -491,7 +480,7 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 
 			$history = $this->text->makeChatcmd('history', "/tell <myname> track show {$user->name}");
 
-			$blob .= "<tab><highlight>{$user->name}<end> ({$status}{$lastAction}) - [{$remove}] [$history]\n";
+			$blob .= "<tab><highlight>{$user->name}<end> ({$status}{$lastAction}) - [{$remove}] [{$history}]\n";
 		}
 
 		$msg = $this->text->makeBlob("Tracklist ({$numrows})", $blob);
@@ -504,19 +493,14 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 		CmdContext $context,
 		PRemove $action,
 		PCharacter $char
-	): void {
-		$this->chatBot->getUid(
-			$char(),
-			function(?int $uid, string $name) use ($context): void {
-				if (!isset($uid)) {
-					$msg = "Character <highlight>{$name}<end> does not exist.";
-					$context->reply($msg);
-					return;
-				}
-				$this->trackRemoveCommand($context, $name, $uid);
-			},
-			$char()
-		);
+	): Generator {
+		$uid = yield $this->chatBot->getUid2($char());
+		if (!isset($uid)) {
+			$msg = "Character <highlight>{$char}<end> does not exist.";
+			$context->reply($msg);
+			return;
+		}
+		$this->trackRemoveCommand($context, $char(), $uid);
 	}
 
 	/** Remove a player from the track list */
@@ -525,10 +509,9 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 		CmdContext $context,
 		PRemove $action,
 		int $uid
-	): void {
-		$this->chatBot->getName($uid, function(?string $char) use ($uid, $context): void {
-			$this->trackRemoveCommand($context, $char ?? "UID {$uid}", $uid);
-		});
+	): Generator {
+		$char = yield $this->chatBot->uidToName($uid);
+		$this->trackRemoveCommand($context, $char ?? "UID {$uid}", $uid);
 	}
 
 	public function trackRemoveCommand(CmdContext $context, string $name, int $uid): void {
@@ -540,6 +523,7 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 			$context->reply($msg);
 			return;
 		}
+
 		/** @var ?TrackingOrgMember */
 		$orgMember = $this->db->table(self::DB_ORG_MEMBER)
 			->where("uid", $uid)
@@ -575,22 +559,21 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 		CmdContext $context,
 		#[NCA\Str("add")] string $action,
 		PCharacter $char
-	): void {
-		$this->chatBot->getUid($char(), function(?int $uid) use ($context, $char): void {
-			if (!isset($uid)) {
-				$msg = "Character <highlight>{$char}<end> does not exist.";
-				$context->reply($msg);
-				return;
-			}
-			if (!$this->trackUid($uid, $char())) {
-				$msg = "Character <highlight>{$char}<end> is already on the track list.";
-				$context->reply($msg);
-				return;
-			}
-			$msg = "Character <highlight>{$char}<end> has been added to the track list.";
-
+	): Generator {
+		$uid = yield $this->chatBot->getUid2($char());
+		if (!isset($uid)) {
+			$msg = "Character <highlight>{$char}<end> does not exist.";
 			$context->reply($msg);
-		});
+			return;
+		}
+		if (!$this->trackUid($uid, $char())) {
+			$msg = "Character <highlight>{$char}<end> is already on the track list.";
+			$context->reply($msg);
+			return;
+		}
+		$msg = "Character <highlight>{$char}<end> has been added to the track list.";
+
+		$context->reply($msg);
 	}
 
 	/** Add a whole organization to the track list */
@@ -599,35 +582,44 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 		CmdContext $context,
 		#[NCA\Str("addorg")] string $action,
 		int $orgId
-	): void {
+	): Generator {
 		if (!$this->findOrgController->isReady()) {
 			$this->findOrgController->sendNotReadyError($context);
-			return;
+			return null;
 		}
 		$org = $this->findOrgController->getByID($orgId);
 		if (!isset($org)) {
 			$context->reply("There is no org #{$orgId}.");
-			return;
+			return null;
 		}
 
 		if ($this->db->table(static::DB_ORG)->where("org_id", $orgId)->exists()) {
 			$msg = "The org <" . strtolower($org->faction) . ">{$org->name}<end> is already being tracked.";
 			$context->reply($msg);
-			return;
+			return null;
 		}
 		$tOrg = new TrackingOrg();
 		$tOrg->org_id = $orgId;
 		$tOrg->added_by = $context->char->name;
 		$this->db->insert(static::DB_ORG, $tOrg, null);
 		$context->reply("Adding <" . strtolower($org->faction) . ">{$org->name}<end> to the tracker.");
-		$this->guildManager->getByIdAsync(
-			$orgId,
-			$this->config->dimension,
-			true,
-			[$this, "updateRosterForOrg"],
-			[$context, "reply"],
+		try {
+			/** @var ?Guild */
+			$guild = yield $this->guildManager->byId($orgId, $this->config->dimension, true);
+			if (!isset($guild)) {
+				$context->reply("No data found for <" . strtolower($org->faction) . ">{$org->name}<end>.");
+				return null;
+			}
+			yield $this->updateRosterForOrg($guild);
+		} catch (Throwable $e) {
+			$this->logger->error($e->getMessage(), ["Exception" => $e->getPrevious()]);
+			$context->reply($e->getMessage());
+			return null;
+		}
+		$context->reply(
 			"Added all members of <" . strtolower($org->faction) .">{$org->name}<end> to the roster."
 		);
+		return null;
 	}
 
 	/** Add a whole organization to the track list */
@@ -648,7 +640,7 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 			return;
 		}
 		$blob = $this->formatOrglist(...$orgs->toArray());
-		$msg = $this->text->makeBlob("Org Search Results for '{$orgName}' ($count)", $blob);
+		$msg = $this->text->makeBlob("Org Search Results for '{$orgName}' ({$count})", $blob);
 		$context->reply($msg);
 	}
 
@@ -659,7 +651,7 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 			$addLink = $this->text->makeChatcmd('track', "/tell <myname> track addorg {$org->id}");
 			$blob .= "<tab>{$org->name} (<{$org->faction}>{$org->faction}<end>), ".
 				"ID {$org->id} - <highlight>{$org->num_members}<end> members ".
-				"[$addLink]\n";
+				"[{$addLink}]\n";
 		}
 		return $blob;
 	}
@@ -688,7 +680,7 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 		$this->db->table(static::DB_ORG_MEMBER)
 			->where("org_id", $orgId)
 			->asObj(TrackingOrgMember::class)
-			->each(function(TrackingOrgMember $exMember): void {
+			->each(function (TrackingOrgMember $exMember): void {
 				$this->buddylistManager->removeId($exMember->uid, static::REASON_ORG_TRACKER);
 			});
 		$this->db->table(static::DB_ORG_MEMBER)
@@ -716,13 +708,13 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 		$orgIds = $orgs->pluck("org_id")->filter()->toArray();
 		$orgsByID = $this->findOrgController->getOrgsById(...$orgIds)
 			->keyBy("id");
-		$orgs = $orgs->each(function(TrackingOrg $o) use ($orgsByID): void {
+		$orgs = $orgs->each(function (TrackingOrg $o) use ($orgsByID): void {
 			$o->org = $orgsByID->get($o->org_id);
 		})->sort(function (TrackingOrg $o1, TrackingOrg $o2): int {
 			return strcasecmp($o1->org->name??"", $o2->org->name??"");
 		});
 
-		$lines = $orgs->map(function(TrackingOrg $o): ?string {
+		$lines = $orgs->map(function (TrackingOrg $o): ?string {
 			if (!isset($o->org)) {
 				return null;
 			}
@@ -739,103 +731,6 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 			$lines->join("\n");
 		$msg = $this->text->makeBlob("Tracked orgs(" . $lines->count() . ")", $blob);
 		$context->reply($msg);
-	}
-
-	/**
-	 *
-	 * @psalm-param null|callable(mixed ...) $callback
-	 */
-	public function updateRosterForOrg(?Guild $org, ?callable $callback, mixed ...$args): void {
-		// Check if JSON file was downloaded properly
-		if ($org === null) {
-			$this->logger->error("Error downloading the guild roster JSON file");
-			return;
-		}
-
-		if (count($org->members) === 0) {
-			$this->logger->error("The organisation {$org->orgname} has no members. Not changing its roster");
-			return;
-		}
-
-		// Save the current members in a hash for easy access
-		/** @var Collection<TrackingOrgMember> */
-		$oldMembers = $this->db->table(static::DB_ORG_MEMBER)
-			->where("org_id", $org->guild_id)
-			->asObj(TrackingOrgMember::class)
-			->keyBy("uid");
-		$this->db->beginTransaction();
-		$toInsert = [];
-		try {
-			foreach ($org->members as $member) {
-				/** @var ?TrackingOrgMember */
-				$oldMember = $oldMembers->get($member->charid);
-				if (isset($oldMember) && $oldMember->name === $member->name) {
-					$oldMembers->forget((string)$oldMember->uid);
-					continue;
-				}
-				if (isset($oldMember)) {
-					$this->db->table(static::DB_ORG_MEMBER)
-						->where("uid", $oldMember->uid)
-						->update(["name" => $member->name]);
-					$oldMembers->forget((string)$oldMember->uid);
-				} else {
-					$toInsert []= [
-						"org_id" => $org->guild_id,
-						"uid" => $member->charid,
-						"name" => $member->name,
-					];
-				}
-			}
-			if (count($toInsert)) {
-				$maxBuddies = $this->chatBot->getBuddyListSize();
-				$numBuddies = $this->buddylistManager->getUsedBuddySlots();
-				if (count($toInsert) + $numBuddies > $maxBuddies) {
-					if (isset($callback)) {
-						$callback(
-							"You cannot add " . count($toInsert) . " more ".
-							"characters to the tracking list, you only have ".
-							($maxBuddies - $numBuddies) . " slots left. Please ".
-							"install aochatproxy, or add more characters to your ".
-							"existing configuration."
-						);
-					}
-					$this->db->rollback();
-					$this->db->table(static::DB_ORG)->where("org_id", $org->guild_id)->delete();
-					return;
-				}
-				$this->db->table(static::DB_ORG_MEMBER)
-					->chunkInsert($toInsert);
-				foreach ($toInsert as $buddy) {
-					$this->buddylistManager->addId($buddy["uid"], static::REASON_ORG_TRACKER);
-				}
-			}
-			$oldMembers->each(function(TrackingOrgMember $exMember): void {
-				$this->buddylistManager->removeId($exMember->uid, static::REASON_ORG_TRACKER);
-			});
-		} catch (Throwable $e) {
-			$this->db->rollback();
-			$this->logger->error("Error adding org members for {$org->orgname}: " . $e->getMessage(), ["exception" => $e]);
-			return;
-		}
-		$this->db->commit();
-		if (isset($callback)) {
-			$callback(...$args);
-		}
-	}
-
-	protected function trackUid(int $uid, string $name, ?string $sender=null): bool {
-		if ($this->db->table(self::DB_TABLE)->where("uid", $uid)->exists()) {
-			return false;
-		}
-		$this->db->table(self::DB_TABLE)
-			->insert([
-				"name" => $name,
-				"uid" => $uid,
-				"added_by" => $sender ?? $this->chatBot->char->name,
-				"added_dt" => time(),
-			]);
-		$this->buddylistManager->addId($uid, static::REASON_TRACKER);
-		return true;
 	}
 
 	/**
@@ -901,6 +796,7 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 				return $this->buddylistManager->isOnline($name) ?? false;
 			})
 			->toArray();
+
 		/** @var Collection<OnlineTrackedUser> */
 		$data = $this->playerManager->searchByNames($this->config->dimension, ...$trackedUsers)
 			->sortBy("name")
@@ -950,74 +846,10 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 	}
 
 	/**
-	 * @param Collection<OnlineTrackedUser> $data
-	 * @param array<string,string[]> $filters
-	 * @return Collection<OnlineTrackedUser>
-	*/
-	private function filterOnlineList(Collection $data, array $filters): Collection {
-		if (isset($filters['profession'])) {
-			$professions = [];
-			foreach ($filters['profession'] as $prof) {
-				$professions []= $this->util->getProfessionName($prof);
-			}
-			$data = $data->whereIn("profession", $professions);
-		}
-		if (isset($filters['faction'])) {
-			$factions = [];
-			foreach ($filters['faction'] as $faction) {
-				$faction = ucfirst(strtolower($faction));
-				if ($faction === "Neut") {
-					$faction = "Neutral";
-				}
-				$factions []= $faction;
-			}
-			$data = $data->whereIn("faction", $factions);
-		}
-		if (isset($filters['titleLevelRange'])) {
-			$filters['levelRange'] ??= [];
-			foreach ($filters['titleLevelRange'] as $range) {
-				$from = $this->util->tlToLevelRange((int)substr($range, 2, 1));
-				$to = $this->util->tlToLevelRange((int)substr($range, 4, 1));
-				$filters['levelRange'] []= "{$from[0]}-{$to[1]}";
-			}
-		}
-		if (isset($filters['titleLevel'])) {
-			$filters['levelRange'] ??= [];
-			foreach ($filters['titleLevel'] as $tl) {
-				[$from, $to] = $this->util->tlToLevelRange((int)substr($tl, 2));
-				$filters['levelRange'] []= "{$from}-{$to}";
-			}
-		}
-		if (isset($filters['level'])) {
-			$filters['levelRange'] ??= [];
-			foreach ($filters['level'] as $level) {
-				$filters['levelRange'] []= "{$level}-{$level}";
-			}
-		}
-		if (isset($filters['levelRange'])) {
-			$ranges = [];
-			foreach ($filters['levelRange'] as $range) {
-				[$min, $max] = \Safe\preg_split("/\s*-\s*/", $range);
-				$ranges []= [strlen($min) ? (int)$min : 1, strlen($max) ? (int)$max : 220];
-			}
-			$data = $data->filter(function (OnlineTrackedUser $user) use ($ranges): bool {
-				if (!isset($user->level)) {
-					return true;
-				}
-				foreach ($ranges as $range) {
-					if ($user->level >= $range[0] && $user->level <= $range[1]) {
-						return true;
-					}
-				}
-				return false;
-			});
-		}
-		return $data;
-	}
-
-	/**
 	 * Get the blob with details about the tracked players currently online
+	 *
 	 * @param OnlineTrackedUser[] $players
+	 *
 	 * @return string The blob
 	 */
 	public function renderOnlineList(array $players, bool $edit): string {
@@ -1029,7 +861,7 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 				$groups[$tl] ??= (object)[
 					'title' => 'TL'.$tl,
 					'members' => [],
-					'sort' => $tl
+					'sort' => $tl,
 				];
 				$groups[$tl]->members []= $player;
 			}
@@ -1091,10 +923,10 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 			$groups["all"] = (object)[
 				'title' => "All tracked players",
 				'members' => $players,
-				'sort' => 0
+				'sort' => 0,
 			];
 		}
-		usort($groups, function(object $a, object $b): int {
+		usort($groups, function (object $a, object $b): int {
 			return $a->sort <=> $b->sort;
 		});
 		$parts = [];
@@ -1108,17 +940,19 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 
 	/**
 	 * Return the content of the online list for one player group
+	 *
 	 * @param OnlineTrackedUser[] $players The list of players in that group
+	 *
 	 * @return string The blob for this group
 	 */
 	public function renderPlayerGroup(array $players, int $groupBy, bool $edit): string {
-		usort($players, function(OnlineTrackedUser $p1, OnlineTrackedUser $p2): int {
+		usort($players, function (OnlineTrackedUser $p1, OnlineTrackedUser $p2): int {
 			return strnatcmp($p1->name, $p2->name);
 		});
 		return "<tab>" . join(
 			"\n<tab>",
 			array_map(
-				function(OnlineTrackedUser $player) use ($groupBy, $edit) {
+				function (OnlineTrackedUser $player) use ($groupBy, $edit) {
 					return $this->renderPlayerLine($player, $groupBy, $edit);
 				},
 				$players
@@ -1128,8 +962,10 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 
 	/**
 	 * Render a single online-line of a player
-	 * @param OnlineTrackedUser $player The player to render
-	 * @param int $groupBy Which grouping method to use. When grouping by prof, we don't show the prof icon
+	 *
+	 * @param OnlineTrackedUser $player  The player to render
+	 * @param int               $groupBy Which grouping method to use. When grouping by prof, we don't show the prof icon
+	 *
 	 * @return string A single like without newlines
 	 */
 	public function renderPlayerLine(OnlineTrackedUser $player, int $groupBy, bool $edit): string {
@@ -1174,10 +1010,9 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 		CmdContext $context,
 		#[NCA\Str("hide")] string $action,
 		int $uid
-	): void {
-		$this->chatBot->getName($uid, function(?string $name) use ($context, $uid): void {
-			$this->trackHideCommand($context, $name ?? "UID {$uid}", $uid);
-		});
+	): Generator {
+		$name = yield $this->chatBot->uidToName($uid);
+		$this->trackHideCommand($context, $name ?? "UID {$uid}", $uid);
 	}
 
 	/** Hide a character from the '<symbol>track online' list */
@@ -1186,15 +1021,14 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 		CmdContext $context,
 		#[NCA\Str("hide")] string $action,
 		PCharacter $char
-	): void {
-		$this->chatBot->getUid($char(), function(?int $uid) use ($context, $char): void {
-			if (!isset($uid)) {
-				$msg = "Character <highlight>{$char}<end> does not exist.";
-				$context->reply($msg);
-				return;
-			}
-			$this->trackHideCommand($context, $char(), $uid);
-		});
+	): Generator {
+		$uid = yield $this->chatBot->getUid2($char());
+		if (!isset($uid)) {
+			$msg = "Character <highlight>{$char}<end> does not exist.";
+			$context->reply($msg);
+			return;
+		}
+		$this->trackHideCommand($context, $char(), $uid);
 	}
 
 	public function trackHideCommand(CmdContext $context, string $name, int $uid): void {
@@ -1219,10 +1053,9 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 		CmdContext $context,
 		#[NCA\Str("unhide")] string $action,
 		int $uid
-	): void {
-		$this->chatBot->getName($uid, function(?string $name) use ($context, $uid): void {
-			$this->trackUnhideCommand($context, $name ?? "UID {$uid}", $uid);
-		});
+	): Generator {
+		$name = yield $this->chatBot->uidToName($uid);
+		$this->trackUnhideCommand($context, $name ?? "UID {$uid}", $uid);
 	}
 
 	/** Show a hidden a character on the '<symbol>track online' list again */
@@ -1231,15 +1064,14 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 		CmdContext $context,
 		#[NCA\Str("unhide")] string $action,
 		PCharacter $char
-	): void {
-		$this->chatBot->getUid($char(), function(?int $uid) use ($context, $char): void {
-			if (!isset($uid)) {
-				$msg = "Character <highlight>{$char}<end> does not exist.";
-				$context->reply($msg);
-				return;
-			}
-			$this->trackUnhideCommand($context, $char(), $uid);
-		});
+	): Generator {
+		$uid = yield $this->chatBot->getUid2($char());
+		if (!isset($uid)) {
+			$msg = "Character <highlight>{$char}<end> does not exist.";
+			$context->reply($msg);
+			return;
+		}
+		$this->trackUnhideCommand($context, $char(), $uid);
 	}
 
 	public function trackUnhideCommand(CmdContext $context, string $name, int $uid): void {
@@ -1265,38 +1097,190 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 		CmdContext $context,
 		#[NCA\Str("show", "view")] string $action,
 		PCharacter $char
-	): void {
-		$this->chatBot->getUid($char(), function(?int $uid) use ($context, $char): void {
-			if (!isset($uid)) {
-				$msg = "<highlight>{$char}<end> does not exist.";
-				$context->reply($msg);
-				return;
-			}
-			/** @var Collection<Tracking> */
-			$events = $this->db->table(self::DB_TRACKING)
-				->where("uid", $uid)
-				->orderByDesc("dt")
-				->select("event", "dt")
-				->asObj(Tracking::class);
-			if ($events->isEmpty()) {
-				$msg = "<highlight>{$char}<end> has never logged on or is not being tracked.";
-				$context->reply($msg);
-				return;
-			}
-			$blob = "<header2>All events for {$char}<end>\n";
-			foreach ($events as $event) {
-				if ($event->event == 'logon') {
-					$status = "<on>logon<end>";
-				} elseif ($event->event == 'logoff') {
-					$status = "<off>logoff<end>";
-				} else {
-					$status = "<grey>unknown<end>";
-				}
-				$blob .= "<tab> {$status} - " . $this->util->date($event->dt) ."\n";
-			}
-
-			$msg = $this->text->makeBlob("Track History for {$char}", $blob);
+	): Generator {
+		$uid = yield $this->chatBot->getUid2($char());
+		if (!isset($uid)) {
+			$msg = "<highlight>{$char}<end> does not exist.";
 			$context->reply($msg);
-		});
+			return;
+		}
+
+		/** @var Collection<Tracking> */
+		$events = $this->db->table(self::DB_TRACKING)
+			->where("uid", $uid)
+			->orderByDesc("dt")
+			->select("event", "dt")
+			->asObj(Tracking::class);
+		if ($events->isEmpty()) {
+			$msg = "<highlight>{$char}<end> has never logged on or is not being tracked.";
+			$context->reply($msg);
+			return;
+		}
+		$blob = "<header2>All events for {$char}<end>\n";
+		foreach ($events as $event) {
+			if ($event->event == 'logon') {
+				$status = "<on>logon<end>";
+			} elseif ($event->event == 'logoff') {
+				$status = "<off>logoff<end>";
+			} else {
+				$status = "<grey>unknown<end>";
+			}
+			$blob .= "<tab> {$status} - " . $this->util->date($event->dt) ."\n";
+		}
+
+		$msg = $this->text->makeBlob("Track History for {$char}", $blob);
+		$context->reply($msg);
+	}
+
+	protected function trackUid(int $uid, string $name, ?string $sender=null): bool {
+		if ($this->db->table(self::DB_TABLE)->where("uid", $uid)->exists()) {
+			return false;
+		}
+		$this->db->table(self::DB_TABLE)
+			->insert([
+				"name" => $name,
+				"uid" => $uid,
+				"added_by" => $sender ?? $this->chatBot->char->name,
+				"added_dt" => time(),
+			]);
+		$this->buddylistManager->addId($uid, static::REASON_TRACKER);
+		return true;
+	}
+
+	private function updateRosterForOrg(?Guild $org): Generator {
+		// Check if JSON file was downloaded properly
+		if ($org === null) {
+			throw new Exception("Error downloading the guild roster JSON file");
+		}
+
+		if (count($org->members) === 0) {
+			$this->logger->error("The organisation {$org->orgname} has no members. Not changing its roster");
+			return;
+		}
+
+		// Save the current members in a hash for easy access
+		/** @var Collection<TrackingOrgMember> */
+		$oldMembers = $this->db->table(static::DB_ORG_MEMBER)
+			->where("org_id", $org->guild_id)
+			->asObj(TrackingOrgMember::class)
+			->keyBy("uid");
+		yield $this->db->awaitBeginTransaction();
+		$toInsert = [];
+		try {
+			foreach ($org->members as $member) {
+				/** @var ?TrackingOrgMember */
+				$oldMember = $oldMembers->get($member->charid);
+				if (isset($oldMember) && $oldMember->name === $member->name) {
+					$oldMembers->forget((string)$oldMember->uid);
+					continue;
+				}
+				if (isset($oldMember)) {
+					$this->db->table(static::DB_ORG_MEMBER)
+						->where("uid", $oldMember->uid)
+						->update(["name" => $member->name]);
+					$oldMembers->forget((string)$oldMember->uid);
+				} else {
+					$toInsert []= [
+						"org_id" => $org->guild_id,
+						"uid" => $member->charid,
+						"name" => $member->name,
+					];
+				}
+			}
+			if (count($toInsert)) {
+				$maxBuddies = $this->chatBot->getBuddyListSize();
+				$numBuddies = $this->buddylistManager->getUsedBuddySlots();
+				if (count($toInsert) + $numBuddies > $maxBuddies) {
+					$this->db->rollback();
+					$this->db->table(static::DB_ORG)->where("org_id", $org->guild_id)->delete();
+					throw new Exception(
+						"You cannot add " . count($toInsert) . " more ".
+						"characters to the tracking list, you only have ".
+						($maxBuddies - $numBuddies) . " slots left. Please ".
+						"install aochatproxy, or add more characters to your ".
+						"existing configuration."
+					);
+				}
+				$this->db->table(static::DB_ORG_MEMBER)
+					->chunkInsert($toInsert);
+				foreach ($toInsert as $buddy) {
+					$this->buddylistManager->addId($buddy["uid"], static::REASON_ORG_TRACKER);
+				}
+			}
+			$oldMembers->each(function (TrackingOrgMember $exMember): void {
+				$this->buddylistManager->removeId($exMember->uid, static::REASON_ORG_TRACKER);
+			});
+		} catch (Throwable $e) {
+			$this->db->rollback();
+			throw new Exception("Error adding org members for {$org->orgname}: " . $e->getMessage(), 0, $e);
+		}
+		$this->db->commit();
+	}
+
+	/**
+	 * @param Collection<OnlineTrackedUser> $data
+	 * @param array<string,string[]>        $filters
+	 *
+	 * @return Collection<OnlineTrackedUser>
+	 */
+	private function filterOnlineList(Collection $data, array $filters): Collection {
+		if (isset($filters['profession'])) {
+			$professions = [];
+			foreach ($filters['profession'] as $prof) {
+				$professions []= $this->util->getProfessionName($prof);
+			}
+			$data = $data->whereIn("profession", $professions);
+		}
+		if (isset($filters['faction'])) {
+			$factions = [];
+			foreach ($filters['faction'] as $faction) {
+				$faction = ucfirst(strtolower($faction));
+				if ($faction === "Neut") {
+					$faction = "Neutral";
+				}
+				$factions []= $faction;
+			}
+			$data = $data->whereIn("faction", $factions);
+		}
+		if (isset($filters['titleLevelRange'])) {
+			$filters['levelRange'] ??= [];
+			foreach ($filters['titleLevelRange'] as $range) {
+				$from = $this->util->tlToLevelRange((int)substr($range, 2, 1));
+				$to = $this->util->tlToLevelRange((int)substr($range, 4, 1));
+				$filters['levelRange'] []= "{$from[0]}-{$to[1]}";
+			}
+		}
+		if (isset($filters['titleLevel'])) {
+			$filters['levelRange'] ??= [];
+			foreach ($filters['titleLevel'] as $tl) {
+				[$from, $to] = $this->util->tlToLevelRange((int)substr($tl, 2));
+				$filters['levelRange'] []= "{$from}-{$to}";
+			}
+		}
+		if (isset($filters['level'])) {
+			$filters['levelRange'] ??= [];
+			foreach ($filters['level'] as $level) {
+				$filters['levelRange'] []= "{$level}-{$level}";
+			}
+		}
+		if (isset($filters['levelRange'])) {
+			$ranges = [];
+			foreach ($filters['levelRange'] as $range) {
+				[$min, $max] = \Safe\preg_split("/\s*-\s*/", $range);
+				$ranges []= [strlen($min) ? (int)$min : 1, strlen($max) ? (int)$max : 220];
+			}
+			$data = $data->filter(function (OnlineTrackedUser $user) use ($ranges): bool {
+				if (!isset($user->level)) {
+					return true;
+				}
+				foreach ($ranges as $range) {
+					if ($user->level >= $range[0] && $user->level <= $range[1]) {
+						return true;
+					}
+				}
+				return false;
+			});
+		}
+		return $data;
 	}
 }

@@ -13,8 +13,7 @@ use Nadybot\Core\{
 #[
 	NCA\EventModifier(
 		name: "if-has-prefix",
-		description:
-			"This modifier will only route messages if they start\n".
+		description: "This modifier will only route messages if they start\n".
 			"with a certain prefix. By default, this prefix will then be removed\n".
 			"if it has been found.\n".
 			"This allows you to only route messages that start with a dash or an\n".
