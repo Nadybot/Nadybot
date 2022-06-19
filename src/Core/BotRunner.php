@@ -176,7 +176,7 @@ class BotRunner {
 	}
 
 	public function checkRequiredPackages(): void {
-		if (!class_exists("Monolog\\Logger")) {
+		if (!class_exists("Amp\\Loop")) {
 			\Safe\fwrite(
 				STDERR,
 				"Nadybot cannot find all the required composer modules in 'vendor'.\n".
