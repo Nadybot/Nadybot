@@ -715,6 +715,13 @@ class ItemsController extends ModuleInstance {
 		return $result;
 	}
 
+	/** Check if an aoid is part of an item group */
+	public function hasItemGroup(int $aoid): bool {
+		return $this->db->table("item_groups")
+			->where("item_id", $aoid)
+			->exists();
+	}
+
 	/** @return string[] */
 	protected function flagsToText(int $flags): array {
 		$result = [];

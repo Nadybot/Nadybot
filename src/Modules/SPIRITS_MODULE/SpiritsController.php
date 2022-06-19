@@ -261,4 +261,11 @@ class SpiritsController extends ModuleInstance {
 
 		return $output;
 	}
+
+	/** Check if a given aoid is a spirit */
+	public function isSpirit(int $aoid): bool {
+		return $this->db->table("spiritsdb")
+			->where("id", $aoid)
+			->exists();
+	}
 }
