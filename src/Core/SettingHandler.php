@@ -51,7 +51,7 @@ abstract class SettingHandler {
 		}
 		if (strlen($this->row->intoptions??'')) {
 			$intoptions = explode(";", $this->row->intoptions??"");
-			$options_map = \Safe\array_combine($intoptions, $options??[]);
+			$options_map = array_combine($intoptions, $options??[]);
 		}
 		if (empty($options)) {
 			return null;

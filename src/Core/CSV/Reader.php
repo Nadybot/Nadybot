@@ -49,7 +49,7 @@ class Reader {
 				}
 			}
 
-			yield \Safe\array_combine($headers??[], $row);
+			yield array_combine($headers??[], $row);
 		}
 
 		return [];

@@ -14,4 +14,10 @@ class LadderRequirements extends DBRow {
 	public int $skillShiny;
 	public int $skillBright;
 	public int $skillFaded;
+	public int $lowestAbilityShiny;
+	public int $lowestAbilityBright;
+	public int $lowestAbilityFaded;
+	public int $lowestSkillShiny;
+	public int $lowestSkillBright;
+	public int $lowestSkillFaded;
 }
