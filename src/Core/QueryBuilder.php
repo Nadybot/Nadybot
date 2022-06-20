@@ -32,12 +32,40 @@ class QueryBuilder extends Builder {
 		return new Collection($this->fetchAll($class, $this->toSql(), ...$this->getBindings()));
 	}
 
-	/** Pluck values as type $type */
+	/**
+	 * Pluck values as type $type
+	 *
+	 * @deprecated 6.1.0
+	 */
 	public function pluckAs(string $column, string $type): Collection {
 		return $this->pluck($column)
 			->map(function (mixed $value, int $key) use ($type): mixed {
 				\Safe\settype($value, $type);
 				return $value;
+			});
+	}
+
+	/**
+	 * Pluck values as strings
+	 *
+	 * @return Collection<string>
+	 */
+	public function pluckStrings(string $column): Collection {
+		return $this->pluck($column)
+			->map(function (mixed $value, int $key): string {
+				return (string)$value;
+			});
+	}
+
+	/**
+	 * Pluck values as ints
+	 *
+	 * @return Collection<int>
+	 */
+	public function pluckInts(string $column): Collection {
+		return $this->pluck($column)
+			->map(function (mixed $value, int $key): int {
+				return (int)$value;
 			});
 	}
 

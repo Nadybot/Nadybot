@@ -521,7 +521,7 @@ class RaffleController extends ModuleInstance {
 			$losersUpdate = $this->db->table(self::DB_TABLE)
 					->whereIn("name", $losers)
 					->select("name")
-					->pluckAs("name", "string")->toArray();
+					->pluckStrings("name")->toArray();
 		}
 		$losersInsert = array_diff($losers, $losersUpdate);
 		if (count($losersUpdate)) {
@@ -683,7 +683,7 @@ class RaffleController extends ModuleInstance {
 		return $this->db->table(self::DB_TABLE)
 			->where("name", $player)
 			->select("bonus")
-			->pluckAs("bonus", "int")->first() ?? 0;
+			->pluckInts("bonus")->first() ?? 0;
 	}
 
 	/** @param RaffleResultItem[] $result */

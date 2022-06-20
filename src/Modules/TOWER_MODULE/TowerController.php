@@ -2233,7 +2233,7 @@ class TowerController extends ModuleInstance {
 			->where("y_coord1", ">=", $yCoords)
 			->where("y_coord2", "<=", $yCoords)
 			->select("site_number")
-			->pluckAs("site_number", "int")
+			->pluckInts("site_number")
 			->first();
 		if (isset($bbMatch)) {
 			return $this->getTowerInfo($playfieldID, $bbMatch);

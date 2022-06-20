@@ -9,11 +9,13 @@ class ConvertAriaTables implements SchemaMigration {
 		if ($db->getType() !== $db::MYSQL) {
 			return;
 		}
+
+		/** @var string[] */
 		$tables = $db->table("information_schema.TABLES")
 			->where("TABLE_SCHEMA", $db->schema()->getConnection()->getDatabaseName())
 			->where("ENGINE", "Aria")
 			->select("TABLE_NAME")
-			->pluckAs("TABLE_NAME", "string")
+			->pluckStrings("TABLE_NAME")
 			->toArray();
 		if (empty($tables)) {
 			return;

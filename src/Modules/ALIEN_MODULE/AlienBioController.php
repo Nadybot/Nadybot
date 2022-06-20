@@ -340,7 +340,7 @@ class AlienBioController extends ModuleInstance {
 			->where("type", $type)
 			->select("specials")
 			->limit(1)
-			->pluckAs("specials", "string")
+			->pluckStrings("specials")
 			->first();
 
 		$blob = $item . "\n\n";

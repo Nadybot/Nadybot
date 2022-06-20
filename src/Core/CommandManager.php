@@ -215,7 +215,7 @@ class CommandManager implements MessageEmitter {
 			$this->logger->error("Error registering method '{$handler}' for command '{$command}': " . $e->getMessage(), ["exception" => $e]);
 		}
 		$permSets = $this->db->table(self::DB_TABLE_PERM_SET)
-			->select("name")->pluckAs("name", "string");
+			->select("name")->pluckStrings("name");
 		foreach ($permSets as $permSet) {
 			$this->logger->info("Adding permissions to command {$command}");
 			$this->db->table(self::DB_TABLE_PERMS)

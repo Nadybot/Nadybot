@@ -138,7 +138,7 @@ class AltsController extends ModuleInstance {
 			})->toArray();
 		yield $this->db->table("alts")->where("validated_by_main", false)->where("added_via", $myName)
 			->select("main")->distinct()
-			->pluckAs("main", "string")
+			->pluckStrings("main")
 			->map(function (string $main) {
 				return $this->buddylistManager->addAsync($main, static::MAIN_VALIDATE);
 			})->toArray();

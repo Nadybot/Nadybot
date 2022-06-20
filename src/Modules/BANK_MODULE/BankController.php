@@ -72,7 +72,7 @@ class BankController extends ModuleInstance {
 		$characters = $this->db->table("bank")
 			->orderBy("player")
 			->select("player")->distinct()
-			->pluckAs("player", "string");
+			->pluckStrings("player");
 		if ($characters->isEmpty()) {
 			$context->reply("No bank characters found.");
 			return;

@@ -139,7 +139,7 @@ class DiscordSlashCommandController extends ModuleInstance {
 	 */
 	public function calcSlashCommands(): array {
 		$enabledCommands = $this->db->table(self::DB_SLASH_TABLE)
-			->pluckAs("cmd", "string")->toArray();
+			->pluckStrings("cmd")->toArray();
 		if ($this->discordSlashCommands === self::SLASH_OFF) {
 			return [];
 		}
@@ -164,7 +164,7 @@ class DiscordSlashCommandController extends ModuleInstance {
 	): void {
 		$cmds = $this->db->table(self::DB_SLASH_TABLE)
 			->orderBy("cmd")
-			->pluckAs("cmd", "string");
+			->pluckStrings("cmd");
 		$lines = $cmds->map(function (string $cmd): string {
 			$delCommand = $this->text->makeChatcmd(
 				"remove",
@@ -194,7 +194,7 @@ class DiscordSlashCommandController extends ModuleInstance {
 	): Generator {
 		$cmds = $this->db->table(self::DB_SLASH_TABLE)
 			->orderBy("cmd")
-			->pluckAs("cmd", "string")
+			->pluckStrings("cmd")
 			->toArray();
 		$newCommands = (new Collection($commands))
 			->map(function (string $cmd): string {
@@ -270,7 +270,7 @@ class DiscordSlashCommandController extends ModuleInstance {
 	): Generator {
 		$cmds = $this->db->table(self::DB_SLASH_TABLE)
 			->orderBy("cmd")
-			->pluckAs("cmd", "string")
+			->pluckStrings("cmd")
 			->toArray();
 		$delCommands = (new Collection($commands))
 			->map(function (string $cmd): string {
@@ -320,7 +320,7 @@ class DiscordSlashCommandController extends ModuleInstance {
 		/** @var string[] */
 		$exposedCmds = $this->db->table(self::DB_SLASH_TABLE)
 			->orderBy("cmd")
-			->pluckAs("cmd", "string")
+			->pluckStrings("cmd")
 			->toArray();
 
 		/** @var Collection<CmdCfg> */

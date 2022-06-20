@@ -282,7 +282,7 @@ class RaidPointsController extends ModuleInstance {
 		return $this->db->table(self::DB_TABLE)
 			->where("username", $player)
 			->select("points")
-			->pluckAs("points", "int")
+			->pluckInts("points")
 			->first();
 	}
 

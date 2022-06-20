@@ -348,7 +348,7 @@ class GuildController extends ModuleInstance {
 		$mode = $this->db->table(self::DB_TABLE)
 			->where("name", $name)
 			->select("mode")
-			->pluckAs("mode", "string")->first();
+			->pluckStrings("mode")->first();
 
 		if ($mode !== null && $mode !== "del") {
 			$msg = "<highlight>{$name}<end> is already on the Notify list.";
@@ -396,7 +396,7 @@ class GuildController extends ModuleInstance {
 		$mode = $this->db->table(self::DB_TABLE)
 			->where("name", $name)
 			->select("mode")
-			->pluckAs("mode", "string")->first();
+			->pluckStrings("mode")->first();
 
 		if ($mode === null) {
 			$msg = "<highlight>{$name}<end> is not on the guild roster.";

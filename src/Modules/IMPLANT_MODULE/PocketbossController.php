@@ -201,7 +201,7 @@ class PocketbossController extends ModuleInstance {
 
 		/** @var string[] */
 		$lines = $this->db->table("pocketboss")->select("line")->distinct()
-			->pluckAs("line", "string")->toArray();
+			->pluckStrings("line")->toArray();
 
 		for ($i = 0; $i < $paramCount; $i++) {
 			switch (strtolower($args[$i])) {

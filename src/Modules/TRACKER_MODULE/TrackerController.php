@@ -778,7 +778,7 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 				$this->db->table(self::DB_TABLE)
 					->select("name")
 					->where("hidden", true)
-			)->pluckAs("name", "string")
+			)->pluckStrings("name")
 			->unique()
 			->mapToDictionary(fn (string $s): array => [$s => true])
 			->toArray();
@@ -790,7 +790,7 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 		}
 		$trackedUsers = $data1
 			->union($data2)
-			->pluckAs("name", "string")
+			->pluckStrings("name")
 			->unique()
 			->filter(function (string $name): bool {
 				return $this->buddylistManager->isOnline($name) ?? false;

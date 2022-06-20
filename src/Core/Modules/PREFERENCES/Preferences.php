@@ -45,7 +45,7 @@ class Preferences extends ModuleInstance {
 			->where("sender", $sender)
 			->where("name", $name)
 			->select("value")
-			->pluckAs("value", "string")
+			->pluckStrings("value")
 			->first();
 	}
 

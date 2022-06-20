@@ -100,7 +100,7 @@ class ItemsController extends ModuleInstance {
 		$types = $this->db->table("item_types")
 			->where("item_id", $id)
 			->select("item_type")
-			->pluckAs("item_type", "string")
+			->pluckStrings("item_type")
 			->toArray();
 		foreach (get_object_vars($row) as $key => $value) {
 			if ($key === "numExactMatches") {

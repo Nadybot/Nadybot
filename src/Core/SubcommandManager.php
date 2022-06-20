@@ -87,7 +87,7 @@ class SubcommandManager {
 			return;
 		}
 		$permSets = $this->db->table(CommandManager::DB_TABLE_PERM_SET)
-			->select("name")->pluckAs("name", "string");
+			->select("name")->pluckStrings("name");
 		foreach ($permSets as $permSet) {
 			$this->db->table(CommandManager::DB_TABLE_PERMS)
 				->insertOrIgnore(

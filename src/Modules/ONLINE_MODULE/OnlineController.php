@@ -628,7 +628,7 @@ class OnlineController extends ModuleInstance {
 		/** @var ?string */
 		$afk = $this->buildOnlineQuery($sender, $type)
 			->select("afk")
-			->pluckAs("afk", "string")->first();
+			->pluckStrings("afk")->first();
 
 		if ($afk === null || $afk === '') {
 			return;

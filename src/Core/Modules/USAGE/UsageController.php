@@ -363,7 +363,7 @@ class UsageController extends ModuleInstance {
 			->orderByColFunc("COUNT", "command", "desc")
 			->addSelect("command")
 			->limit(4)
-			->pluckAs("command", "string");
+			->pluckStrings("command");
 		if ($commands->isEmpty()) {
 			$callback(null);
 			return;

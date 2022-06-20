@@ -2,7 +2,6 @@
 
 namespace Nadybot\Core\Migrations;
 
-use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	DB,
 	DBSchema\Setting,
@@ -20,8 +19,7 @@ class ConvertBroadcastsToRoutes implements SchemaMigration {
 			return;
 		}
 
-		/** @var Collection<string> */
-		$broadcasts = $db->table($table)->pluckAs("name", "string");
+		$broadcasts = $db->table($table)->pluckStrings("name");
 		$orgSetting = $this->getSetting($db, 'broadcast_to_guild');
 		$toOrg = isset($orgSetting) ? ($orgSetting->value === "1") : true;
 		$privSetting = $this->getSetting($db, 'broadcast_to_privchan');

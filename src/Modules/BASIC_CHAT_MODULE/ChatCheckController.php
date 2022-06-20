@@ -37,7 +37,7 @@ class ChatCheckController extends ModuleInstance {
 			->where("added_by", $this->db->getBotname())
 			->where("channel_type", self::CHANNEL_TYPE)
 			->select("name")
-			->pluckAs("name", "string");
+			->pluckStrings("name");
 		$content = "";
 		if ($data->count() === 0) {
 			$msg = "There's no one to check online.";

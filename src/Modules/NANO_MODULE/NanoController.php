@@ -170,7 +170,7 @@ class NanoController extends ModuleInstance {
 		}
 
 		/** @var Collection<string> */
-		$profs = $query->pluckAs("professions", "string");
+		$profs = $query->pluckStrings("professions");
 
 		$blob = "<header2>Choose a profession<end>\n";
 		$command = $froobOnly ? "nanolinesfroob" : "nanolines";

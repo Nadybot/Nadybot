@@ -304,7 +304,7 @@ class ImplantDesignerController extends ModuleInstance {
 			}
 			$blob .= "Which ability do you want to require for {$slot}?\n\n";
 			$abilities = $this->db->table("Ability")->select("Name")
-				->pluckAs("Name", "string")->toArray();
+				->pluckStrings("Name")->toArray();
 			foreach ($abilities as $ability) {
 				$blob .= $this->text->makeChatcmd($ability, "/tell <myname> implantdesigner {$slot} require {$ability}") . "\n";
 			}
@@ -573,7 +573,7 @@ class ImplantDesignerController extends ModuleInstance {
 			->where("i.ShortName", strtolower($implantType))
 			->where("c3.Name", strtolower($clusterType))
 			->select("LongName AS skill")
-			->pluckAs("skill", "string")
+			->pluckStrings("skill")
 			->toArray();
 	}
 
@@ -581,7 +581,7 @@ class ImplantDesignerController extends ModuleInstance {
 		$design = $this->db->table("implant_design")
 			->where("owner", $sender)
 			->where("name", $name)
-			->pluckAs("design", "string")
+			->pluckStrings("design")
 			->first();
 		if ($design === null) {
 			return new stdClass();

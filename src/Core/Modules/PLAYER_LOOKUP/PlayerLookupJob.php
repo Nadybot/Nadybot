@@ -51,18 +51,20 @@ class PlayerLookupJob {
 	 * @return Collection<Player>
 	 */
 	public function getMissingAlts(): Collection {
-		return $this->db->table("alts")
+		/** @var Collection<Player> */
+		$result = $this->db->table("alts")
 			->whereNotExists(function (QueryBuilder $query): void {
 				$query->from("players")
 					->whereColumn("alts.alt", "players.name");
 			})->select("alt")
-			->pluckAs("alt", "string")
+			->pluckStrings("alt")
 			->map(function (string $alt): Player {
 				$result = new Player();
 				$result->name = $alt;
 				$result->dimension = $this->db->getDim();
 				return $result;
 			});
+		return $result;
 	}
 
 	/**

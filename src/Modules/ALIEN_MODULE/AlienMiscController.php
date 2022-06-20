@@ -84,7 +84,7 @@ class AlienMiscController extends ModuleInstance {
 			->orderBy("profession")
 			->select("profession")
 			->distinct()
-			->pluckAs("profession", "string")
+			->pluckStrings("profession")
 			->reduce(
 				function (string $blob, string $profession): string {
 					$professionLink = $this->text->makeChatcmd($profession, "/tell <myname> leprocs {$profession}");
@@ -155,7 +155,7 @@ class AlienMiscController extends ModuleInstance {
 			->orderBy("ql")
 			->select("ql")
 			->distinct()
-			->pluckAs("ql", "int")
+			->pluckInts("ql")
 			->toArray();
 		$blob = $this->db->table("ofabarmortype")
 			->orderBy("profession")
@@ -201,7 +201,7 @@ class AlienMiscController extends ModuleInstance {
 
 		$type = $this->db->table("ofabarmortype")
 			->where("profession", $profession)
-			->pluckAs("type", "int")
+			->pluckInts("type")
 			->first();
 
 		/** @var Collection<OfabArmor> */
@@ -232,7 +232,7 @@ class AlienMiscController extends ModuleInstance {
 		$qls = $this->db->table("ofabarmorcost")
 			->orderBy("ql")
 			->select("ql")->distinct()
-			->pluckAs("ql", "int");
+			->pluckInts("ql");
 		foreach ($qls as $currQL) {
 			if ($currQL === $ql) {
 				$blob .= "<yellow>[<end>{$currQL}<yellow>]<end> ";
@@ -289,7 +289,7 @@ class AlienMiscController extends ModuleInstance {
 		$qls = $this->db->table("ofabweaponscost")
 			->orderBy("ql")
 			->select("ql")->distinct()
-			->pluckAs("ql", "int")->toArray();
+			->pluckInts("ql")->toArray();
 		$blob = $this->db->table("ofabweapons")
 			->orderBy("name")
 			->asObj(OfabWeapon::class)
@@ -340,7 +340,7 @@ class AlienMiscController extends ModuleInstance {
 		$blob = $this->db->table("ofabweaponscost")
 			->orderBy("ql")
 			->select("ql")->distinct()
-			->pluckAs("ql", "int")
+			->pluckInts("ql")
 			->reduce(
 				function (string $blob, int $ql) use ($searchQL, $weapon): string {
 					if ($ql === $searchQL) {

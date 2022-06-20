@@ -199,7 +199,7 @@ class OrgNotesController extends ModuleInstance {
 		$note = $event->toOrgNote();
 		$note->id = $this->db->table(self::DB_TABLE)
 			->where("uuid", $event->uuid)
-			->pluckAs("id", "integer")
+			->pluckInts("id")
 			->first();
 		if (isset($note->id)) {
 			$this->db->update(self::DB_TABLE, "id", $note);
