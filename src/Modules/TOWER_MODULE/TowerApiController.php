@@ -9,7 +9,7 @@ use Amp\Http\Client\{HttpClientBuilder, Request, Response};
 use Amp\Promise;
 use Exception;
 use Generator;
-use League\Uri\Http;
+use League\Uri\{Http, Uri};
 use Nadybot\Core\{
 	Attributes as NCA,
 	BotRunner,
@@ -116,6 +116,10 @@ class TowerApiController extends ModuleInstance {
 			$client = $this->builder
 				->intercept(new SetRequestHeader("User-Agent", "Naughtybot " . BotRunner::getVersion()))
 				->build();
+			$apiQuery = Uri::createFromString($apiURL)->getQuery();
+			if (isset($apiQuery) && strlen($apiQuery) > 0) {
+				$query = $apiQuery . '&' . $query;
+			}
 			$uri = Http::createFromString($apiURL)->withQuery($query);
 
 			/** @var Response */
