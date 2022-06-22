@@ -154,6 +154,9 @@ class Websocket implements TransportInterface, StatusProvider {
 					/** @var Connection */
 					$connection = yield $client->connect($handshake, null);
 				} catch (Throwable $e) {
+					if ($this->chatBot->isShuttingDown()) {
+						return;
+					}
 					if ($e instanceof UnprocessedRequestException) {
 						$prev = $e->getPrevious();
 						if (isset($prev)) {
@@ -231,6 +234,9 @@ class Websocket implements TransportInterface, StatusProvider {
 					$this->relay->receiveFromTransport($msg);
 				}
 			} catch (Throwable $e) {
+				if ($this->chatBot->isShuttingDown()) {
+					return;
+				}
 				$this->logger->error("[{uri}] {error}, retrying in 10s", [
 					"uri" => $this->uri,
 					"error" => $e->getMessage(),

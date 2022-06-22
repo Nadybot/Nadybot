@@ -166,6 +166,9 @@ class Nadybot extends AOChat {
 	/** How many buddies can this bot hold */
 	private int $buddyListSize = 0;
 
+	/** Is the bot currently trying to stop? */
+	private bool $shuttingDown = false;
+
 	/** Initialize the bot */
 	public function init(BotRunner $runner): void {
 		$this->started = time();
@@ -350,6 +353,7 @@ class Nadybot extends AOChat {
 
 			$signalHandler = function (): void {
 				$this->logger->notice('Shutdown requested.');
+				$this->shuttingDown = true;
 				Loop::stop();
 			};
 			if (function_exists('sapi_windows_set_ctrl_handler')) {
@@ -399,6 +403,10 @@ class Nadybot extends AOChat {
 			});
 		});
 		$this->logger->notice('Graceful shutdown.');
+	}
+
+	public function isShuttingDown(): bool {
+		return $this->shuttingDown;
 	}
 
 	/** Process all packets in an endless loop */
