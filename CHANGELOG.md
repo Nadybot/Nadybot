@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Commands and events can now be declared as Generators, which automatically makes them execute async and allows to `yield` results from promises.
 - Add a management-interface as an addition to the console. The management interface does not appear in the routes and currently supports tcp- and unix domain sockets.
+- `!track info <name>` now also shows who added a character to the tracker.
 
 ### Changed
 
@@ -22,7 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Relay websockets
   - Discord
   - EventLoop::add()
-  - Http-client is now being replaced with HttpClientBuilder, while the old Http/AsyncHttp still function, but are now deprecated
+  - Http-client is now being replaced with HttpClientBuilder, while the old Http/AsyncHttp still function, but are now deprecated.
 
   This leads to even lower delay when processing Discord/Web/Console/AO packages, and the bot's CPU usage dropping to 0 in idle, compared to ~1%-2% before.
   A whole lot of functions are now deprecated and will be removed or replaced in 7.0, while none of the core function signatures has changed.
@@ -35,7 +36,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fix
 
-- The console history works 100% now, only ctrl+r-search is now broken
+- The console history works 100% now, only ctrl+r-search is now broken.
+- The bot now correctly sets the name of the character who added someone to the tracker.
 
 ## [6.0.5] - 2022-06-17
 

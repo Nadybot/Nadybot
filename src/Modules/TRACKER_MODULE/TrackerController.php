@@ -566,7 +566,7 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 			$context->reply($msg);
 			return;
 		}
-		if (!$this->trackUid($uid, $char())) {
+		if (!$this->trackUid($uid, $char(), $context->char->name)) {
 			$msg = "Character <highlight>{$char}<end> is already on the track list.";
 			$context->reply($msg);
 			return;
@@ -1105,18 +1105,46 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 			return;
 		}
 
+		/** @var ?TrackedUser */
+		$user = $this->db->table(self::DB_TABLE)
+			->where("uid", $uid)
+			->asObj(TrackedUser::class)
+			->first();
+
+		if ($user === null) {
+			$msg = "<highlight>{$char}<end> is not being tracked.";
+			$context->reply($msg);
+			return;
+		}
+
 		/** @var Collection<Tracking> */
 		$events = $this->db->table(self::DB_TRACKING)
 			->where("uid", $uid)
 			->orderByDesc("dt")
 			->select("event", "dt")
 			->asObj(Tracking::class);
-		if ($events->isEmpty()) {
-			$msg = "<highlight>{$char}<end> has never logged on or is not being tracked.";
-			$context->reply($msg);
-			return;
+		$hideLink = $this->text->makeChatcmd(
+			"hide",
+			"/tell <myname> track hide {$uid}"
+		);
+		if ($user->hidden) {
+			$hideLink = $this->text->makeChatcmd(
+				"unhide",
+				"/tell <myname> track unhide {$uid}"
+			);
 		}
-		$blob = "<header2>All events for {$char}<end>\n";
+		$blob = "<header2>Info<end>\n".
+			"<tab>Name: <highlight>{$char}<end>\n".
+			"<tab>Uid: <highlight>{$uid}<end>\n".
+			"<tab>Added: By <highlight>{$user->added_by}<end> on ".
+			"<highlight>" . $this->util->date($user->added_dt) . "<end>\n".
+			"<tab>Visible: ".
+			($user->hidden ? "<off>no<end>" : "<on>yes<end>").
+			" [{$hideLink}]\n\n".
+			"<header2>All events for {$char}<end>\n";
+		if ($events->isEmpty()) {
+			$blob .= "<tab><highlight>{$char}<end> has never logged on.";
+		}
 		foreach ($events as $event) {
 			if ($event->event == 'logon') {
 				$status = "<on>logon<end>";
