@@ -472,7 +472,7 @@ class RaidMemberController extends ModuleInstance {
 			$activeNames = [];
 			foreach ($raid->raiders as $player => $raider) {
 				if ($raider->left === null) {
-					$activeNames []= $this->playerManager->byName($raider->player);
+					$activeNames[$raider->player] = $this->playerManager->byName($raider->player);
 				}
 			}
 			$activePlayers = yield all($activeNames);
