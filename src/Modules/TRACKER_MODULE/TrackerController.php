@@ -229,7 +229,7 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 		try {
 			foreach ($orgs as $org) {
 				$orgData = yield $this->guildManager->byId($org->org_id, $this->config->dimension, true);
-				yield $this->updateRosterForOrg($orgData);
+				yield from $this->updateRosterForOrg($orgData);
 			}
 		} catch (Throwable $e) {
 			$this->logger->error($e->getMessage(), ["Exception" => $e->getPrevious()]);
@@ -610,7 +610,7 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 				$context->reply("No data found for <" . strtolower($org->faction) . ">{$org->name}<end>.");
 				return null;
 			}
-			yield $this->updateRosterForOrg($guild);
+			yield from $this->updateRosterForOrg($guild);
 		} catch (Throwable $e) {
 			$this->logger->error($e->getMessage(), ["Exception" => $e->getPrevious()]);
 			$context->reply($e->getMessage());
@@ -1105,6 +1105,8 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 			return;
 		}
 
+		$orgMember = null;
+
 		/** @var ?TrackedUser */
 		$user = $this->db->table(self::DB_TABLE)
 			->where("uid", $uid)
@@ -1112,9 +1114,19 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 			->first();
 
 		if ($user === null) {
-			$msg = "<highlight>{$char}<end> is not being tracked.";
-			$context->reply($msg);
-			return;
+			/** @var ?TrackingOrgMember */
+			$orgMember = $this->db->table(self::DB_ORG_MEMBER)
+				->where("uid", $uid)
+				->asObj(TrackingOrgMember::class)
+				->first();
+			if ($orgMember === null) {
+				$msg = "<highlight>{$char}<end> is not being tracked.";
+				$context->reply($msg);
+				return;
+			}
+			$hidden = $orgMember->hidden;
+		} else {
+			$hidden = $user->hidden;
 		}
 
 		/** @var Collection<Tracking> */
@@ -1127,7 +1139,7 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 			"hide",
 			"/tell <myname> track hide {$uid}"
 		);
-		if ($user->hidden) {
+		if ($hidden) {
 			$hideLink = $this->text->makeChatcmd(
 				"unhide",
 				"/tell <myname> track unhide {$uid}"
@@ -1135,11 +1147,13 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 		}
 		$blob = "<header2>Info<end>\n".
 			"<tab>Name: <highlight>{$char}<end>\n".
-			"<tab>Uid: <highlight>{$uid}<end>\n".
-			"<tab>Added: By <highlight>{$user->added_by}<end> on ".
-			"<highlight>" . $this->util->date($user->added_dt) . "<end>\n".
-			"<tab>Visible: ".
-			($user->hidden ? "<off>no<end>" : "<on>yes<end>").
+			"<tab>Uid: <highlight>{$uid}<end>\n";
+		if (isset($user)) {
+			$blob .= "<tab>Added: By <highlight>{$user->added_by}<end> on ".
+				"<highlight>" . $this->util->date($user->added_dt) . "<end>\n";
+		}
+		$blob .= "<tab>Visible: ".
+			($hidden ? "<off>no<end>" : "<on>yes<end>").
 			" [{$hideLink}]\n\n".
 			"<header2>All events for {$char}<end>\n";
 		if ($events->isEmpty()) {
