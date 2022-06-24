@@ -24,6 +24,23 @@ class MessageRoute {
 		return $this->route->id;
 	}
 
+	public function isDisabled(): bool {
+		return isset($this->route->disabled_until)
+			&& ($this->route->disabled_until) >= time();
+	}
+
+	public function getDisabled(): ?int {
+		return $this->route->disabled_until;
+	}
+
+	public function disable(int $duration): void {
+		$this->route->disabled_until = time() + $duration;
+	}
+
+	public function unmute(): void {
+		$this->route->disabled_until = null;
+	}
+
 	public function getSource(): string {
 		return $this->route->source;
 	}

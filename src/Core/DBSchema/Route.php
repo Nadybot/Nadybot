@@ -17,6 +17,9 @@ class Route extends DBRow {
 	/** Set to true if this route is also the other way around */
 	public bool $two_way=false;
 
+	/** If set, the route is disabled until the set timestamp */
+	public ?int $disabled_until = null;
+
 	/**
 	 * The modifiers for this route
 	 *

@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Commands and events can now be declared as Generators, which automatically makes them execute async and allows to `yield` results from promises.
 - Add a management-interface as an addition to the console. The management interface does not appear in the routes and currently supports tcp- and unix domain sockets.
 - `!track info <name>` now also shows who added a character to the tracker.
+- Allow muting (temporarily disabling) of routes
 
 ### Changed
 

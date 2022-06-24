@@ -19,6 +19,7 @@ class CreateRouteTable implements SchemaMigration {
 			$table->string("source", 100);
 			$table->string("destination", 100);
 			$table->boolean("two_way")->default(false);
+			$table->unsignedInteger("disabled_until")->nullable(true);
 		});
 		if (strlen($db->getMyguild())) {
 			$route = [

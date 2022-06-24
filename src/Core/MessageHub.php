@@ -399,6 +399,11 @@ class MessageHub {
 					continue;
 				}
 				foreach ($routes as $route) {
+					if ($route->isDisabled()) {
+						$this->logger->info("Routing to {$destName} temporarily disabled");
+						$returnStatus = max($returnStatus, static::EVENT_NOT_ROUTED);
+						continue;
+					}
 					$modifiedEvent = $route->modifyEvent($event);
 					if (!isset($modifiedEvent)) {
 						$this->logger->info("Event filtered away for {$destName}");

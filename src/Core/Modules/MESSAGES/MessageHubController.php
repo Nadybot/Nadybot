@@ -100,6 +100,84 @@ class MessageHubController extends ModuleInstance {
 		$this->messageHub->routingLoaded = true;
 	}
 
+	/** Mute an existing route for a given period of time */
+	#[NCA\HandlesCommand("route")]
+	#[NCA\Help\Example(
+		"<symbol>route mute 17 1h",
+		"Disable route #17 for 1 hour"
+	)]
+	public function routeMuteIdCommand(
+		CmdContext $context,
+		#[NCA\Str("mute", "disable")] string $action,
+		int $id,
+		#[NCA\PDuration] #[NCA\Str("off")] string $duration
+	): void {
+		$route = $this->getMsgRoute($id);
+		if (!isset($route)) {
+			$context->reply("No route <highlight>#{$id}<end> found.");
+			return;
+		}
+		$from = $route->getSource();
+		$to = $route->getDest();
+		$direction = $route->getTwoWay() ? "&lt;-&gt;" : "-&gt;";
+		if (strtolower($duration) === "off") {
+			$route->unmute();
+			$context->reply(
+				"Route {$from} {$direction} {$to} <on>enabled<end> again"
+			);
+			$this->db->table(MessageHub::DB_TABLE_ROUTES)
+				->where("id", $route->getID())
+				->update(["disabled_until" => null]);
+			return;
+		}
+		$durationSecs = $this->util->parseTime($duration);
+		if ($durationSecs === 0) {
+			$context->reply("<highlight>{$duration}<end> is not a valid duration.");
+			return;
+		}
+		$route->disable($durationSecs);
+		$this->db->table(MessageHub::DB_TABLE_ROUTES)
+			->where("id", $route->getID())
+			->update(["disabled_until" => time() + $durationSecs]);
+		$context->reply(
+			"Route {$from} {$direction} {$to} <off>muted<end> ".
+			"for <highlight>{$duration}<end>."
+		);
+	}
+
+	/** Mute an existing route by choosing how long */
+	#[NCA\HandlesCommand("route")]
+	public function routeMuteCommand(
+		CmdContext $context,
+		#[NCA\Str("mute", "disable")] string $action,
+		int $id,
+	): void {
+		$route = $this->getMsgRoute($id);
+		if (!isset($route)) {
+			$context->reply("No route <highlight>#{$id}<end> found.");
+			return;
+		}
+		$durations = [60, 300, 600, 1800, 3600, 6*3600, 24*3600];
+		$blob = "<header2>Choose mute duration<end>";
+		foreach ($durations as $durationInSecs) {
+			$timeString = $this->util->unixtimeToReadable($durationInSecs);
+			$command = $this->text->makeChatcmd(
+				"{$timeString}",
+				"/tell <myname> route mute {$id} {$durationInSecs}s"
+			);
+			$blob .= "\n<tab>[{$command}]";
+		}
+		$from = $route->getSource();
+		$to = $route->getDest();
+		$direction = $route->getTwoWay() ? "&lt;-&gt;" : "-&gt;";
+		$context->reply(
+			$this->text->makeBlob(
+				"Choose how long to mute {$from} {$direction} {$to}",
+				$blob
+			)
+		);
+	}
+
 	/** Create a new route from &lt;from&gt; to &lt;to&gt; with optional modifiers */
 	#[NCA\HandlesCommand("route")]
 	#[NCA\Help\Example(
@@ -395,7 +473,13 @@ class MessageHubController extends ModuleInstance {
 		});
 		foreach ($routes as $route) {
 			$delLink = $this->text->makeChatcmd("delete", "/tell <myname> route del " . $route->getID());
-			$list []="[{$delLink}] " . $this->renderRoute($route);
+			$disabledUntil = $route->getDisabled();
+			$isDisabled = isset($disabledUntil) && $disabledUntil > time();
+			$disableLink = $this->text->makeChatcmd("mute", "/tell <myname> route mute " . $route->getID());
+			if ($isDisabled) {
+				$disableLink = $this->text->makeChatcmd("unmute", "/tell <myname> route mute " . $route->getID() . " off");
+			}
+			$list []="[{$delLink}] [{$disableLink}] " . $this->renderRoute($route);
 		}
 		$blob = "<header2>Active routes<end>\n<tab>";
 		$blob .= join("\n<tab>", $list);
@@ -450,9 +534,20 @@ class MessageHubController extends ModuleInstance {
 				if ($route->getTwoWay() && (strcasecmp($route->getSource(), $receiver) === 0)) {
 					$routeName = $route->getDest();
 				}
+				$disabledUntil = $route->getDisabled();
+				$isDisabled = isset($disabledUntil) && $disabledUntil > time();
+				$disableLink = $this->text->makeChatcmd("mute", "/tell <myname> route mute " . $route->getID());
+				if ($isDisabled) {
+					$disableLink = $this->text->makeChatcmd("unmute", "/tell <myname> route mute " . $route->getID() . " off");
+				}
 				$result[$receiver][$routeName] ??= [];
-				$result[$receiver][$routeName] []= "<tab>{$arrow} [{$delLink}] <highlight>{$routeName}<end> ".
-					join(" ", $route->renderModifiers(true));
+				$result[$receiver][$routeName] []= "<tab>{$arrow} [{$delLink}] [{$disableLink}] <highlight>{$routeName}<end> ".
+					join(" ", $route->renderModifiers(true)).
+					(
+						$isDisabled
+						? " (<red>muted for " . $this->util->unixtimeToReadable($disabledUntil - time()) . "<end>)"
+						: ""
+					);
 			}
 		}
 		$blobs = [];
@@ -978,13 +1073,29 @@ class MessageHubController extends ModuleInstance {
 		return $route;
 	}
 
+	public function getMsgRoute(int $id): ?MessageRoute {
+		$routes = $this->messageHub->getRoutes();
+		foreach ($routes as $route) {
+			if ($route->getID() === $id) {
+				return $route;
+			}
+		}
+		return null;
+	}
+
 	/** Render the route $route into a single line of text */
 	public function renderRoute(MessageRoute $route): string {
 		$from = $route->getSource();
 		$to = $route->getDest();
 		$direction = $route->getTwoWay() ? "&lt;-&gt;" : "-&gt;";
-		return "<highlight>{$from}<end> {$direction} <highlight>{$to}<end> ".
+
+		$routeString = "<highlight>{$from}<end> {$direction} <highlight>{$to}<end> ".
 			join(" ", $route->renderModifiers(true));
+		$disabledUntil = $route->getDisabled();
+		if (isset($disabledUntil) && $disabledUntil > time()) {
+			$routeString .= "(<red>muted for " . $this->util->unixtimeToReadable($disabledUntil - time()) ."<end>)";
+		}
+		return $routeString;
 	}
 
 	/** Get the type (the part before the bracket) of an emitter */
