@@ -343,6 +343,25 @@ class Nadybot extends AOChat {
 		$this->commandManager->registerSource(Source::TELL . "(*)");
 	}
 
+	public function setupReadinessTimer(): void {
+		Loop::repeat(
+			100,
+			function (string $handle): void {
+				$readyAfter = $this->config->useProxy ? 2 : 0.5;
+				$this->logger->info("Time since last packet: {tslp}ms/{readyAfter}ms", [
+					"tslp" => round(microtime(true) - $this->last_packet, 3)*1000,
+					"readyAfter" => round($readyAfter, 3)*1000,
+				]);
+				if (microtime(true) - $this->last_packet > $readyAfter) {
+					$this->ready = true;
+					$this->logger->info("Bot is ready");
+					Loop::cancel($handle);
+					$this->eventManager->executeConnectEvents();
+				}
+			}
+		);
+	}
+
 	/** The main endless-loop of the bot */
 	public function run(): void {
 		Loop::run(function () {
@@ -371,22 +390,7 @@ class Nadybot extends AOChat {
 					}
 				}
 			);
-			Loop::repeat(
-				100,
-				function (string $handle): void {
-					$readyAfter = $this->config->useProxy ? 2 : 0.5;
-					$this->logger->info("Time since last packet: {tslp}ms/{readyAfter}ms", [
-						"tslp" => round(microtime(true) - $this->last_packet, 3)*1000,
-						"readyAfter" => round($readyAfter, 3)*1000,
-					]);
-					if (microtime(true) - $this->last_packet > $readyAfter) {
-						$this->ready = true;
-						$this->logger->info("Bot is ready");
-						Loop::cancel($handle);
-						$this->eventManager->executeConnectEvents();
-					}
-				}
-			);
+			$this->setupReadinessTimer();
 			Loop::repeat(
 				1000,
 				function (): void {

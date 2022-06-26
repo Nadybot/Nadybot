@@ -767,9 +767,9 @@ class GuildController extends ModuleInstance {
 				}
 			}
 
-			$this->chatBot->ready = false;
-
 			yield $this->db->awaitBeginTransaction();
+
+			$this->chatBot->ready = false;
 
 			// Going through each member of the org and add or update his/her
 			foreach ($org->members as $member) {
@@ -826,6 +826,7 @@ class GuildController extends ModuleInstance {
 			}
 
 			$this->logger->notice("Finished Roster update");
+			$this->chatBot->setupReadinessTimer();
 
 			if ($restart === true) {
 				$this->loadGuildMembers();
