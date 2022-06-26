@@ -13,6 +13,7 @@ use Amp\Http\Client\{
 	Response,
 };
 use Amp\Loop;
+use Amp\Parallel\Worker\TaskFailureException;
 use Exception;
 use Generator;
 use Monolog\{
@@ -86,7 +87,27 @@ class LogsController extends ModuleInstance {
 	/** View a list of log files */
 	#[NCA\HandlesCommand("logs")]
 	public function logsCommand(CmdContext $context): Generator {
-		$files = yield filesystem()->listFiles($this->logger->getLoggingDirectory());
+		try {
+			if (false === yield filesystem()->exists($this->logger->getLoggingDirectory())) {
+				$context->reply(
+					"Your bot is either not configured to create log files, ".
+					"lacks the logging directory, or has no permission to access it."
+				);
+				return;
+			}
+			$files = yield filesystem()->listFiles($this->logger->getLoggingDirectory());
+		} catch (FilesystemException $e) {
+			$prev = $e->getPrevious();
+			if (isset($prev)) {
+				$msg = $prev->getMessage();
+				if ($prev instanceof TaskFailureException) {
+					$msg = $prev->getOriginalMessage();
+				}
+				$context->reply($msg);
+				return;
+			}
+			throw $e;
+		}
 		if (!count($files)) {
 			$context->reply("Log Files (0)");
 			return;
