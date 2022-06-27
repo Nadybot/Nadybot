@@ -7,4 +7,5 @@ use Spatie\DataTransferObject\DataTransferObject;
 class ApiGauntletBuff extends DataTransferObject {
 	public string $faction;
 	public int $expires;
+	public int $dimension;
 }

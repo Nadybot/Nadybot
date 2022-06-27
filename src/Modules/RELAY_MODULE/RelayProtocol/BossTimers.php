@@ -5,6 +5,7 @@ namespace Nadybot\Modules\RELAY_MODULE\RelayProtocol;
 use Exception;
 use Nadybot\Core\{
 	Attributes as NCA,
+	ConfigFile,
 	EventManager,
 	LoggerWrapper,
 	Routing\RoutableEvent,
@@ -22,8 +23,12 @@ class BossTimers implements RelayProtocolInterface {
 	#[NCA\Inject]
 	public EventManager $eventManager;
 
+	#[NCA\Inject]
+	public ConfigFile $config;
+
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
+
 	protected Relay $relay;
 
 	public function send(RoutableEvent $event): array {
@@ -57,6 +62,10 @@ class BossTimers implements RelayProtocolInterface {
 			if (!isset($event->{$key})) {
 				$event->{$key} = $value;
 			}
+		}
+		if ($event->sourceDimension !== $this->config->dimension) {
+			$this->logger->info("Event is for a different dimension");
+			return null;
 		}
 		$this->eventManager->fireEvent($event);
 		return null;

@@ -12,6 +12,7 @@ use Nadybot\Core\{
 	AOChatEvent,
 	Attributes as NCA,
 	CmdContext,
+	ConfigFile,
 	EventManager,
 	LoggerWrapper,
 	MessageEmitter,
@@ -58,7 +59,7 @@ use Throwable;
 ]
 class GauntletBuffController extends ModuleInstance implements MessageEmitter {
 	public const SIDE_NONE = 'none';
-	public const GAUNTLET_API = "https://timers.aobots.org/api/v1.0/gaubuffs";
+	public const GAUNTLET_API = "https://timers.aobots.org/api/v1.1/gaubuffs";
 
 	#[NCA\Inject]
 	public HttpClientBuilder $builder;
@@ -71,6 +72,9 @@ class GauntletBuffController extends ModuleInstance implements MessageEmitter {
 
 	#[NCA\Inject]
 	public Nadybot $chatBot;
+
+	#[NCA\Inject]
+	public ConfigFile $config;
 
 	#[NCA\Inject]
 	public EventManager $eventManager;
@@ -374,6 +378,13 @@ class GauntletBuffController extends ModuleInstance implements MessageEmitter {
 	/** Check if the given Gauntlet buff is valid and set or update a timer for it */
 	protected function handleApiGauntletBuff(ApiGauntletBuff $buff): void {
 		$this->logger->info("Received gauntlet information for {$buff->faction}.");
+		$this->logger->info("Received gauntlet information for {faction} on RK{dimension}.", [
+			"faction" => $buff->faction,
+			"dimension" => $buff->dimension,
+		]);
+		if ($buff->dimension !== $this->config->dimension) {
+			return;
+		}
 		if (!in_array(strtolower($buff->faction), ["omni", "clan"])) {
 			$this->logger->warning("Received timer information for unknown faction {$buff->faction}.");
 			return;

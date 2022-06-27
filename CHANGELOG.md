@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add a management-interface as an addition to the console. The management interface does not appear in the routes and currently supports tcp- and unix domain sockets.
 - `!track info <name>` now also shows who added a character to the tracker.
 - Allow muting (temporarily disabling) of routes
+- Add the new RK19 worldbosses that spawn on the birthday event.
 
 ### Changed
 
@@ -30,6 +31,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   A whole lot of functions are now deprecated and will be removed or replaced in 7.0, while none of the core function signatures has changed.
 - Upgraded Docker images to alpine 3.16
 - Detection of when to display a QL for an item will now automatically detect symbiants and spirits and print their QL, even if they only exist in 1 QL.
+- The worldboss timers now ignore any updates for different dimensions.
 
 ### Removed
 

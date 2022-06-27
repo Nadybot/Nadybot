@@ -12,6 +12,7 @@ use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
 	CommandAlias,
+	ConfigFile,
 	DB,
 	Event,
 	EventManager,
@@ -26,6 +27,7 @@ use Nadybot\Core\{
 	Text,
 	Util,
 };
+use Nadybot\Modules\HELPBOT_MODULE\PlayfieldController;
 use Safe\Exceptions\JsonException;
 use Throwable;
 
@@ -90,6 +92,56 @@ use Throwable;
 		accessLevel: "member",
 		description: "Update or set Father Time timer",
 	),
+	NCA\DefineCommand(
+		command: "zaal",
+		accessLevel: "guest",
+		description: "shows timer of Zaal The Immortal",
+	),
+	NCA\DefineCommand(
+		command: WorldBossController::CMD_ZAAL_UPDATE,
+		accessLevel: "member",
+		description: "Update or set Zaal The Immortal's timer",
+	),
+	NCA\DefineCommand(
+		command: "cerubin",
+		accessLevel: "guest",
+		description: "shows timer of Cerubin The Reborn",
+	),
+	NCA\DefineCommand(
+		command: WorldBossController::CMD_CERUBIN_UPDATE,
+		accessLevel: "member",
+		description: "Update or set Cerubin The Reborn's timer",
+	),
+	NCA\DefineCommand(
+		command: "tam",
+		accessLevel: "guest",
+		description: "shows timer of T.A.M.",
+	),
+	NCA\DefineCommand(
+		command: WorldBossController::CMD_TAM_UPDATE,
+		accessLevel: "member",
+		description: "Update or set T.A.M. timer",
+	),
+	NCA\DefineCommand(
+		command: "atma",
+		accessLevel: "guest",
+		description: "shows timer of Atma",
+	),
+	NCA\DefineCommand(
+		command: WorldBossController::CMD_ATMA_UPDATE,
+		accessLevel: "member",
+		description: "Update or set Atma timer",
+	),
+	NCA\DefineCommand(
+		command: "abmouth",
+		accessLevel: "guest",
+		description: "shows timer of Abmouth Indomitus",
+	),
+	NCA\DefineCommand(
+		command: WorldBossController::CMD_ABMOUTH_UPDATE,
+		accessLevel: "member",
+		description: "Update or set Abmouth Indomitus timer",
+	),
 	NCA\ProvidesEvent(
 		event: "sync(worldboss)",
 		desc: "Triggered when the spawntime of a worldboss is set manually",
@@ -105,19 +157,30 @@ class WorldBossController extends ModuleInstance {
 	public const CMD_GAUNTLET_UPDATE = "gauntlet set/delete";
 	public const CMD_LOREN_UPDATE = "loren set/delete";
 	public const CMD_REAPER_UPDATE = "reaper set/delete";
+	public const CMD_ZAAL_UPDATE = "zaal set/delete";
+	public const CMD_CERUBIN_UPDATE = "cerubin set/delete";
+	public const CMD_TAM_UPDATE = "tam set/delete";
+	public const CMD_ATMA_UPDATE = "atma set/delete";
+	public const CMD_ABMOUTH_UPDATE = "abmouth set/delete";
 
-	public const WORLDBOSS_API = "https://timers.aobots.org/api/v1.0/bosses";
+	public const WORLDBOSS_API = "https://timers.aobots.org/api/v1.1/bosses";
 
 	public const DB_TABLE = "worldboss_timers_<myname>";
 
 	public const INTERVAL = "interval";
 	public const IMMORTAL = "immortal";
+	public const COORDS = "coordinates";
 
 	public const TARA = 'Tarasque';
 	public const REAPER = 'The Hollow Reaper';
 	public const LOREN = 'Loren Warr';
 	public const VIZARESH = 'Vizaresh';
 	public const FATHER_TIME = 'Father Time';
+	public const ZAAL = 'Zaal The Immortal';
+	public const CERUBIN = 'Cerubin The Reborn';
+	public const TAM = 'T.A.M.';
+	public const ATMA = 'Atma';
+	public const ABMOUTH = 'Abmouth Indomitus';
 
 	public const BOSS_MAP = [
 		self::TARA => "tara",
@@ -125,6 +188,11 @@ class WorldBossController extends ModuleInstance {
 		self::LOREN => "loren",
 		self::VIZARESH => "vizaresh",
 		self::FATHER_TIME => "father-time",
+		self::ZAAL => "zaal",
+		self::CERUBIN => "cerubin",
+		self::TAM => "tam",
+		self::ATMA => "atma",
+		self::ABMOUTH => "abmouth",
 	];
 
 	public const BOSS_DATA = [
@@ -135,10 +203,12 @@ class WorldBossController extends ModuleInstance {
 		self::REAPER => [
 			self::INTERVAL => 9*3600,
 			self::IMMORTAL => 15*60,
+			self::COORDS => [1760, 2840, 595],
 		],
 		self::LOREN => [
 			self::INTERVAL => 9*3600,
 			self::IMMORTAL => 15*60,
+			self::COORDS => [350, 500, 567],
 		],
 		self::VIZARESH => [
 			self::INTERVAL => 17*3600,
@@ -147,6 +217,31 @@ class WorldBossController extends ModuleInstance {
 		self::FATHER_TIME => [
 			self::INTERVAL => 9*3600,
 			self::IMMORTAL => 15*60,
+		],
+		self::ZAAL => [
+			self::INTERVAL => 9*3600,
+			self::IMMORTAL => 15*60,
+			self::COORDS => [1730, 1200, 610],
+		],
+		self::CERUBIN => [
+			self::INTERVAL => 9*3600,
+			self::IMMORTAL => 15*60,
+			self::COORDS => [2100, 280, 505],
+		],
+		self::TAM => [
+			self::INTERVAL => 9*3600,
+			self::IMMORTAL => 15*60,
+			self::COORDS => [1130, 1530, 795],
+		],
+		self::ATMA => [
+			self::INTERVAL => 9*3600,
+			self::IMMORTAL => 15*60,
+			self::COORDS => [1900, 3000, 650],
+		],
+		self::ABMOUTH => [
+			self::INTERVAL => 9*3600,
+			self::IMMORTAL => 15*60,
+			self::COORDS => [3150, 1550, 556],
 		],
 	];
 
@@ -165,6 +260,12 @@ class WorldBossController extends ModuleInstance {
 
 	#[NCA\Inject]
 	public EventManager $eventManager;
+
+	#[NCA\Inject]
+	public PlayfieldController $pfController;
+
+	#[NCA\Inject]
+	public ConfigFile $config;
 
 	#[NCA\Inject]
 	public Util $util;
@@ -285,7 +386,7 @@ class WorldBossController extends ModuleInstance {
 		if (!count($timers)) {
 			return null;
 		}
-		$this->addNextDates($timers);
+		$timers = $this->addNextDates($timers);
 		return $timers[0];
 	}
 
@@ -353,6 +454,7 @@ class WorldBossController extends ModuleInstance {
 	}
 
 	public function worldBossUpdate(Character $sender, string $mobName, int $vulnerable): bool {
+		/** @phpstan-var null|array{"interval":int, "immortal":int} */
 		$mobData = static::BOSS_DATA[$mobName] ?? null;
 		if (!isset($mobData)) {
 			return false;
@@ -403,6 +505,11 @@ class WorldBossController extends ModuleInstance {
 		NCA\HandlesCommand("reaper"),
 		NCA\HandlesCommand("gauntlet"),
 		NCA\HandlesCommand("father"),
+		NCA\HandlesCommand("zaal"),
+		NCA\HandlesCommand("cerubin"),
+		NCA\HandlesCommand("tam"),
+		NCA\HandlesCommand("atma"),
+		NCA\HandlesCommand("abmouth"),
 		NCA\Help\Group("worldboss")
 	]
 	public function bossSpawnCommand(CmdContext $context): void {
@@ -416,6 +523,11 @@ class WorldBossController extends ModuleInstance {
 		NCA\HandlesCommand(self::CMD_REAPER_UPDATE),
 		NCA\HandlesCommand(self::CMD_GAUNTLET_UPDATE),
 		NCA\HandlesCommand(self::CMD_FATHER_UPDATE),
+		NCA\HandlesCommand(self::CMD_ZAAL_UPDATE),
+		NCA\HandlesCommand(self::CMD_CERUBIN_UPDATE),
+		NCA\HandlesCommand(self::CMD_TAM_UPDATE),
+		NCA\HandlesCommand(self::CMD_ATMA_UPDATE),
+		NCA\HandlesCommand(self::CMD_ABMOUTH_UPDATE),
 		NCA\Help\Group("worldboss")
 	]
 	public function bossKillCommand(CmdContext $context, #[NCA\Str("kill")] string $action): void {
@@ -435,6 +547,11 @@ class WorldBossController extends ModuleInstance {
 		NCA\HandlesCommand(self::CMD_REAPER_UPDATE),
 		NCA\HandlesCommand(self::CMD_GAUNTLET_UPDATE),
 		NCA\HandlesCommand(self::CMD_FATHER_UPDATE),
+		NCA\HandlesCommand(self::CMD_ZAAL_UPDATE),
+		NCA\HandlesCommand(self::CMD_CERUBIN_UPDATE),
+		NCA\HandlesCommand(self::CMD_TAM_UPDATE),
+		NCA\HandlesCommand(self::CMD_ATMA_UPDATE),
+		NCA\HandlesCommand(self::CMD_ABMOUTH_UPDATE),
 		NCA\Help\Group("worldboss")
 	]
 	public function bossUpdateCommand(
@@ -455,6 +572,11 @@ class WorldBossController extends ModuleInstance {
 		NCA\HandlesCommand(self::CMD_LOREN_UPDATE),
 		NCA\HandlesCommand(self::CMD_REAPER_UPDATE),
 		NCA\HandlesCommand(self::CMD_FATHER_UPDATE),
+		NCA\HandlesCommand(self::CMD_ZAAL_UPDATE),
+		NCA\HandlesCommand(self::CMD_CERUBIN_UPDATE),
+		NCA\HandlesCommand(self::CMD_TAM_UPDATE),
+		NCA\HandlesCommand(self::CMD_ATMA_UPDATE),
+		NCA\HandlesCommand(self::CMD_ABMOUTH_UPDATE),
 		NCA\Help\Group("worldboss")
 	]
 	public function bossDeleteCommand(CmdContext $context, PRemove $action): void {
@@ -498,7 +620,25 @@ class WorldBossController extends ModuleInstance {
 					if (isset($timer->next_killable) && $timer->next_killable > time()) {
 						$msg .= " and will be vulnerable in <highlight>".
 							$this->util->unixtimeToReadable($timer->next_killable-time()).
-							"<end>.";
+							"<end>";
+					}
+
+					/** @phpstan-var null|array{int,int,int} */
+					$coords = static::BOSS_DATA[$timer->mob_name][static::COORDS] ?? null;
+					if (isset($coords)) {
+						$pf = $this->pfController->getPlayfieldById($coords[2]);
+						if (isset($pf)) {
+							$wpLink = $this->text->makeChatcmd(
+								$pf->long_name,
+								"/waypoint {$coords[0]} {$coords[1]} {$coords[2]}"
+							);
+							$popup = ((array)$this->text->makeBlob(
+								"waypoint",
+								$timer->mob_name . " is in [{$wpLink}]",
+								"Waypoint for {$timer->mob_name}",
+							))[0];
+							$msg .= " [{$popup}]";
+						}
 					} else {
 						$msg .= ".";
 					}
@@ -523,7 +663,7 @@ class WorldBossController extends ModuleInstance {
 		if (!$triggered) {
 			return;
 		}
-		$this->addNextDates($this->timers);
+		$this->timers = $this->addNextDates($this->timers);
 	}
 
 	#[NCA\Event(
@@ -661,7 +801,13 @@ class WorldBossController extends ModuleInstance {
 	 * information, and if so, update our database and timers.
 	 */
 	protected function handleApiTimer(ApiSpawnData $timer): void {
-		$this->logger->info("Received timer information for {$timer->name}.");
+		$this->logger->info("Received timer information for {name} on RK{dimension}.", [
+			"name" => $timer->name,
+			"dimension" => $timer->dimension,
+		]);
+		if ($timer->dimension !== $this->config->dimension) {
+			return;
+		}
 		$map = array_flip(static::BOSS_MAP);
 		$map["gauntlet"] = $map["vizaresh"];
 		$mobName = $map[$timer->name] ?? null;
@@ -694,8 +840,12 @@ class WorldBossController extends ModuleInstance {
 		return $newTimer;
 	}
 
-	/** @param WorldBossTimer[] $timers */
-	protected function addNextDates(array $timers): void {
+	/**
+	 * @param WorldBossTimer[] $timers
+	 *
+	 * @return WorldBossTimer[]
+	 */
+	protected function addNextDates(array $timers): array {
 		$showSpawn = $this->worldbossShowSpawn;
 		foreach ($timers as $timer) {
 			$invulnerableTime = $timer->killable - $timer->spawn;
@@ -712,6 +862,7 @@ class WorldBossController extends ModuleInstance {
 		usort($timers, function (WorldBossTimer $a, WorldBossTimer $b) {
 			return $a->next_spawn <=> $b->next_spawn;
 		});
+		return $timers;
 	}
 
 	/** @return WorldBossTimer[] */
@@ -724,8 +875,7 @@ class WorldBossController extends ModuleInstance {
 		$timers = $this->db->table(static::DB_TABLE)
 			->asObj(WorldBossTimer::class)
 			->toArray();
-		$this->addNextDates($timers);
-		$this->timers = $timers;
+		$this->timers = $this->addNextDates($timers);
 	}
 
 	protected function niceTime(int $timestamp): string {
@@ -746,9 +896,9 @@ class WorldBossController extends ModuleInstance {
 			$times []= "unknown";
 		}
 		$msg = "Timer updated".
-				" at <highlight>".$this->niceTime($timer->time_submitted)."<end>.\n\n".
-				"<header2>Next spawntimes<end>\n".
-				"<tab>- ".join("\n<tab>- ", $times);
+			" at <highlight>".$this->niceTime($timer->time_submitted)."<end>.\n\n".
+			"<header2>Next spawntimes<end>\n".
+			"<tab>- ".join("\n<tab>- ", $times);
 		return $msg;
 	}
 
