@@ -135,12 +135,16 @@ class ConsoleController extends ModuleInstance {
 			$this->logger->warning('Console not available on Windows');
 			return;
 		}
+		if (!stream_isatty(STDIN)) {
+			$this->logger->warning('Stdin is not a TTY, console not available.');
+			return;
+		}
 		$this->useReadline = function_exists('readline_callback_handler_install');
 		if (!$this->useReadline) {
 			$this->logger->warning('readline not supported on this platform, using basic console');
 			$callback = [$this, "processStdin"];
 		} else {
-			$callback = function (): void {
+			$callback = function (string $handle): void {
 				readline_callback_read_char();
 			};
 		}
