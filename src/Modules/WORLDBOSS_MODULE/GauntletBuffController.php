@@ -59,7 +59,7 @@ use Throwable;
 ]
 class GauntletBuffController extends ModuleInstance implements MessageEmitter {
 	public const SIDE_NONE = 'none';
-	public const GAUNTLET_API = "https://timers.aobots.org/api/v1.0/gaubuffs";
+	public const GAUNTLET_API = "https://timers.aobots.org/api/v1.1/gaubuffs";
 
 	#[NCA\Inject]
 	public HttpClientBuilder $builder;
