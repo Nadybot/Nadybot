@@ -449,31 +449,34 @@ class EventManager {
 	}
 
 	public function fireEvent(Event $eventObj, mixed ...$args): void {
-		foreach ($this->events as $type => $handlers) {
-			if ($eventObj->type !== $type && !fnmatch($type, $eventObj->type, FNM_CASEFOLD)) {
-				continue;
-			}
-			foreach ($handlers as $filename) {
-				$this->callEventHandler($eventObj, $filename, $args);
-			}
-		}
-		foreach ($this->dynamicEvents as $type => $handlers) {
-			if ($eventObj->type !== $type && !fnmatch($type, $eventObj->type, FNM_CASEFOLD)) {
-				continue;
-			}
-			foreach ($handlers as $callback) {
-				if (!is_object($callback) || !($callback instanceof Closure)) {
-					$callback = Closure::fromCallable($callback);
+		try {
+			foreach ($this->events as $type => $handlers) {
+				if ($eventObj->type !== $type && !fnmatch($type, $eventObj->type, FNM_CASEFOLD)) {
+					continue;
 				}
-				$refMeth = new ReflectionFunction($callback);
-				$newEventObj = $this->convertSyncEvent($refMeth, $eventObj);
-				if (isset($newEventObj)) {
-					$result = $callback($newEventObj, ...$args);
-					if ($result instanceof Generator) {
-						$this->wrapGenerator($result, $eventObj, $refMeth);
+				foreach ($handlers as $filename) {
+					$this->callEventHandler($eventObj, $filename, $args);
+				}
+			}
+			foreach ($this->dynamicEvents as $type => $handlers) {
+				if ($eventObj->type !== $type && !fnmatch($type, $eventObj->type, FNM_CASEFOLD)) {
+					continue;
+				}
+				foreach ($handlers as $callback) {
+					if (!is_object($callback) || !($callback instanceof Closure)) {
+						$callback = Closure::fromCallable($callback);
+					}
+					$refMeth = new ReflectionFunction($callback);
+					$newEventObj = $this->convertSyncEvent($refMeth, $eventObj);
+					if (isset($newEventObj)) {
+						$result = $callback($newEventObj, ...$args);
+						if ($result instanceof Generator) {
+							$this->wrapGenerator($result, $eventObj, $refMeth);
+						}
 					}
 				}
 			}
+		} catch (StopExecutionException) {
 		}
 	}
 
@@ -588,6 +591,8 @@ class EventManager {
 		return call(function () use ($methodResult, $event, $ref): Generator {
 			try {
 				yield from $methodResult;
+			} catch (StopExecutionException) {
+				return;
 			} catch (Throwable $e) {
 				$loc = "{closure}";
 				if ($ref instanceof ReflectionMethod) {

@@ -13,7 +13,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add a management-interface as an addition to the console. The management interface does not appear in the routes and currently supports tcp- and unix domain sockets.
 - `!track info <name>` now also shows who added a character to the tracker.
 - Allow muting (temporarily disabling) of routes
-- Add the new RK19 worldbosses that spawn on the birthday event.
+- Add the new RK19 worldbosses that spawn on the birthday event as non-repeating worldboss-timers, because they only have a chance to spawn, so we never know if a spawn was skipped or it just took longer to kill the last spawn.
+  Also added waypoints and links to AOU-articles to each worldboss.
 
 ### Changed
 

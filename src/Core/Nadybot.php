@@ -367,6 +367,9 @@ class Nadybot extends AOChat {
 		Loop::run(function () {
 			assert(is_resource($this->socket));
 			Loop::setErrorHandler(function (Throwable $e): void {
+				if ($e instanceof StopExecutionException) {
+					return;
+				}
 				$this->logger->error($e->getMessage(), ["exception" => $e]);
 			});
 
