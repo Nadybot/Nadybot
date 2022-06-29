@@ -448,7 +448,12 @@ class EventManager {
 		return 0;
 	}
 
-	public function fireEvent(Event $eventObj, mixed ...$args): void {
+	/**
+	 * Fire an event by calling all registered event handlers
+	 *
+	 * @return bool true if at least one event requests to stop execution
+	 */
+	public function fireEvent(Event $eventObj, mixed ...$args): bool {
 		try {
 			foreach ($this->events as $type => $handlers) {
 				if ($eventObj->type !== $type && !fnmatch($type, $eventObj->type, FNM_CASEFOLD)) {
@@ -477,7 +482,9 @@ class EventManager {
 				}
 			}
 		} catch (StopExecutionException) {
+			return true;
 		}
+		return false;
 	}
 
 	/**

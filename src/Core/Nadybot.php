@@ -1006,7 +1006,9 @@ class Nadybot extends AOChat {
 			if (yield $this->banController->isOnBanlist($senderId)) {
 				return;
 			}
-			$this->eventManager->fireEvent($eventObj);
+			if ($this->eventManager->fireEvent($eventObj)) {
+				return;
+			}
 
 			$context = new CmdContext($sender, $senderId);
 			$context->message = $message;
@@ -1055,7 +1057,9 @@ class Nadybot extends AOChat {
 			$type = "extpriv";
 		}
 		$eventObj->type = $type;
-		$this->eventManager->fireEvent($eventObj);
+		if ($this->eventManager->fireEvent($eventObj)) {
+			return;
+		}
 		$rMessage = new RoutableMessage($message);
 		$rMessage->setCharacter(new Character($sender, $senderId));
 		$label = null;
@@ -1145,7 +1149,9 @@ class Nadybot extends AOChat {
 
 			$eventObj->type = $type;
 
-			$this->eventManager->fireEvent($eventObj);
+			if ($this->eventManager->fireEvent($eventObj)) {
+				return;
+			}
 			$context = new CmdContext($sender, $senderId);
 			$context->source = Source::ORG;
 			$context->message = $message;
