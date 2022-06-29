@@ -169,11 +169,12 @@ class WorldBossController extends ModuleInstance {
 			self::INTERVAL => 17*3600,
 			self::IMMORTAL => 420,
 			self::COORDS => [299, 28, 4328],
-			self::AOU => 791,
+			self::AOU => 615,
 		],
 		self::FATHER_TIME => [
 			self::INTERVAL => 9*3600,
 			self::IMMORTAL => 15*60,
+			self::AOU => 791,
 		],
 		self::ZAAL => [
 			self::IMMORTAL => 15*60,
