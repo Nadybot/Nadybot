@@ -153,6 +153,7 @@ class BotRunner {
 		}
 		\Safe\fclose($pipes[0]);
 		$tags = explode("\n", trim(\Safe\stream_get_contents($pipes[1]) ?: ""));
+		$tags = array_diff($tags, ["nightly"]);
 		\Safe\fclose($pipes[1]);
 		\Safe\fclose($pipes[2]);
 		proc_close($pid);
