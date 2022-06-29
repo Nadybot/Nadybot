@@ -9,6 +9,15 @@ use Nadybot\Core\Attributes as NCA;
 use ReflectionClass;
 
 class ClassLoader {
+	public const INTEGRATED_MODULES = [
+		"ALLIANCE_RELAY_MODULE",
+		"SPAWNTIME_MODULE",
+		"BIGBOSS_MODULE",
+		"GAUNTLET_MODULE",
+		"IMPQL_MODULE",
+		"EXPORT_MODULE",
+	];
+
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
@@ -75,6 +84,12 @@ class ClassLoader {
 
 		try {
 			$newInstances = $this->getNewInstancesInDir("{$baseDir}/{$moduleName}");
+		} catch (IntegratedIntoBaseException $e) {
+			$this->logger->error("The module {module} got integrated into Nadybot. You can remove it from {path}.", [
+				"path" => "{$baseDir}/{$moduleName}",
+				"module" => $moduleName,
+			]);
+			return;
 		} catch (InvalidCodeException $e) {
 			$this->logger->error("Could not load module {module}: {error}", [
 				"module" => $moduleName,
@@ -116,8 +131,9 @@ class ClassLoader {
 	 *
 	 * @return array<string,ClassInstance> A mapping [module name => class info]
 	 *
-	 * @throws InvalidVersionException If the module is not compatible
-	 * @throws InvalidCodeException    If the module doesn't parse
+	 * @throws InvalidVersionException     If the module is not compatible
+	 * @throws InvalidCodeException        If the module doesn't parse
+	 * @throws IntegratedIntoBaseException If the module has been integrated into Nadybot
 	 */
 	public function getNewInstancesInDir(string $path): array {
 		$original = get_declared_classes();
@@ -127,6 +143,11 @@ class ClassLoader {
 		$checkCode = extension_loaded("pcntl") && $isExtraModule;
 		if (!$this->isModuleCompatible($path)) {
 			throw new InvalidVersionException();
+		}
+		foreach (self::INTEGRATED_MODULES as $integrated) {
+			if (str_ends_with($path, "/{$integrated}") && $isExtraModule) {
+				throw new IntegratedIntoBaseException('');
+			}
 		}
 		if ($dir = dir($path)) {
 			while (($file = $dir->read()) !== false) {

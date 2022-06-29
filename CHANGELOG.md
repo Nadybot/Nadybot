@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Allow muting (temporarily disabling) of routes
 - Add the new RK19 worldbosses that spawn on the birthday event as non-repeating worldboss-timers, because they only have a chance to spawn, so we never know if a spawn was skipped or it just took longer to kill the last spawn.
   Also added waypoints and links to AOU-articles to each worldboss.
+- The SPAWNTIME_MODULE is now integrated into the WHEREIS_MODULE, giving everyone access to `!spawn <name>` to query a mob's respawn-timer.
 
 ### Changed
 

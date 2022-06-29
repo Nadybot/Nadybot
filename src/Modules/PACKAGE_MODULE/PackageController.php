@@ -16,6 +16,7 @@ use Nadybot\Core\{
 	Attributes as NCA,
 	BotRunner,
 	CacheManager,
+	ClassLoader,
 	CmdContext,
 	ConfigFile,
 	DB,
@@ -148,7 +149,7 @@ class PackageController extends ModuleInstance {
 					->where("module", $package->name)
 					->max("version");
 			}
-			if (in_array($package->name, ['GAUNTLET_MODULE', 'BIGBOSS_MODULE', 'IMPQL_MODULE'])) {
+			if (in_array($package->name, ClassLoader::INTEGRATED_MODULES)) {
 				$installLink = "<i>Included in Nadybot now</i>";
 			} elseif (isset($pGroup->highest_supported) && $package->state !== static::BUILT_INT) {
 				// @phpstan-ignore-next-line
