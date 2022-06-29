@@ -363,7 +363,7 @@ class WorldBossController extends ModuleInstance {
 		return $timers[0];
 	}
 
-	public function formatWorldBossMessage(WorldBossTimer $timer, bool $short=true): string {
+	public function formatWorldBossMessage(WorldBossTimer $timer, bool $short=true, bool $startpage=false): string {
 		$showSpawn = $this->worldbossShowSpawn;
 		$nextSpawnsMessage = $this->getNextSpawnsMessage($timer);
 		$spawntimes = (array)$this->text->makeBlob("Spawntimes for {$timer->mob_name}", $nextSpawnsMessage);
@@ -371,7 +371,7 @@ class WorldBossController extends ModuleInstance {
 		/** @phpstan-var null|array{int,int,int} */
 		$coords = self::BOSS_DATA[$timer->mob_name][self::COORDS] ?? null;
 		$mobName = $timer->mob_name;
-		if (isset($coords)) {
+		if (isset($coords) && !$startpage) {
 			$pf = $this->pfController->getPlayfieldById($coords[2]);
 			if (isset($pf)) {
 				$wpLink = $this->text->makeChatcmd(
@@ -738,7 +738,32 @@ class WorldBossController extends ModuleInstance {
 		}
 		$blob = "<header2>Boss timers<end>";
 		foreach ($timers as $timer) {
-			$blob .= "\n<tab>" . $this->formatWorldBossMessage($timer, true);
+			if (isset($timer->timer)) {
+				$blob .= "\n<tab>" . $this->formatWorldBossMessage($timer, true, true);
+			}
+		}
+		$callback($blob);
+	}
+
+	#[
+		NCA\NewsTile(
+			name: "all-boss-timers",
+			description: "A list of all boss spawn timers",
+			example: "<header2>Boss timers<end>\n".
+				"<tab>Zaal The Immortal last spawn <grey>7h 13m ago<end>. Spawns every 6 hrs (75% chance).\n".
+				"<tab>Tarasque spawns in <highlight>8 hrs 1 min 48 secs<end>.\n".
+				"<tab>The Gauntlet portal will be open for <highlight>5 mins 9 secs<end>."
+		)
+	]
+	public function allBossTimersNewsTile(string $sender, callable $callback): void {
+		$timers = $this->getWorldBossTimers();
+		if (!count($timers)) {
+			$callback(null);
+			return;
+		}
+		$blob = "<header2>Boss timers<end>";
+		foreach ($timers as $timer) {
+			$blob .= "\n<tab>" . $this->formatWorldBossMessage($timer, true, true);
 		}
 		$callback($blob);
 	}
