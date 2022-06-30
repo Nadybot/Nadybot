@@ -824,7 +824,7 @@ class WorldBossController extends ModuleInstance {
 		}
 		$blob = "<header2>Gauntlet<end>";
 		if (isset($timer)) {
-			$blob .= "\n<tab>" . $this->formatWorldBossMessage($timer, true);
+			$blob .= "\n<tab>" . $this->formatWorldBossMessage($timer, true, true);
 		}
 		if (isset($buffLine)) {
 			$blob .= "\n{$buffLine}";
