@@ -44,6 +44,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - The console history works 100% now, only ctrl+r-search is now broken.
 - The bot now correctly sets the name of the character who added someone to the tracker.
+- The timer you can enable when a tower field goes down sometimes couldn't be created, because a timer with the same name was already there. Any timer with the same name will now be deleted before creating a new one.
 
 ## [6.0.5] - 2022-06-17
 

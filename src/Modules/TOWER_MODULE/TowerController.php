@@ -2042,6 +2042,12 @@ class TowerController extends ModuleInstance {
 		$alertPlant->message = "Plant {$timerLocation} <highlight>NOW<end>";
 		$alerts []= $alertPlant;
 
+		// Sometimes, they overlap, so make sure any previous timer
+		// is removed first
+		$this->timerController->remove(
+			"Plant " . strip_tags($timerLocation)
+		);
+
 		$this->timerController->add(
 			"Plant " . strip_tags($timerLocation),
 			$this->chatBot->char->name,
