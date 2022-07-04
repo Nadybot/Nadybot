@@ -2,7 +2,7 @@
 
 namespace Nadybot\Core\Modules\DISCORD;
 
-use function Amp\call;
+use function Amp\{call, delay};
 use function Safe\{json_decode, json_encode};
 use Amp\Http\Client\Body\JsonBody;
 use Amp\Http\Client\Interceptor\SetRequestHeaderIfUnset;
@@ -398,17 +398,36 @@ class DiscordAPIClient extends ModuleInstance {
 		return call(function () use ($request, $o) {
 			$client = $this->getClient();
 
-			/** @var Response */
-			$response = yield $client->request($request);
-			$body = yield $response->getBody()->buffer();
-			if ($response->getStatus() < 200 || $response->getStatus() >= 300) {
-				throw new DiscordException(
-					'Error received while sending message to Discord. '.
-					'Status-Code: ' . $response->getStatus().
-					", Content: {$body}, URL: ".$request->getUri(),
-					$response->getStatus()
-				);
-			}
+			$retries = 3;
+			do {
+				$retry = false;
+				$retries--;
+
+				/** @var Response */
+				$response = yield $client->request($request);
+				$body = yield $response->getBody()->buffer();
+				if ($response->getStatus() >= 500 && $response->getStatus() < 600 && $retries > 0) {
+					$delayMs = 500;
+					$this->logger->warning(
+						"Got a {code} when sending message to Discord, retrying in {delay}ms",
+						[
+							"code" => $response->getStatus(),
+							"delay" => $delayMs,
+						]
+					);
+					$retry = true;
+					yield delay($delayMs);
+					continue;
+				}
+				if ($response->getStatus() < 200 || $response->getStatus() >= 300) {
+					throw new DiscordException(
+						'Error received while sending message to Discord. '.
+						'Status-Code: ' . $response->getStatus().
+						", Content: {$body}, URL: ".$request->getUri(),
+						$response->getStatus()
+					);
+				}
+			} while ($retry && $retries > 0);
 			if ($response->getStatus() === 204) {
 				return new stdClass();
 			}
