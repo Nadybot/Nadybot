@@ -156,7 +156,7 @@ class BanController extends ModuleInstance {
 		$length = $duration->toSecs();
 
 		[$success, $msgs] = yield $this->banPlayer($who, $context->char->name, $length, $reason, $context);
-		if (count($msgs)) {
+		if (isset($msgs) && count($msgs)) {
 			$context->reply(join("\n", $msgs));
 		}
 		if (!$success) {
@@ -190,7 +190,7 @@ class BanController extends ModuleInstance {
 		$length = $duration->toSecs();
 
 		[$success, $msgs] = yield $this->banPlayer($who, $context->char->name, $length, '', $context);
-		if (isset($msgs)) {
+		if (isset($msgs) && count($msgs)) {
 			$context->reply(join("\n", $msgs));
 		}
 		if (!$success) {
@@ -223,7 +223,7 @@ class BanController extends ModuleInstance {
 		$who = $who();
 
 		[$success, $msgs] = yield $this->banPlayer($who, $context->char->name, null, $reason, $context);
-		if (isset($msgs)) {
+		if (isset($msgs) && count($msgs)) {
 			$context->reply(join("\n", $msgs));
 		}
 		if (!$success) {
@@ -251,7 +251,7 @@ class BanController extends ModuleInstance {
 		$who = $who();
 
 		[$success, $msgs] = yield $this->banPlayer($who, $context->char->name, null, '', $context);
-		if (isset($msgs)) {
+		if (isset($msgs) && count($msgs)) {
 			$context->reply(join("\n", $msgs));
 		}
 		if (!$success) {
