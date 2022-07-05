@@ -26,6 +26,7 @@ use Nadybot\Core\{
 	Routing\RoutableMessage,
 	Routing\Source,
 	Text,
+	UserException,
 	Util,
 };
 use Nadybot\Modules\HELPBOT_MODULE\{PlayfieldController, Timezone};
@@ -92,6 +93,11 @@ use Throwable;
 		command: WorldBossController::CMD_FATHER_UPDATE,
 		accessLevel: "member",
 		description: "Update or set Father Time timer",
+	),
+	NCA\DefineCommand(
+		command: "updatewb",
+		accessLevel: "mod",
+		description: "(re)-fetch current worldboss-timers from the API",
 	),
 	NCA\ProvidesEvent(
 		event: "sync(worldboss)",
@@ -310,6 +316,25 @@ class WorldBossController extends ModuleInstance {
 		$this->reloadWorldBossTimers();
 	}
 
+	#[NCA\HandlesCommand("updatewb")]
+	public function updateWbCommand(CmdContext $context): Generator {
+		try {
+			$numUpdates = yield from $this->loadTimersFromAPI();
+			$context->reply(
+				"Timer data successfully loaded from the API. {$numUpdates} ".
+				$this->text->pluralize("timer", $numUpdates) . " updated."
+			);
+		} catch (UserException $e) {
+			$context->reply($e->getMessage());
+		} catch (Throwable $e) {
+			$this->logger->error("Error updating timers: {error}", [
+				"error" => $e->getMessage(),
+				"exception" => $e,
+			]);
+			$context->reply("An error occurred when updating the timers. Please check the logs.");
+		}
+	}
+
 	#[NCA\Event(
 		name: "connect",
 		description: "Get boss timers from timer API"
@@ -326,8 +351,7 @@ class WorldBossController extends ModuleInstance {
 					"code" => $code,
 				]);
 				yield delay(5000);
-				$this->loadTimersFromAPI();
-				return;
+				return $this->loadTimersFromAPI();
 			}
 			if ($code !== 200) {
 				$this->logger->error('Worldboss API replied with error {code} ({reason})', [
@@ -335,7 +359,7 @@ class WorldBossController extends ModuleInstance {
 					"reason" => $response->getReason(),
 					"headers" => $response->getRawHeaders(),
 				]);
-				return;
+				return 0;
 			}
 
 			/** @var string */
@@ -345,9 +369,9 @@ class WorldBossController extends ModuleInstance {
 				"error" => $error->getMessage(),
 				"Exception" => $error,
 			]);
-			return;
+			return 0;
 		}
-		$this->handleTimerData($body);
+		return $this->handleTimerData($body);
 	}
 
 	public function getWorldBossTimer(string $mobName): ?WorldBossTimer {
@@ -836,25 +860,25 @@ class WorldBossController extends ModuleInstance {
 	 * Check if the given timer is more accurate than our own stored
 	 * information, and if so, update our database and timers.
 	 */
-	protected function handleApiTimer(ApiSpawnData $timer): void {
+	protected function handleApiTimer(ApiSpawnData $timer): bool {
 		$this->logger->info("Received timer information for {name} on RK{dimension}.", [
 			"name" => $timer->name,
 			"dimension" => $timer->dimension,
 		]);
 		if ($timer->dimension !== $this->config->dimension) {
-			return;
+			return false;
 		}
 		$map = array_flip(static::BOSS_MAP);
 		$map["gauntlet"] = $map["vizaresh"];
 		$mobName = $map[$timer->name] ?? null;
 		if (!isset($mobName)) {
 			$this->logger->warning("Received timer information for unknown boss {$timer->name}.");
-			return;
+			return false;
 		}
 		$ourTimer = $this->getWorldBossTimer($mobName);
 		$apiTimer = $this->apiTimerToWorldbossTimer($timer, $mobName);
 		if (isset($ourTimer) && $apiTimer->next_spawn <= $ourTimer->next_spawn) {
-			return;
+			return false;
 		}
 		$this->logger->info("Updating {$mobName} timer from API");
 		$this->worldBossUpdate(
@@ -862,6 +886,7 @@ class WorldBossController extends ModuleInstance {
 			$mobName,
 			($apiTimer->next_killable??time()) - time()
 		);
+		return true;
 	}
 
 	/** Convert timer information from the API into an actual timer with correct information */
@@ -1024,11 +1049,13 @@ class WorldBossController extends ModuleInstance {
 	/**
 	 * Parse the incoming data and call the function to handle the
 	 * timers if the data is valid.
+	 *
+	 * @return int Number if updated timers
 	 */
-	private function handleTimerData(string $body): void {
+	private function handleTimerData(string $body): int {
 		if (!strlen($body)) {
 			$this->logger->error('Worldboss API sent an empty reply');
-			return;
+			return 0;
 		}
 
 		/** @var ApiSpawnData[] */
@@ -1045,10 +1072,14 @@ class WorldBossController extends ModuleInstance {
 			$this->logger->error("Worldboss API sent invalid json.", [
 				"json" => $body,
 			]);
-			return;
+			return 0;
 		}
+		$numUpdates = 0;
 		foreach ($timers as $timer) {
-			$this->handleApiTimer($timer);
+			if ($this->handleApiTimer($timer)) {
+				$numUpdates++;
+			}
 		}
+		return $numUpdates;
 	}
 }
