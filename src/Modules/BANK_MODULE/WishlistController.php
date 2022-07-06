@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\BANK_MODULE;
 
+use function Safe\preg_replace;
 use Generator;
 use Illuminate\Support\Collection;
 use Nadybot\Core\Modules\ALTS\AltsController;
@@ -17,6 +18,7 @@ use Nadybot\Core\{
 	UserStateEvent,
 	Util,
 };
+
 use Throwable;
 
 /**
@@ -123,12 +125,12 @@ class WishlistController extends ModuleInstance {
 				if ($wish->amount > 1) {
 					$remaining = $wish->getRemaining();
 					if ($remaining !== $wish->amount) {
-						$line .= "<highlight>{$remaining}x<end>/{$wish->amount}x ";
+						$line .= "{$remaining} of {$wish->amount} ";
 					} else {
-						$line .= "<highlight>{$remaining}x<end> ";
+						$line .= "{$remaining} ";
 					}
 				}
-				$line = "{$line}{$wish->item}";
+				$line = "{$line}<highlight>" . $this->fixItemLinks($wish->item) . "<end>";
 				if (isset($wish->from)) {
 					$line .= " (from {$wish->from})";
 				}
@@ -137,9 +139,9 @@ class WishlistController extends ModuleInstance {
 				$lines []= $line;
 				foreach ($wish->fulfilments as $fulfilment) {
 					$delLink = $this->text->makeChatcmd("del", "/tell <myname> wish rem fulfilment {$fulfilment->id}");
-					$lines []= "<tab><tab>{$fulfilment->amount} by {$fulfilment->fulfilled_by} on ".
+					$lines []= "<tab><tab><grey>{$fulfilment->amount} given by {$fulfilment->fulfilled_by} on ".
 						$this->util->date($fulfilment->fulfilled_on).
-						" [{$delLink}]";
+						" [{$delLink}]<end>";
 				}
 			}
 			$charGroups []= join("\n", $lines);
@@ -170,6 +172,40 @@ class WishlistController extends ModuleInstance {
 				return $w->getRemaining() > 0;
 			})->groupBy("created_by");
 		return $wishlistGrouped;
+	}
+
+	/** Search through other people's wishlist */
+	#[NCA\HandlesCommand("wish")]
+	public function searchWishlistCommand(
+		CmdContext $context,
+		#[NCA\Str("search")] string $action,
+		string $what,
+	): void {
+		$what = strip_tags($what);
+		$query = $this->db->table(self::DB_TABLE);
+
+		/** @var string[] */
+		$tokens = preg_split("/\s+/", $what);
+		$this->db->addWhereFromParams($query, $tokens, "item");
+		$items = $query->asObj(Wish::class);
+		$wishlistGrouped = $this->addFulfilments($items)
+			->map(function (Wish $w): Wish {
+				$w->amount = $w->getRemaining();
+				$w->fulfilments = new Collection();
+				return $w;
+			})
+			->filter(fn (Wish $w): bool => $w->amount > 0)
+			->groupBy("created_by");
+		if ($wishlistGrouped->isEmpty()) {
+			$context->reply("No one is wishing for {$what}.");
+			return;
+		}
+		[$numItems, $blob] = $this->renderCheckWishlist($wishlistGrouped, $context->char->name);
+		$msg = $this->text->makeBlob(
+			"Others' wishlists with '{$what}' ({$numItems})",
+			$blob
+		);
+		$context->reply($msg);
 	}
 
 	/** Check if anyone requested any items from you */
@@ -498,6 +534,12 @@ class WishlistController extends ModuleInstance {
 		}
 	}
 
+	private function fixItemLinks(string $item): string {
+		/** @var string */
+		$item = preg_replace('|"(itemref://\d+/\d+/\d+)"|', '$1', $item);
+		return $item;
+	}
+
 	/** @return array{int,string} */
 	private function renderCheckWishlist(Collection $wishlistGrouped, string ...$allChars): array {
 		$charGroups = [];
@@ -512,33 +554,35 @@ class WishlistController extends ModuleInstance {
 				if ($wish->amount > 1) {
 					$remaining = $wish->getRemaining();
 					if ($remaining !== $wish->amount) {
-						$line .= "<highlight>{$remaining}x<end>/{$wish->amount}x ";
+						$line .= "{$remaining} of {$wish->amount} ";
 					} else {
-						$line .= "<highlight>{$remaining}x<end> ";
+						$line .= "{$remaining} ";
 					}
 				}
-				$line = "{$line}{$wish->item}";
-				$do1Link = $this->text->makeChatcmd("do 1", "/tell <myname> wish fulfil 1x {$wish->id}");
+				$line = "{$line}<highlight>" . $this->fixItemLinks($wish->item) . "<end>";
+				$do1Link = $this->text->makeChatcmd("give 1", "/tell <myname> wish fulfil 1x {$wish->id}");
 				$doAllLink = null;
 				if ($wish->getRemaining() > 1) {
-					$doAllLink = $this->text->makeChatcmd("do all", "/tell <myname> wish fulfil {$wish->id}");
+					$doAllLink = $this->text->makeChatcmd("give all", "/tell <myname> wish fulfil {$wish->id}");
 				}
-				$denyLink = $this->text->makeChatcmd("deny", "/tell <myname> wish deny {$wish->id}");
-				$line .= " [{$do1Link}]";
-				if (isset($doAllLink)) {
-					$line .= " [{$doAllLink}]";
+				if (isset($wish->from) && in_array($wish->from, $allChars)) {
+					$denyLink = $this->text->makeChatcmd("deny", "/tell <myname> wish deny {$wish->id}");
+					$line .= " [{$do1Link}]";
+					if (isset($doAllLink)) {
+						$line .= " [{$doAllLink}]";
+					}
+					$line .= " [{$denyLink}]";
 				}
-				$line .= " [{$denyLink}]";
 				$lines []= $line;
 				foreach ($wish->fulfilments as $fulfilment) {
 					$delLink = null;
 					if (in_array($fulfilment->fulfilled_by, $allChars)) {
 						$delLink = $this->text->makeChatcmd("del", "/tell <myname> wish rem fulfilment {$fulfilment->id}");
 					}
-					$line = "<tab><tab>{$fulfilment->amount} by {$fulfilment->fulfilled_by} on ".
+					$line = "<tab><tab><grey>{$fulfilment->amount} given by {$fulfilment->fulfilled_by} on ".
 						$this->util->date($fulfilment->fulfilled_on);
 					if (isset($delLink)) {
-						$line .= " [{$delLink}]";
+						$line .= " [{$delLink}]<end>";
 					}
 					$lines []= $line;
 				}
