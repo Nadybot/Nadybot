@@ -17,6 +17,8 @@ class RoutableEvent extends Event {
 
 	public string|Base|SyncEvent|stdClass|null $data = null;
 
+	public bool $routeSilently = false;
+
 	public function getType(): string {
 		return $this->type;
 	}

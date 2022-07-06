@@ -416,7 +416,9 @@ class MessageHub {
 						$destination = $matches[1];
 					}
 					$receiver->receive($modifiedEvent, $destination);
-					$returnStatus = static::EVENT_DELIVERED;
+					if (!$modifiedEvent->routeSilently) {
+						$returnStatus = static::EVENT_DELIVERED;
+					}
 				}
 			}
 		}

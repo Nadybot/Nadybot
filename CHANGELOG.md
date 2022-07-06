@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add a new news-time "all-boss-timers" that will also show seasonal non-guaranteed spawns, like Desert Rider, Zaal, etc.
 - The SPAWNTIME_MODULE is now integrated into the WHEREIS_MODULE, giving everyone access to `!spawn <name>` to query a mob's respawn-timer.
 - Add a new command `!updatewb` to update the world bosses from the API. Usually, this should not be necessary, because the global timer events should update these automatically, but this aids in debugging.
+- New event modifier "route-silently()" will make the message hub treat routed messages as if they hadn't been routed. This will allow you to route aotell() and still have the bot react to commands in the message.
 
 ### Changed
 
