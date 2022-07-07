@@ -11,6 +11,7 @@ use Nadybot\Core\{
 	Attributes as NCA,
 	BuddylistManager,
 	CmdContext,
+	CommandManager,
 	DB,
 	ModuleInstance,
 	Nadybot,
@@ -52,6 +53,9 @@ class WishlistController extends ModuleInstance {
 
 	#[NCA\Inject]
 	public Nadybot $chatBot;
+
+	#[NCA\Inject]
+	public CommandManager $commandManager;
 
 	#[NCA\Inject]
 	public BuddylistManager $buddylistManager;
@@ -174,8 +178,55 @@ class WishlistController extends ModuleInstance {
 		return $wishlistGrouped;
 	}
 
+	/** Show someone else's wishlist */
+	#[NCA\HandlesCommand("wish")]
+	public function showOtherWishlistCommand(
+		CmdContext $context,
+		#[NCA\Str("show")] string $action,
+		PCharacter $char,
+	): Generator {
+		$uid = yield $this->chatBot->getUid2($char());
+		if (!isset($uid)) {
+			$context->reply("The character <highlight>{$char}<end> does not exist.");
+			return;
+		}
+		$alts = [$char()];
+		if ($this->commandManager->couldRunCommand($context, "alts {$char}")) {
+			$main = $this->altsController->getMainOf($char());
+			$alts = [$main, ...$this->altsController->getAltsOf($main)];
+		}
+		$wishlist = $this->db->table(self::DB_TABLE)
+			->whereIn("created_by", $alts)
+			->asObj(Wish::class);
+		$wishlistGrouped = $this->addFulfilments($wishlist)
+			->map(function (Wish $w): Wish {
+				$w->amount = $w->getRemaining();
+				$w->fulfilments = new Collection();
+				return $w;
+			})
+			->filter(fn (Wish $w): bool => $w->amount > 0)
+			->groupBy("created_by")
+			->sortBy(function (Collection $wishes, string $name) use ($char): string {
+				if ($char() === $name) {
+					return " {$name}";
+				}
+				return $name;
+			});
+		if ($wishlistGrouped->isEmpty()) {
+			$context->reply("{$char}'s wishlist is empty.");
+			return;
+		}
+		[$numItems, $blob] = $this->renderCheckWishlist($wishlistGrouped, $context->char->name);
+		$msg = $this->text->makeBlob(
+			"{$char}'s wishlists ({$numItems})",
+			$blob
+		);
+		$context->reply($msg);
+	}
+
 	/** Search through other people's wishlist */
 	#[NCA\HandlesCommand("wish")]
+	#[NCA\Help\Example("<symbol>wish search infuser", "to check who still needs infusers")]
 	public function searchWishlistCommand(
 		CmdContext $context,
 		#[NCA\Str("search")] string $action,
@@ -254,6 +305,8 @@ class WishlistController extends ModuleInstance {
 
 	/** Add an item to your wishlist */
 	#[NCA\HandlesCommand("wish")]
+	#[NCA\Help\Example("<symbol>wish from Nady 10x <a href='itemref://274552/274552/250'>Dust Brigade Notum Infuser</a>")]
+	#[NCA\Help\Example("<symbol>wish from Nadya APF belt")]
 	public function addFromSomeoneToWishlistCommand(
 		CmdContext $context,
 		#[NCA\Str("from")] string $action,
@@ -283,6 +336,8 @@ class WishlistController extends ModuleInstance {
 
 	/** Add an item to your wishlist */
 	#[NCA\HandlesCommand("wish")]
+	#[NCA\Help\Example("<symbol>wish add S35")]
+	#[NCA\Help\Example("<symbol>wish add 3x <a href='itemref://292567/292567/250'>Advanced Dust Brigade Notum Infuser</a>")]
 	public function addToWishlistCommand(
 		CmdContext $context,
 		#[NCA\Str("add")] string $action,
