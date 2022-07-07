@@ -94,21 +94,30 @@ class WishlistController extends ModuleInstance {
 		$this->chatBot->sendMassTell($msg, $event->sender);
 	}
 
-	/** Show your wishlist */
+	/** Show your wishlist, optionally also old fulfilled ones */
 	#[NCA\HandlesCommand("wish")]
-	public function showWishlistCommand(CmdContext $context): void {
+	public function showWishlistCommand(
+		CmdContext $context,
+		#[NCA\Str("all")] ?string $all,
+	): void {
 		$mainChar = $this->altsController->getMainOf($context->char->name);
 		$alts = $this->altsController->getAltsOf($mainChar);
-		$sendersWishlist = $this->db->table(self::DB_TABLE)
+		$senderQuery = $this->db->table(self::DB_TABLE)
 			->where("created_by", $context->char->name)
-			->orderBy("created_on")
-			->asObj(Wish::class);
-		$altsWishlist = $this->db->table(self::DB_TABLE)
+			->orderBy("created_on");
+		$altsQuery = $this->db->table(self::DB_TABLE)
 			->whereIn("created_by", array_diff([$mainChar, ...$alts], [$context->char->name]))
 			->orderBy("created_by")
-			->orderBy("created_on")
-			->asObj(Wish::class);
+			->orderBy("created_on");
+		if (!isset($all)) {
+			$senderQuery = $senderQuery->where("fulfilled", false);
+			$altsQuery = $altsQuery->where("fulfilled", false);
+		}
+		$sendersWishlist = $senderQuery->asObj(Wish::class);
+		$altsWishlist = $altsQuery->asObj(Wish::class);
 		$wishlist = $sendersWishlist->concat($altsWishlist);
+
+		/** @var Collection<string,Collection<Wish>> */
 		$wishlistGrouped = $this->addFulfilments($wishlist)->groupBy("created_by");
 		if ($wishlistGrouped->isEmpty()) {
 			$context->reply("Your wishlist is empty.");
@@ -117,8 +126,13 @@ class WishlistController extends ModuleInstance {
 		$charGroups = [];
 		$numItems = 0;
 		foreach ($wishlistGrouped as $char => $wishlist) {
-			/** @var Collection<Wish> $wishlist */
 			$lines = [];
+			$wishlist = $wishlist->sortBy(function (Wish $wish): int {
+				if ($wish->fulfilled) {
+					return PHP_INT_MAX;
+				}
+				return $wish->created_on;
+			});
 			$lines []= "<header2>{$char}<end>";
 			foreach ($wishlist as $wish) {
 				$numItems++;
@@ -188,7 +202,7 @@ class WishlistController extends ModuleInstance {
 	#[NCA\HandlesCommand("wish")]
 	public function showOtherWishlistCommand(
 		CmdContext $context,
-		#[NCA\Str("show")] string $action,
+		#[NCA\Str("show", "view")] string $action,
 		PCharacter $char,
 	): Generator {
 		$uid = yield $this->chatBot->getUid2($char());
@@ -361,11 +375,11 @@ class WishlistController extends ModuleInstance {
 		$context->reply("Item added to your wishlist as #{$entry->id}.");
 	}
 
-	/** Clear your, and optionally all your alts', wishlist - including fulfilled wishes */
+	/** Delete all your, and optionally all your alts', wishlists */
 	#[NCA\HandlesCommand("wish")]
-	public function clearAllWishlistCommand(
+	public function wipeAllWishlistCommand(
 		CmdContext $context,
-		#[NCA\Str("clear")] string $action,
+		#[NCA\Str("wipe")] string $action,
 		#[NCA\Str("all")] ?string $all,
 	): Generator {
 		$names = [$context->char->name];
@@ -386,10 +400,10 @@ class WishlistController extends ModuleInstance {
 		yield $this->db->awaitBeginTransaction();
 		try {
 			$this->db->table(self::DB_TABLE_FULFILMENT)
-				->whereIn("wish_id", [$ids])
+				->whereIn("wish_id", $ids)
 				->delete();
 			$numDeleted = $this->db->table(self::DB_TABLE)
-				->whereIn("id", [$ids])
+				->whereIn("id", $ids)
 				->delete();
 		} catch (Throwable) {
 			$this->db->rollback();
@@ -399,6 +413,55 @@ class WishlistController extends ModuleInstance {
 		$this->db->commit();
 		$context->reply(
 			"Removed <highlight>{$numDeleted} ".
+			$this->text->pluralize("item", $numDeleted) . "<end> ".
+			"from your wishlist."
+		);
+		$newFrom = $this->getActiveFroms();
+		$toDelete = array_diff($oldFrom, $newFrom);
+		foreach ($toDelete as $char) {
+			$this->buddylistManager->remove($char, "wishlist");
+		}
+	}
+
+	/** Delete your, and optionally all your alts', fulfilled wishes */
+	#[NCA\HandlesCommand("wish")]
+	public function clearAllWishlistCommand(
+		CmdContext $context,
+		#[NCA\Str("clear")] string $action,
+		#[NCA\Str("all")] ?string $all,
+	): Generator {
+		$names = [$context->char->name];
+		if (isset($all)) {
+			$mainChar = $this->altsController->getMainOf($context->char->name);
+			$alts = $this->altsController->getAltsOf($mainChar);
+			$names = [$mainChar, ...$alts];
+		}
+		$ids = $this->db->table(self::DB_TABLE)
+			->whereIn("created_by", $names)
+			->where("fulfilled", true)
+			->pluckInts("id")
+			->toArray();
+		if (count($ids) === 0) {
+			$context->reply("Your wishlist is empty.");
+			return;
+		}
+		$oldFrom = $this->getActiveFroms();
+		yield $this->db->awaitBeginTransaction();
+		try {
+			$this->db->table(self::DB_TABLE_FULFILMENT)
+				->whereIn("wish_id", $ids)
+				->delete();
+			$numDeleted = $this->db->table(self::DB_TABLE)
+				->whereIn("id", $ids)
+				->delete();
+		} catch (Throwable $e) {
+			$this->db->rollback();
+			$context->reply("An unknown error occurred when cleaning up your wishlist.");
+			return;
+		}
+		$this->db->commit();
+		$context->reply(
+			"Removed <highlight>{$numDeleted} fulfilled ".
 			$this->text->pluralize("item", $numDeleted) . "<end> ".
 			"from your wishlist."
 		);
