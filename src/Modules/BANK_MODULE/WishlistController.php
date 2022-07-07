@@ -109,10 +109,7 @@ class WishlistController extends ModuleInstance {
 			->orderBy("created_on")
 			->asObj(Wish::class);
 		$wishlist = $sendersWishlist->concat($altsWishlist);
-		$wishlistGrouped = $this->addFulfilments($wishlist)
-			->filter(function (Wish $w): bool {
-				return $w->getRemaining() > 0;
-			})->groupBy("created_by");
+		$wishlistGrouped = $this->addFulfilments($wishlist)->groupBy("created_by");
 		if ($wishlistGrouped->isEmpty()) {
 			$context->reply("Your wishlist is empty.");
 			return;
@@ -126,6 +123,9 @@ class WishlistController extends ModuleInstance {
 			foreach ($wishlist as $wish) {
 				$numItems++;
 				$line = "<tab>";
+				if ($wish->fulfilled) {
+					$line .= "<grey>";
+				}
 				if ($wish->amount > 1) {
 					$remaining = $wish->getRemaining();
 					if ($remaining !== $wish->amount) {
@@ -134,12 +134,19 @@ class WishlistController extends ModuleInstance {
 						$line .= "{$remaining} ";
 					}
 				}
-				$line = "{$line}<highlight>" . $this->fixItemLinks($wish->item) . "<end>";
+				if ($wish->fulfilled) {
+					$line .= $this->fixItemLinks($wish->item);
+				} else {
+					$line .= "<highlight>" . $this->fixItemLinks($wish->item) . "<end>";
+				}
 				if (isset($wish->from)) {
 					$line .= " (from {$wish->from})";
 				}
 				$delLink = $this->text->makeChatcmd("del", "/tell <myname> wish rem {$wish->id}");
 				$line .= " [{$delLink}]";
+				if ($wish->fulfilled) {
+					$line .= "<end>";
+				}
 				$lines []= $line;
 				foreach ($wish->fulfilments as $fulfilment) {
 					$delLink = $this->text->makeChatcmd("del", "/tell <myname> wish rem fulfilment {$fulfilment->id}");
@@ -166,15 +173,14 @@ class WishlistController extends ModuleInstance {
 	public function getOthersNeeds(string ...$chars): Collection {
 		$wishlist = $this->db->table(self::DB_TABLE)
 			->whereIn("from", $chars)
+			->where("fulfilled", false)
 			->orderBy("created_by")
 			->orderBy("created_on")
 			->asObj(Wish::class);
 
 		/** @var Collection<string,Collection<Wish>> */
 		$wishlistGrouped = $this->addFulfilments($wishlist)
-			->filter(function (Wish $w): bool {
-				return $w->getRemaining() > 0;
-			})->groupBy("created_by");
+			->groupBy("created_by");
 		return $wishlistGrouped;
 	}
 
@@ -197,6 +203,7 @@ class WishlistController extends ModuleInstance {
 		}
 		$wishlist = $this->db->table(self::DB_TABLE)
 			->whereIn("created_by", $alts)
+			->where("fulfilled", false)
 			->asObj(Wish::class);
 		$wishlistGrouped = $this->addFulfilments($wishlist)
 			->map(function (Wish $w): Wish {
@@ -484,7 +491,24 @@ class WishlistController extends ModuleInstance {
 			$context->reply("You don't have the right to remove this fulfilment.");
 			return;
 		}
-		$this->db->table(self::DB_TABLE_FULFILMENT)->delete($fulfilmentId);
+		$newNumFulfilled = (int)$this->db->table(self::DB_TABLE_FULFILMENT)
+			->where("wish_id", $fullfillment->wish_id)
+			->where("id", "!=", $fulfilmentId)
+			->sum("amount");
+		yield $this->db->awaitBeginTransaction();
+		try {
+			$this->db->table(self::DB_TABLE_FULFILMENT)->delete($fulfilmentId);
+			if ($newNumFulfilled < $entry->amount) {
+				$this->db->table(self::DB_TABLE)
+					->where("id", $fullfillment->wish_id)
+					->update(["fulfilled" => false]);
+			}
+		} catch (Throwable) {
+			$this->db->rollback();
+			$context->reply("An unknown error occurred when removing the fulfilment");
+			return;
+		}
+		$this->db->commit();
 		$context->reply(
 			"Removed the fulfilment of <highlight>{$fullfillment->amount}x {$entry->item}<end> ".
 			"from {$entry->created_by}'s wishlist."
@@ -501,7 +525,7 @@ class WishlistController extends ModuleInstance {
 		#[NCA\Str("fulfil", "fulfill", "fullfil", "fullfill")] string $action,
 		?PQuantity $amount,
 		int $id,
-	): void {
+	): Generator {
 		$mainChar = $this->altsController->getMainOf($context->char->name);
 		$alts = $this->altsController->getAltsOf($mainChar);
 
@@ -534,7 +558,20 @@ class WishlistController extends ModuleInstance {
 		$fulfilment->fulfilled_by = $context->char->name;
 		$fulfilment->wish_id = $entry->id;
 		$oldFrom = $this->getActiveFroms();
-		$fulfilment->id = $this->db->insert(self::DB_TABLE_FULFILMENT, $fulfilment);
+		yield $this->db->awaitBeginTransaction();
+		try {
+			$fulfilment->id = $this->db->insert(self::DB_TABLE_FULFILMENT, $fulfilment);
+			if ($numFulfilled + $fulfilment->amount >= $entry->amount) {
+				$this->db->table(self::DB_TABLE)
+					->where("id", $entry->id)
+					->update(["fulfilled" => true]);
+			}
+		} catch (Throwable) {
+			$this->db->rollback();
+			$context->reply("An unknown error occurred when marking the wish fulfilled");
+			return;
+		}
+		$this->db->commit();
 		$context->reply(
 			"Marked <highlight>{$fulfilment->amount}x {$entry->item}<end> ".
 			"as fulfilled on {$entry->created_by}'s wishlist."
@@ -649,26 +686,16 @@ class WishlistController extends ModuleInstance {
 
 	/** @return string[] */
 	private function getActiveFroms(): array {
-		$wishes = $this->db->table(self::DB_TABLE)
+		$fromChars = $this->db->table(self::DB_TABLE)
 			->whereNotNull("from")
-			->asObj(Wish::class);
-		$this->db->table(self::DB_TABLE_FULFILMENT)
-			->asObj(WishFulfilment::class)
-			->each(function (WishFulfilment $f) use ($wishes): void {
-				/** @var ?Wish */
-				$wish = $wishes->firstWhere("id", $f->wish_id);
-				if (isset($wish)) {
-					$wish->fulfilments->push($f);
+			->where("fulfilled", false)
+			->asObj(Wish::class)
+			->reduce(function (array $result, Wish $w): array {
+				if (isset($w->from)) {
+					$result[$w->from] = true;
 				}
-			});
-		$fromChars = $wishes->filter(function (Wish $w): bool {
-			return $w->getRemaining() > 0;
-		})->reduce(function (array $result, Wish $w): array {
-			if (isset($w->from)) {
-				$result[$w->from] = true;
-			}
-			return $result;
-		}, []);
+				return $result;
+			}, []);
 
 		/** @var string[] */
 		$keys = array_keys($fromChars);

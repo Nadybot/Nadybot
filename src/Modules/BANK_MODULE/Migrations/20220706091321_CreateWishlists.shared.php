@@ -16,6 +16,7 @@ class CreateWishlists implements SchemaMigration {
 			$table->string("item", 200);
 			$table->unsignedInteger("amount")->default(1);
 			$table->string("from", 12)->nullable(true)->index();
+			$table->boolean("fulfilled")->default(false)->index();
 		});
 
 		$table = WishlistController::DB_TABLE_FULFILMENT;

@@ -12,6 +12,7 @@ class Wish extends DBRow {
 	public string $item;
 	public int $amount = 1;
 	public ?string $from = null;
+	public bool $fulfilled = false;
 
 	/** @var Collection<WishFulfilment> */
 	#[NCA\DB\Ignore]
