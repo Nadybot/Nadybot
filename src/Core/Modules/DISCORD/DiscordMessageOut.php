@@ -34,4 +34,35 @@ class DiscordMessageOut {
 			return DiscordAPIClient::encode($replacement);
 		}
 	}
+
+	/** @return array<self> */
+	public function split(): array {
+		$totalLength = 0;
+		if (!isset($this->embeds)) {
+			return [$this];
+		}
+		for ($e = 0; $e < count($this->embeds); $e++) {
+			$embed = $this->embeds[$e];
+			$totalLength += strlen($embed->title ?? "");
+			$totalLength += strlen($embed->description ?? "");
+			if (!isset($embed->fields)) {
+				continue;
+			}
+			for ($i = 0; $i < count($embed->fields); $i++) {
+				$field = $embed->fields[$i];
+				$totalLength += strlen($field->name ?? "");
+				$totalLength += strlen($field->value ?? "");
+				if ($totalLength >= 6000) {
+					$msg2 = clone $this;
+					$fields = array_splice($embed->fields, $i);
+					$danglingEmbed = clone $embed;
+					$danglingEmbed->fields = $fields;
+					$embeds = array_splice($this->embeds, $e + 1);
+					$msg2->embeds = [$danglingEmbed, ...$embeds];
+					return [$this, $msg2];
+				}
+			}
+		}
+		return [$this];
+	}
 }

@@ -119,11 +119,13 @@ class DiscordSlashCommandReply implements CommandReply {
 			$messageObj->flags = $this->slashCtrl->discordSlashCommands === $this->slashCtrl::SLASH_EPHEMERAL
 				? InteractionCallbackData::EPHEMERAL
 				: null;
-			Promise\rethrow($this->discordAPIClient->queueToWebhook(
-				$this->applicationId,
-				$this->interactionToken,
-				$this->discordAPIClient->encode($messageObj),
-			));
+			foreach ($messageObj->split() as $msgPart) {
+				Promise\rethrow($this->discordAPIClient->queueToWebhook(
+					$this->applicationId,
+					$this->interactionToken,
+					$this->discordAPIClient->encode($msgPart),
+				));
+			}
 		}
 	}
 }

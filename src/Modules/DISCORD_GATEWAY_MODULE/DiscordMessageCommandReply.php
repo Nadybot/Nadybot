@@ -86,7 +86,9 @@ class DiscordMessageCommandReply implements CommandReply, MessageEmitter {
 					"channel_id" => $this->channelId,
 				];
 			}
-			Promise\rethrow($this->discordAPIClient->queueToChannel($this->channelId, $messageObj->toJSON()));
+			foreach ($messageObj->split() as $msgPart) {
+				Promise\rethrow($this->discordAPIClient->queueToChannel($this->channelId, $msgPart->toJSON()));
+			}
 		}
 	}
 

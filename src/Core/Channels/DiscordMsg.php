@@ -84,11 +84,13 @@ class DiscordMsg implements MessageReceiver {
 			}
 		}
 
-		// Relay the message to the discord channel
-		if (preg_match("/^\d+$/", $destination)) {
-			Promise\rethrow($this->discordAPIClient->queueToChannel($destination, $discordMsg->toJSON()));
-		} else {
-			Promise\rethrow($this->discordAPIClient->sendToUser($destination, $discordMsg->toJSON()));
+		foreach ($discordMsg->split() as $msgPart) {
+			// Relay the message to the discord channel
+			if (preg_match("/^\d+$/", $destination)) {
+				Promise\rethrow($this->discordAPIClient->queueToChannel($destination, $msgPart->toJSON()));
+			} else {
+				Promise\rethrow($this->discordAPIClient->sendToUser($destination, $msgPart->toJSON()));
+			}
 		}
 		return true;
 	}

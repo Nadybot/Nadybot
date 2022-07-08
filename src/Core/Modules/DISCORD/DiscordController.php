@@ -151,10 +151,12 @@ class DiscordController extends ModuleInstance {
 				$message->allowed_mentions->parse []= ["here"];
 				$message->allowed_mentions->parse []= ["everyone"];
 			}
-			Promise\rethrow($this->discordAPIClient->sendToChannel(
-				$this->discordNotifyChannel,
-				$message->toJSON()
-			));
+			foreach ($message->split() as $msgPart) {
+				Promise\rethrow($this->discordAPIClient->sendToChannel(
+					$this->discordNotifyChannel,
+					$msgPart->toJSON()
+				));
+			}
 		}
 	}
 

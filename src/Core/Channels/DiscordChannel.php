@@ -98,7 +98,9 @@ class DiscordChannel implements MessageReceiver {
 		}
 
 		// Relay the message to the discord channel
-		Promise\rethrow($this->discordAPIClient->queueToChannel($this->id, $discordMsg->toJSON()));
+		foreach ($discordMsg->split() as $msgPart) {
+			Promise\rethrow($this->discordAPIClient->queueToChannel($this->id, $msgPart->toJSON()));
+		}
 		return true;
 	}
 }
