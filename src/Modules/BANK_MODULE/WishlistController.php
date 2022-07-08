@@ -2,7 +2,10 @@
 
 namespace Nadybot\Modules\BANK_MODULE;
 
+use function Amp\call;
 use function Safe\preg_replace;
+
+use Amp\Promise;
 use Generator;
 use Illuminate\Support\Collection;
 use Nadybot\Core\Modules\ALTS\AltsController;
@@ -16,6 +19,7 @@ use Nadybot\Core\{
 	ModuleInstance,
 	Nadybot,
 	Text,
+	UserException,
 	UserStateEvent,
 	Util,
 };
@@ -382,45 +386,16 @@ class WishlistController extends ModuleInstance {
 		#[NCA\Str("wipe")] string $action,
 		#[NCA\Str("all")] ?string $all,
 	): Generator {
-		$names = [$context->char->name];
-		if (isset($all)) {
-			$mainChar = $this->altsController->getMainOf($context->char->name);
-			$alts = $this->altsController->getAltsOf($mainChar);
-			$names = [$mainChar, ...$alts];
-		}
-		$ids = $this->db->table(self::DB_TABLE)
-			->whereIn("created_by", $names)
-			->pluckInts("id")
-			->toArray();
-		if (count($ids) === 0) {
-			$context->reply("Your wishlist is empty.");
-			return;
-		}
-		$oldFrom = $this->getActiveFroms();
-		yield $this->db->awaitBeginTransaction();
-		try {
-			$this->db->table(self::DB_TABLE_FULFILMENT)
-				->whereIn("wish_id", $ids)
-				->delete();
-			$numDeleted = $this->db->table(self::DB_TABLE)
-				->whereIn("id", $ids)
-				->delete();
-		} catch (Throwable) {
-			$this->db->rollback();
-			$context->reply("An unknown error occurred when cleaning up your wishlist.");
-			return;
-		}
-		$this->db->commit();
+		$numDeleted = yield $this->clearWishlist(
+			$context->char->name,
+			isset($all),
+			true
+		);
 		$context->reply(
 			"Removed <highlight>{$numDeleted} ".
-			$this->text->pluralize("item", $numDeleted) . "<end> ".
+			$this->text->pluralize("wish", $numDeleted) . "<end> ".
 			"from your wishlist."
 		);
-		$newFrom = $this->getActiveFroms();
-		$toDelete = array_diff($oldFrom, $newFrom);
-		foreach ($toDelete as $char) {
-			$this->buddylistManager->remove($char, "wishlist");
-		}
 	}
 
 	/** Delete your, and optionally all your alts', fulfilled wishes */
@@ -430,46 +405,16 @@ class WishlistController extends ModuleInstance {
 		#[NCA\Str("clear")] string $action,
 		#[NCA\Str("all")] ?string $all,
 	): Generator {
-		$names = [$context->char->name];
-		if (isset($all)) {
-			$mainChar = $this->altsController->getMainOf($context->char->name);
-			$alts = $this->altsController->getAltsOf($mainChar);
-			$names = [$mainChar, ...$alts];
-		}
-		$ids = $this->db->table(self::DB_TABLE)
-			->whereIn("created_by", $names)
-			->where("fulfilled", true)
-			->pluckInts("id")
-			->toArray();
-		if (count($ids) === 0) {
-			$context->reply("Your wishlist is empty.");
-			return;
-		}
-		$oldFrom = $this->getActiveFroms();
-		yield $this->db->awaitBeginTransaction();
-		try {
-			$this->db->table(self::DB_TABLE_FULFILMENT)
-				->whereIn("wish_id", $ids)
-				->delete();
-			$numDeleted = $this->db->table(self::DB_TABLE)
-				->whereIn("id", $ids)
-				->delete();
-		} catch (Throwable $e) {
-			$this->db->rollback();
-			$context->reply("An unknown error occurred when cleaning up your wishlist.");
-			return;
-		}
-		$this->db->commit();
+		$numDeleted = yield $this->clearWishlist(
+			$context->char->name,
+			isset($all),
+			false
+		);
 		$context->reply(
 			"Removed <highlight>{$numDeleted} fulfilled ".
-			$this->text->pluralize("item", $numDeleted) . "<end> ".
+			$this->text->pluralize("wish", $numDeleted) . "<end> ".
 			"from your wishlist."
 		);
-		$newFrom = $this->getActiveFroms();
-		$toDelete = array_diff($oldFrom, $newFrom);
-		foreach ($toDelete as $char) {
-			$this->buddylistManager->remove($char, "wishlist");
-		}
 	}
 
 	/** Remove an item from your or one of your alt's wishlist */
@@ -680,13 +625,72 @@ class WishlistController extends ModuleInstance {
 		}
 		$this->db->commit();
 		$context->reply(
-			"You denied {$entry->created_by}'s wish for {$entry->amount}x {$entry->item}."
+			"from your wishlist."
 		);
 		$newFrom = $this->getActiveFroms();
 		$toDelete = array_diff($oldFrom, $newFrom);
 		foreach ($toDelete as $char) {
 			$this->buddylistManager->remove($char, "wishlist");
 		}
+	}
+
+	/**
+	 * Delete the wishes of a character
+	 *
+	 * @param string $char          Name whose wishlist to clear
+	 * @param bool   $includeAlts   Also clear $char's alts' wishlist?
+	 * @param bool   $includeActive Also delete unfulfilled wishes?
+	 *
+	 * @return Promise<int> number of deleted wishes
+	 *
+	 * @throws UserException if there's an error
+	 */
+	private function clearWishlist(
+		string $char,
+		bool $includeAlts=false,
+		bool $includeActive=false,
+	): Promise {
+		return call(function () use ($char, $includeAlts, $includeActive): Generator {
+			$names = [$char];
+			if ($includeAlts) {
+				$mainChar = $this->altsController->getMainOf($char);
+				$alts = $this->altsController->getAltsOf($mainChar);
+				$names = [$mainChar, ...$alts];
+			}
+			$query = $this->db->table(self::DB_TABLE)
+				->whereIn("created_by", $names);
+			if (!$includeActive) {
+				$query = $query->where("fulfilled", true);
+			}
+			$ids = $query->pluckInts("id")
+				->toArray();
+			if (count($ids) === 0) {
+				if ($includeActive) {
+					throw new UserException("Your wishlist is empty.");
+				}
+				throw new UserException("Your have no fulfilled wishes on your wishlist.");
+			}
+			$oldFrom = $this->getActiveFroms();
+			yield $this->db->awaitBeginTransaction();
+			try {
+				$this->db->table(self::DB_TABLE_FULFILMENT)
+					->whereIn("wish_id", $ids)
+					->delete();
+				$numDeleted = $this->db->table(self::DB_TABLE)
+					->whereIn("id", $ids)
+					->delete();
+			} catch (Throwable $e) {
+				$this->db->rollback();
+				throw new UserException("An unknown error occurred when cleaning up your wishlist.");
+			}
+			$this->db->commit();
+			$newFrom = $this->getActiveFroms();
+			$toDelete = array_diff($oldFrom, $newFrom);
+			foreach ($toDelete as $char) {
+				$this->buddylistManager->remove($char, "wishlist");
+			}
+			return $numDeleted;
+		});
 	}
 
 	private function fixItemLinks(string $item): string {
