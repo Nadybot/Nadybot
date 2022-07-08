@@ -400,6 +400,60 @@ class Text {
 
 	/** Return the pluralized version of $word if $amount is not 1 */
 	public function pluralize(string $word, int $amount): string {
-		return $word . (($amount === 1) ? "" : "s");
+		if ($amount === 1) {
+			return $word;
+		}
+		$exceptions = [
+			"tomato" => "tomatoes",
+			"potato" => "potatoes",
+			"veto" => "vetoes",
+			"echo" => "echoes",
+			"hero" => "heroes",
+			"cargo" => "cargoes",
+			"man" => "men",
+			"woman" => "women",
+			"child" => "children",
+			"mouse" => "mice",
+			"tooth" => "teeth",
+			"goose" => "geese",
+			"foot" => "feet",
+			"ox" => "oxen",
+			"die" => "dice",
+			"phenomenon" => "phenomena",
+			"criterion" => "criteria",
+			"thief" => "thieves",
+			"wife" => "wives",
+			"knife" => "knives",
+			"shelf" => "shelves",
+			"leaf" => "leaves",
+			"sheep" => "sheep",
+			"deer" => "deer",
+			"fish" => "fish",
+			"species" => "species",
+		];
+		if (isset($exceptions[strtolower($word)])) {
+			$plural = $exceptions[strtolower($word)];
+			return substr($word, 0, 1) . substr($plural, 1);
+		}
+		$plural = "s";
+		if (preg_match("/[^aeiou]y$/", $word)) {
+			$word = substr($word, 0, strlen($word) -1);
+			$plural = "ies";
+		} elseif (preg_match("/[ei]x$/", $word)) {
+			$word = substr($word, 0, strlen($word) -2);
+			$plural = "ices";
+		} elseif (str_ends_with($word, "is")) {
+			$word = substr($word, 0, strlen($word) -1);
+			$plural = "es";
+		} elseif (str_ends_with($word, "us")) {
+			$word = substr($word, 0, strlen($word) -2);
+			$plural = "i";
+		} elseif (str_ends_with($word, "fe")) {
+			$word = substr($word, 0, strlen($word) -1);
+			$plural = "ves";
+		} elseif (preg_match("/([cs]h|[sxz])$/", $word)) {
+			$plural = "es";
+		}
+		return $word . $plural;
 	}
 }
