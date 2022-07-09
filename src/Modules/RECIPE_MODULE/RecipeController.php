@@ -184,7 +184,7 @@ class RecipeController extends ModuleInstance {
 			$authorLine = trim(array_shift($lines));
 			$recipe->name = (strlen($nameLine) > 6) ? substr($nameLine, 6) : "Unknown";
 			$recipe->author = (strlen($authorLine) > 8) ? substr($authorLine, 8) : "Unknown";
-			$recipe->recipe = implode("", $lines);
+			$recipe->recipe = implode("\n", $lines);
 			$recipe->date = yield filesystem()->getModificationTime($this->path . $fileName);
 
 			return $recipe;
