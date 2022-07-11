@@ -99,8 +99,11 @@ class BuddylistManager {
 				if ($event->uid !== $uid) {
 					return;
 				}
-				$deferred->resolve($event->type === "logon");
-				$this->eventManager->unsubscribe($event->type, $resolver);
+				if (!$deferred->isResolved()) {
+					$deferred->resolve($event->type === "logon");
+				}
+				$this->eventManager->unsubscribe("logon", $resolver);
+				$this->eventManager->unsubscribe("logoff", $resolver);
 			};
 			$this->eventManager->subscribe("logon", $resolver);
 			$this->eventManager->subscribe("logoff", $resolver);
