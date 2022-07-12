@@ -1460,7 +1460,7 @@ class DiscordGatewayController extends ModuleInstance {
 		$this->handleAccountLinking($guildId, $userId, $invite->character);
 
 		/** @var ?DiscordMapping */
-		$data = $this->db->table(self::DB_TABLE)
+		$data = $this->db->table(DiscordGatewayCommandHandler::DB_TABLE)
 			->where("discord_id", $userId)
 			->whereNotNull("confirmed")
 			->asObj(DiscordMapping::class)

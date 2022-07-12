@@ -130,10 +130,9 @@ class DiscordAPIClient extends ModuleInstance {
 	/** @return Promise<stdClass> */
 	public function modifyGuildMember(string $guildId, string $userId, string $data): Promise {
 		$uri = self::DISCORD_API . "/guilds/{$guildId}/members/{$userId}";
-		return $this->sendRequest(
-			new Request($uri, "PATCH"),
-			new stdClass()
-		);
+		$request = new Request($uri, "PATCH");
+		$request->setBody(new DiscordBody($data));
+		return $this->sendRequest($request, new stdClass());
 	}
 
 	/** @return Promise<ApplicationCommand[]> */
