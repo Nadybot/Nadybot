@@ -416,6 +416,22 @@ class Nadybot extends AOChat {
 		return $this->shuttingDown;
 	}
 
+	/** @return never */
+	public function restart(): void {
+		$this->disconnect();
+		$this->logger->notice("The Bot is restarting.");
+		$this->shuttingDown = true;
+		exit(-1);
+	}
+
+	/** @return never */
+	public function shutdown(): void {
+		$this->disconnect();
+		$this->logger->notice("The Bot is shutting down.");
+		$this->shuttingDown = true;
+		exit(10);
+	}
+
 	/** Process all packets in an endless loop */
 	public function processAllPackets(): void {
 		while ($this->processNextPacket()) {

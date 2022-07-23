@@ -280,9 +280,7 @@ class SystemController extends ModuleInstance implements MessageEmitter {
 		$rMsg->appendPath(new Source(Source::SYSTEM, "status"));
 		$this->messageHub->handle($rMsg);
 
-		$this->chatBot->disconnect();
-		$this->logger->notice("The Bot is restarting.");
-		exit(-1);
+		$this->chatBot->restart();
 	}
 
 	/** Shutdown the bot. Configured properly, it won't start again */
@@ -295,9 +293,7 @@ class SystemController extends ModuleInstance implements MessageEmitter {
 		$rMsg->appendPath(new Source(Source::SYSTEM, "status"));
 		$this->messageHub->handle($rMsg);
 
-		$this->chatBot->disconnect();
-		$this->logger->notice("The Bot is shutting down.");
-		exit(10);
+		$this->chatBot->shutdown();
 	}
 
 	public function getSystemInfo(): SystemInformation {
