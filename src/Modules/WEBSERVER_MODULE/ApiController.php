@@ -437,9 +437,7 @@ class ApiController extends ModuleInstance {
 		});
 	}
 
-	/**
-	 * Execute a command, result is sent via websocket
-	 */
+	/** Execute a command, result is sent via websocket */
 	#[
 		NCA\Api("/execute/%s"),
 		NCA\POST,

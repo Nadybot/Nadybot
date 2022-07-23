@@ -97,9 +97,7 @@ class ExportController extends ModuleInstance {
 	#[NCA\Inject]
 	public ConfigFile $config;
 
-	/**
-	 * Export all of this bot's data into a portable JSON-file
-	 */
+	/** Export all of this bot's data into a portable JSON-file */
 	#[NCA\HandlesCommand("export")]
 	#[NCA\Help\Example(
 		command: "<symbol>export 2021-01-31",

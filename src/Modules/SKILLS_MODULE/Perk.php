@@ -17,9 +17,7 @@ class Perk extends DBRow {
 	/** A description what a perk does */
 	public ?string $description = null;
 
-	/**
-	 * @var array<int,PerkLevel>
-	 */
+	/** @var array<int,PerkLevel> */
 	#[NCA\DB\Ignore]
 	public array $levels = [];
 }

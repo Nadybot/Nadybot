@@ -27,9 +27,7 @@ class ChatCheckController extends ModuleInstance {
 	#[NCA\Inject]
 	public Text $text;
 
-	/**
-	 * Checks who in the private channel is in the area
-	 */
+	/** Checks who in the private channel is in the area */
 	#[NCA\HandlesCommand("check")]
 	public function checkAllCommand(CmdContext $context): void {
 		/** @var Collection<string> */

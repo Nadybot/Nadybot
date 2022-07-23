@@ -132,9 +132,7 @@ class RaidRankController extends ModuleInstance implements AccessLevelProvider {
 	/** @var array<string,RaidRank> */
 	public array $ranks = [];
 
-	/**
-	 * @todo: Add support for the raid levels
-	 */
+	/** @todo: Add support for the raid levels */
 	#[NCA\Setup]
 	public function setup(): void {
 		$this->accessManager->registerProvider($this);
@@ -170,9 +168,7 @@ class RaidRankController extends ModuleInstance implements AccessLevelProvider {
 			})->toArray();
 	}
 
-	/**
-	 * Load the raid leaders, admins and veterans from the database into $ranks
-	 */
+	/** Load the raid leaders, admins and veterans from the database into $ranks */
 	#[NCA\Setup]
 	public function uploadRaidRanks(): void {
 		$this->db->table(self::DB_TABLE)

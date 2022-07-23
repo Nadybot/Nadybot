@@ -91,9 +91,7 @@ class StatsController extends ModuleInstance {
 		$this->dataSets[$name]->registerProvider($provider);
 	}
 
-	/**
-	 * Query prometheus-formatted statistics
-	 */
+	/** Query prometheus-formatted statistics */
 	#[
 		NCA\HttpGet("/metrics"),
 		NCA\HttpOwnAuth,

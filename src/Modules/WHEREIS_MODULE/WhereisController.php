@@ -63,9 +63,7 @@ class WhereisController extends ModuleInstance {
 			});
 	}
 
-	/**
-	 * Show the location of NPCs or places
-	 */
+	/** Show the location of NPCs or places */
 	#[NCA\HandlesCommand("whereis")]
 	#[NCA\Help\Example("<symbol>whereis elmer ragg")]
 	#[NCA\Help\Example("<symbol>whereis prisoner")]

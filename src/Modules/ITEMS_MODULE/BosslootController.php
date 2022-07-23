@@ -60,9 +60,7 @@ class BosslootController extends ModuleInstance {
 		$this->db->loadCSVFile($this->moduleName, __DIR__ ."/boss_lootdb.csv");
 	}
 
-	/**
-	 * See the drop table for a boss
-	 */
+	/** See the drop table for a boss */
 	#[NCA\HandlesCommand("boss")]
 	public function bossCommand(CmdContext $context, string $bossName): void {
 		$bossName = strtolower($bossName);
@@ -118,9 +116,7 @@ class BosslootController extends ModuleInstance {
 		$context->reply($output);
 	}
 
-	/**
-	 * Search for the boss dropping the item
-	 */
+	/** Search for the boss dropping the item */
 	#[NCA\HandlesCommand("bossloot")]
 	public function bosslootCommand(CmdContext $context, string $item): void {
 		$item = strtolower($item);

@@ -144,9 +144,7 @@ class AltsController extends ModuleInstance {
 			})->toArray();
 	}
 
-	/**
-	 * Add one or more alts to your main
-	 */
+	/** Add one or more alts to your main */
 	#[NCA\HandlesCommand("alts")]
 	#[NCA\Help\Group("alts")]
 	#[NCA\Help\Epilogue(
@@ -249,9 +247,7 @@ class AltsController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
-	/**
-	 * Add yourself as an alt of another main character
-	 */
+	/** Add yourself as an alt of another main character */
 	#[NCA\HandlesCommand("alts")]
 	#[NCA\Help\Group("alts")]
 	#[NCA\Help\Epilogue(
@@ -340,9 +336,7 @@ class AltsController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
-	/**
-	 * Remove one of your alts
-	 */
+	/** Remove one of your alts */
 	#[NCA\HandlesCommand("alts")]
 	#[NCA\Help\Group("alts")]
 	public function removeAltCommand(CmdContext $context, PRemove $rem, PCharacter $name): void {
@@ -371,9 +365,7 @@ class AltsController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
-	/**
-	 * Set your current character as your main
-	 */
+	/** Set your current character as your main */
 	#[NCA\HandlesCommand("alts")]
 	#[NCA\Help\Group("alts")]
 	public function setMainCommand(
@@ -432,9 +424,7 @@ class AltsController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
-	/**
-	 * List your or &lt;name&gt;'s alts
-	 */
+	/** List your or &lt;name&gt;'s alts */
 	#[NCA\HandlesCommand("alts")]
 	#[NCA\Help\Group("alts")]
 	public function altsCommand(CmdContext $context, ?PCharacter $name): Generator {
@@ -449,9 +439,7 @@ class AltsController extends ModuleInstance {
 		$context->reply(yield $altInfo->getAltsBlob());
 	}
 
-	/**
-	 * Validate an alt or main
-	 */
+	/** Validate an alt or main */
 	#[NCA\HandlesCommand("altvalidate")]
 	#[NCA\Help\Group("alts")]
 	#[NCA\Help\Prologue(
@@ -475,9 +463,7 @@ class AltsController extends ModuleInstance {
 		}
 	}
 
-	/**
-	 * Declines an alt or main requests
-	 */
+	/** Declines an alt or main requests */
 	#[NCA\HandlesCommand("altdecline")]
 	#[NCA\Help\Group("alts")]
 	public function altDeclineCommand(CmdContext $context, PCharacter $name): void {

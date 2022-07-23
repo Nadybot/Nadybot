@@ -158,9 +158,7 @@ class LootController extends ModuleInstance {
 		$this->chatBot->sendPrivate($msg);
 	}
 
-	/**
-	 * Show a list of currently rolled loot
-	 */
+	/** Show a list of currently rolled loot */
 	#[NCA\HandlesCommand("loot")]
 	#[NCA\Help\Group("loot")]
 	public function lootCommand(CmdContext $context): void {
@@ -168,9 +166,7 @@ class LootController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
-	/**
-	 * Get a list of the last loot rolls
-	 */
+	/** Get a list of the last loot rolls */
 	#[NCA\HandlesCommand("loot")]
 	#[NCA\Help\Group("loot")]
 	public function lootHistoryCommand(
@@ -206,9 +202,7 @@ class LootController extends ModuleInstance {
 		));
 	}
 
-	/**
-	 * View what was rolled/won in the given roll
-	 */
+	/** View what was rolled/won in the given roll */
 	#[NCA\HandlesCommand("loot")]
 	#[NCA\Help\Group("loot")]
 	#[NCA\Help\Example("<symbol>loot show last")]
@@ -370,9 +364,7 @@ class LootController extends ModuleInstance {
 		);
 	}
 
-	/**
-	 * Clear the current loot list
-	 */
+	/** Clear the current loot list */
 	#[NCA\HandlesCommand(self::CMD_LOOT_MANAGE)]
 	#[NCA\Help\Group("loot")]
 	public function lootClearCommand(CmdContext $context, #[NCA\Str("clear")] string $action): void {
@@ -391,9 +383,7 @@ class LootController extends ModuleInstance {
 		}
 	}
 
-	/**
-	 * Add an item from a loot list to the loot roll
-	 */
+	/** Add an item from a loot list to the loot roll */
 	#[NCA\HandlesCommand(self::CMD_LOOT_MANAGE)]
 	#[NCA\Help\Group("loot")]
 	public function lootAddByIdCommand(CmdContext $context, #[NCA\Str("add")] string $action, int $id): void {
@@ -441,9 +431,7 @@ class LootController extends ModuleInstance {
 		$this->chatBot->sendPrivate($msg);
 	}
 
-	/**
-	 * Auction off an item from a loot list
-	 */
+	/** Auction off an item from a loot list */
 	#[NCA\HandlesCommand(self::CMD_LOOT_MANAGE)]
 	#[NCA\Help\Group("loot")]
 	public function lootAuctionByIdCommand(CmdContext $context, #[NCA\Str("auction")] string $action, int $id): void {
@@ -464,9 +452,7 @@ class LootController extends ModuleInstance {
 		$this->commandManager->processCmd($context);
 	}
 
-	/**
-	 * Add an item to the loot roll by name or by pasting it
-	 */
+	/** Add an item to the loot roll by name or by pasting it */
 	#[NCA\HandlesCommand(self::CMD_LOOT_MANAGE)]
 	#[NCA\Help\Group("loot")]
 	public function lootAddCommand(CmdContext $context, #[NCA\Str("add")] string $action, string $item): void {
@@ -478,9 +464,7 @@ class LootController extends ModuleInstance {
 		$this->addLootItem($item, 1, $context->char->name);
 	}
 
-	/**
-	 * Add multiple items to the loot roll
-	 */
+	/** Add multiple items to the loot roll */
 	#[NCA\HandlesCommand(self::CMD_LOOT_MANAGE)]
 	#[NCA\Help\Group("loot")]
 	#[NCA\Help\Example("<symbol>loot addmulti 3 Lockpick")]
@@ -570,9 +554,7 @@ class LootController extends ModuleInstance {
 		$this->chatBot->sendPrivate($msg);
 	}
 
-	/**
-	 * Remove a single item from the loot list
-	 */
+	/** Remove a single item from the loot list */
 	#[NCA\HandlesCommand(self::CMD_LOOT_MANAGE)]
 	#[NCA\Help\Group("loot")]
 	public function lootRemCommand(CmdContext $context, PRemove $action, int $key): void {
@@ -602,9 +584,7 @@ class LootController extends ModuleInstance {
 		$this->chatBot->sendPrivate("Removing item in slot <highlight>#{$key}<end>.");
 	}
 
-	/**
-	 * Create a new loot roll with the leftovers from the last roll
-	 */
+	/** Create a new loot roll with the leftovers from the last roll */
 	#[NCA\HandlesCommand("reroll")]
 	#[NCA\Help\Group("loot")]
 	public function rerollCommand(CmdContext $context): void {
@@ -639,9 +619,7 @@ class LootController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
-	/**
-	 * Determine the winner(s) of the current loot roll
-	 */
+	/** Determine the winner(s) of the current loot roll */
 	#[NCA\HandlesCommand("flatroll")]
 	#[NCA\Help\Group("loot")]
 	public function flatrollCommand(CmdContext $context): void {
@@ -749,9 +727,7 @@ class LootController extends ModuleInstance {
 		}
 	}
 
-	/**
-	 * Add yourself to a loot roll
-	 */
+	/** Add yourself to a loot roll */
 	#[NCA\HandlesCommand("add")]
 	#[NCA\Help\Group("loot")]
 	public function addCommand(CmdContext $context, int $slot): void {
@@ -795,9 +771,7 @@ class LootController extends ModuleInstance {
 		}
 	}
 
-	/**
-	 * Remove yourself from all loot rolls
-	 */
+	/** Remove yourself from all loot rolls */
 	#[NCA\HandlesCommand("rem")]
 	#[NCA\Help\Group("loot")]
 	public function remCommand(CmdContext $context): Generator {

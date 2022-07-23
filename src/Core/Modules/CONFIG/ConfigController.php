@@ -96,9 +96,7 @@ class ConfigController extends ModuleInstance {
 		}
 	}
 
-	/**
-	 * Get a list of modules which can be configured
-	 */
+	/** Get a list of modules which can be configured */
 	#[NCA\HandlesCommand("config")]
 	public function configCommand(CmdContext $context): void {
 		$permSets = $this->commandManager->getPermissionSets();
@@ -142,9 +140,7 @@ class ConfigController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
-	/**
-	 * Turn a permission set for all modules on or off
-	 */
+	/** Turn a permission set for all modules on or off */
 	#[NCA\HandlesCommand("config")]
 	#[NCA\Help\Example("<symbol>config cmd enable all")]
 	#[NCA\Help\Example("<symbol>config cmd disable guild")]
@@ -200,9 +196,7 @@ class ConfigController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
-	/**
-	 * Turn one or all permission sets of a single module on or off
-	 */
+	/** Turn one or all permission sets of a single module on or off */
 	#[NCA\HandlesCommand("config")]
 	#[NCA\Help\Example("<symbol>config mod WEBSERVER_MODULE disable all")]
 	#[NCA\Help\Example("<symbol>config mod GUILD_MODULE enable guild")]
@@ -237,9 +231,7 @@ class ConfigController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
-	/**
-	 * Turn one or all permission set of a single command on or off
-	 */
+	/** Turn one or all permission set of a single command on or off */
 	#[NCA\HandlesCommand("config")]
 	#[NCA\Help\Example("<symbol>config cmd raid enable all")]
 	#[NCA\Help\Example("<symbol>config subcmd points see other enable msg")]
@@ -291,9 +283,7 @@ class ConfigController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
-	/**
-	 * Turn one or all permission sets of a single event on or off
-	 */
+	/** Turn one or all permission sets of a single event on or off */
 	#[NCA\HandlesCommand("config")]
 	public function toggleEventCommand(
 		CmdContext $context,
@@ -443,9 +433,7 @@ class ConfigController extends ModuleInstance {
 		}
 	}
 
-	/**
-	 * Sets a command's access level for one or all permission sets
-	 */
+	/** Sets a command's access level for one or all permission sets */
 	#[NCA\HandlesCommand("config")]
 	#[NCA\Help\Example("<symbol>config cmd raid admin all member")]
 	#[NCA\Help\Example("<symbol>config subcmd points modify admin msg mod")]
@@ -547,9 +535,7 @@ class ConfigController extends ModuleInstance {
 		return true;
 	}
 
-	/**
-	 * Show information and permissions of a command, detailed by permission set
-	 */
+	/** Show information and permissions of a command, detailed by permission set */
 	#[NCA\HandlesCommand("config")]
 	public function configCommandCommand(
 		CmdContext $context,
@@ -626,9 +612,7 @@ class ConfigController extends ModuleInstance {
 		return trim(file_get_contents($files[0]));
 	}
 
-	/**
-	 * Show configuration and controls for a single module
-	 */
+	/** Show configuration and controls for a single module */
 	#[NCA\HandlesCommand("config")]
 	public function configModuleCommand(CmdContext $context, PWord $module): void {
 		$module = strtoupper($module());
@@ -756,9 +740,7 @@ class ConfigController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
-	/**
-	 * Gets a setting's access level
-	 */
+	/** Gets a setting's access level */
 	#[NCA\HandlesCommand("config")]
 	#[NCA\Help\Example("<symbol>config setting symbol")]
 	public function getAccessLevelOfSetting(
@@ -783,9 +765,7 @@ class ConfigController extends ModuleInstance {
 		);
 	}
 
-	/**
-	 * Sets a setting's access level
-	 */
+	/** Sets a setting's access level */
 	#[NCA\HandlesCommand("config")]
 	#[NCA\Help\Example("<symbol>config setting symbol admin superadmin")]
 	public function setAccessLevelOfSetting(

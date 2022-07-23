@@ -28,9 +28,7 @@ class EventlistController extends ModuleInstance {
 	#[NCA\Inject]
 	public DB $db;
 
-	/**
-	 * Show a list of all events on the bot. Give &lt;event type&gt; to show only events matching a string
-	 */
+	/** Show a list of all events on the bot. Give &lt;event type&gt; to show only events matching a string */
 	#[NCA\HandlesCommand("eventlist")]
 	public function eventlistCommand(CmdContext $context, ?string $eventType): void {
 		$query = $this->db->table(EventManager::DB_TABLE)

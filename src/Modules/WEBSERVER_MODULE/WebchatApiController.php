@@ -56,9 +56,7 @@ class WebchatApiController extends ModuleInstance {
 		$this->commandManager->registerSource(Source::WEB);
 	}
 
-	/**
-	 * Send a message to the org chat
-	 */
+	/** Send a message to the org chat */
 	#[
 		NCA\Api("/chat/web"),
 		NCA\POST,

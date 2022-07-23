@@ -274,18 +274,14 @@ class StartpageController extends ModuleInstance {
 		}
 	}
 
-	/**
-	 * Show your personal startpage
-	 */
+	/** Show your personal startpage */
 	#[NCA\HandlesCommand("start")]
 	#[NCA\Help\Group("start")]
 	public function startCommand(CmdContext $context): void {
 		$this->showStartpage($context->char->name, $context, true);
 	}
 
-	/**
-	 * Show the current startpage layout
-	 */
+	/** Show the current startpage layout */
 	#[NCA\HandlesCommand("startpage")]
 	#[NCA\Help\Group("start")]
 	#[NCA\Help\Epilogue(
@@ -296,9 +292,7 @@ class StartpageController extends ModuleInstance {
 		$this->showStartpageLayout($context, false);
 	}
 
-	/**
-	 * Pick an entry for the startpage at position &lt;pos&gt; (0 being the top)
-	 */
+	/** Pick an entry for the startpage at position &lt;pos&gt; (0 being the top) */
 	#[NCA\HandlesCommand("startpage")]
 	#[NCA\Help\Group("start")]
 	public function startpagePickCommand(CmdContext $context, #[NCA\Str("pick")] string $action, int $pos): void {
@@ -327,9 +321,7 @@ class StartpageController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
-	/**
-	 * Show the description of a tile
-	 */
+	/** Show the description of a tile */
 	#[NCA\HandlesCommand("startpage")]
 	#[NCA\Help\Group("start")]
 	public function startpageDescribeTileCommand(CmdContext $context, #[NCA\Str("describe")] string $action, string $tileName): void {
@@ -343,9 +335,7 @@ class StartpageController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
-	/**
-	 * Assign &lt;tile name&gt; to position &lt;pos&gt; of the startpage
-	 */
+	/** Assign &lt;tile name&gt; to position &lt;pos&gt; of the startpage */
 	#[NCA\HandlesCommand("startpage")]
 	#[NCA\Help\Group("start")]
 	public function startpagePickTileCommand(
@@ -370,9 +360,7 @@ class StartpageController extends ModuleInstance {
 		$this->showStartpageLayout($context, true);
 	}
 
-	/**
-	 * Move tiles around on the startpage
-	 */
+	/** Move tiles around on the startpage */
 	#[NCA\HandlesCommand("startpage")]
 	#[NCA\Help\Group("start")]
 	public function startpageMoveTileCommand(
@@ -406,9 +394,7 @@ class StartpageController extends ModuleInstance {
 		$this->showStartpageLayout($context, true);
 	}
 
-	/**
-	 * Remove a tile from the startpage
-	 */
+	/** Remove a tile from the startpage */
 	#[NCA\HandlesCommand("startpage")]
 	#[NCA\Help\Group("start")]
 	public function startpageRemTileCommand(CmdContext $context, PRemove $action, string $tileName): void {
@@ -423,9 +409,7 @@ class StartpageController extends ModuleInstance {
 		$this->showStartpageLayout($context, true);
 	}
 
-	/**
-	 * List all news tiles
-	 */
+	/** List all news tiles */
 	#[
 		NCA\Api("/startpage/tiles"),
 		NCA\GET,
@@ -445,9 +429,7 @@ class StartpageController extends ModuleInstance {
 		return new ApiResponse($result);
 	}
 
-	/**
-	 * Get the currently configured startpage layout
-	 */
+	/** Get the currently configured startpage layout */
 	#[
 		NCA\Api("/startpage/layout"),
 		NCA\GET,
@@ -458,9 +440,7 @@ class StartpageController extends ModuleInstance {
 		return new ApiResponse(array_keys($this->getActiveLayout()));
 	}
 
-	/**
-	 * List all news tiles
-	 */
+	/** List all news tiles */
 	#[
 		NCA\Api("/startpage/layout"),
 		NCA\PUT,

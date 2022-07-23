@@ -993,9 +993,7 @@ class RelayController extends ModuleInstance {
 		}
 	}
 
-	/**
-	 * List all relay transports
-	 */
+	/** List all relay transports */
 	#[
 		NCA\Api("/relay-component/transport"),
 		NCA\GET,
@@ -1006,9 +1004,7 @@ class RelayController extends ModuleInstance {
 		return new ApiResponse(array_values($this->transports));
 	}
 
-	/**
-	 * List all relay layers
-	 */
+	/** List all relay layers */
 	#[
 		NCA\Api("/relay-component/layer"),
 		NCA\GET,
@@ -1019,9 +1015,7 @@ class RelayController extends ModuleInstance {
 		return new ApiResponse(array_values($this->stackElements));
 	}
 
-	/**
-	 * List all relay protocols
-	 */
+	/** List all relay protocols */
 	#[
 		NCA\Api("/relay-component/protocol"),
 		NCA\GET,
@@ -1032,9 +1026,7 @@ class RelayController extends ModuleInstance {
 		return new ApiResponse(array_values($this->relayProtocols));
 	}
 
-	/**
-	 * List all relays
-	 */
+	/** List all relays */
 	#[
 		NCA\Api("/relay"),
 		NCA\GET,
@@ -1045,9 +1037,7 @@ class RelayController extends ModuleInstance {
 		return new ApiResponse(array_values($this->getRelays()));
 	}
 
-	/**
-	 * Get a single relay
-	 */
+	/** Get a single relay */
 	#[
 		NCA\Api("/relay/%s"),
 		NCA\GET,
@@ -1063,9 +1053,7 @@ class RelayController extends ModuleInstance {
 		return new ApiResponse($relay);
 	}
 
-	/**
-	 * Get a single relay's event config
-	 */
+	/** Get a single relay's event config */
 	#[
 		NCA\Api("/relay/%s/events"),
 		NCA\GET,
@@ -1081,9 +1069,7 @@ class RelayController extends ModuleInstance {
 		return new ApiResponse($relay->events);
 	}
 
-	/**
-	 * Get a single relay's event config
-	 */
+	/** Get a single relay's event config */
 	#[
 		NCA\Api("/relay/%s/events"),
 		NCA\PUT,
@@ -1139,9 +1125,7 @@ class RelayController extends ModuleInstance {
 		return new Response(Response::NO_CONTENT);
 	}
 
-	/**
-	 * Get a single relay's event config
-	 */
+	/** Get a single relay's event config */
 	#[
 		NCA\Api("/relay/%s/events"),
 		NCA\PATCH,
@@ -1181,9 +1165,7 @@ class RelayController extends ModuleInstance {
 		return new Response(Response::NO_CONTENT);
 	}
 
-	/**
-	 * Delete a relay
-	 */
+	/** Delete a relay */
 	#[
 		NCA\Api("/relay/%s"),
 		NCA\DELETE,
@@ -1204,9 +1186,7 @@ class RelayController extends ModuleInstance {
 		return new Response(Response::NO_CONTENT);
 	}
 
-	/**
-	 * Get a relay's status
-	 */
+	/** Get a relay's status */
 	#[
 		NCA\Api("/relay/%s/status"),
 		NCA\GET,
@@ -1221,9 +1201,7 @@ class RelayController extends ModuleInstance {
 		return new ApiResponse($this->relays[$relay]->getStatus());
 	}
 
-	/**
-	 * Create a new relay
-	 */
+	/** Create a new relay */
 	#[
 		NCA\Api("/relay"),
 		NCA\POST,
@@ -1265,9 +1243,7 @@ class RelayController extends ModuleInstance {
 		return new Response(Response::NO_CONTENT);
 	}
 
-	/**
-	 * List all relay layers
-	 */
+	/** List all relay layers */
 	#[
 		NCA\Api("/relay-component/event"),
 		NCA\GET,

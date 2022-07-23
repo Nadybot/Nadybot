@@ -325,9 +325,7 @@ class RaidController extends ModuleInstance {
 		return $blob;
 	}
 
-	/**
-	 * Show if a raid is currently running, with a link to join
-	 */
+	/** Show if a raid is currently running, with a link to join */
 	#[NCA\HandlesCommand("raid")]
 	public function raidCommand(CmdContext $context): void {
 		if (!isset($this->raid)) {
@@ -376,9 +374,7 @@ class RaidController extends ModuleInstance {
 		$this->raidMemberController->resumeRaid($lastRaid);
 	}
 
-	/**
-	 * Start a raid with a given description
-	 */
+	/** Start a raid with a given description */
 	#[NCA\HandlesCommand(self::CMD_RAID_MANAGE)]
 	public function raidStartWithLimitsCommand(
 		CmdContext $context,
@@ -394,9 +390,7 @@ class RaidController extends ModuleInstance {
 		$this->startNewRaid($context, $raid);
 	}
 
-	/**
-	 * Start a raid with a given description
-	 */
+	/** Start a raid with a given description */
 	#[NCA\HandlesCommand(self::CMD_RAID_MANAGE)]
 	public function raidStartCommand(
 		CmdContext $context,
@@ -409,9 +403,7 @@ class RaidController extends ModuleInstance {
 		$this->startNewRaid($context, $raid);
 	}
 
-	/**
-	 * Stop the currently running raid
-	 */
+	/** Stop the currently running raid */
 	#[NCA\HandlesCommand(self::CMD_RAID_MANAGE)]
 	public function raidStopCommand(
 		CmdContext $context,
@@ -424,9 +416,7 @@ class RaidController extends ModuleInstance {
 		$this->stopRaid($context->char->name);
 	}
 
-	/**
-	 * Change the raid's description
-	 */
+	/** Change the raid's description */
 	#[NCA\HandlesCommand(self::CMD_RAID_MANAGE)]
 	public function raidChangeDescCommand(
 		CmdContext $context,
@@ -446,9 +436,7 @@ class RaidController extends ModuleInstance {
 		$this->eventManager->fireEvent($event);
 	}
 
-	/**
-	 * Change the raid's maximum number of members
-	 */
+	/** Change the raid's maximum number of members */
 	#[NCA\HandlesCommand(self::CMD_RAID_MANAGE)]
 	public function raidChangeMaxMembersCommand(
 		CmdContext $context,
@@ -473,9 +461,7 @@ class RaidController extends ModuleInstance {
 		$this->eventManager->fireEvent($event);
 	}
 
-	/**
-	 * Change the interval for getting a participation raid point, 'off' to turn it off
-	 */
+	/** Change the interval for getting a participation raid point, 'off' to turn it off */
 	#[NCA\HandlesCommand(self::CMD_RAID_TICKER)]
 	public function raidChangeSppCommand(
 		CmdContext $context,
@@ -505,9 +491,7 @@ class RaidController extends ModuleInstance {
 		$this->eventManager->fireEvent($event);
 	}
 
-	/**
-	 * Change the raid announcement interval. 'off' to turn it off completely
-	 */
+	/** Change the raid announcement interval. 'off' to turn it off completely */
 	#[NCA\HandlesCommand(self::CMD_RAID_MANAGE)]
 	public function raidChangeAnnounceCommand(
 		CmdContext $context,
@@ -538,9 +522,7 @@ class RaidController extends ModuleInstance {
 		$this->eventManager->fireEvent($event);
 	}
 
-	/**
-	 * Lock the raid, preventing raiders from joining with <symbol>raid join
-	 */
+	/** Lock the raid, preventing raiders from joining with <symbol>raid join */
 	#[NCA\HandlesCommand(self::CMD_RAID_MANAGE)]
 	public function raidLockCommand(
 		CmdContext $context,
@@ -567,9 +549,7 @@ class RaidController extends ModuleInstance {
 		}
 	}
 
-	/**
-	 * Unlock the raid, allowing raiders to join with <symbol>raid join
-	 */
+	/** Unlock the raid, allowing raiders to join with <symbol>raid join */
 	#[NCA\HandlesCommand(self::CMD_RAID_MANAGE)]
 	public function raidUnlockCommand(
 		CmdContext $context,
@@ -592,9 +572,7 @@ class RaidController extends ModuleInstance {
 		$this->eventManager->fireEvent($event);
 	}
 
-	/**
-	 * Get a list of all raiders, with a link to check if everyone is in the vicinity
-	 */
+	/** Get a list of all raiders, with a link to check if everyone is in the vicinity */
 	#[NCA\HandlesCommand(self::CMD_RAID_MANAGE)]
 	public function raidCheckCommand(
 		CmdContext $context,
@@ -608,9 +586,7 @@ class RaidController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
-	/**
-	 * Get a list of all raiders
-	 */
+	/** Get a list of all raiders */
 	#[NCA\HandlesCommand(self::CMD_RAID_MANAGE)]
 	public function raidListCommand(
 		CmdContext $context,
@@ -649,9 +625,7 @@ class RaidController extends ModuleInstance {
 		);
 	}
 
-	/**
-	 * Send everyone in the private channel who's not in the raid a reminder to join
-	 */
+	/** Send everyone in the private channel who's not in the raid a reminder to join */
 	#[NCA\HandlesCommand(self::CMD_RAID_MANAGE)]
 	public function raidNotinCommand(CmdContext $context, #[NCA\Str("notin")] string $action): \Generator {
 		if (!isset($this->raid)) {
@@ -672,9 +646,7 @@ class RaidController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
-	/**
-	 * Show a list of old raids with details about them
-	 */
+	/** Show a list of old raids with details about them */
 	#[NCA\HandlesCommand(self::CMD_RAID_MANAGE)]
 	public function raidHistoryCommand(
 		CmdContext $context,
@@ -719,9 +691,7 @@ class RaidController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
-	/**
-	 * Get detailed information about an old raid
-	 */
+	/** Get detailed information about an old raid */
 	#[NCA\HandlesCommand(self::CMD_RAID_MANAGE)]
 	public function raidHistoryDetailCommand(
 		CmdContext $context,
@@ -778,9 +748,7 @@ class RaidController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
-	/**
-	 * Get detailed information about raid member of an old raid
-	 */
+	/** Get detailed information about raid member of an old raid */
 	#[NCA\HandlesCommand(self::CMD_RAID_MANAGE)]
 	public function raidHistoryDetailRaiderCommand(
 		CmdContext $context,
@@ -857,9 +825,7 @@ class RaidController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
-	/**
-	 * Check if anyone in the current raid is dual-logged
-	 */
+	/** Check if anyone in the current raid is dual-logged */
 	#[NCA\HandlesCommand(self::CMD_RAID_MANAGE)]
 	public function raidDualCommand(
 		CmdContext $context,
@@ -1002,9 +968,7 @@ class RaidController extends ModuleInstance {
 		$this->raid->we_are_most_recent_message = true;
 	}
 
-	/**
-	 * Announce when a raid was started
-	 */
+	/** Announce when a raid was started */
 	#[NCA\Event(
 		name: "raid(start)",
 		description: "Announce when a raid was started"
@@ -1022,9 +986,7 @@ class RaidController extends ModuleInstance {
 		);
 	}
 
-	/**
-	 * Announce when a raid was stopped.
-	 */
+	/** Announce when a raid was stopped. */
 	#[NCA\Event(
 		name: "raid(stop)",
 		description: "Announce when a raid is stopped"
@@ -1080,9 +1042,7 @@ class RaidController extends ModuleInstance {
 		$this->eventManager->fireEvent($event);
 	}
 
-	/**
-	 * Show the notes about all people in the current raid
-	 */
+	/** Show the notes about all people in the current raid */
 	#[NCA\HandlesCommand(self::CMD_RAID_MANAGE)]
 	public function raidCommentsCommand(
 		CmdContext $context,
@@ -1110,9 +1070,7 @@ class RaidController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
-	/**
-	 * Add a new raid note about a character
-	 */
+	/** Add a new raid note about a character */
 	#[NCA\HandlesCommand(self::CMD_RAID_MANAGE)]
 	public function raidCommentAddCommand(
 		CmdContext $context,
@@ -1130,9 +1088,7 @@ class RaidController extends ModuleInstance {
 		);
 	}
 
-	/**
-	 * Get all raid notes about a character
-	 */
+	/** Get all raid notes about a character */
 	#[NCA\HandlesCommand(self::CMD_RAID_MANAGE)]
 	public function raidCommentSearchCommand(
 		CmdContext $context,

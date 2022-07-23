@@ -249,9 +249,7 @@ class MassMsgController extends ModuleInstance {
 		return $result;
 	}
 
-	/**
-	 * Show your mass-message and mass-invite preferences
-	 */
+	/** Show your mass-message and mass-invite preferences */
 	#[NCA\HandlesCommand("massmsgs")]
 	#[NCA\HandlesCommand("massinvites")]
 	#[NCA\Help\Group("massmessaging")]

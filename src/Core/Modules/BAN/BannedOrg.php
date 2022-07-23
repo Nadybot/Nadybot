@@ -8,9 +8,7 @@ class BannedOrg extends DBRow {
 	/** The ID of the org that is or was banned */
 	public int $org_id;
 
-	/**
-	 * The name of the org that is or was banned
-	 */
+	/** The name of the org that is or was banned */
 	#[NCA\DB\Ignore]
 	public string $org_name;
 

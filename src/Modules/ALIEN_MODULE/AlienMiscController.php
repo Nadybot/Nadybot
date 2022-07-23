@@ -74,9 +74,7 @@ class AlienMiscController extends ModuleInstance {
 		$this->db->loadCSVFile($this->moduleName, __DIR__ . '/ofabweaponscost.csv');
 	}
 
-	/**
-	 * See a list of professions that have LE procs
-	 */
+	/** See a list of professions that have LE procs */
 	#[NCA\HandlesCommand("leprocs")]
 	public function leprocsCommand(CmdContext $context): void {
 		$blob = "<header2>Choose a profession<end>\n";
@@ -97,9 +95,7 @@ class AlienMiscController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
-	/**
-	 * Shows the LE procs for a specific profession
-	 */
+	/** Shows the LE procs for a specific profession */
 	#[NCA\HandlesCommand("leprocs")]
 	public function leprocsInfoCommand(CmdContext $context, string $prof): void {
 		$profession = $this->util->getProfessionName($prof);
@@ -141,9 +137,7 @@ class AlienMiscController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
-	/**
-	 * Show a list of professions and their LE bio types
-	 */
+	/** Show a list of professions and their LE bio types */
 	#[NCA\HandlesCommand("ofabarmor")]
 	#[NCA\Help\Epilogue(
 		"Valid QLs are:\n".
@@ -176,17 +170,13 @@ class AlienMiscController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
-	/**
-	 * Show Ofab armor for a specific profession at a certain ql
-	 */
+	/** Show Ofab armor for a specific profession at a certain ql */
 	#[NCA\HandlesCommand("ofabarmor")]
 	public function ofabarmorInfoCommand2(CmdContext $context, string $prof, int $ql): void {
 		$this->ofabarmorInfoCommand($context, $ql, $prof);
 	}
 
-	/**
-	 * Show Ofab armor for a specific profession at a certain ql
-	 */
+	/** Show Ofab armor for a specific profession at a certain ql */
 	#[NCA\HandlesCommand("ofabarmor")]
 	public function ofabarmorInfoCommand(CmdContext $context, ?int $ql, string $prof): void {
 		$ql ??= 300;
@@ -276,9 +266,7 @@ class AlienMiscController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
-	/**
-	 * Show a list of Ofab weapons and the type needed to upgrade
-	 */
+	/** Show a list of Ofab weapons and the type needed to upgrade */
 	#[NCA\HandlesCommand("ofabweapons")]
 	#[NCA\Help\Epilogue(
 		"Valid QLs are:\n".
@@ -312,9 +300,7 @@ class AlienMiscController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
-	/**
-	 * Show all 6 marks for a particular Ofab weapon at ql 300, or &lt;search ql&gt;
-	 */
+	/** Show all 6 marks for a particular Ofab weapon at ql 300, or &lt;search ql&gt; */
 	#[NCA\HandlesCommand("ofabweapons")]
 	public function ofabweaponsInfoCommand(CmdContext $context, PWord $weapon, ?int $searchQL): void {
 		$weapon = ucfirst($weapon());
@@ -371,9 +357,7 @@ class AlienMiscController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
-	/**
-	 * Show info about the Alien City Generals
-	 */
+	/** Show info about the Alien City Generals */
 	#[NCA\HandlesCommand("aigen")]
 	public function aigenCommand(
 		CmdContext $context,

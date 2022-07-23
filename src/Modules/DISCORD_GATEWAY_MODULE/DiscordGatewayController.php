@@ -306,9 +306,7 @@ class DiscordGatewayController extends ModuleInstance {
 		rethrow($this->client->send(json_encode($packet)));
 	}
 
-	/**
-	 * Start, stop or restart the websocket connection if the token changes
-	 */
+	/** Start, stop or restart the websocket connection if the token changes */
 	#[NCA\SettingChangeHandler('discord_bot_token')]
 	public function tokenChanged(string $settingName, string $oldValue, string $newValue): void {
 		if ($oldValue !== "" && $oldValue !== 'off' && isset($this->client)) {

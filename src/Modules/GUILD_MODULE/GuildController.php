@@ -375,9 +375,7 @@ class GuildController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
-	/**
-	 * Manually remove a character from the notify list
-	 */
+	/** Manually remove a character from the notify list */
 	#[NCA\HandlesCommand("notify")]
 	public function notifyRemoveCommand(
 		CmdContext $context,
@@ -796,7 +794,7 @@ class GuildController extends ModuleInstance {
 								->update(["mode" => "org"]);
 						}
 					}
-					// else insert his/her data
+				// else insert his/her data
 				} else {
 					// add new org members to buddy list
 					rethrow($this->buddylistManager->addAsync($member->name, 'org'));

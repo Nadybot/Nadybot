@@ -65,17 +65,13 @@ class ChatRallyController extends ModuleInstance {
 	#[NCA\Setting\Text(mode: "noedit")]
 	public string $rally = "";
 
-	/**
-	 * Display the current rally location
-	 */
+	/** Display the current rally location */
 	#[NCA\HandlesCommand("rally")]
 	public function rallyCommand(CmdContext $context): void {
 		$this->replyCurrentRally($context);
 	}
 
-	/**
-	 * Clear the current rally location
-	 */
+	/** Clear the current rally location */
 	#[NCA\HandlesCommand(self::CMD_RALLY_SET)]
 	public function rallyClearCommand(
 		CmdContext $context,
@@ -95,9 +91,7 @@ class ChatRallyController extends ModuleInstance {
 		$this->eventManager->fireEvent($rEvent);
 	}
 
-	/**
-	 * Set the rally waypoint
-	 */
+	/** Set the rally waypoint */
 	#[NCA\HandlesCommand(self::CMD_RALLY_SET)]
 	#[NCA\Help\Example("<symbol>rally 10.9 x 30 x 560")]
 	#[NCA\Help\Example("<symbol>rally 10.9 . 30 . 4HO")]
@@ -145,9 +139,7 @@ class ChatRallyController extends ModuleInstance {
 		$this->eventManager->fireEvent($rEvent);
 	}
 
-	/**
-	 * Set the rally waypoint
-	 */
+	/** Set the rally waypoint */
 	#[NCA\HandlesCommand(self::CMD_RALLY_SET)]
 	#[NCA\Help\Example("<symbol>rally (10.9 30.0 y 20.1 550)")]
 	public function rallySet1Command(CmdContext $context, string $pasteFromF9): void {

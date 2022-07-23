@@ -14,9 +14,7 @@ class RouteModifier extends DBRow {
 	/** The name of the modifier */
 	public string $modifier;
 
-	/**
-	 * @var RouteModifierArgument[]
-	 */
+	/** @var RouteModifierArgument[] */
 	#[NCA\DB\Ignore]
 	public array $arguments = [];
 

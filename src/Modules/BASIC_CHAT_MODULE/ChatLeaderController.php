@@ -77,9 +77,7 @@ class ChatLeaderController extends ModuleInstance implements AccessLevelProvider
 		return null;
 	}
 
-	/**
-	 * Sets the leader of the raid, granting special access
-	 */
+	/** Sets the leader of the raid, granting special access */
 	#[NCA\HandlesCommand("leader")]
 	public function leaderCommand(CmdContext $context): Generator {
 		if ($this->leader === $context->char->name) {
@@ -98,9 +96,7 @@ class ChatLeaderController extends ModuleInstance implements AccessLevelProvider
 		}
 	}
 
-	/**
-	 * Set someone to be raid leader
-	 */
+	/** Set someone to be raid leader */
 	#[NCA\HandlesCommand(self::CMD_LEADER_SET)]
 	public function leaderSetCommand(CmdContext $context, PCharacter $newLeader): Generator {
 		/** @var ?string */
@@ -136,9 +132,7 @@ class ChatLeaderController extends ModuleInstance implements AccessLevelProvider
 		});
 	}
 
-	/**
-	 * Enable or disable leader echoing in the private channel
-	 */
+	/** Enable or disable leader echoing in the private channel */
 	#[NCA\HandlesCommand("leaderecho")]
 	public function leaderEchoOnCommand(CmdContext $context, bool $on): void {
 		if (!$this->checkLeaderAccess($context->char->name)) {
@@ -149,9 +143,7 @@ class ChatLeaderController extends ModuleInstance implements AccessLevelProvider
 		$this->chatBot->sendPrivate("Leader echo has been " . $this->getEchoStatusText());
 	}
 
-	/**
-	 * Shows the current echoing state
-	 */
+	/** Shows the current echoing state */
 	#[NCA\HandlesCommand("leaderecho")]
 	public function leaderEchoCommand(CmdContext $context): void {
 		if (!$this->checkLeaderAccess($context->char->name)) {

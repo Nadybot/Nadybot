@@ -44,21 +44,15 @@ class ProxyCapabilities extends ProxyReply {
 	#[JSON\Name("supported-cmds")]
 	public array $supported_cmds = [];
 
-	/**
-	 * Set when the proxy enforces rate-limits
-	 */
+	/** Set when the proxy enforces rate-limits */
 	#[JSON\Name("rate-limited")]
 	public bool $rate_limited = false;
 
-	/**
-	 * The mode the proxy will use when sending proxy-default
-	 */
+	/** The mode the proxy will use when sending proxy-default */
 	#[JSON\Name("default-mode")]
 	public ?string $default_mode;
 
-	/**
-	 * Unix timestamp when the proxy was started
-	 */
+	/** Unix timestamp when the proxy was started */
 	#[JSON\Name("started-at")]
 	public ?int $started_at;
 

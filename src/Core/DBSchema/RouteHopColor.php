@@ -6,9 +6,7 @@ use Nadybot\Core\Attributes\JSON;
 use Nadybot\Core\DBRow;
 
 class RouteHopColor extends DBRow {
-	/**
-	 * Internal primary key
-	 */
+	/** Internal primary key */
 	#[JSON\Ignore]
 	public int $id;
 

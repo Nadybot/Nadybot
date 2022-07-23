@@ -320,17 +320,13 @@ class TowerController extends ModuleInstance {
 		return $site;
 	}
 
-	/**
-	 * Show the last tower attack messages
-	 */
+	/** Show the last tower attack messages */
 	#[NCA\HandlesCommand("attacks")]
 	public function attacksCommand(CmdContext $context, ?int $page): void {
 		$this->attacksCommandHandler($page??1, null, '', $context);
 	}
 
-	/**
-	 * Show the last tower attack messages for a site
-	 */
+	/** Show the last tower attack messages for a site */
 	#[NCA\HandlesCommand("attacks")]
 	public function attacks2Command(CmdContext $context, PTowerSite $site, ?int $page): void {
 		$playfield = $this->playfieldController->getPlayfieldByName($site->pf);
@@ -355,9 +351,7 @@ class TowerController extends ModuleInstance {
 		$this->attacksCommandHandler($page??1, $search, $cmd, $context);
 	}
 
-	/**
-	 * Show the last tower attack messages involving a specific organization
-	 */
+	/** Show the last tower attack messages involving a specific organization */
 	#[NCA\HandlesCommand("attacks")]
 	#[NCA\Help\Example("<symbol>attacks org %sneak%")]
 	#[NCA\Help\Example("<symbol>attacks org Komodo")]
@@ -376,9 +370,7 @@ class TowerController extends ModuleInstance {
 		$this->attacksCommandHandler($page??1, $search, $cmd, $context);
 	}
 
-	/**
-	 * Show the last tower attack messages involving a given character
-	 */
+	/** Show the last tower attack messages involving a given character */
 	#[NCA\HandlesCommand("attacks")]
 	#[NCA\Help\Example("<symbol>attacks char nady%")]
 	#[NCA\Help\Example("<symbol>attacks char nadyita")]
@@ -395,9 +387,7 @@ class TowerController extends ModuleInstance {
 		$this->attacksCommandHandler($page??1, $search, $cmd, $context);
 	}
 
-	/**
-	 * Show all unplanted towerfields
-	 */
+	/** Show all unplanted towerfields */
 	#[NCA\HandlesCommand("sites")]
 	public function unplantedSitesCommand(CmdContext $context): void {
 		if ($this->towerApiController->isActive()) {
@@ -455,9 +445,7 @@ class TowerController extends ModuleInstance {
 		$sendto->reply($msg);
 	}
 
-	/**
-	 * Show all towerfields of a single org
-	 */
+	/** Show all towerfields of a single org */
 	#[NCA\HandlesCommand("sites")]
 	#[NCA\Help\Example("<symbol>sites athen paladins")]
 	#[NCA\Help\Example("<symbol>sites 4736")]
@@ -545,9 +533,7 @@ class TowerController extends ModuleInstance {
 		$sendto->reply($msg);
 	}
 
-	/**
-	 * Show a list of playfield with tower fields
-	 */
+	/** Show a list of playfield with tower fields */
 	#[NCA\HandlesCommand("lc")]
 	public function lcCommand(CmdContext $context): void {
 		/** @var Collection<Playfield> */
@@ -567,9 +553,7 @@ class TowerController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
-	/**
-	 * Show the status of all tower sites in a playfield
-	 */
+	/** Show the status of all tower sites in a playfield */
 	#[NCA\HandlesCommand("lc")]
 	#[NCA\Help\Example("<symbol>lc pw")]
 	public function lc2Command(CmdContext $context, PPlayfield $pf): void {
@@ -677,9 +661,7 @@ class TowerController extends ModuleInstance {
 		$sendto->reply($msg);
 	}
 
-	/**
-	 * Show the status of a single tower site
-	 */
+	/** Show the status of a single tower site */
 	#[NCA\HandlesCommand("lc")]
 	#[NCA\Help\Example("<symbol>lc pw8")]
 	#[NCA\Help\Example("<symbol>lc mort 6")]
@@ -1206,17 +1188,13 @@ class TowerController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
-	/**
-	 * See the last tower battle results
-	 */
+	/** See the last tower battle results */
 	#[NCA\HandlesCommand("victory")]
 	public function victoryCommand(CmdContext $context, ?int $page): void {
 		$this->victoryCommandHandler($page??1, null, "", $context);
 	}
 
-	/**
-	 * See the last tower battle results for a given tower site
-	 */
+	/** See the last tower battle results for a given tower site */
 	#[NCA\HandlesCommand("victory")]
 	public function victory2Command(CmdContext $context, PTowerSite $site, ?int $page): void {
 		$playfield = $this->playfieldController->getPlayfieldByName($site->pf);
@@ -1241,9 +1219,7 @@ class TowerController extends ModuleInstance {
 		$this->victoryCommandHandler($page??1, $search, $cmd, $context);
 	}
 
-	/**
-	 * See the last tower battle results for a given organization
-	 */
+	/** See the last tower battle results for a given organization */
 	#[NCA\HandlesCommand("victory")]
 	#[NCA\Help\Epilogue("Note: you can use '%' as a wildcard in org and character names")]
 	#[NCA\Help\Example("<symbol>victory org %sneak%")]
@@ -1257,9 +1233,7 @@ class TowerController extends ModuleInstance {
 		$this->victoryCommandHandler($page??1, $search, $cmd, $context);
 	}
 
-	/**
-	 * See the last tower battle results for a given character
-	 */
+	/** See the last tower battle results for a given character */
 	#[NCA\HandlesCommand("victory")]
 	#[NCA\Help\Example("<symbol>victory char nady%")]
 	#[NCA\Help\Example("<symbol>victory char nadyita")]
@@ -1342,9 +1316,7 @@ class TowerController extends ModuleInstance {
 		});
 	}
 
-	/**
-	 * This event handler record attack messages.
-	 */
+	/** This event handler record attack messages. */
 	#[NCA\Event(
 		name: "towers",
 		description: "Record attack messages"
@@ -1534,9 +1506,7 @@ class TowerController extends ModuleInstance {
 		}
 	}
 
-	/**
-	 * This event handler record victory messages.
-	 */
+	/** This event handler record victory messages. */
 	#[NCA\Event(
 		name: "towers",
 		description: "Record victory messages"
@@ -1698,9 +1668,7 @@ class TowerController extends ModuleInstance {
 		return $faction;
 	}
 
-	/**
-	 * Remove local scout info for a site and mark it unscouted
-	 */
+	/** Remove local scout info for a site and mark it unscouted */
 	#[NCA\HandlesCommand("remscout")]
 	#[NCA\Help\Group("scout")]
 	public function remscoutCommand(CmdContext $context, PTowerSite $site): void {

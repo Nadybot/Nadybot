@@ -278,9 +278,7 @@ class RaidMemberController extends ModuleInstance {
 		return $msg;
 	}
 
-	/**
-	 * Join the currently running raid
-	 */
+	/** Join the currently running raid */
 	#[NCA\HandlesCommand(self::CMD_RAID_JOIN_LEAVE)]
 	#[NCA\Help\Group("raid-members")]
 	public function raidJoinCommand(
@@ -297,9 +295,7 @@ class RaidMemberController extends ModuleInstance {
 		}
 	}
 
-	/**
-	 * Leave the currently running raid
-	 */
+	/** Leave the currently running raid */
 	#[NCA\HandlesCommand(self::CMD_RAID_JOIN_LEAVE)]
 	#[NCA\Help\Group("raid-members")]
 	public function raidLeaveCommand(
@@ -316,9 +312,7 @@ class RaidMemberController extends ModuleInstance {
 		}
 	}
 
-	/**
-	 * Add someone to the raid, even if they currently cannot join, because it is locked
-	 */
+	/** Add someone to the raid, even if they currently cannot join, because it is locked */
 	#[NCA\HandlesCommand(self::CMD_RAID_KICK_ADD)]
 	#[NCA\Help\Group("raid-members")]
 	public function raidAddCommand(
@@ -332,9 +326,7 @@ class RaidMemberController extends ModuleInstance {
 		}
 	}
 
-	/**
-	 * Kick someone from the raid
-	 */
+	/** Kick someone from the raid */
 	#[NCA\HandlesCommand(self::CMD_RAID_KICK_ADD)]
 	#[NCA\Help\Group("raid-members")]
 	public function raidKickCommand(

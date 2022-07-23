@@ -22,9 +22,7 @@ class ProfileApiController extends ModuleInstance {
 	#[NCA\Inject]
 	public ProfileController $profileController;
 
-	/**
-	 * Get a list of saved profiles
-	 */
+	/** Get a list of saved profiles */
 	#[
 		NCA\Api("/profile"),
 		NCA\GET,
@@ -40,9 +38,7 @@ class ProfileApiController extends ModuleInstance {
 		return new ApiResponse($profiles);
 	}
 
-	/**
-	 * View a profile
-	 */
+	/** View a profile */
 	#[
 		NCA\Api("/profile/%s"),
 		NCA\GET,
@@ -64,9 +60,7 @@ class ProfileApiController extends ModuleInstance {
 		return new ApiResponse($content);
 	}
 
-	/**
-	 * Delete a profile
-	 */
+	/** Delete a profile */
 	#[
 		NCA\Api("/profile/%s"),
 		NCA\DELETE,
@@ -85,9 +79,7 @@ class ProfileApiController extends ModuleInstance {
 		return new Response(Response::NO_CONTENT);
 	}
 
-	/**
-	 * Load a profile
-	 */
+	/** Load a profile */
 	#[
 		NCA\Api("/profile/%s"),
 		NCA\PATCH,
@@ -118,9 +110,7 @@ class ProfileApiController extends ModuleInstance {
 		return new Response(Response::NO_CONTENT);
 	}
 
-	/**
-	 * Load a profile
-	 */
+	/** Load a profile */
 	#[
 		NCA\Api("/profile/%s"),
 		NCA\POST,

@@ -142,9 +142,7 @@ class OrgHistoryController extends ModuleInstance {
 		}
 	}
 
-	/**
-	 * Query entries from the org history log
-	 */
+	/** Query entries from the org history log */
 	#[
 		NCA\Api("/org/history"),
 		NCA\GET,

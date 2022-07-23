@@ -134,9 +134,7 @@ class AliasController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
-	/**
-	 * List all currently defined aliases
-	 */
+	/** List all currently defined aliases */
 	#[NCA\HandlesCommand("alias")]
 	public function aliasListCommand(CmdContext $context, #[NCA\Str("list")] string $action): void {
 		$blob = "";
@@ -168,9 +166,7 @@ class AliasController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
-	/**
-	 * Remove a command alias
-	 */
+	/** Remove a command alias */
 	#[NCA\HandlesCommand("alias")]
 	public function aliasRemCommand(CmdContext $context, PRemove $rem, string $alias): void {
 		$alias = strtolower($alias);

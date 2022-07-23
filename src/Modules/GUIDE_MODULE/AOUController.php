@@ -76,9 +76,7 @@ class AOUController extends ModuleInstance {
 		}
 	}
 
-	/**
-	 * View a specific guide on AO-Universe
-	 */
+	/** View a specific guide on AO-Universe */
 	#[NCA\HandlesCommand("aou")]
 	public function aouView(CmdContext $context, int $guideId): Generator {
 		$params = [

@@ -59,9 +59,7 @@ class SpawntimeController extends ModuleInstance {
 		return $msg;
 	}
 
-	/**
-	 * List all spawn times
-	 */
+	/** List all spawn times */
 	#[NCA\HandlesCommand("spawntime")]
 	public function spawntimeListCommand(CmdContext $context): void {
 		$spawnTimes = $this->db->table("spawntime")->asObj(Spawntime::class);
@@ -75,9 +73,7 @@ class SpawntimeController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
-	/**
-	 * Search for spawn times
-	 */
+	/** Search for spawn times */
 	#[NCA\HandlesCommand("spawntime")]
 	public function spawntimeSearchCommand(CmdContext $context, string $search): void {
 		$tokens = explode(" ", $search);

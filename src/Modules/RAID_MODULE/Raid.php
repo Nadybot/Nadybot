@@ -30,9 +30,7 @@ class Raid extends DBRow {
 	 */
 	public int $announce_interval = 0;
 
-	/**
-	 * UNIX timestamp when the raid was announced the last time
-	 */
+	/** UNIX timestamp when the raid was announced the last time */
 	#[NCA\DB\Ignore]
 	public int $last_announcement = 0;
 

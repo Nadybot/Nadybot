@@ -196,9 +196,7 @@ class HelpController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
-	/**
-	 * Enable or disable showing the syntax explanation on every help page
-	 */
+	/** Enable or disable showing the syntax explanation on every help page */
 	#[NCA\HandlesCommand("help")]
 	public function helpLegendSettingCommand(
 		CmdContext $context,

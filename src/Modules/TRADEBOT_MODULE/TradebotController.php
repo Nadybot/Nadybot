@@ -194,9 +194,7 @@ class TradebotController extends ModuleInstance {
 		return false;
 	}
 
-	/**
-	 * @throws StopExecutionException
-	 */
+	/** @throws StopExecutionException */
 	#[NCA\Event(
 		name: "extPriv",
 		description: "Relay messages from the tradebot to org/private channel"
@@ -276,9 +274,7 @@ class TradebotController extends ModuleInstance {
 		}
 	}
 
-	/**
-	 * List the currently custom defined colors
-	 */
+	/** List the currently custom defined colors */
 	#[NCA\HandlesCommand("tradecolor")]
 	public function listTradecolorsCommand(CmdContext $context): void {
 		/** @var Collection<TradebotColors> */

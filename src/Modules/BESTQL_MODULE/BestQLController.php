@@ -54,9 +54,7 @@ class BestQLController extends ModuleInstance {
 		return null;
 	}
 
-	/**
-	 * Find the breakpoints for all possible bonuses of an item
-	 */
+	/** Find the breakpoints for all possible bonuses of an item */
 	#[NCA\HandlesCommand("bestql")]
 	public function bestql1Command(
 		CmdContext $context,
@@ -69,9 +67,7 @@ class BestQLController extends ModuleInstance {
 		$this->bestqlCommand($context, "{$lowQl} {$lowqlBonus} {$highQl} {$highqlBonus}", $pastedItem);
 	}
 
-	/**
-	 * Find the highest usable QL of an item
-	 */
+	/** Find the highest usable QL of an item */
 	#[NCA\HandlesCommand("bestql")]
 	public function bestql2Command(
 		CmdContext $context,
@@ -85,9 +81,7 @@ class BestQLController extends ModuleInstance {
 		$this->bestqlCommand($context, "{$lowQl} {$lowqlRequirement} {$highQl} {$highqlRequirement} {$attributeValue}", $pastedItem);
 	}
 
-	/**
-	 * General syntax, need at least 4 values for the specs. Paste item for links
-	 */
+	/** General syntax, need at least 4 values for the specs. Paste item for links */
 	#[NCA\HandlesCommand("bestql")]
 	#[NCA\Help\Epilogue(
 		"<header2>Examples:<end>\n\n".

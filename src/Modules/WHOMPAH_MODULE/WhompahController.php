@@ -38,9 +38,7 @@ class WhompahController extends ModuleInstance {
 		$this->db->loadCSVFile($this->moduleName, __DIR__ . "/whompah_cities_rel.csv");
 	}
 
-	/**
-	 * Shows a list of whompah cities
-	 */
+	/** Shows a list of whompah cities */
 	#[NCA\HandlesCommand("whompah")]
 	public function whompahListCommand(CmdContext $context): void {
 		/** @var Collection<WhompahCity> */
@@ -60,9 +58,7 @@ class WhompahController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
-	/**
-	 * Searches a whompah-route from one location to another
-	 */
+	/** Searches a whompah-route from one location to another */
 	#[NCA\HandlesCommand("whompah")]
 	public function whompahTravelCommand(CmdContext $context, PWord $start, PWord $end): void {
 		$startCity = $this->findCity($start());
@@ -101,9 +97,7 @@ class WhompahController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
-	/**
-	 * Show all whompah-connections of a city
-	 */
+	/** Show all whompah-connections of a city */
 	#[NCA\HandlesCommand("whompah")]
 	public function whompahDestinationsCommand(CmdContext $context, string $cityName): void {
 		$city = $this->findCity($cityName);

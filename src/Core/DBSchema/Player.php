@@ -14,18 +14,14 @@ class Player extends DBRow {
 	/** The character ID as used by Anarchy Online */
 	public int $charid;
 
-	/**
-	 * The character's first name (the name before $name)
-	 */
+	/** The character's first name (the name before $name) */
 	#[JSON\Name("first_name")]
 	public string $firstname = '';
 
 	/** The character's name as it appears in the game */
 	public string $name;
 
-	/**
-	 * The character's last name (the name after $name)
-	 */
+	/** The character's last name (the name after $name) */
 	#[JSON\Name("last_name")]
 	public string $lastname = '';
 
@@ -56,15 +52,11 @@ class Player extends DBRow {
 	/** AI level of this player or null if unknown */
 	public ?int $ai_level = null;
 
-	/**
-	 * The id of the org this player is in or null if none or unknown
-	 */
+	/** The id of the org this player is in or null if none or unknown */
 	#[JSON\Name("org_id")]
 	public ?int $guild_id = null;
 
-	/**
-	 * The name of the org this player is in or null if none/unknown
-	 */
+	/** The name of the org this player is in or null if none/unknown */
 	#[JSON\Name("org")]
 	public ?string $guild = '';
 
@@ -75,9 +67,7 @@ class Player extends DBRow {
 	#[JSON\Name("org_rank")]
 	public ?string $guild_rank = '';
 
-	/**
-	 * The numeric rank of the player in their org or null if not in an org/unknown
-	 */
+	/** The numeric rank of the player in their org or null if not in an org/unknown */
 	#[JSON\Name("org_rank_id")]
 	public ?int $guild_rank_id = null;
 

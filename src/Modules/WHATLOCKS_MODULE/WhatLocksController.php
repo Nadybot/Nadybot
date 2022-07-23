@@ -45,9 +45,7 @@ class WhatLocksController extends ModuleInstance {
 		$this->db->loadCSVFile($this->moduleName, __DIR__ . "/what_locks.csv");
 	}
 
-	/**
-	 * Search for a list of skills that can be locked and how many items lock it
-	 */
+	/** Search for a list of skills that can be locked and how many items lock it */
 	#[NCA\HandlesCommand("whatlocks")]
 	public function whatLocksCommand(CmdContext $context): void {
 		$query = $this->db->table("what_locks")->groupBy("skill_id");
@@ -102,9 +100,7 @@ class WhatLocksController extends ModuleInstance {
 		return (array)$msg;
 	}
 
-	/**
-	 * Search for a list of items that lock a specific skill
-	 */
+	/** Search for a list of items that lock a specific skill */
 	#[NCA\HandlesCommand("whatlocks")]
 	public function whatLocksSkillCommand(CmdContext $context, string $skill): void {
 		$skills = $this->itemsController->searchForSkill($skill);

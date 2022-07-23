@@ -37,9 +37,7 @@ class CacheManager {
 	/** The directory where to store the cache information */
 	private string $cacheDir;
 
-	/**
-	 * Initialize the cache on disk
-	 */
+	/** Initialize the cache on disk */
 	#[NCA\Setup]
 	public function init(): void {
 		$this->cacheDir = $this->config->cacheFolder;

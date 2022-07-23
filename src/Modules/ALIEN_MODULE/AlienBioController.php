@@ -60,9 +60,7 @@ class AlienBioController extends ModuleInstance {
 		$this->db->loadCSVFile($this->moduleName, __DIR__ . '/alienweaponspecials.csv');
 	}
 
-	/**
-	 * Identify a "Solid Clump of Kyr'Ozch Bio-Material"
-	 */
+	/** Identify a "Solid Clump of Kyr'Ozch Bio-Material" */
 	#[NCA\HandlesCommand("bio")]
 	#[NCA\Help\Epilogue("Just drag and drop biomaterials into the chat as parameters.")]
 	public function bioCommand(CmdContext $context, #[NCA\SpaceOptional] PItem ...$clumps): void {
@@ -211,9 +209,7 @@ class AlienBioController extends ModuleInstance {
 		return $blob;
 	}
 
-	/**
-	 * Show info about a particular bio type
-	 */
+	/** Show info about a particular bio type */
 	#[NCA\HandlesCommand("bioinfo")]
 	public function bioinfoIDCommand(CmdContext $context, int $bio, ?int $ql): void {
 		$ql ??= 300;
@@ -231,9 +227,7 @@ class AlienBioController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
-	/**
-	 * This command handler shows info about a particular bio type.
-	 */
+	/** This command handler shows info about a particular bio type. */
 	#[NCA\HandlesCommand("bioinfo")]
 	public function bioinfoCommand(CmdContext $context, PWord $bio, ?int $ql): void {
 		$bio = strtolower($bio());

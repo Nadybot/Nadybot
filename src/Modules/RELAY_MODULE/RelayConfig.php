@@ -5,9 +5,7 @@ namespace Nadybot\Modules\RELAY_MODULE;
 use Nadybot\Core\{Attributes as NCA, DBRow};
 
 class RelayConfig extends DBRow {
-	/**
-	 * The unique ID of this relay config
-	 */
+	/** The unique ID of this relay config */
 	#[NCA\JSON\Ignore]
 	public int $id;
 

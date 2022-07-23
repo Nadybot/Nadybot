@@ -17,21 +17,15 @@ class RaidMember extends DBRow {
 	/** UNIX Timestamp when they left the raid/were kicked, null if still in */
 	public ?int $left = null;
 
-	/**
-	 * How many points have they gotten in this raid
-	 */
+	/** How many points have they gotten in this raid */
 	#[NCA\DB\Ignore]
 	public int $points = 0;
 
-	/**
-	 * How many points have they received from rewards in this raid
-	 */
+	/** How many points have they received from rewards in this raid */
 	#[NCA\DB\Ignore]
 	public int $pointsRewarded = 0;
 
-	/**
-	 * How many points have they gained/lost individually in this raid
-	 */
+	/** How many points have they gained/lost individually in this raid */
 	#[NCA\DB\Ignore]
 	public int $pointsIndividual = 0;
 

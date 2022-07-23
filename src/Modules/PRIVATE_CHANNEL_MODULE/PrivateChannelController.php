@@ -446,9 +446,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 		$context->reply($msg);
 	}
 
-	/**
-	 * Remove someone from the bot's member list
-	 */
+	/** Remove someone from the bot's member list */
 	#[NCA\HandlesCommand("members add/remove")]
 	#[NCA\Help\Group("private-channel")]
 	public function remUserCommand(
@@ -461,9 +459,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 		$context->reply($msg);
 	}
 
-	/**
-	 * Remove someone and all their alts from the bot's member list
-	 */
+	/** Remove someone and all their alts from the bot's member list */
 	#[NCA\HandlesCommand("members add/remove")]
 	#[NCA\Help\Group("private-channel")]
 	public function remallUserCommand(

@@ -63,9 +63,7 @@ class DiscController extends ModuleInstance {
 			->first();
 	}
 
-	/**
-	 * Show what nano a disc will turn into
-	 */
+	/** Show what nano a disc will turn into */
 	#[NCA\HandlesCommand("disc")]
 	#[NCA\Help\Example("<symbol>disc <a href=itemref://163410/163410/139>Instruction Disc (Tranquility of the Vale)</a>")]
 	public function discByItemCommand(CmdContext $context, PItem $item): void {
@@ -79,9 +77,7 @@ class DiscController extends ModuleInstance {
 		$this->discCommand($context, $disc);
 	}
 
-	/**
-	 * Show what nano a disc will turn into
-	 */
+	/** Show what nano a disc will turn into */
 	#[NCA\HandlesCommand("disc")]
 	#[NCA\Help\Example("<symbol>disc tranquility vale")]
 	public function discByNameCommand(CmdContext $context, string $search): void {

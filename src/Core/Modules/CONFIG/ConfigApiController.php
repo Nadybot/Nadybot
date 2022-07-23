@@ -58,9 +58,7 @@ class ConfigApiController extends ModuleInstance {
 	#[NCA\Inject]
 	public DB $db;
 
-	/**
-	 * Get a list of available modules to configure
-	 */
+	/** Get a list of available modules to configure */
 	#[
 		NCA\Api("/module"),
 		NCA\GET,
@@ -71,9 +69,7 @@ class ConfigApiController extends ModuleInstance {
 		return new ApiResponse($this->configController->getModules());
 	}
 
-	/**
-	 * Activate or deactivate an event
-	 */
+	/** Activate or deactivate an event */
 	#[
 		NCA\Api("/module/%s/events/%s/%s"),
 		NCA\PATCH,
@@ -111,9 +107,7 @@ class ConfigApiController extends ModuleInstance {
 		return new Response(Response::NO_CONTENT);
 	}
 
-	/**
-	 * Change a setting's value
-	 */
+	/** Change a setting's value */
 	#[
 		NCA\Api("/module/%s/settings/%s"),
 		NCA\PATCH,
@@ -197,9 +191,7 @@ class ConfigApiController extends ModuleInstance {
 		return new Response(Response::NO_CONTENT);
 	}
 
-	/**
-	 * Activate or deactivate a Command
-	 */
+	/** Activate or deactivate a Command */
 	#[
 		NCA\Api("/module/%s/commands/%s/%s"),
 		NCA\PATCH,
@@ -257,9 +249,7 @@ class ConfigApiController extends ModuleInstance {
 		return new ApiResponse($moduleCommand);
 	}
 
-	/**
-	 * Activate or deactivate a command
-	 */
+	/** Activate or deactivate a command */
 	#[
 		NCA\Api("/module/%s/commands/%s"),
 		NCA\PATCH,
@@ -294,9 +284,7 @@ class ConfigApiController extends ModuleInstance {
 		return new Response(Response::NOT_FOUND);
 	}
 
-	/**
-	 * Activate or deactivate a module
-	 */
+	/** Activate or deactivate a module */
 	#[
 		NCA\Api("/module/%s"),
 		NCA\PATCH,
@@ -326,9 +314,7 @@ class ConfigApiController extends ModuleInstance {
 		return new Response(Response::NOT_FOUND);
 	}
 
-	/**
-	 * Get the description of a module
-	 */
+	/** Get the description of a module */
 	#[
 		NCA\Api("/module/%s/description"),
 		NCA\GET,
@@ -344,9 +330,7 @@ class ConfigApiController extends ModuleInstance {
 		return new ApiResponse($description);
 	}
 
-	/**
-	 * Get a list of available settings for a module
-	 */
+	/** Get a list of available settings for a module */
 	#[
 		NCA\Api("/module/%s/settings"),
 		NCA\GET,
@@ -379,9 +363,7 @@ class ConfigApiController extends ModuleInstance {
 		return new ApiResponse($result);
 	}
 
-	/**
-	 * Get a list of available events for a module
-	 */
+	/** Get a list of available events for a module */
 	#[
 		NCA\Api("/module/%s/events"),
 		NCA\GET,
@@ -399,9 +381,7 @@ class ConfigApiController extends ModuleInstance {
 		return new ApiResponse($events->toArray());
 	}
 
-	/**
-	 * Get a list of available commands for a module
-	 */
+	/** Get a list of available commands for a module */
 	#[
 		NCA\Api("/module/%s/commands"),
 		NCA\GET,
@@ -423,9 +403,7 @@ class ConfigApiController extends ModuleInstance {
 		return new ApiResponse(array_values($result));
 	}
 
-	/**
-	 * Get a list of configured access levels
-	 */
+	/** Get a list of configured access levels */
 	#[
 		NCA\Api("/access_levels"),
 		NCA\GET,
@@ -436,9 +414,7 @@ class ConfigApiController extends ModuleInstance {
 		return new ApiResponse($this->configController->getValidAccessLevels());
 	}
 
-	/**
-	 * Get a list of permission sets
-	 */
+	/** Get a list of permission sets */
 	#[
 		NCA\Api("/permission_set"),
 		NCA\GET,
@@ -449,9 +425,7 @@ class ConfigApiController extends ModuleInstance {
 		return new ApiResponse($this->commandManager->getExtPermissionSets()->toArray());
 	}
 
-	/**
-	 * Get a permission set by its name
-	 */
+	/** Get a permission set by its name */
 	#[
 		NCA\Api("/permission_set/%s"),
 		NCA\GET,
@@ -466,9 +440,7 @@ class ConfigApiController extends ModuleInstance {
 		return new ApiResponse($set);
 	}
 
-	/**
-	 * Create a new permission set
-	 */
+	/** Create a new permission set */
 	#[
 		NCA\Api("/permission_set"),
 		NCA\POST,
@@ -496,9 +468,7 @@ class ConfigApiController extends ModuleInstance {
 		return new Response(Response::NO_CONTENT);
 	}
 
-	/**
-	 * Change a permission set
-	 */
+	/** Change a permission set */
 	#[
 		NCA\Api("/permission_set/%s"),
 		NCA\PATCH,
@@ -533,9 +503,7 @@ class ConfigApiController extends ModuleInstance {
 		return new ApiResponse($this->commandManager->getExtPermissionSet($old->name));
 	}
 
-	/**
-	 * Get a list of command sources
-	 */
+	/** Get a list of command sources */
 	#[
 		NCA\Api("/cmd_source"),
 		NCA\GET,
@@ -554,9 +522,7 @@ class ConfigApiController extends ModuleInstance {
 		return new ApiResponse($result);
 	}
 
-	/**
-	 * Get details for a specific command source
-	 */
+	/** Get details for a specific command source */
 	#[
 		NCA\Api("/cmd_source/%s"),
 		NCA\GET,
@@ -572,9 +538,7 @@ class ConfigApiController extends ModuleInstance {
 		return new ApiResponse($cmdSrc);
 	}
 
-	/**
-	 * Get mappings for a specific command source
-	 */
+	/** Get mappings for a specific command source */
 	#[
 		NCA\Api("/cmd_source/%s/mappings"),
 		NCA\GET,
@@ -589,9 +553,7 @@ class ConfigApiController extends ModuleInstance {
 		return new ApiResponse($this->getCmdSourceMappings($source)->toArray());
 	}
 
-	/**
-	 * Get mappings for a specific command source
-	 */
+	/** Get mappings for a specific command source */
 	#[
 		NCA\Api("/cmd_source/%s/mappings/%s"),
 		NCA\GET,
@@ -611,9 +573,7 @@ class ConfigApiController extends ModuleInstance {
 		return new ApiResponse($mapping);
 	}
 
-	/**
-	 * Delete mapping for a specific command sub-source
-	 */
+	/** Delete mapping for a specific command sub-source */
 	#[
 		NCA\Api("/cmd_source/%s/mappings/%s"),
 		NCA\DELETE,
@@ -636,9 +596,7 @@ class ConfigApiController extends ModuleInstance {
 		return new Response(Response::NO_CONTENT);
 	}
 
-	/**
-	 * Delete mapping for a specific command source
-	 */
+	/** Delete mapping for a specific command source */
 	#[
 		NCA\Api("/cmd_source/%s/mappings"),
 		NCA\DELETE,
@@ -660,9 +618,7 @@ class ConfigApiController extends ModuleInstance {
 		return new Response(Response::NO_CONTENT);
 	}
 
-	/**
-	 * Create a new mapping
-	 */
+	/** Create a new mapping */
 	#[
 		NCA\Api("/cmd_source/%s/mappings"),
 		NCA\POST,
@@ -690,9 +646,7 @@ class ConfigApiController extends ModuleInstance {
 		return $this->createCmdSourceMapping($decoded);
 	}
 
-	/**
-	 * Modify mapping for a specific command source
-	 */
+	/** Modify mapping for a specific command source */
 	#[
 		NCA\Api("/cmd_source/%s/mappings"),
 		NCA\PUT,
@@ -720,9 +674,7 @@ class ConfigApiController extends ModuleInstance {
 		return $this->modifyCmdSourceMapping($decoded);
 	}
 
-	/**
-	 * Modify mapping for a specific command source
-	 */
+	/** Modify mapping for a specific command source */
 	#[
 		NCA\Api("/cmd_source/%s/mappings/%s"),
 		NCA\PUT,

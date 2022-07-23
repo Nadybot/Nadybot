@@ -136,9 +136,7 @@ class VoteController extends ModuleInstance implements MessageEmitter {
 		return $topic;
 	}
 
-	/**
-	 * This event handler checks for polls ending.
-	 */
+	/** This event handler checks for polls ending. */
 	#[NCA\Event(
 		name: "timer(2sec)",
 		description: "Checks polls and periodically updates chat with time left"
@@ -210,9 +208,7 @@ class VoteController extends ModuleInstance implements MessageEmitter {
 		}
 	}
 
-	/**
-	 * Show all the polls
-	 */
+	/** Show all the polls */
 	#[NCA\HandlesCommand("poll")]
 	#[NCA\Help\Group("voting")]
 	public function pollCommand(CmdContext $context): void {
@@ -252,9 +248,7 @@ class VoteController extends ModuleInstance implements MessageEmitter {
 		$context->reply($msg);
 	}
 
-	/**
-	 * Delete a poll
-	 */
+	/** Delete a poll */
 	#[NCA\HandlesCommand("poll")]
 	#[NCA\Help\Group("voting")]
 	public function pollKillCommand(CmdContext $context, PRemove $action, int $pollId): void {
@@ -281,9 +275,7 @@ class VoteController extends ModuleInstance implements MessageEmitter {
 		$this->eventManager->fireEvent($event);
 	}
 
-	/**
-	 * Remove your vote from a running poll
-	 */
+	/** Remove your vote from a running poll */
 	#[NCA\HandlesCommand("vote")]
 	#[NCA\Help\Group("voting")]
 	public function voteRemoveCommand(CmdContext $context, PRemove $action, int $pollId): void {
@@ -311,9 +303,7 @@ class VoteController extends ModuleInstance implements MessageEmitter {
 		$context->reply($msg);
 	}
 
-	/**
-	 * End a poll (voting will end in 60 seconds)
-	 */
+	/** End a poll (voting will end in 60 seconds) */
 	#[NCA\HandlesCommand("poll")]
 	#[NCA\Help\Group("voting")]
 	public function pollEndCommand(CmdContext $context, #[NCA\Str("end")] string $action, int $pollId): void {

@@ -483,9 +483,7 @@ class SystemController extends ModuleInstance implements MessageEmitter {
 		$context->reply($msg);
 	}
 
-	/**
-	 * Clears the outgoing chatqueue from all pending messages
-	 */
+	/** Clears the outgoing chatqueue from all pending messages */
 	#[NCA\HandlesCommand("clearqueue")]
 	public function clearqueueCommand(CmdContext $context): void {
 		if (!isset($this->chatBot->chatqueue)) {
@@ -497,9 +495,7 @@ class SystemController extends ModuleInstance implements MessageEmitter {
 		$context->reply("Chat queue has been cleared of <highlight>{$num}<end> messages.");
 	}
 
-	/**
-	 * Execute multiple commands at once, separated by pipes.
-	 */
+	/** Execute multiple commands at once, separated by pipes. */
 	#[NCA\HandlesCommand("macro")]
 	#[NCA\Help\Example(
 		command: "<symbol>macro cmd That's all!|raid stop|kickall"
@@ -588,9 +584,7 @@ class SystemController extends ModuleInstance implements MessageEmitter {
 		);
 	}
 
-	/**
-	 * Get system information
-	 */
+	/** Get system information */
 	#[
 		NCA\Api("/sysinfo"),
 		NCA\GET,

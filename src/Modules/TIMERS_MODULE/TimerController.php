@@ -244,9 +244,7 @@ class TimerController extends ModuleInstance implements MessageEmitter {
 		$this->chatBot->sendMassTell($msg, $timer->owner);
 	}
 
-	/**
-	 * Create a new repeating timer, repeating every &lt;interval&gt; after &lt;initial&gt;
-	 */
+	/** Create a new repeating timer, repeating every &lt;interval&gt; after &lt;initial&gt; */
 	#[NCA\HandlesCommand("rtimer")]
 	#[NCA\Help\Group("timers")]
 	public function rtimerCommand(

@@ -99,9 +99,7 @@ class ImportController extends ModuleInstance {
 	#[NCA\Inject]
 	public ConfigFile $config;
 
-	/**
-	 * Import data from a file, mapping the exported access levels to your own ones
-	 */
+	/** Import data from a file, mapping the exported access levels to your own ones */
 	#[NCA\HandlesCommand("import")]
 	#[NCA\Help\Example("<symbol>import 2021-01-31 superadmin=admin admin=mod leader=member member=member")]
 	#[NCA\Help\Prologue(

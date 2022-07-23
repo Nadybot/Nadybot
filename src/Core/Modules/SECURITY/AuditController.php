@@ -93,9 +93,7 @@ class AuditController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
-	/**
-	 * Query entries from the audit log
-	 */
+	/** Query entries from the audit log */
 	#[
 		NCA\Api("/audit"),
 		NCA\GET,

@@ -251,9 +251,7 @@ class GauntletBuffController extends ModuleInstance implements MessageEmitter {
 		}
 	}
 
-	/**
-	 * Show the current Gauntlet buff timer, optionally for a given faction only
-	 */
+	/** Show the current Gauntlet buff timer, optionally for a given faction only */
 	#[NCA\HandlesCommand("gaubuff")]
 	public function gaubuffCommand(
 		CmdContext $context,
@@ -280,9 +278,7 @@ class GauntletBuffController extends ModuleInstance implements MessageEmitter {
 		$context->reply(join("\n", $msgs));
 	}
 
-	/**
-	 * Set the Gauntlet buff timer for your default faction or the given one
-	 */
+	/** Set the Gauntlet buff timer for your default faction or the given one */
 	#[NCA\HandlesCommand("gaubuff set/update")]
 	#[NCA\Help\Example("<symbol>gaubuff 14h")]
 	#[NCA\Help\Example("<symbol>gaubuff clan 10h15m")]

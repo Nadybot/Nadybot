@@ -91,13 +91,13 @@ class Text {
 		foreach ($pages as $key => $page) {
 			$headerInfo = "";
 			if ($addHeaderRanges
-					&& preg_match_all(
-						"/<header2>([^<]+)<end>/",
-						$page,
-						$headers,
-						PREG_OFFSET_CAPTURE
-					)
-				) {
+				&& preg_match_all(
+					"/<header2>([^<]+)<end>/",
+					$page,
+					$headers,
+					PREG_OFFSET_CAPTURE
+				)
+			) {
 				if (isset($headers) && $headers[1][0][1] === 9) {
 					$from = $headers[1][0][0];
 					$to = $headers[1][count($headers[1])-1][0];

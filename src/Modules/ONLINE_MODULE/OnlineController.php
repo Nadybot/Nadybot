@@ -1037,9 +1037,7 @@ class OnlineController extends ModuleInstance {
 		return $profToID[$profession] ?? null;
 	}
 
-	/**
-	 * Get a list of all people online in all linked channels
-	 */
+	/** Get a list of all people online in all linked channels */
 	#[
 		NCA\Api("/online"),
 		NCA\GET,

@@ -206,9 +206,7 @@ class CommentController extends ModuleInstance {
 		return $deletedCategories ? $deletedComments : null;
 	}
 
-	/**
-	 * Get a list of all defined comment categories
-	 */
+	/** Get a list of all defined comment categories */
 	#[NCA\HandlesCommand("comment categories")]
 	public function listCategoriesCommand(
 		CmdContext $context,
@@ -340,9 +338,7 @@ class CommentController extends ModuleInstance {
 		$context->reply("Access levels for category <highlight>{$category}<end> successfully changes.");
 	}
 
-	/**
-	 * Add a new comment &lt;comment text&lt; about &lt;char&gt; in the category &lt;category&gt;
-	 */
+	/** Add a new comment &lt;comment text&lt; about &lt;char&gt; in the category &lt;category&gt; */
 	#[NCA\HandlesCommand("comment")]
 	#[NCA\Help\Epilogue(
 		"<header2>Customization<end>\n\n".
@@ -464,9 +460,7 @@ class CommentController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
-	/**
-	 * Get a list of all comments of category &lt;category&gt; about all characters
-	 */
+	/** Get a list of all comments of category &lt;category&gt; about all characters */
 	#[NCA\HandlesCommand("comment")]
 	public function listCommentsCommand(
 		CmdContext $context,
@@ -583,9 +577,7 @@ class CommentController extends ModuleInstance {
 		return $line;
 	}
 
-	/**
-	 * Delete a comment about a player by its ID
-	 */
+	/** Delete a comment about a player by its ID */
 	#[NCA\HandlesCommand("comment")]
 	public function deleteCommentCommand(
 		CmdContext $context,

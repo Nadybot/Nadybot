@@ -361,9 +361,7 @@ class EventsController extends ModuleInstance {
 			->exists();
 	}
 
-	/**
-	 * @psalm-param callable(?string) $callback
-	 */
+	/** @psalm-param callable(?string) $callback */
 	#[
 		NCA\NewsTile(
 			name: "events",

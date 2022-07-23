@@ -69,17 +69,13 @@ class AlienArmorController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
-	/**
-	 * Show the tradeskill process for normal Alien Armor.
-	 */
+	/** Show the tradeskill process for normal Alien Armor. */
 	#[NCA\HandlesCommand("aiarmor")]
 	public function aiarmorNormal2Command(CmdContext $context, PBotType $armortype, int $ql): void {
 		$this->aiarmorNormalCommand($context, $ql, $armortype);
 	}
 
-	/**
-	 * Show the tradeskill process for normal Alien Armor.
-	 */
+	/** Show the tradeskill process for normal Alien Armor. */
 	#[NCA\HandlesCommand("aiarmor")]
 	public function aiarmorNormalCommand(CmdContext $context, ?int $ql, PBotType $armortype): void {
 		$ql ??= 300;
@@ -219,9 +215,7 @@ class AlienArmorController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
-	/**
-	 * Show the tradeskill process for combined Alien Armor.
-	 */
+	/** Show the tradeskill process for combined Alien Armor. */
 	#[NCA\HandlesCommand("aiarmor")]
 	public function aiarmorCombinedCommand2(
 		CmdContext $context,
@@ -231,9 +225,7 @@ class AlienArmorController extends ModuleInstance {
 		$this->aiarmorCombinedCommand($context, $ql, $type);
 	}
 
-	/**
-	 * Show the tradeskill process for combined Alien Armor.
-	 */
+	/** Show the tradeskill process for combined Alien Armor. */
 	#[NCA\HandlesCommand("aiarmor")]
 	public function aiarmorCombinedCommand(
 		CmdContext $context,

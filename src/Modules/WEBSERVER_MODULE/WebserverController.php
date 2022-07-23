@@ -171,18 +171,14 @@ class WebserverController extends ModuleInstance {
 		$this->scanRouteAttributes();
 	}
 
-	/**
-	 * Start or stop the webserver if the setting changed
-	 */
+	/** Start or stop the webserver if the setting changed */
 	#[NCA\SettingChangeHandler("webserver_auth")]
 	#[NCA\SettingChangeHandler("webserver_aoauth_url")]
 	public function downloadNewPublicKey(string $settingName, string $oldValue, string $newValue): void {
 		Loop::defer([$this, "downloadPublicKey"]);
 	}
 
-	/**
-	 * Start or stop the webserver if the setting changed
-	 */
+	/** Start or stop the webserver if the setting changed */
 	#[NCA\SettingChangeHandler("webserver")]
 	public function webserverMainSettingChanged(string $settingName, string $oldValue, string $newValue): void {
 		if ($newValue === '1') {
@@ -192,9 +188,7 @@ class WebserverController extends ModuleInstance {
 		}
 	}
 
-	/**
-	 * Restart the webserver on the new port if the setting changed
-	 */
+	/** Restart the webserver on the new port if the setting changed */
 	#[NCA\SettingChangeHandler("webserver_port")]
 	#[NCA\SettingChangeHandler("webserver_addr")]
 	public function webserverSettingChanged(string $settingName, string $oldValue, string $newValue): void {

@@ -6,9 +6,7 @@ use Nadybot\Core\Attributes\JSON;
 use Nadybot\Core\DBSchema\CmdPermSetMapping;
 
 class CmdSourceMapping {
-	/**
-	 * The name of this command source
-	 */
+	/** The name of this command source */
 	#[JSON\Ignore]
 	public string $source;
 

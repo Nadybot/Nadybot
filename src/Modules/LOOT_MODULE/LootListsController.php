@@ -124,7 +124,7 @@ use Nadybot\Modules\{
 	NCA\DefineCommand(
 		command: "subway",
 		accessLevel: "guest",
-		description: "Shows possible Subway 201+",
+		description: "Shows possible Subway 201+ loot",
 	),
 	NCA\DefineCommand(
 		command: "lox",
@@ -255,9 +255,7 @@ class LootListsController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
-	/**
-	 * Show the loot list for Sector 7
-	 */
+	/** Show the loot list for Sector 7 */
 	#[NCA\HandlesCommand("7")]
 	#[NCA\Help\Group("loot-apf")]
 	public function apf7Command(CmdContext $context): void {
@@ -270,9 +268,7 @@ class LootListsController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
-	/**
-	 * Add all loot from Sector 13 to the loot list
-	 */
+	/** Add all loot from Sector 13 to the loot list */
 	#[NCA\HandlesCommand("13")]
 	#[NCA\Help\Group("loot-apf")]
 	public function apf13Command(CmdContext $context): void {
@@ -284,9 +280,7 @@ class LootListsController extends ModuleInstance {
 		$this->addAPFLootToList($context->char->name, 13);
 	}
 
-	/**
-	 * Add all loot from Sector 28 to the loot list
-	 */
+	/** Add all loot from Sector 28 to the loot list */
 	#[NCA\HandlesCommand("28")]
 	#[NCA\Help\Group("loot-apf")]
 	public function apf28Command(CmdContext $context): void {
@@ -298,9 +292,7 @@ class LootListsController extends ModuleInstance {
 		$this->addAPFLootToList($context->char->name, 28);
 	}
 
-	/**
-	 * Add all loot from Sector 35 to the loot list
-	 */
+	/** Add all loot from Sector 35 to the loot list */
 	#[NCA\HandlesCommand("35")]
 	#[NCA\Help\Group("loot-apf")]
 	public function apf35Command(CmdContext $context): void {
@@ -322,18 +314,14 @@ class LootListsController extends ModuleInstance {
 		$this->chatBot->sendPrivate($msg);
 	}
 
-	/**
-	 * Show the loot list for Sector 7
-	 */
+	/** Show the loot list for Sector 7 */
 	#[NCA\HandlesCommand("apf")]
 	#[NCA\Help\Group("loot-apf")]
 	public function apfSevenCommand(CmdContext $context, #[NCA\Str("7")] string $sector): void {
 		$this->apf7Command($context);
 	}
 
-	/**
-	 * Show the loot list for Sector 13
-	 */
+	/** Show the loot list for Sector 13 */
 	#[NCA\HandlesCommand("apf")]
 	#[NCA\Help\Group("loot-apf")]
 	public function apfThirteenCommand(CmdContext $context, #[NCA\Str("13")] string $sector): void {
@@ -393,9 +381,7 @@ class LootListsController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
-	/**
-	 * Show the loot list for Sector 28
-	 */
+	/** Show the loot list for Sector 28 */
 	#[NCA\HandlesCommand("apf")]
 	#[NCA\Help\Group("loot-apf")]
 	public function apfTwentyEightCommand(CmdContext $context, #[NCA\Str("28")] string $sector): void {
@@ -448,9 +434,7 @@ class LootListsController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
-	/**
-	 * Show the loot list for Sector 35
-	 */
+	/** Show the loot list for Sector 35 */
 	#[NCA\HandlesCommand("apf")]
 	#[NCA\Help\Group("loot-apf")]
 	public function apfThirtyFiveCommand(CmdContext $context, #[NCA\Str("35")] string $sector): void {

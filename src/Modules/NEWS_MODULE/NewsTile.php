@@ -19,9 +19,7 @@ class NewsTile {
 	/** An example what this could look like if there was data */
 	public ?string $example;
 
-	/**
-	 * The callback that returns the news tile data
-	 */
+	/** The callback that returns the news tile data */
 	#[JSON\Ignore]
 	public Closure $callback;
 

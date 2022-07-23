@@ -139,9 +139,7 @@ class BanController extends ModuleInstance {
 		$this->uploadOrgBanlist();
 	}
 
-	/**
-	 * Temporarily ban a player from this bot
-	 */
+	/** Temporarily ban a player from this bot */
 	#[NCA\HandlesCommand("ban")]
 	#[NCA\Help\Group("ban")]
 	#[NCA\Help\Example("<symbol>ban badplayer 2 weeks for ninjalooting")]
@@ -175,9 +173,7 @@ class BanController extends ModuleInstance {
 		);
 	}
 
-	/**
-	 * Temporarily ban a player from this bot, not giving any reason
-	 */
+	/** Temporarily ban a player from this bot, not giving any reason */
 	#[NCA\HandlesCommand("ban")]
 	#[NCA\Help\Group("ban")]
 	#[NCA\Help\Example("<symbol>ban badplayer 2 weeks")]
@@ -208,9 +204,7 @@ class BanController extends ModuleInstance {
 		);
 	}
 
-	/**
-	 * Permanently ban a player from this bot
-	 */
+	/** Permanently ban a player from this bot */
 	#[NCA\HandlesCommand("ban")]
 	#[NCA\Help\Group("ban")]
 	#[NCA\Help\Example("<symbol>ban badplayer for ninjalooting")]
@@ -241,9 +235,7 @@ class BanController extends ModuleInstance {
 		);
 	}
 
-	/**
-	 * Permanently ban a player from this bot, without giving a reason
-	 */
+	/** Permanently ban a player from this bot, without giving a reason */
 	#[NCA\HandlesCommand("ban")]
 	#[NCA\Help\Group("ban")]
 	#[NCA\Help\Example("<symbol>ban badplayer")]
@@ -268,9 +260,7 @@ class BanController extends ModuleInstance {
 		);
 	}
 
-	/**
-	 * List the current ban list
-	 */
+	/** List the current ban list */
 	#[NCA\HandlesCommand("banlist")]
 	#[NCA\Help\Group("ban")]
 	public function banlistCommand(CmdContext $context): void {
@@ -304,9 +294,7 @@ class BanController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
-	/**
-	 * Unbans a character and all their alts from this bot
-	 */
+	/** Unbans a character and all their alts from this bot */
 	#[NCA\HandlesCommand("unban")]
 	#[NCA\Help\Group("ban")]
 	public function unbanAllCommand(
@@ -348,9 +336,7 @@ class BanController extends ModuleInstance {
 		}
 	}
 
-	/**
-	 * Unbans a character from this bot
-	 */
+	/** Unbans a character from this bot */
 	#[NCA\HandlesCommand("unban")]
 	#[NCA\Help\Group("ban")]
 	public function unbanCommand(CmdContext $context, PCharacter $who): Generator {
@@ -567,9 +553,7 @@ class BanController extends ModuleInstance {
 		return $this->banlist;
 	}
 
-	/**
-	 * List all currently banned org
-	 */
+	/** List all currently banned org */
 	#[NCA\HandlesCommand("orgban")]
 	#[NCA\Help\Group("ban")]
 	public function orgbanListCommand(CmdContext $context): void {
@@ -601,9 +585,7 @@ class BanController extends ModuleInstance {
 		return $blob;
 	}
 
-	/**
-	 * Ban a whole organization from the bot by their org id
-	 */
+	/** Ban a whole organization from the bot by their org id */
 	#[NCA\HandlesCommand("orgban")]
 	#[NCA\Help\Group("ban")]
 	#[NCA\Help\Example(
@@ -631,9 +613,7 @@ class BanController extends ModuleInstance {
 		}
 	}
 
-	/**
-	 * Ban a whole organization from the bot by their org id
-	 */
+	/** Ban a whole organization from the bot by their org id */
 	#[NCA\HandlesCommand("orgban")]
 	#[NCA\Help\Group("ban")]
 	#[NCA\Help\Example(
@@ -696,9 +676,7 @@ class BanController extends ModuleInstance {
 		});
 	}
 
-	/**
-	 * Remove an organization from the ban list, given their org id
-	 */
+	/** Remove an organization from the ban list, given their org id */
 	#[NCA\HandlesCommand("orgban")]
 	#[NCA\Help\Group("ban")]
 	public function orgbanRemCommand(CmdContext $context, PRemove $rem, int $orgId): Generator {

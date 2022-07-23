@@ -11,9 +11,7 @@ use Nadybot\Core\DBSchema\Player;
  * @package Nadybot\Modules\ONLINE_MODULE
  */
 class OnlinePlayer extends Player {
-	/**
-	 * The AFK message of the player or an empty string
-	 */
+	/** The AFK message of the player or an empty string */
 	#[JSON\Name("afk_message")]
 	public string $afk = '';
 

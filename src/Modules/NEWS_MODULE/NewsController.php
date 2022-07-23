@@ -225,9 +225,7 @@ class NewsController extends ModuleInstance {
 			->contains("time", ">", $thirtyDays);
 	}
 
-	/**
-	 * Show the latest news entries
-	 */
+	/** Show the latest news entries */
 	#[NCA\HandlesCommand("news")]
 	public function newsCommand(CmdContext $context): void {
 		$msg = $this->getNews($context->char->name, false);
@@ -235,9 +233,7 @@ class NewsController extends ModuleInstance {
 		$context->reply($msg ?? "No News recorded yet.");
 	}
 
-	/**
-	 * Confirm having read a news entry
-	 */
+	/** Confirm having read a news entry */
 	#[NCA\HandlesCommand("news")]
 	public function newsconfirmCommand(
 		CmdContext $context,
@@ -274,9 +270,7 @@ class NewsController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
-	/**
-	 * Add a news entry
-	 */
+	/** Add a news entry */
 	#[NCA\HandlesCommand(self::CMD_NEWS_MANAGE)]
 	public function newsAddCommand(
 		CmdContext $context,
@@ -306,9 +300,7 @@ class NewsController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
-	/**
-	 * Remove a news entry by ID
-	 */
+	/** Remove a news entry by ID */
 	#[NCA\HandlesCommand(self::CMD_NEWS_MANAGE)]
 	public function newsRemCommand(
 		CmdContext $context,
@@ -332,9 +324,7 @@ class NewsController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
-	/**
-	 * Pin a news entry to the top
-	 */
+	/** Pin a news entry to the top */
 	#[NCA\HandlesCommand(self::CMD_NEWS_MANAGE)]
 	public function newsPinCommand(
 		CmdContext $context,
@@ -364,9 +354,7 @@ class NewsController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
-	/**
-	 * Unpin a news entry from the top
-	 */
+	/** Unpin a news entry from the top */
 	#[NCA\HandlesCommand(self::CMD_NEWS_MANAGE)]
 	public function newsUnpinCommand(
 		CmdContext $context,
@@ -404,9 +392,7 @@ class NewsController extends ModuleInstance {
 			->first();
 	}
 
-	/**
-	 * Get a list of all news
-	 */
+	/** Get a list of all news */
 	#[
 		NCA\Api("/news"),
 		NCA\GET,
@@ -422,9 +408,7 @@ class NewsController extends ModuleInstance {
 		return new ApiResponse($result);
 	}
 
-	/**
-	 * Get a single news item by id
-	 */
+	/** Get a single news item by id */
 	#[
 		NCA\Api("/news/%d"),
 		NCA\GET,
@@ -440,9 +424,7 @@ class NewsController extends ModuleInstance {
 		return new ApiResponse($result);
 	}
 
-	/**
-	 * Create a new news item
-	 */
+	/** Create a new news item */
 	#[
 		NCA\Api("/news"),
 		NCA\POST,
@@ -485,9 +467,7 @@ class NewsController extends ModuleInstance {
 		return new Response(Response::INTERNAL_SERVER_ERROR);
 	}
 
-	/**
-	 * Modify an existing news item
-	 */
+	/** Modify an existing news item */
 	#[
 		NCA\Api("/news/%d"),
 		NCA\PATCH,

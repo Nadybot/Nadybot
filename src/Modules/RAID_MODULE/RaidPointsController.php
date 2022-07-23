@@ -134,9 +134,7 @@ class RaidPointsController extends ModuleInstance {
 	#[NCA\Setting\Number]
 	public int $raidPointsReasonMinLength = 10;
 
-	/**
-	 * Give points when the ticker is enabled
-	 */
+	/** Give points when the ticker is enabled */
 	#[NCA\Event(
 		name: "timer(1s)",
 		description: "Award points for raid participation"
@@ -639,9 +637,7 @@ class RaidPointsController extends ModuleInstance {
 		);
 	}
 
-	/**
-	 * Give points when the ticker is enabled
-	 */
+	/** Give points when the ticker is enabled */
 	#[
 		NCA\Event(
 			name: ["alt(add)", "alt(validate)"],

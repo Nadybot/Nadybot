@@ -153,9 +153,7 @@ class BuddylistController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
-	/**
-	 * Remove all characters from the buddylist. Use with caution.
-	 */
+	/** Remove all characters from the buddylist. Use with caution. */
 	#[NCA\HandlesCommand("buddylist")]
 	public function buddylistRemAllCommand(
 		CmdContext $context,
@@ -207,9 +205,7 @@ class BuddylistController extends ModuleInstance {
 		return "{$blob}\n";
 	}
 
-	/**
-	 * Search for characters on the buddylist containing &lt;search&gt;
-	 */
+	/** Search for characters on the buddylist containing &lt;search&gt; */
 	#[NCA\HandlesCommand("buddylist")]
 	public function buddylistSearchCommand(
 		CmdContext $context,
@@ -238,9 +234,7 @@ class BuddylistController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
-	/**
-	 * Rebalance the buddies on the workers by removing and re-adding all of them
-	 */
+	/** Rebalance the buddies on the workers by removing and re-adding all of them */
 	#[NCA\HandlesCommand("buddylist")]
 	public function buddylistRebalanceCommand(
 		CmdContext $context,
