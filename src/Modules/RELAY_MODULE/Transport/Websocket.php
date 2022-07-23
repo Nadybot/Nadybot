@@ -16,7 +16,6 @@ use Amp\Http\Client\{
 	HttpClientBuilder,
 	Interceptor\AddRequestHeader,
 	Interceptor\RemoveRequestHeader,
-	Interceptor\SetRequestHeaderIfUnset,
 	TimeoutException,
 };
 use Amp\Websocket\{
@@ -34,7 +33,6 @@ use Exception;
 use Generator;
 use Nadybot\Core\{
 	Attributes as NCA,
-	BotRunner,
 	LoggerWrapper,
 	Nadybot,
 };
@@ -73,6 +71,9 @@ use Throwable;
 class Websocket implements TransportInterface, StatusProvider {
 	#[NCA\Inject]
 	public Nadybot $chatBot;
+
+	#[NCA\Inject]
+	public HttpClientBuilder $clientBuilder;
 
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
@@ -133,14 +134,12 @@ class Websocket implements TransportInterface, StatusProvider {
 		$this->initCallback = $callback;
 		$handshake = new Handshake($this->uri);
 		$connectContext = (new ConnectContext())->withTcpNoDelay();
-		$httpClientBuilder = (new HttpClientBuilder())
+		$httpClientBuilder = $this->clientBuilder
 			->usingPool(new UnlimitedConnectionPool(new DefaultConnectionFactory(null, $connectContext)))
-			->intercept(new RemoveRequestHeader('origin'))
-			->intercept(new SetRequestHeaderIfUnset("User-Agent", "Nadybot ".BotRunner::getVersion()));
+			->intercept(new RemoveRequestHeader('origin'));
 		if (isset($this->authorization)) {
 			$httpClientBuilder->intercept(new AddRequestHeader("Authorization", $this->authorization));
 		}
-		$httpClientBuilder->retry(10);
 		$httpClient = $httpClientBuilder->build();
 		$client = new Rfc6455Connector($httpClient);
 		asyncCall(function () use ($callback, $client, $handshake): Generator {

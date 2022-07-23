@@ -241,10 +241,14 @@ class BotRunner {
 
 		$config = $this->getConfigFile();
 		Registry::setInstance("configfile", $config);
+		$retryHandler = new HttpRetry(8);
+		Registry::injectDependencies($retryHandler);
 		Registry::setInstance(
 			"HttpClientBuilder",
 			(new HttpClientBuilder())
+				->retry(0)
 				->intercept(new SetRequestHeaderIfUnset("User-Agent", "Nadybot ".self::getVersion()))
+				->intercept($retryHandler)
 		);
 		$this->checkRequiredModules();
 		$this->checkRequiredPackages();
