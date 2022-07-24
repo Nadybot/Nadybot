@@ -786,6 +786,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 				"name" => $context->char->name,
 				"autoinv" => $autoInvite,
 			]);
+		$this->members[$context->char->name] = true;
 		$msg = "You have been added as a member of this bot. ".
 			"Use <highlight><symbol>autoinvite<end> to control your ".
 			"auto invite preference.";
