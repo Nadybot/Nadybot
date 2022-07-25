@@ -126,6 +126,14 @@ class RaidPointsController extends ModuleInstance {
 	#[NCA\Setting\Boolean]
 	public bool $raidRewardRequiresLock = false;
 
+	/** Allow raid rewards/penalties only with pre-defined rewards */
+	#[NCA\Setting\Boolean]
+	public bool $raidRewardPredefinedOnly = false;
+
+	/** Maximum allowed raid reward/penalty height, 0 for unlimited */
+	#[NCA\Setting\Number]
+	public int $maxRaidRewardHeight = 0;
+
 	/** How many raiders to show in top list */
 	#[NCA\Setting\Number]
 	public int $raidTopAmount = 25;
@@ -293,26 +301,15 @@ class RaidPointsController extends ModuleInstance {
 		int $points,
 		?string $reason
 	): void {
-		if (!isset($this->raidController->raid)) {
-			$context->reply(RaidController::ERR_NO_RAID);
+		if ($this->raidRewardPredefinedOnly) {
+			$context->reply("You can only use predefined raid rewards on this bot.");
 			return;
 		}
-		if ($this->raidRewardRequiresLock && !$this->raidController->raid->locked) {
-			$context->reply("<red>The raid must be locked before you can reward raiders!<end>");
+		if ($this->maxRaidRewardHeight > 0 && $points > $this->maxRaidRewardHeight) {
+			$context->reply("You are not allowed to give raid rewards this high.");
 			return;
 		}
-		$raid = $this->raidController->raid;
-		$numRecipients = $this->awardRaidPoints($raid, $context->char->name, $points, $reason);
-		$msgs = $this->raidMemberController->getRaidListBlob($raid, true);
-		$pointsGiven = "<highlight>{$points}<end> points were given";
-		if ($points === 1) {
-			$pointsGiven = "<highlight>1<end> point was given";
-		}
-		$pointsGiven .= " to all raiders (<highlight>{$numRecipients}<end>) by {$context->char->name} :: ";
-		foreach ($msgs as &$blob) {
-			$blob = "{$pointsGiven} {$blob}";
-			$this->routeMessage("reward", $blob);
-		}
+		$this->giveRaidReward($context, $points, $reason);
 	}
 
 	/** Reward everyone in the raid a pre-defined reward for &lt;mob&gt; */
@@ -328,7 +325,7 @@ class RaidPointsController extends ModuleInstance {
 			$context->reply("No predefined reward named <highlight>{$mob}<end> found.");
 			return;
 		}
-		$this->raidRewardCommand($context, $action, $reward->points, $reward->reason);
+		$this->giveRaidReward($context, $reward->points, $reward->reason);
 	}
 
 	/** Remove raidpoints from everyone in the raid */
@@ -340,26 +337,15 @@ class RaidPointsController extends ModuleInstance {
 		int $points,
 		?string $reason
 	): void {
-		if (!isset($this->raidController->raid)) {
-			$context->reply(RaidController::ERR_NO_RAID);
+		if ($this->raidRewardPredefinedOnly) {
+			$context->reply("You can only use predefined raid rewards on this bot.");
 			return;
 		}
-		if ($this->raidRewardRequiresLock && !$this->raidController->raid->locked) {
-			$context->reply("<red>The raid must be locked before you can punish raiders!<end>");
+		if ($this->maxRaidRewardHeight > 0 && $points > $this->maxRaidRewardHeight) {
+			$context->reply("You are not allowed to give raid punishments this high.");
 			return;
 		}
-		$raid = $this->raidController->raid;
-		$numRecipients = $this->awardRaidPoints($raid, $context->char->name, $points * -1, $reason);
-		$msgs = $this->raidMemberController->getRaidListBlob($raid, true);
-		$pointsGiven = "<highlight>{$points} points<end> were removed";
-		if ($points === 1) {
-			$pointsGiven = "<highlight>1 point<end> was removed";
-		}
-		$pointsGiven .= " from all raiders ({$numRecipients}) by <highligh>{$context->char->name}<end> :: ";
-		foreach ($msgs as &$blob) {
-			$blob = "{$pointsGiven} {$blob}";
-			$this->routeMessage("reward", $blob);
-		}
+		$this->raidPunish($context, $points, $reason);
 	}
 
 	/** Remove accidentally given raidpoints for a pre-defined reward for &lt;mob&gt; */
@@ -375,9 +361,8 @@ class RaidPointsController extends ModuleInstance {
 			$context->reply("No predefined reward named <highlight>{$mob}<end> found.");
 			return;
 		}
-		$this->raidPunishCommand(
+		$this->raidPunish(
 			$context,
-			$action,
 			$reward->points,
 			"Accidentally rewarded \"{$reward->reason}\""
 		);
@@ -910,5 +895,59 @@ class RaidPointsController extends ModuleInstance {
 			->limit(50)
 			->asObj(RaidPointsLog::class)
 			->toArray();
+	}
+
+	private function raidPunish(
+		CmdContext $context,
+		int $points,
+		?string $reason
+	): void {
+		if (!isset($this->raidController->raid)) {
+			$context->reply(RaidController::ERR_NO_RAID);
+			return;
+		}
+		if ($this->raidRewardRequiresLock && !$this->raidController->raid->locked) {
+			$context->reply("<red>The raid must be locked before you can punish raiders!<end>");
+			return;
+		}
+		$raid = $this->raidController->raid;
+		$numRecipients = $this->awardRaidPoints($raid, $context->char->name, $points * -1, $reason);
+		$msgs = $this->raidMemberController->getRaidListBlob($raid, true);
+		$pointsGiven = "<highlight>{$points} points<end> were removed";
+		if ($points === 1) {
+			$pointsGiven = "<highlight>1 point<end> was removed";
+		}
+		$pointsGiven .= " from all raiders ({$numRecipients}) by <highligh>{$context->char->name}<end> :: ";
+		foreach ($msgs as &$blob) {
+			$blob = "{$pointsGiven} {$blob}";
+			$this->routeMessage("reward", $blob);
+		}
+	}
+
+	private function giveRaidReward(
+		CmdContext $context,
+		int $points,
+		?string $reason
+	): void {
+		if (!isset($this->raidController->raid)) {
+			$context->reply(RaidController::ERR_NO_RAID);
+			return;
+		}
+		if ($this->raidRewardRequiresLock && !$this->raidController->raid->locked) {
+			$context->reply("<red>The raid must be locked before you can reward raiders!<end>");
+			return;
+		}
+		$raid = $this->raidController->raid;
+		$numRecipients = $this->awardRaidPoints($raid, $context->char->name, $points, $reason);
+		$msgs = $this->raidMemberController->getRaidListBlob($raid, true);
+		$pointsGiven = "<highlight>{$points}<end> points were given";
+		if ($points === 1) {
+			$pointsGiven = "<highlight>1<end> point was given";
+		}
+		$pointsGiven .= " to all raiders (<highlight>{$numRecipients}<end>) by {$context->char->name} :: ";
+		foreach ($msgs as &$blob) {
+			$blob = "{$pointsGiven} {$blob}";
+			$this->routeMessage("reward", $blob);
+		}
 	}
 }

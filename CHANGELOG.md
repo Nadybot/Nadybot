@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add a new command `!updatewb` to update the world bosses from the API. Usually, this should not be necessary, because the global timer events should update these automatically, but this aids in debugging.
 - New event modifier "route-silently()" will make the message hub treat routed messages as if they hadn't been routed. This will allow you to route aotell() and still have the bot react to commands in the message.
 - Add `!wish`-command to manage wishlists
+- Add 2 new options for raid rewards: `max_raid_reward_height` to limit the amount of points `!raid reward` and `!raid punish` can give/take (does not apply to pre-defined raid-rewards) and `raid_reward_predefined_only` to limit `!raid reward` and `!raid punish` to names of raid rewards instead of arbitrary points.
 
 ### Changed
 
