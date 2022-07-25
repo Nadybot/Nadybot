@@ -114,7 +114,7 @@ if [ -e /proxy/aochatproxy ] \
 		}
 	DONE
 	cd /proxy || exit
-	(/proxy/aochatproxy /tmp/config.json 2>&1| sed -e 's/^[^ ]* \([A-Z]*\) .*\]/[PROXY:\1]/') &
+	(/proxy/aochatproxy /tmp/config.json 2>&1| stdbuf -i0 -o0 -e0 sed -e 's/^[^ ]* \([A-Z]*\) .*\]/[PROXY:\1]/') &
 	cd /nadybot || exit
 fi
 

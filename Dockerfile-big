@@ -34,6 +34,8 @@ RUN apk --no-cache upgrade && \
     php8-opcache \
     php8-fileinfo \
     tini \
+    sed \
+    coreutils \
     && \
     adduser -h /nadybot -s /bin/false -D -H nadybot && \
     mkdir /proxy
