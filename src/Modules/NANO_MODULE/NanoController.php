@@ -108,13 +108,13 @@ class NanoController extends ModuleInstance {
 			if ($currentNanoline !== $row->strain || $currentSubstrain !== $row->sub_strain) {
 				if (!empty($row->strain)) {
 					$nanolineLink = $this->text->makeChatcmd("see all nanos", "/tell <myname> nanolines {$row->strain}");
-					$blob .= "\n<header2>{$row->school} {$defColor}&gt;<end> {$row->strain}";
+					$blob .= "\n<pagebreak><header2>{$row->school} {$defColor}&gt;<end> {$row->strain}";
 					if ($row->sub_strain) {
 						$blob .= " {$defColor}&gt;<end> {$row->sub_strain}";
 					}
 					$blob .= "{$defColor} - [{$nanolineLink}]<end><end>\n";
 				} else {
-					$blob .= "\n<header2>Unknown/General<end>\n";
+					$blob .= "\n<pagebreak><header2>Unknown/General<end>\n";
 				}
 				$currentNanoline = $row->strain;
 				$currentSubstrain = $row->sub_strain;
