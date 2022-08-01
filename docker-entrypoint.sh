@@ -81,7 +81,7 @@ if [ -e /proxy/aochatproxy ] \
 	[ "${PROXY_RELAY_WORKER_TELLS:-1}" = "0" ] && RELAY_WORKER_TELLS="false"
 	cat > /tmp/config.json <<-DONE
 		{
-		    "rust_log": "info",
+		    "rust_log": "${PROXY_LOGLEVEL:-info}",
 		    "port_number": ${CONFIG_PROXY_PORT:-9993},
 		    "server_address": "chat.d1.funcom.com:${FC_PORT}",
 		    "spam_bot_support": ${SPAM_BOT_SUPPORT},
@@ -114,7 +114,7 @@ if [ -e /proxy/aochatproxy ] \
 		}
 	DONE
 	cd /proxy || exit
-	(/proxy/aochatproxy /tmp/config.json 2>&1| stdbuf -i0 -o0 -e0 sed -e 's/^[^ ]* \([A-Z]*\) .*\]/[PROXY:\1]/') &
+	(/usr/bin/env RUST_BACKTRACE=full /proxy/aochatproxy /tmp/config.json 2>&1| stdbuf -i0 -o0 -e0 sed -e 's/^[^ ]* \([A-Z]*\) .*\]/[PROXY:\1]/') &
 	cd /nadybot || exit
 fi
 

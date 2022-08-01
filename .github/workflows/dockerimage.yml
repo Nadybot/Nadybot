@@ -70,4 +70,19 @@ jobs:
             docker push "quay.io/nadyita/nadybot-big:${{steps.vars.outputs.branch}}"
             docker push "ghcr.io/nadybot/nadybot-big:${{steps.vars.outputs.tag}}"
             docker push "ghcr.io/nadybot/nadybot-big:${{steps.vars.outputs.branch}}"
+        - name: Build the tagged Docker-big-debug PHP 8.0 image
+          shell: bash
+          run: |
+            docker build --file Dockerfile-big --build-arg PROXY_IMAGE=debug --build-arg VERSION="${{steps.vars.outputs.version}}" \
+              --tag "quay.io/nadyita/nadybot-big-debug:${{steps.vars.outputs.tag}}" \
+              --tag "quay.io/nadyita/nadybot-big-debug:${{steps.vars.outputs.branch}}" \
+              --tag "ghcr.io/nadybot/nadybot-big-debug:${{steps.vars.outputs.tag}}" \
+              --tag "ghcr.io/nadybot/nadybot-big-debug:${{steps.vars.outputs.branch}}" .
+        - name: Push the tagged PHP 8.0 Docker-big-debug image
+          shell: bash
+          run: |
+            docker push "quay.io/nadyita/nadybot-big-debug:${{steps.vars.outputs.tag}}"
+            docker push "quay.io/nadyita/nadybot-big-debug:${{steps.vars.outputs.branch}}"
+            docker push "ghcr.io/nadybot/nadybot-big-debug:${{steps.vars.outputs.tag}}"
+            docker push "ghcr.io/nadybot/nadybot-big-debug:${{steps.vars.outputs.branch}}"
 
