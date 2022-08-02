@@ -1128,6 +1128,7 @@ class RaidController extends ModuleInstance {
 			return;
 		}
 		$this->logger->notice("Removing non-raiding bot members");
+		// Get a list of the main chars of everyone who's raided in the given timeframe
 		$activeMains = $this->db->table(RaidMemberController::DB_TABLE)
 			->where("joined", ">", time() - $this->raidDemoteMembersInterval)
 			->select("player")
@@ -1141,6 +1142,8 @@ class RaidController extends ModuleInstance {
 				return [$main => true];
 			})->toArray();
 		$members = $this->privateChannelController->getMembers();
+		// Remove all members who are older than the given timeframe and haven't raided
+		// with un in the given timeframe
 		foreach ($members as $member => $data) {
 			$this->logger->info("Checking {name} for raid activity", ["name" => $member]);
 			$memberMain = $this->altsController->getMainOf($member);
