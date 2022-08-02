@@ -188,7 +188,7 @@ class RaidController extends ModuleInstance {
 		options: ["off", "30d", "90d", "1y"],
 		accessLevel: 'mod',
 	)]
-	public int $raidDemoteMembersInterval = 10;
+	public int $raidDemoteMembersInterval = 3600;
 
 	/** The currently running raid or null if none running */
 	public ?Raid $raid = null;
@@ -1142,18 +1142,18 @@ class RaidController extends ModuleInstance {
 			})->toArray();
 		$members = $this->privateChannelController->getMembers();
 		foreach ($members as $member => $data) {
-			$this->logger->notice("Checking {name} for raid activity", ["name" => $member]);
+			$this->logger->info("Checking {name} for raid activity", ["name" => $member]);
 			$memberMain = $this->altsController->getMainOf($member);
 			if (isset($activeMains[$memberMain])) {
-				$this->logger->notice("{name} is active", ["name" => $member]);
+				$this->logger->info("{name} is active", ["name" => $member]);
 				continue;
 			}
 			$mainData = $members[$memberMain] ?? $data;
 			if (time() - $mainData->joined < $this->raidDemoteMembersInterval) {
-				$this->logger->notice("{name} is yet too young", ["name" => $mainData->name]);
+				$this->logger->info("{name} is yet too young", ["name" => $mainData->name]);
 				continue;
 			}
-			$result = $this->privateChannelController->removeUser($member, $this->chatBot->char->name);
+			$result = strip_tags($this->privateChannelController->removeUser($member, $this->chatBot->char->name));
 			$this->logger->notice("Removing {member}: {result}", [
 				"member" => $member,
 				"result" => $result,
