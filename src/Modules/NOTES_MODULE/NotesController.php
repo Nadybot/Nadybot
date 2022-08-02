@@ -353,7 +353,7 @@ class NotesController extends ModuleInstance {
 				"use this",
 				"/tell <myname> reminderformat {$format}"
 			);
-			$blob .= "<header2>".
+			$blob .= "<pagebreak><header2>".
 				"{$format} [{$useThisLinks}]".
 				(($reminderFormat === $format) ? " (<highlight>active<end>)" : "").
 				"<end>\n";
@@ -459,7 +459,7 @@ class NotesController extends ModuleInstance {
 		}
 		foreach ($notes as $note) {
 			if ($note->added_by !== $current) {
-				$blob .= "\n<header2>{$note->added_by}<end>\n";
+				$blob .= "\n<pagebreak><header2>{$note->added_by}<end>\n";
 				$current = $note->added_by;
 			}
 			$deleteLink = $this->text->makeChatcmd('remove', "/tell <myname> notes rem {$note->id}");
