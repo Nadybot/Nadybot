@@ -10,6 +10,10 @@ use Nadybot\Modules\PRIVATE_CHANNEL_MODULE\PrivateChannelController;
 class AddMemberDetails implements SchemaMigration {
 	public function migrate(LoggerWrapper $logger, DB $db): void {
 		$table = PrivateChannelController::DB_TABLE;
+		$db->table($table)->whereNull("autoinv")->update(["autoinv" => 0]);
+		$db->schema()->table($table, function (Blueprint $table) {
+			$table->integer("autoinv")->nullable(false)->change();
+		});
 		$db->schema()->table($table, function (Blueprint $table) {
 			$table->unsignedInteger("joined")->nullable(true);
 			$table->string("added_by", 12)->nullable(true);
@@ -17,6 +21,7 @@ class AddMemberDetails implements SchemaMigration {
 		$members = $db->table($table)->select("name")->pluckStrings("name");
 		$time = time();
 		$db->table($table)->update(['joined' => $time]);
+		// Try to backfill the "joined" value from the audit table
 		foreach ($members as $member) {
 
 			/** @var ?Audit */
