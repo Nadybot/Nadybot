@@ -264,6 +264,11 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 			->toArray();
 	}
 
+	/** @return array<string,bool> */
+	public function getMembers(): array {
+		return $this->members;
+	}
+
 	public function getSingleAccessLevel(string $sender): ?string {
 		$isMember = isset($this->members[$sender]);
 		if ($isMember) {
@@ -581,6 +586,8 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 			$this->db->table(self::DB_TABLE)
 				->insert([
 					"name" => $context->char->name,
+					"added_by" => $context->char->name,
+					"joined" => time(),
 					"autoinv" => $onOrOff,
 				]);
 			$msg = "You have been added as a member of this bot. ".
@@ -784,6 +791,8 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 		$this->db->table(self::DB_TABLE)
 			->insert([
 				"name" => $context->char->name,
+				"added_by" => $context->char->name,
+				"joined" => time(),
 				"autoinv" => $autoInvite,
 			]);
 		$this->members[$context->char->name] = true;
@@ -1256,6 +1265,8 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 			$this->db->table(self::DB_TABLE)
 				->insert([
 					"name" => $name,
+					"added_by" => $sender,
+					"joined" => time(),
 					"autoinv" => $autoInvite,
 				]);
 			$this->members[$name] = true;
