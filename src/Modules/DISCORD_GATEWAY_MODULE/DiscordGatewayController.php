@@ -1585,8 +1585,22 @@ class DiscordGatewayController extends ModuleInstance {
 	private function connectToGateway(): Promise {
 		return call(function (): Generator {
 			do {
-				/** @var DiscordGateway */
-				$gateway = yield $this->discordAPIClient->getGateway();
+				$gwTry = 0;
+				do {
+					$gwTry++;
+					try {
+						/** @var DiscordGateway */
+						$gateway = yield $this->discordAPIClient->getGateway();
+					} catch (Throwable $e) {
+						$retryDelay = $gwTry**2 * 1000;
+						$this->logger->notice("Error reading Discord gateway: {error}, retrying in {retry}s", [
+							"error" => $e->getMessage(),
+							"retry" => intdiv($retryDelay, 1000),
+						]);
+						yield delay($retryDelay);
+						continue;
+					}
+				} while (!isset($gateway));
 				$this->logger->info("{remaining} Discord connections out of {total} remaining", [
 					"remaining" => $gateway->session_start_limit->remaining,
 					"total" => $gateway->session_start_limit->total,
