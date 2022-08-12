@@ -3,8 +3,7 @@
 namespace Nadybot\Core\Modules\SYSTEM;
 
 use function Amp\File\createDefaultDriver;
-use function Safe\unpack;
-
+use function Safe\{ini_get, unpack};
 use Amp\Loop;
 use Exception;
 use Generator;
@@ -320,6 +319,20 @@ class SystemController extends ModuleInstance implements MessageEmitter {
 		$memory->peak_usage = memory_get_peak_usage();
 		$memory->peak_usage_real = memory_get_peak_usage(true);
 
+		$memoryLimit = ini_get('memory_limit');
+		if (preg_match('/^(\d+)([kmg])$/i', $memoryLimit, $matches)) {
+			if (strtolower($matches[2]) === 'm') {
+				$memoryLimit = (int)$matches[1] * 1024 * 1024;
+			} elseif (strtolower($matches[2]) === 'k') {
+				$memoryLimit = (int)$matches[1] * 1024;
+			} elseif (strtolower($matches[2]) === 'g') {
+				$memoryLimit = (int)$matches[1] * 1024 * 1024 * 1024;
+			} else {
+				$memoryLimit = (int)$matches[1];
+			}
+		}
+		$memory->available = (int)$memoryLimit;
+
 		$info->misc = $misc = new MiscSystemInformation();
 		$misc->uptime = time() - $this->chatBot->startup;
 		$misc->using_chat_proxy = ($this->config->useProxy === 1);
@@ -395,6 +408,7 @@ class SystemController extends ModuleInstance implements MessageEmitter {
 		$blob .= "<tab>Database: <highlight>{$info->basic->db_type}<end>\n\n";
 
 		$blob .= "<header2>Memory<end>\n";
+		$blob .= "<tab>Available Memory for PHP: <highlight>" . $this->util->bytesConvert($info->memory->available) . "<end>\n";
 		$blob .= "<tab>Current Memory Usage: <highlight>" . $this->util->bytesConvert($info->memory->current_usage) . "<end>\n";
 		$blob .= "<tab>Current Memory Usage (Real): <highlight>" . $this->util->bytesConvert($info->memory->current_usage_real) . "<end>\n";
 		$blob .= "<tab>Peak Memory Usage: <highlight>" . $this->util->bytesConvert($info->memory->peak_usage) . "<end>\n";

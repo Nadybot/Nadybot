@@ -336,6 +336,7 @@ class ApiSpecGenerator {
 		$comment = preg_replace("|^\s*\*\s*|m", '', $comment);
 		$comment = trim(preg_replace("|@.*$|s", '', $comment));
 		$comment = str_replace("\n", " ", $comment);
+		$comment = preg_replace("/\s*\*$/", '', $comment);
 		return $comment;
 	}
 

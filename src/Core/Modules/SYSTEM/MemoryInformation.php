@@ -3,6 +3,9 @@
 namespace Nadybot\Core\Modules\SYSTEM;
 
 class MemoryInformation {
+	/** Maximum available memory for PHP in MB */
+	public int $available;
+
 	/** Current memory usage in bytes */
 	public int $current_usage;
 
