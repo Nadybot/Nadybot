@@ -117,6 +117,17 @@ class PlayerManager extends ModuleInstance {
 		});
 	}
 
+	/**
+	 * @psalm-param callable(array<string,?Player>) $callback
+	 *
+	 * @param string[] $names
+	 *
+	 * @deprecated use all(byName()) instead
+	 */
+	public function massGetByNameAsync(callable $callback, array $names, ?int $dimension=null, bool $forceUpdate=false): void {
+		$this->massGetByName(...func_get_args());
+	}
+
 	/** @return Promise<?Player> */
 	public function byName(string $name, ?int $dimension=null, bool $forceUpdate=false): Promise {
 		return call(function () use ($name, $dimension, $forceUpdate): Generator {
