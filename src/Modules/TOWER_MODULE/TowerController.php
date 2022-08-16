@@ -37,6 +37,7 @@ use Nadybot\Core\{
 	Routing\Source,
 	SettingEvent,
 	Text,
+	UserException,
 	Util,
 };
 use Nadybot\Modules\{
@@ -389,60 +390,97 @@ class TowerController extends ModuleInstance {
 
 	/** Show all unplanted towerfields */
 	#[NCA\HandlesCommand("sites")]
-	public function unplantedSitesCommand(CmdContext $context): void {
+	public function unplantedSitesCommand(CmdContext $context): Generator {
 		if ($this->towerApiController->isActive()) {
 			$params = ["enabled" => "1", "planted" => "false"];
-			$this->towerApiController->call($params, [$this, "showUnplantedSites"], $context);
-			return;
-		}
-		$query = $this->getScoutPlusQuery()
-			->whereNull("s.ql");
-		$sites = $query->asObj(ScoutInfoPlus::class);
-		$this->addPlusToScout($sites);
-		$result = $this->scoutToAPI($sites);
-		$this->showUnplantedSites($result, $context);
-	}
-
-	/** Show the result of the unplanted sites query to $sendto */
-	public function showUnplantedSites(?ApiResult $result, CommandReply $sendto): void {
-		if (!isset($result)) {
-			$sendto->reply("Invalid data received from the tower API. Try again later.");
-			return;
-		}
-		// Remove all sites for which we have local scout data
-		$sites = array_values(
-			array_filter($result->results, function (ApiSite $site): bool {
-				$query = $this->getScoutPlusQuery()
-					->where("s.playfield_id", $site->playfield_id)
-					->where("s.site_number", $site->site_number)
-					->limit(1);
-				$scoutedInfo = $query->asObj(ScoutInfoPlus::class);
-				$this->addPlusToScout($scoutedInfo);
-
-				/** @var ?ScoutInfoPlus */
-				$scoutedInfo = $scoutedInfo->first();
-				if (!isset($scoutedInfo) || !isset($scoutedInfo->ql)) {
-					return true;
+			try {
+				/** @var ?ApiResult */
+				$result = yield $this->towerApiController->call2($params);
+				if (!isset($result)) {
+					$context->reply("Invalid data received from the Tower API. Please try again later.");
+					return;
 				}
-				return false;
-			})
-		);
-		if (empty($sites)) {
-			$sendto->reply("No unplanted sites found.");
+				$result = $this->removeScoutedSitesWhichAreRemoved($result);
+			} catch (Throwable $e) {
+				$context->reply("Unable to contact the Tower API. Please try again later.");
+				return;
+			}
+		} else {
+			$query = $this->getScoutPlusQuery()
+				->whereNull("s.ql");
+			$sites = $query->asObj(ScoutInfoPlus::class);
+			$this->addPlusToScout($sites);
+			$result = $this->scoutToAPI($sites);
+		}
+		if ($result->count === 0) {
+			$context->reply("No unplanted sites found.");
 			return;
 		}
-		$blob = '';
-		$totalQL = 0;
-		foreach ($sites as $site) {
-			$totalQL += $site->ql ?? 0;
-			$blob .= "<pagebreak>" . $this->formatApiSiteInfo($site, null, false) . "\n\n";
-		}
+		$blob = $this->renderUnplantedSites($result);
 
 		$msg = $this->makeBlob(
-			"All unplanted sites (" . count($sites) . ")",
+			"All unplanted sites ({$result->count})",
 			$blob
 		);
-		$sendto->reply($msg);
+		$context->reply($msg);
+	}
+
+	/** Show all unplanted towerfields that can hold towers of a given QL */
+	#[NCA\HandlesCommand("sites")]
+	public function unplantedSitesForQLCommand(
+		CmdContext $context,
+		#[NCA\Str("ql")] string $action,
+		#[NCA\SpaceOptional] int $ql,
+	): Generator {
+		if ($this->towerApiController->isActive()) {
+			$params = ["enabled" => "1", "planted" => "false"];
+
+			try {
+				/** @var ?ApiResult */
+				$result = yield $this->towerApiController->call2($params);
+				if (!isset($result)) {
+					$context->reply("Invalid data received from the Tower API. Please try again later.");
+					return;
+				}
+				$result = $this->removeScoutedSitesWhichAreRemoved($result);
+			} catch (Throwable $e) {
+				$context->reply("Unable to contact the Tower API. Please try again later.");
+				return;
+			}
+		} else {
+			$query = $this->getScoutPlusQuery()
+				->whereNull("s.ql");
+			$sites = $query->asObj(ScoutInfoPlus::class);
+			$this->addPlusToScout($sites);
+			$result = $this->scoutToAPI($sites);
+		}
+		$matchingSites = (new Collection($result->results))
+			->filter(fn (ApiSite $site): bool => $site->min_ql <= $ql && $site->max_ql >= $ql);
+		$result->results = $matchingSites->toArray();
+		$result->count = $matchingSites->count();
+		if ($result->count === 0) {
+			$context->reply("No unplanted sites found that can hold a <highlight>QL{$ql}<end> tower.");
+			return;
+		}
+		$blob = $this->renderUnplantedSites($result);
+
+		$msg = $this->makeBlob(
+			"All unplanted sites for a QL{$ql} tower ({$result->count})",
+			$blob
+		);
+		$context->reply($msg);
+	}
+
+	/** Render a list of unplanted sites */
+	public function renderUnplantedSites(ApiResult $result): string {
+		if ($result->count === 0) {
+			throw new UserException("No unplanted sites found.");
+		}
+		$blob = [];
+		foreach ($result->results as $site) {
+			$blob []= "<pagebreak>" . $this->formatApiSiteInfo($site, null, false);
+		}
+		return join("\n\n", $blob);
 	}
 
 	/** Show all towerfields of a single org */
@@ -2516,6 +2554,31 @@ class TowerController extends ModuleInstance {
 			return;
 		}
 		$context->reply("There was an unknown error recording this scout information, please check the logs.");
+	}
+
+	private function removeScoutedSitesWhichAreRemoved(ApiResult $result): ApiResult {
+		$result = clone $result;
+		// Remove all sites for which we have local scout data
+		$sites = array_values(
+			array_filter($result->results, function (ApiSite $site): bool {
+				$query = $this->getScoutPlusQuery()
+					->where("s.playfield_id", $site->playfield_id)
+					->where("s.site_number", $site->site_number)
+					->limit(1);
+				$scoutedInfo = $query->asObj(ScoutInfoPlus::class);
+				$this->addPlusToScout($scoutedInfo);
+
+				/** @var ?ScoutInfoPlus */
+				$scoutedInfo = $scoutedInfo->first();
+				if (!isset($scoutedInfo) || !isset($scoutedInfo->ql)) {
+					return true;
+				}
+				return false;
+			})
+		);
+		$result->results = $sites;
+		$result->count = count($sites);
+		return $result;
 	}
 
 	/** @param Collection<ScoutInfoPlus> $data */
