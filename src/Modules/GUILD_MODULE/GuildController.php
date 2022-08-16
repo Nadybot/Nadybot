@@ -610,6 +610,7 @@ class GuildController extends ModuleInstance {
 		$uid = yield $this->chatBot->getUid2($sender);
 		$e = new Online();
 		$e->char = new Character($sender, $uid);
+		$e->main = $this->altsController->getMainOf($sender);
 		$e->online = true;
 		$e->message = $msg;
 		$this->dispatchRoutableEvent($e);
@@ -651,6 +652,7 @@ class GuildController extends ModuleInstance {
 		$msg = $this->getLogoffMessage($sender);
 		$e = new Online();
 		$e->char = new Character($sender, $uid);
+		$e->main = $this->altsController->getMainOf($sender);
 		$e->online = false;
 		$e->message = $msg;
 		$this->dispatchRoutableEvent($e);

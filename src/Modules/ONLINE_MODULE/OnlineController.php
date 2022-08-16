@@ -67,10 +67,12 @@ class OnlineController extends ModuleInstance {
 
 	public const DB_TABLE_HIDE = "online_hide_<myname>";
 	protected const GROUP_OFF = 0;
-	protected const GROUP_BY_MAIN = 1;
+	protected const GROUP_BY_PLAYER = 1;
 	protected const GROUP_BY_ORG = 1;
 	protected const GROUP_BY_PROFESSION = 2;
 	protected const GROUP_BY_FACTION = 3;
+	protected const GROUP_BY_MAIN = 4;
+	protected const GROUP_BY_ORG_THEN_MAIN = 5;
 
 	protected const RELAY_OFF = 0;
 	protected const RELAY_YES = 1;
@@ -187,20 +189,22 @@ class OnlineController extends ModuleInstance {
 
 	/** Group online list by */
 	#[NCA\Setting\Options(options: [
-		'do not group' => 0,
-		'player' => 1,
-		'profession' => 2,
-		'faction' => 3,
+		'do not group' => self::GROUP_OFF,
+		'player' => self::GROUP_BY_PLAYER,
+		'profession' => self::GROUP_BY_PROFESSION,
+		'faction' => self::GROUP_BY_FACTION,
 	])]
 	public int $onlineGroupBy = 1;
 
 	/** Group relay online list by */
 	#[NCA\Setting\Options(options: [
-		'do not group' => 0,
-		'org' => 1,
-		'profession' => 2,
+		'do not group' => self::GROUP_OFF,
+		'org' => self::GROUP_BY_ORG,
+		'profession' => self::GROUP_BY_PROFESSION,
+		'player' => self::GROUP_BY_MAIN,
+		'org/player' => self::GROUP_BY_ORG_THEN_MAIN,
 	])]
-	public int $onlineRelayGroupBy = 1;
+	public int $onlineRelayGroupBy = self::GROUP_BY_ORG;
 
 	/** Show players in discord voice channels */
 	#[NCA\Setting\Boolean]
@@ -755,7 +759,11 @@ class OnlineController extends ModuleInstance {
 		$relayOrgInfo = $this->onlineShowOrgGuildRelay;
 		foreach ($relayGrouped as $group => $chars) {
 			$chars = $this->filterHiddenCharacters($chars, $group);
-			$relayList[$group] = $this->formatData($chars, $relayOrgInfo, static::GROUP_OFF);
+			$groupBy = static::GROUP_OFF;
+			if ($this->onlineRelayGroupBy === self::GROUP_BY_ORG_THEN_MAIN) {
+				$groupBy = static::GROUP_BY_PLAYER;
+			}
+			$relayList[$group] = $this->formatData($chars, $relayOrgInfo, $groupBy);
 		}
 
 		$discData = [];
@@ -800,9 +808,16 @@ class OnlineController extends ModuleInstance {
 		if ($includeRelay !== self::RELAY_OFF) {
 			foreach ($relayList as $chanName => $chanList) {
 				if ($chanList->count > 0) {
-					$part = "<header2>{$chanName} ({$chanList->count})<end>\n".
-						$chanList->blob ."\n";
-					if ($includeRelay === self::RELAY_YES) {
+					if ($this->onlineRelayGroupBy === self::GROUP_BY_MAIN) {
+						$part = "<highlight>{$chanName}<end> on\n".
+							$chanList->blob ."\n";
+					} else {
+						$part = "<header2>{$chanName} ({$chanList->count})<end>\n".
+							$chanList->blob ."\n";
+					}
+					if ($this->onlineRelayGroupBy === self::GROUP_BY_MAIN) {
+						$blob2 .= $part;
+					} elseif ($includeRelay === self::RELAY_YES) {
 						$blob .= $part;
 					} elseif ($includeRelay === self::RELAY_SEPARATE) {
 						$blob2 .= $part;
@@ -811,6 +826,12 @@ class OnlineController extends ModuleInstance {
 					$allianceTotalMain += $chanList->countMains;
 				}
 			}
+		}
+		if ($this->onlineRelayGroupBy === self::GROUP_BY_MAIN
+			&& $includeRelay === self::RELAY_YES
+			&& $allianceTotalMain > 0
+		) {
+			$blob .= "<header2>Alliance ({$allianceTotalMain})<end>\n\n" . $blob2;
 		}
 		if ($includeRelay !== self::RELAY_SEPARATE) {
 			$totalCount += $allianceTotalCount;
@@ -935,7 +956,7 @@ class OnlineController extends ModuleInstance {
 			}
 		}
 		foreach ($players as $player) {
-			if ($groupBy === static::GROUP_BY_MAIN) {
+			if ($groupBy === static::GROUP_BY_PLAYER) {
 				if ($currentGroup !== $player->pmain) {
 					$list->countMains++;
 					$list->blob .= "\n<pagebreak><highlight>{$player->pmain}<end> on\n";
@@ -1005,7 +1026,7 @@ class OnlineController extends ModuleInstance {
 		});
 
 		$groupBy = $this->onlineGroupBy;
-		if ($groupBy === static::GROUP_BY_MAIN) {
+		if ($groupBy === static::GROUP_BY_PLAYER) {
 			$op = $op->sortBy("pmain");
 		} elseif ($groupBy === static::GROUP_BY_PROFESSION) {
 			$op = $op->sortBy("name")->sortBy("profession");
@@ -1081,7 +1102,7 @@ class OnlineController extends ModuleInstance {
 					"characters" => $onlineChars,
 				]);
 				$key = "";
-				if ($groupBy === self::GROUP_BY_ORG) {
+				if ($groupBy === self::GROUP_BY_ORG || $groupBy === self::GROUP_BY_ORG_THEN_MAIN) {
 					$key = $chanName;
 				}
 				$chars = array_values($onlineChars);
@@ -1093,6 +1114,8 @@ class OnlineController extends ModuleInstance {
 							$profIcon = "<img src=tdb://id:GFX_GUI_ICON_PROFESSION_".($this->getProfessionId($char->profession)??0).">";
 						}
 						$key = "{$profIcon} {$key}";
+					} elseif ($groupBy === self::GROUP_BY_MAIN) {
+						$key = $char->pmain ?? $char->name;
 					}
 					$result[$key] ??= [];
 					$result[$key][$char->name] = $char;

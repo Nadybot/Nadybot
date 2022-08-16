@@ -6,6 +6,7 @@ use function Amp\asyncCall;
 
 use Amp\Loop;
 use Generator;
+use Nadybot\Core\Modules\ALTS\AltsController;
 use Nadybot\Core\{
 	Attributes as NCA,
 	ConfigFile,
@@ -49,6 +50,12 @@ class Relay implements MessageReceiver {
 
 	#[NCA\Inject]
 	public StatsController $statsController;
+
+	#[NCA\Inject]
+	public RelayController $relayController;
+
+	#[NCA\Inject]
+	public AltsController $altsController;
 
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
@@ -101,7 +108,23 @@ class Relay implements MessageReceiver {
 
 	/** @return array<string,array<string,OnlinePlayer>> */
 	public function getOnlineList(): array {
-		return $this->onlineChars;
+		if (!$this->relayController->relayUseLocalMain) {
+			return $this->onlineChars;
+		}
+		$result = [];
+		foreach ($this->onlineChars as $relay => $charLists) {
+			$result[$relay] = [];
+			foreach ($charLists as $name => $char) {
+				$newChar = clone $char;
+				$main = $this->altsController->getMainOf($char->pmain);
+				if ($main === $char->pmain) {
+					$main = $this->altsController->getMainOf($char->name);
+				}
+				$newChar->pmain = $main;
+				$result[$relay][$name] = $newChar;
+			}
+		}
+		return $result;
 	}
 
 	public function clearOnline(string $where): void {
@@ -112,7 +135,7 @@ class Relay implements MessageReceiver {
 		unset($this->onlineChars[$where]);
 	}
 
-	public function setOnline(string $clientId, string $where, string $character, ?int $uid=null, ?int $dimension=null): void {
+	public function setOnline(string $clientId, string $where, string $character, ?int $uid=null, ?int $dimension=null, ?string $main=null): void {
 		$this->logger->info("Marking {name} online on {relay}.{where}", [
 			"name" => $character,
 			"where" => $where,
@@ -124,7 +147,7 @@ class Relay implements MessageReceiver {
 		$this->onlineChars[$where] ??= [];
 		$player = new OnlinePlayer();
 		$player->name = $character;
-		$player->pmain = $character;
+		$player->pmain = $main ?? $character;
 		$player->online = true;
 		$player->afk = "";
 		$player->source = $clientId;
@@ -145,7 +168,7 @@ class Relay implements MessageReceiver {
 		});
 	}
 
-	public function setOffline(string $sender, string $where, string $character, ?int $uid=null, ?int $dimension=null): void {
+	public function setOffline(string $sender, string $where, string $character, ?int $uid=null, ?int $dimension=null, ?string $main=null): void {
 		$character = ucfirst(strtolower($character));
 		$this->logger->info("Marking {name} offline on {relay}.{where}", [
 			"name" => $character,

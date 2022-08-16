@@ -8,6 +8,7 @@ class Online extends Base {
 	public const TYPE = "online";
 
 	public Character $char;
+	public string $main;
 	public string $type = self::TYPE;
 	public bool $online = true;
 	public bool $renderPath = false;

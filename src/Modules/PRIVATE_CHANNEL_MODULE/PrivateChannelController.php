@@ -974,6 +974,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 		$uid = yield $this->chatBot->getUid2($sender);
 		$e = new Online();
 		$e->char = new Character($sender, $uid);
+		$e->main = $this->altsController->getMainOf($sender);
 		$e->online = true;
 		$e->message = $msg;
 		$this->dispatchRoutableEvent($e);
@@ -1090,6 +1091,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 		$uid = yield $this->chatBot->getUid2($sender);
 		$e = new Online();
 		$e->char = new Character($sender, $uid);
+		$e->main = $this->altsController->getMainOf($sender);
 		$e->online = false;
 		if (isset($msg)) {
 			$e->message = $msg;

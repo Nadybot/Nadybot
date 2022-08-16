@@ -134,6 +134,10 @@ class RelayController extends ModuleInstance {
 	#[NCA\Setting\Text(options: ["none"])]
 	public string $relayGuildAbbreviation = "none";
 
+	/** Use this bot's main-character for grouping relayed online lists by main */
+	#[NCA\Setting\Boolean]
+	public bool $relayUseLocalMain = false;
+
 	/** How many messages to queue when relay is offline */
 	#[NCA\Setting\Number(options: ["10", "20", "50"])]
 	public int $relayQueueSize = 10;
