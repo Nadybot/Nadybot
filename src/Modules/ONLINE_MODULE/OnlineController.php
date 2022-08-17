@@ -206,6 +206,10 @@ class OnlineController extends ModuleInstance {
 	])]
 	public int $onlineRelayGroupBy = self::GROUP_BY_ORG;
 
+	/** Use this bot's main-character for grouping relayed online lists by player */
+	#[NCA\Setting\Boolean]
+	public bool $onlineRelayUseLocalMain = false;
+
 	/** Show players in discord voice channels */
 	#[NCA\Setting\Boolean]
 	public bool $onlineShowDiscord = false;
@@ -1081,15 +1085,15 @@ class OnlineController extends ModuleInstance {
 	 */
 	protected function groupRelayList(array $relays): array {
 		$groupBy = $this->onlineRelayGroupBy;
-		if ($groupBy === self::GROUP_OFF) {
-			$key = 'Alliance';
-		}
 		$result = [];
-		foreach ($this->relayController->relays as $name => $relay) {
+		foreach ($this->relayController->relays as $relayKey => $relay) {
 			$this->logger->info("Getting online list for relay {relay}", [
 				"relay" => $relay->getName(),
 			]);
 			$online = $relay->getOnlineList();
+			if ($this->onlineRelayUseLocalMain) {
+				$online = $this->getLocalAltsForRemote($online);
+			}
 			$this->logger->info("Got {numOnline} characters online in total on {relay}", [
 				"numOnline" => array_sum(array_map("count", array_values($online))),
 				"relay" => $relay->getName(),
@@ -1102,7 +1106,9 @@ class OnlineController extends ModuleInstance {
 					"characters" => $onlineChars,
 				]);
 				$key = "";
-				if ($groupBy === self::GROUP_BY_ORG || $groupBy === self::GROUP_BY_ORG_THEN_MAIN) {
+				if ($groupBy === self::GROUP_OFF) {
+					$key = 'Alliance';
+				} elseif ($groupBy === self::GROUP_BY_ORG || $groupBy === self::GROUP_BY_ORG_THEN_MAIN) {
 					$key = $chanName;
 				}
 				$chars = array_values($onlineChars);
@@ -1132,6 +1138,28 @@ class OnlineController extends ModuleInstance {
 			return strcasecmp(strip_tags($a), strip_tags($b));
 		});
 
+		return $result;
+	}
+
+	/**
+	 * Replace the main of each character in a relay online list with
+	 * this bot's known main of that main.
+	 *
+	 * @param array<string,array<string,OnlinePlayer>> $onlineChars
+	 *
+	 * @return array<string,array<string,OnlinePlayer>>
+	 */
+	private function getLocalAltsForRemote(array $onlineChars): array {
+		$result = [];
+		foreach ($onlineChars as $relay => $charLists) {
+			$result[$relay] = [];
+			foreach ($charLists as $name => $char) {
+				$newChar = clone $char;
+				$main = $this->altsController->getMainOf($char->pmain);
+				$newChar->pmain = $main;
+				$result[$relay][$name] = $newChar;
+			}
+		}
 		return $result;
 	}
 
