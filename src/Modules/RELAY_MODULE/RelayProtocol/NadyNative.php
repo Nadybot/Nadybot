@@ -4,6 +4,7 @@ namespace Nadybot\Modules\RELAY_MODULE\RelayProtocol;
 
 use Closure;
 use JsonMapper;
+use Nadybot\Core\Modules\ALTS\AltsController;
 use Nadybot\Core\{
 	Attributes as NCA,
 	ConfigFile,
@@ -18,6 +19,7 @@ use Nadybot\Core\{
 	SettingManager,
 	SyncEvent,
 };
+use Nadybot\Modules\RELAY_MODULE\RelayProtocol\Nadybot\RelayCharacter;
 use Nadybot\Modules\{
 	ONLINE_MODULE\OnlineController,
 	RELAY_MODULE\Relay,
@@ -58,6 +60,9 @@ class NadyNative implements RelayProtocolInterface {
 
 	#[NCA\Inject]
 	public SettingManager $settingManager;
+
+	#[NCA\Inject]
+	public AltsController $altsController;
 
 	#[NCA\Inject]
 	public EventManager $eventManager;
@@ -292,7 +297,8 @@ class NadyNative implements RelayProtocolInterface {
 				$where,
 				$user->name,
 				$user->id??null,
-				$user->dimension??null
+				$user->dimension??null,
+				$user->main,
 			);
 		}
 	}
@@ -315,7 +321,7 @@ class NadyNative implements RelayProtocolInterface {
 		$call = $llEvent->online
 			? Closure::fromCallable([$this->relay, "setOnline"])
 			: Closure::fromCallable([$this->relay, "setOffline"]);
-		$call($sender, $where, $llEvent->char->name, $llEvent->char->id, $llEvent->char->dimension);
+		$call($sender, $where, $llEvent->char->name, $llEvent->char->id, $llEvent->char->dimension, $llEvent->main??null);
 	}
 
 	protected function getOnlineList(): OnlineList {
@@ -334,11 +340,13 @@ class NadyNative implements RelayProtocolInterface {
 				$orgLabel
 			);
 			foreach ($onlineOrg as $player) {
-				$block->users []= new Character(
+				$char = new RelayCharacter(
 					$player->name,
 					$player->charid ?? null,
 					$player->dimension ?? $this->config->dimension
 				);
+				$char->main = $this->altsController->getMainOf($player->name);
+				$block->users []= $char;
 			}
 			$onlineList->online []= $block;
 		}
@@ -356,11 +364,13 @@ class NadyNative implements RelayProtocolInterface {
 			$privLabel,
 		);
 		foreach ($onlinePriv as $player) {
-			$privBlock->users []= new Character(
+			$char = new RelayCharacter(
 				$player->name,
 				$player->charid ?? null,
 				$player->dimension ?? $this->config->dimension
 			);
+			$char->main = $this->altsController->getMainOf($player->name);
+			$privBlock->users []= $char;
 		}
 		$onlineList->online []= $privBlock;
 		return $onlineList;

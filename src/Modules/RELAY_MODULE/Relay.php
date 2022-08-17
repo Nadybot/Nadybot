@@ -112,7 +112,7 @@ class Relay implements MessageReceiver {
 		unset($this->onlineChars[$where]);
 	}
 
-	public function setOnline(string $clientId, string $where, string $character, ?int $uid=null, ?int $dimension=null): void {
+	public function setOnline(string $clientId, string $where, string $character, ?int $uid=null, ?int $dimension=null, ?string $main=null): void {
 		$this->logger->info("Marking {name} online on {relay}.{where}", [
 			"name" => $character,
 			"where" => $where,
@@ -124,7 +124,7 @@ class Relay implements MessageReceiver {
 		$this->onlineChars[$where] ??= [];
 		$player = new OnlinePlayer();
 		$player->name = $character;
-		$player->pmain = $character;
+		$player->pmain = $main ?? $character;
 		$player->online = true;
 		$player->afk = "";
 		$player->source = $clientId;
@@ -145,7 +145,7 @@ class Relay implements MessageReceiver {
 		});
 	}
 
-	public function setOffline(string $sender, string $where, string $character, ?int $uid=null, ?int $dimension=null): void {
+	public function setOffline(string $sender, string $where, string $character, ?int $uid=null, ?int $dimension=null, ?string $main=null): void {
 		$character = ucfirst(strtolower($character));
 		$this->logger->info("Marking {name} offline on {relay}.{where}", [
 			"name" => $character,
