@@ -23,6 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add 2 new options for raid rewards: `max_raid_reward_height` to limit the amount of points `!raid reward` and `!raid punish` can give/take (does not apply to pre-defined raid-rewards) and `raid_reward_predefined_only` to limit `!raid reward` and `!raid punish` to names of raid rewards instead of arbitrary points.
 - Add `!sites ql <ql>` to search for unplanted sites able to hold towers of a given QL.
 - Sharing online-lists via nadynative will now also share each character's main. This allows two new grouping options for relay online lists: by main (player) and by org, then main (org/player). This only works properly if all Nadybots are running the same version.
+- Add `!fact`-command to show a random useless fact.
 
 ### Changed
 
