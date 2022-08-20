@@ -63,6 +63,14 @@ class ProxyCapabilities extends ProxyReply {
 	 */
 	public array $workers = [];
 
+	/**
+	 * UIDs of the workers
+	 *
+	 * @var int[]
+	 */
+	#[JSON\Ignore]
+	public array $worker_uids = [];
+
 	/** Check if the proxy supports a send mode */
 	public function supportsSendMode(string $sendMode): bool {
 		return in_array($sendMode, $this->send_modes, true);

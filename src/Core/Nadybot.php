@@ -781,7 +781,6 @@ class Nadybot extends AOChat {
 				if (yield $this->banController->isOnBanlist($userId)) {
 					$this->privategroup_kick($userId);
 					$audit = new Audit();
-					$audit->actor = $this->char->name;
 					$audit->actor = $sender;
 					$audit->action = AccessManager::KICK;
 					$audit->value = "banned";
@@ -1252,6 +1251,17 @@ class Nadybot extends AOChat {
 		if ($reply->rate_limited && isset($this->chatqueue)) {
 			$this->chatqueue->disable();
 		}
+		asyncCall(function (): Generator {
+			$workers = $this->proxyCapabilities->workers ?? [];
+			$jobs = [];
+			foreach ($workers as $worker) {
+				$jobs []= $this->getUid2($worker);
+			}
+
+			/** @var int[] */
+			$uids = array_filter(yield $jobs);
+			$this->proxyCapabilities->worker_uids = $uids;
+		});
 	}
 
 	/**

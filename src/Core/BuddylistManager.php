@@ -78,8 +78,12 @@ class BuddylistManager {
 		if (strtolower($this->config->name) === strtolower($name)) {
 			return true;
 		}
+		$workerNames = $this->chatBot->proxyCapabilities->workers ?? [];
+		if (in_array(ucfirst(strtolower($name)), $workerNames, true)) {
+			return true;
+		}
 		$buddy = $this->getBuddy($name);
-		return $buddy ? $buddy->online : null;
+		return $buddy?->online;
 	}
 
 	/**
@@ -126,6 +130,10 @@ class BuddylistManager {
 	 */
 	public function isUidOnline(int $uid): ?bool {
 		if ($this->chatBot->char->id === $uid) {
+			return true;
+		}
+		$workerUids = $this->chatBot->proxyCapabilities->worker_uids ?? [];
+		if (in_array($uid, $workerUids, true)) {
 			return true;
 		}
 		$buddy = $this->buddyList[$uid] ?? null;
