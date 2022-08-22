@@ -17,6 +17,7 @@ use Nadybot\Core\{
 	DB,
 	DBSchema\Player,
 	EventManager,
+	LoggerWrapper,
 	MessageHub,
 	ModuleInstance,
 	Modules\ALTS\AltsController,
@@ -33,6 +34,7 @@ use Nadybot\Core\{
 	Util,
 };
 
+use Nadybot\Modules\PRIVATE_CHANNEL_MODULE\PrivateChannelController;
 use Nadybot\Modules\{
 	BASIC_CHAT_MODULE\ChatAssistController,
 	COMMENT_MODULE\CommentCategory,
@@ -137,6 +139,12 @@ class RaidController extends ModuleInstance {
 	#[NCA\Inject]
 	public StatsController $statsController;
 
+	#[NCA\Inject]
+	public PrivateChannelController $privateChannelController;
+
+	#[NCA\Logger]
+	public LoggerWrapper $logger;
+
 	/** Announce the raid periodically */
 	#[NCA\Setting\Boolean(accessLevel: 'raid_admin_2')]
 	public bool $raidAnnouncement = true;
@@ -174,6 +182,13 @@ class RaidController extends ModuleInstance {
 		accessLevel: 'raid_admin_2',
 	)]
 	public int $raidKickNotinOnLock = 0;
+
+	/** Time after which non-raiding bot-members are removed from the bot */
+	#[NCA\Setting\TimeOrOff(
+		options: ["off", "30d", "90d", "1y"],
+		accessLevel: 'mod',
+	)]
+	public int $raidDemoteMembersInterval = 0;
 
 	/** The currently running raid or null if none running */
 	public ?Raid $raid = null;
@@ -1102,6 +1117,52 @@ class RaidController extends ModuleInstance {
 			$char,
 			new PWord($this->getRaidCategory()->name),
 		);
+	}
+
+	#[NCA\Event(
+		name: "timer(24h)",
+		description: "Remove non-raiding members from bot"
+	)]
+	public function removeNonRaidingMembers(): void {
+		if ($this->raidDemoteMembersInterval === 0) {
+			return;
+		}
+		$this->logger->notice("Removing non-raiding bot members");
+		// Get a list of the main chars of everyone who's raided in the given timeframe
+		$activeMains = $this->db->table(RaidMemberController::DB_TABLE)
+			->where("joined", ">", time() - $this->raidDemoteMembersInterval)
+			->select("player")
+			->distinct()
+			->pluckStrings("player")
+			->map(function (string $player): string {
+				return $this->altsController->getMainOf($player);
+			})
+			->unique()
+			->mapToDictionary(function (string $main): array {
+				return [$main => true];
+			})->toArray();
+		$members = $this->privateChannelController->getMembers();
+		// Remove all members who are older than the given timeframe and haven't raided
+		// with un in the given timeframe
+		foreach ($members as $member => $data) {
+			$this->logger->info("Checking {name} for raid activity", ["name" => $member]);
+			$memberMain = $this->altsController->getMainOf($member);
+			if (isset($activeMains[$memberMain])) {
+				$this->logger->info("{name} is active", ["name" => $member]);
+				continue;
+			}
+			$mainData = $members[$memberMain] ?? $data;
+			if (time() - $mainData->joined < $this->raidDemoteMembersInterval) {
+				$this->logger->info("{name} is yet too young", ["name" => $mainData->name]);
+				continue;
+			}
+			$result = strip_tags($this->privateChannelController->removeUser($member, $this->chatBot->char->name));
+			$this->logger->notice("Removing {member}: {result}", [
+				"member" => $member,
+				"result" => $result,
+			]);
+		}
+		$this->logger->notice("Done removing non-raiding bot members");
 	}
 
 	protected function routeMessage(string $type, string $message): void {

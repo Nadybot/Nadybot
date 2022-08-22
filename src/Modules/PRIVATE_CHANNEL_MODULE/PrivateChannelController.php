@@ -230,7 +230,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 	#[NCA\Setting\Text(mode: "noedit")]
 	public string $lockReason = "";
 
-	/** @var array<string,bool> */
+	/** @var array<string,Member> */
 	protected array $members = [];
 
 	#[NCA\Setup]
@@ -262,6 +262,11 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 			->asObj(Member::class)
 			->keyBy("name")
 			->toArray();
+	}
+
+	/** @return array<string,Member> */
+	public function getMembers(): array {
+		return $this->members;
 	}
 
 	public function getSingleAccessLevel(string $sender): ?string {
@@ -578,11 +583,13 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 		}
 
 		if (!$this->db->table(self::DB_TABLE)->where("name", $context->char->name)->exists()) {
-			$this->db->table(self::DB_TABLE)
-				->insert([
-					"name" => $context->char->name,
-					"autoinv" => $onOrOff,
-				]);
+			$memberObj = new Member();
+			$memberObj->name = $context->char->name;
+			$memberObj->added_by = $context->char->name;
+			$memberObj->joined = time();
+			$memberObj->autoinv = $onOrOff;
+			$this->db->insert(self::DB_TABLE, $memberObj);
+			$this->members[$context->char->name] = $memberObj;
 			$msg = "You have been added as a member of this bot. ".
 				"Use <highlight><symbol>autoinvite<end> to control ".
 				"your auto invite preference.";
@@ -781,12 +788,13 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 			return;
 		}
 		$autoInvite = $this->autoinviteDefault;
-		$this->db->table(self::DB_TABLE)
-			->insert([
-				"name" => $context->char->name,
-				"autoinv" => $autoInvite,
-			]);
-		$this->members[$context->char->name] = true;
+		$memberObj = new Member();
+		$memberObj->name = $context->char->name;
+		$memberObj->added_by = $context->char->name;
+		$memberObj->joined = time();
+		$memberObj->autoinv = $autoInvite ? 1 : 0;
+		$this->db->insert(self::DB_TABLE, $memberObj);
+		$this->members[$context->char->name] = $memberObj;
 		$msg = "You have been added as a member of this bot. ".
 			"Use <highlight><symbol>autoinvite<end> to control your ".
 			"auto invite preference.";
@@ -1255,12 +1263,13 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 			if ($this->db->table(self::DB_TABLE)->where("name", $name)->exists()) {
 				return "<highlight>{$name}<end> is already a member of this bot.";
 			}
-			$this->db->table(self::DB_TABLE)
-				->insert([
-					"name" => $name,
-					"autoinv" => $autoInvite,
-				]);
-			$this->members[$name] = true;
+			$memberObj = new Member();
+			$memberObj->name = $name;
+			$memberObj->added_by = $sender;
+			$memberObj->joined = time();
+			$memberObj->autoinv = $autoInvite ? 1 : 0;
+			$this->db->insert(self::DB_TABLE, $memberObj);
+			$this->members[$name] = $memberObj;
 			$event = new MemberEvent();
 			$event->type = "member(add)";
 			$event->sender = $name;
