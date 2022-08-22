@@ -183,12 +183,12 @@ class RaidController extends ModuleInstance {
 	)]
 	public int $raidKickNotinOnLock = 0;
 
-	/** Time after which non-raiding members are removed from the bot */
+	/** Time after which non-raiding bot-members are removed from the bot */
 	#[NCA\Setting\TimeOrOff(
 		options: ["off", "30d", "90d", "1y"],
 		accessLevel: 'mod',
 	)]
-	public int $raidDemoteMembersInterval = 3600;
+	public int $raidDemoteMembersInterval = 0;
 
 	/** The currently running raid or null if none running */
 	public ?Raid $raid = null;

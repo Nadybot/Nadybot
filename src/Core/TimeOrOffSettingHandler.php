@@ -15,7 +15,7 @@ class TimeOrOffSettingHandler extends SettingHandler {
 
 	/** @inheritDoc */
 	public function displayValue(string $sender): string {
-		if ($this->row->value === "0") {
+		if ($this->row->value === "0" || $this->row->value === "0s") {
 			return "<highlight>off<end>";
 		}
 		return "<highlight>" . $this->util->unixtimeToReadable((int)$this->row->value) . "<end>";
