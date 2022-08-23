@@ -621,9 +621,12 @@ class PackageController extends ModuleInstance {
 			return;
 		}
 		try {
-			$dirs = yield filesystem()->listFiles($targetDir);
-			foreach ($dirs as $dir) {
-				yield from $this->scanExtraModule($targetDir, $dir);
+			$files = yield filesystem()->listFiles($targetDir);
+			foreach ($files as $file) {
+				if (!is_dir($file)) {
+					continue;
+				}
+				yield from $this->scanExtraModule($targetDir, $file);
 			}
 		} catch (DirException) {
 		}
