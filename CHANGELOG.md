@@ -24,6 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add `!sites ql <ql>` to search for unplanted sites able to hold towers of a given QL.
 - Sharing online-lists via nadynative will now also share each character's main. This allows two new grouping options for relay online lists: by main (player) and by org, then main (org/player). This only works properly if all Nadybots are running the same version.
 - Add `!fact`-command to show a random useless fact.
+- Add an option to automatically remove members from the bot if they haven't raided on any of their alts for a set period.
 
 ### Changed
 
@@ -42,6 +43,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Upgraded Docker images to alpine 3.16
 - Detection of when to display a QL for an item will now automatically detect symbiants and spirits and print their QL, even if they only exist in 1 QL.
 - The worldboss timers now ignore any updates for different dimensions.
+- Add new attributes to track when people became members of the bot and who added them. This is in addition to the audit functionality. Upgrading to this version will try to determine the date by using the audit tables, or assume "since now".
 
 ### Removed
 
