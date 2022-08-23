@@ -917,7 +917,7 @@ class RaidPointsController extends ModuleInstance {
 		if ($points === 1) {
 			$pointsGiven = "<highlight>1 point<end> was removed";
 		}
-		$pointsGiven .= " from all raiders ({$numRecipients}) by <highligh>{$context->char->name}<end> :: ";
+		$pointsGiven .= " from all raiders ({$numRecipients}) by <highlight>{$context->char->name}<end> :: ";
 		foreach ($msgs as &$blob) {
 			$blob = "{$pointsGiven} {$blob}";
 			$this->routeMessage("reward", $blob);
