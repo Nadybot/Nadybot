@@ -208,6 +208,7 @@ class DiscordGatewayController extends ModuleInstance {
 	protected ?int $lastSequenceNumber = null;
 	protected ?Connection $client = null;
 	protected bool $mustReconnect = false;
+	protected ?string $reconnectUrl = null;
 	protected int $lastHeartbeat = 0;
 	protected int $heartbeatInterval = 40;
 	protected int $reconnectDelay = 5;
@@ -831,6 +832,7 @@ class DiscordGatewayController extends ModuleInstance {
 		);
 		$this->mustReconnect = true;
 		$this->reconnectDelay = 5;
+		$this->reconnectUrl = $payload->d->resume_gateway_url;
 		Promise\rethrow($this->discordSlashCommandController->syncSlashCommands());
 	}
 
@@ -1584,44 +1586,49 @@ class DiscordGatewayController extends ModuleInstance {
 	/** @return Promise<void> */
 	private function connectToGateway(): Promise {
 		return call(function (): Generator {
+			$this->reconnectUrl = null;
 			do {
-				$gwTry = 0;
-				do {
-					$gwTry++;
-					try {
-						/** @var DiscordGateway */
-						$gateway = yield $this->discordAPIClient->getGateway();
-					} catch (Throwable $e) {
-						$retryDelay = $gwTry**2 * 1000;
-						$this->logger->notice("Error reading Discord gateway: {error}, retrying in {retry}s", [
-							"error" => $e->getMessage(),
-							"retry" => intdiv($retryDelay, 1000),
-						]);
-						yield delay($retryDelay);
-						continue;
+				if (!isset($this->reconnectUrl)) {
+					$gwTry = 0;
+					do {
+						$gwTry++;
+						try {
+							/** @var DiscordGateway */
+							$gateway = yield $this->discordAPIClient->getGateway();
+						} catch (Throwable $e) {
+							$retryDelay = $gwTry**2 * 1000;
+							$this->logger->notice("Error reading Discord gateway: {error}, retrying in {retry}s", [
+								"error" => $e->getMessage(),
+								"retry" => intdiv($retryDelay, 1000),
+							]);
+							yield delay($retryDelay);
+							continue;
+						}
+					} while (!isset($gateway));
+					$this->logger->info("{remaining} Discord connections out of {total} remaining", [
+						"remaining" => $gateway->session_start_limit->remaining,
+						"total" => $gateway->session_start_limit->total,
+					]);
+					if ($gateway->session_start_limit->remaining < 2) {
+						$resetDelay = (int)ceil($gateway->session_start_limit->reset_after / 1000);
+						$this->logger->warning(
+							"The bot used up all its allowed connections to the Discord API. ".
+							"Will try in {delay}",
+							[
+								"delay" => $this->util->unixtimeToReadable($resetDelay),
+							]
+						);
+						yield delay($resetDelay * 1000);
+						if ($this->isConnected()
+							&& isset($this->client)
+							&& $this->client->isConnected()) {
+							return;
+						}
 					}
-				} while (!isset($gateway));
-				$this->logger->info("{remaining} Discord connections out of {total} remaining", [
-					"remaining" => $gateway->session_start_limit->remaining,
-					"total" => $gateway->session_start_limit->total,
-				]);
-				if ($gateway->session_start_limit->remaining < 2) {
-					$resetDelay = (int)ceil($gateway->session_start_limit->reset_after / 1000);
-					$this->logger->warning(
-						"The bot used up all its allowed connections to the Discord API. ".
-						"Will try in {delay}",
-						[
-							"delay" => $this->util->unixtimeToReadable($resetDelay),
-						]
-					);
-					yield delay($resetDelay * 1000);
-					if ($this->isConnected()
-						&& isset($this->client)
-						&& $this->client->isConnected()) {
-						return;
-					}
+					$handshake = new Handshake($gateway->url . '/?v=10&encoding=json');
+				} else {
+					$handshake = new Handshake($this->reconnectUrl . '?v=10&encoding=json');
 				}
-				$handshake = new Handshake($gateway->url . '/?v=10&encoding=json');
 				$connectContext = (new ConnectContext())->withTcpNoDelay();
 				$httpClient = (new HttpClientBuilder())
 					->usingPool(new UnlimitedConnectionPool(new DefaultConnectionFactory(null, $connectContext)))
