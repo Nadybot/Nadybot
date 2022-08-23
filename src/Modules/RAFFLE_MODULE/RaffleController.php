@@ -432,7 +432,7 @@ class RaffleController extends ModuleInstance {
 		}
 		$slot -= 1;
 		if (!isset($this->raffle->slots[$slot])) {
-			$msg = "There is no item being raffled in slot <highligh>" . ($slot + 1) . "<end>.";
+			$msg = "There is no item being raffled in slot <highlight>" . ($slot + 1) . "<end>.";
 			$context->reply($msg);
 			return;
 		}

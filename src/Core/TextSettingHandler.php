@@ -12,7 +12,7 @@ use Nadybot\Core\Attributes as NCA;
 class TextSettingHandler extends SettingHandler {
 	/** @inheritDoc */
 	public function getDescription(): string {
-		$msg = "For this setting you can enter any text you want (max. 255 chararacters).\n";
+		$msg = "For this setting you can enter any text you want (max. 255 characters).\n";
 		$msg .= "To change this setting:\n\n";
 		$msg .= "<highlight>/tell <myname> settings save {$this->row->name} <i>text</i><end>\n\n";
 		return $msg;

@@ -126,7 +126,7 @@ class LogsController extends ModuleInstance {
 	}
 
 	/**
-	 * View the content of a log file, optionally serching for text
+	 * View the content of a log file, optionally searching for text
 	 *
 	 * &lt;search&gt; is a regular expression (without delimiters) and case-insensitive
 	 */
