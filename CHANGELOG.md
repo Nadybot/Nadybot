@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [6.1.0] - 2022-08-24
+
 ### Added
 
 - Commands and events can now be declared as Generators, which automatically makes them execute async and allows to `yield` results from promises.
@@ -36,7 +38,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Relay websockets
   - Discord
   - EventLoop::add()
-  - Http-client is now being replaced with HttpClientBuilder, while the old Http/AsyncHttp still function, but are now deprecated.
+  - Http-client is now being replaced with HttpClientBuilder, while the old Http/AsyncHttp still functions, but is now deprecated.
 
   This leads to even lower delay when processing Discord/Web/Console/AO packages, and the bot's CPU usage dropping to 0 in idle, compared to ~1%-2% before.
   A whole lot of functions are now deprecated and will be removed or replaced in 7.0, while none of the core function signatures has changed.
