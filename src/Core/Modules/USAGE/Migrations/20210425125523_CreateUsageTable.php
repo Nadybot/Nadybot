@@ -3,10 +3,8 @@
 namespace Nadybot\Core\Modules\USAGE\Migrations;
 
 use Illuminate\Database\Schema\Blueprint;
-use Nadybot\Core\DB;
-use Nadybot\Core\LoggerWrapper;
 use Nadybot\Core\Modules\USAGE\UsageController;
-use Nadybot\Core\SchemaMigration;
+use Nadybot\Core\{DB, LoggerWrapper, SchemaMigration};
 
 class CreateUsageTable implements SchemaMigration {
 	public function migrate(LoggerWrapper $logger, DB $db): void {
@@ -14,7 +12,7 @@ class CreateUsageTable implements SchemaMigration {
 		if ($db->schema()->hasTable($table)) {
 			return;
 		}
-		$db->schema()->create($table, function(Blueprint $table): void {
+		$db->schema()->create($table, function (Blueprint $table): void {
 			$table->string("type", 5);
 			$table->string("command", 20);
 			$table->string("sender", 20);

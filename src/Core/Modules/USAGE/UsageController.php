@@ -15,13 +15,12 @@ use Nadybot\Core\{
 	ParamClass\PCharacter,
 	ParamClass\PDuration,
 	ParamClass\PWord,
-	SettingManager,
 	SQLException,
+	SettingManager,
 	Text,
 	Util,
 };
-use Nadybot\Modules\RELAY_MODULE\RelayController;
-use Nadybot\Modules\RELAY_MODULE\RelayLayer;
+use Nadybot\Modules\RELAY_MODULE\{RelayController, RelayLayer};
 use stdClass;
 
 /**
@@ -107,7 +106,7 @@ class UsageController extends ModuleInstance {
 				$blob .= $this->text->alignNumber($row->count, 3) . " <highlight>{$row->command}<end>\n";
 			}
 
-			$msg = $this->text->makeBlob("Usage for $character - $timeString ($count)", $blob);
+			$msg = $this->text->makeBlob("Usage for {$character} - {$timeString} ({$count})", $blob);
 		} else {
 			$msg = "No usage statistics found for <highlight>{$character}<end>.";
 		}
@@ -152,7 +151,7 @@ class UsageController extends ModuleInstance {
 				$blob .= $this->text->alignNumber($row->count, 3) . " <highlight>{$row->sender}<end>\n";
 			}
 
-			$msg = $this->text->makeBlob("Usage for $cmd - $timeString ($count)", $blob);
+			$msg = $this->text->makeBlob("Usage for {$cmd} - {$timeString} ({$count})", $blob);
 		} else {
 			$msg = "No usage statistics found for <highlight>{$cmd}<end>.";
 		}
@@ -195,6 +194,7 @@ class UsageController extends ModuleInstance {
 			->orderBy("type")
 			->select("type AS channel");
 		$query->selectRaw($query->colFunc("COUNT", "type", "count")->getValue());
+
 		/** @var ChannelUsageStats[] */
 		$data = $query->asObj(ChannelUsageStats::class)->toArray();
 
@@ -212,14 +212,15 @@ class UsageController extends ModuleInstance {
 			->limit($limit)
 			->select("command");
 		$query->selectRaw($query->colFunc("COUNT", "command", "count")->getValue());
+
 		/** @var CommandUsageStats[] */
 		$data = $query->asObj(CommandUsageStats::class)->toArray();
 
-		$blob .= "<header2>$limit Most Used Commands<end>\n";
+		$blob .= "<header2>{$limit} Most Used Commands<end>\n";
 		foreach ($data as $row) {
-			$commandLink = $this->text->makeChatcmd($row->command, "/tell <myname> usage cmd $row->command");
+			$commandLink = $this->text->makeChatcmd($row->command, "/tell <myname> usage cmd {$row->command}");
 			$blob .= "<tab>" . $this->text->alignNumber($row->count, 3).
-				" $commandLink\n";
+				" {$commandLink}\n";
 		}
 
 		// users who have used the most commands
@@ -230,22 +231,24 @@ class UsageController extends ModuleInstance {
 			->limit($limit)
 			->select("sender");
 		$query->selectRaw($query->colFunc("COUNT", "sender", "count")->getValue());
+
 		/** @var PlayerUsageStats[] */
 		$data = $query->asObj(PlayerUsageStats::class)->toArray();
 
-		$blob .= "\n<header2>$limit Most Active Users<end>\n";
+		$blob .= "\n<header2>{$limit} Most Active Users<end>\n";
 		foreach ($data as $row) {
-			$senderLink = $this->text->makeChatcmd($row->sender, "/tell <myname> usage player $row->sender");
+			$senderLink = $this->text->makeChatcmd($row->sender, "/tell <myname> usage player {$row->sender}");
 			$blob .= "<tab>" . $this->text->alignNumber($row->count, 3).
-				" $senderLink\n";
+				" {$senderLink}\n";
 		}
 
-		$msg = $this->text->makeBlob("Usage Statistics - $timeString", $blob);
+		$msg = $this->text->makeBlob("Usage Statistics - {$timeString}", $blob);
 		$context->reply($msg);
 	}
 
 	/**
 	 * Record the use of a command $cmd by player $sender
+	 *
 	 * @throws SQLException
 	 */
 	public function record(string $type, string $cmd, string $sender, ?string $handler): void {
@@ -277,7 +280,7 @@ class UsageController extends ModuleInstance {
 			->select("command");
 		$query->selectRaw($query->rawFunc("COUNT", "*", "count")->getValue());
 		$commands = $query->asObj(CommandUsageStats::class)
-			->reduce(function(stdClass $carry, CommandUsageStats $entry) {
+			->reduce(function (stdClass $carry, CommandUsageStats $entry) {
 				$carry->{$entry->command} = $entry->count;
 				return $carry;
 			}, new stdClass());
@@ -296,7 +299,7 @@ class UsageController extends ModuleInstance {
 		$settings->relay_protocols         = $this->db->table(RelayController::DB_TABLE_LAYER)
 			->orderBy("relay_id")->orderByDesc("id")->asObj(RelayLayer::class)
 			->groupBy("relay_id")
-			->map(function(Collection $group): string {
+			->map(function (Collection $group): string {
 				return $group->first()->layer;
 			})->flatten()->unique()->toArray();
 		$settings->first_and_last_alt_only = $this->settingManager->getBool('first_and_last_alt_only')??false;
@@ -344,8 +347,7 @@ class UsageController extends ModuleInstance {
 		NCA\NewsTile(
 			name: "popular-commands",
 			description: "A player's 4 most used commands in the last 7 days",
-			example:
-				"<header2>Popular commands<end>\n".
+			example: "<header2>Popular commands<end>\n".
 				"<tab>hot\n".
 				"<tab>startpage\n".
 				"<tab>config\n".
@@ -361,7 +363,7 @@ class UsageController extends ModuleInstance {
 			->orderByColFunc("COUNT", "command", "desc")
 			->addSelect("command")
 			->limit(4)
-			->pluckAs("command", "string");
+			->pluckStrings("command");
 		if ($commands->isEmpty()) {
 			$callback(null);
 			return;

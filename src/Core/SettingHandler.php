@@ -2,6 +2,7 @@
 
 namespace Nadybot\Core;
 
+use Amp\Promise;
 use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\DBSchema\Setting;
 
@@ -11,9 +12,7 @@ abstract class SettingHandler {
 
 	protected Setting $row;
 
-	/**
-	 * Construct a new handler out of a given database row
-	 */
+	/** Construct a new handler out of a given database row */
 	public function __construct(Setting $row) {
 		$this->row = $row;
 	}
@@ -30,9 +29,7 @@ abstract class SettingHandler {
 		return $this->text->makeChatcmd("modify", "/tell <myname> settings change " . $this->row->name);
 	}
 
-	/**
-	 * Get a displayable representation of the setting
-	 */
+	/** Get a displayable representation of the setting */
 	public function displayValue(string $sender): string {
 		if (!isset($this->row->intoptions) || $this->row->intoptions === "") {
 			return "<highlight>" . htmlspecialchars($this->row->value??"<empty>") . "<end>";
@@ -47,16 +44,14 @@ abstract class SettingHandler {
 		return "<highlight>" . ($options[$key] ?? "&lt;empty&gt;") . "<end>";
 	}
 
-	/**
-	 * Get all options for this setting or null if no options are available
-	 */
+	/** Get all options for this setting or null if no options are available */
 	public function getOptions(): ?string {
 		if (strlen($this->row->options??'')) {
 			$options = explode(";", $this->row->options??"");
 		}
 		if (strlen($this->row->intoptions??'')) {
 			$intoptions = explode(";", $this->row->intoptions??"");
-			$options_map = \Safe\array_combine($intoptions, $options??[]);
+			$options_map = array_combine($intoptions, $options??[]);
 		}
 		if (empty($options)) {
 			return null;
@@ -81,13 +76,13 @@ abstract class SettingHandler {
 	 * Change this setting
 	 *
 	 * @throws \Exception if $newValue is not accepted
+	 *
+	 * @return string|Promise<string>
 	 */
-	public function save(string $newValue): string {
+	public function save(string $newValue): string|Promise {
 		return $newValue;
 	}
 
-	/**
-	 * Get a description of the setting
-	 */
+	/** Get a description of the setting */
 	abstract public function getDescription(): string;
 }

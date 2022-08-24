@@ -3,11 +3,10 @@
 namespace Nadybot\Core\ParamClass;
 
 class PTowerSite extends Base {
-	protected static string $regExp = "[0-9A-Za-z]+[A-Za-z]{1,3}\s*\d+";
-	protected string $value;
-
 	public string $pf;
 	public int $site;
+	protected static string $regExp = "[0-9A-Za-z]+[A-Za-z]{1,3}\s*\d+";
+	protected string $value;
 
 	public function __construct(string $value) {
 		preg_match("/^([0-9A-Za-z]+[A-Za-z])\s*(\d+)$/", $value, $matches);

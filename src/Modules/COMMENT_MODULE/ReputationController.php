@@ -6,8 +6,8 @@ use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
 	DB,
-	ModuleInstance,
 	LoggerWrapper,
+	ModuleInstance,
 	Nadybot,
 	ParamClass\PCharacter,
 	ParamClass\PWord,
@@ -86,6 +86,7 @@ class ReputationController extends ModuleInstance {
 		}
 
 		$blob = '';
+
 		/** @var array<string,\stdClass> */
 		$charReputation = [];
 		foreach ($comments as $comment) {
@@ -99,21 +100,21 @@ class ReputationController extends ModuleInstance {
 		$blobs = [];
 		foreach ($charReputation as $char => $charData) {
 			$count++;
-			$blob = "<pagebreak><header2>$char<end>" . " (" . sprintf('%+d', $charData->total) . ")";
+			$blob = "<pagebreak><header2>{$char}<end>" . " (" . sprintf('%+d', $charData->total) . ")";
 			$comments = array_slice($charData->comments, 0, 3);
 			foreach ($comments as $comment) {
 				$color = preg_match("/^\+1/", $comment->comment) ? 'green' : 'red';
-				$blob .= "\n<tab><$color>{$comment->comment}<end> ".
+				$blob .= "\n<tab><{$color}>{$comment->comment}<end> ".
 					"(<highlight>{$comment->created_by}<end>, ".
 					$this->util->date($comment->created_at) . ")";
 			}
 			if (count($charData->comments) > 3) {
 				$details_link = $this->text->makeChatcmd('see all', "/tell <myname> reputation {$comments[0]->character} all");
-				$blob .= "\n<tab>[$details_link]";
+				$blob .= "\n<tab>[{$details_link}]";
 			}
 			$blobs []= $blob;
 		}
-		$msg = $this->text->makeBlob("Reputation List ($count)", join("\n\n", $blobs));
+		$msg = $this->text->makeBlob("Reputation List ({$count})", join("\n\n", $blobs));
 		$context->reply($msg);
 	}
 
@@ -162,6 +163,7 @@ class ReputationController extends ModuleInstance {
 		if (!isset($all)) {
 			$comments = array_slice($comments, 0, 10);
 		}
+
 		/** @var Comment[] $comments */
 
 		if (!count($comments)) {
@@ -190,10 +192,10 @@ class ReputationController extends ModuleInstance {
 		}
 
 		if (!isset($all) && $numComments > count($comments)) {
-			$blob .= "\n" . $this->text->makeChatcmd("Show all comments", "/tell <myname> reputation $name all");
+			$blob .= "\n" . $this->text->makeChatcmd("Show all comments", "/tell <myname> reputation {$name} all");
 		}
 
-		$msg = $this->text->makeBlob("Reputation for {$name} (+$numPositive -$numNegative)", $blob);
+		$msg = $this->text->makeBlob("Reputation for {$name} (+{$numPositive} -{$numNegative})", $blob);
 
 		$context->reply($msg);
 	}

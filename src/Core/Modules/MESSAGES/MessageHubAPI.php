@@ -5,8 +5,8 @@ namespace Nadybot\Core\Modules\MESSAGES;
 use Nadybot\Core\{
 	Attributes as NCA,
 	DB,
-	ModuleInstance,
 	MessageHub,
+	ModuleInstance,
 	Routing\Source,
 };
 use Nadybot\Modules\WEBSERVER_MODULE\{
@@ -27,9 +27,7 @@ class MessageHubAPI extends ModuleInstance {
 	#[NCA\Inject]
 	public DB $db;
 
-	/**
-	 * List all hop colors
-	 */
+	/** List all hop colors */
 	#[
 		NCA\Api("/hop/color"),
 		NCA\GET,
@@ -40,9 +38,7 @@ class MessageHubAPI extends ModuleInstance {
 		return new ApiResponse(MessageHub::$colors->toArray());
 	}
 
-	/**
-	 * List all hop formats
-	 */
+	/** List all hop formats */
 	#[
 		NCA\Api("/hop/format"),
 		NCA\GET,

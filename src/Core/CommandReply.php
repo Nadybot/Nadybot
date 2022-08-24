@@ -10,7 +10,6 @@ interface CommandReply {
 	 * Send a reply to the channel (tell, guild, priv) where the command was received
 	 *
 	 * @param string|string[] $msg
-	 * @return void
 	 */
 	public function reply(string|array $msg): void;
 }

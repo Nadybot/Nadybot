@@ -2,8 +2,14 @@
 
 namespace Nadybot\Core;
 
-use Nadybot\Core\Attributes as NCA;
+use function Amp\call;
+
+use Amp\Http\Client\Interceptor\AddRequestHeader;
+use Amp\Http\Client\{HttpClientBuilder, Request, Response};
+use Amp\Promise;
 use Exception;
+use Generator;
+use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\Modules\DISCORD\DiscordAPIClient;
 use Nadybot\Modules\DISCORD_GATEWAY_MODULE\DiscordGatewayController;
 
@@ -13,10 +19,10 @@ use Nadybot\Modules\DISCORD_GATEWAY_MODULE\DiscordGatewayController;
 #[NCA\SettingHandler("discord_bot_token")]
 class DiscordBotTokenSettingHandler extends SettingHandler {
 	#[NCA\Inject]
-	public Http $http;
+	public SettingManager $settingManager;
 
 	#[NCA\Inject]
-	public SettingManager $settingManager;
+	public HttpClientBuilder $builder;
 
 	#[NCA\Inject]
 	public DiscordGatewayController $discordGatewayController;
@@ -24,9 +30,7 @@ class DiscordBotTokenSettingHandler extends SettingHandler {
 	#[NCA\Inject]
 	public AccessManager $accessManager;
 
-	/**
-	 * @inheritDoc
-	 */
+	/** @inheritDoc */
 	public function getDescription(): string {
 		$msg = "For this setting you need to enter a Discord token (59 characters).\n".
 			"You can get the ID for your bot on the Discord developer portal.\n".
@@ -39,20 +43,25 @@ class DiscordBotTokenSettingHandler extends SettingHandler {
 
 	/**
 	 * @throws \Exception when the Discord token is invalid
+	 *
+	 * @return Promise<string>
 	 */
-	public function save(string $newValue): string {
-		if ($newValue === "off") {
+	public function save(string $newValue): Promise {
+		return call(function () use ($newValue): Generator {
+			if ($newValue === "off") {
+				return $newValue;
+			}
+			$client = $this->builder
+				->intercept(new AddRequestHeader('Authorization', 'Bot ' . $newValue))
+				->build();
+
+			/** @var Response */
+			$response = yield $client->request(new Request(DiscordAPIClient::DISCORD_API . "/users/@me"));
+			if ($response->getStatus() !== 200) {
+				throw new Exception("<highlight>{$newValue}<end> is not a valid Discord Bot Token");
+			}
 			return $newValue;
-		}
-		$response = $this->http
-			->get(DiscordAPIClient::DISCORD_API . "/users/@me")
-			->withHeader('Authorization', 'Bot ' . $newValue)
-			->withTimeout(10)
-			->waitAndReturnResponse();
-		if ($response->headers["status-code"] !== "200") {
-			throw new Exception("<highlight>{$newValue}<end> is not a valid Discord Bot Token");
-		}
-		return $newValue;
+		});
 	}
 
 	public function displayValue(string $sender): string {

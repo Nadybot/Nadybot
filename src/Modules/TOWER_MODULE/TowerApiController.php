@@ -2,15 +2,21 @@
 
 namespace Nadybot\Modules\TOWER_MODULE;
 
+use function Amp\{asyncCall, call};
+use function Safe\json_decode;
+use Amp\Http\Client\Interceptor\SetRequestHeader;
+use Amp\Http\Client\{HttpClientBuilder, Request, Response};
+use Amp\Promise;
 use Exception;
-use Throwable;
+use Generator;
+use League\Uri\{Http, Uri};
 use Nadybot\Core\{
 	Attributes as NCA,
 	BotRunner,
-	Http,
-	HttpResponse,
 	ModuleInstance,
 };
+
+use Throwable;
 
 #[NCA\Instance]
 class TowerApiController extends ModuleInstance {
@@ -19,7 +25,7 @@ class TowerApiController extends ModuleInstance {
 	public const API_NONE = "none";
 
 	#[NCA\Inject]
-	public Http $http;
+	public HttpClientBuilder $builder;
 
 	#[NCA\Inject]
 	public TowerController $towerController;
@@ -83,56 +89,69 @@ class TowerApiController extends ModuleInstance {
 
 	/**
 	 * @param array<string,mixed> $params
-	 * @psalm-param callable(?ApiResult, mixed...) $callback
+	 *
+	 * @return Promise<?ApiResult>
 	 */
-	public function call(array $params, callable $callback, mixed ...$args): void {
-		$roundTo = $this->towerCacheDuration;
-		if (isset($params["min_close_time"])) {
-			$params["min_close_time"] -= $params["min_close_time"] % $roundTo;
-		}
-		if (isset($params["max_close_time"])) {
-			$params["max_close_time"] -= $params["max_close_time"] % $roundTo;
-		}
-		ksort($params);
-		$cacheKey = md5(http_build_query($params));
-		$cacheEntry = $this->cache[$cacheKey]??null;
-		if ($cacheEntry !== null) {
-			if ($cacheEntry->validUntil >= time()) {
-				$callback($cacheEntry->result, ...$args);
-				return;
+	public function call2(array $params): Promise {
+		return call(function () use ($params): Generator {
+			$roundTo = $this->towerCacheDuration;
+			if (isset($params["min_close_time"])) {
+				$params["min_close_time"] -= $params["min_close_time"] % $roundTo;
 			}
-		}
-		$apiURL = $this->towerApi;
-		if ($apiURL === static::API_NONE) {
-			$apiURL = static::API_TYRENCE;
-		}
-		$this->http->get($apiURL)
-			->withQueryParams($params)
-			->withTimeout(10)
-			->withHeader('User-Agent', 'Naughtybot ' . BotRunner::getVersion())
-			->withCallback([$this, "handleResult"], $params, $cacheKey, $callback, ...$args);
+			if (isset($params["max_close_time"])) {
+				$params["max_close_time"] -= $params["max_close_time"] % $roundTo;
+			}
+			ksort($params);
+			$cacheKey = md5($query = http_build_query($params));
+			$cacheEntry = $this->cache[$cacheKey]??null;
+			if ($cacheEntry !== null) {
+				if ($cacheEntry->validUntil >= time()) {
+					return $cacheEntry->result;
+				}
+			}
+			$apiURL = $this->towerApi;
+			if ($apiURL === static::API_NONE) {
+				$apiURL = static::API_TYRENCE;
+			}
+			$client = $this->builder
+				->intercept(new SetRequestHeader("User-Agent", "Naughtybot " . BotRunner::getVersion()))
+				->build();
+			$apiQuery = Uri::createFromString($apiURL)->getQuery();
+			if (isset($apiQuery) && strlen($apiQuery) > 0) {
+				$query = $apiQuery . '&' . $query;
+			}
+			$uri = Http::createFromString($apiURL)->withQuery($query);
+
+			/** @var Response */
+			$response = yield $client->request(new Request($uri));
+			if ($response->getStatus() !== 200) {
+				return null;
+			}
+			$body = yield $response->getBody()->buffer();
+			if ($body === '') {
+				return null;
+			}
+			try {
+				$data = json_decode($body, true);
+				$result = new ApiResult($data);
+			} catch (Throwable $e) {
+				return null;
+			}
+			$apiCache = new ApiCache();
+			$apiCache->validUntil = time() + $this->towerCacheDuration;
+			$apiCache->result = $result;
+			$this->cache[$cacheKey] = $apiCache;
+			return $result;
+		});
 	}
 
 	/**
 	 * @param array<string,mixed> $params
 	 * @psalm-param callable(?ApiResult, mixed...) $callback
 	 */
-	public function handleResult(HttpResponse $response, array $params, string $cacheKey, callable $callback, mixed ...$args): void {
-		if (!isset($response->body) || ($response->headers["status-code"]??"0") !== "200") {
-			$callback(null, ...$args);
-			return;
-		}
-		try {
-			$data = \Safe\json_decode($response->body, true);
-			$result = new ApiResult($data);
-		} catch (Throwable $e) {
-			$callback(null, ...$args);
-			return;
-		}
-		$apiCache = new ApiCache();
-		$apiCache->validUntil = time() + $this->towerCacheDuration;
-		$apiCache->result = $result;
-		$this->cache[$cacheKey] = $apiCache;
-		$callback($result, ...$args);
+	public function call(array $params, callable $callback, mixed ...$args): void {
+		asyncCall(function () use ($params, $callback, $args): Generator {
+			$callback(yield $this->call2($params), ...$args);
+		});
 	}
 }

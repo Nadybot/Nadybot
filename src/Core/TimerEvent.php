@@ -9,10 +9,10 @@ class TimerEvent {
 	/** The original delay of this event */
 	public int $delay = 0;
 
-	/** @var callable $callback */
+	/** @var callable */
 	public $callback;
 
-	/** @var mixed[] $args */
+	/** @var mixed[] */
 	public array $args = [];
 
 	/** @param mixed[] $args */

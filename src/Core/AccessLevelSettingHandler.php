@@ -20,9 +20,7 @@ class AccessLevelSettingHandler extends SettingHandler {
 	#[NCA\Inject]
 	public AccessManager $accessManager;
 
-	/**
-	 * @inheritDoc
-	 */
+	/** @inheritDoc */
 	public function getDescription(): string {
 		$msg = "For this setting you need to choose one of the available ".
 			"access levels:\n\n";
@@ -35,13 +33,11 @@ class AccessLevelSettingHandler extends SettingHandler {
 		return $msg;
 	}
 
-	/**
-	 * @throws \Exception when the rank is invalid
-	 */
+	/** @throws \Exception when the rank is invalid */
 	public function save(string $newValue): string {
 		$accessLevels = $this->accessManager->getAccessLevels();
 		if (!isset($accessLevels[$newValue])) {
-			throw new Exception("<highlight>$newValue<end> is not a valid access level.");
+			throw new Exception("<highlight>{$newValue}<end> is not a valid access level.");
 		}
 		return $newValue;
 	}

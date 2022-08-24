@@ -8,6 +8,7 @@ use Spatie\DataTransferObject\DataTransferObject;
 
 class OnlineBlock extends DataTransferObject {
 	public Source $source;
+
 	/** @var User[] */
 	#[CastWith(ArrayCaster::class, itemType: User::class)]
 	public array $users;

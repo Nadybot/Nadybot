@@ -21,9 +21,7 @@ class Stopwatch {
 		$this->start = new DateTime();
 	}
 
-	/**
-	 * Get a textual representation of the timer
-	 */
+	/** Get a textual representation of the timer */
 	public function toString(): string {
 		$descr = "Start:    " . $this->start->format('Y-M-d H:i:s T') . "\n";
 		$last = $this->start;

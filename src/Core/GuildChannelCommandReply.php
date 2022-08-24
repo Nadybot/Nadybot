@@ -15,9 +15,7 @@ class GuildChannelCommandReply implements CommandReply, MessageEmitter {
 		return Source::ORG;
 	}
 
-	/**
-	 * @inheritDoc
-	 */
+	/** @inheritDoc */
 	public function reply($msg): void {
 		$this->chatBot->sendGuild($msg);
 	}

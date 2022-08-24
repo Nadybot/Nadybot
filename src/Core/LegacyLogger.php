@@ -35,6 +35,7 @@ class LegacyLogger {
 
 	/**
 	 * Configuration which log channels log what
+	 *
 	 * @var array<array<string>>
 	 * @psalm-var list<array{0:string, 1:string}>
 	 */
@@ -50,7 +51,7 @@ class LegacyLogger {
 		}
 		return array_filter(
 			static::$loggers,
-			function(Logger $logger) use ($mask): bool {
+			function (Logger $logger) use ($mask): bool {
 				return fnmatch($mask, $logger->getName(), FNM_CASEFOLD);
 			}
 		);
@@ -58,6 +59,7 @@ class LegacyLogger {
 
 	/**
 	 * Get the Monolog log level for a Nadybot logging category
+	 *
 	 * @phpstan-return 100|200|250|300|400|500|550|600
 	 */
 	public static function getLoggerLevel(string $category): int {
@@ -105,7 +107,7 @@ class LegacyLogger {
 		$channels = static::$config["channels"] ?? [];
 		uksort(
 			$channels,
-			function(string $s1, string $s2): int {
+			function (string $s1, string $s2): int {
 				return strlen($s2) <=> strlen($s1);
 			}
 		);
@@ -141,6 +143,7 @@ class LegacyLogger {
 			if (!fnmatch($logLevelConf[0], $logger->getName(), FNM_CASEFOLD)) {
 				continue;
 			}
+
 			/**
 			 * @phpstan-ignore-next-line
 			 * @psalm-suppress ArgumentTypeCoercion
@@ -170,21 +173,17 @@ class LegacyLogger {
 		$logStruct = static::getConfig();
 		$formatters = static::parseFormattersConfig($logStruct["formatters"]??[]);
 		$handlers = static::parseHandlersConfig($logStruct["handlers"]??[], $formatters);
-		$deDuper = new DedupHandler();
-		$logger = new Logger($channel, [$deDuper, ...array_values($handlers)]);
+		$logger = new Logger($channel, [...array_values($handlers)]);
 		static::assignLogLevel($logger);
 		return static::$loggers[$channel] = $logger;
-	}
-
-	protected static function toClass(string $name): string {
-		return join("", array_map("ucfirst", explode("_", $name)));
 	}
 
 	/**
 	 * Parse th defined handlers into objects
 	 *
-	 * @param array<string,mixed> $handlers
+	 * @param array<string,mixed>              $handlers
 	 * @param array<string,FormatterInterface> $formatters
+	 *
 	 * @return array<string,AbstractProcessingHandler>
 	 */
 	public static function parseHandlersConfig(array $handlers, array $formatters): array {
@@ -199,6 +198,7 @@ class LegacyLogger {
 				$config["options"]["level"] = "notice";
 				$dynamic = true;
 			}
+
 			/** @var AbstractProcessingHandler */
 			$obj = new $class(...array_values($config["options"]));
 			if ($dynamic) {
@@ -223,12 +223,14 @@ class LegacyLogger {
 	 * Parse the defined formatters and return them as objects
 	 *
 	 * @param array<string,array<mixed>> $formatters
+	 *
 	 * @return array<string,FormatterInterface>
 	 */
 	public static function parseFormattersConfig(array $formatters): array {
 		$result = [];
 		foreach ($formatters as $name => $config) {
 			$class = "Monolog\\Formatter\\" . static::toClass($config["type"]) . "Formatter";
+
 			/** @var FormatterInterface */
 			$obj = new $class(...array_values($config["options"]));
 			foreach ($config["calls"]??[] as $func => $params) {
@@ -245,5 +247,9 @@ class LegacyLogger {
 			$obj = $attr->newInstance();
 			$hub->registerMessageEmitter($obj);
 		}
+	}
+
+	protected static function toClass(string $name): string {
+		return join("", array_map("ucfirst", explode("_", $name)));
 	}
 }

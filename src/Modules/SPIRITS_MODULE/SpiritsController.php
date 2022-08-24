@@ -56,12 +56,13 @@ class SpiritsController extends ModuleInstance {
 		$lowQL = $qlRange->low;
 		$highQL = $qlRange->high;
 		$slot = ucfirst($slot());
-		$title = "$slot Spirits QL $lowQL to $highQL";
+		$title = "{$slot} Spirits QL {$lowQL} to {$highQL}";
 		if ($lowQL < 1 or $highQL > 300 or $lowQL >= $highQL) {
 			$msg = "Invalid Ql range specified.";
 			$context->reply($msg);
 			return;
 		}
+
 		/** @var Spirit[] */
 		$data = $this->db->table("spiritsdb")
 			->where("spot", $slot)
@@ -92,7 +93,8 @@ class SpiritsController extends ModuleInstance {
 	public function spiritsCommandSlotAndType(CmdContext $context, PImplantSlot $slot, PNonNumber $name): void {
 		$name = ucwords(strtolower($name()));
 		$slot = ucfirst($slot());
-		$title = "Spirits Database for $name $slot";
+		$title = "Spirits Database for {$name} {$slot}";
+
 		/** @var Spirit[] */
 		$data = $this->db->table("spiritsdb")
 			->whereIlike("name", "%{$name}%")
@@ -118,7 +120,8 @@ class SpiritsController extends ModuleInstance {
 			$context->reply($msg);
 			return;
 		}
-		$title = "Spirits QL $ql";
+		$title = "Spirits QL {$ql}";
+
 		/** @var Spirit[] */
 		$data = $this->db->table("spiritsdb")
 			->where("ql", $ql)
@@ -145,7 +148,8 @@ class SpiritsController extends ModuleInstance {
 			$context->reply($msg);
 			return;
 		}
-		$title = "Spirits QL $lowQL to $highQL";
+		$title = "Spirits QL {$lowQL} to {$highQL}";
+
 		/** @var Spirit[] */
 		$data = $this->db->table("spiritsdb")
 			->where("ql", ">=", $lowQL)
@@ -174,12 +178,13 @@ class SpiritsController extends ModuleInstance {
 	#[NCA\Help\Example("<symbol>spirits 210 chest")]
 	public function spiritsQlAndTypeCommand(CmdContext $context, int $ql, PImplantSlot $slot): void {
 		$slot = ucfirst($slot());
-		$title = "$slot Spirits QL $ql";
+		$title = "{$slot} Spirits QL {$ql}";
 		if ($ql < 1 or $ql > 300) {
 			$msg = "Invalid Ql specified.";
 			$context->reply($msg);
 			return;
 		}
+
 		/** @var Spirit[] */
 		$data = $this->db->table("spiritsdb")
 			->where("spot", $slot)
@@ -200,10 +205,11 @@ class SpiritsController extends ModuleInstance {
 	#[NCA\Help\Example("<symbol>spirits beta")]
 	public function spiritsCommandSearch(CmdContext $context, PNonNumber $search): void {
 		$name = ucwords(strtolower($search()));
-		$title = "Spirits Database for $name";
+		$title = "Spirits Database for {$name}";
 		if (PImplantSlot::matches($name)) {
 			$name = (new PImplantSlot($name))();
 		}
+
 		/** @var Spirit[] */
 		$data = $this->db->table("spiritsdb")
 			->whereIlike("name", "%{$name}%")
@@ -212,7 +218,7 @@ class SpiritsController extends ModuleInstance {
 			->asObj(Spirit::class)
 			->toArray();
 		if (count($data) === 0) {
-			$msg = "There were no matches found for <highlight>$name<end>. ".
+			$msg = "There were no matches found for <highlight>{$name}<end>. ".
 				"Try putting a comma between search values. ".
 				$this->getValidSlotTypes();
 			$context->reply($msg);
@@ -223,10 +229,7 @@ class SpiritsController extends ModuleInstance {
 		$context->reply($spirits);
 	}
 
-	/**
-	 * @param Spirit[] $spirits
-	 * @return string
-	 */
+	/** @param Spirit[] $spirits */
 	public function formatSpiritOutput(array $spirits): string {
 		if (count($spirits) === 0) {
 			return "No matches found.";
@@ -246,7 +249,7 @@ class SpiritsController extends ModuleInstance {
 			if ($dbSpirit) {
 				$msg .= $this->text->makeImage($dbSpirit->icon) . ' ';
 				$msg .= $this->text->makeItem($dbSpirit->lowid, $dbSpirit->highid, $dbSpirit->highql, $dbSpirit->name) . "\n";
-				$msg .= "Minimum Level=$spirit->level   Slot=$spirit->spot   Agility/Sense Needed=$spirit->agility\n\n";
+				$msg .= "Minimum Level={$spirit->level}   Slot={$spirit->spot}   Agility/Sense Needed={$spirit->agility}\n\n";
 			}
 		}
 		return $msg;
@@ -257,5 +260,12 @@ class SpiritsController extends ModuleInstance {
 			"Rarm, Waist, Lwrist, Rwrist, Legs, Lhand, Rhand and Feet";
 
 		return $output;
+	}
+
+	/** Check if a given aoid is a spirit */
+	public function isSpirit(int $aoid): bool {
+		return $this->db->table("spiritsdb")
+			->where("id", $aoid)
+			->exists();
 	}
 }

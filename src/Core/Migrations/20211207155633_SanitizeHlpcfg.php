@@ -3,15 +3,12 @@
 namespace Nadybot\Core\Migrations;
 
 use Illuminate\Database\Schema\Blueprint;
-use Nadybot\Core\DB;
-use Nadybot\Core\HelpManager;
-use Nadybot\Core\LoggerWrapper;
-use Nadybot\Core\SchemaMigration;
+use Nadybot\Core\{DB, HelpManager, LoggerWrapper, SchemaMigration};
 
 class SanitizeHlpcfg implements SchemaMigration {
 	public function migrate(LoggerWrapper $logger, DB $db): void {
 		$table = HelpManager::DB_TABLE;
-		$db->schema()->table($table, function(Blueprint $table): void {
+		$db->schema()->table($table, function (Blueprint $table): void {
 			$table->string("module", 50)->nullable(false)->change();
 			$table->string("file", 255)->nullable(false)->change();
 			$table->string("description", 75)->nullable(false)->change();

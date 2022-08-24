@@ -75,6 +75,7 @@ class InactiveMemberController extends ModuleInstance {
 		foreach ($members as $mainName => $altsLink) {
 			/** @var Collection<RecentOrgMember> $altsLink */
 			$alt = $altsLink->first();
+
 			/** @var RecentOrgMember $alt */
 			if ($alt->logged_off >= $time) {
 				continue;

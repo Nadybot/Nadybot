@@ -2,31 +2,35 @@
 
 namespace Nadybot\Core;
 
+use const Amp\File\LOOP_STATE_IDENTIFIER;
+use function Amp\File\createDefaultDriver;
+use function Safe\json_encode;
+use Amp\File\Driver\{EioDriver, ParallelDriver};
+use Amp\File\Filesystem;
+use Amp\Http\Client\HttpClientBuilder;
+use Amp\Http\Client\Interceptor\SetRequestHeaderIfUnset;
+use Amp\{Loop, Promise};
 use Closure;
 use ErrorException;
 use Exception;
+use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\Modules\SETUP\Setup;
 
-class BotRunner {
-	/**
-	 * Nadybot's current version
-	 */
-	public const VERSION = "6.0.5";
+use ReflectionAttribute;
 
-	/**
-	 * The command line arguments
-	 *
-	 * @var string[] $argv
-	 */
-	private array $argv = [];
+use ReflectionObject;
+use Throwable;
+
+class BotRunner {
+	/** Nadybot's current version */
+	public const VERSION = "6.1.0";
 
 	/**
 	 * The parsed command line arguments
+	 *
 	 * @var array<string,mixed>
 	 */
 	public static array $arguments = [];
-
-	private ?ConfigFile $configFile;
 
 	public ClassLoader $classLoader;
 
@@ -37,7 +41,17 @@ class BotRunner {
 	protected LoggerWrapper $logger;
 
 	/**
+	 * The command line arguments
+	 *
+	 * @var string[]
+	 */
+	private array $argv = [];
+
+	private ?ConfigFile $configFile;
+
+	/**
 	 * Create a new instance
+	 *
 	 * @param string[] $argv
 	 */
 	public function __construct(array $argv) {
@@ -61,7 +75,7 @@ class BotRunner {
 
 	/** Get the base directory of the bot */
 	public static function getBasedir(): string {
-		return \Safe\realpath(dirname(dirname(__DIR__)));
+		return \Safe\realpath(dirname(__DIR__, 2));
 	}
 
 	/**
@@ -74,7 +88,7 @@ class BotRunner {
 		if (!@file_exists("{$baseDir}/.git")) {
 			return static::VERSION;
 		}
-		set_error_handler(function(int $num, string $str, string $file, int $line): void {
+		set_error_handler(function (int $num, string $str, string $file, int $line): void {
 			throw new ErrorException($str, 0, $num, $file, $line);
 		});
 		try {
@@ -114,7 +128,7 @@ class BotRunner {
 			return null;
 		}
 		\Safe\fclose($pipes[0]);
-		$gitDescribe = trim(\Safe\stream_get_contents($pipes[1])?:"");
+		$gitDescribe = trim(\Safe\stream_get_contents($pipes[1]) ?: "");
 		\Safe\fclose($pipes[1]);
 		\Safe\fclose($pipes[2]);
 		proc_close($pid);
@@ -138,21 +152,23 @@ class BotRunner {
 			return static::$latestTag = null;
 		}
 		\Safe\fclose($pipes[0]);
-		$tags = explode("\n", trim(\Safe\stream_get_contents($pipes[1])?:""));
+		$tags = explode("\n", trim(\Safe\stream_get_contents($pipes[1]) ?: ""));
+		$tags = array_diff($tags, ["nightly"]);
 		\Safe\fclose($pipes[1]);
 		\Safe\fclose($pipes[2]);
 		proc_close($pid);
 
 		$tags = array_map(
-			function(string $tag): SemanticVersion {
+			function (string $tag): SemanticVersion {
 				return new SemanticVersion($tag);
 			},
 			$tags
 		);
-		/** @var SemanticVersion[] $tags*/
+
+		/** @var SemanticVersion[] $tags */
 		usort(
 			$tags,
-			function(SemanticVersion $v1, SemanticVersion $v2): int {
+			function (SemanticVersion $v1, SemanticVersion $v2): int {
 				return $v1->cmp($v2);
 			}
 		);
@@ -161,7 +177,7 @@ class BotRunner {
 	}
 
 	public function checkRequiredPackages(): void {
-		if (!class_exists("Monolog\\Logger")) {
+		if (!class_exists("Amp\\Loop")) {
 			\Safe\fwrite(
 				STDERR,
 				"Nadybot cannot find all the required composer modules in 'vendor'.\n".
@@ -215,6 +231,127 @@ class BotRunner {
 		exit(1);
 	}
 
+	/** Run the bot in an endless loop */
+	public function run(): void {
+		/** @todo Convert to AMPs sockets to be able to use Ev */
+		putenv('AMP_LOOP_DRIVER=Amp\Loop\NativeDriver');
+		$this->parseOptions();
+		// set default timezone
+		date_default_timezone_set("UTC");
+
+		$config = $this->getConfigFile();
+		Registry::setInstance("configfile", $config);
+		$retryHandler = new HttpRetry(8);
+		Registry::injectDependencies($retryHandler);
+		Registry::setInstance(
+			"HttpClientBuilder",
+			(new HttpClientBuilder())
+				->retry(0)
+				->intercept(new SetRequestHeaderIfUnset("User-Agent", "Nadybot ".self::getVersion()))
+				->intercept($retryHandler)
+		);
+		$this->checkRequiredModules();
+		$this->checkRequiredPackages();
+		$this->createMissingDirs();
+
+		echo $this->getInitialInfoMessage();
+
+		// these must happen first since the classes that are loaded may be used by processes below
+		$this->loadPhpLibraries();
+		if (isset($config->timezone) && @date_default_timezone_set($config->timezone) === false) {
+			die("Invalid timezone: \"{$config->timezone}\"\n");
+		}
+		$logFolderName = "{$config->logsFolder}/{$config->name}.{$config->dimension}";
+
+		$this->setErrorHandling($logFolderName);
+		$this->logger = new LoggerWrapper("Core/BotRunner");
+		Registry::injectDependencies($this->logger);
+
+		if ($this->showSetupDialog()) {
+			$config = $this->getConfigFile();
+		}
+		$this->setWindowTitle($config);
+
+		$version = self::getVersion();
+		$fsDriver = createDefaultDriver();
+		if ($fsDriver instanceof EioDriver) {
+			$fsDriver = new ParallelDriver();
+		}
+		Loop::setState(LOOP_STATE_IDENTIFIER, new Filesystem($fsDriver));
+		$this->logger->notice(
+			"Starting {name} {version} on RK{dimension} using ".
+			"PHP {phpVersion}, {loopType} event loop, ".
+			"{fsType} filesystem, and {dbType}...",
+			[
+				"name" => $config->name,
+				"version" => $version,
+				"dimension" => $config->dimension,
+				"phpVersion" => phpversion(),
+				"loopType" => class_basename(Loop::get()),
+				"fsType" => class_basename($fsDriver),
+				"dbType" => $config->dbType,
+			]
+		);
+
+		$this->classLoader = new ClassLoader($config->moduleLoadPaths);
+		Registry::injectDependencies($this->classLoader);
+		$this->classLoader->loadInstances();
+		$msgHub = Registry::getInstance(MessageHub::class);
+		if (isset($msgHub) && $msgHub instanceof MessageHub) {
+			LegacyLogger::registerMessageEmitters($msgHub);
+		}
+
+		$signalHandler = $this->installCtrlCHandler();
+		$this->connectToDatabase();
+		$this->uninstallCtrlCHandler($signalHandler);
+		$this->prefillSettingProperties();
+
+		Loop::run(function () {
+			yield $this->runUpgradeScripts();
+		});
+		if ((static::$arguments["migrate-only"]??true) === false) {
+			exit(0);
+		}
+
+		[$server, $port] = $this->getServerAndPort($config);
+
+		/** @var Nadybot */
+		$chatBot = Registry::getInstance(Nadybot::class);
+
+		// startup core systems, load modules and call setup methods
+		/** @var DB */
+		$db = Registry::getInstance(DB::class);
+		if ($db->table(CommandManager::DB_TABLE)->exists()) {
+			$this->logger->notice("Initializing modules...");
+		} else {
+			$this->logger->notice("Initializing modules and db tables...");
+		}
+		$chatBot->init($this);
+
+		if ((static::$arguments["setup-only"]??true) === false) {
+			exit(0);
+		}
+
+		// connect to ao chat server
+		$chatBot->connectAO($config->login, $config->password, (string)$server, (int)$port);
+
+		// pass control to Nadybot class
+		$chatBot->run();
+	}
+
+	/** Utility function to check whether the bot is running Windows */
+	public static function isWindows(): bool {
+		return strtoupper(substr(PHP_OS, 0, 3)) === 'WIN';
+	}
+
+	public function getConfigFile(): ConfigFile {
+		if (isset($this->configFile)) {
+			return $this->configFile;
+		}
+		$configFilePath = static::$arguments["c"] ?? "conf/config.php";
+		return $this->configFile = ConfigFile::loadFromFile($configFilePath);
+	}
+
 	/** Install a signal handler that will immediately terminate the bot when ctrl+c is pressed */
 	protected function installCtrlCHandler(): Closure {
 		$signalHandler = function (int $sigNo): void {
@@ -242,6 +379,49 @@ class BotRunner {
 			\Safe\pcntl_signal(SIGINT, SIG_DFL);
 			\Safe\pcntl_signal(SIGTERM, SIG_DFL);
 		}
+	}
+
+	protected function createMissingDirs(): void {
+		$dirVars = ["cacheFolder", "htmlFolder", "dataFolder"];
+		foreach ($dirVars as $var) {
+			$dir = $this->getConfigFile()->{$var};
+			if (is_string($dir) && !@file_exists($dir)) {
+				@mkdir($dir, 0700);
+			}
+		}
+		foreach ($this->getConfigFile()->moduleLoadPaths as $dir) {
+			if (is_string($dir) && !@file_exists($dir)) {
+				@mkdir($dir, 0700);
+			}
+		}
+	}
+
+	/**
+	 * Get AO's chat server hostname and port
+	 *
+	 * @return (string|int)[] [(string)Server, (int)Port]
+	 * @phpstan-return array{string,int}
+	 */
+	protected function getServerAndPort(ConfigFile $config): array {
+		// Choose server
+		if ($config->useProxy) {
+			// For use with the AO chat proxy ONLY!
+			$server = $config->proxyServer;
+			$port = $config->proxyPort;
+		} elseif ($config->dimension === 4) {
+			$server = "chat.dt.funcom.com";
+			$port = 7109;
+		} elseif ($config->dimension === 5) {
+			$server = "chat.d1.funcom.com";
+			$port = 7105;
+		} elseif ($config->dimension === 6) {
+			$server = "chat.d1.funcom.com";
+			$port = 7106;
+		} else {
+			$this->logger->error("No valid server to connect with! Available dimensions are 4, 5, and 6.");
+			die();
+		}
+		return [$server, $port];
 	}
 
 	private function parseOptions(): void {
@@ -293,110 +473,42 @@ class BotRunner {
 	}
 
 	/**
-	 * Run the bot in an endless loop
+	 * Make sure that the values of properties that are linked to settings
+	 * is filled with the last known values from the database
 	 */
-	public function run(): void {
-		$this->parseOptions();
-		// set default timezone
-		date_default_timezone_set("UTC");
-
-		$config = $this->getConfigFile();
-		Registry::setInstance("configfile", $config);
-		$this->checkRequiredModules();
-		$this->checkRequiredPackages();
-		$this->createMissingDirs();
-
-		echo $this->getInitialInfoMessage();
-
-		// these must happen first since the classes that are loaded may be used by processes below
-		$this->loadPhpLibraries();
-		if (isset($config->timezone) && @date_default_timezone_set($config->timezone) === false) {
-			die("Invalid timezone: \"{$config->timezone}\"\n");
-		}
-		$logFolderName = "{$config->logsFolder}/{$config->name}.{$config->dimension}";
-
-		$this->setErrorHandling($logFolderName);
-		$this->logger = new LoggerWrapper("Core/BotRunner");
-		Registry::injectDependencies($this->logger);
-
-		if ($this->showSetupDialog()) {
-			$config = $this->getConfigFile();
-		}
-		$this->setWindowTitle($config);
-
-		$version = self::getVersion();
-		$this->logger->notice(
-			"Starting {name} {version} on RK{dimension} using PHP {phpVersion} and {dbType}...",
-			[
-				"name" => $config->name,
-				"version" => $version,
-				"dimension" => $config->dimension,
-				"phpVersion" => phpversion(),
-				"dbType" => $config->dbType,
-			]
-		);
-
-		$this->classLoader = new ClassLoader($config->moduleLoadPaths);
-		Registry::injectDependencies($this->classLoader);
-		$this->classLoader->loadInstances();
-		$msgHub = Registry::getInstance(MessageHub::class);
-		if (isset($msgHub) && $msgHub instanceof MessageHub) {
-			LegacyLogger::registerMessageEmitters($msgHub);
-		}
-
-		$signalHandler = $this->installCtrlCHandler();
-		$this->connectToDatabase();
-		$this->uninstallCtrlCHandler($signalHandler);
-
-		$this->runUpgradeScripts();
-		if ((static::$arguments["migrate-only"]??true) === false) {
-			exit(0);
-		}
-
-		[$server, $port] = $this->getServerAndPort($config);
-
-		/** @var Nadybot */
-		$chatBot = Registry::getInstance(Nadybot::class);
-
-		// startup core systems, load modules and call setup methods
-		$chatBot->init($this);
-
-		if ((static::$arguments["setup-only"]??true) === false) {
-			exit(0);
-		}
-
-		// connect to ao chat server
-		$chatBot->connectAO($config->login, $config->password, (string)$server, (int)$port);
-
-		// pass control to Nadybot class
-		$chatBot->run();
-	}
-
-	protected function createMissingDirs(): void {
-		$dirVars = ["cacheFolder", "htmlFolder", "dataFolder"];
-		foreach ($dirVars as $var) {
-			$dir = $this->getConfigFile()->{$var};
-			if (is_string($dir) && !@file_exists($dir)) {
-				@mkdir($dir, 0700);
-			}
-		}
-		foreach ($this->getConfigFile()->moduleLoadPaths as $dir) {
-			if (is_string($dir) && !@file_exists($dir)) {
-				@mkdir($dir, 0700);
+	private function prefillSettingProperties(): void {
+		/** @var SettingManager */
+		$settingManager = Registry::getInstance(SettingManager::class);
+		foreach (Registry::getAllInstances() as $name => $instance) {
+			$refObj = new ReflectionObject($instance);
+			foreach ($refObj->getProperties() as $refProp) {
+				foreach ($refProp->getAttributes(NCA\DefineSetting::class, ReflectionAttribute::IS_INSTANCEOF) as $refAttr) {
+					/** @var NCA\DefineSetting */
+					$attr = $refAttr->newInstance();
+					$attr->name ??= Nadybot::toSnakeCase($refProp->getName());
+					try {
+						$value = $settingManager->getTyped($attr->name);
+					} catch (Throwable) {
+						// If the database is initialized for the first time
+						return;
+					}
+					if ($value !== null) {
+						$this->logger->info('Setting {class}::${property} to {value}', [
+							"class" => class_basename($instance),
+							"property" => $refProp->getName(),
+							"value" => json_encode($value, JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES),
+						]);
+						try {
+							$refProp->setValue($instance, $value);
+						} catch (Throwable) {
+						}
+					}
+				}
 			}
 		}
 	}
 
-	/**
-	 * Utility function to check whether the bot is running Windows
-	 */
-	public static function isWindows(): bool {
-		return strtoupper(substr(PHP_OS, 0, 3)) === 'WIN';
-	}
-
-	/**
-	 * Get a message describing the bot's codebase
-	 */
+	/** Get a message describing the bot's codebase */
 	private function getInitialInfoMessage(): string {
 		$version = self::getVersion();
 
@@ -409,33 +521,19 @@ class BotRunner {
 			PHP_EOL;
 	}
 
-	public function getConfigFile(): ConfigFile {
-		if (isset($this->configFile)) {
-			return $this->configFile;
-		}
-		$configFilePath = static::$arguments["c"] ?? "conf/config.php";
-		return $this->configFile = ConfigFile::loadFromFile($configFilePath);
-	}
-
-	/**
-	 * Setup proper error-reporting, -handling and -logging
-	 */
+	/** Setup proper error-reporting, -handling and -logging */
 	private function setErrorHandling(string $logFolderName): void {
 		error_reporting(E_ALL & ~E_STRICT & ~E_WARNING & ~E_NOTICE);
 		\Safe\ini_set("log_errors", "1");
 		\Safe\ini_set('display_errors', "1");
-		\Safe\ini_set("error_log", "${logFolderName}/php_errors.log");
+		\Safe\ini_set("error_log", "{$logFolderName}/php_errors.log");
 	}
 
-	/**
-	 * Load external classes that we need
-	 */
+	/** Load external classes that we need */
 	private function loadPhpLibraries(): void {
 	}
 
-	/**
-	 * Guide customer through setup if needed
-	 */
+	/** Guide customer through setup if needed */
 	private function showSetupDialog(): bool {
 		if (!$this->shouldShowSetup()) {
 			return false;
@@ -446,16 +544,12 @@ class BotRunner {
 		return true;
 	}
 
-	/**
-	 * Is information missing to run the bot?
-	 */
+	/** Is information missing to run the bot? */
 	private function shouldShowSetup(): bool {
 		return empty($this->configFile->login) || empty($this->configFile->password) || empty($this->configFile->name);
 	}
 
-	/**
-	 * Set the title of the command prompt window in Windows
-	 */
+	/** Set the title of the command prompt window in Windows */
 	private function setWindowTitle(ConfigFile $config): void {
 		if ($this->isWindows() === false) {
 			return;
@@ -463,9 +557,7 @@ class BotRunner {
 		\Safe\system("title {$config->name} - Nadybot");
 	}
 
-	/**
-	 * Connect to the database
-	 */
+	/** Connect to the database */
 	private function connectToDatabase(): void {
 		/** @var ?DB */
 		$db = Registry::getInstance(DB::class);
@@ -476,37 +568,14 @@ class BotRunner {
 		$db->connect($config->dbType, $config->dbName, $config->dbHost, $config->dbUsername, $config->dbPassword);
 	}
 
-	/** Run migration scripts to keep the SQL schema up-to-date */
-	private function runUpgradeScripts(): void {
+	/**
+	 * Run migration scripts to keep the SQL schema up-to-date
+	 *
+	 * @return Promise<void>
+	 */
+	private function runUpgradeScripts(): Promise {
 		/** @var DB */
 		$db = Registry::getInstance(DB::class);
-		$db->createDatabaseSchema();
-	}
-
-	/**
-	 * Get AO's chat server hostname and port
-	 * @return (string|int)[] [(string)Server, (int)Port]
-	 * @phpstan-return array{string,int}
-	 */
-	protected function getServerAndPort(ConfigFile $config): array {
-		// Choose server
-		if ($config->useProxy) {
-			// For use with the AO chat proxy ONLY!
-			$server = $config->proxyServer;
-			$port = $config->proxyPort;
-		} elseif ($config->dimension === 4) {
-			$server = "chat.dt.funcom.com";
-			$port = 7109;
-		} elseif ($config->dimension === 5) {
-			$server = "chat.d1.funcom.com";
-			$port = 7105;
-		} elseif ($config->dimension === 6) {
-			$server = "chat.d1.funcom.com";
-			$port = 7106;
-		} else {
-			$this->logger->error("No valid server to connect with! Available dimensions are 4, 5, and 6.");
-			die();
-		}
-		return [$server, $port];
+		return $db->createDatabaseSchema();
 	}
 }

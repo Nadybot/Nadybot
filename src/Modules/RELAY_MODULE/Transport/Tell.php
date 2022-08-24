@@ -2,15 +2,15 @@
 
 namespace Nadybot\Modules\RELAY_MODULE\Transport;
 
-use Exception;
+use function Amp\Promise\rethrow;
+
 use Nadybot\Core\{
-	Attributes as NCA,
 	AOChatEvent,
+	Attributes as NCA,
 	BuddylistManager,
 	EventManager,
 	Nadybot,
 	PacketEvent,
-	Registry,
 	StopExecutionException,
 	UserStateEvent,
 };
@@ -22,8 +22,7 @@ use Nadybot\Modules\RELAY_MODULE\{
 #[
 	NCA\RelayTransport(
 		name: "tell",
-		description:
-			"This is the Anarchy Online private message (tell) protocol.\n".
+		description: "This is the Anarchy Online private message (tell) protocol.\n".
 			"You can use this to relay messages internally inside Anarchy Online\n".
 			"via sending tells. This is the simplest form of relaying messages.\n".
 			"Be aware though, that tells are rate-limited and will very likely\n".
@@ -56,11 +55,6 @@ class Tell implements TransportInterface {
 
 	public function __construct(string $bot) {
 		$bot = ucfirst(strtolower($bot));
-		/** @var Nadybot */
-		$chatBot = Registry::getInstance(Nadybot::class);
-		if ($chatBot->get_uid($bot) === false) {
-			throw new Exception("Unknown user <highlight>{$bot}<end>.");
-		}
 		$this->bot = $bot;
 	}
 
@@ -108,7 +102,7 @@ class Tell implements TransportInterface {
 		if (isset($this->initCallback)) {
 			return;
 		}
-		$this->relay->deinit(function(Relay $relay): void {
+		$this->relay->deinit(function (Relay $relay): void {
 			$relay->init();
 		});
 	}
@@ -121,10 +115,10 @@ class Tell implements TransportInterface {
 			$callback();
 		} else {
 			$this->initCallback = $callback;
-			$this->buddylistManager->add(
+			rethrow($this->buddylistManager->addAsync(
 				$this->bot,
 				$this->relay->getName() . "_relay"
-			);
+			));
 		}
 		return [];
 	}

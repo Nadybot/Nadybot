@@ -6,7 +6,7 @@ use Nadybot\Core\DBRow;
 use Nadybot\Modules\ITEMS_MODULE\Skill;
 
 class SkillIdCount extends DBRow {
-	public int $skill_id ;
+	public int $skill_id;
 	public int $amount;
 	public Skill $skill;
 }

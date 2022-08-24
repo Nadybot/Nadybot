@@ -3,14 +3,12 @@
 namespace Nadybot\Core\Modules\ALTS\Migrations;
 
 use Illuminate\Database\Schema\Blueprint;
-use Nadybot\Core\DB;
-use Nadybot\Core\LoggerWrapper;
-use Nadybot\Core\SchemaMigration;
+use Nadybot\Core\{DB, LoggerWrapper, SchemaMigration};
 
 class AddIndexToMain implements SchemaMigration {
 	public function migrate(LoggerWrapper $logger, DB $db): void {
 		$table = "alts";
-		$db->schema()->table($table, function(Blueprint $table): void {
+		$db->schema()->table($table, function (Blueprint $table): void {
 			$table->string("main", 25)->index()->change();
 		});
 	}

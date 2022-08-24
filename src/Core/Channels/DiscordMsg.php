@@ -2,9 +2,10 @@
 
 namespace Nadybot\Core\Channels;
 
+use Amp\Promise;
 use Nadybot\Core\{
-	Attributes as NCA,
 	AccessManager,
+	Attributes as NCA,
 	MessageHub,
 	MessageReceiver,
 	Modules\DISCORD\DiscordAPIClient,
@@ -78,16 +79,18 @@ class DiscordMsg implements MessageReceiver {
 			$sendersRank = $this->accessManager->getAccessLevelForCharacter($event->char->name);
 			if ($this->accessManager->compareAccessLevels($sendersRank, $minRankForMentions) < 0) {
 				$discordMsg->allowed_mentions = (object)[
-					"parse" => ["users"]
+					"parse" => ["users"],
 				];
 			}
 		}
 
-		//Relay the message to the discord channel
-		if (preg_match("/^\d+$/", $destination)) {
-			$this->discordAPIClient->queueToChannel($destination, $discordMsg->toJSON());
-		} else {
-			$this->discordAPIClient->sendToUser($destination, $discordMsg);
+		foreach ($discordMsg->split() as $msgPart) {
+			// Relay the message to the discord channel
+			if (preg_match("/^\d+$/", $destination)) {
+				Promise\rethrow($this->discordAPIClient->queueToChannel($destination, $msgPart->toJSON()));
+			} else {
+				Promise\rethrow($this->discordAPIClient->sendToUser($destination, $msgPart->toJSON()));
+			}
 		}
 		return true;
 	}

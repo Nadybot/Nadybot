@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\TIMERS_MODULE\Migrations;
 
+use Generator;
 use Illuminate\Database\Schema\Blueprint;
 use Nadybot\Core\{
 	Attributes as NCA,
@@ -27,16 +28,9 @@ class MigrateToRoutes implements SchemaMigration {
 	#[NCA\Inject]
 	public MessageHub $messageHub;
 
-	protected function getSetting(DB $db, string $name): ?Setting {
-		return $db->table(SettingManager::DB_TABLE)
-			->where("name", $name)
-			->asObj(Setting::class)
-			->first();
-	}
-
-	public function migrate(LoggerWrapper $logger, DB $db): void {
+	public function migrate(LoggerWrapper $logger, DB $db): Generator {
 		$table = TimerController::DB_TABLE;
-		$db->schema()->table($table, function(Blueprint $table): void {
+		$db->schema()->table($table, function (Blueprint $table): void {
 			$table->string("mode", 50)->nullable()->change();
 			$table->string("origin", 100)->nullable();
 		});
@@ -60,21 +54,27 @@ class MigrateToRoutes implements SchemaMigration {
 			$defaultMode []= "discord";
 		}
 		$discordChannel = $this->getSetting($db, "discord_notify_channel") ?? null;
-		if (isset($discordChannel) && isset($discordChannel->value) && $discordChannel->value !== 'off') {
-			$this->discordAPIClient->getChannel(
-				$discordChannel->value,
-				[$this, "migrateChannelToRoute"],
-				$db,
-				$table,
-				$defaultMode
-			);
+		if (isset($discordChannel, $discordChannel->value)   && $discordChannel->value !== 'off') {
+			try {
+				/** @var DiscordChannel */
+				$channel = yield $this->discordAPIClient->getChannel($discordChannel->value);
+				$this->migrateChannelToRoute($channel, $db, $table, $defaultMode);
+			} catch (Throwable) {
+			}
 			return;
 		}
 		$this->rewriteTimerMode($db, $table, $defaultMode);
 	}
 
+	protected function getSetting(DB $db, string $name): ?Setting {
+		return $db->table(SettingManager::DB_TABLE)
+			->where("name", $name)
+			->asObj(Setting::class)
+			->first();
+	}
+
 	/** @param string[] $defaultMode */
-	protected function rewriteTimerMode(DB $db, string $table, array $defaultMode, ?string $discord=null): void {
+	private function rewriteTimerMode(DB $db, string $table, array $defaultMode, ?string $discord=null): void {
 		sort($defaultMode);
 		$db->table($table)
 			->get()
@@ -108,7 +108,7 @@ class MigrateToRoutes implements SchemaMigration {
 	}
 
 	/** @param string[] $defaultMode */
-	public function migrateChannelToRoute(DiscordChannel $channel, DB $db, string $table, array $defaultMode): void {
+	private function migrateChannelToRoute(DiscordChannel $channel, DB $db, string $table, array $defaultMode): void {
 		$this->rewriteTimerMode($db, $table, $defaultMode, Source::DISCORD_PRIV . "({$channel->name})");
 		if (!in_array("discord", $defaultMode)) {
 			return;
@@ -120,12 +120,12 @@ class MigrateToRoutes implements SchemaMigration {
 		try {
 			$msgRoute = $this->messageHub->createMessageRoute($route);
 			$this->messageHub->addRoute($msgRoute);
-		} catch (Throwable $e) {
+		} catch (Throwable) {
 			// Ain't nothing we can do, errors will be given on next restart
 		}
 	}
 
-	protected function addRoute(DB $db, string $to): Route {
+	private function addRoute(DB $db, string $to): Route {
 		$route = new Route();
 		$route->source = Source::SYSTEM . "(timers)";
 		$route->destination = $to;

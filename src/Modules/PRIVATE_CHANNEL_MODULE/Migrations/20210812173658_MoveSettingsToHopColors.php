@@ -21,21 +21,6 @@ class MoveSettingsToHopColors implements SchemaMigration {
 	#[NCA\Inject]
 	public MessageHub $messageHub;
 
-	protected function getSettingColor(DB $db, string $name): ?string {
-		/** @var ?Setting */
-		$setting = $db->table(SettingManager::DB_TABLE)
-			->where("name", $name)
-			->asObj(Setting::class)
-			->first();
-		if (!isset($setting) || ($setting->value??"") === "") {
-			return null;
-		}
-		if (preg_match("/#([a-f0-9]{6})/i", $setting->value??"", $matches)) {
-			return $matches[1];
-		}
-		return null;
-	}
-
 	public function migrate(LoggerWrapper $logger, DB $db): void {
 		$hop = [
 			"tag_color" => $this->getSettingColor($db, "guest_color_channel") ?? "C3C3C3",
@@ -52,5 +37,20 @@ class MoveSettingsToHopColors implements SchemaMigration {
 			];
 			$db->table(MessageHub::DB_TABLE_COLORS)->insert($hop);
 		}
+	}
+
+	protected function getSettingColor(DB $db, string $name): ?string {
+		/** @var ?Setting */
+		$setting = $db->table(SettingManager::DB_TABLE)
+			->where("name", $name)
+			->asObj(Setting::class)
+			->first();
+		if (!isset($setting) || ($setting->value??"") === "") {
+			return null;
+		}
+		if (preg_match("/#([a-f0-9]{6})/i", $setting->value??"", $matches)) {
+			return $matches[1];
+		}
+		return null;
 	}
 }

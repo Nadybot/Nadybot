@@ -5,5 +5,7 @@ parameters:
   parallel:
     maximumNumberOfProcesses: 6
   phpVersion: 80100
+  ignoreErrors:
+    - '#Property [a-zA-Z0-9\\_]+::\$.* is never written, only read.#'
 includes:
     - vendor/phpstan/phpstan-deprecation-rules/rules.neon

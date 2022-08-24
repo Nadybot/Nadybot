@@ -2,12 +2,12 @@
 
 namespace Nadybot\Modules\RELAY_MODULE\RelayProtocol\Nadybot;
 
-use Nadybot\Core\Routing\Character;
 use Nadybot\Core\Routing\Source;
 
 class OnlineBlock {
 	/** @var Source[] */
 	public array $path = [];
-	/** @var Character[] */
+
+	/** @var RelayCharacter[] */
 	public array $users = [];
 }

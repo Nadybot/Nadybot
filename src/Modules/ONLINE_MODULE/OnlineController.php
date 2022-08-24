@@ -4,8 +4,8 @@ namespace Nadybot\Modules\ONLINE_MODULE;
 
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
-	AccessManager,
 	AOChatEvent,
+	AccessManager,
 	Attributes as NCA,
 	BuddylistManager,
 	CmdContext,
@@ -13,8 +13,8 @@ use Nadybot\Core\{
 	DB,
 	Event,
 	EventManager,
-	ModuleInstance,
 	LoggerWrapper,
+	ModuleInstance,
 	Modules\ALTS\AltsController,
 	Modules\PLAYER_LOOKUP\PlayerManager,
 	Nadybot,
@@ -30,8 +30,8 @@ use Nadybot\Modules\{
 	DISCORD_GATEWAY_MODULE\DiscordGatewayController,
 	RAID_MODULE\RaidController,
 	RAID_MODULE\RaidRankController,
-	RELAY_MODULE\RelayController,
 	RELAY_MODULE\Relay,
+	RELAY_MODULE\RelayController,
 	WEBSERVER_MODULE\ApiResponse,
 	WEBSERVER_MODULE\HttpProtocolWrapper,
 	WEBSERVER_MODULE\Request,
@@ -64,11 +64,15 @@ use Nadybot\Modules\{
 ]
 class OnlineController extends ModuleInstance {
 	public const CMD_MANAGE_HIDDEN = "online manage hidden users";
+
+	public const DB_TABLE_HIDE = "online_hide_<myname>";
 	protected const GROUP_OFF = 0;
-	protected const GROUP_BY_MAIN = 1;
+	protected const GROUP_BY_PLAYER = 1;
 	protected const GROUP_BY_ORG = 1;
 	protected const GROUP_BY_PROFESSION = 2;
 	protected const GROUP_BY_FACTION = 3;
+	protected const GROUP_BY_MAIN = 4;
+	protected const GROUP_BY_ORG_THEN_MAIN = 5;
 
 	protected const RELAY_OFF = 0;
 	protected const RELAY_YES = 1;
@@ -78,8 +82,6 @@ class OnlineController extends ModuleInstance {
 	protected const RAID_IN = 1;
 	protected const RAID_NOT_IN = 2;
 	protected const RAID_COMPACT = 4;
-
-	public const DB_TABLE_HIDE = "online_hide_<myname>";
 
 	#[NCA\Inject]
 	public DB $db;
@@ -187,20 +189,26 @@ class OnlineController extends ModuleInstance {
 
 	/** Group online list by */
 	#[NCA\Setting\Options(options: [
-		'do not group' => 0,
-		'player' => 1,
-		'profession' => 2,
-		'faction' => 3,
+		'do not group' => self::GROUP_OFF,
+		'player' => self::GROUP_BY_PLAYER,
+		'profession' => self::GROUP_BY_PROFESSION,
+		'faction' => self::GROUP_BY_FACTION,
 	])]
 	public int $onlineGroupBy = 1;
 
 	/** Group relay online list by */
 	#[NCA\Setting\Options(options: [
-		'do not group' => 0,
-		'org' => 1,
-		'profession' => 2,
+		'do not group' => self::GROUP_OFF,
+		'org' => self::GROUP_BY_ORG,
+		'profession' => self::GROUP_BY_PROFESSION,
+		'player' => self::GROUP_BY_MAIN,
+		'org/player' => self::GROUP_BY_ORG_THEN_MAIN,
 	])]
-	public int $onlineRelayGroupBy = 1;
+	public int $onlineRelayGroupBy = self::GROUP_BY_ORG;
+
+	/** Use this bot's main-character for grouping relayed online lists by player */
+	#[NCA\Setting\Boolean]
+	public bool $onlineRelayUseLocalMain = false;
 
 	/** Show players in discord voice channels */
 	#[NCA\Setting\Boolean]
@@ -299,6 +307,7 @@ class OnlineController extends ModuleInstance {
 		string $mask
 	): void {
 		$mask = strtolower($mask);
+
 		/** @var Collection<OnlineHide> */
 		$masks = new Collection($this->getHiddenPlayerMasks());
 		if ($masks->where("mask", $mask)->isNotEmpty()) {
@@ -374,10 +383,12 @@ class OnlineController extends ModuleInstance {
 
 		$onlineChars = $this->db->table("online")->asObj(Online::class);
 		$onlineByName = $onlineChars->keyBy("name");
+
 		/** @var Collection<string> */
 		$mains = $onlineChars->map(function (Online $online): string {
 			return $this->altsController->getMainOf($online->name);
 		})->unique();
+
 		/** @var Collection<OnlinePlayer> */
 		$players = new Collection();
 		foreach ($mains as $main) {
@@ -401,14 +412,14 @@ class OnlineController extends ModuleInstance {
 		$blob = "";
 
 		if ($count === 0) {
-			$msg = "$profession Search Results (0)";
+			$msg = "{$profession} Search Results (0)";
 			$context->reply($msg);
 			return;
 		}
 		foreach ($players as $player) {
 			if ($currentMain !== $player->pmain) {
 				$mainCount++;
-				$blob .= "\n<highlight>$player->pmain<end> has\n";
+				$blob .= "\n<highlight>{$player->pmain}<end> has\n";
 				$currentMain = $player->pmain;
 			}
 
@@ -417,11 +428,11 @@ class OnlineController extends ModuleInstance {
 				$playerName = $this->text->makeChatcmd($player->name, "/tell {$player->name}");
 			}
 			if ($player->profession === null) {
-				$blob .= "<tab>($playerName)\n";
+				$blob .= "<tab>({$playerName})\n";
 			} else {
 				$prof = $this->util->getProfessionAbbreviation($player->profession);
 				$profIcon = "<img src=tdb://id:GFX_GUI_ICON_PROFESSION_".($this->getProfessionId($player->profession)??0).">";
-				$blob.= "<tab>$profIcon $playerName - $player->level/<green>$player->ai_level<end> $prof";
+				$blob.= "<tab>{$profIcon} {$playerName} - {$player->level}/<green>{$player->ai_level}<end> {$prof}";
 			}
 			if ($player->online) {
 				$blob .= " <on>Online<end>";
@@ -429,7 +440,7 @@ class OnlineController extends ModuleInstance {
 			$blob .= "\n";
 		}
 		$blob .= "\nWritten by Naturarum (RK2)";
-		$msg = $this->text->makeBlob("$profession Search Results ($mainCount)", $blob);
+		$msg = $this->text->makeBlob("{$profession} Search Results ({$mainCount})", $blob);
 
 		$context->reply($msg);
 	}
@@ -495,6 +506,7 @@ class OnlineController extends ModuleInstance {
 		if (!$this->chatBot->isReady()) {
 			return;
 		}
+
 		/** @var Collection<Online> */
 		$data = $this->db->table("online")
 			->asObj(Online::class);
@@ -511,7 +523,7 @@ class OnlineController extends ModuleInstance {
 					$privArray []= $row->name;
 					break;
 				default:
-					$this->logger->warning("Unknown channel type: '$row->channel_type'. Expected: 'guild' or 'priv'");
+					$this->logger->warning("Unknown channel type: '{$row->channel_type}'. Expected: 'guild' or 'priv'");
 			}
 		}
 
@@ -529,7 +541,7 @@ class OnlineController extends ModuleInstance {
 							"channel" => $this->db->getMyguild(),
 							"channel_type" => "guild",
 							"added_by" => $this->db->getBotname(),
-							"dt" => $time
+							"dt" => $time,
 						]);
 				}
 			}
@@ -537,22 +549,22 @@ class OnlineController extends ModuleInstance {
 
 		foreach ($this->chatBot->chatlist as $name => $value) {
 			if (in_array($name, $privArray)) {
-					$this->buildOnlineQuery($name, "priv")
+				$this->buildOnlineQuery($name, "priv")
 						->update(["dt" => $time]);
 			} else {
-					$this->db->table("online")
+				$this->db->table("online")
 						->insert([
 							"name" => $name,
 							"channel" => $this->db->getMyguild() . " Guests",
 							"channel_type" => "priv",
 							"added_by" => $this->db->getBotname(),
-							"dt" => $time
+							"dt" => $time,
 						]);
 			}
 		}
 
 		$this->db->table("online")
-			->where(function(QueryBuilder $query) use ($time) {
+			->where(function (QueryBuilder $query) use ($time) {
 				$query->where("dt", "<", $time)
 					->where("added_by", $this->db->getBotname());
 			})->orWhere("dt", "<", $time - $this->onlineExpire)
@@ -609,9 +621,7 @@ class OnlineController extends ModuleInstance {
 		$this->afk($eventObj->sender, $eventObj->message, $eventObj->type);
 	}
 
-	/**
-	 * Set someone back from afk if needed
-	 */
+	/** Set someone back from afk if needed */
 	public function afkCheck(int|string $sender, string $message, string $type): void {
 		// to stop raising and lowering the cloak messages from triggering afk check
 		if (!is_string($sender) || !$this->util->isValidSender($sender)) {
@@ -619,13 +629,14 @@ class OnlineController extends ModuleInstance {
 		}
 
 		$symbol = $this->settingManager->getString('symbol');
-		if (preg_match("/^\Q$symbol\E?afk(.*)$/i", $message)) {
+		if (preg_match("/^\Q{$symbol}\E?afk(.*)$/i", $message)) {
 			return;
 		}
+
 		/** @var ?string */
 		$afk = $this->buildOnlineQuery($sender, $type)
 			->select("afk")
-			->pluckAs("afk", "string")->first();
+			->pluckStrings("afk")->first();
 
 		if ($afk === null || $afk === '') {
 			return;
@@ -635,7 +646,7 @@ class OnlineController extends ModuleInstance {
 		// $sender is back
 		$this->buildOnlineQuery($sender, $type)
 			->update(["afk" => ""]);
-		$msg = "<highlight>{$sender}<end> is back after $timeString.";
+		$msg = "<highlight>{$sender}<end> is back after {$timeString}.";
 
 		if ('priv' == $type) {
 			$this->chatBot->sendPrivate($msg);
@@ -651,17 +662,17 @@ class OnlineController extends ModuleInstance {
 		if ($this->afkBrbWithoutSymbol) {
 			$symbolModifier = "?";
 		}
-		if (preg_match("/^\Q$symbol\E${symbolModifier}afk$/i", $message)) {
+		if (preg_match("/^\Q{$symbol}\E{$symbolModifier}afk$/i", $message)) {
 			$reason = (string)time();
 			$this->buildOnlineQuery($sender, $type)->update(["afk" => $reason]);
-			$msg = "<highlight>$sender<end> is now AFK.";
-		} elseif (preg_match("/^\Q$symbol\E${symbolModifier}brb(.*)$/i", $message, $arr)) {
+			$msg = "<highlight>{$sender}<end> is now AFK.";
+		} elseif (preg_match("/^\Q{$symbol}\E{$symbolModifier}brb(.*)$/i", $message, $arr)) {
 			$reason = time() . '|brb ' . trim($arr[1]);
 			$this->buildOnlineQuery($sender, $type)->update(["afk" => $reason]);
-		} elseif (preg_match("/^\Q$symbol\E${symbolModifier}afk[, ]+(.*)$/i", $message, $arr)) {
+		} elseif (preg_match("/^\Q{$symbol}\E{$symbolModifier}afk[, ]+(.*)$/i", $message, $arr)) {
 			$reason = time() . '|' . $arr[1];
 			$this->buildOnlineQuery($sender, $type)->update(["afk" => $reason]);
-			$msg = "<highlight>$sender<end> is now AFK.";
+			$msg = "<highlight>{$sender}<end> is now AFK.";
 		}
 
 		if ($msg !== null) {
@@ -688,7 +699,7 @@ class OnlineController extends ModuleInstance {
 					"channel" => $channel,
 					"channel_type" => $channelType,
 					"added_by" => $this->db->getBotname(),
-					"dt" => time()
+					"dt" => time(),
 				]);
 		}
 		$op = new OnlinePlayer();
@@ -707,65 +718,6 @@ class OnlineController extends ModuleInstance {
 		$this->buildOnlineQuery($sender, $channelType)->delete();
 	}
 
-	/**
-	 * Group the relay online list as configured
-	 * @param array<string,Relay> $relays
-	 * @return array<string,OnlinePlayer[]>
-	 */
-	protected function groupRelayList(array $relays): array {
-		$groupBy = $this->onlineRelayGroupBy;
-		if ($groupBy === self::GROUP_OFF) {
-			$key = 'Alliance';
-		}
-		$result = [];
-		foreach ($this->relayController->relays as $name => $relay) {
-			$this->logger->info("Getting online list for relay {relay}", [
-				"relay" => $relay->getName(),
-			]);
-			$online = $relay->getOnlineList();
-			$this->logger->info("Got {numOnline} characters online in total on {relay}", [
-				"numOnline" => array_sum(array_map("count", array_values($online))),
-				"relay" => $relay->getName(),
-			]);
-			foreach ($online as $chanName => $onlineChars) {
-				$this->logger->info("{numOnline} characters online in {relay}.{channel}", [
-					"relay" => $relay->getName(),
-					"channel" => $chanName,
-					"numOnline" => count($onlineChars),
-					"characters" => $onlineChars,
-				]);
-				$key = "";
-				if ($groupBy === self::GROUP_BY_ORG) {
-					$key = $chanName;
-				}
-				$chars = array_values($onlineChars);
-				foreach ($chars as $char) {
-					if ($groupBy === self::GROUP_BY_PROFESSION) {
-						$key = $char->profession ?? "Unknown";
-						$profIcon = "?";
-						if ($char->profession !== null) {
-							$profIcon = "<img src=tdb://id:GFX_GUI_ICON_PROFESSION_".($this->getProfessionId($char->profession)??0).">";
-						}
-						$key = "{$profIcon} {$key}";
-					}
-					$result[$key] ??= [];
-					$result[$key][$char->name] = $char;
-				}
-			}
-		}
-		foreach ($result as $key => &$chars) {
-			$chars = array_values($chars);
-			usort($chars, function(OnlinePlayer $a, OnlinePlayer $b): int {
-				return strcasecmp($a->name, $b->name);
-			});
-		}
-		uksort($result, function (string $a, string $b): int {
-			return strcasecmp(strip_tags($a), strip_tags($b));
-		});
-
-		return $result;
-	}
-
 	/** @return OnlineHide[] */
 	public function getHiddenPlayerMasks(): array {
 		return $this->db->table(self::DB_TABLE_HIDE)
@@ -777,6 +729,7 @@ class OnlineController extends ModuleInstance {
 	 * Remove all hidden characters from the list
 	 *
 	 * @param OnlinePlayer[] $characters
+	 *
 	 * @return OnlinePlayer[]
 	 */
 	public function filterHiddenCharacters(array $characters, string $group): array {
@@ -791,32 +744,11 @@ class OnlineController extends ModuleInstance {
 	}
 
 	/**
-	 * @param OnlineHide[] $hiddenMasks
-	 */
-	private function charOnHiddenList(string $group, OnlinePlayer $char, array $hiddenMasks): bool {
-		foreach ($hiddenMasks as $mask) {
-			$fullName = $char->name;
-			if (str_contains($mask->mask, ".") && isset($char->guild)) {
-				$fullName = "{$group}.{$fullName}";
-			}
-			$matches = fnmatch($mask->mask, $fullName, FNM_CASEFOLD);
-			$this->logger->info("Checking mask {mask} against {fullName}: {result}", [
-				"mask" => $mask->mask,
-				"fullName" => $fullName,
-				"result" => $matches ? "match" : "no match"
-			]);
-			if ($matches) {
-				return true;
-			}
-		}
-		return false;
-	}
-
-	/**
 	 * Get a page or multiple pages with the online list
+	 *
 	 * @return string[]
 	 */
-	public function getOnlineList(int $includeRelay=null): array {
+	public function getOnlineList(?int $includeRelay=null): array {
 		$includeRelay ??= $this->onlineShowRelay;
 		$orgData = $this->filterHiddenCharacters($this->getPlayers('guild'), $this->config->orgName);
 		$orgList = $this->formatData($orgData, $this->onlineShowOrgGuild);
@@ -825,12 +757,17 @@ class OnlineController extends ModuleInstance {
 		$privList = $this->formatData($privData, $this->onlineShowOrgPriv);
 
 		$relayGrouped = $this->groupRelayList($this->relayController->relays);
+
 		/** @var array<string,OnlineList> */
 		$relayList = [];
 		$relayOrgInfo = $this->onlineShowOrgGuildRelay;
 		foreach ($relayGrouped as $group => $chars) {
 			$chars = $this->filterHiddenCharacters($chars, $group);
-			$relayList[$group] = $this->formatData($chars, $relayOrgInfo, static::GROUP_OFF);
+			$groupBy = static::GROUP_OFF;
+			if ($this->onlineRelayGroupBy === self::GROUP_BY_ORG_THEN_MAIN) {
+				$groupBy = static::GROUP_BY_PLAYER;
+			}
+			$relayList[$group] = $this->formatData($chars, $relayOrgInfo, $groupBy);
 		}
 
 		$discData = [];
@@ -843,12 +780,12 @@ class OnlineController extends ModuleInstance {
 
 		$blob = "\n";
 		if ($orgList->count > 0) {
-			$blob .= "<header2>Org Channel ($orgList->countMains)<end>\n";
+			$blob .= "<header2>Org Channel ({$orgList->countMains})<end>\n";
 			$blob .= $orgList->blob;
 			$blob .= "\n\n";
 		}
 		if ($privList->count > 0) {
-			$blob .= "<header2>Private Channel ($privList->countMains)<end>\n";
+			$blob .= "<header2>Private Channel ({$privList->countMains})<end>\n";
 			$blob .= $privList->blob;
 			$blob .= "\n\n";
 		}
@@ -875,9 +812,16 @@ class OnlineController extends ModuleInstance {
 		if ($includeRelay !== self::RELAY_OFF) {
 			foreach ($relayList as $chanName => $chanList) {
 				if ($chanList->count > 0) {
-					$part = "<header2>{$chanName} ({$chanList->count})<end>\n".
-						$chanList->blob ."\n";
-					if ($includeRelay === self::RELAY_YES) {
+					if ($this->onlineRelayGroupBy === self::GROUP_BY_MAIN) {
+						$part = "<highlight>{$chanName}<end> on\n".
+							$chanList->blob ."\n";
+					} else {
+						$part = "<header2>{$chanName} ({$chanList->count})<end>\n".
+							$chanList->blob ."\n";
+					}
+					if ($this->onlineRelayGroupBy === self::GROUP_BY_MAIN) {
+						$blob2 .= $part;
+					} elseif ($includeRelay === self::RELAY_YES) {
 						$blob .= $part;
 					} elseif ($includeRelay === self::RELAY_SEPARATE) {
 						$blob2 .= $part;
@@ -887,6 +831,12 @@ class OnlineController extends ModuleInstance {
 				}
 			}
 		}
+		if ($this->onlineRelayGroupBy === self::GROUP_BY_MAIN
+			&& $includeRelay === self::RELAY_YES
+			&& $allianceTotalMain > 0
+		) {
+			$blob .= "<header2>Alliance ({$allianceTotalMain})<end>\n\n" . $blob2;
+		}
 		if ($includeRelay !== self::RELAY_SEPARATE) {
 			$totalCount += $allianceTotalCount;
 			$totalMain += $allianceTotalMain;
@@ -895,10 +845,10 @@ class OnlineController extends ModuleInstance {
 		$msg = [];
 		if ($totalCount > 0) {
 			$blob .= "Originally written by Naturarum (RK2)";
-			$msg = (array)$this->text->makeBlob("Players Online ($totalMain)", $blob);
+			$msg = (array)$this->text->makeBlob("Players Online ({$totalMain})", $blob);
 		}
 		if ($allianceTotalCount > 0 && $includeRelay === self::RELAY_SEPARATE) {
-			$allianceMsg = (array)$this->text->makeBlob("Players Online in alliance ($allianceTotalMain)", $blob2);
+			$allianceMsg = (array)$this->text->makeBlob("Players Online in alliance ({$allianceTotalMain})", $blob2);
 			$msg = array_merge($msg, $allianceMsg);
 		}
 		if (empty($msg)) {
@@ -910,11 +860,11 @@ class OnlineController extends ModuleInstance {
 	public function getOrgInfo(int $showOrgInfo, string $fancyColon, string $guild, string $guild_rank): string {
 		switch ($showOrgInfo) {
 			case 3:
-				return $guild !== "" ? " $fancyColon {$guild}":" $fancyColon Not in an org";
+				return $guild !== "" ? " {$fancyColon} {$guild}" : " {$fancyColon} Not in an org";
 			case 2:
-				return $guild !== "" ? " $fancyColon {$guild} ({$guild_rank})":" $fancyColon Not in an org";
+				return $guild !== "" ? " {$fancyColon} {$guild} ({$guild_rank})" : " {$fancyColon} Not in an org";
 			case 1:
-				return $guild !== "" ? " $fancyColon {$guild_rank}":"";
+				return $guild !== "" ? " {$fancyColon} {$guild_rank}" : "";
 			default:
 				return "";
 		}
@@ -929,18 +879,18 @@ class OnlineController extends ModuleInstance {
 		$displayName = ucfirst($this->accessManager->getDisplayName($accessLevel));
 		switch ($accessLevel) {
 			case 'superadmin':
-				return " $fancyColon {$this->rankColorSuperadmin}{$displayName}<end>";
+				return " {$fancyColon} {$this->rankColorSuperadmin}{$displayName}<end>";
 			case 'admin':
-				return " $fancyColon {$this->rankColorAdmin}{$displayName}<end>";
+				return " {$fancyColon} {$this->rankColorAdmin}{$displayName}<end>";
 			case 'mod':
-				return " $fancyColon {$this->rankColorMod}{$displayName}<end>";
+				return " {$fancyColon} {$this->rankColorMod}{$displayName}<end>";
 			case 'rl':
-				return " $fancyColon {$this->rankColorRL}{$displayName}<end>";
+				return " {$fancyColon} {$this->rankColorRL}{$displayName}<end>";
 		}
 		$raidRank = $this->raidRankController->getSingleAccessLevel($name);
 		if (isset($raidRank)) {
 			$displayName = ucfirst($this->accessManager->getDisplayName($raidRank));
-			return " $fancyColon {$this->rankColorRaid}{$displayName}<end>";
+			return " {$fancyColon} {$this->rankColorRaid}{$displayName}<end>";
 		}
 		return "";
 	}
@@ -965,12 +915,12 @@ class OnlineController extends ModuleInstance {
 			if ($mode & static::RAID_COMPACT) {
 				return ["[<on>R<end>] ", ""];
 			}
-			return ["", " $fancyColon <on>in raid<end>"];
+			return ["", " {$fancyColon} <on>in raid<end>"];
 		} elseif (($mode & static::RAID_NOT_IN) && !$inRaid) {
 			if ($mode & static::RAID_COMPACT) {
 				return ["[<off>R<end>] ", ""];
 			}
-			return ["", " $fancyColon <off>not in raid<end>"];
+			return ["", " {$fancyColon} <off>not in raid<end>"];
 		}
 		return ["", ""];
 	}
@@ -982,17 +932,13 @@ class OnlineController extends ModuleInstance {
 		$props = explode("|", $afk, 2);
 		if (count($props) === 1 || !strlen($props[1])) {
 			$timeString = $this->util->unixtimeToReadable(time() - (int)$props[0], false);
-			return " $fancyColon <highlight>AFK for $timeString<end>";
+			return " {$fancyColon} <highlight>AFK for {$timeString}<end>";
 		}
 		$timeString = $this->util->unixtimeToReadable(time() - (int)$props[0], false);
-		return " $fancyColon <highlight>AFK for $timeString: {$props[1]}<end>";
+		return " {$fancyColon} <highlight>AFK for {$timeString}: {$props[1]}<end>";
 	}
 
-	/**
-	 * @param OnlinePlayer[] $players
-	 * @param int $showOrgInfo
-	 * @return OnlineList
-	 */
+	/** @param OnlinePlayer[] $players */
 	public function formatData(array $players, int $showOrgInfo, ?int $groupBy=null): OnlineList {
 		$currentGroup = "";
 		$separator = "-";
@@ -1014,10 +960,10 @@ class OnlineController extends ModuleInstance {
 			}
 		}
 		foreach ($players as $player) {
-			if ($groupBy === static::GROUP_BY_MAIN) {
+			if ($groupBy === static::GROUP_BY_PLAYER) {
 				if ($currentGroup !== $player->pmain) {
 					$list->countMains++;
-					$list->blob .= "\n<pagebreak><highlight>$player->pmain<end> on\n";
+					$list->blob .= "\n<pagebreak><highlight>{$player->pmain}<end> on\n";
 					$currentGroup = $player->pmain;
 				}
 			} elseif ($groupBy === static::GROUP_BY_PROFESSION) {
@@ -1050,7 +996,7 @@ class OnlineController extends ModuleInstance {
 			} else {
 				$prof = $this->util->getProfessionAbbreviation($player->profession);
 				$orgRank = "";
-				if (isset($player->guild) && isset($player->guild_rank)) {
+				if (isset($player->guild, $player->guild_rank)) {
 					$orgRank = $this->getOrgInfo($showOrgInfo, $separator, $player->guild, $player->guild_rank);
 				}
 				$profIcon = "";
@@ -1064,9 +1010,7 @@ class OnlineController extends ModuleInstance {
 		return $list;
 	}
 
-	/**
-	 * @return OnlinePlayer[]
-	 */
+	/** @return OnlinePlayer[] */
 	public function getPlayers(string $channelType, ?string $limitToBot=null): array {
 		$query = $this->db->table("online AS o")
 			->where("o.channel_type", $channelType);
@@ -1086,7 +1030,7 @@ class OnlineController extends ModuleInstance {
 		});
 
 		$groupBy = $this->onlineGroupBy;
-		if ($groupBy === static::GROUP_BY_MAIN) {
+		if ($groupBy === static::GROUP_BY_PLAYER) {
 			$op = $op->sortBy("pmain");
 		} elseif ($groupBy === static::GROUP_BY_PROFESSION) {
 			$op = $op->sortBy("name")->sortBy("profession");
@@ -1118,9 +1062,7 @@ class OnlineController extends ModuleInstance {
 		return $profToID[$profession] ?? null;
 	}
 
-	/**
-	 * Get a list of all people online in all linked channels
-	 */
+	/** Get a list of all people online in all linked channels */
 	#[
 		NCA\Api("/online"),
 		NCA\GET,
@@ -1132,5 +1074,112 @@ class OnlineController extends ModuleInstance {
 		$result->org = $this->getPlayers('guild');
 		$result->private_channel = $this->getPlayers('priv');
 		return new ApiResponse($result);
+	}
+
+	/**
+	 * Group the relay online list as configured
+	 *
+	 * @param array<string,Relay> $relays
+	 *
+	 * @return array<string,OnlinePlayer[]>
+	 */
+	protected function groupRelayList(array $relays): array {
+		$groupBy = $this->onlineRelayGroupBy;
+		$result = [];
+		foreach ($this->relayController->relays as $relayKey => $relay) {
+			$this->logger->info("Getting online list for relay {relay}", [
+				"relay" => $relay->getName(),
+			]);
+			$online = $relay->getOnlineList();
+			if ($this->onlineRelayUseLocalMain) {
+				$online = $this->getLocalAltsForRemote($online);
+			}
+			$this->logger->info("Got {numOnline} characters online in total on {relay}", [
+				"numOnline" => array_sum(array_map("count", array_values($online))),
+				"relay" => $relay->getName(),
+			]);
+			foreach ($online as $chanName => $onlineChars) {
+				$this->logger->info("{numOnline} characters online in {relay}.{channel}", [
+					"relay" => $relay->getName(),
+					"channel" => $chanName,
+					"numOnline" => count($onlineChars),
+					"characters" => $onlineChars,
+				]);
+				$key = "";
+				if ($groupBy === self::GROUP_OFF) {
+					$key = 'Alliance';
+				} elseif ($groupBy === self::GROUP_BY_ORG || $groupBy === self::GROUP_BY_ORG_THEN_MAIN) {
+					$key = $chanName;
+				}
+				$chars = array_values($onlineChars);
+				foreach ($chars as $char) {
+					if ($groupBy === self::GROUP_BY_PROFESSION) {
+						$key = $char->profession ?? "Unknown";
+						$profIcon = "?";
+						if ($char->profession !== null) {
+							$profIcon = "<img src=tdb://id:GFX_GUI_ICON_PROFESSION_".($this->getProfessionId($char->profession)??0).">";
+						}
+						$key = "{$profIcon} {$key}";
+					} elseif ($groupBy === self::GROUP_BY_MAIN) {
+						$key = $char->pmain ?? $char->name;
+					}
+					$result[$key] ??= [];
+					$result[$key][$char->name] = $char;
+				}
+			}
+		}
+		foreach ($result as $key => &$chars) {
+			$chars = array_values($chars);
+			usort($chars, function (OnlinePlayer $a, OnlinePlayer $b): int {
+				return strcasecmp($a->name, $b->name);
+			});
+		}
+		uksort($result, function (string $a, string $b): int {
+			return strcasecmp(strip_tags($a), strip_tags($b));
+		});
+
+		return $result;
+	}
+
+	/**
+	 * Replace the main of each character in a relay online list with
+	 * this bot's known main of that main.
+	 *
+	 * @param array<string,array<string,OnlinePlayer>> $onlineChars
+	 *
+	 * @return array<string,array<string,OnlinePlayer>>
+	 */
+	private function getLocalAltsForRemote(array $onlineChars): array {
+		$result = [];
+		foreach ($onlineChars as $relay => $charLists) {
+			$result[$relay] = [];
+			foreach ($charLists as $name => $char) {
+				$newChar = clone $char;
+				$main = $this->altsController->getMainOf($char->pmain);
+				$newChar->pmain = $main;
+				$result[$relay][$name] = $newChar;
+			}
+		}
+		return $result;
+	}
+
+	/** @param OnlineHide[] $hiddenMasks */
+	private function charOnHiddenList(string $group, OnlinePlayer $char, array $hiddenMasks): bool {
+		foreach ($hiddenMasks as $mask) {
+			$fullName = $char->name;
+			if (str_contains($mask->mask, ".") && isset($char->guild)) {
+				$fullName = "{$group}.{$fullName}";
+			}
+			$matches = fnmatch($mask->mask, $fullName, FNM_CASEFOLD);
+			$this->logger->info("Checking mask {mask} against {fullName}: {result}", [
+				"mask" => $mask->mask,
+				"fullName" => $fullName,
+				"result" => $matches ? "match" : "no match",
+			]);
+			if ($matches) {
+				return true;
+			}
+		}
+		return false;
 	}
 }

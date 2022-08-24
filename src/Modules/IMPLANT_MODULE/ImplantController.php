@@ -24,12 +24,6 @@ use Nadybot\Core\{
 	)
 ]
 class ImplantController extends ModuleInstance {
-	#[NCA\Inject]
-	public Nadybot $chatBot;
-
-	#[NCA\Inject]
-	public Text $text;
-
 	public const FADED = 0;
 	public const BRIGHT = 1;
 	public const SHINY = 2;
@@ -40,39 +34,46 @@ class ImplantController extends ModuleInstance {
 
 	public const REGULAR = 'reqRegular';
 	public const JOBE = 'reqJobe';
+	#[NCA\Inject]
+	public Nadybot $chatBot;
+
+	#[NCA\Inject]
+	public Text $text;
 
 	/** @var array<string,array<int,int[]>> */
 	protected array $implantBreakpoints = [
 		'skills' => [
-			  1 => [ 2,  3,   6],
+			  1 => [2,  3,   6],
 			200 => [42, 63, 105],
 			201 => [42, 63, 106],
 			300 => [57, 85, 141],
 		],
 		'abilities' => [
-			  1 => [ 2,  3,  5],
+			  1 => [2,  3,  5],
 			200 => [22, 33, 55],
 			201 => [22, 33, 55],
 			300 => [29, 44, 73],
 		],
 		'reqRegular' => [
-			  1 => [   6,   11, 0],
-			200 => [ 404,  951, 0],
-			201 => [ 426, 1001, 0],
+			  1 => [6,   11, 0],
+			200 => [404,  951, 0],
+			201 => [426, 1001, 0],
 			300 => [1095, 2051, 0],
 		],
 		'reqJobe' => [
-			  1 => [  16,   11, 3],
-			200 => [ 414, 1005, 4],
-			201 => [ 476, 1001, 5],
+			  1 => [16,   11, 3],
+			200 => [414, 1005, 4],
+			201 => [476, 1001, 5],
 			300 => [1231, 2051, 6],
 		],
 	];
 
 	/**
 	 * Try to determine the bonus for an interpolated QL
-	 * @param array<int,int> $itemSpecs An associative array [QLX => bonus X, QLY => bonus Y]
-	 * @param int $searchedQL The QL we want to interpolate to
+	 *
+	 * @param array<int,int> $itemSpecs  An associative array [QLX => bonus X, QLY => bonus Y]
+	 * @param int            $searchedQL The QL we want to interpolate to
+	 *
 	 * @return int|null The interpolated bonus at the given QL or null if out of range
 	 */
 	public function calcStatFromQL(array $itemSpecs, int $searchedQL): ?int {
@@ -83,10 +84,9 @@ class ImplantController extends ModuleInstance {
 			} else {
 				if ($lastSpec[0] <= $searchedQL && $itemQL >= $searchedQL) {
 					$multi = (1 / ($itemQL - $lastSpec[0]));
-					return (int)round($lastSpec[1] + ( ($itemBonus-$lastSpec[1]) * ($multi *($searchedQL-($lastSpec[0]-1)-1))));
-				} else {
-					$lastSpec = [$itemQL, $itemBonus];
+					return (int)round($lastSpec[1] + (($itemBonus-$lastSpec[1]) * ($multi *($searchedQL-($lastSpec[0]-1)-1))));
 				}
+				$lastSpec = [$itemQL, $itemBonus];
 			}
 		}
 		return null;
@@ -94,8 +94,10 @@ class ImplantController extends ModuleInstance {
 
 	/**
 	 * Try to find the lowest QL that gives a bonus
-	 * @param int   $bonus     The bonus you want to reach
+	 *
+	 * @param int            $bonus     The bonus you want to reach
 	 * @param array<int,int> $itemSpecs An associative array with ql => bonus
+	 *
 	 * @return int The lowest QL that gives that bonus
 	 */
 	public function findBestQLForBonus(int $bonus, array $itemSpecs): int {
@@ -115,28 +117,12 @@ class ImplantController extends ModuleInstance {
 	}
 
 	/**
-	 * Get a single breakpoint-spec from the internal breakpoint list
-	 * @param string $type     The name of the breakpoint ("abilities", "reqRegular", ...)
-	 * @param int    $position The position in the list (usually 0, 1 or 2)
-	 * @return array<int,int> An associative array in the form [QL => bonus/requirement]
-	 * @phpstan-return non-empty-array<int,int> An associative array in the form [QL => bonus/requirement]
-	 */
-	protected function getBreakpoints(string $type, int $position): array {
-		/** @phpstan-var non-empty-array<int,int> */
-		$breakPoints = array_map(
-			function(array $item) use ($position) {
-				return $item[$position];
-			},
-			$this->implantBreakpoints[$type]
-		);
-		return $breakPoints;
-	}
-
-	/**
 	 * Find the highest implant QL you can equip with given attribute and treatment
+	 *
 	 * @param int    $attributeLevel How much of the implant's attribute do you have?
 	 * @param int    $treatmentLevel How much treatment do you have?
 	 * @param string $type           self::REGULAR or self::JOBE
+	 *
 	 * @return int The highest usable implant QL
 	 */
 	public function findHighestImplantQL(int $attributeLevel, int $treatmentLevel, string $type): int {
@@ -150,8 +136,10 @@ class ImplantController extends ModuleInstance {
 
 	/**
 	 * Find the highest regular implant QL you can equip with given attribute and treatment
+	 *
 	 * @param int $attributeLevel How much of the implant's attribute do you have?
 	 * @param int $treatmentLevel How much treatment do you have?
+	 *
 	 * @return int The highest usable regular implant QL
 	 */
 	public function findHighestRegularImplantQL(int $attributeLevel, int $treatmentLevel): int {
@@ -160,8 +148,10 @@ class ImplantController extends ModuleInstance {
 
 	/**
 	 * Find the highest Jobe Implant QL you can equip with given attribute and treatment
-	 * @param int    $attributeLevel How much of the implant's attribute do you have?
-	 * @param int    $treatmentLevel How much treatment do you have?
+	 *
+	 * @param int $attributeLevel How much of the implant's attribute do you have?
+	 * @param int $treatmentLevel How much treatment do you have?
+	 *
 	 * @return int The highest usable Jobe Implant QL
 	 */
 	public function findHighestJobeImplantQL(int $attributeLevel, int $treatmentLevel): int {
@@ -193,12 +183,12 @@ class ImplantController extends ModuleInstance {
 
 		$regularBlob = $this->renderBlob(self::REGULAR, $regularQL)[0];
 
-		$msg = "With <highlight>$attrib<end> Ability ".
-			"and <highlight>$treatment<end> Treatment, ".
-			"the highest possible $regularBlob is QL <highlight>$regularQL<end>";
+		$msg = "With <highlight>{$attrib}<end> Ability ".
+			"and <highlight>{$treatment}<end> Treatment, ".
+			"the highest possible {$regularBlob} is QL <highlight>{$regularQL}<end>";
 		if ($jobeQL >= 100) {
 			$jobeBlob = $this->renderBlob(self::JOBE, $jobeQL)[0];
-			$msg .= " and the highest possible $jobeBlob is QL <highlight>$jobeQL<end>";
+			$msg .= " and the highest possible {$jobeBlob} is QL <highlight>{$jobeQL}<end>";
 		}
 
 		$context->reply($msg . ".");
@@ -215,43 +205,21 @@ class ImplantController extends ModuleInstance {
 
 		$regularBlob = $this->renderBlob(self::REGULAR, $ql)[0];
 
-		$msg = "QL <highlight>$ql<end> $regularBlob details";
+		$msg = "QL <highlight>{$ql}<end> {$regularBlob} details";
 		if ($ql >= 100) {
 			$jobeBlob = $this->renderBlob(self::JOBE, $ql)[0];
-			$msg .= " and $jobeBlob details";
+			$msg .= " and {$jobeBlob} details";
 		}
 
 		$context->reply($msg . ".");
 	}
 
 	/**
-	 * Render a single bonus stat for a cluster type
-	 * Roughly looks like this:
-	 * 42 (QL 147 - QL 150) Shiny -> 306 / 720
-	 * @param ImplantBonusStats $stats The stats to render
-	 * @param string            $type  "Shiny", "Bright" or "Faded"
-	 * @return string the rendered line including newline
-	 */
-	protected function renderBonusLine(ImplantBonusStats $stats, string $type): string {
-		$fromQL = $this->text->alignNumber($stats->range[0], 3, "highlight");
-		$toQL   = $this->text->alignNumber($stats->range[1], 3, "highlight");
-
-		$line = $this->text->alignNumber($stats->buff, 3, 'highlight').
-			" (QL $fromQL - QL $toQL) " . $stats->slot;
-		if ($stats->range[1] < 300) {
-			$nextBest = $this->getImplantQLSpecs($type, $stats->range[1]+1);
-			$line .= " <header>-><end> ".
-				"<highlight>" . $nextBest->requirements->abilities . "<end>".
-				" / ".
-				"<highlight>" . $nextBest->requirements->treatment . "<end>";
-		}
-		return $line . "\n";
-	}
-
-	/**
 	 * Render the popup-blob for a regular or jobe implant at a given QL
+	 *
 	 * @param string $type self::REGULAR or self::JOBE
 	 * @param int    $ql   The QL to render for
+	 *
 	 * @return string[] the full link to the blob
 	 */
 	public function renderBlob(string $type, int $ql): array {
@@ -328,7 +296,7 @@ class ImplantController extends ModuleInstance {
 				$impName = "Jobe Implant";
 			}
 		}
-		return (array)$this->text->makeBlob($impName, $blob, "QL $ql $impName Details");
+		return (array)$this->text->makeBlob($impName, $blob, "QL {$ql} {$impName} Details");
 	}
 
 	public function getClusterMinQl(int $ql, string $grade): int {
@@ -338,22 +306,25 @@ class ImplantController extends ModuleInstance {
 			return (int)floor($ql * 0.84);
 		} elseif ($grade == 'faded') {
 			return (int)floor($ql * 0.82);
-		} else {
-			throw new Exception("Invalid grade: '$grade'.  Must be one of: 'shiny', 'bright', 'faded'");
 		}
+		throw new Exception("Invalid grade: '{$grade}'.  Must be one of: 'shiny', 'bright', 'faded'");
 	}
 
 	/**
 	 * Returns the min- and max-ql for an implant to return a bonus
+	 *
 	 * @param string $type  The cluster type ("skill" or "abililities")
 	 * @param int    $slot  The cluster slot type (0 => faded, 1 => bright, 2 => shiny)
 	 * @param int    $bonus The bonus for which to return the QL-range
+	 *
 	 * @return int[] An array with the min- and the max-ql
 	 */
 	public function getBonusQLRange(string $type, int $slot, int $bonus): ?array {
 		$breakpoints = $this->getBreakpoints($type, $slot);
+
 		/** @var int */
 		$minQL = min(array_keys($breakpoints));
+
 		/** @var int */
 		$maxQL = max(array_keys($breakpoints));
 		$foundMinQL = 0;
@@ -376,29 +347,8 @@ class ImplantController extends ModuleInstance {
 	}
 
 	/**
-	 * Get the bonus stats for an implant slot and ql
-	 * @param string $type Type of bonus ("skills" or "abilities")
-	 * @param int    $slot 0 => faded, 1 => bright, 2 => shiny
-	 * @param int    $ql   The QL of the implant
-	 */
-	protected function getBonusStatsForType(string $type, int $slot, int $ql): ImplantBonusStats {
-		$breakpoints = $this->getBreakpoints($type, $slot);
-		$buff = $this->calcStatFromQL($breakpoints, $ql);
-		if (!isset($buff)) {
-			throw new Exception("Cannot calculate stats for ql {$ql}");
-		}
-		$stats = new ImplantBonusStats($slot);
-		$stats->buff = $buff;
-		$range = $this->getBonusQLRange($type, $slot, $buff);
-		if (!isset($range)) {
-			throw new Exception("Cannot calculate QL for giving +{$buff}");
-		}
-		$stats->range = $range;
-		return $stats;
-	}
-
-	/**
 	 * Get all specs of an implant at a certain ql
+	 *
 	 * @param string $type self::JOBE or self::REGULAR
 	 * @param int    $ql   The QL of the implant you want to build
 	 */
@@ -429,5 +379,74 @@ class ImplantController extends ModuleInstance {
 		$specs->abilities = $abilities;
 
 		return $specs;
+	}
+
+	/**
+	 * Get a single breakpoint-spec from the internal breakpoint list
+	 *
+	 * @param string $type     The name of the breakpoint ("abilities", "reqRegular", ...)
+	 * @param int    $position The position in the list (usually 0, 1 or 2)
+	 *
+	 * @return array<int,int> An associative array in the form [QL => bonus/requirement]
+	 * @phpstan-return non-empty-array<int,int> An associative array in the form [QL => bonus/requirement]
+	 */
+	protected function getBreakpoints(string $type, int $position): array {
+		/** @phpstan-var non-empty-array<int,int> */
+		$breakPoints = array_map(
+			function (array $item) use ($position) {
+				return $item[$position];
+			},
+			$this->implantBreakpoints[$type]
+		);
+		return $breakPoints;
+	}
+
+	/**
+	 * Render a single bonus stat for a cluster type
+	 * Roughly looks like this:
+	 * 42 (QL 147 - QL 150) Shiny -> 306 / 720
+	 *
+	 * @param ImplantBonusStats $stats The stats to render
+	 * @param string            $type  "Shiny", "Bright" or "Faded"
+	 *
+	 * @return string the rendered line including newline
+	 */
+	protected function renderBonusLine(ImplantBonusStats $stats, string $type): string {
+		$fromQL = $this->text->alignNumber($stats->range[0], 3, "highlight");
+		$toQL   = $this->text->alignNumber($stats->range[1], 3, "highlight");
+
+		$line = $this->text->alignNumber($stats->buff, 3, 'highlight').
+			" (QL {$fromQL} - QL {$toQL}) " . $stats->slot;
+		if ($stats->range[1] < 300) {
+			$nextBest = $this->getImplantQLSpecs($type, $stats->range[1]+1);
+			$line .= " <header>-><end> ".
+				"<highlight>" . $nextBest->requirements->abilities . "<end>".
+				" / ".
+				"<highlight>" . $nextBest->requirements->treatment . "<end>";
+		}
+		return $line . "\n";
+	}
+
+	/**
+	 * Get the bonus stats for an implant slot and ql
+	 *
+	 * @param string $type Type of bonus ("skills" or "abilities")
+	 * @param int    $slot 0 => faded, 1 => bright, 2 => shiny
+	 * @param int    $ql   The QL of the implant
+	 */
+	protected function getBonusStatsForType(string $type, int $slot, int $ql): ImplantBonusStats {
+		$breakpoints = $this->getBreakpoints($type, $slot);
+		$buff = $this->calcStatFromQL($breakpoints, $ql);
+		if (!isset($buff)) {
+			throw new Exception("Cannot calculate stats for ql {$ql}");
+		}
+		$stats = new ImplantBonusStats($slot);
+		$stats->buff = $buff;
+		$range = $this->getBonusQLRange($type, $slot, $buff);
+		if (!isset($range)) {
+			throw new Exception("Cannot calculate QL for giving +{$buff}");
+		}
+		$stats->range = $range;
+		return $stats;
 	}
 }

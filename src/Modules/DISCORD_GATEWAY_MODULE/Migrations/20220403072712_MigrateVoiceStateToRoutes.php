@@ -13,13 +13,6 @@ use Nadybot\Core\{
 };
 
 class MigrateVoiceStateToRoutes implements SchemaMigration {
-	protected function getSetting(DB $db, string $name): ?Setting {
-		return $db->table(SettingManager::DB_TABLE)
-			->where("name", $name)
-			->asObj(Setting::class)
-			->first();
-	}
-
 	public function migrate(LoggerWrapper $logger, DB $db): void {
 		$setting = $this->getSetting($db, 'discord_notify_voice_changes');
 		if (!isset($setting) || !isset($setting->value)) {
@@ -41,5 +34,12 @@ class MigrateVoiceStateToRoutes implements SchemaMigration {
 			];
 			$db->table(MessageHub::DB_TABLE_ROUTES)->insert($route);
 		}
+	}
+
+	protected function getSetting(DB $db, string $name): ?Setting {
+		return $db->table(SettingManager::DB_TABLE)
+			->where("name", $name)
+			->asObj(Setting::class)
+			->first();
 	}
 }

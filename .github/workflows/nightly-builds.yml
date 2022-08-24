@@ -1,0 +1,38 @@
+name: Create nightly release bundle
+on:  
+  push:
+  pull_request:
+  schedule:
+    - cron: '00 1 * * *'  # Daily 01:00 in the morning
+
+
+jobs:
+  build:
+    name: Create vendor bundle
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v2
+      - name: Install dependencies
+        shell: bash
+        run: |
+          composer install --no-dev
+          composer dumpautoload --no-dev --optimize
+      - name: Create directory zip
+        shell: bash
+        run: |
+          cd ..
+          zip -r nadybot-bundle-nightly.zip Nadybot/ -x "*.git*"
+          mv nadybot-bundle-nightly.zip Nadybot/
+
+      - name: Upload Release Asset
+        uses: WebFreak001/deploy-nightly@v1.1.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # automatically provided by github actions
+        with:
+          upload_url: https://uploads.github.com/repos/Nadybot/Nadybot/releases/70862606/assets{?name,label}
+          release_id: 70862606
+          asset_path: ./nadybot-bundle-nightly.zip
+          asset_name: nadybot-bundle-nightly-$$.zip
+          asset_content_type: application/zip
+          max_releases: 7

@@ -3,29 +3,13 @@
 namespace Nadybot\Core\Migrations;
 
 use Illuminate\Database\Schema\Blueprint;
-use Nadybot\Core\CommandManager;
-use Nadybot\Core\DB;
 use Nadybot\Core\DBSchema\Setting;
-use Nadybot\Core\LoggerWrapper;
-use Nadybot\Core\SchemaMigration;
-use Nadybot\Core\SettingManager;
+use Nadybot\Core\{CommandManager, DB, LoggerWrapper, SchemaMigration, SettingManager};
 
 class CreatePermissionSetMapping implements SchemaMigration {
-	protected function getSetting(DB $db, string $name): ?Setting {
-		return $db->table(SettingManager::DB_TABLE)
-			->where("name", $name)
-			->asObj(Setting::class)
-			->first();
-	}
-
-	protected function getSettingValue(DB $db, string $name): ?string {
-		$setting = $this->getSetting($db, $name);
-		return isset($setting) ? $setting->value : null;
-	}
-
 	public function migrate(LoggerWrapper $logger, DB $db): void {
 		$table = CommandManager::DB_TABLE_MAPPING;
-		$db->schema()->create($table, function(Blueprint $table) {
+		$db->schema()->create($table, function (Blueprint $table) {
 			$table->id();
 			$table->string("permission_set", 50);
 			$table->string("source", 100)->unique();
@@ -100,5 +84,17 @@ class CreatePermissionSetMapping implements SchemaMigration {
 			];
 		}
 		$db->table($table)->insert($inserts);
+	}
+
+	protected function getSetting(DB $db, string $name): ?Setting {
+		return $db->table(SettingManager::DB_TABLE)
+			->where("name", $name)
+			->asObj(Setting::class)
+			->first();
+	}
+
+	protected function getSettingValue(DB $db, string $name): ?string {
+		$setting = $this->getSetting($db, $name);
+		return isset($setting) ? $setting->value : null;
 	}
 }

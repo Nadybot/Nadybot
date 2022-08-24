@@ -2,22 +2,24 @@
 
 namespace Nadybot\Modules\DISCORD_GATEWAY_MODULE;
 
-use Closure;
+use function Amp\asyncCall;
+use Generator;
+
 use Nadybot\Core\{
-	Attributes as NCA,
 	AccessLevelProvider,
 	AccessManager,
+	Attributes as NCA,
 	CmdContext,
 	CommandManager,
 	DB,
-	ModuleInstance,
 	LoggerWrapper,
+	ModuleInstance,
 	Modules\DISCORD\DiscordAPIClient,
 	Modules\DISCORD\DiscordUser,
 	Nadybot,
 	ParamClass\PCharacter,
-	Routing\Source,
 	Registry,
+	Routing\Source,
 	SettingManager,
 	Text,
 };
@@ -108,6 +110,7 @@ class DiscordGatewayCommandHandler extends ModuleInstance implements AccessLevel
 			return;
 		}
 		$uid = strtoupper($uid);
+
 		/** @var ?DiscordMapping */
 		$data = $this->db->table(self::DB_TABLE)
 			->where("name", $uid)
@@ -119,6 +122,7 @@ class DiscordGatewayCommandHandler extends ModuleInstance implements AccessLevel
 			$context->reply($msg);
 			return;
 		}
+
 		/** @var ?DiscordMapping */
 		$data = $this->db->table(self::DB_TABLE)
 			->where("name", $context->char->name)
@@ -135,7 +139,7 @@ class DiscordGatewayCommandHandler extends ModuleInstance implements AccessLevel
 			->where("token", $uid)
 			->update([
 				"confirmed" => time(),
-				"token" => null
+				"token" => null,
 			]);
 		$guilds = $this->discordGatewayController->getGuilds();
 		$guild = $guilds[array_keys($guilds)[0]] ?? null;
@@ -172,21 +176,26 @@ class DiscordGatewayCommandHandler extends ModuleInstance implements AccessLevel
 		"Linking your Discord user with an AO character effectively\n".
 		"gives the Discord user the same rights!"
 	)]
-	public function extAuthCommand(CmdContext $context, #[NCA\Str("request")] string $action, PCharacter $char): void {
+	public function extAuthCommand(
+		CmdContext $context,
+		#[NCA\Str("request")] string $action,
+		PCharacter $char
+	): Generator {
 		$discordUserId = $context->char->name;
 		if (($authedAs = $this->getNameForDiscordId($discordUserId)) !== null) {
-			$msg = "You are already linked to <highlight>$authedAs<end>.";
+			$msg = "You are already linked to <highlight>{$authedAs}<end>.";
 			$context->reply($msg);
 			return;
 		}
 		$name = $char();
 
-		$uid = $this->chatBot->get_uid($name);
-		if (!$uid) {
+		$uid = yield $this->chatBot->getUid2($name);
+		if (!isset($uid)) {
 			$msg = "Character <highlight>{$name}<end> does not exist.";
 			$context->reply($msg);
 			return;
 		}
+
 		/** @var ?DiscordMapping */
 		$data = $this->db->table(self::DB_TABLE)
 			->where("name", $name)
@@ -198,6 +207,7 @@ class DiscordGatewayCommandHandler extends ModuleInstance implements AccessLevel
 			$context->reply($msg);
 			return;
 		}
+
 		/** @var ?DiscordMapping */
 		$data = $this->db->table(self::DB_TABLE)
 			->where("name", $name)
@@ -217,36 +227,33 @@ class DiscordGatewayCommandHandler extends ModuleInstance implements AccessLevel
 		} else {
 			$uid = $data->token;
 		}
-		$this->discordAPIClient->getUser(
-			$discordUserId,
-			function(DiscordUser $user) use ($context, $name, $uid) {
-				$context->char->name = $user->username . "#" . $user->discriminator;
-				$blob = "The Discord user <highlight>{$context->char->name}<end> has requested to be linked with your ".
-					"game account. If you confirm the link, that discord user will be linked ".
-					"with this account, be able to run the same commands and have the same rights ".
-					"as you.\n".
-					"If you haven't requested this link, then <red>reject<end> it!\n".
-					"\n".
-					"[".
-						$this->text->makeChatcmd("Accept", "/tell <myname> extauth accept $uid").
-					"]    ".
-					"[".
-						$this->text->makeChatcmd("Reject", "/tell <myname> extauth reject $uid").
-					"]";
-				$msg = $this->text->makeBlob("Request to link your account with {$context->char->name}", $blob);
-				$msg = $this->text->blobWrap("You have received a ", $msg, ".");
-				$this->chatBot->sendMassTell($msg, $name);
-			}
-		);
+
+		/** @var DiscordUser */
+		$user = yield $this->discordAPIClient->getUser($discordUserId);
+		$context->char->name = $user->username . "#" . $user->discriminator;
+		$blob = "The Discord user <highlight>{$context->char->name}<end> has requested to be linked with your ".
+			"game account. If you confirm the link, that discord user will be linked ".
+			"with this account, be able to run the same commands and have the same rights ".
+			"as you.\n".
+			"If you haven't requested this link, then <red>reject<end> it!\n".
+			"\n".
+			"[".
+				$this->text->makeChatcmd("Accept", "/tell <myname> extauth accept {$uid}").
+			"]    ".
+			"[".
+				$this->text->makeChatcmd("Reject", "/tell <myname> extauth reject {$uid}").
+			"]";
+		$msg = $this->text->makeBlob("Request to link your account with {$context->char->name}", $blob);
+		$msg = $this->text->blobWrap("You have received a ", $msg, ".");
+		$this->chatBot->sendMassTell($msg, $name);
+
 		$context->reply(
 			"I sent a tell to {$name} on Anarchy Online. ".
 			"Follow the instructions there to finish linking these 2 accounts."
 		);
 	}
 
-	/**
-	 * Handle an incoming discord private message
-	 */
+	/** Handle an incoming discord private message */
 	#[NCA\Event(
 		name: "discordmsg",
 		description: "Handle commands from Discord private messages"
@@ -259,9 +266,7 @@ class DiscordGatewayCommandHandler extends ModuleInstance implements AccessLevel
 		$this->processDiscordMessage($event, $context);
 	}
 
-	/**
-	 * Handle an incoming discord channel message
-	 */
+	/** Handle an incoming discord channel message */
 	#[NCA\Event(
 		name: "discordpriv",
 		description: "Handle commands from Discord channel messages"
@@ -286,7 +291,7 @@ class DiscordGatewayCommandHandler extends ModuleInstance implements AccessLevel
 		if (!preg_match("/^.?extauth\s+request/si", $event->message)) {
 			$userId = $this->getNameForDiscordId($discordUserId);
 		}
-		$execCmd = function() use ($context, $sendto): void {
+		$execCmd = function () use ($context, $sendto): void {
 			if ($this->commandManager->checkAndHandleCmd($context)) {
 				return;
 			}
@@ -298,14 +303,10 @@ class DiscordGatewayCommandHandler extends ModuleInstance implements AccessLevel
 			return;
 		}
 		$context->char->name = $userId;
-		$this->chatBot->getUid(
-			$userId,
-			function(?int $uid, CmdContext $context, Closure $execCmd): void {
-				$context->char->id = $uid;
-				$execCmd();
-			},
-			$context,
-			$execCmd
-		);
+		asyncCall(function () use ($userId, $context, $execCmd): Generator {
+			$uid = yield $this->chatBot->getUid2($userId);
+			$context->char->id = $uid;
+			$execCmd();
+		});
 	}
 }

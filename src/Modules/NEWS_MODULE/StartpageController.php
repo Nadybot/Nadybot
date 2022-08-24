@@ -2,24 +2,22 @@
 
 namespace Nadybot\Modules\NEWS_MODULE;
 
-use ReflectionClass;
 use Closure;
 use DateInterval;
 use DateTime;
 use DateTimeZone;
+use Generator;
 use Illuminate\Support\Collection;
 use InvalidArgumentException;
-use ReflectionMethod;
-use Throwable;
 use Nadybot\Core\{
-	AccessManager,
 	AOChatEvent,
+	AccessManager,
 	Attributes as NCA,
 	CmdContext,
 	CommandReply,
 	DB,
-	ModuleInstance,
 	LoggerWrapper,
+	ModuleInstance,
 	Modules\BAN\BanController,
 	Nadybot,
 	ParamClass\PRemove,
@@ -36,6 +34,9 @@ use Nadybot\Modules\WEBSERVER_MODULE\{
 	Response,
 	WebChatConverter,
 };
+use ReflectionClass;
+use ReflectionMethod;
+use Throwable;
 
 #[
 	NCA\Instance,
@@ -97,33 +98,6 @@ class StartpageController extends ModuleInstance {
 	/** @var array<string,NewsTile> */
 	protected array $tiles = [];
 
-	/**
-	 * Parse a method for NewsTile annotations and add the tiles
-	 * @param object $instance The object instance we're processing
-	 * @param ReflectionMethod $method The method we're scanning
-	 */
-	protected function parseRefMethod(object $instance, ReflectionMethod $method): void {
-		$newsTileAttrs = $method->getAttributes(NCA\NewsTile::class);
-		if (empty($newsTileAttrs)) {
-			return;
-		}
-		$className = get_class($instance);
-		$funcName = "{$className}::" . $method->getName() . "()";
-		/** @var NCA\NewsTile */
-		$attrObj = $newsTileAttrs[0]->newInstance();
-		$name = $attrObj->name;
-		$closure = $method->getClosure($instance);
-		if (!isset($closure)) {
-			throw new InvalidArgumentException(
-				"{$funcName} cannot be made into a closure."
-			);
-		}
-		$tile = new NewsTile($name, $closure);
-		$tile->description = $attrObj->description;
-		$tile->example = $attrObj->example;
-		$this->registerNewsTile($tile);
-	}
-
 	#[NCA\Setup]
 	public function setup(): void {
 		$instances = Registry::getAllInstances();
@@ -135,28 +109,11 @@ class StartpageController extends ModuleInstance {
 		}
 	}
 
-	/**
-	 * Creates a CommandReply object that sens mass tells
-	 * @param string $receiver The character to send the mass tells to
-	 */
-	protected function getMassTell(string $receiver): CommandReply {
-		$sendto = new class implements CommandReply {
-			public Nadybot $chatBot;
-			public string $receiver;
-			public function reply($msg): void {
-				$this->chatBot->sendMassTell($msg, $this->receiver);
-			}
-		};
-		$sendto->chatBot = $this->chatBot;
-		$sendto->receiver = $receiver;
-		return $sendto;
-	}
-
 	#[NCA\Event(
 		name: "logOn",
 		description: "Show startpage to (org) members logging in"
 	)]
-	public function logonEvent(UserStateEvent $eventObj): void {
+	public function logonEvent(UserStateEvent $eventObj): Generator {
 		$sender = $eventObj->sender;
 		if (!$this->chatBot->isReady() || !is_string($sender)) {
 			return;
@@ -165,8 +122,8 @@ class StartpageController extends ModuleInstance {
 			$this->showStartpage($sender, $this->getMassTell($sender));
 			return;
 		}
-		$uid = $this->chatBot->get_uid($sender);
-		if ($uid === false) {
+		$uid = yield $this->chatBot->getUid2($sender);
+		if ($uid === null) {
 			return;
 		}
 		if ($this->startpageShowMembers !== 1) {
@@ -175,14 +132,10 @@ class StartpageController extends ModuleInstance {
 		if ($this->accessManager->getAccessLevelForCharacter($sender) === "all") {
 			return;
 		}
-		$this->banController->handleBan(
-			$uid,
-			function (int $uid, string $sender): void {
-				$this->showStartpage($sender, $this->getMassTell($sender));
-			},
-			null,
-			$sender
-		);
+		if (yield $this->banController->isOnBanlist($uid)) {
+			return;
+		}
+		$this->showStartpage($sender, $this->getMassTell($sender));
 	}
 
 	#[NCA\Event(
@@ -204,8 +157,7 @@ class StartpageController extends ModuleInstance {
 		NCA\NewsTile(
 			name: "time",
 			description: "Shows the current date and time in UTC and game",
-			example:
-				"<header2>Time<end>\n".
+			example: "<header2>Time<end>\n".
 				"<tab>Current time: <highlight>Mon, 18-Oct-2021 14:15:16<end> (RK year 29495)"
 		)
 	]
@@ -243,6 +195,7 @@ class StartpageController extends ModuleInstance {
 
 	/**
 	 * Get a list of all registered tiles
+	 *
 	 * @return array<string,NewsTile>
 	 */
 	public function getTiles(): array {
@@ -251,6 +204,7 @@ class StartpageController extends ModuleInstance {
 
 	/**
 	 * Get a list of all active tiles that are valid
+	 *
 	 * @return array<string,NewsTile>
 	 */
 	public function getActiveLayout(): array {
@@ -266,12 +220,6 @@ class StartpageController extends ModuleInstance {
 			}
 		}
 		return $tiles;
-	}
-
-	protected function createTileCallback(callable $callback, string $name, int $numCall): Closure {
-		return function(?string $text) use ($callback, $numCall, $name): void {
-			$callback($numCall, $text, $name);
-		};
 	}
 
 	public function getStartpageString(string $sender): string {
@@ -296,7 +244,7 @@ class StartpageController extends ModuleInstance {
 		}
 		$callResults = [];
 		$callNum = 0;
-		$callback = function(int $numCall, ?string $text, string $name) use (&$callResults, $tiles, $sendto, $sender, $showEmpty): void {
+		$callback = function (int $numCall, ?string $text, string $name) use (&$callResults, $tiles, $sendto, $sender, $showEmpty): void {
 			$callResults[$numCall] = isset($text) ? trim($text) : null;
 			$this->logger->debug("Callback for {name} received", [
 				"name" => $name,
@@ -326,18 +274,14 @@ class StartpageController extends ModuleInstance {
 		}
 	}
 
-	/**
-	 * Show your personal startpage
-	 */
+	/** Show your personal startpage */
 	#[NCA\HandlesCommand("start")]
 	#[NCA\Help\Group("start")]
 	public function startCommand(CmdContext $context): void {
 		$this->showStartpage($context->char->name, $context, true);
 	}
 
-	/**
-	 * Show the current startpage layout
-	 */
+	/** Show the current startpage layout */
 	#[NCA\HandlesCommand("startpage")]
 	#[NCA\Help\Group("start")]
 	#[NCA\Help\Epilogue(
@@ -348,24 +292,7 @@ class StartpageController extends ModuleInstance {
 		$this->showStartpageLayout($context, false);
 	}
 
-	protected function showStartpageLayout(CmdContext $context, bool $changed): void {
-		$tiles = $this->getActiveLayout();
-		if (empty($tiles)) {
-			$context->reply("The current startpage is empty. Use <highlight><symbol>startpage pick 0<end> to get started.");
-			return;
-		}
-		$blob = $this->renderLayout($tiles);
-		if ($changed) {
-			$msg = $this->text->makeBlob("New startpage layout", $blob);
-		} else {
-			$msg = $this->text->makeBlob("Current startpage layout", $blob);
-		}
-		$context->reply($msg);
-	}
-
-	/**
-	 * Pick an entry for the startpage at position &lt;pos&gt; (0 being the top)
-	 */
+	/** Pick an entry for the startpage at position &lt;pos&gt; (0 being the top) */
 	#[NCA\HandlesCommand("startpage")]
 	#[NCA\Help\Group("start")]
 	public function startpagePickCommand(CmdContext $context, #[NCA\Str("pick")] string $action, int $pos): void {
@@ -394,9 +321,7 @@ class StartpageController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
-	/**
-	 * Show the description of a tile
-	 */
+	/** Show the description of a tile */
 	#[NCA\HandlesCommand("startpage")]
 	#[NCA\Help\Group("start")]
 	public function startpageDescribeTileCommand(CmdContext $context, #[NCA\Str("describe")] string $action, string $tileName): void {
@@ -410,9 +335,7 @@ class StartpageController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
-	/**
-	 * Assign &lt;tile name&gt; to position &lt;pos&gt; of the startpage
-	 */
+	/** Assign &lt;tile name&gt; to position &lt;pos&gt; of the startpage */
 	#[NCA\HandlesCommand("startpage")]
 	#[NCA\Help\Group("start")]
 	public function startpagePickTileCommand(
@@ -437,9 +360,7 @@ class StartpageController extends ModuleInstance {
 		$this->showStartpageLayout($context, true);
 	}
 
-	/**
-	 * Move tiles around on the startpage
-	 */
+	/** Move tiles around on the startpage */
 	#[NCA\HandlesCommand("startpage")]
 	#[NCA\Help\Group("start")]
 	public function startpageMoveTileCommand(
@@ -473,9 +394,7 @@ class StartpageController extends ModuleInstance {
 		$this->showStartpageLayout($context, true);
 	}
 
-	/**
-	 * Remove a tile from the startpage
-	 */
+	/** Remove a tile from the startpage */
 	#[NCA\HandlesCommand("startpage")]
 	#[NCA\Help\Group("start")]
 	public function startpageRemTileCommand(CmdContext $context, PRemove $action, string $tileName): void {
@@ -488,6 +407,127 @@ class StartpageController extends ModuleInstance {
 		$tileKeys = array_keys($currentTiles);
 		$this->setTiles(...$tileKeys);
 		$this->showStartpageLayout($context, true);
+	}
+
+	/** List all news tiles */
+	#[
+		NCA\Api("/startpage/tiles"),
+		NCA\GET,
+		NCA\AccessLevelFrom("startpage"),
+		NCA\ApiResult(code: 200, class: "NewsTile[]", desc: "List of all news items")
+	]
+	public function apiListTilesEndpoint(Request $request, HttpProtocolWrapper $server): Response {
+		$tiles = array_values($this->getTiles());
+		$result = [];
+		foreach ($tiles as $tile) {
+			$newTile = clone $tile;
+			if (isset($tile->example)) {
+				$newTile->example = $this->webChatConverter->convertMessage($tile->example);
+			}
+			$result []= $newTile;
+		}
+		return new ApiResponse($result);
+	}
+
+	/** Get the currently configured startpage layout */
+	#[
+		NCA\Api("/startpage/layout"),
+		NCA\GET,
+		NCA\AccessLevelFrom("startpage"),
+		NCA\ApiResult(code: 200, class: "string[]", desc: "The order of the tiles")
+	]
+	public function apiGetStartpageLayoutEndpoint(Request $request, HttpProtocolWrapper $server): Response {
+		return new ApiResponse(array_keys($this->getActiveLayout()));
+	}
+
+	/** List all news tiles */
+	#[
+		NCA\Api("/startpage/layout"),
+		NCA\PUT,
+		NCA\AccessLevelFrom("startpage"),
+		NCA\RequestBody(class: "string[]", desc: "The new order for the tiles", required: true),
+		NCA\ApiResult(code: 204, desc: "New layout saved")
+	]
+	public function apiSetStartpageLayoutEndpoint(Request $request, HttpProtocolWrapper $server): Response {
+		$tiles = $request->decodedBody;
+		if (!is_array($tiles)) {
+			return new Response(Response::UNPROCESSABLE_ENTITY);
+		}
+		try {
+			$this->setTiles(...$tiles);
+		} catch (Throwable $e) {
+			return new Response(Response::UNPROCESSABLE_ENTITY, [], $e->getMessage());
+		}
+		return new Response(Response::NO_CONTENT);
+	}
+
+	/**
+	 * Parse a method for NewsTile annotations and add the tiles
+	 *
+	 * @param object           $instance The object instance we're processing
+	 * @param ReflectionMethod $method   The method we're scanning
+	 */
+	protected function parseRefMethod(object $instance, ReflectionMethod $method): void {
+		$newsTileAttrs = $method->getAttributes(NCA\NewsTile::class);
+		if (empty($newsTileAttrs)) {
+			return;
+		}
+		$className = get_class($instance);
+		$funcName = "{$className}::" . $method->getName() . "()";
+
+		/** @var NCA\NewsTile */
+		$attrObj = $newsTileAttrs[0]->newInstance();
+		$name = $attrObj->name;
+		$closure = $method->getClosure($instance);
+		if (!isset($closure)) {
+			throw new InvalidArgumentException(
+				"{$funcName} cannot be made into a closure."
+			);
+		}
+		$tile = new NewsTile($name, $closure);
+		$tile->description = $attrObj->description;
+		$tile->example = $attrObj->example;
+		$this->registerNewsTile($tile);
+	}
+
+	/**
+	 * Creates a CommandReply object that sens mass tells
+	 *
+	 * @param string $receiver The character to send the mass tells to
+	 */
+	protected function getMassTell(string $receiver): CommandReply {
+		$sendto = new class () implements CommandReply {
+			public Nadybot $chatBot;
+			public string $receiver;
+
+			public function reply($msg): void {
+				$this->chatBot->sendMassTell($msg, $this->receiver);
+			}
+		};
+		$sendto->chatBot = $this->chatBot;
+		$sendto->receiver = $receiver;
+		return $sendto;
+	}
+
+	protected function createTileCallback(callable $callback, string $name, int $numCall): Closure {
+		return function (?string $text) use ($callback, $numCall, $name): void {
+			$callback($numCall, $text, $name);
+		};
+	}
+
+	protected function showStartpageLayout(CmdContext $context, bool $changed): void {
+		$tiles = $this->getActiveLayout();
+		if (empty($tiles)) {
+			$context->reply("The current startpage is empty. Use <highlight><symbol>startpage pick 0<end> to get started.");
+			return;
+		}
+		$blob = $this->renderLayout($tiles);
+		if ($changed) {
+			$msg = $this->text->makeBlob("New startpage layout", $blob);
+		} else {
+			$msg = $this->text->makeBlob("Current startpage layout", $blob);
+		}
+		$context->reply($msg);
 	}
 
 	protected function getInsertLine(int $num): string {
@@ -526,63 +566,5 @@ class StartpageController extends ModuleInstance {
 			"<header2>Your layout<end>\n\n".
 			join("\n", $blobLines). "\n\n\n".
 			"[" . $this->text->makeChatcmd("preview", "/tell <myname> start") . "]";
-	}
-
-	/**
-	 * List all news tiles
-	 */
-	#[
-		NCA\Api("/startpage/tiles"),
-		NCA\GET,
-		NCA\AccessLevelFrom("startpage"),
-		NCA\ApiResult(code: 200, class: "NewsTile[]", desc: "List of all news items")
-	]
-	public function apiListTilesEndpoint(Request $request, HttpProtocolWrapper $server): Response {
-		$tiles = array_values($this->getTiles());
-		$result = [];
-		foreach ($tiles as $tile) {
-			$newTile = clone $tile;
-			if (isset($tile->example)) {
-				$newTile->example = $this->webChatConverter->convertMessage($tile->example);
-			}
-			$result []= $newTile;
-		}
-		return new ApiResponse($result);
-	}
-
-	/**
-	 * Get the currently configured startpage layout
-	 */
-	#[
-		NCA\Api("/startpage/layout"),
-		NCA\GET,
-		NCA\AccessLevelFrom("startpage"),
-		NCA\ApiResult(code: 200, class: "string[]", desc: "The order of the tiles")
-	]
-	public function apiGetStartpageLayoutEndpoint(Request $request, HttpProtocolWrapper $server): Response {
-		return new ApiResponse(array_keys($this->getActiveLayout()));
-	}
-
-	/**
-	 * List all news tiles
-	 */
-	#[
-		NCA\Api("/startpage/layout"),
-		NCA\PUT,
-		NCA\AccessLevelFrom("startpage"),
-		NCA\RequestBody(class: "string[]", desc: "The new order for the tiles", required: true),
-		NCA\ApiResult(code: 204, desc: "New layout saved")
-	]
-	public function apiSetStartpageLayoutEndpoint(Request $request, HttpProtocolWrapper $server): Response {
-		$tiles = $request->decodedBody;
-		if (!is_array($tiles)) {
-			return new Response(Response::UNPROCESSABLE_ENTITY);
-		}
-		try {
-			$this->setTiles(...$tiles);
-		} catch (Throwable $e) {
-			return new Response(Response::UNPROCESSABLE_ENTITY, [], $e->getMessage());
-		}
-		return new Response(Response::NO_CONTENT);
 	}
 }

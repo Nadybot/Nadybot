@@ -4,7 +4,6 @@ namespace Nadybot\Modules\RELAY_MODULE\Layer;
 
 use Nadybot\Core\Attributes as NCA;
 
-
 #[
 	NCA\RelayStackMember(
 		name: "tyr-encryption",

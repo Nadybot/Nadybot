@@ -2,11 +2,9 @@
 
 namespace Nadybot\Modules\WEBSERVER_MODULE;
 
-use Exception;
-use Nadybot\Modules\WEBSERVER_MODULE\Interfaces\GaugeProvider;
-use Nadybot\Modules\WEBSERVER_MODULE\Interfaces\ValueProvider;
-
 use function Safe\json_encode;
+use Exception;
+use Nadybot\Modules\WEBSERVER_MODULE\Interfaces\{GaugeProvider, ValueProvider};
 
 class Dataset {
 	/** @var string[] */

@@ -2,6 +2,7 @@
 
 namespace Nadybot\Core;
 
+use Amp\Loop;
 use Exception;
 use InvalidArgumentException;
 use Nadybot\Core\{
@@ -47,6 +48,17 @@ class WebsocketBase {
 	];
 
 	protected const FRAMESIZE = 4096;
+	public ?SocketNotifier $notifier = null;
+	public bool $maskData = true;
+
+	#[NCA\Logger]
+	public LoggerWrapper $logger;
+
+	#[NCA\Inject]
+	public Timer $timer;
+
+	#[NCA\Inject]
+	public SocketManager $socketManager;
 
 	/** @var array<string,callable> */
 	protected array $eventCallbacks = [];
@@ -64,26 +76,16 @@ class WebsocketBase {
 	protected bool $isClosing = false;
 	protected ?string $lastOpcode = null;
 	protected ?int $closeStatus = null;
+
 	/** @var array<WriteClosureInterface|ShutdownRequest|string> */
 	protected array $sendQueue = [];
 	protected string $receiveBuffer = "";
-	public ?SocketNotifier $notifier = null;
 	protected bool $connected = false;
 	protected ?int $lastReadTime = null;
 	protected ?int $pendingPingTime = null;
-	protected ?TimerEvent $timeoutChecker = null;
-	public bool $maskData = true;
+	protected ?string $timeoutHandle = null;
 	protected string $uri;
 	protected ?int $lastWriteTime = null;
-
-	#[NCA\Logger]
-	public LoggerWrapper $logger;
-
-	#[NCA\Inject]
-	public Timer $timer;
-
-	#[NCA\Inject]
-	public SocketManager $socketManager;
 
 	public function connect(): bool {
 		$this->pendingPingTime = null;
@@ -94,29 +96,13 @@ class WebsocketBase {
 		return $this->peerName;
 	}
 
-	/**
-	 * @return static
-	 */
+	/** @return static */
 	public function on(string $event, callable $callback): self {
 		if (!in_array($event, static::ALLOWED_EVENTS)) {
-			throw new InvalidArgumentException("$event is not an allowed event.");
+			throw new InvalidArgumentException("{$event} is not an allowed event.");
 		}
 		$this->eventCallbacks[$event] = $callback;
 		return $this;
-	}
-
-	protected function fireEvent(string $eventName, WebsocketCallback $event): void {
-		if (isset($this->eventCallbacks[$eventName])) {
-			$this->eventCallbacks[$eventName]($event);
-		}
-	}
-
-	protected function getEvent(?string $eventName=null): WebsocketCallback {
-		$eventName ??= $this->lastOpcode ?? "unknown";
-		$event = new WebsocketCallback();
-		$event->eventName = $eventName;
-		$event->websocket = $this;
-		return $event;
 	}
 
 	public function throwError(int $code, string $message): void {
@@ -149,7 +135,7 @@ class WebsocketBase {
 				[
 					"uri" => $uri,
 					"noPingTime" => (time() - ($this->lastReadTime??0)),
-					"pendingPingTime" => (time() - $this->pendingPingTime)
+					"pendingPingTime" => (time() - $this->pendingPingTime),
 				]
 			);
 		} elseif (!isset($this->lastReadTime) || time() - $this->lastReadTime >= 30) {
@@ -169,8 +155,159 @@ class WebsocketBase {
 				"Connection to {$this->uri} timed out, no response to ping."
 			);
 		} else {
-			$this->timeoutChecker = $this->timer->callLater(5, [$this, "checkTimeout"]);
+			$this->timeoutHandle = Loop::delay(5000, [$this, "checkTimeout"]);
 		}
+	}
+
+	public function processQueue(): void {
+		$uri = ($this->uri ?? $this->peerName);
+		if (count($this->sendQueue) === 0) {
+			$this->listenForRead();
+			return;
+		}
+		$packet = array_shift($this->sendQueue);
+		if (!is_string($packet)) {
+			$this->logger->error("[Websocket {uri}] Illegal item found in send queue", [
+				"uri" => $uri,
+				"item" => $packet,
+			]);
+			return;
+		}
+		$this->write($packet);
+	}
+
+	public function processResponse(): void {
+		try {
+			$response = $this->receiveFragment();
+		} catch (Exception $e) {
+			return;
+		}
+		$uri = ($this->uri ?? $this->peerName);
+		$this->receiveBuffer .= $response[0]??"";
+		// Not a complete package yet
+		if (!$response[1]) {
+			$this->logger->debug("[Websocket {uri}] fragment received", [
+				"fragment" => $response[0],
+				"uri" => $uri,
+			]);
+			return;
+		}
+		if ($this->receiveBuffer === $response[0]) {
+			$this->logger->debug("[Websocket {uri}] Package received", [
+				"data" => $this->receiveBuffer,
+				"uri" => $uri,
+			]);
+		} else {
+			$this->logger->debug("[Websocket {uri}] last fragment received, package complete", [
+				"data" => $this->receiveBuffer,
+				"uri" => $uri,
+			]);
+		}
+		$event = $this->getEvent();
+		$event->data = $this->receiveBuffer;
+		$this->receiveBuffer = "";
+		if (isset($this->lastOpcode) && $this->lastOpcode !== "close") {
+			$this->fireEvent($this->lastOpcode, $event);
+		}
+	}
+
+	public function close(int $status=1000, string $message='kthxbye'): void {
+		$this->pendingPingTime = null;
+		if (!$this->isConnected()) {
+			return;
+		}
+		$uri = ($this->uri ?? $this->peerName);
+		$statusString = \Safe\pack("n", $status);
+		$this->isClosing = true;
+		$this->send($statusString . $message, 'close');
+		$this->logger->info("[Websocket {uri}] Closing with status: {status}", [
+			"uri" => $uri,
+			"status" => $status,
+		]);
+	}
+
+	public function send(string $data, string $opcode='text'): void {
+		if (!$this->isConnected()) {
+			$this->connect();
+		}
+		$uri = ($this->uri ?? $this->peerName);
+		$this->logger->debug("[Websocket {uri}] Sending {$opcode}", ["uri" => $uri]);
+		if ($opcode === 'ping') {
+			$this->pendingPingTime = time();
+		}
+		$this->logger->info("[Websocket {uri}] Queueing {opcode} packet", [
+			"uri" => $uri,
+			"opcode" => $opcode,
+			"packet" => $data,
+		]);
+
+		if (!isset(static::ALLOWED_OPCODES[$opcode])) {
+			$this->logger->info("[Websocket {uri}] Opcode {opcode} is invalid", [
+				"uri" => $uri,
+				"opcode" => $opcode,
+			]);
+			throw new Exception("Bad opcode '{$opcode}'.");
+		}
+
+		$dataChunks = str_split($data, self::FRAMESIZE);
+
+		while (count($dataChunks)) {
+			$chunk = array_shift($dataChunks);
+			$final = empty($dataChunks);
+
+			$frame = $this->toFrame($final, $chunk, $opcode, $this->maskData);
+			$this->sendQueue []= $frame;
+
+			$opcode = 'continuation';
+			$this->logger->info("[Websocket {uri}] Queueing frame of packet", [
+				"uri" => $uri,
+			]);
+		}
+		$this->listenForReadWrite();
+	}
+
+	/**
+	 * Handler method which will be called when activity occurs in the SocketNotifier.
+	 *
+	 * @internal
+	 */
+	public function onStreamActivity(int $type): void {
+		if ($this->isConnected() === false) {
+			return;
+		}
+
+		if ($type === SocketNotifier::ACTIVITY_READ) {
+			$this->processResponse();
+			return;
+		}
+		if ($type === SocketNotifier::ACTIVITY_WRITE) {
+			$this->processQueue();
+			return;
+		}
+
+		throw new Exception("Illegal notification ({$type}) received.");
+	}
+
+	public function setTag(string $key, mixed $value): void {
+		$this->tags[$key] = $value;
+	}
+
+	public function getTag(string $key): mixed {
+		return $this->tags[$key];
+	}
+
+	protected function fireEvent(string $eventName, WebsocketCallback $event): void {
+		if (isset($this->eventCallbacks[$eventName])) {
+			$this->eventCallbacks[$eventName]($event);
+		}
+	}
+
+	protected function getEvent(?string $eventName=null): WebsocketCallback {
+		$eventName ??= $this->lastOpcode ?? "unknown";
+		$event = new WebsocketCallback();
+		$event->eventName = $eventName;
+		$event->websocket = $this;
+		return $event;
 	}
 
 	protected function toFrame(bool $final, string $data, string $opcode, bool $masked): string {
@@ -232,7 +369,7 @@ class WebsocketBase {
 			@fclose($this->socket);
 			$this->throwError(
 				WebsocketError::WRITE_ERROR,
-				"Failed to write $length bytes to websocket {$uri}."
+				"Failed to write {$length} bytes to websocket {$uri}."
 			);
 			return false;
 		}
@@ -247,58 +384,6 @@ class WebsocketBase {
 		}
 		$this->lastWriteTime = time();
 		return true;
-	}
-
-	public function processQueue(): void {
-		$uri = ($this->uri ?? $this->peerName);
-		if (count($this->sendQueue) === 0) {
-			$this->listenForRead();
-			return;
-		}
-		$packet = array_shift($this->sendQueue);
-		if (!is_string($packet)) {
-			$this->logger->error("[Websocket {uri}] Illegal item found in send queue", [
-				"uri" => $uri,
-				"item" => $packet,
-			]);
-			return;
-		}
-		$this->write($packet);
-	}
-
-	public function processResponse(): void {
-		try {
-			$response = $this->receiveFragment();
-		} catch (Exception $e) {
-			return;
-		}
-		$uri = ($this->uri ?? $this->peerName);
-		$this->receiveBuffer .= $response[0]??"";
-		// Not a complete package yet
-		if (!$response[1]) {
-			$this->logger->debug("[Websocket {uri}] fragment received", [
-				"fragment" => $response[0],
-				"uri" => $uri,
-			]);
-			return;
-		}
-		if ($this->receiveBuffer === $response[0]) {
-			$this->logger->debug("[Websocket {uri}] Package received", [
-				"data" => $this->receiveBuffer,
-				"uri" => $uri
-			]);
-		} else {
-			$this->logger->debug("[Websocket {uri}] last fragment received, package complete", [
-				"data" => $this->receiveBuffer,
-				"uri" => $uri
-			]);
-		}
-		$event = $this->getEvent();
-		$event->data = $this->receiveBuffer;
-		$this->receiveBuffer = "";
-		if (isset($this->lastOpcode) && $this->lastOpcode !== "close") {
-			$this->fireEvent($this->lastOpcode, $event);
-		}
 	}
 
 	/**
@@ -326,7 +411,7 @@ class WebsocketBase {
 		if (!array_key_exists($opcodeValue, $opcodeValueToName)) {
 			$this->throwError(
 				WebsocketError::BAD_OPCODE,
-				"Bad opcode in websocket frame: $opcodeValue"
+				"Bad opcode in websocket frame: {$opcodeValue}"
 			);
 			return [null, true];
 		}
@@ -413,7 +498,7 @@ class WebsocketBase {
 		// Close the socket.
 		if (is_resource($this->socket)) {
 			$this->logger->debug("[Websocket {uri}] Closing socket", [
-				"uri" => $uri
+				"uri" => $uri,
 			]);
 			\Safe\stream_socket_shutdown($this->socket, STREAM_SHUT_RDWR);
 		}
@@ -438,7 +523,7 @@ class WebsocketBase {
 			if ($buffer === false) {
 				$read = strlen($data);
 				$this->resetClient();
-				throw new Exception("Broken frame, read $read bytes out of $length.");
+				throw new Exception("Broken frame, read {$read} bytes out of {$length}.");
 			}
 			if ($meta["timed_out"] === true || $buffer === '') {
 				if (feof($this->socket)) {
@@ -460,87 +545,10 @@ class WebsocketBase {
 			$this->lastReadTime = time();
 			$this->logger->debug("[Websocket {uri}] {numBytes} bytes of websocket data read", [
 				"uri" => $uri,
-				"numBytes" => strlen($buffer)
+				"numBytes" => strlen($buffer),
 			]);
 		}
 		return $data;
-	}
-
-	public function close(int $status=1000, string $message='kthxbye'): void {
-		$this->pendingPingTime = null;
-		if (!$this->isConnected()) {
-			return;
-		}
-		$uri = ($this->uri ?? $this->peerName);
-		$statusString = \Safe\pack("n", $status);
-		$this->isClosing = true;
-		$this->send($statusString . $message, 'close');
-		$this->logger->info("[Websocket {uri}] Closing with status: {status}", [
-			"uri" => $uri,
-			"status" => $status,
-		]);
-	}
-
-	public function send(string $data, string $opcode='text'): void {
-		if (!$this->isConnected()) {
-			$this->connect();
-		}
-		$uri = ($this->uri ?? $this->peerName);
-		$this->logger->debug("[Websocket {uri}] Sending {$opcode}", ["uri" => $uri]);
-		if ($opcode === 'ping') {
-			$this->pendingPingTime = time();
-		}
-		$this->logger->info("[Websocket {uri}] Queueing {opcode} packet", [
-			"uri" => $uri,
-			"opcode" => $opcode,
-			"packet" => $data,
-		]);
-
-		if (!isset(static::ALLOWED_OPCODES[$opcode])) {
-			$this->logger->info("[Websocket {uri}] Opcode {opcode} is invalid", [
-				"uri" => $uri,
-				"opcode" => $opcode,
-			]);
-			throw new Exception("Bad opcode '$opcode'.");
-		}
-
-		$dataChunks = str_split($data, self::FRAMESIZE);
-
-		while (count($dataChunks)) {
-			$chunk = array_shift($dataChunks);
-			$final = empty($dataChunks);
-
-			$frame = $this->toFrame($final, $chunk, $opcode, $this->maskData);
-			$this->sendQueue []= $frame;
-
-			$opcode = 'continuation';
-			$this->logger->info("[Websocket {uri}] Queueing frame of packet", [
-				"uri" => $uri,
-			]);
-		}
-		$this->listenForReadWrite();
-	}
-
-	/**
-	 * Handler method which will be called when activity occurs in the SocketNotifier.
-	 *
-	 * @internal
-	 */
-	public function onStreamActivity(int $type): void {
-		if ($this->isConnected() === false) {
-			return;
-		}
-
-		if ($type === SocketNotifier::ACTIVITY_READ) {
-			$this->processResponse();
-			return;
-		}
-		if ($type === SocketNotifier::ACTIVITY_WRITE) {
-			$this->processQueue();
-			return;
-		}
-
-		throw new Exception("Illegal notification ($type) received.");
 	}
 
 	protected function listenForRead(): void {
@@ -590,13 +598,5 @@ class WebsocketBase {
 			[$this, 'onStreamActivity']
 		);
 		$this->socketManager->addSocketNotifier($this->notifier);
-	}
-
-	public function setTag(string $key, mixed $value): void {
-		$this->tags[$key] = $value;
-	}
-
-	public function getTag(string $key): mixed {
-		return $this->tags[$key];
 	}
 }

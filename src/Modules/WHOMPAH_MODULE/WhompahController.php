@@ -38,9 +38,7 @@ class WhompahController extends ModuleInstance {
 		$this->db->loadCSVFile($this->moduleName, __DIR__ . "/whompah_cities_rel.csv");
 	}
 
-	/**
-	 * Shows a list of whompah cities
-	 */
+	/** Shows a list of whompah cities */
 	#[NCA\HandlesCommand("whompah")]
 	public function whompahListCommand(CmdContext $context): void {
 		/** @var Collection<WhompahCity> */
@@ -60,9 +58,7 @@ class WhompahController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
-	/**
-	 * Searches a whompah-route from one location to another
-	 */
+	/** Searches a whompah-route from one location to another */
 	#[NCA\HandlesCommand("whompah")]
 	public function whompahTravelCommand(CmdContext $context, PWord $start, PWord $end): void {
 		$startCity = $this->findCity($start());
@@ -101,9 +97,7 @@ class WhompahController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
-	/**
-	 * Show all whompah-connections of a city
-	 */
+	/** Show all whompah-connections of a city */
 	#[NCA\HandlesCommand("whompah")]
 	public function whompahDestinationsCommand(CmdContext $context, string $cityName): void {
 		$city = $this->findCity($cityName);
@@ -129,27 +123,9 @@ class WhompahController extends ModuleInstance {
 	}
 
 	/**
-	 * @param WhompahCity[] $cities
-	 * @return string[]
-	 */
-	protected function getColoredNamelist(array $cities, bool $addShort=false): array {
-		return array_map(function(WhompahCity $city) use ($addShort): string {
-			$faction = strtolower($city->faction);
-			if ($faction === 'neutral') {
-				$faction = 'green';
-			}
-			$coloredName = "<{$faction}>{$city->city_name}<end>";
-			if ($addShort) {
-				$coloredName .= " ({$city->short_name})";
-			}
-			return $coloredName;
-		}, $cities);
-	}
-
-	/**
-	 * @param WhompahCity[] $queue
+	 * @param WhompahCity[]          $queue
 	 * @param array<int,WhompahCity> $whompahs
-	 * @param int $endCity
+	 *
 	 * @return ?WhompahCity
 	 */
 	public function findWhompahPath(array $queue, array $whompahs, int $endCity): ?WhompahCity {
@@ -184,9 +160,7 @@ class WhompahController extends ModuleInstance {
 			?: $q2->asObj(WhompahCity::class)->first();
 	}
 
-	/**
-	 * @return array<int,WhompahCity>
-	 */
+	/** @return array<int,WhompahCity> */
 	public function buildWhompahNetwork(): array {
 		/** @var array<int,WhompahCity> */
 		$whompahs = $this->db->table("whompah_cities")->asObj(WhompahCity::class)
@@ -194,11 +168,30 @@ class WhompahController extends ModuleInstance {
 
 		$this->db->table("whompah_cities_rel")->orderBy("city1_id")
 			->asObj(WhompahCityRel::class)
-			->each(function(WhompahCityRel $city) use ($whompahs) {
+			->each(function (WhompahCityRel $city) use ($whompahs) {
 				$whompahs[$city->city1_id]->connections ??= [];
 				$whompahs[$city->city1_id]->connections[] = $city->city2_id;
 			});
 
 		return $whompahs;
+	}
+
+	/**
+	 * @param WhompahCity[] $cities
+	 *
+	 * @return string[]
+	 */
+	protected function getColoredNamelist(array $cities, bool $addShort=false): array {
+		return array_map(function (WhompahCity $city) use ($addShort): string {
+			$faction = strtolower($city->faction);
+			if ($faction === 'neutral') {
+				$faction = 'green';
+			}
+			$coloredName = "<{$faction}>{$city->city_name}<end>";
+			if ($addShort) {
+				$coloredName .= " ({$city->short_name})";
+			}
+			return $coloredName;
+		}, $cities);
 	}
 }

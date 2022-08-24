@@ -5,8 +5,8 @@ namespace Nadybot\Core\Modules\SECURITY;
 use DateTime;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
-	Attributes as NCA,
 	AccessManager,
+	Attributes as NCA,
 	CmdContext,
 	DB,
 	DBSchema\Audit,
@@ -39,99 +39,6 @@ class AuditController extends ModuleInstance {
 	/** Log all security-relevant data */
 	#[NCA\Setting\Boolean(accessLevel: "superadmin")]
 	public bool $auditEnabled = false;
-
-	/**
-	 * @param array<mixed> $params
-	 */
-	protected function parseParams(QueryBuilder $query, string $args, array &$params): ?string {
-		$keys = [
-			"limit", "offset", "before", "after", "actor", "actee", "action"
-		];
-		$args = preg_replace("/,?\s+(" . join("|", $keys) . ")\s*=?\s*/s", "&$1=", $args);
-		parse_str($args, $params);
-		$params["limit"] ??= "50";
-		$limit = $params["limit"];
-		if (!preg_match("/^\d+$/", $limit)) {
-			return "<highlight>limit<end> must be a number.";
-		}
-		$query->limit((int)$limit + 1);
-
-		$params["offset"] ??= "0";
-		$offset = $params["offset"];
-		if (!preg_match("/^\d+$/", $offset)) {
-			return "<highlight>offset<end> must be a number.";
-		}
-		$query->offset((int)$offset);
-
-		$before = $params["before"]??null;
-		if (isset($before)) {
-			$before = strtotime($before);
-			if ($before === false || abs($before) > 0x7FFFFFFF) {
-				return "<highlight>before<end> must be a date and/or time.";
-			}
-			$params["before"] = (new DateTime())->setTimestamp($before)->format("Y-m-d\TH:i:s e");
-			$query->where("time", "<=", $before);
-		}
-
-		$after = $params["after"]??null;
-		if (isset($after)) {
-			$after = strtotime($after);
-			if ($after === false || abs($after) > 0x7FFFFFFF) {
-				return "<highlight>after<end> must be a date and/or time.";
-			}
-			$params["after"] = (new DateTime())->setTimestamp($after)->format("Y-m-d\TH:i:s e");
-			$query->where("time", ">=", $after);
-		}
-
-		$actor = $params["actor"]??null;
-		if (isset($actor)) {
-			$query->where("actor", ucfirst(strtolower($actor)));
-		}
-
-		$actee = $params["actee"]??null;
-		if (isset($actee)) {
-			$query->where("actee", ucfirst(strtolower($actee)));
-		}
-
-		$action = $params["action"]??null;
-		if (isset($action)) {
-			$query->whereIn("action", \Safe\preg_split("/\s*,\s*/", strtolower($action)));
-		}
-
-		return null;
-	}
-
-	/**
-	 * @param Collection<mixed> $data
-	 * @param array<string,mixed> $params
-	 * @return string[]
-	 * @psalm-return array{0: ?string, 1: ?string}
-	 * @phpstan-return array{0: ?string, 1: ?string}
-	 */
-	protected function getPrevNextLinks(Collection $data, array $params): array {
-		$prevLink = $nextLink = null;
-		if ($params["offset"] > 0) {
-			$prevParams = $params;
-			$prevParams["offset"] = max(0, $prevParams["offset"] - $prevParams["limit"]);
-			$cmdArgs = join(" ", array_map(
-				fn ($k, $v) => "{$k}={$v}",
-				array_keys($prevParams),
-				array_values($prevParams)
-			));
-			$prevLink = $this->text->makeChatcmd("&lt; prev", "/tell <myname> audit {$cmdArgs}");
-		}
-		if ($data->count() > $params["limit"]) {
-			$nextParams = $params;
-			$nextParams["offset"] += $nextParams["limit"];
-			$cmdArgs = join(" ", array_map(
-				fn ($k, $v) => "{$k}={$v}",
-				array_keys($nextParams),
-				array_values($nextParams)
-			));
-			$nextLink = $this->text->makeChatcmd("next &gt;", "/tell <myname> audit {$cmdArgs}");
-		}
-		return [$prevLink, $nextLink];
-	}
 
 	/**
 	 * See the most recent audit entries in the database, optionally filtered
@@ -186,9 +93,7 @@ class AuditController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
-	/**
-	 * Query entries from the audit log
-	 */
+	/** Query entries from the audit log */
 	#[
 		NCA\Api("/audit"),
 		NCA\GET,
@@ -258,6 +163,98 @@ class AuditController extends ModuleInstance {
 		return new ApiResponse(
 			$query->asObj(Audit::class)->toArray()
 		);
+	}
+
+	/** @param array<mixed> $params */
+	protected function parseParams(QueryBuilder $query, string $args, array &$params): ?string {
+		$keys = [
+			"limit", "offset", "before", "after", "actor", "actee", "action",
+		];
+		$args = preg_replace("/,?\s+(" . join("|", $keys) . ")\s*=?\s*/s", "&$1=", $args);
+		parse_str($args, $params);
+		$params["limit"] ??= "50";
+		$limit = $params["limit"];
+		if (!preg_match("/^\d+$/", $limit)) {
+			return "<highlight>limit<end> must be a number.";
+		}
+		$query->limit((int)$limit + 1);
+
+		$params["offset"] ??= "0";
+		$offset = $params["offset"];
+		if (!preg_match("/^\d+$/", $offset)) {
+			return "<highlight>offset<end> must be a number.";
+		}
+		$query->offset((int)$offset);
+
+		$before = $params["before"]??null;
+		if (isset($before)) {
+			$before = strtotime($before);
+			if ($before === false || abs($before) > 0x7FFFFFFF) {
+				return "<highlight>before<end> must be a date and/or time.";
+			}
+			$params["before"] = (new DateTime())->setTimestamp($before)->format("Y-m-d\TH:i:s e");
+			$query->where("time", "<=", $before);
+		}
+
+		$after = $params["after"]??null;
+		if (isset($after)) {
+			$after = strtotime($after);
+			if ($after === false || abs($after) > 0x7FFFFFFF) {
+				return "<highlight>after<end> must be a date and/or time.";
+			}
+			$params["after"] = (new DateTime())->setTimestamp($after)->format("Y-m-d\TH:i:s e");
+			$query->where("time", ">=", $after);
+		}
+
+		$actor = $params["actor"]??null;
+		if (isset($actor)) {
+			$query->where("actor", ucfirst(strtolower($actor)));
+		}
+
+		$actee = $params["actee"]??null;
+		if (isset($actee)) {
+			$query->where("actee", ucfirst(strtolower($actee)));
+		}
+
+		$action = $params["action"]??null;
+		if (isset($action)) {
+			$query->whereIn("action", \Safe\preg_split("/\s*,\s*/", strtolower($action)));
+		}
+
+		return null;
+	}
+
+	/**
+	 * @param Collection<mixed>   $data
+	 * @param array<string,mixed> $params
+	 *
+	 * @return string[]
+	 * @psalm-return array{0: ?string, 1: ?string}
+	 * @phpstan-return array{0: ?string, 1: ?string}
+	 */
+	protected function getPrevNextLinks(Collection $data, array $params): array {
+		$prevLink = $nextLink = null;
+		if ($params["offset"] > 0) {
+			$prevParams = $params;
+			$prevParams["offset"] = max(0, $prevParams["offset"] - $prevParams["limit"]);
+			$cmdArgs = join(" ", array_map(
+				fn ($k, $v) => "{$k}={$v}",
+				array_keys($prevParams),
+				array_values($prevParams)
+			));
+			$prevLink = $this->text->makeChatcmd("&lt; prev", "/tell <myname> audit {$cmdArgs}");
+		}
+		if ($data->count() > $params["limit"]) {
+			$nextParams = $params;
+			$nextParams["offset"] += $nextParams["limit"];
+			$cmdArgs = join(" ", array_map(
+				fn ($k, $v) => "{$k}={$v}",
+				array_keys($nextParams),
+				array_values($nextParams)
+			));
+			$nextLink = $this->text->makeChatcmd("next &gt;", "/tell <myname> audit {$cmdArgs}");
+		}
+		return [$prevLink, $nextLink];
 	}
 
 	protected function addRangeLimits(Request $request, QueryBuilder $query): ?Response {

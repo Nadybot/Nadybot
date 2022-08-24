@@ -57,7 +57,7 @@ class RateIgnoreController extends ModuleInstance {
 		}
 		$blob = '';
 		foreach ($list as $entry) {
-			$remove = $this->text->makeChatcmd('Remove', "/tell <myname> rateignore remove $entry->name");
+			$remove = $this->text->makeChatcmd('Remove', "/tell <myname> rateignore remove {$entry->name}");
 			$date = $this->util->date($entry->added_dt);
 			$blob .= "<highlight>{$entry->name}<end> [added by {$entry->added_by}] {$date} {$remove}\n";
 		}
@@ -79,9 +79,12 @@ class RateIgnoreController extends ModuleInstance {
 
 	/**
 	 * Add someone to the RateIgnoreList
-	 * @param string $user Person to add
+	 *
+	 * @param string $user   Person to add
 	 * @param string $sender Name of the person that adds
+	 *
 	 * @return string Message of success or failure
+	 *
 	 * @throws SQLException
 	 */
 	public function add(string $user, string $sender): string {
@@ -93,21 +96,24 @@ class RateIgnoreController extends ModuleInstance {
 		}
 
 		if ($this->check($user) === true) {
-			return "<highlight>$user<end> is already on the rate limit ignore list.";
+			return "<highlight>{$user}<end> is already on the rate limit ignore list.";
 		}
 		$this->db->table("rateignorelist")
 			->insert([
 				"name" => $user,
 				"added_by" => $sender,
-				"added_dt" => time()
+				"added_dt" => time(),
 			]);
 		return "<highlight>{$user}<end> has been added to the rate limit ignore list.";
 	}
 
 	/**
 	 * Remove someone from the rate-limit ignore list
+	 *
 	 * @param string $user Who to remove
+	 *
 	 * @return string Message with success or failure
+	 *
 	 * @throws SQLException
 	 */
 	public function remove(string $user): string {
@@ -118,7 +124,7 @@ class RateIgnoreController extends ModuleInstance {
 		}
 
 		if ($this->check($user) === false) {
-			return "<highlight>$user<end> is not on the rate limit ignore list.";
+			return "<highlight>{$user}<end> is not on the rate limit ignore list.";
 		}
 		$this->db->table("rateignorelist")->where("name", $user)->delete();
 		return "<highlight>{$user}<end> has been removed from the rate limit ignore list.";
@@ -132,7 +138,9 @@ class RateIgnoreController extends ModuleInstance {
 
 	/**
 	 * Get all rateignorelist entries
+	 *
 	 * @return RateIgnoreList[]
+	 *
 	 * @throws SQLException
 	 */
 	public function all(): array {

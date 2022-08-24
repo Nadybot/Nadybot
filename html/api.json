@@ -7,7 +7,7 @@
 			"name": "GPL3",
 			"url": "https://www.gnu.org/licenses/gpl-3.0.en.html"
 		},
-		"version": "6.0.5"
+		"version": "6.1.0"
 	},
 	"servers": [
 		{
@@ -286,7 +286,7 @@
 						"properties": {
 							"subcommands": {
 								"type": "array",
-								"description": "A list of subcommands for this command. Subcommands can have different rights, but cannot be enabled without the command itself being enabled. *",
+								"description": "A list of subcommands for this command. Subcommands can have different rights, but cannot be enabled without the command itself being enabled.",
 								"items": {
 									"$ref": "#/components/schemas/ModuleSubcommand"
 								}
@@ -841,6 +841,14 @@
 						"type": "string",
 						"description": "Which PHP version are we running?"
 					},
+					"event_loop": {
+						"type": "string",
+						"description": "Which event loop driver are we running?"
+					},
+					"fs": {
+						"type": "string",
+						"description": "Which file system driver are we running?"
+					},
 					"os": {
 						"type": "string",
 						"description": "Which operating system/kernel are we running?"
@@ -854,6 +862,10 @@
 			"MemoryInformation": {
 				"type": "object",
 				"properties": {
+					"available": {
+						"type": "integer",
+						"description": "Maximum available memory for PHP in MB"
+					},
 					"current_usage": {
 						"type": "integer",
 						"description": "Current memory usage in bytes"

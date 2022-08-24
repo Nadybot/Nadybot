@@ -79,9 +79,9 @@ if [ -e /proxy/aochatproxy ] \
 	[ "${PROXY_SEND_TELLS_OVER_MAIN:-1}" = "0" ] && SEND_TELLS_OVER_MAIN="false"
 	RELAY_WORKER_TELLS="true";
 	[ "${PROXY_RELAY_WORKER_TELLS:-1}" = "0" ] && RELAY_WORKER_TELLS="false"
-	cat > /proxy/config.json <<-DONE
+	cat > /tmp/config.json <<-DONE
 		{
-		    "rust_log": "info",
+		    "rust_log": "${PROXY_LOGLEVEL:-info}",
 		    "port_number": ${CONFIG_PROXY_PORT:-9993},
 		    "server_address": "chat.d1.funcom.com:${FC_PORT}",
 		    "spam_bot_support": ${SPAM_BOT_SUPPORT},
@@ -98,9 +98,9 @@ if [ -e /proxy/aochatproxy ] \
 			LASTPASS=$(eval echo "\${PROXY_PASSWORD_$SUFFIX:-}")
 		fi
 		if [ "$SUFFIX" -gt 1 ]; then
-			echo "        ," >> /proxy/config.json
+			echo "        ," >> /tmp/config.json
 		fi
-		cat >> /proxy/config.json <<-END
+		cat >> /tmp/config.json <<-END
 			        {
 			            "username": "${LASTUSER}",
 			            "password": "${LASTPASS}",
@@ -109,26 +109,25 @@ if [ -e /proxy/aochatproxy ] \
 		END
 		SUFFIX=$((SUFFIX+1))
 	done
-	cat >> /proxy/config.json <<-DONE
+	cat >> /tmp/config.json <<-DONE
 		    ]
 		}
 	DONE
 	cd /proxy || exit
-	(/proxy/aochatproxy 2>&1| sed -e 's/^[^ ]* \([A-Z]*\) .*\]/[PROXY:\1]/') &
+	(/usr/bin/env RUST_BACKTRACE=full /proxy/aochatproxy /tmp/config.json 2>&1| stdbuf -i0 -o0 -e0 sed -e 's/^[^ ]* \([A-Z]*\) .*\]/[PROXY:\1]/') &
 	cd /nadybot || exit
 fi
 
 PHP=$(which php81 php8 php7 php | head -n 1)
-PARAMS=""
 if [ -n "$CONFIG_JIT_BUFFER_SIZE" ]; then
-	PARAMS="-dopcache.enable_cli=1 -dopcache.jit_buffer_size=${JIT_BUFFER_SIZE} -dopcache.jit=1235"
+	PHP_PARAMS="${PHP_PARAMS:-} -dopcache.enable_cli=1 -dopcache.jit_buffer_size=${JIT_BUFFER_SIZE} -dopcache.jit=1235"
 fi
 
 EXITCODE=255
 while [ "$EXITCODE" -eq 255 ]; do
 	trap "" TERM
 	# shellcheck disable=SC2086
-	"$PHP" $PARAMS -f main.php -- --log-config /tmp/logging.json /tmp/config.php "$@"
+	"$PHP" ${PHP_PARAMS:-} -f main.php -- --log-config /tmp/logging.json /tmp/config.php "$@"
 	EXITCODE=$?
 	trap - TERM
 done

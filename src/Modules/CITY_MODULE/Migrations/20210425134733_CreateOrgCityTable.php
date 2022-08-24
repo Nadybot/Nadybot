@@ -3,9 +3,7 @@
 namespace Nadybot\Modules\CITY_MODULE\Migrations;
 
 use Illuminate\Database\Schema\Blueprint;
-use Nadybot\Core\DB;
-use Nadybot\Core\LoggerWrapper;
-use Nadybot\Core\SchemaMigration;
+use Nadybot\Core\{DB, LoggerWrapper, SchemaMigration};
 use Nadybot\Modules\CITY_MODULE\CloakController;
 
 class CreateOrgCityTable implements SchemaMigration {
@@ -14,7 +12,7 @@ class CreateOrgCityTable implements SchemaMigration {
 		if ($db->schema()->hasTable($table)) {
 			return;
 		}
-		$db->schema()->create($table, function(Blueprint $table): void {
+		$db->schema()->create($table, function (Blueprint $table): void {
 			$table->integer("time")->nullable();
 			$table->string("action", 10)->nullable();
 			$table->string("player", 25)->nullable();

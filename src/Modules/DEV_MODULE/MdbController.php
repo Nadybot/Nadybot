@@ -63,10 +63,10 @@ class MdbController extends ModuleInstance {
 
 		$blob = '';
 		foreach ($instances as $instance) {
-			$blob .= $this->text->makeChatcmd((string)$instance['id'], "/tell <myname> mdb $categoryId " . $instance['id']) . "\n";
+			$blob .= $this->text->makeChatcmd((string)$instance['id'], "/tell <myname> mdb {$categoryId} " . $instance['id']) . "\n";
 		}
 
-		$msg = $this->text->makeBlob("MDB Instances for Category $categoryId", $blob);
+		$msg = $this->text->makeBlob("MDB Instances for Category {$categoryId}", $blob);
 
 		$context->reply($msg);
 	}
@@ -78,7 +78,7 @@ class MdbController extends ModuleInstance {
 		$msg = "Unable to find MDB string category <highlight>{$categoryId}<end>, ".
 			"instance <highlight>{$instanceId}<end>.";
 		if ($messageString !== null) {
-			$msg = "[$categoryId : $instanceId] $messageString";
+			$msg = "[{$categoryId} : {$instanceId}] {$messageString}";
 		}
 		$context->reply($msg);
 	}

@@ -45,7 +45,7 @@ class Preferences extends ModuleInstance {
 			->where("sender", $sender)
 			->where("name", $name)
 			->select("value")
-			->pluckAs("value", "string")
+			->pluckStrings("value")
 			->first();
 	}
 
@@ -58,9 +58,7 @@ class Preferences extends ModuleInstance {
 			->delete() !== 0;
 	}
 
-	/**
-	 * Get the value of a setting
-	 */
+	/** Get the value of a setting */
 	#[
 		NCA\Api("/setting/%s"),
 		NCA\GET,
@@ -76,9 +74,7 @@ class Preferences extends ModuleInstance {
 		return new ApiResponse($result);
 	}
 
-	/**
-	 * Create a new setting
-	 */
+	/** Create a new setting */
 	#[
 		NCA\Api("/setting/%s"),
 		NCA\POST,
@@ -100,9 +96,7 @@ class Preferences extends ModuleInstance {
 		return new Response(Response::CREATED);
 	}
 
-	/**
-	 * Store a setting
-	 */
+	/** Store a setting */
 	#[
 		NCA\Api("/setting/%s"),
 		NCA\PUT,
@@ -119,9 +113,7 @@ class Preferences extends ModuleInstance {
 		return new Response(Response::NO_CONTENT);
 	}
 
-	/**
-	 * Delete a setting
-	 */
+	/** Delete a setting */
 	#[
 		NCA\Api("/setting/%s"),
 		NCA\DELETE,

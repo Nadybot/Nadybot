@@ -52,7 +52,7 @@ class StatsController extends ModuleInstance {
 			$this->assignRandomAuthToken();
 		}
 		$collectors = [
-			"ao_data" => [new AoDataInbound(), new AoDataOutbound],
+			"ao_data" => [new AoDataInbound(), new AoDataOutbound()],
 			"buddylist" => [new BuddylistSize(), new BuddylistOnline(), new BuddylistOffline()],
 			"memory" => [new MemoryRealUsage(), new MemoryUsage(), new MemoryPeakUsage()],
 		];
@@ -66,14 +66,6 @@ class StatsController extends ModuleInstance {
 		Registry::injectDependencies($aoPackets);
 		$this->registerDataset($aoPackets, "ao_packets");
 		$this->registerDataset(new CmdStats("cmd_times"), "cmd_times");
-	}
-
-	private function assignRandomAuthToken(): void {
-		$this->settingManager->save("prometheus_auth_token", $this->util->getPassword(16));
-	}
-
-	private function assignEmptyAuthToken(): void {
-		$this->settingManager->save("prometheus_auth_token", "");
 	}
 
 	#[NCA\SettingChangeHandler('prometheus_enabled')]
@@ -99,9 +91,7 @@ class StatsController extends ModuleInstance {
 		$this->dataSets[$name]->registerProvider($provider);
 	}
 
-	/**
-	 * Query prometheus-formatted statistics
-	 */
+	/** Query prometheus-formatted statistics */
 	#[
 		NCA\HttpGet("/metrics"),
 		NCA\HttpOwnAuth,
@@ -110,7 +100,7 @@ class StatsController extends ModuleInstance {
 		if (!$this->settingManager->getBool('prometheus_enabled')) {
 			$server->httpError(new Response(
 				Response::NOT_FOUND,
-			));
+			), $request);
 			return;
 		}
 		$authHeader = $request->headers["authorization"] ?? null;
@@ -121,14 +111,14 @@ class StatsController extends ModuleInstance {
 			$server->httpError(new Response(
 				Response::UNAUTHORIZED,
 				["WWW-Authenticate" => "Bearer realm=\"{$this->config->name}\""],
-			));
+			), $request);
 			return;
 		}
 		$server->sendResponse(new Response(
 			Response::OK,
 			['Content-type' => "text/plain; version=0.0.4"],
 			$this->getMetricsData()
-		), true);
+		), $request, true);
 	}
 
 	public function getMetricsData(): string {
@@ -140,5 +130,13 @@ class StatsController extends ModuleInstance {
 			}
 		}
 		return join("\n\n", $lines);
+	}
+
+	private function assignRandomAuthToken(): void {
+		$this->settingManager->save("prometheus_auth_token", $this->util->getPassword(16));
+	}
+
+	private function assignEmptyAuthToken(): void {
+		$this->settingManager->save("prometheus_auth_token", "");
 	}
 }

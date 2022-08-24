@@ -2,8 +2,7 @@
 
 namespace Nadybot\Modules\ONLINE_MODULE;
 
-use Nadybot\Core\Attributes as NCA;
-use Nadybot\Core\Nadybot;
+use Nadybot\Core\{Attributes as NCA, Nadybot};
 use Nadybot\Modules\WEBSERVER_MODULE\Interfaces\GaugeProvider;
 
 class OnlinePrivStats implements GaugeProvider {

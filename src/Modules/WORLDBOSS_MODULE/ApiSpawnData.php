@@ -7,4 +7,5 @@ use Spatie\DataTransferObject\DataTransferObject;
 class ApiSpawnData extends DataTransferObject {
 	public string $name;
 	public int $last_spawn;
+	public int $dimension;
 }

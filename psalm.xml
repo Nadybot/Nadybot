@@ -25,5 +25,6 @@
         <RedundantCondition errorLevel="suppress" />
         <UnresolvableInclude errorLevel="suppress" />
         <RedundantConditionGivenDocblockType errorLevel="suppress" />
+        <DeprecatedMethod errorLevel="suppress" />
     </issueHandlers>
 </psalm>

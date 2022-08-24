@@ -8,6 +8,7 @@ use Spatie\DataTransferObject\DataTransferObject;
 
 class ApiResult extends DataTransferObject {
 	public int $count;
+
 	/** @var ApiSite[] */
 	#[CastWith(ArrayCaster::class, itemType: ApiSite::class)]
 	public array $results = [];

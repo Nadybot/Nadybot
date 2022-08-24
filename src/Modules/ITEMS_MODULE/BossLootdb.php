@@ -2,8 +2,7 @@
 
 namespace Nadybot\Modules\ITEMS_MODULE;
 
-use Nadybot\Core\Attributes as NCA;
-use Nadybot\Core\DBRow;
+use Nadybot\Core\{Attributes as NCA, DBRow};
 
 class BossLootdb extends DBRow {
 	/** The internal ID of the boss for this loot */

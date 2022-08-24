@@ -3,21 +3,23 @@
 namespace Nadybot\Modules\TRACKER_MODULE\Migrations;
 
 use Exception;
+use Generator;
 use Nadybot\Core\{
 	Attributes as NCA,
 	ConfigFile,
-	Modules\DISCORD\DiscordChannel,
 	DB,
 	DBSchema\Route,
 	DBSchema\Setting,
 	LoggerWrapper,
 	MessageHub,
 	Modules\DISCORD\DiscordAPIClient,
+	Modules\DISCORD\DiscordChannel,
 	Routing\Source,
 	SchemaMigration,
 	SettingManager,
 };
 use Nadybot\Modules\TRACKER_MODULE\TrackerController;
+use Throwable;
 
 class MigrateToRoutes implements SchemaMigration {
 	#[NCA\Inject]
@@ -32,14 +34,7 @@ class MigrateToRoutes implements SchemaMigration {
 	#[NCA\Inject]
 	public MessageHub $messageHub;
 
-	protected function getSetting(DB $db, string $name): ?Setting {
-		return $db->table(SettingManager::DB_TABLE)
-			->where("name", $name)
-			->asObj(Setting::class)
-			->first();
-	}
-
-	public function migrate(LoggerWrapper $logger, DB $db): void {
+	public function migrate(LoggerWrapper $logger, DB $db): Generator {
 		$table = MessageHub::DB_TABLE_ROUTES;
 		$showWhere = $this->getSetting($db, "show_tracker_events");
 		if (!isset($showWhere)) {
@@ -70,11 +65,12 @@ class MigrateToRoutes implements SchemaMigration {
 			return;
 		}
 		if ($showWhere & 4) {
-			$this->discordAPIClient->getChannel(
-				$notifyChannel->value,
-				[$this, "migrateChannelToRoute"],
-				$db,
-			);
+			try {
+				/** @var DiscordChannel */
+				$channel = yield $this->discordAPIClient->getChannel($notifyChannel->value);
+				$this->migrateChannelToRoute($channel, $db);
+			} catch (Throwable) {
+			}
 		}
 	}
 
@@ -89,5 +85,12 @@ class MigrateToRoutes implements SchemaMigration {
 		} catch (Exception $e) {
 			// Ain't nothing we can do, errors will be given on next restart
 		}
+	}
+
+	protected function getSetting(DB $db, string $name): ?Setting {
+		return $db->table(SettingManager::DB_TABLE)
+			->where("name", $name)
+			->asObj(Setting::class)
+			->first();
 	}
 }

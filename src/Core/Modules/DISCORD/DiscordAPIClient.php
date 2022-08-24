@@ -2,36 +2,44 @@
 
 namespace Nadybot\Core\Modules\DISCORD;
 
-use function Safe\json_encode;
-use Closure;
-use Safe\Exceptions\JsonException;
-use stdClass;
+use function Amp\{call, delay};
+use function Safe\{json_decode, json_encode};
+use Amp\Http\Client\Body\JsonBody;
+use Amp\Http\Client\Interceptor\SetRequestHeaderIfUnset;
+use Amp\Http\Client\{HttpClient, HttpClientBuilder, Request, Response};
+use Amp\{Deferred, Promise, Success};
+use Exception;
+use Generator;
 use Nadybot\Core\{
 	AsyncHttp,
 	Attributes as NCA,
 	Http,
-	HttpResponse,
-	ModuleInstance,
 	JSONDataModel,
 	LoggerWrapper,
-	Timer,
+	ModuleInstance,
+	SettingManager,
 };
-use Nadybot\Modules\DISCORD_GATEWAY_MODULE\Model\ApplicationCommand;
-use Nadybot\Modules\DISCORD_GATEWAY_MODULE\Model\GuildMember;
+use Nadybot\Modules\DISCORD_GATEWAY_MODULE\Model\{ApplicationCommand, GuildMember};
+use Safe\Exceptions\JsonException;
+use stdClass;
 
 /**
  * A Discord API-client
  */
 #[NCA\Instance]
 class DiscordAPIClient extends ModuleInstance {
+	public const DISCORD_API = "https://discord.com/api/v10";
 	#[NCA\Inject]
 	public Http $http;
 
 	#[NCA\Inject]
-	public Timer $timer;
+	public DiscordController $discordCtrl;
 
 	#[NCA\Inject]
-	public DiscordController $discordCtrl;
+	public SettingManager $settingManager;
+
+	#[NCA\Inject]
+	public HttpClientBuilder $builder;
 
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
@@ -50,13 +58,11 @@ class DiscordAPIClient extends ModuleInstance {
 	/** @var array<string,DiscordUser> */
 	protected $userCache = [];
 
-	public const DISCORD_API = "https://discord.com/api/v10";
-
 	/**
 	 * Encode the given data for sending it with the API
 	 *
 	 * @param mixed $data The data to be encoded
-	 * @return string
+	 *
 	 * @throws JsonException on encoding error
 	 */
 	public static function encode(mixed $data): string {
@@ -67,383 +73,199 @@ class DiscordAPIClient extends ModuleInstance {
 		return $data;
 	}
 
+	/** @deprecated */
 	public function get(string $uri): AsyncHttp {
 		$botToken = $this->discordCtrl->discordBotToken;
 		return $this->http
 			->get($uri)
-			->withHeader('Authorization', "Bot $botToken");
+			->withHeader('Authorization', "Bot {$botToken}");
 	}
 
+	/** @deprecated */
 	public function post(string $uri, string $data): AsyncHttp {
 		$botToken = $this->discordCtrl->discordBotToken;
 		return $this->http
 			->post($uri)
 			->withPostData($data)
-			->withHeader('Authorization', "Bot $botToken")
+			->withHeader('Authorization', "Bot {$botToken}")
 			->withHeader('Content-Type', 'application/json');
 	}
 
+	/** @deprecated */
 	public function patch(string $uri, string $data): AsyncHttp {
 		$botToken = $this->discordCtrl->discordBotToken;
 		return $this->http
 			->patch($uri)
 			->withPostData($data)
-			->withHeader('Authorization', "Bot $botToken")
+			->withHeader('Authorization', "Bot {$botToken}")
 			->withHeader('Content-Type', 'application/json');
 	}
 
+	/** @deprecated */
 	public function put(string $uri, string $data): AsyncHttp {
 		$botToken = $this->discordCtrl->discordBotToken;
 		return $this->http
 			->put($uri)
 			->withPostData($data)
-			->withHeader('Authorization', "Bot $botToken")
+			->withHeader('Authorization', "Bot {$botToken}")
 			->withHeader('Content-Type', 'application/json');
 	}
 
+	/** @deprecated */
 	public function delete(string $uri): AsyncHttp {
 		$botToken = $this->discordCtrl->discordBotToken;
 		return $this->http
 			->delete($uri)
-			->withHeader('Authorization', "Bot $botToken");
+			->withHeader('Authorization', "Bot {$botToken}");
 	}
 
-	public function getGateway(callable $callback): void {
-		$this->get(
-			self::DISCORD_API . "/gateway/bot"
-		)->withCallback(
-			$this->getErrorWrapper(
-				new DiscordGateway(),
-				$callback,
-			)
+	/** @return Promise<DiscordGateway> */
+	public function getGateway(): Promise {
+		return $this->sendRequest(
+			new Request(self::DISCORD_API . "/gateway/bot"),
+			new DiscordGateway(),
 		);
 	}
 
-	/** @phpstan-param callable(ApplicationCommand[]):void $success */
+	/** @return Promise<stdClass> */
+	public function modifyGuildMember(string $guildId, string $userId, string $data): Promise {
+		$uri = self::DISCORD_API . "/guilds/{$guildId}/members/{$userId}";
+		$request = new Request($uri, "PATCH");
+		$request->setBody(new DiscordBody($data));
+		return $this->sendRequest($request, new stdClass());
+	}
+
+	/** @return Promise<ApplicationCommand[]> */
 	public function registerGlobalApplicationCommands(
 		string $applicationId,
 		string $message,
-		?callable $success=null,
-		?callable $failure=null,
-	): void {
-		$this->put(
-			self::DISCORD_API . "/applications/{$applicationId}/commands",
-			$message,
-		)->withCallback(
-			$this->getErrorWrapper(
-				null,
-				function (array $commands) use ($success): void {
-					$this->handleApplicationCommands($commands, $success);
-				},
-				$failure
-			)
-		);
+	): Promise {
+		$url = self::DISCORD_API . "/applications/{$applicationId}/commands";
+		$request = new Request($url, "PUT");
+		$request->setBody(new DiscordBody($message));
+		return $this->sendRequest($request, [new ApplicationCommand()]);
 	}
 
-	/** @phpstan-param callable(ApplicationCommand):void $success */
-	public function registerGuildApplicationCommand(
-		string $guildId,
-		string $applicationId,
-		string $message,
-		?callable $success=null,
-		?callable $failure=null,
-	): void {
-		$this->post(
-			self::DISCORD_API . "/applications/{$applicationId}/guilds/{$guildId}/commands",
-			$message,
-		)->withCallback(
-			$this->getErrorWrapper(new ApplicationCommand(), $success, $failure)
-		);
-	}
-
-	public function deleteGuildApplicationCommand(
-		string $guildId,
-		string $applicationId,
-		string $commandId,
-		?callable $success=null,
-		?callable $failure=null,
-	): void {
-		$this->delete(
-			self::DISCORD_API . "/applications/{$applicationId}/guilds/{$guildId}/commands/{$commandId}",
-		)->withCallback(
-			$this->getErrorWrapper(null, $success, $failure)
-		);
-	}
-
+	/** @return Promise<stdClass> */
 	public function deleteGlobalApplicationCommand(
 		string $applicationId,
 		string $commandId,
-		?callable $success=null,
-		?callable $failure=null,
-	): void {
-		$this->delete(
-			self::DISCORD_API . "/applications/{$applicationId}/commands/{$commandId}",
-		)->withCallback(
-			$this->getErrorWrapper(null, $success, $failure)
+	): Promise {
+		$url = self::DISCORD_API . "/applications/{$applicationId}/commands/{$commandId}";
+		return $this->sendRequest(new Request($url, "DELETE"), new stdClass());
+	}
+
+	/** @return Promise<array<ApplicationCommand>> */
+	public function getGlobalApplicationCommands(string $applicationId): Promise {
+		return $this->sendRequest(
+			new Request(self::DISCORD_API . "/applications/{$applicationId}/commands"),
+			[new ApplicationCommand()]
 		);
 	}
 
-	/** @phpstan-param callable(string, ApplicationCommand[]):void $success */
-	public function getGuildApplicationCommands(
-		string $guildId,
-		string $applicationId,
-		?callable $success=null,
-		?callable $failure=null,
-	): void {
-		$this->get(
-			self::DISCORD_API . "/applications/{$applicationId}/guilds/{$guildId}/commands",
-		)->withCallback(
-			$this->getErrorWrapper(
-				null,
-				function (array $commands) use ($guildId, $success): void {
-					$this->handleGuildApplicationCommands($commands, $guildId, $success);
-				},
-				$failure
-			)
-		);
-	}
-
-	/** @phpstan-param callable(ApplicationCommand[]):void $success */
-	public function getGlobalApplicationCommands(
-		string $applicationId,
-		?callable $success=null,
-		?callable $failure=null,
-	): void {
-		$this->get(
-			self::DISCORD_API . "/applications/{$applicationId}/commands",
-		)->withCallback(
-			$this->getErrorWrapper(
-				null,
-				function (array $commands) use ($success): void {
-					$this->handleApplicationCommands($commands, $success);
-				},
-				$failure
-			)
-		);
-	}
-
-	/**
-	 * @param stdClass[] $commands
-	 * @phpstan-param callable(ApplicationCommand[]):void $callback
-	 */
-	protected function handleApplicationCommands(array $commands, ?callable $callback=null): void {
-		$result = [];
-		foreach ($commands as $command) {
-			$appCmd = new ApplicationCommand();
-			$appCmd->fromJSON($command);
-			$result []= $appCmd;
-		}
-		if (isset($callback)) {
-			$callback($result);
-		}
-	}
-
-	/**
-	 * @param stdClass[] $commands
-	 * @phpstan-param callable(string, ApplicationCommand[]):void $callback
-	 */
-	protected function handleGuildApplicationCommands(array $commands, string $guildId, ?callable $callback=null): void {
-		$result = [];
-		foreach ($commands as $command) {
-			$appCmd = new ApplicationCommand();
-			$appCmd->fromJSON($command);
-			$result []= $appCmd;
-		}
-		if (isset($callback)) {
-			$callback($guildId, $result);
-		}
-	}
-
+	/** @return Promise<stdClass> */
 	public function sendInteractionResponse(
 		string $interactionId,
 		string $interactionToken,
 		string $message,
-		?callable $success=null,
-		?callable $failure=null
-	): void {
-		$this->post(
-			DiscordAPIClient::DISCORD_API . "/interactions/{$interactionId}/{$interactionToken}/callback",
-			$message,
-		)->withCallback(
-			$this->getErrorWrapper(null, $success, $failure)
-		);
+	): Promise {
+		$url = DiscordAPIClient::DISCORD_API . "/interactions/{$interactionId}/{$interactionToken}/callback";
+		$request = new Request($url, "POST");
+		$request->setBody(new DiscordBody($message));
+		return $this->sendRequest($request, new stdClass());
 	}
 
-	public function leaveGuild(string $guildId, ?callable $success, ?callable $failure): void {
-		$this->delete(
-			self::DISCORD_API . "/users/@me/guilds/{$guildId}"
-		)->withCallback(
-			$this->getErrorWrapper(null, $success, $failure)
-		);
+	/** @return Promise<stdClass> */
+	public function leaveGuild(string $guildId): Promise {
+		return $this->sendRequest(new Request(
+			self::DISCORD_API . "/users/@me/guilds/{$guildId}",
+			"DELETE"
+		), new stdClass());
 	}
 
-	public function queueToChannel(string $channel, string $message, ?callable $callback=null): void {
+	/** @return Promise<void> */
+	public function queueToChannel(string $channel, string $message): Promise {
 		$this->logger->info("Adding discord message to end of channel queue {channel}", [
 			"channel" => $channel,
 		]);
-		$this->outQueue []= new ChannelQueueItem($channel, $message, $callback);
+		$deferred = new Deferred();
+		$this->outQueue []= new ChannelQueueItem($channel, $message, $deferred);
 		if ($this->queueProcessing === false) {
 			$this->processQueue();
 		}
+		return $deferred->promise();
 	}
 
-	public function sendToChannel(string $channel, string $message, ?callable $callback=null): void {
+	/** @return Promise<void> */
+	public function sendToChannel(string $channel, string $message): Promise {
 		$this->logger->info("Adding discord message to front of channel queue {channel}", [
 			"channel" => $channel,
 		]);
-		array_unshift($this->outQueue, new ChannelQueueItem($channel, $message, $callback));
+		$deferred = new Deferred();
+		array_unshift($this->outQueue, new ChannelQueueItem($channel, $message, $deferred));
 		if ($this->queueProcessing === false) {
 			$this->processQueue();
 		}
+		return $deferred->promise();
 	}
 
-	public function processQueue(): void {
-		if (empty($this->outQueue)) {
-			$this->queueProcessing = false;
-			return;
-		}
-		$this->queueProcessing = true;
-		$item = array_shift($this->outQueue);
-		$this->immediatelySendToChannel($item);
-	}
-
-	protected function immediatelySendToChannel(ChannelQueueItem $item): void {
-		$this->logger->info("Sending message to discord channel {channel}", [
-			"channel" => $item->channelId,
-			"message" => $item->message,
-		]);
-		$errorHandler = $this->getErrorWrapper(new DiscordMessageIn(), $item->callback);
-		$this->post(
-			self::DISCORD_API . "/channels/{$item->channelId}/messages",
-			$item->message
-		)->withCallback(
-			function(HttpResponse $response, ChannelQueueItem $item) use ($errorHandler): void {
-				if (isset($response->headers) && $response->headers["status-code"] === "429") {
-					array_unshift($this->outQueue, $item);
-					$retryTime = (int)ceil((float)($response->headers["retry-after"]??1));
-					$this->timer->callLater($retryTime, [$this, "processQueue"]);
-				} else {
-					$this->processQueue();
-					$errorHandler($response);
-				}
-			},
-			$item
-		);
-	}
-
-	public function queueToWebhook(string $applicationId, string $interactionToken, string $message, ?callable $callback=null): void {
+	/** @return Promise<void> */
+	public function queueToWebhook(string $applicationId, string $interactionToken, string $message): Promise {
 		$this->logger->info("Adding discord message to end of webhook queue {interaction}", [
 			"channel" => $interactionToken,
 		]);
-		$this->webhookQueue []= new WebhookQueueItem($applicationId, $interactionToken, $message, $callback);
+		$deferred = new Deferred();
+		$this->webhookQueue []= new WebhookQueueItem($applicationId, $interactionToken, $message, $deferred);
 		if ($this->webhookQueueProcessing === false) {
 			$this->processWebhookQueue();
 		}
+		return $deferred->promise();
 	}
 
-	public function processWebhookQueue(): void {
-		if (empty($this->webhookQueue)) {
-			$this->webhookQueueProcessing = false;
-			return;
-		}
-		$this->webhookQueueProcessing = true;
-		$item = array_shift($this->webhookQueue);
-		$this->immediatelySendToWebhook($item);
-	}
-
-	protected function immediatelySendToWebhook(WebhookQueueItem $item): void {
-		$this->logger->info("Sending message to discord webhook {webhook}", [
-			"webhook" => $item->interactionToken,
-			"message" => $item->message,
-		]);
-		$errorHandler = $this->getErrorWrapper(new DiscordMessageIn(), $item->callback);
-		$this->post(
-			self::DISCORD_API . "/webhooks/{$item->applicationId}/{$item->interactionToken}",
-			$item->message
-		)->withCallback(
-			function(HttpResponse $response, WebhookQueueItem $item) use ($errorHandler): void {
-				if (isset($response->headers) && $response->headers["status-code"] === "429") {
-					array_unshift($this->webhookQueue, $item);
-					$retryTime = (int)ceil((float)($response->headers["retry-after"]??1));
-					$this->timer->callLater($retryTime, [$this, "processWebhookQueue"]);
-				} else {
-					$this->processWebhookQueue();
-					$errorHandler($response);
-				}
-			},
-			$item
-		);
-	}
-
-	public function sendToUser(string $user, DiscordMessageOut $message, ?callable $callback=null): void {
-		$this->logger->info("Sending message to discord user {user}", [
-			"user" => $user,
-			"message" => $message,
-		]);
-		$this->post(
-			self::DISCORD_API . "/users/@me/channels",
-			json_encode((object)["recipient_id" => $user]),
-		)->withCallback(
-			$this->getErrorWrapper(
-				new DiscordChannel(),
-				function (DiscordChannel $channel) use ($message, $callback): void {
-					$this->parseSendToUserReply($channel, $message->toJSON(), $callback);
-				}
-			)
-		);
+	/** @return Promise<void> */
+	public function sendToUser(string $user, string $message): Promise {
+		return call(function () use ($user, $message): Generator {
+			$this->logger->info("Sending message to discord user {user}", [
+				"user" => $user,
+				"message" => $message,
+			]);
+			$request = new Request(self::DISCORD_API . "/users/@me/channels", "POST");
+			$request->setBody(new JsonBody((object)["recipient_id" => $user]));
+			$channel = yield $this->sendRequest($request, new DiscordChannel());
+			yield $this->queueToChannel($channel->id, $message);
+		});
 	}
 
 	public function cacheUser(DiscordUser $user): void {
 		$this->userCache[$user->id] = $user;
 	}
 
-	/** @psalm-param null|callable(DiscordUser, mixed...) $callback */
-	public function cacheUserLookup(DiscordUser $user, ?callable $callback, mixed ...$args): void {
-		$this->cacheUser($user);
-		if (isset($callback)) {
-			$callback($user, ...$args);
-		}
-	}
-
-	/** @psalm-param callable(DiscordChannel, mixed...) $callback */
-	public function getChannel(string $channelId, callable $callback, mixed ...$args): void {
+	/** @return Promise<DiscordChannel> */
+	public function getChannel(string $channelId): Promise {
 		$this->logger->info("Looking up discord channel {channelId}", [
 			"channelId" => $channelId,
 		]);
-		$this->get(
-			self::DISCORD_API . "/channels/{$channelId}"
-		)->withCallback(
-			$this->getErrorWrapper(
-				new DiscordChannel(),
-				function (DiscordChannel $channel) use ($callback, $args): void {
-					$callback($channel, ...$args);
-				}
-			)
-		);
+		$request = new Request(self::DISCORD_API . "/channels/{$channelId}");
+		return $this->sendRequest($request, new DiscordChannel());
 	}
 
-	/** @psalm-param callable(DiscordUser, mixed...) $callback */
-	public function getUser(string $userId, callable $callback, mixed ...$args): void {
+	/** @return Promise<DiscordUser> */
+	public function getUser(string $userId): Promise {
 		$this->logger->info("Looking up discord user {userId}", [
 			"userId" => $userId,
 		]);
 		if (isset($this->userCache[$userId])) {
-			$this->logger->debug("InformatiVon found in cache", [
+			$this->logger->debug("Information found in cache", [
 				"cache" => $this->userCache[$userId],
 			]);
-			$callback($this->userCache[$userId], ...$args);
-			return;
+			return new Success($this->userCache[$userId]);
 		}
-		$this->get(
-			self::DISCORD_API . "/users/{$userId}"
-		)->withCallback(
-			$this->getErrorWrapper(
-				new DiscordUser(),
-				function (DiscordUser $user) use ($callback, $args): void {
-					$this->cacheUserLookup($user, $callback, ...$args);
-				}
-			)
-		);
+		return call(function () use ($userId): Generator {
+			$request = new Request(self::DISCORD_API . "/users/{$userId}");
+			$user = yield $this->sendRequest($request, new DiscordUser());
+			$this->cacheUser($user);
+			return $user;
+		});
 	}
 
 	public function cacheGuildMember(string $guildId, GuildMember $member): void {
@@ -453,61 +275,8 @@ class DiscordAPIClient extends ModuleInstance {
 		}
 	}
 
-	public function getGuildMembers(string $guildId, callable $callback, mixed ...$args): void {
-		$this->getGuildMembersLowlevel($guildId, 2, null, [], $callback, ...$args);
-	}
-
-	/**
-	 * @param stdClass[] $carry
-	 */
-	protected function getGuildMembersLowlevel(string $guildId, int $limit, ?string $after, array $carry, callable $callback, mixed ...$args): void {
-		$this->logger->info("Looking up discord guild {guildId} members", [
-			"guildId" => $guildId,
-			"limit" => $limit,
-			"after" => $after,
-		]);
-		$params = ["limit" => $limit];
-		if (isset($after)) {
-			$params["after"] = $after;
-		}
-		$this->get(
-			self::DISCORD_API . "/guilds/{$guildId}/members"
-		)->withQueryParams($params)
-		->withCallback(
-			$this->getErrorWrapper(
-				null,
-				function (array $members) use ($guildId, $limit, $after, $carry, $callback, $args): void {
-					$this->handleGuildMembers($members, $guildId, $limit, $after, $carry, $callback, ...$args);
-				}
-			)
-		);
-	}
-
-	/**
-	 * @param stdClass[] $members
-	 * @param stdClass[] $carry
-	 */
-	protected function handleGuildMembers(array $members, string $guildId, int $limit, ?string $after, array $carry, callable $callback, mixed ...$args): void {
-		$carry = array_merge($carry, $members);
-		if (count($members) === $limit) {
-			$lastMember = $members[count($members)-1]->user?->id ?? null;
-			$this->getGuildMembersLowlevel($guildId, $limit, $lastMember, $carry, $callback, ...$args);
-			return;
-		}
-		$result = [];
-		foreach ($carry as $member) {
-			$o = new GuildMember();
-			$o->fromJSON($member);
-			if (!isset($o->user)) {
-				continue;
-			}
-			$this->guildMemberCache[$guildId][$o->user->id] = $o;
-			$result []= $o;
-		}
-		$callback($result, ...$args);
-	}
-
-	public function getGuildMember(string $guildId, string $userId, callable $callback, mixed ...$args): void {
+	/** @return Promise<GuildMember> */
+	public function getGuildMember(string $guildId, string $userId): Promise {
 		$this->logger->info("Looking up discord guild {guildId} member {userId}", [
 			"guildId" => $guildId,
 			"userId" => $userId,
@@ -516,181 +285,181 @@ class DiscordAPIClient extends ModuleInstance {
 			$this->logger->debug("Information found in cache", [
 				"cache" => $this->guildMemberCache[$guildId][$userId],
 			]);
-			$callback($this->guildMemberCache[$guildId][$userId], ...$args);
-			return;
+			return new Success($this->guildMemberCache[$guildId][$userId]);
 		}
-		$this->get(
-			self::DISCORD_API . "/guilds/{$guildId}/members/{$userId}"
-		)->withCallback(
-			$this->getErrorWrapper(
-				new GuildMember(),
-				function (GuildMember $member) use ($guildId, $callback, $args): void {
-					$this->cacheGuildMemberLookup($member, $guildId, $callback, ...$args);
-				}
-			)
-		);
-	}
-
-	protected function cacheGuildMemberLookup(GuildMember $member, string $guildId, ?callable $callback, mixed ...$args): void {
-		$this->cacheGuildMember($guildId, $member);
-		if (isset($callback)) {
-			$callback($member, ...$args);
-		}
+		return call(function () use ($guildId, $userId): Generator {
+			$request = new Request(self::DISCORD_API . "/guilds/{$guildId}/members/{$userId}");
+			$member = yield $this->sendRequest($request, new GuildMember());
+			$this->cacheGuildMember($guildId, $member);
+			return $member;
+		});
 	}
 
 	/**
 	 * Create a new channel invite
-	 * @phpstan-param callable(DiscordChannelInvite, mixed...):void $callback
+	 *
+	 * @return Promise<DiscordChannelInvite>
 	 */
-	public function createChannelInvite(string $channelId, int $maxAge, int $maxUses, callable $callback, mixed ...$args): void {
-		$this->post(
-			self::DISCORD_API . "/channels/{$channelId}/invites",
-			json_encode((object)[
+	public function createChannelInvite(string $channelId, int $maxAge, int $maxUses): Promise {
+		$request = new Request(self::DISCORD_API . "/channels/{$channelId}/invites", "POST");
+		$request->setBody(new JsonBody((object)[
 				"max_age" => $maxAge,
 				"max_uses" => $maxUses,
 				"unique" => true,
-			])
-		)->withCallback(
-			$this->getErrorWrapper(
-				new DiscordChannelInvite(),
-				function (DiscordChannelInvite $invite) use ($callback, $args): void {
-					$callback($invite, ...$args);
-				}
-			)
-		);
+			]));
+		return $this->sendRequest($request, new DiscordChannelInvite());
 	}
 
 	/**
 	 * Get all currently valid guild invites for $guildId
-	 * @phpstan-param callable(string, DiscordChannelInvite[]):void $success
-	 * @phpstan-param null|callable(HttpResponse):bool $failure
+	 *
+	 * @return Promise<DiscordChannelInvite[]>
 	 */
-	public function getGuildInvites(string $guildId, callable $success, ?callable $failure=null): void {
-		$this->get(
-			self::DISCORD_API . "/guilds/{$guildId}/invites"
-		)->withCallback(
-			$this->getErrorWrapper(
-				null,
-				function (array $invites) use ($guildId, $success): void {
-					$this->handleChannelInvites($invites, $guildId, $success);
-				},
-				$failure
-			)
-		);
+	public function getGuildInvites(string $guildId): Promise {
+		$request = new Request(self::DISCORD_API . "/guilds/{$guildId}/invites");
+		return $this->sendRequest($request, [new DiscordChannelInvite()]);
 	}
 
-	/**
-	 * @param stdClass[] $invites
-	 * @phpstan-param callable(string, DiscordChannelInvite[]):void $callback
-	 */
-	protected function handleChannelInvites(array $invites, string $guildId, callable $callback): void {
-		$result = [];
-		foreach ($invites as $invite) {
-			$invObj = new DiscordChannelInvite();
-			$invObj->fromJSON($invite);
-			$result []= $invObj;
+	private function getClient(): HttpClient {
+		$botToken = $this->discordCtrl->discordBotToken;
+		$client = $this->builder
+			->intercept(new SetRequestHeaderIfUnset("Authorization", "Bot {$botToken}"))
+			->intercept(new RetryRateLimits())
+			->build();
+		return $client;
+	}
+
+	private function processQueue(): void {
+		if (empty($this->outQueue)) {
+			$this->logger->info("Channel queue empty, stopping processing");
+			$this->queueProcessing = false;
+			return;
 		}
-		$callback($guildId, $result);
+		$this->queueProcessing = true;
+		$item = array_shift($this->outQueue);
+		Promise\rethrow($this->immediatelySendToChannel($item));
+	}
+
+	/** @return Promise<void> */
+	private function immediatelySendToChannel(ChannelQueueItem $item): Promise {
+		return call(function () use ($item): Generator {
+			$this->logger->info("Sending message to discord channel {channel}", [
+				"channel" => $item->channelId,
+				"message" => $item->message,
+			]);
+			$url = self::DISCORD_API . "/channels/{$item->channelId}/messages";
+			$request = new Request($url, "POST");
+			$request->setBody(new DiscordBody($item->message));
+			yield $this->sendRequest($request, new stdClass());
+			if (isset($item->deferred)) {
+				$item->deferred->resolve();
+			}
+			$this->processQueue();
+		});
+	}
+
+	private function processWebhookQueue(): void {
+		if (empty($this->webhookQueue)) {
+			$this->webhookQueueProcessing = false;
+			return;
+		}
+		$this->webhookQueueProcessing = true;
+		$item = array_shift($this->webhookQueue);
+		Promise\rethrow($this->immediatelySendToWebhook($item));
+	}
+
+	/** @return Promise<void> */
+	private function immediatelySendToWebhook(WebhookQueueItem $item): Promise {
+		return call(function () use ($item): Generator {
+			$this->logger->info("Sending message to discord webhook {webhook}", [
+				"webhook" => $item->interactionToken,
+				"message" => $item->message,
+			]);
+			$url = self::DISCORD_API . "/webhooks/{$item->applicationId}/{$item->interactionToken}";
+			$request = new Request($url, "POST");
+			$request->setBody(new DiscordBody($item->message));
+			yield $this->sendRequest($request, new stdClass());
+			if (isset($item->deferred)) {
+				$item->deferred->resolve();
+			}
+			$this->processWebhookQueue();
+		});
 	}
 
 	/**
-	 * @phpstan-param callable(mixed): void $success
-	 * @phpstan-param callable(HttpResponse): bool $failure
+	 * @template T of JSONDataModel|stdClass|JSONDataModel[]
+	 * @phpstan-param T $o
+	 *
+	 * @return Promise<JSONDataModel|JSONDataModel[]|stdClass>
+	 * @phpstan-return Promise<T>
 	 */
-	protected function getErrorWrapper(?JSONDataModel $o, ?callable $success, ?callable $failure=null): Closure {
-		return function(HttpResponse $response) use ($o, $success, $failure) {
-			if (isset($response->error)) {
-				$this->logger->error("Error from discord server: {error}", [
-					"error" => $response->error,
-					"response" => $response
-				]);
-				return;
-			}
-			// If we run into a ratelimit error, retry later
-			if ($response->headers['status-code'] === "429" && isset($response->request)) {
-				$waitFor = (int)ceil((float)$response->headers['x-ratelimit-reset-after']);
-				$this->timer->callLater(
-					$waitFor,
-					function() use ($response, $o, $success, $failure): void {
-						$request = $response->request;
-						$method = strtolower($request->getMethod());
-						if (!method_exists($this, $method)) {
-							return;
-						}
-						$params = [$request->getURI()];
-						if (in_array($method, ["post", "patch", "put"])) {
-							$params []= $request->getPostData()??"";
-						}
-						$this->{$method}(...$params)
-							->withCallback($this->getErrorWrapper($o, $success, $failure));
-					}
-				);
-				$this->logger->notice("Waiting for {$waitFor}s to retry...");
-				return;
-			}
-			if (substr($response->headers['status-code'], 0, 1) !== "2") {
-				if (isset($failure)) {
-					$handled = $failure($response);
-					if ($handled) {
-						return;
-					}
+	private function sendRequest(Request $request, JSONDataModel|stdClass|array $o): Promise {
+		return call(function () use ($request, $o) {
+			$client = $this->getClient();
+
+			$retries = 3;
+			do {
+				$retry = false;
+				$retries--;
+
+				/** @var Response */
+				$response = yield $client->request($request);
+				$body = yield $response->getBody()->buffer();
+				if ($response->getStatus() >= 500 && $response->getStatus() < 600 && $retries > 0) {
+					$delayMs = 500;
+					$this->logger->warning(
+						"Got a {code} when sending message to Discord, retrying in {delay}ms",
+						[
+							"code" => $response->getStatus(),
+							"delay" => $delayMs,
+						]
+					);
+					$retry = true;
+					yield delay($delayMs);
+					continue;
 				}
-				$this->logger->error(
-					'Error received while sending message to Discord. ".
-					"Status-Code: {statusCode}, Content: {content}, URL: {url}',
-					[
-						"statusCode" => $response->headers['status-code'],
-						"content" => $response->body ?? '',
-						"url" => (isset($response->request) ? $response->request->getURI() : "unknown"),
-					]
-				);
-				return;
-			}
-			if ((int)$response->headers['status-code'] === 204) {
-				if (isset($success)) {
-					$success(new stdClass());
+				if ($response->getStatus() < 200 || $response->getStatus() >= 300) {
+					throw new DiscordException(
+						'Error received while sending message to Discord. '.
+						'Status-Code: ' . $response->getStatus().
+						", Content: {$body}, URL: ".$request->getUri(),
+						$response->getStatus()
+					);
 				}
-				return;
+			} while ($retry && $retries > 0);
+			if ($response->getStatus() === 204) {
+				return new stdClass();
 			}
-			if ($response->headers['content-type'] !== 'application/json') {
-				$this->logger->error(
-					'Non-JSON reply received from Discord Server. Content-Type: {contentType}',
-					[
-						"contentType" => $response->headers['content-type'],
-						"response" => $response
-					]
+			if ($response->getHeader('content-type') !== 'application/json') {
+				throw new Exception(
+					'Non-JSON reply received from Discord Server. '.
+					'Content-Type: ' . ($response->getHeader('content-type') ?? '<empty>')
 				);
-				return;
 			}
-			try {
-				$reply = \Safe\json_decode($response->body??"null");
-			} catch (JsonException $e) {
-				$this->logger->error('Error decoding JSON response from Discord-Server: {error}', [
-					"error" => $e->getMessage(),
-					"response" => $response->body,
-					"exception" => $e,
-				]);
-				return;
-			}
-			if (isset($o)) {
+			$reply = json_decode($body);
+			if (is_array($o)) {
+				$result = [];
+				foreach ($reply as $element) {
+					$obj = clone $o[0];
+					$obj->fromJSON($element);
+					$result []= $obj;
+				}
+				$reply = $result;
+			} elseif (is_object($o) && $o instanceof JSONDataModel) {
 				$o->fromJSON($reply);
-				$this->logger->info("Decoded discord reply into {class}", [
-					"class" => basename(str_replace('\\', '/', get_class($o))),
-					"object" => $o,
-				]);
 				$reply = $o;
 			}
-			if (isset($success)) {
+			if (is_object($reply)) {
 				$this->logger->info("Decoded discord reply into {class}", [
-					"class" => "stdClass",
+					"class" => basename(str_replace('\\', '/', get_class($reply))),
 					"object" => $reply,
 				]);
-				$success($reply);
+			} elseif (is_array($reply)) {
+				$this->logger->info("Decoded discord reply into an array", [
+					"object" => $reply,
+				]);
 			}
-		};
-	}
-
-	protected function parseSendToUserReply(DiscordChannel $channel, string $message, ?callable $callback=null): void {
-		$this->queueToChannel($channel->id, $message, $callback);
+			return $reply;
+		});
 	}
 }

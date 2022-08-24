@@ -3,21 +3,23 @@
 namespace Nadybot\Modules\TOWER_MODULE\Migrations;
 
 use Exception;
+use Generator;
 use Nadybot\Core\{
 	Attributes as NCA,
 	ConfigFile,
-	Modules\DISCORD\DiscordChannel,
 	DB,
 	DBSchema\Route,
 	DBSchema\Setting,
 	LoggerWrapper,
 	MessageHub,
 	Modules\DISCORD\DiscordAPIClient,
+	Modules\DISCORD\DiscordChannel,
 	Routing\Source,
 	SchemaMigration,
 	SettingManager,
 };
 use Nadybot\Modules\TOWER_MODULE\TowerController;
+use Throwable;
 
 class MigrateToRoutes implements SchemaMigration {
 	#[NCA\Inject]
@@ -32,14 +34,7 @@ class MigrateToRoutes implements SchemaMigration {
 	#[NCA\Inject]
 	public MessageHub $messageHub;
 
-	protected function getSetting(DB $db, string $name): ?Setting {
-		return $db->table(SettingManager::DB_TABLE)
-			->where("name", $name)
-			->asObj(Setting::class)
-			->first();
-	}
-
-	public function migrate(LoggerWrapper $logger, DB $db): void {
+	public function migrate(LoggerWrapper $logger, DB $db): Generator {
 		$towerColor = $this->getSetting($db, "tower_spam_color");
 		if (isset($towerColor)
 			&& preg_match("/#([0-9A-F]{6})/", $towerColor->value??"", $matches)
@@ -96,15 +91,22 @@ class MigrateToRoutes implements SchemaMigration {
 		if (!isset($notifyChannel) || !isset($notifyChannel->value) || $notifyChannel->value === "off") {
 			return;
 		}
-		$this->discordAPIClient->getChannel(
-			$notifyChannel->value,
-			[$this, "migrateChannelToRoute"],
-			$db,
-			($showWhere & 4) > 0
-		);
+		try {
+			/** @var DiscordChannel */
+			$channel = yield $this->discordAPIClient->getChannel($notifyChannel->value);
+			$this->migrateChannelToRoute($channel, $db, ($showWhere & 4) > 0);
+		} catch (Throwable) {
+		}
 	}
 
-	public function migrateChannelToRoute(DiscordChannel $channel, DB $db, bool $defaults): void {
+	protected function getSetting(DB $db, string $name): ?Setting {
+		return $db->table(SettingManager::DB_TABLE)
+			->where("name", $name)
+			->asObj(Setting::class)
+			->first();
+	}
+
+	private function migrateChannelToRoute(DiscordChannel $channel, DB $db, bool $defaults): void {
 		$types = [];
 		if ($defaults) {
 			$types = ["tower-attack", "tower-victory"];

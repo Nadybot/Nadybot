@@ -2,8 +2,7 @@
 
 namespace Nadybot\Modules\SKILLS_MODULE;
 
-use Nadybot\Core\Attributes as NCA;
-use Nadybot\Core\DBRow;
+use Nadybot\Core\{Attributes as NCA, DBRow};
 
 class Perk extends DBRow {
 	/** Internal ID of that perkline */
@@ -18,9 +17,7 @@ class Perk extends DBRow {
 	/** A description what a perk does */
 	public ?string $description = null;
 
-	/**
-	 * @var array<int,PerkLevel>
-	 */
+	/** @var array<int,PerkLevel> */
 	#[NCA\DB\Ignore]
 	public array $levels = [];
 }

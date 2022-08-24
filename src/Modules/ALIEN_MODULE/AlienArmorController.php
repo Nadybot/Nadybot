@@ -69,17 +69,13 @@ class AlienArmorController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
-	/**
-	 * Show the tradeskill process for normal Alien Armor.
-	 */
+	/** Show the tradeskill process for normal Alien Armor. */
 	#[NCA\HandlesCommand("aiarmor")]
 	public function aiarmorNormal2Command(CmdContext $context, PBotType $armortype, int $ql): void {
 		$this->aiarmorNormalCommand($context, $ql, $armortype);
 	}
 
-	/**
-	 * Show the tradeskill process for normal Alien Armor.
-	 */
+	/** Show the tradeskill process for normal Alien Armor. */
 	#[NCA\HandlesCommand("aiarmor")]
 	public function aiarmorNormalCommand(CmdContext $context, ?int $ql, PBotType $armortype): void {
 		$ql ??= 300;
@@ -87,15 +83,15 @@ class AlienArmorController extends ModuleInstance {
 		$miscQL = (int)floor($ql * 0.8);
 
 		$list = "Note: All tradeskill processes are based on the lowest QL items usable.\n\n";
-		$list .= "<header2>You need the following items to build $armortype Armor:<end>\n";
-		$list .= "- Kyr'Ozch Viralbots (QL$miscQL+)\n";
+		$list .= "<header2>You need the following items to build {$armortype} Armor:<end>\n";
+		$list .= "- Kyr'Ozch Viralbots (QL{$miscQL}+)\n";
 		$list .= "- Kyr'Ozch Atomic Re-Structulazing Tool\n";
-		$list .= "- Solid Clump of Kyr'Ozch Biomaterial (QL$ql)\n";
-		$list .= "- Arithmetic/Strong/Enduring/Spiritual/Observant/Supple Viralbots (QL$miscQL+)\n\n";
+		$list .= "- Solid Clump of Kyr'Ozch Biomaterial (QL{$ql})\n";
+		$list .= "- Arithmetic/Strong/Enduring/Spiritual/Observant/Supple Viralbots (QL{$miscQL}+)\n\n";
 
 		$list .= "<header2>Step 1<end>\n";
 		$list .= "<tab>" . $this->itemsController->getItemAndIcon("Kyr'Ozch Viralbots", $miscQL);
-		$list .= " QL$miscQL+ (<highlight>Drops from Alien City Generals<end>)\n";
+		$list .= " QL{$miscQL}+ (<highlight>Drops from Alien City Generals<end>)\n";
 		$list .= "<tab><tab>+\n";
 		$list .= "<tab>" . $this->itemsController->getItemAndIcon("Kyr'Ozch Atomic Re-Structuralizing Tool", 100);
 		$list .= " (<highlight>Drops from every Alien<end>)\n";
@@ -119,17 +115,17 @@ class AlienArmorController extends ModuleInstance {
 		$list .= "<header2>Step 3<end>\n";
 		$list .= "<tab>" . $this->itemsController->getItemAndIcon("Kyr'Ozch Structural Analyzer", 100) . "\n";
 		$list .= "<tab><tab>+\n";
-		$list .= "<tab>" . $this->itemsController->getItemAndIcon("Solid Clump of Kyr'Ozch Bio-Material", $ql) . " QL$ql";
+		$list .= "<tab>" . $this->itemsController->getItemAndIcon("Solid Clump of Kyr'Ozch Bio-Material", $ql) . " QL{$ql}";
 		$list .= " (<highlight>Drops from every Alien<end>)\n";
 		$list .= "<tab><tab>=\n";
-		$list .= "<tab>" . $this->itemsController->getItemAndIcon("Mutated Kyr'Ozch Bio-Material", $ql) . " QL$ql";
-		$list .= "\n\nor\n\n<tab>" . $this->itemsController->getItemAndIcon("Pristine Kyr'Ozch Bio-Material", $ql) . " QL$ql\n";
+		$list .= "<tab>" . $this->itemsController->getItemAndIcon("Mutated Kyr'Ozch Bio-Material", $ql) . " QL{$ql}";
+		$list .= "\n\nor\n\n<tab>" . $this->itemsController->getItemAndIcon("Pristine Kyr'Ozch Bio-Material", $ql) . " QL{$ql}\n";
 		$list .= "<highlight>Required Skills:<end>\n";
 		$list .= "- ".ceil($ql * 4.5)." Chemistry (Both require the same amount)\n\n";
 
 		$list .= "<header2>Step 4<end>\n";
-		$list .= "<tab>" . $this->itemsController->getItemAndIcon("Mutated Kyr'Ozch Bio-Material", $ql) . " QL$ql";
-		$list .= "\n\nor\n\n<tab>" . $this->itemsController->getItemAndIcon("Pristine Kyr'Ozch Bio-Material", $ql) . " QL$ql\n";
+		$list .= "<tab>" . $this->itemsController->getItemAndIcon("Mutated Kyr'Ozch Bio-Material", $ql) . " QL{$ql}";
+		$list .= "\n\nor\n\n<tab>" . $this->itemsController->getItemAndIcon("Pristine Kyr'Ozch Bio-Material", $ql) . " QL{$ql}\n";
 		$list .= "<tab><tab>+\n";
 		$list .= "<tab>" . $this->itemsController->getItemAndIcon("Uncle Bazzit's Generic Nano-Solvent", 100);
 		$list .= " (<highlight>Can be bought in Bazzit Shop in MMD<end>)\n";
@@ -170,22 +166,22 @@ class AlienArmorController extends ModuleInstance {
 		$vb_ql = (int)floor($ql * 0.8);
 		switch ($armortype) {
 			case "Arithmetic":
-				$list .= "<tab>" . $this->itemsController->getItemAndIcon("Arithmetic Lead Viralbots", $vb_ql) . " QL$vb_ql";
+				$list .= "<tab>" . $this->itemsController->getItemAndIcon("Arithmetic Lead Viralbots", $vb_ql) . " QL{$vb_ql}";
 				break;
 			case "Supple":
-				$list .= "<tab>" . $this->itemsController->getItemAndIcon("Supple Lead Viralbots", $vb_ql) . " QL$vb_ql";
+				$list .= "<tab>" . $this->itemsController->getItemAndIcon("Supple Lead Viralbots", $vb_ql) . " QL{$vb_ql}";
 				break;
 			case "Enduring":
-				$list .= "<tab>" . $this->itemsController->getItemAndIcon("Enduring Lead Viralbots", $vb_ql) . " QL$vb_ql";
+				$list .= "<tab>" . $this->itemsController->getItemAndIcon("Enduring Lead Viralbots", $vb_ql) . " QL{$vb_ql}";
 				break;
 			case "Observant":
-				$list .= "<tab>" . $this->itemsController->getItemAndIcon("Observant Lead Viralbots", $vb_ql) . " QL$vb_ql";
+				$list .= "<tab>" . $this->itemsController->getItemAndIcon("Observant Lead Viralbots", $vb_ql) . " QL{$vb_ql}";
 				break;
 			case "Strong":
-				$list .= "<tab>" . $this->itemsController->getItemAndIcon("Strong Lead Viralbots", $vb_ql) . " QL$vb_ql";
+				$list .= "<tab>" . $this->itemsController->getItemAndIcon("Strong Lead Viralbots", $vb_ql) . " QL{$vb_ql}";
 				break;
 			case "Spiritual":
-				$list .= "<tab>" . $this->itemsController->getItemAndIcon("Spiritual Lead Viralbots", $vb_ql) . " QL$vb_ql";
+				$list .= "<tab>" . $this->itemsController->getItemAndIcon("Spiritual Lead Viralbots", $vb_ql) . " QL{$vb_ql}";
 				break;
 		}
 		$list .= " (<highlight>Rare Drop off Alien City Generals<end>)\n";
@@ -194,34 +190,32 @@ class AlienArmorController extends ModuleInstance {
 		$list .= "<tab><tab>=\n";
 		switch ($armortype) {
 			case "Arithmetic":
-				$list .= "<tab>" . $this->itemsController->getItemAndIcon("Arithmetic Body Armor", $ql) . " QL$ql\n";
+				$list .= "<tab>" . $this->itemsController->getItemAndIcon("Arithmetic Body Armor", $ql) . " QL{$ql}\n";
 				break;
 			case "Supple":
-				$list .= "<tab>" . $this->itemsController->getItemAndIcon("Supple Body Armor", $ql) . " QL$ql\n";
+				$list .= "<tab>" . $this->itemsController->getItemAndIcon("Supple Body Armor", $ql) . " QL{$ql}\n";
 				break;
 			case "Enduring":
-				$list .= "<tab>" . $this->itemsController->getItemAndIcon("Enduring Body Armor", $ql) . " QL$ql\n";
+				$list .= "<tab>" . $this->itemsController->getItemAndIcon("Enduring Body Armor", $ql) . " QL{$ql}\n";
 				break;
 			case "Observant":
-				$list .= "<tab>" . $this->itemsController->getItemAndIcon("Observant Body Armor", $ql) . " QL$ql\n";
+				$list .= "<tab>" . $this->itemsController->getItemAndIcon("Observant Body Armor", $ql) . " QL{$ql}\n";
 				break;
 			case "Strong":
-				$list .= "<tab>" . $this->itemsController->getItemAndIcon("Strong Body Armor", $ql) . " QL$ql\n";
+				$list .= "<tab>" . $this->itemsController->getItemAndIcon("Strong Body Armor", $ql) . " QL{$ql}\n";
 				break;
 			case "Spiritual":
-				$list .= "<tab>" . $this->itemsController->getItemAndIcon("Spiritual Body Armor", $ql) . " QL$ql\n";
+				$list .= "<tab>" . $this->itemsController->getItemAndIcon("Spiritual Body Armor", $ql) . " QL{$ql}\n";
 				break;
 		}
 		$list .= "<highlight>Required Skills:<end>\n";
 		$list .= "- ".floor($ql * 6)." Psychology\n\n";
 
-		$msg = $this->text->makeBlob("Building process for $ql $armortype", $list);
+		$msg = $this->text->makeBlob("Building process for {$ql} {$armortype}", $list);
 		$context->reply($msg);
 	}
 
-	/**
-	 * Show the tradeskill process for combined Alien Armor.
-	 */
+	/** Show the tradeskill process for combined Alien Armor. */
 	#[NCA\HandlesCommand("aiarmor")]
 	public function aiarmorCombinedCommand2(
 		CmdContext $context,
@@ -231,9 +225,7 @@ class AlienArmorController extends ModuleInstance {
 		$this->aiarmorCombinedCommand($context, $ql, $type);
 	}
 
-	/**
-	 * Show the tradeskill process for combined Alien Armor.
-	 */
+	/** Show the tradeskill process for combined Alien Armor. */
 	#[NCA\HandlesCommand("aiarmor")]
 	public function aiarmorCombinedCommand(
 		CmdContext $context,
@@ -312,16 +304,16 @@ class AlienArmorController extends ModuleInstance {
 		}
 
 		$list = "<header2>Result<end>\n";
-		$list .= $this->itemsController->getItemAndIcon($nameArmorResult, $ql) . " QL$ql\n\n";
+		$list .= $this->itemsController->getItemAndIcon($nameArmorResult, $ql) . " QL{$ql}\n\n";
 
 		$list .= "<header2>Source Armor<end>\n";
-		$list .= $this->itemsController->getItemAndIcon($nameArmorSource, $sourceQL) . " QL$sourceQL";
-		$list .= " (" . $this->text->makeChatcmd("Tradeskill process for this item", "/tell <myname> aiarmor $nameSrc $sourceQL") . ")\n\n";
+		$list .= $this->itemsController->getItemAndIcon($nameArmorSource, $sourceQL) . " QL{$sourceQL}";
+		$list .= " (" . $this->text->makeChatcmd("Tradeskill process for this item", "/tell <myname> aiarmor {$nameSrc} {$sourceQL}") . ")\n\n";
 
 		$list .= "<header2>Target Armor<end>\n";
-		$list .= $this->itemsController->getItemAndIcon($nameArmorTarget, $targetQL) . " QL$targetQL";
-		$list .= " (" . $this->text->makeChatcmd("Tradeskill process for this item", "/tell <myname> aiarmor $nameTarget $targetQL") . ")";
-		$msg = $this->text->makeBlob("Building process for $ql $nameArmorResult", $list);
+		$list .= $this->itemsController->getItemAndIcon($nameArmorTarget, $targetQL) . " QL{$targetQL}";
+		$list .= " (" . $this->text->makeChatcmd("Tradeskill process for this item", "/tell <myname> aiarmor {$nameTarget} {$targetQL}") . ")";
+		$msg = $this->text->makeBlob("Building process for {$ql} {$nameArmorResult}", $list);
 		$context->reply($msg);
 	}
 }

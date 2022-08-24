@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\LOOT_MODULE;
 
+use Generator;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	Attributes as NCA,
@@ -9,17 +10,16 @@ use Nadybot\Core\{
 	CommandAlias,
 	CommandManager,
 	DB,
-	DBSchema\Player,
 	ModuleInstance,
+	Modules\PLAYER_LOOKUP\PlayerManager,
 	Nadybot,
+	ParamClass\PCharacter,
 	ParamClass\PItem,
 	ParamClass\PQuantity,
 	ParamClass\PRemove,
 	Text,
 	Util,
-	Modules\PLAYER_LOOKUP\PlayerManager,
 };
-use Nadybot\Core\ParamClass\PCharacter;
 use Nadybot\Modules\{
 	BASIC_CHAT_MODULE\ChatLeaderController,
 	ITEMS_MODULE\AODBEntry,
@@ -87,7 +87,7 @@ class LootController extends ModuleInstance {
 
 	#[NCA\Inject]
 	public CommandManager $commandManager;
-	#
+
 	#[NCA\Inject]
 	public ItemsController $itemsController;
 
@@ -121,12 +121,14 @@ class LootController extends ModuleInstance {
 
 	/**
 	 * The currently rolled items
+	 *
 	 * @var LootItem[]
 	 */
 	private $loot = [];
 
 	/**
 	 * The leftovers from the last loot roll
+	 *
 	 * @var LootItem[]
 	 */
 	private $residual = [];
@@ -150,15 +152,13 @@ class LootController extends ModuleInstance {
 		$lootList = ((array)$this->getCurrentLootList())[0];
 		$msg = "\n".
 			"<yellow>" . str_repeat("-", 76) . "<end>\n".
-			"<tab>There's loot being rolled: $lootList\n".
+			"<tab>There's loot being rolled: {$lootList}\n".
 			"<tab>Make sure you've added yourself to a slot if you want something.\n".
 			"<yellow>" . str_repeat("-", 76) . "<end>";
 		$this->chatBot->sendPrivate($msg);
 	}
 
-	/**
-	 * Show a list of currently rolled loot
-	 */
+	/** Show a list of currently rolled loot */
 	#[NCA\HandlesCommand("loot")]
 	#[NCA\Help\Group("loot")]
 	public function lootCommand(CmdContext $context): void {
@@ -166,9 +166,7 @@ class LootController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
-	/**
-	 * Get a list of the last loot rolls
-	 */
+	/** Get a list of the last loot rolls */
 	#[NCA\HandlesCommand("loot")]
 	#[NCA\Help\Group("loot")]
 	public function lootHistoryCommand(
@@ -204,9 +202,7 @@ class LootController extends ModuleInstance {
 		));
 	}
 
-	/**
-	 * View what was rolled/won in the given roll
-	 */
+	/** View what was rolled/won in the given roll */
 	#[NCA\HandlesCommand("loot")]
 	#[NCA\Help\Group("loot")]
 	#[NCA\Help\Example("<symbol>loot show last")]
@@ -224,6 +220,7 @@ class LootController extends ModuleInstance {
 			}
 		}
 		$roll = (int)$number;
+
 		/** @var Collection<LootHistory> */
 		$items = $this->db->table(self::DB_TABLE)
 			->where("roll", $roll)
@@ -234,7 +231,7 @@ class LootController extends ModuleInstance {
 			return;
 		}
 		$compressedList = $this->compressLootHistory($items);
-		$lines = $compressedList->map(function(LootHistory $item): string {
+		$lines = $compressedList->map(function (LootHistory $item): string {
 			$line = "<header2>Slot #{$item->pos}:<end>";
 			if ($item->amount > 1) {
 				$line .= " {$item->amount}x";
@@ -282,7 +279,7 @@ class LootController extends ModuleInstance {
 		if (isset($lastOnly)) {
 			$items = $items->where("roll", $items->firstOrFail()->roll);
 		}
-		$lines = $items->map(function(LootHistory $item): string {
+		$lines = $items->map(function (LootHistory $item): string {
 			$rollLink = $this->text->makeChatcmd(
 				$this->util->date($item->dt),
 				"/tell <myname> loot history {$item->roll}"
@@ -321,6 +318,7 @@ class LootController extends ModuleInstance {
 			$context->reply("You have to give a string to search for.");
 			return;
 		}
+
 		/** @var Collection<LootHistory> */
 		$items = $this->db->table(self::DB_TABLE)
 			->whereIlike("display", "%{$search}%")
@@ -340,7 +338,7 @@ class LootController extends ModuleInstance {
 
 		$compressedList = $this->compressLootHistory($items);
 
-		$lines = $compressedList->map(function(LootHistory $item): string {
+		$lines = $compressedList->map(function (LootHistory $item): string {
 			$rollLink = $this->text->makeChatcmd(
 				$this->util->date($item->dt),
 				"/tell <myname> loot history {$item->roll}"
@@ -366,51 +364,7 @@ class LootController extends ModuleInstance {
 		);
 	}
 
-	private function getWinners(string ...$winners): string {
-		$line = "Winner";
-		if (count($winners) !== 1) {
-			$line .= "s";
-		}
-		if (count($winners) === 0) {
-			$line .= ": &lt;No one added&gt;";
-		} else {
-			$winners = $this->text->arraySprintf("<green>%s<end>", ...$winners);
-			$line .= ": " . $this->text->enumerate(...$winners);
-		}
-		return $line;
-	}
-
-	/**
-	 * @param Collection<LootHistory> $items
-	 * @return Collection<LootHistory>
-	*/
-	private function compressLootHistory(Collection $items): Collection {
-		$lastRoll = 0;
-		$lastPos = 0;
-
-		/** @var Collection<LootHistory> */
-		$compressedList = new Collection();
-		foreach ($items as $item) {
-			if ($lastRoll === $item->roll && $lastPos === $item->pos) {
-				if (!isset($item->winner)) {
-					continue;
-				}
-				$compressedList->last()->winners []= $item->winner;
-				continue;
-			}
-			if (isset($item->winner)) {
-				$item->winners = [$item->winner];
-			}
-			$compressedList->push($item);
-			$lastRoll = $item->roll;
-			$lastPos = $item->pos;
-		}
-		return $compressedList;
-	}
-
-	/**
-	 * Clear the current loot list
-	 */
+	/** Clear the current loot list */
 	#[NCA\HandlesCommand(self::CMD_LOOT_MANAGE)]
 	#[NCA\Help\Group("loot")]
 	public function lootClearCommand(CmdContext $context, #[NCA\Str("clear")] string $action): void {
@@ -429,29 +383,7 @@ class LootController extends ModuleInstance {
 		}
 	}
 
-	protected function getLootEntryID(int $id): ?RaidLootSearch {
-		/** @var ?RaidLootSearch */
-		$raidLoot = $this->db->table("raid_loot AS r")
-					->where("r.id", $id)
-					->asObj(RaidLootSearch::class)
-					->first();
-		if (!isset($raidLoot)) {
-			return null;
-		}
-		if (isset($raidLoot->aoid)) {
-			$raidLoot->item = $this->itemsController->findById($raidLoot->aoid);
-		} else {
-			$raidLoot->item = $this->itemsController->getByNames($raidLoot->name)
-				->where("lowql", "<=", $raidLoot->ql)
-				->where("highql", ">=", $raidLoot->ql)
-				->first();
-		}
-		return $raidLoot;
-	}
-
-	/**
-	 * Add an item from a loot list to the loot roll
-	 */
+	/** Add an item from a loot list to the loot roll */
 	#[NCA\HandlesCommand(self::CMD_LOOT_MANAGE)]
 	#[NCA\Help\Group("loot")]
 	public function lootAddByIdCommand(CmdContext $context, #[NCA\Str("add")] string $action, int $id): void {
@@ -495,20 +427,18 @@ class LootController extends ModuleInstance {
 			$this->loot[$key] = $item;
 		}
 
-		$msg = "{$context->char->name} added <highlight>{$item->name}<end> (x$item->multiloot). To add use <symbol>add {$key}.";
+		$msg = "{$context->char->name} added <highlight>{$item->name}<end> (x{$item->multiloot}). To add use <symbol>add {$key}.";
 		$this->chatBot->sendPrivate($msg);
 	}
 
-	/**
-	 * Auction off an item from a loot list
-	 */
+	/** Auction off an item from a loot list */
 	#[NCA\HandlesCommand(self::CMD_LOOT_MANAGE)]
 	#[NCA\Help\Group("loot")]
 	public function lootAuctionByIdCommand(CmdContext $context, #[NCA\Str("auction")] string $action, int $id): void {
 		$loot = $this->getLootEntryID($id);
 
 		if ($loot === null) {
-			$msg = "Could not find item with id <highlight>$id<end> to add.";
+			$msg = "Could not find item with id <highlight>{$id}<end> to add.";
 			$context->reply($msg);
 			return;
 		}
@@ -522,9 +452,7 @@ class LootController extends ModuleInstance {
 		$this->commandManager->processCmd($context);
 	}
 
-	/**
-	 * Add an item to the loot roll by name or by pasting it
-	 */
+	/** Add an item to the loot roll by name or by pasting it */
 	#[NCA\HandlesCommand(self::CMD_LOOT_MANAGE)]
 	#[NCA\Help\Group("loot")]
 	public function lootAddCommand(CmdContext $context, #[NCA\Str("add")] string $action, string $item): void {
@@ -536,9 +464,7 @@ class LootController extends ModuleInstance {
 		$this->addLootItem($item, 1, $context->char->name);
 	}
 
-	/**
-	 * Add multiple items to the loot roll
-	 */
+	/** Add multiple items to the loot roll */
 	#[NCA\HandlesCommand(self::CMD_LOOT_MANAGE)]
 	#[NCA\Help\Group("loot")]
 	#[NCA\Help\Example("<symbol>loot addmulti 3 Lockpick")]
@@ -556,11 +482,9 @@ class LootController extends ModuleInstance {
 		$this->addLootItem($items, $amount(), $context->char->name);
 	}
 
-	/**
-	 * Add one item to the loot roll
-	 */
+	/** Add one item to the loot roll */
 	public function addLootItem(string $input, int $multiloot, string $sender, bool $suppressMessage=false): void {
-		//Check if the item is a link
+		// Check if the item is a link
 		if (preg_match("|^<a href=['\"]itemref://(\\d+)/(\\d+)/(\\d+)[\"']>(.+)</a>(.*)$|i", $input, $arr)) {
 			$itemQL = (int)$arr[3];
 			$itemHighID = (int)$arr[1];
@@ -583,10 +507,10 @@ class LootController extends ModuleInstance {
 		if ($row !== null) {
 			$itemName = $row->name;
 
-			//Save the icon
+			// Save the icon
 			$looticon = $row->icon;
 
-			//Save the aoid and ql if not set yet
+			// Save the aoid and ql if not set yet
 			if (!isset($itemHighID)) {
 				$itemLowID = $row->lowid;
 				$itemHighID = $row->highid;
@@ -622,17 +546,15 @@ class LootController extends ModuleInstance {
 			$this->loot[$key] = $item;
 		}
 
-		$msg = "$sender added <highlight>{$item->display}<end> (x$item->multiloot) to Slot <highlight>#$key<end>.";
-		$msg .= " To add use <symbol>add $key, or <symbol>rem to remove yourself.";
+		$msg = "{$sender} added <highlight>{$item->display}<end> (x{$item->multiloot}) to Slot <highlight>#{$key}<end>.";
+		$msg .= " To add use <symbol>add {$key}, or <symbol>rem to remove yourself.";
 		if ($suppressMessage) {
 			return;
 		}
 		$this->chatBot->sendPrivate($msg);
 	}
 
-	/**
-	 * Remove a single item from the loot list
-	 */
+	/** Remove a single item from the loot list */
 	#[NCA\HandlesCommand(self::CMD_LOOT_MANAGE)]
 	#[NCA\Help\Group("loot")]
 	public function lootRemCommand(CmdContext $context, PRemove $action, int $key): void {
@@ -662,9 +584,7 @@ class LootController extends ModuleInstance {
 		$this->chatBot->sendPrivate("Removing item in slot <highlight>#{$key}<end>.");
 	}
 
-	/**
-	 * Create a new loot roll with the leftovers from the last roll
-	 */
+	/** Create a new loot roll with the leftovers from the last roll */
 	#[NCA\HandlesCommand("reroll")]
 	#[NCA\Help\Group("loot")]
 	public function rerollCommand(CmdContext $context): void {
@@ -673,7 +593,7 @@ class LootController extends ModuleInstance {
 			return;
 		}
 
-		//Check if a residual list exits
+		// Check if a residual list exits
 		if (empty($this->residual)) {
 			$msg = "There are no remaining items to re-add.";
 			$context->reply($msg);
@@ -686,9 +606,9 @@ class LootController extends ModuleInstance {
 			$this->loot[$key]->added_by = $context->char->name;
 		}
 
-		//Reset residual list
+		// Reset residual list
 		$this->residual = [];
-		//Show winner list
+		// Show winner list
 		$msg = "All remaining items have been re-added by <highlight>{$context->char->name}<end>. Check <symbol>loot.";
 		$this->chatBot->sendPrivate($msg);
 		if ($context->isDM()) {
@@ -699,9 +619,7 @@ class LootController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
-	/**
-	 * Determine the winner(s) of the current loot roll
-	 */
+	/** Determine the winner(s) of the current loot roll */
 	#[NCA\HandlesCommand("flatroll")]
 	#[NCA\Help\Group("loot")]
 	public function flatrollCommand(CmdContext $context): void {
@@ -710,7 +628,7 @@ class LootController extends ModuleInstance {
 			return;
 		}
 
-		//Check if a loot list exits
+		// Check if a loot list exits
 		if (empty($this->loot)) {
 			$msg = "There is nothing to roll atm.";
 			$context->reply($msg);
@@ -720,7 +638,7 @@ class LootController extends ModuleInstance {
 		srand(); // get a good seed
 
 		$list = '';
-		//Roll the loot
+		// Roll the loot
 		$resnum = 1;
 		foreach ($this->loot as $key => $item) {
 			$list .= "Item: <header2>{$item->name}<end>\n";
@@ -762,8 +680,8 @@ class LootController extends ModuleInstance {
 					$list .= join(
 						", ",
 						array_map(
-							function($name) {
-								return "<green>$name<end>";
+							function ($name) {
+								return "<green>{$name}<end>";
 							},
 							$winners
 						)
@@ -779,17 +697,17 @@ class LootController extends ModuleInstance {
 					$winner = array_rand($users, 1);
 					$lootHistory->winner = $winner;
 					$this->db->insert(self::DB_TABLE, $lootHistory);
-					$list .= "<green>$winner<end>";
+					$list .= "<green>{$winner}<end>";
 				}
 				$list .= "\n\n";
 			}
 		}
 
-		//Reset loot
+		// Reset loot
 		$this->loot = [];
 		$this->roll++;
 
-		//Show winner list
+		// Show winner list
 		if (!empty($this->residual)) {
 			$list .= "\n\n".
 				$this->text->makeChatcmd("Reroll remaining items", "/tell <myname> reroll");
@@ -809,9 +727,7 @@ class LootController extends ModuleInstance {
 		}
 	}
 
-	/**
-	 * Add yourself to a loot roll
-	 */
+	/** Add yourself to a loot roll */
 	#[NCA\HandlesCommand("add")]
 	#[NCA\Help\Group("loot")]
 	public function addCommand(CmdContext $context, int $slot): void {
@@ -820,14 +736,14 @@ class LootController extends ModuleInstance {
 			$this->chatBot->sendMassTell("No loot list available.", $context->char->name);
 			return;
 		}
-		//Check if the slot exists
+		// Check if the slot exists
 		if (!isset($this->loot[$slot])) {
 			$msg = "The slot you are trying to add in does not exist.";
 			$this->chatBot->sendMassTell($msg, $context->char->name);
 			return;
 		}
 
-		//Remove the player from other slots if set
+		// Remove the player from other slots if set
 		$found = false;
 		foreach ($this->loot as $key => $item) {
 			if ($this->loot[$key]->users[$context->char->name] == true) {
@@ -836,7 +752,7 @@ class LootController extends ModuleInstance {
 			}
 		}
 
-		//Add the player to the chosen slot
+		// Add the player to the chosen slot
 		$this->loot[$slot]->users[$context->char->name] = true;
 
 		if ($found === false) {
@@ -855,12 +771,10 @@ class LootController extends ModuleInstance {
 		}
 	}
 
-	/**
-	 * Remove yourself from all loot rolls
-	 */
+	/** Remove yourself from all loot rolls */
 	#[NCA\HandlesCommand("rem")]
 	#[NCA\Help\Group("loot")]
-	public function remCommand(CmdContext $context): void {
+	public function remCommand(CmdContext $context): Generator {
 		if (count($this->loot) === 0) {
 			$this->chatBot->sendTell("There is nothing to remove you from.", $context->char->name);
 			return;
@@ -871,29 +785,26 @@ class LootController extends ModuleInstance {
 			}
 		}
 
-		$this->playerManager->getByNameAsync(
-			function(?Player $player) use ($context): void {
-				if (!isset($player) || !isset($player->gender) || $player->gender === "Neuter") {
-					$privMsg = "{$context->char->name} removed themselves from all rolls.";
-				} elseif ($player->gender === "Female") {
-					$privMsg = "{$context->char->name} removed herself from all rolls.";
-				} else {
-					$privMsg = "{$context->char->name} removed himself from all rolls.";
-				}
-				$tellMsg = "You removed yourself from all rolls.";
-				if ($this->addOnLoot & 1) {
-					$this->chatBot->sendMassTell($tellMsg, $context->char->name);
-				}
-				if ($this->addOnLoot & 2) {
-					$this->chatBot->sendPrivate($privMsg);
-				}
-			},
-			$context->char->name
-		);
+		$player = yield $this->playerManager->byName($context->char->name);
+		if (!isset($player) || !isset($player->gender) || $player->gender === "Neuter") {
+			$privMsg = "{$context->char->name} removed themselves from all rolls.";
+		} elseif ($player->gender === "Female") {
+			$privMsg = "{$context->char->name} removed herself from all rolls.";
+		} else {
+			$privMsg = "{$context->char->name} removed himself from all rolls.";
+		}
+		$tellMsg = "You removed yourself from all rolls.";
+		if ($this->addOnLoot & 1) {
+			$this->chatBot->sendMassTell($tellMsg, $context->char->name);
+		}
+		if ($this->addOnLoot & 2) {
+			$this->chatBot->sendPrivate($privMsg);
+		}
 	}
 
 	/**
 	 * Get the current loot list
+	 *
 	 * @return string|string[]
 	 */
 	public function getCurrentLootList(): string|array {
@@ -903,11 +814,11 @@ class LootController extends ModuleInstance {
 		}
 
 		$flatroll = $this->text->makeChatcmd("<symbol>flatroll", "/tell <myname> flatroll");
-		$list = "Use $flatroll to roll.\n\n";
+		$list = "Use {$flatroll} to roll.\n\n";
 		$players = 0;
 		$items = count($this->loot);
 		foreach ($this->loot as $key => $item) {
-			$add = $this->text->makeChatcmd("add", "/tell <myname> add $key");
+			$add = $this->text->makeChatcmd("add", "/tell <myname> add {$key}");
 			$rem = $this->text->makeChatcmd("remove", "/tell <myname> rem");
 			$added_players = count($item->users);
 			$players += $added_players;
@@ -921,18 +832,18 @@ class LootController extends ModuleInstance {
 				$ml = $item->multiloot."x ";
 			}
 
-			$list .= "<header2>Slot #$key:<end> {$ml}<highlight>{$item->display}<end>";
+			$list .= "<header2>Slot #{$key}:<end> {$ml}<highlight>{$item->display}<end>";
 			if (isset($item->comment) && strlen($item->comment) && strpos($item->display, $item->comment) === false) {
 				$list .= " ({$item->comment})";
 			}
-			$list .= " - [$add] [$rem]";
+			$list .= " - [{$add}] [{$rem}]";
 			if (count($item->users) > 0) {
-				$list .= "\n<tab>Players added (<highlight>$added_players<end>): ";
+				$list .= "\n<tab>Players added (<highlight>{$added_players}<end>): ";
 				$list .= join(
 					", ",
 					array_map(
-						function($name) {
-							return "<yellow>$name<end>";
+						function ($name) {
+							return "<yellow>{$name}<end>";
 						},
 						array_keys($item->users)
 					)
@@ -941,14 +852,12 @@ class LootController extends ModuleInstance {
 
 			$list .= "\n\n";
 		}
-		$msg = $this->text->makeBlob("Loot List (Items: $items, Players: $players)", $list);
+		$msg = $this->text->makeBlob("Loot List (Items: {$items}, Players: {$players})", $list);
 
 		return $msg;
 	}
 
-	/**
-	 * Add all items from a raid_loot to the loot list
-	 */
+	/** Add all items from a raid_loot to the loot list */
 	public function addRaidToLootList(string $addedBy, string $raid, string $category): bool {
 		// clear current loot list
 		$this->loot = [];
@@ -986,7 +895,7 @@ class LootController extends ModuleInstance {
 			if (empty($row->comment)) {
 				$lootItem->display = $item;
 			} else {
-				$lootItem->display = $item . " ($row->comment)";
+				$lootItem->display = $item . " ({$row->comment})";
 			}
 			$this->loot[$count] = $lootItem;
 			$count++;
@@ -995,9 +904,7 @@ class LootController extends ModuleInstance {
 		return true;
 	}
 
-	/**
-	 * Get the loot key for the item with the name $name
-	 */
+	/** Get the loot key for the item with the name $name */
 	public function getLootItem(string $name): ?int {
 		foreach ($this->loot as $key => $item) {
 			if ($item->name === $name) {
@@ -1029,5 +936,68 @@ class LootController extends ModuleInstance {
 				"."
 			)
 		);
+	}
+
+	protected function getLootEntryID(int $id): ?RaidLootSearch {
+		/** @var ?RaidLootSearch */
+		$raidLoot = $this->db->table("raid_loot AS r")
+					->where("r.id", $id)
+					->asObj(RaidLootSearch::class)
+					->first();
+		if (!isset($raidLoot)) {
+			return null;
+		}
+		if (isset($raidLoot->aoid)) {
+			$raidLoot->item = $this->itemsController->findById($raidLoot->aoid);
+		} else {
+			$raidLoot->item = $this->itemsController->getByNames($raidLoot->name)
+				->where("lowql", "<=", $raidLoot->ql)
+				->where("highql", ">=", $raidLoot->ql)
+				->first();
+		}
+		return $raidLoot;
+	}
+
+	private function getWinners(string ...$winners): string {
+		$line = "Winner";
+		if (count($winners) !== 1) {
+			$line .= "s";
+		}
+		if (count($winners) === 0) {
+			$line .= ": &lt;No one added&gt;";
+		} else {
+			$winners = $this->text->arraySprintf("<green>%s<end>", ...$winners);
+			$line .= ": " . $this->text->enumerate(...$winners);
+		}
+		return $line;
+	}
+
+	/**
+	 * @param Collection<LootHistory> $items
+	 *
+	 * @return Collection<LootHistory>
+	 */
+	private function compressLootHistory(Collection $items): Collection {
+		$lastRoll = 0;
+		$lastPos = 0;
+
+		/** @var Collection<LootHistory> */
+		$compressedList = new Collection();
+		foreach ($items as $item) {
+			if ($lastRoll === $item->roll && $lastPos === $item->pos) {
+				if (!isset($item->winner)) {
+					continue;
+				}
+				$compressedList->last()->winners []= $item->winner;
+				continue;
+			}
+			if (isset($item->winner)) {
+				$item->winners = [$item->winner];
+			}
+			$compressedList->push($item);
+			$lastRoll = $item->roll;
+			$lastPos = $item->pos;
+		}
+		return $compressedList;
 	}
 }

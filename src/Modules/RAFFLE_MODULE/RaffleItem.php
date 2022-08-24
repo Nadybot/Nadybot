@@ -2,9 +2,9 @@
 
 namespace Nadybot\Modules\RAFFLE_MODULE;
 
-use Nadybot\Core\DB;
-use Nadybot\Core\DBRow;
 use Nadybot\Core\Registry;
+use Nadybot\Modules\ITEMS_MODULE\ItemsController;
+use Nadybot\Modules\SPIRITS_MODULE\SpiritsController;
 
 class RaffleItem {
 	public int $amount = 1;
@@ -27,14 +27,25 @@ class RaffleItem {
 				if ($matches[1][$i] !== $matches[2][$i]) {
 					$ql = $matches[3][$i];
 				} else {
-					/** @var DB */
-					$db = Registry::getInstance(DB::class);
-					/** @var null|DBRow */
-					$hasItemGroup = $db->table("item_groups")
-						->where("item_id", $matches[1][$i])
-						->exists();
+					/** @var ItemsController */
+					$items = Registry::getInstance(ItemsController::class);
+
+					/** @var SpiritsController */
+					$spirits = Registry::getInstance(SpiritsController::class);
+
+					$hasItemGroup = $items->hasItemGroup((int)$matches[1][$i]);
 					if ($hasItemGroup) {
 						$ql = $matches[3][$i];
+					} elseif (str_contains($this->item, "Unit Aban")
+						|| str_contains($this->item, "Unit Beta")
+						|| str_contains($this->item, "Unit Alpha")
+					) {
+						$ql = $matches[3][$i];
+					} elseif (str_contains($this->item, "Spirit")) {
+						$isSpirit = $spirits->isSpirit((int)$matches[1][$i]);
+						if ($isSpirit) {
+							$ql = $matches[3][$i];
+						}
 					}
 				}
 				if (isset($ql)) {

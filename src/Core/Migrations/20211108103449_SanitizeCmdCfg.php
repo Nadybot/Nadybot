@@ -3,15 +3,12 @@
 namespace Nadybot\Core\Migrations;
 
 use Illuminate\Database\Schema\Blueprint;
-use Nadybot\Core\CommandManager;
-use Nadybot\Core\DB;
-use Nadybot\Core\LoggerWrapper;
-use Nadybot\Core\SchemaMigration;
+use Nadybot\Core\{CommandManager, DB, LoggerWrapper, SchemaMigration};
 
 class SanitizeCmdCfg implements SchemaMigration {
 	public function migrate(LoggerWrapper $logger, DB $db): void {
 		$table = CommandManager::DB_TABLE;
-		$db->schema()->table($table, function(Blueprint $table): void {
+		$db->schema()->table($table, function (Blueprint $table): void {
 			$table->string("module", 50)->nullable(false)->change();
 			$table->string("cmdevent", 6)->nullable(false)->change();
 			$table->string("type", 18)->nullable(false)->change();

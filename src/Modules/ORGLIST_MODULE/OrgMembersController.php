@@ -50,6 +50,7 @@ class OrgMembersController extends ModuleInstance {
 			$sendto->reply($msg);
 			return;
 		}
+
 		/** @var Collection<Player> */
 		$players = $this->db->table("players")
 			->where("guild_id", $guildId)
@@ -64,7 +65,7 @@ class OrgMembersController extends ModuleInstance {
 		foreach ($players as $player) {
 			if ($currentLetter !== $player->name[0]) {
 				$currentLetter = $player->name[0];
-				$blob .= "\n\n<pagebreak><header2>$currentLetter<end>\n";
+				$blob .= "\n\n<pagebreak><header2>{$currentLetter}<end>\n";
 			}
 
 			$blob .= "<tab><highlight>{$player->name}<end> ({$player->level}";
@@ -74,7 +75,7 @@ class OrgMembersController extends ModuleInstance {
 			$blob .= ", {$player->gender} {$player->breed} <highlight>{$player->profession}<end>, {$player->guild_rank})\n";
 		}
 
-		$msg = $this->text->makeBlob("Org members for '$org->orgname' ($numrows)", $blob);
+		$msg = $this->text->makeBlob("Org members for '{$org->orgname}' ({$numrows})", $blob);
 		$sendto->reply($msg);
 	}
 }

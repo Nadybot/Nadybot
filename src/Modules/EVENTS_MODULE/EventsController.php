@@ -4,21 +4,21 @@ namespace Nadybot\Modules\EVENTS_MODULE;
 
 use function Safe\strtotime;
 use Illuminate\Support\Collection;
-use Safe\Exceptions\DatetimeException;
 use Nadybot\Core\{
 	AOChatEvent,
 	Attributes as NCA,
 	CmdContext,
 	DB,
 	ModuleInstance,
-	Nadybot,
-	Text,
-	Util,
 	Modules\ALTS\AltsController,
 	Modules\PLAYER_LOOKUP\PlayerManager,
+	Nadybot,
 	ParamClass\PRemove,
+	Text,
 	UserStateEvent,
+	Util,
 };
+use Safe\Exceptions\DatetimeException;
 
 /**
  * @author Legendadv (RK2)
@@ -89,7 +89,7 @@ class EventsController extends ModuleInstance {
 				"event_name" => $eventName,
 				"event_date" => null,
 			]);
-		$msg = "Event: '$eventName' was added [Event ID $eventId].";
+		$msg = "Event: '{$eventName}' was added [Event ID {$eventId}].";
 		$context->reply($msg);
 	}
 
@@ -98,7 +98,7 @@ class EventsController extends ModuleInstance {
 	public function eventsRemoveCommand(CmdContext $context, PRemove $action, int $id): void {
 		$row = $this->getEvent($id);
 		if ($row === null) {
-			$msg = "Could not find an event with id $id.";
+			$msg = "Could not find an event with id {$id}.";
 		} else {
 			$this->db->table("events")->where("id", $id)->delete();
 			$msg = "Event with id {$id} has been deleted.";
@@ -111,12 +111,12 @@ class EventsController extends ModuleInstance {
 	public function eventsSetDescCommand(CmdContext $context, #[NCA\Str("setdesc")] string $action, int $id, string $description): void {
 		$row = $this->getEvent($id);
 		if ($row === null) {
-			$msg = "Could not find an event with id $id.";
+			$msg = "Could not find an event with id {$id}.";
 		} else {
 			$this->db->table("events")
 				->where("id", $id)
 				->update(["event_desc" => $description]);
-			$msg = "Description for event with id $id has been updated.";
+			$msg = "Description for event with id {$id} has been updated.";
 		}
 		$context->reply($msg);
 	}
@@ -131,7 +131,7 @@ class EventsController extends ModuleInstance {
 	): void {
 		$row = $this->getEvent($id);
 		if ($row === null) {
-			$msg = "Could not find an event with id $id.";
+			$msg = "Could not find an event with id {$id}.";
 		} else {
 			try {
 				$eventDate = strtotime($date);
@@ -142,7 +142,7 @@ class EventsController extends ModuleInstance {
 			$this->db->table("events")
 				->where("id", $id)
 				->update(["event_date" => $eventDate]);
-			$msg = "Date/Time for event with id $id has been updated.";
+			$msg = "Date/Time for event with id {$id} has been updated.";
 		}
 		$context->reply($msg);
 	}
@@ -159,7 +159,7 @@ class EventsController extends ModuleInstance {
 	public function eventsJoinCommand(CmdContext $context, #[NCA\Str("join")] string $action, int $id): void {
 		$row = $this->getEvent($id);
 		if ($row === null) {
-			$msg = "There is no event with id <highlight>$id<end>.";
+			$msg = "There is no event with id <highlight>{$id}<end>.";
 			$context->reply($msg);
 			return;
 		}
@@ -216,7 +216,7 @@ class EventsController extends ModuleInstance {
 	public function eventsListCommand(CmdContext $context, #[NCA\Str("list")] string $action, int $id): void {
 		$row = $this->getEvent($id);
 		if ($row === null) {
-			$msg = "Could not find event with id <highlight>$id<end>.";
+			$msg = "Could not find event with id <highlight>{$id}<end>.";
 			$context->reply($msg);
 			return;
 		}
@@ -225,8 +225,8 @@ class EventsController extends ModuleInstance {
 			$context->reply($msg);
 			return;
 		}
-		$link = "[" . $this->text->makeChatcmd("join this event", "/tell <myname> events join $id")."] ";
-		$link .= "[" . $this->text->makeChatcmd("leave this event", "/tell <myname> events leave $id")."]\n\n";
+		$link = "[" . $this->text->makeChatcmd("join this event", "/tell <myname> events join {$id}")."] ";
+		$link .= "[" . $this->text->makeChatcmd("leave this event", "/tell <myname> events leave {$id}")."]\n\n";
 
 		$link .= "<header2>Currently planning to attend<end>\n";
 		$eventlist = explode(",", $row->event_attendees);
@@ -243,15 +243,15 @@ class EventsController extends ModuleInstance {
 			$alt = '';
 			if (count($altInfo->getAllValidatedAlts()) > 0) {
 				if ($altInfo->main == $name) {
-					$alt = " <highlight>::<end> [" . $this->text->makeChatcmd("alts", "/tell <myname> alts $name") . "]";
+					$alt = " <highlight>::<end> [" . $this->text->makeChatcmd("alts", "/tell <myname> alts {$name}") . "]";
 				} else {
-					$alt = " <highlight>::<end> " . $this->text->makeChatcmd("Alts of {$altInfo->main}", "/tell <myname> alts $name");
+					$alt = " <highlight>::<end> " . $this->text->makeChatcmd("Alts of {$altInfo->main}", "/tell <myname> alts {$name}");
 				}
 			}
 
 			$link .= "<tab>- {$name}{$info} {$alt}\n";
 		}
-		$msg = $this->text->makeBlob("Players Attending Event $id ($numAttendees)", $link);
+		$msg = $this->text->makeBlob("Players Attending Event {$id} ({$numAttendees})", $link);
 
 		$context->reply($msg);
 	}
@@ -287,19 +287,19 @@ class EventsController extends ModuleInstance {
 				} else {
 					$upcoming = "<tab>Event Date: <highlight>" . $this->util->date($row->event_date) . "<end>\n";
 				}
-				$upcoming .= "<tab>Event Name: <highlight>$row->event_name<end>     [Event ID $row->id]\n";
-				$upcoming .= "<tab>Author: <highlight>$row->submitter_name<end>\n";
-				$upcoming .= "<tab>Attendance: <highlight>" . $this->text->makeChatcmd("$attendance signed up", "/tell <myname> events list $row->id") . "<end>" .
-					" [" . $this->text->makeChatcmd("join", "/tell <myname> events join $row->id") . "] [" .
-					$this->text->makeChatcmd("leave", "/tell <myname> events leave $row->id") . "]\n";
+				$upcoming .= "<tab>Event Name: <highlight>{$row->event_name}<end>     [Event ID {$row->id}]\n";
+				$upcoming .= "<tab>Author: <highlight>{$row->submitter_name}<end>\n";
+				$upcoming .= "<tab>Attendance: <highlight>" . $this->text->makeChatcmd("{$attendance} signed up", "/tell <myname> events list {$row->id}") . "<end>" .
+					" [" . $this->text->makeChatcmd("join", "/tell <myname> events join {$row->id}") . "] [" .
+					$this->text->makeChatcmd("leave", "/tell <myname> events leave {$row->id}") . "]\n";
 				$upcoming .= "<tab>Description: <highlight>" . ($row->event_desc ?? "&lt;empty&gt;") . "<end>\n";
 				$upcoming .= "<tab>Date Submitted: <highlight>" . $this->util->date($row->time_submitted) . "<end>\n\n";
 				$upcomingEvents = $upcoming.$upcomingEvents;
 			} else {
 				$past =  "<tab>Event Date: <highlight>" . $this->util->date($row->event_date) . "<end>\n";
-				$past .= "<tab>Event Name: <highlight>$row->event_name<end>     [Event ID $row->id]\n";
-				$past .= "<tab>Author: <highlight>$row->submitter_name<end>\n";
-				$past .= "<tab>Attendance: <highlight>" . $this->text->makeChatcmd("$attendance signed up", "/tell <myname> events list $row->id") . "<end>\n";
+				$past .= "<tab>Event Name: <highlight>{$row->event_name}<end>     [Event ID {$row->id}]\n";
+				$past .= "<tab>Author: <highlight>{$row->submitter_name}<end>\n";
+				$past .= "<tab>Attendance: <highlight>" . $this->text->makeChatcmd("{$attendance} signed up", "/tell <myname> events list {$row->id}") . "<end>\n";
 				$past .= "<tab>Description: <highlight>" . ($row->event_desc??"&lt;empty&gt;") . "<end>\n";
 				$past .= "<tab>Date Submitted: <highlight>" . $this->util->date($row->time_submitted) . "<end>\n\n";
 				$pastEvents .= $past;
@@ -361,15 +361,12 @@ class EventsController extends ModuleInstance {
 			->exists();
 	}
 
-	/**
-	 * @psalm-param callable(?string) $callback
-	 */
+	/** @psalm-param callable(?string) $callback */
 	#[
 		NCA\NewsTile(
 			name: "events",
 			description: "Shows upcoming events - if any",
-			example:
-				"<header2>Events [<u>see more</u>]<end>\n".
+			example: "<header2>Events [<u>see more</u>]<end>\n".
 				"<tab>2021-10-31 <highlight>GSP Halloween Party<end>"
 		)
 	]

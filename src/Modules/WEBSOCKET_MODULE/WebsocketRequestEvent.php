@@ -3,5 +3,9 @@
 namespace Nadybot\Modules\WEBSOCKET_MODULE;
 
 class WebsocketRequestEvent extends WebsocketEvent {
-	public /** @var NadyRequest */ object $data;
+	/**
+	 * @var NadyRequest
+	 * @psalm-suppress NonInvariantDocblockPropertyType
+	 */
+	public object $data;
 }

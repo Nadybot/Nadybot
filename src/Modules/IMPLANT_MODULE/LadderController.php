@@ -72,7 +72,7 @@ class LadderController extends ModuleInstance {
 		$value = $startingValue;
 		$prefix = $type == 'treatment' ? 'skill' : 'ability';
 
-		$blob = "Starting $type: $value\n\n-------------------\n\n";
+		$blob = "Starting {$type}: {$value}\n\n-------------------\n\n";
 
 		if ($type === 'treatment') {
 			if ($value < 11) {
@@ -80,7 +80,7 @@ class LadderController extends ModuleInstance {
 				return;
 			}
 
-			$getMax = function(int $value): ?LadderRequirements {
+			$getMax = function (int $value): ?LadderRequirements {
 				return $this->findMaxImplantQlByReqs(10000, $value);
 			};
 		} else {
@@ -89,7 +89,7 @@ class LadderController extends ModuleInstance {
 				return;
 			}
 
-			$getMax = function(int $value): ?LadderRequirements {
+			$getMax = function (int $value): ?LadderRequirements {
 				return $this->findMaxImplantQlByReqs($value, 10000);
 			};
 		}
@@ -105,18 +105,19 @@ class LadderController extends ModuleInstance {
 
 			// add shiny
 			$tempValue = $shiny === null ? $value : $value - $shiny->{$prefix . 'Shiny'};
+
 			/** @var LadderRequirements */
 			$newShiny = $getMax($tempValue);
 			if ($shiny === null || $newShiny->{$prefix . 'Shiny'} > $shiny->{$prefix . 'Shiny'}) {
 				$added = true;
 				if ($shiny !== null) {
 					$value -= $shiny->{$prefix . 'Shiny'};
-					$blob .= "Remove shiny QL $shiny->ql\n\n";
+					$blob .= "Remove shiny QL {$shiny->ql}\n\n";
 				}
 				$shiny = $newShiny;
 				$value += $shiny->{$prefix . 'Shiny'};
 				$lowest = $shiny->{'lowest' . ucfirst($prefix) . 'Shiny'};
-				$blob .= "<highlight>Add shiny QL $shiny->ql<end> ($lowest) - Treatment: {$shiny->treatment}, Ability: {$shiny->ability}\n\n";
+				$blob .= "<highlight>Add shiny QL {$shiny->ql}<end> ({$lowest}) - Treatment: {$shiny->treatment}, Ability: {$shiny->ability}\n\n";
 			}
 
 			// add bright
@@ -126,13 +127,13 @@ class LadderController extends ModuleInstance {
 				$added = true;
 				if ($bright !== null) {
 					$value -= $bright->{$prefix . 'Bright'};
-					$blob .= "Remove bright QL $bright->ql\n\n";
+					$blob .= "Remove bright QL {$bright->ql}\n\n";
 				}
 				if (isset($newBright)) {
 					$bright = $newBright;
 					$value += $bright->{$prefix . 'Bright'};
 					$lowest = $bright->{'lowest' . ucfirst($prefix) . 'Bright'};
-					$blob .= "<highlight>Add bright QL $bright->ql<end> ($lowest) - Treatment: {$bright->treatment}, Ability: {$bright->ability}\n\n";
+					$blob .= "<highlight>Add bright QL {$bright->ql}<end> ({$lowest}) - Treatment: {$bright->treatment}, Ability: {$bright->ability}\n\n";
 				}
 			}
 
@@ -143,20 +144,20 @@ class LadderController extends ModuleInstance {
 				$added = true;
 				if ($faded !== null) {
 					$value -= $faded->{$prefix . 'Faded'};
-					$blob .= "Remove faded QL $faded->ql\n\n";
+					$blob .= "Remove faded QL {$faded->ql}\n\n";
 				}
 				if (isset($newFaded)) {
 					$faded = $newFaded;
 					$value += $faded->{$prefix . 'Faded'};
 					$lowest = $faded->{'lowest' . ucfirst($prefix) . 'Faded'};
-					$blob .= "<highlight>Add faded QL $faded->ql<end> ($lowest) - Treatment: {$faded->treatment}, Ability: {$faded->ability}\n\n";
+					$blob .= "<highlight>Add faded QL {$faded->ql}<end> ({$lowest}) - Treatment: {$faded->treatment}, Ability: {$faded->ability}\n\n";
 				}
 			}
 		}
 
-		$blob .= "-------------------\n\nEnding $type: $value";
+		$blob .= "-------------------\n\nEnding {$type}: {$value}";
 		$blob .= "\n\n<highlight>Inspired by a command written by Lucier of the same name<end>";
-		$msg = $this->text->makeBlob("Laddering from $startingValue to $value " . ucfirst($type), $blob);
+		$msg = $this->text->makeBlob("Laddering from {$startingValue} to {$value} " . ucfirst($type), $blob);
 
 		$context->reply($msg);
 	}
@@ -189,7 +190,7 @@ class LadderController extends ModuleInstance {
 	}
 
 	public function setHighestAndLowestQls(LadderRequirements $obj, string $var): void {
-		$varValue = $obj->$var;
+		$varValue = $obj->{$var};
 
 		$min = $this->db->table("implant_requirements")
 			->where($var, $varValue)->min("ql");
@@ -197,10 +198,10 @@ class LadderController extends ModuleInstance {
 			->where($var, $varValue)->max("ql");
 		// camel case var name
 		$tempNameVar = ucfirst($var);
-		$tempHighestName = "highest$tempNameVar";
-		$tempLowestName = "lowest$tempNameVar";
+		$tempHighestName = "highest{$tempNameVar}";
+		$tempLowestName = "lowest{$tempNameVar}";
 
-		$obj->$tempLowestName = (int)$min;
-		$obj->$tempHighestName = (int)$max;
+		$obj->{$tempLowestName} = (int)$min;
+		$obj->{$tempHighestName} = (int)$max;
 	}
 }

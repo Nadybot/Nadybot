@@ -3,5 +3,9 @@
 namespace Nadybot\Core;
 
 interface SchemaMigration {
-	public function migrate(LoggerWrapper $logger, DB $db): void;
+	/**
+	 * @psalm-suppress MissingReturnType
+	 * @phpstan-ignore-next-line
+	 */
+	public function migrate(LoggerWrapper $logger, DB $db);
 }

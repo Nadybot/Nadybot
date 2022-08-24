@@ -22,8 +22,7 @@ use Nadybot\Modules\RELAY_MODULE\{
 #[
 	NCA\RelayProtocol(
 		name: "agcr",
-		description:
-			"This is the protocol that is used by the alliance of Rimor.\n".
+		description: "This is the protocol that is used by the alliance of Rimor.\n".
 			"It does not supports sharing online lists and can only colorize\n".
 			"org and guest chat properly."
 	),
@@ -56,10 +55,6 @@ use Nadybot\Modules\RELAY_MODULE\{
 	)
 ]
 class AgcrProtocol implements RelayProtocolInterface {
-	protected static int $supportedFeatures = self::F_NONE;
-
-	protected Relay $relay;
-
 	#[NCA\Inject]
 	public Util $util;
 
@@ -71,6 +66,9 @@ class AgcrProtocol implements RelayProtocolInterface {
 
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
+	protected static int $supportedFeatures = self::F_NONE;
+
+	protected Relay $relay;
 
 	protected string $command = "agcr";
 	protected string $prefix = "!";
@@ -93,7 +91,7 @@ class AgcrProtocol implements RelayProtocolInterface {
 			$packages = $this->renderMessage($event);
 			$this->logger->debug("Event encoded successfully on {relay}", [
 				"relay" => $this->relay->getName(),
-				"packages" => $packages
+				"packages" => $packages,
 			]);
 			return $packages;
 		}
@@ -106,7 +104,7 @@ class AgcrProtocol implements RelayProtocolInterface {
 			$packages = $this->renderMessage($event2);
 			$this->logger->debug("Event encoded successfully on {relay}", [
 				"relay" => $this->relay->getName(),
-				"packages" => $packages
+				"packages" => $packages,
 			]);
 			return $packages;
 		}
@@ -125,7 +123,7 @@ class AgcrProtocol implements RelayProtocolInterface {
 		return [
 			$this->prefix.$this->command . " ".
 				$path.
-				$this->text->formatMessage($event->getData())
+				$this->text->formatMessage($event->getData()),
 		];
 	}
 

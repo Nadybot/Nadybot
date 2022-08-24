@@ -22,6 +22,7 @@ class ProxyCapabilities extends ProxyReply {
 
 	/**
 	 * Modes the proxy supports for sending messages
+	 *
 	 * @var string[]
 	 */
 	#[JSON\Name("send-modes")]
@@ -29,6 +30,7 @@ class ProxyCapabilities extends ProxyReply {
 
 	/**
 	 * Modes the proxy supports for adding buddies
+	 *
 	 * @var string[]
 	 */
 	#[JSON\Name("buddy-modes")]
@@ -36,34 +38,38 @@ class ProxyCapabilities extends ProxyReply {
 
 	/**
 	 * Commands the proxy supports in general
+	 *
 	 * @var string[]
 	 */
 	#[JSON\Name("supported-cmds")]
 	public array $supported_cmds = [];
 
-	/**
-	 * Set when the proxy enforces rate-limits
-	 */
+	/** Set when the proxy enforces rate-limits */
 	#[JSON\Name("rate-limited")]
 	public bool $rate_limited = false;
 
-	/**
-	 * The mode the proxy will use when sending proxy-default
-	 */
+	/** The mode the proxy will use when sending proxy-default */
 	#[JSON\Name("default-mode")]
 	public ?string $default_mode;
 
-	/**
-	 * Unix timestamp when the proxy was started
-	 */
+	/** Unix timestamp when the proxy was started */
 	#[JSON\Name("started-at")]
 	public ?int $started_at;
 
 	/**
 	 * Names of the workers
+	 *
 	 * @var string[]
 	 */
 	public array $workers = [];
+
+	/**
+	 * UIDs of the workers
+	 *
+	 * @var int[]
+	 */
+	#[JSON\Ignore]
+	public array $worker_uids = [];
 
 	/** Check if the proxy supports a send mode */
 	public function supportsSendMode(string $sendMode): bool {

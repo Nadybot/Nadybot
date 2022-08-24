@@ -2,19 +2,22 @@
 
 namespace Nadybot\Modules\RAID_MODULE;
 
+use function Amp\call;
+use function Amp\Promise\all;
+
+use Amp\Promise;
+use Generator;
 use Nadybot\Core\{
-	Attributes as NCA,
 	AOChatEvent,
+	Attributes as NCA,
 	CmdContext,
 	CommandAlias,
-	CommandReply,
 	DB,
-	DBSchema\Player,
 	EventManager,
 	MessageHub,
 	ModuleInstance,
-	Modules\PLAYER_LOOKUP\PlayerManager,
 	Modules\ALTS\AltsController,
+	Modules\PLAYER_LOOKUP\PlayerManager,
 	Nadybot,
 	ParamClass\PCharacter,
 	Routing\RoutableMessage,
@@ -105,15 +108,7 @@ class RaidMemberController extends ModuleInstance {
 	)]
 	public int $raidAnnounceFull = 0;
 
-	protected function routeMessage(string $type, string $message): int {
-		$rMessage = new RoutableMessage($message);
-		$rMessage->prependPath(new Source("raid", $type));
-		return $this->messageHub->handle($rMessage);
-	}
-
-	/**
-	 * Resume an old raid after a bot restart
-	 */
+	/** Resume an old raid after a bot restart */
 	public function resumeRaid(Raid $raid): void {
 		$this->db->table(self::DB_TABLE)
 			->where("raid_id", $raid->raid_id)
@@ -125,9 +120,7 @@ class RaidMemberController extends ModuleInstance {
 			->keyBy("player")->toArray();
 	}
 
-	/**
-	 * Add player $player to the raid by player $sender
-	 */
+	/** Add player $player to the raid by player $sender */
 	public function joinRaid(string $sender, string $player, ?string $source, bool $force=false): ?string {
 		$raid = $this->raidController->raid;
 		if ($raid === null) {
@@ -235,9 +228,7 @@ class RaidMemberController extends ModuleInstance {
 		return $msg;
 	}
 
-	/**
-	 * Remove player $player from the raid by player $sender
-	 */
+	/** Remove player $player from the raid by player $sender */
 	public function leaveRaid(?string $sender, string $player): ?string {
 		$raid = $this->raidController->raid;
 		if ($raid === null) {
@@ -287,9 +278,7 @@ class RaidMemberController extends ModuleInstance {
 		return $msg;
 	}
 
-	/**
-	 * Join the currently running raid
-	 */
+	/** Join the currently running raid */
 	#[NCA\HandlesCommand(self::CMD_RAID_JOIN_LEAVE)]
 	#[NCA\Help\Group("raid-members")]
 	public function raidJoinCommand(
@@ -306,9 +295,7 @@ class RaidMemberController extends ModuleInstance {
 		}
 	}
 
-	/**
-	 * Leave the currently running raid
-	 */
+	/** Leave the currently running raid */
 	#[NCA\HandlesCommand(self::CMD_RAID_JOIN_LEAVE)]
 	#[NCA\Help\Group("raid-members")]
 	public function raidLeaveCommand(
@@ -325,9 +312,7 @@ class RaidMemberController extends ModuleInstance {
 		}
 	}
 
-	/**
-	 * Add someone to the raid, even if they currently cannot join, because it is locked
-	 */
+	/** Add someone to the raid, even if they currently cannot join, because it is locked */
 	#[NCA\HandlesCommand(self::CMD_RAID_KICK_ADD)]
 	#[NCA\Help\Group("raid-members")]
 	public function raidAddCommand(
@@ -341,9 +326,7 @@ class RaidMemberController extends ModuleInstance {
 		}
 	}
 
-	/**
-	 * Kick someone from the raid
-	 */
+	/** Kick someone from the raid */
 	#[NCA\HandlesCommand(self::CMD_RAID_KICK_ADD)]
 	#[NCA\Help\Group("raid-members")]
 	public function raidKickCommand(
@@ -359,6 +342,7 @@ class RaidMemberController extends ModuleInstance {
 
 	/**
 	 * Warn everyone on the private channel who's not in the raid $raid
+	 *
 	 * @return string[]
 	 */
 	public function sendNotInRaidWarning(Raid $raid): array {
@@ -400,6 +384,7 @@ class RaidMemberController extends ModuleInstance {
 
 	/**
 	 * kick everyone on the private channel who's not in the raid $raid
+	 *
 	 * @return string[]
 	 */
 	public function kickNotInRaid(Raid $raid, bool $all): array {
@@ -420,6 +405,7 @@ class RaidMemberController extends ModuleInstance {
 
 	/**
 	 * Get the blob for the !raid list command
+	 *
 	 * @return string[]
 	 */
 	public function getRaidListBlob(Raid $raid, bool $justBlob=false): array {
@@ -463,75 +449,64 @@ class RaidMemberController extends ModuleInstance {
 		foreach ($blobMsgs as &$msg) {
 			$msg = "<highlight>{$active}<end> active ".
 				"and <highlight>{$inactive}<end> inactive ".
-				"player" . (($inactive !== 1) ? "s" : "") . " in the raid :: $msg";
+				"player" . (($inactive !== 1) ? "s" : "") . " in the raid :: {$msg}";
 		}
-		return  $blobMsgs;
+		return $blobMsgs;
 	}
 
 	/**
-	 * Send the blob for the !raid check command to $sendto
+	 * Get the blob for the !raid check command to $sendto
+	 *
+	 * @return Promise<string|string[]>
 	 */
-	public function sendRaidCheckBlob(Raid $raid, CommandReply $sendto): void {
-		$activeNames = [];
-		foreach ($raid->raiders as $player => $raider) {
-			if ($raider->left !== null) {
-				continue;
+	public function getRaidCheckBlob(Raid $raid): Promise {
+		return call(function () use ($raid): Generator {
+			$activeNames = [];
+			foreach ($raid->raiders as $player => $raider) {
+				if ($raider->left === null) {
+					$activeNames[$raider->player] = $this->playerManager->byName($raider->player);
+				}
 			}
-			$activeNames []= $raider->player;
-		}
-		$this->playerManager->massGetByName(
-			function(array $result) use ($sendto): void {
-				$this->sendRaidCheckBlobResult($result, $sendto);
-			},
-			$activeNames
-		);
-	}
-
-	/**
-	 * Send the raid check blob with all active players to $sendto
-	 * @param array<string,?Player> $activePlayers List of all the players in the raid
-	 * @param CommandReply $sendto Where to send the reply to
-	 */
-	protected function sendRaidCheckBlobResult(array $activePlayers, CommandReply $sendto): void {
-		ksort($activePlayers);
-		$lines = [];
-		foreach ($activePlayers as $name => $pInfo) {
-			if ($pInfo === null) {
-				continue;
+			$activePlayers = yield all($activeNames);
+			ksort($activePlayers);
+			$lines = [];
+			foreach ($activePlayers as $name => $pInfo) {
+				if ($pInfo === null) {
+					continue;
+				}
+				$profIcon = "<img src=tdb://id:GFX_GUI_ICON_PROFESSION_".
+					($this->onlineController->getProfessionId($pInfo->profession??"unknown")??0).">";
+				$line  = "<tab>{$profIcon} {$pInfo->name} - ".
+					"{$pInfo->level}/{$pInfo->ai_level} ".
+					"<" . strtolower($pInfo->faction) . ">{$pInfo->faction}<end>".
+					" [".
+					$this->text->makeChatcmd("Raid Kick", "/tell <myname> raid kick {$name}").
+					"]";
+				$lines []= $line;
 			}
-			$profIcon = "<img src=tdb://id:GFX_GUI_ICON_PROFESSION_".
-				($this->onlineController->getProfessionId($pInfo->profession??"unknown")??0).">";
-			$line  = "<tab>{$profIcon} {$pInfo->name} - ".
-				"{$pInfo->level}/{$pInfo->ai_level} ".
-				"<" . strtolower($pInfo->faction) . ">{$pInfo->faction}<end>".
-				" [".
-				$this->text->makeChatcmd("Raid Kick", "/tell <myname> raid kick $name").
-				"]";
-			$lines []= $line;
-		}
-		if (count($activePlayers) === 0) {
-			$sendto->reply("<highlight>No<end> players in the raid");
-			return;
-		}
-		$checkCmd = $this->text->makeChatcmd(
-			"Check all raid members",
-			"/assist " . join(" \\n /assist ", array_keys($activePlayers))
-		);
-		$notInCmd = $this->text->makeChatcmd(
-			"raid notin",
-			"/tell <myname> raid notin"
-		);
-		$blob = "Send not-in-raid warning: {$notInCmd}\n".
-			"\n".
-			"{$checkCmd}\n".
-			"\n".
-			join("\n", $lines);
-		$blobs = (array)$this->text->makeBlob("click to view", $blob, "Players in the raid");
-		foreach ($blobs as &$msg) {
-			$msg = "<highlight>" . count($activePlayers) . "<end> player".
-				((count($activePlayers) !== 1) ? "s" : "") . " in the raid :: $msg";
-		}
-		$sendto->reply($blobs);
+			if (count($activePlayers) === 0) {
+				return "<highlight>No<end> players in the raid";
+			}
+			$checkCmd = $this->text->makeChatcmd(
+				"Check all raid members",
+				"/assist " . join(" \\n /assist ", array_keys($activePlayers))
+			);
+			$notInCmd = $this->text->makeChatcmd(
+				"raid notin",
+				"/tell <myname> raid notin"
+			);
+			$blob = "Send not-in-raid warning: {$notInCmd}\n".
+				"\n".
+				"{$checkCmd}\n".
+				"\n".
+				join("\n", $lines);
+			$blobs = (array)$this->text->makeBlob("click to view", $blob, "Players in the raid");
+			foreach ($blobs as &$msg) {
+				$msg = "<highlight>" . count($activePlayers) . "<end> player".
+					((count($activePlayers) !== 1) ? "s" : "") . " in the raid :: {$msg}";
+			}
+			return $blobs;
+		});
 	}
 
 	#[NCA\Event(
@@ -543,5 +518,11 @@ class RaidMemberController extends ModuleInstance {
 			return;
 		}
 		$this->leaveRaid(null, $eventObj->sender);
+	}
+
+	protected function routeMessage(string $type, string $message): int {
+		$rMessage = new RoutableMessage($message);
+		$rMessage->prependPath(new Source("raid", $type));
+		return $this->messageHub->handle($rMessage);
 	}
 }

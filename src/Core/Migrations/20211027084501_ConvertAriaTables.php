@@ -2,20 +2,20 @@
 
 namespace Nadybot\Core\Migrations;
 
-use Nadybot\Core\DB;
-use Nadybot\Core\LoggerWrapper;
-use Nadybot\Core\SchemaMigration;
+use Nadybot\Core\{DB, LoggerWrapper, SchemaMigration};
 
 class ConvertAriaTables implements SchemaMigration {
 	public function migrate(LoggerWrapper $logger, DB $db): void {
 		if ($db->getType() !== $db::MYSQL) {
 			return;
 		}
+
+		/** @var string[] */
 		$tables = $db->table("information_schema.TABLES")
 			->where("TABLE_SCHEMA", $db->schema()->getConnection()->getDatabaseName())
 			->where("ENGINE", "Aria")
 			->select("TABLE_NAME")
-			->pluckAs("TABLE_NAME", "string")
+			->pluckStrings("TABLE_NAME")
 			->toArray();
 		if (empty($tables)) {
 			return;

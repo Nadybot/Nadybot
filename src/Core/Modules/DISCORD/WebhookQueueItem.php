@@ -2,19 +2,15 @@
 
 namespace Nadybot\Core\Modules\DISCORD;
 
-use Closure;
+use Amp\Deferred;
 
 class WebhookQueueItem {
-	public ?Closure $callback = null;
-
+	/** @param null|Deferred<void> $deferred */
 	public function __construct(
 		public string $applicationId,
 		public string $interactionToken,
 		public string $message,
-		?callable $callback=null,
+		public ?Deferred $deferred=null,
 	) {
-		if (isset($callback)) {
-			$this->callback = Closure::fromCallable($callback);
-		}
 	}
 }

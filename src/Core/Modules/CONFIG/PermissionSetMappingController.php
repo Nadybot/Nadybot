@@ -10,14 +10,14 @@ use Nadybot\Core\{
 	CmdContext,
 	CommandManager,
 	DB,
-	DBSchema\CmdPermissionSet,
 	DBSchema\CmdPermSetMapping,
+	DBSchema\CmdPermissionSet,
 	DBSchema\Setting,
 	ModuleInstance,
 	ParamClass\PRemove,
 	ParamClass\PWord,
-	SettingManager,
 	SQLException,
+	SettingManager,
 	Text,
 };
 
@@ -86,26 +86,6 @@ class PermissionSetMappingController extends ModuleInstance {
 		$context->reply(
 			$this->text->makeBlob("Permission set mappings (" . $blocks->count() . ")", $blob)
 		);
-	}
-
-	protected function renderPermSetMapping(CmdPermSetMapping $map): string {
-		$deleteLink = $this->text->makeChatcmd("delete", "/tell <myname> cmdmap rem {$map->source}");
-		$permSetLink = $this->text->makeChatcmd("change", "/tell <myname> cmdmap permset pick {$map->source}");
-		$symbolLink = $this->text->makeChatcmd("change", "/tell <myname> cmdmap symbol pick {$map->source}");
-		$symOptText = $map->symbol_optional ? "no" : "yes";
-		$symbolOptionalLink = $this->text->makeChatcmd($symOptText, "/tell <myname> cmdmap symbolopt set {$map->source} {$symOptText}");
-		$feedbackText = $map->feedback ? "no" : "yes";
-		$feedbackLink = $this->text->makeChatcmd($feedbackText, "/tell <myname> cmdmap feedback set {$map->source} {$feedbackText}");
-		$block = "<header2>{$map->source}<end> [{$deleteLink}]\n".
-			"<tab>Permission set: <highlight>{$map->permission_set}<end> [{$permSetLink}]\n".
-			"<tab>Symbol: <highlight>".
-				(strlen($map->symbol) ? $map->symbol : "&lt;none&gt;").
-			"<end> [{$symbolLink}]\n".
-			"<tab>Symbol optional: <highlight>" . ($map->symbol_optional ? "yes" : "no") . "<end>".
-				" [{$symbolOptionalLink}]\n".
-			"<tab>Feedback if cmd doesn't exist: <highlight>".
-				($map->feedback ? "yes" : "no") . "<end> [{$feedbackLink}]";
-		return $block;
 	}
 
 	/** Map commands from &lt;source&gt; to use the &lt;permission set&gt;*/
@@ -219,6 +199,7 @@ class PermissionSetMappingController extends ModuleInstance {
 		string $source
 	): void {
 		$source = strtolower($source);
+
 		/** @var null|CmdPermSetMapping */
 		$set = $this->cmdManager->getPermSetMappings()->where("source", $source)->first();
 		if (!isset($set)) {
@@ -226,7 +207,7 @@ class PermissionSetMappingController extends ModuleInstance {
 			return;
 		}
 		$sets = $this->cmdManager->getPermissionSets();
-		$choices = $sets->map(function(CmdPermissionSet $set) use ($source): string {
+		$choices = $sets->map(function (CmdPermissionSet $set) use ($source): string {
 			return "<tab>" . $this->text->makeChatcmd($set->name, "/tell <myname> cmdmap permset set {$source} {$set->name}");
 		})->join("\n");
 		$context->reply(
@@ -246,12 +227,14 @@ class PermissionSetMappingController extends ModuleInstance {
 		string $source
 	): void {
 		$source = strtolower($source);
+
 		/** @var null|CmdPermSetMapping */
 		$set = $this->cmdManager->getPermSetMappings()->where("source", $source)->first();
 		if (!isset($set)) {
 			$context->reply("There is currently no permission set map for <highlight>{$source}<end>.");
 			return;
 		}
+
 		/** @var ?Setting $row */
 		$row = $this->db->table(SettingManager::DB_TABLE)
 			->where("name", "symbol")
@@ -287,7 +270,7 @@ class PermissionSetMappingController extends ModuleInstance {
 			$context->reply("The permission set <highlight>{$permissionSet}<end> doesn't exist.");
 			return;
 		}
-		$this->changeCmdMap($context, $source, function(CmdPermSetMapping $set) use ($permissionSet): void {
+		$this->changeCmdMap($context, $source, function (CmdPermSetMapping $set) use ($permissionSet): void {
 			$set->permission_set = $permissionSet;
 		});
 	}
@@ -301,7 +284,7 @@ class PermissionSetMappingController extends ModuleInstance {
 		string $source,
 		string $symbol
 	): void {
-		$this->changeCmdMap($context, $source, function(CmdPermSetMapping $set) use ($symbol): void {
+		$this->changeCmdMap($context, $source, function (CmdPermSetMapping $set) use ($symbol): void {
 			$set->symbol = $symbol;
 		});
 	}
@@ -315,7 +298,7 @@ class PermissionSetMappingController extends ModuleInstance {
 		string $source,
 		bool $optional
 	): void {
-		$this->changeCmdMap($context, $source, function(CmdPermSetMapping $set) use ($optional): void {
+		$this->changeCmdMap($context, $source, function (CmdPermSetMapping $set) use ($optional): void {
 			$set->symbol_optional = $optional;
 		});
 	}
@@ -329,9 +312,29 @@ class PermissionSetMappingController extends ModuleInstance {
 		string $source,
 		bool $feedback
 	): void {
-		$this->changeCmdMap($context, $source, function(CmdPermSetMapping $set) use ($feedback): void {
+		$this->changeCmdMap($context, $source, function (CmdPermSetMapping $set) use ($feedback): void {
 			$set->feedback = $feedback;
 		});
+	}
+
+	protected function renderPermSetMapping(CmdPermSetMapping $map): string {
+		$deleteLink = $this->text->makeChatcmd("delete", "/tell <myname> cmdmap rem {$map->source}");
+		$permSetLink = $this->text->makeChatcmd("change", "/tell <myname> cmdmap permset pick {$map->source}");
+		$symbolLink = $this->text->makeChatcmd("change", "/tell <myname> cmdmap symbol pick {$map->source}");
+		$symOptText = $map->symbol_optional ? "no" : "yes";
+		$symbolOptionalLink = $this->text->makeChatcmd($symOptText, "/tell <myname> cmdmap symbolopt set {$map->source} {$symOptText}");
+		$feedbackText = $map->feedback ? "no" : "yes";
+		$feedbackLink = $this->text->makeChatcmd($feedbackText, "/tell <myname> cmdmap feedback set {$map->source} {$feedbackText}");
+		$block = "<header2>{$map->source}<end> [{$deleteLink}]\n".
+			"<tab>Permission set: <highlight>{$map->permission_set}<end> [{$permSetLink}]\n".
+			"<tab>Symbol: <highlight>".
+				(strlen($map->symbol) ? $map->symbol : "&lt;none&gt;").
+			"<end> [{$symbolLink}]\n".
+			"<tab>Symbol optional: <highlight>" . ($map->symbol_optional ? "yes" : "no") . "<end>".
+				" [{$symbolOptionalLink}]\n".
+			"<tab>Feedback if cmd doesn't exist: <highlight>".
+				($map->feedback ? "yes" : "no") . "<end> [{$feedbackLink}]";
+		return $block;
 	}
 
 	/**
@@ -341,6 +344,7 @@ class PermissionSetMappingController extends ModuleInstance {
 	 */
 	protected function changeCmdMap(CmdContext $context, string $source, Closure $callback): void {
 		$source = strtolower($source);
+
 		/** @var null|CmdPermSetMapping */
 		$set = $this->cmdManager->getPermSetMappings()->where("source", $source)->first();
 		if (!isset($set)) {

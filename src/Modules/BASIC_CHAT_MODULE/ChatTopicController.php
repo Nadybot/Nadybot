@@ -71,9 +71,7 @@ class ChatTopicController extends ModuleInstance {
 	#[NCA\Setting\Color]
 	public string $topicColor = "#FF0000";
 
-	/**
-	 * Show the current topic
-	 */
+	/** Show the current topic */
 	#[NCA\HandlesCommand("topic")]
 	public function topicCommand(CmdContext $context): void {
 		if ($this->topic === '') {
@@ -85,9 +83,7 @@ class ChatTopicController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
-	/**
-	 * Clear the topic
-	 */
+	/** Clear the topic */
 	#[NCA\HandlesCommand(self::CMD_TOPIC_SET)]
 	public function topicClearCommand(CmdContext $context, #[NCA\Str("clear")] string $action): void {
 		if (!$this->chatLeaderController->checkLeaderAccess($context->char->name)) {
@@ -104,9 +100,7 @@ class ChatTopicController extends ModuleInstance {
 		$this->eventManager->fireEvent($event);
 	}
 
-	/**
-	 * Set a new topic
-	 */
+	/** Set a new topic */
 	#[NCA\HandlesCommand(self::CMD_TOPIC_SET)]
 	public function topicSetCommand(CmdContext $context, string $topic): void {
 		if (!$this->chatLeaderController->checkLeaderAccess($context->char->name)) {
@@ -162,9 +156,7 @@ class ChatTopicController extends ModuleInstance {
 		}
 	}
 
-	/**
-	 * Builds current topic information message and returns it.
-	 */
+	/** Builds current topic information message and returns it. */
 	public function buildTopicMessage(): string {
 		$topicAge = $this->util->unixtimeToReadable(time() - $this->topicTime, false);
 		$topic = $this->topic;

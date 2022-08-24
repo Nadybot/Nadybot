@@ -7,6 +7,7 @@ use Nadybot\Core\JSONDataModel;
 class InteractionCallbackData extends JSONDataModel {
 	/** do not include any embeds when serializing this message */
 	public const SUPPRESS_EMBEDS = 4;
+
 	/** this message is only visible to the user who invoked the Interaction */
 	public const EPHEMERAL = 64;
 
@@ -18,6 +19,7 @@ class InteractionCallbackData extends JSONDataModel {
 
 	/**
 	 * supports up to 10 embeds
+	 *
 	 * @var null|\Nadybot\Core\Modules\DISCORD\DiscordEmbed[]
 	 */
 	public ?array $embeds = null;
@@ -30,12 +32,14 @@ class InteractionCallbackData extends JSONDataModel {
 
 	/**
 	 * message components
+	 *
 	 * @var null|object[]
 	 */
 	public ?array $components = null;
 
 	/**
 	 * attachment objects with filename and description
+	 *
 	 * @var null|object[]
 	 */
 	public ?array $attachments = null;

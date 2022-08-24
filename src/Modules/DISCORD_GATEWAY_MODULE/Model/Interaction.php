@@ -3,8 +3,7 @@
 namespace Nadybot\Modules\DISCORD_GATEWAY_MODULE\Model;
 
 use Nadybot\Core\JSONDataModel;
-use Nadybot\Core\Modules\DISCORD\DiscordMessageIn;
-use Nadybot\Core\Modules\DISCORD\DiscordUser;
+use Nadybot\Core\Modules\DISCORD\{DiscordMessageIn, DiscordUser};
 
 class Interaction extends JSONDataModel {
 	public const TYPE_PING = 1;

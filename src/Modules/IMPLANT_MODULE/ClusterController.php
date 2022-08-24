@@ -54,7 +54,7 @@ class ClusterController extends ModuleInstance {
 				).
 				"\n";
 		}
-		$msg = $this->text->makeBlob("Cluster List ($count)", $blob);
+		$msg = $this->text->makeBlob("Cluster List ({$count})", $blob);
 		$context->reply($msg);
 	}
 
@@ -76,7 +76,7 @@ class ClusterController extends ModuleInstance {
 			return;
 		}
 		$implantDesignerLink = $this->text->makeChatcmd("implant designer", "/tell <myname> implantdesigner");
-		$blob = "Click 'Add' to add cluster to $implantDesignerLink.\n\n";
+		$blob = "Click 'Add' to add cluster to {$implantDesignerLink}.\n\n";
 		foreach ($data as $cluster) {
 			/** @var SlotClusterType[] */
 			$results = $this->db->table("ClusterImplantMap AS c1")
@@ -98,7 +98,7 @@ class ClusterController extends ModuleInstance {
 			}
 			$blob .= "\n\n";
 		}
-		$msg = $this->text->makeBlob("Cluster search results ($count)", $blob);
+		$msg = $this->text->makeBlob("Cluster search results ({$count})", $blob);
 		$context->reply($msg);
 	}
 }

@@ -2,20 +2,34 @@
 
 namespace Nadybot\Modules\DEV_MODULE;
 
-use Nadybot\Core\CommandReply;
-use Nadybot\Core\LoggerWrapper;
+use Nadybot\Core\{CommandReply, LoggerWrapper};
 
 class MockCommandReply implements CommandReply {
 	public LoggerWrapper $logger;
 
 	public ?string $logFile;
 	public string $command;
+
 	/** @var string[] */
 	public array $output = [];
 
 	public function __construct(string $command, ?string $logFile=null) {
 		$this->logFile = $logFile;
 		$this->command = $command;
+	}
+
+	public function __destruct() {
+		if (!isset($this->logFile)) {
+			return;
+		}
+		\Safe\file_put_contents(
+			$this->logFile,
+			\Safe\json_encode([
+				"command" => $this->command,
+				"output" => $this->output,
+			], JSON_UNESCAPED_SLASHES|JSON_INVALID_UTF8_SUBSTITUTE|JSON_UNESCAPED_UNICODE) . PHP_EOL,
+			FILE_APPEND
+		);
 	}
 
 	/** @param string|string[] $msg */
@@ -35,19 +49,5 @@ class MockCommandReply implements CommandReply {
 			$result = preg_replace("/(\s*\d+ (days|hrs|mins|secs))+/", "<duration>", $result);
 			$this->output []= $result;
 		}
-	}
-
-	public function __destruct() {
-		if (!isset($this->logFile)) {
-			return;
-		}
-		\Safe\file_put_contents(
-			$this->logFile,
-			\Safe\json_encode([
-				"command" => $this->command,
-				"output" => $this->output,
-			], JSON_UNESCAPED_SLASHES|JSON_INVALID_UTF8_SUBSTITUTE|JSON_UNESCAPED_UNICODE) . PHP_EOL,
-			FILE_APPEND
-		);
 	}
 }

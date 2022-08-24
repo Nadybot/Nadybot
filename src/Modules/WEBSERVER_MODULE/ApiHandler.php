@@ -2,9 +2,10 @@
 
 namespace Nadybot\Modules\WEBSERVER_MODULE;
 
-use ReflectionMethod;
 use Closure;
 use Exception;
+use Generator;
+use ReflectionMethod;
 
 class ApiHandler {
 	/** @var string[] */
@@ -13,13 +14,15 @@ class ApiHandler {
 	public ?string $accessLevel;
 	public string $path;
 	public string $route;
+
 	/** @psalm-var null|Closure(Request,HttpProtocolWrapper,mixed...) */
 	public ?Closure $handler = null;
 	public ReflectionMethod $reflectionMethod;
+
 	/** @var mixed[] */
 	public array $args = [];
 
-	public function exec(Request $request, HttpProtocolWrapper $server): ?Response {
+	public function exec(Request $request, HttpProtocolWrapper $server): null|Response|Generator {
 		$handler = $this->handler;
 		if (!isset($handler)) {
 			throw new Exception("Invalid request");

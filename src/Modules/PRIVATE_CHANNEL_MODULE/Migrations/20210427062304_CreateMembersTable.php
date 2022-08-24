@@ -3,9 +3,7 @@
 namespace Nadybot\Modules\PRIVATE_CHANNEL_MODULE\Migrations;
 
 use Illuminate\Database\Schema\Blueprint;
-use Nadybot\Core\DB;
-use Nadybot\Core\LoggerWrapper;
-use Nadybot\Core\SchemaMigration;
+use Nadybot\Core\{DB, LoggerWrapper, SchemaMigration};
 use Nadybot\Modules\PRIVATE_CHANNEL_MODULE\PrivateChannelController;
 
 class CreateMembersTable implements SchemaMigration {
@@ -14,7 +12,7 @@ class CreateMembersTable implements SchemaMigration {
 		if ($db->schema()->hasTable($table)) {
 			return;
 		}
-		$db->schema()->create($table, function(Blueprint $table): void {
+		$db->schema()->create($table, function (Blueprint $table): void {
 			$table->string("name", 25)->primary();
 			$table->integer("autoinv")->nullable()->default(0);
 		});

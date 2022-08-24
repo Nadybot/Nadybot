@@ -2,9 +2,9 @@
 
 namespace Nadybot\Core;
 
-use Nadybot\Core\Attributes as NCA;
-
 use function Safe\preg_match_all;
+
+use Nadybot\Core\Attributes as NCA;
 
 #[NCA\Instance]
 class Text {
@@ -21,6 +21,7 @@ class Text {
 	 * Create an interactive string from a list of commands and titles
 	 *
 	 * @param array<string,string> $links An array in the form ["title" => "chat command (/tell ...)"]
+	 *
 	 * @return string A string that combines all links into one
 	 */
 	public function makeHeaderLinks(array $links): string {
@@ -34,9 +35,10 @@ class Text {
 	/**
 	 * Wraps a block in a before and after part
 	 *
-	 * @param string $before String before the link
-	 * @param string|string[] $blob The blob to wrap
-	 * @param string|null $after The optional string after the blob
+	 * @param string          $before String before the link
+	 * @param string|string[] $blob   The blob to wrap
+	 * @param string|null     $after  The optional string after the blob
+	 *
 	 * @return string[]
 	 */
 	public function blobWrap(string $before, string|array $blob, ?string $after=""): array {
@@ -50,9 +52,10 @@ class Text {
 	/**
 	 * Creates an info window, supporting pagination
 	 *
-	 * @param string $name The text part of the clickable link
-	 * @param string $content The content of the info window
-	 * @param string|null $header If set, use $header as header, otherwise $name
+	 * @param string      $name    The text part of the clickable link
+	 * @param string      $content The content of the info window
+	 * @param string|null $header  If set, use $header as header, otherwise $name
+	 *
 	 * @return string|string[] The string with link and reference or an array of strings if the message would be too big
 	 */
 	public function makeBlob(string $name, string $content, ?string $header=null, ?string $permanentHeader=""): string|array {
@@ -79,46 +82,46 @@ class Text {
 
 		if ($num === 1) {
 			$page = $pages[0];
-			$headerMarkup = "<header>$header<end>\n\n$permanentHeader";
-			$page = "<a href=\"text://".($this->settingManager->getString("default_window_color")??"").$headerMarkup.$page."\">$name</a>";
+			$headerMarkup = "<header>{$header}<end>\n\n{$permanentHeader}";
+			$page = "<a href=\"text://".($this->settingManager->getString("default_window_color")??"").$headerMarkup.$page."\">{$name}</a>";
 			return $page;
-		} else {
-			$addHeaderRanges = $this->settingManager->getBool("add_header_ranges") ?? false;
-			$i = 1;
-			foreach ($pages as $key => $page) {
-				$headerInfo = "";
-				if ($addHeaderRanges
-					&& preg_match_all(
-						"/<header2>([^<]+)<end>/",
-						$page,
-						$headers,
-						PREG_OFFSET_CAPTURE
-					)
-				) {
-					if (isset($headers) && $headers[1][0][1] === 9) {
-						$from = $headers[1][0][0];
-						$to = $headers[1][count($headers[1])-1][0];
-						$headerInfo = " - {$from}";
-						if ($to !== $from) {
-							$headerInfo .= " -&gt; {$to}";
-						}
+		}
+		$addHeaderRanges = $this->settingManager->getBool("add_header_ranges") ?? false;
+		$i = 1;
+		foreach ($pages as $key => $page) {
+			$headerInfo = "";
+			if ($addHeaderRanges
+				&& preg_match_all(
+					"/<header2>([^<]+)<end>/",
+					$page,
+					$headers,
+					PREG_OFFSET_CAPTURE
+				)
+			) {
+				if (isset($headers) && $headers[1][0][1] === 9) {
+					$from = $headers[1][0][0];
+					$to = $headers[1][count($headers[1])-1][0];
+					$headerInfo = " - {$from}";
+					if ($to !== $from) {
+						$headerInfo .= " -&gt; {$to}";
 					}
 				}
-
-				$headerMarkup = "<header>$header (Page $i / $num)<end>\n\n$permanentHeader";
-				$page = "<a href=\"text://".($this->settingManager->getString("default_window_color")??"").$headerMarkup.$page."\">$name</a> (Page <highlight>$i / $num<end>{$headerInfo})";
-				$pages[$key] = $page;
-				$i++;
 			}
-			return $pages;
+
+			$headerMarkup = "<header>{$header} (Page {$i} / {$num})<end>\n\n{$permanentHeader}";
+			$page = "<a href=\"text://".($this->settingManager->getString("default_window_color")??"").$headerMarkup.$page."\">{$name}</a> (Page <highlight>{$i} / {$num}<end>{$headerInfo})";
+			$pages[$key] = $page;
+			$i++;
 		}
+		return $pages;
 	}
 
 	/**
 	 * Creates an info window
 	 *
-	 * @param string $name The text part of the clickable link
+	 * @param string $name    The text part of the clickable link
 	 * @param string $content The content of the info window
+	 *
 	 * @return string|string[] The string with link and reference or an array of strings if the message would be too big
 	 */
 	public function makeLegacyBlob(string $name, string $content): string|array {
@@ -132,30 +135,30 @@ class Text {
 
 		if ($num == 1) {
 			$page = $pages[0];
-			$page = "<a href=\"text://".($this->settingManager->getString("default_window_color")??"").$page."\">$name</a>";
+			$page = "<a href=\"text://".($this->settingManager->getString("default_window_color")??"").$page."\">{$name}</a>";
 			return $page;
-		} else {
-			$i = 1;
-			foreach ($pages as $key => $page) {
-				if ($i > 1) {
-					$header = "<header>$name (Page $i / $num)<end>\n\n";
-				} else {
-					$header = '';
-				}
-				$page = "<a href=\"text://".($this->settingManager->getString("default_window_color")??"").$header.$page."\">$name</a> (Page <highlight>$i / $num<end>)";
-				$pages[$key] = $page;
-				$i++;
-			}
-			return $pages;
 		}
+		$i = 1;
+		foreach ($pages as $key => $page) {
+			if ($i > 1) {
+				$header = "<header>{$name} (Page {$i} / {$num})<end>\n\n";
+			} else {
+				$header = '';
+			}
+			$page = "<a href=\"text://".($this->settingManager->getString("default_window_color")??"").$header.$page."\">{$name}</a> (Page <highlight>{$i} / {$num}<end>)";
+			$pages[$key] = $page;
+			$i++;
+		}
+		return $pages;
 	}
 
 	/**
 	 * Convert a single long string into multiple pages of maximum $maxLength size
 	 *
-	 * @param string $input The text to paginate
-	 * @param int $maxLength The maximum allowed length of one page
-	 * @param string[] $symbols An array of strings at which we allow page breaks
+	 * @param string   $input     The text to paginate
+	 * @param int      $maxLength The maximum allowed length of one page
+	 * @param string[] $symbols   An array of strings at which we allow page breaks
+	 *
 	 * @return string[] An array of strings with the resulting pages
 	 */
 	public function paginate(string $input, int $maxLength, array $symbols): array {
@@ -211,9 +214,10 @@ class Text {
 	/**
 	 * Creates a chatcmd link
 	 *
-	 * @param string $name The name the link will show
+	 * @param string $name    The name the link will show
 	 * @param string $content The chatcmd to execute
-	 * @param string $style (optional) any styling you want applied to the link, e.g. color="..."
+	 * @param string $style   (optional) any styling you want applied to the link, e.g. color="..."
+	 *
 	 * @return string The link
 	 */
 	public function makeChatcmd(string $name, string $content, ?string $style=""): string {
@@ -222,7 +226,7 @@ class Text {
 			$style .= " ";
 		}
 		$content = str_replace("'", '&#39;', $content);
-		return "<a {$style}href='chatcmd://$content'>$name</a>";
+		return "<a {$style}href='chatcmd://{$content}'>{$name}</a>";
 	}
 
 	/**
@@ -232,24 +236,26 @@ class Text {
 	 * providing you with a menu of options (ignore etc.)
 	 * (see 18.1 AO patchnotes)
 	 *
-	 * @param string $user The name of the user to create a link for
+	 * @param string $user  The name of the user to create a link for
 	 * @param string $style (optional) any styling you want applied to the link, e.g. color="..."
+	 *
 	 * @return string The link to the user
 	 */
 	public function makeUserlink(string $user, string $style=""): string {
 		if ($style !== "") {
 			$style .= " ";
 		}
-		return "<a {$style}href=user://$user>$user</a>";
+		return "<a {$style}href=user://{$user}>{$user}</a>";
 	}
 
 	/**
 	 * Creates a link to an item in a specific QL
 	 *
-	 * @param int $lowId The Item ID of the low QL version
-	 * @param int $highId The Imtem ID of the high QL version
-	 * @param int $ql The QL to show the  item at
-	 * @param string $name The name of the item as it should appear in the created link
+	 * @param int    $lowId  The Item ID of the low QL version
+	 * @param int    $highId The Imtem ID of the high QL version
+	 * @param int    $ql     The QL to show the  item at
+	 * @param string $name   The name of the item as it should appear in the created link
+	 *
 	 * @return string A link to the given item
 	 */
 	public function makeItem(int $lowId, int $highId, int $ql, string $name): string {
@@ -258,8 +264,10 @@ class Text {
 
 	/**
 	 * Creates an image
-	 * @param int $imageId The id of the image, e.g. 205508
-	 * @param string $db (optional) image database to use, default is the resource database "rdb"
+	 *
+	 * @param int    $imageId The id of the image, e.g. 205508
+	 * @param string $db      (optional) image database to use, default is the resource database "rdb"
+	 *
 	 * @return string The image as <img> tag
 	 */
 	public function makeImage(int $imageId, string $db="rdb"): string {
@@ -270,6 +278,7 @@ class Text {
 	 * Formats a message with colors, bot name, symbol, by replacing special tags
 	 *
 	 * @param string $message The message to format
+	 *
 	 * @return string The formatted message
 	 */
 	public function formatMessage(string $message): string {
@@ -300,7 +309,7 @@ class Text {
 			"<tab>" => "    ",
 			"<end>" => "</font>",
 			"<symbol>" => $this->settingManager->getString("symbol")??"!",
-			"<br>" => "\n"
+			"<br>" => "\n",
 		];
 
 		$message = str_ireplace(array_keys($array), array_values($array), $message);
@@ -311,25 +320,26 @@ class Text {
 	/**
 	 * Align a number to $digits number of digits by prefixing it with black zeroes
 	 *
-	 * @param int $number The number to align
-	 * @param int $digits To how many digits to align
+	 * @param int    $number   The number to align
+	 * @param int    $digits   To how many digits to align
 	 * @param string $colortag (optional) The color/tag to assign, e.g. "highlight"
-	 * @param bool $grouping (optional) Set to group in chunks of thousands/millions, etc.
+	 * @param bool   $grouping (optional) Set to group in chunks of thousands/millions, etc.
+	 *
 	 * @return string The zero-prefixed $number
 	 */
 	public function alignNumber(?int $number, int $digits, ?string $colortag=null, bool $grouping=false): string {
 		if ($number === null) {
 			return sprintf("<black>%0{$digits}d<end>", 0);
 		}
-		$prefixedNumber = sprintf("%0${digits}d", $number);
+		$prefixedNumber = sprintf("%0{$digits}d", $number);
 		if ($grouping) {
 			$prefixedNumber = substr(strrev(chunk_split(strrev($prefixedNumber), 3, ",")), 1);
 		}
 		if (is_string($colortag)) {
 			if ($number == 0) {
-				$prefixedNumber = preg_replace('/(0)$/', "<$colortag>$1<end>", $prefixedNumber);
+				$prefixedNumber = preg_replace('/(0)$/', "<{$colortag}>$1<end>", $prefixedNumber);
 			} else {
-				$prefixedNumber = preg_replace('/([1-9][\d,]*)$/', "<$colortag>$1<end>", $prefixedNumber);
+				$prefixedNumber = preg_replace('/([1-9][\d,]*)$/', "<{$colortag}>$1<end>", $prefixedNumber);
 			}
 		}
 		$alignedNumber = preg_replace("/^([0,]+)(?!$)/", "<black>$1<end>", $prefixedNumber);
@@ -338,7 +348,9 @@ class Text {
 
 	/**
 	 * Convert a list of string into a 1, 2, 3, 4 and 5 enumeration
+	 *
 	 * @param string $words The words to enumerate
+	 *
 	 * @return string The enumerated string
 	 */
 	public function enumerate(string ...$words): string {
@@ -352,13 +364,15 @@ class Text {
 
 	/**
 	 * Run an sprintf format on an array of strings
-	 * @param string $format The sprintf-style format
+	 *
+	 * @param string $format  The sprintf-style format
 	 * @param string $strings The words to change
+	 *
 	 * @return string[] The formatted array
 	 */
 	public function arraySprintf(string $format, string ...$strings): array {
 		return array_map(
-			function(string $text) use ($format): string {
+			function (string $text) use ($format): string {
 				return sprintf($format, $text);
 			},
 			$strings
@@ -386,6 +400,60 @@ class Text {
 
 	/** Return the pluralized version of $word if $amount is not 1 */
 	public function pluralize(string $word, int $amount): string {
-		return $word . (($amount === 1) ? "" : "s");
+		if ($amount === 1) {
+			return $word;
+		}
+		$exceptions = [
+			"tomato" => "tomatoes",
+			"potato" => "potatoes",
+			"veto" => "vetoes",
+			"echo" => "echoes",
+			"hero" => "heroes",
+			"cargo" => "cargoes",
+			"man" => "men",
+			"woman" => "women",
+			"child" => "children",
+			"mouse" => "mice",
+			"tooth" => "teeth",
+			"goose" => "geese",
+			"foot" => "feet",
+			"ox" => "oxen",
+			"die" => "dice",
+			"phenomenon" => "phenomena",
+			"criterion" => "criteria",
+			"thief" => "thieves",
+			"wife" => "wives",
+			"knife" => "knives",
+			"shelf" => "shelves",
+			"leaf" => "leaves",
+			"sheep" => "sheep",
+			"deer" => "deer",
+			"fish" => "fish",
+			"species" => "species",
+		];
+		if (isset($exceptions[strtolower($word)])) {
+			$plural = $exceptions[strtolower($word)];
+			return substr($word, 0, 1) . substr($plural, 1);
+		}
+		$plural = "s";
+		if (preg_match("/[^aeiou]y$/", $word)) {
+			$word = substr($word, 0, strlen($word) -1);
+			$plural = "ies";
+		} elseif (preg_match("/[ei]x$/", $word)) {
+			$word = substr($word, 0, strlen($word) -2);
+			$plural = "ices";
+		} elseif (str_ends_with($word, "is")) {
+			$word = substr($word, 0, strlen($word) -1);
+			$plural = "es";
+		} elseif (str_ends_with($word, "us")) {
+			$word = substr($word, 0, strlen($word) -2);
+			$plural = "i";
+		} elseif (str_ends_with($word, "fe")) {
+			$word = substr($word, 0, strlen($word) -1);
+			$plural = "ves";
+		} elseif (preg_match("/([cs]h|[sxz])$/", $word)) {
+			$plural = "es";
+		}
+		return $word . $plural;
 	}
 }

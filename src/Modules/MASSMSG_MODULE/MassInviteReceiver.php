@@ -14,6 +14,7 @@ use Nadybot\Core\{
 
 /**
  * This class accepts incoming messages and sends them out as mass invites
+ *
  * @package Nadybot\Modules\MASSMSG_MODULE
  */
 class MassInviteReceiver implements MessageReceiver {
@@ -48,12 +49,12 @@ class MassInviteReceiver implements MessageReceiver {
 			" :: " . $ctrl->getMassMsgOptInOutBlob();
 
 		$ctrl->massCallback([
-			MassMsgController::PREF_MSGS => function(string $name) use ($message): void {
+			MassMsgController::PREF_MSGS => function (string $name) use ($message): void {
 				$this->chatBot->sendMassTell($message, $name);
 			},
 			MassMsgController::PREF_INVITES => function (string $name): void {
 				$this->chatBot->privategroup_invite($name);
-			}
+			},
 		]);
 		return true;
 	}

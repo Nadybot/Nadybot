@@ -2,17 +2,16 @@
 
 namespace Nadybot\Modules\ONLINE_MODULE;
 
-use Nadybot\Core\DBSchema\Player;
 use Nadybot\Core\Attributes\JSON;
+use Nadybot\Core\DBSchema\Player;
 
 /**
  * This represents a single player in the online list
+ *
  * @package Nadybot\Modules\ONLINE_MODULE
  */
 class OnlinePlayer extends Player {
-	/**
-	 * The AFK message of the player or an empty string
-	 */
+	/** The AFK message of the player or an empty string */
 	#[JSON\Name("afk_message")]
 	public string $afk = '';
 
@@ -23,9 +22,7 @@ class OnlinePlayer extends Player {
 	#[JSON\Name("main_character")]
 	public string $pmain;
 
-	/**
-	 * True if this player is currently online, false otherwise
-	 */
+	/** True if this player is currently online, false otherwise */
 	public bool $online = false;
 
 	final public function __construct() {

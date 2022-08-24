@@ -7,16 +7,22 @@ use Nadybot\Core\CommandReply;
 class Raffle {
 	/** @var RaffleSlot[] */
 	public array $slots = [];
+
 	/** Timestamp when the raffle was started*/
 	public int $start;
+
 	/** Where to send annoucements, etc. to */
 	public CommandReply $sendto;
+
 	/** Name of the character giving away items */
 	public string $raffler;
+
 	/** If set, this is the unix timestamp when the raffle will end */
 	public ?int $end = null;
+
 	/** Interval (in second) between 2 announcements */
 	public ?int $announceInterval = null;
+
 	/** Unix timestamp when the raffle was announced the last time */
 	public ?int $lastAnnounce = null;
 
@@ -30,7 +36,7 @@ class Raffle {
 		for ($i = 0; $i < count($list); $i++) {
 			$items []= ((count($list) > 1) ? "Item " . ($i + 1) . ": " : "") . "<highlight>{$list[$i]}<end>";
 		}
-		return $prefix . join("\n$prefix", $items);
+		return $prefix . join("\n{$prefix}", $items);
 	}
 
 	public function fromString(string $text): void {
@@ -51,9 +57,7 @@ class Raffle {
 		}
 	}
 
-	/**
-	 * @return string[]
-	 */
+	/** @return string[] */
 	public function toList(): array {
 		$slots = [];
 		foreach ($this->slots as $slot) {
@@ -62,13 +66,11 @@ class Raffle {
 		return $slots;
 	}
 
-	/**
-	 * @return string[]
-	 */
+	/** @return string[] */
 	public function getParticipantNames(): array {
 		return array_reduce(
 			$this->slots,
-			function(array $carry, RaffleSlot $slot): array {
+			function (array $carry, RaffleSlot $slot): array {
 				return array_unique([...$carry, ...$slot->participants]);
 			},
 			[]

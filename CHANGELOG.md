@@ -7,6 +7,58 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [6.1.0] - 2022-08-24
+
+### Added
+
+- Commands and events can now be declared as Generators, which automatically makes them execute async and allows to `yield` results from promises.
+- Add a management-interface as an addition to the console. The management interface does not appear in the routes and currently supports tcp- and unix domain sockets.
+- `!track info <name>` now also shows who added a character to the tracker.
+- Allow muting (temporarily disabling) of routes
+- Add the new RK19 worldbosses that spawn on the birthday event as non-repeating worldboss-timers, because they only have a chance to spawn, so we never know if a spawn was skipped or it just took longer to kill the last spawn.
+  Also added waypoints and links to AOU-articles to each worldboss.
+- Add a new news-time "all-boss-timers" that will also show seasonal non-guaranteed spawns, like Desert Rider, Zaal, etc.
+- The SPAWNTIME_MODULE is now integrated into the WHEREIS_MODULE, giving everyone access to `!spawn <name>` to query a mob's respawn-timer.
+- Add a new command `!updatewb` to update the world bosses from the API. Usually, this should not be necessary, because the global timer events should update these automatically, but this aids in debugging.
+- New event modifier "route-silently()" will make the message hub treat routed messages as if they hadn't been routed. This will allow you to route aotell() and still have the bot react to commands in the message.
+- Add `!wish`-command to manage wishlists
+- Add 2 new options for raid rewards: `max_raid_reward_height` to limit the amount of points `!raid reward` and `!raid punish` can give/take (does not apply to pre-defined raid-rewards) and `raid_reward_predefined_only` to limit `!raid reward` and `!raid punish` to names of raid rewards instead of arbitrary points.
+- Add `!sites ql <ql>` to search for unplanted sites able to hold towers of a given QL.
+- Sharing online-lists via nadynative will now also share each character's main. This allows two new grouping options for relay online lists: by main (player) and by org, then main (org/player). This only works properly if all Nadybots are running the same version.
+- Add `!fact`-command to show a random useless fact.
+- Add an option to automatically remove members from the bot if they haven't raided on any of their alts for a set period.
+
+### Changed
+
+- Replaced the EventLoop with an Amp (amphp) event loop. Migrated the following functionality to Amp:
+  - The AO-connection
+  - Cron-events
+  - Timer->callLater()
+  - SocketManager
+  - Relay websockets
+  - Discord
+  - EventLoop::add()
+  - Http-client is now being replaced with HttpClientBuilder, while the old Http/AsyncHttp still functions, but is now deprecated.
+
+  This leads to even lower delay when processing Discord/Web/Console/AO packages, and the bot's CPU usage dropping to 0 in idle, compared to ~1%-2% before.
+  A whole lot of functions are now deprecated and will be removed or replaced in 7.0, while none of the core function signatures has changed.
+- Upgraded Docker images to alpine 3.16
+- Detection of when to display a QL for an item will now automatically detect symbiants and spirits and print their QL, even if they only exist in 1 QL.
+- The worldboss timers now ignore any updates for different dimensions.
+- Add new attributes to track when people became members of the bot and who added them. This is in addition to the audit functionality. Upgrading to this version will try to determine the date by using the audit tables, or assume "since now".
+- Use Discord's `resume_gateway_url` property instead of querying the Gateway each time, when resuming connections.
+
+### Removed
+
+- The `!updatecsv`-command was removed, because it hasn't been any use yet, and given how easy it is to upgrade the bot, there's no need to keep it and its complex mechanism.
+
+### Fix
+
+- The console history works 100% now, only ctrl+r-search is now broken.
+- The bot now correctly sets the name of the character who added someone to the tracker.
+- The timer you can enable when a tower field goes down sometimes couldn't be created, because a timer with the same name was already there. Any timer with the same name will now be deleted before creating a new one.
+- Not grouping relay online lists gives a proper "Alliance"-group again
+
 ## [6.0.5] - 2022-06-17
 
 ### Added

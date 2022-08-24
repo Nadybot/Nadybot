@@ -2,6 +2,11 @@
 
 namespace Nadybot\Modules\RAID_MODULE;
 
+use function Amp\call;
+use function Amp\Promise\rethrow;
+
+use Amp\Promise;
+use Generator;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	AccessLevelProvider,
@@ -14,11 +19,11 @@ use Nadybot\Core\{
 	CommandReply,
 	DB,
 	DBSchema\Audit,
-	ModuleInstance,
 	LoggerWrapper,
+	ModuleInstance,
+	Modules\ADMIN\AdminController,
 	Modules\ALTS\AltEvent,
 	Modules\ALTS\AltsController,
-	Modules\ADMIN\AdminController,
 	Nadybot,
 	ParamClass\PCharacter,
 	SettingManager,
@@ -127,9 +132,7 @@ class RaidRankController extends ModuleInstance implements AccessLevelProvider {
 	/** @var array<string,RaidRank> */
 	public array $ranks = [];
 
-	/**
-	 * @todo: Add support for the raid levels
-	 */
+	/** @todo: Add support for the raid levels */
 	#[NCA\Setup]
 	public function setup(): void {
 		$this->accessManager->registerProvider($this);
@@ -157,17 +160,15 @@ class RaidRankController extends ModuleInstance implements AccessLevelProvider {
 		description: "Add raid leader and admins to the buddy list",
 		defaultStatus: 1
 	)]
-	public function checkRaidRanksEvent(): void {
-		$this->db->table(self::DB_TABLE)
+	public function checkRaidRanksEvent(): Generator {
+		yield $this->db->table(self::DB_TABLE)
 			->asObj(RaidRank::class)
-			->each(function (RaidRank $row): void {
-				$this->buddylistManager->add($row->name, 'raidrank');
-			});
+			->map(function (RaidRank $row): Promise {
+				return $this->buddylistManager->addAsync($row->name, 'raidrank');
+			})->toArray();
 	}
 
-	/**
-	 * Load the raid leaders, admins and veterans from the database into $ranks
-	 */
+	/** Load the raid leaders, admins and veterans from the database into $ranks */
 	#[NCA\Setup]
 	public function uploadRaidRanks(): void {
 		$this->db->table(self::DB_TABLE)
@@ -177,9 +178,7 @@ class RaidRankController extends ModuleInstance implements AccessLevelProvider {
 			});
 	}
 
-	/**
-	 * Demote someone's special raid rank
-	 */
+	/** Demote someone's special raid rank */
 	public function removeFromLists(string $who, string $sender): void {
 		$oldRank = $this->ranks[$who]??null;
 		unset($this->ranks[$who]);
@@ -199,6 +198,7 @@ class RaidRankController extends ModuleInstance implements AccessLevelProvider {
 
 	/**
 	 * Set the raid rank of a user
+	 *
 	 * @return string Either "demoted" or "promoted"
 	 */
 	public function addToLists(string $who, string $sender, int $rank): string {
@@ -225,7 +225,7 @@ class RaidRankController extends ModuleInstance implements AccessLevelProvider {
 		$this->ranks[$who] ??= new RaidRank();
 		$this->ranks[$who]->rank = $rank;
 		$this->ranks[$who]->name = $who;
-		$this->buddylistManager->add($who, 'raidrank');
+		rethrow($this->buddylistManager->addAsync($who, 'raidrank'));
 
 		$audit = new Audit();
 		$audit->actor = $sender;
@@ -237,16 +237,12 @@ class RaidRankController extends ModuleInstance implements AccessLevelProvider {
 		return $action;
 	}
 
-	/**
-	 * Check if a user $who has raid rank $rank
-	 */
+	/** Check if a user $who has raid rank $rank */
 	public function checkExisting(string $who, int $rank): bool {
 		return ($this->ranks[$who]->rank??-1) === $rank;
 	}
 
-	/**
-	 * Chheck if $actor's access level is higher than $actee's
-	 */
+	/** Chheck if $actor's access level is higher than $actee's */
 	public function checkAccessLevel(string $actor, string $actee): bool {
 		$senderAccessLevel = $this->accessManager->getAccessLevelForCharacter($actor);
 		$whoAccessLevel = $this->accessManager->getSingleAccessLevel($actee);
@@ -256,7 +252,7 @@ class RaidRankController extends ModuleInstance implements AccessLevelProvider {
 	/** Check if $sender can change $who's raid rank (to $newRank or in general) */
 	public function canChangeRaidRank(string $sender, string $who, ?string $newRank, CommandReply $sendto): bool {
 		if (!$this->checkAccessLevel($sender, $who)) {
-			$sendto->reply("You must have a higher access level than <highlight>$who<end> in order to change their access level.");
+			$sendto->reply("You must have a higher access level than <highlight>{$who}<end> in order to change their access level.");
 			return false;
 		}
 		$reqDistance = $this->raidRankPromotionDistance;
@@ -284,50 +280,10 @@ class RaidRankController extends ModuleInstance implements AccessLevelProvider {
 		return true;
 	}
 
-	public function add(string $who, string $sender, CommandReply $sendto, int $rank, string $rankName, string $alName): bool {
-		if ($this->chatBot->get_uid($who) == null) {
-			$sendto->reply("Character <highlight>$who<end> does not exist.");
-			return false;
-		}
-
-		if ($this->checkExisting($who, $rank)) {
-			$sendto->reply(
-				"<highlight>$who<end> is already $rankName. ".
-				"To promote/demote to a different rank, add the ".
-				"rank number (1, 2 or 3) to the command."
-			);
-			return false;
-		}
-
-		if (!$this->canChangeRaidRank($sender, $who, $alName, $sendto)) {
-			return false;
-		}
-
-		$altInfo = $this->altsController->getAltInfo($who);
-		if ($altInfo->main !== $who) {
-			$msg = "<red>WARNING<end>: $who is not a main. This command did NOT affect $who's access level and no action was performed.";
-			$sendto->reply($msg);
-			return false;
-		}
-
-		$action = $this->addToLists($who, $sender, $rank);
-
-		$sendto->reply(
-			"<highlight>{$who}<end> has been <highlight>{$action}<end> ".
-			"to {$rankName}."
-		);
-		$this->chatBot->sendTell(
-			"You have been <highlight>{$action}<end> to {$rankName} ".
-			"by <highlight>$sender<end>.",
-			$who
-		);
-		return true;
-	}
-
 	/** @param int[] $ranks */
 	public function remove(string $who, string $sender, CommandReply $sendto, array $ranks, string $rankName): bool {
 		if (!in_array($this->ranks[$who]->rank ?? null, $ranks)) {
-			$sendto->reply("<highlight>$who<end> is not $rankName.");
+			$sendto->reply("<highlight>{$who}<end> is not {$rankName}.");
 			return false;
 		}
 
@@ -339,12 +295,12 @@ class RaidRankController extends ModuleInstance implements AccessLevelProvider {
 
 		$altInfo = $this->altsController->getAltInfo($who);
 		if ($altInfo->main !== $who) {
-			$msg = "<red>WARNING<end>: $who is not a main.  This command did NOT affect $who's access level.";
+			$msg = "<red>WARNING<end>: {$who} is not a main.  This command did NOT affect {$who}'s access level.";
 			$sendto->reply($msg);
 		}
 
-		$sendto->reply("<highlight>$who<end> has been removed as $rankName.");
-		$this->chatBot->sendTell("You have been removed as $rankName by <highlight>$sender<end>.", $who);
+		$sendto->reply("<highlight>{$who}<end> has been removed as {$rankName}.");
+		$this->chatBot->sendTell("You have been removed as {$rankName} by <highlight>{$sender}<end>.", $who);
 		return true;
 	}
 
@@ -356,15 +312,15 @@ class RaidRankController extends ModuleInstance implements AccessLevelProvider {
 		#[NCA\Str("add", "promote")] string $action,
 		PCharacter $char,
 		?int $rank
-	): void {
+	): Generator {
 		$rank ??= 1;
 		if ($rank < 1 || $rank > 3) {
 			$context->reply("The admin rank must be a number between 1 and 3");
 			return;
 		}
-		$rankName = $this->settingManager->getString("name_raid_admin_$rank")??"";
+		$rankName = $this->settingManager->getString("name_raid_admin_{$rank}")??"";
 
-		$this->add($char(), $context->char->name, $context, $rank+6, $rankName, "raid_admin_$rank");
+		yield $this->add($char(), $context->char->name, $context, $rank+6, $rankName, "raid_admin_{$rank}");
 	}
 
 	/** Demote someone from raid admin */
@@ -388,15 +344,15 @@ class RaidRankController extends ModuleInstance implements AccessLevelProvider {
 		#[NCA\Str("add", "promote")] string $action,
 		PCharacter $char,
 		?int $rank
-	): void {
+	): Generator {
 		$rank ??= 1;
 		if ($rank < 1 || $rank > 3) {
 			$context->reply("The leader rank must be a number between 1 and 3");
 			return;
 		}
-		$rankName = $this->settingManager->getString("name_raid_leader_$rank")??"";
+		$rankName = $this->settingManager->getString("name_raid_leader_{$rank}")??"";
 
-		$this->add($char(), $context->char->name, $context, $rank+3, $rankName, "raid_leader_$rank");
+		yield $this->add($char(), $context->char->name, $context, $rank+3, $rankName, "raid_leader_{$rank}");
 	}
 
 	/** Demote someone from raid leader */
@@ -410,53 +366,6 @@ class RaidRankController extends ModuleInstance implements AccessLevelProvider {
 		$rank = 'a raid leader';
 
 		$this->remove($char(), $context->char->name, $context, [4, 5, 6], $rank);
-	}
-
-	/** @return Collection<RaidStat> */
-	protected function getRaidsByStarter(): Collection {
-		$query = $this->db->table(RaidController::DB_TABLE, "r")
-			->join(RaidMemberController::DB_TABLE . " AS rm", "r.raid_id", "rm.raid_id")
-			->groupBy("r.raid_id", "r.started_by", "r.started");
-		return $query->havingRaw("COUNT(*) >= 5")
-			->select(
-				"r.raid_id",
-				"r.started",
-				"r.started_by",
-				$query->colFunc("COUNT", "*", "num_raiders")
-			)
-			->asObj(RaidStat::class)
-			->each(function (RaidStat $stat): void {
-				$stat->starter_main = $this->altsController->getMainOf($stat->started_by);
-			});
-	}
-
-	/**
-	 * @param Collection<RaidStat> $stats
-	 */
-	protected function renderLeaders(bool $showStats, bool $showOfflineAlts, Collection $stats, string ...$names): string {
-		sort($names);
-		$output = [];
-		$raids = $stats->groupBy("starter_main");
-		foreach ($names as $who) {
-			$line = "<tab>{$who}" . $this->getOnlineStatus($who);
-			if ($showStats) {
-				$myRaids = $raids->get($who, new Collection());
-				$numRaids = $myRaids->count();
-				$recentlyDuration = $this->raidDurationRecently;
-				if ($recentlyDuration > 0) {
-					$numRaidsRecently = $myRaids->where("started", ">", time() - $recentlyDuration)->count();
-				}
-				$line .= " (Raids started: {$numRaids}";
-				if (isset($numRaidsRecently)) {
-					$line .= " / {$numRaidsRecently}";
-				}
-				$line .= ")";
-			}
-			$line .= "\n".
-				$this->getAltLeaderInfo($who, $showOfflineAlts);
-			$output []= $line;
-		}
-		return join("", $output) . "\n";
 	}
 
 	/** See the list of raid leaders/admins, 'all' to include all offline alts */
@@ -520,36 +429,6 @@ class RaidRankController extends ModuleInstance implements AccessLevelProvider {
 		$context->reply($link);
 	}
 
-	/**
-	 * Get the string of the online status
-	 * @param string $who Playername
-	 * @return string " (<on>online<end>)" and so on
-	 */
-	private function getOnlineStatus(string $who): string {
-		if ($this->buddylistManager->isOnline($who) && isset($this->chatBot->chatlist[$who])) {
-			return " (<on>Online and in chat<end>)";
-		} elseif ($this->buddylistManager->isOnline($who)) {
-			return " (<on>Online<end>)";
-		} else {
-			return " (<off>Offline<end>)";
-		}
-	}
-
-	private function getAltLeaderInfo(string $who, bool $showOfflineAlts): string {
-		$blob = '';
-		$altInfo = $this->altsController->getAltInfo($who);
-		if ($altInfo->main === $who) {
-			$alts = $altInfo->getAllValidatedAlts();
-			sort($alts);
-			foreach ($alts as $alt) {
-				if ($showOfflineAlts || $this->buddylistManager->isOnline($alt)) {
-					$blob .= "<tab><tab>$alt" . $this->getOnlineStatus($alt) . "\n";
-				}
-			}
-		}
-		return $blob;
-	}
-
 	#[NCA\Event(
 		name: "alt(newmain)",
 		description: "Move raid rank to new main"
@@ -562,5 +441,124 @@ class RaidRankController extends ModuleInstance implements AccessLevelProvider {
 		$this->removeFromLists($event->alt, $event->main);
 		$this->addToLists($event->main, $event->alt, $oldRank->rank);
 		$this->logger->notice("Moved raid rank {$oldRank->rank} from {$event->alt} to {$event->main}.");
+	}
+
+	/** @return Collection<RaidStat> */
+	protected function getRaidsByStarter(): Collection {
+		$query = $this->db->table(RaidController::DB_TABLE, "r")
+			->join(RaidMemberController::DB_TABLE . " AS rm", "r.raid_id", "rm.raid_id")
+			->groupBy("r.raid_id", "r.started_by", "r.started");
+		return $query->havingRaw("COUNT(*) >= 5")
+			->select(
+				"r.raid_id",
+				"r.started",
+				"r.started_by",
+				$query->colFunc("COUNT", "*", "num_raiders")
+			)
+			->asObj(RaidStat::class)
+			->each(function (RaidStat $stat): void {
+				$stat->starter_main = $this->altsController->getMainOf($stat->started_by);
+			});
+	}
+
+	/** @param Collection<RaidStat> $stats */
+	protected function renderLeaders(bool $showStats, bool $showOfflineAlts, Collection $stats, string ...$names): string {
+		sort($names);
+		$output = [];
+		$raids = $stats->groupBy("starter_main");
+		foreach ($names as $who) {
+			$line = "<tab>{$who}" . $this->getOnlineStatus($who);
+			if ($showStats) {
+				$myRaids = $raids->get($who, new Collection());
+				$numRaids = $myRaids->count();
+				$recentlyDuration = $this->raidDurationRecently;
+				if ($recentlyDuration > 0) {
+					$numRaidsRecently = $myRaids->where("started", ">", time() - $recentlyDuration)->count();
+				}
+				$line .= " (Raids started: {$numRaids}";
+				if (isset($numRaidsRecently)) {
+					$line .= " / {$numRaidsRecently}";
+				}
+				$line .= ")";
+			}
+			$line .= "\n".
+				$this->getAltLeaderInfo($who, $showOfflineAlts);
+			$output []= $line;
+		}
+		return join("", $output) . "\n";
+	}
+
+	/** @return Promise<bool> */
+	private function add(string $who, string $sender, CommandReply $sendto, int $rank, string $rankName, string $alName): Promise {
+		return call(function () use ($who, $sender, $sendto, $rank, $rankName, $alName): Generator {
+			if (null === yield $this->chatBot->getUid2($who)) {
+				$sendto->reply("Character <highlight>{$who}<end> does not exist.");
+				return false;
+			}
+
+			if ($this->checkExisting($who, $rank)) {
+				$sendto->reply(
+					"<highlight>{$who}<end> is already {$rankName}. ".
+					"To promote/demote to a different rank, add the ".
+					"rank number (1, 2 or 3) to the command."
+				);
+				return false;
+			}
+
+			if (!$this->canChangeRaidRank($sender, $who, $alName, $sendto)) {
+				return false;
+			}
+
+			$altInfo = $this->altsController->getAltInfo($who);
+			if ($altInfo->main !== $who) {
+				$msg = "<red>WARNING<end>: {$who} is not a main. This command did NOT affect {$who}'s access level and no action was performed.";
+				$sendto->reply($msg);
+				return false;
+			}
+
+			$action = $this->addToLists($who, $sender, $rank);
+
+			$sendto->reply(
+				"<highlight>{$who}<end> has been <highlight>{$action}<end> ".
+				"to {$rankName}."
+			);
+			$this->chatBot->sendTell(
+				"You have been <highlight>{$action}<end> to {$rankName} ".
+				"by <highlight>{$sender}<end>.",
+				$who
+			);
+			return true;
+		});
+	}
+
+	/**
+	 * Get the string of the online status
+	 *
+	 * @param string $who Playername
+	 *
+	 * @return string " (<on>online<end>)" and so on
+	 */
+	private function getOnlineStatus(string $who): string {
+		if ($this->buddylistManager->isOnline($who) && isset($this->chatBot->chatlist[$who])) {
+			return " (<on>Online and in chat<end>)";
+		} elseif ($this->buddylistManager->isOnline($who)) {
+			return " (<on>Online<end>)";
+		}
+		return " (<off>Offline<end>)";
+	}
+
+	private function getAltLeaderInfo(string $who, bool $showOfflineAlts): string {
+		$blob = '';
+		$altInfo = $this->altsController->getAltInfo($who);
+		if ($altInfo->main === $who) {
+			$alts = $altInfo->getAllValidatedAlts();
+			sort($alts);
+			foreach ($alts as $alt) {
+				if ($showOfflineAlts || $this->buddylistManager->isOnline($alt)) {
+					$blob .= "<tab><tab>{$alt}" . $this->getOnlineStatus($alt) . "\n";
+				}
+			}
+		}
+		return $blob;
 	}
 }

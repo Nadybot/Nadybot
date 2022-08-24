@@ -17,4 +17,8 @@ class Guild {
 
 	/** When was the guild information last updated on PORK */
 	public ?int $last_update;
+
+	public function getColorName(): string {
+		return "<" . strtolower($this->orgside) . ">{$this->orgname}<end>";
+	}
 }

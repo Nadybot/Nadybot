@@ -62,6 +62,11 @@ use Nadybot\Core\{
 		command: "compliment",
 		accessLevel: "guest",
 		description: "Shows a random compliment",
+	),
+	NCA\DefineCommand(
+		command: "fact",
+		accessLevel: "guest",
+		description: "Shows a random fact",
 	)
 ]
 class FunController extends ModuleInstance {
@@ -82,9 +87,10 @@ class FunController extends ModuleInstance {
 		$this->db->loadCSVFile($this->moduleName, __DIR__ . "/homer.csv");
 		$this->db->loadCSVFile($this->moduleName, __DIR__ . "/pirates.csv");
 		$this->db->loadCSVFile($this->moduleName, __DIR__ . "/compliment.csv");
+		$this->db->loadCSVFile($this->moduleName, __DIR__ . "/fact.csv");
 	}
 
-	public function getFunItem(string $type, string $sender, int $number=null): string {
+	public function getFunItem(string $type, string $sender, ?int $number=null): string {
 		/** @var Collection<Fun> */
 		$data = $this->db->table("fun")
 			->where("type", $type)
@@ -121,7 +127,8 @@ class FunController extends ModuleInstance {
 		NCA\HandlesCommand("fc"),
 		NCA\HandlesCommand("homer"),
 		NCA\HandlesCommand("pirates"),
-		NCA\HandlesCommand("compliment")
+		NCA\HandlesCommand("compliment"),
+		NCA\HandlesCommand("fact")
 	]
 	public function funCommand(CmdContext $context, ?int $num): void {
 		$msg = $this->getFunItem(

@@ -9,6 +9,7 @@ class CallerBackup {
 
 	/**
 	 * Names of all callers
+	 *
 	 * @var array<string,CallerList>
 	 */
 	public array $callers = [];

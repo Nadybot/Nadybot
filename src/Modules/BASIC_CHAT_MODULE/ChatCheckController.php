@@ -20,17 +20,14 @@ use Nadybot\Core\{
 	)
 ]
 class ChatCheckController extends ModuleInstance {
+	public const CHANNEL_TYPE = "priv";
 	#[NCA\Inject]
 	public DB $db;
 
 	#[NCA\Inject]
 	public Text $text;
 
-	public const CHANNEL_TYPE = "priv";
-
-	/**
-	 * Checks who in the private channel is in the area
-	 */
+	/** Checks who in the private channel is in the area */
 	#[NCA\HandlesCommand("check")]
 	public function checkAllCommand(CmdContext $context): void {
 		/** @var Collection<string> */
@@ -38,7 +35,7 @@ class ChatCheckController extends ModuleInstance {
 			->where("added_by", $this->db->getBotname())
 			->where("channel_type", self::CHANNEL_TYPE)
 			->select("name")
-			->pluckAs("name", "string");
+			->pluckStrings("name");
 		$content = "";
 		if ($data->count() === 0) {
 			$msg = "There's no one to check online.";

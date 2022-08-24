@@ -2,23 +2,24 @@
 
 namespace Nadybot\Core\Modules\CONFIG;
 
+use Amp\Promise;
 use Exception;
+use Generator;
 use Illuminate\Support\Collection;
-use Throwable;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CommandManager,
 	DB,
-	DBSchema\CmdPermissionSet,
 	DBSchema\CmdPermSetMapping,
+	DBSchema\CmdPermissionSet,
 	DBSchema\EventCfg,
 	DBSchema\Setting,
 	EventManager,
 	HelpManager,
-	ModuleInstance,
 	InsufficientAccessException,
-	SettingManager,
+	ModuleInstance,
 	SQLException,
+	SettingManager,
 };
 use Nadybot\Modules\{
 	DISCORD_GATEWAY_MODULE\DiscordRelayController,
@@ -29,6 +30,7 @@ use Nadybot\Modules\{
 	WEBSERVER_MODULE\Response,
 	WEBSERVER_MODULE\WebChatConverter,
 };
+use Throwable;
 
 /**
  * @package Nadybot\Core\Modules\CONFIG
@@ -56,9 +58,7 @@ class ConfigApiController extends ModuleInstance {
 	#[NCA\Inject]
 	public DB $db;
 
-	/**
-	 * Get a list of available modules to configure
-	 */
+	/** Get a list of available modules to configure */
 	#[
 		NCA\Api("/module"),
 		NCA\GET,
@@ -69,9 +69,7 @@ class ConfigApiController extends ModuleInstance {
 		return new ApiResponse($this->configController->getModules());
 	}
 
-	/**
-	 * Activate or deactivate an event
-	 */
+	/** Activate or deactivate an event */
 	#[
 		NCA\Api("/module/%s/events/%s/%s"),
 		NCA\PATCH,
@@ -109,9 +107,7 @@ class ConfigApiController extends ModuleInstance {
 		return new Response(Response::NO_CONTENT);
 	}
 
-	/**
-	 * Change a setting's value
-	 */
+	/** Change a setting's value */
 	#[
 		NCA\Api("/module/%s/settings/%s"),
 		NCA\PATCH,
@@ -122,7 +118,7 @@ class ConfigApiController extends ModuleInstance {
 		NCA\ApiResult(code: 404, desc: "Wrong module or setting"),
 		NCA\ApiResult(code: 422, desc: "Invalid value given")
 	]
-	public function changeModuleSettingEndpoint(Request $request, HttpProtocolWrapper $server, string $module, string $setting): Response {
+	public function changeModuleSettingEndpoint(Request $request, HttpProtocolWrapper $server, string $module, string $setting): Generator {
 		/** @var Setting|null */
 		$oldSetting = $this->db->table(SettingManager::DB_TABLE)
 			->where("name", $setting)->where("module", $module)
@@ -154,7 +150,7 @@ class ConfigApiController extends ModuleInstance {
 				[
 					$modSet::TYPE_INT_OPTIONS,
 					$modSet::TYPE_NUMBER,
-					$modSet::TYPE_TIME
+					$modSet::TYPE_TIME,
 				]
 			)
 		) {
@@ -179,6 +175,9 @@ class ConfigApiController extends ModuleInstance {
 		}
 		try {
 			$newValueToSave = $settingHandler->save((string)$value);
+			if ($newValueToSave instanceof Promise) {
+				$newValueToSave = yield $newValueToSave;
+			}
 			if (!$this->settingManager->save($setting, $newValueToSave)) {
 				return new Response(Response::NOT_FOUND);
 			}
@@ -192,9 +191,7 @@ class ConfigApiController extends ModuleInstance {
 		return new Response(Response::NO_CONTENT);
 	}
 
-	/**
-	 * Activate or deactivate a Command
-	 */
+	/** Activate or deactivate a Command */
 	#[
 		NCA\Api("/module/%s/commands/%s/%s"),
 		NCA\PATCH,
@@ -252,9 +249,7 @@ class ConfigApiController extends ModuleInstance {
 		return new ApiResponse($moduleCommand);
 	}
 
-	/**
-	 * Activate or deactivate a command
-	 */
+	/** Activate or deactivate a command */
 	#[
 		NCA\Api("/module/%s/commands/%s"),
 		NCA\PATCH,
@@ -289,9 +284,7 @@ class ConfigApiController extends ModuleInstance {
 		return new Response(Response::NOT_FOUND);
 	}
 
-	/**
-	 * Activate or deactivate a module
-	 */
+	/** Activate or deactivate a module */
 	#[
 		NCA\Api("/module/%s"),
 		NCA\PATCH,
@@ -321,9 +314,7 @@ class ConfigApiController extends ModuleInstance {
 		return new Response(Response::NOT_FOUND);
 	}
 
-	/**
-	 * Get the description of a module
-	 */
+	/** Get the description of a module */
 	#[
 		NCA\Api("/module/%s/description"),
 		NCA\GET,
@@ -339,9 +330,7 @@ class ConfigApiController extends ModuleInstance {
 		return new ApiResponse($description);
 	}
 
-	/**
-	 * Get a list of available settings for a module
-	 */
+	/** Get a list of available settings for a module */
 	#[
 		NCA\Api("/module/%s/settings"),
 		NCA\GET,
@@ -353,6 +342,9 @@ class ConfigApiController extends ModuleInstance {
 		$result = [];
 		foreach ($settings as $setting) {
 			$modSet = new ModuleSetting($setting->getData());
+			if (strlen($modSet->description??"") > 0) {
+				$modSet->description = $this->webChatConverter->parseAOFormat(trim($modSet->description))->message;
+			}
 			if (strlen($setting->getData()->help??"") > 0) {
 				$help = $this->helpManager->find($modSet->name, $request->authenticatedAs??"_");
 				if ($help !== null) {
@@ -371,9 +363,7 @@ class ConfigApiController extends ModuleInstance {
 		return new ApiResponse($result);
 	}
 
-	/**
-	 * Get a list of available events for a module
-	 */
+	/** Get a list of available events for a module */
 	#[
 		NCA\Api("/module/%s/events"),
 		NCA\GET,
@@ -391,9 +381,7 @@ class ConfigApiController extends ModuleInstance {
 		return new ApiResponse($events->toArray());
 	}
 
-	/**
-	 * Get a list of available commands for a module
-	 */
+	/** Get a list of available commands for a module */
 	#[
 		NCA\Api("/module/%s/commands"),
 		NCA\GET,
@@ -402,6 +390,7 @@ class ConfigApiController extends ModuleInstance {
 	]
 	public function apiConfigCommandsGetEndpoint(Request $request, HttpProtocolWrapper $server, string $module): Response {
 		$cmds = $this->commandManager->getAllForModule($module, true)->sortBy("cmdevent");
+
 		/** @var array<string,ModuleCommand> */
 		$result = [];
 		foreach ($cmds as $cmd) {
@@ -414,9 +403,7 @@ class ConfigApiController extends ModuleInstance {
 		return new ApiResponse(array_values($result));
 	}
 
-	/**
-	 * Get a list of configured access levels
-	 */
+	/** Get a list of configured access levels */
 	#[
 		NCA\Api("/access_levels"),
 		NCA\GET,
@@ -427,9 +414,7 @@ class ConfigApiController extends ModuleInstance {
 		return new ApiResponse($this->configController->getValidAccessLevels());
 	}
 
-	/**
-	 * Get a list of permission sets
-	 */
+	/** Get a list of permission sets */
 	#[
 		NCA\Api("/permission_set"),
 		NCA\GET,
@@ -440,9 +425,7 @@ class ConfigApiController extends ModuleInstance {
 		return new ApiResponse($this->commandManager->getExtPermissionSets()->toArray());
 	}
 
-	/**
-	 * Get a permission set by its name
-	 */
+	/** Get a permission set by its name */
 	#[
 		NCA\Api("/permission_set/%s"),
 		NCA\GET,
@@ -457,9 +440,7 @@ class ConfigApiController extends ModuleInstance {
 		return new ApiResponse($set);
 	}
 
-	/**
-	 * Create a new permission set
-	 */
+	/** Create a new permission set */
 	#[
 		NCA\Api("/permission_set"),
 		NCA\POST,
@@ -473,6 +454,7 @@ class ConfigApiController extends ModuleInstance {
 			if (!is_object($set)) {
 				throw new Exception("Wrong content body");
 			}
+
 			/** @var CmdPermissionSet */
 			$decoded = JsonImporter::convert(CmdPermissionSet::class, $set);
 		} catch (Throwable $e) {
@@ -486,9 +468,7 @@ class ConfigApiController extends ModuleInstance {
 		return new Response(Response::NO_CONTENT);
 	}
 
-	/**
-	 * Change a permission set
-	 */
+	/** Change a permission set */
 	#[
 		NCA\Api("/permission_set/%s"),
 		NCA\PATCH,
@@ -496,12 +476,13 @@ class ConfigApiController extends ModuleInstance {
 		NCA\AccessLevel("superadmin"),
 		NCA\ApiResult(code: 204, class: "ExtCmdPermissionSet", desc: "Permission Set changed successfully")
 	]
-	public function apiConfigPermissionSetPatchEndpoint(Request $request, HttpProtocolWrapper $server, string $name): Response {
+	public function apiConfigPermissionSetPatchEndpoint(Request $request, HttpProtocolWrapper $server, string $name): Generator {
 		$set = $request->decodedBody;
 		try {
 			if (!is_object($set)) {
 				throw new Exception("Wrong content body");
 			}
+
 			/** @var CmdPermissionSet */
 			$decoded = JsonImporter::convert(CmdPermissionSet::class, $set);
 		} catch (Throwable $e) {
@@ -515,28 +496,14 @@ class ConfigApiController extends ModuleInstance {
 			$old->{$key} = $value;
 		}
 		try {
-			$this->commandManager->changePermissionSet($name, $old);
+			yield $this->commandManager->changePermissionSet($name, $old);
 		} catch (Exception $e) {
 			return new Response(Response::UNPROCESSABLE_ENTITY, [], $e->getMessage());
 		}
 		return new ApiResponse($this->commandManager->getExtPermissionSet($old->name));
 	}
 
-	/** @return Collection<CmdSourceMapping> */
-	protected function getCmdSourceMappings(?string $source=null): Collection {
-		/** @var Collection<CmdSourceMapping> */
-		$maps = $this->commandManager->getPermSetMappings()
-			->map([CmdSourceMapping::class, "fromPermSetMapping"]);
-		if (isset($source)) {
-			return $maps->where("source", $source)->values();
-		}
-		return $maps;
-	}
-
-
-	/**
-	 * Get a list of command sources
-	 */
+	/** Get a list of command sources */
 	#[
 		NCA\Api("/cmd_source"),
 		NCA\GET,
@@ -555,18 +522,7 @@ class ConfigApiController extends ModuleInstance {
 		return new ApiResponse($result);
 	}
 
-	protected function getCmdSource(string $sourceName): ?CmdSource {
-		$sourceName = strtolower($sourceName);
-		$sources = new Collection($this->commandManager->getSources());
-		$source = $sources->first(function (string $source) use ($sourceName): bool {
-			return preg_replace("/\(.+$/", "", $source) === $sourceName;
-		});
-		return isset($source) ? CmdSource::fromMask($source) : null;
-	}
-
-	/**
-	 * Get details for a specific command source
-	 */
+	/** Get details for a specific command source */
 	#[
 		NCA\Api("/cmd_source/%s"),
 		NCA\GET,
@@ -582,9 +538,7 @@ class ConfigApiController extends ModuleInstance {
 		return new ApiResponse($cmdSrc);
 	}
 
-	/**
-	 * Get mappings for a specific command source
-	 */
+	/** Get mappings for a specific command source */
 	#[
 		NCA\Api("/cmd_source/%s/mappings"),
 		NCA\GET,
@@ -599,9 +553,7 @@ class ConfigApiController extends ModuleInstance {
 		return new ApiResponse($this->getCmdSourceMappings($source)->toArray());
 	}
 
-	/**
-	 * Get mappings for a specific command source
-	 */
+	/** Get mappings for a specific command source */
 	#[
 		NCA\Api("/cmd_source/%s/mappings/%s"),
 		NCA\GET,
@@ -621,9 +573,7 @@ class ConfigApiController extends ModuleInstance {
 		return new ApiResponse($mapping);
 	}
 
-	/**
-	 * Delete mapping for a specific command sub-source
-	 */
+	/** Delete mapping for a specific command sub-source */
 	#[
 		NCA\Api("/cmd_source/%s/mappings/%s"),
 		NCA\DELETE,
@@ -646,9 +596,7 @@ class ConfigApiController extends ModuleInstance {
 		return new Response(Response::NO_CONTENT);
 	}
 
-	/**
-	 * Delete mapping for a specific command source
-	 */
+	/** Delete mapping for a specific command source */
 	#[
 		NCA\Api("/cmd_source/%s/mappings"),
 		NCA\DELETE,
@@ -668,6 +616,110 @@ class ConfigApiController extends ModuleInstance {
 			return new Response(Response::FORBIDDEN);
 		}
 		return new Response(Response::NO_CONTENT);
+	}
+
+	/** Create a new mapping */
+	#[
+		NCA\Api("/cmd_source/%s/mappings"),
+		NCA\POST,
+		NCA\AccessLevel("superadmin"),
+		NCA\RequestBody(class: "CmdSourceMapping", desc: "The new mapping", required: true),
+		NCA\ApiResult(code: 204, desc: "A new command mapping was created")
+	]
+	public function apiConfigCmdSrcNewMappingEndpoint(Request $request, HttpProtocolWrapper $server, string $source): Response {
+		$cmdSrc = $this->getCmdSource(strtolower($source));
+		if (!isset($cmdSrc)) {
+			return new Response(Response::NOT_FOUND);
+		}
+		$set = $request->decodedBody;
+		try {
+			if (!is_object($set)) {
+				throw new Exception("Wrong content body");
+			}
+
+			/** @var CmdSourceMapping */
+			$decoded = JsonImporter::convert(CmdSourceMapping::class, $set);
+			$decoded->source = $source;
+		} catch (Throwable $e) {
+			return new Response(Response::UNPROCESSABLE_ENTITY);
+		}
+		return $this->createCmdSourceMapping($decoded);
+	}
+
+	/** Modify mapping for a specific command source */
+	#[
+		NCA\Api("/cmd_source/%s/mappings"),
+		NCA\PUT,
+		NCA\AccessLevel("superadmin"),
+		NCA\ApiResult(code: 200, class: "CmdSourceMapping", desc: "The new, modified source mapping")
+	]
+	public function apiConfigCmdSrcMappingPutEndpoint(Request $request, HttpProtocolWrapper $server, string $source): Response {
+		$cmdSrc = $this->getCmdSource(strtolower($source));
+		if (!isset($cmdSrc) || $cmdSrc->has_sub_sources) {
+			return new Response(Response::NOT_FOUND);
+		}
+		$set = $request->decodedBody;
+		try {
+			if (!is_object($set)) {
+				throw new Exception("Wrong content body");
+			}
+
+			/** @var CmdSourceMapping */
+			$decoded = JsonImporter::convert(CmdSourceMapping::class, $set);
+			$decoded->source = strtolower($source);
+			$decoded->sub_source = null;
+		} catch (Throwable $e) {
+			return new Response(Response::UNPROCESSABLE_ENTITY);
+		}
+		return $this->modifyCmdSourceMapping($decoded);
+	}
+
+	/** Modify mapping for a specific command source */
+	#[
+		NCA\Api("/cmd_source/%s/mappings/%s"),
+		NCA\PUT,
+		NCA\AccessLevel("superadmin"),
+		NCA\ApiResult(code: 200, class: "CmdSourceMapping", desc: "The new, modified source mapping")
+	]
+	public function apiConfigCmdSubSrcMappingPutEndpoint(Request $request, HttpProtocolWrapper $server, string $source, string $subSource): Response {
+		$cmdSrc = $this->getCmdSource(strtolower($source));
+		if (!isset($cmdSrc) || !$cmdSrc->has_sub_sources) {
+			return new Response(Response::NOT_FOUND);
+		}
+		$set = $request->decodedBody;
+		try {
+			if (!is_object($set)) {
+				throw new Exception("Wrong content body");
+			}
+
+			/** @var CmdSourceMapping */
+			$decoded = JsonImporter::convert(CmdSourceMapping::class, $set);
+			$decoded->source = strtolower($source);
+			$decoded->sub_source = strtolower($subSource);
+		} catch (Throwable $e) {
+			return new Response(Response::UNPROCESSABLE_ENTITY);
+		}
+		return $this->modifyCmdSourceMapping($decoded);
+	}
+
+	/** @return Collection<CmdSourceMapping> */
+	protected function getCmdSourceMappings(?string $source=null): Collection {
+		/** @var Collection<CmdSourceMapping> */
+		$maps = $this->commandManager->getPermSetMappings()
+			->map([CmdSourceMapping::class, "fromPermSetMapping"]);
+		if (isset($source)) {
+			return $maps->where("source", $source)->values();
+		}
+		return $maps;
+	}
+
+	protected function getCmdSource(string $sourceName): ?CmdSource {
+		$sourceName = strtolower($sourceName);
+		$sources = new Collection($this->commandManager->getSources());
+		$source = $sources->first(function (string $source) use ($sourceName): bool {
+			return preg_replace("/\(.+$/", "", $source) === $sourceName;
+		});
+		return isset($source) ? CmdSource::fromMask($source) : null;
 	}
 
 	protected function createCmdSourceMapping(CmdSourceMapping $decoded): Response {
@@ -717,35 +769,6 @@ class ConfigApiController extends ModuleInstance {
 		return new Response(Response::NO_CONTENT);
 	}
 
-	/**
-	 * Create a new mapping
-	 */
-	#[
-		NCA\Api("/cmd_source/%s/mappings"),
-		NCA\POST,
-		NCA\AccessLevel("superadmin"),
-		NCA\RequestBody(class: "CmdSourceMapping", desc: "The new mapping", required: true),
-		NCA\ApiResult(code: 204, desc: "A new command mapping was created")
-	]
-	public function apiConfigCmdSrcNewMappingEndpoint(Request $request, HttpProtocolWrapper $server, string $source): Response {
-		$cmdSrc = $this->getCmdSource(strtolower($source));
-		if (!isset($cmdSrc)) {
-			return new Response(Response::NOT_FOUND);
-		}
-		$set = $request->decodedBody;
-		try {
-			if (!is_object($set)) {
-				throw new Exception("Wrong content body");
-			}
-			/** @var CmdSourceMapping */
-			$decoded = JsonImporter::convert(CmdSourceMapping::class, $set);
-			$decoded->source = $source;
-		} catch (Throwable $e) {
-			return new Response(Response::UNPROCESSABLE_ENTITY);
-		}
-		return $this->createCmdSourceMapping($decoded);
-	}
-
 	protected function modifyCmdSourceMapping(CmdSourceMapping $decoded): Response {
 		try {
 			$cmdSrc = $this->getCmdSource($decoded->source);
@@ -756,11 +779,11 @@ class ConfigApiController extends ModuleInstance {
 			if ($cmdSrc->has_sub_sources) {
 				if (!isset($decoded->sub_source) || !strlen($decoded->sub_source)) {
 					return new Response(Response::NOT_FOUND);
-				} else {
-					$source .= "({$decoded->sub_source})";
 				}
+				$source .= "({$decoded->sub_source})";
 			}
 			$source = strtolower($source);
+
 			/** @var ?CmdPermSetMapping */
 			$old = $this->commandManager->getPermSetMappings()->where("source", $source)->first();
 			if (!isset($old)) {
@@ -794,63 +817,5 @@ class ConfigApiController extends ModuleInstance {
 			);
 		}
 		return new ApiResponse(CmdSourceMapping::fromPermSetMapping($map));
-	}
-
-	/**
-	 * Modify mapping for a specific command source
-	 */
-	#[
-		NCA\Api("/cmd_source/%s/mappings"),
-		NCA\PUT,
-		NCA\AccessLevel("superadmin"),
-		NCA\ApiResult(code: 200, class: "CmdSourceMapping", desc: "The new, modified source mapping")
-	]
-	public function apiConfigCmdSrcMappingPutEndpoint(Request $request, HttpProtocolWrapper $server, string $source): Response {
-		$cmdSrc = $this->getCmdSource(strtolower($source));
-		if (!isset($cmdSrc) || $cmdSrc->has_sub_sources) {
-			return new Response(Response::NOT_FOUND);
-		}
-		$set = $request->decodedBody;
-		try {
-			if (!is_object($set)) {
-				throw new Exception("Wrong content body");
-			}
-			/** @var CmdSourceMapping */
-			$decoded = JsonImporter::convert(CmdSourceMapping::class, $set);
-			$decoded->source = strtolower($source);
-			$decoded->sub_source = null;
-		} catch (Throwable $e) {
-			return new Response(Response::UNPROCESSABLE_ENTITY);
-		}
-		return $this->modifyCmdSourceMapping($decoded);
-	}
-
-	/**
-	 * Modify mapping for a specific command source
-	 */
-	#[
-		NCA\Api("/cmd_source/%s/mappings/%s"),
-		NCA\PUT,
-		NCA\AccessLevel("superadmin"),
-		NCA\ApiResult(code: 200, class: "CmdSourceMapping", desc: "The new, modified source mapping")
-	]
-	public function apiConfigCmdSubSrcMappingPutEndpoint(Request $request, HttpProtocolWrapper $server, string $source, string $subSource): Response {
-		$cmdSrc = $this->getCmdSource(strtolower($source));
-		if (!isset($cmdSrc) || !$cmdSrc->has_sub_sources) {
-			return new Response(Response::NOT_FOUND);
-		}
-		$set = $request->decodedBody;
-		try {
-			if (!is_object($set)) {
-				throw new Exception("Wrong content body");
-			}
-			/** @var CmdSourceMapping */
-			$decoded = JsonImporter::convert(CmdSourceMapping::class, $set);
-			$decoded->source = strtolower($source);
-			$decoded->sub_source = strtolower($subSource);
-		} catch (Throwable $e) {
-			return new Response(Response::UNPROCESSABLE_ENTITY);
-		}
-		return $this->modifyCmdSourceMapping($decoded);
 	}
 }

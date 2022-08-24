@@ -2,6 +2,9 @@
 
 namespace Nadybot\Core\Modules\ALTS;
 
+use function Amp\{asyncCall, call};
+use Amp\Promise;
+use Generator;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	Attributes as NCA,
@@ -52,9 +55,7 @@ class AltInfo {
 	 */
 	public array $alts = [];
 
-	/**
-	 * Check if $sender is a validated alt or main
-	 */
+	/** Check if $sender is a validated alt or main */
 	public function isValidated(string $sender): bool {
 		$sender = ucfirst(strtolower($sender));
 		if ($sender === $this->main) {
@@ -69,6 +70,7 @@ class AltInfo {
 
 	/**
 	 * Get a list of all validated alts and the main of $sender
+	 *
 	 * @return string[]
 	 */
 	public function getAllValidated(string $sender): array {
@@ -86,6 +88,7 @@ class AltInfo {
 
 	/**
 	 * Get a list of all validated alts
+	 *
 	 * @return string[]
 	 * @psalm-return list<string>
 	 */
@@ -101,6 +104,7 @@ class AltInfo {
 
 	/**
 	 * Get a list of all alts requiring validation from main
+	 *
 	 * @return string[]
 	 */
 	public function getAllMainUnvalidatedAlts(bool $onlyMine=true): array {
@@ -116,18 +120,89 @@ class AltInfo {
 		return $alts;
 	}
 
-	/** @psalm-param callable(string|list<string>) $callback */
+	/**
+	 * @psalm-param callable(string|list<string>) $callback
+	 *
+	 * @deprecated 6.1.0
+	 */
 	public function getAltsBlobAsync(callable $callback, bool $firstPageOnly=false): void {
-		if (count($this->alts) === 0) {
-			$callback("No registered alts.");
+		asyncCall(function () use ($callback, $firstPageOnly): Generator {
+			$callback(yield $this->getAltsBlob($firstPageOnly));
+		});
+	}
+
+	/** @return Promise<string|string[]> */
+	public function getAltsBlob(bool $firstPageOnly=false): Promise {
+		return call(function () use ($firstPageOnly): Generator {
+			if (count($this->alts) === 0) {
+				return "No registered alts.";
+			}
+
+			$player = yield $this->playerManager->byName($this->main);
+			return $this->getAltsBlobForPlayer($player, $firstPageOnly);
+		});
+	}
+
+	/**
+	 * Get a list of the names of all alts who are online
+	 *
+	 * @return string[]
+	 */
+	public function getOnlineAlts(): array {
+		$online_list = [];
+
+		if ($this->buddylistManager->isOnline($this->main)) {
+			$online_list []= $this->main;
 		}
 
-		$this->playerManager->getByNameAsync(
-			function (?Player $player) use ($firstPageOnly, $callback): void {
-				$callback($this->getAltsBlobForPlayer($player, $firstPageOnly));
-			},
-			$this->main
-		);
+		foreach ($this->alts as $name => $validated) {
+			if ($this->buddylistManager->isOnline($name)) {
+				$online_list []= $name;
+			}
+		}
+
+		return $online_list;
+	}
+
+	/**
+	 * Get a list of the names of all alts
+	 *
+	 * @return string[]
+	 */
+	public function getAllAlts(): array {
+		$online_list = [$this->main, ...array_keys($this->alts)];
+
+		return $online_list;
+	}
+
+	public function hasUnvalidatedAlts(): bool {
+		foreach ($this->getAllAlts() as $alt) {
+			if (!$this->isValidated($alt)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	public function getValidatedMain(string $sender): string {
+		if ($this->isValidated($sender)) {
+			return $this->main;
+		}
+		return $sender;
+	}
+
+	public function formatCharName(string $name, ?bool $online): string {
+		if ($online) {
+			return $this->text->makeChatcmd($name, "/tell {$name}");
+		}
+		return $name;
+	}
+
+	public function formatOnlineStatus(?bool $online): string {
+		if ($online) {
+			return " - <on>Online<end>";
+		}
+		return "";
 	}
 
 	/** @return string|string[] */
@@ -175,7 +250,7 @@ class AltInfo {
 		$alts = $this->db->table("alts AS a")
 			->where("a.main", $this->main)
 			->asObj(AltPlayer::class)
-			->filter(fn(AltPlayer $alt): bool => $alt->alt !== $alt->main);
+			->filter(fn (AltPlayer $alt): bool => $alt->alt !== $alt->main);
 		$altNames = array_values(array_unique($alts->pluck("alt")->toArray()));
 		$playerDataByAlt = $this->playerManager
 			->searchByNames($this->db->getDim(), ...$altNames)
@@ -230,71 +305,11 @@ class AltInfo {
 			$blob .= "\n";
 		}
 
-		$msg = $this->text->makeBlob("Alts of {$this->main} ($count)", $blob);
+		$msg = $this->text->makeBlob("Alts of {$this->main} ({$count})", $blob);
 
 		if ($firstPageOnly && is_array($msg)) {
 			return $msg[0];
 		}
 		return $msg;
-	}
-
-	/**
-	 * Get a list of the names of all alts who are online
-	 * @return string[]
-	 */
-	public function getOnlineAlts(): array {
-		$online_list = [];
-
-		if ($this->buddylistManager->isOnline($this->main)) {
-			$online_list []= $this->main;
-		}
-
-		foreach ($this->alts as $name => $validated) {
-			if ($this->buddylistManager->isOnline($name)) {
-				$online_list []= $name;
-			}
-		}
-
-		return $online_list;
-	}
-
-	/**
-	 * Get a list of the names of all alts
-	 * @return string[]
-	 */
-	public function getAllAlts(): array {
-		$online_list = [$this->main, ...array_keys($this->alts)];
-
-		return $online_list;
-	}
-
-	public function hasUnvalidatedAlts(): bool {
-		foreach ($this->getAllAlts() as $alt) {
-			if (!$this->isValidated($alt)) {
-				return true;
-			}
-		}
-		return false;
-	}
-
-	public function getValidatedMain(string $sender): string {
-		if ($this->isValidated($sender)) {
-			return $this->main;
-		}
-		return $sender;
-	}
-
-	public function formatCharName(string $name, ?bool $online): string {
-		if ($online) {
-			return $this->text->makeChatcmd($name, "/tell $name");
-		}
-		return $name;
-	}
-
-	public function formatOnlineStatus(?bool $online): string {
-		if ($online) {
-			return " - <on>Online<end>";
-		}
-		return "";
 	}
 }

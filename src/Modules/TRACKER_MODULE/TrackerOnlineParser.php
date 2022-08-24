@@ -38,6 +38,7 @@ class TrackerOnlineParser {
 
 	/**
 	 * @return TrackerOnlineOption[]
+	 *
 	 * @throws TrackerOnlineParserException
 	 */
 	public function parse(string $input): array {

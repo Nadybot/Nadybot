@@ -2,19 +2,15 @@
 
 namespace Nadybot\Modules\RELAY_MODULE;
 
-use Nadybot\Core\DBRow;
 use Nadybot\Core\Attributes\JSON;
+use Nadybot\Core\DBRow;
 
 class RelayEvent extends DBRow {
-	/**
-	 * The id of the relay event. Lower id means higher priority
-	 */
+	/** The id of the relay event. Lower id means higher priority */
 	#[JSON\Ignore]
 	public int $id;
 
-	/**
-	 * The id of the relay where this layer belongs to
-	 */
+	/** The id of the relay where this layer belongs to */
 	#[JSON\Ignore]
 	public int $relay_id;
 

@@ -5,6 +5,7 @@ namespace Nadybot\Core\Modules\SYSTEM;
 class ConfigStatistics {
 	/**
 	 * Number of commands activated for each channel
+	 *
 	 * @var ChannelCommandStats[]
 	 */
 	public array $active_commands = [];

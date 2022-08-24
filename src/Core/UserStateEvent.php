@@ -7,4 +7,5 @@ class UserStateEvent extends Event {
 	 * Either the name of the sender or the numeric UID (eg. city raid accouncements)
 	 */
 	public int|string $sender;
+	public int $uid;
 }

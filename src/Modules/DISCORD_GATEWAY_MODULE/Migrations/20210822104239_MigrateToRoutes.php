@@ -3,6 +3,7 @@
 namespace Nadybot\Modules\DISCORD_GATEWAY_MODULE\Migrations;
 
 use Exception;
+use Generator;
 use Nadybot\Core\{
 	Attributes as NCA,
 	ConfigFile,
@@ -18,6 +19,7 @@ use Nadybot\Core\{
 	SchemaMigration,
 	SettingManager,
 };
+use Throwable;
 
 class MigrateToRoutes implements SchemaMigration {
 	#[NCA\Inject]
@@ -28,6 +30,53 @@ class MigrateToRoutes implements SchemaMigration {
 
 	#[NCA\Inject]
 	public MessageHub $messageHub;
+
+	public function migrate(LoggerWrapper $logger, DB $db): Generator {
+		// throw new Exception("Hollera!");
+		$tagColor = $this->getColor($db, "discord_color_channel");
+		$textColor = $this->getColor($db, "discord_color_guild", "discord_color_priv");
+		$this->saveColor($db, Source::DISCORD_PRIV, $tagColor, $textColor);
+
+		$relayChannel = $this->getSetting($db, "discord_relay_channel");
+		$relayWhat = $this->getSetting($db, "discord_relay");
+		if (!isset($relayChannel) || !isset($relayChannel->value) || $relayChannel->value === "off") {
+			return;
+		}
+		if (!isset($relayWhat) || $relayWhat->value === "0") {
+			return;
+		}
+		$relayCommands = $this->getSetting($db, "discord_relay_commands");
+		if (isset($relayCommands)) {
+			$relayCommands = $relayCommands->value === "1";
+		} else {
+			$relayCommands = false;
+		}
+		try {
+			/** @var DiscordChannel */
+			$channel = yield $this->discordController->discordAPIClient->getChannel($relayChannel->value);
+			$this->migrateChannelToRoute($channel, $db, $relayWhat, $relayCommands);
+		} catch (Throwable) {
+		}
+	}
+
+	public function migrateChannelToRoute(DiscordChannel $channel, DB $db, Setting $relayWhat, bool $relayCommands): void {
+		if ((int)$relayWhat->value & 2) {
+			$this->addRoute(
+				$db,
+				Source::DISCORD_PRIV . "({$channel->name})",
+				Source::ORG,
+				$relayCommands
+			);
+		}
+		if ((int)$relayWhat->value & 1) {
+			$this->addRoute(
+				$db,
+				Source::DISCORD_PRIV . "({$channel->name})",
+				Source::PRIV . "({$this->config->name})",
+				$relayCommands
+			);
+		}
+	}
 
 	protected function getSetting(DB $db, string $name): ?Setting {
 		return $db->table(SettingManager::DB_TABLE)
@@ -57,49 +106,6 @@ class MigrateToRoutes implements SchemaMigration {
 			"text_color" => $text,
 		];
 		$db->table(MessageHub::DB_TABLE_COLORS)->insert($spec);
-	}
-
-	public function migrate(LoggerWrapper $logger, DB $db): void {
-		// throw new Exception("Hollera!");
-		$tagColor = $this->getColor($db, "discord_color_channel");
-		$textColor = $this->getColor($db, "discord_color_guild", "discord_color_priv");
-		$this->saveColor($db, Source::DISCORD_PRIV, $tagColor, $textColor);
-
-		$relayChannel = $this->getSetting($db, "discord_relay_channel");
-		$relayWhat = $this->getSetting($db, "discord_relay");
-		if (!isset($relayChannel) || !isset($relayChannel->value) || $relayChannel->value === "off") {
-			return;
-		}
-		if (!isset($relayWhat) || $relayWhat->value === "0") {
-			return;
-		}
-		$relayCommands = $this->getSetting($db, "discord_relay_commands");
-		$this->discordController->discordAPIClient->getChannel(
-			$relayChannel->value,
-			[$this, "migrateChannelToRoute"],
-			$db,
-			$relayWhat,
-			$relayCommands,
-		);
-	}
-
-	public function migrateChannelToRoute(DiscordChannel $channel, DB $db, Setting $relayWhat, Setting $relayCommands): void {
-		if ((int)$relayWhat->value & 2) {
-			$this->addRoute(
-				$db,
-				Source::DISCORD_PRIV . "({$channel->name})",
-				Source::ORG,
-				$relayCommands->value === "1"
-			);
-		}
-		if ((int)$relayWhat->value & 1) {
-			$this->addRoute(
-				$db,
-				Source::DISCORD_PRIV . "({$channel->name})",
-				Source::PRIV . "({$this->config->name})",
-				$relayCommands->value === "1"
-			);
-		}
 	}
 
 	protected function addRoute(DB $db, string $from, string $to, bool $relayCommands): void {

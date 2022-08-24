@@ -3,7 +3,6 @@
 namespace Nadybot\Modules\NEWS_MODULE;
 
 use Exception;
-use Throwable;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	AOChatEvent,
@@ -26,6 +25,7 @@ use Nadybot\Modules\WEBSERVER_MODULE\{
 	Request,
 	Response,
 };
+use Throwable;
 
 /**
  * Commands this class contains:
@@ -89,9 +89,7 @@ class NewsController extends ModuleInstance {
 	#[NCA\Setting\Boolean]
 	public bool $newsConfirmedForAllAlts = true;
 
-	/**
-	 * @return Collection<INews>
-	 */
+	/** @return Collection<INews> */
 	public function getNewsItems(string $player): Collection {
 		if ($this->newsConfirmedForAllAlts) {
 			$player = $this->altsController->getMainOf($player);
@@ -112,10 +110,8 @@ class NewsController extends ModuleInstance {
 		return $query->asObj(INews::class);
 	}
 
-	/**
-	 * @return string|string[]|null
-	 */
-	public function getNews(string $player, bool $onlyUnread=true): null|string|array {
+	/** @return string[]|null */
+	public function getNews(string $player, bool $onlyUnread=true): ?array {
 		$news = $this->getNewsItems($player);
 		if ($onlyUnread) {
 			$news = $news->where("confirmed", false);
@@ -145,14 +141,14 @@ class NewsController extends ModuleInstance {
 			$blob .= ($item->confirmed ? "<grey>" : "<highlight>").
 				"{$item->news}<end>\n";
 			$blob .= "By {$item->name} " . $this->util->date($item->time) . " ";
-			$blob .= "[" . $this->text->makeChatcmd("remove", "/tell <myname> news rem $item->id") . "] ";
+			$blob .= "[" . $this->text->makeChatcmd("remove", "/tell <myname> news rem {$item->id}") . "] ";
 			if ($item->sticky) {
-				$blob .= "[" . $this->text->makeChatcmd("unpin", "/tell <myname> news unpin $item->id") . "] ";
+				$blob .= "[" . $this->text->makeChatcmd("unpin", "/tell <myname> news unpin {$item->id}") . "] ";
 			} else {
-				$blob .= "[" . $this->text->makeChatcmd("pin", "/tell <myname> news pin $item->id") . "] ";
+				$blob .= "[" . $this->text->makeChatcmd("pin", "/tell <myname> news pin {$item->id}") . "] ";
 			}
 			if (!$item->confirmed) {
-				$blob .= "[" . $this->text->makeChatcmd("confirm", "/tell <myname> news confirm $item->id") . "] ";
+				$blob .= "[" . $this->text->makeChatcmd("confirm", "/tell <myname> news confirm {$item->id}") . "] ";
 			}
 			$blob .= "\n";
 			$sticky = $item->sticky;
@@ -182,7 +178,7 @@ class NewsController extends ModuleInstance {
 				$this->text->makeBlob("more", $blob, "News")
 			);
 		}
-		return $msg;
+		return (array)$msg;
 	}
 
 	#[NCA\Event(
@@ -221,9 +217,7 @@ class NewsController extends ModuleInstance {
 		}
 	}
 
-	/**
-	 * Check if there are recent news for player $player
-	 */
+	/** Check if there are recent news for player $player */
 	public function hasRecentNews(string $player): bool {
 		$thirtyDays = time() - (86400 * 30);
 		$news = $this->getNewsItems($player);
@@ -231,9 +225,7 @@ class NewsController extends ModuleInstance {
 			->contains("time", ">", $thirtyDays);
 	}
 
-	/**
-	 * Show the latest news entries
-	 */
+	/** Show the latest news entries */
 	#[NCA\HandlesCommand("news")]
 	public function newsCommand(CmdContext $context): void {
 		$msg = $this->getNews($context->char->name, false);
@@ -241,9 +233,7 @@ class NewsController extends ModuleInstance {
 		$context->reply($msg ?? "No News recorded yet.");
 	}
 
-	/**
-	 * Confirm having read a news entry
-	 */
+	/** Confirm having read a news entry */
 	#[NCA\HandlesCommand("news")]
 	public function newsconfirmCommand(
 		CmdContext $context,
@@ -280,9 +270,7 @@ class NewsController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
-	/**
-	 * Add a news entry
-	 */
+	/** Add a news entry */
 	#[NCA\HandlesCommand(self::CMD_NEWS_MANAGE)]
 	public function newsAddCommand(
 		CmdContext $context,
@@ -312,9 +300,7 @@ class NewsController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
-	/**
-	 * Remove a news entry by ID
-	 */
+	/** Remove a news entry by ID */
 	#[NCA\HandlesCommand(self::CMD_NEWS_MANAGE)]
 	public function newsRemCommand(
 		CmdContext $context,
@@ -338,9 +324,7 @@ class NewsController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
-	/**
-	 * Pin a news entry to the top
-	 */
+	/** Pin a news entry to the top */
 	#[NCA\HandlesCommand(self::CMD_NEWS_MANAGE)]
 	public function newsPinCommand(
 		CmdContext $context,
@@ -370,9 +354,7 @@ class NewsController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
-	/**
-	 * Unpin a news entry from the top
-	 */
+	/** Unpin a news entry from the top */
 	#[NCA\HandlesCommand(self::CMD_NEWS_MANAGE)]
 	public function newsUnpinCommand(
 		CmdContext $context,
@@ -410,9 +392,7 @@ class NewsController extends ModuleInstance {
 			->first();
 	}
 
-	/**
-	 * Get a list of all news
-	 */
+	/** Get a list of all news */
 	#[
 		NCA\Api("/news"),
 		NCA\GET,
@@ -428,9 +408,7 @@ class NewsController extends ModuleInstance {
 		return new ApiResponse($result);
 	}
 
-	/**
-	 * Get a single news item by id
-	 */
+	/** Get a single news item by id */
 	#[
 		NCA\Api("/news/%d"),
 		NCA\GET,
@@ -446,9 +424,7 @@ class NewsController extends ModuleInstance {
 		return new ApiResponse($result);
 	}
 
-	/**
-	 * Create a new news item
-	 */
+	/** Create a new news item */
 	#[
 		NCA\Api("/news"),
 		NCA\POST,
@@ -462,6 +438,7 @@ class NewsController extends ModuleInstance {
 			if (!is_object($news)) {
 				throw new Exception("Wrong content body");
 			}
+
 			/** @var NewNews */
 			$decoded = JsonImporter::convert(NewNews::class, $news);
 		} catch (Throwable $e) {
@@ -490,9 +467,7 @@ class NewsController extends ModuleInstance {
 		return new Response(Response::INTERNAL_SERVER_ERROR);
 	}
 
-	/**
-	 * Modify an existing news item
-	 */
+	/** Modify an existing news item */
 	#[
 		NCA\Api("/news/%d"),
 		NCA\PATCH,
@@ -510,6 +485,7 @@ class NewsController extends ModuleInstance {
 			if (!is_object($news)) {
 				throw new Exception("Wrong content");
 			}
+
 			/** @var NewNews */
 			$decoded = JsonImporter::convert(NewNews::class, $news);
 		} catch (Throwable $e) {
@@ -540,8 +516,7 @@ class NewsController extends ModuleInstance {
 		NCA\NewsTile(
 			name: "news",
 			description: "Show excerpts of unread news",
-			example:
-				"<header2>News [<u>see more</u>]<end>\n".
+			example: "<header2>News [<u>see more</u>]<end>\n".
 				"<tab><highlight>2021-Oct-18<end>: We have a new tower site..."
 		)
 	]

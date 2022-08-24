@@ -11,9 +11,7 @@ class DedupHandler extends AbstractHandler {
 	/** @var null|array<string,mixed> */
 	private ?array $lastRecord = null;
 
-	/**
-	 * {@inheritDoc}
-	 */
+	/** {@inheritDoc} */
 	public function handle(array $record): bool {
 		$rec = $record;
 		unset($rec["datetime"]);

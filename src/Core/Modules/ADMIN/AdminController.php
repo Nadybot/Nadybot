@@ -2,10 +2,12 @@
 
 namespace Nadybot\Core\Modules\ADMIN;
 
+use Amp\Promise;
+use Generator;
 use Nadybot\Core\{
-	Attributes as NCA,
 	AccessManager,
 	AdminManager,
+	Attributes as NCA,
 	BuddylistManager,
 	CmdContext,
 	CommandAlias,
@@ -14,8 +16,8 @@ use Nadybot\Core\{
 	DBSchema\Admin,
 	DBSchema\LastOnline,
 	Event,
-	ModuleInstance,
 	LoggerWrapper,
+	ModuleInstance,
 	Modules\ALTS\AltEvent,
 	Modules\ALTS\AltsController,
 	Nadybot,
@@ -92,12 +94,6 @@ class AdminController extends ModuleInstance {
 		$this->commandAlias->register($this->moduleName, "mod rem", "remmod");
 	}
 
-	private function addArticle(string $rank): string {
-		return in_array(substr($rank, 0, 1), ["a", "e", "i", "o", "u"])
-			? "an {$rank}"
-			: "a {$rank}";
-	}
-
 	/** Make &lt;who&gt; an administrator */
 	#[NCA\HandlesCommand("admin")]
 	#[NCA\Help\Group("ranks")]
@@ -172,7 +168,7 @@ class AdminController extends ModuleInstance {
 			if ($who === '') {
 				continue;
 			}
-			$line = "<tab>$who";
+			$line = "<tab>{$who}";
 			if ($this->accessManager->checkAccess($who, 'superadmin')) {
 				$line .= " (<highlight>".
 					ucfirst($this->accessManager->getDisplayName("superadmin")).
@@ -206,105 +202,62 @@ class AdminController extends ModuleInstance {
 		description: "Add administrators and moderators to the buddy list",
 		defaultStatus: 1
 	)]
-	public function checkAdminsEvent(Event $eventObj): void {
-		$this->db->table(AdminManager::DB_TABLE)->asObj(Admin::class)
-			->each(function (Admin $row): void {
-				$this->buddylistManager->add($row->name, 'admin');
-			});
-	}
-
-	/**
-	 * Get the string of the online status
-	 * @param string $who Playername
-	 * @return string " (<on>online<end>)" and so on
-	 */
-	private function getOnlineStatus(string $who, bool $showLastSeen=false): string {
-		if ($this->buddylistManager->isOnline($who) && isset($this->chatBot->chatlist[$who])) {
-			return " (<on>Online and in chat<end>)";
-		} elseif ($this->buddylistManager->isOnline($who)) {
-			return " (<on>Online<end>)";
-		}
-		if (!$showLastSeen) {
-			return " (<off>Offline<end>)";
-		}
-		$main = $this->altsController->getMainOf($who);
-		/** @var ?LastOnline */
-		$lastSeen = $this->db->table("last_online")
-			->whereIn("name", $this->altsController->getAltsOf($main))
-			->orderByDesc("dt")
-			->limit(1)
-			->asObj(LastOnline::class)
-			->first();
-		if (!isset($lastSeen)) {
-			return " (<off>Offline<end>)";
-		}
-		return " (<off>Offline<end>, last seen ".
-			$this->util->date($lastSeen->dt, false).
-			" on {$lastSeen->name})";
-	}
-
-	private function getAltAdminInfo(string $who, bool $showOfflineAlts): string {
-		$blob = '';
-		$altInfo = $this->altsController->getAltInfo($who);
-		if ($altInfo->main == $who) {
-			foreach ($altInfo->getAllValidatedAlts() as $alt) {
-				if ($showOfflineAlts || $this->buddylistManager->isOnline($alt)) {
-					$blob .= "<tab><tab>$alt" . $this->getOnlineStatus($alt) . "\n";
-				}
-			}
-		}
-		return $blob;
+	public function checkAdminsEvent(Event $eventObj): Generator {
+		yield $this->db->table(AdminManager::DB_TABLE)->asObj(Admin::class)
+			->map(function (Admin $row): Promise {
+				return $this->buddylistManager->addAsync($row->name, 'admin');
+			})->toArray();
 	}
 
 	public function add(string $who, string $sender, CommandReply $sendto, int $intlevel, string $rank): bool {
 		if ($this->chatBot->get_uid($who) == null) {
-			$sendto->reply("Character <highlight>$who<end> does not exist.");
+			$sendto->reply("Character <highlight>{$who}<end> does not exist.");
 			return false;
 		}
 
 		if ($this->adminManager->checkExisting($who, $intlevel)) {
-			$sendto->reply("<highlight>$who<end> is already $rank.");
+			$sendto->reply("<highlight>{$who}<end> is already {$rank}.");
 			return false;
 		}
 
 		if (!$this->checkAccessLevel($sender, $who)) {
-			$sendto->reply("You must have a higher access level than <highlight>$who<end> in order to change his access level.");
+			$sendto->reply("You must have a higher access level than <highlight>{$who}<end> in order to change his access level.");
 			return false;
 		}
 
 		if (!$this->checkAltsInheritAdmin($who)) {
-			$msg = "<red>WARNING<end>: $who is not a main.  This command did NOT affect $who's access level and no action was performed.";
+			$msg = "<red>WARNING<end>: {$who} is not a main.  This command did NOT affect {$who}'s access level and no action was performed.";
 			$sendto->reply($msg);
 			return false;
 		}
 
 		$action = $this->adminManager->addToLists($who, $intlevel, $sender);
 
-		$sendto->reply("<highlight>$who<end> has been $action to $rank.");
-		$this->chatBot->sendTell("You have been $action to $rank by <highlight>$sender<end>.", $who);
+		$sendto->reply("<highlight>{$who}<end> has been {$action} to {$rank}.");
+		$this->chatBot->sendTell("You have been {$action} to {$rank} by <highlight>{$sender}<end>.", $who);
 		return true;
 	}
 
 	public function remove(string $who, string $sender, CommandReply $sendto, int $intlevel, string $rank): bool {
 		if (!$this->adminManager->checkExisting($who, $intlevel)) {
-			$sendto->reply("<highlight>$who<end> is not $rank.");
+			$sendto->reply("<highlight>{$who}<end> is not {$rank}.");
 			return false;
 		}
 
 		if (!$this->checkAccessLevel($sender, $who)) {
-			$sendto->reply("You must have a higher access level than <highlight>$who<end> in order to change his access level.");
+			$sendto->reply("You must have a higher access level than <highlight>{$who}<end> in order to change his access level.");
 			return false;
 		}
 
 		$this->adminManager->removeFromLists($who, $sender);
 
 		if (!$this->checkAltsInheritAdmin($who)) {
-			$msg = "<red>WARNING<end>: $who is not a main.  This command did NOT affect $who's access level.";
+			$msg = "<red>WARNING<end>: {$who} is not a main.  This command did NOT affect {$who}'s access level.";
 			$sendto->reply($msg);
 		}
 
-		$sendto->reply("<highlight>$who<end> has been removed as $rank.");
-		$this->chatBot->sendTell("You have been removed as $rank by <highlight>$sender<end>.", $who);
+		$sendto->reply("<highlight>{$who}<end> has been removed as {$rank}.");
+		$this->chatBot->sendTell("You have been removed as {$rank} by <highlight>{$sender}<end>.", $who);
 		return true;
 	}
 
@@ -331,5 +284,57 @@ class AdminController extends ModuleInstance {
 		$this->adminManager->removeFromLists($event->alt, $event->main);
 		$this->adminManager->addToLists($event->main, $oldRank["level"], $event->alt);
 		$this->logger->notice("Moved {$event->alt}'s admin rank to {$event->main}.");
+	}
+
+	private function addArticle(string $rank): string {
+		return in_array(substr($rank, 0, 1), ["a", "e", "i", "o", "u"])
+			? "an {$rank}"
+			: "a {$rank}";
+	}
+
+	/**
+	 * Get the string of the online status
+	 *
+	 * @param string $who Playername
+	 *
+	 * @return string " (<on>online<end>)" and so on
+	 */
+	private function getOnlineStatus(string $who, bool $showLastSeen=false): string {
+		if ($this->buddylistManager->isOnline($who) && isset($this->chatBot->chatlist[$who])) {
+			return " (<on>Online and in chat<end>)";
+		} elseif ($this->buddylistManager->isOnline($who)) {
+			return " (<on>Online<end>)";
+		}
+		if (!$showLastSeen) {
+			return " (<off>Offline<end>)";
+		}
+		$main = $this->altsController->getMainOf($who);
+
+		/** @var ?LastOnline */
+		$lastSeen = $this->db->table("last_online")
+			->whereIn("name", $this->altsController->getAltsOf($main))
+			->orderByDesc("dt")
+			->limit(1)
+			->asObj(LastOnline::class)
+			->first();
+		if (!isset($lastSeen)) {
+			return " (<off>Offline<end>)";
+		}
+		return " (<off>Offline<end>, last seen ".
+			$this->util->date($lastSeen->dt, false).
+			" on {$lastSeen->name})";
+	}
+
+	private function getAltAdminInfo(string $who, bool $showOfflineAlts): string {
+		$blob = '';
+		$altInfo = $this->altsController->getAltInfo($who);
+		if ($altInfo->main == $who) {
+			foreach ($altInfo->getAllValidatedAlts() as $alt) {
+				if ($showOfflineAlts || $this->buddylistManager->isOnline($alt)) {
+					$blob .= "<tab><tab>{$alt}" . $this->getOnlineStatus($alt) . "\n";
+				}
+			}
+		}
+		return $blob;
 	}
 }

@@ -2,18 +2,14 @@
 
 namespace Nadybot\Core\Modules\DISCORD;
 
-use Closure;
+use Amp\Deferred;
 
 class ChannelQueueItem {
-	public ?Closure $callback = null;
-
+	/** @param null|Deferred<void> $callback */
 	public function __construct(
 		public string $channelId,
 		public string $message,
-		?callable $callback=null,
+		public ?Deferred $callback=null,
 	) {
-		if (isset($callback)) {
-			$this->callback = Closure::fromCallable($callback);
-		}
 	}
 }

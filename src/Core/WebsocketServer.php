@@ -2,8 +2,9 @@
 
 namespace Nadybot\Core;
 
-use Nadybot\Core\Attributes as NCA;
+use Amp\Loop;
 use Exception;
+use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\Socket\AsyncSocket;
 use Nadybot\Modules\WEBSOCKET_MODULE\WebsocketController;
 
@@ -20,11 +21,11 @@ class WebsocketServer extends WebsocketBase {
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
+	public string $uuid;
+
 
 	/** @var string[] */
 	protected array $subscriptions = [];
-
-	public string $uuid;
 
 	public function __construct(AsyncSocket $socket) {
 		$this->maskData = false;
@@ -68,8 +69,9 @@ class WebsocketServer extends WebsocketBase {
 	}
 
 	protected function resetClient(): void {
-		if (isset($this->timeoutChecker)) {
-			$this->timer->abortEvent($this->timeoutChecker);
+		if (isset($this->timeoutHandle)) {
+			Loop::cancel($this->timeoutHandle);
+			$this->timeoutHandle = null;
 		}
 		if ($this->notifier) {
 			$this->socketManager->removeSocketNotifier($this->notifier);

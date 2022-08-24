@@ -40,15 +40,14 @@ use Nadybot\Modules\RELAY_MODULE\{
 	)
 ]
 class GrcV2Protocol implements RelayProtocolInterface {
-	protected static int $supportedFeatures = self::F_NONE;
-
-	protected Relay $relay;
-
 	#[NCA\Inject]
 	public Util $util;
 
 	#[NCA\Inject]
 	public Text $text;
+	protected static int $supportedFeatures = self::F_NONE;
+
+	protected Relay $relay;
 
 	protected string $command = "grc";
 	protected string $prefix = "";
@@ -102,7 +101,7 @@ class GrcV2Protocol implements RelayProtocolInterface {
 		return [
 			"{$this->prefix}{$this->command} <v2>".
 				join(" ", $hops) . " {$senderLink}{$msgColor}".
-				$this->text->formatMessage($event->getData()) . "</end>"
+				$this->text->formatMessage($event->getData()) . "</end>",
 		];
 	}
 
@@ -134,6 +133,7 @@ class GrcV2Protocol implements RelayProtocolInterface {
 		if (preg_match("/^<relay_bot_color>/s", $data)) {
 			$message->char = null;
 		}
+
 		/** @var string */
 		$data = preg_replace("/^<relay_[a-z]+_color>(.*)$/s", "$1", $data);
 		$data = preg_replace("/<\/end>$/s", "", $data);

@@ -2,22 +2,20 @@
 
 namespace Nadybot\Modules\DISCORD_GATEWAY_MODULE;
 
-use function Safe\json_decode;
+use function Amp\call;
 use function Safe\preg_split;
 
+use Amp\Promise;
 use Closure;
-use ReflectionMethod;
-use ReflectionNamedType;
-use ReflectionParameter;
-use Safe\Exceptions\JsonException;
+use Generator;
 use Illuminate\Support\Collection;
+use Nadybot\Core\Modules\DISCORD\DiscordException;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
 	CommandManager,
 	DB,
 	DBSchema\CmdCfg,
-	HttpResponse,
 	LoggerWrapper,
 	MessageHub,
 	ModuleInstance,
@@ -32,12 +30,17 @@ use Nadybot\Core\{
 	Routing\Source,
 	SubcommandManager,
 	Text,
+	UserException,
 };
 use Nadybot\Modules\DISCORD_GATEWAY_MODULE\Model\{
 	ApplicationCommand,
 	ApplicationCommandOption,
 	Interaction,
 };
+use ReflectionMethod;
+use ReflectionNamedType;
+use ReflectionParameter;
+use Throwable;
 
 #[
 	NCA\Instance,
@@ -52,8 +55,10 @@ class DiscordSlashCommandController extends ModuleInstance {
 
 	/** Slash-commands are disabled */
 	public const SLASH_OFF = 0;
+
 	/** Slash-commands are treated like regular commands and shown to everyone */
 	public const SLASH_REGULAR = 1;
+
 	/** Slash-commands are only shown to the sender */
 	public const SLASH_EPHEMERAL = 2;
 
@@ -105,127 +110,25 @@ class DiscordSlashCommandController extends ModuleInstance {
 		if ((int)$oldValue !== self::SLASH_OFF && (int)$newValue !== self::SLASH_OFF) {
 			return;
 		}
-		$this->syncSlashCommands();
+		Promise\rethrow($this->syncSlashCommands());
 	}
 
 	/**
 	 * Make sure, all slash-commands that the bot has configured, are registered
 	 *
-	 * @phpstan-param null|callable():void $success
-	 * @phpstan-param null|callable(string):void $failure
+	 * @return Promise<void>
 	 */
-	public function syncSlashCommands(?callable $success=null, ?callable $failure=null): void {
-		$appId = $this->gw->getID();
-		if (!isset($appId)) {
-			return;
-		}
-		$this->api->getGlobalApplicationCommands(
-			$appId,
-			/** @param ApplicationCommand[] $commands */
-			function (array $commands) use ($success, $failure): void {
-				$this->updateSlashCommands($commands, $success, $failure);
+	public function syncSlashCommands(): Promise {
+		return call(function (): Generator {
+			$appId = $this->gw->getID();
+			if (!isset($appId)) {
+				return;
 			}
-		);
-	}
 
-	/**
-	 * Ensure the global application commands are identical to $registeredCmds
-	 *
-	 * @param ApplicationCommand[] $registeredCmds
-	 * @phpstan-param null|callable():void $success
-	 * @phpstan-param null|callable(string):void $failure
-	 */
-	protected function updateSlashCommands(array $registeredCmds, ?callable $success=null, ?callable $failure=null): void {
-		$this->logger->info("{count} Slash-commands already registered", [
-			"count" => count($registeredCmds),
-		]);
-		$registeredCmds = new Collection($registeredCmds);
-		$commands = new Collection($this->calcSlashCommands());
-
-		$numModifiedCommands = $this->getNumChangedSlashCommands($registeredCmds, $commands);
-		$this->logger->info("{count} Slash-commands need (re-)registering", [
-			"count" => $numModifiedCommands,
-		]);
-
-		if ($registeredCmds->count() === $commands->count() && $numModifiedCommands === 0) {
-			$this->logger->info("No Slash-commands need (re-)registering or deletion");
-			if (isset($success)) {
-				$success();
-			}
-			return;
-		}
-		$this->setSlashCommands($commands, $success, $failure);
-	}
-
-	/**
-	 * Set the given slash commands without checking if they've changed
-	 *
-	 * @param Collection<ApplicationCommand> $modifiedCommands
-	 * @phpstan-param null|callable():void $success
-	 * @phpstan-param null|callable(string):void $failure
-	 */
-	private function setSlashCommands(
-		Collection $modifiedCommands,
-		?callable $success=null,
-		?callable $failure=null,
-	): void {
-		$appId = $this->gw->getID();
-		if (!isset($appId)) {
-			if (isset($failure)) {
-				$failure("Currently not connected to Discord, try again later.");
-			}
-			return;
-		}
-		$cmds = $modifiedCommands->toArray();
-		$this->api->registerGlobalApplicationCommands(
-			$appId,
-			$this->api->encode($cmds),
-			/** @param ApplicationCommand[] $commands */
-			function (array $commands) use ($success): void {
-				$this->logger->notice(
-					count($commands) . " Slash-commands registered successfully."
-				);
-				if (isset($success)) {
-					$success();
-				}
-			},
-			function (HttpResponse $response) use ($failure): bool {
-				if (!isset($failure)) {
-					return false;
-				}
-				if ($response->headers["content-type"] !== "application/json") {
-					$failure($response->body??"Unknown error");
-					return true;
-				}
-				try {
-					$json = json_decode($response->body ?? "null");
-				} catch (JsonException) {
-					$failure($response->body??"Unknown error");
-					return true;
-				}
-				$failure($json->message??"Unknown error");
-				return true;
-			}
-		);
-	}
-
-	/** @return array<string,CmdCfg> */
-	private function getCmdDefinitions(string ...$commands): array {
-		$cfgs = $this->db->table(CommandManager::DB_TABLE)
-			->whereIn("cmd", $commands)
-			->orWhereIn("dependson", $commands)
-			->asObj(CmdCfg::class);
-		/** @var Collection<string,CmdCfg> */
-		$mains = $cfgs->where("cmdevent", "cmd")
-			->keyBy("cmd");
-		$cfgs->where("cmdevent", "subcmd")
-			->each(function (CmdCfg $cfg) use ($mains): void {
-				if (!$mains->has($cfg->dependson)) {
-					return;
-				}
-				$mains->get($cfg->dependson)->file .= ",{$cfg->file}";
-			});
-		return $mains->toArray();
+			/** @var ApplicationCommand[] */
+			$registeredCommands = yield $this->api->getGlobalApplicationCommands($appId);
+			yield $this->updateSlashCommands($registeredCommands);
+		});
 	}
 
 	/**
@@ -236,10 +139,11 @@ class DiscordSlashCommandController extends ModuleInstance {
 	 */
 	public function calcSlashCommands(): array {
 		$enabledCommands = $this->db->table(self::DB_SLASH_TABLE)
-			->pluckAs("cmd", "string")->toArray();
+			->pluckStrings("cmd")->toArray();
 		if ($this->discordSlashCommands === self::SLASH_OFF) {
 			return [];
 		}
+
 		/** @var ApplicationCommand[] */
 		$cmds = [];
 		$cmdDefs = $this->getCmdDefinitions(...$enabledCommands);
@@ -251,117 +155,6 @@ class DiscordSlashCommandController extends ModuleInstance {
 		return $cmds;
 	}
 
-	/**
-	 * Get the ApplicationCommand-definition for a single NCA\DefineCommand
-	 */
-	private function getApplicationCommandForCmdCfg(CmdCfg $cmdCfg): ?ApplicationCommand {
-		$cmd = new ApplicationCommand();
-		$cmd->type = $cmd::TYPE_CHAT_INPUT;
-		$cmd->name = $cmdCfg->cmd;
-		$cmd->description = $cmdCfg->description;
-		/** @var int[] */
-		$types = [];
-		$methods = explode(",", $cmdCfg->file);
-		foreach ($methods as $methodDef) {
-			[$class, $method, $line] = preg_split("/[.:]/", $methodDef);
-			$obj = Registry::getInstance($class);
-			if (!isset($obj)) {
-				continue;
-			}
-			$refMethod = new ReflectionMethod($obj, $method);
-			$type = $this->getApplicationCommandOptionType($refMethod);
-			if (isset($type)) {
-				$types []= $type;
-			}
-		}
-		if (empty($types)) {
-			return null;
-		}
-		if (count($types) === 1 && $types[0] === 0) {
-			return $cmd;
-		}
-
-		$option = new ApplicationCommandOption();
-		$option->name = "parameters";
-		$option->description = "Parameters for this command";
-		$option->type = $option::TYPE_STRING;
-		$option->required = min($types) === self::APP_TYPE_REQ_PARAMS;
-		$cmd->options = [$option];
-
-		return $cmd;
-	}
-
-	/**
-	 * Calculate if the given command doesn't require parameters (0), has
-	 * optional parameters (1) or mandatory parameters (2)
-	 *
-	 * @return null|int
-	 * @phpstan-return null|self::APP_TYPE_*
-	 */
-	private function getApplicationCommandOptionType(ReflectionMethod $refMethod): ?int {
-		$params = $refMethod->getParameters();
-		if (count($params) === 0
-			|| !$params[0]->hasType()) {
-			return null;
-		}
-		$type = $params[0]->getType();
-		if (!($type instanceof ReflectionNamedType)
-			|| ($type->getName() !== CmdContext::class)) {
-			return null;
-		}
-		if (count($params) === 1) {
-			return self::APP_TYPE_NO_PARAMS;
-		}
-
-		$type = self::APP_TYPE_OPT_PARAMS;
-		for ($i = 1; $i < count($params); $i++) {
-			$paramType = $this->getParamOptionType($params[$i], count($params));
-			if ($paramType === null) {
-				return null;
-			}
-			$type = max($type, $paramType);
-		}
-		return $type;
-	}
-
-	/**
-	 * Calculate if the given parameter is optional(1) or mandatory(2)
-	 *
-	 * @return null|int
-	 * @phpstan-return null|self::APP_TYPE_OPT_PARAMS|self::APP_TYPE_REQ_PARAMS
-	 */
-	private function getParamOptionType(ReflectionParameter $param, int $numParams): ?int {
-		if (!$param->hasType()) {
-			return null;
-		}
-		$type = $param->getType();
-		if (!($type instanceof ReflectionNamedType)) {
-			return null;
-		}
-		if (!$type->isBuiltin() && !is_subclass_of($type->getName(), Base::class)) {
-			return null;
-		}
-		if ($param->allowsNull()) {
-			return self::APP_TYPE_OPT_PARAMS;
-		}
-		return self::APP_TYPE_REQ_PARAMS;
-	}
-
-	/**
-	 * Calculate how many commands in $set have change relatively to $live
-	 *
-	 * @param Collection<ApplicationCommand> $live
-	 * @param Collection<ApplicationCommand> $set
-	 */
-	private function getNumChangedSlashCommands(Collection $live, Collection $set): int {
-		$live = $live->keyBy("name");
-		$changedOrNewCommands = $set->filter(function (ApplicationCommand $cmd) use ($live): bool {
-			return !$live->has($cmd->name)
-				|| !$cmd->isSameAs($live->get($cmd->name));
-		})->values();
-		return $changedOrNewCommands->count();
-	}
-
 	/** Show all currently exposed Discord slash-commands */
 	#[NCA\HandlesCommand("discord slash-commands")]
 	public function listDiscordSlashCommands(
@@ -371,7 +164,7 @@ class DiscordSlashCommandController extends ModuleInstance {
 	): void {
 		$cmds = $this->db->table(self::DB_SLASH_TABLE)
 			->orderBy("cmd")
-			->pluckAs("cmd", "string");
+			->pluckStrings("cmd");
 		$lines = $cmds->map(function (string $cmd): string {
 			$delCommand = $this->text->makeChatcmd(
 				"remove",
@@ -398,10 +191,10 @@ class DiscordSlashCommandController extends ModuleInstance {
 		#[NCA\Str("slash")] string $action,
 		#[NCA\Str("add")] string $subAction,
 		#[NCA\PWord] string ...$commands,
-	): void {
+	): Generator {
 		$cmds = $this->db->table(self::DB_SLASH_TABLE)
 			->orderBy("cmd")
-			->pluckAs("cmd", "string")
+			->pluckStrings("cmd")
 			->toArray();
 		$newCommands = (new Collection($commands))
 			->map(function (string $cmd): string {
@@ -440,7 +233,7 @@ class DiscordSlashCommandController extends ModuleInstance {
 		$cmdText = $newCommands->containsOneItem() ? "command" : "commands";
 		if (!$this->db->table(self::DB_SLASH_TABLE)
 			->insert(
-				$newCommands->map(function(string $cmd): array {
+				$newCommands->map(function (string $cmd): array {
 					return ["cmd" => $cmd];
 				})->toArray()
 			)
@@ -449,22 +242,21 @@ class DiscordSlashCommandController extends ModuleInstance {
 			return;
 		}
 		$context->reply("Trying to add " . $newCommands->count() . " {$cmdText}...");
-		$this->syncSlashCommands(
-			function() use ($newCommands, $context, $cmdText): void {
-				$context->reply(
-					"Successfully registered " . $newCommands->count(). " new ".
-					"Slash-{$cmdText}."
-				);
-			},
-			function(string $errorMsg) use ($newCommands, $context, $cmdText): void {
-				$this->db->table(self::DB_SLASH_TABLE)
-					->whereIn("cmd", $newCommands->toArray())
-					->delete();
-				$context->reply(
-					"Error registering " . $newCommands->count(). " new ".
-					"Slash-{$cmdText}: {$errorMsg}"
-				);
-			}
+		try {
+			yield $this->syncSlashCommands();
+		} catch (Throwable $e) {
+			$this->db->table(self::DB_SLASH_TABLE)
+				->whereIn("cmd", $newCommands->toArray())
+				->delete();
+			$context->reply(
+				"Error registering " . $newCommands->count(). " new ".
+				"Slash-{$cmdText}: " . $e->getMessage()
+			);
+			return;
+		}
+		$context->reply(
+			"Successfully registered " . $newCommands->count(). " new ".
+			"Slash-{$cmdText}."
 		);
 	}
 
@@ -475,10 +267,10 @@ class DiscordSlashCommandController extends ModuleInstance {
 		#[NCA\Str("slash")] string $action,
 		PRemove $subAction,
 		#[NCA\PWord] string ...$commands,
-	): void {
+	): Generator {
 		$cmds = $this->db->table(self::DB_SLASH_TABLE)
 			->orderBy("cmd")
-			->pluckAs("cmd", "string")
+			->pluckStrings("cmd")
 			->toArray();
 		$delCommands = (new Collection($commands))
 			->map(function (string $cmd): string {
@@ -497,25 +289,24 @@ class DiscordSlashCommandController extends ModuleInstance {
 			->whereIn("cmd", $delCommands->toArray())
 			->delete();
 		$context->reply("Trying to remove " . $delCommands->count() . " {$cmdText}...");
-		$this->syncSlashCommands(
-			function() use ($delCommands, $context, $cmdText): void {
-				$context->reply(
-					"Successfully removed " . $delCommands->count(). " ".
-					"Slash-{$cmdText}."
+		try {
+			yield $this->syncSlashCommands();
+		} catch (Throwable $e) {
+			$this->db->table(self::DB_SLASH_TABLE)
+				->insert(
+					$delCommands->map(function (string $cmd): array {
+						return ["cmd" => $cmd];
+					})->toArray()
 				);
-			},
-			function(string $errorMsg) use ($delCommands, $context, $cmdText): void {
-				$this->db->table(self::DB_SLASH_TABLE)
-					->insert(
-						$delCommands->map(function(string $cmd): array {
-							return ["cmd" => $cmd];
-						})->toArray()
-					);
-				$context->reply(
-					"Error removing " . $delCommands->count(). " ".
-					"Slash-{$cmdText}: {$errorMsg}"
-				);
-			}
+			$context->reply(
+				"Error removing " . $delCommands->count(). " ".
+				"Slash-{$cmdText}: " . $e->getMessage()
+			);
+			return;
+		}
+		$context->reply(
+			"Successfully removed " . $delCommands->count(). " ".
+			"Slash-{$cmdText}."
 		);
 	}
 
@@ -529,18 +320,20 @@ class DiscordSlashCommandController extends ModuleInstance {
 		/** @var string[] */
 		$exposedCmds = $this->db->table(self::DB_SLASH_TABLE)
 			->orderBy("cmd")
-			->pluckAs("cmd", "string")
+			->pluckStrings("cmd")
 			->toArray();
+
 		/** @var Collection<CmdCfg> */
 		$cmds = new Collection($this->cmdManager->getAll(false));
+
 		/** @var Collection<string> */
 		$parts = $cmds
 			->sortBy("module")
 			->filter(function (CmdCfg $cmd) use ($exposedCmds): bool {
 				return !in_array($cmd->cmd, $exposedCmds);
 			})->groupBy("module")
-			->map(function(Collection $cmds, string $module): string {
-				$lines = $cmds->sortBy("cmd")->map(function(CmdCfg $cmd): string {
+			->map(function (Collection $cmds, string $module): string {
+				$lines = $cmds->sortBy("cmd")->map(function (CmdCfg $cmd): string {
 					$addLink = $this->text->makeChatcmd(
 						"add",
 						"/tell <myname> discord slash add {$cmd->cmd}"
@@ -557,14 +350,12 @@ class DiscordSlashCommandController extends ModuleInstance {
 		));
 	}
 
-	/**
-	 * Handle an incoming discord channel message
-	 */
+	/** Handle an incoming discord channel message */
 	#[NCA\Event(
 		name: "discord(interaction_create)",
 		description: "Handle Discord slash commands"
 	)]
-	public function handleSlashCommands(DiscordGatewayEvent $event): void {
+	public function handleSlashCommands(DiscordGatewayEvent $event): Generator {
 		$this->logger->info("Received interaction on Discord");
 		$interaction = new Interaction();
 		$interaction->fromJSON($event->payload->d);
@@ -608,7 +399,7 @@ class DiscordSlashCommandController extends ModuleInstance {
 			$cmdMap = $this->cmdManager->getPermsetMapForSource($context->source);
 			if (!isset($cmdMap)) {
 				$this->logger->info("No permission set found for {source}", [
-					"source" => $context->source
+					"source" => $context->source,
 				]);
 				$context->source = Source::DISCORD_PRIV . "({$channel->id})";
 				$cmdMap = $this->cmdManager->getPermsetMapForSource($context->source);
@@ -619,67 +410,254 @@ class DiscordSlashCommandController extends ModuleInstance {
 		}
 		if (!isset($cmdMap)) {
 			$this->logger->info("No permission set found for {source}", [
-				"source" => $context->source
+				"source" => $context->source,
 			]);
 			return;
 		}
 		$context->message = $cmdMap->symbol . $context->message;
-		$this->executeSlashCommand($interaction, $context);
+		yield $this->executeSlashCommand($interaction, $context);
 	}
 
-	/** Execute the given interaction/slash-command */
-	protected function executeSlashCommand(Interaction $interaction, CmdContext $context): void {
-		$discordUserId = $interaction->user->id ?? $interaction->member->user->id ?? null;
-		if ($discordUserId === null) {
-			$this->logger->info("Interaction has no user id set");
-			return;
-		}
-		$sendto = new DiscordSlashCommandReply(
-			$interaction->application_id,
-			$interaction->id,
-			$interaction->token,
-			$interaction->channel_id,
-			$context->isDM(),
-		);
-		Registry::injectDependencies($sendto);
-		$context->sendto = $sendto;
-		$sendto->sendStateUpdate();
-		$userId = $this->gwCmd->getNameForDiscordId($discordUserId);
-		// Create and route an artificial message if slash-commands are
-		// treated like regular commands
-		if (isset($interaction->channel_id)
-			&& $this->discordSlashCommands === self::SLASH_REGULAR
-		) {
-			$this->gw->lookupChannel(
-				$interaction->channel_id,
-				Closure::fromCallable([$this, "createAndRouteSlashCmdChannelMsg"]),
-				$context,
-				$userId ?? $discordUserId
+	/**
+	 * Ensure the global application commands are identical to $registeredCmds
+	 *
+	 * @param ApplicationCommand[] $registeredCmds
+	 *
+	 * @return Promise<void>
+	 */
+	private function updateSlashCommands(array $registeredCmds): Promise {
+		return call(function () use ($registeredCmds): Generator {
+			$this->logger->info("{count} Slash-commands already registered", [
+				"count" => count($registeredCmds),
+			]);
+			$registeredCmds = new Collection($registeredCmds);
+			$commands = new Collection($this->calcSlashCommands());
+
+			$numModifiedCommands = $this->getNumChangedSlashCommands($registeredCmds, $commands);
+			$this->logger->info("{count} Slash-commands need (re-)registering", [
+				"count" => $numModifiedCommands,
+			]);
+
+			if ($registeredCmds->count() === $commands->count() && $numModifiedCommands === 0) {
+				$this->logger->info("No Slash-commands need (re-)registering or deletion");
+				return;
+			}
+			yield $this->setSlashCommands($commands);
+		});
+	}
+
+	/**
+	 * Set the given slash commands without checking if they've changed
+	 *
+	 * @param Collection<ApplicationCommand> $modifiedCommands
+	 *
+	 * @return Promise<void>
+	 */
+	private function setSlashCommands(Collection $modifiedCommands): Promise {
+		return call(function () use ($modifiedCommands): Generator {
+			$appId = $this->gw->getID();
+			if (!isset($appId)) {
+				throw new UserException("Currently not connected to Discord, try again later.");
+			}
+			$cmds = $modifiedCommands->toArray();
+			try {
+				$newCmds = yield $this->api->registerGlobalApplicationCommands(
+					$appId,
+					$this->api->encode($cmds)
+				);
+			} catch (DiscordException $e) {
+				if ($e->getCode() === 403) {
+					throw new UserException("The Discord bot lacks the right to manage slash commands.");
+				}
+				throw $e;
+			}
+			$this->logger->notice(
+				count($newCmds) . " Slash-commands registered successfully."
 			);
+		});
+	}
+
+	/** @return array<string,CmdCfg> */
+	private function getCmdDefinitions(string ...$commands): array {
+		$cfgs = $this->db->table(CommandManager::DB_TABLE)
+			->whereIn("cmd", $commands)
+			->orWhereIn("dependson", $commands)
+			->asObj(CmdCfg::class);
+
+		/** @var Collection<string,CmdCfg> */
+		$mains = $cfgs->where("cmdevent", "cmd")
+			->keyBy("cmd");
+		$cfgs->where("cmdevent", "subcmd")
+			->each(function (CmdCfg $cfg) use ($mains): void {
+				if (!$mains->has($cfg->dependson)) {
+					return;
+				}
+				$mains->get($cfg->dependson)->file .= ",{$cfg->file}";
+			});
+		return $mains->toArray();
+	}
+
+	/** Get the ApplicationCommand-definition for a single NCA\DefineCommand */
+	private function getApplicationCommandForCmdCfg(CmdCfg $cmdCfg): ?ApplicationCommand {
+		$cmd = new ApplicationCommand();
+		$cmd->type = $cmd::TYPE_CHAT_INPUT;
+		$cmd->name = $cmdCfg->cmd;
+		$cmd->description = $cmdCfg->description;
+
+		/** @var int[] */
+		$types = [];
+		$methods = explode(",", $cmdCfg->file);
+		foreach ($methods as $methodDef) {
+			[$class, $method, $line] = preg_split("/[.:]/", $methodDef);
+			$obj = Registry::getInstance($class);
+			if (!isset($obj)) {
+				continue;
+			}
+			$refMethod = new ReflectionMethod($obj, $method);
+			$type = $this->getApplicationCommandOptionType($refMethod);
+			if (isset($type)) {
+				$types []= $type;
+			}
+		}
+		if (empty($types)) {
+			return null;
+		}
+		if (count($types) === 1 && $types[0] === 0) {
+			return $cmd;
 		}
 
-		$this->logger->info("Executing slash-command \"{command}\" from {source}", [
-			"command" => $context->message,
-			"source" => $context->source,
-		]);
-		// Do the actual command execution
-		$execCmd = function() use ($context): void {
-			$this->cmdManager->checkAndHandleCmd($context);
-		};
-		if (!isset($userId)) {
-			$execCmd();
-			return;
+		$option = new ApplicationCommandOption();
+		$option->name = "parameters";
+		$option->description = "Parameters for this command";
+		$option->type = $option::TYPE_STRING;
+		$option->required = min($types) === self::APP_TYPE_REQ_PARAMS;
+		$cmd->options = [$option];
+
+		return $cmd;
+	}
+
+	/**
+	 * Calculate if the given command doesn't require parameters (0), has
+	 * optional parameters (1) or mandatory parameters (2)
+	 *
+	 * @phpstan-return null|self::APP_TYPE_*
+	 */
+	private function getApplicationCommandOptionType(ReflectionMethod $refMethod): ?int {
+		$params = $refMethod->getParameters();
+		if (count($params) === 0
+			|| !$params[0]->hasType()) {
+			return null;
 		}
-		$context->char->name = $userId;
-		$this->chatBot->getUid(
-			$userId,
-			function(?int $uid, CmdContext $context, Closure $execCmd): void {
-				$context->char->id = $uid;
+		$type = $params[0]->getType();
+		if (!($type instanceof ReflectionNamedType)
+			|| ($type->getName() !== CmdContext::class)) {
+			return null;
+		}
+		if (count($params) === 1) {
+			return self::APP_TYPE_NO_PARAMS;
+		}
+
+		$type = self::APP_TYPE_OPT_PARAMS;
+		for ($i = 1; $i < count($params); $i++) {
+			$paramType = $this->getParamOptionType($params[$i], count($params));
+			if ($paramType === null) {
+				return null;
+			}
+			$type = max($type, $paramType);
+		}
+		return $type;
+	}
+
+	/**
+	 * Calculate if the given parameter is optional(1) or mandatory(2)
+	 *
+	 * @phpstan-return null|self::APP_TYPE_OPT_PARAMS|self::APP_TYPE_REQ_PARAMS
+	 */
+	private function getParamOptionType(ReflectionParameter $param, int $numParams): ?int {
+		if (!$param->hasType()) {
+			return null;
+		}
+		$type = $param->getType();
+		if (!($type instanceof ReflectionNamedType)) {
+			return null;
+		}
+		if (!$type->isBuiltin() && !is_subclass_of($type->getName(), Base::class)) {
+			return null;
+		}
+		if ($param->allowsNull()) {
+			return self::APP_TYPE_OPT_PARAMS;
+		}
+		return self::APP_TYPE_REQ_PARAMS;
+	}
+
+	/**
+	 * Calculate how many commands in $set have change relatively to $live
+	 *
+	 * @param Collection<ApplicationCommand> $live
+	 * @param Collection<ApplicationCommand> $set
+	 */
+	private function getNumChangedSlashCommands(Collection $live, Collection $set): int {
+		$live = $live->keyBy("name");
+		$changedOrNewCommands = $set->filter(function (ApplicationCommand $cmd) use ($live): bool {
+			return !$live->has($cmd->name)
+				|| !$cmd->isSameAs($live->get($cmd->name));
+		})->values();
+		return $changedOrNewCommands->count();
+	}
+
+	/**
+	 * Execute the given interaction/slash-command
+	 *
+	 * @return Promise<void>
+	 */
+	private function executeSlashCommand(Interaction $interaction, CmdContext $context): Promise {
+		return call(function () use ($interaction, $context): Generator {
+			$discordUserId = $interaction->user->id ?? $interaction->member->user->id ?? null;
+			if ($discordUserId === null) {
+				$this->logger->info("Interaction has no user id set");
+				return;
+			}
+			$sendto = new DiscordSlashCommandReply(
+				$interaction->application_id,
+				$interaction->id,
+				$interaction->token,
+				$interaction->channel_id,
+				$context->isDM(),
+			);
+			Registry::injectDependencies($sendto);
+			$context->sendto = $sendto;
+			$sendto->sendStateUpdate();
+			$userId = $this->gwCmd->getNameForDiscordId($discordUserId);
+			// Create and route an artificial message if slash-commands are
+			// treated like regular commands
+			if (isset($interaction->channel_id)
+				&& $this->discordSlashCommands === self::SLASH_REGULAR
+			) {
+				$this->gw->lookupChannel(
+					$interaction->channel_id,
+					Closure::fromCallable([$this, "createAndRouteSlashCmdChannelMsg"]),
+					$context,
+					$userId ?? $discordUserId
+				);
+			}
+
+			$this->logger->info("Executing slash-command \"{command}\" from {source}", [
+				"command" => $context->message,
+				"source" => $context->source,
+			]);
+			// Do the actual command execution
+			$execCmd = function () use ($context): void {
+				$this->cmdManager->checkAndHandleCmd($context);
+			};
+			if (!isset($userId)) {
 				$execCmd();
-			},
-			$context,
-			$execCmd
-		);
+				return;
+			}
+			$context->char->name = $userId;
+			$uid = yield $this->chatBot->getUid2($userId);
+			$context->char->id = $uid;
+			$execCmd();
+		});
 	}
 
 	/**

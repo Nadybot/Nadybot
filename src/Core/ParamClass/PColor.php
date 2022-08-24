@@ -5,6 +5,7 @@ namespace Nadybot\Core\ParamClass;
 class PColor extends Base {
 	protected static string $regExp = "(?:<font\s+color\s*=\s*['\"]?)?#?[a-fA-F0-9]{6}(?:['\"]?[^>]*>)?";
 	protected string $value;
+
 	/** Just the hex code like AA00FF */
 	protected string $code;
 
@@ -21,6 +22,14 @@ class PColor extends Base {
 		$this->html = "<font color={$this->hex}>";
 	}
 
+	public function __invoke(): string {
+		return $this->value;
+	}
+
+	public function __toString(): string {
+		return $this->value;
+	}
+
 	/** Just the hex code like AA00FF */
 	public function getCode(): string {
 		return $this->code;
@@ -34,13 +43,5 @@ class PColor extends Base {
 	/** The full html tag: <font color=#AA00FF> */
 	public function getHTML(): string {
 		return $this->html;
-	}
-
-	public function __invoke(): string {
-		return $this->value;
-	}
-
-	public function __toString(): string {
-		return $this->value;
 	}
 }

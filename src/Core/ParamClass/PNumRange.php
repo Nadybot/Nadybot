@@ -3,13 +3,13 @@
 namespace Nadybot\Core\ParamClass;
 
 class PNumRange extends Base {
-	protected static string $regExp = "\d+\s*-\s*\d+";
-	protected string $value;
-
 	/** The smaller value */
 	public int $low;
+
 	/** The bigger value */
 	public int $high;
+	protected static string $regExp = "\d+\s*-\s*\d+";
+	protected string $value;
 
 	public function __construct(string $value) {
 		[$low, $high] = \Safe\preg_split("/\s*-\s*/", $value);

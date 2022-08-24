@@ -5,10 +5,7 @@ declare(strict_types=1);
 namespace Nadybot\Core\Modules\MESSAGES;
 
 use Exception;
-use Safe\Exceptions\JsonException;
-use ReflectionClass;
-use ReflectionException;
-use Throwable;
+use Generator;
 use Illuminate\Support\Collection;
 use Monolog\Logger;
 use Nadybot\Core\{
@@ -22,19 +19,23 @@ use Nadybot\Core\{
 	DBSchema\RouteHopFormat,
 	DBSchema\RouteModifier,
 	DBSchema\RouteModifierArgument,
-	ModuleInstance,
 	LoggerWrapper,
 	MessageEmitter,
 	MessageHub,
 	MessageRoute,
+	ModuleInstance,
 	Nadybot,
 	ParamClass\PColor,
 	ParamClass\PRemove,
+	Routing\Source,
 	SettingManager,
 	Text,
 	Util,
-	Routing\Source,
 };
+use ReflectionClass;
+use ReflectionException;
+use Safe\Exceptions\JsonException;
+use Throwable;
 
 /**
  * @author Nadyita (RK5)
@@ -87,7 +88,7 @@ class MessageHubController extends ModuleInstance {
 		$this->db->table($this->messageHub::DB_TABLE_ROUTES)
 			->orderBy("id")
 			->asObj(Route::class)
-			->each(function(Route $route) use ($modifiers): void {
+			->each(function (Route $route) use ($modifiers): void {
 				$route->modifiers = $modifiers->get($route->id, new Collection())->toArray();
 				try {
 					$msgRoute = $this->messageHub->createMessageRoute($route);
@@ -99,18 +100,82 @@ class MessageHubController extends ModuleInstance {
 		$this->messageHub->routingLoaded = true;
 	}
 
-	protected function fixDiscordChannelName(string $name): string {
-		if (!preg_match("/^discordpriv\((\d+?)\)$/", $name, $matches)) {
-			return str_replace(["&lt;", "&gt;"], ["<", ">"], $name);
+	/** Mute an existing route for a given period of time */
+	#[NCA\HandlesCommand("route")]
+	#[NCA\Help\Example(
+		"<symbol>route mute 17 1h",
+		"Disable route #17 for 1 hour"
+	)]
+	public function routeMuteIdCommand(
+		CmdContext $context,
+		#[NCA\Str("mute", "disable")] string $action,
+		int $id,
+		#[NCA\PDuration] #[NCA\Str("off")] string $duration
+	): void {
+		$route = $this->getMsgRoute($id);
+		if (!isset($route)) {
+			$context->reply("No route <highlight>#{$id}<end> found.");
+			return;
 		}
-		$emitters = $this->messageHub->getEmitters();
-		foreach ($emitters as $emitter) {
-			if ($emitter instanceof DiscordChannel
-				&& ($emitter->getChannelID() === $matches[1])) {
-				return $emitter->getChannelName();
-			}
+		$from = $route->getSource();
+		$to = $route->getDest();
+		$direction = $route->getTwoWay() ? "&lt;-&gt;" : "-&gt;";
+		if (strtolower($duration) === "off") {
+			$route->unmute();
+			$context->reply(
+				"Route {$from} {$direction} {$to} <on>enabled<end> again"
+			);
+			$this->db->table(MessageHub::DB_TABLE_ROUTES)
+				->where("id", $route->getID())
+				->update(["disabled_until" => null]);
+			return;
 		}
-		return $name;
+		$durationSecs = $this->util->parseTime($duration);
+		if ($durationSecs === 0) {
+			$context->reply("<highlight>{$duration}<end> is not a valid duration.");
+			return;
+		}
+		$route->disable($durationSecs);
+		$this->db->table(MessageHub::DB_TABLE_ROUTES)
+			->where("id", $route->getID())
+			->update(["disabled_until" => time() + $durationSecs]);
+		$context->reply(
+			"Route {$from} {$direction} {$to} <off>muted<end> ".
+			"for <highlight>{$duration}<end>."
+		);
+	}
+
+	/** Mute an existing route by choosing how long */
+	#[NCA\HandlesCommand("route")]
+	public function routeMuteCommand(
+		CmdContext $context,
+		#[NCA\Str("mute", "disable")] string $action,
+		int $id,
+	): void {
+		$route = $this->getMsgRoute($id);
+		if (!isset($route)) {
+			$context->reply("No route <highlight>#{$id}<end> found.");
+			return;
+		}
+		$durations = [60, 300, 600, 1800, 3600, 6*3600, 24*3600];
+		$blob = "<header2>Choose mute duration<end>";
+		foreach ($durations as $durationInSecs) {
+			$timeString = $this->util->unixtimeToReadable($durationInSecs);
+			$command = $this->text->makeChatcmd(
+				"{$timeString}",
+				"/tell <myname> route mute {$id} {$durationInSecs}s"
+			);
+			$blob .= "\n<tab>[{$command}]";
+		}
+		$from = $route->getSource();
+		$to = $route->getDest();
+		$direction = $route->getTwoWay() ? "&lt;-&gt;" : "-&gt;";
+		$context->reply(
+			$this->text->makeBlob(
+				"Choose how long to mute {$from} {$direction} {$to}",
+				$blob
+			)
+		);
 	}
 
 	/** Create a new route from &lt;from&gt; to &lt;to&gt; with optional modifiers */
@@ -144,7 +209,7 @@ class MessageHubController extends ModuleInstance {
 		PDirection $direction,
 		PSource $to,
 		?string $modifiers
-	): void {
+	): Generator {
 		$force = (strtolower($action) === "addforce");
 		$to = $this->fixDiscordChannelName($to());
 		$from = $this->fixDiscordChannelName($from());
@@ -159,9 +224,10 @@ class MessageHubController extends ModuleInstance {
 			$context->reply("Unknown target <highlight>{$to}<end>.");
 			return;
 		}
+
 		/** @var Collection<MessageEmitter> */
 		$senders = new Collection($this->messageHub->getEmitters());
-		$hasSender = $senders->first(function(MessageEmitter $e) use ($from) {
+		$hasSender = $senders->first(function (MessageEmitter $e) use ($from) {
 			return fnmatch($e->getChannelName(), $from, FNM_CASEFOLD)
 				|| fnmatch($from, $e->getChannelName(), FNM_CASEFOLD);
 		});
@@ -189,13 +255,9 @@ class MessageHubController extends ModuleInstance {
 				return;
 			}
 		}
+
 		/** @var null|RouteModifier[] $modifiers */
-		$transactionRunning = false;
-		try {
-			$this->db->beginTransaction();
-		} catch (Exception $e) {
-			$transactionRunning = true;
-		}
+		yield $this->db->awaitBeginTransaction();
 		try {
 			$route->id = $this->db->insert($this->messageHub::DB_TABLE_ROUTES, $route);
 			foreach ($modifiers??[] as $modifier) {
@@ -214,9 +276,6 @@ class MessageHubController extends ModuleInstance {
 				$route->modifiers []= $modifier;
 			}
 		} catch (Throwable $e) {
-			if ($transactionRunning) {
-				throw $e;
-			}
 			$this->db->rollback();
 			$context->reply("Error saving the route: " . $e->getMessage());
 			return;
@@ -228,16 +287,11 @@ class MessageHubController extends ModuleInstance {
 		try {
 			$msgRoute = $this->messageHub->createMessageRoute($route);
 		} catch (Exception $e) {
-			if ($transactionRunning) {
-				throw $e;
-			}
 			$this->db->rollback();
 			$context->reply($e->getMessage());
 			return;
 		}
-		if (!$transactionRunning) {
-			$this->db->commit();
-		}
+		$this->db->commit();
 		$this->messageHub->addRoute($msgRoute);
 		$context->reply(
 			"Route added from <highlight>{$from}<end> ".
@@ -368,15 +422,16 @@ class MessageHubController extends ModuleInstance {
 
 	/** Delete a route by its ID */
 	#[NCA\HandlesCommand("route")]
-	public function routeDel(CmdContext $context, PRemove $action, int $id): void {
+	public function routeDel(CmdContext $context, PRemove $action, int $id): Generator {
 		$route = $this->getRoute($id);
 		if (!isset($route)) {
 			$context->reply("No route <highlight>#{$id}<end> found.");
 			return;
 		}
+
 		/** @var int[] List of modifier-ids for the route */
 		$modifiers = array_column($route->modifiers, "id");
-		$this->db->beginTransaction();
+		yield $this->db->awaitBeginTransaction();
 		try {
 			if (count($modifiers)) {
 				$this->db->table($this->messageHub::DB_TABLE_ROUTE_MODIFIER_ARGUMENT)
@@ -400,7 +455,7 @@ class MessageHubController extends ModuleInstance {
 				"Route #{$id} (" . $this->renderRoute($deleted) . ") deleted."
 			);
 		} else {
-			$context->reply("Route <highlight>#${id}<end> deleted.");
+			$context->reply("Route <highlight>#{$id}<end> deleted.");
 		}
 	}
 
@@ -413,12 +468,18 @@ class MessageHubController extends ModuleInstance {
 			return;
 		}
 		$list = [];
-		usort($routes, function(MessageRoute $route1, MessageRoute $route2): int {
+		usort($routes, function (MessageRoute $route1, MessageRoute $route2): int {
 			return strcmp($route1->getSource(), $route2->getSource());
 		});
 		foreach ($routes as $route) {
 			$delLink = $this->text->makeChatcmd("delete", "/tell <myname> route del " . $route->getID());
-			$list []="[{$delLink}] " . $this->renderRoute($route);
+			$disabledUntil = $route->getDisabled();
+			$isDisabled = isset($disabledUntil) && $disabledUntil > time();
+			$disableLink = $this->text->makeChatcmd("mute", "/tell <myname> route mute " . $route->getID());
+			if ($isDisabled) {
+				$disableLink = $this->text->makeChatcmd("unmute", "/tell <myname> route mute " . $route->getID() . " off");
+			}
+			$list []="[{$delLink}] [{$disableLink}] " . $this->renderRoute($route);
 		}
 		$blob = "<header2>Active routes<end>\n<tab>";
 		$blob .= join("\n<tab>", $list);
@@ -456,6 +517,7 @@ class MessageHubController extends ModuleInstance {
 			}
 			$numShown++;
 		}
+
 		/** @var array<string,MessageRoute[]> $grouped */
 		$result = [];
 		foreach ($grouped as $receiver => $recRoutes) {
@@ -472,9 +534,20 @@ class MessageHubController extends ModuleInstance {
 				if ($route->getTwoWay() && (strcasecmp($route->getSource(), $receiver) === 0)) {
 					$routeName = $route->getDest();
 				}
+				$disabledUntil = $route->getDisabled();
+				$isDisabled = isset($disabledUntil) && $disabledUntil > time();
+				$disableLink = $this->text->makeChatcmd("mute", "/tell <myname> route mute " . $route->getID());
+				if ($isDisabled) {
+					$disableLink = $this->text->makeChatcmd("unmute", "/tell <myname> route mute " . $route->getID() . " off");
+				}
 				$result[$receiver][$routeName] ??= [];
-				$result[$receiver][$routeName] []= "<tab>{$arrow} [{$delLink}] <highlight>{$routeName}<end> ".
-					join(" ", $route->renderModifiers(true));
+				$result[$receiver][$routeName] []= "<tab>{$arrow} [{$delLink}] [{$disableLink}] <highlight>{$routeName}<end> ".
+					join(" ", $route->renderModifiers(true)).
+					(
+						$isDisabled
+						? " (<red>muted for " . $this->util->unixtimeToReadable($disabledUntil - time()) . "<end>)"
+						: ""
+					);
 			}
 		}
 		$blobs = [];
@@ -593,10 +666,12 @@ class MessageHubController extends ModuleInstance {
 		if (isset($where)) {
 			$where = $this->fixDiscordChannelName($where());
 		}
+
 		/** @var ?string $where */
 		if (isset($via)) {
 			$via = $this->fixDiscordChannelName($via());
 		}
+
 		/** @var ?string $via */
 		$color = $this->getHopColor($tag, $where??null, $via??null);
 		$name = $tag;
@@ -881,9 +956,12 @@ class MessageHubController extends ModuleInstance {
 
 	/** Remove all routes. Do not use unless you know what you are doing */
 	#[NCA\HandlesCommand("route")]
-	public function routeRemAllCommand(CmdContext $context, #[NCA\Str("remall")] string $action): void {
+	public function routeRemAllCommand(
+		CmdContext $context,
+		#[NCA\Str("remall")] string $action
+	): Generator {
 		try {
-			$numDeleted = $this->messageHub->deleteAllRoutes();
+			$numDeleted = yield $this->messageHub->deleteAllRoutes();
 		} catch (Exception $e) {
 			$context->reply("Unknown error clearing the routing table: " . $e->getMessage());
 			return;
@@ -894,7 +972,7 @@ class MessageHubController extends ModuleInstance {
 	/** Turn on/off rendering of a specific hop */
 	public function setHopRender(string $hop, bool $state): void {
 		/** @var ?RouteHopFormat */
-		$format = Source::$format->first(fn(RouteHopFormat $x) => $x->hop === $hop);
+		$format = Source::$format->first(fn (RouteHopFormat $x) => $x->hop === $hop);
 		$update = true;
 		if (!isset($format)) {
 			$format = new RouteHopFormat();
@@ -916,7 +994,8 @@ class MessageHubController extends ModuleInstance {
 		if (preg_match("/%[^%]/", $format)) {
 			$_ignore = sprintf($format, "text");
 		}
-		$spec = Source::$format->first(fn(RouteHopFormat $x) => $x->hop === $hop);
+		$spec = Source::$format->first(fn (RouteHopFormat $x) => $x->hop === $hop);
+
 		/** @var ?RouteHopFormat $spec */
 		$update = true;
 		if (!isset($spec)) {
@@ -935,7 +1014,7 @@ class MessageHubController extends ModuleInstance {
 
 	public function clearHopFormat(string $hop): bool {
 		/** @var ?RouteHopFormat */
-		$format = Source::$format->first(fn(RouteHopFormat $x) => $x->hop === $hop);
+		$format = Source::$format->first(fn (RouteHopFormat $x) => $x->hop === $hop);
 		if (!isset($format)) {
 			return false;
 		}
@@ -994,13 +1073,29 @@ class MessageHubController extends ModuleInstance {
 		return $route;
 	}
 
+	public function getMsgRoute(int $id): ?MessageRoute {
+		$routes = $this->messageHub->getRoutes();
+		foreach ($routes as $route) {
+			if ($route->getID() === $id) {
+				return $route;
+			}
+		}
+		return null;
+	}
+
 	/** Render the route $route into a single line of text */
 	public function renderRoute(MessageRoute $route): string {
 		$from = $route->getSource();
 		$to = $route->getDest();
 		$direction = $route->getTwoWay() ? "&lt;-&gt;" : "-&gt;";
-		return "<highlight>{$from}<end> {$direction} <highlight>{$to}<end> ".
+
+		$routeString = "<highlight>{$from}<end> {$direction} <highlight>{$to}<end> ".
 			join(" ", $route->renderModifiers(true));
+		$disabledUntil = $route->getDisabled();
+		if (isset($disabledUntil) && $disabledUntil > time()) {
+			$routeString .= "(<red>muted for " . $this->util->unixtimeToReadable($disabledUntil - time()) ."<end>)";
+		}
+		return $routeString;
 	}
 
 	/** Get the type (the part before the bracket) of an emitter */
@@ -1015,12 +1110,13 @@ class MessageHubController extends ModuleInstance {
 
 	/**
 	 * Render a blob for an emitter group
+	 *
 	 * @param Collection<MessageEmitter> $values
 	 */
 	public function renderEmitterGroup(Collection $values, string $group): string {
 		if ($group === Source::LOG) {
 			// Log group is sorted by severity, descending
-			$values = $values->sort(function(MessageEmitter $e1, MessageEmitter $e2): int {
+			$values = $values->sort(function (MessageEmitter $e1, MessageEmitter $e2): int {
 				$l1 = 0;
 				if (preg_match("/\((.+)\)$/", $e1->getChannelName(), $matches)) {
 					try {
@@ -1041,7 +1137,7 @@ class MessageHubController extends ModuleInstance {
 			});
 		}
 		return "<header2>{$group}<end>\n<tab>".
-			$values->map(function(MessageEmitter $emitter): string {
+			$values->map(function (MessageEmitter $emitter): string {
 				$name = htmlentities($emitter->getChannelName());
 				if ($emitter instanceof DiscordChannel) {
 					if (!preg_match("/^[[:graph:]]+$/s", $name)) {
@@ -1051,5 +1147,19 @@ class MessageHubController extends ModuleInstance {
 				return $name;
 			})
 			->join("\n<tab>");
+	}
+
+	protected function fixDiscordChannelName(string $name): string {
+		if (!preg_match("/^discordpriv\((\d+?)\)$/", $name, $matches)) {
+			return str_replace(["&lt;", "&gt;"], ["<", ">"], $name);
+		}
+		$emitters = $this->messageHub->getEmitters();
+		foreach ($emitters as $emitter) {
+			if ($emitter instanceof DiscordChannel
+				&& ($emitter->getChannelID() === $matches[1])) {
+				return $emitter->getChannelName();
+			}
+		}
+		return $name;
 	}
 }

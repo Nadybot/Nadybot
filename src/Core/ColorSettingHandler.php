@@ -2,25 +2,21 @@
 
 namespace Nadybot\Core;
 
+use Exception;
 use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\Modules\COLORS\ColorsController;
-use Exception;
 
 /**
  * Class to represent a setting with a color value for NadyBot
  */
 #[NCA\SettingHandler("color")]
 class ColorSettingHandler extends SettingHandler {
-	/**
-	 * Get a displayable representation of the setting
-	 */
+	/** Get a displayable representation of the setting */
 	public function displayValue(string $sender): string {
 		return ($this->row->value??"<font>") . htmlspecialchars($this->row->value??"") . "</font>";
 	}
 
-	/**
-	 * Describe the valid values for this setting
-	 */
+	/** Describe the valid values for this setting */
 	public function getDescription(): string {
 		$msg = "For this setting you can set any Color in the HTML Hexadecimal Color Format.\n";
 		$msg .= "You can change it manually with the command: \n\n";
@@ -91,7 +87,7 @@ class ColorSettingHandler extends SettingHandler {
 	 */
 	public function save(string $newValue): string {
 		if (preg_match("/^#([0-9a-f]{6})$/i", $newValue)) {
-			return "<font color='$newValue'>";
+			return "<font color='{$newValue}'>";
 		} elseif (preg_match("/^<font color='#[0-9a-f]{6}'>$/i", $newValue)) {
 			return $newValue;
 		}

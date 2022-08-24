@@ -46,6 +46,7 @@ class DiscController extends ModuleInstance {
 
 	/**
 	 * Get the instruction disc from its name and return an array with results
+	 *
 	 * @return Disc[] An array of database entries that matched
 	 */
 	public function getDiscsByName(string $discName): array {
@@ -54,9 +55,7 @@ class DiscController extends ModuleInstance {
 		return $query->asObj(Disc::class)->toArray();
 	}
 
-	/**
-	 * Get the instruction disc from its id and return the result or null
-	 */
+	/** Get the instruction disc from its id and return the result or null */
 	public function getDiscById(int $discId): ?Disc {
 		return $this->db->table("discs")
 			->where("disc_id", $discId)
@@ -64,9 +63,7 @@ class DiscController extends ModuleInstance {
 			->first();
 	}
 
-	/**
-	 * Show what nano a disc will turn into
-	 */
+	/** Show what nano a disc will turn into */
 	#[NCA\HandlesCommand("disc")]
 	#[NCA\Help\Example("<symbol>disc <a href=itemref://163410/163410/139>Instruction Disc (Tranquility of the Vale)</a>")]
 	public function discByItemCommand(CmdContext $context, PItem $item): void {
@@ -80,9 +77,7 @@ class DiscController extends ModuleInstance {
 		$this->discCommand($context, $disc);
 	}
 
-	/**
-	 * Show what nano a disc will turn into
-	 */
+	/** Show what nano a disc will turn into */
 	#[NCA\HandlesCommand("disc")]
 	#[NCA\Help\Example("<symbol>disc tranquility vale")]
 	public function discByNameCommand(CmdContext $context, string $search): void {
@@ -126,9 +121,7 @@ class DiscController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
-	/**
-	 * Get additional information about the nano of a disc
-	 */
+	/** Get additional information about the nano of a disc */
 	public function getNanoDetails(Disc $disc): ?NanoDetails {
 		return $this->db->table("nanos")
 			->where("crystal_id", $disc->crystal_id)
@@ -139,7 +132,9 @@ class DiscController extends ModuleInstance {
 
 	/**
 	 * Generate a choice dialogue if multiple discs match the search criteria
+	 *
 	 * @param Disc[] $discs The discs that matched the search
+	 *
 	 * @return string[]
 	 */
 	public function getDiscChoiceDialogue(array $discs): array {
@@ -155,12 +150,12 @@ class DiscController extends ModuleInstance {
 		);
 		if (is_array($msg)) {
 			return array_map(
-				function($blob) {
-					return "Found ${blob}.";
+				function ($blob) {
+					return "Found {$blob}.";
 				},
 				$msg
 			);
 		}
-		return ["Found ${msg}."];
+		return ["Found {$msg}."];
 	}
 }

@@ -56,9 +56,7 @@ class ChatSayController extends ModuleInstance {
 	#[NCA\Setting\Color]
 	public string $bcmTellColor = "#FFFF00";
 
-	/**
-	 * Have the bot say something in the org channel
-	 */
+	/** Have the bot say something in the org channel */
 	#[NCA\HandlesCommand("say")]
 	public function sayOrgCommand(CmdContext $context, #[NCA\Str("org")] string $channel, string $message): void {
 		if (!$this->chatLeaderController->checkLeaderAccess($context->char->name)) {
@@ -73,9 +71,7 @@ class ChatSayController extends ModuleInstance {
 		$this->eventManager->fireEvent($event);
 	}
 
-	/**
-	 * Have the bot say something in the private channel
-	 */
+	/** Have the bot say something in the private channel */
 	#[NCA\HandlesCommand("say")]
 	public function sayPrivCommand(CmdContext $context, #[NCA\Str("priv")] string $channel, string $message): void {
 		if (!$this->chatLeaderController->checkLeaderAccess($context->char->name)) {
@@ -90,9 +86,7 @@ class ChatSayController extends ModuleInstance {
 		$this->eventManager->fireEvent($event);
 	}
 
-	/**
-	 * Show a highly visible message
-	 */
+	/** Show a highly visible message */
 	#[NCA\HandlesCommand("cmd")]
 	#[NCA\Help\Group("cmd")]
 	public function cmdCommand(CmdContext $context, string $message): void {
@@ -118,9 +112,7 @@ class ChatSayController extends ModuleInstance {
 		$this->eventManager->fireEvent($event);
 	}
 
-	/**
-	 * Repeat a message 3 times
-	 */
+	/** Repeat a message 3 times */
 	#[NCA\HandlesCommand("tell")]
 	#[NCA\Help\Group("cmd")]
 	public function tellCommand(CmdContext $context, string $message): void {

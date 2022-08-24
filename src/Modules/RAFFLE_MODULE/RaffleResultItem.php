@@ -13,7 +13,7 @@ class RaffleResultItem {
 	}
 
 	public function decreasePoints(): int {
-		return ($this->points = max(0, $this->points-1));
+		return $this->points = max(0, $this->points-1);
 	}
 
 	public function increasePoints(): int {

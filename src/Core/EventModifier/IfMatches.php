@@ -12,8 +12,7 @@ use Nadybot\Core\{
 #[
 	NCA\EventModifier(
 		name: "if-matches",
-		description:
-			"This modifier will only route messages if they contain\n".
+		description: "This modifier will only route messages if they contain\n".
 			"a certain text."
 	),
 	NCA\Param(
@@ -50,9 +49,7 @@ class IfMatches implements EventModifier {
 	protected bool $isRegexp = false;
 	protected bool $inverse = false;
 
-	/**
-	 * @param string[] $text
-	 */
+	/** @param string[] $text */
 	public function __construct(array $text, bool $caseSensitive=false, bool $isRegexp=false, bool $inverse=false) {
 		$this->text = $text;
 		$this->caseSensitive = $caseSensitive;
@@ -65,6 +62,22 @@ class IfMatches implements EventModifier {
 				throw new Exception("Invalid regular expression '{$match}': {$error}.");
 			}
 		}
+	}
+
+	public function modify(?RoutableEvent $event=null): ?RoutableEvent {
+		if (!isset($event)) {
+			return $event;
+		}
+		// We only check messages, not events
+		if ($event->getType() !== $event::TYPE_MESSAGE) {
+			return $event;
+		}
+		$message = $event->getData();
+		$matches = $this->matches($message);
+		if ($matches === $this->inverse) {
+			return null;
+		}
+		return $event;
 	}
 
 	protected function matches(string $message): bool {
@@ -88,21 +101,5 @@ class IfMatches implements EventModifier {
 			}
 		}
 		return false;
-	}
-
-	public function modify(?RoutableEvent $event=null): ?RoutableEvent {
-		if (!isset($event)) {
-			return $event;
-		}
-		// We only check messages, not events
-		if ($event->getType() !== $event::TYPE_MESSAGE) {
-			return $event;
-		}
-		$message = $event->getData();
-		$matches = $this->matches($message);
-		if ($matches === $this->inverse) {
-			return null;
-		}
-		return $event;
 	}
 }

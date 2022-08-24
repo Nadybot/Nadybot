@@ -21,13 +21,6 @@ class MigrateToRouting implements SchemaMigration {
 	#[NCA\Inject]
 	public ConfigFile $config;
 
-	protected function getSetting(DB $db, string $name): ?Setting {
-		return $db->table(SettingManager::DB_TABLE)
-			->where("name", $name)
-			->asObj(Setting::class)
-			->first();
-	}
-
 	public function migrate(LoggerWrapper $logger, DB $db): void {
 		$table = $this->messageHub::DB_TABLE_ROUTES;
 		$tradebot = $this->getSetting($db, 'tradebot');
@@ -54,5 +47,12 @@ class MigrateToRouting implements SchemaMigration {
 			];
 			$db->table($table)->insert($route);
 		}
+	}
+
+	protected function getSetting(DB $db, string $name): ?Setting {
+		return $db->table(SettingManager::DB_TABLE)
+			->where("name", $name)
+			->asObj(Setting::class)
+			->first();
 	}
 }

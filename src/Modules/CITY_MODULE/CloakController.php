@@ -10,9 +10,9 @@ use Nadybot\Core\{
 	DB,
 	Event,
 	EventManager,
-	ModuleInstance,
 	MessageEmitter,
 	MessageHub,
+	ModuleInstance,
 	Modules\ALTS\AltsController,
 	Nadybot,
 	Registry,
@@ -112,6 +112,7 @@ class CloakController extends ModuleInstance implements MessageEmitter {
 			$context->reply($msg);
 			return;
 		}
+
 		/** @var OrgCity $row */
 		$row = $data->shift();
 		$timeSinceChange = time() - $row->time;
@@ -120,11 +121,11 @@ class CloakController extends ModuleInstance implements MessageEmitter {
 		if ($timeSinceChange >= 3600 && $row->action === "off") {
 			$msg = "The cloaking device is <off>disabled<end>. It is possible to enable it.";
 		} elseif ($timeSinceChange < 3600 && $row->action === "off") {
-			$msg = "The cloaking device is <off>disabled<end>. It is possible in $timeString to enable it.";
+			$msg = "The cloaking device is <off>disabled<end>. It is possible in {$timeString} to enable it.";
 		} elseif ($timeSinceChange >= 3600 && $row->action === "on") {
 			$msg = "The cloaking device is <on>enabled<end>. It is possible to disable it.";
 		} elseif ($timeSinceChange < 3600 && $row->action === "on") {
-			$msg = "The cloaking device is <on>enabled<end>. It is possible in $timeString to disable it.";
+			$msg = "The cloaking device is <on>enabled<end>. It is possible in {$timeString} to disable it.";
 		} else {
 			$msg = "The cloaking device is in an unknown state.";
 		}
@@ -226,9 +227,9 @@ class CloakController extends ModuleInstance implements MessageEmitter {
 			// disabled past the the time that the cloaking device could be enabled.
 			$interval = $this->cloakReminderInterval;
 			// @phpstan-ignore-next-line
-			if ($timeSinceChange >= 60*60 && ($timeSinceChange % $interval >= 0 && $timeSinceChange % $interval <= 60 )) {
+			if ($timeSinceChange >= 60*60 && ($timeSinceChange % $interval >= 0 && $timeSinceChange % $interval <= 60)) {
 				$timeString = $this->util->unixtimeToReadable(time() - $row->time, false);
-				$this->sendCloakMessage("The cloaking device was disabled by <highlight>{$row->player}<end> $timeString ago. It is possible to enable it.");
+				$this->sendCloakMessage("The cloaking device was disabled by <highlight>{$row->player}<end> {$timeString} ago. It is possible to enable it.");
 			}
 		} elseif ($row->action === "on") {
 			if ($timeSinceChange >= 60*60 && $timeSinceChange < 61*60) {
@@ -253,12 +254,12 @@ class CloakController extends ModuleInstance implements MessageEmitter {
 		$msg = null;
 		// 10 minutes before, send tell to player
 		if ($timeSinceChange >= 49*60 && $timeSinceChange <= 50*60) {
-			$msg = "The cloaking device is <off>disabled<end>. It is possible in $timeString to enable it.";
+			$msg = "The cloaking device is <off>disabled<end>. It is possible in {$timeString} to enable it.";
 		} elseif ($timeSinceChange >= 58*60 && $timeSinceChange <= 59*60) {
 			// 1 minute before send tell to player
-			$msg = "The cloaking device is <off>disabled<end>. It is possible in $timeString to enable it.";
+			$msg = "The cloaking device is <off>disabled<end>. It is possible in {$timeString} to enable it.";
 		// @phpstan-ignore-next-line
-		} elseif ($timeSinceChange >= 59*60 && ($timeSinceChange % (60*5) >= 0 && $timeSinceChange % (60*5) <= 60 )) {
+		} elseif ($timeSinceChange >= 59*60 && ($timeSinceChange % (60*5) >= 0 && $timeSinceChange % (60*5) <= 60)) {
 			// when cloak can be raised, send tell to player and
 			// every 5 minutes after, send tell to player
 			$msg = "The cloaking device is <off>disabled<end>. Please enable it now.";
@@ -296,6 +297,26 @@ class CloakController extends ModuleInstance implements MessageEmitter {
 		}
 	}
 
+	#[
+		NCA\NewsTile(
+			name: "cloak-status",
+			description: "Shows the current status of the city cloak, if and when\n".
+				"new raids can be initiated",
+			example: "<header2>City<end>\n".
+				"<tab>The cloaking device is <on>enabled<end>. It is possible to disable it."
+		)
+	]
+	public function cloakStatusTile(string $sender, callable $callback): void {
+		$data = $this->getCloakStatus();
+		if (!isset($data)) {
+			$callback(null);
+			return;
+		}
+		[$case, $msg] = $data;
+		$msg = "<header2>City<end>\n<tab>{$msg}";
+		$callback($msg);
+	}
+
 	/**
 	 * @return null|array<int|string>
 	 * @psalm-return null|array{0:int,1:string}
@@ -312,7 +333,7 @@ class CloakController extends ModuleInstance implements MessageEmitter {
 
 		if ($timeSinceChange >= 60*60 && $row->action === "off") {
 			return [1, "The cloaking device is <off>disabled<end>. ".
-				"It is possible to enable it."];
+				"It is possible to enable it.", ];
 		} elseif ($timeSinceChange < 60*30 && $row->action === "off") {
 			$msg = "RAID IN PROGRESS, <red>DO NOT ENTER CITY!<end>";
 			$wave = $this->cityWaveController->getWave();
@@ -324,36 +345,14 @@ class CloakController extends ModuleInstance implements MessageEmitter {
 			return [1, $msg];
 		} elseif ($timeSinceChange < 60*60 && $row->action === "off") {
 			return [1, "Cloaking device is <off>disabled<end>. ".
-				"It is possible in <highlight>$timeString<end> to enable it."];
+				"It is possible in <highlight>{$timeString}<end> to enable it.", ];
 		} elseif ($timeSinceChange >= 60*60 && $row->action === "on") {
 			return [2, "The cloaking device is <on>enabled<end>. ".
-				"It is possible to disable it."];
+				"It is possible to disable it.", ];
 		} elseif ($timeSinceChange < 60*60 && $row->action === "on") {
 			return [2, "The cloaking device is <on>enabled<end>. ".
-				"It is possible in <highlight>$timeString<end> to disable it."];
+				"It is possible in <highlight>{$timeString}<end> to disable it.", ];
 		}
 		return [1, "Unknown status on city cloak!"];
-	}
-
-	#[
-		NCA\NewsTile(
-			name: "cloak-status",
-			description:
-				"Shows the current status of the city cloak, if and when\n".
-				"new raids can be initiated",
-			example:
-				"<header2>City<end>\n".
-				"<tab>The cloaking device is <on>enabled<end>. It is possible to disable it."
-		)
-	]
-	public function cloakStatusTile(string $sender, callable $callback): void {
-		$data = $this->getCloakStatus();
-		if (!isset($data)) {
-			$callback(null);
-			return;
-		}
-		[$case, $msg] = $data;
-		$msg = "<header2>City<end>\n<tab>{$msg}";
-		$callback($msg);
 	}
 }

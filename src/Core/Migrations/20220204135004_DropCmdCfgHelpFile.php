@@ -2,10 +2,7 @@
 
 namespace Nadybot\Core\Migrations;
 
-use Nadybot\Core\CommandManager;
-use Nadybot\Core\DB;
-use Nadybot\Core\LoggerWrapper;
-use Nadybot\Core\SchemaMigration;
+use Nadybot\Core\{CommandManager, DB, LoggerWrapper, SchemaMigration};
 
 class DropCmdCfgHelpFile implements SchemaMigration {
 	public function migrate(LoggerWrapper $logger, DB $db): void {

@@ -2,28 +2,25 @@
 
 namespace Nadybot\Core;
 
-use ReflectionClass;
 use Exception;
 use InvalidArgumentException;
 use Nadybot\Core\Attributes as NCA;
+use ReflectionClass;
 
 #[NCA\Instance]
 class Util {
+	/** @var string */
+	public const DATETIME = "d-M-Y H:i T";
+
+	/** @var string */
+	public const DATE = "d-M-Y";
 	#[NCA\Inject]
 	public ConfigFile $config;
 
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
-	/** @var string */
-	public const DATETIME = "d-M-Y H:i T";
-
-	/** @var string */
-	public const DATE = "d-M-Y";
-
-	/**
-	 * Convert bytes to kB, MB, etc. so it's never more than 1024
-	 */
+	/** Convert bytes to kB, MB, etc. so it's never more than 1024 */
 	public function bytesConvert(int $bytes): string {
 		$ext = ['B', 'kB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
 		$unitCount = 0;
@@ -48,7 +45,7 @@ class Util {
 			"day" => 86400,
 			"hr" => 3600,
 			"min" => 60,
-			"sec" => 1
+			"sec" => 1,
 		];
 
 		$timeshift = '';
@@ -77,6 +74,7 @@ class Util {
 	 * Convert "1h, 2mins 10s" into 3730
 	 *
 	 * @param string $budatime A human readable duration
+	 *
 	 * @return int The duration in seconds
 	 */
 	public function parseTime(string $budatime): int {
@@ -161,9 +159,7 @@ class Util {
 		return 0;
 	}
 
-	/**
-	 * Returns the full profession name given the search string passed in
-	 */
+	/** Returns the full profession name given the search string passed in */
 	public function getProfessionName(string $search): string {
 		$search = strtolower($search);
 		switch ($search) {
@@ -299,24 +295,22 @@ class Util {
 		return $prof;
 	}
 
-	/**
-	 * Completes a filename or directory by searching for it in modules and core paths
-	 */
+	/** Completes a filename or directory by searching for it in modules and core paths */
 	public function verifyFilename(string $filename): string {
-		//Replace all \ characters with /
+		// Replace all \ characters with /
 		$filename = str_replace("\\", "/", $filename);
 
-		//check if the file exists
+		// check if the file exists
 		foreach (array_reverse($this->config->moduleLoadPaths) as $modulePath) {
-			if (file_exists("$modulePath/$filename")) {
-				return "$modulePath/$filename";
+			if (file_exists("{$modulePath}/{$filename}")) {
+				return "{$modulePath}/{$filename}";
 			}
 		}
-		if (file_exists(__DIR__ . "/$filename")) {
-			return __DIR__ . "/$filename";
+		if (file_exists(__DIR__ . "/{$filename}")) {
+			return __DIR__ . "/{$filename}";
 		}
-		if (file_exists(__DIR__ . "/Modules/$filename")) {
-			return __DIR__ . "/Modules/$filename";
+		if (file_exists(__DIR__ . "/Modules/{$filename}")) {
+			return __DIR__ . "/Modules/{$filename}";
 		}
 		if (file_exists($filename)) {
 			return $filename;
@@ -330,8 +324,9 @@ class Util {
 	 * e.g. AGI -> Agility, SEN -> Sense
 	 * or Sense -> SEN if $getFullName set to false
 	 *
-	 * @param string $ability The short or long form
-	 * @param boolean $getFullName true if you want to expand, false if you want to shorten
+	 * @param string $ability     The short or long form
+	 * @param bool   $getFullName true if you want to expand, false if you want to shorten
+	 *
 	 * @return string|null The short or long form
 	 */
 	public function getAbility(string $ability, bool $getFullName=false): ?string {
@@ -341,7 +336,7 @@ class Util {
 			'psy' => 'Psychic',
 			'sta' => 'Stamina',
 			'str' => 'Strength',
-			'sen' => 'Sense'
+			'sen' => 'Sense',
 		];
 
 		$ability = strtolower(substr($ability, 0, 3));
@@ -357,6 +352,7 @@ class Util {
 
 	/**
 	 * Randomly get a value from an array
+	 *
 	 * @param array<mixed> $array
 	 */
 	public function randomArrayValue(array $array): mixed {
@@ -390,9 +386,7 @@ class Util {
 		return $string;
 	}
 
-	/**
-	 * Get a stacktrace of the calling stack as a string
-	 */
+	/** Get a stacktrace of the calling stack as a string */
 	public function getStackTrace(): string {
 		$trace = debug_backtrace();
 		$arr1 = [];
@@ -417,14 +411,12 @@ class Util {
 					$str .= ": ";
 				}
 			}
-			$str .= "$arr2[$i]\n";
+			$str .= "{$arr2[$i]}\n";
 		}
 		return $str;
 	}
 
-	/**
-	 * Convert UNIX timestamp to date and time
-	 */
+	/** Convert UNIX timestamp to date and time */
 	public function date(int $unixtime, bool $withTime=true): string {
 		return \Safe\date($withTime ? self::DATETIME : self::DATE, $unixtime);
 	}
@@ -452,9 +444,7 @@ class Util {
 		return !strncmp($haystack, $needle, strlen($needle));
 	}
 
-	/**
-	 * Remove all colors from $msg
-	 */
+	/** Remove all colors from $msg */
 	public function stripColors(string $msg): string {
 		$msg = preg_replace("~<font color=#.{6}>~", "", $msg);
 		$msg = preg_replace("~</font>~", "", $msg);
@@ -465,7 +455,8 @@ class Util {
 	 * Generate an SQL query from a column and a list of criteria
 	 *
 	 * @param string[] $params An array of strings that $column must contain (or not contain if they start with "-")
-	 * @param string $column The table column to test against
+	 * @param string   $column The table column to test against
+	 *
 	 * @return array<string,string[]> ["$column LIKE ? AND $column NOT LIKE ? AND $column LIKE ?", ['%a%', '%b%', '%c%']]
 	 * @psalm-return array{0: string, 1: list<string>}
 	 */
@@ -479,7 +470,7 @@ class Util {
 			} else {
 				$op = "LIKE";
 			}
-			$statements []= "$column $op ?";
+			$statements []= "{$column} {$op} ?";
 			$queryParams []= '%' . $value . '%';
 		}
 		return [join(" AND ", $statements), $queryParams];
@@ -489,11 +480,11 @@ class Util {
 	 * A stable sort, which keeps the order of equal elements in the input and output
 	 *
 	 * @see http://php.net/manual/en/function.usort.php
-	 * @param mixed[] $array A reference to the array to sorte
+	 *
+	 * @param mixed[]  $array        A reference to the array to sorte
 	 * @param callable $cmp_function The function (name) to compare elements with.
 	 *                               Must accept 2 parameters and return
 	 *                               1 (1st before), -1 (2nd before) ot 0 (equal)
-	 * @return void
 	 */
 	public function mergesort(array &$array, callable $cmp_function): void {
 		// Arrays of size < 2 require no action.
@@ -534,6 +525,7 @@ class Util {
 
 	/**
 	 * Try to interpolate bonus/requirement of an item at an arbitrary QL
+	 *
 	 * @return int The interpolated bonus/requirement at QL $ql
 	 */
 	public function interpolate(int $minQL, int $maxQL, int $minVal, int $maxVal, int $ql): int {
@@ -575,11 +567,9 @@ class Util {
 		}));
 	}
 
-	/**
-	 * Test if $input only consists of digits
-	 */
+	/** Test if $input only consists of digits */
 	public function isInteger(mixed $input): bool {
-		return(ctype_digit(strval($input)));
+		return ctype_digit(strval($input));
 	}
 
 	/** Calculate the title level from the player's level */
@@ -607,6 +597,7 @@ class Util {
 
 	/**
 	 * Calculate the level range from the player's title level
+	 *
 	 * @return int[]
 	 * @phpstan-return array{int,int}
 	 */
@@ -642,10 +633,13 @@ class Util {
 		if (empty($attrs)) {
 			return null;
 		}
+
 		/** @var NCA\ClassSpec */
 		$attrObj = $attrs[0]->newInstance();
+
 		/** @phpstan-var class-string */
 		$name = $attrObj->name;
+
 		/** @var FunctionParameter[] */
 		$params = [];
 		$i = 1;
@@ -682,24 +676,20 @@ class Util {
 		return $spec;
 	}
 
-	/**
-	 * Create a valid UUID that is unique worldwide
-	 */
+	/** Create a valid UUID that is unique worldwide */
 	public function createUUID(): string {
 		$data = random_bytes(16);
 
 		// Set version to 0100
-		$data[6] = chr(ord($data[6]) & 0x0f | 0x40);
+		$data[6] = chr(ord($data[6]) & 0x0F | 0x40);
 		// Set bits 6-7 to 10
-		$data[8] = chr(ord($data[8]) & 0x3f | 0x80);
+		$data[8] = chr(ord($data[8]) & 0x3F | 0x80);
 
 		// Output the 36 character UUID.
 		return vsprintf('%s%s-%s-%s-%s-%s%s%s', str_split(bin2hex($data), 4));
 	}
 
-	/**
-	 * Create a cryptographically secure password
-	 */
+	/** Create a cryptographically secure password */
 	public function getPassword(int $length=16): string {
 		if ($length < 1) {
 			throw new InvalidArgumentException("Parameter \$length to getPassword() must be > 0");

@@ -2,6 +2,11 @@
 
 namespace Nadybot\Modules\GUILD_MODULE;
 
+use function Amp\Promise\rethrow;
+use function Amp\{asyncCall, call};
+
+use Amp\Promise;
+use Generator;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	AOChatEvent,
@@ -12,9 +17,9 @@ use Nadybot\Core\{
 	DB,
 	DBSchema\Player,
 	Event,
-	ModuleInstance,
 	LoggerWrapper,
 	MessageHub,
+	ModuleInstance,
 	Modules\ALTS\AltsController,
 	Modules\PLAYER_LOOKUP\Guild,
 	Modules\PLAYER_LOOKUP\GuildManager,
@@ -34,6 +39,7 @@ use Nadybot\Core\{
 	UserStateEvent,
 	Util,
 };
+use Throwable;
 
 /**
  * @author Tyrence (RK2)
@@ -137,28 +143,6 @@ class GuildController extends ModuleInstance {
 		$this->loadGuildMembers();
 	}
 
-	protected function loadGuildMembers(): void {
-		$this->chatBot->guildmembers = [];
-		$members = $this->db->table(self::DB_TABLE)
-			->where("mode", "!=", "del")
-			->orderBy("name")
-			->asObj(OrgMember::class);
-		$players = $this->playerManager
-			->searchByNames($this->db->getDim(), ...$members->pluck("name")->toArray());
-		$players->each(function (Player $player): void {
-			$this->chatBot->guildmembers[$player->name] = $player->guild_rank_id ?? 6;
-		});
-	}
-
-	/** Remove someone from the online list that we added for "guild" */
-	protected function delMemberFromOnline(string $member): int {
-		return $this->db->table("online")
-			->where("name", $member)
-			->where("channel_type", "guild")
-			->where("added_by", $this->db->getBotname())
-			->delete();
-	}
-
 	/** See your current logon message */
 	#[NCA\HandlesCommand("logon")]
 	public function logonMessageShowCommand(CmdContext $context): void {
@@ -221,9 +205,9 @@ class GuildController extends ModuleInstance {
 
 	/** Check when a member of your org was last seen online by the bot */
 	#[NCA\HandlesCommand("lastseen")]
-	public function lastSeenCommand(CmdContext $context, PCharacter $name): void {
-		$uid = $this->chatBot->get_uid($name());
-		if (!$uid) {
+	public function lastSeenCommand(CmdContext $context, PCharacter $name): Generator {
+		$uid = yield $this->chatBot->getUid2($name());
+		if ($uid === null) {
 			$msg = "Character <highlight>{$name}<end> does not exist.";
 			$context->reply($msg);
 			return;
@@ -237,6 +221,7 @@ class GuildController extends ModuleInstance {
 		}
 
 		$alts = $altInfo->getAllAlts();
+
 		/** @var Collection<OrgMember> */
 		$data = $this->db->table(self::DB_TABLE)
 			->whereIn("name", $alts)
@@ -314,6 +299,7 @@ class GuildController extends ModuleInstance {
 		foreach ($members as $main => $memberAlts) {
 			/** @var Collection<RecentOrgMember> $memberAlts */
 			$member = $memberAlts->first();
+
 			/** @var RecentOrgMember $member */
 			if ($member->main === $prevToon) {
 				continue;
@@ -325,10 +311,10 @@ class GuildController extends ModuleInstance {
 			$lastToon = $member->name;
 
 			$character = "<pagebreak><highlight>{$member->main}<end> [{$alts}]\n".
-				"<tab>Last seen as $lastToon on ".
+				"<tab>Last seen as {$lastToon} on ".
 				$this->util->date($logged) . "\n\n";
 			if ($highlight === true) {
-				$blob .= "<highlight>$character<end>";
+				$blob .= "<highlight>{$character}<end>";
 				$highlight = false;
 			} else {
 				$blob .= $character;
@@ -345,11 +331,15 @@ class GuildController extends ModuleInstance {
 	 * Do this if someone is an org member, but not in the org roster yet
 	 */
 	#[NCA\HandlesCommand("notify")]
-	public function notifyAddCommand(CmdContext $context, #[NCA\Str("on", "add")] string $action, PCharacter $char): void {
+	public function notifyAddCommand(
+		CmdContext $context,
+		#[NCA\Str("on", "add")] string $action,
+		PCharacter $char
+	): Generator {
 		$name = $char();
-		$uid = $this->chatBot->get_uid($name);
+		$uid = yield $this->chatBot->getUid2($name);
 
-		if (!$uid) {
+		if ($uid === null) {
 			$msg = "<highlight>{$name}<end> does not exist.";
 			$context->reply($msg);
 			return;
@@ -358,7 +348,7 @@ class GuildController extends ModuleInstance {
 		$mode = $this->db->table(self::DB_TABLE)
 			->where("name", $name)
 			->select("mode")
-			->pluckAs("mode", "string")->first();
+			->pluckStrings("mode")->first();
 
 		if ($mode !== null && $mode !== "del") {
 			$msg = "<highlight>{$name}<end> is already on the Notify list.";
@@ -378,22 +368,24 @@ class GuildController extends ModuleInstance {
 					"dt" => time(),
 				]);
 		}
-		$this->buddylistManager->add($name, 'org');
+		yield $this->buddylistManager->addAsync($name, 'org');
 		$this->chatBot->guildmembers[$name] = 6;
 		$msg = "<highlight>{$name}<end> has been added to the Notify list.";
 
 		$context->reply($msg);
 	}
 
-	/**
-	 * Manually remove a character from the notify list
-	 */
+	/** Manually remove a character from the notify list */
 	#[NCA\HandlesCommand("notify")]
-	public function notifyRemoveCommand(CmdContext $context, PRemove $action, PCharacter $char): void {
+	public function notifyRemoveCommand(
+		CmdContext $context,
+		PRemove $action,
+		PCharacter $char
+	): Generator {
 		$name = $char();
-		$uid = $this->chatBot->get_uid($name);
+		$uid = yield $this->chatBot->getUid2($name);
 
-		if (!$uid) {
+		if ($uid === null) {
 			$msg = "<highlight>{$name}<end> does not exist.";
 			$context->reply($msg);
 			return;
@@ -402,7 +394,7 @@ class GuildController extends ModuleInstance {
 		$mode = $this->db->table(self::DB_TABLE)
 			->where("name", $name)
 			->select("mode")
-			->pluckAs("mode", "string")->first();
+			->pluckStrings("mode")->first();
 
 		if ($mode === null) {
 			$msg = "<highlight>{$name}<end> is not on the guild roster.";
@@ -423,126 +415,38 @@ class GuildController extends ModuleInstance {
 
 	/** Force an update of the org roster */
 	#[NCA\HandlesCommand("updateorg")]
-	public function updateorgCommand(CmdContext $context): void {
+	public function updateorgCommand(CmdContext $context): Generator {
 		$context->reply("Starting Roster update");
-		$this->updateOrgRoster([$context, "reply"], "Finished Roster update");
+		try {
+			yield $this->updateMyOrgRoster();
+		} catch (Throwable $e) {
+			$context->reply("There was an error during the roster update: ".
+				$e->getMessage());
+			return;
+		}
+		$context->reply("Finished Roster update");
 	}
 
+	/** @deprecated */
 	public function updateOrgRoster(?callable $callback=null, mixed ...$args): void {
-		if (!$this->isGuildBot() || !isset($this->config->orgId)) {
-			return;
-		}
-		$this->logger->notice("Starting Roster update");
-
-		// Get the guild info
-		$this->guildManager->getByIdAsync(
-			$this->config->orgId,
-			$this->config->dimension,
-			true,
-			[$this, "updateRosterForGuild"],
-			$callback,
-			...$args
-		);
+		asyncCall(function () use ($callback, $args): Generator {
+			yield $this->updateMyOrgRoster();
+			if (isset($callback)) {
+				$callback(...$args);
+			}
+		});
 	}
 
-	/**
-	 * @psalm-param null|callable(mixed...) $callback
-	 */
-	public function updateRosterForGuild(?Guild $org, ?callable $callback, mixed ...$args): void {
-		// Check if guild xml file is correct if not abort
-		if ($org === null) {
-			$this->logger->error("Error downloading the guild roster xml file");
-			return;
-		}
-
-		if (count($org->members) === 0) {
-			$this->logger->error("Guild xml file has no members! Aborting roster update.");
-			return;
-		}
-		$dbEntries = [];
-
-		// Save the current org_members table in a var
-		/** @var Collection<OrgMember> */
-		$data = $this->db->table(self::DB_TABLE)->asObj(OrgMember::class);
-		// @phpstan-ignore-next-line
-		if ($data->count() === 0 && (count($org->members) > 0)) {
-			$restart = true;
-		} else {
-			$restart = false;
-			foreach ($data as $row) {
-				$dbEntries[$row->name] = [
-					"name" => $row->name,
-					"mode" => $row->mode,
-				];
+	/** @return Promise<void> */
+	public function updateMyOrgRoster(): Promise {
+		return call(function (): Generator {
+			if (!$this->isGuildBot() || !isset($this->config->orgId)) {
+				return;
 			}
-		}
-
-		$this->chatBot->ready = false;
-
-		$this->db->beginTransaction();
-
-		// Going through each member of the org and add or update his/her
-		foreach ($org->members as $member) {
-			// don't do anything if $member is the bot itself
-			if (strtolower($member->name) === strtolower($this->chatBot->char->name)) {
-				continue;
-			}
-
-			//If there exists already data about the character just update him/her
-			if (isset($dbEntries[$member->name])) {
-				if ($dbEntries[$member->name]["mode"] === "del") {
-					// members who are not on notify should not be on the buddy list but should remain in the database
-					$this->buddylistManager->remove($member->name, 'org');
-					unset($this->chatBot->guildmembers[$member->name]);
-				} else {
-					// add org members who are on notify to buddy list
-					$this->buddylistManager->add($member->name, 'org');
-					$this->chatBot->guildmembers[$member->name] = $member->guild_rank_id ?? 0;
-
-					// if member was added to notify list manually, switch mode to org and let guild roster update from now on
-					if ($dbEntries[$member->name]["mode"] == "add") {
-						$this->db->table(self::DB_TABLE)
-							->where("name", $member->name)
-							->update(["mode" => "org"]);
-					}
-				}
-			//Else insert his/her data
-			} else {
-				// add new org members to buddy list
-				$this->buddylistManager->add($member->name, 'org');
-				$this->chatBot->guildmembers[$member->name] = $member->guild_rank_id ?? 0;
-
-				$this->db->table(self::DB_TABLE)
-					->insert([
-						"name" => $member->name,
-						"mode" => "org",
-					]);
-			}
-			unset($dbEntries[$member->name]);
-		}
-
-		$this->db->commit();
-
-		// remove buddies who are no longer org members
-		foreach ($dbEntries as $buddy) {
-			if ($buddy['mode'] !== 'add') {
-				$this->delMemberFromOnline($buddy["name"]);
-				$this->db->table(self::DB_TABLE)
-					->where("name", $buddy["name"])
-					->delete();
-				$this->buddylistManager->remove($buddy['name'], 'org');
-				unset($this->chatBot->guildmembers[$buddy['name']]);
-			}
-		}
-
-		$this->logger->notice("Finished Roster update");
-
-		if ($restart === true) {
-			$this->loadGuildMembers();
-		}
-		if (isset($callback)) {
-			$callback(...$args);
-		}
+			$this->logger->notice("Starting Roster update");
+			$org = yield $this->guildManager->byId($this->config->orgId, $this->config->dimension, false);
+			yield $this->updateRosterForGuild($org);
+		});
 	}
 
 	public function dispatchRoutableEvent(Base $event): void {
@@ -562,15 +466,15 @@ class GuildController extends ModuleInstance {
 		name: "timer(24hrs)",
 		description: "Download guild roster xml and update guild members"
 	)]
-	public function downloadOrgRosterEvent(Event $eventObj): void {
-		$this->updateOrgRoster();
+	public function downloadOrgRosterEvent(Event $eventObj): Generator {
+		yield $this->updateMyOrgRoster();
 	}
 
 	#[NCA\Event(
 		name: "orgmsg",
 		description: "Automatically update guild roster as characters join and leave the guild"
 	)]
-	public function autoNotifyOrgMembersEvent(AOChatEvent $eventObj): void {
+	public function autoNotifyOrgMembersEvent(AOChatEvent $eventObj): Generator {
 		$message = $eventObj->message;
 		if (preg_match("/^(.+) invited (.+) to your organization.$/", $message, $arr)) {
 			$name = ucfirst(strtolower($arr[2]));
@@ -589,17 +493,16 @@ class GuildController extends ModuleInstance {
 						"channel" => $this->db->getMyguild(),
 						"channel_type" => "guild",
 						"added_by" => $this->db->getBotname(),
-						"dt" => time()
+						"dt" => time(),
 					]);
 			}
 			$this->db->table(self::DB_TABLE)
 				->upsert(["mode" => "add", "name" => $name], "name");
-			$this->buddylistManager->add($name, 'org');
+			yield $this->buddylistManager->addAsync($name, 'org');
 			$this->chatBot->guildmembers[$name] = 6;
 
 			// update character info
-			$this->playerManager->getByNameAsync(function() {
-			}, $name);
+			yield $this->playerManager->byName($name);
 		} elseif (
 			preg_match("/^(.+) kicked (?<char>.+) from your organization.$/", $message, $arr)
 			|| preg_match("/^(.+) removed inactive character (?<char>.+) from your organization.$/", $message, $arr)
@@ -619,83 +522,101 @@ class GuildController extends ModuleInstance {
 	}
 
 	/**
-	 * @psalm-param callable(string) $callback
+	 * @phpstan-param callable(string):mixed $callback
+	 *
+	 * @deprecated
 	 */
 	public function getLogonForPlayer(callable $callback, ?Player $whois, string $player, bool $suppressAltList): void {
-		$msg = '';
-		$logonMsg = $this->preferences->get($player, 'logon_msg') ?? "";
-		if ($logonMsg !== '') {
-			$logonMsg = " - {$logonMsg}";
-		}
-		if ($whois === null) {
-			$msg = "$player logged on";
-		} else {
-			$msg = $this->playerManager->getInfo($whois);
-
-			$msg .= " logged on";
-
-			$altInfo = $this->altsController->getAltInfo($player);
-			if ($suppressAltList) {
-				if ($altInfo->main !== $player) {
-					$msg .= ". Alt of <highlight>{$altInfo->main}<end>";
-				}
-			} else {
-				if (count($altInfo->getAllValidatedAlts()) > 0) {
-					$altInfo->getAltsBlobAsync(
-						/** @param string|string[] $blob */
-						function($blob) use ($msg, $callback, $logonMsg): void {
-							$blob = ((array)$blob)[0];
-							$callback("{$msg}. {$blob}{$logonMsg}");
-						},
-						true
-					);
-					return;
-				}
-			}
-		}
-
-		$callback($msg.$logonMsg);
+		asyncCall(function () use ($callback, $whois, $player, $suppressAltList): Generator {
+			$callback(yield $this->getLogonMessageForPlayer($whois, $player, $suppressAltList));
+		});
 	}
 
+	/**
+	 * @phpstan-param callable(string):mixed $callback
+	 *
+	 * @deprecated
+	 */
 	public function getLogonMessageAsync(string $player, bool $suppressAltList, callable $callback): void {
-		if ($this->firstAndLastAltOnly) {
-			// if at least one alt/main is already online, don't show logon message
-			$altInfo = $this->altsController->getAltInfo($player);
-			if (count($altInfo->getOnlineAlts()) > 1) {
-				return;
+		asyncCall(function () use ($player, $suppressAltList, $callback): Generator {
+			$msg = yield $this->getLogonMessage($player, $suppressAltList);
+			if (isset($msg)) {
+				$callback($msg);
 			}
-		}
+		});
+	}
 
-		$this->playerManager->getByNameAsync(
-			function(?Player $whois) use ($callback, $player, $suppressAltList): void {
-				$this->getLogonForPlayer($callback, $whois, $player, $suppressAltList);
-			},
-			$player
-		);
+	/** @return Promise<?string> */
+	public function getLogonMessage(string $player, bool $suppressAltList): Promise {
+		return call(function () use ($player, $suppressAltList): Generator {
+			if ($this->firstAndLastAltOnly) {
+				// if at least one alt/main is already online, don't show logon message
+				$altInfo = $this->altsController->getAltInfo($player);
+				if (count($altInfo->getOnlineAlts()) > 1) {
+					return null;
+				}
+			}
+
+			$whois = yield $this->playerManager->byName($player);
+			return yield $this->getLogonMessageForPlayer($whois, $player, $suppressAltList);
+		});
+	}
+
+	/** @return Promise<string> */
+	public function getLogonMessageForPlayer(?Player $whois, string $player, bool $suppressAltList): Promise {
+		return call(function () use ($whois, $player, $suppressAltList): Generator {
+			$msg = '';
+			$logonMsg = $this->preferences->get($player, 'logon_msg') ?? "";
+			if ($logonMsg !== '') {
+				$logonMsg = " - {$logonMsg}";
+			}
+			if ($whois === null) {
+				$msg = "{$player} logged on";
+			} else {
+				$msg = $this->playerManager->getInfo($whois);
+
+				$msg .= " logged on";
+
+				$altInfo = $this->altsController->getAltInfo($player);
+				if ($suppressAltList) {
+					if ($altInfo->main !== $player) {
+						$msg .= ". Alt of <highlight>{$altInfo->main}<end>";
+					}
+				} else {
+					if (count($altInfo->getAllValidatedAlts()) > 0) {
+						$blob = yield $altInfo->getAltsBlob(true);
+						$blob = ((array)$blob)[0];
+						return "{$msg}. {$blob}{$logonMsg}";
+					}
+				}
+			}
+
+			return $msg.$logonMsg;
+		});
 	}
 
 	#[NCA\Event(
 		name: "logOn",
 		description: "Shows an org member logon in chat"
 	)]
-	public function orgMemberLogonMessageEvent(UserStateEvent $eventObj): void {
+	public function orgMemberLogonMessageEvent(UserStateEvent $eventObj): Generator {
 		$sender = $eventObj->sender;
 		if (!isset($this->chatBot->guildmembers[$sender])
 			|| !$this->chatBot->isReady()
 			|| !is_string($sender)) {
 			return;
 		}
-		$suppressAltList = $this->orgSuppressAltList;
-		$this->getLogonMessageAsync($sender, $suppressAltList, function(string $msg) use ($sender): void {
-			$this->chatBot->getUid($sender, function(?int $uid, string $msg, string $sender): void {
-				$e = new Online();
-				$e->char = new Character($sender, $uid);
-				$e->online = true;
-				$e->message = $msg;
-				$this->dispatchRoutableEvent($e);
-				$this->chatBot->sendGuild($msg, true);
-			}, $msg, $sender);
-		});
+		$msg = yield $this->getLogonMessage($sender, $this->orgSuppressAltList);
+		$uid = yield $this->chatBot->getUid2($sender);
+		$e = new Online();
+		$e->char = new Character($sender, $uid);
+		$e->main = $this->altsController->getMainOf($sender);
+		$e->online = true;
+		$e->message = $msg;
+		$this->dispatchRoutableEvent($e);
+		if (isset($msg)) {
+			$this->chatBot->sendGuild($msg, true);
+		}
 	}
 
 	public function getLogoffMessage(string $player): ?string {
@@ -707,7 +628,7 @@ class GuildController extends ModuleInstance {
 			}
 		}
 
-		$msg = "$player logged off.";
+		$msg = "{$player} logged off.";
 		$logoffMessage = $this->preferences->get($player, 'logoff_msg');
 		if ($logoffMessage !== null && $logoffMessage !== '') {
 			$msg .= " " . $logoffMessage;
@@ -719,7 +640,7 @@ class GuildController extends ModuleInstance {
 		name: "logOff",
 		description: "Shows an org member logoff in chat"
 	)]
-	public function orgMemberLogoffMessageEvent(UserStateEvent $eventObj): void {
+	public function orgMemberLogoffMessageEvent(UserStateEvent $eventObj): Generator {
 		$sender = $eventObj->sender;
 		if (!isset($this->chatBot->guildmembers[$sender])
 			|| !$this->chatBot->isReady()
@@ -727,19 +648,19 @@ class GuildController extends ModuleInstance {
 			return;
 		}
 
-		$this->chatBot->getUid($sender, function(?int $uid, string $sender): void {
-			$msg = $this->getLogoffMessage($sender);
-			$e = new Online();
-			$e->char = new Character($sender, $uid);
-			$e->online = false;
-			$e->message = $msg;
-			$this->dispatchRoutableEvent($e);
-			if ($msg === null) {
-				return;
-			}
+		$uid = yield $this->chatBot->getUid2($sender);
+		$msg = $this->getLogoffMessage($sender);
+		$e = new Online();
+		$e->char = new Character($sender, $uid);
+		$e->main = $this->altsController->getMainOf($sender);
+		$e->online = false;
+		$e->message = $msg;
+		$this->dispatchRoutableEvent($e);
+		if ($msg === null) {
+			return;
+		}
 
-			$this->chatBot->sendGuild($msg, true);
-		}, $sender);
+		$this->chatBot->sendGuild($msg, true);
 	}
 
 	#[NCA\Event(
@@ -779,7 +700,7 @@ class GuildController extends ModuleInstance {
 		$gid = $this->getOrgChannelIdByOrgId($this->config->orgId);
 		$orgChannel = $this->chatBot->gid[$gid]??null;
 		if (isset($orgChannel) && $orgChannel !== "Clan (name unknown)" && $orgChannel !== $this->config->orgName) {
-			$this->logger->warning("Org name '{$this->config->orgName}' specified, but bot belongs to org '$orgChannel'");
+			$this->logger->warning("Org name '{$this->config->orgName}' specified, but bot belongs to org '{$orgChannel}'");
 		}
 	}
 
@@ -791,5 +712,125 @@ class GuildController extends ModuleInstance {
 			}
 		}
 		return null;
+	}
+
+	/** Remove someone from the online list that we added for "guild" */
+	protected function delMemberFromOnline(string $member): int {
+		return $this->db->table("online")
+			->where("name", $member)
+			->where("channel_type", "guild")
+			->where("added_by", $this->db->getBotname())
+			->delete();
+	}
+
+	private function loadGuildMembers(): void {
+		$this->chatBot->guildmembers = [];
+		$members = $this->db->table(self::DB_TABLE)
+			->where("mode", "!=", "del")
+			->orderBy("name")
+			->asObj(OrgMember::class);
+		$players = $this->playerManager
+			->searchByNames($this->db->getDim(), ...$members->pluck("name")->toArray());
+		$players->each(function (Player $player): void {
+			$this->chatBot->guildmembers[$player->name] = $player->guild_rank_id ?? 6;
+		});
+	}
+
+	/** @return Promise<void> */
+	private function updateRosterForGuild(?Guild $org): Promise {
+		return call(function () use ($org): Generator {
+			// Check if guild xml file is correct if not abort
+			if ($org === null) {
+				$this->logger->error("Error downloading the guild roster xml file");
+				return;
+			}
+
+			if (count($org->members) === 0) {
+				$this->logger->error("Guild xml file has no members! Aborting roster update.");
+				return;
+			}
+			$dbEntries = [];
+
+			// Save the current org_members table in a var
+			/** @var Collection<OrgMember> */
+			$data = $this->db->table(self::DB_TABLE)->asObj(OrgMember::class);
+			// @phpstan-ignore-next-line
+			if ($data->count() === 0 && (count($org->members) > 0)) {
+				$restart = true;
+			} else {
+				$restart = false;
+				foreach ($data as $row) {
+					$dbEntries[$row->name] = [
+						"name" => $row->name,
+						"mode" => $row->mode,
+					];
+				}
+			}
+
+			yield $this->db->awaitBeginTransaction();
+
+			$this->chatBot->ready = false;
+
+			// Going through each member of the org and add or update his/her
+			foreach ($org->members as $member) {
+				// don't do anything if $member is the bot itself
+				if (strtolower($member->name) === strtolower($this->chatBot->char->name)) {
+					continue;
+				}
+
+				// If there exists already data about the character just update him/her
+				if (isset($dbEntries[$member->name])) {
+					if ($dbEntries[$member->name]["mode"] === "del") {
+						// members who are not on notify should not be on the buddy list but should remain in the database
+						$this->buddylistManager->remove($member->name, 'org');
+						unset($this->chatBot->guildmembers[$member->name]);
+					} else {
+						// add org members who are on notify to buddy list
+						rethrow($this->buddylistManager->addAsync($member->name, 'org'));
+						$this->chatBot->guildmembers[$member->name] = $member->guild_rank_id ?? 0;
+
+						// if member was added to notify list manually, switch mode to org and let guild roster update from now on
+						if ($dbEntries[$member->name]["mode"] == "add") {
+							$this->db->table(self::DB_TABLE)
+								->where("name", $member->name)
+								->update(["mode" => "org"]);
+						}
+					}
+				// else insert his/her data
+				} else {
+					// add new org members to buddy list
+					rethrow($this->buddylistManager->addAsync($member->name, 'org'));
+					$this->chatBot->guildmembers[$member->name] = $member->guild_rank_id ?? 0;
+
+					$this->db->table(self::DB_TABLE)
+						->insert([
+							"name" => $member->name,
+							"mode" => "org",
+						]);
+				}
+				unset($dbEntries[$member->name]);
+			}
+
+			$this->db->commit();
+
+			// remove buddies who are no longer org members
+			foreach ($dbEntries as $buddy) {
+				if ($buddy['mode'] !== 'add') {
+					$this->delMemberFromOnline($buddy["name"]);
+					$this->db->table(self::DB_TABLE)
+						->where("name", $buddy["name"])
+						->delete();
+					$this->buddylistManager->remove($buddy['name'], 'org');
+					unset($this->chatBot->guildmembers[$buddy['name']]);
+				}
+			}
+
+			$this->logger->notice("Finished Roster update");
+			$this->chatBot->setupReadinessTimer();
+
+			if ($restart === true) {
+				$this->loadGuildMembers();
+			}
+		});
 	}
 }

@@ -2,8 +2,8 @@
 
 namespace Nadybot\Core\DBSchema;
 
-use Nadybot\Core\DBRow;
 use Nadybot\Core\Attributes\JSON;
+use Nadybot\Core\DBRow;
 
 class CmdPermSetMapping extends DBRow {
 	#[JSON\Ignore]

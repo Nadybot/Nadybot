@@ -2,9 +2,12 @@
 
 namespace Nadybot\Core\Modules\PROFILE;
 
-use Nadybot\Core\Attributes as NCA;
-use Nadybot\Core\ModuleInstance;
+use function Amp\File\filesystem;
+
+use Amp\File\FilesystemException as AmpFilesystemException;
 use Exception;
+use Generator;
+use Nadybot\Core\{Attributes as NCA, ModuleInstance};
 use Nadybot\Modules\{
 	WEBSERVER_MODULE\ApiResponse,
 	WEBSERVER_MODULE\HttpProtocolWrapper,
@@ -19,9 +22,7 @@ class ProfileApiController extends ModuleInstance {
 	#[NCA\Inject]
 	public ProfileController $profileController;
 
-	/**
-	 * Get a list of saved profiles
-	 */
+	/** Get a list of saved profiles */
 	#[
 		NCA\Api("/profile"),
 		NCA\GET,
@@ -37,9 +38,7 @@ class ProfileApiController extends ModuleInstance {
 		return new ApiResponse($profiles);
 	}
 
-	/**
-	 * View a profile
-	 */
+	/** View a profile */
 	#[
 		NCA\Api("/profile/%s"),
 		NCA\GET,
@@ -47,21 +46,21 @@ class ProfileApiController extends ModuleInstance {
 		NCA\ApiResult(code: 200, class: "string", desc: "Profile found and shown"),
 		NCA\ApiResult(code: 404, desc: "Profile not found")
 	]
-	public function viewProfileEndpoint(Request $request, HttpProtocolWrapper $server, string $profile): Response {
+	public function viewProfileEndpoint(Request $request, HttpProtocolWrapper $server, string $profile): Generator {
 		$filename = $this->profileController->getFilename($profile);
 
 		if (!@file_exists($filename)) {
 			return new Response(Response::NOT_FOUND, [], "Profile {$filename} not found.");
 		}
-		if (($content = file_get_contents($filename)) === false) {
+		try {
+			$content = yield filesystem()->read($filename);
+		} catch (AmpFilesystemException) {
 			return new Response(Response::NOT_FOUND, [], "Profile {$filename} not accessible.");
 		}
 		return new ApiResponse($content);
 	}
 
-	/**
-	 * Delete a profile
-	 */
+	/** Delete a profile */
 	#[
 		NCA\Api("/profile/%s"),
 		NCA\DELETE,
@@ -80,9 +79,7 @@ class ProfileApiController extends ModuleInstance {
 		return new Response(Response::NO_CONTENT);
 	}
 
-	/**
-	 * Load a profile
-	 */
+	/** Load a profile */
 	#[
 		NCA\Api("/profile/%s"),
 		NCA\PATCH,
@@ -93,7 +90,7 @@ class ProfileApiController extends ModuleInstance {
 		NCA\ApiResult(code: 402, desc: "Wrong or no operation given"),
 		NCA\ApiResult(code: 404, desc: "Profile not found")
 	]
-	public function loadProfileEndpoint(Request $request, HttpProtocolWrapper $server, string $profile): Response {
+	public function loadProfileEndpoint(Request $request, HttpProtocolWrapper $server, string $profile): Generator {
 		if (!is_object($request->decodedBody) || !isset($request->decodedBody->op)) {
 			return new Response(Response::UNPROCESSABLE_ENTITY);
 		}
@@ -106,16 +103,14 @@ class ProfileApiController extends ModuleInstance {
 		if (!@file_exists($filename)) {
 			return new Response(Response::NOT_FOUND, [], "Profile {$filename} not found.");
 		}
-		$output = $this->profileController->loadProfile($filename, $request->authenticatedAs??"_");
+		$output = yield $this->profileController->loadProfile($filename, $request->authenticatedAs??"_");
 		if ($output === null) {
 			return new Response(Response::INTERNAL_SERVER_ERROR);
 		}
 		return new Response(Response::NO_CONTENT);
 	}
 
-	/**
-	 * Load a profile
-	 */
+	/** Load a profile */
 	#[
 		NCA\Api("/profile/%s"),
 		NCA\POST,

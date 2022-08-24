@@ -6,14 +6,15 @@ use DateTime;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
-	ModuleInstance,
 	LoggerWrapper,
+	ModuleInstance,
 	Text,
 	Util,
 };
 
 /**
  * A stopwatch controller with start, stop and lap
+ *
  * @author Nadyita (RK5) <nadyita@hodorraid.org>
  */
 #[
@@ -35,14 +36,10 @@ class StopwatchController extends ModuleInstance {
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
-	/**
-	 * @var array<string,Stopwatch>
-	 */
+	/** @var array<string,Stopwatch> */
 	public array $stopwatches = [];
 
-	/**
-	 * Start a new stopwatch for yourself
-	 */
+	/** Start a new stopwatch for yourself */
 	#[NCA\HandlesCommand("stopwatch")]
 	public function startStopwatchCommand(CmdContext $context, #[NCA\Str("start")] string $action): void {
 		if (array_key_exists($context->char->name, $this->stopwatches)) {
@@ -56,9 +53,7 @@ class StopwatchController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
-	/**
-	 * Stop your stopwatch and show the time elapsed and the laps
-	 */
+	/** Stop your stopwatch and show the time elapsed and the laps */
 	#[NCA\HandlesCommand("stopwatch")]
 	public function stopStopwatchCommand(CmdContext $context, #[NCA\Str("stop")] string $action): void {
 		if (!array_key_exists($context->char->name, $this->stopwatches)) {
@@ -70,12 +65,10 @@ class StopwatchController extends ModuleInstance {
 		$stopwatch->end = new DateTime();
 		unset($this->stopwatches[$context->char->name]);
 		$msg = $stopwatch->toString();
-		$context->reply("Your stopwatch times:\n$msg");
+		$context->reply("Your stopwatch times:\n{$msg}");
 	}
 
-	/**
-	 * Add a lap with an optional name to your stopwatch
-	 */
+	/** Add a lap with an optional name to your stopwatch */
 	#[NCA\HandlesCommand("stopwatch")]
 	public function stopwatchLapCommand(CmdContext $context, #[NCA\Str("lap")] string $action, ?string $lapName): void {
 		if (!array_key_exists($context->char->name, $this->stopwatches)) {
@@ -92,9 +85,7 @@ class StopwatchController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
-	/**
-	 * View the current times on your stopwatch without stopping it
-	 */
+	/** View the current times on your stopwatch without stopping it */
 	#[NCA\HandlesCommand("stopwatch")]
 	public function showStopwatchCommand(CmdContext $context, #[NCA\Str("view", "show")] string $action): void {
 		if (!array_key_exists($context->char->name, $this->stopwatches)) {
@@ -104,6 +95,6 @@ class StopwatchController extends ModuleInstance {
 		}
 		$stopwatch = $this->stopwatches[$context->char->name];
 		$msg = $stopwatch->toString();
-		$context->reply("Your stopwatch times:\n$msg");
+		$context->reply("Your stopwatch times:\n{$msg}");
 	}
 }

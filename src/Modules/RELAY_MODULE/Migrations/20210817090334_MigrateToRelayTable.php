@@ -47,6 +47,14 @@ class MigrateToRelayTable implements SchemaMigration {
 
 	protected string $prefix = "";
 
+	public function migrate(LoggerWrapper $logger, DB $db): void {
+		$relay = $this->migrateRelay($db);
+		if (isset($relay)) {
+			$this->configController->toggleEvent("connect", "relaycontroller.loadRelays", true);
+			$this->addRouting($db, $relay);
+		}
+	}
+
 	protected function getSetting(DB $db, string $name): ?Setting {
 		if (preg_match("/^(bot|relay)/", $name)) {
 			$name = "{$this->prefix}{$name}";
@@ -87,14 +95,6 @@ class MigrateToRelayTable implements SchemaMigration {
 		}
 	}
 
-	public function migrate(LoggerWrapper $logger, DB $db): void {
-		$relay = $this->migrateRelay($db);
-		if (isset($relay)) {
-			$this->configController->toggleEvent("connect", "relaycontroller.loadRelays", true);
-			$this->addRouting($db, $relay);
-		}
-	}
-
 	protected function migrateRelay(DB $db): ?RelayConfig {
 		$relayType = $this->getSetting($db, "relaytype");
 		$relayBot = $this->getSetting($db, "relaybot");
@@ -107,7 +107,7 @@ class MigrateToRelayTable implements SchemaMigration {
 		}
 		if ($this->prefix === "a") {
 			$abbr = $this->getSetting($db, "relay_guild_abbreviation");
-			if (isset($abbr) && isset($abbr->value) && $abbr->value !== "none") {
+			if (isset($abbr, $abbr->value)   && $abbr->value !== "none") {
 				$this->settingManager->save("relay_guild_abbreviation", $abbr->value);
 			}
 		}
@@ -232,7 +232,7 @@ class MigrateToRelayTable implements SchemaMigration {
 		}
 
 		$relayFilterInPriv = $this->getSetting($db, "relay_filter_in_priv");
-		if (isset($routeInPriv) && isset($relayFilterInPriv) && strlen($relayFilterInPriv->value??"")) {
+		if (isset($routeInPriv, $relayFilterInPriv)   && strlen($relayFilterInPriv->value??"")) {
 			$modId = $this->addMod($db, $routeInPriv, "if-matches");
 			$this->addArgs($db, $modId, [
 				"text" => $relayFilterInPriv->value,

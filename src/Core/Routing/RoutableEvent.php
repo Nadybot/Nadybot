@@ -2,9 +2,8 @@
 
 namespace Nadybot\Core\Routing;
 
-use Nadybot\Core\Event;
 use Nadybot\Core\Routing\Events\Base;
-use Nadybot\Core\SyncEvent;
+use Nadybot\Core\{Event, SyncEvent};
 use stdClass;
 
 class RoutableEvent extends Event {
@@ -12,10 +11,13 @@ class RoutableEvent extends Event {
 	public const TYPE_EVENT = "event";
 
 	public ?Character $char = null;
+
 	/** @var Source[] */
 	public array $path = [];
 
 	public string|Base|SyncEvent|stdClass|null $data = null;
+
+	public bool $routeSilently = false;
 
 	public function getType(): string {
 		return $this->type;

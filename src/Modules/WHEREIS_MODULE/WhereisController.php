@@ -63,9 +63,7 @@ class WhereisController extends ModuleInstance {
 			});
 	}
 
-	/**
-	 * Show the location of NPCs or places
-	 */
+	/** Show the location of NPCs or places */
 	#[NCA\HandlesCommand("whereis")]
 	#[NCA\Help\Example("<symbol>whereis elmer ragg")]
 	#[NCA\Help\Example("<symbol>whereis prisoner")]
@@ -76,6 +74,7 @@ class WhereisController extends ModuleInstance {
 		$query = $this->db->table("whereis");
 		$this->db->addWhereFromParams($query, $words, "name");
 		$this->db->addWhereFromParams($query, $words, "keywords", "or");
+
 		/** @var Collection<string> */
 		$lines = $query->asObj(WhereisResult::class)
 			->map(function (WhereisResult $npc): string {

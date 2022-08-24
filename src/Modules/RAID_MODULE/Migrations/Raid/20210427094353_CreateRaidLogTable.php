@@ -3,9 +3,7 @@
 namespace Nadybot\Modules\RAID_MODULE\Migrations\Raid;
 
 use Illuminate\Database\Schema\Blueprint;
-use Nadybot\Core\DB;
-use Nadybot\Core\LoggerWrapper;
-use Nadybot\Core\SchemaMigration;
+use Nadybot\Core\{DB, LoggerWrapper, SchemaMigration};
 use Nadybot\Modules\RAID_MODULE\RaidController;
 
 class CreateRaidLogTable implements SchemaMigration {
@@ -14,7 +12,7 @@ class CreateRaidLogTable implements SchemaMigration {
 		if ($db->schema()->hasTable($table)) {
 			return;
 		}
-		$db->schema()->create($table, function(Blueprint $table): void {
+		$db->schema()->create($table, function (Blueprint $table): void {
 			$table->integer("raid_id")->index();
 			$table->string("description", 255)->nullable();
 			$table->integer("seconds_per_point");

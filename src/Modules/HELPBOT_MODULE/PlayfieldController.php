@@ -63,8 +63,8 @@ class PlayfieldController extends ModuleInstance {
 		$blob = $this->db->table("playfields")
 			->orderBy("long_name")
 			->asObj(Playfield::class)
-			->reduce(function(string $blob, Playfield $row): string {
-				return"{$blob}[<highlight>{$row->id}<end>] {$row->long_name} ({$row->short_name})\n";
+			->reduce(function (string $blob, Playfield $row): string {
+				return "{$blob}[<highlight>{$row->id}<end>] {$row->long_name} ({$row->short_name})\n";
 			}, "");
 
 		$msg = $this->text->makeBlob("Playfields", $blob);
@@ -85,15 +85,15 @@ class PlayfieldController extends ModuleInstance {
 		$count = count($data);
 
 		if ($count > 1) {
-			$blob = "<header2>Result of Playfield Search for \"$search\"<end>\n";
+			$blob = "<header2>Result of Playfield Search for \"{$search}\"<end>\n";
 			foreach ($data as $row) {
-				$blob .= "<tab>[<highlight>{$row->id}<end>] $row->long_name\n";
+				$blob .= "<tab>[<highlight>{$row->id}<end>] {$row->long_name}\n";
 			}
 
 			$msg = $this->text->makeBlob("Playfields ({$count})", $blob);
 		} elseif ($count == 1) {
 			$row = $data[0];
-			$msg = "[<highlight>$row->id<end>] $row->long_name";
+			$msg = "[<highlight>{$row->id}<end>] {$row->long_name}";
 		} else {
 			$msg = "There were no matches for your search.";
 		}
@@ -108,7 +108,7 @@ class PlayfieldController extends ModuleInstance {
 			$context->reply("Wrong waypoint format.");
 			return;
 		}
-		//Pos: ([0-9\\.]+), ([0-9\\.]+), ([0-9\\.]+), Area: (.+)
+		// Pos: ([0-9\\.]+), ([0-9\\.]+), ([0-9\\.]+), Area: (.+)
 		$xCoords = $args[1];
 		$yCoords = $args[2];
 
@@ -116,7 +116,7 @@ class PlayfieldController extends ModuleInstance {
 
 		$playfield = $this->getPlayfieldByName($playfieldName);
 		if ($playfield === null) {
-			$context->reply("Could not find playfield '$playfieldName'.");
+			$context->reply("Could not find playfield '{$playfieldName}'.");
 			return;
 		}
 		$context->reply($this->processWaypointCommand($xCoords, $yCoords, $playfield->short_name??"UNKNOWN", $playfield->id));
@@ -165,13 +165,6 @@ class PlayfieldController extends ModuleInstance {
 		$context->reply($this->processWaypointCommand($xCoords, $yCoords, $playfieldName??(string)$playfieldId, $playfieldId));
 	}
 
-	/** @return string[] */
-	private function processWaypointCommand(string $xCoords, string $yCoords, string $playfieldName, int $playfieldId): array {
-		$link = $this->text->makeChatcmd("waypoint: {$xCoords}x{$yCoords} {$playfieldName}", "/waypoint {$xCoords} {$yCoords} {$playfieldId}");
-		$blob = "Click here to use waypoint: $link";
-		return (array)$this->text->makeBlob("waypoint: {$xCoords}x{$yCoords} {$playfieldName}", $blob);
-	}
-
 	public function getPlayfieldByName(string $playfieldName): ?Playfield {
 		return $this->db->table("playfields")
 			->whereIlike("long_name", $playfieldName)
@@ -185,9 +178,7 @@ class PlayfieldController extends ModuleInstance {
 		return $this->playfields[$playfieldId] ?? null;
 	}
 
-	/**
-	 * @return Collection<Playfield>
-	 */
+	/** @return Collection<Playfield> */
 	public function searchPlayfieldsByName(string $playfieldName): Collection {
 		return $this->db->table("playfields")
 			->whereIlike("long_name", $playfieldName)
@@ -195,12 +186,17 @@ class PlayfieldController extends ModuleInstance {
 			->asObj(Playfield::class);
 	}
 
-	/**
-	 * @return Collection<Playfield>
-	 */
+	/** @return Collection<Playfield> */
 	public function searchPlayfieldsByIds(int ...$ids): Collection {
 		return $this->db->table("playfields")
 			->whereIn("id", $ids)
 			->asObj(Playfield::class);
+	}
+
+	/** @return string[] */
+	private function processWaypointCommand(string $xCoords, string $yCoords, string $playfieldName, int $playfieldId): array {
+		$link = $this->text->makeChatcmd("waypoint: {$xCoords}x{$yCoords} {$playfieldName}", "/waypoint {$xCoords} {$yCoords} {$playfieldId}");
+		$blob = "Click here to use waypoint: {$link}";
+		return (array)$this->text->makeBlob("waypoint: {$xCoords}x{$yCoords} {$playfieldName}", $blob);
 	}
 }

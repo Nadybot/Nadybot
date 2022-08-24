@@ -821,7 +821,7 @@ class GameIconsController extends ModuleInstance {
 		];
 		$blob = "";
 		foreach ($icons as $icon) {
-			$blob .= "<pagebreak>Icon: <img src=tdb://id:$icon> $icon\n";
+			$blob .= "<pagebreak>Icon: <img src=tdb://id:{$icon}> {$icon}\n";
 		}
 		$msg = $this->text->makeBlob("All game icons", $blob);
 		$context->reply($msg);

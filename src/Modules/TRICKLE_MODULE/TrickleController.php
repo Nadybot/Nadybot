@@ -61,7 +61,7 @@ class TrickleController extends ModuleInstance {
 				return;
 			}
 
-			$abilities->$shortAbility += $amount;
+			$abilities->{$shortAbility} += $amount;
 		}
 
 		$msg = $this->processAbilities($abilities);
@@ -90,7 +90,7 @@ class TrickleController extends ModuleInstance {
 				return;
 			}
 
-			$abilities->$shortAbility += $amount;
+			$abilities->{$shortAbility} += $amount;
 		}
 
 		$msg = $this->processAbilities($abilities);
@@ -107,7 +107,7 @@ class TrickleController extends ModuleInstance {
 			->asObj(Trickle::class);
 		$count = $data->count();
 		if ($count === 0) {
-			$msg = "Could not find any skills for search '$skill'";
+			$msg = "Could not find any skills for search '{$skill}'";
 		} elseif ($count === 1) {
 			$msg = "To trickle 1 skill point into <highlight>{$data[0]->name}<end>, ".
 				"you need " . $this->getTrickleAmounts($data[0]);
@@ -117,7 +117,7 @@ class TrickleController extends ModuleInstance {
 				$blob .= "<tab><highlight>{$row->name}<end>: ".
 					$this->getTrickleAmounts($row) . "\n";
 			}
-			$msg = $this->text->makeBlob("Trickle Info: $skill", $blob);
+			$msg = $this->text->makeBlob("Trickle Info: {$skill}", $blob);
 		}
 
 		$context->reply($msg);
@@ -128,9 +128,9 @@ class TrickleController extends ModuleInstance {
 		$reqs = [];
 		foreach ($arr as $ability) {
 			$fieldName = "amount" . ucfirst($ability);
-			if ($row->$fieldName > 0) {
+			if ($row->{$fieldName} > 0) {
 				$abilityName = $this->util->getAbility($ability, true);
-				$value = round(4 / ($row->$fieldName), 2);
+				$value = round(4 / ($row->{$fieldName}), 2);
 				$reqs []= "{$value} {$abilityName}";
 			}
 		}
@@ -138,28 +138,7 @@ class TrickleController extends ModuleInstance {
 		return $msg;
 	}
 
-	/**
-	 * @return string[]
-	 */
-	private function processAbilities(AbilityConfig $abilities): array {
-		$headerParts = [];
-		foreach (get_object_vars($abilities) as $short => $bonus) {
-			if ($bonus > 0) {
-				$headerParts []= ($this->util->getAbility($short, true) ?? "Unknown ability").
-					": <highlight>$bonus<end>";
-			}
-		}
-		$abilitiesHeader = join(", ", $headerParts);
-
-		$results = $this->getTrickleResults($abilities);
-		$blob = $this->formatOutput($results);
-		$blob .= "\nBy Tyrence (RK2), inspired by the Bebot command of the same name";
-		return (array)$this->text->makeBlob("Trickle Results: $abilitiesHeader", $blob);
-	}
-
-	/**
-	 * @return Trickle[]
-	 */
+	/** @return Trickle[] */
 	public function getTrickleResults(AbilityConfig $abilities): array {
 		return $this->db->table("trickle")
 			->orderBy("id")
@@ -176,25 +155,40 @@ class TrickleController extends ModuleInstance {
 			})->toArray();
 	}
 
-	/**
-	 * @param Trickle[] $results
-	 */
+	/** @param Trickle[] $results */
 	public function formatOutput(array $results): string {
 		$msg = "";
 		$groupName = "";
 		foreach ($results as $result) {
 			if ($result->groupName !== $groupName) {
 				$groupName = $result->groupName;
-				$msg .= "\n<header2>$groupName<end>\n";
+				$msg .= "\n<header2>{$groupName}<end>\n";
 			}
 
 			$amount = ($result->amount??0) / 4;
 			$amountInt = (int)floor($amount);
 			$msg .= "<tab>" . $this->text->alignNumber($amountInt, 3, "highlight").
 				".<highlight>" . substr(number_format($amount-$amountInt, 2), 2) . "<end> ".
-				"<a href=skillid://{$result->skill_id}>$result->name</a>\n";
+				"<a href=skillid://{$result->skill_id}>{$result->name}</a>\n";
 		}
 
 		return $msg;
+	}
+
+	/** @return string[] */
+	private function processAbilities(AbilityConfig $abilities): array {
+		$headerParts = [];
+		foreach (get_object_vars($abilities) as $short => $bonus) {
+			if ($bonus > 0) {
+				$headerParts []= ($this->util->getAbility($short, true) ?? "Unknown ability").
+					": <highlight>{$bonus}<end>";
+			}
+		}
+		$abilitiesHeader = join(", ", $headerParts);
+
+		$results = $this->getTrickleResults($abilities);
+		$blob = $this->formatOutput($results);
+		$blob .= "\nBy Tyrence (RK2), inspired by the Bebot command of the same name";
+		return (array)$this->text->makeBlob("Trickle Results: {$abilitiesHeader}", $blob);
 	}
 }

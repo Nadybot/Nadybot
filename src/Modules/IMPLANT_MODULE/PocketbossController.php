@@ -58,14 +58,14 @@ class PocketbossController extends ModuleInstance {
 		} elseif ($numrows === 1) {
 			$name = $data[0]->pb;
 			$blob .= $this->singlePbBlob($name);
-			$msg = $this->text->makeBlob("Remains of $name", $blob);
+			$msg = $this->text->makeBlob("Remains of {$name}", $blob);
 		} else {
 			$blob = '';
 			foreach ($data as $row) {
-				$pbLink = $this->text->makeChatcmd($row->pb, "/tell <myname> pocketboss $row->pb");
+				$pbLink = $this->text->makeChatcmd($row->pb, "/tell <myname> pocketboss {$row->pb}");
 				$blob .= $pbLink . "\n";
 			}
-			$msg = $this->text->makeBlob("Search results for $search ($numrows)", $blob);
+			$msg = $this->text->makeBlob("Search results for {$search} ({$numrows})", $blob);
 		}
 		$context->reply($msg);
 	}
@@ -83,23 +83,21 @@ class PocketbossController extends ModuleInstance {
 		$symbs = '';
 		foreach ($data as $symb) {
 			if (in_array($symb->line, ["Alpha", "Beta"])) {
-				$name = "Xan $symb->slot Symbiant, $symb->type Unit $symb->line";
+				$name = "Xan {$symb->slot} Symbiant, {$symb->type} Unit {$symb->line}";
 			} else {
-				$name = "$symb->line $symb->slot Symbiant, $symb->type Unit Aban";
+				$name = "{$symb->line} {$symb->slot} Symbiant, {$symb->type} Unit Aban";
 			}
-			$symbs .= $this->text->makeItem($symb->itemid, $symb->itemid, $symb->ql, $name) . " ($symb->ql)\n";
+			$symbs .= $this->text->makeItem($symb->itemid, $symb->itemid, $symb->ql, $name) . " ({$symb->ql})\n";
 		}
 
-		$blob = "Location: <highlight>$symb->pb_location, $symb->bp_location<end>\n";
-		$blob .= "Found on: <highlight>$symb->bp_mob, Level $symb->bp_lvl<end>\n\n";
+		$blob = "Location: <highlight>{$symb->pb_location}, {$symb->bp_location}<end>\n";
+		$blob .= "Found on: <highlight>{$symb->bp_mob}, Level {$symb->bp_lvl}<end>\n\n";
 		$blob .= $symbs;
 
 		return $blob;
 	}
 
-	/**
-	 * @return Pocketboss[]
-	 */
+	/** @return Pocketboss[] */
 	public function pbSearchResults(string $search): array {
 		$row = $this->db->table("pocketboss")
 			->whereIlike("pb", $search)
@@ -118,7 +116,7 @@ class PocketbossController extends ModuleInstance {
 
 		$pb =$query->asObj(Pocketboss::class);
 		return $pb->groupBy("pb")
-			->map(fn(Collection $col): Pocketboss => $col->first())
+			->map(fn (Collection $col): Pocketboss => $col->first())
 			->values()
 			->toArray();
 	}
@@ -192,6 +190,7 @@ class PocketbossController extends ModuleInstance {
 		?PWord $arg3
 	): void {
 		$args = $context->args;
+
 		/** @var string[] */
 		$args = array_filter([$args[1], $args[2]??null, $args[3]??null]);
 		$paramCount = count($args);
@@ -202,7 +201,7 @@ class PocketbossController extends ModuleInstance {
 
 		/** @var string[] */
 		$lines = $this->db->table("pocketboss")->select("line")->distinct()
-			->pluckAs("line", "string")->toArray();
+			->pluckStrings("line")->toArray();
 
 		for ($i = 0; $i < $paramCount; $i++) {
 			switch (strtolower($args[$i])) {
@@ -317,6 +316,7 @@ class PocketbossController extends ModuleInstance {
 			->orderByRaw($query->grammar->wrap("line") . " = ? desc")
 			->addBinding("Beta")
 			->orderBy("type");
+
 		/** @var Pocketboss[] */
 		$data = $query->asObj(Pocketboss::class)->toArray();
 		$numrows = count($data);
@@ -326,23 +326,23 @@ class PocketbossController extends ModuleInstance {
 			return;
 		}
 		$implantDesignerLink = $this->text->makeChatcmd("implant designer", "/tell <myname> implantdesigner");
-		$blob = "Click '[add]' to add symbiant to $implantDesignerLink.\n\n";
+		$blob = "Click '[add]' to add symbiant to {$implantDesignerLink}.\n\n";
 		foreach ($data as $row) {
 			if (in_array($row->line, ["Alpha", "Beta"])) {
-				$name = "Xan $row->slot Symbiant, $row->type Unit $row->line";
+				$name = "Xan {$row->slot} Symbiant, {$row->type} Unit {$row->line}";
 			} else {
-				$name = "$row->line $row->slot Symbiant, $row->type Unit Aban";
+				$name = "{$row->line} {$row->slot} Symbiant, {$row->type} Unit Aban";
 			}
-			$blob .= "<pagebreak>" . $this->text->makeItem($row->itemid, $row->itemid, $row->ql, $name)." ($row->ql)";
-			if (isset($impDesignSlot) ) {
-				$impDesignerAddLink = $this->text->makeChatcmd("add", "/tell <myname> implantdesigner $impDesignSlot symb $name");
-				$blob .= " [$impDesignerAddLink]";
+			$blob .= "<pagebreak>" . $this->text->makeItem($row->itemid, $row->itemid, $row->ql, $name)." ({$row->ql})";
+			if (isset($impDesignSlot)) {
+				$impDesignerAddLink = $this->text->makeChatcmd("add", "/tell <myname> implantdesigner {$impDesignSlot} symb {$name}");
+				$blob .= " [{$impDesignerAddLink}]";
 			}
 			$blob .= "\n";
-			$blob .= "Found on " . $this->text->makeChatcmd($row->pb, "/tell <myname> pb $row->pb");
+			$blob .= "Found on " . $this->text->makeChatcmd($row->pb, "/tell <myname> pb {$row->pb}");
 			$blob .= "\n\n";
 		}
-		$msg = $this->text->makeBlob("Symbiant Search Results ($numrows)", $blob);
+		$msg = $this->text->makeBlob("Symbiant Search Results ({$numrows})", $blob);
 		$context->reply($msg);
 	}
 }

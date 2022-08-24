@@ -58,7 +58,7 @@ class WebsocketCommandReply implements CommandReply, MessageEmitter {
 				$this->chatBot->char->id
 			));
 			$rMessage->path = [
-				new Source(Source::WEB, "Web")
+				new Source(Source::WEB, "Web"),
 			];
 			$this->messageHub->handle($rMessage);
 		}
@@ -70,11 +70,11 @@ class WebsocketCommandReply implements CommandReply, MessageEmitter {
 			$xmlMessage->type = "chat({$this->type})";
 			$xmlMessage->channel = $this->type;
 			$xmlMessage->path = [
-				new WebSource(Source::WEB, "Web")
+				new WebSource(Source::WEB, "Web"),
 			];
 			$xmlMessage->path[0]->renderAs = $xmlMessage->path[0]->render(null);
 			$color = $this->messageHub->getHopColor($rMessage->path, Source::WEB, new Source(Source::WEB, "Web"), "tag_color");
-			if (isset($color) && isset($color->tag_color)) {
+			if (isset($color, $color->tag_color)) {
 				$xmlMessage->path[0]->color = $color->tag_color;
 			} else {
 				$xmlMessage->path[0]->color = "";

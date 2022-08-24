@@ -2,7 +2,6 @@
 
 namespace Nadybot\Core\Migrations;
 
-use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	DB,
 	DBSchema\Setting,
@@ -14,20 +13,13 @@ use Nadybot\Core\{
 };
 
 class ConvertBroadcastsToRoutes implements SchemaMigration {
-	protected function getSetting(DB $db, string $name): ?Setting {
-		return $db->table(SettingManager::DB_TABLE)
-			->where("name", $name)
-			->asObj(Setting::class)
-			->first();
-	}
-
 	public function migrate(LoggerWrapper $logger, DB $db): void {
 		$table = "broadcast_<myname>";
 		if (!$db->schema()->hasTable($table)) {
 			return;
 		}
-		/** @var Collection<string> */
-		$broadcasts = $db->table($table)->pluckAs("name", "string");
+
+		$broadcasts = $db->table($table)->pluckStrings("name");
 		$orgSetting = $this->getSetting($db, 'broadcast_to_guild');
 		$toOrg = isset($orgSetting) ? ($orgSetting->value === "1") : true;
 		$privSetting = $this->getSetting($db, 'broadcast_to_privchan');
@@ -57,5 +49,12 @@ class ConvertBroadcastsToRoutes implements SchemaMigration {
 			];
 			$db->table(MessageHub::DB_TABLE_ROUTES)->insert($route);
 		}
+	}
+
+	protected function getSetting(DB $db, string $name): ?Setting {
+		return $db->table(SettingManager::DB_TABLE)
+			->where("name", $name)
+			->asObj(Setting::class)
+			->first();
 	}
 }

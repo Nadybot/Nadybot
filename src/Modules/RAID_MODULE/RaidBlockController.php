@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\RAID_MODULE;
 
+use Generator;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
@@ -18,6 +19,7 @@ use Nadybot\Core\{
 
 /**
  * This class contains all functions necessary to deal with temporary raid blocks
+ *
  * @package Nadybot\Modules\RAID_MODULE
  */
 #[
@@ -67,23 +69,19 @@ class RaidBlockController extends ModuleInstance {
 		$this->loadBlocks();
 	}
 
-	/**
-	 * Load all blocks from the database into memory
-	 */
+	/** Load all blocks from the database into memory */
 	public function loadBlocks(): void {
 		$this->db->table(self::DB_TABLE)
 			->whereNull("expiration")
 			->orWhere("expiration", ">", time())
 			->asObj(RaidBlock::class)
-			->each(function(RaidBlock $block) {
+			->each(function (RaidBlock $block) {
 				$this->blocks[$block->player] ??= [];
 				$this->blocks[$block->player][$block->blocked_from] = $block;
 			});
 	}
 
-	/**
-	 * Remove all temporary bans that are expired from memory
-	 */
+	/** Remove all temporary bans that are expired from memory */
 	public function expireBans(): void {
 		// Prevent loops that check blocks from over-triggering this
 		if (time() <= $this->lastExpiration) {
@@ -102,18 +100,14 @@ class RaidBlockController extends ModuleInstance {
 		}
 	}
 
-	/**
-	 * Check if a player is blocked from a certain raid activity
-	 */
+	/** Check if a player is blocked from a certain raid activity */
 	public function isBlocked(string $player, string $activity): bool {
 		$player = $this->altsController->getMainOf($player);
 		$this->expireBans();
 		return isset($this->blocks[ucfirst(strtolower($player))][$activity]);
 	}
 
-	/**
-	 * Get a descriptive noun for a raid block key
-	 */
+	/** Get a descriptive noun for a raid block key */
 	public function blockToString(string $block): string {
 		$mapping = [
 			static::AUCTION_BIDS => "bidding in auctions",
@@ -136,13 +130,13 @@ class RaidBlockController extends ModuleInstance {
 		PCharacter $character,
 		?PDuration $duration,
 		string $reason
-	): void {
+	): Generator {
 		$character = $character();
 		if ($this->isBlocked($character, $blockFrom)) {
 			$context->reply("<highlight>{$character}<end> is already blocked on <highlight>{$blockFrom}<end>.");
 			return;
 		}
-		if (!$this->chatBot->get_uid($character)) {
+		if (null === yield $this->chatBot->getUid2($character)) {
 			$context->reply("<highlight>{$character}<end> doesn't exist.");
 		}
 		$character = $this->altsController->getMainOf($character);

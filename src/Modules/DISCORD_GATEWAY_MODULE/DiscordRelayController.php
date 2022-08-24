@@ -2,6 +2,15 @@
 
 namespace Nadybot\Modules\DISCORD_GATEWAY_MODULE;
 
+use Nadybot\Core\Modules\{
+	ALTS\AltsController,
+	CONFIG\ConfigController,
+	CONFIG\SettingOption,
+	DISCORD\DiscordAPIClient,
+	DISCORD\DiscordController,
+	PLAYER_LOOKUP\PlayerManager,
+	PREFERENCES\Preferences,
+};
 use Nadybot\Core\{
 	AccessManager,
 	Attributes as NCA,
@@ -11,15 +20,6 @@ use Nadybot\Core\{
 	Text,
 	Timer,
 	Util,
-};
-use Nadybot\Core\Modules\{
-	ALTS\AltsController,
-	CONFIG\ConfigController,
-	CONFIG\SettingOption,
-	DISCORD\DiscordAPIClient,
-	DISCORD\DiscordController,
-	PLAYER_LOOKUP\PlayerManager,
-	PREFERENCES\Preferences,
 };
 use Nadybot\Modules\{
 	GUILD_MODULE\GuildController,
@@ -89,6 +89,7 @@ class DiscordRelayController extends ModuleInstance {
 
 	/**
 	 * Gives a list of all channels we have access to
+	 *
 	 * @return SettingOption[]
 	 */
 	public function getChannelOptionList(): array {
@@ -96,6 +97,7 @@ class DiscordRelayController extends ModuleInstance {
 		if (empty($guilds)) {
 			return [];
 		}
+
 		/** @var SettingOption[] */
 		$result = [];
 		foreach ($guilds as $guildId => $guild) {

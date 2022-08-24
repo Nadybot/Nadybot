@@ -2,9 +2,7 @@
 
 namespace Nadybot\Modules\DISCORD_GATEWAY_MODULE\Model;
 
-use Nadybot\Core\JSONDataModel;
-use Nadybot\Core\Registry;
-use Nadybot\Core\SettingManager;
+use Nadybot\Core\{JSONDataModel, Registry, SettingManager};
 
 class UpdateStatus extends JSONDataModel {
 	public const STATUS_ONLINE = "online";
@@ -18,8 +16,10 @@ class UpdateStatus extends JSONDataModel {
 	 * or null if the client is not idle
 	 */
 	public ?int $since;
+
 	/**
 	 * list of activities the client is playing
+	 *
 	 * @var Activity[]
 	 */
 	public ?array $activities;

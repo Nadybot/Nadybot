@@ -32,8 +32,10 @@ class BestQLController extends ModuleInstance {
 
 	/**
 	 * Try to determine the bonus for an interpolated QL
-	 * @param array<int,int> $itemSpecs An associative array [QLX => bonus X, QLY => bonus Y]
-	 * @param int $searchedQL The QL we want to interpolate to
+	 *
+	 * @param array<int,int> $itemSpecs  An associative array [QLX => bonus X, QLY => bonus Y]
+	 * @param int            $searchedQL The QL we want to interpolate to
+	 *
 	 * @return float|null The interpolated bonus at the given QL or null if out of range
 	 */
 	public function calcStatFromQL(array $itemSpecs, int $searchedQL): ?float {
@@ -44,18 +46,15 @@ class BestQLController extends ModuleInstance {
 			} else {
 				if ($lastSpec[0] <= $searchedQL && $itemQL >= $searchedQL) {
 					$multi = (1 / ($itemQL - $lastSpec[0]));
-					return $lastSpec[1] + ( ($itemBonus-$lastSpec[1]) * ($multi *($searchedQL-($lastSpec[0]-1)-1)));
-				} else {
-					$lastSpec = [$itemQL, $itemBonus];
+					return $lastSpec[1] + (($itemBonus-$lastSpec[1]) * ($multi *($searchedQL-($lastSpec[0]-1)-1)));
 				}
+				$lastSpec = [$itemQL, $itemBonus];
 			}
 		}
 		return null;
 	}
 
-	/**
-	 * Find the breakpoints for all possible bonuses of an item
-	 */
+	/** Find the breakpoints for all possible bonuses of an item */
 	#[NCA\HandlesCommand("bestql")]
 	public function bestql1Command(
 		CmdContext $context,
@@ -68,9 +67,7 @@ class BestQLController extends ModuleInstance {
 		$this->bestqlCommand($context, "{$lowQl} {$lowqlBonus} {$highQl} {$highqlBonus}", $pastedItem);
 	}
 
-	/**
-	 * Find the highest usable QL of an item
-	 */
+	/** Find the highest usable QL of an item */
 	#[NCA\HandlesCommand("bestql")]
 	public function bestql2Command(
 		CmdContext $context,
@@ -84,9 +81,7 @@ class BestQLController extends ModuleInstance {
 		$this->bestqlCommand($context, "{$lowQl} {$lowqlRequirement} {$highQl} {$highqlRequirement} {$attributeValue}", $pastedItem);
 	}
 
-	/**
-	 * General syntax, need at least 4 values for the specs. Paste item for links
-	 */
+	/** General syntax, need at least 4 values for the specs. Paste item for links */
 	#[NCA\HandlesCommand("bestql")]
 	#[NCA\Help\Epilogue(
 		"<header2>Examples:<end>\n\n".
@@ -135,6 +130,7 @@ class BestQLController extends ModuleInstance {
 		for ($i = 1; $i < count($specPairs); $i += 2) {
 			$itemSpecs[(int)$specPairs[$i-1]] = (int)$specPairs[$i];
 		}
+
 		/** @phpstan-var non-empty-array<int,int> $itemSpecs */
 
 		ksort($itemSpecs);
@@ -157,7 +153,7 @@ class BestQLController extends ModuleInstance {
 					if ($searchedQL === 1) {
 						$msg = "Your stats are too low to equip any QL of this item.";
 					} else {
-						$msg = "The highest QL is <highlight>".($searchedQL-1)."<end> with a requirement of <highlight>$oldRequirement<end>. QL $searchedQL already requires $value.";
+						$msg = "The highest QL is <highlight>".($searchedQL-1)."<end> with a requirement of <highlight>{$oldRequirement}<end>. QL {$searchedQL} already requires {$value}.";
 					}
 					$context->reply($msg);
 					return;
@@ -186,13 +182,13 @@ class BestQLController extends ModuleInstance {
 
 		$blob = $this->text->makeBlob("breakpoints", $msg, "Calculated breakpoints for your item");
 		if (is_string($blob)) {
-			$msg = "Found <highlight>$numFoundItems<end> $blob with different stats.";
+			$msg = "Found <highlight>{$numFoundItems}<end> {$blob} with different stats.";
 			$context->reply($msg);
 			return;
 		}
 		$pages = [];
 		for ($i = 0; $i < count($blob); $i++) {
-			$pages[] = "Found <highlight>$numFoundItems<end> ".$blob[$i]." with different stats.";
+			$pages[] = "Found <highlight>{$numFoundItems}<end> ".$blob[$i]." with different stats.";
 		}
 		$context->reply($pages);
 	}

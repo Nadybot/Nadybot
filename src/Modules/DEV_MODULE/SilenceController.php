@@ -7,11 +7,11 @@ use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
 	CommandManager,
-	Event,
 	DB,
 	DBSchema\CmdCfg,
-	ModuleInstance,
+	Event,
 	LoggerWrapper,
+	ModuleInstance,
 	ParamClass\PWord,
 	Text,
 };
@@ -36,6 +36,8 @@ use Nadybot\Core\{
 class SilenceController extends ModuleInstance {
 	public const DB_TABLE = "silence_cmd_<myname>";
 
+	public const NULL_COMMAND_HANDLER = "SilenceController.nullCommand";
+
 	#[NCA\Inject]
 	public DB $db;
 
@@ -47,8 +49,6 @@ class SilenceController extends ModuleInstance {
 
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
-
-	public const NULL_COMMAND_HANDLER = "SilenceController.nullCommand";
 
 	/** Get a list of all commands that have been silenced */
 	#[NCA\HandlesCommand("silence")]
@@ -63,8 +63,8 @@ class SilenceController extends ModuleInstance {
 			$context->reply($msg);
 			return;
 		}
-		$blob = $data->reduce(function(string $blob, SilenceCmd $row) {
-			$unsilenceLink = $this->text->makeChatcmd("Unsilence", "/tell <myname> unsilence $row->cmd $row->channel");
+		$blob = $data->reduce(function (string $blob, SilenceCmd $row) {
+			$unsilenceLink = $this->text->makeChatcmd("Unsilence", "/tell <myname> unsilence {$row->cmd} {$row->channel}");
 			return "{$blob}<highlight>{$row->cmd}<end> ({$row->channel}) - {$unsilenceLink}\n";
 		}, '');
 		$msg = $this->text->makeBlob("Silenced Commands", $blob);
@@ -99,10 +99,10 @@ class SilenceController extends ModuleInstance {
 		if (!isset($cmdCfg) || !isset($cmdCfg->permissions[$permissionSet]) || !$cmdCfg->permissions[$permissionSet]->enabled) {
 			$msg = "Could not find command <highlight>{$command}<end> for channel <highlight>{$permissionSet}<end>.";
 		} elseif (!$this->isSilencedCommand($cmdCfg, $permissionSet)) {
-			$msg = "Command <highlight>$command<end> for channel <highlight>$permissionSet<end> has not been silenced.";
+			$msg = "Command <highlight>{$command}<end> for channel <highlight>{$permissionSet}<end> has not been silenced.";
 		} else {
 			$this->removeSilencedCommand($cmdCfg, $permissionSet);
-			$msg = "Command <highlight>$command<end> for channel <highlight>$permissionSet<end> has been unsilenced.";
+			$msg = "Command <highlight>{$command}<end> for channel <highlight>{$permissionSet}<end> has been unsilenced.";
 		}
 		$context->reply($msg);
 	}
@@ -110,7 +110,7 @@ class SilenceController extends ModuleInstance {
 	public function nullCommand(CmdContext $context): void {
 		$this->logger->info("Silencing command '{command}' for permission set '{permission_set}'", [
 			"command" => $context->message,
-			"permission_set" => $context->permissionSet ?? "<all>"
+			"permission_set" => $context->permissionSet ?? "<all>",
 		]);
 	}
 

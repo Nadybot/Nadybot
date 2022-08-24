@@ -2,8 +2,8 @@
 
 namespace Nadybot\Core;
 
-use Nadybot\Core\Attributes as NCA;
 use Exception;
+use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\DBSchema\Setting;
 
 #[
@@ -12,6 +12,7 @@ use Nadybot\Core\DBSchema\Setting;
 ]
 class SettingManager {
 	public const DB_TABLE = "settings_<myname>";
+
 	#[NCA\Inject]
 	public DB $db;
 
@@ -36,18 +37,18 @@ class SettingManager {
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
-	/** @var array<string,SettingValue> $settings */
+	/** @var array<string,SettingValue> */
 	public array $settings = [];
 
-	/** @var array<string,ChangeListener[]> $changeListeners */
+	public static bool $isInitialized = false;
+
+	/** @var array<string,ChangeListener[]> */
 	private array $changeListeners = [];
 
 	/** @var array<string,string> */
 	private array $settingHandlers = [];
 
-	/**
-	 * Return the hardcoded value for a setting or a given default
-	 */
+	/** Return the hardcoded value for a setting or a given default */
 	public function getHardcoded(string $setting, bool|int|string|null $default=null): ?string {
 		$value = $this->config->settings[$setting]??$default;
 		if (is_bool($value)) {
@@ -56,25 +57,23 @@ class SettingManager {
 			return (string)$value;
 		} elseif (is_string($value)) {
 			return $value;
-		} else {
-			return null;
 		}
+		return null;
 	}
 
 	/**
 	 * Register a setting for a module
 	 *
-	 * @param string $module The module name
-	 * @param string $name The name of the setting
-	 * @param string $description A description for the setting (will appear in the config)
-	 * @param string $mode 'edit' or 'noedit'
-	 * @param int|float|string|bool  $value
-	 * @param string $type 'color', 'number', 'text', 'options', or 'time'
-	 * @param array<string|int,int|string> $options An optional list of values that the setting can be, semi-colon delimited.
-	 *                                              Alternatively, use an associative array [label => value], where label is optional.
-	 * @param string $accessLevel The permission level needed to change this setting (default: mod) (optional)
-	 * @param ?string $help A help file for this setting; if blank, will use a help topic with the same name as this setting if it exists (optional)
-	 * @return void
+	 * @param string                       $module      The module name
+	 * @param string                       $name        The name of the setting
+	 * @param string                       $description A description for the setting (will appear in the config)
+	 * @param string                       $mode        'edit' or 'noedit'
+	 * @param string                       $type        'color', 'number', 'text', 'options', or 'time'
+	 * @param array<string|int,int|string> $options     An optional list of values that the setting can be, semi-colon delimited.
+	 *                                                  Alternatively, use an associative array [label => value], where label is optional.
+	 * @param string                       $accessLevel The permission level needed to change this setting (default: mod) (optional)
+	 * @param ?string                      $help        A help file for this setting; if blank, will use a help topic with the same name as this setting if it exists (optional)
+	 *
 	 * @throws SQLException if the setting causes SQL errors (text too long, etc.)
 	 */
 	public function add(
@@ -114,7 +113,7 @@ class SettingManager {
 			$oldvalue = $value;
 			$value = $this->util->parseTime((string)$value);
 			if ($value < 1) {
-				$this->logger->error("Error in registering Setting $module:setting($name). Invalid time: '{$oldvalue}'.");
+				$this->logger->error("Error in registering Setting {$module}:setting({$name}). Invalid time: '{$oldvalue}'.");
 				return;
 			}
 		}
@@ -186,7 +185,7 @@ class SettingManager {
 			}
 			$this->settings[$name] = new SettingValue($setting);
 		} catch (SQLException $e) {
-			$this->logger->error("Error in registering Setting $module:setting($name): " . $e->getMessage(), ["exception" => $e]);
+			$this->logger->error("Error in registering Setting {$module}:setting({$name}): " . $e->getMessage(), ["exception" => $e]);
 		}
 	}
 
@@ -194,6 +193,7 @@ class SettingManager {
 	 * Determine if a setting with a given name exists
 	 *
 	 * @param string $name Setting to check
+	 *
 	 * @return bool true if the setting exists, false otherwise
 	 */
 	public function exists(string $name): bool {
@@ -204,26 +204,45 @@ class SettingManager {
 	 * Gets the value of a setting
 	 *
 	 * @param string $name name of the setting to read
+	 *
 	 * @return null|string|int|false the value of the setting, or false if a setting with that name does not exist
 	 */
 	public function get(string $name): null|string|int|false {
 		$name = strtolower($name);
 		if ($this->exists($name)) {
 			return $this->settings[$name]->value;
+		} elseif (!static::$isInitialized) {
+			/** @var ?Setting */
+			$value = $this->db->table(self::DB_TABLE)
+				->where("name", $name)
+				->asObj(Setting::class)
+				->first();
+			if (isset($value)) {
+				return (new SettingValue($value))->value;
+			}
 		}
-		$this->logger->error("Could not retrieve value for setting '$name' because setting does not exist");
+		$this->logger->error("Could not retrieve value for setting '{$name}' because setting does not exist");
 		return false;
 	}
 
-	/**
-	 * @return int|bool|string|null
-	 */
+	/** @return int|bool|string|null */
 	public function getTyped(string $name): int|bool|string|null {
 		$name = strtolower($name);
 		if ($this->exists($name)) {
 			return $this->settings[$name]->typed();
+		} elseif (!static::$isInitialized) {
+			/** @var ?Setting */
+			$value = $this->db->table(self::DB_TABLE)
+				->where("name", $name)
+				->asObj(Setting::class)
+				->first();
+			if (isset($value)) {
+				return (new SettingValue($value))->typed();
+			}
+			return null;
 		}
-		$this->logger->error("Could not retrieve value for setting '$name' because setting does not exist");
+
+		$this->logger->error("Could not retrieve value for setting '{$name}' because setting does not exist");
 		return null;
 	}
 
@@ -233,7 +252,7 @@ class SettingManager {
 			return (int)$value;
 		}
 		$type = gettype($value);
-		$this->logger->error("Wrong type for setting '$name' requested. Expected 'int', got '$type' ($value)");
+		$this->logger->error("Wrong type for setting '{$name}' requested. Expected 'int', got '{$type}' ({$value})");
 		return null;
 	}
 
@@ -243,7 +262,7 @@ class SettingManager {
 			return $value;
 		}
 		$type = gettype($value);
-		$this->logger->error("Wrong type for setting '$name' requested. Expected 'bool', got '$type'");
+		$this->logger->error("Wrong type for setting '{$name}' requested. Expected 'bool', got '{$type}'");
 		return null;
 	}
 
@@ -253,22 +272,23 @@ class SettingManager {
 			return $value;
 		}
 		$type = gettype($value);
-		$this->logger->error("Wrong type for setting '$name' requested. Expected 'string', got '$type'");
+		$this->logger->error("Wrong type for setting '{$name}' requested. Expected 'string', got '{$type}'");
 		return null;
 	}
 
 	/**
 	 * Saves a new value for a setting
 	 *
-	 * @param string $name The name of the setting
+	 * @param string     $name  The name of the setting
 	 * @param string|int $value The new value to set the setting to
+	 *
 	 * @return bool false if the setting with that name does not exist, true otherwise
 	 */
 	public function save(string $name, string|int $value): bool {
 		$name = strtolower($name);
 
 		if (!$this->exists($name)) {
-			$this->logger->error("Could not save value '$value' for setting '$name' because setting does not exist");
+			$this->logger->error("Could not save value '{$value}' for setting '{$name}' because setting does not exist");
 			return false;
 		}
 		if ($this->getHardcoded($name, null) !== null) {
@@ -296,18 +316,16 @@ class SettingManager {
 			->where("name", $name)
 			->update([
 				"verify" => 1,
-				"value" => $value
+				"value" => $value,
 			]);
 		return true;
 	}
 
-	/**
-	 * Load settings from the database
-	 */
+	/** Load settings from the database */
 	public function upload(): void {
 		$this->settings = [];
 
-		//Upload Settings from the db that are set by modules
+		// Upload Settings from the db that are set by modules
 		/** @var Setting[] $data */
 		$data = $this->db->table(self::DB_TABLE)->asObj(Setting::class)->toArray();
 		foreach ($data as $row) {
@@ -351,20 +369,16 @@ class SettingManager {
 		$this->changeListeners[$settingName] []= $listener;
 	}
 
-	/**
-	 * Registers a new setting type $name that's implemented by $class
-	 */
+	/** Registers a new setting type $name that's implemented by $class */
 	public function registerSettingHandler(string $name, string $class): void {
 		$this->settingHandlers[$name] = $class;
 	}
 
-	/**
-	 * Get the handler for a setting
-	 */
+	/** Get the handler for a setting */
 	public function getSettingHandler(Setting $row): ?SettingHandler {
 		$handler = $this->settingHandlers[$row->type] ?? null;
 		if (!isset($handler)) {
-			$this->logger->error("Could not find setting handler for setting type: '$row->type'");
+			$this->logger->error("Could not find setting handler for setting type: '{$row->type}'");
 			return null;
 		}
 		$handlerObj = new $handler($row);
