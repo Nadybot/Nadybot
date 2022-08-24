@@ -44,6 +44,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Detection of when to display a QL for an item will now automatically detect symbiants and spirits and print their QL, even if they only exist in 1 QL.
 - The worldboss timers now ignore any updates for different dimensions.
 - Add new attributes to track when people became members of the bot and who added them. This is in addition to the audit functionality. Upgrading to this version will try to determine the date by using the audit tables, or assume "since now".
+- Use Discord's `resume_gateway_url` property instead of querying the Gateway each time, when resuming connections.
 
 ### Removed
 
