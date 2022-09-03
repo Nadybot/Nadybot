@@ -193,12 +193,12 @@ class QueryBuilder extends Builder {
 				continue;
 			}
 			$colName = $colMeta['name'];
-			if ($values[$col] === null || $values[$col] === "NULL") {
+			if ($values[$col] === null) {
 				try {
 					$refProp = $refClass->getProperty($colName);
 					$refType = $refProp->getType();
 					if (isset($refType) && $refType->allowsNull()) {
-						$row->{$colName} = $values[$col];
+						$row->{$colName} = null;
 					}
 				} catch (ReflectionException $e) {
 					$row->{$colName} = null;
