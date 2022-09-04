@@ -236,6 +236,9 @@ class ImplantDesignerController extends ModuleInstance {
 		$slot = $slot();
 
 		$design = $this->getDesign($context->char->name, '@');
+		if (!isset($design->{$slot})) {
+			$design->{$slot} = new stdClass();
+		}
 		$slotObj = $design->{$slot};
 		unset($slotObj->symb);
 		$slotObj->ql = $ql;

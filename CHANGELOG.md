@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Add new commands `!bestnanos` and `!bestnanosfroob` to get a list of the best nanos for your current or a given profession/level. Use `!bn`/`!bnf` or `!bnl`/`!bnfl` for the long version if you are lazy.
 
+### Fix
+
+- The implant designer can once again set the QL of a slot even if it's currently empty.
+
 ## [6.1.0] - 2022-08-24
 
 ### Added
