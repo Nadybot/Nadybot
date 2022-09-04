@@ -130,7 +130,10 @@ class QueryBuilder extends Builder {
 	}
 
 	public function join($table, $first, $operator=null, $second=null, $type='inner', $where=false): self {
-		return parent::join($this->nadyDB->formatSql($table), $first, $operator, $second, $type);
+		if (is_string($table)) {
+			$table = $this->nadyDB->formatSql($table);
+		}
+		return parent::join($table, $first, $operator, $second, $type);
 	}
 
 	public function crossJoin($table, $first=null, $operator=null, $second=null): self {
