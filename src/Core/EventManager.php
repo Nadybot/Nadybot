@@ -243,6 +243,10 @@ class EventManager {
 			Loop::cancel($entry->moveHandle);
 		}
 		$delay = max(0, $nextEvent - time());
+		$this->logger->notice("Moved the next {event} event to {time}", [
+			"event" => $entry->filename,
+			"time" => $this->util->date($nextEvent),
+		]);
 		$entry->moveHandle = Loop::delay(
 			$delay * 1000,
 			function () use ($entry): void {
