@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Add new commands `!bestnanos` and `!bestnanosfroob` to get a list of the best nanos for your current or a given profession/level. Use `!bn`/`!bnf` or `!bnl`/`!bnfl` for the long version if you are lazy.
+- The `!icc`-command can now also be used to say that the arbiter is currently not here, but will be here on Sunday. Use `!icc set bs next` to specify that the upcoming arbiter week will be PvP-week.
 
 ### Fix
 
