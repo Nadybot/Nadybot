@@ -4,7 +4,7 @@ on:
     branches:
       - unstable
       - stable
-      - amphp
+      - multi-platform-docker
     tags:
       - '*'
 jobs:
@@ -43,7 +43,9 @@ jobs:
         - name: Build the tagged Docker PHP 8.0 image
           shell: bash
           run: |
-            docker build --file Dockerfile --build-arg VERSION="${{steps.vars.outputs.version}}" \
+            docker buildx create --user --name mybuild node-amd64 && \
+            docker buildx create --append --name mybuild node-aarch64 && \
+            docker buildx build --platform linux/amd64,linux/aarch64 --file Dockerfile --build-arg VERSION="${{steps.vars.outputs.version}}" \
               --tag "quay.io/nadyita/nadybot:${{steps.vars.outputs.tag}}" \
               --tag "quay.io/nadyita/nadybot:${{steps.vars.outputs.branch}}" \
               --tag "ghcr.io/nadybot/nadybot:${{steps.vars.outputs.tag}}" \
@@ -58,7 +60,7 @@ jobs:
         - name: Build the tagged Docker-big PHP 8.0 image
           shell: bash
           run: |
-            docker build --file Dockerfile-big --build-arg VERSION="${{steps.vars.outputs.version}}" \
+            docker buildx build --platform linux/amd64,linux/aarch64 --file Dockerfile-big --build-arg VERSION="${{steps.vars.outputs.version}}" \
               --tag "quay.io/nadyita/nadybot-big:${{steps.vars.outputs.tag}}" \
               --tag "quay.io/nadyita/nadybot-big:${{steps.vars.outputs.branch}}" \
               --tag "ghcr.io/nadybot/nadybot-big:${{steps.vars.outputs.tag}}" \
@@ -73,7 +75,7 @@ jobs:
         - name: Build the tagged Docker-big-debug PHP 8.0 image
           shell: bash
           run: |
-            docker build --file Dockerfile-big --build-arg PROXY_IMAGE=debug --build-arg VERSION="${{steps.vars.outputs.version}}" \
+            docker buildx build --platform linux/amd64,linux/aarch64 --file Dockerfile-big --build-arg PROXY_IMAGE=debug --build-arg VERSION="${{steps.vars.outputs.version}}" \
               --tag "quay.io/nadyita/nadybot-big-debug:${{steps.vars.outputs.tag}}" \
               --tag "quay.io/nadyita/nadybot-big-debug:${{steps.vars.outputs.branch}}" \
               --tag "ghcr.io/nadybot/nadybot-big-debug:${{steps.vars.outputs.tag}}" \
