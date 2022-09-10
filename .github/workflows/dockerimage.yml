@@ -48,25 +48,12 @@ jobs:
         - name: Build the tagged Docker PHP 8.0 image
           shell: bash
           run: |
-            docker buildx build --platform linux/amd64,linux/arm64 --file Dockerfile --build-arg VERSION="${{steps.vars.outputs.version}}" \
-              --tag "quay.io/nadyita/nadybot:${{steps.vars.outputs.tag}}" \
-              --tag "quay.io/nadyita/nadybot:${{steps.vars.outputs.branch}}" \
-              --tag "ghcr.io/nadybot/nadybot:${{steps.vars.outputs.tag}}" \
-              --tag "ghcr.io/nadybot/nadybot:${{steps.vars.outputs.branch}}" \
-              . && \
-            docker buildx build --load \
+            docker buildx build --push --platform linux/amd64,linux/arm64 --file Dockerfile --build-arg VERSION="${{steps.vars.outputs.version}}" \
               --tag "quay.io/nadyita/nadybot:${{steps.vars.outputs.tag}}" \
               --tag "quay.io/nadyita/nadybot:${{steps.vars.outputs.branch}}" \
               --tag "ghcr.io/nadybot/nadybot:${{steps.vars.outputs.tag}}" \
               --tag "ghcr.io/nadybot/nadybot:${{steps.vars.outputs.branch}}" \
               .
-        - name: Push the tagged PHP 8.0 Docker image
-          shell: bash
-          run: |
-            docker push --platform linux/amd64,linux/arm64 "quay.io/nadyita/nadybot:${{steps.vars.outputs.tag}}"
-            docker push --platform linux/amd64,linux/arm64 "quay.io/nadyita/nadybot:${{steps.vars.outputs.branch}}"
-            docker push --platform linux/amd64,linux/arm64 "ghcr.io/nadybot/nadybot:${{steps.vars.outputs.tag}}"
-            docker push --platform linux/amd64,linux/arm64 "ghcr.io/nadybot/nadybot:${{steps.vars.outputs.branch}}"
         - name: Build the tagged Docker-big PHP 8.0 image
           shell: bash
           run: |
