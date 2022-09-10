@@ -16,6 +16,8 @@ jobs:
           uses: actions/checkout@v2.2.0
           with:
             fetch-depth: 0
+        - name: Set up QEMU
+          uses: docker/setup-qemu-action@v2
         - name: Set up Docker Buildx
           id: buildx
           uses: docker/setup-buildx-action@v2
