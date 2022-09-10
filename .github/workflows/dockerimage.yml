@@ -53,14 +53,13 @@ jobs:
               --tag "quay.io/nadyita/nadybot:${{steps.vars.outputs.branch}}" \
               --tag "ghcr.io/nadybot/nadybot:${{steps.vars.outputs.tag}}" \
               --tag "ghcr.io/nadybot/nadybot:${{steps.vars.outputs.branch}}" \
-              --builder=container \
               . && \
             docker buildx build --load \
               --tag "quay.io/nadyita/nadybot:${{steps.vars.outputs.tag}}" \
               --tag "quay.io/nadyita/nadybot:${{steps.vars.outputs.branch}}" \
               --tag "ghcr.io/nadybot/nadybot:${{steps.vars.outputs.tag}}" \
               --tag "ghcr.io/nadybot/nadybot:${{steps.vars.outputs.branch}}" \
-              --builder=container .
+              .
         - name: Push the tagged PHP 8.0 Docker image
           shell: bash
           run: |
