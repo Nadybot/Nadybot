@@ -55,9 +55,6 @@ jobs:
         - name: Build the tagged Docker PHP 8.0 image
           shell: bash
           run: |
-            docker context ls && \
-            docker buildx create --use --name mybuild node-amd64 && \
-            docker buildx create --append --name mybuild node-arm64 && \
             docker buildx build --platform linux/amd64,linux/arm64 --file Dockerfile --build-arg VERSION="${{steps.vars.outputs.version}}" \
               --tag "quay.io/nadyita/nadybot:${{steps.vars.outputs.tag}}" \
               --tag "quay.io/nadyita/nadybot:${{steps.vars.outputs.branch}}" \
