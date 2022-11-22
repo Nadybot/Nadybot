@@ -40,6 +40,7 @@ use Nadybot\Modules\{
 	ORGLIST_MODULE\Organization,
 	TOWER_MODULE\TowerAttackEvent,
 };
+
 use Throwable;
 
 /**
@@ -409,13 +410,6 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 		) {
 			return;
 		}
-		$this->db->table(self::DB_TRACKING)
-			->insert([
-				"uid" => $uid,
-				"dt" => time(),
-				"event" => "logoff",
-			]);
-
 		// Prevent excessive "XXX logged off" messages after adding a whole org
 		/** @var ?TrackingOrg */
 		$orgMember = $this->db->table(self::DB_ORG_MEMBER, "om")
@@ -427,12 +421,19 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 		if (isset($orgMember) && (time() - $orgMember->added_dt->getTimestamp()) < 60) {
 			return;
 		}
+		$this->db->table(self::DB_TRACKING)
+			->insert([
+				"uid" => $uid,
+				"dt" => time(),
+				"event" => "logoff",
+			]);
 
 		$event = new TrackerEvent();
 		$event->player = $eventObj->sender;
 		$event->type = "tracker(logoff)";
 		$this->eventManager->fireEvent($event);
 
+		/** @var ?Player */
 		$player = yield $this->playerManager->byName($eventObj->sender);
 		$msg = $this->getLogoffMessage($player, $eventObj->sender);
 		$r = new RoutableMessage($msg);
@@ -1208,6 +1209,7 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 			->keyBy("uid");
 		yield $this->db->awaitBeginTransaction();
 		$toInsert = [];
+		$toInit = [];
 		try {
 			foreach ($org->members as $member) {
 				/** @var ?TrackingOrgMember */
@@ -1227,6 +1229,11 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 						"uid" => $member->charid,
 						"name" => $member->name,
 					];
+					$toInit []= [
+						"uid" => $member->charid,
+						"dt" => time(),
+						"event" => "logoff",
+					];
 				}
 			}
 			if (count($toInsert)) {
@@ -1245,6 +1252,8 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 				}
 				$this->db->table(static::DB_ORG_MEMBER)
 					->chunkInsert($toInsert);
+				$this->db->table(static::DB_TRACKING)
+					->chunkInsert($toInit);
 				foreach ($toInsert as $buddy) {
 					$this->buddylistManager->addId($buddy["uid"], static::REASON_ORG_TRACKER);
 				}
