@@ -2,9 +2,12 @@
 
 namespace Nadybot\Core\Modules\BAN;
 
+use function Amp\Promise\rethrow;
 use function Amp\{asyncCall, call};
+
 use Amp\{Promise, Success};
 use Generator;
+use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	AccessManager,
 	Attributes as NCA,
@@ -28,6 +31,7 @@ use Nadybot\Core\{
 	Text,
 	Util,
 };
+use Nadybot\Modules\WHOIS_MODULE\NameHistory;
 use Throwable;
 
 #[
@@ -260,14 +264,30 @@ class BanController extends ModuleInstance {
 		);
 	}
 
-	/** List the current ban list */
+	/**
+	 * List the current ban list, optionally searching for &lt;search&gt;
+	 * The search supports ? and * as wildcards
+	 */
 	#[NCA\HandlesCommand("banlist")]
 	#[NCA\Help\Group("ban")]
-	public function banlistCommand(CmdContext $context): void {
+	#[NCA\Help\Example("<symbol>banlist nady*", "to search for characters starting with nady")]
+	#[NCA\Help\Example("<symbol>banlist *iut*", "to search for characters containing iut")]
+	public function banlistCommand(CmdContext $context, ?string $search): void {
 		$banlist = $this->getBanlist();
+		if (isset($search)) {
+			$banlist = array_filter(
+				$banlist,
+				function (BanEntry $entry) use ($search): bool {
+					return fnmatch($search, $entry->name, FNM_CASEFOLD);
+				}
+			);
+		}
 		$count = count($banlist);
 		if ($count === 0) {
 			$msg = "No one is currently banned from this bot.";
+			if (isset($search)) {
+				$msg = "No one matching <highlight>{$search}<end> is currently banned from this bot.";
+			}
 			$context->reply($msg);
 			return;
 		}
@@ -290,7 +310,11 @@ class BanController extends ModuleInstance {
 			$bans []= $blob;
 		}
 		$blob = join("\n<pagebreak>", $bans);
-		$msg = $this->text->makeBlob("Banlist ({$count})", $blob);
+		if (isset($search)) {
+			$msg = $this->text->makeBlob("Banlist matches for '{$search}' ({$count})", $blob);
+		} else {
+			$msg = $this->text->makeBlob("Banlist ({$count})", $blob);
+		}
 		$context->reply($msg);
 	}
 
@@ -457,13 +481,27 @@ class BanController extends ModuleInstance {
 		$this->banlist = [];
 
 		$bans = $this->db->table(self::DB_TABLE)
+			->orderBy("time")
 			->asObj(BanEntry::class);
+
+		/** @var Collection<int,NameHistory> */
+		$names = $this->db->table("name_history")
+			->where("dimension", $this->db->getDim())
+			->orderByDesc("dt")
+			->groupBy("charid")
+			->asObj(NameHistory::class)
+			->keyBy("charid");
 		$bannedUids = $bans->pluck("charid")->toArray();
+
+		/** @var Collection<int,Player> */
 		$players = $this->playerManager
 			->searchByUids($this->db->getDim(), ...$bannedUids)
 			->keyBy("charid");
-		$bans->each(function (BanEntry $ban) use ($players): void {
-			$ban->name = $players->get($ban->charid)?->name ?? (string)$ban->charid;
+		$bans->each(function (BanEntry $ban) use ($players, $names): void {
+			$ban->name = $players->get($ban->charid)?->name
+				?? $this->chatBot->id[$ban->charid]
+				?? $names->get($ban->charid)?->name
+				?? (string)$ban->charid;
 			$this->banlist[$ban->charid] = $ban;
 		});
 	}
@@ -801,6 +839,7 @@ class BanController extends ModuleInstance {
 					$event->reason = $reason;
 					$event->forceSync = $context->forceSync;
 					$this->eventManager->fireEvent($event);
+					rethrow($this->playerManager->byName($who));
 				} else {
 					$numErrors++;
 				}
