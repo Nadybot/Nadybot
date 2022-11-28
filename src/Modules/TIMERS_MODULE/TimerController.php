@@ -195,7 +195,7 @@ class TimerController extends ModuleInstance implements MessageEmitter {
 		$endTime = (int)$timer->data + $alert->time;
 		$alerts = $this->generateAlerts($timer->owner, $timer->name, $endTime, explode(' ', $this->timerAlertTimes));
 		$this->remove($timer->id);
-		$this->add($timer->name, $timer->owner, $timer->mode, $alerts, $timer->callback, $timer->data, $timer->origin);
+		$this->add($timer->name, $timer->owner, $timer->mode, $alerts, $timer->callback, $timer->data, $timer->origin, $timer->id);
 	}
 
 	public function sendAlertMessage(Timer $timer, Alert $alert): void {
@@ -247,10 +247,15 @@ class TimerController extends ModuleInstance implements MessageEmitter {
 	/** Create a new repeating timer, repeating every &lt;interval&gt; after &lt;initial&gt; */
 	#[NCA\HandlesCommand("rtimer")]
 	#[NCA\Help\Group("timers")]
+	#[NCA\Help\Example(
+		command: "<symbol>rtimer add 1m 15m Drink reminder",
+		description: "Start a timer that will wait for 1 minute and then go off ".
+			"every 15 minutes until deleted"
+	)]
 	public function rtimerCommand(
 		CmdContext $context,
 		#[NCA\Str("add")] ?string $action,
-		PDuration $duration,
+		PDuration $initial,
 		PDuration $interval,
 		string $name
 	): void {
@@ -263,7 +268,7 @@ class TimerController extends ModuleInstance implements MessageEmitter {
 			return;
 		}
 
-		$initialRunTime = $duration->toSecs();
+		$initialRunTime = $initial->toSecs();
 		$runTime = $interval->toSecs();
 
 		if ($runTime < 1) {
@@ -501,7 +506,7 @@ class TimerController extends ModuleInstance implements MessageEmitter {
 	}
 
 	/** @param Alert[] $alerts */
-	public function add(string $name, string $owner, ?string $mode, array $alerts, string $callback, ?string $data=null, ?string $origin=null): int {
+	public function add(string $name, string $owner, ?string $mode, array $alerts, string $callback, ?string $data=null, ?string $origin=null, ?int $id=null): int {
 		usort($alerts, function (Alert $a, Alert $b) {
 			return $a->time <=> $b->time;
 		});
@@ -524,18 +529,35 @@ class TimerController extends ModuleInstance implements MessageEmitter {
 		$event->timer = $timer;
 		$event->type = "timer(start)";
 
-		$timer->id = $this->db->table(static::DB_TABLE)
-			->insertGetId([
-				"name" => $name,
-				"owner" => $owner,
-				"mode" => $timer->mode,
-				"origin" => $timer->origin,
-				"endtime" => $timer->endtime,
-				"settime" => $timer->settime,
-				"callback" => $callback,
-				"data" => $data,
-				"alerts" => \Safe\json_encode($alerts),
-			]);
+		if (isset($id)) {
+			$this->db->table(static::DB_TABLE)
+				->insert([
+					"id" => $id,
+					"name" => $name,
+					"owner" => $owner,
+					"mode" => $timer->mode,
+					"origin" => $timer->origin,
+					"endtime" => $timer->endtime,
+					"settime" => $timer->settime,
+					"callback" => $callback,
+					"data" => $data,
+					"alerts" => \Safe\json_encode($alerts),
+				]);
+			$timer->id = $id;
+		} else {
+			$timer->id = $this->db->table(static::DB_TABLE)
+				->insertGetId([
+					"name" => $name,
+					"owner" => $owner,
+					"mode" => $timer->mode,
+					"origin" => $timer->origin,
+					"endtime" => $timer->endtime,
+					"settime" => $timer->settime,
+					"callback" => $callback,
+					"data" => $data,
+					"alerts" => \Safe\json_encode($alerts),
+				]);
+		}
 
 		$this->timers[strtolower($name)] = $timer;
 		$this->eventManager->fireEvent($event);
