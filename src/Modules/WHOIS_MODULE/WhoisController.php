@@ -20,6 +20,7 @@ use Nadybot\Core\{
 	LoggerWrapper,
 	ModuleInstance,
 	Modules\ALTS\AltsController,
+	Modules\BAN\BanController,
 	Modules\PLAYER_LOOKUP\PlayerManager,
 	Nadybot,
 	PacketEvent,
@@ -57,6 +58,9 @@ class WhoisController extends ModuleInstance {
 
 	#[NCA\Inject]
 	public ConfigFile $config;
+
+	#[NCA\Inject]
+	public BanController $banController;
 
 	#[NCA\Inject]
 	public Text $text;
@@ -402,6 +406,19 @@ class WhoisController extends ModuleInstance {
 							: "Removed from bot"
 						) . ": <highlight>" . $this->util->date($lastAction->time->getTimestamp()).
 						"<end> by <highlight>{$lastAction->actor}<end>";
+				}
+			}
+
+			if (isset($charID)) {
+				$isBanned = yield $this->banController->isOnBanlist($charID);
+				if ($isBanned) {
+					if (isset($whois->guild_id) && $this->banController->orgIsBanned($whois->guild_id)) {
+						$blob .= "\n".
+							"<red>{$whois->guild} is banned on this bot<end>";
+					} else {
+						$blob .= "\n".
+							"<red>{$whois->name} is banned on this bot<end>";
+					}
 				}
 			}
 
