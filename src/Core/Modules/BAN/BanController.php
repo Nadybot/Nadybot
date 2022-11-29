@@ -487,8 +487,7 @@ class BanController extends ModuleInstance {
 		/** @var Collection<int,NameHistory> */
 		$names = $this->db->table("name_history")
 			->where("dimension", $this->db->getDim())
-			->orderByDesc("dt")
-			->groupBy("charid")
+			->orderBy("dt")
 			->asObj(NameHistory::class)
 			->keyBy("charid");
 		$bannedUids = $bans->pluck("charid")->toArray();
