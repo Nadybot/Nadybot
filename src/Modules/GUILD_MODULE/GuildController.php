@@ -130,13 +130,21 @@ class GuildController extends ModuleInstance {
 	#[NCA\Setting\Number(options: [100, 200, 300, 400])]
 	public int $maxLogoffMsgSize = 200;
 
-	/** Show logon/logoff for first/last alt only */
-	#[NCA\Setting\Boolean]
-	public bool $firstAndLastAltOnly = false;
+	/** Suppress alt logon/logoff messages during the interval */
+	#[NCA\Setting\TimeOrOff(
+		options: ["off", "5m", "15m", "1h", "1d"],
+	)]
+	public int $suppressLogonLogoff = 0;
 
 	/** Do not show the altlist on logon, just the name of the main */
 	#[NCA\Setting\Boolean]
 	public bool $orgSuppressAltList = false;
+
+	/** @var array<string,int> */
+	private array $lastLogonMsgs = [];
+
+	/** @var array<string,int> */
+	private array $lastLogoffMsgs = [];
 
 	#[NCA\Setup]
 	public function setup(): void {
@@ -546,15 +554,25 @@ class GuildController extends ModuleInstance {
 		});
 	}
 
+	public function canShowLogonMessageForChar(string $char): bool {
+		if ($this->suppressLogonLogoff === 0) {
+			return true;
+		}
+		$altInfo = $this->altsController->getAltInfo($char);
+		$alreadyLoggedIn = count($altInfo->getOnlineAlts()) > 1;
+		if (!$alreadyLoggedIn) {
+			return true;
+		}
+		$lastAccountLogonMsg = $this->lastLogonMsgs[$altInfo->main]??0;
+		$lastLogonMsgTooRecent = (time() - $lastAccountLogonMsg) < $this->suppressLogonLogoff;
+		return $lastLogonMsgTooRecent === false;
+	}
+
 	/** @return Promise<?string> */
 	public function getLogonMessage(string $player, bool $suppressAltList): Promise {
 		return call(function () use ($player, $suppressAltList): Generator {
-			if ($this->firstAndLastAltOnly) {
-				// if at least one alt/main is already online, don't show logon message
-				$altInfo = $this->altsController->getAltInfo($player);
-				if (count($altInfo->getOnlineAlts()) > 1) {
-					return null;
-				}
+			if (!$this->canShowLogonMessageForChar($player)) {
+				return null;
 			}
 
 			$whois = yield $this->playerManager->byName($player);
@@ -616,16 +634,27 @@ class GuildController extends ModuleInstance {
 		$this->dispatchRoutableEvent($e);
 		if (isset($msg)) {
 			$this->chatBot->sendGuild($msg, true);
+			$this->lastLogonMsgs[$e->main] = time();
 		}
 	}
 
+	public function canShowLogoffMessageForChar(string $char): bool {
+		if ($this->suppressLogonLogoff === 0) {
+			return true;
+		}
+		$altInfo = $this->altsController->getAltInfo($char);
+		$stillLoggedIn = count($altInfo->getOnlineAlts()) > 0;
+		if (!$stillLoggedIn) {
+			return true;
+		}
+		$lastAccountLogoffMsg = $this->lastLogoffMsgs[$altInfo->main]??0;
+		$lastLogoffMsgTooRecent = (time() - $lastAccountLogoffMsg) < $this->suppressLogonLogoff;
+		return $lastLogoffMsgTooRecent === false;
+	}
+
 	public function getLogoffMessage(string $player): ?string {
-		if ($this->firstAndLastAltOnly) {
-			// if at least one alt/main is still online, don't show logoff message
-			$altInfo = $this->altsController->getAltInfo($player);
-			if (count($altInfo->getOnlineAlts()) > 0) {
-				return null;
-			}
+		if (!$this->canShowLogoffMessageForChar($player)) {
+			return null;
 		}
 
 		$msg = "{$player} logged off.";
@@ -656,6 +685,7 @@ class GuildController extends ModuleInstance {
 		$e->online = false;
 		$e->message = $msg;
 		$this->dispatchRoutableEvent($e);
+		$this->lastLogoffMsgs[$e->main] = time();
 		if ($msg === null) {
 			return;
 		}
