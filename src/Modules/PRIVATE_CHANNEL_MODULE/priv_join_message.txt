@@ -43,3 +43,25 @@ Conditions:
 <tab>Will only show '<highlight>Not in an org<end>' if <highlight>{org}<end> is not set.
 
 <tab>Example: <highlight>{?org:{org-rank} of {c-org}}{!org:Not in an org}<end>
+
+You can add color to the text by using <highlight>&lt;color&gt;text&lt;end&gt;<end>
+<highlight>&lt;green&gt;online&lt;end&gt;<end> becomes <green>online<end>.
+
+Supported are:
+<tab>&lt;highlight&gt;: <highlight>example<end>
+<tab>&lt;on&gt;: <on>example<end>
+<tab>&lt;off&gt;: <off>example<end>
+<tab>&lt;black&gt;: <black>example<end>
+<tab>&lt;white&gt;: <white>example<end>
+<tab>&lt;yellow&gt;: <yellow>example<end>
+<tab>&lt;blue&gt;: <blue>example<end>
+<tab>&lt;green&gt;: <green>example<end>
+<tab>&lt;red&gt;: <red>example<end>
+<tab>&lt;orange&gt;: <orange>example<end>
+<tab>&lt;grey&gt;: <grey>example<end>
+<tab>&lt;cyan&gt;: <cyan>example<end>
+<tab>&lt;violet&gt;: <violet>example<end>
+<tab>&lt;neutral&gt;: <neutral>example<end>
+<tab>&lt;omni&gt;: <omni>example<end>
+<tab>&lt;clan&gt;: <clan>example<end>
+<tab>&lt;unknown&gt;: <unknown>example<end>
