@@ -80,6 +80,13 @@ class DiscordController extends ModuleInstance {
 		);
 		$text = preg_replace('/(<end>|<\/font>)<(white|yellow|blue|green|red|orange|grey|cyan|violet|neutral|omni|clan|unknown|font [^>]+)>/s', '', $text);
 		$text = preg_replace('/<(white|yellow|blue|green|red|orange|grey|cyan|violet|neutral|omni|clan|unknown)>(.*?)<end>/s', '*$2*', $text);
+		$text = preg_replace_callback(
+			'/\*?(-{5,}+)\*?/s',
+			function (array $match): string {
+				return str_repeat(" ", strlen($match[1]));
+			},
+			$text
+		);
 		$text = preg_replace("|<a [^>]*?href='user://(.+?)'>(.+?)</a>|s", '$1', $text);
 		$text = preg_replace("|<a [^>]*?href='chatcmd:///start (.+?)'>(.+?)</a>|s", '[$2]($1)', $text);
 		$text = preg_replace("|<a [^>]*?href='chatcmd://(.+?)'>(.+?)</a>|s", '$2', $text);
@@ -122,6 +129,9 @@ class DiscordController extends ModuleInstance {
 		$msg = new DiscordMessageOut($text);
 		if (count($embeds)) {
 			$msg->embeds = $embeds;
+		}
+		if (str_ends_with($msg->content, "     ")) {
+			$msg->content.="\n_ _";
 		}
 		return $msg;
 	}
@@ -216,7 +226,7 @@ class DiscordController extends ModuleInstance {
 			$matches[1] = preg_replace("/^(<font.*?>)<header>(.+?)<end>\n/s", "$1", $matches[1]);
 		}
 		$matches[1] = preg_replace('/<font+?>(.*?)<\/font>/s', "*$1*", $matches[1]);
-		$fields = preg_split("/\n(<font color=#FCA712>.+?|<header2>.+?)\n/", $matches[1], -1, PREG_SPLIT_DELIM_CAPTURE);
+		$fields = preg_split("/\n(<font color=#FCA712>.+?\n|<header2>[^>]+?<end>|<header2>.+?\n)/", $matches[1], -1, PREG_SPLIT_DELIM_CAPTURE);
 		for ($i = 1; $i < count($fields); $i+=2) {
 			$embed->fields ??= [];
 			$field = new DiscordEmbedField();
