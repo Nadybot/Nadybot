@@ -801,10 +801,10 @@ class GuildController extends ModuleInstance {
 				"logon-msg" => $this->preferences->get($player, 'logon_msg'),
 				"logoff-msg" => $this->preferences->get($player, 'logoff_msg'),
 			];
-			if (!strlen($tokens["logon-msg"]??"")) {
+			if (!isset($tokens["logon-msg"]) || !strlen($tokens["logon-msg"])) {
 				$tokens["logon-msg"] = null;
 			}
-			if (!strlen($tokens["logoff-msg"]??"")) {
+			if (!isset($tokens["logoff-msg"]) || !strlen($tokens["logoff-msg"])) {
 				$tokens["logoff-msg"] = null;
 			}
 			$ranks = $this->getRankTokens($player);

@@ -4,7 +4,7 @@ on:
     branches:
       - unstable
       - stable
-      - multi-platform-docker
+      - customize-join-msg
     tags:
       - '*'
 jobs:
