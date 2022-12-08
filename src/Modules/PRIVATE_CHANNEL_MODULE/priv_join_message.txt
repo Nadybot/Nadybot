@@ -2,10 +2,10 @@ This setting supports the use of conditionals and placeholders.
 You can use any of the defined placeholders with <highlight>{token}<end>.
 
 Tokens:
-<tab><highlight>name<end>: Name of the character logging in
+<tab><highlight>name<end>: Name of the character
 <tab><highlight>c-name<end>: Highlighted name of the character
-<tab><highlight>first-name<end>: First name of the character logging in
-<tab><highlight>last-name<end>: Last name of the character logging in
+<tab><highlight>first-name<end>: First name of the character
+<tab><highlight>last-name<end>: Last name of the character
 <tab><highlight>level<end>: The level
 <tab><highlight>c-level<end>: The bold level
 <tab><highlight>ai-level<end>: The AI level
