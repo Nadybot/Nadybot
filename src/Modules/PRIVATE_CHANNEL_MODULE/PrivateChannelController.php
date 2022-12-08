@@ -33,6 +33,7 @@ use Nadybot\Core\{
 	Modules\ALTS\AltsController,
 	Modules\BAN\BanController,
 	Modules\PLAYER_LOOKUP\PlayerManager,
+	Modules\PREFERENCES\Preferences,
 	Nadybot,
 	ParamClass\PCharacter,
 	ParamClass\PDuration,
@@ -148,6 +149,9 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 
 	#[NCA\Inject]
 	public EventManager $eventManager;
+
+	#[NCA\Inject]
+	public Preferences $preferences;
 
 	#[NCA\Inject]
 	public SettingManager $settingManager;
@@ -1320,7 +1324,15 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 				"c-main" => null,
 				"alt-of" => null,
 				"alt-list" => null,
+				"logon-msg" => $this->preferences->get($player, 'logon_msg'),
+				"logoff-msg" => $this->preferences->get($player, 'logoff_msg'),
 			];
+			if (!strlen($tokens["logon-msg"]??"")) {
+				$tokens["logon-msg"] = null;
+			}
+			if (!strlen($tokens["logoff-msg"]??"")) {
+				$tokens["logoff-msg"] = null;
+			}
 			$ranks = $this->getRankTokens($player);
 			$tokens = array_merge($tokens, $ranks);
 
