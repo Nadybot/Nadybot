@@ -456,4 +456,41 @@ class Text {
 		}
 		return $word . $plural;
 	}
+
+	/**
+	 * Render {token}, {?token:} and {!token} placeholder-based text
+	 *
+	 * @param string                        $text   The text containing placeholders
+	 * @param array<string,string|int|null> $tokens All possibly usable tokens
+	 *
+	 * @return string The rendered text
+	 */
+	public function renderPlaceholders(string $text, array $tokens): string {
+		// First, we try to replace {?token:<whatever>} and
+		// {!token:<whatever>} with either an empty string or <whatever>
+		// If the token isn't found, don't touch the text
+		do {
+			$lastText = $text;
+			$text = preg_replace_callback(
+				'/\{(?<tag>[a-zA-Z-]+|[!?][a-zA-Z-]+:((?:[^{}]|(?R)))+)\}/',
+				function (array $matches) use ($tokens): string {
+					$action = substr($matches["tag"], 0, 1);
+					if ($action !== "?" && $action !== "!") {
+						return (string)($tokens[$matches[1]] ?? "");
+					}
+					$parts = explode(":", substr($matches["tag"], 1), 2);
+					if (count($parts) !== 2) {
+						return $matches[0];
+					}
+					if (isset($tokens[$parts[0]]) === ($action === "?")) {
+						return $parts[1];
+					}
+					return "";
+				},
+				$text
+			);
+		} while (str_contains($text, "{") && $lastText !== $text);
+
+		return $text;
+	}
 }

@@ -33,6 +33,7 @@ use Nadybot\Core\{
 	Modules\ALTS\AltsController,
 	Modules\BAN\BanController,
 	Modules\PLAYER_LOOKUP\PlayerManager,
+	Modules\PREFERENCES\Preferences,
 	Nadybot,
 	ParamClass\PCharacter,
 	ParamClass\PDuration,
@@ -53,6 +54,7 @@ use Nadybot\Modules\{
 	ONLINE_MODULE\OnlineController,
 	ONLINE_MODULE\OnlineEvent,
 	ONLINE_MODULE\OnlinePlayer,
+	RAID_MODULE\RaidRankController,
 	WEBSERVER_MODULE\StatsController,
 };
 
@@ -149,6 +151,9 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 	public EventManager $eventManager;
 
 	#[NCA\Inject]
+	public Preferences $preferences;
+
+	#[NCA\Inject]
 	public SettingManager $settingManager;
 
 	#[NCA\Inject]
@@ -179,6 +184,9 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 	public StatsController $statsController;
 
 	#[NCA\Inject]
+	public RaidRankController $raidRankController;
+
+	#[NCA\Inject]
 	public Timer $timer;
 
 	#[NCA\Inject]
@@ -204,9 +212,29 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 	])]
 	public string $onlyAllowFaction = "all";
 
-	/** Do not show the altlist on join, just the name of the main */
-	#[NCA\Setting\Boolean]
-	public bool $privSuppressAltList  = false;
+	/** Message when someone joins the private channel */
+	#[NCA\Setting\Text(
+		options: [
+			"{whois} has joined {channel-name}. {alt-of}",
+			"{whois} has joined {channel-name}. {alt-list}",
+			"{c-name}{?main: ({main})}{?level: - {c-level}/{c-ai-level} {short-prof}} has joined.",
+			"<on>+<end> {c-name}{?main: ({main})}{?level: - {c-level}/{c-ai-level} {short-prof}}{?org: - {org-rank} of {c-org}}{?admin-level: :: {c-admin-level}}",
+			"{name}{?level: :: {c-level}/{c-ai-level} {short-prof}}{?org: :: {c-org}} joined us{?admin-level: :: {c-admin-level}}{?main: :: {c-main}}",
+		],
+		help: "priv_join_message.txt"
+	)]
+	public string $privJoinMessage = "{whois} has joined {channel-name}. {alt-list}";
+
+	/** Message when someone leaves the private channel */
+	#[NCA\Setting\Text(
+		options: [
+			"{c-name} has left {channel-name}.",
+			"{c-name}{?main: ({main})} has left {channel-name}.",
+			"<off>-<end> {c-name}{?main: ({main})}{?level: - {c-level}/{c-ai-level} {short-prof}}{?org: - {org-rank} of {c-org}}{?admin-level: :: {c-admin-level}}",
+		],
+		help: "priv_join_message.txt"
+	)]
+	public string $privLeaveMessage = "{c-name} has left {channel-name}.";
 
 	/** Should the bot allow inviting banned characters? */
 	#[NCA\Setting\Boolean]
@@ -930,14 +958,14 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 	}
 
 	public function getLogonMessageAsync(string $player, bool $suppressAltList, callable $callback): void {
-		asyncCall(function () use ($player, $suppressAltList, $callback): Generator {
-			$callback(yield $this->getLogonMessage($player, $suppressAltList));
+		asyncCall(function () use ($player, $callback): Generator {
+			$callback(yield $this->getLogonMessage($player));
 		});
 	}
 
 	/** @return Promise<?string> */
-	public function getLogonMessage(string $player, bool $suppressAltList): Promise {
-		return call(function () use ($player, $suppressAltList): Generator {
+	public function getLogonMessage(string $player): Promise {
+		return call(function () use ($player): Generator {
 			$altInfo = $this->altsController->getAltInfo($player);
 			if ($this->settingManager->getBool('first_and_last_alt_only')) {
 				// if at least one alt/main is already online, don't show logon message
@@ -947,7 +975,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 			}
 
 			$whois = yield $this->playerManager->byName($player);
-			return yield $this->getLogonMessageForPlayer($whois, $player, $suppressAltList, $altInfo);
+			return yield $this->getLogonMessageForPlayer($whois, $player, $altInfo);
 		});
 	}
 
@@ -972,10 +1000,9 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 			return;
 		}
 		$sender = $eventObj->sender;
-		$suppressAltList = $this->privSuppressAltList;
 
 		/** @var ?string */
-		$msg = yield $this->getLogonMessage($sender, $suppressAltList);
+		$msg = yield $this->getLogonMessage($sender);
 		if (!isset($msg)) {
 			return;
 		}
@@ -1066,17 +1093,30 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 		$this->accessManager->addAudit($audit);
 	}
 
-	public function getLogoffMessage(string $player): ?string {
-		if ($this->settingManager->getBool('first_and_last_alt_only')) {
-			// if at least one alt/main is still online, don't show logoff message
+	/** @return Promise<?string> */
+	public function getLogoffMessage(string $player): Promise {
+		return call(function () use ($player): Generator {
+			$whois = yield $this->playerManager->byName($player);
 			$altInfo = $this->altsController->getAltInfo($player);
-			if (count($altInfo->getOnlineAlts()) > 0) {
-				return null;
+			if ($this->settingManager->getBool('first_and_last_alt_only')) {
+				// if at least one alt/main is still online, don't show logoff message
+				if (count($altInfo->getOnlineAlts()) > 0) {
+					return null;
+				}
 			}
-		}
 
-		$msg = "<highlight>{$player}<end> has left the private channel.";
-		return $msg;
+			/** @var array<string,string|int|null> */
+			$tokens = yield $this->getTokensForJoinLeave($player, $whois, $altInfo);
+			$leaveMessage = $this->text->renderPlaceholders($this->privLeaveMessage, $tokens);
+			$leaveMessage = preg_replace(
+				"/&lt;([a-z]+)&gt;/",
+				'<$1>',
+				$leaveMessage
+			);
+			assert(is_string($leaveMessage));
+
+			return $leaveMessage;
+		});
 	}
 
 	#[NCA\Event(
@@ -1088,7 +1128,9 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 		if (!is_string($sender)) {
 			return;
 		}
-		$msg = $this->getLogoffMessage($sender);
+
+		/** @var ?string */
+		$msg = yield $this->getLogoffMessage($sender);
 
 		$event = new OfflineEvent();
 		$event->type = "offline(priv)";
@@ -1211,29 +1253,126 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 		return $this->accessManager->compareAccessLevels($alSender, $alRequired) < 0;
 	}
 
-	/** @return Promise<string> */
-	protected function getLogonMessageForPlayer(?Player $whois, string $player, bool $suppressAltList, AltInfo $altInfo): Promise {
-		return call(function () use ($whois, $player, $suppressAltList, $altInfo): Generator {
-			$privChannelName = "the private channel";
+	/** @return array{"admin-level": ?string, "c-admin-level": ?string, "access-level": ?string} */
+	protected function getRankTokens(string $player): array {
+		$tokens = [
+			"access-level" => null,
+			"admin-level" => null,
+			"c-admin-level" => null,
+		];
+		$alRank = $this->accessManager->getAccessLevelForCharacter($player);
+		$alName = ucfirst($this->accessManager->getDisplayName($alRank));
+		$colors = $this->onlineController;
+		switch ($alRank) {
+			case 'superadmin':
+				$tokens["admin-level"] = $alName;
+				$tokens["c-admin-level"] = "{$colors->rankColorSuperadmin}{$alName}<end>";
+				break;
+			case 'admin':
+				$tokens["admin-level"] = $alName;
+				$tokens["c-admin-level"] = "{$colors->rankColorAdmin}{$alName}<end>";
+				break;
+			case 'mod':
+				$tokens["admin-level"] = $alName;
+				$tokens["c-admin-level"] = "{$colors->rankColorMod}{$alName}<end>";
+				break;
+			default:
+				$raidRank = $this->raidRankController->getSingleAccessLevel($player);
+				if (isset($raidRank)) {
+					$alName = ucfirst($this->accessManager->getDisplayName($raidRank));
+					$tokens["admin-level"] = $alName;
+					$tokens["c-admin-level"] = "{$colors->rankColorRaid}{$alName}<end>";
+				}
+		}
+		$tokens["access-level"] = $alName;
+		return $tokens;
+	}
+
+	/** @return Promise<array<string, string|int|null>> */
+	protected function getTokensForJoinLeave(string $player, ?Player $whois, ?AltInfo $altInfo): Promise {
+		return call(function () use ($player, $whois, $altInfo): Generator {
+			$altInfo ??= $this->altsController->getAltInfo($player);
+			$tokens = [
+				"name" => $player,
+				"c-name" => "<highlight>{$player}<end>",
+				"first-name" => $whois?->firstname,
+				"last-name" => $whois?->lastname,
+				"level" => $whois?->level,
+				"c-level" => $whois ? "<highlight>{$whois->level}<end>" : null,
+				"ai-level" => $whois?->ai_level,
+				"c-ai-level" => $whois ? "<green>{$whois->ai_level}<end>" : null,
+				"prof" => $whois?->profession,
+				"c-prof" => $whois ? "<highlight>{$whois->profession}<end>" : null,
+				"profession" => $whois?->profession,
+				"c-profession" => $whois ? "<highlight>{$whois->profession}<end>" : null,
+				"org" => $whois?->guild,
+				"c-org" => $whois
+					? "<" . strtolower($whois->faction ?? "highlight") . ">{$whois->guild}<end>"
+					: null,
+				"org-rank" => $whois?->guild_rank,
+				"breed" => $whois?->breed,
+				"faction" => $whois?->faction,
+				"c-faction" => $whois
+					? "<" . strtolower($whois->faction ?? "highlight") . ">{$whois->faction}<end>"
+					: null,
+				"gender" => $whois?->gender,
+				"channel-name" => "the private channel",
+				"whois" => $player,
+				"short-prof" => null,
+				"c-short-prof" => null,
+				"main" => null,
+				"c-main" => null,
+				"alt-of" => null,
+				"alt-list" => null,
+				"logon-msg" => $this->preferences->get($player, 'logon_msg'),
+				"logoff-msg" => $this->preferences->get($player, 'logoff_msg'),
+			];
+			if (!isset($tokens["logon-msg"]) || !strlen($tokens["logon-msg"])) {
+				$tokens["logon-msg"] = null;
+			}
+			if (!isset($tokens["logoff-msg"]) || !strlen($tokens["logoff-msg"])) {
+				$tokens["logoff-msg"] = null;
+			}
+			$ranks = $this->getRankTokens($player);
+			$tokens = array_merge($tokens, $ranks);
+
+			if (isset($whois)) {
+				$tokens["whois"] = $this->playerManager->getInfo($whois);
+				if (isset($whois->profession)) {
+					$tokens["short-prof"] = $this->util->getProfessionAbbreviation($whois->profession);
+					$tokens["c-short-prof"] = "<highlight>{$tokens['short-prof']}<end>";
+				}
+			}
 			if ($this->settingManager->getBool('guild_channel_status') === false) {
-				$privChannelName = "<myname>";
+				$tokens["channel-name"] = "<myname>";
 			}
-			if ($whois !== null) {
-				$msg = $this->playerManager->getInfo($whois) . " has joined {$privChannelName}.";
-			} else {
-				$msg = "{$player} has joined {$privChannelName}.";
+			if ($altInfo->main !== $player) {
+				$tokens["main"] = $altInfo->main;
+				$tokens["c-main"] = "<highlight>{$altInfo->main}<end>";
+				$tokens["alt-of"] = "Alt of <highlight>{$altInfo->main}<end>";
 			}
-			if ($suppressAltList) {
-				if ($altInfo->main !== $player) {
-					$msg .= " Alt of <highlight>{$altInfo->main}<end>";
-				}
-			} else {
-				if (count($altInfo->getAllValidatedAlts()) > 0) {
-					$blob = yield $altInfo->getAltsBlob(true);
-					$msg .= " " . ((array)$blob)[0];
-				}
+			if (count($altInfo->getAllValidatedAlts()) > 0) {
+				$blob = yield $altInfo->getAltsBlob(true);
+				$tokens["alt-list"] = (string)((array)$blob)[0];
 			}
-			return $msg;
+			return $tokens;
+		});
+	}
+
+	/** @return Promise<string> */
+	protected function getLogonMessageForPlayer(?Player $whois, string $player, AltInfo $altInfo): Promise {
+		return call(function () use ($whois, $player, $altInfo): Generator {
+			/** @var array<string,string|int|null> */
+			$tokens = yield $this->getTokensForJoinLeave($player, $whois, $altInfo);
+			$joinMessage = $this->text->renderPlaceholders($this->privJoinMessage, $tokens);
+			$joinMessage = preg_replace(
+				"/&lt;([a-z]+)&gt;/",
+				'<$1>',
+				$joinMessage
+			);
+			assert(is_string($joinMessage));
+
+			return $joinMessage;
 		});
 	}
 
