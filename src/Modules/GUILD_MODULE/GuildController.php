@@ -160,7 +160,7 @@ class GuildController extends ModuleInstance {
 		],
 		help: "org_logon_message.txt"
 	)]
-	public string $orgLogonMessage = "{?whois:{whois}}{!whois:{c-name}} logged on{?main:. {alt-of}}{?logon-msg: - {logon-msg}}";
+	public string $orgLogonMessage = "{?whois:{whois}}{!whois:{c-name}} logged on{?main:. {alt-list}}{?logon-msg: - {logon-msg}}";
 
 	#[NCA\Setup]
 	public function setup(): void {
