@@ -12,8 +12,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add new commands `!bestnanos` and `!bestnanosfroob` to get a list of the best nanos for your current or a given profession/level. Use `!bn`/`!bnf` or `!bnl`/`!bnfl` for the long version if you are lazy.
 - Support multi-platform Docker images, currently arm64 and amd64
 - The `!icc`-command can now also be used to say that the arbiter is currently not here, but will be here on Sunday. Use `!icc set bs next` to specify that the upcoming arbiter week will be PvP-week.
-- Allow to fully customize join/leave and logon/logoff messages with a little template-like language that supports {?if:} and {!ifnot:} syntax
+- Allow to fully customize join/leave and logon/logoff messages with a little template-like language that supports `{?if:}` and `{!ifnot:}` syntax
 - Instead of limiting logon/logoff and join/leave messages to the first and last logon/logoff join/leave of a player, you can now define an interval in which only one of those is shown. Settings this to 5 minutes means: During a moving 5 minute interval, only display the first and last logon/logoff join/leave message. This makes it easier to suppress multiboxer spam without affecting the regular messages too much.
+- `!whois <name>` and `!checkaccess <name>` / `!checkaccess` now show when someone is banned.
+- You can now search in the banlist with `!banlist <pattern>`, where `<pattern>` can contain wildcards like `*`. So `!banlist nad*` will search for all player whose name starts with `nad`.
+- Support multi-platform docker images, starting with amd64 and arm64, so they also work on the Raspberry Pi.
+
+### Changed
+
+- Repeating timers now reuse their timer id, so when their repetition interval is very short, you can always use the same link to remove them.
+- The handling of AO  packets has been changed so that only 1 packet is processed at the same time. Prevents choking processing other streams like downloads or Discord relays in case of a lot of packages arriving at the same time.
+- Drastically speed up `!track addorg <id>` by pre-populating all entries with a `<name> logged off` event instead of doing this when the logoff-event hits the bot.
 
 ### Fix
 
