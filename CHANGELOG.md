@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Support multi-platform Docker images, currently arm64 and amd64
 - The `!icc`-command can now also be used to say that the arbiter is currently not here, but will be here on Sunday. Use `!icc set bs next` to specify that the upcoming arbiter week will be PvP-week.
 - Allow to fully customize join/leave and logon/logoff messages with a little template-like language that supports {?if:} and {!ifnot:} syntax
+- Instead of limiting logon/logoff and join/leave messages to the first and last logon/logoff join/leave of a player, you can now define an interval in which only one of those is shown. Settings this to 5 minutes means: During a moving 5 minute interval, only display the first and last logon/logoff join/leave message. This makes it easier to suppress multiboxer spam without affecting the regular messages too much.
 
 ### Fix
 

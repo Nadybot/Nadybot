@@ -50,6 +50,7 @@ use Nadybot\Core\{
 	Util,
 };
 use Nadybot\Modules\{
+	GUILD_MODULE\GuildController,
 	ONLINE_MODULE\OfflineEvent,
 	ONLINE_MODULE\OnlineController,
 	ONLINE_MODULE\OnlineEvent,
@@ -158,6 +159,9 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 
 	#[NCA\Inject]
 	public BuddylistManager $buddylistManager;
+
+	#[NCA\Inject]
+	public GuildController $guildController;
 
 	#[NCA\Inject]
 	public MessageHub $messageHub;
@@ -966,14 +970,10 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 	/** @return Promise<?string> */
 	public function getLogonMessage(string $player): Promise {
 		return call(function () use ($player): Generator {
-			$altInfo = $this->altsController->getAltInfo($player);
-			if ($this->settingManager->getBool('first_and_last_alt_only')) {
-				// if at least one alt/main is already online, don't show logon message
-				if (count($altInfo->getOnlineAlts()) > 1) {
-					return null;
-				}
+			if (!$this->guildController->canShowLogonMessageForChar($player)) {
+				return null;
 			}
-
+			$altInfo = $this->altsController->getAltInfo($player);
 			$whois = yield $this->playerManager->byName($player);
 			return yield $this->getLogonMessageForPlayer($whois, $player, $altInfo);
 		});
@@ -1014,6 +1014,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 		$e->message = $msg;
 		$this->dispatchRoutableEvent($e);
 		$this->chatBot->sendPrivate($msg, true);
+		$this->guildController->lastLogonMsgs[$e->main] = time();
 
 		$whois = yield $this->playerManager->byName($sender);
 		if (!isset($whois)) {
@@ -1098,11 +1099,8 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 		return call(function () use ($player): Generator {
 			$whois = yield $this->playerManager->byName($player);
 			$altInfo = $this->altsController->getAltInfo($player);
-			if ($this->settingManager->getBool('first_and_last_alt_only')) {
-				// if at least one alt/main is still online, don't show logoff message
-				if (count($altInfo->getOnlineAlts()) > 0) {
-					return null;
-				}
+			if (!$this->guildController->canShowLogoffMessageForChar($player)) {
+				return null;
 			}
 
 			/** @var array<string,string|int|null> */
@@ -1147,6 +1145,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 			$e->message = $msg;
 		}
 		$this->dispatchRoutableEvent($e);
+		$this->guildController->lastLogoffMsgs[$e->main] = time();
 	}
 
 	#[NCA\Event(
