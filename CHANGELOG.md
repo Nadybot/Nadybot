@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fix
 
 - The implant designer can once again set the QL of a slot even if it's currently empty.
+- Fix for Discord relay when messages contain empty categories
 
 ## [6.1.0] - 2022-08-24
 

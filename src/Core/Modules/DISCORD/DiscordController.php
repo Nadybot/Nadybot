@@ -246,6 +246,9 @@ class DiscordController extends ModuleInstance {
 					$embed->fields []= $field;
 				}
 			} else {
+				if ($field->value === '') {
+					$field->value = "_ _";
+				}
 				$embed->fields []= $field;
 			}
 		}
