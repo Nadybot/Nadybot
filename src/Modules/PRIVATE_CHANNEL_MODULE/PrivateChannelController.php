@@ -224,6 +224,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 			"{c-name}{?main: ({main})}{?level: - {c-level}/{c-ai-level} {short-prof}} has joined.",
 			"<on>+<end> {c-name}{?main: ({main})}{?level: - {c-level}/{c-ai-level} {short-prof}}{?org: - {org-rank} of {c-org}}{?admin-level: :: {c-admin-level}}",
 			"{name}{?level: :: {c-level}/{c-ai-level} {short-prof}}{?org: :: {c-org}} joined us{?admin-level: :: {c-admin-level}}{?main: :: {c-main}}",
+			"{c-name}{?level: ({c-level}/{c-ai-level} {c-faction} {c-profession}{?org:, <highlight>{org}<end>})} has joined <myname>{?main: (alt of {main})}",
 		],
 		help: "priv_join_message.txt"
 	)]
