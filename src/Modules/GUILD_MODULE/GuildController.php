@@ -146,19 +146,22 @@ class GuildController extends ModuleInstance {
 	public int $suppressLogonLogoff = 0;
 
 	/** Message when an org member logs off */
-	#[NCA\Setting\Text(
+	#[NCA\Setting\Template(
 		options: [
-			"{c-name} logged off{?logoff-msg: - {logon-msg}}{!logoff-msg:.}",
+			"{c-name} logged off{?logoff-msg: - {logoff-msg}}{!logoff-msg:.}",
 		],
 		help: "org_logon_message.txt"
 	)]
 	public string $orgLogoffMessage = "{c-name} logged off{?logoff-msg: - {logoff-msg}}{!logoff-msg:.}";
 
 	/** Message when an org member logs on */
-	#[NCA\Setting\Text(
+	#[NCA\Setting\Template(
 		options: [
 			"{whois} logged on{?main:. {alt-of}}{?logon-msg: - {logon-msg}}",
 			"{whois} logged on{?main:. {alt-list}}{?logon-msg: - {logon-msg}}",
+			"{c-name}{?main: ({main})}{?level: - {c-level}/{c-ai-level} {short-prof}} logged on{?logon-msg: - {logon-msg}}{!logon-msg:.}",
+			"<on>+<end> {c-name}{?main: ({main})}{?level: - {c-level}/{c-ai-level} {short-prof}}{?org: - {org-rank} of {c-org}}{?admin-level: :: {c-admin-level}}",
+			"{name}{?level: :: {c-level}/{c-ai-level} {short-prof}}{?org: :: {c-org}} logged on{?admin-level: :: {c-admin-level}}{?main: :: {c-main}}{?logon-msg: :: {logon-msg}}",
 		],
 		help: "org_logon_message.txt"
 	)]

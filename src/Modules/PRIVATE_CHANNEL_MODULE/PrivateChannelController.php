@@ -217,7 +217,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 	public string $onlyAllowFaction = "all";
 
 	/** Message when someone joins the private channel */
-	#[NCA\Setting\Text(
+	#[NCA\Setting\Template(
 		options: [
 			"{whois} has joined {channel-name}. {alt-of}",
 			"{whois} has joined {channel-name}. {alt-list}",
@@ -231,7 +231,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 	public string $privJoinMessage = "{whois} has joined {channel-name}. {alt-list}";
 
 	/** Message when someone leaves the private channel */
-	#[NCA\Setting\Text(
+	#[NCA\Setting\Template(
 		options: [
 			"{c-name} has left {channel-name}.",
 			"{c-name}{?main: ({main})} has left {channel-name}.",
