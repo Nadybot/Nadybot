@@ -583,7 +583,8 @@ class GuildController extends ModuleInstance {
 			return true;
 		}
 		$altInfo = $this->altsController->getAltInfo($char);
-		$alreadyLoggedIn = count($altInfo->getOnlineAlts()) > 1;
+
+		$alreadyLoggedIn = $this->numAltsOnline($char) > 1;
 		if (!$alreadyLoggedIn) {
 			return true;
 		}
@@ -650,7 +651,7 @@ class GuildController extends ModuleInstance {
 			return true;
 		}
 		$altInfo = $this->altsController->getAltInfo($char);
-		$stillLoggedIn = count($altInfo->getOnlineAlts()) > 0;
+		$stillLoggedIn = $this->numAltsOnline($char) > 0;
 		if (!$stillLoggedIn) {
 			return true;
 		}
@@ -869,6 +870,47 @@ class GuildController extends ModuleInstance {
 			->where("channel_type", "guild")
 			->where("added_by", $this->db->getBotname())
 			->delete();
+	}
+
+	/**
+	 * Count the number of alts of 1 player that are in the private chat or
+	 * in this bot's org and online
+	 *
+	 * @param string $char Any char to test for
+	 *
+	 * @return int Number of total characters online, including $char
+	 */
+	private function numAltsOnline(string $char): int {
+		$altInfo = $this->altsController->getAltInfo($char);
+
+		/**
+		 * All alts/main of $char that are in the private channel
+		 *
+		 * @var string[]
+		 */
+		$altsInChat = array_values(
+			array_filter(
+				$altInfo->getAllValidatedAlts(),
+				function (string $alt): bool {
+					return isset($this->chatBot->chatlist[$alt]);
+				}
+			)
+		);
+
+		/** @var string[] */
+		$altsInOrgOnline = [];
+		if ($this->isGuildBot()) {
+			$altsInOrgOnline = array_values(
+				array_filter(
+					$altInfo->getOnlineAlts(),
+					function (string $char): bool {
+						return isset($this->chatBot->guildmembers[$char]);
+					}
+				)
+			);
+		}
+		$altsInOrgOnline = array_unique([...$altsInOrgOnline, ...$altsInChat]);
+		return count($altsInOrgOnline);
 	}
 
 	private function loadGuildMembers(): void {
