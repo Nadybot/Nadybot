@@ -1409,7 +1409,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 			$memberObj->added_by = $sender;
 			$memberObj->joined = time();
 			$memberObj->autoinv = $autoInvite ? 1 : 0;
-			$this->db->insert(self::DB_TABLE, $memberObj);
+			$this->db->insert(self::DB_TABLE, $memberObj, null);
 			$this->members[$name] = $memberObj;
 			$event = new MemberEvent();
 			$event->type = "member(add)";
