@@ -736,7 +736,13 @@ class CommandManager implements MessageEmitter {
 			}
 			// methods will return false to indicate a syntax error, so when a false is returned,
 			// we set $syntaxError = true, otherwise we set it to false
-			$methodResult = $instance->{$method}($context, ...$args);
+			try {
+				$methodResult = $instance->{$method}($context, ...$args);
+			} catch (UserException $e) {
+				$context->reply($e->getMessage());
+				$successfulHandler = $handler;
+				break;
+			}
 			// @TODO merge with upwards error detection once this became a Promise
 			if ($methodResult instanceof Generator) {
 				asyncCall(function () use ($methodResult, $context): Generator {
