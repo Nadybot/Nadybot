@@ -27,6 +27,8 @@ Tokens:
 <tab><highlight>whois<end>: Short whois information with name, level, ai-level, prof, org and rank
 <tab><highlight>main<end>: Name of the main character. Only set if this is not the main
 <tab><highlight>c-main<end>: Bold name of the main character
+<tab><highlight>nick<end>: The nick name of the player (if set)
+<tab><highlight>c-nick<end>: The coloured nick name of the player (if set)
 <tab><highlight>alt-of<end>: The text "Alt of {c-main}", if this is not the main char
 <tab><highlight>alt-list<end>: The text "Alts of {c-main}" with a full list of the alts in a popup
 <tab><highlight>access-level<end>: Access level of the character

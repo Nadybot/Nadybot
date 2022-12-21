@@ -36,6 +36,9 @@ class AltInfo {
 	public SettingManager $settingManager;
 
 	#[NCA\Inject]
+	public NickController $nickController;
+
+	#[NCA\Inject]
 	public DB $db;
 
 	#[NCA\Inject]
@@ -54,6 +57,11 @@ class AltInfo {
 	 * @var array<string,AltValidationStatus>
 	 */
 	public array $alts = [];
+
+	/** The nickname of this character */
+	private ?string $nick = null;
+
+	private bool $nickFilled = false;
 
 	/** Check if $sender is a validated alt or main */
 	public function isValidated(string $sender): bool {
@@ -205,6 +213,26 @@ class AltInfo {
 		return "";
 	}
 
+	public function getNick(): ?string {
+		if ($this->nickFilled === false) {
+			$this->nick = $this->nickController->getNickname($this->main);
+			$this->nickFilled = true;
+		}
+		return $this->nick;
+	}
+
+	public function getDisplayNick(): ?string {
+		$nick = $this->getNick();
+		if (!isset($nick)) {
+			return null;
+		}
+		$text = $this->text->renderPlaceholders(
+			$nick,
+			["nick" => $nick, "main" => $this->main]
+		);
+		return $text;
+	}
+
 	/** @return string|string[] */
 	protected function getAltsBlobForPlayer(?Player $player, bool $firstPageOnly): string|array {
 		if (!isset($player)) {
@@ -305,7 +333,9 @@ class AltInfo {
 			$blob .= "\n";
 		}
 
-		$msg = $this->text->makeBlob("Alts of {$this->main} ({$count})", $blob);
+		$nick = $this->getDisplayNick();
+		$altOwner = $nick ?? $this->main;
+		$msg = $this->text->makeBlob("Alts of {$altOwner} ({$count})", $blob);
 
 		if ($firstPageOnly && is_array($msg)) {
 			return $msg[0];

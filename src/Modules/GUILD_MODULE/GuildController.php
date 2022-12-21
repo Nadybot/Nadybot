@@ -829,6 +829,8 @@ class GuildController extends ModuleInstance {
 				"c-short-prof" => null,
 				"main" => null,
 				"c-main" => null,
+				"nick" => $altInfo->getNick(),
+				"c-nick" => $altInfo->getDisplayNick(),
 				"alt-of" => null,
 				"alt-list" => null,
 				"logon-msg" => $this->preferences->get($player, 'logon_msg'),
@@ -856,7 +858,7 @@ class GuildController extends ModuleInstance {
 			if ($altInfo->main !== $player) {
 				$tokens["main"] = $altInfo->main;
 				$tokens["c-main"] = "<highlight>{$altInfo->main}<end>";
-				$tokens["alt-of"] = "Alt of <highlight>{$altInfo->main}<end>";
+				$tokens["alt-of"] = "Alt of <highlight>{$tokens['c-nick']}<end>";
 			}
 			if (count($altInfo->getAllValidatedAlts()) > 0) {
 				$blob = yield $altInfo->getAltsBlob(true);

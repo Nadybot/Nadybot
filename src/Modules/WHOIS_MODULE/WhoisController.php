@@ -271,13 +271,13 @@ class WhoisController extends ModuleInstance {
 	public function getFullName(Player $whois): string {
 		$msg = "";
 
-		if (isset($whois->firstname)) {
+		if (isset($whois->firstname) && strlen($whois->firstname)) {
 			$msg .= $whois->firstname . " ";
 		}
 
 		$msg .= "\"{$whois->name}\"";
 
-		if (isset($whois->lastname)) {
+		if (isset($whois->lastname) && strlen($whois->lastname)) {
 			$msg .= " " . $whois->lastname;
 		}
 
@@ -349,8 +349,13 @@ class WhoisController extends ModuleInstance {
 				$msg = $this->text->makeBlob("Basic Info for {$name}", $blob);
 				return $msg;
 			}
+			$altInfo = $this->altsController->getAltInfo($name);
 
 			$blob = "Name: <highlight>" . $this->getFullName($whois) . "<end> [{$lookupNameLink}]\n";
+			$nick = $altInfo->getNick();
+			if (isset($nick)) {
+				$blob .= "Nickname: <highlight>{$nick}<end>\n";
+			}
 			if (isset($whois->guild) && $whois->guild !== "") {
 				$orglistLink = $this->text->makeChatcmd("see members", "/tell <myname> orglist {$whois->guild_id}");
 				$orginfoLink = $this->text->makeChatcmd("info", "/tell <myname> whoisorg {$whois->guild_id}");
@@ -441,7 +446,6 @@ class WhoisController extends ModuleInstance {
 				}
 			}
 
-			$altInfo = $this->altsController->getAltInfo($name);
 			if (count($altInfo->getAllValidatedAlts()) === 0) {
 				return $msg;
 			}

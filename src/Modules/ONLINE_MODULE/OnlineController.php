@@ -16,6 +16,7 @@ use Nadybot\Core\{
 	LoggerWrapper,
 	ModuleInstance,
 	Modules\ALTS\AltsController,
+	Modules\ALTS\NickController,
 	Modules\PLAYER_LOOKUP\PlayerManager,
 	Nadybot,
 	QueryBuilder,
@@ -118,6 +119,9 @@ class OnlineController extends ModuleInstance {
 
 	#[NCA\Inject]
 	public AltsController $altsController;
+
+	#[NCA\Inject]
+	public NickController $nickController;
 
 	#[NCA\Inject]
 	public StatsController $statsController;
@@ -401,10 +405,14 @@ class OnlineController extends ModuleInstance {
 			foreach ($chars as $char) {
 				$onlineChar = OnlinePlayer::fromPlayer($char, $onlineByName->get($char->name));
 				$onlineChar->pmain = $main;
+				$onlineChar->nick = $this->nickController->getNickname($main);
 				$players->push($onlineChar);
 			}
 		}
-		$players = $players->sortBy("name")->sortBy("pmain");
+		$players = $players->sortBy("name")
+			->sortBy(function (OnlinePlayer $op, int $index): string {
+				return strtolower($op->nick ?? $op->pmain);
+			});
 
 		$count = $players->count();
 		$mainCount = 0;
@@ -711,6 +719,7 @@ class OnlineController extends ModuleInstance {
 		}
 		$op->online = true;
 		$op->pmain = $this->altsController->getMainOf($sender);
+		$op->nick = $this->nickController->getNickname($sender);
 		return $op;
 	}
 
@@ -963,7 +972,15 @@ class OnlineController extends ModuleInstance {
 			if ($groupBy === static::GROUP_BY_PLAYER) {
 				if ($currentGroup !== $player->pmain) {
 					$list->countMains++;
-					$list->blob .= "\n<pagebreak><highlight>{$player->pmain}<end> on\n";
+					if (isset($player->nick)) {
+						$displayNick = $this->text->renderPlaceholders(
+							$this->nickController->nickFormat,
+							["nick" => $player->nick, "main" => $player->pmain]
+						);
+						$list->blob .= "\n<pagebreak><highlight>{$displayNick}<end> on\n";
+					} else {
+						$list->blob .= "\n<pagebreak><highlight>{$player->pmain}<end> on\n";
+					}
 					$currentGroup = $player->pmain;
 				}
 			} elseif ($groupBy === static::GROUP_BY_PROFESSION) {
@@ -1026,12 +1043,15 @@ class OnlineController extends ModuleInstance {
 			$p = $playersByName->get($o->name);
 			$op = OnlinePlayer::fromPlayer($p, $o);
 			$op->pmain = $this->altsController->getMainOf($o->name);
+			$op->nick = $this->nickController->getNickname($o->name);
 			return $op;
 		});
 
 		$groupBy = $this->onlineGroupBy;
 		if ($groupBy === static::GROUP_BY_PLAYER) {
-			$op = $op->sortBy("pmain");
+			$op = $op->sortBy(function (OnlinePlayer $op, int $index): string {
+				return strtolower($op->nick ?? $op->pmain);
+			});
 		} elseif ($groupBy === static::GROUP_BY_PROFESSION) {
 			$op = $op->sortBy("name")->sortBy("profession");
 		} elseif ($groupBy === static::GROUP_BY_FACTION) {
@@ -1121,7 +1141,7 @@ class OnlineController extends ModuleInstance {
 						}
 						$key = "{$profIcon} {$key}";
 					} elseif ($groupBy === self::GROUP_BY_MAIN) {
-						$key = $char->pmain ?? $char->name;
+						$key = $char->nick ?? $char->pmain ?? $char->name;
 					}
 					$result[$key] ??= [];
 					$result[$key][$char->name] = $char;
@@ -1157,6 +1177,7 @@ class OnlineController extends ModuleInstance {
 				$newChar = clone $char;
 				$main = $this->altsController->getMainOf($char->pmain);
 				$newChar->pmain = $main;
+				$newChar->nick = $this->nickController->getNickname($main);
 				$result[$relay][$name] = $newChar;
 			}
 		}

@@ -56,6 +56,8 @@ class Template extends DefineSetting {
 			"c-short-prof" => "<highlight>Crat<end>",
 			"main" => "Nadyita",
 			"c-main" => "<highlight>Nadyita<end>",
+			"nick" => null,
+			"c-nick" => null,
 			"alt-of" => "Alt of <highlight>Nadyita<end>",
 			"alt-list" => "<a href=skillid://1>Nadyita's Alts (18)</a>",
 			"logon-msg" => "My logon-message",
