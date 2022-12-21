@@ -2,6 +2,7 @@
 
 namespace Nadybot\Core\Modules\ALTS;
 
+use Illuminate\Database\QueryException;
 use Nadybot\Core\Attributes\HandlesCommand;
 use Nadybot\Core\ParamClass\PRemove;
 use Nadybot\Core\{
@@ -9,6 +10,7 @@ use Nadybot\Core\{
 	CmdContext,
 	DB,
 	ModuleInstance,
+	UserException,
 };
 
 /**
@@ -59,9 +61,22 @@ class NickController extends ModuleInstance {
 		return $nickName;
 	}
 
-	/** Set $nick to be the nickname of $char's main */
+	/**
+	 * Set $nick to be the nickname of $char's main
+	 *
+	 * @throws QueryException on error
+	 */
 	public function setNickname(string $char, string $nick): bool {
+		if (strlen($nick) > 25) {
+			throw new UserException("Your nickname is not allowed to be longer than 25 characters.");
+		}
+		if (strpos($nick, "<") !== false) {
+			throw new UserException("Your Nickname must not contain any HTML-tags.");
+		}
 		$main = $this->altsController->getMainOf($char);
+		if ($this->db->table(self::DB_TABLE)->whereIlike("nick", $nick)->exists()) {
+			throw new UserException("The nickname '<highlight>{$nick}<end>' is already in use.");
+		}
 		return $this->db->table(self::DB_TABLE)
 			->where("main", $main)
 			->updateOrInsert(
@@ -114,13 +129,13 @@ class NickController extends ModuleInstance {
 			$context->reply("Use '<highlight><symbol>nick erase<end>' to delete your nickname.");
 			return;
 		}
-		if (strlen($nick) > 25) {
-			$context->reply("Your nickname is not allowed to be longer than 25 characters.");
+		$oldNickname = $this->getNickname($context->char->name);
+		if (isset($oldNickname) && strcasecmp($oldNickname, $nick) === 0) {
+			$context->reply("Nickname unchanged.");
 			return;
 		}
-		$oldNickname = $this->getNickname($context->char->name);
 		if (!$this->setNickname($context->char->name, $nick)) {
-			$context->reply("There was an unknown error seetting your nickname.");
+			$context->reply("Unknown error changing your nickname to '<highlight>{$nick}<end>'.");
 			return;
 		}
 		if (isset($oldNickname)) {
