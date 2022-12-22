@@ -4,6 +4,7 @@ namespace Nadybot\Core\Modules\ALTS;
 
 use Illuminate\Database\QueryException;
 use Nadybot\Core\Attributes\HandlesCommand;
+use Nadybot\Core\DBSchema\Nickname;
 use Nadybot\Core\ParamClass\PRemove;
 use Nadybot\Core\{
 	Attributes as NCA,
@@ -50,15 +51,36 @@ class NickController extends ModuleInstance {
 	)]
 	public string $nickFormat = "<i>{nick}</i>";
 
+	/** @var array<string,string> */
+	private array $nickNames = [];
+
+	#[NCA\Setup]
+	public function setup(): void {
+		$this->cacheNicknames();
+	}
+
+	#[NCA\Event(
+		name: "timer(1h)",
+		description: "Sync nickname-cache"
+	)]
+	public function reCacheNicknames(): void {
+		$this->cacheNicknames();
+	}
+
+	/** Reload the nickname-cache from the database */
+	public function cacheNicknames(): void {
+		$this->nickNames = $this->db->table(self::DB_TABLE)
+			->asObj(Nickname::class)
+			->reduce(function (array $result, Nickname $data): array {
+				$result[$data->main] = $data->nick;
+				return $result;
+			}, []);
+	}
+
 	/** Get the nickname of $char's main or null if none set */
 	public function getNickname(string $char): ?string {
 		$main = $this->altsController->getMainOf($char);
-		$nickName = $this->db->table(self::DB_TABLE)
-			->select("nick")
-			->where("main", $main)
-			->pluckStrings("nick")
-			->first();
-		return $nickName;
+		return $this->nickNames[$main] ?? null;
 	}
 
 	/**
@@ -77,12 +99,16 @@ class NickController extends ModuleInstance {
 		if ($this->db->table(self::DB_TABLE)->whereIlike("nick", $nick)->exists()) {
 			throw new UserException("The nickname '<highlight>{$nick}<end>' is already in use.");
 		}
-		return $this->db->table(self::DB_TABLE)
+		$changeSuccess = $this->db->table(self::DB_TABLE)
 			->where("main", $main)
 			->updateOrInsert(
 				["main" => $main],
 				["main" => $main, "nick" => $nick]
 			);
+		if ($changeSuccess) {
+			$this->nickNames[$main] = $nick;
+		}
+		return $changeSuccess;
 	}
 
 	/**
@@ -92,9 +118,11 @@ class NickController extends ModuleInstance {
 	 */
 	public function clearNickname(string $char): bool {
 		$main = $this->altsController->getMainOf($char);
-		return $this->db->table(self::DB_TABLE)
+		$nickDeleted = $this->db->table(self::DB_TABLE)
 			->where("main", $main)
 			->delete() > 0;
+		unset($this->nickNames[$main]);
+		return $nickDeleted;
 	}
 
 	#[NCA\Event(
@@ -105,6 +133,7 @@ class NickController extends ModuleInstance {
 		$this->db->table(self::DB_TABLE)
 			->where("main", $event->alt)
 			->update(["main" => $event->main]);
+		$this->cacheNicknames();
 	}
 
 	/** Show your current nickname */
@@ -118,7 +147,20 @@ class NickController extends ModuleInstance {
 		$context->reply("Your nickname is <highlight>{$nickname}<end>.");
 	}
 
-	/** Set your nickname */
+	/**
+	 * Set your nickname
+	 * Make sure to start with a capital letter if you prefer this
+	 */
+	#[NCA\Help\Prologue(
+		"Your nickname is shown instead of your main character's name on several\n".
+		"places of the bot:\n".
+		"whois, alts, online-list, logon/logoff-message, join/leave-message\n\n".
+		"In order to be able to distinguish between a real character name and a nickname,\n".
+		"you can force a style on nicknames in the ".
+		"<a href='chatcmd:///tell <myname> settings change nick_format'>settings</a>.\n".
+		"Keep in mind that nicknames can (and very likely will) collide with already\n".
+		"existing names, but nicknames themselves are unique on a bot."
+	)]
 	#[HandlesCommand("nick")]
 	public function setNickCommand(
 		CmdContext $context,
