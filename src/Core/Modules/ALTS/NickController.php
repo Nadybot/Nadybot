@@ -38,6 +38,8 @@ class NickController extends ModuleInstance {
 	#[NCA\Setting\Template(
 		options: [
 			"{nick}",
+			"[{nick}]",
+			"*{nick}",
 			"<i>{nick}</i>",
 			"<violet><i>{nick}</i><end>",
 			"{main} ({nick})",
