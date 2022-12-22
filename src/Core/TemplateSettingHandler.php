@@ -55,7 +55,11 @@ class TemplateSettingHandler extends SettingHandler {
 			}
 		} else {
 			foreach ($options as $char) {
-				$saveLink = $this->text->makeChatcmd('select', "/tell <myname> settings save {$this->row->name} {$char}");
+				$saveLink = $this->text->makeChatcmd(
+					'select',
+					"/tell <myname> settings save {$this->row->name} ".
+					htmlentities($char)
+				);
 				$char = $this->text->renderPlaceholders($char, $examples);
 				$msg .= "<tab>{$char} [{$saveLink}]\n";
 			}
@@ -86,8 +90,8 @@ class TemplateSettingHandler extends SettingHandler {
 		$colorNames = join(
 			"|",
 			array_map(
-				fn (string $tag): string => substr($tag, 1, -1),
-				[...array_keys($colors), "<myname>", "<end>"]
+				fn (string $tag): string => preg_quote(substr($tag, 1, -1), "/"),
+				[...array_keys($colors), "<myname>", "<end>", "<i>", "<u>", "</i>", "</u>"]
 			)
 		);
 		$newValue = preg_replace("/&lt;({$colorNames})&gt;/", '<$1>', $newValue);
