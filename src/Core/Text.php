@@ -274,15 +274,9 @@ class Text {
 		return "<img src='{$db}://{$imageId}'>";
 	}
 
-	/**
-	 * Formats a message with colors, bot name, symbol, by replacing special tags
-	 *
-	 * @param string $message The message to format
-	 *
-	 * @return string The formatted message
-	 */
-	public function formatMessage(string $message): string {
-		$array = [
+	/** @return array<string,string> */
+	public function getColors(): array {
+		return [
 			"<header>" => str_replace("'", "", $this->settingManager->getString('default_header_color')??""),
 			"<header2>" => str_replace("'", "", $this->settingManager->getString('default_header2_color')??""),
 			"<highlight>" => str_replace("'", "", $this->settingManager->getString('default_highlight_color')??""),
@@ -303,14 +297,28 @@ class Text {
 			"<omni>" => $this->settingManager->getString('default_omni_color')??"",
 			"<clan>" => $this->settingManager->getString('default_clan_color')??"",
 			"<unknown>" => $this->settingManager->getString('default_unknown_color')??"",
-
-			"<myname>" => $this->config->name,
-			"<myguild>" => $this->config->orgName,
-			"<tab>" => "    ",
-			"<end>" => "</font>",
-			"<symbol>" => $this->settingManager->getString("symbol")??"!",
-			"<br>" => "\n",
 		];
+	}
+
+	/**
+	 * Formats a message with colors, bot name, symbol, by replacing special tags
+	 *
+	 * @param string $message The message to format
+	 *
+	 * @return string The formatted message
+	 */
+	public function formatMessage(string $message): string {
+		$array = array_merge(
+			$this->getColors(),
+			[
+				"<myname>" => $this->config->name,
+				"<myguild>" => $this->config->orgName,
+				"<tab>" => "    ",
+				"<end>" => "</font>",
+				"<symbol>" => $this->settingManager->getString("symbol")??"!",
+				"<br>" => "\n",
+			]
+		);
 
 		$message = str_ireplace(array_keys($array), array_values($array), $message);
 

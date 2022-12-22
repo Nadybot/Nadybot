@@ -82,6 +82,15 @@ class TemplateSettingHandler extends SettingHandler {
 		if (strlen($newValue) > 255) {
 			throw new Exception("Your text can not be longer than 255 characters.");
 		}
+		$colors = $this->text->getColors();
+		$colorNames = join(
+			"|",
+			array_map(
+				fn (string $tag): string => substr($tag, 1, -1),
+				[...array_keys($colors), "<myname>", "<end>"]
+			)
+		);
+		$newValue = preg_replace("/&lt;({$colorNames})&gt;/", '<$1>', $newValue);
 		return $newValue;
 	}
 
