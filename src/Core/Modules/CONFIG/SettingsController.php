@@ -17,6 +17,7 @@ use Nadybot\Core\{
 	ParamClass\PWord,
 	SettingHandler,
 	SettingManager,
+	TemplateSettingHandler,
 	Text,
 	Util,
 };
@@ -119,7 +120,11 @@ class SettingsController extends ModuleInstance {
 		$blob .= "<tab>Name: <highlight>{$row->name}<end>\n";
 		$blob .= "<tab>Module: <highlight>{$row->module}<end>\n";
 		$blob .= "<tab>Description: <highlight>{$row->description}<end>\n";
-		$blob .= "<tab>Current Value: " . $settingHandler->displayValue($context->char->name) . "\n\n";
+		$blob .= "<tab>Current Value: " . $settingHandler->displayValue($context->char->name) . "\n";
+		if ($settingHandler instanceof TemplateSettingHandler) {
+			$blob .= "<tab>Raw value: <highlight>" . htmlentities($settingHandler->getData()->value ?? "<empty>") . "<end>\n";
+		}
+		$blob .= "\n";
 		$blob .= $settingHandler->getDescription();
 		$blob .= $settingHandler->getOptions()??"";
 
