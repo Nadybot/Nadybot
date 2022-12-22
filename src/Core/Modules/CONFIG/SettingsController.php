@@ -176,12 +176,13 @@ class SettingsController extends ModuleInstance {
 				$temp = yield $newValueToSave;
 				$newValueToSave = $temp;
 			}
+			$niceSavedValue = htmlentities($newValueToSave);
 			if ($this->settingManager->save($name, $newValueToSave)) {
 				$settingHandler->getData()->value = $newValueToSave;
 				$dispValue = $settingHandler->displayValue($context->char->name);
 				$savedValue = "<highlight>" . htmlspecialchars($newValue) . "<end>";
 				if ($savedValue !== $dispValue) {
-					$msg = "Setting <highlight>{$name}<end> has been saved with new value {$dispValue} (<highlight>".htmlspecialchars($newValue)."<end>).";
+					$msg = "Setting <highlight>{$name}<end> has been saved with new value {$dispValue} (<highlight>{$niceSavedValue}<end>).";
 				} else {
 					$msg = "Setting <highlight>{$name}<end> has been saved with new value {$dispValue}.";
 				}
