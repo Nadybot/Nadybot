@@ -48,6 +48,7 @@ class NickController extends ModuleInstance {
 			"nick" => "Nickname",
 			"main" => "Mainname",
 		],
+		help: 'nick_format.txt',
 	)]
 	public string $nickFormat = "<i>{nick}</i>";
 
