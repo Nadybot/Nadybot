@@ -72,6 +72,21 @@ class MessageHubController extends ModuleInstance {
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
+	/** How to render the sender's name of routed messages */
+	#[NCA\Setting\Template(
+		options: [
+			"{char}",
+			"{char}{?nick: ({nick})}{!nick:{?main: ({main})}}",
+			"{char}{?nick: ({nick})}",
+			"{?nick:{nick}}{!nick:{char}}",
+			"{?nick:{nick} ({char})}{!nick:{?main:{main} ({char})}{!main:{char}}}",
+			"{?nick:{nick} ({char})}{!nick:{char}}",
+		],
+		exampleValues: ["char" => "Char", "nick" => "Nickname", "main" => "Main"],
+		help: 'routed_sender_format.txt',
+	)]
+	public string $routedSenderFormat = "{char}";
+
 	/** Load defined routes from the database and activate them */
 	public function loadRouting(): void {
 		$arguments = $this->db->table($this->messageHub::DB_TABLE_ROUTE_MODIFIER_ARGUMENT)
