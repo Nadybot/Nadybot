@@ -75,12 +75,12 @@ class MessageHubController extends ModuleInstance {
 	/** How to render the sender's name of routed messages */
 	#[NCA\Setting\Template(
 		options: [
-			"{char}",
-			"{char}{?nick: ({nick})}{!nick:{?main: ({main})}}",
-			"{char}{?nick: ({nick})}",
-			"{?nick:{nick}}{!nick:{char}}",
-			"{?nick:{nick} ({char})}{!nick:{?main:{main} ({char})}{!main:{char}}}",
-			"{?nick:{nick} ({char})}{!nick:{char}}",
+			"Char" => "{char}",
+			"Char (Nick)/Char (Main)/Char" => "{char}{?nick: ({nick})}{!nick:{?main: ({main})}}",
+			"Char (Nick)/Char" => "{char}{?nick: ({nick})}",
+			"Nick/Char" => "{?nick:{nick}}{!nick:{char}}",
+			"Nick (Char)/Main (Char)/Char" => "{?nick:{nick} ({char})}{!nick:{?main:{main} ({char})}{!main:{char}}}",
+			"Nick (Char)/Char" => "{?nick:{nick} ({char})}{!nick:{char}}",
 		],
 		exampleValues: ["char" => "Char", "nick" => "Nickname", "main" => "Main"],
 		help: 'routed_sender_format.txt',
