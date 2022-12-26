@@ -200,6 +200,6 @@ class NickController extends ModuleInstance {
 			$context->reply("You don't have a nickname set.");
 			return;
 		}
-		$context->reply("Nickname clearned.");
+		$context->reply("Nickname cleared.");
 	}
 }
