@@ -1250,15 +1250,31 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 						"existing configuration."
 					);
 				}
+				$this->logger->info("Adding {count} new orgmember(s) of {orgname} to tracker", [
+					"count" => count($toInsert),
+					"orgname" => $org->orgname,
+				]);
 				$this->db->table(static::DB_ORG_MEMBER)
 					->chunkInsert($toInsert);
 				$this->db->table(static::DB_TRACKING)
 					->chunkInsert($toInit);
 				foreach ($toInsert as $buddy) {
+					$this->logger->info("Adding {name} ({uid}) to tracker", [
+						"name" => $buddy['name'],
+						"uid" => $buddy['uid'],
+					]);
 					$this->buddylistManager->addId($buddy["uid"], static::REASON_ORG_TRACKER);
 				}
 			}
+			$this->logger->info("Removing {count} ex orgmember(s) of {orgname} from tracker", [
+				"count" => $oldMembers->count(),
+				"orgname" => $org->orgname,
+			]);
 			$oldMembers->each(function (TrackingOrgMember $exMember): void {
+				$this->logger->info("Removing {name} ({uid}) from tracker", [
+					"name" => $exMember->name,
+					"uid" => $exMember->uid,
+				]);
 				$this->buddylistManager->removeId($exMember->uid, static::REASON_ORG_TRACKER);
 			});
 		} catch (Throwable $e) {
