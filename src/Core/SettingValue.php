@@ -11,8 +11,11 @@ class SettingValue {
 
 	public function __construct(Setting $setting) {
 		$this->value = $setting->value;
-		if (strlen($setting->intoptions??"")) {
-			$this->type = "number";
+		if (isset($setting->intoptions) && strlen($setting->intoptions)) {
+			$this->type = "string";
+			if (preg_match('/^[\d;]+$/', $setting->intoptions)) {
+				$this->type = "number";
+			}
 			if ($setting->options === "true;false") {
 				$this->type = "bool";
 			}
