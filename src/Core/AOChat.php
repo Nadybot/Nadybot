@@ -110,7 +110,7 @@ class AOChat {
 	 */
 	public array $tempId = [];
 
-	/** @var array<string,\stdClass> */
+	/** @var array<string,PendingLookup> */
 	public array $pendingIdLookups = [];
 
 	/**
@@ -368,6 +368,7 @@ class AOChat {
 		switch ($type) {
 			case AOChatPacket::CLIENT_NAME:
 			case AOChatPacket::CLIENT_LOOKUP:
+				/** @var int $id */
 				[$id, $name] = $packet->args;
 				$uid = (string)$id;
 				$name = ucfirst(strtolower((string)$name));
@@ -375,6 +376,11 @@ class AOChat {
 				$this->id[$name] = $uid;
 				if (isset($this->pendingIdLookups[$name])) {
 					foreach ($this->pendingIdLookups[$name]->callbacks as $cb) {
+						/**
+						 * @var array{0: \Amp\Deferred<?int>|callable, 1: null|mixed[]} $cb
+						 * @var \Amp\Deferred<?int>|callable                            $callback
+						 * @var null|mixed[]                                            $args
+						 */
 						[$callback, $args] = $cb;
 						if ($id === 0xFFFFFFFF) {
 							$id = null;
@@ -629,12 +635,14 @@ class AOChat {
 	public function sendLookupPacket2(string $userName): Promise {
 		$time = time();
 		$lastLookup = $this->pendingIdLookups[$userName] ?? null;
+
+		/** @var Deferred<?int> */
 		$deferred = new Deferred();
 		if (isset($lastLookup) && $lastLookup->time > $time - 10) {
 			$this->pendingIdLookups[$userName]->callbacks []= [$deferred, null];
 			return $deferred->promise();
 		}
-		$this->pendingIdLookups[$userName] ??= (object)["callbacks" => []];
+		$this->pendingIdLookups[$userName] ??= new PendingLookup($time, []);
 		$this->pendingIdLookups[$userName]->time = $time;
 		$this->pendingIdLookups[$userName]->callbacks []= [$deferred, null];
 		$this->sendPacket(new AOChatPacket("out", AOChatPacket::CLIENT_LOOKUP, $userName));

@@ -455,7 +455,7 @@ class BotRunner {
 
 	private function showSyntaxHelp(): void {
 		echo(
-			"Usage: " . PHP_BINARY . " " . $_SERVER["argv"][0].
+			"Usage: " . PHP_BINARY . " " . ($_SERVER["argv"][0] ?? "main.php").
 			" [options] [-c] <config file>\n\n".
 			"positional arguments:\n".
 			"  <config file>         A Nadybot configuration file, usually conf/config.php\n".

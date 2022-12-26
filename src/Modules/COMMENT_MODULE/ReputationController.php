@@ -108,7 +108,7 @@ class ReputationController extends ModuleInstance {
 					"(<highlight>{$comment->created_by}<end>, ".
 					$this->util->date($comment->created_at) . ")";
 			}
-			if (count($charData->comments) > 3) {
+			if (count($charData->comments) > 3 && count($comments) > 0) {
 				$details_link = $this->text->makeChatcmd('see all', "/tell <myname> reputation {$comments[0]->character} all");
 				$blob .= "\n<tab>[{$details_link}]";
 			}
