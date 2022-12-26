@@ -115,6 +115,11 @@ class GuildManager extends ModuleInstance {
 			$guild->orgname = $orgInfo->NAME;
 			$guild->orgside = $orgInfo->SIDE_NAME;
 			$luDateTime = DateTime::createFromFormat("Y/m/d H:i:s", $lastUpdated, new DateTimeZone("UTC"));
+			// Try to reduce the cache time to the last updated time + 24h
+			if ($luDateTime) {
+				$newCacheDuration = max(60, 86400 - (time() - $luDateTime->getTimestamp()));
+				$cache->set($cacheKey, $body, $newCacheDuration);
+			}
 			if ($luDateTime && $this->isMyGuild($guild->guild_id)) {
 				$guild->last_update = $luDateTime->getTimestamp();
 				// Try to time the next rosterupdate to occur 1 day and 10m after the last export
