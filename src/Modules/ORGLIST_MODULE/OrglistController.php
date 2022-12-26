@@ -276,6 +276,7 @@ class OrglistController extends ModuleInstance {
 
 		$totalOnline = count(array_filter($onlineStates, fn (bool $online) => $online));
 		$totalCount = count($org->members);
+
 		$rankGroups = [];
 		foreach ($org->members as $member) {
 			if (!isset($member->guild_rank_id)) {
@@ -291,6 +292,8 @@ class OrglistController extends ModuleInstance {
 				}
 			}
 		}
+
+		/** @var array<int,stdClass> $rankGroups */
 
 		$renderedGroups = [];
 		for ($rankid = 0; $rankid < count($orgRankNames); $rankid++) {

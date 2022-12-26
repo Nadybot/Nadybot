@@ -266,7 +266,10 @@ class WebChatConverter extends ModuleInstance {
 			$message
 		);
 
-		return new AOMsg($this->formatMsg($message), (object)$parts);
+		/** @var \stdClass */
+		$partsObj = (object)$parts;
+
+		return new AOMsg($this->formatMsg($message), $partsObj);
 	}
 
 	public function toXML(AOMsg $msg): string {
