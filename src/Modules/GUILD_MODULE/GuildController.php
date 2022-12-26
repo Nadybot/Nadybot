@@ -160,12 +160,14 @@ class GuildController extends ModuleInstance {
 			"{whois} logged on{?main:. {alt-of}}{?logon-msg: - {logon-msg}}",
 			"{whois} logged on{?main:. {alt-list}}{?logon-msg: - {logon-msg}}",
 			"{c-name}{?main: ({main})}{?level: - {c-level}/{c-ai-level} {short-prof}} logged on{?logon-msg: - {logon-msg}}{!logon-msg:.}",
+			"{c-name}{?nick: ({c-nick})}{!nick:{?main: ({main})}}{?level: - {c-level}/{c-ai-level} {short-prof}} logged on{?logon-msg: - {logon-msg}}{!logon-msg:.}",
 			"<on>+<end> {c-name}{?main: ({main})}{?level: - {c-level}/{c-ai-level} {short-prof}}{?org: - {org-rank} of {c-org}}{?admin-level: :: {c-admin-level}}",
+			"<on>+<end> {c-name}{?nick: ({c-nick})}{!nick:{?main: ({main})}}{?level: - {c-level}/{c-ai-level} {short-prof}}{?org: - {org-rank} of {c-org}}{?admin-level: :: {c-admin-level}}",
 			"{name}{?level: :: {c-level}/{c-ai-level} {short-prof}}{?org: :: {c-org}} logged on{?admin-level: :: {c-admin-level}}{?main: :: {c-main}}{?logon-msg: :: {logon-msg}}",
 		],
 		help: "org_logon_message.txt"
 	)]
-	public string $orgLogonMessage = "{?whois:{whois}}{!whois:{c-name}} logged on{?main:. {alt-list}}{?logon-msg: - {logon-msg}}";
+	public string $orgLogonMessage = "{whois} logged on{?main:. {alt-list}}{?logon-msg: - {logon-msg}}";
 
 	/** @var array<string,int> */
 	public array $lastLogonMsgs = [];
@@ -829,6 +831,8 @@ class GuildController extends ModuleInstance {
 				"c-short-prof" => null,
 				"main" => null,
 				"c-main" => null,
+				"nick" => $altInfo->getNick(),
+				"c-nick" => $altInfo->getDisplayNick(),
 				"alt-of" => null,
 				"alt-list" => null,
 				"logon-msg" => $this->preferences->get($player, 'logon_msg'),
@@ -856,7 +860,7 @@ class GuildController extends ModuleInstance {
 			if ($altInfo->main !== $player) {
 				$tokens["main"] = $altInfo->main;
 				$tokens["c-main"] = "<highlight>{$altInfo->main}<end>";
-				$tokens["alt-of"] = "Alt of <highlight>{$altInfo->main}<end>";
+				$tokens["alt-of"] = "Alt of <highlight>{$tokens['c-nick']}<end>";
 			}
 			if (count($altInfo->getAllValidatedAlts()) > 0) {
 				$blob = yield $altInfo->getAltsBlob(true);

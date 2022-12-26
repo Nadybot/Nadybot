@@ -22,6 +22,10 @@ class OnlinePlayer extends Player {
 	#[JSON\Name("main_character")]
 	public string $pmain;
 
+	/** The nickname of the main character, or null if unset */
+	#[JSON\Name("nickname")]
+	public ?string $nick = null;
+
 	/** True if this player is currently online, false otherwise */
 	public bool $online = false;
 

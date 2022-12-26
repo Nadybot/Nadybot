@@ -4,7 +4,8 @@ namespace Nadybot\Core\Attributes\Setting;
 
 use Attribute;
 use Nadybot\Core\Attributes\DefineSetting;
-use Nadybot\Core\{AccessManager, Registry, SettingManager};
+use Nadybot\Core\Modules\ALTS\NickController;
+use Nadybot\Core\{AccessManager, Registry, SettingManager, Text};
 use Nadybot\Modules\ONLINE_MODULE\OnlineController;
 
 #[Attribute(Attribute::TARGET_PROPERTY)]
@@ -56,6 +57,8 @@ class Template extends DefineSetting {
 			"c-short-prof" => "<highlight>Crat<end>",
 			"main" => "Nadyita",
 			"c-main" => "<highlight>Nadyita<end>",
+			"nick" => null,
+			"c-nick" => null,
 			"alt-of" => "Alt of <highlight>Nadyita<end>",
 			"alt-list" => "<a href=skillid://1>Nadyita's Alts (18)</a>",
 			"logon-msg" => "My logon-message",
@@ -71,6 +74,22 @@ class Template extends DefineSetting {
 			if ($settingManager->getBool('guild_channel_status') === false) {
 				$this->exampleValues["channel-name"] = "<myname>";
 			}
+		}
+
+		/** @var ?NickController */
+		$nickController = Registry::getInstance("nickcontroller");
+
+		/** @var ?Text */
+		$text = Registry::getInstance("text");
+		if (isset($nickController, $text)) {
+			$this->exampleValues["nick"] = "Nickname";
+			$this->exampleValues["c-nick"] = $text->renderPlaceholders(
+				$nickController->nickFormat,
+				[
+					"nick" => $this->exampleValues["nick"],
+					"main" => $this->exampleValues["main"],
+				]
+			);
 		}
 
 		/** @var ?AccessManager */

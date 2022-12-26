@@ -222,7 +222,9 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 			"{whois} has joined {channel-name}. {alt-of}",
 			"{whois} has joined {channel-name}. {alt-list}",
 			"{c-name}{?main: ({main})}{?level: - {c-level}/{c-ai-level} {short-prof}} has joined.",
+			"{c-name}{?nick: ({c-nick})}{!nick:{?main: ({main})}}{?level: - {c-level}/{c-ai-level} {short-prof}} has joined.",
 			"<on>+<end> {c-name}{?main: ({main})}{?level: - {c-level}/{c-ai-level} {short-prof}}{?org: - {org-rank} of {c-org}}{?admin-level: :: {c-admin-level}}",
+			"<on>+<end> {c-name}{?nick: ({c-nick})}{!nick:{?main: ({main})}}{?level: - {c-level}/{c-ai-level} {short-prof}}{?org: - {org-rank} of {c-org}}{?admin-level: :: {c-admin-level}}",
 			"{name}{?level: :: {c-level}/{c-ai-level} {short-prof}}{?org: :: {c-org}} joined us{?admin-level: :: {c-admin-level}}{?main: :: {c-main}}",
 			"{c-name}{?level: ({c-level}/{c-ai-level} {c-faction} {c-profession}{?org:, <highlight>{org}<end>})} has joined <myname>{?main: (alt of {main})}",
 		],
@@ -1322,6 +1324,8 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 				"c-short-prof" => null,
 				"main" => null,
 				"c-main" => null,
+				"nick" => $altInfo->getNick(),
+				"c-nick" => $altInfo->getDisplayNick(),
 				"alt-of" => null,
 				"alt-list" => null,
 				"logon-msg" => $this->preferences->get($player, 'logon_msg'),
@@ -1349,7 +1353,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 			if ($altInfo->main !== $player) {
 				$tokens["main"] = $altInfo->main;
 				$tokens["c-main"] = "<highlight>{$altInfo->main}<end>";
-				$tokens["alt-of"] = "Alt of <highlight>{$altInfo->main}<end>";
+				$tokens["alt-of"] = "Alt of <highlight>{$tokens['c-nick']}<end>";
 			}
 			if (count($altInfo->getAllValidatedAlts()) > 0) {
 				$blob = yield $altInfo->getAltsBlob(true);
@@ -1407,7 +1411,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 			$memberObj->added_by = $sender;
 			$memberObj->joined = time();
 			$memberObj->autoinv = $autoInvite ? 1 : 0;
-			$this->db->insert(self::DB_TABLE, $memberObj);
+			$this->db->insert(self::DB_TABLE, $memberObj, null);
 			$this->members[$name] = $memberObj;
 			$event = new MemberEvent();
 			$event->type = "member(add)";

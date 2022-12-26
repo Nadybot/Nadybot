@@ -50,12 +50,18 @@ class TemplateSettingHandler extends SettingHandler {
 		if (isset($options_map)) {
 			foreach ($options_map as $key => $label) {
 				$saveLink = $this->text->makeChatcmd('select', "/tell <myname> settings save {$this->row->name} {$key}");
-				$label = $this->text->renderPlaceholders($label, $examples);
-				$msg .= "<tab>{$label} [{$saveLink}]\n";
+				$label = htmlspecialchars($label);
+				$label = implode("<end>/<highlight>", explode("/", $label));
+				$msg .= "<tab><highlight>{$label}<end> [{$saveLink}]\n";
+				$msg .= "<tab>{$key}\n\n";
 			}
 		} else {
 			foreach ($options as $char) {
-				$saveLink = $this->text->makeChatcmd('select', "/tell <myname> settings save {$this->row->name} {$char}");
+				$saveLink = $this->text->makeChatcmd(
+					'select',
+					"/tell <myname> settings save {$this->row->name} ".
+					htmlentities($char)
+				);
 				$char = $this->text->renderPlaceholders($char, $examples);
 				$msg .= "<tab>{$char} [{$saveLink}]\n";
 			}
@@ -82,6 +88,15 @@ class TemplateSettingHandler extends SettingHandler {
 		if (strlen($newValue) > 255) {
 			throw new Exception("Your text can not be longer than 255 characters.");
 		}
+		$colors = $this->text->getColors();
+		$colorNames = join(
+			"|",
+			array_map(
+				fn (string $tag): string => preg_quote(substr($tag, 1, -1), "/"),
+				[...array_keys($colors), "<myname>", "<end>", "<i>", "<u>", "</i>", "</u>"]
+			)
+		);
+		$newValue = preg_replace("/&lt;({$colorNames})&gt;/", '<$1>', $newValue);
 		return $newValue;
 	}
 

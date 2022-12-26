@@ -1,0 +1,22 @@
+This setting supports the use of conditionals and placeholders.
+You can use any of the defined placeholders with <highlight>{token}<end>.
+
+Tokens:
+<tab><highlight>char<end>: Name of the character sending the message
+<tab><highlight>main<end>: Name of the main of the character. Only set if different from the char
+<tab><highlight>nick<end>: The nick name of the player (if set)
+
+Conditions:
+<tab><highlight>{?&lt;token&gt;:<end>&lt;Text to display if &lt;token&gt; is set&gt;<highlight>}<end>
+<tab>Example: <highlight>{?main:{main}}<end>
+<tab>Will only show '<highlight>{main}<end>' if <highlight>{main}<end> is set.
+
+<tab><highlight>{!&lt;token&gt;:<end>&lt;Text to display if &lt;token&gt; is not set&gt;<highlight>}<end>
+<tab>Example: <highlight>{!nick:No nickname}<end>
+<tab>Will only show '<highlight>No nickname<end>' if <highlight>{nick}<end> is not set.
+
+<tab>Example: <highlight>{char}{?nick: ({nick})}{!nick:{?main: ({main})}}<end>
+<tab>Will show
+<tab><tab>'<highlight>{char}<end>' if neither {main} nor {nick} is set
+<tab><tab>'<highlight>{char} ({nick})<end>' if {nick} is set
+<tab><tab>'<highlight>{char} ({main})<end>' if {nick} is not set, but {main} is set
