@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "c0024eafd094f9a6db5f393c5bfe32b5",
+    "content-hash": "ac963b32ff885e941015e66a91939172",
     "packages": [
         {
             "name": "amphp/amp",
@@ -1782,8 +1782,14 @@
             "version": "1.1.0",
             "source": {
                 "type": "git",
-                "url": "https://github.com/EventSaucePHP/ObjectHydrator",
+                "url": "https://github.com/EventSaucePHP/ObjectHydrator.git",
                 "reference": "77683528dc3b96a4edfb8c864760748ae7fc0817"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/EventSaucePHP/ObjectHydrator/zipball/77683528dc3b96a4edfb8c864760748ae7fc0817",
+                "reference": "77683528dc3b96a4edfb8c864760748ae7fc0817",
+                "shasum": ""
             },
             "require": {
                 "ext-fileinfo": "*",
@@ -1806,6 +1812,7 @@
                     "EventSauce\\ObjectHydrator\\": "src/"
                 }
             },
+            "notification-url": "https://packagist.org/downloads/",
             "license": [
                 "MIT"
             ],
@@ -1821,6 +1828,16 @@
                 "constructor",
                 "hydration",
                 "mapper"
+            ],
+            "support": {
+                "issues": "https://github.com/EventSaucePHP/ObjectHydrator/issues",
+                "source": "https://github.com/EventSaucePHP/ObjectHydrator/tree/1.1.0"
+            },
+            "funding": [
+                {
+                    "url": "https://github.com/frankdejonge",
+                    "type": "github"
+                }
             ],
             "time": "2022-12-29T20:17:25+00:00"
         },
