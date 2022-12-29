@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "0071da99df7cc7ad5b81da193e6f7ca0",
+    "content-hash": "c0024eafd094f9a6db5f393c5bfe32b5",
     "packages": [
         {
             "name": "amphp/amp",
@@ -1779,11 +1779,11 @@
         },
         {
             "name": "eventsauce/object-hydrator",
-            "version": "dev-feature/omits-properties-or-methods-through-object-settings",
+            "version": "1.1.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/EventSaucePHP/ObjectHydrator",
-                "reference": "8d25daaa43bc3744ae951dc0a63edd978edf3009"
+                "reference": "77683528dc3b96a4edfb8c864760748ae7fc0817"
             },
             "require": {
                 "ext-fileinfo": "*",
@@ -1822,7 +1822,7 @@
                 "hydration",
                 "mapper"
             ],
-            "time": "2022-12-28T15:45:11+00:00"
+            "time": "2022-12-29T20:17:25+00:00"
         },
         {
             "name": "farafiri/php-parsing-tool",
@@ -6485,18 +6485,9 @@
             "time": "2015-12-17T08:42:14+00:00"
         }
     ],
-    "aliases": [
-        {
-            "package": "eventsauce/object-hydrator",
-            "version": "dev-feature/omits-properties-or-methods-through-object-settings",
-            "alias": "1.0.1",
-            "alias_normalized": "1.0.1.0"
-        }
-    ],
+    "aliases": [],
     "minimum-stability": "stable",
-    "stability-flags": {
-        "eventsauce/object-hydrator": 20
-    },
+    "stability-flags": [],
     "prefer-stable": false,
     "prefer-lowest": false,
     "platform": {

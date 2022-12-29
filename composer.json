@@ -56,7 +56,7 @@
 		"amphp/cache": "^1.5.0",
 		"amphp/file": "^2.0",
 		"amphp/websocket-client": "^1.0",
-		"eventsauce/object-hydrator": "dev-feature/omits-properties-or-methods-through-object-settings as 1.0.1"
+		"eventsauce/object-hydrator": "1.1.0"
 	},
 	"autoload": {
 		"psr-4": {
