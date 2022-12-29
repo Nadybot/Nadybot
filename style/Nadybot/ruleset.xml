@@ -181,6 +181,7 @@
     <rule ref="Squiz.Functions.FunctionDeclaration">
         <exclude name="Squiz.Functions.MultiLineFunctionDeclaration.SpaceAfterFunction" />
         <exclude name="Squiz.Functions.MultiLineFunctionDeclaration.Indent" />
+        <exclude name="Squiz.Functions.MultiLineFunctionDeclaration.EmptyLine" />
     </rule>
     <rule ref="Squiz.Functions.LowercaseFunctionKeywords"/>
 

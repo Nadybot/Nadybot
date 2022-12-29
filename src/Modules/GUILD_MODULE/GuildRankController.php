@@ -247,9 +247,9 @@ class GuildRankController extends ModuleInstance implements AccessLevelProvider 
 			$sendto->reply("You have already assigned rank mapping for both {$alName} and {$rankName}.");
 			return;
 		}
-		if (isset($alEntry)) {
+		if (isset($alEntry)) { // @phpstan-ignore-line
 			$this->db->update(self::DB_TABLE, "access_level", $rankMapping);
-		} elseif (isset($rankEntry)) {
+		} elseif (isset($rankEntry)) { // @phpstan-ignore-line
 			$this->db->update(self::DB_TABLE, "min_rank", $rankMapping);
 		} else {
 			$this->db->insert(self::DB_TABLE, $rankMapping, null);

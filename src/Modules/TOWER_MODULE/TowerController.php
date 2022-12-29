@@ -1390,6 +1390,7 @@ class TowerController extends ModuleInstance {
 		}
 
 		$lastAttack = $this->getLastAttack($winnerFaction, $winnerOrgName, $loserFaction, $loserOrgName, $playfield->id);
+		$siteNumber = null;
 		if ($lastAttack !== null) {
 			$siteNumber = $lastAttack->site_number;
 		}
@@ -2381,7 +2382,7 @@ class TowerController extends ModuleInstance {
 	private function renderOrgSites(?ApiResult $result, ?Collection $local, int $orgId): array {
 		if (isset($result, $local)) {
 			$result = $this->mergeLocalToAPI($local, $result);
-		} elseif (isset($local)) {
+		} elseif (isset($local)) { // @phpstan-ignore-line
 			$result = $this->scoutToAPI($local);
 		}
 		if (!isset($result)) {
@@ -2416,7 +2417,7 @@ class TowerController extends ModuleInstance {
 	private function renderPenaltySites(?ApiResult $result, ?Collection $local): array {
 		if (isset($result, $local)) {
 			$result = $this->mergeLocalToAPI($local, $result);
-		} elseif (isset($local)) {
+		} elseif (isset($local)) { // @phpstan-ignore-line
 			$result = $this->scoutToAPI($local);
 		}
 		if (!isset($result)) {
@@ -2446,7 +2447,7 @@ class TowerController extends ModuleInstance {
 		$details = null;
 		if (isset($result, $local)) {
 			$result = $this->mergeLocalToAPI($local, $result);
-		} elseif (isset($local)) {
+		} elseif (isset($local)) { // @phpstan-ignore-line
 			$result = $this->scoutToAPI($local);
 		}
 		if (isset($result)) {
@@ -2507,7 +2508,7 @@ class TowerController extends ModuleInstance {
 		$blob = '';
 		if (isset($result, $local)) {
 			$result = $this->mergeLocalToAPI($local, $result);
-		} elseif (isset($local)) {
+		} elseif (isset($local)) { // @phpstan-ignore-line
 			$result = $this->scoutToAPI($local);
 		}
 		if (isset($result)) {

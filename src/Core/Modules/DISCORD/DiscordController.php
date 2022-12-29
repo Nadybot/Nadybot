@@ -98,6 +98,8 @@ class DiscordController extends ModuleInstance {
 			-1,
 			$linksReplaced
 		);
+
+		/** @var int $linksReplaced */
 		$linksReplaced2 = 0;
 		$text = preg_replace(
 			"|<a [^>]*?href=['\"]itemid://53019/(\d+)['\"]>(.+?)</a>|s",
@@ -106,7 +108,9 @@ class DiscordController extends ModuleInstance {
 			-1,
 			$linksReplaced2
 		);
-		$linksReplaced = ($linksReplaced??0) + ($linksReplaced2??0);
+
+		/** @var int $linksReplaced2 */
+		$linksReplaced = $linksReplaced + $linksReplaced2;
 
 		$embeds = [];
 		$text = preg_replace_callback(

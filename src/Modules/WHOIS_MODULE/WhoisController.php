@@ -332,6 +332,7 @@ class WhoisController extends ModuleInstance {
 			/** @var ?int */
 			$charID = yield $this->chatBot->getUid2($name);
 			$lookupNameLink = $this->text->makeChatcmd("lookup", "/tell <myname> lookup {$name}");
+			$lookupCharIdLink = null;
 			if ($charID !== null) {
 				$lookupCharIdLink = $this->text->makeChatcmd("lookup", "/tell <myname> lookup {$charID}");
 			}
@@ -379,7 +380,7 @@ class WhoisController extends ModuleInstance {
 			} else {
 				$blob .= "<off>Offline<end>\n";
 			}
-			if ($charID !== null && isset($lookupCharIdLink)) {
+			if ($charID !== null) {
 				$blob .= "Character ID: <highlight>{$whois->charid}<end> [{$lookupCharIdLink}]\n\n";
 			}
 

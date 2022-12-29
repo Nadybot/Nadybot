@@ -174,20 +174,20 @@ class AuditController extends ModuleInstance {
 		parse_str($args, $params);
 		$params["limit"] ??= "50";
 		$limit = $params["limit"];
-		if (!preg_match("/^\d+$/", $limit)) {
+		if (!is_string($limit) || !preg_match("/^\d+$/", $limit)) {
 			return "<highlight>limit<end> must be a number.";
 		}
 		$query->limit((int)$limit + 1);
 
 		$params["offset"] ??= "0";
 		$offset = $params["offset"];
-		if (!preg_match("/^\d+$/", $offset)) {
+		if (!is_string($offset) || !preg_match("/^\d+$/", $offset)) {
 			return "<highlight>offset<end> must be a number.";
 		}
 		$query->offset((int)$offset);
 
 		$before = $params["before"]??null;
-		if (isset($before)) {
+		if (isset($before) && is_string($before)) {
 			$before = strtotime($before);
 			if ($before === false || abs($before) > 0x7FFFFFFF) {
 				return "<highlight>before<end> must be a date and/or time.";
@@ -197,7 +197,7 @@ class AuditController extends ModuleInstance {
 		}
 
 		$after = $params["after"]??null;
-		if (isset($after)) {
+		if (isset($after) && is_string($after)) {
 			$after = strtotime($after);
 			if ($after === false || abs($after) > 0x7FFFFFFF) {
 				return "<highlight>after<end> must be a date and/or time.";
@@ -207,17 +207,17 @@ class AuditController extends ModuleInstance {
 		}
 
 		$actor = $params["actor"]??null;
-		if (isset($actor)) {
+		if (isset($actor) && is_string($actor)) {
 			$query->where("actor", ucfirst(strtolower($actor)));
 		}
 
 		$actee = $params["actee"]??null;
-		if (isset($actee)) {
+		if (isset($actee) && is_string($actee)) {
 			$query->where("actee", ucfirst(strtolower($actee)));
 		}
 
 		$action = $params["action"]??null;
-		if (isset($action)) {
+		if (isset($action) && is_string($action)) {
 			$query->whereIn("action", \Safe\preg_split("/\s*,\s*/", strtolower($action)));
 		}
 

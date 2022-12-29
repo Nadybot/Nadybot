@@ -3,156 +3,126 @@
 namespace Nadybot\Core;
 
 use function Safe\json_encode;
+use EventSauce\ObjectHydrator\{MapFrom, MapperSettings, ObjectMapper, ObjectMapperUsingReflection, PropertyCaster, PropertySerializer};
 use Exception;
 use Nadybot\Core\Attributes\Instance;
 
-use Spatie\DataTransferObject\{
-	Attributes\MapFrom,
-	Attributes\MapTo,
-	DataTransferObject,
-};
+#[\Attribute(\Attribute::TARGET_PARAMETER | \Attribute::IS_REPEATABLE)]
+final class ForceList implements PropertyCaster, PropertySerializer {
+	public function cast(mixed $value, ObjectMapper $hydrator): mixed {
+		return (array)$value;
+	}
+
+	public function serialize(mixed $value, ObjectMapper $hydrator): mixed {
+		assert(is_array($value), 'value should be an array');
+		if (count($value) === 1) {
+			return array_shift($value);
+		}
+		return $value;
+	}
+}
 
 /**
  * The ConfigFile class provides convenient interface for reading and saving
  * config files located in conf-subdirectory.
  */
-#[Instance]
-class ConfigFile extends DataTransferObject {
-	public string $login;
-	public string $password;
-	public string $name;
+#[
+	Instance,
+	MapperSettings(serializePublicMethods: false)
+]
+class ConfigFile {
+	public function __construct(
+		private string $filePath,
+		public string $login,
+		public string $password,
+		public string $name,
+		#[MapFrom('my_guild')]
+		public string $orgName,
+		public ?int $orgId,
 
-	#[MapFrom('my_guild')]
-	#[MapTo('my_guild')]
-	public string $orgName;
+		/** 6 for Live (new), 5 for Live (old), 4 for Test. */
+		public int $dimension,
 
-	public ?int $orgId = null;
+		/**
+		 * Character name of the Super Administrator.
+		 *
+		 * @var string[]
+		 */
+		#[ForceList]
+		#[MapFrom('SuperAdmin')]
+		public array $superAdmins,
 
-	/** 6 for Live (new), 5 for Live (old), 4 for Test. */
-	public int $dimension = 5;
+		/** What type of database should be used? ('sqlite' or 'mysql') */
+		#[MapFrom('DB Type')]
+		public string $dbType=DB::SQLITE,
 
-	/**
-	 * Character name of the Super Administrator.
-	 *
-	 * @var string[]
-	 */
-	#[MapFrom('SuperAdmin')]
-	#[MapTo('SuperAdmin')]
-	public array $superAdmins;
+		/** Name of the database */
+		#[MapFrom('DB Name')]
+		public string $dbName="nadybot.db",
 
-	/** What type of database should be used? ('sqlite' or 'mysql') */
-	#[MapFrom('DB Type')]
-	#[MapTo('DB Type')]
-	public string $dbType = DB::SQLITE;
+		/** Hostname or sqlite file location */
+		#[MapFrom('DB Host')]
+		public string $dbHost="./data/",
 
-	/** Name of the database */
-	#[MapFrom('DB Name')]
-	#[MapTo('DB Name')]
-	public string $dbName = "nadybot.db";
+		/** MySQL or PostgreSQL username */
+		#[MapFrom('DB username')]
+		public ?string $dbUsername=null,
 
-	/** Hostname or sqlite file location */
-	#[MapFrom('DB Host')]
-	#[MapTo('DB Host')]
-	public string $dbHost = "./data/";
+		/** MySQL or PostgreSQL password */
+		#[MapFrom('DB password')]
+		public ?string $dbPassword=null,
 
-	/** MySQL or PostgreSQL username */
-	#[MapFrom('DB username')]
-	#[MapTo('DB username')]
-	public ?string $dbUsername = null;
+		/** Show AOML markup in logs/console? 1 for enabled, 0 for disabled. */
+		public int $showAomlMarkup=0,
 
-	/** MySQL or PostgreSQL password */
-	#[MapFrom('DB password')]
-	#[MapTo('DB password')]
-	public ?string $dbPassword = null;
+		/** Cache folder for storing organization XML files. */
+		#[MapFrom('cachefolder')]
+		public string $cacheFolder="./cache/",
 
-	/** Show AOML markup in logs/console? 1 for enabled, 0 for disabled. */
-	#[MapFrom('show_aoml_markup')]
-	#[MapTo('show_aoml_markup')]
-	public int $showAomlMarkup = 0;
+		/** Folder for storing HTML files of the webserver */
+		#[MapFrom('htmlfolder')]
+		public string $htmlFolder="./html/",
 
-	/** Cache folder for storing organization XML files. */
-	#[MapFrom('cachefolder')]
-	#[MapTo('cachefolder')]
-	public string $cacheFolder = "./cache/";
+		/** Folder for storing data files */
+		#[MapFrom('datafolder')]
+		public string $dataFolder="./data/",
 
-	/** Folder for storing HTML files of the webserver */
-	#[MapFrom('htmlfolder')]
-	#[MapTo('htmlfolder')]
-	public string $htmlFolder = "./html/";
+		/* Folder for storing log files */
+		#[MapFrom('logsfolder')]
+		public string $logsFolder="./logs/",
 
-	/** Folder for storing data files */
-	#[MapFrom('datafolder')]
-	#[MapTo('datafolder')]
-	public string $dataFolder = "./data/";
+		/** Default status for new modules? 1 for enabled, 0 for disabled. */
+		public int $defaultModuleStatus=0,
 
-	/* Folder for storing log files */
-	#[MapFrom('logsfolder')]
-	#[MapTo('logsfolder')]
-	public string $logsFolder = "./logs/";
+		/** Enable the readline-based console interface to the bot? */
+		public int $enableConsoleClient=1,
 
-	/** Default status for new modules? 1 for enabled, 0 for disabled. */
-	#[MapFrom('default_module_status')]
-	#[MapTo('default_module_status')]
-	public int $defaultModuleStatus = 0;
+		/** Enable the module to install other modules from within the bot */
+		public int $enablePackageModule=1,
 
-	/** Enable the readline-based console interface to the bot? */
-	#[MapFrom('enable_console_client')]
-	#[MapTo('enable_console_client')]
-	public int $enableConsoleClient = 1;
+		/** Use AO Chat Proxy? 1 for enabled, 0 for disabled. */
+		public int $useProxy=0,
+		public string $proxyServer="127.0.0.1",
+		public int $proxyPort=9993,
 
-	/** Enable the module to install other modules from within the bot */
-	#[MapFrom('enable_package_module')]
-	#[MapTo('enable_package_module')]
-	public int $enablePackageModule = 1;
+		/**
+		 * Define additional paths from where Nadybot should load modules at startup
+		 *
+		 * @var string[]
+		 */
+		public array $moduleLoadPaths=[
+			'./src/Modules',
+			'./extras',
+		],
 
-	/** Use AO Chat Proxy? 1 for enabled, 0 for disabled. */
-	#[MapFrom('use_proxy')]
-	#[MapTo('use_proxy')]
-	public int $useProxy = 0;
-
-	#[MapFrom('proxy_server')]
-	#[MapTo('proxy_server')]
-	public string $proxyServer = "127.0.0.1";
-
-	#[MapFrom('proxy_port')]
-	#[MapTo('proxy_port')]
-	public int $proxyPort = 9993;
-
-	/**
-	 * Define additional paths from where Nadybot should load modules at startup
-	 *
-	 * @var string[]
-	 */
-	#[MapFrom('module_load_paths')]
-	#[MapTo('module_load_paths')]
-	public array $moduleLoadPaths = [
-		'./src/Modules',
-		'./extras',
-	];
-
-	/**
-	 * Define settings values which will be immutable
-	 *
-	 * @var array<string,mixed>
-	 */
-	public array $settings = [];
-
-	public ?string $timezone = null;
-	private string $filePath;
-
-	/** @param array<string,mixed> $args */
-	public function __construct(array $args) {
-		unset($args["my_guild_id"]);
-		$args["my_guild"] ??= "";
-		$args["cachefolder"] ??= "./cache/";
-		$args["htmlfolder"] ??= "./html/";
-		$args["datafolder"] ??= "./data/";
-		$args["logsfolder"] ??= "./logs/";
-		$args["enable_console_client"] ??= 0;
-		$args["enable_package_module"] ??= 0;
-		$args["SuperAdmin"] = empty($args["SuperAdmin"]??"")
-			? [] : (array)$args["SuperAdmin"];
-		parent::__construct($args);
+		/**
+		 * Define settings values which will be immutable
+		 *
+		 * @var array<string,mixed>
+		 */
+		public array $settings=[],
+		public ?string $timezone=null,
+	) {
 		$this->superAdmins = array_map(function (string $char): string {
 			return ucfirst(strtolower($char));
 		}, $this->superAdmins);
@@ -164,8 +134,14 @@ class ConfigFile extends DataTransferObject {
 		self::copyFromTemplateIfNeeded($filePath);
 		$vars = [];
 		require $filePath;
-		$config = new self($vars);
-		$config->filePath = $filePath;
+		$vars['file_path'] = $filePath;
+		$mapper = new ObjectMapperUsingReflection();
+
+		/** @var ConfigFile $config */
+		$config = $mapper->hydrateObject(
+			self::class,
+			$vars
+		);
 		return $config;
 	}
 
@@ -176,7 +152,10 @@ class ConfigFile extends DataTransferObject {
 
 	/** Saves the config file, creating the file if it doesn't exist yet. */
 	public function save(): void {
-		$vars = $this->except("filePath", "orgId")->toArray();
+		$mapper = new ObjectMapperUsingReflection();
+		$vars = $mapper->serializeObject($this);
+		unset($vars["file_path"]);
+		unset($vars["org_id"]);
 		$vars = array_filter($vars, function (mixed $value): bool {
 			return isset($value);
 		});
@@ -185,16 +164,31 @@ class ConfigFile extends DataTransferObject {
 		if (!is_array($lines)) {
 			throw new Exception("Cannot load {$this->filePath}");
 		}
+		$inComment = false;
+		$usedVars = [];
 		foreach ($lines as $key => $line) {
+			if (preg_match("/^\s*\/\*/", $line)) {
+				$inComment = true;
+			}
+			if (preg_match("/\*\/\s*$/", $line)) {
+				$inComment = false;
+				continue;
+			}
+			if (preg_match("/\s*\/\//", $line) || $inComment) {
+				continue;
+			}
 			if (preg_match("/^(.+)vars\[('|\")(.+)('|\")](.*)=(.*)\"(.*)\";(.*)$/si", $line, $arr)) {
 				$lines[$key] = "{$arr[1]}vars['{$arr[3]}']{$arr[5]}={$arr[6]}".
 					json_encode($vars[$arr[3]], JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE).
 					";{$arr[8]}";
-				unset($vars[$arr[3]]);
+				$usedVars[$arr[3]] = true;
 			} elseif (preg_match("/^(.+)vars\[('|\")(.+)('|\")](.*)=([ 	]+)([0-9]+);(.*)$/si", $line, $arr)) {
 				$lines[$key] = "{$arr[1]}vars['{$arr[3]}']{$arr[5]}={$arr[6]}{$vars[$arr[3]]};{$arr[8]}";
-				unset($vars[$arr[3]]);
+				$usedVars[$arr[3]] = true;
 			}
+		}
+		foreach ($usedVars as $varName => $true) {
+			unset($vars[$varName]);
 		}
 
 		unset($vars['module_load_paths']); // hacky
@@ -215,7 +209,6 @@ class ConfigFile extends DataTransferObject {
 					$lines []= "\$vars['{$name}'] = {$value};\n";
 				}
 			}
-			// $lines []= "\n";
 		}
 
 		\Safe\file_put_contents($this->filePath, $lines);
