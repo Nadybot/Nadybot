@@ -21,10 +21,10 @@ jobs:
         with:
           php-version: ${{ matrix.php }}
           coverage: none
-          extensions: sqlite3, sockets, pdo_sqlite, pdo_mysql
+          extensions: sqlite3, sockets, pdo_sqlite, pdo_mysql, openssl
 
       - name: Install dependencies
-        run: composer install -q --no-dev
+        run: composer install --no-dev
 
       - name: Migrate SQLite
         shell: bash
