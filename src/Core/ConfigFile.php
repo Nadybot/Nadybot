@@ -2,11 +2,12 @@
 
 namespace Nadybot\Core;
 
-use function Safe\json_encode;
+use function Safe\{file_get_contents, json_decode, json_encode};
 use EventSauce\ObjectHydrator\PropertyCasters\CastToType;
 use EventSauce\ObjectHydrator\{MapFrom, MapperSettings, ObjectMapper, ObjectMapperUsingReflection, PropertyCaster, PropertySerializer};
 use Exception;
 use Nadybot\Core\Attributes\Instance;
+use Symfony\Component\Yaml\Yaml;
 
 #[\Attribute(\Attribute::TARGET_PARAMETER | \Attribute::IS_REPEATABLE)]
 final class ForceList implements PropertyCaster, PropertySerializer {
@@ -108,6 +109,7 @@ class ConfigFile {
 		#[CastToType('int')]
 		public int $useProxy=0,
 		public string $proxyServer="127.0.0.1",
+		#[CastToType('int')]
 		public int $proxyPort=9993,
 
 		/**
@@ -138,7 +140,15 @@ class ConfigFile {
 	public static function loadFromFile(string $filePath): self {
 		self::copyFromTemplateIfNeeded($filePath);
 		$vars = [];
-		require $filePath;
+		if (str_ends_with($filePath, '.yaml') || str_ends_with($filePath, '.yml')) {
+			$yaml = file_get_contents($filePath);
+			$vars = Yaml::parse($yaml);
+		} elseif (str_ends_with($filePath, '.json')) {
+			$json = file_get_contents($filePath);
+			$vars = json_decode($json, true);
+		} else {
+			require $filePath;
+		}
 		$vars['file_path'] = $filePath;
 		$mapper = new ObjectMapperUsingReflection();
 
@@ -161,9 +171,26 @@ class ConfigFile {
 		$vars = $mapper->serializeObject($this);
 		unset($vars["file_path"]);
 		unset($vars["org_id"]);
-		$vars = array_filter($vars, function (mixed $value): bool {
+		$vars = array_filter($vars, function (mixed &$value): bool {
+			if (is_array($value)) {
+				$value = array_filter($value, function (mixed $value2): bool {
+					return isset($value2);
+				});
+				if (empty($value)) {
+					return false;
+				}
+			}
 			return isset($value);
 		});
+		if (str_ends_with($this->filePath, '.yml') || str_ends_with($this->filePath, '.yaml')) {
+			$yaml = Yaml::dump($vars);
+			\Safe\file_put_contents($this->filePath, $yaml);
+			return;
+		} elseif (str_ends_with($this->filePath, '.json')) {
+			$json = json_encode($vars, JSON_PRETTY_PRINT);
+			\Safe\file_put_contents($this->filePath, $json);
+			return;
+		}
 		self::copyFromTemplateIfNeeded($this->getFilePath());
 		$lines = \Safe\file($this->filePath);
 		if (!is_array($lines)) {
