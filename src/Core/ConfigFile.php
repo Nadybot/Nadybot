@@ -3,6 +3,7 @@
 namespace Nadybot\Core;
 
 use function Safe\json_encode;
+use EventSauce\ObjectHydrator\PropertyCasters\CastToType;
 use EventSauce\ObjectHydrator\{MapFrom, MapperSettings, ObjectMapper, ObjectMapperUsingReflection, PropertyCaster, PropertySerializer};
 use Exception;
 use Nadybot\Core\Attributes\Instance;
@@ -73,6 +74,7 @@ class ConfigFile {
 		public ?string $dbPassword=null,
 
 		/** Show AOML markup in logs/console? 1 for enabled, 0 for disabled. */
+		#[CastToType('int')]
 		public int $showAomlMarkup=0,
 
 		/** Cache folder for storing organization XML files. */
@@ -95,12 +97,15 @@ class ConfigFile {
 		public int $defaultModuleStatus=0,
 
 		/** Enable the readline-based console interface to the bot? */
+		#[CastToType('int')]
 		public int $enableConsoleClient=1,
 
 		/** Enable the module to install other modules from within the bot */
+		#[CastToType('int')]
 		public int $enablePackageModule=1,
 
 		/** Use AO Chat Proxy? 1 for enabled, 0 for disabled. */
+		#[CastToType('int')]
 		public int $useProxy=0,
 		public string $proxyServer="127.0.0.1",
 		public int $proxyPort=9993,
@@ -174,7 +179,7 @@ class ConfigFile {
 				$inComment = false;
 				continue;
 			}
-			if (preg_match("/\s*\/\//", $line) || $inComment) {
+			if (preg_match("/^\s*\/\//", $line) || $inComment) {
 				continue;
 			}
 			if (preg_match("/^(.+)vars\[('|\")(.+)('|\")](.*)=(.*)\"(.*)\";(.*)$/si", $line, $arr)) {
@@ -182,7 +187,7 @@ class ConfigFile {
 					json_encode($vars[$arr[3]], JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE).
 					";{$arr[8]}";
 				$usedVars[$arr[3]] = true;
-			} elseif (preg_match("/^(.+)vars\[('|\")(.+)('|\")](.*)=([ 	]+)([0-9]+);(.*)$/si", $line, $arr)) {
+			} elseif (preg_match("/^(.+)vars\[('|\")(.+)('|\")](.*)=([ 	]+)([0-9]+|true|false);(.*)$/si", $line, $arr)) {
 				$lines[$key] = "{$arr[1]}vars['{$arr[3]}']{$arr[5]}={$arr[6]}{$vars[$arr[3]]};{$arr[8]}";
 				$usedVars[$arr[3]] = true;
 			}
