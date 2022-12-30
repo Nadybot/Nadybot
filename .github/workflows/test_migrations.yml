@@ -8,7 +8,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, windows-latest]
+        os: [ubuntu-latest, windows-latest, macos-latest]
         php: [8.0, 8.1, 8.2]
         from: [null, budabot4.db, nadybot5.0.0.db]
 
