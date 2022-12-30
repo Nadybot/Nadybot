@@ -21,7 +21,7 @@ jobs:
         with:
           php-version: ${{ matrix.php }}
           coverage: none
-          extensions: sqlite3, sockets, pdo_sqlite, pdo_mysql, openssl
+          extensions: sqlite3, sockets, pdo_sqlite, pdo_mysql, openssl, fileinfo
 
       - name: Install dependencies
         run: composer install --no-dev
