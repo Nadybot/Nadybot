@@ -7,6 +7,7 @@ use function Amp\File\filesystem;
 use function Safe\json_decode;
 
 use Amp\Promise;
+use EventSauce\ObjectHydrator\ObjectMapperUsingReflection;
 use Exception;
 use Generator;
 use Illuminate\Support\Collection;
@@ -213,7 +214,8 @@ class ColorsController extends ModuleInstance {
 				return null;
 			}
 			$data["name"] = basename($filename, ".json");
-			return new Theme($data);
+			$mapper = new ObjectMapperUsingReflection();
+			return $mapper->hydrateObject(Theme::class, $data);
 		});
 	}
 
