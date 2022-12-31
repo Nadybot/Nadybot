@@ -2,9 +2,10 @@
 
 namespace Nadybot\Core\Attributes;
 
+use Attribute;
 use EventSauce\ObjectHydrator\{ObjectMapper, PropertyCaster, PropertySerializer};
 
-#[\Attribute(\Attribute::TARGET_PARAMETER | \Attribute::IS_REPEATABLE)]
+#[Attribute(Attribute::TARGET_PARAMETER | Attribute::IS_REPEATABLE)]
 final class ForceList implements PropertyCaster, PropertySerializer {
 	public function cast(mixed $value, ObjectMapper $hydrator): mixed {
 		return (array)$value;
