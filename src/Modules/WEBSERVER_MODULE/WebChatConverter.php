@@ -162,7 +162,6 @@ class WebChatConverter extends ModuleInstance {
 					if (empty($stack)) {
 						return "";
 					}
-					// @phpstan-ignore-next-line
 					return "</" . array_pop($stack) . ">";
 				} elseif (preg_match("/font\s+color\s*=\s*[\"']?(#.{6})[\"']?/i", $matches[1], $colorMatch)) {
 					$tag = $colorMatch[1];
@@ -182,7 +181,6 @@ class WebChatConverter extends ModuleInstance {
 			$message
 		);
 		while (count($stack)) {
-			// @phpstan-ignore-next-line
 			$message .= "</" . array_pop($stack) . ">";
 		}
 		$message = preg_replace_callback(

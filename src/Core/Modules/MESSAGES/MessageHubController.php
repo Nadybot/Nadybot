@@ -1135,7 +1135,10 @@ class MessageHubController extends ModuleInstance {
 				$l1 = 0;
 				if (preg_match("/\((.+)\)$/", $e1->getChannelName(), $matches)) {
 					try {
-						/** @psalm-suppress ArgumentTypeCoercion */
+						/**
+						 * @psalm-suppress ArgumentTypeCoercion
+						 * @phpstan-ignore-next-line
+						 */
 						$l1 = Logger::toMonologLevel($matches[1]);
 					} catch (Exception) {
 					}
@@ -1143,7 +1146,10 @@ class MessageHubController extends ModuleInstance {
 				$l2 = 0;
 				if (preg_match("/\((.+)\)$/", $e2->getChannelName(), $matches)) {
 					try {
-						/** @psalm-suppress ArgumentTypeCoercion */
+						/**
+						 * @psalm-suppress ArgumentTypeCoercion
+						 * @phpstan-ignore-next-line
+						 */
 						$l2 = Logger::toMonologLevel($matches[1]);
 					} catch (Exception) {
 					}

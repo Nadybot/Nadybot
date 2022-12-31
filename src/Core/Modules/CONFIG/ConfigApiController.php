@@ -234,9 +234,6 @@ class ConfigApiController extends ModuleInstance {
 			if (isset($exception) && $exception instanceof Exception) {
 				return new Response(Response::UNPROCESSABLE_ENTITY);
 			}
-			if (isset($exception)) {
-				return new Response(Response::INTERNAL_SERVER_ERROR);
-			}
 		}
 		if ($result === 0 && !isset($exception)) {
 			return new Response(Response::NOT_FOUND);

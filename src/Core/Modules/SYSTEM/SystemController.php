@@ -5,6 +5,7 @@ namespace Nadybot\Core\Modules\SYSTEM;
 use function Amp\File\createDefaultDriver;
 use function Safe\{ini_get, unpack};
 use Amp\Loop;
+use EventSauce\ObjectHydrator\ObjectMapperUsingReflection;
 use Exception;
 use Generator;
 use Illuminate\Support\Collection;
@@ -605,10 +606,14 @@ class SystemController extends ModuleInstance implements MessageEmitter {
 	/** Show your current config file with sensitive information removed */
 	#[NCA\HandlesCommand("showconfig")]
 	public function showConfigCommand(CmdContext $context): void {
+		$mapper = new ObjectMapperUsingReflection();
+		$config = array_diff_key(
+			$mapper->serializeObject($this->config),
+			["password" => null, "DB username" => null, "DB password" => null]
+		);
+
 		$json = \Safe\json_encode(
-			$this->config
-				->except("password", "DB username", "DB password")
-				->toArray(),
+			$config,
 			JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE
 		);
 		$context->reply(

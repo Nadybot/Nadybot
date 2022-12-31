@@ -137,7 +137,7 @@ class DB {
 						);
 						$errorShown = true;
 					}
-					\Safe\sleep(1);
+					sleep(1);
 				}
 			} while (!isset($this->sql));
 			if ($errorShown) {
@@ -258,7 +258,7 @@ class DB {
 						);
 						$errorShown = true;
 					}
-					\Safe\sleep(1);
+					sleep(1);
 				}
 			} while (!isset($this->sql));
 			if ($errorShown) {
@@ -289,7 +289,7 @@ class DB {
 						);
 						$errorShown = true;
 					}
-					\Safe\sleep(1);
+					sleep(1);
 				}
 			} while (!isset($this->sql));
 			if ($errorShown) {

@@ -393,7 +393,10 @@ class MessageHub {
 				&& preg_match("/^" . preg_quote(Source::LOG, "/") . "\(([a-z]+)\)$/i", $source, $matches)
 			) {
 				try {
-					/** @psalm-suppress ArgumentTypeCoercion */
+					/**
+					 * @psalm-suppress ArgumentTypeCoercion
+					 * @phpstan-ignore-next-line
+					 */
 					$srcLevel = Logger::toMonologLevel($matches[1]);
 					if ($eventLogLevel < $srcLevel) {
 						continue;

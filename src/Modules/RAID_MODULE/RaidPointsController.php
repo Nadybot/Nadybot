@@ -218,7 +218,7 @@ class RaidPointsController extends ModuleInstance {
 		if (isset($raid, $raid->pointsGiven[$pointsChar])) {
 			return $pointsChar;
 		}
-		if (isset($raid, $raid->raiders[$player])) {
+		if (isset($raid, $raid->raiders[$player])) { // @phpstan-ignore-line
 			$raid->raiders[$player]->points += $delta;
 			if ($individual) {
 				$raid->raiders[$player]->pointsIndividual += $delta;

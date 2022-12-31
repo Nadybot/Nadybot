@@ -48,7 +48,9 @@
 		"amphp/http-client": "^4.6",
 		"amphp/cache": "^1.5.0",
 		"amphp/file": "^2.0",
-		"amphp/websocket-client": "^1.0"
+		"amphp/websocket-client": "^1.0",
+		"eventsauce/object-hydrator": "^1.1.0",
+		"symfony/yaml": "^6.0"
 	},
 	"autoload": {
 		"psr-4": {
