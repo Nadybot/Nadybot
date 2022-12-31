@@ -158,7 +158,7 @@ class GuildController extends ModuleInstance {
 	#[NCA\Setting\Template(
 		options: [
 			"{whois} logged on{?main:. {alt-of}}{?logon-msg: - {logon-msg}}",
-			"{whois} logged on{?main:. {alt-list}}{?logon-msg: - {logon-msg}}",
+			"{whois} logged on{?alt-list:. {alt-list}}{?logon-msg: - {logon-msg}}",
 			"{c-name}{?main: ({main})}{?level: - {c-level}/{c-ai-level} {short-prof}} logged on{?logon-msg: - {logon-msg}}{!logon-msg:.}",
 			"{c-name}{?nick: ({c-nick})}{!nick:{?main: ({main})}}{?level: - {c-level}/{c-ai-level} {short-prof}} logged on{?logon-msg: - {logon-msg}}{!logon-msg:.}",
 			"<on>+<end> {c-name}{?main: ({main})}{?level: - {c-level}/{c-ai-level} {short-prof}}{?org: - {org-rank} of {c-org}}{?admin-level: :: {c-admin-level}}",
@@ -167,7 +167,7 @@ class GuildController extends ModuleInstance {
 		],
 		help: "org_logon_message.txt"
 	)]
-	public string $orgLogonMessage = "{whois} logged on{?main:. {alt-list}}{?logon-msg: - {logon-msg}}";
+	public string $orgLogonMessage = "{whois} logged on{?alt-list:. {alt-list}}{?logon-msg: - {logon-msg}}";
 
 	/** @var array<string,int> */
 	public array $lastLogonMsgs = [];
