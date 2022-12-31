@@ -3,5 +3,8 @@
 namespace Nadybot\Modules\RELAY_MODULE\RelayProtocol\Tyrbot;
 
 class OnlineListRequest extends Packet {
-	public string $type = "online_list_request";
+	public function __construct(
+		public string $type="online_list_request",
+	) {
+	}
 }
