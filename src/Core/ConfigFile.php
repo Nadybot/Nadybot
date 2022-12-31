@@ -4,25 +4,10 @@ namespace Nadybot\Core;
 
 use function Safe\{file_get_contents, json_decode, json_encode};
 use EventSauce\ObjectHydrator\PropertyCasters\CastToType;
-use EventSauce\ObjectHydrator\{MapFrom, MapperSettings, ObjectMapper, ObjectMapperUsingReflection, PropertyCaster, PropertySerializer};
+use EventSauce\ObjectHydrator\{MapFrom, MapperSettings, ObjectMapperUsingReflection};
 use Exception;
-use Nadybot\Core\Attributes\Instance;
+use Nadybot\Core\Attributes\{ForceList, Instance};
 use Symfony\Component\Yaml\Yaml;
-
-#[\Attribute(\Attribute::TARGET_PARAMETER | \Attribute::IS_REPEATABLE)]
-final class ForceList implements PropertyCaster, PropertySerializer {
-	public function cast(mixed $value, ObjectMapper $hydrator): mixed {
-		return (array)$value;
-	}
-
-	public function serialize(mixed $value, ObjectMapper $hydrator): mixed {
-		assert(is_array($value), 'value should be an array');
-		if (count($value) === 1) {
-			return array_shift($value);
-		}
-		return $value;
-	}
-}
 
 /**
  * The ConfigFile class provides convenient interface for reading and saving
@@ -33,100 +18,59 @@ final class ForceList implements PropertyCaster, PropertySerializer {
 	MapperSettings(serializePublicMethods: false)
 ]
 class ConfigFile {
+	/**
+	 * @param string      $filePath            The location in the filesystem of this config file
+	 * @param string      $login               The AO account login
+	 * @param string      $password            The AO account password
+	 * @param string      $name                The name of the bot character
+	 * @param string      $orgName             The exact name of the org to manage or an empty string if not an orgbot
+	 * @param int         $dimension           6 for Live (new), 5 for Live (old), 4 for Test
+	 * @param string[]    $superAdmins         Character names of the Super Administrators
+	 * @param string      $dbType              What type of database should be used? ('sqlite', 'postgresql', or 'mysql')
+	 * @param string      $dbName              Name of the database
+	 * @param string      $dbHost              Hostname or sqlite file location
+	 * @param null|string $dbUsername          MySQL or PostgreSQL username
+	 * @param null|string $dbPassword          MySQL or PostgreSQL password
+	 * @param int         $showAomlMarkup      Show AOML markup in logs/console? 1 for enabled, 0 for disabled.
+	 * @param string      $cacheFolder         Cache folder for storing organization XML files.
+	 * @param string      $htmlFolder          Folder for storing HTML files of the webserver
+	 * @param string      $dataFolder          Folder for storing data files
+	 * @param string      $logsFolder          Folder for storing log files
+	 * @param int         $defaultModuleStatus Default status for new modules: 1 for enabled, 0 for disabled.
+	 * @param int         $enableConsoleClient Enable the readline-based console interface to the bot?
+	 * @param int         $enablePackageModule Enable the module to install other modules from within the bot
+	 * @param int         $useProxy            Use an AO Chat Proxy? 1 for enabled, 0 for disabled
+	 * @param int         $proxyPort
+	 * @param string[]    $moduleLoadPaths     Define additional paths from where Nadybot should load modules at startup
+	 * @param array       $settings            Define settings values which will be immutable
+	 * @psalm-param array<string,null|scalar> $settings
+	 */
 	public function __construct(
 		private string $filePath,
 		public string $login,
 		public string $password,
 		public string $name,
-		#[MapFrom('my_guild')]
-		public string $orgName,
+		#[MapFrom('my_guild')] public string $orgName,
 		public ?int $orgId,
-
-		/** 6 for Live (new), 5 for Live (old), 4 for Test. */
 		public int $dimension,
-
-		/**
-		 * Character name of the Super Administrator.
-		 *
-		 * @var string[]
-		 */
-		#[ForceList]
-		#[MapFrom('SuperAdmin')]
-		public array $superAdmins,
-
-		/** What type of database should be used? ('sqlite' or 'mysql') */
-		#[MapFrom('DB Type')]
-		public string $dbType=DB::SQLITE,
-
-		/** Name of the database */
-		#[MapFrom('DB Name')]
-		public string $dbName="nadybot.db",
-
-		/** Hostname or sqlite file location */
-		#[MapFrom('DB Host')]
-		public string $dbHost="./data/",
-
-		/** MySQL or PostgreSQL username */
-		#[MapFrom('DB username')]
-		public ?string $dbUsername=null,
-
-		/** MySQL or PostgreSQL password */
-		#[MapFrom('DB password')]
-		public ?string $dbPassword=null,
-
-		/** Show AOML markup in logs/console? 1 for enabled, 0 for disabled. */
-		#[CastToType('int')]
-		public int $showAomlMarkup=0,
-
-		/** Cache folder for storing organization XML files. */
-		#[MapFrom('cachefolder')]
-		public string $cacheFolder="./cache/",
-
-		/** Folder for storing HTML files of the webserver */
-		#[MapFrom('htmlfolder')]
-		public string $htmlFolder="./html/",
-
-		/** Folder for storing data files */
-		#[MapFrom('datafolder')]
-		public string $dataFolder="./data/",
-
-		/* Folder for storing log files */
-		#[MapFrom('logsfolder')]
-		public string $logsFolder="./logs/",
-
-		/** Default status for new modules? 1 for enabled, 0 for disabled. */
+		#[ForceList] #[MapFrom('SuperAdmin')] public array $superAdmins,
+		#[MapFrom('DB Type')] public string $dbType=DB::SQLITE,
+		#[MapFrom('DB Name')] public string $dbName="nadybot.db",
+		#[MapFrom('DB Host')] public string $dbHost="./data/",
+		#[MapFrom('DB username')] public ?string $dbUsername=null,
+		#[MapFrom('DB password')] public ?string $dbPassword=null,
+		#[CastToType('int')] public int $showAomlMarkup=0,
+		#[MapFrom('cachefolder')] public string $cacheFolder="./cache/",
+		#[MapFrom('htmlfolder')] public string $htmlFolder="./html/",
+		#[MapFrom('datafolder')] public string $dataFolder="./data/",
+		#[MapFrom('logsfolder')] public string $logsFolder="./logs/",
 		public int $defaultModuleStatus=0,
-
-		/** Enable the readline-based console interface to the bot? */
-		#[CastToType('int')]
-		public int $enableConsoleClient=1,
-
-		/** Enable the module to install other modules from within the bot */
-		#[CastToType('int')]
-		public int $enablePackageModule=1,
-
-		/** Use AO Chat Proxy? 1 for enabled, 0 for disabled. */
-		#[CastToType('int')]
-		public int $useProxy=0,
+		#[CastToType('int')] public int $enableConsoleClient=1,
+		#[CastToType('int')] public int $enablePackageModule=1,
+		#[CastToType('int')] public int $useProxy=0,
 		public string $proxyServer="127.0.0.1",
-		#[CastToType('int')]
-		public int $proxyPort=9993,
-
-		/**
-		 * Define additional paths from where Nadybot should load modules at startup
-		 *
-		 * @var string[]
-		 */
-		public array $moduleLoadPaths=[
-			'./src/Modules',
-			'./extras',
-		],
-
-		/**
-		 * Define settings values which will be immutable
-		 *
-		 * @var array<string,mixed>
-		 */
+		#[CastToType('int')] public int $proxyPort=9993,
+		public array $moduleLoadPaths=['./src/Modules', './extras'],
 		public array $settings=[],
 		public ?string $timezone=null,
 	) {
