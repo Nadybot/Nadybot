@@ -1066,7 +1066,7 @@ class WorldBossController extends ModuleInstance {
 				throw new JsonException();
 			}
 			foreach ($data as $timerData) {
-				$timers []= new ApiSpawnData($timerData);
+				$timers []= new ApiSpawnData(...$timerData);
 			}
 		} catch (JsonException) {
 			$this->logger->error("Worldboss API sent invalid json.", [
