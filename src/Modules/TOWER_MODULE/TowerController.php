@@ -6,6 +6,7 @@ use function Amp\{asyncCall, call};
 use Amp\Promise;
 use Closure;
 use DateTime;
+use EventSauce\ObjectHydrator\ObjectMapperUsingReflection;
 use Exception;
 use Generator;
 use Illuminate\Database\Query\JoinClause;
@@ -940,11 +941,14 @@ class TowerController extends ModuleInstance {
 	 */
 	public function scoutToAPI(Collection $scoutInfos): ApiResult {
 		$data = [];
+		$mapper = new ObjectMapperUsingReflection();
 		foreach ($scoutInfos as $info) {
-			$data []= (array)$info;
+			$data []= $mapper->hydrateObject(ApiSite::class, (array)$info);
 		}
-		$data = ["count" => $scoutInfos->count(), "results" => $data];
-		return new ApiResult($data);
+		return new ApiResult(
+			count: $scoutInfos->count(),
+			results: $data
+		);
 	}
 
 	public function qlToSiteType(int $qlCT): int {
@@ -1499,10 +1503,17 @@ class TowerController extends ModuleInstance {
 			}
 			return $hash;
 		});
-		return new ApiResult([
-			"count" => $apiSites->count(),
-			"results" => $apiSites->toArray(),
-		]);
+		$mapper = new ObjectMapperUsingReflection();
+
+		/** @var ApiResult */
+		$apiResult = $mapper->hydrateObject(
+			ApiResult::class,
+			[
+				"count" => $apiSites->count(),
+				"results" => $apiSites->toArray(),
+			]
+		);
+		return $apiResult;
 	}
 
 	public function getFaction(string $input): string {
@@ -1716,7 +1727,8 @@ class TowerController extends ModuleInstance {
 				continue;
 			}
 			unset($apiSites[$localSite->playfield_id][$localSite->site_number]);
-			$result []= new ApiSite((array)$localSite);
+			$mapper = new ObjectMapperUsingReflection();
+			$result []= $mapper->hydrateObject(ApiSite::class, (array)$localSite);
 		}
 		foreach ($apiSites as $pfId => $siteList) {
 			foreach ($siteList as $siteId => $apiSite) {
@@ -1733,7 +1745,10 @@ class TowerController extends ModuleInstance {
 				}
 			}
 		}
-		return new ApiResult(["count" => count($result), "results" => $result]);
+		return new ApiResult(
+			count: count($result),
+			results: $result
+		);
 	}
 
 	/** @param array<string,mixed> $params */

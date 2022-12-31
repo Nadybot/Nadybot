@@ -454,7 +454,7 @@ class GauntletBuffController extends ModuleInstance implements MessageEmitter {
 				throw new JsonException();
 			}
 			foreach ($data as $gauntletData) {
-				$buffs []= new ApiGauntletBuff($gauntletData);
+				$buffs []= new ApiGauntletBuff(...$gauntletData);
 			}
 		} catch (JsonException) {
 			$this->logger->error("Gauntlet buff API sent invalid json.");

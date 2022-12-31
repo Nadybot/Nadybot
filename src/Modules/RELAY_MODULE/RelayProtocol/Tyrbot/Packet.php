@@ -2,8 +2,9 @@
 
 namespace Nadybot\Modules\RELAY_MODULE\RelayProtocol\Tyrbot;
 
-use Spatie\DataTransferObject\DataTransferObject;
-
-class Packet extends DataTransferObject {
-	public string $type;
+class Packet {
+	public function __construct(
+		public string $type,
+	) {
+	}
 }
