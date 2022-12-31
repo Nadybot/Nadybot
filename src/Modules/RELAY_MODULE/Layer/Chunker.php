@@ -3,6 +3,7 @@
 namespace Nadybot\Modules\RELAY_MODULE\Layer;
 
 use Amp\Loop;
+use EventSauce\ObjectHydrator\ObjectMapperUsingReflection;
 use InvalidArgumentException;
 use Nadybot\Core\{
 	Attributes as NCA,
@@ -94,21 +95,24 @@ class Chunker implements RelayLayerInterface {
 		foreach ($msg->packages as &$data) {
 			try {
 				$json = \Safe\json_decode($data, true);
-				$chunk = new Chunk($json);
+				$mapper = new ObjectMapperUsingReflection();
+
+				/** @var Chunk */
+				$chunk = $mapper->hydrateObject(Chunk::class, $json);
 			} catch (Throwable $e) {
 				// Chunking is optional
 				continue;
 			}
 			if ($chunk->count === 1) {
-				$this->logger->notice("Single-chunk chunk received.");
+				$this->logger->debug("Single-chunk chunk received.");
 				continue;
 			}
 			if (!isset($this->timerHandler)) {
-				$this->logger->notice("Setup new cleanup call");
+				$this->logger->debug("Setup new cleanup call");
 				$this->timerHandler = Loop::delay(10000, [$this, "cleanStaleChunks"]);
 			}
 			if (!isset($this->queue[$chunk->id])) {
-				$this->logger->notice("New chunk {$chunk->id} {$chunk->part}/{$chunk->count} received.");
+				$this->logger->debug("New chunk {$chunk->id} {$chunk->part}/{$chunk->count} received.");
 				$chunk->sent = time();
 				$this->queue[$chunk->id] = [
 					$chunk->part => $chunk,
@@ -118,12 +122,12 @@ class Chunker implements RelayLayerInterface {
 			}
 			$this->queue[$chunk->id][$chunk->part] = $chunk;
 			if (count($this->queue[$chunk->id]) !== $chunk->count) {
-				$this->logger->notice("New chunk part for {$chunk->id} {$chunk->part}/{$chunk->count} received, still not complete.");
+				$this->logger->debug("New chunk part for {$chunk->id} {$chunk->part}/{$chunk->count} received, still not complete.");
 				// Not yet complete;
 				$data = null;
 				continue;
 			}
-			$this->logger->notice("New chunk part for {$chunk->id} {$chunk->part}/{$chunk->count} received, now complete.");
+			$this->logger->debug("New chunk part for {$chunk->id} {$chunk->part}/{$chunk->count} received, now complete.");
 			$data = "";
 			for ($i = 1; $i <= $chunk->count; $i++) {
 				$block = $this->queue[$chunk->id][$i]->data ?? null;
@@ -135,7 +139,7 @@ class Chunker implements RelayLayerInterface {
 				}
 				$data .= $block;
 			}
-			$this->logger->notice("Removed chunks from memory.");
+			$this->logger->debug("Removed chunks from memory.");
 			unset($this->queue[$chunk->id]);
 		}
 		$msg->packages = array_values(array_filter($msg->packages));
@@ -150,15 +154,15 @@ class Chunker implements RelayLayerInterface {
 			if (!count($parts)
 				|| time() - $this->queue[$id][$parts[0]]->sent > $this->timeout
 			) {
-				$this->logger->notice("Removing stale chunk {$id}");
+				$this->logger->debug("Removing stale chunk {$id}");
 				unset($this->queue[$id]);
 			}
 		}
 		if (count($this->queue)) {
-			$this->logger->notice("Calling cleanup in 10");
+			$this->logger->debug("Calling cleanup in 10");
 			$this->timerHandler = Loop::delay(10000, [$this, "cleanStaleChunks"]);
 		} else {
-			$this->logger->notice("No more unfinished chunks.");
+			$this->logger->debug("No more unfinished chunks.");
 		}
 	}
 
@@ -170,23 +174,22 @@ class Chunker implements RelayLayerInterface {
 		if (strlen($packet) < $this->chunkSize) {
 			return [$packet];
 		}
+
+		/** @var string[] */
 		$chunks = str_split($packet, $this->chunkSize);
 		$result = [];
 		$uuid = $this->util->createUUID();
 		$part = 1;
 		$created = time();
 		foreach ($chunks as $chunk) {
-			$msg = new Chunk([
-				"id" => $uuid,
-				"part" => $part++,
-				"count" => count($chunks),
-				"sent" => $created,
-				"data" => $chunk,
-			]);
-			$json = \Safe\json_encode($msg, JSON_UNESCAPED_SLASHES|JSON_INVALID_UTF8_SUBSTITUTE);
-			if ($json !== false) {
-				$result []= \Safe\json_encode($msg, JSON_UNESCAPED_SLASHES|JSON_INVALID_UTF8_SUBSTITUTE);
-			}
+			$msg = new Chunk(
+				id: $uuid,
+				part: $part++,
+				count: count($chunks),
+				sent: $created,
+				data: $chunk,
+			);
+			$result []= \Safe\json_encode($msg, JSON_UNESCAPED_SLASHES|JSON_INVALID_UTF8_SUBSTITUTE);
 		}
 		return $result;
 	}
