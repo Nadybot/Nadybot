@@ -2,14 +2,11 @@
 
 namespace Nadybot\Modules\TOWER_MODULE;
 
-use Spatie\DataTransferObject\Attributes\CastWith;
-use Spatie\DataTransferObject\Casters\ArrayCaster;
-use Spatie\DataTransferObject\DataTransferObject;
-
-class ApiResult extends DataTransferObject {
-	public int $count;
-
-	/** @var ApiSite[] */
-	#[CastWith(ArrayCaster::class, itemType: ApiSite::class)]
-	public array $results = [];
+class ApiResult {
+	/** @param ApiSite[] $results */
+	public function __construct(
+		public int $count,
+		public array $results=[],
+	) {
+	}
 }

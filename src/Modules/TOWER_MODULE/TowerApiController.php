@@ -8,6 +8,7 @@ use function Safe\json_decode;
 use Amp\Cache\ArrayCache;
 use Amp\Http\Client\{HttpClientBuilder, Request, Response};
 use Amp\Promise;
+use EventSauce\ObjectHydrator\ObjectMapperUsingReflection;
 use Exception;
 use Generator;
 use League\Uri\{Http, Uri};
@@ -123,7 +124,8 @@ class TowerApiController extends ModuleInstance {
 			}
 			try {
 				$data = json_decode($body, true);
-				$result = new ApiResult($data);
+				$mapper = new ObjectMapperUsingReflection();
+				$result = $mapper->hydrateObject(ApiResult::class, $data);
 			} catch (Throwable $e) {
 				return null;
 			}
