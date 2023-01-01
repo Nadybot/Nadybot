@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Support multi-platform docker images, starting with amd64 and arm64, so they also work on the Raspberry Pi.
 - Introduce nicknames. Nicknames can be set freely and will be displayed at various locations instead of the character's or the main's name (e.g. online list). There is also a new configuration knob (`!settings change routed_sender_format`) that allows displaying the nickname when displaying routed messages (e.g. from guild channel to/from private channel)
 - Add support for JSON and YAML configuration files
+- Add new `debug()`-modifier to send the internal package representation to a routing destination for debugging purposes.
 
 ### Changed
 

@@ -22,7 +22,8 @@ use Nadybot\Core\{
 	NCA\Param(
 		name: "to",
 		type: "string",
-		description: "If set to true, do a regular expression search and replace",
+		description: "The routing destination where to send debug information to.\n".
+			"Can be anything from \"<symbol>route list dst\", e.g. aopriv or aotell(Nady)",
 		required: true
 	)
 ]
