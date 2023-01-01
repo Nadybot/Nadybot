@@ -214,6 +214,7 @@ class BotRunner {
 			"Reflection",
 			"sockets",
 			"fileinfo",
+			"tokenizer",
 		];
 		foreach ($requiredModules as $requiredModule) {
 			if (is_string($requiredModule) && !extension_loaded($requiredModule)) {

@@ -30,6 +30,7 @@ RUN apk --no-cache add \
     php8-zip \
     php8-opcache \
     php8-fileinfo \
+    php8-tokenizer \
 	tini \
     && \
     adduser -h /nadybot -s /bin/false -D -H nadybot
