@@ -437,7 +437,11 @@ class ItemsController extends ModuleInstance {
 					if (!isset($row->group_name)) {
 						$row->name = $this->getLongestCommonStringOfWords($itemNames);
 					} else {
-						$row->name = $row->group_name;
+						$row->name = str_replace(
+							"NOT IN GAME",
+							"<red>NOT IN GAME<end>",
+							$row->group_name
+						);
 					}
 				}
 				if ($list !== '') {
