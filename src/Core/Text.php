@@ -274,15 +274,9 @@ class Text {
 		return "<img src='{$db}://{$imageId}'>";
 	}
 
-	/**
-	 * Formats a message with colors, bot name, symbol, by replacing special tags
-	 *
-	 * @param string $message The message to format
-	 *
-	 * @return string The formatted message
-	 */
-	public function formatMessage(string $message): string {
-		$array = [
+	/** @return array<string,string> */
+	public function getColors(): array {
+		return [
 			"<header>" => str_replace("'", "", $this->settingManager->getString('default_header_color')??""),
 			"<header2>" => str_replace("'", "", $this->settingManager->getString('default_header2_color')??""),
 			"<highlight>" => str_replace("'", "", $this->settingManager->getString('default_highlight_color')??""),
@@ -303,14 +297,28 @@ class Text {
 			"<omni>" => $this->settingManager->getString('default_omni_color')??"",
 			"<clan>" => $this->settingManager->getString('default_clan_color')??"",
 			"<unknown>" => $this->settingManager->getString('default_unknown_color')??"",
-
-			"<myname>" => $this->config->name,
-			"<myguild>" => $this->config->orgName,
-			"<tab>" => "    ",
-			"<end>" => "</font>",
-			"<symbol>" => $this->settingManager->getString("symbol")??"!",
-			"<br>" => "\n",
 		];
+	}
+
+	/**
+	 * Formats a message with colors, bot name, symbol, by replacing special tags
+	 *
+	 * @param string $message The message to format
+	 *
+	 * @return string The formatted message
+	 */
+	public function formatMessage(string $message): string {
+		$array = array_merge(
+			$this->getColors(),
+			[
+				"<myname>" => $this->config->name,
+				"<myguild>" => $this->config->orgName,
+				"<tab>" => "    ",
+				"<end>" => "</font>",
+				"<symbol>" => $this->settingManager->getString("symbol")??"!",
+				"<br>" => "\n",
+			]
+		);
 
 		$message = str_ireplace(array_keys($array), array_values($array), $message);
 
@@ -455,5 +463,42 @@ class Text {
 			$plural = "es";
 		}
 		return $word . $plural;
+	}
+
+	/**
+	 * Render {token}, {?token:} and {!token} placeholder-based text
+	 *
+	 * @param string                        $text   The text containing placeholders
+	 * @param array<string,string|int|null> $tokens All possibly usable tokens
+	 *
+	 * @return string The rendered text
+	 */
+	public function renderPlaceholders(string $text, array $tokens): string {
+		// First, we try to replace {?token:<whatever>} and
+		// {!token:<whatever>} with either an empty string or <whatever>
+		// If the token isn't found, don't touch the text
+		do {
+			$lastText = $text;
+			$text = preg_replace_callback(
+				'/\{(?<tag>[a-zA-Z-]+|[!?][a-zA-Z-]+:((?:[^{}]|(?R)))+)\}/',
+				function (array $matches) use ($tokens): string {
+					$action = substr($matches["tag"], 0, 1);
+					if ($action !== "?" && $action !== "!") {
+						return (string)($tokens[$matches[1]] ?? "");
+					}
+					$parts = explode(":", substr($matches["tag"], 1), 2);
+					if (count($parts) !== 2) {
+						return $matches[0];
+					}
+					if (isset($tokens[$parts[0]]) === ($action === "?")) {
+						return $parts[1];
+					}
+					return "";
+				},
+				$text
+			);
+		} while (str_contains($text, "{") && $lastText !== $text);
+
+		return $text;
 	}
 }

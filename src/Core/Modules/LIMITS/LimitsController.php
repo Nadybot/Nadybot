@@ -172,7 +172,7 @@ class LimitsController extends ModuleInstance {
 	/**
 	 * Check if $sender is allowed to send $message
 	 *
-	 * @phpstan-param callable(mixed...):mixed $callback
+	 * @phpstan-param callable $callback
 	 * @psalm-param callable(mixed...) $callback
 	 */
 	public function checkAndExecute(string $sender, string $message, callable $callback, mixed ...$args): void {

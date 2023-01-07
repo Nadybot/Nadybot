@@ -289,7 +289,7 @@ class Nadybot extends AOChat {
 				$try++;
 			} else {
 				$this->logger->critical("Connection failed! Please check your Internet connection and firewall.");
-				\Safe\sleep(10);
+				sleep(10);
 				die();
 			}
 		}
@@ -297,14 +297,14 @@ class Nadybot extends AOChat {
 		$this->logger->notice("Authenticate login data...");
 		if (null === $this->authenticate($login, $password)) {
 			$this->logger->critical("Login failed.");
-			\Safe\sleep(10);
+			sleep(10);
 			exit(1);
 		}
 
 		$this->logger->notice("Logging in {$this->config->name}...");
 		if (false === $this->login($this->config->name)) {
 			$this->logger->critical("Character selection failed.");
-			\Safe\sleep(10);
+			sleep(10);
 			exit(1);
 		}
 		if (!is_resource($this->socket)) {
@@ -386,10 +386,16 @@ class Nadybot extends AOChat {
 			}
 			Loop::onReadable(
 				$this->socket,
-				function (): void {
-					$packet = $this->getPacket(false);
-					if (isset($packet)) {
-						$this->process_packet($packet);
+				function (string $watcherId): Generator {
+					Loop::disable($watcherId);
+					try {
+						$packet = $this->getPacket(false);
+						if (isset($packet)) {
+							$this->process_packet($packet);
+						}
+						yield \Amp\delay(0);
+					} finally {
+						Loop::enable($watcherId);
 					}
 				}
 			);

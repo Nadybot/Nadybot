@@ -72,6 +72,21 @@ class MessageHubController extends ModuleInstance {
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
+	/** How to render the sender's name of routed messages */
+	#[NCA\Setting\Template(
+		options: [
+			"Char" => "{char}",
+			"Char (Nick)/Char (Main)/Char" => "{char}{?nick: ({nick})}{!nick:{?main: ({main})}}",
+			"Char (Nick)/Char" => "{char}{?nick: ({nick})}",
+			"Nick/Char" => "{?nick:{nick}}{!nick:{char}}",
+			"Nick (Char)/Main (Char)/Char" => "{?nick:{nick} ({char})}{!nick:{?main:{main} ({char})}{!main:{char}}}",
+			"Nick (Char)/Char" => "{?nick:{nick} ({char})}{!nick:{char}}",
+		],
+		exampleValues: ["char" => "Char", "nick" => "Nickname", "main" => "Main"],
+		help: 'routed_sender_format.txt',
+	)]
+	public string $routedSenderFormat = "{char}";
+
 	/** Load defined routes from the database and activate them */
 	public function loadRouting(): void {
 		$arguments = $this->db->table($this->messageHub::DB_TABLE_ROUTE_MODIFIER_ARGUMENT)
@@ -1120,7 +1135,10 @@ class MessageHubController extends ModuleInstance {
 				$l1 = 0;
 				if (preg_match("/\((.+)\)$/", $e1->getChannelName(), $matches)) {
 					try {
-						/** @psalm-suppress ArgumentTypeCoercion */
+						/**
+						 * @psalm-suppress ArgumentTypeCoercion
+						 * @phpstan-ignore-next-line
+						 */
 						$l1 = Logger::toMonologLevel($matches[1]);
 					} catch (Exception) {
 					}
@@ -1128,7 +1146,10 @@ class MessageHubController extends ModuleInstance {
 				$l2 = 0;
 				if (preg_match("/\((.+)\)$/", $e2->getChannelName(), $matches)) {
 					try {
-						/** @psalm-suppress ArgumentTypeCoercion */
+						/**
+						 * @psalm-suppress ArgumentTypeCoercion
+						 * @phpstan-ignore-next-line
+						 */
 						$l2 = Logger::toMonologLevel($matches[1]);
 					} catch (Exception) {
 					}

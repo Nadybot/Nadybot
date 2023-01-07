@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\RELAY_MODULE\RelayProtocol;
 
+use EventSauce\ObjectHydrator\ObjectMapperUsingReflection;
 use Nadybot\Core\{
 	Attributes as NCA,
 	ConfigFile,
@@ -95,7 +96,10 @@ class Tyrbot implements RelayProtocolInterface {
 		$serialized = array_shift($message->packages);
 		try {
 			$data = \Safe\json_decode($serialized, true, 10, JSON_UNESCAPED_SLASHES|JSON_INVALID_UTF8_SUBSTITUTE);
-			$identify = new BasePacket($data);
+			$mapper = new ObjectMapperUsingReflection();
+
+			/** @var BasePacket */
+			$identify = $mapper->hydrateObject(BasePacket::class, $data);
 			return $this->decodeAndHandlePacket($message->sender, $identify, $data);
 		} catch (JsonException $e) {
 			$this->logger->error(
@@ -153,7 +157,10 @@ class Tyrbot implements RelayProtocolInterface {
 			],
 			"source" => $this->nadyPathToTyr($r),
 		];
-		$statePacket = $event->online ? new Logon($packet) : new Logoff($packet);
+		$mapper = new ObjectMapperUsingReflection();
+		$statePacket = $event->online
+			? $mapper->hydrateObject(Logon::class, $packet)
+			: $mapper->hydrateObject(Logoff::class, $packet);
 		$data = $this->jsonEncode($statePacket);
 		return [$data];
 	}
@@ -221,20 +228,29 @@ class Tyrbot implements RelayProtocolInterface {
 
 	/** @param array<mixed> $data */
 	protected function decodeAndHandlePacket(?string $sender, BasePacket $identify, array $data): ?RoutableEvent {
+		$mapper = new ObjectMapperUsingReflection();
 		switch ($identify->type) {
 			case $identify::MESSAGE:
-				return $this->receiveMessage(new Message($data));
+				/** @var Message */
+				$message = $mapper->hydrateObject(Message::class, $data);
+				return $this->receiveMessage($message);
 			case $identify::LOGON:
 				$this->logger->debug("Logon event received on {relay}", [
 					"relay" => $this->relay->getName(),
 				]);
-				$this->handleLogon($sender, new Logon($data));
+
+				/** @var Logon */
+				$logon = $mapper->hydrateObject(Logon::class, $data);
+				$this->handleLogon($sender, $logon);
 				return null;
 			case $identify::LOGOFF:
 				$this->logger->debug("Logoff event received on {relay}", [
 					"relay" => $this->relay->getName(),
 				]);
-				$this->handleLogoff($sender, new Logoff($data));
+
+				/** @var Logoff */
+				$logoff = $mapper->hydrateObject(Logoff::class, $data);
+				$this->handleLogoff($sender, $logoff);
 				return null;
 			case $identify::ONLINE_LIST_REQUEST:
 				$this->logger->debug("Online list request received on {relay}", [
@@ -246,7 +262,10 @@ class Tyrbot implements RelayProtocolInterface {
 				$this->logger->debug("Online list received on {relay}", [
 					"relay" => $this->relay->getName(),
 				]);
-				$this->handleOnlineList($sender, new OnlineList($data));
+
+				/** @var OnlineList */
+				$onlineList = $mapper->hydrateObject(OnlineList::class, $data);
+				$this->handleOnlineList($sender, $onlineList);
 				return null;
 			default:
 				$this->logger->notice("Received unknown Tyrbot packet type {type} on {relay}", [
@@ -347,7 +366,11 @@ class Tyrbot implements RelayProtocolInterface {
 			"source" => $privSource,
 			"users" => $privUsers,
 		];
-		return new OnlineList($onlineList);
+		$mapper = new ObjectMapperUsingReflection();
+
+		/** @var OnlineList */
+		$result = $mapper->hydrateObject(OnlineList::class, $onlineList);
+		return $result;
 	}
 
 	protected function sendOnlineList(): void {

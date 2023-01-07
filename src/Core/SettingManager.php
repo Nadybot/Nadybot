@@ -165,7 +165,11 @@ class SettingManager {
 						"verify" => 1,
 						"help" => $help,
 					]);
-				$setting->value = $this->settings[$name]->value;
+				if (array_key_exists($name, $this->settings)) {
+					$setting->value = $this->settings[$name]->value;
+				} else {
+					$this->settings[$name] = new SettingValue($setting);
+				}
 			} else {
 				$this->db->table(self::DB_TABLE)
 					->insert([

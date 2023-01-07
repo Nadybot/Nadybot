@@ -8,8 +8,10 @@ use function Amp\{asyncCall, call};
 use Amp\Promise;
 use Generator;
 use Illuminate\Support\Collection;
+use Nadybot\Core\Modules\ALTS\AltInfo;
 use Nadybot\Core\{
 	AOChatEvent,
+	AccessManager,
 	Attributes as NCA,
 	BuddylistManager,
 	CmdContext,
@@ -39,6 +41,7 @@ use Nadybot\Core\{
 	UserStateEvent,
 	Util,
 };
+use Nadybot\Modules\ONLINE_MODULE\OnlineController;
 use Throwable;
 
 /**
@@ -96,6 +99,12 @@ class GuildController extends ModuleInstance {
 	public SettingManager $settingManager;
 
 	#[NCA\Inject]
+	public OnlineController $onlineController;
+
+	#[NCA\Inject]
+	public AccessManager $accessManager;
+
+	#[NCA\Inject]
 	public BuddylistManager $buddylistManager;
 
 	#[NCA\Inject]
@@ -130,13 +139,41 @@ class GuildController extends ModuleInstance {
 	#[NCA\Setting\Number(options: [100, 200, 300, 400])]
 	public int $maxLogoffMsgSize = 200;
 
-	/** Show logon/logoff for first/last alt only */
-	#[NCA\Setting\Boolean]
-	public bool $firstAndLastAltOnly = false;
+	/** Suppress alt logon/logoff messages during the interval */
+	#[NCA\Setting\TimeOrOff(
+		options: ["off", "5m", "15m", "1h", "1d"],
+	)]
+	public int $suppressLogonLogoff = 0;
 
-	/** Do not show the altlist on logon, just the name of the main */
-	#[NCA\Setting\Boolean]
-	public bool $orgSuppressAltList = false;
+	/** Message when an org member logs off */
+	#[NCA\Setting\Template(
+		options: [
+			"{c-name} logged off{?logoff-msg: - {logoff-msg}}{!logoff-msg:.}",
+		],
+		help: "org_logon_message.txt"
+	)]
+	public string $orgLogoffMessage = "{c-name} logged off{?logoff-msg: - {logoff-msg}}{!logoff-msg:.}";
+
+	/** Message when an org member logs on */
+	#[NCA\Setting\Template(
+		options: [
+			"{whois} logged on{?main:. {alt-of}}{?logon-msg: - {logon-msg}}",
+			"{whois} logged on{?alt-list:. {alt-list}}{?logon-msg: - {logon-msg}}",
+			"{c-name}{?main: ({main})}{?level: - {c-level}/{c-ai-level} {short-prof}} logged on{?logon-msg: - {logon-msg}}{!logon-msg:.}",
+			"{c-name}{?nick: ({c-nick})}{!nick:{?main: ({main})}}{?level: - {c-level}/{c-ai-level} {short-prof}} logged on{?logon-msg: - {logon-msg}}{!logon-msg:.}",
+			"<on>+<end> {c-name}{?main: ({main})}{?level: - {c-level}/{c-ai-level} {short-prof}}{?org: - {org-rank} of {c-org}}{?admin-level: :: {c-admin-level}}",
+			"<on>+<end> {c-name}{?nick: ({c-nick})}{!nick:{?main: ({main})}}{?level: - {c-level}/{c-ai-level} {short-prof}}{?org: - {org-rank} of {c-org}}{?admin-level: :: {c-admin-level}}",
+			"{name}{?level: :: {c-level}/{c-ai-level} {short-prof}}{?org: :: {c-org}} logged on{?admin-level: :: {c-admin-level}}{?main: :: {c-main}}{?logon-msg: :: {logon-msg}}",
+		],
+		help: "org_logon_message.txt"
+	)]
+	public string $orgLogonMessage = "{whois} logged on{?alt-list:. {alt-list}}{?logon-msg: - {logon-msg}}";
+
+	/** @var array<string,int> */
+	public array $lastLogonMsgs = [];
+
+	/** @var array<string,int> */
+	public array $lastLogoffMsgs = [];
 
 	#[NCA\Setup]
 	public function setup(): void {
@@ -527,8 +564,8 @@ class GuildController extends ModuleInstance {
 	 * @deprecated
 	 */
 	public function getLogonForPlayer(callable $callback, ?Player $whois, string $player, bool $suppressAltList): void {
-		asyncCall(function () use ($callback, $whois, $player, $suppressAltList): Generator {
-			$callback(yield $this->getLogonMessageForPlayer($whois, $player, $suppressAltList));
+		asyncCall(function () use ($callback, $whois, $player): Generator {
+			$callback(yield $this->getLogonMessageForPlayer($whois, $player));
 		});
 	}
 
@@ -538,60 +575,54 @@ class GuildController extends ModuleInstance {
 	 * @deprecated
 	 */
 	public function getLogonMessageAsync(string $player, bool $suppressAltList, callable $callback): void {
-		asyncCall(function () use ($player, $suppressAltList, $callback): Generator {
-			$msg = yield $this->getLogonMessage($player, $suppressAltList);
+		asyncCall(function () use ($player, $callback): Generator {
+			$msg = yield $this->getLogonMessage($player);
 			if (isset($msg)) {
 				$callback($msg);
 			}
 		});
 	}
 
-	/** @return Promise<?string> */
-	public function getLogonMessage(string $player, bool $suppressAltList): Promise {
-		return call(function () use ($player, $suppressAltList): Generator {
-			if ($this->firstAndLastAltOnly) {
-				// if at least one alt/main is already online, don't show logon message
-				$altInfo = $this->altsController->getAltInfo($player);
-				if (count($altInfo->getOnlineAlts()) > 1) {
-					return null;
-				}
-			}
+	public function canShowLogonMessageForChar(string $char): bool {
+		if ($this->suppressLogonLogoff === 0) {
+			return true;
+		}
+		$altInfo = $this->altsController->getAltInfo($char);
 
+		$alreadyLoggedIn = $this->numAltsOnline($char) > 1;
+		if (!$alreadyLoggedIn) {
+			return true;
+		}
+		$lastAccountLogonMsg = $this->lastLogonMsgs[$altInfo->main]??0;
+		$lastLogonMsgTooRecent = (time() - $lastAccountLogonMsg) < $this->suppressLogonLogoff;
+		return $lastLogonMsgTooRecent === false;
+	}
+
+	/** @return Promise<?string> */
+	public function getLogonMessage(string $player): Promise {
+		return call(function () use ($player): Generator {
+			if (!$this->canShowLogonMessageForChar($player)) {
+				return null;
+			}
 			$whois = yield $this->playerManager->byName($player);
-			return yield $this->getLogonMessageForPlayer($whois, $player, $suppressAltList);
+			return yield $this->getLogonMessageForPlayer($whois, $player);
 		});
 	}
 
 	/** @return Promise<string> */
-	public function getLogonMessageForPlayer(?Player $whois, string $player, bool $suppressAltList): Promise {
-		return call(function () use ($whois, $player, $suppressAltList): Generator {
-			$msg = '';
-			$logonMsg = $this->preferences->get($player, 'logon_msg') ?? "";
-			if ($logonMsg !== '') {
-				$logonMsg = " - {$logonMsg}";
-			}
-			if ($whois === null) {
-				$msg = "{$player} logged on";
-			} else {
-				$msg = $this->playerManager->getInfo($whois);
+	public function getLogonMessageForPlayer(?Player $whois, string $player): Promise {
+		return call(function () use ($whois, $player): Generator {
+			/** @var array<string,string|int|null> */
+			$tokens = yield $this->getTokensForLogonLogoff($player, $whois, null);
+			$logonMessage = $this->text->renderPlaceholders($this->orgLogonMessage, $tokens);
+			$logonMessage = preg_replace(
+				"/&lt;([a-z]+)&gt;/",
+				'<$1>',
+				$logonMessage
+			);
+			assert(is_string($logonMessage));
 
-				$msg .= " logged on";
-
-				$altInfo = $this->altsController->getAltInfo($player);
-				if ($suppressAltList) {
-					if ($altInfo->main !== $player) {
-						$msg .= ". Alt of <highlight>{$altInfo->main}<end>";
-					}
-				} else {
-					if (count($altInfo->getAllValidatedAlts()) > 0) {
-						$blob = yield $altInfo->getAltsBlob(true);
-						$blob = ((array)$blob)[0];
-						return "{$msg}. {$blob}{$logonMsg}";
-					}
-				}
-			}
-
-			return $msg.$logonMsg;
+			return $logonMessage;
 		});
 	}
 
@@ -606,7 +637,7 @@ class GuildController extends ModuleInstance {
 			|| !is_string($sender)) {
 			return;
 		}
-		$msg = yield $this->getLogonMessage($sender, $this->orgSuppressAltList);
+		$msg = yield $this->getLogonMessage($sender);
 		$uid = yield $this->chatBot->getUid2($sender);
 		$e = new Online();
 		$e->char = new Character($sender, $uid);
@@ -616,24 +647,45 @@ class GuildController extends ModuleInstance {
 		$this->dispatchRoutableEvent($e);
 		if (isset($msg)) {
 			$this->chatBot->sendGuild($msg, true);
+			$this->lastLogonMsgs[$e->main] = time();
 		}
 	}
 
-	public function getLogoffMessage(string $player): ?string {
-		if ($this->firstAndLastAltOnly) {
-			// if at least one alt/main is still online, don't show logoff message
-			$altInfo = $this->altsController->getAltInfo($player);
-			if (count($altInfo->getOnlineAlts()) > 0) {
+	public function canShowLogoffMessageForChar(string $char): bool {
+		if ($this->suppressLogonLogoff === 0) {
+			return true;
+		}
+		$altInfo = $this->altsController->getAltInfo($char);
+		$stillLoggedIn = $this->numAltsOnline($char) > 0;
+		if (!$stillLoggedIn) {
+			return true;
+		}
+		$lastAccountLogoffMsg = $this->lastLogoffMsgs[$altInfo->main]??0;
+		$lastLogoffMsgTooRecent = (time() - $lastAccountLogoffMsg) < $this->suppressLogonLogoff;
+		return $lastLogoffMsgTooRecent === false;
+	}
+
+	/** @return Promise<?string> */
+	public function getLogoffMessage(string $player): Promise {
+		return call(function () use ($player): Generator {
+			if (!$this->canShowLogoffMessageForChar($player)) {
 				return null;
 			}
-		}
+			$altInfo = $this->altsController->getAltInfo($player);
+			$whois = yield $this->playerManager->byName($player);
 
-		$msg = "{$player} logged off.";
-		$logoffMessage = $this->preferences->get($player, 'logoff_msg');
-		if ($logoffMessage !== null && $logoffMessage !== '') {
-			$msg .= " " . $logoffMessage;
-		}
-		return $msg;
+			/** @var array<string,string|int|null> */
+			$tokens = yield $this->getTokensForLogonLogoff($player, $whois, $altInfo);
+			$logoffMessage = $this->text->renderPlaceholders($this->orgLogoffMessage, $tokens);
+			$logoffMessage = preg_replace(
+				"/&lt;([a-z]+)&gt;/",
+				'<$1>',
+				$logoffMessage
+			);
+			assert(is_string($logoffMessage));
+
+			return $logoffMessage;
+		});
 	}
 
 	#[NCA\Event(
@@ -649,13 +701,16 @@ class GuildController extends ModuleInstance {
 		}
 
 		$uid = yield $this->chatBot->getUid2($sender);
-		$msg = $this->getLogoffMessage($sender);
+
+		/** @var ?string */
+		$msg = yield $this->getLogoffMessage($sender);
 		$e = new Online();
 		$e->char = new Character($sender, $uid);
 		$e->main = $this->altsController->getMainOf($sender);
 		$e->online = false;
 		$e->message = $msg;
 		$this->dispatchRoutableEvent($e);
+		$this->lastLogoffMsgs[$e->main] = time();
 		if ($msg === null) {
 			return;
 		}
@@ -714,6 +769,107 @@ class GuildController extends ModuleInstance {
 		return null;
 	}
 
+	/** @return array{"admin-level": ?string, "c-admin-level": ?string, "access-level": ?string} */
+	protected function getRankTokens(string $player): array {
+		$tokens = [
+			"access-level" => null,
+			"admin-level" => null,
+			"c-admin-level" => null,
+		];
+		$alRank = $this->accessManager->getAccessLevelForCharacter($player);
+		$alName = ucfirst($this->accessManager->getDisplayName($alRank));
+		$colors = $this->onlineController;
+		switch ($alRank) {
+			case 'superadmin':
+				$tokens["admin-level"] = $alName;
+				$tokens["c-admin-level"] = "{$colors->rankColorSuperadmin}{$alName}<end>";
+				break;
+			case 'admin':
+				$tokens["admin-level"] = $alName;
+				$tokens["c-admin-level"] = "{$colors->rankColorAdmin}{$alName}<end>";
+				break;
+			case 'mod':
+				$tokens["admin-level"] = $alName;
+				$tokens["c-admin-level"] = "{$colors->rankColorMod}{$alName}<end>";
+				break;
+		}
+		$tokens["access-level"] = $alName;
+		return $tokens;
+	}
+
+	/** @return Promise<array<string,string|int|null>> */
+	protected function getTokensForLogonLogoff(string $player, ?Player $whois, ?AltInfo $altInfo): Promise {
+		return call(function () use ($player, $whois, $altInfo): Generator {
+			$altInfo ??= $this->altsController->getAltInfo($player);
+			$tokens = [
+				"name" => $player,
+				"c-name" => "<highlight>{$player}<end>",
+				"first-name" => $whois?->firstname,
+				"last-name" => $whois?->lastname,
+				"level" => $whois?->level,
+				"c-level" => $whois ? "<highlight>{$whois->level}<end>" : null,
+				"ai-level" => $whois?->ai_level,
+				"c-ai-level" => $whois ? "<green>{$whois->ai_level}<end>" : null,
+				"prof" => $whois?->profession,
+				"c-prof" => $whois ? "<highlight>{$whois->profession}<end>" : null,
+				"profession" => $whois?->profession,
+				"c-profession" => $whois ? "<highlight>{$whois->profession}<end>" : null,
+				"org" => $whois?->guild,
+				"c-org" => $whois
+					? "<" . strtolower($whois->faction ?? "highlight") . ">{$whois->guild}<end>"
+					: null,
+				"org-rank" => $whois?->guild_rank,
+				"breed" => $whois?->breed,
+				"faction" => $whois?->faction,
+				"c-faction" => $whois
+					? "<" . strtolower($whois->faction ?? "highlight") . ">{$whois->faction}<end>"
+					: null,
+				"gender" => $whois?->gender,
+				"channel-name" => "the private channel",
+				"whois" => $player,
+				"short-prof" => null,
+				"c-short-prof" => null,
+				"main" => null,
+				"c-main" => null,
+				"nick" => $altInfo->getNick(),
+				"c-nick" => $altInfo->getDisplayNick(),
+				"alt-of" => null,
+				"alt-list" => null,
+				"logon-msg" => $this->preferences->get($player, 'logon_msg'),
+				"logoff-msg" => $this->preferences->get($player, 'logoff_msg'),
+			];
+			if (!isset($tokens["logon-msg"]) || !strlen($tokens["logon-msg"])) {
+				$tokens["logon-msg"] = null;
+			}
+			if (!isset($tokens["logoff-msg"]) || !strlen($tokens["logoff-msg"])) {
+				$tokens["logoff-msg"] = null;
+			}
+			$ranks = $this->getRankTokens($player);
+			$tokens = array_merge($tokens, $ranks);
+
+			if (isset($whois)) {
+				$tokens["whois"] = $this->playerManager->getInfo($whois);
+				if (isset($whois->profession)) {
+					$tokens["short-prof"] = $this->util->getProfessionAbbreviation($whois->profession);
+					$tokens["c-short-prof"] = "<highlight>{$tokens['short-prof']}<end>";
+				}
+			}
+			if ($this->settingManager->getBool('guild_channel_status') === false) {
+				$tokens["channel-name"] = "<myname>";
+			}
+			if ($altInfo->main !== $player) {
+				$tokens["main"] = $altInfo->main;
+				$tokens["c-main"] = "<highlight>{$altInfo->main}<end>";
+				$tokens["alt-of"] = "Alt of <highlight>{$tokens['c-nick']}<end>";
+			}
+			if (count($altInfo->getAllValidatedAlts()) > 0) {
+				$blob = yield $altInfo->getAltsBlob(true);
+				$tokens["alt-list"] = (string)((array)$blob)[0];
+			}
+			return $tokens;
+		});
+	}
+
 	/** Remove someone from the online list that we added for "guild" */
 	protected function delMemberFromOnline(string $member): int {
 		return $this->db->table("online")
@@ -721,6 +877,47 @@ class GuildController extends ModuleInstance {
 			->where("channel_type", "guild")
 			->where("added_by", $this->db->getBotname())
 			->delete();
+	}
+
+	/**
+	 * Count the number of alts of 1 player that are in the private chat or
+	 * in this bot's org and online
+	 *
+	 * @param string $char Any char to test for
+	 *
+	 * @return int Number of total characters online, including $char
+	 */
+	private function numAltsOnline(string $char): int {
+		$altInfo = $this->altsController->getAltInfo($char);
+
+		/**
+		 * All alts/main of $char that are in the private channel
+		 *
+		 * @var string[]
+		 */
+		$altsInChat = array_values(
+			array_filter(
+				$altInfo->getAllValidatedAlts(),
+				function (string $alt): bool {
+					return isset($this->chatBot->chatlist[$alt]);
+				}
+			)
+		);
+
+		/** @var string[] */
+		$altsInOrgOnline = [];
+		if ($this->isGuildBot()) {
+			$altsInOrgOnline = array_values(
+				array_filter(
+					$altInfo->getOnlineAlts(),
+					function (string $char): bool {
+						return isset($this->chatBot->guildmembers[$char]);
+					}
+				)
+			);
+		}
+		$altsInOrgOnline = array_unique([...$altsInOrgOnline, ...$altsInChat]);
+		return count($altsInOrgOnline);
 	}
 
 	private function loadGuildMembers(): void {

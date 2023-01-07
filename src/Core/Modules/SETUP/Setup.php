@@ -151,7 +151,7 @@ class Setup {
 			"The default settings are recommended for normal\n".
 			"users. If you choose to set it up manually,\n".
 			"you will be able to choose between\n".
-			"MySQL and Sqlite.\n"
+			"PostgreSQL, MySQL, and Sqlite.\n"
 		);
 		$msg = "Do you want to setup the database manually (yes/no): ";
 		do {
@@ -186,24 +186,38 @@ class Setup {
 
 	public function queryDatabaseType(): void {
 		$this->showStep(
-			"The bot is able to use 2 different Database Types:\n".
-			"  [1] Sqlite\n".
+			"The bot is able to use 3 different Database Types:\n".
+			"  [1] SQLite\n".
 			"      It is the easiest way to go and provides\n".
-			"      faster bot startup than MySQL.\n".
+			"      faster bot startup than MySQL or PostgreSQL.\n".
+			"      It's the best choice for 99% of all users.\n".
 			"  [2] MySQL/MariaDB\n".
-			"      An Open-Source Database.\n".
+			"      An Open-source database.\n".
 			"      You need to install and setup it manually\n".
 			"      https://www.mysql.com/ https://mariadb.org/ \n".
-			"      Be aware that when you set it up incorrectly,\n".
-			"      it can be slower than Sqlite!\n"
+			"      Be aware that nowadays MySQL/MariaDB is only\n".
+			"      useful if you run multiple bots on the same database,\n".
+			"      because for most scenarios it is slower than SQLite.\n".
+			"  [3] PostgreSQL\n".
+			"      An enterprise-grade Open-source database.\n".
+			"      You need to install and setup it manually\n".
+			"      https://www.postgresql.org/download/\n".
+			"      It offers better performance than MySQL for Nadybot,\n".
+			"      but it's also only useful if you run multiple bots\n".
+			"      on the same server.\n"
 		);
 
-		$msg = "Choose a Database system (1/2): ";
+		$msg = "Choose a Database system (1/2/3): ";
+		$dbs = [
+			1 => DB::SQLITE,
+			2 => DB::MSSQL,
+			3 => DB::POSTGRESQL,
+		];
 		do {
 			$dbType = $this->readInput($msg);
-		} while (!in_array($dbType, ["1", "2"], true));
+		} while (!isset($dbs[(int)$dbType]));
 
-		$this->configFile->dbType = ($dbType === "1") ? DB::SQLITE : DB::MYSQL;
+		$this->configFile->dbType = $dbs[(int)$dbType];
 		$this->queryDatabaseName();
 	}
 
@@ -222,13 +236,13 @@ class Setup {
 
 		if ($this->configFile->dbName === "" && $this->configFile->dbType === DB::SQLITE) {
 			$this->configFile->dbName = "nadybot.db";
-		} elseif ($this->configFile->dbName === "" && $this->configFile->dbType === DB::MYSQL) {
+		} elseif ($this->configFile->dbName === "" && $this->configFile->dbType !== DB::SQLITE) {
 			$this->configFile->dbName = "nadybot";
 		}
-		if ($this->configFile->dbType === DB::MYSQL) {
-			$this->queryMysqlHostname();
-		} else {
+		if ($this->configFile->dbType === DB::SQLITE) {
 			$this->querySqlitePath();
+		} else {
+			$this->queryMysqlHostname();
 		}
 	}
 
@@ -252,7 +266,7 @@ class Setup {
 
 	public function queryMysqlUsername(): void {
 		$this->showStep(
-			"What is the username for the MySQL Database?\n".
+			"What is the username for the Database?\n".
 			"If you did not specify a username when you installed\n".
 			"the Database then it will be 'root'\n".
 			"(Default: root)\n"
@@ -268,8 +282,8 @@ class Setup {
 
 	public function queryMysqlPassword(): void {
 		$this->showStep(
-			"What is the password for the MySQL Database?\n".
-			"if you did not specify a username when you installed\n".
+			"What is the password for the  Database?\n".
+			"If you did not specify a username when you installed\n".
 			"the Database then it will be blank (none)\n".
 			"(Default: <blank>)\n"
 		);

@@ -4,14 +4,21 @@ declare(strict_types=1);
 
 namespace Nadybot\Modules\NANO_MODULE;
 
+use Generator;
+use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Collection;
+use Nadybot\Core\DBSchema\Player;
+use Nadybot\Core\Modules\PLAYER_LOOKUP\PlayerManager;
+use Nadybot\Core\ParamClass\PProfession;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
+	CommandAlias,
 	DB,
 	ModuleInstance,
 	SettingManager,
 	Text,
+	UserException,
 	Util,
 };
 
@@ -46,6 +53,18 @@ use Nadybot\Core\{
 		accessLevel: "guest",
 		description: "Browse nanos by location",
 	),
+	NCA\DefineCommand(
+		command: "bestnanos",
+		accessLevel: "guest",
+		description: "Show the best nanos for your level and their requirements",
+		alias: "bn"
+	),
+	NCA\DefineCommand(
+		command: "bestnanosfroob",
+		accessLevel: "guest",
+		description: "Show the best froob-nanos for your level and their requirements",
+		alias: "bnf"
+	),
 ]
 class NanoController extends ModuleInstance {
 	#[NCA\Inject]
@@ -53,6 +72,12 @@ class NanoController extends ModuleInstance {
 
 	#[NCA\Inject]
 	public SettingManager $settingManager;
+
+	#[NCA\Inject]
+	public PlayerManager $playerManager;
+
+	#[NCA\Inject]
+	public CommandAlias $commandAlias;
 
 	#[NCA\Inject]
 	public Text $text;
@@ -76,6 +101,8 @@ class NanoController extends ModuleInstance {
 			->asObj(Nanoline::class)
 			->keyBy("strain_id")
 			->toArray();
+		$this->commandAlias->register($this->moduleName, "bestnanos long", "bnl");
+		$this->commandAlias->register($this->moduleName, "bestnanosfroob long", "bnfl");
 	}
 
 	/** Search for a nano by name */
@@ -293,6 +320,68 @@ class NanoController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
+	/** Show a list of the best nanos and the requirements to cast them */
+	#[NCA\HandlesCommand("bestnanos")]
+	#[NCA\HandlesCommand("bestnanosfroob")]
+	#[NCA\Help\Group("nano")]
+	public function bestNanosCommand(
+		CmdContext $context,
+		#[NCA\Str("long")] ?string $long
+	): Generator {
+		/** @var ?Player */
+		$whois = yield $this->playerManager->byName($context->char->name);
+		if (!isset($whois) || !isset($whois->profession) || !isset($whois->level)) {
+			$context->reply("Could not retrieve whois info for you.");
+			return;
+		}
+
+		$this->showBestNanosCommand(
+			$context,
+			$whois->profession,
+			$whois->level,
+			$context->getCommand() === "bestnanosfroob",
+			!isset($long)
+		);
+	}
+
+	/** Show a list of the best nanos and the requirements to cast them */
+	#[NCA\HandlesCommand("bestnanos")]
+	#[NCA\HandlesCommand("bestnanosfroob")]
+	#[NCA\Help\Group("nano")]
+	public function bestNanos2Command(
+		CmdContext $context,
+		#[NCA\Str("long")] ?string $long,
+		PProfession $profession,
+		int $level,
+	): void {
+		$this->showBestNanosCommand(
+			$context,
+			$profession(),
+			$level,
+			$context->getCommand() === "bestnanosfroob",
+			!isset($long)
+		);
+	}
+
+	/** Show a list of the best nanos and the requirements to cast them */
+	#[NCA\HandlesCommand("bestnanos")]
+	#[NCA\HandlesCommand("bestnanosfroob")]
+	#[NCA\Help\Group("nano")]
+	public function bestNanos3Command(
+		CmdContext $context,
+		#[NCA\Str("long")] ?string $long,
+		int $level,
+		PProfession $profession,
+	): void {
+		$this->showBestNanosCommand(
+			$context,
+			$profession(),
+			$level,
+			$context->getCommand() === "bestnanosfroob",
+			!isset($long)
+		);
+	}
+
 	/** Creates a link to a nano - not a crystal */
 	public function makeNanoLink(Nano $nano): string {
 		return "<a href='itemid://53019/{$nano->nano_id}'>{$nano->nano_name}</a>";
@@ -307,6 +396,131 @@ class NanoController extends ModuleInstance {
 
 	public function getNanoLineById(int $id): ?Nanoline {
 		return $this->nanolines[$id] ?? null;
+	}
+
+	/** @return Collection<Nano> */
+	private function getBestNanos(string $profession, int $level, bool $froobOnly): Collection {
+		if ($level < 1 || $level > 220) {
+			throw new UserException("Level has to be between 1 and 220.");
+		}
+
+		$query = $this->db->table("nanos")
+			->orderBy("school")
+			->orderBy("strain")
+			->orderBy("sub_strain")
+			->orderBy("sort_order")
+			->whereIlike("professions", "%{$profession}%")
+			->where(function (Builder $query) use ($level): void {
+				$query->where("min_level", "<=", $level)
+					->orWhereNull("min_level");
+			});
+		if ($froobOnly) {
+			$query->where("froob_friendly", true);
+		}
+
+		/** @var array<string,Nano> */
+		$nanos = $query
+			->asObj(Nano::class)
+			->reduce(function (array $nanos, Nano $nano): array {
+				$key = "{$nano->school}|{$nano->strain}|{$nano->sub_strain}";
+				$nanos[$key] ??= $nano;
+				return $nanos;
+			}, []);
+		$nanos = array_values($nanos);
+		return new Collection($nanos);
+	}
+
+	private function showBestNanosCommand(
+		CmdContext $context,
+		string $profession,
+		int $level,
+		bool $froobOnly,
+		bool $compact,
+	): void {
+		if ($level < 1 || $level > 220) {
+			$context->reply("Level has to be between 1 and 220.");
+			return;
+		}
+		$nanos = $this->getBestNanos($profession, $level, $froobOnly);
+		$count = $nanos->count();
+		$blob = $this->renderBestNanos($nanos, $compact);
+		$froobPrefix = "";
+		if ($froobOnly) {
+			$froobPrefix = "froob-";
+		}
+		if ($compact) {
+			$cmdName = "bestnanos";
+			if ($froobOnly) {
+				$cmdName = "bestnanosfroob";
+			}
+			$blob = $this->text->makeChatcmd(
+				"Show verbose list",
+				"/tell <myname> {$cmdName} long {$profession} {$level}",
+			) . "\n\n{$blob}";
+		}
+		$msg = $this->text->makeBlob("Best available nanos for a level {$level} {$froobPrefix}{$profession} ({$count})", $blob);
+
+		$context->reply($msg);
+	}
+
+	/** @param Collection<Nano> $nanos */
+	private function renderBestNanos(Collection $nanos, bool $compact): string {
+		$blob = '';
+		$currentNanoline = -1;
+		$currentSubstrain = null;
+		$defColor = $this->settingManager->getString('default_window_color');
+		if ($compact) {
+			$blob = "<header2>Best nanos in each line<end>";
+		}
+		foreach ($nanos as $row) {
+			$nanoLink = $this->makeNanoLink($row);
+			if ($compact) {
+				if (!empty($row->strain)) {
+					$blob .= "\n<pagebreak><tab><highlight>{$row->school} <end>&gt;<highlight> {$row->strain}<end>";
+					if ($row->sub_strain) {
+						$blob .= " &gt; <highlight>{$row->sub_strain}<end>";
+					}
+				} else {
+					$blob .= "\n<pagebreak><tab><highlight>Unknown/General<end>";
+				}
+				$blob .= " &gt; {$nanoLink}";
+			} else {
+				$crystalLink = isset($row->crystal_id)
+					? $this->text->makeItem($row->crystal_id, $row->crystal_id, $row->ql, "Crystal")
+					: "Crystal";
+				if (!empty($row->strain)) {
+					$nanolineLink = $this->text->makeChatcmd("see all nanos", "/tell <myname> nanolines {$row->strain}");
+					$blob .= "\n<pagebreak><header2>{$row->school} {$defColor}&gt;<end> {$row->strain}";
+					if ($row->sub_strain) {
+						$blob .= " {$defColor}&gt;<end> {$row->sub_strain}";
+					}
+					$blob .= "{$defColor} - [{$nanolineLink}]<end><end>\n";
+				} else {
+					$blob .= "\n<pagebreak><header2>Unknown/General<end>\n";
+				}
+				$info = "QL" . $this->text->alignNumber($row->ql, 3) . " [{$crystalLink}] {$nanoLink} ({$row->location})";
+				$blob .= "<tab>{$info}\n";
+				$reqs = [];
+				foreach (['mm', 'bm', 'pm', 'si', 'ts', 'mc'] as $skill) {
+					if (isset($row->{$skill})) {
+						$reqs []= strtoupper($skill) . ": {$row->{$skill}}";
+					}
+				}
+				if (isset($row->min_level)) {
+					$reqs []= "Level: {$row->min_level}";
+				}
+				if (isset($row->spec)) {
+					$reqs []= "Spec: {$row->spec}";
+				}
+				if ($row->nano_deck) {
+					$reqs []= "Nanodeck";
+				}
+				$reqs []= "Nanocost: {$row->nano_cost}";
+				$blob .= "<tab>" . join(", ", $reqs) . "\n";
+			}
+		}
+		$blob .= $this->getFooter();
+		return $blob;
 	}
 
 	/** Show all nanos of a nanoline grouped by sub-strain */

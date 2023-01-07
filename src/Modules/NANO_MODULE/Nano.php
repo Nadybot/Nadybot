@@ -5,10 +5,10 @@ namespace Nadybot\Modules\NANO_MODULE;
 use Nadybot\Core\DBRow;
 
 class Nano extends DBRow {
-	public ?int $crystal_id;
+	public ?int $crystal_id=null;
 	public int $nano_id;
 	public int $ql;
-	public ?string $crystal_name;
+	public ?string $crystal_name=null;
 	public string $nano_name;
 	public string $school;
 	public string $strain;
@@ -19,4 +19,13 @@ class Nano extends DBRow {
 	public int $nano_cost;
 	public bool $froob_friendly;
 	public int $sort_order;
+	public bool $nano_deck;
+	public ?int $min_level=null;
+	public ?int $spec=null;
+	public ?int $mm=null;
+	public ?int $bm=null;
+	public ?int $pm=null;
+	public ?int $si=null;
+	public ?int $ts=null;
+	public ?int $mc=null;
 }

@@ -562,7 +562,8 @@ class TestController extends ModuleInstance {
 		#[NCA\Str("sleep")] string $action,
 		int $duration
 	): void {
-		\Safe\sleep($duration);
+		/** @psalm-var int<0,max> $duration */
+		sleep($duration);
 	}
 
 	/** Get a list of all tests the bot has */

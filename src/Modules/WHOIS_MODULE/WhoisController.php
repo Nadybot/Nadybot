@@ -20,6 +20,7 @@ use Nadybot\Core\{
 	LoggerWrapper,
 	ModuleInstance,
 	Modules\ALTS\AltsController,
+	Modules\BAN\BanController,
 	Modules\PLAYER_LOOKUP\PlayerManager,
 	Nadybot,
 	PacketEvent,
@@ -57,6 +58,9 @@ class WhoisController extends ModuleInstance {
 
 	#[NCA\Inject]
 	public ConfigFile $config;
+
+	#[NCA\Inject]
+	public BanController $banController;
 
 	#[NCA\Inject]
 	public Text $text;
@@ -267,13 +271,13 @@ class WhoisController extends ModuleInstance {
 	public function getFullName(Player $whois): string {
 		$msg = "";
 
-		if (isset($whois->firstname)) {
+		if (isset($whois->firstname) && strlen($whois->firstname)) {
 			$msg .= $whois->firstname . " ";
 		}
 
 		$msg .= "\"{$whois->name}\"";
 
-		if (isset($whois->lastname)) {
+		if (isset($whois->lastname) && strlen($whois->lastname)) {
 			$msg .= " " . $whois->lastname;
 		}
 
@@ -328,6 +332,7 @@ class WhoisController extends ModuleInstance {
 			/** @var ?int */
 			$charID = yield $this->chatBot->getUid2($name);
 			$lookupNameLink = $this->text->makeChatcmd("lookup", "/tell <myname> lookup {$name}");
+			$lookupCharIdLink = null;
 			if ($charID !== null) {
 				$lookupCharIdLink = $this->text->makeChatcmd("lookup", "/tell <myname> lookup {$charID}");
 			}
@@ -345,8 +350,13 @@ class WhoisController extends ModuleInstance {
 				$msg = $this->text->makeBlob("Basic Info for {$name}", $blob);
 				return $msg;
 			}
+			$altInfo = $this->altsController->getAltInfo($name);
 
 			$blob = "Name: <highlight>" . $this->getFullName($whois) . "<end> [{$lookupNameLink}]\n";
+			$nick = $altInfo->getNick();
+			if (isset($nick)) {
+				$blob .= "Nickname: <highlight>{$nick}<end>\n";
+			}
 			if (isset($whois->guild) && $whois->guild !== "") {
 				$orglistLink = $this->text->makeChatcmd("see members", "/tell <myname> orglist {$whois->guild_id}");
 				$orginfoLink = $this->text->makeChatcmd("info", "/tell <myname> whoisorg {$whois->guild_id}");
@@ -370,7 +380,7 @@ class WhoisController extends ModuleInstance {
 			} else {
 				$blob .= "<off>Offline<end>\n";
 			}
-			if ($charID !== null && isset($lookupCharIdLink)) {
+			if ($charID !== null) {
 				$blob .= "Character ID: <highlight>{$whois->charid}<end> [{$lookupCharIdLink}]\n\n";
 			}
 
@@ -405,6 +415,19 @@ class WhoisController extends ModuleInstance {
 				}
 			}
 
+			if (isset($charID)) {
+				$isBanned = yield $this->banController->isOnBanlist($charID);
+				if ($isBanned) {
+					if (isset($whois->guild_id) && $this->banController->orgIsBanned($whois->guild_id)) {
+						$blob .= "\n".
+							"<red>{$whois->guild} is banned on this bot<end>";
+					} else {
+						$blob .= "\n".
+							"<red>{$whois->name} is banned on this bot<end>";
+					}
+				}
+			}
+
 			$msg = $this->playerManager->getInfo($whois);
 			if ($online) {
 				$msg .= " :: <on>Online<end>";
@@ -424,7 +447,6 @@ class WhoisController extends ModuleInstance {
 				}
 			}
 
-			$altInfo = $this->altsController->getAltInfo($name);
 			if (count($altInfo->getAllValidatedAlts()) === 0) {
 				return $msg;
 			}

@@ -20,6 +20,7 @@ use Nadybot\Core\{
 	ModuleInstance,
 	Modules\ALTS\AltEvent,
 	Modules\ALTS\AltsController,
+	Modules\ALTS\NickController,
 	Nadybot,
 	ParamClass\PCharacter,
 	ParamClass\PRemove,
@@ -59,6 +60,9 @@ class AdminController extends ModuleInstance {
 
 	#[NCA\Inject]
 	public BuddylistManager $buddylistManager;
+
+	#[NCA\Inject]
+	public NickController $nickController;
 
 	#[NCA\Inject]
 	public AccessManager $accessManager;
@@ -168,7 +172,12 @@ class AdminController extends ModuleInstance {
 			if ($who === '') {
 				continue;
 			}
-			$line = "<tab>{$who}";
+			$nick = $this->nickController->getNickname($who);
+			if (isset($nick)) {
+				$line = "<tab>{$nick} ({$who})";
+			} else {
+				$line = "<tab>{$who}";
+			}
 			if ($this->accessManager->checkAccess($who, 'superadmin')) {
 				$line .= " (<highlight>".
 					ucfirst($this->accessManager->getDisplayName("superadmin")).

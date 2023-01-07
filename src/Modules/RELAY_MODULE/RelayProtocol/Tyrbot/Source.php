@@ -2,12 +2,13 @@
 
 namespace Nadybot\Modules\RELAY_MODULE\RelayProtocol\Tyrbot;
 
-use Spatie\DataTransferObject\DataTransferObject;
-
-class Source extends DataTransferObject {
-	public string $name;
-	public ?string $label;
-	public ?string $channel;
-	public string $type;
-	public int $server;
+class Source {
+	public function __construct(
+		public string $name,
+		public ?string $label,
+		public ?string $channel,
+		public string $type,
+		public int $server,
+	) {
+	}
 }

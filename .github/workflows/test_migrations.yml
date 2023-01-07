@@ -8,8 +8,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, windows-latest]
-        php: [8.0, 8.1]
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        php: [8.0, 8.1, 8.2]
         from: [null, budabot4.db, nadybot5.0.0.db]
 
     steps:
@@ -21,7 +21,7 @@ jobs:
         with:
           php-version: ${{ matrix.php }}
           coverage: none
-          extensions: sqlite3, sockets, pdo_sqlite, pdo_mysql
+          extensions: sqlite3, sockets, pdo_sqlite, pdo_mysql, openssl, fileinfo
 
       - name: Install dependencies
         run: composer install -q --no-dev
@@ -59,7 +59,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
-        php: [8.0, 8.1]
+        php: [8.0, 8.1, 8.2]
         from: [null, budabot4.mysql, nadybot5.0.0.mysql]
 
     steps:
@@ -109,7 +109,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
-        php: [8.0, 8.1]
+        php: [8.0, 8.1, 8.2]
         from: [null, budabot4.mysql, hodorraid.mysql, nadybot5.0.0.mysql]
 
     steps:
@@ -158,7 +158,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
-        php: [8.0, 8.1]
+        php: [8.0, 8.1, 8.2]
         from: [null, nadybot5.1.0.pgsql]
 
     steps:

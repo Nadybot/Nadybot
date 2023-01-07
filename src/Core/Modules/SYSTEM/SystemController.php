@@ -5,6 +5,7 @@ namespace Nadybot\Core\Modules\SYSTEM;
 use function Amp\File\createDefaultDriver;
 use function Safe\{ini_get, unpack};
 use Amp\Loop;
+use EventSauce\ObjectHydrator\ObjectMapperUsingReflection;
 use Exception;
 use Generator;
 use Illuminate\Support\Collection;
@@ -26,6 +27,7 @@ use Nadybot\Core\{
 	MessageEmitter,
 	MessageHub,
 	ModuleInstance,
+	Modules\BAN\BanController,
 	Nadybot,
 	ParamClass\PCharacter,
 	PrivateMessageCommandReply,
@@ -102,6 +104,9 @@ class SystemController extends ModuleInstance implements MessageEmitter {
 
 	#[NCA\Inject]
 	public Nadybot $chatBot;
+
+	#[NCA\Inject]
+	public BanController $banController;
 
 	#[NCA\Inject]
 	public DB $db;
@@ -471,12 +476,22 @@ class SystemController extends ModuleInstance implements MessageEmitter {
 
 	/** Show which access level you currently have */
 	#[NCA\HandlesCommand("checkaccess")]
-	public function checkaccessSelfCommand(CmdContext $context): void {
+	public function checkaccessSelfCommand(CmdContext $context): Generator {
 		$accessLevel = $this->accessManager->getDisplayName($this->accessManager->getAccessLevelForCharacter($context->char->name));
 
 		$msg = "Access level for <highlight>{$context->char->name}<end> (".
 			(isset($context->char->id) ? "ID {$context->char->id}" : "No ID").
 			") is <highlight>{$accessLevel}<end>.";
+		if (isset($context->char->id)) {
+			$isBanned = yield $this->banController->isOnBanlist($context->char->id);
+			if ($isBanned) {
+				if ($this->banController->isBanned($context->char->id)) {
+					$msg .= " You are <red>banned<end> on this bot.";
+				} else {
+					$msg .= " Your org is <red>banned<end> on this bot.";
+				}
+			}
+		}
 		$context->reply($msg);
 	}
 
@@ -490,6 +505,14 @@ class SystemController extends ModuleInstance implements MessageEmitter {
 		}
 		$accessLevel = $this->accessManager->getDisplayName($this->accessManager->getAccessLevelForCharacter($character()));
 		$msg = "Access level for <highlight>{$character}<end> (ID {$uid}) is <highlight>{$accessLevel}<end>.";
+		$isBanned = yield $this->banController->isOnBanlist($uid);
+		if ($isBanned) {
+			if ($this->banController->isBanned($uid)) {
+				$msg .= " {$character} is <red>banned<end> on this bot.";
+			} else {
+				$msg .= " {$character}'s org is <red>banned<end> on this bot.";
+			}
+		}
 		$context->reply($msg);
 	}
 
@@ -583,10 +606,14 @@ class SystemController extends ModuleInstance implements MessageEmitter {
 	/** Show your current config file with sensitive information removed */
 	#[NCA\HandlesCommand("showconfig")]
 	public function showConfigCommand(CmdContext $context): void {
+		$mapper = new ObjectMapperUsingReflection();
+		$config = array_diff_key(
+			$mapper->serializeObject($this->config),
+			["password" => null, "DB username" => null, "DB password" => null]
+		);
+
 		$json = \Safe\json_encode(
-			$this->config
-				->except("password", "DB username", "DB password")
-				->toArray(),
+			$config,
 			JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE
 		);
 		$context->reply(

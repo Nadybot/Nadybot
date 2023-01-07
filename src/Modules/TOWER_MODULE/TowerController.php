@@ -2,10 +2,11 @@
 
 namespace Nadybot\Modules\TOWER_MODULE;
 
-use function Amp\asyncCall;
-
+use function Amp\{asyncCall, call};
+use Amp\Promise;
 use Closure;
 use DateTime;
+use EventSauce\ObjectHydrator\ObjectMapperUsingReflection;
 use Exception;
 use Generator;
 use Illuminate\Database\Query\JoinClause;
@@ -493,7 +494,9 @@ class TowerController extends ModuleInstance {
 			return;
 		}
 		if (preg_match("/^\d+$/", $search)) {
-			$this->showSitesOfOrg((int)$search, $context);
+			/** @var string[] */
+			$msg = yield $this->fetchAndRenderSitesOfOrg((int)$search);
+			$context->reply($msg);
 			return;
 		}
 
@@ -505,7 +508,10 @@ class TowerController extends ModuleInstance {
 			$msg = "Could not find any orgs (or players in orgs) that match <highlight>{$search}<end>.";
 			$context->reply($msg);
 		} elseif ($count === 1) {
-			$this->showSitesOfOrg($orgs[0]->id, $context);
+			/** @var string[] */
+			$msg = yield $this->fetchAndRenderSitesOfOrg($orgs[0]->id);
+			$context->reply($msg);
+			return;
 		} else {
 			$blob = $this->formatOrglist($orgs);
 			$msg = $this->makeBlob("Org Search Results for '{$search}' ({$count})", $blob);
@@ -528,47 +534,6 @@ class TowerController extends ModuleInstance {
 			$blob .= "<{$org->faction}>{$org->name}<end> ({$org->id}) - {$org->num_members} members [{$sites}] [{$orglist}] [{$whoisorg}] [{$orgmembers}]\n\n";
 		}
 		return $blob;
-	}
-
-	/**
-	 * Show the result of the sites of org query to $sendto
-	 *
-	 * @param null|Collection<ScoutInfoPlus> $local
-	 */
-	public function showOrgSites(?ApiResult $result, ?Collection $local, CommandReply $sendto, int $orgId): void {
-		if (isset($result, $local)) {
-			$result = $this->mergeLocalToAPI($local, $result);
-		} elseif (isset($local)) {
-			$result = $this->scoutToAPI($local);
-		}
-		if (!isset($result)) {
-			$sendto->reply("Invalid data received from the tower API. Try again later.");
-			return;
-		}
-		if ($result->count === 0) {
-			$org = $this->findOrgController->getByID($orgId);
-			if (isset($org)) {
-				$sendto->reply(
-					"No sites found for <" . strtolower($org->faction) . ">{$org->name}<end>."
-				);
-			} else {
-				$sendto->reply("No sites found for this org.");
-			}
-			return;
-		}
-		usort($result->results, fn (ApiSite $a, ApiSite $b) => $a->ql <=> $b->ql);
-		$blob = '';
-		$totalQL = 0;
-		usort($result->results, fn (ApiSite $a, ApiSite $b) => $a->ql <=> $b->ql);
-		foreach ($result->results as $site) {
-			$totalQL += $site->ql ?? 0;
-			$blob .= "<pagebreak>" . $this->formatApiSiteInfo($site, null, false) . "\n\n";
-		}
-		$blob .= "\nTotal: QL <highlight>{$totalQL}<end>, allowing ".
-			"contracts up to QL <highlight>" . ($totalQL * 2) . "<end>.";
-
-		$msg = $this->makeBlob("All bases of {$result->results[0]->org_name}", $blob);
-		$sendto->reply($msg);
 	}
 
 	/** Show a list of playfield with tower fields */
@@ -594,7 +559,7 @@ class TowerController extends ModuleInstance {
 	/** Show the status of all tower sites in a playfield */
 	#[NCA\HandlesCommand("lc")]
 	#[NCA\Help\Example("<symbol>lc pw")]
-	public function lc2Command(CmdContext $context, PPlayfield $pf): void {
+	public function lc2Command(CmdContext $context, PPlayfield $pf): Generator {
 		$playfieldName = $pf();
 		$playfield = $this->playfieldController->getPlayfieldByName($playfieldName);
 		if ($playfield === null) {
@@ -620,19 +585,15 @@ class TowerController extends ModuleInstance {
 		$sites = $this->getScoutInfoPlus($playfield->id);
 		if ($this->towerApiController->isActive()) {
 			$params = ["enabled" => "1", "playfield_id" => $playfield->id];
-			$this->towerApiController->call(
-				$params,
-				[$this, "showArea"],
-				$sites,
-				$data,
-				$playfield,
-				$context
-			);
-			return;
-		}
 
-		$sites = $this->scoutToAPI($sites);
-		$this->showArea($sites, null, $data, $playfield, $context);
+			/** @var ?ApiResult */
+			$apiResult = yield $this->towerApiController->call2($params);
+		} else {
+			$apiResult = $this->scoutToAPI($sites);
+			$sites = null;
+		}
+		$msg = $this->renderArea($apiResult, $sites, $data, $playfield);
+		$context->reply($msg);
 	}
 
 	/** @return Collection<ScoutInfoPlus> */
@@ -667,43 +628,11 @@ class TowerController extends ModuleInstance {
 		return $sites;
 	}
 
-	/**
-	 * Show the API-result of a whole playfield
-	 *
-	 * @param null|Collection<ScoutInfoPlus> $local
-	 * @param Collection<SiteInfo>           $data
-	 */
-	public function showArea(?ApiResult $result, ?Collection $local, Collection $data, Playfield $pf, CommandReply $sendto): void {
-		$blob = '';
-		if (isset($result, $local)) {
-			$result = $this->mergeLocalToAPI($local, $result);
-		} elseif (isset($local)) {
-			$result = $this->scoutToAPI($local);
-		}
-		if (isset($result)) {
-			usort($result->results, function (ApiSite $a, ApiSite $b): int {
-				return $a->site_number <=> $b->site_number;
-			});
-		}
-		if ($result === null || $result->count === 0) {
-			foreach ($data as $row) {
-				$blob .= "<pagebreak>" . $this->formatSiteInfo($row) . "\n\n";
-			}
-		} else {
-			foreach ($result->results as $site) {
-				$blob .= "<pagebreak>" . $this->formatApiSiteInfo($site, $pf) . "\n\n";
-			}
-		}
-
-		$msg = $this->makeBlob("All Bases in {$pf->long_name}", $blob);
-		$sendto->reply($msg);
-	}
-
 	/** Show the status of a single tower site */
 	#[NCA\HandlesCommand("lc")]
 	#[NCA\Help\Example("<symbol>lc pw8")]
 	#[NCA\Help\Example("<symbol>lc mort 6")]
-	public function lc3Command(CmdContext $context, PTowerSite $site): void {
+	public function lc3Command(CmdContext $context, PTowerSite $site): Generator {
 		$playfieldName = $site->pf;
 		$playfield = $this->playfieldController->getPlayfieldByName($playfieldName);
 		if ($playfield === null) {
@@ -730,72 +659,15 @@ class TowerController extends ModuleInstance {
 		$sites = $this->getScoutInfoPlus($playfield->id);
 		if ($this->towerApiController->isActive()) {
 			$params = ["enabled" => "1", "playfield_id" => $playfield->id];
-			$this->towerApiController->call(
-				$params,
-				[$this, "showSite"],
-				$sites,
-				$site,
-				$playfield,
-				$context
-			);
-			return;
-		}
-		$sites = $this->scoutToAPI($sites);
-		$this->showSite($sites, null, $site, $playfield, $context);
-	}
 
-	/** @param null|Collection<ScoutInfoPlus> $local */
-	public function showSite(?ApiResult $result, ?Collection $local, SiteInfo $site, Playfield $playfield, CommandReply $sendto): void {
-		$details = null;
-		if (isset($result, $local)) {
-			$result = $this->mergeLocalToAPI($local, $result);
-		} elseif (isset($local)) {
-			$result = $this->scoutToAPI($local);
-		}
-		if (isset($result)) {
-			$results = new Collection($result->results);
-			$details = $results->firstWhere("site_number", "===", $site->site_number);
-		}
-		$blob = $this->formatSiteInfo($site, $details) . "\n\n";
-
-		// show last attacks and victories
-		$query = $this->db->table(self::DB_TOWER_ATTACK, "a")
-			->leftJoin(self::DB_TOWER_VICTORY . " AS v", "v.attack_id", "a.id")
-			->where("a.playfield_id", $playfield->id)
-			->where("a.site_number", $site->site_number);
-		$query->orderByDesc($query->colFunc("COALESCE", ["v.time", "a.time"]))
-			->limit(10)
-			->select("a.*", "v.*");
-
-		/** @var Collection<TowerAttackAndVictory> */
-		$attacks = $query->asObj(TowerAttackAndVictory::class);
-		if ($attacks->isNotEmpty()) {
-			$blob .= "<header2>Recent Attacks<end>\n";
-		}
-		foreach ($attacks as $attack) {
-			if (empty($attack->attack_id)) {
-				// attack
-				if (!empty($attack->att_guild_name)) {
-					$name = $attack->att_guild_name;
-				} else {
-					$name = $attack->att_player ?? "Unknown player";
-				}
-				$attFaction = strtolower($attack->att_faction ?? "highlight");
-				$defFaction = strtolower($attack->def_faction ?? "highlight");
-				$blob .= "<tab><{$attFaction}>{$name}<end> attacked <{$defFaction}>{$attack->def_guild_name}<end>\n";
-			} else {
-				// victory
-				$blob .= "<tab><{$attack->win_faction}>{$attack->win_guild_name}<end> won against <{$attack->lose_faction}>{$attack->lose_guild_name}<end>\n";
-			}
-		}
-
-		if (isset($details)) {
-			$msg = $this->makeBlob("{$playfield->short_name} {$site->site_number}", $blob);
+			/** @var ?ApiResult */
+			$apiResult = yield $this->towerApiController->call2($params);
 		} else {
-			$msg = $this->text->makeBlob("{$playfield->short_name} {$site->site_number}", $blob);
+			$apiResult = $this->scoutToAPI($sites);
+			$sites = null;
 		}
-
-		$sendto->reply($msg);
+		$msg = $this->renderSite($apiResult, $sites, $site, $playfield);
+		$context->reply($msg);
 	}
 
 	/**
@@ -805,7 +677,7 @@ class TowerController extends ModuleInstance {
 	#[NCA\HandlesCommand("penalty")]
 	#[NCA\Help\Example("<symbol>penalty neutral")]
 	#[NCA\Help\Example("<symbol>penalty Obeya")]
-	public function penaltySitesApiCommand(CmdContext $context, ?string $orgName): void {
+	public function penaltySitesApiCommand(CmdContext $context, ?string $orgName): Generator {
 		$sites = $this->getScoutPlusQuery()
 			->where("s.penalty_until", ">=", time())
 			->asObj(ScoutInfoPlus::class);
@@ -822,49 +694,15 @@ class TowerController extends ModuleInstance {
 					$params["org_name"] = $orgName;
 				}
 			}
-			$this->towerApiController->call(
-				$params,
-				[$this, "processPenaltySites"],
-				$sites,
-				$context
-			);
-			return;
-		}
-		$result = $this->scoutToAPI($sites);
-		$this->processPenaltySites($result, null, $context);
-	}
 
-	/** @param null|Collection<ScoutInfoPlus> $local */
-	public function processPenaltySites(?ApiResult $result, ?Collection $local, CommandReply $sendto): void {
-		if (isset($result, $local)) {
-			$result = $this->mergeLocalToAPI($local, $result);
-		} elseif (isset($local)) {
-			$result = $this->scoutToAPI($local);
+			/** @var ?ApiResult */
+			$result = yield $this->towerApiController->call2($params);
+		} else {
+			$result = $this->scoutToAPI($sites);
+			$sites = null;
 		}
-		if (!isset($result)) {
-			$sendto->reply("Invalid data received from the tower API. Try again later.");
-			return;
-		}
-		if ($result->count === 0) {
-			$sendto->reply("No sites are currently in penalty.");
-			return;
-		}
-		$params = [
-			"enabled" => "true",
-			"min_close_time" => time() % 84600,
-			"max_close_time" => (time() + 6 * 3600) % 86400,
-		];
-		if ($result->results[0]->penalty_until === 0) {
-			$sendto->reply("The API currently doesn't support penalty queries. Try again later.");
-			return;
-		}
-		$blob = $this->renderHotSites($result, $params, 0);
-		$sendto->reply(
-			$this->text->makeBlob(
-				"Sites in penalty (" . $result->count . ")",
-				$blob
-			)
-		);
+		$msg = $this->renderPenaltySites($result, $sites);
+		$context->reply($msg);
 	}
 
 	/**
@@ -959,7 +797,7 @@ class TowerController extends ModuleInstance {
 	#[NCA\Help\Example("<symbol>hot 99-110", "Only where the CT is between QL 99 and 110")]
 	#[NCA\Help\Example("<symbol>hot 6h")]
 	#[NCA\Help\Example("<symbol>hot omni 3h pw 180-300")]
-	public function hotSitesCommand(CmdContext $context, ?string $search): void {
+	public function hotSitesCommand(CmdContext $context, ?string $search): Generator {
 		$search ??= "";
 		if (substr($search, 0, 1) !== " ") {
 			$search = " {$search}";
@@ -1018,30 +856,26 @@ class TowerController extends ModuleInstance {
 			return;
 		}
 		if ($this->towerApiController->isActive()) {
-			$this->towerApiController->call(
-				$params,
-				[$this, "showHotSites"],
-				$hotSites,
-				$params,
-				$context->char->name,
-				$context,
-				$time
-			);
-			return;
+			/** @var ?ApiResult */
+			$apiResult = yield $this->towerApiController->call2($params);
+			if ($apiResult === null) {
+				$context->reply("Invalid data received from tower API. Try again later.");
+				return;
+			}
+			$hotSites = $this->mergeLocalToAPI($hotSites, $apiResult);
+		} else {
+			$hotSites = $this->scoutToAPI($hotSites);
 		}
-		if ($hotSites->count() === 0) {
+		if ($hotSites->count === 0) {
 			$context->reply("No sites are currently hot.");
 			return;
 		}
-		$hotSites = $this->scoutToAPI($hotSites);
 		$blob = $this->renderHotSites($hotSites, $params, $time);
 		$faction = isset($faction) ? " " . strtolower($faction) : "";
-		$context->reply(
-			$this->text->makeBlob(
-				"Hot{$faction} sites ({$hotSites->count})",
-				$blob
-			)
-		);
+		$timeString = \Safe\date("H:i:s", $params["min_close_time"]);
+		$msg = $this->text->makeBlob("Hot{$faction} sites at {$timeString} UTC ({$hotSites->count})", $blob);
+
+		$context->reply($msg);
 	}
 
 	public function getScoutPlusQuery(): QueryBuilder {
@@ -1107,11 +941,14 @@ class TowerController extends ModuleInstance {
 	 */
 	public function scoutToAPI(Collection $scoutInfos): ApiResult {
 		$data = [];
+		$mapper = new ObjectMapperUsingReflection();
 		foreach ($scoutInfos as $info) {
-			$data []= (array)$info;
+			$data []= $mapper->hydrateObject(ApiSite::class, (array)$info);
 		}
-		$data = ["count" => $scoutInfos->count(), "results" => $data];
-		return new ApiResult($data);
+		return new ApiResult(
+			count: $scoutInfos->count(),
+			results: $data
+		);
 	}
 
 	public function qlToSiteType(int $qlCT): int {
@@ -1141,33 +978,6 @@ class TowerController extends ModuleInstance {
 		// If the local data is marked unplanted, compare the local scout date
 		// to the API CT's plant time
 		return $apiSite->created_at > ($localSite->created_at ?? $localSite->scouted_on);
-	}
-
-	/**
-	 * Render the API !hot results
-	 *
-	 * @param Collection<ScoutInfoPlus> $local
-	 * @param array<string,mixed>       $params
-	 */
-	public function showHotSites(?ApiResult $result, Collection $local, array $params, string $sender, CommandReply $sendto, int $time=0): void {
-		if ($result === null) {
-			$sendto->reply("Invalid data received from tower API. Try again later.");
-			return;
-		}
-		$result = $this->mergeLocalToAPI($local, $result);
-		if ($result->count === 0) {
-			$sendto->reply("No sites matching your criteria are currently hot.");
-			return;
-		}
-		$blob = $this->renderHotSites($result, $params, $time);
-		$timeString = \Safe\date("H:i:s", $params["min_close_time"]);
-		$faction = isset($params["faction"]) ? " {$params['faction']}" : "";
-		$sendto->reply(
-			$this->makeBlob(
-				"Hot{$faction} sites at {$timeString} UTC (" . $result->count . ")",
-				$blob
-			)
-		);
 	}
 
 	/** See how many tower sites each faction has taken and lost in the past 24 hours or &lt;duration&gt; */
@@ -1584,6 +1394,7 @@ class TowerController extends ModuleInstance {
 		}
 
 		$lastAttack = $this->getLastAttack($winnerFaction, $winnerOrgName, $loserFaction, $loserOrgName, $playfield->id);
+		$siteNumber = null;
 		if ($lastAttack !== null) {
 			$siteNumber = $lastAttack->site_number;
 		}
@@ -1692,10 +1503,17 @@ class TowerController extends ModuleInstance {
 			}
 			return $hash;
 		});
-		return new ApiResult([
-			"count" => $apiSites->count(),
-			"results" => $apiSites->toArray(),
-		]);
+		$mapper = new ObjectMapperUsingReflection();
+
+		/** @var ApiResult */
+		$apiResult = $mapper->hydrateObject(
+			ApiResult::class,
+			[
+				"count" => $apiSites->count(),
+				"results" => $apiSites->toArray(),
+			]
+		);
+		return $apiResult;
 	}
 
 	public function getFaction(string $input): string {
@@ -1839,21 +1657,6 @@ class TowerController extends ModuleInstance {
 		});
 	}
 
-	/** Query the API for a list of all sites of an org and show to $sendto */
-	protected function showSitesOfOrg(int $orgId, CommandReply $sendto): void {
-		$sites = $this->getScoutPlusQuery()
-			->asObj(ScoutInfoPlus::class);
-		$this->addPlusToScout($sites);
-		$sites = $sites->where("org_id", $orgId);
-		if ($this->towerApiController->isActive()) {
-			$params = ["enabled" => "1", "org_id" => $orgId];
-			$this->towerApiController->call($params, [$this, "showOrgSites"], $sites, $sendto, $orgId);
-			return;
-		}
-		$result = $this->scoutToAPI($sites);
-		$this->showOrgSites($result, null, $sendto, $orgId);
-	}
-
 	protected function formatApiSiteInfo(ApiSite $site, ?Playfield $pf=null, bool $showOrgLinks=true): string {
 		if (!isset($pf)) {
 			$pf = new Playfield();
@@ -1924,7 +1727,8 @@ class TowerController extends ModuleInstance {
 				continue;
 			}
 			unset($apiSites[$localSite->playfield_id][$localSite->site_number]);
-			$result []= new ApiSite((array)$localSite);
+			$mapper = new ObjectMapperUsingReflection();
+			$result []= $mapper->hydrateObject(ApiSite::class, (array)$localSite);
 		}
 		foreach ($apiSites as $pfId => $siteList) {
 			foreach ($siteList as $siteId => $apiSite) {
@@ -1941,7 +1745,10 @@ class TowerController extends ModuleInstance {
 				}
 			}
 		}
-		return new ApiResult(["count" => count($result), "results" => $result]);
+		return new ApiResult(
+			count: count($result),
+			results: $result
+		);
 	}
 
 	/** @param array<string,mixed> $params */
@@ -2554,6 +2361,187 @@ class TowerController extends ModuleInstance {
 			return;
 		}
 		$context->reply("There was an unknown error recording this scout information, please check the logs.");
+	}
+
+	/**
+	 * Query the API for a list of all sites of an org and return them rendered
+	 *
+	 * @return Promise<string[]>
+	 */
+	private function fetchAndRenderSitesOfOrg(int $orgId): Promise {
+		return call(function () use ($orgId): Generator {
+			$sites = $this->getScoutPlusQuery()
+				->asObj(ScoutInfoPlus::class);
+			$this->addPlusToScout($sites);
+			$sites = $sites->where("org_id", $orgId);
+			if ($this->towerApiController->isActive()) {
+				$params = ["enabled" => "1", "org_id" => $orgId];
+
+				/** @var ?ApiResult */
+				$apiResult = yield $this->towerApiController->call2($params);
+			} else {
+				$apiResult = $this->scoutToAPI($sites);
+				$sites = null;
+			}
+			return $this->renderOrgSites($apiResult, $sites, $orgId);
+		});
+	}
+
+	/**
+	 * Show the result of the sites of org query to $sendto
+	 *
+	 * @param null|Collection<ScoutInfoPlus> $local
+	 *
+	 * @return string[]
+	 */
+	private function renderOrgSites(?ApiResult $result, ?Collection $local, int $orgId): array {
+		if (isset($result, $local)) {
+			$result = $this->mergeLocalToAPI($local, $result);
+		} elseif (isset($local)) { // @phpstan-ignore-line
+			$result = $this->scoutToAPI($local);
+		}
+		if (!isset($result)) {
+			throw new UserException("Invalid data received from the tower API. Try again later.");
+		}
+		if ($result->count === 0) {
+			$org = $this->findOrgController->getByID($orgId);
+			if (isset($org)) {
+				return ["No sites found for <" . strtolower($org->faction) . ">{$org->name}<end>."];
+			}
+			return ["No sites found for this org."];
+		}
+		usort($result->results, fn (ApiSite $a, ApiSite $b) => $a->ql <=> $b->ql);
+		$blob = '';
+		$totalQL = 0;
+		usort($result->results, fn (ApiSite $a, ApiSite $b) => $a->ql <=> $b->ql);
+		foreach ($result->results as $site) {
+			$totalQL += $site->ql ?? 0;
+			$blob .= "<pagebreak>" . $this->formatApiSiteInfo($site, null, false) . "\n\n";
+		}
+		$blob .= "\nTotal: QL <highlight>{$totalQL}<end>, allowing ".
+			"contracts up to QL <highlight>" . ($totalQL * 2) . "<end>.";
+
+		return $this->makeBlob("All bases of {$result->results[0]->org_name}", $blob);
+	}
+
+	/**
+	 * @param null|Collection<ScoutInfoPlus> $local
+	 *
+	 * @return string[]
+	 */
+	private function renderPenaltySites(?ApiResult $result, ?Collection $local): array {
+		if (isset($result, $local)) {
+			$result = $this->mergeLocalToAPI($local, $result);
+		} elseif (isset($local)) { // @phpstan-ignore-line
+			$result = $this->scoutToAPI($local);
+		}
+		if (!isset($result)) {
+			throw new UserException("Invalid data received from the tower API. Try again later.");
+		}
+		if ($result->count === 0) {
+			return ["No sites are currently in penalty."];
+		}
+		$params = [
+			"enabled" => "true",
+			"min_close_time" => time() % 84600,
+			"max_close_time" => (time() + 6 * 3600) % 86400,
+		];
+		if ($result->results[0]->penalty_until === 0) {
+			throw new UserException("The API currently doesn't support penalty queries. Try again later.");
+		}
+		$blob = $this->renderHotSites($result, $params, 0);
+		return $this->makeBlob("Sites in penalty (" . $result->count . ")", $blob);
+	}
+
+	/**
+	 * @param null|Collection<ScoutInfoPlus> $local
+	 *
+	 * @return string[]
+	 */
+	private function renderSite(?ApiResult $result, ?Collection $local, SiteInfo $site, Playfield $playfield): array {
+		$details = null;
+		if (isset($result, $local)) {
+			$result = $this->mergeLocalToAPI($local, $result);
+		} elseif (isset($local)) { // @phpstan-ignore-line
+			$result = $this->scoutToAPI($local);
+		}
+		if (isset($result)) {
+			$results = new Collection($result->results);
+			$details = $results->firstWhere("site_number", "===", $site->site_number);
+		}
+		$blob = $this->formatSiteInfo($site, $details) . "\n\n";
+
+		// show last attacks and victories
+		$query = $this->db->table(self::DB_TOWER_ATTACK, "a")
+			->leftJoin(self::DB_TOWER_VICTORY . " AS v", "v.attack_id", "a.id")
+			->where("a.playfield_id", $playfield->id)
+			->where("a.site_number", $site->site_number);
+		$query->orderByDesc($query->colFunc("COALESCE", ["v.time", "a.time"]))
+			->limit(10)
+			->select("a.*", "v.*");
+
+		/** @var Collection<TowerAttackAndVictory> */
+		$attacks = $query->asObj(TowerAttackAndVictory::class);
+		if ($attacks->isNotEmpty()) {
+			$blob .= "<header2>Recent Attacks<end>\n";
+		}
+		foreach ($attacks as $attack) {
+			if (empty($attack->attack_id)) {
+				// attack
+				if (!empty($attack->att_guild_name)) {
+					$name = $attack->att_guild_name;
+				} else {
+					$name = $attack->att_player ?? "Unknown player";
+				}
+				$attFaction = strtolower($attack->att_faction ?? "highlight");
+				$defFaction = strtolower($attack->def_faction ?? "highlight");
+				$blob .= "<tab><{$attFaction}>{$name}<end> attacked <{$defFaction}>{$attack->def_guild_name}<end>\n";
+			} else {
+				// victory
+				$blob .= "<tab><{$attack->win_faction}>{$attack->win_guild_name}<end> won against <{$attack->lose_faction}>{$attack->lose_guild_name}<end>\n";
+			}
+		}
+
+		if (isset($details)) {
+			$msg = $this->makeBlob("{$playfield->short_name} {$site->site_number}", $blob);
+		} else {
+			$msg = (array)$this->text->makeBlob("{$playfield->short_name} {$site->site_number}", $blob);
+		}
+
+		return $msg;
+	}
+
+	/**
+	 * Render the API-result of a whole playfield
+	 *
+	 * @param null|Collection<ScoutInfoPlus> $local
+	 * @param Collection<SiteInfo>           $data
+	 *
+	 * @return string[]
+	 */
+	private function renderArea(?ApiResult $result, ?Collection $local, Collection $data, Playfield $pf): array {
+		$blob = '';
+		if (isset($result, $local)) {
+			$result = $this->mergeLocalToAPI($local, $result);
+		} elseif (isset($local)) { // @phpstan-ignore-line
+			$result = $this->scoutToAPI($local);
+		}
+		if (isset($result)) {
+			usort($result->results, function (ApiSite $a, ApiSite $b): int {
+				return $a->site_number <=> $b->site_number;
+			});
+		}
+		if ($result === null || $result->count === 0) {
+			foreach ($data as $row) {
+				$blob .= "<pagebreak>" . $this->formatSiteInfo($row) . "\n\n";
+			}
+		} else {
+			foreach ($result->results as $site) {
+				$blob .= "<pagebreak>" . $this->formatApiSiteInfo($site, $pf) . "\n\n";
+			}
+		}
+
+		return $this->makeBlob("All Bases in {$pf->long_name}", $blob);
 	}
 
 	private function removeScoutedSitesWhichAreRemoved(ApiResult $result): ApiResult {

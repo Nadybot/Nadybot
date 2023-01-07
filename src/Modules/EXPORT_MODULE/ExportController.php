@@ -197,6 +197,7 @@ class ExportController extends ModuleInstance {
 					"validatedByAlt" => $alt->validated_by_alt ?? true,
 				];
 			}
+
 			$result = [];
 			foreach ($data as $main => $altInfo) {
 				$result []= (object)[
@@ -204,6 +205,8 @@ class ExportController extends ModuleInstance {
 					"alts" => $altInfo,
 				];
 			}
+
+			/** @var stdClass[] $result */
 			return $result;
 		});
 	}
@@ -340,6 +343,8 @@ class ExportController extends ModuleInstance {
 				}
 				$result []= $ban;
 			}
+
+			/** @var stdClass[] $result */
 			return $result;
 		});
 	}
@@ -360,6 +365,8 @@ class ExportController extends ModuleInstance {
 					"time" => $cloakEntry->time,
 				];
 			}
+
+			/** @var stdClass[] $result */
 			return $result;
 		});
 	}
@@ -412,6 +419,8 @@ class ExportController extends ModuleInstance {
 				$export->answers = array_values($answers);
 				$result []= $export;
 			}
+
+			/** @var stdClass[] $result */
 			return $result;
 		});
 	}
@@ -654,6 +663,8 @@ class ExportController extends ModuleInstance {
 				}
 				$result []= $auctionObj;
 			}
+
+			/** @var stdClass[] $result */
 			return $result;
 		});
 	}

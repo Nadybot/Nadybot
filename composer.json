@@ -40,7 +40,6 @@
 		"doctrine/dbal": "^3.0",
 		"kelvinmo/fernet-php": "^1.0",
 		"farafiri/php-parsing-tool": "^2.0",
-		"spatie/data-transfer-object": "^3.0",
 		"monolog/monolog": "^2.3",
 		"thecodingmachine/safe": "^2.0",
 		"netresearch/jsonmapper": "^v4.0.0",
@@ -48,7 +47,10 @@
 		"amphp/http-client": "^4.6",
 		"amphp/cache": "^1.5.0",
 		"amphp/file": "^2.0",
-		"amphp/websocket-client": "^1.0"
+		"amphp/websocket-client": "^1.0",
+		"eventsauce/object-hydrator": "^1.1.0",
+		"symfony/yaml": "^6.0",
+		"spatie/data-transfer-object": "^3.9"
 	},
 	"autoload": {
 		"psr-4": {

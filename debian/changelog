@@ -1,3 +1,33 @@
+nadybot (6.1.1-1+ubuntu1) bionic; urgency=medium
+  Added
+  - Add new commands `!bestnanos` and `!bestnanosfroob` to get a list of the best nanos for your current or a given profession/level. Use `!bn`/`!bnf` or `!bnl`/`!bnfl` for the long version if you are lazy.
+  - Support multi-platform Docker images, currently arm64 and amd64
+  - The `!icc`-command can now also be used to say that the arbiter is currently not here, but will be here on Sunday. Use `!icc set bs next` to specify that the upcoming arbiter week will be PvP-week.
+  - Allow to fully customize join/leave and logon/logoff messages with a little template-like language that supports `{?if:}` and `{!ifnot:}` syntax
+  - Instead of limiting logon/logoff and join/leave messages to the first and last logon/logoff join/leave of a player, you can now define an interval in which only one of those is shown. Settings this to 5 minutes means: During a moving 5 minute interval, only display the first and last logon/logoff join/leave message. This makes it easier to suppress multiboxer spam without affecting the regular messages too much.
+  - `!whois <name>` and `!checkaccess <name>` / `!checkaccess` now show when someone is banned.
+  - You can now search in the banlist with `!banlist <pattern>`, where `<pattern>` can contain wildcards like `*`. So `!banlist nad*` will search for all player whose name starts with `nad`.
+  - Support multi-platform docker images, starting with amd64 and arm64, so they also work on the Raspberry Pi.
+  - Introduce nicknames. Nicknames can be set freely and will be displayed at various locations instead of the character's or the main's name (e.g. online list). There is also a new configuration knob (`!settings change routed_sender_format`) that allows displaying the nickname when displaying routed messages (e.g. from guild channel to/from private channel)
+  - Add support for JSON and YAML configuration files
+  - Add new `debug()`-modifier to send the internal package representation to a routing destination for debugging purposes.
+  - Add new `!gmi`-command to check prices on GMI. Works with names, IDs and dragged items.
+
+  Changed
+  - Repeating timers now reuse their timer id, so when their repetition interval is very short, you can always use the same link to remove them.
+  - The handling of AO packets has been changed so that only 1 packet is processed at the same time. Prevents choking processing other streams like downloads or Discord relays in case of a lot of packages arriving at the same time.
+  - Drastically speed up `!track addorg <id>` by pre-populating all entries with a `<name> logged off` event instead of doing this when the logoff-event hits the bot.
+  - Only cache org-data in the file cache for 24h after the last org update at Funcom.
+  - In the item search, the non-existing Small Ebony Figurines will now be marked accordingly.
+
+  Fix
+  - The implant designer can once again set the QL of a slot even if it's currently empty.
+  - Fix for Discord relay when messages contain empty categories
+
+  Coding
+  - Started moving from DTOs to hydrators
+ -- Nadyita <nadyita@hodorraid.org>  Sat, 07 Jan 2023 11:00:00 +0200
+
 nadybot (6.1.0-1+ubuntu1) bionic; urgency=medium
   Added:
   - Commands and events can now be declared as Generators, which automatically makes them execute async and allows to "yield" results from promises.

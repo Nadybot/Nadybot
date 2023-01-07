@@ -66,4 +66,8 @@ class CmdContext implements CommandReply {
 	public function registerShutdownFunction(Closure $callback): void {
 		$this->shutdownFunctions []= $callback;
 	}
+
+	public function getCommand(): string {
+		return strtolower(explode(" ", $this->message)[0]);
+	}
 }

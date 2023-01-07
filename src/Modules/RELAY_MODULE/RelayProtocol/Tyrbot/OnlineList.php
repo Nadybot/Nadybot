@@ -2,13 +2,14 @@
 
 namespace Nadybot\Modules\RELAY_MODULE\RelayProtocol\Tyrbot;
 
-use Spatie\DataTransferObject\Attributes\CastWith;
-use Spatie\DataTransferObject\Casters\ArrayCaster;
+use EventSauce\ObjectHydrator\PropertyCasters\CastListToType;
 
 class OnlineList extends Packet {
-	public string $type = "online_list";
-
-	/** @var OnlineBlock[] */
-	#[CastWith(ArrayCaster::class, itemType: OnlineBlock::class)]
-	public array $online;
+	/** @param OnlineBlock[] $online */
+	public function __construct(
+		public string $type,
+		#[CastListToType(OnlineBlock::class)]
+		public array $online,
+	) {
+	}
 }

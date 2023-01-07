@@ -23,7 +23,7 @@ use Throwable;
 
 class BotRunner {
 	/** Nadybot's current version */
-	public const VERSION = "6.1.0";
+	public const VERSION = "6.1.1";
 
 	/**
 	 * The parsed command line arguments
@@ -188,7 +188,7 @@ class BotRunner {
 				"See https://github.com/Nadybot/Nadybot/wiki/Running#cloning-the-repository\n".
 				"for more information.\n"
 			);
-			\Safe\sleep(5);
+			sleep(5);
 			exit(1);
 		}
 	}
@@ -196,7 +196,7 @@ class BotRunner {
 	public function checkRequiredModules(): void {
 		if (version_compare(PHP_VERSION, "8.0.0", "<")) {
 			\Safe\fwrite(STDERR, "Nadybot 6 needs at least PHP version 8 to run, you have " . PHP_VERSION . "\n");
-			\Safe\sleep(5);
+			sleep(5);
 			exit(1);
 		}
 		$missing = [];
@@ -213,6 +213,8 @@ class BotRunner {
 			["pdo_mysql", "pdo_sqlite"],
 			"Reflection",
 			"sockets",
+			"fileinfo",
+			"tokenizer",
 		];
 		foreach ($requiredModules as $requiredModule) {
 			if (is_string($requiredModule) && !extension_loaded($requiredModule)) {
@@ -227,7 +229,7 @@ class BotRunner {
 			return;
 		}
 		\Safe\fwrite(STDERR, "Nadybot needs the following missing PHP-extensions: " . join(", ", $missing) . ".\n");
-		\Safe\sleep(5);
+		sleep(5);
 		exit(1);
 	}
 
@@ -439,7 +441,7 @@ class BotRunner {
 		);
 		if ($options === false) {
 			\Safe\fwrite(STDERR, "Unable to parse arguments passed to the bot.\n");
-			\Safe\sleep(5);
+			sleep(5);
 			exit(1);
 		}
 		$argv = array_slice($this->argv, $restPos);
@@ -455,7 +457,7 @@ class BotRunner {
 
 	private function showSyntaxHelp(): void {
 		echo(
-			"Usage: " . PHP_BINARY . " " . $_SERVER["argv"][0].
+			"Usage: " . PHP_BINARY . " " . ($_SERVER["argv"][0] ?? "main.php").
 			" [options] [-c] <config file>\n\n".
 			"positional arguments:\n".
 			"  <config file>         A Nadybot configuration file, usually conf/config.php\n".

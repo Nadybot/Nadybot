@@ -126,13 +126,16 @@ class ArbiterController extends ModuleInstance {
 	 * event, but you can add 'ends' to the command like so:
 	 * <tab>'<symbol>arbiter set bs ends'
 	 * This will set that today is the last day of the PvP week.
+	 * If you want to say that there's currently no arbiter week, but the
+	 * upcoming week will be DIO, use
+	 * <tab>'<symbol>arbiter set dio next'
 	 */
 	#[NCA\HandlesCommand("arbiter change")]
 	public function arbiterSetCommand(
 		CmdContext $context,
 		#[NCA\Str("set")] string $action,
 		#[NCA\StrChoice("ai", "bs", "dio")] string $setWeek,
-		#[NCA\Str("ends")] ?string $ends
+		#[NCA\StrChoice("ends", "next")] ?string $ends
 	): Generator {
 		$setWeek = strtolower($setWeek);
 		$validTypes = [static::AI, static::BS, static::DIO];
@@ -141,9 +144,15 @@ class ArbiterController extends ModuleInstance {
 			return;
 		}
 		$day = (new DateTime("now", new DateTimeZone("UTC")))->format("N");
-		$startsToday = ($day === "7") && !isset($ends);
-		$start =  \Safe\strtotime($startsToday ? "today" : "last sunday");
-		$end = \Safe\strtotime($startsToday ? "monday + 7 days" : "next monday");
+		$startsSunday = isset($ends) && strtolower($ends) === "next";
+		if ($startsSunday) {
+			$start =  \Safe\strtotime("sunday");
+			$end = \Safe\strtotime("sunday + 8 days");
+		} else {
+			$startsToday = ($day === "7") && !isset($ends);
+			$start =  \Safe\strtotime($startsToday ? "today" : "last sunday");
+			$end = \Safe\strtotime($startsToday ? "monday + 7 days" : "next monday");
+		}
 		yield $this->db->awaitBeginTransaction();
 		try {
 			$this->db->table(static::DB_TABLE)->truncate();
@@ -168,6 +177,13 @@ class ArbiterController extends ModuleInstance {
 			return;
 		}
 		$this->db->commit();
+		if ($startsSunday) {
+			$context->reply(
+				"New times saved. It will be <highlight>".
+				strtoupper($setWeek) . "<end> on Sunday."
+			);
+			return;
+		}
 		$context->reply(
 			"New times saved. It's currently <highlight>".
 			strtoupper($setWeek) . "<end> week."

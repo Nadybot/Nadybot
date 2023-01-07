@@ -298,6 +298,7 @@ class ItemsController extends ModuleInstance {
 			->addSelect("n.name AS group_name")
 			->addSelect("foo.icon")
 			->addSelect("g.group_id")
+			->addSelect("foo.flags")
 			->selectRaw($query->colFunc("COALESCE", ["a1.lowid", "a2.lowid", "foo.lowid"], "lowid")->getValue())
 			->selectRaw($query->colFunc("COALESCE", ["a1.highid", "a2.highid", "foo.highid"], "highid")->getValue())
 			->selectRaw($query->colFunc("COALESCE", ["a1.lowql", "a2.highql", "foo.highql"], "ql")->getValue())
@@ -436,7 +437,11 @@ class ItemsController extends ModuleInstance {
 					if (!isset($row->group_name)) {
 						$row->name = $this->getLongestCommonStringOfWords($itemNames);
 					} else {
-						$row->name = $row->group_name;
+						$row->name = str_replace(
+							"NOT IN GAME",
+							"<red>NOT IN GAME<end>",
+							$row->group_name
+						);
 					}
 				}
 				if ($list !== '') {

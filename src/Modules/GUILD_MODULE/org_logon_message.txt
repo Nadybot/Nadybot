@@ -1,0 +1,71 @@
+This setting supports the use of conditionals and placeholders.
+You can use any of the defined placeholders with <highlight>{token}<end>.
+
+Tokens:
+<tab><highlight>name<end>: Name of the character
+<tab><highlight>c-name<end>: Highlighted name of the character
+<tab><highlight>first-name<end>: First name of the character
+<tab><highlight>last-name<end>: Last name of the character
+<tab><highlight>level<end>: The level
+<tab><highlight>c-level<end>: The bold level
+<tab><highlight>ai-level<end>: The AI level
+<tab><highlight>c-ai-level<end>: The green AI level
+<tab><highlight>profession<end>:
+<tab><highlight>prof<end>: The long name of the profession (e.g. Enforcer)
+<tab><highlight>c-profession<end>:
+<tab><highlight>c-prof<end>: The bold name of the profession
+<tab><highlight>short-prof<end>: Short name of the profession (e.g. Enf)
+<tab><highlight>c-short-prof<end>: Bold short name
+<tab><highlight>org<end>: The name of the org (if any)
+<tab><highlight>c-org<end>: Org name, colored by its faction
+<tab><highlight>org-rank<end>: Rank of the char in the org (Member, Officer, ...)
+<tab><highlight>breed<end>: Breed of the character
+<tab><highlight>faction<end>: Name of the faction (Neutral, Clan, Omni)
+<tab><highlight>c-faction<end>: Colored name of the faction
+<tab><highlight>gender<end>: Gender
+<tab><highlight>channel-name<end>: Either "the private channel" or "<myname>"
+<tab><highlight>whois<end>: Short whois information with name, level, ai-level, prof, org and rank
+<tab><highlight>main<end>: Name of the main character. Only set if this is not the main
+<tab><highlight>c-main<end>: Bold name of the main character
+<tab><highlight>nick<end>: The nick name of the player (if set)
+<tab><highlight>c-nick<end>: The coloured nick name of the player (if set)
+<tab><highlight>alt-of<end>: The text "Alt of {c-main}", if this is not the main char
+<tab><highlight>alt-list<end>: The text "Alts of {c-main}" with a full list of the alts in a popup
+<tab><highlight>access-level<end>: Access level of the character
+<tab><highlight>admin-level<end>: The admin/raidleader level
+<tab><highlight>c-admin-level<end>: The colored admin/raidleader level as defined in the ONLINE_MODULE
+<tab><highlight>logon-msg<end>: The player-configured logon-message
+<tab><highlight>logoff-msg<end>: The player-configured logoff-message
+
+Conditions:
+<tab><highlight>{?&lt;token&gt;:<end>&lt;Text to display if &lt;token&gt; is set&gt;<highlight>}<end>
+<tab>Example: <highlight>{?org:{org-rank} of {c-org}}<end>
+<tab>Will only show '<highlight>{org-rank} of {c-org}<end>' if <highlight>{org}<end> is set.
+
+<tab><highlight>{!&lt;token&gt;:<end>&lt;Text to display if &lt;token&gt; is not set&gt;<highlight>}<end>
+<tab>Example: <highlight>{!org:Not in an org}<end>
+<tab>Will only show '<highlight>Not in an org<end>' if <highlight>{org}<end> is not set.
+
+<tab>Example: <highlight>{?org:{org-rank} of {c-org}}{!org:Not in an org}<end>
+
+You can add color to the text by using <highlight>&lt;color&gt;text&lt;end&gt;<end>
+<highlight>&lt;green&gt;online&lt;end&gt;<end> becomes <green>online<end>.
+
+Supported are:
+<tab>&lt;highlight&gt;: <highlight>example<end>
+<tab>&lt;on&gt;: <on>example<end>
+<tab>&lt;off&gt;: <off>example<end>
+<tab>&lt;black&gt;: <black>example<end>
+<tab>&lt;white&gt;: <white>example<end>
+<tab>&lt;yellow&gt;: <yellow>example<end>
+<tab>&lt;blue&gt;: <blue>example<end>
+<tab>&lt;green&gt;: <green>example<end>
+<tab>&lt;red&gt;: <red>example<end>
+<tab>&lt;orange&gt;: <orange>example<end>
+<tab>&lt;grey&gt;: <grey>example<end>
+<tab>&lt;cyan&gt;: <cyan>example<end>
+<tab>&lt;violet&gt;: <violet>example<end>
+<tab>&lt;neutral&gt;: <neutral>example<end>
+<tab>&lt;omni&gt;: <omni>example<end>
+<tab>&lt;clan&gt;: <clan>example<end>
+<tab>&lt;unknown&gt;: <unknown>example<end>

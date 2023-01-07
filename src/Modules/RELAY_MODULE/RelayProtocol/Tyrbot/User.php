@@ -2,9 +2,10 @@
 
 namespace Nadybot\Modules\RELAY_MODULE\RelayProtocol\Tyrbot;
 
-use Spatie\DataTransferObject\DataTransferObject;
-
-class User extends DataTransferObject {
-	public ?int $id;
-	public string $name;
+class User {
+	public function __construct(
+		public ?int $id,
+		public string $name,
+	) {
+	}
 }

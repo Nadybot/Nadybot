@@ -16,6 +16,9 @@ use Nadybot\Core\{
 	DBSchema\Route,
 	DBSchema\RouteHopColor,
 	DBSchema\RouteHopFormat,
+	Modules\ALTS\AltsController,
+	Modules\ALTS\NickController,
+	Modules\MESSAGES\MessageHubController,
 	Routing\RoutableEvent,
 	Routing\Source,
 };
@@ -46,6 +49,15 @@ class MessageHub {
 
 	#[NCA\Inject]
 	public SettingManager $settingManager;
+
+	#[NCA\Inject]
+	public AltsController $altsController;
+
+	#[NCA\Inject]
+	public NickController $nickController;
+
+	#[NCA\Inject]
+	public MessageHubController $msgHubCtrl;
 
 	#[NCA\Inject]
 	public Util $util;
@@ -381,7 +393,10 @@ class MessageHub {
 				&& preg_match("/^" . preg_quote(Source::LOG, "/") . "\(([a-z]+)\)$/i", $source, $matches)
 			) {
 				try {
-					/** @psalm-suppress ArgumentTypeCoercion */
+					/**
+					 * @psalm-suppress ArgumentTypeCoercion
+					 * @phpstan-ignore-next-line
+					 */
 					$srcLevel = Logger::toMonologLevel($matches[1]);
 					if ($eventLogLevel < $srcLevel) {
 						continue;
@@ -442,10 +457,21 @@ class MessageHub {
 		// Render "[Name]" instead of "[Name] Name: "
 		$isTell = (isset($lastHop) && $lastHop->type === Source::TELL);
 		if (isset($char) && !$isTell) {
-			$charLink = $char->name . ": ";
 			$aoSources = [Source::ORG, Source::PRIV, Source::PUB, Source::TELL];
+			$nickName = $this->nickController->getNickname($char->name);
+			$mainChar = $this->altsController->getMainOf($char->name);
+			$routedName = $this->text->renderPlaceholders(
+				$this->msgHubCtrl->routedSenderFormat,
+				[
+					"char" => $char->name,
+					"nick" => $nickName,
+					"main" => ($char->name === $mainChar) ? null : $mainChar,
+				]
+			);
+			$routedName = preg_replace('/^(.+) \(\1\)$/', '$1', $routedName);
+			$charLink = $routedName . ": ";
 			if (in_array($lastHop->type??null, $aoSources) && $withUserLink) {
-				$charLink = $this->text->makeUserlink($char->name) . ": ";
+				$charLink = "<a href=user://{$char->name}>{$routedName}</a>: ";
 			}
 		}
 		if (!empty($hops)) {

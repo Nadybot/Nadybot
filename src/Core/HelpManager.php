@@ -157,6 +157,7 @@ class HelpManager {
 		/** @var HelpTopic[] $data */
 		$data = $outerQuery->asObj(HelpTopic::class)->toArray();
 
+		$accessLevel = "all";
 		if (isset($context)) {
 			$accessLevel = $this->accessManager->getAccessLevelForCharacter($context->char->name);
 		}
@@ -168,7 +169,7 @@ class HelpManager {
 			if (isset($added[$key])) {
 				continue;
 			}
-			if (!isset($context) || $this->checkAccessLevels($accessLevel??"all", explode(",", $row->admin_list))) {
+			if (!isset($context) || $this->checkAccessLevels($accessLevel, explode(",", $row->admin_list))) {
 				$obj = new HelpTopic();
 				$obj->module = $row->module;
 				$obj->name = $row->name;

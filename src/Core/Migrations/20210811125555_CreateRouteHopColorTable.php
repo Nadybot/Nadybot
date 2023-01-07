@@ -29,9 +29,10 @@ class CreateRouteHopColorTable implements SchemaMigration {
 		} else {
 			$sysColor = $this->getSetting($db, "default_priv_color");
 		}
+		$matches = [1 => "89D2E8"];
 		if (!isset($sysColor) || !preg_match("/#([0-9a-f]{6})/i", $sysColor->value??"", $matches)) {
 			$sysColor = "89D2E8";
-		} elseif (isset($matches)) {
+		} else {
 			$sysColor = $matches[1];
 		}
 		$db->table($table)->insert([

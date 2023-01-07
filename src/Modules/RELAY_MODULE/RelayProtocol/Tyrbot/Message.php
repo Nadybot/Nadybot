@@ -3,7 +3,11 @@
 namespace Nadybot\Modules\RELAY_MODULE\RelayProtocol\Tyrbot;
 
 class Message extends Packet {
-	public ?User $user;
-	public Source $source;
-	public string $message;
+	public function __construct(
+		public string $type,
+		public ?User $user,
+		public Source $source,
+		public string $message,
+	) {
+	}
 }
