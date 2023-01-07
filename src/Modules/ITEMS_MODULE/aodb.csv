@@ -7955,7 +7955,6 @@ lowid,highid,lowql,highql,name,icon,froob_friendly,slot,flags
 146638,146638,20,20,"Shattered Instruction Disc",300939,1,0,1
 146639,146639,10,10,"Shattered Instruction Disc",300939,1,0,1
 146711,146711,70,70,"Shattered Instruction Disc",300939,1,0,1
-146721,146721,148,148,"Shattered Instruction Disc",300939,1,0,1
 146714,146714,146,146,"Instruction Disc (Advanced Survival Technique)",83409,1,0,1
 146715,146715,50,50,"Instruction Disc (Alleviate Pain)",83408,1,0,1
 146716,146716,83,83,"Instruction Disc (Arctic Gale)",83363,1,0,1
@@ -8045,7 +8044,6 @@ lowid,highid,lowql,highql,name,icon,froob_friendly,slot,flags
 146800,146800,24,24,"Instruction Disc (Sparrow Flight)",144410,1,0,1
 146801,146801,30,30,"Shattered Instruction Disc",300939,1,0,1
 146802,146802,40,40,"Shattered Instruction Disc",300939,1,0,1
-147079,147079,65,65,"Shattered Instruction Disc",300939,1,0,1
 146803,146803,123,123,"Instruction Disc (Supreme Wilderness Protection)",144424,1,0,1
 146804,146804,33,33,"Instruction Disc (Survival Aid)",83396,1,0,1
 146805,146805,116,116,"Instruction Disc (Survival of the Fittest)",83409,1,0,1
@@ -13954,7 +13952,7 @@ lowid,highid,lowql,highql,name,icon,froob_friendly,slot,flags
 199865,199866,215,219,"Special Omni-Internops Armor Pants",13300,1,2048,-1073741821
 199866,199867,220,224,"Special Omni-Internops Armor Pants",13300,1,2048,-1073741821
 199867,199868,225,229,"1st Improvement Omni-Internops Armor Pants",13300,1,2048,-1073741821
-199867,199868,230,234,"1st Improvement Omni-Internops Armor Pants",13300,1,2048,-1073741821
+199868,199869,230,234,"1st Improvement Omni-Internops Armor Pants",13300,1,2048,-1073741821
 199869,199870,235,239,"2nd improvement Omni-Internops Armor Pants",13300,1,2048,-1073741821
 199870,199871,240,244,"2nd improvement Omni-Internops Armor Pants",13300,1,2048,-1073741821
 199871,199872,245,249,"3rd Improvement Omni-Internops Armor Pants",13300,1,2048,-1073741821
@@ -14458,27 +14456,21 @@ lowid,highid,lowql,highql,name,icon,froob_friendly,slot,flags
 201076,201077,1,200,"Omni-Scout Desert Armor Pants",27663,1,2048,-1073741823
 201078,201079,1,200,"Omni-Scout Desert Body Armor",22991,1,32,-1073741823
 201084,201085,1,199,"Omni Life Guard Armor Sleeves",21850,1,640,-1073741823
-201085,201085,200,200,"Quality Omni Life Guard Armor Sleeves",21850,1,640,-1073741823
 201085,201086,200,299,"Quality Omni Life Guard Armor Sleeves",21850,1,640,-1073741823
 201086,201086,300,300,"Advanced Omni Life Guard Armor Sleeves",21850,1,640,-1073741823
 201087,201088,1,199,"Omni Life Guard Body Armor",19816,1,32,-1073741823
-201088,201088,200,200,"Quality Omni Life Guard Body Armor",19816,1,32,-1073741823
 201088,201089,200,299,"Quality Omni Life Guard Body Armor",19816,1,32,-1073741823
 201089,201089,300,300,"Advanced Omni Life Guard Body Armor",19816,1,32,-1073741823
 201090,201091,1,199,"Omni Life Guard Armor Boots",21866,1,16384,-1073741823
-201091,201091,200,200,"Quality Omni Life Guard Armor Boots",21866,1,16384,-1073741823
 201091,201092,200,299,"Quality Omni Life Guard Armor Boots",21866,1,16384,-1073741823
 201092,201092,300,300,"Advanced Omni Life Guard Armor Boots",21866,1,16384,-1073741823
 201093,201094,1,199,"Omni Life Guard Armor Gloves",21872,1,256,-1073741823
-201094,201094,200,200,"Quality Omni Life Guard Armor Gloves",21872,1,256,-1073741823
 201094,201095,200,299,"Quality Omni Life Guard Armor Gloves",21872,1,256,-1073741823
 201095,201095,300,300,"Advanced Omni Life Guard Armor Gloves",21872,1,256,-1073741823
 201096,201097,1,199,"Omni Life Guard Armor Helmet",22269,1,4,-1073741823
-201097,201097,200,200,"Quality Omni Life Guard Armor Helmet",22269,1,4,-1073741823
 201097,201098,200,299,"Quality Omni Life Guard Armor Helmet",22269,1,4,-1073741823
 201098,201098,300,300,"Advanced Omni Life Guard Armor Helmet",22269,1,4,-1073741823
 201100,201102,1,199,"Omni Life Guard Armor Pants",21879,1,2048,-1073741823
-201102,201102,200,200,"Quality Omni Life Guard Armor Pants",21879,1,2048,-1073741823
 201102,201103,200,299,"Quality Omni Life Guard Armor Pants",21879,1,2048,-1073741823
 201103,201103,300,300,"Advanced Omni Life Guard Armor Pants",21879,1,2048,-1073741823
 201111,201112,1,199,"Omni-Pol Trooper Armor Sleeves",13232,1,640,-1073741821
@@ -17778,7 +17770,6 @@ lowid,highid,lowql,highql,name,icon,froob_friendly,slot,flags
 220350,220350,202,202,"Nano Crystal (Izgimmer's Hippocampal Augmentor)",301243,0,0,4194819
 220440,220440,103,103,"Dirty Money Shadow Crystal (Cubicle Dweller)",220437,1,0,4194819
 220441,220441,40,40,"Shattered Nano Crystal",300932,1,0,-2147483135
-220469,220469,65,65,"Shattered Nano Crystal",300932,1,0,513
 220442,220442,140,140,"Severly Corroded Shadow Crystal (Team Skill Wrangler (Superior))",220412,0,0,4194819
 220443,220443,107,107,"Overcharged Corroded Nano Crystal (Advanced Layered Protection)",220413,1,0,4194819
 220445,220445,43,43,"Dirty Money Shadow Crystal (Sleep)",220423,1,0,-2143288829
