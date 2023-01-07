@@ -7,7 +7,7 @@ Name:       nadybot
 Version:    {{{ nadybot_version }}}
 
 # This can be useful later for adding downstream patches
-Release:    1%{?dist}
+Release:    2%{?dist}
 
 BuildArch: noarch
 
@@ -39,6 +39,7 @@ BuildRequires: curl
 BuildRequires: sed
 BuildRequires: %{php_prefix}php-pdo
 %if 0%{?suse_version}
+BuildRequires: %{php_prefix}php-fileinfo
 BuildRequires: %{php_prefix}php-mysql
 BuildRequires: %{php_prefix}php-ctype
 BuildRequires: %{php_prefix}php-pcntl
@@ -71,6 +72,7 @@ Requires(pre): shadow-utils
 Requires: %{php_prefix}php-cli >= 8.0
 Requires: %{php_prefix}php-pdo
 %if 0%{?suse_version}
+Requires: %{php_prefix}php-fileinfo
 Requires: %{php_prefix}php-mysql
 Requires: %{php_prefix}php-ctype
 Requires: %{php_prefix}php-pcntl
