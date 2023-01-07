@@ -33,7 +33,7 @@ use Throwable;
 	),
 ]
 class GmiController extends ModuleInstance {
-	public const GMI_API = "https://gmi.nadybot.org";
+	public const GMI_API = "https://gmi.nadybot.org/v1.0";
 
 	#[NCA\Inject]
 	public DB $db;
@@ -71,7 +71,7 @@ class GmiController extends ModuleInstance {
 
 				/** @var Response */
 				$response = yield $httpClient->request(
-					new Request($this->gmiApi . "/aoid/{$item->lowid}")
+					new Request(rtrim($this->gmiApi, '/') . "/aoid/{$item->lowid}")
 				);
 				if ($response->getStatus() === 404) {
 					throw new UserException("{$item->name} is not tradeable on GMI.");
