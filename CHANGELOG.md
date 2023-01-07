@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [6.1.1] - 2023-01-07
+
 ### Added
 
 - Add new commands `!bestnanos` and `!bestnanosfroob` to get a list of the best nanos for your current or a given profession/level. Use `!bn`/`!bnf` or `!bnl`/`!bnfl` for the long version if you are lazy.
@@ -25,9 +27,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Repeating timers now reuse their timer id, so when their repetition interval is very short, you can always use the same link to remove them.
-- The handling of AO  packets has been changed so that only 1 packet is processed at the same time. Prevents choking processing other streams like downloads or Discord relays in case of a lot of packages arriving at the same time.
+- The handling of AO packets has been changed so that only 1 packet is processed at the same time. Prevents choking processing other streams like downloads or Discord relays in case of a lot of packages arriving at the same time.
 - Drastically speed up `!track addorg <id>` by pre-populating all entries with a `<name> logged off` event instead of doing this when the logoff-event hits the bot.
 - Only cache org-data in the file cache for 24h after the last org update at Funcom.
+- In the item search, the non-existing Small Ebony Figurines will now be marked accordingly.
 
 ### Fix
 

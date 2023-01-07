@@ -23,7 +23,7 @@ use Throwable;
 
 class BotRunner {
 	/** Nadybot's current version */
-	public const VERSION = "6.1.0";
+	public const VERSION = "6.1.1";
 
 	/**
 	 * The parsed command line arguments
