@@ -224,6 +224,9 @@ class WhatBuffsController extends ModuleInstance {
 			if ($froobFriendly) {
 				$query->where('aodb.froob_friendly', '=', true);
 			}
+			if ($this->itemsController->onlyItemsInGame) {
+				$query->where('aodb.in_game', '=', true);
+			}
 			$data = $query->asObj(SkillBuffItemCount::class);
 		}
 
@@ -349,6 +352,9 @@ class WhatBuffsController extends ModuleInstance {
 			$itemQuery->where('aodb.froob_friendly', '=', true);
 			$nanoQuery->where('buffs.froob_friendly', '=', true);
 		}
+		if ($this->itemsController->onlyItemsInGame) {
+			$itemQuery->where('aodb.in_game', '=', true);
+		}
 		$innerQuery = $itemQuery
 			->unionAll($nanoQuery);
 		$query = $this->db->fromSub($innerQuery, "foo");
@@ -468,6 +474,9 @@ class WhatBuffsController extends ModuleInstance {
 				]);
 			if ($froobFriendly) {
 				$query->where("a.froob_friendly", true);
+			}
+			if ($this->itemsController->onlyItemsInGame) {
+				$query->where('a.in_game', true);
 			}
 
 			/** @var Collection<ItemBuffSearchResult> */
@@ -626,6 +635,9 @@ class WhatBuffsController extends ModuleInstance {
 			$blob .= $prefix . $item->unit . "  ";
 			$blob .= $this->getSlotPrefix($item, $category);
 			$blob .= $this->showItemLink($item, $item->highql);
+			if (!$item->in_game) {
+				$blob .= " - <red>NOT IN GAME<end>";
+			}
 			if ($item->amount > $item->low_amount) {
 				$blob .= " ({$item->low_amount} - {$item->amount})";
 				if ($this->commandManager->cmdEnabled('bestql')) {

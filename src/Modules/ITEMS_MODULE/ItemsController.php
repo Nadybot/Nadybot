@@ -58,6 +58,10 @@ class ItemsController extends ModuleInstance {
 	#[NCA\Setting\Number(options: [30, 40, 50, 60])]
 	public int $maxitems = 40;
 
+	/** Exclude items which are not in the game */
+	#[NCA\Setting\Boolean]
+	public bool $onlyItemsInGame = true;
+
 	/** @var array<int,Skill> */
 	private array $skills = [];
 
@@ -288,6 +292,9 @@ class ItemsController extends ModuleInstance {
 			->orderByDesc("a.highql")
 			->limit($this->maxitems)
 			->select("a.*", "g.group_id");
+		if ($this->onlyItemsInGame) {
+			$innerQuery->where("a.in_game", true);
+		}
 		$query = $this->db->fromSub($innerQuery, "foo")
 			->leftJoin("item_groups AS g", "foo.group_id", "g.group_id")
 			->leftJoin("item_group_names AS n", "foo.group_id", "n.group_id")
@@ -297,6 +304,7 @@ class ItemsController extends ModuleInstance {
 		$query->selectRaw($query->colFunc("COALESCE", ["a2.name", "a1.name", "foo.name"], "name")->getValue())
 			->addSelect("n.name AS group_name")
 			->addSelect("foo.icon")
+			->addSelect("foo.in_game")
 			->addSelect("g.group_id")
 			->addSelect("foo.flags")
 			->selectRaw($query->colFunc("COALESCE", ["a1.lowid", "a2.lowid", "foo.lowid"], "lowid")->getValue())
@@ -426,22 +434,21 @@ class ItemsController extends ModuleInstance {
 					unset($nameMatches);
 				}
 				if (isset($row->group_id)) {
+					$inGame = false;
 					$itemNames = [];
 					for ($j=$itemNum; $j < count($data); $j++) {
 						if ($data[$j]->group_id === $row->group_id) {
 							$itemNames []= $data[$j]->name;
+							$inGame = $inGame || $data[$j]->in_game;
 						} else {
 							break;
 						}
 					}
 					if (!isset($row->group_name)) {
 						$row->name = $this->getLongestCommonStringOfWords($itemNames);
-					} else {
-						$row->name = str_replace(
-							"NOT IN GAME",
-							"<red>NOT IN GAME<end>",
-							$row->group_name
-						);
+					}
+					if (!$inGame) {
+						$row->name .= " - <red>NOT IN GAME<end>";
 					}
 				}
 				if ($list !== '') {
@@ -462,6 +469,9 @@ class ItemsController extends ModuleInstance {
 			$oldGroup = $row->group_id ?? null;
 			if (!isset($row->group_id)) {
 				$list .= $this->text->makeItem($row->lowid, $row->highid, $row->ql, $row->name);
+				if (!$row->in_game) {
+					$list .= " - <red> NOT IN GAME<end>";
+				}
 				$list .= " (QL {$row->ql})";
 			} else {
 				if ($newGroup === true) {

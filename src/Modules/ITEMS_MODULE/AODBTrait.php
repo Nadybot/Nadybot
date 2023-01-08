@@ -12,6 +12,7 @@ trait AODBTrait {
 	public bool $froob_friendly = false;
 	public int $slot;
 	public int $flags;
+	public bool $in_game;
 
 	public function getLink(?int $ql=null, ?string $name=null): string {
 		$ql ??= $this->lowql;
