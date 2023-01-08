@@ -58,7 +58,7 @@ class ItemsController extends ModuleInstance {
 	#[NCA\Setting\Number(options: [30, 40, 50, 60])]
 	public int $maxitems = 40;
 
-	/** Exclude items which are not in the game */
+	/** Exclude GM-only items and items which are not in the game */
 	#[NCA\Setting\Boolean]
 	public bool $onlyItemsInGame = true;
 
