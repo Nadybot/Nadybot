@@ -1,4 +1,4 @@
-# Version: 18.08.58.03
+# Version: 18.08.58.01
 # Requires: 20230108112714_CreateItemDBs.shared
 lowid,highid,lowql,highql,name,icon,froob_friendly,slot,flags,in_game
 21601,21601,1,1,"Ammo: Flamethrower Ammunition",32168,1,0,-2143288317,1
