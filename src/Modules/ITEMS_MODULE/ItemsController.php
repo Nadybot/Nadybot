@@ -2,7 +2,9 @@
 
 namespace Nadybot\Modules\ITEMS_MODULE;
 
+use function Safe\preg_replace;
 use Illuminate\Support\Collection;
+
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
@@ -254,13 +256,21 @@ class ItemsController extends ModuleInstance {
 		}
 
 		$search = htmlspecialchars_decode($search);
+		$dontExclude = false;
+
+		/** @var string */
+		$search = preg_replace("/\s*\*\s*/", "", $search, 1, $numReplaces);
+		$dontExclude = $numReplaces > 0;
 
 		// local database
-		$data = $this->findItemsFromLocal($search, $ql);
+		$data = $this->findItemsFromLocal($search, $ql, $dontExclude);
 
 		$aoiaPlusLink = $this->text->makeChatcmd("AOIA+", "/start https://sourceforge.net/projects/aoiaplus");
-		$footer = "QLs between <red>[<end>brackets<red>]<end> denote items matching your name search\n".
-			"Item DB rips created using the {$aoiaPlusLink} tool.";
+		$footer = "QLs between <red>[<end>brackets<red>]<end> denote items matching your name search";
+		if (count(array_filter($data, fn (ItemSearchResult $i): bool => !$i->in_game))) {
+			$footer .= "\n<red>(!)<end> means: This item is GM/ARK-only, not in the game, or unavailable";
+		}
+		$footer .= "\nItem DB rips created using the {$aoiaPlusLink} tool.";
 
 		$msg = $this->createItemsBlob($data, $search, $ql, $this->settingManager->getString('aodb_db_version')??"unknown", $footer);
 
@@ -275,7 +285,7 @@ class ItemsController extends ModuleInstance {
 	 *
 	 * @return ItemSearchResult[]
 	 */
-	public function findItemsFromLocal(string $search, ?int $ql): array {
+	public function findItemsFromLocal(string $search, ?int $ql, bool $dontExclude=false): array {
 		$innerQuery = $this->db->table("aodb AS a")
 			->leftJoin("item_groups AS g", "g.item_id", "a.lowid");
 		$tmp = explode(" ", $search);
@@ -292,7 +302,7 @@ class ItemsController extends ModuleInstance {
 			->orderByDesc("a.highql")
 			->limit($this->maxitems)
 			->select("a.*", "g.group_id");
-		if ($this->onlyItemsInGame) {
+		if ($this->onlyItemsInGame && !$dontExclude) {
 			$innerQuery->where("a.in_game", true);
 		}
 		$query = $this->db->fromSub($innerQuery, "foo")
@@ -312,10 +322,31 @@ class ItemsController extends ModuleInstance {
 			->selectRaw($query->colFunc("COALESCE", ["a1.lowql", "a2.highql", "foo.highql"], "ql")->getValue())
 			->selectRaw($query->colFunc("COALESCE", ["a1.lowql", "a2.lowql", "foo.lowql"], "lowql")->getValue())
 			->selectRaw($query->colFunc("COALESCE", ["a1.highql", "a2.highql", "foo.highql"], "highql")->getValue());
-		$data = $query->asObj(ItemSearchResult::class)->toArray();
-		// $data = $this->orderSearchResults($data, $search);
-
-		return $data;
+		$data = $query->asObj(ItemSearchResult::class);
+		$data = $data->filter(function (ItemSearchResult $item): bool {
+			static $found = [];
+			if (isset($found[$item->lowid . '-' . $item->highid . ':' . $item->ql])) {
+				return false;
+			}
+			$found[$item->lowid . '-' . $item->highid . ':' . $item->ql] = true;
+			return true;
+		});
+		$groups = $data->groupBy("group_id");
+		$groupsProcessed = [];
+		$result = new Collection();
+		while (count($result) < $this->maxitems && $data->count() > 0) {
+			/** @var ItemSearchResult */
+			$nextItem = $data->shift(1);
+			if (!isset($nextItem->group_id) || !isset($groupsProcessed[$nextItem->group_id])) {
+				if (isset($nextItem->group_id)) {
+					$result->push(...$groups->get($nextItem->group_id)->toArray());
+					$groupsProcessed[$nextItem->group_id] = true;
+				} else {
+					$result->push($nextItem);
+				}
+			}
+		}
+		return $result->toArray();
 	}
 
 	/**
@@ -361,7 +392,7 @@ class ItemsController extends ModuleInstance {
 		}
 		$blob .= "\n";
 		$blob .= $this->formatSearchResults($data, $ql, true, $search);
-		if ($numItems === $this->maxitems) {
+		if ($numItems >= $this->maxitems) {
 			$blob .= "\n\n<highlight>*Results have been limited to the first {$this->maxitems} results.<end>";
 		}
 		$blob .= "\n\n" . $footer;
@@ -446,9 +477,11 @@ class ItemsController extends ModuleInstance {
 					}
 					if (!isset($row->group_name)) {
 						$row->name = $this->getLongestCommonStringOfWords($itemNames);
+					} else {
+						$row->name = $row->group_name;
 					}
 					if (!$inGame) {
-						$row->name .= " - <red>NOT IN GAME<end>";
+						$row->name .= " <red>(!)<end>";
 					}
 				}
 				if ($list !== '') {
@@ -470,7 +503,7 @@ class ItemsController extends ModuleInstance {
 			if (!isset($row->group_id)) {
 				$list .= $this->text->makeItem($row->lowid, $row->highid, $row->ql, $row->name);
 				if (!$row->in_game) {
-					$list .= " - <red> NOT IN GAME<end>";
+					$list .= " <red>(!)<end>";
 				}
 				$list .= " (QL {$row->ql})";
 			} else {

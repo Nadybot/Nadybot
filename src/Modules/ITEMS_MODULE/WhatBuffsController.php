@@ -393,6 +393,7 @@ class WhatBuffsController extends ModuleInstance {
 	 */
 	public function getSearchResults(string $category, Skill $skill, bool $froobFriendly): string|array {
 		$suffix = $froobFriendly ? "Froob" : "";
+		$addNotInGameNotice = false;
 		if ($category === 'Nanoprogram') {
 			$query = $this->db->table('buffs AS b');
 			$query
@@ -497,12 +498,18 @@ class WhatBuffsController extends ModuleInstance {
 				$data = $data->reverse();
 			}
 			$result = $this->formatItems($data->toArray(), $skill, $category);
+			if ($data->first(fn (ItemBuffSearchResult $i): bool => !$i->in_game)) {
+				$addNotInGameNotice = true;
+			}
 		}
 
 		[$count, $blob] = $result;
 		if ($count === 0) {
 			$msg = "No items found of type <highlight>{$category}<end> that buff <highlight>{$skill->name}<end>.";
 		} else {
+			if ($addNotInGameNotice) {
+				$blob .= "\n<red>(!)<end> means: This item is GM/ARK-only, not in the game, or unavailable";
+			}
 			$blob .= "\nItem Extraction Info provided by AOIA+";
 			$msg = $this->text->makeBlob("WhatBuffs{$suffix} - {$category} {$skill->name} ({$count})", $blob);
 		}
@@ -636,7 +643,7 @@ class WhatBuffsController extends ModuleInstance {
 			$blob .= $this->getSlotPrefix($item, $category);
 			$blob .= $this->showItemLink($item, $item->highql);
 			if (!$item->in_game) {
-				$blob .= " - <red>NOT IN GAME<end>";
+				$blob .= " <red>(!)<end>";
 			}
 			if ($item->amount > $item->low_amount) {
 				$blob .= " ({$item->low_amount} - {$item->amount})";
