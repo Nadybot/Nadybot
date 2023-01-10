@@ -82,11 +82,13 @@ class ItemsController extends ModuleInstance {
 	/**
 	 * Search for an item by name, optionally in a specific QL.
 	 * You can also use '-&lt;search&gt;' to exclude those matching the term
+	 * and prefix your search with * to include items not in game/gm-only.
 	 */
 	#[NCA\HandlesCommand("items")]
 	#[NCA\Help\Example("<symbol>items first tier nano")]
 	#[NCA\Help\Example("<symbol>items 133 first tier nano")]
 	#[NCA\Help\Example("<symbol>items panther -ofab")]
+	#[NCA\Help\Example("<symbol>items *ebony figurine")]
 	public function itemsCommand(CmdContext $context, ?int $ql, string $search): void {
 		$msg = $this->findItems($ql, $search);
 		$context->reply($msg);
@@ -240,8 +242,8 @@ class ItemsController extends ModuleInstance {
 				"         " . (($item->highid === $item->lowid) ? "         <black>|<end>" : $this->text->alignNumber($item->highql, 3) . "    ").
 				$item->name . "\n";
 		}
-		if (count($items) === $this->maxitems) {
-			$blob .= "\n\n<highlight>*Results have been limited to the first {$this->maxitems} results.<end>";
+		if (count($items) >= $this->maxitems) {
+			$blob .= "\n\n<highlight>*Results have been limited to the first " . count($items) . " results.<end>";
 		}
 		$msg = $this->text->makeBlob("Items matching \"{$search}\" (" . count($items) . ")", $blob);
 		$context->reply($msg);
@@ -393,7 +395,7 @@ class ItemsController extends ModuleInstance {
 		$blob .= "\n";
 		$blob .= $this->formatSearchResults($data, $ql, true, $search);
 		if ($numItems >= $this->maxitems) {
-			$blob .= "\n\n<highlight>*Results have been limited to the first {$this->maxitems} results.<end>";
+			$blob .= "\n\n<highlight>*Results have been limited to the first {$numItems} results.<end>";
 		}
 		$blob .= "\n\n" . $footer;
 		$link = $this->text->makeBlob("Item Search Results ({$numItems})", $blob);
