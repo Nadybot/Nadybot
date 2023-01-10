@@ -1,4 +1,4 @@
-# Version: 18.08.54.01
+# Version: 18.08.54.02
 group_id,name
 6055,"Biomech Armor Pants"
 6056,"Biomech Armor Helmet"
@@ -64,6 +64,7 @@ group_id,name
 6823,"Heavy Staff"
 6827,"Light Staff"
 6844,"MTI Sword"
+9548,"Biomech Armor Cloak"
 10083,"This Axe Belongs to Jack"
 10210,"Aggression Enhancer (Jealousy Augmented)"
 10212,"Tsubuyaite Miru GR-X"
