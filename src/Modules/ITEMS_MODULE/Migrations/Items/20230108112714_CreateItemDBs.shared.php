@@ -9,15 +9,16 @@ class CreateItemDBs implements SchemaMigration {
 	public function migrate(LoggerWrapper $logger, DB $db): void {
 		$db->schema()->dropIfExists("aodb");
 		$db->schema()->create("aodb", function (Blueprint $table): void {
-			$table->integer("lowid")->nullable()->index();
-			$table->integer("highid")->nullable()->index();
-			$table->integer("lowql")->nullable()->index();
-			$table->integer("highql")->nullable()->index();
-			$table->string("name", 150)->nullable()->index();
-			$table->integer("icon")->nullable();
-			$table->boolean("froob_friendly")->nullable()->index();
-			$table->integer("slot")->nullable();
-			$table->integer("flags")->nullable();
+			$table->integer("lowid")->nullable(false)->index();
+			$table->integer("highid")->nullable(false)->index();
+			$table->integer("lowql")->nullable(false)->index();
+			$table->integer("highql")->nullable(false)->index();
+			$table->string("name", 150)->nullable(false)->index();
+			$table->integer("icon")->nullable(false);
+			$table->boolean("froob_friendly")->nullable(false)->index();
+			$table->integer("slot")->nullable(false);
+			$table->integer("flags")->nullable(false);
+			$table->boolean("in_game")->nullable(false);
 		});
 
 		$db->schema()->dropIfExists("item_groups");

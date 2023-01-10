@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Add a new field `in_game` to the item database, so items that are not in the game, available to ARK/GM only, or are generally not applicable to the results (like tower wrist items) can be excluded from the `!items`- and `!whatbuffs` search. Also add a new setting `only_items_in_game` to turn the default exclusion on/off and do not exclude these, when the search is prefixed with a `*`
+
 ## [6.1.1] - 2023-01-07
 
 ### Added
