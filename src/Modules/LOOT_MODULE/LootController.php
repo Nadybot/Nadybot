@@ -71,6 +71,11 @@ use Nadybot\Modules\{
 		accessLevel: "guest",
 		description: "Remove yourself from a roll slot",
 	),
+	NCA\DefineCommand(
+		command: "ffa",
+		accessLevel: "rl",
+		description: "Declare the remaining loot FFA",
+	),
 ]
 class LootController extends ModuleInstance {
 	public const CMD_LOOT_MANAGE = "loot add/change/delete";
@@ -619,6 +624,66 @@ class LootController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
+	/** Announce the remaining loot to be free for all */
+	#[NCA\HandlesCommand("ffa")]
+	#[NCA\Help\Group("loot")]
+	public function ffaCommand(CmdContext $context): void {
+		if (!$this->chatLeaderController->checkLeaderAccess($context->char->name)) {
+			$context->reply("You must be Raid Leader to use this command.");
+			return;
+		}
+
+		// Check if a residual list exits
+		if (empty($this->residual)) {
+			$msg = "There are no remaining items to mark ffa.";
+			$context->reply($msg);
+			return;
+		}
+
+		$list = "";
+		$numItems = 0;
+		foreach ($this->residual as $key => $item) {
+			if ($item->icon !== null && $this->showLootPics) {
+				$list .= $this->text->makeImage($item->icon) . "\n";
+			}
+
+			$ml = "";
+			if ($item->multiloot > 1) {
+				$ml = $item->multiloot."x ";
+			}
+			$numItems += $item->multiloot;
+
+			$list .= "<header2>Slot #{$key}:<end> {$ml}<highlight>{$item->display}<end>";
+			if (isset($item->comment) && strlen($item->comment) && strpos($item->display, $item->comment) === false) {
+				$list .= " ({$item->comment})";
+			}
+		}
+
+		// Reset residual list
+		$this->residual = [];
+		// Create FFA message
+		$msg = "";
+		if ($numItems > 1) {
+			$blob = $this->text->makeBlob("All remaining items", $list, "These items are FFA");
+			$msg = $this->text->blobWrap(
+				"",
+				$blob,
+				" were declared <green>free for all<end> by <highlight>{$context->char->name}."
+			);
+		} else {
+			$blob = $this->text->makeBlob("The remaining item", $list, "This item is FFA");
+			$msg = $this->text->blobWrap(
+				"",
+				$blob,
+				" was declared <green>free for all<end> by <highlight>{$context->char->name}."
+			);
+		}
+		$this->chatBot->sendPrivate($msg);
+		if ($context->isDM()) {
+			$context->reply($msg);
+		}
+	}
+
 	/** Determine the winner(s) of the current loot roll */
 	#[NCA\HandlesCommand("flatroll")]
 	#[NCA\Help\Group("loot")]
@@ -710,14 +775,17 @@ class LootController extends ModuleInstance {
 		// Show winner list
 		if (!empty($this->residual)) {
 			$list .= "\n\n".
-				$this->text->makeChatcmd("Reroll remaining items", "/tell <myname> reroll");
+				$this->text->makeChatcmd("Reroll remaining items", "/tell <myname> reroll").
+				"<tab>".
+				$this->text->makeChatcmd("Announce remaining items FFA", "/tell <myname> ffa");
 		}
 		$msg = $this->text->makeBlob("Winner List", $list);
 		if (!empty($this->residual)) {
 			$msg = $this->text->blobWrap(
 				"",
 				$msg,
-				" (There are item(s) left to be rolled. To re-add, type <symbol>reroll)"
+				" (There are item(s) left to be rolled. To re-add, type <symbol>reroll, or ".
+				"use <symbol>ffa to make them free for all)"
 			);
 		}
 
