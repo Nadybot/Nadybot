@@ -37,10 +37,8 @@ class UpdateNotificationController extends ModuleInstance implements EventFeedHa
 			$mapper = new ObjectMapperUsingReflection();
 			$package = $mapper->hydrateObject(UpdateNotification::class, $data);
 			$myVersion = new SemanticVersion(BotRunner::getVersion(false));
-			if (isset($package->minVersion) && $package->minVersion->cmp($myVersion) > 0) {
-				return;
-			}
-			if (isset($package->maxVersion) && $package->maxVersion->cmp($myVersion) < 0) {
+			if (($package->minVersion?->cmp($myVersion) > 0)
+				|| ($package->maxVersion?->cmp($myVersion) < 0)) {
 				return;
 			}
 			$rMessage = new RoutableMessage(
