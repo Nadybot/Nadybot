@@ -28,8 +28,7 @@ use Throwable;
 	NCA\ProvidesEvent("event-feed(*)")
 ]
 class EventFeed {
-	// public const URI = "wss://ws.nadybot.org";
-	public const URI = "ws://127.0.0.1:3333";
+	public const URI = "wss://ws.nadybot.org";
 	public const RECONNECT_DELAY = 5;
 
 	#[NCA\Inject]
@@ -196,7 +195,7 @@ class EventFeed {
 		}
 	}
 
-	private function handleMessage(LowLevelEventFeedEvent $event): void {
+	private function handleMessage(LowLevelEventFeedEvent $event): Generator {
 		assert($event->highwayPackage instanceof Highway\Message);
 		$this->logger->info("Message from global event feed for room {room}: {message}", [
 			"room" => $event->highwayPackage->room,
@@ -210,10 +209,18 @@ class EventFeed {
 		/** @var EventFeedHandler[] */
 		$handlers = $this->roomHandlers[$event->highwayPackage->room] ?? [];
 		foreach ($handlers as $handler) {
-			$handler->handleEventFeedMessage(
-				$event->highwayPackage->room,
-				$body,
-			);
+			try {
+				yield $handler->handleEventFeedMessage(
+					$event->highwayPackage->room,
+					$body,
+				);
+			} catch (Throwable $e) {
+				$this->logger->error("Error handling global event in {room}: {error}", [
+					"room" => $event->highwayPackage->room,
+					"error" => $e->getMessage(),
+					"exception" => $e,
+				]);
+			}
 		}
 	}
 
