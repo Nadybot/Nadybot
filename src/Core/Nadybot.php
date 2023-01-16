@@ -89,6 +89,9 @@ class Nadybot extends AOChat {
 	public Timer $timer;
 
 	#[NCA\Inject]
+	public EventFeed $eventFeed;
+
+	#[NCA\Inject]
 	public LimitsController $limitsController;
 
 	#[NCA\Inject]
@@ -365,6 +368,7 @@ class Nadybot extends AOChat {
 	/** The main endless-loop of the bot */
 	public function run(): void {
 		Loop::run(function () {
+			$this->eventFeed->mainLoop();
 			assert(is_resource($this->socket));
 			Loop::setErrorHandler(function (Throwable $e): void {
 				if ($e instanceof StopExecutionException) {
