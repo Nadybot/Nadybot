@@ -6,7 +6,7 @@ use const Amp\File\LOOP_STATE_IDENTIFIER;
 use function Amp\File\createDefaultDriver;
 use function Safe\json_encode;
 use Amp\File\Driver\{EioDriver, ParallelDriver};
-use Amp\File\Filesystem;
+use Amp\File\{Driver, Filesystem};
 use Amp\Http\Client\HttpClientBuilder;
 use Amp\Http\Client\Interceptor\SetRequestHeaderIfUnset;
 use Amp\{Loop, Promise};
@@ -275,7 +275,12 @@ class BotRunner {
 		$this->setWindowTitle($config);
 
 		$version = self::getVersion();
-		$fsDriver = createDefaultDriver();
+		$fsDriverClass = getenv('AMP_FS_DRIVER');
+		if ($fsDriverClass !== false && class_exists($fsDriverClass) && is_subclass_of($fsDriverClass, Driver::class)) {
+			$fsDriver = new $fsDriverClass();
+		} else {
+			$fsDriver = createDefaultDriver();
+		}
 		if ($fsDriver instanceof EioDriver) {
 			$fsDriver = new ParallelDriver();
 		}

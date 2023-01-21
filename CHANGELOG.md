@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add a new field `in_game` to the item database, so items that are not in the game, available to ARK/GM only, or are generally not applicable to the results (like tower wrist items) can be excluded from the `!items`- and `!whatbuffs` search. Also add a new setting `only_items_in_game` to turn the default exclusion on/off and do not exclude these, when the search is prefixed with a `*`
 - Add new `!ffa`-command that announces the items after a `!flatroll` as free for all.
 - Support for the long-existing update_notifications feed to inform about security updates and scheduled downtimes.
+- Allow selecting the filesystem driver by setting `AMP_FS_DRIVER` to `\Amp\File\Driver\BlockingDriver` or any of its alternatives.
 
 ### Changed
 
