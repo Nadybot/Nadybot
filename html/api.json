@@ -864,7 +864,7 @@
 				"properties": {
 					"available": {
 						"type": "integer",
-						"description": "Maximum available memory for PHP in MB"
+						"description": "Maximum available memory for PHP in bytes"
 					},
 					"current_usage": {
 						"type": "integer",
