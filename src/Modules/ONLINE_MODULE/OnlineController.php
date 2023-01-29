@@ -786,6 +786,7 @@ class OnlineController extends ModuleInstance {
 
 		$totalCount = $orgList->count + $privList->count;
 		$totalMain = $orgList->countMains + $privList->countMains;
+		$mains = [...$orgList->mains, ...$privList->mains];
 
 		$blob = "\n";
 		if ($orgList->count > 0) {
@@ -808,6 +809,7 @@ class OnlineController extends ModuleInstance {
 					$guildCount++;
 					$totalCount++;
 					$totalMain++;
+					$mains []= $user;
 				}
 			}
 			$blob .= "<header2>{$serverName} ({$guildCount})<end>\n".
@@ -818,15 +820,18 @@ class OnlineController extends ModuleInstance {
 		$blob2 = '';
 		$allianceTotalCount = 0;
 		$allianceTotalMain = 0;
+		$allianceMains = [];
 		if ($includeRelay !== self::RELAY_OFF) {
 			foreach ($relayList as $chanName => $chanList) {
 				if ($chanList->count > 0) {
 					if ($this->onlineRelayGroupBy === self::GROUP_BY_MAIN) {
 						$part = "<highlight>{$chanName}<end> on\n".
 							$chanList->blob ."\n";
+						$allianceMains []= $chanName;
 					} else {
 						$part = "<header2>{$chanName} ({$chanList->count})<end>\n".
 							$chanList->blob ."\n";
+						$allianceMains = [...$allianceMains, ...$chanList->mains];
 					}
 					if ($this->onlineRelayGroupBy === self::GROUP_BY_MAIN) {
 						$blob2 .= $part;
@@ -849,9 +854,13 @@ class OnlineController extends ModuleInstance {
 		if ($includeRelay !== self::RELAY_SEPARATE) {
 			$totalCount += $allianceTotalCount;
 			$totalMain += $allianceTotalMain;
+			$mains = [...$mains, ...$allianceMains];
 		}
 
 		$msg = [];
+		if ($this->onlineGroupBy === self::GROUP_BY_PLAYER) {
+			$totalMain = count(array_unique($mains));
+		}
 		if ($totalCount > 0) {
 			$blob .= "Originally written by Naturarum (RK2)";
 			$msg = (array)$this->text->makeBlob("Players Online ({$totalMain})", $blob);
@@ -954,6 +963,7 @@ class OnlineController extends ModuleInstance {
 		$list = new OnlineList();
 		$list->count = count($players);
 		$list->countMains = 0;
+		$list->mains = [];
 		$list->blob = "";
 
 		if ($list->count === 0) {
@@ -971,6 +981,7 @@ class OnlineController extends ModuleInstance {
 		foreach ($players as $player) {
 			if ($groupBy === static::GROUP_BY_PLAYER) {
 				if ($currentGroup !== $player->pmain) {
+					$list->mains []= $player->pmain;
 					$list->countMains++;
 					if (isset($player->nick)) {
 						$displayNick = $this->text->renderPlaceholders(
@@ -1001,6 +1012,7 @@ class OnlineController extends ModuleInstance {
 					$currentGroup = $player->faction;
 				}
 			} else {
+				$list->mains []= $player->name;
 				$list->countMains++;
 			}
 

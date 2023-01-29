@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Global event feed is no longer implemented as a hidden relay, but completely from scratch to allow any number of feed subscribers and doesn't require the `RELAY_MODULE` to be enabled.
+- When grouping the online list by player/main, show the actual unique number of main characters of all online providers in brackets. If one character is online in the private channel and the org channel, this means it won't be counted twice anymore.
 
 ## [6.1.1] - 2023-01-07
 
