@@ -3,9 +3,9 @@
 namespace Nadybot\Core;
 
 use function Amp\Promise\all;
-use function Amp\{asyncCall, call};
-use function Safe\json_encode;
-
+use function Amp\{asyncCall, call, delay};
+use function Safe\{json_encode, preg_split};
+use Amp\Http\Client\{HttpClientBuilder, Request, Response};
 use Amp\{
 	Coroutine,
 	Loop,
@@ -90,6 +90,9 @@ class Nadybot extends AOChat {
 
 	#[NCA\Inject]
 	public EventFeed $eventFeed;
+
+	#[NCA\Inject]
+	public HttpClientBuilder $http;
 
 	#[NCA\Inject]
 	public LimitsController $limitsController;
@@ -298,8 +301,27 @@ class Nadybot extends AOChat {
 		}
 
 		$this->logger->notice("Authenticate login data...");
-		if (null === $this->authenticate($login, $password)) {
-			$this->logger->critical("Login failed.");
+		try {
+			if (null === $this->authenticate($login, $password)) {
+				$this->logger->critical("Login failed.");
+				sleep(10);
+				exit(1);
+			}
+		} catch (AccountFrozenException) {
+			if ($this->unfreezeAccount($login, $password)) {
+				$this->disconnect();
+				$this->connectAO($login, $password, $server, $port);
+				return;
+			}
+			$this->logger->critical(
+				"The account {account} is frozen. ".
+				"Please go to {url} to unfreeze it, or activate ".
+				"the \"auto_unfreeze\" option in your config file.",
+				[
+					"account" => $login,
+					"url" => "https://register.funcom.com/account",
+				]
+			);
 			sleep(10);
 			exit(1);
 		}
@@ -1592,6 +1614,68 @@ class Nadybot extends AOChat {
 				->registerMessageEmitter($oc)
 				->registerMessageReceiver($oc);
 		}
+		return $result;
+	}
+
+	protected function unfreezeAccount(string $user, string $password): bool {
+		if ($this->config->autoUnfreeze === false) {
+			return false;
+		}
+		$result = false;
+		Loop::run(function () use (&$result, $user, $password): Generator {
+			$this->logger->warning('Account frozen, trying to unfreeze');
+			$user = strtolower($user);
+			$client = $this->http->followRedirects(0)->build();
+			$request = new Request('https://register.funcom.com/account', "POST");
+			$request->setBody(http_build_query(["__ac_name" => $user, "__ac_password" => $password]));
+			$request->addHeader("User-Agent", "Nadybot " . BotRunner::getVersion(false));
+			$request->addHeader("Content-Type", "application/x-www-form-urlencoded");
+			$request->addHeader("Origin", "https://register.funcom.com");
+			$request->addHeader("Referer", "https://register.funcom.com/account");
+
+			/** @var Response */
+			$response = yield $client->request($request);
+			if ($response->getStatus() !== 302) {
+				$this->logger->error('Unable to login to the account management website');
+				Loop::stop();
+				return false;
+			}
+			$cookies = $response->getHeaderArray('Set-Cookie');
+			$cookieValues = [];
+			foreach ($cookies as $cookie) {
+				$cookieParts = preg_split("/;\s*/", $cookie);
+				if ($cookieParts !== false) {
+					$cookieValues []= $cookieParts[0];
+				}
+			}
+
+			$request = new Request(
+				"https://register.funcom.com/account/subscription/ctrl/anarchy/{$user}/reactivate",
+				"POST",
+			);
+			$request->setBody(http_build_query(["process" => 'submit']));
+			$request->addHeader("User-Agent", "Nadybot " . BotRunner::getVersion(false));
+			$request->addHeader("Content-Type", "application/x-www-form-urlencoded");
+			$request->addHeader("Referer", "https://register.funcom.com/account/subscription/ctrl/anarchy/{$user}/reactivate");
+			$request->addHeader("Cookie", implode("; ", $cookieValues));
+
+			/** @var Response */
+			$response = yield $client->request($request);
+			if ($response->getStatus() !== 200) {
+				Loop::stop();
+				return false;
+			}
+			$body = yield $response->getBody()->buffer();
+			if (strpos($body, "<div>Subscription Reactivated</div>") === false) {
+				Loop::stop();
+				return false;
+			}
+			$this->logger->notice("Account unfrozen successfully, waiting 5s before login");
+			yield delay(5000);
+			$result = true;
+			Loop::stop();
+			return true;
+		});
 		return $result;
 	}
 

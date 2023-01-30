@@ -39,6 +39,7 @@ class ConfigFile {
 	 * @param int         $defaultModuleStatus Default status for new modules: 1 for enabled, 0 for disabled.
 	 * @param int         $enableConsoleClient Enable the readline-based console interface to the bot?
 	 * @param int         $enablePackageModule Enable the module to install other modules from within the bot
+	 * @param bool        $autoUnfreeze        Try to automatically unfreeze frozen bot accounts
 	 * @param int         $useProxy            Use an AO Chat Proxy? 1 for enabled, 0 for disabled
 	 * @param int         $proxyPort
 	 * @param string[]    $moduleLoadPaths     Define additional paths from where Nadybot should load modules at startup
@@ -67,6 +68,7 @@ class ConfigFile {
 		public int $defaultModuleStatus=0,
 		#[CastToType('int')] public int $enableConsoleClient=1,
 		#[CastToType('int')] public int $enablePackageModule=1,
+		#[CastToType('bool')] public bool $autoUnfreeze=false,
 		#[CastToType('int')] public int $useProxy=0,
 		public string $proxyServer="127.0.0.1",
 		#[CastToType('int')] public int $proxyPort=9993,
