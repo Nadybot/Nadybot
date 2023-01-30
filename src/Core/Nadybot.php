@@ -1662,11 +1662,13 @@ class Nadybot extends AOChat {
 			/** @var Response */
 			$response = yield $client->request($request);
 			if ($response->getStatus() !== 200) {
+				$this->logger->notice("There was an error unfreezing the account");
 				Loop::stop();
 				return false;
 			}
 			$body = yield $response->getBody()->buffer();
 			if (strpos($body, "<div>Subscription Reactivated</div>") === false) {
+				$this->logger->notice("There was an error unfreezing the account");
 				Loop::stop();
 				return false;
 			}
