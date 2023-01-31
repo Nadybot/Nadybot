@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "1c47b09638726a410f138640fcadfbec",
+    "content-hash": "83a0b462493836c3097ca04fd8741ff2",
     "packages": [
         {
             "name": "amphp/amp",
@@ -640,6 +640,66 @@
                 }
             ],
             "time": "2021-10-09T14:11:46+00:00"
+        },
+        {
+            "name": "amphp/http-tunnel",
+            "version": "v1.0.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/amphp/http-tunnel.git",
+                "reference": "074b70d1fdba6c3c270b411e0290ed7c48edf53c"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/amphp/http-tunnel/zipball/074b70d1fdba6c3c270b411e0290ed7c48edf53c",
+                "reference": "074b70d1fdba6c3c270b411e0290ed7c48edf53c",
+                "shasum": ""
+            },
+            "require": {
+                "amphp/amp": "^2.4",
+                "amphp/byte-stream": "^1.7",
+                "amphp/http-client": "^4",
+                "amphp/socket": "^1",
+                "php": ">=7.2"
+            },
+            "require-dev": {
+                "amphp/php-cs-fixer-config": "dev-master",
+                "amphp/phpunit-util": "^1.1",
+                "amphp/react-adapter": "^2.1",
+                "leproxy/leproxy": "^0.2.2",
+                "phpunit/phpunit": "^7 || ^8"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Amp\\Http\\Tunnel\\": "src"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Niklas Keller",
+                    "email": "me@kelunik.com"
+                }
+            ],
+            "description": "HTTP/1.1 CONNECT tunnel connector built on the Amp concurrency framework",
+            "homepage": "https://github.com/amphp/http-tunnel",
+            "keywords": [
+                "amphp",
+                "async",
+                "connect",
+                "connector",
+                "http",
+                "tunnel"
+            ],
+            "support": {
+                "issues": "https://github.com/amphp/http-tunnel/issues",
+                "source": "https://github.com/amphp/http-tunnel/tree/v1.0.0"
+            },
+            "time": "2019-12-31T17:02:12+00:00"
         },
         {
             "name": "amphp/parallel",
