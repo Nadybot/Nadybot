@@ -4,13 +4,18 @@ namespace Nadybot\Core;
 
 use function Amp\Promise\all;
 use function Amp\{asyncCall, call, delay};
-use function Safe\{json_encode, preg_split};
-use Amp\Http\Client\{HttpClientBuilder, Request, Response};
+use function Safe\{json_decode, json_encode, preg_split};
+use Amp\Http\Client\Connection\{DefaultConnectionFactory, UnlimitedConnectionPool};
+use Amp\Http\Client\{HttpClient, HttpClientBuilder, Request, Response, SocketException, TimeoutException};
+use Amp\Http\Tunnel\{Http1TunnelConnector, Https1TunnelConnector};
+use Amp\Socket\SocketAddress;
 use Amp\{
+	CancelledException,
 	Coroutine,
 	Loop,
 	Promise,
 	Success,
+	TimeoutCancellationToken,
 };
 use Exception;
 use Generator;
@@ -39,6 +44,7 @@ use ReflectionAttribute;
 use ReflectionClass;
 use ReflectionNamedType;
 use ReflectionProperty;
+use Safe\Exceptions\JsonException;
 use Throwable;
 
 /**
@@ -1617,6 +1623,38 @@ class Nadybot extends AOChat {
 		return $result;
 	}
 
+	/** @return Promise<?string> */
+	protected function getRandomProxy(): Promise {
+		static $proxies = [];
+		return call(function () use (&$proxies): Generator {
+			if (empty($proxies)) {
+				$client = $this->http->build();
+				$request = new Request('https://assapi.fofofofofofofofo.com/proxy/all');
+
+				/** @var Response */
+				$response = yield $client->request($request);
+				if ($response->getStatus() !== 200) {
+					return null;
+				}
+				$json = yield $response->getBody()->buffer();
+				try {
+					$proxies = json_decode($json, true);
+				} catch (JsonException) {
+					return null;
+				}
+			}
+			$key = array_rand($proxies);
+			if (!is_int($key)) {
+				return null;
+			}
+			$hits = array_slice($proxies, $key, 1);
+			if (count($hits) !== 1) {
+				return null;
+			}
+			return $hits[0];
+		});
+	}
+
 	protected function unfreezeAccount(string $user, string $password): bool {
 		if ($this->config->autoUnfreeze === false) {
 			return false;
@@ -1624,17 +1662,36 @@ class Nadybot extends AOChat {
 		$result = false;
 		Loop::run(function () use (&$result, $user, $password): Generator {
 			$this->logger->warning('Account frozen, trying to unfreeze');
-			$user = strtolower($user);
-			$client = $this->http->followRedirects(0)->build();
-			$request = new Request('https://register.funcom.com/account', "POST");
-			$request->setBody(http_build_query(["__ac_name" => $user, "__ac_password" => $password]));
-			$request->addHeader("User-Agent", "Nadybot " . BotRunner::getVersion(false));
-			$request->addHeader("Content-Type", "application/x-www-form-urlencoded");
-			$request->addHeader("Origin", "https://register.funcom.com");
-			$request->addHeader("Referer", "https://register.funcom.com/account");
 
-			/** @var Response */
-			$response = yield $client->request($request);
+			do {
+				/** @var HttpClient */
+				$client = yield $this->getUnfreezeClient();
+				$user = strtolower($user);
+				$request = new Request('https://register.funcom.com/account', "POST");
+				$request->setBody(http_build_query(["__ac_name" => $user, "__ac_password" => $password]));
+				$request->addHeader("User-Agent", "Nadybot " . BotRunner::getVersion(false));
+				$request->addHeader("Content-Type", "application/x-www-form-urlencoded");
+				$request->addHeader("Origin", "https://register.funcom.com");
+				$request->addHeader("Referer", "https://register.funcom.com/account");
+				$request->setTcpConnectTimeout(5000);
+				$request->setTlsHandshakeTimeout(5000);
+				$request->setTransferTimeout(5000);
+
+				try {
+					/** @var Response */
+					$response = yield $client->request($request, new TimeoutCancellationToken(10000));
+				} catch (CancelledException) {
+					$this->logger->notice("Proxy not working or too slow.");
+				} catch (SocketException) {
+					$this->logger->notice("Proxy not working.");
+				} catch (TimeoutException) {
+					$this->logger->notice("Proxy not working.");
+				} catch (Throwable $e) {
+					$this->logger->notice("Proxy giving an error: {error}.", [
+						"error" => $e->getMessage(),
+					]);
+				}
+			} while (!isset($response));
 			if ($response->getStatus() !== 302) {
 				$this->logger->error('Unable to login to the account management website');
 				Loop::stop();
@@ -1679,6 +1736,33 @@ class Nadybot extends AOChat {
 			return true;
 		});
 		return $result;
+	}
+
+	/** @return Promise<HttpClient> */
+	private function getUnfreezeClient(): Promise {
+		return call(function (): Generator {
+			$builder = $this->http->followRedirects(0);
+			$proxy = yield $this->getRandomProxy();
+			if (isset($proxy)) {
+				$proxyHost = parse_url($proxy, PHP_URL_HOST);
+				$proxyScheme = parse_url($proxy, PHP_URL_SCHEME);
+				$proxyPort = parse_url($proxy, PHP_URL_PORT) ?? ($proxyScheme === 'https' ? 443 : 80);
+				if (is_string($proxyScheme) && is_string($proxyHost) && is_int($proxyPort)) {
+					if ($proxyScheme === 'https') {
+						$connector = new Https1TunnelConnector(new SocketAddress($proxyHost, $proxyPort));
+					} else {
+						$connector = new Http1TunnelConnector(new SocketAddress($proxyHost, $proxyPort));
+					}
+					$builder = $builder->usingPool(
+						new UnlimitedConnectionPool(new DefaultConnectionFactory($connector))
+					);
+					$this->logger->notice("Unfreezing with proxy {proxy}.", [
+						"proxy" => "{$proxyScheme}://{$proxyHost}:{$proxyPort}",
+					]);
+				}
+			}
+			return $builder->build();
+		});
 	}
 
 	/**
