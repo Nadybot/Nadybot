@@ -45,6 +45,7 @@ cat > /tmp/config.php << DONE
 \$vars['proxy_server'] = "${CONFIG_PROXY_SERVER:-127.0.0.1}";
 \$vars['proxy_port'] = ${CONFIG_PROXY_PORT:-9993};
 \$vars['API Port'] = ${CONFIG_API_PORT:-5250};
+\$vars['auto_unfreeze'] = ${CONFIG_AUTO_UNFREEZE:-false};
 
 \$vars['module_load_paths'] = [
 	'./src/Modules',
