@@ -4,10 +4,10 @@ namespace Nadybot\Core;
 
 use function Amp\Promise\all;
 use function Amp\{asyncCall, call, delay};
-use function Safe\{json_decode, json_encode, preg_split};
+use function Safe\{json_encode, preg_split};
 use Amp\Http\Client\Connection\{DefaultConnectionFactory, UnlimitedConnectionPool};
 use Amp\Http\Client\{HttpClient, HttpClientBuilder, Request, Response, SocketException, TimeoutException};
-use Amp\Http\Tunnel\{Http1TunnelConnector, Https1TunnelConnector};
+use Amp\Http\Tunnel\Http1TunnelConnector;
 use Amp\Socket\SocketAddress;
 use Amp\{
 	CancelledException,
@@ -44,7 +44,6 @@ use ReflectionAttribute;
 use ReflectionClass;
 use ReflectionNamedType;
 use ReflectionProperty;
-use Safe\Exceptions\JsonException;
 use Throwable;
 
 /**
@@ -1623,38 +1622,6 @@ class Nadybot extends AOChat {
 		return $result;
 	}
 
-	/** @return Promise<?string> */
-	protected function getRandomProxy(): Promise {
-		static $proxies = [];
-		return call(function () use (&$proxies): Generator {
-			if (empty($proxies)) {
-				$client = $this->http->build();
-				$request = new Request('https://assapi.fofofofofofofofo.com/proxy/all');
-
-				/** @var Response */
-				$response = yield $client->request($request);
-				if ($response->getStatus() !== 200) {
-					return null;
-				}
-				$json = yield $response->getBody()->buffer();
-				try {
-					$proxies = json_decode($json, true);
-				} catch (JsonException) {
-					return null;
-				}
-			}
-			$key = array_rand($proxies);
-			if (!is_int($key)) {
-				return null;
-			}
-			$hits = array_slice($proxies, $key, 1);
-			if (count($hits) !== 1) {
-				return null;
-			}
-			return $hits[0];
-		});
-	}
-
 	protected function unfreezeAccount(string $user, string $password): bool {
 		if ($this->config->autoUnfreeze === false) {
 			return false;
@@ -1664,8 +1631,7 @@ class Nadybot extends AOChat {
 			$this->logger->warning('Account frozen, trying to unfreeze');
 
 			do {
-				/** @var HttpClient */
-				$client = yield $this->getUnfreezeClient();
+				$client = $this->getUnfreezeClient();
 				$user = strtolower($user);
 				$request = new Request('https://register.funcom.com/account', "POST");
 				$request->setBody(http_build_query(["__ac_name" => $user, "__ac_password" => $password]));
@@ -1681,11 +1647,11 @@ class Nadybot extends AOChat {
 					/** @var Response */
 					$response = yield $client->request($request, new TimeoutCancellationToken(10000));
 				} catch (CancelledException) {
-					$this->logger->notice("Proxy not working or too slow.");
+					$this->logger->notice("Proxy not working or too slow. Retrying.");
 				} catch (SocketException) {
-					$this->logger->notice("Proxy not working.");
+					$this->logger->notice("Proxy not working. Retrying.");
 				} catch (TimeoutException) {
-					$this->logger->notice("Proxy not working.");
+					$this->logger->notice("Proxy not working. Retrying.");
 				} catch (Throwable $e) {
 					$this->logger->notice("Proxy giving an error: {error}.", [
 						"error" => $e->getMessage(),
@@ -1738,31 +1704,20 @@ class Nadybot extends AOChat {
 		return $result;
 	}
 
-	/** @return Promise<HttpClient> */
-	private function getUnfreezeClient(): Promise {
-		return call(function (): Generator {
-			$builder = $this->http->followRedirects(0);
-			$proxy = yield $this->getRandomProxy();
-			if (isset($proxy)) {
-				$proxyHost = parse_url($proxy, PHP_URL_HOST);
-				$proxyScheme = parse_url($proxy, PHP_URL_SCHEME);
-				$proxyPort = parse_url($proxy, PHP_URL_PORT) ?? ($proxyScheme === 'https' ? 443 : 80);
-				if (is_string($proxyScheme) && is_string($proxyHost) && is_int($proxyPort)) {
-					if ($proxyScheme === 'https') {
-						$connector = new Https1TunnelConnector(new SocketAddress($proxyHost, $proxyPort));
-					} else {
-						$connector = new Http1TunnelConnector(new SocketAddress($proxyHost, $proxyPort));
-					}
-					$builder = $builder->usingPool(
-						new UnlimitedConnectionPool(new DefaultConnectionFactory($connector))
-					);
-					$this->logger->notice("Unfreezing with proxy {proxy}.", [
-						"proxy" => "{$proxyScheme}://{$proxyHost}:{$proxyPort}",
-					]);
-				}
-			}
-			return $builder->build();
-		});
+	/** Get a HttpClient that uses the Nadybot proxy to unfreeze an account */
+	private function getUnfreezeClient(): HttpClient {
+		return $this->http
+			->followRedirects(0)
+			->usingPool(
+				new UnlimitedConnectionPool(
+					new DefaultConnectionFactory(
+						new Http1TunnelConnector(
+							new SocketAddress('proxy.nadybot.org', 22222)
+						)
+					)
+				)
+			)
+			->build();
 	}
 
 	/**
