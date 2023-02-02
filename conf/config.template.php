@@ -49,7 +49,9 @@ $vars['enable_console_client'] = 1;
 $vars['enable_package_module'] = 1;
 
 // Try to automatically unfreeze frozen accounts
-$vars['auto_unfreeze'] = false;
+$vars['auto_unfreeze'] = true;
+$vars['auto_unfreeze_login'] = null;
+$vars['auto_unfreeze_password'] = null;
 
 // Use AO Chat Proxy? 1 for enabled, 0 for disabled.
 $vars['use_proxy']    = 0;

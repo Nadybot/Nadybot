@@ -3,19 +3,14 @@
 namespace Nadybot\Core;
 
 use function Amp\Promise\all;
-use function Amp\{asyncCall, call, delay};
-use function Safe\{json_encode, preg_split};
-use Amp\Http\Client\Connection\{DefaultConnectionFactory, UnlimitedConnectionPool};
-use Amp\Http\Client\{HttpClient, HttpClientBuilder, Request, Response, SocketException, TimeoutException};
-use Amp\Http\Tunnel\Http1TunnelConnector;
-use Amp\Socket\SocketAddress;
+use function Amp\{asyncCall, call};
+use function Safe\json_encode;
+use Amp\Http\Client\HttpClientBuilder;
 use Amp\{
-	CancelledException,
 	Coroutine,
 	Loop,
 	Promise,
 	Success,
-	TimeoutCancellationToken,
 };
 use Exception;
 use Generator;
@@ -83,6 +78,9 @@ class Nadybot extends AOChat {
 
 	#[NCA\Inject]
 	public BanController $banController;
+
+	#[NCA\Inject]
+	public AccountUnfreezer $accountUnfreezer;
 
 	#[NCA\Inject]
 	public Text $text;
@@ -313,8 +311,16 @@ class Nadybot extends AOChat {
 				exit(1);
 			}
 		} catch (AccountFrozenException) {
-			if ($this->unfreezeAccount($login, $password)) {
+			if ($this->config->autoUnfreeze
+				&& $this->accountUnfreezer->unfreeze(
+					$this->config->autoUnfreezeLogin ?? $login,
+					$this->config->autoUnfreezePassword ?? $password,
+					$login,
+				)
+			) {
 				$this->disconnect();
+				$this->logger->notice("Waiting 5s before retrying login");
+				sleep(5);
 				$this->connectAO($login, $password, $server, $port);
 				return;
 			}
@@ -1620,104 +1626,6 @@ class Nadybot extends AOChat {
 				->registerMessageReceiver($oc);
 		}
 		return $result;
-	}
-
-	protected function unfreezeAccount(string $user, string $password): bool {
-		if ($this->config->autoUnfreeze === false) {
-			return false;
-		}
-		$result = false;
-		Loop::run(function () use (&$result, $user, $password): Generator {
-			$this->logger->warning('Account frozen, trying to unfreeze');
-
-			do {
-				$client = $this->getUnfreezeClient();
-				$user = strtolower($user);
-				$request = new Request('https://register.funcom.com/account', "POST");
-				$request->setBody(http_build_query(["__ac_name" => $user, "__ac_password" => $password]));
-				$request->addHeader("User-Agent", "Nadybot " . BotRunner::getVersion(false));
-				$request->addHeader("Content-Type", "application/x-www-form-urlencoded");
-				$request->addHeader("Origin", "https://register.funcom.com");
-				$request->addHeader("Referer", "https://register.funcom.com/account");
-				$request->setTcpConnectTimeout(5000);
-				$request->setTlsHandshakeTimeout(5000);
-				$request->setTransferTimeout(5000);
-
-				try {
-					/** @var Response */
-					$response = yield $client->request($request, new TimeoutCancellationToken(10000));
-				} catch (CancelledException) {
-					$this->logger->notice("Proxy not working or too slow. Retrying.");
-				} catch (SocketException) {
-					$this->logger->notice("Proxy not working. Retrying.");
-				} catch (TimeoutException) {
-					$this->logger->notice("Proxy not working. Retrying.");
-				} catch (Throwable $e) {
-					$this->logger->notice("Proxy giving an error: {error}.", [
-						"error" => $e->getMessage(),
-					]);
-				}
-			} while (!isset($response));
-			if ($response->getStatus() !== 302) {
-				$this->logger->error('Unable to login to the account management website');
-				Loop::stop();
-				return false;
-			}
-			$cookies = $response->getHeaderArray('Set-Cookie');
-			$cookieValues = [];
-			foreach ($cookies as $cookie) {
-				$cookieParts = preg_split("/;\s*/", $cookie);
-				if ($cookieParts !== false) {
-					$cookieValues []= $cookieParts[0];
-				}
-			}
-
-			$request = new Request(
-				"https://register.funcom.com/account/subscription/ctrl/anarchy/{$user}/reactivate",
-				"POST",
-			);
-			$request->setBody(http_build_query(["process" => 'submit']));
-			$request->addHeader("User-Agent", "Nadybot " . BotRunner::getVersion(false));
-			$request->addHeader("Content-Type", "application/x-www-form-urlencoded");
-			$request->addHeader("Referer", "https://register.funcom.com/account/subscription/ctrl/anarchy/{$user}/reactivate");
-			$request->addHeader("Cookie", implode("; ", $cookieValues));
-
-			/** @var Response */
-			$response = yield $client->request($request);
-			if ($response->getStatus() !== 200) {
-				$this->logger->notice("There was an error unfreezing the account");
-				Loop::stop();
-				return false;
-			}
-			$body = yield $response->getBody()->buffer();
-			if (strpos($body, "<div>Subscription Reactivated</div>") === false) {
-				$this->logger->notice("There was an error unfreezing the account");
-				Loop::stop();
-				return false;
-			}
-			$this->logger->notice("Account unfrozen successfully, waiting 5s before login");
-			yield delay(5000);
-			$result = true;
-			Loop::stop();
-			return true;
-		});
-		return $result;
-	}
-
-	/** Get a HttpClient that uses the Nadybot proxy to unfreeze an account */
-	private function getUnfreezeClient(): HttpClient {
-		return $this->http
-			->followRedirects(0)
-			->usingPool(
-				new UnlimitedConnectionPool(
-					new DefaultConnectionFactory(
-						new Http1TunnelConnector(
-							new SocketAddress('proxy.nadybot.org', 22222)
-						)
-					)
-				)
-			)
-			->build();
 	}
 
 	/**

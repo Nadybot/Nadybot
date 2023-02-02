@@ -14,6 +14,8 @@ errorMessage() {
 [ -z "$CONFIG_DB_NAME" ] && errorMessage "You have to specify the name of the database by setting \$CONFIG_DB_NAME"
 [ -z "$CONFIG_DB_HOST" ] && errorMessage "You have to specify the host/socket/directory of the database by setting \$CONFIG_DB_HOST"
 [ -n "$CONFIG_LOG_LEVEL" ] && ( echo "$CONFIG_LOG_LEVEL" | grep -q -v -i -E '^(DEBUG|INFO|NOTICE|WARNING|ERROR|CRITICAL|ALERT|EMERGENCY)$' ) && errorMessage "You have specified an invalid \$CONFIG_LOG_LEVEL. Allowed values are DEBUG, INFO, NOTICE, WARNING, ERROR, CRITICAL, ALERT and EMERGENCY."
+[ -z "$CONFIG_AUTO_UNFREEZE_LOGIN" ] || CONFIG_AUTO_UNFREEZE_LOGIN="\"${CONFIG_AUTO_UNFREEZE_LOGIN}\""
+[ -z "$CONFIG_AUTO_UNFREEZE_PASSWORD" ] || CONFIG_AUTO_UNFREEZE_PASSWORD="\"${CONFIG_AUTO_UNFREEZE_PASSWORD}\""
 
 cd /nadybot || exit
 EXTRA_SETTINGS=$(set | grep '^CONFIG_SETTING_' | sed -e 's/^CONFIG_SETTING_//g'| while read -r SETTING; do
@@ -46,6 +48,8 @@ cat > /tmp/config.php << DONE
 \$vars['proxy_port'] = ${CONFIG_PROXY_PORT:-9993};
 \$vars['API Port'] = ${CONFIG_API_PORT:-5250};
 \$vars['auto_unfreeze'] = ${CONFIG_AUTO_UNFREEZE:-false};
+\$vars['auto_unfreeze_login'] = ${CONFIG_AUTO_UNFREEZE_LOGIN:-null};
+\$vars['auto_unfreeze_password'] = ${CONFIG_AUTO_UNFREEZE_PASSWORD:-null};
 
 \$vars['module_load_paths'] = [
 	'./src/Modules',

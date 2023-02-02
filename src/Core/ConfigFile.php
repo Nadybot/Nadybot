@@ -19,31 +19,33 @@ use Symfony\Component\Yaml\Yaml;
 ]
 class ConfigFile {
 	/**
-	 * @param string      $filePath            The location in the filesystem of this config file
-	 * @param string      $login               The AO account login
-	 * @param string      $password            The AO account password
-	 * @param string      $name                The name of the bot character
-	 * @param string      $orgName             The exact name of the org to manage or an empty string if not an orgbot
-	 * @param int         $dimension           6 for Live (new), 5 for Live (old), 4 for Test
-	 * @param string[]    $superAdmins         Character names of the Super Administrators
-	 * @param string      $dbType              What type of database should be used? ('sqlite', 'postgresql', or 'mysql')
-	 * @param string      $dbName              Name of the database
-	 * @param string      $dbHost              Hostname or sqlite file location
-	 * @param null|string $dbUsername          MySQL or PostgreSQL username
-	 * @param null|string $dbPassword          MySQL or PostgreSQL password
-	 * @param int         $showAomlMarkup      Show AOML markup in logs/console? 1 for enabled, 0 for disabled.
-	 * @param string      $cacheFolder         Cache folder for storing organization XML files.
-	 * @param string      $htmlFolder          Folder for storing HTML files of the webserver
-	 * @param string      $dataFolder          Folder for storing data files
-	 * @param string      $logsFolder          Folder for storing log files
-	 * @param int         $defaultModuleStatus Default status for new modules: 1 for enabled, 0 for disabled.
-	 * @param int         $enableConsoleClient Enable the readline-based console interface to the bot?
-	 * @param int         $enablePackageModule Enable the module to install other modules from within the bot
-	 * @param bool        $autoUnfreeze        Try to automatically unfreeze frozen bot accounts
-	 * @param int         $useProxy            Use an AO Chat Proxy? 1 for enabled, 0 for disabled
+	 * @param string      $filePath             The location in the filesystem of this config file
+	 * @param string      $login                The AO account login
+	 * @param string      $password             The AO account password
+	 * @param string      $name                 The name of the bot character
+	 * @param string      $orgName              The exact name of the org to manage or an empty string if not an orgbot
+	 * @param int         $dimension            6 for Live (new), 5 for Live (old), 4 for Test
+	 * @param string[]    $superAdmins          Character names of the Super Administrators
+	 * @param string      $dbType               What type of database should be used? ('sqlite', 'postgresql', or 'mysql')
+	 * @param string      $dbName               Name of the database
+	 * @param string      $dbHost               Hostname or sqlite file location
+	 * @param null|string $dbUsername           MySQL or PostgreSQL username
+	 * @param null|string $dbPassword           MySQL or PostgreSQL password
+	 * @param int         $showAomlMarkup       Show AOML markup in logs/console? 1 for enabled, 0 for disabled.
+	 * @param string      $cacheFolder          Cache folder for storing organization XML files.
+	 * @param string      $htmlFolder           Folder for storing HTML files of the webserver
+	 * @param string      $dataFolder           Folder for storing data files
+	 * @param string      $logsFolder           Folder for storing log files
+	 * @param int         $defaultModuleStatus  Default status for new modules: 1 for enabled, 0 for disabled.
+	 * @param int         $enableConsoleClient  Enable the readline-based console interface to the bot?
+	 * @param int         $enablePackageModule  Enable the module to install other modules from within the bot
+	 * @param bool        $autoUnfreeze         Try to automatically unfreeze frozen bot accounts
+	 * @param string      $autoUnfreezeLogin    If the bot is on a shared account, this is the login of the main account
+	 * @param string      $autoUnfreezePassword If the bot is on a shared account, this is the password of the main account
+	 * @param int         $useProxy             Use an AO Chat Proxy? 1 for enabled, 0 for disabled
 	 * @param int         $proxyPort
-	 * @param string[]    $moduleLoadPaths     Define additional paths from where Nadybot should load modules at startup
-	 * @param array       $settings            Define settings values which will be immutable
+	 * @param string[]    $moduleLoadPaths      Define additional paths from where Nadybot should load modules at startup
+	 * @param array       $settings             Define settings values which will be immutable
 	 * @psalm-param array<string,null|scalar> $settings
 	 */
 	public function __construct(
@@ -69,6 +71,8 @@ class ConfigFile {
 		#[CastToType('int')] public int $enableConsoleClient=1,
 		#[CastToType('int')] public int $enablePackageModule=1,
 		#[CastToType('bool')] public bool $autoUnfreeze=false,
+		public ?string $autoUnfreezeLogin=null,
+		public ?string $autoUnfreezePassword=null,
 		#[CastToType('int')] public int $useProxy=0,
 		public string $proxyServer="127.0.0.1",
 		#[CastToType('int')] public int $proxyPort=9993,
@@ -76,6 +80,12 @@ class ConfigFile {
 		public array $settings=[],
 		public ?string $timezone=null,
 	) {
+		if ($this->autoUnfreezeLogin === "") {
+			$this->autoUnfreezeLogin = null;
+		}
+		if ($this->autoUnfreezePassword === "") {
+			$this->autoUnfreezePassword = null;
+		}
 		$this->superAdmins = array_map(function (string $char): string {
 			return ucfirst(strtolower($char));
 		}, $this->superAdmins);
