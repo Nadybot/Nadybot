@@ -52,6 +52,7 @@ $vars['enable_package_module'] = 1;
 $vars['auto_unfreeze'] = true;
 $vars['auto_unfreeze_login'] = null;
 $vars['auto_unfreeze_password'] = null;
+$vars['auto_unfreeze_use_nadyproxy'] = true;
 
 // Use AO Chat Proxy? 1 for enabled, 0 for disabled.
 $vars['use_proxy']    = 0;

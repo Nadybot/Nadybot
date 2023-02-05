@@ -29,26 +29,30 @@ class AccountUnfreezer {
 	private LoggerWrapper $logger;
 
 	#[NCA\Inject]
+	private ConfigFile $config;
+
+	#[NCA\Inject]
 	private HttpClientBuilder $http;
 
-	public function unfreeze(string $login, string $password, string $user): bool {
+	public function unfreeze(): bool {
 		$result = false;
-		Loop::run(function () use (&$result, $login, $password, $user): Generator {
+		Loop::run(function () use (&$result): Generator {
 			$this->logger->warning('Account frozen, trying to unfreeze');
 
 			do {
 				$client = $this->getUnfreezeClient();
 				$lastResult = self::UNFREEZE_TEMP_ERROR;
+				$proxyText = $this->config->autoUnfreezeUseNadyproxy ? "Proxy" : "Unfreezing";
 				try {
-					$lastResult = yield $this->unfreezeWithClient($client, $login, $password, $user);
+					$lastResult = yield $this->unfreezeWithClient($client);
 				} catch (CancelledException) {
-					$this->logger->notice("Proxy not working or too slow. Retrying.");
+					$this->logger->notice("{$proxyText} not working or too slow. Retrying.");
 				} catch (SocketException) {
-					$this->logger->notice("Proxy not working. Retrying.");
+					$this->logger->notice("{$proxyText} not working. Retrying.");
 				} catch (TimeoutException) {
-					$this->logger->notice("Proxy not working. Retrying.");
+					$this->logger->notice("{$proxyText} not working. Retrying.");
 				} catch (Throwable $e) {
-					$this->logger->notice("Proxy giving an error: {error}.", [
+					$this->logger->notice("{$proxyText} giving an error: {error}.", [
 						"error" => $e->getMessage(),
 					]);
 				}
@@ -66,13 +70,11 @@ class AccountUnfreezer {
 	/** @return Promise<int> */
 	protected function unfreezeWithClient(
 		HttpClient $client,
-		string $login,
-		string $password,
-		string $user,
 	): Promise {
-		return call(function () use ($client, $login, $password, $user): Generator {
-			$login = strtolower($login);
-			$user = strtolower($user);
+		return call(function () use ($client): Generator {
+			$login = strtolower($this->config->login);
+			$user = strtolower($this->config->autoUnfreezeLogin ?? $login);
+			$password = $this->config->password;
 			$request = new Request(self::LOGIN_URL, "POST");
 			$request->setBody(http_build_query([
 				"__ac_name" => $login,
@@ -136,6 +138,9 @@ class AccountUnfreezer {
 
 	/** Get a HttpClient that uses the Nadybot proxy to unfreeze an account */
 	private function getUnfreezeClient(): HttpClient {
+		if ($this->config->autoUnfreezeUseNadyproxy === false) {
+			return $this->http->followRedirects(0)->build();
+		}
 		return $this->http
 			->followRedirects(0)
 			->usingPool(

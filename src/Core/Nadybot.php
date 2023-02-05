@@ -311,13 +311,7 @@ class Nadybot extends AOChat {
 				exit(1);
 			}
 		} catch (AccountFrozenException) {
-			if ($this->config->autoUnfreeze
-				&& $this->accountUnfreezer->unfreeze(
-					$this->config->autoUnfreezeLogin ?? $login,
-					$this->config->autoUnfreezePassword ?? $password,
-					$login,
-				)
-			) {
+			if ($this->config->autoUnfreeze && $this->accountUnfreezer->unfreeze()) {
 				$this->disconnect();
 				$this->logger->notice("Waiting 5s before retrying login");
 				sleep(5);
