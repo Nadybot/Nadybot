@@ -92,6 +92,7 @@ if [ -e /proxy/aochatproxy ] \
 		    "spam_bot_support": ${SPAM_BOT_SUPPORT},
 		    "send_tells_over_main": ${SEND_TELLS_OVER_MAIN},
 		    "relay_worker_tells": ${RELAY_WORKER_TELLS},
+		    "auto_unfreeze_accounts": ${CONFIG_AUTO_UNFREEZE:-false},
 		    "accounts": [
 	DONE
 	SUFFIX=1
@@ -102,6 +103,12 @@ if [ -e /proxy/aochatproxy ] \
 		if [ -n "$(eval echo "\${PROXY_PASSWORD_$SUFFIX:-}")" ]; then
 			LASTPASS=$(eval echo "\${PROXY_PASSWORD_$SUFFIX:-}")
 		fi
+		if [ -n "$(eval echo "\${PROXY_UNFREEZE_USERNAME_$SUFFIX:-}")" ]; then
+			LASTUNFREEZEUSER=$(eval echo "\${PROXY_UNFREEZE_USERNAME_$SUFFIX:-}")
+		fi
+		if [ -n "$(eval echo "\${PROXY_UNFREEZE_PASSWORD_$SUFFIX:-}")" ]; then
+			LASTUNFREEZEPASS=$(eval echo "\${PROXY_UNFREEZE_PASSWORD_$SUFFIX:-}")
+		fi
 		if [ "$SUFFIX" -gt 1 ]; then
 			echo "        ," >> /tmp/config.json
 		fi
@@ -109,6 +116,8 @@ if [ -e /proxy/aochatproxy ] \
 			        {
 			            "username": "${LASTUSER}",
 			            "password": "${LASTPASS}",
+			            "unfreeze_username": "${LASTUNFREEZEUSER:-$LASTUSER}",
+			            "unfreeze_password": "${LASTUNFREEZEPASS:-$LASTPASS}",
 			            "character": "$(eval echo "\${PROXY_CHARNAME_$SUFFIX:-}")"
 			        }
 		END
