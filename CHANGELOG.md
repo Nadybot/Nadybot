@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add new `!ffa`-command that announces the items after a `!flatroll` as free for all.
 - Support for the long-existing update_notifications feed to inform about security updates and scheduled downtimes.
 - Allow selecting the filesystem driver by setting `AMP_FS_DRIVER` to `\Amp\File\Driver\BlockingDriver` or any of its alternatives.
+- Add links to a character's history to the `!whois <name>` output.
 
 ### Changed
 
