@@ -68,7 +68,7 @@ class GmiController extends ModuleInstance {
 	public function getPricesFromGmi(AODBEntry $item): Promise {
 		return call(function () use ($item): Generator {
 			try {
-				$httpClient = $this->builder->buildDefault();
+				$httpClient = $this->builder->build();
 
 				/** @var Response */
 				$response = yield $httpClient->request(
