@@ -13,7 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add new `!ffa`-command that announces the items after a `!flatroll` as free for all.
 - Support for the long-existing update_notifications feed to inform about security updates and scheduled downtimes.
 - Allow selecting the filesystem driver by setting `AMP_FS_DRIVER` to `\Amp\File\Driver\BlockingDriver` or any of its alternatives.
-- Add a new config-file options `auto_unfreeze`. If set, the bot will try to automatically unfreeze the account in case we get a frozen-message at the login. To work around a limitation of Funcom that you cannot unfreeze more than 5 accounts per IP-address within 24h, the whole process uses a special Nadybot proxy server until it succeeds. use `CONFIG_AUTO_UNFREEZE=1` to enable this feature via Docker.
+- Add a new config-file options `auto_unfreeze`. If set, the bot will try to automatically unfreeze the account in case we get a frozen-message at the login. To work around a limitation of Funcom that you cannot unfreeze more than 5 accounts per IP-address within 24h, the whole process uses a special Nadybot proxy server until it succeeds. use `CONFIG_AUTO_UNFREEZE=true` to enable this feature via Docker.
 - Add links to a character's history to the `!whois <name>` output.
 - Add a new option `nano_add_gmi` (on by default) that will add a GMI-link to all results of the `!nano`- or `!nanoline`-commands.
 
