@@ -89,6 +89,10 @@ class NanoController extends ModuleInstance {
 	#[NCA\Setting\Number(options: [30, 40, 50, 60])]
 	public int $maxnano = 40;
 
+	/** Add a link to check nano prices on GMI */
+	#[NCA\Setting\Boolean]
+	public bool $nanoAddGMI = true;
+
 	/** @var array<int,Nanoline> */
 	public array $nanolines = [];
 
@@ -131,6 +135,7 @@ class NanoController extends ModuleInstance {
 		$currentNanoline = -1;
 		$currentSubstrain = null;
 		foreach ($data as $row) {
+			/** @var Nano $row */
 			$defColor = $this->settingManager->getString('default_window_color');
 			if ($currentNanoline !== $row->strain || $currentSubstrain !== $row->sub_strain) {
 				if (!empty($row->strain)) {
@@ -147,10 +152,13 @@ class NanoController extends ModuleInstance {
 				$currentSubstrain = $row->sub_strain;
 			}
 			$nanoLink = $this->makeNanoLink($row);
+			$gmiLink = ($this->nanoAddGMI && isset($row->crystal_id))
+				? " [" . $this->text->makeChatcmd("GMI", "/tell <myname> gmi {$row->crystal_id}") . "]"
+				: '';
 			$crystalLink = isset($row->crystal_id)
 				? $this->text->makeItem($row->crystal_id, $row->crystal_id, $row->ql, "Crystal")
 				: "Crystal";
-			$info = "QL" . $this->text->alignNumber($row->ql, 3) . " [{$crystalLink}] {$nanoLink} ({$row->location})";
+			$info = "QL" . $this->text->alignNumber($row->ql, 3) . $gmiLink. " [{$crystalLink}] {$nanoLink} ({$row->location})";
 			$info .= " - <highlight>" . implode("<end>, <highlight>", explode(":", $row->professions)) . "<end>";
 			$blob .= "<tab>{$info}\n";
 		}
@@ -306,10 +314,13 @@ class NanoController extends ModuleInstance {
 		$blob = '';
 		foreach ($nanos as $nano) {
 			$nanoLink = $this->makeNanoLink($nano);
+			$gmiLink = ($this->nanoAddGMI && isset($nano->crystal_id))
+				? " [" . $this->text->makeChatcmd("GMI", "/tell <myname> gmi {$nano->crystal_id}") . "]"
+				: '';
 			$crystalLink = isset($nano->crystal_id)
 				? $this->text->makeItem($nano->crystal_id, $nano->crystal_id, $nano->ql, "Crystal")
 				: "Crystal";
-			$blob .= "QL" . $this->text->alignNumber($nano->ql, 3) . " [{$crystalLink}] {$nanoLink}";
+			$blob .= "QL" . $this->text->alignNumber($nano->ql, 3) . $gmiLink . " [{$crystalLink}] {$nanoLink}";
 			if ($nano->professions) {
 				$blob .= " - <highlight>" . join("<end>, <highlight>", explode(":", $nano->professions)) . "<end>";
 			}
@@ -485,6 +496,9 @@ class NanoController extends ModuleInstance {
 				}
 				$blob .= " &gt; {$nanoLink}";
 			} else {
+				$gmiLink = ($this->nanoAddGMI && isset($row->crystal_id))
+					? " [" . $this->text->makeChatcmd("GMI", "/tell <myname> gmi {$row->crystal_id}") . "]"
+					: '';
 				$crystalLink = isset($row->crystal_id)
 					? $this->text->makeItem($row->crystal_id, $row->crystal_id, $row->ql, "Crystal")
 					: "Crystal";
@@ -498,7 +512,7 @@ class NanoController extends ModuleInstance {
 				} else {
 					$blob .= "\n<pagebreak><header2>Unknown/General<end>\n";
 				}
-				$info = "QL" . $this->text->alignNumber($row->ql, 3) . " [{$crystalLink}] {$nanoLink} ({$row->location})";
+				$info = "QL" . $this->text->alignNumber($row->ql, 3) . $gmiLink . " [{$crystalLink}] {$nanoLink} ({$row->location})";
 				$blob .= "<tab>{$info}\n";
 				$reqs = [];
 				foreach (['mm', 'bm', 'pm', 'si', 'ts', 'mc'] as $skill) {
@@ -560,10 +574,13 @@ class NanoController extends ModuleInstance {
 				$lastSubStrain = $nano->sub_strain;
 			}
 			$nanoLink = $this->makeNanoLink($nano);
+			$gmiLink = ($this->nanoAddGMI && isset($nano->crystal_id))
+				? " [" . $this->text->makeChatcmd("GMI", "/tell <myname> gmi {$nano->crystal_id}") . "]"
+				: '';
 			$crystalLink = isset($nano->crystal_id)
 				? $this->text->makeItem($nano->crystal_id, $nano->crystal_id, $nano->ql, "Crystal")
 				: "Crystal";
-			$blob .= "<tab>" . $this->text->alignNumber($nano->ql, 3) . " [{$crystalLink}] {$nanoLink} ({$nano->location})\n";
+			$blob .= "<tab>" . $this->text->alignNumber($nano->ql, 3) . $gmiLink . " [{$crystalLink}] {$nanoLink} ({$nano->location})\n";
 		}
 		$blob .= $this->getFooter();
 		$msg = $this->text->makeBlob("All {$data[0]->strain} Nanos", $blob);
