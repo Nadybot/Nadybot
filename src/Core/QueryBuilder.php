@@ -23,10 +23,10 @@ class QueryBuilder extends Builder {
 
 	/**
 	 * @template T
-	 * @psalm-param class-string<T> $class
-	 * @phpstan-param class-string<T> $class
-	 * @psalm-return Collection<T>
-	 * @phpstan-return Collection<T>
+	 *
+	 * @param class-string<T> $class
+	 *
+	 * @return Collection<T>
 	 */
 	public function asObj(string $class): Collection {
 		return new Collection($this->fetchAll($class, $this->toSql(), ...$this->getBindings()));

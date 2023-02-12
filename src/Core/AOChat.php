@@ -510,6 +510,10 @@ class AOChat {
 			return null;
 		}
 		if ($packet->type === AOChatPacket::LOGIN_ERROR) {
+			$errorMsgs = explode("|", $packet->args[0]);
+			if (count($errorMsgs) === 3 && $errorMsgs[2] === "/Account system denies login") {
+				throw new AccountFrozenException();
+			}
 			$this->logger->error("Error from login server: {error}", [
 				"error" => $packet->args[0],
 			]);

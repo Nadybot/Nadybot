@@ -224,6 +224,9 @@ class WhatBuffsController extends ModuleInstance {
 			if ($froobFriendly) {
 				$query->where('aodb.froob_friendly', '=', true);
 			}
+			if ($this->itemsController->onlyItemsInGame) {
+				$query->where('aodb.in_game', '=', true);
+			}
 			$data = $query->asObj(SkillBuffItemCount::class);
 		}
 
@@ -349,6 +352,9 @@ class WhatBuffsController extends ModuleInstance {
 			$itemQuery->where('aodb.froob_friendly', '=', true);
 			$nanoQuery->where('buffs.froob_friendly', '=', true);
 		}
+		if ($this->itemsController->onlyItemsInGame) {
+			$itemQuery->where('aodb.in_game', '=', true);
+		}
 		$innerQuery = $itemQuery
 			->unionAll($nanoQuery);
 		$query = $this->db->fromSub($innerQuery, "foo");
@@ -387,6 +393,7 @@ class WhatBuffsController extends ModuleInstance {
 	 */
 	public function getSearchResults(string $category, Skill $skill, bool $froobFriendly): string|array {
 		$suffix = $froobFriendly ? "Froob" : "";
+		$addNotInGameNotice = false;
 		if ($category === 'Nanoprogram') {
 			$query = $this->db->table('buffs AS b');
 			$query
@@ -469,6 +476,9 @@ class WhatBuffsController extends ModuleInstance {
 			if ($froobFriendly) {
 				$query->where("a.froob_friendly", true);
 			}
+			if ($this->itemsController->onlyItemsInGame) {
+				$query->where('a.in_game', true);
+			}
 
 			/** @var Collection<ItemBuffSearchResult> */
 			$data = $query->asObj(ItemBuffSearchResult::class);
@@ -488,12 +498,18 @@ class WhatBuffsController extends ModuleInstance {
 				$data = $data->reverse();
 			}
 			$result = $this->formatItems($data->toArray(), $skill, $category);
+			if ($data->first(fn (ItemBuffSearchResult $i): bool => !$i->in_game)) {
+				$addNotInGameNotice = true;
+			}
 		}
 
 		[$count, $blob] = $result;
 		if ($count === 0) {
 			$msg = "No items found of type <highlight>{$category}<end> that buff <highlight>{$skill->name}<end>.";
 		} else {
+			if ($addNotInGameNotice) {
+				$blob .= "\n<red>(!)<end> means: This item is GM/ARK-only, not in the game, or unavailable";
+			}
 			$blob .= "\nItem Extraction Info provided by AOIA+";
 			$msg = $this->text->makeBlob("WhatBuffs{$suffix} - {$category} {$skill->name} ({$count})", $blob);
 		}
@@ -626,6 +642,9 @@ class WhatBuffsController extends ModuleInstance {
 			$blob .= $prefix . $item->unit . "  ";
 			$blob .= $this->getSlotPrefix($item, $category);
 			$blob .= $this->showItemLink($item, $item->highql);
+			if (!$item->in_game) {
+				$blob .= " <red>(!)<end>";
+			}
 			if ($item->amount > $item->low_amount) {
 				$blob .= " ({$item->low_amount} - {$item->amount})";
 				if ($this->commandManager->cmdEnabled('bestql')) {

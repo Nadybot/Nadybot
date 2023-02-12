@@ -5,7 +5,7 @@ namespace Nadybot\Core;
 use function Amp\Promise\all;
 use function Amp\{asyncCall, call};
 use function Safe\json_encode;
-
+use Amp\Http\Client\HttpClientBuilder;
 use Amp\{
 	Coroutine,
 	Loop,
@@ -80,6 +80,9 @@ class Nadybot extends AOChat {
 	public BanController $banController;
 
 	#[NCA\Inject]
+	public AccountUnfreezer $accountUnfreezer;
+
+	#[NCA\Inject]
 	public Text $text;
 
 	#[NCA\Inject]
@@ -87,6 +90,12 @@ class Nadybot extends AOChat {
 
 	#[NCA\Inject]
 	public Timer $timer;
+
+	#[NCA\Inject]
+	public EventFeed $eventFeed;
+
+	#[NCA\Inject]
+	public HttpClientBuilder $http;
 
 	#[NCA\Inject]
 	public LimitsController $limitsController;
@@ -295,8 +304,29 @@ class Nadybot extends AOChat {
 		}
 
 		$this->logger->notice("Authenticate login data...");
-		if (null === $this->authenticate($login, $password)) {
-			$this->logger->critical("Login failed.");
+		try {
+			if (null === $this->authenticate($login, $password)) {
+				$this->logger->critical("Login failed.");
+				sleep(10);
+				exit(1);
+			}
+		} catch (AccountFrozenException) {
+			if ($this->config->autoUnfreeze && $this->accountUnfreezer->unfreeze()) {
+				$this->disconnect();
+				$this->logger->notice("Waiting 5s before retrying login");
+				sleep(5);
+				$this->connectAO($login, $password, $server, $port);
+				return;
+			}
+			$this->logger->critical(
+				"The account {account} is frozen. ".
+				"Please go to {url} to unfreeze it, or activate ".
+				"the \"auto_unfreeze\" option in your config file.",
+				[
+					"account" => $login,
+					"url" => "https://register.funcom.com/account",
+				]
+			);
 			sleep(10);
 			exit(1);
 		}
@@ -365,6 +395,7 @@ class Nadybot extends AOChat {
 	/** The main endless-loop of the bot */
 	public function run(): void {
 		Loop::run(function () {
+			$this->eventFeed->mainLoop();
 			assert(is_resource($this->socket));
 			Loop::setErrorHandler(function (Throwable $e): void {
 				if ($e instanceof StopExecutionException) {

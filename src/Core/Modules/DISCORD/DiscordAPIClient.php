@@ -351,8 +351,8 @@ class DiscordAPIClient extends ModuleInstance {
 			$request = new Request($url, "POST");
 			$request->setBody(new DiscordBody($item->message));
 			yield $this->sendRequest($request, new stdClass());
-			if (isset($item->deferred)) {
-				$item->deferred->resolve();
+			if (isset($item->callback)) {
+				$item->callback->resolve();
 			}
 			$this->processQueue();
 		});
@@ -388,10 +388,10 @@ class DiscordAPIClient extends ModuleInstance {
 
 	/**
 	 * @template T of JSONDataModel|stdClass|JSONDataModel[]
-	 * @phpstan-param T $o
 	 *
-	 * @return Promise<JSONDataModel|JSONDataModel[]|stdClass>
-	 * @phpstan-return Promise<T>
+	 * @param T $o
+	 *
+	 * @return Promise<T>
 	 */
 	private function sendRequest(Request $request, JSONDataModel|stdClass|array $o): Promise {
 		return call(function () use ($request, $o) {

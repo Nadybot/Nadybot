@@ -6,4 +6,7 @@ class OnlineList {
 	public int $count;
 	public int $countMains;
 	public string $blob;
+
+	/** @var string[] */
+	public array $mains;
 }

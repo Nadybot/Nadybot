@@ -332,6 +332,9 @@ class WhoisController extends ModuleInstance {
 			/** @var ?int */
 			$charID = yield $this->chatBot->getUid2($name);
 			$lookupNameLink = $this->text->makeChatcmd("lookup", "/tell <myname> lookup {$name}");
+			$historyNameLink = $this->text->makeChatcmd("history", "/tell <myname> history {$name}");
+			$history1NameLink = $this->text->makeChatcmd("RK1", "/tell <myname> history {$name} 1");
+			$history2NameLink = $this->text->makeChatcmd("RK2", "/tell <myname> history {$name} 2");
 			$lookupCharIdLink = null;
 			if ($charID !== null) {
 				$lookupCharIdLink = $this->text->makeChatcmd("lookup", "/tell <myname> lookup {$charID}");
@@ -339,7 +342,7 @@ class WhoisController extends ModuleInstance {
 
 			if ($whois === null) {
 				$blob = "<orange>Note: Could not retrieve detailed info for character.<end>\n\n";
-				$blob .= "Name: <highlight>{$name}<end> [{$lookupNameLink}]\n";
+				$blob .= "Name: <highlight>{$name}<end> [{$lookupNameLink}] [{$historyNameLink}] [{$history1NameLink}] [{$history2NameLink}]\n";
 				if (isset($lookupCharIdLink)) {
 					$blob .= "Character ID: <highlight>{$charID}<end> [{$lookupCharIdLink}]\n\n";
 				}
@@ -352,7 +355,7 @@ class WhoisController extends ModuleInstance {
 			}
 			$altInfo = $this->altsController->getAltInfo($name);
 
-			$blob = "Name: <highlight>" . $this->getFullName($whois) . "<end> [{$lookupNameLink}]\n";
+			$blob = "Name: <highlight>" . $this->getFullName($whois) . "<end> [{$lookupNameLink}] [{$historyNameLink}] [{$history1NameLink}] [{$history2NameLink}]\n";
 			$nick = $altInfo->getNick();
 			if (isset($nick)) {
 				$blob .= "Nickname: <highlight>{$nick}<end>\n";

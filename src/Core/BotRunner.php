@@ -6,9 +6,12 @@ use const Amp\File\LOOP_STATE_IDENTIFIER;
 use function Amp\File\createDefaultDriver;
 use function Safe\json_encode;
 use Amp\File\Driver\{EioDriver, ParallelDriver};
-use Amp\File\Filesystem;
+use Amp\File\{Driver, Filesystem};
+use Amp\Http\Client\Connection\{DefaultConnectionFactory, UnlimitedConnectionPool};
 use Amp\Http\Client\HttpClientBuilder;
 use Amp\Http\Client\Interceptor\SetRequestHeaderIfUnset;
+use Amp\Http\Tunnel\Http1TunnelConnector;
+use Amp\Socket\SocketAddress;
 use Amp\{Loop, Promise};
 use Closure;
 use ErrorException;
@@ -23,7 +26,7 @@ use Throwable;
 
 class BotRunner {
 	/** Nadybot's current version */
-	public const VERSION = "6.1.1";
+	public const VERSION = "6.1.2";
 
 	/**
 	 * The parsed command line arguments
@@ -245,13 +248,23 @@ class BotRunner {
 		Registry::setInstance("configfile", $config);
 		$retryHandler = new HttpRetry(8);
 		Registry::injectDependencies($retryHandler);
-		Registry::setInstance(
-			"HttpClientBuilder",
-			(new HttpClientBuilder())
-				->retry(0)
-				->intercept(new SetRequestHeaderIfUnset("User-Agent", "Nadybot ".self::getVersion()))
-				->intercept($retryHandler)
-		);
+		$httpClientBuilder = (new HttpClientBuilder())
+		->retry(0)
+		->intercept(new SetRequestHeaderIfUnset("User-Agent", "Nadybot ".self::getVersion()))
+		->intercept($retryHandler);
+		$httpProxy = getenv('http_proxy');
+		if ($httpProxy !== false) {
+			$proxyHost = parse_url($httpProxy, PHP_URL_HOST);
+			$proxyScheme = parse_url($httpProxy, PHP_URL_SCHEME);
+			$proxyPort = parse_url($httpProxy, PHP_URL_PORT) ?? ($proxyScheme === 'https' ? 443 : 80);
+			if (is_string($proxyScheme) && is_string($proxyHost) && is_int($proxyPort)) {
+				$connector = new Http1TunnelConnector(new SocketAddress($proxyHost, $proxyPort));
+				$httpClientBuilder = $httpClientBuilder->usingPool(
+					new UnlimitedConnectionPool(new DefaultConnectionFactory($connector))
+				);
+			}
+		}
+		Registry::setInstance("HttpClientBuilder", $httpClientBuilder);
 		$this->checkRequiredModules();
 		$this->checkRequiredPackages();
 		$this->createMissingDirs();
@@ -274,8 +287,14 @@ class BotRunner {
 		}
 		$this->setWindowTitle($config);
 
+
 		$version = self::getVersion();
-		$fsDriver = createDefaultDriver();
+		$fsDriverClass = getenv('AMP_FS_DRIVER');
+		if ($fsDriverClass !== false && class_exists($fsDriverClass) && is_subclass_of($fsDriverClass, Driver::class)) {
+			$fsDriver = new $fsDriverClass();
+		} else {
+			$fsDriver = createDefaultDriver();
+		}
 		if ($fsDriver instanceof EioDriver) {
 			$fsDriver = new ParallelDriver();
 		}

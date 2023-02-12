@@ -7,7 +7,7 @@
 			"name": "GPL3",
 			"url": "https://www.gnu.org/licenses/gpl-3.0.en.html"
 		},
-		"version": "6.1.1"
+		"version": "6.1.2"
 	},
 	"servers": [
 		{
@@ -864,7 +864,7 @@
 				"properties": {
 					"available": {
 						"type": "integer",
-						"description": "Maximum available memory for PHP in MB"
+						"description": "Maximum available memory for PHP in bytes"
 					},
 					"current_usage": {
 						"type": "integer",

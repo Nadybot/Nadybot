@@ -33,7 +33,8 @@ use Throwable;
 	),
 ]
 class GmiController extends ModuleInstance {
-	public const GMI_API = "https://gmi.nadybot.org/v1.0";
+	public const EU_GMI_API = "https://gmi.eu.nadybot.org/v1.0";
+	public const US_GMI_API = "https://gmi.us.nadybot.org/v1.0";
 
 	#[NCA\Inject]
 	public DB $db;
@@ -54,8 +55,8 @@ class GmiController extends ModuleInstance {
 	public LoggerWrapper $logger;
 
 	/** GMI API to use */
-	#[NCA\Setting\Text(options: [self::GMI_API])]
-	public string $gmiApi = self::GMI_API;
+	#[NCA\Setting\Text(options: [self::EU_GMI_API, self::US_GMI_API])]
+	public string $gmiApi = self::EU_GMI_API;
 
 	/**
 	 * Contact the GMI API and return the parsed results
@@ -67,7 +68,7 @@ class GmiController extends ModuleInstance {
 	public function getPricesFromGmi(AODBEntry $item): Promise {
 		return call(function () use ($item): Generator {
 			try {
-				$httpClient = $this->builder->buildDefault();
+				$httpClient = $this->builder->build();
 
 				/** @var Response */
 				$response = yield $httpClient->request(

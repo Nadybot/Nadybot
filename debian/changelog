@@ -1,3 +1,18 @@
+nadybot (6.1.2-1+ubuntu1) bionic; urgency=medium
+  Added
+  - Add a new field `in_game` to the item database, so items that are not in the game, available to ARK/GM only, or are generally not applicable to the results (like tower wrist items) can be excluded from the `!items`- and `!whatbuffs` search. Also add a new setting `only_items_in_game` to turn the default exclusion on/off and do not exclude these, when the search is prefixed with a `*`
+  - Add new `!ffa`-command that announces the items after a `!flatroll` as free for all.
+  - Support for the long-existing update_notifications feed to inform about security updates and scheduled downtimes.
+  - Allow selecting the filesystem driver by setting `AMP_FS_DRIVER` to `\Amp\File\Driver\BlockingDriver` or any of its alternatives.
+  - Add a new config-file options `auto_unfreeze`. If set, the bot will try to automatically unfreeze the account in case we get a frozen-message at the login. To work around a limitation of Funcom that you cannot unfreeze more than 5 accounts per IP-address within 24h, the whole process uses a special Nadybot proxy server until it succeeds. use `CONFIG_AUTO_UNFREEZE=true` to enable this feature via Docker.
+  - Add links to a character's history to the `!whois <name>` output.
+  - Add a new option `nano_add_gmi` (on by default) that will add a GMI-link to all results of the `!nano`- or `!nanoline`-commands.
+
+  Changed
+  - Global event feed is no longer implemented as a hidden relay, but completely from scratch to allow any number of feed subscribers and doesn't require the `RELAY_MODULE` to be enabled.
+  - When grouping the online list by player/main, show the actual unique number of main characters of all online providers in brackets. If one character is online in the private channel and the org channel, this means it won't be counted twice anymore.
+ -- Nadyita <nadyita@hodorraid.org>  Sun, 12 Feb 2023 13:00:00 +0100
+
 nadybot (6.1.1-1+ubuntu1) bionic; urgency=medium
   Added
   - Add new commands `!bestnanos` and `!bestnanosfroob` to get a list of the best nanos for your current or a given profession/level. Use `!bn`/`!bnf` or `!bnl`/`!bnfl` for the long version if you are lazy.
