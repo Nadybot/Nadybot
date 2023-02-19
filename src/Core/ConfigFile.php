@@ -24,6 +24,7 @@ class ConfigFile {
 	 * @param string      $password                 The AO account password
 	 * @param string      $name                     The name of the bot character
 	 * @param string      $orgName                  The exact name of the org to manage or an empty string if not an orgbot
+	 * @param bool        $autoOrgName              Try to automatically determine the org's name and track it for changes
 	 * @param int         $dimension                6 for Live (new), 5 for Live (old), 4 for Test
 	 * @param string[]    $superAdmins              Character names of the Super Administrators
 	 * @param string      $dbType                   What type of database should be used? ('sqlite', 'postgresql', or 'mysql')
@@ -81,6 +82,7 @@ class ConfigFile {
 		public array $moduleLoadPaths=['./src/Modules', './extras'],
 		public array $settings=[],
 		public ?string $timezone=null,
+		#[CastToType('bool')] #[MapFrom('auto_guild_name')] public bool $autoOrgName=false,
 	) {
 		if ($this->autoUnfreezeLogin === "") {
 			$this->autoUnfreezeLogin = null;

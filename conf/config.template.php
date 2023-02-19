@@ -11,6 +11,9 @@ $vars['password']   = "";
 $vars['name']       = "";
 $vars['my_guild']   = "";
 
+// Automatically detect org name changes. Requires an initial my_guild
+$vars['auto_guild_name']  = 0;
+
 // 6 for Live (new), 5 for Live (old), 4 for Test.
 $vars['dimension']  = 5;
 

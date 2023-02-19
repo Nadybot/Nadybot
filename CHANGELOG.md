@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- New option `auto_guild_name` to allow automatic update of the org name if a change is detected.
+
 ## [6.1.2] - 2023-02-12
 
 ### Added

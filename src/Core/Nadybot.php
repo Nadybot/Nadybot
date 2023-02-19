@@ -51,6 +51,7 @@ use Throwable;
 #[NCA\Instance]
 class Nadybot extends AOChat {
 	public const PING_IDENTIFIER = "Nadybot";
+	public const UNKNOWN_ORG = 'Clan (name unknown)';
 
 	#[NCA\Inject]
 	public DB $db;
@@ -783,6 +784,18 @@ class Nadybot extends AOChat {
 		$this->logger->info("AOChatPacket::GROUP_ANNOUNCE => name: '{$groupName}'");
 		if ($orgId) {
 			$this->config->orgId = $orgId;
+			if ($this->config->autoOrgName) {
+				$lastOrgName = $this->settingManager->getString('last_org_name') ?? self::UNKNOWN_ORG;
+				if ($lastOrgName === self::UNKNOWN_ORG) {
+					$lastOrgName = $this->config->orgName ?: self::UNKNOWN_ORG;
+				}
+				if ($groupName === self::UNKNOWN_ORG) {
+					$this->config->orgName = $lastOrgName;
+				} else {
+					$this->config->orgName = $groupName;
+					$this->settingManager->save('last_org_name', $groupName);
+				}
+			}
 		}
 	}
 

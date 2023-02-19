@@ -175,6 +175,10 @@ class GuildController extends ModuleInstance {
 	/** @var array<string,int> */
 	public array $lastLogoffMsgs = [];
 
+	/** The last detected org name */
+	#[NCA\Setting\Text(mode: 'noedit')]
+	public string $lastOrgName = Nadybot::UNKNOWN_ORG;
+
 	#[NCA\Setup]
 	public function setup(): void {
 		$this->loadGuildMembers();
@@ -754,7 +758,7 @@ class GuildController extends ModuleInstance {
 		}
 		$gid = $this->getOrgChannelIdByOrgId($this->config->orgId);
 		$orgChannel = $this->chatBot->gid[$gid]??null;
-		if (isset($orgChannel) && $orgChannel !== "Clan (name unknown)" && $orgChannel !== $this->config->orgName) {
+		if (isset($orgChannel) && $orgChannel !== Nadybot::UNKNOWN_ORG && $orgChannel !== $this->config->orgName) {
 			$this->logger->warning("Org name '{$this->config->orgName}' specified, but bot belongs to org '{$orgChannel}'");
 		}
 	}
@@ -952,10 +956,7 @@ class GuildController extends ModuleInstance {
 			/** @var Collection<OrgMember> */
 			$data = $this->db->table(self::DB_TABLE)->asObj(OrgMember::class);
 			// @phpstan-ignore-next-line
-			if ($data->count() === 0 && (count($org->members) > 0)) {
-				$restart = true;
-			} else {
-				$restart = false;
+			if ($data->count() > 0 || (count($org->members) === 0)) {
 				foreach ($data as $row) {
 					$dbEntries[$row->name] = [
 						"name" => $row->name,
@@ -1024,10 +1025,6 @@ class GuildController extends ModuleInstance {
 
 			$this->logger->notice("Finished Roster update");
 			$this->chatBot->setupReadinessTimer();
-
-			if ($restart === true) {
-				$this->loadGuildMembers();
-			}
 		});
 	}
 }
