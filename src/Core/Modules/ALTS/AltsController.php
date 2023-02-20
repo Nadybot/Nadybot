@@ -154,6 +154,12 @@ class AltsController extends ModuleInstance {
 	/** Add one or more alts to someone else's main */
 	#[NCA\HandlesCommand("altsadmin")]
 	#[NCA\Help\Group("altsadmin")]
+	#[NCA\Help\Prologue(
+		"This command allows anyone with the required accesslevel to add ".
+		"and remove alts to and from someone else, as long as these don't have ".
+		"a higher accesslevel than the person making the changes.\n".
+		"Alts added this way don't need to be confirmed."
+	)]
 	public function addAltadminCommand(
 		CmdContext $context,
 		PCharacter $main,
@@ -347,7 +353,7 @@ class AltsController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
-	/** Set sonmeone's alt as their new main */
+	/** Set someone's alt as their new main */
 	#[NCA\HandlesCommand("altsadmin")]
 	#[NCA\Help\Group("altsadmin")]
 	public function setSomeonesMainCommand(
@@ -355,63 +361,8 @@ class AltsController extends ModuleInstance {
 		PCharacter $newMain,
 		#[NCA\Str("setmain")] string $action
 	): Generator {
-		$newMain = $newMain();
-		$altInfo = $this->getAltInfo($newMain);
-		$user = $context->char->name;
-
-		if ($altInfo->main === $newMain) {
-			$msg = "<highlight>{$newMain}<end> is already registered as the main character.";
-			$context->reply($msg);
-			return;
-		}
-
-		$rightsMain = $this->accessManager->compareCharacterAccessLevels($user, $altInfo->main);
-		$rightsNewMain = $this->accessManager->compareCharacterAccessLevels($user, $newMain);
-		if ($rightsMain < 0 || $rightsNewMain < 0) {
-			$context->reply("You cannot change someone's main if they have a higher access level than you.");
-			return;
-		}
-
-		if (!$altInfo->isValidated($newMain)) {
-			$msg = "You cannot make an unvalidated alt the new main.";
-			$context->reply($msg);
-			return;
-		}
-
-		yield $this->db->awaitBeginTransaction();
-		try {
-			// remove all the old alt information
-			$this->db->table("alts")->where("main", $altInfo->main)->delete();
-
-			// add current main to new main as an alt
-			$this->addAlt($newMain, $altInfo->main, true, true, false);
-
-			// add current alts to new main
-			foreach ($altInfo->alts as $alt => $validated) {
-				if ($alt !== $newMain) {
-					$this->addAlt($newMain, $alt, $validated->validated_by_main, $validated->validated_by_alt, false);
-				}
-			}
-			$this->db->commit();
-		} catch (SQLException $e) {
-			$this->db->rollback();
-			$context->reply("There was a database error changing your main. No changes were made.");
-			return;
-		}
-
-		$audit = new Audit();
-		$audit->actor = $newMain;
-		$audit->action = AccessManager::SET_MAIN;
-		$this->accessManager->addAudit($audit);
-
-		// @todo Send a warning if the new main's accesslevel is not the highest
-		$event = new AltEvent();
-		$event->main = $newMain;
-		$event->alt = $altInfo->main;
-		$event->type = 'alt(newmain)';
-		$this->eventManager->fireEvent($event);
-
-		$msg = "<highlight>{$newMain}<end> is now the new main character.";
+		/** @var string */
+		$msg = yield $this->makeAltNewMain($context->char->name, $newMain());
 		$context->reply($msg);
 	}
 
@@ -422,55 +373,8 @@ class AltsController extends ModuleInstance {
 		CmdContext $context,
 		#[NCA\Str("setmain")] string $action
 	): Generator {
-		$newMain = $context->char->name;
-		$altInfo = $this->getAltInfo($newMain);
-
-		if ($altInfo->main === $newMain) {
-			$msg = "<highlight>{$newMain}<end> is already registered as your main.";
-			$context->reply($msg);
-			return;
-		}
-
-		if (!$altInfo->isValidated($newMain)) {
-			$msg = "You must run this command from a validated character.";
-			$context->reply($msg);
-			return;
-		}
-
-		yield $this->db->awaitBeginTransaction();
-		try {
-			// remove all the old alt information
-			$this->db->table("alts")->where("main", $altInfo->main)->delete();
-
-			// add current main to new main as an alt
-			$this->addAlt($newMain, $altInfo->main, true, true, false);
-
-			// add current alts to new main
-			foreach ($altInfo->alts as $alt => $validated) {
-				if ($alt !== $newMain) {
-					$this->addAlt($newMain, $alt, $validated->validated_by_main, $validated->validated_by_alt, false);
-				}
-			}
-			$this->db->commit();
-		} catch (SQLException $e) {
-			$this->db->rollback();
-			$context->reply("There was a database error changing your main. No changes were made.");
-			return;
-		}
-
-		$audit = new Audit();
-		$audit->actor = $newMain;
-		$audit->action = AccessManager::SET_MAIN;
-		$this->accessManager->addAudit($audit);
-
-		// @todo Send a warning if the new main's accesslevel is not the highest
-		$event = new AltEvent();
-		$event->main = $newMain;
-		$event->alt = $altInfo->main;
-		$event->type = 'alt(newmain)';
-		$this->eventManager->fireEvent($event);
-
-		$msg = "Your main is now <highlight>{$newMain}<end>.";
+		/** @var string */
+		$msg = yield $this->makeAltNewMain($context->char->name, $context->char->name);
 		$context->reply($msg);
 	}
 
@@ -879,7 +783,12 @@ class AltsController extends ModuleInstance {
 		$this->buddylistManager->remove($main, static::MAIN_VALIDATE);
 	}
 
-	/** @return Promise<string[]> */
+	/**
+	 * Add $alts to the alt list of $main
+	 * Security-wise, $user is the user triggering the command
+	 *
+	 * @return Promise<string[]> the result message to print
+	 */
 	private function addAltsToMain(string $user, string $main, PCharacter ...$alts): Promise {
 		return call(function () use ($user, $main, $alts) {
 			/** @var string[] */
@@ -1002,6 +911,79 @@ class AltsController extends ModuleInstance {
 			}
 			// @todo Send a warning if the alt's accesslevel is higher than ours
 			return $result;
+		});
+	}
+
+	/**
+	 * Set $newMain to be the new main out of $newMain's alts
+	 * Security-wise, $user is the user triggering the command
+	 *
+	 * @return Promise<string> the result message to print
+	 */
+	private function makeAltNewMain(string $user, string $newMain): Promise {
+		return call(function () use ($user, $newMain): Generator {
+			$userAltInfo = $this->getAltInfo($user);
+			$altInfo = $this->getAltInfo($newMain);
+			$selfModify = $userAltInfo->main === $altInfo->main;
+
+			if ($altInfo->main === $newMain) {
+				if ($selfModify) {
+					return "<highlight>{$newMain}<end> is already registered as your main.";
+				}
+				return "<highlight>{$newMain}<end> is already registered as their main character.";
+			}
+
+			if (!$selfModify) {
+				$rightsMain = $this->accessManager->compareCharacterAccessLevels($user, $altInfo->main);
+				$rightsNewMain = $this->accessManager->compareCharacterAccessLevels($user, $newMain);
+				if ($rightsMain < 0 || $rightsNewMain < 0) {
+					return "You cannot change someone's main if they have a higher access level than you.";
+				}
+			}
+
+			if (!$altInfo->isValidated($newMain)) {
+				if ($selfModify) {
+					return "You must run this command from a validated character.";
+				}
+				return "You cannot make an unvalidated alt the new main.";
+			}
+
+			yield $this->db->awaitBeginTransaction();
+			try {
+				// remove all the old alt information
+				$this->db->table("alts")->where("main", $altInfo->main)->delete();
+
+				// add current main to new main as an alt
+				$this->addAlt($newMain, $altInfo->main, true, true, false);
+
+				// add current alts to new main
+				foreach ($altInfo->alts as $alt => $validated) {
+					if ($alt !== $newMain) {
+						$this->addAlt($newMain, $alt, $validated->validated_by_main, $validated->validated_by_alt, false);
+					}
+				}
+				$this->db->commit();
+			} catch (SQLException $e) {
+				$this->db->rollback();
+				return "There was a database error changing the main character. No changes were made.";
+			}
+
+			$audit = new Audit();
+			$audit->actor = $newMain;
+			$audit->action = AccessManager::SET_MAIN;
+			$this->accessManager->addAudit($audit);
+
+			// @todo Send a warning if the new main's accesslevel is not the highest
+			$event = new AltEvent();
+			$event->main = $newMain;
+			$event->alt = $altInfo->main;
+			$event->type = 'alt(newmain)';
+			$this->eventManager->fireEvent($event);
+
+			if ($selfModify) {
+				return "Your main is now <highlight>{$newMain}<end>.";
+			}
+			return "<highlight>{$newMain}<end> is now the new main character.";
 		});
 	}
 
