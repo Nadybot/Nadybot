@@ -158,7 +158,7 @@ class AltsController extends ModuleInstance {
 		"This command allows anyone with the required accesslevel to add ".
 		"and remove alts to and from someone else, as long as these don't have ".
 		"a higher accesslevel than the person making the changes.\n".
-		"Alts added this way don't need to be confirmed."
+		"Alts added to other players this way don't need to be confirmed."
 	)]
 	public function addAltadminCommand(
 		CmdContext $context,
