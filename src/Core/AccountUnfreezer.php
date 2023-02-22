@@ -22,7 +22,7 @@ class AccountUnfreezer {
 	public const LOGIN_URL = "https://account.anarchy-online.com/";
 	public const ACCOUNT_URL = "https://account.anarchy-online.com/account/";
 	public const SUBSCRIPTION_URL = "https://account.anarchy-online.com/subscription/%s";
-	public const UNFREEZE_URL = "https://account.anarchy-online.com/account/uncancel_sub";
+	public const UNFREEZE_URL = "https://account.anarchy-online.com/uncancel_sub";
 	public const LOGOUT_URL = "https://account.anarchy-online.com/log_out";
 
 	public const DEFAULT_UA = "Mozilla/5.0 (X11; Linux x86_64; rv:109.0) Gecko/20100101 Firefox/110.0";
@@ -198,8 +198,8 @@ class AccountUnfreezer {
 			/** @var Response */
 			$response = yield $client->request($request, new TimeoutCancellationToken(10000));
 
-			if ($response->getStatus() !== 200) {
-				$this->logger->error('Unable to read account page: {code}', [
+			if ($response->getStatus() !== 302) {
+				$this->logger->error('Unable to unfreeze account: {code}', [
 					"code" => $response->getStatus(),
 				]);
 				throw new UnfreezeTmpException();
