@@ -156,8 +156,8 @@ class AltsController extends ModuleInstance {
 	#[NCA\Help\Group("altsadmin")]
 	#[NCA\Help\Prologue(
 		"This command allows anyone with the required accesslevel to add ".
-		"and remove alts to and from someone else, as long as these don't have ".
-		"a higher accesslevel than the person making the changes.\n".
+		"and remove alts of org and bot members. This will only work with access ".
+		"levels equal or lower than the one executing the command.\n".
 		"Alts added to other players this way don't need to be confirmed."
 	)]
 	public function addAltadminCommand(
