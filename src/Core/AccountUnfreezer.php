@@ -45,9 +45,9 @@ class AccountUnfreezer {
 	#[NCA\Inject]
 	private HttpClientBuilder $http;
 
-	public function unfreeze(): bool {
+	public function unfreeze(?int $subscriptionId): bool {
 		$result = false;
-		Loop::run(function () use (&$result): Generator {
+		Loop::run(function () use (&$result, $subscriptionId): Generator {
 			$this->logger->warning('Account frozen, trying to unfreeze');
 
 			/** @var HttpClient */
@@ -57,7 +57,7 @@ class AccountUnfreezer {
 				$lastResult = self::UNFREEZE_TEMP_ERROR;
 				$proxyText = $this->config->autoUnfreezeUseNadyproxy ? "Proxy" : "Unfreezing";
 				try {
-					$lastResult = yield $this->unfreezeWithClient($client);
+					$lastResult = yield $this->unfreezeWithClient($client, $subscriptionId);
 				} catch (CancelledException) {
 					$this->logger->notice("{$proxyText} not working or too slow. Retrying.");
 				} catch (SocketException) {
@@ -92,7 +92,7 @@ class AccountUnfreezer {
 			$response = yield $client->request($request, new TimeoutCancellationToken(10000));
 
 			if ($response->getStatus() !== 200) {
-				$this->logger->error('Unable to login to the account management website: {code}', [
+				$this->logger->error('Unable to login to get session cookie: {code}', [
 					"code" => $response->getStatus(),
 				]);
 				throw new UnfreezeTmpException();
@@ -116,7 +116,6 @@ class AccountUnfreezer {
 			$user = strtolower($this->config->autoUnfreezeLogin ?? $login);
 			$password = $this->config->autoUnfreezePassword ?? $this->config->password;
 			$request = new Request(self::LOGIN_URL, "POST");
-			// $request = new Request('http://127.0.0.1:1234', "POST");
 			$request->setBody(http_build_query([
 				"nickname" => $user,
 				"password" => $password,
@@ -132,8 +131,15 @@ class AccountUnfreezer {
 			$response = yield $client->request($request, new TimeoutCancellationToken(10000));
 
 			if ($response->getStatus() !== 302) {
-				$this->logger->error('Unable to login to the account management website: {code}', [
-					"code" => $response->getStatus(),
+				$errorMsg = "HTTP-Code " . $response->getStatus();
+				if ($response->getStatus() === 200) {
+					$body = yield $response->getBody()->buffer();
+					if (preg_match('/<div class="alert alert-danger">(.+?)<\/div>/s', $body, $matches)) {
+						$errorMsg = trim(strip_tags($matches[1]));
+					}
+				}
+				$this->logger->error('Unable to login to the account management website: {error}', [
+					"error" => $errorMsg,
 				]);
 				throw new UnfreezeTmpException();
 			}
@@ -248,14 +254,21 @@ class AccountUnfreezer {
 	/** @return Promise<int> */
 	protected function unfreezeWithClient(
 		HttpClient $client,
+		?int $subscriptionId
 	): Promise {
-		return call(function () use ($client): Generator {
+		return call(function () use ($client, $subscriptionId): Generator {
 			try {
 				$sessionCookie = yield $this->getSessionCookie($client);
 				yield $this->loginToAccount($client, $sessionCookie);
 
 				/** @var int */
 				$accountId = yield $this->getSubscriptionId($client, $sessionCookie);
+				if (isset($subscriptionId) && $accountId !== $subscriptionId) {
+					$this->logger->error("Subscription {subscription} is not managed via given login.", [
+						"subscription" => $subscriptionId,
+					]);
+					return self::UNFREEZE_FAILURE;
+				}
 				yield $this->switchToAccount($client, $sessionCookie, $accountId);
 				$mainBody = yield $this->loadAccountPage($client, $sessionCookie);
 				if (!str_contains($mainBody, "Free Account")) {
