@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - New option `auto_guild_name` to allow automatic update of the org name if a change is detected.
 
+### Changed
+
+- Using new unfreezing method on <https://account.anarchy-online.com> since the old website now redirects here.
+
 ## [6.1.2] - 2023-02-12
 
 ### Added
