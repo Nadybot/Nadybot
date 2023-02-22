@@ -311,8 +311,12 @@ class Nadybot extends AOChat {
 				sleep(10);
 				exit(1);
 			}
-		} catch (AccountFrozenException) {
-			if ($this->config->autoUnfreeze && $this->accountUnfreezer->unfreeze()) {
+		} catch (AccountFrozenException $e) {
+			$subscriptionId = $e->getMessage() ?: null;
+			if (is_string($subscriptionId)) {
+				$subscriptionId = (int)$subscriptionId;
+			}
+			if ($this->config->autoUnfreeze && $this->accountUnfreezer->unfreeze($subscriptionId)) {
 				$this->disconnect();
 				$this->logger->notice("Waiting 5s before retrying login");
 				sleep(5);
@@ -325,7 +329,7 @@ class Nadybot extends AOChat {
 				"the \"auto_unfreeze\" option in your config file.",
 				[
 					"account" => $login,
-					"url" => "https://register.funcom.com/account",
+					"url" => AccountUnfreezer::LOGIN_URL,
 				]
 			);
 			sleep(10);
