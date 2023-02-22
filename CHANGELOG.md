@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - New option `auto_guild_name` to allow automatic update of the org name if a change is detected.
+- Add new command `!altsadmin` to manage the alts of someone else. Default is restricted to admin access level.
 
 ### Changed
 
