@@ -2,8 +2,10 @@
 
 namespace Nadybot\Core\Modules\ALTS;
 
+use function Amp\call;
 use function Amp\Promise\rethrow;
 
+use Amp\Promise;
 use Generator;
 use Nadybot\Core\{
 	AccessManager,
@@ -36,6 +38,11 @@ use Nadybot\Core\{
 		command: "alts",
 		accessLevel: "member",
 		description: "Alt character handling",
+	),
+	NCA\DefineCommand(
+		command: "altsadmin",
+		accessLevel: "mod",
+		description: "Manage someone else's alts",
 	),
 	NCA\DefineCommand(
 		command: "altvalidate",
@@ -144,6 +151,26 @@ class AltsController extends ModuleInstance {
 			})->toArray();
 	}
 
+	/** Add one or more alts to someone else's main */
+	#[NCA\HandlesCommand("altsadmin")]
+	#[NCA\Help\Group("altsadmin")]
+	#[NCA\Help\Prologue(
+		"This command allows anyone with the required accesslevel to add ".
+		"and remove alts of org and bot members. This will only work with access ".
+		"levels equal or lower than the one executing the command.\n".
+		"Alts added to other players this way don't need to be confirmed."
+	)]
+	public function addAltadminCommand(
+		CmdContext $context,
+		PCharacter $main,
+		#[NCA\Str("add")] string $action,
+		PCharacter ...$names
+	): Generator {
+		/** @var string[] */
+		$result = yield $this->addAltsToMain($context->char->name, $main(), ...$names);
+		$context->reply(join("\n", $result));
+	}
+
 	/** Add one or more alts to your main */
 	#[NCA\HandlesCommand("alts")]
 	#[NCA\Help\Group("alts")]
@@ -162,89 +189,9 @@ class AltsController extends ModuleInstance {
 		#[NCA\Str("add")] string $action,
 		PCharacter ...$names
 	): Generator {
-		$senderAltInfo = $this->getAltInfo($context->char->name, true);
-		if (!$senderAltInfo->isValidated($context->char->name)) {
-			$context->reply("You can only add alts from a main or validated alt.");
-			return;
-		}
-		$validated = $this->altsRequireConfirmation === false;
-
-		$success = 0;
-
-		// Pop a name from the array until none are left
-		foreach ($names as $name) {
-			$name = $name();
-			if ($name === $context->char->name) {
-				$msg = "You cannot add yourself as your own alt.";
-				$context->reply($msg);
-				continue;
-			}
-
-			$uid = yield $this->chatBot->getUid2($name);
-			if ($uid === null) {
-				$msg = "Character <highlight>{$name}<end> does not exist.";
-				$context->reply($msg);
-				continue;
-			}
-
-			$altInfo = $this->getAltInfo($name, true);
-			if ($altInfo->main === $senderAltInfo->main) {
-				if ($altInfo->isValidated($name)) {
-					$msg = "<highlight>{$name}<end> is already registered to you.";
-				} elseif ($altInfo->alts[$name]->validated_by_main) {
-					$msg = "You already requested adding <highlight>{$name}<end> as an alt.";
-				} else {
-					$msg = "<highlight>{$name}<end> already requested to be added as your alt.";
-				}
-				$context->reply($msg);
-				continue;
-			}
-
-			if (count($altInfo->alts) > 0) {
-				// already registered to someone else
-				if ($altInfo->main === $name) {
-					$msg = "Cannot add alt, because <highlight>{$name}<end> is already registered as a main with alts.";
-				} else {
-					if ($altInfo->isValidated($name)) {
-						$msg = "Cannot add alt, because <highlight>{$name}<end> is already registered as an alt of <highlight>{$altInfo->main}<end>.";
-					} elseif ($altInfo->alts[$name]->validated_by_main) {
-						$msg = "Cannot add alt, because <highlight>{$name}<end> has a pending alt add request from <highlight>{$altInfo->main}<end>.";
-					} else {
-						$msg = "Cannot add alt, because <highlight>{$name}<end> already requested to be an alt of <highlight>{$altInfo->main}<end>.";
-					}
-				}
-				$context->reply($msg);
-				continue;
-			}
-
-			// insert into database
-			$this->addAlt($senderAltInfo->main, $name, true, $validated);
-			$success++;
-			if (!$validated) {
-				if ($this->buddylistManager->isOnline($name)) {
-					$this->sendAltValidationRequest($name, $senderAltInfo);
-				} else {
-					yield $this->buddylistManager->addAsync($name, static::ALT_VALIDATE);
-				}
-			}
-
-			// update character information
-			rethrow($this->playerManager->byName($name));
-		}
-
-		if ($success === 0) {
-			return;
-		}
-		$s = ($success === 1 ? "s" : "");
-		$numAlts = ($success === 1 ? "Alt" : "{$success} alts");
-		if ($validated) {
-			$msg = "{$numAlts} added successfully.";
-		} else {
-			$msg = "{$numAlts} added successfully, but <highlight>require{$s} confirmation<end>. ".
-				"Make sure to confirm you as their main.";
-		}
-		// @todo Send a warning if the alt's accesslevel is higher than ours
-		$context->reply($msg);
+		/** @var string[] */
+		$result = yield $this->addAltsToMain($context->char->name, $context->char->name, ...$names);
+		$context->reply(join("\n", $result));
 	}
 
 	/** Add yourself as an alt of another main character */
@@ -336,6 +283,47 @@ class AltsController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
+	/** Remove someone's alt */
+	#[NCA\HandlesCommand("altsadmin")]
+	#[NCA\Help\Group("altsadmin")]
+	public function removeSomeonesAltCommand(
+		CmdContext $context,
+		PCharacter $main,
+		PRemove $action,
+		PCharacter $alt
+	): Generator {
+		$main = $main();
+		$alt = $alt();
+		$user = $context->char->name;
+
+		$uid = yield $this->chatBot->getUid2($main);
+		if (!isset($uid)) {
+			$context->reply("Character <highlight>{$main}<end> does not exist.");
+			return;
+		}
+		$altInfo = $this->getAltInfo($main, true);
+
+		$rights = $this->accessManager->compareCharacterAccessLevels($user, $altInfo->main);
+		if ($rights < 0) {
+			$context->reply("You cannot manage someone's alts if they have a higher access level than you.");
+			return;
+		}
+
+		if ($altInfo->main === $alt) {
+			$msg = "You cannot remove <highlight>{$alt}<end>, because it's the main character.";
+		} elseif (!isset($altInfo->alts[$alt])) {
+			$msg = "<highlight>{$alt}<end> is not registered as {$main}'s alt.";
+		} elseif (!$altInfo->isValidated($main) && $main !== $altInfo->main) {
+			$msg = "{$main} is neither the main character, nor a validated alt.";
+		} else {
+			$this->remAlt($altInfo->main, $alt);
+			$msg = "{$alt} is no longer <highlight>{$altInfo->main}'s<end> alt.";
+			$this->buddylistManager->remove($alt, static::ALT_VALIDATE);
+			$this->removeMainFromBuddyListIfPossible($altInfo->main);
+		}
+		$context->reply($msg);
+	}
+
 	/** Remove one of your alts */
 	#[NCA\HandlesCommand("alts")]
 	#[NCA\Help\Group("alts")]
@@ -365,6 +353,19 @@ class AltsController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
+	/** Set someone's alt as their new main */
+	#[NCA\HandlesCommand("altsadmin")]
+	#[NCA\Help\Group("altsadmin")]
+	public function setSomeonesMainCommand(
+		CmdContext $context,
+		PCharacter $newMain,
+		#[NCA\Str("setmain")] string $action
+	): Generator {
+		/** @var string */
+		$msg = yield $this->makeAltNewMain($context->char->name, $newMain());
+		$context->reply($msg);
+	}
+
 	/** Set your current character as your main */
 	#[NCA\HandlesCommand("alts")]
 	#[NCA\Help\Group("alts")]
@@ -372,55 +373,8 @@ class AltsController extends ModuleInstance {
 		CmdContext $context,
 		#[NCA\Str("setmain")] string $action
 	): Generator {
-		$newMain = $context->char->name;
-		$altInfo = $this->getAltInfo($newMain);
-
-		if ($altInfo->main === $newMain) {
-			$msg = "<highlight>{$newMain}<end> is already registered as your main.";
-			$context->reply($msg);
-			return;
-		}
-
-		if (!$altInfo->isValidated($newMain)) {
-			$msg = "You must run this command from a validated character.";
-			$context->reply($msg);
-			return;
-		}
-
-		yield $this->db->awaitBeginTransaction();
-		try {
-			// remove all the old alt information
-			$this->db->table("alts")->where("main", $altInfo->main)->delete();
-
-			// add current main to new main as an alt
-			$this->addAlt($newMain, $altInfo->main, true, true, false);
-
-			// add current alts to new main
-			foreach ($altInfo->alts as $alt => $validated) {
-				if ($alt !== $newMain) {
-					$this->addAlt($newMain, $alt, $validated->validated_by_main, $validated->validated_by_alt, false);
-				}
-			}
-			$this->db->commit();
-		} catch (SQLException $e) {
-			$this->db->rollback();
-			$context->reply("There was a database error changing your main. No changes were made.");
-			return;
-		}
-
-		$audit = new Audit();
-		$audit->actor = $newMain;
-		$audit->action = AccessManager::SET_MAIN;
-		$this->accessManager->addAudit($audit);
-
-		// @todo Send a warning if the new main's accesslevel is not the highest
-		$event = new AltEvent();
-		$event->main = $newMain;
-		$event->alt = $altInfo->main;
-		$event->type = 'alt(newmain)';
-		$this->eventManager->fireEvent($event);
-
-		$msg = "Your main is now <highlight>{$newMain}<end>.";
+		/** @var string */
+		$msg = yield $this->makeAltNewMain($context->char->name, $context->char->name);
 		$context->reply($msg);
 	}
 
@@ -827,6 +781,210 @@ class AltsController extends ModuleInstance {
 			return;
 		}
 		$this->buddylistManager->remove($main, static::MAIN_VALIDATE);
+	}
+
+	/**
+	 * Add $alts to the alt list of $main
+	 * Security-wise, $user is the user triggering the command
+	 *
+	 * @return Promise<string[]> the result message to print
+	 */
+	private function addAltsToMain(string $user, string $main, PCharacter ...$alts): Promise {
+		return call(function () use ($user, $main, $alts) {
+			/** @var string[] */
+			$result = [];
+
+			/** @var ?int */
+			$uid = yield $this->chatBot->getUid2($main);
+			if (!isset($uid)) {
+				$result []= "Character <highlight>{$main}<end> does not exist.";
+				return $result;
+			}
+			$modifierAltInfo = $this->getAltInfo($user, true);
+			$mainAltInfo = $this->getAltInfo($main, true);
+			$selfModify = $modifierAltInfo->main === $mainAltInfo->main;
+			if (!$mainAltInfo->isValidated($main)) {
+				if ($selfModify) {
+					$result []= "You can only add alts on a main or validated alt.";
+					return $result;
+				}
+				$result []= "You can only add alts to a main or validated alt.";
+				return $result;
+			}
+			$rights = $this->accessManager->compareCharacterAccessLevels($user, $main);
+			if (!$selfModify && $rights < 0) {
+				$result []= "You cannot manage someone's alts if they have a higher access level than you.";
+				return $result;
+			}
+			$validated = !$selfModify || $this->altsRequireConfirmation === false;
+
+			$success = 0;
+
+			// Pop a name from the array until none are left
+			foreach ($alts as $name) {
+				$name = $name();
+				if ($name === $main) {
+					if ($selfModify) {
+						$result []= "You cannot add yourself as your own alt.";
+					} else {
+						$result []= "You cannot add {$name} as their own alt.";
+					}
+					continue;
+				}
+
+				$uid = yield $this->chatBot->getUid2($name);
+				if ($uid === null) {
+					$result []= "Character <highlight>{$name}<end> does not exist.";
+					continue;
+				}
+				$rights = $this->accessManager->compareCharacterAccessLevels($user, $name);
+				if (!$selfModify && $rights < 0) {
+					$result []= "{$name} has a higher access level than you.";
+					continue;
+				}
+
+				$altInfo = $this->getAltInfo($name, true);
+				if ($altInfo->main === $mainAltInfo->main) {
+					if ($altInfo->isValidated($name)) {
+						if ($selfModify) {
+							$result []= "<highlight>{$name}<end> is already registered to you.";
+						} else {
+							$result []= "<highlight>{$name}<end> is already registered to {$main}.";
+						}
+					} elseif ($altInfo->alts[$name]->validated_by_main) {
+						if ($selfModify) {
+							$result []= "You already requested adding <highlight>{$name}<end> as your alt.";
+						} else {
+							$result []= "{$main} already requested adding <highlight>{$name}<end> as their alt.";
+						}
+					} else {
+						if ($selfModify) {
+							$result []= "<highlight>{$name}<end> already requested to be added as your alt.";
+						} else {
+							$result []= "<highlight>{$name}<end> already requested to be added as {$main}'s alt.";
+						}
+					}
+					continue;
+				}
+
+				if (count($altInfo->alts) > 0) {
+					// already registered to someone else
+					if ($altInfo->main === $name) {
+						$result []= "Cannot add alt, because <highlight>{$name}<end> is already registered as a main with alts.";
+					} else {
+						if ($altInfo->isValidated($name)) {
+							$result []= "Cannot add alt, because <highlight>{$name}<end> is already registered as an alt of <highlight>{$altInfo->main}<end>.";
+						} elseif ($altInfo->alts[$name]->validated_by_main) {
+							$result []= "Cannot add alt, because <highlight>{$name}<end> has a pending alt add request from <highlight>{$altInfo->main}<end>.";
+						} else {
+							$result []= "Cannot add alt, because <highlight>{$name}<end> already requested to be an alt of <highlight>{$altInfo->main}<end>.";
+						}
+					}
+					continue;
+				}
+
+				// insert into database
+				$this->addAlt($mainAltInfo->main, $name, true, $validated);
+				$success++;
+				if (!$validated) {
+					if ($this->buddylistManager->isOnline($name)) {
+						$this->sendAltValidationRequest($name, $mainAltInfo);
+					} else {
+						yield $this->buddylistManager->addAsync($name, static::ALT_VALIDATE);
+					}
+				}
+
+				// update character information
+				rethrow($this->playerManager->byName($name));
+			}
+
+			if ($success === 0) {
+				return $result;
+			}
+			$s = ($success === 1 ? "s" : "");
+			$numAlts = ($success === 1 ? "Alt" : "{$success} alts");
+			if ($validated) {
+				$result []= "{$numAlts} added successfully.";
+			} else {
+				$result []= "{$numAlts} added successfully, but <highlight>require{$s} confirmation<end>. " .
+				"Make sure to confirm you as their main.";
+			}
+			// @todo Send a warning if the alt's accesslevel is higher than ours
+			return $result;
+		});
+	}
+
+	/**
+	 * Set $newMain to be the new main out of $newMain's alts
+	 * Security-wise, $user is the user triggering the command
+	 *
+	 * @return Promise<string> the result message to print
+	 */
+	private function makeAltNewMain(string $user, string $newMain): Promise {
+		return call(function () use ($user, $newMain): Generator {
+			$userAltInfo = $this->getAltInfo($user);
+			$altInfo = $this->getAltInfo($newMain);
+			$selfModify = $userAltInfo->main === $altInfo->main;
+
+			if ($altInfo->main === $newMain) {
+				if ($selfModify) {
+					return "<highlight>{$newMain}<end> is already registered as your main.";
+				}
+				return "<highlight>{$newMain}<end> is already registered as their main character.";
+			}
+
+			if (!$selfModify) {
+				$rightsMain = $this->accessManager->compareCharacterAccessLevels($user, $altInfo->main);
+				$rightsNewMain = $this->accessManager->compareCharacterAccessLevels($user, $newMain);
+				if ($rightsMain < 0 || $rightsNewMain < 0) {
+					return "You cannot change someone's main if they have a higher access level than you.";
+				}
+			}
+
+			if (!$altInfo->isValidated($newMain)) {
+				if ($selfModify) {
+					return "You must run this command from a validated character.";
+				}
+				return "You cannot make an unvalidated alt the new main.";
+			}
+
+			yield $this->db->awaitBeginTransaction();
+			try {
+				// remove all the old alt information
+				$this->db->table("alts")->where("main", $altInfo->main)->delete();
+
+				// add current main to new main as an alt
+				$this->addAlt($newMain, $altInfo->main, true, true, false);
+
+				// add current alts to new main
+				foreach ($altInfo->alts as $alt => $validated) {
+					if ($alt !== $newMain) {
+						$this->addAlt($newMain, $alt, $validated->validated_by_main, $validated->validated_by_alt, false);
+					}
+				}
+				$this->db->commit();
+			} catch (SQLException $e) {
+				$this->db->rollback();
+				return "There was a database error changing the main character. No changes were made.";
+			}
+
+			$audit = new Audit();
+			$audit->actor = $newMain;
+			$audit->action = AccessManager::SET_MAIN;
+			$this->accessManager->addAudit($audit);
+
+			// @todo Send a warning if the new main's accesslevel is not the highest
+			$event = new AltEvent();
+			$event->main = $newMain;
+			$event->alt = $altInfo->main;
+			$event->type = 'alt(newmain)';
+			$this->eventManager->fireEvent($event);
+
+			if ($selfModify) {
+				return "Your main is now <highlight>{$newMain}<end>.";
+			}
+			return "<highlight>{$newMain}<end> is now the new main character.";
+		});
 	}
 
 	private function cacheAlts(): void {
