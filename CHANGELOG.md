@@ -11,10 +11,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - New option `auto_guild_name` to allow automatic update of the org name if a change is detected.
 - Add new command `!altsadmin` to manage the alts of someone else. Default is restricted to admin access level.
+- New option `raffle_allow_multi_join` to forbid joining a raffle for more than one item at the same time - also counting alts.
 
 ### Changed
 
 - Using new unfreezing method on <https://account.anarchy-online.com> since the old website now redirects here.
+- It is no longer possible to join a raffle for the same item with an alt.
 
 ## [6.1.2] - 2023-02-12
 
