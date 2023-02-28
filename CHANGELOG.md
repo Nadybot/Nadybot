@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - New option `auto_guild_name` to allow automatic update of the org name if a change is detected.
 - Add new command `!altsadmin` to manage the alts of someone else. Default is restricted to admin access level.
 - New option `raffle_allow_multi_join` to forbid joining a raffle for more than one item at the same time - also counting alts.
+- `aotell()` now allows messaging access levels by prepending them with a `@`. So `aotell(@mod)` as a receiver will send a message to all mods online.
 
 ### Changed
 
