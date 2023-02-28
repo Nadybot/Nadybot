@@ -10,6 +10,7 @@ use Amp\{Loop, Promise};
 use Exception;
 use Generator;
 use Illuminate\Support\Collection;
+use Nadybot\Core\Routing\RoutableMessage;
 use Nadybot\Core\{
 	AOChatEvent,
 	AccessLevelProvider,
@@ -134,7 +135,8 @@ use Nadybot\Modules\{
 	NCA\ProvidesEvent("online(priv)"),
 	NCA\ProvidesEvent("offline(priv)"),
 	NCA\ProvidesEvent("member(add)"),
-	NCA\ProvidesEvent("member(rem)")
+	NCA\ProvidesEvent("member(rem)"),
+	NCA\EmitsMessages(Source::SYSTEM, "lock-reminder")
 ]
 class PrivateChannelController extends ModuleInstance implements AccessLevelProvider {
 	public const DB_TABLE = "members_<myname>";
@@ -908,8 +910,9 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 			return;
 		}
 		$msg = "Reminder: the private channel is currently <off>locked<end>!";
-		$this->chatBot->sendGuild($msg, true);
-		$this->chatBot->sendPrivate($msg, true);
+		$rMessage = new RoutableMessage($msg);
+		$rMessage->prependPath(new Source(Source::SYSTEM, 'lock-reminder'));
+		$this->messageHub->handle($rMessage);
 	}
 
 	#[NCA\Event(
