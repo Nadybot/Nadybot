@@ -28,7 +28,7 @@ use Throwable;
 	NCA\ProvidesEvent("event-feed(*)")
 ]
 class EventFeed {
-	public const URI = "wss://ws.nadybot.org";
+	public const URI = "ws://10.200.200.2:3333";
 	public const RECONNECT_DELAY = 5;
 
 	#[NCA\Inject]

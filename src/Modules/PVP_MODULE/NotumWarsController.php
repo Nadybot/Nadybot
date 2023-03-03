@@ -1,0 +1,718 @@
+<?php declare(strict_types=1);
+
+namespace Nadybot\Modules\PVP_MODULE;
+
+use function Safe\{json_decode};
+use Amp\Http\Client\{HttpClientBuilder, Request, Response};
+use EventSauce\ObjectHydrator\{ObjectMapperUsingReflection, UnableToHydrateObject};
+use Exception;
+use Generator;
+use Illuminate\Support\Collection;
+use Nadybot\Core\Modules\PLAYER_LOOKUP\PlayerManager;
+use Nadybot\Core\Routing\{RoutableMessage, Source};
+use Nadybot\Core\{Attributes as NCA, CmdContext, ConfigFile, DB, EventManager, LoggerWrapper, MessageHub, ModuleInstance, Text, Util};
+use Nadybot\Modules\HELPBOT_MODULE\{Playfield, PlayfieldController};
+use Nadybot\Modules\LEVEL_MODULE\LevelController;
+use Nadybot\Modules\PVP_MODULE\FeedMessage\TowerAttack;
+use Nadybot\Modules\PVP_MODULE\{FeedMessage};
+use Safe\Exceptions\JsonException;
+
+#[
+	NCA\Instance,
+	NCA\HasMigrations,
+	NCA\EmitsMessages("pvp", "gas-change-clan"),
+	NCA\EmitsMessages("pvp", "gas-change-neutral"),
+	NCA\EmitsMessages("pvp", "gas-change-omni"),
+	NCA\EmitsMessages("pvp", "site-planted-clan"),
+	NCA\EmitsMessages("pvp", "site-planted-neutral"),
+	NCA\EmitsMessages("pvp", "site-planted-omni"),
+	NCA\EmitsMessages("pvp", "site-destroyed-clan"),
+	NCA\EmitsMessages("pvp", "site-destroyed-neutral"),
+	NCA\EmitsMessages("pvp", "site-destroyed-omni"),
+	NCA\ProvidesEvent(
+		event: "tower-attack-info",
+		desc: "Someone attacks a tower site, includes additional information"
+	),
+	NCA\DefineCommand(
+		command: "nw",
+		description: "Perform Notum Wars commands",
+		accessLevel: "guest",
+	),
+	NCA\DefineCommand(
+		command: "nw hot",
+		description: "Show sites which are hot",
+		accessLevel: "guest",
+	),
+	NCA\DefineCommand(
+		command: "nw free",
+		description: "Show all unplanted sites",
+		accessLevel: "guest",
+	),
+	NCA\DefineCommand(
+		command: "nw sites",
+		description: "Show all sites of an org",
+		accessLevel: "guest",
+	),
+]
+class NotumWarsController extends ModuleInstance {
+	public const TOWER_API = "http://10.200.200.2:8080";
+	public const ATTACKS_API = "http://10.200.200.2:5151";
+	public const DB_TABLE = "nw_attacks_<myname>";
+
+	public const TOWER_TYPE_QLS = [
+		34 => 2,
+		82 => 3,
+		129 => 4,
+		177 => 5,
+		201 => 6,
+		226 => 7,
+	];
+
+	#[NCA\Inject]
+	public HttpClientBuilder $builder;
+
+	#[NCA\Inject]
+	public PlayfieldController $pfCtrl;
+
+	#[NCA\Inject]
+	public MessageHub $msgHub;
+
+	#[NCA\Inject]
+	public EventManager $eventManager;
+
+	#[NCA\Inject]
+	public ConfigFile $config;
+
+	#[NCA\Inject]
+	public PlayerManager $playerManager;
+
+	#[NCA\Inject]
+	public LevelController $lvlCtrl;
+
+	#[NCA\Inject]
+	public DB $db;
+
+	#[NCA\Inject]
+	public Text $text;
+
+	#[NCA\Inject]
+	public Util $util;
+
+	#[NCA\Logger]
+	public LoggerWrapper $logger;
+
+	/** @var array<int,PlayfieldState> */
+	public array $state = [];
+
+	/** @var TowerAttack[] */
+	public array $attacks = [];
+
+	/** By what to group hot/penaltized sites */
+	#[NCA\Setting\Options(options: [
+		'Playfield' => 1,
+		'Title level' => 2,
+		'Org' => 3,
+		'Faction' => 4,
+	])]
+	public int $groupHotTowers = 1;
+
+	#[NCA\Event("connect", "Load all towers from the API")]
+	public function initTowersFromApi(): Generator {
+		$client = $this->builder->build();
+
+		/** @var Response */
+		$response = yield $client->request(new Request(self::TOWER_API));
+		if ($response->getStatus() !== 200) {
+			$this->logger->error("Error calling the tower-api: HTTP-code {code}", [
+				"code" => $response->getStatus(),
+			]);
+			return;
+		}
+		$body = yield $response->getBody()->buffer();
+		try {
+			$json = json_decode($body, true);
+			$mapper = new ObjectMapperUsingReflection();
+
+			/** @psalm-suppress InternalMethod */
+			$sites = $mapper->hydrateObjects(FeedMessage\SiteUpdate::class, $json)->getIterator();
+			foreach ($sites as $site) {
+				$this->updateSiteInfo($site);
+			}
+		} catch (JsonException $e) {
+			$this->logger->error("Invalid tower-data received: {error}", [
+				"error" => $e->getMessage(),
+				"exception" => $e,
+			]);
+			return;
+		} catch (UnableToHydrateObject $e) {
+			$this->logger->error("Unable to parse tower-api: {error}", [
+				"error" => $e->getMessage(),
+				"exception" => $e,
+			]);
+		}
+	}
+
+	#[NCA\Event("connect", "Load all attacks from the API")]
+	public function initAttacksFromApi(): Generator {
+		$maxTS = $this->db->table(self::DB_TABLE)->max("timestamp");
+		$client = $this->builder->build();
+		$uri = self::ATTACKS_API;
+		if (isset($maxTS)) {
+			$uri .= "?" . http_build_query(["since" => $maxTS+1]);
+		}
+
+		/** @var Response */
+		$response = yield $client->request(new Request($uri));
+		if ($response->getStatus() !== 200) {
+			$this->logger->error("Error calling the attacks-api: HTTP-code {code}", [
+				"code" => $response->getStatus(),
+			]);
+			return;
+		}
+		$body = yield $response->getBody()->buffer();
+		try {
+			$json = json_decode($body, true);
+			$mapper = new ObjectMapperUsingReflection();
+
+			$attacks = $mapper->hydrateObjects(FeedMessage\TowerAttack::class, $json);
+
+			/** @psalm-suppress InternalMethod */
+			foreach ($attacks as $attack) {
+				$player = yield $this->playerManager->lookupAsync2(
+					$attack->attacker,
+					$this->config->dimension,
+				);
+				$attInfo = DBTowerAttack::fromTowerAttack($attack, $player);
+				$this->db->insert(self::DB_TABLE, $attInfo);
+			}
+			$this->db->table(self::DB_TABLE)
+				->where("timestamp", ">=", time() - 7200)
+				->asObj(DBTowerAttack::class)
+				->each(function (DBTowerAttack $attack): void {
+					$this->registerAttack($attack->toTowerAttack());
+				});
+		} catch (JsonException $e) {
+			$this->logger->error("Invalid attack-data received: {error}", [
+				"error" => $e->getMessage(),
+				"exception" => $e,
+			]);
+			return;
+		} catch (UnableToHydrateObject $e) {
+			$this->logger->error("Unable to parse attack-api: {error}", [
+				"error" => $e->getMessage(),
+				"exception" => $e,
+			]);
+		}
+	}
+
+	/** @return Collection<FeedMessage\SiteUpdate> */
+	public function getEnabledSites(): Collection {
+		$result = new Collection();
+		foreach ($this->state as $pfId => $sites) {
+			foreach ($sites as $siteId => $site) {
+				/** @var FeedMessage\SiteUpdate $site */
+				if ($site->enabled) {
+					$result->push($site);
+				}
+			}
+		}
+		return $result;
+	}
+
+	public function updateSiteInfo(FeedMessage\SiteUpdate $site): void {
+		$playfield = $this->pfCtrl->getPlayfieldById($site->playfield_id);
+		if (!isset($playfield)) {
+			return;
+		}
+		$pfState = $this->state[$site->playfield_id] ?? new PlayfieldState($playfield);
+		$pfState[$site->site_id] = $site;
+		$this->state[$site->playfield_id] = $pfState;
+	}
+
+	public function registerAttack(FeedMessage\TowerAttack $attack): void {
+		$playfield = $this->pfCtrl->getPlayfieldById($attack->playfield_id);
+		if (!isset($playfield)) {
+			return;
+		}
+		$this->attacks []= $attack;
+	}
+
+	#[NCA\Event("site-update", "Update tower information from the API")]
+	public function updateSiteInfoFromFeed(Event\SiteUpdate $event): void {
+		$oldSite = $this->state[$event->gas->playfield_id][$event->gas->site_id] ?? null;
+		$this->updateSiteInfo($event->site);
+		$site = $event->site;
+		$pf = $this->pfCtrl->getPlayfieldById($site->playfield_id);
+		if (!isset($pf)) {
+			return;
+		}
+		if (!isset($oldSite->ct_pos) && isset($site->ct_pos)) {
+			$blob = $this->renderSite($site, $pf);
+			$color = strtolower($site->org_faction ?? "neutral");
+			$msg = "<{$color}>{$pf->short_name} {$site->site_id}<end> ".
+				"@ QL <highlight>{$site->ql}<end> planted [".
+				((array)$this->text->makeBlob(
+					"details",
+					$blob,
+					"{$pf->short_name} {$site->site_id} ({$site->name})",
+				))[0] . "]";
+			$rMessage = new RoutableMessage($msg);
+			$rMessage->prependPath(new Source("pvp", "site-planted-{$color}"));
+			$this->msgHub->handle($rMessage);
+		} elseif (isset($oldSite->ct_pos) && !isset($site->ct_pos)) {
+			$blob = $this->renderSite($oldSite, $pf);
+			$color = strtolower($site->org_faction ?? "neutral");
+			$msg = "<{$color}>{$pf->short_name} {$site->site_id}<end> ".
+				"@ QL <highlight>{$site->ql}<end> destroyed [".
+				((array)$this->text->makeBlob(
+					"details",
+					$blob,
+					"{$pf->short_name} {$site->site_id} ({$site->name})",
+				))[0] . "]";
+			$rMessage = new RoutableMessage($msg);
+			$rMessage->prependPath(new Source("pvp", "site-destroyed-{$color}"));
+			$this->msgHub->handle($rMessage);
+		}
+	}
+
+	#[NCA\Event("tower-attack", "Update tower attacks from the API")]
+	public function updateTowerAttackInfoFromFeed(Event\TowerAttack $event): Generator {
+		$this->registerAttack($event->attack);
+		$player = yield $this->playerManager->lookupAsync2(
+			$event->attack->attacker,
+			$this->config->dimension,
+		);
+		$site = $this->state[$event->attack->playfield_id][$event->attack->site_id]??null;
+		$attInfo = DBTowerAttack::fromTowerAttack($event->attack, $player);
+		$this->db->insert(self::DB_TABLE, $attInfo);
+		$infoEvent = new Event\TowerAttackInfo($event->attack, $player, $site);
+		$this->eventManager->fireEvent($infoEvent);
+	}
+
+	#[NCA\Event("gas-update", "Update gas information from the API")]
+	public function updateGasInfoFromFeed(Event\GasUpdate $event): void {
+		$site = $this->state[$event->gas->playfield_id][$event->gas->site_id] ?? null;
+		if (!isset($site)) {
+			return;
+		}
+		$pf = $this->pfCtrl->getPlayfieldById($site->playfield_id);
+		if (!isset($pf)) {
+			return;
+		}
+		$oldGas = isset($site->gas) ? new Gas($site->gas) : null;
+		$newGas = new Gas($event->gas->gas);
+		$site->gas = $event->gas->gas;
+		$blob = $this->renderSite($site, $pf);
+		$color = strtolower($site->org_faction ?? "neutral");
+		$msg = "<{$color}>{$pf->short_name} {$site->site_id}<end> ".
+			(isset($oldGas) ? ($oldGas->colored() . " -> ") : "").
+			$newGas->colored() . " [".
+			((array)$this->text->makeBlob(
+				"details",
+				$blob,
+				"{$pf->short_name} {$site->site_id} ({$site->name})",
+			))[0] . "]";
+		$rMessage = new RoutableMessage($msg);
+		$rMessage->prependPath(new Source("pvp", "gas-change-{$color}"));
+		$this->msgHub->handle($rMessage);
+	}
+
+	/** Get the current gas for a site and information */
+	public function getSiteGasInfo(FeedMessage\SiteUpdate $site): ?GasInfo {
+		$lastAttack = $this->getLastAttackFrom($site);
+		return new GasInfo($site, $lastAttack);
+	}
+
+	public function qlToSiteType(int $qlCT): int {
+		foreach (static::TOWER_TYPE_QLS as $ql => $level) {
+			if ($qlCT < $ql) {
+				return $level - 1;
+			}
+		}
+		return 7;
+	}
+
+	public function renderSite(FeedMessage\SiteUpdate $site, Playfield $pf, bool $showOrgLinks=true): string {
+		$centerWaypointLink = $this->text->makeChatcmd(
+			"Center",
+			"/waypoint {$site->center->x} {$site->center->y} {$pf->id}"
+		);
+		if (isset($site->ct_pos)) {
+			$ctWaypointLink = $this->text->makeChatcmd(
+				"CT",
+				"/waypoint {$site->ct_pos->x} {$site->ct_pos->y} {$pf->id}"
+			);
+		}
+		$attacksLink = $this->text->makeChatcmd(
+			"Recent attacks",
+			"/tell <myname> nw attacks {$pf->short_name} {$site->site_id}"
+		);
+
+		$blob = "<header2>{$pf->short_name} {$site->site_id} ({$site->name})<end>\n";
+		if ($site->enabled === false) {
+			$blob .= "<tab><grey><i>disabled</i><end>\n";
+			return $blob;
+		}
+		$blob .= "<tab>Level range: <highlight>{$site->min_ql}<end>-<highlight>{$site->max_ql}<end>\n";
+		if (isset($site->plant_time, $site->ql, $site->org_faction, $site->org_name, $site->org_id)) {
+			$blob .= "<tab>Planted: <highlight>".
+				$this->util->date($site->plant_time) . "<end>\n";
+		}
+		if (isset($site->ql, $site->org_faction, $site->org_name, $site->org_id)) {
+			$blob .= "<tab>CT: QL <highlight>{$site->ql}<end>, Type " . $this->qlToSiteType($site->ql) . " ".
+				"(<" . strtolower($site->org_faction) .">{$site->org_name}<end>)";
+			if ($showOrgLinks) {
+				$orgLink = $this->text->makeChatcmd(
+					"show sites",
+					"/tell <myname> nw sites {$site->org_id}"
+				);
+				$blob .= " [{$orgLink}]";
+			}
+			$blob .= "\n";
+			$gasInfo = $this->getSiteGasInfo($site);
+			if (isset($gasInfo)) {
+				$gas = $gasInfo->currentGas();
+				if (isset($gas) && $gas->gas === 75) {
+					$secsToHot = ($gasInfo->goesHot()??time()) - time();
+					$blob .= "<tab>Gas: " . $gas->colored() . ", opens in ".
+						$this->util->unixtimeToReadable($secsToHot) . "\n";
+				} elseif (isset($gas)) {
+					$secsToCold = ($gasInfo->goesCold()??time()) - time();
+					$blob .= "<tab>Gas: " . $gas->colored() . ", closes in ".
+						$this->util->unixtimeToReadable($secsToCold) . "\n";
+				} else {
+					$blob .= "<tab>Gas: N/A\n";
+				}
+			}
+			$blob .= "<tab>Towers: 1 CT".
+				", " . $site->num_turrets . " turrets".
+				", " . $site->num_conductors . " conductors\n";
+		} else {
+			$blob .= "<tab>Planted: <highlight>No<end>\n";
+		}
+		$blob .= "<tab>Coordinates: [{$centerWaypointLink}]";
+		if (isset($ctWaypointLink)) {
+			$blob .= " [{$ctWaypointLink}]";
+		}
+		$blob .= "\n<tab>{$attacksLink}\n";
+		/* "<tab>{$victoryLink}" */
+
+		return $blob;
+	}
+
+	#[NCA\HandlesCommand("nw")]
+	public function overviewCommand(CmdContext $context): void {
+		return;
+	}
+
+	/** See which sites are currently unplanted. */
+	#[NCA\HandlesCommand("nw free")]
+	public function unplantedSitesCommand(
+		CmdContext $context,
+		#[NCA\StrChoice("unplanted", "free")] string $action,
+	): void {
+		$unplantedSites = [];
+		foreach ($this->state as $pfId => $sites) {
+			$pf = $this->pfCtrl->getPlayfieldById($pfId);
+			assert(isset($pf));
+			foreach ($sites as $siteId => $site) {
+				/** @var FeedMessage\SiteUpdate $site */
+				if ($site->enabled && !isset($site->ct_pos)) {
+					$unplantedSites []= $this->renderSite($site, $pf);
+				}
+			}
+		}
+		if (empty($unplantedSites)) {
+			$context->reply("No unplanted sites.");
+			return;
+		}
+		$msg = $this->text->makeBlob(
+			"Unplanted sites (" . count($unplantedSites) . ")",
+			join("\n", $unplantedSites)
+		);
+		$context->reply($msg);
+	}
+
+	/** See which orgs have the highest contract points. */
+	#[NCA\HandlesCommand("nw")]
+	public function highContractsCommand(
+		CmdContext $context,
+		#[NCA\StrChoice("highcontracts", "highcontract", "top")] string $action,
+	): void {
+		$orgQls = [];
+		$orgFaction = [];
+		$this->getEnabledSites()
+			->whereNotNull("org_name")
+			->each(function (FeedMessage\SiteUpdate $site) use (&$orgQls, &$orgFaction): void {
+				assert(isset($site->ql));
+				assert(isset($site->org_faction));
+				assert(isset($site->org_name));
+				$orgQls[$site->org_name] ??= 0;
+				$orgQls[$site->org_name] += $site->ql * 2;
+				$orgFaction[$site->org_name] = $site->org_faction;
+			});
+		uasort($orgQls, fn (int $a, int $b): int => $b <=> $a);
+		$top = array_slice($orgQls, 0, 20);
+		$blob = "<header2>Top contract points<end>";
+		$rank = 1;
+		foreach ($top as $orgName => $points) {
+			$blob .= "\n" . $this->text->alignNumber($rank, 2).
+				". " . $this->text->alignNumber($points, 4, "highlight", true).
+				" <" . strtolower($orgFaction[$orgName] ?? "unknown") . ">{$orgName}<end>";
+			$rank++;
+		}
+		$msg = $this->text->makeBlob(
+			"Top " . count($top) . " contracts",
+			$blob
+		);
+		$context->reply($msg);
+	}
+
+	/**
+	 * See which sites are currently hot.
+	 * You can limit this by any combination of
+	 * faction, playfield, ql and level range and "soon"
+	 */
+	#[NCA\HandlesCommand("nw hot")]
+	#[NCA\Help\Example("<symbol>nw hot clan")]
+	#[NCA\Help\Example("<symbol>nw hot pw")]
+	#[NCA\Help\Example("<symbol>nw hot 60", "Only those in PvP-range for a level 60 char")]
+	#[NCA\Help\Example("<symbol>nw hot 99-110", "Only where the CT is between QL 99 and 110")]
+	#[NCA\Help\Example("<symbol>nw hot omni pw 180-300")]
+	#[NCA\Help\Example("<symbol>nw hot soon")]
+	public function hotSitesCommand(
+		CmdContext $context,
+		#[NCA\Str("hot")] string $action,
+		?string $search
+	): void {
+		$search ??= "";
+		if (substr($search, 0, 1) !== " ") {
+			$search = " {$search}";
+		}
+		$hotSites = $this->getEnabledSites()->whereNotNull("gas");
+		$search = preg_replace("/\s+soon\b/i", "", $search, -1, $soon);
+		if ($soon) {
+			$hotSites = $hotSites->filter(
+				function (FeedMessage\SiteUpdate $site): bool {
+					if ($site->gas !== 75) {
+						return false;
+					}
+					return $this->getSiteGasInfo($site)?->gasAt(time() + 3600)?->gas === 25;
+				}
+			);
+		} else {
+			$hotSites = $hotSites->where("gas", "<", 75);
+		}
+		if (preg_match("/\s+(neutral|omni|clan|neut)\b/i", $search, $matches)) {
+			$faction = strtolower($matches[1]);
+			$search = preg_replace("/\s+(neutral|omni|clan|neut)\b/i", "", $search);
+			if ($faction === "neut") {
+				$faction = "neutral";
+			}
+			$hotSites = $hotSites->where("org_faction", ucfirst($faction));
+		}
+		if (preg_match("/\s+(\d+)\s*-\s*(\d+)\b/", $search, $matches)) {
+			$hotSites = $hotSites->where("ql", ">=", (int)$matches[1])
+				->where("ql", "<=", (int)$matches[2]);
+			$search = preg_replace("/\s+(\d+)\s*-\s*(\d+)\b/", "", $search);
+		}
+		if (preg_match("/\s+(\d+)\b/", $search, $matches)) {
+			$lvlInfo = $this->lvlCtrl->getLevelInfo((int)$matches[1]);
+			if (!isset($lvlInfo)) {
+				$context->reply("<highlight>{$matches[1]}<end> is an invalid level.");
+				return;
+			}
+			$hotSites = $hotSites->where("ql", ">=", $lvlInfo->pvpMin);
+			$hotSites = $hotSites->where("ql", "<=", ($lvlInfo->pvpMax === 220) ? 300 : $lvlInfo->pvpMax);
+			$search = preg_replace("/\s+(\d+)\b/", "", $search);
+		}
+		if (preg_match("/\s+([a-z]{2,}|\d[a-z]{2,})\b/i", $search, $matches)) {
+			$pf = $this->pfCtrl->getPlayfieldByName($matches[1]);
+			if (!isset($pf)) {
+				$context->reply("Unable to find playfield <highlight>{$matches[1]}<end>.");
+				return;
+			}
+			$hotSites = $hotSites->where("playfield_id", $pf->id);
+			$search = preg_replace("/\s+([a-z]{2,}|\d[a-z]{2,})\b/i", "", $search);
+		}
+		$search = trim($search);
+		if ($hotSites->isEmpty()) {
+			if ($soon) {
+				$context->reply("No sites are going hot soon.");
+			} else {
+				$context->reply("No sites are currently hot.");
+			}
+			return;
+		}
+		$blob = $this->renderHotSites(...$hotSites->toArray());
+		if ($soon) {
+			$sitesLabel = isset($faction) ? ucfirst(strtolower($faction)) . " sites" : "Sites";
+			$msg = $this->text->makeBlob("{$sitesLabel} going hot soon ({$hotSites->count()})", $blob);
+		} else {
+			$faction = isset($faction) ? " " . strtolower($faction) : "";
+			$msg = $this->text->makeBlob("Hot{$faction} sites ({$hotSites->count()})", $blob);
+		}
+
+		$context->reply($msg);
+	}
+
+	/** List all tower sites matching an org ID */
+	#[NCA\HandlesCommand("nw sites")]
+	public function listOrgSitesByIDCommand(
+		CmdContext $context,
+		#[NCA\Str("sites")] string $action,
+		int $orgID
+	): void {
+		$matches = $this->getEnabledSites()->whereStrict("org_id", $orgID);
+		if ($matches->isEmpty()) {
+			$context->reply("No tower sites match your search criteria.");
+			return;
+		}
+		$blob = $this->renderOrgSites(...$matches->toArray());
+		$msg = $this->text->makeBlob(
+			"All tower sites of " . $matches->firstOrFail()?->org_name,
+			$blob
+		);
+		$context->reply($msg);
+	}
+
+	/**
+	 * List all tower sites matching an org name
+	 *
+	 * You can use * as a wildcard match
+	 */
+	#[NCA\HandlesCommand("nw sites")]
+	#[NCA\Help\Example("<symbol>nw sites troet")]
+	#[NCA\Help\Example("<symbol>nw sites angel*")]
+	public function listOrgSitesCommand(
+		CmdContext $context,
+		#[NCA\Str("sites")] string $action,
+		string $search
+	): void {
+		$matches = $this->getEnabledSites()
+			->filter(function (FeedMessage\SiteUpdate $site) use ($search): bool {
+				if (!isset($site->org_name)) {
+					return false;
+				}
+				return fnmatch($search, $site->org_name, FNM_CASEFOLD);
+			});
+		if ($matches->isEmpty()) {
+			$context->reply("No tower sites match your search criteria.");
+			return;
+		}
+		$blob = $this->renderOrgSites(...$matches->toArray());
+		$msg = $this->text->makeBlob(
+			"All tower sites of '{$search}'",
+			$blob
+		);
+		$context->reply($msg);
+	}
+
+	private function renderOrgSites(FeedMessage\SiteUpdate ...$sites): string {
+		$matches = (new Collection($sites))
+			->sortBy("ql")
+			->sortBy("org_name")
+			->groupBy("org_name");
+
+		$blob = $matches->map(function (Collection $sites, string $orgName): string {
+			$faction = strtolower($sites->first()?->org_faction ?? "unknown");
+			$ctPts = $sites->pluck("ql")->sum() * 2;
+			return "<{$faction}>{$orgName}<end> (QL {$ctPts} contracts)\n\n".
+				$sites->map(function (FeedMessage\SiteUpdate $site): string {
+					$pf = $this->pfCtrl->getPlayfieldById($site->playfield_id);
+					assert(isset($pf));
+					return $this->renderSite($site, $pf);
+				})->join("\n");
+		})->join("\n");
+		return trim($blob);
+	}
+
+	private function renderHotSites(FeedMessage\SiteUpdate ...$sites): string {
+		$sites = new Collection($sites);
+
+		$grouping = $this->groupHotTowers;
+		if ($grouping === 1) {
+			$sites = $sites->sortBy("site_id");
+			$grouped = $sites->groupBy(function (FeedMessage\SiteUpdate $site): string {
+				$pf = $this->pfCtrl->getPlayfieldById($site->playfield_id);
+				return $pf?->long_name ?? "Unknown";
+			});
+		} elseif ($grouping === 2) {
+			$sites = $sites->sortBy("ql");
+			$grouped = $sites->groupBy(function (FeedMessage\SiteUpdate $site): string {
+				return "TL" . $this->util->levelToTL($site->ql??1);
+			});
+		} elseif ($grouping === 3) {
+			$sites = $sites->sortBy("ql");
+			$grouped = $sites->groupBy("org_name");
+		} elseif ($grouping === 4) {
+			$sites = $sites->sortBy("ql");
+			$grouped = $sites->groupBy("org_faction");
+		} else {
+			throw new Exception("Invalid grouping found");
+		}
+
+		$grouped = $grouped->sortKeys();
+		$blob = $grouped->map(function (Collection $sites, string $short): string {
+			return "<pagebreak><header2>{$short}<end>\n".
+				$sites->map(function (FeedMessage\SiteUpdate $site): string {
+					$pf = $this->pfCtrl->getPlayfieldById($site->playfield_id);
+					assert($pf !== null);
+					assert(isset($site->gas));
+					$shortName = "{$pf->short_name} {$site->site_id}";
+					$line = "<tab>".
+						$this->text->makeChatcmd(
+							$shortName,
+							"/tell <myname> <symbol>nw lc {$shortName}"
+						);
+					$line .= " QL {$site->min_ql}/<highlight>{$site->ql}<end>/{$site->max_ql} -";
+					$factionColor = "";
+					if (isset($site->org_faction)) {
+						$factionColor = "<" . strtolower($site->org_faction) . ">";
+						$org = $site->org_name ?? $site->org_faction;
+						$line .= " {$factionColor}{$org}<end>";
+					} else {
+						$line .= " &lt;Free or unknown planter&gt;";
+					}
+					$gas = $this->getSiteGasInfo($site);
+					assert(isset($gas));
+					$currentGas = $gas->currentGas();
+					assert(isset($currentGas));
+					$line .= " " . $currentGas->colored();
+					$goesHot = $gas->goesHot();
+					$goesCold = $gas->goesCold();
+					if (isset($goesHot)) {
+						$line .= ", opens in " . $this->util->unixtimeToReadable($goesHot - time());
+					} elseif (isset($goesCold)) {
+						$line .= ", closes in " . $this->util->unixtimeToReadable($goesCold - time());
+					}
+					return $line;
+				})->join("\n");
+		})->join("\n\n");
+		return $blob;
+	}
+
+	private function getLastAttackFrom(FeedMessage\SiteUpdate $site): ?int {
+		if (!isset($site->ct_pos)) {
+			return null;
+		}
+
+		/** @var ?FeedMessage\TowerAttack */
+		$lastAttack = null;
+		foreach ($this->attacks as $attack) {
+			if ($attack->timestamp < $site->plant_time) {
+				continue;
+			}
+			if (
+				$attack->attacking_org !== $site->org_name
+				|| $attack->attacking_faction !== $site->org_faction
+			) {
+				continue;
+			}
+			if (isset($lastAttack) && $lastAttack->timestamp > $attack->timestamp) {
+				$lastAttack = $attack;
+			}
+		}
+		return $lastAttack?->timestamp;
+	}
+}
