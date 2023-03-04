@@ -12,15 +12,26 @@ use Nadybot\Modules\PVP_MODULE\Event\TowerAttackInfo;
 #[
 	NCA\Instance,
 	NCA\EmitsMessages("pvp", "tower-attack"),
+	NCA\EmitsMessages("pvp", "tower-outcome"),
 	NCA\DefineCommand(
-		command: "nw show attacks",
+		command: AttacksController::CMD_ATTACKS,
 		description: "Show the last Tower Attack messages",
 		accessLevel: "guest",
-	)
+	),
+	NCA\DefineCommand(
+		command: AttacksController::CMD_OUTCOMES,
+		description: "Show the last tower outcomes",
+		accessLevel: "guest",
+	),
 ]
-class AttacksWarsController extends ModuleInstance {
+class AttacksController extends ModuleInstance {
+	public const CMD_ATTACKS = "nw show attacks";
+	public const CMD_OUTCOMES = "nw victory";
+
 	private const ATT_FMT_NORMAL = "{?att-org:{c-att-org}}{!att-org:{c-att-name}} attacked {c-def-org} ".
 		"{?att-org:- {c-att-name} }{?c-att-level:({c-att-level}/{c-att-ai-level}, {att-gender} {att-breed} {c-att-profession}{?att-org-rank:, {att-org-rank}})}";
+	private const VICTORY_FMT_NORMAL = "{c-winning-org} won against {c-losing-org} in <highlight>{pf-short} {site-id}<end>";
+	private const ABANDONED_FMT_NORMAL = "{c-losing-org} abandoned <highlight>{pf-short} {site-id}<end>";
 
 	#[NCA\Inject]
 	public PlayfieldController $pfCtrl;
@@ -91,6 +102,53 @@ class AttacksWarsController extends ModuleInstance {
 	)]
 	public string $towerAttackFormat = self::ATT_FMT_NORMAL;
 
+	/** Display format for tower victories */
+	#[NCA\Setting\Template(
+		options: [
+			self::VICTORY_FMT_NORMAL,
+		],
+		exampleValues: [
+			"winning-faction" => "Neutral",
+			"c-winning-faction" => "<neutral>Neutral<end>",
+			"winning-org" => "Troet",
+			"c-winning-org" => "<neutral>Troet<end>",
+			"losing-faction" => "Clan",
+			"c-losing-faction" => "<clan>Clan<clan>",
+			"losing-org" => "Team Rainbow",
+			"c-losing-org" => "<clan>Team Rainbow<end>",
+			"site-name" => "Dome Ore",
+			"pf-short" => "AV",
+			"pf-long" => "Avalon",
+			"pf-id" => "505",
+			"site-min-ql" => "61",
+			"site-max-ql" => "82",
+			"site-id" => "8",
+		]
+	)]
+	public string $towerVictoryFormat = self::VICTORY_FMT_NORMAL;
+
+	/** Display format for towers being abandoned */
+	#[NCA\Setting\Template(
+		options: [
+			self::ABANDONED_FMT_NORMAL,
+			"{c-losing-org} abandoned their field at <highlight>{pf-short} {site-id}<end>",
+		],
+		exampleValues: [
+			"losing-faction" => "Clan",
+			"c-losing-faction" => "<clan>Clan<clan>",
+			"losing-org" => "Team Rainbow",
+			"c-losing-org" => "<clan>Team Rainbow<end>",
+			"site-name" => "Dome Ore",
+			"pf-short" => "AV",
+			"pf-long" => "Avalon",
+			"pf-id" => "505",
+			"site-min-ql" => "61",
+			"site-max-ql" => "82",
+			"site-id" => "8",
+		]
+	)]
+	public string $siteAbandonedFormat = self::ABANDONED_FMT_NORMAL;
+
 	#[NCA\Event("tower-attack-info", "Announce tower attacks")]
 	public function announceTowerAttack(TowerAttackInfo $event): void {
 		if ($event->site === null) {
@@ -157,14 +215,62 @@ class AttacksWarsController extends ModuleInstance {
 		$msg = $this->text->blobWrap("{$msg} [", $detailsLink, "]");
 
 		foreach ($msg as $page) {
-			$r = new RoutableMessage($page);
-			$r->appendPath(new Source('pvp', "tower-attack"));
-			$this->msgHub->handle($r);
+			$rMsg = new RoutableMessage($page);
+			$rMsg->prependPath(new Source('pvp', "tower-attack"));
+			$this->msgHub->handle($rMsg);
+		}
+	}
+
+	#[NCA\Event("tower-outcome", "Announce tower victories and abandoned sites")]
+	public function announceTowerVictories(Event\TowerOutcome $event): void {
+		$outcome = $event->outcome;
+		$pf = $this->pfCtrl->getPlayfieldById($outcome->playfield_id);
+		$site = $this->nwCtrl->state[$outcome->playfield_id][$outcome->site_id];
+		if (!isset($pf) || !isset($site)) {
+			return;
+		}
+		$tokens = [
+			"winning-faction" => $outcome->attacking_faction,
+			"winning-org" => $outcome->attacking_org,
+			"losing-faction" => $outcome->losing_faction,
+			"losing-org" => $outcome->losing_org,
+			"c-losing-org" => "<" . strtolower($outcome->losing_faction) . ">".
+				$outcome->losing_org . "<end>",
+			"site-name" => $site->name,
+			"pf-short" => $pf->short_name,
+			"pf-long" => $pf->long_name,
+			"pf-id" => $pf->id,
+			"site-min-ql" => $site->min_ql,
+			"site-max-ql" => $site->max_ql,
+			"site-id" => $site->site_id,
+		];
+		$format = $this->siteAbandonedFormat;
+		if (isset($tokens["winning-faction"])) {
+			assert(isset($tokens['winning-org']));
+			$winColor = strtolower($tokens['winning-faction']);
+			$tokens['c-winning-faction'] = "<{$winColor}>{$tokens['winning-faction']}<end>";
+			$tokens['c-winning-org'] = "<{$winColor}>{$tokens['winning-org']}<end>";
+			$format = $this->towerVictoryFormat;
+		}
+		$msg = $this->text->renderPlaceholders($format, $tokens);
+
+		$details = $this->nwCtrl->renderSite($site, $pf, false);
+		$shortSite = "{$pf->short_name} {$site->site_id}";
+		$detailsLink = $this->text->makeBlob(
+			$shortSite,
+			$details,
+		);
+		$msg = $this->text->blobWrap("{$msg} [", $detailsLink, "]");
+
+		foreach ($msg as $page) {
+			$rMsg = new RoutableMessage($page);
+			$rMsg->prependPath(new Source("pvp", "tower-outcome"));
+			$this->msgHub->handle($rMsg);
 		}
 	}
 
 	/** Show the last tower attack messages */
-	#[NCA\HandlesCommand("nw show attacks")]
+	#[NCA\HandlesCommand(self::CMD_ATTACKS)]
 	public function nwAttacksAnywhereCommand(
 		CmdContext $context,
 		#[NCA\Str("attacks")] string $action,
@@ -180,7 +286,7 @@ class AttacksWarsController extends ModuleInstance {
 	}
 
 	/** Show the last tower attack messages for a site */
-	#[NCA\HandlesCommand("nw show attacks")]
+	#[NCA\HandlesCommand(self::CMD_ATTACKS)]
 	public function nwAttacksForSiteCommand(
 		CmdContext $context,
 		#[NCA\Str("attacks")] string $action,
@@ -209,7 +315,7 @@ class AttacksWarsController extends ModuleInstance {
 	 *
 	 * You can use '*' as a wildcard in org names
 	 */
-	#[NCA\HandlesCommand("nw show attacks")]
+	#[NCA\HandlesCommand(self::CMD_ATTACKS)]
 	#[NCA\Help\Example("<symbol>nw attacks org *sneak*")]
 	#[NCA\Help\Example("<symbol>nw attacks org Komodo")]
 	public function nwAttacksForOrgCommand(
@@ -238,7 +344,7 @@ class AttacksWarsController extends ModuleInstance {
 	 *
 	 * You can use '%' as a wildcard in character names
 	 */
-	#[NCA\HandlesCommand("nw show attacks")]
+	#[NCA\HandlesCommand(self::CMD_ATTACKS)]
 	#[NCA\Help\Example("<symbol>nw attacks char nady%")]
 	#[NCA\Help\Example("<symbol>nw attacks char nadyita")]
 	public function nwAttacksForCharCommand(
@@ -255,6 +361,76 @@ class AttacksWarsController extends ModuleInstance {
 				$query,
 				"Tower Attacks by '{$search}'",
 				"nw attacks char {$search}",
+				$page??1
+			)
+		);
+	}
+
+	/** Show the last tower victories */
+	#[NCA\HandlesCommand(self::CMD_OUTCOMES)]
+	public function nwOutcomesAnywhereCommand(
+		CmdContext $context,
+		#[NCA\Str("victory")] string $action,
+		?int $page,
+	): void {
+		$query = $this->db->table($this->nwCtrl::DB_OUTCOMES);
+		$context->reply($this->nwOutcomesCmd(
+			$query,
+			"Tower Victories",
+			"nw victory",
+			$page??1,
+		));
+	}
+
+	/** Show the last tower victories for a site */
+	#[NCA\HandlesCommand(self::CMD_OUTCOMES)]
+	public function nwOutcomesForSiteCommand(
+		CmdContext $context,
+		#[NCA\Str("victory")] string $action,
+		PTowerSite $towerSite,
+		?int $page,
+	): void {
+		$pf = $this->pfCtrl->getPlayfieldByName($towerSite->pf);
+		if (!isset($pf)) {
+			$msg = "Playfield <highlight>{$towerSite->pf}<end> could not be found.";
+			$context->reply($msg);
+			return;
+		}
+		$query = $this->db->table($this->nwCtrl::DB_OUTCOMES)
+			->where("playfield_id", $pf->id)
+			->where("site_id", $towerSite->site);
+		$context->reply($this->nwOutcomesCmd(
+			$query,
+			"Tower Victories on {$pf->short_name} {$towerSite->site}",
+			"nw victory",
+			$page??1,
+		));
+	}
+
+	/**
+	 * Show the last tower victories involving a specific organization
+	 *
+	 * You can use '*' as a wildcard in org names
+	 */
+	#[NCA\HandlesCommand(self::CMD_ATTACKS)]
+	#[NCA\Help\Example("<symbol>nw victory org *sneak*")]
+	#[NCA\Help\Example("<symbol>nw victory org Komodo")]
+	public function nwOutcomesForOrgCommand(
+		CmdContext $context,
+		#[NCA\Str("victory")] string $action,
+		#[NCA\Str("org")] string $org,
+		PNonGreedy $orgName,
+		?int $page,
+	): void {
+		$search = str_replace("*", "%", $orgName());
+		$query = $this->db->table($this->nwCtrl::DB_OUTCOMES)
+			->whereIlike("attacking_org", $search)
+			->orWhereIlike("losing_org", $search);
+		$context->reply(
+			$this->nwOutcomesCmd(
+				$query,
+				"Tower Attacks on/by '{$orgName}'",
+				"nw attacks org {$orgName}",
 				$page??1
 			)
 		);
@@ -327,6 +503,27 @@ class AttacksWarsController extends ModuleInstance {
 		return $blob;
 	}
 
+	private function renderDBOutcome(DBOutcome $outcome, FeedMessage\SiteUpdate $site, Playfield $pf): string {
+		$blob = "Time: " . $this->util->date($outcome->timestamp) . " (".
+			"<highlight>" . $this->util->unixtimeToReadable(time() - $outcome->timestamp).
+			"<end> ago)\n";
+		if (isset($outcome->attacking_org, $outcome->attacking_faction)) {
+			$blob .= "Winner: <" . strtolower($outcome->attacking_faction) . ">".
+				$outcome->attacking_org . "<end>\n";
+		} else {
+			$blob .= "Winner: <grey>abandoned<end>\n";
+		}
+		$blob .= "Loser: <" . strtolower($outcome->losing_faction) . ">".
+			$outcome->losing_org . "<end>\n";
+		$siteLink = $this->text->makeChatcmd(
+			"{$pf->short_name} {$site->site_id}",
+			"/tell <myname> <symbol>lc {$pf->short_name} {$site->site_id}"
+		);
+		$blob .= "Site: {$siteLink} (QL {$site->min_ql}-{$site->max_ql})";
+
+		return $blob;
+	}
+
 	/** @return string[] */
 	private function nwAttacksCmd(QueryBuilder $query, string $title, string $command, int $page): array {
 		$numAttacks = $query->count();
@@ -339,6 +536,23 @@ class AttacksWarsController extends ModuleInstance {
 			$command,
 			$page,
 			$numAttacks,
+			$title,
+			...$attacks->toArray()
+		);
+	}
+
+	/** @return string[] */
+	private function nwOutcomesCmd(QueryBuilder $query, string $title, string $command, int $page): array {
+		$numOutcomes = $query->count();
+		$attacks = $query
+			->orderByDesc("timestamp")
+			->limit(15)
+			->offset(($page-1) * 15)
+			->asObj(DBOutcome::class);
+		return $this->renderOutcomeList(
+			$command,
+			$page,
+			$numOutcomes,
 			$title,
 			...$attacks->toArray()
 		);
@@ -378,6 +592,52 @@ class AttacksWarsController extends ModuleInstance {
 			$blob = "{$prevLink}<tab>Page {$page}<tab>{$nextLink}\n\n";
 		}
 		$blob .= join("\n", $blocks);
+		$msg = $this->text->makeBlob(
+			$title,
+			$blob
+		);
+		return (array)$msg;
+	}
+
+	/** @return string[] */
+	private function renderOutcomeList(
+		string $baseCommand,
+		int $page,
+		int $numAttacks,
+		string $title,
+		DBOutcome ...$outcomes
+	): array {
+		if (empty($outcomes)) {
+			return ["No tower victories found."];
+		}
+		$blocks = [];
+		foreach ($outcomes as $outcome) {
+			$pf = $this->pfCtrl->getPlayfieldById($outcome->playfield_id);
+			$site = $this->nwCtrl->state[$outcome->playfield_id][$outcome->site_id] ?? null;
+			if (!isset($pf) || !isset($site)) {
+				continue;
+			}
+			$blocks []= $this->renderDBOutcome($outcome, $site, $pf);
+		}
+		$prevLink = "&lt;&lt;&lt;";
+		if ($page > 1) {
+			$prevLink = $this->text->makeChatcmd(
+				$prevLink,
+				"/tell <myname> {$baseCommand} " . ($page-1)
+			);
+		}
+		$nextLink = "";
+		if ($page * 15 < $numAttacks) {
+			$nextLink = $this->text->makeChatcmd(
+				"&gt;&gt;&gt;",
+				"/tell <myname> {$baseCommand} " . ($page+1)
+			);
+		}
+		$blob = "";
+		if ($numAttacks > 15) {
+			$blob = "{$prevLink}<tab>Page {$page}<tab>{$nextLink}\n\n";
+		}
+		$blob .= join("\n\n", $blocks);
 		$msg = $this->text->makeBlob(
 			$title,
 			$blob

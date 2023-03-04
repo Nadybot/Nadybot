@@ -55,6 +55,11 @@ use Safe\Exceptions\JsonException;
 		description: "Show all sites of an org",
 		accessLevel: "guest",
 	),
+	NCA\DefineCommand(
+		command: "nw timer",
+		description: "Start a plant timer for a site",
+		accessLevel: "guest",
+	),
 ]
 class NotumWarsController extends ModuleInstance {
 	public const TOWER_API = "http://10.200.200.2:8080";
@@ -132,7 +137,7 @@ class NotumWarsController extends ModuleInstance {
 		'org' => 2,
 		'priv+org' => 3,
 	])]
-	public int $plantTimerChannel = 0;
+	public int $plantTimerChannel = 3;
 
 	#[NCA\Event("connect", "Load all towers from the API")]
 	public function initTowersFromApi(): Generator {
@@ -532,7 +537,9 @@ class NotumWarsController extends ModuleInstance {
 		return;
 	}
 
-	#[NCA\HandlesCommand("nw")]
+	/** Start a plant timer for a given site */
+	#[NCA\Help\Hide]
+	#[NCA\HandlesCommand("nw timer")]
 	public function plantTimerCommand(
 		CmdContext $context,
 		#[NCA\Str("timer")] string $action,
@@ -601,7 +608,7 @@ class NotumWarsController extends ModuleInstance {
 	#[NCA\HandlesCommand("nw")]
 	public function highContractsCommand(
 		CmdContext $context,
-		#[NCA\StrChoice("highcontracts", "highcontract", "top")] string $action,
+		#[NCA\Str("top", "highcontracts", "highcontract")] string $action,
 	): void {
 		$orgQls = [];
 		$orgFaction = [];
@@ -617,12 +624,17 @@ class NotumWarsController extends ModuleInstance {
 			});
 		uasort($orgQls, fn (int $a, int $b): int => $b <=> $a);
 		$top = array_slice($orgQls, 0, 20);
-		$blob = "<header2>Top contract points<end>";
+		$blob = "<header2>Top contract points<end>\n";
 		$rank = 1;
 		foreach ($top as $orgName => $points) {
-			$blob .= "\n" . $this->text->alignNumber($rank, 2).
+			$sitesLink = $this->text->makeChatcmd(
+				"sites",
+				"/tell <myname> <symbol>nw sites {$orgName}"
+			);
+			$blob .= "\n<tab>" . $this->text->alignNumber($rank, 2).
 				". " . $this->text->alignNumber($points, 4, "highlight", true).
-				" <" . strtolower($orgFaction[$orgName] ?? "unknown") . ">{$orgName}<end>";
+				" <" . strtolower($orgFaction[$orgName] ?? "unknown") . ">{$orgName}<end>".
+				" [{$sitesLink}]";
 			$rank++;
 		}
 		$msg = $this->text->makeBlob(
@@ -653,7 +665,9 @@ class NotumWarsController extends ModuleInstance {
 		if (substr($search, 0, 1) !== " ") {
 			$search = " {$search}";
 		}
-		$hotSites = $this->getEnabledSites()->whereNotNull("gas");
+		$hotSites = $this->getEnabledSites()
+			->whereNotNull("gas")
+			->whereNotNull("ql");
 		$search = preg_replace("/\s+soon\b/i", "", $search, -1, $soon);
 		if ($soon) {
 			$hotSites = $hotSites->filter(

@@ -16,7 +16,7 @@ use Nadybot\Modules\PVP_MODULE\{FeedMessage};
 	)
 ]
 class LandController extends ModuleInstance {
-	public const LC_CMD = "nw Land Controlling";
+	public const LC_CMD = "nw lc";
 
 	#[NCA\Inject]
 	public PlayfieldController $pfCtrl;
