@@ -9,12 +9,14 @@ use Exception;
 use Generator;
 use Illuminate\Support\Collection;
 use Nadybot\Core\Modules\PLAYER_LOOKUP\PlayerManager;
+use Nadybot\Core\ParamClass\PTowerSite;
 use Nadybot\Core\Routing\{RoutableMessage, Source};
 use Nadybot\Core\{Attributes as NCA, CmdContext, ConfigFile, DB, EventManager, LoggerWrapper, MessageHub, ModuleInstance, Text, Util};
 use Nadybot\Modules\HELPBOT_MODULE\{Playfield, PlayfieldController};
 use Nadybot\Modules\LEVEL_MODULE\LevelController;
-use Nadybot\Modules\PVP_MODULE\FeedMessage\TowerAttack;
+use Nadybot\Modules\PVP_MODULE\FeedMessage\{TowerAttack, TowerOutcome};
 use Nadybot\Modules\PVP_MODULE\{FeedMessage};
+use Nadybot\Modules\TIMERS_MODULE\{Alert, Timer, TimerController};
 use Safe\Exceptions\JsonException;
 
 #[
@@ -56,8 +58,10 @@ use Safe\Exceptions\JsonException;
 ]
 class NotumWarsController extends ModuleInstance {
 	public const TOWER_API = "http://10.200.200.2:8080";
-	public const ATTACKS_API = "http://10.200.200.2:5151";
-	public const DB_TABLE = "nw_attacks_<myname>";
+	public const ATTACKS_API = "http://10.200.200.2:5151/attacks";
+	public const OUTCOMES_API = "http://10.200.200.2:5151/outcomes";
+	public const DB_ATTACKS = "nw_attacks_<myname>";
+	public const DB_OUTCOMES = "nw_outcomes_<myname>";
 
 	public const TOWER_TYPE_QLS = [
 		34 => 2,
@@ -90,6 +94,9 @@ class NotumWarsController extends ModuleInstance {
 	public LevelController $lvlCtrl;
 
 	#[NCA\Inject]
+	public TimerController $timerController;
+
+	#[NCA\Inject]
 	public DB $db;
 
 	#[NCA\Inject]
@@ -107,6 +114,9 @@ class NotumWarsController extends ModuleInstance {
 	/** @var TowerAttack[] */
 	public array $attacks = [];
 
+	/** @var TowerOutcome[] */
+	public array $outcomes = [];
+
 	/** By what to group hot/penaltized sites */
 	#[NCA\Setting\Options(options: [
 		'Playfield' => 1,
@@ -115,6 +125,14 @@ class NotumWarsController extends ModuleInstance {
 		'Faction' => 4,
 	])]
 	public int $groupHotTowers = 1;
+
+	/** Where to display tower plant timers */
+	#[NCA\Setting\Options(options: [
+		'priv' => 1,
+		'org' => 2,
+		'priv+org' => 3,
+	])]
+	public int $plantTimerChannel = 0;
 
 	#[NCA\Event("connect", "Load all towers from the API")]
 	public function initTowersFromApi(): Generator {
@@ -154,7 +172,7 @@ class NotumWarsController extends ModuleInstance {
 
 	#[NCA\Event("connect", "Load all attacks from the API")]
 	public function initAttacksFromApi(): Generator {
-		$maxTS = $this->db->table(self::DB_TABLE)->max("timestamp");
+		$maxTS = $this->db->table(self::DB_ATTACKS)->max("timestamp");
 		$client = $this->builder->build();
 		$uri = self::ATTACKS_API;
 		if (isset($maxTS)) {
@@ -178,14 +196,15 @@ class NotumWarsController extends ModuleInstance {
 
 			/** @psalm-suppress InternalMethod */
 			foreach ($attacks as $attack) {
+				$this->attacks []= $attack;
 				$player = yield $this->playerManager->lookupAsync2(
 					$attack->attacker,
 					$this->config->dimension,
 				);
 				$attInfo = DBTowerAttack::fromTowerAttack($attack, $player);
-				$this->db->insert(self::DB_TABLE, $attInfo);
+				$this->db->insert(self::DB_ATTACKS, $attInfo);
 			}
-			$this->db->table(self::DB_TABLE)
+			$this->db->table(self::DB_ATTACKS)
 				->where("timestamp", ">=", time() - 7200)
 				->asObj(DBTowerAttack::class)
 				->each(function (DBTowerAttack $attack): void {
@@ -199,6 +218,57 @@ class NotumWarsController extends ModuleInstance {
 			return;
 		} catch (UnableToHydrateObject $e) {
 			$this->logger->error("Unable to parse attack-api: {error}", [
+				"error" => $e->getMessage(),
+				"exception" => $e,
+			]);
+		}
+	}
+
+	#[NCA\Event("connect", "Load all tower outcomes from the API")]
+	public function initOutcomesFromApi(): Generator {
+		$maxTS = $this->db->table(self::DB_OUTCOMES)->max("timestamp");
+		$client = $this->builder->build();
+		$uri = self::OUTCOMES_API;
+		if (isset($maxTS)) {
+			$uri .= "?" . http_build_query(["since" => $maxTS+1]);
+		}
+
+		/** @var Response */
+		$response = yield $client->request(new Request($uri));
+		if ($response->getStatus() !== 200) {
+			$this->logger->error("Error calling the outcome-api: HTTP-code {code}", [
+				"code" => $response->getStatus(),
+			]);
+			return;
+		}
+		$body = yield $response->getBody()->buffer();
+		try {
+			$json = json_decode($body, true);
+			$mapper = new ObjectMapperUsingReflection();
+
+			$outcomes = $mapper->hydrateObjects(FeedMessage\TowerOutcome::class, $json);
+
+			/** @psalm-suppress InternalMethod */
+			foreach ($outcomes as $outcome) {
+				$this->db->insert(self::DB_OUTCOMES, DBOutcome::fromTowerOutcome($outcome));
+				$this->outcomes []= $outcome;
+			}
+			$this->outcomes = $this->db->table(self::DB_OUTCOMES)
+				->where("timestamp", ">=", time() - 7200)
+				->orderByDesc("timestamp")
+				->asObj(DBOutcome::class)
+				->map(function (DBOutcome $outcome): TowerOutcome {
+					return $outcome->toTowerOutcome();
+				})
+				->toArray();
+		} catch (JsonException $e) {
+			$this->logger->error("Invalid outcome-data received: {error}", [
+				"error" => $e->getMessage(),
+				"exception" => $e,
+			]);
+			return;
+		} catch (UnableToHydrateObject $e) {
+			$this->logger->error("Unable to parse outcome-api: {error}", [
 				"error" => $e->getMessage(),
 				"exception" => $e,
 			]);
@@ -234,7 +304,9 @@ class NotumWarsController extends ModuleInstance {
 		if (!isset($playfield)) {
 			return;
 		}
-		$this->attacks []= $attack;
+		$this->attacks = (new Collection([$attack, ...$this->attacks]))
+			->where("timestamp", ">=", time() - 7200)
+			->toArray();
 	}
 
 	#[NCA\Event("site-update", "Update tower information from the API")]
@@ -275,6 +347,15 @@ class NotumWarsController extends ModuleInstance {
 		}
 	}
 
+	#[NCA\Event("tower-outcome", "Update tower outcomes from the API")]
+	public function updateTowerOutcomeInfoFromFeed(Event\TowerOutcome $event): void {
+		$dbOutcome = DBOutcome::fromTowerOutcome($event->outcome);
+		$this->db->insert(self::DB_OUTCOMES, $dbOutcome);
+		$this->outcomes = (new Collection([$event->outcome, ...$this->outcomes]))
+			->where("timestamp", ">=", time() - 3600)
+			->toArray();
+	}
+
 	#[NCA\Event("tower-attack", "Update tower attacks from the API")]
 	public function updateTowerAttackInfoFromFeed(Event\TowerAttack $event): Generator {
 		$this->registerAttack($event->attack);
@@ -284,7 +365,7 @@ class NotumWarsController extends ModuleInstance {
 		);
 		$site = $this->state[$event->attack->playfield_id][$event->attack->site_id]??null;
 		$attInfo = DBTowerAttack::fromTowerAttack($event->attack, $player);
-		$this->db->insert(self::DB_TABLE, $attInfo);
+		$this->db->insert(self::DB_ATTACKS, $attInfo);
 		$infoEvent = new Event\TowerAttackInfo($event->attack, $player, $site);
 		$this->eventManager->fireEvent($infoEvent);
 	}
@@ -333,6 +414,7 @@ class NotumWarsController extends ModuleInstance {
 	}
 
 	public function renderSite(FeedMessage\SiteUpdate $site, Playfield $pf, bool $showOrgLinks=true): string {
+		$lastOutcome = $this->getLastSiteOutcome($site);
 		$centerWaypointLink = $this->text->makeChatcmd(
 			"Center",
 			"/waypoint {$site->center->x} {$site->center->y} {$pf->id}"
@@ -389,6 +471,51 @@ class NotumWarsController extends ModuleInstance {
 				", " . $site->num_conductors . " conductors\n";
 		} else {
 			$blob .= "<tab>Planted: <highlight>No<end>\n";
+			if (isset($lastOutcome) && $lastOutcome->timestamp + 3600 > time()) {
+				if (isset($lastOutcome->attacking_org, $lastOutcome->attacking_faction)) {
+					$blob .= "<tab>Destroyed by: ".
+						"<" . strtolower($lastOutcome->attacking_faction) . ">".
+						$lastOutcome->attacking_org . "<end>";
+				} else {
+					$blob .= "<tab>Abandoned by: ".
+						"<" . strtolower($lastOutcome->losing_faction) . ">".
+						$lastOutcome->losing_org . "<end>";
+				}
+				$blob .= " " . $this->util->unixtimeToReadable(time() - $lastOutcome->timestamp).
+					" ago\n";
+			}
+			if (isset($lastOutcome) && $lastOutcome->timestamp > time() - 1800) {
+				$blob .= "<tab>Plantable:\n";
+				if (isset($lastOutcome->attacking_faction)) {
+					$plantTs = $lastOutcome->timestamp + 20 * 60;
+					$plantIn = ($plantTs <= time())
+						? "Now"
+						: $this->util->unixtimeToReadable($lastOutcome->timestamp + 900 - time());
+					$blob .= "<tab><tab><" . strtolower($lastOutcome->attacking_faction) . ">".
+						$lastOutcome->attacking_faction . "<end>: <highlight>{$plantIn}<end>";
+					if ($plantTs > time()) {
+						$blob .= " [" . $this->text->makeChatcmd(
+							"timer",
+							"/tell <myname> <symbol>nw timer {$pf->short_name} {$site->site_id} {$plantTs}",
+						) . "]";
+					}
+					$blob .= "\n";
+				}
+				$plantTs = $lastOutcome->timestamp + 30 * 60;
+				$plantIn = ($plantTs <= time())
+					? "Now"
+					: $this->util->unixtimeToReadable($lastOutcome->timestamp + 1800 - time());
+				$blob .= "<tab><tab>All: <highlight>{$plantIn}<end>";
+				if ($plantTs > time()) {
+					$blob .= " [" . $this->text->makeChatcmd(
+						"timer",
+						"/tell <myname> <symbol>nw timer {$pf->short_name} {$site->site_id} {$plantTs}",
+					) . "]";
+				}
+				$blob .= "\n";
+			} else {
+				$blob .= "<tab>Plantable for all: <highlight>Now<end>\n";
+			}
 		}
 		$blob .= "<tab>Coordinates: [{$centerWaypointLink}]";
 		if (isset($ctWaypointLink)) {
@@ -402,6 +529,43 @@ class NotumWarsController extends ModuleInstance {
 
 	#[NCA\HandlesCommand("nw")]
 	public function overviewCommand(CmdContext $context): void {
+		return;
+	}
+
+	#[NCA\HandlesCommand("nw")]
+	public function plantTimerCommand(
+		CmdContext $context,
+		#[NCA\Str("timer")] string $action,
+		PTowerSite $site,
+		int $timestamp,
+	): void {
+		$pf = $this->pfCtrl->getPlayfieldByName($site->pf);
+		if (!isset($pf)) {
+			$context->reply("Unknown playfield {$site->pf}.");
+			return;
+		}
+		$towerSite = $this->state[$pf->id][$site->site] ?? null;
+		if (!isset($towerSite)) {
+			$context->reply("No tower field {$pf->short_name} {$site->site} found.");
+			return;
+		}
+		if ($timestamp <= time()) {
+			$context->reply("Plant {$pf->short_name} {$site->site} <highlight>NOW<end>!");
+			return;
+		}
+		$timer = $this->getPlantTimer($towerSite, $timestamp);
+
+		// Sometimes, they overlap, so make sure any previous timer
+		// is removed first
+		$this->timerController->remove($timer->name);
+
+		$this->timerController->add(
+			$timer->name,
+			$context->char->name,
+			$timer->mode,
+			$timer->alerts,
+			'timercontroller.timerCallback'
+		);
 		return;
 	}
 
@@ -606,6 +770,69 @@ class NotumWarsController extends ModuleInstance {
 			$blob
 		);
 		$context->reply($msg);
+	}
+
+	private function getPlantTimer(FeedMessage\SiteUpdate $site, int $timestamp): Timer {
+		$pf = $this->pfCtrl->getPlayfieldById($site->playfield_id);
+		assert(isset($pf));
+
+		/** @var Alert[] */
+		$alerts = [];
+
+		$siteShort = "{$pf->short_name} {$site->site_id}";
+		$siteLong = "{$siteShort} (QL {$site->min_ql}-{$site->max_ql})";
+		$alert = new Alert();
+		$alert->time = time();
+		$duration = $this->util->unixtimeToReadable($timestamp - time());
+		$alert->message = "Started {$duration} countdown for planting {$siteLong}";
+		$alerts []= $alert;
+
+		if ($timestamp - 60 > time()) {
+			$alert = new Alert();
+			$alert->time = $timestamp - 60;
+			$alert->message = "<highlight>1 minute<end> remaining to plant {$siteLong}";
+			$alerts []= $alert;
+		}
+
+		$countdown = [3, 2, 1];
+		foreach ($countdown as $remaining) {
+			$alert = new Alert();
+			$alert->time = $timestamp - $remaining;
+			$alert->message = "<highlight>{$remaining}s<end> remaining to plant {$siteShort}: <highlight>{$remaining}s<end>";
+			$alerts []= $alert;
+		}
+
+		$alertPlant = new Alert();
+		$alertPlant->time = $timestamp;
+		$alertPlant->message = "Plant {$siteShort} <highlight>NOW<end>!";
+		$alerts []= $alertPlant;
+
+		$modes = [];
+		if ($this->plantTimerChannel & 1) {
+			$modes []= "priv";
+		}
+		if ($this->plantTimerChannel & 2) {
+			$modes []= "org";
+		}
+
+		$timer = new Timer();
+		$timer->alerts = $alerts;
+		$timer->endtime = $timestamp;
+		$timer->name = "plant_" . strtolower(str_replace(" ", "_", $siteShort));
+		$timer->mode = join(",", $modes);
+
+		return $timer;
+	}
+
+	private function getLastSiteOutcome(FeedMessage\SiteUpdate $site): ?FeedMessage\TowerOutcome {
+		foreach ($this->outcomes as $outcome) {
+			if ($outcome->playfield_id !== $site->playfield_id
+				|| $outcome->site_id !== $site->site_id) {
+				continue;
+			}
+			return $outcome;
+		}
+		return null;
 	}
 
 	private function renderOrgSites(FeedMessage\SiteUpdate ...$sites): string {

@@ -15,6 +15,7 @@ use Nadybot\Modules\PVP_MODULE\{Event, FeedMessage};
 	NCA\ProvidesEvent("gas-update", "Gas on a tower field changes"),
 	NCA\ProvidesEvent("site-update", "New  information about a tower site"),
 	NCA\ProvidesEvent("tower-attack", "Someone attacks a tower site"),
+	NCA\ProvidesEvent("tower-outcome", "A tower field gets destroyed"),
 ]
 class TowerFeedHandler extends ModuleInstance implements EventFeedHandler {
 	#[NCA\Inject]
@@ -46,6 +47,10 @@ class TowerFeedHandler extends ModuleInstance implements EventFeedHandler {
 				FeedMessage\Base::TOWER_ATTACK => [
 					FeedMessage\TowerAttack::class,
 					Event\TowerAttack::class,
+				],
+				FeedMessage\Base::TOWER_OUTCOME => [
+					FeedMessage\TowerOutcome::class,
+					Event\TowerOutcome::class,
 				],
 			];
 			$mapper = new ObjectMapperUsingReflection();

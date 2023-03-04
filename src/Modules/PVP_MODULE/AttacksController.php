@@ -170,7 +170,7 @@ class AttacksWarsController extends ModuleInstance {
 		#[NCA\Str("attacks")] string $action,
 		?int $page,
 	): void {
-		$query = $this->db->table($this->nwCtrl::DB_TABLE);
+		$query = $this->db->table($this->nwCtrl::DB_ATTACKS);
 		$context->reply($this->nwAttacksCmd(
 			$query,
 			"Tower Attacks",
@@ -193,7 +193,7 @@ class AttacksWarsController extends ModuleInstance {
 			$context->reply($msg);
 			return;
 		}
-		$query = $this->db->table($this->nwCtrl::DB_TABLE)
+		$query = $this->db->table($this->nwCtrl::DB_ATTACKS)
 			->where("playfield_id", $pf->id)
 			->where("site_id", $towerSite->site);
 		$context->reply($this->nwAttacksCmd(
@@ -220,7 +220,7 @@ class AttacksWarsController extends ModuleInstance {
 		?int $page,
 	): void {
 		$search = str_replace("*", "%", $orgName());
-		$query = $this->db->table($this->nwCtrl::DB_TABLE)
+		$query = $this->db->table($this->nwCtrl::DB_ATTACKS)
 			->whereIlike("att_org", $search)
 			->orWhereIlike("def_org", $search);
 		$context->reply(
@@ -248,7 +248,7 @@ class AttacksWarsController extends ModuleInstance {
 		PNonGreedy $search,
 		?int $page,
 	): void {
-		$query = $this->db->table($this->nwCtrl::DB_TABLE)
+		$query = $this->db->table($this->nwCtrl::DB_ATTACKS)
 			->whereIlike("att_name", $search());
 		$context->reply(
 			$this->nwAttacksCmd(
