@@ -4,7 +4,7 @@ namespace Nadybot\Modules\PVP_MODULE;
 
 use Nadybot\Core\ParamClass\{PNonGreedy, PTowerSite};
 use Nadybot\Core\Routing\{RoutableMessage, Source};
-use Nadybot\Core\{Attributes as NCA, CmdContext, DB, LoggerWrapper, MessageHub, ModuleInstance, QueryBuilder, Text, Util};
+use Nadybot\Core\{Attributes as NCA, CmdContext, ConfigFile, DB, LoggerWrapper, MessageHub, ModuleInstance, QueryBuilder, Text, Util};
 use Nadybot\Modules\HELPBOT_MODULE\{Playfield, PlayfieldController};
 use Nadybot\Modules\LEVEL_MODULE\LevelController;
 use Nadybot\Modules\PVP_MODULE\Event\TowerAttackInfo;
@@ -12,7 +12,9 @@ use Nadybot\Modules\PVP_MODULE\Event\TowerAttackInfo;
 #[
 	NCA\Instance,
 	NCA\EmitsMessages("pvp", "tower-attack"),
+	NCA\EmitsMessages("pvp", "tower-attack-own"),
 	NCA\EmitsMessages("pvp", "tower-outcome"),
+	NCA\EmitsMessages("pvp", "tower-outcome-own"),
 	NCA\DefineCommand(
 		command: AttacksController::CMD_ATTACKS,
 		description: "Show the last Tower Attack messages",
@@ -44,6 +46,9 @@ class AttacksController extends ModuleInstance {
 
 	#[NCA\Inject]
 	public LevelController $lvlCtrl;
+
+	#[NCA\Inject]
+	public ConfigFile $config;
 
 	#[NCA\Inject]
 	public DB $db;
@@ -215,6 +220,11 @@ class AttacksController extends ModuleInstance {
 		$msg = $this->text->blobWrap("{$msg} [", $detailsLink, "]");
 
 		foreach ($msg as $page) {
+			if (isset($site->org_id) && $this->config->orgId === $site->org_id) {
+				$rMsg = new RoutableMessage($page);
+				$rMsg->prependPath(new Source('pvp', "tower-attack-own"));
+				$this->msgHub->handle($rMsg);
+			}
 			$rMsg = new RoutableMessage($page);
 			$rMsg->prependPath(new Source('pvp', "tower-attack"));
 			$this->msgHub->handle($rMsg);
@@ -263,6 +273,11 @@ class AttacksController extends ModuleInstance {
 		$msg = $this->text->blobWrap("{$msg} [", $detailsLink, "]");
 
 		foreach ($msg as $page) {
+			if (isset($site->org_id) && $this->config->orgId === $site->org_id) {
+				$rMsg = new RoutableMessage($page);
+				$rMsg->prependPath(new Source('pvp', "tower-outcome-own"));
+				$this->msgHub->handle($rMsg);
+			}
 			$rMsg = new RoutableMessage($page);
 			$rMsg->prependPath(new Source("pvp", "tower-outcome"));
 			$this->msgHub->handle($rMsg);
@@ -653,10 +668,15 @@ class AttacksController extends ModuleInstance {
 			$this->util->unixtimeToReadable(time() - $attack->timestamp).
 			"<end> ago)\n";
 		$blob .= "Attacker: <{$attColor}>{$attack->att_name}<end>";
-		if (isset($attack->att_level, $attack->att_ai_level)) {
-			$blob .= " ({$attack->att_level}/<green>{$attack->att_ai_level}<end>)";
-		}
-		if (isset($attack->att_org)) {
+		if (isset($attack->att_level, $attack->att_ai_level, $attack->att_profession)) {
+			$blob .= " ({$attack->att_level}/<green>{$attack->att_ai_level}<end> ".
+				"{$attack->att_profession}";
+			if (isset($attack->att_org)) {
+				$blob .= " of <{$attColor}>{$attack->att_org}<end>)";
+			} else {
+				$blob .= ")";
+			}
+		} elseif (isset($attack->att_org)) {
 			$blob .= " <{$attColor}>{$attack->att_org}<end>";
 		}
 		$blob .= "\n";

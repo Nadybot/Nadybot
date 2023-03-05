@@ -31,6 +31,12 @@ use Safe\Exceptions\JsonException;
 	NCA\EmitsMessages("pvp", "site-destroyed-clan"),
 	NCA\EmitsMessages("pvp", "site-destroyed-neutral"),
 	NCA\EmitsMessages("pvp", "site-destroyed-omni"),
+	NCA\EmitsMessages("pvp", "tower-destroyed-clan"),
+	NCA\EmitsMessages("pvp", "tower-destroyed-neutral"),
+	NCA\EmitsMessages("pvp", "tower-destroyed-omni"),
+	NCA\EmitsMessages("pvp", "tower-planted-clan"),
+	NCA\EmitsMessages("pvp", "tower-planted-neutral"),
+	NCA\EmitsMessages("pvp", "tower-planted-omni"),
 	NCA\EmitsMessages("pvp", "site-hot-clan"),
 	NCA\EmitsMessages("pvp", "site-hot-neutral"),
 	NCA\EmitsMessages("pvp", "site-hot-omni"),
@@ -220,7 +226,7 @@ class NotumWarsController extends ModuleInstance {
 				$this->db->insert(self::DB_ATTACKS, $attInfo);
 			}
 			$this->db->table(self::DB_ATTACKS)
-				->where("timestamp", ">=", time() - 7200)
+				->where("timestamp", ">=", time() - 6 * 3600)
 				->asObj(DBTowerAttack::class)
 				->each(function (DBTowerAttack $attack): void {
 					$this->registerAttack($attack->toTowerAttack());
@@ -310,7 +316,7 @@ class NotumWarsController extends ModuleInstance {
 			return;
 		}
 		$pfState = $this->state[$site->playfield_id] ?? new PlayfieldState($playfield);
-		$pfState[$site->site_id] = $site;
+		$pfState[$site->site_id] = clone $site;
 		$this->state[$site->playfield_id] = $pfState;
 	}
 
@@ -320,13 +326,13 @@ class NotumWarsController extends ModuleInstance {
 			return;
 		}
 		$this->attacks = (new Collection([$attack, ...$this->attacks]))
-			->where("timestamp", ">=", time() - 7200)
+			->where("timestamp", ">=", time() - 6 * 3600)
 			->toArray();
 	}
 
 	#[NCA\Event("site-update", "Update tower information from the API")]
 	public function updateSiteInfoFromFeed(Event\SiteUpdate $event): void {
-		$oldSite = $this->state[$event->gas->playfield_id][$event->gas->site_id] ?? null;
+		$oldSite = $this->state[$event->site->playfield_id][$event->site->site_id] ?? null;
 		$this->updateSiteInfo($event->site);
 		$site = $event->site;
 		$pf = $this->pfCtrl->getPlayfieldById($site->playfield_id);
@@ -374,6 +380,38 @@ class NotumWarsController extends ModuleInstance {
 			$rMessage = new RoutableMessage($msg);
 			$rMessage->prependPath(new Source("pvp", "site-destroyed-{$color}"));
 			$this->msgHub->handle($rMessage);
+		} elseif (isset($oldSite)) {
+			if ($oldSite->num_conductors < $site->num_conductors) {
+				$subType = "planted";
+				$incDec = "<green>+1<end>";
+				$towerType = "conductor";
+			} elseif ($oldSite->num_turrets < $site->num_turrets) {
+				$subType = "planted";
+				$incDec = "<green>+1<end>";
+				$towerType = "turret";
+			} elseif ($oldSite->num_conductors > $site->num_conductors) {
+				$subType = "destroyed";
+				$incDec = "<red>-1<end>";
+				$towerType = "conductor";
+			} elseif ($oldSite->num_turrets > $site->num_turrets) {
+				$subType = "destroyed";
+				$incDec = "<red>-1<end>";
+				$towerType = "turret";
+			}
+			if (isset($subType, $towerType, $incDec)) {
+				$blob = $this->renderSite($site, $pf);
+				$color = strtolower($site->org_faction ?? "neutral");
+				$msg = "<{$color}>{$pf->short_name} {$site->site_id}<end> ".
+					"{$towerType}s {$incDec} [".
+					((array)$this->text->makeBlob(
+						"details",
+						$blob,
+						"{$pf->short_name} {$site->site_id} ({$site->name})",
+					))[0] . "]";
+				$rMessage = new RoutableMessage($msg);
+				$rMessage->prependPath(new Source("pvp", "tower-{$subType}-{$color}"));
+				$this->msgHub->handle($rMessage);
+			}
 		}
 	}
 
@@ -505,8 +543,10 @@ class NotumWarsController extends ModuleInstance {
 						$this->util->unixtimeToReadable($secsToHot) . "\n";
 				} elseif (isset($gas)) {
 					$secsToCold = ($gasInfo->goesCold()??time()) - time();
-					$blob .= "<tab>Gas: " . $gas->colored() . ", closes in ".
-						$this->util->unixtimeToReadable($secsToCold) . "\n";
+					$coldIn = ($secsToCold > 0)
+						? "in " . $this->util->unixtimeToReadable($secsToCold)
+						: "any time now";
+					$blob .= "<tab>Gas: " . $gas->colored() . ", closes {$coldIn}\n";
 				} else {
 					$blob .= "<tab>Gas: N/A\n";
 				}
@@ -951,10 +991,20 @@ class NotumWarsController extends ModuleInstance {
 					$line .= " " . $currentGas->colored();
 					$goesHot = $gas->goesHot();
 					$goesCold = $gas->goesCold();
+					$regularGas = $gas->regularGas();
+					$note = "";
+					if (isset($regularGas) && $regularGas->gas !== $site->gas) {
+						if ($goesCold > time()) {
+							$note = ' the earliest';
+						}
+					}
 					if (isset($goesHot)) {
 						$line .= ", opens in " . $this->util->unixtimeToReadable($goesHot - time());
 					} elseif (isset($goesCold)) {
-						$line .= ", closes in " . $this->util->unixtimeToReadable($goesCold - time());
+						$goesColdText = ($goesCold <= time())
+							? "any time now"
+							: "in " . $this->util->unixtimeToReadable($goesCold - time());
+						$line .= ", closes {$goesColdText}{$note}";
 					}
 					return $line;
 				})->join("\n");
@@ -979,7 +1029,7 @@ class NotumWarsController extends ModuleInstance {
 			) {
 				continue;
 			}
-			if (isset($lastAttack) && $lastAttack->timestamp > $attack->timestamp) {
+			if (!isset($lastAttack) || $lastAttack->timestamp < $attack->timestamp) {
 				$lastAttack = $attack;
 			}
 		}

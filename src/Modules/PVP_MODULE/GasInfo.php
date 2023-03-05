@@ -79,10 +79,15 @@ class GasInfo {
 		return $this->next25();
 	}
 
+	/** Timestamp after $time at which the site will be cold */
 	private function nextClosing(?int $time=null): ?int {
 		$closingOffset = $this->closingOffset();
 		if (!isset($closingOffset)) {
 			return null;
+		}
+		$regGas = $this->regularGas($time);
+		if ($regGas?->gas === 75) {
+			return $time;
 		}
 		return $this->nextCycle($closingOffset, $time);
 	}
@@ -91,6 +96,10 @@ class GasInfo {
 		$closingOffset = $this->closingOffset();
 		if (!isset($closingOffset)) {
 			return null;
+		}
+		$regGas = $this->regularGas($time);
+		if ($regGas?->gas === 25) {
+			return $time;
 		}
 		$closingOffset += 18 * 3600;
 		return $this->nextCycle($closingOffset % 86400, $time);
@@ -139,7 +148,14 @@ class GasInfo {
 		if (!isset($this->site->plant_time) || !isset($this->lastAttack)) {
 			return null;
 		}
+		// Sites go cold again only at their offset and they stay hot for
+		// at least 1 hour and at most 2 hours
 		$siteOffset = $this->site->plant_time % 3600;
-		return $this->lastAttack + 3600 + $siteOffset;
+		$attackBase = $this->lastAttack - $this->lastAttack % 3600;
+		$predictedEnd = $attackBase + $siteOffset + 2 * 3600;
+		if ($predictedEnd > $this->lastAttack + 2 * 3600) {
+			$predictedEnd -= 3600;
+		}
+		return $predictedEnd;
 	}
 }
