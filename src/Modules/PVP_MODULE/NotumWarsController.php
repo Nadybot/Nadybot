@@ -798,8 +798,10 @@ class NotumWarsController extends ModuleInstance {
 
 	/** Handle whatever is necessary when a site gets newly planted */
 	private function handleSitePlanted(FeedMessage\SiteUpdate $site, Playfield $pf): void {
+		// Remove any plant timers for this site
 		$timerName = $this->getPlantTimerName($site, $pf);
 		$this->timerController->remove($timerName);
+		// Send "WW 6 @ QL 112 planted [details]"-message
 		$blob = $this->renderSite($site, $pf);
 		$color = strtolower($site->org_faction ?? "neutral");
 		$msg = "<{$color}>{$pf->short_name} {$site->site_id}<end> ".
@@ -816,6 +818,8 @@ class NotumWarsController extends ModuleInstance {
 
 	/** Handle whatever is necessary when a site gets destroyed */
 	private function handleSiteDestroyed(FeedMessage\SiteUpdate $oldSite, FeedMessage\SiteUpdate $site, Playfield $pf): void {
+		// If automatic plan timers are enabled,
+		// remove old one and set a new one for this site
 		if ($this->autoPlantTimer) {
 			$timer = $this->getPlantTimer($site, time() + 20 * 60);
 
@@ -829,6 +833,7 @@ class NotumWarsController extends ModuleInstance {
 				'timercontroller.timerCallback'
 			);
 		}
+		// Send "WW 6 @ QL 112 destroyed [details]"-message
 		$blob = $this->renderSite($oldSite, $pf);
 		$color = strtolower($oldSite->org_faction ?? "neutral");
 		$msg = "<{$color}>{$pf->short_name} {$site->site_id}<end> ".
@@ -864,6 +869,8 @@ class NotumWarsController extends ModuleInstance {
 		} else {
 			return;
 		}
+
+		// Send "WW 6 conductors ±1 [details]"-message
 		$blob = $this->renderSite($site, $pf);
 		$color = strtolower($site->org_faction ?? "neutral");
 		$msg = "<{$color}>{$pf->short_name} {$site->site_id}<end> ".
