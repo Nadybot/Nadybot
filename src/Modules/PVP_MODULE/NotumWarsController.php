@@ -974,7 +974,7 @@ class NotumWarsController extends ModuleInstance {
 				$sites->map(function (FeedMessage\SiteUpdate $site): string {
 					$pf = $this->pfCtrl->getPlayfieldById($site->playfield_id);
 					assert(isset($pf));
-					return $this->renderSite($site, $pf);
+					return $this->renderSite($site, $pf, false);
 				})->join("\n");
 		})->join("\n");
 		return trim($blob);
