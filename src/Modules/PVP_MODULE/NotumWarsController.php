@@ -80,6 +80,7 @@ class NotumWarsController extends ModuleInstance {
 	public const DB_ATTACKS = "nw_attacks_<myname>";
 	public const DB_OUTCOMES = "nw_outcomes_<myname>";
 
+	/** Breakpoints of QLs that start a new tower type */
 	public const TOWER_TYPE_QLS = [
 		34 => 2,
 		82 => 3,
@@ -225,6 +226,8 @@ class NotumWarsController extends ModuleInstance {
 				$attInfo = DBTowerAttack::fromTowerAttack($attack, $player);
 				$this->db->insert(self::DB_ATTACKS, $attInfo);
 			}
+
+			// All attacks from up to 6h ago can influence the current hot-duration
 			$this->db->table(self::DB_ATTACKS)
 				->where("timestamp", ">=", time() - 6 * 3600)
 				->asObj(DBTowerAttack::class)
@@ -296,7 +299,11 @@ class NotumWarsController extends ModuleInstance {
 		}
 	}
 
-	/** @return Collection<FeedMessage\SiteUpdate> */
+	/**
+	 * Get a flat collection of all enable tower sites
+	 *
+	 * @return Collection<FeedMessage\SiteUpdate>
+	 */
 	public function getEnabledSites(): Collection {
 		$result = new Collection();
 		foreach ($this->state as $pfId => $sites) {
@@ -310,6 +317,7 @@ class NotumWarsController extends ModuleInstance {
 		return $result;
 	}
 
+	/** Update the state of a site with the data given */
 	public function updateSiteInfo(FeedMessage\SiteUpdate $site): void {
 		$playfield = $this->pfCtrl->getPlayfieldById($site->playfield_id);
 		if (!isset($playfield)) {
@@ -320,6 +328,7 @@ class NotumWarsController extends ModuleInstance {
 		$this->state[$site->playfield_id] = $pfState;
 	}
 
+	/** Add the given attack to the attack cache */
 	public function registerAttack(FeedMessage\TowerAttack $attack): void {
 		$playfield = $this->pfCtrl->getPlayfieldById($attack->playfield_id);
 		if (!isset($playfield)) {
@@ -340,78 +349,11 @@ class NotumWarsController extends ModuleInstance {
 			return;
 		}
 		if (!isset($oldSite->ct_pos) && isset($site->ct_pos)) {
-			$timerName = $this->getPlantTimerName($site, $pf);
-			$this->timerController->remove($timerName);
-			$blob = $this->renderSite($site, $pf);
-			$color = strtolower($site->org_faction ?? "neutral");
-			$msg = "<{$color}>{$pf->short_name} {$site->site_id}<end> ".
-				"@ QL <highlight>{$site->ql}<end> planted [".
-				((array)$this->text->makeBlob(
-					"details",
-					$blob,
-					"{$pf->short_name} {$site->site_id} ({$site->name})",
-				))[0] . "]";
-			$rMessage = new RoutableMessage($msg);
-			$rMessage->prependPath(new Source("pvp", "site-planted-{$color}"));
-			$this->msgHub->handle($rMessage);
+			$this->handleSitePlanted($site, $pf);
 		} elseif (isset($oldSite->ct_pos) && !isset($site->ct_pos)) {
-			if ($this->autoPlantTimer) {
-				$timer = $this->getPlantTimer($site, time() + 20 * 60);
-
-				$this->timerController->remove($timer->name);
-
-				$this->timerController->add(
-					$timer->name,
-					$this->config->name,
-					$timer->mode,
-					$timer->alerts,
-					'timercontroller.timerCallback'
-				);
-			}
-			$blob = $this->renderSite($oldSite, $pf);
-			$color = strtolower($site->org_faction ?? "neutral");
-			$msg = "<{$color}>{$pf->short_name} {$site->site_id}<end> ".
-				"@ QL <highlight>{$site->ql}<end> destroyed [".
-				((array)$this->text->makeBlob(
-					"details",
-					$blob,
-					"{$pf->short_name} {$site->site_id} ({$site->name})",
-				))[0] . "]";
-			$rMessage = new RoutableMessage($msg);
-			$rMessage->prependPath(new Source("pvp", "site-destroyed-{$color}"));
-			$this->msgHub->handle($rMessage);
+			$this->handleSiteDestroyed($oldSite, $site, $pf);
 		} elseif (isset($oldSite)) {
-			if ($oldSite->num_conductors < $site->num_conductors) {
-				$subType = "planted";
-				$incDec = "<green>+1<end>";
-				$towerType = "conductor";
-			} elseif ($oldSite->num_turrets < $site->num_turrets) {
-				$subType = "planted";
-				$incDec = "<green>+1<end>";
-				$towerType = "turret";
-			} elseif ($oldSite->num_conductors > $site->num_conductors) {
-				$subType = "destroyed";
-				$incDec = "<red>-1<end>";
-				$towerType = "conductor";
-			} elseif ($oldSite->num_turrets > $site->num_turrets) {
-				$subType = "destroyed";
-				$incDec = "<red>-1<end>";
-				$towerType = "turret";
-			}
-			if (isset($subType, $towerType, $incDec)) {
-				$blob = $this->renderSite($site, $pf);
-				$color = strtolower($site->org_faction ?? "neutral");
-				$msg = "<{$color}>{$pf->short_name} {$site->site_id}<end> ".
-					"{$towerType}s {$incDec} [".
-					((array)$this->text->makeBlob(
-						"details",
-						$blob,
-						"{$pf->short_name} {$site->site_id} ({$site->name})",
-					))[0] . "]";
-				$rMessage = new RoutableMessage($msg);
-				$rMessage->prependPath(new Source("pvp", "tower-{$subType}-{$color}"));
-				$this->msgHub->handle($rMessage);
-			}
+			$this->handleSiteTowerChange($oldSite, $site, $pf);
 		}
 	}
 
@@ -483,6 +425,7 @@ class NotumWarsController extends ModuleInstance {
 		return new GasInfo($site, $lastAttack);
 	}
 
+	/** Get the Tower Site Type (1-7) for a given CT-QL */
 	public function qlToSiteType(int $qlCT): int {
 		foreach (static::TOWER_TYPE_QLS as $ql => $level) {
 			if ($qlCT < $ql) {
@@ -492,6 +435,7 @@ class NotumWarsController extends ModuleInstance {
 		return 7;
 	}
 
+	/** Render the Popup-block for a single given site */
 	public function renderSite(FeedMessage\SiteUpdate $site, Playfield $pf, bool $showOrgLinks=true): string {
 		$lastOutcome = $this->getLastSiteOutcome($site);
 		$centerWaypointLink = $this->text->makeChatcmd(
@@ -524,6 +468,7 @@ class NotumWarsController extends ModuleInstance {
 				$this->util->date($site->plant_time) . "<end>\n";
 		}
 		if (isset($site->ql, $site->org_faction, $site->org_name, $site->org_id)) {
+			// If the site is planted, show gas information
 			$blob .= "<tab>CT: QL <highlight>{$site->ql}<end>, Type " . $this->qlToSiteType($site->ql) . " ".
 				"(<" . strtolower($site->org_faction) .">{$site->org_name}<end>)";
 			if ($showOrgLinks) {
@@ -555,6 +500,7 @@ class NotumWarsController extends ModuleInstance {
 				", " . $site->num_turrets . " turrets".
 				", " . $site->num_conductors . " conductors\n";
 		} else {
+			// If the site is unplanted, show destruction information and links to plant
 			$blob .= "<tab>Planted: <highlight>No<end>\n";
 			// If the site was destroyed less than 1 hour ago, show by who
 			if (isset($lastOutcome) && $lastOutcome->timestamp + 3600 > time()) {
@@ -850,11 +796,95 @@ class NotumWarsController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
+	/** Handle whatever is necessary when a site gets newly planted */
+	private function handleSitePlanted(FeedMessage\SiteUpdate $site, Playfield $pf): void {
+		$timerName = $this->getPlantTimerName($site, $pf);
+		$this->timerController->remove($timerName);
+		$blob = $this->renderSite($site, $pf);
+		$color = strtolower($site->org_faction ?? "neutral");
+		$msg = "<{$color}>{$pf->short_name} {$site->site_id}<end> ".
+			"@ QL <highlight>{$site->ql}<end> planted [".
+			((array)$this->text->makeBlob(
+				"details",
+				$blob,
+				"{$pf->short_name} {$site->site_id} ({$site->name})",
+			))[0] . "]";
+		$rMessage = new RoutableMessage($msg);
+		$rMessage->prependPath(new Source("pvp", "site-planted-{$color}"));
+		$this->msgHub->handle($rMessage);
+	}
+
+	/** Handle whatever is necessary when a site gets destroyed */
+	private function handleSiteDestroyed(FeedMessage\SiteUpdate $oldSite, FeedMessage\SiteUpdate $site, Playfield $pf): void {
+		if ($this->autoPlantTimer) {
+			$timer = $this->getPlantTimer($site, time() + 20 * 60);
+
+			$this->timerController->remove($timer->name);
+
+			$this->timerController->add(
+				$timer->name,
+				$this->config->name,
+				$timer->mode,
+				$timer->alerts,
+				'timercontroller.timerCallback'
+			);
+		}
+		$blob = $this->renderSite($oldSite, $pf);
+		$color = strtolower($oldSite->org_faction ?? "neutral");
+		$msg = "<{$color}>{$pf->short_name} {$site->site_id}<end> ".
+			"@ QL <highlight>{$oldSite->ql}<end> destroyed [".
+			((array)$this->text->makeBlob(
+				"details",
+				$blob,
+				"{$pf->short_name} {$site->site_id} ({$site->name})",
+			))[0] . "]";
+		$rMessage = new RoutableMessage($msg);
+		$rMessage->prependPath(new Source("pvp", "site-destroyed-{$color}"));
+		$this->msgHub->handle($rMessage);
+	}
+
+	/** Handle whatever is necessary when a site gets or loses a non-CT-tower */
+	private function handleSiteTowerChange(FeedMessage\SiteUpdate $oldSite, FeedMessage\SiteUpdate $site, Playfield $pf): void {
+		if ($oldSite->num_conductors < $site->num_conductors) {
+			$subType = "planted";
+			$incDec = "<green>+1<end>";
+			$towerType = "conductor";
+		} elseif ($oldSite->num_turrets < $site->num_turrets) {
+			$subType = "planted";
+			$incDec = "<green>+1<end>";
+			$towerType = "turret";
+		} elseif ($oldSite->num_conductors > $site->num_conductors) {
+			$subType = "destroyed";
+			$incDec = "<red>-1<end>";
+			$towerType = "conductor";
+		} elseif ($oldSite->num_turrets > $site->num_turrets) {
+			$subType = "destroyed";
+			$incDec = "<red>-1<end>";
+			$towerType = "turret";
+		} else {
+			return;
+		}
+		$blob = $this->renderSite($site, $pf);
+		$color = strtolower($site->org_faction ?? "neutral");
+		$msg = "<{$color}>{$pf->short_name} {$site->site_id}<end> ".
+			"{$towerType}s {$incDec} [".
+			((array)$this->text->makeBlob(
+				"details",
+				$blob,
+				"{$pf->short_name} {$site->site_id} ({$site->name})",
+			))[0] . "]";
+		$rMessage = new RoutableMessage($msg);
+		$rMessage->prependPath(new Source("pvp", "tower-{$subType}-{$color}"));
+		$this->msgHub->handle($rMessage);
+	}
+
+	/** Get the name of the plant timer for the given site */
 	private function getPlantTimerName(FeedMessage\SiteUpdate $site, Playfield $pf): string {
 		$siteShort = "{$pf->short_name} {$site->site_id}";
 		return "plant_" . strtolower(str_replace(" ", "_", $siteShort));
 	}
 
+	/** Get the plant timer for a given site and time */
 	private function getPlantTimer(FeedMessage\SiteUpdate $site, int $timestamp): Timer {
 		$pf = $this->pfCtrl->getPlayfieldById($site->playfield_id);
 		assert(isset($pf));
@@ -907,6 +937,11 @@ class NotumWarsController extends ModuleInstance {
 		return $timer;
 	}
 
+	/**
+	 * Get the last registered victory/abandoning of a field from the cache
+	 *
+	 * @return ?FeedMessage\TowerOutcome outcome or null if none, or none recently
+	 */
 	private function getLastSiteOutcome(FeedMessage\SiteUpdate $site): ?FeedMessage\TowerOutcome {
 		foreach ($this->outcomes as $outcome) {
 			if ($outcome->playfield_id !== $site->playfield_id
@@ -918,6 +953,7 @@ class NotumWarsController extends ModuleInstance {
 		return null;
 	}
 
+	/** Render a list of tower sites and group by owning org name */
 	private function renderOrgSites(FeedMessage\SiteUpdate ...$sites): string {
 		$matches = (new Collection($sites))
 			->sortBy("ql")
@@ -937,6 +973,7 @@ class NotumWarsController extends ModuleInstance {
 		return trim($blob);
 	}
 
+	/** Render a bunch of sites, all hot, for the !hot-command */
 	private function renderHotSites(FeedMessage\SiteUpdate ...$sites): string {
 		$sites = new Collection($sites);
 
@@ -966,52 +1003,62 @@ class NotumWarsController extends ModuleInstance {
 		$blob = $grouped->map(function (Collection $sites, string $short): string {
 			return "<pagebreak><header2>{$short}<end>\n".
 				$sites->map(function (FeedMessage\SiteUpdate $site): string {
-					$pf = $this->pfCtrl->getPlayfieldById($site->playfield_id);
-					assert($pf !== null);
-					assert(isset($site->gas));
-					$shortName = "{$pf->short_name} {$site->site_id}";
-					$line = "<tab>".
-						$this->text->makeChatcmd(
-							$shortName,
-							"/tell <myname> <symbol>nw lc {$shortName}"
-						);
-					$line .= " QL {$site->min_ql}/<highlight>{$site->ql}<end>/{$site->max_ql} -";
-					$factionColor = "";
-					if (isset($site->org_faction)) {
-						$factionColor = "<" . strtolower($site->org_faction) . ">";
-						$org = $site->org_name ?? $site->org_faction;
-						$line .= " {$factionColor}{$org}<end>";
-					} else {
-						$line .= " &lt;Free or unknown planter&gt;";
-					}
-					$gas = $this->getSiteGasInfo($site);
-					assert(isset($gas));
-					$currentGas = $gas->currentGas();
-					assert(isset($currentGas));
-					$line .= " " . $currentGas->colored();
-					$goesHot = $gas->goesHot();
-					$goesCold = $gas->goesCold();
-					$regularGas = $gas->regularGas();
-					$note = "";
-					if (isset($regularGas) && $regularGas->gas !== $site->gas) {
-						if ($goesCold > time()) {
-							$note = ' the earliest';
-						}
-					}
-					if (isset($goesHot)) {
-						$line .= ", opens in " . $this->util->unixtimeToReadable($goesHot - time());
-					} elseif (isset($goesCold)) {
-						$goesColdText = ($goesCold <= time())
-							? "any time now"
-							: "in " . $this->util->unixtimeToReadable($goesCold - time());
-						$line .= ", closes {$goesColdText}{$note}";
-					}
-					return $line;
+					return $this->renderHotSite($site);
 				})->join("\n");
 		})->join("\n\n");
 		return $blob;
 	}
 
+	/** Render the line of a single site for the !hot-command */
+	private function renderHotSite(FeedMessage\SiteUpdate $site): string {
+		$pf = $this->pfCtrl->getPlayfieldById($site->playfield_id);
+		assert($pf !== null);
+		assert(isset($site->gas));
+		$shortName = "{$pf->short_name} {$site->site_id}";
+		$line = "<tab>".
+			$this->text->makeChatcmd(
+				$shortName,
+				"/tell <myname> <symbol>nw lc {$shortName}"
+			);
+		$line .= " QL {$site->min_ql}/<highlight>{$site->ql}<end>/{$site->max_ql} -";
+		$factionColor = "";
+		if (isset($site->org_faction)) {
+			$factionColor = "<" . strtolower($site->org_faction) . ">";
+			$org = $site->org_name ?? $site->org_faction;
+			$line .= " {$factionColor}{$org}<end>";
+		} else {
+			$line .= " &lt;Free or unknown planter&gt;";
+		}
+		$gas = $this->getSiteGasInfo($site);
+		assert(isset($gas));
+		$currentGas = $gas->currentGas();
+		assert(isset($currentGas));
+		$line .= " " . $currentGas->colored();
+		$goesHot = $gas->goesHot();
+		$goesCold = $gas->goesCold();
+		$regularGas = $gas->regularGas();
+		$note = "";
+		if (isset($regularGas) && $regularGas->gas !== $site->gas) {
+			if ($goesCold > time()) {
+				$note = ' the earliest';
+			}
+		}
+		if (isset($goesHot)) {
+			$line .= ", opens in " . $this->util->unixtimeToReadable($goesHot - time());
+		} elseif (isset($goesCold)) {
+			$goesColdText = ($goesCold <= time())
+				? "any time now"
+				: "in " . $this->util->unixtimeToReadable($goesCold - time());
+			$line .= ", closes {$goesColdText}{$note}";
+		}
+		return $line;
+	}
+
+	/**
+	 * Get the time the last attack was made from the org owning this site
+	 *
+	 * @return ?int Unix timestamp, or null if no recent attacks were made from here
+	 */
 	private function getLastAttackFrom(FeedMessage\SiteUpdate $site): ?int {
 		if (!isset($site->ct_pos)) {
 			return null;
