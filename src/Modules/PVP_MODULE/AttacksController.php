@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\PVP_MODULE;
 
+use Illuminate\Support\Collection;
 use Nadybot\Core\ParamClass\{PNonGreedy, PTowerSite};
 use Nadybot\Core\Routing\{RoutableMessage, Source};
 use Nadybot\Core\{Attributes as NCA, CmdContext, ConfigFile, DB, LoggerWrapper, MessageHub, ModuleInstance, QueryBuilder, Text, Util};
@@ -154,6 +155,10 @@ class AttacksController extends ModuleInstance {
 	)]
 	public string $siteAbandonedFormat = self::ABANDONED_FMT_NORMAL;
 
+	/** Group tower attacks by site, owner and hot-phase */
+	#[NCA\Setting\Boolean]
+	public bool $groupTowerAttacks = true;
+
 	#[NCA\Event("tower-attack-info", "Announce tower attacks")]
 	public function announceTowerAttack(TowerAttackInfo $event): void {
 		if ($event->site === null) {
@@ -237,6 +242,10 @@ class AttacksController extends ModuleInstance {
 		$pf = $this->pfCtrl->getPlayfieldById($outcome->playfield_id);
 		$site = $this->nwCtrl->state[$outcome->playfield_id][$outcome->site_id];
 		if (!isset($pf) || !isset($site)) {
+			$this->logger->error("Cannot find site at {pf} {siteId}", [
+				"pf" => $outcome->playfield_id,
+				"siteId" => $outcome->site_id,
+			]);
 			return;
 		}
 		$tokens = [
@@ -297,6 +306,7 @@ class AttacksController extends ModuleInstance {
 			"Tower Attacks",
 			"nw attacks",
 			$page??1,
+			null,
 		));
 	}
 
@@ -322,6 +332,7 @@ class AttacksController extends ModuleInstance {
 			"Tower Attacks on {$pf->short_name} {$towerSite->site}",
 			"nw attacks",
 			$page??1,
+			false,
 		));
 	}
 
@@ -349,7 +360,8 @@ class AttacksController extends ModuleInstance {
 				$query,
 				"Tower Attacks on/by '{$orgName}'",
 				"nw attacks org {$orgName}",
-				$page??1
+				$page??1,
+				false,
 			)
 		);
 	}
@@ -376,7 +388,8 @@ class AttacksController extends ModuleInstance {
 				$query,
 				"Tower Attacks by '{$search}'",
 				"nw attacks char {$search}",
-				$page??1
+				$page??1,
+				false,
 			)
 		);
 	}
@@ -540,7 +553,7 @@ class AttacksController extends ModuleInstance {
 	}
 
 	/** @return string[] */
-	private function nwAttacksCmd(QueryBuilder $query, string $title, string $command, int $page): array {
+	private function nwAttacksCmd(QueryBuilder $query, string $title, string $command, int $page, ?bool $group): array {
 		$numAttacks = $query->count();
 		$attacks = $query
 			->orderByDesc("timestamp")
@@ -552,6 +565,7 @@ class AttacksController extends ModuleInstance {
 			$page,
 			$numAttacks,
 			$title,
+			$group,
 			...$attacks->toArray()
 		);
 	}
@@ -573,20 +587,139 @@ class AttacksController extends ModuleInstance {
 		);
 	}
 
+	/**
+	 * Group a given list of attacks into attack-phases divided
+	 * by victories and 75% phases
+	 *
+	 * @return Collection<string,Collection<DBTowerAttack>>
+	 */
+	private function groupAttackList(DBTowerAttack ...$attacks): Collection {
+		/** @var Collection<DBTowerAttack> */
+		$attacks = (new Collection($attacks))->sortByDesc("timestamp");
+
+		/**
+		 * A hash with site/owner key and a list of outcomes for this combination
+		 *
+		 * @var array<string,DBOutcome[]>
+		 */
+		$outcomes = $this->db->table($this->nwCtrl::DB_OUTCOMES)
+			->where("timestamp", ">", $attacks->last()->timestamp)
+			->where("timestamp", "<", $attacks->first()->timestamp)
+			->orderByDesc("timestamp")
+			->asObj(DBOutcome::class)
+			->groupBy(function (DBOutcome $outcome): string {
+				return "{$outcome->losing_org}:{$outcome->playfield_id}:{$outcome->site_id}";
+			})->toArray();
+
+		/**
+		 * A hash with site/owner key and a list of attacks for this combination
+		 *
+		 * @var array<string,DBTowerAttack[]>
+		 */
+		$groups = $attacks
+			->reduce(function (array $groups, DBTowerAttack $attack): array {
+				$key = "{$attack->def_org}:{$attack->playfield_id}:{$attack->site_id}";
+				$groups[$key] ??= [];
+				$groups[$key] []= $attack;
+				return $groups;
+			}, []);
+		$lookup = [];
+		foreach ($groups as $key => $gAttacks) {
+			/** @var DBOutcome[] */
+			$keyOutcomes = $outcomes[$key] ?? [];
+			$lastAttack = null;
+			$id = 0;
+			$lastOutcome = array_shift($keyOutcomes);
+			foreach ($gAttacks as $attack) {
+				if (isset($lastOutcome) && $lastOutcome->timestamp > $attack->timestamp) {
+					$id++;
+					$lastOutcome = array_shift($keyOutcomes);
+				} elseif (!isset($lastAttack) || abs($lastAttack->timestamp - $attack->timestamp) > 6*3600) {
+					$id++;
+				}
+				$lookup["{$key}:{$attack->timestamp}"] = $id;
+				$lastAttack = $attack;
+			}
+		}
+
+		$grouped = (new Collection($attacks))->groupBy(
+			function (DBTowerAttack $attack) use ($lookup): string {
+				$key = "{$attack->def_org}:{$attack->playfield_id}:{$attack->site_id}";
+				return $key . ':' . $lookup["{$key}:{$attack->timestamp}"];
+			}
+		);
+		return $grouped;
+	}
+
 	/** @return string[] */
 	private function renderAttackList(
 		string $baseCommand,
 		int $page,
 		int $numAttacks,
 		string $title,
+		?bool $groupTowerAttacks,
 		DBTowerAttack ...$attacks
 	): array {
 		if (empty($attacks)) {
 			return ["No tower attacks found."];
 		}
-		$blocks = [];
-		foreach ($attacks as $attack) {
-			$blocks []= $this->renderDBAttack($attack);
+		$groupTowerAttacks ??= $this->groupTowerAttacks;
+		if ($groupTowerAttacks) {
+			$groups = $this->groupAttackList(...$attacks);
+			$blocks = $groups->map(function (Collection $attacks): string {
+				/** @var DBTowerAttack */
+				$first = $attacks->firstOrFail();
+
+				/** @var ?DBTowerAttack */
+				$last = $attacks->last();
+				$pf = $this->pfCtrl->getPlayfieldById($first->playfield_id);
+				$site = $this->nwCtrl->state[$first->playfield_id][$first->site_id] ?? null;
+				assert(isset($last));
+				assert(isset($pf));
+				assert(isset($site));
+
+				/** @var ?DBOutcome */
+				$outcome = $this->db->table($this->nwCtrl::DB_OUTCOMES)
+					->where("losing_org", $first->def_org)
+					->where("timestamp", ">", $last->timestamp)
+					->where("timestamp", "<", $last->timestamp + 6 * 3600)
+					->where("playfield_id", $site->playfield_id)
+					->where("site_id", $site->site_id)
+					->whereNotNull("attacker_org")
+					->orderBy("timestamp")
+					->limit(1)
+					->asObj(DBOutcome::class)
+					->first();
+
+				$blocks = [];
+
+				/** @var DBTowerAttack[] $attacks */
+				foreach ($attacks as $attack) {
+					$blocks []= $this->util->date($attack->timestamp) . ": ".
+						$this->renderDBAttacker($attack);
+				}
+				$defColor = strtolower($first->def_faction);
+				return "<header2>{$pf->short_name} {$first->site_id}<end>".
+					" (QL {$site->min_ql}-{$site->max_ql}) [".
+					$this->text->makeChatcmd(
+						"details",
+						"/tell <myname> <symbol>nw lc {$pf->short_name} {$first->site_id}"
+					) . "]\n".
+					"<tab>Defender: <{$defColor}>{$first->def_org}<end>\n".
+					(
+						isset($outcome, $outcome->attacker_faction, $outcome->attacker_org)
+							? "<tab>Won by <" . strtolower($outcome->attacker_faction) . ">".
+								$outcome->attacker_org . "<end> at ".
+								$this->util->date($outcome->timestamp) . "\n\n"
+							: "\n"
+					) . "<tab>".
+					join("\n<tab>", $blocks);
+			})->toArray();
+		} else {
+			$blocks = [];
+			foreach ($attacks as $attack) {
+				$blocks []= $this->renderDBAttack($attack);
+			}
 		}
 		$prevLink = "&lt;&lt;&lt;";
 		if ($page > 1) {
@@ -606,7 +739,7 @@ class AttacksController extends ModuleInstance {
 		if ($numAttacks > 15) {
 			$blob = "{$prevLink}<tab>Page {$page}<tab>{$nextLink}\n\n";
 		}
-		$blob .= join("\n", $blocks);
+		$blob .= join("\n\n", $blocks);
 		$msg = $this->text->makeBlob(
 			$title,
 			$blob
@@ -660,14 +793,10 @@ class AttacksController extends ModuleInstance {
 		return (array)$msg;
 	}
 
-	private function renderDBAttack(DBTowerAttack $attack): string {
-		$defColor = strtolower($attack->def_faction);
-		$attColor = strtolower($attack->att_faction ?? "Neutral");
-		$blob = "Time: " . $this->util->date($attack->timestamp).
-			" (<highlight>".
-			$this->util->unixtimeToReadable(time() - $attack->timestamp).
-			"<end> ago)\n";
-		$blob .= "Attacker: <{$attColor}>{$attack->att_name}<end>";
+	/** Render info about an attacker for !nw attacks */
+	private function renderDBAttacker(DBTowerAttack $attack): string {
+		$attColor = strtolower($attack->att_faction ?? "Unknown");
+		$blob = "<{$attColor}>{$attack->att_name}<end>";
 		if (isset($attack->att_level, $attack->att_ai_level, $attack->att_profession)) {
 			$blob .= " ({$attack->att_level}/<green>{$attack->att_ai_level}<end>";
 			if (isset($attack->att_gender)) {
@@ -688,15 +817,25 @@ class AttacksController extends ModuleInstance {
 		} elseif (isset($attack->att_org)) {
 			$blob .= " <{$attColor}>{$attack->att_org}<end>";
 		}
-		$blob .= "\n";
-		$blob .= "Defender: <{$defColor}>{$attack->def_org}<end>\n";
+		return $blob;
+	}
+
+	/** Render a single, ungrouped !nw attacks line */
+	private function renderDBAttack(DBTowerAttack $attack): string {
+		$defColor = strtolower($attack->def_faction);
+		$blob = "Time: " . $this->util->date($attack->timestamp).
+			" (<highlight>".
+			$this->util->unixtimeToReadable(time() - $attack->timestamp).
+			"<end> ago)\n";
+		$blob .= "Attacker: " . $this->renderDBAttacker($attack) . "\n";
+		$blob .= "Defender: <{$defColor}>{$attack->def_org}<end>";
 		$site = $this->nwCtrl->state[$attack->playfield_id][$attack->site_id] ?? null;
 		$pf = $this->pfCtrl->getPlayfieldById($attack->playfield_id);
 		if (isset($site, $pf)) {
-			$blob .= "Site: " . $this->text->makeChatcmd(
+			$blob .= "\nSite: " . $this->text->makeChatcmd(
 				"{$pf->short_name} {$attack->site_id}",
 				"/tell <myname> nw lc {$pf->short_name} {$attack->site_id}"
-			) . " (QL {$site->min_ql}-{$site->max_ql})\n";
+			) . " (QL {$site->min_ql}-{$site->max_ql})";
 		}
 		return $blob;
 	}

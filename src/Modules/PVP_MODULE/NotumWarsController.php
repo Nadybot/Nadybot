@@ -397,6 +397,9 @@ class NotumWarsController extends ModuleInstance {
 		if (!isset($pf)) {
 			return;
 		}
+		if ($site->gas === $event->gas->gas) {
+			return;
+		}
 		$oldGas = isset($site->gas) ? new Gas($site->gas) : null;
 		$newGas = new Gas($event->gas->gas);
 		$site->gas = $event->gas->gas;
@@ -443,7 +446,12 @@ class NotumWarsController extends ModuleInstance {
 	}
 
 	/** Render the Popup-block for a single given site */
-	public function renderSite(FeedMessage\SiteUpdate $site, Playfield $pf, bool $showOrgLinks=true): string {
+	public function renderSite(
+		FeedMessage\SiteUpdate $site,
+		Playfield $pf,
+		bool $showOrgLinks=true,
+		bool $showPlantInfo=true,
+	): string {
 		$lastOutcome = $this->getLastSiteOutcome($site);
 		$centerWaypointLink = $this->text->makeChatcmd(
 			"Center",
@@ -520,22 +528,28 @@ class NotumWarsController extends ModuleInstance {
 						"<" . strtolower($lastOutcome->losing_faction) . ">".
 						$lastOutcome->losing_org . "<end>";
 				}
-				$blob .= " " . $this->util->unixtimeToReadable(time() - $lastOutcome->timestamp).
-					" ago\n";
-				$plantTs = $lastOutcome->timestamp + 20 * 60;
-				$blob .= "<tab>Plantable: ";
-				$plantIn = ($plantTs <= time())
-					? "Now"
-					: $this->util->unixtimeToReadable($plantTs - time());
-				$blob .= "<highlight>{$plantIn}<end>";
-				if (!$this->autoPlantTimer && $plantTs > time()) {
-					$blob .= " [" . $this->text->makeChatcmd(
-						"timer",
-						"/tell <myname> <symbol>nw timer {$pf->short_name} {$site->site_id} {$plantTs}",
-					) . "]";
+				if ($showPlantInfo) {
+					$blob .= " " . $this->util->unixtimeToReadable(time() - $lastOutcome->timestamp).
+						" ago\n";
+				} else {
+					$blob .= " on " . $this->util->date($lastOutcome->timestamp) . "\n";
 				}
-				$blob .= "\n";
-			} else {
+				if ($showPlantInfo) {
+					$plantTs = $lastOutcome->timestamp + 20 * 60;
+					$blob .= "<tab>Plantable: ";
+					$plantIn = ($plantTs <= time())
+						? "Now"
+						: $this->util->unixtimeToReadable($plantTs - time());
+					$blob .= "<highlight>{$plantIn}<end>";
+					if (!$this->autoPlantTimer && $plantTs > time()) {
+						$blob .= " [" . $this->text->makeChatcmd(
+							"timer",
+							"/tell <myname> <symbol>nw timer {$pf->short_name} {$site->site_id} {$plantTs}",
+						) . "]";
+					}
+					$blob .= "\n";
+				}
+			} elseif ($showPlantInfo) {
 				$blob .= "<tab>Plantable: <highlight>Now<end>\n";
 			}
 		}
@@ -808,11 +822,11 @@ class NotumWarsController extends ModuleInstance {
 		// Remove any plant timers for this site
 		$timerName = $this->getPlantTimerName($site, $pf);
 		$this->timerController->remove($timerName);
-		// Send "WW 6 @ QL 112 planted [details]"-message
+		// Send "WW 6 @ QL 112 planted by Orgname [details]"-message
 		$blob = $this->renderSite($site, $pf);
 		$color = strtolower($site->org_faction ?? "neutral");
 		$msg = "<{$color}>{$pf->short_name} {$site->site_id}<end> ".
-			"@ QL <highlight>{$site->ql}<end> planted [".
+			"@ QL <highlight>{$site->ql}<end> planted by <{$color}>{$site->org_name}<end> [".
 			((array)$this->text->makeBlob(
 				"details",
 				$blob,
@@ -906,18 +920,23 @@ class NotumWarsController extends ModuleInstance {
 		/** @var Alert[] */
 		$alerts = [];
 
+		$siteDetails = $this->renderSite($site, $pf, false, false);
 		$siteShort = "{$pf->short_name} {$site->site_id}";
-		$siteLong = "{$siteShort} (QL {$site->min_ql}-{$site->max_ql})";
+		$siteLink = ((array)$this->text->makeBlob(
+			$siteShort,
+			$siteDetails,
+			"{$siteShort} ({$site->name})",
+		))[0];
 		$alert = new Alert();
 		$alert->time = time();
 		$duration = $this->util->unixtimeToReadable($timestamp - time());
-		$alert->message = "Started {$duration} countdown for planting {$siteLong}";
+		$alert->message = "Started {$duration} countdown for planting {$siteLink}";
 		$alerts []= $alert;
 
 		if ($timestamp - 60 > time()) {
 			$alert = new Alert();
 			$alert->time = $timestamp - 60;
-			$alert->message = "<highlight>1 minute<end> remaining to plant {$siteLong}";
+			$alert->message = "<highlight>1 minute<end> remaining to plant {$siteLink}";
 			$alerts []= $alert;
 		}
 
