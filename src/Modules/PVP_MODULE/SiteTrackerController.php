@@ -287,7 +287,7 @@ class SiteTrackerController extends ModuleInstance {
 	private function renderTracker(TrackerEntry $tracker): string {
 		$expression = preg_replace('/\s+'.join('\s+', array_map('preg_quote', $tracker->events)).'$/', '', $tracker->expression);
 		$showSitesLink = $this->text->makeChatcmd(
-			"show sites",
+			"show",
 			"/tell <myname> <symbol>nw track show {$tracker->id}"
 		);
 		$deleteLink = $this->text->makeChatcmd(
@@ -299,7 +299,7 @@ class SiteTrackerController extends ModuleInstance {
 			"<tab>Created: <highlight>" . $this->util->date($tracker->created_on) . "<end> ".
 			"by <highlight>{$tracker->created_by}<end>\n".
 			"<tab>Events: <highlight>" . join("<end>, <highlight>", $tracker->events) . "<end>\n".
-			"<tab>Matches: <highlight>" . $this->countMatches($tracker) . "<end> entries [".
+			"<tab>Matches: <highlight>" . $this->countMatches($tracker) . "<end> sites [".
 			$showSitesLink . "]";
 	}
 
