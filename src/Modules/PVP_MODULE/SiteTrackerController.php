@@ -183,7 +183,7 @@ class SiteTrackerController extends ModuleInstance {
 	public function showTowerTrackerMatches(
 		CmdContext $context,
 		#[NCA\Str("track", "tracker")] string $action,
-		#[NCA\Str("show")] string $subAction,
+		#[NCA\Str("show", "view")] string $subAction,
 		int $id,
 	): void {
 		$tracker = $this->trackers[$id] ?? null;
@@ -286,19 +286,21 @@ class SiteTrackerController extends ModuleInstance {
 
 	private function renderTracker(TrackerEntry $tracker): string {
 		$expression = preg_replace('/\s+'.join('\s+', array_map('preg_quote', $tracker->events)).'$/', '', $tracker->expression);
+		$showSitesLink = $this->text->makeChatcmd(
+			"show sites",
+			"/tell <myname> <symbol>nw track show {$tracker->id}"
+		);
+		$deleteLink = $this->text->makeChatcmd(
+			"delete",
+			"/tell <myname> <symbol>nw track rm {$tracker->id}"
+		);
 		return "<header2>{$expression}<end>\n".
-			"<tab>ID: <highlight>{$tracker->id}<end>\n".
+			"<tab>ID: <highlight>{$tracker->id}<end> [{$deleteLink}]\n".
 			"<tab>Created: <highlight>" . $this->util->date($tracker->created_on) . "<end> ".
 			"by <highlight>{$tracker->created_by}<end>\n".
 			"<tab>Events: <highlight>" . join("<end>, <highlight>", $tracker->events) . "<end>\n".
-			"<tab>Matches: <highlight>" . $this->countMatches($tracker) . "<end> entries.\n".
-			"<tab>Links: [" . $this->text->makeChatcmd(
-				"show sites",
-				"/tell <myname> <symbol>nw track show {$tracker->id}"
-			) . "] [" . $this->text->makeChatcmd(
-				"delete",
-				"/tell <myname> <symbol>nw track rm {$tracker->id}"
-			) . "]";
+			"<tab>Matches: <highlight>" . $this->countMatches($tracker) . "<end> entries [".
+			$showSitesLink . "]";
 	}
 
 	private function countMatches(TrackerEntry $entry): int {
