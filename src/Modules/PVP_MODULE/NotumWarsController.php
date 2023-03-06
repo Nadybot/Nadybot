@@ -925,7 +925,7 @@ class NotumWarsController extends ModuleInstance {
 		foreach ($countdown as $remaining) {
 			$alert = new Alert();
 			$alert->time = $timestamp - $remaining;
-			$alert->message = "<highlight>{$remaining}s<end> remaining to plant {$siteShort}: <highlight>{$remaining}s<end>";
+			$alert->message = "Plant {$siteShort} in <highlight>{$remaining}s<end>";
 			$alerts []= $alert;
 		}
 
