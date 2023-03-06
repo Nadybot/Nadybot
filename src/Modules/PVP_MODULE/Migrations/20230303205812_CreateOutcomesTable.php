@@ -13,8 +13,8 @@ class CreateOutcomesTable implements SchemaMigration {
 			$table->unsignedSmallInteger("playfield_id");
 			$table->unsignedSmallInteger("site_id");
 			$table->unsignedInteger("timestamp");
-			$table->string("attacking_faction", 7)->nullable(true);
-			$table->string("attacking_org", 40)->nullable(true);
+			$table->string("attacker_faction", 7)->nullable(true);
+			$table->string("attacker_org", 40)->nullable(true);
 			$table->string("losing_faction", 7);
 			$table->string("losing_org", 40)->nullable(true);
 		});

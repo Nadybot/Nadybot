@@ -177,17 +177,17 @@ class AttacksController extends ModuleInstance {
 		);
 		$defFaction = strtolower($event->attack->defending_faction);
 		$tokens = $event->attacker?->getTokens("att-") ?? [
-			"att-name" => $event->attack->attacker,
-			"c-att-name" => "<highlight>{$event->attack->attacker}<end>",
-			"att-faction" => $event->attack->attacking_faction,
-			"c-att-faction" => isset($event->attack->attacking_faction)
-				? "<" . strtolower($event->attack->attacking_faction) . ">".
-				  $event->attack->attacking_faction . "<end>"
+			"att-name" => $event->attack->attacker_name,
+			"c-att-name" => "<highlight>{$event->attack->attacker_name}<end>",
+			"att-faction" => $event->attack->attacker_faction,
+			"c-att-faction" => isset($event->attack->attacker_faction)
+				? "<" . strtolower($event->attack->attacker_faction) . ">".
+				  $event->attack->attacker_faction . "<end>"
 				: null,
-			"att-org" => $event->attack->attacking_org,
-			"c-att-org" => isset($event->attack->attacking_org)
-				? "<" . strtolower($event->attack->attacking_faction??"unknown") . ">".
-				  $event->attack->attacking_org . "<end>"
+			"att-org" => $event->attack->attacker_org,
+			"c-att-org" => isset($event->attack->attacker_org)
+				? "<" . strtolower($event->attack->attacker_faction??"unknown") . ">".
+				  $event->attack->attacker_org . "<end>"
 				: null,
 		];
 		$tokens = array_merge(
@@ -205,7 +205,7 @@ class AttacksController extends ModuleInstance {
 				"site-num" => $event->site->site_id,
 			]
 		);
-		if (!isset($event->attack->attacking_org)) {
+		if (!isset($event->attack->attacker_org)) {
 			if (isset($event->attacker, $tokens['att-name'])) {
 				$tokens["c-att-name"] = "<" . strtolower($event->attacker->faction) . ">".
 					$tokens['att-name'] . "<end>";
@@ -240,8 +240,8 @@ class AttacksController extends ModuleInstance {
 			return;
 		}
 		$tokens = [
-			"winning-faction" => $outcome->attacking_faction,
-			"winning-org" => $outcome->attacking_org,
+			"winning-faction" => $outcome->attacker_faction,
+			"winning-org" => $outcome->attacker_org,
 			"losing-faction" => $outcome->losing_faction,
 			"losing-org" => $outcome->losing_org,
 			"c-losing-org" => "<" . strtolower($outcome->losing_faction) . ">".
@@ -439,7 +439,7 @@ class AttacksController extends ModuleInstance {
 	): void {
 		$search = str_replace("*", "%", $orgName());
 		$query = $this->db->table($this->nwCtrl::DB_OUTCOMES)
-			->whereIlike("attacking_org", $search)
+			->whereIlike("attacker_org", $search)
 			->orWhereIlike("losing_org", $search);
 		$context->reply(
 			$this->nwOutcomesCmd(
@@ -462,9 +462,9 @@ class AttacksController extends ModuleInstance {
 			$blob .= $whois->firstname . " ";
 		}
 		if (!empty($whois->firstname) || !empty($whois->lastname)) {
-			$blob .= '"' . $attack->attacker . '"';
+			$blob .= '"' . $attack->attacker_name . '"';
 		} else {
-			$blob .= $attack->attacker;
+			$blob .= $attack->attacker_name;
 		}
 		if (!empty($whois->lastname)) {
 			$blob .= " " . $whois->lastname;
@@ -488,14 +488,14 @@ class AttacksController extends ModuleInstance {
 			}
 		}
 
-		$attFaction = $attack->attacking_faction ?? $whois?->faction ?? null;
+		$attFaction = $attack->attacker_faction ?? $whois?->faction ?? null;
 		if (isset($attFaction)) {
 			$blob .= "<tab>Alignment: <" . strtolower($attFaction) . ">{$attFaction}<end>\n";
 		}
 
-		if (isset($attack->attacking_org)) {
-			$blob .= "<tab>Organization: <highlight>{$attack->attacking_org}<end>\n";
-			if (isset($whois) && $attack->attacking_org === $whois->guild && isset($whois->guild_rank)) {
+		if (isset($attack->attacker_org)) {
+			$blob .= "<tab>Organization: <highlight>{$attack->attacker_org}<end>\n";
+			if (isset($whois) && $attack->attacker_org === $whois->guild && isset($whois->guild_rank)) {
 				$blob .= "<tab>Organization Rank: <highlight>{$whois->guild_rank}<end>\n";
 			}
 		}
@@ -522,9 +522,9 @@ class AttacksController extends ModuleInstance {
 		$blob = "Time: " . $this->util->date($outcome->timestamp) . " (".
 			"<highlight>" . $this->util->unixtimeToReadable(time() - $outcome->timestamp).
 			"<end> ago)\n";
-		if (isset($outcome->attacking_org, $outcome->attacking_faction)) {
-			$blob .= "Winner: <" . strtolower($outcome->attacking_faction) . ">".
-				$outcome->attacking_org . "<end>\n";
+		if (isset($outcome->attacker_org, $outcome->attacker_faction)) {
+			$blob .= "Winner: <" . strtolower($outcome->attacker_faction) . ">".
+				$outcome->attacker_org . "<end>\n";
 		} else {
 			$blob .= "Winner: <grey>abandoned<end>\n";
 		}
@@ -532,7 +532,7 @@ class AttacksController extends ModuleInstance {
 			$outcome->losing_org . "<end>\n";
 		$siteLink = $this->text->makeChatcmd(
 			"{$pf->short_name} {$site->site_id}",
-			"/tell <myname> <symbol>lc {$pf->short_name} {$site->site_id}"
+			"/tell <myname> <symbol>nw lc {$pf->short_name} {$site->site_id}"
 		);
 		$blob .= "Site: {$siteLink} (QL {$site->min_ql}-{$site->max_ql})";
 
@@ -669,8 +669,17 @@ class AttacksController extends ModuleInstance {
 			"<end> ago)\n";
 		$blob .= "Attacker: <{$attColor}>{$attack->att_name}<end>";
 		if (isset($attack->att_level, $attack->att_ai_level, $attack->att_profession)) {
-			$blob .= " ({$attack->att_level}/<green>{$attack->att_ai_level}<end> ".
-				"{$attack->att_profession}";
+			$blob .= " ({$attack->att_level}/<green>{$attack->att_ai_level}<end>";
+			if (isset($attack->att_gender)) {
+				$blob .= ", {$attack->att_gender}";
+			}
+			if (isset($attack->att_breed)) {
+				$blob .= " {$attack->att_breed}";
+			}
+			$blob .= " <highlight>{$attack->att_profession}<end>";
+			if (isset($attack->att_org_rank)) {
+				$blob .= ", {$attack->att_org_rank}";
+			}
 			if (isset($attack->att_org)) {
 				$blob .= " of <{$attColor}>{$attack->att_org}<end>)";
 			} else {

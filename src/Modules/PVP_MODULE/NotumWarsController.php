@@ -11,7 +11,7 @@ use Illuminate\Support\Collection;
 use Nadybot\Core\Modules\PLAYER_LOOKUP\PlayerManager;
 use Nadybot\Core\ParamClass\PTowerSite;
 use Nadybot\Core\Routing\{RoutableMessage, Source};
-use Nadybot\Core\{Attributes as NCA, CmdContext, ConfigFile, DB, EventManager, LoggerWrapper, MessageHub, ModuleInstance, Text, Util};
+use Nadybot\Core\{Attributes as NCA, CmdContext, ConfigFile, DB, EventManager, LoggerWrapper, MessageHub, ModuleInstance, Nadybot, Text, Util};
 use Nadybot\Modules\HELPBOT_MODULE\{Playfield, PlayfieldController};
 use Nadybot\Modules\LEVEL_MODULE\LevelController;
 use Nadybot\Modules\PVP_MODULE\FeedMessage\{TowerAttack, TowerOutcome};
@@ -104,6 +104,9 @@ class NotumWarsController extends ModuleInstance {
 
 	#[NCA\Inject]
 	public ConfigFile $config;
+
+	#[NCA\Inject]
+	public Nadybot $chatBot;
 
 	#[NCA\Inject]
 	public PlayerManager $playerManager;
@@ -214,16 +217,19 @@ class NotumWarsController extends ModuleInstance {
 			$json = json_decode($body, true);
 			$mapper = new ObjectMapperUsingReflection();
 
-			$attacks = $mapper->hydrateObjects(FeedMessage\TowerAttack::class, $json);
+			$attacks = $mapper->hydrateObjects(APITowerAttack::class, $json);
 
 			/** @psalm-suppress InternalMethod */
 			foreach ($attacks as $attack) {
-				$this->attacks []= $attack;
-				$player = yield $this->playerManager->lookupAsync2(
-					$attack->attacker,
-					$this->config->dimension,
-				);
-				$attInfo = DBTowerAttack::fromTowerAttack($attack, $player);
+				if (isset($attack->attacker_character_id) && !isset($attack->attacker_level)) {
+					$player = yield $this->playerManager->lookupAsync2(
+						$attack->attacker_name,
+						$this->config->dimension,
+					);
+					$uid = yield $this->chatBot->getUid2($attack->attacker_name);
+					$attack->addLookups($player, $uid);
+				}
+				$attInfo = DBTowerAttack::fromAPITowerAttack($attack);
 				$this->db->insert(self::DB_ATTACKS, $attInfo);
 			}
 
@@ -370,11 +376,12 @@ class NotumWarsController extends ModuleInstance {
 	public function updateTowerAttackInfoFromFeed(Event\TowerAttack $event): Generator {
 		$this->registerAttack($event->attack);
 		$player = yield $this->playerManager->lookupAsync2(
-			$event->attack->attacker,
+			$event->attack->attacker_name,
 			$this->config->dimension,
 		);
+		$uid = yield $this->chatBot->getUid2($event->attack->attacker_name);
 		$site = $this->state[$event->attack->playfield_id][$event->attack->site_id]??null;
-		$attInfo = DBTowerAttack::fromTowerAttack($event->attack, $player);
+		$attInfo = DBTowerAttack::fromTowerAttack($event->attack, $player, $uid);
 		$this->db->insert(self::DB_ATTACKS, $attInfo);
 		$infoEvent = new Event\TowerAttackInfo($event->attack, $player, $site);
 		$this->eventManager->fireEvent($infoEvent);
@@ -504,10 +511,10 @@ class NotumWarsController extends ModuleInstance {
 			$blob .= "<tab>Planted: <highlight>No<end>\n";
 			// If the site was destroyed less than 1 hour ago, show by who
 			if (isset($lastOutcome) && $lastOutcome->timestamp + 3600 > time()) {
-				if (isset($lastOutcome->attacking_org, $lastOutcome->attacking_faction)) {
+				if (isset($lastOutcome->attacker_org, $lastOutcome->attacker_faction)) {
 					$blob .= "<tab>Destroyed by: ".
-						"<" . strtolower($lastOutcome->attacking_faction) . ">".
-						$lastOutcome->attacking_org . "<end>";
+						"<" . strtolower($lastOutcome->attacker_faction) . ">".
+						$lastOutcome->attacker_org . "<end>";
 				} else {
 					$blob .= "<tab>Abandoned by: ".
 						"<" . strtolower($lastOutcome->losing_faction) . ">".
@@ -1078,8 +1085,8 @@ class NotumWarsController extends ModuleInstance {
 				continue;
 			}
 			if (
-				$attack->attacking_org !== $site->org_name
-				|| $attack->attacking_faction !== $site->org_faction
+				$attack->attacker_org !== $site->org_name
+				|| $attack->attacker_faction !== $site->org_faction
 			) {
 				continue;
 			}

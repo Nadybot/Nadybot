@@ -21,6 +21,10 @@ class CreateAttacksTable implements SchemaMigration {
 			$table->unsignedSmallInteger("att_level")->nullable(true);
 			$table->unsignedSmallInteger("att_ai_level")->nullable(true);
 			$table->string("att_profession", 15)->nullable(true);
+			$table->string("att_org_rank", 20)->nullable(true);
+			$table->string("att_breed", 10)->nullable(true);
+			$table->string("att_gender", 10)->nullable(true);
+			$table->unsignedInteger("att_uid")->nullable(true);
 			$table->string("def_faction", 7);
 			$table->string("def_org", 40);
 		});

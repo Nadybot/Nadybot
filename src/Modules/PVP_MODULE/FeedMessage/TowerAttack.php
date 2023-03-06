@@ -8,9 +8,9 @@ class TowerAttack {
 		public int $site_id,
 		public int $timestamp,
 		public Coordinates $location,
-		public string $attacker,
-		public ?string $attacking_faction,
-		public ?string $attacking_org,
+		public string $attacker_name,
+		public ?string $attacker_faction,
+		public ?string $attacker_org,
 		public string $defending_faction,
 		public string $defending_org,
 	) {

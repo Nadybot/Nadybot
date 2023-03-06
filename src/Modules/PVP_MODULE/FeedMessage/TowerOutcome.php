@@ -7,8 +7,8 @@ class TowerOutcome {
 		public int $playfield_id,
 		public int $site_id,
 		public int $timestamp,
-		public ?string $attacking_faction,
-		public ?string $attacking_org,
+		public ?string $attacker_faction,
+		public ?string $attacker_org,
 		public string $losing_faction,
 		public string $losing_org,
 	) {
