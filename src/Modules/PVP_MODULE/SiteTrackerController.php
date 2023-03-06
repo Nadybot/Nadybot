@@ -271,7 +271,7 @@ class SiteTrackerController extends ModuleInstance {
 			"type of events you want to receive for the matching sites.\n".
 			"For example, you might be interested in all events for your\n".
 			"own org's sites, but only in attacks for the sites of other\n".
-			"orgs in your alliance\n".
+			"orgs in your alliance.\n".
 			"Events can always use wildcard-operators, so '<highlight>site-*<end>'\n".
 			"will match site-planted, site-destroyed, site-hot, and site-cold.\n".
 			"You can also give multiple events, just as you need it.\n\n".
