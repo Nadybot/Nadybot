@@ -109,23 +109,10 @@ class SiteTrackerController extends ModuleInstance {
 	/**
 	 * Track sites based on one or more criteria
 	 * &lt;expression&gt; is a combination of 1 or more patterns and 0 or more events.
+	 * Check the <a href='chatcmd:///tell <myname> <symbol>nw track patterns'>list of patterns</a> and the <a href='chatcmd:///tell <myname> <symbol>nw track events'>list of events</a> for details.
 	 *
-	 * Patterns:
-	 * <tab>faction=omni|clan|neutral|!omni|!clan|!neutral
-	 * <tab>org=name or org="name with spaces"
-	 * <tab>pf=PW|MORT|...
-	 * <tab>site=PW12 or site="PW 12"
-	 * <tab>ql=55 or ql=25-53
-	 * <tab>max_towers=1
-	 * Events:
-	 * <tab>Everything listed in brackets at '<highlight><symbol>route list src<end>' under "site-tracker", or wildcards,
-	 * <tab>e.g. "site-hot", "gas-change", "site-*", or "*"
-	 *
-	 * If you give more than 1 pattern, then every pattern has to match for the
-	 * tracking to work. In order to track multiple orgs, use multiple trackers
-	 *
-	 * All tracking events will generate messages in the corresponding site-tracker(*)-route,
-	 * so make sure to install a route to actually see your tracking.
+	 * Note: All given patterns have to match, so using the same pattern twice
+	 * <tab>will most likely give an empty result.
 	 */
 	#[NCA\HandlesCommand("nw track")]
 	#[NCA\Help\Example(
@@ -214,6 +201,84 @@ class SiteTrackerController extends ModuleInstance {
 		$expression = preg_replace('/\s+'.join('\s+', array_map('preg_quote', $tracker->events)).'$/', '', $tracker->expression);
 		$msg = $this->text->makeBlob(
 			"Sites matching tracker '{$expression}' (" . $sites->count() . ")",
+			$blob
+		);
+		$context->reply($msg);
+	}
+
+	/** Show all sites matched by a site tracker */
+	#[NCA\HandlesCommand("nw track")]
+	public function showTowerTrackerPatterns(
+		CmdContext $context,
+		#[NCA\Str("track", "tracker")] string $action,
+		#[NCA\Str("pattern", "patterns")] string $subAction,
+	): void {
+		/** @psalm-var class-string[] */
+		$classes = array_unique(array_values($this->handlers));
+		$blocks = [];
+		foreach ($classes as $class) {
+			$refClass = new ReflectionClass($class);
+			foreach ($refClass->getAttributes(Argument::class) as $attr) {
+				$spec = $attr->newInstance();
+				$block = "<header2>{$spec->names[0]}<end>\n";
+				if (count($spec->names) > 1) {
+					$block .= "<tab>Aliases: <highlight>".
+						join("<end>, <highlight>", array_values(array_slice($spec->names, 1))).
+						"<end>\n";
+				}
+				if (count($spec->examples)) {
+					$block .= "<tab>Examples: <highlight>{$spec->names[0]}=".
+						join("<end>, <highlight>{$spec->names[0]}=", $spec->examples).
+						"<end>\n";
+				}
+				$block .= "<tab>Type: <highlight>{$spec->type}<end>\n";
+				$block .= "\n<tab><i>" . join("</i>\n<tab><i>", explode("\n", $spec->description)).
+					"</i>";
+				$blocks []= $block;
+			}
+		}
+		$blob = "The following is a list of patterns you can use to limit the\n".
+			"scope of your site trackers. You trackers can use any number\n".
+			"of patterns, separated by space.\n".
+			"Unless you specify specific events you want to receive, you\n".
+			"will receive all events for the matching tower sites.\n".
+			"See " . $this->text->makeChatcmd(
+				'<symbol>nw track events',
+				'/tell <myname> <symbol>nw track events'
+			) . " for a list of events to use in '<highlight><symbol>nw track add<end>'.\n\n".
+			join("\n\n", $blocks);
+		$msg = $this->text->makeBlob(
+			"Available patterns (" . count($blocks) . ")",
+			$blob
+		);
+		$context->reply($msg);
+	}
+
+	/** Show all available site tracker events */
+	#[NCA\HandlesCommand("nw track")]
+	public function showTowerTrackerEvents(
+		CmdContext $context,
+		#[NCA\Str("track", "tracker")] string $action,
+		#[NCA\Str("event", "events")] string $subAction,
+	): void {
+		$blocks = [];
+		foreach ($this->msgHub->getEmitters() as $channel => $_) {
+			if (preg_match("/^site-tracker\((.+?)\)$/", $channel, $matches)) {
+				$blocks []= "<tab>{$matches[1]}";
+			}
+		}
+		$blob = "If you're setting up a site tracker, you can limit the\n".
+			"type of events you want to receive for the matching sites.\n".
+			"For example, you might be interested in all events for your\n".
+			"own org's sites, but only in attacks for the sites of other\n".
+			"orgs in your alliance\n".
+			"Events can always use wildcard-operators, so '<highlight>site-*<end>'\n".
+			"will match site-planted, site-destroyed, site-hot, and site-cold\n".
+			"You can also give multiple events, just as you need it\n\n".
+			"<header2>Available site tracker events<end>\n".
+			join("\n", $blocks);
+		$msg = $this->text->makeBlob(
+			"Available events (" . count($blocks) . ")",
 			$blob
 		);
 		$context->reply($msg);

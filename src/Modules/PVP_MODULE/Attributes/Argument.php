@@ -6,13 +6,16 @@ use Attribute;
 
 #[Attribute(Attribute::TARGET_CLASS)]
 class Argument {
-	/** @var string[] */
-	public array $names = [];
-
+	/**
+	 * @param string[] $names
+	 * @param string[] $examples
+	 * @psalm-param non-empty-array<string> $names
+	 */
 	public function __construct(
-		string $name,
-		string ...$aliases,
+		public array $names,
+		public string $description,
+		public string $type,
+		public array $examples=[],
 	) {
-		$this->names = [$name, ...$aliases];
 	}
 }

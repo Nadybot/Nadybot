@@ -6,7 +6,14 @@ use Nadybot\Core\UserException;
 use Nadybot\Modules\PVP_MODULE\Attributes\Argument;
 use Nadybot\Modules\PVP_MODULE\FeedMessage\SiteUpdate;
 
-#[Argument("max_towers")]
+#[Argument(
+	names: ["max_towers"],
+	description: "Only match those tower fields with a maximum number of\n".
+		"towers. This also includes the CT, so your parameter cannot be\n".
+		"lower than 1. You cannot ftrack unplanted sites.",
+	type: "number",
+	examples: ["1", "3"],
+)]
 class MaxTowers extends Base {
 	public function matches(SiteUpdate $site): bool {
 		if (!isset($site->ql)) {

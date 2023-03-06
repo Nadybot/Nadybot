@@ -6,7 +6,13 @@ use Nadybot\Core\UserException;
 use Nadybot\Modules\PVP_MODULE\Attributes\Argument;
 use Nadybot\Modules\PVP_MODULE\FeedMessage\SiteUpdate;
 
-#[Argument("faction", "side", "alignment")]
+#[Argument(
+	names: ["faction", "side", "alignment"],
+	description: "Only show one side (clan, omni, neutral) of the conflict,\n".
+		"or all but one (!clan, !omni, !neutral)",
+	type: "string",
+	examples: ["omni", "!neutral"]
+)]
 class Faction extends Base {
 	public function matches(SiteUpdate $site): bool {
 		if (!isset($site->org_faction)) {
