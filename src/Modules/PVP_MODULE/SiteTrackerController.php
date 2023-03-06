@@ -273,7 +273,7 @@ class SiteTrackerController extends ModuleInstance {
 			"own org's sites, but only in attacks for the sites of other\n".
 			"orgs in your alliance\n".
 			"Events can always use wildcard-operators, so '<highlight>site-*<end>'\n".
-			"will match site-planted, site-destroyed, site-hot, and site-cold\n".
+			"will match site-planted, site-destroyed, site-hot, and site-cold.\n".
 			"You can also give multiple events, just as you need it\n\n".
 			"<header2>Available site tracker events<end>\n".
 			join("\n", $blocks);
