@@ -238,10 +238,10 @@ class SiteTrackerController extends ModuleInstance {
 			}
 		}
 		$blob = "The following is a list of patterns you can use to limit the\n".
-			"scope of your site trackers. You trackers can use any number\n".
+			"scope of your site trackers. Your trackers can use any number\n".
 			"of patterns, separated by space.\n".
-			"Unless you specify specific events you want to receive, you\n".
-			"will receive all events for the matching tower sites.\n".
+			"Unless you specify the events you want to receive, you\n".
+			"will receive <i>all</i> events for the matching tower sites.\n".
 			"See " . $this->text->makeChatcmd(
 				'<symbol>nw track events',
 				'/tell <myname> <symbol>nw track events'
