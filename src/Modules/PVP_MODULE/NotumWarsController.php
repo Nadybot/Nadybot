@@ -22,24 +22,31 @@ use Safe\Exceptions\JsonException;
 #[
 	NCA\Instance,
 	NCA\HasMigrations,
+	NCA\EmitsMessages("site-tracker", "gas-change"),
 	NCA\EmitsMessages("pvp", "gas-change-clan"),
 	NCA\EmitsMessages("pvp", "gas-change-neutral"),
 	NCA\EmitsMessages("pvp", "gas-change-omni"),
+	NCA\EmitsMessages("site-tracker", "site-planted"),
 	NCA\EmitsMessages("pvp", "site-planted-clan"),
 	NCA\EmitsMessages("pvp", "site-planted-neutral"),
 	NCA\EmitsMessages("pvp", "site-planted-omni"),
+	NCA\EmitsMessages("site-tracker", "site-destroyed"),
 	NCA\EmitsMessages("pvp", "site-destroyed-clan"),
 	NCA\EmitsMessages("pvp", "site-destroyed-neutral"),
 	NCA\EmitsMessages("pvp", "site-destroyed-omni"),
+	NCA\EmitsMessages("site-tracker", "tower-destroyed"),
 	NCA\EmitsMessages("pvp", "tower-destroyed-clan"),
 	NCA\EmitsMessages("pvp", "tower-destroyed-neutral"),
 	NCA\EmitsMessages("pvp", "tower-destroyed-omni"),
+	NCA\EmitsMessages("site-tracker", "tower-planted"),
 	NCA\EmitsMessages("pvp", "tower-planted-clan"),
 	NCA\EmitsMessages("pvp", "tower-planted-neutral"),
 	NCA\EmitsMessages("pvp", "tower-planted-omni"),
+	NCA\EmitsMessages("site-tracker", "site-hot"),
 	NCA\EmitsMessages("pvp", "site-hot-clan"),
 	NCA\EmitsMessages("pvp", "site-hot-neutral"),
 	NCA\EmitsMessages("pvp", "site-hot-omni"),
+	NCA\EmitsMessages("site-tracker", "site-cold"),
 	NCA\EmitsMessages("pvp", "site-cold-clan"),
 	NCA\EmitsMessages("pvp", "site-cold-neutral"),
 	NCA\EmitsMessages("pvp", "site-cold-omni"),
@@ -95,6 +102,9 @@ class NotumWarsController extends ModuleInstance {
 
 	#[NCA\Inject]
 	public PlayfieldController $pfCtrl;
+
+	#[NCA\Inject]
+	public SiteTrackerController $siteTracker;
 
 	#[NCA\Inject]
 	public MessageHub $msgHub;
@@ -416,17 +426,29 @@ class NotumWarsController extends ModuleInstance {
 		$rMessage = new RoutableMessage($msg);
 		$rMessage->prependPath(new Source("pvp", "gas-change-{$color}"));
 		$this->msgHub->handle($rMessage);
+		if ($this->siteTracker->isTracked($site, 'gas-change')) {
+			$rMessage = new RoutableMessage($msg);
+			$rMessage->prependPath(new Source("site-tracker", "gas-change"));
+			$this->msgHub->handle($rMessage);
+		}
 
 		if ($newGas->gas === 75 && $oldGas?->gas !== 75 && isset($site->org_faction)) {
 			$source = "site-cold-{$site->org_faction}";
+			$trackerSource = "site-cold";
 		} elseif ($newGas->gas !== 75 && $oldGas?->gas === 75 && isset($site->org_faction)) {
 			$source = "site-hot-{$site->org_faction}";
+			$trackerSource = "site-hot";
 		} else {
 			return;
 		}
 		$rMessage = new RoutableMessage($msg);
 		$rMessage->prependPath(new Source("pvp", $source));
 		$this->msgHub->handle($rMessage);
+		if ($this->siteTracker->isTracked($site, $trackerSource)) {
+			$rMessage = new RoutableMessage($msg);
+			$rMessage->prependPath(new Source("site-tracker", $trackerSource));
+			$this->msgHub->handle($rMessage);
+		}
 	}
 
 	/** Get the current gas for a site and information */
@@ -817,6 +839,42 @@ class NotumWarsController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
+	/** Render a bunch of sites, all hot, for the !hot-command */
+	public function renderHotSites(FeedMessage\SiteUpdate ...$sites): string {
+		$sites = new Collection($sites);
+
+		$grouping = $this->groupHotTowers;
+		if ($grouping === 1) {
+			$sites = $sites->sortBy("site_id");
+			$grouped = $sites->groupBy(function (FeedMessage\SiteUpdate $site): string {
+				$pf = $this->pfCtrl->getPlayfieldById($site->playfield_id);
+				return $pf?->long_name ?? "Unknown";
+			});
+		} elseif ($grouping === 2) {
+			$sites = $sites->sortBy("ql");
+			$grouped = $sites->groupBy(function (FeedMessage\SiteUpdate $site): string {
+				return "TL" . $this->util->levelToTL($site->ql??1);
+			});
+		} elseif ($grouping === 3) {
+			$sites = $sites->sortBy("ql");
+			$grouped = $sites->groupBy("org_name");
+		} elseif ($grouping === 4) {
+			$sites = $sites->sortBy("ql");
+			$grouped = $sites->groupBy("org_faction");
+		} else {
+			throw new Exception("Invalid grouping found");
+		}
+
+		$grouped = $grouped->sortKeys();
+		$blob = $grouped->map(function (Collection $sites, string $short): string {
+			return "<pagebreak><header2>{$short}<end>\n".
+				$sites->map(function (FeedMessage\SiteUpdate $site): string {
+					return $this->renderHotSite($site);
+				})->join("\n");
+		})->join("\n\n");
+		return $blob;
+	}
+
 	/** Handle whatever is necessary when a site gets newly planted */
 	private function handleSitePlanted(FeedMessage\SiteUpdate $site, Playfield $pf): void {
 		// Remove any plant timers for this site
@@ -835,6 +893,11 @@ class NotumWarsController extends ModuleInstance {
 		$rMessage = new RoutableMessage($msg);
 		$rMessage->prependPath(new Source("pvp", "site-planted-{$color}"));
 		$this->msgHub->handle($rMessage);
+		if ($this->siteTracker->isTracked($site, 'site-planted')) {
+			$rMessage = new RoutableMessage($msg);
+			$rMessage->prependPath(new Source("site-tracker", "site-planted"));
+			$this->msgHub->handle($rMessage);
+		}
 	}
 
 	/** Handle whatever is necessary when a site gets destroyed */
@@ -867,6 +930,11 @@ class NotumWarsController extends ModuleInstance {
 		$rMessage = new RoutableMessage($msg);
 		$rMessage->prependPath(new Source("pvp", "site-destroyed-{$color}"));
 		$this->msgHub->handle($rMessage);
+		if ($this->siteTracker->isTracked($oldSite, 'site-destroyed')) {
+			$rMessage = new RoutableMessage($msg);
+			$rMessage->prependPath(new Source("site-tracker", "site-destroyed"));
+			$this->msgHub->handle($rMessage);
+		}
 	}
 
 	/** Handle whatever is necessary when a site gets or loses a non-CT-tower */
@@ -904,6 +972,11 @@ class NotumWarsController extends ModuleInstance {
 		$rMessage = new RoutableMessage($msg);
 		$rMessage->prependPath(new Source("pvp", "tower-{$subType}-{$color}"));
 		$this->msgHub->handle($rMessage);
+		if ($this->siteTracker->isTracked($site, "tower-{$subType}")) {
+			$rMessage = new RoutableMessage($msg);
+			$rMessage->prependPath(new Source("site-tracker", "tower-{$subType}"));
+			$this->msgHub->handle($rMessage);
+		}
 	}
 
 	/** Get the name of the plant timer for the given site */
@@ -1006,42 +1079,6 @@ class NotumWarsController extends ModuleInstance {
 		return trim($blob);
 	}
 
-	/** Render a bunch of sites, all hot, for the !hot-command */
-	private function renderHotSites(FeedMessage\SiteUpdate ...$sites): string {
-		$sites = new Collection($sites);
-
-		$grouping = $this->groupHotTowers;
-		if ($grouping === 1) {
-			$sites = $sites->sortBy("site_id");
-			$grouped = $sites->groupBy(function (FeedMessage\SiteUpdate $site): string {
-				$pf = $this->pfCtrl->getPlayfieldById($site->playfield_id);
-				return $pf?->long_name ?? "Unknown";
-			});
-		} elseif ($grouping === 2) {
-			$sites = $sites->sortBy("ql");
-			$grouped = $sites->groupBy(function (FeedMessage\SiteUpdate $site): string {
-				return "TL" . $this->util->levelToTL($site->ql??1);
-			});
-		} elseif ($grouping === 3) {
-			$sites = $sites->sortBy("ql");
-			$grouped = $sites->groupBy("org_name");
-		} elseif ($grouping === 4) {
-			$sites = $sites->sortBy("ql");
-			$grouped = $sites->groupBy("org_faction");
-		} else {
-			throw new Exception("Invalid grouping found");
-		}
-
-		$grouped = $grouped->sortKeys();
-		$blob = $grouped->map(function (Collection $sites, string $short): string {
-			return "<pagebreak><header2>{$short}<end>\n".
-				$sites->map(function (FeedMessage\SiteUpdate $site): string {
-					return $this->renderHotSite($site);
-				})->join("\n");
-		})->join("\n\n");
-		return $blob;
-	}
-
 	/** Render the line of a single site for the !hot-command */
 	private function renderHotSite(FeedMessage\SiteUpdate $site): string {
 		$pf = $this->pfCtrl->getPlayfieldById($site->playfield_id);
@@ -1067,6 +1104,10 @@ class NotumWarsController extends ModuleInstance {
 		$currentGas = $gas->currentGas();
 		assert(isset($currentGas));
 		$line .= " " . $currentGas->colored();
+		if (isset($site->ct_pos)) {
+			$numTowers = $site->num_conductors + $site->num_turrets + 1;
+			$line .= ", {$numTowers} " . $this->text->pluralize("tower", $numTowers);
+		}
 		$goesHot = $gas->goesHot();
 		$goesCold = $gas->goesCold();
 		$regularGas = $gas->regularGas();

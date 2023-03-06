@@ -12,6 +12,8 @@ use Nadybot\Modules\PVP_MODULE\Event\TowerAttackInfo;
 
 #[
 	NCA\Instance,
+	NCA\EmitsMessages("site-tracker", "tower-attack"),
+	NCA\EmitsMessages("site-tracker", "tower-outcome"),
 	NCA\EmitsMessages("pvp", "tower-attack"),
 	NCA\EmitsMessages("pvp", "tower-attack-own"),
 	NCA\EmitsMessages("pvp", "tower-outcome"),
@@ -35,6 +37,9 @@ class AttacksController extends ModuleInstance {
 		"{?att-org:- {c-att-name} }{?c-att-level:({c-att-level}/{c-att-ai-level}, {att-gender} {att-breed} {c-att-profession}{?att-org-rank:, {att-org-rank}})}";
 	private const VICTORY_FMT_NORMAL = "{c-winning-org} won against {c-losing-org} in <highlight>{pf-short} {site-id}<end>";
 	private const ABANDONED_FMT_NORMAL = "{c-losing-org} abandoned <highlight>{pf-short} {site-id}<end>";
+
+	#[NCA\Inject]
+	public SiteTrackerController $siteTracker;
 
 	#[NCA\Inject]
 	public PlayfieldController $pfCtrl;
@@ -187,12 +192,12 @@ class AttacksController extends ModuleInstance {
 			"att-faction" => $event->attack->attacker_faction,
 			"c-att-faction" => isset($event->attack->attacker_faction)
 				? "<" . strtolower($event->attack->attacker_faction) . ">".
-				  $event->attack->attacker_faction . "<end>"
+					$event->attack->attacker_faction . "<end>"
 				: null,
 			"att-org" => $event->attack->attacker_org,
 			"c-att-org" => isset($event->attack->attacker_org)
 				? "<" . strtolower($event->attack->attacker_faction??"unknown") . ">".
-				  $event->attack->attacker_org . "<end>"
+					$event->attack->attacker_org . "<end>"
 				: null,
 		];
 		$tokens = array_merge(
@@ -233,6 +238,11 @@ class AttacksController extends ModuleInstance {
 			$rMsg = new RoutableMessage($page);
 			$rMsg->prependPath(new Source('pvp', "tower-attack"));
 			$this->msgHub->handle($rMsg);
+			if ($this->siteTracker->isTracked($site, 'tower-attack')) {
+				$rMsg = new RoutableMessage($page);
+				$rMsg->prependPath(new Source('site-tracker', "tower-attack"));
+				$this->msgHub->handle($rMsg);
+			}
 		}
 	}
 
@@ -290,6 +300,11 @@ class AttacksController extends ModuleInstance {
 			$rMsg = new RoutableMessage($page);
 			$rMsg->prependPath(new Source("pvp", "tower-outcome"));
 			$this->msgHub->handle($rMsg);
+			if ($this->siteTracker->isTracked($site, 'tower-outcome')) {
+				$rMsg = new RoutableMessage($page);
+				$rMsg->prependPath(new Source("site-tracker", "tower-outcome"));
+				$this->msgHub->handle($rMsg);
+			}
 		}
 	}
 
