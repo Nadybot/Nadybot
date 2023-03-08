@@ -64,7 +64,7 @@ class DBTowerAttack extends DBRow {
 				gender: $this->att_gender,
 				breed: $this->att_breed,
 				faction: $this->att_faction,
-				org: isset($this->att_org)
+				org: isset($this->att_org, $this->att_faction)
 					? new AttackerOrg(
 						name: $this->att_org,
 						faction: $this->att_faction,
