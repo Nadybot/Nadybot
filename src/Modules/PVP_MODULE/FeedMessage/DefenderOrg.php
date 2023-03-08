@@ -8,4 +8,15 @@ class DefenderOrg {
 		public string $faction,
 	) {
 	}
+
+	/** @return array<string,string|int|null> */
+	public function getTokens(): array {
+		$faction = strtolower($this->faction);
+		return [
+				"def-org" => $this->name,
+				"c-def-org" => "<{$faction}>{$this->name}<end>",
+				"def-faction" => $this->faction,
+				"c-def-faction" => "<{$faction}>{$this->faction}<end>",
+		];
+	}
 }

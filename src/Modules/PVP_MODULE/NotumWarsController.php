@@ -22,31 +22,24 @@ use Safe\Exceptions\JsonException;
 #[
 	NCA\Instance,
 	NCA\HasMigrations,
-	NCA\EmitsMessages("site-tracker", "gas-change"),
 	NCA\EmitsMessages("pvp", "gas-change-clan"),
 	NCA\EmitsMessages("pvp", "gas-change-neutral"),
 	NCA\EmitsMessages("pvp", "gas-change-omni"),
-	NCA\EmitsMessages("site-tracker", "site-planted"),
 	NCA\EmitsMessages("pvp", "site-planted-clan"),
 	NCA\EmitsMessages("pvp", "site-planted-neutral"),
 	NCA\EmitsMessages("pvp", "site-planted-omni"),
-	NCA\EmitsMessages("site-tracker", "site-destroyed"),
 	NCA\EmitsMessages("pvp", "site-destroyed-clan"),
 	NCA\EmitsMessages("pvp", "site-destroyed-neutral"),
 	NCA\EmitsMessages("pvp", "site-destroyed-omni"),
-	NCA\EmitsMessages("site-tracker", "tower-destroyed"),
 	NCA\EmitsMessages("pvp", "tower-destroyed-clan"),
 	NCA\EmitsMessages("pvp", "tower-destroyed-neutral"),
 	NCA\EmitsMessages("pvp", "tower-destroyed-omni"),
-	NCA\EmitsMessages("site-tracker", "tower-planted"),
 	NCA\EmitsMessages("pvp", "tower-planted-clan"),
 	NCA\EmitsMessages("pvp", "tower-planted-neutral"),
 	NCA\EmitsMessages("pvp", "tower-planted-omni"),
-	NCA\EmitsMessages("site-tracker", "site-hot"),
 	NCA\EmitsMessages("pvp", "site-hot-clan"),
 	NCA\EmitsMessages("pvp", "site-hot-neutral"),
 	NCA\EmitsMessages("pvp", "site-hot-omni"),
-	NCA\EmitsMessages("site-tracker", "site-cold"),
 	NCA\EmitsMessages("pvp", "site-cold-clan"),
 	NCA\EmitsMessages("pvp", "site-cold-neutral"),
 	NCA\EmitsMessages("pvp", "site-cold-omni"),
@@ -443,11 +436,7 @@ class NotumWarsController extends ModuleInstance {
 		$rMessage = new RoutableMessage($msg);
 		$rMessage->prependPath(new Source("pvp", "gas-change-{$color}"));
 		$this->msgHub->handle($rMessage);
-		if ($this->siteTracker->isTracked($site, 'gas-change')) {
-			$rMessage = new RoutableMessage($msg);
-			$rMessage->prependPath(new Source("site-tracker", "gas-change"));
-			$this->msgHub->handle($rMessage);
-		}
+		$this->siteTracker->fireEvent(new RoutableMessage($msg), $site, "gas-change");
 
 		if ($newGas->gas === 75 && $oldGas?->gas !== 75 && isset($site->org_faction)) {
 			$source = "site-cold-{$site->org_faction}";
@@ -461,11 +450,7 @@ class NotumWarsController extends ModuleInstance {
 		$rMessage = new RoutableMessage($msg);
 		$rMessage->prependPath(new Source("pvp", $source));
 		$this->msgHub->handle($rMessage);
-		if ($this->siteTracker->isTracked($site, $trackerSource)) {
-			$rMessage = new RoutableMessage($msg);
-			$rMessage->prependPath(new Source("site-tracker", $trackerSource));
-			$this->msgHub->handle($rMessage);
-		}
+		$this->siteTracker->fireEvent(new RoutableMessage($msg), $site, $trackerSource);
 	}
 
 	/** Get the current gas for a site and information */
@@ -910,11 +895,7 @@ class NotumWarsController extends ModuleInstance {
 		$rMessage = new RoutableMessage($msg);
 		$rMessage->prependPath(new Source("pvp", "site-planted-{$color}"));
 		$this->msgHub->handle($rMessage);
-		if ($this->siteTracker->isTracked($site, 'site-planted')) {
-			$rMessage = new RoutableMessage($msg);
-			$rMessage->prependPath(new Source("site-tracker", "site-planted"));
-			$this->msgHub->handle($rMessage);
-		}
+		$this->siteTracker->fireEvent(new RoutableMessage($msg), $site, 'site-planted');
 	}
 
 	/** Handle whatever is necessary when a site gets destroyed */
@@ -947,11 +928,7 @@ class NotumWarsController extends ModuleInstance {
 		$rMessage = new RoutableMessage($msg);
 		$rMessage->prependPath(new Source("pvp", "site-destroyed-{$color}"));
 		$this->msgHub->handle($rMessage);
-		if ($this->siteTracker->isTracked($oldSite, 'site-destroyed')) {
-			$rMessage = new RoutableMessage($msg);
-			$rMessage->prependPath(new Source("site-tracker", "site-destroyed"));
-			$this->msgHub->handle($rMessage);
-		}
+		$this->siteTracker->fireEvent(new RoutableMessage($msg), $site, 'site-destroyed');
 	}
 
 	/** Handle whatever is necessary when a site gets or loses a non-CT-tower */
@@ -989,11 +966,7 @@ class NotumWarsController extends ModuleInstance {
 		$rMessage = new RoutableMessage($msg);
 		$rMessage->prependPath(new Source("pvp", "tower-{$subType}-{$color}"));
 		$this->msgHub->handle($rMessage);
-		if ($this->siteTracker->isTracked($site, "tower-{$subType}")) {
-			$rMessage = new RoutableMessage($msg);
-			$rMessage->prependPath(new Source("site-tracker", "tower-{$subType}"));
-			$this->msgHub->handle($rMessage);
-		}
+		$this->siteTracker->fireEvent(new RoutableMessage($msg), $site, "tower-{$subType}");
 	}
 
 	/** Get the name of the plant timer for the given site */

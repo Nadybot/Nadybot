@@ -16,4 +16,55 @@ class Attacker {
 		public ?AttackerOrg $org,
 	) {
 	}
+
+	/** @return array<string,string|int|null> */
+	public function getTokens(): array {
+		$tokens = [
+			'att-name' => $this->name,
+			'c-att-name' => "<highlight>{$this->name}<end>",
+			'att-level' => $this->level,
+			'c-att-level' => isset($this->level)
+				? "<highlight>{$this->level}<end>"
+				: null,
+			'att-ai-level' => $this->ai_level,
+			'c-att-ai-level' => isset($this->ai_level)
+				? "<green>{$this->ai_level}<end>"
+				: null,
+			'att-prof' => $this->profession,
+			'att-profession' => $this->profession,
+			'c-att-prof' => isset($this->profession)
+				? "<highlight>{$this->profession}<end>"
+				: null,
+			'c-att-profession' => isset($this->profession)
+				? "<highlight>{$this->profession}<end>"
+				: null,
+			'att-org-rank' => $this->org_rank,
+			'c-att-org-rank' => isset($this->org_rank)
+				? "<highlight>{$this->org_rank}<end>"
+				: null,
+			'att-gender' => $this->gender,
+			'c-att-gender' => isset($this->gender)
+				? "<highlight>{$this->gender}<end>"
+				: null,
+			'att-breed' => $this->breed,
+			'c-att-breed' => isset($this->breed)
+				? "<highlight>{$this->breed}<end>"
+				: null,
+			'att-faction' => $this->faction,
+			'c-att-faction' => isset($this->faction)
+				? "<" . strtolower($this->faction) . ">{$this->faction}<end>"
+				: null,
+		];
+		if (isset($this->org)) {
+			$tokens = array_merge($tokens, $this->org->getTokens());
+		} else {
+			if (isset($this->faction)) {
+				$tokens["c-att-name"] = "<" . strtolower($this->faction) . ">".
+					$tokens['att-name'] . "<end>";
+			} else {
+				$tokens["c-att-name"] = "<unknown>{$tokens['att-name']}<end>";
+			}
+		}
+		return $tokens;
+	}
 }

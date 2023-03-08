@@ -4,9 +4,12 @@ namespace Nadybot\Modules\PVP_MODULE;
 
 // pf, site
 
+use Generator;
 use Illuminate\Support\Collection;
+use Nadybot\Core\Modules\MESSAGES\MessageHubController;
 use Nadybot\Core\ParamClass\PRemove;
-use Nadybot\Core\{Attributes as NCA, CmdContext, DB, MessageHub, ModuleInstance, Text, UserException, Util};
+use Nadybot\Core\Routing\{RoutableMessage, Source};
+use Nadybot\Core\{Attributes as NCA, CmdContext, ConfigFile, DB, MessageHub, ModuleInstance, Text, UserException, Util};
 use Nadybot\Modules\HELPBOT_MODULE\PlayfieldController;
 use Nadybot\Modules\PVP_MODULE\Attributes\Argument;
 use Nadybot\Modules\PVP_MODULE\FeedMessage\SiteUpdate;
@@ -25,6 +28,18 @@ use Throwable;
 class SiteTrackerController extends ModuleInstance {
 	public const DB_TRACKER = "nw_tracker_<myname>";
 
+	public const EVENTS = [
+		'gas-change',
+		'site-hot',
+		'site-cold',
+		'site-planted',
+		'site-destroyed',
+		'tower-attack',
+		'tower-outcome',
+		'tower-planted',
+		'tower-destroyed',
+	];
+
 	#[NCA\Inject]
 	public DB $db;
 
@@ -42,6 +57,12 @@ class SiteTrackerController extends ModuleInstance {
 
 	#[NCA\Inject]
 	public MessageHub $msgHub;
+
+	#[NCA\Inject]
+	public ConfigFile $config;
+
+	#[NCA\Inject]
+	public MessageHubController $msgHubCtrl;
 
 	/** @var array<int,TrackerEntry> */
 	private array $trackers = [];
@@ -73,6 +94,23 @@ class SiteTrackerController extends ModuleInstance {
 		return false;
 	}
 
+	/** Fire the $event for all matching trackers */
+	public function fireEvent(RoutableMessage $msg, SiteUpdate $site, string $event): void {
+		foreach ($this->trackers as $tracker) {
+			if (!$tracker->matches($site, $event)) {
+				continue;
+			}
+			$ignoreEvent = (new Collection($tracker->events))->filter(
+				fn (string $eventPattern): bool => fnmatch($eventPattern, $event, FNM_CASEFOLD)
+			)->isEmpty();
+			if ($ignoreEvent) {
+				continue;
+			}
+			$msg->prependPath(Source::fromChannel($tracker->getChannelName()));
+			$this->msgHub->handle($msg);
+		}
+	}
+
 	#[NCA\Setup]
 	public function setup(): void {
 		$handlerFile = \Safe\glob(__DIR__ . "/Handlers/*.php");
@@ -89,6 +127,7 @@ class SiteTrackerController extends ModuleInstance {
 				$this->registerHandler($fullClass, ...$handler->names);
 			}
 		}
+
 		$this->trackers = $this->db->table(self::DB_TRACKER)
 			->asObj(TrackerEntry::class)
 			->reduce(
@@ -100,6 +139,7 @@ class SiteTrackerController extends ModuleInstance {
 					}
 					$entry->handlers = $parsed->handlers;
 					$result[$entry->id] = $entry;
+					$this->msgHub->registerMessageEmitter($entry);
 					return $result;
 				},
 				[]
@@ -134,9 +174,38 @@ class SiteTrackerController extends ModuleInstance {
 		$entry->created_by = $context->char->name;
 		$entry->created_on = time();
 		$entry->id = $this->db->insert(self::DB_TRACKER, $entry);
+		$this->msgHub->registerMessageEmitter($entry);
 		$this->trackers [$entry->id] = $entry;
 		$numMatches = $this->countMatches($entry);
-		$context->reply("Tracker installed successfully, matching {$numMatches} sites.");
+		$channel = $entry->getChannelName();
+		$details = "";
+		if (!$this->msgHub->hasRouteFor($channel)) {
+			$privCmd = "<symbol>route add {$channel} -> aopriv";
+			$orgCmd = "<symbol>route add {$channel} -> aoorg";
+			$privLink = $this->text->makeChatcmd("do it", "/tell <myname> {$privCmd}");
+			$orgLink = $this->text->makeChatcmd("do it", "/tell <myname> {$orgCmd}");
+
+			$blob = "To be able to see the events that your tracker generates,\n".
+				"you need to create a route from <highlight>{$channel}<end> to where you'd\n".
+				"like to see the notifications:\n\n".
+				"<tab><highlight>{$privCmd}<end> [{$privLink}]\n".
+				"<tab><i>To display them in the bot's private channel</i>\n\n";
+			if (isset($this->config->orgId)) {
+				$blob .=
+					"<tab><highlight>{$orgCmd}<end> [{$orgLink}]\n".
+					"<tab><i>To display them in the guild channel</i>\n\n";
+			}
+			$blob .=
+				"<tab><highlight><symbol>route add {$channel} -> discordpriv(foo)<end>\n".
+				"<tab><i>To display them in the Discord-channel 'foo'.";
+			$details = " You need to add a route in order to see the events ".
+				"this tracker generates [" . ((array)$this->text->makeBlob(
+					"see how",
+					$blob,
+					"How to configure routing for a tower tracker"
+				))[0] . "]";
+		}
+		$context->reply("Tracker #{$entry->id} installed successfully, matching {$numMatches} sites.{$details}");
 	}
 
 	/** Delete a site trackers */
@@ -146,12 +215,20 @@ class SiteTrackerController extends ModuleInstance {
 		#[NCA\Str("track", "tracker")] string $action,
 		PRemove $subAction,
 		int $id,
-	): void {
-		if (!isset($this->trackers[$id])) {
+	): Generator {
+		$tracker = $this->trackers[$id] ?? null;
+		if (!isset($tracker)) {
 			$context->reply("No tracker <highlight>#{$id}<end> found.");
 			return;
 		}
 		$this->db->table(self::DB_TRACKER)->delete($id);
+		$this->msgHub->unregisterMessageEmitter($tracker->getChannelName());
+		$routes = $this->msgHub->getRoutes();
+		foreach ($routes as $route) {
+			if ($route->getSource() === $tracker->getChannelName()) {
+				yield from $this->msgHubCtrl->routeDel($context, $subAction, $route->getID());
+			}
+		}
 		unset($this->trackers[$id]);
 		$context->reply("Tracker <highlight>#{$id}<end> successfully removed.");
 	}
@@ -262,10 +339,8 @@ class SiteTrackerController extends ModuleInstance {
 		#[NCA\Str("event", "events")] string $subAction,
 	): void {
 		$blocks = [];
-		foreach ($this->msgHub->getEmitters() as $channel => $_) {
-			if (preg_match("/^site-tracker\((.+?)\)$/", $channel, $matches)) {
-				$blocks []= "<tab>{$matches[1]}";
-			}
+		foreach (self::EVENTS as $event) {
+			$blocks []= "<tab>{$event}";
 		}
 		$blob = "If you're setting up a site tracker, you can limit the\n".
 			"type of events you want to receive for the matching sites.\n".
@@ -294,13 +369,24 @@ class SiteTrackerController extends ModuleInstance {
 			"delete",
 			"/tell <myname> <symbol>nw track rm {$tracker->id}"
 		);
-		return "<header2>{$expression}<end>\n".
+		$block = "<header2>{$expression}<end>\n".
 			"<tab>ID: <highlight>{$tracker->id}<end> [{$deleteLink}]\n".
 			"<tab>Created: <highlight>" . $this->util->date($tracker->created_on) . "<end> ".
 			"by <highlight>{$tracker->created_by}<end>\n".
 			"<tab>Events: <highlight>" . join("<end>, <highlight>", $tracker->events) . "<end>\n".
 			"<tab>Matches: <highlight>" . $this->countMatches($tracker) . "<end> sites [".
 			$showSitesLink . "]";
+		if (!$this->msgHub->hasRouteFor($tracker->getChannelName())) {
+			$block .= "\n<tab><red>No message route for this tracker<end>";
+		} else {
+			$receivers = $this->msgHub->getReceiversFor($tracker->getChannelName());
+			if (count($receivers) > 0) {
+				$block .= "\n<tab>Routed to: " . $this->text->enumerate(
+					...$this->text->arraySprintf("<highlight>%s<end>", ...$receivers)
+				);
+			}
+		}
+		return $block;
 	}
 
 	private function countMatches(TrackerEntry $entry): int {
@@ -317,9 +403,12 @@ class SiteTrackerController extends ModuleInstance {
 		if (empty($config->events)) {
 			$config->events = ["*"];
 		}
-		foreach ($config->events as $event) {
-			if ($this->msgHub->getEmitter("site-tracker({$event})") === null) {
-				throw new UserException("There is no event '<highlight>{$event}<end>'.");
+		foreach ($config->events as $eventPattern) {
+			$unknownEvent = (new Collection(self::EVENTS))->filter(
+				fn (string $event): bool => fnmatch($eventPattern, $event, FNM_CASEFOLD)
+			)->isEmpty();
+			if ($unknownEvent) {
+				throw new UserException("There is no event '<highlight>{$eventPattern}<end>'.");
 			}
 		}
 		$entry->events = $config->events;

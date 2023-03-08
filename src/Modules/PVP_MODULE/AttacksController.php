@@ -12,8 +12,6 @@ use Nadybot\Modules\PVP_MODULE\Event\TowerAttackInfo;
 
 #[
 	NCA\Instance,
-	NCA\EmitsMessages("site-tracker", "tower-attack"),
-	NCA\EmitsMessages("site-tracker", "tower-outcome"),
 	NCA\EmitsMessages("pvp", "tower-attack"),
 	NCA\EmitsMessages("pvp", "tower-attack-own"),
 	NCA\EmitsMessages("pvp", "tower-outcome"),
@@ -34,7 +32,7 @@ class AttacksController extends ModuleInstance {
 	public const CMD_OUTCOMES = "nw victory";
 
 	private const ATT_FMT_NORMAL = "{?att-org:{c-att-org}}{!att-org:{c-att-name}} attacked {c-def-org} ".
-		"{?att-org:- {c-att-name} }{?c-att-level:({c-att-level}/{c-att-ai-level}, {att-gender} {att-breed} {c-att-profession}{?att-org-rank:, {att-org-rank}})}";
+		"{?att-org:- {c-att-name} }{?att-level:({c-att-level}/{c-att-ai-level},{?att-gender: {att-gender} {att-breed}} {c-att-profession}{?att-org-rank:, {att-org-rank}})}";
 	private const VICTORY_FMT_NORMAL = "{c-winning-org} won against {c-losing-org} in <highlight>{pf-short} {site-id}<end>";
 	private const ABANDONED_FMT_NORMAL = "{c-losing-org} abandoned <highlight>{pf-short} {site-id}<end>";
 
@@ -185,44 +183,16 @@ class AttacksController extends ModuleInstance {
 			$details,
 			"Attack on {$shortSite}",
 		);
-		$defFaction = strtolower($event->attack->defender->faction);
-		$tokens = $event->attacker?->getTokens("att-") ?? [
-			"att-name" => $event->attack->attacker->name,
-			"c-att-name" => "<highlight>{$event->attack->attacker->name}<end>",
-			"att-faction" => $event->attack->attacker->org?->faction,
-			"c-att-faction" => isset($event->attack->attacker->org)
-				? "<" . strtolower($event->attack->attacker->org->faction) . ">".
-					$event->attack->attacker->org->faction . "<end>"
-				: null,
-			"att-org" => $event->attack->attacker->org?->name,
-			"c-att-org" => isset($event->attack->attacker->org)
-				? "<" . strtolower($event->attack->attacker->org->faction) . ">".
-					$event->attack->attacker->org->name . "<end>"
-				: null,
-		];
 		$tokens = array_merge(
-			$tokens,
+			$event->attack->getTokens(),
 			[
-				"def-org" => $event->attack->defender->name,
-				"c-def-org" => "<{$defFaction}>{$event->attack->defender->name}<end>",
-				"def-faction" => ucfirst($defFaction),
-				"c-def-faction" => "<{$defFaction}>" . ucfirst($defFaction) . "<end>",
 				"pf-short" => $pf->short_name,
 				"pf-long" => $pf->long_name,
-				"att-coord-x" => $event->attack->location->x,
-				"att-coord-y" => $event->attack->location->y,
 				"site-ql" => $event->site->ql,
+				"site-id" => $event->site->site_id,
 				"site-num" => $event->site->site_id,
 			]
 		);
-		if (!isset($event->attack->attacker->org)) {
-			if (isset($event->attacker->faction, $tokens['att-name'])) {
-				$tokens["c-att-name"] = "<" . strtolower($event->attacker->faction) . ">".
-					$tokens['att-name'] . "<end>";
-			} elseif (isset($tokens['att-name'])) {
-				$tokens["c-att-name"] = "<unknown>{$tokens['att-name']}<end>";
-			}
-		}
 		$msg = $this->text->renderPlaceholders(
 			$this->towerAttackFormat,
 			$tokens
@@ -238,11 +208,7 @@ class AttacksController extends ModuleInstance {
 			$rMsg = new RoutableMessage($page);
 			$rMsg->prependPath(new Source('pvp', "tower-attack"));
 			$this->msgHub->handle($rMsg);
-			if ($this->siteTracker->isTracked($site, 'tower-attack')) {
-				$rMsg = new RoutableMessage($page);
-				$rMsg->prependPath(new Source('site-tracker', "tower-attack"));
-				$this->msgHub->handle($rMsg);
-			}
+			$this->siteTracker->fireEvent(new RoutableMessage($page), $site, 'tower-attack');
 		}
 	}
 
@@ -300,11 +266,7 @@ class AttacksController extends ModuleInstance {
 			$rMsg = new RoutableMessage($page);
 			$rMsg->prependPath(new Source("pvp", "tower-outcome"));
 			$this->msgHub->handle($rMsg);
-			if ($this->siteTracker->isTracked($site, 'tower-outcome')) {
-				$rMsg = new RoutableMessage($page);
-				$rMsg->prependPath(new Source("site-tracker", "tower-outcome"));
-				$this->msgHub->handle($rMsg);
-			}
+			$this->siteTracker->fireEvent(new RoutableMessage($page), $site, 'tower-outcome');
 		}
 	}
 

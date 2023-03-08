@@ -9,4 +9,16 @@ class AttackerOrg {
 		public ?int $id,
 	) {
 	}
+
+	/** @return array<string,string|int|null> */
+	public function getTokens(): array {
+		return [
+			"att-org-name" => $this->name,
+			"c-att-org-name" => "<" . strtolower($this->faction) . ">{$this->name}<end>",
+			"att-org" => $this->name,
+			"c-att-org" => "<" . strtolower($this->faction) . ">{$this->name}<end>",
+			"att-org-faction" => $this->faction,
+			"c-att-org-faction" => "<" . strtolower($this->faction) . ">{$this->faction}<end>",
+		];
+	}
 }

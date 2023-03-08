@@ -2,11 +2,11 @@
 
 namespace Nadybot\Modules\PVP_MODULE;
 
-use Nadybot\Core\{Attributes as NCA, DBRow};
+use Nadybot\Core\{Attributes as NCA, DBRow, MessageEmitter, MessageHub};
 use Nadybot\Modules\PVP_MODULE\FeedMessage\SiteUpdate;
 use Nadybot\Modules\PVP_MODULE\Handlers\Base;
 
-class TrackerEntry extends DBRow {
+class TrackerEntry extends DBRow implements MessageEmitter {
 	/** The id of the tracker entry */
 	public int $id;
 
@@ -49,5 +49,9 @@ class TrackerEntry extends DBRow {
 	/** @param string[] $events */
 	public static function encodeEvents(array $events): string {
 		return implode(",", $events);
+	}
+
+	public function getChannelName(): string {
+		return "site-tracker({$this->id})";
 	}
 }
