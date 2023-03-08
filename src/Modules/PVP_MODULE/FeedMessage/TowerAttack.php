@@ -2,17 +2,25 @@
 
 namespace Nadybot\Modules\PVP_MODULE\FeedMessage;
 
+use Nadybot\Core\DBSchema\Player;
+
 class TowerAttack {
 	public function __construct(
 		public int $playfield_id,
 		public int $site_id,
-		public int $timestamp,
+		public Attacker $attacker,
 		public Coordinates $location,
-		public string $attacker_name,
-		public ?string $attacker_faction,
-		public ?string $attacker_org,
-		public string $defending_faction,
-		public string $defending_org,
+		public DefenderOrg $defender,
+		public int $timestamp,
 	) {
+	}
+
+	public function addLookups(?Player $player): void {
+		$this->attacker->ai_level ??= $player?->ai_level;
+		$this->attacker->breed ??= $player?->breed;
+		$this->attacker->gender ??= $player?->gender;
+		$this->attacker->level ??= $player?->level;
+		$this->attacker->org_rank ??= $player?->guild_rank;
+		$this->attacker->profession ??= $player?->profession;
 	}
 }

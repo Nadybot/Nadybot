@@ -18,6 +18,7 @@ class CreateAttacksTable implements SchemaMigration {
 			$table->string("att_name", 25);
 			$table->string("att_faction", 7)->nullable(true);
 			$table->string("att_org", 40)->nullable(true);
+			$table->unsignedInteger("att_org_id")->nullable(true);
 			$table->unsignedSmallInteger("att_level")->nullable(true);
 			$table->unsignedSmallInteger("att_ai_level")->nullable(true);
 			$table->string("att_profession", 15)->nullable(true);

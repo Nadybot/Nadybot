@@ -81,9 +81,9 @@ use Safe\Exceptions\JsonException;
 	),
 ]
 class NotumWarsController extends ModuleInstance {
-	public const TOWER_API = "http://10.200.200.2:8080";
-	public const ATTACKS_API = "http://10.200.200.2:5151/attacks";
-	public const OUTCOMES_API = "http://10.200.200.2:5151/outcomes";
+	public const TOWER_API = "http://us.nadybot.org:8080";
+	public const ATTACKS_API = "http://us.nadybot.org:5151/attacks";
+	public const OUTCOMES_API = "http://us.nadybot.org:5151/outcomes";
 	public const DB_ATTACKS = "nw_attacks_<myname>";
 	public const DB_OUTCOMES = "nw_outcomes_<myname>";
 
@@ -169,6 +169,10 @@ class NotumWarsController extends ModuleInstance {
 	#[NCA\Setting\Boolean]
 	public bool $autoPlantTimer = false;
 
+	/** Automatically fetch breed and gender of attackers from PORK */
+	#[NCA\Setting\Boolean]
+	public bool $towerAttackExtraInfo = false;
+
 	#[NCA\Event("connect", "Load all towers from the API")]
 	public function initTowersFromApi(): Generator {
 		$client = $this->builder->build();
@@ -227,19 +231,25 @@ class NotumWarsController extends ModuleInstance {
 			$json = json_decode($body, true);
 			$mapper = new ObjectMapperUsingReflection();
 
-			$attacks = $mapper->hydrateObjects(APITowerAttack::class, $json);
+			$attacks = $mapper->hydrateObjects(FeedMessage\TowerAttack::class, $json);
 
 			/** @psalm-suppress InternalMethod */
 			foreach ($attacks as $attack) {
-				if (isset($attack->attacker_character_id) && !isset($attack->attacker_level)) {
+				$breedRequired = !isset($attack->attacker->breed)
+					&& $this->towerAttackExtraInfo;
+				$infoMissing = !isset($attack->attacker->level)
+					|| !isset($attack->attacker->faction);
+				if (
+					isset($attack->attacker->character_id)
+					&& ($breedRequired || $infoMissing)
+				) {
 					$player = yield $this->playerManager->lookupAsync2(
-						$attack->attacker_name,
+						$attack->attacker->name,
 						$this->config->dimension,
 					);
-					$uid = yield $this->chatBot->getUid2($attack->attacker_name);
-					$attack->addLookups($player, $uid);
+					$attack->addLookups($player);
 				}
-				$attInfo = DBTowerAttack::fromAPITowerAttack($attack);
+				$attInfo = DBTowerAttack::fromTowerAttack($attack);
 				$this->db->insert(self::DB_ATTACKS, $attInfo);
 			}
 
@@ -384,16 +394,23 @@ class NotumWarsController extends ModuleInstance {
 
 	#[NCA\Event("tower-attack", "Update tower attacks from the API")]
 	public function updateTowerAttackInfoFromFeed(Event\TowerAttack $event): Generator {
-		$this->registerAttack($event->attack);
-		$player = yield $this->playerManager->lookupAsync2(
-			$event->attack->attacker_name,
-			$this->config->dimension,
-		);
-		$uid = yield $this->chatBot->getUid2($event->attack->attacker_name);
+		$attack = $event->attack;
+		$attacker = $attack->attacker;
+		$this->registerAttack($attack);
+		$player = null;
+		$breedRequired = !isset($attacker->breed) && $this->towerAttackExtraInfo;
+		$infoMissing = !isset($attacker->level) || !isset($attacker->faction);
+		if (isset($attacker->character_id) && ($breedRequired || $infoMissing)) {
+			$player = yield $this->playerManager->lookupAsync2(
+				$attack->attacker->name,
+				$this->config->dimension,
+			);
+			$event->attack->addLookups($player);
+		}
 		$site = $this->state[$event->attack->playfield_id][$event->attack->site_id]??null;
-		$attInfo = DBTowerAttack::fromTowerAttack($event->attack, $player, $uid);
+		$attInfo = DBTowerAttack::fromTowerAttack($event->attack);
 		$this->db->insert(self::DB_ATTACKS, $attInfo);
-		$infoEvent = new Event\TowerAttackInfo($event->attack, $player, $site);
+		$infoEvent = new Event\TowerAttackInfo($event->attack, $site);
 		$this->eventManager->fireEvent($infoEvent);
 	}
 
@@ -1144,10 +1161,15 @@ class NotumWarsController extends ModuleInstance {
 			if ($attack->timestamp < $site->plant_time) {
 				continue;
 			}
-			if (
-				$attack->attacker_org !== $site->org_name
-				|| $attack->attacker_faction !== $site->org_faction
-			) {
+			if (!isset($attack->attacker->org)) {
+				continue;
+			}
+			$orgDiffers = $attack->attacker->org->name !== $site->org_name;
+			if (isset($attack->attacker->org->id, $site->org_id)) {
+				$orgDiffers = $attack->attacker->org->id !== $site->org_id;
+			}
+			$factionDiffers = $attack->attacker->org->faction !== $site->org_faction;
+			if ($orgDiffers || $factionDiffers) {
 				continue;
 			}
 			if (!isset($lastAttack) || $lastAttack->timestamp < $attack->timestamp) {

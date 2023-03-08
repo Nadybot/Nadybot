@@ -185,26 +185,26 @@ class AttacksController extends ModuleInstance {
 			$details,
 			"Attack on {$shortSite}",
 		);
-		$defFaction = strtolower($event->attack->defending_faction);
+		$defFaction = strtolower($event->attack->defender->faction);
 		$tokens = $event->attacker?->getTokens("att-") ?? [
-			"att-name" => $event->attack->attacker_name,
-			"c-att-name" => "<highlight>{$event->attack->attacker_name}<end>",
-			"att-faction" => $event->attack->attacker_faction,
-			"c-att-faction" => isset($event->attack->attacker_faction)
-				? "<" . strtolower($event->attack->attacker_faction) . ">".
-					$event->attack->attacker_faction . "<end>"
+			"att-name" => $event->attack->attacker->name,
+			"c-att-name" => "<highlight>{$event->attack->attacker->name}<end>",
+			"att-faction" => $event->attack->attacker->org?->faction,
+			"c-att-faction" => isset($event->attack->attacker->org)
+				? "<" . strtolower($event->attack->attacker->org->faction) . ">".
+					$event->attack->attacker->org->faction . "<end>"
 				: null,
-			"att-org" => $event->attack->attacker_org,
-			"c-att-org" => isset($event->attack->attacker_org)
-				? "<" . strtolower($event->attack->attacker_faction??"unknown") . ">".
-					$event->attack->attacker_org . "<end>"
+			"att-org" => $event->attack->attacker->org?->name,
+			"c-att-org" => isset($event->attack->attacker->org)
+				? "<" . strtolower($event->attack->attacker->org->faction) . ">".
+					$event->attack->attacker->org->name . "<end>"
 				: null,
 		];
 		$tokens = array_merge(
 			$tokens,
 			[
-				"def-org" => $event->attack->defending_org,
-				"c-def-org" => "<{$defFaction}>{$event->attack->defending_org}<end>",
+				"def-org" => $event->attack->defender->name,
+				"c-def-org" => "<{$defFaction}>{$event->attack->defender->name}<end>",
 				"def-faction" => ucfirst($defFaction),
 				"c-def-faction" => "<{$defFaction}>" . ucfirst($defFaction) . "<end>",
 				"pf-short" => $pf->short_name,
@@ -215,8 +215,8 @@ class AttacksController extends ModuleInstance {
 				"site-num" => $event->site->site_id,
 			]
 		);
-		if (!isset($event->attack->attacker_org)) {
-			if (isset($event->attacker, $tokens['att-name'])) {
+		if (!isset($event->attack->attacker->org)) {
+			if (isset($event->attacker->faction, $tokens['att-name'])) {
 				$tokens["c-att-name"] = "<" . strtolower($event->attacker->faction) . ">".
 					$tokens['att-name'] . "<end>";
 			} elseif (isset($tokens['att-name'])) {
@@ -481,58 +481,45 @@ class AttacksController extends ModuleInstance {
 
 	private function renderAttackInfo(TowerAttackInfo $info, Playfield $pf): string {
 		$attack = $info->attack;
-		$whois = $info->attacker;
+		$attacker = $attack->attacker;
 		$site = $info->site;
 		assert(isset($site));
 		$blob = "<header2>Attacker<end>\n";
-		$blob .= "<tab>Name: <highlight>";
-		if (!empty($whois->firstname)) {
-			$blob .= $whois->firstname . " ";
+		$blob .= "<tab>Name: <highlight>{$attacker->name}<end>\n";
+		if (isset($attacker->breed) && strlen($attacker->breed)) {
+			$blob .= "<tab>Breed: <highlight>{$attacker->breed}<end>\n";
 		}
-		if (!empty($whois->firstname) || !empty($whois->lastname)) {
-			$blob .= '"' . $attack->attacker_name . '"';
-		} else {
-			$blob .= $attack->attacker_name;
-		}
-		if (!empty($whois->lastname)) {
-			$blob .= " " . $whois->lastname;
-		}
-		$blob .= "<end>\n";
-
-		if (isset($whois->breed) && strlen($whois->breed)) {
-			$blob .= "<tab>Breed: <highlight>{$whois->breed}<end>\n";
-		}
-		if (isset($whois->gender) && strlen($whois->gender)) {
-			$blob .= "<tab>Gender: <highlight>{$whois->gender}<end>\n";
+		if (isset($attacker->gender) && strlen($attacker->gender)) {
+			$blob .= "<tab>Gender: <highlight>{$attacker->gender}<end>\n";
 		}
 
-		if (isset($whois->profession) && strlen($whois->profession)) {
-			$blob .= "<tab>Profession: <highlight>{$whois->profession}<end>\n";
+		if (isset($attacker->profession) && strlen($attacker->profession)) {
+			$blob .= "<tab>Profession: <highlight>{$attacker->profession}<end>\n";
 		}
-		if (isset($whois->level)) {
-			$level_info = $this->lvlCtrl->getLevelInfo($whois->level);
+		if (isset($attacker->level, $attacker->ai_level)) {
+			$level_info = $this->lvlCtrl->getLevelInfo($attacker->level);
 			if (isset($level_info)) {
-				$blob .= "<tab>Level: <highlight>{$whois->level}/<green>{$whois->ai_level}<end> ({$level_info->pvpMin}-{$level_info->pvpMax})<end>\n";
+				$blob .= "<tab>Level: <highlight>{$attacker->level}/<green>{$attacker->ai_level}<end> ({$level_info->pvpMin}-{$level_info->pvpMax})<end>\n";
 			}
 		}
 
-		$attFaction = $attack->attacker_faction ?? $whois?->faction ?? null;
+		$attFaction = $attacker->faction ?? $attacker->org?->faction;
 		if (isset($attFaction)) {
 			$blob .= "<tab>Alignment: <" . strtolower($attFaction) . ">{$attFaction}<end>\n";
 		}
 
-		if (isset($attack->attacker_org)) {
-			$blob .= "<tab>Organization: <highlight>{$attack->attacker_org}<end>\n";
-			if (isset($whois) && $attack->attacker_org === $whois->guild && isset($whois->guild_rank)) {
-				$blob .= "<tab>Organization Rank: <highlight>{$whois->guild_rank}<end>\n";
+		if (isset($attacker->org)) {
+			$blob .= "<tab>Organization: <highlight>{$attacker->org->name}<end>\n";
+			if (isset($attacker->org_rank)) {
+				$blob .= "<tab>Organization Rank: <highlight>{$attacker->org_rank}<end>\n";
 			}
 		}
 
 		$blob .= "\n";
 
 		$blob .= "<header2>Defender<end>\n";
-		$blob .= "<tab>Organization: <highlight>{$attack->defending_org}<end>\n";
-		$blob .= "<tab>Alignment: <" . strtolower($attack->defending_faction) . ">{$attack->defending_faction}<end>\n\n";
+		$blob .= "<tab>Organization: <highlight>{$attack->defender->name}<end>\n";
+		$blob .= "<tab>Alignment: <" . strtolower($attack->defender->faction) . ">{$attack->defender->faction}<end>\n\n";
 
 		$baseLink = $this->text->makeChatcmd("{$pf->short_name} {$site->site_id}", "/tell <myname> nw lc {$pf->short_name} {$site->site_id}");
 		$attackWaypoint = $this->text->makeChatcmd(
