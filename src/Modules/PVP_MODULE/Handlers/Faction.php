@@ -19,7 +19,7 @@ class Faction extends Base {
 			return false;
 		}
 		if (substr($this->value, 0, 1) === "!") {
-			return $this->value !== strtolower($site->org_faction);
+			return substr($this->value, 1) !== strtolower($site->org_faction);
 		}
 		return $this->value === strtolower($site->org_faction);
 	}

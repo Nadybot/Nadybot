@@ -543,10 +543,10 @@ class NotumWarsController extends ModuleInstance {
 			$blob .= "<tab>Planted: <highlight>No<end>\n";
 			// If the site was destroyed less than 1 hour ago, show by who
 			if (isset($lastOutcome) && $lastOutcome->timestamp + 3600 > time()) {
-				if (isset($lastOutcome->attacker_org, $lastOutcome->attacker_faction)) {
+				if (isset($lastOutcome->attacking_org, $lastOutcome->attacker_faction)) {
 					$blob .= "<tab>Destroyed by: ".
 						"<" . strtolower($lastOutcome->attacker_faction) . ">".
-						$lastOutcome->attacker_org . "<end>";
+						$lastOutcome->attacking_org . "<end>";
 				} else {
 					$blob .= "<tab>Abandoned by: ".
 						"<" . strtolower($lastOutcome->losing_faction) . ">".
