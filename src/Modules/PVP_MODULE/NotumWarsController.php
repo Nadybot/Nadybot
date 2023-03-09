@@ -246,6 +246,7 @@ class NotumWarsController extends ModuleInstance {
 				$this->db->insert(self::DB_ATTACKS, $attInfo);
 			}
 
+			$this->attacks = [];
 			// All attacks from up to 6h ago can influence the current hot-duration
 			$this->db->table(self::DB_ATTACKS)
 				->where("timestamp", ">=", time() - 6 * 3600)

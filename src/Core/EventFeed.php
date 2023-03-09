@@ -25,7 +25,9 @@ use Throwable;
  */
 #[
 	NCA\Instance,
-	NCA\ProvidesEvent("event-feed(*)")
+	NCA\ProvidesEvent("event-feed(*)"),
+	NCA\ProvidesEvent("event-feed-connect"),
+	NCA\ProvidesEvent("event-feed-reconnect"),
 ]
 class EventFeed {
 	public const URI = "ws://us.nadybot.org:3333";
@@ -48,6 +50,8 @@ class EventFeed {
 
 	/** @var array<string,EventFeedHandler[]> */
 	public array $roomHandlers = [];
+
+	private bool $isReconnect = false;
 
 	#[NCA\Setup]
 	public function setup(): void {
@@ -145,6 +149,8 @@ class EventFeed {
 				if (!isset($connection)) {
 					return false;
 				}
+				$this->announceConnect();
+				$this->isReconnect = true;
 				while ($package = yield $connection->receive()) {
 					$this->handlePackage($connection, $package);
 				}
@@ -166,6 +172,16 @@ class EventFeed {
 			}
 			return true;
 		});
+	}
+
+	private function announceConnect(): void {
+		$event = new Event();
+		$event->type = "event-feed-" . ($this->isReconnect ? "reconnect" : "connect");
+		try {
+			$this->eventManager->fireEvent($event);
+		} catch (Throwable) {
+			// ignore
+		}
 	}
 
 	private function handlePackage(Highway\Connection $connection, Highway\Package $package): void {

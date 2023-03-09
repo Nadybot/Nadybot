@@ -4,7 +4,9 @@ namespace Nadybot\Modules\PVP_MODULE;
 
 use function Amp\call;
 use Amp\Promise;
+use Closure;
 use EventSauce\ObjectHydrator\{ObjectMapperUsingReflection, UnableToHydrateObject};
+use Generator;
 use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{ConfigFile, Event as CoreEvent, EventFeedHandler, EventManager, LoggerWrapper, ModuleInstance, SyncEvent};
 use Nadybot\Modules\PVP_MODULE\{Event, FeedMessage};
@@ -24,8 +26,31 @@ class TowerFeedHandler extends ModuleInstance implements EventFeedHandler {
 	#[NCA\Inject]
 	public EventManager $eventManager;
 
+	#[NCA\Inject]
+	public NotumWarsController $nwCtrl;
+
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
+
+	#[NCA\Setup]
+	public function setup(): void {
+		$this->eventManager->subscribe(
+			"event-feed-reconnect",
+			Closure::fromCallable([$this, "handleReconnect"])
+		);
+	}
+
+	/** @return Promise<void> */
+	public function handleReconnect(): Promise {
+		return call(function (): Generator {
+			$this->logger->notice("Reloading tower data");
+			yield from $this->nwCtrl->initTowersFromApi();
+			$this->logger->notice("Reloading attacks");
+			yield from $this->nwCtrl->initAttacksFromApi();
+			$this->logger->notice("Reloading outcomes");
+			yield from $this->nwCtrl->initOutcomesFromApi();
+		});
+	}
 
 	/**
 	 * @param array<string,mixed> $data
