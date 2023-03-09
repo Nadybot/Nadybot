@@ -85,7 +85,7 @@ class LandController extends ModuleInstance {
 		);
 		$msg = $this->text->makeBlob(
 			"All bases in {$playfield->long_name}",
-			join("\n", $blocks)
+			join("\n\n", $blocks)
 		);
 		$context->reply($msg);
 	}

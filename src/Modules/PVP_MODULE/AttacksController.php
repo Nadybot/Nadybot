@@ -28,7 +28,7 @@ use Nadybot\Modules\PVP_MODULE\Event\TowerAttackInfo;
 	),
 ]
 class AttacksController extends ModuleInstance {
-	public const CMD_ATTACKS = "nw show attacks";
+	public const CMD_ATTACKS = "nw attacks";
 	public const CMD_OUTCOMES = "nw victory";
 
 	private const ATT_FMT_NORMAL = "{?att-org:{c-att-org}}{!att-org:{c-att-name}} attacked {c-def-org} ".
@@ -346,10 +346,10 @@ class AttacksController extends ModuleInstance {
 	/**
 	 * Show the last tower attack messages involving a given character
 	 *
-	 * You can use '%' as a wildcard in character names
+	 * You can use '*' as a wildcard in character names
 	 */
 	#[NCA\HandlesCommand(self::CMD_ATTACKS)]
-	#[NCA\Help\Example("<symbol>nw attacks char nady%")]
+	#[NCA\Help\Example("<symbol>nw attacks char nady*")]
 	#[NCA\Help\Example("<symbol>nw attacks char nadyita")]
 	public function nwAttacksForCharCommand(
 		CmdContext $context,
@@ -359,7 +359,7 @@ class AttacksController extends ModuleInstance {
 		?int $page,
 	): void {
 		$query = $this->db->table($this->nwCtrl::DB_ATTACKS)
-			->whereIlike("att_name", $search());
+			->whereIlike("att_name", str_replace('*', '%', $search()));
 		$context->reply(
 			$this->nwAttacksCmd(
 				$query,

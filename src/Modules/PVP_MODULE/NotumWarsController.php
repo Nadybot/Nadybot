@@ -166,6 +166,18 @@ class NotumWarsController extends ModuleInstance {
 	#[NCA\Setting\Boolean]
 	public bool $towerAttackExtraInfo = false;
 
+	/** Limit "Most Recent Attacks" to this duration */
+	#[NCA\Setting\TimeOrOff(options: [
+		'off', '1d', '3d', '7d', '14d', '31d',
+	])]
+	public int $mostRecentAttacksAge = 7 * 24 * 3600;
+
+	/** Limit "Most Recent Victories" to this duration */
+	#[NCA\Setting\TimeOrOff(options: [
+		'off', '1d', '3d', '7d', '14d', '31d',
+	])]
+	public int $mostRecentOutcomesAge = 14 * 24 * 3600;
+
 	#[NCA\Event("connect", "Load all towers from the API")]
 	public function initTowersFromApi(): Generator {
 		$client = $this->builder->build();
@@ -488,14 +500,6 @@ class NotumWarsController extends ModuleInstance {
 				"/waypoint {$site->ct_pos->x} {$site->ct_pos->y} {$pf->id}"
 			);
 		}
-		$attacksLink = $this->text->makeChatcmd(
-			"Attacks",
-			"/tell <myname> nw attacks {$pf->short_name} {$site->site_id}"
-		);
-		$outcomesLink = $this->text->makeChatcmd(
-			"Victories",
-			"/tell <myname> nw victory {$pf->short_name} {$site->site_id}"
-		);
 
 		$blob = "<header2>{$pf->short_name} {$site->site_id} ({$site->name})<end>\n";
 		if ($site->enabled === false) {
@@ -585,7 +589,28 @@ class NotumWarsController extends ModuleInstance {
 		if (isset($ctWaypointLink)) {
 			$blob .= " [{$ctWaypointLink}]";
 		}
-		$blob .= "\n<tab>Stats: [{$attacksLink}] [{$outcomesLink}]\n";
+		$links = [];
+		$numRecentAttacks = $this->countRecentAttacks($site);
+		if ($numRecentAttacks > 0) {
+			$links []= $this->text->makeChatcmd(
+				"{$numRecentAttacks} ".
+				(($this->mostRecentAttacksAge > 0) ? "recent " : "").
+				$this->text->pluralize("attack", $numRecentAttacks),
+				"/tell <myname> nw attacks {$pf->short_name} {$site->site_id}"
+			);
+		}
+		$numRecentOutcomes = $this->countRecentOutcomes($site);
+		if ($numRecentOutcomes > 0) {
+			$links []= $this->text->makeChatcmd(
+				"{$numRecentOutcomes} ".
+				(($this->mostRecentOutcomesAge > 0) ? "recent " : "").
+				$this->text->pluralize("victory", $numRecentOutcomes),
+				"/tell <myname> nw victory {$pf->short_name} {$site->site_id}"
+			);
+		}
+		if (count($links) > 0) {
+			$blob .= "\n<tab>Stats: [" . join("] [", $links) . "]";
+		}
 
 		return $blob;
 	}
@@ -658,7 +683,7 @@ class NotumWarsController extends ModuleInstance {
 		}
 		$msg = $this->text->makeBlob(
 			"Unplanted sites (" . count($unplantedSites) . ")",
-			join("\n", $unplantedSites)
+			join("\n\n", $unplantedSites)
 		);
 		$context->reply($msg);
 	}
@@ -881,6 +906,30 @@ class NotumWarsController extends ModuleInstance {
 		return $blob;
 	}
 
+	/** Count how many attacks on a field occurred in the recent past */
+	private function countRecentAttacks(FeedMessage\SiteUpdate $site): int {
+		$query = $this->db->table(self::DB_ATTACKS)
+			->where("playfield_id", $site->playfield_id)
+			->where("site_id", $site->site_id);
+		if ($this->mostRecentAttacksAge > 0) {
+			$query =$query
+				->where("timestamp", ">", time() - $this->mostRecentAttacksAge);
+		}
+		return $query->count();
+	}
+
+	/** Count how many victories/abandonments on a field occurred in the recent past */
+	private function countRecentOutcomes(FeedMessage\SiteUpdate $site): int {
+		$query = $this->db->table(self::DB_OUTCOMES)
+			->where("playfield_id", $site->playfield_id)
+			->where("site_id", $site->site_id);
+		if ($this->mostRecentOutcomesAge > 0) {
+			$query =$query
+				->where("timestamp", ">", time() - $this->mostRecentOutcomesAge);
+		}
+		return $query->count();
+	}
+
 	/** Handle whatever is necessary when a site gets newly planted */
 	private function handleSitePlanted(FeedMessage\SiteUpdate $site, Playfield $pf): void {
 		// Remove any plant timers for this site
@@ -1068,7 +1117,7 @@ class NotumWarsController extends ModuleInstance {
 					$pf = $this->pfCtrl->getPlayfieldById($site->playfield_id);
 					assert(isset($pf));
 					return $this->renderSite($site, $pf, false);
-				})->join("\n");
+				})->join("\n\n");
 		})->join("\n");
 		return trim($blob);
 	}
