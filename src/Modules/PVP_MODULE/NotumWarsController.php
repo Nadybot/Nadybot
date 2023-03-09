@@ -74,9 +74,9 @@ use Safe\Exceptions\JsonException;
 	),
 ]
 class NotumWarsController extends ModuleInstance {
-	public const TOWER_API = "http://us.nadybot.org:8080";
-	public const ATTACKS_API = "http://us.nadybot.org:5151/attacks";
-	public const OUTCOMES_API = "http://us.nadybot.org:5151/outcomes";
+	public const TOWER_API = "https://towers.aobots.org";
+	public const ATTACKS_API = "https://towers.aobots.org/attacks";
+	public const OUTCOMES_API = "https://towers.aobots.org/outcomes";
 	public const DB_ATTACKS = "nw_attacks_<myname>";
 	public const DB_OUTCOMES = "nw_outcomes_<myname>";
 
@@ -536,17 +536,20 @@ class NotumWarsController extends ModuleInstance {
 				}
 			}
 			$blob .= "<tab>Towers: 1 CT".
-				", " . $site->num_turrets . " turrets".
-				", " . $site->num_conductors . " conductors\n";
+				", {$site->num_turrets} ".
+				$this->text->pluralize("turret", $site->num_turrets).
+				", {$site->num_conductors} ".
+				$this->text->pluralize("conductor", $site->num_conductors).
+				"\n";
 		} else {
 			// If the site is unplanted, show destruction information and links to plant
 			$blob .= "<tab>Planted: <highlight>No<end>\n";
 			// If the site was destroyed less than 1 hour ago, show by who
 			if (isset($lastOutcome) && $lastOutcome->timestamp + 3600 > time()) {
-				if (isset($lastOutcome->attacking_org, $lastOutcome->attacker_faction)) {
+				if (isset($lastOutcome->attacker_org, $lastOutcome->attacker_faction)) {
 					$blob .= "<tab>Destroyed by: ".
 						"<" . strtolower($lastOutcome->attacker_faction) . ">".
-						$lastOutcome->attacking_org . "<end>";
+						$lastOutcome->attacker_org . "<end>";
 				} else {
 					$blob .= "<tab>Abandoned by: ".
 						"<" . strtolower($lastOutcome->losing_faction) . ">".
