@@ -17,6 +17,12 @@ class CreateOutcomesTable implements SchemaMigration {
 			$table->string("attacker_org", 40)->nullable(true);
 			$table->string("losing_faction", 7);
 			$table->string("losing_org", 40)->nullable(true);
+
+			$table->index("playfield_id");
+			$table->index("site_id");
+			$table->index("timestamp");
+			$table->index("attacker_org");
+			$table->index("losing_org");
 		});
 	}
 }

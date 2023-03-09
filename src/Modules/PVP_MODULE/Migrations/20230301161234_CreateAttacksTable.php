@@ -28,6 +28,13 @@ class CreateAttacksTable implements SchemaMigration {
 			$table->unsignedInteger("att_uid")->nullable(true);
 			$table->string("def_faction", 7);
 			$table->string("def_org", 40);
+
+			$table->index("playfield_id");
+			$table->index("site_id");
+			$table->index("timestamp");
+			$table->index("att_org");
+			$table->index("def_org");
+			$table->index("att_name");
 		});
 	}
 }
