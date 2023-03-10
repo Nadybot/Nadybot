@@ -30,7 +30,7 @@ use Throwable;
 	NCA\ProvidesEvent("event-feed-reconnect"),
 ]
 class EventFeed {
-	public const URI = "ws://us.nadybot.org:3333";
+	public const URI = "wss://ws.nadybot.org";
 	public const RECONNECT_DELAY = 5;
 
 	#[NCA\Inject]
