@@ -8,6 +8,7 @@ use EventSauce\ObjectHydrator\{ObjectMapperUsingReflection, UnableToHydrateObjec
 use Exception;
 use Generator;
 use Illuminate\Support\Collection;
+use Nadybot\Core\DBSchema\Player;
 use Nadybot\Core\Modules\PLAYER_LOOKUP\PlayerManager;
 use Nadybot\Core\ParamClass\PTowerSite;
 use Nadybot\Core\Routing\{RoutableMessage, Source};
@@ -815,6 +816,36 @@ class NotumWarsController extends ModuleInstance {
 			$msg = $this->text->makeBlob("Hot{$faction} sites ({$hotSites->count()})", $blob);
 		}
 
+		$context->reply($msg);
+	}
+
+	/** List all your org's tower sites */
+	#[NCA\HandlesCommand("nw sites")]
+	public function listMyOrgsSitesCommand(
+		CmdContext $context,
+		#[NCA\Str("sites")] string $action,
+	): Generator {
+		/** @var ?Player */
+		$player = yield $this->playerManager->lookupAsync2(
+			$context->char->name,
+			$context->char->dimension,
+		);
+		if (!isset($player) || !isset($player->guild_id)) {
+			$context->reply("You are currently not in an org.");
+			return;
+		}
+		assert(isset($player->guild));
+		$matches = $this->getEnabledSites()->whereStrict("org_id", $player->guild_id);
+		$orgColor = strtolower($player->faction);
+		if ($matches->isEmpty()) {
+			$context->reply("<{$orgColor}>{$player->guild}<end> currently don't have any tower fields.");
+			return;
+		}
+		$blob = $this->renderOrgSites(...$matches->toArray());
+		$msg = $this->text->makeBlob(
+			"All tower sites of {$player->guild}",
+			$blob
+		);
 		$context->reply($msg);
 	}
 
