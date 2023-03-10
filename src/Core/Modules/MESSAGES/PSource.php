@@ -5,7 +5,7 @@ namespace Nadybot\Core\Modules\MESSAGES;
 use Nadybot\Core\ParamClass\Base;
 
 class PSource extends Base {
-	protected static string $regExp = "[a-zA-Z*]+(?:\(.*?\))?";
+	protected static string $regExp = "[a-zA-Z-*]+(?:\(.*?\))?";
 	protected string $value;
 
 	public function __construct(string $value) {

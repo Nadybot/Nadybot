@@ -3,7 +3,7 @@
 namespace Nadybot\Core\DBSchema;
 
 use Nadybot\Core\Attributes\JSON;
-use Nadybot\Core\DBRow;
+use Nadybot\Core\{DBRow, Registry, Util};
 
 /**
  * This represents the data the bot stores about a player in the cache and database
@@ -171,5 +171,72 @@ class Player extends DBRow {
 			$text
 		);
 		return $text;
+	}
+
+	/** @return array<string,int|string|null> */
+	public function getTokens(string $prefix=""): array {
+		$tokens = [
+			"{$prefix}name" => $this->name,
+			"c-{$prefix}name" => "<highlight>{$this->name}<end>",
+			"{$prefix}first-name" => $this->firstname,
+			"{$prefix}last-name" => $this->lastname,
+			"{$prefix}level" => $this->level,
+			"c-{$prefix}level" => isset($this->level) ? "<highlight>{$this->level}<end>" : null,
+			"{$prefix}ai-level" => $this->ai_level,
+			"c-{$prefix}ai-level" => isset($this->ai_level) ? "<green>{$this->ai_level}<end>" : null,
+			"{$prefix}prof" => $this->profession,
+			"c-{$prefix}prof" => isset($this->profession) ? "<highlight>{$this->profession}<end>" : null,
+			"{$prefix}profession" => $this->profession,
+			"c-{$prefix}profession" => isset($this->profession) ? "<highlight>{$this->profession}<end>" : null,
+			"{$prefix}org" => $this->guild,
+			"c-{$prefix}org" => isset($this->guild)
+				? "<" . strtolower($this->faction ?? "highlight") . ">{$this->guild}<end>"
+				: null,
+			"{$prefix}org-rank" => $this->guild_rank,
+			"{$prefix}breed" => $this->breed,
+			"c-{$prefix}breed" => isset($this->breed) ? "<highlight>{$this->breed}<end>" : null,
+			"{$prefix}faction" => $this->faction,
+			"c-{$prefix}faction" => isset($this->faction)
+				? "<" . strtolower($this->faction) . ">{$this->faction}<end>"
+				: null,
+			"{$prefix}gender" => $this->gender,
+			"{$prefix}whois" => $this->getInfo(),
+			"{$prefix}short-prof" => null,
+			"c-{$prefix}short-prof" => null,
+		];
+
+		/** @var ?Util */
+		$util = Registry::getInstance(Util::class);
+		if (isset($util, $this->profession)) {
+			$abbr = $tokens["{$prefix}short-prof"] = $util->getProfessionAbbreviation($this->profession);
+			$tokens["c-{$prefix}short-prof"] = "<highlight>{$abbr}<end>";
+		}
+		return $tokens;
+	}
+
+	public function getInfo(bool $showFirstAndLastName=true): string {
+		$msg = '';
+
+		if ($showFirstAndLastName && strlen($this->firstname??"")) {
+			$msg = $this->firstname . " ";
+		}
+
+		$msg .= "<highlight>\"{$this->name}\"<end> ";
+
+		if ($showFirstAndLastName && strlen($this->lastname??"")) {
+			$msg .= $this->lastname . " ";
+		}
+
+		$msg .= "(<highlight>{$this->level}<end>/<green>{$this->ai_level}<end>";
+		$msg .= ", {$this->gender} {$this->breed} <highlight>{$this->profession}<end>";
+		$msg .= ", <" . strtolower($this->faction) . ">{$this->faction}<end>";
+
+		if ($this->guild) {
+			$msg .= ", {$this->guild_rank} of <" . strtolower($this->faction) . ">{$this->guild}<end>)";
+		} else {
+			$msg .= ", Not in a guild)";
+		}
+
+		return $msg;
 	}
 }

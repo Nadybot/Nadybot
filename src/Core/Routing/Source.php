@@ -3,6 +3,7 @@
 namespace Nadybot\Core\Routing;
 
 use Illuminate\Support\Collection;
+use InvalidArgumentException;
 use Nadybot\Core\DBSchema\RouteHopFormat;
 use Nadybot\Core\{ConfigFile, Registry};
 
@@ -42,6 +43,13 @@ class Source {
 		} else {
 			$this->server = $dimension;
 		}
+	}
+
+	public static function fromChannel(string $channel): self {
+		if (preg_match("/^(.+?)\((.+?)\)$/", $channel, $matches)) {
+			return new self($matches[1], $matches[2]);
+		}
+		throw new InvalidArgumentException('$channel ist nor a valid channel name.');
 	}
 
 	public function getFormat(): ?RouteHopFormat {
