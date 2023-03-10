@@ -11,7 +11,7 @@ class Raffle {
 	/** Timestamp when the raffle was started*/
 	public int $start;
 
-	/** Where to send annoucements, etc. to */
+	/** Where to send announcements, etc. to */
 	public CommandReply $sendto;
 
 	/** Name of the character giving away items */
