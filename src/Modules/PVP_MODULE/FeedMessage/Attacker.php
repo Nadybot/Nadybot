@@ -3,6 +3,29 @@
 namespace Nadybot\Modules\PVP_MODULE\FeedMessage;
 
 class Attacker {
+	/** @var array<string,string|int|null> */
+	public const EXAMPLE_TOKENS = [
+		...AttackerOrg::EXAMPLE_TOKENS,
+		'att-name' => 'Nady',
+		'c-att-name' => '<highlight>Nady<end>',
+		'att-level' => 220,
+		'c-att-level' => '<highlight>220<end>',
+		'att-ai-level' => 30,
+		'c-att-ai-level' => '<green>30<end>',
+		'att-prof' => 'Bureaucrat',
+		'c-att-prof' => '<highlight>Bureaucrat<end>',
+		'att-profession' => 'Bureaucrat',
+		'c-att-profession' => '<highlight>Bureaucrat<end>',
+		'att-org-rank' => 'Advisor',
+		'c-att-org-rank' => '<highlight>Advisor<end>',
+		'att-gender' => 'Female',
+		'c-att-gender' => '<highlight>Female<end>',
+		'att-breed' => 'Nano',
+		'c-att-breed' => '<highlight>Nano<end>',
+		'att-faction' => 'Clan',
+		'c-att-faction' => '<clan>Clan<end>',
+	];
+
 	public function __construct(
 		public string $name,
 		public ?int $character_id,

@@ -1,0 +1,61 @@
+This setting supports the use of conditionals and placeholders.
+You can use any of the defined placeholders with <highlight>{token}<end>.
+
+Tokens:
+<tab><highlight>site-pf-id<end>: The numeric playfield-id
+<tab><highlight>site-id<end>: The site id/number
+<tab><highlight>site-enabled<end>: 1 if the site is enabled, 0 if it is disabled
+<tab><highlight>site-min-ql<end>: The minimum QL of towers you can plant on the field
+<tab><highlight>site-max-ql<end>: The maximum QL of towers you can plant on the field
+<tab><highlight>site-name<end>: The long name of this tower site
+<tab><highlight>site-num-conductors<end>: The current number of planted conductors
+<tab><highlight>site-num-turrets<end>: The current number of planted turrets
+<tab><highlight>site-num-cts<end>: The current number of planted CTs
+<tab><highlight>site-gas<end>: The current gas, including % (e.g. 25%)
+<tab><highlight>c-site-gas<end>: The current gas, colored in red and green
+<tab><highlight>site-faction<end>: The faction currently holding this site
+<tab><highlight>c-site-faction<end>: The colored faction currently holding this site
+<tab><highlight>site-org-id<end>: The ID of the org owning this site
+<tab><highlight>site-org-name<end>: The name of the org owning this site
+<tab><highlight>c-site-org-name<end>: The colored name of the org owning this site
+<tab><highlight>site-plant-time<end>: The date and time this site was planted
+<tab><highlight>site-ct-ql<end>: The QL of the CT
+<tab><highlight>pf-id<end>: The numeric playfield-id
+<tab><highlight>pf-short<end>: The short playfield name
+<tab><highlight>pf-long<end>: The long playfield name
+<tab><highlight>site-short<end>: The short name of the site, e.g. "WW 6"
+<tab><highlight>c-site-short<end>: The short name of the site, colored in faction
+<tab><highlight>details<end>: A link with a popup with details about this site
+
+Conditions:
+<tab><highlight>{?&lt;token&gt;:<end>&lt;Text to display if &lt;token&gt; is set&gt;<highlight>}<end>
+<tab>Example: <highlight>{?site-ct-ql:The CT is QL {site-ct-ql}}<end>
+<tab>Will only show '<highlight>The CT isQL {site-ct-ql}<end>' if <highlight>{site-ct-ql}<end> is set.
+
+<tab><highlight>{!&lt;token&gt;:<end>&lt;Text to display if &lt;token&gt; is not set&gt;<highlight>}<end>
+<tab>Example: <highlight>{!site-ct-ql:Unplanted}<end>
+<tab>Will only show '<highlight>Unplanted<end>' if <highlight>{site-ct-ql}<end> is not set.
+
+<tab>Example: The site is <highlight>{?site-ct-ql:QL {site-ct-ql}}{!site-ct-ql:unplanted}<end>
+
+You can add color to the text by using <highlight>&lt;color&gt;text&lt;end&gt;<end>
+<highlight>&lt;green&gt;online&lt;end&gt;<end> becomes <green>online<end>.
+
+Supported are:
+<tab>&lt;highlight&gt;: <highlight>example<end>
+<tab>&lt;on&gt;: <on>example<end>
+<tab>&lt;off&gt;: <off>example<end>
+<tab>&lt;black&gt;: <black>example<end>
+<tab>&lt;white&gt;: <white>example<end>
+<tab>&lt;yellow&gt;: <yellow>example<end>
+<tab>&lt;blue&gt;: <blue>example<end>
+<tab>&lt;green&gt;: <green>example<end>
+<tab>&lt;red&gt;: <red>example<end>
+<tab>&lt;orange&gt;: <orange>example<end>
+<tab>&lt;grey&gt;: <grey>example<end>
+<tab>&lt;cyan&gt;: <cyan>example<end>
+<tab>&lt;violet&gt;: <violet>example<end>
+<tab>&lt;neutral&gt;: <neutral>example<end>
+<tab>&lt;omni&gt;: <omni>example<end>
+<tab>&lt;clan&gt;: <clan>example<end>
+<tab>&lt;unknown&gt;: <unknown>example<end>

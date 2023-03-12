@@ -179,6 +179,169 @@ class NotumWarsController extends ModuleInstance {
 	])]
 	public int $mostRecentOutcomesAge = 14 * 24 * 3600;
 
+	/** Format of gas-change-messages */
+	#[NCA\Setting\Template(
+		exampleValues: [
+			...FeedMessage\SiteUpdate::EXAMPLE_TOKENS,
+			...Playfield::EXAMPLE_TOKENS,
+			'gas-old' => '5%',
+			'c-gas-old' => '<green>5%<end>',
+			'gas-new' => '75%',
+			'c-gas-new' => '<red>75%<end>',
+			'details' => "<a href='itemref://301560/301560/30'>details</a>",
+			'site-short' => Playfield::EXAMPLE_TOKENS['pf-short'] . ' ' .FeedMessage\SiteUpdate::EXAMPLE_TOKENS['site-id'],
+			'c-site-short' => "<" . FeedMessage\SiteUpdate::EXAMPLE_TOKENS['site-faction'] . ">".
+				Playfield::EXAMPLE_TOKENS['pf-short'] . ' ' .FeedMessage\SiteUpdate::EXAMPLE_TOKENS['site-id'].
+				"<end>",
+		],
+		options: [
+			"{c-site-short} {?gas-old:{c-gas-old} -> }{c-gas-new} [{details}]",
+			"{c-site-short} {?gas-old:{c-gas-old} -> }{c-gas-new}",
+			"{c-site-short} {site-min-ql}{?site-ct-ql:/<highlight>{site-ct-ql}<end>}/{site-max-ql} {?gas-old:{c-gas-old} -> }{c-gas-new}",
+			"{c-site-short} {?site-org-name:({c-site-org-name}, QL <highlight>{site-ct-ql}<end>) }{?gas-old:{c-gas-old} -> }{c-gas-new}",
+			"<highlight>{site-short}<end> {?gas-old:{c-gas-old} -> }{c-gas-new}{?site-org-name: ({c-site-org-name}, QL <highlight>{site-ct-ql}<end>)}",
+			"{c-site-short} went {?gas-old:from {c-gas-old} }to {c-gas-new} [{details}]",
+			"{c-site-short} went {?gas-old:from {c-gas-old} }to {c-gas-new}",
+		],
+		help: 'gas_change_format.txt',
+	)]
+	public string $gasChangeFormat = "{c-site-short} {?gas-old:{c-gas-old} -> }{c-gas-new}";
+
+	/** Format of site-cold messages */
+	#[NCA\Setting\Template(
+		exampleValues: [
+			...FeedMessage\SiteUpdate::EXAMPLE_TOKENS,
+			...Playfield::EXAMPLE_TOKENS,
+			'gas-old' => '5%',
+			'c-gas-old' => '<green>5%<end>',
+			'gas-new' => '75%',
+			'c-gas-new' => '<red>75%<end>',
+			'details' => "<a href='itemref://301560/301560/30'>details</a>",
+			'site-short' => Playfield::EXAMPLE_TOKENS['pf-short'] . ' ' .FeedMessage\SiteUpdate::EXAMPLE_TOKENS['site-id'],
+			'c-site-short' => "<" . FeedMessage\SiteUpdate::EXAMPLE_TOKENS['site-faction'] . ">".
+				Playfield::EXAMPLE_TOKENS['pf-short'] . ' ' .FeedMessage\SiteUpdate::EXAMPLE_TOKENS['site-id'].
+				"<end>",
+		],
+		options: [
+			"{c-site-short} {?gas-old:{c-gas-old} -> }{c-gas-new}",
+			"{c-site-short} {?gas-old:{c-gas-old} -> }{c-gas-new} [{details}]",
+			"{c-site-short} is now <red>cold<end>",
+			"{c-site-short} is now <red>cold<end> [{details}]",
+			"{c-site-short} went {?gas-old:from {c-gas-old} }to {c-gas-new}",
+			"{c-site-short} went {?gas-old:from {c-gas-old} }to {c-gas-new} [{details}]",
+		],
+		help: 'site_goes_cold_format.txt',
+	)]
+	public string $siteGoesColdFormat = "{c-site-short} is now <red>cold<end> [{details}]";
+
+	/** Format of site-hot messages */
+	#[NCA\Setting\Template(
+		exampleValues: [
+			...FeedMessage\SiteUpdate::EXAMPLE_TOKENS,
+			...Playfield::EXAMPLE_TOKENS,
+			'gas-old' => '75%',
+			'c-gas-old' => '<red>75%<end>',
+			'gas-new' => '25%',
+			'c-gas-new' => '<green>25%<end>',
+			'details' => "<a href='itemref://301560/301560/30'>details</a>",
+			'site-short' => Playfield::EXAMPLE_TOKENS['pf-short'] . ' ' .FeedMessage\SiteUpdate::EXAMPLE_TOKENS['site-id'],
+			'c-site-short' => "<" . FeedMessage\SiteUpdate::EXAMPLE_TOKENS['site-faction'] . ">".
+				Playfield::EXAMPLE_TOKENS['pf-short'] . ' ' .FeedMessage\SiteUpdate::EXAMPLE_TOKENS['site-id'].
+				"<end>",
+		],
+		options: [
+			"{c-site-short} {?gas-old:{c-gas-old} -> }{c-gas-new}",
+			"{c-site-short} {?gas-old:{c-gas-old} -> }{c-gas-new} [{details}]",
+			"{c-site-short} is now <green>hot<end>",
+			"{c-site-short} is now <green>hot<end> [{details}]",
+			"{c-site-short} {?site-org-name:({c-site-org-name}, QL <highlight>{site-ct-ql}<end>) }is now <green>hot<end>",
+			"{c-site-short} {?site-org-name:({c-site-org-name}, QL <highlight>{site-ct-ql}<end>) }is now <green>hot<end> [{details}]",
+			"{c-site-short} {site-min-ql}{?site-ct-ql:/<highlight>{site-ct-ql}<end>}/{site-max-ql} is now <green>hot<end>",
+			"{c-site-short} {site-min-ql}{?site-ct-ql:/<highlight>{site-ct-ql}<end>}/{site-max-ql} is now <green>hot<end> [{details}]",
+			"{c-site-short} went {?gas-old:from {c-gas-old} }to {c-gas-new}",
+			"{c-site-short} went {?gas-old:from {c-gas-old} }to {c-gas-new} [{details}]",
+		],
+		help: 'site_goes_cold_format.txt',
+	)]
+	public string $siteGoesHotFormat = "{c-site-short} is now <green>hot<end> [{details}]";
+
+	/** Format of site-planted messages */
+	#[NCA\Setting\Template(
+		exampleValues: [
+			...FeedMessage\SiteUpdate::EXAMPLE_TOKENS,
+			...Playfield::EXAMPLE_TOKENS,
+			'details' => "<a href='itemref://301560/301560/30'>details</a>",
+			'site-short' => Playfield::EXAMPLE_TOKENS['pf-short'] . ' ' .FeedMessage\SiteUpdate::EXAMPLE_TOKENS['site-id'],
+			'c-site-short' => "<" . FeedMessage\SiteUpdate::EXAMPLE_TOKENS['site-faction'] . ">".
+				Playfield::EXAMPLE_TOKENS['pf-short'] . ' ' .FeedMessage\SiteUpdate::EXAMPLE_TOKENS['site-id'].
+				"<end>",
+		],
+		options: [
+			"{c-site-short} (QL <highlight>{site-ct-ql}<end>, {c-site-org-name}) planted [{details}]",
+			"<highlight>{site-short}<end> (QL <highlight>{site-ct-ql}<end>, {c-site-org-name}) planted [{details}]",
+			"{c-site-short} (QL {site-min-ql}/<highlight>{site-ct-ql}<end>/{site-max-ql}, {c-site-org-name}) planted [{details}]",
+			"<highlight>{site-short}<end> (QL {site-min-ql}/<highlight>{site-ct-ql}<end>/{site-max-ql}, {c-site-org-name}) planted [{details}]",
+			"{c-site-short} @ QL <highlight>{site-ct-ql}<end> planted by {c-site-org-name} [{details}]",
+			"<highlight>{site-short}<end> @ QL <highlight>{site-ct-ql}<end> planted by {c-site-org-name} [{details}]",
+			"{c-site-short} {site-min-ql}/<highlight>{site-ct-ql}<end>/{site-max-ql} planted by {c-site-org-name} [{details}]",
+			"<highlight>{site-short}<end> {site-min-ql}/<highlight>{site-ct-ql}<end>/{site-max-ql} planted by {c-site-org-name} [{details}]",
+		],
+		help: 'site_planted_format.txt',
+	)]
+	public string $sitePlantedFormat = "{c-site-short} (QL <highlight>{site-ct-ql}<end>, {c-site-org-name}) planted [{details}]";
+
+	/** Format of site-destroyed messages */
+	#[NCA\Setting\Template(
+		exampleValues: [
+			...FeedMessage\SiteUpdate::EXAMPLE_TOKENS,
+			...Playfield::EXAMPLE_TOKENS,
+			'details' => "<a href='itemref://301560/301560/30'>details</a>",
+			'site-short' => Playfield::EXAMPLE_TOKENS['pf-short'] . ' ' .FeedMessage\SiteUpdate::EXAMPLE_TOKENS['site-id'],
+			'c-site-short' => "<" . FeedMessage\SiteUpdate::EXAMPLE_TOKENS['site-faction'] . ">".
+				Playfield::EXAMPLE_TOKENS['pf-short'] . ' ' .FeedMessage\SiteUpdate::EXAMPLE_TOKENS['site-id'].
+				"<end>",
+		],
+		options: [
+			"{c-site-short} (QL <highlight>{site-ct-ql}<end>, {c-site-org-name}) destroyed [{details}]",
+			"<highlight>{site-short}<end> (QL <highlight>{site-ct-ql}<end>, {c-site-org-name}) destroyed [{details}]",
+			"{c-site-short} @ QL <highlight>{site-ct-ql}<end> destroyed [{details}]",
+			"<highlight>{site-short}<end> @ QL <highlight>{site-ct-ql}<end> destroyed [{details}]",
+			"{c-site-short} {site-min-ql}/<highlight>{site-ct-ql}<end>/{site-max-ql} destroyed [{details}]",
+			"<highlight>{site-short}<end> {site-min-ql}/<highlight>{site-ct-ql}<end>/{site-max-ql} destroyed [{details}]",
+			"{c-site-short} (QL {site-min-ql}/<highlight>{site-ct-ql}<end>/{site-max-ql}, {c-site-org-name}) was destroyed [{details}]",
+			"<highlight>{site-short}<end> (QL {site-min-ql}/<highlight>{site-ct-ql}<end>/{site-max-ql}, {c-site-org-name}) was destroyed [{details}]",
+		],
+		help: 'site_destroyed_format.txt',
+	)]
+	public string $siteDestroyedFormat = "{c-site-short} (QL <highlight>{site-ct-ql}<end>, {c-site-org-name}) destroyed [{details}]";
+
+	/** Format of tower-destroyed/tower-planted messages */
+	#[NCA\Setting\Template(
+		exampleValues: [
+			...FeedMessage\SiteUpdate::EXAMPLE_TOKENS,
+			...Playfield::EXAMPLE_TOKENS,
+			'details' => "<a href='itemref://301560/301560/30'>details</a>",
+			'site-short' => Playfield::EXAMPLE_TOKENS['pf-short'] . ' ' .FeedMessage\SiteUpdate::EXAMPLE_TOKENS['site-id'],
+			'c-site-short' => "<" . FeedMessage\SiteUpdate::EXAMPLE_TOKENS['site-faction'] . ">".
+				Playfield::EXAMPLE_TOKENS['pf-short'] . ' ' .FeedMessage\SiteUpdate::EXAMPLE_TOKENS['site-id'].
+				"<end>",
+			'tower-action' => 'plant',
+			'tower-type' => 'turret',
+			'tower-delta' => '+1',
+			'c-tower-delta' => '<green>+1<end>',
+			'c-site-num-turrets' => '<green>5 turrets<end>',
+			'c-site-num-conductors' => '0 conductors',
+		],
+		options: [
+			"{c-site-short} {tower-type}s {c-tower-delta} [{details}]",
+			"{c-site-short} (QL <highlight>{site-ct-ql}<end>, {c-site-org-name}) {tower-action}ed 1 {tower-type}",
+			"{c-site-short} (QL <highlight>{site-ct-ql}<end>, {c-site-org-name}) {c-tower-delta} {tower-type}",
+			"{c-site-short} (QL <highlight>{site-ct-ql}<end>, {c-site-org-name}) {c-site-num-turrets}, {c-site-num-conductors}",
+		],
+		help: 'site_tower_change_format.txt',
+	)]
+	public string $siteTowerChangeFormat = "{c-site-short} {tower-type}s {c-tower-delta} [{details}]";
+
 	#[NCA\Event("connect", "Load all towers from the API")]
 	public function initTowersFromApi(): Generator {
 		$client = $this->builder->build();
@@ -437,16 +600,25 @@ class NotumWarsController extends ModuleInstance {
 		$oldGas = isset($site->gas) ? new Gas($site->gas) : null;
 		$newGas = new Gas($event->gas->gas);
 		$site->gas = $event->gas->gas;
-		$blob = $this->renderSite($site, $pf);
+		$tokens = [
+			...$site->getTokens(),
+			...$pf->getTokens(),
+			'gas-old' => isset($oldGas) ? "{$oldGas->gas}%" : null,
+			'gas-new' => "{$event->gas->gas}%",
+			'c-gas-new' => $newGas->colored(),
+			'c-gas-old' => isset($oldGas) ? $oldGas->colored() : null,
+			'site-short' => "{$pf->short_name} {$site->site_id}",
+			'c-site-short' => isset($site->org_faction)
+				? "<" . strtolower($site->org_faction) . ">{$pf->short_name} {$site->site_id}<end>"
+				: "<highlight>{$pf->short_name} {$site->site_id}<end>",
+		];
+		$tokens['details'] = ((array)$this->text->makeBlob(
+			"details",
+			$this->renderSite($site, $pf),
+			"{$pf->short_name} {$site->site_id} ({$site->name})",
+		))[0];
 		$color = strtolower($site->org_faction ?? "neutral");
-		$msg = "<{$color}>{$pf->short_name} {$site->site_id}<end> ".
-			(isset($oldGas) ? ($oldGas->colored() . " -> ") : "").
-			$newGas->colored() . " [".
-			((array)$this->text->makeBlob(
-				"details",
-				$blob,
-				"{$pf->short_name} {$site->site_id} ({$site->name})",
-			))[0] . "]";
+		$msg = $this->text->renderPlaceholders($this->gasChangeFormat, $tokens);
 		$rMessage = new RoutableMessage($msg);
 		$rMessage->prependPath(new Source("pvp", "gas-change-{$color}"));
 		$this->msgHub->handle($rMessage);
@@ -455,9 +627,11 @@ class NotumWarsController extends ModuleInstance {
 		if ($newGas->gas === 75 && $oldGas?->gas !== 75 && isset($site->org_faction)) {
 			$source = "site-cold-{$site->org_faction}";
 			$trackerSource = "site-cold";
+			$msg = $this->text->renderPlaceholders($this->siteGoesColdFormat, $tokens);
 		} elseif ($newGas->gas !== 75 && $oldGas?->gas === 75 && isset($site->org_faction)) {
 			$source = "site-hot-{$site->org_faction}";
 			$trackerSource = "site-hot";
+			$msg = $this->text->renderPlaceholders($this->siteGoesHotFormat, $tokens);
 		} else {
 			return;
 		}
@@ -489,8 +663,9 @@ class NotumWarsController extends ModuleInstance {
 		Playfield $pf,
 		bool $showOrgLinks=true,
 		bool $showPlantInfo=true,
+		?FeedMessage\TowerOutcome $outcome=null,
 	): string {
-		$lastOutcome = $this->getLastSiteOutcome($site);
+		$lastOutcome = $outcome ?? $this->getLastSiteOutcome($site);
 		$centerWaypointLink = $this->text->makeChatcmd(
 			"Center",
 			"/waypoint {$site->center->x} {$site->center->y} {$pf->id}"
@@ -732,7 +907,7 @@ class NotumWarsController extends ModuleInstance {
 	/**
 	 * See which sites are currently hot.
 	 * You can limit this by any combination of
-	 * faction, playfield, ql and level range and "soon"
+	 * faction, playfield, ql, penalty, level range and "soon"
 	 */
 	#[NCA\HandlesCommand("nw hot")]
 	#[NCA\Help\Example("<symbol>nw hot clan")]
@@ -741,6 +916,7 @@ class NotumWarsController extends ModuleInstance {
 	#[NCA\Help\Example("<symbol>nw hot 99-110", "Only where the CT is between QL 99 and 110")]
 	#[NCA\Help\Example("<symbol>nw hot omni pw 180-300")]
 	#[NCA\Help\Example("<symbol>nw hot soon")]
+	#[NCA\Help\Example("<symbol>nw hot penalty")]
 	public function hotSitesCommand(
 		CmdContext $context,
 		#[NCA\Str("hot")] string $action,
@@ -765,6 +941,16 @@ class NotumWarsController extends ModuleInstance {
 			);
 		} else {
 			$hotSites = $hotSites->where("gas", "<", 75);
+		}
+		$search = preg_replace("/\s+penalty\b/i", "", $search, -1, $penalty);
+		if ($penalty) {
+			$hotSites = $hotSites->filter(function (FeedMessage\SiteUpdate $site): bool {
+				$gas = $this->getSiteGasInfo($site);
+				if (!isset($gas)) {
+					return false;
+				}
+				return $gas->inPenalty();
+			});
 		}
 		if (preg_match("/\s+(neutral|omni|clan|neut)\b/i", $search, $matches)) {
 			$faction = strtolower($matches[1]);
@@ -802,6 +988,8 @@ class NotumWarsController extends ModuleInstance {
 		if ($hotSites->isEmpty()) {
 			if ($soon) {
 				$context->reply("No sites are going hot soon.");
+			} elseif ($penalty) {
+				$context->reply("No sites are currently in penalty.");
 			} else {
 				$context->reply("No sites are currently hot.");
 			}
@@ -813,7 +1001,8 @@ class NotumWarsController extends ModuleInstance {
 			$msg = $this->text->makeBlob("{$sitesLabel} going hot soon ({$hotSites->count()})", $blob);
 		} else {
 			$faction = isset($faction) ? " " . strtolower($faction) : "";
-			$msg = $this->text->makeBlob("Hot{$faction} sites ({$hotSites->count()})", $blob);
+			$inPenalty = $penalty ? " in penalty" : "";
+			$msg = $this->text->makeBlob("Hot{$faction} sites{$inPenalty} ({$hotSites->count()})", $blob);
 		}
 
 		$context->reply($msg);
@@ -870,22 +1059,44 @@ class NotumWarsController extends ModuleInstance {
 	}
 
 	/**
-	 * List all tower sites matching an org name
+	 * List all tower sites matching an org name or a character's org
 	 *
-	 * You can use * as a wildcard match
+	 * You can use * as a wildcard match for the org name
+	 * You can put "org" in front of an org name to search in org names only
 	 */
 	#[NCA\HandlesCommand("nw sites")]
 	#[NCA\Help\Example("<symbol>nw sites troet")]
+	#[NCA\Help\Example("<symbol>nw sites org goblinz")]
 	#[NCA\Help\Example("<symbol>nw sites angel*")]
+	#[NCA\Help\Example("<symbol>nw sites nady")]
 	public function listOrgSitesCommand(
 		CmdContext $context,
 		#[NCA\Str("sites")] string $action,
+		#[NCA\Str("org")] ?string $forceOrg,
 		string $search
-	): void {
+	): Generator {
+		$searchTerm = $search;
+		$player = null;
+		if (!isset($forceOrg)) {
+			$uid = yield $this->chatBot->getUid2($search);
+			if (isset($uid)) {
+				/** @var ?Player */
+				$player = yield $this->playerManager->lookupAsync2(
+					$search,
+					$context->char->dimension,
+				);
+				if (isset($player, $player->guild_id)) {
+					$searchTerm = "{$search}/{$player->guild}";
+				}
+			}
+		}
 		$matches = $this->getEnabledSites()
-			->filter(function (FeedMessage\SiteUpdate $site) use ($search): bool {
+			->filter(function (FeedMessage\SiteUpdate $site) use ($search, $player): bool {
 				if (!isset($site->org_name)) {
 					return false;
+				}
+				if (isset($player, $player->guild_id)   && $player->guild_id === $site->org_id) {
+					return true;
 				}
 				return fnmatch($search, $site->org_name, FNM_CASEFOLD);
 			});
@@ -895,7 +1106,7 @@ class NotumWarsController extends ModuleInstance {
 		}
 		$blob = $this->renderOrgSites(...$matches->toArray());
 		$msg = $this->text->makeBlob(
-			"All tower sites of '{$search}'",
+			"All tower sites of '{$searchTerm}'",
 			$blob
 		);
 		$context->reply($msg);
@@ -967,15 +1178,21 @@ class NotumWarsController extends ModuleInstance {
 		$timerName = $this->getPlantTimerName($site, $pf);
 		$this->timerController->remove($timerName);
 		// Send "WW 6 @ QL 112 planted by Orgname [details]"-message
-		$blob = $this->renderSite($site, $pf);
+		$tokens = [
+			...$site->getTokens(),
+			...$pf->getTokens(),
+			'site-short' => "{$pf->short_name} {$site->site_id}",
+			'c-site-short' => isset($site->org_faction)
+				? "<" . strtolower($site->org_faction) . ">{$pf->short_name} {$site->site_id}<end>"
+				: "<highlight>{$pf->short_name} {$site->site_id}<end>",
+		];
+		$tokens['details'] = ((array)$this->text->makeBlob(
+			"details",
+			$this->renderSite($site, $pf),
+			"{$pf->short_name} {$site->site_id} ({$site->name})",
+		))[0];
 		$color = strtolower($site->org_faction ?? "neutral");
-		$msg = "<{$color}>{$pf->short_name} {$site->site_id}<end> ".
-			"@ QL <highlight>{$site->ql}<end> planted by <{$color}>{$site->org_name}<end> [".
-			((array)$this->text->makeBlob(
-				"details",
-				$blob,
-				"{$pf->short_name} {$site->site_id} ({$site->name})",
-			))[0] . "]";
+		$msg = $this->text->renderPlaceholders($this->sitePlantedFormat, $tokens);
 		$rMessage = new RoutableMessage($msg);
 		$rMessage->prependPath(new Source("pvp", "site-planted-{$color}"));
 		$this->msgHub->handle($rMessage);
@@ -1000,15 +1217,21 @@ class NotumWarsController extends ModuleInstance {
 			);
 		}
 		// Send "WW 6 @ QL 112 destroyed [details]"-message
-		$blob = $this->renderSite($oldSite, $pf);
+		$tokens = [
+			...$oldSite->getTokens(),
+			...$pf->getTokens(),
+			'site-short' => "{$pf->short_name} {$site->site_id}",
+			'c-site-short' => isset($oldSite->org_faction)
+				? "<" . strtolower($oldSite->org_faction) . ">{$pf->short_name} {$site->site_id}<end>"
+				: "<highlight>{$pf->short_name} {$site->site_id}<end>",
+		];
+		$tokens['details'] = ((array)$this->text->makeBlob(
+			"details",
+			$this->renderSite($site, $pf),
+			"{$pf->short_name} {$site->site_id} ({$site->name})",
+		))[0];
 		$color = strtolower($oldSite->org_faction ?? "neutral");
-		$msg = "<{$color}>{$pf->short_name} {$site->site_id}<end> ".
-			"@ QL <highlight>{$oldSite->ql}<end> destroyed [".
-			((array)$this->text->makeBlob(
-				"details",
-				$blob,
-				"{$pf->short_name} {$site->site_id} ({$site->name})",
-			))[0] . "]";
+		$msg = $this->text->renderPlaceholders($this->siteDestroyedFormat, $tokens);
 		$rMessage = new RoutableMessage($msg);
 		$rMessage->prependPath(new Source("pvp", "site-destroyed-{$color}"));
 		$this->msgHub->handle($rMessage);
@@ -1017,36 +1240,55 @@ class NotumWarsController extends ModuleInstance {
 
 	/** Handle whatever is necessary when a site gets or loses a non-CT-tower */
 	private function handleSiteTowerChange(FeedMessage\SiteUpdate $oldSite, FeedMessage\SiteUpdate $site, Playfield $pf): void {
+		$tokens = [
+			...$site->getTokens(),
+			...$pf->getTokens(),
+			'site-short' => "{$pf->short_name} {$site->site_id}",
+			'c-site-short' => isset($site->org_faction)
+				? "<" . strtolower($site->org_faction) . ">{$pf->short_name} {$site->site_id}<end>"
+				: "<highlight>{$pf->short_name} {$site->site_id}<end>",
+		];
+		$tokens['details'] = ((array)$this->text->makeBlob(
+			"details",
+			$this->renderSite($site, $pf),
+			"{$pf->short_name} {$site->site_id} ({$site->name})",
+		))[0];
+		$tokens['c-site-num-turrets'] = $site->num_turrets . " ".
+			$this->text->pluralize('turret', $site->num_turrets);
+		$tokens['c-site-num-conductors'] = $site->num_conductors . " ".
+			$this->text->pluralize('conductor', $site->num_conductors);
 		if ($oldSite->num_conductors < $site->num_conductors) {
-			$subType = "planted";
-			$incDec = "<green>+1<end>";
-			$towerType = "conductor";
+			$tokens['tower-delta'] = '+1';
+			$tokens['c-tower-delta'] = '<green>+1<end>';
+			$tokens['tower-action'] = 'plant';
+			$tokens['tower-type'] = 'conductor';
+			$tokens['c-site-num-conductors'] = '<green>' . $tokens['c-site-num-conductors'] . '<end>';
 		} elseif ($oldSite->num_turrets < $site->num_turrets) {
-			$subType = "planted";
-			$incDec = "<green>+1<end>";
-			$towerType = "turret";
+			$tokens['tower-delta'] = '+1';
+			$tokens['c-tower-delta'] = '<green>+1<end>';
+			$tokens['tower-action'] = 'plant';
+			$tokens['tower-type'] = 'turret';
+			$tokens['c-site-num-turrets'] = '<green>' . $tokens['c-site-num-turrets'] . '<end>';
 		} elseif ($oldSite->num_conductors > $site->num_conductors) {
-			$subType = "destroyed";
-			$incDec = "<red>-1<end>";
-			$towerType = "conductor";
+			$tokens['tower-delta'] = '-1';
+			$tokens['c-tower-delta'] = '<red>-1<end>';
+			$tokens['tower-action'] = 'destroy';
+			$tokens['tower-type'] = 'conductor';
+			$tokens['c-site-num-conductors'] = '<red>' . $tokens['c-site-num-conductors'] . '<end>';
 		} elseif ($oldSite->num_turrets > $site->num_turrets) {
-			$subType = "destroyed";
-			$incDec = "<red>-1<end>";
-			$towerType = "turret";
+			$tokens['tower-delta'] = '-1';
+			$tokens['c-tower-delta'] = '<red>-1<end>';
+			$tokens['tower-action'] = 'destroy';
+			$tokens['tower-type'] = 'turret';
+			$tokens['c-site-num-turrets'] = '<red>' . $tokens['c-site-num-turrets'] . '<end>';
 		} else {
 			return;
 		}
 
+		$subType = $tokens['tower-action'] . 'ed';
 		// Send "WW 6 conductors ±1 [details]"-message
-		$blob = $this->renderSite($site, $pf);
 		$color = strtolower($site->org_faction ?? "neutral");
-		$msg = "<{$color}>{$pf->short_name} {$site->site_id}<end> ".
-			"{$towerType}s {$incDec} [".
-			((array)$this->text->makeBlob(
-				"details",
-				$blob,
-				"{$pf->short_name} {$site->site_id} ({$site->name})",
-			))[0] . "]";
+		$msg = $this->text->renderPlaceholders($this->siteTowerChangeFormat, $tokens);
 		$rMessage = new RoutableMessage($msg);
 		$rMessage->prependPath(new Source("pvp", "tower-{$subType}-{$color}"));
 		$this->msgHub->handle($rMessage);
@@ -1184,12 +1426,9 @@ class NotumWarsController extends ModuleInstance {
 		}
 		$goesHot = $gas->goesHot();
 		$goesCold = $gas->goesCold();
-		$regularGas = $gas->regularGas();
 		$note = "";
-		if (isset($regularGas) && $regularGas->gas !== $site->gas) {
-			if ($goesCold > time()) {
-				$note = ' the earliest';
-			}
+		if ($gas->inPenalty()) {
+			$note = ' or later';
 		}
 		if (isset($goesHot)) {
 			$line .= ", opens in " . $this->util->unixtimeToReadable($goesHot - time());
