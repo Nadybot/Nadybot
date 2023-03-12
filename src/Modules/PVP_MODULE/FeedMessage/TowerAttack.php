@@ -47,6 +47,7 @@ class TowerAttack {
 	public function __construct(
 		public int $playfield_id,
 		public int $site_id,
+		public ?int $ql,
 		public Attacker $attacker,
 		public Coordinates $location,
 		public DefenderOrg $defender,

@@ -11,6 +11,7 @@ class DBTowerAttack extends DBRow {
 	public int $location_x;
 	public int $location_y;
 	public int $site_id;
+	public ?int $ql;
 	public string $att_name;
 	public ?string $att_faction=null;
 	public ?string $att_org=null;
@@ -30,6 +31,7 @@ class DBTowerAttack extends DBRow {
 		$obj->timestamp = $att->timestamp;
 		$obj->playfield_id = $att->playfield_id;
 		$obj->site_id = $att->site_id;
+		$obj->ql = $att->ql;
 		$obj->location_x = $att->location->x;
 		$obj->location_y = $att->location->y;
 		$obj->att_name = $att->attacker->name;
@@ -53,6 +55,7 @@ class DBTowerAttack extends DBRow {
 			timestamp: $this->timestamp,
 			playfield_id: $this->playfield_id,
 			site_id: $this->site_id,
+			ql: $this->ql,
 			location: new Coordinates($this->location_x, $this->location_y),
 			attacker: new Attacker(
 				name: $this->att_name,

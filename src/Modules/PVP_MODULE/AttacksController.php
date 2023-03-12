@@ -726,7 +726,11 @@ class AttacksController extends ModuleInstance {
 				}
 				$defColor = strtolower($first->def_faction);
 				return "<header2>{$pf->short_name} {$first->site_id}<end>".
-					" (QL {$site->min_ql}-{$site->max_ql}) [".
+					(
+						isset($first->ql)
+					? " (QL {$first->ql}) ["
+					: " (QL {$site->min_ql}-{$site->max_ql}) ["
+					).
 					$this->text->makeChatcmd(
 						"details",
 						"/tell <myname> <symbol>nw lc {$pf->short_name} {$first->site_id}"

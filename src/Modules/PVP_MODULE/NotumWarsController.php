@@ -751,6 +751,9 @@ class NotumWarsController extends ModuleInstance {
 			$event->attack->addLookups($player);
 		}
 		$site = $this->state[$event->attack->playfield_id][$event->attack->site_id]??null;
+		if (isset($site)) {
+			$event->attack->ql ??= $site->ql;
+		}
 		$attInfo = DBTowerAttack::fromTowerAttack($event->attack);
 		$this->db->insert(self::DB_ATTACKS, $attInfo);
 		$infoEvent = new Event\TowerAttackInfo($event->attack, $site);
