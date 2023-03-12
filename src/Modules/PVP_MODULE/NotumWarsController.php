@@ -44,6 +44,7 @@ use Safe\Exceptions\JsonException;
 	NCA\EmitsMessages("pvp", "site-cold-clan"),
 	NCA\EmitsMessages("pvp", "site-cold-neutral"),
 	NCA\EmitsMessages("pvp", "site-cold-omni"),
+	NCA\EmitsMessages("pvp", "unplanted-sites"),
 	NCA\ProvidesEvent(
 		event: "tower-attack-info",
 		desc: "Someone attacks a tower site, includes additional information"
@@ -485,6 +486,34 @@ class NotumWarsController extends ModuleInstance {
 		help: 'site_tower_change_format.txt',
 	)]
 	public string $siteTowerChangeFormat = "{c-site-short} {tower-type}s {c-tower-delta} [{details}]";
+
+	#[NCA\Event("timer(1h)", "Announce unplanted sites via pvp(unplanted-sites)")]
+	public function announceUnplantedSites(): void {
+		$unplantedSites = $this->getUnplantedSites();
+		if (empty($unplantedSites)) {
+			return;
+		}
+		$announcementPre = "There is ";
+		$announcement = "1 unplanted site";
+		if (count($unplantedSites) > 1) {
+			$announcementPre = "There are ";
+			$announcement = count($unplantedSites) . " unplanted sites";
+		}
+
+		$msgs = $this->text->blobWrap(
+			$announcementPre,
+			$this->text->makeBlob(
+				$announcement,
+				join("\n\n", $unplantedSites),
+			),
+			" for grab"
+		);
+		foreach ($msgs as $msg) {
+			$rMsg = new RoutableMessage($msg);
+			$rMsg->prependPath(new Source("pvp", "unplanted-sites"));
+			$this->msgHub->handle($rMsg);
+		}
+	}
 
 	#[NCA\Event("connect", "Load all towers from the API")]
 	public function initTowersFromApi(): Generator {
@@ -988,17 +1017,7 @@ class NotumWarsController extends ModuleInstance {
 		CmdContext $context,
 		#[NCA\StrChoice("unplanted", "free")] string $action,
 	): void {
-		$unplantedSites = [];
-		foreach ($this->state as $pfId => $sites) {
-			$pf = $this->pfCtrl->getPlayfieldById($pfId);
-			assert(isset($pf));
-			foreach ($sites as $siteId => $site) {
-				/** @var FeedMessage\SiteUpdate $site */
-				if ($site->enabled && !isset($site->ct_pos)) {
-					$unplantedSites []= $this->renderSite($site, $pf);
-				}
-			}
-		}
+		$unplantedSites = $this->getUnplantedSites();
 		if (empty($unplantedSites)) {
 			$context->reply("No unplanted sites.");
 			return;
@@ -1292,6 +1311,22 @@ class NotumWarsController extends ModuleInstance {
 				})->join("\n");
 		})->join("\n\n");
 		return $blob;
+	}
+
+	/** @return string[] */
+	private function getUnplantedSites(): array {
+		$unplantedSites = [];
+		foreach ($this->state as $pfId => $sites) {
+			$pf = $this->pfCtrl->getPlayfieldById($pfId);
+			assert(isset($pf));
+			foreach ($sites as $siteId => $site) {
+				/** @var FeedMessage\SiteUpdate $site */
+				if ($site->enabled && !isset($site->ct_pos)) {
+					$unplantedSites []= $this->renderSite($site, $pf);
+				}
+			}
+		}
+		return $unplantedSites;
 	}
 
 	/** Count how many attacks on a field occurred in the recent past */
