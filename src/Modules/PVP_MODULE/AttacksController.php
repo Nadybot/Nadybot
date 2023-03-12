@@ -71,42 +71,65 @@ class AttacksController extends ModuleInstance {
 		options: [
 			self::ATT_FMT_NORMAL,
 			"{?att-org:{c-att-org}}{!att-org:{c-att-name}} attacked {c-def-org}",
-			"{?att-org:{c-att-org}}{!att-org:{c-att-name}} attacked {c-def-org} CT {c-site-ql}",
+			"{?att-org:{c-att-org}}{!att-org:{c-att-name}} attacked {c-def-org} CT <highlight>{site-ct-ql}<end>",
 		],
 		exampleValues: [
+			// ...TowerAttack::EXAMPLE_TOKENS,
+			"att-org-name" => "Team Rainbow",
+			"c-att-org-name" => "<clan>Team Rainbow<end>",
+			"att-org" => "Team Rainbow",
+			"c-att-org" => "<clan>Team Rainbow<end>",
+			"att-org-faction" => 'Clan',
+			"c-att-org-faction" => '<clan>Clan<end>',
 			'att-name' => 'Nady',
 			'c-att-name' => '<highlight>Nady<end>',
-			'att-level' => '220',
+			'att-level' => 220,
 			'c-att-level' => '<highlight>220<end>',
-			'att-ai-level' => '30',
+			'att-ai-level' => 30,
 			'c-att-ai-level' => '<green>30<end>',
-			'att-profession' => 'Bureaucrat',
-			'c-att-profession' => '<highlight>Bureaucrat<end>',
 			'att-prof' => 'Bureaucrat',
 			'c-att-prof' => '<highlight>Bureaucrat<end>',
-			'att-short-prof' => 'Crat',
-			'c-att-short-prof' => '<highlight>Crat<end>',
-			'att-org' => 'Team Rainbow',
-			// 'att-org' => null,
-			'c-att-org' => '<clan>Team Rainbow<end>',
-			// 'c-att-org' => null,
-			'att-gender' => 'Female',
-			'att-breed' => 'Nanomage',
-			'c-att-breed' => '<highlight>Nanomage<end>',
+			'att-profession' => 'Bureaucrat',
+			'c-att-profession' => '<highlight>Bureaucrat<end>',
 			'att-org-rank' => 'Advisor',
 			'c-att-org-rank' => '<highlight>Advisor<end>',
-			'def-org' => 'Troet',
-			'c-def-org' => '<neutral>Troet<end>',
-			'whois' => '<highlight>"Nady"<end> (<highlight>220<end>/<green>30<end>, Female Nanomage <highlight>Bureaucrat<end>, <clan>Clan<end>, Advisor of <clan>Team Rainbow<end>)',
+			'att-gender' => 'Female',
+			'c-att-gender' => '<highlight>Female<end>',
+			'att-breed' => 'Nano',
+			'c-att-breed' => '<highlight>Nano<end>',
+			'att-faction' => 'Clan',
+			'c-att-faction' => '<clan>Clan<end>',
+			"def-org" => "Troet",
+			"c-def-org" => "<neutral>Troet<end>",
 			"def-faction" => "Neutral",
 			"c-def-faction" => "<neutral>Neutral<end>",
-			"pf-short" => "WW",
+			"att-coord-x" => 700,
+			"att-coord-y" => 800,
+			// ...SiteUpdate::EXAMPLE_TOKENS,
+			'site-pf-id' => 660,
+			'site-id' => 6,
+			'site-nr' => 6,
+			'site-number' => 6,
+			'site-enabled' => 1,
+			'site-min-ql' => 20,
+			'site-max-ql' => 30,
+			'site-name' => 'Charred Groove',
+			'site-num-conductors' => 0,
+			'site-num-turrets' => 5,
+			'site-num-cts' => 1,
+			'site-gas' => '75%',
+			'c-site-gas' => '<red>75%<end>',
+			'site-faction' => 'Neutral',
+			'c-site-faction' => '<neutral>Neutral<clan>',
+			'site-org-id' => 1,
+			'site-org-name' => 'Troet',
+			'c-site-org-name' => '<neutral>Troet<end>',
+			'site-plant-time' => '13-Jan-2023 17:07 UTC',
+			'site-ct-ql' => 25,
+			// ...Playfield::EXAMPLE_TOKENS,
+			"pf-id" => 551,
 			"pf-long" => "Wailing Wastes",
-			'site-num' => '1',
-			'site-ql' => '33',
-			'c-site-ql' => '<highlight>33<end>',
-			"att-coord-x" => '1700',
-			"att-coord-y" => '3700',
+			"pf-short" => "WW",
 		],
 	)]
 	public string $towerAttackFormat = self::ATT_FMT_NORMAL;
@@ -117,22 +140,43 @@ class AttacksController extends ModuleInstance {
 			self::VICTORY_FMT_NORMAL,
 		],
 		exampleValues: [
+			// ...TowerOutcome::EXAMPLE_TOKENS,
+			"pf-id" => 551,
+			"timestamp" => "11-Mar-2023 20:12 UTC",
 			"winning-faction" => "Neutral",
 			"c-winning-faction" => "<neutral>Neutral<end>",
 			"winning-org" => "Troet",
 			"c-winning-org" => "<neutral>Troet<end>",
 			"losing-faction" => "Clan",
-			"c-losing-faction" => "<clan>Clan<clan>",
+			"c-losing-faction" => "<clan>Clan<end>",
 			"losing-org" => "Team Rainbow",
 			"c-losing-org" => "<clan>Team Rainbow<end>",
-			"site-name" => "Dome Ore",
-			"pf-short" => "AV",
-			"pf-long" => "Avalon",
-			"pf-id" => "505",
-			"site-min-ql" => "61",
-			"site-max-ql" => "82",
-			"site-id" => "8",
-		]
+			// ...SiteUpdate::EXAMPLE_TOKENS,
+			'site-pf-id' => 660,
+			'site-id' => 6,
+			'site-nr' => 6,
+			'site-number' => 6,
+			'site-enabled' => 1,
+			'site-min-ql' => 20,
+			'site-max-ql' => 30,
+			'site-name' => 'Charred Groove',
+			'site-num-conductors' => 0,
+			'site-num-turrets' => 5,
+			'site-num-cts' => 1,
+			'site-gas' => '75%',
+			'c-site-gas' => '<red>75%<end>',
+			'site-faction' => 'Neutral',
+			'c-site-faction' => '<neutral>Neutral<clan>',
+			'site-org-id' => 1,
+			'site-org-name' => 'Troet',
+			'c-site-org-name' => '<neutral>Troet<end>',
+			'site-plant-time' => '13-Jan-2023 17:07 UTC',
+			'site-ct-ql' => 25,
+			// ...Playfield::EXAMPLE_TOKENS,
+			"pf-long" => "Wailing Wastes",
+			"pf-short" => "WW",
+		],
+		help: 'tower_victory_format.txt',
 	)]
 	public string $towerVictoryFormat = self::VICTORY_FMT_NORMAL;
 
@@ -143,18 +187,43 @@ class AttacksController extends ModuleInstance {
 			"{c-losing-org} abandoned their field at <highlight>{pf-short} {site-id}<end>",
 		],
 		exampleValues: [
+			// ...TowerOutcome::EXAMPLE_ABANDON_TOKENS,
+			"pf-id" => 551,
+			"timestamp" => "11-Mar-2023 20:12 UTC",
+			"winning-faction" => "Neutral",
+			"c-winning-faction" => "<neutral>Neutral<end>",
+			"winning-org" => "Troet",
+			"c-winning-org" => "<neutral>Troet<end>",
 			"losing-faction" => "Clan",
-			"c-losing-faction" => "<clan>Clan<clan>",
+			"c-losing-faction" => "<clan>Clan<end>",
 			"losing-org" => "Team Rainbow",
 			"c-losing-org" => "<clan>Team Rainbow<end>",
-			"site-name" => "Dome Ore",
-			"pf-short" => "AV",
-			"pf-long" => "Avalon",
-			"pf-id" => "505",
-			"site-min-ql" => "61",
-			"site-max-ql" => "82",
-			"site-id" => "8",
-		]
+			// ...SiteUpdate::EXAMPLE_TOKENS,
+			'site-pf-id' => 660,
+			'site-id' => 6,
+			'site-nr' => 6,
+			'site-number' => 6,
+			'site-enabled' => 1,
+			'site-min-ql' => 20,
+			'site-max-ql' => 30,
+			'site-name' => 'Charred Groove',
+			'site-num-conductors' => 0,
+			'site-num-turrets' => 5,
+			'site-num-cts' => 1,
+			'site-gas' => '75%',
+			'c-site-gas' => '<red>75%<end>',
+			'site-faction' => 'Neutral',
+			'c-site-faction' => '<neutral>Neutral<clan>',
+			'site-org-id' => 1,
+			'site-org-name' => 'Troet',
+			'c-site-org-name' => '<neutral>Troet<end>',
+			'site-plant-time' => '13-Jan-2023 17:07 UTC',
+			'site-ct-ql' => 25,
+			// ...Playfield::EXAMPLE_TOKENS,
+			"pf-long" => "Wailing Wastes",
+			"pf-short" => "WW",
+		],
+		help: 'site_abandoned_format.txt',
 	)]
 	public string $siteAbandonedFormat = self::ABANDONED_FMT_NORMAL;
 
@@ -183,16 +252,14 @@ class AttacksController extends ModuleInstance {
 			$details,
 			"Attack on {$shortSite}",
 		);
+
+		/** @var array<string,int|string|null> */
 		$tokens = array_merge(
 			$event->attack->getTokens(),
-			[
-				"pf-short" => $pf->short_name,
-				"pf-long" => $pf->long_name,
-				"site-ql" => $event->site->ql,
-				"site-id" => $event->site->site_id,
-				"site-num" => $event->site->site_id,
-			]
+			$pf->getTokens(),
+			$site->getTokens(),
 		);
+
 		$msg = $this->text->renderPlaceholders(
 			$this->towerAttackFormat,
 			$tokens
@@ -224,32 +291,27 @@ class AttacksController extends ModuleInstance {
 			]);
 			return;
 		}
-		$tokens = [
-			"winning-faction" => $outcome->attacker_faction,
-			"winning-org" => $outcome->attacker_org,
-			"losing-faction" => $outcome->losing_faction,
-			"losing-org" => $outcome->losing_org,
-			"c-losing-org" => "<" . strtolower($outcome->losing_faction) . ">".
-				$outcome->losing_org . "<end>",
-			"site-name" => $site->name,
-			"pf-short" => $pf->short_name,
-			"pf-long" => $pf->long_name,
-			"pf-id" => $pf->id,
-			"site-min-ql" => $site->min_ql,
-			"site-max-ql" => $site->max_ql,
-			"site-id" => $site->site_id,
-		];
-		$format = $this->siteAbandonedFormat;
-		if (isset($tokens["winning-faction"])) {
-			assert(isset($tokens['winning-org']));
-			$winColor = strtolower($tokens['winning-faction']);
-			$tokens['c-winning-faction'] = "<{$winColor}>{$tokens['winning-faction']}<end>";
-			$tokens['c-winning-org'] = "<{$winColor}>{$tokens['winning-org']}<end>";
-			$format = $this->towerVictoryFormat;
-		}
+		$site->ct_pos = null;
+		$site->num_conductors = 0;
+		$site->num_turrets = 0;
+		$site->org_faction = null;
+		$site->org_id = null;
+		$site->org_name = null;
+		$site->plant_time = null;
+		$site->ql = null;
+
+		/** @var array<string,string|int|null> */
+		$tokens = array_merge(
+			$outcome->getTokens(),
+			$site->getTokens(),
+			$pf->getTokens(),
+		);
+		$format = isset($tokens["winning-faction"])
+			? $this->towerVictoryFormat
+			: $this->siteAbandonedFormat;
 		$msg = $this->text->renderPlaceholders($format, $tokens);
 
-		$details = $this->nwCtrl->renderSite($site, $pf, false);
+		$details = $this->nwCtrl->renderSite($site, $pf, false, true, $outcome);
 		$shortSite = "{$pf->short_name} {$site->site_id}";
 		$detailsLink = $this->text->makeBlob(
 			$shortSite,

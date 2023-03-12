@@ -6,7 +6,7 @@ class Gas {
 	public function __construct(public int $gas) {
 	}
 
-	public function __toString() {
+	public function __toString(): string {
 		return (string)$this->gas;
 	}
 

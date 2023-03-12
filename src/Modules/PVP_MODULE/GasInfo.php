@@ -63,7 +63,11 @@ class GasInfo {
 			return null;
 		}
 		$ownHotEnd = $this->getOwnHotEnd();
-		return $this->nextClosing($ownHotEnd);
+		$goesCold = $this->nextClosing($ownHotEnd);
+		while (isset($goesCold) && $goesCold < time() - 10) {
+			$goesCold += 3600;
+		}
+		return $goesCold;
 	}
 
 	/**
@@ -77,6 +81,21 @@ class GasInfo {
 			return null;
 		}
 		return $this->next25();
+	}
+
+	/** Check if this site is only hot because of an attack */
+	public function inPenalty(): bool {
+		if (!isset($this->site->gas) || $this->site->gas === 75) {
+			return false;
+		}
+		$ownHotEnd = $this->getOwnHotEnd();
+		if (!isset($ownHotEnd)) {
+			return false;
+		}
+		if ($ownHotEnd >= time()) {
+			return true;
+		}
+		return $this->regularGas()?->gas  === 75;
 	}
 
 	/** Timestamp after $time at which the site will be cold */

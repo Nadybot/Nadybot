@@ -5,6 +5,45 @@ namespace Nadybot\Modules\PVP_MODULE\FeedMessage;
 use Nadybot\Core\DBSchema\Player;
 
 class TowerAttack {
+	/** @var array<string,string|int|null> */
+	public const EXAMPLE_TOKENS = [
+		// ...Attacker::EXAMPLE_TOKENS,
+		"att-org-name" => "Team Rainbow",
+		"c-att-org-name" => "<clan>Team Rainbow<end>",
+		"att-org" => "Team Rainbow",
+		"c-att-org" => "<clan>Team Rainbow<end>",
+		"att-org-faction" => 'Clan',
+		"c-att-org-faction" => '<clan>Clan<end>',
+
+		'att-name' => 'Nady',
+		'c-att-name' => '<highlight>Nady<end>',
+		'att-level' => 220,
+		'c-att-level' => '<highlight>220<end>',
+		'att-ai-level' => 30,
+		'c-att-ai-level' => '<green>30<end>',
+		'att-prof' => 'Bureaucrat',
+		'c-att-prof' => '<highlight>Bureaucrat<end>',
+		'att-profession' => 'Bureaucrat',
+		'c-att-profession' => '<highlight>Bureaucrat<end>',
+		'att-org-rank' => 'Advisor',
+		'c-att-org-rank' => '<highlight>Advisor<end>',
+		'att-gender' => 'Female',
+		'c-att-gender' => '<highlight>Female<end>',
+		'att-breed' => 'Nano',
+		'c-att-breed' => '<highlight>Nano<end>',
+		'att-faction' => 'Clan',
+		'c-att-faction' => '<clan>Clan<end>',
+		// ...DefenderOrg::EXAMPLE_TOKENS,
+		"def-org" => "Troet",
+		"c-def-org" => "<neutral>Troet<end>",
+		"def-faction" => "Neutral",
+		"c-def-faction" => "<neutral>Neutral<end>",
+
+		"pf-id" => 551,
+		"att-coord-x" => 700,
+		"att-coord-y" => 800,
+	];
+
 	public function __construct(
 		public int $playfield_id,
 		public int $site_id,
@@ -17,10 +56,13 @@ class TowerAttack {
 
 	public function addLookups(?Player $player): void {
 		$this->attacker->ai_level ??= $player?->ai_level;
+		$this->attacker->faction ??= $player?->faction;
 		$this->attacker->breed ??= $player?->breed;
 		$this->attacker->gender ??= $player?->gender;
 		$this->attacker->level ??= $player?->level;
-		$this->attacker->org_rank ??= $player?->guild_rank;
+		if (isset($this->attacker->org)) {
+			$this->attacker->org_rank ??= $player?->guild_rank;
+		}
 		$this->attacker->profession ??= $player?->profession;
 	}
 
