@@ -57,7 +57,7 @@ class DiscordMessageOut {
 					$fields = array_splice($embed->fields, $i);
 					$danglingEmbed = clone $embed;
 					$danglingEmbed->fields = $fields;
-					$embeds = array_splice($this->embeds, $e + 1);
+					$embeds = array_values(array_splice($this->embeds, $e + 1));
 					$msg2->embeds = [$danglingEmbed, ...$embeds];
 					return [$this, $msg2];
 				}

@@ -504,8 +504,18 @@ class BotRunner {
 			$refObj = new ReflectionObject($instance);
 			foreach ($refObj->getProperties() as $refProp) {
 				foreach ($refProp->getAttributes(NCA\DefineSetting::class, ReflectionAttribute::IS_INSTANCEOF) as $refAttr) {
-					/** @var NCA\DefineSetting */
-					$attr = $refAttr->newInstance();
+					try {
+						/** @var NCA\DefineSetting */
+						$attr = $refAttr->newInstance();
+					} catch (\Throwable $e) {
+						$this->logger->error('Incompatible attribute #[{attrName}] in {loc}: {error}', [
+							"attrName" => str_replace('Nadybot\Core\Attributes', 'NCA', $refAttr->getName()),
+							"error" => $e->getMessage(),
+							"exception" => $e,
+							"loc" => $refProp->getDeclaringClass()->getName() . '::$' . $refProp->getName(),
+						]);
+						exit;
+					}
 					$attr->name ??= Nadybot::toSnakeCase($refProp->getName());
 					try {
 						$value = $settingManager->getTyped($attr->name);
