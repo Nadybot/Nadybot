@@ -460,6 +460,12 @@ class AttacksController extends ModuleInstance {
 			->whereNotNull("attacker_faction")
 			->asObj(DBOutcome::class);
 
+		/** @var Collection<DBOutcome> */
+		$abandonments = $this->db->table($this->nwCtrl::DB_OUTCOMES)
+			->where("timestamp", ">", $from)
+			->whereNull("attacker_faction")
+			->asObj(DBOutcome::class);
+
 		$blob = "<header2>Attacks<end>\n".
 			"<tab><clan>Clans<end> have attacked ".
 			$this->times($attacks->where("att_faction", "Clan")->count()) . ".\n".
@@ -474,7 +480,15 @@ class AttacksController extends ModuleInstance {
 			"<tab><neutral>Neutrals<end> have lost ".
 			$this->sites($victories->where("losing_faction", "Neutral")->count()) . ".\n".
 			"<tab><omni>Omnis<end> have lost ".
-			$this->sites($victories->where("losing_faction", "Omni")->count()) . ".";
+			$this->sites($victories->where("losing_faction", "Omni")->count()) . ".".
+			"\n\n" .
+			"<header2>Abandonments<end>\n".
+			"<tab><clan>Clans<end> have abandoned ".
+			$this->sites($abandonments->where("losing_faction", "Clan")->count()) . ".\n".
+			"<tab><neutral>Neutrals<end> have abandoned ".
+			$this->sites($abandonments->where("losing_faction", "Neutral")->count()) . ".\n".
+			"<tab><omni>Omnis<end> have abandoned ".
+			$this->sites($abandonments->where("losing_faction", "Omni")->count()) . ".";
 
 		$msg = $this->text->makeBlob(
 			"Tower stats for the last " . $this->util->unixtimeToReadable(time() - $from),
