@@ -3,7 +3,7 @@
 namespace Nadybot\Modules\PVP_MODULE;
 
 use Illuminate\Support\Collection;
-use Nadybot\Core\ParamClass\{PNonGreedy, PTowerSite};
+use Nadybot\Core\ParamClass\{PDuration, PNonGreedy, PTowerSite};
 use Nadybot\Core\Routing\{RoutableMessage, Source};
 use Nadybot\Core\{Attributes as NCA, CmdContext, ConfigFile, DB, LoggerWrapper, MessageHub, ModuleInstance, QueryBuilder, Text, Util};
 use Nadybot\Modules\HELPBOT_MODULE\{Playfield, PlayfieldController};
@@ -26,10 +26,16 @@ use Nadybot\Modules\PVP_MODULE\Event\TowerAttackInfo;
 		description: "Show the last tower outcomes",
 		accessLevel: "guest",
 	),
+	NCA\DefineCommand(
+		command: AttacksController::CMD_STATS,
+		description: "Show how many towers each faction has lost",
+		accessLevel: "guest",
+	),
 ]
 class AttacksController extends ModuleInstance {
 	public const CMD_ATTACKS = "nw attacks";
 	public const CMD_OUTCOMES = "nw victory";
+	public const CMD_STATS = "nw stats";
 
 	private const ATT_FMT_NORMAL = "{?att-org:{c-att-org}}{!att-org:{c-att-name}} attacked {c-def-org} ".
 		"{?att-org:- {c-att-name} }{?att-level:({c-att-level}/{c-att-ai-level},{?att-gender: {att-gender} {att-breed}} {c-att-profession}{?att-org-rank:, {att-org-rank}})}";
@@ -433,6 +439,50 @@ class AttacksController extends ModuleInstance {
 		);
 	}
 
+	/** See how many tower sites each faction has taken and lost in the past 24 hours or &lt;duration&gt; */
+	#[NCA\HandlesCommand(self::CMD_STATS)]
+	public function nwSTatsCommand(
+		CmdContext $context,
+		#[NCA\Str("stats")] string $action,
+		?PDuration $duration,
+	): void {
+		$from = time() - (isset($duration) ? $duration->toSecs() : 3600 * 24);
+
+		/** @var Collection<DBTowerAttack> */
+		$attacks = $this->db->table($this->nwCtrl::DB_ATTACKS)
+			->where("timestamp", ">", $from)
+			->whereNotNull("att_faction")
+			->asObj(DBTowerAttack::class);
+
+		/** @var Collection<DBOutcome> */
+		$victories = $this->db->table($this->nwCtrl::DB_OUTCOMES)
+			->where("timestamp", ">", $from)
+			->whereNotNull("attacker_faction")
+			->asObj(DBOutcome::class);
+
+		$blob = "<header2>Attacks<end>\n".
+			"<tab><clan>Clans<end> have attacked ".
+			$this->times($attacks->where("att_faction", "Clan")->count()) . ".\n".
+			"<tab><neutral>Neutrals<end> have attacked ".
+			$this->times($attacks->where("att_faction", "Neutral")->count()) . ".\n".
+			"<tab><omni>Omnis<end> have attacked ".
+			$this->times($attacks->where("att_faction", "Omni")->count()) . ".".
+			"\n\n".
+			"<header2>Victories<end>\n".
+			"<tab><clan>Clans<end> have lost ".
+			$this->sites($victories->where("losing_faction", "Clan")->count()) . ".\n".
+			"<tab><neutral>Neutrals<end> have lost ".
+			$this->sites($victories->where("losing_faction", "Neutral")->count()) . ".\n".
+			"<tab><omni>Omnis<end> have lost ".
+			$this->sites($victories->where("losing_faction", "Omni")->count()) . ".";
+
+		$msg = $this->text->makeBlob(
+			"Tower stats for the last " . $this->util->unixtimeToReadable(time() - $from),
+			$blob
+		);
+		$context->reply($msg);
+	}
+
 	/** Show the last tower victories */
 	#[NCA\HandlesCommand(self::CMD_OUTCOMES)]
 	public function nwOutcomesAnywhereCommand(
@@ -501,6 +551,16 @@ class AttacksController extends ModuleInstance {
 				$page??1
 			)
 		);
+	}
+
+	/** Return <highlight>{$count} tower time(s)<end> */
+	private function times(int $count): string {
+		return "<highlight>{$count} " . $this->text->pluralize("time", $count) . "<end>";
+	}
+
+	/** Return <highlight>{$count} tower site(s)<end> */
+	private function sites(int $count): string {
+		return "<highlight>{$count} tower " . $this->text->pluralize("site", $count) . "<end>";
 	}
 
 	private function renderAttackInfo(TowerAttackInfo $info, Playfield $pf): string {
