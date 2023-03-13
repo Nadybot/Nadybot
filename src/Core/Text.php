@@ -406,6 +406,20 @@ class Text {
 		return $message;
 	}
 
+	/** @return string[] */
+	public function getPopups(string $message): array {
+		$popups = [];
+		$message = preg_replace_callback(
+			"/<a\s+href\s*=\s*([\"'])text:\/\/(.+?)\\1\s*>(.*?)<\/a>/is",
+			function (array $matches) use (&$popups): string {
+				$popups []= $matches[2];
+				return "";
+			},
+			$message
+		);
+		return $popups;
+	}
+
 	/** Return the pluralized version of $word if $amount is not 1 */
 	public function pluralize(string $word, int $amount): string {
 		if ($amount === 1) {

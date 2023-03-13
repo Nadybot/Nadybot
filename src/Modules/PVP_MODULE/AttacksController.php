@@ -2,13 +2,19 @@
 
 namespace Nadybot\Modules\PVP_MODULE;
 
+use function Amp\asyncCall;
+use Generator;
 use Illuminate\Support\Collection;
+use Nadybot\Core\DBSchema\Player;
+use Nadybot\Core\Modules\PLAYER_LOOKUP\PlayerManager;
 use Nadybot\Core\ParamClass\{PDuration, PNonGreedy, PTowerSite};
 use Nadybot\Core\Routing\{RoutableMessage, Source};
 use Nadybot\Core\{Attributes as NCA, CmdContext, ConfigFile, DB, LoggerWrapper, MessageHub, ModuleInstance, QueryBuilder, Text, Util};
 use Nadybot\Modules\HELPBOT_MODULE\{Playfield, PlayfieldController};
 use Nadybot\Modules\LEVEL_MODULE\LevelController;
+
 use Nadybot\Modules\PVP_MODULE\Event\TowerAttackInfo;
+use Throwable;
 
 #[
 	NCA\Instance,
@@ -50,6 +56,9 @@ class AttacksController extends ModuleInstance {
 
 	#[NCA\Inject]
 	public NotumWarsController $nwCtrl;
+
+	#[NCA\Inject]
+	public PlayerManager $playerManager;
 
 	#[NCA\Inject]
 	public MessageHub $msgHub;
@@ -567,6 +576,28 @@ class AttacksController extends ModuleInstance {
 		);
 	}
 
+	#[
+		NCA\NewsTile(
+			name: "tower-own-new",
+			description: "Show the last 5 attacks on your org's towers from the last 3\n".
+				"days - or nothing, if no attacks occurred.",
+			example: "<header2>Notum Wars [<u>see more</u>]<end>\n".
+				"<tab>22-Oct-2021 18:20 UTC - Nady (<clan>Team Rainbow<end>) attacked <u>CLON 6</u> (QL 35-50):"
+		)
+	]
+	public function towerOwnTile(string $sender, callable $callback): void {
+		asyncCall(function () use ($sender, $callback): Generator {
+			try {
+				/** @var ?Player */
+				$whois = yield $this->playerManager->byName($sender);
+				$text = $this->getTowerSelfTile($whois);
+			} catch (Throwable) {
+				$text = null;
+			}
+			$callback($text);
+		});
+	}
+
 	/** Return <highlight>{$count} tower time(s)<end> */
 	private function times(int $count): string {
 		return "<highlight>{$count} " . $this->text->pluralize("time", $count) . "<end>";
@@ -655,10 +686,13 @@ class AttacksController extends ModuleInstance {
 	/** @return string[] */
 	private function nwAttacksCmd(QueryBuilder $query, string $title, string $command, int $page, ?bool $group): array {
 		$numAttacks = $query->count();
+
+		/** @psalm-suppress DocblockTypeContradiction */
+		if ($query->limit === null) {
+			$query = $query->limit(15)->offset(($page-1) * 15);
+		}
 		$attacks = $query
 			->orderByDesc("timestamp")
-			->limit(15)
-			->offset(($page-1) * 15)
 			->asObj(DBTowerAttack::class);
 		return $this->renderAttackList(
 			$command,
@@ -942,5 +976,30 @@ class AttacksController extends ModuleInstance {
 			) . " (QL {$site->min_ql}-{$site->max_ql})";
 		}
 		return $blob;
+	}
+
+	private function getTowerSelfTile(?Player $whois): ?string {
+		if (!isset($whois) || !isset($whois->guild)) {
+			return null;
+		}
+		$query = $this->db->table($this->nwCtrl::DB_ATTACKS)
+			->where("def_org", $whois->guild)
+			->where("timestamp", ">=", time() - (3 * 24 * 3600))
+			->limit(5);
+		if ($query->count() === 0) {
+			return null;
+		}
+		// This is a hacky way, until I make this function even more generic
+		$blob = $this->text->getPopups($this->nwAttacksCmd(
+			$query,
+			"Tower Attacks",
+			"nw attacks",
+			1,
+			true,
+		)[0])[0];
+		$blob = preg_replace("/^.+?<header2>/s", "<header2>", $blob);
+		$blob = "<tab>" . join("\n<tab>", explode("\n", $blob));
+		$moreLink = $this->text->makeChatcmd("see more", "/tell <myname> nw attacks org {$whois->guild}");
+		return "<header2>Notum Wars [{$moreLink}]<end>\n{$blob}";
 	}
 }
