@@ -76,9 +76,9 @@ use Safe\Exceptions\JsonException;
 	),
 ]
 class NotumWarsController extends ModuleInstance {
-	public const TOWER_API = "https://towers.aobots.org";
-	public const ATTACKS_API = "https://towers.aobots.org/attacks";
-	public const OUTCOMES_API = "https://towers.aobots.org/outcomes";
+	public const TOWER_API = "https://towers.aobots.org/api/sites/";
+	public const ATTACKS_API = "https://towers.aobots.org/api/attacks/";
+	public const OUTCOMES_API = "https://towers.aobots.org/api/outcomes/";
 	public const DB_ATTACKS = "nw_attacks_<myname>";
 	public const DB_OUTCOMES = "nw_outcomes_<myname>";
 
