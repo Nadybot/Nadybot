@@ -74,6 +74,16 @@ use Safe\Exceptions\JsonException;
 		description: "Start a plant timer for a site",
 		accessLevel: "guest",
 	),
+	NCA\DefineCommand(
+		command: "nw towerqty",
+		description: "Show how many towers each level is allowed to plant",
+		accessLevel: "guest",
+	),
+	NCA\DefineCommand(
+		command: "nw types",
+		description: "Show the level ranges for tower types",
+		accessLevel: "guest",
+	),
 ]
 class NotumWarsController extends ModuleInstance {
 	public const TOWER_API = "https://towers.aobots.org/api/sites/";
@@ -1280,6 +1290,68 @@ class NotumWarsController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
+	/** Show how many towers you are allowed to plant. Add 'all' to show it generally */
+	#[NCA\HandlesCommand("nw towerqty")]
+	public function towerQtyCommand(
+		CmdContext $context,
+		#[NCA\Str("towerqty")] string $action,
+		#[NCA\Str("all")] ?string $all,
+	): Generator {
+		if (isset($all)) {
+			$msg = $this->text->makeBlob("Allowed number of towers", $this->getAllTowerQuantitiesBlob());
+			$context->reply($msg);
+			return;
+		}
+
+		/** @var ?Player */
+		$player = yield $this->playerManager->byName($context->char->name);
+		$blob = $this->getAllTowerQuantitiesBlob();
+		if (!isset($player)) {
+			$msg = $this->text->makeBlob("Allowed number of towers", $blob);
+			$context->reply($msg);
+			return;
+		}
+		if ($player->level < 15) {
+			$msg = "Your level is too low to have any towers.";
+		} elseif ($player->level < 75) {
+			$msg = "Your level ({$player->level}) allows you to have <highlight>1<end> tower.";
+		} elseif ($player->level < 150) {
+			$msg = "Your level ({$player->level}) allows you to have <highlight>2<end> towers.";
+		} elseif ($player->level < 200) {
+			$msg = "Your level ({$player->level}) allows you to have <highlight>3<end> towers.";
+		} else {
+			$msg = "Your level ({$player->level}) allows you to have <highlight>4<end> towers.";
+		}
+		$msg = $this->text->blobWrap(
+			$msg . " ",
+			$this->text->makeBlob("See full list", $blob, "Towers by level")
+		);
+		$context->reply($msg);
+	}
+
+	/** Show the tower types by QL of the tower */
+	#[NCA\HandlesCommand("nw types")]
+	public function towerTypeCommand(
+		CmdContext $context,
+		#[NCA\Str("types", "towertype", "towertypes", "towers")] string $action,
+	): void {
+		$blob = "<header2>Tower types by QL<end>";
+		$minQL = 1;
+		$roman = ["I", "II", "III", "IV", "V", "VI", "VII"];
+		$qls = static::TOWER_TYPE_QLS;
+		$qls[301] = 8;
+		foreach ($qls as $ql => $type) {
+			$maxQL = $ql - 1;
+			$blob .= "\n<tab>" . $this->text->alignNumber($minQL, 3).
+				" - ".
+				$this->text->alignNumber($maxQL, 3).
+				": Type " . $roman[$type-2];
+			$minQL = $ql;
+		}
+		$msg = $this->text->makeBlob("Tower types by QL", $blob);
+		$context->reply($msg);
+	}
+
 	/** Render a bunch of sites, all hot, for the !hot-command */
 	public function renderHotSites(FeedMessage\SiteUpdate ...$sites): string {
 		$sites = new Collection($sites);
@@ -1314,6 +1386,16 @@ class NotumWarsController extends ModuleInstance {
 				})->join("\n");
 		})->join("\n\n");
 		return $blob;
+	}
+
+	/** Get a full overview, how many towers you can have at which level */
+	private function getAllTowerQuantitiesBlob(): string {
+		return "<header2>Number of towers by level<end>\n".
+			"<tab>Level <black>00<end>1 - <black>0<end>14: <highlight>0<end> towers\n".
+			"<tab>Level <black>0<end>15 - <black>0<end>74: <highlight>1<end> tower\n".
+			"<tab>Level <black>0<end>75 - 149: <highlight>2<end> towers\n".
+			"<tab>Level 150 - 199: <highlight>3<end> towers\n".
+			"<tab>Level 200 - 220: <highlight>4<end> towers\n";
 	}
 
 	/** @return string[] */
