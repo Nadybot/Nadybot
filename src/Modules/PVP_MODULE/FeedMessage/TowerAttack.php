@@ -44,6 +44,8 @@ class TowerAttack {
 		"att-coord-y" => 800,
 	];
 
+	public bool $isFake = false;
+
 	public function __construct(
 		public int $playfield_id,
 		public int $site_id,
@@ -53,6 +55,8 @@ class TowerAttack {
 		public DefenderOrg $defender,
 		public int $timestamp,
 	) {
+		$this->isFake = !isset($attacker->character_id)
+			|| (!isset($attacker->org) && !isset($attacker->level));
 	}
 
 	public function addLookups(?Player $player): void {

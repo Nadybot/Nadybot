@@ -613,7 +613,11 @@ class AttacksController extends ModuleInstance {
 		$attacker = $attack->attacker;
 		$site = $info->site;
 		assert(isset($site));
-		$blob = "<header2>Attacker<end>\n";
+		$blob = "";
+		if ($info->attack->isFake) {
+			$blob .= "<highlight>Warning:<end> The attacker is very likely a pet with a fake name!\n\n";
+		}
+		$blob .= "<header2>Attacker<end>\n";
 		$blob .= "<tab>Name: <highlight>{$attacker->name}<end>\n";
 		if (isset($attacker->breed) && strlen($attacker->breed)) {
 			$blob .= "<tab>Breed: <highlight>{$attacker->breed}<end>\n";
