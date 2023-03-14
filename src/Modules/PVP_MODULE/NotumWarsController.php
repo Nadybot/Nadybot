@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\PVP_MODULE;
 
+use function Amp\{asyncCall, delay};
 use function Safe\{json_decode};
 use Amp\Http\Client\{HttpClientBuilder, Request, Response};
 use EventSauce\ObjectHydrator\{ObjectMapperUsingReflection, UnableToHydrateObject};
@@ -561,6 +562,27 @@ class NotumWarsController extends ModuleInstance {
 		}
 	}
 
+	#[NCA\Setup]
+	public function setup(): void {
+		$this->attacks = $this->db->table(self::DB_ATTACKS)
+			->where("timestamp", ">=", time() - 6 * 3600)
+			->orderByDesc("timestamp")
+			->asObj(DBTowerAttack::class)
+			->map(function (DBTowerAttack $attack): FeedMessage\TowerAttack {
+				return $attack->toTowerAttack();
+			})
+			->toArray();
+
+		$this->outcomes = $this->db->table(self::DB_OUTCOMES)
+			->where("timestamp", ">=", time() - 7200)
+			->orderByDesc("timestamp")
+			->asObj(DBOutcome::class)
+			->map(function (DBOutcome $outcome): TowerOutcome {
+				return $outcome->toTowerOutcome();
+			})
+			->toArray();
+	}
+
 	#[NCA\Event("connect", "Load all attacks from the API")]
 	public function initAttacksFromApi(): Generator {
 		$maxTS = $this->db->table(self::DB_ATTACKS)->max("timestamp");
@@ -595,10 +617,7 @@ class NotumWarsController extends ModuleInstance {
 					isset($attack->attacker->character_id)
 					&& ($breedRequired || $infoMissing)
 				) {
-					$player = yield $this->playerManager->lookupAsync2(
-						$attack->attacker->name,
-						$this->config->dimension,
-					);
+					$player = yield $this->playerManager->byName($attack->attacker->name);
 					$attack->addLookups($player);
 				}
 				$attInfo = DBTowerAttack::fromTowerAttack($attack);
@@ -750,24 +769,39 @@ class NotumWarsController extends ModuleInstance {
 		$attack = $event->attack;
 		$attacker = $attack->attacker;
 		$this->registerAttack($attack);
-		$player = null;
 		$breedRequired = !isset($attacker->breed) && $this->towerAttackExtraInfo;
 		$infoMissing = !isset($attacker->level) || !isset($attacker->faction);
-		if (isset($attacker->character_id) && ($breedRequired || $infoMissing)) {
-			$player = yield $this->playerManager->lookupAsync2(
-				$attack->attacker->name,
-				$this->config->dimension,
-			);
-			$event->attack->addLookups($player);
+		$player = $this->playerManager->findInDb($attacker->name, $this->config->dimension);
+		if (isset($player)) {
+			$attack->addLookups($player);
+		} elseif (isset($attacker->character_id) && ($breedRequired || $infoMissing)) {
+			$player = yield $this->playerManager->byName($attacker->name);
+			$attack->addLookups($player);
 		}
-		$site = $this->state[$event->attack->playfield_id][$event->attack->site_id]??null;
+		$site = $this->state[$attack->playfield_id][$attack->site_id]??null;
 		if (isset($site)) {
-			$event->attack->ql ??= $site->ql;
+			$attack->ql ??= $site->ql;
 		}
-		$attInfo = DBTowerAttack::fromTowerAttack($event->attack);
+		$attInfo = DBTowerAttack::fromTowerAttack($attack);
 		$this->db->insert(self::DB_ATTACKS, $attInfo);
-		$infoEvent = new Event\TowerAttackInfo($event->attack, $site);
+		$infoEvent = new Event\TowerAttackInfo($attack, $site);
 		$this->eventManager->fireEvent($infoEvent);
+		if (isset($player)) {
+			return;
+		}
+		// If we're still missing whois-data, fill it in 1s-30s later
+		// so we don't flood PORK
+		asyncCall(function () use ($attack): Generator {
+			yield delay(random_int(1000, 30000));
+			$player = yield $this->playerManager->byName($attack->attacker->name);
+			$attack->addLookups($player);
+			$attInfo = DBTowerAttack::fromTowerAttack($attack);
+			$this->db->update(
+				self::DB_ATTACKS,
+				["playfield_id", "site_id", "timestamp", "def_org", "att_name"],
+				$attInfo
+			);
+		});
 	}
 
 	#[NCA\Event("gas-update", "Update gas information from the API")]
@@ -1193,10 +1227,7 @@ class NotumWarsController extends ModuleInstance {
 		#[NCA\Str("sites")] string $action,
 	): Generator {
 		/** @var ?Player */
-		$player = yield $this->playerManager->lookupAsync2(
-			$context->char->name,
-			$context->char->dimension,
-		);
+		$player = yield $this->playerManager->byName($context->char->name);
 		if (!isset($player) || !isset($player->guild_id)) {
 			$context->reply("You are currently not in an org.");
 			return;
@@ -1259,10 +1290,7 @@ class NotumWarsController extends ModuleInstance {
 			$uid = yield $this->chatBot->getUid2($search);
 			if (isset($uid)) {
 				/** @var ?Player */
-				$player = yield $this->playerManager->lookupAsync2(
-					$search,
-					$context->char->dimension,
-				);
+				$player = yield $this->playerManager->byName($search);
 				if (isset($player, $player->guild_id)) {
 					$searchTerm = "{$search}/{$player->guild}";
 				}
