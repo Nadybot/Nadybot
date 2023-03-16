@@ -185,7 +185,7 @@ class AltInfo {
 
 	public function hasUnvalidatedAlts(): bool {
 		foreach ($this->getAllAlts() as $alt) {
-			if (!$this->isValidated($alt)) {
+			if (!$this->isValidated((string)$alt)) {
 				return true;
 			}
 		}
