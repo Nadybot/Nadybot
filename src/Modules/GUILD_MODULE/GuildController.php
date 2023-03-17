@@ -459,7 +459,7 @@ class GuildController extends ModuleInstance {
 	public function updateorgCommand(CmdContext $context): Generator {
 		$context->reply("Starting Roster update");
 		try {
-			yield $this->updateMyOrgRoster();
+			yield $this->updateMyOrgRoster(true);
 		} catch (Throwable $e) {
 			$context->reply("There was an error during the roster update: ".
 				$e->getMessage());
@@ -471,7 +471,7 @@ class GuildController extends ModuleInstance {
 	/** @deprecated */
 	public function updateOrgRoster(?callable $callback=null, mixed ...$args): void {
 		asyncCall(function () use ($callback, $args): Generator {
-			yield $this->updateMyOrgRoster();
+			yield $this->updateMyOrgRoster(false);
 			if (isset($callback)) {
 				$callback(...$args);
 			}
@@ -479,13 +479,13 @@ class GuildController extends ModuleInstance {
 	}
 
 	/** @return Promise<void> */
-	public function updateMyOrgRoster(): Promise {
-		return call(function (): Generator {
+	public function updateMyOrgRoster(bool $forceUpdate=false): Promise {
+		return call(function () use ($forceUpdate): Generator {
 			if (!$this->isGuildBot() || !isset($this->config->orgId)) {
 				return;
 			}
 			$this->logger->notice("Starting Roster update");
-			$org = yield $this->guildManager->byId($this->config->orgId, $this->config->dimension, false);
+			$org = yield $this->guildManager->byId($this->config->orgId, $this->config->dimension, $forceUpdate);
 			yield $this->updateRosterForGuild($org);
 		});
 	}
@@ -508,7 +508,7 @@ class GuildController extends ModuleInstance {
 		description: "Download guild roster xml and update guild members"
 	)]
 	public function downloadOrgRosterEvent(Event $eventObj): Generator {
-		yield $this->updateMyOrgRoster();
+		yield $this->updateMyOrgRoster(false);
 	}
 
 	#[NCA\Event(
