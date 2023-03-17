@@ -85,6 +85,7 @@ use Throwable;
 ]
 class GuildController extends ModuleInstance {
 	public const DB_TABLE = "org_members_<myname>";
+	private const CONSECUTIVE_BAD_UPDATES = 2;
 
 	#[NCA\Inject]
 	public DB $db;
@@ -178,6 +179,10 @@ class GuildController extends ModuleInstance {
 	/** The last detected org name */
 	#[NCA\Setting\Text(mode: 'noedit')]
 	public string $lastOrgName = Nadybot::UNKNOWN_ORG;
+
+	/** Number of skipped roster updates, because they were likely bad */
+	#[NCA\Setting\Number(mode: 'noedit')]
+	public int $numOrgUpdatesSkipped = 0;
 
 	#[NCA\Setup]
 	public function setup(): void {
@@ -955,6 +960,26 @@ class GuildController extends ModuleInstance {
 			// Save the current org_members table in a var
 			/** @var Collection<OrgMember> */
 			$data = $this->db->table(self::DB_TABLE)->asObj(OrgMember::class);
+
+			// If the update would remove over 30% of the org members,
+			// only do this, if this happens 2 times in a row.
+			// This way, we avoid deleting our guild members if
+			// Funcom sends us incomplete data
+			$removedPercent = (int)floor(100 - (count($org->members) / $data->count()) * 100);
+			if ($removedPercent > 30 && $this->numOrgUpdatesSkipped < self::CONSECUTIVE_BAD_UPDATES) {
+				$this->logger->warning(
+					"Org update would remove {percent}% of the org members - skipping for now",
+					[
+						"percent" => $removedPercent,
+					]
+				);
+				$this->settingManager->save(
+					'num_org_updates_skipped',
+					$this->numOrgUpdatesSkipped + 1
+				);
+				return;
+			}
+			$this->settingManager->save('num_org_updates_skipped', 0);
 			// @phpstan-ignore-next-line
 			if ($data->count() > 0 || (count($org->members) === 0)) {
 				foreach ($data as $row) {
