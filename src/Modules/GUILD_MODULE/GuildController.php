@@ -965,7 +965,10 @@ class GuildController extends ModuleInstance {
 			// only do this, if this happens 2 times in a row.
 			// This way, we avoid deleting our guild members if
 			// Funcom sends us incomplete data
-			$removedPercent = (int)floor(100 - (count($org->members) / $data->count()) * 100);
+			$removedPercent = 0;
+			if ($data->count() > 0) {
+				$removedPercent = (int)floor(100 - (count($org->members) / $data->count()) * 100);
+			}
 			if ($removedPercent > 30 && $this->numOrgUpdatesSkipped < self::CONSECUTIVE_BAD_UPDATES) {
 				$this->logger->warning(
 					"Org update would remove {percent}% of the org members - skipping for now",
