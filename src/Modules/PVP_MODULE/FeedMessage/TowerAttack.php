@@ -54,6 +54,7 @@ class TowerAttack {
 		public Coordinates $location,
 		public DefenderOrg $defender,
 		public int $timestamp,
+		public ?int $penalizing_ended,
 	) {
 		$this->isFake = !isset($attacker->character_id)
 			|| (!isset($attacker->org) && !isset($attacker->level));

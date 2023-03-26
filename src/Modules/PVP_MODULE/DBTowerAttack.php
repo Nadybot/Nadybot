@@ -25,6 +25,7 @@ class DBTowerAttack extends DBRow {
 	public ?int $att_uid=null;
 	public string $def_faction;
 	public string $def_org;
+	public ?int $penalizing_ended=null;
 
 	public static function fromTowerAttack(TowerAttack $att): self {
 		$obj = new self();
@@ -46,6 +47,7 @@ class DBTowerAttack extends DBRow {
 		$obj->att_breed = $att->attacker->breed;
 		$obj->def_faction = $att->defender->faction;
 		$obj->def_org = $att->defender->name;
+		$obj->penalizing_ended = $att->penalizing_ended;
 
 		return $obj;
 	}
@@ -53,6 +55,7 @@ class DBTowerAttack extends DBRow {
 	public function toTowerAttack(): TowerAttack {
 		return new TowerAttack(
 			timestamp: $this->timestamp,
+			penalizing_ended: $this->penalizing_ended,
 			playfield_id: $this->playfield_id,
 			site_id: $this->site_id,
 			ql: $this->ql,

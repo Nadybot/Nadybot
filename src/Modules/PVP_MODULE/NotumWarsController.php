@@ -86,6 +86,13 @@ use Safe\Exceptions\JsonException;
 		accessLevel: "guest",
 	),
 ]
+/*#[
+	NCA\DefineCommand(
+		command: "nw test",
+		description: "Run some sanity tests",
+		accessLevel: "admin",
+	),
+]*/
 class NotumWarsController extends ModuleInstance {
 	public const TOWER_API = "https://towers.aobots.org/api/sites/";
 	public const ATTACKS_API = "https://towers.aobots.org/api/attacks/";
@@ -625,7 +632,7 @@ class NotumWarsController extends ModuleInstance {
 			}
 
 			$this->attacks = [];
-			// All attacks from up to 6h ago can influence the current hot-duration
+			// All attacks from up to 6h ago that penalize can influence the current hot-duration
 			$this->db->table(self::DB_ATTACKS)
 				->where("timestamp", ">=", time() - 6 * 3600)
 				->asObj(DBTowerAttack::class)
@@ -820,6 +827,7 @@ class NotumWarsController extends ModuleInstance {
 		$oldGas = isset($site->gas) ? new Gas($site->gas) : null;
 		$newGas = new Gas($event->gas->gas);
 		$site->gas = $event->gas->gas;
+		$this->unpenalizeAttacksFromSiteOwner($site);
 		$tokens = array_merge(
 			$site->getTokens(),
 			$pf->getTokens(),
@@ -1380,6 +1388,132 @@ class NotumWarsController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
+	/** Run some tests to test the hot/cold/penalty logic */
+	/*
+		#[NCA\HandlesCommand("nw test")]
+		public function towerTestCommand(
+			CmdContext $context,
+			#[NCA\Str("test", "tests")] string $action,
+		): void {
+			$blobs = [];
+			$site = new FeedMessage\SiteUpdate(
+				playfield_id: 585,
+				site_id: 6,
+				enabled: true,
+				min_ql: 30,
+				max_ql: 45,
+				name: "Giant Green River Bank South",
+				timing: FeedMessage\SiteUpdate::TIMING_US,
+				center: new FeedMessage\Coordinates(x: 2100, y: 1340),
+				num_conductors: 1,
+				ct_pos: new FeedMessage\Coordinates(x: 2099, y: 1330),
+				num_turrets: 10,
+				gas: 25,
+				org_id: 1329153,
+				org_name: "Team Rainbow",
+				plant_time: 1679782200 - 50 * 3600,
+				ql: 45
+			);
+			// Case 1: Going hot too early
+			$gasTest1 = new GasInfo(
+				site: $site,
+				lastAttack: null,
+				time: 1679782194,
+			);
+			$blobs []= "<highlight>Going hot too early<end>".
+				$gasTest1->dump();
+
+			// Case 2: Going hot 2s too late
+			$gasTest2 = new GasInfo(
+				site: $site,
+				lastAttack: null,
+				time: 1679782202,
+			);
+			$blobs []= "<highlight>Going hot 2s too late<end>".
+				$gasTest2->dump();
+
+			$attack = new TowerAttack(
+				playfield_id: 110,
+				site_id: 1,
+				ql: null,
+				attacker: new FeedMessage\Attacker(
+					name: "Nady",
+					character_id: 1082663656,
+					level: 220,
+					ai_level: 30,
+					profession: "Bureaucrat",
+					org_rank: "Advisor",
+					gender: "Female",
+					breed: "Nano",
+					faction: "Clan",
+					org: new FeedMessage\AttackerOrg(
+						name: "Team Rainbow",
+						faction: "Clan",
+						id: 1329153,
+					),
+				),
+				location: new FeedMessage\Coordinates(100, 100),
+				defender: new FeedMessage\DefenderOrg(
+					name: "Troet",
+					faction: "Neutral",
+				),
+				timestamp: 1679782200 - 3600*4 + 15,
+				penalizing_ended: null,
+			);
+
+			// Case 3: Site 25% in penalty
+			$gasTest3 = new GasInfo(
+				site: $site,
+				time: 1679782200 - 3600*3,
+				lastAttack: $attack,
+			);
+			$blobs []= "<highlight>Site in 25% because of penalty<end>".
+				$gasTest3->dump();
+
+			// Case 4: Site 25% in penalty which needs to be prolonged
+			$gasTest4 = new GasInfo(
+				site: $site,
+				time: 1679782200 - 15,
+				lastAttack: $attack,
+			);
+			$blobs []= "<highlight>Site in 25% and penalty needs to be prolonged<end>".
+				$gasTest4->dump();
+
+			$attack->timestamp -= 3600;
+			$attack->penalizing_ended = $attack->timestamp + 3900;
+			// Case 5: Site 25% but penalty not affecting the site anymore
+			$gasTest5 = new GasInfo(
+				site: $site,
+				time: 1679782200 + 14,
+				lastAttack: $attack,
+			);
+			$blobs []= "<highlight>Site in 25%, but penalty not affecting site anymore<end>".
+				$gasTest5->dump();
+
+			$site->gas = 75;
+			// Case 6: Site at 75%, all in time
+			$gasTest6 = new GasInfo(
+				site: $site,
+				time: 1679782200 + 8*3600,
+				lastAttack: null,
+			);
+			$blobs []= "<highlight>Site at 75%, all in time<end>".
+				$gasTest6->dump();
+
+			// Case 7: Site at 75%, too early
+			$gasTest7 = new GasInfo(
+				site: $site,
+				time: 1679782200 + 6*3600-1000,
+				lastAttack: null,
+			);
+			$blobs []= "<highlight>Site at 75%, too early<end>".
+				$gasTest7->dump();
+
+			$msg = $this->text->makeBlob("Test results", join("\n\n", $blobs));
+			$context->reply($msg);
+		}
+	*/
+
 	/** Render a bunch of sites, all hot, for the !hot-command */
 	public function renderHotSites(FeedMessage\SiteUpdate ...$sites): string {
 		$sites = new Collection($sites);
@@ -1414,6 +1548,32 @@ class NotumWarsController extends ModuleInstance {
 				})->join("\n");
 		})->join("\n\n");
 		return $blob;
+	}
+
+	/**
+	 * If gas goes to 75%, all attacks from the org who owns that
+	 * site are now definitely over
+	 */
+	private function unpenalizeAttacksFromSiteOwner(FeedMessage\SiteUpdate $site): void {
+		if ($site->gas !== 75 || !isset($site->org_id, $site->org_name)) {
+			return;
+		}
+		(new Collection($this->attacks))
+			->whereNull("penalizing_ended")
+			->where("att_org_id", $site->org_id)
+			->each(function (FeedMessage\TowerAttack &$attack): void {
+				$pf = $this->pfCtrl->getPlayfieldById($attack->playfield_id);
+				assert(isset($pf));
+				$this->logger->notice("Unpenalizing attack {from} -> {site}", [
+					"from" => $attack->attacker->org?->name,
+					"site" => "{$pf->short_name} {$attack->site_id}",
+				]);
+				$attack->penalizing_ended = time();
+			});
+		$this->db->table(self::DB_ATTACKS)
+			->whereNull("penalizing_ended")
+			->where("att_org_id", $site->org_id)
+			->update(["penalizing_ended" => time()]);
 	}
 
 	/** Get a full overview, how many towers you can have at which level */
@@ -1741,12 +1901,8 @@ class NotumWarsController extends ModuleInstance {
 		return $line;
 	}
 
-	/**
-	 * Get the time the last attack was made from the org owning this site
-	 *
-	 * @return ?int Unix timestamp, or null if no recent attacks were made from here
-	 */
-	private function getLastAttackFrom(FeedMessage\SiteUpdate $site): ?int {
+	/** Get the last attack that was made from the org owning this site */
+	private function getLastAttackFrom(FeedMessage\SiteUpdate $site): ?FeedMessage\TowerAttack {
 		if (!isset($site->ct_pos)) {
 			return null;
 		}
@@ -1772,6 +1928,6 @@ class NotumWarsController extends ModuleInstance {
 				$lastAttack = $attack;
 			}
 		}
-		return $lastAttack?->timestamp;
+		return $lastAttack;
 	}
 }
