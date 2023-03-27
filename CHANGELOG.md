@@ -21,6 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - It is no longer possible to join a raffle for the same item with an alt.
 - `!updateorg` will now force a re-download from PORK and never use a cached JSON-file.
 - If an org roster update would remove over 30% of the org's members, that update is postponed until it happened 3 times in a row.
+- Show the GMI-Link only in the popup of the `!nano`-command
 
 ## [6.1.2] - 2023-02-12
 
