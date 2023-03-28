@@ -182,7 +182,7 @@ class NotumWarsController extends ModuleInstance {
 	#[NCA\Setting\Boolean]
 	public bool $autoPlantTimer = false;
 
-	/** Automatically fetch breed and gender of attackers from PORK */
+	/** Automatically fetch breed and gender of attackers from PORK (slow) */
 	#[NCA\Setting\Boolean]
 	public bool $towerAttackExtraInfo = false;
 

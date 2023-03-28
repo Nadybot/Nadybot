@@ -9,7 +9,7 @@ use Nadybot\Core\DBSchema\Player;
 use Nadybot\Core\Modules\PLAYER_LOOKUP\PlayerManager;
 use Nadybot\Core\ParamClass\{PDuration, PNonGreedy, PTowerSite};
 use Nadybot\Core\Routing\{RoutableMessage, Source};
-use Nadybot\Core\{Attributes as NCA, CmdContext, ConfigFile, DB, LoggerWrapper, MessageHub, ModuleInstance, QueryBuilder, Text, Util};
+use Nadybot\Core\{AOChatEvent, Attributes as NCA, CmdContext, ConfigFile, DB, LoggerWrapper, MessageHub, ModuleInstance, QueryBuilder, Text, Util};
 use Nadybot\Modules\HELPBOT_MODULE\{Playfield, PlayfieldController};
 use Nadybot\Modules\LEVEL_MODULE\LevelController;
 
@@ -18,6 +18,8 @@ use Throwable;
 
 #[
 	NCA\Instance,
+	NCA\EmitsMessages("pvp", "tower-hit-own"),
+	NCA\EmitsMessages("pvp", "tower-shield-own"),
 	NCA\EmitsMessages("pvp", "tower-attack"),
 	NCA\EmitsMessages("pvp", "tower-attack-own"),
 	NCA\EmitsMessages("pvp", "tower-outcome"),
@@ -242,9 +244,320 @@ class AttacksController extends ModuleInstance {
 	)]
 	public string $siteAbandonedFormat = self::ABANDONED_FMT_NORMAL;
 
+	/** Display format when one of our org's towers is being hit */
+	#[NCA\Setting\Template(
+		options: [
+			"{att-whois} reduced the {tower-type} health to {tower-health}%".
+				" in {site-details}",
+			"{att-whois} reduced the {tower-type} health to {tower-health}%".
+				"{?pf-id: in {pf-short}{?site-id: {site-id}}}",
+			"{?att-faction:<{att-faction}>{att-name}<end>}".
+				"{!att-faction:<highlight>{c-att-name}<end>} ".
+				"reduced the <highlight>{tower-type}<end> health to ".
+				"<highlight>{tower-health}%<end> ".
+				"in {site-details}",
+			"{?att-faction:<{att-faction}>{att-name}<end>}".
+				"{!att-faction:<highlight>{c-att-name}<end>} ".
+				"reduced the <highlight>{tower-type}<end> health to ".
+				"<highlight>{tower-health}%<end>".
+				"{?pf-id: in {pf-short}{?site-id: {site-id}}}",
+			"{tower-type} health reduced to <highlight>{tower-health}%<end> ".
+				"in {site-details}",
+			"{tower-type} health reduced to <highlight>{tower-health}%<end>".
+				"{?pf-id: in {pf-short}{?site-id: {site-id}}}",
+		],
+		exampleValues: [
+			'tower-health' => '75',
+			'tower-type' => 'Control Tower - Neutral',
+			'site-details' => "<a href='itemref://301560/301560/30'>WW 6</a>",
+			"att-name" => "Nady",
+			"c-att-name" => "<highlight>Nady<end>",
+			"att-first-name" => null,
+			"att-last-name" => null,
+			"att-level" => 220,
+			"c-att-level" => "<highlight>220<end>",
+			"att-ai-level" => 30,
+			"c-att-ai-level" => "<green>30<end>",
+			"att-prof" => "Bureaucrat",
+			"c-att-prof" => "<highlight>Bureaucrat<end>",
+			"att-profession" => "Bureaucrat",
+			"c-att-profession" => "<highlight>Bureaucrat<end>",
+			"att-org" => "Team Rainbow",
+			"c-att-org" => "<clan>Team Rainbow<end>",
+			"att-org-rank" => "Advisor",
+			"att-breed" => "Nano",
+			"c-att-breed" => "<highlight>Nano<end>",
+			"att-faction" => "Clan",
+			"c-att-faction" => "<clan>Clan<end>",
+			"att-gender" => "Female",
+			"att-whois" => "\"Nady\" (<highlight>220<end>/<green>30<end>, ".
+				"Female Nano <highlight>Bureaucrat<end>, ".
+				"<clan>Clan<end>, Advisor of <clan>Team Rainbow<end>)",
+			"att-short-prof" => "Crat",
+			"c-att-short-prof" => "<highlight>Crat<end>",
+			// ...Playfield::EXAMPLE_TOKENS,
+			"pf-long" => "Wailing Wastes",
+			"pf-short" => "WW",
+			"pf-id" => 660,
+			// ...SiteUpdate::EXAMPLE_TOKENS,
+			'site-pf-id' => 660,
+			'site-id' => 6,
+			'site-nr' => 6,
+			'site-number' => 6,
+			'site-enabled' => 1,
+			'site-min-ql' => 20,
+			'site-max-ql' => 30,
+			'site-name' => 'Charred Groove',
+			'site-num-conductors' => 0,
+			'site-num-turrets' => 5,
+			'site-num-cts' => 1,
+			'site-gas' => '75%',
+			'c-site-gas' => '<red>75%<end>',
+			'site-faction' => 'Neutral',
+			'c-site-faction' => '<neutral>Neutral<clan>',
+			'site-org-id' => 1,
+			'site-org-name' => 'Troet',
+			'c-site-org-name' => '<neutral>Troet<end>',
+			'site-plant-time' => '13-Jan-2023 17:07 UTC',
+			'site-ct-ql' => 25,
+		],
+		help: 'own_tower_hit_format.txt',
+	)]
+	public string $ownTowerHitFormat = "{tower-type} health reduced to <highlight>{tower-health}%<end> in {site-details}";
+
+	/** Display format when the defense shield on one of our sites is disabled */
+	#[NCA\Setting\Template(
+		options: [
+			"{att-name} ({c-att-org}) disabled the defense shield in {site-details}",
+			"{att-name} ({?att-level:{c-att-level}/{c-att-ai-level} {c-att-short-prof}, }{c-att-org}) disabled the defense shield in {site-details}",
+			"{att-whois} disabled the defense shield in {site-details}",
+		],
+		exampleValues: [
+			'tower-type' => 'Control Tower - Neutral',
+			'site-details' => "<a href='itemref://301560/301560/30'>WW 6</a>",
+			"att-name" => "Nady",
+			"c-att-name" => "<highlight>Nady<end>",
+			"att-first-name" => null,
+			"att-last-name" => null,
+			"att-level" => 220,
+			"c-att-level" => "<highlight>220<end>",
+			"att-ai-level" => 30,
+			"c-att-ai-level" => "<green>30<end>",
+			"att-prof" => "Bureaucrat",
+			"c-att-prof" => "<highlight>Bureaucrat<end>",
+			"att-profession" => "Bureaucrat",
+			"c-att-profession" => "<highlight>Bureaucrat<end>",
+			"att-org" => "Team Rainbow",
+			"c-att-org" => "<clan>Team Rainbow<end>",
+			"att-org-rank" => "Advisor",
+			"att-breed" => "Nano",
+			"c-att-breed" => "<highlight>Nano<end>",
+			"att-faction" => "Clan",
+			"c-att-faction" => "<clan>Clan<end>",
+			"att-gender" => "Female",
+			"att-whois" => "\"Nady\" (<highlight>220<end>/<green>30<end>, ".
+				"Female Nano <highlight>Bureaucrat<end>, ".
+				"<clan>Clan<end>, Advisor of <clan>Team Rainbow<end>)",
+			"att-short-prof" => "Crat",
+			"c-att-short-prof" => "<highlight>Crat<end>",
+			// ...Playfield::EXAMPLE_TOKENS,
+			"pf-long" => "Wailing Wastes",
+			"pf-short" => "WW",
+			"pf-id" => 660,
+			// ...SiteUpdate::EXAMPLE_TOKENS,
+			'site-pf-id' => 660,
+			'site-id' => 6,
+			'site-nr' => 6,
+			'site-number' => 6,
+			'site-enabled' => 1,
+			'site-min-ql' => 20,
+			'site-max-ql' => 30,
+			'site-name' => 'Charred Groove',
+			'site-num-conductors' => 0,
+			'site-num-turrets' => 5,
+			'site-num-cts' => 1,
+			'site-gas' => '75%',
+			'c-site-gas' => '<red>75%<end>',
+			'site-faction' => 'Neutral',
+			'c-site-faction' => '<neutral>Neutral<clan>',
+			'site-org-id' => 1,
+			'site-org-name' => 'Troet',
+			'c-site-org-name' => '<neutral>Troet<end>',
+			'site-plant-time' => '13-Jan-2023 17:07 UTC',
+			'site-ct-ql' => 25,
+		],
+		help: 'own_shield_disabled_format.txt',
+	)]
+	public string $ownShieldDisabledFormat = "{att-name} ({?att-level:{c-att-level}/{c-att-ai-level} {c-att-short-prof}, }{c-att-org}) disabled the defense shield in {site-details}";
+
 	/** Group tower attacks by site, owner and hot-phase */
 	#[NCA\Setting\Boolean]
 	public bool $groupTowerAttacks = true;
+
+	#[NCA\Event(
+		name: "orgmsg",
+		description: "Notify if org's tower site defense shield is disabled via pvp(tower-shield-own)"
+	)]
+	public function shieldLoweredMessageEvent(AOChatEvent $eventObj): Generator {
+		if ($this->util->isValidSender($eventObj->sender)) {
+			return;
+		}
+		if (
+			!preg_match(
+				"/^Your (?<tower>.+?) tower in (?<site_name>.+?) in (?<playfield>.+?) has had its ".
+				"defense shield disabled by (?<att_name>[^ ]+) \((?<att_faction>.+?)\)\.\s*".
+				"The attacker is a member of the organization (?<att_org>.+?)\.$/",
+				$eventObj->message,
+				$matches
+			)
+		) {
+			return;
+		}
+		$pf = $this->pfCtrl->getPlayfieldByName($matches['playfield']);
+		if (!isset($pf)) {
+			return;
+		}
+
+		/** @var ?FeedMessage\SiteUpdate */
+		$site = ($this->nwCtrl->getEnabledSites())
+			->where("playfield_id", $pf->id)
+			->where("name", $matches['site_name'])
+			->first();
+
+		/** @var ?Player */
+		$whois = yield $this->playerManager->byName($matches['att_name']);
+		if ($whois === null) {
+			$whois = new Player();
+			$whois->name = $matches['att_name'];
+		}
+		$whois->faction = ucfirst(strtolower($matches['att_faction']));
+		$whois->guild = $matches['att_org'];
+		$siteName = $pf->short_name;
+		if (isset($site)) {
+			$siteName .= " {$site->site_id}";
+			$siteName = ((array)$this->text->makeBlob(
+				$siteName,
+				$this->nwCtrl->renderSite($site, $pf, false, false, null),
+			))[0];
+		}
+		$tokens = array_merge(
+			$whois->getTokens("att-"),
+			[
+				"tower-type" => $matches['tower'],
+				"att-name" => $matches["att_name"],
+				"c-att-name" => "<highlight>" . $matches['att_name'] . "<end>",
+				"att-faction" => ucfirst(strtolower($matches["att_faction"])),
+				"c-att-faction" => "<" . strtolower($matches["att_faction"]) . ">".
+					ucfirst(strtolower($matches['att_faction'])) . "<end>",
+				"att-org" => $matches["att_org"],
+				"c-att-org" => "<" . strtolower($matches["att_faction"]) . ">".
+					$matches['att_org'] . "<end>",
+				'site-details' => $siteName,
+			],
+			$site?->getTokens() ?? [],
+			$pf->getTokens(),
+		);
+		$msg = $this->text->renderPlaceholders(
+			$this->ownShieldDisabledFormat,
+			$tokens
+		);
+		$rMsg = new RoutableMessage($msg);
+		$rMsg->appendPath(new Source("pvp", "tower-shield-own"));
+		$this->msgHub->handle($rMsg);
+	}
+
+	#[NCA\Event(
+		name: "orgmsg",
+		description: "Notify if org's towers are attacked via pvp(tower-hit-own)"
+	)]
+	public function attackOwnOrgMessageEvent(AOChatEvent $eventObj): Generator {
+		if ($this->util->isValidSender($eventObj->sender)) {
+			return;
+		}
+		if (
+			!preg_match(
+				"/^The tower (?<tower>.+?) in (?<playfield>.+?) was just reduced to (?<health>\d+) % health ".
+				"by (?<att_name>[^ ]+) from the (?<att_org>.+?) organization!$/",
+				$eventObj->message,
+				$matches
+			)
+			&& !preg_match(
+				"/^The tower (?<toker>.+?) in (?<playfield>.+?) was just reduced to (?<health>\d+) % health by (?<att_name>[^ ]+)!$/",
+				$eventObj->message,
+				$matches
+			)
+		) {
+			return;
+		}
+
+		$pf = $this->pfCtrl->getPlayfieldByName($matches['playfield']);
+		if (!isset($pf)) {
+			return;
+		}
+		$attPlayer = $matches['att_name'];
+		$attOrg = $matches['att_org'] ?? null;
+		$attack = $this->getMatchingAttack($pf, $attPlayer, $attOrg);
+		$site = $this->getMatchingSite($pf, $attack);
+
+		/** @var ?Player */
+		$whois = yield $this->playerManager->byName($attPlayer);
+		if ($whois === null) {
+			$whois = new Player();
+			$whois->name = $attPlayer;
+			$whois->faction = 'Unknown';
+		}
+		$whois->guild = $attOrg;
+		if (isset($attack, $attack->attacker->org) && $attack->attacker->org->name === $attOrg) {
+			$whois->guild_id = $attack->attacker->org->id;
+		}
+		if (isset($attack, $attack->attacker->faction)) {
+			$whois->faction = $attack->attacker->faction;
+		}
+		if (isset($attack) && $attack->attacker->name === $attPlayer) {
+			if (isset($attack->attacker->level)) {
+				$whois->level = $attack->attacker->level;
+			}
+			if (isset($attack->attacker->ai_level)) {
+				$whois->ai_level = $attack->attacker->ai_level;
+			}
+			if (isset($attack->attacker->faction)) {
+				$whois->faction = $attack->attacker->faction;
+			}
+			if (isset($attack->attacker->org_rank)) {
+				$whois->guild_rank = $attack->attacker->org_rank;
+			}
+			if (isset($attack->attacker->profession)) {
+				$whois->profession = $attack->attacker->profession;
+			}
+			if (isset($attack->attacker->character_id)) {
+				$whois->charid = $attack->attacker->character_id;
+			}
+		}
+		$siteName = $pf->short_name;
+		if (isset($site)) {
+			$siteName .= " {$site->site_id}";
+			$siteName = ((array)$this->text->makeBlob(
+				$siteName,
+				$this->nwCtrl->renderSite($site, $pf, false, false, null),
+			))[0];
+		}
+		$tokens = array_merge(
+			[
+				'tower-health' => $matches['health'],
+				'tower-type' => $matches['tower'],
+				'site-details' => $siteName,
+			],
+			$whois->getTokens('att-'),
+			$pf->getTokens(),
+		);
+		if (isset($site)) {
+			$tokens = array_merge($tokens, $site->getTokens());
+		}
+		$msg = $this->text->renderPlaceholders($this->ownTowerHitFormat, $tokens);
+		$rMsg = new RoutableMessage($msg);
+		$rMsg->appendPath(new Source("pvp", "tower-hit-own"));
+		$this->msgHub->handle($rMsg);
+	}
 
 	#[NCA\Event("tower-attack-info", "Announce tower attacks")]
 	public function announceTowerAttack(TowerAttackInfo $event): void {
@@ -596,6 +909,40 @@ class AttacksController extends ModuleInstance {
 			}
 			$callback($text);
 		});
+	}
+
+	private function getMatchingAttack(Playfield $pf, string $attName, ?string $attOrgName): ?FeedMessage\TowerAttack {
+		$attacks = (new Collection($this->nwCtrl->attacks))
+			->where("playfield_id", $pf->id)
+			->whereNull("penalizing_ended")
+			->where("defender.name", $this->config->orgName);
+		if (isset($attOrgName)) {
+			$attacks = $attacks->where("attacker.org.name", $attOrgName);
+		} else {
+			$attacks = $attacks->where("attacker.name", $attName);
+		}
+		return $attacks->sortByDesc("timestamp")->first();
+	}
+
+	private function getMatchingSite(Playfield $pf, ?FeedMessage\TowerAttack $attack): ?FeedMessage\SiteUpdate {
+		if (isset($attack)) {
+			return $this->nwCtrl->state[$attack->playfield_id][$attack->site_id] ?? null;
+		}
+		$sites = (new Collection($this->nwCtrl->getEnabledSites()))
+			->where("playfield_id", $pf->id)
+			->where("org_id", $this->config->orgId);
+		// Actually, this can only happen with gas 5% or 25%, but if it's 1 site only
+		// already, use that one
+		if ($sites->count() === 1) {
+			return $sites->firstOrFail();
+		}
+		$sites = $sites
+			->whereNull("gas")
+			->where("gas", "!=", 75);
+		if ($sites->count() === 1) {
+			return $sites->firstOrFail();
+		}
+		return null;
 	}
 
 	/** Return <highlight>{$count} tower time(s)<end> */
