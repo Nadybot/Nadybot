@@ -23,6 +23,11 @@ use Safe\Exceptions\JsonException;
 		description: "Get the status of all prisoners",
 		accessLevel: "guest",
 	),
+	NCA\DefineCommand(
+		command: "hags",
+		description: "Get the status of all Biodome hags",
+		accessLevel: "guest",
+	),
 ]
 class MobController extends ModuleInstance {
 	public const MOB_API = "https://mobs.aobots.org/api/";
@@ -153,6 +158,23 @@ class MobController extends ModuleInstance {
 		}
 		$msg = $this->text->makeBlob(
 			"Status of all prisoners (" . $blobs->count() . ")",
+			$blobs->join("\n\n")
+		);
+		$context->reply($msg);
+	}
+
+	#[HandlesCommand("hags")]
+	public function showHagsCommand(CmdContext $context): void {
+		/** @var Collection<string> */
+		$blobs = (new Collection(array_values($this->mobs[Mob::T_HAG]??[])))
+			->sortBy("name")
+			->map(Closure::fromCallable([$this, "renderMob"]));
+		if ($blobs->isEmpty()) {
+			$context->reply("There is currently no data for any hag. Maybe the API is down.");
+			return;
+		}
+		$msg = $this->text->makeBlob(
+			"Status of all hags (" . $blobs->count() . ")",
 			$blobs->join("\n\n")
 		);
 		$context->reply($msg);

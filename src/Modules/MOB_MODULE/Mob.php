@@ -6,6 +6,7 @@ use EventSauce\ObjectHydrator\MapFrom;
 
 class Mob {
 	public const T_PRISONER = "prisoner";
+	public const T_HAG = "hag";
 
 	public const STATUS_UP = "up";
 	public const STATUS_DOWN = "down";

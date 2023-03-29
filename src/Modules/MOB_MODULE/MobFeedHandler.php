@@ -54,7 +54,7 @@ class MobFeedHandler extends ModuleInstance implements EventFeedHandler {
 	 * @return Promise<void>
 	 */
 	public function handleEventFeedMessage(string $room, array $data): Promise {
-		return call(function () use ($data): void {
+		return call(function () use ($data): Generator {
 			/** @var array<string,class-string> */
 			$mapping = [
 				FeedMessage\Base::CORPSE => FeedMessage\Corpse::class,
@@ -77,10 +77,11 @@ class MobFeedHandler extends ModuleInstance implements EventFeedHandler {
 				$update = $mapper->hydrateObject($class, $data);
 				$mob = $this->mobCtrl->mobs[$update->type][$update->key]??null;
 				if (!isset($mob)) {
-					$this->logger->info("Event for unknown mob: {type}/{key}", [
+					$this->logger->notice("Event for unknown mob: {type}/{key} - reloading from API", [
 						"type" => $update->type,
 						"key" => $update->key,
 					]);
+					yield from $this->mobCtrl->initMobsFromApi();
 					return;
 				}
 				// Tracker was restarted, ignore
