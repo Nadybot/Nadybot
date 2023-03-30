@@ -990,7 +990,6 @@ class AltsController extends ModuleInstance {
 	private function cacheAlts(): void {
 		$this->alts = [];
 		$this->db->table("alts")
-			->where("added_via", $this->db->getMyname())
 			->where("validated_by_main", true)
 			->where("validated_by_alt", true)
 			->asObj(Alt::class)
