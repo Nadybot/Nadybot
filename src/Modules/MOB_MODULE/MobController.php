@@ -28,6 +28,11 @@ use Safe\Exceptions\JsonException;
 		description: "Get the status of all Biodome hags",
 		accessLevel: "guest",
 	),
+	NCA\DefineCommand(
+		command: "dreads",
+		description: "Get the status of all Dreadlochs bosses",
+		accessLevel: "guest",
+	),
 ]
 class MobController extends ModuleInstance {
 	public const MOB_API = "https://mobs.aobots.org/api/";
@@ -177,6 +182,29 @@ class MobController extends ModuleInstance {
 			"Status of all hags (" . $blobs->count() . ")",
 			$blobs->join("\n\n")
 		);
+		$context->reply($msg);
+	}
+
+	#[HandlesCommand("dreads")]
+	public function showDreadsCommand(CmdContext $context): void {
+		/** @var Collection<string> */
+		$factions = (new Collection(array_values($this->mobs[Mob::T_DREAD]??[])))
+			->sortBy("name")
+			->groupBy(function (Mob $mob): string {
+				[$faction] = explode("-", $mob->key);
+				return $faction;
+			});
+		if ($factions->isEmpty()) {
+			$context->reply("There is currently no data for any Dreadloch boss. Maybe the API is down.");
+			return;
+		}
+		$blobs = $factions->map(function (Collection $dreads, string $faction): string {
+			return ((array)$this->text->makeBlob(
+				"{$faction} dread bosses (" . $dreads->count() . ")",
+				$dreads->map(Closure::fromCallable([$this, "renderMob"]))->join("\n\n")
+			))[0];
+		});
+		$msg = "Status of all " . $blobs->join(" and ") . ".";
 		$context->reply($msg);
 	}
 
