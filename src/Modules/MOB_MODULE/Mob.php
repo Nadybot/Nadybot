@@ -8,6 +8,7 @@ class Mob {
 	public const T_PRISONER = "prisoner";
 	public const T_HAG = "hag";
 	public const T_DREAD = "dreadloch";
+	public const T_UNIQUES = "unique";
 
 	public const STATUS_UP = "up";
 	public const STATUS_DOWN = "down";
@@ -38,7 +39,7 @@ class Mob {
 		public string $key,
 		public string $type,
 		#[MapFrom("coordinates.x", ".")] public int $x,
-		#[MapFrom("coordinates.x", ".")] public int $y,
+		#[MapFrom("coordinates.y", ".")] public int $y,
 		#[MapFrom("playfield")] public int $playfield_id,
 		public ?int $instance,
 		#[MapFrom("status.status", ".")] public string $status,

@@ -20,7 +20,8 @@ use Safe\Exceptions\JsonException;
 	NCA\HasMigrations,
 	NCA\EmitsMessages("mobs", "*"),
 	NCA\DefineCommand(
-		command: "pris",
+		command: "prisoners",
+		alias: ["pris"],
 		description: "Get the status of all prisoners",
 		accessLevel: "guest",
 	),
@@ -32,6 +33,17 @@ use Safe\Exceptions\JsonException;
 	NCA\DefineCommand(
 		command: "dreads",
 		description: "Get the status of all Dreadlochs bosses",
+		accessLevel: "guest",
+	),
+	NCA\DefineCommand(
+		command: "ljotur",
+		description: "Get the status of Ljotur the Lunatic",
+		accessLevel: "guest",
+	),
+	NCA\DefineCommand(
+		command: "otacustes",
+		alias: ["ota"],
+		description: "Get the status of Otacustes",
 		accessLevel: "guest",
 	),
 ]
@@ -127,6 +139,7 @@ class MobController extends ModuleInstance {
 
 				/** @var Mob $mob */
 				if ($mob->key === $key) {
+					$this->mobs[$type] ??= [];
 					$this->mobs[$type][$key] = $mob;
 				}
 			}
@@ -145,6 +158,29 @@ class MobController extends ModuleInstance {
 	}
 
 	#[Event(
+		name: "mob-attacked",
+		description: "Announce when a mob gets attacked as mob(&lt;type&gt;-&lt;key&gt;-attacked)",
+	)]
+	public function announceMobAttacked(MobEvent $event): void {
+		$mob = $event->mob;
+		$pf = $this->pfCtrl->getPlayfieldById($mob->playfield_id);
+		assert(isset($pf));
+		$blob = $this->text->makeChatcmd(
+			"{$mob->x}x{$mob->y} {$pf->short_name}",
+			"/waypoint {$mob->x} {$mob->y} {$mob->playfield_id}"
+		);
+		$msg = "<highlight>{$mob->name}<end> is being attacked in ".
+			((array)$this->text->makeBlob(
+				$pf->long_name,
+				$blob,
+				"{$mob->name} waypoint",
+			))[0] . ".";
+		$rMsg = new RoutableMessage($msg);
+		$rMsg->prependPath(new Source("mobs", "{$mob->type}-{$mob->key}-attacked"));
+		$this->msgHub->handle($rMsg);
+	}
+
+	#[Event(
 		name: "mob-spawn",
 		description: "Announce when a new mob spawns as mob(&lt;type&gt;-&lt;key&gt;-spawn)",
 	)]
@@ -153,7 +189,7 @@ class MobController extends ModuleInstance {
 		$pf = $this->pfCtrl->getPlayfieldById($mob->playfield_id);
 		assert(isset($pf));
 		$blob = $this->text->makeChatcmd(
-			"get waypoint",
+			"{$mob->x}x{$mob->y} {$pf->short_name}",
 			"/waypoint {$mob->x} {$mob->y} {$mob->playfield_id}"
 		);
 		$msg = "<highlight>{$mob->name}<end> has spawned in ".
@@ -176,7 +212,7 @@ class MobController extends ModuleInstance {
 		$pf = $this->pfCtrl->getPlayfieldById($mob->playfield_id);
 		assert(isset($pf));
 		$blob = $this->text->makeChatcmd(
-			"get waypoint",
+			"{$mob->x}x{$mob->y} {$pf->short_name}",
 			"/waypoint {$mob->x} {$mob->y} {$mob->playfield_id}"
 		);
 		$msg = "<highlight>{$mob->name}<end> was killed in ".
@@ -195,7 +231,7 @@ class MobController extends ModuleInstance {
 	}
 
 	#[
-		HandlesCommand("pris"),
+		HandlesCommand("prisoners"),
 		NCA\Help\Group("mobs"),
 	]
 	/** Show which of the prisoners in Milky Way is up or down */
@@ -220,7 +256,10 @@ class MobController extends ModuleInstance {
 		NCA\Help\Group("mobs"),
 	]
 	/** Show which Biodome hag is up or down */
-	public function showHagsCommand(CmdContext $context): void {
+	public function showHagsCommand(
+		CmdContext $context,
+		#[NCA\StrChoice("clan", "omni")] ?string $type
+	): void {
 		/** @var Collection<string> */
 		$factions = (new Collection(array_values($this->mobs[Mob::T_HAG]??[])))
 			->sortBy("name")
@@ -228,10 +267,17 @@ class MobController extends ModuleInstance {
 				return explode("-", $mob->key)[0];
 			});
 
-		if ($factions->isEmpty()) {
-			$context->reply("There is currently no data for any hag. Maybe the API is down.");
+		if (isset($type)) {
+			$factions = new Collection([$type => $factions->get($type)]);
+			if ($factions->get($type)->isEmpty()) {
+				$context->reply("There is currently no data for any {$type} hags. Maybe the API is down.");
+				return;
+			}
+		} elseif ($factions->isEmpty()) {
+			$context->reply("There is currently no data for any hags. Maybe the API is down.");
 			return;
 		}
+
 		$blobs = $factions->map(function (Collection $hags, string $faction): string {
 			return ((array)$this->text->makeBlob(
 				ucfirst($faction) . " hags (" . $hags->count() . ")",
@@ -290,48 +336,85 @@ class MobController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
-	private function renderMob(Mob $mob): string {
-		$pf = $this->pfCtrl->getPlayfieldById($mob->playfield_id);
-		assert(isset($pf));
+	#[
+		HandlesCommand("ljotur"),
+		NCA\Help\Group("mobs"),
+	]
+	/** Show whether Ljotur the Lunatic, or one of his placeholders are up */
+	public function showLjoturCommand(CmdContext $context): void {
+		$this->showUniqueCommand($context, "ljotur", "Ljtur the Lunatic");
+	}
+
+	#[
+		HandlesCommand("otacustes"),
+		NCA\Help\Group("mobs"),
+	]
+	/** Show whether Otacustes, or one of his placeholders are up */
+	public function showOtacustesCommand(CmdContext $context): void {
+		$this->showUniqueCommand($context, "otacustes", "Otacustes");
+	}
+
+	public function showUniqueCommand(CmdContext $context, string $key, string $name): void {
+		/** @var ?Mob */
+		$mob = (new Collection(array_values($this->mobs[Mob::T_UNIQUES]??[])))
+			->where("key", $key)
+			->first();
+		if (!isset($mob)) {
+			$context->reply("There is currently no data for {$name}. Maybe the API is down.");
+			return;
+		}
+		$blob = $this->renderMob($mob);
+		$msg = $this->text->blobWrap(
+			"",
+			$this->text->makeBlob($mob->name, $blob),
+			": " . $this->renderMobStatus($mob)
+		);
+		$context->reply($msg);
+	}
+
+	private function renderMobStatus(Mob $mob): string {
 		switch ($mob->status) {
 			case $mob::STATUS_OUT_OF_RANGE:
 				$status = "<yellow>OUT OF RANGE<end>";
-				if (isset($mob->last_seen)) {
-					$hp = (int)round($mob->hp_percent??100, 0);
-					$color = ($hp > 75) ? "highlight" : (($hp <= 25) ? "red" : "yellow");
-					$status .= " (last seen ".
-						$this->util->unixtimeToReadable(time() - $mob->last_seen).
-						" ago with " . $this->text->alignNumber($hp, 3, $color).
-						"% HP)";
+				if (!isset($mob->last_seen)) {
+					return $status;
 				}
-				break;
+				$hp = (int)round($mob->hp_percent??100, 0);
+				$color = ($hp > 75) ? "highlight" : (($hp <= 25) ? "red" : "yellow");
+				return "{$status} (last seen ".
+					$this->util->unixtimeToReadable(time() - $mob->last_seen).
+					" ago with " . $this->text->alignNumber($hp, 3, $color) . "% HP)";
 			case $mob::STATUS_DOWN:
 				$status = "<off>DEAD<end>";
-				if (isset($mob->last_killed)) {
-					if (isset($mob->respawn_timer)) {
-						$spawn = $mob->last_killed + $mob->respawn_timer;
-						$respawn = $spawn - time();
-						$respawnTime = ($respawn > 0)
-							? "in " . $this->util->unixtimeToReadable($respawn)
-							: "any moment now";
-						$status .= " (respawns {$respawnTime})";
-					} else {
-						$status .= " (killed ".
-							$this->util->unixtimeToReadable(time() - $mob->last_killed).
-							"ago)";
-					}
+				if (!isset($mob->last_killed)) {
+					return $status;
 				}
-				break;
+				if (isset($mob->respawn_timer)) {
+					$spawn = $mob->last_killed + $mob->respawn_timer;
+					$respawn = $spawn - time();
+					$respawnTime = ($respawn > 0)
+						? "in " . $this->util->unixtimeToReadable($respawn)
+						: "any moment now";
+					return "{$status} (respawns {$respawnTime})";
+				}
+				return "{$status} (killed ".
+					$this->util->unixtimeToReadable(time() - $mob->last_killed).
+					"ago)";
 			case $mob::STATUS_UP:
 			case $mob::STATUS_ATTACKED:
 				$hp = (int)round($mob->hp_percent??100, 0);
 				$color = ($hp > 75) ? "highlight" : (($hp <= 25) ? "red" : "yellow");
-				$status = "<on>UP<end>, ".
+				return "<on>UP<end>, ".
 					$this->text->alignNumber($hp, 3, $color) . "% HP";
-				break;
 			default:
-				$status = "<unknown>UNKNOWN<end>";
+				return "<unknown>UNKNOWN<end>";
 		}
+	}
+
+	private function renderMob(Mob $mob): string {
+		$pf = $this->pfCtrl->getPlayfieldById($mob->playfield_id);
+		assert(isset($pf));
+		$status = $this->renderMobStatus($mob);
 		return "<header2>{$mob->name}<end> [".
 			$this->text->makeChatcmd(
 				"{$mob->x}x{$mob->y} {$pf->short_name}",

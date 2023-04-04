@@ -18,6 +18,7 @@ use Throwable;
 	NCA\HandlesEventFeed('mob_events'),
 	NCA\ProvidesEvent("mob-spawn"),
 	NCA\ProvidesEvent("mob-death"),
+	NCA\ProvidesEvent("mob-attacked"),
 ]
 class MobFeedHandler extends ModuleInstance implements EventFeedHandler {
 	#[NCA\Inject]
@@ -86,7 +87,7 @@ class MobFeedHandler extends ModuleInstance implements EventFeedHandler {
 					yield from $this->mobCtrl->loadMobFromApi($update->type, $update->key);
 					return;
 				}
-				if ($update->event !== FeedMessage\Base::HP) {
+				if (!($update instanceof FeedMessage\HP) || ($update->hp_percent < 100.00 && $mob->hp_percent >= 100.00)) {
 					$this->logger->notice("Received a {event}-event for {type}/{key}", [
 						"event" => $update->event,
 						"type" => $update->type,
@@ -104,6 +105,12 @@ class MobFeedHandler extends ModuleInstance implements EventFeedHandler {
 					$event = new MobEvent(
 						mob: $newMob,
 						type: "mob-{$update->event}",
+					);
+					$this->eventManager->fireEvent($event);
+				} elseif (!($update instanceof FeedMessage\HP) || ($update->hp_percent < 100.00 && $mob->hp_percent >= 100.00)) {
+					$event = new MobEvent(
+						mob: $newMob,
+						type: "mob-attacked",
 					);
 					$this->eventManager->fireEvent($event);
 				}

@@ -14,3 +14,4 @@ spawning and killing messages into your org-chat.
 Examples:
 * <highlight><symbol>route add mobs(prisoner-diseased-kill) -&gt; aoorg<end>
 * <highlight><symbol>route add mobs(prisoner-*-spawn) -&gt; aopriv<end>
+* <highlight><symbol>route add mobs(dreadloch-*-attacked) -&gt; aopriv<end>
