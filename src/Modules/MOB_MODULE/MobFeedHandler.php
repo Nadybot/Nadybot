@@ -88,7 +88,7 @@ class MobFeedHandler extends ModuleInstance implements EventFeedHandler {
 					return;
 				}
 				if (!($update instanceof FeedMessage\HP) || ($update->hp_percent < 100.00 && $mob->hp_percent >= 100.00)) {
-					$this->logger->notice("Received a {event}-event for {type}/{key}", [
+					$this->logger->info("Received a {event}-event for {type}/{key}", [
 						"event" => $update->event,
 						"type" => $update->type,
 						"key" => $update->key,
@@ -98,7 +98,7 @@ class MobFeedHandler extends ModuleInstance implements EventFeedHandler {
 				$this->mobCtrl->mobs[$update->type][$update->key] = $newMob;
 				// Tracker was restarted or the mob came back into view, don't throw event
 				if ($update instanceof Spawn && $update->instance === $mob->instance) {
-					$this->logger->notice("Not throwing event, mob already known");
+					$this->logger->info("Not throwing event, mob already known");
 					return;
 				}
 				if (in_array($update->event, [$update::DEATH, $update::SPAWN])) {
