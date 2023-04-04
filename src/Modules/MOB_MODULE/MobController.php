@@ -234,7 +234,7 @@ class MobController extends ModuleInstance {
 		}
 		$blobs = $factions->map(function (Collection $hags, string $faction): string {
 			return ((array)$this->text->makeBlob(
-				"{$faction} hags (" . $hags->count() . ")",
+				ucfirst($faction) . " hags (" . $hags->count() . ")",
 				$hags->map(Closure::fromCallable([$this, "renderMob"]))->join("\n\n")
 			))[0];
 		});
