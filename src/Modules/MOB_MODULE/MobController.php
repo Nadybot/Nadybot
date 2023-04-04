@@ -194,7 +194,11 @@ class MobController extends ModuleInstance {
 		$this->msgHub->handle($rMsg);
 	}
 
-	#[HandlesCommand("pris")]
+	#[
+		HandlesCommand("pris"),
+		NCA\Help\Group("mobs"),
+	]
+	/** Show which of the prisoners in Milky Way is up or down */
 	public function showPrisonersCommand(CmdContext $context): void {
 		/** @var Collection<string> */
 		$blobs = (new Collection(array_values($this->mobs[Mob::T_PRISONER]??[])))
@@ -211,7 +215,11 @@ class MobController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
-	#[HandlesCommand("hags")]
+	#[
+		HandlesCommand("hags"),
+		NCA\Help\Group("mobs"),
+	]
+	/** Show which Biodome hag is up or down */
 	public function showHagsCommand(CmdContext $context): void {
 		/** @var Collection<string> */
 		$factions = (new Collection(array_values($this->mobs[Mob::T_HAG]??[])))
@@ -234,8 +242,15 @@ class MobController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
-	#[HandlesCommand("dreads")]
-	public function showDreadsCommand(CmdContext $context): void {
+	#[
+		HandlesCommand("dreads"),
+		NCA\Help\Group("mobs"),
+	]
+	/** Show which Dreadloch mob is up or down */
+	public function showDreadsCommand(
+		CmdContext $context,
+		#[NCA\StrChoice("clan", "omni")] ?string $type
+	): void {
 		$sides = [
 			"pthunder" => "omni",
 			"woon" => "omni",
@@ -255,13 +270,19 @@ class MobController extends ModuleInstance {
 			->groupBy(function (Mob $mob) use ($sides): string {
 				return $sides[$mob->key] ?? "unknown";
 			});
-		if ($factions->isEmpty()) {
-			$context->reply("There is currently no data for any Dreadloch boss. Maybe the API is down.");
+		if (isset($type)) {
+			$factions = new Collection([$type => $factions->get($type)]);
+			if ($factions->get($type)->isEmpty()) {
+				$context->reply("There is currently no data for any {$type} Dreadloch camp. Maybe the API is down.");
+				return;
+			}
+		} elseif ($factions->isEmpty()) {
+			$context->reply("There is currently no data for any Dreadloch camp. Maybe the API is down.");
 			return;
 		}
 		$blobs = $factions->map(function (Collection $dreads, string $faction): string {
 			return ((array)$this->text->makeBlob(
-				"{$faction} dread bosses (" . $dreads->count() . ")",
+				ucfirst($faction) . " Dreadloch camps (" . $dreads->count() . ")",
 				$dreads->map(Closure::fromCallable([$this, "renderMob"]))->join("\n\n")
 			))[0];
 		});
