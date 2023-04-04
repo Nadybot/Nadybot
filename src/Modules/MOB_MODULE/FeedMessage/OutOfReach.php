@@ -4,23 +4,21 @@ namespace Nadybot\Modules\MOB_MODULE\FeedMessage;
 
 use Nadybot\Modules\MOB_MODULE\Mob;
 
-class HP extends Base {
+class OutOfReach extends Base {
 	public function __construct(
 		public string $type,
 		public string $event,
 		public string $key,
-		public float $hp_percent,
+		public int $instance,
 	) {
 	}
 
 	public function processUpdate(Mob $mob): Mob {
 		$result = clone $mob;
-		$result->status = ($this->hp_percent >= 100.00)
-			? Mob::STATUS_UP
-			: Mob::STATUS_ATTACKED;
-		$result->hp_percent = $this->hp_percent;
-		$result->last_killed = null;
-		$result->last_seen = null;
+		if ($mob->instance === $this->instance) {
+			$result->status = Mob::STATUS_OUT_OF_RANGE;
+			$result->last_seen = time();
+		}
 		return $result;
 	}
 }

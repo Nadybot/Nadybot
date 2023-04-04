@@ -21,6 +21,8 @@ class Spawn extends Base {
 		$result->last_killed = null;
 		$result->instance = $this->instance;
 		$result->name = $this->name;
+		$result->last_seen = null;
+		$result->fixName();
 		return $result;
 	}
 }

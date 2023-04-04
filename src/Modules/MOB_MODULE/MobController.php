@@ -17,6 +17,7 @@ use Safe\Exceptions\JsonException;
 
 #[
 	NCA\Instance,
+	NCA\HasMigrations,
 	NCA\EmitsMessages("mobs", "*"),
 	NCA\DefineCommand(
 		command: "pris",
@@ -85,6 +86,48 @@ class MobController extends ModuleInstance {
 				$mobs = $mapper->hydrateObjects(Mob::class, $entries)->getIterator();
 				foreach ($mobs as $mob) {
 					$this->mobs[$type][$mob->key] = $mob;
+				}
+			}
+		} catch (JsonException $e) {
+			$this->logger->error("Invalid mob-data received: {error}", [
+				"error" => $e->getMessage(),
+				"exception" => $e,
+			]);
+			return;
+		} catch (UnableToHydrateObject $e) {
+			$this->logger->error("Unable to parse mob-api: {error}", [
+				"error" => $e->getMessage(),
+				"exception" => $e,
+			]);
+		}
+	}
+
+	/** Load the data for a single mob from the API */
+	public function loadMobFromApi(string $type, string $key): Generator {
+		$client = $this->builder->build();
+
+		/** @var Response */
+		$response = yield $client->request(new Request(self::MOB_API . $type));
+		if ($response->getStatus() !== 200) {
+			$this->logger->error("Error calling the mob-api: HTTP-code {code}", [
+				"code" => $response->getStatus(),
+			]);
+			return;
+		}
+		$body = yield $response->getBody()->buffer();
+
+		try {
+			/** @var array<string,array<mixed>> */
+			$json = json_decode($body, true);
+			$mapper = new ObjectMapperUsingReflection();
+
+			foreach ($json as $entry) {
+				/** @psalm-suppress InternalMethod */
+				$mob = $mapper->hydrateObjects(Mob::class, $entry)->getIterator();
+
+				/** @var Mob $mob */
+				if ($mob->key === $key) {
+					$this->mobs[$type][$key] = $mob;
 				}
 			}
 		} catch (JsonException $e) {
@@ -171,28 +214,46 @@ class MobController extends ModuleInstance {
 	#[HandlesCommand("hags")]
 	public function showHagsCommand(CmdContext $context): void {
 		/** @var Collection<string> */
-		$blobs = (new Collection(array_values($this->mobs[Mob::T_HAG]??[])))
+		$factions = (new Collection(array_values($this->mobs[Mob::T_HAG]??[])))
 			->sortBy("name")
-			->map(Closure::fromCallable([$this, "renderMob"]));
-		if ($blobs->isEmpty()) {
+			->groupBy(function (Mob $mob): string {
+				return explode("-", $mob->key)[0];
+			});
+
+		if ($factions->isEmpty()) {
 			$context->reply("There is currently no data for any hag. Maybe the API is down.");
 			return;
 		}
-		$msg = $this->text->makeBlob(
-			"Status of all hags (" . $blobs->count() . ")",
-			$blobs->join("\n\n")
-		);
+		$blobs = $factions->map(function (Collection $hags, string $faction): string {
+			return ((array)$this->text->makeBlob(
+				"{$faction} hags (" . $hags->count() . ")",
+				$hags->map(Closure::fromCallable([$this, "renderMob"]))->join("\n\n")
+			))[0];
+		});
+		$msg = "Status of all " . $blobs->join(" and ") . ".";
 		$context->reply($msg);
 	}
 
 	#[HandlesCommand("dreads")]
 	public function showDreadsCommand(CmdContext $context): void {
+		$sides = [
+			"pthunder" => "omni",
+			"woon" => "omni",
+			"moxy" => "omni",
+			"frc-191" => "omni",
+			"pax" => "omni",
+			"crux" => "clan",
+			"sleek" => "clan",
+			"swan" => "clan",
+			"deko" => "clan",
+			"cthunder" => "clan",
+		];
+
 		/** @var Collection<string> */
 		$factions = (new Collection(array_values($this->mobs[Mob::T_DREAD]??[])))
 			->sortBy("name")
-			->groupBy(function (Mob $mob): string {
-				[$faction] = explode("-", $mob->key);
-				return $faction;
+			->groupBy(function (Mob $mob) use ($sides): string {
+				return $sides[$mob->key] ?? "unknown";
 			});
 		if ($factions->isEmpty()) {
 			$context->reply("There is currently no data for any Dreadloch boss. Maybe the API is down.");
@@ -212,6 +273,17 @@ class MobController extends ModuleInstance {
 		$pf = $this->pfCtrl->getPlayfieldById($mob->playfield_id);
 		assert(isset($pf));
 		switch ($mob->status) {
+			case $mob::STATUS_OUT_OF_RANGE:
+				$status = "<yellow>OUT OF RANGE<end>";
+				if (isset($mob->last_seen)) {
+					$hp = (int)round($mob->hp_percent??100, 0);
+					$color = ($hp > 75) ? "highlight" : (($hp <= 25) ? "red" : "yellow");
+					$status .= " (last seen ".
+						$this->util->unixtimeToReadable(time() - $mob->last_seen).
+						" ago with " . $this->text->alignNumber($hp, 3, $color).
+						"% HP)";
+				}
+				break;
 			case $mob::STATUS_DOWN:
 				$status = "<off>DEAD<end>";
 				if (isset($mob->last_killed)) {

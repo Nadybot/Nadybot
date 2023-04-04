@@ -61,14 +61,16 @@ class MobFeedHandler extends ModuleInstance implements EventFeedHandler {
 				FeedMessage\Base::DEATH  => FeedMessage\Death::class,
 				FeedMessage\Base::HP     => FeedMessage\HP::class,
 				FeedMessage\Base::SPAWN  => FeedMessage\Spawn::class,
+				FeedMessage\Base::OOR    => FeedMessage\OutOfReach::class,
 			];
 			$mapper = new ObjectMapperUsingReflection();
 			try {
 				$baseInfo = $mapper->hydrateObject(FeedMessage\Base::class, $data);
 				$class = $mapping[$baseInfo->event] ?? null;
 				if (!isset($class)) {
-					$this->logger->notice("Unknown mob-event {type}", [
+					$this->logger->notice("Unknown mob-event {type}: {data}", [
 						"type" => $baseInfo->event,
+						"data" => $data,
 					]);
 					return;
 				}
@@ -81,15 +83,23 @@ class MobFeedHandler extends ModuleInstance implements EventFeedHandler {
 						"type" => $update->type,
 						"key" => $update->key,
 					]);
-					yield from $this->mobCtrl->initMobsFromApi();
+					yield from $this->mobCtrl->loadMobFromApi($update->type, $update->key);
 					return;
 				}
-				// Tracker was restarted, ignore
-				if ($update instanceof Spawn && $update->instance === $mob->instance) {
-					return;
+				if ($update->event !== FeedMessage\Base::HP) {
+					$this->logger->notice("Received a {event}-event for {type}/{key}", [
+						"event" => $update->event,
+						"type" => $update->type,
+						"key" => $update->key,
+					]);
 				}
 				$newMob = $update->processUpdate($mob);
 				$this->mobCtrl->mobs[$update->type][$update->key] = $newMob;
+				// Tracker was restarted or the mob came back into view, don't throw event
+				if ($update instanceof Spawn && $update->instance === $mob->instance) {
+					$this->logger->notice("Not throwing event, mob already known");
+					return;
+				}
 				if (in_array($update->event, [$update::DEATH, $update::SPAWN])) {
 					$event = new MobEvent(
 						mob: $newMob,

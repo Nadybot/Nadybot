@@ -9,6 +9,7 @@ class Base {
 	public const DEATH = "death";
 	public const SPAWN = "spawn";
 	public const HP = "hp";
+	public const OOR = "out_of_range";
 
 	public function __construct(
 		public string $type,

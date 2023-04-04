@@ -14,11 +14,15 @@ class Death extends Base {
 	}
 
 	public function processUpdate(Mob $mob): Mob {
+		if ($mob->instance !== $this->instance) {
+			return $mob;
+		}
 		$result = clone $mob;
 		$result->status = Mob::STATUS_DOWN;
 		$result->hp_percent = null;
 		$result->instance = null;
 		$result->last_killed = time();
+		$result->last_seen = null;
 		return $result;
 	}
 }
