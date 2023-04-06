@@ -77,7 +77,7 @@ class RaffleController extends ModuleInstance {
 	#[NCA\Inject]
 	public Util $util;
 
-	/** Should raffles end automatically after some time? */
+	/** Raffles automatically end after some time */
 	#[NCA\Setting\Boolean]
 	public bool $raffleEndsAutomatically = true;
 
@@ -116,6 +116,10 @@ class RaffleController extends ModuleInstance {
 	/** Rank required to cancel other people's raffle */
 	#[NCA\Setting\Rank]
 	public string $raffleCancelotherRank = "mod";
+
+	/** Players are allowed to join for multiple items */
+	#[NCA\Setting\Boolean]
+	public bool $raffleAllowMultiJoin = true;
 
 	public ?Raffle $raffle = null;
 
@@ -181,6 +185,7 @@ class RaffleController extends ModuleInstance {
 		$this->raffle->end = isset($duration) ? $this->raffle->start + $duration : null;
 		$this->raffle->sendto = $context;
 		$this->raffle->announceInterval = $this->raffleAnnounceFrequency;
+		$this->raffle->allowMultiJoin = $this->raffleAllowMultiJoin;
 		if ($context->isDM()) {
 			$this->raffle->sendto = new PrivateChannelCommandReply(
 				$this->chatBot,
@@ -359,17 +364,42 @@ class RaffleController extends ModuleInstance {
 			$slot = 1;
 		}
 		$slot--;
-		$isInRaffle = $this->raffle->isInRaffle($context->char->name, $slot);
-		if ($isInRaffle === null) {
+		if (empty($this->raffle->slots[$slot])) {
 			$msg = "There is no item being raffled in slot <highlight>" . ($slot + 1) . "<end>.";
 			$context->reply($msg);
 			return;
 		}
-		if ($isInRaffle) {
-			$msg = "You are already in the raffle for ".
-				$this->raffle->slots[$slot]->toString() . ".";
-			$context->reply($msg);
-			return;
+		$myMain = $this->altsController->getMainOf($context->char->name);
+		foreach ($this->raffle->slots as $slotNum => &$raffleSlot) {
+			$sameSlot = ($slot === (int)$slotNum);
+			foreach ($raffleSlot->participants as $participant) {
+				$sameChar = ($participant === $context->char->name);
+				$sameMain = ($myMain === $this->altsController->getMainOf($participant));
+				if ($sameChar && !$sameSlot && !$this->raffle->allowMultiJoin) {
+					$msg = "You are already in the raffle for ".
+						$this->raffle->slots[$slotNum]->toString() . " and ".
+						"not allowed to join on multiple items.";
+					$context->reply($msg);
+					return;
+				} elseif ($sameMain && !$sameSlot && !$this->raffle->allowMultiJoin) {
+					$msg = "You are already in the raffle for ".
+						$this->raffle->slots[$slotNum]->toString() . " with ".
+						"{$participant} and not allowed to join on multiple items.";
+					$context->reply($msg);
+					return;
+				} elseif ($sameChar && $sameSlot) {
+					$msg = "You are already in the raffle for ".
+						$this->raffle->slots[$slot]->toString() . ".";
+					$context->reply($msg);
+					return;
+				} elseif ($sameMain && $sameSlot) {
+					$msg = "You are already in the raffle for ".
+						$this->raffle->slots[$slot]->toString() . " with ".
+						$participant . ".";
+					$context->reply($msg);
+					return;
+				}
+			}
 		}
 		$this->raffle->slots[$slot]->participants []= $context->char->name;
 		$event = new RaffleParticipationEvent();

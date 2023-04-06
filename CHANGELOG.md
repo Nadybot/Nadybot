@@ -7,6 +7,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [6.2.0] - 2023-04-06
+
+### Added
+
+- New option `auto_guild_name` to allow automatic update of the org name if a change is detected.
+- Add new command `!altsadmin` to manage the alts of someone else. Default is restricted to admin access level.
+- New option `raffle_allow_multi_join` to forbid joining a raffle for more than one item at the same time - also counting alts.
+- `aotell()` now allows messaging access levels by prepending them with a `@`. So `aotell(@mod)` as a receiver will send a message to all mods online.
+- Add new module `PVP_MODULE` that provides a completely different way to interact with a new Tower-API. It can be used alongside the old `TOWER_MODULE`, because all `PVP-MODULE`-commands are subcommands of `!nw`. To get a list of all hot sites, use `!nw hot`, and so on. See <https://github.com/Nadybot/Nadybot/wiki/PVP> for details.
+- Add new module `MOB_MODULE` that will automatically track some heavily-farmed NPCs on RK. It gives you their current state and HP and you can even have the module send messages for spawns, kills and people starting to attack it. Curreently supported are:
+  - Milky Way prisoners
+  - Clan and Omni Dreadloch camps
+  - Clan and Omni Biodome hags
+  - Ljotur and his placeholders
+  - Otacustes and his placeholders
+
+### Changed
+
+- Using new unfreezing method on <https://account.anarchy-online.com> since the old website now redirects here.
+- It is no longer possible to join a raffle for the same item with an alt.
+- `!updateorg` will now force a re-download from PORK and never use a cached JSON-file.
+- If an org roster update would remove over 30% of the org's members, that update is postponed until it happened 3 times in a row.
+- Show the GMI-Link only in the popup of the `!nano`-command
+
 ## [6.1.2] - 2023-02-12
 
 ### Added

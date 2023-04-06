@@ -1093,8 +1093,8 @@ class RaidController extends ModuleInstance {
 		#[NCA\Str("add", "create", "new")] string $subAction,
 		PCharacter $char,
 		string $note
-	): void {
-		$this->commentController->addCommentCommand(
+	): Generator {
+		yield from $this->commentController->addCommentCommand(
 			$context,
 			"new",
 			$char,

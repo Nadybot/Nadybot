@@ -3,6 +3,7 @@
 namespace Nadybot\Core\Channels;
 
 use Nadybot\Core\{
+	AccessManager,
 	Attributes as NCA,
 	BuddylistManager,
 	MessageHub,
@@ -13,6 +14,9 @@ use Nadybot\Core\{
 };
 
 class PrivateMessage extends Base {
+	#[NCA\Inject]
+	public AccessManager $accessManager;
+
 	#[NCA\Inject]
 	public BuddylistManager $buddyListManager;
 
@@ -30,6 +34,29 @@ class PrivateMessage extends Base {
 	}
 
 	public function receive(RoutableEvent $event, string $destination): bool {
+		if (substr($destination, 0, 1) === '@') {
+			return $this->sendToGroup($event, substr($destination, 1));
+		}
+		return $this->sendToChar($event, $destination);
+	}
+
+	private function sendToGroup(RoutableEvent $event, string $group): bool {
+		$where = Source::TELL . "(@{$group})";
+		$message = $this->getEventMessage($event, $this->messageHub, $where);
+		if (!isset($message)) {
+			return false;
+		}
+		$message = $this->text->formatMessage($message);
+		foreach ($this->buddyListManager->getOnline() as $buddy) {
+			if (!$this->accessManager->checkAccess($buddy, $group)) {
+				continue;
+			}
+			$this->chatBot->send_tell($buddy, $message);
+		}
+		return true;
+	}
+
+	private function sendToChar(RoutableEvent $event, string $destination): bool {
 		if (!$this->buddyListManager->isOnline($destination)) {
 			return true;
 		}

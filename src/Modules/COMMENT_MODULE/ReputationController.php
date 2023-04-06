@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\COMMENT_MODULE;
 
+use Generator;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
@@ -125,8 +126,8 @@ class ReputationController extends ModuleInstance {
 		PCharacter $char,
 		#[NCA\StrChoice("+1", "-1")] string $action,
 		string $comment
-	): void {
-		$this->commentController->addCommentCommand(
+	): Generator {
+		yield from $this->commentController->addCommentCommand(
 			$context,
 			"add",
 			$char,

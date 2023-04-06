@@ -165,8 +165,9 @@ class NanoController extends ModuleInstance {
 		$blob .= $this->getFooter();
 		$msg = $this->text->makeBlob("Nano Search Results ({$count})", $blob);
 		if (count($data) === 1) {
+			assert(isset($info, $gmiLink));
 			$msg = $this->text->blobWrap(
-				($info??"") . " [",
+				str_replace($gmiLink, "", $info) . " [",
 				$this->text->makeBlob("details", $blob),
 				"]"
 			);

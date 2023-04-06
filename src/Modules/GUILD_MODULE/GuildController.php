@@ -85,6 +85,7 @@ use Throwable;
 ]
 class GuildController extends ModuleInstance {
 	public const DB_TABLE = "org_members_<myname>";
+	private const CONSECUTIVE_BAD_UPDATES = 2;
 
 	#[NCA\Inject]
 	public DB $db;
@@ -174,6 +175,14 @@ class GuildController extends ModuleInstance {
 
 	/** @var array<string,int> */
 	public array $lastLogoffMsgs = [];
+
+	/** The last detected org name */
+	#[NCA\Setting\Text(mode: 'noedit')]
+	public string $lastOrgName = Nadybot::UNKNOWN_ORG;
+
+	/** Number of skipped roster updates, because they were likely bad */
+	#[NCA\Setting\Number(mode: 'noedit')]
+	public int $numOrgUpdatesSkipped = 0;
 
 	#[NCA\Setup]
 	public function setup(): void {
@@ -455,7 +464,7 @@ class GuildController extends ModuleInstance {
 	public function updateorgCommand(CmdContext $context): Generator {
 		$context->reply("Starting Roster update");
 		try {
-			yield $this->updateMyOrgRoster();
+			yield $this->updateMyOrgRoster(true);
 		} catch (Throwable $e) {
 			$context->reply("There was an error during the roster update: ".
 				$e->getMessage());
@@ -467,7 +476,7 @@ class GuildController extends ModuleInstance {
 	/** @deprecated */
 	public function updateOrgRoster(?callable $callback=null, mixed ...$args): void {
 		asyncCall(function () use ($callback, $args): Generator {
-			yield $this->updateMyOrgRoster();
+			yield $this->updateMyOrgRoster(false);
 			if (isset($callback)) {
 				$callback(...$args);
 			}
@@ -475,13 +484,13 @@ class GuildController extends ModuleInstance {
 	}
 
 	/** @return Promise<void> */
-	public function updateMyOrgRoster(): Promise {
-		return call(function (): Generator {
+	public function updateMyOrgRoster(bool $forceUpdate=false): Promise {
+		return call(function () use ($forceUpdate): Generator {
 			if (!$this->isGuildBot() || !isset($this->config->orgId)) {
 				return;
 			}
 			$this->logger->notice("Starting Roster update");
-			$org = yield $this->guildManager->byId($this->config->orgId, $this->config->dimension, false);
+			$org = yield $this->guildManager->byId($this->config->orgId, $this->config->dimension, $forceUpdate);
 			yield $this->updateRosterForGuild($org);
 		});
 	}
@@ -504,7 +513,7 @@ class GuildController extends ModuleInstance {
 		description: "Download guild roster xml and update guild members"
 	)]
 	public function downloadOrgRosterEvent(Event $eventObj): Generator {
-		yield $this->updateMyOrgRoster();
+		yield $this->updateMyOrgRoster(false);
 	}
 
 	#[NCA\Event(
@@ -754,7 +763,7 @@ class GuildController extends ModuleInstance {
 		}
 		$gid = $this->getOrgChannelIdByOrgId($this->config->orgId);
 		$orgChannel = $this->chatBot->gid[$gid]??null;
-		if (isset($orgChannel) && $orgChannel !== "Clan (name unknown)" && $orgChannel !== $this->config->orgName) {
+		if (isset($orgChannel) && $orgChannel !== Nadybot::UNKNOWN_ORG && $orgChannel !== $this->config->orgName) {
 			$this->logger->warning("Org name '{$this->config->orgName}' specified, but bot belongs to org '{$orgChannel}'");
 		}
 	}
@@ -951,11 +960,31 @@ class GuildController extends ModuleInstance {
 			// Save the current org_members table in a var
 			/** @var Collection<OrgMember> */
 			$data = $this->db->table(self::DB_TABLE)->asObj(OrgMember::class);
+
+			// If the update would remove over 30% of the org members,
+			// only do this, if this happens 2 times in a row.
+			// This way, we avoid deleting our guild members if
+			// Funcom sends us incomplete data
+			$removedPercent = 0;
+			if ($data->count() > 0) {
+				$removedPercent = (int)floor(100 - (count($org->members) / $data->count()) * 100);
+			}
+			if ($removedPercent > 30 && $this->numOrgUpdatesSkipped < self::CONSECUTIVE_BAD_UPDATES) {
+				$this->logger->warning(
+					"Org update would remove {percent}% of the org members - skipping for now",
+					[
+						"percent" => $removedPercent,
+					]
+				);
+				$this->settingManager->save(
+					'num_org_updates_skipped',
+					$this->numOrgUpdatesSkipped + 1
+				);
+				return;
+			}
+			$this->settingManager->save('num_org_updates_skipped', 0);
 			// @phpstan-ignore-next-line
-			if ($data->count() === 0 && (count($org->members) > 0)) {
-				$restart = true;
-			} else {
-				$restart = false;
+			if ($data->count() > 0 || (count($org->members) === 0)) {
 				foreach ($data as $row) {
 					$dbEntries[$row->name] = [
 						"name" => $row->name,
@@ -1024,10 +1053,6 @@ class GuildController extends ModuleInstance {
 
 			$this->logger->notice("Finished Roster update");
 			$this->chatBot->setupReadinessTimer();
-
-			if ($restart === true) {
-				$this->loadGuildMembers();
-			}
 		});
 	}
 }

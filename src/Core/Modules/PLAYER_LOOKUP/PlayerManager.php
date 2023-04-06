@@ -345,29 +345,7 @@ class PlayerManager extends ModuleInstance {
 	}
 
 	public function getInfo(Player $whois, bool $showFirstAndLastName=true): string {
-		$msg = '';
-
-		if ($showFirstAndLastName && strlen($whois->firstname??"")) {
-			$msg = $whois->firstname . " ";
-		}
-
-		$msg .= "<highlight>\"{$whois->name}\"<end> ";
-
-		if ($showFirstAndLastName && strlen($whois->lastname??"")) {
-			$msg .= $whois->lastname . " ";
-		}
-
-		$msg .= "(<highlight>{$whois->level}<end>/<green>{$whois->ai_level}<end>";
-		$msg .= ", {$whois->gender} {$whois->breed} <highlight>{$whois->profession}<end>";
-		$msg .= ", <" . strtolower($whois->faction) . ">{$whois->faction}<end>";
-
-		if ($whois->guild) {
-			$msg .= ", {$whois->guild_rank} of <" . strtolower($whois->faction) . ">{$whois->guild}<end>)";
-		} else {
-			$msg .= ", Not in a guild)";
-		}
-
-		return $msg;
+		return $whois->getInfo($showFirstAndLastName);
 	}
 
 	/**

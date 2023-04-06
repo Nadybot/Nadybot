@@ -207,9 +207,11 @@ class DiscordController extends ModuleInstance {
 			"neutral" => "▪️",
 			"clan" => "🔸",
 			"omni" => "🔹",
+			"on" => "🟢 ",
+			"off" => "🔴 ",
 		];
 		$text = preg_replace_callback(
-			"/<(neutral|clan|omni)>(.+?)<end>/s",
+			"/<(neutral|clan|omni|on|off)>(.+?)<end>/s",
 			function (array $matches) use ($mapping): string {
 				return $mapping[$matches[1]] . $matches[2];
 			},

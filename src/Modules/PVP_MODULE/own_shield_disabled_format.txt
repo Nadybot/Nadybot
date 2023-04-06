@@ -1,0 +1,86 @@
+This setting supports the use of conditionals and placeholders.
+You can use any of the defined placeholders with <highlight>{token}<end>.
+
+Tokens:
+<tab><highlight>tower-type<end>: The tower-type, e.g. Control Tower - Neutral
+<tab><highlight>site-details<end>: A link to details about the site being attacked as name of the site
+<tab><highlight>att-name<end>: Name of the attacker
+<tab><highlight>c-att-name<end>: Colorized name of the attacker
+<tab><highlight>att-first-name<end>*: The first name of the attacker
+<tab><highlight>att-last-name<end>*: The last name of the attacker
+<tab><highlight>att-level<end>*: The current level of the attacker
+<tab><highlight>c-att-level<end>*: The colored, current level of the attacker
+<tab><highlight>att-ai-level<end>*: The current AI-level of the attacker
+<tab><highlight>c-att-ai-level<end>*: The colored current AI-level of the attacker
+<tab><highlight>att-prof<end>*: The profession of the attacker
+<tab><highlight>c-att-prof<end>*: The colored profession of the attacker
+<tab><highlight>att-profession<end>*: The profession of the attacker
+<tab><highlight>c-att-profession<end>*: The colored profession of the attacker
+<tab><highlight>att-org<end>*: The name of the attacker's org
+<tab><highlight>c-att-org<end>*: The colored name of the attacker's org
+<tab><highlight>att-org-rank<end>*: The attacker's org rank
+<tab><highlight>att-breed<end>*: The attacker's breed
+<tab><highlight>c-att-breed<end>*: The colored attacker's breed
+<tab><highlight>att-faction<end>*: The attacker's faction
+<tab><highlight>c-att-faction<end>*: The colored attacker's faction
+<tab><highlight>att-gender<end>*: The attacker's gender
+<tab><highlight>att-whois<end>*: The attacker's whois information (as on !whois)
+<tab><highlight>att-short-prof<end>*: The attacker's short profession name
+<tab><highlight>c-att-short-prof<end>*: The colored attacker's short profession name
+<tab><highlight>pf-long<end>: The long name of the playfield where the site is
+<tab><highlight>pf-short<end>: The short name of the playfield where the site os
+<tab><highlight>pf-id<end>: The numeric playfield ID where the site is
+<tab><highlight>site-pf-id<end>*: The numeric playfield ID where the site is
+<tab><highlight>site-id<end>*: The site number (1 to 12)
+<tab><highlight>site-nr<end>*: The site number (1 to 12)
+<tab><highlight>site-number<end>*: The site number (1 to 12)
+<tab><highlight>site-min-ql<end>*: The minimum QL of towers you can place on the site
+<tab><highlight>site-max-ql<end>*: The maximum QL of towers you can place on the site
+<tab><highlight>site-name<end>*: The long name of the  site
+<tab><highlight>site-num-conductors<end>*: The current number of conductors on the site
+<tab><highlight>site-num-turrets<end>*: The current number of turrets on the site
+<tab><highlight>site-num-cts<end>*: Always 1
+<tab><highlight>site-gas<end>*: The current gas of the site
+<tab><highlight>c-site-gas<end>*: The colored current gas of the site
+<tab><highlight>site-faction<end>*: The faction currently owning the site
+<tab><highlight>c-site-faction<end>*: The colored name of the faction currently owning the site
+<tab><highlight>site-org-id<end>*: The org ID of the org owning the site
+<tab><highlight>site-org-name<end>*: The name of the org owning the site
+<tab><highlight>c-site-org-name<end>*: The colored org name of the org owning the site
+<tab><highlight>site-plant-time<end>*: The exact date and time the site was planted
+<tab><highlight>site-ct-ql<end>*: The QL of the planted CT
+
+Tokens with a <highlight>*<end> are not always available
+
+Conditions:
+<tab><highlight>{?&lt;token&gt;:<end>&lt;Text to display if &lt;token&gt; is set&gt;<highlight>}<end>
+<tab>Example: <highlight>{?site-ct-ql:The CT is QL {site-ct-ql}}<end>
+<tab>Will only show '<highlight>The CT isQL {site-ct-ql}<end>' if <highlight>{site-ct-ql}<end> is set.
+
+<tab><highlight>{!&lt;token&gt;:<end>&lt;Text to display if &lt;token&gt; is not set&gt;<highlight>}<end>
+<tab>Example: <highlight>{!site-ct-ql:Unplanted}<end>
+<tab>Will only show '<highlight>Unplanted<end>' if <highlight>{site-ct-ql}<end> is not set.
+
+<tab>Example: The site is <highlight>{?site-ct-ql:QL {site-ct-ql}}{!site-ct-ql:unplanted}<end>
+
+You can add color to the text by using <highlight>&lt;color&gt;text&lt;end&gt;<end>
+<highlight>&lt;green&gt;online&lt;end&gt;<end> becomes <green>online<end>.
+
+Supported are:
+<tab>&lt;highlight&gt;: <highlight>example<end>
+<tab>&lt;on&gt;: <on>example<end>
+<tab>&lt;off&gt;: <off>example<end>
+<tab>&lt;black&gt;: <black>example<end>
+<tab>&lt;white&gt;: <white>example<end>
+<tab>&lt;yellow&gt;: <yellow>example<end>
+<tab>&lt;blue&gt;: <blue>example<end>
+<tab>&lt;green&gt;: <green>example<end>
+<tab>&lt;red&gt;: <red>example<end>
+<tab>&lt;orange&gt;: <orange>example<end>
+<tab>&lt;grey&gt;: <grey>example<end>
+<tab>&lt;cyan&gt;: <cyan>example<end>
+<tab>&lt;violet&gt;: <violet>example<end>
+<tab>&lt;neutral&gt;: <neutral>example<end>
+<tab>&lt;omni&gt;: <omni>example<end>
+<tab>&lt;clan&gt;: <clan>example<end>
+<tab>&lt;unknown&gt;: <unknown>example<end>

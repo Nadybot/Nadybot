@@ -467,7 +467,7 @@ class MessageHubController extends ModuleInstance {
 		$deleted = $this->messageHub->deleteRouteID($id);
 		if (isset($deleted)) {
 			$context->reply(
-				"Route #{$id} (" . $this->renderRoute($deleted) . ") deleted."
+				"Route #{$id} (" . trim($this->renderRoute($deleted)) . ") deleted."
 			);
 		} else {
 			$context->reply("Route <highlight>#{$id}<end> deleted.");

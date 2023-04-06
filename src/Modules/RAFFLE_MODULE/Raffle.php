@@ -11,7 +11,7 @@ class Raffle {
 	/** Timestamp when the raffle was started*/
 	public int $start;
 
-	/** Where to send annoucements, etc. to */
+	/** Where to send announcements, etc. to */
 	public CommandReply $sendto;
 
 	/** Name of the character giving away items */
@@ -25,6 +25,9 @@ class Raffle {
 
 	/** Unix timestamp when the raffle was announced the last time */
 	public ?int $lastAnnounce = null;
+
+	/** Allow someone to join for more than 1 item at a time */
+	public bool $allowMultiJoin = true;
 
 	public function __construct() {
 		$this->start = $this->lastAnnounce = time();

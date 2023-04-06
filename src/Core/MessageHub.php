@@ -135,6 +135,23 @@ class MessageHub {
 			->asObj(RouteHopColor::class);
 	}
 
+	/** Determine the most specific emitter for a channel */
+	public function getEmitter(string $channel): ?MessageEmitter {
+		$channel = strtolower($channel);
+		if (isset($this->emitters[$channel])) {
+			return $this->emitters[$channel];
+		}
+		foreach ($this->emitters as $emitterChannel => $emitter) {
+			if (fnmatch($emitterChannel, $channel, FNM_CASEFOLD)) {
+				return $emitter;
+			}
+			if (fnmatch($channel, $emitterChannel, FNM_CASEFOLD)) {
+				return $emitter;
+			}
+		}
+		return null;
+	}
+
 	/** Register an event modifier for public use */
 	public function registerEventModifier(ClassSpec $spec): void {
 		$name = strtolower($spec->name);
@@ -315,6 +332,29 @@ class MessageHub {
 			}
 		}
 		return false;
+	}
+
+	/**
+	 * Get all the routing targets for a sender
+	 *
+	 * @return string[]
+	 */
+	public function getReceiversFor(string $sender): array {
+		$receivers = [];
+		$sender = strtolower($sender);
+		foreach ($this->routes as $source => $dest) {
+			if (!strpos($source, '(')) {
+				$source .= '(*)';
+			}
+			if (fnmatch($source, $sender, FNM_CASEFOLD)) {
+				foreach ($dest as $destName => $routes) {
+					foreach ($routes as $route) {
+						$receivers []= $route->getDest();
+					}
+				}
+			}
+		}
+		return $receivers;
 	}
 
 	/** Check if there is a route defined for a MessageSender to a receiver */

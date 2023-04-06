@@ -124,7 +124,7 @@ class ImplantDesignerController extends ModuleInstance {
 			}
 			$blob .= "\n\n";
 		} else {
-			$ql = empty($design->{$slot}->ql) ? 300 : $design->{$slot}->ql;
+			$ql = empty($design->{$slot}->ql) ? 300 : (int)$design->{$slot}->ql;
 			$blob .= "<header2>QL<end> {$ql}";
 			$implant = $this->getImplantInfo($ql, $design->{$slot}->shiny, $design->{$slot}->bright, $design->{$slot}->faded);
 			if ($implant !== null) {
@@ -458,7 +458,7 @@ class ImplantDesignerController extends ModuleInstance {
 			} else {
 				$ql = 300;
 				if (!empty($slotObj->ql)) {
-					$ql = $slotObj->ql;
+					$ql = (int)$slotObj->ql;
 				}
 
 				// add reqs
@@ -633,7 +633,7 @@ class ImplantDesignerController extends ModuleInstance {
 			$msg = " " . $slotObj->symb->name . "\n";
 			return $msg;
 		}
-		$ql = empty($slotObj->ql) ? 300 : $slotObj->ql;
+		$ql = empty($slotObj->ql) ? 300 : (int)$slotObj->ql;
 		$implant = $this->getImplantInfo($ql, $slotObj->shiny, $slotObj->bright, $slotObj->faded);
 		$msg = " QL" . $ql;
 		if ($implant !== null) {
