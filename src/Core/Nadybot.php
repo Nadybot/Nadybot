@@ -984,7 +984,7 @@ class Nadybot extends AOChat {
 		}
 
 		// Handling proxy-worker restarts or unfreezes
-		if (isset($oldState) && (bool)$status === $oldState) {
+		if (isset($oldState) && (bool)$status === $oldState && isset($this->guildmembers[$sender])) {
 			$this->logger->info("Received {type}-event for {char}, but they were {not-state} logged in", [
 				"type" => ($status === 0) ? "logoff" : "logon",
 				"char" => $sender,
