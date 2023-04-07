@@ -2,6 +2,7 @@
 
 namespace Nadybot\Modules\DISCORD_GATEWAY_MODULE;
 
+use function Amp\File\filesystem;
 use function Amp\Promise\{all, rethrow};
 use function Amp\{asyncCall, call, delay};
 use function Safe\{json_encode, preg_match, preg_replace};
@@ -13,7 +14,7 @@ use Amp\Websocket\Client\{Connection, ConnectionException, Handshake, Rfc6455Con
 use Amp\Websocket\{ClientMetadata, ClosedException, Message};
 use Amp\{Loop, Promise};
 use Generator;
-use Illuminate\Support\ItemNotFoundException;
+use Illuminate\Support\{Collection, ItemNotFoundException};
 use Nadybot\Core\Modules\DISCORD\{
 	DiscordAPIClient,
 	DiscordChannel,
@@ -135,6 +136,7 @@ use Throwable;
 ]
 class DiscordGatewayController extends ModuleInstance {
 	public const DB_TABLE = "discord_invite_<myname>";
+	public const EMOJI_TABLE = "discord_emoji_<myname>";
 	public const RENAME_OFF = "Off";
 
 	#[NCA\Inject]
@@ -205,6 +207,8 @@ class DiscordGatewayController extends ModuleInstance {
 	/** @var array<string,DiscordChannelInvite[]> */
 	public array $invites = [];
 
+	public Collection $emojis;
+
 	protected ?int $lastSequenceNumber = null;
 	protected ?Connection $client = null;
 	protected bool $mustReconnect = false;
@@ -224,6 +228,10 @@ class DiscordGatewayController extends ModuleInstance {
 	private array $noManageInviteRights = [];
 
 	private ?ClientMetadata $lastMetadata = null;
+
+	public function __construct() {
+		$this->emojis = new Collection();
+	}
 
 	public function isMe(string $id): bool {
 		return isset($this->me) && $this->me->id === $id;
@@ -641,6 +649,81 @@ class DiscordGatewayController extends ModuleInstance {
 		});
 	}
 
+	/** @return Promise<void> */
+	public function registerEmojis(Guild $guild): Promise {
+		return call(function () use ($guild): Generator {
+			try {
+				/** @var Collection<DBEmoji> */
+				$registered = $this->db->table(self::EMOJI_TABLE)
+					->where("guild_id", $guild->id)
+					->asObj(DBEmoji::class);
+				$files = yield filesystem()->listFiles("res/icons/");
+				foreach ($files as $file) {
+					$fileName = "res/icons/{$file}";
+					$info = pathinfo($fileName);
+					if (!isset($info['extension'])) {
+						continue;
+					}
+
+					/** @var array<int,int>|null */
+					$stats = yield filesystem()->getStatus($fileName);
+					$content = yield filesystem()->read($fileName);
+					$data = "data:image/{$info['extension']};base64,".
+						base64_encode($content);
+
+					/** @var null|Model\Emoji */
+					$oldEmoji = (new Collection($guild->emojis))
+						->where("name", $info['filename'])
+						->first();
+
+					/** @var null|DBEmoji */
+					$oldDBEmoji = $registered->where("name", $info['filename'])->first();
+					if (!isset($oldEmoji)) {
+						yield $this->discordAPIClient->createEmoji($guild->id, $info['filename'], $data);
+						$this->logger->notice('Registered server emoji :{emoji}: on {guild}', [
+							'emoji' => $info['filename'],
+							'guild' => $guild->name,
+						]);
+					} elseif (!isset($oldDBEmoji) || !isset($stats) || $oldDBEmoji->version < $stats[9]) {
+						yield $this->discordAPIClient->changeEmoji($guild->id, $oldEmoji, $data);
+						$this->logger->notice('Changed server emoji :{emoji}: on {guild}', [
+							'emoji' => $oldEmoji->name,
+							'guild' => $guild->name,
+						]);
+					} else {
+						$this->logger->info('Skipping server emoji :{emoji}: on {guild}', [
+							'emoji' => $oldDBEmoji->name,
+							'guild' => $guild->name,
+						]);
+						continue;
+					}
+					if (!isset($oldDBEmoji)) {
+						$dbEmoji = new DBEmoji();
+						$dbEmoji->name = $info['filename'];
+						$dbEmoji->registered = time();
+						$dbEmoji->version = $stats[9]??time();
+						$dbEmoji->guild_id = $guild->id;
+						$this->db->insert(self::EMOJI_TABLE, $dbEmoji);
+					} else {
+						$oldDBEmoji->registered = time();
+						$oldDBEmoji->version = $stats[9]??time();
+						$this->db->update(self::EMOJI_TABLE, "id", $oldDBEmoji);
+					}
+				}
+			} catch (DiscordException $e) {
+				$this->logger->error("Discord error syncing bot-emojis with Discord server: {error}", [
+					"error" => $e->getMessage(),
+					"exception" => $e,
+				]);
+			} catch (Throwable $e) {
+				$this->logger->error("Error syncing bot-emojis with Discord server: {error}", [
+					"error" => $e->getMessage(),
+					"exception" => $e,
+				]);
+			}
+		});
+	}
+
 	#[
 		NCA\Event(
 			name: [
@@ -658,6 +741,7 @@ class DiscordGatewayController extends ModuleInstance {
 		$guild->fromJSON($event->payload->d);
 		$this->guilds[$guild->id] = $guild;
 		yield $this->sendRequestGuildMembers($guild->id);
+		rethrow($this->registerEmojis($guild));
 		asyncCall(function () use ($guild): Generator {
 			try {
 				$invites = yield $this->discordAPIClient->getGuildInvites($guild->id);
