@@ -13,6 +13,7 @@ use Nadybot\Core\{
 	AccessManager,
 	AdminManager,
 	Attributes as NCA,
+	BotRunner,
 	BuddylistManager,
 	CmdContext,
 	CommandAlias,
@@ -314,7 +315,7 @@ class SystemController extends ModuleInstance implements MessageEmitter {
 		$basicInfo->php_version = phpversion();
 		$basicInfo->os = php_uname('s') . ' ' . php_uname('r') . ' ' . php_uname('m');
 		$basicInfo->event_loop = class_basename(Loop::get());
-		$basicInfo->fs = class_basename(createDefaultDriver());
+		$basicInfo->fs = class_basename(Loop::getState(BotRunner::AMP_FS_HANDLER));
 
 		$basicInfo->superadmins = $this->config->superAdmins;
 

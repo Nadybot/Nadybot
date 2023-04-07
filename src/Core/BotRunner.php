@@ -28,6 +28,7 @@ class BotRunner {
 	/** Nadybot's current version */
 	public const VERSION = "6.2.1";
 
+	public const AMP_FS_HANDLER = 'amp_fs_handler';
 	/**
 	 * The parsed command line arguments
 	 *
@@ -240,6 +241,9 @@ class BotRunner {
 	public function run(): void {
 		/** @todo Convert to AMPs sockets to be able to use Ev */
 		putenv('AMP_LOOP_DRIVER=Amp\Loop\NativeDriver');
+		if (!static::isLinux()) {
+			putenv('AMP_FS_DRIVER=Amp\File\Driver\BlockingDriver');
+		}
 		$this->parseOptions();
 		// set default timezone
 		date_default_timezone_set("UTC");
@@ -299,6 +303,7 @@ class BotRunner {
 			$fsDriver = new ParallelDriver();
 		}
 		Loop::setState(LOOP_STATE_IDENTIFIER, new Filesystem($fsDriver));
+		Loop::setState(self::AMP_FS_HANDLER, $fsDriver);
 		$this->logger->notice(
 			"Starting {name} {version} on RK{dimension} using ".
 			"PHP {phpVersion}, {loopType} event loop, ".
@@ -363,6 +368,11 @@ class BotRunner {
 	/** Utility function to check whether the bot is running Windows */
 	public static function isWindows(): bool {
 		return strtoupper(substr(PHP_OS, 0, 3)) === 'WIN';
+	}
+
+	/** Utility function to check whether the bot is running Linux */
+	public static function isLinux(): bool {
+		return PHP_OS_FAMILY === 'Linux';
 	}
 
 	public function getConfigFile(): ConfigFile {
