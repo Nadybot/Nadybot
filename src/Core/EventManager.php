@@ -146,9 +146,9 @@ class EventManager {
 			return;
 		}
 
-		if ($type == "setup") {
+		if ($type == "setup" || ($type === "connect" && $this->areConnectEventsFired)) {
 			$eventObj = new Event();
-			$eventObj->type = 'setup';
+			$eventObj->type = $type;
 
 			$this->callEventHandler($eventObj, $filename, []);
 		} elseif ($this->isValidEventType($type)) {
