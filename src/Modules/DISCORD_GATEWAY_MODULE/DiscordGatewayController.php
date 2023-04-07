@@ -53,6 +53,7 @@ use Nadybot\Core\{
 use Nadybot\Modules\DISCORD_GATEWAY_MODULE\Model\{
 	Activity,
 	CloseEvents,
+	Emoji,
 	Guild,
 	GuildMemberChunk,
 	IdentifyPacket,
@@ -679,11 +680,13 @@ class DiscordGatewayController extends ModuleInstance {
 					/** @var null|DBEmoji */
 					$oldDBEmoji = $registered->where("name", $info['filename'])->first();
 					if (!isset($oldEmoji)) {
-						yield $this->discordAPIClient->createEmoji($guild->id, $info['filename'], $data);
+						/** @var Emoji */
+						$registeredEmoji = yield $this->discordAPIClient->createEmoji($guild->id, $info['filename'], $data);
 						$this->logger->notice('Registered server emoji :{emoji}: on {guild}', [
 							'emoji' => $info['filename'],
 							'guild' => $guild->name,
 						]);
+						$guild->emojis []= $registeredEmoji;
 					} elseif (!isset($oldDBEmoji) || !isset($stats) || $oldDBEmoji->version < $stats[9]) {
 						yield $this->discordAPIClient->changeEmoji($guild->id, $oldEmoji, $data);
 						$this->logger->notice('Changed server emoji :{emoji}: on {guild}', [
