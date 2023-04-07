@@ -56,6 +56,10 @@ class MobFeedHandler extends ModuleInstance implements EventFeedHandler {
 	 */
 	public function handleEventFeedMessage(string $room, array $data): Promise {
 		return call(function () use ($data): Generator {
+			if (empty($this->mobCtrl->mobs)) {
+				return;
+			}
+
 			/** @var array<string,class-string> */
 			$mapping = [
 				FeedMessage\Base::CORPSE => FeedMessage\Corpse::class,
