@@ -24,7 +24,7 @@ class JsonExporter {
 			}
 			if (array_keys($data) === range(0, count($data) - 1)) {
 				// @phpstan-ignore-next-line
-				return '[' . join(",", array_map(['static', __FUNCTION__], $data)) . ']';
+				return '[' . join(",", array_map([static::class, __FUNCTION__], $data)) . ']';
 			}
 			$result = [];
 			foreach ($data as $key => $value) {
