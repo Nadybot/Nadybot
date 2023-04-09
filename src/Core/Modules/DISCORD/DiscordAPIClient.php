@@ -364,6 +364,16 @@ class DiscordAPIClient extends ModuleInstance {
 		return $this->sendRequest($request, new Emoji());
 	}
 
+	/**
+	 * Delete an already existing emoji
+	 *
+	 * @return Promise<stdClass>
+	 */
+	public function deleteEmoji(string $guildId, string $emojiId): Promise {
+		$request = new Request(self::DISCORD_API . "/guilds/{$guildId}/emojis/{$emojiId}", "DELETE");
+		return $this->sendRequest($request, new stdClass());
+	}
+
 	private function getClient(): HttpClient {
 		$botToken = $this->discordCtrl->discordBotToken;
 		$client = $this->builder

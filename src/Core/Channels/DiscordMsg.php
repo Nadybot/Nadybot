@@ -18,6 +18,7 @@ use Nadybot\Core\{
 	SettingManager,
 	Text,
 };
+use Nadybot\Modules\DISCORD_GATEWAY_MODULE\DiscordGatewayController;
 
 class DiscordMsg implements MessageReceiver {
 	#[NCA\Inject]
@@ -25,6 +26,9 @@ class DiscordMsg implements MessageReceiver {
 
 	#[NCA\Inject]
 	public DiscordAPIClient $discordAPIClient;
+
+	#[NCA\Inject]
+	public DiscordGatewayController $discordGatewayController;
 
 	#[NCA\Inject]
 	public MessageHub $messageHub;
@@ -72,7 +76,8 @@ class DiscordMsg implements MessageReceiver {
 			$pathText = preg_replace("/(\s)([^:\s]+): $/s", '$1<highlight>$2<end>: ', $pathText);
 		}
 		$message = $pathText.$msg;
-		$discordMsg = $this->discordController->formatMessage($message);
+		$guild = array_values($this->discordGatewayController->getGuilds())[0] ?? null;
+		$discordMsg = $this->discordController->formatMessage($message, $guild);
 
 		if (isset($event->char)) {
 			$minRankForMentions = $this->settingManager->getString('discord_relay_mention_rank') ?? "superadmin";

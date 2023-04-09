@@ -14,6 +14,7 @@ class CreateEmojisTable implements SchemaMigration {
 			$table->string("name", 20)->index();
 			$table->unsignedInteger("registered");
 			$table->unsignedInteger("version");
+			$table->string("emoji_id", 24);
 			$table->string("guild_id", 24);
 		});
 	}

@@ -208,8 +208,6 @@ class DiscordGatewayController extends ModuleInstance {
 	/** @var array<string,DiscordChannelInvite[]> */
 	public array $invites = [];
 
-	public Collection $emojis;
-
 	protected ?int $lastSequenceNumber = null;
 	protected ?Connection $client = null;
 	protected bool $mustReconnect = false;
@@ -229,10 +227,6 @@ class DiscordGatewayController extends ModuleInstance {
 	private array $noManageInviteRights = [];
 
 	private ?ClientMetadata $lastMetadata = null;
-
-	public function __construct() {
-		$this->emojis = new Collection();
-	}
 
 	public function isMe(string $id): bool {
 		return isset($this->me) && $this->me->id === $id;
@@ -263,6 +257,21 @@ class DiscordGatewayController extends ModuleInstance {
 				if ($channel->id === $channelId) {
 					$channel->guild_id = $guild->id;
 					return $channel;
+				}
+			}
+		}
+		return null;
+	}
+
+	/** Search for a Discord channel we are subscribed to by channel ID */
+	public function getChannelGuild(?string $channelId): ?Guild {
+		if (!isset($channelId)) {
+			return null;
+		}
+		foreach ($this->guilds as $guild) {
+			foreach ($guild->channels as $channel) {
+				if ($channel->id === $channelId) {
+					return $guild;
 				}
 			}
 		}
@@ -650,81 +659,15 @@ class DiscordGatewayController extends ModuleInstance {
 		});
 	}
 
-	/** @return Promise<void> */
-	public function registerEmojis(Guild $guild): Promise {
-		return call(function () use ($guild): Generator {
-			try {
-				/** @var Collection<DBEmoji> */
-				$registered = $this->db->table(self::EMOJI_TABLE)
-					->where("guild_id", $guild->id)
-					->asObj(DBEmoji::class);
-				$files = yield filesystem()->listFiles("res/icons/");
-				foreach ($files as $file) {
-					$fileName = "res/icons/{$file}";
-					$info = pathinfo($fileName);
-					if (!isset($info['extension'])) {
-						continue;
-					}
-
-					/** @var array<int,int>|null */
-					$stats = yield filesystem()->getStatus($fileName);
-					$content = yield filesystem()->read($fileName);
-					$data = "data:image/{$info['extension']};base64,".
-						base64_encode($content);
-
-					/** @var null|Model\Emoji */
-					$oldEmoji = (new Collection($guild->emojis))
-						->where("name", $info['filename'])
-						->first();
-
-					/** @var null|DBEmoji */
-					$oldDBEmoji = $registered->where("name", $info['filename'])->first();
-					if (!isset($oldEmoji)) {
-						/** @var Emoji */
-						$registeredEmoji = yield $this->discordAPIClient->createEmoji($guild->id, $info['filename'], $data);
-						$this->logger->notice('Registered server emoji :{emoji}: on {guild}', [
-							'emoji' => $info['filename'],
-							'guild' => $guild->name,
-						]);
-						$guild->emojis []= $registeredEmoji;
-					} elseif (!isset($oldDBEmoji) || !isset($stats) || $oldDBEmoji->version < $stats[9]) {
-						yield $this->discordAPIClient->changeEmoji($guild->id, $oldEmoji, $data);
-						$this->logger->notice('Changed server emoji :{emoji}: on {guild}', [
-							'emoji' => $oldEmoji->name,
-							'guild' => $guild->name,
-						]);
-					} else {
-						$this->logger->info('Skipping server emoji :{emoji}: on {guild}', [
-							'emoji' => $oldDBEmoji->name,
-							'guild' => $guild->name,
-						]);
-						continue;
-					}
-					if (!isset($oldDBEmoji)) {
-						$dbEmoji = new DBEmoji();
-						$dbEmoji->name = $info['filename'];
-						$dbEmoji->registered = time();
-						$dbEmoji->version = $stats[9]??time();
-						$dbEmoji->guild_id = $guild->id;
-						$this->db->insert(self::EMOJI_TABLE, $dbEmoji);
-					} else {
-						$oldDBEmoji->registered = time();
-						$oldDBEmoji->version = $stats[9]??time();
-						$this->db->update(self::EMOJI_TABLE, "id", $oldDBEmoji);
-					}
-				}
-			} catch (DiscordException $e) {
-				$this->logger->error("Discord error syncing bot-emojis with Discord server: {error}", [
-					"error" => $e->getMessage(),
-					"exception" => $e,
-				]);
-			} catch (Throwable $e) {
-				$this->logger->error("Error syncing bot-emojis with Discord server: {error}", [
-					"error" => $e->getMessage(),
-					"exception" => $e,
-				]);
-			}
-		});
+	#[NCA\Event(
+		name: "setting(discord_custom_emojis)",
+		description: "(Un)register emojis from discord",
+	)]
+	public function emojiSettingsChanged(): Generator {
+		foreach ($this->guilds as $guildName => $guild) {
+			yield delay(100);
+			rethrow($this->registerEmojis($guild));
+		}
 	}
 
 	#[
@@ -1650,6 +1593,124 @@ class DiscordGatewayController extends ModuleInstance {
 		if (isset($invite->guild)) {
 			$this->invites[$invite->guild->id] []= $invite;
 		}
+	}
+
+	/** @return Promise<void> */
+	private function registerEmojis(Guild $guild): Promise {
+		return call(function () use ($guild): Generator {
+			try {
+				/** @var Collection<DBEmoji> */
+				$registered = $this->db->table(self::EMOJI_TABLE)
+					->where("guild_id", $guild->id)
+					->asObj(DBEmoji::class);
+				if (!$this->discordController->discordCustomEmojis) {
+					foreach ($registered as $emoji) {
+						/** @var DBEmoji $emoji */
+						try {
+							yield $this->discordAPIClient->deleteEmoji($guild->id, $emoji->emoji_id);
+						} catch (DiscordException $e) {
+							continue;
+						}
+						$this->logger->notice('Deleted server emoji :{emoji}: on {guild}', [
+							'emoji' => $emoji->name,
+							'guild' => $guild->name,
+						]);
+						$this->db->table(self::EMOJI_TABLE)->delete($emoji->id);
+						$guild->emojis = (new Collection($guild->emojis))
+							->where("id", "!=", $emoji->emoji_id)
+							->toArray();
+					}
+					return;
+				}
+				$files = yield filesystem()->listFiles("res/icons/");
+				foreach ($files as $file) {
+					$fileName = "res/icons/{$file}";
+					$this->logger->info("Found icon {fileName}", [
+						"fileName" => $fileName,
+					]);
+					if (!is_file($fileName)) {
+						$this->logger->info("{fileName} is not a file, skipping", [
+							"fileName" => $fileName,
+						]);
+						continue;
+					}
+					$info = pathinfo($fileName);
+					if (!isset($info['extension'])) {
+						$this->logger->info("{fileName} doesn't have a pathinfo, skipping", [
+							"fileName" => $fileName,
+						]);
+						continue;
+					}
+
+					/** @var array<int,int>|null */
+					$stats = yield filesystem()->getStatus($fileName);
+					$content = yield filesystem()->read($fileName);
+					$data = "data:image/{$info['extension']};base64,".
+						base64_encode($content);
+
+					/** @var null|Model\Emoji */
+					$oldEmoji = (new Collection($guild->emojis))
+						->where("name", $info['filename'])
+						->first();
+
+					/** @var null|DBEmoji */
+					$oldDBEmoji = $registered->where("name", $info['filename'])->first();
+					if (isset($oldEmoji, $oldEmoji->id)   && (!isset($oldDBEmoji) || !isset($stats) || $oldDBEmoji->version < $stats[9])) {
+						yield $this->discordAPIClient->deleteEmoji($guild->id, $oldEmoji->id);
+						$this->logger->notice('Deleted server emoji :{emoji}: on {guild}', [
+							'emoji' => $oldEmoji->name,
+							'guild' => $guild->name,
+						]);
+						$guild->emojis = (new Collection($guild->emojis))
+							->where("id", "!=", $oldEmoji->id)
+							->toArray();
+						unset($oldEmoji);
+					}
+					if (!isset($oldEmoji)) {
+
+						/** @var Emoji */
+						$registeredEmoji = yield $this->discordAPIClient->createEmoji($guild->id, $info['filename'], $data);
+						$this->logger->notice('Registered server emoji :{emoji}: on {guild}', [
+							'emoji' => $info['filename'],
+							'guild' => $guild->name,
+						]);
+						$guild->emojis []= $registeredEmoji;
+					} else {
+						if (isset($oldDBEmoji)) {
+							$this->logger->info('Skipping server emoji :{emoji}: on {guild}', [
+								'emoji' => $oldDBEmoji->name,
+								'guild' => $guild->name,
+							]);
+						}
+						continue;
+					}
+					if (!isset($oldDBEmoji)) {
+						$dbEmoji = new DBEmoji();
+						$dbEmoji->emoji_id = $registeredEmoji->id;
+						$dbEmoji->name = $info['filename'];
+						$dbEmoji->registered = time();
+						$dbEmoji->version = $stats[9]??time();
+						$dbEmoji->guild_id = $guild->id;
+						$this->db->insert(self::EMOJI_TABLE, $dbEmoji);
+					} else {
+						$oldDBEmoji->registered = time();
+						$oldDBEmoji->emoji_id = $registeredEmoji->id;
+						$oldDBEmoji->version = $stats[9]??time();
+						$this->db->update(self::EMOJI_TABLE, "id", $oldDBEmoji);
+					}
+				}
+			} catch (DiscordException $e) {
+				$this->logger->error("Discord error syncing bot-emojis with Discord server: {error}", [
+					"error" => $e->getMessage(),
+					"exception" => $e,
+				]);
+			} catch (Throwable $e) {
+				$this->logger->error("Error syncing bot-emojis with Discord server: {error}", [
+					"error" => $e->getMessage(),
+					"exception" => $e,
+				]);
+			}
+		});
 	}
 
 	private function countOutgoingPackets(string $handleId): void {

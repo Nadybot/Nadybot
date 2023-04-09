@@ -8,6 +8,7 @@ class DBEmoji extends DBRow {
 	public int $id;
 	public string $name;
 	public string $guild_id;
+	public string $emoji_id;
 	public int $registered;
 	public int $version;
 }
