@@ -19,7 +19,8 @@ use Nadybot\Core\{
 	ModuleInstance,
 	SettingManager,
 };
-use Nadybot\Modules\DISCORD_GATEWAY_MODULE\Model\{ApplicationCommand, GuildMember};
+use Nadybot\Modules\DISCORD_GATEWAY_MODULE\Model\{ApplicationCommand, Emoji, GuildMember};
+use RuntimeException;
 use Safe\Exceptions\JsonException;
 use stdClass;
 
@@ -318,6 +319,59 @@ class DiscordAPIClient extends ModuleInstance {
 	public function getGuildInvites(string $guildId): Promise {
 		$request = new Request(self::DISCORD_API . "/guilds/{$guildId}/invites");
 		return $this->sendRequest($request, [new DiscordChannelInvite()]);
+	}
+
+	/**
+	 * Get all currently registered Emojis for $guildId
+	 *
+	 * @return Promise<Emoji[]>
+	 */
+	public function getEmojis(string $guildId): Promise {
+		$request = new Request(self::DISCORD_API . "/guilds/{$guildId}/emojis");
+		return $this->sendRequest($request, [new Emoji()]);
+	}
+
+	/**
+	 * Register a new Emoji in the $guildId
+	 *
+	 * @return Promise<Emoji>
+	 */
+	public function createEmoji(string $guildId, string $name, string $image): Promise {
+		$request = new Request(self::DISCORD_API . "/guilds/{$guildId}/emojis", "POST");
+		$request->setBody(new JsonBody((object)[
+				"name" => $name,
+				"image" => $image,
+				"roles" => [],
+			]));
+		return $this->sendRequest($request, new Emoji());
+	}
+
+	/**
+	 * Change the data for an already existing Emoji
+	 *
+	 * @return Promise<Emoji>
+	 */
+	public function changeEmoji(string $guildId, Emoji $emoji, string $image): Promise {
+		if (!isset($emoji->id) || !isset($emoji->name)) {
+			throw new RuntimeException("Wrong emoji given");
+		}
+		$request = new Request(self::DISCORD_API . "/guilds/{$guildId}/emojis/{$emoji->id}", "PATCH");
+		$request->setBody(new JsonBody((object)[
+				"name" => $emoji->name,
+				"image" => $image,
+				"roles" => [],
+			]));
+		return $this->sendRequest($request, new Emoji());
+	}
+
+	/**
+	 * Delete an already existing emoji
+	 *
+	 * @return Promise<stdClass>
+	 */
+	public function deleteEmoji(string $guildId, string $emojiId): Promise {
+		$request = new Request(self::DISCORD_API . "/guilds/{$guildId}/emojis/{$emojiId}", "DELETE");
+		return $this->sendRequest($request, new stdClass());
 	}
 
 	private function getClient(): HttpClient {

@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Turning on a connect event after startup will now automatically trigger it.
+- Add option `discord_custom_emojis` to enable our own Discord emojis for factions and professions. Enabled by default.
 
 ## [6.2.0] - 2023-04-06
 

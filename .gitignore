@@ -9,6 +9,7 @@
 *.xcuserdata
 *.xcworkspace
 /extras
+/res/icons/orig
 /vendor
 /html/*
 !/html/api.json
