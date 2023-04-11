@@ -7,10 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Add option `discord_custom_emojis` to enable our own Discord emojis for factions and professions. Enabled by default.
+
 ### Changed
 
 - Turning on a connect event after startup will now automatically trigger it.
-- Add option `discord_custom_emojis` to enable our own Discord emojis for factions and professions. Enabled by default.
+- The hags are now "Clan Hag X" and "Omni Hag X", so the spawn messages make sense now.
 
 ## [6.2.0] - 2023-04-06
 

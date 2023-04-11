@@ -17,12 +17,12 @@ class Mob {
 
 	private const NAME_MAPPING = [
 		self::T_HAG => [
-			"omni-zn" => "Hag 1 - ZN (%s)",
-			"omni-or" => "Hag 2 - OR (%s)",
-			"omni-e"  => "Hag 3 - E (%s)",
-			"clan-no" => "Hag 1 - NO (%s)",
-			"clan-ph" => "Hag 3 - PH (%s)",
-			"clan-ex" => "Hag 2 - EX (%s)",
+			"omni-zn" => "Omni Hag 1 - ZN (%s)",
+			"omni-or" => "Omni Hag 2 - OR (%s)",
+			"omni-e"  => "Omni Hag 3 - E (%s)",
+			"clan-no" => "Clan Hag 1 - NO (%s)",
+			"clan-ph" => "Clan Hag 3 - PH (%s)",
+			"clan-ex" => "Clan Hag 2 - EX (%s)",
 		],
 		self::T_DREAD => [
 			"moxy" => [
