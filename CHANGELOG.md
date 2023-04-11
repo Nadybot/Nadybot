@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Turning on a connect event after startup will now automatically trigger it.
+
 ## [6.2.0] - 2023-04-06
 
 ### Added
