@@ -46,6 +46,12 @@ use Safe\Exceptions\JsonException;
 		description: "Get the status of Otacustes",
 		accessLevel: "guest",
 	),
+	NCA\DefineCommand(
+		command: "jack",
+		alias: ["legchopper"],
+		description: "Get the status of Jack \"Leg-chopper\" Menendez and his clones",
+		accessLevel: "guest",
+	),
 ]
 class MobController extends ModuleInstance {
 	public const MOB_API = "https://mobs.aobots.org/api/";
@@ -333,6 +339,32 @@ class MobController extends ModuleInstance {
 			))[0];
 		});
 		$msg = "Status of all " . $blobs->join(" and ") . ".";
+		$context->reply($msg);
+	}
+
+	#[
+		HandlesCommand("jack"),
+		NCA\Help\Group("mobs"),
+	]
+	/** Show which of Jack's clones is currently up */
+	public function showLegchopperCommand(CmdContext $context): void {
+		/** @var Collection<string> */
+		$blobs = (new Collection(array_values($this->mobs[Mob::T_LEGCHOPPER]??[])))
+			->sortBy("name")
+			->sort(function (Mob $a, Mob $b): int {
+				return $a->key === "jack"
+					? -1
+					: ($b->key === "jack" ? 1 : 0);
+			})
+			->map(Closure::fromCallable([$this, "renderMob"]));
+		if ($blobs->isEmpty()) {
+			$context->reply("There is currently no data for Jack Legchopper or his clones. Maybe the API is down.");
+			return;
+		}
+		$msg = $this->text->makeBlob(
+			"Status of Jack and his clones (" . $blobs->count() . ")",
+			$blobs->join("\n\n")
+		);
 		$context->reply($msg);
 	}
 
