@@ -9,6 +9,7 @@ class Mob {
 	public const T_HAG = "hag";
 	public const T_DREAD = "dreadloch";
 	public const T_UNIQUES = "unique";
+	public const T_LEGCHOPPER = "legchopper";
 
 	public const STATUS_UP = "up";
 	public const STATUS_DOWN = "down";
@@ -17,12 +18,19 @@ class Mob {
 
 	private const NAME_MAPPING = [
 		self::T_HAG => [
-			"omni-zn" => "Hag 1 - ZN (%s)",
-			"omni-or" => "Hag 2 - OR (%s)",
-			"omni-e"  => "Hag 3 - E (%s)",
-			"clan-no" => "Hag 1 - NO (%s)",
-			"clan-ph" => "Hag 3 - PH (%s)",
-			"clan-ex" => "Hag 2 - EX (%s)",
+			"omni-zn" => "Omni Hag 1 - ZN (%s)",
+			"omni-or" => "Omni Hag 2 - OR (%s)",
+			"omni-e"  => "Omni Hag 3 - E (%s)",
+			"clan-no" => "Clan Hag 1 - NO (%s)",
+			"clan-ph" => "Clan Hag 3 - PH (%s)",
+			"clan-ex" => "Clan Hag 2 - EX (%s)",
+		],
+		self::T_LEGCHOPPER => [
+			"clone1" => "Clone #1 (%s)",
+			"clone2" => "Clone #2 (%s)",
+			"clone3" => "Clone #3 (%s)",
+			"clone4" => "Clone #4 (%s)",
+			"clone5" => "Clone #5 (%s)",
 		],
 		self::T_DREAD => [
 			"moxy" => [

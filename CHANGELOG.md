@@ -7,9 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [6.2.1] - 2023-04-15
+
+### Added
+
+- Add option `discord_custom_emojis` to enable our own Discord emojis for factions and professions. Enabled by default.
+- Added `!jack` / `!legchopper` command to track Jack Legchopper and his clones.
+- Added `!orgstats` command for some statistics about your organization.
+
 ### Changed
 
 - Turning on a connect event after startup will now automatically trigger it.
+- The hags are now "Clan Hag X" and "Omni Hag X", so the spawn messages make sense now.
 
 ## [6.2.0] - 2023-04-06
 

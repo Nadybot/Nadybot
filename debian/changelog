@@ -1,3 +1,14 @@
+nadybot (6.2.1-1+ubuntu1) bionic; urgency=medium
+  Added
+  - Add option "discord_custom_emojis" to enable our own Discord emojis for factions and professions. Enabled by default.
+  - Added "!jack" / "!legchopper" command to track Jack Legchopper and his clones.
+  - Added "!orgstats" command for some statistics about your organization.
+
+  Changed
+  - Turning on a connect event after startup will now automatically trigger it.
+  - The hags are now "Clan Hag X" and "Omni Hag X", so the spawn messages make sense now.
+ -- Nadyita <nadyita@hodorraid.org>  Sat, 15 Apr 2023 14:45:00 +0200
+
 nadybot (6.2.0-1+ubuntu1) bionic; urgency=medium
   Added
   - New option `auto_guild_name` to allow automatic update of the org name if a change is detected.

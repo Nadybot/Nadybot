@@ -5,8 +5,8 @@ namespace Nadybot\Modules\DISCORD_GATEWAY_MODULE\Model;
 use Nadybot\Core\JSONDataModel;
 
 class Emoji extends JSONDataModel {
-	public ?string $id = null;
-	public ?string $name = null;
+	public string $id;
+	public string $name;
 
 	/** @var mixed[] */
 	public ?array $roles;

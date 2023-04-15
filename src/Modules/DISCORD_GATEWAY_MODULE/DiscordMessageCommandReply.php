@@ -79,7 +79,12 @@ class DiscordMessageCommandReply implements CommandReply, MessageEmitter {
 			);
 		}
 		foreach ($msg as $msgPack) {
-			$messageObj = $this->discordController->formatMessage($msgPack);
+			$messageObj = $this->discordController->formatMessage(
+				$msgPack,
+				$this->discordGatewayController->getChannelGuild($this->channelId)
+					?? array_values($this->discordGatewayController->getGuilds())[0]
+					?? null
+			);
 			if (isset($this->message)) {
 				$messageObj->message_reference = (object)[
 					"message_id" => $this->message->id,

@@ -975,10 +975,21 @@ class Nadybot extends AOChat {
 			}
 		}
 		$inRebalance = $this->buddylistManager->isRebalancing($userId);
+		$oldState = $this->buddylistManager->isOnline($sender);
 		$this->buddylistManager->update($userId, (bool)$status, $worker);
 
 		// Ignore Logon/Logoff from other bots or phantom logon/offs
 		if ($inRebalance || $sender === "") {
+			return;
+		}
+
+		// Handling proxy-worker restarts or unfreezes
+		if (isset($oldState) && (bool)$status === $oldState) {
+			$this->logger->info("Received {type}-event for {char}, but they were {not-state} logged in", [
+				"type" => ($status === 0) ? "logoff" : "logon",
+				"char" => $sender,
+				"not-state" => ($status === 0) ? "not" : "already",
+			]);
 			return;
 		}
 

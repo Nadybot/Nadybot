@@ -13,6 +13,8 @@ use Nadybot\Core\{
 	Nadybot,
 	SettingManager,
 };
+use Nadybot\Modules\DISCORD_GATEWAY_MODULE\DiscordGatewayController;
+use Nadybot\Modules\DISCORD_GATEWAY_MODULE\Model\Guild;
 
 /**
  * @author Nadyita (RK5)
@@ -31,6 +33,9 @@ class DiscordController extends ModuleInstance {
 	#[NCA\Inject]
 	public DiscordAPIClient $discordAPIClient;
 
+	#[NCA\Inject]
+	public DiscordGatewayController $discordGatewayController;
+
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
@@ -46,10 +51,14 @@ class DiscordController extends ModuleInstance {
 	#[NCA\DefineSetting(type: "discord_channel", accessLevel: "admin")]
 	public string $discordNotifyChannel = "off";
 
+	/** Use custom Emojis */
+	#[NCA\Setting\Boolean]
+	public bool $discordCustomEmojis = true;
+
 	/** Reformat a Nadybot message for sending to Discord */
-	public function formatMessage(string $text): DiscordMessageOut {
-		$text = $this->aoIconsToEmojis($text);
-		$text = $this->factionColorsToEmojis($text);
+	public function formatMessage(string $text, ?Guild $guild=null): DiscordMessageOut {
+		$text = $this->aoIconsToEmojis($guild, $text);
+		$text = $this->factionColorsToEmojis($guild, $text);
 		$text = preg_replace('/([~`_*])/s', "\\\\$1", $text);
 		$text = preg_replace('/((?:\d{4}-\d{2}-\d{2} )?\d+(?::\d+)+)/s', "`$1`", $text);
 		$text = preg_replace('/(\d{4}-\d{2}-\d{2})(\s*(?:\||<highlight>\|<end>))/s', "`$1`$2", $text);
@@ -155,8 +164,9 @@ class DiscordController extends ModuleInstance {
 		if (!is_array($text)) {
 			$text = [$text];
 		}
+		$guild = $this->discordGatewayController->getChannelGuild($this->discordNotifyChannel);
 		foreach ($text as $page) {
-			$message = $this->formatMessage($page);
+			$message = $this->formatMessage($page, $guild);
 			$message->allowed_mentions = (object)[
 				"parse" => ["users"],
 			];
@@ -174,22 +184,22 @@ class DiscordController extends ModuleInstance {
 		}
 	}
 
-	protected function aoIconsToEmojis(string $text): string {
+	protected function aoIconsToEmojis(?Guild $guild, string $text): string {
 		$mapping = [
-			"GFX_GUI_ICON_PROFESSION_1" => "🔫",
-			"GFX_GUI_ICON_PROFESSION_2" => "🥋",
-			"GFX_GUI_ICON_PROFESSION_3" => "⚙️",
-			"GFX_GUI_ICON_PROFESSION_4" => "🔓",
-			"GFX_GUI_ICON_PROFESSION_5" => "🕵️",
-			"GFX_GUI_ICON_PROFESSION_6" => "🧭",
-			"GFX_GUI_ICON_PROFESSION_7" => "💵",
-			"GFX_GUI_ICON_PROFESSION_8" => "📎",
-			"GFX_GUI_ICON_PROFESSION_9" => "🗣️",
-			"GFX_GUI_ICON_PROFESSION_10" => "🩹",
-			"GFX_GUI_ICON_PROFESSION_11" => "💥",
-			"GFX_GUI_ICON_PROFESSION_12" => "⚱️",
-			"GFX_GUI_ICON_PROFESSION_14" => "🛡️",
-			"GFX_GUI_ICON_PROFESSION_15" => "🗡️",
+			"GFX_GUI_ICON_PROFESSION_1" => $this->getEmoji($guild, "soldier") ?? "🔫",
+			"GFX_GUI_ICON_PROFESSION_2" => $this->getEmoji($guild, "martialartist") ?? "🥋",
+			"GFX_GUI_ICON_PROFESSION_3" => $this->getEmoji($guild, "engineer") ?? "⚙️",
+			"GFX_GUI_ICON_PROFESSION_4" => $this->getEmoji($guild, "fixer") ?? "🔓",
+			"GFX_GUI_ICON_PROFESSION_5" => $this->getEmoji($guild, "agent") ?? "🕵️",
+			"GFX_GUI_ICON_PROFESSION_6" => $this->getEmoji($guild, "adventurer") ?? "🧭",
+			"GFX_GUI_ICON_PROFESSION_7" => $this->getEmoji($guild, "trader") ?? "💵",
+			"GFX_GUI_ICON_PROFESSION_8" => $this->getEmoji($guild, "bureaucrat") ?? "📎",
+			"GFX_GUI_ICON_PROFESSION_9" => $this->getEmoji($guild, "enforcer") ?? "🗣️",
+			"GFX_GUI_ICON_PROFESSION_10" => $this->getEmoji($guild, "doctor") ?? "🩹",
+			"GFX_GUI_ICON_PROFESSION_11" => $this->getEmoji($guild, "nanotechnician") ?? "💥",
+			"GFX_GUI_ICON_PROFESSION_12" => $this->getEmoji($guild, "metaphysicist") ?? "⚱️",
+			"GFX_GUI_ICON_PROFESSION_14" => $this->getEmoji($guild, "keeper") ?? "🛡️",
+			"GFX_GUI_ICON_PROFESSION_15" => $this->getEmoji($guild, "shade") ?? "🗡️",
 			"GFX_GUI_WINDOW_QUESTIONMARK" => "❓",
 		];
 		$text = preg_replace_callback(
@@ -202,13 +212,13 @@ class DiscordController extends ModuleInstance {
 		return $text;
 	}
 
-	protected function factionColorsToEmojis(string $text): string {
+	protected function factionColorsToEmojis(?Guild $guild, string $text): string {
 		$mapping = [
-			"neutral" => "▪️",
-			"clan" => "🔸",
-			"omni" => "🔹",
-			"on" => "🟢 ",
-			"off" => "🔴 ",
+			"neutral" => $this->getEmoji($guild, "neutral") ?? "▪️",
+			"clan" => $this->getEmoji($guild, "clan") ?? "🔸",
+			"omni" => $this->getEmoji($guild, "omni") ?? "🔹",
+			"on" => $this->getEmoji($guild, "on") ?? "🟢 ",
+			"off" => $this->getEmoji($guild, "off") ?? "🔴 ",
 		];
 		$text = preg_replace_callback(
 			"/<(neutral|clan|omni|on|off)>(.+?)<end>/s",
@@ -263,5 +273,20 @@ class DiscordController extends ModuleInstance {
 			$embed->description = substr($embed->description, 0, 4095) . "…";
 		}
 		return $embed;
+	}
+
+	private function getEmoji(?Guild $guild, string $name): ?string {
+		if (!isset($guild) || !$this->discordCustomEmojis) {
+			return null;
+		}
+		foreach ($guild->emojis as $emoji) {
+			if ($emoji->name === $name) {
+				if ($emoji->animated) {
+					return "&lt;a:{$name}:{$emoji->id}&gt;";
+				}
+				return "&lt;:{$name}:{$emoji->id}&gt;";
+			}
+		}
+		return null;
 	}
 }

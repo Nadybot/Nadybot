@@ -115,7 +115,10 @@ class DiscordSlashCommandReply implements CommandReply {
 	private function sendReplyToDiscord(string ...$msg): void {
 		for ($i = 0; $i < count($msg); $i++) {
 			$msgPack = $msg[$i];
-			$messageObj = $this->discordController->formatMessage($msgPack);
+			$messageObj = $this->discordController->formatMessage(
+				$msgPack,
+				$this->gw->getChannelGuild($this->channelId)
+			);
 			$messageObj->flags = $this->slashCtrl->discordSlashCommands === $this->slashCtrl::SLASH_EPHEMERAL
 				? InteractionCallbackData::EPHEMERAL
 				: null;
