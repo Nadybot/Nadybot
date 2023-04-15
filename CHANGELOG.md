@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [6.2.0] - 2023-04-15
+
 ### Added
 
 - Add option `discord_custom_emojis` to enable our own Discord emojis for factions and professions. Enabled by default.

@@ -206,6 +206,13 @@ exit 0
 %endif
 
 %changelog
+* Sat Apr 15 2023 Nadyita <nadyita@hodorraid.org> 6.2.1-1
+- Add option "discord_custom_emojis" to enable our own Discord emojis for factions and professions. Enabled by default.
+- Added "!jack" / "!legchopper" command to track Jack Legchopper and his clones.
+- Added "!orgstats" command for some statistics about your organization.
+- Turning on a connect event after startup will now automatically trigger it.
+- The hags are now "Clan Hag X" and "Omni Hag X", so the spawn messages make sense now.
+
 * Thu Apr 06 2023 Nadyita <nadyita@hodorraid.org> 6.2.0-1
 - New option `auto_guild_name` to allow automatic update of the org name if a change is detected.
 - Add new command `!altsadmin` to manage the alts of someone else. Default is restricted to admin access level.
