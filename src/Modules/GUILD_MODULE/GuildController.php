@@ -82,6 +82,11 @@ use Throwable;
 		accessLevel: "mod",
 		description: "Force an update of the org roster",
 	),
+	NCA\DefineCommand(
+		command: "orgstats",
+		accessLevel: "guild",
+		description: "Get statistics about the organization",
+	),
 ]
 class GuildController extends ModuleInstance {
 	public const DB_TABLE = "org_members_<myname>";
@@ -506,6 +511,78 @@ class GuildController extends ModuleInstance {
 		));
 		$re->setData($event);
 		$this->messageHub->handle($re);
+	}
+
+	/** Get statistics about the organization */
+	#[NCA\HandlesCommand("orgstats")]
+	public function orgstatsCommand(
+		CmdContext $context,
+		#[NCA\Str("online")] ?string $onlineOnly,
+	): Generator {
+		if (!$this->isGuildBot() || !isset($this->config->orgId)) {
+			$context->reply("The bot must be in an org.");
+			return;
+		}
+
+		/** @var ?Guild */
+		$org = yield $this->guildManager->byId($this->config->orgId, $this->config->dimension, false);
+		$members = $this->db->table(self::DB_TABLE, "om")
+			->join("players AS p", "om.name", "=", "p.name")
+			->select("p.*")
+			->asObj(Player::class);
+		if ($members->isEmpty()) {
+			$context->reply("I don't have data for any of our fellow org members.");
+			return;
+		}
+		if (isset($onlineOnly)) {
+			$members = $members->filter(function (Player $player): bool {
+				return $this->buddylistManager->isOnline($player->name) ?? false;
+			});
+			if ($members->isEmpty()) {
+				$context->reply("There's no one online but me right now.");
+				return;
+			}
+		}
+
+		$statsFunc = function (Collection $players, string $key) use ($members): string {
+			$count = $players->count();
+			$percentage = $this->text->alignNumber(
+				(int)round($count * 100 / $members->count(), 0),
+				3
+			);
+			return "\n<tab>{$percentage} % <highlight>{$key}<end>: {$count} ".
+				$this->text->pluralize("member", $count).
+				", level " . $players->min("level") . " / <highlight>".
+				round($players->avg("level"), 0) . "<end> / ".
+				$players->max("level");
+		};
+		$tlFunc = function (Player $p): string {
+			return "TL " . $this->util->levelToTL($p->level ?? 1);
+		};
+
+		$blob = "<header2>" . ($org->orgname ?? $this->config->orgName) . "<end>\n";
+		if (isset($org)) {
+			$blob .= "<tab><highlight>Faction<end>: <" . strtolower($org->orgside) . ">{$org->orgside}<end>\n".
+			"<tab><highlight>Government<end>: {$org->governing_form}\n";
+		}
+		$blob .= "<tab><highlight>Members<end>: " . $members->count() . "\n".
+			"<tab><highlight>Min level<end>: " . $members->min("level") . "\n".
+			"<tab><highlight>Avg level<end>: " . round($members->avg("level"), 0) . "\n".
+			"<tab><highlight>Max level<end>: " . $members->max("level") . "\n\n".
+			"<header2>Numbers by breed<end>".
+			$members->sortBy("breed")->groupBy("breed")
+			->map($statsFunc)->join("").
+			"\n\n<header2>Numbers by profession<end>".
+			$members->sortBy("profession")->groupBy("profession")
+			->map($statsFunc)->join("").
+			"\n\n<header2>Numbers by gender<end>".
+			$members->sortBy("gender")->groupBy("gender")
+			->map($statsFunc)->join("").
+			"\n\n<header2>Numbers by title level<end>".
+			$members->sortBy("level")->groupBy($tlFunc)
+			->map($statsFunc)->join("");
+		$msg = $this->text->makeBlob("Org statistics", $blob);
+		$context->reply($msg);
 	}
 
 	#[NCA\Event(

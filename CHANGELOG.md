@@ -10,7 +10,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Add option `discord_custom_emojis` to enable our own Discord emojis for factions and professions. Enabled by default.
-- Added `jack` / `legchopper` command to track Jack Legchopper and his clones
+- Added `!jack` / `!legchopper` command to track Jack Legchopper and his clones.
+- Added `!orgstats` command for some statistics about your organization.
 
 ### Changed
 
