@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Calculation of cloak reminder was occasionally be off and loghed twice a minute.
+- Members of orgs in the orgbanlist were still receiving `!massmsg`-messages.
 
 ## [6.2.1] - 2023-04-15
 
