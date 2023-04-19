@@ -20,6 +20,10 @@ export interface BasicSystemInformation {
   readonly bot_version: string;
   // Which PHP version are we running?
   readonly php_version: string;
+  // Which event loop driver are we running?
+  readonly event_loop: string;
+  // Which file system driver are we running?
+  readonly fs: string;
   // Which operating system/kernel are we running?
   readonly os: string;
   // Which database type (mysql/sqlite) are we using?
@@ -27,6 +31,8 @@ export interface BasicSystemInformation {
 }
 
 export interface MemoryInformation {
+  // Maximum available memory for PHP in bytes
+  readonly available: number;
   // Current memory usage in bytes
   readonly current_usage: number;
   // Current memory usage in bytes including allocated system pages
@@ -122,11 +128,14 @@ const basicSystemInformationDecoderMapping = {
   org_id: JsonDecoder.nullable(JsonDecoder.number),
   bot_version: JsonDecoder.string,
   php_version: JsonDecoder.string,
+  event_loop: JsonDecoder.string,
+  fs: JsonDecoder.string,
   os: JsonDecoder.string,
   db_type: databaseTypeDecoder,
 };
 
 const memoryInformationDecoderMapping = {
+  available: JsonDecoder.number,
   current_usage: JsonDecoder.number,
   current_usage_real: JsonDecoder.number,
   peak_usage: JsonDecoder.number,

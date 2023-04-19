@@ -300,7 +300,7 @@ export default defineComponent({
 
   props: {
     content: {
-      type: Node,
+      type: Element,
       required: true,
     },
     formatForTitle: {
