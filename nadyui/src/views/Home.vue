@@ -41,6 +41,14 @@
             <div class="text-end col-9">{{ info.basic.php_version }}</div>
           </li>
           <li class="list-group-item">
+            <div class="col-3">Event loop:</div>
+            <div class="text-end col-9">{{ info.basic.event_loop }}</div>
+          </li>
+          <li class="list-group-item">
+            <div class="col-3">FS driver:</div>
+            <div class="text-end col-9">{{ info.basic.fs }}</div>
+          </li>
+          <li class="list-group-item">
             <div class="col-3">OS:</div>
             <div class="text-end col-9">{{ info.basic.os }}</div>
           </li>
@@ -55,8 +63,8 @@
         <div class="card-header">Memory Information</div>
         <div class="card-body">
           <p class="card-text">
-            Currently using {{ memoryCurrentMb }}MB, peak was at
-            {{ memoryPeakMb }}MB of RAM
+            Currently using {{ memoryCurrentMb }}MB out of
+            {{ memoryAvailableMb }}MB, peak was at {{ memoryPeakMb }}MB of RAM
           </p>
         </div>
       </div>
@@ -262,6 +270,12 @@ export default defineComponent({
         100
       );
     },
+    memoryAvailableMb(): number {
+      if (this.info == null) {
+        return 0;
+      }
+      return Math.round((this.info.memory.available / 1024 / 1024) * 100) / 100;
+    },
     memoryPeakMb(): number {
       if (this.info == null) {
         return 0;
@@ -274,7 +288,7 @@ export default defineComponent({
       if (this.info == null) {
         return "";
       }
-      let date = new Date(0);
+      const date = new Date(0);
       date.setSeconds(this.info.misc.uptime);
       return date.toISOString().substr(11, 8);
     },
@@ -286,8 +300,8 @@ export default defineComponent({
       ) {
         return "";
       }
-      let now = new Date();
-      let diff = new Date(
+      const now = new Date();
+      const diff = new Date(
         Math.abs(
           now.getTime() - this.info.misc.proxy_capabilities.started_at * 1000
         )

@@ -68,7 +68,7 @@ export default defineComponent({
   },
   created() {
     this.hour = Math.floor(this.modelValue / 3600);
-    let left_seconds = this.modelValue - this.hour * 3600;
+    const left_seconds = this.modelValue - this.hour * 3600;
     this.minute = Math.floor(left_seconds / 60);
     this.second = left_seconds - this.minute * 60;
   },

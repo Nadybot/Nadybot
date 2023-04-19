@@ -465,8 +465,8 @@ export default defineComponent({
       }
     },
     renderDescription: function (desc: string): string {
-      let text = desc.replaceAll("\n\n", "<br>");
-      var urlRegex =
+      const text = desc.replaceAll("\n\n", "<br>");
+      const urlRegex =
         /(\b(https?|ftp|file):\/\/([-A-Z0-9+&@#%?=~_|!:,.;]*)([-A-Z0-9+&@#%?/=~_|!:,.;]*)[-A-Z0-9+&@#/%=~_|])/gi;
       return text.replace(urlRegex, "<a href='$1' target='_blank'>$1</a>");
     },
@@ -475,8 +475,8 @@ export default defineComponent({
       settings = settings.filter(function (val) {
         return val.editable == true;
       });
-      let commands = await getModuleCommands(module.name);
-      let events = await getModuleEvents(module.name);
+      const commands = await getModuleCommands(module.name);
+      const events = await getModuleEvents(module.name);
 
       this.selected_settings = settings;
       this.selected_commands = commands;
@@ -485,8 +485,8 @@ export default defineComponent({
       await nextTick();
     },
     findColorFromTag: function (text: string): string | null {
-      let re = /#[0-9a-f]{3,6}/i;
-      let matches = text.match(re);
+      const re = /#[0-9a-f]{3,6}/i;
+      const matches = text.match(re);
       if (matches) {
         return matches[0];
       }
@@ -559,7 +559,7 @@ export default defineComponent({
       }
     },
     reloadAccessLevels: async function (): Promise<void> {
-      let access_levels = await getAccessLevels();
+      const access_levels = await getAccessLevels();
       access_levels.sort(function (a, b) {
         return a.numeric_value - b.numeric_value;
       });
@@ -593,8 +593,8 @@ export default defineComponent({
   },
 
   async created() {
-    let modules = await getModules();
-    let access_levels = await getAccessLevels();
+    const modules = await getModules();
+    const access_levels = await getAccessLevels();
     access_levels.sort(function (a, b) {
       return a.numeric_value - b.numeric_value;
     });

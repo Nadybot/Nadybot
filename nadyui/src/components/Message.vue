@@ -69,14 +69,14 @@ export default defineComponent({
 
   computed: {
     popups: function (): Record<string, Element> {
-      let messageNode = this.content.children[0];
-      let dataNode = messageNode.lastElementChild;
+      const messageNode = this.content.children[0];
+      const dataNode = messageNode.lastElementChild;
       if (dataNode && dataNode.nodeName == "data") {
-        let popups: { [id: string]: Element } = {};
-        let amt = dataNode.children.length;
-        for (var i = 0; i < amt; i++) {
-          let node = dataNode.children[i];
-          let id = node.getAttribute("id");
+        const popups: { [id: string]: Element } = {};
+        const amt = dataNode.children.length;
+        for (let i = 0; i < amt; i++) {
+          const node = dataNode.children[i];
+          const id = node.getAttribute("id");
           if (id) {
             popups[id] = node;
           }
@@ -86,9 +86,9 @@ export default defineComponent({
       return {};
     },
     text: function (): Node | null {
-      let messageNode = this.content.firstChild;
+      const messageNode = this.content.firstChild;
       if (messageNode) {
-        let textNode = messageNode.firstChild;
+        const textNode = messageNode.firstChild;
         if (textNode && textNode.nodeName == "text") {
           return textNode;
         }
