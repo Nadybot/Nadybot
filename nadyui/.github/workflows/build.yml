@@ -4,37 +4,31 @@ on: [push]
 jobs:
   build:
     name: Build dist files
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout sources
-        uses: actions/checkout@v1
+        uses: actions/checkout@v3
+
       - name: Build files
         run: |
           ./build.sh
           cd dist
           zip -r nadyui.zip *
           mv nadyui.zip ..
+
       - name: Extract branch name
-        shell: bash
-        run: echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/heads/})"
+        run: |
+          BRANCH="$(git rev-parse --abbrev-ref HEAD)"
+          echo ::set-output name=branch::$(echo ${BRANCH})
         id: extract_branch
-      - name: Create release
-        uses: pajlada/create-release@v2.0.3
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload build artifact
+        uses: softprops/action-gh-release@v1
         with:
           tag_name: ci-${{ steps.extract_branch.outputs.branch }}
-          release_name: ${{ steps.extract_branch.outputs.branch }}
+          name: ${{ steps.extract_branch.outputs.branch }}
           body: |
               Automated CI build done by ${{ github.actor }} from commit ${{ github.sha }}
           prerelease: true
-        id: create_release
-      - name: Upload build artifact
-        uses: actions/upload-release-asset@v1
-        env:
-            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./nadyui.zip
-          asset_name: nadyui.zip
-          asset_content_type: application/zip
+          files: |
+            nadyui.zip
