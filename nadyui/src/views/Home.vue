@@ -119,7 +119,7 @@
           >
             <div class="col-3">Default Mode:</div>
             <div class="text-end col-9">
-              {{ info.misc.proxy_capabilities.default_msode }}
+              {{ info.misc.proxy_capabilities.default_mode }}
             </div>
           </li>
           <li
