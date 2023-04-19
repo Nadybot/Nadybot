@@ -19,7 +19,7 @@ jobs:
       - name: Extract branch name
         run: |
           BRANCH="$(git rev-parse --abbrev-ref HEAD)"
-          echo ::set-output name=branch::$(echo ${BRANCH})
+          echo "branch=${BRANCH}" >> $GITHUB_OUTPUT
         id: extract_branch
 
       - name: Upload build artifact
