@@ -9,8 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- Calculation of cloak reminder was occasionally be off and loghed twice a minute.
+- Calculation of cloak reminder was occasionally be off and logged twice a minute.
 - Members of orgs in the orgbanlist were still receiving `!massmsg`-messages.
+- `!orglist` was broken and would just fill the buddylist. Fixed now.
+- `!system` will now show the correct Filesystem driver.
+
+### Changed
+
+- Every non-Linux OS will now default to the Blocking Filesystem driver, causing less problems and less load.
 
 ## [6.2.1] - 2023-04-15
 
