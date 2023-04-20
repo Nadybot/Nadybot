@@ -2,7 +2,6 @@
 
 namespace Nadybot\Core\Modules\SYSTEM;
 
-use function Amp\File\createDefaultDriver;
 use function Safe\{ini_get, unpack};
 use Amp\Loop;
 use EventSauce\ObjectHydrator\ObjectMapperUsingReflection;

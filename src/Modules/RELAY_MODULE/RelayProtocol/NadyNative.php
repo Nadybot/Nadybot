@@ -284,7 +284,7 @@ class NadyNative implements RelayProtocolInterface {
 				$hop->type,
 				$hop->name,
 				$hop->label??null,
-				$hop->dimension ?? null
+				$hop->server ?? null
 			);
 			$hops []= $source->render($lastHop);
 			$lastHop = $source;
