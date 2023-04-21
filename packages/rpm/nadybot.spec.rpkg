@@ -206,6 +206,13 @@ exit 0
 %endif
 
 %changelog
+* Fri Apr 21 2023 Nadyita <nadyita@hodorraid.org> 6.2.2-1
+- Calculation of cloak reminder was occasionally off and logged twice a minute.
+- Members of orgs in the orgbanlist were still receiving "!massmsg"-messages.
+- "!orglist" was broken and would just fill the buddylist. Fixed now.
+- "!system" will now show the correct Filesystem driver.
+- Every non-Linux OS will now default to the Blocking Filesystem driver, causing less problems and less load.
+
 * Sat Apr 15 2023 Nadyita <nadyita@hodorraid.org> 6.2.1-1
 - Add option "discord_custom_emojis" to enable our own Discord emojis for factions and professions. Enabled by default.
 - Added "!jack" / "!legchopper" command to track Jack Legchopper and his clones.

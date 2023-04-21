@@ -658,9 +658,6 @@ class ExportController extends ModuleInstance {
 				if (isset($auction->cost)) {
 					$auctionObj->cost = (float)$auction->cost;
 				}
-				if (isset($auction->raid_id)) {
-					$auctionObj->raidId = $auction->raid_id;
-				}
 				$result []= $auctionObj;
 			}
 

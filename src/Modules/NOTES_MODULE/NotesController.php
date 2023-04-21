@@ -255,7 +255,10 @@ class NotesController extends ModuleInstance {
 	)]
 	public function showRemindersOnLogonEvent(UserStateEvent $eventObj): void {
 		$sender = $eventObj->sender;
-		if (!is_string($sender) || isset($this->chatBot->chatlist[$sender])) {
+		if (!$this->chatBot->isReady()
+			|| !is_string($sender)
+			|| $eventObj->wasOnline !== false
+		) {
 			return;
 		}
 		$this->showReminders($sender);

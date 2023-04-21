@@ -2,7 +2,11 @@
 
 namespace Nadybot\Modules\MASSMSG_MODULE;
 
+use function Amp\call;
+
+use Amp\Promise;
 use DateTime;
+use Generator;
 use Nadybot\Core\{
 	AccessManager,
 	Attributes as NCA,
@@ -149,7 +153,7 @@ class MassMsgController extends ModuleInstance {
 	 */
 	#[NCA\HandlesCommand("massmsg")]
 	#[NCA\Help\Group("massmessaging")]
-	public function massMsgCommand(CmdContext $context, string $message): void {
+	public function massMsgCommand(CmdContext $context, string $message): Generator {
 		if (($cooldownMsg = $this->massMsgRateLimitCheck()) !== null) {
 			$context->reply($cooldownMsg);
 			return;
@@ -165,7 +169,9 @@ class MassMsgController extends ModuleInstance {
 		$this->messageHub->handle($rMessage);
 
 		$message .= " :: " . $this->getMassMsgOptInOutBlob();
-		$result = $this->massCallback([
+
+		/** @var array<string,string> */
+		$result = yield $this->massCallback([
 			self::PREF_MSGS => function (string $name) use ($message): void {
 				$this->chatBot->sendMassTell($message, $name);
 			},
@@ -181,7 +187,7 @@ class MassMsgController extends ModuleInstance {
 	 */
 	#[NCA\HandlesCommand("massinv")]
 	#[NCA\Help\Group("massmessaging")]
-	public function massInvCommand(CmdContext $context, string $message): void {
+	public function massInvCommand(CmdContext $context, string $message): Generator {
 		if (($cooldownMsg = $this->massMsgRateLimitCheck()) !== null) {
 			$context->reply($cooldownMsg);
 			return;
@@ -196,7 +202,9 @@ class MassMsgController extends ModuleInstance {
 		));
 		$this->messageHub->handle($rMessage);
 		$message .= " :: " . $this->getMassMsgOptInOutBlob();
-		$result = $this->massCallback([
+
+		/** @var array<string,string> */
+		$result = yield $this->massCallback([
 			self::PREF_MSGS => function (string $name) use ($message): void {
 				$this->chatBot->sendMassTell($message, $name);
 			},
@@ -215,38 +223,41 @@ class MassMsgController extends ModuleInstance {
 	 * @param array<string,callable> $callback
 	 * @phpstan-param array<string,callable(string):void> $callback
 	 *
-	 * @return array<string,string> array(name => status)
+	 * @return Promise<array<string,string>> array(name => status)
 	 */
-	public function massCallback(array $callback): array {
-		$online = $this->buddylistManager->getOnline();
-		$result = [];
-		foreach ($online as $name) {
-			$uid = $this->chatBot->get_uid($name);
-			if ($uid === false || $this->banController->isBanned($uid)) {
-				continue;
-			}
-			if ($name === $this->chatBot->char->name
-				|| !$this->accessManager->checkAccess($name, "member")) {
-				continue;
-			}
-			if (isset($this->chatBot->chatlist[$name])) {
-				$result[$name] = static::IN_CHAT;
-				continue;
-			}
-			if (isset($this->chatBot->guildmembers[$name])) {
-				$result[$name] = static::IN_ORG;
-				continue;
-			}
-			foreach ($callback as $pref => $closure) {
-				if ($this->preferences->get($name, $pref) === 'no') {
-					$result[$name] = static::BLOCKED;
+	public function massCallback(array $callback): Promise {
+		return call(function () use ($callback): Generator {
+			$online = $this->buddylistManager->getOnline();
+			$result = [];
+			foreach ($online as $name) {
+				/** @var ?int */
+				$uid = yield $this->chatBot->getUid2($name);
+				if (!isset($uid) || yield $this->banController->isOnBanlist($uid)) {
 					continue;
 				}
-				$closure($name);
-				$result[$name] ??= static::SENT;
+				if ($name === $this->chatBot->char->name
+					|| !$this->accessManager->checkAccess($name, "member")) {
+					continue;
+				}
+				if (isset($this->chatBot->chatlist[$name])) {
+					$result[$name] = static::IN_CHAT;
+					continue;
+				}
+				if (isset($this->chatBot->guildmembers[$name])) {
+					$result[$name] = static::IN_ORG;
+					continue;
+				}
+				foreach ($callback as $pref => $closure) {
+					if ($this->preferences->get($name, $pref) === 'no') {
+						$result[$name] = static::BLOCKED;
+						continue;
+					}
+					$closure($name);
+					$result[$name] ??= static::SENT;
+				}
 			}
-		}
-		return $result;
+			return $result;
+		});
 	}
 
 	/** Show your mass-message and mass-invite preferences */

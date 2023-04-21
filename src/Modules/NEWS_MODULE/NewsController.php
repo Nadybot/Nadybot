@@ -191,6 +191,7 @@ class NewsController extends ModuleInstance {
 		if (!$this->chatBot->isReady()
 			|| !isset($this->chatBot->guildmembers[$sender])
 			|| !is_string($sender)
+			|| $eventObj->wasOnline !== false
 			|| !$this->hasRecentNews($sender)
 		) {
 			return;

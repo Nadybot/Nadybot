@@ -2,6 +2,8 @@
 
 namespace Nadybot\Modules\MASSMSG_MODULE;
 
+use function Amp\Promise\rethrow;
+
 use Nadybot\Core\{
 	Attributes as NCA,
 	MessageHub,
@@ -48,14 +50,14 @@ class MassInviteReceiver implements MessageReceiver {
 		$message = "{$ctrl->massmsgColor}{$msg}<end>".
 			" :: " . $ctrl->getMassMsgOptInOutBlob();
 
-		$ctrl->massCallback([
+		rethrow($ctrl->massCallback([
 			MassMsgController::PREF_MSGS => function (string $name) use ($message): void {
 				$this->chatBot->sendMassTell($message, $name);
 			},
 			MassMsgController::PREF_INVITES => function (string $name): void {
 				$this->chatBot->privategroup_invite($name);
 			},
-		]);
+		]));
 		return true;
 	}
 }

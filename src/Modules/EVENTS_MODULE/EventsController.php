@@ -328,6 +328,7 @@ class EventsController extends ModuleInstance {
 		if (!is_string($sender)
 			|| !$this->chatBot->isReady()
 			|| !isset($this->chatBot->guildmembers[$sender])
+			|| $eventObj->wasOnline !== false
 			|| !$this->hasRecentEvents()
 		) {
 			return;

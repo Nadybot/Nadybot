@@ -720,7 +720,8 @@ class GuildController extends ModuleInstance {
 		$sender = $eventObj->sender;
 		if (!isset($this->chatBot->guildmembers[$sender])
 			|| !$this->chatBot->isReady()
-			|| !is_string($sender)) {
+			|| !is_string($sender)
+			|| $eventObj->wasOnline !== false) {
 			return;
 		}
 		$msg = yield $this->getLogonMessage($sender);
@@ -782,7 +783,8 @@ class GuildController extends ModuleInstance {
 		$sender = $eventObj->sender;
 		if (!isset($this->chatBot->guildmembers[$sender])
 			|| !$this->chatBot->isReady()
-			|| !is_string($sender)) {
+			|| !is_string($sender)
+			|| $eventObj->wasOnline !== true) {
 			return;
 		}
 

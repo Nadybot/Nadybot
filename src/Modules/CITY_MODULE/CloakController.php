@@ -82,6 +82,8 @@ class CloakController extends ModuleInstance implements MessageEmitter {
 	#[NCA\Setting\Time(options: ["2m", "5m", "10m", "15m", "20m"])]
 	public int $cloakReminderInterval = 300; // 5m
 
+	private ?int $lastReminderSent = null;
+
 	#[NCA\Setup]
 	public function setup(): void {
 		$this->messageHub->registerMessageEmitter($this);
@@ -226,10 +228,12 @@ class CloakController extends ModuleInstance implements MessageEmitter {
 			// send message to org chat every 5 minutes that the cloaking device is
 			// disabled past the the time that the cloaking device could be enabled.
 			$interval = $this->cloakReminderInterval;
-			// @phpstan-ignore-next-line
-			if ($timeSinceChange >= 60*60 && ($timeSinceChange % $interval >= 0 && $timeSinceChange % $interval <= 60)) {
+			$canSendReminder = !isset($this->lastReminderSent)
+				|| (time() - $this->lastReminderSent) > $interval;
+			if ($timeSinceChange >= 60*60 && $canSendReminder) {
 				$timeString = $this->util->unixtimeToReadable(time() - $row->time, false);
 				$this->sendCloakMessage("The cloaking device was disabled by <highlight>{$row->player}<end> {$timeString} ago. It is possible to enable it.");
+				$this->lastReminderSent = time();
 			}
 		} elseif ($row->action === "on") {
 			if ($timeSinceChange >= 60*60 && $timeSinceChange < 61*60) {
@@ -282,6 +286,7 @@ class CloakController extends ModuleInstance implements MessageEmitter {
 		if (!$this->chatBot->isReady()
 			|| !isset($this->chatBot->guildmembers[$eventObj->sender])
 			|| !is_string($eventObj->sender)
+			|| $eventObj->wasOnline !== false
 		) {
 			return;
 		}

@@ -83,7 +83,10 @@ class WishlistController extends ModuleInstance {
 		description: "Inform people that someone wishes an item from them"
 	)]
 	public function sendWishlistOnLogon(UserStateEvent $event): void {
-		if (!$this->chatBot->isReady() || !is_string($event->sender)) {
+		if (!$this->chatBot->isReady()
+			|| !is_string($event->sender)
+			|| $event->wasOnline !== false
+		) {
 			return;
 		}
 		$wishlistGrouped = $this->getOthersNeeds($event->sender);
