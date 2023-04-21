@@ -1,3 +1,14 @@
+nadybot (6.2.2-1+ubuntu1) bionic; urgency=medium
+  Fixed
+  - Calculation of cloak reminder was occasionally off and logged twice a minute.
+  - Members of orgs in the orgbanlist were still receiving `!massmsg`-messages.
+  - `!orglist` was broken and would just fill the buddylist. Fixed now.
+  - `!system` will now show the correct Filesystem driver.
+
+  Changed
+  - Every non-Linux OS will now default to the Blocking Filesystem driver, causing less problems and less load.
+ -- Nadyita <nadyita@hodorraid.org>  Fri, 21 Apr 2023 16:30:00 +0200
+
 nadybot (6.2.1-1+ubuntu1) bionic; urgency=medium
   Added
   - Add option "discord_custom_emojis" to enable our own Discord emojis for factions and professions. Enabled by default.
