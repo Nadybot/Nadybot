@@ -436,7 +436,10 @@ class AltsController extends ModuleInstance {
 		description: "Reminds unvalidates alts/mains to accept or deny"
 	)]
 	public function checkUnvalidatedAltsEvent(UserStateEvent $eventObj): void {
-		if (!$this->chatBot->isReady() || !is_string($eventObj->sender)) {
+		if (!$this->chatBot->isReady()
+			|| !is_string($eventObj->sender)
+			|| $eventObj->wasOnline !== false
+		) {
 			return;
 		}
 		$sender = $eventObj->sender;

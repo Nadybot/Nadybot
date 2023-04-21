@@ -499,6 +499,7 @@ class OnlineController extends ModuleInstance {
 		if (!isset($this->chatBot->guildmembers[$sender])
 			|| !$this->chatBot->isReady()
 			|| !is_string($sender)
+			|| $eventObj->wasOnline !== false
 		) {
 			return;
 		}

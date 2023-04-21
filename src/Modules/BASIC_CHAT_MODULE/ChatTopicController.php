@@ -127,6 +127,7 @@ class ChatTopicController extends ModuleInstance {
 			|| !isset($this->chatBot->guildmembers[$eventObj->sender])
 			|| !$this->chatBot->isReady()
 			|| !is_string($eventObj->sender)
+			|| $eventObj->wasOnline !== false
 		) {
 			return;
 		}

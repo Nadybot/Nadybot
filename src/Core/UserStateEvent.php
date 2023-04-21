@@ -8,4 +8,5 @@ class UserStateEvent extends Event {
 	 */
 	public int|string $sender;
 	public int $uid;
+	public ?bool $wasOnline=null;
 }

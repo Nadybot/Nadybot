@@ -286,6 +286,7 @@ class CloakController extends ModuleInstance implements MessageEmitter {
 		if (!$this->chatBot->isReady()
 			|| !isset($this->chatBot->guildmembers[$eventObj->sender])
 			|| !is_string($eventObj->sender)
+			|| $eventObj->wasOnline !== false
 		) {
 			return;
 		}

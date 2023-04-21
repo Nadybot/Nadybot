@@ -115,7 +115,10 @@ class StartpageController extends ModuleInstance {
 	)]
 	public function logonEvent(UserStateEvent $eventObj): Generator {
 		$sender = $eventObj->sender;
-		if (!$this->chatBot->isReady() || !is_string($sender)) {
+		if (!$this->chatBot->isReady()
+			|| !is_string($sender)
+			|| $eventObj->wasOnline !== false
+		) {
 			return;
 		}
 		if (isset($this->chatBot->guildmembers[$sender])) {

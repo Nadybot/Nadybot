@@ -179,6 +179,7 @@ class GSPController extends ModuleInstance implements MessageEmitter {
 			|| !$this->gspShowLogon
 			|| !$this->showRunning
 			|| !is_string($sender)
+			|| $eventObj->wasOnline !== false
 		) {
 			return;
 		}
