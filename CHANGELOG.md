@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Calculation of out-of-range status fixed when restarting the bot.
+
 ## [6.2.2] - 2023-04-21
 
 ### Fixed
