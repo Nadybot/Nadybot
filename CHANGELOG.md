@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Calculation of out-of-range status fixed when restarting the bot.
+- Polls with numeric choices would not display at all.
 
 ## [6.2.2] - 2023-04-21
 

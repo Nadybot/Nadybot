@@ -507,7 +507,7 @@ class VoteController extends ModuleInstance implements MessageEmitter {
 			$blob .= "<tab>" . $this->text->alignNumber($val, 3) . "% ";
 
 			if ($timeleft > 0) {
-				$blob .= $this->text->makeChatcmd($answer, "/tell <myname> vote {$topic->id} {$answer}") . " (Votes: {$votes})\n";
+				$blob .= $this->text->makeChatcmd((string)$answer, "/tell <myname> vote {$topic->id} {$answer}") . " (Votes: {$votes})\n";
 			} else {
 				$blob .= "<highlight>{$answer}<end> (Votes: {$votes})\n";
 			}
