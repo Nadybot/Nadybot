@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Add new optional parameter `<dimension>` to `!whois`.
+
 ### Fixed
 
 - Calculation of out-of-range status fixed when restarting the bot.
