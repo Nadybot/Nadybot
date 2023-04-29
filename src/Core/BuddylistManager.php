@@ -3,8 +3,9 @@
 namespace Nadybot\Core;
 
 use function Amp\call;
+use function Amp\Promise\timeout;
 
-use Amp\{Deferred, Promise, Success};
+use Amp\{Deferred, Promise, Success, TimeoutException};
 use Generator;
 use Nadybot\Core\Attributes as NCA;
 use Throwable;
@@ -92,6 +93,26 @@ class BuddylistManager {
 	 * @return Promise<bool>
 	 */
 	public function checkIsOnline(int $uid): Promise {
+		$buddy = $this->buddyList[$uid] ?? null;
+		$state = [];
+		if (isset($buddy)) {
+			if ($buddy->known) {
+				$state []= 'known';
+				if ($buddy->online) {
+					$state []= 'online';
+				} else {
+					$state []= 'offline';
+				}
+			} else {
+				$state []= 'unconfirmed on buddylist';
+			}
+		} else {
+			$state []= 'not on the buddylist';
+		}
+		$this->logger->debug("Checking if UID {uid} is online. State: {state}", [
+			"uid" => $uid,
+			"state" => join(", ", $state),
+		]);
 		$buddyOnline = $this->isUidOnline($uid);
 		if (isset($buddyOnline)) {
 			return new Success($buddyOnline);
@@ -100,7 +121,16 @@ class BuddylistManager {
 			$onlineKey = "is_online:" . microtime(true);
 			$deferred = new Deferred();
 			$resolver = function (UserStateEvent $event) use ($deferred, $uid, &$resolver): void {
+				$this->logger->debug("Got {type}-event for UID {uid} ({name})", [
+					"type" => $event->type,
+					"uid" => $event->uid,
+					"name" => $event->sender,
+				]);
 				if ($event->uid !== $uid) {
+					$this->logger->debug("{uid} is not the UID we're waiting for {search}", [
+						"uid" => $event->uid,
+						"search" => $uid,
+					]);
 					return;
 				}
 				if (!$deferred->isResolved()) {
@@ -113,7 +143,21 @@ class BuddylistManager {
 			$this->eventManager->subscribe("logoff", $resolver);
 			$this->addId($uid, $onlineKey);
 			try {
-				$isOnline = yield $deferred->promise();
+				$this->logger->debug("UID {uid} added to the buddylist, waiting for online/offline event", [
+					"uid" => $uid,
+				]);
+
+				/** @var bool */
+				$isOnline = yield timeout($deferred->promise(), 3000);
+				$this->logger->debug("UID {uid} is {state}", [
+					"uid" => $uid,
+					"state" => $isOnline ? "online" : "offline",
+				]);
+			} catch (TimeoutException $e) {
+				$this->logger->warning("No reply for the online-state of UID {uid} for 3s", [
+					"uid" => $uid,
+				]);
+				$isOnline = false;
 			} catch (Throwable $e) {
 				$isOnline = false;
 			} finally {

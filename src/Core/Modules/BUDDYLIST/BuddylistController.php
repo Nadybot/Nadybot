@@ -202,6 +202,9 @@ class BuddylistController extends ModuleInstance {
 		if ($this->config->useProxy && count($entry->worker) > 1) {
 			$blob .= " Worker " . join("+", array_keys($entry->worker));
 		}
+		if ($entry->known && $entry->online) {
+			$blob .= " <on>Online<end>";
+		}
 		return "{$blob}\n";
 	}
 

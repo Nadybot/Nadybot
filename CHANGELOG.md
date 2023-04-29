@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Add new optional parameter `<dimension>` to `!whois`.
 
+### Changed
+
+- The async online-checker now has a timeout of 3s after which it will consider the searched char to be offline.
+
 ### Fixed
 
 - Calculation of out-of-range status fixed when restarting the bot.
