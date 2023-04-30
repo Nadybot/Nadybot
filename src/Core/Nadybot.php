@@ -767,6 +767,9 @@ class Nadybot extends AOChat {
 				case AOChatPacket::PING: // 100, pong
 					$this->processPingReply(...$packet->args);
 					break;
+				case AOChatPacket::CHAT_NOTICE: // 37, inbox full, etc.
+					$this->processChatNotice(...$packet->args);
+					break;
 			}
 		} catch (StopExecutionException $e) {
 			$this->logger->info('Execution stopped prematurely', ["exception" => $e]);
@@ -1638,6 +1641,36 @@ class Nadybot extends AOChat {
 				->registerMessageReceiver($oc);
 		}
 		return $result;
+	}
+
+	/** @param scalar[] $msgParams */
+	private function processChatNotice(
+		int $_dummy1,
+		int $_dummy2,
+		int $instanceId,
+		string $rawExtMessage,
+		?string $extMessage=null,
+		?array $msgParams=null,
+		?string $renderedMessage=null
+	): void {
+		$infoGradeMsgs = [
+			158601204 => true, // XXX is offline
+			54583877 => true, // Could not send message to offline player
+			170904871 => true, // Sending messages too fast
+		];
+		if (!isset($renderedMessage)) {
+			return;
+		}
+		if (isset($infoGradeMsgs[$instanceId])) {
+			$this->logger->info("Chat notice: {message}", [
+				"message" => $renderedMessage,
+			]);
+			return;
+		}
+		$this->logger->notice("Chat notice: {message}", [
+			"message" => $renderedMessage,
+			"instance_id" => $instanceId,
+		]);
 	}
 
 	/**
