@@ -257,9 +257,11 @@ class BuddylistManager {
 	public function addId(int $uid, string $type): bool {
 		$name = (string)($this->chatBot->id[$uid] ?? $uid);
 		if (!isset($this->buddyList[$uid])) {
-			$this->logger->info("{$name} buddy added");
+			$this->logger->info("{name} buddy added", ["name" => $name]);
 			if (!$this->config->useProxy && count($this->buddyList) > 999) {
-				$this->logger->error("Error adding '{$name}' to buddy list--buddy list is full");
+				$this->logger->error("Error adding '{name}' to buddy list--buddy list is full", [
+					"name" => $name,
+				]);
 			}
 			$this->chatBot->buddy_add($uid);
 			// Initialize with an unconfirmed entry
@@ -267,6 +269,18 @@ class BuddylistManager {
 			$this->buddyList[$uid]->uid = $uid;
 			$this->buddyList[$uid]->name = $name;
 			$this->buddyList[$uid]->known = false;
+		} else {
+			$oldEntry = $this->buddyList[$uid];
+			// If the char is already on our buddylist, but we never received online/offline
+			// events, check if the UID was added over 3s ago. If so, send the package (again),
+			// because there might have been an error.
+			if ($oldEntry->known === false && (time() - $oldEntry->added) >= 3) {
+				$this->logger->info("Re-adding {name} to buddylist, because there was no reply yet", [
+					"name" => $name,
+				]);
+				$this->buddyList[$uid]->added = time();
+				$this->chatBot->buddy_add($uid);
+			}
 		}
 		if (!$this->buddyList[$uid]->hasType($type)) {
 			$this->buddyList[$uid]->setType($type);
