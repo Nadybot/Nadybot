@@ -14,6 +14,7 @@ use Amp\{
 };
 use Exception;
 use Generator;
+use Nadybot\Core\Attributes\Setting\ArraySetting;
 use Nadybot\Core\DBSchema\{
 	Audit,
 	CmdCfg,
@@ -1759,13 +1760,17 @@ class Nadybot extends AOChat {
 			$comment = trim(preg_replace("|^/\*\*(.*)\*/|s", '$1', $comment));
 			$comment = preg_replace("/^[ \t]*\*[ \t]*/m", '', $comment);
 			$description = trim(preg_replace("/^@.*/m", '', $comment));
+			$settingValue = $value = $attribute->getValue();
+			if (is_array($settingValue)) {
+				$settingValue = join("|", $settingValue);
+			}
 			$this->settingManager->add(
 				module: $moduleName,
 				name: $attribute->name,
 				description: $description,
 				mode: $attribute->mode,
 				type: $attribute->type,
-				value: $attribute->getValue(),
+				value: $settingValue,
 				options: $attribute->options,
 				accessLevel: $attribute->accessLevel,
 				help: $attribute->help,
@@ -1799,6 +1804,13 @@ class Nadybot extends AOChat {
 				return;
 			case 'string':
 				$property->setValue($obj, (string)$value);
+				return;
+			case 'array':
+				$attrs = $property->getAttributes(ArraySetting::class, ReflectionAttribute::IS_INSTANCEOF);
+				foreach ($attrs as $attr) {
+					$attrObj = $attr->newInstance();
+					$property->setValue($obj, $attrObj->toArray($value));
+				}
 				return;
 			default:
 				throw new Exception(

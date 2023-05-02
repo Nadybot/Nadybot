@@ -229,8 +229,8 @@ class SettingManager {
 		return false;
 	}
 
-	/** @return int|bool|string|null */
-	public function getTyped(string $name): int|bool|string|null {
+	/** @return int|bool|string|mixed[]|null */
+	public function getTyped(string $name): int|bool|string|array|null {
 		$name = strtolower($name);
 		if ($this->exists($name)) {
 			return $this->settings[$name]->typed();
@@ -255,8 +255,11 @@ class SettingManager {
 		if (is_int($value) || is_bool($value)) {
 			return (int)$value;
 		}
-		$type = gettype($value);
-		$this->logger->error("Wrong type for setting '{$name}' requested. Expected 'int', got '{$type}' ({$value})");
+		$this->logger->error("Wrong type for setting '{name}' requested. Expected 'int', got '{type}' ({value})", [
+			"name" => $name,
+			"type" => gettype($value),
+			"value" => $value,
+		]);
 		return null;
 	}
 
@@ -265,8 +268,11 @@ class SettingManager {
 		if (is_bool($value)) {
 			return $value;
 		}
-		$type = gettype($value);
-		$this->logger->error("Wrong type for setting '{$name}' requested. Expected 'bool', got '{$type}'");
+		$this->logger->error("Wrong type for setting '{name}' requested. Expected 'bool', got '{type}' ({value})", [
+			"name" => $name,
+			"type" => gettype($value),
+			"value" => $value,
+		]);
 		return null;
 	}
 

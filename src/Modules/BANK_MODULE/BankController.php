@@ -9,6 +9,7 @@ use function Safe\preg_split;
 use Amp\File\FilesystemException;
 use Amp\Http\Client\{HttpClientBuilder, Request, Response};
 use Amp\Promise;
+use Error;
 use Generator;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
@@ -19,6 +20,7 @@ use Nadybot\Core\{
 	ParamClass\PCharacter,
 	SettingManager,
 	Text,
+	UserException,
 	Util,
 };
 use Nadybot\Modules\RAFFLE_MODULE\RaffleItem;
@@ -58,9 +60,13 @@ class BankController extends ModuleInstance {
 	#[NCA\Inject]
 	public SettingManager $settingManager;
 
-	/** Location/URL of the AO Items Assistant CSV dump file */
-	#[NCA\Setting\Text]
-	public string $bankFileLocation = './data/bank.csv';
+	/**
+	 * Location/URL of the AO Items Assistant CSV dump file
+	 *
+	 * @var string[]
+	 */
+	#[NCA\Setting\ArrayOfText]
+	public array $bankFileLocation = ['./data/bank.csv'];
 
 	/** Number of items shown in search results */
 	#[NCA\Setting\Number(options: [20, 50, 100])]
@@ -207,30 +213,55 @@ class BankController extends ModuleInstance {
 	/** Reload the bank database from the file specified with the <a href='chatcmd:///tell <myname> settings change bank_file_location'>bank_file_location</a> setting */
 	#[NCA\HandlesCommand("bank update")]
 	public function bankUpdateCommand(CmdContext $context, #[NCA\Str("update")] string $action): Generator {
-		if (preg_match("|^https?://|", $this->bankFileLocation)) {
-			$client = $this->builder->build();
-
-			/** @var Response */
-			$response = yield $client->request(new Request($this->bankFileLocation));
-			if ($response->getStatus() !== 200) {
-				$context->reply(
-					"Received code <highlight>" . $response->getStatus() . "<end> ".
-					"when trying to download the bank CSV file."
-				);
-			}
-			$body = yield $response->getBody()->buffer();
-		} else {
-			try {
-				$body = yield filesystem()->read($this->bankFileLocation);
-			} catch (FilesystemException $e) {
-				$msg = "Could not open file '{$this->bankFileLocation}': " . $e->getMessage();
-				$context->reply($msg);
-				return;
-			}
+		$procs = [];
+		foreach ($this->bankFileLocation as $location) {
+			$procs []= $this->loadLocation($location);
 		}
-		$lines = preg_split("/(?:\r\n|\r|\n)/", $body);
+
+		/** @var string[] */
+		$bodies = yield $procs;
+		$lines = array_merge(
+			...array_map(
+				fn (string $body) => preg_split("/(?:\r\n|\r|\n)/", $body),
+				$bodies
+			)
+		);
 		yield $this->bankUpdate($lines);
 		$context->reply("The bank database has been updated.");
+	}
+
+	/**
+	 * Load the content of the bank dump from $location and return it
+	 *
+	 * @param string $location A file path or URL to load
+	 *
+	 * @return Promise<string> The complete file content
+	 *
+	 * @throws UserException On error
+	 */
+	private function loadLocation(string $location): Promise {
+		return call(function () use ($location): Generator {
+			if (preg_match("|^https?://|", $location)) {
+				$client = $this->builder->build();
+
+				/** @var Response */
+				$response = yield $client->request(new Request($location));
+				if ($response->getStatus() !== 200) {
+					throw new UserException(
+						"Received code <highlight>" . $response->getStatus() . "<end> " .
+						"when trying to download the bank ".
+						"CSV file <highlight>{$location}<end>."
+					);
+				}
+				return yield $response->getBody()->buffer();
+			}
+			try {
+				return yield filesystem()->read($location);
+			} catch (FilesystemException $e) {
+				$msg = "Could not open file '{$location}': " . $e->getMessage();
+				throw new UserException($msg);
+			}
+		});
 	}
 
 	/**
