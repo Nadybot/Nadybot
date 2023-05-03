@@ -244,7 +244,7 @@ class VoteController extends ModuleInstance implements MessageEmitter {
 			$blob .= "<off>Finished polls:<end>\n{$over}";
 		}
 
-		$msg = $this->text->makeBlob("All voting topics", $blob);
+		$msg = $this->text->makeBlob("All polls", $blob);
 		$context->reply($msg);
 	}
 
@@ -458,7 +458,7 @@ class VoteController extends ModuleInstance implements MessageEmitter {
 
 		$topic->id = $this->db->insert(self::DB_POLLS, $topic);
 		$this->polls[$topic->id] = $topic;
-		$msg = "Voting topic <highlight>{$topic->id}<end> has been created.";
+		$msg = "Poll <highlight>{$topic->id}<end> has been created.";
 
 		$context->reply($msg);
 		$event = new PollEvent();
