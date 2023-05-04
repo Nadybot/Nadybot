@@ -3,6 +3,7 @@
 namespace Nadybot\Core\Attributes\Setting;
 
 use Attribute;
+use Exception;
 use Nadybot\Core\Attributes\DefineSetting;
 
 #[Attribute(Attribute::TARGET_PROPERTY)]
@@ -16,7 +17,7 @@ class Color extends DefineSetting {
 	public function __construct(
 		public string $type='color',
 		public ?string $name=null,
-		public null|int|float|string|bool $defaultValue=null,
+		public null|int|float|string|bool|array $defaultValue=null,
 		public string $mode='edit',
 		public array $options=[],
 		public string $accessLevel='mod',
@@ -25,9 +26,12 @@ class Color extends DefineSetting {
 		$this->type = 'color';
 	}
 
-	public function getValue(): int|float|string|bool {
+	public function getValue(): string {
 		$value = parent::getValue();
-		if (preg_match("/^#?([0-9a-f]{6})$/i", (string)$value, $matches)) {
+		if (!is_string($value)) {
+			throw new Exception("Type for {$this->name} must be string.");
+		}
+		if (preg_match("/^#?([0-9a-f]{6})$/i", $value, $matches)) {
 			return $this->defaultValue = "<font color='#{$matches[1]}'>";
 		}
 		return $value;
