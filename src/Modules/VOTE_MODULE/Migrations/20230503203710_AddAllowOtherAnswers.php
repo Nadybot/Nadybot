@@ -11,7 +11,7 @@ class AddAllowOtherAnswers implements SchemaMigration {
 		$table = "";
 		$table = VoteController::DB_POLLS;
 		$db->schema()->table($table, function (Blueprint $table): void {
-			$table->boolean("allow_other_answers")->nullable(false)->default(true)->change();
+			$table->boolean("allow_other_answers")->nullable(false)->default(true);
 		});
 	}
 }
