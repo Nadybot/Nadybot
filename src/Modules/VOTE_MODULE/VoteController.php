@@ -346,7 +346,7 @@ class VoteController extends ModuleInstance implements MessageEmitter {
 		/** @var ?Vote */
 		$vote = $this->db->table(self::DB_VOTES)
 			->where("poll_id", $topic->id)
-			->where("author", "sender")
+			->where("author", $context->char->name)
 			->asObj(Vote::class)
 			->first();
 		$timeleft = $topic->getTimeLeft();
@@ -378,6 +378,14 @@ class VoteController extends ModuleInstance implements MessageEmitter {
 
 		if ($timeleft <= 0) {
 			$msg = "No longer accepting votes for this poll.";
+			$context->reply($msg);
+			return;
+		}
+
+		if (!$topic->allow_other_answers && !in_array($answer, $topic->answers)) {
+			$msg = "You have to pick one of the options ".
+				$this->text->enumerate(...$this->text->arraySprintf("'%s'", ...$topic->answers)) . ". ".
+				"Custom answers are not allowed for this poll.";
 			$context->reply($msg);
 			return;
 		}
@@ -423,6 +431,7 @@ class VoteController extends ModuleInstance implements MessageEmitter {
 	 * Create a new poll
 	 * The poll will be active for &lt;duration&gt;
 	 * The format of &lt;definition&gt; is &lt;topic&gt;|&lt;option1&gt;|&lt;option2&gt;...
+	 * If you finish the options with two pipes ||, then custom answers won't be allowed.
 	 */
 	#[NCA\HandlesCommand("poll")]
 	#[NCA\Help\Group("voting")]
@@ -447,9 +456,14 @@ class VoteController extends ModuleInstance implements MessageEmitter {
 			$context->reply($msg);
 			return;
 		}
+		$allowCustomAnswers = array_slice($answers, -2) !== ['', ''];
+		if ($allowCustomAnswers === false) {
+			$answers = array_slice($answers, 0, count($answers)-2);
+		}
 		$topic = new Poll();
 		$topic->question = $question;
 		$topic->author = $context->char->name;
+		$topic->allow_other_answers = $allowCustomAnswers;
 		$topic->started = time();
 		$topic->duration = $duration;
 		$topic->answers = $answers;
@@ -519,8 +533,10 @@ class VoteController extends ModuleInstance implements MessageEmitter {
 				"/tell <myname> vote remove {$topic->id}"
 			) . "\n";
 
-			$blob .="\nDon't like these choices? Add your own:\n".
-				"<tab>/tell <myname> vote {$topic->id} <highlight>your choice<end>\n";
+			if ($topic->allow_other_answers) {
+				$blob .="\nDon't like these choices? Add your own:\n".
+					"<tab>/tell <myname> vote {$topic->id} <highlight>your choice<end>\n";
+			}
 		}
 
 		if ($sender === null) {
