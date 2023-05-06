@@ -20,7 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Calculation of out-of-range status fixed when restarting the bot.
 - Polls with numeric choices would not display at all.
-- When viewing a poll, it would always say that you haven't votes yet.
+- When viewing a poll, it would always say that you haven't voted yet.
 
 ## [6.2.2] - 2023-04-21
 
