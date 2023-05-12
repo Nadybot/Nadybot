@@ -148,13 +148,13 @@ class BuddylistManager {
 				]);
 
 				/** @var bool */
-				$isOnline = yield timeout($deferred->promise(), 3000);
+				$isOnline = yield timeout($deferred->promise(), 30000);
 				$this->logger->debug("UID {uid} is {state}", [
 					"uid" => $uid,
 					"state" => $isOnline ? "online" : "offline",
 				]);
 			} catch (TimeoutException $e) {
-				$this->logger->warning("No reply for the online-state of UID {uid} for 3s", [
+				$this->logger->warning("No reply for the online-state of UID {uid} for 30s", [
 					"uid" => $uid,
 				]);
 				$isOnline = false;
