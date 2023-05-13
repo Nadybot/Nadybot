@@ -14,8 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- The async online-checker now has a timeout of 3s after which it will consider the searched char to be offline.
-- Increase timeout from 3s to 30s for buddies, because orglists can take that long.
+- The async online-checker now has a timeout of 30s after which it will consider the searched char to be offline.
 
 ### Fixed
 
@@ -23,6 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Polls with numeric choices would not display at all.
 - When viewing a poll, it would always say that you haven't voted yet.
 - Fix `{c-nick}` being empty on priv join/leave messages.
+- Fix package upgrades on newer Ubuntu versions wiping the bot's database.
 
 ## [6.2.2] - 2023-04-21
 
