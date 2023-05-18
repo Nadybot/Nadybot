@@ -2,9 +2,9 @@
 
 namespace Nadybot\Core\Modules\PLAYER_LOOKUP;
 
+use function Amp\Promise\timeout;
 use function Amp\{asyncCall, call, delay};
-use function Safe\json_decode;
-
+use function Safe\{json_decode, parse_url};
 use Amp\Http\Client\{
 	Connection\UnprocessedRequestException,
 	HttpClientBuilder,
@@ -42,6 +42,8 @@ use Safe\Exceptions\JsonException;
 #[NCA\Instance]
 class PlayerManager extends ModuleInstance {
 	public const CACHE_GRACE_TIME = 87000;
+	public const PORK_URL = "http://people.anarchy-online.com";
+	public const BORK_URL = "https://bork.aobots.org";
 
 	#[NCA\Inject]
 	public HttpClientBuilder $builder;
@@ -67,6 +69,15 @@ class PlayerManager extends ModuleInstance {
 	/** How many jobs in parallel to run to lookup missing character data */
 	#[NCA\Setting\Options(options: ["Off" => 0, 1, 2, 3, 4, 5, 10])]
 	public int $lookupJobs = 0;
+
+	/** Which service to use for character lookups */
+	#[NCA\Setting\Text(
+		options: [
+			"bork.aobots.org (Nadybot)" => self::BORK_URL,
+			"people.anarchy-online.com (Funcom)" => self::PORK_URL,
+		]
+	)]
+	public string $porkUrl = self::BORK_URL;
 
 	public ?PlayerLookupJob $playerLookupJob = null;
 
@@ -235,13 +246,15 @@ class PlayerManager extends ModuleInstance {
 	public function lookupAsync2(string $name, int $dimension): Promise {
 		return call(function () use ($name, $dimension): Generator {
 			$client = $this->builder->build();
-			$url = "http://people.anarchy-online.com/character/bio/d/{$dimension}/name/{$name}/bio.xml?data_type=json";
+			$baseUrl = $this->porkUrl;
+			$url = $baseUrl;
 			$player = null;
 			try {
 				$try = 0;
 				$retries = 5;
 				while ($try++ < $retries) {
 					try {
+						$url = $baseUrl . "/character/bio/d/{$dimension}/name/{$name}/bio.xml?data_type=json";
 						$cache = new FileCache(
 							$this->config->cacheFolder . '/players',
 							new LocalKeyedMutex()
@@ -253,8 +266,15 @@ class PlayerManager extends ModuleInstance {
 							break;
 						}
 
+						$start = \Amp\Loop::now();
+
+						$resPromise = $client->request(new Request($url));
+						if (str_contains($url, "bork")) {
+							$resPromise = timeout($resPromise, 1000);
+						}
+
 						/** @var Response */
-						$response = yield $client->request(new Request($url));
+						$response = yield $resPromise;
 						if ($response->getStatus() === 200) {
 							$body = yield $response->getBody()->buffer();
 							$cache->set($cacheKey, $body, 60);
@@ -266,7 +286,14 @@ class PlayerManager extends ModuleInstance {
 								"code" => $response->getStatus(),
 							]);
 						}
+						$end = \Amp\Loop::now();
+						$this->logger->info("Lookup for {name} took {duration}ms", [
+							"name" => $name,
+							"duration" => $end - $start,
+						]);
 						break;
+					} catch (\Amp\TimeoutException) {
+						$baseUrl = self::PORK_URL;
 					} catch (TimeoutException | UnprocessedRequestException $e) {
 						$delay = (int)pow($try, 2);
 						$this->logger->info("Lookup for {name}.{dimension} timed out, retrying in {delay}s ({try}/{retries})", [
@@ -289,7 +316,9 @@ class PlayerManager extends ModuleInstance {
 				]);
 			}
 			if (isset($player) && $player->name === $name) {
-				$player->source = 'people.anarchy-online.com';
+				/** @var ?string */
+				$host = parse_url($url, PHP_URL_HOST);
+				$player->source = $host ?? "people.anarchy-online.com";
 				$player->dimension = $dimension;
 			} else {
 				$this->logger->info("No char information found about {character} on RK{dimension}", [
