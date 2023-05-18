@@ -1381,13 +1381,14 @@ class DiscordGatewayController extends ModuleInstance {
 			}
 		}
 		$blobs = [];
+
+		/** @var DiscordScheduledEvent[] */
+		$allEvents = [];
 		foreach ($guildIds as $guildId) {
 			$guildName = $guilds[$guildId]->name;
 			try {
 				$events = yield $this->discordAPIClient->getGuildEvents($guildId);
-				foreach ($events as $event) {
-					$blobs [] = yield $this->renderEvent($guilds[$guildId], $event);
-				}
+				$allEvents = array_merge($allEvents, $events);
 			} catch (Throwable $e) {
 				$this->logger->error(
 					"Error reading events from the Discord server: {error}",
@@ -1403,6 +1404,33 @@ class DiscordGatewayController extends ModuleInstance {
 				);
 				return;
 			}
+		}
+		usort(
+			$allEvents,
+			function (DiscordScheduledEvent $a, DiscordScheduledEvent $b): int {
+				return $a->scheduled_start_time->getTimestamp()
+					<=> $b->scheduled_start_time->getTimestamp();
+			}
+		);
+		$renderers = [];
+		foreach ($allEvents as $event) {
+			$renderers [] = $this->renderEvent($guilds[$event->guild_id], $event);
+		}
+		try {
+			$blobs = yield $renderers;
+		} catch (Throwable $e) {
+			$this->logger->error(
+				"Error reading event-details from the Discord server: {error}",
+				[
+					"error" => $e->getMessage(),
+					"exception" => $e,
+				]
+			);
+			$context->reply(
+				"There was an error reading event-details from the Discord ".
+				"server. See the logs for details."
+			);
+			return;
 		}
 		$msg = $this->text->makeBlob(
 			"Upcoming events (" . count($blobs) . ")",
