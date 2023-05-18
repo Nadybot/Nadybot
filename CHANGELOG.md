@@ -11,17 +11,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Add new optional parameter `<dimension>` to `!whois`.
 - When creating a poll, adding `||` At the end of the options will now disallow the usage of custom options.
+- Support for Discord scheduled events via `!discord events` or the new `discord(*)` routing source.
 
 ### Changed
 
 - The async online-checker now has a timeout of 30s after which it will consider the searched char to be offline.
+- Instead of <http://people.anarchy-online.com>, the bot now uses <https://bork.aobots.org> by default, to retrieve user and org data. This can be changed in `!config PLAYER_LOOKUP` to any URL now.
 
 ### Fixed
 
 - Calculation of out-of-range status fixed when restarting the bot.
 - Polls with numeric choices would not display at all.
 - When viewing a poll, it would always say that you haven't voted yet.
-- Fix `{c-nick}` being empty on priv join/leave messages.
+- Fix `{c-nick}` being empty on private channel join/leave messages.
 - Fix package upgrades on newer Ubuntu versions wiping the bot's database.
 
 ## [6.2.2] - 2023-04-21
