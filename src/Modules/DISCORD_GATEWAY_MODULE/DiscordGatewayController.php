@@ -24,6 +24,7 @@ use Nadybot\Core\Modules\DISCORD\{
 	DiscordException,
 	DiscordGateway,
 	DiscordMessageIn,
+	DiscordScheduledEvent,
 	DiscordUser,
 };
 use Nadybot\Core\{
@@ -96,6 +97,11 @@ use Throwable;
 	NCA\ProvidesEvent("discord(guild_role_create)"),
 	NCA\ProvidesEvent("discord(guild_role_update)"),
 	NCA\ProvidesEvent("discord(guild_role_update_delete)"),
+	NCA\ProvidesEvent("discord(guild_scheduled_event_update)"),
+	NCA\ProvidesEvent("discord(guild_scheduled_event_create)"),
+	NCA\ProvidesEvent("discord(guild_scheduled_event_delete)"),
+	NCA\ProvidesEvent("discord(guild_scheduled_user_add)"),
+	NCA\ProvidesEvent("discord(guild_scheduled_user_remove)"),
 	NCA\ProvidesEvent("discord(interaction_create)"),
 	NCA\ProvidesEvent("discord(message_create)"),
 	NCA\ProvidesEvent("discord(message_update)"),
@@ -108,6 +114,11 @@ use Throwable;
 	NCA\ProvidesEvent("discord(voice_state_update)"),
 	NCA\ProvidesEvent("discord_voice_join"),
 	NCA\ProvidesEvent("discord_voice_leave"),
+
+	NCA\EmitsMessages("discord", "event-create"),
+	NCA\EmitsMessages("discord", "event-delete"),
+	NCA\EmitsMessages("discord", "event-start"),
+	NCA\EmitsMessages("discord", "event-end"),
 
 	NCA\DefineCommand(
 		command: "discord",
@@ -133,6 +144,11 @@ use Throwable;
 		command: "discord leave server",
 		accessLevel: "mod",
 		description: "Let the bot leave a Discord server",
+	),
+	NCA\DefineCommand(
+		command: "discord show events",
+		accessLevel: "member",
+		description: "Show the scheduled Discord events",
 	),
 ]
 class DiscordGatewayController extends ModuleInstance {
@@ -725,7 +741,7 @@ class DiscordGatewayController extends ModuleInstance {
 				$this->messageHub
 					->registerMessageReceiver($dc)
 					->registerMessageEmitter($dc);
-			} elseif ($channel->type === $channel::GUILD_VOICE) {
+			} elseif (in_array($channel->type, [$channel::GUILD_VOICE, $channel::GUILD_STAGE_VOICE], true)) {
 				$dc = new RoutedChannel("< {$channel->name}", $channel->id);
 				Registry::injectDependencies($dc);
 				$this->messageHub
@@ -1324,6 +1340,224 @@ class DiscordGatewayController extends ModuleInstance {
 		}
 	}
 
+	/** Show scheduled events on the Discord server */
+	#[NCA\HandlesCommand("discord show events")]
+	public function listDiscordEvents(
+		CmdContext $context,
+		#[NCA\Str("events")] string $action,
+		?string $guildId,
+	): Generator {
+		if ($this->discordController->discordBotToken === 'off') {
+			$context->reply("This bot isn't configured to connect to Discord yet.");
+			return;
+		}
+		if (!$this->isConnected()) {
+			$context->reply("The bot is currently not connected to Discord.");
+			return;
+		}
+		if (empty($this->guilds)) {
+			$context->reply("This bot is not a member of a Discord server.");
+			return;
+		}
+		$guilds = array_filter(
+			$this->guilds,
+			fn (Guild $guild): bool => in_array("COMMUNITY", $guild->features)
+		);
+		if (empty($guilds)) {
+			$context->reply("This bot is not a member of a Discord server with community features.");
+			return;
+		}
+		$guildIds = [];
+		if (isset($guildId)) {
+			$guild = $guilds[$guildId] ?? null;
+			if (!isset($guild)) {
+				$context->reply("This bot is not a member of Discord server <highlight>{$guildId}<end>.");
+				return;
+			}
+			$guildIds = [$guildId];
+		} else {
+			foreach ($guilds as $guildId => $guild) {
+				$guildIds []= $guild->id;
+			}
+		}
+		$blobs = [];
+		foreach ($guildIds as $guildId) {
+			$guildName = $guilds[$guildId]->name;
+			try {
+				$events = yield $this->discordAPIClient->getGuildEvents($guildId);
+				foreach ($events as $event) {
+					$blobs [] = yield $this->renderEvent($guilds[$guildId], $event);
+				}
+			} catch (Throwable $e) {
+				$this->logger->error(
+					"Error reading events from the Discord server: {error}",
+					[
+						"error" => $e->getMessage(),
+						"exception" => $e,
+					]
+				);
+				$context->reply(
+					"There was an error reading events from the Discord server " .
+						"<highlight>{$guildName}<end>. " .
+						"See the logs for details."
+				);
+				return;
+			}
+		}
+		$msg = $this->text->makeBlob(
+			"Upcoming events (" . count($blobs) . ")",
+			join("\n\n", $blobs)
+		);
+		$context->reply($msg);
+	}
+
+	#[NCA\Event(
+		name: "discord(guild_scheduled_event_create)",
+		description: "Announce new Discord events"
+	)]
+	public function announceNewDiscordEvent(DiscordGatewayEvent $e): Generator {
+		$event = new DiscordScheduledEvent();
+		$event->fromJSON($e->payload->d);
+		$guild = $this->guilds[$event->guild_id]??null;
+		if (!isset($guild)) {
+			return;
+		}
+
+		/** @var string */
+		$blob = yield $this->renderEvent($guild, $event);
+		$msgs = $this->text->blobWrap(
+			"New Discord event: ",
+			$this->text->makeBlob($event->name, $blob),
+		);
+		foreach ($msgs as $msg) {
+			$rMsg = new RoutableMessage($msg);
+			$rMsg->prependPath(new Source("discord", "event-create"));
+			$this->messageHub->handle($rMsg);
+		}
+	}
+
+	#[NCA\Event(
+		name: "discord(guild_scheduled_event_update)",
+		description: "Announce Discord event started"
+	)]
+	public function announceStartedDiscordEvent(DiscordGatewayEvent $e): Generator {
+		$event = new DiscordScheduledEvent();
+		$event->fromJSON($e->payload->d);
+		$guild = $this->guilds[$event->guild_id]??null;
+		if (!isset($guild)) {
+			return;
+		}
+		if ($event->status !== $event::STATUS_ACTIVE) {
+			return;
+		}
+
+		/** @var string */
+		$blob = yield $this->renderEvent($guild, $event);
+		$msgs = $this->text->blobWrap(
+			"Discord event started: ",
+			$this->text->makeBlob($event->name, $blob),
+		);
+		foreach ($msgs as $msg) {
+			$rMsg = new RoutableMessage($msg);
+			$rMsg->prependPath(new Source("discord", "event-start"));
+			$this->messageHub->handle($rMsg);
+		}
+	}
+
+	#[NCA\Event(
+		name: "discord(guild_scheduled_event_delete)",
+		description: "Announce cancelled Discord events"
+	)]
+	public function announceRemovedDiscordEvent(DiscordGatewayEvent $e): void {
+		$event = new DiscordScheduledEvent();
+		$event->fromJSON($e->payload->d);
+		$guild = $this->guilds[$event->guild_id]??null;
+		if (!isset($guild)) {
+			return;
+		}
+		$rMsg = new RoutableMessage("Discord event <highlight>{$event->name}<end> was cancelled.");
+		$rMsg->prependPath(new Source("discord", "event-delete"));
+		$this->messageHub->handle($rMsg);
+	}
+
+	#[NCA\Event(
+		name: "discord(guild_scheduled_event_update)",
+		description: "Announce Discord event ended"
+	)]
+	public function announceEndedDiscordEvent(DiscordGatewayEvent $e): void {
+		$event = new DiscordScheduledEvent();
+		$event->fromJSON($e->payload->d);
+		$guild = $this->guilds[$event->guild_id]??null;
+		if (!isset($guild)) {
+			return;
+		}
+		if ($event->status !== $event::STATUS_COMPLETED) {
+			return;
+		}
+		$rMsg = new RoutableMessage("Discord event <highlight>{$event->name}<end> is now over.");
+		$rMsg->prependPath(new Source("discord", "event-end"));
+		$this->messageHub->handle($rMsg);
+	}
+
+	/** @return Promise<string> */
+	protected function renderEvent(Guild $guild, DiscordScheduledEvent $event): Promise {
+		return call(function () use ($guild, $event): Generator {
+			$name = $event->name;
+			if ($event->entity_type === $event::TYPE_EXTERNAL) {
+				$name .= " (external)";
+			}
+			$blob = "<header2>{$name}<end>";
+			if (isset($event->description)) {
+				$descr = DiscordRelayController::formatMessage($event->description);
+				if ($descr === '') {
+					$descr = "&lt;no description&gt;";
+				}
+				$blob .= "\n<tab><i>".
+				join("</i>\n<tab><i>", explode("\n", $descr)) . "</i>".
+				"\n";
+			}
+			$blob .= "\n<tab>When: <highlight>".
+			$this->util->date($event->scheduled_start_time->getTimestamp()).
+			"<end>";
+			if (isset($event->scheduled_end_time)) {
+				$blob .= " - <highlight>".
+				$this->util->date($event->scheduled_end_time->getTimestamp()).
+				"<end>";
+			}
+			if (isset($event->entity_metadata->location)) {
+				$blob .= "\n<tab>Where: <highlight>".
+				$event->entity_metadata->location.
+				"<end>";
+			} elseif (isset($event->channel_id)) {
+				$channel = $this->getChannel($event->channel_id);
+				if (isset($channel, $channel->name)) {
+					$blob .= "\n<tab>Where: <highlight>".
+					$guild->name . " " . $this->renderSingleChannel($channel).
+					"<end>";
+				}
+			}
+			try {
+				if (isset($event->creator_id)) {
+					$creator =(
+						$this->discordGatewayCommandHandler->getNameForDiscordId($event->creator_id)
+						?? $event->creator?->username
+						?? (yield $this->discordAPIClient->getUser($event->creator_id))->username
+						?? "UNKNOWN"
+					);
+					$blob .= "\n<tab>Created by: <highlight>{$creator}<end>";
+				}
+			} catch (Throwable) {
+				// IGNORE
+			}
+			if (isset($event->user_count)) {
+				$blob .= "\n<tab>Attending: <highlight>{$event->user_count} ".
+				$this->text->pluralize("person", $event->user_count).
+				"<end>";
+			}
+			return $blob;
+		});
+	}
+
 	/**
 	 * Check if a close code allowed reconnecting
 	 *
@@ -1554,8 +1788,21 @@ class DiscordGatewayController extends ModuleInstance {
 		}
 		$lines = [];
 		$lines []= "<header2>{$guild->name}<end>{$leaveLink}{$joinLink}";
-		foreach ($guild->channels as $channel) {
-			if (isset($channel->parent_id)) {
+		$channels = $guild->channels;
+		usort(
+			$channels,
+			function (DiscordChannel $a, DiscordChannel $b): int {
+				return ($a->position ?? 0) <=> ($b->position ?? 0);
+			}
+		);
+		foreach ($channels as $channel) {
+			if ($channel->type === $channel::GUILD_CATEGORY || isset($channel->parent_id)) {
+				continue;
+			}
+			$lines []= "<tab><highlight>" . $this->renderSingleChannel($channel) . "<end>";
+		}
+		foreach ($channels as $channel) {
+			if ($channel->type !== $channel::GUILD_CATEGORY || isset($channel->parent_id)) {
 				continue;
 			}
 			$lines []= "<tab><highlight>" . $this->renderSingleChannel($channel) . "<end>";
@@ -1576,6 +1823,7 @@ class DiscordGatewayController extends ModuleInstance {
 				$prefix = "# ";
 				break;
 			case DiscordChannel::GUILD_VOICE:
+			case DiscordChannel::GUILD_STAGE_VOICE:
 				$prefix = "&lt; ";
 				break;
 			default:
@@ -1882,7 +2130,8 @@ class DiscordGatewayController extends ModuleInstance {
 				| Intent::GUILD_MEMBERS
 				| Intent::GUILDS
 				| Intent::GUILD_VOICE_STATES
-				| Intent::MESSAGE_CONTENT;
+				| Intent::MESSAGE_CONTENT
+				| Intent::GUILD_SCHEDULED_EVENTS;
 			$login = new Payload();
 			$login->op = Opcode::IDENTIFY;
 			$login->d = $identify;

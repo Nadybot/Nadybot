@@ -322,6 +322,16 @@ class DiscordAPIClient extends ModuleInstance {
 	}
 
 	/**
+	 * Get all currently set guild events from Discord for $guildId
+	 *
+	 * @return Promise<DiscordScheduledEvent[]>
+	 */
+	public function getGuildEvents(string $guildId): Promise {
+		$request = new Request(self::DISCORD_API . "/guilds/{$guildId}/scheduled-events?with_user_count=true");
+		return $this->sendRequest($request, [new DiscordScheduledEvent()]);
+	}
+
+	/**
 	 * Get all currently registered Emojis for $guildId
 	 *
 	 * @return Promise<Emoji[]>
