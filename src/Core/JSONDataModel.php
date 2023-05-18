@@ -7,6 +7,7 @@ use ReflectionClass;
 use ReflectionNamedType;
 use ReflectionProperty;
 use ReflectionUnionType;
+use UnexpectedValueException;
 
 class JSONDataModel {
 	public function fromJSON(object $data): void {
@@ -96,8 +97,20 @@ class JSONDataModel {
 			} else {
 				$value = new $typeName();
 				if (method_exists($value, "fromJSON")) {
-					$value->fromJSON($data->{$propName});
-					$refProp->setValue($this, $value);
+					if (!isset($data->{$propName})) {
+						if ($type->allowsNull()) {
+							$refProp->setValue($this, null);
+						} else {
+							throw new UnexpectedValueException(
+								"Trying to assign a null value to ".
+								"non-null property " . get_class($this).
+								'::$' . $refProp->getName()
+							);
+						}
+					} else {
+						$value->fromJSON($data->{$propName});
+						$refProp->setValue($this, $value);
+					}
 				}
 			}
 		}
