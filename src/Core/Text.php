@@ -434,6 +434,7 @@ class Text {
 			"cargo" => "cargoes",
 			"man" => "men",
 			"woman" => "women",
+			"person" => "people",
 			"child" => "children",
 			"mouse" => "mice",
 			"tooth" => "teeth",

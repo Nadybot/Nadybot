@@ -1340,6 +1340,9 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 			if (!isset($tokens["logoff-msg"]) || !strlen($tokens["logoff-msg"])) {
 				$tokens["logoff-msg"] = null;
 			}
+			if (isset($tokens["c-nick"])) {
+				$tokens["c-nick"] = "<highlight>{$tokens['c-nick']}";
+			}
 			$ranks = $this->getRankTokens($player);
 			$tokens = array_merge($tokens, $ranks);
 
@@ -1356,6 +1359,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 			if ($altInfo->main !== $player) {
 				$tokens["main"] = $altInfo->main;
 				$tokens["c-main"] = "<highlight>{$altInfo->main}<end>";
+				$tokens["c-nick"] ??= $tokens["c-main"];
 				$tokens["alt-of"] = "Alt of <highlight>{$tokens['c-nick']}<end>";
 			}
 			if (count($altInfo->getAllValidatedAlts()) > 0) {

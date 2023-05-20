@@ -535,14 +535,29 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 			$context->reply($msg);
 			return;
 		}
+
+		$msg = "Removed <highlight>{$name}<end> from the tracklist, but ".
+			"they were tracked, because the whole org";
+		$deleted = $this->db->table(self::DB_ORG_MEMBER)
+			->where("uid", $uid)
+			->delete();
+		if ($deleted) {
+			$this->buddylistManager->removeId($uid, static::REASON_ORG_TRACKER);
+		}
 		$org = $this->findOrgController->getByID($orgMember->org_id);
 		if (!isset($org)) {
-			$msg = "In order to remove {$name} from the tracklist, ".
-			"you need to remove the org ID {$orgMember->org_id} ";
+			$msg .= " {$orgMember->org_id} is being tracked, and will be ".
+				"re-added if they are still in this org. In order to permanently ".
+				"remove {$name} from the tracklist, you might need to remove ".
+				"the org ID {$orgMember->org_id} ";
 		} else {
-			$msg = "In order to remove {$name} from the tracklist, ".
-				"you need to remove the org <".
-				strtolower($org->faction) . ">{$org->name}<end> (ID {$org->id}) ";
+			$orgName = "<" . strtolower($org->faction) . ">{$org->name}<end>";
+			$msg .= " {$orgName} is being tracked. {$name} will be re-added ".
+				"to the tracking list during the next tracker roster update, ".
+				"unless they have left this org. ".
+				"In order to permanently remove {$name} from the ".
+				"tracklist, you might have to remove the whole org {$orgName}".
+				" (ID {$org->id}) ";
 		}
 
 		$msg .= "from the tracker with <highlight><symbol>track remorg {$orgMember->org_id}<end>.";

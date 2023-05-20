@@ -248,13 +248,22 @@ class WhoisController extends ModuleInstance {
 
 	/** Show character info, online status, and name history for a character */
 	#[NCA\HandlesCommand("whois")]
-	public function whoisNameCommand(CmdContext $context, PCharacter $char): Generator {
+	public function whoisNameCommand(CmdContext $context, PCharacter $char, ?int $dimension): Generator {
 		$name = $char();
-		$uid = yield $this->chatBot->getUid2($name);
-		$dimension = $this->config->dimension;
+		$dimension ??= $this->config->dimension;
+		$uid = null;
+		if ($dimension === $this->config->dimension) {
+			$uid = yield $this->chatBot->getUid2($name);
+		}
 		if (isset($uid)) {
-			$online = yield $this->buddylistManager->checkIsOnline($uid);
-			$player = yield $this->playerManager->byName($name);
+			/**
+			 * @var bool    $online
+			 * @var ?Player $player
+			 */
+			[$online, $player] = yield [
+				$this->buddylistManager->checkIsOnline($uid),
+				$this->playerManager->byName($name, $dimension),
+			];
 			$msg = yield $this->playerToWhois($player, $name, $online);
 			$context->reply($msg);
 			return;
@@ -375,16 +384,20 @@ class WhoisController extends ModuleInstance {
 			$blob .= "Head Id: <highlight>{$whois->head_id}<end>\n";
 			// $blob .= "PVP Rating: <highlight>{$whois->pvp_rating}<end>\n";
 			// $blob .= "PVP Title: <highlight>{$whois->pvp_title}<end>\n";
-			$blob .= "Status: ";
-			if ($online) {
-				$blob .= "<on>Online<end>\n";
-			} elseif ($charID === null) {
-				$blob .= "<off>Inactive<end>\n";
+			if ($whois->dimension === $this->config->dimension) {
+				$blob .= "Status: ";
+				if ($online) {
+					$blob .= "<on>Online<end>\n";
+				} elseif ($charID === null) {
+					$blob .= "<off>Inactive<end>\n";
+				} else {
+					$blob .= "<off>Offline<end>\n";
+				}
 			} else {
-				$blob .= "<off>Offline<end>\n";
+				$blob .= "Dimension: <highlight>{$whois->dimension}<end>\n";
 			}
 			if ($charID !== null) {
-				$blob .= "Character ID: <highlight>{$whois->charid}<end> [{$lookupCharIdLink}]\n\n";
+				$blob .= "Character ID: <highlight>{$charID}<end> [{$lookupCharIdLink}]\n\n";
 			}
 
 			$blob .= "Source: <highlight>{$whois->source}<end>\n\n";
@@ -432,12 +445,14 @@ class WhoisController extends ModuleInstance {
 			}
 
 			$msg = $this->playerManager->getInfo($whois);
-			if ($online) {
-				$msg .= " :: <on>Online<end>";
-			} elseif ($charID === null) {
-				$msg .= " :: <off>Inactive<end>";
-			} else {
-				$msg .= " :: <off>Offline<end>";
+			if ($whois->dimension === $this->config->dimension) {
+				if ($online) {
+					$msg .= " :: <on>Online<end>";
+				} elseif ($charID === null) {
+					$msg .= " :: <off>Inactive<end>";
+				} else {
+					$msg .= " :: <off>Offline<end>";
+				}
 			}
 			$msg .= " :: " . ((array)$this->text->makeBlob("More Info", $blob, "Detailed Info for {$name}"))[0];
 			if ($this->whoisAddComments) {

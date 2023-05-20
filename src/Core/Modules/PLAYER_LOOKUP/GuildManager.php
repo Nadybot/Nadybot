@@ -2,13 +2,14 @@
 
 namespace Nadybot\Core\Modules\PLAYER_LOOKUP;
 
-use function Amp\{asyncCall, call};
-
+use function Amp\Promise\timeout;
+use function Amp\{asyncCall, call, delay};
 use function Safe\json_decode;
 use Amp\Cache\FileCache;
-use Amp\Http\Client\{HttpClientBuilder, Request, Response};
-use Amp\Promise;
+use Amp\Http\Client\Connection\UnprocessedRequestException;
+use Amp\Http\Client\{HttpClientBuilder, Request, Response, TimeoutException};
 use Amp\Sync\LocalKeyedMutex;
+use Amp\{Loop, Promise};
 
 use Closure;
 use DateInterval;
@@ -24,6 +25,7 @@ use Nadybot\Core\{
 	DB,
 	DBSchema\Player,
 	EventManager,
+	LoggerWrapper,
 	ModuleInstance,
 	Nadybot,
 };
@@ -55,6 +57,9 @@ class GuildManager extends ModuleInstance {
 	#[NCA\Inject]
 	public PlayerManager $playerManager;
 
+	#[NCA\Logger]
+	public LoggerWrapper $logger;
+
 	#[NCA\Setup]
 	public function setup(): void {
 		mkdir($this->config->cacheFolder . '/guild_roster');
@@ -73,8 +78,9 @@ class GuildManager extends ModuleInstance {
 		return call(function () use ($guildID, $dimension, $forceUpdate): Generator {
 			// if no server number is specified use the one on which the bot is logged in
 			$dimension ??= $this->config->dimension;
+			$body = null;
 
-			$url = "http://people.anarchy-online.com/org/stats/d/{$dimension}/name/{$guildID}/basicstats.xml?data_type=json";
+			$baseUrl = $this->playerManager->porkUrl;
 			$maxCacheAge = 86400;
 			if ($this->isMyGuild($guildID)) {
 				$maxCacheAge = 21600;
@@ -88,17 +94,46 @@ class GuildManager extends ModuleInstance {
 			if (!$forceUpdate) {
 				$body = yield $cache->get($cacheKey);
 			}
-			if (!isset($body) || $body === '') {
-				$client = $this->builder->build();
+			$try = 0;
+			while ((!isset($body) || $body === '') && $try < 3) {
+				try {
+					$url = $baseUrl . "/org/stats/d/{$dimension}/name/{$guildID}/basicstats.xml?data_type=json";
+					$start = Loop::now();
+					$try++;
+					$client = $this->builder->build();
+					$resPromise = $client->request(new Request($url));
+					if (str_contains($url, "bork")) {
+						$resPromise = timeout($resPromise, 10_000);
+					}
 
-				/** @var Response */
-				$response = yield $client->request(new Request($url));
-				$body = yield $response->getBody()->buffer();
-				$cache->set($cacheKey, $body, $maxCacheAge);
-				$fromCache = false;
+					/** @var Response */
+					$response = yield $resPromise;
+					$body = yield $response->getBody()->buffer();
+					$end = Loop::now();
+					$this->logger->info("Getting {url} took {duration}ms", [
+						"url" => $url,
+						"duration" => $end - $start,
+					]);
+					$cache->set($cacheKey, $body, $maxCacheAge);
+					$fromCache = false;
+				} catch (\Amp\TimeoutException) {
+					$baseUrl = $this->playerManager::PORK_URL;
+				} catch (TimeoutException | UnprocessedRequestException $e) {
+					$delay = (int)pow($try, 2);
+					$this->logger->info("Lookup for ORG {guild} D{dimension} timed out, retrying in {delay}s ({try}/{retries})", [
+						"guild" => $guildID,
+						"dimension" => $dimension,
+						"try" => $try,
+						"delay" => $delay,
+						"retries" => 3,
+					]);
+					if ($try < 3) {
+						yield delay($delay * 1000);
+					}
+				}
 			}
 
-			if ($body === '') {
+			if (!isset($body) || $body === '') {
 				throw new Exception("Empty data received when reading org data");
 			}
 

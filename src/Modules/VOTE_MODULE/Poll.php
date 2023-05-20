@@ -9,6 +9,7 @@ class Poll extends DBRow {
 	public string $author;
 	public string $question;
 	public string $possible_answers;
+	public bool $allow_other_answers=true;
 
 	/** @var string[] */
 	#[NCA\DB\Ignore]

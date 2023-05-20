@@ -406,6 +406,11 @@ class MobController extends ModuleInstance {
 
 	private function renderMobStatus(Mob $mob): string {
 		switch ($mob->status) {
+			case $mob::STATUS_UNKNOWN:
+				if (!isset($mob->last_seen)) {
+					return "<unknown>UNKNOWN<end>";
+				}
+				// Otherwise, the mob is out of range
 			case $mob::STATUS_OUT_OF_RANGE:
 				$status = "<yellow>OUT OF RANGE<end>";
 				if (!isset($mob->last_seen)) {

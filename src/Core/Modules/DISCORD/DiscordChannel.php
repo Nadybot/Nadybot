@@ -22,10 +22,25 @@ class DiscordChannel extends JSONDataModel {
 	public const GUILD_CATEGORY = 4;
 
 	/** a channel that users can follow and crosspost into their own server */
-	public const GUILD_NEWS = 5;
+	public const GUILD_ANNOUNCEMENT = 5;
 
-	/** a channel in which game developers can sell their game on Discord */
-	public const GUILD_STORE = 6;
+	/** a temporary sub-channel within a GUILD_ANNOUNCEMENT channel */
+	public const ANNOUNCEMENT_THREAD = 10;
+
+	/** a temporary sub-channel within a GUILD_TEXT or GUILD_FORUM channel */
+	public const PUBLIC_THREAD = 11;
+
+	/** a temporary sub-channel within a GUILD_TEXT channel that is only viewable by those invited and those with the MANAGE_THREADS permission */
+	public const PRIVATE_THREAD = 12;
+
+	/** a voice channel for hosting events with an audience */
+	public const GUILD_STAGE_VOICE = 13;
+
+	/** the channel in a hub containing the listed servers */
+	public const GUILD_DIRECTORY = 14;
+
+	/** Channel that can only contain threads */
+	public const GUILD_FORUM = 15;
 
 	public string $id;
 	public int $type;

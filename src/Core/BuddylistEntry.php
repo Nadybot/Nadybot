@@ -15,6 +15,9 @@ class BuddylistEntry {
 	/** Online-status of the buddy */
 	public bool $online = false;
 
+	/** Unix timestamp when this entry was added to the buddylist */
+	public int $added;
+
 	/**
 	 * Which worker(s) holds this as their buddy
 	 *
@@ -28,6 +31,10 @@ class BuddylistEntry {
 	 * @var array<string,bool>
 	 */
 	public array $types = [];
+
+	public function __construct() {
+		$this->added = time();
+	}
 
 	/** Query if $type is in the reasons, why this person is on the buddy-list */
 	public function hasType(string $type): bool {

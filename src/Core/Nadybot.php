@@ -14,6 +14,7 @@ use Amp\{
 };
 use Exception;
 use Generator;
+use Nadybot\Core\Attributes\Setting\ArraySetting;
 use Nadybot\Core\DBSchema\{
 	Audit,
 	CmdCfg,
@@ -766,6 +767,9 @@ class Nadybot extends AOChat {
 					break;
 				case AOChatPacket::PING: // 100, pong
 					$this->processPingReply(...$packet->args);
+					break;
+				case AOChatPacket::CHAT_NOTICE: // 37, inbox full, etc.
+					$this->processChatNotice(...$packet->args);
 					break;
 			}
 		} catch (StopExecutionException $e) {
@@ -1640,6 +1644,36 @@ class Nadybot extends AOChat {
 		return $result;
 	}
 
+	/** @param scalar[] $msgParams */
+	private function processChatNotice(
+		int $_dummy1,
+		int $_dummy2,
+		int $instanceId,
+		string $rawExtMessage,
+		?string $extMessage=null,
+		?array $msgParams=null,
+		?string $renderedMessage=null
+	): void {
+		$infoGradeMsgs = [
+			158601204 => true, // XXX is offline
+			54583877 => true, // Could not send message to offline player
+			170904871 => true, // Sending messages too fast
+		];
+		if (!isset($renderedMessage)) {
+			return;
+		}
+		if (isset($infoGradeMsgs[$instanceId])) {
+			$this->logger->info("Chat notice: {message}", [
+				"message" => $renderedMessage,
+			]);
+			return;
+		}
+		$this->logger->notice("Chat notice: {message}", [
+			"message" => $renderedMessage,
+			"instance_id" => $instanceId,
+		]);
+	}
+
 	/**
 	 * Parse all defined commands of the class and return them
 	 *
@@ -1726,13 +1760,17 @@ class Nadybot extends AOChat {
 			$comment = trim(preg_replace("|^/\*\*(.*)\*/|s", '$1', $comment));
 			$comment = preg_replace("/^[ \t]*\*[ \t]*/m", '', $comment);
 			$description = trim(preg_replace("/^@.*/m", '', $comment));
+			$settingValue = $value = $attribute->getValue();
+			if (is_array($settingValue)) {
+				$settingValue = join("|", $settingValue);
+			}
 			$this->settingManager->add(
 				module: $moduleName,
 				name: $attribute->name,
 				description: $description,
 				mode: $attribute->mode,
 				type: $attribute->type,
-				value: $attribute->getValue(),
+				value: $settingValue,
 				options: $attribute->options,
 				accessLevel: $attribute->accessLevel,
 				help: $attribute->help,
@@ -1766,6 +1804,13 @@ class Nadybot extends AOChat {
 				return;
 			case 'string':
 				$property->setValue($obj, (string)$value);
+				return;
+			case 'array':
+				$attrs = $property->getAttributes(ArraySetting::class, ReflectionAttribute::IS_INSTANCEOF);
+				foreach ($attrs as $attr) {
+					$attrObj = $attr->newInstance();
+					$property->setValue($obj, $attrObj->toArray($value));
+				}
 				return;
 			default:
 				throw new Exception(

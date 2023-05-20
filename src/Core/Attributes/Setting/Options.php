@@ -16,7 +16,7 @@ class Options extends DefineSetting {
 	public function __construct(
 		public string $type='options',
 		public ?string $name=null,
-		public null|int|float|string|bool $defaultValue=null,
+		public null|int|float|string|bool|array $defaultValue=null,
 		public string $mode='edit',
 		public array $options=[],
 		public string $accessLevel='mod',

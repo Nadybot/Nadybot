@@ -15,6 +15,7 @@ class Mob {
 	public const STATUS_DOWN = "down";
 	public const STATUS_ATTACKED = "under_attack";
 	public const STATUS_OUT_OF_RANGE = "out_of_range";
+	public const STATUS_UNKNOWN = "unknown";
 
 	private const NAME_MAPPING = [
 		self::T_HAG => [
@@ -54,7 +55,7 @@ class Mob {
 		#[MapFrom("status.last_killed", ".")] public ?int $last_killed,
 		#[MapFrom("status.hp_percent", ".")] public ?float $hp_percent,
 		public ?int $respawn_timer,
-		public ?int $last_seen=null,
+		#[MapFrom("status.last_seen", ".")] public ?int $last_seen=null,
 	) {
 		$this->fixName();
 	}

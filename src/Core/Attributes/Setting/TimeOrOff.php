@@ -3,6 +3,7 @@
 namespace Nadybot\Core\Attributes\Setting;
 
 use Attribute;
+use Exception;
 use Nadybot\Core\Attributes\DefineSetting;
 
 #[Attribute(Attribute::TARGET_PROPERTY)]
@@ -16,7 +17,7 @@ class TimeOrOff extends DefineSetting {
 	public function __construct(
 		public string $type='time_or_off',
 		public ?string $name=null,
-		public null|int|float|string|bool $defaultValue=null,
+		public null|int|float|string|bool|array $defaultValue=null,
 		public string $mode='edit',
 		public array $options=[],
 		public string $accessLevel='mod',
@@ -25,8 +26,11 @@ class TimeOrOff extends DefineSetting {
 		$this->type = 'time_or_off';
 	}
 
-	public function getValue(): int|float|string|bool {
+	public function getValue(): int|string {
 		$value = parent::getValue();
+		if (!is_string($value) && !is_int($value)) {
+			throw new Exception("Type for {$this->name} must be string or int.");
+		}
 		if (is_int($value)) {
 			return "{$value}s";
 		}
