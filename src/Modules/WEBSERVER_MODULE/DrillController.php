@@ -3,7 +3,7 @@
 namespace Nadybot\Modules\WEBSERVER_MODULE;
 
 use function Amp\Promise\{timeout};
-use function Amp\{call, delay};
+use function Amp\{asyncCall, call, delay};
 use function Safe\preg_replace;
 
 use Amp\Http\Client\Connection\{DefaultConnectionFactory, UnlimitedConnectionPool};
@@ -15,15 +15,23 @@ use Amp\Websocket\{ClosedException, Message};
 use Amp\{Deferred, Promise, TimeoutException};
 use Generator;
 
-use Nadybot\Core\{AOChatEvent, Attributes as NCA, ConfigFile, EventManager, LoggerWrapper, ModuleInstance, Registry, StopExecutionException};
+use Nadybot\Core\{AOChatEvent, Attributes as NCA, ConfigFile, EventManager, LoggerWrapper, ModuleInstance, Registry, StopExecutionException, UserException};
 use Throwable;
 
 #[NCA\ProvidesEvent("drill(*)")]
 #[NCA\Instance]
 class DrillController extends ModuleInstance {
-	/** Expose the webserver under nadybotter.org */
-	#[NCA\Setting\Boolean]
-	public bool $enableDrill=false;
+	public const OFF = "off";
+
+	/** Service to make the webserver publicly accessible */
+	#[NCA\Setting\Text(
+		options: [
+			"off" => self::OFF,
+			"US-based" => "wss://drill.us.nadybot.org",
+			"EU-based" => "wss://drill.nadybot.org",
+		]
+	)]
+	public string $drillServer=self::OFF;
 
 	#[NCA\Inject]
 	public EventManager $eventManager;
@@ -45,13 +53,32 @@ class DrillController extends ModuleInstance {
 		description: "Connect to Drill server",
 	)]
 	public function connectToDrill(): Generator {
+		if ($this->drillServer === self::OFF) {
+			return;
+		}
 		yield $this->connect();
 	}
 
+	#[NCA\SettingChangeHandler("drill_server")]
+	public function switchDrill(string $setting, string $old, string $new): void {
+		if ($new !== self::OFF && !preg_match("/^wss?:\/\//", $new)) {
+			throw new UserException("<highlight>{$new}<end> is not a valid Drill-server");
+		}
+		asyncCall(function () use ($new): Generator {
+			if (isset($this->client)) {
+				yield $this->client->close();
+			}
+			if ($new === self::OFF) {
+				return;
+			}
+			yield $this->connect($new);
+		});
+	}
+
 	/** @return Promise<void> */
-	public function connect(): Promise {
-		return call(function (): Generator {
-			$url = "wss://drill.nadybot.org";
+	public function connect(?string $url=null): Promise {
+		return call(function () use ($url): Generator {
+			$url ??= $this->drillServer;
 			$handshake = new Handshake($url);
 			$connectContext = (new ConnectContext())->withTcpNoDelay();
 			$httpClient = (new HttpClientBuilder())
@@ -60,7 +87,7 @@ class DrillController extends ModuleInstance {
 				->build();
 			$client = new Rfc6455Connector($httpClient);
 			try {
-				$this->logger->notice("Connecting to {$url}");
+				$this->logger->info("Connecting to Drill server {$url}");
 
 				/** @var Connection */
 				$connection = yield $client->connect($handshake, null);
@@ -69,7 +96,7 @@ class DrillController extends ModuleInstance {
 				$event->type = "drill(connect)";
 				$event->client = $connection;
 				$this->eventManager->fireEvent($event);
-				$this->logger->notice("Connected to {$url}");
+				$this->logger->info("Connected to Drill server {$url}");
 				while ($message = yield $connection->receive()) {
 					/** @var Message $message */
 					$payload = yield $message->buffer();
@@ -102,7 +129,7 @@ class DrillController extends ModuleInstance {
 			} finally {
 				$this->client = null;
 			}
-			$this->logger->info("Connection to {url} successfully closed.", [
+			$this->logger->notice("Connection to {url} successfully closed.", [
 				"url" => $url,
 			]);
 		});
@@ -141,15 +168,26 @@ class DrillController extends ModuleInstance {
 	public function chooseDrillAuth(DrillPacketEvent $event): Generator {
 		$packet = $event->packet;
 		assert($packet instanceof Drill\Packet\Hello);
-		$this->logger->notice("Connected to Drill-server: {greeting}", [
-			"greeting" => $packet->description,
-		]);
+		$this->logger->notice(
+			"Connected to Drill-server {url} running Drill protocol v{proto}: {greeting}",
+			[
+				"proto" => $packet->protoVersion,
+				"url" => $this->drillServer,
+				"greeting" => $packet->description,
+			]
+		);
 		if ($packet->authMode !== Drill\Auth::AO_TELL) {
 			$this->logger->error("Drill server doesn't support AO authentication");
 			yield $event->client->close();
 			return;
 		}
+		if ($packet->protoVersion !== 1) {
+			$this->logger->error("Drill server runs unsupported protocol version");
+			yield $event->client->close();
+			return;
+		}
 		$answer = new Drill\Packet\AoAuth(characterName: $this->config->name);
+		Registry::injectDependencies($answer);
 		yield $answer->send($event->client);
 	}
 
@@ -171,6 +209,9 @@ class DrillController extends ModuleInstance {
 			}
 		};
 		$this->eventManager->subscribe("msg", $resolver);
+		$this->logger->info("Waiting 30s for token from {sender}", [
+			"sender" => $packet->sender,
+		]);
 
 		try {
 			/** @var string */
@@ -198,6 +239,7 @@ class DrillController extends ModuleInstance {
 			token: $code,
 			desiredSudomain: strtolower($this->config->name)
 		);
+		Registry::injectDependencies($answer);
 		yield $answer->send($event->client);
 	}
 
@@ -242,8 +284,10 @@ class DrillController extends ModuleInstance {
 					"Content-Length: 0\r\n".
 					"\r\n";
 				$errReply = new Drill\Packet\Data(uuid: $packet->uuid, data: $http);
+				Registry::injectDependencies($errReply);
 				yield $errReply->send($event->client);
 				$closeReply = new Drill\Packet\Closed(uuid: $packet->uuid);
+				Registry::injectDependencies($closeReply);
 				yield $closeReply->send($event->client);
 				return;
 			}

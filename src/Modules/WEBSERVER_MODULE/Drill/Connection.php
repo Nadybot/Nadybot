@@ -9,7 +9,7 @@ use Amp\Socket\{ConnectContext, ConnectException, EncryptableSocket};
 use Amp\Websocket\Client\Connection as WebsocketConnection;
 use Amp\{Promise, Success};
 use Generator;
-use Nadybot\Core\{Attributes as NCA, LoggerWrapper};
+use Nadybot\Core\{Attributes as NCA, LoggerWrapper, Registry};
 use Nadybot\Modules\WEBSERVER_MODULE\WebserverController;
 
 class Connection {
@@ -47,6 +47,7 @@ class Connection {
 				while (isset($this->webClient) && ($chunk = yield $this->webClient->read()) !== null) {
 					$this->logger->info("Received reply from Webserver");
 					$packet = new Packet\Data(data: $chunk, uuid: $this->uuid);
+					Registry::injectDependencies($packet);
 					$this->logger->debug("Sending answer to Drill server: {answer}", [
 						"answer" => $chunk,
 					]);
@@ -55,6 +56,7 @@ class Connection {
 				$this->logger->info("Empty read from webserver, closing");
 				if (isset($this->webClient)) {
 					$packet = new Packet\Closed(uuid: $this->uuid);
+					Registry::injectDependencies($packet);
 					yield $packet->send($this->wsConnection);
 				}
 			});
