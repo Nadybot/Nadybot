@@ -47,6 +47,8 @@ export interface PlayerBase {
   readonly charid: number;
   // The character's first name (the name before $name)
   readonly first_name: string;
+  // The character's nickname, if defined
+  readonly nickname: string | null;
   // The character's name as it appears in the game
   readonly name: string;
   // The character's last name (the name after $name)
@@ -117,6 +119,7 @@ const dimensionDecoder = JsonDecoder.enumeration<Dimension>(
 const playerBaseDecoderMapping = {
   charid: JsonDecoder.number,
   first_name: JsonDecoder.string,
+  nickname: JsonDecoder.nullable(JsonDecoder.string),
   name: JsonDecoder.string,
   last_name: JsonDecoder.string,
   level: JsonDecoder.number,
@@ -154,7 +157,7 @@ const onlinePlayerMapping = {
 //   "PlayerBase"
 // );
 
-const onlinePlayerDecoder = JsonDecoder.objectStrict<OnlinePlayer>(
+const onlinePlayerDecoder = JsonDecoder.object<OnlinePlayer>(
   onlinePlayerMapping,
   "OnlinePlayer"
 );

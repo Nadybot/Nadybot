@@ -46,7 +46,7 @@
               >{{ user.ai_level }}</span
             >
           </td>
-          <td>{{ user.main_character }}</td>
+          <td>{{ user.nickname ?? user.main_character }}</td>
           <td>
             <span
               class="badge badge-faction"

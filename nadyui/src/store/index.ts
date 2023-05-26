@@ -64,9 +64,12 @@ export default createStore({
           }`
         );
       } catch (e) {
+        state.users_failed = true;
+
         if (e instanceof Error) {
           console.log(`Fetching users failed: ${e.message}`);
-          state.users_failed = true;
+        } else {
+          console.log(`Fetching users failed: ${e}`);
         }
       }
     },
