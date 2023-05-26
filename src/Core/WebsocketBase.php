@@ -84,7 +84,7 @@ class WebsocketBase {
 	protected ?int $lastReadTime = null;
 	protected ?int $pendingPingTime = null;
 	protected ?string $timeoutHandle = null;
-	protected string $uri;
+	protected ?string $uri=null;
 	protected ?int $lastWriteTime = null;
 
 	public function connect(): bool {
@@ -152,7 +152,7 @@ class WebsocketBase {
 			$this->pendingPingTime = null;
 			$this->throwError(
 				WebsocketError::CONNECT_TIMEOUT,
-				"Connection to {$this->uri} timed out, no response to ping."
+				"Connection to {$uri} timed out, no response to ping."
 			);
 		} else {
 			$this->timeoutHandle = Loop::delay(5000, [$this, "checkTimeout"]);
@@ -367,7 +367,7 @@ class WebsocketBase {
 				return true;
 			}
 			$this->logger->error("[Websocket {uri}] Error sending data", [
-				"uri" => $this->uri,
+				"uri" => $uri,
 			]);
 			$length = strlen($data);
 			@fclose($this->socket);
