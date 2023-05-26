@@ -38,8 +38,8 @@
             <profession-icon :profession="user.profession" />
             {{ user.profession }}
           </td>
-          <td>
-            {{ user.level }}
+          <td class="level">
+            <span>{{ user.level }}</span>
             <span
               class="badge badge-ai rounded-pill bg-success"
               v-if="user.ai_level > 0"
@@ -83,11 +83,15 @@
 }
 
 .badge-ai {
-  vertical-align: text-top;
+  margin-left: 0.25em;
 }
 
 .table th {
   user-select: none;
+}
+
+td.level > span {
+  vertical-align: middle;
 }
 </style>
 
