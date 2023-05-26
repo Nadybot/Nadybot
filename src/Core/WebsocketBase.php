@@ -121,7 +121,7 @@ class WebsocketBase {
 	}
 
 	public function checkTimeout(): void {
-		$uri = (isset($this->uri) ? $this->uri : $this->peerName);
+		$uri = ($this->uri ?? $this->peerName);
 		if (!$this->isConnected() || !$this->connected) {
 			$this->throwError(
 				WebsocketError::CONNECT_TIMEOUT,
@@ -152,7 +152,7 @@ class WebsocketBase {
 			$this->pendingPingTime = null;
 			$this->throwError(
 				WebsocketError::CONNECT_TIMEOUT,
-				"Connection to {$uri} timed out, no response to ping."
+				"Connection to {$this->uri} timed out, no response to ping."
 			);
 		} else {
 			$this->timeoutHandle = Loop::delay(5000, [$this, "checkTimeout"]);
@@ -160,7 +160,7 @@ class WebsocketBase {
 	}
 
 	public function processQueue(): void {
-		$uri = (isset($this->uri) ? $this->uri : $this->peerName);
+		$uri = ($this->uri ?? $this->peerName);
 		if (count($this->sendQueue) === 0) {
 			$this->listenForRead();
 			return;
@@ -249,7 +249,11 @@ class WebsocketBase {
 			throw new Exception("Bad opcode '{$opcode}'.");
 		}
 
-		$dataChunks = str_split($data, self::FRAMESIZE);
+		if ($data === '') {
+			$dataChunks = [''];
+		} else {
+			$dataChunks = str_split($data, self::FRAMESIZE);
+		}
 
 		while (count($dataChunks)) {
 			$chunk = array_shift($dataChunks);
