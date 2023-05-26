@@ -121,7 +121,7 @@ class WebsocketBase {
 	}
 
 	public function checkTimeout(): void {
-		$uri = ($this->uri ?? $this->peerName);
+		$uri = (isset($this->uri) ? $this->uri : $this->peerName);
 		if (!$this->isConnected() || !$this->connected) {
 			$this->throwError(
 				WebsocketError::CONNECT_TIMEOUT,
@@ -152,7 +152,7 @@ class WebsocketBase {
 			$this->pendingPingTime = null;
 			$this->throwError(
 				WebsocketError::CONNECT_TIMEOUT,
-				"Connection to {$this->uri} timed out, no response to ping."
+				"Connection to {$uri} timed out, no response to ping."
 			);
 		} else {
 			$this->timeoutHandle = Loop::delay(5000, [$this, "checkTimeout"]);
@@ -160,7 +160,7 @@ class WebsocketBase {
 	}
 
 	public function processQueue(): void {
-		$uri = ($this->uri ?? $this->peerName);
+		$uri = (isset($this->uri) ? $this->uri : $this->peerName);
 		if (count($this->sendQueue) === 0) {
 			$this->listenForRead();
 			return;
