@@ -84,7 +84,11 @@
       </div>
 
       <div
-        v-if="info.misc.using_chat_proxy && info.misc.proxy_capabilities.name"
+        v-if="
+          info.misc.using_chat_proxy &&
+          info.misc.proxy_capabilities &&
+          info.misc.proxy_capabilities.name
+        "
         class="card mt-3"
       >
         <div class="card-header">Proxy Capabilities</div>
