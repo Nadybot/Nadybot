@@ -67,6 +67,7 @@
 <style lang="scss" scoped>
 .badge-faction {
   color: black;
+  border: thin solid grey;
 
   &.omni {
     background-color: #00ffff;
@@ -78,7 +79,6 @@
 
   &.neutral {
     background-color: #efdecd;
-    border: thin solid grey;
   }
 }
 
