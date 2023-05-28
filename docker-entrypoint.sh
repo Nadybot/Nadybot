@@ -136,7 +136,7 @@ if [ -e /proxy/aochatproxy ] \
 	cd /nadybot || exit
 fi
 
-PHP=$(which php81 php8 php7 php | head -n 1)
+PHP=$(which php82 php81 php8 php | head -n 1)
 if [ -n "$CONFIG_JIT_BUFFER_SIZE" ]; then
 	PHP_PARAMS="${PHP_PARAMS:-} -dopcache.enable_cli=1 -dopcache.jit_buffer_size=${JIT_BUFFER_SIZE} -dopcache.jit=1235"
 fi
