@@ -88,7 +88,7 @@ class SystemdController extends ModuleInstance {
 	public function sdPidNotifyWithFDs(int $pid, string $state, array $fds): array {
 		$state = trim($state);
 
-		if ($state === '') {
+		if ($state === '' || !defined('SCM_CREDENTIALS')) {
 			$result = -1 * self::EINVAL;
 			return [null, $result];
 		}

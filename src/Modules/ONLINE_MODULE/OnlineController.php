@@ -1072,7 +1072,7 @@ class OnlineController extends ModuleInstance {
 		} else {
 			$op = $op->sortBy("name");
 		}
-		return $op->toArray();
+		return $op->values()->toArray();
 	}
 
 	public function getProfessionId(string $profession): ?int {

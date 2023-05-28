@@ -435,6 +435,11 @@
 						"type": "string",
 						"description": "The character's first name (the name before $name)"
 					},
+					"nickname": {
+						"type": "string",
+						"nullable": true,
+						"description": "The nickname of the main character, or null if unset"
+					},
 					"name": {
 						"type": "string",
 						"description": "The character's name as it appears in the game"

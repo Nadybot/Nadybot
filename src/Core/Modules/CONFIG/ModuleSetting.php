@@ -23,8 +23,9 @@ class ModuleSetting {
 
 	/**
 	 * The current value
+	 * @var null|int|string|bool|int[]|string[]
 	 */
-	public null|int|string|bool $value = null;
+	public null|int|string|bool|array $value = null;
 
 	/**
 	 * A list of predefined options to pick from
@@ -49,7 +50,11 @@ class ModuleSetting {
 			$options = explode(";", $setting->options??"");
 			$values = $options;
 			if (isset($setting->intoptions) && strlen($setting->intoptions)) {
-				$values = array_map('intval', explode(";", $setting->intoptions));
+				if (in_array($setting->type, ['number', 'time'])) {
+					$values = array_map('intval', explode(";", $setting->intoptions));
+				} else {
+					$values = explode(";", $setting->intoptions);
+				}
 			}
 			if ($options === ["true", "false"] && $values === [1, 0]) {
 				$this->type = static::TYPE_BOOL;
