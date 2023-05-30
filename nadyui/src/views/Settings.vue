@@ -82,6 +82,7 @@
                   v-model.number="setting.value"
                   @change="changeSetting(setting)"
                 />
+
                 <div
                   v-if="setting.type == 'bool'"
                   class="form-check form-switch form-switch-md form-switch-right"
@@ -93,6 +94,7 @@
                     @change="changeSetting(setting)"
                   />
                 </div>
+
                 <select
                   v-if="
                     setting.type == 'options' ||
@@ -110,6 +112,7 @@
                     {{ option.name }}
                   </option>
                 </select>
+
                 <select
                   v-if="setting.type == 'int_options'"
                   class="form-select form-select-sm"
@@ -124,6 +127,7 @@
                     {{ option.name }}
                   </option>
                 </select>
+
                 <select
                   v-if="setting.type == 'rank'"
                   class="form-select form-select-sm"
@@ -139,21 +143,35 @@
                     {{ access_level.name }}
                   </option>
                 </select>
-                <input
+
+                <input-options
                   v-if="setting.type == 'text'"
                   type="text"
-                  class="form-control form-control-sm"
                   v-model="setting.value"
                   @change="changeSetting(setting)"
+                  :options="setting.options"
                 />
-                <input
-                  v-if="setting.type == 'color'"
-                  type="color"
-                  class="form-control form-control-sm color-input"
-                  :value="findColorFromTag(setting.value)"
-                  @input="(e) => (setting.value = e.target.value)"
-                  @change="changeSetting(setting)"
-                />
+
+                <template v-if="setting.type == 'color'">
+                  <input
+                    v-if="setting.type == 'color'"
+                    type="color"
+                    class="form-control form-control-sm color-input"
+                    :value="findColorFromTag(setting.value)"
+                    :list="setting.name + '-datalist'"
+                    @input="(e) => (setting.value = e.target.value)"
+                    @change="changeSetting(setting)"
+                  />
+                  <datalist :id="setting.name + '-datalist'">
+                    <option
+                      v-for="option in setting.options"
+                      :key="option.name"
+                      :label="option.name"
+                      :value="option.value"
+                    ></option>
+                  </datalist>
+                </template>
+
                 <time-picker
                   v-if="setting.type == 'time'"
                   v-model="setting.value"
