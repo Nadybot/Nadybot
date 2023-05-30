@@ -11,6 +11,7 @@ import ProfessionIcon from "@/components/ProfessionIcon.vue";
 import Sidebar from "@/components/Sidebar.vue";
 import TimePicker from "@/components/TimePicker.vue";
 import Popover from "@/components/Popover.vue";
+import InputOptions from "@/components/InputOptions.vue";
 import SmartTable from "vuejs-smart-table";
 
 createApp(App)
@@ -25,4 +26,5 @@ createApp(App)
   .component("message", Message)
   .component("popup", Popup)
   .component("popover", Popover)
+  .component("input-options", InputOptions)
   .mount("#app");
