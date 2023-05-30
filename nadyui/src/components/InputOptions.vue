@@ -23,7 +23,9 @@
       :key="option.name"
       @mousedown="value = option.value"
     >
-      <div class="fw-bold">{{ option.name }}</div>
+      <div class="fw-bold" v-if="option.name != option.value">
+        {{ option.name }}
+      </div>
       {{ option.value }}
     </li>
   </ul>
