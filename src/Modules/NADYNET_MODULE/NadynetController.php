@@ -238,6 +238,10 @@ class NadynetController extends ModuleInstance implements EventFeedHandler {
 		$mapper = new ObjectMapperUsingReflection();
 		try {
 			$message = $mapper->hydrateObject(Message::class, $body);
+			if (!$this->isWantedMessage($message)) {
+				$this->logger->info("Nadynet message was filtered away.");
+				return;
+			}
 			if (!isset($this->buckets[$senderUUID])) {
 				$this->buckets[$senderUUID] = new LeakyBucket(3, 2);
 			}
@@ -266,10 +270,6 @@ class NadynetController extends ModuleInstance implements EventFeedHandler {
 			$this->logger->info("No handler for Nadynet channel {channel} found.", [
 				"channel" => $message->channel,
 			]);
-			return;
-		}
-		if (!$this->isWantedMessage($message)) {
-			$this->logger->info("Nadynet message was filtered away.");
 			return;
 		}
 		$popup = $this->getInfoPopup($message);
