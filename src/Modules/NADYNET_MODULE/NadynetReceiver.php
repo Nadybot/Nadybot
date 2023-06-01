@@ -6,8 +6,8 @@ use function Amp\Promise\rethrow;
 use EventSauce\ObjectHydrator\{ObjectMapperUsingReflection, ObjectMapperUsingReflectionHydrationTest};
 use Nadybot\Core\Highway;
 use Nadybot\Core\Modules\ALTS\{AltsController, NickController};
-use Nadybot\Core\Routing\{RoutableEvent};
-use Nadybot\Core\{Attributes as NCA, ConfigFile, EventFeed, MessageReceiver, Nadybot};
+use Nadybot\Core\Routing\{Character, RoutableEvent, RoutableMessage, Source};
+use Nadybot\Core\{Attributes as NCA, ConfigFile, EventFeed, MessageHub, MessageReceiver, Nadybot};
 
 class NadynetReceiver implements MessageReceiver {
 	#[NCA\Inject]
@@ -27,6 +27,9 @@ class NadynetReceiver implements MessageReceiver {
 
 	#[NCA\Inject]
 	public NadynetController $nadynetController;
+
+	#[NCA\Inject]
+	public MessageHub $msgHub;
 
 	public function getChannelName(): string {
 		return "nadynet";
@@ -71,6 +74,37 @@ class NadynetReceiver implements MessageReceiver {
 		}
 		$packet = new Highway\Message(room: "nadynet", body: $hwBody);
 		rethrow($this->eventFeed->connection->send($packet));
+		if (!$this->nadynetController->nadynetRouteInternally) {
+			return true;
+		}
+		$senderHops = $event->getPath();
+		if (empty($senderHops)) {
+			return true;
+		}
+		$relayedTo = $this->msgHub->getReceiversFor(
+			$senderHops[0]->type . "(" . $senderHops[0]->name . ")"
+		);
+		$nadynetReceivers = $this->msgHub->getReceiversFor("nadynet({$channel})");
+		$missingReceivers = array_diff($nadynetReceivers, $relayedTo);
+
+		$rMsg = new RoutableMessage($message->message);
+		$rMsg->setCharacter(new Character(
+			name: $message->sender_name,
+			id: $message->sender_uid,
+			dimension: $message->dimension,
+		));
+		$rMsg->prependPath(new Source(
+			type: "nadynet",
+			name: strtolower($message->channel),
+			label: $message->channel,
+			dimension: $message->dimension,
+		));
+		foreach ($missingReceivers as $missingReceiver) {
+			$handler = $this->msgHub->getReceiver($missingReceiver);
+			if (isset($handler)) {
+				$handler->receive($rMsg, $missingReceiver);
+			}
+		}
 		return true;
 	}
 

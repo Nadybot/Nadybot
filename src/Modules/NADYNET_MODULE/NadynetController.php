@@ -111,6 +111,10 @@ class NadynetController extends ModuleInstance implements EventFeedHandler {
 	#[NCA\Setting\Boolean]
 	public bool $nadynetEnabled = true;
 
+	/** Route outgoing Nadynet messages internally as well */
+	#[NCA\Setting\Boolean]
+	public bool $nadynetRouteInternally = true;
+
 	/** The prefix to put in front of the channel name to send messages */
 	#[NCA\Setting\Text(
 		options: ["@", "#", "%", "="]
