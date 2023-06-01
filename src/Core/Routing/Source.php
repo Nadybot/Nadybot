@@ -49,7 +49,7 @@ class Source {
 		if (preg_match("/^(.+?)\((.+?)\)$/", $channel, $matches)) {
 			return new self($matches[1], $matches[2]);
 		}
-		throw new InvalidArgumentException('$channel ist nor a valid channel name.');
+		throw new InvalidArgumentException("\$channel ({$channel}) is not a valid channel name.");
 	}
 
 	public function getFormat(): ?RouteHopFormat {

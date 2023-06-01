@@ -30,7 +30,8 @@ use Throwable;
 	NCA\ProvidesEvent("event-feed-reconnect"),
 ]
 class EventFeed {
-	public const URI = "wss://ws.nadybot.org";
+	// public const URI = "wss://ws.nadybot.org";
+	public const URI = "ws://127.0.0.1:3333";
 	public const RECONNECT_DELAY = 5;
 
 	#[NCA\Inject]
@@ -50,6 +51,8 @@ class EventFeed {
 
 	/** @var array<string,EventFeedHandler[]> */
 	public array $roomHandlers = [];
+
+	public ?Highway\Connection $connection=null;
 
 	private bool $isReconnect = false;
 
@@ -144,15 +147,14 @@ class EventFeed {
 	private function singleLoop(): Promise {
 		return call(function (): Generator {
 			try {
-				/** @var ?Highway\Connection */
-				$connection = yield $this->connect();
-				if (!isset($connection)) {
+				$this->connection = yield $this->connect();
+				if (!isset($this->connection)) {
 					return false;
 				}
 				$this->announceConnect();
 				$this->isReconnect = true;
-				while ($package = yield $connection->receive()) {
-					$this->handlePackage($connection, $package);
+				while ($package = yield $this->connection->receive()) {
+					$this->handlePackage($this->connection, $package);
 				}
 			} catch (Throwable $e) {
 				if ($this->chatBot->isShuttingDown()) {
@@ -162,6 +164,7 @@ class EventFeed {
 				if ($e instanceof ClosedException) {
 					$error = "Server unexpectedly closed the connection";
 				}
+				$this->connection = null;
 				$this->logger->error("[{uri}] {error} - retrying in {delay}s", [
 					"uri" => self::URI,
 					"delay" => self::RECONNECT_DELAY,
