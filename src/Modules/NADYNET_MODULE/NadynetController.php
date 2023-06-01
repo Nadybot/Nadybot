@@ -107,9 +107,13 @@ class NadynetController extends ModuleInstance implements EventFeedHandler {
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
-	/** Process incoming or outgoing Nadynet messages */
+	/** Enable incoming and outgoing Nadynet messages */
 	#[NCA\Setting\Boolean]
 	public bool $nadynetEnabled = true;
+
+	/** Number of messages to queue per sender when rate-limiting */
+	#[NCA\Setting\Number]
+	public int $nadynetQueueSize = 100;
 
 	/** Route outgoing Nadynet messages internally as well */
 	#[NCA\Setting\Boolean]
@@ -242,11 +246,19 @@ class NadynetController extends ModuleInstance implements EventFeedHandler {
 				$this->logger->info("Nadynet message was filtered away.");
 				return;
 			}
-			if (!isset($this->buckets[$senderUUID])) {
-				$this->buckets[$senderUUID] = new LeakyBucket(3, 2);
+			$bucket = $this->buckets[$senderUUID] ?? null;
+			if (!isset($bucket)) {
+				$bucket = $this->buckets[$senderUUID] = new LeakyBucket(3, 2);
 			}
-			$this->buckets[$senderUUID]->push($message);
-			$nextMessage = yield $this->buckets[$senderUUID]->getNext();
+			if ($bucket->getSize() > $this->nadynetQueueSize) {
+				$this->logger->info("Queue for {uuid} is over {bucket_size} - dropping message.", [
+					"uuid" => $senderUUID,
+					"bucket_size" => $this->nadynetQueueSize,
+				]);
+				return;
+			}
+			$bucket->push($message);
+			$nextMessage = yield $bucket->getNext();
 			if (!isset($nextMessage)) {
 				return;
 			}
