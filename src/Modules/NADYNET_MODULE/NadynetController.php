@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Nadybot\Modules\NADYNET_MODULE;
 
+use function Amp\call;
 use function Amp\Promise\rethrow;
 use Amp\{Promise, Success};
 use Closure;
@@ -808,41 +809,47 @@ class NadynetController extends ModuleInstance implements EventFeedHandler {
 			]);
 			return false;
 		}
-		$character = $event->getCharacter();
-		$message = new Message(
-			dimension: $character?->dimension ?? $this->config->dimension,
-			bot_uid: $this->chatBot->char->id,
-			bot_name: $this->chatBot->char->name,
-			sender_uid: $character?->id ?? $this->chatBot->char->id,
-			sender_name: $character?->name ?? $this->chatBot->char->name,
-			main: $character ? $this->altsCtrl->getMainOf($character->name) : null,
-			nick: $character ? $this->nickCtrl->getNickname($character->name) : null,
-			sent: time(),
-			channel: $channel,
-			message: $message,
-		);
-		$serializer = new ObjectMapperUsingReflection();
-		$hwBody = $serializer->serializeObject($message);
-		if (!is_array($hwBody)) {
-			$this->logger->warning("Cannot serialize data for Nadynet - dropping", [
-				"message" => $message,
-			]);
-			return false;
-		}
-		$packet = new Highway\Message(room: "nadynet", body: $hwBody);
-		rethrow($this->eventFeed->connection->send($packet));
-		if (!$this->nadynetRouteInternally) {
-			return true;
-		}
-		$missingReceivers = $this->getInternalRoutingReceivers($event, $channel);
-
-		$rMsg = $this->nnMessageToRoutableMessage($message);
-		foreach ($missingReceivers as $missingReceiver) {
-			$handler = $this->msgHub->getReceiver($missingReceiver);
-			if (isset($handler)) {
-				$handler->receive($rMsg, $missingReceiver);
+		rethrow(call(function () use ($event, $channel, $message): Generator {
+			$character = clone $event->getCharacter();
+			if (isset($character) && !isset($character->id)) {
+				$character->id = yield $this->chatBot->getUid2($character->name);
 			}
-		}
+			$message = new Message(
+				dimension: $character?->dimension ?? $this->config->dimension,
+				bot_uid: $this->chatBot->char->id,
+				bot_name: $this->chatBot->char->name,
+				sender_uid: $character?->id,
+				sender_name: $character?->name ?? $this->chatBot->char->name,
+				main: $character ? $this->altsCtrl->getMainOf($character->name) : null,
+				nick: $character ? $this->nickCtrl->getNickname($character->name) : null,
+				sent: time(),
+				channel: $channel,
+				message: $message,
+			);
+			$serializer = new ObjectMapperUsingReflection();
+			$hwBody = $serializer->serializeObject($message);
+			if (!is_array($hwBody)) {
+				$this->logger->warning("Cannot serialize data for Nadynet - dropping", [
+					"message" => $message,
+				]);
+				return;
+			}
+			$packet = new Highway\Message(room: "nadynet", body: $hwBody);
+			yield $this->eventFeed->connection->send($packet);
+
+			if (!$this->nadynetRouteInternally) {
+				return;
+			}
+			$missingReceivers = $this->getInternalRoutingReceivers($event, $channel);
+
+			$rMsg = $this->nnMessageToRoutableMessage($message);
+			foreach ($missingReceivers as $missingReceiver) {
+				$handler = $this->msgHub->getReceiver($missingReceiver);
+				if (isset($handler)) {
+					$handler->receive($rMsg, $missingReceiver);
+				}
+			}
+		}));
 		return true;
 	}
 
