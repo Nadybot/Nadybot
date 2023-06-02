@@ -793,13 +793,16 @@ class NadynetController extends ModuleInstance implements EventFeedHandler {
 	 */
 	public function handleIncoming(RoutableEvent $event, string $channel, string $message): bool {
 		if (!$this->nadynetEnabled) {
+			$this->logger->info("Nadynetr disabled - dropping message");
 			return false;
 		}
 		if (!isset($this->eventFeed->connection)) {
+			$this->logger->info("No event feed connected - dropping Nadynet message");
 			return false;
 		}
 		$sourceHop = $this->getSourceHop($event);
 		if (!isset($sourceHop)) {
+			$this->logger->info("No source-hop found in message to Nadynet - dropping");
 			return false;
 		}
 		if (!$this->msgHub->hasRouteFromTo("nadynet({$channel})", $sourceHop)) {
@@ -810,8 +813,9 @@ class NadynetController extends ModuleInstance implements EventFeedHandler {
 			return false;
 		}
 		rethrow(call(function () use ($event, $channel, $message): Generator {
-			$character = clone $event->getCharacter();
+			$character = $event->getCharacter();
 			if (isset($character) && !isset($character->id)) {
+				$character = clone $character;
 				$character->id = yield $this->chatBot->getUid2($character->name);
 			}
 			$message = new Message(
@@ -835,12 +839,21 @@ class NadynetController extends ModuleInstance implements EventFeedHandler {
 				return;
 			}
 			$packet = new Highway\Message(room: "nadynet", body: $hwBody);
+			$this->logger->debug("Sending message to Nadynet: {data}", [
+				"data" => $hwBody,
+			]);
 			yield $this->eventFeed->connection->send($packet);
 
 			if (!$this->nadynetRouteInternally) {
+				$this->logger->info("Internal Nadynet routing disabled.");
 				return;
 			}
 			$missingReceivers = $this->getInternalRoutingReceivers($event, $channel);
+			if (count($missingReceivers)) {
+				$this->logger->info("Routing Nadynet message internally to {targets}", [
+					"targets" => $missingReceivers,
+				]);
+			}
 
 			$rMsg = $this->nnMessageToRoutableMessage($message);
 			foreach ($missingReceivers as $missingReceiver) {
