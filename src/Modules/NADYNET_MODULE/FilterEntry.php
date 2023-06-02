@@ -24,7 +24,7 @@ class FilterEntry extends DBRow {
 		}
 		if (
 			(!isset($this->sender_uid) || !isset($message->sender_uid))
-			&& isset($this->sender_name, $message->sender_name)
+			&& isset($this->sender_name)
 			&& $message->sender_name !== $this->sender_name
 		) {
 			return false;

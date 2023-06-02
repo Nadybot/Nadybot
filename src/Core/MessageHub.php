@@ -142,6 +142,9 @@ class MessageHub {
 			return $this->emitters[$channel];
 		}
 		foreach ($this->emitters as $emitterChannel => $emitter) {
+			if (!str_contains($emitterChannel, "(")) {
+				$emitterChannel .= "(*)";
+			}
 			if (fnmatch($emitterChannel, $channel, FNM_CASEFOLD)) {
 				return $emitter;
 			}
