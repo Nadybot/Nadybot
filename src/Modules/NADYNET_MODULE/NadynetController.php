@@ -749,7 +749,7 @@ class NadynetController extends ModuleInstance implements EventFeedHandler {
 			"<i>Take a moment to consider before permanently blocking players or bots,</i>\n".
 			"<i>because accounts can be faked on Nadynet.</i>\n\n".
 			"<i>To list all currently active filters, use {$filtersCmd}.</i>\n".
-			"<i>For information about Nadybot, use {$nadynetCmd}.</i>";
+			"<i>For information about Nadynet, use {$nadynetCmd}.</i>";
 
 		return $blob;
 	}
