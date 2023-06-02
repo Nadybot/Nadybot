@@ -745,9 +745,9 @@ class NadynetController extends ModuleInstance implements EventFeedHandler {
 			"/tell <myname> nadynet"
 		);
 		$blob .= "\n\n".
-			"<i>Blocks are local on your bot and don't have any effect on any ".
-			"other bots.</i>\n".
-			"<i>Please think twice before permanently blocking players or bots.</i>\n\n".
+			"<i>Blocks on your bot have no impact on other bots.</i>\n".
+			"<i>Take a moment to consider before permanently blocking players or bots,</i>\n".
+			"<i>because accounts can be faked on Nadynet.</i>\n\n".
 			"<i>To list all currently active filters, use {$filtersCmd}.</i>\n".
 			"<i>For information about Nadybot, use {$nadynetCmd}.</i>";
 
