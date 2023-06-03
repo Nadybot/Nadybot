@@ -10,12 +10,13 @@ use Amp\Http\Client\Interceptor\RemoveRequestHeader;
 use Amp\Promise;
 use Amp\Socket\ConnectContext;
 use Amp\Websocket\Client\{Handshake, Rfc6455Connector};
-use Amp\Websocket\ClosedException;
+use Amp\Websocket\{ClosedException, Code};
 use AssertionError;
 use Closure;
 use Generator;
 use Nadybot\Core\Attributes as NCA;
 use ReflectionClass;
+use Safe\Exceptions\JsonException;
 use Throwable;
 
 /**
@@ -163,6 +164,10 @@ class EventFeed {
 				$error = $e->getMessage();
 				if ($e instanceof ClosedException) {
 					$error = "Server unexpectedly closed the connection";
+				} elseif ($e instanceof JsonException && isset($this->connection)) {
+					yield $this->connection->close(Code::INCONSISTENT_FRAME_DATA_TYPE);
+				} elseif (isset($this->connection)) {
+					yield $this->connection->close();
 				}
 				$this->connection = null;
 				$this->logger->error("[{uri}] {error} - retrying in {delay}s", [

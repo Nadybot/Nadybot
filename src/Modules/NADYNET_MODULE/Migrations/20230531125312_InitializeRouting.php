@@ -31,7 +31,7 @@ class InitializeRouting implements SchemaMigration {
 		$rhf = new RouteHopFormat();
 		$rhf->hop = "nadynet";
 		$rhf->render = true;
-		$rhf->format = 'nadynet@%s';
+		$rhf->format = '@%s';
 		$db->insert(Source::DB_TABLE, $rhf);
 
 		$rhc = new RouteHopColor();

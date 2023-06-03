@@ -6,8 +6,7 @@ use function Amp\call;
 use function Safe\{json_decode, json_encode};
 use Amp\Promise;
 use Amp\Websocket\Client\Connection as WsConnection;
-
-use Amp\Websocket\Message as WsMessage;
+use Amp\Websocket\{Code, Message as WsMessage};
 use EventSauce\ObjectHydrator\ObjectMapperUsingReflection;
 use Generator;
 
@@ -25,6 +24,16 @@ class Connection {
 	public function __construct(
 		private WsConnection $wsConnection
 	) {
+	}
+
+	/**
+	 * @return Promise<array{int,string}> Resolves with an array containing the close code at key 0 and the close reason at key 1.
+	 *                        These may differ from those provided if the connection was closed prior.
+	 */
+	public function close(int $code=Code::NORMAL_CLOSE, string $reason=''): promise {
+		/** @var Promise<array{int,string}> */
+		$closeHandler = $this->wsConnection->close($code, $reason);
+		return $closeHandler;
 	}
 
 	/** @return Promise<Package> */

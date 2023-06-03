@@ -139,6 +139,9 @@ class NadynetController extends ModuleInstance implements EventFeedHandler {
 	)]
 	public string $nadynetPrefix = "@";
 
+	/** @var string[] */
+	public array $channels = [];
+
 	public Collection $filters;
 
 	/** @var array<string,NadynetChannel> */
@@ -164,15 +167,23 @@ class NadynetController extends ModuleInstance implements EventFeedHandler {
 		description: "Register Nadynet channels",
 	)]
 	public function roomInfoHandler(LowLevelEventFeedEvent $event): void {
-		assert($event->highwayPackage instanceof Highway\RoomInfo);
-		if ($event->highwayPackage->room !== "nadynet") {
+		$package = $event->highwayPackage;
+		assert($package instanceof Highway\RoomInfo);
+		if ($package->room !== "nadynet") {
 			return;
+		}
+		if (
+			is_array($package->extraInfo)
+			&& isset($package->extraInfo['channels'])
+			&& is_array($package->extraInfo['channels'])
+		) {
+			$this->channels = $package->extraInfo['channels'];
 		}
 		$this->feedSupportsNadynet = true;
 		if ($this->nadynetEnabled) {
 			$this->registerChannelHandlers();
 		}
-		$this->numClients = count($event->highwayPackage->users);
+		$this->numClients = count($package->users);
 	}
 
 	#[NCA\Event(
@@ -200,7 +211,7 @@ class NadynetController extends ModuleInstance implements EventFeedHandler {
 	}
 
 	public function getPrettyChannelName(string $search): ?string {
-		foreach (self::CHANNELS as $channel) {
+		foreach ($this->channels as $channel) {
 			if (strtolower($channel) === strtolower($search)) {
 				return $channel;
 			}
@@ -382,7 +393,7 @@ class NadynetController extends ModuleInstance implements EventFeedHandler {
 			"\n".
 			"<header2>What can I read?<end>\n".
 			"The following Nadynet channels are seen on this bot:";
-		foreach (self::CHANNELS as $channel) {
+		foreach ($this->channels as $channel) {
 			$recs = $this->msgHub->getReceiversFor("nadynet({$channel})");
 			$visMsg = "Not seen on this bot";
 			if (count($recs)) {
@@ -407,7 +418,7 @@ class NadynetController extends ModuleInstance implements EventFeedHandler {
 			"Be excellent to each other!";
 		$channelMsg = "Connected to the following Nadynet channels: ".
 			$this->text->enumerate(
-				...$this->text->arraySprintf("<highlight>%s<end>", ...self::CHANNELS)
+				...$this->text->arraySprintf("<highlight>%s<end>", ...$this->channels)
 			) . " with <highlight>{$numClients}<end> attached";
 		$msgs = $this->text->blobWrap(
 			$channelMsg . " [",
@@ -470,7 +481,7 @@ class NadynetController extends ModuleInstance implements EventFeedHandler {
 		$rhf = new RouteHopFormat();
 		$rhf->hop = "nadynet";
 		$rhf->render = true;
-		$rhf->format = 'nadynet@%s';
+		$rhf->format = '@%s';
 
 		$rhc = new RouteHopColor();
 		$rhc->hop = 'nadynet';
@@ -927,7 +938,8 @@ class NadynetController extends ModuleInstance implements EventFeedHandler {
 	}
 
 	private function registerChannelHandlers(): void {
-		foreach (self::CHANNELS as $channel) {
+		$update = count($this->handlers);
+		foreach ($this->channels as $channel) {
 			if (isset($this->handlers[strtolower($channel)])) {
 				continue;
 			}
@@ -937,12 +949,39 @@ class NadynetController extends ModuleInstance implements EventFeedHandler {
 				->registerMessageEmitter($handler)
 				->registerMessageReceiver($handler);
 			$this->handlers[strtolower($channel)] = $handler;
+			if ($update) {
+				$this->logger->notice("New Nadynet-channel {channel} registered.", [
+					"channel" => $channel,
+				]);
+			}
 		}
 		if (!isset($this->receiverHandler)) {
 			$handler = new NadynetReceiver();
 			Registry::injectDependencies($handler);
 			$this->msgHub->registerMessageReceiver($handler);
 			$this->receiverHandler = $handler;
+		}
+		$lowerChannels = array_map('strtolower', $this->channels);
+		$currentChannels = array_keys($this->handlers);
+		foreach ($currentChannels as $channel) {
+			if (!in_array($channel, $lowerChannels)) {
+				unset($this->handlers[$channel]);
+				$routes = $this->msgHub->getRoutes();
+				foreach ($routes as $route) {
+					if (
+						$route->getSource() === "nadynet({$channel})"
+						|| $route->getDest() === "nadynet({$channel})"
+					) {
+						$this->msgHub->deleteRouteID($route->getID());
+						$this->db->table($this->msgHub::DB_TABLE_ROUTES)->delete($route->getID());
+					}
+				}
+				$this->msgHub->unregisterMessageEmitter("nadynet({$channel})");
+				$this->msgHub->unregisterMessageReceiver("nadynet({$channel})");
+				$this->logger->notice("Nadynet-channel {channel} removed.", [
+					"channel" => $channel,
+				]);
+			}
 		}
 	}
 
