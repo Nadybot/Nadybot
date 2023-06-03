@@ -165,6 +165,7 @@ class EventFeed {
 				if ($e instanceof ClosedException) {
 					$error = "Server unexpectedly closed the connection";
 				} elseif ($e instanceof JsonException && isset($this->connection)) {
+					$error = "JSON {$error}";
 					yield $this->connection->close(Code::INCONSISTENT_FRAME_DATA_TYPE);
 				} elseif (isset($this->connection)) {
 					yield $this->connection->close();
