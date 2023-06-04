@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Nadybot\Modules\NADYNET_MODULE;
+namespace Nadybot\Modules\HIGHNET_MODULE;
 
 use function Amp\call;
 use function Amp\Promise\rethrow;
@@ -43,38 +43,38 @@ use Nadybot\Core\{
 #[
 	NCA\Instance,
 	NCA\HasMigrations,
-	NCA\HandlesEventFeed('nadynet'),
-	NCA\ProvidesEvent('nadynet(*)'),
+	NCA\HandlesEventFeed('highnet'),
+	NCA\ProvidesEvent('highnet(*)'),
 	NCA\DefineCommand(
-		command: "nadynet",
-		description: "Show Nadynet information",
+		command: "highnet",
+		description: "Show Highnet information",
 		accessLevel: "guest",
 	),
 	NCA\DefineCommand(
-		command: "nadynet reset",
-		description: "Reset the Nadynet configuration",
+		command: "highnet reset",
+		description: "Reset the Highnet configuration",
 		accessLevel: "mod",
 	),
 	NCA\DefineCommand(
-		command: NadynetController::FILTERS,
+		command: HighnetController::FILTERS,
 		description: "Show current filters",
 		accessLevel: "member",
 	),
 	NCA\DefineCommand(
-		command: NadynetController::PERM_FILTERS,
-		description: "Manage Nadynet permanent filters",
+		command: HighnetController::PERM_FILTERS,
+		description: "Manage Highnet permanent filters",
 		accessLevel: "mod",
 	),
 	NCA\DefineCommand(
-		command: NadynetController::TEMP_FILTERS,
-		description: "Manage Nadynet temporary filters",
+		command: HighnetController::TEMP_FILTERS,
+		description: "Manage Highnet temporary filters",
 		accessLevel: "guild",
 	),
 ]
-class NadynetController extends ModuleInstance implements EventFeedHandler {
-	public const FILTERS = "nadynet list filters";
-	public const PERM_FILTERS = "nadynet manage permanent filters";
-	public const TEMP_FILTERS = "nadynet manage temporary filters";
+class HighnetController extends ModuleInstance implements EventFeedHandler {
+	public const FILTERS = "highnet list filters";
+	public const PERM_FILTERS = "highnet manage permanent filters";
+	public const TEMP_FILTERS = "highnet manage temporary filters";
 
 	public const CHANNELS = [
 		"PVM",
@@ -83,7 +83,7 @@ class NadynetController extends ModuleInstance implements EventFeedHandler {
 		"RP",
 		"Lootrights",
 	];
-	public const DB_TABLE = "nadynet_filter_<myname>";
+	public const DB_TABLE = "highnet_filter_<myname>";
 
 	#[NCA\Inject]
 	public Nadybot $chatBot;
@@ -121,38 +121,38 @@ class NadynetController extends ModuleInstance implements EventFeedHandler {
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
-	/** Enable incoming and outgoing Nadynet messages */
+	/** Enable incoming and outgoing Highnet messages */
 	#[NCA\Setting\Boolean]
-	public bool $nadynetEnabled = true;
+	public bool $highnetEnabled = true;
 
 	/** Number of messages to queue per sender when rate-limiting */
 	#[NCA\Setting\Number]
-	public int $nadynetQueueSize = 100;
+	public int $highnetQueueSize = 100;
 
-	/** Route outgoing Nadynet messages internally as well */
+	/** Route outgoing Highnet messages internally as well */
 	#[NCA\Setting\Boolean]
-	public bool $nadynetRouteInternally = true;
+	public bool $highnetRouteInternally = true;
 
 	/** The prefix to put in front of the channel name to send messages */
 	#[NCA\Setting\Text(
 		options: ["@", "#", "%", "="]
 	)]
-	public string $nadynetPrefix = "@";
+	public string $highnetPrefix = "@";
 
 	/** @var string[] */
 	public array $channels = [];
 
 	public Collection $filters;
 
-	/** @var array<string,NadynetChannel> */
+	/** @var array<string,HighnetChannel> */
 	private array $handlers = [];
 
-	private ?NadynetReceiver $receiverHandler=null;
+	private ?HighnetReceiver $receiverHandler=null;
 
 	/** @var array<string,LeakyBucket> */
 	private array $buckets = [];
 
-	private bool $feedSupportsNadynet = false;
+	private bool $feedSupportsHighnet = false;
 
 	private int $numClients = 0;
 
@@ -164,12 +164,12 @@ class NadynetController extends ModuleInstance implements EventFeedHandler {
 
 	#[NCA\Event(
 		name: "event-feed(room-info)",
-		description: "Register Nadynet channels",
+		description: "Register Highnet channels",
 	)]
 	public function roomInfoHandler(LowLevelEventFeedEvent $event): void {
 		$package = $event->highwayPackage;
 		assert($package instanceof Highway\RoomInfo);
-		if ($package->room !== "nadynet") {
+		if ($package->room !== "highnet") {
 			return;
 		}
 		if (
@@ -179,8 +179,8 @@ class NadynetController extends ModuleInstance implements EventFeedHandler {
 		) {
 			$this->channels = $package->extraInfo['channels'];
 		}
-		$this->feedSupportsNadynet = true;
-		if ($this->nadynetEnabled) {
+		$this->feedSupportsHighnet = true;
+		if ($this->highnetEnabled) {
 			$this->registerChannelHandlers();
 		}
 		$this->numClients = count($package->users);
@@ -188,22 +188,22 @@ class NadynetController extends ModuleInstance implements EventFeedHandler {
 
 	#[NCA\Event(
 		name: ["event-feed(join)", "event-feed(leave)"],
-		description: "Count Nadynet client",
+		description: "Count Highnet client",
 	)]
 	public function roomJoinHandler(LowLevelEventFeedEvent $event): void {
 		$package = $event->highwayPackage;
 		if (!($package instanceof Highway\Join) && !($package instanceof Highway\Leave)) {
 			return;
 		}
-		if ($package->room !== "nadynet") {
+		if ($package->room !== "highnet") {
 			return;
 		}
 		$this->numClients += ($package->type === $package::JOIN) ? 1 : -1;
 	}
 
-	#[NCA\SettingChangeHandler("nadynet_enabled")]
-	public function switchNadynetStatus(string $setting, string $old, string $new): void {
-		if ($new === "1" && $this->feedSupportsNadynet) {
+	#[NCA\SettingChangeHandler("highnet_enabled")]
+	public function switchHighnetStatus(string $setting, string $old, string $new): void {
+		if ($new === "1" && $this->feedSupportsHighnet) {
 			$this->registerChannelHandlers();
 		} else {
 			$this->unregisterChannelHandlers();
@@ -266,14 +266,14 @@ class NadynetController extends ModuleInstance implements EventFeedHandler {
 
 	#[NCA\Event(
 		name: "event-feed(message)",
-		description: "Handle raw Nadynet-messages",
+		description: "Handle raw Highnet-messages",
 	)]
 	public function handleLLEventFeedMessage(LowLevelEventFeedEvent $event): Generator {
-		if (!$this->nadynetEnabled) {
+		if (!$this->highnetEnabled) {
 			return;
 		}
 		assert($event->highwayPackage instanceof Highway\Message);
-		if ($event->highwayPackage->room !== 'nadynet') {
+		if ($event->highwayPackage->room !== 'highnet') {
 			return;
 		}
 		$senderUUID = $event->highwayPackage->user;
@@ -289,17 +289,17 @@ class NadynetController extends ModuleInstance implements EventFeedHandler {
 		try {
 			$message = $mapper->hydrateObject(Message::class, $body);
 			if (!$this->isWantedMessage($message)) {
-				$this->logger->info("Nadynet message was filtered away.");
+				$this->logger->info("Highnet message was filtered away.");
 				return;
 			}
 			$bucket = $this->buckets[$senderUUID] ?? null;
 			if (!isset($bucket)) {
 				$bucket = $this->buckets[$senderUUID] = new LeakyBucket(3, 2);
 			}
-			if ($bucket->getSize() > $this->nadynetQueueSize) {
+			if ($bucket->getSize() > $this->highnetQueueSize) {
 				$this->logger->info("Queue for {uuid} is over {bucket_size} - dropping message.", [
 					"uuid" => $senderUUID,
-					"bucket_size" => $this->nadynetQueueSize,
+					"bucket_size" => $this->highnetQueueSize,
 				]);
 				return;
 			}
@@ -308,24 +308,24 @@ class NadynetController extends ModuleInstance implements EventFeedHandler {
 			if (!isset($nextMessage)) {
 				return;
 			}
-			$event = new NadynetEvent(
-				type: 'nadynet(' . strtolower($nextMessage->channel) . ')',
+			$event = new HighnetEvent(
+				type: 'highnet(' . strtolower($nextMessage->channel) . ')',
 				message: $nextMessage
 			);
 			$this->eventManager->fireEvent($event);
 		} catch (UnableToHydrateObject $e) {
-			$this->logger->info("Invalid nadynet-package received: {data}.", [
+			$this->logger->info("Invalid highnet-package received: {data}.", [
 				"data" => $body,
 			]);
 		}
 	}
 
-	#[NCA\Event(name: "nadynet(*)", description: "Handle Nadynet messages")]
-	public function handleMessage(NadynetEvent $event): void {
+	#[NCA\Event(name: "highnet(*)", description: "Handle Highnet messages")]
+	public function handleMessage(HighnetEvent $event): void {
 		$message = $event->message;
 		$handler = $this->handlers[strtolower($message->channel)]??null;
 		if (!isset($handler)) {
-			$this->logger->info("No handler for Nadynet channel {channel} found.", [
+			$this->logger->info("No handler for Highnet channel {channel} found.", [
 				"channel" => $message->channel,
 			]);
 			return;
@@ -344,7 +344,7 @@ class NadynetController extends ModuleInstance implements EventFeedHandler {
 				dimension: $message->dimension,
 			));
 			$rMsg->prependPath(new Source(
-				type: "nadynet",
+				type: "highnet",
 				name: strtolower($message->channel),
 				label: $message->channel,
 				dimension: $message->dimension,
@@ -353,48 +353,48 @@ class NadynetController extends ModuleInstance implements EventFeedHandler {
 		}
 	}
 
-	/** Show information about the Nadynet connection */
-	#[NCA\HandlesCommand("nadynet")]
-	public function nadynetInfoCommand(
+	/** Show information about the Highnet connection */
+	#[NCA\HandlesCommand("highnet")]
+	public function highnetInfoCommand(
 		CmdContext $context,
 	): void {
-		if ($this->nadynetEnabled === false) {
-			$context->reply("Nadynet is disabled on this bot.");
+		if ($this->highnetEnabled === false) {
+			$context->reply("Highnet is disabled on this bot.");
 			return;
 		}
 		if (!isset($this->eventFeed->connection)) {
 			$context->reply("Not connected to a any feed at all.");
 			return;
 		}
-		if ($this->feedSupportsNadynet === false) {
-			$context->reply("Not connected to a Nadynet-capable feed.");
+		if ($this->feedSupportsHighnet === false) {
+			$context->reply("Not connected to a Highnet-capable feed.");
 			return;
 		}
 		$numClients = "{$this->numClients} ".
 				$this->text->pluralize("client", $this->numClients);
-		$popup = "<header2>How to talk on Nadynet<end>\n".
-			"In order to talk to other bots on a Nadynet channel, use\n".
-			"<tab><highlight>{$this->nadynetPrefix}&lt;channel&gt; &lt;message&gt;<end> - ".
+		$popup = "<header2>How to talk on Highnet<end>\n".
+			"In order to talk to other bots on a Highnet channel, use\n".
+			"<tab><highlight>{$this->highnetPrefix}&lt;channel&gt; &lt;message&gt;<end> - ".
 			"for example <highlight>@chat Good morning, Rubi-Ka!<end>\n".
 			"\n".
 			"You can also use abbreviations of channels, as long as they are unique:\n".
 			"<tab>@c, @ch, or @cha for @chat, but not @p, since that could be @pvp or @pvm.\n".
 			"\n".
 			"This, of course, only works if the channel you're talking to is routed to\n".
-			"Nadynet. By default, the main channel (org-chat or private-chat) of the bot are\n".
+			"Highnet. By default, the main channel (org-chat or private-chat) of the bot are\n".
 			"set up for relaying these messages, and silently discarding those that don't\n".
 			"match a channel.\n".
 			"\n".
 			"<header2>Who can read me?<end>\n".
 			"There " . (($this->numClients === 1) ? "is" : "are") . " ".
-			"currently <highlight>{$numClients}<end> other than this bot connected to Nadynet.\n".
+			"currently <highlight>{$numClients}<end> other than this bot connected to Highnet.\n".
 			"Each of these clients can read your messages - if they have proper routing\n".
 			"in place. How many people there are on each client is not exposed.\n".
 			"\n".
 			"<header2>What can I read?<end>\n".
-			"The following Nadynet channels are seen on this bot:";
+			"The following Highnet channels are seen on this bot:";
 		foreach ($this->channels as $channel) {
-			$recs = $this->msgHub->getReceiversFor("nadynet({$channel})");
+			$recs = $this->msgHub->getReceiversFor("highnet({$channel})");
 			$visMsg = "Not seen on this bot";
 			if (count($recs)) {
 				$visMsg = "On " . $this->text->enumerate(...$recs);
@@ -402,7 +402,7 @@ class NadynetController extends ModuleInstance implements EventFeedHandler {
 			$popup .= "\n<tab><highlight>{$channel}<end>: {$visMsg}";
 		}
 		$popup .= "\n\n<header2>A word about security<end>\n".
-			"Nadynet uses an encrypted connection to the central server, but messages\n".
+			"Highnet uses an encrypted connection to the central server, but messages\n".
 			"sent through it can be accessed by anyone connected. It is a public service\n".
 			"available to all bots, regardless of their dimension. In fact, clients don't even\n".
 			"need to be on Anarchy Online, so it is theoretically possible to impersonate\n".
@@ -416,13 +416,13 @@ class NadynetController extends ModuleInstance implements EventFeedHandler {
 			"spamming will not be effective.\n".
 			"\n".
 			"Be excellent to each other!";
-		$channelMsg = "Connected to the following Nadynet channels: ".
+		$channelMsg = "Connected to the following Highnet channels: ".
 			$this->text->enumerate(
 				...$this->text->arraySprintf("<highlight>%s<end>", ...$this->channels)
 			) . " with <highlight>{$numClients}<end> attached";
 		$msgs = $this->text->blobWrap(
 			$channelMsg . " [",
-			$this->text->makeBlob("instructions", $popup, "Instructions how to use Nadynet"),
+			$this->text->makeBlob("instructions", $popup, "Instructions how to use Highnet"),
 			"]"
 		);
 		foreach ($msgs as $msg) {
@@ -430,9 +430,9 @@ class NadynetController extends ModuleInstance implements EventFeedHandler {
 		}
 	}
 
-	/** Reset the whole Nadynet configuration and setup default routes and colors */
-	#[NCA\HandlesCommand("nadynet reset")]
-	public function nadynetInitCommand(
+	/** Reset the whole Highnet configuration and setup default routes and colors */
+	#[NCA\HandlesCommand("highnet reset")]
+	public function highnetInitCommand(
 		CmdContext $context,
 		#[NCA\Str("reset", "init")] string $action
 	): Generator {
@@ -440,12 +440,12 @@ class NadynetController extends ModuleInstance implements EventFeedHandler {
 
 		/** @var int[] */
 		$colorIds = $colors->filter(function (RouteHopColor $color): bool {
-			return strncasecmp($color->hop, "nadynet", 7) === 0;
+			return strncasecmp($color->hop, "highnet", 7) === 0;
 		})->pluck("id")->toArray();
 
 		/** @var int[] */
 		$formatIds = Source::$format->filter(function (RouteHopFormat $format): bool {
-			return strncasecmp($format->hop, "nadynet", 7) === 0;
+			return strncasecmp($format->hop, "highnet", 7) === 0;
 		})->pluck("id")->toArray();
 
 		$routes = $this->msgHub->getRoutes();
@@ -453,9 +453,9 @@ class NadynetController extends ModuleInstance implements EventFeedHandler {
 		foreach ($routes as $route) {
 			$source = $route->getSource();
 			$dest = $route->getDest();
-			$isNadynetRoute = (strncasecmp($source, "nadynet", 7) === 0)
-				|| (strncasecmp($dest, "nadynet", 7) === 0);
-			if (!$isNadynetRoute) {
+			$isHighnetRoute = (strncasecmp($source, "highnet", 7) === 0)
+				|| (strncasecmp($dest, "highnet", 7) === 0);
+			if (!$isHighnetRoute) {
 				continue;
 			}
 			$deleteIds []= $route->getID();
@@ -466,7 +466,7 @@ class NadynetController extends ModuleInstance implements EventFeedHandler {
 
 		foreach ($hops as $hop) {
 			$route = new Route();
-			$route->source = "nadynet(*)";
+			$route->source = "highnet(*)";
 			$route->two_way = false;
 			$route->destination = $hop;
 			$routes []= $route;
@@ -474,17 +474,17 @@ class NadynetController extends ModuleInstance implements EventFeedHandler {
 			$route = new Route();
 			$route->source = $hop;
 			$route->two_way = false;
-			$route->destination = "nadynet";
+			$route->destination = "highnet";
 			$routes []= $route;
 		}
 
 		$rhf = new RouteHopFormat();
-		$rhf->hop = "nadynet";
+		$rhf->hop = "highnet";
 		$rhf->render = true;
 		$rhf->format = '@%s';
 
 		$rhc = new RouteHopColor();
-		$rhc->hop = 'nadynet';
+		$rhc->hop = 'highnet';
 		$rhc->tag_color = '00EFFF';
 		$rhc->text_color = '00BFFF';
 
@@ -518,19 +518,19 @@ class NadynetController extends ModuleInstance implements EventFeedHandler {
 		$this->msgHub->loadTagColor();
 		$this->msgHub->loadTagFormat();
 
-		$context->reply("Routing for Nadynet initialized.");
+		$context->reply("Routing for Highnet initialized.");
 	}
 
 	/** Show the currently active filters */
 	#[NCA\HandlesCommand(self::FILTERS)]
-	public function nadynetListFilters(
+	public function highnetListFilters(
 		CmdContext $context,
 		#[NCA\Str("filters", "filter")] string $action
 	): void {
 		$this->cleanExpiredFilters();
 		$this->reloadFilters();
 		if ($this->filters->isEmpty()) {
-			$context->reply("No Nadynet filters are currently active.");
+			$context->reply("No Highnet filters are currently active.");
 			return;
 		}
 		$blob = "<header2>Currently active filters<end>\n".
@@ -538,15 +538,15 @@ class NadynetController extends ModuleInstance implements EventFeedHandler {
 				->map(Closure::fromCallable([$this, "renderFilter"]))
 				->join("\n");
 		$msg = $this->text->makeBlob(
-			"Nadynet filters (" . $this->filters->count() . ")",
+			"Highnet filters (" . $this->filters->count() . ")",
 			$blob
 		);
 		$context->reply($msg);
 	}
 
-	/** Permanently block Nadynet-messages */
+	/** Permanently block Highnet-messages */
 	#[NCA\HandlesCommand(self::PERM_FILTERS)]
-	public function nadynetAddPermanentUserFilters(
+	public function highnetAddPermanentUserFilters(
 		CmdContext $context,
 		#[NCA\Str("filter", "filters")] string $action,
 		#[NCA\Str("permanent")] string $permanent,
@@ -554,7 +554,7 @@ class NadynetController extends ModuleInstance implements EventFeedHandler {
 		PCharacter $name,
 		int $dimension,
 	): Generator {
-		yield from $this->nadynetAddUserFilter(
+		yield from $this->highnetAddUserFilter(
 			context: $context,
 			where: $where,
 			name: $name,
@@ -563,9 +563,9 @@ class NadynetController extends ModuleInstance implements EventFeedHandler {
 		);
 	}
 
-	/** Temporarily block Nadynet-messages */
+	/** Temporarily block Highnet-messages */
 	#[NCA\HandlesCommand(self::TEMP_FILTERS)]
-	public function nadynetAddTemporaryUserFilters(
+	public function highnetAddTemporaryUserFilters(
 		CmdContext $context,
 		#[NCA\Str("filter", "filters")] string $action,
 		PDuration $duration,
@@ -573,7 +573,7 @@ class NadynetController extends ModuleInstance implements EventFeedHandler {
 		PCharacter $name,
 		int $dimension,
 	): Generator {
-		yield from $this->nadynetAddUserFilter(
+		yield from $this->highnetAddUserFilter(
 			context: $context,
 			where: $where,
 			name: $name,
@@ -582,9 +582,9 @@ class NadynetController extends ModuleInstance implements EventFeedHandler {
 		);
 	}
 
-	/** Permanently block Nadynet-messages */
+	/** Permanently block Highnet-messages */
 	#[NCA\HandlesCommand(self::PERM_FILTERS)]
-	public function nadynetAddPermanentChannelFilters(
+	public function highnetAddPermanentChannelFilters(
 		CmdContext $context,
 		#[NCA\Str("filter", "filters")] string $action,
 		#[NCA\Str("permanent")] string $permanent,
@@ -592,7 +592,7 @@ class NadynetController extends ModuleInstance implements EventFeedHandler {
 		PWord $channel,
 		?int $dimension,
 	): void {
-		$this->nadynetAddChannelFilter(
+		$this->highnetAddChannelFilter(
 			context: $context,
 			duration: null,
 			channel: $channel,
@@ -600,9 +600,9 @@ class NadynetController extends ModuleInstance implements EventFeedHandler {
 		);
 	}
 
-	/** Temporarily block Nadynet-messages */
+	/** Temporarily block Highnet-messages */
 	#[NCA\HandlesCommand(self::TEMP_FILTERS)]
-	public function nadynetAddTemporaryChannelFilters(
+	public function highnetAddTemporaryChannelFilters(
 		CmdContext $context,
 		#[NCA\Str("filter", "filters")] string $action,
 		PDuration $duration,
@@ -610,7 +610,7 @@ class NadynetController extends ModuleInstance implements EventFeedHandler {
 		PWord $channel,
 		?int $dimension,
 	): void {
-		$this->nadynetAddChannelFilter(
+		$this->highnetAddChannelFilter(
 			context: $context,
 			duration: $duration,
 			channel: $channel,
@@ -618,33 +618,33 @@ class NadynetController extends ModuleInstance implements EventFeedHandler {
 		);
 	}
 
-	/** Permanently block Nadynet-messages */
+	/** Permanently block Highnet-messages */
 	#[NCA\HandlesCommand(self::PERM_FILTERS)]
-	public function nadynetAddPermanentDimensionFilter(
+	public function highnetAddPermanentDimensionFilter(
 		CmdContext $context,
 		#[NCA\Str("filter", "filters")] string $action,
 		#[NCA\Str("permanent")] string $permanent,
 		#[NCA\Str("dimension")] string $where,
 		int $dimension,
 	): void {
-		$this->nadynetAddDimensionFilter($context, null, $dimension);
+		$this->highnetAddDimensionFilter($context, null, $dimension);
 	}
 
-	/** Temporarily block Nadynet-messages */
+	/** Temporarily block Highnet-messages */
 	#[NCA\HandlesCommand(self::TEMP_FILTERS)]
-	public function nadynetAddTemporaryDimensionFilter(
+	public function highnetAddTemporaryDimensionFilter(
 		CmdContext $context,
 		#[NCA\Str("filter", "filters")] string $action,
 		PDuration $duration,
 		#[NCA\Str("dimension")] string $where,
 		int $dimension,
 	): void {
-		$this->nadynetAddDimensionFilter($context, $duration, $dimension);
+		$this->highnetAddDimensionFilter($context, $duration, $dimension);
 	}
 
-	/** Delete a Nadynet filter */
+	/** Delete a Highnet filter */
 	#[NCA\HandlesCommand(self::TEMP_FILTERS)]
-	public function nadynetDeleteFilter(
+	public function highnetDeleteFilter(
 		CmdContext $context,
 		#[NCA\Str("filter")] string $filter,
 		PRemove $action,
@@ -657,13 +657,13 @@ class NadynetController extends ModuleInstance implements EventFeedHandler {
 			->asObj(FilterEntry::class)
 			->first();
 		if (!isset($filter)) {
-			$context->reply("Nadynet filter <highlight>#{$id}<end> does not exist.");
+			$context->reply("Highnet filter <highlight>#{$id}<end> does not exist.");
 			return;
 		}
 		if (!isset($filter->expires)) {
 			$hasPermPrivs = $this->cmdManager->couldRunCommand(
 				$context,
-				"nadynet filter permanent dimension 5"
+				"highnet filter permanent dimension 5"
 			);
 			if (!$hasPermPrivs) {
 				$context->reply("You don't have the required rights to delete permanent filters.");
@@ -697,11 +697,11 @@ class NadynetController extends ModuleInstance implements EventFeedHandler {
 
 		$blockTempLink = $this->text->makeChatcmd(
 			"block 15min",
-			"/tell <myname> nadynet filter 15m dimension {$message->dimension}"
+			"/tell <myname> highnet filter 15m dimension {$message->dimension}"
 		);
 		$blockPermLink = $this->text->makeChatcmd(
 			"block",
-			"/tell <myname> nadynet filter permanent dimension {$message->dimension}"
+			"/tell <myname> highnet filter permanent dimension {$message->dimension}"
 		);
 		$blob .= "\n<tab>Dimension: ".
 			"<highlight>{$message->dimension} ".
@@ -710,11 +710,11 @@ class NadynetController extends ModuleInstance implements EventFeedHandler {
 
 		$blockTempLink = $this->text->makeChatcmd(
 			"block 15min",
-			"/tell <myname> nadynet filter 15m channel {$message->channel}"
+			"/tell <myname> highnet filter 15m channel {$message->channel}"
 		);
 		$blockPermLink = $this->text->makeChatcmd(
 			"block",
-			"/tell <myname> nadynet filter permanent channel {$message->channel}"
+			"/tell <myname> highnet filter permanent channel {$message->channel}"
 		);
 		$blob .= "\n<tab>Channel: ".
 			"<highlight>" . ($this->getPrettyChannelName($message->channel) ?? $message->channel) ."<end> ".
@@ -726,11 +726,11 @@ class NadynetController extends ModuleInstance implements EventFeedHandler {
 		}
 		$blockTempLink = $this->text->makeChatcmd(
 			"block 15min",
-			"/tell <myname> nadynet filter 15m sender {$message->sender_name} {$message->dimension}"
+			"/tell <myname> highnet filter 15m sender {$message->sender_name} {$message->dimension}"
 		);
 		$blockPermLink = $this->text->makeChatcmd(
 			"block",
-			"/tell <myname> nadynet filter permanent sender {$message->sender_name} {$message->dimension}"
+			"/tell <myname> highnet filter permanent sender {$message->sender_name} {$message->dimension}"
 		);
 		$blob .= "\n<tab>Sender: <highlight>{$senderName}<end> [{$blockTempLink}] [{$blockPermLink}]";
 
@@ -740,28 +740,28 @@ class NadynetController extends ModuleInstance implements EventFeedHandler {
 		}
 		$blockTempLink = $this->text->makeChatcmd(
 			"block 15min",
-			"/tell <myname> nadynet filter 15m bot {$message->bot_name} {$message->dimension}"
+			"/tell <myname> highnet filter 15m bot {$message->bot_name} {$message->dimension}"
 		);
 		$blockPermLink = $this->text->makeChatcmd(
 			"block",
-			"/tell <myname> nadynet filter permanent bot {$message->bot_name} {$message->dimension}"
+			"/tell <myname> highnet filter permanent bot {$message->bot_name} {$message->dimension}"
 		);
 		$blob .= "\n<tab>Via Bot: <highlight>{$botName}<end> [{$blockTempLink}] [{$blockPermLink}]";
 
 		$filtersCmd = $this->text->makeChatcmd(
-			"<symbol>nadynet filters",
-			"/tell <myname> nadynet filters"
+			"<symbol>highnet filters",
+			"/tell <myname> highnet filters"
 		);
-		$nadynetCmd = $this->text->makeChatcmd(
-			"<symbol>nadynet",
-			"/tell <myname> nadynet"
+		$highnetCmd = $this->text->makeChatcmd(
+			"<symbol>highnet",
+			"/tell <myname> highnet"
 		);
 		$blob .= "\n\n".
 			"<i>Blocks on your bot have no impact on other bots.</i>\n".
-			"<i>Take a moment to consider before permanently blocking players or bots,</i>\n".
-			"<i>because accounts can be faked on Nadynet.</i>\n\n".
+			"<i>Take a moment to consider before permanently blocking players or bots;</i>\n".
+			"<i>most problems resolve themselves within 15 minutes once tempers have cooled down.</i>\n\n".
 			"<i>To list all currently active filters, use {$filtersCmd}.</i>\n".
-			"<i>For information about Nadynet, use {$nadynetCmd}.</i>";
+			"<i>For information about Highnet, use {$highnetCmd}.</i>";
 
 		return $blob;
 	}
@@ -800,25 +800,25 @@ class NadynetController extends ModuleInstance implements EventFeedHandler {
 
 	/**
 	 * Route message $message that come in via routing event $event
-	 * to the Nadynet channel $channel
+	 * to the Highnet channel $channel
 	 */
 	public function handleIncoming(RoutableEvent $event, string $channel, string $message): bool {
-		if (!$this->nadynetEnabled) {
-			$this->logger->info("Nadynetr disabled - dropping message");
+		if (!$this->highnetEnabled) {
+			$this->logger->info("Highnetr disabled - dropping message");
 			return false;
 		}
 		if (!isset($this->eventFeed->connection)) {
-			$this->logger->info("No event feed connected - dropping Nadynet message");
+			$this->logger->info("No event feed connected - dropping Highnet message");
 			return false;
 		}
 		$sourceHop = $this->getSourceHop($event);
 		if (!isset($sourceHop)) {
-			$this->logger->info("No source-hop found in message to Nadynet - dropping");
+			$this->logger->info("No source-hop found in message to Highnet - dropping");
 			return false;
 		}
-		if (!$this->msgHub->hasRouteFromTo("nadynet({$channel})", $sourceHop)) {
-			$this->logger->info("No route from {target} {source} - not routing to nadynet", [
-				"target" => "nadynet({$channel})",
+		if (!$this->msgHub->hasRouteFromTo("highnet({$channel})", $sourceHop)) {
+			$this->logger->info("No route from {target} {source} - not routing to highnet", [
+				"target" => "highnet({$channel})",
 				"source" => $sourceHop,
 			]);
 			return false;
@@ -844,24 +844,24 @@ class NadynetController extends ModuleInstance implements EventFeedHandler {
 			$serializer = new ObjectMapperUsingReflection();
 			$hwBody = $serializer->serializeObject($message);
 			if (!is_array($hwBody)) {
-				$this->logger->warning("Cannot serialize data for Nadynet - dropping", [
+				$this->logger->warning("Cannot serialize data for Highnet - dropping", [
 					"message" => $message,
 				]);
 				return;
 			}
-			$packet = new Highway\Message(room: "nadynet", body: $hwBody);
-			$this->logger->debug("Sending message to Nadynet: {data}", [
+			$packet = new Highway\Message(room: "highnet", body: $hwBody);
+			$this->logger->debug("Sending message to Highnet: {data}", [
 				"data" => $hwBody,
 			]);
 			yield $this->eventFeed->connection->send($packet);
 
-			if (!$this->nadynetRouteInternally) {
-				$this->logger->info("Internal Nadynet routing disabled.");
+			if (!$this->highnetRouteInternally) {
+				$this->logger->info("Internal Highnet routing disabled.");
 				return;
 			}
 			$missingReceivers = $this->getInternalRoutingReceivers($event, $channel);
 			if (count($missingReceivers)) {
-				$this->logger->info("Routing Nadynet message internally to {targets}", [
+				$this->logger->info("Routing Highnet message internally to {targets}", [
 					"targets" => $missingReceivers,
 				]);
 			}
@@ -877,7 +877,7 @@ class NadynetController extends ModuleInstance implements EventFeedHandler {
 		return true;
 	}
 
-	/** Create a RoutableMessage from a Nadynet message for internal routing only */
+	/** Create a RoutableMessage from a Highnet message for internal routing only */
 	private function nnMessageToRoutableMessage(Message $message): RoutableMessage {
 		$rMsg = new RoutableMessage($message->message);
 		$rMsg->setCharacter(new Character(
@@ -886,7 +886,7 @@ class NadynetController extends ModuleInstance implements EventFeedHandler {
 			dimension: $message->dimension,
 		));
 		$rMsg->prependPath(new Source(
-			type: "nadynet",
+			type: "highnet",
 			name: strtolower($message->channel),
 			label: $message->channel,
 			dimension: $message->dimension,
@@ -908,7 +908,7 @@ class NadynetController extends ModuleInstance implements EventFeedHandler {
 	}
 
 	/**
-	 * Get a list of routing destinations that would receive Nadynet messages
+	 * Get a list of routing destinations that would receive Highnet messages
 	 * from $channel, but not messages from the origin of $event.
 	 *
 	 * @return string[]
@@ -922,10 +922,10 @@ class NadynetController extends ModuleInstance implements EventFeedHandler {
 			[$sourceHop],
 			$this->msgHub->getReceiversFor($sourceHop)
 		);
-		$nadynetReceivers = $this->msgHub->getReceiversFor("nadynet({$channel})");
+		$highnetReceivers = $this->msgHub->getReceiversFor("highnet({$channel})");
 		return array_values(
 			array_filter(
-				$nadynetReceivers,
+				$highnetReceivers,
 				fn (string $receiver): bool =>
 					count(
 						array_filter(
@@ -943,20 +943,20 @@ class NadynetController extends ModuleInstance implements EventFeedHandler {
 			if (isset($this->handlers[strtolower($channel)])) {
 				continue;
 			}
-			$handler = new NadynetChannel(strtolower($channel));
+			$handler = new HighnetChannel(strtolower($channel));
 			Registry::injectDependencies($handler);
 			$this->msgHub
 				->registerMessageEmitter($handler)
 				->registerMessageReceiver($handler);
 			$this->handlers[strtolower($channel)] = $handler;
 			if ($update) {
-				$this->logger->notice("New Nadynet-channel {channel} registered.", [
+				$this->logger->notice("New Highnet-channel {channel} registered.", [
 					"channel" => $channel,
 				]);
 			}
 		}
 		if (!isset($this->receiverHandler)) {
-			$handler = new NadynetReceiver();
+			$handler = new HighnetReceiver();
 			Registry::injectDependencies($handler);
 			$this->msgHub->registerMessageReceiver($handler);
 			$this->receiverHandler = $handler;
@@ -969,16 +969,16 @@ class NadynetController extends ModuleInstance implements EventFeedHandler {
 				$routes = $this->msgHub->getRoutes();
 				foreach ($routes as $route) {
 					if (
-						$route->getSource() === "nadynet({$channel})"
-						|| $route->getDest() === "nadynet({$channel})"
+						$route->getSource() === "highnet({$channel})"
+						|| $route->getDest() === "highnet({$channel})"
 					) {
 						$this->msgHub->deleteRouteID($route->getID());
 						$this->db->table($this->msgHub::DB_TABLE_ROUTES)->delete($route->getID());
 					}
 				}
-				$this->msgHub->unregisterMessageEmitter("nadynet({$channel})");
-				$this->msgHub->unregisterMessageReceiver("nadynet({$channel})");
-				$this->logger->notice("Nadynet-channel {channel} removed.", [
+				$this->msgHub->unregisterMessageEmitter("highnet({$channel})");
+				$this->msgHub->unregisterMessageReceiver("highnet({$channel})");
+				$this->logger->notice("Highnet-channel {channel} removed.", [
 					"channel" => $channel,
 				]);
 			}
@@ -992,12 +992,12 @@ class NadynetController extends ModuleInstance implements EventFeedHandler {
 				->unregisterMessageReceiver($handler->getChannelName());
 		}
 		if (isset($this->receiverHandler)) {
-			$this->msgHub->unregisterMessageReceiver("nadynet");
+			$this->msgHub->unregisterMessageReceiver("highnet");
 			$this->receiverHandler = null;
 		}
 	}
 
-	private function nadynetAddDimensionFilter(
+	private function highnetAddDimensionFilter(
 		CmdContext $context,
 		?PDuration $duration,
 		int $dimension,
@@ -1026,7 +1026,7 @@ class NadynetController extends ModuleInstance implements EventFeedHandler {
 		}
 		$deleteLink = $this->text->makeChatcmd(
 			"del",
-			"/tell <myname> nadynet filter del {$entry->id}"
+			"/tell <myname> highnet filter del {$entry->id}"
 		);
 		return "<tab>* [{$deleteLink}] <highlight>#{$entry->id}<end> {$line}";
 	}
@@ -1037,7 +1037,7 @@ class NadynetController extends ModuleInstance implements EventFeedHandler {
 		}) === null;
 	}
 
-	private function nadynetAddUserFilter(
+	private function highnetAddUserFilter(
 		CmdContext $context,
 		?PDuration $duration,
 		string $where,
@@ -1075,7 +1075,7 @@ class NadynetController extends ModuleInstance implements EventFeedHandler {
 		$context->reply("Filter " . $this->getFilterDescr($entry) . " added.");
 	}
 
-	private function nadynetAddChannelFilter(
+	private function highnetAddChannelFilter(
 		CmdContext $context,
 		?PDuration $duration,
 		PWord $channel,

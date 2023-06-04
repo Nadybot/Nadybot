@@ -1,6 +1,6 @@
 <?php declare(strict_types=1);
 
-namespace Nadybot\Modules\NADYNET_MODULE\Migrations;
+namespace Nadybot\Modules\HIGHNET_MODULE\Migrations;
 
 use Nadybot\Core\DBSchema\{RouteHopColor, RouteHopFormat};
 use Nadybot\Core\Routing\Source;
@@ -14,7 +14,7 @@ class InitializeRouting implements SchemaMigration {
 		$hops = ["web", strlen($this->config->orgName) ? "aoorg" : "aopriv({$this->config->name})"];
 		foreach ($hops as $hop) {
 			$route = [
-				"source" => 'nadynet(*)',
+				"source" => 'highnet(*)',
 				"destination" => $hop,
 				"two_way" => false,
 			];
@@ -22,20 +22,20 @@ class InitializeRouting implements SchemaMigration {
 
 			$route = [
 				"source" => $hop,
-				"destination" => 'nadynet',
+				"destination" => 'highnet',
 				"two_way" => false,
 			];
 			$db->table(MessageHub::DB_TABLE_ROUTES)->insert($route);
 		}
 
 		$rhf = new RouteHopFormat();
-		$rhf->hop = "nadynet";
+		$rhf->hop = "highnet";
 		$rhf->render = true;
 		$rhf->format = '@%s';
 		$db->insert(Source::DB_TABLE, $rhf);
 
 		$rhc = new RouteHopColor();
-		$rhc->hop = 'nadynet';
+		$rhc->hop = 'highnet';
 		$rhc->tag_color = '00EFFF';
 		$rhc->text_color = '00BFFF';
 		$db->insert(MessageHub::DB_TABLE_COLORS, $rhc);

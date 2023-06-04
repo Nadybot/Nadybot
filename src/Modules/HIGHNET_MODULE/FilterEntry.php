@@ -1,6 +1,6 @@
 <?php declare(strict_types=1);
 
-namespace Nadybot\Modules\NADYNET_MODULE;
+namespace Nadybot\Modules\HIGHNET_MODULE;
 
 use Nadybot\Core\DBRow;
 

@@ -1,13 +1,13 @@
 <?php declare(strict_types=1);
 
-namespace Nadybot\Modules\NADYNET_MODULE;
+namespace Nadybot\Modules\HIGHNET_MODULE;
 
 use Nadybot\Core\Routing\{RoutableEvent};
 use Nadybot\Core\{Attributes as NCA, MessageEmitter, MessageReceiver};
 
-class NadynetChannel implements MessageEmitter, MessageReceiver {
+class HighnetChannel implements MessageEmitter, MessageReceiver {
 	#[NCA\Inject]
-	public NadynetController $nadynetController;
+	public HighnetController $highnetController;
 
 	public function __construct(
 		private string $channel
@@ -15,7 +15,7 @@ class NadynetChannel implements MessageEmitter, MessageReceiver {
 	}
 
 	public function getChannelName(): string {
-		return "nadynet({$this->channel})";
+		return "highnet({$this->channel})";
 	}
 
 	public function receive(RoutableEvent $event, string $destination): bool {
@@ -23,6 +23,6 @@ class NadynetChannel implements MessageEmitter, MessageReceiver {
 		if (!is_string($data)) {
 			return false;
 		}
-		return $this->nadynetController->handleIncoming($event, $destination, $data);
+		return $this->highnetController->handleIncoming($event, $destination, $data);
 	}
 }

@@ -1,14 +1,14 @@
 <?php declare(strict_types=1);
 
-namespace Nadybot\Modules\NADYNET_MODULE\Migrations;
+namespace Nadybot\Modules\HIGHNET_MODULE\Migrations;
 
 use Illuminate\Database\Schema\Blueprint;
 use Nadybot\Core\{DB, LoggerWrapper, SchemaMigration};
-use Nadybot\Modules\NADYNET_MODULE\NadynetController;
+use Nadybot\Modules\HIGHNET_MODULE\HighnetController;
 
 class CreateFilterTable implements SchemaMigration {
 	public function migrate(LoggerWrapper $logger, DB $db): void {
-		$table = NadynetController::DB_TABLE;
+		$table = HighnetController::DB_TABLE;
 		$db->schema()->create($table, function (Blueprint $table) {
 			$table->id();
 			$table->string("creator", 12)->nullable(false);
