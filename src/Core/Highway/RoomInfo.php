@@ -14,7 +14,9 @@ class RoomInfo extends Package {
 		public string $room,
 		#[MapFrom('read-only')] public bool $readOnly,
 		#[CastListToType('string')] public array $users,
-		#[MapFrom('extra-info')] public null|string|int|bool|float|array $extraInfo=null,
+		public null|string|int|bool|float|array $extraInfo=null,
+		public ?RateLimit $msgFreqRatelimit=null,
+		public ?RateLimit $msgSizeRatelimit=null,
 	) {
 		$this->type = self::ROOM_INFO;
 	}
