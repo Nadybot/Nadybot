@@ -417,9 +417,13 @@ class HighnetController extends ModuleInstance implements EventFeedHandler {
 			"\n".
 			"Be excellent to each other!";
 		$channelMsg = "Connected to the following Highnet channels: ".
-			$this->text->enumerate(
-				...$this->text->arraySprintf("<highlight>%s<end>", ...$this->channels)
-			) . " with <highlight>{$numClients}<end> attached";
+			(count($this->channels)
+			? (
+				$this->text->enumerate(
+					...$this->text->arraySprintf("<highlight>%s<end>", ...$this->channels)
+				) . " with <highlight>{$numClients}<end> attached"
+			)
+			: "&lt;none&gt;");
 		$msgs = $this->text->blobWrap(
 			$channelMsg . " [",
 			$this->text->makeBlob("instructions", $popup, "Instructions how to use Highnet"),
