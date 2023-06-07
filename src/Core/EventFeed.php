@@ -10,12 +10,13 @@ use Amp\Http\Client\Interceptor\RemoveRequestHeader;
 use Amp\Promise;
 use Amp\Socket\ConnectContext;
 use Amp\Websocket\Client\{Handshake, Rfc6455Connector};
-use Amp\Websocket\ClosedException;
+use Amp\Websocket\{ClosedException, Code};
 use AssertionError;
 use Closure;
 use Generator;
 use Nadybot\Core\Attributes as NCA;
 use ReflectionClass;
+use Safe\Exceptions\JsonException;
 use Throwable;
 
 /**
@@ -50,6 +51,8 @@ class EventFeed {
 
 	/** @var array<string,EventFeedHandler[]> */
 	public array $roomHandlers = [];
+
+	public ?Highway\Connection $connection=null;
 
 	private bool $isReconnect = false;
 
@@ -144,15 +147,14 @@ class EventFeed {
 	private function singleLoop(): Promise {
 		return call(function (): Generator {
 			try {
-				/** @var ?Highway\Connection */
-				$connection = yield $this->connect();
-				if (!isset($connection)) {
+				$this->connection = yield $this->connect();
+				if (!isset($this->connection)) {
 					return false;
 				}
 				$this->announceConnect();
 				$this->isReconnect = true;
-				while ($package = yield $connection->receive()) {
-					$this->handlePackage($connection, $package);
+				while ($package = yield $this->connection->receive()) {
+					$this->handlePackage($this->connection, $package);
 				}
 			} catch (Throwable $e) {
 				if ($this->chatBot->isShuttingDown()) {
@@ -161,7 +163,13 @@ class EventFeed {
 				$error = $e->getMessage();
 				if ($e instanceof ClosedException) {
 					$error = "Server unexpectedly closed the connection";
+				} elseif ($e instanceof JsonException && isset($this->connection)) {
+					$error = "JSON {$error}";
+					yield $this->connection->close(Code::INCONSISTENT_FRAME_DATA_TYPE);
+				} elseif (isset($this->connection)) {
+					yield $this->connection->close();
 				}
+				$this->connection = null;
 				$this->logger->error("[{uri}] {error} - retrying in {delay}s", [
 					"uri" => self::URI,
 					"delay" => self::RECONNECT_DELAY,

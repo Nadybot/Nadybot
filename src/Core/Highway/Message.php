@@ -7,6 +7,7 @@ class Message extends Package {
 	public function __construct(
 		public string $room,
 		public string|array $body,
+		public ?string $user=null,
 	) {
 		$this->type = self::MESSAGE;
 	}
