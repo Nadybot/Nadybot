@@ -772,7 +772,7 @@ class OnlineController extends ModuleInstance {
 		$relayList = [];
 		$relayOrgInfo = $this->onlineShowOrgGuildRelay;
 		foreach ($relayGrouped as $group => $chars) {
-			$chars = $this->filterHiddenCharacters($chars, $group);
+			$chars = $this->filterHiddenCharacters($chars, (string)$group);
 			$groupBy = static::GROUP_OFF;
 			if ($this->onlineRelayGroupBy === self::GROUP_BY_ORG_THEN_MAIN) {
 				$groupBy = static::GROUP_BY_PLAYER;
@@ -1114,7 +1114,7 @@ class OnlineController extends ModuleInstance {
 	 *
 	 * @param array<string,Relay> $relays
 	 *
-	 * @return array<string,OnlinePlayer[]>
+	 * @return array<string|int,OnlinePlayer[]>
 	 */
 	protected function groupRelayList(array $relays): array {
 		$groupBy = $this->onlineRelayGroupBy;
