@@ -120,7 +120,9 @@ class DrillController extends ModuleInstance {
 				$this->logger->error("Request to connect to Drill failed: {error}", [
 					"error" => $e->getMessage(),
 				]);
-				return;
+				yield delay($this->reconnectDelay * 1000);
+				$this->reconnectDelay = max($this->reconnectDelay * 2, 5);
+				yield $this->connect();
 			} catch (ClosedException $e) {
 				$this->logger->notice("Reconnecting to Drill in {$this->reconnectDelay}s.");
 				yield delay($this->reconnectDelay * 1000);
