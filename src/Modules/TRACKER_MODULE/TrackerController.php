@@ -40,7 +40,6 @@ use Nadybot\Modules\{
 	ORGLIST_MODULE\Organization,
 	TOWER_MODULE\TowerAttackEvent,
 };
-
 use Throwable;
 
 /**
@@ -194,6 +193,22 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 	])]
 	public int $trackerAddAttackers = self::ATT_NONE;
 
+	/** Time after which characters not logging on will be untracked */
+	#[NCA\Setting\TimeOrOff(
+		options: [
+			'off',
+			'1week',
+			'2weeks',
+			'3weeks',
+			'1month',
+			'2months',
+			'3months',
+			'6months',
+			'1year',
+		]
+	)]
+	public int $trackerAutoUntrack = 0;
+
 	#[NCA\Setup]
 	public function setup(): void {
 		$this->messageHub->registerMessageEmitter($this);
@@ -214,6 +229,38 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 			->each(function (TrackingOrgMember $row) {
 				$this->buddylistManager->addId($row->uid, static::REASON_ORG_TRACKER);
 			});
+	}
+
+	#[NCA\Event(
+		name: "timer(24hrs)",
+		description: "Untrack inactive characters",
+	)]
+	public function untrackInactiveCharacters(): void {
+		if ($this->trackerAutoUntrack === 0) {
+			return;
+		}
+
+		/** @var Collection<int,TrackedUser> */
+		$users = $this->db->table(self::DB_TABLE)
+			->asObj(TrackedUser::class)
+			->keyBy("uid");
+
+		$query = $this->db->table(self::DB_TABLE, "t");
+		$query->join(self::DB_TRACKING . " as ev", "ev.uid", "=", "t.uid")
+			->where("ev.event", "logon")
+			->orderByDesc("ev.dt")
+			->groupBy("ev.uid")
+			->select("ev.uid", $query->colFunc("min", "ev.dt", "dt"))
+			->asObj(LastLogin::class)
+			->each(function (LastLogin $row) use (&$users): void {
+				$age = time() - $row->dt;
+				$this->untrackIfTooOld($row->uid, $age);
+				$users->forget($row->uid);
+			});
+		$users->each(function (TrackedUser $user): void {
+			$age = time() - $user->added_dt;
+			$this->untrackIfTooOld($user->uid, $age);
+		});
 	}
 
 	public function getChannelName(): string {
@@ -520,6 +567,7 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 		if ($deleted) {
 			$msg = "<highlight>{$name}<end> has been removed from the track list.";
 			$this->buddylistManager->removeId($uid, static::REASON_TRACKER);
+			$this->db->table(self::DB_TRACKING)->where("uid", $uid)->delete();
 
 			$context->reply($msg);
 			return;
@@ -1205,6 +1253,24 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 		return true;
 	}
 
+	/** Check if $uid has logged in too long ago and untrack if so  */
+	private function untrackIfTooOld(int $uid, int $age): void {
+		if ($age <= $this->trackerAutoUntrack) {
+			return;
+		}
+		$this->logger->notice("UID {uid} hasn't logged in for {duration} - untracking", [
+			"uid" => $uid,
+			"duration" => $this->util->unixtimeToReadable($age),
+		]);
+		$deleted = $this->db->table(self::DB_TABLE)
+			->where("uid", $uid)
+			->delete();
+		if ($deleted) {
+			$this->buddylistManager->removeId($uid, static::REASON_TRACKER);
+			$this->db->table(self::DB_TRACKING)->where("uid", $uid)->delete();
+		}
+	}
+
 	private function updateRosterForOrg(?Guild $org): Generator {
 		// Check if JSON file was downloaded properly
 		if ($org === null) {
@@ -1291,6 +1357,9 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 					"uid" => $exMember->uid,
 				]);
 				$this->buddylistManager->removeId($exMember->uid, static::REASON_ORG_TRACKER);
+				$this->db->table(self::DB_TRACKING)
+					->where("uid", $exMember->uid)
+					->delete();
 			});
 		} catch (Throwable $e) {
 			$this->db->rollback();
