@@ -628,7 +628,7 @@ class NotumWarsController extends ModuleInstance {
 					$attack->addLookups($player);
 				}
 				$attInfo = DBTowerAttack::fromTowerAttack($attack);
-				$this->db->insert(self::DB_ATTACKS, $attInfo);
+				$this->db->insert(self::DB_ATTACKS, $attInfo, null);
 			}
 
 			$this->attacks = [];
@@ -679,7 +679,7 @@ class NotumWarsController extends ModuleInstance {
 
 			/** @psalm-suppress InternalMethod */
 			foreach ($outcomes as $outcome) {
-				$this->db->insert(self::DB_OUTCOMES, DBOutcome::fromTowerOutcome($outcome));
+				$this->db->insert(self::DB_OUTCOMES, DBOutcome::fromTowerOutcome($outcome), null);
 				$this->outcomes []= $outcome;
 			}
 			$this->outcomes = $this->db->table(self::DB_OUTCOMES)
