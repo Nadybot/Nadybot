@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Switch to Alpine Linux 3.18 as base for the Docker images.
+- Use there whereis-database for MOB_MODULE coordinates
 
 ### Added
 

@@ -2,7 +2,7 @@
 
 namespace Nadybot\Modules\MOB_MODULE;
 
-use function Safe\json_decode;
+use function Safe\{json_decode, preg_replace};
 use Amp\Http\Client\{HttpClientBuilder, Request, Response};
 use Closure;
 use EventSauce\ObjectHydrator\{ObjectMapperUsingReflection, UnableToHydrateObject};
@@ -12,7 +12,7 @@ use Nadybot\Core\Attributes\{Event, HandlesCommand};
 use Nadybot\Core\Routing\{RoutableMessage, Source};
 use Nadybot\Core\{Attributes as NCA, CmdContext, LoggerWrapper, MessageHub, ModuleInstance, Text, Util};
 use Nadybot\Modules\HELPBOT_MODULE\PlayfieldController;
-
+use Nadybot\Modules\WHEREIS_MODULE\{WhereisController, WhereisResult};
 use Safe\Exceptions\JsonException;
 
 #[
@@ -61,6 +61,9 @@ class MobController extends ModuleInstance {
 
 	#[NCA\Inject]
 	public PlayfieldController $pfCtrl;
+
+	#[NCA\Inject]
+	public WhereisController $whereisCtrl;
 
 	#[NCA\Inject]
 	public MessageHub $msgHub;
@@ -452,6 +455,16 @@ class MobController extends ModuleInstance {
 		$pf = $this->pfCtrl->getPlayfieldById($mob->playfield_id);
 		assert(isset($pf));
 		$status = $this->renderMobStatus($mob);
+
+		/** @var string */
+		$basename = preg_replace("/\s+\(placeholder\)/i", "", $mob->name);
+		$whereis = $this->whereisCtrl->getByName($basename);
+		if ($whereis->count() === 1) {
+			/** @var WhereisResult */
+			$whereMob = $whereis->firstOrFail();
+			$mob->x = $whereMob->xcoord;
+			$mob->y = $whereMob->ycoord;
+		}
 		return "<header2>{$mob->name}<end> [".
 			$this->text->makeChatcmd(
 				"{$mob->x}x{$mob->y} {$pf->short_name}",
