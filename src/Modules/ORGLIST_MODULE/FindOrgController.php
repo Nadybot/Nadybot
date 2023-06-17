@@ -6,7 +6,7 @@ use function Amp\File\filesystem;
 use function Amp\Promise\all;
 use function Amp\{call, delay};
 use Amp\Cache\FileCache;
-use Amp\Http\Client\{HttpClientBuilder, Request, Response};
+use Amp\Http\Client\{HttpClientBuilder, Request, Response, TimeoutException};
 use Amp\Promise;
 use Amp\Sync\LocalKeyedMutex;
 use Exception;
@@ -273,6 +273,7 @@ class FindOrgController extends ModuleInstance {
 
 	/** @return Promise<void> */
 	private function downloadOrglistLetter(string $letter): Promise {
+		$this->logger->notice("Downloading orglist {$letter}");
 		return call(function () use ($letter): Generator {
 			$this->logger->info("Downloading orglist for letter {$letter}");
 			$cache = new FileCache(
@@ -286,20 +287,34 @@ class FindOrgController extends ModuleInstance {
 				}
 				return;
 			}
-			$url = "http://people.anarchy-online.com/people/lookup/orgs.html".
+			$url = "https://people.anarchy-online.com/people/lookup/orgs.html".
 				"?l={$letter}&dim={$this->config->dimension}";
 			$client = $this->builder->build();
 			$retry = 5;
 			do {
-				/** @var Response */
-				$response = yield $client->request(new Request($url));
+				try {
+					/** @var Response */
+					$response = yield $client->request(new Request($url));
 
-				if ($response->getStatus() !== 200) {
-					if (--$retry <= 0) {
-						throw new UserException("Unable to download orglist for {$letter}");
+					if ($response->getStatus() !== 200) {
+						if (--$retry <= 0) {
+							throw new UserException("Unable to download orglist for {$letter}");
+						}
+						$this->logger->warning(
+							"Error downloading orglist for letter {letter}, retrying in {retry}s",
+							[
+								"letter" => $letter,
+								"dim" => $this->config->dimension,
+								"retry" => 5,
+							]
+						);
+						yield delay(5000);
+					} else {
+						$body = yield $response->getBody()->buffer();
 					}
+				} catch (TimeoutException $e) {
 					$this->logger->warning(
-						"Error downloading orglist for letter {letter}, retrying in {retry}s",
+						"Timeout downloading orglist for letter {letter}, retrying in {retry}s",
 						[
 							"letter" => $letter,
 							"dim" => $this->config->dimension,
@@ -307,12 +322,24 @@ class FindOrgController extends ModuleInstance {
 						]
 					);
 					yield delay(5000);
+				} catch (Throwable $e) {
+					$this->logger->warning(
+						"Error downloading orglist for letter {letter}: {error}, retrying in {retry}s",
+						[
+							"letter" => $letter,
+							"error" => $e->getMessage(),
+							"dim" => $this->config->dimension,
+							"retry" => 5,
+							"exception" => $e,
+						]
+					);
+					yield delay(5000);
 				}
-			} while ($response->getStatus() !== 200 && $retry > 0);
-			$body = yield $response->getBody()->buffer();
-			if ($body === '' || !str_contains($body, "ORGS BEGIN")) {
+			} while ((!isset($response) || $response->getStatus() !== 200) && $retry > 0);
+			if ($body === null || $body === '' || !str_contains($body, "ORGS BEGIN")) {
 				throw new Exception("Invalid data received from orglist for {$letter}");
 			}
+			$this->logger->notice("Downloaded orglist {$letter}");
 			yield $cache->set($letter, $body, 24 * 3600);
 			yield $this->handleOrglistResponse($body, $letter);
 		});
