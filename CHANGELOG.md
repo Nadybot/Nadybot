@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add new protocol "Drill" for the Nadybot webserver. This allows exposing the webserver of the bot to an external host (`<botname>.nadybotter.eu` or `<botname>.nadybotter.org`), without exposing the whole server.
   This also makes the bot HTTP-traffic fully encrypted with a valid certificate.
 - Added Highnet, a cross-bot chat-platform similar to Darknet, but with full local control.
+- Allow automatic untracking of characters who haven't logged in for a configurable amount of time.
 
 ### Fixed
 
