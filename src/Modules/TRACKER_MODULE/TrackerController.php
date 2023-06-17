@@ -248,9 +248,8 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 		$query = $this->db->table(self::DB_TABLE, "t");
 		$query->join(self::DB_TRACKING . " as ev", "ev.uid", "=", "t.uid")
 			->where("ev.event", "logon")
-			->orderByDesc("ev.dt")
 			->groupBy("ev.uid")
-			->select("ev.uid", $query->colFunc("min", "ev.dt", "dt"))
+			->select("ev.uid", $query->colFunc("max", "ev.dt", "dt"))
 			->asObj(LastLogin::class)
 			->each(function (LastLogin $row) use (&$users): void {
 				$age = time() - $row->dt;
