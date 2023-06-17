@@ -273,7 +273,6 @@ class FindOrgController extends ModuleInstance {
 
 	/** @return Promise<void> */
 	private function downloadOrglistLetter(string $letter): Promise {
-		$this->logger->notice("Downloading orglist {$letter}");
 		return call(function () use ($letter): Generator {
 			$this->logger->info("Downloading orglist for letter {$letter}");
 			$cache = new FileCache(
@@ -339,7 +338,6 @@ class FindOrgController extends ModuleInstance {
 			if ($body === null || $body === '' || !str_contains($body, "ORGS BEGIN")) {
 				throw new Exception("Invalid data received from orglist for {$letter}");
 			}
-			$this->logger->notice("Downloaded orglist {$letter}");
 			yield $cache->set($letter, $body, 24 * 3600);
 			yield $this->handleOrglistResponse($body, $letter);
 		});
