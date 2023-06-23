@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   This also makes the bot HTTP-traffic fully encrypted with a valid certificate.
 - Added Highnet, a cross-bot chat-platform similar to Darknet, but with full local control.
 - Allow automatic untracking of characters who haven't logged in for a configurable amount of time.
+- Add support for continuously updated WHOIS-information via Highway, so newly created characters are not unknown and the information available faster.
 
 ### Fixed
 
