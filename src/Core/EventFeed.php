@@ -56,6 +56,12 @@ class EventFeed {
 
 	private bool $isReconnect = false;
 
+	/** @var array<string,bool> */
+	private array $attachedRooms = [];
+
+	/** @var array<string,bool> */
+	private array $availableRooms = [];
+
 	#[NCA\Setup]
 	public function setup(): void {
 		$this->eventManager->subscribe("event-feed(hello)", Closure::fromCallable([$this, "handleHello"]));
@@ -71,18 +77,96 @@ class EventFeed {
 			foreach ($refAttributes as $refAttribute) {
 				$attribute = $refAttribute->newInstance();
 				if ($instance instanceof EventFeedHandler) {
-					$this->roomHandlers[$attribute->room] ??= [];
-					$this->roomHandlers[$attribute->room] []= $instance;
-					$this->logger->info(
-						"New event feed handler for {room}: {handler}",
-						[
-							"room" => $attribute->room,
-							"handler" => $instance,
-						]
-					);
+					$this->registerEventFeedHandler($attribute->room, $instance);
 				}
 			}
 		}
+	}
+
+	public function registerEventFeedHandler(string $room, EventFeedHandler $handler): void {
+		$this->roomHandlers[$room] ??= [];
+		$this->roomHandlers[$room] []= $handler;
+		$this->logger->info("New event feed handler for {room}: {handler}", [
+				"room" => $room,
+				"handler" => $handler,
+		]);
+		if (!isset($this->connection)) {
+			$this->logger->info("Not connected to {server} - not joining \"{room}\" now", [
+				"server" => self::URI,
+				"room" => $room,
+			]);
+			return;
+		}
+		if (!isset($this->availableRooms[$room])) {
+			$this->logger->notice("Room \"{room}\" not found on {server}. Available: {rooms}", [
+				"server" => self::URI,
+				"room" => $room,
+				"rooms" => array_keys($this->availableRooms),
+			]);
+			return;
+		}
+		asyncCall(function () use ($room): Generator {
+			$joinPackage = new Highway\Join($room);
+			$announcer = function (LowLevelEventFeedEvent $event) use ($room, &$announcer): void {
+				assert($event->highwayPackage instanceof Highway\RoomInfo);
+				if ($event->highwayPackage->room === $room) {
+					$this->logger->notice("Global event feed attached to {room}", [
+						"room" => $room,
+					]);
+					$this->eventManager->unsubscribe("event-feed(room-info)", $announcer);
+				}
+			};
+			$this->eventManager->subscribe("event-feed(room-info)", $announcer);
+			if (isset($this->connection)) {
+				yield $this->connection->send($joinPackage);
+			}
+		});
+	}
+
+	public function unregisterEventFeedHandler(string $room, EventFeedHandler $handler): void {
+		if (!isset($this->roomHandlers[$room])) {
+			return;
+		}
+		if (!in_array($handler, $this->roomHandlers[$room], true)) {
+			return;
+		}
+		$newHandlers = [];
+		foreach ($this->roomHandlers[$room] as $roomHandler) {
+			if ($roomHandler !== $handler) {
+				$newHandlers []= $roomHandler;
+			}
+		}
+		$this->roomHandlers[$room] = $newHandlers;
+		$this->logger->info("Removed event feed handler for \"{room}\": {handler}", [
+				"room" => $room,
+				"handler" => $handler,
+		]);
+		if (!isset($this->connection) || count($this->roomHandlers[$room])) {
+			return;
+		}
+		if (!isset($this->availableRooms[$room])) {
+			$this->logger->notice("Room \"{room}\" not found on {server}. Available: {rooms}", [
+				"server" => self::URI,
+				"room" => $room,
+				"rooms" => array_keys($this->availableRooms),
+			]);
+			return;
+		}
+		asyncCall(function () use ($room): Generator {
+			$leavePackage = new Highway\Leave($room);
+			$announcer = function (LowLevelEventFeedEvent $event) use ($room, &$announcer): void {
+				assert($event->highwayPackage instanceof Highway\Success);
+				$this->logger->notice("Global event feed detached from {room}", [
+					"room" => $room,
+				]);
+				$this->eventManager->unsubscribe("event-feed(success)", $announcer);
+				unset($this->attachedRooms[$room]);
+			};
+			$this->eventManager->subscribe("event-feed(success)", $announcer);
+			if (isset($this->connection)) {
+				yield $this->connection->send($leavePackage);
+			}
+		});
 	}
 
 	public function mainLoop(): void {
@@ -170,6 +254,7 @@ class EventFeed {
 					yield $this->connection->close();
 				}
 				$this->connection = null;
+				$this->availableRooms = [];
 				$this->logger->error("[{uri}] {error} - retrying in {delay}s", [
 					"uri" => self::URI,
 					"delay" => self::RECONNECT_DELAY,
@@ -263,13 +348,20 @@ class EventFeed {
 
 	private function handleRoomInfo(LowLevelEventFeedEvent $event): void {
 		assert($event->highwayPackage instanceof Highway\RoomInfo);
+		$this->attachedRooms[$event->highwayPackage->room] = true;
 	}
 
 	private function handleHello(LowLevelEventFeedEvent $event): Generator {
 		assert($event->highwayPackage instanceof Highway\Hello);
 		$attachedRooms = [];
+		$this->availableRooms = [];
+		$this->logger->notice("Public rooms on {server}: {rooms}", [
+			"server" => self::URI,
+			"rooms" => $event->highwayPackage->publicRooms,
+		]);
 		foreach ($event->highwayPackage->publicRooms as $room) {
-			if (!isset($this->roomHandlers[$room])) {
+			$this->availableRooms[$room] = true;
+			if (!isset($this->roomHandlers[$room]) || !count($this->roomHandlers[$room])) {
 				continue;
 			}
 			$joinPackage = new Highway\Join($room);
