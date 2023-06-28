@@ -25,6 +25,11 @@ use Nadybot\Core\{
 		command: "rules",
 		accessLevel: "all",
 		description: "Rules of this bot",
+	),
+	NCA\DefineCommand(
+		command: "raidrules",
+		accessLevel: "all",
+		description: "Raid rules of this bot",
 	)
 ]
 class RulesController extends ModuleInstance {
@@ -56,6 +61,28 @@ class RulesController extends ModuleInstance {
 			return;
 		}
 		$msg = $this->text->makeBlob("<myname>'s rules", $content);
+		$context->reply($msg);
+	}
+
+	/** See the raid rules for this bot */
+	#[NCA\HandlesCommand("raidrules")]
+	#[NCA\Help\Epilogue(
+		"To set up raid rules for this bot, put a file into\n".
+		"<tab><highlight>data/raidrules.txt<end>"
+	)]
+	public function raidrulesCommand(CmdContext $context): Generator {
+		$rulesPath = "{$this->config->dataFolder}/raidrules.txt";
+		try {
+			if (false === yield filesystem()->exists($rulesPath)) {
+				$context->reply("This bot does not have any raid rules defined yet.");
+				return;
+			}
+			$content = yield filesystem()->read($rulesPath);
+		} catch (FilesystemException) {
+			$context->reply("This bot has raid rules defined, but I was unable to read them.");
+			return;
+		}
+		$msg = $this->text->makeBlob("<myname>'s raid rules", $content);
 		$context->reply($msg);
 	}
 

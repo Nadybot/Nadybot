@@ -21,6 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Allow automatic untracking of characters who haven't logged in for a configurable amount of time.
 - Add support for continuously updated WHOIS-information via Highway, so newly created characters are not unknown and the information available faster.
 - Allow `!whois` on UIDs
+- Add new `!raidrules` command to allow having separate bot- and raid-rules.
 
 ### Fixed
 
