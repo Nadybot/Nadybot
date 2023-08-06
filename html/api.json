@@ -7,7 +7,7 @@
 			"name": "GPL3",
 			"url": "https://www.gnu.org/licenses/gpl-3.0.en.html"
 		},
-		"version": "6.2.3"
+		"version": "6.2.4"
 	},
 	"servers": [
 		{
@@ -434,6 +434,11 @@
 					"first_name": {
 						"type": "string",
 						"description": "The character's first name (the name before $name)"
+					},
+					"nickname": {
+						"type": "string",
+						"nullable": true,
+						"description": "The nickname of the main character, or null if unset"
 					},
 					"name": {
 						"type": "string",

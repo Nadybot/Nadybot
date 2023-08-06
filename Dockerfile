@@ -1,4 +1,4 @@
-FROM quay.io/nadyita/alpine:3.16
+FROM quay.io/nadyita/alpine:3.18
 ARG VERSION
 
 LABEL maintainer="nadyita@hodorraid.org" \
@@ -10,27 +10,27 @@ ENTRYPOINT ["/sbin/tini", "-g", "--"]
 CMD ["/nadybot/docker-entrypoint.sh"]
 
 RUN apk --no-cache add \
-    php8-cli \
-    php8-sqlite3 \
-    php8-phar \
-    php8-curl \
-    php8-sockets \
-    php8-pdo \
-    php8-pdo_sqlite \
-    php8-pdo_mysql \
-    php8-mbstring \
-    php8-ctype \
-    php8-bcmath \
-    php8-json \
-    php8-posix \
-    php8-simplexml \
-    php8-dom \
-    php8-gmp \
-    php8-pcntl \
-    php8-zip \
-    php8-opcache \
-    php8-fileinfo \
-    php8-tokenizer \
+    php81-cli \
+    php81-sqlite3 \
+    php81-phar \
+    php81-curl \
+    php81-sockets \
+    php81-pdo \
+    php81-pdo_sqlite \
+    php81-pdo_mysql \
+    php81-mbstring \
+    php81-ctype \
+    php81-bcmath \
+    php81-json \
+    php81-posix \
+    php81-simplexml \
+    php81-dom \
+    php81-gmp \
+    php81-pcntl \
+    php81-zip \
+    php81-opcache \
+    php81-fileinfo \
+    php81-tokenizer \
 	tini \
     && \
     adduser -h /nadybot -s /bin/false -D -H nadybot
@@ -44,9 +44,9 @@ RUN wget -O /usr/bin/composer https://getcomposer.org/composer-2.phar && \
     && \
     cd /nadybot && \
     sudo -u nadybot mkdir -p data/db cache && \
-    sudo -u nadybot php8 /usr/bin/composer install --no-dev --no-interaction --no-progress -q && \
-    sudo -u nadybot php8 /usr/bin/composer dumpautoload --no-dev --optimize --no-interaction 2>&1 | grep -v "/20[0-9]\{12\}_.*autoload" && \
-    sudo -u nadybot php8 /usr/bin/composer clear-cache -q && \
+    sudo -u nadybot php81 /usr/bin/composer install --no-dev --no-interaction --no-progress -q && \
+    sudo -u nadybot php81 /usr/bin/composer dumpautoload --no-dev --optimize --no-interaction 2>&1 | grep -v "/20[0-9]\{12\}_.*autoload" && \
+    sudo -u nadybot php81 /usr/bin/composer clear-cache -q && \
     rm -f /usr/bin/composer && \
     jq 'del(.monolog.handlers.logs)|.monolog.formatters.console.options.format="[%level_name%] %message% %context% %extra%\n"|.monolog.formatters.console += {"calls": {"includeStacktraces": {"include" :true}}}' conf/logging.json > conf/logging.json.2 && \
     mv conf/logging.json.2 conf/logging.json && \

@@ -48,6 +48,9 @@ class MessageHub {
 	public BuddylistManager $buddyListManager;
 
 	#[NCA\Inject]
+	public ConfigFile $config;
+
+	#[NCA\Inject]
 	public SettingManager $settingManager;
 
 	#[NCA\Inject]
@@ -142,6 +145,9 @@ class MessageHub {
 			return $this->emitters[$channel];
 		}
 		foreach ($this->emitters as $emitterChannel => $emitter) {
+			if (!str_contains($emitterChannel, "(")) {
+				$emitterChannel .= "(*)";
+			}
 			if (fnmatch($emitterChannel, $channel, FNM_CASEFOLD)) {
 				return $emitter;
 			}
@@ -509,8 +515,15 @@ class MessageHub {
 				]
 			);
 			$routedName = preg_replace('/^(.+) \(\1\)$/', '$1', $routedName);
+			if ($char->dimension !== $this->config->dimension) {
+				$routedName .= "@" . $this->dimensionToSuffix($char->dimension);
+			}
 			$charLink = $routedName . ": ";
-			if (in_array($lastHop->type??null, $aoSources) && $withUserLink) {
+			if (
+				$this->config->dimension === $char->dimension
+				&& in_array($lastHop->type??null, $aoSources)
+				&& $withUserLink
+			) {
 				$charLink = "<a href=user://{$char->name}>{$routedName}</a>: ";
 			}
 		}
@@ -773,5 +786,18 @@ class MessageHub {
 			}
 		}
 		return false;
+	}
+
+	private function dimensionToSuffix(int $dimension): string {
+		switch ($dimension) {
+			case 4:
+				return "Test";
+			case 5:
+				return "RK5";
+			case 6:
+				return "RK19";
+			default:
+				return "RK{$dimension}";
+		}
 	}
 }

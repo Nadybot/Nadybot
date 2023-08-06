@@ -215,10 +215,10 @@ class RaidPointsController extends ModuleInstance {
 			$pointsChar = $this->altsController->getMainOf($pointsChar);
 		}
 		// If that player already received reward based points for this reward on an alt ignore this
-		if (isset($raid, $raid->pointsGiven[$pointsChar])) {
+		if (isset($raid) && isset($raid->pointsGiven[$pointsChar])) {
 			return $pointsChar;
 		}
-		if (isset($raid, $raid->raiders[$player])) { // @phpstan-ignore-line
+		if (isset($raid) && isset($raid->raiders[$player])) {
 			$raid->raiders[$player]->points += $delta;
 			if ($individual) {
 				$raid->raiders[$player]->pointsIndividual += $delta;
@@ -235,7 +235,7 @@ class RaidPointsController extends ModuleInstance {
 				"individual" => $individual,
 				"reason" =>     $reason,
 				"ticker" =>     false,
-				"raid_id" =>    $raid->raid_id ?? null,
+				"raid_id" =>    isset($raid->raid_id) ? $raid->raid_id : null,
 			]);
 		if ($inserted === false) {
 			$this->logger->error("Error logging the change of {$delta} points for {$pointsChar}.");

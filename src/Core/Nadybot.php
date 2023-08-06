@@ -1609,7 +1609,7 @@ class Nadybot extends AOChat {
 			// we know that as soon as we have the reply to a (always succeeding) user lookup,
 			// the buddy packet must have arrived already. If not, the UID was deleted
 			unset($this->id["0"]);
-			$null = yield $this->getUid2("0");
+			$null = yield $this->sendLookupPacket2("0");
 			if ($removeFromBuddylist) {
 				$this->buddylistManager->removeId($id);
 			}

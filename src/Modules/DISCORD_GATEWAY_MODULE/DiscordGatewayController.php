@@ -1976,10 +1976,20 @@ class DiscordGatewayController extends ModuleInstance {
 					}
 				}
 			} catch (DiscordException $e) {
-				$this->logger->error("Discord error syncing bot-emojis with Discord server: {error}", [
-					"error" => $e->getMessage(),
-					"exception" => $e,
-				]);
+				if ($e->getCode() === 403) {
+					$this->logger->warning(
+						"Your bot doesn't have enough rights to manage ".
+						'emojis for the Discord server "{discordServer}"',
+						[
+							"discordServer" => $guild->name,
+						]
+					);
+				} else {
+					$this->logger->error("Discord error syncing bot-emojis with Discord server: {error}", [
+						"error" => $e->getMessage(),
+						"exception" => $e,
+					]);
+				}
 			} catch (Throwable $e) {
 				$this->logger->error("Error syncing bot-emojis with Discord server: {error}", [
 					"error" => $e->getMessage(),

@@ -24,6 +24,8 @@ use Nadybot\Core\{
 	Nadybot,
 	ProxyCapabilities,
 };
+use Nadybot\Modules\EVENTS_MODULE\EventModel;
+use Nadybot\Modules\NOTES_MODULE\{OrgNote, OrgNotesController};
 use Nadybot\Modules\{
 	CITY_MODULE\CloakController,
 	CITY_MODULE\OrgCity,
@@ -134,10 +136,12 @@ class ExportController extends ModuleInstance {
 		$exports->cityCloak = yield $this->exportCloak();
 		$exports->commentCategories = yield $this->exportCommentCategories();
 		$exports->comments = yield $this->exportComments();
+		$exports->events = yield $this->exportEvents();
 		$exports->links = yield $this->exportLinks();
 		$exports->members = yield $this->exportMembers();
 		$exports->news = yield $this->exportNews();
 		$exports->notes = yield $this->exportNotes();
+		$exports->orgNotes = yield $this->exportOrgNotes();
 		$exports->polls = yield $this->exportPolls();
 		$exports->quotes = yield $this->exportQuotes();
 		$exports->raffleBonus = yield $this->exportRaffleBonus();
@@ -225,6 +229,7 @@ class ExportController extends ModuleInstance {
 				$result []= (object)[
 					"character" => yield $this->toChar($member->name),
 					"autoInvite" => (bool)$member->autoinv,
+					"joinedTime" => $member->joined,
 				];
 				$exported[$member->name] = true;
 			}
@@ -582,10 +587,10 @@ class ExportController extends ModuleInstance {
 					"timerName" => $timer->name,
 					"endTime" => $timer->endtime,
 					"createdBy" => yield $this->toChar($timer->owner),
-					"channels" => explode(",", str_replace(["guild", "both", "msg"], ["org", "priv,org", "tell"], $timer->mode??"")),
+					"channels" => array_diff(explode(",", str_replace(["guild", "both", "msg"], ["org", "priv,org", "tell"], $timer->mode??"")), [""]),
 					"alerts" => [],
 				];
-				if (!empty($timer->data)) {
+				if (!empty($timer->data) && (int)$timer->data > 0) {
 					$data->repeatInterval = (int)$timer->data;
 				}
 				foreach ($timer->alerts as $alert) {
@@ -677,6 +682,7 @@ class ExportController extends ModuleInstance {
 			foreach ($news as $topic) {
 				$data = (object)[
 					"author" => yield $this->toChar($topic->name),
+					"uuid" => $topic->uuid,
 					"addedTime" => $topic->time,
 					"news" => $topic->news,
 					"pinned" => $topic->sticky,
@@ -720,6 +726,60 @@ class ExportController extends ModuleInstance {
 					$data->remind = "all";
 				} elseif ($note->reminder === Note::REMIND_SELF) {
 					$data->remind = "author";
+				}
+				$result []= $data;
+			}
+			return $result;
+		});
+	}
+
+	/** @return Promise<stdClass[]> */
+	protected function exportOrgNotes(): Promise {
+		return call(function (): Generator {
+			/** @var OrgNote[] */
+			$notes = $this->db->table(OrgNotesController::DB_TABLE)
+				->asObj(OrgNote::class)
+				->toArray();
+			$result = [];
+			foreach ($notes as $note) {
+				$data = (object)[
+					"author" => yield $this->toChar($note->added_by),
+					"creationTime" => $note->added_on,
+					"text" => $note->note,
+					"uuid" => $note->uuid,
+				];
+				$result []= $data;
+			}
+			return $result;
+		});
+	}
+
+	/** @return Promise<stdClass[]> */
+	protected function exportEvents(): Promise {
+		return call(function (): Generator {
+			/** @var EventModel[] */
+			$events = $this->db->table("events")
+				->asObj(EventModel::class)
+				->toArray();
+			$result = [];
+			foreach ($events as $event) {
+				$attendees = array_values(array_diff(explode(",", $event->event_attendees ?? ""), [""]));
+
+				/** @var stdClass */
+				$data = (object)[
+					"createdBy" => yield $this->toChar($event->submitter_name),
+					"creationTime" => $event->time_submitted,
+					"name" => $event->event_name,
+					"attendees" => [],
+				];
+				if (isset($event->event_date)) {
+					$data->startTime = $event->event_date;
+				}
+				if (isset($event->event_desc)) {
+					$data->description = $event->event_desc;
+				}
+				foreach ($attendees as $attendee) {
+					$data->attendees []= yield $this->toChar($attendee);
 				}
 				$result []= $data;
 			}

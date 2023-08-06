@@ -206,16 +206,29 @@ exit 0
 %endif
 
 %changelog
+* Sun Aug 06 2023 Nadyita <nadyita@hodorraid.org> 6.2.4-1
+- Switch to Alpine Linux 3.18 as base for the Docker images.
+- Use there whereis-database for MOB_MODULE coordinates.
+- If the Discord bot-user doesn't have the rights to manage emojis, fail gracefully and give a meaningful error.
+- Add new protocol "Drill" for the Nadybot webserver. This allows exposing the webserver of the bot to an external host ("<botname>.nadybotter.eu" or "<botname>.nadybotter.org"), without exposing the whole server.
+  This also makes the bot HTTP-traffic fully encrypted with a valid certificate.
+- Added Highnet, a cross-bot chat-platform similar to Darknet, but with full local control.
+- Allow automatic untracking of characters who haven't logged in for a configurable amount of time.
+- Add support for continuously updated WHOIS-information via Highway, so newly created characters are not unknown and the information available faster.
+- Allow "!whois" on UIDs
+- Add new "!raidrules" command to allow having separate bot- and raid-rules.
+- Reconnecting from JSON-parse errors did not close the Highway-connection.
+
 * Sat May 20 2023 Nadyita <nadyita@hodorraid.org> 6.2.3-1
-- Add new optional parameter `<dimension>` to `!whois`.
-- When creating a poll, adding `||` At the end of the options will now disallow the usage of custom options.
-- Support for Discord scheduled events via `!discord events` or the new `discord(*)` routing source.
+- Add new optional parameter "<dimension>" to "!whois".
+- When creating a poll, adding "||" At the end of the options will now disallow the usage of custom options.
+- Support for Discord scheduled events via "!discord events" or the new "discord(*)" routing source.
 - The async online-checker now has a timeout of 30s after which it will consider the searched char to be offline.
-- Instead of <http://people.anarchy-online.com>, the bot now uses <https://bork.aobots.org> by default, to retrieve user and org data. This can be changed in `!config PLAYER_LOOKUP` to any URL now.
+- Instead of <http://people.anarchy-online.com>, the bot now uses <https://bork.aobots.org> by default, to retrieve user and org data. This can be changed in "!config PLAYER_LOOKUP" to any URL now.
 - Calculation of out-of-range status fixed when restarting the bot.
 - Polls with numeric choices would not display at all.
 - When viewing a poll, it would always say that you haven't voted yet.
-- Fix `{c-nick}` being empty on private channel join/leave messages.
+- Fix "{c-nick}" being empty on private channel join/leave messages.
 - Fix package upgrades on newer Ubuntu versions wiping the bot's database.
 
 * Fri Apr 21 2023 Nadyita <nadyita@hodorraid.org> 6.2.2-1

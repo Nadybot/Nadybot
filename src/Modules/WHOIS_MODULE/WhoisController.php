@@ -277,6 +277,28 @@ class WhoisController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
+	/** Show character info, online status, and name history for a character */
+	#[NCA\HandlesCommand("whois")]
+	public function whoisIdCommand(CmdContext $context, int $uid): Generator {
+		/** @var ?string */
+		$name = yield $this->chatBot->uidToName($uid);
+		if (!isset($name)) {
+			$context->reply("The user ID {$uid} does not exist.");
+			return;
+		}
+
+		/**
+		 * @var bool    $online
+		 * @var ?Player $player
+		 */
+		[$online, $player] = yield [
+			$this->buddylistManager->checkIsOnline($uid),
+			$this->playerManager->byName($name),
+		];
+		$msg = yield $this->playerToWhois($player, $name, $online);
+		$context->reply($msg);
+	}
+
 	public function getFullName(Player $whois): string {
 		$msg = "";
 

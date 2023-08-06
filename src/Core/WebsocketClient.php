@@ -19,7 +19,7 @@ class WebsocketClient extends WebsocketBase {
 
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
-	protected string $uri;
+	protected ?string $uri=null;
 
 	/** @var array<string,string> */
 	protected array $headers = [];
@@ -61,6 +61,13 @@ class WebsocketClient extends WebsocketBase {
 
 	public function connect(): bool {
 		parent::connect();
+		if (!isset($this->uri)) {
+			$this->throwError(
+				WebsocketError::INVALID_URL,
+				"No websocket URL given"
+			);
+			return false;
+		}
 		$urlParts = parse_url($this->uri);
 		if ($urlParts === false
 			|| empty($urlParts)
@@ -162,6 +169,7 @@ class WebsocketClient extends WebsocketBase {
 		if (isset($this->notifier)) {
 			$this->socketManager->removeSocketNotifier($this->notifier);
 		}
+		assert(isset($this->uri));
 		$urlParts = parse_url($this->uri);
 		if (!is_array($urlParts)) {
 			throw new RuntimeException("Error parsing {$this->uri}");
@@ -244,6 +252,7 @@ class WebsocketClient extends WebsocketBase {
 			"reply" => $response,
 		]);
 
+		assert(isset($this->uri));
 		$urlParts = parse_url($this->uri);
 		if (!is_array($urlParts)) {
 			throw new RuntimeException("Unable to parse {$this->uri}");

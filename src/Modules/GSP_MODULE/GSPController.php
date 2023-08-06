@@ -354,9 +354,7 @@ class GSPController extends ModuleInstance implements MessageEmitter {
 
 	/** Test if all needed data for the current show is present and valid */
 	protected function isAllShowInformationPresent(Show $show): bool {
-		return isset($show->live)
-			&& is_integer($show->live)
-			&& isset($show->name, $show->info);
+		return isset($show->live, $show->name, $show->info);
 	}
 
 	/** Check if the GSP changed to live, changed name or location */

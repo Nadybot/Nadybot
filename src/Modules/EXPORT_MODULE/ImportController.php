@@ -23,7 +23,9 @@ use Nadybot\Core\{
 	Nadybot,
 	ParamClass\PFilename,
 	SettingManager,
+	Util,
 };
+use Nadybot\Modules\NOTES_MODULE\OrgNotesController;
 use Nadybot\Modules\{
 	CITY_MODULE\CloakController,
 	COMMENT_MODULE\Comment,
@@ -95,6 +97,9 @@ class ImportController extends ModuleInstance {
 
 	#[NCA\Inject]
 	public RaidRankController $raidRankController;
+
+	#[NCA\Inject]
+	public Util $util;
 
 	#[NCA\Inject]
 	public ConfigFile $config;
@@ -343,6 +348,7 @@ class ImportController extends ModuleInstance {
 							->insert([
 								"name" => $name,
 								"autoinv" => $member->autoInvite ?? false,
+								"joined" => $member->joinedTime ?? time(),
 							]);
 					}
 					if (in_array($newRank, ["mod", "admin", "superadmin"], true)) {
@@ -394,6 +400,47 @@ class ImportController extends ModuleInstance {
 	}
 
 	/**
+	 * @param array<stdClass> $events
+	 *
+	 * @return Promise<void>
+	 */
+	public function importEvents(array $events): Promise {
+		return call(function () use ($events): Generator {
+			$this->logger->notice("Importing " . count($events) . " events");
+			yield $this->db->awaitBeginTransaction();
+			try {
+				$this->logger->notice("Deleting all events");
+				$this->db->table("events")->truncate();
+				foreach ($events as $event) {
+					$attendees = [];
+					foreach ($event->attendees??[] as $attendee) {
+						$name = yield $this->characterToName($attendee??null);
+						if (isset($name)) {
+							$attendees []= $name;
+						}
+					}
+					$this->db->table("events")
+					->insert([
+						"time_submitted" => $event->creationTime ?? time(),
+						"submitter_name" => (yield $this->characterToName($event->createdBy ?? null)) ?? $this->config->name,
+						"event_name" => $event->name,
+						"event_date" => $event->startTime ?? null,
+						"event_desc" => $event->description ?? null,
+						"event_attendees" => join(",", $attendees),
+					]);
+				}
+			} catch (Throwable $e) {
+				$this->logger->error($e->getMessage(), ["exception" => $e]);
+				$this->logger->notice("Rolling back changes");
+				$this->db->rollback();
+				return;
+			}
+			$this->db->commit();
+			$this->logger->notice("All events imported");
+		});
+	}
+
+	/**
 	 * @param array<stdClass> $news
 	 *
 	 * @return Promise<void>
@@ -410,6 +457,7 @@ class ImportController extends ModuleInstance {
 					$newsId = $this->db->table("news")
 					->insertGetId([
 						"time" => $item->addedTime ?? time(),
+						"uuid" => $item->uuid ?? $this->util->createUUID(),
 						"name" => (yield $this->characterToName($item->author ?? null)) ?? $this->config->name,
 						"news" => $item->news,
 						"sticky" => $item->pinned ?? false,
@@ -479,6 +527,42 @@ class ImportController extends ModuleInstance {
 			}
 			$this->db->commit();
 			$this->logger->notice("All notes imported");
+		});
+	}
+
+	/**
+	 * @param array<stdClass> $notes
+	 *
+	 * @return Promise<void>
+	 */
+	public function importOrgNotes(array $notes): Promise {
+		return call(function () use ($notes): Generator {
+			$this->logger->notice("Importing " . count($notes) . " org notes");
+			yield $this->db->awaitBeginTransaction();
+			try {
+				$this->logger->notice("Deleting all org notes");
+				$this->db->table(OrgNotesController::DB_TABLE)->truncate();
+				foreach ($notes as $note) {
+					$owner = yield $this->characterToName($note->owner??null);
+					if (!isset($owner)) {
+						continue;
+					}
+					$this->db->table(OrgNotesController::DB_TABLE)
+					->insert([
+						"added_by" => (yield $this->characterToName($note->author ?? null)) ?? $owner,
+						"note" => $note->text,
+						"added_on" => $note->creationTime ?? null,
+						"uuid" => $note->uuid ?? $this->util->createUUID(),
+					]);
+				}
+			} catch (Throwable $e) {
+				$this->logger->error($e->getMessage(), ["exception" => $e]);
+				$this->logger->notice("Rolling back changes");
+				$this->db->rollback();
+				return;
+			}
+			$this->db->commit();
+			$this->logger->notice("All org notes imported");
 		});
 	}
 
@@ -997,9 +1081,11 @@ class ImportController extends ModuleInstance {
 			"cityCloak"         => [$this, "importCloak"],
 			"commentCategories" => [$this, "importCommentCategories"],
 			"comments"          => [$this, "importComments"],
+			"events"            => [$this, "importEvents"],
 			"links"             => [$this, "importLinks"],
 			"news"              => [$this, "importNews"],
 			"notes"             => [$this, "importNotes"],
+			"orgNotes"          => [$this, "importOrgNotes"],
 			"polls"             => [$this, "importPolls"],
 			"quotes"            => [$this, "importQuotes"],
 			"raffleBonus"       => [$this, "importRaffleBonus"],

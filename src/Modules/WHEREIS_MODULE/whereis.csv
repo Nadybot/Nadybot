@@ -85,7 +85,7 @@ id,name,answer,keywords,playfield_id,xcoord,ycoord
 84,Borealis,"in the central-west part of the world. Whompa to Stret West Bank at 682 x 531. Whompa to Newland right next to that. East of Borealis is Holes in the Wall. No zones currently available to the north, south, and west.","Bor Borealis Approach City Grid",800,635,727
 85,"Brainy Ant Woods","Greater Tir County","Ants Biniary",647,1300,1500
 86,"Brenda Diamond","at the ruins near Home in Broken Shores",,665,430,2200
-87,"Brigadier Crux","South-East corner of Belian Forest. Closest Fixer grid is 8L","dreadlochs dread dreads",605,3180,422
+87,"Brigadier Crux","South-East corner of Belian Forest. Closest Fixer grid is 8L","dreadlochs dread dreads",605,3185,502
 88,"Brimstone Demon","East-North-East of Sorrow and spawns among the other demons.  Sometimes it's bugged and spawns inside the nearby mountain, petition to get them killed/moved out.",,4005,1650,1625
 89,"Broken Shores","in the southwest corner of the world. It has a grid access point in City of Home. In the north is a Whompah at 1000 x 3760 to Bliss and to Wine. There is a Whompah to Rome Red and 4 Holes Trade at 2340 x 2250","Broken Shord Shore Shores Brokenshores Bs Grid",665,644,1313
 90,"Brumal Slither"," Adonis, Abyss N",,4873,1440,3414
@@ -100,7 +100,7 @@ id,name,answer,keywords,playfield_id,xcoord,ycoord
 99,Capricorn,"Pandemonium, North Node",,0,0,0
 100,"Captain Lewison","Reet retreat, Stret West Bank",,790,1206,2807
 101,"Cardboard Palm",Clondyke,"Bronto Zamia Furfuracea",670,1684,1516
-102,"Carillion Thunder","Upper Stret East Bank. North of Fixer Grid exit 7M","dreadlochs dreads dread",650,1799,2207
+102,"Carillon Thunder","Upper Stret East Bank. North of Fixer Grid exit 7M","dreadlochs dreads dread",650,1799,2207
 103,"Catervauling Minx","Elysium, Near Ergo & Fallen Forest",,0,0,0
 104,"Cenobite Shadow","Crypt of Home, Broken Shores",,0,0,0
 105,"Central Artery Valley","in the mideastern part of the world. No grid or whompa. North of Central Artery Valley is Varmint Woods, south is Southern Artery Valley, east is Deep Artery Valley, west is Upper Stret East Bank. NE corner is Greater Tir Cnty and SW corner is Stret East Bank.","Cav Base Central Art Valley Centralarteryvalley",590,0,0
@@ -223,7 +223,7 @@ id,name,answer,keywords,playfield_id,xcoord,ycoord
 222,"Fire Flea","Inferno, it's the first creature you will encounter. When killed, a Fiery Imp will appear.","",4005,836,186
 223,"First Brood Champion","Hollow Island",,605,0,0
 224,"Fly Agaric",Clondyke,"Bronto Amanita Muscaria",670,588,3441
-225,"Force Recon Commander 191","Clondyke, south of fixer grid 4R","dreadlochs dreads",670,1088,2757
+225,"Force Recon Commander 191","Clondyke, south of fixer grid 4R","dreadlochs dreads",670,1088,2740
 226,Forefather,"Smuggler's Den, Southern Fouls Hills",,615,1755,872
 227,"Fourth Brood Champion","Hollow Island",,605,0,0
 228,"Freedom Outpost","Athen Shire. Insure terms, shops and mission terms and banks are available here. Directly beside the outpost is the zone to Wailing Wastes.",Freedomoutpost,550,1553,370
@@ -540,7 +540,7 @@ id,name,answer,keywords,playfield_id,xcoord,ycoord
 539,"Southern Artery Valley","in the mideastern part of the world. No grid access. Whompas to Galway Castle, 2HO, and 20K at 1150 x 2340. North of S.Artery Valley is Central Artery Valley, south is Milky Way (but a force field will not allow you to zone south), west is Stret East Bank and east is (ne) Deep Artery Valley (se) Belial Forest.",,610,1150,2340
 540,"Special Agent Deko","North-East corner of Broken Shores. Closest fixer grid is 9R. Be careful, this is a 25% gas area.","dreadlochs dreads dread",665,2238,4767
 541,"Special Agent Lamb","Deep Artery Valley",,0,0,0
-542,"Special Agent Moxy","Eastern Fouls Plains","moxi dreadlochs dreads",620,976,3741
+542,"Special Agent Moxy","Eastern Fouls Plains","moxi dreadlochs dreads",620,974,3744
 543,Spetses,"Inferno, 255 Incarnator",,4605,3261,3163
 544,"Spirit Of Disruption","Inferno, among the ruins just north of the portal to Penumbra",,4605,1015,205
 545,"Spiritual Prisoner","Milky Way","spiritual prisoner",625,882,631

@@ -5,7 +5,27 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [6.2.4] - 2023-08-06
+
+### Changed
+
+- Switch to Alpine Linux 3.18 as base for the Docker images.
+- Use there whereis-database for MOB_MODULE coordinates.
+- If the Discord bot-user doesn't have the rights to manage emojis, fail gracefully and give a meaningful error.
+
+### Added
+
+- Add new protocol "Drill" for the Nadybot webserver. This allows exposing the webserver of the bot to an external host (`<botname>.nadybotter.eu` or `<botname>.nadybotter.org`), without exposing the whole server.
+  This also makes the bot HTTP-traffic fully encrypted with a valid certificate.
+- Added Highnet, a cross-bot chat-platform similar to Darknet, but with full local control.
+- Allow automatic untracking of characters who haven't logged in for a configurable amount of time.
+- Add support for continuously updated WHOIS-information via Highway, so newly created characters are not unknown and the information available faster.
+- Allow `!whois` on UIDs
+- Add new `!raidrules` command to allow having separate bot- and raid-rules.
+
+### Fixed
+
+- Reconnecting from JSON-parse errors did not close the Highway-connection.
 
 ## [6.2.3] - 2023-05-20
 
