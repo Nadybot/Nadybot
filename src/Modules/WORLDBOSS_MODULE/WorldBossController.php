@@ -26,7 +26,6 @@ use Nadybot\Core\{
 	Routing\RoutableMessage,
 	Routing\Source,
 	Text,
-	Timer,
 	UserException,
 	Util,
 };
@@ -615,19 +614,18 @@ class WorldBossController extends ModuleInstance {
 		description: "Check timer to announce big boss events"
 	)]
 	public function checkTimerEvent(Event $eventObj, int $interval, bool $manual=false): void {
-		$time = time();
 		$timers = $this->getWorldBossTimers();
 		$triggered = false;
 		$showSpawn = $this->worldbossShowSpawn;
 		foreach ($timers as $timer) {
 			$invulnerableTime = $timer->killable - $timer->spawn;
-			if ($timer->next_spawn === $time+15*60) {
+			if ($timer->next_spawn === time()+15*60) {
 				$msg = "<highlight>{$timer->mob_name}<end> will spawn in ".
-					"<highlight>".$this->util->unixtimeToReadable($timer->next_spawn-$time)."<end>.";
+					"<highlight>".$this->util->unixtimeToReadable($timer->next_spawn-time())."<end>.";
 				$this->announceBigBossEvent($timer->mob_name, $msg, 1);
 				$triggered = true;
 			}
-			if ($timer->next_spawn === $time) {
+			if ($timer->next_spawn === time()) {
 				$this->lastSpawnPrecise[$timer->mob_name] = $manual;
 				if ($showSpawn === static::SPAWN_EVENT && !$manual) {
 					return;
@@ -642,9 +640,9 @@ class WorldBossController extends ModuleInstance {
 					$msg .= ".";
 				} else {
 					$msg = "<highlight>{$timer->mob_name}<end> has spawned";
-					if (isset($timer->next_killable) && $timer->next_killable > $time) {
+					if (isset($timer->next_killable) && $timer->next_killable > time()) {
 						$msg .= " and will be vulnerable in <highlight>".
-							$this->util->unixtimeToReadable($timer->next_killable-$time).
+							$this->util->unixtimeToReadable($timer->next_killable-time()).
 							"<end>";
 					}
 
@@ -682,9 +680,9 @@ class WorldBossController extends ModuleInstance {
 			}
 			$nextKillTime = null;
 			if (isset($timer->timer)) {
-				$nextKillTime = $time + $timer->timer + $invulnerableTime;
+				$nextKillTime = time() + $timer->timer + $invulnerableTime;
 			}
-			if ($timer->next_killable <= $time || $timer->next_killable <= $nextKillTime) {
+			if ($timer->next_killable === time() || $timer->next_killable === $nextKillTime) {
 				// With this setting, we only want to show "is mortal" when we are 100% sure
 				if ($showSpawn === static::SPAWN_EVENT && !$this->lastSpawnPrecise[$timer->mob_name]) {
 					return;
