@@ -218,6 +218,14 @@ class SystemController extends ModuleInstance implements MessageEmitter {
 	#[NCA\Setting\Text]
 	public string $rankNameRL = "raidleader";
 
+	/** Reply to send when a non-member tries to access the bot */
+	#[NCA\Setting\Text]
+	public string $noMemberErrorMsg = "I only listen to members of this bot.";
+
+	/** Reply to send when the access-level is too low for a command */
+	#[NCA\Setting\Text]
+	public string $accessDeniedErrorMsg = "Error! Access denied.";
+
 	#[
 		NCA\SettingChangeHandler("rank_name_superadmin"),
 		NCA\SettingChangeHandler("rank_name_admin"),
