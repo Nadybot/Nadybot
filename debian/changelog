@@ -1,3 +1,8 @@
+nadybot (6.2.5-1+ubuntu1) bionic; urgency=medium
+  Fixed
+  - Worldboss-spawn messages don't spam anymore.
+ -- Nadyita <nadyita@hodorraid.org>  Wed, 16 Aug 2023 20:30:00 +0200
+
 nadybot (6.2.4-1+ubuntu1) bionic; urgency=medium
   Changed
   - Switch to Alpine Linux 3.18 as base for the Docker images.
@@ -19,9 +24,9 @@ nadybot (6.2.4-1+ubuntu1) bionic; urgency=medium
 
 nadybot (6.2.3-1+ubuntu1) bionic; urgency=medium
   Added
-- Add new optional parameter <dimension> to "!whois".
-- When creating a poll, adding "||" At the end of the options will now disallow the usage of custom options.
-- Support for Discord scheduled events via "!discord events" or the new "discord(*)" routing source.
+  - Add new optional parameter <dimension> to "!whois".
+  - When creating a poll, adding "||" At the end of the options will now disallow the usage of custom options.
+  - Support for Discord scheduled events via "!discord events" or the new "discord(*)" routing source.
 
   Changed
 

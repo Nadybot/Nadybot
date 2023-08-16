@@ -26,6 +26,7 @@ use Nadybot\Core\{
 	Routing\RoutableMessage,
 	Routing\Source,
 };
+use Nadybot\Core\Modules\SYSTEM\SystemController;
 use ReflectionAttribute;
 use ReflectionClass;
 use ReflectionException;
@@ -95,6 +96,9 @@ class CommandManager implements MessageEmitter {
 
 	#[NCA\Inject]
 	public BanController $banController;
+
+	#[NCA\Inject]
+	public SystemController $systemController;
 
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
@@ -651,7 +655,12 @@ class CommandManager implements MessageEmitter {
 			return false;
 		}
 
-		$context->reply("Error! Access denied.");
+		$charAL = $this->accessManager->getAccessLevelForCharacter($context->char->name);
+		if ($charAL === "all") {
+			$context->reply($this->systemController->noMemberErrorMsg);
+		} else {
+			$context->reply($this->systemController->accessDeniedErrorMsg);
+		}
 		return false;
 	}
 
