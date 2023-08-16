@@ -206,6 +206,10 @@ exit 0
 %endif
 
 %changelog
+* Wed Aug 16 2023 Nadyita <nadyita@hodorraid.org> 6.2.5-1
+- Worldboss-spawn messages don't spam anymore.
+
+
 * Sun Aug 06 2023 Nadyita <nadyita@hodorraid.org> 6.2.4-1
 - Switch to Alpine Linux 3.18 as base for the Docker images.
 - Use there whereis-database for MOB_MODULE coordinates.

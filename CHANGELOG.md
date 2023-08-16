@@ -5,11 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [6.2.5] - 2023-08-16
 
 ### Added
 
 - Add 2 new options to customize error-messages when a command isn't executed due to missing access rights.
+
+### Fixed
+
+- Worldboss-spawn messages don't spam anymore.
 
 ## [6.2.4] - 2023-08-06
 
