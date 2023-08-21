@@ -131,6 +131,11 @@ use Nadybot\Modules\{
 		accessLevel: "superadmin",
 		description: "Allow people to join the private channel again",
 	),
+	NCA\DefineCommand(
+		command: "lastonline",
+		accessLevel: "member",
+		description: "Shows the last logon-times of a character",
+	),
 
 	NCA\ProvidesEvent("online(priv)"),
 	NCA\ProvidesEvent("offline(priv)"),
@@ -1256,6 +1261,46 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 		$alSender = $this->accessManager->getAccessLevelForCharacter($sender);
 		$alRequired = $this->lockMinrank;
 		return $this->accessManager->compareAccessLevels($alSender, $alRequired) < 0;
+	}
+
+	#[NCA\HandlesCommand("lastonline")]
+	#[NCA\Help\Group("private-channel")]
+	/** Check when a character and their alts were seen online for the last time */
+	public function lastOnlineCommand(CmdContext $context, PCharacter $char): Generator {
+		$uid = yield $this->chatBot->getUid2($char());
+		if ($uid === null) {
+			$context->reply("Character {$char} doesn't exist.");
+			return;
+		}
+		$main = $this->altsController->getMainOf($char());
+
+		/** @var Collection<LastOnline> */
+		$lastSeen = $this->db->table("last_online")
+			->whereIn("name", $this->altsController->getAltsOf($main))
+			->orderByDesc("dt")
+			->asObj(LastOnline::class);
+		if ($lastSeen->isEmpty()) {
+			$context->reply("<highlight>{$char}<end> has never logged in.");
+			return;
+		}
+		$blob = $lastSeen->map(function (LastOnline $info): string {
+			if ($this->buddylistManager->isOnline($info->name)) {
+				return "<highlight>{$info->name}<end> is currently <on>online<end>";
+			}
+			return "<highlight>{$info->name}<end> last seen at " . $this->util->date($info->dt);
+		})->sort(function (string $line1, string $line2): int {
+			$oneHas = str_contains($line1, "<on>");
+			$twoHas = str_contains($line2, "<on>");
+			if ($oneHas === $twoHas) {
+				return 0;
+			}
+			return $oneHas ? -1 : 1;
+		})->join("\n");
+		$msg = $this->text->makeBlob(
+			"Last Logon Info for {$char}",
+			$blob,
+		);
+		$context->reply($msg);
 	}
 
 	/** @return array{"admin-level": ?string, "c-admin-level": ?string, "access-level": ?string} */
