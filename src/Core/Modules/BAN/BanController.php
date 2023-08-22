@@ -18,6 +18,7 @@ use Nadybot\Core\{
 	DBSchema\Player,
 	Event,
 	EventManager,
+	LoggerWrapper,
 	ModuleInstance,
 	Modules\ALTS\AltsController,
 	Modules\PLAYER_LOOKUP\Guild,
@@ -101,6 +102,9 @@ class BanController extends ModuleInstance {
 
 	#[NCA\Inject]
 	public DB $db;
+
+	#[NCA\Logger]
+	public LoggerWrapper $logger;
 
 	/** Always ban all alts, not just 1 char */
 	#[NCA\Setting\Boolean]
@@ -765,6 +769,7 @@ class BanController extends ModuleInstance {
 			if (!$this->chatBot->ready) {
 				return null;
 			}
+			/** @var ?Guild */
 			$guild = yield $this->guildManager->byId($ban->org_id);
 
 			$ban->org_name = (string)$ban->org_id;
@@ -776,6 +781,17 @@ class BanController extends ModuleInstance {
 					"because they were unbanned before we finished looking up data.";
 			}
 			$this->orgbanlist[$ban->org_id] = $ban;
+			// Kick all org members from our private chat
+			if (isset($guild)) {
+				foreach ($guild->members as $name => $char) {
+					if ($this->chatBot->chatlist[$char->name]) {
+						$this->logger->notice("Kicking banned char {name} from private channel", [
+							"name" => $char->name,
+						]);
+						$this->chatBot->privategroup_kick($char->charid);
+					}
+				}
+			}
 			return "Added <highlight>{$ban->org_name}<end> to the banlist.";
 		});
 	}

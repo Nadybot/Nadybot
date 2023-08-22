@@ -12,6 +12,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add new command `!lastonline <char>` as non-org equivalent for `!lastseen`
 - Add new setting `orglist_pork_url` to allow downloading orglists from our reverse proxy. This solves PORK being down very often lately.
 
+### Changed
+
+- Adding an org to the banlist will now automatically kick any members from the bot's private channel.
+
 ## [6.2.5] - 2023-08-16
 
 ### Added
