@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Adding an org to the banlist will now automatically kick any members from the bot's private channel.
+- `!roll` can now also roll items, not only player names.
 
 ## [6.2.5] - 2023-08-16
 

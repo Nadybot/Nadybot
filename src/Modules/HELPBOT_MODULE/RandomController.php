@@ -13,6 +13,9 @@ use Nadybot\Core\{
 	Text,
 	Util,
 };
+use Nadybot\Core\ParamClass\PItem;
+
+use function Safe\preg_match_all;
 
 /**
  * @author Tyrence (RK2)
@@ -144,7 +147,15 @@ class RandomController extends ModuleInstance {
 			$context->reply($msg);
 			return;
 		}
-		$options = \Safe\preg_split("/(,\s+|\s+|,)/", $listOfNames);
+		$itemRegexp = PItem::getRegexp();
+		preg_match_all(chr(1) . $itemRegexp . chr(1), $listOfNames, $matches);
+		$options = $matches[0];
+		$listOfNames = preg_replace(chr(1) . $itemRegexp . chr(1), "", $listOfNames);
+
+		$options = array_merge(
+			$options,
+			\Safe\preg_split("/(,\s+|\s+|,)/", $listOfNames)
+		);
 		if ($amount > count($options)) {
 			$msg = "Cannot pick more items than are on the list.";
 			$context->reply($msg);
@@ -171,14 +182,22 @@ class RandomController extends ModuleInstance {
 
 	/** Roll a random value from a list of names */
 	#[NCA\HandlesCommand("roll")]
-	public function rollNamesCommand(CmdContext $context, string $listofNames): void {
+	public function rollNamesCommand(CmdContext $context, string $listOfNames): void {
 		$timeBetweenRolls = $this->timeBetweenRolls;
 		if (!$this->canRoll($context->char->name, $timeBetweenRolls)) {
 			$msg = "You can only roll once every {$timeBetweenRolls} seconds.";
 			$context->reply($msg);
 			return;
 		}
-		$options = \Safe\preg_split("/(,\s+|\s+|,)/", $listofNames);
+		$itemRegexp = PItem::getRegexp();
+		preg_match_all(chr(1) . $itemRegexp . chr(1), $listOfNames, $matches);
+		$options = $matches[0];
+		$listOfNames = preg_replace(chr(1) . $itemRegexp . chr(1), "", $listOfNames);
+
+		$options = array_merge(
+			$options,
+			\Safe\preg_split("/(,\s+|\s+|,)/", $listOfNames)
+		);
 		[$rollNumber, $result] = $this->roll($context->char->name, $options);
 		$msg = "The roll is <highlight>{$result}<end> out of the possible options ".
 			$this->joinOptions($options, "highlight") . ". To verify do /tell <myname> verify {$rollNumber}";
