@@ -1,0 +1,8 @@
+# Table: fun
+# Replaces: type=greeting
+type,content
+greeting,"Welcome, *name*! Nice to see you."
+greeting,"You're like a breath of fresh air, *name*."
+greeting,"It's good to see you, *name*!"
+greeting,"Hope you're having a gret week, *name*."
+greeting,"Now that you're here, everything will be better, *name*."
