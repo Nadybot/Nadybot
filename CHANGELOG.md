@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Add new command `!lastonline <char>` as non-org equivalent for `!lastseen`
+- Add new setting `orglist_pork_url` to allow downloading orglists from our reverse proxy. This solves PORK being down very often lately.
 
 ## [6.2.5] - 2023-08-16
 

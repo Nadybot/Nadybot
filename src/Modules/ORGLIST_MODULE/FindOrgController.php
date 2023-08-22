@@ -28,6 +28,7 @@ use Nadybot\Core\{
 	UserException,
 	Util,
 };
+use Nadybot\Core\Modules\PLAYER_LOOKUP\PlayerManager;
 use Throwable;
 
 /**
@@ -67,6 +68,15 @@ class FindOrgController extends ModuleInstance {
 	/** How many parallel downloads to use for downloading the orglist */
 	#[NCA\Setting\Number]
 	public int $numOrglistDlJobs = 5;
+
+	/** Which service to use for orglist downloads */
+	#[NCA\Setting\Text(
+		options: [
+			"bork.aobots.org (Nadybot)" => PlayerManager::BORK_URL,
+			"people.anarchy-online.com (Funcom)" => PlayerManager::PORK_URL,
+		]
+	)]
+	public string $orglistPorkUrl = PlayerManager::BORK_URL;
 
 	protected bool $ready = false;
 
@@ -286,14 +296,17 @@ class FindOrgController extends ModuleInstance {
 				}
 				return;
 			}
-			$url = "https://people.anarchy-online.com/people/lookup/orgs.html".
+			$url = $this->orglistPorkUrl . "/people/lookup/orgs.html".
 				"?l={$letter}&dim={$this->config->dimension}";
 			$client = $this->builder->build();
 			$retry = 5;
 			do {
 				try {
+					$request = new Request($url);
+					// The gateway timeout of PORK is 60s
+					$request->setTransferTimeout(61000);
 					/** @var Response */
-					$response = yield $client->request(new Request($url));
+					$response = yield $client->request($request);
 
 					if ($response->getStatus() !== 200) {
 						if (--$retry <= 0) {
