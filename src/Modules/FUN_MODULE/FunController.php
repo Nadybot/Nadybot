@@ -93,7 +93,7 @@ class FunController extends ModuleInstance {
 	public function getFunItem(string $type, string $sender, ?int $number=null): string {
 		/** @var Collection<Fun> */
 		$data = $this->db->table("fun")
-			->where("type", $type)
+			->whereIn("type", explode(",", $type))
 			->asObj(Fun::class);
 		if ($number === null) {
 			/** @var Fun */

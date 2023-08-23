@@ -4,5 +4,11 @@ type,content
 greeting,"Welcome, *name*! Nice to see you."
 greeting,"You're like a breath of fresh air, *name*."
 greeting,"It's good to see you, *name*!"
-greeting,"Hope you're having a gret week, *name*."
+greeting,"Hope you're having a great week, *name*."
 greeting,"Now that you're here, everything will be better, *name*."
+greeting,"Welcome to that chat!"
+greeting,"Uh oh! Shhhh, trouble's here! Oh! Hi *name*!"
+greeting,"Hi, *name*"
+greeting,"Hey, *name*! How's you?" 
+greeting,"Hey *name*! Welcome to the party!"
+
