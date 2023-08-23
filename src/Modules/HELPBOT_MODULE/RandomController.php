@@ -147,10 +147,13 @@ class RandomController extends ModuleInstance {
 			$context->reply($msg);
 			return;
 		}
+		$options = [];
 		$itemRegexp = PItem::getRegexp();
 		preg_match_all(chr(1) . $itemRegexp . chr(1), $listOfNames, $matches);
-		$options = $matches[0];
-		$listOfNames = preg_replace(chr(1) . $itemRegexp . chr(1), "", $listOfNames);
+		if (is_array($matches) && count($matches) > 0) {
+			$options = $matches[0];
+			$listOfNames = preg_replace(chr(1) . $itemRegexp . chr(1), "", $listOfNames);
+		}
 
 		$options = array_merge(
 			$options,
@@ -190,9 +193,12 @@ class RandomController extends ModuleInstance {
 			return;
 		}
 		$itemRegexp = PItem::getRegexp();
+		$options = [];
 		preg_match_all(chr(1) . $itemRegexp . chr(1), $listOfNames, $matches);
-		$options = $matches[0];
-		$listOfNames = preg_replace(chr(1) . $itemRegexp . chr(1), "", $listOfNames);
+		if (is_array($matches) && count($matches) > 0) {
+			$options = $matches[0];
+			$listOfNames = preg_replace(chr(1) . $itemRegexp . chr(1), "", $listOfNames);
+		}
 
 		$options = array_merge(
 			$options,

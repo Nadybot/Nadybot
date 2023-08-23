@@ -2,7 +2,10 @@
 
 namespace Nadybot\Modules\FUN_MODULE;
 
-class Fun {
+use Nadybot\Core\DBRow;
+
+class Fun extends DBRow {
+	public int $id;
 	public string $type;
 	public string $content;
 }

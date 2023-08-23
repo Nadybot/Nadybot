@@ -3,16 +3,19 @@
 namespace Nadybot\Modules\FUN_MODULE\Migrations;
 
 use Illuminate\Database\Schema\Blueprint;
-use Nadybot\Core\{DB, LoggerWrapper, SchemaMigration};
+use Nadybot\Core\DB;
+use Nadybot\Core\LoggerWrapper;
+use Nadybot\Core\SchemaMigration;
 
-class CreateFunTable implements SchemaMigration {
+class AddIdColumn implements SchemaMigration {
 	public function migrate(LoggerWrapper $logger, DB $db): void {
 		$table = "fun";
 		if ($db->schema()->hasTable($table)) {
-			return;
+			$db->schema()->drop($table);
 		}
 		$db->schema()->create($table, function (Blueprint $table): void {
-			$table->string("type", 20);
+			$table->id();
+			$table->string("type", 15)->index();
 			$table->text("content");
 		});
 	}
