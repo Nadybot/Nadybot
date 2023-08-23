@@ -138,6 +138,7 @@ class GreetController extends ModuleInstance {
 	#[NCA\Setting\Number]
 	public int $greetDelay = 1;
 
+	/** @var array<string,int> */
 	private static array $greetCount = [];
 
 	#[NCA\Setup]
@@ -150,6 +151,9 @@ class GreetController extends ModuleInstance {
 		description: "Greet joined players with a random text",
 	)]
 	public function sendRandomGreeting(AOChatEvent $event): Generator {
+		if (!is_string($event->sender)) {
+			return;
+		}
 		yield delay($this->greetDelay * 1000);
 		if (!$this->needsGreeting($event->sender)) {
 			return;
