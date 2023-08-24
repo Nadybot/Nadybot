@@ -64,6 +64,9 @@ class CustomCmdController extends ModuleInstance {
 		if ($new === self::OFF) {
 			return;
 		}
+		if (str_contains($new, "..")) {
+			throw new UserException("<highlight>..<end> is not allowed.");
+		}
 		$dir = BotRunner::getBasedir() . "/" . $new;
 		if (!@file_exists($dir)) {
 			throw new UserException("The directory <highlight>" . htmlentities($dir) . "<end> doesn't exist.");
