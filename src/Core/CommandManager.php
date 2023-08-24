@@ -8,6 +8,7 @@ use Exception;
 use Generator;
 use Illuminate\Support\Collection;
 use InvalidArgumentException;
+use Nadybot\Core\Modules\SYSTEM\SystemController;
 use Nadybot\Core\{
 	Attributes as NCA,
 	DBSchema\CmdCfg,
@@ -26,7 +27,6 @@ use Nadybot\Core\{
 	Routing\RoutableMessage,
 	Routing\Source,
 };
-use Nadybot\Core\Modules\SYSTEM\SystemController;
 use ReflectionAttribute;
 use ReflectionClass;
 use ReflectionException;
@@ -492,13 +492,17 @@ class CommandManager implements MessageEmitter {
 			// method doesn't exist (probably handled dynamically)
 			return false;
 		}
-		$handlesAttrs = $reflectedMethod->getAttributes(NCA\HandlesCommand::class);
+		$handlesAttrs = $reflectedMethod->getAttributes(NCA\HandlesCommand::class, ReflectionAttribute::IS_INSTANCEOF);
 		if (empty($handlesAttrs)) {
 			return false;
 		}
 		foreach ($handlesAttrs as $handlesAttr) {
 			/** @var NCA\HandlesCommand */
 			$handlesCmdObj = $handlesAttr->newInstance();
+			if ($handlesCmdObj instanceof NCA\HandlesAllCommands) {
+				return true;
+			}
+
 			$baseCmd = explode(" ", $handlesCmdObj->command)[0];
 			if ($baseCmd !== strtolower(explode(" ", $context->message)[0])) {
 				continue;
