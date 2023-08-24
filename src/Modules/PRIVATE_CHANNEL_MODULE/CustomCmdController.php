@@ -3,6 +3,8 @@
 namespace Nadybot\Modules\PRIVATE_CHANNEL_MODULE;
 
 use function Amp\File\filesystem;
+
+use Amp\File\FilesystemException;
 use Generator;
 
 use Nadybot\Core\DBSchema\{CmdCfg, CmdPermissionSet};
@@ -13,10 +15,12 @@ use Nadybot\Core\{
 	CommandManager,
 	ConfigFile,
 	DB,
-	ModuleInstance,
+    LoggerWrapper,
+    ModuleInstance,
 	Nadybot,
 	SettingEvent,
 	Text,
+	UserException,
 };
 
 /**
@@ -43,6 +47,9 @@ class CustomCmdController extends ModuleInstance {
 	#[NCA\Inject]
 	public ConfigFile $config;
 
+	#[NCA\Logger]
+	public LoggerWrapper $logger;
+
 	#[NCA\Setting\Text(
 		options: [
 			self::OFF,
@@ -50,9 +57,26 @@ class CustomCmdController extends ModuleInstance {
 		]
 	)]
 	/** Directory in which to search for custom textfile commands */
-	public string $customCmdDir = "off";
+	public string $customCmdDir = self::OFF;
 
-	#[NCA\Event(name: "setting(custom_cmd_dir)", description: "Turn on/off commands")]
+	#[NCA\SettingChangeHandler("custom_cmd_dir")]
+	public function checkCustomCmdDir(string $setting, string $old, string $new): void {
+		if ($new === self::OFF) {
+			return;
+		}
+		$dir = BotRunner::getBasedir() . "/" . $new;
+		if (!@file_exists($dir)) {
+			throw new UserException("The directory <highlight>" . htmlentities($dir) . "<end> doesn't exist.");
+		}
+		if (!is_dir($dir)) {
+			throw new UserException("<highlight>" . htmlentities($dir) . "<end> is not a directory");
+		}
+	}
+
+	#[NCA\Event(
+		name: "setting(custom_cmd_dir)",
+		description: "Turn on/off commands",
+	)]
 	public function changeCustomCmdDir(SettingEvent $event): Generator {
 		if ($event->oldValue->value !== self::OFF) {
 			$this->db->table($this->cmdManager::DB_TABLE)
@@ -119,8 +143,16 @@ class CustomCmdController extends ModuleInstance {
 		$fs = filesystem();
 		$baseDir = BotRunner::getBasedir() . "/" . $path;
 
-		/** @var string[] */
-		$fileList = yield $fs->listFiles($baseDir);
+		try {
+			/** @var string[] */
+			$fileList = yield $fs->listFiles($baseDir);
+		} catch (FilesystemException $e) {
+			$this->logger->warning("Unable to open {dir} to search for custom commands: {error}", [
+				"dir" => $baseDir,
+				"error" => $e->getMessage(),
+			]);
+			return;
+		}
 		foreach ($fileList as $fileName) {
 			if (substr_count($fileName, ".") > 1) {
 				continue;
@@ -147,8 +179,8 @@ class CustomCmdController extends ModuleInstance {
 			$this->getModuleName(),
 			'CustomCmdController.executeCustomCmd:123',
 			$cmdName,
-			"all",
-			"A dynamic command based on the {$cmdName}",
+			"guest",
+			"A dynamic command based on {$cmdName}",
 			1
 		);
 		if (!$activate) {
@@ -160,7 +192,7 @@ class CustomCmdController extends ModuleInstance {
 					$set->name,
 					'CustomCmdController.executeCustomCmd:123',
 					$cmdName,
-					"all"
+					"guest"
 				);
 			});
 	}
