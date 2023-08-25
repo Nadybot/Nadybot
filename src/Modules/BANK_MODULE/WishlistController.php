@@ -9,7 +9,7 @@ use Amp\Promise;
 use Generator;
 use Illuminate\Support\Collection;
 use Nadybot\Core\Modules\ALTS\AltsController;
-use Nadybot\Core\ParamClass\{PCharacter, PQuantity, PRemove};
+use Nadybot\Core\ParamClass\{PCharacter, PDuration, PQuantity, PRemove};
 use Nadybot\Core\{
 	Attributes as NCA,
 	BuddylistManager,
@@ -18,6 +18,7 @@ use Nadybot\Core\{
 	DB,
 	ModuleInstance,
 	Nadybot,
+	QueryBuilder,
 	Text,
 	UserException,
 	UserStateEvent,
@@ -66,6 +67,10 @@ class WishlistController extends ModuleInstance {
 
 	#[NCA\Inject]
 	public AltsController $altsController;
+
+	#[NCA\Setting\TimeOrOff]
+	/** Enforced default and maximum duration for every wish */
+	public int $maxWishLifetime = 0;
 
 	#[NCA\Event(
 		name: "connect",
@@ -117,8 +122,16 @@ class WishlistController extends ModuleInstance {
 			->orderBy("created_by")
 			->orderBy("created_on");
 		if (!isset($all)) {
-			$senderQuery = $senderQuery->where("fulfilled", false);
-			$altsQuery = $altsQuery->where("fulfilled", false);
+			$senderQuery = $senderQuery->where("fulfilled", false)
+				->where(function (QueryBuilder $subQuery): void {
+					$subQuery->whereNull("expires_on")
+						->orWhere("expires_on", ">=", time());
+				});
+			$altsQuery = $altsQuery->where("fulfilled", false)
+				->where(function (QueryBuilder $subQuery): void {
+					$subQuery->whereNull("expires_on")
+						->orWhere("expires_on", ">=", time());
+				});
 		}
 		$sendersWishlist = $senderQuery->asObj(Wish::class);
 		$altsWishlist = $altsQuery->asObj(Wish::class);
@@ -142,9 +155,10 @@ class WishlistController extends ModuleInstance {
 			});
 			$lines []= "<header2>{$char}<end>";
 			foreach ($wishlist as $wish) {
+				/** @var Wish $wish */
 				$numItems++;
 				$line = "<tab>";
-				if ($wish->fulfilled) {
+				if ($wish->fulfilled || $wish->isExpired()) {
 					$line .= "<grey>";
 				}
 				if ($wish->amount > 1) {
@@ -155,8 +169,11 @@ class WishlistController extends ModuleInstance {
 						$line .= "{$remaining} ";
 					}
 				}
-				if ($wish->fulfilled) {
+				if ($wish->fulfilled || $wish->isExpired()) {
 					$line .= $this->fixItemLinks($wish->item);
+					if (!$wish->fulfilled) {
+						$line .= " (<i>expired</i>)";
+					}
 				} else {
 					$line .= "<highlight>" . $this->fixItemLinks($wish->item) . "<end>";
 				}
@@ -165,7 +182,7 @@ class WishlistController extends ModuleInstance {
 				}
 				$delLink = $this->text->makeChatcmd("del", "/tell <myname> wish rem {$wish->id}");
 				$line .= " [{$delLink}]";
-				if ($wish->fulfilled) {
+				if ($wish->fulfilled || $wish->isExpired()) {
 					$line .= "<end>";
 				}
 				$lines []= $line;
@@ -195,6 +212,10 @@ class WishlistController extends ModuleInstance {
 		$wishlist = $this->db->table(self::DB_TABLE)
 			->whereIn("from", $chars)
 			->where("fulfilled", false)
+			->where(function (QueryBuilder $subQuery): void {
+				$subQuery->whereNull("expires_on")
+					->orWhere("expires_on", ">=", time());
+			})
 			->orderBy("created_by")
 			->orderBy("created_on")
 			->asObj(Wish::class);
@@ -225,6 +246,10 @@ class WishlistController extends ModuleInstance {
 		$wishlist = $this->db->table(self::DB_TABLE)
 			->whereIn("created_by", $alts)
 			->where("fulfilled", false)
+			->where(function (QueryBuilder $subQuery): void {
+				$subQuery->whereNull("expires_on")
+					->orWhere("expires_on", ">=", time());
+			})
 			->asObj(Wish::class);
 		$wishlistGrouped = $this->addFulfilments($wishlist)
 			->map(function (Wish $w): Wish {
@@ -273,7 +298,7 @@ class WishlistController extends ModuleInstance {
 				$w->fulfilments = new Collection();
 				return $w;
 			})
-			->filter(fn (Wish $w): bool => $w->amount > 0)
+			->filter(fn (Wish $w): bool => $w->amount > 0 && !$w->isExpired())
 			->groupBy("created_by");
 		if ($wishlistGrouped->isEmpty()) {
 			$context->reply("No one is wishing for {$what}.");
@@ -369,6 +394,7 @@ class WishlistController extends ModuleInstance {
 	public function addToWishlistCommand(
 		CmdContext $context,
 		#[NCA\Str("add")] string $action,
+		?PDuration $expires,
 		?PQuantity $amount,
 		string $item,
 	): void {
@@ -377,6 +403,13 @@ class WishlistController extends ModuleInstance {
 		$entry->item = $item;
 		if (isset($amount)) {
 			$entry->amount = $amount();
+		}
+		$expireDuration = isset($expires) ? $expires->toSecs() : null;
+		if (($this->maxWishLifetime > 0) && (!isset($expireDuration) || $this->maxWishLifetime < $expireDuration)) {
+			$expireDuration = $this->maxWishLifetime;
+		}
+		if (isset($expireDuration)) {
+			$entry->expires_on = time() + $expireDuration;
 		}
 		$entry->id = $this->db->insert(self::DB_TABLE, $entry);
 		$context->reply("Item added to your wishlist as #{$entry->id}.");
@@ -663,7 +696,11 @@ class WishlistController extends ModuleInstance {
 			$query = $this->db->table(self::DB_TABLE)
 				->whereIn("created_by", $names);
 			if (!$includeActive) {
-				$query = $query->where("fulfilled", true);
+				$query = $query->where("fulfilled", true)
+					->orWhere(function (QueryBuilder $subQuery): void {
+						$subQuery->whereNotNull("expires_on")
+							->where("expires_on", "<", time());
+					});
 			}
 			$ids = $query->pluckInts("id")
 				->toArray();
@@ -704,13 +741,12 @@ class WishlistController extends ModuleInstance {
 
 	/** @return array{int,string} */
 	private function renderCheckWishlist(Collection $wishlistGrouped, string ...$allChars): array {
-		$charGroups = [];
 		$numItems = 0;
-		foreach ($wishlistGrouped as $char => $wishlist) {
-			/** @var Collection<Wish> $wishlist */
-			$lines = [];
-			$lines []= "<header2>{$char}<end>";
-			foreach ($wishlist as $wish) {
+		/** @param Collection<Wish> $wishlist */
+		$blob = $wishlistGrouped->map(function (Collection $wishlist, string $char) use ($allChars, &$numItems): string {
+			/** @return string[] */
+			$groupLines = $wishlist->map(function (Wish $wish) use (&$numItems, $allChars): array {
+				$lines = [];
 				$numItems++;
 				$line = "<tab>";
 				if ($wish->amount > 1) {
@@ -722,6 +758,9 @@ class WishlistController extends ModuleInstance {
 					}
 				}
 				$line = "{$line}<highlight>" . $this->fixItemLinks($wish->item) . "<end>";
+				if (isset($wish->expires_on)) {
+					$line .= ' (<i>expires in ' . $this->util->unixtimeToReadable($wish->expires_on - time(), false) . '</i>)';
+				}
 				$do1Link = $this->text->makeChatcmd("give 1", "/tell <myname> wish fulfil 1x {$wish->id}");
 				$doAllLink = null;
 				if ($wish->getRemaining() > 1) {
@@ -748,10 +787,12 @@ class WishlistController extends ModuleInstance {
 					}
 					$lines []= $line;
 				}
-			}
-			$charGroups []= join("\n", $lines);
-		}
-		return [$numItems, join("\n\n", $charGroups)];
+				return $lines;
+			});
+			return "<header2>{$char}<end>\n" . $groupLines->flatten()->join("\n");
+		})->join("\n\n");
+		/** @var int $numItems */
+		return [$numItems, $blob];
 	}
 
 	/** @return string[] */
@@ -759,6 +800,10 @@ class WishlistController extends ModuleInstance {
 		$fromChars = $this->db->table(self::DB_TABLE)
 			->whereNotNull("from")
 			->where("fulfilled", false)
+			->where(function (QueryBuilder $subQuery): void {
+				$subQuery->whereNull("expires_on")
+					->orWhere("expires_on", ">", time());
+			})
 			->asObj(Wish::class)
 			->reduce(function (array $result, Wish $w): array {
 				if (isset($w->from)) {
