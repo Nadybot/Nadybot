@@ -13,6 +13,7 @@ use Exception;
 use Generator;
 use Illuminate\Support\Collection;
 
+use Nadybot\Core\Modules\PLAYER_LOOKUP\PlayerManager;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
@@ -28,7 +29,6 @@ use Nadybot\Core\{
 	UserException,
 	Util,
 };
-use Nadybot\Core\Modules\PLAYER_LOOKUP\PlayerManager;
 use Throwable;
 
 /**
@@ -305,6 +305,7 @@ class FindOrgController extends ModuleInstance {
 					$request = new Request($url);
 					// The gateway timeout of PORK is 60s
 					$request->setTransferTimeout(61000);
+
 					/** @var Response */
 					$response = yield $client->request($request);
 

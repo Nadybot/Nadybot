@@ -2,7 +2,12 @@
 
 namespace Nadybot\Modules\FUN_MODULE;
 
+use function Amp\delay;
 use Generator;
+use Nadybot\Core\Modules\ALTS\{AltEvent, AltsController};
+use Nadybot\Core\Modules\PREFERENCES\Preferences;
+use Nadybot\Core\ParamClass\PRemove;
+
 use Nadybot\Core\{
 	AOChatEvent,
 	Attributes as NCA,
@@ -15,12 +20,6 @@ use Nadybot\Core\{
 	UserStateEvent,
 	Util,
 };
-use Nadybot\Core\Modules\ALTS\AltEvent;
-use Nadybot\Core\Modules\ALTS\AltsController;
-use Nadybot\Core\Modules\PREFERENCES\Preferences;
-use Nadybot\Core\ParamClass\PRemove;
-
-use function Amp\delay;
 
 /**
  * @author Nadyita (RK5)
@@ -272,6 +271,24 @@ class GreetController extends ModuleInstance {
 		$context->reply("Receiving greetings is now <off>disabled<end>.");
 	}
 
+	#[NCA\Event(
+		name: "alt(newmain)",
+		description: "Move greeting preferences to new main"
+	)]
+	public function moveGreetingPrefs(AltEvent $event): void {
+		$oldSetting = $this->prefs->get($event->alt, self::PREF);
+		if ($oldSetting === null) {
+			return;
+		}
+		$this->prefs->save($event->main, self::PREF, $oldSetting);
+		$this->prefs->delete($event->alt, self::PREF);
+		$this->logger->notice("Moved greeting settings ({old}) from {from} to {to}.", [
+			"old" => $oldSetting,
+			"from" => $event->alt,
+			"to" => $event->main,
+		]);
+	}
+
 	/** Determines if $character needs to be greeted */
 	private function needsGreeting(string $character): bool {
 		if ($this->greetFrequency === 0) {
@@ -301,23 +318,5 @@ class GreetController extends ModuleInstance {
 			return false;
 		}
 		return random_int(1, 100) <= $this->greetPropability;
-	}
-
-	#[NCA\Event(
-		name: "alt(newmain)",
-		description: "Move greeting preferences to new main"
-	)]
-	public function moveGreetingPrefs(AltEvent $event): void {
-		$oldSetting = $this->prefs->get($event->alt, self::PREF);
-		if ($oldSetting === null) {
-			return;
-		}
-		$this->prefs->save($event->main, self::PREF, $oldSetting);
-		$this->prefs->delete($event->alt, self::PREF);
-		$this->logger->notice("Moved greeting settings ({old}) from {from} to {to}.", [
-			"old" => $oldSetting,
-			"from" => $event->alt,
-			"to" => $event->main,
-		]);
 	}
 }

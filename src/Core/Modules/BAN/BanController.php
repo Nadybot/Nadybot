@@ -769,6 +769,7 @@ class BanController extends ModuleInstance {
 			if (!$this->chatBot->ready) {
 				return null;
 			}
+
 			/** @var ?Guild */
 			$guild = yield $this->guildManager->byId($ban->org_id);
 

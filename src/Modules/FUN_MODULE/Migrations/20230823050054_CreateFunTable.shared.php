@@ -3,9 +3,7 @@
 namespace Nadybot\Modules\FUN_MODULE\Migrations;
 
 use Illuminate\Database\Schema\Blueprint;
-use Nadybot\Core\DB;
-use Nadybot\Core\LoggerWrapper;
-use Nadybot\Core\SchemaMigration;
+use Nadybot\Core\{DB, LoggerWrapper, SchemaMigration};
 
 class AddIdColumn implements SchemaMigration {
 	public function migrate(LoggerWrapper $logger, DB $db): void {

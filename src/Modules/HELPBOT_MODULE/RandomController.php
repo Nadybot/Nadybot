@@ -2,7 +2,10 @@
 
 namespace Nadybot\Modules\HELPBOT_MODULE;
 
+use function Safe\preg_match_all;
 use InvalidArgumentException;
+use Nadybot\Core\ParamClass\PItem;
+
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
@@ -13,9 +16,6 @@ use Nadybot\Core\{
 	Text,
 	Util,
 };
-use Nadybot\Core\ParamClass\PItem;
-
-use function Safe\preg_match_all;
 
 /**
  * @author Tyrence (RK2)

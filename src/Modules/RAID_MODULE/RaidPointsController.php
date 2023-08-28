@@ -235,7 +235,7 @@ class RaidPointsController extends ModuleInstance {
 				"individual" => $individual,
 				"reason" =>     $reason,
 				"ticker" =>     false,
-				"raid_id" =>    isset($raid->raid_id) ? $raid->raid_id : null,
+				"raid_id" =>    $raid->raid_id ?? null,
 			]);
 		if ($inserted === false) {
 			$this->logger->error("Error logging the change of {$delta} points for {$pointsChar}.");
@@ -539,8 +539,8 @@ class RaidPointsController extends ModuleInstance {
 		int $points,
 		PCharacter $char,
 		string $reason
-	): void {
-		$this->pointsAddCommand($context, $action, $char, $points, $reason);
+	): Generator {
+		yield from $this->pointsAddCommand($context, $action, $char, $points, $reason);
 	}
 
 	/** Add &lt;points&gt; raid points to &lt;char&gt;'s account with a reason */
