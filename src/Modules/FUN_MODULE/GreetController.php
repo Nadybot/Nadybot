@@ -12,6 +12,7 @@ use Nadybot\Core\{
 	ModuleInstance,
 	Nadybot,
 	Text,
+	UserStateEvent,
 	Util,
 };
 use Nadybot\Core\Modules\ALTS\AltEvent;
@@ -42,8 +43,8 @@ class GreetController extends ModuleInstance {
 	public const PER_MAIN = "per-main";
 	public const PER_JOIN = "per-join";
 
-	public const TELL = "via tell";
-	public const PRIV_CHANNEL = "in the private channel";
+	public const TELL = "tell";
+	public const SOURCE_CHANNEL = "source";
 
 	public const TYPE = "greeting";
 	public const TYPE_CUSTOM = "greeting-custom";
@@ -118,11 +119,11 @@ class GreetController extends ModuleInstance {
 	/** Where to greet */
 	#[NCA\Setting\Options(
 		options: [
-			self::TELL,
-			self::PRIV_CHANNEL,
+			"via tell" => self::TELL,
+			"org/private chat" => self::SOURCE_CHANNEL,
 		]
 	)]
-	public string $greetLocation = self::PRIV_CHANNEL;
+	public string $greetLocation = self::SOURCE_CHANNEL;
 
 	/** Which greetings to use */
 	#[NCA\Setting\Options(
@@ -148,21 +149,45 @@ class GreetController extends ModuleInstance {
 
 	#[NCA\Event(
 		name: "joinpriv",
-		description: "Greet joined players with a random text",
+		description: "Greet players joining the private channel",
 	)]
-	public function sendRandomGreeting(AOChatEvent $event): Generator {
+	public function sendRandomJoinGreeting(AOChatEvent $event): Generator {
 		if (!is_string($event->sender)) {
 			return;
 		}
-		yield delay($this->greetDelay * 1000);
 		if (!$this->needsGreeting($event->sender)) {
 			return;
 		}
+		yield delay($this->greetDelay * 1000);
 		$greeting = $this->fun->getFunItem($this->greetSource, $event->sender);
-		if ($this->greetLocation === self::PRIV_CHANNEL) {
+		if ($this->greetLocation === self::SOURCE_CHANNEL) {
 			$this->chatBot->sendPrivate($greeting);
 		} elseif ($this->greetLocation === self::TELL) {
 			$this->chatBot->sendTell($greeting, $event->sender);
+		}
+	}
+
+	#[NCA\Event(
+		name: "logOn",
+		description: "Greet org members logging on"
+	)]
+	public function sendRandomLogonGreeting(UserStateEvent $event): Generator {
+		$sender = $event->sender;
+		if (!isset($this->chatBot->guildmembers[$sender])
+			|| !$this->chatBot->isReady()
+			|| !is_string($sender)
+			|| $event->wasOnline !== false) {
+			return;
+		}
+		if (!$this->needsGreeting($sender)) {
+			return;
+		}
+		yield delay($this->greetDelay * 1000);
+		$greeting = $this->fun->getFunItem($this->greetSource, $sender);
+		if ($this->greetLocation === self::SOURCE_CHANNEL) {
+			$this->chatBot->sendGuild($greeting);
+		} elseif ($this->greetLocation === self::TELL) {
+			$this->chatBot->sendTell($greeting, $sender);
 		}
 	}
 
