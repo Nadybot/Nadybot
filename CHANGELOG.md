@@ -21,7 +21,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fix
 
-- The `!points add <points> <char> <reason>` syntax works again
+- The `!points add <points> <char> <reason>` syntax works again.
+- `!points spp` did not set the timer, now it does.
 
 ## [6.2.5] - 2023-08-16
 

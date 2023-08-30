@@ -281,7 +281,7 @@ class RaidController extends ModuleInstance {
 				$blob .= " [".
 					$this->text->makeChatcmd(
 						"enable ticker",
-						"/tell <myname> raid spp {$sppDefault}"
+						"/tell <myname> raid spp {$sppDefault}s"
 					).
 					"]";
 			}
@@ -496,7 +496,7 @@ class RaidController extends ModuleInstance {
 				$context->reply("Invalid interval: {$interval}.");
 				return;
 			}
-			$this->raid->seconds_per_point = 0;
+			$this->raid->seconds_per_point = $spp;
 			$context->reply("Raid seconds per point changed.");
 		}
 		$this->logRaidChanges($this->raid);
