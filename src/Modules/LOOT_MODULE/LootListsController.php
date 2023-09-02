@@ -733,7 +733,7 @@ class LootListsController extends ModuleInstance {
 			if ($lootEnabled && $auctionsEnabled) {
 				$actions []= $this->text->makeChatcmd(
 					"auction",
-					"/tell <myname> auction {$row->name}"
+					"/tell <myname> auction start {$row->name}"
 				);
 			}
 			if (isset($row->item)) {
