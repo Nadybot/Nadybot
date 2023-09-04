@@ -38,6 +38,11 @@ use Throwable;
 		description: "Manage your wishlist",
 	),
 	NCA\DefineCommand(
+		command: "wishes",
+		accessLevel: "guild",
+		description: "Look at a global wishlist",
+	),
+	NCA\DefineCommand(
 		command: "wish deny",
 		accessLevel: "all",
 		description: "Deny someone's wish",
@@ -104,6 +109,77 @@ class WishlistController extends ModuleInstance {
 			$blob
 		);
 		$this->chatBot->sendMassTell($msg, $event->sender);
+	}
+
+	/** Show what everyone has on their wishlist */
+	#[NCA\HandlesCommand("wishes")]
+	public function showWishesCommand(CmdContext $context): void {
+		$wishlist = $this->db->table(self::DB_TABLE)
+			->orderBy("created_on")
+			->where("fulfilled", false)
+			->whereNull("from")
+			->where(function (QueryBuilder $subQuery): void {
+				$subQuery->whereNull("expires_on")
+					->orWhere("expires_on", ">=", time());
+			})
+			->asObj(Wish::class);
+
+		/** @var Collection<string,Collection<Wish>> */
+		$wishlistGrouped = $this->addFulfilments($wishlist)
+			->groupBy(function (Wish $wish): string {
+				return $this->altsController->getMainOf($wish->created_by);
+			});
+		if ($wishlistGrouped->isEmpty()) {
+			$context->reply("No one wishes for anything.");
+			return;
+		}
+		$charGroups = [];
+		$numItems = 0;
+		foreach ($wishlistGrouped as $char => $wishes) {
+			// Because we group by main, we need to reduce dupliocated wishes to a
+			// single one with a higher amount
+			$wishlist = $wishes->reduce(
+				function (Collection $items, Wish $wish): Collection {
+					/** @var ?Wish */
+					$exists = $items->get($wish->item, null);
+					if (isset($exists)) {
+						$exists->amount += $wish->amount;
+						$exists->fulfilments = $exists->fulfilments->concat(
+							$wish->fulfilments
+						);
+					} else {
+						$items->put($wish->item, $wish);
+					}
+					return $items;
+				},
+				new Collection()
+			)->sortBy(function (Wish $wish): int {
+				return $wish->created_on;
+			});
+			$lines = [];
+			$lines []= "<header2>{$char}<end>";
+			foreach ($wishlist as $wish) {
+				/** @var Wish $wish */
+				$numItems++;
+				$line = "<tab>";
+				if ($wish->amount > 1) {
+					$remaining = $wish->getRemaining();
+					if ($remaining !== $wish->amount) {
+						$line .= "{$remaining} of {$wish->amount} ";
+					} else {
+						$line .= "{$remaining} ";
+					}
+				}
+				$line .= "<highlight>" . $this->fixItemLinks($wish->item) . "<end>";
+				$lines []= $line;
+			}
+			$charGroups []= join("\n", $lines);
+		}
+		$blob = $this->text->makeBlob(
+			"The global wishlist ({$numItems})",
+			join("\n\n", $charGroups)
+		);
+		$context->reply($blob);
 	}
 
 	/** Show your wishlist, optionally also old fulfilled ones */
@@ -742,6 +818,7 @@ class WishlistController extends ModuleInstance {
 	/** @return array{int,string} */
 	private function renderCheckWishlist(Collection $wishlistGrouped, string ...$allChars): array {
 		$numItems = 0;
+
 		/** @param Collection<Wish> $wishlist */
 		$blob = $wishlistGrouped->map(function (Collection $wishlist, string $char) use ($allChars, &$numItems): string {
 			/** @return string[] */
@@ -791,6 +868,7 @@ class WishlistController extends ModuleInstance {
 			});
 			return "<header2>{$char}<end>\n" . $groupLines->flatten()->join("\n");
 		})->join("\n\n");
+
 		/** @var int $numItems */
 		return [$numItems, $blob];
 	}
