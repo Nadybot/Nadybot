@@ -76,6 +76,11 @@ use Nadybot\Modules\{
 		description: "Adds APF 35 loot to the loot list",
 	),
 	NCA\DefineCommand(
+		command: "42",
+		accessLevel: "rl",
+		description: "Adds APF 42 loot to the loot list",
+	),
+	NCA\DefineCommand(
 		command: "apf",
 		accessLevel: "guest",
 		description: "Shows what drops off APF Bosses",
@@ -304,10 +309,29 @@ class LootListsController extends ModuleInstance {
 		$this->addAPFLootToList($context->char->name, 35);
 	}
 
-	public function addAPFLootToList(string $addedBy, int $sector): void {
+	/** Add all loot from Sector 42 to the loot list */
+	#[NCA\HandlesCommand("42")]
+	#[NCA\Help\Group("loot-apf")]
+	public function apf42Command(
+		CmdContext $context,
+		#[NCA\StrChoice("west", "north", "east", "boss")] string $side,
+	): void {
+		if (!$this->chatLeaderController->checkLeaderAccess($context->char->name)) {
+			$context->reply("You must be Raid Leader to use this command.");
+			return;
+		}
+
+		$this->addAPFLootToList($context->char->name, 42, ucfirst(strtolower($side)));
+	}
+
+	public function addAPFLootToList(string $addedBy, int $sector, ?string $side=null): void {
+		$sectorKey = "Sector {$sector}";
+		if (isset($side)) {
+			$sectorKey .= " {$side}";
+		}
 		// adding apf stuff
-		$this->lootController->addRaidToLootList($addedBy, 'APF', "Sector {$sector}");
-		$msg = "Sector {$sector} loot table was added to the loot list.";
+		$this->lootController->addRaidToLootList($addedBy, 'APF', $sectorKey);
+		$msg = "Sector {$sectorKey} loot table was added to the loot list.";
 		$this->chatBot->sendPrivate($msg);
 
 		$msg = $this->lootController->getCurrentLootList();
@@ -485,6 +509,20 @@ class LootListsController extends ModuleInstance {
 
 		$msg = $this->text->makeBlob("Loot table for sector {$sector}", $list);
 
+		$context->reply($msg);
+	}
+
+	/** Show the loot list for Sector 42 */
+	#[NCA\HandlesCommand("apf")]
+	#[NCA\Help\Group("loot-apf")]
+	public function apfFortyTwoCommand(
+		CmdContext $context,
+		#[NCA\Str("42")] string $sector,
+		#[NCA\StrChoice("west", "north", "east", "boss")] string $side,
+	): void {
+		$key = 'Sector 42 ' . ucfirst(strtolower($side));
+		$blob = $this->findRaidLoot('APF', $key, $context);
+		$msg = $this->text->makeBlob("Beast Loot", $blob);
 		$context->reply($msg);
 	}
 
