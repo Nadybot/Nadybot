@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add new settings to allow automatically sending random greetings to players joining the private channel.
 - Add option to set a directory for dynamic commands. These are merely text files or directories with text files.
 - Added S42 loot with `!42 west|north|east|boss` and `!apf 42 west|north|eatt|boss`
+- Add new command `!group` to group people into equally-sized groups.
 
 ### Changed
 
