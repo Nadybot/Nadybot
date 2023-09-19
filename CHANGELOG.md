@@ -15,12 +15,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add option to set a directory for dynamic commands. These are merely text files or directories with text files.
 - Added S42 loot with `!42 west|north|east|boss` and `!apf 42 west|north|eatt|boss`
 - Add new command `!group` to group people into equally-sized groups.
+- New command `!symbbuffs <skill>` to search for symbiants buffing a given skill.
 
 ### Changed
 
 - Adding an org to the banlist will now automatically kick any members from the bot's private channel.
 - `!roll` can now also roll items, not only player names.
-- `!cluster` now uses the same skill aliases as `!whatbuffs`
+- `!cluster` now uses the same skill aliases as `!whatbuffs`.
+- Add TOTW, IS, and TOTW-Raid symbiants to the symbiant DB.
 
 ### Fix
 

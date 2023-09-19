@@ -1318,7 +1318,6 @@ ID,Name,QL,SlotID,TreatmentReq,LevelReq,Unit
 236016,"Working Thigh Symbiant, Extermination Unit Aban",160,6,951,117,Extermination
 235791,"Working Thigh Symbiant, Infantry Unit Aban",160,6,951,117,Infantry
 235520,"Working Waist Symbiant, Artillery Unit Aban",160,5,951,117,Artillery
-278907,"Xan Brain Symbiant, Artillery Unit",300,2,2088,219,Artillery
 278944,"Xan Brain Symbiant, Artillery Unit Alpha",300,2,2088,219,Artillery
 278892,"Xan Brain Symbiant, Artillery Unit Beta",300,2,1870,201,Artillery
 278957,"Xan Brain Symbiant, Control Unit Alpha",300,2,2088,219,Control
@@ -1329,7 +1328,6 @@ ID,Name,QL,SlotID,TreatmentReq,LevelReq,Unit
 279035,"Xan Brain Symbiant, Infantry Unit Beta",300,2,1870,201,Infantry
 278996,"Xan Brain Symbiant, Support Unit Alpha",300,2,2088,219,Support
 279048,"Xan Brain Symbiant, Support Unit Beta",300,2,1870,201,Support
-278910,"Xan Chest Symbiant, Artillery Unit",300,4,2088,219,Artillery
 278947,"Xan Chest Symbiant, Artillery Unit Alpha",300,4,2088,219,Artillery
 278895,"Xan Chest Symbiant, Artillery Unit Beta",300,4,1870,201,Artillery
 278960,"Xan Chest Symbiant, Control Unit Alpha",300,4,2088,219,Control
@@ -1340,7 +1338,6 @@ ID,Name,QL,SlotID,TreatmentReq,LevelReq,Unit
 279038,"Xan Chest Symbiant, Infantry Unit Beta",300,4,1870,201,Infantry
 278999,"Xan Chest Symbiant, Support Unit Alpha",300,4,2088,219,Support
 279051,"Xan Chest Symbiant, Support Unit Beta",300,4,1870,201,Support
-278909,"Xan Ear Symbiant, Artillery Unit",300,3,2088,219,Artillery
 278946,"Xan Ear Symbiant, Artillery Unit Alpha",300,3,2088,219,Artillery
 278894,"Xan Ear Symbiant, Artillery Unit Beta",300,3,1870,201,Artillery
 278959,"Xan Ear Symbiant, Control Unit Alpha",300,3,2088,219,Control
@@ -1351,7 +1348,6 @@ ID,Name,QL,SlotID,TreatmentReq,LevelReq,Unit
 279037,"Xan Ear Symbiant, Infantry Unit Beta",300,3,1870,201,Infantry
 278998,"Xan Ear Symbiant, Support Unit Alpha",300,3,2088,219,Support
 279050,"Xan Ear Symbiant, Support Unit Beta",300,3,1870,201,Support
-278919,"Xan Feet Symbiant, Artillery Unit",300,7,2088,219,Artillery
 278956,"Xan Feet Symbiant, Artillery Unit Alpha",300,7,2088,219,Artillery
 278904,"Xan Feet Symbiant, Artillery Unit Beta",300,7,1870,201,Artillery
 278969,"Xan Feet Symbiant, Control Unit Alpha",300,7,2088,219,Control
@@ -1362,7 +1358,6 @@ ID,Name,QL,SlotID,TreatmentReq,LevelReq,Unit
 279047,"Xan Feet Symbiant, Infantry Unit Beta",300,7,1870,201,Infantry
 279008,"Xan Feet Symbiant, Support Unit Alpha",300,7,2088,219,Support
 279060,"Xan Feet Symbiant, Support Unit Beta",300,7,1870,201,Support
-278911,"Xan Left Arm Symbiant, Artillery Unit",300,8,2088,219,Artillery
 278948,"Xan Left Arm Symbiant, Artillery Unit Alpha",300,8,2088,219,Artillery
 278896,"Xan Left Arm Symbiant, Artillery Unit Beta",300,8,1870,201,Artillery
 278961,"Xan Left Arm Symbiant, Control Unit Alpha",300,8,2088,219,Control
@@ -1373,7 +1368,6 @@ ID,Name,QL,SlotID,TreatmentReq,LevelReq,Unit
 279039,"Xan Left Arm Symbiant, Infantry Unit Beta",300,8,1870,201,Infantry
 279000,"Xan Left Arm Symbiant, Support Unit Alpha",300,8,2088,219,Support
 279052,"Xan Left Arm Symbiant, Support Unit Beta",300,8,1870,201,Support
-278912,"Xan Left Hand Symbiant, Artillery Unit",300,10,2088,219,Artillery
 278949,"Xan Left Hand Symbiant, Artillery Unit Alpha",300,10,2088,219,Artillery
 278897,"Xan Left Hand Symbiant, Artillery Unit Beta",300,10,1870,201,Artillery
 278962,"Xan Left Hand Symbiant, Control Unit Alpha",300,10,2088,219,Control
@@ -1384,7 +1378,6 @@ ID,Name,QL,SlotID,TreatmentReq,LevelReq,Unit
 279040,"Xan Left Hand Symbiant, Infantry Unit Beta",300,10,1870,201,Infantry
 279001,"Xan Left Hand Symbiant, Support Unit Alpha",300,10,2088,219,Support
 279053,"Xan Left Hand Symbiant, Support Unit Beta",300,10,1870,201,Support
-278913,"Xan Left Wrist Symbiant, Artillery Unit",300,9,2088,219,Artillery
 278950,"Xan Left Wrist Symbiant, Artillery Unit Alpha",300,9,2088,219,Artillery
 278898,"Xan Left Wrist Symbiant, Artillery Unit Beta",300,9,1870,201,Artillery
 278963,"Xan Left Wrist Symbiant, Control Unit Alpha",300,9,2088,219,Control
@@ -1395,7 +1388,6 @@ ID,Name,QL,SlotID,TreatmentReq,LevelReq,Unit
 279041,"Xan Left Wrist Symbiant, Infantry Unit Beta",300,9,1870,201,Infantry
 279002,"Xan Left Wrist Symbiant, Support Unit Alpha",300,9,2088,219,Support
 279054,"Xan Left Wrist Symbiant, Support Unit Beta",300,9,1870,201,Support
-278908,"Xan Ocular Symbiant, Artillery Unit",300,1,2088,219,Artillery
 278945,"Xan Ocular Symbiant, Artillery Unit Alpha",300,1,2088,219,Artillery
 278893,"Xan Ocular Symbiant, Artillery Unit Beta",300,1,1870,201,Artillery
 278958,"Xan Ocular Symbiant, Control Unit Alpha",300,1,2088,219,Control
@@ -1406,7 +1398,6 @@ ID,Name,QL,SlotID,TreatmentReq,LevelReq,Unit
 279036,"Xan Ocular Symbiant, Infantry Unit Beta",300,1,1870,201,Infantry
 278997,"Xan Ocular Symbiant, Support Unit Alpha",300,1,2088,219,Support
 279049,"Xan Ocular Symbiant, Support Unit Beta",300,1,1870,201,Support
-278914,"Xan Right Arm Symbiant, Artillery Unit",300,11,2088,219,Artillery
 278951,"Xan Right Arm Symbiant, Artillery Unit Alpha",300,11,2088,219,Artillery
 278899,"Xan Right Arm Symbiant, Artillery Unit Beta",300,11,1870,201,Artillery
 278964,"Xan Right Arm Symbiant, Control Unit Alpha",300,11,2088,219,Control
@@ -1417,7 +1408,6 @@ ID,Name,QL,SlotID,TreatmentReq,LevelReq,Unit
 279042,"Xan Right Arm Symbiant, Infantry Unit Beta",300,11,1870,201,Infantry
 279003,"Xan Right Arm Symbiant, Support Unit Alpha",300,11,2088,219,Support
 279055,"Xan Right Arm Symbiant, Support Unit Beta",300,11,1870,201,Support
-278915,"Xan Right Hand Symbiant, Artillery Unit",300,13,2088,219,Artillery
 278952,"Xan Right Hand Symbiant, Artillery Unit Alpha",300,13,2088,219,Artillery
 278900,"Xan Right Hand Symbiant, Artillery Unit Beta",300,13,1870,201,Artillery
 278965,"Xan Right Hand Symbiant, Control Unit Alpha",300,13,2088,219,Control
@@ -1428,7 +1418,6 @@ ID,Name,QL,SlotID,TreatmentReq,LevelReq,Unit
 279043,"Xan Right Hand Symbiant, Infantry Unit Beta",300,13,1870,201,Infantry
 279004,"Xan Right Hand Symbiant, Support Unit Alpha",300,13,2088,219,Support
 279056,"Xan Right Hand Symbiant, Support Unit Beta",300,13,1870,201,Support
-278916,"Xan Right Wrist Symbiant, Artillery Unit",300,12,2088,219,Artillery
 278953,"Xan Right Wrist Symbiant, Artillery Unit Alpha",300,12,2088,219,Artillery
 278901,"Xan Right Wrist Symbiant, Artillery Unit Beta",300,12,1870,201,Artillery
 278966,"Xan Right Wrist Symbiant, Control Unit Alpha",300,12,2088,219,Control
@@ -1439,7 +1428,6 @@ ID,Name,QL,SlotID,TreatmentReq,LevelReq,Unit
 279044,"Xan Right Wrist Symbiant, Infantry Unit Beta",300,12,1870,201,Infantry
 279005,"Xan Right Wrist Symbiant, Support Unit Alpha",300,12,2088,219,Support
 279057,"Xan Right Wrist Symbiant, Support Unit Beta",300,12,1870,201,Support
-278918,"Xan Thigh Symbiant, Artillery Unit",300,6,2088,219,Artillery
 278955,"Xan Thigh Symbiant, Artillery Unit Alpha",300,6,2088,219,Artillery
 278903,"Xan Thigh Symbiant, Artillery Unit Beta",300,6,1870,201,Artillery
 278968,"Xan Thigh Symbiant, Control Unit Alpha",300,6,2088,219,Control
@@ -1450,7 +1438,6 @@ ID,Name,QL,SlotID,TreatmentReq,LevelReq,Unit
 279046,"Xan Thigh Symbiant, Infantry Unit Beta",300,6,1870,201,Infantry
 279007,"Xan Thigh Symbiant, Support Unit Alpha",300,6,2088,219,Support
 279059,"Xan Thigh Symbiant, Support Unit Beta",300,6,1870,201,Support
-278917,"Xan Waist Symbiant, Artillery Unit",300,5,2088,219,Artillery
 278954,"Xan Waist Symbiant, Artillery Unit Alpha",300,5,2088,219,Artillery
 278902,"Xan Waist Symbiant, Artillery Unit Beta",300,5,1870,201,Artillery
 278967,"Xan Waist Symbiant, Control Unit Alpha",300,5,2088,219,Control
@@ -1461,3 +1448,16 @@ ID,Name,QL,SlotID,TreatmentReq,LevelReq,Unit
 279045,"Xan Waist Symbiant, Infantry Unit Beta",300,5,1870,201,Infantry
 279006,"Xan Waist Symbiant, Support Unit Alpha",300,5,2088,219,Support
 279058,"Xan Waist Symbiant, Support Unit Beta",300,5,1870,201,Support
+305507,"Vision of the Heretic",1,1,1900,210,""
+305508,"Keeper's Vigor",1,5,1900,210,""
+305509,"Inner Peace",1,4,1900,210,""
+305510,"Nematet's Third Eye",1,1,1900,210,""
+305511,"Blessing of the Gripper",1,11,1900,210,""
+305513,"Notum Graft",1,9,1950,210,""
+204613,"Nematet's Inner Eye",1,1,385,1,""
+204647,"Skull of the Ancient",1,2,403,1,""
+204649,"Notum Splice",1,9,380,1,""
+204650,"Keeper's Vitality",1,5,380,1,""
+204651,"Touch of the Gripper",1,11,380,1,""
+206246,"The Primeval Skull",1,2,1003,150,""
+206247,"Fist of the Dominator",1,9,1003,150,""
