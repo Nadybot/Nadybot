@@ -13,6 +13,7 @@ id,name
 276,"Added to all Offensive Rolls"
 276,AAO
 281,"Added to Chemical Damage"
+281,"Added to Chemical Damage"
 311,"Added to Cold Damage"
 280,"Added to Energy Damage"
 316,"Added to Fire Damage"
@@ -24,13 +25,14 @@ id,name
 282,"Added to Radiation Damage"
 319,"Percentage Additional Experience"
 137,"Outdoor Adventuring"
-116,"Assault Rifle"
+116,"Assault Rif"
 128,"Biological Metamorphosis"
 128,BM
 152,"Body Development"
 152,Bodydev
 121,"Bow Special Attack"
 165,"Breaking and Entering"
+165,"Breaking and Entry"
 165,B&E
 93,"Chemical Armor-Class"
 95,"Cold Armor-Class"
@@ -68,6 +70,7 @@ id,name
 168,"Nano Resistance"
 136,"Perception and Spotting"
 159,"Pharmacological Technology"
+159,"Pharmaceuticals"
 120,"Physical Prowess and Martial Arts Initiative"
 106,"Piercing Weapons"
 129,"Psychological Modifications"
@@ -79,15 +82,19 @@ id,name
 133,"Ranged Energy Weapons"
 119,"Ranged Weapons Initiative"
 381,RangeIncreaserNF
+381,"Add Nano Range"
 380,RangeIncreaserWeapon
+380,"Add Weapon Range"
 113,"Rifle and Sniper-Rifle"
 122,"Sensory Improvement and Modification"
 122,SI
 108,"Knife or Sharp Object Throwing"
+108,"Sharp Objects"
 146,"Sneak Attack"
 131,"Time and Space Alteration"
 131,TS
 135,"Trap Disarmament"
+135,"Trap Disarming"
 139,"Vehicle Navigation, Airborne"
 166,"Vehicle Navigation, Ground"
 117,"Vehicle Navigation, Water"
