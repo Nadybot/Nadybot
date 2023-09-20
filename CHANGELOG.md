@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added S42 loot with `!42 west|north|east|boss` and `!apf 42 west|north|eatt|boss`
 - Add new command `!group` to group people into equally-sized groups.
 - New command `!symbbuffs <skill>` to search for symbiants buffing a given skill.
+- Add new setting to only give timer-based raid-points if the raid is locked.
 
 ### Changed
 

@@ -128,6 +128,9 @@ class RaidController extends ModuleInstance {
 	public CommentController $commentController;
 
 	#[NCA\Inject]
+	public RaidPointsController $raidPointsController;
+
+	#[NCA\Inject]
 	public RaidRankController $raidRankController;
 
 	#[NCA\Inject]
@@ -553,7 +556,11 @@ class RaidController extends ModuleInstance {
 		}
 		$this->raid->locked = true;
 		$this->logRaidChanges($this->raid);
-		$this->routeMessage("lock", "{$context->char->name} <off>locked<end> the raid.");
+		$lockMessage = "{$context->char->name} <off>locked<end> the raid.";
+		if ($this->raidPointsController->raidTickerRequiresLock) {
+			$lockMessage .= " Raid point ticker is now <highlight>running<end>.";
+		}
+		$this->routeMessage("lock", $lockMessage);
 		$event = new RaidEvent($this->raid);
 		$event->type = "raid(lock)";
 		$event->player = $context->char->name;
@@ -580,7 +587,11 @@ class RaidController extends ModuleInstance {
 		}
 		$this->raid->locked = false;
 		$this->logRaidChanges($this->raid);
-		$this->routeMessage("unlock", "{$context->char->name} <on>unlocked<end> the raid.");
+		$unlockMessage = "{$context->char->name} <on>unlocked<end> the raid.";
+		if ($this->raidPointsController->raidTickerRequiresLock) {
+			$unlockMessage .= " Raid point ticker is <highlight>paused<end>.";
+		}
+		$this->routeMessage("unlock", $unlockMessage);
 		$event = new RaidEvent($this->raid);
 		$event->type = "raid(unlock)";
 		$event->player = $context->char->name;
