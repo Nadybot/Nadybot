@@ -522,7 +522,7 @@ class LootListsController extends ModuleInstance {
 	): void {
 		$key = 'Sector 42 ' . ucfirst(strtolower($side));
 		$blob = $this->findRaidLoot('APF', $key, $context);
-		$msg = $this->text->makeBlob("Beast Loot", $blob);
+		$msg = $this->text->makeBlob("{$key} Loot", $blob);
 		$context->reply($msg);
 	}
 
@@ -761,6 +761,7 @@ class LootListsController extends ModuleInstance {
 		$blob = "\n<pagebreak><header2>{$category}<end>\n\n";
 		$showLootPics = $this->showRaidLootPics;
 		foreach ($loot as $row) {
+			/** @var RaidLootSearch $row */
 			$actions = [];
 			if ($lootEnabled) {
 				$actions []= $this->text->makeChatcmd(
@@ -771,7 +772,7 @@ class LootListsController extends ModuleInstance {
 			if ($lootEnabled && $auctionsEnabled) {
 				$actions []= $this->text->makeChatcmd(
 					"auction",
-					"/tell <myname> auction start {$row->name}"
+					"/tell <myname> loot auction {$row->id}"
 				);
 			}
 			if (isset($row->item)) {
