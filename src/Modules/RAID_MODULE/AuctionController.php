@@ -164,6 +164,19 @@ class AuctionController extends ModuleInstance {
 	])]
 	public int $auctionWinnerAnnouncement = 1;
 
+	/** Message to show when no one bid on an item */
+	#[NCA\Setting\Template(
+		options: [
+			"Auction is over. No one placed any bids. Do not loot it.",
+			"Auction is over. No one placed any bids. The item is <highlight>FFA<end>!",
+			"Auction is over. No one placed any bids. {item} is <highlight>FFA<end>!",
+		],
+		exampleValues: [
+			"item" => "<a href='itemref://267528/267528/300'>Item</a>",
+		],
+	)]
+	public string $unauctionedItemMessage = "Auction is over. No one placed any bids. Do not loot it.";
+
 	public ?Auction $auction = null;
 	protected ?string $auctionTimer = null;
 	protected ?int $auctionEnds = null;
@@ -708,7 +721,13 @@ class AuctionController extends ModuleInstance {
 	)]
 	public function announceAuctionWinner(AuctionEvent $event): void {
 		if ($event->auction->top_bidder === null) {
-			$this->routeMessage("end", "Auction is over. No one placed any bids. Do not loot it.");
+			$msg = $this->text->renderPlaceholders(
+				$this->unauctionedItemMessage,
+				[
+					"item" => $event->auction->item->item,
+				]
+			);
+			$this->routeMessage("end", $msg);
 			return;
 		}
 		$points = "point" . (($event->auction->bid > 1) ? "s" : "");

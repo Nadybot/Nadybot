@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add new command `!group` to group people into equally-sized groups.
 - New command `!symbbuffs <skill>` to search for symbiants buffing a given skill.
 - Add new setting to only give timer-based raid-points if the raid is locked.
+- Allow configuring the auction-message when no one bid on the item.
 
 ### Changed
 
