@@ -111,7 +111,11 @@ class ImplantDesignerController extends ModuleInstance {
 				} else {
 					$name .= " {$refined}Cluster";
 				}
-				$name .= " (QL " . $this->implantController->getClusterMinQl($ql, $grade) . "+)";
+				$clusterQL = $this->implantController->getClusterMinQl($ql, $grade);
+				if ($ql > 200 && $clusterQL < 201) {
+					$clusterQL = 201;
+				}
+				$name .= " (QL {$clusterQL}+)";
 				$listGrade = "{$grade}Clusters";
 				$list->{$listGrade} []= $name;
 				$addImp = true;
@@ -735,6 +739,8 @@ class ImplantDesignerController extends ModuleInstance {
 		$blob = $this->text->makeChatcmd("Results", "/tell <myname> implantdesigner results");
 		$blob .= "<tab>";
 		$blob .= $this->text->makeChatcmd("Clear All", "/tell <myname> implantdesigner clear");
+		$blob .= "<tab>";
+		$blob .= $this->text->makeChatcmd("Shopping List", "/tell <myname> implantshoppinglist");
 		$blob .= "\n-----------------\n\n";
 
 		foreach ($this->slots as $slot) {
