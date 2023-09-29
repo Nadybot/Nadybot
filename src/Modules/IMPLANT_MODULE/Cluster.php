@@ -8,6 +8,7 @@ class Cluster extends DBRow {
 	public int $ClusterID;
 	public int $EffectTypeID;
 	public string $LongName;
+	public string $OfficialName;
 	public int $NPReq;
 	public int $SkillID;
 }
