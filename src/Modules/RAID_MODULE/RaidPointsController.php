@@ -163,6 +163,9 @@ class RaidPointsController extends ModuleInstance {
 		if ($this->raidTickerRequiresLock && !$raid->locked) {
 			return;
 		}
+		if ($raid->ticker_paused) {
+			return;
+		}
 		$raid->last_award_from_ticker = time();
 		foreach ($raid->raiders as $raider) {
 			if ($raider->left !== null) {

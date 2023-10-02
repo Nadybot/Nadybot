@@ -28,4 +28,7 @@ class RaidLog extends DBRow {
 	 * If 0 or NULL, this is not limited
 	 */
 	public ?int $max_members = null;
+
+	/** If set, then no points will be awarded until resumed */
+	public bool $ticker_paused = false;
 }
