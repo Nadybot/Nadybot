@@ -210,7 +210,7 @@ class LootListsController extends ModuleInstance {
 	 */
 	#[NCA\HandlesCommand("alb")]
 	public function albCommand(CmdContext $context): void {
-		$blob = $this->findRaidLoot('Albtraum', 'Crystals & Crystalised Memories', $context);
+		$blob = $this->findRaidLoot('Albtraum', 'Crystals & Crystallised Memories', $context);
 		$blob .= $this->findRaidLoot('Albtraum', 'Ancients', $context);
 		$blob .= $this->findRaidLoot('Albtraum', 'Samples', $context);
 		$blob .= $this->findRaidLoot('Albtraum', 'Rings and Preservation Units', $context);

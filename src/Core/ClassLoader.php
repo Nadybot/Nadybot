@@ -260,7 +260,7 @@ class ClassLoader {
 		return true;
 	}
 
-	/** Check if the module in $path is compatble with this Nadybot version */
+	/** Check if the module in $path is compatible with this Nadybot version */
 	private function isModuleCompatible(string $path): bool {
 		if (!@file_exists("{$path}/aopkg.toml")) {
 			return true;

@@ -1,5 +1,5 @@
 Name: Jobe Armor Tier 3 ( Chosen / Faithfull )
-Author: 
+Author:
 </font><font color=#FFFF00>------------------------------
 </font><font color=#FF0000>Ingredients</font><font color=#009B00>
 </font><font color=#FFFF00>------------------------------</font><font color=#009B00>
@@ -86,4 +86,4 @@ Clan: #L "Insignia of the Faithful" "229043"
 </font><font color=#FF0000>Comments</font><font color=#FFFF00>
 </font><font color=#FFFF00>------------------------------</font><font color=#009B00>
 
-You have now fully ugraded your Jobe armor... congratulations!
+You have now fully upgraded your Jobe armor... congratulations!
