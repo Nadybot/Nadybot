@@ -4,10 +4,10 @@ on: [push, pull_request]
 jobs:
   codespell:
     name: Codespell
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     steps:
         - name: Checkout sources
-          uses: actions/checkout@v2.2.0
+          uses: actions/checkout@v4
 
         - name: Run Codespell
           uses: codespell-project/actions-codespell@master

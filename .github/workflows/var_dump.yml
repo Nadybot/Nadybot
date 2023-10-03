@@ -6,7 +6,7 @@ jobs:
     runs-on: ubuntu-latest
     name: Check for forgotten var_dumps
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
     - uses: umutphp/php-var-dump-check-action@v1
       with:
         checktype: 'none'

@@ -1,15 +1,15 @@
 name: Create release bundle
-on:
-  release:
-    types: [published]
+on: push
+  # release:
+  #   types: [published]
 
 jobs:
   build:
     name: Create vendor bundle
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
       - name: Checkout sources
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
       - name: Install dependencies
         shell: bash
         run: |
@@ -29,11 +29,12 @@ jobs:
           mv nadybot-bundle-${{ github.event.release.tag_name }}.zip Nadybot/
       - name: Upload Release Asset
         id: upload-release-asset
-        uses: actions/upload-release-asset@v1
+        uses: softprops/action-gh-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          upload_url: ${{ github.event.release.upload_url }}
-          asset_path: ./nadybot-bundle-${{ github.event.release.tag_name }}.zip
-          asset_name: nadybot-bundle-${{ github.event.release.tag_name }}.zip
-          asset_content_type: application/zip
+          files: nadybot-bundle-${{ github.event.release.tag_name }}.zip
+          # upload_url: ${{ github.event.release.upload_url }}
+          # asset_path: ./nadybot-bundle-${{ github.event.release.tag_name }}.zip
+          # asset_name: nadybot-bundle-${{ github.event.release.tag_name }}.zip
+          # asset_content_type: application/zip
