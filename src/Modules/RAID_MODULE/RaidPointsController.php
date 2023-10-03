@@ -126,6 +126,10 @@ class RaidPointsController extends ModuleInstance {
 	#[NCA\Setting\Boolean]
 	public bool $raidRewardRequiresLock = false;
 
+	/** Give time-based raid points only when the raid is locked */
+	#[NCA\Setting\Boolean]
+	public bool $raidTickerRequiresLock = false;
+
 	/** Allow raid rewards/penalties only with pre-defined rewards */
 	#[NCA\Setting\Boolean]
 	public bool $raidRewardPredefinedOnly = false;
@@ -154,6 +158,12 @@ class RaidPointsController extends ModuleInstance {
 			|| $raid->seconds_per_point === 0
 			|| (time() - $raid->last_award_from_ticker) < $raid->seconds_per_point
 		) {
+			return;
+		}
+		if ($this->raidTickerRequiresLock && !$raid->locked) {
+			return;
+		}
+		if ($raid->ticker_paused) {
 			return;
 		}
 		$raid->last_award_from_ticker = time();

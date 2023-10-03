@@ -75,7 +75,7 @@ class GreetController extends ModuleInstance {
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
 
-	/** How often to consider the greet propability when someone joins */
+	/** How often to consider the greet probability when someone joins */
 	#[NCA\Setting\Number(
 		options: [
 			"off" => 0,
@@ -87,7 +87,7 @@ class GreetController extends ModuleInstance {
 	)]
 	public int $greetFrequency = 1;
 
-	/** Propability that someone gets greeted when the greet frequency matches */
+	/** Probability that someone gets greeted when the greet frequency matches */
 	#[NCA\Setting\Number(
 		options: [
 			"off" => 0,

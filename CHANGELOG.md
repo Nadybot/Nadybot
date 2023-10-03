@@ -14,15 +14,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add new settings to allow automatically sending random greetings to players joining the private channel.
 - Add option to set a directory for dynamic commands. These are merely text files or directories with text files.
 - Wishes can now have an expiration. Per wish and a global maximum.
+- Added S42 loot with `!42 west|north|east|boss` and `!apf 42 west|north|eatt|boss`
+- Add new command `!group` to group people into equally-sized groups.
+- New command `!symbbuffs <skill>` to search for symbiants buffing a given skill.
+- Add new setting to only give timer-based raid-points if the raid is locked.
+- Allow configuring the auction-message when no one bid on the item.
+- Add the total required nanoskill to cast all those in `!bestnanos`
+- New command `!implantshoppinglist` to get a list which implants and clusters to buy at which QL.
+- Add new option `pause` and `resume` to `!raid ticker`. This allows to pause and resume the generation of time-based points. The default state can also be configured with a new setting.
+- Add new setting `bid_presets` to allow setting pre-defined bid-values that are being shown in the auction information window.
 
 ### Changed
 
 - Adding an org to the banlist will now automatically kick any members from the bot's private channel.
 - `!roll` can now also roll items, not only player names.
+- `!cluster` now uses the same skill aliases as `!whatbuffs`.
+- Add TOTW, IS, and TOTW-Raid symbiants to the symbiant DB.
 
 ### Fix
 
-- The `!points add <points> <char> <reason>` syntax works again
+- The `!points add <points> <char> <reason>` syntax works again.
+- `!points spp` did not set the timer, now it does.
+- Fix auction links in the LOOT_MODULE.
 
 ## [6.2.5] - 2023-08-16
 

@@ -1,5 +1,5 @@
 name: Create nightly release bundle
-on:  
+on:
   push:
   pull_request:
   schedule:
@@ -9,10 +9,10 @@ on:
 jobs:
   build:
     name: Create vendor bundle
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout sources
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
       - name: Install dependencies
         shell: bash
         run: |
@@ -26,7 +26,7 @@ jobs:
           mv nadybot-bundle-nightly.zip Nadybot/
 
       - name: Upload Release Asset
-        uses: WebFreak001/deploy-nightly@v1.1.0
+        uses: WebFreak001/deploy-nightly@v2.0.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # automatically provided by github actions
         with:

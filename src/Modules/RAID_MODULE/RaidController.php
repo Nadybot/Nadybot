@@ -128,6 +128,9 @@ class RaidController extends ModuleInstance {
 	public CommentController $commentController;
 
 	#[NCA\Inject]
+	public RaidPointsController $raidPointsController;
+
+	#[NCA\Inject]
 	public RaidRankController $raidRankController;
 
 	#[NCA\Inject]
@@ -159,6 +162,10 @@ class RaidController extends ModuleInstance {
 	/** Give raid points based on duration of participation */
 	#[NCA\Setting\Boolean(accessLevel: 'raid_admin_2')]
 	public bool $raidPointsForTime = false;
+
+	/** Start ticker-based raids with the ticker paused */
+	#[NCA\Setting\Boolean(accessLevel: 'raid_admin_2')]
+	public bool $raidTickerStartPaused = false;
 
 	/** Point rate, in seconds */
 	#[NCA\Setting\Time(accessLevel: 'raid_admin_2')]
@@ -245,8 +252,20 @@ class RaidController extends ModuleInstance {
 			"<tab>Status: {$status}\n";
 		if ($this->raid->seconds_per_point > 0) {
 			$blob .= "<tab>Points: <highlight>1 raid point every ".
-				$this->util->unixtimeToReadable($this->raid->seconds_per_point).
-				"<end>\n";
+				$this->util->unixtimeToReadable($this->raid->seconds_per_point);
+			if ($this->raid->ticker_paused) {
+				$blob .= " (<red>paused<end>)";
+			} else {
+				$blob .= " (<green>ticking<end>)";
+			}
+			if ($this->raidPointsController->raidTickerRequiresLock && !$this->raid->locked) {
+				$blob .= " (<red>not locked<end>)";
+			}
+			$sppCmd = $this->text->makeChatcmd("pause", "/tell <myname> raid spp pause");
+			if ($this->raid->ticker_paused) {
+				$sppCmd = $this->text->makeChatcmd("resume", "/tell <myname> raid spp resume");
+			}
+			$blob .= " [{$sppCmd}]\n";
 		} else {
 			$blob .= "<tab>Points: <highlight>Given for each kill by the raid leader(s)<end>\n";
 		}
@@ -281,7 +300,7 @@ class RaidController extends ModuleInstance {
 				$blob .= " [".
 					$this->text->makeChatcmd(
 						"enable ticker",
-						"/tell <myname> raid spp {$sppDefault}"
+						"/tell <myname> raid spp {$sppDefault}s"
 					).
 					"]";
 			}
@@ -476,12 +495,16 @@ class RaidController extends ModuleInstance {
 		$this->eventManager->fireEvent($event);
 	}
 
-	/** Change the interval for getting a participation raid point, 'off' to turn it off */
+	/**
+	 * Change the interval for getting a participation raid point,
+	 * 'off' to switch to manual rewarding,
+	 * 'pause' to pause and 'resume' to resume the ticker
+	 */
 	#[NCA\HandlesCommand(self::CMD_RAID_TICKER)]
 	public function raidChangeSppCommand(
 		CmdContext $context,
 		#[NCA\Str("ticker", "spp")] string $action,
-		#[NCA\PDuration] #[NCA\Str("off")] string $interval
+		#[NCA\PDuration] #[NCA\StrChoice("off", "pause", "resume")] string $interval
 	): void {
 		if (!isset($this->raid)) {
 			$context->reply(static::ERR_NO_RAID);
@@ -489,14 +512,20 @@ class RaidController extends ModuleInstance {
 		}
 		if ($interval === "off") {
 			$this->raid->seconds_per_point = 0;
-			$context->reply("Raid ticker turned off.");
+			$context->reply("Raid ticker turned off. Points are now given via rewards by the raid leader(s).");
+		} elseif ($interval === "pause") {
+			$this->raid->ticker_paused = true;
+			$context->reply("Raid ticker paused.");
+		} elseif ($interval === "resume") {
+			$this->raid->ticker_paused = false;
+			$context->reply("Raid ticker resumed.");
 		} else {
 			$spp = $this->util->parseTime($interval);
 			if ($spp === 0) {
 				$context->reply("Invalid interval: {$interval}.");
 				return;
 			}
-			$this->raid->seconds_per_point = 0;
+			$this->raid->seconds_per_point = $spp;
 			$context->reply("Raid seconds per point changed.");
 		}
 		$this->logRaidChanges($this->raid);
@@ -553,7 +582,15 @@ class RaidController extends ModuleInstance {
 		}
 		$this->raid->locked = true;
 		$this->logRaidChanges($this->raid);
-		$this->routeMessage("lock", "{$context->char->name} <off>locked<end> the raid.");
+		$lockMessage = "{$context->char->name} <off>locked<end> the raid.";
+		if ($this->raidPointsController->raidTickerRequiresLock) {
+			if ($this->raid->ticker_paused) {
+				$lockMessage .= " Raid point ticker is still <highlight>paused<end>.";
+			} else {
+				$lockMessage .= " Raid point ticker is now <highlight>running<end>.";
+			}
+		}
+		$this->routeMessage("lock", $lockMessage);
 		$event = new RaidEvent($this->raid);
 		$event->type = "raid(lock)";
 		$event->player = $context->char->name;
@@ -580,7 +617,11 @@ class RaidController extends ModuleInstance {
 		}
 		$this->raid->locked = false;
 		$this->logRaidChanges($this->raid);
-		$this->routeMessage("unlock", "{$context->char->name} <on>unlocked<end> the raid.");
+		$unlockMessage = "{$context->char->name} <on>unlocked<end> the raid.";
+		if ($this->raidPointsController->raidTickerRequiresLock) {
+			$unlockMessage .= " Raid point ticker is <highlight>not running while unlocked<end>.";
+		}
+		$this->routeMessage("unlock", $unlockMessage);
 		$event = new RaidEvent($this->raid);
 		$event->type = "raid(unlock)";
 		$event->player = $context->char->name;
@@ -926,6 +967,7 @@ class RaidController extends ModuleInstance {
 				"raid_id" => $raid->raid_id,
 				"description" => $raid->description,
 				"seconds_per_point" => $raid->seconds_per_point,
+				"ticker_paused" => $raid->ticker_paused,
 				"locked" => $raid->locked,
 				"time" => time(),
 				"announce_interval" => $raid->announce_interval,
@@ -1024,6 +1066,7 @@ class RaidController extends ModuleInstance {
 				"started_by" => $raid->started_by,
 				"announce_interval" => $raid->announce_interval,
 				"max_members" => $raid->max_members,
+				"ticker_paused" => $raid->ticker_paused,
 			], "raid_id");
 		$this->raid = $raid;
 		$event = new RaidEvent($raid);
@@ -1182,6 +1225,7 @@ class RaidController extends ModuleInstance {
 		if ($this->raidPointsForTime) {
 			$raid->seconds_per_point = $this->raidPointsInterval;
 		}
+		$raid->ticker_paused = $this->raidTickerStartPaused;
 		$this->startRaid($raid);
 		if ($this->raidAutoAddCreator) {
 			$this->raidMemberController->joinRaid($context->char->name, $context->char->name, $context->source, false);
@@ -1237,7 +1281,16 @@ class RaidController extends ModuleInstance {
 		} else {
 			$blob .= "<highlight>1 point every ".
 				$this->util->unixtimeToReadable($raid->seconds_per_point).
-				"<end>\n";
+				"<end>";
+			if ($raid->ticker_paused) {
+				$blob .= " (<red>paused<end>)";
+			} else {
+				$blob .= " (<green>ticking<end>)";
+			}
+			if ($this->raidPointsController->raidTickerRequiresLock && !$raid->locked) {
+				$blob .= " (<red>not locked<end>)";
+			}
+			$blob .= "\n";
 		}
 		return $blob;
 	}

@@ -164,6 +164,27 @@ class AuctionController extends ModuleInstance {
 	])]
 	public int $auctionWinnerAnnouncement = 1;
 
+	/** Message to show when no one bid on an item */
+	#[NCA\Setting\Template(
+		options: [
+			"Auction is over. No one placed any bids. Do not loot it.",
+			"Auction is over. No one placed any bids. The item is <highlight>FFA<end>!",
+			"Auction is over. No one placed any bids. {item} is <highlight>FFA<end>!",
+		],
+		exampleValues: [
+			"item" => "<a href='itemref://267528/267528/300'>Item</a>",
+		],
+	)]
+	public string $unauctionedItemMessage = "Auction is over. No one placed any bids. Do not loot it.";
+
+	/**
+	 * A list of suggested bids for the auction popup
+	 *
+	 * @var string[]
+	 */
+	#[NCA\Setting\ArrayOfText]
+	public array $bidPresets = [];
+
 	public ?Auction $auction = null;
 	protected ?string $auctionTimer = null;
 	protected ?int $auctionEnds = null;
@@ -629,7 +650,7 @@ class AuctionController extends ModuleInstance {
 	}
 
 	public function getBiddingInfo(): string {
-		return "<header2>Placing a bid<end>\n".
+		$info = "<header2>Placing a bid<end>\n".
 			"To place a bid, use\n".
 			"<tab><highlight>/tell " . $this->chatBot->char->name . " bid &lt;points&gt;<end>\n".
 			"<i>(Replace &lt;points&gt; with the number of points you would like to bid)</i>\n\n".
@@ -644,6 +665,17 @@ class AuctionController extends ModuleInstance {
 			"When 2 people are bidding the same amount for an item, the first person ".
 			"placing the bid will get the item.\n".
 			"Slowly increasing your bid might cost you points!";
+		if (!empty($this->bidPresets)) {
+			$info .= "\n\nBid points: ";
+			$links = array_map(
+				function (string $amount): string {
+					return "[" . $this->text->makeChatcmd($amount, "/tell <myname> bid {$amount}") . "]";
+				},
+				$this->bidPresets,
+			);
+			$info .= join(" ", $links);
+		}
+		return $info;
 	}
 
 	/**
@@ -708,7 +740,13 @@ class AuctionController extends ModuleInstance {
 	)]
 	public function announceAuctionWinner(AuctionEvent $event): void {
 		if ($event->auction->top_bidder === null) {
-			$this->routeMessage("end", "Auction is over. No one placed any bids. Do not loot it.");
+			$msg = $this->text->renderPlaceholders(
+				$this->unauctionedItemMessage,
+				[
+					"item" => $event->auction->item->item,
+				]
+			);
+			$this->routeMessage("end", $msg);
 			return;
 		}
 		$points = "point" . (($event->auction->bid > 1) ? "s" : "");

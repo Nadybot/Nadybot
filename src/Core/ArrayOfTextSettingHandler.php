@@ -17,11 +17,18 @@ class ArrayOfTextSettingHandler extends SettingHandler {
 		$msg = "For this setting you can enter any amount of text values you want, separated by a pipe (|)\n";
 		$msg .= "To change this setting:\n\n";
 		$msg .= "<highlight>/tell <myname> settings save {$this->row->name} <i>text</i><end>\n\n";
+		$msg .= "To set an empty value:\n\n";
+		$msg .= "<highlight>/tell <myname> settings save {$this->row->name} ---<end> [".
+			$this->text->makeChatcmd("clear", "/tell <myname> settings save {$this->row->name} ---").
+			"]\n\n";
 		return $msg;
 	}
 
 	/** @inheritDoc */
 	public function save(string $newValue): string {
+		if ($newValue === "---") {
+			$newValue = "";
+		}
 		return $newValue;
 	}
 

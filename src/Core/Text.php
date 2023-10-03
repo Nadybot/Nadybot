@@ -337,6 +337,9 @@ class Text {
 	 */
 	public function alignNumber(?int $number, int $digits, ?string $colortag=null, bool $grouping=false): string {
 		if ($number === null) {
+			if ($grouping) {
+				$digits += floor($digits / 3);
+			}
 			return sprintf("<black>%0{$digits}d<end>", 0);
 		}
 		$prefixedNumber = sprintf("%0{$digits}d", $number);

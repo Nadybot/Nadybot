@@ -13,6 +13,7 @@ class CreateClusterTable implements SchemaMigration {
 			$table->integer("ClusterID")->primary();
 			$table->integer("EffectTypeID");
 			$table->string("LongName", 50);
+			$table->string("OfficialName", 100);
 			$table->integer("NPReq");
 			$table->integer("SkillID")->nullable();
 		});

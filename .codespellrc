@@ -1,4 +1,4 @@
 [codespell]
 skip = .vscode,debian,data,cache,logs,vendor,html,*.git*,tags,*.sql,50.txt,*.csv,*.temp
-ignore-words-list = ot,ether,vektor,keep-alives,ist,fulfilment,fulfil,fullfil,fulfill,fullfill,hastable,ore,counsil,offen,thar,spacial,pris
+ignore-words-list = ot,ether,vektor,keep-alives,ist,fulfilment,fulfil,fullfil,fulfill,fullfill,hastable,ore,counsil,offen,thar,spacial,pris,crystalised,crystalized
 ignore-regex = ([\'"]/.+|\WND\W|\W!nd\W)

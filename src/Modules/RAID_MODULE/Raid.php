@@ -34,7 +34,7 @@ class Raid extends DBRow {
 	#[NCA\DB\Ignore]
 	public int $last_announcement = 0;
 
-	/** Is the raid currently locked and joining as forbidden? */
+	/** Is the raid currently locked and joining is forbidden? */
 	public bool $locked = false;
 
 	/** UNIX timestamp when this raid/raid part was started */
@@ -54,6 +54,9 @@ class Raid extends DBRow {
 	 * If 0 or NULL, this is not limited
 	 */
 	public ?int $max_members = null;
+
+	/** If set, then no points will be awarded until resumed */
+	public bool $ticker_paused = false;
 
 	/**
 	 * List of all players who are or were in the raid
