@@ -475,9 +475,12 @@ class BanController extends ModuleInstance {
 			->where("charid", $charId)
 			->delete();
 
-		$this->uploadBanlist();
+		if ($deleted === 0) {
+			return  false;
+		}
+		unset($this->banlist[$charId]);
 
-		return $deleted >= 1;
+		return true;
 	}
 
 	/** Sync the banlist from the database */
@@ -488,13 +491,15 @@ class BanController extends ModuleInstance {
 			->orderBy("time")
 			->asObj(BanEntry::class);
 
+		$bannedUids = $bans->pluck("charid")->toArray();
 		/** @var Collection<int,NameHistory> */
-		$names = $this->db->table("name_history")
-			->where("dimension", $this->db->getDim())
-			->orderBy("dt")
+		$names = $this->db->table("banlist_<myname>", "bl")
+			->join("name_history AS nh", "bl.charid", "nh.charid")
+			->where("nh.dimension", $this->db->getDim())
+			->orderBy("nh.dt")
+			->select("nh.*")
 			->asObj(NameHistory::class)
 			->keyBy("charid");
-		$bannedUids = $bans->pluck("charid")->toArray();
 
 		/** @var Collection<int,Player> */
 		$players = $this->playerManager
