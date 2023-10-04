@@ -269,6 +269,84 @@ class WorldBossController extends ModuleInstance {
 	])]
 	public int $worldbossShowSpawn = self::SPAWN_EVENT;
 
+	/** Message to send to inform about upcoming spawn */
+	#[NCA\Setting\Template(
+		options: [
+			"{c-mob-name} will spawn in {c-next-spawn}.",
+			"{c-mob-name} will spawn in {c-next-spawn}{?immortal: and stay immortal for {c-immortal}}."
+		],
+		help: 'will_spawn_text.txt',
+		exampleValues: [
+			"c-mob-name" => "<highlight>Tarasque<end>",
+			"mob-name" => "Tarasque",
+			"c-next-spawn" => "<highlight>15 minutes<end>",
+			"next-spawn" => "15 minutes",
+			"immortal" => "30 minutes",
+			"c-immortal" => "<highlight>30 minutes<end>",
+		],
+	)]
+	public string $willSpawnText = "{c-mob-name} will spawn in {c-next-spawn}.";
+
+	/** Message to send to inform about a spawn that should be any time now */
+	#[NCA\Setting\Template(
+		options: [
+			"{c-mob-name} should spawn any time now.",
+			"{c-mob-name} should spawn any time now{?immortal: and will be immortal for {c-immortal}}.",
+		],
+		help: 'should_spawn_text.txt',
+		exampleValues: [
+			"c-mob-name" => "<highlight>Tarasque<end>",
+			"mob-name" => "Tarasque",
+			"c-immortal" => "<highlight>30 minutes<end>",
+			"immortal" => "30 minutes",
+		],
+	)]
+	public string $shouldSpawnText = "{c-mob-name} should spawn any time now".
+		"{?immortal: and will be immortal for {c-immortal}}.";
+
+	/** Message to send to inform about a spawn that has happened right now */
+	#[NCA\Setting\Template(
+		options: [
+			"{c-mob-name} has spawned.",
+			"{c-mob-name} has spawned{?immortal: and will be vulnerable in {c-immortal}}.",
+		],
+		help: 'has_spawned_text.txt',
+		exampleValues: [
+			"c-mob-name" => "<highlight>Tarasque<end>",
+			"mob-name" => "Tarasque",
+			"c-immortal" => "<highlight>30 minutes<end>",
+			"immortal" => "30 minutes",
+		],
+	)]
+	public string $hasSpawnedText = "{c-mob-name} has spawned".
+		"{?immortal: and will be vulnerable in {c-immortal}}.";
+
+	/** Message to send if a worldboss should no longer be immortal */
+	#[NCA\Setting\Template(
+		options: [
+			"{c-mob-name} should no longer be immortal.",
+		],
+		help: 'should_vulnerable_text.txt',
+		exampleValues: [
+			"c-mob-name" => "<highlight>Tarasque<end>",
+			"mob-name" => "Tarasque",
+		],
+	)]
+	public string $shouldVulnerableText = "{c-mob-name} should no longer be immortal.";
+
+	/** Message to send if a worldboss is no longer immortal */
+	#[NCA\Setting\Template(
+		options: [
+			"{c-mob-name} is no longer immortal.",
+		],
+		help: 'is_vulnerable_text.txt',
+		exampleValues: [
+			"c-mob-name" => "<highlight>Tarasque<end>",
+			"mob-name" => "Tarasque",
+		],
+	)]
+	public string $isVulnerableText = "{c-mob-name} is no longer immortal.";
+
 	/** @var WorldBossTimer[] */
 	public array $timers = [];
 
@@ -619,9 +697,19 @@ class WorldBossController extends ModuleInstance {
 		$showSpawn = $this->worldbossShowSpawn;
 		foreach ($timers as $timer) {
 			$invulnerableTime = $timer->killable - $timer->spawn;
+			$tokens = [
+				"mob-name" => $timer->mob_name,
+				"c-mob-name" => "<highlight>{$timer->mob_name}<end>",
+			];
+			$invulnDuration = static::BOSS_DATA[$timer->mob_name][static::IMMORTAL];
+			if (isset($invulnDuration)) {
+				$tokens["immortal"] = $this->util->unixtimeToReadable($invulnDuration);
+				$tokens["c-immortal"] = "<highlight>" . $tokens["immortal"] . "<end>";
+			}
 			if ($timer->next_spawn === time()+15*60) {
-				$msg = "<highlight>{$timer->mob_name}<end> will spawn in ".
-					"<highlight>".$this->util->unixtimeToReadable($timer->next_spawn-time())."<end>.";
+				$tokens["next-spawn"] = $this->util->unixtimeToReadable($timer->next_spawn-time());
+				$tokens["c-next-spawn"] = "<highlight>" . $tokens["next-spawn"] . "<end>";
+				$msg = $this->text->renderPlaceholders($this->willSpawnText, $tokens);
 				$this->announceBigBossEvent($timer->mob_name, $msg, 1);
 				$triggered = true;
 			}
@@ -630,21 +718,13 @@ class WorldBossController extends ModuleInstance {
 				if ($showSpawn === static::SPAWN_EVENT && !$manual) {
 					return;
 				} elseif ($showSpawn === static::SPAWN_SHOULD && !$manual) {
-					$msg = "<highlight>{$timer->mob_name}<end> should spawn ".
-						"any time now";
-					$invulnDuration = static::BOSS_DATA[$timer->mob_name][static::IMMORTAL];
-					if (isset($invulnDuration)) {
-						$msg .= " and will be immortal for ".
-							$this->util->unixtimeToReadable($invulnDuration);
-					}
-					$msg .= ".";
+					$msg = $this->text->renderPlaceholders($this->shouldSpawnText, $tokens);
 				} else {
-					$msg = "<highlight>{$timer->mob_name}<end> has spawned";
 					if (isset($timer->next_killable) && $timer->next_killable > time()) {
-						$msg .= " and will be vulnerable in <highlight>".
-							$this->util->unixtimeToReadable($timer->next_killable-time()).
-							"<end>";
+						$tokens["immortal"] = $this->util->unixtimeToReadable($timer->next_killable-time());
+						$tokens["c-immortal"] = "<highlight>" . $tokens["immortal"] . "<end>";
 					}
+					$msg = $this->text->renderPlaceholders($this->hasSpawnedText, $tokens);
 
 					/** @phpstan-var null|array{int,int,int} */
 					$coords = static::BOSS_DATA[$timer->mob_name][static::COORDS] ?? null;
@@ -687,9 +767,9 @@ class WorldBossController extends ModuleInstance {
 				if ($showSpawn === static::SPAWN_EVENT && !$this->lastSpawnPrecise[$timer->mob_name]) {
 					return;
 				} elseif ($showSpawn === static::SPAWN_SHOULD && !$this->lastSpawnPrecise[$timer->mob_name]) {
-					$msg = "<highlight>{$timer->mob_name}<end> should no longer be immortal.";
+					$msg = $this->text->renderPlaceholders($this->shouldVulnerableText, $tokens);
 				} else {
-					$msg = "<highlight>{$timer->mob_name}<end> is no longer immortal.";
+					$msg = $this->text->renderPlaceholders($this->isVulnerableText, $tokens);
 				}
 				$this->announceBigBossEvent($timer->mob_name, $msg, 3);
 				$triggered = true;

@@ -29,6 +29,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `!roll` can now also roll items, not only player names.
 - `!cluster` now uses the same skill aliases as `!whatbuffs`.
 - Add TOTW, IS, and TOTW-Raid symbiants to the symbiant DB.
+- Make all worldboss-messages customizable via templates.
 
 ### Fix
 

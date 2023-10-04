@@ -109,6 +109,52 @@ class GauntletBuffController extends ModuleInstance implements MessageEmitter {
 	#[NCA\Setting\Options(options: ["none", "clan", "omni"])]
 	public string $gaubuffDefaultSide = "none";
 
+	/** Message to send when the Gauntlet buff is expiring soon */
+	#[NCA\Setting\Template(
+		options: [
+			"{c-side} Gauntlet buff runs out in {c-duration}.",
+		],
+		help: "gauntlet_expiry_warning.txt",
+		exampleValues: [
+			"side" => "Clan",
+			"c-side" => "<clan>Clan<end>",
+			"duration" => "15 minutes",
+			"c-duration" => "<highlight>15 minutes<end>",
+		],
+	)]
+	public string $gauntletExpiryWarning = "{c-side} Gauntlet buff runs out in {c-duration}.";
+
+	/** Message to send when the Gauntlet buff has expired */
+	#[NCA\Setting\Template(
+		options: [
+			"{c-side} Gauntlet buff <highlight>expired<end>.",
+		],
+		help: "gauntlet_expired_notification.txt",
+		exampleValues: [
+			"side" => "Clan",
+			"c-side" => "<clan>Clan<end>",
+		],
+	)]
+	public string $gauntletExpiredNotification = "{c-side} Gauntlet buff <highlight>expired<end>.";
+
+	/** Message to send when the Gauntlet buff is set */
+	#[NCA\Setting\Template(
+		options: [
+			"Gauntletbuff timer for {c-side} has been set and expires at {c-expiry}.",
+			"Gauntletbuff timer for {c-side} has been set and expires in {c-duration}.",
+		],
+		help: "gauntlet_set_notification.txt",
+		exampleValues: [
+			"side" => "Clan",
+			"c-side" => "<clan>Clan<end>",
+			"expiry" => "Mon, 15:00 UTC (01-Jan-2023)",
+			"c-expiry" => "<highlight>Mon, 15:00 UTC (01-Jan-2023)<end>",
+			"duration" => "30 minutes",
+			"c-duration" => "<highlight>30 minutes<end>",
+		],
+	)]
+	public string $gauntletSetNotification = "Gauntletbuff timer for {c-side} has been set and expires at {c-expiry}.";
+
 	private int $apiRetriesLeft = 3;
 
 	public function getChannelName(): string {
@@ -185,16 +231,22 @@ class GauntletBuffController extends ModuleInstance implements MessageEmitter {
 			$alertTimes [] = $this->util->parseTime($utime);
 		}
 		$alertTimes []= 0; // timer runs out
+		$tokens = [
+			"side" => ucfirst($side),
+			"c-side" => "<{$side}>" . ucfirst($side) . "<end>",
+		];
 		foreach ($alertTimes as $alertTime) {
 			if (($time - $alertTime) > time()) {
 				$alert = new Alert();
 				$alert->time = $time - $alertTime;
-				$alert->message = "<{$side}>" . ucfirst($side) . "<end> Gauntlet buff ";
 				if ($alertTime === 0) {
-					$alert->message .= "<highlight>expired<end>.";
+					$alert->message = $this->text->renderPlaceholders($this->gauntletExpiredNotification, $tokens);
 				} else {
-					$alert->message .= "runs out in <highlight>".
-						$this->util->unixtimeToReadable($alertTime)."<end>.";
+					$tokens["expiry"] = $this->tmTime($time);
+					$tokens["duration"] = $this->util->unixtimeToReadable($alertTime);
+					$tokens["c-expiry"] = "<highlight>" . $tokens["expiry"] . "<end>";
+					$tokens["c-duration"] = "<highlight>" . $tokens["duration"] . "<end>";
+					$alert->message = $this->text->renderPlaceholders($this->gauntletExpiryWarning, $tokens);
 				}
 				$alerts []= $alert;
 			}
@@ -303,7 +355,15 @@ class GauntletBuffController extends ModuleInstance implements MessageEmitter {
 		}
 		$buffEnds += time();
 		$this->setGaubuff($faction, $buffEnds, $context->char->name, time());
-		$msg = "Gauntletbuff timer for <{$faction}>{$faction}<end> has been set and expires at <highlight>".$this->tmTime($buffEnds)."<end>.";
+		$tokens = [
+			"side" => ucfirst(strtolower($faction)),
+			"c-side" => "<" . strtolower($faction) . ">" . ucfirst(strtolower($faction)) . "<end>",
+			"expiry" => $this->tmTime($buffEnds),
+			"duration" => $this->util->unixtimeToReadable($buffEnds - time()),
+		];
+		$tokens["c-expiry"] = "<highlight>" . $tokens["expiry"] . "<end>";
+		$tokens["c-duration"] = "<highlight>" . $tokens["duration"] . "<end>";
+		$msg = $this->text->renderPlaceholders($this->gauntletSetNotification, $tokens);
 		$context->reply($msg);
 		$event = new SyncGaubuffEvent();
 		$event->expires = $buffEnds;
