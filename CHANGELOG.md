@@ -30,6 +30,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `!cluster` now uses the same skill aliases as `!whatbuffs`.
 - Add TOTW, IS, and TOTW-Raid symbiants to the symbiant DB.
 - Make all worldboss-messages customizable via templates.
+- Also show current nano casting time for `!nanoinit`-command.
 
 ### Fix
 

@@ -556,7 +556,12 @@ class SkillsController extends ModuleInstance {
 		$leftBar    = substr($bar, 0, $markerPos);
 		$rightBar   = substr($bar, $markerPos+1);
 		$blob .= "<highlight>{$fulldefInits}<end> DEF <green>{$leftBar}<end><red>│<end><green>{$rightBar}<end> AGG <highlight>{$fullAggInits}<end>\n";
-		$blob .= "                         You: <highlight>{$initSkill}<end>\n\n";
+		$blob .= "                         You: <highlight>{$initSkill}<end>\n";
+		$blob .= "\n";
+		$blob .= "Current casting times:\n";
+		$blob .= "  Full Agg (100%): <highlight>" . round(max(0, $effectiveCastingTime-1), 1) . "s<end>\n";
+		$blob .= "  Neutral (87.5%): <highlight>" . round(max(0, $effectiveCastingTime), 1) . "s<end>\n";
+		$blob .= "  Full Def (0%):     <highlight>" . round(max(0, $effectiveCastingTime+1), 1) . "s<end>\n";
 
 		$msg = $this->text->makeBlob("Nano Init Results", $blob);
 		$context->reply($msg);
