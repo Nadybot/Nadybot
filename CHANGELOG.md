@@ -31,6 +31,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add TOTW, IS, and TOTW-Raid symbiants to the symbiant DB.
 - Make all worldboss-messages customizable via templates.
 - Also show current nano casting time for `!nanoinit`-command.
+- The `!leaders`-command won't show SuperAdmins by default. A new option `leaders_include_super_admins` needs to be set for this.
 
 ### Fix
 

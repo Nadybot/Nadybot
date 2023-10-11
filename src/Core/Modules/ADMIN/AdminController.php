@@ -164,12 +164,16 @@ class AdminController extends ModuleInstance {
 	}
 
 	/** @return string[] */
-	public function getLeaderList(bool $showOfflineAlts): array {
+	public function getLeaderList(bool $showOfflineAlts, bool $showSuperAdmins=true): array {
 		$admins = [];
 		$mods = [];
 		$blobs = [];
 		foreach ($this->adminManager->admins as $who => $data) {
 			if ($who === '') {
+				continue;
+			}
+			$isSuperAdmin = $this->accessManager->checkAccess($who, 'superadmin');
+			if ($isSuperAdmin && !$showSuperAdmins) {
 				continue;
 			}
 			$nick = $this->nickController->getNickname($who);

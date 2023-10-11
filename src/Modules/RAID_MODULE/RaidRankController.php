@@ -129,6 +129,10 @@ class RaidRankController extends ModuleInstance implements AccessLevelProvider {
 	#[NCA\Setting\Boolean]
 	public bool $leadersIncludeAdmins = false;
 
+	/** Include SuperAdmins when including admins in leaderlist */
+	#[NCA\Setting\Boolean]
+	public bool $leadersIncludeSuperAdmins = false;
+
 	/** @var array<string,RaidRank> */
 	public array $ranks = [];
 
@@ -374,7 +378,7 @@ class RaidRankController extends ModuleInstance implements AccessLevelProvider {
 		$showOfflineAlts = isset($all);
 		$adminLines = [];
 		if ($this->leadersIncludeAdmins) {
-			$adminLines = $this->adminController->getLeaderList($showOfflineAlts);
+			$adminLines = $this->adminController->getLeaderList($showOfflineAlts, $this->leadersIncludeSuperAdmins);
 		}
 
 		$blob = "";
