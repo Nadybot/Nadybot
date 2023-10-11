@@ -14,6 +14,7 @@ use Nadybot\Core\Modules\PLAYER_LOOKUP\PlayerManager;
 use Nadybot\Core\ParamClass\PTowerSite;
 use Nadybot\Core\Routing\{RoutableMessage, Source};
 use Nadybot\Core\{Attributes as NCA, CmdContext, ConfigFile, DB, EventManager, LoggerWrapper, MessageHub, ModuleInstance, Nadybot, Text, Util};
+use Nadybot\Core\ParamClass\PDuration;
 use Nadybot\Modules\HELPBOT_MODULE\{Playfield, PlayfieldController};
 use Nadybot\Modules\LEVEL_MODULE\LevelController;
 use Nadybot\Modules\PVP_MODULE\FeedMessage\{TowerAttack, TowerOutcome};
@@ -181,6 +182,10 @@ class NotumWarsController extends ModuleInstance {
 	/** Automatically start a plant-timer when a site goes down */
 	#[NCA\Setting\Boolean]
 	public bool $autoPlantTimer = false;
+
+	/** Show hot sites in the future as if it was that time */
+	#[NCA\Setting\Boolean]
+	public bool $hotFutureSitesAssume = true;
 
 	/** Automatically fetch breed and gender of attackers from PORK (slow) */
 	#[NCA\Setting\Boolean]
@@ -872,9 +877,9 @@ class NotumWarsController extends ModuleInstance {
 	}
 
 	/** Get the current gas for a site and information */
-	public function getSiteGasInfo(FeedMessage\SiteUpdate $site): ?GasInfo {
+	public function getSiteGasInfo(FeedMessage\SiteUpdate $site, ?int $time=null): ?GasInfo {
 		$lastAttack = $this->getLastAttackFrom($site);
-		return new GasInfo($site, $lastAttack);
+		return new GasInfo($site, $lastAttack, $time);
 	}
 
 	/** Get the Tower Site Type (1-7) for a given CT-QL */
@@ -1150,6 +1155,7 @@ class NotumWarsController extends ModuleInstance {
 			->whereNotNull("gas")
 			->whereNotNull("ql");
 		$search = preg_replace("/\s+soon\b/i", "", $search, -1, $soon);
+		$time = null;
 		if ($soon) {
 			$hotSites = $hotSites->filter(
 				function (FeedMessage\SiteUpdate $site): bool {
@@ -1160,7 +1166,22 @@ class NotumWarsController extends ModuleInstance {
 				}
 			);
 		} else {
-			$hotSites = $hotSites->where("gas", "<", 75);
+			$durationRegexp = PDuration::getRegexp();
+			if (preg_match(chr(1) . '\s+' . $durationRegexp . '\b' . chr(1), $search, $future)) {
+				$search = preg_replace('/\s+' . $durationRegexp . '\b/', "", $search, -1);
+				$time = time() + (new PDuration($future[0]))->toSecs();
+				$hotSites = $hotSites->filter(
+					function (FeedMessage\SiteUpdate $site) use ($time): bool {
+						$gas = $this->getSiteGasInfo($site)?->gasAt($time)?->gas;
+						return isset($gas) && $gas < 75;
+					}
+				);
+				if (!$this->hotFutureSitesAssume) {
+					$time = null;
+				}
+			} else {
+				$hotSites = $hotSites->where("gas", "<", 75);
+			}
 		}
 		$search = preg_replace("/\s+penalty\b/i", "", $search, -1, $penalty);
 		if ($penalty) {
@@ -1215,7 +1236,7 @@ class NotumWarsController extends ModuleInstance {
 			}
 			return;
 		}
-		$blob = $this->renderHotSites(...$hotSites->toArray());
+		$blob = $this->renderHotSites($time, ...$hotSites->toArray());
 		if ($soon) {
 			$sitesLabel = isset($faction) ? ucfirst(strtolower($faction)) . " sites" : "Sites";
 			$msg = $this->text->makeBlob("{$sitesLabel} going hot soon ({$hotSites->count()})", $blob);
@@ -1515,7 +1536,7 @@ class NotumWarsController extends ModuleInstance {
 	*/
 
 	/** Render a bunch of sites, all hot, for the !hot-command */
-	public function renderHotSites(FeedMessage\SiteUpdate ...$sites): string {
+	public function renderHotSites(?int $time, FeedMessage\SiteUpdate ...$sites): string {
 		$sites = new Collection($sites);
 
 		$grouping = $this->groupHotTowers;
@@ -1541,10 +1562,10 @@ class NotumWarsController extends ModuleInstance {
 		}
 
 		$grouped = $grouped->sortKeys();
-		$blob = $grouped->map(function (Collection $sites, string $short): string {
+		$blob = $grouped->map(function (Collection $sites, string $short) use ($time): string {
 			return "<pagebreak><header2>{$short}<end>\n".
-				$sites->map(function (FeedMessage\SiteUpdate $site): string {
-					return $this->renderHotSite($site);
+				$sites->map(function (FeedMessage\SiteUpdate $site) use ($time): string {
+					return $this->renderHotSite($site, $time);
 				})->join("\n");
 		})->join("\n\n");
 		return $blob;
@@ -1856,7 +1877,7 @@ class NotumWarsController extends ModuleInstance {
 	}
 
 	/** Render the line of a single site for the !hot-command */
-	private function renderHotSite(FeedMessage\SiteUpdate $site): string {
+	private function renderHotSite(FeedMessage\SiteUpdate $site, ?int $time=null): string {
 		$pf = $this->pfCtrl->getPlayfieldById($site->playfield_id);
 		assert($pf !== null);
 		assert(isset($site->gas));
@@ -1875,28 +1896,41 @@ class NotumWarsController extends ModuleInstance {
 		} else {
 			$line .= " &lt;Free or unknown planter&gt;";
 		}
-		$gas = $this->getSiteGasInfo($site);
+		$gas = $this->getSiteGasInfo($site, $time);
 		assert(isset($gas));
-		$currentGas = $gas->currentGas();
+		if (isset($time)) {
+			$currentGas = $gas->gasAt($time);
+		} else {
+			$currentGas = $gas->currentGas();
+		}
 		assert(isset($currentGas));
 		$line .= " " . $currentGas->colored();
 		if (isset($site->ct_pos)) {
 			$numTowers = $site->num_conductors + $site->num_turrets + 1;
 			$line .= ", {$numTowers} " . $this->text->pluralize("tower", $numTowers);
 		}
-		$goesHot = $gas->goesHot();
-		$goesCold = $gas->goesCold();
+		$goesHot = $gas->goesHot($time);
+		$goesCold = $gas->goesCold($time);
 		$note = "";
 		if ($gas->inPenalty()) {
 			$note = ' or later';
 		}
 		if (isset($goesHot)) {
-			$line .= ", opens in " . $this->util->unixtimeToReadable($goesHot - time());
+			if (!isset($time)) {
+				$line .= ", opens in " . $this->util->unixtimeToReadable($goesHot - time());
+			} elseif ($time > $goesHot) {
+				$line .= ", opens in " . $this->util->unixtimeToReadable($goesHot - $time);
+			}
 		} elseif (isset($goesCold)) {
-			$goesColdText = ($goesCold <= time())
-				? "any time now"
-				: "in " . $this->util->unixtimeToReadable($goesCold - time());
-			$line .= ", closes {$goesColdText}{$note}";
+			if (!isset($time)) {
+				$goesColdText = ($goesCold <= time())
+					? "any time now"
+					: "in " . $this->util->unixtimeToReadable($goesCold - time());
+				$line .= ", closes {$goesColdText}{$note}";
+			} elseif ($goesCold && $goesCold > $time) {
+				$goesColdText = "in " . $this->util->unixtimeToReadable($goesCold - $time);
+				$line .= ", closes {$goesColdText}{$note}";
+			}
 		}
 		return $line;
 	}

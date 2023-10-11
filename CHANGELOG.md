@@ -32,6 +32,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Make all worldboss-messages customizable via templates.
 - Also show current nano casting time for `!nanoinit`-command.
 - The `!leaders`-command won't show SuperAdmins by default. A new option `leaders_include_super_admins` needs to be set for this.
+- The `!nw hot`-command now accepts an arbitrary duration to check into the future.
 
 ### Fix
 

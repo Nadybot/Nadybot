@@ -63,9 +63,10 @@ class GasInfo {
 	 *
 	 * @return ?int null if the site is currently cold, otherwise a timestamp
 	 */
-	public function goesCold(): ?int {
+	public function goesCold(?int $time=null): ?int {
+		$gas = isset($time) ? $this->gasAt($time) : $this->site->gas;
 		// If the site is unplanted, or currently cold, it's cold by definition
-		if (!isset($this->site->gas) || $this->site->gas === 75) {
+		if (!isset($gas) || $gas === 75) {
 			return null;
 		}
 
@@ -95,7 +96,7 @@ class GasInfo {
 		// to 25% and if that's no more than 60s in the future, add it to the 6h
 		// of the 25% + 5% phase.
 		if ($penaltyEnd === null && $goesCold === null) {
-			$next25 = $this->next25();
+			$next25 = $this->next25($time);
 			if (isset($next25) && ($next25 > $this->time) && ($next25 - $this->time <= 60)) {
 				return 3600*6 + $next25;
 			}
@@ -108,12 +109,13 @@ class GasInfo {
 	 *
 	 * @return ?int null if the site is currently hot, otherwise a timestamp
 	 */
-	public function goesHot(): ?int {
+	public function goesHot(?int $time=null): ?int {
+		$gas = isset($time) ? $this->gasAt($time) : $this->site->gas;
 		// If the site is unplanted, or currently cold, it's cold by definition
-		if (!isset($this->site->gas) || $this->site->gas !== 75) {
+		if (!isset($gas) || $gas !== 75) {
 			return null;
 		}
-		return $this->next25();
+		return $this->next25($time);
 	}
 
 	/** Check if this site is only hot because of an attack */
