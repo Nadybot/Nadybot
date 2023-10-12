@@ -40,6 +40,27 @@ class TrickleController extends ModuleInstance {
 	}
 
 	/**
+	 * Show which and how much your skills will increase by increasing all abilities by &lt;amount&gt;
+	 */
+	#[NCA\HandlesCommand("trickle")]
+	#[NCA\Help\Example("<symbol>trickle all 12")]
+	public function trickleAllSkillsCommand(
+		CmdContext $context,
+		#[NCA\Str("all")] string $attributes,
+		int $amount,
+	): void {
+		$this->trickle1Command(
+			$context,
+			"str {$amount}",
+			"sta {$amount}",
+			"agi {$amount}",
+			"sen {$amount}",
+			"int {$amount}",
+			"psy {$amount}",
+		);
+	}
+
+	/**
 	 * Show which and how much your skills will increase by increasing an ability:
 	 *
 	 * Valid abilities are: agi, int, psy, sta, str, sen
@@ -49,7 +70,10 @@ class TrickleController extends ModuleInstance {
 	public function trickle1Command(
 		CmdContext $context,
 		#[NCA\Regexp("\w+\s+\d+", example: "&lt;ability&gt; &lt;amount&gt;")] string ...$pairs
-	): void {
+	): bool {
+		if (str_starts_with($pairs[0], "all")) {
+			return false;
+		}
 		$abilities = new AbilityConfig();
 
 		foreach ($pairs as $pair) {
@@ -58,7 +82,7 @@ class TrickleController extends ModuleInstance {
 			if ($shortAbility === null) {
 				$msg = "Unknown ability <highlight>{$ability}<end>.";
 				$context->reply($msg);
-				return;
+				return true;
 			}
 
 			$abilities->{$shortAbility} += $amount;
@@ -66,6 +90,7 @@ class TrickleController extends ModuleInstance {
 
 		$msg = $this->processAbilities($abilities);
 		$context->reply($msg);
+		return true;
 	}
 
 	/**
@@ -178,8 +203,11 @@ class TrickleController extends ModuleInstance {
 	/** @return string[] */
 	private function processAbilities(AbilityConfig $abilities): array {
 		$headerParts = [];
+		$msgParts = [];
 		foreach (get_object_vars($abilities) as $short => $bonus) {
 			if ($bonus > 0) {
+				$msgParts []= ($this->util->getAbility($short, true) ?? "Unknown ability").
+					": {$bonus}";
 				$headerParts []= ($this->util->getAbility($short, true) ?? "Unknown ability").
 					": <highlight>{$bonus}<end>";
 			}
@@ -189,6 +217,10 @@ class TrickleController extends ModuleInstance {
 		$results = $this->getTrickleResults($abilities);
 		$blob = $this->formatOutput($results);
 		$blob .= "\nBy Tyrence (RK2), inspired by the Bebot command of the same name";
-		return (array)$this->text->makeBlob("Trickle Results: {$abilitiesHeader}", $blob);
+		return (array)$this->text->makeBlob(
+			"Trickle Results for " . join(", ", $msgParts),
+			$blob,
+			"Trickle Results for {$abilitiesHeader}",
+		);
 	}
 }

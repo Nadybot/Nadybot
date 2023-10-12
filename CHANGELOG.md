@@ -22,6 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - New command `!implantshoppinglist` to get a list which implants and clusters to buy at which QL.
 - Add new option `pause` and `resume` to `!raid ticker`. This allows to pause and resume the generation of time-based points. The default state can also be configured with a new setting.
 - Add new setting `bid_presets` to allow setting pre-defined bid-values that are being shown in the auction information window.
+- It's now possible to see the trickle when simultaneously increasing all attributes by a given value with `!trickle all <value>`.
 
 ### Changed
 
