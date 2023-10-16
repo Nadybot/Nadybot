@@ -1,4 +1,4 @@
-FROM ubuntu:20.04
+FROM ubuntu:22.04
 
 ENV DEBIAN_FRONTEND=noninteractive
 
@@ -6,24 +6,21 @@ RUN set -ex \
 	&& sed -i -- 's/# deb-src/deb-src/g' /etc/apt/sources.list \
 	&& apt-get update \
 	&& apt-get install -yq --no-install-recommends software-properties-common \
-	&& add-apt-repository ppa:ondrej/php \
-	&& apt-get install -yq --no-install-recommends \
 		build-essential \
 		cdbs \
 		devscripts \
 		equivs \
 		fakeroot \
 		curl \
-		php8.0-cli \
-		php8.0-sqlite3 \
-		php8.0-curl \
-		php8.0-mysql \
-		php8.0-mbstring \
-		php8.0-bcmath \
-		php8.0-xml \
-		php8.0-zip \
+		php-cli \
+		php-sqlite3 \
+		php-curl \
+		php-mysql \
+		php-mbstring \
+		php-bcmath \
+		php-xml \
+		php-zip \
 		unzip \
-		dh-systemd \
 	&& apt-get clean \
 	&& rm -rf /tmp/* /var/tmp/*
 RUN touch /.dockerenv && mkdir /build && chmod 0777 /build
