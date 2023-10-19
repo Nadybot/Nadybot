@@ -54,7 +54,9 @@ RUN wget -O /usr/bin/composer https://getcomposer.org/composer-2.phar && \
     apk del --no-cache sudo jq && \
     if [ "x${VERSION}" != "x" ]; then \
         sed -i -e "s/public const VERSION = \"[^\"]*\";/public const VERSION = \"${VERSION:-4.0}\";/g" src/Core/BotRunner.php; \
-    fi
+    fi && \
+    sed -i -e 's/memory_limit = 128M/memory_limit = 192M/' /etc/php81/php.ini
+
 
 USER nadybot
 

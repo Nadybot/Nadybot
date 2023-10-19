@@ -36,6 +36,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - The `!leaders`-command won't show SuperAdmins by default. A new option `leaders_include_super_admins` needs to be set for this.
 - The `!nw hot`-command now accepts an arbitrary duration to check into the future.
 - Superadmins are now a group of their own in `!admins` and `!leaders`.
+- Increased Docker default PHP-memory from 128MB to 192MB.
 
 ### Fix
 
