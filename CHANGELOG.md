@@ -44,6 +44,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `!points spp` did not set the timer, now it does.
 - Fix auction links in the LOOT_MODULE.
 - Banlist manipulation on older bots was slow and used too much memory
+- Fix rare occasion of Highway-connection going stale.
 
 ## [6.2.5] - 2023-08-16
 
