@@ -45,6 +45,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix auction links in the LOOT_MODULE.
 - Banlist manipulation on older bots was slow and used too much memory
 - Fix rare occasion of Highway-connection going stale.
+- Use interface instead of object, so restarting the bot throws no errors when accessing the chat queue.
 
 ## [6.2.5] - 2023-08-16
 

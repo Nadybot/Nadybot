@@ -567,7 +567,7 @@ class Nadybot extends AOChat {
 			return;
 		}
 
-		$priority ??= $this->chatqueue::PRIORITY_MED;
+		$priority ??= QueueInterface::PRIORITY_MED;
 
 		$message = $this->text->formatMessage($origMsg = $message);
 		$guildColor = "";
@@ -621,7 +621,7 @@ class Nadybot extends AOChat {
 			return;
 		}
 
-		$priority ??= $this->chatqueue::PRIORITY_MED;
+		$priority ??= QueueInterface::PRIORITY_MED;
 
 		$rMessage = new RoutableMessage($message);
 		$tellColor = "";
@@ -648,7 +648,7 @@ class Nadybot extends AOChat {
 	 * @param string|string[] $message
 	 */
 	public function sendMassTell($message, string $character, ?int $priority=null, bool $formatMessage=true, ?int $worker=null): void {
-		$priority ??= $this->chatqueue::PRIORITY_HIGH;
+		$priority ??= QueueInterface::PRIORITY_HIGH;
 
 		// If we're not using a chat proxy or mass tells are disabled, this doesn't do anything
 		if (!$this->config->useProxy
@@ -708,7 +708,7 @@ class Nadybot extends AOChat {
 			return;
 		}
 
-		$priority ??= $this->chatqueue::PRIORITY_MED;
+		$priority ??= QueueInterface::PRIORITY_MED;
 
 		$message = $this->text->formatMessage($origMessage = $message);
 		$guildColor = $this->settingManager->getString("default_guild_color")??"";
