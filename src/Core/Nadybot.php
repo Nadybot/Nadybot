@@ -1053,6 +1053,8 @@ class Nadybot extends AOChat {
 			return;
 		} elseif (preg_match("|Unknown command or access denied!|si", $message)) {
 			return;
+		} elseif (preg_match("|Command not found, try|si", $message)) {
+			return;
 		} elseif (preg_match("|Unknown command '|si", $message)) {
 			return;
 		} elseif (preg_match("|Use .autoinvite to control your auto|si", $message)) {
