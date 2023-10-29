@@ -50,6 +50,7 @@ use Nadybot\Core\{
 	UserStateEvent,
 	Util,
 };
+use Nadybot\Modules\RAID_MODULE\RaidController;
 use Nadybot\Modules\{
 	GUILD_MODULE\GuildController,
 	ONLINE_MODULE\OfflineEvent,
@@ -196,6 +197,9 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 
 	#[NCA\Inject]
 	public RaidRankController $raidRankController;
+
+	#[NCA\Inject]
+	public RaidController $raidController;
 
 	#[NCA\Inject]
 	public Timer $timer;
@@ -653,6 +657,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 	#[NCA\HandlesCommand("count")]
 	public function countLevelCommand(
 		CmdContext $context,
+		#[NCA\Str("raid")] ?string $raidOnly,
 		#[NCA\Regexp("levels?|lvls?", example: "lvl")] string $action
 	): void {
 		$tl1 = 0;
@@ -664,6 +669,13 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 		$tl7 = 0;
 
 		$chars = $this->onlineController->getPlayers("priv", $this->config->name);
+		if (isset($raidOnly)) {
+			[$errMsg, $chars] = $this->filterRaid($chars);
+			if (isset($errMsg)) {
+				$context->reply($errMsg);
+				return;
+			}
+		}
 		$numonline = count($chars);
 		foreach ($chars as $char) {
 			if (!isset($char->level)) {
@@ -700,9 +712,18 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 	#[NCA\HandlesCommand("count")]
 	public function countProfessionCommand(
 		CmdContext $context,
+		#[NCA\Str("raid")] ?string $raidOnly,
 		#[NCA\Regexp("all|profs?", example: "profs")] string $action
 	): void {
-		$chars = new Collection($this->onlineController->getPlayers("priv", $this->config->name));
+		$chars = $this->onlineController->getPlayers("priv", $this->config->name);
+		if (isset($raidOnly)) {
+			[$errMsg, $chars] = $this->filterRaid($chars);
+			if (isset($errMsg)) {
+				$context->reply($errMsg);
+				return;
+			}
+		}
+		$chars = new Collection($chars);
 		$online = $chars->countBy("profession")->toArray();
 		$numOnline = $chars->count();
 		$msg = "<highlight>{$numOnline}<end> in total: ".
@@ -728,12 +749,24 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 	#[NCA\HandlesCommand("count")]
 	public function countOrganizationCommand(
 		CmdContext $context,
+		#[NCA\Str("raid")] ?string $raidOnly,
 		#[NCA\Regexp("orgs?", example: "orgs")] string $action
 	): void {
-		$online = new Collection($this->onlineController->getPlayers("priv", $this->config->name));
+		$online = $this->onlineController->getPlayers("priv", $this->config->name);
+		if (isset($raidOnly)) {
+			[$errMsg, $online] = $this->filterRaid($online);
+			if (isset($errMsg)) {
+				$context->reply($errMsg);
+				return;
+			}
+		}
+		$online = new Collection($online);
 
 		if ($online->isEmpty()) {
 			$msg = "No characters in channel.";
+			if (isset($raidOnly)) {
+				$msg = "No characters in the raid.";
+			}
 			$context->reply($msg);
 			return;
 		}
@@ -765,7 +798,11 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 
 	/** Show how many people are in the private channel of a given profession */
 	#[NCA\HandlesCommand("count")]
-	public function countCommand(CmdContext $context, string $profession): void {
+	public function countCommand(
+		CmdContext $context,
+		#[NCA\Str("raid")] ?string $raidOnly,
+		string $profession
+	): void {
 		$prof = $this->util->getProfessionName($profession);
 		if ($prof === '') {
 			$msg = "Please choose one of these professions: adv, agent, crat, doc, enf, eng, fix, keep, ma, mp, nt, sol, shade, trader or all";
@@ -776,6 +813,14 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 		/** @var Collection<OnlinePlayer> */
 		$data = (new Collection($this->onlineController->getPlayers("priv", $this->config->name)))
 			->where("profession", $prof);
+		if (isset($raidOnly)) {
+			[$errMsg, $data] = $this->filterRaid($data->toArray());
+			if (isset($errMsg)) {
+				$context->reply($errMsg);
+				return;
+			}
+			$data = new Collection($data);
+		}
 		$numOnline = $data->count();
 		if ($numOnline === 0) {
 			$msg = "<highlight>{$numOnline}<end> {$prof}s.";
@@ -1430,6 +1475,30 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 
 			return $joinMessage;
 		});
+	}
+
+	/**
+	 * Only keep characters currently in the raid
+	 *
+	 * @param OnlinePlayer[] $chars
+	 *
+	 * @return array{?string,OnlinePlayer[]}
+	 */
+	private function filterRaid(array $chars): array {
+		$raid = $this->raidController->raid;
+		if (!isset($raid)) {
+			return [RaidController::ERR_NO_RAID, []];
+		}
+		$chars = array_values(
+			array_filter(
+				$chars,
+				function (OnlinePlayer $char) use ($raid): bool {
+					return isset($raid->raiders[$char->name])
+						&& !isset($raid->raiders[$char->name]->left);
+				}
+			)
+		);
+		return [null, $chars];
 	}
 
 	/** @return Promise<string> */
