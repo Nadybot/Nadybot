@@ -221,6 +221,10 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 	#[NCA\Setting\Boolean]
 	public bool $autoinviteDefault = true;
 
+	/** Show profs with 0 people in '<symbol>count profs' */
+	#[NCA\Setting\Boolean]
+	public bool $countEmptyProfs = true;
+
 	/** Faction allowed on the bot - autoban everything else */
 	#[NCA\Setting\Options(options: [
 		"all", "Omni", "Neutral", "Clan", "not Omni", "not Neutral", "not Clan",
@@ -726,21 +730,26 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 		$chars = new Collection($chars);
 		$online = $chars->countBy("profession")->toArray();
 		$numOnline = $chars->count();
-		$msg = "<highlight>{$numOnline}<end> in total: ".
-			"<highlight>".($online['Adventurer']??0)."<end> Adv, ".
-			"<highlight>".($online['Agent']??0)."<end> Agent, ".
-			"<highlight>".($online['Bureaucrat']??0)."<end> Crat, ".
-			"<highlight>".($online['Doctor']??0)."<end> Doc, ".
-			"<highlight>".($online['Enforcer']??0)."<end> Enf, ".
-			"<highlight>".($online['Engineer']??0)."<end> Eng, ".
-			"<highlight>".($online['Fixer']??0)."<end> Fix, ".
-			"<highlight>".($online['Keeper']??0)."<end> Keeper, ".
-			"<highlight>".($online['Martial Artist']??0)."<end> MA, ".
-			"<highlight>".($online['Meta-Physicist']??0)."<end> MP, ".
-			"<highlight>".($online['Nano-Technician']??0)."<end> NT, ".
-			"<highlight>".($online['Soldier']??0)."<end> Sol, ".
-			"<highlight>".($online['Shade']??0)."<end> Shade, ".
-			"<highlight>".($online['Trader']??0)."<end> Trader";
+		$profs = [
+			'Adventurer', 'Agent', 'Bureaucrat', 'Doctor', 'Enforcer', 'Engineer',
+			'Fixer', 'Keeper', 'Martial Artist', 'Meta-Physicist', 'Nano-Technician',
+			'Soldier', 'Shade', 'Trader',
+		];
+		if (!$this->countEmptyProfs && !$numOnline) {
+			$context->reply('<highlight>0<end> in total.');
+			return;
+		}
+		$msg = "<highlight>{$numOnline}<end> in total: ";
+		$parts = [];
+		foreach ($profs as $prof) {
+			$count = $online[$prof] ?? 0;
+			if ($count === 0 && !$this->countEmptyProfs) {
+				continue;
+			}
+			$short = $this->util->getProfessionAbbreviation($prof);
+			$parts []= "<highlight>{$count}<end> {$short}";
+		}
+		$msg .= join(", ", $parts);
 
 		$context->reply($msg);
 	}
