@@ -5,7 +5,7 @@ if [ "$#" -ne 1 ]; then
   exit 1
 fi
 export BUILDAH_LAYERS=true
-buildah bud -t build:20.04 -f Dockerfile-ubuntu-20.04
+buildah bud -t build:22.04 -f Dockerfile-ubuntu-22.04
 podman run \
   --rm \
   -it \
@@ -13,4 +13,4 @@ podman run \
   --userns keep-id \
   --user $(id -u):$(id -g) \
   -v "$PWD/transfer:/data" \
-build:20.04 "$1"
+build:22.04 "$1"

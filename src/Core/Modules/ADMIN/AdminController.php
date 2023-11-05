@@ -164,12 +164,17 @@ class AdminController extends ModuleInstance {
 	}
 
 	/** @return string[] */
-	public function getLeaderList(bool $showOfflineAlts): array {
+	public function getLeaderList(bool $showOfflineAlts, bool $showSuperAdmins=true): array {
+		$superadmins = [];
 		$admins = [];
 		$mods = [];
 		$blobs = [];
 		foreach ($this->adminManager->admins as $who => $data) {
 			if ($who === '') {
+				continue;
+			}
+			$isSuperAdmin = $this->accessManager->checkAccess($who, 'superadmin');
+			if ($isSuperAdmin && !$showSuperAdmins) {
 				continue;
 			}
 			$nick = $this->nickController->getNickname($who);
@@ -178,18 +183,21 @@ class AdminController extends ModuleInstance {
 			} else {
 				$line = "<tab>{$who}";
 			}
-			if ($this->accessManager->checkAccess($who, 'superadmin')) {
-				$line .= " (<highlight>".
-					ucfirst($this->accessManager->getDisplayName("superadmin")).
-					"<end>)";
-			}
 			$line .= $this->getOnlineStatus($who, true) . "\n".
 				$this->getAltAdminInfo($who, $showOfflineAlts);
-			if ($data["level"] === 4) {
+			if ($isSuperAdmin) {
+				$superadmins []= $line;
+			} elseif ($data["level"] === 4) {
 				$admins []= $line;
 			} elseif ($data["level"] === 3) {
 				$mods []= $line;
 			}
+		}
+		if (count($superadmins)) {
+			$blobs []= "<header2>".
+				ucfirst($this->accessManager->getDisplayName("superadmin")).
+				"s<end>\n".
+				join("", $superadmins);
 		}
 		if (count($admins)) {
 			$blobs []= "<header2>".

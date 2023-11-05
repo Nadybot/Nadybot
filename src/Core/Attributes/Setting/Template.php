@@ -15,7 +15,7 @@ class Template extends DefineSetting {
 	 *
 	 * @param array<string|int,int|string>  $options       An optional list of values that the setting can be, semi-colon delimited.
 	 *                                                     Alternatively, use an associative array [label => value], where label is optional.
-	 * @param array<string,string|int|null> $exampleValues An optional list of example values to calculate the current dsplay value
+	 * @param array<string,string|int|null> $exampleValues An optional list of example values to calculate the current display value
 	 */
 	public function __construct(
 		public string $type='template',

@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 
 $finder = PhpCsFixer\Finder::create()
 	->in('src');
@@ -13,7 +13,7 @@ return $config
 		'blank_line_before_statement' => [
 			'statements' => [
 				'phpdoc',
-			]
+			],
 		],
 		'array_syntax' => ['syntax' => 'short'],
 		'braces' => [
@@ -39,7 +39,7 @@ return $config
 		],
 		'class_reference_name_casing' => true,
 		'clean_namespace' => true,
-		'combine_consecutive_issets' => true,
+		'combine_consecutive_issets' => false,
 		'combine_consecutive_unsets' => false,
 		'combine_nested_dirname' => true,
 		'compact_nullable_typehint' => true,
@@ -111,7 +111,7 @@ return $config
 				'return',
 				'switch_case',
 				'yield',
-			]
+			],
 		],
 		'no_unneeded_curly_braces' => ['namespaces' => true],
 		'no_unneeded_import_alias' => true,
@@ -140,7 +140,7 @@ return $config
 				'method_public',
 				'method_protected',
 				'method_private',
-			]
+			],
 		],
 		'ordered_imports' =>  [
 			'imports_order' => ['const', 'function', 'class'],
@@ -236,7 +236,7 @@ return $config
 				'yield',
 				'yield_from',
 
-			]
+			],
 		],
 		'standardize_not_equals' => true,
 		'switch_case_semicolon_to_colon' => true,

@@ -21,6 +21,8 @@ use Nadybot\Modules\ITEMS_MODULE\{
 	ExtBuff,
 	ItemWithBuffs,
 	ItemsController,
+	Skill,
+	WhatBuffsController,
 };
 
 /**
@@ -37,6 +39,11 @@ use Nadybot\Modules\ITEMS_MODULE\{
 		command: "symbcompare",
 		accessLevel: "guest",
 		description: "Compare symbiants with each other",
+	),
+	NCA\DefineCommand(
+		command: "symbbuffs",
+		accessLevel: "guest",
+		description: "Find symbiants buffing a given skill",
 	)
 ]
 class SymbiantController extends ModuleInstance {
@@ -51,6 +58,9 @@ class SymbiantController extends ModuleInstance {
 
 	#[NCA\Inject]
 	public ItemsController $itemsController;
+
+	#[NCA\Inject]
+	public WhatBuffsController $wbCtrl;
 
 	#[NCA\Inject]
 	public Util $util;
@@ -131,6 +141,31 @@ class SymbiantController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
+	/** Find symbiants  buffing a given skill */
+	#[NCA\HandlesCommand("symbbuffs")]
+	public function findSymbiants(CmdContext $context, string $skillName): void {
+		$skills = $this->wbCtrl->searchForSkill($skillName);
+		if (count($skills) === 0) {
+			$context->reply("No skill matching '<highlight>{$skillName}<end>' found.");
+			return;
+		}
+		$skillBlocks = [];
+		foreach ($skills as $skill) {
+			$symbs = $this->findSymbiantsBuffing($skill);
+			if (count($symbs) === 0) {
+				continue;
+			}
+			$skillBlocks []= "<header2>{$skill->name}<end>\n" . $this->renderSymbiantBuffs(...$symbs);
+		}
+		if (count($skillBlocks) === 0) {
+			$context->reply("No symbiants buffing '<highlight>{$skillName}<end>' found.");
+			return;
+		}
+		$blob = join("\n\n", $skillBlocks);
+		$msg = $this->text->makeBlob("Symbiants buffing '{$skillName}'", $blob);
+		$context->reply($msg);
+	}
+
 	/** @param array<string,SymbiantConfig> $configs */
 	protected function configsToBlob(array $configs): string {
 		/** @var ImplantType[] */
@@ -179,6 +214,79 @@ class SymbiantController extends ModuleInstance {
 			}
 		}
 		return $blob;
+	}
+
+	/** Render a slot-grouped list of symbiants */
+	private function renderSymbiantBuffs(Symbiant ...$symbiants): string {
+		$result = [];
+		$symbs = new Collection($symbiants);
+		$bySlot = $symbs->groupBy("SlotLongName");
+		foreach ($bySlot as $slotName => $slotSymbs) {
+			$lines = ["<tab><highlight>{$slotName}<end>"];
+
+			/** @var Collection<Symbiant> $slotSymbs */
+			$byUnit = $slotSymbs->groupBy("Unit");
+			foreach ($byUnit as $unitName => $unitSymbs) {
+				/** @var Collection<Symbiant> $unitSymbs */
+				if (empty($unitName)) {
+					$lines = array_merge(
+						$lines,
+						$unitSymbs->map(function (Symbiant $symb): string {
+							return "<tab>- " . $symb->Name;
+						})->toArray()
+					);
+					continue;
+				}
+				$where = [];
+
+				$inRegular = $unitSymbs->first(
+					function (Symbiant $symb): bool {
+						return $symb->QL < 300 || (
+							!str_contains($symb->Name, "Beta") &&
+							!str_contains($symb->Name, "Alpha")
+						);
+					}
+				) !== null;
+				if ($inRegular) {
+					$where []= "regular";
+				}
+				$inBeta = $unitSymbs->first(
+					function (Symbiant $symb): bool {
+						return $symb->QL === 300 && str_contains($symb->Name, "Beta");
+					}
+				) !== null;
+				if ($inBeta) {
+					$where []= "beta";
+				}
+				$inAlpha = $unitSymbs->first(
+					function (Symbiant $symb): bool {
+						return $symb->QL === 300 && str_contains($symb->Name, "Alpha");
+					}
+				) !== null;
+				if ($inAlpha) {
+					$where []= "alpha";
+				}
+				$lines []= "<tab>- {$unitName} (" . $this->text->enumerate(...$where) . ")";
+			}
+			$result []= join("\n", $lines);
+		}
+		return join("\n\n", $result);
+	}
+
+	/**
+	 * Find all symbiants buffing a given skill
+	 *
+	 * @return Symbiant[]
+	 */
+	private function findSymbiantsBuffing(Skill $skill): array {
+		$symbiants = $this->db->table("Symbiant", "sym")
+			->join("SymbiantClusterMatrix AS scm", "scm.SymbiantID", "=", "sym.ID")
+			->join("Cluster AS c", "c.ClusterID", "=", "scm.ClusterID")
+			->join("ImplantType AS it", "it.ImplantTypeID", "sym.SlotID")
+			->select("sym.*", "it.ShortName AS SlotName", "it.Name AS SlotLongName")
+			->where("c.SkillID", $skill->id)
+			->asObj(Symbiant::class);
+		return $symbiants->toArray();
 	}
 
 	/** @return Promise<string[]> */

@@ -6,8 +6,9 @@ use function Amp\call;
 use function Safe\{json_decode, json_encode};
 use Amp\Promise;
 use Amp\Websocket\Client\Connection as WsConnection;
-use Amp\Websocket\{Code, Message as WsMessage};
+use Amp\Websocket\{ClosedException, Code, Message as WsMessage};
 use EventSauce\ObjectHydrator\ObjectMapperUsingReflection;
+use Exception;
 use Generator;
 
 class Connection {
@@ -39,8 +40,18 @@ class Connection {
 	/** @return Promise<Package> */
 	public function receive(): Promise {
 		return call(function (): Generator {
-			/** @var WsMessage */
+			/** @var ?WsMessage */
 			$message = yield $this->wsConnection->receive();
+			if (!isset($message)) {
+				if (!$this->wsConnection->isConnected()) {
+					throw new ClosedException(
+						'Highway-connection closed unexpectedly',
+						Code::ABNORMAL_CLOSE,
+						'Reading from the server failed'
+					);
+				}
+				throw new Exception('Empty Highway-package received');
+			}
 
 			/** @var string */
 			$data = yield $message->buffer();

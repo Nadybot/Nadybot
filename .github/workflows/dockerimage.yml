@@ -4,23 +4,23 @@ on:
     branches:
       - unstable
       - stable
-      - customize-join-msg
+      - workflow-changes
     tags:
       - '*'
 jobs:
   build:
     name: Create docker image
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
         - name: Checkout sources
-          uses: actions/checkout@v2.2.0
+          uses: actions/checkout@v4
           with:
             fetch-depth: 0
         - name: Set up QEMU
-          uses: docker/setup-qemu-action@v2
+          uses: docker/setup-qemu-action@v3
         - name: Set up Docker Buildx
           id: buildx
-          uses: docker/setup-buildx-action@v2
+          uses: docker/setup-buildx-action@v3
         - name: Login to registries
           shell: bash
           run: |

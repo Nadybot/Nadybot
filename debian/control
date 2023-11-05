@@ -2,8 +2,7 @@ Source: nadybot
 Priority: optional
 Maintainer: Nadyita <nadyita@hodorraid.org>
 Build-Depends:
- debhelper (>= 9),
- dh-systemd (>=1.5),
+ debhelper (>= 9.20160709),
  sed
 Standards-Version: 3.9.5
 Section: misc
@@ -14,15 +13,15 @@ Vcs-Browser: https://github.com/Nadybot/Nadybot
 Package: nadybot
 Architecture: all
 Depends:
- php8.0-cli,
- php8.0-json,
- php8.0-pdo,
- php8.0-mysqlnd,
- php8.0-bcmath,
- php8.0-mbstring,
- php8.0-xml,
- php8.0-curl,
- php8.0-sqlite3,
- php8.0-zip,
+ php-cli (>=8.1) | php8.1-cli,
+ php-json (>=8.1) | php8.1-json,
+ php-pdo (>=8.1) | php8.1-pdo,
+ php-mysqlnd (>=8.1) | php8.1-mysqlnd,
+ php-bcmath (>=8.1) | php8.1-bcmath,
+ php-mbstring (>=8.1) | php8.1-mbstring,
+ php-xml (>=8.1) | php8.1-xml,
+ php-curl (>=8.1) | php8.1-curl,
+ php-sqlite3 (>=8.1) | php8.1-sqlite3,
+ php-zip (>=8.1) | php8.1-zip,
  dialog
 Description: This is a chat bot for the MMORPG Anarchy Online by Funcom

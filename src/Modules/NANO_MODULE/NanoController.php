@@ -442,6 +442,34 @@ class NanoController extends ModuleInstance {
 		return new Collection($nanos);
 	}
 
+	/** @param Collection<Nano> $nanos */
+	private function getNanoSkillsNeeded(Collection $nanos): NanoSkillsNeeded {
+		return $nanos->reduce(
+			function (NanoSkillsNeeded $max, Nano $nano): NanoSkillsNeeded {
+				if ($nano->mc > $max->mc) {
+					$max->mc = $nano->mc;
+				}
+				if ($nano->ts > $max->ts) {
+					$max->ts = $nano->ts;
+				}
+				if ($nano->mm > $max->mm) {
+					$max->mm = $nano->mm;
+				}
+				if ($nano->bm > $max->bm) {
+					$max->bm = $nano->bm;
+				}
+				if ($nano->pm > $max->pm) {
+					$max->pm = $nano->pm;
+				}
+				if ($nano->si > $max->si) {
+					$max->si = $nano->si;
+				}
+				return $max;
+			},
+			new NanoSkillsNeeded(mc: 0, ts: 0, mm: 0, bm: 0, pm: 0, si: 0),
+		);
+	}
+
 	private function showBestNanosCommand(
 		CmdContext $context,
 		string $profession,
@@ -477,12 +505,21 @@ class NanoController extends ModuleInstance {
 
 	/** @param Collection<Nano> $nanos */
 	private function renderBestNanos(Collection $nanos, bool $compact): string {
-		$blob = '';
-		$currentNanoline = -1;
-		$currentSubstrain = null;
+		$nanoSkillsNeeded = $this->getNanoSkillsNeeded($nanos);
+		$blob = "<header2>Required Nanoskills<end>".
+			"\n".
+			"<tab>MM: " . $this->text->alignNumber($nanoSkillsNeeded->mm, 4, "highlight", true).
+			"<tab>BM: " . $this->text->alignNumber($nanoSkillsNeeded->bm, 4, "highlight", true).
+			"\n".
+			"<tab>PM: " . $this->text->alignNumber($nanoSkillsNeeded->pm, 4, "highlight", true).
+			"<tab>SI: " . $this->text->alignNumber($nanoSkillsNeeded->si, 4, "highlight", true).
+			"\n".
+			"<tab>TS: " . $this->text->alignNumber($nanoSkillsNeeded->ts, 4, "highlight", true).
+			"<tab>MC: " . $this->text->alignNumber($nanoSkillsNeeded->mc, 4, "highlight", true).
+			"\n\n";
 		$defColor = $this->settingManager->getString('default_window_color');
 		if ($compact) {
-			$blob = "<header2>Best nanos in each line<end>";
+			$blob .= "<header2>Best nanos in each line<end>";
 		}
 		foreach ($nanos as $row) {
 			$nanoLink = $this->makeNanoLink($row);

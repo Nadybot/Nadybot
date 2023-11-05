@@ -23,6 +23,7 @@ class ModuleSetting {
 
 	/**
 	 * The current value
+	 *
 	 * @var null|int|string|bool|int[]|string[]
 	 */
 	public null|int|string|bool|array $value = null;

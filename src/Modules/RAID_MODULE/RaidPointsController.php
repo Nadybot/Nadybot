@@ -126,6 +126,10 @@ class RaidPointsController extends ModuleInstance {
 	#[NCA\Setting\Boolean]
 	public bool $raidRewardRequiresLock = false;
 
+	/** Give time-based raid points only when the raid is locked */
+	#[NCA\Setting\Boolean]
+	public bool $raidTickerRequiresLock = false;
+
 	/** Allow raid rewards/penalties only with pre-defined rewards */
 	#[NCA\Setting\Boolean]
 	public bool $raidRewardPredefinedOnly = false;
@@ -154,6 +158,12 @@ class RaidPointsController extends ModuleInstance {
 			|| $raid->seconds_per_point === 0
 			|| (time() - $raid->last_award_from_ticker) < $raid->seconds_per_point
 		) {
+			return;
+		}
+		if ($this->raidTickerRequiresLock && !$raid->locked) {
+			return;
+		}
+		if ($raid->ticker_paused) {
 			return;
 		}
 		$raid->last_award_from_ticker = time();
@@ -235,7 +245,7 @@ class RaidPointsController extends ModuleInstance {
 				"individual" => $individual,
 				"reason" =>     $reason,
 				"ticker" =>     false,
-				"raid_id" =>    isset($raid->raid_id) ? $raid->raid_id : null,
+				"raid_id" =>    $raid->raid_id ?? null,
 			]);
 		if ($inserted === false) {
 			$this->logger->error("Error logging the change of {$delta} points for {$pointsChar}.");
@@ -539,8 +549,8 @@ class RaidPointsController extends ModuleInstance {
 		int $points,
 		PCharacter $char,
 		string $reason
-	): void {
-		$this->pointsAddCommand($context, $action, $char, $points, $reason);
+	): Generator {
+		yield from $this->pointsAddCommand($context, $action, $char, $points, $reason);
 	}
 
 	/** Add &lt;points&gt; raid points to &lt;char&gt;'s account with a reason */
