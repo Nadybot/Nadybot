@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [6.2.6] - 2023-11-05
 
 ### Added
 
@@ -14,7 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add new settings to allow automatically sending random greetings to players joining the private channel.
 - Add option to set a directory for dynamic commands. These are merely text files or directories with text files.
 - Wishes can now have an expiration. Per wish and a global maximum.
-- Added S42 loot with `!42 west|north|east|boss` and `!apf 42 west|north|eatt|boss`
+- Added S42 loot with `!42 west|north|east|boss` and `!apf 42 west|north|east|boss`
 - Add new command `!group` to group people into equally-sized groups.
 - New command `!symbbuffs <skill>` to search for symbiants buffing a given skill.
 - Add new setting to only give timer-based raid-points if the raid is locked.
