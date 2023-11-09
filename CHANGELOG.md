@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Fixed
+
+- `!nw hot` was interpreting every number as seconds into the future. Now you always have to give "s", or "secs" to achieve this, while a sheer number will be the level of your character and search for towers in range accordingly.
+
 ## [6.2.6] - 2023-11-05
 
 ### Added
@@ -39,7 +45,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Superadmins are now a group of their own in `!admins` and `!leaders`.
 - Increased Docker default PHP-memory from 128MB to 192MB.
 
-### Fix
+### Fixed
 
 - The `!points add <points> <char> <reason>` syntax works again.
 - `!points spp` did not set the timer, now it does.

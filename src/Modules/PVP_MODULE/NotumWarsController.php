@@ -3,7 +3,7 @@
 namespace Nadybot\Modules\PVP_MODULE;
 
 use function Amp\{asyncCall, delay};
-use function Safe\{json_decode};
+use function Safe\{json_decode, preg_match};
 use Amp\Http\Client\{HttpClientBuilder, Request, Response};
 use EventSauce\ObjectHydrator\{ObjectMapperUsingReflection, UnableToHydrateObject};
 use Exception;
@@ -11,10 +11,9 @@ use Generator;
 use Illuminate\Support\Collection;
 use Nadybot\Core\DBSchema\Player;
 use Nadybot\Core\Modules\PLAYER_LOOKUP\PlayerManager;
-use Nadybot\Core\ParamClass\PTowerSite;
+use Nadybot\Core\ParamClass\{PDuration, PTowerSite};
 use Nadybot\Core\Routing\{RoutableMessage, Source};
 use Nadybot\Core\{Attributes as NCA, CmdContext, ConfigFile, DB, EventManager, LoggerWrapper, MessageHub, ModuleInstance, Nadybot, Text, Util};
-use Nadybot\Core\ParamClass\PDuration;
 use Nadybot\Modules\HELPBOT_MODULE\{Playfield, PlayfieldController};
 use Nadybot\Modules\LEVEL_MODULE\LevelController;
 use Nadybot\Modules\PVP_MODULE\FeedMessage\{TowerAttack, TowerOutcome};
@@ -1157,6 +1156,7 @@ class NotumWarsController extends ModuleInstance {
 		$search = preg_replace("/\s+soon\b/i", "", $search, -1, $soon);
 		$time = null;
 		if ($soon) {
+			$this->logger->info("Found <soon> keyword");
 			$hotSites = $hotSites->filter(
 				function (FeedMessage\SiteUpdate $site): bool {
 					if ($site->gas !== 75) {
@@ -1166,9 +1166,16 @@ class NotumWarsController extends ModuleInstance {
 				}
 			);
 		} else {
-			$durationRegexp = PDuration::getRegexp();
-			if (preg_match(chr(1) . '\s+' . $durationRegexp . '\b' . chr(1), $search, $future)) {
-				$search = preg_replace('/\s+' . $durationRegexp . '\b/', "", $search, -1);
+			$durationRegexp = PDuration::getStrictRegexp();
+			if (
+				preg_match(chr(1) . '\s+' . $durationRegexp . '\b' . chr(1), $search, $future)
+			) {
+				assert(isset($future));
+				assert(count($future) > 0);
+				$search = preg_replace('/\s+' . preg_quote($future[0], "/") . '\b/', "", $search, -1);
+				$this->logger->info("Found duration <{duration}>", [
+					"duration" => trim($future[0]),
+				]);
 				$time = time() + (new PDuration($future[0]))->toSecs();
 				$hotSites = $hotSites->filter(
 					function (FeedMessage\SiteUpdate $site) use ($time): bool {
@@ -1185,6 +1192,7 @@ class NotumWarsController extends ModuleInstance {
 		}
 		$search = preg_replace("/\s+penalty\b/i", "", $search, -1, $penalty);
 		if ($penalty) {
+			$this->logger->info("Found <penalty> keyword");
 			$hotSites = $hotSites->filter(function (FeedMessage\SiteUpdate $site): bool {
 				$gas = $this->getSiteGasInfo($site);
 				if (!isset($gas)) {
@@ -1194,6 +1202,11 @@ class NotumWarsController extends ModuleInstance {
 			});
 		}
 		if (preg_match("/\s+(neutral|omni|clan|neut)\b/i", $search, $matches)) {
+			assert(isset($matches));
+			assert(count($matches) > 0);
+			$this->logger->info("Found <{side}> keyword", [
+				"side" => $matches[1],
+			]);
 			$faction = strtolower($matches[1]);
 			$search = preg_replace("/\s+(neutral|omni|clan|neut)\b/i", "", $search);
 			if ($faction === "neut") {
@@ -1202,11 +1215,22 @@ class NotumWarsController extends ModuleInstance {
 			$hotSites = $hotSites->where("org_faction", ucfirst($faction));
 		}
 		if (preg_match("/\s+(\d+)\s*-\s*(\d+)\b/", $search, $matches)) {
+			assert(isset($matches));
+			assert(count($matches) >= 3);
+			$this->logger->info("Found level range <{from}>-<{to}>", [
+				"from" => $matches[1],
+				"to" => $matches[2],
+			]);
 			$hotSites = $hotSites->where("ql", ">=", (int)$matches[1])
 				->where("ql", "<=", (int)$matches[2]);
 			$search = preg_replace("/\s+(\d+)\s*-\s*(\d+)\b/", "", $search);
 		}
 		if (preg_match("/\s+(\d+)\b/", $search, $matches)) {
+			assert(isset($matches));
+			assert(count($matches) >= 2);
+			$this->logger->info("Found level <{level}>", [
+				"level" => $matches[1],
+			]);
 			$lvlInfo = $this->lvlCtrl->getLevelInfo((int)$matches[1]);
 			if (!isset($lvlInfo)) {
 				$context->reply("<highlight>{$matches[1]}<end> is an invalid level.");
@@ -1217,6 +1241,11 @@ class NotumWarsController extends ModuleInstance {
 			$search = preg_replace("/\s+(\d+)\b/", "", $search);
 		}
 		if (preg_match("/\s+([a-z]{2,}|\d[a-z]{2,})\b/i", $search, $matches)) {
+			assert(isset($matches));
+			assert(count($matches) >= 2);
+			$this->logger->info("Found playfield search for <{pf}>", [
+				"pf" => $matches[1],
+			]);
 			$pf = $this->pfCtrl->getPlayfieldByName($matches[1]);
 			if (!isset($pf)) {
 				$context->reply("Unable to find playfield <highlight>{$matches[1]}<end>.");

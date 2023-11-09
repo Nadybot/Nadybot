@@ -5,6 +5,7 @@ namespace Nadybot\Core\ParamClass;
 use Nadybot\Core\{Registry, Util};
 
 class PDuration extends Base {
+	protected static string $strictRegExp = "(?:(?:,?\s*\d+(?:yr?|years?|m|months?|w|weeks?|d|days?|h|hrs?|hours?|m|mins?|s|secs?))+)";
 	protected static string $regExp = "(?:(?:,?\s*\d+(?:yr?|years?|m|months?|w|weeks?|d|days?|h|hrs?|hours?|m|mins?|s|secs?))+|[1-9]\d*)";
 	protected string $value;
 
@@ -29,5 +30,9 @@ class PDuration extends Base {
 			return $util->parseTime($this->value);
 		}
 		return 0;
+	}
+
+	public static function getStrictRegexp(): string {
+		return static::$strictRegExp;
 	}
 }
