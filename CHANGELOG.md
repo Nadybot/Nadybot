@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Added new docker-option `CONFIG_ORG_ID` to specify the org id of the `CONFIG_ORG`. This can be used to make members of the given org members of the bot, without the bot actually being in the org.
+
 ### Fixed
 
 - `!nw hot` was interpreting every number as seconds into the future. Now you always have to give "s", or "secs" to achieve this, while a sheer number will be the level of your character and search for towers in range accordingly.

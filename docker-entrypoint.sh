@@ -40,6 +40,7 @@ cat > /tmp/config.php << DONE
 \$vars['password']   = "$CONFIG_PASSWORD";
 \$vars['name']       = "$CONFIG_BOTNAME";
 \$vars['my_guild']   = "${CONFIG_ORG:-}";
+\$vars['org_id']   = ${CONFIG_ORG_ID:-null};
 \$vars['dimension']  = ${CONFIG_DIMENSION:-5};
 \$vars['SuperAdmin'] = ["$(echo "${CONFIG_SUPERADMIN}" | sed -e 's/[, ]\+/", "/g')"];
 \$vars['DB Type'] = "$CONFIG_DB_TYPE";
@@ -130,7 +131,7 @@ if [ -e /proxy/aochatproxy ] \
 		    ]
 		}
 	DONE
-	
+
 	cd /proxy || exit
 	(/usr/bin/env RUST_BACKTRACE=full /proxy/aochatproxy /tmp/config.json 2>&1| stdbuf -i0 -o0 -e0 sed -e 's/^[^ ]* \([A-Z]*\) .*\]/[PROXY:\1]/') &
 	cd /nadybot || exit
