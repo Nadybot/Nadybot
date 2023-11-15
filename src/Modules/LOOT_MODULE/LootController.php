@@ -453,7 +453,32 @@ class LootController extends ModuleInstance {
 			$item = $loot->item->getLink($loot->ql, $loot->name);
 		}
 		// We want this command to always use the same rights as the bid start
-		$context->message = "bid start {$item}";
+		$context->message = "bid start {$loot->multiloot}x {$item}";
+		$this->commandManager->processCmd($context);
+	}
+
+	/** Raffle an item from a loot list */
+	#[NCA\HandlesCommand(self::CMD_LOOT_MANAGE)]
+	#[NCA\Help\Group("loot")]
+	public function lootRaffleByIdCommand(
+		CmdContext $context,
+		#[NCA\Str("raffle")] string $action,
+		int $id
+	): void {
+		$loot = $this->getLootEntryID($id);
+
+		if ($loot === null) {
+			$msg = "Could not find item with id <highlight>{$id}<end> to add.";
+			$context->reply($msg);
+			return;
+		}
+
+		$item = $loot->name;
+		if (isset($loot->item)) {
+			$item = $loot->item->getLink($loot->ql, $loot->name);
+		}
+		// We want this command to always use the same rights as the bid start
+		$context->message = "raffle add {$loot->multiloot}x {$item}";
 		$this->commandManager->processCmd($context);
 	}
 
