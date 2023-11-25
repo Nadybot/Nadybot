@@ -31,11 +31,14 @@ RUN apk --no-cache add \
     php81-opcache \
     php81-fileinfo \
     php81-tokenizer \
-	tini \
+    tini \
+    jemalloc \
     && \
     adduser -h /nadybot -s /bin/false -D -H nadybot
 
 COPY --chown=nadybot:nadybot . /nadybot
+
+ENV LD_PRELOAD=libjemalloc.so.2
 
 RUN wget -O /usr/bin/composer https://getcomposer.org/composer-2.phar && \
     apk --no-cache add \
