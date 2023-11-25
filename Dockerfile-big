@@ -36,6 +36,7 @@ RUN apk --no-cache upgrade && \
     php81-fileinfo \
     php81-tokenizer \
     tini \
+    jemalloc \
     sed \
     coreutils \
     && \
@@ -44,6 +45,8 @@ RUN apk --no-cache upgrade && \
 
 COPY --chown=nadybot:nadybot . /nadybot
 COPY --from=builder /aochatproxy /proxy/aochatproxy
+
+ENV LD_PRELOAD=libjemalloc.so.2
 
 RUN wget -O /usr/bin/composer https://getcomposer.org/composer-2.phar && \
     apk --no-cache add \
