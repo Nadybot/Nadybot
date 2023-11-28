@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - `!nw hot` was interpreting every number as seconds into the future. Now you always have to give "s", or "secs" to achieve this, while a sheer number will be the level of your character and search for towers in range accordingly.
+- In case of the outgoing Discord-connection to send messages being interrupted, the queue was stuck forever and didn't move forward.
 
 ## [6.2.6] - 2023-11-05
 
