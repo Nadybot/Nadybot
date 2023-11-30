@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - New command `!raffle add <raffle string>` to add items to a running raffle (or start a new one if none is currently running). If the same item is already being raffled, the amount will be increased.
 - Added raffle-links to the output of `LOOT_MODULE`. All 3 links (`!loot add`, `!bid start`, and `!raffle add`) can now be disabled in settings for a more compact output.
 - Added option to `NANO_MODULE` to add the nano id to the output list.
+- Added option to choose between aoitems.com and auno.org as link for items/nanos on Discord.
 
 ### Fixed
 

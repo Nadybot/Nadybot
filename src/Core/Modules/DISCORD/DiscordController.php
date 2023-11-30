@@ -12,6 +12,7 @@ use Nadybot\Core\{
 	ModuleInstance,
 	Nadybot,
 	SettingManager,
+	Text,
 };
 use Nadybot\Modules\DISCORD_GATEWAY_MODULE\DiscordGatewayController;
 use Nadybot\Modules\DISCORD_GATEWAY_MODULE\Model\Guild;
@@ -29,6 +30,9 @@ class DiscordController extends ModuleInstance {
 
 	#[NCA\Inject]
 	public ConfigFile $config;
+
+	#[NCA\Inject]
+	public Text $text;
 
 	#[NCA\Inject]
 	public DiscordAPIClient $discordAPIClient;
@@ -54,6 +58,19 @@ class DiscordController extends ModuleInstance {
 	/** Use custom Emojis */
 	#[NCA\Setting\Boolean]
 	public bool $discordCustomEmojis = true;
+
+	/** Which website to use to show links to items */
+	#[NCA\Setting\Template(
+		exampleValues: [
+			"id" => 12345,
+			"ql" => 200,
+		],
+		options: [
+			"aoitems" => "https://aoitems.com/item/{id}{?ql:/{ql}}",
+			"auno" => "https://auno.org/ao/db.php?id={id}{?ql:&ql={ql}}",
+		]
+	)]
+	public string $itemWebsite = "https://auno.org/ao/db.php?id={id}{?ql:&ql={ql}}";
 
 	/** Reformat a Nadybot message for sending to Discord */
 	public function formatMessage(string $text, ?Guild $guild=null): DiscordMessageOut {
@@ -100,9 +117,16 @@ class DiscordController extends ModuleInstance {
 		$text = preg_replace("|<a [^>]*?href='chatcmd:///start (.+?)'>(.+?)</a>|s", '[$2]($1)', $text);
 		$text = preg_replace("|<a [^>]*?href='chatcmd://(.+?)'>(.+?)</a>|s", '$2', $text);
 		$linksReplaced = 0;
-		$text = preg_replace(
+		$text = preg_replace_callback(
 			"|<a [^>]*?href=['\"]?itemref://(\d+)/(\d+)/(\d+)['\"]?>(.+?)</a>|s",
-			"[$4](https://aoitems.com/item/$1/$3)",
+			function (array $match): string {
+				$tokens = [
+					"id" => $match[1],
+					"ql" => $match[3],
+				];
+				$url = $this->text->renderPlaceholders($this->itemWebsite, $tokens);
+				return "[{$match[4]}]({$url})";
+			},
 			$text,
 			-1,
 			$linksReplaced
@@ -110,9 +134,15 @@ class DiscordController extends ModuleInstance {
 
 		/** @var int $linksReplaced */
 		$linksReplaced2 = 0;
-		$text = preg_replace(
+		$text = preg_replace_callback(
 			"|<a [^>]*?href=['\"]itemid://53019/(\d+)['\"]>(.+?)</a>|s",
-			"[$2](https://aoitems.com/item/$1)",
+			function (array $match): string {
+				$tokens = [
+					"id" => $match[1],
+				];
+				$url = $this->text->renderPlaceholders($this->itemWebsite, $tokens);
+				return "[{$match[2]}]({$url})";
+			},
 			$text,
 			-1,
 			$linksReplaced2
