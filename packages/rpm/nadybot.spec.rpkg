@@ -206,7 +206,16 @@ exit 0
 %endif
 
 %changelog
-* Sun Oct 05 2023 Nadyita <nadyita@hodorraid.org> 6.2.6-1
+* Sat Dec 02 2023 Nadyita <nadyita@hodorraid.org> 6.2.7-1
+- Added new docker-option `CONFIG_ORG_ID` to specify the org id of the `CONFIG_ORG`. This can be used to make members of the given org members of the bot, without the bot actually being in the org.
+- New command `!raffle add <raffle string>` to add items to a running raffle (or start a new one if none is currently running). If the same item is already being raffled, the amount will be increased.
+- Added raffle-links to the output of `LOOT_MODULE`. All 3 links (`!loot add`, `!bid start`, and `!raffle add`) can now be disabled in settings for a more compact output.
+- Added option to `NANO_MODULE` to add the nano id to the output list.
+- Added option to choose between aoitems.com and auno.org as link for items/nanos on Discord.
+- `!nw hot` was interpreting every number as seconds into the future. Now you always have to give "s", or "secs" to achieve this, while a sheer number will be the level of your character and search for towers in range accordingly.
+- In case of the outgoing Discord-connection to send messages being interrupted, the queue was stuck forever and didn't move forward.
+
+* Sun Nov 05 2023 Nadyita <nadyita@hodorraid.org> 6.2.6-1
 - Add new command "!lastonline <char>" as non-org equivalent for "!lastseen"
 - Add new setting "orglist_pork_url" to allow downloading orglists from our reverse proxy. This solves PORK being down very often lately.
 - Add new settings to allow automatically sending random greetings to players joining the private channel.
