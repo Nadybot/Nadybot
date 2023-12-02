@@ -206,6 +206,82 @@ class RaffleController extends ModuleInstance {
 		$this->chatBot->sendTell($adminMsg, $context->char->name, QueueInterface::PRIORITY_HIGH);
 	}
 
+	/**
+	 * Add one or more items to a running raffle, or start a new one
+	 *
+	 * Use 'item1', 'item2' to raffle items separately
+	 * Use 'item1'+'item2'[+'item3']... to raffle multiple items as a group
+	 * Use &lt;number&gt;x 'item/group' to raffle more than one of an item or group
+	 * Use 0x 'item/group' to raffle an unlimited number of an item or group
+	 * Use &lt;duration&gt; 'items/groups' to start with a custom timer
+	 */
+	#[NCA\HandlesCommand(self::CMD_RAFFLE_MANAGE)]
+	#[NCA\Help\Example("<symbol>raffle add Alpha Box")]
+	#[NCA\Help\Example("<symbol>raffle add Alpha Box, Beta Box")]
+	#[NCA\Help\Example("<symbol>raffle add 3x Alpha Box, 3x Beta Box")]
+	#[NCA\Help\Example("<symbol>raffle add 3x Alpha Box+Beta Box")]
+	#[NCA\Help\Example("<symbol>raffle add 0x Loot order")]
+	#[NCA\Help\Example("<symbol>raffle add 30s ACDC")]
+	public function raffleAddCommand(
+		CmdContext $context,
+		#[NCA\Str("add")] string $action,
+		string $raffleString
+	): void {
+		$newRaffle = !isset($this->raffle);
+		$duration = null;
+		if ($this->raffleEndsAutomatically) {
+			$duration = $this->defaultraffletime;
+		}
+		$maybeDuration = explode(" ", $raffleString)[0];
+		if (($raffleTime = $this->util->parseTime($maybeDuration)) > 0) {
+			$duration = $raffleTime;
+			$raffleString = preg_replace("/^.+? /", "", $raffleString);
+		}
+		$raffle = new Raffle();
+		$raffle->fromString($raffleString);
+		$raffle->raffler = $context->char->name;
+		$raffle->end = isset($duration) ? $raffle->start + $duration : null;
+		$raffle->sendto = $context;
+		$raffle->announceInterval = $this->raffleAnnounceFrequency;
+		$raffle->allowMultiJoin = $this->raffleAllowMultiJoin;
+		if ($context->isDM()) {
+			$raffle->sendto = new PrivateChannelCommandReply(
+				$this->chatBot,
+				$this->chatBot->char->name
+			);
+		}
+		$event = new RaffleEvent();
+		if ($newRaffle) {
+			$this->raffle = $raffle;
+			$event->type = "raffle(start)";
+		} else {
+			assert(isset($this->raffle));
+			foreach ($raffle->slots as $slot) {
+				$oldSlot = $this->getMatchingSlot($slot);
+				if (isset($oldSlot)) {
+					$oldSlot->amount += $slot->amount;
+				} else {
+					$this->raffle->slots[] = $slot;
+				}
+			}
+			$event->type = "raffle(add)";
+		}
+		$event->raffle = $this->raffle;
+		$this->eventManager->fireEvent($event);
+
+		if ($newRaffle) {
+			$this->announceRaffleStart();
+			$adminMsg = $this->text->blobWrap(
+				"You can control the raffle via the ",
+				$this->text->makeBlob("Raffle Admin Menu", $this->getRaffleAdminPage($context->char->name)),
+				"."
+			);
+			$this->chatBot->sendTell($adminMsg, $context->char->name, QueueInterface::PRIORITY_HIGH);
+			return;
+		}
+		$this->announceRaffleAdd($raffle);
+	}
+
 	public function announceRaffleStart(): void {
 		if (!isset($this->raffle)) {
 			return;
@@ -215,6 +291,31 @@ class RaffleController extends ModuleInstance {
 		$blob = $this->getJoinLeaveBlob();
 		if ($this->raffle->end) {
 			$endTime = $this->util->unixtimeToReadable($this->raffle->end - $this->raffle->start);
+			$msg = $this->text->blobWrap(
+				"{$msg}The raffle will end in <highlight>{$endTime}<end> :: [",
+				$this->text->makeBlob("Join", $blob, "Raffle actions"),
+				"]"
+			);
+		} else {
+			$msg = $this->text->blobWrap(
+				$msg,
+				$this->text->makeBlob("Join the raffle", $blob, "Raffle actions")
+			);
+		}
+		$this->raffle->sendto->reply($msg);
+	}
+
+	public function announceRaffleAdd(Raffle $raffle): void {
+		if (!isset($this->raffle)) {
+			return;
+		}
+		$count = count($raffle->slots);
+		$items = $this->text->pluralize("item", $count);
+		$msg = "\n<yellow>:::<end> <red>{$raffle->raffler} has added {$count} {$items} to the raffle<end> <yellow>:::<end>\n".
+			$this->fancyFrame($raffle->toString("<tab>"));
+		$blob = $this->getJoinLeaveBlob();
+		if ($this->raffle->end) {
+			$endTime = $this->util->unixtimeToReadable($this->raffle->end - time());
 			$msg = $this->text->blobWrap(
 				"{$msg}The raffle will end in <highlight>{$endTime}<end> :: [",
 				$this->text->makeBlob("Join", $blob, "Raffle actions"),
@@ -773,5 +874,17 @@ class RaffleController extends ModuleInstance {
 			},
 			$players
 		);
+	}
+
+	private function getMatchingSlot(RaffleSlot $check): ?RaffleSlot {
+		if (!isset($this->raffle)) {
+			return null;
+		}
+		foreach ($this->raffle->slots as $slot) {
+			if ($slot->isSameAs($check)) {
+				return $slot;
+			}
+		}
+		return null;
 	}
 }

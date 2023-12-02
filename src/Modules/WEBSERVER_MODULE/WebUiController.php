@@ -7,6 +7,7 @@ use function Amp\call;
 use Amp\Http\Client\{HttpClientBuilder, Request, Response};
 use Amp\{Loop, Promise, Success};
 use DateTime;
+use ErrorException;
 use Exception;
 use Generator;
 use Nadybot\Core\{
@@ -313,7 +314,12 @@ class WebUiController extends ModuleInstance implements MessageEmitter {
 				throw new Exception("Error opening {$archiveName}. Code {$openResult}.");
 			}
 			$path = \Safe\realpath($this->config->htmlFolder);
+			error_clear_last();
 			if ($extractor->extractTo($path) === false) {
+				$lastError = error_get_last();
+				if (isset($lastError)) {
+					throw new ErrorException("Error extracting {$archiveName}: " . $lastError['message'] . ".", 0, $lastError['type']);
+				}
 				throw new Exception("Error extracting {$archiveName}.");
 			}
 		} catch (Throwable $e) {

@@ -23,6 +23,7 @@ use Nadybot\Modules\DISCORD_GATEWAY_MODULE\Model\{ApplicationCommand, Emoji, Gui
 use RuntimeException;
 use Safe\Exceptions\JsonException;
 use stdClass;
+use Throwable;
 
 /**
  * A Discord API-client
@@ -394,6 +395,7 @@ class DiscordAPIClient extends ModuleInstance {
 	}
 
 	private function processQueue(): void {
+		$this->logger->info("Processing discord-queue");
 		if (empty($this->outQueue)) {
 			$this->logger->info("Channel queue empty, stopping processing");
 			$this->queueProcessing = false;
@@ -407,16 +409,23 @@ class DiscordAPIClient extends ModuleInstance {
 	/** @return Promise<void> */
 	private function immediatelySendToChannel(ChannelQueueItem $item): Promise {
 		return call(function () use ($item): Generator {
-			$this->logger->info("Sending message to discord channel {channel}", [
-				"channel" => $item->channelId,
-				"message" => $item->message,
-			]);
-			$url = self::DISCORD_API . "/channels/{$item->channelId}/messages";
-			$request = new Request($url, "POST");
-			$request->setBody(new DiscordBody($item->message));
-			yield $this->sendRequest($request, new stdClass());
-			if (isset($item->callback)) {
-				$item->callback->resolve();
+			try {
+				$this->logger->info("Sending message to discord channel {channel}", [
+					"channel" => $item->channelId,
+					"message" => $item->message,
+				]);
+				$url = self::DISCORD_API . "/channels/{$item->channelId}/messages";
+				$request = new Request($url, "POST");
+				$request->setBody(new DiscordBody($item->message));
+				yield $this->sendRequest($request, new stdClass());
+				if (isset($item->callback)) {
+					$item->callback->resolve();
+				}
+			} catch (Throwable $e) {
+				$this->logger->error("Sending message failed: {error}", [
+					"error" => $e->getMessage(),
+					"exception" => $e,
+				]);
 			}
 			$this->processQueue();
 		});
@@ -435,16 +444,23 @@ class DiscordAPIClient extends ModuleInstance {
 	/** @return Promise<void> */
 	private function immediatelySendToWebhook(WebhookQueueItem $item): Promise {
 		return call(function () use ($item): Generator {
-			$this->logger->info("Sending message to discord webhook {webhook}", [
-				"webhook" => $item->interactionToken,
-				"message" => $item->message,
-			]);
-			$url = self::DISCORD_API . "/webhooks/{$item->applicationId}/{$item->interactionToken}";
-			$request = new Request($url, "POST");
-			$request->setBody(new DiscordBody($item->message));
-			yield $this->sendRequest($request, new stdClass());
-			if (isset($item->deferred)) {
-				$item->deferred->resolve();
+			try {
+				$this->logger->info("Sending message to discord webhook {webhook}", [
+					"webhook" => $item->interactionToken,
+					"message" => $item->message,
+				]);
+				$url = self::DISCORD_API . "/webhooks/{$item->applicationId}/{$item->interactionToken}";
+				$request = new Request($url, "POST");
+				$request->setBody(new DiscordBody($item->message));
+				yield $this->sendRequest($request, new stdClass());
+				if (isset($item->deferred)) {
+					$item->deferred->resolve();
+				}
+			} catch (Throwable $e) {
+				$this->logger->error("Error sending request: {error}. Dropping message", [
+					"error" => $e->getMessage(),
+					"exception" => $e,
+				]);
 			}
 			$this->processWebhookQueue();
 		});
@@ -460,26 +476,51 @@ class DiscordAPIClient extends ModuleInstance {
 	private function sendRequest(Request $request, JSONDataModel|stdClass|array $o): Promise {
 		return call(function () use ($request, $o) {
 			$client = $this->getClient();
-
-			$retries = 3;
+			$maxTries = 3;
+			$retries = $maxTries;
+			$response = null;
 			do {
 				$retry = false;
 				$retries--;
+				try {
+					if ($retries < $maxTries -1) {
+						$this->logger->notice("Retrying discord-message");
+					}
 
-				/** @var Response */
-				$response = yield $client->request($request);
-				$body = yield $response->getBody()->buffer();
-				if ($response->getStatus() >= 500 && $response->getStatus() < 600 && $retries > 0) {
+					/** @var Response */
+					$response = yield $client->request($request);
+
+					/** @var string */
+					$body = yield $response->getBody()->buffer();
+					if ($response->getStatus() >= 500 && $response->getStatus() < 600) {
+						$delayMs = 500;
+						$this->logger->warning(
+							"Got a {code} when sending message to Discord{retry}",
+							[
+								"retry" => ($retries > 0) ? ", retrying in {$delayMs}ms" : "",
+								"code" => $response->getStatus(),
+							]
+						);
+						$retry = true;
+						if ($retries > 0) {
+							yield delay($delayMs);
+						}
+						continue;
+					}
+				} catch (\Exception $e) {
 					$delayMs = 500;
-					$this->logger->warning(
-						"Got a {code} when sending message to Discord, retrying in {delay}ms",
+					$this->logger->error(
+						"Error sending message to discord: {error}{retry}",
 						[
-							"code" => $response->getStatus(),
+							"retry" => ($retries > 0) ? ", retrying in {$delayMs}ms" : "",
+							"error" => $e->getMessage(),
 							"delay" => $delayMs,
 						]
 					);
 					$retry = true;
-					yield delay($delayMs);
+					if ($retries > 0) {
+						yield delay($delayMs);
+					}
 					continue;
 				}
 				if ($response->getStatus() < 200 || $response->getStatus() >= 300) {
@@ -491,6 +532,17 @@ class DiscordAPIClient extends ModuleInstance {
 					);
 				}
 			} while ($retry && $retries > 0);
+
+			/**
+			 * @psalm-suppress TypeDoesNotContainNull
+			 * @psalm-suppress DocblockTypeContradiction
+			 */
+			if (!isset($response) || !isset($body)) {
+				throw new DiscordException("Unable to send message with {$maxTries} tries");
+			}
+			if ($retries !== $maxTries -1) {
+				$this->logger->notice("Message sent successfully.");
+			}
 			if ($response->getStatus() === 204) {
 				return new stdClass();
 			}

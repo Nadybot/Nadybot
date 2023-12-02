@@ -93,6 +93,10 @@ class NanoController extends ModuleInstance {
 	#[NCA\Setting\Boolean]
 	public bool $nanoAddGMI = true;
 
+	/** Add the nano id to the output */
+	#[NCA\Setting\Boolean]
+	public bool $nanoAddID = true;
+
 	/** @var array<int,Nanoline> */
 	public array $nanolines = [];
 
@@ -155,10 +159,13 @@ class NanoController extends ModuleInstance {
 			$gmiLink = ($this->nanoAddGMI && isset($row->crystal_id))
 				? " [" . $this->text->makeChatcmd("GMI", "/tell <myname> gmi {$row->crystal_id}") . "]"
 				: '';
+			$idLink = ($this->nanoAddID && isset($row->nano_id))
+				? " ID " . $this->text->alignNumber($row->nano_id, 6)
+				: '';
 			$crystalLink = isset($row->crystal_id)
 				? $this->text->makeItem($row->crystal_id, $row->crystal_id, $row->ql, "Crystal")
 				: "Crystal";
-			$info = "QL" . $this->text->alignNumber($row->ql, 3) . $gmiLink. " [{$crystalLink}] {$nanoLink} ({$row->location})";
+			$info = "QL" . $this->text->alignNumber($row->ql, 3) . $gmiLink . $idLink . " [{$crystalLink}] {$nanoLink} ({$row->location})";
 			$info .= " - <highlight>" . implode("<end>, <highlight>", explode(":", $row->professions)) . "<end>";
 			$blob .= "<tab>{$info}\n";
 		}

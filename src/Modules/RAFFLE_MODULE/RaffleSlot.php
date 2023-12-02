@@ -42,6 +42,29 @@ class RaffleSlot {
 		return "<orange>{$this->amount}×</font> " . join(", ", $items);
 	}
 
+	public function isSameAs(RaffleSlot $slot): bool {
+		/** @var array<string,int> */
+		$items = [];
+		$remaining = 0;
+		foreach ($slot->items as $item) {
+			$name = $item->amount . chr(0) . $item->item;
+			if (!isset($items[$name])) {
+				$items[$name] = 0;
+			}
+			$items[$name]++;
+			$remaining++;
+		}
+		foreach ($this->items as $check) {
+			$name = $check->amount . chr(0) . $check->item;
+			if (!isset($items[$name]) || ($items[$name] === 0)) {
+				return false;
+			}
+			$items[$name]--;
+			$remaining--;
+		}
+		return $remaining === 0;
+	}
+
 	public function removeParticipant(string $player): bool {
 		if (!in_array($player, $this->participants)) {
 			return false;

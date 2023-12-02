@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [6.2.7] - 2023-12-02
+
+### Added
+
+- Added new docker-option `CONFIG_ORG_ID` to specify the org id of the `CONFIG_ORG`. This can be used to make members of the given org members of the bot, without the bot actually being in the org.
+- New command `!raffle add <raffle string>` to add items to a running raffle (or start a new one if none is currently running). If the same item is already being raffled, the amount will be increased.
+- Added raffle-links to the output of `LOOT_MODULE`. All 3 links (`!loot add`, `!bid start`, and `!raffle add`) can now be disabled in settings for a more compact output.
+- Added option to `NANO_MODULE` to add the nano id to the output list.
+- Added option to choose between aoitems.com and auno.org as link for items/nanos on Discord.
+
+### Fixed
+
+- `!nw hot` was interpreting every number as seconds into the future. Now you always have to give "s", or "secs" to achieve this, while a sheer number will be the level of your character and search for towers in range accordingly.
+- In case of the outgoing Discord-connection to send messages being interrupted, the queue was stuck forever and didn't move forward.
+
 ## [6.2.6] - 2023-11-05
 
 ### Added
@@ -39,7 +54,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Superadmins are now a group of their own in `!admins` and `!leaders`.
 - Increased Docker default PHP-memory from 128MB to 192MB.
 
-### Fix
+### Fixed
 
 - The `!points add <points> <char> <reason>` syntax works again.
 - `!points spp` did not set the timer, now it does.

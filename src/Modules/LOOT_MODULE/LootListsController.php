@@ -16,6 +16,7 @@ use Nadybot\Core\{
 	Text,
 	Util,
 };
+use Nadybot\Modules\RAFFLE_MODULE\RaffleController;
 use Nadybot\Modules\RAID_MODULE\AuctionController;
 use Nadybot\Modules\{
 	BASIC_CHAT_MODULE\ChatLeaderController,
@@ -172,6 +173,18 @@ class LootListsController extends ModuleInstance {
 	/** Show pictures in loot lists */
 	#[NCA\Setting\Boolean]
 	public bool $showRaidLootPics = false;
+
+	/** Show "loot add" links */
+	#[NCA\Setting\Boolean]
+	public bool $showLootLootLinks = true;
+
+	/** Show auction links */
+	#[NCA\Setting\Boolean]
+	public bool $showLootAuctionLinks = true;
+
+	/** Show raffle links */
+	#[NCA\Setting\Boolean]
+	public bool $showLootRaffleLinks = true;
 
 	#[NCA\Setup]
 	public function setup(): void {
@@ -752,9 +765,11 @@ class LootListsController extends ModuleInstance {
 			throw new Exception("No loot for type {$raid} found in the database");
 		}
 		$auctionsEnabled = false;
+		$rafflesEnabled = false;
 		$lootEnabled = false;
 		if (isset($context->permissionSet)) {
 			$auctionsEnabled = $this->commandManager->cmdExecutable(AuctionController::CMD_BID_AUCTION, $sender, $context->permissionSet);
+			$rafflesEnabled = $this->commandManager->cmdExecutable(RaffleController::CMD_RAFFLE_MANAGE, $sender, $context->permissionSet);
 			$lootEnabled = $this->commandManager->cmdExecutable(LootController::CMD_LOOT_MANAGE, $sender, $context->permissionSet);
 		}
 
@@ -763,16 +778,22 @@ class LootListsController extends ModuleInstance {
 		foreach ($loot as $row) {
 			/** @var RaidLootSearch $row */
 			$actions = [];
-			if ($lootEnabled) {
+			if ($lootEnabled && $this->showLootLootLinks) {
 				$actions []= $this->text->makeChatcmd(
 					"loot",
 					"/tell <myname> loot add {$row->id}"
 				);
 			}
-			if ($lootEnabled && $auctionsEnabled) {
+			if ($lootEnabled && $auctionsEnabled && $this->showLootAuctionLinks) {
 				$actions []= $this->text->makeChatcmd(
 					"auction",
 					"/tell <myname> loot auction {$row->id}"
+				);
+			}
+			if ($lootEnabled && $rafflesEnabled && $this->showLootRaffleLinks) {
+				$actions []= $this->text->makeChatcmd(
+					"raffle",
+					"/tell <myname> loot raffle {$row->id}"
 				);
 			}
 			if (isset($row->item)) {

@@ -10,6 +10,7 @@ use Nadybot\Core\{
 	CommandHandler,
 	CommandManager,
 	DB,
+	LoggerWrapper,
 	ModuleInstance,
 	Registry,
 	SubcommandManager,
@@ -82,9 +83,24 @@ class DevController extends ModuleInstance {
 	#[NCA\Inject]
 	public Text $text;
 
+	#[NCA\Logger]
+	public LoggerWrapper $logger;
+
 	#[NCA\Setup]
 	public function setup(): void {
 		$this->commandAlias->register($this->moduleName, "querysql select", "select");
+	}
+
+	#[NCA\Event(
+		name: "timer(1m)",
+		description: "Log the memory usage once per minute",
+		defaultStatus: 0,
+	)]
+	public function logMemoryUsage(): void {
+		$this->logger->notice("Current memory usage: {usage}MB / {real}MB", [
+			"usage" => number_format(memory_get_usage(false) / (1024 * 1024), 1),
+			"real" => number_format(memory_get_usage(true) / (1024 * 1024), 1),
+		]);
 	}
 
 	/**
