@@ -54,7 +54,7 @@ class HttpProtocolWrapper {
 
 	public function __destruct() {
 		if (isset($this->logger)) {
-			$this->logger->info(get_class() . ' destroyed');
+			$this->logger->info(get_class($this) . ' destroyed');
 		}
 	}
 
