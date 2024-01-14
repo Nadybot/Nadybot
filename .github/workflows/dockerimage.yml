@@ -53,6 +53,7 @@ jobs:
               --tag "quay.io/nadyita/nadybot:${{steps.vars.outputs.branch}}" \
               --tag "ghcr.io/nadybot/nadybot:${{steps.vars.outputs.tag}}" \
               --tag "ghcr.io/nadybot/nadybot:${{steps.vars.outputs.branch}}" \
+              --tag "ghcr.io/nadybot/nadybot:${{steps.vars.outputs.branch}}-$(date +'%Y%m%d-%H%M%S')" \
               .
         - name: Build and push the tagged Docker-big PHP 8.0 image
           shell: bash
@@ -61,7 +62,9 @@ jobs:
               --tag "quay.io/nadyita/nadybot-big:${{steps.vars.outputs.tag}}" \
               --tag "quay.io/nadyita/nadybot-big:${{steps.vars.outputs.branch}}" \
               --tag "ghcr.io/nadybot/nadybot-big:${{steps.vars.outputs.tag}}" \
-              --tag "ghcr.io/nadybot/nadybot-big:${{steps.vars.outputs.branch}}" .
+              --tag "ghcr.io/nadybot/nadybot-big:${{steps.vars.outputs.branch}}" \
+              --tag "ghcr.io/nadybot/nadybot-big:${{steps.vars.outputs.branch}}-$(date +'%Y%m%d-%H%M%S')" \
+              .
         - name: Build and push the tagged Docker-big-debug PHP 8.0 image
           shell: bash
           run: |
@@ -69,5 +72,7 @@ jobs:
               --tag "quay.io/nadyita/nadybot-big-debug:${{steps.vars.outputs.tag}}" \
               --tag "quay.io/nadyita/nadybot-big-debug:${{steps.vars.outputs.branch}}" \
               --tag "ghcr.io/nadybot/nadybot-big-debug:${{steps.vars.outputs.tag}}" \
-              --tag "ghcr.io/nadybot/nadybot-big-debug:${{steps.vars.outputs.branch}}" .
+              --tag "ghcr.io/nadybot/nadybot-big-debug:${{steps.vars.outputs.branch}}" \
+              --tag "ghcr.io/nadybot/nadybot-big-debug:${{steps.vars.outputs.branch}}--$(date +'%Y%m%d-%H%M%S')" \
+              .
 
