@@ -12,7 +12,7 @@ use Amp\Http\Client\{HttpClientBuilder, HttpException};
 use Amp\Socket\ConnectContext;
 use Amp\Websocket\Client\{Connection, ConnectionException, Handshake, Rfc6455Connector};
 use Amp\Websocket\{ClientMetadata, ClosedException, Message};
-use Amp\{Loop, Promise};
+use Amp\{Loop, MultiReasonException, Promise};
 use Generator;
 use Illuminate\Support\{Collection, ItemNotFoundException};
 use Nadybot\Core\Modules\DISCORD\{
@@ -2113,6 +2113,22 @@ class DiscordGatewayController extends ModuleInstance {
 						$this->reconnectDelay = max($this->reconnectDelay * 2, 5);
 						continue;
 					}
+					return;
+				} catch (MultiReasonException $e) {
+					$errors = [];
+					foreach ($e->getReasons() as $reason) {
+						$errors[] = $reason->getMessage();
+					}
+					$this->logger->error("Multiple errors from Discord endpoint: {error}", [
+						"error" => join("\n", $errors),
+					]);
+					$this->sessionId = null;
+					return;
+				} catch (Throwable $e) {
+					$this->logger->error("Error from Discord endpoint: {error}", [
+						"error" => $e->getMessage(),
+					]);
+					$this->sessionId = null;
 					return;
 				} finally {
 					if (isset($this->client)) {
