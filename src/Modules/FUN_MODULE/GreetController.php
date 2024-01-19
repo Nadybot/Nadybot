@@ -2,12 +2,15 @@
 
 namespace Nadybot\Modules\FUN_MODULE;
 
-use function Amp\delay;
+use function Amp\{call, delay};
+use Amp\{Promise, Success};
 use Generator;
+use Nadybot\Core\DBSchema\Player;
 use Nadybot\Core\Modules\ALTS\{AltEvent, AltsController};
+use Nadybot\Core\Modules\PLAYER_LOOKUP\PlayerManager;
+
 use Nadybot\Core\Modules\PREFERENCES\Preferences;
 use Nadybot\Core\ParamClass\PRemove;
-
 use Nadybot\Core\{
 	AOChatEvent,
 	Attributes as NCA,
@@ -65,6 +68,9 @@ class GreetController extends ModuleInstance {
 
 	#[NCA\Inject]
 	public Preferences $prefs;
+
+	#[NCA\Inject]
+	public PlayerManager $playerManager;
 
 	#[NCA\Inject]
 	public Text $text;
@@ -158,11 +164,17 @@ class GreetController extends ModuleInstance {
 			return;
 		}
 		yield delay($this->greetDelay * 1000);
-		$greeting = $this->fun->getFunItem($this->greetSource, $event->sender);
+
+		/** @var ?string */
+		$greeting = yield $this->getMatchingGreeting($event->sender);
+		if (empty($greeting)) {
+			return;
+		}
+		$msg = $this->fun->renderPlaceholders($greeting, $event->sender);
 		if ($this->greetLocation === self::SOURCE_CHANNEL) {
-			$this->chatBot->sendPrivate($greeting);
+			$this->chatBot->sendPrivate($msg);
 		} elseif ($this->greetLocation === self::TELL) {
-			$this->chatBot->sendTell($greeting, $event->sender);
+			$this->chatBot->sendTell($msg, $event->sender);
 		}
 	}
 
@@ -217,8 +229,16 @@ class GreetController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
+	/**
+	 * Add a new custom greeting. Use *name* as a placeholder for the person who joined.
+	 *
+	 * If the first word is a pair in the form key=value, then the greeting will only
+	 * be used if they match. Possible keys are: name, main, prof, gender, breed, faction
+	 */
 	#[NCA\HandlesCommand("greeting")]
-	/** Add a new custom greeting. Use *name* as a placeholder for the person who joined */
+	#[NCA\Help\Example(command: "greeting add Welcome to the party, *name*!")]
+	#[NCA\Help\Example(command: "greeting add prof=doc What's up, doc?")]
+	#[NCA\Help\Example(command: "greeting add main=Nady You again, *name*?")]
 	public function addGreeting(
 		CmdContext $context,
 		#[NCA\Str("add")] string $action,
@@ -287,6 +307,107 @@ class GreetController extends ModuleInstance {
 			"from" => $event->alt,
 			"to" => $event->main,
 		]);
+	}
+
+	/**
+	 * Check if the given greeting-check applies to the player
+	 *
+	 * @param string $token  The token to check (main, name, prof)
+	 * @param string $value  The value to check against
+	 * @param string $target The name of the character to check against
+	 *
+	 * @return Promise<bool> A promise that resolves into true (matches) or false (doesn't match)
+	 */
+	protected function matchesGreetingCheck(string $token, string $value, string $target): Promise {
+		return call(function () use ($token, $value, $target): Generator {
+			switch ($token) {
+				case "main":
+					return $this->altsController->getMainOf($target) === ucfirst(strtolower($value));
+				case "name":
+				case "char":
+				case "charname":
+				case "character":
+					return $target === ucfirst(strtolower($value));
+			}
+
+			/** @var ?Player */
+			$player = yield $this->playerManager->byName($target);
+			if (!isset($player)) {
+				return false;
+			}
+			switch ($token) {
+				case "prof":
+				case "profession":
+					return $player->profession === $this->util->getProfessionName($value);
+				case "faction":
+				case "side":
+					return strtolower($player->faction) === strtolower($value);
+				case "gender":
+				case "sex":
+					return strtolower($player->gender) === strtolower($value);
+				case "race":
+				case "breed":
+					return strtolower($player->breed) === strtolower($value);
+				default:
+					return true;
+			}
+		});
+	}
+
+	/**
+	 * Check if a given greeting applies to a given target
+	 *
+	 * @param string $target   The name of the person being greeted
+	 * @param Fun    $greeting The Fun object with the greeting
+	 *
+	 * @return Promise<?string> Either the greeting, or null if it doesn't apply
+	 */
+	private function greetingFits(string $target, Fun $greeting): Promise {
+		return call(function () use ($target, $greeting): Generator {
+			$parts = explode(" ", $greeting->content, 2);
+			if (count($parts) < 2) {
+				return $greeting->content;
+			}
+			$tokens = explode("=", $parts[0], 2);
+			if (count($tokens) < 2) {
+				return $greeting->content;
+			}
+
+			/** @var bool */
+			$matches = yield $this->matchesGreetingCheck($tokens[0], $tokens[1], $target);
+			if ($matches) {
+				return $parts[1];
+			}
+			return null;
+		});
+	}
+
+	/**
+	 * Get a matching greeting for a given target
+	 *
+	 * @param string $target The name of the person being greeted
+	 *
+	 * @return Promise<?string> A matching greeting, or null;
+	 */
+	private function getMatchingGreeting(string $target): Promise {
+		return call(function () use ($target): Generator {
+			/** @var array<Fun> */
+			$data = $this->db->table("fun")
+				->whereIn("type", explode(",", $this->greetSource))
+				->asObj(Fun::class)
+				->toArray();
+			while (count($data) > 0) {
+				$key = array_rand($data, 1);
+
+				/** @var ?string */
+				$greeting = yield $this->greetingFits($target, $data[$key]);
+				if (isset($greeting)) {
+					return $greeting;
+				}
+				unset($data[$key]);
+			}
+			return null;
+		});
 	}
 
 	/** Determines if $character needs to be greeted */
