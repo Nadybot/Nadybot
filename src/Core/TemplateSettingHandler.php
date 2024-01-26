@@ -63,6 +63,7 @@ class TemplateSettingHandler extends SettingHandler {
 					htmlentities($char)
 				);
 				$char = $this->text->renderPlaceholders($char, $examples);
+				$char = join("\n<tab>", explode("\n", $char));
 				$msg .= "<tab>{$char} [{$saveLink}]\n";
 			}
 		}
