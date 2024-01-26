@@ -14,7 +14,6 @@ class MigrateToLeaderEchoFormat implements SchemaMigration {
 		if (!isset($setting) || !isset($setting->value)) {
 			return;
 		}
-		var_dump($setting);
 		$db->table(SettingManager::DB_TABLE)
 			->updateOrInsert(
 				["name" => "leader_echo_format"],
@@ -34,7 +33,6 @@ class MigrateToLeaderEchoFormat implements SchemaMigration {
 					"verify" => "0",
 				],
 			);
-		throw new \Exception("Juchei!");
 	}
 
 	protected function getSetting(DB $db, string $name): ?Setting {
