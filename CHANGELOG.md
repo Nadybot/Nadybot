@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Added 2 http-endpoints at `/livez` and `/readyz` for Kubernetes probes.
+
 ### Changed
 
 - The `!greeting`-system has been revamped to take a `key=value`-pair as the first greeting word. `key` can be name, main, prof, gender, breed or faction. This allows custom greetings for individual chars, players, or professions. `!greeting add prof=doc What's up doooc?` is finally possible.
