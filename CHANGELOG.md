@@ -15,6 +15,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - The `!greeting`-system has been revamped to take a `key=value`-pair as the first greeting word. `key` can be name, main, prof, gender, breed or faction. This allows custom greetings for individual chars, players, or professions. `!greeting add prof=doc What's up doooc?` is finally possible.
 
+### Fixed
+
+- The Discord command endpoint now also honors banned players.
+
 ## [6.2.7] - 2023-12-02
 
 ### Added
