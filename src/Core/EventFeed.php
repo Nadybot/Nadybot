@@ -9,7 +9,7 @@ use Amp\Http\Client\HttpClientBuilder;
 use Amp\Http\Client\Interceptor\RemoveRequestHeader;
 use Amp\Promise;
 use Amp\Socket\ConnectContext;
-use Amp\Websocket\Client\{Handshake, Rfc6455Connector};
+use Amp\Websocket\Client\{ConnectionException, Handshake, Rfc6455Connector};
 use Amp\Websocket\{ClosedException, Code};
 use AssertionError;
 use Closure;
@@ -31,8 +31,8 @@ use Throwable;
 	NCA\ProvidesEvent("event-feed-reconnect"),
 ]
 class EventFeed {
-	// public const URI = "wss://ws.nadybot.org";
-	public const URI = "ws://127.0.0.1:3333";
+	public const URI = "wss://highway.on.nadybot.org";
+	// public const URI = "ws://127.0.0.1:3333";
 	public const RECONNECT_DELAY = 5;
 
 	#[NCA\Inject]
@@ -209,13 +209,21 @@ class EventFeed {
 					if ($this->chatBot->isShuttingDown()) {
 						return null;
 					}
+					if ($e instanceof ConnectionException && $e->getResponse()->getStatus() === 404) {
+						$this->logger->info("[{uri}] Service not up yet, reconnecting in {delay}s", [
+							"uri" => self::URI,
+							"delay" => self::RECONNECT_DELAY,
+						]);
+						yield delay(self::RECONNECT_DELAY * 1000);
+						continue;
+					}
 					if ($e instanceof UnprocessedRequestException) {
 						$prev = $e->getPrevious();
 						if (isset($prev)) {
 							$e = $prev;
 						}
 					}
-					$this->logger->error("[{uri}] {error} - retrying in {delay}s", [
+					$this->logger->warning("[{uri}] {error} - reconnecting in {delay}s", [
 						"uri" => self::URI,
 						"error" => $e->getMessage(),
 						"delay" => self::RECONNECT_DELAY,
@@ -247,7 +255,7 @@ class EventFeed {
 				}
 				$error = $e->getMessage();
 				if ($e instanceof ClosedException) {
-					$error = "Server unexpectedly closed the connection";
+					$error = "Server closed the connection";
 				} elseif ($e instanceof JsonException && isset($this->connection)) {
 					$error = "JSON {$error}";
 					yield $this->connection->close(Code::INCONSISTENT_FRAME_DATA_TYPE);
@@ -256,7 +264,7 @@ class EventFeed {
 				}
 				$this->connection = null;
 				$this->availableRooms = [];
-				$this->logger->error("[{uri}] {error} - retrying in {delay}s", [
+				$this->logger->warning("[{uri}] {error} - reconnecting in {delay}s", [
 					"uri" => self::URI,
 					"delay" => self::RECONNECT_DELAY,
 					"error" => $error,
