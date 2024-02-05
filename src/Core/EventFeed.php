@@ -204,7 +204,15 @@ class EventFeed {
 					$this->logger->info("[{uri}] Connected to websocket", [
 						"uri" => self::URI,
 					]);
-					return $connection;
+					if ($connection->isSupportedVersion()) {
+						return $connection;
+					}
+					$this->logger->error("[{uri}] runs unsupported highway-version {version}", [
+						"uri" => self::URI,
+						"version" => $connection->getVersion(),
+					]);
+					$connection->close(Code::NORMAL_CLOSE, "Unsupported version");
+					return null;
 				} catch (Throwable $e) {
 					if ($this->chatBot->isShuttingDown()) {
 						return null;

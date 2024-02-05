@@ -10,8 +10,11 @@ use Amp\Websocket\{ClosedException, Code, Message as WsMessage};
 use EventSauce\ObjectHydrator\{ObjectMapperUsingReflection, UnableToHydrateObject};
 use Exception;
 use Generator;
+use Nadybot\Core\SemanticVersion;
 
 class Connection {
+	public const SUPPORTED_VERSIONS = ["~0.1.1", "~0.2.0-alpha.1"];
+
 	private const PKG_CLASSES = [
 		"hello" => Hello::class,
 		"error" => Error::class,
@@ -30,6 +33,16 @@ class Connection {
 
 	public function getVersion(): string {
 		return $this->wsConnection->getResponse()->getHeader("x-highway-version") ?? "0.1.1";
+	}
+
+	public function isSupportedVersion(): bool {
+		$version = $this->getVersion();
+		foreach (self::SUPPORTED_VERSIONS as $supported) {
+			if (SemanticVersion::inMask($supported, $version)) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	/**
