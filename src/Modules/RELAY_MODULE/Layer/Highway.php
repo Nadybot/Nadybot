@@ -35,7 +35,8 @@ class Highway implements RelayLayerInterface, StatusProvider {
 	public const TYPE_MESSAGE = "message";
 	public const TYPE_JOIN = "join";
 	public const TYPE_LEAVE = "leave";
-	public const TYPE_ROOM_INFO = "room-info";
+	public const TYPE_ROOM_INFO_0_1 = "room-info";
+	public const TYPE_ROOM_INFO = "room_info";
 	public const TYPE_SUCCESS = "success";
 	public const TYPE_ERROR = "error";
 	public const TYPE_HELLO = "hello";
@@ -202,7 +203,10 @@ class Highway implements RelayLayerInterface, StatusProvider {
 				$data = null;
 				continue;
 			}
-			if ($json->type === static::TYPE_ROOM_INFO && isset($this->initCallback)) {
+			if (
+				in_array($json->type, [static::TYPE_ROOM_INFO, static::TYPE_ROOM_INFO_0_1], true)
+				&& isset($this->initCallback)
+			) {
 				$this->status = new RelayStatus(RelayStatus::READY, "ready");
 				$callback = $this->initCallback;
 				unset($this->initCallback);

@@ -9,7 +9,7 @@ use Amp\Http\Client\HttpClientBuilder;
 use Amp\Http\Client\Interceptor\RemoveRequestHeader;
 use Amp\Promise;
 use Amp\Socket\ConnectContext;
-use Amp\Websocket\Client\{Handshake, Rfc6455Connector};
+use Amp\Websocket\Client\{ConnectionException, Handshake, Rfc6455Connector};
 use Amp\Websocket\{ClosedException, Code};
 use AssertionError;
 use Closure;
@@ -203,10 +203,26 @@ class EventFeed {
 					$this->logger->info("[{uri}] Connected to websocket", [
 						"uri" => self::URI,
 					]);
-					return $connection;
+					if ($connection->isSupportedVersion()) {
+						return $connection;
+					}
+					$this->logger->error("[{uri}] runs unsupported highway-version {version}", [
+						"uri" => self::URI,
+						"version" => $connection->getVersion(),
+					]);
+					$connection->close(Code::NORMAL_CLOSE, "Unsupported version");
+					return null;
 				} catch (Throwable $e) {
 					if ($this->chatBot->isShuttingDown()) {
 						return null;
+					}
+					if ($e instanceof ConnectionException && $e->getResponse()->getStatus() === 404) {
+						$this->logger->info("[{uri}] Service not up yet, reconnecting in {delay}s", [
+							"uri" => self::URI,
+							"delay" => self::RECONNECT_DELAY,
+						]);
+						yield delay(self::RECONNECT_DELAY * 1000);
+						continue;
 					}
 					if ($e instanceof UnprocessedRequestException) {
 						$prev = $e->getPrevious();
@@ -214,7 +230,7 @@ class EventFeed {
 							$e = $prev;
 						}
 					}
-					$this->logger->error("[{uri}] {error} - retrying in {delay}s", [
+					$this->logger->warning("[{uri}] {error} - reconnecting in {delay}s", [
 						"uri" => self::URI,
 						"error" => $e->getMessage(),
 						"delay" => self::RECONNECT_DELAY,
@@ -246,7 +262,7 @@ class EventFeed {
 				}
 				$error = $e->getMessage();
 				if ($e instanceof ClosedException) {
-					$error = "Server unexpectedly closed the connection";
+					$error = "Server closed the connection";
 				} elseif ($e instanceof JsonException && isset($this->connection)) {
 					$error = "JSON {$error}";
 					yield $this->connection->close(Code::INCONSISTENT_FRAME_DATA_TYPE);
@@ -255,7 +271,7 @@ class EventFeed {
 				}
 				$this->connection = null;
 				$this->availableRooms = [];
-				$this->logger->error("[{uri}] {error} - retrying in {delay}s", [
+				$this->logger->warning("[{uri}] {error} - reconnecting in {delay}s", [
 					"uri" => self::URI,
 					"delay" => self::RECONNECT_DELAY,
 					"error" => $error,
@@ -355,7 +371,8 @@ class EventFeed {
 		assert($event->highwayPackage instanceof Highway\Hello);
 		$attachedRooms = [];
 		$this->availableRooms = [];
-		$this->logger->notice("Public rooms on {server}: {rooms}", [
+		$this->logger->notice("Public rooms on highway {version} server {server}: {rooms}", [
+			"version" => $event->connection->getVersion(),
 			"server" => self::URI,
 			"rooms" => $event->highwayPackage->publicRooms,
 		]);
@@ -369,7 +386,7 @@ class EventFeed {
 			$attachedRooms []= $room;
 		}
 		$this->logger->notice("Global event feed attached to {rooms}", [
-			"rooms" => $this->text->enumerate(...$attachedRooms),
+			"rooms" => count($attachedRooms) ? $this->text->enumerate(...$attachedRooms) : "no rooms",
 		]);
 	}
 }

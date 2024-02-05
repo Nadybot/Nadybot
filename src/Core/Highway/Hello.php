@@ -6,11 +6,19 @@ use EventSauce\ObjectHydrator\MapFrom;
 use EventSauce\ObjectHydrator\PropertyCasters\CastListToType;
 
 class Hello extends Package {
-	/** @param string[]  $publicRooms */
+	/** @var string[] */
+	public array $publicRooms = [];
+
+	/**
+	 * @param null|string[] $publicRoomsOld
+	 * @param null|string[] $publicRoomsNew
+	 */
 	public function __construct(
-		#[CastListToType('string')] #[MapFrom("public-rooms")] public array $publicRooms,
+		#[CastListToType('string')] #[MapFrom("public-rooms")] ?array $publicRoomsOld,
+		#[CastListToType('string')] #[MapFrom("public_rooms")] ?array $publicRoomsNew,
 		public Config $config,
 	) {
+		$this->publicRooms = $publicRoomsNew ?? $publicRoomsOld ?? [];
 		$this->type = self::HELLO;
 	}
 }

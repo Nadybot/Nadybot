@@ -7,17 +7,21 @@ use function Safe\{json_decode, json_encode};
 use Amp\Promise;
 use Amp\Websocket\Client\Connection as WsConnection;
 use Amp\Websocket\{ClosedException, Code, Message as WsMessage};
-use EventSauce\ObjectHydrator\ObjectMapperUsingReflection;
+use EventSauce\ObjectHydrator\{ObjectMapperUsingReflection, UnableToHydrateObject};
 use Exception;
 use Generator;
+use Nadybot\Core\SemanticVersion;
 
 class Connection {
+	public const SUPPORTED_VERSIONS = ["~0.1.1", "~0.2.0-alpha.1"];
+
 	private const PKG_CLASSES = [
 		"hello" => Hello::class,
 		"error" => Error::class,
 		"success" => Success::class,
 		"join" => Join::class,
 		"room-info" => RoomInfo::class,
+		"room_info" => RoomInfo::class,
 		"message" => Message::class,
 		"leave" => Leave::class,
 	];
@@ -25,6 +29,20 @@ class Connection {
 	public function __construct(
 		private WsConnection $wsConnection
 	) {
+	}
+
+	public function getVersion(): string {
+		return $this->wsConnection->getResponse()->getHeader("x-highway-version") ?? "0.1.1";
+	}
+
+	public function isSupportedVersion(): bool {
+		$version = $this->getVersion();
+		foreach (self::SUPPORTED_VERSIONS as $supported) {
+			if (SemanticVersion::inMask($supported, $version)) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	/**
@@ -78,8 +96,12 @@ class Connection {
 			return $baseInfo;
 		}
 
-		/** @var Package */
-		$package = $mapper->hydrateObject($targetClass, $json);
+		try {
+			/** @var Package */
+			$package = $mapper->hydrateObject($targetClass, $json);
+		} catch (UnableToHydrateObject $e) {
+			throw $e;
+		}
 		return $package;
 	}
 }

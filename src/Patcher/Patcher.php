@@ -39,6 +39,10 @@ class Patcher {
 		if ($package->getName() === 'squizlabs/php_codesniffer') {
 			static::patchCodesniffer($vendorDir, $package);
 		}
+		/** @var \Composer\Package\Package $package */
+		if ($package->getName() === 'farafiri/php-parsing-tool') {
+			static::patchParsingTool($vendorDir, $package);
+		}
 	}
 
 	/**
@@ -58,5 +62,37 @@ class Patcher {
 		$data = preg_replace("/(?<='show_warnings' => ')0/", "1", $data);
 		$newFile = $vendorDir . '/' . $package->getName() . '/CodeSniffer.conf';
 		file_put_contents($newFile, $data);
+	}
+
+	/**
+	 * Patch PHP Parsing tool to allow fynamic properties
+	 *
+	 * @param string                    $vendorDir The installation basepath
+	 * @param \Composer\Package\Package $package   The package being installed
+	 */
+	public static function patchParsingTool($vendorDir, Package $package): void {
+		$file = $vendorDir . '/' . $package->getName() . '/src/SyntaxTreeNode/Base.php';
+		$oldContent = file_get_contents($file);
+		if ($oldContent === false) {
+			return;
+		}
+		$newContent = preg_replace(
+			"/abstract class Base/s",
+			"#[\\AllowDynamicProperties]\nabstract class Base",
+			$oldContent
+		);
+		file_put_contents($file, $newContent);
+
+		$file = $vendorDir . '/' . $package->getName() . '/src/GrammarNode/BaseNode.php';
+		$oldContent = file_get_contents($file);
+		if ($oldContent === false) {
+			return;
+		}
+		$newContent = preg_replace(
+			"/abstract class BaseNode/s",
+			"#[\\AllowDynamicProperties]\nabstract class BaseNode",
+			$oldContent
+		);
+		file_put_contents($file, $newContent);
 	}
 }
