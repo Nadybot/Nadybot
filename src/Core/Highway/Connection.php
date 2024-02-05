@@ -7,8 +7,7 @@ use function Safe\{json_decode, json_encode};
 use Amp\Promise;
 use Amp\Websocket\Client\Connection as WsConnection;
 use Amp\Websocket\{ClosedException, Code, Message as WsMessage};
-use EventSauce\ObjectHydrator\ObjectMapperUsingReflection;
-use EventSauce\ObjectHydrator\UnableToHydrateObject;
+use EventSauce\ObjectHydrator\{ObjectMapperUsingReflection, UnableToHydrateObject};
 use Exception;
 use Generator;
 
@@ -83,7 +82,6 @@ class Connection {
 			/** @var Package */
 			$package = $mapper->hydrateObject($targetClass, $json);
 		} catch (UnableToHydrateObject $e) {
-			var_dump($json);
 			throw $e;
 		}
 		return $package;
