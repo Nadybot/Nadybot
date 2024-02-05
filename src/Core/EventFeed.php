@@ -372,7 +372,7 @@ class EventFeed {
 		$attachedRooms = [];
 		$this->availableRooms = [];
 		$this->logger->notice("Public rooms on highway {version} server {server}: {rooms}", [
-			"version" => $this->connection->getVersion(),
+			"version" => $event->connection->getVersion(),
 			"server" => self::URI,
 			"rooms" => $event->highwayPackage->publicRooms,
 		]);
