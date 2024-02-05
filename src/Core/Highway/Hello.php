@@ -14,11 +14,11 @@ class Hello extends Package {
 	 * @param null|string[] $publicRoomsNew
 	 */
 	public function __construct(
-		#[CastListToType('string')] #[MapFrom("public-rooms")] public ?array $publicRoomsOld,
-		#[CastListToType('string')] #[MapFrom("public_rooms")] public ?array $publicRoomsNew,
+		#[CastListToType('string')] #[MapFrom("public-rooms")] ?array $publicRoomsOld,
+		#[CastListToType('string')] #[MapFrom("public_rooms")] ?array $publicRoomsNew,
 		public Config $config,
 	) {
-		$this->publicRooms = $this->publicRoomsNew ?? $this->publicRoomsOld ?? [];
+		$this->publicRooms = $publicRoomsNew ?? $publicRoomsOld ?? [];
 		$this->type = self::HELLO;
 	}
 }

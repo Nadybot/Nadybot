@@ -18,6 +18,7 @@ class Connection {
 		"success" => Success::class,
 		"join" => Join::class,
 		"room-info" => RoomInfo::class,
+		"room_info" => RoomInfo::class,
 		"message" => Message::class,
 		"leave" => Leave::class,
 	];
@@ -25,6 +26,10 @@ class Connection {
 	public function __construct(
 		private WsConnection $wsConnection
 	) {
+	}
+
+	public function getVersion(): string {
+		return $this->wsConnection->getResponse()->getHeader("x-highway-version") ?? "0.1.1";
 	}
 
 	/**

@@ -364,7 +364,8 @@ class EventFeed {
 		assert($event->highwayPackage instanceof Highway\Hello);
 		$attachedRooms = [];
 		$this->availableRooms = [];
-		$this->logger->notice("Public rooms on {server}: {rooms}", [
+		$this->logger->notice("Public rooms on highway {version} server {server}: {rooms}", [
+			"version" => $this->connection->getVersion(),
 			"server" => self::URI,
 			"rooms" => $event->highwayPackage->publicRooms,
 		]);
@@ -378,7 +379,7 @@ class EventFeed {
 			$attachedRooms []= $room;
 		}
 		$this->logger->notice("Global event feed attached to {rooms}", [
-			"rooms" => $this->text->enumerate(...$attachedRooms),
+			"rooms" => count($attachedRooms) ? $this->text->enumerate(...$attachedRooms) : "no rooms",
 		]);
 	}
 }
