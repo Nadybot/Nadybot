@@ -308,8 +308,9 @@ class DiscordGatewayCommandHandler extends ModuleInstance implements AccessLevel
 		}
 		$context->char->name = $userId;
 		asyncCall(function () use ($userId, $context, $execCmd): Generator {
+			/** @var ?int */
 			$uid = yield $this->chatBot->getUid2($userId);
-			if (yield $this->banController->isOnBanlist($uid)) {
+			if (isset($uid) && yield $this->banController->isOnBanlist($uid)) {
 				return;
 			}
 			$context->char->id = $uid;
