@@ -4,7 +4,7 @@ on:
     branches:
       - unstable
       - stable
-      - workflow-changes
+      - logging-config
     tags:
       - '*'
 jobs:

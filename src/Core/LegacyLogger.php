@@ -213,7 +213,8 @@ class LegacyLogger {
 				}
 				$obj->setFormatter($formatters[$config["formatter"]]);
 			}
-			$obj->pushProcessor(new PsrLogMessageProcessor(null, true));
+			$removeUsedVariables = $config["removeUsedVariables"] ?? true;
+			$obj->pushProcessor(new PsrLogMessageProcessor(null, $removeUsedVariables));
 			$result[$name] = $obj;
 		}
 		return $result;

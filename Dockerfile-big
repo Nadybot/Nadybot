@@ -64,7 +64,7 @@ RUN wget -O /usr/bin/composer https://getcomposer.org/composer-2.phar && \
     chown nadybot:nadybot conf/logging.json && \
     chown nadybot /proxy && \
     chmod +x /proxy/aochatproxy && \
-    apk del --no-cache sudo jq && \
+    apk del --no-cache sudo && \
     if [ "x${VERSION}" != "x" ]; then \
         sed -i -e "s/public const VERSION = \"[^\"]*\";/public const VERSION = \"${VERSION:-4.0}\";/g" src/Core/BotRunner.php; \
     fi && \

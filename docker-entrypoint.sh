@@ -75,8 +75,22 @@ ${EXTRA_SETTINGS}
 \$vars['amqp_vhost'] = "${CONFIG_AMQP_VHOST:-/}";
 DONE
 
-sed -e "s/\"\*\": \"notice\"/\"*\": \"${CONFIG_LOG_LEVEL:-notice}\"/" conf/logging.json > /tmp/logging.json
-
+LOG_CONFIG=$(cat conf/logging.json | sed -e "s/\"\*\": \"notice\"/\"*\": \"${CONFIG_LOG_LEVEL:-notice}\"/")
+echo $LOG_CONFIG > /tmp/logging.json
+ERROR_MSG=$(set | grep '^CONFIG_LOGGING_' | sed -e 's/^CONFIG_LOGGING_/.monolog./g'| while read -r SETTING; do
+  KEY=$(echo "$SETTING" | cut -d '=' -f 1 | sed -e 's/_/./g')
+  eval VALUE=$(echo "$SETTING" | cut -d '=' -f 2-)
+  if ! jq --argjson foo ${VALUE} --help &>/dev/null; then
+    echo "${VALUE} is not a valid JSON value"
+    exit 1
+  fi
+  LOG_CONFIG=$(jq --argjson foo ${VALUE} "${KEY}=\$foo" /tmp/logging.json)
+  echo $LOG_CONFIG > /tmp/logging.json
+done)
+if [ $? = 1 ]; then
+  echo "${ERROR_MSG}"
+  exit 1
+fi
 if [ -e /proxy/aochatproxy ] \
 	&& [ "$(checkBool "${CONFIG_USE_PROXY:-0}" 1 0)" = "1" ] \
 	&& [ -n "${PROXY_CHARNAME_1:-}" ] \

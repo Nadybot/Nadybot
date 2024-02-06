@@ -274,8 +274,6 @@ class BotRunner {
 		$this->checkRequiredPackages();
 		$this->createMissingDirs();
 
-		echo $this->getInitialInfoMessage();
-
 		// these must happen first since the classes that are loaded may be used by processes below
 		$this->loadPhpLibraries();
 		if (isset($config->timezone) && @date_default_timezone_set($config->timezone) === false) {
@@ -286,6 +284,8 @@ class BotRunner {
 		$this->setErrorHandling($logFolderName);
 		$this->logger = new LoggerWrapper("Core/BotRunner");
 		Registry::injectDependencies($this->logger);
+
+		$this->sendBotBanner();
 
 		if ($this->showSetupDialog()) {
 			$config = $this->getConfigFile();
@@ -551,16 +551,22 @@ class BotRunner {
 	}
 
 	/** Get a message describing the bot's codebase */
-	private function getInitialInfoMessage(): string {
-		$version = self::getVersion();
-
-		return
+	private function sendBotBanner(): void {
+		$this->logger->notice(
+			PHP_EOL.
 			" _   _  __     ".PHP_EOL.
-			"| \ | |/ /_    Nadybot version  {$version}".PHP_EOL.
-			"|  \| | '_ \   Project Site:    https://github.com/Nadybot/Nadybot".PHP_EOL.
-			"| |\  | (_) |  In-Game Contact: Nady".PHP_EOL.
-			"|_| \_|\___/   Discord:         https://discord.gg/aDR9UBxRfg".PHP_EOL.
-			PHP_EOL;
+			"| \ | |/ /_    Nadybot version: {version}".PHP_EOL.
+			"|  \| | '_ \   Project Site:    {project_url}".PHP_EOL.
+			"| |\  | (_) |  In-Game Contact: {in_game_contact}".PHP_EOL.
+			"|_| \_|\___/   Discord:         {discord_link}".PHP_EOL.
+			PHP_EOL,
+			[
+				"version" => self::getVersion(),
+				"project_url" => "https://github.com/Nadybot/Nadybot",
+				"in_game_contact" => "Nady",
+				"discord_link" => "https://discord.gg/aDR9UBxRfg",
+			]
+		);
 	}
 
 	/** Setup proper error-reporting, -handling and -logging */
