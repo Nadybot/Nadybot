@@ -668,7 +668,9 @@ class BuffPerksController extends ModuleInstance {
 				foreach ($professions as $prof) {
 					$profession = $this->util->getProfessionName(trim($prof));
 					if (empty($profession)) {
-						echo "Error parsing profession: '{$prof}'\n";
+						$this->logger->info("Error parsing profession: '{prof}'", [
+							"prof" => $prof
+						]);
 					} else {
 						$level->professions []= $profession;
 					}
@@ -690,7 +692,9 @@ class BuffPerksController extends ModuleInstance {
 							?? $this->whatBuffsController->searchForSkill($skill);
 						$skillCache[$skill] = $skillSearch;
 						if (count($skillSearch) !== 1) {
-							echo "Error parsing skill: '{$skill}'\n";
+							$this->logger->info("Error parsing skill: '{skill}'", [
+								"skill" => $skill
+							]);
 						} else {
 							$level->buffs[$skillSearch[0]->id] = (int)$amount;
 						}
