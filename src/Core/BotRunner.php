@@ -253,10 +253,13 @@ class BotRunner {
 		Registry::setInstance("configfile", $config);
 		$retryHandler = new HttpRetry(8);
 		Registry::injectDependencies($retryHandler);
+		$rateLimitRetryHandler = new HttpRetryRateLimits();
+		Registry::injectDependencies($rateLimitRetryHandler);
 		$httpClientBuilder = (new HttpClientBuilder())
 		->retry(0)
 		->intercept(new SetRequestHeaderIfUnset("User-Agent", "Nadybot ".self::getVersion()))
-		->intercept($retryHandler);
+		->intercept($retryHandler)
+		->intercept($rateLimitRetryHandler);
 		$httpProxy = getenv('http_proxy');
 		if ($httpProxy !== false) {
 			$proxyHost = parse_url($httpProxy, PHP_URL_HOST);

@@ -14,6 +14,7 @@ use Nadybot\Core\{
 	AsyncHttp,
 	Attributes as NCA,
 	Http,
+	HttpRetryRateLimits,
 	JSONDataModel,
 	LoggerWrapper,
 	ModuleInstance,
@@ -389,7 +390,7 @@ class DiscordAPIClient extends ModuleInstance {
 		$botToken = $this->discordCtrl->discordBotToken;
 		$client = $this->builder
 			->intercept(new SetRequestHeaderIfUnset("Authorization", "Bot {$botToken}"))
-			->intercept(new RetryRateLimits())
+			->intercept(new HttpRetryRateLimits())
 			->build();
 		return $client;
 	}
