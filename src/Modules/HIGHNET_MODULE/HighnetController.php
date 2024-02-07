@@ -277,9 +277,9 @@ class HighnetController extends ModuleInstance implements EventFeedHandler {
 			return;
 		}
 		$senderUUID = $event->highwayPackage->user;
-		if (!isset($senderUUID)) {
-			return;
-		}
+		// if (!isset($senderUUID)) {
+		// 	return;
+		// }
 		$body = $event->highwayPackage->body;
 		if (is_string($body)) {
 			$body = json_decode($body, true);

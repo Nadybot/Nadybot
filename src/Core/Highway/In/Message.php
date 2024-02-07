@@ -7,7 +7,7 @@ class Message extends InPackage {
 	public function __construct(
 		public string $room,
 		public string|array $body,
-		public ?string $user,
+		public string $user,
 	) {
 		parent::__construct(self::MESSAGE);
 	}
