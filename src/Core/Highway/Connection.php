@@ -10,9 +10,9 @@ use Amp\Websocket\{ClosedException, Code, Message as WsMessage};
 use EventSauce\ObjectHydrator\{ObjectMapperUsingReflection, UnableToHydrateObject};
 use Exception;
 use Generator;
-use Nadybot\Core\Attributes as NCA;
-use Nadybot\Core\LoggerWrapper;
-use Nadybot\Core\SemanticVersion;
+use Nadybot\Core\Highway\In\{Error, Hello, InPackage, Join, Leave, Message, RoomInfo, Success};
+use Nadybot\Core\Highway\Out\OutPackage;
+use Nadybot\Core\{Attributes as NCA, LoggerWrapper, SemanticVersion};
 
 class Connection {
 	public const SUPPORTED_VERSIONS = ["~0.1.1", "~0.2.0-alpha.1"];
@@ -28,10 +28,10 @@ class Connection {
 		"leave" => Leave::class,
 	];
 
+	protected static int $packageNumber = 0;
+
 	#[NCA\Logger]
 	private LoggerWrapper $logger;
-
-	private static int $packageNumber = 0;
 
 	public function __construct(
 		private WsConnection $wsConnection
@@ -61,12 +61,13 @@ class Connection {
 			"protocol" => $this->wsConnection->getTlsInfo() ? "wss://" : "ws://",
 			"url" => $this->wsConnection->getRemoteAddress()->toString(),
 		]);
+
 		/** @var Promise<array{int,string}> */
 		$closeHandler = $this->wsConnection->close($code, $reason);
 		return $closeHandler;
 	}
 
-	/** @return Promise<Package> */
+	/** @return Promise<InPackage> */
 	public function receive(): Promise {
 		return call(function (): Generator {
 			/** @var ?WsMessage */
@@ -95,9 +96,9 @@ class Connection {
 	}
 
 	/** @return Promise<void> */
-	public function send(Package $package): Promise {
+	public function send(OutPackage $package): Promise {
 		return call(function () use ($package): Generator {
-			$package->id = sprintf("%06d", ++static::$packageNumber);
+			$package->id = ++static::$packageNumber;
 			$mapper = new ObjectMapperUsingReflection();
 			$json = $mapper->serializeObject($package);
 			if (!isset($json['id']) || SemanticVersion::compareUsing($this->getVersion(), "0.2.0-alpha.1", "<")) {
@@ -113,17 +114,17 @@ class Connection {
 		});
 	}
 
-	protected function parseHighwayPackage(string $data): Package {
+	protected function parseHighwayPackage(string $data): InPackage {
 		$json = json_decode($data, true);
 		$mapper = new ObjectMapperUsingReflection();
-		$baseInfo = $mapper->hydrateObject(Package::class, $json);
+		$baseInfo = $mapper->hydrateObject(InPackage::class, $json);
 		$targetClass = self::PKG_CLASSES[$baseInfo->type]??null;
 		if (!isset($targetClass) || !class_exists($targetClass)) {
 			return $baseInfo;
 		}
 
 		try {
-			/** @var Package */
+			/** @var InPackage */
 			$package = $mapper->hydrateObject($targetClass, $json);
 		} catch (UnableToHydrateObject $e) {
 			throw $e;

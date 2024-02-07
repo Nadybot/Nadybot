@@ -31,8 +31,8 @@ use Throwable;
 	NCA\ProvidesEvent("event-feed-reconnect"),
 ]
 class EventFeed {
-	// public const URI = "wss://ws.nadybot.org";
-	public const URI = "ws://127.0.0.1:3333";
+	public const URI = "wss://ws.nadybot.org";
+	// public const URI = "ws://127.0.0.1:3333";
 	public const RECONNECT_DELAY = 5;
 
 	#[NCA\Inject]
@@ -107,9 +107,9 @@ class EventFeed {
 			return;
 		}
 		asyncCall(function () use ($room): Generator {
-			$joinPackage = new Highway\Join($room);
+			$joinPackage = new Highway\Out\Join(room: $room);
 			$announcer = function (LowLevelEventFeedEvent $event) use ($room, &$announcer): void {
-				assert($event->highwayPackage instanceof Highway\RoomInfo);
+				assert($event->highwayPackage instanceof Highway\In\RoomInfo);
 				if ($event->highwayPackage->room === $room) {
 					$this->logger->notice("Global event feed attached to {room}", [
 						"room" => $room,
@@ -154,9 +154,9 @@ class EventFeed {
 			return;
 		}
 		asyncCall(function () use ($room): Generator {
-			$leavePackage = new Highway\Leave($room);
+			$leavePackage = new Highway\Out\Leave(room: $room);
 			$announcer = function (LowLevelEventFeedEvent $event) use ($room, &$announcer): void {
-				assert($event->highwayPackage instanceof Highway\Success);
+				assert($event->highwayPackage instanceof Highway\In\Success);
 				$this->logger->notice("Global event feed detached from {room}", [
 					"room" => $room,
 				]);
@@ -294,7 +294,7 @@ class EventFeed {
 		}
 	}
 
-	private function handlePackage(Highway\Connection $connection, Highway\Package $package): void {
+	private function handlePackage(Highway\Connection $connection, Highway\In\InPackage $package): void {
 		$event = new LowLevelEventFeedEvent(
 			type: "event-feed({$package->type})",
 			connection: $connection,
@@ -322,7 +322,7 @@ class EventFeed {
 	}
 
 	private function handleMessage(LowLevelEventFeedEvent $event): Generator {
-		assert($event->highwayPackage instanceof Highway\Message);
+		assert($event->highwayPackage instanceof Highway\In\Message);
 		$this->logger->info("Message from global event feed for room {room}: {message}", [
 			"room" => $event->highwayPackage->room,
 			"message" => $event->highwayPackage->body,
@@ -351,7 +351,7 @@ class EventFeed {
 	}
 
 	private function handleError(LowLevelEventFeedEvent $event): void {
-		if (!($event->highwayPackage instanceof Highway\Error)) {
+		if (!($event->highwayPackage instanceof Highway\In\Error)) {
 			return;
 		}
 		if (isset($event->highwayPackage->room)) {
@@ -367,7 +367,7 @@ class EventFeed {
 	}
 
 	private function handleSuccess(LowLevelEventFeedEvent $event): void {
-		assert($event->highwayPackage instanceof Highway\Success);
+		assert($event->highwayPackage instanceof Highway\In\Success);
 		if (isset($event->highwayPackage->room)) {
 			$this->attachedRooms[$event->highwayPackage->room] = true;
 			$this->logger->info("Successfully joined room {room}", [
@@ -377,12 +377,12 @@ class EventFeed {
 	}
 
 	private function handleRoomInfo(LowLevelEventFeedEvent $event): void {
-		assert($event->highwayPackage instanceof Highway\RoomInfo);
+		assert($event->highwayPackage instanceof Highway\In\RoomInfo);
 		$this->attachedRooms[$event->highwayPackage->room] = true;
 	}
 
 	private function handleHello(LowLevelEventFeedEvent $event): Generator {
-		assert($event->highwayPackage instanceof Highway\Hello);
+		assert($event->highwayPackage instanceof Highway\In\Hello);
 		$attachedRooms = [];
 		$this->availableRooms = [];
 		$this->logger->notice("Public rooms on highway {version} server {server}: {rooms}", [
@@ -395,7 +395,7 @@ class EventFeed {
 			if (!isset($this->roomHandlers[$room]) || !count($this->roomHandlers[$room])) {
 				continue;
 			}
-			$joinPackage = new Highway\Join($room);
+			$joinPackage = new Highway\Out\Join(room: $room);
 			yield $event->connection->send($joinPackage);
 			$attachedRooms []= $room;
 		}

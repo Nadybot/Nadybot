@@ -1,11 +1,11 @@
 <?php declare(strict_types=1);
 
-namespace Nadybot\Core\Highway;
+namespace Nadybot\Core\Highway\In;
 
 use EventSauce\ObjectHydrator\MapFrom;
 use EventSauce\ObjectHydrator\PropertyCasters\CastListToType;
 
-class Hello extends Package {
+class Hello extends InPackage {
 	/** @var string[] */
 	public array $publicRooms = [];
 

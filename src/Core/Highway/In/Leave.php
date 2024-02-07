@@ -1,8 +1,8 @@
 <?php declare(strict_types=1);
 
-namespace Nadybot\Core\Highway;
+namespace Nadybot\Core\Highway\In;
 
-class Leave extends Package {
+class Leave extends InPackage {
 	public function __construct(
 		public string $room,
 	) {

@@ -1,12 +1,13 @@
 <?php declare(strict_types=1);
 
-namespace Nadybot\Core\Highway;
+namespace Nadybot\Core\Highway\In;
 
 use EventSauce\ObjectHydrator\MapFrom;
 use EventSauce\ObjectHydrator\PropertyCasters\CastListToType;
 
-class RoomInfo extends Package {
+class RoomInfo extends InPackage {
 	public bool $readOnly;
+
 	/**
 	 * @param string[]                                $users
 	 * @param null|string|int|bool|float|array<mixed> $extraInfo

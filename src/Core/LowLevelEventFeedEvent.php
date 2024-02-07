@@ -6,7 +6,7 @@ class LowLevelEventFeedEvent extends Event {
 	public function __construct(
 		public string $type,
 		public Highway\Connection $connection,
-		public Highway\Package $highwayPackage,
+		public Highway\In\InPackage $highwayPackage,
 	) {
 	}
 }
