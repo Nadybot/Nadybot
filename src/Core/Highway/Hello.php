@@ -18,7 +18,7 @@ class Hello extends Package {
 		#[CastListToType('string')] #[MapFrom("public_rooms")] ?array $publicRoomsNew,
 		public Config $config,
 	) {
+		parent::__construct(self::HELLO);
 		$this->publicRooms = $publicRoomsNew ?? $publicRoomsOld ?? [];
-		$this->type = self::HELLO;
 	}
 }

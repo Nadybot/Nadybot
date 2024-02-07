@@ -6,6 +6,6 @@ class Leave extends Package {
 	public function __construct(
 		public string $room,
 	) {
-		$this->type = self::LEAVE;
+		parent::__construct(self::LEAVE);
 	}
 }

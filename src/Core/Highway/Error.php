@@ -5,7 +5,9 @@ namespace Nadybot\Core\Highway;
 class Error extends Package {
 	public function __construct(
 		public string $message,
+		public ?string $room,
+		?string $id,
 	) {
-		$this->type = self::ERROR;
+		parent::__construct(self::ERROR, $id);
 	}
 }

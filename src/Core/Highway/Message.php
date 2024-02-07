@@ -8,7 +8,8 @@ class Message extends Package {
 		public string $room,
 		public string|array $body,
 		public ?string $user=null,
+		?string $id,
 	) {
-		$this->type = self::MESSAGE;
+		parent::__construct(self::MESSAGE, $id);
 	}
 }

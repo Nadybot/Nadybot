@@ -31,7 +31,8 @@ use Throwable;
 	NCA\ProvidesEvent("event-feed-reconnect"),
 ]
 class EventFeed {
-	public const URI = "wss://ws.nadybot.org";
+	// public const URI = "wss://ws.nadybot.org";
+	public const URI = "ws://127.0.0.1:3333";
 	public const RECONNECT_DELAY = 5;
 
 	#[NCA\Inject]
@@ -353,6 +354,13 @@ class EventFeed {
 		if (!($event->highwayPackage instanceof Highway\Error)) {
 			return;
 		}
+		if (isset($event->highwayPackage->room)) {
+			unset($this->attachedRooms[$event->highwayPackage->room]);
+			$this->logger->error("Error from global event feed. Unable to join {root}: {error}", [
+				"room" => $event->highwayPackage->room,
+				"error" => $event->highwayPackage->message,
+			]);
+		}
 		$this->logger->error("Error from global event feed: {error}", [
 			"error" => $event->highwayPackage->message,
 		]);
@@ -360,6 +368,12 @@ class EventFeed {
 
 	private function handleSuccess(LowLevelEventFeedEvent $event): void {
 		assert($event->highwayPackage instanceof Highway\Success);
+		if (isset($event->highwayPackage->room)) {
+			$this->attachedRooms[$event->highwayPackage->room] = true;
+			$this->logger->info("Successfully joined room {room}", [
+				"room" => $event->highwayPackage->room,
+			]);
+		}
 	}
 
 	private function handleRoomInfo(LowLevelEventFeedEvent $event): void {

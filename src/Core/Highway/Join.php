@@ -6,6 +6,6 @@ class Join extends Package {
 	public function __construct(
 		public string $room,
 	) {
-		$this->type = self::JOIN;
+		parent::__construct(self::JOIN);
 	}
 }

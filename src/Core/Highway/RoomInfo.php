@@ -20,7 +20,7 @@ class RoomInfo extends Package {
 		public ?RateLimit $msgFreqRatelimit=null,
 		public ?RateLimit $msgSizeRatelimit=null,
 	) {
+		parent::__construct(self::ROOM_INFO);
 		$this->readOnly = $readOnlyNew ?? $readOnlyOld ?? false;
-		$this->type = self::ROOM_INFO;
 	}
 }

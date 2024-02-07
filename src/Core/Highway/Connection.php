@@ -10,6 +10,8 @@ use Amp\Websocket\{ClosedException, Code, Message as WsMessage};
 use EventSauce\ObjectHydrator\{ObjectMapperUsingReflection, UnableToHydrateObject};
 use Exception;
 use Generator;
+use Nadybot\Core\Attributes as NCA;
+use Nadybot\Core\LoggerWrapper;
 use Nadybot\Core\SemanticVersion;
 
 class Connection {
@@ -25,6 +27,11 @@ class Connection {
 		"message" => Message::class,
 		"leave" => Leave::class,
 	];
+
+	#[NCA\Logger]
+	private LoggerWrapper $logger;
+
+	private static int $packageNumber = 0;
 
 	public function __construct(
 		private WsConnection $wsConnection
@@ -50,6 +57,10 @@ class Connection {
 	 *                        These may differ from those provided if the connection was closed prior.
 	 */
 	public function close(int $code=Code::NORMAL_CLOSE, string $reason=''): promise {
+		$this->logger->notice("[{protocol}{url}] Closing connection", [
+			"protocol" => $this->wsConnection->getTlsInfo() ? "wss://" : "ws://",
+			"url" => $this->wsConnection->getRemoteAddress()->toString(),
+		]);
 		/** @var Promise<array{int,string}> */
 		$closeHandler = $this->wsConnection->close($code, $reason);
 		return $closeHandler;
@@ -73,6 +84,11 @@ class Connection {
 
 			/** @var string */
 			$data = yield $message->buffer();
+			$this->logger->notice("[{protocol}{url}] Received data: {data}", [
+				"protocol" => $this->wsConnection->getTlsInfo() ? "wss://" : "ws://",
+				"url" => $this->wsConnection->getRemoteAddress()->toString(),
+				"data" => $data,
+			]);
 			$package = $this->parseHighwayPackage($data);
 			return $package;
 		});
@@ -81,9 +97,19 @@ class Connection {
 	/** @return Promise<void> */
 	public function send(Package $package): Promise {
 		return call(function () use ($package): Generator {
+			$package->id = sprintf("%06d", ++static::$packageNumber);
 			$mapper = new ObjectMapperUsingReflection();
 			$json = $mapper->serializeObject($package);
-			yield $this->wsConnection->send(json_encode($json, JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE|JSON_INVALID_UTF8_SUBSTITUTE));
+			if (!isset($json['id']) || SemanticVersion::compareUsing($this->getVersion(), "0.2.0-alpha.1", "<")) {
+				unset($json['id']);
+			}
+			$data = json_encode($json, JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE|JSON_INVALID_UTF8_SUBSTITUTE);
+			$this->logger->notice("[{protocol}{url}] Sending data: {data}", [
+				"protocol" => $this->wsConnection->getTlsInfo() ? "wss://" : "ws://",
+				"url" => $this->wsConnection->getRemoteAddress()->toString(),
+				"data" => $data,
+			]);
+			yield $this->wsConnection->send($data);
 		});
 	}
 

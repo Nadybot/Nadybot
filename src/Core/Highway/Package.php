@@ -13,6 +13,7 @@ class Package {
 
 	public function __construct(
 		public string $type,
+		public ?int $id=null,
 	) {
 	}
 }

@@ -8,6 +8,7 @@ use Amp\Websocket\Client\{Connection as WsConnection, Handshake, Rfc6455Connecto
 use Amp\{CancellationToken, Promise};
 
 use Generator;
+use Nadybot\Core\Registry;
 
 class Connector {
 	public function __construct(
@@ -20,7 +21,9 @@ class Connector {
 		return call(function () use ($handshake, $cancellationToken): Generator {
 			/** @var WsConnection */
 			$wsConnection = yield $this->wsConnector->connect($handshake, $cancellationToken);
-			return new Connection($wsConnection);
+			$connection = new Connection($wsConnection);
+			Registry::injectDependencies($connection);
+			return $connection;
 		});
 	}
 }
