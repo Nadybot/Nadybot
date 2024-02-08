@@ -10,9 +10,11 @@ use Amp\Websocket\{ClosedException, Code, Message as WsMessage};
 use EventSauce\ObjectHydrator\{ObjectMapperUsingReflection, UnableToHydrateObject};
 use Exception;
 use Generator;
-use Nadybot\Core\SemanticVersion;
+use Nadybot\Core\Highway\In\{Error, Hello, InPackage, Join, Leave, Message, RoomInfo, Success};
+use Nadybot\Core\Highway\Out\OutPackage;
+use Nadybot\Core\{Attributes as NCA, LogWrapInterface, LoggerWrapper, SemanticVersion};
 
-class Connection {
+class Connection implements LogWrapInterface {
 	public const SUPPORTED_VERSIONS = ["~0.1.1", "~0.2.0-alpha.1"];
 
 	private const PKG_CLASSES = [
@@ -26,9 +28,34 @@ class Connection {
 		"leave" => Leave::class,
 	];
 
+	#[NCA\Logger]
+	private LoggerWrapper $logger;
+
 	public function __construct(
 		private WsConnection $wsConnection
 	) {
+	}
+
+	/**
+	 * Wrap the logger by modifying all logging parameters
+	 *
+	 * @param 100|200|250|300|400|500|550|600 $logLevel
+	 * @param array<string,mixed>             $context
+	 *
+	 * @return array{100|200|250|300|400|500|550|600, string, array<string, mixed>}
+	 */
+	public function wrapLogs(int $logLevel, string $message, array $context): array {
+		$context['protocol'] = $this->wsConnection->getTlsInfo() ? "wss" : "ws";
+		$connUri = $this->wsConnection->getResponse()->getRequest()->getUri();
+		$context['host'] = $connUri->getHost();
+		$port = $connUri->getPort();
+		$prefix = "{protocol}://{host}";
+		if (isset($port)) {
+			$prefix .= "::{port}";
+			$context['port'] = $port;
+		}
+		$message = "[{$prefix}] " . $message;
+		return [$logLevel, $message, $context];
 	}
 
 	public function getVersion(): string {
@@ -50,12 +77,14 @@ class Connection {
 	 *                        These may differ from those provided if the connection was closed prior.
 	 */
 	public function close(int $code=Code::NORMAL_CLOSE, string $reason=''): promise {
+		$this->logger->info("Closing connection");
+
 		/** @var Promise<array{int,string}> */
 		$closeHandler = $this->wsConnection->close($code, $reason);
 		return $closeHandler;
 	}
 
-	/** @return Promise<Package> */
+	/** @return Promise<InPackage> */
 	public function receive(): Promise {
 		return call(function (): Generator {
 			/** @var ?WsMessage */
@@ -73,31 +102,40 @@ class Connection {
 
 			/** @var string */
 			$data = yield $message->buffer();
+			$this->logger->debug("Received data: {data}", ["data" => $data]);
 			$package = $this->parseHighwayPackage($data);
+			$this->logger->info("Received package {package}", ["package" => $package]);
 			return $package;
 		});
 	}
 
 	/** @return Promise<void> */
-	public function send(Package $package): Promise {
+	public function send(OutPackage $package): Promise {
 		return call(function () use ($package): Generator {
+			$this->logger->info("Sending package {package}", ["package" => $package]);
 			$mapper = new ObjectMapperUsingReflection();
 			$json = $mapper->serializeObject($package);
-			yield $this->wsConnection->send(json_encode($json, JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE|JSON_INVALID_UTF8_SUBSTITUTE));
+			$serverSupportsIds = SemanticVersion::compareUsing($this->getVersion(), "0.2.0-alpha.1", ">=");
+			if (!isset($json['id']) || !$serverSupportsIds) {
+				unset($json['id']);
+			}
+			$data = json_encode($json, JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE|JSON_INVALID_UTF8_SUBSTITUTE);
+			$this->logger->debug("Sending data: {data}", ["data" => $data]);
+			yield $this->wsConnection->send($data);
 		});
 	}
 
-	protected function parseHighwayPackage(string $data): Package {
+	protected function parseHighwayPackage(string $data): InPackage {
 		$json = json_decode($data, true);
 		$mapper = new ObjectMapperUsingReflection();
-		$baseInfo = $mapper->hydrateObject(Package::class, $json);
+		$baseInfo = $mapper->hydrateObject(InPackage::class, $json);
 		$targetClass = self::PKG_CLASSES[$baseInfo->type]??null;
 		if (!isset($targetClass) || !class_exists($targetClass)) {
 			return $baseInfo;
 		}
 
 		try {
-			/** @var Package */
+			/** @var InPackage */
 			$package = $mapper->hydrateObject($targetClass, $json);
 		} catch (UnableToHydrateObject $e) {
 			throw $e;

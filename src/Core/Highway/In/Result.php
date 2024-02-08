@@ -1,15 +1,18 @@
 <?php declare(strict_types=1);
 
-namespace Nadybot\Core\Highway;
+namespace Nadybot\Core\Highway\In;
 
-class Success extends Package {
+class Result extends InPackage {
 	public string $message;
 
 	public function __construct(
+		string $type,
+		public ?string $room,
+		public null|string|int $id,
 		?string $message,
 		?string $body,
 	) {
+		parent::__construct($type);
 		$this->message = $message ?? $body ?? "";
-		$this->type = self::SUCCESS;
 	}
 }

@@ -97,6 +97,12 @@ class Registry {
 				}
 				$property->setAccessible(true);
 				$logger = new LoggerWrapper($tag);
+				if ($instance instanceof LogWrapInterface) {
+					$closure = $reflection->getMethod("wrapLogs")->getClosure($instance);
+					if (isset($closure)) {
+						$logger->wrap($closure);
+					}
+				}
 				$property->setValue($instance, $logger);
 				static::injectDependencies($logger);
 			}

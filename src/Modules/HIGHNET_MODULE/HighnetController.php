@@ -168,7 +168,7 @@ class HighnetController extends ModuleInstance implements EventFeedHandler {
 	)]
 	public function roomInfoHandler(LowLevelEventFeedEvent $event): void {
 		$package = $event->highwayPackage;
-		assert($package instanceof Highway\RoomInfo);
+		assert($package instanceof Highway\In\RoomInfo);
 		if ($package->room !== "highnet") {
 			return;
 		}
@@ -192,7 +192,7 @@ class HighnetController extends ModuleInstance implements EventFeedHandler {
 	)]
 	public function roomJoinHandler(LowLevelEventFeedEvent $event): void {
 		$package = $event->highwayPackage;
-		if (!($package instanceof Highway\Join) && !($package instanceof Highway\Leave)) {
+		if (!($package instanceof Highway\In\Join) && !($package instanceof Highway\In\Leave)) {
 			return;
 		}
 		if ($package->room !== "highnet") {
@@ -272,14 +272,14 @@ class HighnetController extends ModuleInstance implements EventFeedHandler {
 		if (!$this->highnetEnabled) {
 			return;
 		}
-		assert($event->highwayPackage instanceof Highway\Message);
+		assert($event->highwayPackage instanceof Highway\In\Message);
 		if ($event->highwayPackage->room !== 'highnet') {
 			return;
 		}
 		$senderUUID = $event->highwayPackage->user;
-		if (!isset($senderUUID)) {
-			return;
-		}
+		// if (!isset($senderUUID)) {
+		// 	return;
+		// }
 		$body = $event->highwayPackage->body;
 		if (is_string($body)) {
 			$body = json_decode($body, true);
@@ -853,7 +853,7 @@ class HighnetController extends ModuleInstance implements EventFeedHandler {
 				]);
 				return;
 			}
-			$packet = new Highway\Message(room: "highnet", body: $hwBody);
+			$packet = new Highway\Out\Message(room: "highnet", body: $hwBody);
 			$this->logger->debug("Sending message to Highnet: {data}", [
 				"data" => $hwBody,
 			]);
