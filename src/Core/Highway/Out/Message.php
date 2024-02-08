@@ -7,8 +7,9 @@ class Message extends OutPackage {
 	public function __construct(
 		public string $room,
 		public string|array $body,
-		?int $id=null,
+		null|int|string $id=null,
 	) {
-		parent::__construct(self::MESSAGE, $id);
+		$this->type = self::MESSAGE;
+		parent::__construct($id);
 	}
 }

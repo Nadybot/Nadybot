@@ -5,8 +5,9 @@ namespace Nadybot\Core\Highway\Out;
 class Join extends OutPackage {
 	public function __construct(
 		public string $room,
-		?int $id=null,
+		null|int|string $id=null,
 	) {
-		parent::__construct(self::JOIN, $id);
+		$this->type = self::JOIN;
+		parent::__construct($id);
 	}
 }

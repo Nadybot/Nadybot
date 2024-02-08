@@ -5,8 +5,9 @@ namespace Nadybot\Core\Highway\Out;
 class Leave extends OutPackage {
 	public function __construct(
 		public string $room,
-		?int $id=null,
+		null|int|string $id=null,
 	) {
-		parent::__construct(self::LEAVE, $id);
+		$this->type = self::LEAVE;
+		parent::__construct($id);
 	}
 }

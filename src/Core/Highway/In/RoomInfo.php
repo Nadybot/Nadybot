@@ -13,6 +13,7 @@ class RoomInfo extends InPackage {
 	 * @param null|string|int|bool|float|array<mixed> $extraInfo
 	 */
 	public function __construct(
+		string $type,
 		public string $room,
 		#[MapFrom('read-only')] ?bool $readOnlyOld,
 		#[MapFrom('read_only')] ?bool $readOnlyNew,
@@ -21,7 +22,7 @@ class RoomInfo extends InPackage {
 		public ?RateLimit $msgFreqRatelimit=null,
 		public ?RateLimit $msgSizeRatelimit=null,
 	) {
-		parent::__construct(self::ROOM_INFO);
+		parent::__construct($type);
 		$this->readOnly = $readOnlyNew ?? $readOnlyOld ?? false;
 	}
 }

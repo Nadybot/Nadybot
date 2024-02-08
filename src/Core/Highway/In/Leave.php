@@ -4,9 +4,10 @@ namespace Nadybot\Core\Highway\In;
 
 class Leave extends InPackage {
 	public function __construct(
+		string $type,
 		public string $room,
 		public string $user,
 	) {
-		parent::__construct(self::LEAVE);
+		parent::__construct($type);
 	}
 }

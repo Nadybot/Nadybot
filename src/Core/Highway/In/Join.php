@@ -4,9 +4,10 @@ namespace Nadybot\Core\Highway\In;
 
 class Join extends InPackage {
 	public function __construct(
+		string $type,
 		public string $room,
 		public string $user,
 	) {
-		parent::__construct(self::JOIN);
+		parent::__construct($type);
 	}
 }

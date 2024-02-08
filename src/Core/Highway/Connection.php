@@ -28,8 +28,6 @@ class Connection {
 		"leave" => Leave::class,
 	];
 
-	protected static int $packageNumber = 0;
-
 	#[NCA\Logger]
 	private LoggerWrapper $logger;
 
@@ -40,6 +38,18 @@ class Connection {
 
 	public function getVersion(): string {
 		return $this->wsConnection->getResponse()->getHeader("x-highway-version") ?? "0.1.1";
+	}
+
+	private function getUri(): string {
+		$protocol = $this->wsConnection->getTlsInfo() ? "wss" : "ws";
+		$connUri = $this->wsConnection->getResponse()->getRequest()->getUri();
+		$host = $connUri->getHost();
+		$port = $connUri->getPort();
+		$result = "{$protocol}://{$host}";
+		if (isset($port)) {
+			$result .= "::{$port}";
+		}
+		return $result;
 	}
 
 	public function isSupportedVersion(): bool {
@@ -57,9 +67,8 @@ class Connection {
 	 *                        These may differ from those provided if the connection was closed prior.
 	 */
 	public function close(int $code=Code::NORMAL_CLOSE, string $reason=''): promise {
-		$this->logger->notice("[{protocol}{url}] Closing connection", [
-			"protocol" => $this->wsConnection->getTlsInfo() ? "wss://" : "ws://",
-			"url" => $this->wsConnection->getRemoteAddress()->toString(),
+		$this->logger->info("[{uri}] Closing connection", [
+			"uri" => $this->getUri(),
 		]);
 
 		/** @var Promise<array{int,string}> */
@@ -85,12 +94,15 @@ class Connection {
 
 			/** @var string */
 			$data = yield $message->buffer();
-			$this->logger->notice("[{protocol}{url}] Received data: {data}", [
-				"protocol" => $this->wsConnection->getTlsInfo() ? "wss://" : "ws://",
-				"url" => $this->wsConnection->getRemoteAddress()->toString(),
+			$this->logger->debug("[{uri}] Received data: {data}", [
+				"uri" => $this->getUri(),
 				"data" => $data,
 			]);
 			$package = $this->parseHighwayPackage($data);
+			$this->logger->info("[{uri}] Received package {package}", [
+				"uri" => $this->getUri(),
+				"package" => $package->toString(),
+			]);
 			return $package;
 		});
 	}
@@ -98,16 +110,19 @@ class Connection {
 	/** @return Promise<void> */
 	public function send(OutPackage $package): Promise {
 		return call(function () use ($package): Generator {
-			$package->id = ++static::$packageNumber;
+			$this->logger->info("[{uri}] Sending package {package}", [
+				"uri" => $this->getUri(),
+				"package" => $package->toString(),
+			]);
 			$mapper = new ObjectMapperUsingReflection();
 			$json = $mapper->serializeObject($package);
-			if (!isset($json['id']) || SemanticVersion::compareUsing($this->getVersion(), "0.2.0-alpha.1", "<")) {
+			$serverSupportsIds = SemanticVersion::compareUsing($this->getVersion(), "0.2.0-alpha.1", ">=");
+			if (!isset($json['id']) || !$serverSupportsIds) {
 				unset($json['id']);
 			}
 			$data = json_encode($json, JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE|JSON_INVALID_UTF8_SUBSTITUTE);
-			$this->logger->notice("[{protocol}{url}] Sending data: {data}", [
-				"protocol" => $this->wsConnection->getTlsInfo() ? "wss://" : "ws://",
-				"url" => $this->wsConnection->getRemoteAddress()->toString(),
+			$this->logger->debug("[{uri}] Sending data: {data}", [
+				"uri" => $this->getUri(),
 				"data" => $data,
 			]);
 			yield $this->wsConnection->send($data);
