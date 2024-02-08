@@ -96,7 +96,7 @@ class Connection implements LogWrapInterface {
 			$data = yield $message->buffer();
 			$this->logger->debug("Received data: {data}", ["data" => $data]);
 			$package = $this->parseHighwayPackage($data);
-			$this->logger->info("Received package {package}", ["package" => $package->toString()]);
+			$this->logger->info("Received package {package}", ["package" => $package]);
 			return $package;
 		});
 	}
@@ -104,7 +104,7 @@ class Connection implements LogWrapInterface {
 	/** @return Promise<void> */
 	public function send(OutPackage $package): Promise {
 		return call(function () use ($package): Generator {
-			$this->logger->info("Sending package {package}", ["package" => $package->toString()]);
+			$this->logger->info("Sending package {package}", ["package" => $package]);
 			$mapper = new ObjectMapperUsingReflection();
 			$json = $mapper->serializeObject($package);
 			$serverSupportsIds = SemanticVersion::compareUsing($this->getVersion(), "0.2.0-alpha.1", ">=");

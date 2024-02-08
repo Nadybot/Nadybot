@@ -7,7 +7,6 @@ use Monolog\{
 	Handler\AbstractHandler,
 	Handler\AbstractProcessingHandler,
 	Logger,
-	Processor\PsrLogMessageProcessor,
 };
 use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\Routing\Source;

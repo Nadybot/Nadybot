@@ -3,10 +3,11 @@
 namespace Nadybot\Core\Highway;
 
 use EventSauce\ObjectHydrator\DoNotSerialize;
+use Nadybot\Core\Loggable;
 
 use function Safe\json_encode;
 
-class Package {
+class Package implements Loggable {
 	public const HELLO = "hello";
 	public const JOIN = "join";
 	public const LEAVE = "leave";
