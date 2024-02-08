@@ -2,9 +2,9 @@
 
 namespace Nadybot\Core;
 
-use Exception;
-
 use function Safe\json_encode;
+
+use Exception;
 
 /**
  * @author Oskari Saarenmaa <auno@auno.org>.
@@ -332,23 +332,35 @@ class AOChatPacket implements Loggable {
 				$args []= json_encode($arg, JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE|JSON_INVALID_UTF8_SUBSTITUTE);
 				continue;
 			}
-			$args []= '"' . preg_replace_callback(
-				"/([\x00-\x1f\x7f-\xff\\\"])/",
-				function (array $matches): string {
-					switch ($matches[1]) {
-						case "\"":
-							return "\\\"";
-						case "\\":
-							return "\\\\";
-						default:
-							return "\\x" . sprintf("%02X", ord($matches[1]));
-					}
-				},
-				$arg
-			) . '"';
+			$bin = '"';
+			for ($i = 0; $i < strlen($arg); $i++) {
+				$ord = ord($arg[$i]);
+				switch ($ord) {
+					case 9: // <tab>
+						$bin .= "\\t";
+						break;
+					case 10: // <newline>
+						$bin .= "\\n";
+						break;
+					case 34: // "
+						$bin .= "\\\"";
+						break;
+					case 92: // \
+						$bin .= "\\\\";
+						break;
+					default:
+						if ($ord < 32 || $ord > 127) {
+							$bin .= "\\x" . sprintf("%02X", $ord);
+						} else {
+							$bin .= $arg[$i];
+						}
+				}
+			}
+			$bin .= '"';
+			$args []= $bin;
 		}
 		$data = \Safe\pack("n2", $this->type, strlen($this->data)) . $this->data;
-		return "<AoChatPacket\\" . $this->typeToName($this->type) . ">{".
+		return "<AoChatPacket\\" . ($this->typeToName($this->type)??"Unknown") . ">{".
 			"data=0x" . join("", str_split(bin2hex($data), 2)) . ",".
 			"args=[" . join(",", $args) . "],".
 			"dir=" . json_encode($this->dir, JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE|JSON_INVALID_UTF8_SUBSTITUTE) . "}";

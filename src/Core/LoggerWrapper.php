@@ -226,6 +226,15 @@ class LoggerWrapper {
 		try {
 			if (isset($this->wrapper)) {
 				[$logLevel, $message, $context] = call_user_func($this->wrapper, $logLevel, $message, $context);
+
+				assert(is_int($logLevel));
+
+				/** @phpstan-var 100|200|250|300|400|500|550|600 $logLevel */
+				assert(is_string($message));
+
+				assert(is_array($context));
+
+				/** @phpstan-var array<string,mixed> $context */
 			}
 			$this->logger->log($logLevel, $message, $context);
 		} catch (Exception $e) {

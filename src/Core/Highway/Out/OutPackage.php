@@ -5,7 +5,7 @@ namespace Nadybot\Core\Highway\Out;
 use Nadybot\Core\Highway\Package;
 
 class OutPackage extends Package {
-	private static $pkgCounter = 0;
+	private static int $pkgCounter = 0;
 
 	public function __construct(
 		public null|int|string $id,

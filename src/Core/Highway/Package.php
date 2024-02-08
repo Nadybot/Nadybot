@@ -2,10 +2,10 @@
 
 namespace Nadybot\Core\Highway;
 
-use EventSauce\ObjectHydrator\DoNotSerialize;
-use Nadybot\Core\Loggable;
-
 use function Safe\json_encode;
+use EventSauce\ObjectHydrator\DoNotSerialize;
+
+use Nadybot\Core\Loggable;
 
 class Package implements Loggable {
 	public const HELLO = "hello";
@@ -18,15 +18,11 @@ class Package implements Loggable {
 
 	public string $type;
 
-	/**
-	 * Get a human-readable dump of the object and its values
-	 *
-	 * @return string
-	 */
+	/** Get a human-readable dump of the object and its values */
 	#[DoNotSerialize]
 	public function toString(): string {
 		$values = [];
-		foreach ($this as $key => $value) {
+		foreach (get_object_vars($this) as $key => $value) {
 			$values []= "{$key}=" . json_encode(
 				$value,
 				JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE|JSON_INVALID_UTF8_SUBSTITUTE

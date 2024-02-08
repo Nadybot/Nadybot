@@ -12,7 +12,7 @@ use Exception;
 use Generator;
 use Nadybot\Core\Highway\In\{Error, Hello, InPackage, Join, Leave, Message, RoomInfo, Success};
 use Nadybot\Core\Highway\Out\OutPackage;
-use Nadybot\Core\{Attributes as NCA, LoggerWrapper, LogWrapInterface, SemanticVersion};
+use Nadybot\Core\{Attributes as NCA, LogWrapInterface, LoggerWrapper, SemanticVersion};
 
 class Connection implements LogWrapInterface {
 	public const SUPPORTED_VERSIONS = ["~0.1.1", "~0.2.0-alpha.1"];
@@ -36,6 +36,14 @@ class Connection implements LogWrapInterface {
 	) {
 	}
 
+	/**
+	 * Wrap the logger by modifying all logging parameters
+	 *
+	 * @param 100|200|250|300|400|500|550|600 $logLevel
+	 * @param array<string,mixed>             $context
+	 *
+	 * @return array{100|200|250|300|400|500|550|600, string, array<string, mixed>}
+	 */
 	public function wrapLogs(int $logLevel, string $message, array $context): array {
 		$context['protocol'] = $this->wsConnection->getTlsInfo() ? "wss" : "ws";
 		$connUri = $this->wsConnection->getResponse()->getRequest()->getUri();
