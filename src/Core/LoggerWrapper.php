@@ -2,6 +2,7 @@
 
 namespace Nadybot\Core;
 
+use Closure;
 use Exception;
 use Monolog\Processor\PsrLogMessageProcessor;
 use Monolog\{DateTimeImmutable, Logger};
@@ -24,6 +25,8 @@ class LoggerWrapper {
 	protected static bool $routeErrors = true;
 
 	protected static PsrLogMessageProcessor $logProcessor;
+
+	protected ?Closure $wrapper = null;
 
 	/**
 	 * @var array<array>
@@ -210,6 +213,10 @@ class LoggerWrapper {
 		return $this->logger->isHandling($level);
 	}
 
+	public function wrap(Closure $caller): void {
+		$this->wrapper = $caller;
+	}
+
 	/**
 	 * @phpstan-param 100|200|250|300|400|500|550|600 $logLevel
 	 *
@@ -217,6 +224,9 @@ class LoggerWrapper {
 	 */
 	private function passthru(int $logLevel, string $message, array $context): void {
 		try {
+			if (isset($this->wrapper)) {
+				[$logLevel, $message, $context] = call_user_func($this->wrapper, $logLevel, $message, $context);
+			}
 			$this->logger->log($logLevel, $message, $context);
 		} catch (Exception $e) {
 			if (static::$errorGiven === true) {
