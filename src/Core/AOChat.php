@@ -345,25 +345,7 @@ class AOChat {
 		$packet = new AOChatPacket("in", (int)$type, substr($this->readBuffer, 4));
 		$this->readBuffer = "";
 
-		if ($this->logger->isHandling(Logger::DEBUG)) {
-			$refClass = new \ReflectionClass($packet);
-			$constants = $refClass->getConstants();
-			$codeToConst = array_flip($constants);
-			$packName = $codeToConst[$packet->type] ?? null;
-			if (isset($packName)) {
-				$packName = "{$packName} ({$packet->type})";
-			} else {
-				$packName = $packet->type;
-			}
-			$this->logger->debug(
-				"Received package {packName}",
-				[
-					"packName" => $packName,
-					"raw" => join(" ", str_split(bin2hex($head.$data), 2)),
-					"data" => $packet->args,
-				]
-			);
-		}
+		$this->logger->debug("Received package {package}", ["package" => $packet]);
 
 		switch ($type) {
 			case AOChatPacket::CLIENT_NAME:
@@ -438,25 +420,7 @@ class AOChat {
 		$this->packetsOut[$packet->type]++;
 		$data = \Safe\pack("n2", $packet->type, strlen($packet->data)) . $packet->data;
 
-		if ($this->logger->isHandling(Logger::DEBUG)) {
-			$refClass = new \ReflectionClass($packet);
-			$constants = $refClass->getConstants();
-			$codeToConst = array_flip($constants);
-			$packName = $codeToConst[$packet->type] ?? null;
-			if (isset($packName)) {
-				$packName = "{$packName} ({$packet->type})";
-			} else {
-				$packName = $packet->type;
-			}
-			$this->logger->debug(
-				"Sending package {packName}",
-				[
-					"packName" => $packName,
-					"raw" => join(" ", str_split(bin2hex($data), 2)),
-					"data" => ["args" => $packet->args],
-				]
-			);
-		}
+		$this->logger->debug("Sending package {package}", ["package" => $packet]);
 
 		if (!is_resource($this->socket)) {
 			$this->logger->error("Something unexpectedly closed the socket");

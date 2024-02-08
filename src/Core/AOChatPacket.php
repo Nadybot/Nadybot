@@ -4,6 +4,8 @@ namespace Nadybot\Core;
 
 use Exception;
 
+use function Safe\json_encode;
+
 /**
  * @author Oskari Saarenmaa <auno@auno.org>.
  * @license GPL
@@ -37,7 +39,7 @@ use Exception;
  * have been done anyway..  // auno - 2004/mar/26
  */
 
-class AOChatPacket {
+class AOChatPacket implements Loggable {
 	public const LOGIN_SEED =         0;
 	public const LOGIN_REQUEST =      2;
 	public const LOGIN_SELECT =       3;
@@ -164,6 +166,7 @@ class AOChatPacket {
 		}
 
 		if ($dir == "in") {
+			$this->data = $data;
 			if (!is_string($data)) {
 				throw new Exception("Incorrect argument for incoming packet, expecting a string.");
 			}
@@ -320,5 +323,34 @@ class AOChatPacket {
 			1100 => "ADM_MUX_INFO",
 		];
 		return $types[$type] ?? null;
+	}
+
+	public function toString(): string {
+		$args = [];
+		foreach ($this->args as $arg) {
+			if (!is_string($arg)) {
+				$args []= json_encode($arg, JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE|JSON_INVALID_UTF8_SUBSTITUTE);
+				continue;
+			}
+			$args []= '"' . preg_replace_callback(
+				"/([\x00-\x1f\x7f-\xff\\\"])/",
+				function (array $matches): string {
+					switch ($matches[1]) {
+						case "\"":
+							return "\\\"";
+						case "\\":
+							return "\\\\";
+						default:
+							return "\\x" . sprintf("%02X", ord($matches[1]));
+					}
+				},
+				$arg
+			) . '"';
+		}
+		$data = \Safe\pack("n2", $this->type, strlen($this->data)) . $this->data;
+		return "<AoChatPacket\\" . $this->typeToName($this->type) . ">{".
+			"data=0x" . join("", str_split(bin2hex($data), 2)) . ",".
+			"args=[" . join(",", $args) . "],".
+			"dir=" . json_encode($this->dir, JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE|JSON_INVALID_UTF8_SUBSTITUTE) . "}";
 	}
 }
