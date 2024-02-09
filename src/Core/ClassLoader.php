@@ -5,8 +5,11 @@ namespace Nadybot\Core;
 use function Safe\preg_split;
 use Directory;
 use Nadybot\Core\Attributes as NCA;
-
+use RecursiveDirectoryIterator;
+use RecursiveIteratorIterator;
+use RecursiveRegexIterator;
 use ReflectionClass;
+use RegexIterator;
 
 class ClassLoader {
 	public const INTEGRATED_MODULES = [
@@ -60,6 +63,20 @@ class ClassLoader {
 		$this->logger->info("Inject dependencies for all instances");
 		foreach (Registry::getAllInstances() as $instance) {
 			Registry::injectDependencies($instance);
+		}
+
+		$this->logger->info("Inject dependencies for all static variables");
+		$classes = get_declared_classes();
+		foreach ($classes as $className) {
+			if (explode("\\", $className)[0] !== 'Nadybot') {
+				continue;
+			}
+			$reflection = new ReflectionClass($className);
+			$instanceAnnos = $reflection->getAttributes(NCA\Instance::class);
+			if (count($instanceAnnos)) {
+				continue;
+			}
+			Registry::injectDependencies($className);
 		}
 	}
 
@@ -149,19 +166,21 @@ class ClassLoader {
 				throw new IntegratedIntoBaseException('');
 			}
 		}
-		if ($dir = dir($path)) {
-			while (($file = $dir->read()) !== false) {
-				$fileName = "{$path}/{$file}";
-				if (is_dir($fileName) || !preg_match("/\\.php$/i", $file)) {
-					continue;
-				}
-				if ($checkCode && !$this->checkFileLoads($fileName)) {
-					throw new InvalidCodeException($fileName);
-				}
-				$files []= $fileName;
+		$dirIter = new RecursiveDirectoryIterator($path);
+		$outerIter = new RecursiveIteratorIterator($dirIter);
+		$iter = new RegexIterator($outerIter, '/\.php$/i', RecursiveRegexIterator::MATCH);
+		foreach ($iter as $file) {
+			/** @var \SplFileInfo $file */
+			$fileName = $file->getPathname();
+			if (substr($fileName, strlen($path), 9) === '/Modules/') {
+				continue;
 			}
-			$dir->close();
+			if ($checkCode && !$this->checkFileLoads($fileName)) {
+				throw new InvalidCodeException($fileName);
+			}
+			$files []= $fileName;
 		}
+
 		foreach ($files as $file) {
 			require_once "{$file}";
 		}

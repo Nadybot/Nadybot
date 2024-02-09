@@ -52,11 +52,18 @@ class Registry {
 		return $instance;
 	}
 
-	/** Inject all fields marked with #[Inject] in an object with the corresponding object instances */
-	public static function injectDependencies(object $instance): void {
+	/**
+	 * Inject all fields marked with #[Inject] in an object with the corresponding object instances
+	 *
+	 * @param class-name|object $instance
+	 */
+	public static function injectDependencies(string|object $instance): void {
 		// inject other instances that have the #[Inject] attribute
 		$reflection = new ReflectionClass($instance);
 		foreach ($reflection->getProperties() as $property) {
+			if (is_string($instance) && !$property->isStatic()) {
+				continue;
+			}
 			$injectAttrs = $property->getAttributes(NCA\Inject::class);
 			if (count($injectAttrs)) {
 				/** @var NCA\Inject */
@@ -74,7 +81,11 @@ class Registry {
 					static::getLogger()->warning("Could not resolve dependency '{$dependencyName}' in '" . get_class($instance) ."'");
 				} else {
 					$property->setAccessible(true);
-					$property->setValue($instance, $dependency);
+					if ($property->isStatic()) {
+						$property->setValue(null, $dependency);
+					} else {
+						$property->setValue($instance, $dependency);
+					}
 				}
 				continue;
 			}
@@ -103,7 +114,11 @@ class Registry {
 						$logger->wrap($closure);
 					}
 				}
-				$property->setValue($instance, $logger);
+				if ($property->isStatic()) {
+					$property->setValue(null, $logger);
+				} else {
+					$property->setValue($instance, $logger);
+				}
 				static::injectDependencies($logger);
 			}
 		}
