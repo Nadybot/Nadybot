@@ -172,7 +172,7 @@ class ClassLoader {
 		foreach ($iter as $file) {
 			/** @var \SplFileInfo $file */
 			$fileName = $file->getPathname();
-			if (substr($fileName, strlen($path), 9) === '/Modules/') {
+			if (substr($fileName, strlen($path), 9) === DIRECTORY_SEPARATOR . 'Modules' . DIRECTORY_SEPARATOR) {
 				continue;
 			}
 			if ($checkCode && !$this->checkFileLoads($fileName)) {
