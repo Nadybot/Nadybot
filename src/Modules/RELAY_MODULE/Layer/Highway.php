@@ -2,8 +2,15 @@
 
 namespace Nadybot\Modules\RELAY_MODULE\Layer;
 
+use EventSauce\ObjectHydrator\ObjectMapperUsingReflection;
+use EventSauce\ObjectHydrator\UnableToSerializeObject;
 use Exception;
 use Nadybot\Core\{Attributes as NCA, LoggerWrapper};
+use Nadybot\Core\Highway\In;
+use Nadybot\Core\Highway\Out;
+use Nadybot\Core\Highway\Parser;
+use Nadybot\Core\Highway\ParserHighwayException;
+use Nadybot\Core\Highway\ParserJsonException;
 use Nadybot\Modules\RELAY_MODULE\{
 	Relay,
 	RelayLayerInterface,
@@ -75,16 +82,20 @@ class Highway implements RelayLayerInterface, StatusProvider {
 		return $this->status ?? new RelayStatus();
 	}
 
+	private function encodePackage(Out\OutPackage $package): string {
+		$mapper = new ObjectMapperUsingReflection();
+		$json = $mapper->serializeObject($package);
+		unset($json['id']);
+		return \Safe\json_encode($json, JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE|JSON_INVALID_UTF8_SUBSTITUTE);
+	}
+
 	public function init(callable $callback): array {
 		$cmd = [];
 		foreach ($this->rooms as $room) {
-			$json = (object)[
-				"type" => static::TYPE_JOIN,
-				"room" => $room,
-			];
+			$joinMsg = new Out\Join(room: $room);
 			try {
-				$encoded = \Safe\json_encode($json, JSON_THROW_ON_ERROR|JSON_UNESCAPED_SLASHES|JSON_INVALID_UTF8_SUBSTITUTE);
-			} catch (JsonException $e) {
+				$encoded = $this->encodePackage($joinMsg);
+			} catch (JsonException|UnableToSerializeObject $e) {
 				$this->status = new RelayStatus(
 					RelayStatus::ERROR,
 					"Unable to encode subscribe-command into highway protocol: ".
@@ -110,13 +121,10 @@ class Highway implements RelayLayerInterface, StatusProvider {
 			return [];
 		}
 		foreach ($this->rooms as $room) {
-			$json = (object)[
-				"type" => static::TYPE_LEAVE,
-				"room" => $room,
-			];
+			$leaveMsg = new Out\Leave(room: $room);
 			try {
-				$encoded = \Safe\json_encode($json, JSON_THROW_ON_ERROR|JSON_UNESCAPED_SLASHES|JSON_INVALID_UTF8_SUBSTITUTE);
-			} catch (JsonException $e) {
+				$encoded = $this->encodePackage($leaveMsg);
+			} catch (JsonException|UnableToSerializeObject $e) {
 				$this->status = new RelayStatus(
 					RelayStatus::ERROR,
 					"Unable to encode unsubscribe-command into highway protocol: ".
@@ -139,14 +147,10 @@ class Highway implements RelayLayerInterface, StatusProvider {
 		]);
 		foreach ($data as $packet) {
 			foreach ($this->rooms as $room) {
-				$json = (object)[
-					"type" => static::TYPE_MESSAGE,
-					"room" => $room,
-					"body" => $packet,
-				];
+				$msg = new Out\Message(room: $room, body: $packet);
 				try {
-					$encoded []= \Safe\json_encode($json, JSON_THROW_ON_ERROR|JSON_UNESCAPED_SLASHES|JSON_INVALID_UTF8_SUBSTITUTE);
-				} catch (JsonException $e) {
+					$encoded []= $this->encodePackage($msg);
+				} catch (JsonException|UnableToSerializeObject $e) {
 					$this->logger->error(
 						"Unable to encode the relay data into highway protocol: ".
 							$e->getMessage(),
@@ -173,8 +177,12 @@ class Highway implements RelayLayerInterface, StatusProvider {
 					"relay" => $this->relay->getName(),
 					"message" => $data,
 				]);
-				$json = \Safe\json_decode($data);
-			} catch (JsonException $e) {
+				$package = Parser::parseHighwayPackage($data);
+				$this->logger->debug("Received highway package {package} on relay {relay}", [
+					"relay" => $this->relay->getName(),
+					"package" => $package,
+				]);
+			} catch (ParserJsonException $e) {
 				$this->status = new RelayStatus(
 					RelayStatus::ERROR,
 					"Unable to decode highway message: " . $e->getMessage()
@@ -187,26 +195,21 @@ class Highway implements RelayLayerInterface, StatusProvider {
 				]);
 				$data = null;
 				continue;
-			}
-			if (isset($json->user)) {
-				$msg->sender = $json->user;
-			}
-			if (!isset($json->type)) {
+			} catch (ParserHighwayException $e) {
 				$this->status = new RelayStatus(
-					RelayStatus::INIT,
-					'Received highway message without type'
+					RelayStatus::ERROR,
+					"Invalid highway package received: " . $e->getMessage()
 				);
-				$this->logger->warning("Received highway message without type on  {relay}", [
+				$this->logger->error("Invalid highway package received on {relay}: {error}", [
 					"relay" => $this->relay->getName(),
-					"message" => $json,
+					"message" => $data,
+					"error" => $e->getMessage(),
+					"exception" => $e,
 				]);
 				$data = null;
 				continue;
 			}
-			if (
-				in_array($json->type, [static::TYPE_ROOM_INFO, static::TYPE_ROOM_INFO_0_1], true)
-				&& isset($this->initCallback)
-			) {
+			if (($package instanceof In\RoomInfo) && isset($this->initCallback)) {
 				$this->status = new RelayStatus(RelayStatus::READY, "ready");
 				$callback = $this->initCallback;
 				unset($this->initCallback);
@@ -214,54 +217,49 @@ class Highway implements RelayLayerInterface, StatusProvider {
 				$data = null;
 				continue;
 			}
-			if ($json->type === static::TYPE_SUCCESS && isset($this->deInitCallback)) {
+			if (($package instanceof In\Success) && isset($this->deInitCallback)) {
 				$callback = $this->deInitCallback;
 				unset($this->deInitCallback);
 				$callback();
 				$data = null;
 				continue;
 			}
-			if ($json->type === static::TYPE_ERROR) {
+			if ($package instanceof In\Error) {
 				$this->logger->error("Highway error on {relay}: {message}", [
 					"relay" => $this->relay->getName(),
-					"message" => $json->message ?? $json->body ?? null,
+					"message" => $package->message,
 				]);
 				$this->status = new RelayStatus(
 					RelayStatus::ERROR,
-					$json->message ?? "Unknown highway error"
+					$package->message,
 				);
 				$data = null;
 				continue;
 			}
-			if ($json->type === static::TYPE_HELLO) {
-				$data = null;
-				continue;
-			}
-			if ($json->type === static::TYPE_LEAVE) {
+			if ($package instanceof In\Leave) {
 				// Set all reported users of this bot offline
-				if (isset($msg->sender)) {
-					$this->relay->setClientOffline($msg->sender);
-				}
+				$this->relay->setClientOffline($package->user);
 				$data = null;
 				continue;
 			}
-			if ($json->type !== static::TYPE_MESSAGE) {
+			if (!($package instanceof In\Message)) {
 				$data = null;
 				continue;
 			}
-			if (!isset($json->body)) {
+			if (!isset($package->body)) {
 				$this->status = new RelayStatus(
 					RelayStatus::INIT,
 					'Received highway message without body'
 				);
 				$this->logger->error("Received highway message without body on {relay}", [
 					"relay" => $this->relay->getName(),
-					"message" => $json,
+					"message" => $package,
 				]);
 				$data = null;
 				continue;
 			}
-			$data = $json->body;
+			$data = $package->body;
+			$msg->sender = $package->user;
 		}
 		$msg->packages = array_values(array_filter($msg->packages));
 		$this->logger->debug("Decoding highway message on relay {relay} done", [

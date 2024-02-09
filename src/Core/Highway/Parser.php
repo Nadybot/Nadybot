@@ -6,6 +6,7 @@ use EventSauce\ObjectHydrator\ObjectMapperUsingReflection;
 use EventSauce\ObjectHydrator\UnableToHydrateObject;
 use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\LoggerWrapper;
+use Safe\Exceptions\JsonException;
 
 use function Safe\json_decode;
 
@@ -28,9 +29,17 @@ class Parser {
 
 	public static function parseHighwayPackage(string $data): In\InPackage {
 		static::$logger->debug("Parsing {data}", ['data' => $data]);
-		$json = json_decode($data, true);
+		try {
+			$json = json_decode($data, true);
+		} catch (JsonException $e) {
+			throw new ParserJsonException($e->getMessage(), $e->getCode(), $e);
+		}
 		$mapper = new ObjectMapperUsingReflection();
-		$baseInfo = $mapper->hydrateObject(In\InPackage::class, $json);
+		try {
+			$baseInfo = $mapper->hydrateObject(In\InPackage::class, $json);
+		} catch (UnableToHydrateObject $e) {
+			throw new ParserHighwayException($e->getMessage(), $e->getCode(), $e);
+		}
 		$targetClass = self::PKG_CLASSES[$baseInfo->type]??null;
 		if (!isset($targetClass)) {
 			static::$logger->warning("Unknown Highway package type '{type}'", [
@@ -49,7 +58,7 @@ class Parser {
 			/** @var InPackage */
 			$package = $mapper->hydrateObject($targetClass, $json);
 		} catch (UnableToHydrateObject $e) {
-			throw $e;
+			throw new ParserHighwayException($e->getMessage(), $e->getCode(), $e);
 		}
 		static::$logger->debug("Parsed into {package}", ['package' => $package]);
 		return $package;
