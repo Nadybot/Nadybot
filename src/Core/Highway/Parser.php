@@ -28,7 +28,7 @@ class Parser {
 	private static LoggerWrapper $logger;
 
 	public static function parseHighwayPackage(string $data): In\InPackage {
-		static::$logger->debug("Parsing {data}", ['data' => $data]);
+		self::$logger->debug("Parsing {data}", ['data' => $data]);
 		try {
 			$json = json_decode($data, true);
 		} catch (JsonException $e) {
@@ -42,25 +42,25 @@ class Parser {
 		}
 		$targetClass = self::PKG_CLASSES[$baseInfo->type]??null;
 		if (!isset($targetClass)) {
-			static::$logger->warning("Unknown Highway package type '{type}'", [
+			self::$logger->warning("Unknown Highway package type '{type}'", [
 				'type' => $baseInfo->type
 			]);
 			return $baseInfo;
 		}
 		if (!class_exists($targetClass)) {
-			static::$logger->warning("Implementation for Highway class {class} missing", [
+			self::$logger->warning("Implementation for Highway class {class} missing", [
 				'class' => $targetClass
 			]);
 			return $baseInfo;
 		}
 
 		try {
-			/** @var InPackage */
+			/** @var In\InPackage */
 			$package = $mapper->hydrateObject($targetClass, $json);
 		} catch (UnableToHydrateObject $e) {
 			throw new ParserHighwayException($e->getMessage(), $e->getCode(), $e);
 		}
-		static::$logger->debug("Parsed into {package}", ['package' => $package]);
+		self::$logger->debug("Parsed into {package}", ['package' => $package]);
 		return $package;
 	}
 }

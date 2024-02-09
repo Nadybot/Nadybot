@@ -55,7 +55,7 @@ class Registry {
 	/**
 	 * Inject all fields marked with #[Inject] in an object with the corresponding object instances
 	 *
-	 * @param class-name|object $instance
+	 * @psalm-param class-string|object $instance
 	 */
 	public static function injectDependencies(string|object $instance): void {
 		// inject other instances that have the #[Inject] attribute
@@ -78,12 +78,18 @@ class Registry {
 				}
 				$dependency = Registry::getInstance($dependencyName);
 				if ($dependency === null) {
-					static::getLogger()->warning("Could not resolve dependency '{$dependencyName}' in '" . get_class($instance) ."'");
+					static::getLogger()->warning(
+						"Could not resolve dependency '{dependencyName}' in '{class}'",
+						[
+							"dependencyName" => $dependencyName,
+							"class" => is_string($instance) ? $instance : get_class($instance),
+						]
+					);
 				} else {
 					$property->setAccessible(true);
 					if ($property->isStatic()) {
 						$property->setValue(null, $dependency);
-					} else {
+					} elseif (is_object($instance)) {
 						$property->setValue($instance, $dependency);
 					}
 				}
@@ -116,7 +122,7 @@ class Registry {
 				}
 				if ($property->isStatic()) {
 					$property->setValue(null, $logger);
-				} else {
+				} elseif (is_object($instance)) {
 					$property->setValue($instance, $logger);
 				}
 				static::injectDependencies($logger);
