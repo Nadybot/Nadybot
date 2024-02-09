@@ -794,7 +794,17 @@ class DB {
 				$this->logger->error("Cannot parse {$file}: " . $e->getMessage(), ["exception" => $e]);
 				return;
 			}
-			$new = array_diff(get_declared_classes(), $old);
+			$classes = get_declared_classes();
+			$new = array_diff($classes, $old);
+			if (empty($new)) {
+				foreach ($classes as $class) {
+					$refClass = new ReflectionClass($class);
+					$fileName = $refClass->getFileName();
+					if ($fileName === $file) {
+						$new []= $class;
+					}
+				}
+			}
 			$table = $this->formatSql(
 				preg_match("/\.shared/", $baseName) ? "migrations" : "migrations_<myname>"
 			);
