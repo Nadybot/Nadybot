@@ -752,8 +752,8 @@ class DB {
 		if (!is_string($fullFile)) {
 			return new Collection();
 		}
-		$fullDir = dirname($fullFile) . "/" . $migDir->dir;
-		$iter = new GlobIterator("{$fullDir}/*.php");
+		$fullDir = dirname($fullFile) . DIRECTORY_SEPARATOR . $migDir->dir;
+		$iter = new GlobIterator("{$fullDir}" . DIRECTORY_SEPARATOR . "*.php");
 		foreach ($iter as $file) {
 			if (is_string($file)) {
 				continue;
