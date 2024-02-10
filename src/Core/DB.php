@@ -752,8 +752,8 @@ class DB {
 		if (!is_string($fullFile)) {
 			return new Collection();
 		}
-		$fullDir = dirname($fullFile) . "/" . $migDir->dir;
-		$iter = new GlobIterator("{$fullDir}/*.php");
+		$fullDir = dirname($fullFile) . DIRECTORY_SEPARATOR . $migDir->dir;
+		$iter = new GlobIterator("{$fullDir}" . DIRECTORY_SEPARATOR . "*.php");
 		foreach ($iter as $file) {
 			if (is_string($file)) {
 				continue;
@@ -786,15 +786,43 @@ class DB {
 	/** @return Promise<void> */
 	private function applyMigration(string $module, string $file): Promise {
 		return call(function () use ($module, $file): Generator {
+			$fileAbs = realpath($file);
+			if ($fileAbs === false) {
+				$this->logger->error("Cannot get absolute path of {file}", [
+					"file" => $file,
+				]);
+				return;
+			}
+			$file = $fileAbs;
 			$baseName = basename($file, '.php');
 			$old = get_declared_classes();
 			try {
 				require_once $file;
 			} catch (Throwable $e) {
-				$this->logger->error("Cannot parse {$file}: " . $e->getMessage(), ["exception" => $e]);
+				$this->logger->error("Cannot parse {file}: {error}", [
+					"file" => $file,
+					"error" => $e->getMessage(),
+					"exception" => $e
+				]);
 				return;
 			}
-			$new = array_diff(get_declared_classes(), $old);
+			$classes = get_declared_classes();
+			$new = array_diff($classes, $old);
+			if (empty($new)) {
+				foreach ($classes as $class) {
+					$refClass = new ReflectionClass($class);
+					$fileName = $refClass->getFileName();
+					if ($fileName === $file) {
+						$new []= $class;
+					}
+				}
+			}
+			if (empty($new)) {
+				$this->logger->error("Migration {file} does not contain any classes", [
+					"file" => $file
+				]);
+				return;
+			}
 			$table = $this->formatSql(
 				preg_match("/\.shared/", $baseName) ? "migrations" : "migrations_<myname>"
 			);

@@ -3,30 +3,19 @@
 namespace Nadybot\Core\Highway;
 
 use function Amp\call;
-use function Safe\{json_decode, json_encode};
+use function Safe\json_encode;
 use Amp\Promise;
 use Amp\Websocket\Client\Connection as WsConnection;
 use Amp\Websocket\{ClosedException, Code, Message as WsMessage};
 use EventSauce\ObjectHydrator\{ObjectMapperUsingReflection, UnableToHydrateObject};
 use Exception;
 use Generator;
-use Nadybot\Core\Highway\In\{Error, Hello, InPackage, Join, Leave, Message, RoomInfo, Success};
+use Nadybot\Core\Highway\In\InPackage;
 use Nadybot\Core\Highway\Out\OutPackage;
 use Nadybot\Core\{Attributes as NCA, LogWrapInterface, LoggerWrapper, SemanticVersion};
 
 class Connection implements LogWrapInterface {
 	public const SUPPORTED_VERSIONS = ["~0.1.1", "~0.2.0-alpha.1"];
-
-	private const PKG_CLASSES = [
-		"hello" => Hello::class,
-		"error" => Error::class,
-		"success" => Success::class,
-		"join" => Join::class,
-		"room-info" => RoomInfo::class,
-		"room_info" => RoomInfo::class,
-		"message" => Message::class,
-		"leave" => Leave::class,
-	];
 
 	#[NCA\Logger]
 	private LoggerWrapper $logger;
@@ -103,7 +92,12 @@ class Connection implements LogWrapInterface {
 			/** @var string */
 			$data = yield $message->buffer();
 			$this->logger->debug("Received data: {data}", ["data" => $data]);
-			$package = $this->parseHighwayPackage($data);
+			try {
+				$package = Parser::parseHighwayPackage($data);
+			} catch (UnableToHydrateObject $e) {
+				$this->logger->error("Invalid highway-package received");
+				throw $e;
+			}
 			$this->logger->info("Received package {package}", ["package" => $package]);
 			return $package;
 		});
@@ -123,23 +117,5 @@ class Connection implements LogWrapInterface {
 			$this->logger->debug("Sending data: {data}", ["data" => $data]);
 			yield $this->wsConnection->send($data);
 		});
-	}
-
-	protected function parseHighwayPackage(string $data): InPackage {
-		$json = json_decode($data, true);
-		$mapper = new ObjectMapperUsingReflection();
-		$baseInfo = $mapper->hydrateObject(InPackage::class, $json);
-		$targetClass = self::PKG_CLASSES[$baseInfo->type]??null;
-		if (!isset($targetClass) || !class_exists($targetClass)) {
-			return $baseInfo;
-		}
-
-		try {
-			/** @var InPackage */
-			$package = $mapper->hydrateObject($targetClass, $json);
-		} catch (UnableToHydrateObject $e) {
-			throw $e;
-		}
-		return $package;
 	}
 }

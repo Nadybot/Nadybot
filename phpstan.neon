@@ -7,5 +7,6 @@ parameters:
   phpVersion: 80200
   ignoreErrors:
     - '#Property [a-zA-Z0-9\\_]+::\$.* is never written, only read.#'
+    - '#Static property [a-zA-Z0-9\\_]+::\$.* is never written, only read.#'
 includes:
     - vendor/phpstan/phpstan-deprecation-rules/rules.neon
