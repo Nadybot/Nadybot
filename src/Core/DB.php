@@ -817,6 +817,12 @@ class DB {
 					}
 				}
 			}
+			if (empty($new)) {
+				$this->logger->error("Migration {file} does not contain any classes", [
+					"file" => $file
+				]);
+				return;
+			}
 			$table = $this->formatSql(
 				preg_match("/\.shared/", $baseName) ? "migrations" : "migrations_<myname>"
 			);
