@@ -786,13 +786,24 @@ class DB {
 	/** @return Promise<void> */
 	private function applyMigration(string $module, string $file): Promise {
 		return call(function () use ($module, $file): Generator {
-			$file = realpath($file);
+			$fileAbs = realpath($file);
+			if ($fileAbs === false) {
+				$this->logger->error("Cannot get absolute path of {file}", [
+					"file" => $file,
+				]);
+				return;
+			}
+			$file = $fileAbs;
 			$baseName = basename($file, '.php');
 			$old = get_declared_classes();
 			try {
 				require_once $file;
 			} catch (Throwable $e) {
-				$this->logger->error("Cannot parse {$file}: " . $e->getMessage(), ["exception" => $e]);
+				$this->logger->error("Cannot parse {file}: {error}", [
+					"file" => $file,
+					"error" => $e->getMessage(),
+					"exception" => $e
+				]);
 				return;
 			}
 			$classes = get_declared_classes();
