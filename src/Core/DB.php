@@ -786,6 +786,7 @@ class DB {
 	/** @return Promise<void> */
 	private function applyMigration(string $module, string $file): Promise {
 		return call(function () use ($module, $file): Generator {
+			$file = realpath($file);
 			$baseName = basename($file, '.php');
 			$old = get_declared_classes();
 			try {
