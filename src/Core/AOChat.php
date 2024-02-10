@@ -12,7 +12,6 @@ use Amp\{
 };
 use Exception;
 use Generator;
-use Monolog\Logger;
 use ReflectionObject;
 use Safe\Exceptions\{
 	FilesystemException,
@@ -778,7 +777,9 @@ class AOChat {
 	 */
 	public function send_group(string $group, string $msg, string $blob="\0", ?int $priority=null): bool {
 		if (($gid = $this->get_gid($group)) === null) {
-			$this->logger->warning("Trying to send into unknown group \"{$group}\".");
+			$this->logger->warning("Trying to send into unknown group \"{group}\".", [
+				"group" => $group,
+			]);
 			return false;
 		}
 		$priority ??= QueueInterface::PRIORITY_MED;
@@ -1259,7 +1260,9 @@ class AOChat {
 					break 2;
 
 				default:
-					$this->logger->warning("Unknown argument type '{$dataType}'");
+					$this->logger->warning("Unknown data type '{data_type}'", [
+						"data_type" => $dataType,
+					]);
 					return null;
 			}
 		}
@@ -1322,7 +1325,11 @@ class AOChat {
 
 			$args = $this->parseExtParams($msg);
 			if ($args === null) {
-				$this->logger->warning("Error parsing parameters for category: '{$obj->category}' instance: '{$obj->instance}' string: '{$msg}'");
+				$this->logger->warning("Error parsing parameters for category: '{category}' instance: '{instance}' string: '{string}'", [
+					"category" => $obj->category,
+					"instance" => $obj->instance,
+					"string" => $msg,
+				]);
 			} else {
 				$obj->args = $args;
 				$obj->message_string = $this->mmdbParser->getMessageString($obj->category, $obj->instance);
@@ -1392,7 +1399,9 @@ class AOChat {
 				$ttnp = $this->chatqueue->getTTNP();
 				if ($ttnp > 0) {
 					$delay = (int)ceil($ttnp * 1000);
-					$this->logger->info("Waiting {$delay}ms to send next packet from queue");
+					$this->logger->info("Waiting {delay}ms to send next packet from queue", [
+						"delay" => $delay,
+					]);
 					yield delay($delay);
 				}
 				$packet = $this->chatqueue->getNext();

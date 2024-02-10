@@ -284,7 +284,10 @@ class BuddylistManager {
 		}
 		if (!$this->buddyList[$uid]->hasType($type)) {
 			$this->buddyList[$uid]->setType($type);
-			$this->logger->info("{$name} buddy added (type: {$type})");
+			$this->logger->info("{name} buddy added (type: {type})", [
+				"name" => $name,
+				"type" => $type,
+			]);
 		}
 
 		return true;
@@ -325,11 +328,14 @@ class BuddylistManager {
 		}
 		if ($this->buddyList[$uid]->hasType($type)) {
 			$this->buddyList[$uid]->unsetType($type);
-			$this->logger->info("{$name} buddy type removed (type: {$type})");
+			$this->logger->info("{name} buddy type removed (type: {type})", [
+				"name" => $name,
+				"type" => $type,
+			]);
 		}
 
 		if (count($this->buddyList[$uid]->types) === 0) {
-			$this->logger->info("{$name} buddy removed");
+			$this->logger->info("{name} buddy removed", ["name" => $name]);
 			$this->chatBot->buddy_remove($uid);
 		}
 
@@ -340,12 +346,15 @@ class BuddylistManager {
 	public function update(int $userId, bool $status, int $worker=0): void {
 		if ($this->isRebalancing($userId)) {
 			unset($this->pendingRebalance[$userId]);
-			$this->logger->info("{$userId} is now on worker {$worker}");
+			$this->logger->info("{user_id} is now on worker {worker}", [
+				"user_id" => $userId,
+				"worker" => $worker,
+			]);
 			if (!empty($this->inRebalance)) {
 				$uid = array_rand($this->inRebalance);
 				$this->pendingRebalance[$uid] = $this->buddyList[$uid]->worker;
 				unset($this->inRebalance[$uid]);
-				$this->logger->info("Rebalancing {$uid}");
+				$this->logger->info("Rebalancing {uid}", ["uid" => $uid]);
 				$this->chatBot->buddy_remove($uid);
 			} elseif (empty($this->pendingRebalance)) {
 				$this->logger->notice("Rebalancing buddylist done.");
@@ -407,7 +416,7 @@ class BuddylistManager {
 				$this->pendingRebalance[$uid][$wid] = true;
 			}
 			unset($this->inRebalance[$uid]);
-			$this->logger->info("Rebalancing {$uid}");
+			$this->logger->info("Rebalancing {uid}", ["uid" => $uid]);
 			$this->chatBot->buddy_remove($uid);
 		}
 	}

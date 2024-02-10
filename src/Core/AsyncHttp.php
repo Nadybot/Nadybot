@@ -160,7 +160,10 @@ class AsyncHttp {
 			$this->setupStreamNotify();
 		}
 
-		$this->logger->info("Sending request: {$this->request->getData()}", ["uri" => $this->uri]);
+		$this->logger->info("Sending request: {request}", [
+			"uri" => $this->uri,
+			"request" => $this->request->getData(),
+		]);
 	}
 
 	/**
@@ -418,7 +421,10 @@ class AsyncHttp {
 			]);
 			return false;
 		}
-		$this->logger->info("Stream for {$streamUri} created", ["uri" => $this->uri]);
+		$this->logger->info("Stream for {stream_uri} created", [
+			"uri" => $this->uri,
+			"stream_uri" => $streamUri,
+		]);
 		return true;
 	}
 
