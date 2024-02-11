@@ -5,7 +5,7 @@ namespace Nadybot\Core;
 class AnonObj implements Loggable {
 	/** @param array<string,mixed> $properties */
 	public function __construct(
-		private string $class,
+		private ?string $class=null,
 		private array $properties=[],
 	) {
 	}
@@ -23,6 +23,7 @@ class AnonObj implements Loggable {
 			}
 			$values []= "{$key}={$value}";
 		}
-		return "<{$this->class}>{" . join(",", $values) . "}";
+		$class = isset($this->class) ? "<{$this->class}>" : "";
+		return "{$class}{" . join(",", $values) . "}";
 	}
 }
