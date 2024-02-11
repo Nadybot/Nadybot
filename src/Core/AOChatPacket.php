@@ -360,7 +360,8 @@ class AOChatPacket implements Loggable {
 			$args []= $bin;
 		}
 		$data = \Safe\pack("n2", $this->type, strlen($this->data)) . $this->data;
-		return "<AoChatPacket\\" . ($this->typeToName($this->type)??"Unknown") . ">{".
+		return "<AoChatPacket>{".
+			"type=" . ($this->typeToName($this->type)??"Unknown") . ",".
 			"data=0x" . join("", str_split(bin2hex($data), 2)) . ",".
 			"args=[" . join(",", $args) . "],".
 			"dir=" . json_encode($this->dir, JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE|JSON_INVALID_UTF8_SUBSTITUTE) . "}";
