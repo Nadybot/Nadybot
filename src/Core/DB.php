@@ -655,7 +655,7 @@ class DB {
 			$this->logger->info($msg);
 			return false;
 		}
-		$this->logger->info("Inserting {$file}");
+		$this->logger->info("Inserting {file}", ["file" => $file]);
 		$csv = new Reader($file);
 		$items = [];
 		$itemCount = 0;
@@ -802,7 +802,7 @@ class DB {
 				$this->logger->error("Cannot parse {file}: {error}", [
 					"file" => $file,
 					"error" => $e->getMessage(),
-					"exception" => $e
+					"exception" => $e,
 				]);
 				return;
 			}
@@ -819,7 +819,7 @@ class DB {
 			}
 			if (empty($new)) {
 				$this->logger->error("Migration {file} does not contain any classes", [
-					"file" => $file
+					"file" => $file,
 				]);
 				return;
 			}
@@ -833,7 +833,9 @@ class DB {
 				$obj = new $class();
 				Registry::injectDependencies($obj);
 				try {
-					$this->logger->info("Running migration {$class}");
+					$this->logger->info("Running migration {migration}", [
+						"migration" => $class,
+					]);
 					$result = $obj->migrate($this->logger, $this);
 					if ($result instanceof Promise) {
 						yield $result;
