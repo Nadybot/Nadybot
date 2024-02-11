@@ -277,7 +277,9 @@ class MessageHub {
 	public function registerMessageReceiver(MessageReceiver $messageReceiver): self {
 		$channel = $messageReceiver->getChannelName();
 		$this->receivers[strtolower($channel)] = $messageReceiver;
-		$this->logger->info("Registered new event receiver for {$channel}");
+		$this->logger->info("Registered new event receiver for {channel}", [
+			"channel" => $channel,
+		]);
 		return $this;
 	}
 
@@ -285,21 +287,27 @@ class MessageHub {
 	public function registerMessageEmitter(MessageEmitter $messageEmitter): self {
 		$channel = $messageEmitter->getChannelName();
 		$this->emitters[strtolower($channel)] = $messageEmitter;
-		$this->logger->info("Registered new event emitter for {$channel}");
+		$this->logger->info("Registered new event emitter for {channel}", [
+			"channel" => $channel,
+		]);
 		return $this;
 	}
 
 	/** Unregister an object for handling messages for a channel */
 	public function unregisterMessageReceiver(string $channel): self {
 		unset($this->receivers[strtolower($channel)]);
-		$this->logger->info("Removed event receiver for {$channel}");
+		$this->logger->info("Removed event receiver for {channel}", [
+			"channel" => $channel,
+		]);
 		return $this;
 	}
 
 	/** Unregister an object as an emitter for a channel */
 	public function unregisterMessageEmitter(string $channel): self {
 		unset($this->emitters[strtolower($channel)]);
-		$this->logger->info("Removed event emitter for {$channel}");
+		$this->logger->info("Removed event emitter for {channel}", [
+			"channel" => $channel,
+		]);
 		return $this;
 	}
 
@@ -456,22 +464,30 @@ class MessageHub {
 			foreach ($dest as $destName => $routes) {
 				$receiver = $this->getReceiver($destName);
 				if (!isset($receiver)) {
-					$this->logger->info("No receiver registered for {$destName}");
+					$this->logger->info("No receiver registered for {destination}", [
+						"destination" => $destName,
+					]);
 					continue;
 				}
 				foreach ($routes as $route) {
 					if ($route->isDisabled()) {
-						$this->logger->info("Routing to {$destName} temporarily disabled");
+						$this->logger->info("Routing to {destination} temporarily disabled", [
+							"destination" => $destName,
+						]);
 						$returnStatus = max($returnStatus, static::EVENT_NOT_ROUTED);
 						continue;
 					}
 					$modifiedEvent = $route->modifyEvent($event);
 					if (!isset($modifiedEvent)) {
-						$this->logger->info("Event filtered away for {$destName}");
+						$this->logger->info("Event filtered away for {destination}", [
+							"destination" => $destName,
+						]);
 						$returnStatus = max($returnStatus, static::EVENT_NOT_ROUTED);
 						continue;
 					}
-					$this->logger->info("Event routed to {$destName}");
+					$this->logger->info("Event routed to {destination}", [
+						"destination" => $destName,
+					]);
 					$destination = $route->getDest();
 					if (preg_match("/\((.+)\)$/", $destination, $matches)) {
 						$destination = $matches[1];
