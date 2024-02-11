@@ -215,7 +215,7 @@ class DiscordAPIClient extends ModuleInstance {
 	/** @return Promise<void> */
 	public function queueToWebhook(string $applicationId, string $interactionToken, string $message): Promise {
 		$this->logger->info("Adding discord message to end of webhook queue {interaction}", [
-			"channel" => $interactionToken,
+			"interaction" => $interactionToken,
 		]);
 		$deferred = new Deferred();
 		$this->webhookQueue []= new WebhookQueueItem($applicationId, $interactionToken, $message, $deferred);

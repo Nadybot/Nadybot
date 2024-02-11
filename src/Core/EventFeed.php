@@ -355,7 +355,7 @@ class EventFeed {
 		}
 		if (isset($event->highwayPackage->room)) {
 			unset($this->attachedRooms[$event->highwayPackage->room]);
-			$this->logger->error("Error from global event feed. Unable to join {root}: {error}", [
+			$this->logger->error("Error from global event feed. Unable to join {room}: {error}", [
 				"room" => $event->highwayPackage->room,
 				"error" => $event->highwayPackage->message,
 			]);
