@@ -221,7 +221,9 @@ class QueryBuilder extends Builder {
 			}
 			try {
 				if (!$refClass->hasProperty($colName)) {
-					$this->logger->error("Unable to load data into " . $refClass->getName() . "::\${$colName}: property doesn't exist", [
+					$this->logger->error("Unable to load data into {class}::\${property}: property doesn't exist", [
+						"class" => $refClass->getName(),
+						"property" => $colName,
 						"exception" => new Exception(),
 					]);
 					continue;

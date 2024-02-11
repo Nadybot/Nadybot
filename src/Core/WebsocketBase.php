@@ -231,7 +231,10 @@ class WebsocketBase {
 			$this->connect();
 		}
 		$uri = ($this->uri ?? $this->peerName);
-		$this->logger->debug("[Websocket {uri}] Sending {$opcode}", ["uri" => $uri]);
+		$this->logger->debug("[Websocket {uri}] Sending {opcode}", [
+			"uri" => $uri,
+			"opcode" => $opcode,
+		]);
 		if ($opcode === 'ping') {
 			$this->pendingPingTime = time();
 		}

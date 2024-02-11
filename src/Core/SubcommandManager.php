@@ -47,7 +47,11 @@ class SubcommandManager {
 
 		$name = explode(".", $filename)[0];
 		if (!Registry::instanceExists($name)) {
-			$this->logger->error("Error registering method {$filename} for subcommand {$command}.  Could not find instance '{$name}'.");
+			$this->logger->error("Error registering handler {handler} for subcommand {command}.  Could not find instance '{instance}'.", [
+				"handler" => $filename,
+				"command" => $command,
+				"instance" => $name,
+			]);
 			return;
 		}
 
@@ -68,7 +72,10 @@ class SubcommandManager {
 		$defaultPerms->permission_set = "default";
 		$this->cmdDefaultPermissions[$command] = $defaultPerms;
 
-		$this->logger->info("Adding Subcommand to list:({$command}) File:({$filename})");
+		$this->logger->info("Adding Subcommand to list:({command}) File:({file})", [
+			"command" => $command,
+			"file" => $filename,
+		]);
 		$this->db->table(CommandManager::DB_TABLE)
 			->upsert(
 				[
