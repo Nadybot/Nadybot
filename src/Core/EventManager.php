@@ -390,7 +390,7 @@ class EventManager {
 			$call = Registry::formatName(get_class($obj)) . "." . $eventMethod;
 			$type = $this->getEventTypeByMethod($obj, $eventMethod);
 			$logObj = new AnonObj(class: "Event", properties: ["type" => $type, "handler" => $call]);
-			$this->logger->info("Trying to deactivate {event} if it was activate", [
+			$this->logger->info("Trying to deactivate {event} if it was active", [
 				"event" => $logObj,
 			]);
 			if ($type === null) {
