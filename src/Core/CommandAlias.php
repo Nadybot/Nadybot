@@ -53,7 +53,7 @@ class CommandAlias {
 			}
 		} else {
 			$this->logger->info("Registering {alias}", ["alias" => $entry]);
-			$this->db->insert(self::DB_TABLE, $entry);
+			$this->db->insert(self::DB_TABLE, $entry, null);
 		}
 	}
 
