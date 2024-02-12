@@ -1266,7 +1266,11 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 			}
 			$content = yield filesystem()->read($welcomeFile);
 		} catch (FilesystemException $e) {
-			$this->logger->error("Error reading {$welcomeFile}: " . $e->getMessage());
+			$this->logger->error("Error reading {file}: {error}", [
+				"file" => $welcomeFile,
+				"error" => $e->getMessage(),
+				"exception" => $e,
+			]);
 			return;
 		}
 		$msg = $this->welcomeMsgString;

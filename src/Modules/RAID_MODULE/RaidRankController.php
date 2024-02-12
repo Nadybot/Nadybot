@@ -444,7 +444,11 @@ class RaidRankController extends ModuleInstance implements AccessLevelProvider {
 		}
 		$this->removeFromLists($event->alt, $event->main);
 		$this->addToLists($event->main, $event->alt, $oldRank->rank);
-		$this->logger->notice("Moved raid rank {$oldRank->rank} from {$event->alt} to {$event->main}.");
+		$this->logger->notice("Moved raid rank {rank} from {alt} to {main}.", [
+			"rank" => $oldRank->rank,
+			"alt" => $event->alt,
+			"main" => $event->main,
+		]);
 	}
 
 	/** @return Collection<RaidStat> */

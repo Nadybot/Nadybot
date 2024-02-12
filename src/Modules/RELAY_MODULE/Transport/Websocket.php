@@ -34,6 +34,7 @@ use Generator;
 use Nadybot\Core\{
 	Attributes as NCA,
 	LoggerWrapper,
+	LogWrapInterface,
 	Nadybot,
 };
 use Nadybot\Modules\RELAY_MODULE\{
@@ -68,7 +69,7 @@ use Throwable;
 		required: false
 	)
 ]
-class Websocket implements TransportInterface, StatusProvider {
+class Websocket implements TransportInterface, StatusProvider, LogWrapInterface {
 	#[NCA\Inject]
 	public Nadybot $chatBot;
 
@@ -108,6 +109,20 @@ class Websocket implements TransportInterface, StatusProvider {
 			throw new Exception("<highlight>{$urlParts['scheme']}<end> is not a valid schema. Valid are ws and wss.");
 		}
 		$this->authorization = $authorization;
+	}
+
+	/**
+	 * Wrap the logger by always adding the URI
+	 *
+	 * @param 100|200|250|300|400|500|550|600 $logLevel
+	 * @param string $message
+	 * @param array<string, mixed> $context
+	 * @return array{100|200|250|300|400|500|550|600,string,array<string,mixed>}
+	 */
+	public function wrapLogs(int $logLevel, string $message, array $context): array {
+		$message = "[Websocket {uri}] " . $message;
+		$context['uri'] = $this->uri;
+		return [$logLevel, $message, $context];
 	}
 
 	public function setRelay(Relay $relay): void {
@@ -163,7 +178,11 @@ class Websocket implements TransportInterface, StatusProvider {
 						}
 					}
 					$error = $e->getMessage();
-					$this->logger->error("[{$this->uri}] {$error} - retrying in 10s");
+					$this->logger->error("{error} - retrying in {delay}s", [
+						"error" => $error,
+						"delay" => 10,
+						"exception" => $e,
+					]);
 					$this->status = new RelayStatus(RelayStatus::INIT, $error);
 
 					if ($e instanceof TimeoutException) {
@@ -186,7 +205,7 @@ class Websocket implements TransportInterface, StatusProvider {
 				return;
 			}
 			$this->client = $connection;
-			$this->logger->notice("Connected to Websocket {$this->uri}.");
+			$this->logger->notice("Connected successfully.");
 			if (!isset($this->initCallback)) {
 				return;
 			}
@@ -236,9 +255,9 @@ class Websocket implements TransportInterface, StatusProvider {
 				if ($this->chatBot->isShuttingDown()) {
 					return;
 				}
-				$this->logger->error("[{uri}] {error}, retrying in 10s", [
-					"uri" => $this->uri,
+				$this->logger->error("{error}, retrying in {delay}s", [
 					"error" => $e->getMessage(),
+					"delay" => 10,
 					"exception" => $e,
 				]);
 				$this->status = new RelayStatus(RelayStatus::INIT, $e->getMessage());
@@ -251,7 +270,7 @@ class Websocket implements TransportInterface, StatusProvider {
 			} catch (Throwable) {
 			}
 			unset($this->client);
-			$this->logger->notice("Reconnecting to Websocket {$this->uri}.");
+			$this->logger->notice("Reconnecting.");
 			$this->retryHandler = Loop::defer(fn () => $this->relay->init());
 		});
 	}
