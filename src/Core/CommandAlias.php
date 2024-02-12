@@ -62,7 +62,7 @@ class CommandAlias {
 		$alias = strtolower($alias);
 		$entry = new AnonObj(class: "CmdAlias", properties: ["alias" => $alias, "cmd" => $command]);
 
-		$this->logger->notice("Activating {alias}", ["alias" => $entry]);
+		$this->logger->info("Activating {alias}", ["alias" => $entry]);
 
 		foreach ($this->commandManager->getPermissionSets() as $set) {
 			$this->commandManager->activate($set->name, self::ALIAS_HANDLER, $alias, 'all');
