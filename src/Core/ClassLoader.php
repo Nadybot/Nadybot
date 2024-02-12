@@ -131,16 +131,17 @@ class ClassLoader {
 			$obj = new $className();
 			$obj->setModuleName($moduleName);
 			if (Registry::instanceExists($name) && !$class->overwrite) {
-				$this->logger->warning("Instance with name '{name}' already registered--replaced with new instance", [
-					"name" => $name,
+				$this->logger->warning("Instance with name '{instance}' already registered--replaced with new instance", [
+					"instance" => $name,
 				]);
 			}
 			Registry::setInstance($name, $obj);
 		}
 
 		if (count($newInstances) == 0) {
-			$this->logger->error("Could not load module {module_name}. No classes found with #[Instance] attribute!", [
-				"module_name" => $moduleName,
+			$this->logger->error("Could not load module {module}: {error}", [
+				"module" => $moduleName,
+				"error" => "No classes found with #[Instance] attribute",
 			]);
 			return;
 		}

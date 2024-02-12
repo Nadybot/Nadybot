@@ -777,7 +777,7 @@ class AOChat {
 	 */
 	public function send_group(string $group, string $msg, string $blob="\0", ?int $priority=null): bool {
 		if (($gid = $this->get_gid($group)) === null) {
-			$this->logger->warning("Trying to send into unknown group \"{group}\".", [
+			$this->logger->warning("Trying to send into unknown group '{group}'.", [
 				"group" => $group,
 			]);
 			return false;
@@ -1325,10 +1325,10 @@ class AOChat {
 
 			$args = $this->parseExtParams($msg);
 			if ($args === null) {
-				$this->logger->warning("Error parsing parameters for category: '{category}' instance: '{instance}' string: '{string}'", [
+				$this->logger->warning("Error parsing parameters for category '{category}', instance '{instance}' string '{message}'", [
 					"category" => $obj->category,
 					"instance" => $obj->instance,
-					"string" => $msg,
+					"message" => $msg,
 				]);
 			} else {
 				$obj->args = $args;

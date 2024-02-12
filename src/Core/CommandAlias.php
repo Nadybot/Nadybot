@@ -38,42 +38,35 @@ class CommandAlias {
 
 	/** Registers a command alias */
 	public function register(string $module, string $command, string $alias, int $status=1): void {
-		$module = strtoupper($module);
-		$command = strtolower($command);
-		$alias = strtolower($alias);
-
-		$this->logger->info("Registering alias: '{alias}' for command: '{command}'", [
-			"alias" => $alias,
-			"command" => $command,
-		]);
+		$entry = new CmdAlias();
+		$entry->alias = strtolower($alias);
+		$entry->module = strtoupper($module);
+		$entry->cmd = strtolower($command);
+		$entry->status = $status;
 
 		$row = $this->get($alias);
 		if ($row !== null) {
+			$this->logger->info("Updating {alias}", ["alias" => $entry]);
 			// do not update an alias that a user created
 			if (!empty($row->module)) {
-				$this->db->table(self::DB_TABLE)
-					->where("alias", $alias)
-					->update(["module" => $module, "cmd" => $command]);
+				$this->db->update(self::DB_TABLE, "alias", $entry);
 			}
 		} else {
-			$this->db->table(self::DB_TABLE)
-				->insert([
-					"module" => $module,
-					"cmd" => $command,
-					"alias" => $alias,
-					"status" => $status,
-				]);
+			$this->logger->info("Registering {alias}", ["alias" => $entry]);
+			$this->db->insert(self::DB_TABLE, $entry);
 		}
 	}
 
 	/** Activates a command alias */
 	public function activate(string $command, string $alias): void {
 		$alias = strtolower($alias);
+		$entry = new CmdAlias();
+		$entry->alias = $alias;
+		$entry->cmd = $command;
+		unset($entry->module);
+		unset($entry->status);
 
-		$this->logger->info("Activate Command Alias command:({command}) alias:({alias})", [
-			"command" => $command,
-			"alias" => $alias,
-		]);
+		$this->logger->notice("Activating {alias}", ["alias" => $entry]);
 
 		foreach ($this->commandManager->getPermissionSets() as $set) {
 			$this->commandManager->activate($set->name, self::ALIAS_HANDLER, $alias, 'all');
