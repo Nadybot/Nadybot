@@ -26,8 +26,6 @@ use Nadybot\Core\{
 	Util,
 };
 
-use function PHPSTORM_META\map;
-
 /**
  * @author Tyrence (RK2)
  */

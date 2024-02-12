@@ -54,7 +54,7 @@ class BuddylistEntry implements Loggable {
 	}
 
 	public function toLog(): string {
-		return $this->traitedToString(
+		return $this->traitedToLog(
 			overrides: [
 				"worker" => array_keys($this->worker),
 				"types" => array_keys($this->types),

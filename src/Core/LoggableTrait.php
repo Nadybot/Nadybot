@@ -12,12 +12,13 @@ trait LoggableTrait {
 	/**
 	 * Get a human-readable dump of the object and its values
 	 * @param array<string,mixed> $overrides
+	 * @param ?array<string,mixed> $replaces
 	 * @param string[] $hide
 	 */
 	#[DoNotSerialize]
 	private function traitedToLog(
 		array $overrides=[],
-		array $replaces=[],
+		?array $replaces=null,
 		array $hide=[],
 		?string $class=null,
 	): string {
