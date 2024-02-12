@@ -184,7 +184,7 @@ class FindOrgController extends ModuleInstance {
 				'</tr>@s';
 
 			preg_match_all($pattern, $body, $arr, PREG_SET_ORDER);
-			$this->logger->info("Updating orgs starting with {$letter}");
+			$this->logger->info("Updating orgs starting with {letter}", ["letter" => $letter]);
 			$inserts = [];
 			foreach ($arr as $match) {
 				$obj = new Organization();
@@ -284,7 +284,7 @@ class FindOrgController extends ModuleInstance {
 	/** @return Promise<void> */
 	private function downloadOrglistLetter(string $letter): Promise {
 		return call(function () use ($letter): Generator {
-			$this->logger->info("Downloading orglist for letter {$letter}");
+			$this->logger->info("Downloading orglist for letter {letter}", ["letter" => $letter]);
 			$cache = new FileCache(
 				$this->config->cacheFolder . '/orglist',
 				new LocalKeyedMutex()

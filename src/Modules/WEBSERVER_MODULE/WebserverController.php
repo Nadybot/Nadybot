@@ -250,7 +250,7 @@ class WebserverController extends ModuleInstance {
 		if (!isset($this->routes[$method][$route])) {
 			$this->routes[$method][$route] = [];
 		}
-		$this->logger->info("Adding route to {$path}");
+		$this->logger->info("Adding route to {path}", ["path" => $path]);
 		$this->routes[$method][$route] []= $callback;
 		// Longer routes must be handled first, because they are more specific
 		uksort(
@@ -339,7 +339,7 @@ class WebserverController extends ModuleInstance {
 		$wrapper->on(AsyncSocket::DATA, [$this, "clientConnected"]);
 		$this->asyncSocket = $wrapper;
 
-		$this->logger->notice("HTTP server listening on port {$port}");
+		$this->logger->notice("HTTP server listening on port {port}", ["port" => $port]);
 		return true;
 	}
 

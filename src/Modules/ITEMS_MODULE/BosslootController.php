@@ -106,7 +106,9 @@ class BosslootController extends ModuleInstance {
 		$this->addItemsToLoot($data);
 		foreach ($data as $row2) {
 			if (!isset($row2->item)) {
-				$this->logger->error("Missing item in AODB: {$row2->itemname}.");
+				$this->logger->error("Missing item in AODB: {item_name}.", [
+					"item_name" => $row2->itemname,
+				]);
 				continue;
 			}
 			$blob .= "<tab>" . $this->text->makeImage($row2->item->icon) . "\n";

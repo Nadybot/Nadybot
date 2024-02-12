@@ -257,18 +257,21 @@ class BuddylistManager {
 	public function addId(int $uid, string $type): bool {
 		$name = (string)($this->chatBot->id[$uid] ?? $uid);
 		if (!isset($this->buddyList[$uid])) {
-			$this->logger->info("{name} buddy added", ["name" => $name]);
+			// Initialize with an unconfirmed entry
+			$entry = new BuddylistEntry();
+			$entry->uid = $uid;
+			$entry->name = $name;
+			$entry->known = false;
+			$this->logger->info("{buddy} added", ["buddy" => $entry]);
 			if (!$this->config->useProxy && count($this->buddyList) > 999) {
-				$this->logger->error("Error adding '{name}' to buddy list--buddy list is full", [
+				$this->logger->error("Error adding '{name}' to buddy list: {error}", [
 					"name" => $name,
+					"error" => "buddy list is full",
 				]);
 			}
 			$this->chatBot->buddy_add($uid);
 			// Initialize with an unconfirmed entry
-			$this->buddyList[$uid] = new BuddylistEntry();
-			$this->buddyList[$uid]->uid = $uid;
-			$this->buddyList[$uid]->name = $name;
-			$this->buddyList[$uid]->known = false;
+			$this->buddyList[$uid] = $entry;
 		} else {
 			$oldEntry = $this->buddyList[$uid];
 			// If the char is already on our buddylist, but we never received online/offline
@@ -284,7 +287,10 @@ class BuddylistManager {
 		}
 		if (!$this->buddyList[$uid]->hasType($type)) {
 			$this->buddyList[$uid]->setType($type);
-			$this->logger->info("{$name} buddy added (type: {$type})");
+			$this->logger->info("{buddy} added as {type})", [
+				"buddy" => $this->buddyList[$uid],
+				"type" => $type,
+			]);
 		}
 
 		return true;
@@ -325,11 +331,14 @@ class BuddylistManager {
 		}
 		if ($this->buddyList[$uid]->hasType($type)) {
 			$this->buddyList[$uid]->unsetType($type);
-			$this->logger->info("{$name} buddy type removed (type: {$type})");
+			$this->logger->info("{buddy} removed type '{type}'", [
+				"buddy" => $this->buddyList[$uid],
+				"type" => $type,
+			]);
 		}
 
 		if (count($this->buddyList[$uid]->types) === 0) {
-			$this->logger->info("{$name} buddy removed");
+			$this->logger->info("{name} buddy removed", ["name" => $name]);
 			$this->chatBot->buddy_remove($uid);
 		}
 
@@ -340,12 +349,15 @@ class BuddylistManager {
 	public function update(int $userId, bool $status, int $worker=0): void {
 		if ($this->isRebalancing($userId)) {
 			unset($this->pendingRebalance[$userId]);
-			$this->logger->info("{$userId} is now on worker {$worker}");
+			$this->logger->info("{uid} is now on worker {worker}", [
+				"uid" => $userId,
+				"worker" => $worker,
+			]);
 			if (!empty($this->inRebalance)) {
 				$uid = array_rand($this->inRebalance);
 				$this->pendingRebalance[$uid] = $this->buddyList[$uid]->worker;
 				unset($this->inRebalance[$uid]);
-				$this->logger->info("Rebalancing {$uid}");
+				$this->logger->info("Rebalancing {uid}", ["uid" => $uid]);
 				$this->chatBot->buddy_remove($uid);
 			} elseif (empty($this->pendingRebalance)) {
 				$this->logger->notice("Rebalancing buddylist done.");
@@ -365,6 +377,7 @@ class BuddylistManager {
 		$this->buddyList[$userId]->known = true;
 		$this->buddyList[$userId]->worker ??= [];
 		$this->buddyList[$userId]->worker[$worker] = true;
+		$this->logger->info("{buddy} entry added", ["buddy" => $this->buddyList[$userId]]);
 	}
 
 	/** Forcefully delete cached information in the friendlist */
@@ -407,7 +420,7 @@ class BuddylistManager {
 				$this->pendingRebalance[$uid][$wid] = true;
 			}
 			unset($this->inRebalance[$uid]);
-			$this->logger->info("Rebalancing {$uid}");
+			$this->logger->info("Rebalancing {uid}", ["uid" => $uid]);
 			$this->chatBot->buddy_remove($uid);
 		}
 	}

@@ -434,31 +434,34 @@ class GauntletBuffController extends ModuleInstance implements MessageEmitter {
 
 	/** Check if the given Gauntlet buff is valid and set or update a timer for it */
 	protected function handleApiGauntletBuff(ApiGauntletBuff $buff): void {
-		$this->logger->info("Received gauntlet information for {$buff->faction}.");
-		$this->logger->info("Received gauntlet information for {faction} on RK{dimension}.", [
-			"faction" => $buff->faction,
-			"dimension" => $buff->dimension,
-		]);
+		$this->logger->info("Received gauntlet information {gauntlet}", ["gauntlet" => $buff]);
 		if ($buff->dimension !== $this->config->dimension) {
 			return;
 		}
 		if (!in_array(strtolower($buff->faction), ["omni", "clan"])) {
-			$this->logger->warning("Received timer information for unknown faction {$buff->faction}.");
+			$this->logger->warning("Received timer information for unknown faction '{faction}'.", [
+				"faction" => $buff->faction,
+			]);
 			return;
 		}
 		if ($buff->expires < time()) {
-			$this->logger->warning("Received expired timer information for {$buff->faction} Gauntlet buff.");
+			$this->logger->warning("Received expired timer information for {faction} Gauntlet buff.", [
+				"faction" => $buff->faction,
+			]);
 			return;
 		}
 		$timer = $this->timerController->get("Gaubuff_{$buff->faction}");
 		if (isset($timer) && abs($buff->expires-($timer->endtime??0)) < 10) {
 			$this->logger->info(
-				"Already existing {$buff->faction} buff recent enough. Difference: ".
-				abs($buff->expires-($timer->endtime??0)) . "s"
+				"Already existing {faction} buff recent enough. Difference: {delta}s",
+				[
+					"faction" => $buff->faction,
+					"delta" => abs($buff->expires-($timer->endtime??0)),
+				]
 			);
 			return;
 		}
-		$this->logger->info("Updating {$buff->faction} buff from API");
+		$this->logger->info("Updating {faction} buff from API", ["faction" => $buff->faction]);
 		$this->setGaubuff(
 			strtolower($buff->faction),
 			$buff->expires,

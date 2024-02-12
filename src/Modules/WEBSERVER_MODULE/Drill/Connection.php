@@ -36,7 +36,10 @@ class Connection {
 
 			$connectContext = new ConnectContext();
 
-			$this->logger->info("Connecting Drill to {$host}:{$port}");
+			$this->logger->info("Connecting Drill to {host}:{port}", [
+				"host" => $host,
+				"port" => $port,
+			]);
 			try {
 				$this->webClient = yield connect($host . ':' . $port, $connectContext);
 			} catch (ConnectException $e) {

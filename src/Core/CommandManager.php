@@ -172,14 +172,21 @@ class CommandManager implements MessageEmitter {
 		$accessLevel = $this->accessManager->getAccessLevel($accessLevelStr);
 
 		if (empty($filename)) {
-			$this->logger->error("Error registering {$module}:command({$command}).  Handler is blank.");
+			$this->logger->error("Error registering {module}:command({command}). Handler is blank.", [
+				"module" => $module,
+				"command" => $command,
+			]);
 			return;
 		}
 
 		foreach (explode(',', $filename) as $handler) {
 			$name = explode(".", $handler)[0];
 			if (!Registry::instanceExists($name)) {
-				$this->logger->error("Error registering method '{$handler}' for command '{$command}'.  Could not find instance '{$name}'.");
+				$this->logger->error("Error registering method '{method}' for command '{command}'.  Could not find instance '{instance}'.", [
+					"method" => $handler,
+					"command" => $command,
+					"instance" => $name,
+				]);
 				return;
 			}
 		}
@@ -194,7 +201,10 @@ class CommandManager implements MessageEmitter {
 			$status = $defaultStatus;
 		}
 
-		$this->logger->info("Adding Command to list:({$command}) File:({$filename})");
+		$this->logger->info("Adding Command to list:({command}) File:({file})", [
+			"command" => $command,
+			"file" => $filename,
+		]);
 		$defaultPerms = new CmdPermission();
 		$defaultPerms->access_level = $accessLevel;
 		$defaultPerms->enabled = (bool)$status;
@@ -216,12 +226,19 @@ class CommandManager implements MessageEmitter {
 					["module", "verify", "file", "description"]
 				);
 		} catch (SQLException $e) {
-			$this->logger->error("Error registering method '{$handler}' for command '{$command}': " . $e->getMessage(), ["exception" => $e]);
+			$this->logger->error("Error registering method '{method}' for command '{command}': {error}", [
+				"method" => $handler,
+				"command" => $command,
+				"error" => $e->getMessage(),
+				"exception" => $e,
+			]);
 		}
 		$permSets = $this->db->table(self::DB_TABLE_PERM_SET)
 			->select("name")->pluckStrings("name");
 		foreach ($permSets as $permSet) {
-			$this->logger->info("Adding permissions to command {$command}");
+			$this->logger->info("Adding permissions to command {command}", [
+				"command" => $command,
+			]);
 			$this->db->table(self::DB_TABLE_PERMS)
 				->insertOrIgnore(
 					[
@@ -250,12 +267,21 @@ class CommandManager implements MessageEmitter {
 		$accessLevel = $this->accessManager->getAccessLevel($accessLevel);
 		$permissionSet = strtolower($permissionSet);
 
-		$this->logger->info("Activate Command {$command} (Access Level {$accessLevel}, File {$filename}, PermissionSet {$permissionSet})");
+		$this->logger->info("Activate Command {command} (Access Level {access_level}, File {file}, PermissionSet {permission_set})", [
+			"command" => $command,
+			"access_level" => $accessLevel,
+			"file" => $filename,
+			"permission_set" => $permissionSet,
+		]);
 
 		foreach (explode(',', $filename) as $handler) {
 			[$name, $method] = explode(".", $handler);
 			if (!Registry::instanceExists($name)) {
-				$this->logger->error("Error activating method {$handler} for command {$command}.  Could not find instance '{$name}'.");
+				$this->logger->error("Error activating method {method} for command {command}.  Could not find instance '{instance}'.", [
+					"method" => $handler,
+					"command" => $command,
+					"instance" => $name,
+				]);
 				return;
 			}
 		}
@@ -277,7 +303,11 @@ class CommandManager implements MessageEmitter {
 		$command = strtolower($command);
 		$permissionSet = strtolower($permissionSet);
 
-		$this->logger->info("Deactivate Command:({$command}) File:({$filename}) Permission Set:({$permissionSet})");
+		$this->logger->info("Deactivate Command:({command}) File:({file}) Permission Set:({permission_set})", [
+			"command" => $command,
+			"file" => $filename,
+			"permission_set" => $permissionSet,
+		]);
 
 		unset($this->commands[$permissionSet][$command]);
 	}
@@ -478,7 +508,9 @@ class CommandManager implements MessageEmitter {
 		[$method, $line] = explode(":", $method);
 		$instance = Registry::getInstance($name);
 		if ($instance === null) {
-			$this->logger->error("Could not find instance for name '{$name}'");
+			$this->logger->error("Could not find instance for name '{instance}'", [
+				"instance" => $name,
+			]);
 			return false;
 		}
 		// Check if this matches any command regular expression
@@ -676,7 +708,9 @@ class CommandManager implements MessageEmitter {
 			[$method, $line] = explode(":", $method);
 			$instance = Registry::getInstance($name);
 			if ($instance === null) {
-				$this->logger->error("Could not find instance for name '{$name}'");
+				$this->logger->error("Could not find instance for name '{instance}'", [
+					"instance" => $name,
+				]);
 				continue;
 			}
 			$arr = $this->checkMatches($instance, $method, $context->message);
@@ -1426,12 +1460,15 @@ class CommandManager implements MessageEmitter {
 		if (!isset($context->source)) {
 			return false;
 		}
-		$this->logger->info("Received msg from {$context->source}");
+		$this->logger->info("Received msg from {source}", [
+			"source" => $context->source,
+		]);
 		$cmdMap = $this->getPermsetMapForSource($context->source);
 		if (!isset($cmdMap)) {
 			return false;
 		}
-		$this->logger->info("Using permission set {$cmdMap->permission_set}", [
+		$this->logger->info("Using permission set {permission_set}", [
+			"permission_set" => $cmdMap->permission_set,
 			"map" => $cmdMap,
 		]);
 		if (strncmp($context->message, $cmdMap->symbol, strlen($cmdMap->symbol)) === 0) {
@@ -1460,14 +1497,19 @@ class CommandManager implements MessageEmitter {
 		[$method, $line] = explode(":", $method);
 		$instance = Registry::getInstance($name);
 		if ($instance === null) {
-			$this->logger->error("Could not find instance for name '{$name}'");
+			$this->logger->error("Could not find instance for name '{instance}'", [
+				"instance" => $name,
+			]);
 			return null;
 		}
 		$refClass = new ReflectionClass($instance);
 		try {
 			$refMethod = $refClass->getMethod($method);
 		} catch (ReflectionException $e) {
-			$this->logger->error("Could not find method {$name}::{$method}()");
+			$this->logger->error("Could not find method {class}::{method}()", [
+				"class" => $name,
+				"method" => $method,
+			]);
 			return null;
 		}
 		return $refMethod;

@@ -240,7 +240,10 @@ class AMQP implements TransportInterface, StatusProvider {
 			$this->exchanges[$exchange->name] = $exchange;
 			return false;
 		}
-		$this->logger->notice("Now connected to {$exchange->type} AMQP exchange \"{$exchange->name}\".");
+		$this->logger->notice("Now connected to {type} AMQP exchange '{name}'.", [
+			"type" => $exchange->type,
+			"name" => $exchange->name,
+		]);
 		return true;
 	}
 
@@ -261,7 +264,9 @@ class AMQP implements TransportInterface, StatusProvider {
 		} catch (Exception $e) {
 			return false;
 		}
-		$this->logger->notice("No longer listening for AMQP messages on exchange {$exchange}.");
+		$this->logger->notice("No longer listening for AMQP messages on exchange {exchange}.", [
+			"exchange" => $exchange,
+		]);
 		return true;
 	}
 
@@ -317,7 +322,10 @@ class AMQP implements TransportInterface, StatusProvider {
 				} else {
 					$channel->queue_bind($this->queueName??"", $exchangeName);
 				}
-				$this->logger->notice("Now connected to {$exchange->type} AMQP exchange \"{$exchange->name}\".");
+				$this->logger->notice("Now connected to {type} AMQP exchange '{name}'.", [
+					"type" => $exchange->type,
+					"name" => $exchange->name,
+				]);
 			}
 		} catch (AMQPTimeoutException $e) {
 			$this->status = new RelayStatus(
@@ -390,7 +398,10 @@ class AMQP implements TransportInterface, StatusProvider {
 			});
 			return false;
 		}
-		$this->logger->info("AMQP[{$exchange}]: {$text}");
+		$this->logger->info("AMQP[{exchange}]: {text}", [
+			"exchange" => $exchange,
+			"text" => $text,
+		]);
 		return true;
 	}
 

@@ -248,11 +248,17 @@ class RaidPointsController extends ModuleInstance {
 				"raid_id" =>    $raid->raid_id ?? null,
 			]);
 		if ($inserted === false) {
-			$this->logger->error("Error logging the change of {$delta} points for {$pointsChar}.");
+			$this->logger->error("Error logging the change of {delta} points for {character}.", [
+				"delta" => $delta,
+				"character" => $pointsChar,
+			]);
 			throw new Exception("Error recording the points delta of {$delta} for {$pointsChar}.");
 		}
 		if (!$this->giveRaidPoints($pointsChar, $delta)) {
-			$this->logger->error("Error giving {$delta} points to {$pointsChar}.");
+			$this->logger->error("Error giving {points} points to {character}.", [
+				"points" => $delta,
+				"character" => $pointsChar,
+			]);
 			throw new Exception("Error giving {$delta} points to {$pointsChar}.");
 		}
 		return $pointsChar;
@@ -822,7 +828,11 @@ class RaidPointsController extends ModuleInstance {
 		$this->db->table(self::DB_TABLE)
 			->where("username", $event->alt)
 			->delete();
-		$this->logger->notice("Moved {$oldPoints} raid points from {$event->alt} to {$event->main}.");
+		$this->logger->notice("Moved {points} raid points from {alt} to {main}.", [
+			"points" => $oldPoints,
+			"alt" => $event->alt,
+			"main" => $event->main,
+		]);
 	}
 
 	#[

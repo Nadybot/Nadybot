@@ -266,7 +266,7 @@ class TradebotController extends ModuleInstance {
 		if (!is_string($sender) || !$this->isTradebot($sender)) {
 			return;
 		}
-		$this->logger->notice("Joining {$sender}'s private channel.");
+		$this->logger->notice("Joining {character}'s private channel.", ["character" => $sender]);
 		if ($this->chatBot->privategroup_join($sender)) {
 			$this->messageHub->registerMessageEmitter(
 				new TradebotChannel($sender . "-*")

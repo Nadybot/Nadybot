@@ -235,14 +235,19 @@ class ImportController extends ModuleInstance {
 					$numImported++;
 				}
 			} catch (Throwable $e) {
-				$this->logger->error($e->getMessage(), ["exception" => $e]);
+				$this->logger->error("Error importing bans: {error}", [
+					"error" => $e->getMessage(),
+					"exception" => $e,
+				]);
 				$this->logger->notice("Rolling back changes");
 				$this->db->rollback();
 				return;
 			}
 			$this->db->commit();
 			$this->banController->uploadBanlist();
-			$this->logger->notice("{$numImported} bans successfully imported");
+			$this->logger->notice("{num_imported} bans successfully imported", [
+				"num_imported" => $numImported,
+			]);
 		});
 	}
 
@@ -389,13 +394,18 @@ class ImportController extends ModuleInstance {
 				}
 				$this->raidRankController->uploadRaidRanks();
 			} catch (Throwable $e) {
-				$this->logger->error($e->getMessage(), ["exception" => $e]);
+				$this->logger->error("Error importing members: {error}", [
+					"error" => $e->getMessage(),
+					"exception" => $e,
+				]);
 				$this->logger->notice("Rolling back changes");
 				$this->db->rollback();
 				return;
 			}
 			$this->db->commit();
-			$this->logger->notice("{$numImported} members successfully imported");
+			$this->logger->notice("{num_imported} members successfully imported", [
+				"num_imported" => $numImported,
+			]);
 		});
 	}
 
@@ -1143,7 +1153,9 @@ class ImportController extends ModuleInstance {
 			}
 			$name = $char->name ?? yield $this->chatBot->uidToName($char->id);
 			if (!isset($name)) {
-				$this->logger->notice("Unable to find a name for UID {$char->id}");
+				$this->logger->notice("Unable to find a name for UID {user_id}", [
+					"user_id" => $char->id,
+				]);
 			}
 			return $name;
 		});
@@ -1178,7 +1190,9 @@ class ImportController extends ModuleInstance {
 				return;
 			}
 			$this->db->commit();
-			$this->logger->notice("{$numImported} alt(s) imported");
+			$this->logger->notice("{num_imported} alt(s) imported", [
+				"num_imported" => $numImported,
+			]);
 		});
 	}
 

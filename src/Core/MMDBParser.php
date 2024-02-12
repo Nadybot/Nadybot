@@ -21,6 +21,10 @@ class MMDBParser {
 	}
 
 	public function getMessageString(int $categoryId, int $instanceId): ?string {
+		$this->logger->info("Looking up instanceId={instance_id}, categoryId={category_id}", [
+			"category_id"=> $categoryId,
+			"instance_id" => $instanceId,
+		]);
 		// check for entry in cache
 		if (isset($this->mmdb[$categoryId][$instanceId])) {
 			return $this->mmdb[$categoryId][$instanceId];
@@ -35,7 +39,9 @@ class MMDBParser {
 		// find the category
 		$category = $this->findEntry($in, $categoryId, 8);
 		if ($category === null) {
-			$this->logger->error("Could not find categoryID: '{$categoryId}'");
+			$this->logger->error("Could not find categoryID {category_id}", [
+				"category_id"=> $categoryId,
+			]);
 			\Safe\fclose($in);
 			return null;
 		}
@@ -43,7 +49,10 @@ class MMDBParser {
 		// find the instance
 		$instance = $this->findEntry($in, $instanceId, $category['offset']);
 		if ($instance === null) {
-			$this->logger->error("Could not find instance id: '{$instanceId}' for categoryId: '{$categoryId}'");
+			$this->logger->error("Could not find instanceId {instance_id} for categoryId {category_id}", [
+				"category_id"=> $categoryId,
+				"instance_id" => $instanceId,
+			]);
 			\Safe\fclose($in);
 			return null;
 		}
@@ -68,7 +77,9 @@ class MMDBParser {
 		// find the category
 		$category = $this->findEntry($in, $categoryId, 8);
 		if ($category === null) {
-			$this->logger->error("Could not find categoryID: '{$categoryId}'");
+			$this->logger->error("Could not find categoryID {category_id}", [
+				"category_id" => $categoryId,
+			]);
 			\Safe\fclose($in);
 			return null;
 		}
@@ -124,14 +135,18 @@ class MMDBParser {
 		try {
 			$in = \Safe\fopen($filename, 'rb');
 		} catch (FilesystemException $e) {
-			$this->logger->error("Could not open file '{$filename}': " . $e->getMessage());
+			$this->logger->error("Could not open file '{file}': {error}", [
+				"file" => $filename,
+				"error" => $e->getMessage(),
+				"exception" => $e,
+			]);
 			return null;
 		}
 
 		// make sure first 4 chars are 'MMDB'
 		$entry = $this->readEntry($in);
 		if ($entry['id'] !== 1111772493) {
-			$this->logger->error("Not an mmdb file: '{$filename}'");
+			$this->logger->error("Not an mmdb file: '{file}'", ["file" => $filename]);
 			\Safe\fclose($in);
 			return null;
 		}

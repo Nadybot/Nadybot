@@ -60,7 +60,7 @@ class PsrLogMessageProcessor implements ProcessorInterface {
 				$replacements[$placeholder] = $val instanceof \BackedEnum ? $val->value : $val->name;
 			} elseif (is_object($val)) {
 				if ($val instanceof Loggable) {
-					$replacements[$placeholder] = $val->toString();
+					$replacements[$placeholder] = $val->toLog();
 				} else {
 					$replacements[$placeholder] = '[object ' . Utils::getClass($val) . ']';
 				}

@@ -131,13 +131,18 @@ class ClassLoader {
 			$obj = new $className();
 			$obj->setModuleName($moduleName);
 			if (Registry::instanceExists($name) && !$class->overwrite) {
-				$this->logger->warning("Instance with name '{$name}' already registered--replaced with new instance");
+				$this->logger->warning("Instance with name '{instance}' already registered--replaced with new instance", [
+					"instance" => $name,
+				]);
 			}
 			Registry::setInstance($name, $obj);
 		}
 
 		if (count($newInstances) == 0) {
-			$this->logger->error("Could not load module {$moduleName}. No classes found with #[Instance] attribute!");
+			$this->logger->error("Could not load module {module}: {error}", [
+				"module" => $moduleName,
+				"error" => "No classes found with #[Instance] attribute",
+			]);
 			return;
 		}
 		$this->registeredModules[$moduleName] = "{$baseDir}/{$moduleName}";
@@ -239,7 +244,7 @@ class ClassLoader {
 	private function loadUserModules(): void {
 		$this->logger->notice("Loading USER modules...");
 		foreach ($this->moduleLoadPaths as $path) {
-			$this->logger->info("Loading modules in path '{$path}'");
+			$this->logger->info("Loading modules in path '{path}'", ["path" => $path]);
 			if (!@file_exists($path) || !(($d = dir($path)) instanceof Directory)) {
 				continue;
 			}

@@ -450,13 +450,17 @@ class PackageController extends ModuleInstance {
 		try {
 			$path = \Safe\realpath($modulePath);
 		} catch (FilesystemException $e) {
-			$this->logger->error("Cannot determine absolute path of {$modulePath}", [
+			$this->logger->error("Cannot determine absolute path of {module_path}", [
+				"module_path" => $modulePath,
 				"exception" => $e,
 			]);
 			$context->reply("Something is wrong with the path of this module.");
 			return;
 		}
-		$this->logger->info("Removing {$modulePath} ({$path}) recursively");
+		$this->logger->info("Removing {module_path} ({path}) recursively", [
+			"module_path" => $modulePath,
+			"path" => $path,
+		]);
 		$dirIterator = new RecursiveDirectoryIterator($path);
 		$iterator = new RecursiveIteratorIterator(
 			$dirIterator,
@@ -493,14 +497,14 @@ class PackageController extends ModuleInstance {
 		);
 		$baseDir = dirname($path) . "/";
 		foreach ($toDelete as $file) {
-			$this->logger->info("Removing {$file}");
+			$this->logger->info("Removing {file}", ["file" => $file]);
 			$relFile = substr($file, strlen($baseDir));
 			if (!@file_exists($file)) {
-				$this->logger->info("{$file} does not exist");
+				$this->logger->info("{file} does not exist", ["file" => $file]);
 				continue;
 			}
 			if (is_dir($file)) {
-				$this->logger->notice("rmdir {$relFile}");
+				$this->logger->notice("rmdir {dir}", ["dir" => $relFile]);
 				try {
 					\Safe\rmdir($file);
 				} catch (FilesystemException $e) {
@@ -510,7 +514,7 @@ class PackageController extends ModuleInstance {
 					return;
 				}
 			} else {
-				$this->logger->notice("del {$relFile}");
+				$this->logger->notice("del {file}", ["file" => $relFile]);
 				try {
 					\Safe\unlink($file);
 				} catch (FilesystemException $e) {
@@ -573,10 +577,10 @@ class PackageController extends ModuleInstance {
 				continue;
 			}
 			if (@is_dir($fullFilename)) {
-				$this->logger->notice("rmdir {$fullFilename}");
+				$this->logger->notice("rmdir {dir}", ["dir" => $fullFilename]);
 				@rmdir($fullFilename);
 			} else {
-				$this->logger->notice("del {$fullFilename}");
+				$this->logger->notice("del {file}", ["file" => $fullFilename]);
 				@unlink($fullFilename);
 			}
 		}
@@ -974,13 +978,19 @@ class PackageController extends ModuleInstance {
 				return new Failure($e);
 			}
 
-			$this->logger->notice("Installing module {$cmd->package} into {$targetDir}/{$cmd->package}");
+			$this->logger->notice("Installing module {package} into {dir}", [
+				"package" => $cmd->package,
+				"dir" => $targetDir . DIRECTORY_SEPARATOR . $cmd->package,
+			]);
 			if (!@file_exists("{$targetDir}/{$cmd->package}/")) {
 				try {
 					\Safe\mkdir("{$targetDir}/{$cmd->package}", 0700, true);
 				} catch (FilesystemException $e) {
-					$this->logger->error("Error on mkdir of {$targetDir}/{$cmd->package}: " .
-						$e->getMessage());
+					$this->logger->error("Error on mkdir of {dir}: {error}", [
+						"dir" => $targetDir . DIRECTORY_SEPARATOR . $cmd->package,
+						"error" => $e->getMessage(),
+						"exception" => $e,
+					]);
 					throw new UserException(
 						"There was an error creating ".
 						"<highlight>{$targetDir}/{$cmd->package}<end>."
@@ -1027,8 +1037,11 @@ class PackageController extends ModuleInstance {
 							yield filesystem()->createDirectoryRecursively($targetFile, 0700);
 						}
 					} catch (Throwable $e) {
-						$this->logger->error("Error on mkdir of {$targetFile}: ".
-							$e->getMessage());
+						$this->logger->error("Error on mkdir of {dir}: {error}", [
+							"dir" => $targetFile,
+							"error" => $e->getMessage(),
+							"exception" => $e,
+						]);
 						throw new UserException(
 							"There was an error creating <highlight>{$targetFile}<end>."
 						);
@@ -1041,8 +1054,11 @@ class PackageController extends ModuleInstance {
 						}
 						yield filesystem()->write($targetFile, $fileData);
 					} catch (Throwable $e) {
-						$this->logger->error("Error on extraction of {$targetFile}: ".
-							$e->getMessage());
+						$this->logger->error("Error on extraction of {file}: {error}", [
+							"file" => $targetFile,
+							"error" => $e->getMessage(),
+							"exception" => $e,
+						]);
 						throw new UserException(
 							"There was an error extracting <highlight>{$targetFile}<end>."
 						);
@@ -1052,7 +1068,7 @@ class PackageController extends ModuleInstance {
 				if ($index === false) {
 					continue;
 				}
-				$this->logger->notice("unzip -> {$targetFile}");
+				$this->logger->notice("unzip -> {file}", ["file" => $targetFile]);
 				$this->db->table(self::DB_TABLE)
 					->insert([
 						"module" => $cmd->package,

@@ -3,5 +3,5 @@
 namespace Nadybot\Core;
 
 interface Loggable {
-	public function toString(): string;
+	public function toLog(): string;
 }

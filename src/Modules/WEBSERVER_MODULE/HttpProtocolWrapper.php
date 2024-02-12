@@ -145,7 +145,10 @@ class HttpProtocolWrapper {
 				$response->headers['Content-Length'] = "0";
 			}
 			$response->codeString = Response::DEFAULT_RESPONSE_TEXT[$response->code];
-			$this->logger->info("Changing reply to {$response->code} ({$response->codeString})");
+			$this->logger->info("Changing reply to {code} ({status})", [
+				"code" => $response->code,
+				"status" => $response->codeString,
+			]);
 			$response->body = null;
 		}
 		if (isset($request->method) && $request->method === Request::HEAD) {
@@ -272,7 +275,7 @@ class HttpProtocolWrapper {
 	public function readBody(AsyncSocket $socket): void {
 		$toRead = (int)$this->request->headers['content-length'] - strlen($this->request->body ?? "");
 		$readChunk = min(4096, $toRead);
-		$this->logger->debug("Reading {$readChunk} bytes");
+		$this->logger->debug("Reading {bytes_read} bytes", ["bytes_read" => $readChunk]);
 		$sock = $socket->getSocket();
 		if (!is_resource($sock)) {
 			$this->logger->info("Error reading from closed socket: " . (error_get_last()["message"]??""));
@@ -311,7 +314,7 @@ class HttpProtocolWrapper {
 		}
 		$event->request = $this->request;
 		$event->type = "http(" . strtolower($this->request->method) . ")";
-		$this->logger->info("Firing {$event->type} event");
+		$this->logger->info("Firing {type} event", ["type" => $event->type]);
 		$this->eventManager->fireEvent($event, $this);
 		$this->request = new Request();
 		$this->nextPart = static::EXPECT_REQUEST;

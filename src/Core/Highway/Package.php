@@ -20,7 +20,7 @@ class Package implements Loggable {
 
 	/** Get a human-readable dump of the object and its values */
 	#[DoNotSerialize]
-	public function toString(): string {
+	public function toLog(): string {
 		$values = [];
 		foreach (get_object_vars($this) as $key => $value) {
 			$values []= "{$key}=" . json_encode(

@@ -122,7 +122,7 @@ class WebsocketController extends ModuleInstance {
 
 	/** Handle the Websocket client sending data */
 	public function clientSentData(WebsocketCallback $event): void {
-		$this->logger->info("[Data inc.] {$event->data}");
+		$this->logger->info("[Data inc.] {data}", ["data" => $event->data]);
 		try {
 			if (!is_string($event->data)) {
 				throw new Exception();

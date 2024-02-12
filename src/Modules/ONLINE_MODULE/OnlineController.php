@@ -532,7 +532,9 @@ class OnlineController extends ModuleInstance {
 					$privArray []= $row->name;
 					break;
 				default:
-					$this->logger->warning("Unknown channel type: '{$row->channel_type}'. Expected: 'guild' or 'priv'");
+					$this->logger->warning("Unknown channel type: '{channel_type}'. Expected: 'guild' or 'priv'", [
+						"channel_type" => $row->channel_type,
+					]);
 			}
 		}
 

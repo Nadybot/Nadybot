@@ -1277,7 +1277,9 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 		}
 
 		if (count($org->members) === 0) {
-			$this->logger->error("The organisation {$org->orgname} has no members. Not changing its roster");
+			$this->logger->error("The organisation {org_name} has no members. Not changing its roster", [
+				"org_name" => $org->orgname,
+			]);
 			return;
 		}
 

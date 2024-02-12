@@ -38,36 +38,31 @@ class CommandAlias {
 
 	/** Registers a command alias */
 	public function register(string $module, string $command, string $alias, int $status=1): void {
-		$module = strtoupper($module);
-		$command = strtolower($command);
-		$alias = strtolower($alias);
-
-		$this->logger->info("Registering alias: '{$alias}' for command: '{$command}'");
+		$entry = new CmdAlias();
+		$entry->alias = strtolower($alias);
+		$entry->module = strtoupper($module);
+		$entry->cmd = strtolower($command);
+		$entry->status = $status;
 
 		$row = $this->get($alias);
 		if ($row !== null) {
+			$this->logger->info("Updating {alias}", ["alias" => $entry]);
 			// do not update an alias that a user created
 			if (!empty($row->module)) {
-				$this->db->table(self::DB_TABLE)
-					->where("alias", $alias)
-					->update(["module" => $module, "cmd" => $command]);
+				$this->db->update(self::DB_TABLE, "alias", $entry);
 			}
 		} else {
-			$this->db->table(self::DB_TABLE)
-				->insert([
-					"module" => $module,
-					"cmd" => $command,
-					"alias" => $alias,
-					"status" => $status,
-				]);
+			$this->logger->info("Registering {alias}", ["alias" => $entry]);
+			$this->db->insert(self::DB_TABLE, $entry, null);
 		}
 	}
 
 	/** Activates a command alias */
 	public function activate(string $command, string $alias): void {
 		$alias = strtolower($alias);
+		$entry = new AnonObj(class: "CmdAlias", properties: ["alias" => $alias, "cmd" => $command]);
 
-		$this->logger->info("Activate Command Alias command:({$command}) alias:({$alias})");
+		$this->logger->info("Activating {alias}", ["alias" => $entry]);
 
 		foreach ($this->commandManager->getPermissionSets() as $set) {
 			$this->commandManager->activate($set->name, self::ALIAS_HANDLER, $alias, 'all');
@@ -78,7 +73,7 @@ class CommandAlias {
 	public function deactivate(string $alias): void {
 		$alias = strtolower($alias);
 
-		$this->logger->info("Deactivate Command Alias:({$alias})");
+		$this->logger->info("Deactivate Command Alias '{alias}'", ["alias" => $alias]);
 
 		foreach ($this->commandManager->getPermissionSets() as $set) {
 			$this->commandManager->deactivate($set->name, self::ALIAS_HANDLER, $alias);
@@ -103,7 +98,10 @@ class CommandAlias {
 		} else {
 			$params = "";
 		}
-		$this->logger->info("Command alias found command: '{$row->cmd}' alias: '{$row->alias}'");
+		$this->logger->info("Command alias found command: '{command}' alias: '{alias}'", [
+			"command" => $row->cmd,
+			"alias" => $row->alias,
+		]);
 		$cmd = $row->cmd;
 
 		// Determine highest placeholder and don't split more than that so that the
@@ -148,7 +146,10 @@ class CommandAlias {
 
 	/** Adds a command alias to the db */
 	public function add(CmdAlias $row): int {
-		$this->logger->info("Adding alias: '{$row->alias}' for command: '{$row->cmd}'");
+		$this->logger->info("Adding alias: '{alias}' for command: '{command}'", [
+			"alias" => $row->alias,
+			"command" => $row->cmd,
+		]);
 		return $this->db->table(self::DB_TABLE)->insert([
 			"module" => $row->module,
 			"cmd" => $row->cmd,
@@ -159,7 +160,7 @@ class CommandAlias {
 
 	/** Updates a command alias in the db */
 	public function update(CmdAlias $row): int {
-		$this->logger->info("Updating alias :({$row->alias})");
+		$this->logger->info("Updating alias :({alias})", ["alias" => $row->alias]);
 		return $this->db->table(self::DB_TABLE)
 			->where("alias", $row->alias)
 			->update([

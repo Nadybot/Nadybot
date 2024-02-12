@@ -87,7 +87,7 @@ class DrillController extends ModuleInstance {
 				->build();
 			$client = new Rfc6455Connector($httpClient);
 			try {
-				$this->logger->info("Connecting to Drill server {$url}");
+				$this->logger->info("Connecting to Drill server {url}", ["url" => $url]);
 
 				/** @var Connection */
 				$connection = yield $client->connect($handshake, null);
@@ -96,7 +96,7 @@ class DrillController extends ModuleInstance {
 				$event->type = "drill(connect)";
 				$event->client = $connection;
 				$this->eventManager->fireEvent($event);
-				$this->logger->info("Connected to Drill server {$url}");
+				$this->logger->info("Connected to Drill server {url}", ["url" => $url]);
 				while ($message = yield $connection->receive()) {
 					/** @var Message $message */
 					$payload = yield $message->buffer();
@@ -124,7 +124,9 @@ class DrillController extends ModuleInstance {
 				$this->reconnectDelay = max($this->reconnectDelay * 2, 5);
 				yield $this->connect();
 			} catch (ClosedException $e) {
-				$this->logger->notice("Reconnecting to Drill in {$this->reconnectDelay}s.");
+				$this->logger->notice("Reconnecting to Drill in {delay}s.", [
+					"delay" => $this->reconnectDelay,
+				]);
 				yield delay($this->reconnectDelay * 1000);
 				$this->reconnectDelay = max($this->reconnectDelay * 2, 5);
 				yield $this->connect();
