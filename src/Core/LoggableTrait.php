@@ -17,17 +17,20 @@ trait LoggableTrait {
 	#[DoNotSerialize]
 	private function traitedToLog(
 		array $overrides=[],
-		array $hide=[]
+		array $replaces=[],
+		array $hide=[],
+		?string $class=null,
 	): string {
 		$values = [];
 		$refClass = new ReflectionClass($this);
-		foreach (get_object_vars($this) as $key => $value) {
+		$props = isset($replaces) ? $replaces : get_object_vars($this);
+		foreach ($props as $key => $value) {
 			if (in_array($key, $hide, true)) {
 				continue;
 			}
 			if (isset($overrides[$key])) {
 				$value = $overrides[$key];
-			} else {
+			} elseif (!isset($replaces)) {
 				$refProp = $refClass->getProperty($key);
 				if ($refProp->isInitialized($this) === false) {
 					continue;
@@ -35,6 +38,8 @@ trait LoggableTrait {
 			}
 			if ($value instanceof Loggable) {
 				$value = $value->toLog();
+			} elseif ($value instanceof \Closure) {
+				$value = "<Closure>";
 			} else {
 				try {
 					$value = json_encode(
@@ -47,9 +52,11 @@ trait LoggableTrait {
 			}
 			$values []= "{$key}={$value}";
 		}
-		$parts = explode("\\", get_class($this));
-		$className = array_pop($parts);
-		return "<{$className}>{" . join(",", $values) . "}";
+		if (!isset($class)) {
+			$parts = explode("\\", get_class($this));
+			$class = array_pop($parts);
+		}
+		return "<{$class}>{" . join(",", $values) . "}";
 	}
 
 	/** Get a human-readable dump of the object and its values */

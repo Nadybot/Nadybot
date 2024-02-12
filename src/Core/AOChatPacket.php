@@ -325,7 +325,7 @@ class AOChatPacket implements Loggable {
 		return $types[$type] ?? null;
 	}
 
-	public function toString(): string {
+	public function toLog(): string {
 		$args = [];
 		foreach ($this->args as $arg) {
 			if (!is_string($arg)) {

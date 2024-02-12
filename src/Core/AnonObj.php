@@ -3,6 +3,8 @@
 namespace Nadybot\Core;
 
 class AnonObj implements Loggable {
+	use LoggableTrait;
+
 	/**
 	 * @param array<string,mixed> $properties
 	 * @param array<string,mixed> $smartProps
@@ -30,22 +32,7 @@ class AnonObj implements Loggable {
 		$props[$property] = $value;
 	}
 
-	public function toString(): string {
-		$values = [];
-		foreach ($this->properties as $key => $value) {
-			if ($value instanceof \Closure) {
-				$value = "<Closure>";
-			} elseif ($value instanceof Loggable) {
-				$value = $value->toString();
-			} else {
-				$value = json_encode(
-					$value,
-					JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE|JSON_INVALID_UTF8_SUBSTITUTE
-				);
-			}
-			$values []= "{$key}={$value}";
-		}
-		$class = isset($this->class) ? "<{$this->class}>" : "";
-		return "{$class}{" . join(",", $values) . "}";
+	public function toLog(): string {
+		return $this->traitedToLog(class: $this->class, replaces: $this->properties);
 	}
 }

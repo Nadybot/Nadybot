@@ -8,7 +8,7 @@ class AnonBinData implements Loggable {
 	) {
 	}
 
-	public function toString(): string {
+	public function toLog(): string {
 		if ($this->data === null) {
 			return "null";
 		}

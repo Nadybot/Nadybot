@@ -60,11 +60,7 @@ class CommandAlias {
 	/** Activates a command alias */
 	public function activate(string $command, string $alias): void {
 		$alias = strtolower($alias);
-		$entry = new CmdAlias();
-		$entry->alias = $alias;
-		$entry->cmd = $command;
-		unset($entry->module);
-		unset($entry->status);
+		$entry = new AnonObj(class: "CmdAlias", properties: ["alias" => $alias, "cmd" => $command]);
 
 		$this->logger->notice("Activating {alias}", ["alias" => $entry]);
 
