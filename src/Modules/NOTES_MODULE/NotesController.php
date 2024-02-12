@@ -297,7 +297,10 @@ class NotesController extends ModuleInstance {
 		}
 		$this->preferences->delete($event->alt, 'reminder_format');
 		$this->preferences->save($event->main, 'reminder_format', $reminderFormat);
-		$this->logger->notice("Moved reminder format from {$event->alt} to {$event->main}.");
+		$this->logger->notice("Moved reminder format from {alt} to {main}.", [
+			"alt" => $event->alt,
+			"main" => $event->main,
+		]);
 	}
 
 	/**

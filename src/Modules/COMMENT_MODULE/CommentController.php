@@ -145,7 +145,10 @@ class CommentController extends ModuleInstance {
 			// make sure own table schema exists
 			$this->logger->notice("Ensuring new tables and indexes exist");
 			// copy all categories and comments to the shared table if they do not exist already
-			$this->logger->notice("Copying comment categories from {$oldCategoryTable} to {$newCategoryTable}.");
+			$this->logger->notice("Copying comment categories from {old_table} to {new_table}.", [
+				"old_table" => $oldCategoryTable,
+				"new_table" => $newCategoryTable,
+			]);
 			foreach ($cats as $cat) {
 				$exists = $this->db->table("<table:comment_categories>")
 					->where("name", $cat->name)->exists();
@@ -153,7 +156,10 @@ class CommentController extends ModuleInstance {
 					$this->db->insert("<table:comment_categories>", $cat, null);
 				}
 			}
-			$this->logger->notice("Copying comments from {$oldCommentTable} to {$newCommentTable}.");
+			$this->logger->notice("Copying comments from {old_table} to {new_table}.", [
+				"old_table" => $oldCommentTable,
+				"new_table" => $newCommentTable,
+			]);
 			foreach ($comments as $comment) {
 				$exists = $this->db->table("<table:comments>")
 					->where("category", $comment->category)

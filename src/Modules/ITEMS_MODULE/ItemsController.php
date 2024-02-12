@@ -602,7 +602,10 @@ class ItemsController extends ModuleInstance {
 	public function getItem(string $name, ?int $ql=null): ?string {
 		$row = $this->findByName($name, $ql);
 		if ($row === null) {
-			$this->logger->warning("Could not find item '{$name}' at QL '{$ql}'");
+			$this->logger->warning("Could not find item '{item_name}' at QL '{ql}'", [
+				"item_name" => $name,
+				"ql" => $ql,
+			]);
 			return null;
 		}
 		$ql ??= $row->highql;
@@ -613,10 +616,15 @@ class ItemsController extends ModuleInstance {
 		$row = $this->findByName($name, $ql);
 		if ($row === null) {
 			if (isset($ql)) {
-				$this->logger->warning("Could not find item '{$name}' at QL '{$ql}'");
+				$this->logger->warning("Could not find item '{item_name}' at QL '{ql}'", [
+					"item_name" => $name,
+					"ql" => $ql,
+				]);
 				return "{$name}@{$ql}";
 			}
-			$this->logger->warning("Could not find item '{$name}'");
+			$this->logger->warning("Could not find item '{item_name}'", [
+				"item_name" => $name,
+			]);
 			return $name;
 		}
 		$ql ??= $row->highql;
