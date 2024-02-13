@@ -429,6 +429,7 @@ class ApiSpecGenerator {
 		$refTypes = [];
 		$refType = $refProp->getType();
 		if ($refType instanceof ReflectionUnionType) {
+			/** @var \ReflectionNamedType[]|\ReflectionIntersectionType[] */
 			$refTypes = $refType->getTypes();
 		} elseif ($refType instanceof ReflectionNamedType) {
 			$refTypes = [$refType];
@@ -437,6 +438,10 @@ class ApiSpecGenerator {
 		}
 		$types = [];
 		foreach ($refTypes as $refType) {
+			// Cannot handle this now
+			if ($refType instanceof \ReflectionIntersectionType) {
+				continue;
+			}
 			if ($refType->isBuiltin()) {
 				if ($refType->getName() === "int") {
 					$types []= "integer";

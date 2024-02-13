@@ -7,6 +7,7 @@ use InvalidArgumentException;
 use Nadybot\Core\Attributes\JSON;
 use ReflectionFunction;
 use ReflectionNamedType;
+use ReflectionType;
 use ReflectionUnionType;
 
 class NewsTile {
@@ -45,11 +46,26 @@ class NewsTile {
 		if ($params[0]->hasType()) {
 			$type = $params[0]->getType();
 			if ($type instanceof ReflectionNamedType) {
-				$typeNames =[$type->getName()];
+				$typeNames = [$type->getName()];
+			} elseif ($type instanceof \ReflectionIntersectionType) {
+				throw new InvalidArgumentException(
+					"The news tile {$name}'s callback {$funcHint} has an unsupported type ".
+					"as first argument"
+				);
 			} elseif ($type instanceof ReflectionUnionType) {
-				$typeNames = array_map(fn (ReflectionNamedType $type) => $type->getName(), $type->getTypes());
+				$typeNames = [];
+				foreach ($type->getTypes() as $type) {
+					if ($type instanceof ReflectionNamedType) {
+						$typeNames []= $type->getName();
+					}
+				}
+			} else {
+				throw new InvalidArgumentException(
+					"The news tile {$name}'s callback {$funcHint} has an unsupported type ".
+					"as first argument"
+				);
 			}
-			if (!in_array("string", $typeNames??[])) {
+			if (!in_array("string", $typeNames)) {
 				throw new InvalidArgumentException(
 					"The news tile {$name}'s callback {$funcHint} does not accept ".
 					"a string as first argument"
@@ -61,7 +77,12 @@ class NewsTile {
 			if ($type instanceof ReflectionNamedType) {
 				$typeNames =[$type->getName()];
 			} elseif ($type instanceof ReflectionUnionType) {
-				$typeNames = array_map(fn (ReflectionNamedType $type) => $type->getName(), $type->getTypes());
+				$typeNames = [];
+				foreach ($type->getTypes() as $type) {
+					if ($type instanceof ReflectionNamedType) {
+						$typeNames []= $type->getName();
+					}
+				}
 			}
 			if (!in_array("callable", $typeNames??[])) {
 				throw new InvalidArgumentException(
