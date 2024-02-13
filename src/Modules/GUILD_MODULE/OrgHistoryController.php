@@ -163,12 +163,10 @@ class OrgHistoryController extends ModuleInstance {
 			->orderByDesc("id");
 
 		$limit = $request->query["limit"]??"50";
-		if (isset($limit)) {
-			if (!preg_match("/^\d+$/", $limit)) {
-				return new Response(Response::UNPROCESSABLE_ENTITY, [], "limit is not an integer value");
-			}
-			$query->limit((int)$limit);
+		if (!preg_match("/^\d+$/", $limit)) {
+			return new Response(Response::UNPROCESSABLE_ENTITY, [], "limit is not an integer value");
 		}
+		$query->limit((int)$limit);
 
 		$offset = $request->query["offset"]??null;
 		if (isset($offset)) {
