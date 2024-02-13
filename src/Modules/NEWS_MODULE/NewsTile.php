@@ -7,7 +7,6 @@ use InvalidArgumentException;
 use Nadybot\Core\Attributes\JSON;
 use ReflectionFunction;
 use ReflectionNamedType;
-use ReflectionType;
 use ReflectionUnionType;
 
 class NewsTile {
