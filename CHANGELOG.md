@@ -17,6 +17,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - The `!greeting`-system has been revamped to take a `key=value`-pair as the first greeting word. `key` can be name, main, prof, gender, breed or faction. This allows custom greetings for individual chars, players, or professions. `!greeting add prof=doc What's up doooc?` is finally possible.
 - The http-client will now automatically retry 429 codes (too many requests) with various delay between the intervals.
+- `!raid add` now allows to give more than one character name to add to the raid.
+- The `!raid notin`-command will now have a link next to each player's name to add them to the raid, as well as an "add all to the raid"-link.
 
 ### Fixed
 
