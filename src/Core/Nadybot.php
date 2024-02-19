@@ -522,7 +522,11 @@ class Nadybot extends AOChat {
 			$group = $this->char->name;
 		}
 
-		$message = $this->text->formatMessage($origMsg = $message);
+		if ($this->settingManager->getBool("priv_channel_colors")) {
+			$message = $this->text->formatMessage($origMsg = $message);
+		} else {
+			$message = $this->text->stripColors($origMsg = $message);
+		}
 		$privColor = "";
 		if ($addDefaultColor) {
 			$privColor = $this->settingManager->getString('default_priv_color') ?? "";
@@ -569,7 +573,11 @@ class Nadybot extends AOChat {
 
 		$priority ??= QueueInterface::PRIORITY_MED;
 
-		$message = $this->text->formatMessage($origMsg = $message);
+		if ($this->settingManager->getBool("guild_channel_colors")) {
+			$message = $this->text->formatMessage($origMsg = $message);
+		} else {
+			$message = $this->text->stripColors($origMsg = $message);
+		}
 		$guildColor = "";
 		if ($addDefaultColor) {
 			$guildColor = $this->settingManager->getString("default_guild_color")??"";
@@ -626,7 +634,11 @@ class Nadybot extends AOChat {
 		$rMessage = new RoutableMessage($message);
 		$tellColor = "";
 		if ($formatMessage) {
-			$message = $this->text->formatMessage($message);
+			if ($this->settingManager->getBool("tell_colors")) {
+				$message = $this->text->formatMessage($message);
+			} else {
+				$message = $this->text->stripColors($message);
+			}
 			$tellColor = $this->settingManager->getString("default_tell_color")??"";
 		}
 

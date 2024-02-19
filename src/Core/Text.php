@@ -326,6 +326,36 @@ class Text {
 	}
 
 	/**
+	 * Strips a message from all its colors
+	 *
+	 * @param string $message The message to format
+	 *
+	 * @return string The formatted message
+	 */
+	public function stripColors(string $message): string {
+		$colors = [];
+		foreach ($this->getColors() as $key => $color) {
+			$colors[$key] = "";
+		}
+
+		$array = array_merge(
+			$colors,
+			[
+				"<myname>" => $this->config->name,
+				"<myguild>" => $this->config->orgName,
+				"<tab>" => "    ",
+				"<end>" => "",
+				"<symbol>" => $this->settingManager->getString("symbol")??"!",
+				"<br>" => "\n",
+			]
+		);
+
+		$message = str_ireplace(array_keys($array), array_values($array), $message);
+
+		return $message;
+	}
+
+	/**
 	 * Align a number to $digits number of digits by prefixing it with black zeroes
 	 *
 	 * @param int    $number   The number to align

@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added 2 http-endpoints at `/livez` and `/readyz` for Kubernetes probes.
 - Replace `leaderecho_color` with new setting `leader_echo_format`, which accepts a template-string, so you can make leaderecho look any way you want to.
 - Support for Highway 0.2-protocol alongside 0.1
+- Add settings to globally turn off colors for org-channel, private channels, and tells, except for messages relayed into these.
 
 ### Changed
 
