@@ -21,7 +21,7 @@ nadybot (6.2.8-1+ubuntu1) bionic; urgency=medium
     to add them to the raid, as well as an "add all to the raid"-link.
   Fixed
   - The Discord command endpoint now also honors banned players.
-   -- Nadyita <nadyita@hodorraid.org>  Wed, 21 Feb 2024 11:05:00 +0100
+ -- Nadyita <nadyita@hodorraid.org>  Wed, 21 Feb 2024 11:05:00 +0100
 
 nadybot (6.2.7-1+ubuntu1) bionic; urgency=medium
   Added
