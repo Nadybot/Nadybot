@@ -112,7 +112,11 @@ class Chunker implements RelayLayerInterface {
 				$this->timerHandler = Loop::delay(10000, [$this, "cleanStaleChunks"]);
 			}
 			if (!isset($this->queue[$chunk->id])) {
-				$this->logger->debug("New chunk {$chunk->id} {$chunk->part}/{$chunk->count} received.");
+				$this->logger->debug("New chunk {id} {part}/{count} received.", [
+					"id" => $chunk->id,
+					"part" => $chunk->part,
+					"count" => $chunk->count,
+				]);
 				$chunk->sent = time();
 				$this->queue[$chunk->id] = [
 					$chunk->part => $chunk,
@@ -122,12 +126,20 @@ class Chunker implements RelayLayerInterface {
 			}
 			$this->queue[$chunk->id][$chunk->part] = $chunk;
 			if (count($this->queue[$chunk->id]) !== $chunk->count) {
-				$this->logger->debug("New chunk part for {$chunk->id} {$chunk->part}/{$chunk->count} received, still not complete.");
+				$this->logger->debug("New chunk part for {id} {part}/{count} received, still not complete.", [
+					"id" => $chunk->id,
+					"part" => $chunk->part,
+					"count" => $chunk->count,
+				]);
 				// Not yet complete;
 				$data = null;
 				continue;
 			}
-			$this->logger->debug("New chunk part for {$chunk->id} {$chunk->part}/{$chunk->count} received, now complete.");
+			$this->logger->debug("New chunk part for {id} {part}/{count} received, now complete.", [
+				"id" => $chunk->id,
+				"part" => $chunk->part,
+				"count" => $chunk->count,
+			]);
 			$data = "";
 			for ($i = 1; $i <= $chunk->count; $i++) {
 				$block = $this->queue[$chunk->id][$i]->data ?? null;
@@ -154,7 +166,7 @@ class Chunker implements RelayLayerInterface {
 			if (!count($parts)
 				|| time() - $this->queue[$id][$parts[0]]->sent > $this->timeout
 			) {
-				$this->logger->debug("Removing stale chunk {$id}");
+				$this->logger->debug("Removing stale chunk {id}", ["id" => $id]);
 				unset($this->queue[$id]);
 			}
 		}

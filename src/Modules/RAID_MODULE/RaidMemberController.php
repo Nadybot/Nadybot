@@ -318,11 +318,24 @@ class RaidMemberController extends ModuleInstance {
 	public function raidAddCommand(
 		CmdContext $context,
 		#[NCA\Str("add")] string $action,
-		PCharacter $char
+		PCharacter ...$char
 	): void {
-		$reply = $this->joinRaid($context->char->name, $char(), $context->source, true);
-		if ($reply !== null) {
-			$context->reply($reply);
+		$messages = [];
+		foreach ($char as $character) {
+			$reply = $this->joinRaid($context->char->name, $character(), $context->source, true);
+			if ($reply !== null) {
+				$messages []= $reply;
+			}
+		}
+		if (!count($messages)) {
+			return;
+		}
+		if (count($messages) === 1) {
+			$context->reply($messages[0]);
+		} else {
+			$blob = join("\n", $messages);
+			$msg = $this->text->makeBlob("Results", $blob);
+			$context->reply($msg);
 		}
 	}
 

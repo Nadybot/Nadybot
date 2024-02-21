@@ -1235,7 +1235,9 @@ class TowerController extends ModuleInstance {
 
 		$playfield = $this->playfieldController->getPlayfieldByName($attack->playfieldName);
 		if ($playfield === null) {
-			$this->logger->error("ERROR! Could not find Playfield \"{$attack->playfieldName}\"");
+			$this->logger->error("Could not find Playfield '{pf_name}'", [
+				"pf_name" => $attack->playfieldName,
+			]);
 			return;
 		}
 		$closestSite = $this->getClosestSite($playfield->id, $attack->xCoords, $attack->yCoords);
@@ -1252,12 +1254,21 @@ class TowerController extends ModuleInstance {
 		}
 
 		if ($closestSite === null) {
-			$this->logger->error("ERROR! Could not find closest site: ({$attack->playfieldName}) '{$playfield->id}' '{$attack->xCoords}' '{$attack->yCoords}'");
+			$this->logger->error("Could not find closest site: ({pf_name}) '{pf_id}' '{attack_x}' '{attack_y}'", [
+				"pf_name" => $attack->playfieldName,
+				"pf_id" => $playfield->id,
+				"attack_x" => $attack->xCoords,
+				"attack_y" => $attack->yCoords,
+			]);
 			$more = "[<red>UNKNOWN AREA!<end>]";
 		} else {
 			$this->recordAttack($whois, $attack, $closestSite);
 			$this->towerApiController->wipeApiCache();
-			$this->logger->info("Site being attacked: ({$attack->playfieldName}) '{$closestSite->playfield_id}' '{$closestSite->site_number}'");
+			$this->logger->info("Site being attacked: ({pf_name}) '{pf_id}' '{site_nr}'", [
+				"pf_name" => $attack->playfieldName,
+				"pf_id" => $closestSite->playfield_id,
+				"site_nr" => $closestSite->site_number,
+			]);
 
 			// Beginning of the 'more' window
 			$link = "";
@@ -1380,7 +1391,9 @@ class TowerController extends ModuleInstance {
 
 		$playfield = $this->playfieldController->getPlayfieldByName($playfieldName);
 		if ($playfield === null) {
-			$this->logger->error("Could not find playfield for name '{$playfieldName}'");
+			$this->logger->error("Could not find playfield for name '{pf_name}'", [
+				"pf_name" => $playfieldName,
+			]);
 			return;
 		}
 
@@ -2397,7 +2410,7 @@ class TowerController extends ModuleInstance {
 	private function renderOrgSites(?ApiResult $result, ?Collection $local, int $orgId): array {
 		if (isset($result, $local)) {
 			$result = $this->mergeLocalToAPI($local, $result);
-		} elseif (isset($local)) { // @phpstan-ignore-line
+		} elseif (isset($local)) {
 			$result = $this->scoutToAPI($local);
 		}
 		if (!isset($result)) {
@@ -2432,7 +2445,7 @@ class TowerController extends ModuleInstance {
 	private function renderPenaltySites(?ApiResult $result, ?Collection $local): array {
 		if (isset($result, $local)) {
 			$result = $this->mergeLocalToAPI($local, $result);
-		} elseif (isset($local)) { // @phpstan-ignore-line
+		} elseif (isset($local)) {
 			$result = $this->scoutToAPI($local);
 		}
 		if (!isset($result)) {
@@ -2462,7 +2475,7 @@ class TowerController extends ModuleInstance {
 		$details = null;
 		if (isset($result, $local)) {
 			$result = $this->mergeLocalToAPI($local, $result);
-		} elseif (isset($local)) { // @phpstan-ignore-line
+		} elseif (isset($local)) {
 			$result = $this->scoutToAPI($local);
 		}
 		if (isset($result)) {
@@ -2523,7 +2536,7 @@ class TowerController extends ModuleInstance {
 		$blob = '';
 		if (isset($result, $local)) {
 			$result = $this->mergeLocalToAPI($local, $result);
-		} elseif (isset($local)) { // @phpstan-ignore-line
+		} elseif (isset($local)) {
 			$result = $this->scoutToAPI($local);
 		}
 		if (isset($result)) {

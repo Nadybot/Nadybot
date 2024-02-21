@@ -611,7 +611,10 @@ class BuffPerksController extends ModuleInstance {
 		$this->db->commit();
 		$dbDuration = round((microtime(true) - $dbTs) * 1000, 1);
 		$parseDuration = round(($dbTs - $startTs) * 1000, 1);
-		$this->logger->notice("Finished (re)building perk database in {$parseDuration}ms + {$dbDuration}ms");
+		$this->logger->notice("Finished (re)building perk database in {parse_duration}ms + {db_duration}ms", [
+			"parse_duration" => $parseDuration,
+			"db_duration" => $dbDuration,
+		]);
 	}
 
 	/**
@@ -638,7 +641,7 @@ class BuffPerksController extends ModuleInstance {
 
 				$parts = explode("|", $line);
 				if (count($parts) < 7) {
-					$this->logger->error("Illegal perk entry: {$line}");
+					$this->logger->error("Illegal perk entry: {line}", ["line" => $line]);
 					continue;
 				}
 				[$name, $perkLevel, $expansion, $aoid, $requiredLevel, $profs, $buffs] = $parts;
@@ -668,7 +671,9 @@ class BuffPerksController extends ModuleInstance {
 				foreach ($professions as $prof) {
 					$profession = $this->util->getProfessionName(trim($prof));
 					if (empty($profession)) {
-						echo "Error parsing profession: '{$prof}'\n";
+						$this->logger->info("Error parsing profession: '{prof}'", [
+							"prof" => $prof
+						]);
 					} else {
 						$level->professions []= $profession;
 					}
@@ -690,7 +695,9 @@ class BuffPerksController extends ModuleInstance {
 							?? $this->whatBuffsController->searchForSkill($skill);
 						$skillCache[$skill] = $skillSearch;
 						if (count($skillSearch) !== 1) {
-							echo "Error parsing skill: '{$skill}'\n";
+							$this->logger->info("Error parsing skill: '{skill}'", [
+								"skill" => $skill
+							]);
 						} else {
 							$level->buffs[$skillSearch[0]->id] = (int)$amount;
 						}

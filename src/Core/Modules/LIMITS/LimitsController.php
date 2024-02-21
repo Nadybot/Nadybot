@@ -196,7 +196,10 @@ class LimitsController extends ModuleInstance {
 	}
 
 	public function handleAccessError(string $sender, string $message, string $msg): void {
-		$this->logger->notice("{$sender} denied access to bot due to: {$msg}");
+		$this->logger->notice("{character} denied access to bot due to: {error}", [
+			"character" => $sender,
+			"error" => $msg,
+		]);
 
 		$this->handleLimitCheckFail($msg, $sender);
 
@@ -324,7 +327,9 @@ class LimitsController extends ModuleInstance {
 		if ($action & 1) {
 			if (isset($this->chatBot->chatlist[$event->sender])) {
 				$this->chatBot->sendPrivate("Slow it down with the commands, <highlight>{$event->sender}<end>.");
-				$this->logger->notice("Kicking {$event->sender} from private channel.");
+				$this->logger->notice("Kicking {character} from private channel.", [
+					"character" => $event->sender,
+				]);
 				$this->chatBot->privategroup_kick($event->sender);
 				$audit = new Audit();
 				$audit->actor = (string)$event->sender;
@@ -337,13 +342,19 @@ class LimitsController extends ModuleInstance {
 			asyncCall(function () use ($event, $blockadeLength): Generator {
 				$uid = yield $this->chatBot->getUid2((string)$event->sender);
 				if (isset($uid)) {
-					$this->logger->notice("Blocking {$event->sender} for {$blockadeLength}s.");
+					$this->logger->notice("Blocking {character} for {duration}s.", [
+						"character" => $event->sender,
+						"duration" => $blockadeLength,
+					]);
 					$this->banController->add($uid, (string)$event->sender, $blockadeLength, "Too many commands executed");
 				}
 			});
 		}
 		if ($action & 4) {
-			$this->logger->notice("Ignoring {$event->sender} for {$blockadeLength}s.");
+			$this->logger->notice("Ignoring {character} for {duration}s.", [
+				"character" => $event->sender,
+				"duration" => $blockadeLength,
+			]);
 			$this->ignore((string)$event->sender, $blockadeLength);
 		}
 	}
@@ -354,7 +365,10 @@ class LimitsController extends ModuleInstance {
 	 */
 	public function ignore(string $sender, int $duration): bool {
 		$this->ignoreList[$sender] = time() + $duration;
-		$this->logger->notice("Ignoring {$sender} for {$duration}s.");
+		$this->logger->notice("Ignoring {character} for {duration}s.", [
+			"character" => $sender,
+			"duration" => $duration,
+		]);
 		return true;
 	}
 
@@ -374,7 +388,9 @@ class LimitsController extends ModuleInstance {
 		foreach ($this->ignoreList as $name => $expires) {
 			if ($expires < $now) {
 				unset($this->ignoreList[$name]);
-				$this->logger->notice("Unignoring {$name} again.");
+				$this->logger->notice("Unignoring {character}.", [
+					"character" => $name,
+				]);
 			}
 		}
 	}

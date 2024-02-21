@@ -5,6 +5,26 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [6.2.8] - 2024-02-21
+
+### Added
+
+- Added 2 http-endpoints at `/livez` and `/readyz` for Kubernetes probes.
+- Replace `leaderecho_color` with new setting `leader_echo_format`, which accepts a template-string, so you can make leaderecho look any way you want to.
+- Support for Highway 0.2-protocol alongside 0.1
+- Add settings to globally turn off colors for org-channel, private channels, and tells, except for messages relayed into these.
+
+### Changed
+
+- The `!greeting`-system has been revamped to take a `key=value`-pair as the first greeting word. `key` can be name, main, prof, gender, breed or faction. This allows custom greetings for individual chars, players, or professions. `!greeting add prof=doc What's up doooc?` is finally possible.
+- The http-client will now automatically retry 429 codes (too many requests) with various delay between the intervals.
+- `!raid add` now allows to give more than one character name to add to the raid.
+- The `!raid notin`-command will now have a link next to each player's name to add them to the raid, as well as an "add all to the raid"-link.
+
+### Fixed
+
+- The Discord command endpoint now also honors banned players.
+
 ## [6.2.7] - 2023-12-02
 
 ### Added

@@ -837,13 +837,18 @@ class GuildController extends ModuleInstance {
 			return;
 		}
 		if (empty($this->config->orgId)) {
-			$this->logger->warning("Org name '{$this->config->orgName}' specified, but bot does not appear to belong to an org");
+			$this->logger->warning("Org name '{org_name}' specified, but bot does not appear to belong to an org", [
+				"org_name" => $this->config->orgName,
+			]);
 			return;
 		}
 		$gid = $this->getOrgChannelIdByOrgId($this->config->orgId);
 		$orgChannel = $this->chatBot->gid[$gid]??null;
 		if (isset($orgChannel) && $orgChannel !== Nadybot::UNKNOWN_ORG && $orgChannel !== $this->config->orgName) {
-			$this->logger->warning("Org name '{$this->config->orgName}' specified, but bot belongs to org '{$orgChannel}'");
+			$this->logger->warning("Org name '{org_name}' specified, but bot belongs to org '{org_channel}'", [
+				"org_name" => $this->config->orgName,
+				"org_channel" => $orgChannel,
+			]);
 		}
 	}
 

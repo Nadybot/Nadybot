@@ -113,7 +113,11 @@ class SettingManager {
 			$oldvalue = $value;
 			$value = $this->util->parseTime((string)$value);
 			if ($value < 1) {
-				$this->logger->error("Error in registering Setting {$module}:setting({$name}). Invalid time: '{$oldvalue}'.");
+				$this->logger->error("Error in registering Setting {module}:setting({setting}). Invalid time: '{time}'.", [
+					"module" => $module,
+					"setting" => $name,
+					"time" => $oldvalue,
+				]);
 				return;
 			}
 		}
@@ -189,7 +193,12 @@ class SettingManager {
 			}
 			$this->settings[$name] = new SettingValue($setting);
 		} catch (SQLException $e) {
-			$this->logger->error("Error in registering Setting {$module}:setting({$name}): " . $e->getMessage(), ["exception" => $e]);
+			$this->logger->error("Error in registering Setting {module}:setting({setting}): {error}", [
+				"module" => $module,
+				"setting" => $name,
+				"error" => $e->getMessage(),
+				"exception" => $e,
+			]);
 		}
 	}
 
@@ -225,7 +234,9 @@ class SettingManager {
 				return (new SettingValue($value))->value;
 			}
 		}
-		$this->logger->error("Could not retrieve value for setting '{$name}' because setting does not exist");
+		$this->logger->error("Could not retrieve value for setting '{setting}' because setting does not exist", [
+			"setting" => $name,
+		]);
 		return false;
 	}
 
@@ -246,7 +257,9 @@ class SettingManager {
 			return null;
 		}
 
-		$this->logger->error("Could not retrieve value for setting '{$name}' because setting does not exist");
+		$this->logger->error("Could not retrieve value for setting '{setting}' because setting does not exist", [
+			"setting" => $name,
+		]);
 		return null;
 	}
 
@@ -281,8 +294,10 @@ class SettingManager {
 		if (is_string($value)) {
 			return $value;
 		}
-		$type = gettype($value);
-		$this->logger->error("Wrong type for setting '{$name}' requested. Expected 'string', got '{$type}'");
+		$this->logger->error("Wrong type for setting '{setting}' requested. Expected 'string', got '{type}'", [
+			"setting" => $name,
+			"type" => gettype($value),
+		]);
 		return null;
 	}
 
@@ -298,7 +313,10 @@ class SettingManager {
 		$name = strtolower($name);
 
 		if (!$this->exists($name)) {
-			$this->logger->error("Could not save value '{$value}' for setting '{$name}' because setting does not exist");
+			$this->logger->error("Could not save value '{value}' for setting '{setting}' because setting does not exist", [
+				"value" => $value,
+				"setting" => $name,
+			]);
 			return false;
 		}
 		if ($this->getHardcoded($name, null) !== null) {
@@ -388,7 +406,9 @@ class SettingManager {
 	public function getSettingHandler(Setting $row): ?SettingHandler {
 		$handler = $this->settingHandlers[$row->type] ?? null;
 		if (!isset($handler)) {
-			$this->logger->error("Could not find setting handler for setting type: '{$row->type}'");
+			$this->logger->error("Could not find setting handler for setting type '{type}'", [
+				"type" => $row->type,
+			]);
 			return null;
 		}
 		$handlerObj = new $handler($row);

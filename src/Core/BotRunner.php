@@ -26,7 +26,7 @@ use Throwable;
 
 class BotRunner {
 	/** Nadybot's current version */
-	public const VERSION = "6.2.7";
+	public const VERSION = "6.2.8";
 
 	public const AMP_FS_HANDLER = 'amp_fs_handler';
 
@@ -253,10 +253,13 @@ class BotRunner {
 		Registry::setInstance("configfile", $config);
 		$retryHandler = new HttpRetry(8);
 		Registry::injectDependencies($retryHandler);
+		$rateLimitRetryHandler = new HttpRetryRateLimits();
+		Registry::injectDependencies($rateLimitRetryHandler);
 		$httpClientBuilder = (new HttpClientBuilder())
 		->retry(0)
 		->intercept(new SetRequestHeaderIfUnset("User-Agent", "Nadybot ".self::getVersion()))
-		->intercept($retryHandler);
+		->intercept($retryHandler)
+		->intercept($rateLimitRetryHandler);
 		$httpProxy = getenv('http_proxy');
 		if ($httpProxy !== false) {
 			$proxyHost = parse_url($httpProxy, PHP_URL_HOST);
@@ -274,8 +277,6 @@ class BotRunner {
 		$this->checkRequiredPackages();
 		$this->createMissingDirs();
 
-		echo $this->getInitialInfoMessage();
-
 		// these must happen first since the classes that are loaded may be used by processes below
 		$this->loadPhpLibraries();
 		if (isset($config->timezone) && @date_default_timezone_set($config->timezone) === false) {
@@ -286,6 +287,8 @@ class BotRunner {
 		$this->setErrorHandling($logFolderName);
 		$this->logger = new LoggerWrapper("Core/BotRunner");
 		Registry::injectDependencies($this->logger);
+
+		$this->sendBotBanner();
 
 		if ($this->showSetupDialog()) {
 			$config = $this->getConfigFile();
@@ -551,16 +554,22 @@ class BotRunner {
 	}
 
 	/** Get a message describing the bot's codebase */
-	private function getInitialInfoMessage(): string {
-		$version = self::getVersion();
-
-		return
+	private function sendBotBanner(): void {
+		$this->logger->notice(
+			PHP_EOL.
 			" _   _  __     ".PHP_EOL.
-			"| \ | |/ /_    Nadybot version  {$version}".PHP_EOL.
-			"|  \| | '_ \   Project Site:    https://github.com/Nadybot/Nadybot".PHP_EOL.
-			"| |\  | (_) |  In-Game Contact: Nady".PHP_EOL.
-			"|_| \_|\___/   Discord:         https://discord.gg/aDR9UBxRfg".PHP_EOL.
-			PHP_EOL;
+			"| \ | |/ /_    Nadybot version: {version}".PHP_EOL.
+			"|  \| | '_ \   Project Site:    {project_url}".PHP_EOL.
+			"| |\  | (_) |  In-Game Contact: {in_game_contact}".PHP_EOL.
+			"|_| \_|\___/   Discord:         {discord_link}".PHP_EOL.
+			PHP_EOL,
+			[
+				"version" => self::getVersion(),
+				"project_url" => "https://github.com/Nadybot/Nadybot",
+				"in_game_contact" => "Nady",
+				"discord_link" => "https://discord.gg/aDR9UBxRfg",
+			]
+		);
 	}
 
 	/** Setup proper error-reporting, -handling and -logging */

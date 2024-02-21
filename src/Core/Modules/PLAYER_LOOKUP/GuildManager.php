@@ -327,7 +327,7 @@ class GuildManager extends ModuleInstance {
 			/** @var string */
 			$name = $member->NAME;
 			$charid = $member->CHAR_INSTANCE ?? $this->chatBot->get_uid($name);
-			if ($charid === null || $charid === false) {
+			if (!is_int($charid)) {
 				$charid = 0;
 			}
 

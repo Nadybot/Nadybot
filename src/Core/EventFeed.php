@@ -9,7 +9,7 @@ use Amp\Http\Client\HttpClientBuilder;
 use Amp\Http\Client\Interceptor\RemoveRequestHeader;
 use Amp\Promise;
 use Amp\Socket\ConnectContext;
-use Amp\Websocket\Client\{Handshake, Rfc6455Connector};
+use Amp\Websocket\Client\{ConnectionException, Handshake, Rfc6455Connector};
 use Amp\Websocket\{ClosedException, Code};
 use AssertionError;
 use Closure;
@@ -106,9 +106,9 @@ class EventFeed {
 			return;
 		}
 		asyncCall(function () use ($room): Generator {
-			$joinPackage = new Highway\Join($room);
+			$joinPackage = new Highway\Out\Join(room: $room);
 			$announcer = function (LowLevelEventFeedEvent $event) use ($room, &$announcer): void {
-				assert($event->highwayPackage instanceof Highway\RoomInfo);
+				assert($event->highwayPackage instanceof Highway\In\RoomInfo);
 				if ($event->highwayPackage->room === $room) {
 					$this->logger->notice("Global event feed attached to {room}", [
 						"room" => $room,
@@ -153,9 +153,9 @@ class EventFeed {
 			return;
 		}
 		asyncCall(function () use ($room): Generator {
-			$leavePackage = new Highway\Leave($room);
+			$leavePackage = new Highway\Out\Leave(room: $room);
 			$announcer = function (LowLevelEventFeedEvent $event) use ($room, &$announcer): void {
-				assert($event->highwayPackage instanceof Highway\Success);
+				assert($event->highwayPackage instanceof Highway\In\Success);
 				$this->logger->notice("Global event feed detached from {room}", [
 					"room" => $room,
 				]);
@@ -203,10 +203,26 @@ class EventFeed {
 					$this->logger->info("[{uri}] Connected to websocket", [
 						"uri" => self::URI,
 					]);
-					return $connection;
+					if ($connection->isSupportedVersion()) {
+						return $connection;
+					}
+					$this->logger->error("[{uri}] runs unsupported highway-version {version}", [
+						"uri" => self::URI,
+						"version" => $connection->getVersion(),
+					]);
+					$connection->close(Code::NORMAL_CLOSE, "Unsupported version");
+					return null;
 				} catch (Throwable $e) {
 					if ($this->chatBot->isShuttingDown()) {
 						return null;
+					}
+					if ($e instanceof ConnectionException && $e->getResponse()->getStatus() === 404) {
+						$this->logger->info("[{uri}] Service not up yet, reconnecting in {delay}s", [
+							"uri" => self::URI,
+							"delay" => self::RECONNECT_DELAY,
+						]);
+						yield delay(self::RECONNECT_DELAY * 1000);
+						continue;
 					}
 					if ($e instanceof UnprocessedRequestException) {
 						$prev = $e->getPrevious();
@@ -214,7 +230,7 @@ class EventFeed {
 							$e = $prev;
 						}
 					}
-					$this->logger->error("[{uri}] {error} - retrying in {delay}s", [
+					$this->logger->warning("[{uri}] {error} - reconnecting in {delay}s", [
 						"uri" => self::URI,
 						"error" => $e->getMessage(),
 						"delay" => self::RECONNECT_DELAY,
@@ -246,7 +262,7 @@ class EventFeed {
 				}
 				$error = $e->getMessage();
 				if ($e instanceof ClosedException) {
-					$error = "Server unexpectedly closed the connection";
+					$error = "Server closed the connection";
 				} elseif ($e instanceof JsonException && isset($this->connection)) {
 					$error = "JSON {$error}";
 					yield $this->connection->close(Code::INCONSISTENT_FRAME_DATA_TYPE);
@@ -255,7 +271,7 @@ class EventFeed {
 				}
 				$this->connection = null;
 				$this->availableRooms = [];
-				$this->logger->error("[{uri}] {error} - retrying in {delay}s", [
+				$this->logger->warning("[{uri}] {error} - reconnecting in {delay}s", [
 					"uri" => self::URI,
 					"delay" => self::RECONNECT_DELAY,
 					"error" => $error,
@@ -277,7 +293,7 @@ class EventFeed {
 		}
 	}
 
-	private function handlePackage(Highway\Connection $connection, Highway\Package $package): void {
+	private function handlePackage(Highway\Connection $connection, Highway\In\InPackage $package): void {
 		$event = new LowLevelEventFeedEvent(
 			type: "event-feed({$package->type})",
 			connection: $connection,
@@ -305,7 +321,7 @@ class EventFeed {
 	}
 
 	private function handleMessage(LowLevelEventFeedEvent $event): Generator {
-		assert($event->highwayPackage instanceof Highway\Message);
+		assert($event->highwayPackage instanceof Highway\In\Message);
 		$this->logger->info("Message from global event feed for room {room}: {message}", [
 			"room" => $event->highwayPackage->room,
 			"message" => $event->highwayPackage->body,
@@ -334,8 +350,15 @@ class EventFeed {
 	}
 
 	private function handleError(LowLevelEventFeedEvent $event): void {
-		if (!($event->highwayPackage instanceof Highway\Error)) {
+		if (!($event->highwayPackage instanceof Highway\In\Error)) {
 			return;
+		}
+		if (isset($event->highwayPackage->room)) {
+			unset($this->attachedRooms[$event->highwayPackage->room]);
+			$this->logger->error("Error from global event feed. Unable to join {room}: {error}", [
+				"room" => $event->highwayPackage->room,
+				"error" => $event->highwayPackage->message,
+			]);
 		}
 		$this->logger->error("Error from global event feed: {error}", [
 			"error" => $event->highwayPackage->message,
@@ -343,19 +366,26 @@ class EventFeed {
 	}
 
 	private function handleSuccess(LowLevelEventFeedEvent $event): void {
-		assert($event->highwayPackage instanceof Highway\Success);
+		assert($event->highwayPackage instanceof Highway\In\Success);
+		if (isset($event->highwayPackage->room)) {
+			$this->attachedRooms[$event->highwayPackage->room] = true;
+			$this->logger->info("Successfully joined room {room}", [
+				"room" => $event->highwayPackage->room,
+			]);
+		}
 	}
 
 	private function handleRoomInfo(LowLevelEventFeedEvent $event): void {
-		assert($event->highwayPackage instanceof Highway\RoomInfo);
+		assert($event->highwayPackage instanceof Highway\In\RoomInfo);
 		$this->attachedRooms[$event->highwayPackage->room] = true;
 	}
 
 	private function handleHello(LowLevelEventFeedEvent $event): Generator {
-		assert($event->highwayPackage instanceof Highway\Hello);
+		assert($event->highwayPackage instanceof Highway\In\Hello);
 		$attachedRooms = [];
 		$this->availableRooms = [];
-		$this->logger->notice("Public rooms on {server}: {rooms}", [
+		$this->logger->notice("Public rooms on highway {version} server {server}: {rooms}", [
+			"version" => $event->connection->getVersion(),
 			"server" => self::URI,
 			"rooms" => $event->highwayPackage->publicRooms,
 		]);
@@ -364,12 +394,12 @@ class EventFeed {
 			if (!isset($this->roomHandlers[$room]) || !count($this->roomHandlers[$room])) {
 				continue;
 			}
-			$joinPackage = new Highway\Join($room);
+			$joinPackage = new Highway\Out\Join(room: $room);
 			yield $event->connection->send($joinPackage);
 			$attachedRooms []= $room;
 		}
 		$this->logger->notice("Global event feed attached to {rooms}", [
-			"rooms" => $this->text->enumerate(...$attachedRooms),
+			"rooms" => count($attachedRooms) ? $this->text->enumerate(...$attachedRooms) : "no rooms",
 		]);
 	}
 }

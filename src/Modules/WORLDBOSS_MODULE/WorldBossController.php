@@ -770,7 +770,9 @@ class WorldBossController extends ModuleInstance {
 		$mobName = $map[$event->boss] ?? null;
 
 		if (!isset($mobName)) {
-			$this->logger->warning("Received timer update for unknown boss {$event->boss}.");
+			$this->logger->warning("Received timer update for unknown boss {boss}.", [
+				"boss" => $event->boss,
+			]);
 			return;
 		}
 		if ($event->vulnerable === 0) {
@@ -794,7 +796,9 @@ class WorldBossController extends ModuleInstance {
 		$mobName = $map[$event->boss] ?? null;
 
 		if (!isset($mobName)) {
-			$this->logger->warning("Received timer update for unknown boss {$event->boss}.");
+			$this->logger->warning("Received timer update for unknown boss {boss}.", [
+				"boss" => $event->boss,
+			]);
 			return;
 		}
 		$this->worldBossDeleteCommand(new Character($event->sender), $mobName);
@@ -928,7 +932,9 @@ class WorldBossController extends ModuleInstance {
 		$map["gauntlet"] = $map["vizaresh"];
 		$mobName = $map[$timer->name] ?? null;
 		if (!isset($mobName) || !is_string($mobName)) {
-			$this->logger->warning("Received timer information for unknown boss {$timer->name}.");
+			$this->logger->warning("Received timer information for unknown boss {boss}.", [
+				"boss" => $timer->name,
+			]);
 			return false;
 		}
 		$ourTimer = $this->getWorldBossTimer($mobName);
@@ -939,7 +945,7 @@ class WorldBossController extends ModuleInstance {
 			}
 			return false;
 		}
-		$this->logger->info("Updating {$mobName} timer from API");
+		$this->logger->info("Updating {boss} timer from API", ["boss" => $mobName]);
 		$this->worldBossUpdate(
 			new Character("Timer-API"),
 			$mobName,
@@ -1154,7 +1160,7 @@ class WorldBossController extends ModuleInstance {
 		}
 		if ($this->isPrespawn($timer, $lastCheck, $manual)) {
 			assert(isset($timer->next_spawn));
-			$this->logger->notice("{$timer->mob_name} pre-spawn check success");
+			$this->logger->notice("{boss} pre-spawn check success", ["boss" => $timer->mob_name]);
 			$tokens["next-spawn"] = $this->util->unixtimeToReadable($timer->next_spawn-time());
 			$tokens["c-next-spawn"] = "<highlight>" . $tokens["next-spawn"] . "<end>";
 			$msg = $this->text->renderPlaceholders($this->willSpawnText, $tokens);

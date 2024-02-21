@@ -103,17 +103,18 @@ class FunController extends ModuleInstance {
 		}
 
 		if ($row === null) {
-			$msg = "There is no item with that id.";
-		} else {
-			$dmg = rand(100, 999);
-			$cred = rand(10000, 9999999);
-			$msg = $row->content;
-			$msg = str_replace("*name*", $sender, $msg);
-			$msg = str_replace("*dmg*", (string)$dmg, $msg);
-			$msg = str_replace("*creds*", (string)$cred, $msg);
+			return "There is no item with that id.";
 		}
+		return $this->renderPlaceholders($row->content, $sender);
+	}
 
-		// @phpstan-ignore-next-line
+	public function renderPlaceholders(string $msg, string $sender): string {
+		$dmg = rand(100, 999);
+		$cred = rand(10000, 9999999);
+		$msg = str_replace("*name*", $sender, $msg);
+		$msg = str_replace("*dmg*", (string)$dmg, $msg);
+		$msg = str_replace("*creds*", (string)$cred, $msg);
+
 		return $msg;
 	}
 

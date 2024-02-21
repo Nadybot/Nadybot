@@ -104,31 +104,44 @@ class PlayerLookupJob {
 		return call(function () use ($threadNum): Generator {
 			while ($todo = $this->toUpdate->shift()) {
 				/** @var Player $todo */
-				$this->logger->debug("[Thread #{$threadNum}] Looking up " . $todo->name);
+				$this->logger->debug("[Thread #{thread_num}] Looking up {character}", [
+					"thread_num" => $threadNum,
+					"character" => $todo->name,
+				]);
 				try {
 					$uid = yield $this->chatBot->getUid2($todo->name);
 					if (!isset($uid)) {
-						$this->logger->debug("[Thread #{$threadNum}] Player " . $todo->name . ' is inactive, not updating.');
+						$this->logger->debug("[Thread #{thread_num}] Character {character} is inactive, not updating.", [
+							"thread_num" => $threadNum,
+							"character" => $todo->name,
+						]);
 						continue;
 					}
 					$start = microtime(true);
 					$player = yield $this->playerManager->byName($todo->name, $todo->dimension, true);
 					$duration = round((microtime(true) - $start) * 1000, 1);
 					$this->logger->debug(
-						"[Thread #{$threadNum}] PORK lookup for " . $todo->name . ' done, '.
-						(isset($player) ? 'data updated' : 'no data found').
-						" - took {$duration}ms"
+						"[Thread #{thread_num}] PORK lookup for {character} done after {duration}s: {result}",
+						[
+							"thread_num" => $threadNum,
+							"character" => $todo->name,
+							"result" => isset($player) ? 'data updated' : 'no data found',
+							"duration" => $duration,
+						]
 					);
 					yield delay(500);
 				} catch (Throwable $e) {
-					$this->logger->error("[Thread #{$threadNum}] Exception looking up {name}: {error}", [
-						"name" => $todo->name,
+					$this->logger->error("[Thread #{thread_num}] Exception looking up {character}: {error}", [
+						"thread_num" => $threadNum,
+						"character" => $todo->name,
 						"error" => $e->getMessage(),
 						"Exception" => $e,
 					]);
 				}
 			}
-			$this->logger->debug("[Thread #{$threadNum}] Queue empty, stopping thread.");
+			$this->logger->debug("[Thread #{thread_num}] Queue empty, stopping thread.", [
+				"thread_num" => $threadNum,
+			]);
 			return true;
 		});
 	}

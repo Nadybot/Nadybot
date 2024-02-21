@@ -1,14 +1,15 @@
 <?php declare(strict_types=1);
 
-namespace Nadybot\Core\Highway;
+namespace Nadybot\Core\Highway\Out;
 
-class Message extends Package {
+class Message extends OutPackage {
 	/** @param string|array<string,mixed> $body */
 	public function __construct(
 		public string $room,
-		public string|array $body,
-		public ?string $user=null,
+		public string|array|object $body,
+		null|int|string $id=null,
 	) {
 		$this->type = self::MESSAGE;
+		parent::__construct($id);
 	}
 }

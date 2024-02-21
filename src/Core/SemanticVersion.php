@@ -67,6 +67,22 @@ class SemanticVersion {
 		return 0;
 	}
 
+	/**
+	 * Check if $version is in range of $range
+	 *
+	 * @param string $range
+	 * @param string $version
+	 * @return boolean
+	 */
+	public static function inMask(string $range, string $version): bool {
+		$version = strtolower($version);
+		$range = strtolower($range);
+		if (preg_match("/^(?<operator>[<>!=~^]+)(?<version>[0-9a-z.-]+)/", $range, $matches)) {
+			return static::compareUsing($version, $matches['version'], $matches['operator']);
+		}
+		return static::compareUsing($version, $range, '=');
+	}
+
 	public static function compareUsing(string $version1, string $version2, string $operator): bool {
 		$cmp = static::compare($version1, $version2);
 		switch ($operator) {
@@ -86,6 +102,10 @@ class SemanticVersion {
 				return $cmp >= 0;
 			case "^":
 				$upperLimit = ((int)explode(".", $version2)[0] + 1) . ".0.0-0";
+				return $cmp >= 0 && static::compareUsing($version1, $upperLimit, "<");
+			case "~":
+				$parts = explode(".", $version2);
+				$upperLimit = $parts[0] . "." . ((int)$parts[1] + 1). ".0-0";
 				return $cmp >= 0 && static::compareUsing($version1, $upperLimit, "<");
 		}
 		return false;

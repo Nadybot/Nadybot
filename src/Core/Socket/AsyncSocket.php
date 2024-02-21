@@ -68,13 +68,13 @@ class AsyncSocket {
 			$this->socket = $socket;
 			\Safe\stream_set_blocking($this->socket, false);
 		} catch (Throwable $e) {
-			throw new InvalidArgumentException("Argument 1 to " . get_class() . "::__construct() must be a socket.");
+			throw new InvalidArgumentException("Argument 1 to " . get_class($this) . "::__construct() must be a socket.");
 		}
 	}
 
 	public function __destruct() {
 		if (isset($this->logger)) {
-			$this->logger->info(get_class() . ' destroyed');
+			$this->logger->info(get_class($this) . ' destroyed');
 		}
 	}
 
@@ -124,7 +124,7 @@ class AsyncSocket {
 	}
 
 	public function destroy(): void {
-		$this->logger->debug('Destroying ' . get_class());
+		$this->logger->debug('Destroying ' . get_class($this));
 		$this->callbacks = [];
 		$this->socket = null;
 		if (isset($this->notifier)) {

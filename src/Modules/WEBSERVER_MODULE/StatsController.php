@@ -116,7 +116,7 @@ class StatsController extends ModuleInstance {
 		}
 		$server->sendResponse(new Response(
 			Response::OK,
-			['Content-type' => "text/plain; version=0.0.4"],
+			['Content-Type' => "text/plain; version=0.0.4"],
 			$this->getMetricsData()
 		), $request, true);
 	}

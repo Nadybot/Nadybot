@@ -17,10 +17,12 @@ use Nadybot\Core\{
 	Nadybot,
 	ParamClass\PCharacter,
 	SettingManager,
+	Text,
 };
 
 #[
 	NCA\Instance,
+	NCA\HasMigrations,
 	NCA\DefineCommand(
 		command: "leader",
 		accessLevel: "guest",
@@ -54,13 +56,26 @@ class ChatLeaderController extends ModuleInstance implements AccessLevelProvider
 	#[NCA\Inject]
 	public EventManager $eventManager;
 
+	#[NCA\Inject]
+	public Text $text;
+
 	/** Repeat the text of the leader */
 	#[NCA\Setting\Boolean(mode: "noedit")]
 	public bool $leaderecho = true;
 
-	/** Color for leader echo */
-	#[NCA\Setting\Color]
-	public string $leaderechoColor = "#FFFF00";
+	/** Message format for leader echo */
+	#[NCA\Setting\Template(
+		exampleValues: [
+			"message" => "Example message"
+		],
+		options: [
+			"<yellow>{message}<end>",
+			"<yellow>------------------------------------------<end>\n".
+			"<tab><red>{message}<end>\n".
+			"<yellow>------------------------------------------<end>",
+		]
+	)]
+	public string $leaderEchoFormat = "<yellow>{message}<end>";
 
 	/** Name of the leader character. */
 	private ?string $leader = null;
@@ -163,7 +178,7 @@ class ChatLeaderController extends ModuleInstance implements AccessLevelProvider
 			|| $eventObj->message[0] === $this->settingManager->get("symbol")) {
 			return;
 		}
-		$msg = "{$this->leaderechoColor}{$eventObj->message}<end>";
+		$msg = $this->text->renderPlaceholders($this->leaderEchoFormat, ["message" => $eventObj->message]);
 		$this->chatBot->sendPrivate($msg);
 	}
 

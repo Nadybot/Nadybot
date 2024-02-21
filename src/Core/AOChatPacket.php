@@ -2,6 +2,8 @@
 
 namespace Nadybot\Core;
 
+use function Safe\json_encode;
+
 use Exception;
 
 /**
@@ -37,7 +39,7 @@ use Exception;
  * have been done anyway..  // auno - 2004/mar/26
  */
 
-class AOChatPacket {
+class AOChatPacket implements Loggable {
 	public const LOGIN_SEED =         0;
 	public const LOGIN_REQUEST =      2;
 	public const LOGIN_SELECT =       3;
@@ -164,6 +166,7 @@ class AOChatPacket {
 		}
 
 		if ($dir == "in") {
+			$this->data = $data;
 			if (!is_string($data)) {
 				throw new Exception("Incorrect argument for incoming packet, expecting a string.");
 			}
@@ -320,5 +323,47 @@ class AOChatPacket {
 			1100 => "ADM_MUX_INFO",
 		];
 		return $types[$type] ?? null;
+	}
+
+	public function toLog(): string {
+		$args = [];
+		foreach ($this->args as $arg) {
+			if (!is_string($arg)) {
+				$args []= json_encode($arg, JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE|JSON_INVALID_UTF8_SUBSTITUTE);
+				continue;
+			}
+			$bin = '"';
+			for ($i = 0; $i < strlen($arg); $i++) {
+				$ord = ord($arg[$i]);
+				switch ($ord) {
+					case 9: // <tab>
+						$bin .= "\\t";
+						break;
+					case 10: // <newline>
+						$bin .= "\\n";
+						break;
+					case 34: // "
+						$bin .= "\\\"";
+						break;
+					case 92: // \
+						$bin .= "\\\\";
+						break;
+					default:
+						if ($ord < 32 || $ord > 127) {
+							$bin .= "\\x" . sprintf("%02X", $ord);
+						} else {
+							$bin .= $arg[$i];
+						}
+				}
+			}
+			$bin .= '"';
+			$args []= $bin;
+		}
+		$data = \Safe\pack("n2", $this->type, strlen($this->data)) . $this->data;
+		return "<AoChatPacket>{".
+			"type=" . ($this->typeToName($this->type)??"Unknown") . ",".
+			"data=0x" . join("", str_split(bin2hex($data), 2)) . ",".
+			"args=[" . join(",", $args) . "],".
+			"dir=" . json_encode($this->dir, JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE|JSON_INVALID_UTF8_SUBSTITUTE) . "}";
 	}
 }

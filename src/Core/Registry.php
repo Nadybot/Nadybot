@@ -52,11 +52,18 @@ class Registry {
 		return $instance;
 	}
 
-	/** Inject all fields marked with #[Inject] in an object with the corresponding object instances */
-	public static function injectDependencies(object $instance): void {
+	/**
+	 * Inject all fields marked with #[Inject] in an object with the corresponding object instances
+	 *
+	 * @psalm-param class-string|object $instance
+	 */
+	public static function injectDependencies(string|object $instance): void {
 		// inject other instances that have the #[Inject] attribute
 		$reflection = new ReflectionClass($instance);
 		foreach ($reflection->getProperties() as $property) {
+			if (is_string($instance) && !$property->isStatic()) {
+				continue;
+			}
 			$injectAttrs = $property->getAttributes(NCA\Inject::class);
 			if (count($injectAttrs)) {
 				/** @var NCA\Inject */
@@ -71,10 +78,20 @@ class Registry {
 				}
 				$dependency = Registry::getInstance($dependencyName);
 				if ($dependency === null) {
-					static::getLogger()->warning("Could not resolve dependency '{$dependencyName}' in '" . get_class($instance) ."'");
+					static::getLogger()->warning(
+						"Could not resolve dependency '{dependencyName}' in '{class}'",
+						[
+							"dependencyName" => $dependencyName,
+							"class" => is_string($instance) ? $instance : get_class($instance),
+						]
+					);
 				} else {
 					$property->setAccessible(true);
-					$property->setValue($instance, $dependency);
+					if ($property->isStatic()) {
+						$property->setValue(null, $dependency);
+					} elseif (is_object($instance)) {
+						$property->setValue($instance, $dependency);
+					}
 				}
 				continue;
 			}
@@ -97,7 +114,17 @@ class Registry {
 				}
 				$property->setAccessible(true);
 				$logger = new LoggerWrapper($tag);
-				$property->setValue($instance, $logger);
+				if ($instance instanceof LogWrapInterface) {
+					$closure = $reflection->getMethod("wrapLogs")->getClosure($instance);
+					if (isset($closure)) {
+						$logger->wrap($closure);
+					}
+				}
+				if ($property->isStatic()) {
+					$property->setValue(null, $logger);
+				} elseif (is_object($instance)) {
+					$property->setValue($instance, $logger);
+				}
 				static::injectDependencies($logger);
 			}
 		}

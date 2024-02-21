@@ -14,6 +14,7 @@ use Nadybot\Core\{
 	AsyncHttp,
 	Attributes as NCA,
 	Http,
+	HttpRetryRateLimits,
 	JSONDataModel,
 	LoggerWrapper,
 	ModuleInstance,
@@ -214,7 +215,7 @@ class DiscordAPIClient extends ModuleInstance {
 	/** @return Promise<void> */
 	public function queueToWebhook(string $applicationId, string $interactionToken, string $message): Promise {
 		$this->logger->info("Adding discord message to end of webhook queue {interaction}", [
-			"channel" => $interactionToken,
+			"interaction" => $interactionToken,
 		]);
 		$deferred = new Deferred();
 		$this->webhookQueue []= new WebhookQueueItem($applicationId, $interactionToken, $message, $deferred);
@@ -389,7 +390,7 @@ class DiscordAPIClient extends ModuleInstance {
 		$botToken = $this->discordCtrl->discordBotToken;
 		$client = $this->builder
 			->intercept(new SetRequestHeaderIfUnset("Authorization", "Bot {$botToken}"))
-			->intercept(new RetryRateLimits())
+			->intercept(new HttpRetryRateLimits())
 			->build();
 		return $client;
 	}

@@ -45,7 +45,8 @@
 				"options": {
 					"stream": "php://stderr",
 					"level": "default"
-				}
+				},
+				"removeUsedVariables": true
 			},
 			"logs": {
 				"type": "rotating_file",
@@ -60,7 +61,8 @@
 						"filenameFormat": "{filename}_{date}",
 						"dateFormat": "Y-m"
 					}
-				}
+				},
+				"removeUsedVariables": true
 			}
 		},
 		"channels": {

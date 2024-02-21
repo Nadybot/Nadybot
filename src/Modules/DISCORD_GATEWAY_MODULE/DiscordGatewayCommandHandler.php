@@ -14,6 +14,7 @@ use Nadybot\Core\{
 	DB,
 	LoggerWrapper,
 	ModuleInstance,
+	Modules\BAN\BanController,
 	Modules\DISCORD\DiscordAPIClient,
 	Modules\DISCORD\DiscordUser,
 	Nadybot,
@@ -52,6 +53,9 @@ class DiscordGatewayCommandHandler extends ModuleInstance implements AccessLevel
 
 	#[NCA\Inject]
 	public CommandManager $commandManager;
+
+	#[NCA\Inject]
+	public BanController $banController;
 
 	#[NCA\Inject]
 	public AccessManager $accessManager;
@@ -304,7 +308,11 @@ class DiscordGatewayCommandHandler extends ModuleInstance implements AccessLevel
 		}
 		$context->char->name = $userId;
 		asyncCall(function () use ($userId, $context, $execCmd): Generator {
+			/** @var ?int */
 			$uid = yield $this->chatBot->getUid2($userId);
+			if (isset($uid) && yield $this->banController->isOnBanlist($uid)) {
+				return;
+			}
 			$context->char->id = $uid;
 			$execCmd();
 		});

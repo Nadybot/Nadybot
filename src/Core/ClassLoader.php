@@ -5,8 +5,11 @@ namespace Nadybot\Core;
 use function Safe\preg_split;
 use Directory;
 use Nadybot\Core\Attributes as NCA;
-
+use RecursiveDirectoryIterator;
+use RecursiveIteratorIterator;
+use RecursiveRegexIterator;
 use ReflectionClass;
+use RegexIterator;
 
 class ClassLoader {
 	public const INTEGRATED_MODULES = [
@@ -61,6 +64,20 @@ class ClassLoader {
 		foreach (Registry::getAllInstances() as $instance) {
 			Registry::injectDependencies($instance);
 		}
+
+		$this->logger->info("Inject dependencies for all static variables");
+		$classes = get_declared_classes();
+		foreach ($classes as $className) {
+			if (explode("\\", $className)[0] !== 'Nadybot') {
+				continue;
+			}
+			$reflection = new ReflectionClass($className);
+			$instanceAnnos = $reflection->getAttributes(NCA\Instance::class);
+			if (count($instanceAnnos)) {
+				continue;
+			}
+			Registry::injectDependencies($className);
+		}
 	}
 
 	/** Register a module in a basedir and check compatibility */
@@ -114,13 +131,18 @@ class ClassLoader {
 			$obj = new $className();
 			$obj->setModuleName($moduleName);
 			if (Registry::instanceExists($name) && !$class->overwrite) {
-				$this->logger->warning("Instance with name '{$name}' already registered--replaced with new instance");
+				$this->logger->warning("Instance with name '{instance}' already registered--replaced with new instance", [
+					"instance" => $name,
+				]);
 			}
 			Registry::setInstance($name, $obj);
 		}
 
 		if (count($newInstances) == 0) {
-			$this->logger->error("Could not load module {$moduleName}. No classes found with #[Instance] attribute!");
+			$this->logger->error("Could not load module {module}: {error}", [
+				"module" => $moduleName,
+				"error" => "No classes found with #[Instance] attribute",
+			]);
 			return;
 		}
 		$this->registeredModules[$moduleName] = "{$baseDir}/{$moduleName}";
@@ -149,19 +171,21 @@ class ClassLoader {
 				throw new IntegratedIntoBaseException('');
 			}
 		}
-		if ($dir = dir($path)) {
-			while (($file = $dir->read()) !== false) {
-				$fileName = "{$path}/{$file}";
-				if (is_dir($fileName) || !preg_match("/\\.php$/i", $file)) {
-					continue;
-				}
-				if ($checkCode && !$this->checkFileLoads($fileName)) {
-					throw new InvalidCodeException($fileName);
-				}
-				$files []= $fileName;
+		$dirIter = new RecursiveDirectoryIterator($path);
+		$outerIter = new RecursiveIteratorIterator($dirIter);
+		$iter = new RegexIterator($outerIter, '/\.php$/i', RecursiveRegexIterator::MATCH);
+		foreach ($iter as $file) {
+			/** @var \SplFileInfo $file */
+			$fileName = $file->getPathname();
+			if (substr($fileName, strlen($path), 9) === DIRECTORY_SEPARATOR . 'Modules' . DIRECTORY_SEPARATOR) {
+				continue;
 			}
-			$dir->close();
+			if ($checkCode && !$this->checkFileLoads($fileName)) {
+				throw new InvalidCodeException($fileName);
+			}
+			$files []= $fileName;
 		}
+
 		foreach ($files as $file) {
 			require_once "{$file}";
 		}
@@ -220,7 +244,7 @@ class ClassLoader {
 	private function loadUserModules(): void {
 		$this->logger->notice("Loading USER modules...");
 		foreach ($this->moduleLoadPaths as $path) {
-			$this->logger->info("Loading modules in path '{$path}'");
+			$this->logger->info("Loading modules in path '{path}'", ["path" => $path]);
 			if (!@file_exists($path) || !(($d = dir($path)) instanceof Directory)) {
 				continue;
 			}

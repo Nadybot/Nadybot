@@ -1244,15 +1244,25 @@ class RaidController extends ModuleInstance {
 	protected function reportNotInResult(array $players): array {
 		$blob = "<header2>Players that were warned<end>\n";
 		ksort($players);
+		$charNames = [];
 		foreach ($players as $name => $player) {
 			if ($player instanceof Player && isset($player->profession)) {
+				$addLink = $this->text->makeChatcmd("Add to raid", "/tell <myname> <symbol>raid add {$player->name}");
 				$profIcon = "<img src=tdb://id:GFX_GUI_ICON_PROFESSION_".
 					($this->onlineController->getProfessionId($player->profession)??0).">";
-				$blob .= "<tab>{$profIcon} {$player->name} - {$player->level}/{$player->ai_level}\n";
+				$blob .= "<tab>{$profIcon} {$player->name} - {$player->level}/{$player->ai_level} [{$addLink}]\n";
+				$charNames[] = $player->name;
 			} else {
-				$blob .= "<tab>{$name}\n";
+				$addLink = $this->text->makeChatcmd("Add to raid", "/tell <myname> <symbol>raid add {$name}");
+				$blob .= "<tab>{$name} [{$addLink}]\n";
+				$charNames[] = $name;
 			}
 		}
+		$addAllLink = $this->text->makeChatcmd(
+			"Add all to the raid",
+			"/tell <myname> <symbol>raid add " . join(" ", $charNames)
+		);
+		$blob .= "\n{$addAllLink}";
 		$s = (count($players) === 1) ? "" : "s";
 		$msgs = (array)$this->text->makeBlob(count($players) . " player{$s}", $blob, "Players not in the raid");
 		foreach ($msgs as &$msg) {

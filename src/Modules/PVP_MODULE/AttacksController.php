@@ -570,7 +570,10 @@ class AttacksController extends ModuleInstance {
 		if (!isset($pf)) {
 			return;
 		}
-		$this->logger->info("Site being attacked: {$pf->short_name} {$site->site_id}");
+		$this->logger->info("Site being attacked: {pf_short} {site_id}", [
+			"pf_short" => $pf->short_name,
+			"site_id" => $site->site_id,
+		]);
 
 
 		$details = $this->renderAttackInfo($event, $pf);

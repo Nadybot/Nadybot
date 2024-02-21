@@ -300,7 +300,10 @@ class AdminController extends ModuleInstance {
 		}
 		$this->adminManager->removeFromLists($event->alt, $event->main);
 		$this->adminManager->addToLists($event->main, $oldRank["level"], $event->alt);
-		$this->logger->notice("Moved {$event->alt}'s admin rank to {$event->main}.");
+		$this->logger->notice("Moved {alt}'s admin rank to {main}.", [
+			"alt" => $event->alt,
+			"main" => $event->main,
+		]);
 	}
 
 	private function addArticle(string $rank): string {

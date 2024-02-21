@@ -170,6 +170,18 @@ class SystemController extends ModuleInstance implements MessageEmitter {
 	#[NCA\Setting\Boolean]
 	public bool $guildChannelStatus = true;
 
+	/** Enable colors for the guild channel */
+	#[NCA\Setting\Boolean]
+	public bool $guildChannelColors = true;
+
+	/** Enable colors for private channels */
+	#[NCA\Setting\Boolean]
+	public bool $privChannelColors = true;
+
+	/** Enable colors for the tell-messages */
+	#[NCA\Setting\Boolean]
+	public bool $tellColors = true;
+
 	/** Database version */
 	#[NCA\Setting\Text(mode: "noedit")]
 	public string $version = "0";

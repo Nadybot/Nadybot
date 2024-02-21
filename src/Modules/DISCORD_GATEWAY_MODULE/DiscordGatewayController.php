@@ -12,7 +12,7 @@ use Amp\Http\Client\{HttpClientBuilder, HttpException};
 use Amp\Socket\ConnectContext;
 use Amp\Websocket\Client\{Connection, ConnectionException, Handshake, Rfc6455Connector};
 use Amp\Websocket\{ClientMetadata, ClosedException, Message};
-use Amp\{Loop, Promise};
+use Amp\{Loop, MultiReasonException, Promise};
 use Generator;
 use Illuminate\Support\{Collection, ItemNotFoundException};
 use Nadybot\Core\Modules\DISCORD\{
@@ -461,7 +461,7 @@ class DiscordGatewayController extends ModuleInstance {
 		$newEvent = new DiscordGatewayEvent();
 		$newEvent->payload = $payload;
 		$newEvent->type = strtolower("discord({$payload->t})");
-		$this->logger->info("New event: discord({$payload->t})");
+		$this->logger->info("New event: discord({event})", ["event" => $payload->t]);
 		$this->eventManager->fireEvent($newEvent);
 	}
 
@@ -2098,6 +2098,7 @@ class DiscordGatewayController extends ModuleInstance {
 				} catch (HttpException $e) {
 					$this->logger->error("Request to connect to Discord failed: {error}", [
 						"error" => $e->getMessage(),
+						"exception" => $e,
 					]);
 					$this->sessionId = null;
 					return;
@@ -2108,11 +2109,29 @@ class DiscordGatewayController extends ModuleInstance {
 							$this->sessionId = null;
 						}
 						unset($this->client);
-						$this->logger->notice("Reconnecting to Discord gateway in {$this->reconnectDelay}s.");
+						$this->logger->notice("Reconnecting to Discord gateway in {delay}s.", [
+							"delay" => $this->reconnectDelay,
+						]);
 						yield delay($this->reconnectDelay * 1000);
 						$this->reconnectDelay = max($this->reconnectDelay * 2, 5);
 						continue;
 					}
+					return;
+				} catch (MultiReasonException $e) {
+					$errors = [];
+					foreach ($e->getReasons() as $reason) {
+						$errors[] = $reason->getMessage();
+					}
+					$this->logger->error("Multiple errors from Discord endpoint: {error}", [
+						"error" => join("\n", $errors),
+					]);
+					$this->sessionId = null;
+					return;
+				} catch (Throwable $e) {
+					$this->logger->error("Error from Discord endpoint: {error}", [
+						"error" => $e->getMessage(),
+					]);
+					$this->sessionId = null;
 					return;
 				} finally {
 					if (isset($this->client)) {

@@ -12,7 +12,6 @@ use Amp\{
 };
 use Exception;
 use Generator;
-use Monolog\Logger;
 use ReflectionObject;
 use Safe\Exceptions\{
 	FilesystemException,
@@ -345,25 +344,7 @@ class AOChat {
 		$packet = new AOChatPacket("in", (int)$type, substr($this->readBuffer, 4));
 		$this->readBuffer = "";
 
-		if ($this->logger->isHandling(Logger::DEBUG)) {
-			$refClass = new \ReflectionClass($packet);
-			$constants = $refClass->getConstants();
-			$codeToConst = array_flip($constants);
-			$packName = $codeToConst[$packet->type] ?? null;
-			if (isset($packName)) {
-				$packName = "{$packName} ({$packet->type})";
-			} else {
-				$packName = $packet->type;
-			}
-			$this->logger->debug(
-				"Received package {packName}",
-				[
-					"packName" => $packName,
-					"raw" => join(" ", str_split(bin2hex($head.$data), 2)),
-					"data" => $packet->args,
-				]
-			);
-		}
+		$this->logger->debug("Received package {package}", ["package" => $packet]);
 
 		switch ($type) {
 			case AOChatPacket::CLIENT_NAME:
@@ -438,25 +419,7 @@ class AOChat {
 		$this->packetsOut[$packet->type]++;
 		$data = \Safe\pack("n2", $packet->type, strlen($packet->data)) . $packet->data;
 
-		if ($this->logger->isHandling(Logger::DEBUG)) {
-			$refClass = new \ReflectionClass($packet);
-			$constants = $refClass->getConstants();
-			$codeToConst = array_flip($constants);
-			$packName = $codeToConst[$packet->type] ?? null;
-			if (isset($packName)) {
-				$packName = "{$packName} ({$packet->type})";
-			} else {
-				$packName = $packet->type;
-			}
-			$this->logger->debug(
-				"Sending package {packName}",
-				[
-					"packName" => $packName,
-					"raw" => join(" ", str_split(bin2hex($data), 2)),
-					"data" => ["args" => $packet->args],
-				]
-			);
-		}
+		$this->logger->debug("Sending package {package}", ["package" => $packet]);
 
 		if (!is_resource($this->socket)) {
 			$this->logger->error("Something unexpectedly closed the socket");
@@ -814,7 +777,9 @@ class AOChat {
 	 */
 	public function send_group(string $group, string $msg, string $blob="\0", ?int $priority=null): bool {
 		if (($gid = $this->get_gid($group)) === null) {
-			$this->logger->warning("Trying to send into unknown group \"{$group}\".");
+			$this->logger->warning("Trying to send into unknown group '{group}'.", [
+				"group" => $group,
+			]);
 			return false;
 		}
 		$priority ??= QueueInterface::PRIORITY_MED;
@@ -1295,7 +1260,9 @@ class AOChat {
 					break 2;
 
 				default:
-					$this->logger->warning("Unknown argument type '{$dataType}'");
+					$this->logger->warning("Unknown data type '{data_type}'", [
+						"data_type" => $dataType,
+					]);
 					return null;
 			}
 		}
@@ -1358,7 +1325,11 @@ class AOChat {
 
 			$args = $this->parseExtParams($msg);
 			if ($args === null) {
-				$this->logger->warning("Error parsing parameters for category: '{$obj->category}' instance: '{$obj->instance}' string: '{$msg}'");
+				$this->logger->warning("Error parsing parameters for category '{category}', instance '{instance}' string '{message}'", [
+					"category" => $obj->category,
+					"instance" => $obj->instance,
+					"message" => $msg,
+				]);
 			} else {
 				$obj->args = $args;
 				$obj->message_string = $this->mmdbParser->getMessageString($obj->category, $obj->instance);
@@ -1428,7 +1399,9 @@ class AOChat {
 				$ttnp = $this->chatqueue->getTTNP();
 				if ($ttnp > 0) {
 					$delay = (int)ceil($ttnp * 1000);
-					$this->logger->info("Waiting {$delay}ms to send next packet from queue");
+					$this->logger->info("Waiting {delay}ms to send next packet from queue", [
+						"delay" => $delay,
+					]);
 					yield delay($delay);
 				}
 				$packet = $this->chatqueue->getNext();
