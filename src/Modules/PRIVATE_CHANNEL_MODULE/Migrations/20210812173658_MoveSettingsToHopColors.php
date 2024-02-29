@@ -4,7 +4,7 @@ namespace Nadybot\Modules\PRIVATE_CHANNEL_MODULE\Migrations;
 
 use Nadybot\Core\{
 	Attributes as NCA,
-	ConfigFile,
+	Config\BotConfig,
 	DB,
 	DBSchema\Setting,
 	LoggerWrapper,
@@ -16,7 +16,7 @@ use Nadybot\Core\{
 
 class MoveSettingsToHopColors implements SchemaMigration {
 	#[NCA\Inject]
-	public ConfigFile $config;
+	public BotConfig $config;
 
 	#[NCA\Inject]
 	public MessageHub $messageHub;

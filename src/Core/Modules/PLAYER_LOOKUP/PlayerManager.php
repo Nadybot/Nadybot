@@ -22,7 +22,7 @@ use Generator;
 use Illuminate\Support\Collection;
 use Nadybot\Core\{
 	Attributes as NCA,
-	ConfigFile,
+	Config\BotConfig,
 	DB,
 	DBSchema\Player,
 	LoggerWrapper,
@@ -55,7 +55,7 @@ class PlayerManager extends ModuleInstance {
 	public Util $util;
 
 	#[NCA\Inject]
-	public ConfigFile $config;
+	public BotConfig $config;
 
 	#[NCA\Inject]
 	public Nadybot $chatBot;

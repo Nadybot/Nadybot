@@ -8,7 +8,7 @@ use Closure;
 use EventSauce\ObjectHydrator\{ObjectMapperUsingReflection, UnableToHydrateObject};
 use Generator;
 use Nadybot\Core\Attributes as NCA;
-use Nadybot\Core\{ConfigFile, Event as CoreEvent, EventFeedHandler, EventManager, LoggerWrapper, ModuleInstance, SyncEvent};
+use Nadybot\Core\{Config\BotConfig, Event as CoreEvent, EventFeedHandler, EventManager, LoggerWrapper, ModuleInstance, SyncEvent};
 use Nadybot\Modules\PVP_MODULE\{Event, FeedMessage};
 
 #[
@@ -21,7 +21,7 @@ use Nadybot\Modules\PVP_MODULE\{Event, FeedMessage};
 ]
 class TowerFeedHandler extends ModuleInstance implements EventFeedHandler {
 	#[NCA\Inject]
-	public ConfigFile $config;
+	public BotConfig $config;
 
 	#[NCA\Inject]
 	public EventManager $eventManager;

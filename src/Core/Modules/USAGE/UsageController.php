@@ -7,7 +7,7 @@ use Nadybot\Core\{
 	Attributes as NCA,
 	BotRunner,
 	CmdContext,
-	ConfigFile,
+	Config\BotConfig,
 	DB,
 	EventManager,
 	ModuleInstance,
@@ -56,7 +56,7 @@ class UsageController extends ModuleInstance {
 	public Text $text;
 
 	#[NCA\Inject]
-	public ConfigFile $config;
+	public BotConfig $config;
 
 	#[NCA\Inject]
 	public Nadybot $chatBot;
@@ -73,7 +73,8 @@ class UsageController extends ModuleInstance {
 	#[NCA\HandlesCommand("usage")]
 	public function usageCharacterCommand(
 		CmdContext $context,
-		#[NCA\Str("char", "character", "player")] string $action,
+		#[NCA\Str("char", "character", "player")]
+		string $action,
 		PCharacter $character,
 		?PDuration $duration
 	): void {
@@ -117,7 +118,8 @@ class UsageController extends ModuleInstance {
 	#[NCA\HandlesCommand("usage")]
 	public function usageCmdCommand(
 		CmdContext $context,
-		#[NCA\Str("cmd")] string $action,
+		#[NCA\Str("cmd")]
+		string $action,
 		PWord $cmd,
 		?PDuration $duration
 	): void {
@@ -290,7 +292,7 @@ class UsageController extends ModuleInstance {
 		$settings->is_guild_bot            = strlen($this->config->orgName) > 0;
 		$settings->guildsize               = $this->getGuildSizeClass(count($this->chatBot->guildmembers));
 		$settings->using_chat_proxy        = (bool)$this->config->useProxy;
-		$settings->db_type                 = $this->db->getType();
+		$settings->db_type                 = $this->db->getType()->value;
 		$settings->bot_version             = BotRunner::getVersion();
 		$settings->using_git               = @file_exists(BotRunner::getBasedir() . "/.git");
 		$settings->os                      = BotRunner::isWindows() ? 'Windows' : php_uname("s");

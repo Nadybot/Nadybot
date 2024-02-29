@@ -4,7 +4,7 @@ namespace Nadybot\Modules\PRIVATE_CHANNEL_MODULE\Migrations;
 
 use Nadybot\Core\{
 	Attributes as NCA,
-	ConfigFile,
+	Config\BotConfig,
 	DB,
 	DBSchema\Route,
 	DBSchema\RouteModifier,
@@ -19,7 +19,7 @@ use Nadybot\Core\{
 
 class MoveSettingsToRoutes implements SchemaMigration {
 	#[NCA\Inject]
-	public ConfigFile $config;
+	public BotConfig $config;
 
 	public function migrate(LoggerWrapper $logger, DB $db): void {
 		$guestRelay = $this->getSetting($db, "guest_relay");

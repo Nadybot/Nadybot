@@ -6,7 +6,7 @@ use Nadybot\Core\{
 	Attributes as NCA,
 	CacheManager,
 	CmdContext,
-	ConfigFile,
+	Config\BotConfig,
 	ModuleInstance,
 	Nadybot,
 	ParamClass\PFilename,
@@ -40,7 +40,7 @@ class CacheController extends ModuleInstance {
 	public Nadybot $chatBot;
 
 	#[NCA\Inject]
-	public ConfigFile $config;
+	public BotConfig $config;
 
 	/** View a list of cache categories */
 	#[NCA\HandlesCommand("cache")]

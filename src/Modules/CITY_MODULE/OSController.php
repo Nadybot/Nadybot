@@ -5,7 +5,7 @@ namespace Nadybot\Modules\CITY_MODULE;
 use Nadybot\Core\{
 	AOChatEvent,
 	Attributes as NCA,
-	ConfigFile,
+	Config\BotConfig,
 	ModuleInstance,
 	Nadybot,
 };
@@ -17,7 +17,7 @@ use Nadybot\Modules\TIMERS_MODULE\TimerController;
 #[NCA\Instance]
 class OSController extends ModuleInstance {
 	#[NCA\Inject]
-	public ConfigFile $config;
+	public BotConfig $config;
 
 	#[NCA\Inject]
 	public Nadybot $chatBot;

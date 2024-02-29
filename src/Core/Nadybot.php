@@ -35,6 +35,7 @@ use Nadybot\Core\{
 	Routing\Source,
 	SettingHandler as CoreSettingHandler,
 };
+use Nadybot\Core\Config\BotConfig;
 use Nadybot\Modules\WEBSERVER_MODULE\JsonImporter;
 use ReflectionAttribute;
 use ReflectionClass;
@@ -109,7 +110,7 @@ class Nadybot extends AOChat {
 	public MessageHub $messageHub;
 
 	#[NCA\Inject]
-	public ConfigFile $config;
+	public BotConfig $config;
 
 	#[NCA\Logger]
 	public LoggerWrapper $logger;

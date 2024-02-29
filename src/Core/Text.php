@@ -5,11 +5,12 @@ namespace Nadybot\Core;
 use function Safe\preg_match_all;
 
 use Nadybot\Core\Attributes as NCA;
+use Nadybot\Core\Config\BotConfig;
 
 #[NCA\Instance]
 class Text {
 	#[NCA\Inject]
-	public ConfigFile $config;
+	public BotConfig $config;
 
 	#[NCA\Inject]
 	public SettingManager $settingManager;

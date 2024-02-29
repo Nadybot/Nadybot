@@ -12,6 +12,7 @@ use Nadybot\Core\{
 	DBSchema\EventCfg,
 	Modules\MESSAGES\MessageHubController,
 };
+use Nadybot\Core\Config\BotConfig;
 use ReflectionFunction;
 use ReflectionFunctionAbstract;
 use ReflectionMethod;
@@ -37,7 +38,7 @@ class EventManager {
 	public Util $util;
 
 	#[NCA\Inject]
-	public ConfigFile $config;
+	public BotConfig $config;
 
 	#[NCA\Inject]
 	public MessageHubController $messageHubController;

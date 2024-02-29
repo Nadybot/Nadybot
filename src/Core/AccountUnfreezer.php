@@ -14,6 +14,7 @@ use Amp\{CancelledException, Loop, Promise, TimeoutCancellationToken};
 use Generator;
 
 use Nadybot\Core\Attributes as NCA;
+use Nadybot\Core\Config\BotConfig;
 use Safe\Exceptions\JsonException;
 use Throwable;
 
@@ -40,7 +41,7 @@ class AccountUnfreezer {
 	private LoggerWrapper $logger;
 
 	#[NCA\Inject]
-	private ConfigFile $config;
+	private BotConfig $config;
 
 	#[NCA\Inject]
 	private HttpClientBuilder $http;

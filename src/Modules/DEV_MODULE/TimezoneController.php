@@ -7,7 +7,7 @@ use Nadybot\Core\ParamClass\PWord;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
-	ConfigFile,
+	Config\BotConfig,
 	ModuleInstance,
 	Nadybot,
 	Text,
@@ -33,7 +33,7 @@ class TimezoneController extends ModuleInstance {
 	public Nadybot $chatBot;
 
 	#[NCA\Inject]
-	public ConfigFile $config;
+	public BotConfig $config;
 
 	/** Get a list of all time zone areas */
 	#[NCA\HandlesCommand("timezone")]

@@ -17,6 +17,7 @@ use Closure;
 use ErrorException;
 use Exception;
 use Nadybot\Core\Attributes as NCA;
+use Nadybot\Core\Config\BotConfig;
 use Nadybot\Core\Modules\SETUP\Setup;
 
 use ReflectionAttribute;
@@ -52,7 +53,7 @@ class BotRunner {
 	 */
 	private array $argv = [];
 
-	private ?ConfigFile $configFile;
+	private ?BotConfig $configFile;
 
 	/**
 	 * Create a new instance
@@ -250,7 +251,8 @@ class BotRunner {
 		date_default_timezone_set("UTC");
 
 		$config = $this->getConfigFile();
-		Registry::setInstance("configfile", $config);
+		var_dump($config);
+		Registry::setInstance(Registry::formatName(BotConfig::class), $config);
 		$retryHandler = new HttpRetry(8);
 		Registry::injectDependencies($retryHandler);
 		$rateLimitRetryHandler = new HttpRetryRateLimits();
@@ -319,7 +321,7 @@ class BotRunner {
 				"phpVersion" => phpversion(),
 				"loopType" => class_basename(Loop::get()),
 				"fsType" => class_basename($fsDriver),
-				"dbType" => $config->dbType,
+				"dbType" => $config->database->type->name,
 			]
 		);
 
@@ -379,12 +381,12 @@ class BotRunner {
 		return PHP_OS_FAMILY === 'Linux';
 	}
 
-	public function getConfigFile(): ConfigFile {
+	public function getConfigFile(): BotConfig {
 		if (isset($this->configFile)) {
 			return $this->configFile;
 		}
 		$configFilePath = static::$arguments["c"] ?? "conf/config.php";
-		return $this->configFile = ConfigFile::loadFromFile($configFilePath);
+		return $this->configFile = BotConfig::loadFromFile($configFilePath);
 	}
 
 	/** Install a signal handler that will immediately terminate the bot when ctrl+c is pressed */
@@ -435,9 +437,10 @@ class BotRunner {
 	 * Get AO's chat server hostname and port
 	 *
 	 * @return (string|int)[] [(string)Server, (int)Port]
+	 *
 	 * @phpstan-return array{string,int}
 	 */
-	protected function getServerAndPort(ConfigFile $config): array {
+	protected function getServerAndPort(BotConfig $config): array {
 		// Choose server
 		if ($config->useProxy) {
 			// For use with the AO chat proxy ONLY!
@@ -601,7 +604,7 @@ class BotRunner {
 	}
 
 	/** Set the title of the command prompt window in Windows */
-	private function setWindowTitle(ConfigFile $config): void {
+	private function setWindowTitle(BotConfig $config): void {
 		if ($this->isWindows() === false) {
 			return;
 		}
@@ -616,7 +619,7 @@ class BotRunner {
 			throw new Exception("Cannot find DB instance.");
 		}
 		$config = $this->getConfigFile();
-		$db->connect($config->dbType, $config->dbName, $config->dbHost, $config->dbUsername, $config->dbPassword);
+		$db->connect($config->database);
 	}
 
 	/**

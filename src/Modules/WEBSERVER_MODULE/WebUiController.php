@@ -14,7 +14,7 @@ use Nadybot\Core\{
 	Attributes as NCA,
 	BotRunner,
 	CmdContext,
-	ConfigFile,
+	Config\BotConfig,
 	DB,
 	EventManager,
 	LoggerWrapper,
@@ -60,7 +60,7 @@ class WebUiController extends ModuleInstance implements MessageEmitter {
 	public Nadybot $chatBot;
 
 	#[NCA\Inject]
-	public ConfigFile $config;
+	public BotConfig $config;
 
 	#[NCA\Inject]
 	public DB $db;

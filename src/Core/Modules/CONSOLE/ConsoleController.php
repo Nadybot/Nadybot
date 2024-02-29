@@ -12,9 +12,9 @@ use Nadybot\Core\{
 	Attributes as NCA,
 	BotRunner,
 	Channels\ConsoleChannel,
+	Config\BotConfig,
 	CmdContext,
 	CommandManager,
-	ConfigFile,
 	LoggerWrapper,
 	MessageHub,
 	ModuleInstance,
@@ -33,7 +33,7 @@ class ConsoleController extends ModuleInstance {
 	public Nadybot $chatBot;
 
 	#[NCA\Inject]
-	public ConfigFile $config;
+	public BotConfig $config;
 
 	#[NCA\Inject]
 	public MessageHub $messageHub;

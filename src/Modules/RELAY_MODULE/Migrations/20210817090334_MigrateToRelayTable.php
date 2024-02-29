@@ -4,7 +4,7 @@ namespace Nadybot\Modules\RELAY_MODULE\Migrations;
 
 use Nadybot\Core\{
 	Attributes as NCA,
-	ConfigFile,
+	Config\BotConfig,
 	DB,
 	DBSchema\Route,
 	DBSchema\RouteModifier,
@@ -43,7 +43,7 @@ class MigrateToRelayTable implements SchemaMigration {
 	public Nadybot $chatBot;
 
 	#[NCA\Inject]
-	public ConfigFile $config;
+	public BotConfig $config;
 
 	protected string $prefix = "";
 

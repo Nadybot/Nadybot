@@ -4,7 +4,7 @@ namespace Nadybot\Modules\WEBSERVER_MODULE\Migrations;
 
 use Nadybot\Core\{
 	Attributes as NCA,
-	ConfigFile,
+	Config\BotConfig,
 	DB,
 	DBSchema\Route,
 	LoggerWrapper,
@@ -15,7 +15,7 @@ use Nadybot\Core\{
 
 class MigrateUIToRoute implements SchemaMigration {
 	#[NCA\Inject]
-	public ConfigFile $config;
+	public BotConfig $config;
 
 	#[NCA\Inject]
 	public MessageHub $messageHub;

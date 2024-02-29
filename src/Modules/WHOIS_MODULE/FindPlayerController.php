@@ -5,7 +5,7 @@ namespace Nadybot\Modules\WHOIS_MODULE;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
-	ConfigFile,
+	Config\BotConfig,
 	ModuleInstance,
 	Modules\PLAYER_LOOKUP\PlayerManager,
 	Text,
@@ -24,7 +24,7 @@ use Nadybot\Core\{
 ]
 class FindPlayerController extends ModuleInstance {
 	#[NCA\Inject]
-	public ConfigFile $config;
+	public BotConfig $config;
 
 	#[NCA\Inject]
 	public Text $text;

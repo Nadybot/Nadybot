@@ -2,6 +2,8 @@
 
 namespace Nadybot\Core;
 
+use Nadybot\Core\Config\BotConfig;
+
 class SyncEvent extends Event {
 	public string $sourceBot;
 	public int $sourceDimension;
@@ -23,8 +25,8 @@ class SyncEvent extends Event {
 			return true;
 		}
 
-		/** @var ConfigFile */
-		$config = Registry::getInstance(ConfigFile::class);
+		/** @var BotConfig */
+		$config = Registry::getInstance(BotConfig::class);
 		$myName = $config->name;
 		$myDim = $config->dimension;
 		return $this->sourceBot === $myName

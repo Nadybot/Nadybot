@@ -6,7 +6,7 @@ use Generator;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
-	ConfigFile,
+	Config\BotConfig,
 	DB,
 	DBSchema\Player,
 	ModuleInstance,
@@ -39,7 +39,7 @@ class WhoisOrgController extends ModuleInstance {
 	public Nadybot $chatBot;
 
 	#[NCA\Inject]
-	public ConfigFile $config;
+	public BotConfig $config;
 
 	#[NCA\Inject]
 	public Text $text;

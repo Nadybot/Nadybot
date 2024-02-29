@@ -4,7 +4,7 @@ namespace Nadybot\Modules\WEBSERVER_MODULE;
 
 use Nadybot\Core\{
 	Attributes as NCA,
-	ConfigFile,
+	Config\BotConfig,
 	ModuleInstance,
 	Registry,
 	SettingManager,
@@ -30,7 +30,7 @@ class StatsController extends ModuleInstance {
 	public SettingManager $settingManager;
 
 	#[NCA\Inject]
-	public ConfigFile $config;
+	public BotConfig $config;
 
 	#[NCA\Inject]
 	public Util $util;

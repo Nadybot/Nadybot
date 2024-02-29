@@ -12,7 +12,7 @@ use Nadybot\Core\{
 	BuddylistManager,
 	CmdContext,
 	ColorSettingHandler,
-	ConfigFile,
+	Config\BotConfig,
 	DB,
 	LoggerWrapper,
 	MessageHub,
@@ -63,7 +63,7 @@ class TradebotController extends ModuleInstance {
 	];
 
 	#[NCA\Inject]
-	public ConfigFile $config;
+	public BotConfig $config;
 
 	#[NCA\Inject]
 	public Nadybot $chatBot;

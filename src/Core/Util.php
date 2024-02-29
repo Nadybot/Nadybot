@@ -5,6 +5,7 @@ namespace Nadybot\Core;
 use Exception;
 use InvalidArgumentException;
 use Nadybot\Core\Attributes as NCA;
+use Nadybot\Core\Config\BotConfig;
 use ReflectionClass;
 
 #[NCA\Instance]
@@ -15,7 +16,7 @@ class Util {
 	/** @var string */
 	public const DATE = "d-M-Y";
 	#[NCA\Inject]
-	public ConfigFile $config;
+	public BotConfig $config;
 
 	#[NCA\Logger]
 	public LoggerWrapper $logger;

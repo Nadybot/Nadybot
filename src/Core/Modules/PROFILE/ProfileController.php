@@ -25,7 +25,7 @@ use Nadybot\Core\{
 	CommandAlias,
 	CommandManager,
 	CommandReply,
-	ConfigFile,
+	Config\BotConfig,
 	DB,
 	EventManager,
 	LoggerWrapper,
@@ -88,7 +88,7 @@ class ProfileController extends ModuleInstance {
 	public RelayController $relayController;
 
 	#[NCA\Inject]
-	public ConfigFile $config;
+	public BotConfig $config;
 
 	private string $path;
 

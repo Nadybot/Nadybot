@@ -10,6 +10,7 @@ use Nadybot\Core\{
 	Modules\SECURITY\AuditController,
 	Modules\SYSTEM\SystemController,
 };
+use Nadybot\Core\Config\BotConfig;
 use SplObjectStorage;
 
 /**
@@ -57,7 +58,7 @@ class AccessManager {
 	public SystemController $systemController;
 
 	#[NCA\Inject]
-	public ConfigFile $config;
+	public BotConfig $config;
 
 	/** @var array<string,int> */
 	private static array $ACCESS_LEVELS = [

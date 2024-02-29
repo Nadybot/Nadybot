@@ -8,7 +8,7 @@ use Nadybot\Core\{
 	Attributes as NCA,
 	BuddylistManager,
 	CmdContext,
-	ConfigFile,
+	Config\BotConfig,
 	DBSchema\Player,
 	EventManager,
 	ModuleInstance,
@@ -67,7 +67,7 @@ class ChatAssistController extends ModuleInstance {
 	public PlayerManager $playerManager;
 
 	#[NCA\Inject]
-	public ConfigFile $config;
+	public BotConfig $config;
 
 	/** Max stored undo steps */
 	#[NCA\Setting\Number]

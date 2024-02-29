@@ -4,7 +4,7 @@ namespace Nadybot\Modules\VOTE_MODULE\Migrations;
 
 use Nadybot\Core\{
 	Attributes as NCA,
-	ConfigFile,
+	Config\BotConfig,
 	DB,
 	DBSchema\Setting,
 	LoggerWrapper,
@@ -24,7 +24,7 @@ class MigrateToRoutes implements SchemaMigration {
 	public Nadybot $chatBot;
 
 	#[NCA\Inject]
-	public ConfigFile $config;
+	public BotConfig $config;
 
 	public function migrate(LoggerWrapper $logger, DB $db): void {
 		$table = MessageHub::DB_TABLE_ROUTES;

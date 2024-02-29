@@ -8,7 +8,7 @@ use Closure;
 use EventSauce\ObjectHydrator\{ObjectMapperUsingReflection, UnableToHydrateObject};
 use Generator;
 use Nadybot\Core\Attributes as NCA;
-use Nadybot\Core\{ConfigFile, EventFeedHandler, EventManager, LoggerWrapper, ModuleInstance, SyncEvent};
+use Nadybot\Core\{Config\BotConfig, EventFeedHandler, EventManager, LoggerWrapper, ModuleInstance, SyncEvent};
 use Nadybot\Modules\MOB_MODULE\FeedMessage\Spawn;
 use Nadybot\Modules\MOB_MODULE\{FeedMessage};
 use Throwable;
@@ -22,7 +22,7 @@ use Throwable;
 ]
 class MobFeedHandler extends ModuleInstance implements EventFeedHandler {
 	#[NCA\Inject]
-	public ConfigFile $config;
+	public BotConfig $config;
 
 	#[NCA\Inject]
 	public EventManager $eventManager;

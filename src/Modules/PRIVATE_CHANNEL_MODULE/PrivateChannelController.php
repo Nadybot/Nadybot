@@ -19,7 +19,7 @@ use Nadybot\Core\{
 	BuddylistManager,
 	CmdContext,
 	CommandAlias,
-	ConfigFile,
+	Config\BotConfig,
 	DB,
 	DBSchema\Audit,
 	DBSchema\LastOnline,
@@ -154,7 +154,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 	public Nadybot $chatBot;
 
 	#[NCA\Inject]
-	public ConfigFile $config;
+	public BotConfig $config;
 
 	#[NCA\Inject]
 	public EventManager $eventManager;

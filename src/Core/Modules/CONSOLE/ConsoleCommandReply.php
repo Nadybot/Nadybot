@@ -4,8 +4,8 @@ namespace Nadybot\Core\Modules\CONSOLE;
 
 use Nadybot\Core\{
 	Attributes as NCA,
+	Config\BotConfig,
 	CommandReply,
-	ConfigFile,
 	MessageEmitter,
 	MessageHub,
 	Modules\COLORS\ColorsController,
@@ -26,10 +26,11 @@ class ConsoleCommandReply implements CommandReply, MessageEmitter {
 	public MessageHub $messageHub;
 
 	#[NCA\Inject]
-	public ConfigFile $config;
-	private Nadybot $chatBot;
+	public BotConfig $config;
 
-	public function __construct(Nadybot $chatBot) {
+	public function __construct(
+		private Nadybot $chatBot
+	) {
 		$this->chatBot = $chatBot;
 	}
 

@@ -15,7 +15,7 @@ use Amp\Websocket\{ClosedException, Message};
 use Amp\{Deferred, Promise, TimeoutException};
 use Generator;
 
-use Nadybot\Core\{AOChatEvent, Attributes as NCA, ConfigFile, EventManager, LoggerWrapper, ModuleInstance, Registry, StopExecutionException, UserException};
+use Nadybot\Core\{AOChatEvent, Attributes as NCA, Config\BotConfig, EventManager, LoggerWrapper, ModuleInstance, Registry, StopExecutionException, UserException};
 use Throwable;
 
 #[NCA\ProvidesEvent("drill(*)")]
@@ -37,7 +37,7 @@ class DrillController extends ModuleInstance {
 	public EventManager $eventManager;
 
 	#[NCA\Inject]
-	public ConfigFile $config;
+	public BotConfig $config;
 
 	#[NCA\Logger]
 	public LoggerWrapper $logger;

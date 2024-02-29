@@ -6,7 +6,7 @@ use Generator;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
-	ConfigFile,
+	Config\BotConfig,
 	ModuleInstance,
 	Modules\PLAYER_LOOKUP\PlayerHistory,
 	Modules\PLAYER_LOOKUP\PlayerHistoryManager,
@@ -27,7 +27,7 @@ use Nadybot\Core\{
 ]
 class PlayerHistoryController extends ModuleInstance {
 	#[NCA\Inject]
-	public ConfigFile $config;
+	public BotConfig $config;
 
 	#[NCA\Inject]
 	public Text $text;

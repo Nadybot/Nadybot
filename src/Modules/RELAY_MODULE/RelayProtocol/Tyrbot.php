@@ -5,7 +5,7 @@ namespace Nadybot\Modules\RELAY_MODULE\RelayProtocol;
 use EventSauce\ObjectHydrator\ObjectMapperUsingReflection;
 use Nadybot\Core\{
 	Attributes as NCA,
-	ConfigFile,
+	Config\BotConfig,
 	LoggerWrapper,
 	Nadybot,
 	Routing\Character,
@@ -53,7 +53,7 @@ class Tyrbot implements RelayProtocolInterface {
 	public Nadybot $chatBot;
 
 	#[NCA\Inject]
-	public ConfigFile $config;
+	public BotConfig $config;
 
 	#[NCA\Inject]
 	public OnlineController $onlineController;

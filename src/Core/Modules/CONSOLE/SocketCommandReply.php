@@ -6,13 +6,13 @@ use Amp\Socket\ResourceSocket;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CommandReply,
-	ConfigFile,
+	Config\BotConfig,
 };
 use Throwable;
 
 class SocketCommandReply implements CommandReply {
 	#[NCA\Inject]
-	private ConfigFile $config;
+	private BotConfig $config;
 
 	public function __construct(private ResourceSocket $socket) {
 	}

@@ -12,7 +12,7 @@ use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
 	CommandAlias,
-	ConfigFile,
+	Config\BotConfig,
 	DB,
 	Event,
 	EventManager,
@@ -246,7 +246,7 @@ class WorldBossController extends ModuleInstance {
 	public PlayfieldController $pfController;
 
 	#[NCA\Inject]
-	public ConfigFile $config;
+	public BotConfig $config;
 
 	#[NCA\Inject]
 	public Util $util;

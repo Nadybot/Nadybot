@@ -6,7 +6,7 @@ use Exception;
 use Generator;
 use Nadybot\Core\{
 	Attributes as NCA,
-	ConfigFile,
+	Config\BotConfig,
 	DB,
 	DBSchema\Route,
 	DBSchema\Setting,
@@ -23,7 +23,7 @@ use Throwable;
 
 class MigrateToRoutes implements SchemaMigration {
 	#[NCA\Inject]
-	public ConfigFile $config;
+	public BotConfig $config;
 
 	#[NCA\Inject]
 	public DiscordAPIClient $discordAPIClient;

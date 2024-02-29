@@ -21,7 +21,7 @@ use Nadybot\Core\{
 	Attributes as NCA,
 	CmdEvent,
 	CommandHandler,
-	ConfigFile,
+	Config\BotConfig,
 	DBSchema\Audit,
 	DBSchema\Player,
 	LoggerWrapper,
@@ -68,7 +68,7 @@ class LimitsController extends ModuleInstance {
 	public Timer $timer;
 
 	#[NCA\Inject]
-	public ConfigFile $config;
+	public BotConfig $config;
 
 	#[NCA\Inject]
 	public RateIgnoreController $rateIgnoreController;

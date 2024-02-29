@@ -2,7 +2,7 @@
 
 namespace Nadybot\Core\Modules\SETUP;
 
-use Nadybot\Core\{ConfigFile, DB};
+use Nadybot\Core\{Config\BotConfig, DB};
 
 /**
  * Description: Configuration of the Basicbot settings
@@ -20,10 +20,10 @@ use Nadybot\Core\{ConfigFile, DB};
 class Setup {
 	private const INDENT = 13;
 
-	public ConfigFile $configFile;
+	public BotConfig $configFile;
 	// public array $vars = [];
 
-	public function __construct(ConfigFile $configFile) {
+	public function __construct(BotConfig $configFile) {
 		$this->configFile = $configFile;
 	}
 

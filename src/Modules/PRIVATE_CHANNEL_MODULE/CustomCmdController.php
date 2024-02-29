@@ -13,7 +13,7 @@ use Nadybot\Core\{
 	BotRunner,
 	CmdContext,
 	CommandManager,
-	ConfigFile,
+	Config\BotConfig,
 	DB,
 	LoggerWrapper,
 	ModuleInstance,
@@ -45,7 +45,7 @@ class CustomCmdController extends ModuleInstance {
 	public DB $db;
 
 	#[NCA\Inject]
-	public ConfigFile $config;
+	public BotConfig $config;
 
 	#[NCA\Logger]
 	public LoggerWrapper $logger;

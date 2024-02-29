@@ -9,7 +9,7 @@ use Illuminate\Support\Collection;
 use Nadybot\Core\Modules\MESSAGES\MessageHubController;
 use Nadybot\Core\ParamClass\PRemove;
 use Nadybot\Core\Routing\{RoutableMessage, Source};
-use Nadybot\Core\{Attributes as NCA, CmdContext, ConfigFile, DB, MessageHub, ModuleInstance, Text, UserException, Util};
+use Nadybot\Core\{Attributes as NCA, CmdContext, Config\BotConfig, DB, MessageHub, ModuleInstance, Text, UserException, Util};
 use Nadybot\Modules\HELPBOT_MODULE\PlayfieldController;
 use Nadybot\Modules\PVP_MODULE\Attributes\Argument;
 use Nadybot\Modules\PVP_MODULE\FeedMessage\SiteUpdate;
@@ -59,7 +59,7 @@ class SiteTrackerController extends ModuleInstance {
 	public MessageHub $msgHub;
 
 	#[NCA\Inject]
-	public ConfigFile $config;
+	public BotConfig $config;
 
 	#[NCA\Inject]
 	public MessageHubController $msgHubCtrl;

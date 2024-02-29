@@ -116,6 +116,7 @@ class QueryBuilder extends Builder {
 	public function orWhereIlike(string $column, string $value): self {
 		/**
 		 * @psalm-suppress ImplicitToStringCast
+		 *
 		 * @phpstan-ignore-next-line
 		 */
 		return $this->orWhere($this->colFunc("LOWER", $column), "like", strtolower($value));
@@ -124,6 +125,7 @@ class QueryBuilder extends Builder {
 	public function whereIlike(string $column, string $value, string $boolean='and'): self {
 		/**
 		 * @psalm-suppress ImplicitToStringCast
+		 *
 		 * @phpstan-ignore-next-line
 		 */
 		return $this->where($this->colFunc("LOWER", $column), "like", strtolower($value), $boolean);
@@ -262,8 +264,8 @@ class QueryBuilder extends Builder {
 		$type = $this->nadyDB->getType();
 		switch (strtolower($function)) {
 			case "length":
-				if ($type === DB::MSSQL) {
-					return "len";
+				if ($type === DB\Type::MySQL) {
+					return "length";
 				}
 				break;
 			default:
@@ -305,11 +307,11 @@ class QueryBuilder extends Builder {
 			$ps->execute();
 			return $ps;
 		} catch (PDOException $e) {
-			if ($this->nadyDB->getType() === DB::SQLITE && $e->errorInfo[1] === 17) {
+			if ($this->nadyDB->getType() === DB\Type::SQLite && $e->errorInfo[1] === 17) {
 				// fix for Sqlite schema changed error (retry the query)
 				return $this->executeQuery($sql, $params);
 			}
-			if ($this->nadyDB->getType() === DB::MYSQL && in_array($e->errorInfo[1], [1927, 2006], true)) {
+			if ($this->nadyDB->getType() === DB\Type::MySQL && in_array($e->errorInfo[1], [1927, 2006], true)) {
 				$this->logger->warning(
 					'DB had recoverable error: ' . trim($e->errorInfo[2]) . ' - reconnecting'
 				);

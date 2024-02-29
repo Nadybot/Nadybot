@@ -8,6 +8,7 @@ use Nadybot\Core\{
 	DBSchema\CmdCfg,
 	DBSchema\CmdPermission,
 };
+use Nadybot\Core\Config\BotConfig;
 
 #[NCA\Instance]
 class SubcommandManager {
@@ -21,7 +22,7 @@ class SubcommandManager {
 	public Util $util;
 
 	#[NCA\Inject]
-	public ConfigFile $config;
+	public BotConfig $config;
 
 	#[NCA\Logger]
 	public LoggerWrapper $logger;

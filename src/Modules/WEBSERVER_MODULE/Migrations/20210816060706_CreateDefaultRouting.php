@@ -4,7 +4,7 @@ namespace Nadybot\Modules\WEBSERVER_MODULE\Migrations;
 
 use Nadybot\Core\{
 	Attributes as NCA,
-	ConfigFile,
+	Config\BotConfig,
 	DB,
 	LoggerWrapper,
 	MessageHub,
@@ -17,7 +17,7 @@ class CreateDefaultRouting implements SchemaMigration {
 	public MessageHub $messageHub;
 
 	#[NCA\Inject]
-	public ConfigFile $config;
+	public BotConfig $config;
 
 	public function migrate(LoggerWrapper $logger, DB $db): void {
 		$table = $this->messageHub::DB_TABLE_ROUTES;

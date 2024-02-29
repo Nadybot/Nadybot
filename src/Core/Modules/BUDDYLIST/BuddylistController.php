@@ -5,10 +5,10 @@ namespace Nadybot\Core\Modules\BUDDYLIST;
 use Generator;
 use Nadybot\Core\{
 	Attributes as NCA,
+	Config\BotConfig,
 	BuddylistEntry,
 	BuddylistManager,
 	CmdContext,
-	ConfigFile,
 	ModuleInstance,
 	Nadybot,
 	ParamClass\PCharacter,
@@ -40,7 +40,7 @@ class BuddylistController extends ModuleInstance {
 	public Text $text;
 
 	#[NCA\Inject]
-	public ConfigFile $config;
+	public BotConfig $config;
 
 	/** Show all characters currently on the buddylist */
 	#[NCA\HandlesCommand("buddylist")]

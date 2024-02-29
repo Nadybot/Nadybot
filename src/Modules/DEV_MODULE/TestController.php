@@ -13,7 +13,7 @@ use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
 	CommandManager,
-	ConfigFile,
+	Config\BotConfig,
 	Event,
 	EventManager,
 	LoggerWrapper,
@@ -66,7 +66,7 @@ class TestController extends ModuleInstance {
 	public Nadybot $chatBot;
 
 	#[NCA\Inject]
-	public ConfigFile $config;
+	public BotConfig $config;
 
 	#[NCA\Inject]
 	public Timer $timer;

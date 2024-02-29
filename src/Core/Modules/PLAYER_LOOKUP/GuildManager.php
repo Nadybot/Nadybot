@@ -21,7 +21,7 @@ use Nadybot\Core\{
 	Attributes as NCA,
 	CacheManager,
 	CacheResult,
-	ConfigFile,
+	Config\BotConfig,
 	DB,
 	DBSchema\Player,
 	EventManager,
@@ -46,7 +46,7 @@ class GuildManager extends ModuleInstance {
 	public DB $db;
 
 	#[NCA\Inject]
-	public ConfigFile $config;
+	public BotConfig $config;
 
 	#[NCA\Inject]
 	public CacheManager $cacheManager;

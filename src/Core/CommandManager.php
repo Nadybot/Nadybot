@@ -27,6 +27,7 @@ use Nadybot\Core\{
 	Routing\RoutableMessage,
 	Routing\Source,
 };
+use Nadybot\Core\Config\BotConfig;
 use ReflectionAttribute;
 use ReflectionClass;
 use ReflectionException;
@@ -80,7 +81,7 @@ class CommandManager implements MessageEmitter {
 	public Util $util;
 
 	#[NCA\Inject]
-	public ConfigFile $config;
+	public BotConfig $config;
 
 	#[NCA\Inject]
 	public SubcommandManager $subcommandManager;

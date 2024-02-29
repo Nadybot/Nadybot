@@ -6,7 +6,7 @@ use Nadybot\Core\{DB, LoggerWrapper, SchemaMigration};
 
 class ConvertAriaTables implements SchemaMigration {
 	public function migrate(LoggerWrapper $logger, DB $db): void {
-		if ($db->getType() !== $db::MYSQL) {
+		if ($db->getType() !== DB\Type::MySQL) {
 			return;
 		}
 

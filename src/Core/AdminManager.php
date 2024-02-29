@@ -9,6 +9,7 @@ use Nadybot\Core\{
 	DBSchema\Admin,
 	DBSchema\Audit,
 };
+use Nadybot\Core\Config\BotConfig;
 
 /**
  * Manage the bot admins
@@ -30,7 +31,7 @@ class AdminManager implements AccessLevelProvider {
 	public AccessManager $accessManager;
 
 	#[NCA\Inject]
-	public ConfigFile $config;
+	public BotConfig $config;
 
 	/**
 	 * Admin access levels of our admin users

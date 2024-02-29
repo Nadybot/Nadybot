@@ -14,6 +14,7 @@ use Illuminate\Database\{
 	Schema\Blueprint,
 };
 use Illuminate\Support\Collection;
+use Nadybot\Core\Config\BotConfig;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CSV\Reader,
@@ -45,7 +46,7 @@ class DB {
 	public Util $util;
 
 	#[NCA\Inject]
-	public ConfigFile $config;
+	public BotConfig $config;
 
 	#[NCA\Logger]
 	public LoggerWrapper $logger;
@@ -68,7 +69,7 @@ class DB {
 	protected array $tableNames = [];
 
 	/** The database type: mysql/sqlite */
-	private string $type;
+	private DB\Type $type;
 
 	/** The PDO object to talk to the database */
 	private PDO $sql;
@@ -97,7 +98,7 @@ class DB {
 	}
 
 	public function getVersion(): string {
-		return $this->config->dbType . " " . $this->sql->getAttribute(PDO::ATTR_SERVER_VERSION);
+		return $this->config->database->type->value . " " . $this->sql->getAttribute(PDO::ATTR_SERVER_VERSION);
 	}
 
 	/**
@@ -105,22 +106,22 @@ class DB {
 	 *
 	 * @throws Exception for unsupported database types
 	 */
-	public function connect(string $type, string $dbName, ?string $host=null, ?string $user=null, ?string $pass=null): void {
+	public function connect(Config\Database $config): void {
 		$errorShown = isset($this->sql);
 		unset($this->sql);
-		$this->dbName = $dbName;
-		$this->type = strtolower($type);
+		$this->dbName = $config->name;
+		$this->type = $config->type;
 		$this->capsule = new Capsule();
 
-		if ($this->type === self::MYSQL) {
+		if ($this->type === DB\Type::MySQL) {
 			do {
 				try {
 					$this->capsule->addConnection([
 						'driver' => 'mysql',
-						'host' => $host,
-						'database' => $dbName,
-						'username' => $user,
-						'password' => $pass,
+						'host' => $config->host,
+						'database' => $config->name,
+						'username' => $config->username,
+						'password' => $config->password,
 						'charset' => 'utf8',
 						'collation' => 'utf8_unicode_ci',
 						'prefix' => '',
@@ -129,7 +130,7 @@ class DB {
 				} catch (PDOException $e) {
 					if (!$errorShown) {
 						$this->logger->error(
-							"Cannot connect to the MySQL db at {$host}: ".
+							"Cannot connect to the MySQL db at {$config->host}: ".
 							trim($e->errorInfo[2])
 						);
 						$this->logger->notice(
@@ -146,11 +147,11 @@ class DB {
 			$this->sql->exec("SET sql_mode = 'TRADITIONAL,NO_BACKSLASH_ESCAPES'");
 			$this->sql->exec("SET time_zone = '+00:00'");
 			$this->sqlCreateReplacements[" AUTOINCREMENT"] = " AUTO_INCREMENT";
-		} elseif ($this->type === self::SQLITE) {
-			if ($host === null || $host === "" || $host === "localhost") {
-				$dbName = "./data/{$dbName}";
+		} elseif ($this->type === DB\Type::SQLite) {
+			if ($config->host === "" || $config->host === "localhost") {
+				$dbName = "./data/{$config->name}";
 			} else {
-				$dbName = "{$host}/{$dbName}";
+				$dbName = "{$config->host}/{$config->name}";
 			}
 			if (!@file_exists($dbName)) {
 				try {
@@ -233,15 +234,15 @@ class DB {
 				}
 				$this->capsule->getConnection()->setQueryGrammar($strictQuery);
 			}
-		} elseif ($this->type === self::POSTGRESQL) {
+		} elseif ($this->type === DB\Type::PostgreSQL) {
 			do {
 				try {
 					$this->capsule->addConnection([
 						'driver' => 'pgsql',
-						'host' => $host,
-						'database' => $dbName,
-						'username' => $user,
-						'password' => $pass,
+						'host' => $config->host,
+						'database' => $config->name,
+						'username' => $config->username,
+						'password' => $config->password,
 						'charset' => 'utf8',
 						'collation' => 'utf8_unicode_ci',
 						'prefix' => '',
@@ -250,7 +251,7 @@ class DB {
 				} catch (PDOException $e) {
 					if (!$errorShown) {
 						$this->logger->error(
-							"Cannot connect to the PostgreSQL db at {$host}: ".
+							"Cannot connect to the PostgreSQL db at {$config->host}: ".
 							trim($e->errorInfo[2] ?? $e->getMessage())
 						);
 						$this->logger->notice(
@@ -264,15 +265,15 @@ class DB {
 			if ($errorShown) {
 				$this->logger->notice("Database connection re-established");
 			}
-		} elseif ($this->type === self::MSSQL) {
+		} elseif ($this->type === DB\Type::MSSQL) {
 			do {
 				try {
 					$this->capsule->addConnection([
 						'driver' => 'sqlsrv',
-						'host' => $host,
-						'database' => $dbName,
-						'username' => $user,
-						'password' => $pass,
+						'host' => $config->host,
+						'database' => $config->name,
+						'username' => $config->username,
+						'password' => $config->password,
 						'charset' => 'utf8',
 						'collation' => 'utf8_unicode_ci',
 						'prefix' => '',
@@ -281,7 +282,7 @@ class DB {
 				} catch (PDOException $e) {
 					if (!$errorShown) {
 						$this->logger->error(
-							"Cannot connect to the MSSQL db at {$host}: ".
+							"Cannot connect to the MSSQL db at {$config->host}: ".
 							trim($e->errorInfo[2])
 						);
 						$this->logger->notice(
@@ -296,7 +297,11 @@ class DB {
 				$this->logger->notice("Database connection re-established");
 			}
 		} else {
-			throw new Exception("Invalid database type: '{$type}'.  Expecting '" . self::MYSQL . "', '". self::POSTGRESQL . "' or '" . self::SQLITE . "'.");
+			throw new Exception(
+				"Invalid database type: '{$config->type->value}'.  Expecting '".
+				DB\Type::MySQL->value . "', '". DB\Type::PostgreSQL->value.
+				"' or '" . DB\Type::SQLite->value . "'."
+			);
 		}
 		$this->capsule->setAsGlobal();
 		$this->capsule->setFetchMode(PDO::FETCH_CLASS);
@@ -315,7 +320,7 @@ class DB {
 	}
 
 	/** Get the configured database type */
-	public function getType(): string {
+	public function getType(): DB\Type {
 		return $this->type;
 	}
 

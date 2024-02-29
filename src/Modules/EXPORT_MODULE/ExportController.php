@@ -12,7 +12,7 @@ use Nadybot\Core\{
 	Attributes as NCA,
 	BuddylistManager,
 	CmdContext,
-	ConfigFile,
+	Config\BotConfig,
 	DB,
 	DBSchema\Admin,
 	DBSchema\Alt,
@@ -97,7 +97,7 @@ class ExportController extends ModuleInstance {
 	public Preferences $preferences;
 
 	#[NCA\Inject]
-	public ConfigFile $config;
+	public BotConfig $config;
 
 	/** Export all of this bot's data into a portable JSON-file */
 	#[NCA\HandlesCommand("export")]

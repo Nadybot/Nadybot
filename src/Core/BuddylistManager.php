@@ -8,6 +8,7 @@ use function Amp\Promise\timeout;
 use Amp\{Deferred, Promise, Success, TimeoutException};
 use Generator;
 use Nadybot\Core\Attributes as NCA;
+use Nadybot\Core\Config\BotConfig;
 use Throwable;
 
 #[NCA\Instance]
@@ -19,7 +20,7 @@ class BuddylistManager {
 	public LoggerWrapper $logger;
 
 	#[NCA\Inject]
-	public ConfigFile $config;
+	public BotConfig $config;
 
 	#[NCA\Inject]
 	public EventManager $eventManager;

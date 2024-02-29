@@ -9,7 +9,7 @@ use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
 	CommandReply,
-	ConfigFile,
+	Config\BotConfig,
 	DB,
 	ModuleInstance,
 	Modules\PLAYER_LOOKUP\Guild,
@@ -48,7 +48,7 @@ class GuildRankController extends ModuleInstance implements AccessLevelProvider 
 	public Nadybot $chatBot;
 
 	#[NCA\Inject]
-	public ConfigFile $config;
+	public BotConfig $config;
 
 	#[NCA\Inject]
 	public AccessManager $accessManager;

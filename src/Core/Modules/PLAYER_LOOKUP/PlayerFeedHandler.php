@@ -5,7 +5,7 @@ namespace Nadybot\Core\Modules\PLAYER_LOOKUP;
 use Amp\{Promise, Success};
 use EventSauce\ObjectHydrator\{ObjectMapperUsingReflection, UnableToHydrateObject};
 use Nadybot\Core\Attributes as NCA;
-use Nadybot\Core\{ConfigFile, EventFeed, EventFeedHandler, LoggerWrapper, ModuleInstance, Nadybot, SettingEvent};
+use Nadybot\Core\{Config\BotConfig, EventFeed, EventFeedHandler, LoggerWrapper, ModuleInstance, Nadybot, SettingEvent};
 use Throwable;
 
 #[
@@ -14,7 +14,7 @@ use Throwable;
 class PlayerFeedHandler extends ModuleInstance implements EventFeedHandler {
 	public const FEED_ROOM = 'bork_updates';
 	#[NCA\Inject]
-	public ConfigFile $config;
+	public BotConfig $config;
 
 	#[NCA\Inject]
 	public EventFeed $eventFeed;

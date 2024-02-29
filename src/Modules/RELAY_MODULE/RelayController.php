@@ -12,7 +12,7 @@ use Nadybot\Core\{
 	CmdContext,
 	CommandAlias,
 	CommandManager,
-	ConfigFile,
+	Config\BotConfig,
 	DB,
 	EventManager,
 	EventType,
@@ -86,7 +86,7 @@ class RelayController extends ModuleInstance {
 	public Nadybot $chatBot;
 
 	#[NCA\Inject]
-	public ConfigFile $config;
+	public BotConfig $config;
 
 	#[NCA\Inject]
 	public QuickRelayController $quickRelayController;

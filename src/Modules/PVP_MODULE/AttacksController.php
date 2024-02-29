@@ -9,7 +9,7 @@ use Nadybot\Core\DBSchema\Player;
 use Nadybot\Core\Modules\PLAYER_LOOKUP\PlayerManager;
 use Nadybot\Core\ParamClass\{PDuration, PNonGreedy, PTowerSite};
 use Nadybot\Core\Routing\{RoutableMessage, Source};
-use Nadybot\Core\{AOChatEvent, Attributes as NCA, CmdContext, ConfigFile, DB, LoggerWrapper, MessageHub, ModuleInstance, QueryBuilder, Text, Util};
+use Nadybot\Core\{AOChatEvent, Attributes as NCA, CmdContext, Config\BotConfig, DB, LoggerWrapper, MessageHub, ModuleInstance, QueryBuilder, Text, Util};
 use Nadybot\Modules\HELPBOT_MODULE\{Playfield, PlayfieldController};
 use Nadybot\Modules\LEVEL_MODULE\LevelController;
 
@@ -69,7 +69,7 @@ class AttacksController extends ModuleInstance {
 	public LevelController $lvlCtrl;
 
 	#[NCA\Inject]
-	public ConfigFile $config;
+	public BotConfig $config;
 
 	#[NCA\Inject]
 	public DB $db;

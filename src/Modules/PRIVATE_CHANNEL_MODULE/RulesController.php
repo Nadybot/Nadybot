@@ -10,7 +10,7 @@ use Nadybot\Core\{
 	AOChatEvent,
 	Attributes as NCA,
 	CmdContext,
-	ConfigFile,
+	Config\BotConfig,
 	ModuleInstance,
 	Nadybot,
 	Text,
@@ -40,7 +40,7 @@ class RulesController extends ModuleInstance {
 	public Nadybot $chatBot;
 
 	#[NCA\Inject]
-	public ConfigFile $config;
+	public BotConfig $config;
 
 	/** See the rules for this bot */
 	#[NCA\HandlesCommand("rules")]

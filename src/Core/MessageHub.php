@@ -22,6 +22,7 @@ use Nadybot\Core\{
 	Routing\RoutableEvent,
 	Routing\Source,
 };
+use Nadybot\Core\Config\BotConfig;
 use ReflectionClass;
 use ReflectionException;
 use ReflectionMethod;
@@ -48,7 +49,7 @@ class MessageHub {
 	public BuddylistManager $buddyListManager;
 
 	#[NCA\Inject]
-	public ConfigFile $config;
+	public BotConfig $config;
 
 	#[NCA\Inject]
 	public SettingManager $settingManager;

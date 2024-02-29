@@ -18,7 +18,7 @@ use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
 	CommandReply,
-	ConfigFile,
+	Config\BotConfig,
 	DB,
 	Event,
 	LoggerWrapper,
@@ -57,7 +57,7 @@ class FindOrgController extends ModuleInstance {
 	public Text $text;
 
 	#[NCA\Inject]
-	public ConfigFile $config;
+	public BotConfig $config;
 
 	#[NCA\Inject]
 	public Util $util;

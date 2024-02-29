@@ -6,7 +6,7 @@ use Nadybot\Core\{
 	AccessManager,
 	Attributes as NCA,
 	CmdContext,
-	ConfigFile,
+	Config\BotConfig,
 	DB,
 	ModuleInstance,
 	Nadybot,
@@ -45,7 +45,7 @@ class QuoteController extends ModuleInstance {
 	public Nadybot $chatBot;
 
 	#[NCA\Inject]
-	public ConfigFile $config;
+	public BotConfig $config;
 
 	/** Add a quote */
 	#[NCA\HandlesCommand("quote")]

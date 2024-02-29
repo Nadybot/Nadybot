@@ -15,7 +15,7 @@ use Nadybot\Core\{
 	Attributes as NCA,
 	BuddylistManager,
 	CmdContext,
-	ConfigFile,
+	Config\BotConfig,
 	DB,
 	DBSchema\Player,
 	Event,
@@ -99,7 +99,7 @@ class GuildController extends ModuleInstance {
 	public Nadybot $chatBot;
 
 	#[NCA\Inject]
-	public ConfigFile $config;
+	public BotConfig $config;
 
 	#[NCA\Inject]
 	public SettingManager $settingManager;

@@ -18,7 +18,7 @@ use Nadybot\Core\{
 	CacheManager,
 	ClassLoader,
 	CmdContext,
-	ConfigFile,
+	Config\BotConfig,
 	DB,
 	LoggerWrapper,
 	ModuleInstance,
@@ -67,7 +67,7 @@ class PackageController extends ModuleInstance {
 	public Nadybot $chatBot;
 
 	#[NCA\Inject]
-	public ConfigFile $config;
+	public BotConfig $config;
 
 	#[NCA\Inject]
 	public Text $text;

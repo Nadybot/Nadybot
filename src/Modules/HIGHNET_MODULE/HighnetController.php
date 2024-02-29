@@ -21,7 +21,7 @@ use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
 	CommandManager,
-	ConfigFile,
+	Config\BotConfig,
 	DB,
 	EventFeed,
 	EventFeedHandler,
@@ -92,7 +92,7 @@ class HighnetController extends ModuleInstance implements EventFeedHandler {
 	public EventFeed $eventFeed;
 
 	#[NCA\Inject]
-	public ConfigFile $config;
+	public BotConfig $config;
 
 	#[NCA\Inject]
 	public CommandManager $cmdManager;

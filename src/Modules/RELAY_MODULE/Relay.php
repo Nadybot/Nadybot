@@ -8,7 +8,7 @@ use Amp\Loop;
 use Generator;
 use Nadybot\Core\{
 	Attributes as NCA,
-	ConfigFile,
+	Config\BotConfig,
 	DBSchema\Player,
 	LoggerWrapper,
 	MessageHub,
@@ -39,7 +39,7 @@ class Relay implements MessageReceiver {
 	public Nadybot $chatBot;
 
 	#[NCA\Inject]
-	public ConfigFile $config;
+	public BotConfig $config;
 
 	#[NCA\Inject]
 	public SettingManager $settingManager;

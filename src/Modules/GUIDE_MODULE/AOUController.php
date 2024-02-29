@@ -16,7 +16,7 @@ use Nadybot\Core\{
 	Attributes as NCA,
 	CacheManager,
 	CmdContext,
-	ConfigFile,
+	Config\BotConfig,
 	ModuleInstance,
 	Text,
 };
@@ -43,7 +43,7 @@ class AOUController extends ModuleInstance {
 	public HttpClientBuilder $builder;
 
 	#[NCA\Inject]
-	public ConfigFile $config;
+	public BotConfig $config;
 
 	#[NCA\Inject]
 	public Text $text;

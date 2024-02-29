@@ -11,6 +11,7 @@ use Nadybot\Core\{
 	Routing\RoutableMessage,
 	Routing\Source,
 };
+use Nadybot\Core\Config\BotConfig;
 use Safe\Exceptions\FilesystemException;
 use Throwable;
 
@@ -20,7 +21,7 @@ use Throwable;
 #[NCA\Instance("logger")]
 class LoggerWrapper {
 	#[NCA\Inject]
-	public ConfigFile $config;
+	public BotConfig $config;
 
 	protected static bool $routeErrors = true;
 

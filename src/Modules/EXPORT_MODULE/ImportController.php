@@ -14,7 +14,7 @@ use Nadybot\Core\{
 	AdminManager,
 	Attributes as NCA,
 	CmdContext,
-	ConfigFile,
+	Config\BotConfig,
 	DB,
 	LoggerWrapper,
 	ModuleInstance,
@@ -102,7 +102,7 @@ class ImportController extends ModuleInstance {
 	public Util $util;
 
 	#[NCA\Inject]
-	public ConfigFile $config;
+	public BotConfig $config;
 
 	/** Import data from a file, mapping the exported access levels to your own ones */
 	#[NCA\HandlesCommand("import")]

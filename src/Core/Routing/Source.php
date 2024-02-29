@@ -5,7 +5,7 @@ namespace Nadybot\Core\Routing;
 use Illuminate\Support\Collection;
 use InvalidArgumentException;
 use Nadybot\Core\DBSchema\RouteHopFormat;
-use Nadybot\Core\{ConfigFile, Registry};
+use Nadybot\Core\{Config\BotConfig, Registry};
 
 class Source {
 	public const DB_TABLE = "route_hop_format_<myname>";
@@ -37,8 +37,8 @@ class Source {
 		$this->name = $name;
 		$this->label = $label;
 		if (!isset($dimension)) {
-			/** @var ConfigFile */
-			$config = Registry::getInstance(ConfigFile::class);
+			/** @var BotConfig */
+			$config = Registry::getInstance(BotConfig::class);
 			$this->server = $config->dimension;
 		} else {
 			$this->server = $dimension;

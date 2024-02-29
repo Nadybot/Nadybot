@@ -7,6 +7,7 @@ use Amp\Http\Client\{HttpClientBuilder, Request, Response};
 use Exception;
 use Generator;
 use Nadybot\Core\Attributes as NCA;
+use Nadybot\Core\Config\BotConfig;
 use Safe\Exceptions\FilesystemException;
 
 use Throwable;
@@ -29,7 +30,7 @@ class CacheManager {
 	public Util $util;
 
 	#[NCA\Inject]
-	public ConfigFile $config;
+	public BotConfig $config;
 
 	#[NCA\Logger]
 	public LoggerWrapper $logger;

@@ -7,7 +7,7 @@ use JsonMapper;
 use Nadybot\Core\Modules\ALTS\AltsController;
 use Nadybot\Core\{
 	Attributes as NCA,
-	ConfigFile,
+	Config\BotConfig,
 	EventManager,
 	LoggerWrapper,
 	Nadybot,
@@ -56,7 +56,7 @@ class NadyNative implements RelayProtocolInterface {
 	public Nadybot $chatBot;
 
 	#[NCA\Inject]
-	public ConfigFile $config;
+	public BotConfig $config;
 
 	#[NCA\Inject]
 	public SettingManager $settingManager;

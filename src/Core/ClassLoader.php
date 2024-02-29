@@ -5,6 +5,7 @@ namespace Nadybot\Core;
 use function Safe\preg_split;
 use Directory;
 use Nadybot\Core\Attributes as NCA;
+use Nadybot\Core\Config\BotConfig;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 use RecursiveRegexIterator;
@@ -51,7 +52,7 @@ class ClassLoader {
 	public function loadInstances(): void {
 		$newInstances = $this->getInstancesOfClasses(...get_declared_classes());
 		unset($newInstances["logger"]);
-		unset($newInstances["configfile"]);
+		unset($newInstances[strtolower(Registry::formatName(BotConfig::class))]);
 		$newInstances = array_merge($newInstances, $this->getNewInstancesInDir(__DIR__));
 		foreach ($newInstances as $name => $class) {
 			Registry::setInstance($name, new $class->className());

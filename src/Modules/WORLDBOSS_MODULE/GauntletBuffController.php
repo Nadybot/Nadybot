@@ -12,7 +12,7 @@ use Nadybot\Core\{
 	AOChatEvent,
 	Attributes as NCA,
 	CmdContext,
-	ConfigFile,
+	Config\BotConfig,
 	EventManager,
 	LoggerWrapper,
 	MessageEmitter,
@@ -74,7 +74,7 @@ class GauntletBuffController extends ModuleInstance implements MessageEmitter {
 	public Nadybot $chatBot;
 
 	#[NCA\Inject]
-	public ConfigFile $config;
+	public BotConfig $config;
 
 	#[NCA\Inject]
 	public EventManager $eventManager;

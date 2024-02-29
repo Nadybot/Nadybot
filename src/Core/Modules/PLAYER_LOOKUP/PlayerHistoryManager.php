@@ -13,7 +13,7 @@ use Generator;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CacheManager,
-	ConfigFile,
+	Config\BotConfig,
 	ModuleInstance,
 };
 use Safe\Exceptions\JsonException;
@@ -27,7 +27,7 @@ class PlayerHistoryManager extends ModuleInstance {
 	public CacheManager $cacheManager;
 
 	#[NCA\Inject]
-	public ConfigFile $config;
+	public BotConfig $config;
 
 	public function asyncLookup(string $name, int $dimension, callable $callback, mixed ...$args): void {
 		asyncCall(function () use ($name, $dimension, $callback, $args): Generator {

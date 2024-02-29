@@ -7,7 +7,7 @@ use function Safe\preg_split;
 use Amp\Promise;
 use Nadybot\Core\{
 	Attributes as NCA,
-	ConfigFile,
+	Config\BotConfig,
 	LoggerWrapper,
 	ModuleInstance,
 	Nadybot,
@@ -29,7 +29,7 @@ class DiscordController extends ModuleInstance {
 	public SettingManager $settingManager;
 
 	#[NCA\Inject]
-	public ConfigFile $config;
+	public BotConfig $config;
 
 	#[NCA\Inject]
 	public Text $text;

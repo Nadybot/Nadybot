@@ -11,7 +11,7 @@ use Nadybot\Core\{
 	Attributes as NCA,
 	BuddylistManager,
 	CmdContext,
-	ConfigFile,
+	Config\BotConfig,
 	DB,
 	DBSchema\Player,
 	Event,
@@ -106,7 +106,7 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 	public Nadybot $chatBot;
 
 	#[NCA\Inject]
-	public ConfigFile $config;
+	public BotConfig $config;
 
 	#[NCA\Inject]
 	public EventManager $eventManager;

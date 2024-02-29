@@ -1,53 +1,50 @@
 <?php declare(strict_types=1);
 
-namespace Nadybot\Core;
+namespace Nadybot\Core\Config;
 
-use function Safe\{file_get_contents, json_decode, json_encode};
+use function Safe\{file_get_contents, json_decode, json_encode, preg_match};
 use EventSauce\ObjectHydrator\PropertyCasters\CastToType;
 use EventSauce\ObjectHydrator\{MapFrom, MapperSettings, ObjectMapperUsingReflection};
 use Exception;
 use Nadybot\Core\Attributes\{ForceList, Instance};
-use Symfony\Component\Yaml\Yaml;
+use Yosymfony\Toml\Toml;
 
 /**
- * The ConfigFile class provides convenient interface for reading and saving
+ * The BotConfig class provides convenient interface for reading and saving
  * config files located in conf-subdirectory.
  */
 #[
 	Instance,
 	MapperSettings(serializePublicMethods: false)
 ]
-class ConfigFile {
+class BotConfig {
 	/**
-	 * @param string      $filePath                 The location in the filesystem of this config file
-	 * @param string      $login                    The AO account login
-	 * @param string      $password                 The AO account password
-	 * @param string      $name                     The name of the bot character
-	 * @param string      $orgName                  The exact name of the org to manage or an empty string if not an orgbot
-	 * @param bool        $autoOrgName              Try to automatically determine the org's name and track it for changes
-	 * @param int         $dimension                6 for Live (new), 5 for Live (old), 4 for Test
-	 * @param string[]    $superAdmins              Character names of the Super Administrators
-	 * @param string      $dbType                   What type of database should be used? ('sqlite', 'postgresql', or 'mysql')
-	 * @param string      $dbName                   Name of the database
-	 * @param string      $dbHost                   Hostname or sqlite file location
-	 * @param null|string $dbUsername               MySQL or PostgreSQL username
-	 * @param null|string $dbPassword               MySQL or PostgreSQL password
-	 * @param int         $showAomlMarkup           Show AOML markup in logs/console? 1 for enabled, 0 for disabled.
-	 * @param string      $cacheFolder              Cache folder for storing organization XML files.
-	 * @param string      $htmlFolder               Folder for storing HTML files of the webserver
-	 * @param string      $dataFolder               Folder for storing data files
-	 * @param string      $logsFolder               Folder for storing log files
-	 * @param int         $defaultModuleStatus      Default status for new modules: 1 for enabled, 0 for disabled.
-	 * @param int         $enableConsoleClient      Enable the readline-based console interface to the bot?
-	 * @param int         $enablePackageModule      Enable the module to install other modules from within the bot
-	 * @param bool        $autoUnfreeze             Try to automatically unfreeze frozen bot accounts
-	 * @param string      $autoUnfreezeLogin        If the bot is on a shared account, this is the login of the main account
-	 * @param string      $autoUnfreezePassword     If the bot is on a shared account, this is the password of the main account
-	 * @param bool        $autoUnfreezeUseNadyproxy Try to unlock a frozen account via a special proxy that prevents getting locked out
-	 * @param int         $useProxy                 Use an AO Chat Proxy? 1 for enabled, 0 for disabled
-	 * @param int         $proxyPort
-	 * @param string[]    $moduleLoadPaths          Define additional paths from where Nadybot should load modules at startup
-	 * @param array       $settings                 Define settings values which will be immutable
+	 * @param string   $filePath                 The location in the filesystem of this config file
+	 * @param string   $login                    The AO account login
+	 * @param string   $password                 The AO account password
+	 * @param string   $name                     The name of the bot character
+	 * @param string   $orgName                  The exact name of the org to manage or an empty string if not an orgbot
+	 * @param bool     $autoOrgName              Try to automatically determine the org's name and track it for changes
+	 * @param int      $dimension                6 for Live (new), 5 for Live (old), 4 for Test
+	 * @param string[] $superAdmins              Character names of the Super Administrators
+	 * @param Database $database                 What type of database should be used? ('sqlite', 'postgresql', or 'mysql')
+	 * @param int      $showAomlMarkup           Show AOML markup in logs/console? 1 for enabled, 0 for disabled.
+	 * @param string   $cacheFolder              Cache folder for storing organization XML files.
+	 * @param string   $htmlFolder               Folder for storing HTML files of the webserver
+	 * @param string   $dataFolder               Folder for storing data files
+	 * @param string   $logsFolder               Folder for storing log files
+	 * @param int      $defaultModuleStatus      Default status for new modules: 1 for enabled, 0 for disabled.
+	 * @param int      $enableConsoleClient      Enable the readline-based console interface to the bot?
+	 * @param int      $enablePackageModule      Enable the module to install other modules from within the bot
+	 * @param bool     $autoUnfreeze             Try to automatically unfreeze frozen bot accounts
+	 * @param string   $autoUnfreezeLogin        If the bot is on a shared account, this is the login of the main account
+	 * @param string   $autoUnfreezePassword     If the bot is on a shared account, this is the password of the main account
+	 * @param bool     $autoUnfreezeUseNadyproxy Try to unlock a frozen account via a special proxy that prevents getting locked out
+	 * @param int      $useProxy                 Use an AO Chat Proxy? 1 for enabled, 0 for disabled
+	 * @param int      $proxyPort
+	 * @param string[] $moduleLoadPaths          Define additional paths from where Nadybot should load modules at startup
+	 * @param array    $settings                 Define settings values which will be immutable
+	 *
 	 * @psalm-param array<string,null|scalar> $settings
 	 */
 	public function __construct(
@@ -55,34 +52,45 @@ class ConfigFile {
 		public string $login,
 		public string $password,
 		public string $name,
-		#[MapFrom('my_guild')] public string $orgName,
+		#[MapFrom('my_guild')]
+		public string $orgName,
 		public ?int $orgId,
 		public int $dimension,
-		#[ForceList] #[MapFrom('SuperAdmin')] public array $superAdmins,
-		#[MapFrom('DB Type')] public string $dbType=DB::SQLITE,
-		#[MapFrom('DB Name')] public string $dbName="nadybot.db",
-		#[MapFrom('DB Host')] public string $dbHost="./data/",
-		#[MapFrom('DB username')] public ?string $dbUsername=null,
-		#[MapFrom('DB password')] public ?string $dbPassword=null,
-		#[CastToType('int')] public int $showAomlMarkup=0,
-		#[MapFrom('cachefolder')] public string $cacheFolder="./cache/",
-		#[MapFrom('htmlfolder')] public string $htmlFolder="./html/",
-		#[MapFrom('datafolder')] public string $dataFolder="./data/",
-		#[MapFrom('logsfolder')] public string $logsFolder="./logs/",
+		#[ForceList]
+		#[MapFrom('SuperAdmin')]
+		public array $superAdmins,
+		public Database $database,
+		#[CastToType('int')]
+		public int $showAomlMarkup=0,
+		#[MapFrom('cachefolder')]
+		public string $cacheFolder="./cache/",
+		#[MapFrom('htmlfolder')]
+		public string $htmlFolder="./html/",
+		#[MapFrom('datafolder')]
+		public string $dataFolder="./data/",
+		#[MapFrom('logsfolder')]
+		public string $logsFolder="./logs/",
 		public int $defaultModuleStatus=0,
-		#[CastToType('int')] public int $enableConsoleClient=1,
-		#[CastToType('int')] public int $enablePackageModule=1,
-		#[CastToType('bool')] public bool $autoUnfreeze=false,
+		#[CastToType('int')]
+		public int $enableConsoleClient=1,
+		#[CastToType('int')]
+		public int $enablePackageModule=1,
+		#[CastToType('bool')]
+		public bool $autoUnfreeze=false,
 		public ?string $autoUnfreezeLogin=null,
 		public ?string $autoUnfreezePassword=null,
 		public bool $autoUnfreezeUseNadyproxy=true,
-		#[CastToType('int')] public int $useProxy=0,
+		#[CastToType('int')]
+		public int $useProxy=0,
 		public string $proxyServer="127.0.0.1",
-		#[CastToType('int')] public int $proxyPort=9993,
+		#[CastToType('int')]
+		public int $proxyPort=9993,
 		public array $moduleLoadPaths=['./src/Modules', './extras'],
 		public array $settings=[],
 		public ?string $timezone=null,
-		#[CastToType('bool')] #[MapFrom('auto_guild_name')] public bool $autoOrgName=false,
+		#[CastToType('bool')]
+		#[MapFrom('auto_guild_name')]
+		public bool $autoOrgName=false,
 	) {
 		if ($this->autoUnfreezeLogin === "") {
 			$this->autoUnfreezeLogin = null;
@@ -100,19 +108,26 @@ class ConfigFile {
 	public static function loadFromFile(string $filePath): self {
 		self::copyFromTemplateIfNeeded($filePath);
 		$vars = [];
-		if (str_ends_with($filePath, '.yaml') || str_ends_with($filePath, '.yml')) {
-			$yaml = file_get_contents($filePath);
-			$vars = Yaml::parse($yaml);
+		if (str_ends_with($filePath, '.toml')) {
+			$toml = file_get_contents($filePath);
+			$vars = Toml::parse($toml);
 		} elseif (str_ends_with($filePath, '.json')) {
 			$json = file_get_contents($filePath);
 			$vars = json_decode($json, true);
 		} else {
 			require $filePath;
 		}
+		foreach ($vars as $key => $value) {
+			if (preg_match('/^DB (.+)$/', $key, $matches)) {
+				$vars['database'] ??= [];
+				$vars['database'][strtolower($matches[1])] = $value;
+				unset($vars[$key]);
+			}
+		}
 		$vars['file_path'] = $filePath;
 		$mapper = new ObjectMapperUsingReflection();
 
-		/** @var ConfigFile $config */
+		/** @var BotConfig $config */
 		$config = $mapper->hydrateObject(
 			self::class,
 			$vars
@@ -142,9 +157,7 @@ class ConfigFile {
 			}
 			return isset($value);
 		});
-		if (str_ends_with($this->filePath, '.yml') || str_ends_with($this->filePath, '.yaml')) {
-			$yaml = Yaml::dump($vars);
-			\Safe\file_put_contents($this->filePath, $yaml);
+		if (str_ends_with($this->filePath, '.toml')) {
 			return;
 		} elseif (str_ends_with($this->filePath, '.json')) {
 			$json = json_encode($vars, JSON_PRETTY_PRINT);

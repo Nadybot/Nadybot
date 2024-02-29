@@ -4,7 +4,7 @@ namespace Nadybot\Modules\WATCHDOG_MODULE;
 
 use Nadybot\Core\{
 	Attributes as NCA,
-	ConfigFile,
+	Config\BotConfig,
 	ModuleInstance,
 };
 
@@ -15,7 +15,7 @@ use Nadybot\Core\{
 #[NCA\Instance]
 class WatchdogController extends ModuleInstance {
 	#[NCA\Inject]
-	public ConfigFile $config;
+	public BotConfig $config;
 
 	#[NCA\Event(
 		name: "timer(10sec)",

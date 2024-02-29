@@ -6,7 +6,7 @@ use function Amp\call;
 use Amp\Promise;
 use Exception;
 use Nadybot\Core\Attributes as NCA;
-use Nadybot\Core\{ConfigFile, EventFeedHandler, EventManager, LoggerWrapper, ModuleInstance, SyncEvent};
+use Nadybot\Core\{Config\BotConfig, EventFeedHandler, EventManager, LoggerWrapper, ModuleInstance, SyncEvent};
 use Nadybot\Modules\WEBSERVER_MODULE\JsonImporter;
 
 #[
@@ -15,7 +15,7 @@ use Nadybot\Modules\WEBSERVER_MODULE\JsonImporter;
 ]
 class FeedHandler extends ModuleInstance implements EventFeedHandler {
 	#[NCA\Inject]
-	public ConfigFile $config;
+	public BotConfig $config;
 
 	#[NCA\Inject]
 	public EventManager $eventManager;

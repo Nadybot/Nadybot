@@ -23,7 +23,7 @@ use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
 	CommandReply,
-	ConfigFile,
+	Config\BotConfig,
 	DB,
 	DBSchema\Player,
 	EventManager,
@@ -158,7 +158,7 @@ class TowerController extends ModuleInstance {
 	public PlayfieldController $playfieldController;
 
 	#[NCA\Inject]
-	public ConfigFile $config;
+	public BotConfig $config;
 
 	#[NCA\Inject]
 	public PlayerManager $playerManager;

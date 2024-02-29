@@ -25,7 +25,7 @@ use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
 	CommandManager,
-	ConfigFile,
+	Config\BotConfig,
 	LoggerWrapper,
 	ModuleInstance,
 	Nadybot,
@@ -49,7 +49,7 @@ class MgmtInterfaceController extends ModuleInstance {
 	public LoggerWrapper $logger;
 
 	#[NCA\Inject]
-	private ConfigFile $config;
+	private BotConfig $config;
 
 	#[NCA\Inject]
 	private Nadybot $chatBot;

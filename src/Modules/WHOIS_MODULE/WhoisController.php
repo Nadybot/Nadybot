@@ -12,7 +12,7 @@ use Nadybot\Core\{
 	Attributes as NCA,
 	BuddylistManager,
 	CmdContext,
-	ConfigFile,
+	Config\BotConfig,
 	DB,
 	DBSchema\Audit,
 	DBSchema\Player,
@@ -57,7 +57,7 @@ class WhoisController extends ModuleInstance {
 	public Nadybot $chatBot;
 
 	#[NCA\Inject]
-	public ConfigFile $config;
+	public BotConfig $config;
 
 	#[NCA\Inject]
 	public BanController $banController;
@@ -104,7 +104,7 @@ class WhoisController extends ModuleInstance {
 		yield $this->db->awaitBeginTransaction();
 		try {
 			foreach ($this->nameHistoryCache as $entry) {
-				if ($this->db->getType() === DB::MSSQL) {
+				if ($this->db->getType() === DB\Type::MSSQL) {
 					if ($this->db->table("name_history")
 						->where("name", $entry->name)
 						->where("charid", $entry->charid)

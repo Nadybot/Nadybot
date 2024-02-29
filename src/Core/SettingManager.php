@@ -4,6 +4,7 @@ namespace Nadybot\Core;
 
 use Exception;
 use Nadybot\Core\Attributes as NCA;
+use Nadybot\Core\Config\BotConfig;
 use Nadybot\Core\DBSchema\Setting;
 
 #[
@@ -32,7 +33,7 @@ class SettingManager {
 	public EventManager $eventManager;
 
 	#[NCA\Inject]
-	public ConfigFile $config;
+	public BotConfig $config;
 
 	#[NCA\Logger]
 	public LoggerWrapper $logger;

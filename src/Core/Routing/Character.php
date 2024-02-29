@@ -2,7 +2,7 @@
 
 namespace Nadybot\Core\Routing;
 
-use Nadybot\Core\{ConfigFile, Registry};
+use Nadybot\Core\{Config\BotConfig, Registry};
 
 class Character {
 	public ?int $id = null;
@@ -15,8 +15,8 @@ class Character {
 		$this->name = $name;
 		$this->id = $id;
 
-		/** @var ConfigFile */
-		$config = Registry::getInstance(ConfigFile::class);
+		/** @var BotConfig */
+		$config = Registry::getInstance(BotConfig::class);
 		$dimension ??= $config->dimension;
 		$this->dimension = $dimension;
 	}

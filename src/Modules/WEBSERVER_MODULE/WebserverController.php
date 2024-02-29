@@ -16,7 +16,7 @@ use Nadybot\Core\{
 	AccessManager,
 	Attributes as NCA,
 	CmdContext,
-	ConfigFile,
+	Config\BotConfig,
 	DB,
 	LoggerWrapper,
 	ModuleInstance,
@@ -49,7 +49,7 @@ class WebserverController extends ModuleInstance {
 	public Socket $socket;
 
 	#[NCA\Inject]
-	public ConfigFile $config;
+	public BotConfig $config;
 
 	#[NCA\Inject]
 	public AccessManager $accessManager;
