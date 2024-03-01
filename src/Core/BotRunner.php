@@ -440,6 +440,7 @@ class BotRunner {
 	protected function getServerAndPort(BotConfig $config): array {
 		// Choose server
 		if ($config->proxy?->enabled === true) {
+			assert(isset($config->proxy));
 			// For use with the AO chat proxy ONLY!
 			$server = $config->proxy->server;
 			$port = $config->proxy->port;
