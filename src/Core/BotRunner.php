@@ -251,7 +251,6 @@ class BotRunner {
 		date_default_timezone_set("UTC");
 
 		$config = $this->getConfigFile();
-		var_dump($config);
 		Registry::setInstance(Registry::formatName(BotConfig::class), $config);
 		$retryHandler = new HttpRetry(8);
 		Registry::injectDependencies($retryHandler);
